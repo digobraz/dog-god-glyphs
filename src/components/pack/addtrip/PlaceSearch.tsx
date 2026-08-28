@@ -17,7 +17,7 @@ import { MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
 import { PACK_THEME as T, FONT_UI } from '@/components/pack/packTheme';
 import { MAP_SKIN, PALE, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
 import { dockPadX } from '@/components/pack/mapDockShape';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
 
 export type PlaceSug = { name: string; sub: string; lat: number; lon: number };
 
@@ -85,6 +85,7 @@ ${MAP_SKIN !== 'pale' ? '' : `
 
 export function PlaceSearch({ mapRef, zoom = 14, placeholder, onPicked }: PlaceSearchProps) {
   const t = useT();
+  const { lang } = useLang();   // jazyk pre Mapy.com suggest (viď url nižšie)
   const [q, setQ] = useState('');
   const [items, setItems] = useState<PlaceSug[]>([]);
   // Pole musí SAMO povedať, že sa doň dá písať (Matej 2026-08-23: „okraj tej textarey musí
@@ -100,8 +101,12 @@ export function PlaceSearch({ mapRef, zoom = 14, placeholder, onPicked }: PlaceS
     if (pickedRef.current === query) { setItems([]); return; }
     const timer = setTimeout(async () => {
       try {
+        // ⚠️ JAZYK PODĽA APPKY, nie natvrdo `en` (opravené 27. 8. 2026 — tá istá chyba bola
+        // aj v hľadaní na `/pack/map`). Mapy.com vracia v `label` TYP miesta, takže slovenský
+        // člen dostal „Shelter" namiesto „Útulňa, bivak" — teda presne to slovo, podľa ktorého
+        // miesto hľadá. Práve toto hľadanie ruší kopírovanie súradníc z mapy.cz.
         const url = MAPY_BASE + '/v1/suggest?query=' + encodeURIComponent(query)
-          + '&lang=en&limit=6&apikey=' + MAPY_API_KEY;
+          + '&lang=' + encodeURIComponent(lang) + '&limit=6&apikey=' + MAPY_API_KEY;
         const res = await fetch(url);
         const data = await res.json();
         const next: PlaceSug[] = (data.items || [])
@@ -116,7 +121,7 @@ export function PlaceSearch({ mapRef, zoom = 14, placeholder, onPicked }: PlaceS
       } catch { setItems([]); }
     }, 250);
     return () => clearTimeout(timer);
-  }, [q]);
+  }, [q, lang]);
 
   // Klik mimo / Esc zavrie ponuku. Bez toho ostane visieť nad mapou a kradne prvý ťuk,
   // ktorý mal položiť kotvu.

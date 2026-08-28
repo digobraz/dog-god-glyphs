@@ -67,10 +67,27 @@ function ChapterList({ rows }: { rows: typeof SACRED_INDEX }) {
   );
 }
 
-export default function ConstitutionBook() {
+/**
+ * `belowBook` = voliteľný uzol POD knihou, nad chipom „klikni a otvor".
+ * Existuje kvôli `/onepage`, kde má nadpis („Biblia" pre psíčkarov) stáť pod
+ * knihou a chip pod ním (Matej 28. 8. 2026) — nad knihou by ho zjedla horná
+ * lišta filmu. Prop je aditívny: kto ho nepošle (živá `/religion`), dostane
+ * presne to, čo doteraz. Slot je TU, a nie v ReligionLab, lebo chip sa kotví
+ * cez `--cb-h`, ktoré žije na `.cb-wrap` — mimo neho by nadpis a chip nemali
+ * spoločnú sústavu a museli by sa dopočítavať dvakrát.
+ */
+/**
+ * `openOnMount` = kniha sa zjaví UŽ OTVORENÁ.
+ * Prišlo to s tlačidlom „Read the Bible for dog lovers" na /onepage (Matej
+ * 28. 8. 2026): keď človek klikne na „prečítaj si", nemá pristáť na zavretej
+ * obálke a klikať druhýkrát. Tam, kde je kniha PREDMETOM (pätička filmu,
+ * /religion-lab), ostáva zavretá — otvorenie je tam súčasť objavu.
+ * Aditívne, default false ⇒ existujúce miesta sa nemenia.
+ */
+export default function ConstitutionBook({ belowBook, openOnMount = false }: { belowBook?: React.ReactNode; openOnMount?: boolean } = {}) {
   const t = useT();
   const bookRef = useRef<{ pageFlip: () => { flipNext: () => void; flipPrev: () => void } } | null>(null);
-  const [opened, setOpened] = useState(false);
+  const [opened, setOpened] = useState(openOnMount);
   const [page, setPage] = useState(0);
   const [dims, setDims] = useState(calcDims);
 
@@ -244,6 +261,8 @@ export default function ConstitutionBook() {
           <span className="cb-shimmer" aria-hidden />
         </button>
       </div>
+
+      {belowBook}
 
       {/* hint / nav */}
       {!opened ? (

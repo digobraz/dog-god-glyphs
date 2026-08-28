@@ -13,6 +13,7 @@
 // mal každý vlastnú mriežku, rozišli by sa pri prvom pridanom druhu (a druhy pribúdajú, viď
 // `GROUP_KINDS`).
 import { PACK_THEME as T, FONT_UI } from '@/components/pack/packTheme';
+import { MAP_SKIN, PALE, PALE_PC_MIN, tintRGBA } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 import type { NoteKind } from './mapNotesData';
 import { FONT_EMOJI, threatEmoji } from './markEmoji';
@@ -53,7 +54,12 @@ export function KindGrid({
           className={`mnk-tile${selected === k ? ' on' : ''}`}
           onClick={() => onPick(k)}
           aria-pressed={selected === k}
-          style={selected === k ? { background: tint, borderColor: '#FFFFFF' } : undefined}
+          /* ⚠️ VYBRANÁ DLAŽDICA JE TINT, NIE PLNÁ FARBA (Matej 2026-08-26, tretie kolo:
+             „výber PWT som chcel modré/zelené/červené ale priesvitné"). Plná výplň dávala
+             tej istej váhy ako hlavné CTA pod ňou. Rám nesie farbu naplno — z neho sa
+             číta, ktorá skupina to je; výplň len podfarbuje. Biely rám (do teraz) hovoril
+             „vybraté", ale nie „vybraté ČO". */
+          style={selected === k ? { background: tintRGBA(tint, 0.24), borderColor: tint } : undefined}
         >
           <i>{threatEmoji(k)}</i>
           <em>{t(`pack.mapNotes.kind.${k}`)}</em>
@@ -88,4 +94,19 @@ export const KIND_GRID_CSS = `
 .mnk-tile em{font-style:normal;font-family:${FONT_UI};font-size:10px;font-weight:500;line-height:1.2;text-align:center;color:${T.onDarkDim};}
 .mnk-tile.on em{color:#FFFFFF;}
 .mnk-tile.on{box-shadow:0 2px 8px rgba(0,0,0,0.5);transform:translateY(-1px);}
+${MAP_SKIN !== 'pale' ? '' : `
+/* ── BLEDÝ SKIN PC (2026-08-26) ─────────────────────────────────────────────────────────
+   Mriežka žije v paneli značky, ktorý je na PC papyrusový. V onDark tokenoch tam bola
+   NEČITATEĽNÁ: výplň rgba(245,240,228,0.06) na piesku prakticky nič a názov svetlý inkoust —
+   z dlaždice ostalo len emoji. Mobil ostáva tmavý až do vlastného kola.
+   ⚠️ Vybraná dlaždica (.on) si výplň nesie zvonku (farba skupiny, inline štýl), preto sa tu
+   mení len jej inkoust — a nie na biely, ale na najtmavší: zvolené farby sú svetlé tinty. */
+@media (min-width:${PALE_PC_MIN}px){
+  .mnk-tile{background:${PALE.field};border-color:${PALE.border};}
+  .mnk-tile:hover{border-color:${PALE.deep};}
+  .mnk-tile em{color:${PALE.dim};}
+  .mnk-tile.on em{color:${PALE.ink};}
+  .mnk-tile.on{box-shadow:0 2px 8px rgba(110,74,20,0.35);}
+}
+`}
 `;

@@ -7,33 +7,13 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { PageTopBar } from '@/components/PageTopBar';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
-import { buildHeroglyphCode, countryISO3 } from '@/lib/heroglyphCode';
+import { COUNTRIES } from '@/lib/flowCountries';
 import { suggestEmailFix } from '@/lib/emailTypo';
 import { getStoredRef } from '@/lib/refCapture';
 import { getAttribution } from '@/lib/attribution';
 import { track, identifyUser } from '@/lib/analytics';
-import { EDGE_BASE } from '@/lib/env';
+import { saveCheckoutDraft } from '@/lib/checkoutDraft';
 
-const SAVE_DRAFT_URL = `${EDGE_BASE}/save-checkout-draft`;
-
-const COUNTRIES = [
-  'Afghanistan','Albania','Algeria','Andorra','Angola','Argentina','Armenia','Australia','Austria','Azerbaijan',
-  'Bahamas','Bahrain','Bangladesh','Barbados','Belarus','Belgium','Belize','Benin','Bhutan','Bolivia',
-  'Bosnia and Herzegovina','Botswana','Brazil','Brunei','Bulgaria','Burkina Faso','Burundi','Cambodia','Cameroon',
-  'Canada','Central African Republic','Chad','Chile','China','Colombia','Comoros','Congo','Costa Rica','Croatia',
-  'Cuba','Cyprus','Czech Republic','Denmark','Djibouti','Dominican Republic','Ecuador','Egypt','El Salvador',
-  'Estonia','Ethiopia','Fiji','Finland','France','Gabon','Gambia','Georgia','Germany','Ghana','Greece',
-  'Guatemala','Guinea','Haiti','Honduras','Hungary','Iceland','India','Indonesia','Iran','Iraq','Ireland',
-  'Israel','Italy','Jamaica','Japan','Jordan','Kazakhstan','Kenya','Kuwait','Kyrgyzstan','Laos','Latvia',
-  'Lebanon','Libya','Liechtenstein','Lithuania','Luxembourg','Madagascar','Malaysia','Maldives','Mali','Malta',
-  'Mexico','Moldova','Monaco','Mongolia','Montenegro','Morocco','Mozambique','Myanmar','Namibia','Nepal',
-  'Netherlands','New Zealand','Nicaragua','Niger','Nigeria','North Macedonia','Norway','Oman','Pakistan',
-  'Panama','Paraguay','Peru','Philippines','Poland','Portugal','Qatar','Romania','Russia','Rwanda',
-  'Saudi Arabia','Senegal','Serbia','Singapore','Slovakia','Slovenia','Somalia','South Africa','South Korea',
-  'Spain','Sri Lanka','Sudan','Sweden','Switzerland','Syria','Taiwan','Tanzania','Thailand','Tunisia',
-  'Turkey','Uganda','Ukraine','United Arab Emirates','United Kingdom','United States','Uruguay','Uzbekistan',
-  'Venezuela','Vietnam','Yemen','Zambia','Zimbabwe',
-];
 
 export function CheckoutScreen() {
   const navigate = useNavigate();
@@ -111,50 +91,10 @@ export function CheckoutScreen() {
   // (save-checkout-draft). Draft = rozrobený pes so všetkým zo store → záchranný
   // mail vie poslať Resume&Pay link rovno na Stripe. Fire-and-forget, žiadna
   // chyba nesmie blokovať checkout.
-  const lang = useLang();
-  const draftIdRef = useRef<string | null>(null);
+  const { lang } = useLang();
   const lastSavedEmailRef = useRef('');
 
-  const saveDraft = (emailVal: string) => {
-    const s = useDogyptStore.getState();
-    if (!s.dogName) return;
-    const heroglyphCode = buildHeroglyphCode({
-      dogName: s.dogName,
-      ownerName: s.ownerName,
-      patronSvg: s.patronSvg,
-      breed: s.selections?.breed,
-      patronCategory: s.selections?.patronCategory,
-      country: s.selections?.country,
-      selections: s.selections,
-    });
-    const iso3 = countryISO3(s.selections?.country);
-    fetch(SAVE_DRAFT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        draftId: draftIdRef.current ?? undefined,
-        dogName: s.dogName,
-        ownerName: s.ownerName,
-        email: emailVal.trim(),
-        selections: s.selections,
-        dogPhotoUrl: s.dogPhotoUrl,
-        cloudinaryExtras: s.extraPhotos.filter((u) => u && !u.startsWith('blob:')),
-        patronSvg: s.patronSvg,
-        patronSvg2: s.patronSvg2,
-        breed: s.selections?.breed || undefined,
-        country: iso3 !== 'XXX' ? iso3 : undefined,
-        heroglyphCode,
-        refCode: getStoredRef(),
-        language: lang,
-        lifeStatus: s.lifeStatus,
-        deathDate: s.deathDate,
-        ...getAttribution(),
-      }),
-    })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => { if (d?.draftId) draftIdRef.current = d.draftId; })
-      .catch(() => { /* draft je best-effort, checkout nesmie trpieť */ });
-  };
+  const saveDraft = (emailVal: string) => saveCheckoutDraft(emailVal, lang);
 
   useEffect(() => {
     const trimmed = email.trim().toLowerCase();

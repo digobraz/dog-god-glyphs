@@ -32,6 +32,7 @@ import { TRAIL_LINE, TRAIL_SABER_LAYERS, trailSaberScale, ensureTrailLineCss, El
 import { useLongPressPoint } from '@/components/pack/mapnotes/useLongPressPoint';
 import { PlaceSearch } from './PlaceSearch';
 import { AinubisGuide, AINUBIS_GUIDE_CSS } from './AinubisGuide';
+import { MiniOverview, MINI_OVERVIEW_CSS } from '@/components/pack/MiniOverview';
 import { MAP_DOCK_CSS, DOCK_COL_W, DOCK_MOBILE_MAX } from '@/components/pack/mapDockShape';
 import { HandTrash, HandArrowLeft } from '@/components/pack/HandIcons';
 import { EVENT_RIM, FONT_EMOJI, TRIP_TARGET_EMOJI } from '@/components/pack/mapnotes/markEmoji';
@@ -61,10 +62,18 @@ export const DRAW_BAR_H = 120;
  */
 const GLOW_PAD = 16;
 
-// Územie: rozsah polomeru zo zadania §5.
-const AREA_MIN_M = 200;
-const AREA_MAX_M = 20000;
-const AREA_DEFAULT_M = 1500;
+// Územie: rozsah polomeru.
+// ⚠️ ZÚŽENÉ 27. 8. 2026 (Matej: „okruh dajme max 500 a min 100 a nastavme to na min").
+// Pôvodne 200 m – 20 km s východiskom 1,5 km — to je polomer, do ktorého sa zmestí celé
+// mesto, takže „oblasť" nehovorila, kde ste boli, ale v ktorom kraji. Nové rozpätie je
+// veľkosť lúky, jazera či parku, teda toho, čo oblasť reálne označuje.
+// Východisko = MINIMUM, nie stred rozpätia: kruh sa dá len roztiahnuť, a keď začne malý,
+// človek ho zväčšuje, kým sedí. Keby začal veľký, musel by najprv uhádnuť, o koľko ho zmenšiť.
+// ⚠️ Krok jazdca je preto 25 m, nie 100 — pri rozpätí 400 m by 100 m dalo len päť polôh.
+const AREA_MIN_M = 100;
+const AREA_MAX_M = 500;
+const AREA_DEFAULT_M = AREA_MIN_M;
+const AREA_STEP_M = 25;
 
 // Kontrola duplicity (§5.3): štart do 300 m od existujúcej trasy s dĺžkou ±20 %.
 const DUPLICATE_RADIUS_M = 300;
@@ -1068,7 +1077,9 @@ export function GeometryPicker({
           </>
   ) : value.center ? (
     value.kind === 'area'
-      ? t('pack.addTrip.geo.areaRadius', { km: (value.radiusM / 1000).toFixed(1) })
+      // METRE, NIE KILOMETRE — pri rozpätí 100–500 m ukazoval „0.1 km" a jazdec vyzeral
+      // pokazený: tri polohy po sebe hlásili to isté číslo.
+      ? t('pack.addTrip.geo.areaRadiusM', { m: value.radiusM })
       : t('pack.addTrip.geo.spotSet')
   ) : (
     <span className="trp-dread-dim">{barOn ? '' : hint}</span>
@@ -1322,7 +1333,7 @@ export function GeometryPicker({
           type="range"
           min={AREA_MIN_M}
           max={AREA_MAX_M}
-          step={100}
+          step={AREA_STEP_M}
           value={value.radiusM}
           onChange={(e) => onChange({ kind: 'area', center: value.center, radiusM: Number(e.target.value) })}
           style={{ width: '100%', accentColor: GOLD }}
@@ -1354,6 +1365,7 @@ export function GeometryPicker({
         <style>{DRAW_BAR_CSS}</style>
         <style>{AINUBIS_GUIDE_CSS}</style>
         <style>{CIRCLE_MARK_CSS}</style>
+        <style>{MINI_OVERVIEW_CSS}</style>
         {/* ── HORNÝ PÁS: HĽADANIE MIESTA + ČO MÁM ROBIŤ ──────────────────────────────────
             Matej 2026-08-22: „otvorí sa mapa s vysvetlením ako začať… textarea s lokalitou."
             Veta je JEDNA a stojí VŽDY na tom istom mieste (Matej 23. 8., krokový sprievodca) —
@@ -1408,6 +1420,15 @@ export function GeometryPicker({
         <div className={`trp-dock${isPC ? ' trp-dock--pc' : ''}`}>
         {/* PC: sprievodca stojí NAD prevýšením, teda ako prvý v stĺpci (§0.1 poradie). */}
         {isPC && guide}
+        {/* ⚠️ NÁHĽAD „KDE SOM" STOJÍ POD AINUBISOM A NAD NÁSTROJMI (Matej 2026-08-28:
+            „chcel som to práveže do lavej strany nad blok pod ainubisov blok aby sme vyplnily
+             lavu stranu kde je blok s nastrojmi (na miesto kde je v 2 kroku prevýšenie)").
+            Je tu VŽDY, nielen kým je stĺpec prázdny: stratiť sa dá práve pri kreslení, keď je
+            mapa priblížená na 15+. Keď sa v kroku 2 pridá prevýšenie, stoja pod sebou —
+            dok na PC skroluje (`.trp-dock--pc{overflow-y:auto}`).
+            Len PC: na telefóne je dok pripútaný k spodnej hrane a miesto tam nie je (a prstom
+            sa odzoomuje inak). Bežná `/pack/map` ho dostane až po doladení, vpravo dole. */}
+        {isPC && <MiniOverview mapRef={mapRef} />}
         {/* ⚠️ ČÍTANIE KM STOJÍ V MAPE, NIE V PANELI (Matej 24. 8. 2026: „pils s počítaním km
             v 1-2 kroku daj nad panel — ako keby do mapy"). Je to údaj O TRASE, teda o tom, čo
             je na mape — v paneli patrí ovládanie. Rovnaké miesto, aké mala kedysi pokynová

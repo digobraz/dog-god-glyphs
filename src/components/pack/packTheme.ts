@@ -77,6 +77,20 @@ export const PACK_THEME = {
   /** Svetlejší koniec modrého gradientu. Tá istá modrá ako `partHek` nižšie. */
   brandBlueLite: '#2E5FD0',
   growGreen: '#3D7A4E',
+  // ── FIALOVÁ = VÝLETY. JEDNA, NIE VIAC (LOCKED 2026-08-28) ─────────────────
+  // Matej: „použime fialovú ktorá je v brande, resp je pri svetelnom meči.. je to
+  // ona (nepoužívajme viac fialových len jednu a tú si definujme)".
+  // Toto JE tá jedna — sýte telo svetelného meča, ktorým sa kreslí trasa.
+  // Naprieč `/pack` už dovtedy ležala ako literál `#7A2FBF` / `rgba(122,47,191,…)`
+  // na desiatkach miest; odteraz má meno a berie sa odtiaľto.
+  // KEDY PO NEJ SIAHNUŤ: keď prvok hovorí o VÝLETE (trasa, kotva, výrez náhľadu,
+  // odznak prejdenia). Nie na chrome — tam je zlato a lapis.
+  // ⚠️ NEZAKLADAJ druhý odtieň fialovej. Svetlá `TRAIL_LINE.light` a tmavá
+  // `.edge` NIE SÚ ďalšie farby — sú to vrstvy ŽIARY tej istej čiary (technika
+  // kreslenia meča), a mimo neho sa nepoužívajú ako samostatná farba.
+  tripPurple: '#7A2FBF',
+  /** Tá istá fialová v zložkách — na skladanie rgba() bez druhého literálu. */
+  tripPurpleRGB: '122,47,191',
   // ── Canonical TRANSPARENCY MODEL part colors (LOCKED 2026-06-09) ──────────
   // Jeden zdroj pravdy pre FounderInvite (back of block 5) + TransparentStats
   // (block 3) — farby MUSIA sedieť v oboch. Rozvoj zlatožltá · marketing tyrkys

@@ -24,13 +24,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import { Circle, Marker } from 'react-leaflet';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
-import { MAP_SKIN, PALE, PALE_PC_MIN, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { MAP_SKIN, PALE, PALE_PC_MIN, LAPIS, LAPIS_BTN_SHADOW, tintRGBA } from '@/components/pack/navGoldSkin';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
-import { GROUP_KINDS, TICK_DISEASES, bodyRequired, groupOf, radiusRule, type NewMapNote, type NoteGroup, type NoteKind, type TickDisease } from './mapNotesData';
+import { GROUP_KINDS, NOTE_GROUPS, TICK_DISEASES, bodyRequired, groupOf, radiusRule, type NewMapNote, type NoteGroup, type NoteKind, type TickDisease } from './mapNotesData';
 import { MAP_DOCK_CSS, DOCK_COL_W, DOCK_MOBILE_MAX, DOCK_VH } from '@/components/pack/mapDockShape';
-import { FONT_EMOJI, threatEmoji } from './markEmoji';
-import { KindGrid } from './KindGrid';
+import { FONT_EMOJI, GROUP_EMOJI, threatEmoji } from './markEmoji';
+import { KindGrid, KIND_GRID_CSS } from './KindGrid';
 import { AinubisGuide } from '@/components/pack/addtrip/AinubisGuide';
 import { noteMarkHtml } from './MapNotesLayer';
 import { GROUP_TINT, HAZARD_RED, TICK_ORANGE, NotePalette, NOTE_PALETTE_CSS, type PaletteExtra } from './NotePalette';
@@ -177,6 +177,8 @@ export function MapNotePlacing({
   kind,
   ready,
   onCancel,
+  edgeLeft,
+  onPickType,
 }: {
   group: NoteGroup;
   /**
@@ -188,6 +190,20 @@ export function MapNotePlacing({
   /** mapa je dosť priblížená na to, aby klik dával zmysel */
   ready: boolean;
   onCancel: () => void;
+  /** v sprievodcovi výletu ľavý panel ustúpi ⇒ bublina patrí k okraju okna, nie za panel */
+  edgeLeft?: boolean;
+  /**
+   * ── PREPÍNANIE TYPU BEZ NÁVRATU DO PANELA (Matej 2026-08-27) ────────────────────────
+   *
+   * „počas označovania panel zmizne aj s chipmi" ⇒ druhý odkaz znamenal vrátiť sa, znova
+   * vybrať typ a znova spustiť označovanie. Tri odkazy = tri okružné jazdy. Keď je podaný
+   * tento callback, pod bublinu si sadne úzka lišta s tromi typmi (a pri upozornení
+   * s radom hrozieb), takže sa typ prepne priamo nad mapou.
+   *
+   * Podáva ho LEN sprievodca výletu — na holej mape sa označovanie spúšťa z palety pri
+   * prste a lišta by tam bola druhý ovládač tej istej veci.
+   */
+  onPickType?: (g: NoteGroup, k: NoteKind | null) => void;
 }) {
   const t = useT();
   const touch = typeof window !== 'undefined' && window.matchMedia('(hover:none)').matches;
@@ -206,9 +222,113 @@ export function MapNotePlacing({
    * × = ZRUŠIŤ. Je to to isté východisko, aké × nesie po celý zvyšok sprievodcu.
    */
   return (
-    <AinubisGuide text={`${what} ${t(key)}`} onAbort={onCancel} abortLabel={t('pack.mapNotes.add.cancel')} />
+    <AinubisGuide
+      text={`${what} ${t(key)}`}
+      onAbort={onCancel}
+      abortLabel={t('pack.mapNotes.add.cancel')}
+      edgeLeft={edgeLeft}
+      /* ⚠️ Lišta patrí POD bublinu, nie nad spodnú hranu: dole v tej chvíli nič nestojí
+         (panel ustúpil mape) a nová škatuľa pri palci by prekryla presne ten pás mapy,
+         kam sa najčastejšie ťuká. `below` je ten istý slot, v ktorom v kroku 1 visia
+         bodky 1–5, takže nad mapou nepribúda ďalšie poschodie. */
+      below={onPickType ? <NoteTypeStrip group={group} kind={kind ?? null} onPick={onPickType} /> : undefined}
+    />
   );
 }
+
+/**
+ * ── LIŠTA TYPOV NAD MAPOU ────────────────────────────────────────────────────────────────
+ *
+ * Tri typy vedľa seba; ťuk prepne, čo sa práve zapichuje, a označovanie beží ďalej.
+ *
+ * ⚠️ UPOZORNENIE SA NEPREPNE ŤUKOM DO SVOJHO CHIPU — ten len vysunie rad hrozieb a skupina
+ * sa zmení až vybranou hrozbou. Inak by kurzor niesol rozcestník ⚠️ a `placeNote` by pri
+ * kliknutí položil PRVÝ druh skupiny (kliešte) človeku, ktorý ide označiť medveďa. Je to
+ * to isté pravidlo, aké drží `MapNoteCursor.tsx`, a to isté poradie, aké má panel kroku 2.
+ *
+ * ⚠️ TVAR SI NEVYMÝŠĽA: podklad je recept bodiek 1–5 nad mapou (`.atl-steps--onmap`) —
+ * plná tmavá výplň, rám, tieň, žiadny priesvit (feedback_priesvitna_plocha_nad_mapou);
+ * pilulky sú `.mnk-tile` v rade z `KindGrid`, teda presne tie, ktoré človek pozná z panela.
+ */
+function NoteTypeStrip({ group, kind, onPick }: { group: NoteGroup; kind: NoteKind | null; onPick: (g: NoteGroup, k: NoteKind | null) => void }) {
+  const t = useT();
+  const [openGroup, setOpenGroup] = useState<NoteGroup | null>(null);
+  // Po prepnutí skupiny sa rad zavrie — inak by nad mapou ostal visieť výber, ktorý už
+  // nepatrí k tomu, čo kurzor nesie.
+  useEffect(() => { setOpenGroup(null); }, [group, kind]);
+  const openKinds = openGroup ? GROUP_KINDS[openGroup] : null;
+  return (
+    <div className="mnts-wrap">
+      <style>{KIND_GRID_CSS}</style>
+      <style>{NOTE_TYPE_STRIP_CSS}</style>
+      <div className="mnts">
+        <div className="mnk-grid mnk-grid--row" role="group" aria-label={t('pack.mapNotes.place.switchType')}>
+          {NOTE_GROUPS.map((g) => {
+            const on = g === group;
+            const many = GROUP_KINDS[g].length > 1;
+            return (
+              <button
+                key={g}
+                type="button"
+                className={`mnk-tile${on ? ' on' : ''}${openGroup === g ? ' mnts-open' : ''}`}
+                aria-pressed={on}
+                aria-expanded={many ? openGroup === g : undefined}
+                style={on ? { background: tintRGBA(GROUP_TINT[g], 0.24), borderColor: GROUP_TINT[g] } : undefined}
+                onClick={() => {
+                  if (many) { setOpenGroup((v) => (v === g ? null : g)); return; }
+                  setOpenGroup(null);
+                  onPick(g, null);
+                }}
+              >
+                <i style={{ fontFamily: FONT_EMOJI }}>{GROUP_EMOJI[g]}</i>
+                <em>{t(`pack.mapNotes.group.${g}`)}</em>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      {openKinds && (
+        <div className="mnts">
+          <KindGrid
+            row
+            kinds={openKinds}
+            selected={openGroup === group ? kind : null}
+            tint={GROUP_TINT[openGroup!]}
+            onPick={(k) => { const g = openGroup!; setOpenGroup(null); onPick(g, k); }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+export const NOTE_TYPE_STRIP_CSS = `
+.mnts-wrap{display:flex;flex-direction:column;gap:7px;align-items:flex-start;max-width:100%;}
+/* Recept je 1:1 z .atl-steps--onmap (bodky 1–5 nad mapou) — jeden materiál pre všetko,
+   čo v krokoch 1–2 visí pod AInubisovou bublinou. */
+.mnts{max-width:100%;box-sizing:border-box;border-radius:999px;background:rgba(18,13,7,0.94);backdrop-filter:blur(10px);border:1px solid rgba(245,240,228,0.16);box-shadow:0 6px 20px rgba(0,0,0,0.55);padding:5px 7px;}
+/* Mriežka si odstup nesie pre panel, kde pod ňou stojí text; tu je podkladom pilulka. */
+.mnts .mnk-grid{margin-top:0;}
+/* Rad hrozieb sa v úzkej pilulke posúva prstom — bez tohto by ju roztiahol cez celé okno. */
+.mnts .mnk-grid--row{padding-bottom:0;}
+/* OTVORENÝ ROZCESTNÍK NIE JE VÝBER. Upozornenie po ťuknutí len vysunulo rad hrozieb —
+   plná výplň by tvrdila, že sa už zapichuje ono. Preto samotný rám, a to prerušovaný:
+   je to jediný stav v lište, ktorý na niečo ČAKÁ. */
+.mnts .mnk-tile.mnts-open:not(.on){border-style:dashed;border-color:${GROUP_TINT.warning};}
+${MAP_SKIN !== 'pale' ? '' : `
+/* ── BLEDÝ SKIN PC ─────────────────────────────────────────────────────────────────────
+   ⚠️ PODKLAD MUSÍ BYŤ SVETLÝ, INAK JE VYBRANÁ PILULKA NEČITATEĽNÁ. Dlaždica .mnk-tile.on si
+   výplň nesie zvonku ako 24 % tint farby skupiny a inkoust má v bledom skine TMAVÝ
+   (PALE.ink) — recept počíta s papyrusom pod sebou. Na tmavej pilulke z toho vyšla
+   tmavomodrá výplň s tmavohnedým písmom, teda Parkovisko, ktoré nebolo vidieť. Overené
+   naživo 28. 8.
+   Hodnoty sú tie isté, aké má bledá verzia bodiek 1–5 nad mapou (.atl-steps--onmap
+   v PALE_LOG_CSS) — je to ten istý prvok na tom istom mieste, len s iným obsahom. */
+@media (min-width:${PALE_PC_MIN}px){
+  .mnts{background:linear-gradient(180deg,#F6EAD0,#E9D9AE);border:1.5px solid ${PALE.edge};box-shadow:0 8px 24px rgba(70,45,10,0.35);backdrop-filter:none;-webkit-backdrop-filter:none;}
+}
+`}
+`;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // RÝCHLA CESTA — paleta priamo pri bode, kam človek podržal prst.

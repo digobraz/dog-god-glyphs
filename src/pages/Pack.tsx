@@ -12,6 +12,7 @@ import { PackWizard } from '@/components/pack/PackWizard';
 import { WIZ } from '@/components/pack/wizAnchors';
 // NextTripCard parkuje (nahradený TripSpotlightom 9.8.2026) — pozri komentár pri bloku nižšie.
 import { TripSpotlight } from '@/components/pack/TripSpotlight';
+import { PlanAskCard } from '@/components/pack/PlanAskCard';
 import { Gateways } from '@/components/pack/Gateways';
 import { DEV_FULL } from '@/lib/packFlags';
 import { DEV_NOAUTH, DEV_MOCK_DOGS, DEV_MOCK_USER } from '@/lib/devMockDogs';
@@ -309,6 +310,15 @@ export default function Pack() {
             ⚠️ `NextTripCard` tu bol do 9.8.2026 a robil ten istý odpočet — `TripSpotlight`
             ho NAHRADIL, nie doplnil. Nemountovať oba naraz (odpočet dvakrát). Starý
             komponent parkuje ako `PackTree`/`DailyPrayers`. */}
+        {/* ── BOL SI TAM? — karta v deň výletu (Matej 2026-08-25, postavená 26. 8.) ──
+            Objaví sa LEN keď je na čo odpovedať: vlastný plán, ktorého termín už uplynul
+            (7-dňové okno, `planReminder.planPhase`). Zámerne NAD plagátom a ako vlastný blok
+            — Matej si to tak vybral, keď dostal na výber oproti prepnutiu plagátu na otázku:
+            plagát tak ostane plagátom a otázka zmizne v momente odpovede.
+            ⚠️ Za `DEV_FULL` z toho istého dôvodu ako `TripSpotlight` nižšie — všetky tri
+            odpovede vedú do `/pack/map`, ktorá zatiaľ nie je pre členov živá. */}
+        {DEV_FULL && <PlanAskCard />}
+
         {DEV_FULL && <TripSpotlight email={user?.email} ownerName={user?.name} />}
 
         {/* ── KAM IDEM — dva zrkadlové bloky: DOGMA · AINUBIS (Matej 9.8.) ──

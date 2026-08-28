@@ -640,7 +640,7 @@ function AddDogSlot({ size, boxH, gap }: { size: number; boxH: number; gap: numb
   const resetFlow = useDogyptStore((s) => s.reset);
   return (
     <Link
-      to="/heroglyph/intro"
+      to="/heroglyph/photo"
       onClick={resetFlow}
       className="flex flex-col items-center group"
       style={{ width: size, textDecoration: 'none' }}

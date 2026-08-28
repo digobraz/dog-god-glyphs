@@ -23,6 +23,8 @@ export interface DogyptState {
   gridCropData: { x: number; y: number; zoom: number } | null;
   extraPhotos: string[];
   gdprConsent: boolean;
+  /** id rozrobeného psa v DB — drží ho e-mailový krok aj checkout, aby nevznikli dva riadky */
+  draftId: string | null;
   lifeStatus: 'alive' | 'deceased';
   deathDate: string | null; // yyyy-mm-dd — len keď lifeStatus==='deceased'; zapíše sa do DB pri checkoute
   setDogName: (name: string) => void;
@@ -45,6 +47,7 @@ export interface DogyptState {
   setGridCropData: (v: { x: number; y: number; zoom: number } | null) => void;
   setExtraPhotos: (v: string[]) => void;
   setGdprConsent: (v: boolean) => void;
+  setDraftId: (v: string | null) => void;
   setLifeStatus: (v: 'alive' | 'deceased') => void;
   setDeathDate: (v: string | null) => void;
   reset: () => void;
@@ -72,6 +75,7 @@ const freshState = () => ({
   gridCropData: null,
   extraPhotos: [] as string[],
   gdprConsent: false,
+  draftId: null as string | null,
   lifeStatus: 'alive' as 'alive' | 'deceased',
   deathDate: null as string | null,
 });
@@ -100,6 +104,7 @@ export const useDogyptStore = create<DogyptState>()(
       setGridCropData: (v) => set({ gridCropData: v }),
       setExtraPhotos: (v) => set({ extraPhotos: v }),
       setGdprConsent: (v) => set({ gdprConsent: v }),
+      setDraftId: (v) => set({ draftId: v }),
       setLifeStatus: (v) => set({ lifeStatus: v }),
       setDeathDate: (v) => set({ deathDate: v }),
       reset: () => set(freshState()),

@@ -28,6 +28,7 @@ export function AinubisGuide({
   onAbort,
   abortLabel,
   below,
+  edgeLeft,
 }: {
   /** celá veta; pri zmene sa prepíše nanovo (to je tá „reakcia") */
   text: string;
@@ -35,6 +36,13 @@ export function AinubisGuide({
   abortLabel?: string;
   /** bodky 1–5 — stoja POD bublinou, nie v paneli (Matej 24. 8. 2026) */
   below?: React.ReactNode;
+  /**
+   * Na PC stojí bublina vpravo od ľavého panela (left:480px). Keď ten panel v danej chvíli
+   * NIE JE na obrazovke — a to je presne krok 2 sprievodcu, kde formulár ustúpi mape —
+   * ostane bublina visieť uprostred ničoho (Matej 2026-08-27: „je ako keby v strede").
+   * Tento príznak ju prisadí k ľavému okraju mapy.
+   */
+  edgeLeft?: boolean;
 }) {
   const [shown, setShown] = useState('');
   const [typing, setTyping] = useState(false);
@@ -62,7 +70,7 @@ export function AinubisGuide({
   }, [text]);
 
   return (
-    <div className="ang-wrap">
+    <div className={`ang-wrap${edgeLeft ? ' ang-wrap--edge' : ''}`}>
       <style>{AINUBIS_GUIDE_CSS}</style>
       <div className="ang-bar">
         <img className="ang-face" src={ainubisFace} alt="" aria-hidden="true" />
@@ -140,7 +148,21 @@ export const AINUBIS_GUIDE_CSS = `
 /* PC — dok je ľavý stĺpec, takže sprievodca stojí nad MAPOU vpravo od neho, nie cez celú
    šírku okna. Čísla sú tie isté, aké drží .trp-dtop, aby sa pásy neprekrývali. */
 @media (min-width:900px){
-  .ang-wrap{left:480px;right:74px;padding-top:18px;}
+  /* ⚠️ NA PC ŽIADNY ZÁVOJ (Matej 2026-08-27: „jeho blok je chybný… je ako keby v strede
+     a má za sebou aj okolo divný overlay"). Tmavý prechod je stavaný pre TELEFÓN, kde
+     bublina leží priamo na mape pod stavovým riadkom a bez neho by sa strácala. Na PC
+     ju drží vlastný modrý dosvit — závoj z nej robil pás cez pol obrazovky.
+     ⚠️ V toku pridávania výletu to nebolo vidieť: tam sprievodcu hostí ľavý stĺpec
+     (.trp-dock--pc .ang-wrap, ktorý pozadie ruší). Vidieť to bolo len tam, kde ho
+     renderuje niekto INÝ — MapNotePlacing pri označovaní odkazu. Preto sa to ruší TU,
+     pri zdroji, a nie ďalším prepisom u volajúceho.
+     ⚠️ Bublina sa NEROZŤAHUJE na celú šírku mapy. left:480px;right:74px z nej robilo
+     pás, ktorý sa čítal ako vycentrovaný panel; s hornou hranicou šírky stojí pri ľavom
+     okraji mapy, teda hneď vedľa panela, z ktorého tok vyšiel. */
+  .ang-wrap{left:480px;right:74px;padding-top:18px;background:none;}
+  /* Panel v tejto chvíli na obrazovke nie je — mapa začína pri okraji okna a bublina s ňou. */
+  .ang-wrap--edge{left:0;padding-left:16px;}
+  .ang-bar{max-width:560px;}
   .ang-face{width:54px;height:54px;}
   .ang-text{font-size:14px;}
 }

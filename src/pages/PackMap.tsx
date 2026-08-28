@@ -77,6 +77,7 @@ import { MapCoach } from '@/components/pack/MapCoach';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
+import { PoiLayer, PoiAttribution } from '@/components/geo/PoiLayer';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { goldFrameCSS, goldPlateCSS, SLAB, LAPIS, LAPIS_BTN_SHADOW, MAP_SKIN, NAV_GOLD, NAV_PILL_SHADOW, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
 import { estimateTripMinutes, formatTripTime } from '@/lib/tripTime';
@@ -132,9 +133,9 @@ import { circleMarkHtml, CIRCLE_MARK_CSS } from '@/components/pack/mapnotes/circ
 import { EVENT_RIM, TRIP_TARGET_EMOJI, eventEmoji, FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
 import { useLongPressPoint, useMapClickPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS } from '@/components/pack/mapnotes/useLongPressPoint';
-import { MapNoteCursor, MAP_NOTE_CURSOR_CSS } from '@/components/pack/mapnotes/MapNoteCursor';
+import { MapNoteCursor, MapPlaceCursor, MAP_NOTE_CURSOR_CSS } from '@/components/pack/mapnotes/MapNoteCursor';
 import { nearestTrailId } from '@/components/pack/mapnotes/mapNotesGeo';
-import { GROUP_KINDS, defaultRadius, type NoteGroup, type NoteKind, type TickDisease } from '@/components/pack/mapnotes/mapNotesData';
+import { GROUP_KINDS, defaultRadius, groupOf, type NoteGroup, type NoteKind, type TickDisease } from '@/components/pack/mapnotes/mapNotesData';
 import { AddTripLog } from '@/components/pack/addtrip/AddTripLog';
 import { TRAVEL_EMOJI } from '@/components/pack/addtrip/addTripModel';
 import { TRIP_HOLD_MIN_ZOOM } from '@/components/pack/addtrip/GeometryPicker';
@@ -156,6 +157,20 @@ import { TRIP_CATEGORIES, ACT_TAG_EMOJI, categoriesOf, isInCategory, type TripCa
 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
+
+// ── PRSTENEC POSTUPU OKOLO AVATARA (Matej 2026-08-28, výber z nákresu ────────
+// `plany/nakres-map-putnik-2026-08-28.html`, variant `frame:'prog'` + `lvl:'notch'`)
+//
+// Geometria má JEDEN zdroj — tieto tri čísla. Priemer 44 = fotka 34 + 2×lem 3 + 2×medzera 2,
+// takže SAMOTNÁ FOTKA ostáva 34 px ako doteraz a nič okolo sa neprepočítava.
+// ⚠️ `stroke-width` a polomer sú v jednotkách viewBoxu (0–100), nie v px: prevod je
+// `px / AV_D * 100`. Zapísať sem px by dalo prstenec, ktorý sa pri zmene priemeru rozíde.
+const AV_D = 44;         // priemer celého bloku avatara
+const AV_RING = 3;       // hrúbka prstenca
+const AV_GAP = 2;        // medzera prstenec ↔ fotka
+const RING_SW = (AV_RING / AV_D) * 100;
+const RING_R = 50 - RING_SW / 2;
+const RING_C = 2 * Math.PI * RING_R;
 const T = PACK_THEME;
 
 // Typografický poriadok (FONT_TITLE = identita, FONT_UI = dáta/eyebrow/chipy) žije
@@ -404,7 +419,12 @@ const DATA_TAG_TO_UI: Record<string, string> = {
 // scenérickým tagom `Forest` — sú to dve rôzne veci (les okolo vs. lesná cesta pod nohami).
 const SURFACE_TAG_MAP: Record<string, string> = { forest: 'Forest path', asphalt: 'Asphalt', rocky: 'Rocky' };
 
-type PlaceSug = { name: string; sub: string; lat: number; lon: number };
+/** `type` = druh miesta z Mapy.com suggest (`poi` · `regional.address` · `regional.municipality`
+ *  · `regional.region` · `regional.country`). Nesie sa až k príletu, lebo podľa neho sa určuje
+ *  priblíženie — viď `placeZoom()`. */
+type PlaceSug = { name: string; sub: string; lat: number; lon: number; type?: string };
+/** Kam mapa letí po výbere z hľadania: bod + priblíženie odvodené z druhu miesta. */
+type FlyTarget = { ll: LatLngTuple; zoom: number };
 
 // prvé meno z user_metadata (full_name/name), fallback e-mail local-part — rovnaký
 // vzor ako firstNameFrom() v Pack.tsx, len lokálna kópia (usePackIdentity meno neexponuje).
@@ -539,9 +559,43 @@ const waterPoint = (path: LatLngTuple[]): LatLngTuple => {
   return [lat, lng];
 };
 
-function FlyTo({ target }: { target: LatLngTuple | null }) {
+/**
+ * ── REZERVA NA CHROME HLAVNEJ MAPY — JEDNY ČÍSLA PRE RÁMOVANIE AJ PRÍLET ─────────────────
+ *
+ * Vľavo stojí panel (`.trp-sidebar`, `PANEL_W`), vpravo ovládanie mapy (zoom, poloha,
+ * vrstvy). `FitBounds` (rámovanie trasy) a `FlyTo` (prílet na nájdené miesto) MUSIA počítať
+ * s tou istou rezervou — inak hľadanie posadí miesto do stredu okna, teda jeho ľavé
+ * okolie pod panel, kým rámovanie trasy mieri inam. Rovnaký dôvod, pre aký `dockPadX()` existuje pri
+ * kreslení trasy; toto je jeho dvojička pre bežnú mapu (iná hranica aj iná šírka panela).
+ */
+const mapPadX = (): [number, number] =>
+  (typeof window !== 'undefined' && window.innerWidth <= MOBILE_BP) ? [24, 24] : [PANEL_W + 60, 90];
+
+/**
+ * Prílet na miesto vybraté v hľadaní.
+ *
+ * ⚠️ STRED JE MEDZI PANELOM A PRAVÝM OKRAJOM, NIE V STREDE OKNA (Matej 2026-08-28, tá istá
+ * vec ako 26. 8. pri kreslení trasy): `flyTo` posadí bod do stredu KONTAJNERA, lenže ľavých
+ * ~500 px prekrýva panel. Posun stredu = polovica rozdielu rezerv, prepočítaná
+ * `project/unproject` v CIEĽOVOM priblížení — cez aktuálne by po prílete minula, lebo
+ * pixel v inej mierke znamená inú vzdialenosť.
+ *
+ * ⚠️ PRIBLÍŽENIE SA NEBERIE NATVRDO (bolo 13). Nájdená útulňa je bod zo SVETA a tie sa
+ * kreslia až od `SLEEP_MIN_ZOOM` — po prílete na 13 teda mapa miesto zamerala, ale značku
+ * neukázala a človek si ju musel doklikať dvoma zoomami. Odvodzuje ho `placeZoom()`.
+ */
+function FlyTo({ target }: { target: FlyTarget | null }) {
   const map = useMap();
-  useEffect(() => { if (target) map.flyTo(target, 13, { duration: 1.2 }); }, [target, map]);
+  useEffect(() => {
+    if (!target) return;
+    const { ll, zoom } = target;
+    const [padL, padR] = mapPadX();
+    const shift = (padL - padR) / 2;
+    const to = shift
+      ? map.unproject(map.project(ll, zoom).subtract([shift, 0]), zoom)
+      : L.latLng(ll[0], ll[1]);
+    map.flyTo(to, zoom, { duration: 1.2 });
+  }, [target, map]);
   return null;
 }
 
@@ -578,11 +632,13 @@ function FitBounds({ path, offset, dock, hold }: { path: LatLngTuple[] | null; o
      * PC sa nemení: dok je tam ľavý stĺpec širokým `DOCK_COL_W` = to isté ako `PANEL_W`,
      * takže existujúca rezerva sedí.
      */
+    // Vodorovná rezerva ide z `mapPadX()` — to isté číslo, s akým letí hľadanie (viď FlyTo).
+    const [padL, padR] = mapPadX();
     const pad = dock
       ? dockFitPadding(notePanelH())
       : (mobile
-          ? { paddingTopLeft: [24, 186] as [number, number], paddingBottomRight: [24, 96] as [number, number] }
-          : { paddingTopLeft: [PANEL_W + 60, 130] as [number, number], paddingBottomRight: [90, 140] as [number, number] });
+          ? { paddingTopLeft: [padL, 186] as [number, number], paddingBottomRight: [padR, 96] as [number, number] }
+          : { paddingTopLeft: [padL, 130] as [number, number], paddingBottomRight: [padR, 140] as [number, number] });
     // Na portréte fitBounds bez desatinného zoomu nestačí: Leaflet snapuje na celé stupne, takže
     // buď je SR vpol obrazovky (stupeň nadol), alebo orezané zboku (stupeň nahor) — medzi tým nie
     // je nič. `zoomSnap = 0` dovolí presnú medzihodnotu, ktorá dostupnú plochu vyplní.
@@ -1130,7 +1186,17 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
    predtým nedalo dostať vôbec. Blok je klikací, ale nevyzerá ako tlačidlo: je to identita,
    nie akcia. */
 .trp-midentity{display:flex;align-items:center;gap:9px;min-width:0;background:none;border:none;padding:0;cursor:pointer;text-align:left;}
+/* ── AVATAR NESIE RANG (Matej 2026-08-28) ───────────────────────────────────────
+   Prstenec = POSTUP V LEVELI (levelInfo.pct z levelProgress, ten istý údaj ako
+   progressbar vo vysvedčení), číslo levelu sedí NA JEHO OKRAJI. Je to jediný variant
+   z nákresu, ktorý pridáva informáciu, čo na obrazovke nebola vôbec — koľko chýba do
+   ďalšieho levelu. Tým sa rang presťahoval k avatarovi a slovo PÚTNIK prestalo byť
+   jediným nositeľom „kde som", čo je dôvod, prečo ho mobil nižšie môže vypustiť.
+   ⚠️ Fotka je naďalej 34 px — obal je väčší o lem a medzeru, nie fotka menšia. */
+.trp-avwrap{position:relative;flex:0 0 auto;width:${AV_D}px;height:${AV_D}px;display:grid;place-items:center;}
+.trp-avwrap svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;}
 .trp-mavatar{width:34px;height:34px;border-radius:50%;flex:0 0 auto;object-fit:cover;border:1.5px solid ${GOLD};box-shadow:0 0 0 1px rgba(0,0,0,0.5);}
+.trp-avwrap .trp-mavatar{border:none;position:relative;z-index:1;}
 .trp-mavatar--initial{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#2a2317,#14110b);color:${GOLD};font-family:${FONT_TITLE};font-weight:700;font-size:14px;line-height:1;}
 .trp-midentity-txt{display:flex;flex-direction:column;gap:2px;min-width:0;}
 .trp-midentity .trp-level{gap:7px;}
@@ -1143,9 +1209,21 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
    číslo a rang vedľa (PILGRIM) povie, čo to je. */
 .trp-midentity .trp-level-num{align-items:center;padding:3px 10px 4px;border-radius:999px;background:linear-gradient(135deg,var(--tier-a,#F5C73D),var(--tier-b,#E69E1A));-webkit-background-clip:border-box;background-clip:border-box;color:var(--tier-ink,${INK});-webkit-text-fill-color:var(--tier-ink,${INK});filter:none;box-shadow:0 2px 8px var(--tier-glow,rgba(245,199,61,0.28));transition:background .5s,color .5s,box-shadow .5s;}
 .trp-midentity .trp-level-num em{font-size:14px;}
-/* Podriadok „N trips · X km" nahradil trophy pilulku (Matej 2026-08-03): číslo ostáva viditeľné
-   bez ťuknutia, ale prestalo byť ďalším prvkom v rade. Space Grotesk — sú to dáta, nie identita. */
-.trp-mstats{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:${T.onDarkDim};white-space:nowrap;}
+/* Číslo NA OKRAJI avatara. Lem --notch-rim je farba podkladu POD ním — na tmavej mobilnej
+   hlavičke sklo, na papyrusovom PC doska; bez neho číslo splýva s prstencom. Trieda ostáva
+   .trp-level-num, takže klik naň naďalej otvára panel pásiem (closest v renderIdentity). */
+.trp-avwrap .trp-level-num--notch{position:absolute;z-index:3;right:-2px;bottom:-2px;width:20px;height:20px;padding:0;border-radius:50%;justify-content:center;align-items:center;box-shadow:0 2px 7px var(--tier-glow,rgba(245,199,61,0.28)),0 0 0 2px var(--notch-rim,#171009);}
+.trp-avwrap .trp-level-num--notch em{font-size:11px;}
+/* ── MOBIL: DVA RIADKY S ČÍSLAMI NAMIESTO SLOVA PÚTNIK (Matej 2026-08-28) ──────
+   „na mobile to nebude vychádzať a preto tam nebude slovo putnik ale namiesto neho tam bude
+   v dvoch riadkoch - km a počet tripov."
+   Nahradilo jednoriadkový .trp-mstats („12 výletov · 148 km"), ktorý zanikol — ten istý
+   údaj, len rozložený tak, aby bol čitateľný bez slova, ktoré sa na 390 px nezmestí.
+   Zapnuté LEN v mobilnej vetve; na PC ostáva rang, lebo tam je naň miesto. */
+.trp-mstats2{display:none;flex-direction:column;gap:1px;min-width:0;}
+.trp-mstats2 span{display:flex;align-items:baseline;gap:5px;white-space:nowrap;line-height:1.05;}
+.trp-mstats2 b{font-family:${FONT_UI};font-weight:600;font-size:17px;letter-spacing:0;color:rgba(245,240,228,0.94);font-variant-numeric:tabular-nums;}
+.trp-mstats2 i{font-family:${FONT_UI};font-style:normal;font-weight:500;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:${T.onDarkDim};}
 .trp-midentity:hover .trp-level-name{color:#fff;}
 .trp-level-name{font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:rgba(245,240,228,0.92);}
 .trp-level-num{display:inline-flex;align-items:baseline;gap:5px;font-family:${FONT_UI};line-height:1;background:linear-gradient(135deg,var(--tier-a,#F5C73D),var(--tier-b,#E69E1A));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 7px var(--tier-glow,rgba(245,199,61,0.35)));}
@@ -1763,6 +1841,14 @@ ${TRAIL_LINE_CSS}
   /* Identita samotná je v GLOBÁLNOM CSS vyššie (.trp-midentity a spol.) — jeden blok na oboch
      šírkach. Tu ostáva len to, čo je naozaj mobilné: na mobile ide identita cez celú voľnú šírku. */
   .trp-mheader-status .trp-midentity{flex:1 1 auto;}
+  /* ── MOBIL NIE JE ZMENŠENÉ PC (Matej 2026-08-28) ────────────────────────────────────
+     Slovo PÚTNIK odchádza a jeho miesto berú dva riadky s číslami; rang nesie prstenec
+     a číslo pri avatarovi. Tým sa v lište uvoľní priestor pre triplist, ktorý sa sem
+     3. 8. 2026 VRACIA zo zoznamu (vtedy odišiel s odôvodnením „na mobil je toho veľa" —
+     to už neplatí, lebo ubudlo slovo aj celý riadok pod ním). */
+  .trp-mheader-status .trp-level{display:none;}
+  .trp-mheader-status .trp-mstats2{display:flex;}
+  .trp-mtriplist{flex:0 0 auto;}
   /* Riadok 2 (Matej 2026-07-27, prestavané): predtým tu boli 3 natívne selecty
      (Activities/Difficulty/Crowd) v horizontálnom scrolli — a country, región a Tagy sa na
      mobile NEZOBRAZOVALI VÔBEC (žijú v .trp-sidebar / .trp-topbar, oboje display:none).
@@ -1840,9 +1926,6 @@ ${TRAIL_LINE_CSS}
 
   /* hlavička LIST pohľadu — sem sa presťahoval TRIPLIST z mapového headera. V zozname dáva
      zmysel (je to zoznamový povrch), v headeri mapy bol len ďalšia ikonka v rade. */
-  .trp-mlist-head{display:flex;align-items:center;justify-content:flex-end;margin-bottom:12px;}
-  .trp-mlist-triplist{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:999px;background:${T.glass};border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;}
-  .trp-mlist-triplist img{width:13px;height:13px;filter:brightness(0) invert(1);opacity:.8;}
 
   /* full-page card list — replaces the map (not an overlay) when mobileView==='list'.
      top padding sedí s výškou .trp-mheader (viď .trp-ctlstack vyššie). */
@@ -1963,7 +2046,11 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
      To isté číslo stálo na obrazovke dvakrát vedľa seba. Skrýva sa CSS-om a nie vyhodením
      z renderu zámerne: renderIdentity() obsluhuje aj TMAVÚ MOBILNÚ hlavičku, kde chip
      s výletmi nie je a riadok je jediným miestom, kde tú informáciu človek uvidí. */
-  .trp-topbar .trp-mstats{display:none;}
+  .trp-topbar .trp-mstats2{display:none;}
+  /* Lem čísla na okraji avatara = farba dosky pod ním. Na tmavej mobilnej hlavičke drží
+     východzia hodnota (#171009), tu ho prepisuje pieskovec, inak by číslo malo okolo seba
+     čierny krúžok na svetlom. */
+  .trp-topbar .trp-avwrap{--notch-rim:#D8B052;}
   /* Rang ostal v riadku sám, tak môže vážiť viac. */
   .trp-topbar .trp-level-name{font-size:16px;letter-spacing:.12em;}
   .trp-topbar .trp-midentity:hover .trp-level-name{color:#000;}
@@ -2261,6 +2348,11 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-root .att-entry-title{color:${P_INK};}
   .trp-root .att-entry-text{color:${P_DIM};}
   .trp-root .att-entry-soon{color:${P_FAINT};border-color:${P_HAIR};}
+  /* Chipy „čo sem patrí" — na papyruse. Sú POPIS, nie výber, takže nedostávajú farebný tint
+     z pickTintCSS (ten je vyhradený označeniu) ani lapis (ten nesie odmenu vyššie). Plocha
+     je preto len o odtieň svetlejšia než dlaždica a rám je vlasová linka. */
+  .trp-root .att-entry-chip{background:rgba(255,252,244,0.55);border-color:${P_HAIR};color:${P_DIM};}
+  .trp-root .att-entry-block:hover .att-entry-chip,.trp-root .att-entry-block:focus-visible .att-entry-chip{border-color:rgba(179,130,45,0.55);color:${P_INK};}
   /* BODY V LAPISOVEJ PILULKE (Matej 2026-08-26: „body budú v modrom pilse").
      Podľa pravidla lapisu je odmena „moje" — patrí k voľbe, nie ku konštrukcii. Zlatá
      pilulka na zlatej dlaždici v zlatom ráme bola tretia zlatá vrstva na sebe a číslo
@@ -2322,7 +2414,7 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
 // JSX. PODKLAD (base) je vždy PRÁVE JEDEN aktívny (radio); OVERLAY (overlay) sa dá zapnúť viac
 // naraz (checkbox).
 type MapBaseId = 'outdoor' | 'aerial' | 'dogypt';
-type MapOverlayId = 'names' | 'vipers' | 'threats';
+type MapOverlayId = 'names' | 'vipers' | 'threats' | 'sleep';
 
 /** Kontext, ktorý layer potrebuje na vyhodnotenie `disabledReason` — fog stav (prázdny/loading,
  *  spec §4 bod 4) + `isCleanMode` (Matej 2026-08-04: „pri DOGYPT zobrazení bude vidno iba hmla
@@ -2397,17 +2489,65 @@ const MAP_LAYERS: MapLayerDef[] = [
     labelKey: 'pack.map.layerVipers',
     disabledReason: (ctx) => (ctx.isCleanMode ? 'pack.map.overlayDogyptDisabled' : null),
   },
+  {
+    // SPACIE MIESTA — útulne, kempy, bivaky, chaty (738 bodov z OSM, celé SK).
+    // Matej 2026-08-27: „ak by som chcel pramene, útulne… vidieť hneď — nie viditeľne pri
+    // odzoomovaní, ale pri veľkom priblížení by sa zobrazili."
+    //
+    // ⚠️ VIDNO ICH AŽ OD PRIBLÍŽENIA 15 (`SLEEP_MIN_ZOOM`), takže vypínač je väčšinu času
+    // bez viditeľného účinku — a to je zámer, nie chyba. Prah drží lock z 21. 8. („mapa
+    // krajiny je o trasách"); vypínač je tu preto, že vrstva je CUDZÍ dataset a človek ju
+    // musí vedieť vypnúť aj v priblížení, presne z toho istého dôvodu ako vretenice.
+    id: 'sleep',
+    type: 'overlay',
+    labelKey: 'pack.map.layer.sleep',
+    disabledReason: (ctx) => (ctx.isCleanMode ? 'pack.map.overlayDogyptDisabled' : null),
+  },
 ];
+
+/** Prah priblíženia pre spacie miesta na CELKOVEJ mape. Vyššie než `POI_MIN_ZOOM` (13)
+ *  zámerne: 13 je kalibrované na detail jedného výletu, kde je otázka „čo je na TEJTO trase".
+ *  Na mape krajiny je tá istá hodnota emoji tapeta. */
+const SLEEP_MIN_ZOOM = 15;
+
+/**
+ * ── PRIBLÍŽENIE PO VÝBERE Z HĽADANIA SA ODVODZUJE OD DRUHU MIESTA ────────────────────────
+ *
+ * Matej 2026-08-28: „skúšal som nájsť útulňu, mapa ju našla a zamerala, ale nebolo ju vidno
+ * až po niekoľkých zoomoch — pri vyhľadávaní musí byť vidno hneď."
+ *
+ * Predtým tu bola jedna hodnota (13) pre všetko. Lenže útulňa je BOD ZO SVETA a tie sa na
+ * mape krajiny kreslia až od `SLEEP_MIN_ZOOM` — prílet na 13 teda skončil presne dva zoomy
+ * pod prahom, na ktorom sa hľadaná vec zobrazí. Prah sa NEZNIŽUJE (lock z 21. 8.: pod ním je
+ * mapa krajiny príbeh o trasách); posúva sa PRÍLET, aby hľadanie skončilo nad ním.
+ *
+ * ⚠️ Číslo pre bod je `SLEEP_MIN_ZOOM`, nie vlastná pätnástka — keby sa prah niekedy hol,
+ * hľadanie by ostalo pod ním a chyba by sa vrátila v tichosti.
+ *
+ * `type` vracia Mapy.com suggest (overené naživo 28. 8. na dotazoch „utulna", „Bratislava",
+ * „Slovensko", „Hlavna 5 Kosice"): `poi` · `regional.address` · `regional.street` ·
+ * `regional.municipality(_part)` · `regional.region` · `regional.country`. Mesto ostáva na 13
+ * ako doteraz — kto hľadá Bratislavu, nechce ulicu; kraj a krajina idú ešte ďalej.
+ */
+const placeZoom = (type?: string): number => {
+  if (!type) return 13;
+  if (type === 'poi' || type.startsWith('regional.address') || type.startsWith('regional.street')) return SLEEP_MIN_ZOOM;
+  if (type.startsWith('regional.municipality')) return 13;
+  if (type.startsWith('regional.region')) return 9;
+  if (type.startsWith('regional.country')) return 7;
+  return 13;
+};
 // Overlaye majú default stav mimo poľa (pole je o TOM ČO existuje, nie o tom čo je dnes zapnuté).
-// ⚠️ `poi` odtiaľto ZMIZOL 2026-08-21 spolu s vrstvou (viď render <MapContainer>): prepínač na
-// vrstvu, ktorá sa nekreslí, je mŕtve tlačidlo — klik prejde bez chyby a neurobí nič.
+// ⚠️ `poi` odtiaľto zmizol 21. 8. spolu s celou OSM vrstvou. 27. 8. sa vrátila jej ČASŤ ako
+// `sleep` (spacie miesta) — pramene a lavičky tu naďalej nie sú, takže prepínač na ne by bol
+// mŕtve tlačidlo. Pribudnú do dlaždíc ⇒ pribudne im vypínač, nie skôr.
 // `vipers: true` — Matej si vrstvu vypýtal NA mapu, nie do ponuky. Zapnutá je
 // bezpečná preto, že sa kreslí len pri oddialení (VIPER_MAX_ZOOM); pri práci
 // s konkrétnou trasou zmizne sama.
 // `threats: true` — upozornenia svorky sú dôvod, prečo vrstva zápisov existuje;
 // vypínač je tu na to, aby si ich človek vedel odpratať, nie aby si ich musel
 // hľadať.
-const OVERLAY_DEFAULTS: Record<MapOverlayId, boolean> = { names: false, vipers: true, threats: true };
+const OVERLAY_DEFAULTS: Record<MapOverlayId, boolean> = { names: false, vipers: true, threats: true, sleep: true };
 
 // Satelit (aerial) má dlaždice len do z19 na SK / z13 vo svete (overené v Mapy.com API
 // dokumentácii, spec-hmla.md bod 5 zadania) — nad tým dlaždica NEEXISTUJE a mapa sa vysype na
@@ -2928,7 +3068,7 @@ export default function PackMap() {
   // naposledy vybraný návrh (viď guard v suggest efekte) + wrapper na klik-mimo
   const pickedPlaceRef = useRef('');
   const placeBoxRef = useRef<HTMLDivElement | null>(null);
-  const [mapTarget, setMapTarget] = useState<LatLngTuple | null>(null);
+  const [mapTarget, setMapTarget] = useState<FlyTarget | null>(null);
   // Vrstvy mapy (integračná vlna, spec-hmla.md) — PODKLAD je vždy práve jeden (`mapBase`),
   // OVERLAYE sa dajú kombinovať (`overlayOn`). Panel, ktorý toto ovláda, sa generuje z
   // MAP_LAYERS (viď definícia vyššie), nie z tohto stavu.
@@ -3485,22 +3625,29 @@ export default function PackMap() {
     if (pickedPlaceRef.current === q) { setPlaceSug([]); return; }
     const timer = setTimeout(async () => {
       try {
-        const url = `${MAPY_BASE}/v1/suggest?query=${encodeURIComponent(q)}&lang=en&limit=6&apikey=${MAPY_API_KEY}`;
+        // ⚠️ JAZYK PODĽA APPKY, nie natvrdo `en` (opravené 27. 8. 2026). Mapy.com vracia
+        // v `label` TYP miesta a s `lang=en` z toho slovenský člen dostal „Shelter" namiesto
+        // „Útulňa, bivak" — teda presne to slovo, podľa ktorého miesto hľadá. Overené naživo
+        // na dotaze „Kolibka".
+        const url = `${MAPY_BASE}/v1/suggest?query=${encodeURIComponent(q)}&lang=${encodeURIComponent(lang)}&limit=6&apikey=${MAPY_API_KEY}`;
         const res = await fetch(url);
         const data = await res.json();
         const items: PlaceSug[] = (data.items || [])
-          .map((it: { name?: string; label?: string; location?: string; position?: { lat?: number; lon?: number } }) => ({
+          .map((it: { name?: string; label?: string; location?: string; type?: string; position?: { lat?: number; lon?: number } }) => ({
             name: it.name || '',
             sub: [it.label, it.location].filter(Boolean).join(' · '),
             lat: it.position?.lat as number,
             lon: it.position?.lon as number,
+            // druh miesta → priblíženie po prílete (`placeZoom`), inak by bod zo sveta
+            // skončil pod prahom, na ktorom sa vôbec kreslí
+            type: it.type,
           }))
           .filter((x: PlaceSug) => Number.isFinite(x.lat) && Number.isFinite(x.lon));
         setPlaceSug(items);
       } catch { setPlaceSug([]); }
     }, 250);
     return () => clearTimeout(timer);
-  }, [placeQuery]);
+  }, [placeQuery, lang]);
 
   // Zatvorenie ponuky miest bez výberu (Matej 2026-07-27) — klik kamkoľvek mimo search boxu
   // alebo Escape. Backdrop element sa tu použiť NEDÁ (na rozdiel od Tags dropdownu): prekryl
@@ -4319,24 +4466,44 @@ export default function PackMap() {
         navigate('/pack/map/triplist?tab=stats');
       }}
     >
-      {id.avatarUrl
-        ? <img className="trp-mavatar" src={id.avatarUrl} alt="" />
-        : <span className="trp-mavatar trp-mavatar--initial">{id.avatarInitial}</span>}
+      {/* Avatar + prstenec postupu + číslo levelu na jeho okraji (Matej 2026-08-28).
+          `tierVars` visí na obale, aby farbu pásma zdedil prstenec AJ číslo — dva prvky,
+          jedna farba, jeden zdroj (`@/lib/packTiers`). */}
+      <span className="trp-avwrap" style={tierVars(levelInfo.level)}>
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <circle cx="50" cy="50" r={RING_R} fill="none" strokeWidth={RING_SW}
+            stroke="var(--tier-b,#E69E1A)" strokeOpacity={0.2} />
+          <circle cx="50" cy="50" r={RING_R} fill="none" strokeWidth={RING_SW}
+            stroke="var(--tier-b,#E69E1A)" strokeLinecap="round"
+            strokeDasharray={`${(RING_C * levelInfo.pct) / 100} ${RING_C}`}
+            transform="rotate(-90 50 50)" />
+        </svg>
+        {id.avatarUrl
+          ? <img className="trp-mavatar" src={id.avatarUrl} alt="" />
+          : <span className="trp-mavatar trp-mavatar--initial">{id.avatarInitial}</span>}
+        <span
+          className="trp-level-num trp-level-num--notch"
+          style={tierVars(levelInfo.level)}
+          aria-label={t('pack.map.levelAriaLabel', { level: levelInfo.level })}
+        ><em>{levelInfo.level}</em></span>
+      </span>
       <span className="trp-midentity-txt">
         <span className="trp-level">
           {/* 2026-08-09: rang ide cez i18n (`pack.map.rankPilgrim`), nie cez natvrdo anglické
               `levelInfo.rank` — to isté slovo ukazuje aj karta na `/pack` a v SK to má byť
               „Pútnik", nie „Pilgrim". */}
           <span className="trp-level-name">{t('pack.map.rankPilgrim')}</span>
-          {/* Matej 2026-08-03: „to LVL ma ruší" → popisok preč, ostáva holé číslo v zlatej
-              pilulke. Po zjednotení (5. 8.) to platí aj na PC. */}
-          <span
-            className="trp-level-num"
-            style={tierVars(levelInfo.level)}
-            aria-label={t('pack.map.levelAriaLabel', { level: levelInfo.level })}
-          ><em>{levelInfo.level}</em></span>
+          {/* Matej 2026-08-03: „to LVL ma ruší" → popisok preč, ostáva holé číslo.
+              2026-08-28: pilulka z riadku ZMIZLA — číslo sedí na okraji avatara vyššie,
+              takže rangu ostal celý riadok („zväčši slovo pútnik", 26. 8.). */}
         </span>
-        <span className="trp-mstats">{t('pack.map.mstats' + pluralKey(walkedIds.size), { n: walkedIds.size, km: fmtKm(walkedKm) })}</span>
+        {/* Mobil má na tomto mieste dva riadky s číslami — na 390 px sa slovo PÚTNIK
+            aj s číslami do jedného bloku nezmestí (Matej 2026-08-28). CSS rozhoduje,
+            ktoré z dvojice je vidieť; render je jeden pre obe šírky. */}
+        <span className="trp-mstats2">
+          <span><b>{fmtKm(walkedKm)}</b><i>{t('pack.map.statKm')}</i></span>
+          <span><b>{walkedIds.size}</b><i>{t('pack.map.statTrips' + pluralKey(walkedIds.size))}</i></span>
+        </span>
       </span>
     </button>
   );
@@ -5079,14 +5246,28 @@ export default function PackMap() {
             Trophy pilulka (TRIPSTATS) zanikla — číslo žije ako podriadok pod menom, takže
             ubudol celý prvok a údaj ostal viditeľný bez ťuknutia. Klik na celý blok vedie tam,
             kam viedla pilulka (/pack/map/triplist?tab=stats).
-            TRIPLIST sa presunul do LIST pohľadu (.trp-mlist-head), ADD TRIP na plávajúci FAB
-            nad mapou (.trp-mfab) — v hornom rohu bol horšie dosiahnuteľný palcom.
+            ADD TRIP je na plávajúcom FAB nad mapou (.trp-mfab) — v hornom rohu bol horšie
+            dosiahnuteľný palcom. TRIPLIST bol vtedy odsunutý do LIST pohľadu, ale 28. 8. 2026
+            sa VRÁTIL sem: uvoľnilo sa miesto po slove PÚTNIK a po podriadku pod ním.
             Avatar sa sem VRACIA (Matej: „Hor pri PILGRIM z lavej strane musí byť FOTO/avatar
             užívateľa") — v D4 nav reworku 2026-07-24 bol odsťahovaný do PackBottomNav; tam
             zostáva ako navigácia, tu je identita, nie duplicita ovládania. */}
         <div className="trp-mheader-status">
           {/* tá istá identita ako na PC — `renderIdentity()` vyššie */}
           {renderIdentity()}
+          {/* TRIPLIST sa 2026-08-28 VRACIA do hlavičky (Matej: „daj tam triplist a hotovo").
+              Miesto naň vzniklo tým, že odišlo slovo PÚTNIK aj jednoriadkový podriadok pod ním.
+              Zo zoznamu (`.trp-mlist-head`) zmizol — dva vstupy do tej istej routy na jednej
+              obrazovke by boli duplicita, nie dostupnosť. */}
+          <button
+            type="button"
+            className="trp-stat-pill trp-stat-pill--icon trp-mtriplist"
+            onClick={() => navigate('/pack/map/triplist')}
+            title={t('pack.map.openTriplist')}
+            aria-label={t('pack.map.openTriplist')}
+          >
+            <img src={ICON('clipboard')} alt="" />
+          </button>
           {renderHeaderRight()}
         </div>
         <div className="trp-mheader-row2">
@@ -5258,17 +5439,6 @@ export default function PackMap() {
 
       {/* full-page card list (mobile 'list' view — replaces the map, not an overlay) */}
       <div className="trp-mlist">
-        <div className="trp-mlist-head">
-          <button
-            type="button"
-            className="trp-mlist-triplist"
-            onClick={() => navigate('/pack/map/triplist')}
-            title={t('pack.map.openTriplist')}
-          >
-            <img src={ICON('clipboard')} alt="" />
-            {t('pack.map.triplist')}
-          </button>
-        </div>
         <div className="trp-cards">
           {activeCat === 'trips'
             ? renderTripList(false)
@@ -5537,12 +5707,16 @@ export default function PackMap() {
                   vrstvená + pixelovo zhlukovaná (zadanie 2.3/2.4, <TripMarkers> vyššie pri mape).
                   Bez súradnice (0 bodov, napr. Buková priehrada) sa vodná plocha nezobrazí — čaká
                   na nahadzovač 📍 bod-miesto (mapPoints guard, viď komentár pri jeho definícii). */}
-              {/* POI Z OSM TU UŽ NIE JE (Matej 2026-08-21): „na mape musíme zobrazovať len
-                  emoji naše pridania v mape aj v blogu a emoji POI len v blogu". Celková mapa
-                  nesie TRASY a to, čo do nej napísala svorka — pramene a lavičky žijú v článku
-                  výletu (`PackTripArticle`), kde je otázka „kde je voda na TEJTO trase" na mieste.
-                  S vrstvou odišiel aj jej prepínač v paneli vrstiev a `<PoiAttribution />` —
-                  atribúcia je podmienka licencie ODbL a patrí tam, kde sa dáta kreslia. */}
+              {/* SPACIE MIESTA (Matej 2026-08-27) — útulne, kempy, bivaky, chaty z OSM.
+                  Lock z 21. 8. („emoji POI len v blogu") sa tým ZÚŽIL, nezrušil: pod
+                  priblížením 15 tu naďalej nie je ani jeden OSM bod a mapa krajiny ostáva
+                  príbehom o trasách. Nad ním odpovedá na otázku „čo je tu v okolí", ktorú
+                  hľadanie podľa mena zodpovedať nevie — a kvôli ktorej Matej dosiaľ kopíroval
+                  súradnice z mapy.cz.
+                  Pramene a lavičky tu ZATIAĽ NIE SÚ — je ich 12 000 a 35 000, čo je iná liga
+                  než 738 spacích miest; idú do tých istých dlaždíc, keď na ne príde rad.
+                  Atribúcia (`<PoiAttribution />` nižšie) je podmienka licencie ODbL. */}
+              {!isCleanMode && overlayOn.sleep && <PoiLayer tiles minZoom={SLEEP_MIN_ZOOM} />}
               {/* trip markery (pilulky s km, bodky-piktogramy, zhlukové bubliny s počtom) —
                   DOGYPT čistý vizuál (2026-08-04, Matej: „iba hmla a svetelné meče... žiadne
                   písmo ani vysvetlivky") ich celé skrýva, nesú číslo/piktogram na každom bode. */}
@@ -5638,10 +5812,27 @@ export default function PackMap() {
               )}
             </MapContainer>
 
+            {/* ATRIBÚCIA OSM — PODMIENKA LICENCIE ODbL, nie dekorácia. Patrí ku každej mape,
+                ktorá kreslí `<PoiLayer />`, a NESMIE sa dať vypnúť spolu s vrstvou: vypínač
+                je o tom, čo chce človek vidieť, licencia o tom, čo smieme použiť.
+                Stojí VŽDY, aj pod prahom priblíženia — dáta sú v appke tak či tak.
+
+                ⚠️ `bottom: 34` NIE JE kozmetika. Vpravo dole už sedí `.trp-attr` (© Seznam.cz
+                + logo Mapy.com, `bottom:10px`) — s východzím `bottom: 12` si obe atribúcie
+                sadli NA SEBA a čitateľná nebola ani jedna. Dve rôzne licencie, dva zdroje,
+                dva riadky nad sebou. Zistené meraním, nie odhadom. */}
+            <PoiAttribution style={{ bottom: 34 }} />
+
             {/* Plusko s prstencom PRI KURZORE (Matej 2026-08-20) — nahradilo pevné
                 tlačidlo v rohu, ktoré bolo slabo viditeľné a súperilo s tlačidlom
                 PRIDAŤ o tú istú úlohu. Na dotyku sa nekreslí (kurzor neexistuje). */}
             {!isCleanMode && <MapNoteCursor map={mapInstance} hidden={noteBusy || !!notePlacing} />}
+            {/* Kým je typ vybraný a čaká sa na klik, kurzor NESIE ZNAČKU, ktorá dopadne
+                (Matej 2026-08-27). Plusko sa v tej chvíli skrýva — pozývalo by do druhého
+                zápisu uprostred prvého. */}
+            {!isCleanMode && notePlaceReady && (
+              <MapPlaceCursor map={mapInstance} group={notePlacing!} kind={placingKind} ready={noteZoom >= noteMinZoom} />
+            )}
 
             {/* ── NÁHĽAD EXISTUJÚCEJ TRASY POČAS KRESLENIA (2026-08-25) ──────────────────
                 Odpoveď na „čo je to za trasu", nie otvorenie výletu. Stojí NAD dokom
@@ -5771,7 +5962,7 @@ export default function PackMap() {
                           className="trp-mapsug-item"
                           onClick={() => {
                             pickedPlaceRef.current = s.name.trim();
-                            setMapTarget([s.lat, s.lon]);
+                            setMapTarget({ ll: [s.lat, s.lon], zoom: placeZoom(s.type) });
                             setPlaceQuery(s.name);
                             setPlaceSug([]);
                           }}
@@ -5894,6 +6085,14 @@ export default function PackMap() {
             // zmeniť vlastným výberom a zhrnutie musí hovoriť o zapísanej značke.
             if (addFlow) setTripNotes((prev) => [...prev, { id, kind: n.kind }]);
             setNoteDraft(null);
+            /* ── PO ZÁPISE OSTÁVAM V OZNAČOVANÍ (Matej 2026-08-27) ─────────────────────
+               „kto značí parkoviská, značí ich viac" — do teraz `placeNote` označovanie
+               vypol, takže druhá značka toho istého druhu znamenala vrátiť sa do panela
+               a prejsť celý výber odznova. Vracia sa PRESNE ten druh, ktorý sa práve
+               uložil (`n.kind`, nie `noteDraft.kind` z uzáveru — panel ho vie zmeniť).
+               Len v sprievodcovi: na holej mape sa označovanie spúšťa z palety pri prste
+               a nechať ju zapnutú by pozývalo do zápisu, o ktorý nikto nežiadal. */
+            if (addFlow) { setNotePlacing(groupOf(n.kind)); setPlacingKind(n.kind); }
           }}
           onCancel={() => setNoteDraft(null)}
         />
@@ -5905,6 +6104,10 @@ export default function PackMap() {
           kind={placingKind}
           ready={noteZoom >= noteMinZoom}
           onCancel={() => { setNotePlacing(null); setPlacingKind(null); }}
+          edgeLeft={!!addFlow}
+          /* Prepínanie typu bez návratu do panela — len v sprievodcovi výletu (dôvod
+             pri `onPickType` v AddMapNote.tsx). */
+          onPickType={addFlow ? ((g, k) => { setNotePlacing(g); setPlacingKind(k); }) : undefined}
         />
       )}
       {/* Rýchla cesta: bod je z dlhého podržania, pýta sa typ. */}

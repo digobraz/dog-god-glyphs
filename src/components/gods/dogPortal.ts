@@ -226,8 +226,15 @@ export interface PortalOptions {
   label?: string;
   /** Popisok, keď je fotka vybraná. */
   labelPicked?: string;
-  /** Poznámka pod popiskom (vnútri jadra). */
+  /** Poznámka pod popiskom (vnútri jadra). Smie niesť HTML (napr. <b>#72</b>). */
   note?: string;
+  /**
+   * Druhý, podradený riadok pod poznámkou. Vznikol 27. 8. 2026, keď do portálu
+   * sadol počet psov: hook *„look around — your dog can be #72 here"* si vzal
+   * hlavnú poznámku a uistenie *„(you can change the photo later)"* — Matejova
+   * požiadavka z toho istého dňa — by inak zaniklo. Prázdny reťazec = riadok nie je.
+   */
+  subnote?: string;
   ariaLabel?: string;
   /** Klik na jadro. */
   onPick?: () => void;
@@ -255,7 +262,8 @@ export interface PortalHandle {
 export function buildPortal(opts: PortalOptions = {}): PortalHandle {
   const {
     faces = [], label = 'Add photo', labelPicked = 'Change photo',
-    note = '(you can change the photo later)', ariaLabel = "Add your dog's photo", onPick,
+    note = '(you can change the photo later)', subnote = '',
+    ariaLabel = "Add your dog's photo", onPick,
   } = opts;
 
   const el = document.createElement('span');
@@ -299,6 +307,7 @@ export function buildPortal(opts: PortalOptions = {}): PortalHandle {
       +   `<span class="ph-ico" aria-hidden="true">${PLUS_SVG}</span>`
       +   `<span class="ph-lbl">${photo ? labelPicked : label}</span>`
       +   `<span class="ph-note">${note}</span>`
+      +   (subnote ? `<span class="ph-sub">${subnote}</span>` : '')
       + '</span>';
   };
   paint(null);
@@ -540,12 +549,63 @@ export const PORTAL_CSS = `
   font-family: 'Space Grotesk', sans-serif;
   font-weight: 400;
   font-size: calc(var(--ph-w) * var(--ph-notek));
+  /* ⚠️ ZALOMENIE JE VOLITEĽNÉ, NIE PEVNÉ. Stena (260 px) veta na jeden riadok
+     unesie, guľa (118 px) NIE — pri jej šírke by nowrap vetu vystrčil z jadra,
+     ktoré má overflow hidden, teda by sa orezala v pol slova. Prepínač preto
+     ostáva na volajúcom: stena si nastaví premennú, guľa nie. */
+  white-space: var(--ph-note-ws, normal);
   line-height: 1.25;
   letter-spacing: 0.02em;
   text-align: center;
   color: rgba(255,246,218,0.72);
 }
+/* Číslo v poznámke je to jediné, čo sa v nej mení — nesie zlato, aby ho oko
+   našlo bez toho, aby celý riadok kričal. */
+.ph-note b { font-weight: 600; color: #F5C73D; }
+
+/* Podradený riadok pod poznámkou (uistenie „fotku vieš zmeniť neskôr").
+   ⚠️ Veľkosť je NÁSOBOK šírky portálu, rovnako ako .ph-note — pevná by sa
+   pri clamp-nutej šírke s jadrom rozišla. Na guli (118 px) sa nezapína:
+   dva riadky drobného textu by tam ostali nečitateľné. */
+.ph-sub {
+  margin: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 400;
+  font-size: calc(var(--ph-w) * var(--ph-subk, 0.052));
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-align: center;
+  color: rgba(255,246,218,0.46);
+}
+
+/* ── PORADOVÉ ČÍSLO = OUTLINE PILULKA NA SPODKU BLOKU ────────────────────
+   Matej 27. 8. 2026: *„tá info o počte daj ju naspodok toho bloku do pilsu
+   ale outline nie plného"*.
+   🔴 OUTLINE JE PRAVIDLO, NIE VKUS. Plná farebná plocha patrí jedinému prvku —
+   hlavnému CTA, a tým je práve tento portál. Pilulka stojí VNÚTRI neho, takže
+   plnú výplň mať nesmie, inak si tlačidlo konkuruje samo so sebou.
+   ⚠️ Zapína ju stena tým, že pošle subnote s týmto obalom; guľa subnote
+   nemá (118 px by drobnú pilulku neuniesla), takže sa jej to netýka. */
+.ph-nopill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5em 1.05em;
+  border-radius: 999px;
+  border: 1px solid rgba(245,199,61,0.55);
+  background: transparent;
+  color: rgba(255,246,218,0.80);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1;
+}
+.ph-nopill b { font-weight: 600; color: #F5C73D; letter-spacing: 0.02em; }
+
 /* Fotka je vybraná → popisok už hovorí „Change photo", poznámka
    o tom istom by bola druhýkrát to isté. */
-.ph-add.has-photo .ph-note { display: none; }
+.ph-add.has-photo .ph-note,
+.ph-add.has-photo .ph-sub { display: none; }
 `;

@@ -104,7 +104,7 @@ export function DogCharacterScreen() {
       if (next.length === 2) {
         setSelection('dogCharacter1', next[0]);
         setSelection('dogCharacter2', next[1]);
-        navigateTimeout.current = setTimeout(() => navigate('/heroglyph/reveal'), 600);
+        navigateTimeout.current = setTimeout(() => navigate('/heroglyph/crop'), 600);
       }
 
       return next;

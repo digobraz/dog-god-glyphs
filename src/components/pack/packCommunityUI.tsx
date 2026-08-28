@@ -196,11 +196,21 @@ export const COMMUNITY_CSS = `
 
 /* ── BigRating (Matej 2026-07-22): pravý stĺpec karty/detailu = LEN 1 packa + veľké číslo X.Y,
    ostatné (náročnosť/popularita/hazard) sa presunuli na fotku ako PhotoMetaPills. ── */
-.comm-bigrating{display:inline-flex;align-items:center;gap:8px;}
-.comm-bigrating img{width:30px;height:30px;flex-shrink:0;}
+/* Rad sa zalomí, keď je stĺpec úzky — päť packiek s číslom a zátvorkou je širšie než jedna
+   ikonka, ktorá tu stála predtým. Zarovnanie doprava drží celý blok pri hrane karty. */
+.comm-bigrating{display:inline-flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:4px 7px;}
 .comm-bigrating b{font-family:${FONT_UI};font-weight:600;font-size:26px;color:${GOLD};line-height:1;}
-.comm-bigrating.compact img{width:25px;height:25px;}
-.comm-bigrating.compact b{font-size:22px;}
+/* Počet hlasov je poznámka k číslu, nie druhé číslo — najmenší stupeň, bez kurzívy navyše. */
+.comm-bigrating i{font-style:normal;font-family:${FONT_UI};font-weight:500;font-size:11px;color:${T.onDarkDim};line-height:1;}
+.comm-bigrating.compact b{font-size:20px;}
+.comm-bigrating.compact i{font-size:10px;}
+/* mini = podpisový riadok karty (autor + hodnotenie). Nezalamuje sa: je to jedna poznámka,
+   nie stĺpec — pri zalomení by odtlačila meno autora do druhého riadku. */
+.comm-bigrating.mini{flex-wrap:nowrap;gap:0 5px;}
+/* Matej 2026-08-26: „hodnotenie o 10 % zväčši" — podpis vedľa klesol na 12 px, takže hodnotenie
+   musí zostať tým, čo v riadku vedie. 12 → 13,2 px, labky 10 → 11 px, počet hlasov 9 → 10 px. */
+.comm-bigrating.mini b{font-size:13.2px;}
+.comm-bigrating.mini i{font-size:10px;}
 
 /* ── PhotoMetaPills — DOLNÝ pruh fotky. Hazard TU NIE JE (ten je až v detaile vedľa tagov).
    Hover na pilulku = vysvetlenie (%-rozpad hlasov členov).
@@ -927,15 +937,32 @@ export function CrowdMeta({ agg, km, compact }: { agg: CrowdAgg; km: string; com
 }
 export { VOLUME_THRESHOLD };
 
-// ── BigRating (Matej 2026-07-22) — pravý stĺpec karty/detailu: 1 packa + veľké číslo X.Y.
-// Náročnosť/popularita/hazard sa presunuli na fotku (PhotoMetaPills), tu ostáva len rating. ──
-export function BigRating({ rating, compact }: { rating: number; compact?: boolean }) {
-  // Matej 2026-07-22: „našu packu s jedným väčším prstom, nie random" → brand Hekypaw (paw.svg,
-  // jeden zreteľne väčší prst), NIE generický paw-solid. Jedna väčšia packa + číslo.
+// ── BigRating — hodnotenie v pravom stĺpci karty a inline detailu.
+//
+// Matej 2026-08-26: „v zozname potrebujeme packu vyplniť farbou, nie obrys — daj to ako na
+// mobile: číslo, 5× packa a v zátvorke hodnotenia."
+//
+// Do teraz tu stála JEDNA packa (obrys `paw.svg`, len prefarbený filtrom) a vedľa nej veľké
+// číslo. Obrysová packa vedľa čísla nič nemeria — je to ikonka, ktorá hovorí „toto je
+// hodnotenie", nie stupnica. Päť packiek so zlomkovou výplňou (`RatingPaws`) tú istú hodnotu
+// UKAZUJE, a je to ten istý widget, aký nesie článok výletu a jeho mobilná podoba.
+//
+// Zátvorka = koľko chodcov hlasovalo (`walkedCount` z agregátu, teda `ratings.length`) — váha
+// toho čísla. Bez nej „5,0" z jedného hlasu a „5,0" z tridsiatich vyzerajú rovnako.
+//
+// ⚠️ Poradie je Matejovo (číslo → packy → zátvorka). Článok výletu (`.pta-byrating`) má
+// packy pred číslom; keby sa mali zjednotiť, mení sa TAM, nie tu — toto je vypýtaný tvar.
+//
+// `mini` (2026-08-26) = tretia veľkosť pre PODPISOVÝ RIADOK karty. Matej: „druhý riadok bude
+// fotka a meno autora a vedľa hodnotenie — malým písmom." Hodnotenie tam už nie je pravý
+// stĺpec karty (kde smie vážiť), ale poznámka vedľa autora — musí sedieť na jeho výšku, inak
+// riadok rozhodí. Veľkosť packiek je PROP, nie CSS, takže samotná trieda by nestačila.
+export function BigRating({ rating, count, compact, mini }: { rating: number; count?: number; compact?: boolean; mini?: boolean }) {
   return (
-    <span className={`comm-bigrating${compact ? ' compact' : ''}`}>
-      <img src={ICON('paw')} alt="" style={{ filter: GOLD_ICON_FILTER }} />
+    <span className={`comm-bigrating${compact ? ' compact' : ''}${mini ? ' mini' : ''}`}>
       <b>{rating.toFixed(1)}</b>
+      <RatingPaws stars={rating} size={mini ? 11 : compact ? 13 : 17} gap={mini ? 1.5 : compact ? 2 : 3} />
+      {count != null && count > 0 && <i>({count})</i>}
     </span>
   );
 }

@@ -35,7 +35,7 @@ import { pluralKey } from '@/components/pack/tripShared';
 import { DiffMark, DIFF_MARK_CSS } from '@/components/pack/tripShared';
 import { dockFitPadding, dockPadX } from '@/components/pack/mapDockShape';
 import { notePanelH } from '@/components/pack/mapnotes/AddMapNote';
-import { GeometryPicker, allowedKindsFor, defaultKindFor, findDuplicate } from './GeometryPicker';
+import { GeometryPicker, allowedKindsFor, defaultKindFor, findDuplicate, TRIP_HOLD_MIN_ZOOM } from './GeometryPicker';
 import { MAX_PHOTOS, optimizePhoto } from './photoOptimize';
 import { SPACING, interp, calibratedAscent } from './addTripGeo';
 import { buildPlanDate, parsePlanDate, type PlanPrecision } from './planDate';
@@ -207,6 +207,14 @@ export type AddTripLogProps = {
 const ACTIVITIES: Array<{ id: string; label: string; emoji: string; dataId: string }> =
   TRIP_CATEGORIES.map((c) => ({ id: c.id, label: c.label, emoji: c.emoji, dataId: c.dataId }));
 const ACT_BY_ID: Record<string, (typeof ACTIVITIES)[number]> = Object.fromEntries(ACTIVITIES.map((a) => [a.id, a]));
+
+// Dve možnosti v rozbalenej dlaždici. `mode` je hodnota do `pickActivity`, `key` predpona
+// i18n kľúčov (`mode.walked` + `mode.walkedSub`) — kľúče sa NEPREMENÚVAJÚ, tabuľka ich len
+// prestáva mať opísané dvakrát v JSX.
+const MODE_CHOICES: Array<{ mode: 'walked' | 'planned'; key: 'walked' | 'planned'; emoji: string }> = [
+  { mode: 'walked', key: 'walked', emoji: '✅' },
+  { mode: 'planned', key: 'planned', emoji: '🗓️' },
+];
 
 // §4.3 riadok 4: Náročnosť a povrch majú LEN HIKE a SPORT (§10.2 kánonu). Lokálna kópia
 // množiny `HIKE_LIKE` tu stála do 27. 8. 2026 — dnes to hovorí `needsDifficulty()`
@@ -1152,6 +1160,50 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   const placedInGroup = (g: NoteGroup): number =>
     (placedNotes ?? []).filter((n) => groupOf(n.kind as NoteKind) === g).length;
 
+  /**
+   * ── KROK SA OTVÁRAL V STAVE, KTORÝ SI SÁM ZAKAZOVAL (Matej 2026-08-27, oprava 28. 8.) ──
+   *
+   * Po HOTOVO sa mapa vycentruje na CELÚ trasu (`fitBounds` nižšie, strop z15). Devätnásť
+   * kilometrov sa zmestí až okolo z13 — lenže zapichnutie odkazu vyžaduje
+   * `TRIP_HOLD_MIN_ZOOM`. Prvé, čo appka po vstupe do kroku 2 povedala, bolo teda
+   * „Parkovisko — priblíž si mapu": sama si nastavila výrez, v ktorom sa nedá nič urobiť.
+   *
+   * Rieši sa to priblížením, NIE znížením prahu — parkovisko sa má trafiť na meter
+   * (feedback_prah_z_ineho_kontextu_zabije_vnoreny_tok).
+   *
+   * ⚠️ LEN KEĎ JE MAPA ĎALEJ, NEŽ TREBA. Kto si už priblížil svoje parkovisko, nesmie mu
+   * výrez odskočiť pod rukou. A po zrušení označovania sa NEVRACIA nič: človek si medzitým
+   * mohol mapu posunúť tam, kam naozaj chcel.
+   * Stred berieme z TRASY, nie z okna: na telefóne je trasa vrámovaná nad dok (dolná tretina
+   * obrazovky), takže geometrický stred mapy leží pod ňou a priblíženie doňho by trasu
+   * vytlačilo z výrezu.
+   */
+  const zoomForPlacing = () => {
+    const map = mapRef.current;
+    if (!map || map.getZoom() >= TRIP_HOLD_MIN_ZOOM) return;
+    const pts: LatLngTuple[] = geometry.kind === 'route'
+      ? ((geometry.snapPath?.length ? geometry.snapPath : geometry.path) as LatLngTuple[])
+      : geometry.center ? [geometry.center] : [];
+    const center = pts.length ? L.latLngBounds(pts).getCenter() : map.getCenter();
+    map.flyTo(center, TRIP_HOLD_MIN_ZOOM, { duration: 0.6 });
+  };
+
+  /**
+   * ── CHIP ZAPÍNA OZNAČOVANIE, NIE JE TO FILTER (Matej 2026-08-27) ──────────────────────
+   *
+   * „chip → OZNAČ" boli dva kliky na jednu vec a chip s bodovým štítkom pri sebe vyzeral
+   * ako filter, nie ako voľba. Odteraz je ťuk na chip celá akcia: skupina s jediným druhom
+   * (parkovisko, tip) spustí označovanie rovno, skupina s deviatimi (upozornenie) najprv
+   * vysunie rad hrozieb a označovanie spustí ťuk do neho — poradie „najprv viem ČO
+   * označujem, potom ukazujem KDE" ostáva (Matej 28. 8., rozhodnutie o úlohe 5).
+   * Vedľajší zisk: parkovisko prestalo byť predvybraté, lebo predvoľba už neexistuje —
+   * nič sa nezapichne bez ťuku do chipu.
+   */
+  const startPlacing = (g: NoteGroup, k?: NoteKind) => {
+    zoomForPlacing();
+    onPlaceNote?.(g, k);
+  };
+
   // ── OVLÁDANIE NA MAPE ─────────────────────────────────────────────────────────────────
   // Jedna lišta, dva kroky. V kroku 1 nesie nástroje kreslenia (kreslí si ich picker sám),
   // v kroku 2 dostane cez `panel` otázky o odkazoch — tvar ani miesto ovládania sa pod prstom
@@ -1192,15 +1244,13 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
    * a práve to vyzeralo, že mapa „ujde" sama od seba.
    */
   /**
-   * ⚠️ ŤUK DO DLAŽDICE UŽ NEZAPICHUJE — LEN VYBERÁ (Matej 24. 8. 2026: „pod tým preskočiť
-   * a označiť bude CTA, nie pokračovať").
-   *
-   * Do teraz mala skupina s jedným druhom (parkovisko, tip) tlačidlo OZNAČIŤ a skupina
-   * s deviatimi (nebezpečenstvo) ho nemala — zapichovalo sa ťuknutím do dlaždice. Dva rôzne
-   * spôsoby tej istej veci v tom istom kroku. Teraz je to všade rovnaké: vyber, potom OZNAČIŤ.
+   * ⚠️ DLAŽDICA HROZBY UŽ NIE JE VÝBER, JE TO AKCIA — a preto sa ani nezvýrazňuje
+   * (2026-08-28). Odkedy ťuk do nej rovno spúšťa označovanie (`startPlacing`), nemá čo držať
+   * „vybratý druh": stav toho, čo sa práve zapichuje, žije počas označovania v `placingKind`
+   * v PackMap a panel je v tej chvíli skrytý. Zvýraznenie z panela sa s ním rozchádzalo —
+   * kto si druh prepol v lište nad mapou, našiel po návrate podsvietený ten predošlý.
+   * Rad hrozieb sa tak číta rovnako ako chipy nad ním: ponuka úkonov, nie prepínač.
    */
-  const [pickedKind, setPickedKind] = useState<NoteKind | null>(null);
-  useEffect(() => { setPickedKind(null); }, [noteAsk]);
   // ── KOĽKO ICH JE A KDE STOJÍM (Matej 2026-08-24) ──────────────────────────────────────
   // „v 2. kroku je to chaoticky, musí tam byť jasný postup P-N-T (parkovisko, nebezpečenstvo,
   //  tip), aby človek mal prehľad čo pridáva, lebo som sa tam zamotal."
@@ -1258,7 +1308,13 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
             type="button"
             role="listitem"
             className={`atl-ntrack-i${i === noteAsk ? ' on' : ''}${has ? ' ok' : ''}${empty ? ' miss' : ''}`}
-            onClick={() => setNoteAsk(i)}
+            /* ⚠️ ŤUK NA CHIP JE CELÁ AKCIA (viď `startPlacing`). Pri upozornení len otvorí
+               rad hrozieb — označovanie tam spustí až vybraná hrozba, aby kurzor niesol
+               medveďa a nie rozcestník ⚠️ (dôvod v `MapNoteCursor.tsx`). */
+            onClick={() => {
+              setNoteAsk(i);
+              if (GROUP_KINDS[a.group].length === 1) startPlacing(a.group);
+            }}
             aria-current={i === noteAsk ? 'step' : undefined}
             /* ── FARBA HOVORÍ STAV, NIE SKUPINU (Matej 2026-08-26, druhé kolo) ───────────
                Ráno tu ešte stálo, že aktívnu možnosť farbí jej skupina (`--ntk` z
@@ -1294,9 +1350,13 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
             <KindGrid
               row
               kinds={askKinds}
-              selected={pickedKind}
+              selected={null}
               tint={GROUP_TINT[askGroup]}
-              onPick={(k) => setPickedKind(k)}
+              /* Ťuk do dlaždice ZAPICHUJE — obrátenie pravidla z 24. 8. („ťuk len vyberá,
+                 potom OZNAČIŤ"). Dôvod, pre ktorý vtedy vzniklo, bol, že skupina s jedným
+                 druhom mala CTA a skupina s deviatimi nie — teda dva spôsoby tej istej veci.
+                 Dnes ho nemá ANI JEDNA: všade je to jeden ťuk do toho, čo označujem. */
+              onPick={(k) => startPlacing(askGroup, k)}
             />
           )}
           <div className="atl-noteask-btns">
@@ -1307,32 +1367,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
             <button type="button" className="atl-toggle-btn" onClick={() => setNoteAsk((i) => i + 1)}>
               {t(placedInGroup(askGroup) > 0 ? 'pack.addTrip.step.nextAsk' : 'pack.addTrip.step.skip')}
             </button>
-            {/* CTA JE OZNAČIŤ, NIE POKRAČOVAŤ. Matej: „dolu mi nedáva zmysel tlačítko
-                pokračovať… to ako keby to chcel všetko odignorovať? neučme ich to." Preskočiť
-                sa dá — ale trikrát a vedome, nie jedným tlačidlom cez celý krok. */}
-            {/* ⚠️ JEDNO CTA NA CELÝ SPRIEVODCU (Matej 24. 8. 2026: „CTA označ parkovisko musí byť
-                výrazné, klasické plná farba… každý slajd musí mať totožné CTA, rovnaká farba
-                a štýl"). Je to `.trp-dbar-done` — ten istý brandový gradient, aký nesie TRASA
-                HOTOVÁ aj POKRAČOVAŤ, teda `.btn-gold` lock z CLAUDE.md. Predtým tu bolo
-                `.atl-toggle-btn on` (obrys s podfarbením) a hlavná akcia kroku tak vyzerala
-                slabšie než tlačidlá, ktoré krok len opúšťajú. */}
-            <button
-              type="button"
-              className="trp-dbar-done"
-              onClick={() => onPlaceNote?.(askGroup, askKinds.length > 1 ? (pickedKind ?? undefined) : undefined)}
-              disabled={!onPlaceNote || (askKinds.length > 1 && !pickedKind)}
-              style={(!onPlaceNote || (askKinds.length > 1 && !pickedKind))
-                ? { opacity: 0.42, boxShadow: 'none', cursor: 'default' }
-                : undefined}
-            >
-              {/* ⚠️ LEN SLOVO „OZNAČ" (Matej 24. 8. 2026: „daj len slovo OZNAČ v každom prípade…
-                  nech je to menšie"). Tri rôzne dĺžky („Označ parkovisko" / „Označ
-                  nebezpečenstvo" / „Označ miesto") menili šírku tlačidla medzi otázkami, a to
-                  najdlhšie sa na úzkom telefóne zalamovalo na dva riadky. ČO sa označuje,
-                  hovorí AInubis hore aj vybraná dlaždica — tlačidlo to nemusí opakovať.
-                  Kľúče `step.mark*` ostávajú v slovníku, sú stále v zhrnutí kroku 4. */}
-              {t('pack.addTrip.step.markShort')}
-            </button>
+            {/* ⚠️ TLAČIDLO OZNAČ TU UŽ NIE JE (Matej 2026-08-27: „chip → OZNAČ sú dva kliky
+                na jednu vec"). Označovanie zapína ťuk do chipu skupiny, resp. do dlaždice
+                hrozby — viď `startPlacing`. Zostáva jediné tlačidlo, a to je cesta ĎALEJ:
+                zlatá `.trp-dbar-done` sa tak v kroku 2 objaví až pod treťou otázkou, kde
+                naozaj patrí. Kľúč `step.markShort` ostáva v slovníku (zhrnutie kroku 4).
+                Cesta VON z označovania je × v AInubisovej bubline, tá sa nemení. */}
           </div>
         </>
       ) : (
@@ -1918,14 +1958,18 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
       )}
 
       {!activity && !restored && (
-        <div className="atl-tiles">
+        /* ⚠️ `has-open` VYPÍNA ROZŤAHOVANIE. Zatvorené dlaždice si delia výšku rovným dielom
+           (Matej 2026-08-27: „treba vyplniť cely priestor opticky musí byť ten blok plný"),
+           ale rozbalená dlaždica nesie o dve tlačidlá viac — pri rovnakých riadkoch by na jej
+           výšku narástli aj tri susedné a zoznam by pretiekol. */
+        <div className={`atl-tiles${pendingActivity ? ' has-open' : ''}`}>
           {ACTIVITIES.map((a) => {
             const open = pendingActivity === a.id;
             return (
               /* ⚠️ OBAL, NIE HOLÉ TLAČIDLO. Rozbaľovač nesie dve ďalšie tlačidlá a tlačidlo
                  vnorené v tlačidle je neplatné HTML — prehliadač ho vytrhne von z rodiča a
                  dlaždica sa rozpadne. */
-              <div key={a.id} className="atl-tile-wrap">
+              <div key={a.id} className={`atl-tile-wrap${open ? ' is-open' : ''}`}>
                 <button
                   type="button"
                   className={`atl-tile${open ? ' is-open' : ''}`}
@@ -1936,37 +1980,39 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                   {/* ⚠️ NÁZOV CEZ SLOVNÍK, NIE `a.label` — dataset nesie anglický názov ako kľúč a na
                       slovenskej obrazovke potom stálo „Hiking" pod nadpisom „Vyber aktivitu".
                       `pack.map.activityLabel.*` už existuje (používa ho filter na mape). */}
-                  <span className="atl-tile-label">{t(`pack.map.activityLabel.${a.id}`)}</span>
-                  {/* ⚠️ VETA TU UŽ NIE JE (Matej 2026-08-26: „bude to len jednoslovné TURISTIKA —
-                      až v dropdowne bude text"). Presunula sa do rozbaľovača nižšie. Dlaždica tým
-                      klesla na jeden riadok, čo je celý dôvod, prečo sa sedem aktivít zmestí do
-                      jedného stĺpca bez skrolovania. */}
+                  {/* ⚠️ VETA JE SPÄŤ NA DLAŽDICI (Matej 2026-08-27: „stále je tam veľa priestoru
+                      nevyzerá to dobre… opticky musí byť ten blok plný"). RUŠÍ TO ROZHODNUTIE
+                      z 26. 8. („bude to len jednoslovné TURISTIKA — až v dropdowne bude text"),
+                      a to vedome: dôvod, prečo veta vtedy odišla, bolo SEDEM aktivít v jednom
+                      stĺpci bez skrolovania. Kategórie sú štyri, takže ten dôvod zanikol a ostal
+                      opačný problém — štyri jednoriadkové dlaždice v 700 px stĺpci.
+                      Z rozbaľovača veta ZMIZLA, inak by tá istá stála 8 px pod sebou dvakrát. */}
+                  <span className="atl-tile-txt">
+                    <span className="atl-tile-label">{t(`pack.map.activityLabel.${a.id}`)}</span>
+                    <span className="atl-tile-note">{t(`pack.addTrip.log.activityNote.${a.id}`)}</span>
+                  </span>
                   <span className="atl-tile-caret" aria-hidden="true">{open ? '⌃' : '⌄'}</span>
                 </button>
                 {open && (
+                  /* ⚠️ VYSVETLIVKA JE POD TLAČIDLOM, NIE V ŇOM (Matej 2026-08-27: „v tlačítku
+                     bude emoji a nadpis a pod tlačítkom na jeho šírku bude malinkým
+                     vysvetlenie"). Dovtedy v ňom stáli nadpis aj veta v zátvorkách vedľa
+                     emoji — tri prvky rôznej váhy v jednom riadku, ktoré sa lámali každý inde
+                     („vyzerajú rozbito"). Klikacia plocha sa tým zmenšila zámerne: klikáš na
+                     ROZHODNUTIE, popis k nemu je len text. */
                   <div className="atl-mode">
-                    {/* VETA O AKTIVITE, NIE OTÁZKA „zapisuješ alebo plánuješ?" (Matej 2026-08-26).
-                        Odpoveď na tú otázku sú dve tlačidlá hneď pod ňou — pýtať sa nahlas na to,
-                        čo je vidieť, je riadok navyše. Miesto po nej dostal text, ktorý dovtedy
-                        stál na dlaždici a nikto ho nečítal, lebo bol na siedmich dlaždiciach naraz. */}
-                    <p className="atl-mode-ask">{t(`pack.addTrip.log.activityNote.${a.id}`)}</p>
                     <div className="atl-mode-btns">
                       {/* Poradie je zámerné: PREŠLI SME TO je častejší prípad (mapa žije zo
                           zapísaných výletov), tak stojí prvé. */}
-                      <button type="button" className="atl-mode-btn" onClick={() => pickActivity(a.id, 'walked')}>
-                        <span className="atl-mode-emoji" aria-hidden="true">✅</span>
-                        <span className="atl-mode-txt">
-                          <b>{t('pack.addTrip.log.mode.walked')}</b>
-                          <i>{t('pack.addTrip.log.mode.walkedSub')}</i>
-                        </span>
-                      </button>
-                      <button type="button" className="atl-mode-btn" onClick={() => pickActivity(a.id, 'planned')}>
-                        <span className="atl-mode-emoji" aria-hidden="true">🗓️</span>
-                        <span className="atl-mode-txt">
-                          <b>{t('pack.addTrip.log.mode.planned')}</b>
-                          <i>{t('pack.addTrip.log.mode.plannedSub')}</i>
-                        </span>
-                      </button>
+                      {MODE_CHOICES.map((m) => (
+                        <div key={m.mode} className="atl-mode-col">
+                          <button type="button" className="atl-mode-btn" onClick={() => pickActivity(a.id, m.mode)}>
+                            <span className="atl-mode-emoji" aria-hidden="true">{m.emoji}</span>
+                            <b>{t(`pack.addTrip.log.mode.${m.key}`)}</b>
+                          </button>
+                          <span className="atl-mode-cap">{t(`pack.addTrip.log.mode.${m.key}Sub`)}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -3143,8 +3189,12 @@ const LOG_CSS = `
    utiahnutý (výplne, medzery, nadpis) a veta pod nadpisom je DVOJRIADKOVÁ; keď ju budeš
    predlžovať, premeraj to znova pri innerHeight ~700. */
 .atl-log-head--intro{flex-direction:column;align-items:center;gap:9px;padding:12px 20px 10px;text-align:center;}
-.atl-log-title--big{font-size:20px;letter-spacing:.06em;}
-.atl-log-sub{font-family:${FONT_UI};font-weight:500;font-size:12.5px;line-height:1.4;color:${T.onDarkDim};max-width:40ch;}
+/* Matej 2026-08-27: „vyzerá to prázdne… centruj nadpis, zväčši nadpis Pick an activity."
+   Je to titulná strana celého pridávania a od zúženia sedmičky aktivít na ŠTYRI kategórie
+   je pod ňou o tri dlaždice menej — nadpis teda nekonkuruje zoznamu, ale drží prázdnu
+   plochu. Centrovanie nesie .atl-log-head--intro vyššie (flex column + text-align). */
+.atl-log-title--big{font-size:26px;letter-spacing:.07em;line-height:1.2;}
+.atl-log-sub{font-family:${FONT_UI};font-weight:500;font-size:14px;line-height:1.45;color:${T.onDarkDim};max-width:34ch;}
 /* JEDEN STĹPEC NA MOBILE (Matej 2026-08-23: „políčka na mobile zväčši tak aby boli cez celý
    displej"). Dlaždica sa tým narovná do riadku — emoji vľavo, názov vedľa — takže výška
    obrazovky vystačí aj na sedem položiek. Nad 560 px ostávajú dva stĺpce. */
@@ -3156,7 +3206,12 @@ const LOG_CSS = `
    pretlačí prvú dlaždicu NAD začiatok skrolu, keď sa obsah nezmestí — a tam sa už nedá
    doskrolovať. Na nízkom telefóne na šírku by tak zmizla turistika, teda prvá voľba.
    Slovo safe prepne späť na start presne v tej chvíli, keď by k tomu došlo. */
-.atl-tiles{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:grid;grid-template-columns:1fr;align-content:safe center;gap:8px;padding:2px 20px calc(14px + env(safe-area-inset-bottom,0px));}
+/* ROZŤAHOVANIE, NIE CENTROVANIE (Matej 2026-08-27). Štyri jednoriadkové dlaždice nechávali
+   v 700 px stĺpci ~120 px hore aj dole; 1fr riadky si voľnú výšku rozdelia rovným dielom,
+   takže blok je plný bez toho, aby sa čokoľvek dopĺňalo len na výplň. min-content v spodnej
+   hranici drží mobil — tam voľná výška nie je a riadok nesmie klesnúť pod obsah. */
+.atl-tiles{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:grid;grid-template-columns:1fr;grid-auto-rows:minmax(min-content,1fr);align-content:stretch;gap:12px;padding:2px 20px calc(14px + env(safe-area-inset-bottom,0px));}
+.atl-tiles.has-open{grid-auto-rows:min-content;align-content:safe center;}
 /* Emoji vľavo cez oba riadky, vpravo názov NAD vetou. Bol to flex rad, v ktorom sa veta
    zalamovala pod emoji (flex:1 1 100%) — s vetou na KAŽDEJ dlaždici by tak sedem položiek
    začínalo siedmimi rôznymi odsadeniami. */
@@ -3164,34 +3219,62 @@ const LOG_CSS = `
    pod názvom; tá je odteraz v rozbaľovači, takže z dlaždice ostal rad: emoji · názov · šípka.
    Flex namiesto grid-u zámerne — pri jednom riadku je grid-row:1/3 na emoji aj šípke len
    opis toho, čo align-items:center spraví samo. */
-.atl-tile{display:flex;align-items:center;gap:14px;padding:11px 16px;border-radius:${PLATE_TILE_R}px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};cursor:pointer;text-align:left;transition:border-color .15s ease,background .15s ease;}
+/* ⚠️ VÄČŠIE OD 27. 8. (Matej: „urob tie tlačítka väčšie"). Vojde sa to preto, že tu už
+   nestojí sedem aktivít, ale ŠTYRI kategórie — pri sedmičke bol jednoriadkový tvar jediný
+   spôsob, ako sa zmestiť bez skrolovania, a to bol celý dôvod, prečo veta z dlaždice
+   odišla do rozbaľovača. Zoznam ostáva skrolovateľný, takže pribudnutie piatej to nezhodí. */
+.atl-tile{display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:${PLATE_TILE_R}px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};cursor:pointer;text-align:left;transition:border-color .15s ease,background .15s ease;}
 .atl-tile:hover{border-color:${GOLD};background:rgba(201,154,63,0.10);}
-.atl-tile-emoji{flex:0 0 auto;font-size:24px;line-height:1;}
+.atl-tile-emoji{flex:0 0 auto;font-size:34px;line-height:1;}
 /* Názov je JEDNO SLOVO a nesie identitu voľby ⇒ Cinzel, nie Space Grotesk (brand: nadpisy
    a názvy sú Cinzel). Ako veta pod ním by to bolo zlé, ako štítok je to správne. */
-.atl-tile-label{flex:1 1 auto;min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:${T.onDark};}
+.atl-tile-label{min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:16px;letter-spacing:.05em;text-transform:uppercase;color:${T.onDark};}
 /* ── KROK 0b: PLÁNUJEM / PREŠLI SME TO ────────────────────────────────────────────────────
    Rozbaľovač je SÚČASŤ dlaždice, nie samostatný blok pod zoznamom: keby stál mimo, pri
    siedmich položkách by človek nevidel, ku ktorej sa voľba vzťahuje. Otvorená dlaždica preto
    stráca spodný rádius a rozbaľovač ho preberá — spolu tvoria jeden predmet. */
-.atl-tile-wrap{display:flex;flex-direction:column;min-width:0;}
-.atl-tile-caret{flex:0 0 auto;font-family:${FONT_UI};font-size:13px;line-height:1;color:${T.onDarkDim};}
-.atl-tile.is-open{border-color:${GOLD};background:rgba(201,154,63,0.10);border-bottom-color:transparent;border-bottom-left-radius:0;border-bottom-right-radius:0;}
-.atl-mode{border:1px solid ${GOLD};border-top:0;border-bottom-left-radius:12px;border-bottom-right-radius:12px;background:rgba(201,154,63,0.06);padding:10px 14px 12px;}
+.atl-tile-wrap{display:flex;flex-direction:column;min-width:0;min-height:0;}
+.atl-tiles:not(.has-open) .atl-tile{flex:1 1 auto;}
+/* Dvojriadkový text vedľa emoji — názov nesie Cinzel, veta ide bežným písmom a nededí
+   uppercase ani letter-spacing z nadpisu. */
+.atl-tile-txt{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:5px;}
+.atl-tile-note{font-family:${FONT_UI};font-weight:400;font-size:12.5px;line-height:1.4;letter-spacing:0;text-transform:none;color:${T.onDarkDim};}
+.atl-tile-caret{flex:0 0 auto;font-family:${FONT_UI};font-size:15px;line-height:1;color:${T.onDarkDim};}
+/* ── OTVORENÁ DLAŽDICA = JEDEN TMAVÝ BLOK (Matej 2026-08-27) ─────────────────────────────
+   „treba skúsiť iné otváranie — blok stmavne a priamo v tom istom bloku budú 2 možnosti."
+   Predtým to boli DVA prvky pod sebou (svetlá dlaždica + prilepený pásik s vlastným rámom),
+   spojené len tým, že sa medzi nimi zrušil okraj — a práve ten šev bolo vidno.
+   ⚠️ POVRCH JE LAPIS, NIE ČIERNA (Matej 2026-08-27: „tmavú zmeň na lapis nech držíme brand").
+   Sadá to presne do pravidla lapisu z navGoldSkin.ts — ZLATO = konštrukcia a poloha,
+   LAPIS = moja voľba a moja akcia, menovite „vybraná dlaždica". Neutrálna čierna hovorila
+   len „toto je iné"; lapis povie „toto som vybral ja", a so zlatým písmom drží pôvodnú
+   egyptskú dvojicu. NIE je to T.brandBlue — tou appka značí body NA MAPE.
+   ⚠️ Rám a polomer ostávajú zhodné so zatvorenými — musia vyzerať ako súrodenci, inak sa
+   pri otvorení „prepne" celý zoznam. Mení sa výplň a inkoust, nič iné.
+   ⚠️ Predpona .atl-tile-wrap.is-open nie je ozdoba: bledý PC prepis (PALE_LOG_CSS) stojí
+   v DOM POSLEDNÝ, takže pri rovnakej špecificite vyhrá on a dlaždica by ostala papyrusová. */
+.atl-tile-wrap.is-open{background:${LAPIS.grad};border:1px solid ${LAPIS.edge};border-radius:${PLATE_TILE_R}px;overflow:hidden;box-shadow:${LAPIS_BTN_SHADOW};}
+.atl-tile-wrap.is-open .atl-tile{background:transparent;border-color:transparent;border-radius:0;box-shadow:none;}
+.atl-tile-wrap.is-open .atl-tile-label{color:${LAPIS.ink};}
+.atl-tile-wrap.is-open .atl-tile-note,.atl-tile-wrap.is-open .atl-tile-caret{color:rgba(239,215,154,0.72);}
+.atl-mode{border:0;background:transparent;padding:0 16px 16px;}
 /* VETA, NIE EYEBROW. Kým tu stálo „Zapisuješ, alebo plánuješ?", bol to štítok — rozhádzané
    veľké písmená s veľkým prestrkom sa čítajú po slovách. Teraz nesie riadok skutočnú vetu
    o aktivite, tak je sadzaná ako veta. */
-.atl-mode-ask{margin:0 0 10px;font-family:${FONT_UI};font-weight:400;font-size:12.5px;line-height:1.45;letter-spacing:0;text-transform:none;color:${T.onDark};}
-.atl-mode-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.atl-mode-btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;}
+/* Stĺpec = tlačidlo + vysvetlivka POD ním, obe na tú istú šírku. */
+.atl-mode-col{display:flex;flex-direction:column;gap:7px;min-width:0;}
 /* Rad tlačidiel berie celú šírku rovnakými dielmi (feedback_rad_prvkov_plna_sirka_kontajnera). */
-.atl-mode-btn{display:flex;align-items:center;justify-content:center;gap:9px;min-height:52px;padding:9px 12px;border-radius:10px;background:rgba(245,240,228,0.06);border:1.5px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-weight:500;font-size:12.5px;letter-spacing:.02em;cursor:pointer;transition:border-color .15s ease,background .15s ease;}
+/* Tlačidlá stoja NA lapise, tak nesú zlatý inkoust — plná svetlá výplň by z nich urobila
+   dve hlavné CTA vnútri prvku, ktorý sám je len vybraná dlaždica. */
+.atl-mode-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:46px;padding:10px 12px;border-radius:10px;background:rgba(239,215,154,0.10);border:1.5px solid rgba(239,215,154,0.32);color:${LAPIS.ink};cursor:pointer;transition:border-color .15s ease,background .15s ease;}
+.atl-mode-btn b{font-family:${FONT_TITLE};font-weight:700;font-size:13.5px;letter-spacing:.05em;text-transform:uppercase;line-height:1.15;}
+/* Vysvetlivka nie je tlačidlo — nemá rám ani plochu, len tichý text na šírku stĺpca. */
+.atl-mode-cap{font-family:${FONT_UI};font-weight:400;font-size:10.5px;line-height:1.35;text-align:center;color:rgba(239,215,154,0.68);}
 /* Popisok v zátvorke na druhom riadku — je to spresnenie, nie druhá voľba, tak nesmie mať
    rovnakú váhu ako label. Strop 600 platí aj tu: Space Grotesk nad 600 je fake bold. */
-.atl-mode-txt{display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-width:0;}
-.atl-mode-txt b{font-weight:600;font-size:12.5px;line-height:1.2;}
-.atl-mode-txt i{font-style:normal;font-weight:400;font-size:10.5px;line-height:1.25;color:${T.onDarkDim};}
-.atl-mode-btn:hover,.atl-mode-btn:focus-visible{border-color:${GOLD};background:rgba(201,154,63,0.14);outline:none;}
-.atl-mode-emoji{font-family:${FONT_EMOJI};font-size:15px;line-height:1;}
+.atl-mode-btn:hover,.atl-mode-btn:focus-visible{border-color:${LAPIS.ink};background:rgba(239,215,154,0.20);outline:none;}
+.atl-mode-emoji{font-family:${FONT_EMOJI};font-size:17px;line-height:1;}
 @media (max-width:359px){
   .atl-mode-btns{grid-template-columns:1fr;}
 }
@@ -3501,17 +3584,14 @@ const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
   .atl-tile-label{color:${P_INK};}
   .atl-tile-note{color:${P_DIM};}
   .atl-tile-caret{color:${P_DIM};}
-  .atl-tile.is-open{border-color:${P_DEEP};background:linear-gradient(160deg,#FFFBF0,#F0E1BC);}
-  .atl-mode{border-color:${P_DEEP};background:rgba(201,154,63,0.12);}
+  /* ⚠️ OTVORENÁ DLAŽDICA SA V BLEDOM SKINE NEPREFARBUJE — je LAPISOVÁ zámerne (viď STEP_CSS).
+     Do 27. 8. tu stáli tri svetlé prepisy (dlaždica, pásik, tlačidlá); po zmene by z lapisového
+     bloku spravili papyrusový a stav by prestal byť vidieť. */
   /* Veta o aktivite je odteraz VETA, nie eyebrow — na papyruse ju číta človek, tak dostane
      plný inkoust. Stlmená (P_DIM) bola správna, kým to bol štítok „Zapisuješ, alebo plánuješ?". */
-  .atl-mode-ask{color:${P_INK};}
   /* ⚠️ Popisok v zátvorke si nesie vlastnú farbu (onDarkDim), takže sa NEDEDÍ z tlačidla —
      bez tohto riadku je na papyruse biely na svetlom, teda neviditeľný. Presne tá diera,
      kvôli ktorej sa každý nový prvok s vlastnou farbou musí doplniť aj sem. */
-  .atl-mode-txt i{color:${P_DIM};}
-  .atl-mode-btn{background:${P_FIELD};border-color:${P_BORDER};color:${P_INK};}
-  .atl-mode-btn:hover,.atl-mode-btn:focus-visible{border-color:${P_DEEP};background:#FFF6E2;}
 
   /* ── polia a ovládanie formulára ────────────────────────────────────────────────────── */
   .atl-field label{color:${P_DIM};}

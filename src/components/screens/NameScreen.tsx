@@ -8,10 +8,14 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { PageTopBar } from '@/components/PageTopBar';
 import hekthorImg from '@/assets/hekthor.png';
 import { DateDropdowns } from '@/components/DateDropdowns';
+import legendIconUrl from '@/assets/legend-icon.svg';
+import angelIconUrl from '@/assets/angel-icon.svg';
 import { useT } from '@/i18n/LanguageContext';
+
+// Najstarší rok v prepínači dátumu úmrtia.
+const MIN_DEATH_YEAR = 1990;
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 import { useBlockAutocorrect } from '@/hooks/useBlockAutocorrect';
-import { countryFlag } from '@/lib/countryGeo';
 
 // Android keyboards (Gboard/Samsung) ignore autoCorrect/autoComplete="off" and may
 // silently swap a typed word for a predicted one (e.g. BELGA → BELGICKO). We can't
@@ -20,26 +24,6 @@ import { countryFlag } from '@/lib/countryGeo';
 // iOS/desktop respect the attributes, so they get nothing (no clutter).
 const IS_ANDROID = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
 
-// Countries list shared with CheckoutScreen (owner billing country).
-// Used here for dog's country of origin / home country.
-const COUNTRIES = [
-  'Afghanistan','Albania','Algeria','Andorra','Angola','Argentina','Armenia','Australia','Austria','Azerbaijan',
-  'Bahamas','Bahrain','Bangladesh','Barbados','Belarus','Belgium','Belize','Benin','Bhutan','Bolivia',
-  'Bosnia and Herzegovina','Botswana','Brazil','Brunei','Bulgaria','Burkina Faso','Burundi','Cambodia','Cameroon',
-  'Canada','Central African Republic','Chad','Chile','China','Colombia','Comoros','Congo','Costa Rica','Croatia',
-  'Cuba','Cyprus','Czech Republic','Denmark','Djibouti','Dominican Republic','Ecuador','Egypt','El Salvador',
-  'Estonia','Ethiopia','Fiji','Finland','France','Gabon','Gambia','Georgia','Germany','Ghana','Greece',
-  'Guatemala','Guinea','Haiti','Honduras','Hungary','Iceland','India','Indonesia','Iran','Iraq','Ireland',
-  'Israel','Italy','Jamaica','Japan','Jordan','Kazakhstan','Kenya','Kuwait','Kyrgyzstan','Laos','Latvia',
-  'Lebanon','Libya','Liechtenstein','Lithuania','Luxembourg','Madagascar','Malaysia','Maldives','Mali','Malta',
-  'Mexico','Moldova','Monaco','Mongolia','Montenegro','Morocco','Mozambique','Myanmar','Namibia','Nepal',
-  'Netherlands','New Zealand','Nicaragua','Niger','Nigeria','North Macedonia','Norway','Oman','Pakistan',
-  'Panama','Paraguay','Peru','Philippines','Poland','Portugal','Qatar','Romania','Russia','Rwanda',
-  'Saudi Arabia','Senegal','Serbia','Singapore','Slovakia','Slovenia','Somalia','South Africa','South Korea',
-  'Spain','Sri Lanka','Sudan','Sweden','Switzerland','Syria','Taiwan','Tanzania','Thailand','Tunisia',
-  'Turkey','Uganda','Ukraine','United Arab Emirates','United Kingdom','United States','Uruguay','Uzbekistan',
-  'Venezuela','Vietnam','Yemen','Zambia','Zimbabwe',
-];
 
 // ── Name Entry Modal ─────────────────────────────────────────────────────────
 // Always mounted & portaled to document.body. Two things matter on iOS:
@@ -206,6 +190,12 @@ export function NameScreen() {
   const storedDogName = useDogyptStore((s) => s.dogName);
   const setSelection = useDogyptStore((s) => s.setSelection);
   const selections = useDogyptStore((s) => s.selections);
+  // Otázka „žije pes?" sa 28. 8. 2026 presťahovala sem zo zaniknutého /heroglyph/intro.
+  // Patrí k menu: je to jediná vec, ktorú o psovi treba vedieť skôr, než sa začne skladať symbol.
+  const setLifeStatus = useDogyptStore((s) => s.setLifeStatus);
+  const storedLifeStatus = useDogyptStore((s) => s.lifeStatus);
+  const deathDate = useDogyptStore((s) => s.deathDate);
+  const setDeathDate = useDogyptStore((s) => s.setDeathDate);
 
   const initialName = storedDogName || '';
   const today = new Date();
@@ -229,6 +219,11 @@ export function NameScreen() {
   // Default empty: user must consciously pick (LOCKED decision 2026-07-06).
   const [dogCountry, setDogCountry] = useState<string>(selections.country || '');
   const [showInfo, setShowInfo] = useState(false);
+  const [life, setLife] = useState<'alive' | 'deceased'>(storedLifeStatus ?? 'alive');
+  const [deathModalOpen, setDeathModalOpen] = useState(false);
+  const [dd, setDd] = useState(today.getDate());
+  const [dm, setDm] = useState(today.getMonth() + 1);
+  const [dy, setDy] = useState(today.getFullYear());
   const isMobile = useMemo(() => window.matchMedia('(pointer: coarse)').matches, []);
   const [nameModalOpen, setNameModalOpen] = useState(false);
   const nameModalRef = useRef<HTMLDivElement>(null);
@@ -252,20 +247,34 @@ export function NameScreen() {
 
   const trimmed = input.trim();
   const nameValid = trimmed.length >= 1 && trimmed.length <= 30;
-  const dateValid = touched;
-  const countryValid = dogCountry !== '';
-  const canContinue = nameValid && dateValid && countryValid;
+  // Krajina a dátum narodenia sa 28. 8. 2026 presunuli na /heroglyph/about — meno má byť
+  // ľahká otázka, nie formulár. Tu drží tlačidlo len platné meno.
+  const canContinue = nameValid;
 
   const handleSend = () => {
     if (!canContinue) return;
     setDogName(trimmed.toUpperCase());
-    setSelection('birthdayDay', String(day).padStart(2, '0'));
-    setSelection('birthdayMonth', String(month).padStart(2, '0'));
-    setSelection('birthdayYear', String(year));
-    // Dog's country → heroglyph pos 15 + dogs.country + WALL flag.
-    // Stored as English name (matches COUNTRY_TO_ISO3 map in heroglyphCode.ts).
-    setSelection('country', dogCountry);
-    navigate('/heroglyph/photo');
+    setLifeStatus(life);
+    navigate('/heroglyph/email');
+  };
+
+  const openDeathModal = () => {
+    const seed = deathDate ? new Date(deathDate) : new Date();
+    setDd(seed.getDate());
+    setDm(seed.getMonth() + 1);
+    setDy(seed.getFullYear());
+    setDeathModalOpen(true);
+  };
+
+  const saveDeathDate = () => {
+    setDeathDate(`${dy}-${String(dm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`);
+    setDeathModalOpen(false);
+  };
+
+  const pickLife = (v: 'alive' | 'deceased') => {
+    setLife(v);
+    setLifeStatus(v);
+    if (v === 'alive') setDeathDate(null);
   };
 
   const handleDateChange = (d: number, m: number, y: number) => {
@@ -277,7 +286,7 @@ export function NameScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <PageTopBar onBack={() => navigate('/heroglyph/intro')} />
+      <PageTopBar onBack={() => navigate('/heroglyph/photo')} />
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
         <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 min-h-0">
@@ -491,89 +500,80 @@ export function NameScreen() {
               `}</style>
             </div>
 
-            {/* Dog Country select — 30% of name row; placeholder = short "HOME" label.
-                Closed box shows ONLY the flag (full "flag + name" option text is kept for
-                the native dropdown list — full names help pick, but overflow the tiny
-                closed box). The select's own text is made transparent once a value is
-                chosen; a non-interactive flag overlay renders on top of it instead. */}
-            <div style={{ flex: '3 0 0', minWidth: 0, position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <select
-                value={dogCountry}
-                onChange={(e) => setDogCountry(e.target.value)}
-                aria-label={t('heroglyph.flow.name.dogCountry')}
-                style={{
-                  appearance: 'none',
-                  WebkitAppearance: 'none',
-                  width: '100%',
-                  height: 48,
-                  background: dogCountry ? 'hsl(var(--papyrus))' : 'hsl(var(--card))',
-                  border: dogCountry
-                    ? '2px solid hsl(var(--gold))'
-                    : '2px solid hsl(var(--gold) / 0.5)',
-                  borderRadius: 12,
-                  fontFamily: "'Cinzel', serif",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  textAlign: 'center',
-                  color: dogCountry ? 'transparent' : 'hsl(var(--muted-foreground) / 0.6)',
-                  paddingLeft: 4,
-                  paddingRight: 20,
-                  cursor: 'pointer',
-                  outline: 'none',
-                }}
-              >
-                <option value="">{t('heroglyph.flow.name.dogCountry')}</option>
-                {COUNTRIES.map((c) => (
-                  <option key={c} value={c}>{countryFlag(c) || '🏳'} {c}</option>
-                ))}
-              </select>
-              {dogCountry && (
-                <span
-                  aria-hidden
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    textAlign: 'center',
-                    pointerEvents: 'none',
-                    fontSize: 20,
-                    lineHeight: 1,
-                  }}
-                >{countryFlag(dogCountry) || '🏳'}</span>
-              )}
-              <span
-                aria-hidden
-                style={{
-                  position: 'absolute',
-                  right: 8,
-                  pointerEvents: 'none',
-                  color: 'hsl(var(--gold))',
-                  fontSize: 12,
-                  lineHeight: 1,
-                }}
-              >▾</span>
-            </div>
-
             </div>{/* end name + country flex row */}
 
-            {/* Birthday — inline iOS-style 3-wheel picker */}
+            {/* Prečo vôbec symbol — objaví sa až keď meno stojí, takže to nie je
+                sľub pred vstupom, ale odpoveď na to, čo človek práve napísal.
+                🚩 Konkrétne číslo („toto meno nosí 123 554 psov") tu byť NESMIE —
+                taký dataset neexistuje a bola by to vymyslená štatistika. */}
+            {nameValid && (
+              <p
+                className="text-center text-[11px] md:text-xs leading-snug px-1"
+                style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'rgba(14,14,14,0.62)' }}
+              >
+                {t('heroglyph.flow.name.uniqueLine')}
+              </p>
+            )}
+
+            {/* Žije pes? — presunuté z /heroglyph/intro (28. 8. 2026). Kľúče `intro.*`
+                ostávajú, je to tá istá otázka na inom mieste — nič sa neprekladá nanovo. */}
             <p
-              className="text-xs md:text-sm uppercase tracking-widest text-muted-foreground text-center"
+              className="text-center text-[11px] md:text-xs font-bold uppercase tracking-wider"
               style={{ fontFamily: "'Cinzel', serif" }}
             >
-              {t('heroglyph.flow.name.birthday')}
+              {t('intro.question')}
             </p>
-            <DateDropdowns
-              day={day}
-              month={month}
-              year={year}
-              minYear={minYear}
-              maxYear={maxYear}
-              maxDate={today}
-              onChange={handleDateChange}
-            />
+
+            <div className="flex gap-2.5 w-full">
+              <button
+                onClick={() => pickLife('alive')}
+                className={`flex-1 flex flex-col items-center gap-1.5 p-2.5 rounded-xl border-2 transition-all ${
+                  life === 'alive' ? 'is-selected-purple' : 'border-border/60 hover:border-primary/50'
+                }`}
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
+                <img
+                  src={legendIconUrl}
+                  alt=""
+                  aria-hidden="true"
+                  className="h-9 w-9 object-contain flex-shrink-0"
+                  style={{ filter: 'brightness(0)' }}
+                />
+                <span className="text-[11px] font-bold uppercase tracking-wider leading-tight text-center">
+                  {t('intro.alive')}
+                </span>
+              </button>
+
+              <button
+                onClick={() => { pickLife('deceased'); openDeathModal(); }}
+                className={`flex-1 flex flex-col items-center gap-1.5 p-2.5 rounded-xl border-2 transition-all ${
+                  life === 'deceased' ? 'is-selected-purple' : 'border-border/60 hover:border-primary/50'
+                }`}
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
+                <img
+                  src={angelIconUrl}
+                  alt=""
+                  aria-hidden="true"
+                  className="h-9 w-9 object-contain flex-shrink-0"
+                  style={{ filter: 'brightness(0)' }}
+                />
+                <span className="text-[11px] font-bold uppercase tracking-wider leading-tight text-center">
+                  {t('intro.deceased')}
+                </span>
+              </button>
+            </div>
+
+            {life === 'deceased' && deathDate && (
+              <button
+                type="button"
+                onClick={openDeathModal}
+                className="text-center text-[10px] tracking-wide underline decoration-dotted"
+                style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'rgba(14,14,14,0.6)' }}
+              >
+                {t('intro.deceasedDate.caption', { date: new Date(deathDate).toLocaleDateString() })}
+              </button>
+            )}
 
             <Button
               onClick={handleSend}
@@ -592,6 +592,52 @@ export function NameScreen() {
           </motion.div>
         </div>
       </div>
+
+      {/* Dátum úmrtia — voliteľný popup, prenesený z /heroglyph/intro. Pes ešte
+          neexistuje v DB, dátum ide do store a zapíše sa až pri checkoute. */}
+      {deathModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center px-4" style={{ zIndex: 2100 }}>
+          <div
+            className="fixed inset-0"
+            style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(2px)' }}
+            onClick={() => setDeathModalOpen(false)}
+          />
+          <motion.div
+            className="relative w-full max-w-sm rounded-2xl border-2 border-border/40 papyrus-bg p-4 flex flex-col gap-3"
+            style={{ color: '#0E0E0E' }}
+            initial={{ opacity: 0, scale: 0.94 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.22 }}
+          >
+            <p
+              className="text-center text-[11px] font-bold uppercase tracking-wider"
+              style={{ fontFamily: "'Cinzel', serif" }}
+            >
+              {t('intro.deceasedDate.title')}
+            </p>
+            <DateDropdowns
+              day={dd}
+              month={dm}
+              year={dy}
+              minYear={MIN_DEATH_YEAR}
+              maxYear={today.getFullYear()}
+              maxDate={today}
+              onChange={(a, b, c) => { setDd(a); setDm(b); setDy(c); }}
+            />
+            <Button
+              onClick={saveDeathDate}
+              className="w-full rounded-xl h-10 font-bold tracking-wider"
+              style={{
+                fontFamily: "'Cinzel', serif",
+                background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                color: '#000',
+              }}
+            >
+              {t('pack.dog.memorial.save')}
+            </Button>
+          </motion.div>
+        </div>
+      )}
 
       {/* Name entry modal — only on mobile (iOS keyboard-safe); desktop types inline. */}
       {isMobile && <NameModal

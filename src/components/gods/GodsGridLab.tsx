@@ -35,6 +35,9 @@ import { useToast } from '@/hooks/use-toast';
 import { shareDog, downloadCard, facebookShare, whatsappShare, copyDogLink } from '@/lib/useShareCard';
 import { dogPagePath } from '@/lib/dogSlug';
 import { BrandIcon } from '../pack/BrandIcon';
+// Lapis = „moja voľba a moja akcia" (navGoldSkin.ts). Berie sa TOKEN, nie literál —
+// stena je vanilla DOM, ale farba je tá istá ako všade inde.
+import { LAPIS } from '../pack/navGoldSkin';
 import './WhatNextPopup.css';
 
 // LAB: stena ťahá SKUTOČNÝCH členov z produkcie (read-only, verejný endpoint) —
@@ -135,7 +138,10 @@ const enrollCopy = (lang: string): EnrollCopy => ENROLL_COPY[lang] || ENROLL_COP
 const ENROLL_FACES = 5;
 
 /** Voľba variantu prežije reload — inak sa pri každom uložení súboru vráti na A. */
-const ENROLL_KEY = 'wall-lab-enroll';
+// ⚠️ `-v2` je zámerný bump (27. 8. 2026): pri prepnutí východzieho variantu na PORTÁL by
+// stará uložená '0' (klik na A z pieskoviska) ticho vyhrala nad novým defaultom a stena by
+// niekomu naďalej ukazovala tlačidlo. Bump zahodí každú starú voľbu, nová sa ukladá znova.
+const ENROLL_KEY = 'wall-lab-enroll-v2';
 
 /**
  * Variant B posúva východiskový pohľad o pol bunky hore, aby boli v zábere
@@ -145,6 +151,38 @@ const ENROLL_KEY = 'wall-lab-enroll';
  * skočí inam než počiatočný pohľad.
  */
 const enrollViewShift = (on: boolean) => (on ? GY / 2 : 0);
+
+/**
+ * O KOĽKO HERO KLESNE POD HORNÝ NAV (Matej 27. 8. 2026: *„pils s naším targetom
+ * a motto treba posunúť dolu, aby bolo vidno celé"*).
+ *
+ * Prečo vôbec: východiskový pohľad je kvôli portálu posunutý o pol bunky HORE
+ * (`enrollViewShift`), takže hero vyliezlo pod nav — a vo filme (`/onepage`)
+ * pod ním visí ešte medailón, ktorý siaha nižšie než samotná lišta. Vrch
+ * nadpisu tak ležal presne za ním.
+ *
+ * ⚠️ NEDÁ SA to spraviť posunutím CELÉHO pohľadu — dolu je priestor vyčerpaný:
+ * portál končí tesne nad spodnou lištou. Klesá preto len hero vo svojej bunke;
+ * ukrajuje si z medzery k portálu (65 → 23 px), ktorá bola jediná voľná plocha
+ * na obrazovke.
+ *
+ * ⚠️ ČÍSLO URČUJE MEDZERU K PORTÁLU, NIE VZDUCH POD NAVOM. Hero aj portál sú
+ * bunky toho istého plátna, takže ich odstup je konštantný; koľko z toho ostane
+ * na vzduch pod navom, rozhoduje VÝŠKA OKNA (pohľad sa centruje na okno).
+ * Kalibrované na Matejov Mac: viewport ~668 px je jeho MAXIMUM (obrazovka má
+ * availHeight 845). Pri ňom ostáva hero ~34 px pod medailónom — tesné zámerne,
+ * lebo hero (222) + portál (260) je skoro celý priestor medzi medailónom a
+ * spodnou lištou. Kto pridá čokoľvek do hera, oberie ten vzduch, nie medzeru.
+ *
+ * 🔴 NA MOBILE JE NULA A MUSÍ NÍM OSTAŤ. Bunky sú tam o tretinu menšie
+ * (`MScale 0.67`), takže medzera hero↔portál je 39 px, nie 65 — desktopových
+ * 42 px by hero POLOŽILO NA PORTÁL (odmerané: −3 px prekryv pri šírke 386).
+ * A netreba ho: nav je nižší a hero tam stojí 97 px pod medailónom.
+ */
+/** Mobilná vetva steny. JEDNO miesto — `MScale` používa tú istú hranicu 768 px
+ *  a dve rôzne hranice by vyrobili pásmo šírok bez pravidiel. */
+const MOBILE_WALL = typeof window !== 'undefined' && window.innerWidth < 768;
+const HERO_DROP = MOBILE_WALL ? 0 : 42;
 
 // 'dark' = pôvodná tmavá so žiarami, 'darkcalm' = to isté bez žiar, 'light' = papyrus.
 type WallTheme = 'dark' | 'darkcalm' | 'light';
@@ -404,8 +442,17 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
 
   // A/B prepínač variantu zápisu psa (DEV pieskovisko). Grid je vanilla DOM
   // a stavia sa v efekte, takže hodnoty číta cez ref, nie zo closure.
+  //
+  // 🔴 VÝCHODZÍ JE **B — PORTÁL** (Matej 27. 8. 2026: *„cta tam nebolo tlačítko ale celý
+  // blok ako je teraz na globe, nájdi to a vráť to tak"*). Predtým bol default A (zlaté
+  // tlačidlo BECOME DOGYPTIAN) a portál sa musel zapnúť klikom.
+  // ⚠️ PREČO TO VYZERALO AKO ZMAZANÝ BLOK: voľba žije v `localStorage`, a ten je
+  // **per-origin, teda aj per-PORT**. Na `localhost:8080` bolo uložené B, na `:8081`
+  // nebolo nič ⇒ default A ⇒ na jednom porte portál, na druhom tlačidlo. Dve session,
+  // dva porty, dve rôzne steny. Preto sa default nesmie spoliehať na uloženú hodnotu:
+  // `!== '0'` znamená, že bez uloženej voľby vyhráva portál a klik na A ostáva platný.
   const [enrollOn, setEnrollOn] = useState<boolean>(() => {
-    try { return localStorage.getItem(ENROLL_KEY) === '1'; } catch { return false; }
+    try { return localStorage.getItem(ENROLL_KEY) !== '0'; } catch { return true; }
   });
   // Iskry portálu na stene. Kartu zahadzuje a znova stavia virtualizácia pri
   // scrolle, takže slučka nesmie visieť na karte — drží ju stena a plátno si
@@ -839,23 +886,97 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       }
     }
 
+    /** Poradové číslo, ktoré pes dostane, keď vstúpi teraz. Jedna funkcia, lebo
+     *  číslo dnes hovorí PORTÁL a zajtra ho môže chcieť aj niekto iný — dve kópie
+     *  toho istého `reduce` sa rozídu pri prvej zmene pravidla. */
+    function nextPackNo() {
+      return [...realDogMapRef.current.values()]
+        .reduce((m, d) => Math.max(m, d.pack_number ?? 0), 1) + 1;
+    }
+
     function makeHeroCard() {
       const el = document.createElement('div');
       el.className = 'center-hero';
       el.style.left = (W / 2) + 'px';
-      el.style.top  = (H / 2) + 'px';
+      el.style.top  = (H / 2 + HERO_DROP) + 'px';
       // LAB: hero sa zmenšuje V ROVNAKOM POMERE ako karty. Bunka pod ním sa
       // zmenšovaním steny uťahuje, ale logo + CTA + počítadlo si držali pôvodnú
       // veľkosť — pri druhom kole −15 % už logo miznulo za Hekthorom a pilulka
       // s počtom ležala na fotke pod ním. A fotiek sa nesmie dotýkať nič.
       // scale() za translate(): transform-origin je stred, takže ukotvenie drží.
       el.style.transform = `translate(-50%, -50%) scale(${LAB_CARD_SCALE})`;
+      // ── OBSAH HERA = NADPIS + TAGLINE, NIČ INÉ (Matej 27. 8. 2026) ──────
+      // *„tá voľná plocha nad blokom — tam musí byť náš nový headline YOUR DOG
+      // IS A GOD HERE + tagline, bez loga, bez motta, bez pilulky s počtom…
+      // údaj o počte dáme do toho portálu"*.
+      //
+      // 🔴 ZANIKLO TÝM: logo (.hero-logo-icon), motto „THE PLACE WHERE DOG IS
+      // GOD." (.hero-tagline) aj pilulka „71 / 1,000,000 DOGS" (.hero-count).
+      // Počet nezmizol — presťahoval sa DO PORTÁLU (viď makeEnrollCard).
+      // Ich CSS zatiaľ v súbore ostáva: stena je lab, ktorý sa denne ladí,
+      // a vrátiť ktorýkoľvek z tých troch prvkov je potom jeden riadok.
+      //
+      // ⚠️ ZNENIE JE TO ISTÉ AKO NA GULI (DogPlanetLab.tsx, .ph-h1 + .ph-lead)
+      // a je zámerne po anglicky natvrdo, presne ako tam — nie cez slovník.
+      // Keď sa mení veta, mení sa na OBOCH povrchoch naraz.
+      //
+      // 🔴 RIADKY SÚ BLOKY S NOWRAP, NIE <br>. Tvrdý zlom hovorí, KDE sa riadok
+      // láme — nezakazuje ďalšie zalomenie. To isté zistenie ako na guli:
+      // stačilo, aby „YOUR DOG IS" bolo o pár pixelov širšie než miesto, a
+      // vznikol tretí riadok.
+      // ── POČET = MODRÁ PILULKA VO VOĽNOM PRIESTORE (Matej 27. 8. 2026) ───
+      // *„je to také plané = ten údaj o počte by sme mohli dať hore do volneho
+      // priestoru a v bloku kde je foto dame len add photo a info že sa to tá
+      // zmeniť… údaj o počte by sme mohli dať do modrého pils = OUR TARGET 1M
+      // DOGS - your will be #xy… nejak pekne dizajnovo."*
+      //
+      // 🔁 DRUHÉ KOLO (Matej, o pár minút neskôr): *„nie je to vôbec pekné je to
+      // suché… potrebujem aby to bolo juicy = najprv bude our tarbet výrazné
+      // v pils alebo v niečom, osobne by som zvolil outline nie full colour pil
+      // a pod tým iba text o tom aký pes v poradí bude."*
+      //
+      // 🔴 PRETO NIE DVA DIELY V JEDNOM TVARE, ALE PILULKA + RIADOK POD ŇOU.
+      // Cieľ je NÁŠ a je to vyhlásenie — dostal rám. Číslo je TVOJE a je to
+      // veta — rám nedostalo, dostalo veľkosť a zlato. Dva rámy vedľa seba
+      // robili z toho tabuľku, a to bolo to „suché".
+      //
+      // 🔶 LAPIS JE ZATIAĽ PRACOVNÝ NÁVRH (navGoldSkin.ts) — odklepnutý pre
+      // redizajn /map, do brand manuálu sa nezapisuje. Sem sa smie, lebo na
+      // stene NIE JE žiadne iné lapisové CTA, s ktorým by si konkuroval:
+      // hlavná akcia je tmavý portál so zlatým lemom.
+      // ⚠️ A práve preto je pilulka OUTLINE: plná farebná plocha je v tomto
+      // jazyku vyhradená hlavnému CTA. Matejova voľba („osobne by som zvolil
+      // outline") sedí s pravidlom, ktoré si sám zapísal 26. 8. pri /map.
       el.innerHTML = `
-        <img src="/images/dogypt-gold-logo.webp" alt="DOGYPT" class="hero-logo-icon" fetchpriority="high">
-        <p class="hero-tagline">${tRef.current('wall.hero.taglineLead')}<br><span class="gold">${tRef.current('wall.hero.taglineGod')}</span></p>
+        <h2 class="hero-h1">
+          <span class="hero-hl">Your <span class="g">dog</span> is</span>
+          <span class="hero-hl">a <span class="g">god</span> here.</span>
+        </h2>
+        <p class="hero-lead">And we&rsquo;re still missing his face.</p>
+        <span class="hero-goal">
+          <span class="hero-goal-pill">
+            <svg class="hero-goal-globe" viewBox="0 0 341 306" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M229.593,2.193c14.195,-3.253 35.164,-1.784 51.885,3.616c7.674,2.463 16.974,6.505 20.685,8.953c8.384,5.574 23.511,21.584 27.174,28.8c4.153,8.164 8.637,25.627 10.595,41.196c1.611,12.742 1.469,15.442 -1.563,31.706c-8.542,45.837 -22.8,71.922 -60.601,110.923c-19.864,20.495 -35.496,33.569 -70.896,59.306c-19.88,14.448 -25.99,18.158 -31.169,18.932c-5.085,0.758 -7.185,0.395 -9.948,-1.737c-14.226,-11.053 -45.711,-34.248 -60.522,-44.606c-20.321,-14.226 -51.285,-40.943 -61.675,-53.243c-17.795,-21.063 -29.163,-41.274 -36.648,-65.227c-6.189,-19.769 -7.832,-47.086 -3.789,-63.112c5.747,-22.848 17.447,-38.796 41.621,-56.701c14.148,-10.485 27.901,-14.906 50.007,-16.074c24.9,-1.327 44.732,6.647 64.738,26.006l11.495,11.116l4.137,-4.548c2.289,-2.51 4.168,-4.989 4.2,-5.526c0.015,-0.537 5.116,-5.085 11.337,-10.09c12.426,-10.027 25.453,-16.611 38.937,-19.69Zm9.221,13.974c-18.71,2.4 -39.095,14.448 -51.79,30.616c-15.963,20.369 -17.006,20.575 -28.801,5.969c-13.673,-16.911 -29.795,-27.316 -48.064,-30.98c-10.042,-2.021 -30.237,0.158 -41.637,4.485c-13.816,5.258 -35.069,23.274 -42.127,35.716c-6.727,11.843 -8.858,21.364 -8.858,39.554c-0,35.479 14.889,69.98 42.948,99.586c13.09,13.8 38.511,35.148 62.748,52.659c10.422,7.531 24.522,17.747 31.343,22.689c20.953,15.222 18.743,14.48 27.064,9.206c25.705,-16.295 58.343,-42.633 80.859,-65.259c37.39,-37.58 50.717,-60.459 58.991,-101.307c4.358,-21.538 4.452,-26.654 0.837,-44.228c-3.727,-18.063 -8.322,-27.49 -18.174,-37.342c-16.043,-16.043 -41.607,-24.396 -65.339,-21.364Zm-113.386,65.259c4.8,-4.816 6.332,-5.479 12.458,-5.479c6.316,0 7.548,0.584 12.964,6.253c7.073,7.374 9.552,14.605 9.552,27.869c0,11.653 -3.647,19.99 -10.626,24.237c-5.7,3.49 -8.574,3.569 -15.095,0.49c-6.411,-3.048 -12.711,-12.206 -15.885,-23.101c-3.458,-11.921 -1.136,-22.5 6.632,-30.269Zm114.429,34.453c13.989,-6.142 25.516,1.816 25.516,17.622c-0,21.427 -24.253,41.653 -38.653,32.227c-8.448,-5.542 -10.943,-17.258 -6.095,-28.832c2.858,-6.853 13.547,-18.522 19.232,-21.017Zm-77.844,28.09c3.569,-1.815 7.626,-2.384 14.59,-2.068c11.337,0.521 16.8,3.632 24.616,14.006c2.811,3.726 9.142,11.1 14.069,16.389c11.51,12.379 14.163,17.527 14.274,27.664c0.11,10.042 -4.39,17.527 -13.122,21.79c-7.642,3.726 -16.121,3.663 -26.558,-0.205c-17.085,-6.332 -20.258,-6.522 -34.327,-2.053c-18.711,5.968 -27.458,4.011 -35.606,-7.958c-4.295,-6.316 -4.263,-16.106 0.063,-24.332c4.027,-7.611 35.322,-39.838 42.001,-43.233Zm31.801,-70.532c10.8,-7.279 24.537,-2.353 27.869,9.979c4.073,15.142 -6.19,39.932 -19.296,46.627c-7.594,3.868 -11.937,3.442 -17.795,-1.69c-7.31,-6.426 -9.458,-16.721 -6.221,-29.858c2.748,-11.116 8.416,-20.337 15.443,-25.058Zm-107.039,52.532c3.568,-3.584 6.11,-4.832 9.789,-4.832c9.348,0 19.975,10.864 23.922,24.443c6.332,21.727 -11.132,37.264 -27.68,24.632c-5.068,-3.868 -11.7,-15.063 -13.247,-22.342c-1.437,-6.837 1.721,-16.406 7.216,-21.901Z"/></svg>
+            Help us reach <b>1M</b> dogs
+          </span>
+        </span>
         ${enrollRef.current ? '' : `<a href="/entry" class="join-btn" data-join>${tRef.current('wall.hero.cta')}</a>`}
-        <span class="hero-count"><svg class="hero-count-globe" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="4" ry="9.2" stroke="currentColor" stroke-width="1.5"/><path d="M3 12h18M4.2 7.5h15.6M4.2 16.5h15.6" stroke="currentColor" stroke-width="1.5"/></svg><span class="hero-count-num">${realDogMapRef.current.size + 1}</span><span class="hero-count-sep"> / </span><span class="hero-count-total">${tRef.current('wall.hero.total')}</span><span class="hero-count-dogs">${tRef.current('wall.hero.dogs')}</span></span>
       `;
+      // ── VEĽKOSŤ NADPISU SA POČÍTA, NEMERIA ──────────────────────────────
+      // Nadpis stojí v bunke mriežky medzi dvoma fotkami a *„fotiek sa to
+      // nesmie dotýkať"*. Voľná šírka na obrazovke je teda GX (rozstup stĺpcov);
+      // hero je navyše celé zmenšené o LAB_CARD_SCALE, takže NEZMENŠENÝ obsah
+      // smie byť GX / LAB_CARD_SCALE široký. Z toho ide 6 % na vzduch.
+      // Dlhší riadok „YOUR DOG IS" má v Cinzeli 700 šírku ~7,25 em (odmerané
+      // na guli: 529 px pri 73,5 px písme), takže veľkosť písma vychádza delením.
+      // ⚠️ Preto TU a nie v CSS: GX závisí od MScale (mobil −33 %), kým hero
+      // sa zmenšuje len o LAB_CARD_SCALE — dve rôzne mierky, ktoré by v jednom
+      // clamp() nešli vyjadriť a na telefóne by nadpis vytiekol na susedné psy.
+      // ⚠️ +10 % tu BOLO a je VRÁTENÉ (Matej 27. 8.: „ja som myslel ale na globe
+      // a nie na wall, vráť to a urob to kde máš“) — zväčšenie motta aj taglinu
+      // patrí GULI (DogPlanetLab.tsx), stena ostáva na 0.94. Nechávam to zapísané,
+      // lebo meranie platí: pri 1.034 klesol vzduch k susednej fotke z 30 na 15 px
+      // (PC) a zo 17 na 7 px (mobil), teda strop je tu, nie vyššie.
+      el.style.setProperty('--hero-fs', ((GX / LAB_CARD_SCALE) * 0.94 / 7.25).toFixed(2) + 'px');
       const btn = el.querySelector('[data-join]');
       btn?.addEventListener('click', (e) => {
         e.preventDefault();  // keep SPA nav; href="/entry" exists purely so Googlebot can crawl to it
@@ -1029,10 +1150,52 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       file.accept = 'image/*';
       file.className = 'ph-add-file';
 
-      const portal = buildPortal({ faces, onPick: () => file.click() });
+      // ── ČÍSLO SA VRÁTILO DO PORTÁLU (Matej 27. 8. 2026) ─────────────────
+      // *„tá správa o počte psov by som dal predsa len do toho CTA bloku
+      //  = v prazdnom priestore bude motto + info (ktoru doladíme o milione
+      //  psov) a v CTA bloku bude info o pridaní photo a kolky v poradí bude pes"*.
+      // Hero tým hovorí len NÁŠ cieľ (výzva v pilulke), portál len TVOJ vstup.
+      // ⚠️ Vracia sa tým stav, ktorý Matej ráno zamietol slovami, že dva riadky
+      // pod ADD PHOTO robia z dlaždice odsek — teraz to chce vedome.
+      // 🔴 A PRETO JE ČÍSLO PILULKA, NIE TRETÍ RIADOK TEXTU (Matej, o pár minút
+      // neskôr: *„tá info o počte daj ju naspodok toho bloku do pilsu ale
+      // outline nie plného"*). Tvar je to, čo ho odlíši od odseku: veta o fotke
+      // ostáva textom, číslo dostane rám a klesne naspodok.
+      const portal = buildPortal({
+        faces,
+        onPick: () => file.click(),
+        note: '(you can change the photo later)',
+        subnote: `<span class="ph-nopill">Yours will be <b>#${nextPackNo()}</b></span>`,
+      });
       // Jadro portálu vypĺňa bunku mriežky — šírku preto nediktuje CSS clamp
       // z gule, ale rozmer karty.
       portal.el.style.setProperty('--ph-w', W + 'px');
+      // ── STENA MÁ VLASTNÉ POMERY VNÚTRA (Matej 27. 8. 2026) ──────────────
+      // *„menšia hrúbka toho obrysu okolo bloku"* + *„menšie + menší text"*.
+      // Dlaždica má 260 px proti 118 px na guli, takže tie isté NÁSOBKY šírky
+      // tu vysadia dvakrát väčšie plus aj popisok. Lem je naopak PEVNÝ počet
+      // pixelov, takže sa veľkosťou dlaždice neriedi a pri 260 px pôsobil
+      // ako rám.
+      // ⚠️ Prepisuje sa TU, na prvku, nie v PORTAL_CSS — guľa je vyladená
+      // a odklepnutá (27. 8., lab), mení sa výhradne stena.
+      portal.el.style.setProperty('--ph-rimw', '6px');
+      portal.el.style.setProperty('--ph-icok', '0.185');
+      portal.el.style.setProperty('--ph-lblk', '0.072');
+      // ── VETA O FOTKE = JEDEN RIADOK (Matej 27. 8. 2026: „you can change photo
+      //    daj do jedného riadku"). Odmerané: pri 13 px písme potrebuje 217 px,
+      //    strop `.ph-mark` je 0,86 × 260 = 224 px — vošla by, ale s 3 % rezervou.
+      //    Preto sa písmo stiahne na 12,2 px (potreba 204 px, rezerva 9 %):
+      //    iné metriky písma na inom stroji tak riadok nezlomia.
+      //    ⚠️ Nowrap sám osebe druhý riadok NEZAKÁŽE bezpečne — bez rezervy len
+      //    presunie problém z lámania na pretečenie orezaného jadra.
+      portal.el.style.setProperty('--ph-notek', '0.047');
+      portal.el.style.setProperty('--ph-note-ws', 'nowrap');
+      // ⚠️ Podradený riadok nesie PILULKU s číslom, nie drobný dovetok — musí
+      // teda byť o kúsok VÄČŠÍ než veta o fotke (`--ph-notek` 0.05), nie menší.
+      // Východzích 0.052 by tu bolo náhodou takmer rovnakých; 0.056 dalo pilulke
+      // váhu, ktorú tvar sľubuje — a −10 % (Matej: „tu pils v cta zmenši o 10%“)
+      // z toho robí 0.0504. Mení sa JEDEN násobok: výplň aj medzery sú v em.
+      portal.el.style.setProperty('--ph-subk', '0.0504');
 
       file.addEventListener('change', () => {
         const f = file.files?.[0];
@@ -1400,16 +1563,12 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     if (!dogsReady) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const heroTagline = canvas.querySelector('.hero-tagline');
-    if (heroTagline) {
-      heroTagline.innerHTML = `${t('wall.hero.taglineLead')}<br><span class="gold">${t('wall.hero.taglineGod')}</span>`;
-    }
+    // ⚠️ Nadpis ani tagline hera sa tu NEPREPISUJÚ — od 27. 8. 2026 sú to dve
+    // anglické vety natvrdo, presne ako na guli (viď makeHeroCard). Zanikli tým
+    // aj prepisy .hero-tagline, .hero-count-total a .hero-count-dogs; motto,
+    // logo a pilulka s počtom už v hero karte nie sú.
     const joinBtn = canvas.querySelector('.join-btn');
     if (joinBtn) joinBtn.textContent = t('wall.hero.cta');
-    const heroTotal = canvas.querySelector('.hero-count-total');
-    if (heroTotal) heroTotal.textContent = t('wall.hero.total');
-    const heroDogs = canvas.querySelector('.hero-count-dogs');
-    if (heroDogs) heroDogs.textContent = t('wall.hero.dogs');
     const hektorMsg = canvas.querySelector('.hektor-card .card-open-msg');
     if (hektorMsg) hektorMsg.textContent = t('wall.hektor.msg');
   }, [t, dogsReady]);
@@ -1852,6 +2011,216 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           60%  { background-position: 200% 0; }
           100% { background-position: 200% 0; }
         }
+        /* ── NADPIS HERA ────────────────────────────────────────────────
+           Tá istá veta a ten istý rez ako na guli (DogPlanetLab.tsx, .ph-h1).
+           Rozdiel je len v MIERKE a v PODKLADE: guľa má nadpis cez celú
+           obrazovku nad fotkami, stena ho má v bunke mriežky medzi dvoma psami.
+           ⚠️ Veľkosť NEURČUJE clamp() — počíta ju makeHeroCard do --hero-fs
+           (viď rovnicu tam). Tu je len poistka, keby premenná chýbala. */
+        .hero-h1 {
+          margin: 0;
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: var(--hero-fs, 40px);
+          line-height: 1.06;
+          letter-spacing: 0.005em;
+          text-transform: uppercase;
+          color: #FFF6DA;
+        }
+        /* Riadok = blok s nowrap. Jediná poistka proti tretiemu riadku. */
+        .hero-h1 .hero-hl { display: block; white-space: nowrap; }
+        /* 🔶 ODCHÝLKA OD BRAND MANUÁLU, VEDOMÁ — tá istá ako na guli (Matej
+           27. 8.: „v hero nadpise skúsme dať dog a god decoratívom a hrubším").
+           Cinzel Decorative je inak vyhradený pre MENÁ PSOV na oficiálnych
+           povrchoch; tu ho nesú dve slová v nadpise. Povrch je lab, teda vratné.
+           ⚠️ Váha 900 — Decorative je načítaný LEN v 700 a 900. */
+        .hero-h1 .g {
+          font-family: 'Cinzel Decorative', 'Cinzel', serif;
+          font-weight: 900;
+          color: #F5C73D;
+        }
+        .hero-lead {
+          margin: 0;
+          font-family: 'Space Grotesk', sans-serif;
+          /* ⚠️ Space Grotesk je načítaný len do váhy 600 — vyššie je fake bold. */
+          font-weight: 600;
+          font-size: calc(var(--hero-fs, 40px) * 0.33);
+          line-height: 1.35;
+          color: rgba(255,246,218,0.78);
+          /* Jeden riadok, rovnako ako na guli. Bezpečné aj na telefóne: veľkosť
+             je násobok --hero-fs, ktorá sa počíta z voľnej šírky bunky — takže
+             riadok sa zmenšuje spolu s miestom, ktoré má. */
+          white-space: nowrap;
+        }
+
+        /* ── CIEĽ + TVOJE ČÍSLO ─────────────────────────────────────────
+           Matej 27. 8. 2026, druhé kolo: *„nie je to vôbec pekné je to suché…
+           potrebujem aby to bolo juicy = najprv bude our tarbet výrazné v pils
+           alebo v niečom, osobne by som zvolil outline nie full colour pil
+           a pod tým iba text o tom aký pes v poradí bude."*
+
+           🔴 DVE VRSTVY, NIE DVE POLIČKY. Cieľ je NÁŠ a je to vyhlásenie —
+           dostal rám. Číslo je TVOJE a je to veta — rám nedostalo, dostalo
+           veľkosť a zlato. Dva orámované diely vedľa seba robili tabuľku,
+           a to bolo to „suché".
+           ⚠️ OUTLINE, NIE PLNÁ VÝPLŇ — Matejova voľba sedí s pravidlom, ktoré
+           si sám zapísal 26. 8. pri /map: plná farebná plocha je vyhradená
+           hlavnému CTA (tu tmavý portál), všetko ostatné je priesvitný tint.
+           A čitateľnosť tintu nesie TMAVÝ INKOUST a PLNÝ farebný rám, nie
+           krytie výplne — to je tá istá lekcia z rána 26. 8.
+           ⚠️ Veľkosti sú NÁSOBKY --hero-fs: nadpis sa počíta z voľnej šírky
+           bunky, takže sa s ním musí zmenšovať aj toto, inak na telefóne
+           prerastie to, pod čím stojí. */
+        .hero-goal {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: calc(var(--hero-fs, 40px) * 0.155);
+          /* ── ODSTUP OD MOTTA (Matej 27. 8. 2026) ────────────────────────
+             *„motto a chip pôsobí že to je všetko spojene, treba to opticky
+             rozdeliť mierne."* Nadpis a tagline sú JEDNA myšlienka, chip
+             s číslom je DRUHÁ — pri rovnomernej medzere .center-hero (16 px)
+             sa čítali ako štvorriadkový odsek.
+             ⚠️ Násobok --hero-fs, nie pixely: medzera musí ustúpiť spolu
+             s písmom, inak na telefóne odtlačí chip na susednú fotku. */
+          margin-top: calc(var(--hero-fs, 40px) * 0.5);
+        }
+
+        /* Chip — PAPYRUS V ZLATOM RÁME, LAPISOVÝ INKOUST.
+           Matej 27. 8. 2026: *„nie je to pekné je to divné, skús ten chip
+           urobiť krajší."*
+
+           🔴 MODRÝ LEM BOL CHYBA PROTI VLASTNÉMU PRAVIDLU. navGoldSkin.ts:
+           *„ZLATO = konštrukcia a poloha — rám, doska, čiary… LAPIS = moja
+           voľba a moja akcia."* Rám je konštrukcia, teda zlatý; lapis nesie
+           odkaz, teda písmo. S modrým lemom stál na teplej stene studený
+           obdĺžnik, ktorý vyzeral ako formulárové pole — odtiaľ to „divné".
+           ⚠️ Výplň je LOCKNUTÝ bledý blok z /entry (papyrusový gradient,
+           zlatý rám 1,5 px, zlatý halo prstenec, teplý tieň, biela horná
+           hrana), nie plochá biela so šedým vlasom.
+           ⚠️ Zlatý rám sa nebije s btn-gold pod ním: CTA je PLNÁ zlatá
+           plocha, toto je bledá plocha so zlatým VLASOM. */
+        /* ── 4. KOLO: CELÁ LAPISOVÁ, TMAVÁ (Matej 27. 8. 2026) ──────────────
+           *„pils daj celu lapisom nech je tmavá a namiesto tej planétky daj
+           iconu labky v srdiečku"*.
+
+           🔴 VEDOMÁ VÝNIMKA Z VLASTNÉHO PRAVIDLA. 26. 8. si Matej pri /map
+           zapísal, že plná farebná plocha patrí JEDINÉMU prvku na doske —
+           hlavnému CTA. Tu je hlavné CTA tmavý portál so zlatým lemom, teda
+           lapisová plocha mu farbou nekonkuruje; flagnuté pred ním a potvrdené.
+           ⚠️ Zlaté písmo NA lapise nie je ozdoba (navGoldSkin.ts): bez neho je
+           z lapisu len tmavý obdĺžnik bez príslušnosti k brandu — lapis + zlato
+           je pôvodná egyptská dvojica.
+           ⚠️ Rám je LAPIS.edge, nie zlato: zlatý vlas okolo tmavej plochy by
+           z pilulky spravil druhé tlačidlo vedľa portálu. */
+        .hero-goal-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.6em;
+          padding: 0.8em 1.55em;
+          border-radius: 999px;
+          background: ${LAPIS.grad};
+          border: 1.5px solid ${LAPIS.edge};
+          box-shadow:
+            0 0 0 3.5px rgba(22,48,122,0.14),
+            0 10px 26px -10px rgba(5,15,48,0.55),
+            inset 0 1px 0 rgba(201,154,63,0.30);
+          color: ${LAPIS.ink};
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 600;
+          /* −10 % (Matej 27. 8.: „ok lepšie ale zmenši to o 10%“). Mení sa JEDEN
+             násobok — výplň, ikonka aj medzery sú v em, takže sa stiahnu s ním.
+             ⚠️ Kto siahne na rovnicu nadpisu, musí siahnuť aj sem: pilulka je
+             odklepnutá vo svojej veľkosti, takže rast nadpisu treba kompenzovať
+             delením (0.324 / pomer rastu). */
+          font-size: calc(var(--hero-fs, 40px) * 0.324);
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          white-space: nowrap;
+          line-height: 1;
+        }
+        /* Milión je to jediné číslo v pilulke — na tmavom ho nesie ČISTÉ zlato
+           (jasnejšie než okolitý text), aby oko vedelo, čo si má odniesť.
+           Na papyruse to isté robil najtmavší lapis; princíp je rovnaký —
+           dôraz robí kontrast voči podkladu, nie iná farba. */
+        .hero-goal-pill b {
+          font-weight: 600;
+          font-size: 1.14em;
+          color: #F5C73D;
+          letter-spacing: 0.05em;
+        }
+        /* Labka v srdiečku z hand-drawn kitu (heartpaw.svg, viewBox 341×306,
+           preto NIE je štvorcová — výška sa dopočíta z pomeru strán).
+           ⚠️ fill: currentColor na path, aby ikonka dedila inkoust
+           pilulky; kit má tvary plné, nie obrysové. */
+        .hero-goal-globe {
+          width: 1.62em;
+          height: calc(1.62em * 306 / 341);
+          flex: 0 0 auto;
+          color: rgba(239,215,154,0.78);
+        }
+
+        /* Riadok pod pilulkou — VETA, nie údaj. Bez rámu, bez pozadia.
+           🔴 ČÍSLO JE LAPIS, NIE ZLATO (Matej 27. 8. 2026: *„urob to lapisom
+           a výrazné, to číslo # je zlaté a je skoro neviditeľné, to musí byť
+           výraznejšie"*).
+           ⚠️ A NIE JE TO VKUS, JE TO PRAVIDLO, KTORÉ TU UŽ STOJÍ ZAPÍSANÉ:
+           „ŽIADNY ZLATÝ GRADIENT DO PÍSMEN" (DogPlanetLab.tsx, .ph-h1). Zlatý
+           prebeh má strednú zarážku svetlejšiu než papyrus, takže presne stred
+           slova — pri dvojcifernom čísle prakticky celé — splynie s podkladom.
+           Prebeh gold-shimmer tým pádom zanikol aj tu: hýbal niečím, čo nebolo
+           vidieť. Zlato na stene ostáva na TMAVOM (portál, nav), na papyruse
+           nesie kontrast lapis. */
+        .hero-goal-you {
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 500;
+          font-size: calc(var(--hero-fs, 40px) * 0.245);
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          white-space: nowrap;
+          line-height: 1;
+          color: rgba(10,26,74,0.62);
+        }
+        .hero-goal-you b {
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: 2.55em;
+          letter-spacing: 0.01em;
+          margin-left: 0.26em;
+          vertical-align: -0.17em;
+          color: #16307A;
+          /* Halo je BIELE a tesné — dvíha hranu čísla nad papyrusom bez toho,
+             aby ho zafarbilo. Nie je to tieň pod textom, je to svetlo za ním. */
+          text-shadow:
+            0 0 8px rgba(255,255,255,0.95),
+            0 0 20px rgba(255,255,255,0.75),
+            0 1px 0 rgba(255,255,255,0.9);
+        }
+
+        /* ── TELEFÓN ────────────────────────────────────────────────────
+           🔴 ČITATEĽNOSŤ, NIE KOZMETIKA. Karty sú pod 768 px menšie o ďalšiu
+           tretinu (MScale), takže voľná šírka bunky spadne z 306 na 205 px —
+           a s ňou celý hero, ktorý sa z nej počíta. Pri pôvodnom násobku tam
+           z pilulky ostalo 6,5 px vysadeného textu.
+           Riešenie je pustiť pilulku do DVOCH RIADKOV: berie polovičnú šírku,
+           takže písmo môže NARÁSŤ namiesto toho, aby sa zmenšovalo.
+           ⚠️ 767.98px, nie 720: hranica MUSÍ sedieť s MScale, ktorá sa v tomto
+           súbore počíta z window.innerWidth pod 768. */
+        @media (max-width: 767.98px) {
+          .hero-goal-pill {
+            white-space: normal;
+            text-align: center;
+            font-size: calc(var(--hero-fs, 40px) * 0.45);
+            padding: 0.7em 1.1em;
+            letter-spacing: 0.11em;
+          }
+          .hero-goal-globe { display: none; }
+          .hero-goal-you {
+            font-size: calc(var(--hero-fs, 40px) * 0.315);
+            letter-spacing: 0.11em;
+          }
+        }
+
         .join-btn {
           display: inline-block;
           text-decoration: none;
@@ -2796,6 +3165,47 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           background-clip: text;
           -webkit-text-fill-color: transparent;
           filter: none;
+        }
+
+        /* ── NADPIS HERA NA PAPYRUSE ────────────────────────────────────
+           Rovnaký inkoust ako na guli: plná tmavá, nie alfa — cez fotky
+           susedných kariet sa každé percento priehľadnosti prejaví ako
+           vyblednutie. Halo je krémové a hlavne HUSTÉ (blízke vrstvy s alfou
+           1), nie široké: rozostrené svetlo je pri veľkom polomere riedke.
+           ⚠️ Polomery sú menšie než na guli úmerne k písmu — nadpis tu má
+           ~55 px proti ~74 px a ďaleké vrstvy by inak siahali na fotky.
+           ⚠️ ŽIADNY ZLATÝ GRADIENT DO PÍSMEN: LAB.goldText má strednú zarážku
+           svetlejšiu než papyrus, takže slovo v strede zmizne. */
+        .theme-light .hero-h1 {
+          color: #23150a;
+          text-shadow:
+            0 0 5px rgba(253,248,236,1),
+            0 0 11px rgba(253,248,236,1),
+            0 0 22px rgba(253,248,236,1),
+            0 0 44px rgba(253,248,236,1),
+            0 0 76px rgba(253,248,236,0.96),
+            0 0 130px rgba(253,248,236,0.8);
+        }
+        /* Zlaté slová držia o 50 % silnejšie halo — to isté pravidlo ako na
+           guli (Matej 27. 8.: „pridaj o 50% halo viac pri slove dog a god").
+           ⚠️ Píše sa CELÝ zoznam, nie prídavok: text-shadow sa dedí, ale
+           nesčítava — deklarácia tu nahradí zdedenú. */
+        .theme-light .hero-h1 .g {
+          color: #6E4A12;
+          text-shadow:
+            0 0 8px rgba(255,255,255,1),
+            0 0 17px rgba(255,255,255,1),
+            0 0 34px rgba(255,255,255,0.98),
+            0 0 66px rgba(253,248,236,0.9),
+            0 0 120px rgba(253,248,236,0.7);
+        }
+        .theme-light .hero-lead {
+          color: rgba(35,22,8,0.82);
+          text-shadow:
+            0 0 4px rgba(253,248,236,1),
+            0 0 10px rgba(253,248,236,1),
+            0 0 22px rgba(253,248,236,1),
+            0 0 44px rgba(253,248,236,0.95);
         }
 
         /* ── BLEDÉ LIŠTY (horná aj dolná) ────────────────────────────────

@@ -74,14 +74,14 @@ ${MAP_SKIN !== 'pale' ? '' : `
    ⚠️ Výplň je PLNÁ, nie priesvitná: panel stojí nad mapou a čokoľvek, čo pod ním prebliká,
    z neho robí neprečítateľnú plochu (feedback_priesvitna_plocha_nad_mapou). Zároveň sa tým
    ruší backdrop-filter — rozmazané pozadie je tá istá chyba len inak.
-   ⚠️ RÁM 6 px A RADIUS 18 — TO ISTÉ, ČO MÁ .trp-addhost (Matej 2026-08-26: „bloky musia
-   byť všade rovnaké"). Do teraz tu stálo 5/16 s odôvodnením „dok je nižší než ľavý panel".
-   Na PC to už neplatí: dok A formulár sú DVA STAVY JEDNÉHO STĹPCA (kroky 1–2 vs. 3–5),
-   takže pri prechode z kroku 2 do 3 sa menil rám aj zaoblenie toho istého bloku. Šírku si
-   tie dva stavy zdieľajú z rovnakého dôvodu — rám je len ďalšia miera toho istého. */
+   ⚠️ TVAR SA TU NEPÍŠE — goldFrameCSS() bez parametrov berie BLOCK (navGoldSkin.ts).
+   Dok A formulár sú DVA STAVY JEDNÉHO STĹPCA (kroky 1–2 vs. 3–5), takže každé vlastné číslo
+   znamená, že sa pri prechode z kroku 2 do 3 mení rám aj zaoblenie toho istého bloku. Prešlo
+   to cez 5/16 („dok je nižší") aj 6/18 („to isté, čo .trp-addhost"); od 26. 8. je zdroj jeden
+   a tvar sa preberá, nie opisuje. */
 @media (min-width:${PALE_PC_MIN}px){
   .trp-dockpanel{
-    ${goldFrameCSS({ radius: 18, rim: 6 })}
+    ${goldFrameCSS()}
     backdrop-filter:none;-webkit-backdrop-filter:none;
     padding-bottom:20px;
   }

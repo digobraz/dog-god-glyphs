@@ -38,6 +38,7 @@ import ReligionLab from '@/pages/ReligionLab';
 import VisionLab from '@/pages/VisionLab';
 import AboutLab from '@/pages/AboutLab';
 import { Footer } from '@/components/landing/Footer';
+import ConstitutionBook from '@/components/religion/ConstitutionBook';
 import {
   NAV_R,
   NAV_GOLD,
@@ -148,6 +149,84 @@ const TEXT_IN: readonly [number, number] = [0.24, 0.92];
  * nižšie, rozsvieti sa uprostred „YET." a prestane byť odpoveďou naň.
  */
 const HALO_IN: readonly [number, number] = [0.60, 0.82];
+
+/**
+ * DĹŽKA PRECHODU 2. → 3. OBRAZU (výjav krava/pes → preambula), v obrazovkách
+ * scrollu. Ten istý gombík ako PIN_VH, len pre druhú výmenu.
+ *
+ * Matej 28. 8. 2026: *„obsah neputuje hore ale mizne a na miesto toho sa vynorí
+ * nadpis; až po 70 % vynorení zdola prichádza celkom nenačítaný úryvok, ktorý
+ * sa scrollom viac objavuje a posúva zvieratá nabok (PC). Cieľom je urobiť 2–3
+ * prechod zaujímavý a plynulý."*
+ *
+ * Predtým tu žiadny prechod nebol: prvý výjav sa po konci svojej dráhy odlepil
+ * a odscrolloval hore ako každá iná sekcia — teda presne to „putovanie", ktoré
+ * zadanie ruší. Preambula sa preto vťahuje O JEDNU OBRAZOVKU HORE (práve o tú,
+ * počas ktorej výjav odchádzal) a dostane vlastnú prilepenú dráhu. Film tým
+ * narastie len o samotnú dráhu, nie o odchod navyše.
+ */
+const PIN2_VH = 2;
+
+/**
+ * ÚSEKY DRUHÉHO PRECHODU — podiel dráhy (0 = koniec prvého výjavu, 1 = preambula
+ * v pokoji). Rovnako ako pri prvom prechode sa ZÁMERNE prekrývajú.
+ */
+/** Text prvého výjavu hasne NA MIESTE (pohyb sekcie sa mu prekladá späť). */
+const HERO2_OUT: readonly [number, number] = [0, 0.18];
+/**
+ * ── DRAMATURGIA 3. OBRAZOVKY ────────────────────────────────────────────────
+ * Matej 28. 8. 2026, dve zadania za sebou:
+ *   *„miniatúrny text alebo nejaký hec a ubezpečenie, že človek sa stotožňuje
+ *   s výrokom, ktorý je pod ním (motto), pod tým úryvok a pod tým CTA"*
+ *   *„po zjavení nadpisu sa pes nakloní a zväčší do priestoru a text sa snipne
+ *   na ľavú stranu a kravu vytlačí mimo obraz = stránka bude rozdelená na text
+ *   a psa"*
+ *
+ * Poradie beatov: riadok → motto → **ROZDELENIE** → úryvok sa dopisuje → CTA.
+ *
+ * ⚠️ ROZDELENIE POSUNULO PRÍCHOD ÚRYVKU. Pôvodne prichádzal na 70 % dráhy
+ * nadpisu (0.38) — to bolo Matejovo skoršie číslo. Odkedy je medzi nimi snap
+ * do dvoch stĺpcov, musí úryvok prísť AŽ ZA ním: prilietať zdola a súčasne sa
+ * s celým blokom presúvať doľava sú dva pohyby naraz a čítajú sa ako zmätok.
+ * Podmienka „až keď nadpis stojí" ostáva splnená, len s beatom navyše.
+ */
+/** Riadok nad mottom — prvý obsah obrazovky, uvádza motto, takže nie za ním. */
+const EYE_IN: readonly [number, number] = [0.04, 0.26];
+/** Motto sa vynorí na mieste, kde dohasol text predošlého výjavu. */
+const H2_IN: readonly [number, number] = [0.10, 0.42];
+/**
+ * ROZDELENIE OBRAZOVKY — text doľava, pes sa nakloní a narastie, krava von.
+ * ⚠️ ÚSEK JE KRÁTKY ZÁMERNE (0.14 dráhy, ostatné majú 0.2–0.35). Matej hovorí
+ * *„snipne"* — má to byť zlom, nie plynulý presun. Predĺžiť ho = spraviť
+ * z neho drift, teda presný opak zadania.
+ */
+const SPLIT_IN: readonly [number, number] = [0.44, 0.58];
+/** Úryvok prilieta zdola — až do ROZDELENÉHO ľavého stĺpca. */
+const QUOTE_IN: readonly [number, number] = [0.58, 0.80];
+/** Text sa v ráme DOPISUJE — odkrýva sa zhora nadol, pozri masku v CSS. */
+const INK_IN: readonly [number, number] = [0.62, 0.96];
+/** Prísaha svorky — podpis pod hotový odsek. */
+const OATH_IN: readonly [number, number] = [0.84, 0.94];
+/** CTA do ústavy — posledné, čo na obrazovku príde. */
+const CTA_IN: readonly [number, number] = [0.88, 1.0];
+/**
+ * KRAVA BLEDNE, HEKTOR NIE (Matej: *„krava začne blednúť hneď pri 3. sekcii
+ * a načítaní prvého obsahu, zostane viditeľná, ale bude vyblednutá"*).
+ * Bledne PRED rozdelením — najprv ustúpi farbou, potom ju rozdelenie vytlačí
+ * z obrazu úplne. Nie sú to protichodné zadania, je to sled.
+ *
+ * 🔴 NAHRADILO to spoločné stlmenie oboch zvierat, ktoré bývalo na štvrtom
+ * obraze — ten zanikol. Nie je to ubratý efekt, ale presunutý a zúžený na jedno
+ * zviera. Dáva to zmysel výjavu: kravin argument sa skončil na predošlej
+ * obrazovke, svetlo odteraz patrí psovi — rovnako ako svätožiara.
+ */
+const COW_OUT: readonly [number, number] = [0.10, 0.44];
+/**
+ * CIEĽOVÁ krycia hodnota kravy — nie odpočítaná, ale to, čo z nej ostane.
+ * NIE 0.26 z pôvodného stlmenia neaktívneho výjavu: na papyruse z nej pri 0.26
+ * ostane duch a veta znie „krava zmizla", nie „vybledla".
+ */
+const COW_DIM = 0.38;
 /**
  * Kedy sa spodná lišta prezlečie z nástrojov na CTA chip.
  * Viazané na dráhu prechodu, nie na vlastný prah v pixeloch — je to výmena
@@ -175,6 +254,9 @@ export default function OnePage() {
   const [scene, setScene] = useState(0);
   const [past, setPast] = useState(false);       // je už guľa preč?
   const [storyOpen, setStoryOpen] = useState(false);
+  // Ústava v prekrytí. Kniha ako OBRAZ filmu zanikla (Matej 28. 8. 2026),
+  // ostalo po nej CTA pod úryvkom — a toto je jeho následok.
+  const [bookOpen, setBookOpen] = useState(false);
   // Otvorena STENA (mozaika zo spodnej listy). Nie je to sekcia filmu — je to
   // odbocka, ktora sa sprava ako samostatna stranka. Viac pri useEffect nizsie.
   const [wallOpen, setWallOpen] = useState(false);
@@ -206,7 +288,7 @@ export default function OnePage() {
     let n: {
       planetRoot?: HTMLElement | null; stage?: HTMLElement | null; pHero?: HTMLElement | null;
       wall?: HTMLElement | null; ab?: HTMLElement | null;
-      bleed?: HTMLElement | null; overlay?: HTMLElement | null;
+      bleed?: HTMLElement | null; overlay?: HTMLElement | null; pre?: HTMLElement | null;
       planet?: HTMLElement | null; film?: HTMLElement | null;
       dock?: HTMLElement | null;
     } = {};
@@ -224,6 +306,10 @@ export default function OnePage() {
         ab: q<HTMLElement>('.op-planet .ab-switch'),
         bleed: q<HTMLElement>('#op-religion .codex-bleed'),
         overlay: q<HTMLElement>('#op-religion .codex-section[data-idx="0"] .codex-3-overlay'),
+        // Preambula: všetky štyri premenné druhého prechodu sedia na JEDNOM
+        // prvku (nadpis, rám, text aj prísaha sú jeho deti) — štyri zápisy
+        // namiesto štyroch prvkov a žiadna dedičnosť cez celý dokument.
+        pre: q<HTMLElement>('#op-religion .codex-section[data-idx="1"] .codex-slide'),
       };
     };
     resolve();
@@ -293,25 +379,54 @@ export default function OnePage() {
       // Sedí na bleede (tam žijú obe zvieratá aj obe halá), nie na texte.
       put(n.bleed, 'hl', '--op-halo', seg(p, HALO_IN[0], HALO_IN[1]).toFixed(3));
 
-      // KRAVA A HEKTOR: ODSUN A STLMENIE SÚ OD 28. 8. 2026 DVE RÔZNE UDALOSTI.
-      // Matej: *„pri prechode na 3 slajd krava aj pes vybledne — oprav to,
-      // nebude bledý, vyblednú až na 4 DOGMA."*
-      // Obrazovky filmu: 0–(PIN_VH+1) prilepený výjav · +1 preambula · +2 kniha.
+      // ── PRECHOD 2. → 3. OBRAZU ───────────────────────────────────────
+      // Jedna obrazovka, ktorá sa nehýbe — druhýkrát. Rozdiel oproti prvému
+      // prechodu je len v tom, ČO sa vymieňa: tam guľa za výjav, tu výjav za
+      // preambulu. Dĺžka a úseky sedia v PIN2_VH a spol. hore.
+      const span2 = Math.max(1, vh * PIN2_VH);
+      const q = clamp01((window.scrollY - span) / span2);
+
+      // 🔴 TEXT PRVÉHO VÝJAVU MIZNE NA MIESTE, NEPUTUJE HORE (Matej 28. 8. 2026).
+      // Sekcia výjavu má dráhu za sebou, takže sa práve odlepila a odchádza
+      // hore ako každá iná — a s ňou by odchádzal aj text. Preto sa jej pohyb
+      // textu PREKLADÁ SPÄŤ: presne o toľko pixelov, o koľko sa medzitým
+      // posunula. Výsledok je text prilepený na mieste, ktorý len zhasína.
+      // ⚠️ Posun sa zastaví na konci hasnutia — ďalej ho držať netreba (text je
+      // neviditeľný) a hlavne by prerástol dráhu, po ktorej je sekcia ešte
+      // prilepená.
+      const heroGone = 1 - seg(q, HERO2_OUT[0], HERO2_OUT[1]);
+      const hold = Math.max(0, Math.min(window.scrollY - span, span2 * HERO2_OUT[1]));
+      put(n.overlay, 'ohy', 'transform', hold > 0 ? `translateY(${hold.toFixed(1)}px)` : '');
+      put(n.overlay, 'oop', 'opacity', heroGone.toFixed(3));
+      // Zhasnuté CTA nesmie ostať pod prstom — je to odkaz na /entry a leží
+      // presne tam, kam medzitým prišiel nadpis preambuly.
+      put(n.overlay, 'ope', 'pointerEvents', heroGone <= 0.002 ? 'none' : '');
+
+      // PREAMBULA: nadpis sa vynorí na mieste · úryvok príde zdola · text sa
+      // v ráme dopisuje · prísaha je podpis na konci.
+      put(n.pre, 'ey', '--op-eye', seg(q, EYE_IN[0], EYE_IN[1]).toFixed(3));
+      put(n.pre, 'h2', '--op-h2', seg(q, H2_IN[0], H2_IN[1]).toFixed(3));
+      put(n.pre, 'qt', '--op-quote', seg(q, QUOTE_IN[0], QUOTE_IN[1]).toFixed(3));
+      put(n.pre, 'ik', '--op-ink', seg(q, INK_IN[0], INK_IN[1]).toFixed(3));
+      put(n.pre, 'oa', '--op-oath', seg(q, OATH_IN[0], OATH_IN[1]).toFixed(3));
+      put(n.pre, 'ct', '--op-cta', seg(q, CTA_IN[0], CTA_IN[1]).toFixed(3));
+
+      // ── ROZDELENIE OBRAZOVKY ──────────────────────────────────────────
+      // Jedna hodnota ženie tri veci naraz, a to je celý zmysel: text ide
+      // doľava, pes sa nakláňa a rastie do uvoľneného miesta, krava odchádza
+      // z obrazu. Keby to boli tri premenné, rozídu sa pri prvom ladení a zo
+      // zlomu bude trojica nezávislých driftov.
       //
-      // ODSUN DO STRÁN ostáva na preambule (nezmenené). Nie je to kozmetika:
-      // pri plnej sile a bez odsunu tmavý Hektor zožerie konce piatich riadkov
-      // („KAŽDÉHO", „POSTAVENIE", „OSUD", „ÚSTAVU" — odskúšané a odfotené).
-      // Zúžiť text nepomôže: pri 1440 px siaha psí ňufák po 878 px, čo je 158 px
-      // od stredu — stĺpec by musel mať 316 px.
-      const sideAt = span + vh;
-      const side = clamp01((window.scrollY - (sideAt - vh * 0.45)) / (vh * 0.45));
-      put(n.bleed, 'sd', '--op-side', side.toFixed(3));
-      // STLMENIE sa presunulo o obrazovku ďalej — na knihu. Preambula je stále
-      // výjav kravy a psa a rám z nich je tam ŽELANÝ; ustúpiť majú až ústave,
-      // ktorá je hustá na obsah.
-      const bookAt = span + vh * 2;
-      const dim = clamp01((window.scrollY - (bookAt - vh * 0.45)) / (vh * 0.45));
-      put(n.bleed, 'bl', '--op-bleed', (1 - dim * 0.74).toFixed(3));
+      // 🔴 TOTO NAHRADILO ODSUN ZVIERAT DO STRÁN (--op-side aj jeho pixelovú
+      // zložku --op-sidex). Odsun bol obchádzka toho istého problému — tmavý
+      // pes zožerie konce riadkov —, len horšia: pri užšom okne ho bolo treba
+      // tlačiť stále ďalej, až z výjavu ostal okraj. Rozdelenie ten problém
+      // ruší v koreni: text a pes prestali stáť na tom istom mieste.
+      put(n.pre, 'sp', '--op-split', seg(q, SPLIT_IN[0], SPLIT_IN[1]).toFixed(3));
+      put(n.bleed, 'sp2', '--op-split', seg(q, SPLIT_IN[0], SPLIT_IN[1]).toFixed(3));
+      // BLEDNE UŽ LEN KRAVA (viď COW_OUT). Hektor si drží farbu po celý film —
+      // spoločné stlmenie oboch zaniklo spolu so štvrtým obrazom.
+      put(n.bleed, 'cw', '--op-cow', (1 - (1 - COW_DIM) * seg(q, COW_OUT[0], COW_OUT[1])).toFixed(3));
 
       // Tieto tri sa menia DVAKRÁT za celý film, tak smú ostať premennými.
       const gone = o <= 0.002;
@@ -669,8 +784,11 @@ export default function OnePage() {
         @media (min-width: 768px) {
           html { scroll-snap-type: y proximity; }
           .op-snaps > span,
-          .op-root #op-religion .codex-section[data-idx="1"],
-          .op-root #op-religion .codex-section[data-idx="2"],
+          /* ⚠️ PREAMBULA ANI KNIHA TU UŽ NIE SÚ. Preambula má vlastnú prilepenú
+             dráhu, takže jej ZAČIATOK je obrazovka, na ktorej ešte nič nie je
+             — snap na ňu by človeka usadil do prázdna; odpočívadlo na konci
+             dráhy nesie značka v .op-snaps. Kniha ako obraz filmu zanikla
+             (28. 8. 2026) a stojí v pätičke, kde sa nesnapuje. */
           .op-root #op-vision,
           .op-root #op-about,
           .op-root .op-timeline,
@@ -726,122 +844,251 @@ export default function OnePage() {
            188→624. Všade centrované a s rezervou hore aj dole. */
         .op-root #op-religion .codex-section[data-idx="1"] {
           box-sizing: border-box;
-          padding-top: var(--op-nav-h);
-          padding-bottom: clamp(10px, 2.4vh, 28px);
-          align-items: center;
+          /* ── PREAMBULA JE PRILEPENÁ, ROVNAKO AKO PRVÝ VÝJAV ─────────────
+             Vtiahnutá o obrazovku hore — presne o tú, počas ktorej predtým
+             prvý výjav odchádzal hore — a o tú istú obrazovku plus dráhu
+             prechodu vyššia. Film tým narastie LEN o dráhu (PIN2_VH), nie
+             o odchod navyše, a nasledujúce obrazy sedia ďalej na násobkoch
+             obrazovky (na tom stoja značky snapu).
+             align-items: flex-start je tu z rovnakého dôvodu ako pri výjave:
+             s center by sa obsah prilepil až v polovici výšky sekcie. */
+          margin-top: -100dvh;
+          min-height: calc(100dvh + ${PIN2_VH * 100}dvh);
+          align-items: flex-start;
+          padding-top: 0;
+          padding-bottom: 0;
         }
-        /* .codex-flow .codex-slider ma min-height: 100dvh — vnútri sekcie
-           s rezervou hore by to bola presne tá výška, ktorá sa nezmestí. */
+        /* Prilepený box nesie aj REZERVU NA LIŠTU (28. 8. 2026 ju sem priniesol
+           padding-top na sekcii — ten by pri prilepení posunul až samotné
+           prilepenie). top = --op-nav-h ⇒ „stred" ostáva stredom VIDITEĽNEJ
+           plochy, presne ako predtým.
+           .codex-flow .codex-slider ma min-height: 100dvh — to sa musí zrušiť,
+           inak je box o výšku lišty vyšší než miesto, kam sa má zmestiť. */
         .op-root #op-religion .codex-section[data-idx="1"] .codex-slider {
-          height: auto;
+          position: sticky;
+          top: var(--op-nav-h);
+          height: calc(100dvh - var(--op-nav-h));
           min-height: 0;
+          padding-bottom: clamp(10px, 2.4vh, 28px);
+          box-sizing: border-box;
         }
         .op-root #op-religion .codex-section[data-idx="1"] .codex-slide {
           padding-top: 0;
           padding-bottom: 0;
+          /* Na mobile má .codex-slide justify-content: flex-start (pôvodná
+             stránka ním zarovnáva preambulu na tú istú výšku ako nadpis prvého
+             výjavu). Vo filme to nesedí: obrazovka si hore rezervuje lištu,
+             takže obsah sa má centrovať v tom, čo ostane — inak sa pri piatich
+             blokoch prilepí o lištu a dole ostane 200 px prázdna. */
+          justify-content: center;
         }
         /* Veľkosti sa NEPREPISUJÚ, len STROPUJÚ VÝŠKOU OKNA. Vnútri min() sedí
            presne pôvodná hodnota z ReligionLab.tsx — na vysokom okne teda platí
            doteraz odsúhlasený vzhľad a na nízkom klesne len o toľko, o koľko
            treba. Prepísať ich vlastnými číslami by znamenalo ladiť LOCKED
            typografiu nanovo, a to zadanie nepýta. */
+        /* ── ZMENŠENÉ, ABY DOLU VYŠIEL PLAC NA CTA ────────────────────────
+           Matej 28. 8. 2026: *„text ústavy aj nadpis by som zmenšil, aby nám
+           dolu vyšiel plac na CTA."* Na obrazovke sú odteraz PÄŤ blokov
+           (riadok · motto · úryvok · prísaha · CTA), predtým tri.
+           Koeficienty oproti hodnotám odklepnutým ráno: **motto ×0.80,
+           úryvok ×0.88, rozostupy ×0.72**. Násobia sa VŠETKY tri čísla clampu
+           aj strop vo vh — na Matejovom ~550 px okne vyhráva vw, samotný
+           strop by sa neprejavil. Škáluje sa od toho, čo VIDEL, nie od
+           pôvodných hodnôt v ReligionLab. */
         .op-root #op-religion .codex-section[data-idx="1"] .codex-headline {
-          font-size: min(clamp(2.71rem, 6.5vw, 5.05rem), 9.3vh);
+          font-size: min(clamp(2.17rem, 5.2vw, 4.04rem), 7.4vh);
         }
         .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-wrap {
-          max-width: 720px;
-          padding: min(clamp(26px, 3.6vh, 44px), 3.4vh) clamp(22px, 3.4vw, 44px);
+          max-width: 660px;
+          padding: min(clamp(20px, 2.8vh, 34px), 2.6vh) clamp(20px, 3vw, 38px);
         }
         .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-text {
-          font-size: min(clamp(1.09rem, 1.66vw, 1.47rem), 3.15vh);
+          font-size: min(clamp(0.96rem, 1.46vw, 1.29rem), 2.75vh);
           line-height: 1.5;
         }
         .op-root #op-religion .codex-section[data-idx="1"] .codex-slide > * + * {
-          margin-top: min(clamp(28px, 4.5vh, 48px), 3.6vh);
+          margin-top: min(clamp(20px, 3.2vh, 34px), 2.6vh);
+        }
+        /* Prísaha a CTA patria k úryvku, nie do radu samostatných blokov —
+           menšia medzera ich k nemu priviaže a ušetrí výšku. */
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-slide > .codex-oath-label {
+          margin-top: min(clamp(10px, 1.6vh, 16px), 1.8vh);
+        }
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-book-cta {
+          margin-top: min(clamp(14px, 2.4vh, 24px), 2.4vh);
         }
         @media (max-width: 767px) {
           /* Mobil má vlastné (LOCKED) hodnoty a musí sa uviesť zvlášť: pravidlo
              vyššie nesie DESKTOPOVÝ clamp, takže bez tejto vetvy by nadpis na
              390 px spadol zo 44,8 px (2.8rem) na 25 px (6.5vw). */
           .op-root #op-religion .codex-section[data-idx="1"] .codex-headline {
-            font-size: min(2.8rem, 9.3vh);
+            font-size: min(2.24rem, 7.4vh);
           }
           .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-text {
-            font-size: min(14px, 3.15vh);
-            line-height: 1.4;
+            font-size: min(12.5px, 2.75vh);
+            line-height: 1.45;
           }
           .op-root #op-religion .codex-section[data-idx="1"] .codex-slide > * + * {
-            margin-top: min(clamp(18px, 3vh, 28px), 3.6vh);
+            margin-top: min(clamp(13px, 2.2vh, 20px), 2.6vh);
           }
         }
 
-        /* ── ÚSTAVA: NADPIS POD KNIHOU, CHIP POD NADPISOM ─────────────────
-           Matej 28. 8. 2026: *„musíme dať nadpis (biblia…) pod knihu a pod
-           nadpis mini chip s infom o otvorení knihy."*
+        /* ── PRECHOD 2. → 3.: TEXT ZHASNE, NADPIS SA VYNORÍ, ÚRYVOK PRÍDE ─
+           Matej 28. 8. 2026: *„obsah neputuje hore ale mizne a na miesto toho
+           sa vynorí nadpis; až po 70 % vynorení zdola prichádza celkom
+           nenačítaný úryvok, ktorý sa scrollom viac objavuje a posúva zvieratá
+           nabok (PC). Cieľom je urobiť 2–3 prechod zaujímavý a plynulý."*
 
-           Na samostatnej /religion-lab visí nadpis absolútne NAD knihou. Vo
-           filme mu tam stojí horná lišta: odmerané 21–59 px od vrchu sekcie,
-           teda celý pod medailónom (spodok 112 px) — nebolo ho vidieť vôbec.
-           Poradie je preto obrátené: kniha → nadpis → chip, a celý stĺpec sa
-           centruje POD lištou (--op-nav-h, ten istý zdroj ako preambula).
+           Réžia (kedy čo) je v tomto súbore hore — H2_IN, QUOTE_IN, INK_IN,
+           OATH_IN. Tu je len to, čo tie čísla znamenajú na obrazovke.
 
-           Nadpis je v DOM-e vnútri .cb-wrap (prop belowBook), aby zdieľal
-           sústavu s chipom — ten sa kotví cez --cb-h, ktoré žije práve tam.
+           🔴 REVEAL OD POZOROVATEĽA SA MUSÍ VYPNÚŤ. ReligionLab odkrýva celý
+           .codex-slide naraz, len čo sekcia vojde do obrazu — a tá je teraz
+           vysoká tri obrazovky, takže vojde hneď na ZAČIATKU dráhy. Preambula
+           by tak bola celá na obrazovke skôr, než sa prvý výjav stihne odmlčať.
+           Je to tá istá pasca, akú má z rovnakého dôvodu vypnutú prvý výjav. */
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-slide {
+          opacity: 1;
+          transform: none;
+          transition: none;
+        }
+        /* Nadpis sa VYNÁRA NA MIESTE, nie zdola: dráha je krátka (22 px)
+           zámerne — má zaujať miesto po zhasnutom texte, nie priplávať. */
+        /* ── TEXT SA SNIPNE DOĽAVA ────────────────────────────────────────
+           Celý stĺpec sa presunie do ľavej polovice; pes rastie do pravej.
+           Posun je vo vw, lebo cieľ je podiel obrazovky (stred ľavej polovice),
+           nie pevná vzdialenosť.
+           ⚠️ POSÚVA SA, NEZUŽUJE SA. Animovať max-width znamená v každom
+           snímku znova lámať odsek na riadky — to je reflow textu počas scrollu
+           a presne ten druh záťaže, kvôli ktorej sa v tomto súbore zapisuje
+           priamo do prvkov. Stĺpec má preto pevnú šírku, ktorá sedí v ľavej
+           polovici, a mení sa iba jeho poloha.
+           ⚠️ Len od 768 px — viď rozdelenie pri zvieratách. */
+        @media (min-width: 768px) {
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-slide {
+            transform: translateX(calc(var(--op-split, 0) * -22vw));
+          }
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-wrap {
+            max-width: 540px;
+          }
+          /* MOTTO NA JEDEN RIADOK (Matej 28. 8. 2026: „daj ho do jedného
+             riadku (PC)"). Obe polovice sú v základe display: block, teda dva
+             riadky. Medzeru medzi nimi nesie ::after, nie znak v JSX: medzi
+             dvoma blokovými spanmi by z textového uzla vznikol vlastný riadok
+             a na samostatnej /religion-lab by nadpis narástol o jeho výšku. */
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-headline .grad,
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-headline .line {
+            display: inline;
+          }
+          /* Medzera patrí PRVEJ polovici, nech je zlatá alebo tmavá — poradie
+             určuje lokalizácia (SK dáva sloveso dopredu), takže sa nesmie viazať
+             na .grad. */
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-headline > span:first-child::after {
+            content: ' ';
+          }
+        }
 
-           🔴 CHIP AJ NADPIS IDÚ DO TOKU. Na PC je .cb-hint absolútny s
-           dopočítanou polohou od stredu knihy; s nadpisom medzi nimi by sa
-           tá istá vzdialenosť musela počítať dvakrát a rozišla by sa pri
-           prvej zmene písma. V toku ich drží poradie v DOM-e.
-           ⚠️ Cena: keď sa kniha OTVORÍ, chip zmizne (nahradia ho šípky, tie
-           absolútne ostávajú) a nadpis vyskočí o jeho výšku hore. Je to
-           jednorazový posun v momente, keď sa aj tak mení celý výjav.
+        /* Riadok nad mottom prichádza PRVÝ — je to veta, ktorá motto uvádza,
+           takže sa nesmie objaviť až za ním. */
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-eyebrow {
+          opacity: var(--op-eye, 1);
+          transform: translateY(calc((1 - var(--op-eye, 1)) * 14px));
+        }
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-headline {
+          opacity: var(--op-h2, 1);
+          transform: translateY(calc((1 - var(--op-h2, 1)) * 22px));
+        }
+        /* Úryvok je JEDINÝ prvok výjavu s dlhou dráhou zdola — je to on, kto
+           zvieratá odtláča, takže musí byť vidieť, že prichádza. */
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-wrap {
+          opacity: var(--op-quote, 1);
+          transform: translateY(calc((1 - var(--op-quote, 1)) * 96px));
+        }
+        /* „NENAČÍTANÝ" TEXT = MASKA, NIE PRIEHĽADNOSŤ. Rám (rohy .codex-frame)
+           priletí celý, text sa v ňom dopisuje zhora nadol s mäkkou hranou —
+           to je rozdiel medzi „píše sa to" a „stmievač".
+           ⚠️ Maskou, nie delením na slová: odsek je JEDNA i18n hodnota
+           s <strong> vnútri (18 jazykov). Rozobrať ju na spany znamená stavať
+           DOM z cudzieho HTML a rozbiť ho pri prvom preklade.
+           Krajné hodnoty: --op-ink 0 ⇒ čierna zastávka na −28 %, priehľadná na
+           0 % (nevidno nič) · 1 ⇒ 100 % / 128 % (vidno všetko). */
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-text {
+          --ink: var(--op-ink, 1);
+          -webkit-mask-image: linear-gradient(to bottom,
+            #000 calc(var(--ink) * 128% - 28%),
+            rgba(0, 0, 0, 0) calc(var(--ink) * 128%));
+          mask-image: linear-gradient(to bottom,
+            #000 calc(var(--ink) * 128% - 28%),
+            rgba(0, 0, 0, 0) calc(var(--ink) * 128%));
+        }
+        /* Prísaha svorky je PODPIS — patrí pod hotový odsek, nie k nemu. */
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-oath-label {
+          opacity: var(--op-oath, 1);
+          transform: translateY(calc((1 - var(--op-oath, 1)) * 10px));
+        }
+        /* CTA dosadá ako posledné — je to jediná akcia obrazovky a nemá
+           súperiť s textom, ktorý ju odôvodňuje. */
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-book-cta {
+          opacity: var(--op-cta, 1);
+          transform: translateY(calc((1 - var(--op-cta, 1)) * 12px));
+        }
 
-           ⚠️ scale(0.85) NEMENÍ miesto v layoute — kniha si drží box --cb-h,
-           hoci vizuálne meria 0.85 z neho. Bez záporného okraja by pod ňou
-           ostalo 7,5 % mŕtveho pásu na každej strane (pri 1440×704 to je 37 px)
-           a nadpis by visel priďaleko. Preto margin-block. */
-        .op-root #op-religion .codex-section[data-idx="2"] {
-          box-sizing: border-box;
-          padding-top: var(--op-nav-h);
-          padding-bottom: clamp(8px, 2vh, 24px);
+        /* ── ÚSTAVA V PÄTIČKE A V PREKRYTÍ ────────────────────────────────
+           Kniha už NIE JE obraz filmu (Matej 28. 8. 2026: *„celá 4. sekcia by
+           zanikla… kniha bude v pätičke úplne nakonci"*), takže tu zaniklo aj
+           celé jej ladenie na obrazovku — mierka --op-bookk, nadpis pod
+           knihou aj chip v toku. V pätičke stojí kniha vo vlastnej veľkosti,
+           lebo sa už nemá do čoho zmestiť; nadpis pod ňou drží prop belowBook
+           (ten istý, kvôli ktorému vznikol).
+
+           ⚠️ Pätičková kniha stojí v TOKU, nie v prilepenej obrazovke — nesmie
+           preto dediť height: 100dvh z .codex-slide. Preto tu má vlastný
+           obal .op-book a nie .codex-section.
+           ⚠️ overflow-anchor: none je prevzaté z .codex-scroll: keď sa na
+           tretej dvojstrane zjavia CTA tlačidlá, výška obsahu narastie a bez
+           neho by scroll skokom uletel. */
+        .op-book {
+          padding: clamp(60px, 8vh, 110px) 18px clamp(20px, 3vh, 40px);
+          display: flex;
+          justify-content: center;
+          overflow-anchor: none;
         }
-        .op-root #op-religion .codex-section[data-idx="2"] .codex-slider,
-        .op-root #op-religion .codex-section[data-idx="2"] .codex-slide {
-          height: auto;
-          min-height: 0;
-        }
-        .op-root #op-religion .codex-section[data-idx="2"] .cb-wrap {
-          height: auto;
-          gap: 0;
-        }
-        /* MIERKA KNIHY JE PREMENNÁ, NIE ČÍSLO. calcDims() v ConstitutionBook
-           berie knihe 70 % výšky okna, čo pri pôvodnom scale 0.85 nenechá pod ňou
-           miesto na nadpis a chip: pri 1000×547 preliezol stĺpec obrazovku
-           o 19 px. Na nízkom okne preto kniha ustúpi — a záporný okraj sa počíta
-           Z TEJ ISTEJ premennej, inak by pod knihou ostal mŕtvy pás
-           ((1 − k) / 2 z --cb-h) presne vtedy, keď je miesta najmenej. */
-        .op-root #op-religion .codex-section[data-idx="2"] .cb-wrap { --op-bookk: 0.85; }
-        @media (max-height: 660px) {
-          .op-root #op-religion .codex-section[data-idx="2"] .cb-wrap { --op-bookk: 0.74; }
-        }
-        @media (max-height: 520px) {
-          .op-root #op-religion .codex-section[data-idx="2"] .cb-wrap { --op-bookk: 0.66; }
-        }
-        .op-root #op-religion .codex-section[data-idx="2"] .cb-stage {
-          transform: scale(var(--op-bookk));
-          margin-block: calc(var(--cb-h) * (var(--op-bookk) - 1) / 2);
-        }
-        .op-root #op-religion .codex-book-title--below {
+        /* Nadpis knihy je v základe ABSOLÚTNY (drží sa vrchu obrazovky na
+           samostatnej /religion-lab). V pätičke žiadna obrazovka nie je, takže
+           sa musí vrátiť do toku — inak by sa prilepil na vrch celého bloku
+           a kniha by mu sadla na hlavu. */
+        /* 🔴 NADPIS AJ CHIP MUSIA ÍSŤ DO TOKU — INAK SI SADNÚ NA SEBA.
+           Nadpis knihy je v základe absolútny (na samostatnej /religion-lab sa
+           drží vrchu obrazovky) a chip „klikni a otvor" tiež — má dopočítanú
+           polohu od stredu knihy. Obom je teda jedno, že ten druhý existuje,
+           a v pätičke sa prekryli: nadpis prešiel presne cez chip.
+           V toku ich zoradí poradie v DOM-e: kniha → nadpis → chip.
+           ⚠️ Keď sa kniha OTVORÍ, chip zmizne (nahradia ho šípky, tie ostávajú
+           absolútne) a nadpis vyskočí o jeho výšku hore. Jednorazový posun
+           v momente, keď sa aj tak mení celý blok — tá istá vedomá cena ako
+           predtým na obraze filmu. */
+        .op-book .codex-book-title--below {
           position: static;
           transform: none;
-          margin-top: clamp(8px, 1.8vh, 16px);
+          display: block;
+          margin-top: clamp(14px, 2.2vh, 24px);
           white-space: normal;
         }
-        .op-root #op-religion .codex-section[data-idx="2"] .cb-hint {
+        .op-book .cb-hint {
           position: static;
           transform: none;
-          margin-top: clamp(6px, 1.2vh, 12px);
+          margin-top: clamp(8px, 1.4vh, 14px);
         }
+        .op-book .cb-wrap { height: auto; gap: 0; }
+        /* Prekrytie s ústavou používa plátno príbehu (.op-storymodal) — jeden
+           tvar pre obe odbočky z filmu. Kniha v ňom len dostane vzduch a stred. */
+        .op-bookmodal {
+          display: flex;
+          justify-content: center;
+          padding: clamp(48px, 9vh, 96px) 16px clamp(40px, 8vh, 80px);
+        }
+
 
         /* ── KRAVA A HEKTOR: PRÍCHOD AJ ODCHOD JEDNOU ROVNICOU ────────────
            Matej: *„pri miznutí z bokov vyliezajú krava a pes"* — a k odchodu
@@ -851,7 +1098,7 @@ export default function OnePage() {
            Sú to DVA pohyby tej istej dvojice a pôvodne ich riadili dva rôzne
            mechanizmy, čo je práve ten sek:
              --op-in   1 = za hranou obrazovky, 0 = LOCKED poloha z ReligionLab
-             --op-side 0 = na mieste, 1 = odsunuté o 25 % (odchod na preambulu)
+             --op-split 0 = celá obrazovka, 1 = rozdelená (text vľavo, pes vpravo)
            Obe počíta scroll, sčítavajú sa v jednom calc a idú plynulo.
 
            🔴 ZDVOJENÉ .op-root.op-root NIE JE PREKLEP — je to celá oprava.
@@ -869,20 +1116,56 @@ export default function OnePage() {
            prechod, ale to, že hodnotu mení scroll v každom snímku. */
         .op-root.op-root .codex-bleed .codex-cow,
         .op-root.op-root .codex-bleed .codex-hektor { transition: none; }
+        /* ── ROZDELENIE: PES RASTIE DO PRIESTORU, KRAVA IDE Z OBRAZU ──────
+           Matej 28. 8. 2026: *„po zjavení nadpisu sa pes nakloní a zväčší do
+           priestoru a text sa snipne na ľavú stranu a kravu vytlačí mimo obraz
+           = stránka bude rozdelená na text a psa."*
+
+           Pes má transform-origin: bottom right (základ v ReligionLab), takže
+           zväčšenie ho roztiahne DOĽAVA A NAHOR — presne do miesta, ktoré text
+           práve uvoľnil. Nič sa nemusí dopočítavať, stačí mierka.
+           Naklonenie je malé (4°) zámerne: je to fotka hlavy, nie ilustrácia —
+           pri väčšom uhle sa z „nakloní sa" stane „padá".
+
+           🔴 ZANIKOL ODSUN DO STRÁN. --op-side (25 % vlastnej šírky) aj jeho
+           pixelová zložka --op-sidex boli obchádzka problému „tmavý pes zožerie
+           konce riadkov". Rozdelenie ho ruší v koreni, takže tlačiť psa preč
+           už nie je prečo — naopak, má prísť bližšie.
+
+           ⚠️ LEN OD 768 px. Rozdelenie na dva stĺpce potrebuje šírku; na mobile
+           by z textu ostal prúžok. Mobilná vetva nižšie preto ostáva bez neho —
+           tam zvieratá stoja POD textom, nie vedľa neho, a nič si neprekáža. */
         .op-root.op-root .codex-bleed .codex-cow {
-          transform: translateX(calc(var(--op-in, 0) * -120% + var(--op-side, 0) * -25%)) scale(1.14);
+          transform: translateX(calc(var(--op-in, 0) * -120%)) scale(1.14);
         }
         .op-root.op-root .codex-bleed .codex-hektor {
-          transform: translateX(calc(var(--op-in, 0) * 120% + var(--op-side, 0) * 25%)) scale(1.08);
+          transform: translateX(calc(var(--op-in, 0) * 120%)) scale(1.08);
         }
-        /* Mobil má vlastné (tiež LOCKED) mierky — 1.377 / 1.352. Jedna spoločná
-           hodnota by jednu z vetiev ticho prepísala. */
-        @media (max-width: 767px) {
+        @media (min-width: 768px) {
+          /* Krava odchádza z obrazu — 140 % vlastnej šírky je za hranou aj pri
+             mierke 1.14 a origin bottom left. */
           .op-root.op-root .codex-bleed .codex-cow {
-            transform: translateX(calc(var(--op-in, 0) * -120% + var(--op-side, 0) * -25%)) scale(1.377);
+            transform: translateX(calc(
+              var(--op-in, 0) * -120% - var(--op-split, 0) * 140%
+            )) scale(1.14);
           }
           .op-root.op-root .codex-bleed .codex-hektor {
-            transform: translateX(calc(var(--op-in, 0) * 120% + var(--op-side, 0) * 25%)) scale(1.352);
+            transform:
+              translateX(calc(var(--op-in, 0) * 120%))
+              rotate(calc(var(--op-split, 0) * -4deg))
+              /* +0.20, nie viac: pes je ukotvený bottom right, takže rastie
+                 DOĽAVA A NAHOR — a s ním aj svätožiara, ktorá mu visí nad
+                 hlavou. Pri +0.26 doliezala do hornej lišty. */
+              scale(calc(1.08 + var(--op-split, 0) * 0.20));
+          }
+        }
+
+        @media (max-width: 767px) {
+          .op-root.op-root .codex-bleed .codex-cow {
+            transform: translateX(calc(var(--op-in, 0) * -120%)) scale(1.377);
+          }
+          .op-root.op-root .codex-bleed .codex-hektor {
+            transform: translateX(calc(var(--op-in, 0) * 120%)) scale(1.352);
           }
         }
 
@@ -1459,10 +1742,13 @@ export default function OnePage() {
             by celú choreografiu preskočil jedným ťahom (presne to, čo Matej
             opísal ako „prejde z prvého na 4"). Tieto značky ju rozdelia na
             obrazovky: 0 = guľa, 1–2 = medzikroky odchodu, 3 = výjav v pokoji.
+            To isté platí pre prechod 2. → 3.: preambula je od 28. 8. 2026 tiež
+            prilepená (PIN2_VH), takže značky pokračujú — 4 = medzikrok
+            (nadpis stojí, úryvok sa dopisuje), 5 = preambula v pokoji.
             Sú absolútne voči .op-stage, teda na presných násobkoch obrazovky —
             nič nemerajú a nič nekreslia. */}
         <div className="op-snaps" aria-hidden>
-          {Array.from({ length: PIN_VH + 1 }, (_, i) => (
+          {Array.from({ length: PIN_VH + PIN2_VH + 1 }, (_, i) => (
             <span key={i} style={{ top: `${i * 100}dvh` }} />
           ))}
         </div>
@@ -1483,7 +1769,7 @@ export default function OnePage() {
             odkrýva riadky s odstupmi 100/220/340/460 ms. Nemá zmysel k tomu
             pridávať druhú animáciu — bili by sa. */}
         <section className="op-scene" id="op-religion" aria-label={t('nav.religion')}>
-          <ReligionLab embedded flow />
+          <ReligionLab embedded flow onOpenBook={() => setBookOpen(true)} />
         </section>
 
         {/* ── OBRAZ 3 — VIDEO A VÍZIA ────────────────────────────────────
@@ -1558,11 +1844,39 @@ export default function OnePage() {
           </p>
         </div>
 
+        {/* ── ÚSTAVA AKO POSLEDNÁ VEC NA STRÁNKE ─────────────────────────
+            Matej 28. 8. 2026: *„kniha nebude vidno (kniha bude v pätičke
+            úplne nakonci)."* Zanikol tým celý štvrtý obraz — kniha už nie je
+            zastávka vo filme, ale predmet, ktorý film uzatvára. Kto sa
+            k ústave chce dostať skôr, má CTA pod úryvkom (prekrytie nižšie).
+            ⚠️ Stojí NAD `<Footer />`, nie v ňom — ten je ostrý a musí mať
+            prázdny diff (to isté pravidlo ako pri podpise vyššie). */}
+        <div className="op-book">
+          <ConstitutionBook
+            belowBook={<h2 className="codex-book-title codex-book-title--below">{t('religion.bookTitle')}</h2>}
+          />
+        </div>
+
         {/* Pätička (e-mail + siete) uzatvára film. Je tu, a nie vnútri AboutLabu,
             aby nesedela uprostred stránky pred blokom s CTA. */}
         <Footer />
         </div>
       </div>
+
+      {/* ── ÚSTAVA V PREKRYTÍ ───────────────────────────────────────────
+          Následok CTA pod úryvkom. Rovnaký vzor ako príbeh nižšie — kniha sa
+          otvorí NAD filmom, takže človek neopúšťa príbeh ani doménu; odkaz na
+          `dogma.dogypt.com` je vnútri knihy, kde bol vždy. */}
+      {bookOpen && (
+        <div className="op-storymodal" role="dialog" aria-modal="true" aria-label={t('religion.bookTitle')}>
+          <button type="button" className="op-storyclose" onClick={() => setBookOpen(false)} aria-label={t('nav.aria.close')}>
+            ✕
+          </button>
+          <div className="lsh-scroll op-bookmodal">
+            <ConstitutionBook openOnMount />
+          </div>
+        </div>
+      )}
 
       {/* ── PRÍBEH V POPUPE ─────────────────────────────────────────────*/}
       {storyOpen && (

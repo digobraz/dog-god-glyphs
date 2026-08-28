@@ -23,11 +23,14 @@ import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { readLocalTrails, readWalkedIds, tripPath, pluralKey, visibleLocalTrails } from './tripShared';
 import { readTriplist } from './triplist/triplist';
+import { parsePlanDate, planDateLabel, planStart } from './addtrip/planDate';
+import { planPhase } from './planReminder';
 import { tierVars } from '@/lib/packTiers';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from './packTheme';
 import { trailCountry } from '@/lib/countryGeo';
+import { placeholderFor } from '@/lib/tripPlaceholder';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
-import { profileLevelFor, readVotes } from './packCommunity';
+import { profileLevelFor, readVotes, readPlans } from './packCommunity';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
@@ -291,12 +294,10 @@ function daysFromNow(dateStr: string, nowMs: number): number {
  * ⚠️ Nie je to „posledná číslica 2–4": podľa CLDR ide 22 do `other`, teda „22 krajín".
  * Angličtina má len dva tvary, preto tam Few = Many.
  */
-/** `2026-08-22` → `22. 8.` Surový ISO dátum vedľa odpočtu vyzerá ako debug výpis. */
-function shortDate(iso: string): string {
-  const d = new Date(iso + 'T00:00:00');
-  if (Number.isNaN(d.getTime())) return iso;
-  return `${d.getDate()}. ${d.getMonth() + 1}.`;
-}
+/* ⚠️ `shortDate()` TU BOL DO 26. 8. a mlčky prepúšťal surové `2026-09` na obrazovku:
+   `new Date('2026-09T00:00:00')` je Invalid Date, takže funkcia vrátila vstup nezmenený.
+   Odkedy má plán tri presnosti (`addtrip/planDate.ts`), formátuje termín `planDateLabel()` —
+   jedna funkcia pre túto kartu aj pre `PlanAskCard`. */
 
 function kmNumber(km: string | undefined): number {
   const n = parseFloat(String(km ?? '').replace(',', '.'));
@@ -323,11 +324,28 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
     const triplist = readTriplist();
 
     // 1 · naplánovaný výlet má prednosť pred čímkoľvek iným
-    const planned = Object.values(triplist)
-      .filter((e) => e.date && !walked.has(e.tripId) && daysFromNow(e.date as string, nowMs) >= 0)
+    //
+    // ⚠️ TERMÍN SA NEČÍTA `daysFromNow`-om (opravené 26. 8.). Odkedy má plán tri presnosti,
+    // je `date` aj `2026-09-W2` alebo `2026-09` — `new Date()` z toho vyrobí NaN, NaN >= 0 je
+    // false, a plán „niekedy v septembri" z homepage BEZ SLOVA vypadol. Fázu preto počíta
+    // `planPhase()` (z KONCA obdobia), poradie `planStart()` (od kedy sa naň dá ísť).
+    //
+    // `'upcoming'` navyše vyradí plány, ktorých termín už uplynul — na tie sa v tej istej
+    // chvíli pýta `PlanAskCard` nad touto kartou. Odpočet „dnes" vedľa otázky „bol si tam?"
+    // sú dve tvrdenia o jednom výlete.
+    // ⚠️ ZDROJE SÚ DVA (opravené 26. 8.). Sprievodca pri založení plánu zapisuje do
+    // `trp-plans` (`addPlan`), triplist entry vzniká až pri MOUNTE triplistu
+    // (`seedTriplistFromPlans`) — čerstvo naplánovaný výlet sa preto na plagát nedostal,
+    // kým si člen neotvoril MY TRIPS. Rovnaká konvencia, akú má `nextPlannedTrip()`
+    // v `packCommunity.ts`: volajúci posiela OBOJE a duplicity nevadia.
+    // Triplist má prednosť — tam sa dátum priamo edituje.
+    const planRows = [...readPlans(), ...Object.values(triplist)]
+      .reduce((acc, e) => { acc.set(e.tripId, e); return acc; }, new Map<string, { tripId: string; date?: string; joiners?: { memberId: string; acceptedAt: number }[] }>());
+    const planned = [...planRows.values()]
+      .filter((e) => e.date && !walked.has(e.tripId) && planPhase(e.date, nowMs) === 'upcoming')
       .map((e) => ({ entry: e, trail: allTrails.find((tr) => tr.id === e.tripId) ?? null }))
       .filter((x): x is { entry: typeof x.entry; trail: HeroTrail } => !!x.trail)
-      .sort((a, b) => daysFromNow(a.entry.date as string, nowMs) - daysFromNow(b.entry.date as string, nowMs))[0] ?? null;
+      .sort((a, b) => (planStart(a.entry.date) ?? '').localeCompare(planStart(b.entry.date) ?? ''))[0] ?? null;
 
     // 2 · bez plánu: najprv POSLEDNE PRIDANÝ výlet, ak ho člen ešte neprešiel.
     // ⚠️ „Posledne pridaný" je ODVODENÉ Z PORADIA v datasete — generátor zachováva poradie
@@ -392,7 +410,11 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
     return {
       trail,
       kind,
-      days: planned ? daysFromNow(planned.entry.date as string, nowMs) : null,
+      // Odpočet LEN pri presnom dni. Pri „druhý septembrový týždeň" by číslo dní tvrdilo
+      // presnosť, ktorú človek sám nepovedal — tam hovorí len popisok termínu.
+      days: planned && parsePlanDate(planned.entry.date)?.precision === 'exact'
+        ? daysFromNow(planned.entry.date as string, nowMs)
+        : null,
       dateLabel: planned?.entry.date ?? null,
       joiners: planned?.entry.joiners?.length ?? 0,
       walkedCount,
@@ -407,12 +429,17 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
   if (!view.trail) return null;
 
   const { trail, kind } = view;
-  const photo = trail.photos[0];
+  // ⚠️ ILUSTRAČNÁ FOTKA (doplnené 26. 8.). Plán nemá vlastnú fotku — obrázok mu dáva databáza
+  // podľa aktivity. Bez tohto riadku bol plagát naplánovaného výletu ČIERNA PLOCHA; to je tá
+  // istá diera, akú Matej našiel 25. 8. („výlet sa pridal ale nepridala sa fotka") na troch
+  // iných povrchoch. `lib/tripPlaceholder.ts` je jediný zdroj — volaj ho, nekopíruj tabuľku.
+  const photo = trail.photos[0] || placeholderFor(trail.acts, trail.id);
   const countdown =
     view.days === null ? null
       : view.days <= 0 ? t('pack.nextTrip.today')
       : view.days === 1 ? t('pack.nextTrip.tomorrow')
       : t('pack.tree.daysUnit', { days: String(view.days) });
+  const dateLabel = planDateLabel(view.dateLabel, (n) => t('pack.addTrip.plan.whenWeekN', { n: String(n) }));
 
   const eyebrow =
     kind === 'plan' ? t('pack.spotlight.eyebrowPlan')
@@ -441,12 +468,12 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
 
         {/* Odpočet vľavo hore, nie v spodnom texte: je to jediný údaj, ktorý sa mení
             každý deň, takže má sedieť tam, kam padne oko prvé. */}
-        {countdown && (
+        {(countdown || dateLabel) && (
           <span className="ts-count" style={DAYS_PILL}>
-            {countdown}
-            {view.dateLabel && (
+            {countdown ?? dateLabel}
+            {countdown && dateLabel && (
               <small style={{ fontFamily: FONT_UI, fontWeight: 500, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.72 }}>
-                {shortDate(view.dateLabel)}
+                {dateLabel}
               </small>
             )}
           </span>

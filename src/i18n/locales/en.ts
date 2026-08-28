@@ -209,6 +209,16 @@ export const en = {
   'intro.deceasedDate.title': 'When did they cross the rainbow bridge?',
   'intro.deceasedDate.caption': 'Date of passing: {date}',
 
+  // ── /heroglyph flow — nové kroky z prestavby vstupu (28. 8. 2026) ──
+  'heroglyph.flow.photo.skip': "I'll add a photo later",
+  'heroglyph.flow.name.uniqueLine': 'Thousands of dogs share that name. None of them will share the symbol.',
+  'heroglyph.flow.email.title': 'Where should we send it?',
+  'heroglyph.flow.email.reason': "Building {dogName}'s symbol takes about three minutes. Leave your e-mail so you never have to start over — and we'll send the finished heroglyph to you.",
+  'heroglyph.flow.email.placeholder': 'your@email.com',
+  'heroglyph.flow.email.skip': 'Skip for now',
+  'heroglyph.flow.about.title': 'Where is {dogName} from?',
+  'heroglyph.flow.about.sub': 'Both answers go straight into the symbol — the country and the year of birth are two of its sixteen parts.',
+
   // ── /heroglyph flow — step 1: name ──
   'heroglyph.flow.name.greetingPrefix': "Hi, I'm",
   'heroglyph.flow.name.greetingQuestion': "What's your dog's name?",
@@ -694,6 +704,24 @@ export const en = {
   // Otočný bod sekcie: dosiaľ len fakty, tu prvý raz obvinenie. Z neho padá CTA.
   'religion.hook.turn': 'AND NOT ONE OF THEM BOWS.',
   'religion.hook.million': 'We only need one million to change that.',
+  // ── NOVÝ TEXTING 2. OBRAZU (27. 8. 2026) ────────────────────────────────
+  // Matej: *„skúsme navrhnúť nový texting, virálny ale menej slovný vystihujúci
+  // podstatu čo chceme obrázkom povedať"* → vybral variant „YET".
+  // ⚠️ VLASTNÉ KĽÚČE, NIE PREPÍSANÉ STARÉ: kľúče religion.hook.number/billion/
+  // people/note/bow číta aj ŽIVÁ stránka /religion (pages/Religion.tsx). Prepísať
+  // ich by znamenalo zmeniť produkčný text bez toho, aby o tom niekto vedel.
+  'religion.hook.claim.cowLead': 'A COW HAS',
+  'religion.hook.claim.cowFigure': '1.2 BILLION',
+  'religion.hook.claim.cowUnit': 'BELIEVERS',
+  'religion.hook.claim.dogLead': 'A DOG HAS',
+  'religion.hook.claim.dogFigure': 'NONE',
+  'religion.hook.claim.yet': 'YET...',
+  // Riadok nad tlačidlom. Existuje preto, aby človek pochopil, ČO klik urobí
+  // (Matej 28. 8. 2026: *„cta by som tiež možno jemne zmenil aby ludia pochopili
+  // že aha tu ked kliknem pomôžem tomu"*). Samotný label tlačidla je LOCKED
+  // v CLAUDE.md („Primárne CTA: BECOME DOGYPTIAN, identity-first voice"),
+  // takže vysvetlenie nesie riadok, nie tlačidlo.
+  'religion.hook.claim.close': 'One million of us changes that.',
   // ── VARIANT 2 textingu druhej sekcie (Matej 27. 8. 2026) ──────────────────
   // *„skúsme urobiť Variant 2, a síce ten texting viac zosúladiť do riadkov ako
   // obyčajný text, ktorý je vopred napísaný, ale scrolingom dostáva život, ako
@@ -714,11 +742,26 @@ export const en = {
 
   // ── /religion — preamble (In Dog We Trust) ──
   // headline = motto → stays EN across locales (sk/cs fall back here by design)
+  // PORADIE POLOVÍC MOTTA. Prázdne = zlatá polovica (.grad) ide prvá, teda
+  // „In Dog We Trust". Lokalizácia, ktorá dáva sloveso dopredu (SK „Veríme
+  // v psa"), sem dá '1' — zlato tým NEmení význam, ostáva na PSOVI, len sa
+  // presunie na koniec vety. Bez tohto príznaku by sa muselo zlato prilepiť na
+  // prvé slovo a v SK by svietilo „VERÍME" namiesto „V PSA".
+  // ⚠️ EN sa NEPREHADZUJE: „In Dog We Trust" je brandové motto (obálka knihy,
+  // pečať, legal.motto) — „We Trust In Dog" ruší celú narážku na „In God We Trust".
+  'religion.preamble.headlineVerbFirst': '',
   'religion.preamble.headlineGrad': 'In Dog',
   'religion.preamble.headlineLine': 'We Trust',
   'religion.preamble.text':
     'We, the nation of dog lovers — knowing the <strong>infinite loyalty</strong>, the <strong>true love</strong> and the <strong>pure soul</strong> of every dog on Earth — in order to lift the standing of dogs in human society, build them a <strong>community</strong>, <strong>better</strong> their lives, and <strong>rewrite</strong> the fate of every dog in need, do give ourselves this constitution.',
+  // Riadok NAD mottom vo filme (/onepage). Nie je to nadpis — je to veta
+  // o čitateľovi: motto pod ňou nie je cudzie vyznanie, ale jeho vlastné.
+  // ⚠️ JEDEN RIADOK a čo najkratšie (Matej 28. 8. 2026: „chcem ho údernejší,
+  // oddelený horizontálkou, v jednom riadku a čo najkratší"). Znenie sa ešte
+  // bude ladiť — *„tomu sa ešte povenujeme"*.
+  'religion.preamble.eyebrow': 'You already believe this.',
   'religion.preamble.oath': 'The Oath of the Pack',
+  'religion.preamble.readCta': 'Read the Bible for dog lovers',
 
   // ── /religion — sacred index ──
   'religion.bookTitle': 'The “Bible” for dog lovers',
@@ -1863,7 +1906,7 @@ export const en = {
   'pack.addTrip.entry.closeAriaLabel': "Close",
   'pack.addTrip.entry.backAriaLabel': "Back",
   'pack.addTrip.entry.kind.trip.title': "TRIP",
-  'pack.addTrip.entry.kind.trip.text': "A place to walk your dog",
+  'pack.addTrip.entry.kind.trip.text': "Share your spot with the pack",
   'pack.addTrip.entry.kind.event.title': "EVENT",
   'pack.addTrip.entry.kind.event.text': "Something happening on a date",
   'pack.addTrip.entry.kind.service.title': "SERVICE",
@@ -1966,6 +2009,7 @@ export const en = {
   'pack.addTrip.geo.pointsSuffix.few': "{n} points",
   'pack.addTrip.geo.pointsSuffix.many': "{n} points",
   'pack.addTrip.geo.areaRadius': "Area · {km} km radius",
+  'pack.addTrip.geo.areaRadiusM': "Area · {m} m radius",
   'pack.addTrip.geo.spotSet': "Spot set",
   // MAPA JE PRVÁ OBRAZOVKA (Matej 2026-08-22) — na mobile sa po výbere aktivity otvára rovno
   // mapa, takže vysvetlenie „ako začať" a hľadanie miesta musia stáť NA nej, nie vo formulári.
@@ -2046,9 +2090,9 @@ export const en = {
   // Popisok v zátvorke je SAMOSTATNÝ KĽÚČ, nie súčasť labelu: tlačidlo ho sadzí menším
   // písmom na druhý riadok, takže zlepené do jedného reťazca by sa nedalo zalomiť.
   'pack.addTrip.log.mode.walked': "Log it",
-  'pack.addTrip.log.mode.walkedSub': "(you have already walked it)",
+  'pack.addTrip.log.mode.walkedSub': "You have already walked it",
   'pack.addTrip.log.mode.planned': "Plan it",
-  'pack.addTrip.log.mode.plannedSub': "(you are heading there)",
+  'pack.addTrip.log.mode.plannedSub': "You are heading there",
   'pack.addTrip.log.title': "Log a trip",
   'pack.addTrip.log.titlePlan': "Plan a trip",
   'pack.addTrip.log.submit': "Log trip",
@@ -2113,6 +2157,7 @@ export const en = {
   'pack.addTrip.geo.unknownDistance': "Route unknown",
   // Profil prevýšenia sa kreslí z cachovaných výšok; kým sa dosťahujú, karta nesmie byť prázdna.
   'pack.addTrip.geo.elevWait': "Loading elevation…",
+  'pack.addTrip.geo.overview': "Where you are",
   'pack.addTrip.geo.stepBack': "Back",
   'pack.addTrip.geo.holdForTarget': "Press and hold to mark the destination",
   'pack.addTrip.geo.markTarget': "Mark the destination",
@@ -2278,7 +2323,7 @@ export const en = {
   'pack.addTrip.step.ptsOne': "{n} point",
   'pack.addTrip.step.ptsFew': "{n} points",
   'pack.addTrip.step.ptsMany': "{n} points",
-  'pack.addTrip.step.askHowTo': "Tap MARK and show the spot.",
+  'pack.addTrip.step.askHowTo': "Tap what you are marking, then show the spot on the map.",
   'pack.addTrip.step.askParking': "Where did you park?",
   'pack.addTrip.step.askWarning': "Was there anything dangerous on the way?",
   'pack.addTrip.step.askTip': "A quiet spot, water, a view — anything worth knowing?",
@@ -2515,6 +2560,11 @@ export const en = {
   'pack.map.mstatsOne': "{n} trip · {km} km",
   'pack.map.mstatsFew': "{n} trips · {km} km",
   'pack.map.mstatsMany': "{n} trips · {km} km",
+  // Dva riadky v mobilnej hlavičke mapy (2026-08-28) — samotné slovo, číslo je vedľa v <b>.
+  'pack.map.statKm': "km",
+  'pack.map.statTripsOne': "trip",
+  'pack.map.statTripsFew': "trips",
+  'pack.map.statTripsMany': "trips",
   'pack.map.searchAPlace': "Search a place…",
   'pack.map.filters': "Filters",
   'pack.map.filtersCount': "Filters · {n}",
@@ -2570,8 +2620,9 @@ export const en = {
   'pack.mapNotes.group.warning.text': "Wildlife, ticks or anything that can hurt a dog.",
   'pack.mapNotes.group.comment.text': "Something good the next dog owner here will be glad you left.",
   'pack.mapNotes.palette.lead': "Pick what's there. You'll point at the spot on the map next.",
-  'pack.mapNotes.place.mouse': "— zoom in and click the spot.",
-  'pack.mapNotes.place.touch': "— zoom in and tap the spot.",
+  'pack.mapNotes.place.mouse': "— click the spot on the map.",
+  'pack.mapNotes.place.switchType': "Switch note type",
+  'pack.mapNotes.place.touch': "— tap the spot on the map.",
   'pack.mapNotes.place.zoomIn': "— zoom in so the marker lands where you mean it.",
   'pack.viper.title': "Adder territory",
   'pack.viper.finds': "Around {n} sightings of the European adder have been reported in this area.",
@@ -2591,7 +2642,7 @@ export const en = {
   'pack.mapNotes.quick.title': "Add a note",
   'pack.mapNotes.map.add': "Add a note",
   'pack.mapNotes.cursor.hold': "Press and hold here",
-  'pack.addTrip.entry.kind.note.title': "Note",
+  'pack.addTrip.entry.kind.note.title': "Quick note",
   'pack.addTrip.entry.kind.note.text': "What the pack should know here",
   'pack.mapNotes.kind.parking': "Parking",
   'pack.mapNotes.kind.hazard': "Other hazard",

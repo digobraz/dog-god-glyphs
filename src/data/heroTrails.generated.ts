@@ -28,12 +28,19 @@ export type HeroTrail = {
   // pole povinné na odoslanie, takže sa vypĺňalo vždy a zahadzovalo takmer vždy. Kurátorovaný
   // dataset ho nemá zámerne (nie je to „bol som tam vtedy", ale trasa).
   date?: string;      // 'YYYY-MM-DD' | 'YYYY-MM' | chýba = „nepamätám"
-  // KOĽKO PSOV IŠLO (2026-08-25) — z posádky v sprievodcovi (`draft.crew`), len ADD-flow výlety.
-  // ⚠️ Do 25. 8. sa posádka pri ukladaní ZAHADZOVALA: `crew` bolo v drafte, do trasy sa nikdy
-  // neprepísalo, takže označenie psa nemalo účinok nikde. Matej: „prešiel jeden dogypťan je zle
-  // lebo som označil aj hektora."
-  dogs?: number;
   dateEnd?: string;   // koniec viacdňového putovania
+  // KOĽKO PSOV IŠLO (2026-08-25) — z posádky v sprievodcovi (draft.crew), len ADD-flow výlety.
+  // ⚠️ Do 25. 8. sa posádka pri ukladaní ZAHADZOVALA: crew bolo v drafte, do trasy sa nikdy
+  // neprepísalo, takže označenie psa nemalo účinok nikde. Matej: "prešiel jeden dogypťan je
+  // zle lebo som označil aj hektora."
+  // ⚠️ TOTO POLE STÁLO LEN V GENEROVANOM SÚBORE, NIE TU (opravené 2026-08-25) — prvá
+  // regenerácia ho ticho zmazala a typová chyba by vyskočila inde než pri príčine.
+  dogs?: number;
+  // KOTVY PLÁNU (2026-08-25) — len záznamy 'plan-', kurátorovaný dataset ich nemá.
+  // 'path' plánu je PRICHYTENÁ stopa (stovky bodov), takže sa z nej nedajú spätne získať
+  // kliky, ktoré ju vyrobili. Bez tohto poľa by človek, ktorý po prejdení povie
+  // "šiel som inak", musel celú trasu nakresliť odznova namiesto posunutia kotvy.
+  planPath?: LatLngTuple[];
 };
 
 export const HERO_TRAILS: HeroTrail[] = [

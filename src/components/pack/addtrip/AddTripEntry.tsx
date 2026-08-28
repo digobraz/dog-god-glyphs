@@ -9,9 +9,13 @@
 // bledé bloky podľa Entry.tsx locku, sem nepatrí).
 import { useEffect, useState } from 'react';
 import { GLASS_CSS, PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PLATE_TILE_R } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 import { NotePalette, NOTE_PALETTE_CSS } from '@/components/pack/mapnotes/NotePalette';
-import type { NoteGroup } from '@/components/pack/mapnotes/mapNotesData';
+import { NOTE_GROUPS, type NoteGroup } from '@/components/pack/mapnotes/mapNotesData';
+import { GROUP_EMOJI, EVENT_EMOJI, FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
+import { TRIP_CATEGORIES } from '@/components/pack/tripCategories';
+import { EVENT_KINDS, EVENT_KIND_LABEL_KEYS, type EventKind } from '@/components/pack/events/eventModel';
 import type { TripState } from './addTripModel';
 import { POINTS } from '@/lib/tripPoints';
 
@@ -34,6 +38,38 @@ export type AddTripEntryProps = {
 };
 
 type Kind = 'trip' | 'event' | 'note' | 'service';
+
+// ── CHIPY: ČO SA POD DLAŽDICOU SKRÝVA (Matej 2026-08-27) ────────────────────────────────────
+// „mohli by sme pridať chipy s emoji čo všetko človek môže pridať… aby bolo hneď jasné, čo
+// človek môže pridať."
+// Popup bol dovtedy tri vety v štýle „miesto na prechádzku so psom" — pravdivé, ale človek sa
+// dozvedel až o obrazovku ďalej, že sa sem dá zapísať aj kemp, preteky či kliešte.
+//
+// ⚠️ ŽIADNY VLASTNÝ ZOZNAM. Každá trojica sa ťahá zo zdroja pravdy tej vetvy — inak by tu
+// o mesiac stála taxonómia, ktorá už nikde inde neplatí (presne to sa stalo aktivitám, keď
+// ležali v kóde štyrikrát). Kategórie: `tripCategories.ts` · typy podujatí: `eventModel.ts`
+// + `markEmoji.ts` · skupiny odkazov: `mapNotesData.ts` + `GROUP_EMOJI`.
+//
+// ⚠️ Chip je POPIS, nie ovládací prvok. Celá dlaždica je jedno tlačidlo, chipy v nej sú
+// `<span>` — klikateľné chipy vnútri tlačidla by sľubovali skratku („chcem rovno preteky"),
+// ktorú druhá úroveň nevie splniť, a vnorené tlačidlo je aj neplatné HTML.
+type Chip = { emoji: string; labelKey: string };
+
+/** Typy podujatí, ktoré sa v ukážke NEZOBRAZUJÚ (vo formulári ostávajú). Viď `event` nižšie. */
+const EVENT_CHIP_SKIP: EventKind[] = ['camp', 'expo'];
+
+const KIND_CHIPS: Record<'trip' | 'event' | 'note', Chip[]> = {
+  trip: TRIP_CATEGORIES.map((c) => ({ emoji: c.emoji, labelKey: `pack.map.activityLabel.${c.id}` })),
+  // ⚠️ NIE VŠETKÝCH OSEM (Matej 2026-08-27: „pri eventoch dajme len 2 riadky bez camp a expo").
+  // Chip je ukážka, nie číselník — tri riadky robili z dlaždice zoznam a EVENT tým prerástol
+  // susedný odkaz o pol dlaždice. `camp` a `expo` z formulára NEMIZNÚ, len sa sem nevojdú:
+  // sú to dva najzriedkavejšie typy, ktoré človek hľadá až vtedy, keď už vie, čo zapisuje.
+  event: EVENT_KINDS.filter((k) => !EVENT_CHIP_SKIP.includes(k))
+    .map((k) => ({ emoji: EVENT_EMOJI[k], labelKey: EVENT_KIND_LABEL_KEYS[k] })),
+  // Skupiny, nie podtypy: „kliešte / vretenica / medveď" je rozpad JEDNEJ skupiny a v popupe
+  // by z troch chipov spravil trinásť. Rozcestníkové ⚠️ hovorí to isté jedným znakom.
+  note: NOTE_GROUPS.map((g) => ({ emoji: GROUP_EMOJI[g], labelKey: `pack.mapNotes.group.${g}` })),
+};
 
 // Prvá úroveň — dve dlaždice (Matej 2026-08-06: SERVICE preč z renderu, viď hlavičkový
 // komentár). `Kind`/`disabled` tvar ostáva nezmenený pre vlnu 2 — SERVICE sa vtedy len pridá
@@ -140,6 +176,16 @@ export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
                 <span className="att-entry-emoji" aria-hidden="true">{k.emoji}</span>
                 <span className="att-entry-title">{t(k.titleKey)}</span>
                 <span className="att-entry-text">{t(k.textKey)}</span>
+                {!!KIND_CHIPS[k.kind as keyof typeof KIND_CHIPS] && (
+                  <span className="att-entry-chips">
+                    {KIND_CHIPS[k.kind as keyof typeof KIND_CHIPS].map((c) => (
+                      <span key={c.labelKey} className="att-entry-chip">
+                        <span className="att-entry-chip-emoji" aria-hidden="true">{c.emoji}</span>
+                        {t(c.labelKey)}
+                      </span>
+                    ))}
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -181,12 +227,24 @@ const ENTRY_CSS = `
 .att-entry-blocks{display:flex;gap:18px;align-items:stretch;}
 .att-entry-lead{margin:0 0 14px;font-family:${FONT_UI};font-size:12.5px;line-height:1.5;color:${T.onDarkDim};}
 .att-entry-blocks-kind{flex-wrap:wrap;}
-/* TRI dlaždice od 2026-08-20 (pribudol ODKAZ). Základ MUSÍ byť tretina, nie polovica:
-   pri calc(50% - 9px) sa tretia zalomí na vlastný riadok a flex-grow ju roztiahne na celú
-   šírku — presne tá vizuálna chyba, na ktorej padol SERVICE (viď hlavičku súboru). */
-.att-entry-blocks-kind .att-entry-block{flex:1 1 calc(33.333% - 12px);min-width:150px;}
+/* ── DVA RIADKY: VÝLET HORE CEZ CELÚ ŠÍRKU, EVENT + ODKAZ POD NÍM (Matej 2026-08-26) ──────
+   „popup ADD urobme dvojriadkový — v prvom riadku bude veľký trip a dolu pod ním na jeho
+    šírku dva bloky event a odkaz."
+   ⚠️ MENÍ TO PRAVIDLO Z 20. 8. („základ MUSÍ byť tretina, nie polovica"). To pravidlo
+   riešilo tri ROVNOCENNÉ dlaždice, kde sa tretia zalomila a flex-grow ju roztiahol na celú
+   šírku — vtedy to bola chyba. Tu je zalomenie ZÁMER a hierarchia je zámer tiež: výlet je
+   dôvod, prečo sa tlačidlo otvára, event a odkaz sú vedľajšie.
+   Zalomenie drží prvá dlaždica na 100 % základni; zvyšné dve si delia riadok na polovice. */
+.att-entry-blocks-kind .att-entry-block{flex:1 1 calc(50% - 9px);min-width:150px;}
+.att-entry-blocks-kind .att-entry-block:first-child{flex:1 1 100%;}
 .att-entry-blocks-kind .att-entry-text{max-width:none;}
-.att-entry-block{position:relative;flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(245,240,228,0.04);border:1.5px solid ${T.onDarkBorder};border-radius:16px;padding:24px 20px;cursor:pointer;transition:border-color .15s ease,background .15s ease,transform .15s ease;}
+/* Veľká dlaždica má aj väčší glyf — inak je z nej len široký pás s rovnakým obsahom.
+   Popis je v nej na jeden riadok, tak sa ruší aj rezerva na dvojriadkový text (min-height
+   drží rovnaké dno len tým dlaždiciam, ktoré stoja VEDĽA SEBA). */
+.att-entry-blocks-kind .att-entry-block:first-child .att-entry-emoji{font-size:48px;height:54px;}
+.att-entry-blocks-kind .att-entry-block:first-child .att-entry-title{font-size:19px;letter-spacing:.06em;margin-bottom:12px;}
+.att-entry-blocks-kind .att-entry-block:first-child .att-entry-text{min-height:0;font-size:14.5px;max-width:none;}
+.att-entry-block{position:relative;flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(245,240,228,0.04);border:1.5px solid ${T.onDarkBorder};border-radius:${PLATE_TILE_R}px;padding:24px 20px;cursor:pointer;transition:border-color .15s ease,background .15s ease,transform .15s ease;}
 .att-entry-block:hover,.att-entry-block:focus-visible{border-color:${GOLD};background:rgba(201,154,63,0.08);transform:translateY(-2px);outline:none;}
 /* Body za zápis — malá pilulka v rohu dlaždice, nie súčasť nadpisu. Je to odmena, nie názov. */
 .att-entry-pts{position:absolute;top:10px;right:10px;padding:3px 8px;border-radius:999px;background:rgba(201,154,63,0.16);border:1px solid rgba(201,154,63,0.55);font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:${GOLD};}
@@ -198,6 +256,19 @@ const ENTRY_CSS = `
 .att-entry-emoji{font-size:38px;line-height:1;height:44px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
 .att-entry-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.onDark};margin-bottom:10px;}
 .att-entry-text{font-family:${FONT_UI};font-weight:400;font-size:12.5px;line-height:1.45;color:${T.onDarkDim};max-width:210px;min-height:2.9em;display:flex;align-items:center;justify-content:center;}
+/* Chipy „čo sem patrí" — popis, nie ovládací prvok, tak sú tichšie než dlaždica: bez
+   zlatého rámu (ten drží hover celej dlaždice) a s krytím pod nadpisom. Emoji má vlastný
+   font-family, inak by naň sadol zdedený Cinzel a na Windows sa z 🅿️ stane obdĺžnik. */
+.att-entry-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px;}
+.att-entry-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};font-family:${FONT_UI};font-weight:500;font-size:10.5px;letter-spacing:.02em;line-height:1.5;color:${T.onDarkDim};white-space:nowrap;}
+.att-entry-chip-emoji{font-family:${FONT_EMOJI};font-size:12px;line-height:1;}
+.att-entry-block:hover .att-entry-chip,.att-entry-block:focus-visible .att-entry-chip{border-color:rgba(201,154,63,0.42);color:${T.onDark};}
+/* Veľká dlaždica má štyri chipy do jedného radu — smie byť voľnejšia (Matej 2026-08-27:
+   „pri tripe daj chipy väčšie aj nadpis a podnadpis… celkovo je to také prázdne veľké
+   tlačítko"). Šírku má na celý popup, takže rástol obsah, nie dlaždica. */
+.att-entry-blocks-kind .att-entry-block:first-child .att-entry-chips{gap:10px;margin-top:18px;}
+.att-entry-blocks-kind .att-entry-block:first-child .att-entry-chip{font-size:13px;padding:6px 15px;gap:7px;}
+.att-entry-blocks-kind .att-entry-block:first-child .att-entry-chip-emoji{font-size:16px;}
 @media (max-width:640px){
   .att-entry-blocks{flex-direction:column;}
   .att-entry-blocks-kind .att-entry-block{flex:1 1 auto;}

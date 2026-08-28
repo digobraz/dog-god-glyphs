@@ -22,6 +22,8 @@
 //    a stúpania, nie navyše.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { pluralKey } from '@/lib/plural';
+
 /** Ceny jednorazových položiek. Kľúče zhodné s kalkulačkou v dashboarde (`const P`). */
 export const POINTS = {
   add: 20,        // pridanie výletu (fotka povinná, je v cene)
@@ -221,7 +223,9 @@ export function calculateTripPoints(input: TripPointsInput): TripPointsResult {
   const noteCount = Math.max(0, Math.floor(input.notes ?? 0));
   if (noteCount > 0) {
     const paidFor = Math.min(noteCount, Math.floor(NOTE_POINTS_TRIP_CAP / POINTS.note));
-    add('pack.points.notesN', paidFor * POINTS.note, { n: paidFor });
+    // ⚠️ Skloňovanie, nie jeden tvar (rovnaká pasca ako „3 bodov" 25. 8. 2026): tu vychádza
+    // 1–3, teda „1 značka" aj „2 značky". Kľúč sa skladá vzorom `pack.addTrip.step.pts*`.
+    add('pack.points.notesN' + pluralKey(paidFor), paidFor * POINTS.note, { n: paidFor });
   }
 
   return { total: rows.reduce((s, r) => s + r.points, 0), rows };

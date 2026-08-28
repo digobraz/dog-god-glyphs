@@ -185,7 +185,10 @@ export const WATER_COLOR = '#2E6FD6';
 // sviatkov, minula by sa na najbežnejší prvok mapy.
 // POZOR: toto je farba ČIARY = samostatná os. Náročnosť ostáva na markeroch/pilulkách
 // (DIFF_COLOR) a nesmie sa s ňou zliať — presne to sme rozpletali 2026-07-27.
-export const TRAIL_LINE = { edge: '#170424', mid: '#7A2FBF', light: '#B36BFF', core: '#FFFFFF' } as const;
+// `mid` = telo meča = KANONICKÁ FIALOVÁ VÝLETOV, preto sa berie z témy a nie ako
+// literál (Matej 2026-08-28: „nepoužívajme viac fialových len jednu a tú si definujme").
+// `edge` a `light` sú vrstvy ŽIARY tej istej čiary, nie ďalšie farby palety.
+export const TRAIL_LINE = { edge: '#170424', mid: PACK_THEME.tripPurple, light: '#B36BFF', core: '#FFFFFF' } as const;
 
 // Dosvit sa NEDÁ spraviť hrúbkou čiary — robí ho SVG filter na strednej vrstve (Leaflet
 // renderuje <path>, filter naň sadne). Trieda sa podáva cez pathOptions.className.

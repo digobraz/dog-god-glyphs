@@ -192,7 +192,7 @@ interface PlanLike { tripId: string; date?: string; intent?: string; at: number 
 // ich nevypĺňala — a `ev.host.charAt(0)` v karte inzerátu potom zhodil CELÚ mapu, len čo
 // človek klikol na UDALOSTI. Voliteľné ostávajú (staré záznamy ich naozaj nemajú), ale kto
 // z tohto tvaru skladá `PartnerEvent`, MUSÍ ich doplniť.
-interface EventLike { id: string; tripId: string; dates?: string[]; month?: string; socialization?: string; closed?: boolean; hostIsMe?: boolean; host?: string; at?: number; joinedByMe?: boolean }
+interface EventLike { id: string; tripId: string; dates?: string[]; month?: string; socialization?: string; closed?: boolean; hostIsMe?: boolean; host?: string; at?: number; joinedByMe?: boolean; travel?: unknown }
 interface TriplistLike { tripId: string; date?: string; status: string; openness: string; joiners?: unknown[]; requests?: unknown[]; addedAt: number }
 
 const isoOf = (ms: number): string => new Date(ms || Date.now()).toISOString();
@@ -299,6 +299,10 @@ export function persistEvents(next: EventLike[]): void {
       row: {
         client_id: e.id, trip_slug: e.tripId, dates: e.dates ?? [],
         month: e.month ?? null, socialization: e.socialization ?? null, closed: e.closed ?? false,
+        // AKO SA TAM IDE (stĺpec `travel jsonb`, migrácia 20260827). Posiela sa `null`, nie
+        // `undefined` — pri upserte by sa vynechaný kľúč tváril ako „nemeň", takže vymazaná
+        // doprava by v DB ostala visieť aj potom, čo ju človek odobral.
+        travel: e.travel ?? null,
       },
     });
   }
@@ -572,6 +576,12 @@ export function hydratePackStore(): Promise<boolean> {
             // Inzerát som vypísal ja, teda idem — presne to sa zapisuje pri jeho vzniku
             // (`joinedByMe: true` v PackMap.tsx). Nie je to odhad, je to ten istý fakt.
             joinedByMe: had?.joinedByMe ?? true,
+            // AKO SA TAM IDE — od 27. 8. má vlastný stĺpec (migrácia 20260827_trip_events_travel),
+            // takže na rozdiel od `host`/`at` nad ním sa NEBERIE z lokálnej kópie: server je
+            // zdroj pravdy a doprava zapísaná na inom zariadení sem musí dôjsť.
+            // Lokálna hodnota drží len záznamy, ktoré do DB ešte neodišli (offline fronta) —
+            // bez toho fallbacku by ju pull stihol zmazať skôr, než sa odošle.
+            travel: (r.travel ?? had?.travel) as EventLike['travel'],
           };
         });
         writeJson(PACK_KEYS.events, [...dbMine, ...notMine]);

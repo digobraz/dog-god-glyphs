@@ -269,8 +269,33 @@ function ReportSheet({ onClose, onSend, busy, error, sent }: {
   );
 }
 
-export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequestWalk }: {
+/**
+ * ── AUTOROVO HODNOTENIE JE PRVÉ V ZOZNAME (Matej 2026-08-25) ─────────────────────────────
+ *
+ * „pri autorovom hodnotení bude fotka autora — Autor tripu a počet hviezdičiek… musí tam
+ *  svietiť (1) a hodnotenie (1)."
+ *
+ * Do teraz sa počítali DVE rôzne čísla pod tým istým slovom: hore v článku „(2)" (chodci
+ * z `crowdAggregate` — a tí sú pri seed výlete DVAJA, lebo Matej + Hekthor) a tu „REVIEWS (0)"
+ * (riadky v `trip_reviews`). Obe boli po svojom pravdivé a spolu nedávali zmysel.
+ *
+ * Zjednotené na jednu vetu: **hodnotenie výletu má autor a majú ho členovia, ktorí ho napísali.**
+ * Autorovo hodnotenie NIE JE v `trip_reviews` — je to `trail.stars`, teda labky, ktoré dal pri
+ * zakladaní výletu (`stars: draft.paws` v `PackMap.tsx`; pri seed výletoch hodnota z nahadzovača).
+ * Preto sa sem posiela zvonku a rátame ho ako JEDNO hodnotenie, nie ako dvoch chodcov.
+ *
+ * ⚠️ `authorRating = 0` znamená NEHODNOTENÉ, nie nula labiek — vtedy riadok nie je a počet
+ * o neho nerastie. Rovnaké pravidlo ako `agg.rating > 0` v článku.
+ */
+export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequestWalk, authorRating = 0, authorName, onCountChange }: {
   tripId: string; tripName?: string; walked?: boolean; onMarkWalked?: () => void; onRequestWalk?: () => void;
+  /** Labky autora výletu (`trail.stars`). 0 = nehodnotil. */
+  authorRating?: number;
+  /** Meno autora — do riadku aj do iniciálky v krúžku. */
+  authorName?: string;
+  /** Hlási počet hodnotení hore do článku, aby zátvorka pri labkách a tento tab
+   *  nikdy neukazovali dve rôzne čísla. */
+  onCountChange?: (n: number) => void;
 }) {
   const t = useT();
   const [tab, setTab] = useState<'reviews' | 'advice'>('reviews');
@@ -323,8 +348,14 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   const myQuestionsForTrip = realQuestions.filter((q) => q.isMine);
   const otherQuestions = realQuestions.filter((q) => !q.isMine);
 
-  const reviewCount = realReviews.length;
+  // Autor sa počíta ako jedno hodnotenie — viď blok pri signatúre.
+  const hasAuthorRating = authorRating > 0;
+  const reviewCount = realReviews.length + (hasAuthorRating ? 1 : 0);
   const adviceCount = realQuestions.length;
+
+  // Hore do článku. Beží po každej zmene zoznamu (dotiahnutie z DB, pridanie, zmazanie), aby
+  // zátvorka pri labkách nezamrzla na čísle z prvého renderu.
+  useEffect(() => { onCountChange?.(reviewCount); }, [reviewCount, onCountChange]);
 
   const reviewPages = Math.max(1, Math.ceil(reviewCount / PAGE_SIZE));
   const advicePages = Math.max(1, Math.ceil(adviceCount / PAGE_SIZE));
@@ -406,9 +437,13 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   // single localStorage row — the DB can hold reviews/questions from any number of real members,
   // so the list needs to generalize instead of special-casing one row. ──
   type ReviewItem =
+    | { kind: 'author' }
     | { kind: 'mine'; review: RealReview }
     | { kind: 'real'; review: RealReview };
+  // Autor je PRVÝ, pred mojím hodnotením: je to hodnotenie človeka, ktorý výlet zapísal,
+  // teda jediné, ktoré tam bolo od začiatku.
   const reviewItems: ReviewItem[] = [
+    ...(hasAuthorRating ? [{ kind: 'author' as const }] : []),
     ...(myReview ? [{ kind: 'mine' as const, review: myReview }] : []),
     ...otherReviews.map((review) => ({ kind: 'real' as const, review })),
   ];
@@ -464,6 +499,27 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
             {reviewsOpen && (
               <>
                 {reviewPageItems.map((item) => {
+                  if (item.kind === 'author') {
+                    /* ⚠️ Avatar je INICIÁLKA, nie fotka — a je to dočasné. Matej si pýtal
+                       „fotka autora", ale dataset o autorovi nesie JEDINE meno
+                       (`HeroTrail.author`, pri seed výletoch ani to — `AUTHOR_FALLBACK`),
+                       a `list_trip_reviews()` vracia tiež len krstné meno a číslo v svorke.
+                       Fotka sa teda nedá vziať odnikiaľ bez toho, aby sme ju vymysleli.
+                       Zapojí sa, keď budú profily členov vracať avatar. */
+                    const nm = authorName?.trim() || t('pack.trip.cm.dogyptian');
+                    return (
+                      <div className="tcm-review" key="author">
+                        <span className="tcm-avatar">{nm.charAt(0).toUpperCase()}</span>
+                        <div className="tcm-review-main">
+                          <div className="tcm-review-top">
+                            <span className="tcm-review-name">{nm}</span>
+                            <span className="tcm-review-badge">{t('pack.trip.cm.tripAuthor')}</span>
+                          </div>
+                          <Paws rating={authorRating} />
+                        </div>
+                      </div>
+                    );
+                  }
                   if (item.kind === 'mine') {
                     const r = item.review;
                     return (

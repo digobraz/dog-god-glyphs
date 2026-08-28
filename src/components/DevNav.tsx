@@ -29,7 +29,7 @@ const GROUPS: RouteGroup[] = [
   {
     label: "Heroglyph wizard",
     routes: [
-      { path: "/heroglyph/intro", name: "0. Intro" },
+      { path: "/heroglyph/photo", name: "1. Fotka" },
       { path: "/heroglyph/name", name: "1. Name" },
       { path: "/heroglyph/photo", name: "2. Photo" },
       { path: "/heroglyph/breed", name: "3. Breed / Patron" },
@@ -69,6 +69,11 @@ export function DevNav() {
 
   // Never on headless render targets — would bleed into the generated PDF / share card PNG.
   if (pathname.startsWith("/cert-render") || pathname.startsWith("/share-render")) return null;
+  // ONEPAGE sa ladí ako HOTOVÝ web, aj na telefóne cez tunel (Matej 27. 8. 2026:
+  // „odstráň pomocné dev menu aj TEXT1/2“). Vývojárske ovládanie v rohu tam kazí
+  // dojem z návrhu a na mobile prekrýva spodnú lištu. Na ostatných dev cestách
+  // menu zostáva — je to jediný spôsob, ako sa medzi nimi preklikať.
+  if (pathname.startsWith("/onepage")) return null;
 
   // Hide on production custom domain (dogypt.com). Show in dev + lovable.app preview/published.
   if (typeof window !== "undefined") {
