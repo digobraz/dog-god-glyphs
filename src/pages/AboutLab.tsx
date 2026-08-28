@@ -169,6 +169,17 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
   const showStory = part !== 'crawl';
   /** Pätičku nesie len celá stránka — film si ju kladie sám na koniec. */
   const showFooter = part === 'all';
+  /**
+   * ÚVOD SEKVENCIE — postavy Mateja a Hektora, nadpis THE ORIGIN, výzva na scroll.
+   *
+   * 🔴 VO FILME SA NEKRESLÍ (Matej 28. 8. 2026: *„začni scénu inak - nás tam vôbec
+   * nedávaj = scéna začne modrým nápisom"*). Prišiel k nemu z čiernej obrazovky,
+   * na ktorej práve zhaslo všetko ostatné — a úvodná dvojica s vlastným nadpisom
+   * je tam druhý začiatok, hoci film práve jeden dokončil.
+   * Na samostatnej stránke ostáva: tam je crawl PRVÁ vec pod hlavičkou a bez
+   * úvodu by sa začínalo modrým nápisom na prázdnom papieri.
+   */
+  const showOpening = part !== 'film';
   const t = useT();
   const tlRef = useRef<HTMLDivElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
@@ -210,6 +221,10 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
     return () => io.disconnect();
   }, []);
 
+  // Kde končí úvod a začína nábeh modrého nápisu. Bez úvodu (film) je to bod,
+  // v ktorom sekvencia začína — preto je to konštanta a nie číslo v dvoch vetvách.
+  const OPENING_END = 0.10;
+
   // Star Wars opening crawl (scroll-linked): intro line fades → DOGYPT logo
   // recedes into the distance → gold text crawls up a tilted 3D plane, fading
   // into the distance at the top. Drives off the section's own scroll.
@@ -230,7 +245,13 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
     const render = () => {
       const vh = SC.vh();
       const total = wrap.offsetHeight - vh;
-      const p = total > 0 ? clamp(-SC.top(wrap) / total) : 0;
+      const raw = total > 0 ? clamp(-SC.top(wrap) / total) : 0;
+      // BEZ ÚVODU SA DRÁHA POSUNIE, NEPREPÍŠU SA PÁSMA. Úvod drží prvú desatinu
+      // (rozpustenie hera 0–0.08, potom nábeh modrého nápisu od 0.10). Keď sa
+      // nekreslí, tá desatina by bola prázdna čierna obrazovka navyše — takže
+      // sa dráha rovno na nej začne. Pásma nižšie ostávajú TIE ISTÉ: prepísať
+      // ich zvlášť pre film by znamenalo dve choreografie jednej scény.
+      const p = showOpening ? raw : OPENING_END + raw * (1 - OPENING_END);
 
       // 0) hero (nav + content + hint) dissolves IN PLACE — it's sticky-pinned,
       //    so we only fade opacity + scale (NO counter-scroll → no jitter). The
@@ -272,6 +293,10 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
       text.style.opacity = String(clamp(band(p, 0.55, 0.60)));
       text.style.transform = `translateX(-50%) rotateX(28deg) translateY(${y}px)`;
     };
+    // ⚠️ Prázdne pole závislostí je v poriadku aj s showOpening: `part` je prop,
+    // ktorý sa počas života komponentu nemení (film volá 'film', stránka 'all'),
+    // a efekt sa viaže na scroll, nie na stav.
+
 
     const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(render); };
     render();
@@ -956,6 +981,7 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
       {showCrawl && (
       <section className="swcrawl" ref={crawlRef} style={{ height: '340vh' }}>
         <div className="swcrawl-sticky">
+          {showOpening && (
           <div ref={heroRef} className="op-hero">
         {!embedded && <PageTopBarLab withNav />}
 
@@ -986,6 +1012,7 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
           </button>
         </div>
           </div>
+          )}
 
           <p className="sw-intro" ref={swIntroRef}>{t('about.crawl.intro')}</p>
           <img className="sw-logo" ref={swLogoRef} src="/images/dogypt-gold-logo.webp" alt="DOGYPT" />

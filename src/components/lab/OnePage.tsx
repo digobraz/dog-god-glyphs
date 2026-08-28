@@ -1173,7 +1173,13 @@ export default function OnePage() {
         }
         /* Tapeta je tá istá, akú nesie ostrý web — vrátane rozostrenia. Kreslí
            ju ::before a nie background na prvku, aby krytie celej vrstvy hýbalo
-           farbou aj tapetou naraz. */
+           farbou aj tapetou naraz.
+           ⚠️ VO FILME JE STLMENÁ (Matej 28. 8. 2026: *„ešte viac stmav pozadie,
+           kde su heroglyphy"*). Na ostrom webe je táto sála pozadím STRÁNKY, kde
+           nesie atmosféru; vo filme je pozadím PRÍBEHU, cez ktorý beží zlatý text
+           v perspektíve — a zlatá kresba pod zlatým písmom si s ním konkuruje.
+           Krytie, nie tmavší obrázok: sála a jej tapeta musia ostať tá istá vec,
+           inak má film vlastnú kópiu pozadia, ktorá sa pri prvej zmene rozíde. */
         .op-wall::before {
           content: '';
           position: absolute;
@@ -1183,6 +1189,7 @@ export default function OnePage() {
           background-position: center;
           background-repeat: no-repeat;
           filter: blur(3px);
+          opacity: 0.42;
         }
 
         /* ── FILM SA POSÚVA PO STRÁNKACH (snap) ───────────────────────────
@@ -1670,35 +1677,19 @@ export default function OnePage() {
         .op-film .sw-logo {
           filter: drop-shadow(0 0 50px rgba(201,154,63,0.45));
         }
-        /* NADPIS KAPITOLY a jeho podtitulok. Nadpis je gradient cez
-           background-clip, takže sa musí prepísať celý — nestačí color. */
-        .op-film .origin-title {
-          background: linear-gradient(135deg, #F5C73D 0%, #FFB840 38%, #E69E1A 70%, #F5C73D 100%);
-          -webkit-background-clip: text;
-          background-clip: text;
-          filter: drop-shadow(0 0 26px rgba(245,199,61,0.42)) drop-shadow(0 0 7px rgba(230,158,26,0.5));
-        }
-        .op-film .origin-sub {
-          color: rgba(250,244,236,0.92);
-          text-shadow: 0 0 3px rgba(0,0,0,0.95), 0 0 9px rgba(0,0,0,0.9), 0 1px 6px rgba(0,0,0,0.75);
-        }
-        /* Postavy stoja na čiernej, takže tieň pod nimi musí byť čierny —
-           teplý hnedý tieň z papyrusovej podoby na nej svieti ako hnedá hmla. */
-        .op-film .about-fig img {
-          filter: drop-shadow(0 10px 44px rgba(0,0,0,0.75));
-        }
+        /* ⚠️ NADPIS THE ORIGIN, JEHO PODTITULOK A POSTAVY TU UŽ NIE SÚ.
+           Vo filme sa úvod sekvencie nekreslí vôbec (Matej 28. 8. 2026: *„začni
+           scénu inak - nás tam vôbec nedávaj = scéna začne modrým nápisom"*),
+           takže by to boli pravidlá pre prvky, ktoré v ňom neexistujú. Rieši to
+           prop AboutLabu (part='film'), nie skrytie cez CSS — skrytý úvod by si
+           držal svoju desatinu dráhy a bola by z nej prázdna obrazovka navyše. */
 
         /* ── ČO ZO SEKVENCIE DO FILMU NEPATRÍ ────────────────────────────
-           Tri prvky patria SAMOSTATNEJ stránke, kde je crawl prvá vec pod
-           hlavičkou. Vo filme za ním leží päť obrazov scrollu, takže:
-             tri šípky   — človek už dávno scrolluje, výzva je bezpredmetná
-             PRESKOČIŤ   — preskočiť sa dá scrollom a tlačidlo skáče na kotvu,
-                           ktorá vo filme nie je začiatkom stránky
-             vlastný nav — film má svoju hornú lištu a táto je papyrusová,
-                           fixed a na z-index 200, teda nad všetkým
-           ⚠️ Skrýva sa TU, nie v komponente — na svojej stránke ostávajú. */
-        .op-film .scroll-cue,
-        .op-film .about-skip,
+           Vlastná hlavička sekvencie: je papyrusová, fixed a na z-index 200,
+           teda nad všetkým — a film má svoju hornú lištu.
+           ⚠️ Skrýva sa TU, nie v komponente — na svojej stránke ostáva.
+           ⚠️ Tri šípky a PRESKOČIŤ tu už nie sú: stáli v úvode sekvencie, ktorý
+           sa vo filme nekreslí (part='film'). */
         .op-film .about-sticky-nav { display: none !important; }
 
         /* ── 4. OBRAZ: VIDEO VĽAVO, VÍZIA VPRAVO ─────────────────────────
