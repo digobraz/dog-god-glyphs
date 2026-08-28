@@ -1975,6 +1975,33 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
            druhej obrazovke. Doteraz to prebíjalo spoločné --op-bleed; keď to
            odtiaľ zmizlo, vybledli OBE zvieratá naraz a psovi to zobralo farbu,
            ktorú má podľa zadania mať. Vo filme teda rozhoduje výlučne scroll. */
+        /* ── ÚRYVOK ÚSTAVY JE ZAROVNANÝ DO BLOKU, AKO V KNIHE ─────────────
+           Matej 28. 8. 2026: *„vieme ten text zarovnať tak aby bol rovnaky po
+           okrajoch ako v knihe? a najsť sweet spot kde nebudu velke medzery?"*
+
+           🔑 SWEET SPOT NEROBÍ ŠÍRKA STĹPCA, ALE DELENIE SLOV. Zarovnanie do
+           bloku rozťahuje MEDZERY, aby riadok dosadol na pravý okraj — a čím
+           dlhšie slová, tým väčšie diery. Slovenčina má SPOLOČNOSTI, NEKONEČNÚ,
+           POSTAVENIE; bez delenia ostane v riadku pár slov a medzi nimi
+           priepasť. Automatické delenie dovolí slovo zlomiť, takže sa medzery
+           rozdelia na viac miest a žiadna nevytrčí.
+           ⚠️ Delenie funguje LEN keď prehliadač pozná jazyk — drží ho atribút
+           lang na koreni dokumentu, ktorý nastavuje LanguageContext pri každej
+           zmene jazyka.
+           ⚠️ Vyvažovanie dĺžky riadkov sa musí vypnúť: pri ragged okraji je
+           správne, ale proti zarovnaniu do bloku pracuje (riadky sú aj tak
+           rovnako dlhé, len sa zúži posledný).
+           ⚠️ Posledný riadok ostáva V STREDE — inak by z odseku, ktorý sa končí
+           dvoma slovami, ostal osamelý ľavý okraj.
+           Platí LEN vo filme; samostatná /religion-lab ostáva, aká bola. */
+        .codex-flow .codex-preamble-text {
+          text-align: justify;
+          text-align-last: center;
+          hyphens: auto;
+          -webkit-hyphens: auto;
+          text-wrap: wrap;
+        }
+
         .codex-flow .codex-bleed { opacity: 1; transition: none; }
         .codex-flow .codex-bleed .codex-cow {
           opacity: var(--op-cow, 1);

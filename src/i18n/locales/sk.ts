@@ -634,7 +634,7 @@ export const sk: Partial<Dict> = {
   'religion.spot.ageFew': 'Hekthor má dnes {n} roky.',
   'religion.spot.ageMany': 'Hekthor má dnes {n} rokov.',
 
-  'religion.preamble.oath': 'Prísaha svorky',
+  'religion.preamble.oath': 'Dogyptská ústava',
   'religion.preamble.readCta': 'Prečítaj si „Bibliu“ pre psíčkarov',
 
   // ── /religion — sacred index ──

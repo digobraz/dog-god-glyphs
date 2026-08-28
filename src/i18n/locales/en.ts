@@ -781,7 +781,10 @@ export const en = {
   'religion.spot.ageFew': 'Hekthor is {n} today.',
   'religion.spot.ageMany': 'Hekthor is {n} today.',
 
-  'religion.preamble.oath': 'The Oath of the Pack',
+  // Matej 28. 8. 2026: „namiesto prísahy svorky DOGYPTSKA USTAVA".
+  // Popisok stojí nad CTA do ústavy, takže pomenúva to, čo je pod ním —
+  // nie obrad, ale dokument. Vykresľuje sa verzálkami cez CSS.
+  'religion.preamble.oath': 'The Dogypt Constitution',
   'religion.preamble.readCta': 'Read the Bible for dog lovers',
 
   // ── /religion — sacred index ──
