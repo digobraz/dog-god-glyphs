@@ -447,6 +447,23 @@ interface VisionLabProps {
    * `/vision` prop nedostane a správa sa presne ako doteraz.
    */
   onWatch?: () => void;
+  /**
+   * LEN HERO, BEZ PASU WHAT IF — pre film (`components/lab/OnePage.tsx`).
+   *
+   * Matej 28. 8. 2026: *„uvazujem ze tu kreslenu viziu teraz vynechame (nebude
+   * na webe) ako aj nasledujuci slajd «co ak by»"*.
+   *
+   * Preco prop a nie zmazanie: pas WHAT IF je stale kanonom `/vision`
+   * a `/vision-lab` — vypina sa len vo filme. A preco je to spravne aj obsahovo:
+   * film slubuje to iste STYRIKRAT (WHAT IF 6 beatov · pribeh p4/p5 · tri bloky
+   * vizie · milniky v op-join) a WHAT IF je jediny, kto to hovori ako SCHEMA,
+   * a zaroven najdrahsi — 6 prilepenych obrazoviek, canvas a 6 videi.
+   *
+   * ⚠️ Vynecha sa AJ zaverecne CTA `vision-finale` — to je druha zatvorka toho
+   * isteho pasu (*„bookends the WHAT IF papyrus story above"*), takze samo by
+   * stalo ako odpoved na otazku, ktora vo filme nezaznela.
+   */
+  heroOnly?: boolean;
 }
 
 /**
@@ -476,7 +493,7 @@ const TITLE_GRAD = {
  */
 const VISION_BLOCKS = ['b1', 'b2', 'b3'] as const;
 
-export default function VisionLab({ embedded = false, flow = false, onWatch }: VisionLabProps = {}) {
+export default function VisionLab({ embedded = false, flow = false, onWatch, heroOnly = false }: VisionLabProps = {}) {
   const navigate = useNavigate();
   const t = useT();
   const { lang } = useLang();
@@ -2106,6 +2123,10 @@ export default function VisionLab({ embedded = false, flow = false, onWatch }: V
        </div>
       </section>
 
+      {/* PAS WHAT IF + jeho zaverecne CTA — vo filme sa nekreslia (prop heroOnly).
+          Nie je to zmazanie: `/vision` a `/vision-lab` si ich nechavaju. Dovod
+          v komentari pri prope hore. */}
+      {!heroOnly && (<>
       {/* ── WHAT IF… pinned scrollytelling roadmap ── */}
       <section
         className="wf-pin"
@@ -2248,6 +2269,7 @@ export default function VisionLab({ embedded = false, flow = false, onWatch }: V
           </p>
         </div>
       </section>
+      </>)}
 
     </div>
   );

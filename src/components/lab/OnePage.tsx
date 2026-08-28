@@ -355,6 +355,68 @@ const VOUT_OUT: readonly [number, number] = [0, 0.34];
  */
 const GROW_IN: readonly [number, number] = [0.12, 0.94];
 
+/**
+ * DĹŽKA 5. PRECHODU: Z PAPYRUSU DO ČIERNEJ — ODOVZDANIE PRÍBEHU.
+ * Piaty gombík tempa, ten istý recept ako PIN_VH · PIN2_VH · PIN3_VH · PIN4_VH.
+ *
+ * Matej 28. 8. 2026: *„to video sa bude zväčšovať a celá obrazovka vrátane
+ * headru sčerná resp — nastane čierne pozadie ako je to na ostrom webe, budú
+ * nasledovať modré písmenká a starwars príbeh na čiernom pozadí = celkom rozbije
+ * príbeh na webe a urobí taký aha moment, pripomenie starwars"* +
+ * *„tmavne aj video ako sa začne rozťahovať, nie len pozadie — celá obrazovka"*.
+ *
+ * 🔑 OPÄŤ TO NIE JE NOVÝ OBRAZ. Vízia ostáva prilepená rovnako ako pri plátne;
+ * dráha sa preto pripočítava k výške TEJ ISTEJ sekcie. Vlastná sekcia by medzi
+ * plátnom a černením spravila strih — a práve tá plynulosť je celý efekt.
+ *
+ * ⚠️ Číslo sedí naraz vo výške hero (`min-height` nižšie) a v značkách snapu.
+ * Cieľ `goCinema` ostáva na konci PIN4 (plátno), nie tu — klik na „pozri
+ * introfilm" má priniesť video, nie tmu. Meň to TU.
+ */
+const PIN5_VH = 2;
+
+/**
+ * ÚSEKY 5. PRECHODU — podiel dráhy (0 = plátno pod lištou, 1 = čierna sála).
+ *
+ * 🔑 SÚ TU DVE ČIERNE VRSTVY A KAŽDÁ ROBÍ NIEČO INÉ. Bez toho rozdielu sa to
+ * postaviť nedá: jedna čierna nad všetkým by prekryla aj príbeh, ktorý má
+ * nasledovať, a jedna čierna pod všetkým by nikdy nestmavila video ani lištu
+ * (obe ležia vo filme nad ňou).
+ *   ZÁVOJ (.op-veil, nad lištou)  — stmieva to, čo je práve vidieť. Je to
+ *                                   PRECHODOVÁ vrstva: keď dohorí, zhasne.
+ *   NOC  (.op-wall, pod filmom)   — čierna sála s tapetou. Je to PODKLAD:
+ *                                   nastúpi pod závojom a ostane, kým beží
+ *                                   príbeh. Zároveň berie hornú lištu a video.
+ */
+/** VIDEO DORASTIE z pásu pod lištou na celé okno. Začína hneď — je to ten istý
+ *  pohyb ako v PIN4, len jeho druhá polovica, a pauza medzi nimi by ho zlomila. */
+const GROW2_IN: readonly [number, number] = [0.00, 0.42];
+/** ZÁVOJ. Nabieha s odstupom za rastom — najprv sa musí vidieť, že video rastie
+ *  (*„tmavne aj video ako sa začne rozťahovať"*), inak je to len stmievačka. */
+const VEIL_IN: readonly [number, number] = [0.08, 0.46];
+/** NOC. Nastupuje POD závojom, keď ten už kryje — pod ním sa vymení podklad,
+ *  zhasne lišta aj video, a nikto z toho nič nevidí. */
+const WALL_IN: readonly [number, number] = [0.44, 0.60];
+/** ZÁVOJ ODCHÁDZA a odhalí noc. Až TERAZ, keď je pod ním čierna sála: keby
+ *  zhasol skôr, vrátil by na obrazovku papyrus, a keby neodišiel vôbec, ležal by
+ *  nad príbehom a ten by nebolo vidieť. */
+const VEIL_OUT: readonly [number, number] = [0.62, 0.82];
+/**
+ * A NÁVRAT DO PAPYRUSU — meria sa NA KONCI PRÍBEHU, nie na tejto dráhe.
+ * Podiel poslednej obrazovky sekvencie príbehu (0 = príbeh ešte beží prilepený,
+ * 1 = jej spodná hrana je na hornom okraji okna).
+ *
+ * ⚠️ Prečo až tu a nie skôr: časová os je na koniec príbehu naložená záporným
+ * okrajom (`marginTop: -100vh` v AboutLab), takže POSLEDNÁ obrazovka príbehu je
+ * PRVÁ obrazovka časovej osi — a tá je papyrusová. Text príbehu je v tej chvíli
+ * už odletený hore (jeho vlastná dráha končí na p = 1, teda presne na začiatku
+ * tohto úseku), takže sa hasí do prázdnej čiernej.
+ *
+ * 🚩 Je to prelínačka, nie réžia. Matej odchod z čiernej späť na papyrus zatiaľ
+ * nezadal — pozri `plany/zadanie-onepage-cierna.md`, rozhodnutie A.
+ */
+const NIGHT_OUT: readonly [number, number] = [0.10, 0.62];
+
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 /** Mäkké konce — lineárny priebeh vyzerá ako stmievač, nie ako pohyb. */
 const ease = (v: number) => v * v * (3 - 2 * v);
@@ -374,7 +436,6 @@ export default function OnePage() {
   const t = useT();
   const [scene, setScene] = useState(0);
   const [past, setPast] = useState(false);       // je už guľa preč?
-  const [storyOpen, setStoryOpen] = useState(false);
   // Ústava v prekrytí. Kniha ako OBRAZ filmu zanikla (Matej 28. 8. 2026),
   // ostalo po nej CTA pod úryvkom — a toto je jeho následok.
   const [bookOpen, setBookOpen] = useState(false);
@@ -415,6 +476,8 @@ export default function OnePage() {
       dock?: HTMLElement | null;
       vstage?: HTMLElement | null; vblocks?: HTMLElement | null;
       vinner?: HTMLElement | null;
+      veil?: HTMLElement | null; night?: HTMLElement | null;
+      nav?: HTMLElement | null; crawl?: HTMLElement | null;
     } = {};
     const resolve = () => {
       n = {
@@ -447,6 +510,16 @@ export default function OnePage() {
         // len rámu videa — a všetko sú to jeho deti. Jeden zápis namiesto troch
         // a podstrom je malý (video + tri bloky), takže dedičnosť tu nič nestojí.
         vinner: q<HTMLElement>('#op-vision .vhero-inner'),
+        // 5. prechod (z papyrusu do čiernej). Závoj aj noc sú fixed vrstvy
+        // priamo v koreni filmu — nesedia na žiadnej sekcii, lebo prechod sa
+        // netýka jedného obrazu, ale CELEJ obrazovky vrátane hornej lišty.
+        veil: q<HTMLElement>('.op-veil'),
+        night: q<HTMLElement>('.op-wall'),
+        // Horná lišta je mimo .op-stage (fixed, nad filmom) — v noci hasne.
+        nav: q<HTMLElement>('.nav-top'),
+        // Sekvencia príbehu. Meria sa len jej SPODNÁ HRANA, a to kvôli návratu
+        // do papyrusu — dĺžku (340vh) drží AboutLab a nesmie sa sem opísať.
+        crawl: q<HTMLElement>('.op-film .swcrawl'),
       };
     };
     resolve();
@@ -650,6 +723,57 @@ export default function OnePage() {
       // prehrávanie: prst by trafil neviditeľný blok pod prstom.
       put(n.vblocks, 'vbpe', 'pointerEvents', vb >= 0.999 && vout <= 0.01 ? 'auto' : 'none');
 
+      // ── 5. PRECHOD: Z PAPYRUSU DO ČIERNEJ ────────────────────────────
+      // Video dorastie z pásu pod lištou na CELÉ okno, cez všetko sa prevalí
+      // závoj, pod ním sa vymení podklad za čiernu sálu a zhasne horná lišta
+      // aj video — a keď je to hotové, závoj odíde a odhalí noc.
+      // ⚠️ Šírka rámu sa aj tu počíta ROVNICOU V CSS (tretí bod --vf-cover),
+      // nie tu. Ten istý dôvod ako pri PIN4: vzorec má jedno miesto.
+      const span5 = Math.max(1, vh * PIN5_VH);
+      const s5 = clamp01((window.scrollY - span - span2 - span3 - span4) / span5);
+      put(n.vinner, 'gw2', '--op-grow2', seg(s5, GROW2_IN[0], GROW2_IN[1]).toFixed(3));
+
+      // NOC = čierny podklad + zhasnutá lišta a video. Nastupuje pod závojom
+      // a odchádza až na konci príbehu, nie na konci tejto dráhy.
+      // ⚠️ Odchod sa NEMERIA scrollom filmu, ale spodnou hranou sekvencie
+      // príbehu — jej dĺžka (340vh) patrí AboutLabu a opísaná sem by sa pri
+      // prvej zmene rozišla. Kým sekvencia nie je namontovaná, noc drží.
+      let nightOut = 0;
+      if (n.crawl) {
+        const bottom = n.crawl.getBoundingClientRect().bottom;
+        nightOut = seg(clamp01((vh - bottom) / vh), NIGHT_OUT[0], NIGHT_OUT[1]);
+      }
+      const night = seg(s5, WALL_IN[0], WALL_IN[1]) * (1 - nightOut);
+      put(n.night, 'wl', 'opacity', night.toFixed(3));
+      // Lišta a video hasnú TOU ISTOU hodnotou ako nastupuje noc — je to jeden
+      // dej (*„celá obrazovka vrátane headru sčerná"*), nie tri zhody náhod.
+      // Deje sa to pod závojom, takže samotné hasnutie nikto nevidí; keby ho
+      // nebolo, po odchode závoja by na čiernej svietila lišta a pás videa.
+      put(n.nav, 'nvo', 'opacity', (1 - night).toFixed(3));
+      put(n.nav, 'nvpe', 'pointerEvents', night > 0.5 ? 'none' : '');
+      // 🔴 SPODNÁ LIŠTA SA TU NEHASÍ A JE TO SPRÁVNE — odchádza už s prvou
+      // obrazovkou a *„už sa nevracia"* (DOCK_OUT vyššie), takže v noci dávno
+      // nesvieti. Prvé kolo jej sem pridalo vlastné hasnutie a spravilo dve
+      // chyby naraz: pri návrate z čiernej by ju rozsvietilo, hoci sa vracať
+      // nemá — a nefungovalo by to ani tak, lebo put() si pamätá poslednú
+      // hodnotu POD KĽÚČOM. Dva kľúče na tú istú vlastnosť jedného prvku sa
+      // navzájom nevidia: druhý zápis prvý prebije a potom si myslí, že sa nič
+      // nezmenilo. Vlastnosť patrí VŽDY jednému miestu v réžii.
+      put(n.vinner, 'nite', '--op-night', night.toFixed(3));
+
+      // ZÁVOJ — jediná vrstva nad VŠETKÝM vrátane hornej lišty. Nie hasnutie po
+      // prvkoch: tri samostatné stmievačky (papyrus, video, lišta) sa pri prvom
+      // ladení rozídu a z jedného deja sú tri.
+      // ⚠️ Odchod závoja sa NESMIE spustiť skôr, než noc dosadne — inak by na
+      // okamih presvitol papyrus pod ním. Preto VEIL_OUT začína až za WALL_IN.
+      const veil = clamp01(seg(s5, VEIL_IN[0], VEIL_IN[1]) - seg(s5, VEIL_OUT[0], VEIL_OUT[1]));
+      put(n.veil, 'vl', 'opacity', veil.toFixed(3));
+      // Čo nie je vidieť, nesmie byť pod prstom — a naopak: kým závoj kryje,
+      // nesmie brať kliky ničomu pod sebou. Preto je vždy priehľadný pre prst
+      // (CSS) a jediné, čo sa tu rieši, je jeho kreslenie.
+      put(n.veil, 'vlv', 'visibility', veil <= 0.002 ? 'hidden' : 'visible');
+      put(n.night, 'wlv', 'visibility', night <= 0.002 ? 'hidden' : 'visible');
+
       // Tieto tri sa menia DVAKRÁT za celý film, tak smú ostať premennými.
       const gone = o <= 0.002;
       put(n.planet, 'vis', '--op-vis', gone ? 'hidden' : 'visible');
@@ -825,20 +949,6 @@ export default function OnePage() {
   // v opačnom poradí by prepočítalo film na starej polohe.
   useEffect(() => { applyRef.current(); }, [wallOpen]);
 
-  // Popup s príbehom drží scroll stránky na mieste — bez toho sa pod ním
-  // odscrolluje film a po zavretí sa človek ocitne inde, než odkiaľ odišiel.
-  useEffect(() => {
-    if (!storyOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setStoryOpen(false); };
-    window.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = prev;
-      window.removeEventListener('keydown', onKey);
-    };
-  }, [storyOpen]);
-
   return (
     <div className="op-root">
       <Seo path="/onepage" title="DOGYPT" description="One page, one story: the planet, the question, the vision, the pack." />
@@ -1011,6 +1121,70 @@ export default function OnePage() {
         .op-film .lab-pageveil { display: none; }
         .op-scene { position: relative; }
 
+        /* ── 5. PRECHOD: DVE ČIERNE VRSTVY ───────────────────────────────
+           Matej 28. 8. 2026: *„celá obrazovka vrátane headru sčerná resp —
+           nastane čierne pozadie ako je to na ostrom webe"* + *„tmavne aj video
+           ako sa začne rozťahovať, nie len pozadie — celá obrazovka"*.
+
+           🔑 PREČO DVE A NIE JEDNA. Jedna čierna sa postaviť nedá: musí byť
+           NAD videom a lištou (tie ležia vo filme, pod ne sa nič nedostane)
+           a zároveň POD príbehom, ktorý má na nej bežať. To sú dve miesta
+           v poradí vrstiev, teda dva prvky s rozdielnou úlohou:
+             ZÁVOJ (.op-veil)  je PRECHOD — leží nad VŠETKÝM vrátane hornej
+                               lišty, stmaví obraz a keď je pod ním vymenený
+                               podklad, zhasne. Sám nič nedrží.
+             NOC  (.op-wall)   je PODKLAD — čierna sála presne taká, akú má
+                               ostrý web (.dark-bg v index.css), pod celým
+                               filmom. Nastúpi pod závojom a drží, kým beží
+                               príbeh.
+           Nie je to hasnutie po prvkoch: tri samostatné stmievačky (papyrus,
+           video, lišta) sa pri prvom ladení rozídu a z jedného deja sú tri.
+           ⚠️ Obe sú fixed, nie absolute — majú prekryť aj to, čo je fixed.
+           ⚠️ visibility riadi réžia: nulové krytie ešte nie je nekreslenie
+           a dve vrstvy cez celé okno stoja pri každom snímku scrollu. */
+        .op-veil {
+          position: fixed;
+          inset: 0;
+          /* Nad .nav-top (60). Prekryť hornú lištu je celé zadanie tejto
+             vrstvy — bez toho by na černejúcej obrazovke ostal svietiť bar. */
+          z-index: 70;
+          background: #000;
+          opacity: 0;
+          visibility: hidden;
+          pointer-events: none;
+        }
+        .op-wall {
+          position: fixed;
+          inset: 0;
+          /* 🔴 NAD GUĽOU (1) A POD FILMOM (2), a je to podmienka, nie voľba.
+             Prvé kolo dalo noci z-index 0 s úvahou, že stačí byť nad
+             papyrusovým podkladom — lenže guľa nesie VLASTNÝ nepriehľadný
+             papyrus (.gods-root má background-color a to pravidlo mu vypína
+             len OnePage, ktorý nad ním nevyhráva). Odmerané: pri plnom krytí
+             noci bol stred obrazovky 243,228,196, teda papyrus.
+             Zhodné číslo s guľou stačí, lebo noc stojí v DOM-e ZA .op-stage —
+             pri zhodnom z-index rozhoduje poradie. Film musí ostať nad ňou:
+             na nej beží príbeh. */
+          z-index: 1;
+          background-color: #050505;
+          opacity: 0;
+          visibility: hidden;
+          pointer-events: none;
+        }
+        /* Tapeta je tá istá, akú nesie ostrý web — vrátane rozostrenia. Kreslí
+           ju ::before a nie background na prvku, aby krytie celej vrstvy hýbalo
+           farbou aj tapetou naraz. */
+        .op-wall::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image: url('/images/bg-dark.webp');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          filter: blur(3px);
+        }
+
         /* ── FILM SA POSÚVA PO STRÁNKACH (snap) ───────────────────────────
            Matej 27. 8. 2026: *„dlhý slajd neprejde z prvého na 4 ale snipne sa
            na druhom, druhý na 3 a podobne, aby to nezostávalo zaseknuté
@@ -1065,7 +1239,13 @@ export default function OnePage() {
              stojí DOGMA; snap na ňu by človeka usadil doprostred prechodu.
              Odpočívadlo na konci dráhy nesie značka v .op-snaps — presne tá
              istá úprava, akú si vyžiadala preambula. */
-          .op-root #op-about,
+          /* ⚠️ #op-about TU UŽ NIE JE — teaser príbehu zanikol 28. 8. 2026
+             (príbeh beží v scrolle, nie za tlačidlom). Jeho miesto v poradí
+             obrazov prevzala .op-timeline, ktorá odteraz začína sekvenciou.
+             Snap na jej ZAČIATKU je preto správny: usadí človeka na hero
+             s postavami, teda na prvý obraz príbehu. Vnútri sekvencie už
+             žiadny snap nie je a ani nesmie byť — má vlastnú dráhu 340vh
+             a značka v nej by človeka zastavila doprostred vety. */
           .op-root .op-timeline,
           .op-root #op-join {
             scroll-snap-align: start;
@@ -1453,6 +1633,74 @@ export default function OnePage() {
           display: none !important;
         }
 
+        /* ── PRÍBEH BEŽÍ NA ČIERNEJ, NIE NA PAPYRUSE ─────────────────────
+           Matej 28. 8. 2026: *„budú nasledovať modré písmenká a starwars príbeh
+           na čiernom pozadí = celkom rozbije príbeh na webe a urobí taký aha
+           moment, pripomenie starwars."*
+
+           🔑 SEKVENCIA SA NEKOPÍRUJE A NEPREPISUJE. Celá stojí v AboutLab.tsx
+           a film ju volá cez part="all" — dve kópie tej istej choreografie sa
+           pri prvom ladení rozídu. Tu sa mení JEDINÉ: farby. Sekvencia bola
+           kedysi prepísaná z tmavej sály na papyrus (komentáre v AboutLab.tsx
+           to hovoria pri každom pravidle), a vo filme pod ňou opäť leží čierna
+           — takže tmavý inkoust by na nej zanikol.
+           ⚠️ Hodnoty sa NEVYMÝŠĽAJÚ: sú to presne tie, ktoré na čiernej beží
+           ostrá stránka About.tsx. Kto ich tu bude meniť, mení ich TAM — a
+           potom sem prenesie, nie naopak. Inak má film a ostrý web dve rôzne
+           predstavy o tom, ako vyzerá crawl.
+           ⚠️ Prečo scope a nie prop v AboutLabe: papyrusová podoba je jeho
+           kánon pre LabShell aj samostatnú routu. Film je výnimka a výnimka
+           patrí do filmu. */
+
+        /* MODRÁ PREDVETA — na papyruse tmavý atrament so svetlým halo, na
+           čiernej svetlá modrá so žiarou. Je to poklona Star Wars, takže modrá
+           ostáva modrou v oboch podobách; mení sa len to, kam svieti. */
+        .op-film .sw-intro {
+          color: #AFC4FF;
+          text-shadow: 0 0 7px #2E5FD0, 0 0 18px rgba(16,52,166,0.9), 0 0 38px rgba(16,52,166,0.6);
+        }
+        /* PRÍBEH — na papyruse tmavé zlato, na čiernej to isté zlato, akým
+           svieti na ostrom webe. Vynáranie do stratena drží maska na .sw-stage
+           a tá sa NEMENÍ: je to alfa maska, takže text sa nestráca do farby,
+           ale do priehľadna — a pod ním je teraz čierna. */
+        .op-film .sw-crawl-text {
+          color: #F5C73D;
+          text-shadow: 0 0 26px rgba(245,199,61,0.22);
+        }
+        .op-film .sw-logo {
+          filter: drop-shadow(0 0 50px rgba(201,154,63,0.45));
+        }
+        /* NADPIS KAPITOLY a jeho podtitulok. Nadpis je gradient cez
+           background-clip, takže sa musí prepísať celý — nestačí color. */
+        .op-film .origin-title {
+          background: linear-gradient(135deg, #F5C73D 0%, #FFB840 38%, #E69E1A 70%, #F5C73D 100%);
+          -webkit-background-clip: text;
+          background-clip: text;
+          filter: drop-shadow(0 0 26px rgba(245,199,61,0.42)) drop-shadow(0 0 7px rgba(230,158,26,0.5));
+        }
+        .op-film .origin-sub {
+          color: rgba(250,244,236,0.92);
+          text-shadow: 0 0 3px rgba(0,0,0,0.95), 0 0 9px rgba(0,0,0,0.9), 0 1px 6px rgba(0,0,0,0.75);
+        }
+        /* Postavy stoja na čiernej, takže tieň pod nimi musí byť čierny —
+           teplý hnedý tieň z papyrusovej podoby na nej svieti ako hnedá hmla. */
+        .op-film .about-fig img {
+          filter: drop-shadow(0 10px 44px rgba(0,0,0,0.75));
+        }
+
+        /* ── ČO ZO SEKVENCIE DO FILMU NEPATRÍ ────────────────────────────
+           Tri prvky patria SAMOSTATNEJ stránke, kde je crawl prvá vec pod
+           hlavičkou. Vo filme za ním leží päť obrazov scrollu, takže:
+             tri šípky   — človek už dávno scrolluje, výzva je bezpredmetná
+             PRESKOČIŤ   — preskočiť sa dá scrollom a tlačidlo skáče na kotvu,
+                           ktorá vo filme nie je začiatkom stránky
+             vlastný nav — film má svoju hornú lištu a táto je papyrusová,
+                           fixed a na z-index 200, teda nad všetkým
+           ⚠️ Skrýva sa TU, nie v komponente — na svojej stránke ostávajú. */
+        .op-film .scroll-cue,
+        .op-film .about-skip,
+        .op-film .about-sticky-nav { display: none !important; }
+
         /* ── 4. OBRAZ: VIDEO VĽAVO, VÍZIA VPRAVO ─────────────────────────
            Matej 28. 8. 2026: *„na lavo bude teraz video"* + *„nadpis vízia
            a potom pod seba 3 bloky… celý blok musí byť veľmi ľahký."*
@@ -1472,13 +1720,14 @@ export default function OnePage() {
         .op-root #op-vision { margin-top: calc(-${(1 + PIN3_VH) * 100}dvh); }
         .op-root #op-vision .vision-video-hero {
           display: block;
-          /* ⚠️ DVE DRÁHY, NIE JEDNA. PIN3_VH je príchod vízie (pás sa posunie
-             doprava), PIN4_VH je jej druhý záber — video sa centruje a rastie
-             na celú obrazovku. Obe sa odohrávajú na TEJ ISTEJ prilepenej
+          /* ⚠️ TRI DRÁHY, NIE JEDNA. PIN3_VH je príchod vízie (pás sa posunie
+             doprava), PIN4_VH je jej druhý záber (video sa centruje a rastie
+             na plátno) a PIN5_VH je tretí — plátno dorastie na celé okno
+             a všetko sčernie. Všetky tri sa odohrávajú na TEJ ISTEJ prilepenej
              obrazovke, takže sa pripočítavajú k výške JEDNEJ sekcie. Keby mal
-             rast videa vlastnú sekciu, bol by medzi rozdelenou obrazovkou
-             a plátnom strih. */
-          min-height: calc(100dvh + ${(PIN3_VH + PIN4_VH) * 100}dvh);
+             ktorýkoľvek z nich vlastnú sekciu, bol by medzi nimi strih — a
+             práve plynulosť je pri poslednom z nich celý efekt. */
+          min-height: calc(100dvh + ${(PIN3_VH + PIN4_VH + PIN5_VH) * 100}dvh);
           /* ⚠️ ŽIADNY VODOROVNÝ PADDING — z rovnakého dôvodu ako nulový gap
              nižšie. Padding zúži mriežku a stred pravého stĺpca sa posunie
              dovnútra; odmerané pri 1440 px: rámik dosadol na 1080, text na
@@ -1613,6 +1862,11 @@ export default function OnePage() {
         .op-root #op-vision .vhero-stage {
           position: relative;
           z-index: 2;
+          /* Video zhasne SPOLU s podkladom a lištou — je to jeden dej
+             (*„celá obrazovka vrátane headru sčerná"*). Deje sa to pod závojom,
+             takže samotné hasnutie nikto nevidí; keby ho nebolo, po odchode
+             závoja by na čiernej ostal svietiť pás videa. */
+          opacity: calc(1 - var(--op-night, 0));
           /* Medzera pod rámom odchádza s popiskom — inak by po ňom ostala
              diera a video by sa v páse centrovalo o jej polovicu vyššie. */
           gap: calc(clamp(12px, 2.2vh, 24px) * (1 - var(--op-vout, 0)));
@@ -1644,11 +1898,30 @@ export default function OnePage() {
         .op-root #op-vision .video-embed-frame {
           --vf-rest: min(680px, 100%, max(320px, calc((100dvh - 330px) * 16 / 9)));
           --vf-full: max(var(--vf-rest), min(100vw, calc((100dvh - var(--op-nav-h)) * 16 / 9)));
-          width: calc(var(--vf-rest) + (var(--vf-full) - var(--vf-rest)) * var(--op-grow, 0));
+          /* TRETÍ BOD — CELÉ OKNO (5. prechod). Plátno bolo stropované výškou
+             pásu POD lištou; tu už lišta černie, takže strop padá a obraz
+             zaberie okno celé. Je to CELÉ POKRYTIE, nie zmestenie sa: kratšia
+             strana dosadne na hranu a dlhšia presahuje.
+             ⚠️ Presah sa nekreslí von zo stránky — prilepený box .vhero-inner
+             má overflow: hidden, takže je to orezanie na hranu okna.
+             ⚠️ ZAOBLENIE TÝM NEPADÁ (Matejov lock z toho istého dňa:
+             *„treba aby to video malo stále zaoblené rohy"*). Nemení sa ani
+             o pixel — rohy len odídu za hranu okna. Ak v tejto rovnici raz
+             nájdeš interpoláciu border-radius, je to chyba. */
+          --vf-cover: max(var(--vf-full), 100vw, calc(100dvh * 16 / 9));
+          width: calc(var(--vf-rest)
+                    + (var(--vf-full)  - var(--vf-rest)) * var(--op-grow, 0)
+                    + (var(--vf-cover) - var(--vf-full)) * var(--op-grow2, 0));
           /* Zo stredu ľavej polovice (25vw) do stredu okna (50vw). Číslo platí
              len preto, že mriežka je 1fr 1fr bez medzery a bez paddingu —
-             to je ten istý lock, kvôli ktorému na 75vw dosadá rámik z DOGMY. */
-          transform: translateX(calc(var(--op-grow, 0) * 25vw));
+             to je ten istý lock, kvôli ktorému na 75vw dosadá rámik z DOGMY.
+             ⚠️ A ZVISLÉ DOROVNANIE V PIATOM PRECHODE: obsah sa centruje v páse
+             POD lištou (padding-top na .vhero-inner), takže v pokoji sedí
+             o polovicu jej výšky nižšie než stred okna. Keď lišta zhasne, musí
+             obraz tú polovicu dobehnúť, inak stojí celé okno mimo stredu.
+             --op-nav-h je aj tu JEDINÉ miesto, kde je výška lišty zapísaná. */
+          transform: translateX(calc(var(--op-grow, 0) * 25vw))
+                     translateY(calc(var(--op-nav-h) / -2 * var(--op-grow2, 0)));
           /* 🔴 ZAOBLENIE OSTÁVA AJ NA PLÁTNE (Matej 28. 8. 2026: *„treba aby to
              video malo stále zaoblené rohy"*). Prvé kolo ho na plátne vynulovalo
              s úvahou „plátno rám nemá, je to premietanie" — lenže rám je vo filme
@@ -1690,8 +1963,15 @@ export default function OnePage() {
              nemá, orezať 16:9 do portrétu by bolo orezanie filmu. */
           .op-root #op-vision .video-embed-frame {
             --vf-rest: min(100%, calc(31vh * 16 / 9));
-            /* Jeden stĺpec ⇒ rám už v strede stojí, nemá kam cestovať. */
-            transform: none;
+            /* ⚠️ A CELÉ OKNO JE TU CELÁ ŠÍRKA, nie pokrytie. Zdedený strop
+               z PC (100dvh * 16/9) je na výšku držanom telefóne skoro štvornásobok
+               šírky okna — video by narástlo mimo obraz a z filmu by ostal
+               orezaný stred. Je to tá istá úvaha, pre ktorú sa 16:9 neoreže do
+               portrétu ani na plátne: film sa nereže, len sa doň nevojde výška. */
+            --vf-cover: 100vw;
+            /* Jeden stĺpec ⇒ rám nemá kam cestovať do strany. Zvislé dorovnanie
+               ale platí aj tu — pás pod lištou je pod ňou na každej šírke. */
+            transform: translateY(calc(var(--op-nav-h) / -2 * var(--op-grow2, 0)));
           }
           /* Bloky sú tu POD videom, nie vedľa neho, takže po nich ostane diera —
              na PC ju mriežka drží 1fr stĺpcom, tu ju musí zložiť. Ten istý
@@ -2119,20 +2399,10 @@ export default function OnePage() {
            containing block). Preto guľa ostáva prilepená na celý film — keby
            sa odlepila, odniesla by lištu so sebou. */
 
-        /* ── OBRAZ 4: PRÍBEH ──────────────────────────────────────────────
-           Star Wars crawl ostáva presne taký, aký je (Matej 26. 8.: „zatiaľ
-           nechaj tak ako je") — len sa presťahoval za tlačidlo. Vo filme by
-           zabral tri obrazovky a rozbil by tempo tesne pred CTA. */
-        .op-story {
-          min-height: 78vh;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 18px;
-          padding: 90px 22px;
-          text-align: center;
-        }
+        /* ⚠️ .op-story a .op-ghost ZANIKLI 28. 8. 2026 spolu s teaserom
+           príbehu — príbeh beží v scrolle, nie za tlačidlom. Dôvod je pri
+           sekcii v JSX nižšie. Eyebrow, nadpis a odsek ostávajú: nesie ich
+           posledný obraz (op-join). */
         .op-eyebrow {
           font-family: 'Space Grotesk', sans-serif;
           font-weight: 500;
@@ -2162,25 +2432,10 @@ export default function OnePage() {
           max-width: 46ch;
           margin: 0;
         }
-        .op-ghost {
-          font-family: 'Cinzel', serif;
-          font-weight: 700;
-          font-size: 0.76rem;
-          letter-spacing: 0.16em;
-          text-transform: uppercase;
-          color: ${LAB.goldInk};
-          background: rgba(255,252,244,0.6);
-          border: 1px solid ${LAB.edge};
-          border-radius: 8px;
-          padding: 12px 26px;
-          cursor: pointer;
-        }
-        .op-ghost:hover { background: rgba(255,252,244,0.9); }
-
-        /* Popup príbehu — vlastný scroll. Trieda .lsh-scroll NIE JE preklep:
-           AboutLab si podľa nej hľadá, čo vlastne scrolluje
-           (closest('.lsh-scroll') ?? window). Bez nej by crawl počítal svoje
-           beaty voči oknu, ktoré sa pod otvoreným popupom nehýbe. */
+        /* Prekrytie s ústavou — vlastný scroll. Trieda .lsh-scroll NIE JE
+           preklep: komponenty si podľa nej hľadajú, čo vlastne scrolluje
+           (closest('.lsh-scroll') ?? window). Bez nej by počítali svoje beaty
+           voči oknu, ktoré sa pod otvoreným prekrytím nehýbe. */
         .op-storymodal { position: fixed; inset: 0; z-index: 120; background: ${LAB.pageBg}; }
         .op-storymodal::before { content: ''; position: absolute; inset: 0; background: ${LAB.pageBackdrop}; pointer-events: none; }
         .op-storymodal .lsh-scroll { z-index: 1; }
@@ -2372,13 +2627,17 @@ export default function OnePage() {
             (nadpis stojí, úryvok sa dopisuje), 5 = preambula v pokoji.
             A to isté pre prechod 3. → 4. (PIN3_VH): 6 = medzikrok (pás je
             v polovici cesty), 7 = vízia v pokoji.
-            A napokon rast videa na plátno (PIN4_VH): 8 = medzikrok (bloky
-            zhasli, rám je na ceste do stredu), 9 = video na celej obrazovke —
-            a to je zároveň cieľ, kam skáče klik na „pozri introfilm".
+            A rast videa na plátno (PIN4_VH): 8 = medzikrok (bloky zhasli, rám
+            je na ceste do stredu), 9 = video na celej obrazovke — a to je
+            zároveň cieľ, kam skáče klik na „pozri introfilm".
+            A napokon prechod do čiernej (PIN5_VH): 10 = medzikrok (obraz
+            dorastá a černie), 11 = čierna sála, z ktorej vyjde príbeh.
+            ⚠️ Sekvencia príbehu za ňou si snap NEPÝTA — má vlastnú dráhu
+            340vh a značka v nej by človeka usadila doprostred vety.
             Sú absolútne voči .op-stage, teda na presných násobkoch obrazovky —
             nič nemerajú a nič nekreslia. */}
         <div className="op-snaps" aria-hidden>
-          {Array.from({ length: PIN_VH + PIN2_VH + PIN3_VH + PIN4_VH + 1 }, (_, i) => (
+          {Array.from({ length: PIN_VH + PIN2_VH + PIN3_VH + PIN4_VH + PIN5_VH + 1 }, (_, i) => (
             <span key={i} style={{ top: `${i * 100}dvh` }} />
           ))}
         </div>
@@ -2403,33 +2662,40 @@ export default function OnePage() {
         </section>
 
         {/* ── OBRAZ 3 — VIDEO A VÍZIA ────────────────────────────────────
-            Jeden komponent, dva výjavy: intro video a za ním vodorovný pás
-            WHAT IF (pinned scrollytelling). */}
+            Z komponentu beží LEN hero (video + tri bloky). Pás WHAT IF za ním
+            vo filme nie je — Matej 28. 8. 2026: *„uvažujem že tú kreslenú víziu
+            teraz vynecháme (nebude na webe) ako aj nasledujúci slajd «čo ak
+            by»"*. Nie je to zmazané, len vypnuté propom (heroOnly);
+            `/vision` a `/vision-lab` si pás nechávajú. Dôvod, prečo to sedí aj
+            obsahovo, je pri prope v VisionLab.tsx: film ten istý sľub dáva
+            štyrikrát a WHAT IF je z nich najdrahší. */}
         <section className="op-scene" id="op-vision" aria-label={t('nav.vision')}>
           {/* `flow` vypína vstupný zámok pásu WHAT IF — ten vo filme scroll
               doslova vracia späť (odmerané 4000 → 3989 px). Viď prop v VisionLab. */}
-          <VisionLab embedded flow onWatch={goCinema} />
+          <VisionLab embedded flow heroOnly onWatch={goCinema} />
         </section>
 
-        {/* ── OBRAZ 4 — PRÍBEH ────────────────────────────────────────────
-            Za popupom je LEN crawl (Matej: „príbeh v scrole schovať za popup").
-            Všetko ostatné, čo stránka O NÁS nesie — časová os, RECENZIE, Council
-            a outro — beží tu vo filme. Prvá verzia mala v popupe celý komponent,
-            takže recenzie ani míľniky nebolo kde nájsť. */}
-        <section className="op-scene op-story" id="op-about" aria-label={t('nav.about')}>
-          <p className="op-eyebrow">{t('nav.about')}</p>
-          <h2 className="op-h2">{t('about.crawl.faith')}</h2>
-          <p className="op-lead">
-            One dog off the street, forty-two days across a country, and a question that would not
-            go away: what do we owe the animal that chose us first?
-          </p>
-          <button type="button" className="op-ghost" onClick={() => setStoryOpen(true)}>
-            {t('about.crawl.episode')}
-          </button>
-        </section>
+        {/* ── OBRAZ 4 — PRÍBEH NA ČIERNEJ ─────────────────────────────────
+            Matej 28. 8. 2026: *„nasledoval by starwars príbeh — nie schovaný za
+            tlačítkom ale priamo na onepage."*
 
+            🔴 TÝM PADOL TEASER AJ POPUP. Do 28. 8. tu stála sekcia s eyebrow,
+            nadpisom, odsekom *„One dog off the street, forty-two days across
+            a country…"* a tlačidlom, ktoré otváralo príbeh v prekrytí — presne
+            podľa jeho staršieho pokynu z 26. 8. (*„príbeh v scrole schovať za
+            popup"*). Ten istý deň ho sám obrátil, takže to nie je porušenie
+            locku, ale jeho nový pokyn. Ostať nemohli oba: teaser sľubuje to,
+            čo o obrazovku nižšie aj tak príde, a tlačidlo otvára to, v čom
+            človek už stojí.
+
+            part="film" ⇒ komponent kreslí sekvenciu aj všetko za ňou (časová os,
+            RECENZIE, Council, outro), ale BEZ pätičky — tú si film kladie sám
+            na úplný koniec, za blok s CTA. Deliť to na dve volania nejde:
+            časová os sa na koniec sekvencie NAKLADÁ záporným okrajom
+            (marginTop -100vh v AboutLab), takže bez sekvencie nad sebou by sa
+            vytiahla o obrazovku nad svoje miesto. */}
         <section className="op-scene op-timeline" aria-label={t('about.timeline.heading')}>
-          <AboutLab embedded part="story" />
+          <AboutLab embedded part="film" />
         </section>
 
         {/* ── OBRAZ 5 — CIEĽ, KROKY, ČÍSLO, CTA ──────────────────────────*/}
@@ -2508,17 +2774,18 @@ export default function OnePage() {
         </div>
       )}
 
-      {/* ── PRÍBEH V POPUPE ─────────────────────────────────────────────*/}
-      {storyOpen && (
-        <div className="op-storymodal" role="dialog" aria-modal="true" aria-label={t('nav.about')}>
-          <button type="button" className="op-storyclose" onClick={() => setStoryOpen(false)} aria-label={t('nav.aria.close')}>
-            ✕
-          </button>
-          <div className="lsh-scroll">
-            <AboutLab embedded part="crawl" />
-          </div>
-        </div>
-      )}
+      {/* ── NOC ──────────────────────────────────────────────────────────
+          Čierna sála, na ktorej beží príbeh. Stojí ZA .op-stage zámerne: má
+          rovnaké číslo vrstvy ako guľa, takže o poradí rozhoduje DOM — takto
+          prekryje aj papyrus, ktorý si guľa nesie sama. Film ostáva nad ňou.
+          Krytie riadi réžia scrollu. */}
+      <div className="op-wall" aria-hidden />
+
+      {/* ── ZÁVOJ ────────────────────────────────────────────────────────
+          Prechodová vrstva 5. obrazu. Leží nad VŠETKÝM vrátane hornej lišty,
+          takže je posledná v DOM-e a nesie najvyšší z-index vo filme (70).
+          Keď pod ňou dosadne noc, sama zhasne — nič nedrží. */}
+      <div className="op-veil" aria-hidden />
     </div>
   );
 }

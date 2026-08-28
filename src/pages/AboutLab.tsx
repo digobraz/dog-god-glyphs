@@ -150,16 +150,25 @@ interface AboutLabProps {
    * míľniky nebolo kde nájsť.
    *
    *   'all'   — celá stránka (LabShell aj samostatná routa, správanie sa nemení)
-   *   'crawl' — LEN Star Wars crawl (obsah popupu)
-   *   'story' — všetko OKREM crawlu a pätičky (obraz vo filme; pätičku si film
-   *             kladie sám na úplný koniec, za blok s CTA)
+   *   'crawl' — LEN Star Wars crawl
+   *   'story' — všetko OKREM crawlu a pätičky
+   *   'film'  — VŠETKO OKREM PÄTIČKY (celý príbeh aj s crawlom)
+   *
+   * 🔴 PREČO MÁ FILM VLASTNÚ HODNOTU A NEBERIE 'all' (28. 8. 2026): pätička.
+   * Od 28. 8. beží crawl priamo v scrolle filmu (Matej: *„nie schovaný za
+   * tlačítkom ale priamo na onepage"*), takže film potrebuje celý komponent —
+   * lenže pätičku si kladie SÁM na úplný koniec, za blok s CTA. S 'all' by
+   * stála dvakrát, raz uprostred filmu. Podmienka sa nedá viazať ani na
+   * `embedded`: LabShell je tiež embedded a pätičku tam chceme.
    */
-  part?: 'all' | 'crawl' | 'story';
+  part?: 'all' | 'crawl' | 'story' | 'film';
 }
 
 export default function AboutLab({ embedded = false, part = 'all' }: AboutLabProps = {}) {
   const showCrawl = part !== 'story';
   const showStory = part !== 'crawl';
+  /** Pätičku nesie len celá stránka — film si ju kladie sám na koniec. */
+  const showFooter = part === 'all';
   const t = useT();
   const tlRef = useRef<HTMLDivElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
@@ -1073,7 +1082,7 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
 
       {/* Footer — úplne posledná sekcia (email + sociálne siete).
           Vo filme ho kladie rám až za blok s CTA, preto tu pri 'story' nie je. */}
-      {part === 'all' && <Footer />}
+      {showFooter && <Footer />}
     </div>
   );
 }
