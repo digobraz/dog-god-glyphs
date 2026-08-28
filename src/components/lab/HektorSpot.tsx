@@ -41,17 +41,32 @@ import { LAB } from '@/lib/labTheme';
 const HEKTOR_IMG = '/images/codex3-hektor-v1.png';
 
 /**
- * Bodka v súradniciach fotky (960 x 1080) — hruď, kde má Hektor jediné svetlé
- * miesto na inak čiernom psovi. Odmerané z PNG (hnedá plocha leží v x 430-548,
- * y 850-976), nie odhadnuté. Pri hlave bodka byť NESMIE: tam horí svätožiara.
+ * Bodka v súradniciach fotky (960 x 1080) — líce za papuľou, pod uchom.
+ * Matej 28. 8. 2026 poslal screenshot so šípkou myši: *„daj ten hotspot tam
+ * kde mam sipku"*.
+ *
+ * 🔑 SÚRADNICA JE DOPOČÍTANÁ, NIE ODHADNUTÁ OD OKA. V screenshote sa dajú nájsť
+ * dva body, ktoré poznám aj vo fotke — amber dúhovka oka (405, 589) a vtedajšia
+ * bodka (500, 900). Z ich posunu vyjde mierka 1.1611 a otočenie -3.80°, čo sedí
+ * s rotate(-4deg) v CSS; inverzia tej istej podobnosti položí špičku šípky na
+ * (652, 792). Kontrola tretím bodom: ňufák (170, 707) má podľa nej padnúť na
+ * (1051, 824) a v screenshote je na (1043, 838).
  */
-const SPOT = { x: 500, y: 900 } as const;
+const SPOT = { x: 652, y: 792 } as const;
+
+/**
+ * Veľkosť bodky. Matej 28. 8.: *„zvačši ho o 200% … lebo som si to ani
+ * nevšimol"*. Jedno číslo, nie tri prepísané polomery — dolaďovanie má byť
+ * zmena konštanty, nie prekreslenie SVG.
+ */
+const SPOT_K = 3;
 
 /** Id rozostrenia pod bodkou. Konštanta, nie generované — vrstva je na stránke jediná. */
 const GLOW_ID = 'codex-spot-glow';
+const GRAD_ID = 'codex-spot-grad';
 
 /** Koľko miesta okolo bodky je citlivé na klik (v jednotkách viewBoxu). */
-const SPOT_HIT_R = 70;
+const SPOT_HIT_R = 100;
 
 /** Bublina: šírka a odsadenie od bodky v pixeloch obrazovky. */
 const BUBBLE_W = 300;
@@ -103,7 +118,7 @@ export const HEKTOR_SPOT_CSS = `
   width: 58%;
   height: 150%;
   /* 🔴 SMER GRADIENTU MUSÍ BYŤ CEZ ŠÍRKU PRUHU, NIE 105deg. Kniha má obálku
-     takmer štvorcovú, takže jej 105deg vyzerá ako lesk. Tu je pruh 42 % šírky
+     takmer štvorcovú, takže jej 105deg vyzerá ako lesk. Tu je pruh 58 % šírky
      a 150 % výšky psa, čiže vysoký a úzky — pri 105deg vedie os gradientu
      takmer zvisle, prechod sa minie na výšku a po šírke ostane plocha bez
      zmeny. Odmerané: cez psa prešiel priehľadný obdĺžnik s ostrými zvislými
@@ -136,6 +151,43 @@ export const HEKTOR_SPOT_CSS = `
 @keyframes codexSpotPulse {
   0%, 100% { opacity: 0.55; transform: scale(0.92); }
   50%      { opacity: 1;    transform: scale(1.12); }
+}
+/* PING — prstenec, ktorý sa rozbieha a zaniká. Samotné dýchanie bodky Matej
+   prehliadol (*„urob mu aj pulz lebo som si to ani nevšimol"*): zmena krytia
+   na jednom kruhu je pohyb, ktorý oko periférne nezachytí, rozbiehajúci sa
+   kruh áno. */
+.codex-spot-ping {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: codexSpotPing 2.6s cubic-bezier(0.16, 0.7, 0.3, 1) infinite;
+}
+@keyframes codexSpotPing {
+  0%   { transform: scale(0.6); opacity: 0; }
+  18%  { opacity: 0.75; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* ── ZÁBLESK: LESK NEODÍDE, KÝM NEROZSVIETI BODKU ─────────────────────────
+   Matej 28. 8.: *„posledný pulz ktorý by mal ísť už preč — tak osvieti ten
+   hotspot a až potom pôjde ďalej, lebo mám pocit že sa to dá prehliadnuť
+   a preletieť."* Bodka teda nesvieti vlastným tempom vedľa lesku — rozžiari
+   sa presne vtedy, keď cez ňu pruh prechádza.
+
+   🔑 FÁZA SA POČÍTA, NEHÁDA. Obe animácie majú rovnakú dĺžku aj odklad, takže
+   držia krok navždy. Pruh je 58 % šírky rámu a jeho stred prejde od -501 do
+   1587 px (rám 720 px) počas prvých 40 % cyklu; bodka leží na 652/960 fotky,
+   teda na 489 px rámu ⇒ pruh je nad ňou po (489 + 501) / 2088 = 47 % svojej
+   dráhy, čiže v 19 % cyklu. Preto je vrchol zábleskul práve tam.
+   ⚠️ Kto zmení SPOT.x, šírku pruhu alebo dĺžku sweepu, prepočíta aj toto. */
+.codex-spot-flare {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: codexSpotFlare 9.5s ease-in-out 1.2s infinite;
+}
+@keyframes codexSpotFlare {
+  0%, 12%   { opacity: 0;   transform: scale(0.8); }
+  19%       { opacity: 0.9; transform: scale(1.35); }
+  30%, 100% { opacity: 0;   transform: scale(1.6); }
 }
 /* Prehliadač kreslí okolo <circle> s tabindex pravouhlý modrý rám — na
    fotke psa vyzerá ako chyba. Vypína sa pre KAŽDÝ fokus (aj myšou), ale
@@ -187,13 +239,15 @@ export const HEKTOR_SPOT_CSS = `
 @media (prefers-reduced-motion: reduce) {
   .codex-shine::before { display: none; }
   .codex-spot-pulse { animation: none; opacity: 0.9; }
+  .codex-spot-ping, .codex-spot-flare { display: none; }
   .codex-spot-bubble { animation: none; }
 }
 `;
 
 /**
- * Vrstva sa vkladá DOVNÚTRA .codex-bleed a rendruje sa iba vo filme.
- * Viditeľnosť riadi --op-spot, ktoré nastavuje OnePage až za príchodom CTA.
+ * Vrstva stojí VEDĽA .codex-bleed (obal .codex-spotlayer) a rendruje sa iba
+ * vo filme. Viditeľnosť riadi --op-spot, ktoré OnePage zapisuje až za
+ * príchodom CTA.
  */
 export default function HektorSpot() {
   const t = useT();
@@ -250,19 +304,32 @@ export default function HektorSpot() {
           {/* Oblasť filtra musí byť veľkorysá, inak sa mäkký okraj odreže
               rovnou hranou (tá istá pasca ako v CodexHalo). */}
           <filter id={GLOW_ID} x="-120%" y="-120%" width="340%" height="340%">
-            <feGaussianBlur stdDeviation="14" />
+            {/* ⚠️ ROZOSTRENIE MUSÍ RÁSŤ S BODKOU. Pevných 14 pri trojnásobnom
+                polomere = takmer ostrý kruh, a plochá výplň s ostrou hranou sa
+                na srsti číta ako ŠPINA, nie ako svetlo. Presne to zabilo
+                zapečené halo kravy (viď CodexHalo). */}
+            <feGaussianBlur stdDeviation={10 * SPOT_K} />
           </filter>
+          {/* Vonkajšia žiara je RADIÁLNY PRECHOD, nie plochý kruh s rozostrením:
+              prechod má skutočný dobeh do priehľadna, plochá výplň má hranicu
+              vždy — pri veľkých polomeroch ju rozostrenie neschová. */}
+          <radialGradient id={GRAD_ID}>
+            <stop offset="0%" stopColor="#FFF6E2" stopOpacity="0.50" />
+            <stop offset="42%" stopColor="#FFE9BE" stopOpacity="0.20" />
+            <stop offset="100%" stopColor="#FFE9BE" stopOpacity="0" />
+          </radialGradient>
         </defs>
         <g transform={`translate(${SPOT.x} ${SPOT.y})`}>
           <g className="codex-spot-pulse">
-            {/* Tri kruhy na sebe + rozostrený závoj: na čiernej srsti sa jeden
-                priesvitný kruh stratí, na svetlom papyrusovom pozadí by zas
-                plná biela pôsobila okato. Farba je teplá krémová z brandu,
-                nie #fff — rovnaký dôvod, aký má pri sebe zapísaná svätožiara. */}
-            <circle r="46" fill="rgba(255,243,214,0.16)" filter={`url(#${GLOW_ID})`} />
-            <circle r="19" fill="rgba(255,243,214,0.34)" />
-            <circle r="8.5" fill="#FFF6E2" />
+            {/* Žiara + jadro. Farba je teplá krémová z brandu, nie #fff —
+                rovnaký dôvod, aký má pri sebe zapísaná svätožiara: studená
+                biela na papyruse aj na srsti vyzerá ako škvrna. */}
+            <circle r={46 * SPOT_K} fill={`url(#${GRAD_ID})`} />
+            <circle r={8.5 * SPOT_K} fill="#FFF6E2" />
           </g>
+          <circle className="codex-spot-ping" r={19 * SPOT_K} fill="none"
+                  stroke="rgba(255,240,205,0.7)" strokeWidth={2.5 * SPOT_K} />
+          <circle className="codex-spot-flare" r={34 * SPOT_K} fill={`url(#${GRAD_ID})`} />
           <circle
             ref={hitRef}
             className="codex-spot-hit"
@@ -280,7 +347,7 @@ export default function HektorSpot() {
           >
             <title>{hint}</title>
           </circle>
-          <circle className="codex-spot-ring" r={SPOT_HIT_R - 6} fill="none" stroke="#FFF3D6" strokeWidth="3" opacity="0" />
+          <circle className="codex-spot-ring" r={SPOT_HIT_R - 8} fill="none" stroke="#FFF3D6" strokeWidth="3" opacity="0" />
         </g>
       </svg>
 
