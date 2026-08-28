@@ -520,11 +520,18 @@ export const PORTAL_CSS = `
   text-shadow: 0 0 8px rgba(0,0,0,0.35);
 }
 
-/* Fotka vybraná → portál sa zavrie okolo nej. Ikonka + odchádza,
-   popisok sa mení na „Change photo" (rieši JSX). */
+/* Fotka vybraná → portál sa zavrie okolo nej a ZNAČKA CELÁ ZHASNE.
+   Matej 28. 8. 2026: *„change photo preblikuje, je slabo vidno, väčšinu času
+   je bez textu"*. Popisok stál v svetlom inkouste PRIAMO NA FOTKE, lebo veil
+   sa v tomto stave vypína — na tmavej fotke bol vidieť, na svetlej zmizol,
+   a keďže sa dlaždica na guli otáča, striedalo sa to. Čitateľnosť by sa dala
+   vrátiť clonou, ale tá by zase zatemnila fotku, ktorú si človek práve vybral.
+   ⚠️ Zmenu fotky preto NEPONÚKA dlaždica, ale karta, ktorá sa nad ňou otvára
+   (photoConfirm.ts, odkaz „Choose another photo"). Klik na dlaždicu s fotkou
+   ju otvorí — afordancia nezanikla, len sa presťahovala tam, kde má podklad. */
 .ph-add.has-photo .ph-add-cyc,
 .ph-add.has-photo .ph-add-veil { display: none; }
-.ph-add.has-photo .ph-ico { display: none; }
+.ph-add.has-photo .ph-mark { display: none; }
 .ph-shot {
   position: absolute; inset: 0; width: 100%; height: 100%;
   object-fit: cover; display: block;

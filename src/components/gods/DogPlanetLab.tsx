@@ -36,12 +36,14 @@ import { useNavigate } from 'react-router-dom';
 import { LAB } from '@/lib/labTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { PORTAL_CSS, PORTAL_REDUCE_MOTION, buildPortal, createSparks } from './dogPortal';
+import { openPhotoConfirm } from './photoConfirm';
+import { intakePhoto } from '@/lib/photoIntake';
 import type { PortalHandle } from './dogPortal';
 
 /** Odliatok lapisovej pilulky: vrhnutý tieň + zlatá horná hrana, ako na hlavnom CTA. */
 const LAPIS_CHIP_SHADOW = '0 2px 6px -2px rgba(5,15,48,0.55), inset 0 1px 0 rgba(201,154,63,0.30)';
 
-import { useDogyptStore } from '@/store/dogyptStore';
+import { track } from '@/lib/analytics';
 
 export interface PlanetDog {
   id: string;
@@ -396,7 +398,9 @@ export function DogPlanetLab({
     if (!host) return;
     const p = buildPortal({
       faces: cycPhotos,
-      onPick: () => fileRef.current?.click(),
+      // ⚠️ Cez REF, nie cez `photo` zo stavu — portál sa stavia raz (deps
+      // `facesKey`) a uzáver by navždy držal prvú hodnotu, teda `null`.
+      onPick: () => (photoRef.current ? showConfirm(photoRef.current) : openPicker()),
     });
     host.appendChild(p.el);
     portalApi.current = p;
@@ -418,11 +422,45 @@ export function DogPlanetLab({
   // kliknutie na POKRAČOVAŤ — flow drží tú istú adresu v store a `revokeObjectURL`
   // by mu ju v tej istej sekunde zabil. Pustí sa len starý blob pri výmene fotky.
 
+  // ── PO VYBRATÍ FOTKY VYSKOČÍ KARTA (28. 8. 2026) ─────────────────────────
+  // Matej: *„toto nevyzerá vôbec dobre, ako to že stále používaš oranžovú CTA?
+  // a tlačítko je pod tým"*. Guľa mala do 28. 8. vlastný tvar — fotka v dlaždici
+  // a POD ŇOU samostatné zlaté `join-btn`. Je to tá istá dlaždica ako na stene
+  // a v tom istom filme, takže dva rôzne pokračovania boli rozpor, nie voľba.
+  // Zlaté tlačidlo tým zaniklo: hlavné CTA je od 28. 8. LAPIS (CLAUDE.md) a to
+  // jediné na obrazovke nesie karta.
+  const photoRef = useRef<string | null>(null);
+  useEffect(() => { photoRef.current = photo; }, [photo]);
+
+  const openPicker = () => {
+    if (fileRef.current) fileRef.current.value = '';
+    fileRef.current?.click();
+  };
+
+  const showConfirm = (url: string) => {
+    track('planet_photo_confirm_shown');
+    openPhotoConfirm({
+      photoUrl: url,
+      packNumber: dogs.reduce((m, d) => Math.max(m, d.n ?? 0), 1) + 1,
+      onContinue: () => {
+        track('cta_become_dogyptian_click', { location: 'planet' });
+        navigate('/heroglyph/name');
+      },
+      onPickAnother: () => { track('planet_photo_confirm_another'); openPicker(); },
+      onClose: () => track('planet_photo_confirm_dismissed'),
+    });
+  };
+
   const onPickPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setPhoto((prev) => { if (prev) URL.revokeObjectURL(prev); return URL.createObjectURL(file); });
     e.target.value = '';   // ten istý súbor sa musí dať vybrať druhýkrát
+    // `intakePhoto` zapíše adresu do storu a na pozadí spustí nahrávanie na
+    // Cloudinary. Dovtedy sa fotka z gule niesla len ako `blob:` — kto odišiel
+    // v polovici flow, nemal ju nikde, hoci ju už dal.
+    const { previewUrl } = intakePhoto(file);
+    setPhoto(previewUrl);
+    showConfirm(previewUrl);
   };
   // Naklonenie DOLE na severný pól: Hektorova dlaždica leží na vrchole vodorovne,
   // takže pri pohľade spredu je iba čiara. Kladné rotateX = pozeráme sa na guľu
@@ -1253,7 +1291,7 @@ export function DogPlanetLab({
            kreslí aj stena (GodsGridLab), ktorá je vanilla DOM. Dve kópie by sa
            rozišli pri prvej úprave, preto je tu len vloženie. */
         ${PORTAL_CSS}
-        .planet-hero .join-btn, .planet-hero .ph-go { pointer-events: auto; }
+        .planet-hero .join-btn { pointer-events: auto; }
 
         /* ── TELEFÓN: NADPIS RASTIE ─────────────────────────────────────────
            Pôvodne tu stálo, že „jeden riadok ustupuje veľkosti" — pri 390 px by
@@ -2126,18 +2164,6 @@ export function DogPlanetLab({
             onChange={onPickPhoto}
           />
 
-          {photo && (
-            <button
-              type="button"
-              className="join-btn ph-go"
-              onClick={() => {
-                useDogyptStore.getState().setDogPhotoUrl(photo);
-                navigate('/heroglyph/name');
-              }}
-            >
-              Continue
-            </button>
-          )}
         </div>
       </div>
 
