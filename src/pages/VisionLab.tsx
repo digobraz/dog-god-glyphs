@@ -28,6 +28,7 @@ import { useNavigate } from 'react-router-dom';
 import { ImageComparisonSlider } from '@/components/ui/image-comparison-slider-horizontal';
 import { PageTopBarLab } from '@/components/PageTopBarLab';
 import { LAB } from '@/lib/labTheme';
+import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import dogyptTextLogo from '@/assets/dogypt-logo-gold.png';
 import { Seo } from '@/components/Seo';
@@ -437,9 +438,45 @@ interface VisionLabProps {
    * Aditivne: `/vision-lab` aj LabShell sa nemenia.
    */
   flow?: boolean;
+  /**
+   * KLIK NA PREHRANIE VO FILME — `/onepage` naň skáče na plátno (video na celej
+   * obrazovke). Stránka sama nevie, kde tá poloha je: je to koniec štvrtej
+   * prilepenej dráhy filmu, teda číslo, ktoré patrí `OnePage.tsx`. Preto sa sem
+   * podáva ako callback a nie ako scroll v tomto súbore.
+   * ⚠️ Volá sa POPRI `setVideoPlaying(true)`, nie namiesto neho — samostatná
+   * `/vision` prop nedostane a správa sa presne ako doteraz.
+   */
+  onWatch?: () => void;
 }
 
-export default function VisionLab({ embedded = false, flow = false }: VisionLabProps = {}) {
+/**
+ * Zlaté písmo nadpisu VÍZIA. Bolo napísané inline v JSX; odkedy nadpis stojí raz
+ * nad videom (samostatná stránka) a raz nad tromi blokmi (film /onepage), musí
+ * mať jedno miesto — dve kópie gradientu sa pri prvom ladení rozídu.
+ */
+const TITLE_GRAD = {
+  background:
+    'linear-gradient(100deg, #6E4A12 0%, #A3782B 30%, #D8A93F 50%, #A3782B 70%, #6E4A12 100%)',
+  WebkitBackgroundClip: 'text',
+  WebkitTextFillColor: 'transparent',
+  backgroundClip: 'text',
+  filter: 'drop-shadow(0 1px 1px rgba(110,71,16,0.20))',
+} as const;
+
+/**
+ * TRI BLOKY VÍZIE — len vo filme (`flow`).
+ * Matej 28. 8. 2026 (2. kolo): *„tie bloky su otrasne neladia k prostrediu maju
+ * byť aktívne pri dotyku myšou... dajme ich teda zlaté a dajme čísla namiesto
+ * ikoniek čísla v krúžku 1-3"*.
+ *
+ * 🔴 IKONKY V LAPISE ZANIKLI. Prvé kolo malo hand-drawn labku, kľúč a domček
+ * v lapisovom inkouste na takmer neviditeľnom bloku — tri rôzne kresby vedľa
+ * seba nedali radu, ale zoznam náhodných značiek. Číslo v krúžku hovorí to,
+ * čo blok naozaj je: PRVÝ, DRUHÝ, TRETÍ krok tej istej vety.
+ */
+const VISION_BLOCKS = ['b1', 'b2', 'b3'] as const;
+
+export default function VisionLab({ embedded = false, flow = false, onWatch }: VisionLabProps = {}) {
   const navigate = useNavigate();
   const t = useT();
   const { lang } = useLang();
@@ -1254,7 +1291,253 @@ export default function VisionLab({ embedded = false, flow = false }: VisionLabP
             padding-bottom: clamp(12px, 2vh, 20px);
             gap: clamp(18px, 3vh, 30px);
           }
-          .video-hero-title { font-size: clamp(2.9rem, 12vw, 3.5rem) !important; }
+
+        .video-hero-title { font-size: clamp(2.9rem, 12vw, 3.5rem) !important; }
+        }
+
+          /* ── ROZDELENÁ OBRAZOVKA JE VEC FILMU, NIE TEJTO STRÁNKY ─────────
+           Wrappery sú v základe display: contents, teda pre rozloženie
+           NEEXISTUJÚ — samostatná /vision vyzerá presne ako predtým. Dva
+           stĺpce, prilepenie a choreografiu im dáva OnePage.tsx (scoped na
+           .op-root), lebo to je jeho réžia, nie vlastnosť vízie. */
+        .vhero-inner, .vhero-stage { display: contents; }
+
+        /* ── TRI BLOKY (len vo filme) ────────────────────────────────────
+           Matej 28. 8. 2026: *„dajme ich teda zlaté a dajme čísla namiesto
+           ikoniek čísla v krúžku 1-3… maju byť aktívne pri dotyku myšou"*.
+           Predtým to boli takmer neviditeľné bloky s hand-drawn ikonkou
+           v lapise — *„otrasne neladia k prostrediu"*. Zlatý rám ich vracia
+           k tomu, čím je celý film: papyrus v zlate. */
+        .vhero-blocks { display: flex; flex-direction: column; gap: clamp(14px, 2.2vh, 22px); }
+        /* Nadpis nesie podčiarknutie, nie inú farbu (Matej: *„ten nadpis by
+           trebalo podporiť nejak vizuálne… alebo nejakou čiarou pod… je to
+           také prázdne"*). Čiara je brandový prvok — tá istá zlatá vyblednutá
+           do strán, aká delí obsah v ústave; iná farba by na obrazovke
+           založila druhé zlato. ::after, nie súrodenec: patrí k nadpisu,
+           takže musí aj nabiehať s ním. */
+        .vhero-h2 {
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: clamp(1.9rem, 3.4vw, 3rem);
+          letter-spacing: 0.03em;
+          line-height: 1;
+          margin: 0;
+          text-transform: uppercase;
+          position: relative;
+          padding-bottom: clamp(12px, 1.6vh, 18px);
+        }
+        .vhero-h2::after {
+          content: '';
+          position: absolute;
+          left: 50%;
+          bottom: 0;
+          transform: translateX(-50%);
+          width: min(220px, 60%);
+          height: 2px;
+          background: linear-gradient(90deg,
+            rgba(201,154,63,0) 0%,
+            rgba(201,154,63,0.85) 22%,
+            rgba(201,154,63,0.85) 78%,
+            rgba(201,154,63,0) 100%);
+        }
+        .vhero-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: clamp(10px, 1.6vh, 16px); }
+        /* ╔═ ZLATÝ BLOK, BLEDÝ HOVER ═ (Matej 28. 8. 2026, 3. kolo) ══════
+           *„3 bloky urob zlaté a pri prejdení myšou zblednú a kruh kde je číslo
+           bude plný lapis a bledé číslo."* Predchádzajúce kolo dalo blokom len
+           zlatý RÁM na papyruse — to už bol nábytok, nie tri kroky.
+           Pokoj = ZLATO (konštrukcia), dotyk = LAPIS (moja voľba) — presňe tá
+           deliaca čiara z brand manuálu. Krúžok je jediná plná farebná plocha
+           a je len JEDEN naraz (hover), takže hlavné CTA obrazovky nemá
+           konkurenciu. */
+        .vhero-item {
+          display: flex;
+          /* ⚠️ UŽ NIE center: odkedy má blok chip v rohu a popis na dva riadky, je
+             vyšší než krúžok, a stredovanie by mu číslo posunulo doprostred textu.
+             Číslo patrí k PRVÉMU riadku — je to poradie, nie ozdoba vedľa odseku. */
+          align-items: flex-start;
+          position: relative;
+          gap: clamp(12px, 1.4vw, 18px);
+          padding: clamp(12px, 1.7vh, 18px) clamp(14px, 1.4vw, 20px);
+          border-radius: 14px;
+          /* ⚠️ BRANDOVÁ ZLATÁ, NIE ORANŽOVÁ (Matej 28. 8. 2026: *„myslel som zlatu
+             tmavu brand — nie zlatu oranžovu, tato zlata oranžová je ainubisova"*).
+             Prvé kolo siahlo po gradiente z .btn-gold (#F5C73D→#E69E1A) — ten je
+             LOCKED pre CTA tlačidlo, ale ako VÝPLŇ celého bloku je z neho žltá
+             plocha, ktorú si Matej spája s AINUBISOM. Rampa dole stojí na tokene
+             #C99A3F a na tých istých zastávkach ako TITLE_GRAD nadpisov. */
+          background: linear-gradient(140deg, #D6AC55 0%, #C99A3F 46%, #A3782B 100%);
+          border: 1.5px solid #8C6014;
+          /* ⚠️ ŠTYRI VRSTVY, KAŽDÁ NIEČO INÉ — bez nich je to plochý obdĺžnik.
+             1) vrhnutý tieň = blok leží NAD papyrusom
+             2) tvrdá spodná hrana = jeho HRÚBKA (bez nej nemá bok)
+             3) horný inset highlight = svetlo zhora
+             4) spodné inset zatienenie = zaguľatenie plochy dole.
+             Zrno pridáva .vhero-item::before nižšie: bez neho je to farba, nie materiál. */
+          box-shadow:
+            0 12px 26px -14px rgba(70,44,6,0.60),
+            0 2px 0 rgba(110,71,16,0.55),
+            inset 0 1px 0 rgba(255,246,222,0.55),
+            inset 0 -12px 20px -14px rgba(70,44,6,0.55);
+          /* ⚠️ Prechod smie byť KRÁTKY a smie viesť len na hover. Vo filme
+             mení krytie blokov scroll v každom snímku — dlhší prechod by sa
+             za prstom vliekol, tá istá pasca ako pri zvieratách. */
+          transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
+        }
+        /* Hover = blok ZBLEDNE na papyrus. Nie stmavne a nezosvetlí sa — vymení
+           si úlohu s krúžkom, takže z troch rovnakých zlatých pruhov vystúpi práve
+           ten jeden, na ktorom stojí myš. */
+        .vhero-item:hover {
+          transform: translateY(-3px);
+          background: linear-gradient(140deg, #FDF8EC 0%, #F3E7CE 100%);
+          border-color: #C99A3F;
+          box-shadow:
+            0 18px 34px -14px rgba(110,71,16,0.55),
+            0 2px 0 rgba(201,154,63,0.45),
+            inset 0 1px 0 rgba(255,255,255,0.9),
+            inset 0 -10px 18px -14px rgba(140,96,20,0.40);
+        }
+        /* ⚠️ SLOVESO MUSÍ MAŤ HOVER VARIANT, INAK NA PAPYRUSE ZANIKNE
+           (Matej 28. 8. 2026: *„chipy pri dotyku myšou zanikaju ako aj prve slovo"*).
+           Je BLEDÉ na zlatom — a hover blok zbledne, teda bledé na bledom. Ide preto
+           do LAPISU a drží pár s krúžkom, ktorý sa v tej istej chvíli tiež stáva
+           lapisovým. Chip tento problém už nemá: je lapisový natrvalo. */
+        .vhero-item:hover .vhero-v {
+          color: ${LAPIS.edge};
+          text-shadow: none;
+        }
+        /* Číslo v krúžku — poradie, nie ozdoba. Cinzel, lebo je to identita
+           kroku; Space Grotesk by z neho spravil údaj. */
+        .vhero-num {
+          flex: 0 0 auto;
+          width: clamp(30px, 2.4vw, 36px);
+          height: clamp(30px, 2.4vw, 36px);
+          border-radius: 999px;
+          border: 1.5px solid #C99A3F;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: clamp(0.95rem, 1.1vw, 1.1rem);
+          line-height: 1;
+          /* ⚠️ PAPYRUS, NIE BIELA (Matej 28. 8. 2026: *„tie čísla daj do papyrusovej farby
+             nie bielej"*). Pôvodné #FDF8EC→#F6EAD0 je takmer biele a na zlate to bol
+             svetelný bod, nie súčasť dosky. Radiálny gradient so svetlom vľavo hore
+             + inset tieň dole = guľôčka, nie kruh. */
+          color: #5A3B0E;
+          background: radial-gradient(120% 120% at 32% 26%, #F7ECD2 0%, #EBD9AF 55%, #D9C08C 100%);
+          box-shadow:
+            inset 0 1px 0 rgba(255,252,244,0.85),
+            inset 0 -3px 6px -3px rgba(110,71,16,0.55),
+            0 2px 4px -1px rgba(70,44,6,0.45);
+          transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+        }
+        /* ⚠️ Farby lapisu sa NEOPÍSUJÚ — LAPIS v navGoldSkin.ts je jediný
+           zdroj (brand kánon 28. 8. 2026). Číslo je BLEDÉ, nie zlaté
+           (LAPIS.ink): tak si to Matej vypýtal a na 30 px krúžku je papyrus
+           čitateľnejší než zlato na modrej. */
+        .vhero-item:hover .vhero-num {
+          background: radial-gradient(120% 120% at 32% 26%, #2A4CA8 0%, ${LAPIS.edge} 55%, ${LAPIS.deep} 100%);
+          border-color: ${LAPIS.deep};
+          color: #F3E4C4;
+          box-shadow:
+            inset 0 1px 0 rgba(201,154,63,0.38),
+            inset 0 -3px 7px -3px rgba(0,0,0,0.55),
+            0 3px 8px -2px rgba(5,15,48,0.60);
+        }
+        /* Zrno — 3 % šumu upečené do SVG, nie samostatná priehľadnosť. Robí z plochy
+           materiál; bez neho vyzerá zlato ako výplň vo Figme. */
+        .vhero-item::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          pointer-events: none;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.16'/%3E%3C/svg%3E");
+          mix-blend-mode: multiply;
+          opacity: 0.35;
+          transition: opacity 160ms ease;
+        }
+        .vhero-item:hover::before { opacity: 0.16; }
+        .vhero-item > * { position: relative; z-index: 1; }
+        .vhero-txt { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .vhero-t {
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: clamp(1rem, 1.25vw, 1.22rem);
+          letter-spacing: 0.015em;
+          color: #2a1608;
+          /* Rezerva pre chip — ten je absolútny, takže si miesto sám nevypýta. */
+          padding-right: clamp(120px, 11vw, 170px);
+        }
+        /* SLOVESO — bledé na zlatom (Matej 28. 8. 2026: *„vždy na začiatku bude slovo —
+           spojiť, vytvoriť, pomáhať, ktoré by mohlo byť výraznejšie? bledé na tom
+           zlatom?"*). Nie väčšie a nie iná rodina: v jednej vete by druhá veľkosť
+           spravila dva nadpisy. Rozdiel nesie SVETLOSŤ a preto sa dá čítať aj to,
+           že sloveso a zvyšok vety patria k sebe. */
+        .vhero-v {
+          font-style: normal;
+          color: #FBF5E6;
+          /* ⚠️ VÝRAZNOSŤ NESIE OBRYS, NIE FARBA — a je to fyzika, nie vkus. Zlato
+             #C99A3F má relatívnu luminanciu 0.34, takže NAJVYŠŠÍ možný kontrast bledej
+             na ňom je 2,7:1 (odmerané: 2,36). Nad to sa svetlejšou farbou dostať nedá.
+             Preto dve BLÍZKE vrstvy tieňa — tvrdá hrana o 1 px + mäkké lôžko; blízke
+             vrstvy sa sčítavajú, širšie rozostrenie by len zriedlo. */
+          text-shadow: 0 1px 0 rgba(70,44,6,0.55), 0 2px 5px rgba(70,44,6,0.45);
+          letter-spacing: 0.05em;
+        }
+        /* CHIP — výsledok bloku, papyrusový štítok na zlatej doske. Absolútny, aby
+           nevstupoval do lámania nadpisu; nadpis mu drží miesto vlastným padding-right. */
+        .vhero-chip {
+          position: absolute;
+          top: clamp(8px, 1vh, 12px);
+          right: clamp(10px, 1vw, 14px);
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 500;
+          font-size: clamp(0.56rem, 0.62vw, 0.68rem);
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          /* ⚠️ LAPISOVÁ PILULKA, A HOVEROM SA NEMENÍ (Matej 28. 8. 2026: *„chipy urobiť
+             tmavo modré lapisové — tie sa nebudú hoverom meniť = modrý pils, bledé
+             písmo"*). Tým odpadol celý predošlý problém: chip bol papyrusový, teda
+             menil sa spolu s doskou a na vybledenom bloku zanikal. Vlastná farba,
+             ktorú doska nemá ani v jednom stave, ho drží čitateľný v oboch — a je to
+             menej pohyblivých častí, nie viac.
+             Písmo je BLEDÉ (papyrus), nie zlaté LAPIS.ink: pri 9 px je zlato na modrej
+             mäkké a Matej pýtal bledé. To isté #F3E4C4 nesie číslo v lapisovom krúžku,
+             takže obe modré veci hovoria jedným inkoustom. */
+          color: #F3E4C4;
+          background: ${LAPIS.grad};
+          border: 1px solid ${LAPIS.deep};
+          box-shadow: inset 0 1px 0 rgba(201,154,63,0.30), 0 2px 5px -2px rgba(5,15,48,0.55);
+          border-radius: 999px;
+          padding: 3px 9px;
+          white-space: nowrap;
+          line-height: 1.2;
+        }
+        .vhero-d {
+          font-size: clamp(0.86rem, 0.95vw, 1rem);
+          line-height: 1.5;
+          /* Na zlatom podklade je 0.72 už šedý závoj — rovnaký text potrebuje
+             na žltej plyši tmavší inkoust než na papyruse. */
+          color: rgba(38,23,4,0.88);
+        }
+        @media (max-width: 767px) {
+          .vhero-item { padding: 12px 13px; gap: 11px; border-radius: 12px; }
+          /* 🚩 CHIP JE NA MOBILE SKRYTÝ A JE TO VEDOMÉ ROZHODNUTIE, NIE OPOMENUTIE.
+             Odmerané pri 390 x 844: hero vízie (video + nadpis + tri bloky v jednej
+             prilepenej obrazovke) meria BEZ chipu presne 840 px, teda 100 % okna —
+             nula rezervy. Vedľa nadpisu sa chip na 386 px nezmestí, takže by musel mať
+             vlastný riadok: +28 px na blok, +84 px spolu, a hero by pretieklo o 100 px.
+             Zmenšovaním výplní a písma sa dá získať ~40 px, teda ani polovica.
+             Obsah chipu je pritom ZHRNUTIE bloku, ktorý na mobile stojí hneď pod ním —
+             na malej obrazovke nepridáva informáciu, len výšku.
+             ⇒ Mobilná vízia potrebuje vlastný prechod (rovnako ako celý zvyšok filmu:
+             „MOBIL NIE JE ZMENŠENÉ PC"); dovtedy chip patrí PC. */
+          .vhero-chip { display: none; }
+          .vhero-t { padding-right: 0; }
+          .vhero-h2 { font-size: clamp(1.7rem, 8vw, 2.3rem); }
+          .vhero-num { width: 28px; height: 28px; font-size: 0.92rem; }
         }
         /* Desktop: sticky topbar (~72px) sits in-flow above the hero, so centering
          * within (100dvh − 72px) pushes the optical centre ~36px below the true
@@ -1359,6 +1642,21 @@ export default function VisionLab({ embedded = false, flow = false }: VisionLabP
           object-fit: cover;
           display: block;
         }
+        /* ⚠️ SLUČKA JE MIERNE PRIBLÍŽENÁ — ORIEZKA CHYBY V SÚBORE, NIE ŠTÝL.
+           Matej 28. 8. 2026: *„vo videu je chyba a niekde je vidno spodná hranica
+           milimetrová napr čierna čo vyzerá zle"* — vision-intro-montage.mp4 má
+           na niektorých záberoch po spodnej hrane tenký čierny prúžok, ktorý pri
+           object-fit: cover dosadne presne na okraj rámu a číta sa ako chyba
+           vykreslenia.
+           2 % ROVNOMERNE, nie scaleY: vertikálne to ubere ~1 % zhora aj zdola,
+           čo prúžok pokryje aj na najväčšom pláťne, a pomer strán ostane. ScaleY
+           by obraz roztiahol a na tvárach je to vidieť.
+           🔑 Sedí TU, nie vo filme: je to vlastnosť ASSETU, takže platí všade,
+           kde sa slučka prehráva (aj samostatná /vision). Keď sa súbor
+           preexportuje bez prúžku, zmizne aj toto pravidlo.
+           ⚠️ Netýka sa YouTube iframe — ten má vlastný obraz a zväčšenie by
+           orezalo jeho ovládanie. */
+        .video-bg-loop { transform: scale(1.02); }
         /* Dark overlay so the looping bg video doesn't glare */
         .video-poster::after {
           content: '';
@@ -1700,27 +1998,33 @@ export default function VisionLab({ embedded = false, flow = false }: VisionLabP
         }
       `}</style>
 
-      <div className="topbar-wrap">
-        {!embedded && <PageTopBarLab withNav />}
-      </div>
+      {/* ⚠️ VO FILME SA NEVYKRESĽUJE ANI OBAL — a to je celá tá „čiara".
+          Prázdny .topbar-wrap si aj bez lišty drží `padding-bottom: 14px`
+          a svoj scrim `linear-gradient(rgba(248,237,214,.96) 58%, …0)`, takže
+          cez odchádzajúci obraz náboženstva viedol svetlý pás cez celú šírku —
+          aj cez psa. Gradient je správny, len nemá čo zakrývať, keď lišta
+          neexistuje: vo filme ju kreslí NavMedallion, nie táto stránka. */}
+      {!embedded && (
+        <div className="topbar-wrap">
+          <PageTopBarLab withNav />
+        </div>
+      )}
 
-      {/* ── Intro video hero ── */}
+      {/* ── Intro video hero ──
+          ⚠️ VO FILME (/onepage) JE TO ROZDELENÁ OBRAZOVKA: video vľavo, nadpis
+          a tri bloky vpravo (Matej 28. 8. 2026). Mimo filmu ostáva presne to,
+          čo tu bolo — jeden stĺpec na stred. Rozhoduje `flow`; wrappery majú
+          v základe display: contents, takže samostatná /vision sa nemení. */}
       <section className="vision-video-hero" style={{ zIndex: 2 }}>
+       <div className="vhero-inner">
+        <div className="vhero-stage">
+        {!flow && (
         <h1 className="video-hero-title">
-          <span
-            style={{
-              background:
-                'linear-gradient(100deg, #6E4A12 0%, #A3782B 30%, #D8A93F 50%, #A3782B 70%, #6E4A12 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              filter:
-                'drop-shadow(0 1px 1px rgba(110,71,16,0.20))',
-            }}
-          >
+          <span style={TITLE_GRAD}>
             {t('vision.hero.title')}
           </span>
         </h1>
+        )}
         <div className={`video-embed-frame${videoPlaying ? ' is-playing' : ''}`}>
           {videoPlaying ? (
             <>
@@ -1741,7 +2045,7 @@ export default function VisionLab({ embedded = false, flow = false }: VisionLabP
             <button
               type="button"
               className="video-poster"
-              onClick={() => setVideoPlaying(true)}
+              onClick={() => { setVideoPlaying(true); onWatch?.(); }}
               aria-label={t('vision.hero.playLabel')}
             >
               <video
@@ -1767,11 +2071,39 @@ export default function VisionLab({ embedded = false, flow = false }: VisionLabP
           <button
             type="button"
             className="video-hero-caption"
-            onClick={() => setVideoPlaying(true)}
+            onClick={() => { setVideoPlaying(true); onWatch?.(); }}
           >
             {t('vision.hero.watch')}
           </button>
         )}
+        </div>
+        {/* Pravý stĺpec filmu: nadpis + tri bloky. Mimo filmu neexistuje —
+            pridať ho na samostatnú /vision si nikto nepýtal. */}
+        {flow && (
+          <div className="vhero-blocks">
+            <h2 className="vhero-h2"><span style={TITLE_GRAD}>{t('vision.hero.title')}</span></h2>
+            <ol className="vhero-list">
+              {VISION_BLOCKS.map((k, i) => (
+                <li className="vhero-item" key={k} style={{ ['--vb-at' as string]: i + 1 }}>
+                  <span className="vhero-num" aria-hidden>{i + 1}</span>
+                  <span className="vhero-txt">
+                    {/* Nadpis je JEDNA veta: sloveso + čo. Preto sú v jednom <b> a nie
+                        v dvoch riadkoch — „SPOJIŤ" samo o sebe nie je nadpis. */}
+                    <b className="vhero-t">
+                      <em className="vhero-v">{t(`vision.hero.${k}.v`)}</em>{' '}
+                      {t(`vision.hero.${k}.t`)}
+                    </b>
+                    <span className="vhero-d">{t(`vision.hero.${k}.d`)}</span>
+                  </span>
+                  {/* Chip = VÝSLEDOK bloku, nie jeho druhé meno. Stojí v pravom hornom
+                      rohu a je bledý, teda číta sa ako štítok NA zlatej doske. */}
+                  <span className="vhero-chip">{t(`vision.hero.${k}.c`)}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+       </div>
       </section>
 
       {/* ── WHAT IF… pinned scrollytelling roadmap ── */}

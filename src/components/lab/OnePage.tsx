@@ -246,6 +246,115 @@ const COW_DIM = 0.38;
  */
 const CTA_AT = 0.34;
 
+/**
+ * DĹŽKA PRECHODU 3. → 4. OBRAZU (DOGMA → video a vízia), v obrazovkách scrollu.
+ * Tretí gombík tempa, ten istý recept ako PIN_VH a PIN2_VH.
+ *
+ * Matej 28. 8. 2026: *„vieme scrolom urobiť horizontálny scrol že sa obsah
+ * posunie do prava teda hektor sa posunie za okraj a text zostane napravo
+ * a na lavo bude teraz video… text sa pri scrollingu zmení… musí to byť
+ * plynule."*
+ *
+ * 🔑 PREČO PRÁVE VODOROVNE. Prvé dva prechody vymieňajú obsah NA MIESTE (guľa
+ * za výjav, výjav za preambulu) — obrazovka sa nehýbe a mení sa len to, čo je
+ * vidieť. Tu sa prvýkrát hýbe SVET: pás sa posunie o jednu bunku doprava, takže
+ * to, čo bolo vpravo (pes), vyjde z obrazu a zľava nastúpi video. Je to zároveň
+ * uvedenie vodorovnej gramatiky, na ktorej stojí hneď nasledujúci pás WHAT IF —
+ * bez neho by prišiel bez ohlásenia.
+ */
+const PIN3_VH = 2;
+
+/**
+ * ÚSEKY TRETIEHO PRECHODU — podiel dráhy (0 = DOGMA v pokoji, 1 = vízia
+ * v pokoji). Dráha sa delí na dve polovice, ktoré sa v strede prekrývajú:
+ * do ~0.5 ODCHOD (stĺpec cestuje doprava a odpisuje sa, pes von), od ~0.5
+ * PRÍCHOD (video dosadne, nadpis a bloky sa dopíšu).
+ */
+/**
+ * OBSAH CESTUJE DOPRAVA — rovnomerne a bez otáčania (Matej 28. 8. 2026:
+ * *„len horizontálny slide rovno, nie točiť obsah… musí to byť clean"*).
+ * Z ľavej polovice (−22vw, kam ho posadilo rozdelenie obrazovky) na stred
+ * pravej polovice okna, teda presne tam, kde bude stáť vízia.
+ */
+const SLIDE_IN: readonly [number, number] = [0.02, 0.44];
+/**
+ * TEXT MIZNE, RÁMIK ZOSTÁVA (Matej: *„pri presune textu mizne text ale rámik
+ * zostáva = v momente ako sa rámik zakotví na svoje miesto nabiehajú v oblasti
+ * rámika texty a nadpis - rámik zmizne"*).
+ *
+ * 🔑 TOTO JE CELÁ MYŠLIENKA PRECHODU: rámik je jediná vec, ktorá cestu prežije,
+ * takže drží pohľad na mieste a hovorí *tu bude ďalší text*. Bez neho by dva
+ * obsahy len striedali prázdnu obrazovku.
+ * ⚠️ Preto sa hasí PO PRVKOCH, nie maskou na celom stĺpci — maska sa dedí na
+ * všetky deti vrátane rohov rámu a zhasla by presne to jedno, čo má ostať.
+ */
+const UNINK_OUT: readonly [number, number] = [0.06, 0.34];
+/**
+ * HEKTOR ODCHÁDZA ZA PRAVÝ OKRAJ — a odchádza PRVÝ.
+ * ⚠️ Musí byť preč skôr, než na jeho miesto dorazí rámik.
+ * ⚠️ Horná hranica má aj tvrdý dôvod: bleed je prilepený len po koniec sekcie
+ * náboženstva, teda po ~55 % tejto dráhy. Odchod musí skončiť pred tým.
+ */
+const HEK_OUT: readonly [number, number] = [0.02, 0.40];
+/**
+ * NADPIS A TRI BLOKY NABIEHAJÚ V OBLASTI RÁMIKA — až keď rámik dosadol.
+ * Začiatok sa preto viaže na koniec SLIDE_IN, nie na vlastné číslo.
+ */
+const VB_IN: readonly [number, number] = [0.46, 0.78];
+/**
+ * VIDEO PRICHÁDZA ZDOLA, súbežne s nábehom textov, a ukotví sa, keď dobehnú
+ * (Matej: *„video príde z dola a ako dobehnu texty video sa ukotví"*).
+ */
+const VID_IN: readonly [number, number] = [0.48, 0.80];
+/** Rámik odchádza posledný — splnil úlohu, keď v ňom stojí nový text. */
+/**
+ * Rámik odchádza, keď v ňom už stojí prvý nový text.
+ * ⚠️ NIE AŽ NA KONCI DRÁHY: nadpis a tri bloky sú vyššie než rámik (odmerané
+ * 319 proti 239 px), takže by z neho pri plnom krytí vytŕčali hore aj dole.
+ * Rámik je prísľub miesta, nie schránka — splnil úlohu v okamihu, keď je na
+ * jeho mieste čo čítať.
+ */
+const FRAME_OUT: readonly [number, number] = [0.56, 0.72];
+
+/**
+ * DĹŽKA 4. PRECHODU: VIDEO SA CENTRUJE A ROZTIAHNE NA CELÚ OBRAZOVKU.
+ * Štvrtý gombík tempa, ten istý recept ako PIN_VH · PIN2_VH · PIN3_VH.
+ *
+ * Matej 28. 8. 2026: *„ďalší scrolling dolu by mal video centrovať a zväčšovať
+ * na celú obrazovku — 3 bloky zmiznú, na celej obrazovke bude len video. Ak
+ * človek klikne na «pozri DOGYPT introfilm», to video sa mu dá do tejto pozície
+ * a otvorí sa na celú obrazovku."*
+ *
+ * 🔑 NIE JE TO NOVÝ OBRAZ, JE TO DRUHÝ ZÁBER TOHO ISTÉHO. Vízia zostáva
+ * prilepená (`.vhero-inner` sa nehýbe), len sa z rozdelenej obrazovky stane
+ * plátno: tri bloky zhasnú a video prejde z ľavej polovice do stredu okna.
+ * Preto sa dráha pripočítava k výške TEJ ISTEJ sekcie a nie ako ďalšia — inak
+ * by medzi rozdelenou obrazovkou a plátnom bol strih.
+ *
+ * ⚠️ Číslo sedí naraz vo výške hero (`min-height` nižšie), v značkách snapu
+ * a v cieli, kam skáče klik na „pozri introfilm" (`goCinema`). Meň ho TU.
+ */
+const PIN4_VH = 2;
+
+/**
+ * ÚSEKY 4. PRECHODU — podiel dráhy (0 = vízia v pokoji, 1 = video na celej
+ * obrazovke). Prekrývajú sa zámerne, rovnako ako v predošlých troch.
+ */
+/**
+ * NADPIS, TRI BLOKY A POPISOK POD VIDEOM ODCHÁDZAJÚ PRVÍ — a odchádzajú skôr,
+ * než video dorastie. Keby hasli súbežne s rastom, video by cestou cez pravú
+ * polovicu prekrylo text, ktorý ešte svieti, a vyzeralo by to ako chyba
+ * vrstvenia. Takto je poradie čitateľné: najprv sa obrazovka vyprázdni, potom
+ * ju zaberie plátno.
+ */
+const VOUT_OUT: readonly [number, number] = [0, 0.34];
+/**
+ * VIDEO SA CENTRUJE A RASTIE. Jedna hodnota ženie oboje — posun do stredu okna
+ * aj šírku rámu —, lebo je to JEDEN pohyb. Dve premenné by sa pri prvom ladení
+ * rozišli a z „video sa presunie na plátno" by boli dva nesúvisiace efekty.
+ */
+const GROW_IN: readonly [number, number] = [0.12, 0.94];
+
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 /** Mäkké konce — lineárny priebeh vyzerá ako stmievač, nie ako pohyb. */
 const ease = (v: number) => v * v * (3 - 2 * v);
@@ -304,6 +413,8 @@ export default function OnePage() {
       overlay?: HTMLElement | null; pre?: HTMLElement | null;
       planet?: HTMLElement | null; film?: HTMLElement | null;
       dock?: HTMLElement | null;
+      vstage?: HTMLElement | null; vblocks?: HTMLElement | null;
+      vinner?: HTMLElement | null;
     } = {};
     const resolve = () => {
       n = {
@@ -326,6 +437,16 @@ export default function OnePage() {
         // prvku (nadpis, rám, text aj prísaha sú jeho deti) — štyri zápisy
         // namiesto štyroch prvkov a žiadna dedičnosť cez celý dokument.
         pre: q<HTMLElement>('#op-religion .codex-section[data-idx="1"] .codex-slide'),
+        // Tretí prechod: ľavá polovica (video) a pravá (nadpis + tri bloky).
+        // Sú to dva prvky a nie jeden, lebo sa hýbu inak — video priletí zľava,
+        // bloky sa na mieste dopíšu.
+        vstage: q<HTMLElement>('#op-vision .vhero-stage'),
+        vblocks: q<HTMLElement>('#op-vision .vhero-blocks'),
+        // 4. prechod (video na celú obrazovku) sedí na SPOLOČNOM rodičovi oboch
+        // polovíc: hasnutie sa týka pravého stĺpca aj popisku pod videom, rast
+        // len rámu videa — a všetko sú to jeho deti. Jeden zápis namiesto troch
+        // a podstrom je malý (video + tri bloky), takže dedičnosť tu nič nestojí.
+        vinner: q<HTMLElement>('#op-vision .vhero-inner'),
       };
     };
     resolve();
@@ -462,6 +583,73 @@ export default function OnePage() {
       // spoločné stlmenie oboch zaniklo spolu so štvrtým obrazom.
       put(n.bleed, 'cw', '--op-cow', (1 - (1 - COW_DIM) * seg(q, COW_OUT[0], COW_OUT[1])).toFixed(3));
 
+      // ── PRECHOD 3. → 4. OBRAZU: PÁS SA POSUNIE DOPRAVA ───────────────
+      // Prvý prechod, pri ktorom sa hýbe svet a nielen to, čo je vidieť.
+      // Stĺpec s úryvkom cestuje z ľavej polovice do pravej a cestou sa
+      // odpisuje, pes vychádza za pravý okraj, zľava nastupuje video a vpravo
+      // sa dopíše nadpis s tromi blokmi.
+      const span3 = Math.max(1, vh * PIN3_VH);
+      const r = clamp01((window.scrollY - span - span2) / span3);
+
+      // 🔴 DOGMA STOJÍ POČAS PRECHODU NATÍVNE, NIE PREKLADOM V JS.
+      // Matej 28. 8. 2026: *„prečo ten rámik kde je citacia ustavy nejde rovno
+      // ale trasie sa a ide mierne dolu a hore - to musí byť plynulé"*.
+      //
+      // Prvá verzia nechala prilepenie preambuly skončiť tam, kde prechod
+      // začína, a jej odchod hore kompenzovala zápisom translateY z hodnoty
+      // window.scrollY. To sa NIKDY nemôže vykresliť hladko: prehliadač
+      // posúva prilepený box vo vlastnom kroku scrollu, kým kompenzácia príde
+      // až v rAF o snímok neskôr — rozdiel medzi nimi je práve to trasenie.
+      // Riešenie je nemať čo kompenzovať: preambula (a s ňou celá stránka
+      // náboženstva vrátane zvierat) je PRILEPENÁ o dráhu prechodu dlhšie,
+      // takže naozaj stojí. Viď min-height sekcie a margin-top vízie v CSS.
+
+      // Posun stĺpca a odchod psa. Sú to dva úseky, nie jeden: pes musí byť
+      // preč skôr, než na jeho polovicu dorazí text.
+      put(n.pre, 'sl', '--op-slide', seg(r, SLIDE_IN[0], SLIDE_IN[1]).toFixed(3));
+      put(n.pre, 'un', '--op-unink', seg(r, UNINK_OUT[0], UNINK_OUT[1]).toFixed(3));
+      const hek = seg(r, HEK_OUT[0], HEK_OUT[1]).toFixed(3);
+      put(n.bleed, 'hk', '--op-hek', hek);
+      put(n.spot, 'hk2', '--op-hek', hek);
+      // Odpísaný stĺpec nesmie ostať pod prstom — je v ňom CTA do ústavy.
+      put(n.pre, 'upe', 'pointerEvents', r >= UNINK_OUT[1] ? 'none' : '');
+
+      // Rámik odchádza posledný — až keď v ňom stojí nový text.
+      put(n.pre, 'fr', '--op-frame', seg(r, FRAME_OUT[0], FRAME_OUT[1]).toFixed(3));
+      // Video prichádza zdola · nadpis a bloky nabiehajú v oblasti rámika.
+      put(n.vstage, 'vd', '--op-vid', seg(r, VID_IN[0], VID_IN[1]).toFixed(3));
+      const vb = seg(r, VB_IN[0], VB_IN[1]);
+      put(n.vblocks, 'vb', '--op-vb', vb.toFixed(3));
+      // Bloky ležia presne nad textom DOGMY a sú neviditeľné takmer celý
+      // prechod — kým sa nedopíšu, nesmú byť pod prstom (pod nimi je CTA do
+      // ústavy). Tá istá starosť ako pri zhasnutom ADD PHOTO na prvej obrazovke.
+      // ⚠️ 'auto', nie prázdny reťazec: prilepená vrstva vízie má
+      // pointer-events: none, takže zrušením inline hodnoty by bloky zdedili
+      // NONE a hover by na nich nikdy nenaskočil.
+
+      // ── 4. PRECHOD: VIDEO NA CELÚ OBRAZOVKU ──────────────────────────
+      // Vízia ostáva prilepená — mení sa len to, čo je na nej vidieť. Tri
+      // bloky zhasnú a rám videa prejde z ľavej polovice do stredu okna
+      // a dorastie na celú výšku pásu pod lištou. Rozmery aj posun sú
+      // ROVNICOU V CSS (--vf-rest → --vf-full, +25vw), nie meraním: šírka
+      // rámu má jednu definíciu a JS ju nesmie mať druhýkrát.
+      const span4 = Math.max(1, vh * PIN4_VH);
+      const s4 = clamp01((window.scrollY - span - span2 - span3) / span4);
+      const vout = seg(s4, VOUT_OUT[0], VOUT_OUT[1]);
+      put(n.vinner, 'vo', '--op-vout', vout.toFixed(3));
+      put(n.vinner, 'gw', '--op-grow', seg(s4, GROW_IN[0], GROW_IN[1]).toFixed(3));
+      // Bloky ležia presne nad textom DOGMY a sú neviditeľné takmer celý
+      // prechod — kým sa nedopíšu, nesmú byť pod prstom (pod nimi je CTA do
+      // ústavy). Tá istá starosť ako pri zhasnutom ADD PHOTO na prvej obrazovke.
+      // ⚠️ 'auto', nie prázdny reťazec: prilepená vrstva vízie má
+      // pointer-events: none, takže zrušením inline hodnoty by bloky zdedili
+      // NONE a hover by na nich nikdy nenaskočil.
+      // 🔴 A DRUHÁ PODMIENKA — hasnúci blok nesmie kradnúť kliky videu, ktoré
+      // cezeň práve rastie. Rám sa vo štvrtom prechode presunie NAD pravú
+      // polovicu, takže bez tejto podmienky by na plátne nešlo spustiť
+      // prehrávanie: prst by trafil neviditeľný blok pod prstom.
+      put(n.vblocks, 'vbpe', 'pointerEvents', vb >= 0.999 && vout <= 0.01 ? 'auto' : 'none');
+
       // Tieto tri sa menia DVAKRÁT za celý film, tak smú ostať premennými.
       const gone = o <= 0.002;
       put(n.planet, 'vis', '--op-vis', gone ? 'hidden' : 'visible');
@@ -478,7 +666,28 @@ export default function OnePage() {
       // jediné hlásenie príde na štarte — a keby ho vtedy zahodil vlastný
       // strážca prechodu, druhé by neprišlo nikdy a nav by ostal na HOME cez
       // celý prvý obraz. Odskúšané: presne to sa aj stalo.
-      setScene(p < 0.55 ? 0 : sceneRef.current);
+      // 🔴 A DRUHÝ STRÁŽCA — TENTOKRÁT NA KONCI. Sekcia vízie je vtiahnutá
+      // o obrazovku hore (prechod 3 → 4), takže jej stred pretne stred okna
+      // ešte kým na obrazovke stojí DOGMA — a pilulka by na nej písala VÍZIA.
+      // Je to tá istá pasca ako pri guli na začiatku filmu, len zrkadlovo:
+      // pozorovateľ hlási polohu v DOM-e, nie to, čo je vidieť.
+      // 🔴 A PRE VÍZIU HO MUSÍ NAHRADIŤ ÚPLNE. Pozorovateľ stojí na predpoklade
+      // zapísanom pri jeho vzniku: *dve susedné sekcie nemôžu pretínať stred
+      // okna naraz*. Odkedy je vízia vtiahnutá o obrazovku hore, tie dve sekcie
+      // sa PREKRÝVAJÚ — a v tom prekryve nepríde nové hlásenie, lebo sa žiadny
+      // priesečník nezmenil. Odmerané v React stave: sceneRef ostal na 1 aj
+      // 1 600 px za koncom prechodu, teda uprostred vízie.
+      // Preto sa poloha v prvej polovici filmu odvodzuje priamo zo scrollu —
+      // ten je tu presný, obrazy sedia na násobkoch obrazovky. Pozorovateľ
+      // ďalej rozhoduje o všetkom za víziou (o nás, míľniky, join), kde sa
+      // sekcie neprekrývajú a jeho predpoklad platí.
+      const preVision = window.scrollY < span + span2 + span3 * 0.5;
+      setScene(
+        p < 0.55 ? 0
+        : preVision ? 1
+        : sceneRef.current < 2 ? 2
+        : sceneRef.current
+      );
     };
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(apply); };
     applyRef.current = apply;
@@ -522,7 +731,14 @@ export default function OnePage() {
             // Zápis rovno do stavu je tu len pre stojaci scroll (zmena výšky
             // obsahu pod prstom, ktorý sa nehýbe). Kým sa scrolluje, prepisuje
             // to handler vyššie — a ten pozná aj prechod.
-            if (window.scrollY >= window.innerHeight * PIN_VH * 0.55) setScene(i);
+            // 🔴 TÁ ISTÁ BRZDA AKO V SCROLL HANDLERI, LEBO POZOROVATEĽ HO
+            // PREBÍJA. Vízia je vtiahnutá o obrazovku hore, takže jej stred
+            // pretne stred okna ešte na DOGME — a hoci scroll handler v tej
+            // chvíli drží NÁBOŽENSTVO, hlásenie pozorovateľa príde ako
+            // posledné a prepíše ho. Odskúšané: pilulka písala VÍZIA nad
+            // textom ústavy.
+            const preVision = window.scrollY < window.innerHeight * (PIN_VH + PIN2_VH + PIN3_VH * 0.5);
+            if (window.scrollY >= window.innerHeight * PIN_VH * 0.55) setScene(preVision ? Math.min(i, 1) : i);
           }
         }
       },
@@ -542,6 +758,27 @@ export default function OnePage() {
       .then((d: unknown[]) => { if (alive && Array.isArray(d)) setDogCount(d.length); })
       .catch(() => { /* číslo je ozdoba, nie podmienka — sekcia funguje aj bez neho */ });
     return () => { alive = false; };
+  }, []);
+
+  /**
+   * KLIK NA „POZRI DOGYPT INTROFILM" = SKOK NA PLÁTNO (Matej 28. 8. 2026:
+   * *„ak človek klikne na «pozri DOGYPT introfilm», to video sa mu dá do tejto
+   * pozície a otvorí sa na celú obrazovku"*).
+   *
+   * 🔑 NEOTVÁRA SA ŽIADNE PREKRYTIE. Poloha „video na celej obrazovke" už vo
+   * filme existuje — je to koniec štvrtej dráhy. Klik teda nerobí nič nové, len
+   * na ňu doscrolluje; prehrávanie si zapína `VisionLab` sám. Druhá,
+   * „modálna" celoobrazovková poloha by znamenala dve rôzne fullscreen podoby
+   * toho istého videa, ktoré sa pri prvom ladení rozídu.
+   *
+   * ⚠️ Cieľ je PRESNE značka snapu č. 9 (súčet všetkých štyroch dráh), takže
+   * dojazd nikam nepodkĺzne. Meno konštánt je jediné miesto, kde sa číslo drží.
+   */
+  const goCinema = useCallback(() => {
+    window.scrollTo({
+      top: window.innerHeight * (PIN_VH + PIN2_VH + PIN3_VH + PIN4_VH),
+      behavior: 'smooth',
+    });
   }, []);
 
   const goTo = useCallback((id: string) => {
@@ -823,7 +1060,11 @@ export default function OnePage() {
              — snap na ňu by človeka usadil do prázdna; odpočívadlo na konci
              dráhy nesie značka v .op-snaps. Kniha ako obraz filmu zanikla
              (28. 8. 2026) a stojí v pätičke, kde sa nesnapuje. */
-          .op-root #op-vision,
+          /* ⚠️ #op-vision TU UŽ NIE JE — od 28. 8. 2026 má vlastnú prilepenú
+             dráhu (PIN3_VH), takže jej ZAČIATOK je obrazovka, na ktorej ešte
+             stojí DOGMA; snap na ňu by človeka usadil doprostred prechodu.
+             Odpočívadlo na konci dráhy nesie značka v .op-snaps — presne tá
+             istá úprava, akú si vyžiadala preambula. */
           .op-root #op-about,
           .op-root .op-timeline,
           .op-root #op-join {
@@ -887,7 +1128,9 @@ export default function OnePage() {
              align-items: flex-start je tu z rovnakého dôvodu ako pri výjave:
              s center by sa obsah prilepil až v polovici výšky sekcie. */
           margin-top: -100dvh;
-          min-height: calc(100dvh + ${PIN2_VH * 100}dvh);
+          /* ⚠️ +PIN3_VH: prilepenie musí prežiť aj TRETÍ prechod, inak sa
+             preambula uprostred neho odlepí a rámik sa začne triasť. */
+          min-height: calc(100dvh + ${(PIN2_VH + PIN3_VH) * 100}dvh);
           align-items: flex-start;
           padding-top: 0;
           padding-bottom: 0;
@@ -930,8 +1173,14 @@ export default function OnePage() {
            aj strop vo vh — na Matejovom ~550 px okne vyhráva vw, samotný
            strop by sa neprejavil. Škáluje sa od toho, čo VIDEL, nie od
            pôvodných hodnôt v ReligionLab. */
+        /* ⚠️ TÚ ISTÚ RIADKU MÁ AJ NADPIS VÍZIE — je to jedna veľkosť na dvoch miestach
+           (Matej 28. 8. 2026: *„ano zjednotiť — zväčši tú víziu, resp. obidve ich daj
+           na 65px"*). Predtým mala vízia vlastný clamp so stropom 3rem, takže na jeho
+           okne bolo 48 px proti 64,6 px a zhodne vyzerali len na nízkom okne, kde oba
+           narazia na inú medzu. Strop je dnes 4.0625rem = presne 65 px. Kto mení jednu,
+           mení obe — inak sa rozídu presne tak, ako sa už raz rozišli. */
         .op-root #op-religion .codex-section[data-idx="1"] .codex-headline {
-          font-size: min(clamp(2.17rem, 5.2vw, 4.04rem), 7.4vh);
+          font-size: min(clamp(2.17rem, 5.2vw, 4.0625rem), 7.4vh);
         }
         .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-wrap {
           max-width: 660px;
@@ -999,9 +1248,49 @@ export default function OnePage() {
            priamo do prvkov. Stĺpec má preto pevnú šírku, ktorá sedí v ľavej
            polovici, a mení sa iba jeho poloha.
            ⚠️ Len od 768 px — viď rozdelenie pri zvieratách. */
+        /* ── TRETÍ PRECHOD: OBSAH CESTUJE DOPRAVA, RÁMIK ZOSTÁVA ─────────
+           Matej 28. 8. 2026: *„scrol posúva rovnomerne obsah do prava — hektor
+           mizne z obrazovky — pri presune textu mizne text ale rámik zostáva
+           = v momente ako sa rámik zakotví na svoje miesto nabiehajú v oblasti
+           rámika texty a nadpis — rámik zmizne."*
+
+           🔴 HASÍ SA PO PRVKOCH, NIE MASKOU NA CELOM STĹPCI. Maska sa dedí na
+           všetky deti vrátane rohov .codex-frame — teda by zhasla presne to
+           jediné, čo má cestu prežiť. Preto sa každý text násobí o (1 − unink)
+           k svojej vlastnej nábehovej hodnote z druhého prechodu: pri príchode
+           na DOGMU sa tie čísla starajú o dopisovanie, tu o odchod, a jedno
+           druhému neprekáža.
+           ⚠️ .codex-preamble-wrap sa NEHASÍ — je to schránka, v ktorej sedia
+           rohy. Hasí sa text v nej. */
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-text {
+          opacity: calc(1 - var(--op-unink, 0));
+        }
+        /* Rohy rámika odchádzajú posledné — až keď v nich stojí nový text. */
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-frame {
+          opacity: calc(1 - var(--op-frame, 0));
+        }
+
+        /* MOBIL: rozdelenie obrazovky neexistuje (zvieratá stoja pod textom),
+           takže stĺpec nemá kam „prejsť do pravej polovice" — odchádza rovno
+           za pravý okraj a video prichádza zdola cez celú šírku. */
+        @media (max-width: 767px) {
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-slide {
+            transform: translateX(calc(var(--op-slide, 0) * 112vw));
+          }
+        }
         @media (min-width: 768px) {
           .op-root #op-religion .codex-section[data-idx="1"] .codex-slide {
-            transform: translateX(calc(var(--op-split, 0) * -22vw));
+            transform:
+              /* Žiadny preklad späť — preambula je počas celého prechodu
+                 prilepená natívne. Preklad v JS sa vykresľuje o snímok neskôr
+                 než scroll a rámik sa po ňom viditeľne triasol. */
+              /* −22vw = rozdelenie obrazovky (2. prechod) posadilo stĺpec do
+                 ľavej polovice, teda jeho stred na 28vw. +47vw ho odvezie na
+                 75vw = stred PRAVEJ polovice okna, kde stojí vízia. Číslo je
+                 dopočítané, nie odmerané: 75 − 28. Preto má .vhero-inner nulový
+                 gap aj padding — inak by stred pravého stĺpca na 75vw nesedel
+                 a rámik by dosadol vedľa textu, ktorý má orámovať. */
+              translateX(calc(var(--op-split, 0) * -22vw + var(--op-slide, 0) * 47vw));
           }
           .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-wrap {
             max-width: 540px;
@@ -1026,11 +1315,11 @@ export default function OnePage() {
         /* Riadok nad mottom prichádza PRVÝ — je to veta, ktorá motto uvádza,
            takže sa nesmie objaviť až za ním. */
         .op-root #op-religion .codex-section[data-idx="1"] .codex-eyebrow {
-          opacity: var(--op-eye, 1);
+          opacity: calc(var(--op-eye, 1) * (1 - var(--op-unink, 0)));
           transform: translateY(calc((1 - var(--op-eye, 1)) * 14px));
         }
         .op-root #op-religion .codex-section[data-idx="1"] .codex-headline {
-          opacity: var(--op-h2, 1);
+          opacity: calc(var(--op-h2, 1) * (1 - var(--op-unink, 0)));
           transform: translateY(calc((1 - var(--op-h2, 1)) * 22px));
         }
         /* Úryvok je JEDINÝ prvok výjavu s dlhou dráhou zdola — je to on, kto
@@ -1058,13 +1347,13 @@ export default function OnePage() {
         }
         /* Prísaha svorky je PODPIS — patrí pod hotový odsek, nie k nemu. */
         .op-root #op-religion .codex-section[data-idx="1"] .codex-oath-label {
-          opacity: var(--op-oath, 1);
+          opacity: calc(var(--op-oath, 1) * (1 - var(--op-unink, 0)));
           transform: translateY(calc((1 - var(--op-oath, 1)) * 10px));
         }
         /* CTA dosadá ako posledné — je to jediná akcia obrazovky a nemá
            súperiť s textom, ktorý ju odôvodňuje. */
         .op-root #op-religion .codex-section[data-idx="1"] .codex-book-cta {
-          opacity: var(--op-cta, 1);
+          opacity: calc(var(--op-cta, 1) * (1 - var(--op-unink, 0)));
           transform: translateY(calc((1 - var(--op-cta, 1)) * 12px));
         }
 
@@ -1124,6 +1413,301 @@ export default function OnePage() {
         }
 
 
+        /* ── FILM MÁ JEDNO POZADIE, NIE ŠTYRI PAPIERE ────────────────────
+           Matej 28. 8. 2026: *„a pozor nemeníme farbu pokračujeme od začiatku
+           na jednotnom pozadí!"* (k vodorovnej čiare, ktorá sa objavila počas
+           rastu videa na plátno).
+
+           🔴 PRÍČINA NIE JE V PRECHODE, ALE V TOM, ŽE VINETA JE STRÁNKOVÁ.
+           Každá lab stránka si nesie vlastnú vinetu — inline div s inset: 0
+           a radiálnym gradientom (LAB.pageVeil). Komentár pri nej v
+           ReligionLab hovorí *„drží sa 1 obrazovky (page = 100dvh)"*, a to je
+           pravda len MIMO filmu: v režime flow má stránka h-auto, takže sa
+           tá istá vrstva roztiahne na celú svoju výšku (odmerané: 7 200 px,
+           teda osem obrazoviek). Radiálny gradient sa tým rozťahuje s ňou.
+
+           Dôsledok bol dvojaký a merateľný (vzorky papyrusu pri ľavom okraji):
+             • pozadie sa cez film PLYNULE STMIEVALO — 236,218,181 na 3.
+               obrazovke → 229,209,171 na siedmej;
+             • kde vrstva skončila, bol SKOK O CELÝCH ~14 HODNÔT na holý
+               papyrus (242,227,194) — ostrá vodorovná čiara cez celú šírku.
+           Kým film končil na siedmej obrazovke, tá čiara ležala tesne pod
+           okrajom okna. Dráha plátna (PIN4_VH) ju vytiahla do obrazu.
+
+           Oprava je preto štrukturálna: **vo filme sa stránkové vinety
+           nekreslia vôbec.** Ostáva jedna papyrusová plocha — tá je fixed
+           a viewportová, takže vyzerá na deviatej obrazovke presne tak ako na
+           prvej (odmerané 236,218,183 proti 236,218,181). Presne to znamená
+           *„pokračujeme od začiatku na jednotnom pozadí"*.
+
+           🔴 TÝMTO PADOL STARŠÍ ZÁPIS O PREKRYVE DVOCH VINIET (posunúť vinetu
+           vízie nadol o toľko, o koľko je jej stránka vtiahnutá). Nebol zlý,
+           len liečil hranicu medzi dvoma vrstvami — a problém je, že tam tie
+           vrstvy vo filme vôbec nemajú byť. Ostáva z neho platné poučenie:
+           gradientu sa nesmie siahať na rozmer, lebo rozmer JE kresba.
+           ⚠️ Vrstvy sú inline style, preto !important.
+           ⚠️ .lab-pageveil (vízia, o nás) je tu už dávno vypnutá o pár
+           riadkov vyššie — toto je jej dvojička, ktorú ReligionLab kreslí
+           bez triedy. Rovnaká vec, dve mená. */
+        .op-film .lab-papyrus > div[aria-hidden="true"]:not([class]) {
+          display: none !important;
+        }
+
+        /* ── 4. OBRAZ: VIDEO VĽAVO, VÍZIA VPRAVO ─────────────────────────
+           Matej 28. 8. 2026: *„na lavo bude teraz video"* + *„nadpis vízia
+           a potom pod seba 3 bloky… celý blok musí byť veľmi ľahký."*
+
+           Vízia sa vťahuje O OBRAZOVKU HORE — presne o tú, počas ktorej
+           predtým odchádzala DOGMA — a jej hero o dráhu prechodu narastie.
+           Film tým narastie LEN o dráhu (PIN3_VH), takže ďalšie obrazy sedia
+           ďalej na násobkoch obrazovky a značky snapu platia. Je to tá istá
+           konštrukcia ako pri preambule, tretíkrát.
+           ⚠️ Vťahuje sa CELÁ sekcia, teda aj pás WHAT IF za hero — ten je jej
+           súčasťou a musí sa posunúť s ňou, inak by medzi videom a pásom
+           zostala prázdna obrazovka. */
+        /* ⚠️ VŤAHUJE SA O OBRAZOVKU **A CELÚ DRÁHU** (nie len o obrazovku):
+           stránka náboženstva je odteraz o dráhu vyššia, aby na nej preambula
+           vydržala prilepená. Vízia ju musí dobehnúť, inak by prechod začal
+           o dve obrazovky neskôr než DOGMA dostojí. */
+        .op-root #op-vision { margin-top: calc(-${(1 + PIN3_VH) * 100}dvh); }
+        .op-root #op-vision .vision-video-hero {
+          display: block;
+          /* ⚠️ DVE DRÁHY, NIE JEDNA. PIN3_VH je príchod vízie (pás sa posunie
+             doprava), PIN4_VH je jej druhý záber — video sa centruje a rastie
+             na celú obrazovku. Obe sa odohrávajú na TEJ ISTEJ prilepenej
+             obrazovke, takže sa pripočítavajú k výške JEDNEJ sekcie. Keby mal
+             rast videa vlastnú sekciu, bol by medzi rozdelenou obrazovkou
+             a plátnom strih. */
+          min-height: calc(100dvh + ${(PIN3_VH + PIN4_VH) * 100}dvh);
+          /* ⚠️ ŽIADNY VODOROVNÝ PADDING — z rovnakého dôvodu ako nulový gap
+             nižšie. Padding zúži mriežku a stred pravého stĺpca sa posunie
+             dovnútra; odmerané pri 1440 px: rámik dosadol na 1080, text na
+             1052, teda 28 px vedľa. Vzduch pri okrajoch drží šírka obsahu
+             (stĺpec textu má 540, video vlastný padding), nie okraj mriežky. */
+          padding: 0;
+        }
+        /* Prilepený box nesie rezervu na hornú lištu — to isté ako preambula.
+           --op-nav-h je JEDINÉ miesto, kde je výška lišty zapísaná. */
+        .op-root #op-vision .vhero-inner {
+          /* Prilepený box je na celé okno a leží NAD DOGMOU — prázdna plocha
+             po jeho stranách by jej brala kliky. Prst púšťa len na obsah;
+             blokom ho podľa dráhy zapína a vypína réžia vyššie. */
+          pointer-events: none;
+          position: sticky;
+          /* ⚠️ CENTRUJE SA V CELOM OKNE, nie v ploche pod lištou (Matej
+             28. 8. 2026: *„toto musí byť vycentrované na stred tie obsahy"*).
+             Rezerva na lištu posúvala oba stĺpce o polovicu jej výšky nadol,
+             takže celok sedel opticky nízko — a pritom je horná lišta
+             priehľadná, takže optický stred je stred OKNA. Obsah sa pod ňu
+             nedostane: video je stropované výškou okna a bloky sú nižšie. */
+          top: 0;
+          height: 100dvh;
+          /* ⚠️ CENTRUJE SA V PÁSE POD LIŠTOU, nie v celom okne (Matej 28. 8.
+             2026, 3. kolo: *„presne v strede obrazovky — spodný okraj / dolný
+             okraj horného navbaru"*). Tým padol zápis o riadok vyššie: keď
+             lišta stojí na papyruse ako zlatý bar, nie je priehľadná a stred
+             okna leží pod ňou. --op-nav-h je JEDINÉ miesto s jej výškou. */
+          padding-top: var(--op-nav-h);
+          box-sizing: border-box;
+          display: grid;
+          /* ⚠️ NULOVÝ GAP A ŽIADNY PADDING — a je to podmienka, nie estetika.
+             Dva rovnaké stĺpce bez medzery majú stredy presne na 25vw a 75vw,
+             a práve na 75vw dosadá rámik z DOGMY. Akýkoľvek gap alebo padding
+             ten stred posunie a rámik zakotví vedľa textu, ktorý má orámovať.
+             Vzduch medzi polovicami preto drží šírka obsahu, nie medzera mriežky. */
+          grid-template-columns: 1fr 1fr;
+          gap: 0;
+          /* ⚠️ DVOJICA, NIE align-items: center (Matej 28. 8. 2026: *„horný
+             okraj videa a nadpis VÍZIA sú na jednej priamke"*). Pri centrovaní
+             sa každý stĺpec centruje SÁM, takže rozdiel ich výšok sa rozdelí
+             na polovicu a vyššie video vždy začne vyššie než nadpis — 22 px
+             pri 1470 px, a mení sa s každou šírkou okna.
+             align-items: start zrovná horné hrany oboch stĺpcov,
+             align-content: center vycentruje ten JEDEN riadok ako celok
+             v páse pod lištou. Preto sa dá mať oboje naraz — zarovnané hlavy
+             aj stred obrazovky — bez toho, aby sa čokoľvek počítalo v JS. */
+          align-items: start;
+          align-content: center;
+          /* Video vychádza spod spodnej hrany — orezanie z toho robí príchod
+             a nie prelet cez papyrus pod obrazovkou. */
+          overflow: hidden;
+        }
+        /* ĽAVÁ POLOVICA — video. Prilieta zľava zvonku okna.
+           ⚠️ Posun je vo vw a väčší, než sa zdá potrebné: stĺpec stojí v ľavej
+           polovici, takže na to, aby zmizol za ľavou hranou, musí prejsť
+           vlastnú polovicu CELÚ. */
+        /* ĽAVÁ POLOVICA — video. Prichádza ZDOLA (Matej 28. 8. 2026:
+           *„video príde z dola a ako dobehnu texty video sa ukotví"*), nie
+           zboku: vodorovne v tej chvíli cestuje rámik a druhý vodorovný pohyb
+           by mu konkuroval. Zdola je to pohyb, ktorý sa s ním nebije. */
+        .op-root #op-vision .vhero-stage {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: clamp(12px, 2.2vh, 24px);
+          min-width: 0;
+          /* Vzduch pri ľavom okraji okna — hero ho stratil spolu s vlastným
+             paddingom (ten musel odísť kvôli stredu pravej polovice). */
+          padding: 0 clamp(18px, 4vw, 68px);
+          pointer-events: auto;
+          /* 78vh, nie menej: rámček videa stojí v strede prilepeného boxu,
+             takže na to, aby bol CELÝ pod jeho spodnou hranou, musí zísť
+             o polovicu boxu plus vlastnú polovicu. Pri 62vh vykúkal na
+             odklepnutej obrazovke DOGMY spodný okraj (odmerané 46 px). */
+          transform: translateY(calc((1 - var(--op-vid, 0)) * 78vh));
+        }
+        /* PRAVÁ POLOVICA — nadpis a tri bloky sa DOPISUJÚ NA MIESTE.
+           Neprilietajú: na tú polovicu práve dorazil odpísaný stĺpec DOGMY,
+           takže je to ten istý stĺpec s novým obsahom — presne to, čo znamená
+           *„text sa pri scrollingu zmení"*. Keby aj tento blok priletel, boli
+           by to dve karty, ktoré si vymenili miesto.
+           Poradie nesie --vb-at (nadpis 0, bloky 1–3): jedna premenná z JS,
+           štyri prahy v CSS. */
+        /* PRAVÁ POLOVICA — presne v stope rámika: rovnaká šírka (max-width
+           .codex-preamble-wrap = 540) a rovnaký stred (75vw). Preto sa nové
+           texty naozaj objavia V OBLASTI RÁMIKA a nie vedľa neho. */
+        .op-root #op-vision .vhero-blocks {
+          width: min(540px, 44vw);
+          margin: 0 auto;
+          /* .vision-video-hero centruje text kvôli videu; blok s ikonkou vľavo
+             a centrovaným textom sa číta ako rozsypaný. */
+          text-align: left;
+        }
+        .op-root #op-vision .vhero-h2 { text-align: center; }
+        /* Zhodná veľkosť s nadpisom preambuly — zdôvodnenie pri ňom vyššie.
+           ⚠️ 7.4vh tu nie je ozdoba: pod týmto nadpisom stoja TRI bloky, takže na
+           nízkom okne musí ustúpiť rovnako, ako ustupuje preambula. */
+        .op-root #op-vision .vhero-h2 {
+          font-size: min(clamp(2.17rem, 5.2vw, 4.0625rem), 7.4vh);
+        }
+        .op-root #op-vision .vhero-h2 { --vb-at: 0; }
+        .op-root #op-vision .vhero-h2,
+        .op-root #op-vision .vhero-item {
+          --vb-p: clamp(0, var(--op-vb, 0) * 2.2 - var(--vb-at, 0) * 0.4, 1);
+          opacity: var(--vb-p);
+          transform: translateY(calc((1 - var(--vb-p)) * 18px));
+        }
+
+        /* ── 5. OBRAZ: PLÁTNO — VIDEO NA CELEJ OBRAZOVKE ──────────────────
+           Matej 28. 8. 2026: *„ďalší scrolling dolu by mal video centrovať
+           a zväčšovať na celú obrazovku — 3 bloky zmiznú, na celej obrazovke
+           bude len video."*
+
+           Obrazovka sa NEHÝBE (vízia je stále prilepená) — mení sa len to, čo
+           je na nej vidieť, presne ako pri prvých dvoch prechodoch. Dve
+           premenné, dva beaty:
+             --op-vout  0 → 1  nadpis, tri bloky a popisok pod videom hasnú
+             --op-grow  0 → 1  rám sa presunie do stredu okna a dorastie
+           Poradie je zámerné: obrazovka sa najprv vyprázdni, potom ju zaberie
+           plátno. Viď VOUT_OUT a GROW_IN hore. */
+
+        /* PRAVÝ STĹPEC ODCHÁDZA. Krytie stačí — stĺpec je 1fr v mriežke, takže
+           jeho zmiznutie nič neposúva, a video cezeň prechádza navrchu (z-index
+           na stage nižšie). Prst mu odoberá réžia v JS. */
+        .op-root #op-vision .vhero-blocks {
+          opacity: calc(1 - var(--op-vout, 0));
+        }
+        /* Ľavá polovica ide NAVRCH: v DOM-e stojí PRED blokmi, takže by ju inak
+           prekryl práve ten stĺpec, cez ktorý video rastie. */
+        .op-root #op-vision .vhero-stage {
+          position: relative;
+          z-index: 2;
+          /* Medzera pod rámom odchádza s popiskom — inak by po ňom ostala
+             diera a video by sa v páse centrovalo o jej polovicu vyššie. */
+          gap: calc(clamp(12px, 2.2vh, 24px) * (1 - var(--op-vout, 0)));
+        }
+        /* POPISOK „pozri DOGYPT introfilm" — zhasne a ZLOŽÍ SA.
+           ⚠️ Krytie samo nestačí: neviditeľný popisok si drží výšku a rám by sa
+           v páse pod lištou centroval mimo stredu. Zloženie preto ide cez
+           max-height, a to ZÁMERNE AŽ V POSLEDNEJ TRETINE dráhy hasnutia
+           (--vo-late): 64px je viac než jeho skutočná výška, takže kým je text
+           vidieť, orezanie ho ani nezačne — a keď sa začne, už tam nič nie je. */
+        .op-root #op-vision .vhero-inner {
+          --vo-late: clamp(0, (1 - var(--op-vout, 0)) * 3, 1);
+        }
+        .op-root #op-vision .video-hero-caption {
+          opacity: calc(1 - var(--op-vout, 0) * 2.4);
+          max-height: calc(64px * var(--vo-late));
+          overflow: hidden;
+        }
+        /* RÁM VIDEA — jediné miesto, kde je jeho šírka zapísaná.
+           ⚠️ ROVNICA, NIE MERANIE (a nie počítanie v JS): obe krajné šírky sú
+           tie isté výrazy, aké tu boli doteraz, a scroll medzi nimi len lineárne
+           prechádza. Keby cieľovú mierku počítal JS z window.innerWidth, mal by
+           vzorec dve kópie a pri prvej zmene rámu by sa rozišli.
+             --vf-rest  pokojná šírka (to, čo mal rám doteraz)
+             --vf-full  plátno = celá šírka okna, stropovaná výškou pásu POD
+                        hornou lištou (16:9 sa musí zmestiť celé)
+           ⚠️ max(--vf-rest, …) je poistka na nízke okno: keby pás pod lištou
+           vyšiel užší než pokojná šírka, video by sa „zväčšením" zmenšilo. */
+        .op-root #op-vision .video-embed-frame {
+          --vf-rest: min(680px, 100%, max(320px, calc((100dvh - 330px) * 16 / 9)));
+          --vf-full: max(var(--vf-rest), min(100vw, calc((100dvh - var(--op-nav-h)) * 16 / 9)));
+          width: calc(var(--vf-rest) + (var(--vf-full) - var(--vf-rest)) * var(--op-grow, 0));
+          /* Zo stredu ľavej polovice (25vw) do stredu okna (50vw). Číslo platí
+             len preto, že mriežka je 1fr 1fr bez medzery a bez paddingu —
+             to je ten istý lock, kvôli ktorému na 75vw dosadá rámik z DOGMY. */
+          transform: translateX(calc(var(--op-grow, 0) * 25vw));
+          /* 🔴 ZAOBLENIE OSTÁVA AJ NA PLÁTNE (Matej 28. 8. 2026: *„treba aby to
+             video malo stále zaoblené rohy"*). Prvé kolo ho na plátne vynulovalo
+             s úvahou „plátno rám nemá, je to premietanie" — lenže rám je vo filme
+             jediné, čo drží video na papyruse ako predmet a nie ako dieru
+             v stránke. Zaoblenie preto NIE JE v tejto rovnici a berie sa
+             z pôvodného pravidla rámu (14px). */
+          /* ⚠️ Prechod šírky MUSÍ ísť preč: rám ho má kvôli kliku na prehranie
+             (0.45 s), ale tu šírku ženie scroll — animácia na animácii by za
+             prstom zaostávala o pol sekundy. */
+          transition: none;
+        }
+        @media (max-width: 767px) {
+          /* MOBIL NIE JE ZMENŠENÉ PC: dve polovice sa na 390 px nedajú, takže
+             video ostáva hore cez celú šírku a bloky idú pod neho. Prilet je
+             preto cez CELÚ šírku, nie cez polovicu. */
+          .op-root #op-vision .vhero-inner {
+            grid-template-columns: minmax(0, 1fr);
+            align-content: center;
+            height: auto;
+            min-height: 100dvh;
+            padding-top: var(--op-nav-h);
+            box-sizing: border-box;
+            gap: clamp(14px, 2.4vh, 22px);
+          }
+          .op-root #op-vision .vhero-stage {
+            transform: translateY(calc((1 - var(--op-vid, 0)) * 86vh));
+            padding: 0;
+          }
+          .op-root #op-vision .vhero-blocks { width: 100%; gap: 10px; }
+          /* Na mobile stoja video aj tri bloky POD SEBOU v jednej prilepenej
+             obrazovke. Bez zmenšenia sa nezmestia (odmerané 950 px obsahu do
+             586 px miesta) a video vylezie pod hornú lištu. */
+          /* ⚠️ MENÍ SA LEN POKOJNÁ ŠÍRKA, NIE ROVNICA. Rám si width berie
+             z pravidla vyššie; tu sa prepíše jediný jeho vstup, takže rast na
+             plátno platí aj na mobile bez druhej kópie vzorca.
+             Cieľová šírka je na výšku držanom telefóne vždy celé okno (16:9 sa
+             do 726 px pásu zmestí dávno pred tým, než narazí na 100vw), takže
+             „celá obrazovka" tu znamená celú ŠÍRKU — video výšku nezaplní a ani
+             nemá, orezať 16:9 do portrétu by bolo orezanie filmu. */
+          .op-root #op-vision .video-embed-frame {
+            --vf-rest: min(100%, calc(31vh * 16 / 9));
+            /* Jeden stĺpec ⇒ rám už v strede stojí, nemá kam cestovať. */
+            transform: none;
+          }
+          /* Bloky sú tu POD videom, nie vedľa neho, takže po nich ostane diera —
+             na PC ju mriežka drží 1fr stĺpcom, tu ju musí zložiť. Ten istý
+             recept ako popisok: orezanie až v poslednej tretine hasnutia, keď
+             už nie je čo orezať. 480px je viac než ich skutočná výška. */
+          .op-root #op-vision .vhero-blocks {
+            max-height: calc(480px * var(--vo-late));
+            overflow: hidden;
+          }
+          .op-root #op-vision .vhero-item { padding: 10px 12px; gap: 10px; }
+          .op-root #op-vision .vhero-h2 { font-size: clamp(1.45rem, 6.6vw, 1.95rem); }
+          /* Medzera medzi videom a blokmi odchádza s nimi. */
+          .op-root #op-vision .vhero-inner { gap: calc(10px * (1 - var(--op-vout, 0))); }
+          .op-root #op-vision .vision-video-hero { padding: 0 16px; }
+        }
+
         /* ── KRAVA A HEKTOR: PRÍCHOD AJ ODCHOD JEDNOU ROVNICOU ────────────
            Matej: *„pri miznutí z bokov vyliezajú krava a pes"* — a k odchodu
            (26. 8. 2026): *„v momente ako nastupuje text in dog we trust majú
@@ -1173,7 +1757,7 @@ export default function OnePage() {
           transform: translateX(calc(var(--op-in, 0) * -120%)) scale(1.14);
         }
         .op-root.op-root :is(.codex-bleed, .codex-spotlayer) .codex-hektor {
-          transform: translateX(calc(var(--op-in, 0) * 120%)) scale(1.08);
+          transform: translateX(calc(var(--op-in, 0) * 120% + var(--op-hek, 0) * 140%)) scale(1.08);
         }
         @media (min-width: 768px) {
           /* Krava odchádza z obrazu — 140 % vlastnej šírky je za hranou aj pri
@@ -1185,7 +1769,10 @@ export default function OnePage() {
           }
           .op-root.op-root :is(.codex-bleed, .codex-spotlayer) .codex-hektor {
             transform:
-              translateX(calc(var(--op-in, 0) * 120%))
+              /* --op-hek = TRETÍ PRECHOD: pes vychádza za pravý okraj a berie
+                 so sebou svätožiaru aj bodku (sú to jeho deti). 140 % vlastnej
+                 šírky je za hranou aj pri mierke 1.28 a origin bottom right. */
+              translateX(calc(var(--op-in, 0) * 120% + var(--op-hek, 0) * 140%))
               rotate(calc(var(--op-split, 0) * -4deg))
               /* +0.20, nie viac: pes je ukotvený bottom right, takže rastie
                  DOĽAVA A NAHOR — a s ním aj svätožiara, ktorá mu visí nad
@@ -1195,11 +1782,15 @@ export default function OnePage() {
         }
 
         @media (max-width: 767px) {
+          /* ⚠️ --op-hek MUSÍ BYŤ AJ TU, A AJ NA KRAVE. Na PC ju z obrazu
+             vytlačí rozdelenie obrazovky (--op-split), lenže to na mobile
+             neexistuje — takže bez tohto by krava ostala stáť pod textom
+             vízie. Odskúšané: pri 500 px presvitala zľava spod blokov. */
           .op-root.op-root .codex-bleed .codex-cow {
-            transform: translateX(calc(var(--op-in, 0) * -120%)) scale(1.377);
+            transform: translateX(calc(var(--op-in, 0) * -120% - var(--op-hek, 0) * 140%)) scale(1.377);
           }
           .op-root.op-root :is(.codex-bleed, .codex-spotlayer) .codex-hektor {
-            transform: translateX(calc(var(--op-in, 0) * 120%)) scale(1.352);
+            transform: translateX(calc(var(--op-in, 0) * 120% + var(--op-hek, 0) * 140%)) scale(1.352);
           }
         }
 
@@ -1779,10 +2370,15 @@ export default function OnePage() {
             To isté platí pre prechod 2. → 3.: preambula je od 28. 8. 2026 tiež
             prilepená (PIN2_VH), takže značky pokračujú — 4 = medzikrok
             (nadpis stojí, úryvok sa dopisuje), 5 = preambula v pokoji.
+            A to isté pre prechod 3. → 4. (PIN3_VH): 6 = medzikrok (pás je
+            v polovici cesty), 7 = vízia v pokoji.
+            A napokon rast videa na plátno (PIN4_VH): 8 = medzikrok (bloky
+            zhasli, rám je na ceste do stredu), 9 = video na celej obrazovke —
+            a to je zároveň cieľ, kam skáče klik na „pozri introfilm".
             Sú absolútne voči .op-stage, teda na presných násobkoch obrazovky —
             nič nemerajú a nič nekreslia. */}
         <div className="op-snaps" aria-hidden>
-          {Array.from({ length: PIN_VH + PIN2_VH + 1 }, (_, i) => (
+          {Array.from({ length: PIN_VH + PIN2_VH + PIN3_VH + PIN4_VH + 1 }, (_, i) => (
             <span key={i} style={{ top: `${i * 100}dvh` }} />
           ))}
         </div>
@@ -1812,7 +2408,7 @@ export default function OnePage() {
         <section className="op-scene" id="op-vision" aria-label={t('nav.vision')}>
           {/* `flow` vypína vstupný zámok pásu WHAT IF — ten vo filme scroll
               doslova vracia späť (odmerané 4000 → 3989 px). Viď prop v VisionLab. */}
-          <VisionLab embedded flow />
+          <VisionLab embedded flow onWatch={goCinema} />
         </section>
 
         {/* ── OBRAZ 4 — PRÍBEH ────────────────────────────────────────────
