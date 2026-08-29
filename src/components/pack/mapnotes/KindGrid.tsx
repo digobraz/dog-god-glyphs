@@ -13,7 +13,7 @@
 // mal každý vlastnú mriežku, rozišli by sa pri prvom pridanom druhu (a druhy pribúdajú, viď
 // `GROUP_KINDS`).
 import { PACK_THEME as T, FONT_UI } from '@/components/pack/packTheme';
-import { MAP_SKIN, PALE, PALE_PC_MIN, tintRGBA } from '@/components/pack/navGoldSkin';
+import { MAP_SKIN, PALE, tintRGBA } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 import type { NoteKind } from './mapNotesData';
 import { FONT_EMOJI, threatEmoji } from './markEmoji';
@@ -32,14 +32,13 @@ export function KindGrid({
   tint: string;
   onPick: (k: NoteKind) => void;
   /**
-   * VODOROVNÝ RAD namiesto mriežky (Matej 24. 8. 2026: „upozornenia daj do horizontálneho
-   * scrolu... je ich veľa, už som ti to písal viackrát").
+   * NÍZKE PILULKY V ZALAMOVANOM RADE namiesto mriežky 3×3 (Matej 24. 8. 2026: „tie možnosti
+   * sú zbytočne na výšku vysoké a zaberajú cenný priestor v dolnom paneli").
    *
-   * ⚠️ Mriežka 3×3 vznikla 23. 8. z jeho vlastnej výhrady, že možnosti *„musia byť ihneď
-   * viditeľné, nie schované"* — a rad ich časť schová za okraj. Vyhralo to, že deväť dlaždíc
-   * v kroku, kde je pod nimi ešte otázka aj dve tlačidlá, vytlačí návrat pod okraj obrazovky
-   * a človek musí skrolovať. Rad je preto ZÚŽENÝ na miesto, kde miesto naozaj chýba
-   * (sprievodca výletu); paleta značiek na mape mriežku drží ďalej.
+   * ⚠️ Od 28. 8. sa rad ZALAMUJE — vodorovný scroll zanikol (dôvod pri `.mnk-grid--row`
+   * v CSS nižšie). Prop teda mení TVAR dlaždice (nízka pilulka vs. vysoká dlaždica), nie
+   * spôsob posunu. Ostáva zúžený na sprievodcu výletu, kde je miesta najmenej; paleta
+   * značiek na mape drží mriežku ďalej.
    */
   row?: boolean;
 }) {
@@ -75,20 +74,32 @@ export function KindGrid({
 // vysoké stĺpce. Mriežka drží rovnakú výšku všetkým (`align-items:stretch` je default).
 export const KIND_GRID_CSS = `
 .mnk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px;}
-/* Rad s posunom prstom. scroll-snap drží dlaždice zarovnané, aby sa rad nezastavil
-   na polovici jednej z nich a nevyzeral ako oreznutý omylom. Posledná dlaždica je vidno
-   len spolovice zámerne — to je jediné, čo človeku povie, že rad pokračuje. */
-.mnk-grid--row{display:flex;grid-template-columns:none;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;padding-bottom:4px;scrollbar-width:none;}
-.mnk-grid--row::-webkit-scrollbar{display:none;}
+/* ── RAD SA ZALAMUJE, NESKROLUJE (Matej 2026-08-28) ────────────────────────────────────
+   „Vadí mi, že tie chipy — kliešte… sú vedľa seba a je to moc dlhé v jednom riadku,
+    daj to do dvoch — 4 a 4."
+
+   ⚠️ RUŠÍ TO VODOROVNÝ SCROLL z 24. 8. Jeho dôvod (deväť vysokých dlaždíc vytláčalo návrat
+   pod okraj) medzitým zanikol: dlaždice v rade sú nízke a z panela odišla otázka aj tlačidlo
+   OZNAČ. Ostala z neho len tá polovica, ktorú Matej zamietol už 23. 8. — „možnosti musia byť
+   ihneď viditeľné, nie schované".
+   ⚠️ Chip je preto o vlások menší (10 px písmo, tesnejšia výplň): pri pôvodnej veľkosti
+   deväť hrozieb v 408 px stĺpci sadá na TRI riadky, pri tejto na dva. Nie je to estetika —
+   je to jediné číslo, ktorým sa dá „4 a 4" dodržať bez skracovania názvov.
+   🚩 Deviata hrozba sa do dvoch riadkov po štyroch nezmestí presne; padne na tretí riadok
+   na úzkom stĺpci (1024–1400 px, 360 px panel). */
+.mnk-grid--row{display:flex;flex-wrap:wrap;grid-template-columns:none;gap:5px;}
 /* ⚠️ V RADE SÚ DLAŽDICE NÍZKE (Matej 24. 8. 2026: „tie možnosti sú zbytočne na výšku vysoké
    a zaberajú cenný priestor v dolnom paneli, kde sa to nezmestí"). V mriežke bolo emoji NAD
    názvom, lebo stĺpec je úzky; v rade sa smie ísť VEDĽA SEBA a dlaždica tým klesne z ~58 px
    na ~34 px. Ušetrené dva riadky sú presne to, čo v paneli chýbalo. */
-.mnk-grid--row .mnk-tile{flex:0 0 auto;scroll-snap-align:start;flex-direction:row;gap:6px;padding:7px 11px;border-radius:999px;white-space:nowrap;}
-.mnk-grid--row .mnk-tile i{font-size:15px;}
-.mnk-grid--row .mnk-tile em{font-size:11px;}
+.mnk-grid--row .mnk-tile{flex:0 0 auto;flex-direction:row;gap:5px;padding:6px 9px;border-radius:999px;white-space:nowrap;}
+.mnk-grid--row .mnk-tile i{font-size:14px;}
+.mnk-grid--row .mnk-tile em{font-size:10px;}
 .mnk-tile{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:5px;box-sizing:border-box;padding:9px 4px;border-radius:10px;background:rgba(245,240,228,0.06);border:1.5px solid ${T.onDarkBorder};cursor:pointer;transition:transform .12s ease,background .12s ease,border-color .12s ease;}
 .mnk-tile:hover{transform:translateY(-1px);border-color:${T.onDarkDim};}
+/* Ten istý dôvod ako pri chipoch skupiny v AddTripLog: outline mimo hranice by sa orezal
+   o skrolovací stĺpec. Dovnútra ho vidno rovnako. */
+.mnk-tile:focus-visible{outline:2px solid ${T.onDark};outline-offset:-2px;}
 .mnk-tile i{font-style:normal;font-family:${FONT_EMOJI};font-size:19px;line-height:1;}
 /* Space Grotesk je načítaný len 300–600 ⇒ strop 600, inak fake bold (CLAUDE.md). */
 .mnk-tile em{font-style:normal;font-family:${FONT_UI};font-size:10px;font-weight:500;line-height:1.2;text-align:center;color:${T.onDarkDim};}
@@ -98,15 +109,15 @@ ${MAP_SKIN !== 'pale' ? '' : `
 /* ── BLEDÝ SKIN PC (2026-08-26) ─────────────────────────────────────────────────────────
    Mriežka žije v paneli značky, ktorý je na PC papyrusový. V onDark tokenoch tam bola
    NEČITATEĽNÁ: výplň rgba(245,240,228,0.06) na piesku prakticky nič a názov svetlý inkoust —
-   z dlaždice ostalo len emoji. Mobil ostáva tmavý až do vlastného kola.
+   z dlaždice ostalo len emoji.
+   ⚠️ Media query zanikla 28. 8. 2026 — panel značky je bledý na každej šírke, farby sú na
+   oboch tie isté a druhá sada pre mobil by sa rozišla pri prvej úprave.
    ⚠️ Vybraná dlaždica (.on) si výplň nesie zvonku (farba skupiny, inline štýl), preto sa tu
    mení len jej inkoust — a nie na biely, ale na najtmavší: zvolené farby sú svetlé tinty. */
-@media (min-width:${PALE_PC_MIN}px){
   .mnk-tile{background:${PALE.field};border-color:${PALE.border};}
   .mnk-tile:hover{border-color:${PALE.deep};}
   .mnk-tile em{color:${PALE.dim};}
   .mnk-tile.on em{color:${PALE.ink};}
   .mnk-tile.on{box-shadow:0 2px 8px rgba(110,74,20,0.35);}
-}
 `}
 `;

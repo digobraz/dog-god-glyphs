@@ -2,41 +2,88 @@
 // CSS REVEALU — oddelené od komponentu, aby Vite Fast Refresh neprepadal na full reload
 // (rovnaký dôvod ako `packTheme.ts`: konštanta vedľa komponentu láme HMR).
 //
-// Zdroj pravdy vzhľadu = nákres `plany/reveal-nakres.html`, odsúhlasený Matejom 23.–24. 8. 2026
-// v siedmich kolách. Keď sa mení jedno, musí sa zmeniť druhé.
+// Zdroj pravdy STAVBY = nákres `plany/reveal-nakres.html` (Matej, 23.–24. 8. 2026, sedem kôl).
+// Zdroj pravdy ŠATU = nákres `plany/nakres-reveal-lapis-2026-08-28.html` (objekt REV).
+//
+// ── ŠAT SA VYMENIL 28. 8. 2026 (Matej) ───────────────────────────────────────────────────
+// „Reveal je prispôsobený na dark tému a horný nav má gradient zrezaný ako na mobil…
+//  viac-menej tam bude všetko to isté, len v inom šate. Pozadie môže zostať tmavé, ale nie
+//  čierne — lapisové. A na stred obrazovky pôjde obsah ako teraz, ale v bloku/rámiku
+//  v dizajne, ako má rámik v /map na ľavej strane alebo dolný nav (blok s okrajom —
+//  nazvime to dblok). Ostatné len zmeň farby. Takisto po kliknutí na detail bodov to sprav
+//  v tom istom dbloku, nie roztiahnuté, a v bledých farbách to chceme."
+//
+// STAVBA SA NEMENÍ: hlavička je ďalej JEDEN prvok v dvoch stavoch (pri zatvorení sa scvrkne
+// na hlavičku mapy), telo je ďalej miniatúra → názov → meta → body → ⓘ → CTA a rozpad žije
+// ďalej iba v ⓘ. Mení sa povrch, na ktorom to stojí:
+//   · závoj = tmavý LAPIS s presvetlením hore a vinetáciou, nie čierna
+//   · hlavička aj telo = DBLOK — `goldFrameCSS()` z navGoldSkin.ts, teda ten istý odliatok
+//     (zlatý rám v pixeloch → pieskovcová doska → zrno → mramorovanie), aký nesie spodný nav
+//     a ľavý panel v /map. Žiadne vlastné čísla: rám aj polomer berie z BLOCK.
+//   · inkoust na doske je papyrusový (PALE), hlavné CTA je LAPIS (brandový kánon 28. 8.)
+//   · rozpad bodov = ten istý dblok, nie pás cez celú obrazovku
+// ⚠️ Scéna level-upu (konfety, prstence, prehodenie čísla) ostáva TMAVÁ a nedotknutá — je to
+//    iná vrstva než obrazovka s bodmi a nákres ju zámerne nerieši.
+// Keď sa mení jedno, musí sa zmeniť druhé.
 //
 // ⚠️ Toto je JS template literal — SPÄTNÝ APOSTROF v CSS komentári zhodí build a `tsc` to
 //    nechytí. Po každom zásahu spusti `npm run build`, nielen typecheck.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW, PALE } from '@/components/pack/navGoldSkin';
 
 export const REVEAL_CSS = `
 .rv{position:fixed;inset:0;z-index:2500;overflow:hidden;
     font-family:${FONT_UI};color:#F5F0E4;-webkit-font-smoothing:antialiased;}
 
 /* Zatemnenie mapy je SÚČASŤ POPUPU — mizne spolu s ním, nie skôr. */
-/* 0,74 stačilo v nákrese, kde bola pod tým tmavá atrapa mapy. Na skutočnej OSM mape
-   (svetlé dlaždice, mená obcí, cesty) presvital podklad do textu — číslo bodov aj riadok
-   s km sa čítali ťažko. Preto hustejšie a viac rozostrené. */
-.rv-scrim{position:absolute;inset:0;background:rgba(5,5,5,0.88);backdrop-filter:blur(6px);
+/* ⚠️ LAPIS, NIE ČIERNA (Matej 28. 8. 2026). Tri vrstvy, zhora nadol: presvetlenie hornej
+   tretiny (bez neho je z plochy mŕtvy obdĺžnik), vinetácia k okrajom, lapisová výplň.
+   ⚠️ KRYTIE KLESLO 0,90 → 0,68 (Matej 28. 8.: „tá modrá v pozadí je moc výrazná — zníž
+   priesvit nech nie je taká agresívna"). Dôvod, pre ktorý stúplo 24. 8., ostáva v platnosti
+   — pod tým leží skutočná OSM mapa so svetlými dlaždicami a menami obcí, ktoré inak
+   presvitajú do textu — preto sa čitateľnosť NEPRENECHALA farbe, ale ROZOSTRENIU: blur
+   7 → 13 px. Rozmazaná mapa nemá hrany, ktoré by kreslili do písma, takže sa krytie dá
+   pustiť nižšie bez toho, aby sa spodok vrátil do textu. Kto sa vráti k číslu, mení oboje. */
+.rv-scrim{position:absolute;inset:0;
+          background:
+            radial-gradient(120% 90% at 50% 12%, rgba(40,74,168,0.16), transparent 70%),
+            radial-gradient(120% 100% at 50% 50%, transparent 46%, rgba(3,8,26,0.34) 100%),
+            rgba(10,26,74,0.68);
+          backdrop-filter:blur(13px) saturate(.9);-webkit-backdrop-filter:blur(13px) saturate(.9);
           transition:opacity .62s cubic-bezier(.3,.85,.25,1);}
 .rv.closing .rv-scrim{opacity:0;}
 
 .rv-shell{position:absolute;inset:0;max-width:430px;margin:0 auto;}
 
-/* ══ HEADER — JEDEN PRVOK, DVA STAVY ═══════════════════════════════════════
+/* ══ HEADER ════════════════════════════════════════════════════════════════
    Matej 23. 8.: „na obrazovke bude klasický header ako je normálne ale ako keby zoom out
-   + progres ukazovatel po zrušení okna sa ako keby vráti do headra". Pri zatváraní sa
-   scvrkne na rozmery hlavičky mapy a až potom celý overlay zhasne — preto NIE dva
-   komponenty, ale jeden s triedou .closing. */
-.rv-hdr{position:absolute;left:0;right:0;top:0;z-index:12;padding:16px 18px 14px;
-        background:linear-gradient(180deg,rgba(10,8,4,0.92),rgba(10,8,4,0));
-        transition:padding .62s cubic-bezier(.3,.85,.25,1),background .62s;}
-.rv.closing .rv-hdr{padding:9px 14px 8px;background:rgba(10,8,4,0.90);
-                    border-bottom:1px solid rgba(245,240,228,0.14);}
-.rv-hdrow{display:flex;align-items:center;gap:12px;transition:gap .62s cubic-bezier(.3,.85,.25,1);}
-.rv.closing .rv-hdrow{gap:9px;}
+   + progres ukazovatel po zrušení okna sa ako keby vráti do headra".
+
+   ⚠️ ZATVÁRANIE SA 28. 8. VYMENILO (Matej: „ako idem späť na mapu a predtým ako sa obrazovka
+   zabledne je vidno celý blok PÚTNIK z revealu — oprav to tak, že po kliku vedľa celý horný
+   blok zmizne okrem FOTKY a tá sa vráti namiesto do hornej fotky v /map").
+   Do vtedy sa CELÝ blok scvrkával na rozmery hlavičky mapy a cieľ bol trafený len približne
+   — na poslednej štvrtine cesty stál nad mapou papyrusový pás, ktorý sa s ničím nekryl.
+   Odteraz blok zhasne (rýchlejšie než závoj, aby zmizol PRED zbelením obrazovky) a letí
+   jediná vec, ktorá má v hlavičke mapy svoje miesto: fotka majiteľa. Letí ako samostatná
+   vrstva .rv-fly, nie ako potomok hlavičky — opacity na rodičovi zhasína celý podstrom,
+   takže vnútri blednúceho bloku by zbledla spolu s ním. */
+/* ⚠️ TVAR BERIE goldFrameCSS() BEZ PARAMETROV — rám aj polomer sú BLOCK, teda tie isté
+   čísla, aké má spodný nav a ľavý panel v /map. Vlastné číslo tu by znamenalo tretiu
+   variantu toho istého bloku (CLAUDE.md, lock z 26. 8.). */
+.rv-hdr{position:absolute;left:14px;right:14px;top:14px;z-index:12;padding:16px 16px 14px;
+        ${goldFrameCSS()}
+        transition:padding .62s cubic-bezier(.3,.85,.25,1),
+                   left .62s cubic-bezier(.3,.85,.25,1),right .62s cubic-bezier(.3,.85,.25,1),
+                   top .62s cubic-bezier(.3,.85,.25,1),
+                   border-width .62s,border-radius .62s;}
+/* ZATVÁRANIE — blok zhasne. Kratšie než závoj (.3 s proti .62 s): keby hasol s ním, bol by
+   pri zbelení obrazovky ešte vidieť, a presne to Matej nahlásil. */
+.rv.closing .rv-hdr{opacity:0;transform:scale(.985);
+                    transition:opacity .3s ease,transform .36s cubic-bezier(.3,.85,.25,1);}
+.rv-hdrow{display:flex;align-items:center;gap:12px;}
 
 .rv-avatars{display:flex;flex:0 0 auto;}
 .rv-av{border-radius:50%;border:2px solid #C99A3F;overflow:hidden;flex:0 0 auto;
@@ -48,26 +95,44 @@ export const REVEAL_CSS = `
                   font-size .62s,margin .62s,border-width .62s;}
 .rv-av:first-child{margin-left:0;}
 .rv-av--dog{background:linear-gradient(135deg,#3a4a2a,#1a2113);}
-.rv.closing .rv-av{width:28px;height:28px;font-size:11px;border-width:1.5px;margin-left:-8px;}
+
+/* ══ LETIACA FOTKA ═════════════════════════════════════════════════════════
+   Klon avatara majiteľa, ktorý pri zatváraní preletí z revealu na svoje miesto v hlavičke
+   mapy. Stojí MIMO hlavičky (súrodenec, nie potomok) — vnútri by zbledol spolu s ňou.
+   Východisko a cieľ sa merajú za behu (getBoundingClientRect), nie odhadujú: hlavička
+   mapy má na PC a na mobile inú polohu aj inú veľkosť fotky. */
+/* ⚠️ ANIMÁCIA, NIE TRANSITION. Prechod potrebuje dva stavy v dvoch snímkoch, teda triedu
+   dopísanú až po vykreslení klonu — a tá cesta tu nefungovala: klon sa vykreslil, trieda
+   sa dopísala a fotka aj tak ostala stáť (overené v prehliadači). Keyframes sa spustia SAMY
+   v okamihu, keď element vznikne, takže druhý snímok netreba. forwards nechá fotku na
+   cieli, kým sa celý overlay neodmountuje.
+   Bez cieľa (hlavička mapy nie je v DOM-e) sa klon nekreslí vôbec — prílet nikam by vyzeral
+   ako chyba, tiché nič nie. */
+.rv-fly{position:fixed;z-index:40;border-radius:50%;overflow:hidden;object-fit:cover;
+        border:2px solid #C99A3F;background:linear-gradient(135deg,#6b5836,#2a2015);
+        display:flex;align-items:center;justify-content:center;pointer-events:none;
+        font-family:${FONT_TITLE};font-weight:700;font-size:19px;color:#F5C73D;
+        transform-origin:top left;
+        animation:rv-fly-home .62s cubic-bezier(.3,.85,.25,1) forwards;}
+@keyframes rv-fly-home{
+  from{transform:none;border-width:2px;}
+  to{transform:translate(var(--fly-x,0px),var(--fly-y,0px)) scale(var(--fly-s,1));
+     border-width:1.5px;}}
 
 .rv-who{flex:1 1 auto;min-width:0;}
 .rv-rank{font-family:${FONT_TITLE};font-weight:700;font-size:17px;letter-spacing:.1em;
          text-transform:uppercase;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-         transition:font-size .62s;}
-.rv.closing .rv-rank{font-size:11.5px;}
+         color:${PALE.ink};transition:font-size .62s;}
 .rv-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;
          font-family:${FONT_TITLE};font-weight:700;font-size:10.5px;letter-spacing:.12em;
          text-transform:uppercase;border:1px solid rgba(250,244,236,0.30);
          background:linear-gradient(135deg,var(--tier-a,#F5C73D),var(--tier-b,#E69E1A));
          color:var(--tier-ink,#241a06);transition:background .5s,color .5s,font-size .62s;}
-.rv.closing .rv-chip{font-size:8.5px;padding:2px 7px;}
-.rv-pts{font-family:${FONT_UI};font-size:12px;color:rgba(245,240,228,0.55);
+.rv-pts{font-family:${FONT_UI};font-size:12px;color:${PALE.dim};
         font-variant-numeric:tabular-nums;margin-top:3px;transition:font-size .62s,margin .62s;}
-.rv.closing .rv-pts{font-size:9.5px;margin-top:1px;}
 
 .rv-bar{position:relative;margin-top:12px;height:10px;border-radius:999px;
-        background:rgba(245,240,228,0.10);overflow:hidden;transition:height .62s,margin .62s;}
-.rv.closing .rv-bar{height:4px;margin-top:7px;}
+        background:rgba(110,74,20,0.16);overflow:hidden;transition:height .62s,margin .62s;}
 .rv-bar i{display:block;height:100%;width:0;border-radius:999px;
           background:linear-gradient(90deg,var(--tier-b,#E69E1A),var(--tier-a,#F5C73D));
           transition:width 1.1s cubic-bezier(.22,.9,.3,1),background .7s;}
@@ -75,51 +140,82 @@ export const REVEAL_CSS = `
                  box-shadow:0 0 12px rgba(245,199,61,0);transition:box-shadow .4s;}
 .rv-bar.lit .rv-glow{box-shadow:0 0 14px rgba(245,199,61,0.5);}
 /* Veta „ešte X bodov" v malom headeri nie je — tam ju nesie samotná lišta. */
-.rv-tonext{margin:8px 0 0;font-family:${FONT_UI};font-size:12px;color:rgba(245,240,228,0.55);
+.rv-tonext{margin:8px 0 0;font-family:${FONT_UI};font-size:12px;color:${PALE.dim};
            max-height:24px;opacity:1;overflow:hidden;
            transition:max-height .62s,opacity .3s,margin .62s;}
-.rv.closing .rv-tonext{max-height:0;opacity:0;margin-top:0;}
-.rv-tonext b{color:#C99A3F;font-weight:600;}
+.rv-tonext b{color:${PALE.deep};font-weight:600;}
 
 /* ══ TELO ══════════════════════════════════════════════════════════════════ */
-.rv-body{position:absolute;left:0;right:0;top:200px;bottom:0;display:flex;flex-direction:column;
-         padding:0 18px calc(14px + env(safe-area-inset-bottom,0px));
+/* ⚠️ TELO JE KONTAJNER, OBSAH JE BLOK (Matej 28. 8.: „na stred obrazovky pôjde obsah ako
+   teraz, ale v bloku"). Kontajner drží polohu a centruje; všetko, čo sa vidí, stojí
+   v .rv-blok. Bez tohto delenia by bol „blok" natiahnutý od hlavičky po spodnú hranu,
+   teda plocha, nie blok. Odsadenie zhora je výška hlavičky (dblok je o lem vyšší než
+   pôvodný pás) — ostáva jedno číslo, lebo hlavička má pevný obsah. */
+.rv-body{position:absolute;left:14px;right:14px;top:212px;bottom:0;display:flex;
+         flex-direction:column;justify-content:center;overflow-y:auto;
+         padding:0 0 calc(14px + env(safe-area-inset-bottom,0px));
          transition:opacity .3s,transform .62s cubic-bezier(.3,.85,.25,1);}
 .rv.closing .rv-body{opacity:0;transform:translateY(18px);pointer-events:none;}
 
-.rv-core{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;align-items:center;
+/* DBLOK — ten istý odliatok ako hlavička a ako spodný nav v /map. */
+.rv-blok{flex:0 0 auto;padding:20px 20px 18px;${goldFrameCSS()}}
+
+.rv-core{display:flex;flex-direction:column;align-items:center;
          justify-content:center;gap:9px;text-align:center;}
 .rv-thumb{width:112px;height:112px;border-radius:14px;flex:0 0 auto;object-fit:cover;
           background:linear-gradient(135deg,#2f3a22,#171b10);border:1.5px solid #C99A3F;
-          box-shadow:0 6px 22px rgba(0,0,0,0.5);
+          box-shadow:0 6px 22px rgba(70,46,12,0.35);
           display:flex;align-items:center;justify-content:center;font-size:32px;
           opacity:0;transform:scale(.86);}
 .rv-name{font-family:${FONT_TITLE};font-weight:700;font-size:21px;line-height:1.2;
-         opacity:0;transform:translateY(6px);}
-.rv-meta{font-family:${FONT_UI};font-size:11.5px;color:rgba(245,240,228,0.55);margin-top:-3px;
+         color:${PALE.ink};opacity:0;transform:translateY(6px);}
+.rv-meta{font-family:${FONT_UI};font-size:11.5px;color:${PALE.dim};margin-top:-3px;
          opacity:0;transform:translateY(6px);}
 
+/* ══ ŠTATISTIKY VÝLETU — CHIPY, NIE VETA ═══════════════════════════════════
+   Matej 28. 8. 2026: „tie počty KM… daj to do pekného chipu a zvýrazni tie štatistiky."
+   Predtým to bol jeden sivý riadok „4,4 km · 114 m ↑ · C", v ktorom mala jednotka rovnakú
+   váhu ako číslo a pohorie sa čítalo ako preklep. Odteraz nesie každý údaj vlastnú pilulku
+   a v nej je ČÍSLO zlaté a veľké, jednotka tichá vedľa neho.
+   ⚠️ Trieda .rv-meta sa NEMAŽE — tú istú nesie riadok v scéne level-upu, ktorá je tmavá
+   a chipy do nej nepatria. */
+.rv-stats{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;
+          margin-top:1px;opacity:0;transform:translateY(6px);}
+.rv-stat{display:inline-flex;align-items:baseline;gap:4px;padding:5px 11px;border-radius:999px;
+         background:linear-gradient(180deg,rgba(255,251,240,0.72),rgba(246,233,205,0.52));
+         border:1px solid ${PALE.border};
+         box-shadow:0 1px 0 rgba(255,252,244,0.8) inset,0 2px 6px rgba(70,46,12,0.10);}
+.rv-stat b{font-family:${FONT_TITLE};font-weight:700;font-size:15px;line-height:1;
+           color:${PALE.deep};font-variant-numeric:tabular-nums;}
+.rv-stat i{font-family:${FONT_UI};font-style:normal;font-weight:500;font-size:10.5px;
+           letter-spacing:.08em;text-transform:uppercase;color:${PALE.dim};}
+/* Pohorie/oblasť nemá číslo — je to menovka miesta, tak stojí celá v tichej podobe. */
+.rv-stat--place b{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:${PALE.ink};}
+
 .rv-scorewrap{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:2px;}
+/* ⚠️ TMAVÉ ZLATO, NIE SVETLÉ. Gradient #F5C73D→#E69E1A je odmeraný na čiernu obrazovku;
+   na pieskovcovej doske je to svetlé na svetlom a číslo — teda to jediné, prečo sa reveal
+   otvára — zaniká. Je to tá istá farebná rodina, len o dva tóny nižšie. */
 .rv-score{font-family:${FONT_TITLE};font-weight:700;font-size:54px;line-height:1;
-          background:linear-gradient(135deg,#F5C73D,#E69E1A);
+          background:linear-gradient(135deg,#B3822D,#7A4F14);
           -webkit-background-clip:text;background-clip:text;color:transparent;
-          filter:drop-shadow(0 2px 14px rgba(245,199,61,0.26));
+          filter:drop-shadow(0 1px 0 rgba(255,250,228,0.55));
           opacity:0;transform:scale(.9);}
 /* JEDNOTKA STOJÍ VEDĽA ČÍSLA — „+52 BODOV" je jedna veta, nie dva riadky.
    Veľkosť vybral Matej 24. 8. („bodov veľkým") — Cinzel vo váhe čísla, nie tichý popisok.
    Preto smie zlomiť riadok pri dlhšom preklade (EN POINTS), namiesto pretečenia. */
 .rv-unit{align-self:flex-end;margin-bottom:3px;font-family:${FONT_TITLE};font-weight:700;
-         font-size:34px;letter-spacing:.02em;text-transform:uppercase;color:#E69E1A;
+         font-size:34px;letter-spacing:.02em;text-transform:uppercase;color:${PALE.deep};
          opacity:0;}
 @media (max-width:359px){.rv-score{font-size:44px;}.rv-unit{font-size:26px;}}
 
 /* Odkaz na rozpad — tichý, bodkovaným podčiarknutím (Matej 23. 8.).
    ⚠️ CELKOVÉ BODY ANI LEVEL TU NIE SÚ — „to je predsa hore". */
 .rv-sumlink{display:inline-flex;align-items:center;gap:6px;margin-top:9px;padding:2px 0;
-            background:none;border:0;cursor:pointer;color:rgba(245,240,228,0.55);opacity:0;
+            background:none;border:0;cursor:pointer;color:${PALE.dim};opacity:0;
             font-family:${FONT_UI};font-weight:400;font-size:11.5px;transition:color .18s;}
 .rv-sumlink span{border-bottom:1px dotted currentColor;padding-bottom:2px;}
-.rv-sumlink:hover{color:#F5C73D;}
+.rv-sumlink:hover{color:${PALE.deep};}
 
 /* KONCEPT — správa o tom, že výlet ešte nejde von. Prerušovaný rám a papierová šeď
    zámerne nie sú zlaté: zlatá je v tomto rozhraní stav HOTOVO. */
@@ -132,16 +228,22 @@ export const REVEAL_CSS = `
 
 .rv-cta{flex:0 0 auto;padding-top:10px;display:flex;flex-direction:column;gap:8px;
         opacity:0;transform:translateY(8px);}
+/* ⚠️ HLAVNÉ CTA JE LAPIS (brandový kánon 28. 8. 2026, CLAUDE.md). Geometria ostáva z
+   .btn-gold locku — radius 8, nie pilulka; mení sa výplň, nie tvar. Zlaté písmo na
+   modrom nie je ozdoba: bez neho je to tmavé tlačidlo bez príslušnosti k brandu.
+   Trieda sa volá ďalej rv-btn-gold — je to JEDINÉ hlavné tlačidlo revealu a premenovanie
+   by len rozbilo coach bublinu, ktorá ju tiež nesie. */
 .rv-btn-gold{width:100%;padding:14px 16px;border-radius:8px;
-             background:linear-gradient(135deg,#F5C73D,#E69E1A);
-             border:1px solid rgba(250,244,236,0.30);
-             box-shadow:0 0 40px rgba(230,158,26,0.4), inset 0 1px 0 rgba(255,255,255,0.3);
+             background:${LAPIS.grad};border:1px solid ${LAPIS.deep};
+             box-shadow:${LAPIS_BTN_SHADOW};
              font-family:${FONT_TITLE};font-weight:700;font-size:12.5px;letter-spacing:.12em;
-             text-transform:uppercase;color:#2a1608;cursor:pointer;}
+             text-transform:uppercase;color:${LAPIS.ink};cursor:pointer;}
+.rv-btn-gold:hover{background:${LAPIS.gradHover};}
 .rv-btn-ghost{width:100%;padding:11px 16px;border-radius:8px;background:none;
-              border:1px solid rgba(245,240,228,0.14);font-family:${FONT_UI};font-weight:500;
+              border:1px solid ${PALE.border};font-family:${FONT_UI};font-weight:500;
               font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
-              color:rgba(245,240,228,0.55);cursor:pointer;}
+              color:${PALE.dim};cursor:pointer;}
+.rv-btn-ghost:hover{color:${PALE.ink};border-color:${PALE.deep};}
 
 /* ══ SCÉNA LEVELU ══════════════════════════════════════════════════════════
    Matej 23. 8.: „stmavne celá obrazovka a zobrazí sa veľká fotka v strede majiteľ a vedľa
@@ -269,34 +371,55 @@ export const REVEAL_CSS = `
   100%{opacity:0;transform:translate3d(calc(-50% + var(--dx)),calc(-50% + var(--dy)),var(--dz)) scale(var(--s));}}
 
 /* ══ ROZPAD (ⓘ) A COACH ════════════════════════════════════════════════════ */
-.rv-sheet{position:absolute;inset:0;z-index:30;background:rgba(5,5,5,0.90);
-          backdrop-filter:blur(4px);padding:0 18px;overflow-y:auto;
+/* ⚠️ ROZPAD JE TEN ISTÝ DBLOK (Matej 28. 8.: „po kliknutí na detail bodov to sprav v tom
+   istom dbloku, nie roztiahnuté ako vidíš, a v bledých farbách to chceme"). Do teraz to
+   bola tmavá karta cez celú šírku okna — na PC pás od hrany po hranu, ktorý nemal nič
+   spoločné s blokom, z ktorého sa otvoril. Šírka je preto zhodná s .rv-shell (430) a
+   povrch berie ten istý goldFrameCSS().
+   ⚠️ ZÁVOJ JE LEN ĽAHKÝ PRÍTMOK (Matej 2026-08-28: „tú modrú v pozadí daj miernejšiu —
+   myslím ten overlay za blokom, kde je výpis bodov"). Pod ním UŽ LEŽÍ hlavný závoj revealu
+   (0.90), takže sa krytia sčítavajú: 0.72 z toho spravilo takmer nepriehľadnú plochu, na
+   ktorej sa hlavička nad rozpadom stratila. Jeho úloha nie je zatemniť mapu — to je už
+   urobené — ale povedať, že blok pod ním nie je aktívny. */
+.rv-sheet{position:absolute;inset:0;z-index:30;background:rgba(6,16,48,0.38);
+          backdrop-filter:blur(4px);padding:0 14px;overflow-y:auto;
           display:flex;flex-direction:column;justify-content:center;}
-.rv-card{background:linear-gradient(160deg,rgba(28,20,10,0.98),rgba(14,10,5,0.98));
-         border:1.5px solid #C99A3F;border-radius:16px;padding:18px 16px 16px;
-         box-shadow:0 16px 50px rgba(0,0,0,0.7);max-height:86vh;overflow-y:auto;}
-.rv-cardhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
-.rv-cardhead h3{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:14px;
-                letter-spacing:.14em;text-transform:uppercase;color:#C99A3F;}
-.rv-x{width:28px;height:28px;border-radius:50%;flex:0 0 auto;background:rgba(245,240,228,0.07);
-      border:1px solid rgba(245,240,228,0.14);color:rgba(245,240,228,0.55);cursor:pointer;
-      display:flex;align-items:center;justify-content:center;}
-.rv-total{display:flex;align-items:center;justify-content:space-between;gap:10px;
-          margin-top:12px;padding-top:12px;border-top:1px solid rgba(201,154,63,0.4);}
-.rv-total span{font-family:${FONT_TITLE};font-weight:700;font-size:12px;
-               letter-spacing:.14em;text-transform:uppercase;}
-.rv-total b{font-family:${FONT_TITLE};font-weight:700;font-size:26px;color:#F5C73D;}
+.rv-card{width:100%;max-width:430px;margin:0 auto;padding:18px 18px 16px;
+         max-height:86vh;overflow-y:auto;${goldFrameCSS()}}
+/* ⚠️ HLAVIČKA ROZPADU JE BEZ KRÍŽIKA (CLAUDE.md, lock 28. 8. 2026: „nedávajme tie krížiky
+   na bloky"). Von sa ide klikom mimo alebo Esc. Tým sa uvoľnil pravý roh, takže nadpis
+   stojí na stred — a pod ním je zlatá vyblednutá čiara, nie sivý vlas.
+   OŽIVENIE (Matej 28. 8.: „je to najnudnejší screen… zvýrazni to, oživ to trochu"): nadpis
+   dostal eyebrow nad seba a riadky nabiehajú po jednom zdola, v tom istom poradí, v akom
+   sa body pripisovali na predchádzajúcej obrazovke. */
+.rv-cardhead{display:flex;flex-direction:column;align-items:center;gap:3px;margin-bottom:13px;
+             padding-bottom:11px;position:relative;}
+.rv-cardhead::after{content:'';position:absolute;left:8%;right:8%;bottom:0;height:2px;
+                    border-radius:2px;
+                    background:linear-gradient(90deg,transparent,${PALE.edge},transparent);}
+.rv-cardeyebrow{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.26em;
+                text-transform:uppercase;color:${PALE.edge};}
+.rv-cardhead h3{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:15px;
+                letter-spacing:.14em;text-transform:uppercase;color:${PALE.ink};text-align:center;}
 
-.rv-coach{position:absolute;inset:0;z-index:25;background:rgba(5,5,5,0.84);}
-.rv-bubble{position:absolute;left:16px;right:16px;bottom:94px;padding:15px 16px;border-radius:12px;
-           background:rgba(18,13,7,0.98);border:1.5px solid #C99A3F;
-           box-shadow:0 10px 34px rgba(0,0,0,0.6);}
-.rv-bubble h4{margin:0 0 6px;font-family:${FONT_TITLE};font-weight:700;font-size:13px;
-              letter-spacing:.1em;text-transform:uppercase;color:#C99A3F;}
-.rv-bubble p{margin:0 0 12px;font-size:12.5px;line-height:1.5;}
-.rv-bubble::after{content:'';position:absolute;left:30%;bottom:-8px;width:14px;height:14px;
-  margin-left:-7px;background:rgba(18,13,7,0.98);transform:rotate(45deg);
-  border-right:1.5px solid #C99A3F;border-bottom:1.5px solid #C99A3F;}
+/* Deliaca čiara vnútri bledého bloku je zlatá a 2px (T.rule), nie šedý vlas — CLAUDE.md. */
+.rv-total{display:flex;align-items:center;justify-content:space-between;gap:10px;
+          margin-top:13px;padding:11px 12px 9px;border-radius:12px;
+          border-top:2px solid rgba(201,154,63,0.55);
+          background:linear-gradient(180deg,rgba(201,154,63,0.16),rgba(201,154,63,0.04));}
+.rv-total span{font-family:${FONT_TITLE};font-weight:700;font-size:12px;
+               letter-spacing:.14em;text-transform:uppercase;color:${PALE.ink};}
+/* Súčet nesie ten istý tmavozlatý gradient ako číslo na obrazovke pod ním — je to to isté
+   číslo, len rozobraté; dve rôzne farby by z neho spravili dva rôzne údaje. */
+.rv-total b{font-family:${FONT_TITLE};font-weight:700;font-size:32px;line-height:1;
+            background:linear-gradient(135deg,#B3822D,#7A4F14);
+            -webkit-background-clip:text;background-clip:text;color:transparent;
+            filter:drop-shadow(0 1px 0 rgba(255,250,228,0.55));}
+
+
+/* ⚠️ .rv-coach / .rv-bubble ZANIKLI 28. 8. 2026 — bublina revealu sa zdvojovala so
+   sprievodcom na mape (dôvod v TripReveal.tsx pri handleClose). Ukazovanie po zápise
+   žije na jednom mieste: MapCoach.tsx. */
 
 .rv-in{opacity:1 !important;transform:none !important;
        transition:opacity .4s ease,transform .42s cubic-bezier(.22,.9,.3,1);}

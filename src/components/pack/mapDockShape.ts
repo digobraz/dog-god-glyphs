@@ -21,7 +21,7 @@
 // panela skroluje. Hlavička (čo píšem) aj CTA (ako to uložím) stoja — skroluje sa len to
 // medzi nimi. Je to vedomá výmena: konštantný výrez mapy za skrol v jednom krajnom stave.
 import { PACK_THEME as T } from './packTheme';
-import { MAP_SKIN, PALE, goldFrameCSS, PALE_PC_MIN } from './navGoldSkin';
+import { MAP_SKIN, NAV_R, PALE, goldFrameCSS, goldPlateCSS, PALE_PC_MIN } from './navGoldSkin';
 
 /** Podiel výšky okna, ktorý smie panel zabrať v krokoch 1–2. Lock z 24. 8. 2026. */
 export const DOCK_VH = 0.33;
@@ -68,9 +68,13 @@ export const MAP_DOCK_CSS = `
   }
 }
 ${MAP_SKIN !== 'pale' ? '' : `
-/* ── BLEDÝ SKIN PC (2026-08-26) ─────────────────────────────────────────────────────────
-   Dok je na PC odteraz z toho istého materiálu ako ľavý panel a spodná navigácia — zlatý
-   rám okolo pieskovcovej dosky. Mobil ostáva tmavý (vlastné kolo), preto min-width:${PALE_PC_MIN}px.
+/* ── BLEDÝ SKIN (2026-08-26, mobil doplnený 2026-08-28) ─────────────────────────────────
+   Dok je odteraz z toho istého materiálu ako ľavý panel a spodná navigácia — zlatý rám
+   okolo pieskovcovej dosky.
+   ⚠️ NA MOBILE BEZ RÁMU. Dok tam sedí na spodnej hrane obrazovky cez celú šírku, takže lem
+   dokola je zjedený riadok na oboch stranách, nie rám bloku — to isté rozhodnutie, aké
+   28. 8. dostala mobilná hlavička aj hostiteľ formulára. Ostáva samotná doska a zlatý pás
+   na hornej hrane, teda na tej jedinej, ktorá je naozaj okrajom panela.
    ⚠️ Výplň je PLNÁ, nie priesvitná: panel stojí nad mapou a čokoľvek, čo pod ním prebliká,
    z neho robí neprečítateľnú plochu (feedback_priesvitna_plocha_nad_mapou). Zároveň sa tým
    ruší backdrop-filter — rozmazané pozadie je tá istá chyba len inak.
@@ -84,6 +88,22 @@ ${MAP_SKIN !== 'pale' ? '' : `
     ${goldFrameCSS()}
     backdrop-filter:none;-webkit-backdrop-filter:none;
     padding-bottom:20px;
+  }
+}
+@media (max-width:${PALE_PC_MIN - 1}px){
+  /* ⚠️ ZLATO LEN NA HORNEJ HRANE, A CEZ border-image — NIE cez ::before. Panel je zámerne bez
+     position (viď hlavičku triedy) a formulár značky si pripútanie k hrane rieši sám, takže
+     absolútny potomok by sa pripol k cudziemu predkovi. border-image kreslí ten istý
+     gradient, aký má na hornej hrane mobilný filter (.trp-msheet::before v PackMap.tsx) —
+     panel prichádza zdola, takže rám má len tam, kde je naozaj okraj.
+     ⚠️ Šírku má iba horný lem, takže sa vykreslí len ten; polomer je na mobile nulový, teda
+     nemá čo stratiť tým, že border-image zaoblenie ruší. */
+  .trp-dockpanel{
+    ${goldPlateCSS({ radius: 0 })}
+    border-top:${NAV_R.rim}px solid transparent;
+    border-image:linear-gradient(180deg,#FCF0C2,#D8B052) 1;
+    box-shadow:0 -18px 50px rgba(0,0,0,0.45);
+    backdrop-filter:none;-webkit-backdrop-filter:none;
   }
 }
 `}

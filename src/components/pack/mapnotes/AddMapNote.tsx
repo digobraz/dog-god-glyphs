@@ -24,7 +24,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import { Circle, Marker } from 'react-leaflet';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
-import { MAP_SKIN, PALE, PALE_PC_MIN, LAPIS, LAPIS_BTN_SHADOW, tintRGBA } from '@/components/pack/navGoldSkin';
+import { MAP_SKIN, PALE, LAPIS, LAPIS_BTN_SHADOW, tintRGBA } from '@/components/pack/navGoldSkin';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { GROUP_KINDS, NOTE_GROUPS, TICK_DISEASES, bodyRequired, groupOf, radiusRule, type NewMapNote, type NoteGroup, type NoteKind, type TickDisease } from './mapNotesData';
@@ -309,8 +309,14 @@ export const NOTE_TYPE_STRIP_CSS = `
 .mnts{max-width:100%;box-sizing:border-box;border-radius:999px;background:rgba(18,13,7,0.94);backdrop-filter:blur(10px);border:1px solid rgba(245,240,228,0.16);box-shadow:0 6px 20px rgba(0,0,0,0.55);padding:5px 7px;}
 /* Mriežka si odstup nesie pre panel, kde pod ňou stojí text; tu je podkladom pilulka. */
 .mnts .mnk-grid{margin-top:0;}
-/* Rad hrozieb sa v úzkej pilulke posúva prstom — bez tohto by ju roztiahol cez celé okno. */
-.mnts .mnk-grid--row{padding-bottom:0;}
+/* ── RAD HROZIEB SA ZALAMUJE AJ TU (Matej 2026-08-28: „tu stále je jeden riadok… toto som
+   myslel, že je zle") ──────────────────────────────────────────────────────────────────
+   Zalomenie dostala 28. 8. ráno mriežka v paneli — lenže deväť hrozieb Matej videl v TEJTO
+   lište nad mapou, kde ich rovnaký KindGrid row roztiahol cez celé okno (wrap sa nemá kde
+   zalomiť, keď je k dispozícii 1200 px). Strop je preto tu, nie v mriežke: v paneli šírku
+   určuje stĺpec, nad mapou ju neurčuje nič.
+   560 px = dva riadky pri deviatich pilulkách; užšie by dalo tri, širšie jeden. */
+.mnts .mnk-grid--row{padding-bottom:0;max-width:560px;}
 /* OTVORENÝ ROZCESTNÍK NIE JE VÝBER. Upozornenie po ťuknutí len vysunulo rad hrozieb —
    plná výplň by tvrdila, že sa už zapichuje ono. Preto samotný rám, a to prerušovaný:
    je to jediný stav v lište, ktorý na niečo ČAKÁ. */
@@ -323,10 +329,9 @@ ${MAP_SKIN !== 'pale' ? '' : `
    tmavomodrá výplň s tmavohnedým písmom, teda Parkovisko, ktoré nebolo vidieť. Overené
    naživo 28. 8.
    Hodnoty sú tie isté, aké má bledá verzia bodiek 1–5 nad mapou (.atl-steps--onmap
-   v PALE_LOG_CSS) — je to ten istý prvok na tom istom mieste, len s iným obsahom. */
-@media (min-width:${PALE_PC_MIN}px){
+   v PALE_LOG_CSS) — je to ten istý prvok na tom istom mieste, len s iným obsahom.
+   ⚠️ Media query zanikla 28. 8. 2026 spolu s tmavou mobilnou vetvou toku pridávania. */
   .mnts{background:linear-gradient(180deg,#F6EAD0,#E9D9AE);border:1.5px solid ${PALE.edge};box-shadow:0 8px 24px rgba(70,45,10,0.35);backdrop-filter:none;-webkit-backdrop-filter:none;}
-}
 `}
 `;
 
@@ -986,15 +991,15 @@ ${MAP_SKIN !== 'pale' ? '' : `
    ⚠️ .mna-title-kind a .mna-opt--sight/--ill si držia SVOJE farby (skupina značky, potvrdená
    choroba): tie nesú význam a menia sa len tam, kde by boli na svetlom nečitateľné.
    ⚠️ color-scheme na <select> sa musí prepnúť na light, inak WebKit kreslí rozbaľovaciu
-   ponuku ďalej načierno a v papyrusovom paneli vyskočí tmavý zoznam. */
-@media (min-width:${PALE_PC_MIN}px){
+   ponuku ďalej načierno a v papyrusovom paneli vyskočí tmavý zoznam.
+   ⚠️ Media query zanikla 28. 8. 2026 — dok je bledý na každej šírke. */
   /* ── HLAVNÉ CTA JE LAPIS, NIE ZLATÉ (Matej 2026-08-26: „CTA oprav máme predsa modrú") ───
      Formulár značky sa otvára Z KROKU 2 pridávania výletu, takže stojí v tom istom slede
      obrazoviek ako HOTOVO a OZNAČ — a pre ten platí Matejov lock z 24. 8.: „každý slajd musí
      mať totožné CTA, rovnaká farba a štýl". Kým tie dve zmodreli a toto ostalo zlaté, bola
      v jednom toku dvojica CTA v dvoch farbách.
-     ⚠️ Len bledé PC chrome mapy. Tmavý mobil ostáva zlatý — tam je zlatá najvýraznejšia vec
-     na čiernom paneli a lapis by na ňom zanikol. */
+     ⚠️ Od 28. 8. to platí aj na telefóne — panel je bledý aj tam, takže zlatá by bola zlatá
+     na zlatom a hlavná akcia by splynula s doskou, ktorá ju drží. */
   .mna-submit.btn-gold{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};}
   .mna-submit.btn-gold:hover:not(:disabled){background:${LAPIS.gradHover};box-shadow:${LAPIS_BTN_SHADOW};}
   .mna-close{color:${PALE.dim};}
@@ -1010,7 +1015,6 @@ ${MAP_SKIN !== 'pale' ? '' : `
   .mna-pinned{color:${PALE.dim};}
   .mna-hint{color:${PALE.dim};}
   .mnq-title{color:${PALE.ink};}
-}
 `}
 
 `;

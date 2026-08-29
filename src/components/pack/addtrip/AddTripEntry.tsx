@@ -139,6 +139,22 @@ export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
             ‹ {t('pack.addTrip.entry.backAriaLabel')}
           </button>
         )}
+        {/* ── VÝCHOD Z CELOOBRAZOVKOVEJ PODOBY (Matej 2026-08-28) ────────────────────────
+            „na mobile to dať bez toho bloku resp bez okrajov = celá stránka bude bledá ako
+             keby menu na celú obrazovku a na nej 3 bloky, nebude vidno mapu vzadu"
+            ⚠️ Celá obrazovka ZRUŠILA jedinú cestu von. Popup sa dovtedy zatváral klikom na
+            podklad (lock z 26. 8.: „odstráň krížik… stačí len klik vedľa") — lenže keď panel
+            zaberie celé okno, žiadne „vedľa" neostane a na telefóne nie je ani Escape.
+            NIE JE TO NÁVRAT KRÍŽIKA: lock hovorí o BLOKU plávajúcom nad stránkou, toto je
+            celoobrazovková obrazovka toku, a tie majú v pridávaní návrat vľavo hore od
+            začiatku (.atl-log-back). Šípka je teda zhoda so susedom, nie výnimka.
+            Vykresľuje sa vždy, ale VIDITEĽNÁ je len tam, kde je popup na celú obrazovku —
+            rozhoduje CSS v PALE_ADD_CSS (PackMap.tsx), nie meranie šírky v JS. */}
+        {step === 'kind' && (
+          <button type="button" className="att-entry-x" onClick={onClose} aria-label={t('pack.addTrip.entry.closeAriaLabel')}>
+            ←
+          </button>
+        )}
         {step === 'kind' && (
           <div className="att-entry-blocks att-entry-blocks-kind">
             {KINDS.map((k) => (
@@ -177,13 +193,45 @@ export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
                 <span className="att-entry-title">{t(k.titleKey)}</span>
                 <span className="att-entry-text">{t(k.textKey)}</span>
                 {!!KIND_CHIPS[k.kind as keyof typeof KIND_CHIPS] && (
-                  <span className="att-entry-chips">
-                    {KIND_CHIPS[k.kind as keyof typeof KIND_CHIPS].map((c) => (
-                      <span key={c.labelKey} className="att-entry-chip">
-                        <span className="att-entry-chip-emoji" aria-hidden="true">{c.emoji}</span>
-                        {t(c.labelKey)}
-                      </span>
-                    ))}
+                  // ── NEKONEČNÁ SLUČKA CHIPOV (Matej 2026-08-28: „chipy daj do infinity slučky") ──
+                  // Rad sa posúva sám, takže človek uvidí VŠETKY možnosti bez toho, aby na chipy
+                  // musel ťahať prstom — presne to bola sťažnosť („v prvej sekunde nevie… aké sú
+                  // možnosti"). Ručný posuv (overflow-x + touch-action:pan-x) tým zanikol: na
+                  // 390 px sa nevošli ani štyri chipy a zvyšok o sebe nedal vedieť.
+                  //
+                  // ⚠️ TRI KÓPIE, NIE DVE. Posuv je bezšvíkový vždy (perióda = šírka jednej sady,
+                  // animácia posúva presne o ňu), ale DIERU na pravom okraji urobí každá sada,
+                  // ktorá je užšia než blok — a to je práve ODKAZ s tromi chipmi (~330 px na 390 px
+                  // širokej obrazovke). Tri kópie pokryjú aj ten prípad.
+                  // ⚠️ Kópie sú `aria-hidden` — čítačka má prečítať zoznam raz, nie trikrát.
+                  //
+                  // ⚠️ TRVANIE JE PODĽA POČTU CHIPOV, nie pevné. Pevná hodnota by rad troch chipov
+                  // hnala trikrát pomalšie než rad šiestich a tri bloky nad sebou by sa hýbali
+                  // každý inou rýchlosťou. `--att-loop` = čas na PREJDENIE JEDNEJ sady.
+                  //
+                  // ⚠️ Slučka je LEN mobilná vetva (PALE_ADD_CSS v PackMap.tsx). Na PC sa chipy
+                  // zalamujú do riadkov a všetky sú vidno naraz, takže obal aj sada tam majú
+                  // `display:contents` a kópie `display:none` — v DOM sú, v layoute nie.
+                  <span
+                    className="att-entry-chips"
+                    style={{ '--att-loop': `${(KIND_CHIPS[k.kind as keyof typeof KIND_CHIPS].length * 3.2).toFixed(1)}s` } as React.CSSProperties}
+                  >
+                    <span className="att-entry-chiploop">
+                      {[0, 1, 2].map((copy) => (
+                        <span
+                          key={copy}
+                          className={`att-entry-chipset${copy ? ' att-entry-chipset-copy' : ''}`}
+                          aria-hidden={copy ? true : undefined}
+                        >
+                          {KIND_CHIPS[k.kind as keyof typeof KIND_CHIPS].map((c) => (
+                            <span key={c.labelKey} className="att-entry-chip">
+                              <span className="att-entry-chip-emoji" aria-hidden="true">{c.emoji}</span>
+                              {t(c.labelKey)}
+                            </span>
+                          ))}
+                        </span>
+                      ))}
+                    </span>
                   </span>
                 )}
               </button>
@@ -224,6 +272,9 @@ const ENTRY_CSS = `
 .att-entry-panel{position:relative;width:100%;max-width:640px;padding:32px;}
 .att-entry-back{position:absolute;top:18px;left:32px;border:0;background:transparent;color:${T.onDarkDim};font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.02em;cursor:pointer;padding:4px 0;}
 .att-entry-back:hover{color:${GOLD};}
+/* Skrytá, kým je popup plávajúci blok — tam sa zatvára klikom vedľa. Viď komentár pri
+   jej vykreslení; zobrazuje ju bledá mobilná vetva v PALE_ADD_CSS (PackMap.tsx). */
+.att-entry-x{display:none;}
 .att-entry-blocks{display:flex;gap:18px;align-items:stretch;}
 .att-entry-lead{margin:0 0 14px;font-family:${FONT_UI};font-size:12.5px;line-height:1.5;color:${T.onDarkDim};}
 .att-entry-blocks-kind{flex-wrap:wrap;}
@@ -260,6 +311,11 @@ const ENTRY_CSS = `
    zlatého rámu (ten drží hover celej dlaždice) a s krytím pod nadpisom. Emoji má vlastný
    font-family, inak by naň sadol zdedený Cinzel a na Windows sa z 🅿️ stane obdĺžnik. */
 .att-entry-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px;}
+/* Obal slučky a jej kópie — mimo mobilnej mapy sa vôbec nepodieľajú na layoute: obal aj prvá
+   sada sú display:contents (chipy tak ostávajú priamymi položkami zalamovaného radu vyššie)
+   a dve kópie sú preč. Viď komentár pri ich renderi. */
+.att-entry-chiploop,.att-entry-chipset{display:contents;}
+.att-entry-chipset-copy{display:none;}
 .att-entry-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};font-family:${FONT_UI};font-weight:500;font-size:10.5px;letter-spacing:.02em;line-height:1.5;color:${T.onDarkDim};white-space:nowrap;}
 .att-entry-chip-emoji{font-family:${FONT_EMOJI};font-size:12px;line-height:1;}
 .att-entry-block:hover .att-entry-chip,.att-entry-block:focus-visible .att-entry-chip{border-color:rgba(201,154,63,0.42);color:${T.onDark};}

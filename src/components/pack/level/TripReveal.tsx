@@ -30,12 +30,18 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { X } from 'lucide-react';
+import type { MouseEvent as ReactMouseEvent } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import type { LevelProgress, TripPointsResult } from '@/lib/tripPoints';
 import { tierOfLevel, tierVars, crossedTier } from '@/lib/packTiers';
 import { PointsBreakdown } from './PointsBreakdown';
 import { REVEAL_CSS } from './revealCss';
+
+/** Jeden údaj o výlete v chipe. `unit` prázdna = menovka miesta (pohorie, oblasť). */
+export interface TripStat {
+  value: string;
+  unit?: string;
+}
 
 export interface RevealDog {
   id: string;
@@ -47,6 +53,13 @@ export interface TripRevealProps {
   tripName: string;
   /** riadok pod názvom: „4,5 km · 180 m ↑ · Strážovské vrchy" */
   tripMeta: string;
+  /**
+   * Tie isté údaje, ale PO KUSOCH — každý dostane vlastný chip (Matej 28. 8. 2026: „tie
+   * počty KM… daj to do pekného chipu a zvýrazni tie štatistiky"). Číslo a jednotka sa
+   * delia, aby chip mohol dať váhu číslu a jednotku nechať tichú.
+   * Keď chýba, rozseká sa `tripMeta` — scéna level-upu a dev náhľad posielajú len vetu.
+   */
+  tripStats?: TripStat[];
   tripPhoto?: string | null;
   points: TripPointsResult;
   levelBefore: LevelProgress;
@@ -78,7 +91,7 @@ const OWNER_SIZE = 132;
 const DOG_SIZE = 66;
 
 export function TripReveal({
-  tripName, tripMeta, tripPhoto, points, levelBefore, levelAfter,
+  tripName, tripMeta, tripStats, tripPhoto, points, levelBefore, levelAfter,
   ownerAvatarUrl, ownerInitial, dogs, draftMissing, onFinishNow, onAddAnother, onClose,
 }: TripRevealProps) {
   const t = useT();
@@ -88,7 +101,6 @@ export function TripReveal({
 
   const [closing, setClosing] = useState(false);
   const [showSheet, setShowSheet] = useState(false);
-  const [showCoach, setShowCoach] = useState(false);
   const [sceneOn, setSceneOn] = useState(false);
   const [sceneOut, setSceneOut] = useState(false);
   /** level, ktorý práve ukazuje pilulka v scéne — mení sa až v momente zásahu */
@@ -96,12 +108,31 @@ export function TripReveal({
   /** level, ktorý ukazuje HEADER — do konca scény drží starý */
   const [headerLevel, setHeaderLevel] = useState(levelBefore.level);
   const [counter, setCounter] = useState(0);
+  /**
+   * Letiaca fotka pri zatváraní (Matej 28. 8. 2026). `null` = neletí nič. Drží východiskový
+   * obdĺžnik a posun k cieľu; keď cieľ v DOM-e nie je, ostane `null` a blok len zhasne.
+   */
+  const [fly, setFly] = useState<{
+    left: number; top: number; size: number; dx: number; dy: number; scale: number;
+  } | null>(null);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const timers = useRef<number[]>([]);
   const later = useCallback((fn: () => void, ms: number) => {
     timers.current.push(window.setTimeout(fn, ms));
   }, []);
+
+  // ── ŠTATISTIKY DO CHIPOV ──────────────────────────────────────────────────
+  // Keď volajúci pošle rozsekané údaje, berú sa tie. Inak sa vezme veta a rozdelí na
+  // kusoch `·` — dev náhľad aj scéna level-upu posielajú len ju a chip má vyzerať rovnako.
+  // Číslo od jednotky delí PRVÁ medzera: „4,4 km" → 4,4 + km, „114 m ↑" → 114 + m ↑.
+  const stats = useMemo<TripStat[]>(() => {
+    if (tripStats?.length) return tripStats;
+    return tripMeta.split('·').map((s) => s.trim()).filter(Boolean).map((piece) => {
+      const m = /^([\d.,]+)\s+(.+)$/.exec(piece);
+      return m ? { value: m[1], unit: m[2] } : { value: piece };
+    });
+  }, [tripStats, tripMeta]);
 
   const headerTier = tierOfLevel(headerLevel);
   const sceneTier = tierOfLevel(sceneLevel);
@@ -138,6 +169,7 @@ export function TripReveal({
     show('.rv-thumb', 'rv-pop', 200);
     show('.rv-name', 'rv-in', 340);
     show('.rv-meta', 'rv-in', 430);
+    show('.rv-stats', 'rv-in', 430);
     show('.rv-score', 'rv-pop', 560);
     show('.rv-unit', 'rv-in', 640);
     show('.rv-sumlink', 'rv-in', 800);
@@ -192,11 +224,92 @@ export function TripReveal({
   const numTurning = prevSceneLevel.current !== sceneLevel;
   useEffect(() => { prevSceneLevel.current = sceneLevel; }, [sceneLevel]);
 
+  /**
+   * ── PO ZATVORENÍ IDE ROVNO MAPA (Matej 2026-08-28) ────────────────────────────────────
+   * „Treba prerobiť túto obrazovku — tá bublinka musí ukazovať na triplist hore v nave."
+   *
+   * Stála tu VLASTNÁ bublina revealu („Výlet sa uložil do Mojich výletov"), ktorá zaznela
+   * PRED tou na mape — teda dve obrazovky po sebe s tou istou správou, a tá prvá bez toho,
+   * aby čokoľvek ukázala. Bola to práve tá, ktorú Matej odfotil.
+   *
+   * ⚠️ MapCoach (`components/pack/MapCoach.tsx`) ju mal nahradiť UŽ 25. 8. — jeho hlavička to
+   * hovorí doslova („NAHRÁDZA TEXTOVÝ BLOK, NEPRIDÁVA SA K NEMU"), len sa tá stará nikdy
+   * nezmazala. Odteraz sa reveal po dobehnutí animácie jednoducho zavrie a ukazovanie robí
+   * mapa, kde je na čo ukázať.
+   *
+   * Kľúče `pack.reveal.coach*` ostávajú v slovníku (16 jazykov) — mŕtve, ale ich mazanie je
+   * samostatný zásah do prekladov, nie vedľajší účinok tejto opravy.
+   */
+  /**
+   * ── ZATVÁRANIE: BLOK ZHASNE, FOTKA DOLETÍ ─────────────────────────────────────────────
+   * Matej 28. 8. 2026: „ako idem späť na mapu a predtým ako sa obrazovka zabledne je vidno
+   * celý blok PÚTNIK z revealu — oprav to tak, že po kliku vedľa celý horný blok zmizne
+   * okrem FOTKY a tá sa vráti namiesto do hornej fotky v /map."
+   *
+   * Predtým sa celý blok scvrkával na rozmery hlavičky mapy, takže na poslednej štvrtine
+   * cesty stál nad mapou papyrusový pás, ktorý sa s ničím nekryl. Teraz zhasne a letí len
+   * fotka majiteľa — jediná vec, ktorá má v hlavičke mapy svoje miesto.
+   *
+   * ⚠️ Cieľ sa MERIA, neodhaduje: `.trp-mavatar` má na PC a na mobile inú polohu aj veľkosť
+   *    a v DOM-e sú obe hlavičky naraz — berie sa tá s nenulovým obdĺžnikom, teda viditeľná.
+   * ⚠️ Klon stojí MIMO hlavičky. Vnútri by ho zhasla jej `opacity` (tá platí na celý podstrom).
+   * ⚠️ Bez cieľa sa nekreslí nič — prílet nikam vyzerá ako chyba, tichý pád nie.
+   */
   const handleClose = () => {
+    const src = rootRef.current?.querySelector('.rv-av') as HTMLElement | null;
+    const dst = Array.from(document.querySelectorAll('.trp-mavatar'))
+      .map((el) => el.getBoundingClientRect())
+      .find((r) => r.width > 0 && r.height > 0);
+    if (src && dst) {
+      const a = src.getBoundingClientRect();
+      setFly({
+        left: a.left, top: a.top, size: a.width,
+        dx: dst.left - a.left, dy: dst.top - a.top, scale: dst.width / a.width,
+      });
+    }
     setClosing(true);
-    later(() => setShowCoach(true), 700);
+    later(onClose, 700);
   };
-  const finishCoach = () => { setShowCoach(false); onClose(); };
+
+  /**
+   * ── KLIK VEDĽA = SPÄŤ NA MAPU (Matej 2026-08-28: „keď kliknem vedľa, nezruší sa to…
+   * aplikuj to, že klik vedľa = späť na mapu") ──────────────────────────────────────────
+   * Doteraz bola plocha okolo bloku mŕtva a jediná cesta von viedla cez tlačidlo v päte,
+   * ktoré počas nábehu ešte nie je vidieť. Rovnaký odchod má aj rozpad bodov (a odteraz
+   * ani jeden z tých dvoch blokov nemá krížik — CLAUDE.md, lock z 28. 8.).
+   *
+   * ⚠️ MouseDown, nie click: pri ťahaní výberu textu z bloku von by `click` zavrel obrazovku.
+   * ⚠️ Cieľ sa testuje `closest()` — kliknutie do bloku prichádza z jeho vnútra, nie z neho.
+   * ⚠️ Počas scény level-upu sa nezatvára: tá beží nad všetkým a jej prerušenie klikom by
+   *    zobralo odmenu, na ktorú sa čakalo päť sekúnd.
+   */
+  const downTarget = useRef<EventTarget | null>(null);
+  const handleBackdropDown = (e: ReactMouseEvent<HTMLDivElement>) => { downTarget.current = e.target; };
+  const handleBackdropClick = (e: ReactMouseEvent<HTMLDivElement>) => {
+    if (closing || sceneOn) return;
+    // Zatvára sa až na `click`, ale len keď stlačenie aj pustenie padlo na to isté miesto —
+    // pri ťahaní výberu textu z bloku von sa `click` inak vypáli nad závojom a obrazovka by
+    // zmizla uprostred pohybu. `downTarget` je null pri kliku bez stlačenia (syntetický
+    // klik z testov aj z čítačiek obrazovky) — vtedy sa podmienka preskočí.
+    if (downTarget.current && downTarget.current !== e.target) { downTarget.current = null; return; }
+    downTarget.current = null;
+    const el = e.target as HTMLElement;
+    if (el.closest('.rv-hdr, .rv-blok, .rv-card, .rv-scene')) return;
+    if (showSheet) { setShowSheet(false); return; }
+    handleClose();
+  };
+
+  // Esc = to isté. Otvorený rozpad sa zavrie ako prvý, až potom celá obrazovka.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || closing || sceneOn) return;
+      if (showSheet) setShowSheet(false);
+      else handleClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showSheet, closing, sceneOn]);
 
   // ── ROZLOŽENIE SVORKY ─────────────────────────────────────────────────────
   const dogSlots = useMemo(() => {
@@ -216,9 +329,34 @@ export function TripReveal({
   const shownLevel = headerLevel === levelAfter.level ? levelAfter : levelBefore;
 
   return (
-    <div className={`rv${closing ? ' closing' : ''}`} ref={rootRef} style={tierVars(headerLevel)}>
+    <div
+      className={`rv${closing ? ' closing' : ''}`}
+      ref={rootRef}
+      style={tierVars(headerLevel)}
+      onMouseDown={handleBackdropDown}
+      onClick={handleBackdropClick}
+    >
       <style>{REVEAL_CSS}</style>
       <div className="rv-scrim" />
+
+      {/* FOTKA NA CESTE DO HLAVIČKY MAPY — súrodenec bloku, nie jeho potomok (viď handleClose) */}
+      {fly && (
+        ownerAvatarUrl
+          ? <img
+              className="rv-fly"
+              src={ownerAvatarUrl}
+              alt=""
+              style={{ left: fly.left, top: fly.top, width: fly.size, height: fly.size,
+                       ['--fly-x' as string]: `${fly.dx}px`, ['--fly-y' as string]: `${fly.dy}px`,
+                       ['--fly-s' as string]: fly.scale }}
+            />
+          : <span
+              className="rv-fly"
+              style={{ left: fly.left, top: fly.top, width: fly.size, height: fly.size,
+                       ['--fly-x' as string]: `${fly.dx}px`, ['--fly-y' as string]: `${fly.dy}px`,
+                       ['--fly-s' as string]: fly.scale }}
+            >{ownerInitial}</span>
+      )}
 
       <div className="rv-shell">
         {/* HEADER — ten istý prvok, len väčší; po zavretí sa scvrkne hore */}
@@ -255,14 +393,28 @@ export function TripReveal({
           </p>
         </div>
 
-        {/* TELO — miniatúra, názov, meta, body, tichý odkaz na rozpad */}
+        {/* TELO — miniatúra, názov, meta, body, tichý odkaz na rozpad.
+            ⚠️ `.rv-body` je KONTAJNER (drží polohu a centruje), `.rv-blok` je to, čo vidno —
+            dblok so zlatým rámom, ten istý odliatok ako hlavička (Matej 28. 8. 2026). Bez
+            tohto delenia by blok siahal od hlavičky po spodnú hranu, teda plocha, nie blok. */}
         <div className="rv-body">
+         <div className="rv-blok">
           <div className="rv-core">
             {tripPhoto
               ? <img className="rv-thumb" src={tripPhoto} alt="" />
               : <div className="rv-thumb">🏞️</div>}
             <div className="rv-name">{tripName}</div>
-            <div className="rv-meta">{tripMeta}</div>
+            {/* ⚠️ CHIPY, NIE VETA (Matej 28. 8. 2026). Prázdny zoznam nekreslí prázdny rad. */}
+            {stats.length > 0 && (
+              <div className="rv-stats">
+                {stats.map((st, i) => (
+                  <span key={`${st.value}-${i}`} className={`rv-stat${st.unit ? '' : ' rv-stat--place'}`}>
+                    <b>{st.value}</b>
+                    {st.unit && <i>{st.unit}</i>}
+                  </span>
+                ))}
+              </div>
+            )}
             <div className="rv-scorewrap">
               <div className="rv-score">+{counter}</div>
               <span className="rv-unit">{t('pack.reveal.pointsUnit')}</span>
@@ -304,20 +456,25 @@ export function TripReveal({
               </>
             )}
           </div>
+         </div>
         </div>
       </div>
 
-      {/* ROZPAD — jediné miesto, kde žije */}
+      {/* ROZPAD — jediné miesto, kde žije.
+          Zatvorenie klikom mimo rieši `handleBackdropDown` na koreni — jeden zdroj pre obe
+          vrstvy, inak by sa pravidlo „klik vedľa" písalo dvakrát a rozišlo sa. */}
       {showSheet && (
-        <div className="rv-sheet" onClick={() => setShowSheet(false)}>
-          <div className="rv-card" onClick={(e) => e.stopPropagation()}>
+        <div className="rv-sheet">
+          <div className="rv-card">
+            {/* ⚠️ BEZ KRÍŽIKA — CLAUDE.md, lock 28. 8. 2026 („nedávajme tie krížiky na bloky").
+                Von sa ide klikom mimo alebo Esc; hovorí to riadok pod súčtom. */}
             <div className="rv-cardhead">
+              <div className="rv-cardeyebrow">{tripName}</div>
               <h3>{t('pack.reveal.whyTitle')}</h3>
-              <button className="rv-x" onClick={() => setShowSheet(false)} aria-label={t('pack.tier.close')}>
-                <X size={15} />
-              </button>
             </div>
-            <PointsBreakdown rows={points.rows} highlightKey="pack.points.newRange" />
+            {/* ⚠️ `onDark={false}` — karta je od 28. 8. papyrusová, svetlý inkoust by na nej
+                zmizol. Je to ten istý komponent, aký nesie panel levelu; farbu si nepíše, pýta. */}
+            <PointsBreakdown rows={points.rows} onDark={false} highlightKey="pack.points.newRange" stagger />
             <div className="rv-total">
               <span>{t('pack.reveal.forThisTrip')}</span>
               <b>+{points.total}</b>
@@ -385,18 +542,6 @@ export function TripReveal({
       <div className="rv-ring two" />
       <div className="rv-fx" />
 
-      {/* COACH — až keď sa header usadí (Matej: „kde sa jeho výlety ukladajú a kde uvidí body") */}
-      {showCoach && (
-        <div className="rv-coach">
-          <div className="rv-bubble">
-            <h4>{t('pack.reveal.coachTitle')}</h4>
-            <p>{t('pack.reveal.coachBody')}</p>
-            <button className="rv-btn-gold" style={{ padding: 11, fontSize: 11.5 }} onClick={finishCoach}>
-              {t('pack.reveal.coachOk')}
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -192,8 +192,11 @@ const CSS = `
   text-shadow:0 2px 14px rgba(250,244,236,0.95);
 }
 .ts-globe-title span{ display:block; }
-/* Rang + level — PRESNE ten istý vzor ako v hlavičke mapy (.trp-level-name / .trp-level-num):
-   meno rangu Cinzel, číslo v PLNEJ zlatej pilulke bez popisky „Lvl" (Matej 3.8.: „to LVL ma ruší").
+/* Rang + level: meno rangu Cinzel, číslo v PLNEJ pilulke vo farbe pásma bez popisky „Lvl"
+   (Matej 3.8.: „to LVL ma ruší").
+   ⚠️ Od 28. 8. 2026 to UŽ NIE JE ten istý vzor ako v hlavičke mapy — tam sa pilulka zrušila
+   a číslo sedí na okraji avatara, v prstenci postupu (lock v CLAUDE.md). Tu pilulka OSTÁVA:
+   karta nemá avatar, o ktorý by sa číslo mohlo oprieť. Farbu pásma berú obe z packTiers.
    ⚠️ Od 12.8.2026 sedí v PRAVOM HORNOM ROHU karty (Matej: „pútnika daj do pravého horného
    rohu"), nie pod nadpisom — nadpis má odvtedy tri riadky a dvojica pod sebou robila stĺpec
    textu cez pol karty. Preto je absolútny; nadpis si tým drží celú ľavú stranu. */

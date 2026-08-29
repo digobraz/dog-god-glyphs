@@ -1,26 +1,21 @@
-// Je práve chrome mapy bledý? — JS dvojička CSS podmienky `@media (min-width: PALE_PC_MIN)`.
+// Je práve chrome mapy bledý? — JS dvojička CSS bledého skinu.
 //
 // Potrebujú to komponenty, ktoré si farbu nesú v INLINE štýle a z CSS sa teda prebiť nedajú
 // bez !important (dnes `PawRating` cez svoj prepínač `onDark`). Všetko ostatné rieš v CSS —
 // tento hook je výnimka pre inline štýly, nie druhá cesta k tej istej veci.
 //
-// ⚠️ Hranica sa NEPÍŠE sem natvrdo: berie sa `PALE_PC_MIN` z `navGoldSkin.ts`, ten istý
-// zdroj, ktorý používajú aj všetky CSS bloky bledého skinu.
-import { useEffect, useState } from 'react';
-import { MAP_SKIN, PALE_PC_MIN } from './navGoldSkin';
-
-const QUERY = `(min-width: ${PALE_PC_MIN}px)`;
+// ⚠️ ŠÍRKA SA UŽ NEPÝTA (2026-08-28). Do vtedy to bola dvojička podmienky
+// `@media (min-width: PALE_PC_MIN)`, lebo mobilný chrome mapy bol tmavý. Odkedy je bledá aj
+// mobilná hlavička, filter, spodná dvojica tlačidiel a celý tok pridávania, je odpoveď na
+// každej šírke tá istá a `matchMedia` by len vyrábal pásmo, kde je povrch papyrusový, ale
+// komponent si o sebe ešte myslí, že je tmavý.
+//
+// ⚠️ `PALE_PC_MIN` NEZANIKOL — naďalej drží rozdiel v TVARE a ROZMEROCH (plávajúci panel so
+// zlatým lemom vs. celá obrazovka). Rozdeľuje sa tým otázka „akej je to farby" od otázky
+// „akej je to veľkosti"; boli to dve otázky, ktoré len dovtedy mali zhodou okolností
+// rovnakú odpoveď.
+import { MAP_SKIN } from './navGoldSkin';
 
 export function useIsPaleChrome(): boolean {
-  const [wide, setWide] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia(QUERY).matches,
-  );
-  useEffect(() => {
-    const mq = window.matchMedia(QUERY);
-    const on = () => setWide(mq.matches);
-    on();
-    mq.addEventListener('change', on);
-    return () => mq.removeEventListener('change', on);
-  }, []);
-  return MAP_SKIN === 'pale' && wide;
+  return MAP_SKIN === 'pale';
 }

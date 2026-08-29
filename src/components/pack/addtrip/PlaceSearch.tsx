@@ -15,7 +15,7 @@ import L from 'leaflet';
 import type { Map as LeafletMap } from 'leaflet';
 import { MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
 import { PACK_THEME as T, FONT_UI } from '@/components/pack/packTheme';
-import { MAP_SKIN, PALE, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
+import { MAP_SKIN, PALE } from '@/components/pack/navGoldSkin';
 import { dockPadX } from '@/components/pack/mapDockShape';
 import { useT, useLang } from '@/i18n/LanguageContext';
 
@@ -65,10 +65,11 @@ const PLACE_SEARCH_CSS = `
 .trp-ps-sugitem + .trp-ps-sugitem{border-top:1px solid rgba(245,240,228,0.08);}
 .trp-ps-sugsub{color:${T.onDarkDim};}
 ${MAP_SKIN !== 'pale' ? '' : `
-/* ── BLEDÝ SKIN PC (2026-08-26) — pole stojí v papyrusovom doku, tak je z papyrusu tiež.
-   Mobil ostáva tmavý až do vlastného kola. Ponuka je PORTÁL do <body>, teda MIMO .trp-dock —
-   nedá sa zakotviť do doku a musí sa prefarbiť sama. */
-@media (min-width:${PALE_PC_MIN}px){
+/* ── BLEDÝ SKIN (2026-08-26, mobil doplnený 2026-08-28) — pole stojí v papyrusovom doku,
+   tak je z papyrusu tiež. Ponuka je PORTÁL do <body>, teda MIMO .trp-dock — nedá sa
+   zakotviť do doku a musí sa prefarbiť sama.
+   ⚠️ Media query zanikla 28. 8.: dok je bledý na každej šírke, takže druhá sada tých istých
+   farieb pre mobil by sa rozišla pri prvej úprave. */
   .trp-ps-input{background:${PALE.field};border-color:${PALE.border};color:${PALE.ink};}
   .trp-ps-input::placeholder{color:${PALE.dim};opacity:.75;}
   /* Rám poľa drží MODRÚ aj na papyruse — obieha po ňom modré svetlo a zlatý rám
@@ -79,7 +80,6 @@ ${MAP_SKIN !== 'pale' ? '' : `
   .trp-ps-sugitem:hover{background:${PALE.hot};}
   .trp-ps-sugitem + .trp-ps-sugitem{border-top:1px solid ${PALE.hair};}
   .trp-ps-sugsub{color:${PALE.dim};}
-}
 `}
 `;
 

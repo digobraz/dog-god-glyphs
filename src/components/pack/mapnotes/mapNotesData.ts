@@ -128,10 +128,17 @@ export interface RadiusRule {
 // „daj si tu pozor", ale „niekde v tomto kraji". Posuvník má odteraz desať zastávok po 100 m,
 // takže sa dá trafiť skutočný rozsah hrozby, nie len jej rád veľkosti.
 // ⚠️ Staré zápisy s väčším okruhom ostávajú, ako sú — pravidlo platí na to, čo sa dá NASTAVIŤ.
+// ⚠️ STROP 500 m A PREDVOLENÝCH 150 m (Matej 28. 8. 2026: „opäť je okruh nezmenený! rozsah
+// bude natívne od 100–500 a pri výbere dajme 150 v základe"). Kilometrový okruh v praxi
+// prekryl celé údolie aj s trasou pod ním — kruh, ktorý zafarbí polovicu výrezu, prestane
+// byť informáciou o mieste. Predvolených 500 m bolo to isté o polovicu menšie: väčšina
+// zápisov ostala na ňom, lebo posuvník sa nikomu nechcelo ťahať. Krok je preto 50 m —
+// pri rozpätí 400 m je desať zastávok stále dosť jemných na to, aby sa dala trafiť
+// skutočná veľkosť hrozby.
 export const RADIUS_RULES: Record<NoteGroup, RadiusRule> = {
   parking: { mode: 'none', min: 0, max: 0, step: 0, def: 0 },
-  warning: { mode: 'required', min: 100, max: 1000, step: 100, def: 500 },
-  comment: { mode: 'optional', min: 100, max: 1000, step: 100, def: 500 },
+  warning: { mode: 'required', min: 100, max: 500, step: 50, def: 150 },
+  comment: { mode: 'optional', min: 100, max: 500, step: 50, def: 150 },
 };
 
 // ── VÝNIMKY SÚ VLASTNOSŤOU DRUHU, NIE SKUPINY (Matej 2026-08-22) ────────────

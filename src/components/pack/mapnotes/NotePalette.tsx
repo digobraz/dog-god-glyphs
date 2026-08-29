@@ -13,7 +13,7 @@
 // ⚠️ Emoji MUSÍ mať `FONT_EMOJI` — zdedený Cinzel by na Windows sadol na
 // čiernobiely textový variant.
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
-import { MAP_SKIN, PALE, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
+import { MAP_SKIN, PALE } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 import { NOTE_GROUPS, groupOf, type NoteGroup, type NoteKind, type TickDisease } from './mapNotesData';
 import { FONT_EMOJI, GROUP_EMOJI } from './markEmoji';
@@ -153,12 +153,10 @@ ${MAP_SKIN !== 'pale' ? '' : `
    Paleta stojí v dvoch papyrusových hostiteľoch naraz — vo vstupnom popupe pridávania a
    v doku nad mapou — takže v onDark tokenoch bola na PC DOSLOVA neviditeľná: pilulka mala
    výplň rgba(245,240,228,0.04) a názov svetlý inkoust, teda takmer biele na piesku.
-   Mobil ostáva tmavý až do vlastného kola. */
-@media (min-width:${PALE_PC_MIN}px){
+   ⚠️ Media query zanikla 28. 8. 2026 — oba hostitelia sú bledí na každej šírke. */
   .np-item{background:${PALE.field};border-color:${PALE.border};}
   .np-item:hover{border-color:${PALE.deep};background:#FFF6E2;}
   .np-name{color:${PALE.ink};}
   .np-text{color:${PALE.dim};}
-}
 `}
 `;

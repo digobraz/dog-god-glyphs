@@ -1189,8 +1189,28 @@ export function GeometryPicker({
   // teda aj počas kreslenia. Zatváranie by ho pri každej kotve zhaslo.
   useEffect(() => { if (!isPC) setElevOpen(false); }, [pointCount, isPC]);
 
-  /** Je profil naozaj na obrazovke? Na PC nezávisí od kliku (§0.2 zadania). */
-  const elevShown = canElev && (isPC || elevOpen);
+  /**
+   * ── V KROKU 2 SA PROFIL ZBALÍ SPÄŤ DO PILULKY (Matej 2026-08-28) ───────────────────────
+   * „Pri pridávaní upozornení sa ľavý blok natiahne a je potrebný scroll… mohli by sme
+   *  schovať blok Prevýšenie na dropdown do fialovej pilulky? Bude tam, ale schová sa,
+   *  takže na obraze pri pridávaní odkazu bude len AInubis, pils a blok."
+   *
+   * ⚠️ ZUŽUJE TO LOCK Z 26. 8. („na PC je prevýšenie otvorené natrvalo"), nie ruší: v kroku 1
+   * stojí ďalej otvorené, lebo vtedy je profil VÝSLEDOK toho, čo človek práve kreslí. V kroku 2
+   * je úlohou zapichovať značky a stĺpec má naraz štyroch obyvateľov (sprievodca, profil,
+   * pilulka, panel s chipmi a radom hrozieb) — profil je z nich jediný, ktorý sa v tej chvíli
+   * na nič nepoužíva, a práve on tlačí panel pod okraj okna.
+   * Pilulka tým v kroku 2 na PC PRVÝKRÁT dostáva úlohu prepínača (dovtedy ju mala len na
+   * telefóne) — a to je zámer: „bude tam, ale schová sa".
+   */
+  const notesPhase = !!drawBar?.panel;
+  /** profil stojí bez kliku — len tam, kde je jeho miesto zadarmo */
+  const elevPinned = isPC && !notesPhase;
+  /** Je profil naozaj na obrazovke? */
+  const elevShown = canElev && (elevPinned || elevOpen);
+  // Vstup do kroku 2 profil ZBALÍ — inak by sa človek, ktorý si ho v kroku 1 otvoril, ocitol
+  // presne v tom stave, kvôli ktorému sa zbaľovanie zavádzalo.
+  useEffect(() => { if (notesPhase) setElevOpen(false); }, [notesPhase]);
 
   /**
    * Sprievodca ako JEDEN uzol — na PC ho hostí ľavý stĺpec, na telefóne pás nad mapou.
@@ -1227,9 +1247,9 @@ export function GeometryPicker({
   const readoutRow = (stage === 2 && showReadout)
     ? (
       <div className="trp-dreadrow">
-        {/* Na PC pilulka NIE JE prepínač — profil pod ňou je otvorený vždy, takže tlačidlo
-            so šípkou by sľubovalo stav, ktorý sa nedá zmeniť. */}
-        {canElev && !isPC
+        {/* Pilulka je prepínač VŠADE, kde profil nie je pripnutý (telefón + krok 2 na PC).
+            Tam, kde stojí otvorený natrvalo, by šípka sľubovala stav, ktorý sa nedá zmeniť. */}
+        {canElev && !elevPinned
           ? (
             <button
               type="button"
@@ -1251,8 +1271,8 @@ export function GeometryPicker({
       <div className="trp-delev">
         <div className="trp-delev-head">
           <span>{t('pack.trip.elevation')}</span>
-          {/* Zatvoriť sa dá len to, čo sa dá otvoriť — na PC profil stojí natrvalo. */}
-          {!isPC && (
+          {/* Zatvoriť sa dá len to, čo sa dá otvoriť — pripnutý profil krížik nemá. */}
+          {!elevPinned && (
             <button type="button" className="trp-delev-x" onClick={() => setElevOpen(false)} aria-label={t('pack.mapNotes.add.close')}>×</button>
           )}
         </div>
@@ -1427,8 +1447,17 @@ export function GeometryPicker({
             mapa priblížená na 15+. Keď sa v kroku 2 pridá prevýšenie, stoja pod sebou —
             dok na PC skroluje (`.trp-dock--pc{overflow-y:auto}`).
             Len PC: na telefóne je dok pripútaný k spodnej hrane a miesto tam nie je (a prstom
-            sa odzoomuje inak). Bežná `/pack/map` ho dostane až po doladení, vpravo dole. */}
-        {isPC && <MiniOverview mapRef={mapRef} />}
+            sa odzoomuje inak). Bežná `/pack/map` ho dostane až po doladení, vpravo dole.
+
+            ⚠️ ZMIZNE V MOMENTE PRVEJ KOTVY (Matej 2026-08-28: „v momente kliku a štartu trasy
+            zmizne ten blok s «kde si» — je zbytočný a nezmestí sa potom na obraz naľavo,
+            treba scrolovať; ak človek vráti o krok späť a štart zmizne, blok sa objaví znova").
+            RUŠÍ TO „je tu VŽDY" z toho istého dňa, a to vedome: náhľad odpovedá na otázku
+            „kde na Slovensku to je", ktorú má človek pred prvým klikom. Po ňom je odpoveďou
+            samotná trasa a stĺpec potrebuje miesto na prevýšenie, pilulku a nástroje —
+            štyri bloky sa doň nezmestia bez skrolovania. Podmienkou je `stage`, teda TÁ ISTÁ
+            značka, podľa ktorej sa prepína celý panel: návrat o kotvu späť ho vráti sám. */}
+        {isPC && stage === 0 && <MiniOverview mapRef={mapRef} />}
         {/* ⚠️ ČÍTANIE KM STOJÍ V MAPE, NIE V PANELI (Matej 24. 8. 2026: „pils s počítaním km
             v 1-2 kroku daj nad panel — ako keby do mapy"). Je to údaj O TRASE, teda o tom, čo
             je na mape — v paneli patrí ovládanie. Rovnaké miesto, aké mala kedysi pokynová
@@ -1951,14 +1980,16 @@ const DRAW_BAR_CSS = `
   .trp-dock{width:${360 + GLOW_PAD * 2}px;}
 }
 ${MAP_SKIN !== 'pale' ? '' : `
-/* ══ BLEDÝ SKIN PC (2026-08-26) ══════════════════════════════════════════════════════════
-   Dok je na PC papyrusový panel so zlatým rámom (mapDockShape.ts), takže jeho OBSAH nesmie
-   ostať v onDark tokenoch — bol by to svetlý text na piesku. Mobil ostáva tmavý až do
-   vlastného kola, preto min-width:${PALE_PC_MIN}px.
-   ⚠️ Čítanie km (.trp-dread) a profil prevýšenia (.trp-delev) sa ZÁMERNE nemenia: nie sú to
-   panely chrome, ale odznaky NAD MAPOU a nesú fialovú farbu trasy. Prefarbiť ich na papyrus
-   by zmazalo väzbu na čiaru, ktorú človek práve kreslí. */
-@media (min-width:${PALE_PC_MIN}px){
+/* ══ BLEDÝ SKIN (2026-08-26, mobil doplnený 2026-08-28) ══════════════════════════════════
+   Dok je papyrusový panel (mapDockShape.ts), takže jeho OBSAH nesmie ostať v onDark
+   tokenoch — bol by to svetlý text na piesku.
+   ⚠️ MEDIA QUERY ZANIKLA 28. 8. (Matej: „natiahni dizajn aký je na PC iba ho prispôsob
+   viewportu"). Farby sú na oboch šírkach tie isté; rozdiel je len v TVARE doku a ten rieši
+   mapDockShape.ts. Pravidlá viazané na PC si nesú predponu .trp-dock--pc, takže na telefóne
+   nemajú čo trafiť.
+   ⚠️ Čítanie km (.trp-dread) sa ZÁMERNE nemení: nie je to panel chrome, ale odznak NAD MAPOU
+   a nesie fialovú farbu trasy. Prefarbiť ho na papyrus by zmazalo väzbu na čiaru, ktorú
+   človek práve kreslí. */
   /* ── PREVÝŠENIE JE NA PC SÚČASŤ STĹPCA, NIE ODZNAK NAD MAPOU ───────────────────────────
      Do 26. 8. tu stálo, že sa ZÁMERNE nemení: „nie je to panel chrome, ale odznak NAD MAPOU
      a nesie fialovú farbu trasy." Platilo to, kým plával v mape. Odkedy stojí v ľavom stĺpci
@@ -2011,10 +2042,10 @@ ${MAP_SKIN !== 'pale' ? '' : `
      akcia bola najsvetlejší prvok panela a splývala s tým, čo ju drží; to je presne dôvod,
      prečo LAPIS v redizajne /map vznikol (navGoldSkin.ts). Zlato ostáva na písme —
      lapis + zlato je pôvodná egyptská dvojica a bez neho je to len tmavé tlačidlo.
-     ⚠️ Tmavý mobil sa NEMENÍ: tam je panel čierny a zlaté CTA je na ňom najvýraznejšia vec. */
+     ⚠️ Od 28. 8. to platí aj na telefóne — dok je bledý na každej šírke, takže zlaté CTA
+     by tam bolo tou istou zlatou na zlatom, akou bolo na PC. */
   .trp-dbar-done{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};}
   .trp-dbar-done:hover:not(:disabled){background:${LAPIS.gradHover};box-shadow:${LAPIS_BTN_SHADOW};}
-}
 `}
 
 `;

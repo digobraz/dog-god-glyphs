@@ -107,6 +107,19 @@ export type AddTripLogProps = {
    */
   fromPlan?: boolean;
   onClose: () => void;
+  /**
+   * NÁVRAT ZO ŠÍPKY NA PRVEJ OBRAZOVKE = O KROK SPÄŤ, NIE VON (Matej 2026-08-28:
+   * „ked dam z aktivity šípku dozadu da ma na mapu a nie na ADD! oprav").
+   *
+   * Výber aktivity je DRUHÁ obrazovka toku — pred ňou stojí popup „čo pridávam" (AddTripEntry).
+   * Šípka tu volala `onClose`, takže jediné, čo človek na prvej obrazovke rozhodol (VÝLET vs.
+   * PODUJATIE vs. ODKAZ), sa nedalo zmeniť inak než zavretím celého pridávania a novým klikom
+   * na PRIDAŤ. Odkedy je šípka na oboch obrazovkách na tom istom mieste, vyzerá to navyše ako
+   * pokazený návrat, nie ako východ.
+   * ⚠️ Nepovinné zámerne: keď sa sprievodca otvorí bez popupu (doplnenie konceptu, prejdený
+   * plán, deep link), nie je kam sa vracať a šípka ostáva východom.
+   */
+  onBackToEntry?: () => void;
   /** PackMap.tsx:246 `placeholderFor()` — rovnaký prop ako AddTripPlan, len tu slúži ako
    *  fallback pokým autor nenahrá vlastnú fotku (row 10) — akonáhle je aspoň jedna, nahrádza ju. */
   placeholderFor: (actIds: string[] | undefined, seed: string) => string;
@@ -283,7 +296,7 @@ function CompanionAvatarsOnly(props: {
   );
 }
 
-export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef, seedPoint, onMapPhase, onHasRoute, onPlaceNote, onRemoveNote, placedNotes, notePlacing, finishTrail, fromPlan }: AddTripLogProps) {
+export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, onBackToEntry, placeholderFor, mapRef, seedPoint, onMapPhase, onHasRoute, onPlaceNote, onRemoveNote, placedNotes, notePlacing, finishTrail, fromPlan }: AddTripLogProps) {
   const paleChrome = useIsPaleChrome();
   // ⚠️ Tento súbor NEBOL preložený vôbec — `t` v ňom doteraz znamenalo lokálnu premennú
   // (text hrozby, položka tagu). Obe sú premenované, inak by prekladač zmizol pod nimi
@@ -806,9 +819,22 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   const isMinimalGeo = geometry.kind === 'route' && !!geometry.minimal;
   // ⚠️ Viacdňovosť je ODPOVEĎ z kroku 1, nie dôsledok dátumu (viď `multiDay` vyššie).
   const isMultiDay = activity === 'hike' && multiDay;
-  // Viacdňový výlet bez konca nemá z čoho spočítať dni ani noci — a človek si ich už
-  // v kroku 2 zapichol ako nocľahy. Do 27. 8. tá istá podmienka strážila `journey`.
-  const multiDayIssue = isMultiDay && !dontRemember && !(!!dateEnd && dateEnd > date);
+  /**
+   * Viacdňový ZÁPIS bez konca nemá z čoho spočítať dni ani noci — a človek si ich už
+   * v kroku 2 zapichol ako nocľahy. Do 27. 8. tá istá podmienka strážila `journey`.
+   *
+   * 🔴 PLÁNU SA NETÝKA (Matej 28. 8. 2026: „chce to odomňa dátum návratu — ale ja ho ešte
+   * neviem, je to iba PLAN"). Bol to tvrdý blocker, nie výčitka: celý blok s dátumami
+   * vrátane poľa KONIEC stojí za `!isPlan` (nižšie v tomto súbore), takže v pláne sa
+   * `dateEnd` nedalo zadať NIKDE — viacdňový plán mal tlačidlo navždy sivé a pod ním
+   * hlášku, ktorá pýtala údaj bez políčka.
+   *
+   * Nie je to len obídenie: plán sa v tom istom kroku sám pýta „presný deň / týždeň /
+   * mesiac", teda vedome pripúšťa, že termín ešte nie je istý. Žiadať pri tom presný
+   * dátum návratu si protirečí. Koniec sa doplní až pri zápise, keď sa plán prejde
+   * (`fromPlan` vedie človeka sprievodcom od začiatku) — a tam sa naďalej vyžaduje.
+   */
+  const multiDayIssue = !isPlan && isMultiDay && !dontRemember && !(!!dateEnd && dateEnd > date);
   /**
    * Dĺžka výletu v dňoch — vrátane oboch krajných dní (od pondelka do stredy = 3 dni, 2 noci).
    * ⚠️ Ráta sa z reťazcov `YYYY-MM-DD` cez `Date.UTC`, nie z lokálnych dátumov: pri prechode
@@ -1224,6 +1250,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   // takže mriežka s jednou dlaždicou by bola ozdoba a nie voľba.
   const askGroup = NOTE_ASKS[Math.min(noteAsk, NOTE_ASKS.length - 1)].group;
   const askKinds = GROUP_KINDS[askGroup];
+  /** posledná z troch otázok — jej tlačidlo nevedie na ďalšiu otázku, ale rovno do kroku 3 */
+  const lastAsk = noteAsk >= NOTE_ASKS.length - 1;
 
   /**
    * ── RÁMOVANIE OBOCH MAPOVÝCH KROKOV MÁ JEDNÉHO VLASTNÍKA ──────────────────────────────
@@ -1337,11 +1365,20 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     </div>
   );
 
+  /* ⚠️ FÁZA „VŠETKY TRI OTÁZKY SÚ ZA MNOU" ZANIKLA (Matej 2026-08-28) ────────────────────
+     Bola to obrazovka s vetou „hotovo", odkazom „označiť ešte" a zlatým POKRAČOVAŤ — teda
+     tretí klik navyše za tým, čo už človek povedal treťou odpoveďou. Tlačidlo poslednej
+     otázky vedie odteraz rovno do kroku 3 (`lastAsk`).
+     ⚠️ ČO S ŇOU PADLO: AInubisova reakcia na výsledok z 25. 8. („škoda, že si nič neoznačil"
+     / pochvala za označené). Vety `step.notesNone` a `step.notesPraise` ostávajú v slovníku,
+     ale nemá ich kto povedať — v krokoch 3–5 sprievodca nestojí (`drawBar.active`).
+     Spätná väzba o značkách tým nezmizla úplne: rozpis odmeny na konci výletu ich menuje
+     samostatnou položkou („3 značky na mape +9"). 🚩 Ak má vetu povedať aj AInubis, potrebuje
+     nosič v kroku 3 — to je samostatné rozhodnutie, nie vedľajší účinok tejto úpravy. */
   const notesBody = (
     <>
       {noteTrack}
-      {noteAsk < NOTE_ASKS.length ? (
-        <>
+      <>
           {/* ⚠️ OTÁZKA TU UŽ NESTOJÍ — hovorí ju AInubis hore (Matej 24. 8. 2026: „tá otázka
               kde si parkoval je dole zbytočná, dajme ju ainubisovi"). V paneli ostáva len to,
               čím sa odpovedá. Ušetrený riadok je presne ten, kvôli ktorému sa muselo skrolovať
@@ -1363,9 +1400,28 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
             {/* PRESKOČIŤ vs. ĎALEJ — to isté tlačidlo, iné slovo (2026-08-27). Kým človek
                 v tejto otázke nič neoznačil, naozaj ju PRESKAKUJE; keď už značku položil,
                 „preskočiť" by tvrdilo, že o ňu príde. Odkedy sa otázka po značke sama
-                neposúva, je to jediná cesta ďalej — a musí povedať, že ňou nič nestráca. */}
-            <button type="button" className="atl-toggle-btn" onClick={() => setNoteAsk((i) => i + 1)}>
-              {t(placedInGroup(askGroup) > 0 ? 'pack.addTrip.step.nextAsk' : 'pack.addTrip.step.skip')}
+                neposúva, je to jediná cesta ďalej — a musí povedať, že ňou nič nestráca.
+
+                ⚠️ PRI TRETEJ OTÁZKE JE TO ROVNO POKRAČOVAŤ (Matej 2026-08-28: „po kliknutí
+                sa otvorilo CTA Pokračovať, ale pripadá mi to zbytočné — namiesto Ďalej mohlo
+                byť hneď Pokračovať, nie?"). Medziobrazovka „hotovo, chceš označiť ešte?"
+                zanikla: bola to otázka, na ktorú je odpoveďou chip v rade nad ňou, teda
+                jeden ťuk, ktorý je vidno po celý krok. Preskočenie ostáva vedomé — tretia
+                otázka sa ním neprejde tichom, len sa neopýta dvakrát.
+
+                ⚠️ A JE TO LAPIS, NIE BLEDÉ TLAČIDLO (Matej 2026-08-28: „tu to Ďalej nie je
+                vôbec vidno! CTA musí byť lapisové a dobre viditeľné"). Je to JEDINÉ CTA
+                panela, takže plná farebná plocha mu patrí — zvyšok kroku sú chipy v tinte.
+                Trieda je tá istá, akú nesie HOTOVO v kroku 1 (`.trp-dbar-done`), nie druhý
+                recept na to isté. */}
+            <button
+              type="button"
+              className="trp-dbar-done trp-dbar-done--hero"
+              onClick={() => { if (lastAsk) setStep(3); else setNoteAsk((i) => i + 1); }}
+            >
+              {t(lastAsk
+                ? 'pack.addTrip.step.doneNotes'
+                : placedInGroup(askGroup) > 0 ? 'pack.addTrip.step.nextAsk' : 'pack.addTrip.step.skip')}
             </button>
             {/* ⚠️ TLAČIDLO OZNAČ TU UŽ NIE JE (Matej 2026-08-27: „chip → OZNAČ sú dva kliky
                 na jednu vec"). Označovanie zapína ťuk do chipu skupiny, resp. do dlaždice
@@ -1374,29 +1430,13 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                 naozaj patrí. Kľúč `step.markShort` ostáva v slovníku (zhrnutie kroku 4).
                 Cesta VON z označovania je × v AInubisovej bubline, tá sa nemení. */}
           </div>
-        </>
-      ) : (
-        <>
-          <p>{t('pack.addTrip.step.notesDone')}</p>
-          <button type="button" className="atl-journey-link" onClick={() => setNoteAsk(0)}>
-            {t('pack.addTrip.step.markMore')}
-          </button>
-        </>
-      )}
+      </>
       <PlacedNotes notes={placedNotes} t={t} emptyKey="pack.addTrip.step.noNotesYet" onRemove={onRemoveNote} />
     </>
   );
   const notesPanel = (
     <div className="atl-noteask atl-noteask--bar">
       {notesBody}
-      {/* ⚠️ POKRAČOVAŤ SA ZJAVÍ AŽ PO TROCH OTÁZKACH. Kým stálo v paneli od začiatku, bolo to
-          tlačidlo „preskoč celý krok" vedľa tlačidla „preskoč jednu otázku" — a to väčšie
-          a zlaté. Kto nechce pridať nič, preskočí trikrát; kto pridal, sa sem dostane tiež. */}
-      {noteAsk >= NOTE_ASKS.length && (
-        <button type="button" className="trp-dbar-done trp-dbar-done--hero" onClick={() => setStep(3)}>
-          {t('pack.addTrip.step.doneNotes')}
-        </button>
-      )}
     </div>
   );
 
@@ -1659,10 +1699,15 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
       setDrawManually(false);
     }
   };
+  const dayAskKey = isPlan ? 'pack.addTrip.step.dayModeAsk.plan' : 'pack.addTrip.step.dayModeAsk';
   const multiDayAsk = activity === 'hike' && drawingStep ? (
     <div className="atl-daymode">
-      <span className="atl-daymode-ask">{t('pack.addTrip.step.dayModeAsk')}</span>
-      <div className="atl-toggle-row" role="tablist" aria-label={t('pack.addTrip.step.dayModeAsk')}>
+      {/* ⚠️ ČAS PODĽA TOHO, ČI SA ZAPISUJE ALEBO PLÁNUJE (Matej 2026-08-28: „ako dlho ste boli
+          na ceste, nie ste — minulý čas, log"). Otázka bola písaná pre plán a zápis ju zdedil,
+          takže sa človeka, ktorý práve prišiel z výletu, pýtala v prítomnom čase. Tá istá
+          dvojica kľúčov, akú používa sprievodca (`tp()` v GeometryPicker.tsx). */}
+      <span className="atl-daymode-ask">{t(dayAskKey)}</span>
+      <div className="atl-toggle-row" role="tablist" aria-label={t(dayAskKey)}>
         <button
           type="button"
           role="tab"
@@ -1731,22 +1776,24 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     hint: (revisited(step) && stepMissing[step]?.length)
       ? `${t('pack.addTrip.step.stillMissing')} ${missingTx(stepMissing[step])}`
       : notesInBar
-      ? (noteAsk >= NOTE_ASKS.length
-          /**
-           * ── AINUBIS REAGUJE NA VÝSLEDOK, NIE LEN OZNAMUJE KONIEC (Matej 2026-08-25) ────
-           *
-           * „ak človek neoznačil odkazy v 2. kroku, tak ainubis na to musí reagovať — škoda
-           *  že si nič neoznačil, pripravil si sa o body a komunitu o cenné rady. Ak niečo
-           *  označil 1-2-3: pochvala! super, získal si body a pomohol si komunite."
-           *
-           * ⚠️ ĽÚTOSŤ, NIE VÝČITKA. Trasa bez jedinej hrozby je legitímna — vetu preto nesie
-           * škoda, nie „mal si". Pochvala pomenúva OBE strany zisku (body pre neho, rady pre
-           * svorku), lebo len jedna z nich by z toho spravila automat na body.
-           * Body sa nepíšu do textu, počítajú sa z ekonomiky — viď `notesLead` vyššie.
-           */
-          ? (placedCount === 0
-              ? t('pack.addTrip.step.notesNone')
-              : t('pack.addTrip.step.notesPraise', { pts: ptsWord(Math.min(placedCount, 3) * POINTS.note) }))
+      /**
+       * ⚠️ VETVA „PO TROCH OTÁZKACH" TU BOLA DO 28. 8. — AInubisova reakcia na výsledok
+       * z 25. 8. („škoda, že si nič neoznačil" / pochvala). Zanikla spolu s obrazovkou,
+       * ktorá ju držala (dôvod pri `notesBody`); kľúče `step.notesNone` a `step.notesPraise`
+       * ostávajú v slovníku pre prípad, že reakcia dostane nový nosič.
+       */
+      /**
+       * ── PO ZAPÍSANEJ ZNAČKE SA SPRIEVODCA SPÝTA, ČI POKRAČOVAŤ (Matej 2026-08-28) ────────
+       * „V momente, keď som dal tip (ako posledný a označil som ho na mape), tak by mal
+       *  AInubis napísať — chceš pridať ešte niečo, alebo ideme ďalej?"
+       * Otázka skupiny („bolo tam nebezpečenstvo?") je v tej chvíli zodpovedaná — opakovať ju
+       * znamená pýtať sa na to, čo človek práve urobil. Vetva stojí PRED ňou zámerne a platí
+       * pre KAŽDÚ z troch otázok: je to ten istý okamih, len s iným obsahom.
+       * ⚠️ Toto je zároveň náhradný nosič za reakciu na výsledok, ktorá zanikla s medzi-
+       * obrazovkou (`step.notesNone` / `notesPraise`) — hovorí sa v paneli, kde človek stojí.
+       */
+      ? (placedInGroup(askGroup) > 0
+          ? t('pack.addTrip.step.askMoreOrNext')
           : noteAsk === 0
             // ⚠️ ČÍSLA IDÚ Z EKONOMIKY, NEPÍŠU SA DO VETY (Matej 2026-08-25: „musí ainubis
             //    hore povedať že tvoj postreh bude odmenený 3 bodmi, dokopy môžeš získať až
@@ -1775,7 +1822,10 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   };
 
   return (
-    <div className="atl-log">
+    /* `--intro` = obrazovka výberu aktivity. Bez príznaku by mobilné pravidlá (šípka mimo toku,
+       centrovaná dvojica nadpis + zoznam) platili aj na kroky formulára, kde je hlavička úzka
+       a miesto patrí poliam. */
+    <div className={`atl-log${!activity ? ' atl-log--intro' : ''}`}>
       <style>{LOG_CSS}</style>
       {/* PORTÁL NA <body> — panel, v ktorom sprievodca žije, je počas kreslenia skrytý
           (mapa je celá obrazovka), takže dialóg vnútri neho by sa nikdy neukázal. */}
@@ -1916,13 +1966,17 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
           <button
             type="button"
             className="atl-log-back"
-            onClick={onClose}
+            onClick={onBackToEntry ?? onClose}
             aria-label={t('pack.addTrip.geo.stepBack')}
           >
             ←
           </button>
           <div className="atl-log-title atl-log-title--big">{t('pack.addTrip.log.titleActivity')}</div>
-          <div className="atl-log-sub">{t('pack.addTrip.log.titleActivitySub')}</div>
+          {/* ⚠️ VETA POD NADPISOM ZANIKLA (Matej 2026-08-28: „odstráň text pod (tie tri
+              riadky) a posuň nadpis dolu"). Na telefóne to boli tri riadky, ktoré hovorili,
+              čo sa dá zapísať — lenže presne to hovorí aj zoznam pod nimi, len konkrétnejšie.
+              Kľúč `pack.addTrip.log.titleActivitySub` ostáva v slovníkoch: nerenderuje sa,
+              ale je preložený do všetkých jazykov a vrátiť ho je jeden riadok. */}
         </div>
       ) : (
         /* ŠÍPKA V STREDE, BEZ NADPISU (Matej 2026-08-23: „šípka dozadu bude v strede hore…
@@ -2953,7 +3007,9 @@ const STEP_CSS = `
    má obopnúť bodky, nie mapu pod nimi. */
 .atl-steps--onmap .atl-step{flex:0 0 auto;padding:0;gap:0;border:0;background:none;}
 .atl-steps--onmap .atl-step span{display:none;}
-.atl-steps--onmap .atl-step.on b{box-shadow:0 0 0 3px rgba(230,158,26,0.22);}
+/* Prstenec ide s výplňou čísla — zlatý dosvit okolo lapisového kruhu je druhá farba na
+   tom istom prvku. */
+.atl-steps--onmap .atl-step.on b{box-shadow:0 0 0 3px ${LAPIS.halo};}
 /* ÚNIK — otázka pred zahodením rozrobeného výletu. Tmavý povrch, lebo stojí nad mapou. */
 .atl-abort-scrim{position:fixed;inset:0;z-index:1400;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;}
 .atl-abort{width:100%;max-width:380px;padding:20px;border-radius:14px;background:rgba(18,13,7,0.97);border:1px solid ${T.onDarkBorder};box-shadow:0 18px 50px rgba(0,0,0,0.6);}
@@ -3007,11 +3063,17 @@ const STEP_CSS = `
 .atl-step span{font-family:${FONT_UI};font-weight:500;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;text-align:center;line-height:1.2;}
 .atl-step.done{cursor:pointer;color:${T.onDark};}
 .atl-step.done b{background:#8A5F1E;border-color:#8A5F1E;color:#FFF;}
-.atl-step.on{background:rgba(201,154,63,0.10);border-color:rgba(201,154,63,0.40);color:${T.onDark};}
-/* Aktívny krok ostáva ZLATÝ (zlato = „kde som", navGoldSkin.ts), ale o dva odtiene
-   tmavší než .btn-gold — na svetlom gradiente by biele číslo zaniklo, a biele má byť
-   vo všetkých stavoch rovnako. */
-.atl-step.on b{background:linear-gradient(135deg,#D2A02A,#A96F17);border-color:rgba(250,244,236,0.30);color:#FFF;}
+/* ── AKTÍVNY KROK JE LAPIS, NIE ZLATÝ (Matej 2026-08-28) ───────────────────────────────
+   „hore kde sú kroky 1-5 svieti krok na oranžovo - zmen na brand - lapis"
+   🚩 MENÍ TO PRAVIDLO Z navGoldSkin.ts, kde je „aktívny krok" vymenovaný pod ZLATOM
+   („kde som"). Dôvod, prečo padlo: zlatý gradient #D2A02A→#A96F17 je na papyrusovej doske
+   jediná sýta teplá plocha na obrazovke a číta sa ako ORANŽOVÁ výstraha, nie ako poloha —
+   a od 28. 8. je celý tok papyrusový, takže zlato na zlate polohu aj tak nepovie.
+   Rám pilulky ostáva zlatý: konštrukciu (kde stojí prvok) drží ďalej zlato, mení sa výplň
+   toho, čo je práve aktívne.
+   ⚠️ Biely inkoust drží vo VŠETKÝCH stavoch — to sa nemení, lapis ho nesie rovnako. */
+.atl-step.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}}
+.atl-step.on b{background:${LAPIS.grad};border-color:${LAPIS.deep};color:#FFF;}
 /* ⚠️ ZELENÁ PREBÍJA ZLATÚ, ALE NIE NA AKTUÁLNOM KROKU. Zlatá hovorí „tu si", zelená „toto je
    hotové" — a keď platí oboje, dôležitejšie je, kde človek stojí. Preto '.ok' nie '.on'.
    Je to tá istá zelená, akou svieti splnená značka na trase (GROUP_TINT.comment) a vybratý
@@ -3040,6 +3102,12 @@ const STEP_CSS = `
    nechal za sebou) — a na kompaktnom PC (stĺpec 360 px) sa z „PARKOVISKO" stalo „PARK…".
    Rieši sa to preložením a výplňou pilulky s bodmi, nie skrytím tej pilulky: „0 bodov" pri
    neoznačenej si Matej vypýtal 24. 8. výslovne. */
+/* ⚠️ FOCUS RING IDE DOVNÚTRA (Matej 2026-08-28: „horný okraj chipu sa stráca a zreže sa
+   outline"). Prehliadačov outline sa kreslí MIMO hranice tlačidla, takže ho ľavý stĺpec
+   (.trp-dock--pc s overflow-y:auto) po kliknutí zhora oreže rovnou čiarou — presne tá istá
+   pasca, na akej sa 26. 8. rezala žiara AInubisovej bubliny. Záporný offset ho posadí na
+   vnútornú hranu, kde ho nemá čo orezať; viditeľnosť pre klávesnicu ostáva. */
+.atl-ntrack-i:focus-visible{outline:2px solid ${LAPIS.edge};outline-offset:-2px;}
 .atl-ntrack-i span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9.5px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;}
 /* ── VÝBER = MODRÁ, ALE PRIESVITNÁ (Matej 2026-08-26, tretie kolo) ─────────────────────
    „výber PWT som chcel modré/zelené/červené, ale priesvitné — nie modrá plná, to sa bije
@@ -3188,13 +3256,20 @@ const LOG_CSS = `
    spodné dve položky ležia pod hranou, vyzerá to, že aktivít je päť. Preto je tu rytmus
    utiahnutý (výplne, medzery, nadpis) a veta pod nadpisom je DVOJRIADKOVÁ; keď ju budeš
    predlžovať, premeraj to znova pri innerHeight ~700. */
-.atl-log-head--intro{flex-direction:column;align-items:center;gap:9px;padding:12px 20px 10px;text-align:center;}
+.atl-log-head--intro{flex-direction:column;align-items:center;gap:18px;padding:30px 20px 14px;text-align:center;}
 /* Matej 2026-08-27: „vyzerá to prázdne… centruj nadpis, zväčši nadpis Pick an activity."
    Je to titulná strana celého pridávania a od zúženia sedmičky aktivít na ŠTYRI kategórie
    je pod ňou o tri dlaždice menej — nadpis teda nekonkuruje zoznamu, ale drží prázdnu
    plochu. Centrovanie nesie .atl-log-head--intro vyššie (flex column + text-align). */
-.atl-log-title--big{font-size:26px;letter-spacing:.07em;line-height:1.2;}
-.atl-log-sub{font-family:${FONT_UI};font-weight:500;font-size:14px;line-height:1.45;color:${T.onDarkDim};max-width:34ch;}
+/* ── ZLATÁ ČIARKA POD NADPISOM (Matej 2026-08-28: „pri vyber aktivitu pridaj pod nadpis
+      tú čiarku čo si teraz pridal v ADD") ───────────────────────────────────────────────
+   Ten istý prvok, aký nesú dlaždice vstupného popupu — deliaca linka T.rule z locku bledého
+   bloku. Drží dve obrazovky za sebou v jednom jazyku: názov je hlavička, nie prvý riadok
+   odseku. Odkedy pod ňou nestojí veta, je to jediné, čo nadpis oddeľuje od zoznamu.
+   ⚠️ Kreslí sa na ::after, teda nezaberá vlastný riadok — výškový rozpočet obrazovky
+   (dlaždice sa musia zmestiť bez skrolu) sa nemení. */
+.atl-log-title--big{font-size:26px;letter-spacing:.07em;line-height:1.2;position:relative;padding-bottom:12px;}
+.atl-log-title--big::after{content:'';position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:52px;height:2px;border-radius:2px;background:${T.rule};}
 /* JEDEN STĹPEC NA MOBILE (Matej 2026-08-23: „políčka na mobile zväčši tak aby boli cez celý
    displej"). Dlaždica sa tým narovná do riadku — emoji vľavo, názov vedľa — takže výška
    obrazovky vystačí aj na sedem položiek. Nad 560 px ostávajú dva stĺpce. */
@@ -3277,6 +3352,52 @@ const LOG_CSS = `
 .atl-mode-emoji{font-family:${FONT_EMOJI};font-size:17px;line-height:1;}
 @media (max-width:359px){
   .atl-mode-btns{grid-template-columns:1fr;}
+}
+/* ══ VÝBER AKTIVITY NA TELEFÓNE = TLAČIDLÁ, NIE PÁSY (Matej 2026-08-28) ══════════════════
+   „výber aktivity je moc ťažkopádny a roztiahnutý veľký, skonsoliduj to nech to vyzerá ako
+    tlačidlá — viac vzduchu po bokoch aj celkovo po krajoch… väčšie rozostupy"
+
+   ⚠️ RUŠÍ TO ROZŤAHOVANIE Z 27. 8. („opticky musí byť ten blok plný" — riadky 1fr si delili
+   voľnú výšku). Ten lock riešil PC panel vysoký ~700 px so štyrmi nízkymi dlaždicami; odkedy
+   je formulár na telefóne CELÁ OBRAZOVKA, tá istá deklarácia nafúkne každú dlaždicu na ~150 px
+   a zo zoznamu je stĺpec plôch bez tvaru. Prázdno sa preto rieši VZDUCHOM MEDZI tlačidlami
+   a okolo nich, nie ich naťahovaním — dlaždica ostáva veľká akurát na to, čo v nej je.
+   PC vetva sa NEMENÍ, tam lock platí ďalej.
+   ⚠️ Hranica je PALE_PC_MIN — to isté číslo, na ktorom .trp-addhost prechádza z plávajúceho
+   panela na celú obrazovku. Vlastné číslo by vyrobilo pásmo šírok, kde je formulár už
+   celoobrazovkový, ale zoznam sa ešte správa ako v paneli. */
+@media (max-width:${PALE_PC_MIN - 1}px){
+  /* ⚠️ ROVNAKO VYSOKÉ, ALE NIE ROZŤAHOVANÉ. Holé min-content dá každej dlaždici inú výšku
+     (CHILL má popis na dva riadky) a štyri rôzne vysoké obdĺžniky sa nečítajú ako rad
+     tlačidiel. Strop 96 px ich zrovná; keby v niektorom jazyku popis narástol, minmax()
+     strop IGNORUJE (max menší než min sa zahadzuje), takže sa nikdy nič neoreže — a
+     rozdiel oproti 1fr je práve to, že rásť do prázdna už nemôžu.
+     Voľná výška teda ide do ROZOSTUPOV a okrajov, presne ako si Matej vypýtal. */
+  .atl-tiles{grid-auto-rows:minmax(min-content,96px);align-content:safe center;gap:18px;padding:2px 22px calc(18px + env(safe-area-inset-bottom,0px));}
+  .atl-tile{gap:14px;padding:14px 16px;}
+  .atl-tile-emoji{font-size:28px;}
+  .atl-tile-label{font-size:15px;}
+  .atl-tile-note{font-size:12px;}
+  .atl-log-head--intro{padding-left:22px;padding-right:22px;}
+
+  /* ── NADPIS PATRÍ K DLAŽDICIAM, NIE K HORNEJ HRANE (Matej 2026-08-28) ──────────────────
+     „ten nadpis posuň nižšie — patrí to k tým 4 blokom"
+     Nadpis stál hore a zoznam sa centroval vo zvyšku obrazovky, takže medzi nimi zívalo
+     ~85 px a nadpis pôsobil ako hlavička stránky, nie ako uvedenie zoznamu. Posunúť ho
+     samotný nižšie by nepomohlo: každý pixel, o ktorý klesne, uberie zoznamu polovicu
+     jeho hornej medzery, takže diera sa zmenšuje o polovicu toho, čo sa nadpis vzdiali
+     od šípky. Preto sa nadpis a zoznam centrujú AKO JEDEN CELOK a medzi nimi ostáva len
+     výplň hlavičky.
+     ⚠️ Šípka ide MIMO TOKU (a hore ostáva rezerva jej výšky), inak by ju centrovanie
+     stiahlo dole s celou dvojicou — a návrat by medzi ADD a výberom aktivity poskočil
+     o 70 px, teda presne to, čomu sa presunom šípky do stredu predchádzalo.
+     ⚠️ flex:0 1 auto na zozname (namiesto 1 1 auto): zoznam sa smie ZMRAŠTIŤ a rolovať
+     na nízkom displeji, ale nesmie sa naťahovať — inak vyplní zvyšok a centrovať nie je čo.
+     Slovo safe drží vrch dosiahnuteľný, keď sa dvojica nezmestí. */
+  .atl-log--intro{position:relative;justify-content:safe center;padding-top:52px;}
+  .atl-log--intro .atl-log-head--intro{padding-top:0;gap:0;}
+  .atl-log--intro .atl-log-back{position:absolute;top:14px;left:50%;transform:translateX(-50%);}
+  .atl-log--intro .atl-tiles{flex:0 1 auto;}
 }
 /* ⚠️ DVOJSTĹPCOVÁ MRIEŽKA ZANIKLA (Matej 2026-08-26: „musíme aktivity dať do jedného riadku,
    pretože v dropdowne je výber a ten je stlačený ak je blok s aktivitou na polovičnej
@@ -3540,16 +3661,21 @@ const LOG_CSS = `
 
 export default AddTripLog;
 
-// ══ BLEDÝ SKIN FORMULÁRA PRIDÁVANIA — PC (2026-08-26) ════════════════════════════════════
-// Redizajn PC chrome mapy do bledého štýlu (Matej: „ideme robiť redizajn do bledého štýlu…
+// ══ BLEDÝ SKIN FORMULÁRA PRIDÁVANIA (2026-08-26, mobil doplnený 2026-08-28) ══════════════
+// Redizajn chrome mapy do bledého štýlu (Matej: „ideme robiť redizajn do bledého štýlu…
 // teraz ideme riešiť PC /map - add trip a flow"). Formulár žije v .trp-addhost, ktorý je
 // odteraz papyrusový panel so zlatým rámom — obsah v onDark tokenoch by v ňom bol biely
 // text na piesku.
 //
-// PREČO PRÍDAVOK A NIE PREPIS PRAVIDIEL VYŠŠIE: ten istý komponent je na mobile CELÁ
-// OBRAZOVKA a mobil ostáva tmavý až do vlastného kola. Preto @media (min-width:${PALE_PC_MIN}px) —
-// jedna hranica, jeden blok, a "MAP_SKIN = glass" v PackMap.tsx vráti tmu bez toho, aby sa
-// tu čokoľvek vracalo ručne.
+// PREČO PRÍDAVOK A NIE PREPIS PRAVIDIEL VYŠŠIE: zamietnutie sa musí dať vrátiť jedným
+// slovom — "MAP_SKIN = glass" v navGoldSkin.ts a je späť tmavé sklo, bez hľadania pôvodných
+// hodnôt v gite. To je jediný dôvod, prečo je to prídavok.
+//
+// ⚠️ MEDIA QUERY ZANIKLA 28. 8. 2026 (Matej: „po kliknutí na pridať sa teraz zobrazí tmavá
+// verzia — potrebujeme to prerobiť na novú verziu = natiahni dizajn aký je na PC iba ho
+// prispôsob viewportu"). Do vtedy bol blok zamknutý na min-width PALE_PC_MIN a mobil ostával
+// tmavý. Farby sú na oboch šírkach TIE ISTÉ, takže druhá kópia pre mobil by sa rozišla pri
+// prvej úprave; rozmery a tvar rieši .trp-addhost v PALE_ADD_CSS (PackMap.tsx), nie tento blok.
 //
 // PREČO POSLEDNÝ <style>: STEP_CSS sa vkladá ZA LOG_CSS, takže pravidlá o krokoch by pri
 // rovnakej špecificite prehrali. Tento blok musí ísť do DOM ako posledný — viď poradie
@@ -3560,19 +3686,20 @@ export default AddTripLog;
 const { ink: P_INK, dim: P_DIM, edge: P_EDGE, deep: P_DEEP, border: P_BORDER, field: P_FIELD, soft: P_SOFT } = PALE;
 
 const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
-@media (min-width:${PALE_PC_MIN}px){
   /* ── hlavička kroku ─────────────────────────────────────────────────────────────────── */
   .atl-log-back{background:${P_SOFT};border-color:${P_BORDER};color:${P_INK};}
   .atl-log-back:hover{border-color:${P_EDGE};color:${P_DEEP};background:#FFFDF6;}
   .atl-log-title{color:${P_INK};}
-  .atl-log-sub{color:${P_DIM};}
 
   /* ── krokovník ──────────────────────────────────────────────────────────────────────── */
   .atl-step{color:${P_DIM};}
   .atl-step b{background:rgba(122,90,42,0.45);border-color:${P_BORDER};color:#FFF;}
   .atl-step.done{color:${P_INK};}
   .atl-step.done b{background:#8A5F1E;border-color:#6E4E18;color:#FFF;}
-  .atl-step.on{background:rgba(201,154,63,0.14);border-color:${P_BORDER};color:${P_INK};}
+  /* ⚠️ Zlatý tint aktívneho kroku zanikol 28. 8. spolu so zlatým číslom — tento blok je
+     v DOM POSLEDNÝ, takže by lapisový tint zo STEP_CSS ticho prebil a krok by ostal
+     oranžový presne tam, kde ho Matej videl. Inkoust nesie lapis, nie papyrus. */
+  .atl-step.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}}
   .atl-step.ok b{background:${PICK};border-color:#1F5C33;color:#FFF;}
   /* Krokovník NAD MAPOU: plná papyrusová výplň, nie priesvitná — nad mapou sa priesvitnosť
      nepoužíva nikdy, čo pod ňou prebliká, robí z lišty neprečítateľný prvok. */
@@ -3719,5 +3846,4 @@ const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
   .atl-log-body::-webkit-scrollbar,.atl-tiles::-webkit-scrollbar{width:8px;}
   .atl-log-body::-webkit-scrollbar-thumb,.atl-tiles::-webkit-scrollbar-thumb{background:rgba(179,130,45,0.42);border-radius:999px;}
   .atl-log-body::-webkit-scrollbar-track,.atl-tiles::-webkit-scrollbar-track{background:transparent;}
-}
 `;
