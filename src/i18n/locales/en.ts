@@ -16,6 +16,27 @@ export const en = {
   'vision.hero.videoTitle': 'DOGYPT Intro Movie',
   'vision.hero.playLabel': 'Play Dogypt Intro Movie',
 
+  // ── /vision — tri bloky vedľa videa (film /onepage) ──
+  // Matej 28. 8. 2026: *„nadpis vízia a potom pod seba 3 bloky… celý blok musí
+  // byť veľmi ľahký"*. Gradácia je zámerná: číslo → miesto → dôvod. Keby bol
+  // vznešený už prvý, tretí by nemal kam vyrásť.
+  // ⚠️ ŠTYRI KĽÚČE NA BLOK od 28. 8. 2026 (Matej: *„vždy na začiatku bude sloveso —
+  // spojiť, vytvoriť, pomáhať"* + *„na horný pravý roh by sme mohli ku každému bloku
+  // dať aj bledý chip"*): `.v` = SLOVESO (bledé, vedie vetu), `.t` = čo, `.d` = ako,
+  // `.c` = chip s výsledkom. Sloveso a nadpis tvoria JEDNU vetu — meň ich spolu.
+  'vision.hero.b1.v': 'Unite',
+  'vision.hero.b1.t': 'dog people.',
+  'vision.hero.b1.d': 'Every dog gets its own Heroglyph. One mark, one language.',
+  'vision.hero.b1.c': '1M dog people',
+  'vision.hero.b2.v': 'Build',
+  'vision.hero.b2.t': 'the ecosystem.',
+  'vision.hero.b2.d': 'One app that changes what it means to have a dog.',
+  'vision.hero.b2.c': 'Transparent system',
+  'vision.hero.b3.v': 'Help',
+  'vision.hero.b3.t': 'dogs.',
+  'vision.hero.b3.d': 'Not one-off collections. A system that keeps working.',
+  'vision.hero.b3.c': 'Help that scales',
+
   // ── /vision — WHAT IF beats ──
   // beat 0 (intro)
   'vision.beat.dream.bigW': 'I HAD',
@@ -216,6 +237,44 @@ export const en = {
   'heroglyph.flow.email.reason': "Building {dogName}'s heroglyph takes about three minutes. Leave your e-mail so the design doesn't get lost — we'll send you the finished one.",
   'heroglyph.flow.email.placeholder': 'your@email.com',
   'heroglyph.flow.email.skip': 'Skip for now',
+
+  // Napätie → tlačidlo → sľub (LAB krok 2, 28. 8. 2026)
+  'heroglyph.flow.name.alert': 'Thousands of dogs in the world carry this name.',
+  'heroglyph.flow.name.nextCta': 'Next',
+  'heroglyph.flow.name.createCta': 'Create heroglyph',
+  'heroglyph.flow.name.promise': "Your dog's name written into a design nobody else has.",
+
+  // ── /heroglyph/dogs — krok 3: multi pes (LAB, 28. 8. 2026) ──
+  'heroglyph.flow.dogs.title': 'Do you have — or did you have — another dog?',
+  'heroglyph.flow.dogs.sub': 'Every dog gets its own heroglyph — and its own number in the pack.',
+  'heroglyph.flow.dogs.add': 'Add another dog',
+  'heroglyph.flow.dogs.unnamed': 'Another dog',
+  'heroglyph.flow.dogs.namePlaceholder': "Dog's name",
+  'heroglyph.flow.dogs.editAria': 'Status and dates',
+  'heroglyph.flow.dogs.nationality': 'Nationality',
+  'heroglyph.flow.dogs.byConnection': 'Filled in from your connection.',
+  'heroglyph.flow.dogs.statusAlive': 'Living legend',
+  'heroglyph.flow.dogs.statusAngel': 'Dog angel',
+  'heroglyph.flow.dogs.tapToName': 'Tap to name this dog',
+  'heroglyph.flow.dogs.allSameShort': 'Every dog',
+  'heroglyph.flow.dogs.allSame': 'Same for all {count} dogs',
+  'heroglyph.flow.dogs.noCountry': 'Nothing found',
+  'heroglyph.flow.dogs.pickCountry': 'Pick a country',
+  'heroglyph.flow.dogs.change': 'change',
+  'heroglyph.flow.dogs.born': 'Date of birth',
+  'heroglyph.flow.dogs.died': 'Date of passing',
+  'heroglyph.flow.dogs.sameNat': 'Same as the others — {flag} {country}',
+  'heroglyph.flow.dogs.remove': 'Remove this dog',
+  'heroglyph.flow.dogs.done': 'Done',
+
+  // ── /heroglyph/why — krok 4: jediná obrazovka vstupu, ktorá nič nepýta ──
+  // Vysvetlenie kartuše si obrazovka POŽIČIAVA z `ownerFinal.*` (ten istý text
+  // aj obrázok), tu sú len vlastné tri riadky.
+  'heroglyph.flow.why.title': 'Why a heroglyph at all',
+  'heroglyph.flow.why.sub':
+    'The name is beautiful — but thousands of dogs carry it. Our mission is to make every dog singular: to catch who they are in a design nobody else has.',
+  'heroglyph.flow.why.note':
+    'A cartouche — the oval frame ancient Egyptians drew around the one name allowed to outlive its owner. Cleopatra had one. Your dog will have one too.',
   'heroglyph.flow.about.title': 'Where is {dogName} from?',
   'heroglyph.flow.about.sub': 'Both answers go straight into the symbol — the country and the year of birth are two of its sixteen parts.',
 
@@ -539,6 +598,8 @@ export const en = {
   'welcome.cta.forging': 'FORGING YOUR HEROGLYPH...',
   'welcome.cta.enter': 'ENTER THE GODS',
   'welcome.emailHint': 'Thank you — because of you, DOGYPT is fur better.',
+  'welcome.photoMissing.title': 'The face is still missing',
+  'welcome.photoMissing.sub': "Add the photo in DOG ID — we'll rebuild the certificate and the share card from it.",
   // password step (set-pack-password flow)
   'welcome.password.title': 'Your account: {email}',
   'welcome.password.placeholder': 'Password (min 8 characters)',
@@ -2234,6 +2295,8 @@ export const en = {
   'pack.companions.remove': "Remove {name}",
   // Povrch, ruch a značky vo formulári výletu. Uložená hodnota ostáva anglická (je to kľúč
   // do DB a filtra na mape) — prekladá sa len to, čo človek vidí.
+  'pack.map.surface': "Surface",
+  'pack.map.anySurface': "Any surface",
   'pack.map.surfaceLabel.forest': "Forest path",
   'pack.map.surfaceLabel.asphalt': "Asphalt",
   'pack.map.surfaceLabel.rocky': "Rocky",
@@ -2399,7 +2462,13 @@ export const en = {
   'pack.addTrip.step.cancel': "Cancel",
   'pack.addTrip.step.logAnyway': "Log it anyway",
   'pack.addTrip.step.nextAsk': "Next",
-  'pack.addTrip.step.dayModeAsk': "How long are you out?",
+  // ⚠️ DVE ZNENIA, LEBO SÚ TO DVA ČASY (Matej 2026-08-28: „ako dlho ste boli na ceste, nie
+  // ste — minulý čas, log"). Zápis hovorí o výlete, ktorý sa STAL; plán o tom, ktorý bude.
+  // Tá istá dvojica, akú má sprievodca (`tp()` v GeometryPicker.tsx).
+  'pack.addTrip.step.dayModeAsk': "How long were you out?",
+  'pack.addTrip.step.dayModeAsk.plan': "How long will you be out?",
+  // Zaznie hneď po zapísanej značke — dovtedy stojí na jej mieste otázka skupiny.
+  'pack.addTrip.step.askMoreOrNext': "Saved. Want to add another, or shall we move on?",
   'pack.addTrip.step.oneDay': "One day",
   'pack.addTrip.step.moreDays': "Several days",
   'pack.addTrip.step.pickJourney': "It's a long-distance trail \u2014 pick from the list",
@@ -2915,8 +2984,12 @@ export const en = {
   'pack.reveal.finishLater': "I'll finish it later",
   'pack.reveal.backToMap': "Back to map",
   'pack.mapCoach.title': "This is where your trips live",
-  'pack.mapCoach.body': "Tap your photo up there \u2014 every trip you log and your overall stats are in one place.",
+  // ⚠️ VETA MUSÍ MENOVAŤ TO, NA ČO UKAZUJE PRSTENEC (2026-08-28). Kým mieril na fotku
+  // profilu, hovorila o fotke; odkedy mieri na Triplist, hovorí o ňom. Šípka a text sú
+  // jedna informácia — keď si každý ukazuje inam, sprievodca radí zle.
+  'pack.mapCoach.body': "Tap Triplist up there \u2014 every trip you log and your overall stats are in one place.",
   'pack.mapCoach.ok': "Got it",
+  'pack.mapCoach.mute': "Don't show again",
   'pack.reveal.coachTitle': "Where to find it",
   'pack.reveal.coachBody': "The trip is saved in My trips. Your points and level live in your profile.",
   'pack.reveal.coachOk': "Got it",

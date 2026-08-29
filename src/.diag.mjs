@@ -1,0 +1,15 @@
+import { chromium } from 'playwright';
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+p.on('pageerror', e => console.log('PAGEERROR', String(e).slice(0,200)));
+await p.goto('http://localhost:8080/wall-lab', { waitUntil: 'networkidle' });
+await p.waitForTimeout(3000);
+await p.click('.consent-banner button:has-text("ALLOW")').catch(()=>{});
+await p.waitForTimeout(2000);
+await p.click('.ab-switch button:has-text("B \u00b7")');
+await p.waitForTimeout(2500);
+const html = await p.$eval('.enroll-card', el => el.outerHTML).catch(e => 'CHYBA ' + e.message);
+console.log('body:', await p.locator('.enroll-body').count(), '| go:', await p.locator('[data-enroll-go]').count(), '| input:', await p.locator('[data-enroll-input]').count());
+console.log('koniec karty:', html.slice(-700));
+console.log('--- pocet enroll-card:', await p.locator('.enroll-card').count());
+await b.close();

@@ -19,6 +19,20 @@ export const cs: Partial<Dict> = {
   'vision.hero.videoTitle': 'DOGYPT intro film',
   'vision.hero.playLabel': 'Přehrát Dogypt intro film',
 
+  // ── /vision — tři bloky vedle videa (film /onepage) ──
+  'vision.hero.b1.v': 'Spojit',
+  'vision.hero.b1.t': 'pejskaře.',
+  'vision.hero.b1.d': 'Každý pes má vlastní heroglyf. Jeden znak, jeden jazyk.',
+  'vision.hero.b1.c': '1M pejskařů',
+  'vision.hero.b2.v': 'Vytvořit',
+  'vision.hero.b2.t': 'ekosystém.',
+  'vision.hero.b2.d': 'Jedna appka, která změní, co znamená mít psa.',
+  'vision.hero.b2.c': 'Transparentní systém',
+  'vision.hero.b3.v': 'Pomáhat',
+  'vision.hero.b3.t': 'psům.',
+  'vision.hero.b3.d': 'Ne jednorázové sbírky. Systém, který funguje stále.',
+  'vision.hero.b3.c': 'Systematická pomoc',
+
   // ── /vision — WHAT IF beaty ──
   'vision.beat.dream.bigW': 'MĚL JSEM',
   'vision.beat.dream.bigG': 'SEN',
@@ -153,7 +167,8 @@ export const cs: Partial<Dict> = {
   // ── /heroglyph flow — krok 1: meno ──
   'heroglyph.flow.name.greetingPrefix': 'Ahoj, já jsem',
   'heroglyph.flow.name.greetingQuestion': 'Jak se jmenuje tvůj pejsek?',
-  'heroglyph.flow.name.placeholder': 'Napiš jméno svého psa…',
+  'heroglyph.flow.name.nextCta': 'Dále',
+  'heroglyph.flow.name.placeholder': 'Napiš jméno svého pejska…',
   'heroglyph.flow.name.dogCountry': 'Domov',
   'heroglyph.flow.name.birthday': 'Kdy se tvůj pes narodil?',
   'heroglyph.flow.name.continue': 'Pokračovat',

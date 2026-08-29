@@ -284,7 +284,10 @@ for (const file of walk(ROOT)) {
     // nevidela vôbec: apostrof vo VNORENOM literále (bledý skin) ukončí ten vnorený, nie
     // vonkajší, takže kontrola „literál skončil v komentári" nižšie sa naň nechytí.
     for (const c of bodyText.matchAll(/\/\*[\s\S]*?\*\//g)) {
-      if (!c[0].includes('`')) continue;
+      // ⚠️ ESCAPOVANÝ APOSTROF NIE JE NÁLEZ (28. 8. 2026). `\\\`` literál neukončí —
+      // je to legálny zápis a `flowPaleSkin.ts` ním cituje názvy tried v komentároch.
+      // Bez tejto výnimky stráž hlásila zdravý kód a blokovala build.
+      if (!/(^|[^\\])`/.test(c[0])) continue;
       const line = src.slice(0, start + c.index).split('\n').length;
       bad.push(`${file}:${line}  — literál ${label} má spätný apostrof v CSS komentári (ukončí reťazec; zvyšok CSS sa stane JavaScriptom)`);
     }

@@ -20,6 +20,20 @@ export const sk: Partial<Dict> = {
   'vision.hero.videoTitle': 'DOGYPT intro film',
   'vision.hero.playLabel': 'Prehrať Dogypt intro film',
 
+  // ── /vision — tri bloky vedľa videa (film /onepage) ──
+  'vision.hero.b1.v': 'Spojiť',
+  'vision.hero.b1.t': 'psíčkarov.',
+  'vision.hero.b1.d': 'Každý pes má vlastný heroglyf. Jeden znak, jeden jazyk.',
+  'vision.hero.b1.c': '1M psíčkarov',
+  'vision.hero.b2.v': 'Vytvoriť',
+  'vision.hero.b2.t': 'ekosystém.',
+  'vision.hero.b2.d': 'Jedna appka, ktorá zmení, čo znamená mať psa.',
+  'vision.hero.b2.c': 'Transparentný systém',
+  'vision.hero.b3.v': 'Pomáhať',
+  'vision.hero.b3.t': 'psom.',
+  'vision.hero.b3.d': 'Nie jednorazové zbierky. Systém, ktorý funguje stále.',
+  'vision.hero.b3.c': 'Systematická pomoc',
+
   // ── /vision — WHAT IF beaty ──
   // beat 0 (intro)
   'vision.beat.dream.bigW': 'MAL SOM',
@@ -165,13 +179,49 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.email.reason': 'Poskladať heroglyf pre psa {dogName} trvá asi tri minúty. Nechaj mail, nech sa ti dizajn nestratí — hotový ti ho pošleme.',
   'heroglyph.flow.email.placeholder': 'tvoj@email.sk',
   'heroglyph.flow.email.skip': 'Zatiaľ preskočiť',
+
+  // Napätie → tlačidlo → sľub (LAB krok 2, 28. 8. 2026)
+  'heroglyph.flow.name.alert': 'Toto meno nosia tisíce psov na svete.',
+  'heroglyph.flow.name.nextCta': 'Ďalej',
+  'heroglyph.flow.name.createCta': 'Vytvoriť heroglyph',
+  'heroglyph.flow.name.promise': 'Meno psa zapísané v unikátnom dizajne.',
+
+  // ── /heroglyph/dogs — krok 3: multi pes (LAB, 28. 8. 2026) ──
+  'heroglyph.flow.dogs.title': 'Máš, alebo si mal, aj ďalšieho psa?',
+  'heroglyph.flow.dogs.sub': 'Každý pes dostane svoj vlastný heroglyf — a svoje vlastné poradové číslo.',
+  'heroglyph.flow.dogs.add': 'Pridať ďalšieho psa',
+  'heroglyph.flow.dogs.unnamed': 'Ďalší pes',
+  'heroglyph.flow.dogs.namePlaceholder': 'Meno psa',
+  'heroglyph.flow.dogs.editAria': 'Stav a dátumy',
+  'heroglyph.flow.dogs.nationality': 'Národnosť',
+  'heroglyph.flow.dogs.byConnection': 'Vyplnené podľa tvojho pripojenia.',
+  'heroglyph.flow.dogs.statusAlive': 'Žijúca legenda',
+  'heroglyph.flow.dogs.statusAngel': 'Psí anjel',
+  'heroglyph.flow.dogs.tapToName': 'Ťukni a pomenuj psa',
+  'heroglyph.flow.dogs.allSameShort': 'Pre každého psa',
+  'heroglyph.flow.dogs.allSame': 'Platí pre všetkých {count} psov',
+  'heroglyph.flow.dogs.noCountry': 'Nič také sme nenašli',
+  'heroglyph.flow.dogs.pickCountry': 'Vyber krajinu',
+  'heroglyph.flow.dogs.change': 'zmeniť',
+  'heroglyph.flow.dogs.born': 'Dátum narodenia',
+  'heroglyph.flow.dogs.died': 'Dátum odchodu',
+  'heroglyph.flow.dogs.sameNat': 'Rovnaká ako u ostatných — {flag} {country}',
+  'heroglyph.flow.dogs.remove': 'Odobrať tohto psa',
+  'heroglyph.flow.dogs.done': 'Hotovo',
+
+  // ── /heroglyph/why — krok 4: jediná obrazovka vstupu, ktorá nič nepýta ──
+  'heroglyph.flow.why.title': 'Prečo vôbec heroglyf',
+  'heroglyph.flow.why.sub':
+    'Meno je krásne, ale nosia ho tisíce psov. Naša misia je urobiť každého psa výnimočným — zachytiť jeho osobnosť do dizajnu, ktorý nemá nikto iný.',
+  'heroglyph.flow.why.note':
+    'Kartuša — oválny rámik, do ktorého starí Egypťania vpisovali jediné meno, ktoré smelo prežiť. Kleopatra ho mala. Tvoj pes ho bude mať tiež.',
   'heroglyph.flow.about.title': 'Odkiaľ {dogName} je?',
   'heroglyph.flow.about.sub': 'Obe odpovede idú rovno do symbolu — krajina a rok narodenia sú dve z jeho šestnástich častí.',
 
   // ── /heroglyph flow — krok 1: meno ──
   'heroglyph.flow.name.greetingPrefix': 'Ahoj, ja som',
   'heroglyph.flow.name.greetingQuestion': 'Ako sa volá tvoj psík?',
-  'heroglyph.flow.name.placeholder': 'Napíš meno svojho psa…',
+  'heroglyph.flow.name.placeholder': 'Napíš meno svojho psíka…',
   'heroglyph.flow.name.birthday': 'Kedy sa tvoj pes narodil?',
   'heroglyph.flow.name.continue': 'Pokračovať',
   'heroglyph.flow.name.infoAria': 'Info o Hekthorovi',
@@ -453,6 +503,8 @@ export const sk: Partial<Dict> = {
   'welcome.cta.forging': 'KUJEM TVOJ HEROGLYPH…',
   'welcome.cta.enter': 'VSTÚP MEDZI BOHOV',
   'welcome.emailHint': 'Ďakujeme, vďaka tebe je DOGYPT o chlp lepší.',
+  'welcome.photoMissing.title': 'Tvár ešte chýba',
+  'welcome.photoMissing.sub': 'Fotku doplníš v DOG ID — certifikát aj zdieľaciu kartu ti podľa nej vyrobíme znova.',
   // password step (set-pack-password flow)
   'welcome.password.title': 'Tvoje konto: {email}',
   'welcome.password.placeholder': 'Heslo (min. 8 znakov)',
@@ -1987,7 +2039,9 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.log.mode.ask': "Zapisuješ, alebo plánuješ?",
   'pack.addTrip.log.mode.walked': "Urob zápis",
   'pack.addTrip.log.mode.walkedSub': "Prešli ste ju v minulosti",
-  'pack.addTrip.log.mode.planned': "Naplánuj to",
+  // Jedno slovo, nie dve: na mobile sa "Naplánuj to" do pilulky na jeden riadok nezmestí
+  // a zlomilo sa na dva, čím bola dvojica tlačidiel rôzne vysoká (Matej 2026-08-28).
+  'pack.addTrip.log.mode.planned': "Naplánuj",
   'pack.addTrip.log.mode.plannedSub': "Chystáte sa tam",
   'pack.addTrip.log.title': "Zapíš výlet",
   'pack.addTrip.log.titlePlan': "Naplánuj výlet",
@@ -2095,6 +2149,8 @@ export const sk: Partial<Dict> = {
   'pack.companions.addTyped': "Pridať napísané meno",
   'pack.companions.myDog': "Môj pes",
   'pack.companions.remove': "Odobrať {name}",
+  'pack.map.surface': "Povrch",
+  'pack.map.anySurface': "Akýkoľvek",
   'pack.map.surfaceLabel.forest': "Lesný chodník",
   'pack.map.surfaceLabel.asphalt': "Asfalt",
   'pack.map.surfaceLabel.rocky': "Skalnatý",
@@ -2251,7 +2307,9 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.step.logAnyway': "Zapísať aj tak",
   // ── VIACDŇOVÁ TÚRA — OTÁZKA V 1. KROKU (Matej 2026-08-27) ────────────────────────────
   'pack.addTrip.step.nextAsk': "Ďalej",
-  'pack.addTrip.step.dayModeAsk': "Ako dlho ste na ceste?",
+  'pack.addTrip.step.dayModeAsk': "Ako dlho ste boli na ceste?",
+  'pack.addTrip.step.dayModeAsk.plan': "Ako dlho budete na ceste?",
+  'pack.addTrip.step.askMoreOrNext': "Zapísané. Chceš pridať ešte niečo, alebo ideme ďalej?",
   'pack.addTrip.step.oneDay': "Jeden deň",
   'pack.addTrip.step.moreDays': "Viac dní",
   'pack.addTrip.step.pickJourney': "Idem po magistrále — vybrať zo zoznamu",
@@ -2764,8 +2822,9 @@ export const sk: Partial<Dict> = {
   'pack.reveal.finishLater': "Doplním neskôr",
   'pack.reveal.backToMap': "Späť na mapu",
   'pack.mapCoach.title': "Tu nájdeš svoje výlety",
-  'pack.mapCoach.body': "Ťukni na svoju fotku hore — sú tam všetky tvoje výlety aj celkové štatistiky.",
+  'pack.mapCoach.body': "Ťukni na Triplist hore — sú tam všetky tvoje zapísané výlety aj celkové štatistiky.",
   'pack.mapCoach.ok': "Rozumiem",
+  'pack.mapCoach.mute': "Nabudúce nezobrazovať",
   'pack.reveal.coachTitle': "Kde to nájdeš",
   'pack.reveal.coachBody': "Výlet sa uložil do Mojich výletov. Body a level máš v profile.",
   'pack.reveal.coachOk': "Rozumiem",
