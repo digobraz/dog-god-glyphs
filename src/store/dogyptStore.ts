@@ -1,6 +1,17 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+/** Ďalší pes z kroku 3. `country: null` = berie spoločnú národnosť zo vstupu. */
+export interface ExtraDog {
+  name: string;
+  lifeStatus: 'alive' | 'deceased';
+  /** yyyy-mm-dd, len pri `deceased`. */
+  deathDate: string | null;
+  /** yyyy-mm-dd; prázdne, kým sa nevyplní. */
+  birthday: string;
+  country: string | null;
+}
+
 export interface DogyptState {
   sessionId: string;
   dogName: string;
@@ -27,6 +38,17 @@ export interface DogyptState {
   draftId: string | null;
   lifeStatus: 'alive' | 'deceased';
   deathDate: string | null; // yyyy-mm-dd — len keď lifeStatus==='deceased'; zapíše sa do DB pri checkoute
+  /**
+   * ĎALŠÍ PSI z kroku 3 (`/heroglyph/dogs`, 28. 8. 2026). Pes #1 tu NIE JE —
+   * ten žije v `dogName` / `lifeStatus` / `deathDate` / `selections.*` ako vždy.
+   *
+   * 🔴 ZATIAĽ SA IBA ZBIERAJÚ. Flow, platba aj certifikát ďalej bežia s prvým psom.
+   * Matej 28. 8.: každý pes prejde celým flow a platí sa €11 za každého ⇒ plný
+   * multi-mód (platba × N, N poradových čísel, N certifikátov) je samostatná práca
+   * a krok 3 NESMIE ísť na produkciu bez nej — inak si niekto naklikal troch psov,
+   * zaplatil raz a dostal jeden heroglyf.
+   */
+  extraDogs: ExtraDog[];
   setDogName: (name: string) => void;
   setOwnerName: (name: string) => void;
   setStep: (step: number) => void;
@@ -50,12 +72,14 @@ export interface DogyptState {
   setDraftId: (v: string | null) => void;
   setLifeStatus: (v: 'alive' | 'deceased') => void;
   setDeathDate: (v: string | null) => void;
+  setExtraDogs: (v: ExtraDog[]) => void;
   reset: () => void;
 }
 
 const freshState = () => ({
   sessionId: crypto.randomUUID(),
   dogName: '',
+  extraDogs: [] as ExtraDog[],
   ownerName: '',
   currentStep: 0,
   selections: {} as Record<string, string>,
@@ -107,6 +131,7 @@ export const useDogyptStore = create<DogyptState>()(
       setDraftId: (v) => set({ draftId: v }),
       setLifeStatus: (v) => set({ lifeStatus: v }),
       setDeathDate: (v) => set({ deathDate: v }),
+      setExtraDogs: (v) => set({ extraDogs: v }),
       reset: () => set(freshState()),
     }),
     {

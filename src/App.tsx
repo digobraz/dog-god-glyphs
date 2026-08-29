@@ -11,6 +11,7 @@ import { LanguageProvider, useLang } from "@/i18n/LanguageContext";
 import { GodsGrid } from "@/components/gods/GodsGrid";
 import NotFound from "./pages/NotFound.tsx";
 import { DevNav } from "@/components/DevNav";
+import { HeroflowDevMenu } from "@/components/lab/HeroflowDevMenu";
 import { ConsentBanner } from "@/components/ConsentBanner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { captureRefFromSearch } from "@/lib/refCapture";
@@ -37,6 +38,12 @@ const PhotoScreen = lazy(() =>
 );
 const EmailScreen = lazy(() =>
   import("@/components/screens/EmailScreen").then((m) => ({ default: m.EmailScreen }))
+);
+const DogsScreen = lazy(() =>
+  import("@/components/screens/DogsScreen").then((m) => ({ default: m.DogsScreen }))
+);
+const WhyScreen = lazy(() =>
+  import("@/components/screens/WhyScreen").then((m) => ({ default: m.WhyScreen }))
 );
 const AboutScreen = lazy(() =>
   import("@/components/screens/AboutScreen").then((m) => ({ default: m.AboutScreen }))
@@ -168,6 +175,9 @@ const App = () => (
           <AinubisWidget />
         </Suspense>
         <DevNav />
+        {/* Úzke dev menu vstupu — beží aj POČAS flow (Matej 28. 8.:
+            „pri flow zostáva ten dev menu aby som vedel prepínať vždy"). */}
+        <HeroflowDevMenu />
         <ErrorBoundary>
           <Suspense fallback={<RouteFallback />}>
             <Routes>
@@ -203,7 +213,9 @@ const App = () => (
               <Route path="/heroglyph/intro" element={<Navigate to="/heroglyph/photo" replace />} />
               <Route path="/heroglyph/photo" element={<PhotoScreen />} />
               <Route path="/heroglyph/name" element={<NameScreen />} />
+              <Route path="/heroglyph/dogs" element={<DogsScreen />} />
               <Route path="/heroglyph/email" element={<EmailScreen />} />
+              <Route path="/heroglyph/why" element={<WhyScreen />} />
               <Route path="/heroglyph/about" element={<AboutScreen />} />
               <Route path="/heroglyph/breed" element={<BreedPatronScreen />} />
               <Route path="/heroglyph/ranking" element={<RankingScreen />} />

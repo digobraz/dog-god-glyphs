@@ -49,6 +49,18 @@ const selectStyle: React.CSSProperties = {
   outline: 'none',
 };
 
+// ── BLEDÝ ŠAT (Matej 28. 8. 2026: „neupravil si popup pri zadávaní dátumov!") ──
+// Vo vstupnom flow stoja tri dátumové rolety v tom istom paneli ako pole na meno,
+// takže musia vyzerať ako ono: biele pole, dvojitý zlatý rám, polomer 12 — hodnoty
+// sú prevzaté z `.hf-field` v `screens/flowPaleSkin.ts`, nie zvolené nanovo.
+// Zapína sa výslovne (`skin="pale"`), aby sa nezmenili obrazovky mimo bledého šatu.
+const PALE_SELECT: React.CSSProperties = {
+  height: 42,
+  background: '#FFFDF7',
+  border: '2px solid rgba(179, 130, 45, 0.55)',
+  color: 'rgba(35,22,8,0.90)',
+};
+
 // ── DateDropdowns (replaces WheelDatePicker) ─────────────────────────────────
 
 export interface DateDropdownsProps {
@@ -59,10 +71,13 @@ export interface DateDropdownsProps {
   maxYear: number;
   maxDate: Date;
   onChange: (d: number, m: number, y: number) => void;
+  /** 'pale' = bledý šat vstupného flow (`.hf-field`). Bez neho ostáva pôvodný vzhľad. */
+  skin?: 'pale';
 }
 
-export function DateDropdowns({ day, month, year, minYear, maxYear, maxDate, onChange }: DateDropdownsProps) {
+export function DateDropdowns({ day, month, year, minYear, maxYear, maxDate, onChange, skin }: DateDropdownsProps) {
   const { lang } = useLang();
+  const boxStyle = skin === 'pale' ? { ...selectStyle, ...PALE_SELECT } : selectStyle;
   const locale = intlLocale(lang);
 
   const monthName = (m: number) =>
@@ -109,7 +124,7 @@ export function DateDropdowns({ day, month, year, minYear, maxYear, maxDate, onC
     <div className="grid grid-cols-3 gap-2 w-full">
       {/* Day */}
       <SelectWrap>
-        <select value={day} onChange={handleDay} style={selectStyle} aria-label="Day">
+        <select value={day} onChange={handleDay} style={boxStyle} aria-label="Day">
           {dayOptions.map((d) => (
             <option key={d} value={d}>{String(d).padStart(2, '0')}</option>
           ))}
@@ -118,7 +133,7 @@ export function DateDropdowns({ day, month, year, minYear, maxYear, maxDate, onC
 
       {/* Month */}
       <SelectWrap>
-        <select value={month} onChange={handleMonth} style={selectStyle} aria-label="Month">
+        <select value={month} onChange={handleMonth} style={boxStyle} aria-label="Month">
           {monthOptions.map((m) => (
             <option key={m} value={m}>{monthName(m)}</option>
           ))}
@@ -127,7 +142,7 @@ export function DateDropdowns({ day, month, year, minYear, maxYear, maxDate, onC
 
       {/* Year — newest first */}
       <SelectWrap>
-        <select value={year} onChange={handleYear} style={selectStyle} aria-label="Year">
+        <select value={year} onChange={handleYear} style={boxStyle} aria-label="Year">
           {yearOptions.map((y) => (
             <option key={y} value={y}>{y}</option>
           ))}

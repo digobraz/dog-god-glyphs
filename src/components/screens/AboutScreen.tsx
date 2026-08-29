@@ -17,7 +17,7 @@ import { useFlowGuard } from '@/hooks/useFlowGuard';
 //
 // Krajina → 15. segment kódu heroglyfu + vlajka na stene.
 // Dátum narodenia → 16. segment (rok) + vek psa v /pack.
-// Back: /heroglyph/email  ·  Continue: /heroglyph/breed
+// Back: /heroglyph/why  ·  Continue: /heroglyph/breed
 export function AboutScreen() {
   const navigate = useNavigate();
   // Bez mena psa je tento krok bezcenný: draft sa neuloží a texty ukazujú „tvojho psa“.
@@ -61,7 +61,7 @@ export function AboutScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <PageTopBar onBack={() => navigate('/heroglyph/email')} />
+      <PageTopBar onBack={() => navigate('/heroglyph/why')} />
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3 overflow-y-auto">
         <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4">
