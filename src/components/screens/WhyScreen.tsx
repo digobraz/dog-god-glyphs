@@ -6,7 +6,6 @@ import { useT } from '@/i18n/LanguageContext';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { track } from '@/lib/analytics';
 import { FLOW_PALE_CSS } from './flowPaleSkin';
-import { FlowPhases } from './FlowPhases';
 import cleopatraImg from '@/assets/cleopatra-cartouche.png';
 import alba43Foto from '@/assets/alba43-foto.jpg';
 import alba59Foto from '@/assets/alba59-foto.jpg';
@@ -79,7 +78,6 @@ export function WhyScreen() {
         <div className="w-full max-w-xl flex flex-col items-center">
 
           {/* Prvá fáza — človek je stále pri psovi (fotka, meno, ďalší psi). */}
-          <FlowPhases active={0} />
 
           <motion.div
             className="hf-block"

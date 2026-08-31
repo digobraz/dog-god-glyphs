@@ -737,7 +737,7 @@ function fromRows(human: HumanRow | null, dogRows: DogRow[]): CentralProfile {
 
 /** Vyplnil používateľ vôbec niečo? Prázdny profil sa do DB nevysypáva — vyrobil by prázdny riadok. */
 function hasContent(p: CentralProfile): boolean {
-  const h = p.human as Record<string, unknown>;
+  const h = p.human as unknown as Record<string, unknown>;
   const filled = Object.entries(h).some(([k, v]) => {
     if (k === 'visibility') return false; // samotné nastavenie viditeľnosti nie je obsah
     if (Array.isArray(v)) return v.length > 0;

@@ -80,7 +80,15 @@ export function loadSleepSpots(): Promise<SleepSpot[]> {
     promise = (async () => {
       if (DEV_NOAUTH) return DEV_MOCK_SPOTS;
       try {
-        const { data, error } = await db.rpc('list_sleep_spots');
+        // ⚠️ `list_sleep_spots` NIE JE v `src/integrations/supabase/types.ts`, a nie je to
+        //    preklep: funkciu zakladá migrácia `20260827_sleep_spots.sql` (definícia aj
+        //    `grant execute ... to authenticated`), ale generované typy sú staršie než ona.
+        //    `tsc` preto odmieta aj názov RPC (TS2345), aj pretypovanie jej výsledku (TS2352).
+        //    Správna oprava je PREGENEROVAŤ typy; dovtedy drží toto jedno miesto.
+        //    Nezakrýva chybu — zakrýva zastarané typy.
+        const callRpc = db.rpc as unknown as
+          (fn: 'list_sleep_spots') => Promise<{ data: unknown; error: unknown }>;
+        const { data, error } = await callRpc('list_sleep_spots');
         if (error) throw error;
         return ((data ?? []) as SpotRow[]).map(fromRow);
       } catch {

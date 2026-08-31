@@ -44,8 +44,16 @@ export interface PlaceCardProps {
   elevM?: number;
   /** prevzaté miesto, ak sa v okolí našlo — inak stav A */
   spot?: SleepSpot | null;
-  /** `tx()` volajúceho; karta si prekladač nedrží, aby fungovala aj mimo `/pack` */
-  tx: (key: string, fallback?: string) => string;
+  /**
+   * `tx()` volajúceho; karta si prekladač nedrží, aby fungovala aj mimo `/pack`.
+   *
+   * ⚠️ Podpis je ZHODNÝ s `TFunction` z `LanguageContext` — druhý parameter sú
+   *    PREMENNÉ NA DOSADENIE, nie fallback. Pôvodne tu stálo `fallback?: string`
+   *    a `useT()` sa doň nedal priradiť (TS2322). Fallback by aj tak nefungoval:
+   *    `t()` vracia pri chýbajúcom kľúči SAMOTNÝ KĽÚČ, reťazec v druhom parametri
+   *    ignoruje. Chýbajúci preklad rieši `en.ts`, nie text na volajúcom mieste.
+   */
+  tx: (key: string, vars?: Record<string, string | number>) => string;
 }
 
 export function PlaceCard({ poiType, kindLabel, name, elevM, spot, tx }: PlaceCardProps) {
@@ -94,7 +102,8 @@ export function PlaceCard({ poiType, kindLabel, name, elevM, spot, tx }: PlaceCa
           </>
         ) : (
           <p className="pcard-empty">
-            {tx('pack.sleep.untouched', 'O tomto mieste ešte nikto z Dogypťanov nič nenapísal.')}
+            {/* EN v `en.ts`: „Nobody from the pack has written about this place yet." */}
+            {tx('pack.sleep.untouched')}
           </p>
         )}
       </div>

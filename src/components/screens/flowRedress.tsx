@@ -38,6 +38,44 @@ import { goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/
 /** Cesty, na ktorých sa prezliekanie zapína. Mimo nich atribút na `<html>` nie je. */
 const FLOW_PATHS = ['/heroglyph'];
 
+/**
+ * PORADIE VSTUPU — zdroj pravdy pre progres (31. 8. 2026).
+ *
+ * Matej: *„ten progresbar ako jediný pridaj už aj dnes do bledeho ale povodneho flow"* —
+ * teda z celého nového návrhu ide von zatiaľ len toto, zvyšok počká.
+ *
+ * ⚠️ Poradie NIE JE odhad — je vytiahnuté z `navigate()` cieľov jednotlivých obrazoviek,
+ *    ktoré tvoria jednu neprerušenú reťaz od fotky po odkaz. Keď sa niektorý krok presunie,
+ *    MUSÍ sa presunúť aj tu, inak pruh preskočí alebo cúvne.
+ * ⚠️ `/heroglyph` (predajná stránka) v zozname zámerne NIE JE. `FLOW_PATHS` ju zachytáva
+ *    prefixom, takže bez tejto kontroly by pruh visel aj nad predajom — a tam človek ešte
+ *    nič nezačal, takže by mu ukazoval postup vo veci, do ktorej nevstúpil.
+ * ⚠️ `/heroglyph/breed` je JEDNA routa s dvoma podkrokmi (plemeno → patrón). Pruh sa preto
+ *    v nej nehýbe; deliť ho na polovice by si vyžiadalo stav z obrazovky a pruh by prestal
+ *    byť vecou, ktorá o obrazovkách nič nevie.
+ */
+const FLOW_ORDER = [
+  '/heroglyph/photo',
+  '/heroglyph/name',
+  '/heroglyph/dogs',
+  '/heroglyph/email',
+  '/heroglyph/why',
+  '/heroglyph/about',
+  '/heroglyph/breed',
+  '/heroglyph/ranking',
+  '/heroglyph/owner-info',
+  '/heroglyph/owner-zodiac',
+  '/heroglyph/owner-final',
+  '/heroglyph/dog-gender',
+  '/heroglyph/dog-fate',
+  '/heroglyph/dog-colour',
+  '/heroglyph/dog-bloodline',
+  '/heroglyph/dog-character',
+  '/heroglyph/crop',
+  '/heroglyph/reveal',
+  '/heroglyph/message',
+];
+
 const STORAGE_KEY = 'dogypt-flow-skin';
 export type FlowSkin = 'pale' | 'dark';
 
@@ -92,14 +130,22 @@ const REDRESS_CSS = `
 }
 
 /* ── KARTA S HEROGLYFOM: plochý papyrus → zlatý blok ──────────────────────
-   'goldFrameCSS()' kreslí rám aj dosku ako vrstvy pozadia jedného elementu,
-   takže prepisuje 'background' aj 'border' z Tailwindu. Vlastný 'padding'
-   z komponentu ('px-6 pt-6 pb-6') sa ruší — rám je 6 px a doska si vnútorný
-   priestor rieši sama, inak by sa sčítali a karta by narástla. */
+   'goldFrameCSS()' kreslí rám aj dosku ako vrstvy pozadia JEDNÉHO elementu,
+   takže prepisuje 'background' aj 'border' z Tailwindu.
+
+   🔴 LEM JE 'border', NIE 'padding' (oprava 31. 8. 2026 — Matej: „veď tie
+   okraje nie sú aké máme v novom šate"). 'goldFrameCSS()' posiela
+   'border: 6px solid transparent' a vrstvy zlata kreslí do 'border-box',
+   kým dosku do 'padding-box'. Rám teda ŽIJE V LEME. Predošlé
+   'border: none; padding: 6px' ten lem zrušilo, takže zlato nemalo kde byť
+   vidieť a z rámu ostala len 1px linka z 'box-shadow' — blok vyzeral inak
+   než spodný nav v '/map', z ktorého je predloha.
+
+   Vlastný 'padding' komponentu ('px-6 pt-6 pb-6') sa preto ruší na NULU;
+   vnútorný priestor dáva doska nižšie. */
 [data-flow-skin="pale"] .dark-bg .papyrus-bg {
   ${goldFrameCSS()}
-  border: none;
-  padding: 6px;
+  padding: 0;
 }
 /* Obsah karty dostane vzduch dosky (zhodné s '.hf-plate'). */
 [data-flow-skin="pale"] .dark-bg .papyrus-bg > * { padding-inline: 16px; }
@@ -188,5 +234,52 @@ export function FlowRedress() {
   }, [onFlow, skin]);
 
   if (!onFlow) return null;
-  return <style>{REDRESS_CSS}</style>;
+  return (
+    <>
+      <style>{REDRESS_CSS}</style>
+      {skin === 'pale' && <FlowProgress pathname={pathname} />}
+    </>
+  );
+}
+
+/**
+ * PROGRES VSTUPU — jeden pruh, bez popisov, na spodnej hrane.
+ *
+ * Matej 31. 8. 2026: *„dal by som iba progresbar bez textingu… nerozdeloval by som to
+ * na 5 časti… a dal by som to úplne dolu"*. Tým zaniká pomenovaný pás fáz
+ * (`FlowPhases`, `PES · TY · SYMBOL · HOTOVO`) — súbor sa nemaže, len ho nikto nevolá.
+ *
+ * 🔑 Kreslí sa TU, nie v obrazovkách. Vrstva prezliekania už vie, kde človek stojí,
+ *    takže pruh nestojí ani jednu zmenu v devätnástich komponentoch — a keď sa šat
+ *    prepne na tmavý (dev prepínač), zmizne s ním, takže „pred" ostane naozaj „pred".
+ *
+ * ⚠️ `pointer-events: none` — pruh leží nad obsahom a bez toho by ukradol ťuknutie
+ *    tlačidlu, ktoré býva presne pod ním.
+ * ⚠️ Spodná rezerva je `env(safe-area-inset-bottom)`, nie nula: na iPhone by pruh
+ *    inak ležal pod domovským indikátorom.
+ */
+function FlowProgress({ pathname }: { pathname: string }) {
+  const idx = FLOW_ORDER.indexOf(pathname);
+  if (idx < 0) return null;
+  const pct = Math.round(((idx + 1) / FLOW_ORDER.length) * 100);
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 60,
+        pointerEvents: 'none',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      }}
+    >
+      <div style={{ height: 4, background: 'rgba(201,154,63,0.22)' }}>
+        <div
+          style={{
+            height: '100%', width: `${pct}%`,
+            background: LAPIS.grad,
+            transition: 'width .28s ease',
+          }}
+        />
+      </div>
+    </div>
+  );
 }

@@ -119,7 +119,7 @@ const CRAWL_PARA_KEYS = ['about.crawl.p1', 'about.crawl.p2', 'about.crawl.p3', '
    by sa tým nikdy nerozbehli a stránka by ostala stáť na prvom snímku.
    Hostiteľ sa preto HĽADÁ, nie predpokladá — a všetky tri efekty čítajú cezeň. */
 function scrollHost(node: HTMLElement) {
-  const host: HTMLElement | Window = node.closest('.lsh-scroll') ?? window;
+  const host: HTMLElement | Window = node.closest<HTMLElement>('.lsh-scroll') ?? window;
   const isWin = host === window;
   const el = () => host as HTMLElement;
   return {
@@ -166,20 +166,21 @@ interface AboutLabProps {
 
 export default function AboutLab({ embedded = false, part = 'all' }: AboutLabProps = {}) {
   const showCrawl = part !== 'story';
-  const showStory = part !== 'crawl';
+  /* 🔴 FILM RENDERUJE LEN CRAWL (31. 8. 2026, Matej: *„hektorova časova os
+     (pribeh dogyptu sa presunie do dogmy)"*).
+     Za príbehom na `/onepage` nasleduje oblúk RECENZIE → NEXT STEP, takže
+     čierna sa má rozplynúť rovno na recenzie. Kým tu stála časová os, ležalo
+     medzi príbehom a recenziami 6 327 px cudzieho obsahu a prechod, ktorý bol
+     zapísaný ako „čierna odchádza na RECENZIE", sa nikdy nestal.
+     Odchádza s ňou aj chvost (citáty, Council, outro) — recenzie by boli na
+     stránke DVAKRÁT (obe zo `POOL`) a Council má doslova nadpis
+     „JOIN THE MISSION", teda ten istý ako obrazovka NEXT STEP.
+     ⚠️ Ostrá `/about` (part='all') sa NEMENÍ — tam ostáva všetko.
+     ⚠️ Časová os tým z webu NEZMIZLA: žije na `/about`, kým ju neprenesieme
+     do DOGMY. Ten prenos je iný repo a iný deploy, nepatrí sem. */
+  const showStory = part !== 'crawl' && part !== 'film';
   /** Pätičku nesie len celá stránka — film si ju kladie sám na koniec. */
   const showFooter = part === 'all';
-  /* CHVOST PRÍBEHU (citáty, Council, outro) NEPATRÍ DO FILMU — od 31. 8. 2026.
-     Vo filme `/onepage` za príbehom nasleduje oblúk RECENZIE → NEXT STEP, takže
-     tieto tri bloky by hovorili to isté druhýkrát, a horšie:
-      · `TestimonialsSection` sú TIE ISTÉ citáty, aké ukazuje obrazovka RECENZIE
-        (obe berú zo `POOL`) — na jednej stránke by boli dvakrát do 3 000 px;
-      · `CouncilSection` má nadpis „JOIN THE MISSION", teda doslova ten istý
-        nadpis ako obrazovka NEXT STEP;
-      · `about-outro` končí zlatým CTA na `/entry` — druhá výzva tesne pred tou,
-        ktorá má film uzavrieť.
-     ⚠️ Ostrá `/about` (part='all') sa NEMENÍ — tam všetky tri ostávajú. */
-  const showTail = part !== 'film';
   /**
    * ÚVOD SEKVENCIE — postavy Mateja a Hektora, nadpis THE ORIGIN, výzva na scroll.
    *
@@ -1096,7 +1097,6 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
         </div>
       </section>
 
-      {showTail && (<>
       {/* Testimonials — placeholder, nechané zatiaľ (Matej 2026-05-31) */}
       <TestimonialsSection variant="papyrus" />
 
@@ -1116,7 +1116,6 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
           </a>
         </div>
       </section>
-      </>)}
 
       </>)}
 

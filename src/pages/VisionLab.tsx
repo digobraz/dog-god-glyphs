@@ -584,7 +584,7 @@ export default function VisionLab({ embedded = false, flow = false, onWatch, her
     // videom ostane PRÁZDNA (odskúšané, presne to sa stalo).
     // Preto sa hostiteľ scrollu hľadá, nie predpokladá: v ráme je to panel,
     // mimo rámu okno. Všetko ostatné číta cez tieto štyri funkcie.
-    const host: HTMLElement | Window = pin.closest('.lsh-scroll') ?? window;
+    const host: HTMLElement | Window = pin.closest<HTMLElement>('.lsh-scroll') ?? window;
     const isWin = host === window;
     const el = () => host as HTMLElement;
     /** Koľko je odscrollované. */

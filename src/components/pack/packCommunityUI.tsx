@@ -914,7 +914,7 @@ export function CrowdMeta({ agg, km, compact }: { agg: CrowdAgg; km: string; com
       <span
         className={`comm-crowd-row${hasDiffTip ? ' comm-hastip' : ''}`}
         style={{ fontSize: fs }}
-        data-tip={hasDiffTip ? diffTip(agg) : undefined}
+        data-tip={hasDiffTip ? diffTip(t, agg) : undefined}
       >
         <DiffMark diff={agg.difficulty} /> {diffTx(t, agg.difficulty)} · {km} km
       </span>
