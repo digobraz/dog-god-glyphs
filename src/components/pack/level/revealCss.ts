@@ -151,8 +151,14 @@ export const REVEAL_CSS = `
    v .rv-blok. Bez tohto delenia by bol „blok" natiahnutý od hlavičky po spodnú hranu,
    teda plocha, nie blok. Odsadenie zhora je výška hlavičky (dblok je o lem vyšší než
    pôvodný pás) — ostáva jedno číslo, lebo hlavička má pevný obsah. */
+/* ⚠️ safe center, NIE holé center (2026-08-31). Blok plánu je o tri riadky vyšší než blok
+   zápisu a na okne pod ~820 px prerástol kontajner — pri holom centrovaní vo flexe s
+   overflow sa pretečená časť odreže ZHORA a skrolom sa k nej nedá dostať (blok začínal
+   26 px nad hranou tela, teda bez vlastného zlatého rámu). Kľúčové slovo safe v tom prípade
+   prepne na flex-start a zvyšok sa dá doskrolovať. Tá istá pasca a tá istá oprava ako v toku
+   pridávania (vstupný popup ADD, 28. 8.). */
 .rv-body{position:absolute;left:14px;right:14px;top:212px;bottom:0;display:flex;
-         flex-direction:column;justify-content:center;overflow-y:auto;
+         flex-direction:column;justify-content:safe center;overflow-y:auto;
          padding:0 0 calc(14px + env(safe-area-inset-bottom,0px));
          transition:opacity .3s,transform .62s cubic-bezier(.3,.85,.25,1);}
 .rv.closing .rv-body{opacity:0;transform:translateY(18px);pointer-events:none;}
@@ -191,6 +197,36 @@ export const REVEAL_CSS = `
            letter-spacing:.08em;text-transform:uppercase;color:${PALE.dim};}
 /* Pohorie/oblasť nemá číslo — je to menovka miesta, tak stojí celá v tichej podobe. */
 .rv-stat--place b{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:${PALE.ink};}
+
+/* ══ PLÁN — TRI RIADKY NAVYŠE (Matej 2026-08-31) ════════════════════════════
+   Obrazovka je tá istá ako po zápise; plán do nej pridáva len to, čím sa od zápisu líši:
+   ČO sa stalo (eyebrow), KEDY sa vyráža a že body sú odhad. Nič sa nepresúva ani nemení
+   veľkosť — inak by to boli dve obrazovky, nie jedna v dvoch stavoch. */
+.rv-eyebrow{font-family:${FONT_UI};font-weight:500;font-size:10.5px;letter-spacing:.26em;
+            text-transform:uppercase;color:${PALE.dim};margin-bottom:-7px;
+            opacity:0;transform:translateY(6px);}
+/* KEDY SA VYRÁŽA — jediný riadok, ktorý hovorí o budúcnosti, tak nesie váhu.
+   ⚠️ Space Grotesk, nie Cinzel: je to prevádzková informácia, nie meno ani nadpis
+   (typografický poriadok v CLAUDE.md). Strop váhy 600 — 700 je vo fonte fake bold. */
+.rv-when{font-family:${FONT_UI};font-weight:600;font-size:13.5px;line-height:1.3;
+         letter-spacing:.02em;color:${PALE.deep};margin-top:-1px;
+         opacity:0;transform:translateY(6px);}
+/* Veta pod číslom. Číslo hovorí KOĽKO, veta ZA ČO a že to ešte nie je pripísané —
+   preto stojí pod ním a je tichá; keby mala váhu, súperila by s tým, kvôli čomu sa
+   obrazovka otvára. */
+.rv-plannote{max-width:32ch;margin:3px auto 0;font-family:${FONT_UI};font-weight:400;
+             font-size:11.5px;line-height:1.4;color:${PALE.dim};
+             opacity:0;transform:translateY(6px);}
+
+/* ── PLÁNOVÝ BLOK JE ZOŠTÍHLENÝ (2026-08-31) ───────────────────────────────
+   Tri riadky navyše ho predĺžili o ~90 px a na okne pod ~820 px si vypýtal skrolovanie —
+   teda obrazovku, na ktorej nevidno tlačidlá. Miesto sa berie tam, kde pri pláne nesie
+   najmenej: MINIATÚRA. Plán ešte nemá fotku z výletu (zakladá sa s prázdnym poľom), takže
+   tých 112 px je skoro vždy placeholder s emoji. Zvyšok dorovná tesnejší rozostup a výplň.
+   Meranie po zmene: 390x740, 745x722 aj 1280x700 sa zmestia bez skrolu. */
+.rv--plan .rv-thumb{width:76px;height:76px;font-size:26px;}
+.rv--plan .rv-core{gap:7px;}
+.rv--plan .rv-blok{padding:16px 20px 14px;}
 
 .rv-scorewrap{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:2px;}
 /* ⚠️ TMAVÉ ZLATO, NIE SVETLÉ. Gradient #F5C73D→#E69E1A je odmeraný na čiernu obrazovku;
@@ -432,6 +468,7 @@ export const REVEAL_CSS = `
 @media (prefers-reduced-motion:reduce){
   .rv *,.rv *::before,.rv *::after{animation:none !important;transition:none !important;}
   .rv-thumb,.rv-name,.rv-meta,.rv-score,.rv-unit,.rv-sumlink,.rv-cta,
+  .rv-eyebrow,.rv-when,.rv-plannote,
   .rv-photos,.rv-scene-rank,.rv-pillwrap,.rv-slot--dog .rv-ph{opacity:1 !important;transform:none !important;}
   .rv-fx,.rv-ring,.rv-flash{display:none !important;}
 }

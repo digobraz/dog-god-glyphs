@@ -109,7 +109,7 @@ import { deletePackTrip } from '@/lib/packStore';
 import { placeholderFor } from '@/lib/tripPlaceholder';
 import { upsertMyTrip, removeMyTrip } from '@/components/pack/triplist/triplist';
 import { supabase } from '@/integrations/supabase/client';
-import { planDateLabel } from '@/components/pack/addtrip/planDate'; // TRIPLIST (Slice A) — star popup upserts alongside the existing wishlist plan
+import { planDateLabel, parsePlanDate, planStart } from '@/components/pack/addtrip/planDate'; // TRIPLIST (Slice A) — star popup upserts alongside the existing wishlist plan
 // #41 — kto tento výlet vypísal. `useOpenTrips` dá cudzie inzeráty (user_trips),
 // `useTripParties` k nim mená (get_trip_party), karta ich vykreslí.
 import { useOpenTrips } from '@/components/pack/triplist/useOpenTrips';
@@ -3411,6 +3411,8 @@ export default function PackMap() {
     tripId?: string;
     /** i18n kľúče polí, ktoré výletu chýbajú do zverejnenia; prázdne = ide von hneď */
     draftMissing?: string[];
+    /** neprázdne = reveal PLÁNU (body sú odhad, level sa nehýbe) — viď `openPlanRevealFor` */
+    plan?: { whenLine: string };
   } | null>(null);
 
   /**
@@ -3445,7 +3447,7 @@ export default function PackMap() {
   const openDemoReveal = (want: string) => {
     const at = (lv: number) => levelProgress(levelThreshold(lv) + 12);
     const before = want === 'tier' ? at(9) : at(7);
-    const after = want === 'plain' ? before : (want === 'tier' ? at(10) : at(8));
+    const after = want === 'plain' || want === 'plan' ? before : (want === 'tier' ? at(10) : at(8));
     setReveal({
       tripName: 'Kopaničky okruh',
       tripMeta: '4,5 km · 180 m ↑ · Strážovské vrchy',
@@ -3460,6 +3462,9 @@ export default function PackMap() {
       // neúplného výletu, teda prejdením celého sprievodcu vrátane kreslenia trasy.
       draftMissing: want === 'draft' ? ['pack.addTrip.field.diff', 'pack.addTrip.field.crowd'] : [],
       tripId: want === 'draft' ? 'demo-draft' : undefined,
+      // `?reveal=plan` — odozva po NAPLÁNOVANÍ. Inak sa dá uvidieť jedine prejdením celého
+      // sprievodcu vrátane kreslenia trasy, a to je pri ladení textu dve minúty klikania.
+      ...(want === 'plan' ? { plan: { whenLine: t('pack.reveal.plan.inDaysFew', { n: 3 }) } } : {}),
     });
   };
 
@@ -4607,7 +4612,7 @@ export default function PackMap() {
     const stats = [
       trail.km && Number(trail.km) > 0 ? { value: String(trail.km), unit: 'km' } : null,
       draft.ascentM ? { value: String(draft.ascentM), unit: 'm ↑' } : null,
-      trail.region ? { value: trail.region } : null,
+      revealPlaceStat(trail),
     ].filter(Boolean) as TripStat[];
     const meta = stats.map((x) => [x.value, x.unit].filter(Boolean).join(' ')).join(' · ');
 
@@ -4623,6 +4628,115 @@ export default function PackMap() {
       // v úložisku naozaj leží. Keby čítal formulár, tvrdil by „hotovo" aj o poli, ktoré
       // sa do zápisu nedostalo.
       draftMissing: missingOnTrail(trail),
+    });
+  };
+
+  /**
+   * ── CHIP S MIESTOM: `region` NESIE DVE RÔZNE VECI (2026-08-31) ────────────────────────
+   * V katalógu je to NÁZOV pohoria („Malé Karpaty"), vo výlete zapísanom cez sprievodcu je
+   * to KÓD polovice Slovenska (`AddTripDraft.region`: 'W' | 'C' | 'E'). Reveal chip kreslil
+   * surovú hodnotu, takže na vlastnom výlete stálo v pilulke holé „W" — vyzerá to ako
+   * preklep, nie ako miesto.
+   *
+   * Pohorie sa lokálnemu výletu doplní až po schválení (`mountains`), takže kým ho nemá,
+   * je správne NEUKÁZAŤ NIČ: chip s menovkou miesta je nepovinný a prázdny rad sa nekreslí.
+   * Rozlišuje sa dĺžkou — kód má jeden znak, názov pohoria vždy viac.
+   */
+  const revealPlaceStat = (trail: HeroTrail): TripStat | null => {
+    const mountains = (trail as HeroTrail & { mountains?: string }).mountains;
+    if (mountains) return { value: mountains };
+    const region = trail.region ?? '';
+    return region.length > 2 ? { value: region } : null;
+  };
+
+  /**
+   * ── KEDY SA VYRÁŽA — JEDEN RIADOK PRE TRI PRESNOSTI (2026-08-31) ───────────────────────
+   * Plán nesie termín v troch tvaroch (`addtrip/planDate.ts`): presný deň · týždeň · mesiac.
+   * Odpočet dní má zmysel LEN pri presnom dni — „vyrážaš o 12 dní" pri pláne na september
+   * je číslo, ktoré nikto nepovedal, a plán môže rovnako dobre padnúť na 30. deň mesiaca.
+   * Pri zvyšných dvoch sa preto vypíše samotný termín cez `planDateLabel()`, teda ten istý
+   * tvar, aký ukazuje karta plánu a TripSpotlight — jeden termín sa nesmie na dvoch
+   * obrazovkách písať dvakrát inak.
+   *
+   * ⚠️ Dátum v minulosti (plán založený spätne) tiež padá na termín — záporný odpočet by
+   *    znel ako chyba appky.
+   */
+  const planWhenLine = (dateStr: string): string => {
+    const weekLbl = (n: number) => t('pack.addTrip.plan.whenWeekN', { n: String(n) });
+    const p = parsePlanDate(dateStr);
+    if (!p) return t('pack.reveal.plan.noDate');
+    if (p.precision === 'exact') {
+      const start = planStart(dateStr);
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const day = new Date(`${start}T00:00:00`);
+      const n = Math.round((day.getTime() - today.getTime()) / 86400000);
+      if (n === 0) return t('pack.reveal.plan.today');
+      if (n === 1) return t('pack.reveal.plan.tomorrow');
+      if (n > 1) return t('pack.reveal.plan.inDays' + pluralKey(n), { n });
+    }
+    return t('pack.reveal.plan.term', { term: planDateLabel(dateStr, weekLbl) });
+  };
+
+  /**
+   * ── REVEAL PO NAPLÁNOVANÍ (Matej 2026-08-31) ──────────────────────────────────────────
+   * „musíme doplniť REVEAL pri PLANE lebo žiadny nie je" (28. 8.) — človek prešiel celým
+   * sprievodcom a vrátil sa na mapu bez jediného slova.
+   *
+   * Je to TÁ ISTÁ obrazovka ako po zápise, s dvoma rozdielmi:
+   *  · body sú PREDPOVEĎ (`~`), lebo za plán sa nedáva nič (Matej 25. 8.: „body za plán = 0"),
+   *  · level sa nehýbe ⇒ `levelBefore === levelAfter` ⇒ scéna s konfetami sa nespustí
+   *    (Matej 31. 8.: „ano rovnaký ale bez konfiet"). Vypínač navyše by bol druhé pravidlo
+   *    o tej istej veci.
+   *
+   * ⚠️ ODHAD JE ZÁMERNE SPODNÁ HRANICA. Ráta sa len to, čo z nakreslenej trasy vieme isto:
+   *    pridanie + prejdenie + km + prevýšenie + prvé pohorie/NP/CHKO/voda/krajina. Hodnotenie
+   *    labkami (3) a odkazy na mape (až 9) sa dejú AŽ pri zápise, takže sa nesľubujú — číslo
+   *    smie po prejdení vyskočiť vyššie, ale nikdy nesmie klesnúť pod to, čo appka povedala.
+   *
+   * ⚠️ `km` sa NEBERIE z `planTrail.km` — ten je pri pláne natvrdo '0' (viď zápis plánu nižšie).
+   *    Berie sa z geometrie, teda z toho istého čísla, aké človek videl v sprievodcovi.
+   */
+  const openPlanRevealFor = (planTrail: HeroTrail, draft: AddTripDraft, km: number) => {
+    const walkedBefore = allTrails.filter((tr) => walkedIds.has(tr.id));
+    const before = computeCompletion(walkedBefore);
+    const after = computeCompletion([planTrail, ...walkedBefore]);
+    const gained = (key: 'ranges' | 'parks' | 'chko' | 'waters') => {
+      const n = (c: typeof before) => c.categories.find((x) => x.key === key)?.done.length ?? 0;
+      return n(after) > n(before);
+    };
+    const countriesBefore = new Set(walkedBefore.map((tr) => tr.country).filter(Boolean));
+
+    const points = calculateTripPoints({
+      kind: draft.geometry.kind === 'route' ? 'trail' : 'place',
+      km,
+      ascentM: draft.ascentM ?? 0,
+      added: true,
+      walked: true,
+      newRange: gained('ranges'),
+      newNp: gained('parks'),
+      newChko: gained('chko'),
+      newWater: gained('waters'),
+      newCountry: !!planTrail.country && !countriesBefore.has(planTrail.country),
+    });
+
+    const stats = [
+      km > 0 ? { value: km.toFixed(1), unit: 'km' } : null,
+      draft.ascentM ? { value: String(draft.ascentM), unit: 'm ↑' } : null,
+      revealPlaceStat(planTrail),
+    ].filter(Boolean) as TripStat[];
+
+    setReveal({
+      tripName: planTrail.name,
+      tripMeta: stats.map((x) => [x.value, x.unit].filter(Boolean).join(' ')).join(' · '),
+      tripStats: stats,
+      tripPhoto: planTrail.photos?.[0] ?? draft.photos?.[0] ?? null,
+      points,
+      levelBefore: levelInfo,
+      // ⚠️ TEN ISTÝ LEVEL DVAKRÁT — to je celý „bez konfiet". Bez toho by sa `levelAfter`
+      //    pri renderi dolial z aktuálneho `levelInfo`; dnes je zhodný, ale prvá zmena,
+      //    ktorá by plánu pripísala čokoľvek, by spustila päťsekundovú scénu s odmenou.
+      levelAfter: levelInfo,
+      plan: { whenLine: planWhenLine(draft.dateKind === 'flexible' ? '' : (draft.date ?? '')) },
     });
   };
 
@@ -4890,6 +5004,10 @@ export default function PackMap() {
       };
       setEvents((prev) => [ev, ...prev]);
     }
+    // ODOZVA. Naplánovanie do 31. 8. 2026 nemalo žiadnu — sprievodca sa len zavrel.
+    // ⚠️ PRED `closeAdd()`, rovnako ako pri zápise: zatvorenie sprievodcu zhasína jeho stav
+    //    a reveal si z neho ešte berie podklad.
+    openPlanRevealFor(planTrail, draft, totalDistanceM(anchor) / 1000);
     closeAdd();
     return true;
   };
@@ -6720,6 +6838,7 @@ export default function PackMap() {
             photo: d.cloudinary_main_url,
           }))}
           draftMissing={(reveal.draftMissing ?? []).map((k) => t(k))}
+          plan={reveal.plan}
           onFinishNow={reveal.tripId ? () => { const tid = reveal.tripId!; setReveal(null); openFinishTrip(tid); } : undefined}
           onAddAnother={() => { setReveal(null); openAddEntry(); }}
           // Sprievodca po zápise sa neotvorí tomu, kto si ho vypol (coachMuted) — inak by

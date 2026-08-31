@@ -234,7 +234,12 @@ export const en = {
   'heroglyph.flow.photo.skip': "I'll add a photo later",
   'heroglyph.flow.name.uniqueLine': 'Thousands of dogs share that name. None of them will share the symbol.',
   'heroglyph.flow.email.title': 'Where should we send it?',
-  'heroglyph.flow.email.reason': "Building {dogName}'s heroglyph takes about three minutes. Leave your e-mail so the design doesn't get lost — we'll send you the finished one.",
+  // Veta rastie s počtom psov (31. 8. 2026) — `{minutes}` je `počet psov + 2`.
+  'heroglyph.flow.email.reasonOne': "Building the heroglyph for {names} takes about {minutes} {minuteWord}. Leave your e-mail so the design doesn't get lost — we'll send you the finished one.",
+  'heroglyph.flow.email.reasonMany': "Building the heroglyphs for {names} takes about {minutes} {minuteWord}. Leave your e-mail so the designs don't get lost — we'll send you the finished ones.",
+  'heroglyph.flow.email.minFew': 'minutes',
+  'heroglyph.flow.email.minMany': 'minutes',
+  'heroglyph.flow.email.and': 'and',
   'heroglyph.flow.email.placeholder': 'your@email.com',
   'heroglyph.flow.email.skip': 'Skip for now',
 
@@ -246,7 +251,7 @@ export const en = {
 
   // ── /heroglyph/dogs — krok 3: multi pes (LAB, 28. 8. 2026) ──
   'heroglyph.flow.dogs.title': 'Do you have — or did you have — another dog?',
-  'heroglyph.flow.dogs.sub': 'Every dog gets its own heroglyph — and its own number in the pack.',
+  'heroglyph.flow.dogs.sub': "Don't leave any of your dogs out — every one deserves a symbol of their own.",
   'heroglyph.flow.dogs.add': 'Add another dog',
   'heroglyph.flow.dogs.unnamed': 'Another dog',
   'heroglyph.flow.dogs.namePlaceholder': "Dog's name",
@@ -266,6 +271,9 @@ export const en = {
   'heroglyph.flow.dogs.sameNat': 'Same as the others — {flag} {country}',
   'heroglyph.flow.dogs.remove': 'Remove this dog',
   'heroglyph.flow.dogs.done': 'Done',
+  'heroglyph.flow.dogs.phDay': 'Day',
+  'heroglyph.flow.dogs.phMonth': 'Month',
+  'heroglyph.flow.dogs.phYear': 'Year',
 
   // ── /heroglyph/why — krok 4: jediná obrazovka vstupu, ktorá nič nepýta ──
   // Vysvetlenie kartuše si obrazovka POŽIČIAVA z `ownerFinal.*` (ten istý text
@@ -2976,6 +2984,18 @@ export const en = {
   'pack.reveal.whyLink': "what earned them",
   'pack.reveal.whyTitle': "What earned these points",
   'pack.reveal.forThisTrip': "For this trip",
+  'pack.reveal.plan.eyebrow': "Plan saved",
+  'pack.reveal.plan.today': "You set out today",
+  'pack.reveal.plan.tomorrow': "You set out tomorrow",
+  'pack.reveal.plan.inDaysOne': "You set out in {n} day",
+  'pack.reveal.plan.inDaysFew': "You set out in {n} days",
+  'pack.reveal.plan.inDaysMany': "You set out in {n} days",
+  'pack.reveal.plan.term': "You set out — {term}",
+  'pack.reveal.plan.noDate': "No date yet",
+  'pack.reveal.plan.pointsNote': "Roughly what the plan you drew will earn you once you walk it.",
+  'pack.reveal.plan.whyLink': "what they add up from",
+  'pack.reveal.plan.whyTitle': "What these points add up from",
+  'pack.reveal.plan.forThisPlan': "Once you walk it",
   'pack.reveal.addAnother': "Add another trip",
   'pack.reveal.draftTitle': "Stays in your drafts",
   'pack.reveal.draftBody': "The trip goes public once everything is filled in. Finish it now or later — once it's complete it goes for approval, and then the whole pack sees it. You'll find it in your trip list, marked as a draft.",

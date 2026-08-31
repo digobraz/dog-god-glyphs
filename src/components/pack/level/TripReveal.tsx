@@ -78,6 +78,25 @@ export interface TripRevealProps {
    * chýbajúcu labku by z odmeny spravilo pokutu. Zverejnenie je iná vec než skóre.
    */
   draftMissing?: string[];
+  /**
+   * ── PLÁN, NIE ZÁPIS (Matej 2026-08-31) ────────────────────────────────────────────────
+   * „dajme plán zapísaný vyrážaš podľa zadanie (dní, čoskoro...) a tá veta je že podla
+   *  nakresleného plánu získaš zhruba xy bodov… a ano rovnaký ale bez konfiet."
+   *
+   * Naplánovanie dovtedy nemalo ŽIADNU odozvu — človek prešiel celým sprievodcom a vrátil sa
+   * na mapu, ako keby sa nič nestalo. Je to TÁ ISTÁ obrazovka ako po zápise, len hovorí
+   * o budúcnosti: body sú PREDPOVEĎ (`~`, nie `+`), level sa nehýbe.
+   *
+   * ⚠️ Konfety sa nevypínajú príznakom — scéna beží na `levelAfter.level > levelBefore.level`
+   *    a volajúci pri pláne podáva ten istý level dvakrát. Body sa pripisujú až po prejdení
+   *    (Matejovo rozhodnutie 25. 8.: „body za plán = 0"), takže sa level ani nemá ako pohnúť.
+   *    Druhý vypínač by bol dvojité pravidlo o tej istej veci a rozišiel by sa.
+   *
+   * `whenLine` je HOTOVÝ RIADOK, nie dátum — presnosť plánu je trojaká (`planDate.ts`:
+   * presný deň / týždeň / mesiac) a odpočet dní má zmysel len pri prvom. Skladá ho volajúci,
+   * ktorý má i18n aj `planDateLabel()`; komponent ostáva bez znalosti kalendára.
+   */
+  plan?: { whenLine: string };
   /** „Doplniť teraz" — otvorí sprievodcu nad práve zapísaným výletom. */
   onFinishNow?: () => void;
   /** „Pridaj ďalší výlet" */
@@ -92,9 +111,10 @@ const DOG_SIZE = 66;
 
 export function TripReveal({
   tripName, tripMeta, tripStats, tripPhoto, points, levelBefore, levelAfter,
-  ownerAvatarUrl, ownerInitial, dogs, draftMissing, onFinishNow, onAddAnother, onClose,
+  ownerAvatarUrl, ownerInitial, dogs, draftMissing, plan, onFinishNow, onAddAnother, onClose,
 }: TripRevealProps) {
   const t = useT();
+  const isPlan = !!plan;
   const isDraft = (draftMissing?.length ?? 0) > 0;
   const leveledUp = levelAfter.level > levelBefore.level;
   const newTier = crossedTier(levelBefore.level, levelAfter.level);
@@ -167,11 +187,14 @@ export function TripReveal({
     const show = (sel: string, cls: string, ms: number) =>
       later(() => el.querySelector(sel)?.classList.add(cls), ms);
     show('.rv-thumb', 'rv-pop', 200);
+    show('.rv-eyebrow', 'rv-in', 290);
     show('.rv-name', 'rv-in', 340);
     show('.rv-meta', 'rv-in', 430);
     show('.rv-stats', 'rv-in', 430);
+    show('.rv-when', 'rv-in', 500);
     show('.rv-score', 'rv-pop', 560);
     show('.rv-unit', 'rv-in', 640);
+    show('.rv-plannote', 'rv-in', 760);
     show('.rv-sumlink', 'rv-in', 800);
 
     const after = 800 + points.rows.length * 140 + 150;
@@ -330,7 +353,7 @@ export function TripReveal({
 
   return (
     <div
-      className={`rv${closing ? ' closing' : ''}`}
+      className={`rv${closing ? ' closing' : ''}${isPlan ? ' rv--plan' : ''}`}
       ref={rootRef}
       style={tierVars(headerLevel)}
       onMouseDown={handleBackdropDown}
@@ -403,6 +426,7 @@ export function TripReveal({
             {tripPhoto
               ? <img className="rv-thumb" src={tripPhoto} alt="" />
               : <div className="rv-thumb">🏞️</div>}
+            {isPlan && <div className="rv-eyebrow">{t('pack.reveal.plan.eyebrow')}</div>}
             <div className="rv-name">{tripName}</div>
             {/* ⚠️ CHIPY, NIE VETA (Matej 28. 8. 2026). Prázdny zoznam nekreslí prázdny rad. */}
             {stats.length > 0 && (
@@ -415,10 +439,15 @@ export function TripReveal({
                 ))}
               </div>
             )}
+            {/* KEDY SA VYRÁŽA — riadok príde hotový, viď prop `plan`. */}
+            {plan && <div className="rv-when">{plan.whenLine}</div>}
             <div className="rv-scorewrap">
-              <div className="rv-score">+{counter}</div>
+              {/* ⚠️ `~`, NIE `+` — pri pláne sa nič nepripísalo. Vlnovka nesie to isté, čo
+                  hovorí veta pod číslom: je to odhad podľa nakreslenej trasy. */}
+              <div className="rv-score">{isPlan ? '~' : '+'}{counter}</div>
               <span className="rv-unit">{t('pack.reveal.pointsUnit')}</span>
             </div>
+            {isPlan && <p className="rv-plannote">{t('pack.reveal.plan.pointsNote')}</p>}
             <button className="rv-sumlink" onClick={() => setShowSheet(true)}>
               {/* ⓘ je KRESLENÁ ikona, nie písmeno „i" v krúžku — Matej: „i musí vyzerať ako i" */}
               <svg viewBox="0 0 20 20" width="13" height="13" aria-hidden="true">
@@ -426,7 +455,7 @@ export function TripReveal({
                 <circle cx="10" cy="5.6" r="1.25" fill="currentColor" />
                 <path d="M10 8.9v5.6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
               </svg>
-              <span>{t('pack.reveal.whyLink')}</span>
+              <span>{t(isPlan ? 'pack.reveal.plan.whyLink' : 'pack.reveal.whyLink')}</span>
             </button>
           </div>
 
@@ -470,14 +499,14 @@ export function TripReveal({
                 Von sa ide klikom mimo alebo Esc; hovorí to riadok pod súčtom. */}
             <div className="rv-cardhead">
               <div className="rv-cardeyebrow">{tripName}</div>
-              <h3>{t('pack.reveal.whyTitle')}</h3>
+              <h3>{t(isPlan ? 'pack.reveal.plan.whyTitle' : 'pack.reveal.whyTitle')}</h3>
             </div>
             {/* ⚠️ `onDark={false}` — karta je od 28. 8. papyrusová, svetlý inkoust by na nej
                 zmizol. Je to ten istý komponent, aký nesie panel levelu; farbu si nepíše, pýta. */}
             <PointsBreakdown rows={points.rows} onDark={false} highlightKey="pack.points.newRange" stagger />
             <div className="rv-total">
-              <span>{t('pack.reveal.forThisTrip')}</span>
-              <b>+{points.total}</b>
+              <span>{t(isPlan ? 'pack.reveal.plan.forThisPlan' : 'pack.reveal.forThisTrip')}</span>
+              <b>{isPlan ? '~' : '+'}{points.total}</b>
             </div>
           </div>
         </div>
