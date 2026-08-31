@@ -46,9 +46,6 @@ const DogsScreen = lazy(() =>
 const WhyScreen = lazy(() =>
   import("@/components/screens/WhyScreen").then((m) => ({ default: m.WhyScreen }))
 );
-const AboutScreen = lazy(() =>
-  import("@/components/screens/AboutScreen").then((m) => ({ default: m.AboutScreen }))
-);
 const CropScreen = lazy(() =>
   import("@/components/screens/CropScreen").then((m) => ({ default: m.CropScreen }))
 );
@@ -218,7 +215,13 @@ const App = () => (
               <Route path="/heroglyph/dogs" element={<DogsScreen />} />
               <Route path="/heroglyph/email" element={<EmailScreen />} />
               <Route path="/heroglyph/why" element={<WhyScreen />} />
-              <Route path="/heroglyph/about" element={<AboutScreen />} />
+              {/* 🔴 PAPIEROVAČKY ZRUŠENÉ 31. 8. 2026 (Matej: „papierovačky krok zruš").
+                  Krajinu aj dátum narodenia zbiera UŽ krok 3 (`/heroglyph/dogs`) — a to pre
+                  KAŽDÉHO psa vrátane prvého, do tých istých polí store (`selections.country`,
+                  `birthdayDay/Month/Year`). Navyše bez nich `allDone` ďalej nepustí, takže sa
+                  nedali obísť. Obrazovka teda nič nenesie; ostáva presmerovanie, aby staré
+                  odkazy a história prehliadača nekončili na prázdnej ceste. */}
+              <Route path="/heroglyph/about" element={<Navigate to="/heroglyph/breed" replace />} />
               <Route path="/heroglyph/breed" element={<BreedPatronScreen />} />
               <Route path="/heroglyph/ranking" element={<RankingScreen />} />
               <Route path="/heroglyph/owner-info" element={<OwnerInfoScreen />} />

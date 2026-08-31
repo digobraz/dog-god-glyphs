@@ -54,7 +54,6 @@ const GROUPS: Group[] = [
   {
     label: 'Zvyšok flow — zatiaľ staré',
     rows: [
-      { kind: 'route', path: '/heroglyph/about', name: 'Papierovačky' },
       { kind: 'route', path: '/heroglyph/breed', name: 'Plemeno / patrón' },
       { kind: 'route', path: '/heroglyph/ranking', name: 'Poradie' },
       { kind: 'route', path: '/heroglyph/owner-info', name: 'Majiteľ' },

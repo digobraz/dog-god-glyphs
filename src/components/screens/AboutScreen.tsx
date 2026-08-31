@@ -1,3 +1,19 @@
+// ════════════════════════════════════════════════════════════════════════════
+// 🔴 MŔTVA OBRAZOVKA — ZRUŠENÁ 31. 8. 2026 (Matej: „papierovačky krok zruš").
+// ────────────────────────────────────────────────────────────────────────────
+// Nikto ju nevolá: routa `/heroglyph/about` je od tohto dátumu presmerovanie na
+// `/heroglyph/breed` a `App.tsx` ju už ani neimportuje.
+//
+// PREČO ZANIKLA: pýtala sa na krajinu a dátum narodenia psa — teda na to, čo UŽ
+// zbiera krok 3 (`DogsScreen`), a to pre KAŽDÉHO psa vrátane prvého, do tých
+// istých polí (`selections.country`, `birthdayDay/Month/Year`). Krok 3 bez nich
+// navyše nepustí ďalej (`allDone`), takže sa nedali obísť. Táto obrazovka ich
+// pri druhom priechode naopak PREPÍSALA hodnotami prvého psa — bola to chyba,
+// nie poistka.
+//
+// Súbor sa nemaže zámerne: keby sa papierovačky mali vrátiť, je to hotová práca.
+// ════════════════════════════════════════════════════════════════════════════
+
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';

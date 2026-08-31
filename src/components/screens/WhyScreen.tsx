@@ -38,7 +38,7 @@ import alba61Glyf from '@/assets/alba61.png';
 // predstavovať), tmavá doska s JEDNÝM heroglyfom a kľúče `why.title` /
 // `why.sub` / `why.note`.
 //
-// Back: /heroglyph/email  ·  Continue: /heroglyph/about
+// Back: /heroglyph/email  ·  Continue: /heroglyph/breed (papierovačky zrušené 31. 8. 2026)
 const ALBY = [
   { key: '43', foto: alba43Foto, glyf: alba43Glyf },
   { key: '59', foto: alba59Foto, glyf: alba59Glyf },
@@ -61,7 +61,7 @@ export function WhyScreen() {
 
   const go = () => {
     track('flow_why_continue');
-    navigate('/heroglyph/about');
+    navigate('/heroglyph/breed');
   };
 
   if (!flowOk) return null;

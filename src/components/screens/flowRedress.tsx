@@ -70,7 +70,6 @@ const FLOW_ORDER = [
   '/heroglyph/dogs',
   '/heroglyph/email',
   '/heroglyph/why',
-  '/heroglyph/about',
   '/heroglyph/breed',
   '/heroglyph/ranking',
   '/heroglyph/owner-info',
