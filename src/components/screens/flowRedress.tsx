@@ -36,8 +36,17 @@ import { PACK_THEME as T } from '@/components/pack/packTheme';
 //    on sa rozhodol, že to nesie. Tu sa preto nefarbí, len zjednocuje rádius.
 // ════════════════════════════════════════════════════════════════════════════
 
-/** Cesty, na ktorých sa prezliekanie zapína. Mimo nich atribút na `<html>` nie je. */
-const FLOW_PATHS = ['/heroglyph'];
+/**
+ * Cesty, na ktorých sa prezliekanie zapína. Mimo nich atribút na `<html>` nie je.
+ *
+ * ⚠️ Vstup NEKONČÍ na `/heroglyph` (doplnené 31. 8. 2026 — Matej: „od checkoutu si
+ *    nemenil bloky"). Checkout, platba aj `/welcome` používajú tie isté háčiky
+ *    `.dark-bg` a `.papyrus-bg`, takže bez nich zostal koniec cesty čierny, hoci
+ *    celý vstup pred ním je papyrusový.
+ * ⚠️ `/cert-render` sa sem NESMIE dostať: certifikát sa z nej screenshotuje a šat by
+ *    sa zapiekol do obrázka. Overené — tá routa `.dark-bg` ani `.papyrus-bg` nemá.
+ */
+const FLOW_PATHS = ['/heroglyph', '/checkout', '/payment', '/welcome'];
 
 /**
  * PORADIE VSTUPU — zdroj pravdy pre progres (31. 8. 2026).
@@ -185,13 +194,20 @@ const REDRESS_CSS = `
    gradient + PLNÝ zlatý rám + lift a inset highlight.
    Výplň sa neopisuje ručne — berie sa 'T.panelGrad' z matrice; rám je 'LAB.edge',
    teda zlatá z papyrusovej sady, nie z tmavej (tie dve sa nemiešajú). */
-[data-flow-skin="pale"] .dark-bg button[class*="border-border"] {
+/* ⚠️ ''[class*="absolute"]'' JE VYLÚČENÉ, a nie je to detail (oprava 31. 8. 2026 —
+   Matej: „výber patróna na bokoch pri kategóriách presvitá iná farba… aj pri povahe si
+   zrušil tie prechody mimo záber").
+   Okrúhle šípky posunu (''absolute … rounded-full border border-border bg-background/90'')
+   tento háčik tiež chytili a dostali NEPRIEHĽADNÚ dlaždicovú výplň. Tým prekryli pilulky
+   pod sebou a zabili jediné, čo hovorí „pokračuje to ďalej". Prekryv nie je dlaždica:
+   dlaždica je plocha, po ktorej sa vyberá, prekryv je sklo, cez ktoré musí byť vidno. */
+[data-flow-skin="pale"] .dark-bg button[class*="border-border"]:not([class*="absolute"]) {
   border-color: ${LAB.edge};
   background: ${T.panelGrad};
   color: ${LAB.ink};
   box-shadow: 0 6px 16px -10px rgba(110,71,16,.45), inset 0 1px 0 rgba(255,255,255,.55);
 }
-[data-flow-skin="pale"] .dark-bg button[class*="border-border"]:hover {
+[data-flow-skin="pale"] .dark-bg button[class*="border-border"]:not([class*="absolute"]):hover {
   border-color: ${LAB.goldSolid};
   box-shadow: 0 8px 20px -10px rgba(110,71,16,.55), inset 0 1px 0 rgba(255,255,255,.7);
 }
@@ -265,11 +281,30 @@ const REDRESS_CSS = `
   border-top-color: ${LAPIS.edge} !important;
   border-bottom-color: ${LAPIS.edge} !important;
 }
-[data-flow-skin="pale"] .dark-bg .inset-x-0.top-0[class*="pointer-events-none"] {
-  background-image: linear-gradient(${LAB.pageBg} 0%, rgba(243,228,196,0.85) 25%, rgba(243,228,196,0) 100%) !important;
-}
+/* Blednutie hore a dole: NIE prekryv vo farbe podkladu, ale MASKA na samotnom
+   koliesku. Farebný prekryv musí trafiť odtieň dosky presne — a doska je gradient
+   s mramorovaním, takže žiadna plná farba ho netrafí: prvý pokus bol svetlejší
+   (biely pás), druhý tmavší (viditeľná obruba). Maska mizne do PRIEHĽADNA, takže
+   funguje nad akýmkoľvek podkladom a nemá čo netrafiť. Prekryvy sa preto vypnú. */
+[data-flow-skin="pale"] .dark-bg .inset-x-0.top-0[class*="pointer-events-none"],
 [data-flow-skin="pale"] .dark-bg .inset-x-0.bottom-0[class*="pointer-events-none"] {
-  background-image: linear-gradient(0deg, ${LAB.pageBg} 0%, rgba(243,228,196,0.85) 25%, rgba(243,228,196,0) 100%) !important;
+  background-image: none !important;
+}
+[data-flow-skin="pale"] .dark-bg [class*="overflow-y-scroll"][class*="snap-y"] {
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+}
+
+/* ── ZADNÁ STRANA BLOKU (vysvetlivky pod ⓘ) ───────────────────────────────
+   Matej 31. 8.: „vôbec si neupravil zadné časti blokov kde sú vysvetlivky."
+   Bublina sa po ťuknutí na ⓘ preklopí a jej DRUHÁ STRANA je prekryv
+   ''absolute inset-0'' s ''background-color: hsl(var(--papyrus))''. Na čiernom webe
+   to bol kontrast (tmavá → svetlá), na papyruse je to plochý svetlý obdĺžnik BEZ
+   RÁMU medzi dvoma zlato rámovanými blokmi — jediný prvok obrazovky mimo sústavy.
+   Dostáva preto ten istý blok z matrice ako jeho susedia. */
+[data-flow-skin="pale"] .dark-bg .absolute.inset-0[style*="papyrus"] {
+  ${goldFrameCSS()}
+  background-color: transparent !important;
 }
 
 /* ── BUBLINA ostáva tmavá (Matejova ručná voľba z LABu), len zladený rádius. */
