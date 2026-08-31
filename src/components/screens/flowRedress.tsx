@@ -2,6 +2,7 @@ import { useEffect, useSyncExternalStore } from 'react';
 import { useLocation } from 'react-router-dom';
 import { LAB } from '@/lib/labTheme';
 import { goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
+import { PACK_THEME as T } from '@/components/pack/packTheme';
 
 // ════════════════════════════════════════════════════════════════════════════
 // PREZLEČENIE STARÝCH OBRAZOVIEK VSTUPU (31. 8. 2026)
@@ -145,12 +146,18 @@ const REDRESS_CSS = `
    vnútorný priestor dáva doska nižšie. */
 [data-flow-skin="pale"] .dark-bg .papyrus-bg {
   ${goldFrameCSS()}
-  padding: 0;
+
+  /* 🔴 VZDUCH PATRÍ KARTE, NIE DEŤOM (oprava 31. 8. 2026 — Matej: „tlačítko sa
+     dotýka okrajov… tieň tlačítka presvitá z blok").
+     Pôvodne tu bolo 'padding: 0' a odsadenie sa dávalo deťom cez
+     '.papyrus-bg > * { padding-inline: 16px }'. Na 'div' to vyzeralo správne,
+     lebo padding odsunul jeho OBSAH — ale BOX dieťaťa ostal na hranici dosky.
+     Pri '<button>', ktorý je na väčšine obrazoviek priame dieťa, sa tým odsadenie
+     nedostalo VON: padding mu len zväčšil vnútro, výplň aj tieň ostali opreté
+     o zlatý rám a tieň spod neho vytekal. Premerané na 19 cestách — netýkalo sa
+     to jednej obrazovky, ale každej, ktorá kartu má. */
+  padding: 12px 16px;
 }
-/* Obsah karty dostane vzduch dosky (zhodné s '.hf-plate'). */
-[data-flow-skin="pale"] .dark-bg .papyrus-bg > * { padding-inline: 16px; }
-[data-flow-skin="pale"] .dark-bg .papyrus-bg > *:first-child { padding-top: 12px; }
-[data-flow-skin="pale"] .dark-bg .papyrus-bg > *:last-child { padding-bottom: 12px; }
 /* Nadpis karty — na papyruse je 'text-primary' príliš svetlý. */
 [data-flow-skin="pale"] .dark-bg .papyrus-bg h2,
 [data-flow-skin="pale"] .dark-bg .papyrus-bg h3 { color: ${LAB.goldInk}; }
@@ -170,13 +177,23 @@ const REDRESS_CSS = `
 }
 [data-flow-skin="pale"] .dark-bg .is-selected-purple span,
 [data-flow-skin="pale"] .dark-bg .is-selected-purple p { color: ${PICK_INK.lapis}; }
-/* Nevybrané dlaždice: rám z papyrusovej rodiny, nie šedý hairline. */
+/* Nevybrané dlaždice = PODBLOK z matrice (úroveň 2), nie šedý hairline.
+   🔴 Malo tu 'border-color: rgba(201,154,63,.4)' na priesvitnom podklade —
+   presne ten „plochý blok so slabým okrajom", ktorý Matej zamietol už trikrát
+   ('je to suché bez šťavy' 26. 7. · 'je to také plané' 12. 8. · 'majú slabé
+   okraje' 13. 8.) a naposledy 31. 8. na siluete. Kánon úrovne 2 je papyrusový
+   gradient + PLNÝ zlatý rám + lift a inset highlight.
+   Výplň sa neopisuje ručne — berie sa 'T.panelGrad' z matrice; rám je 'LAB.edge',
+   teda zlatá z papyrusovej sady, nie z tmavej (tie dve sa nemiešajú). */
 [data-flow-skin="pale"] .dark-bg button[class*="border-border"] {
-  border-color: rgba(201,154,63,.4);
+  border-color: ${LAB.edge};
+  background: ${T.panelGrad};
   color: ${LAB.ink};
+  box-shadow: 0 6px 16px -10px rgba(110,71,16,.45), inset 0 1px 0 rgba(255,255,255,.55);
 }
 [data-flow-skin="pale"] .dark-bg button[class*="border-border"]:hover {
-  border-color: rgba(201,154,63,.75);
+  border-color: ${LAB.goldSolid};
+  box-shadow: 0 8px 20px -10px rgba(110,71,16,.55), inset 0 1px 0 rgba(255,255,255,.7);
 }
 
 /* Kresby volieb (pohlavie, osud, farba…) sú čierne siluety — na papyruse
@@ -209,6 +226,50 @@ const REDRESS_CSS = `
 }
 [data-flow-skin="pale"] .dark-bg button.bg-primary:hover:not(:disabled) {
   background: ${LAPIS.gradHover} !important;
+}
+
+/* Nedostupné CTA — NIE stlmený lapis (oprava 31. 8. 2026).
+   shadcn dáva zakázanému tlačidlu 'opacity: .4'. Na tmavom webe to fungovalo,
+   na papyruse sa 40 % lapisu číta ako ŠEDÁ PLOCHA a jeho stlmený tieň sa spod
+   nej rozotiera — Matej to videl na siluete ako „šedé tlačítko a tieň presvitá".
+   Nedostupnosť tu preto nesie MATERIÁL, nie priesvitnosť: plochý papyrus,
+   tlmený inkoust, žiadny tieň. Tvar ostáva, takže je vidieť, čo pribudne. */
+[data-flow-skin="pale"] .dark-bg .btn-gold:disabled,
+[data-flow-skin="pale"] .dark-bg button.bg-primary:disabled {
+  background: ${T.tileBg} !important;
+  color: ${LAB.inkMuted} !important;
+  box-shadow: none !important;
+  border-color: ${LAB.hairline};
+  opacity: 1;
+}
+
+/* ── KOLIESKO ROKOV (čínsky horoskop) ────────────────────────────────────
+   Tri prekryvy s natvrdo zapísanými farbami, ktoré sa na tmavom webe strácali
+   a na papyruse kričia (Matej 31. 8.: „veľa chýb v každom kroku"):
+     · pás výberu   'rgba(46,83,184,…)' — modrá, ale NIE naša lapisová
+     · dve blednutia 'rgb(240,234,224)' — skoro biela, robí z kolieska
+       biely panel položený na papyrusovej doske
+   Pás výberu je „moja voľba", takže patrí do LAPISU a ako TINT, nie plná
+   farba (lock 26. 8.). Blednutia musia miznúť DO DOSKY — a doska nie je
+   najsvetlejší papyrus: prvý pokus vzal ''T.card'' (#FBF5E6), čo je SVETLEJŠIE
+   než plocha pod kolieskom, takže z troch prekryvov (28+28+28 px, spolu celá
+   výška) ostal biely pás. Správny odtieň je papyrusový stred ''LAB.pageBg''.
+   ⚠️ Háčik ide cez ''background-image'', lebo prekryvy nemajú vlastnú triedu —
+   sú to ''absolute'' vrstvy odlíšené len smerom gradientu. */
+[data-flow-skin="pale"] .dark-bg [class*="absolute"][class*="left-0"][class*="right-0"][style*="height"] {
+  /* ⚠️ BEZ VÝPLNE. Lapisový tint (12 %) sa na teplom papyruse odfarbí do šedej
+     a veľká plocha z toho spraví šedý pás — čitateľnosť tintu nesie tmavý
+     inkoust a plný rám, nie krytie výplne (lock 26. 8.). Výber tu preto nesú
+     DVE LINKY, čo je aj zaužívaný tvar kolieska. */
+  background-image: none !important;
+  border-top-color: ${LAPIS.edge} !important;
+  border-bottom-color: ${LAPIS.edge} !important;
+}
+[data-flow-skin="pale"] .dark-bg .inset-x-0.top-0[class*="pointer-events-none"] {
+  background-image: linear-gradient(${LAB.pageBg} 0%, rgba(243,228,196,0.85) 25%, rgba(243,228,196,0) 100%) !important;
+}
+[data-flow-skin="pale"] .dark-bg .inset-x-0.bottom-0[class*="pointer-events-none"] {
+  background-image: linear-gradient(0deg, ${LAB.pageBg} 0%, rgba(243,228,196,0.85) 25%, rgba(243,228,196,0) 100%) !important;
 }
 
 /* ── BUBLINA ostáva tmavá (Matejova ručná voľba z LABu), len zladený rádius. */
