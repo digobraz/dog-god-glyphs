@@ -12,6 +12,7 @@ import { GodsGrid } from "@/components/gods/GodsGrid";
 import NotFound from "./pages/NotFound.tsx";
 import { DevNav } from "@/components/DevNav";
 import { HeroflowDevMenu } from "@/components/lab/HeroflowDevMenu";
+import { FlowRedress } from "@/components/screens/flowRedress";
 import { ConsentBanner } from "@/components/ConsentBanner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { captureRefFromSearch } from "@/lib/refCapture";
@@ -177,6 +178,7 @@ const App = () => (
         <DevNav />
         {/* Úzke dev menu vstupu — beží aj POČAS flow (Matej 28. 8.:
             „pri flow zostáva ten dev menu aby som vedel prepínať vždy"). */}
+        <FlowRedress />
         <HeroflowDevMenu />
         <ErrorBoundary>
           <Suspense fallback={<RouteFallback />}>

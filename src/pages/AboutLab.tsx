@@ -169,6 +169,17 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
   const showStory = part !== 'crawl';
   /** Pätičku nesie len celá stránka — film si ju kladie sám na koniec. */
   const showFooter = part === 'all';
+  /* CHVOST PRÍBEHU (citáty, Council, outro) NEPATRÍ DO FILMU — od 31. 8. 2026.
+     Vo filme `/onepage` za príbehom nasleduje oblúk RECENZIE → NEXT STEP, takže
+     tieto tri bloky by hovorili to isté druhýkrát, a horšie:
+      · `TestimonialsSection` sú TIE ISTÉ citáty, aké ukazuje obrazovka RECENZIE
+        (obe berú zo `POOL`) — na jednej stránke by boli dvakrát do 3 000 px;
+      · `CouncilSection` má nadpis „JOIN THE MISSION", teda doslova ten istý
+        nadpis ako obrazovka NEXT STEP;
+      · `about-outro` končí zlatým CTA na `/entry` — druhá výzva tesne pred tou,
+        ktorá má film uzavrieť.
+     ⚠️ Ostrá `/about` (part='all') sa NEMENÍ — tam všetky tri ostávajú. */
+  const showTail = part !== 'film';
   /**
    * ÚVOD SEKVENCIE — postavy Mateja a Hektora, nadpis THE ORIGIN, výzva na scroll.
    *
@@ -1085,6 +1096,7 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
         </div>
       </section>
 
+      {showTail && (<>
       {/* Testimonials — placeholder, nechané zatiaľ (Matej 2026-05-31) */}
       <TestimonialsSection variant="papyrus" />
 
@@ -1104,6 +1116,7 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
           </a>
         </div>
       </section>
+      </>)}
 
       </>)}
 

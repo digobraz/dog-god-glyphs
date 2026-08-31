@@ -154,7 +154,7 @@ import {
 // krok 5) — dovtedy sa event po uložení nikde nezobrazoval (formulár aj store boli hotové,
 // panel ostal viazaný len na TRIP vetvu).
 import { EventsPanel } from '@/components/pack/events/EventsPanel';
-import { TRIP_CATEGORIES, ACT_TAG_EMOJI, categoriesOf, isInCategory, type TripCategoryId } from '@/components/pack/tripCategories';
+import { TRIP_CATEGORIES, ACT_TAG_EMOJI, ACT_TO_CATEGORY, CHIP_BY_ID, categoriesOf, chipsOf, isInCategory, primaryCategoryOf, type TripCategoryId } from '@/components/pack/tripCategories';
 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
@@ -313,18 +313,18 @@ const DIFF_KEYS = ['Easy', 'Moderate', 'Hard', 'Odyssey'] as const;
 // nenesie vlastné tagy (predtým per-activity scoping, zrušené).
 const TRIP_ACTIVITIES: { id: string; label: string }[] =
   TRIP_CATEGORIES.map((c) => ({ id: c.id, label: c.label }));
-// ── ŠTYRI KATEGÓRIE, JEDEN ZDROJ (2026-08-27) ───────────────────────────────────────────
-// Sedem aktivít sa zlúčilo do štyroch kategórií (HIKE · CHILL · SPORT · EXPLORE) a zoznam
-// sa presťahoval do `components/pack/tripCategories.ts` — spolu s tým, ktoré staré hodnoty
-// `acts` do ktorej kategórie patria. Tu už nesmie stáť druhá kópia: do 27. 8. boli štyri
-// a stihli sa rozísť v emoji.
+// ── TRI KATEGÓRIE, JEDEN ZDROJ (2026-08-31) ─────────────────────────────────────────────
+// Sedem aktivít sa zlúčilo do troch kategórií (HIKE · VISIT · SPORT — CHILL a EXPLORE
+// splynuli do VISIT) a zoznam sa presťahoval do `components/pack/tripCategories.ts` — spolu
+// s tým, ktoré staré hodnoty `acts` do ktorej kategórie patria a ktoré chipy k nej patria.
+// Tu už nesmie stáť druhá kópia: do 27. 8. boli štyri a stihli sa rozísť v emoji.
 //
 // 🔴 FILTER ČÍTA VŠETKY KATEGÓRIE VÝLETU, NIE LEN JEHO IDENTITU (Matej 2026-08-27).
 //    „ak dá človek vo filtri nocľah, vyhľadá mu aj HIKE, kde je tag aj CHILL aktivity."
 //    Preto sa nižšie porovnáva cez `isInCategory(tr.acts, …)` a NIE cez jednu hodnotu:
-//    túra s piknikom je na karte HIKE, ale pod filtrom CHILL sa MUSÍ nájsť. Bez toho by
-//    na 81 seed výletoch ostal CHILL prázdny — 19 piknikov a 7 z 8 nocľahov leží na výlete,
-//    ktorý je zároveň túra.
+//    túra s piknikom je na karte HIKE, ale pod filtrom VISIT sa MUSÍ nájsť. Bez toho by
+//    na 81 seed výletoch ostal VISIT chudobný — 19 piknikov a 7 z 8 nocľahov leží na výlete,
+//    ktorý je zároveň túra. Prečo tam tá karta je, povie dvojica odznakov v `renderTripCard`.
 const ACT_EMOJI: Record<string, string> = { ...ACT_TAG_EMOJI, ...Object.fromEntries(TRIP_CATEGORIES.map((c) => [c.id, c.emoji])) };
 // Čo sa zapíše novému výletu do `tr.acts` — staré hodnoty ('picnic', 'skating'…) v datasete
 // ostávajú a kategórie ich čítajú ďalej (`TripCategory.acts`), nemigruje sa nič.
@@ -1430,6 +1430,14 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
 /* pohorie · región label, pod fotkou (Matejov feedback bod 3, iterácia 7) */
 /* Región nad názvom = eyebrow (Entry.tsx .religion-eyebrow vzor) → FONT_UI 500 + .22em. */
 .trp-bigcard-loc{font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:rgba(245,240,228,0.45);margin-bottom:3px;}
+/* ── PREČO JE KARTA V TOMTO FILTRI (2026-08-31) ────────────────────────────────────────
+   Dvojica pilulek: identita výletu + hodnota, cez ktorú sa do filtra dostal. Zelená je tá
+   istá, akou celý tok značí „vybral som si" — tu hovorí „toto si hľadal". Zobrazuje sa len
+   počas filtrovania, takže bežná karta ostáva bez nich. */
+.trp-bigcard-why{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px;}
+.trp-cbadge{display:inline-flex;align-items:center;gap:4px;font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:999px;border:1px solid rgba(245,240,228,0.22);color:rgba(245,240,228,0.62);}
+.trp-cbadge-e{font-size:10px;line-height:1;}
+.trp-cbadge--via{border-color:${T.growGreen};color:#9FD3AC;background:rgba(61,122,78,0.16);}
 /* bod 4 (iterácia 16): line-clamp 2 riadky, nech dlhé názvy nerozbíjajú layout */
 .trp-bigcard-name{font-family:${FONT_TITLE};font-weight:700;font-size:16px;line-height:1.2;color:rgba(245,240,228,0.92);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 /* AKO SA TAM IDE — riadok pod názvom plánu vo VNORENOM DETAILE (.trp-inldet), nie na karte
@@ -2256,6 +2264,8 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-sidebar .trp-bigcard:hover,
   .trp-sidebar .trp-bigcard.hot{background:${T.cardGrad};border-color:#8A5F1E;box-shadow:0 0 0 3px rgba(201,154,63,0.28),${T.cardShadow};transform:translateY(-1px);}
   .trp-sidebar .trp-bigcard-loc{color:${P_DIM};}
+  .trp-sidebar .trp-cbadge{border-color:${P_BORDER};color:${P_DIM};}
+  .trp-sidebar .trp-cbadge--via{border-color:#2F6A40;color:#245633;background:rgba(61,122,78,0.14);}
   .trp-sidebar .trp-bigcard-name{color:${P_INK};}
   .trp-sidebar .trp-bigcard-author{color:${P_DIM};}
   /* Počet hlasov v zátvorke — na tmavom je to onDarkDim, teda svetlý inkoust, a na papyruse
@@ -2528,6 +2538,8 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-mlist .trp-bigcard.hot{background:${T.cardGrad};border-color:#8A5F1E;box-shadow:0 0 0 3px rgba(201,154,63,0.28),${T.cardShadow};}
 
   .trp-mlist .trp-bigcard-loc{color:${P_DIM};}
+  .trp-mlist .trp-cbadge{border-color:${P_BORDER};color:${P_DIM};}
+  .trp-mlist .trp-cbadge--via{border-color:#2F6A40;color:#245633;background:rgba(61,122,78,0.14);}
   .trp-mlist .trp-bigcard-name{color:${P_INK};}
   .trp-mlist .trp-bigcard-author{color:${P_DIM};}
   .trp-mlist .comm-bigrating i{color:${P_DIM};}
@@ -4874,7 +4886,10 @@ export default function PackMap() {
         seasons: [],
         desc: draft.note ?? '',
         dogNote: '',
-        acts: [ACT_DATA_ID[draft.activity] ?? draft.activity],
+        // KATEGÓRIA + CHIPY V JEDNOM POLI (§2.3 zadania, 2026-08-31). Chip z kroku 4 je
+        // rovnocenná hodnota `acts` — filter, karta aj článok ho čítajú tou istou cestou
+        // ako kategóriu, takže túra s táboriskom sa nájde pod VISIT bez druhého poľa.
+        acts: [ACT_DATA_ID[draft.activity] ?? draft.activity, ...(draft.chips ?? [])],
         surface: draft.surface ?? [],
         crowd: draft.crowd ?? '',
         tags: draft.tags ?? [],
@@ -4963,7 +4978,7 @@ export default function PackMap() {
       // v pláne" a odpoveď sa doteraz zahodila pri ukladaní — pole, ktoré nikam nevedie.
       // Po prejdení sa ten istý text stáva základom príbehu výletu, takže sa musí dochovať.
       photos: [], seasons: [], desc: draft.note ?? '', dogNote: '',
-      acts: [ACT_DATA_ID[draft.activity] ?? draft.activity], surface: [], crowd: '', tags: [],
+      acts: [ACT_DATA_ID[draft.activity] ?? draft.activity, ...(draft.chips ?? [])], surface: [], crowd: '', tags: [],
       author: firstName,
       // POSÁDKA a DÁTUM na zázname plánu — nie ozdoba, ale podklad pre zápis po prejdení:
       // formulár sa nimi predvyplní, aby človek nevypisoval druhýkrát to, čo už povedal.
@@ -5274,6 +5289,29 @@ export default function PackMap() {
     // KONCEPT — chýbajú povinné polia, takže výlet nejde von. Odvodzuje sa zo záznamu
     // (tripShared.tsx), neukladá sa; dopísanie ho zhasne samo.
     const draftMissing = tripDraftMissing(tr, memberIds);
+    /**
+     * ── PREČO JE TENTO VÝLET V TOMTO FILTRI (Matej 2026-08-31) ────────────────────────
+     *
+     * „človek klikne vo filtri chill a vyskočia mu kategórie vyklikané ako chill ale aj hike
+     *  s chipom (označením-chill)"
+     *
+     * Filter číta VŠETKY kategórie výletu (`isInCategory`), odznak nesie JEDNU
+     * (`primaryCategoryOf`) — takže pod VISIT sa objaví aj túra, ktorá nesie táborisko.
+     * Bez tejto dvojice odznakov to vyzerá ako chyba filtra: „prečo mi pod VISIT svieti HIKE".
+     * ⚠️ Ukazuje sa LEN počas filtrovania a LEN keď sa identita s filtrom rozchádza — inak
+     * by každá karta niesla pilulku, ktorá nič nevysvetľuje.
+     * ⚠️ Hodnota môže byť aj STARÁ aktivita ('picnic', 'overnight'), nielen nový chip: tie
+     * v datasete ležia ďalej a do kategórie patria rovnako. Preto sa najprv skúsi chip
+     * a až potom slovník aktivít.
+     */
+    const identity = primaryCategoryOf(tr.acts);
+    const viaAct = heroAct !== '' && identity !== heroAct
+      ? (tr.acts ?? []).find((a) => ACT_TO_CATEGORY[a] === heroAct)
+      : undefined;
+    const viaChip = viaAct ? CHIP_BY_ID[viaAct] : undefined;
+    const viaLabel = viaAct
+      ? (viaChip ? (t(`pack.map.chipLabel.${viaAct}`) === `pack.map.chipLabel.${viaAct}` ? viaChip.label : t(`pack.map.chipLabel.${viaAct}`)) : t(`pack.map.activityLabel.${viaAct}`))
+      : '';
     return (
       <div
         key={tr.id}
@@ -5380,6 +5418,18 @@ export default function PackMap() {
             {/* Pohorie je vlastné meno (neprekladá sa), macro región áno — inak stálo pod
                 slovenským zoznamom „MALÉ KARPATY · WEST". Kľúče `pack.map.macroRegion.*`. */}
             <div className="trp-bigcard-loc">{tr.region}{REGION_OF[tr.region] ? ` · ${t(`pack.map.macroRegion.${REGION_OF[tr.region]}`)}` : ''}</div>
+            {viaAct && (
+              <div className="trp-bigcard-why">
+                <span className="trp-cbadge">
+                  <span className="trp-cbadge-e" style={{ fontFamily: FONT_EMOJI }}>{ACT_EMOJI[identity] ?? ''}</span>
+                  {t(`pack.map.activityLabel.${identity}`)}
+                </span>
+                <span className="trp-cbadge trp-cbadge--via">
+                  <span className="trp-cbadge-e" style={{ fontFamily: FONT_EMOJI }}>{ACT_EMOJI[viaAct] ?? ''}</span>
+                  {viaLabel}
+                </span>
+              </div>
+            )}
             <div className="trp-bigcard-name">{tr.name}</div>
           </div>
           {/* PODPISOVÝ RIADOK (Matej 2026-08-26): „rozdelíme to na 2 riadky — prvý riadok názov,
@@ -5442,6 +5492,14 @@ export default function PackMap() {
           // filter: karta tak povie, prečo sa pod CHILL našla túra.
           const dtChips = [
             ...categoriesOf(dt.acts).map((c) => ({ key: `a:${c}`, label: t(`pack.map.activityLabel.${c}`), emoji: ACT_EMOJI[c] ?? '' })),
+            // Chipy kroku 4 vedľa kategórií — kategória hovorí ČO VÝLET JE, chip ČO SME TAM
+            // ROBILI. `chipsOf()` prepustí len skutočné chipy, staré 'picnic'/'overnight'
+            // ostávajú iba v kategórii (nemajú vlastný preklad).
+            ...chipsOf(dt.acts).map((ch) => ({
+              key: `c:${ch.id}`,
+              label: t(`pack.map.chipLabel.${ch.id}`) === `pack.map.chipLabel.${ch.id}` ? ch.label : t(`pack.map.chipLabel.${ch.id}`),
+              emoji: ch.emoji,
+            })),
             // 'In the middle of nature'/'nowhere' zrušené (Matej 2026-07-26) — filter aj tu, nielen
             // v TAG_VOCAB, lebo dtChips číta dt.tags priamo (surová dátová hodnota, nie cez TAG_VOCAB).
             ...(dt.tags ?? []).filter((tg) => tg !== 'In the middle of nature' && tg !== 'In the middle of nowhere').map((tg) => ({ key: `t:${tg}`, label: tg, emoji: TAG_EMOJI[tg] ?? '' })),

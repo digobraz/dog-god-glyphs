@@ -22,8 +22,8 @@ const ACTIVITY_PLACEHOLDERS: Record<string, string[]> = {
   // Štýl držaný na existujúcich placeholderoch (fotoreal 35 mm, zlatá hodina, bez ľudí
   // a bez psov, 1600×893) — pri dopĺňaní ďalších sa naň pozri, nehádaj ho.
   explore: [`${CLD}/explore-1.webp`, `${CLD}/explore-2.webp`, `${CLD}/explore-3.webp`],
-  // ── ŠTYRI KATEGÓRIE (2026-08-27) ────────────────────────────────────────────────────────
-  // Nové výlety zapisujú do `acts` kľúč KATEGÓRIE ('chill', 'sport'), nie starú aktivitu —
+  // ── KATEGÓRIE V `acts` (2026-08-27) ─────────────────────────────────────────────────────
+  // Nové výlety zapisujú do `acts` kľúč KATEGÓRIE ('visit', 'sport'), nie starú aktivitu —
   // bez týchto dvoch riadkov by hľadanie nenašlo nič a piknik aj paddleboard by dostali
   // fotku lesnej túry (fallback `hike`). Žiadne nové assety: kategória si berie fotky
   // oboch aktivít, z ktorých vznikla, takže výber je širší, nie chudobnejší.
@@ -32,6 +32,14 @@ const ACTIVITY_PLACEHOLDERS: Record<string, string[]> = {
           `${CLD}/overnight-1.webp`, `${CLD}/overnight-2.webp`, `${CLD}/overnight-3.webp`],
   sport: [`${CLD}/skating-1.webp`, `${CLD}/skating-2.webp`, `${CLD}/skating-3.webp`,
           `${CLD}/paddleboard-1.webp`, `${CLD}/paddleboard-2.webp`, `${CLD}/paddleboard-3.webp`],
+  // ── TRI KATEGÓRIE (2026-08-31) ──────────────────────────────────────────────────────────
+  // CHILL a EXPLORE splynuli do VISIT. Bez tohto riadku by KAŽDÝ nový výlet kategórie VISIT
+  // dostal fotku lesnej túry (fallback `hike`) — a bola by to tichá chyba: obrázok tam JE,
+  // len hovorí o inom výlete. `chill` a `explore` ostávajú, ležia v `acts` starých výletov.
+  // Žiadne nové assety: kategória si berie fotky všetkých troch aktivít, z ktorých vznikla.
+  visit: [`${CLD}/picnic-1.webp`, `${CLD}/picnic-2.webp`, `${CLD}/picnic-3.webp`,
+          `${CLD}/overnight-1.webp`, `${CLD}/overnight-2.webp`, `${CLD}/overnight-3.webp`,
+          `${CLD}/explore-1.webp`, `${CLD}/explore-2.webp`, `${CLD}/explore-3.webp`],
 };
 // vyber 1 z 3 stabilne podľa seedu (id tripu / názov) → variety naprieč kartami, ale nemení sa pri re-renderi
 export function placeholderFor(actIds: string[] | undefined, seed: string): string {

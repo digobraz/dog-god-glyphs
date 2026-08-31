@@ -54,7 +54,7 @@ import {
   type TravelMode, TRAVEL_MODES,
   readAddDraft, writeAddDraft, clearAddDraft, clearTripNotes,
 } from './addTripModel';
-import { TRIP_CATEGORIES } from '@/components/pack/tripCategories';
+import { TRIP_CATEGORIES, chipsForCategory, otherChips } from '@/components/pack/tripCategories';
 
 const GOLD = '#C99A3F';
 
@@ -211,7 +211,7 @@ export type AddTripLogProps = {
 // a to sa človek dovtedy dozvedel až v kroku 1, keď mu mapa sama ponúkla iné nástroje, než
 // čakal. Kľúč je odvodený od `id`, takže nová aktivita bez vety spadne na prázdno, nie na
 // cudzí text.
-// ── ŠTYRI KATEGÓRIE, JEDEN ZDROJ (2026-08-27) ───────────────────────────────────────────
+// ── TRI KATEGÓRIE, JEDEN ZDROJ (2026-08-31) ─────────────────────────────────────────────
 // Sedem dlaždíc zaniklo — zoznam žije v `components/pack/tripCategories.ts` spolu s tým,
 // ktoré staré aktivity do ktorej kategórie patria a akú má kategória geometriu. Tu ostal
 // len tvar, ktorý čaká mriežka dlaždíc.
@@ -229,7 +229,7 @@ const MODE_CHOICES: Array<{ mode: 'walked' | 'planned'; key: 'walked' | 'planned
   { mode: 'planned', key: 'planned', emoji: '🗓️' },
 ];
 
-// §4.3 riadok 4: Náročnosť a povrch majú LEN HIKE a SPORT (§10.2 kánonu). Lokálna kópia
+// §4.3 riadok 4: Náročnosť a povrch má LEN HIKE (Matej 2026-08-31; do vtedy aj SPORT). Lokálna kópia
 // množiny `HIKE_LIKE` tu stála do 27. 8. 2026 — dnes to hovorí `needsDifficulty()`
 // z addTripModel.ts nad príznakom pri kategórii, teda tá istá veta na jednom mieste.
 const DIFF_OPTIONS = ['Easy', 'Moderate', 'Hard', 'Odyssey'] as const;
@@ -384,6 +384,24 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
    */
   const [terrain, setTerrain] = useState<Set<string>>(new Set());
   const [tags, setTags] = useState<Set<string>>(new Set());
+  /**
+   * ── CHIPY KROKU 4 — „ČO SME TAM ROBILI" (2026-08-31) ──────────────────────────────────
+   *
+   * Jedna množina pre OBA rady. Rady sú dva len na obrazovke (vlastná kategória viditeľne,
+   * ostatné zbalené) — v dátach je to jeden zoznam a pri ukladaní jedno pole `acts`. Dve
+   * množiny by si vyžadovali pravidlo, čo sa stane pri prepnutí kategórie, a to pravidlo
+   * by po prvej zmene klamalo.
+   */
+  const [chips, setChips] = useState<Set<string>>(new Set());
+  /**
+   * Ktorý chip z DRUHÉHO radu človek práve zapol — pod ním stojí tichá ponuka „vieš, kde to
+   * bolo?". Nie je to výber, je to POSLEDNÝ DOTYK: ponuka sa nesmie zjaviť pri každom
+   * zapnutom chipe naraz (bol by z nej zoznam otázok), ani ostať visieť po vypnutí.
+   * `null` = neponúka sa nič a nič sa tým neblokuje.
+   */
+  const [chipAsk, setChipAsk] = useState<string | null>(null);
+  /** Druhý rad je ZBALENÝ. Preto ti na Kriváni nikto neponúka pádlovanie — musíš oň požiadať. */
+  const [moreChipsOpen, setMoreChipsOpen] = useState(false);
   const [note, setNote] = useState('');
   const [crew, setCrew] = useState<Companion[]>([]);
   /** §4.5 — príbeh výletu na celú obrazovku. Stav je LEN o tom, kde sa text píše; hodnota
@@ -490,6 +508,19 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
   };
 
   const isHikeLike = needsDifficulty(activity);
+  /**
+   * ── DVA RADY CHIPOV (§2.1 zadania, Matej 2026-08-31) ─────────────────────────────────
+   *
+   * `ownChips`  = chipy VLASTNEJ kategórie, viditeľné („Čo sme tam robili").
+   * `moreChips` = ZJEDNOTENIE chipov OSTATNÝCH kategórií, zbalené („Dalo sa tam ešte niečo?").
+   *
+   * 🔑 Druhý rad NIE JE vlastný zoznam — počíta sa z `TRIP_CATEGORIES`, takže sa nemôže
+   *    rozísť a nevzniknú v ňom duplicity. HIKE nemá vlastné chipy (nesie ho náročnosť
+   *    a odysea), takže mu ostane len ten zbalený rad — a práve preto sa mu pádlovanie
+   *    samo neponúka.
+   */
+  const ownChips = useMemo(() => chipsForCategory(activity), [activity]);
+  const moreChips = useMemo(() => otherChips(activity), [activity]);
   const act = ACT_BY_ID[activity];
   // titulná fotka = vybraná (coverIndex), fallback na placeholder kým nie je nahraná žiadna.
   const effCoverIndex = photos.length > 0 ? Math.min(coverIndex, photos.length - 1) : 0;
@@ -718,6 +749,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
     // na viacnásobný výber by rozrobený výlet s tromi povrchmi prišiel po reloade o dva.
     if (restored.surface?.length) setTerrain(new Set(restored.surface));
     if (restored.tags) setTags(new Set(restored.tags));
+    // Chipy prežijú reload rovnako ako tagy. Druhý rad sa pritom NEROZBALÍ sám: obnovený
+    // výlet už tú voľbu má a rozbalený zoznam by pri návrate vyzeral ako nová otázka.
+    if (restored.chips?.length) setChips(new Set(restored.chips));
     if (restored.crew) setCrew(restored.crew);
     if (restored.paws) setPaws(restored.paws);
     if (restored.note) setNote(restored.note);
@@ -868,6 +902,25 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
     if (n.has(v)) n.delete(v); else n.add(v);
     setSet(n);
   };
+  /**
+   * Zapnutie/vypnutie chipu. `fromMore` = chip z DRUHÉHO radu — len ten vyvolá tichú ponuku
+   * miesta, a len pri zapnutí. Pri vypnutí ponuka mizne s ním; keby ostala visieť, pýtala by
+   * sa na výlet, ktorý sa práve odvolal.
+   */
+  const toggleChip = (id: string, fromMore: boolean) => {
+    const on = !chips.has(id);
+    toggleSet(chips, setChips, id);
+    setChipAsk(fromMore && on ? id : (chipAsk === id ? null : chipAsk));
+  };
+  /**
+   * Názov chipu — slovník, s anglickým textom z `tripCategories.ts` ako záchranou. Chip bez
+   * prekladu tak ukáže „Campsite", nie holé `camp`.
+   */
+  const chipTx = (id: string, fallback: string) => {
+    const k = `pack.map.chipLabel.${id}`;
+    const v = t(k);
+    return v === k ? fallback : v;
+  };
   const handlePhotos = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const picked = Array.from(e.target.files ?? []);
     e.target.value = '';
@@ -930,6 +983,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
       surface: !isPlan && isHikeLike && terrain.size > 0 ? Array.from(terrain) : undefined,
       crowd: !isPlan && crowd ? crowd : undefined,
       tags: tags.size > 0 ? Array.from(tags) : undefined,
+      // CHIPY — na pláne rovnako ako na zápise. „Ideme piknikovať" je legitímny plán a chip
+      // je jediné miesto, kde sa to dá povedať; náročnosť a ruch sú správy Z CESTY, chip nie.
+      chips: chips.size > 0 ? Array.from(chips) : undefined,
       // ⚠️ `hazards` sa z formulára UŽ NEPLNÍ (Matej 23. 8.). Nebezpečenstvo sa od kroku 2
       // zapichuje na mapu — tam, kde naozaj je. Chip bez polohy je horší údaj (svorke
       // nepovie kde) a tá istá informácia na dvoch miestach sa rozíde pri prvej úprave.
@@ -944,7 +1000,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
       updatedAt: now,
       step,
     };
-  }, [name, activity, geometry, effCountry, effRegion, dontRemember, date, isMultiDay, dateEnd, crew, isHikeLike, diff, terrain, crowd, tags, paws, photos, effCoverIndex, coverY, note, authorName, existingTripId, isPlan, visibility, step, finishTrail, fromPlan, travelMode, travelFrom, pickup, pickupSeats]);
+  }, [name, activity, geometry, effCountry, effRegion, dontRemember, date, isMultiDay, dateEnd, crew, isHikeLike, diff, terrain, crowd, tags, chips, paws, photos, effCoverIndex, coverY, note, authorName, existingTripId, isPlan, visibility, step, finishTrail, fromPlan, travelMode, travelFrom, pickup, pickupSeats]);
 
   // §4.3: toSubmit blokuje odoslanie úplne; toApprove (len walked) rozhoduje draft vs pending.
   const missing = missingFields(draft);
@@ -2556,6 +2612,98 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                   </div>
                 </div>
 
+                {/* ══ DVA RADY CHIPOV — „ČO SME TAM ROBILI" (Matej 2026-08-31) ═══════════
+                    Chip hovorí, ČO SME ROBILI (moja spomienka). Značka na mape hovorí, ČO TAM
+                    JE (tip pre ostatných, presný bod, krok 2) — iná vrstva, nemieša sa.
+
+                    ⚠️ DRUHÝ RAD JE ZBALENÝ ZÁMERNE. „Idem na Kriváň a v chipe bude pádlovanie?"
+                    bola Matejova výhrada proti jednému spoločnému radu; zbalený rad sa sám
+                    neponúka, ale „hike nemá ako mať piknik či?" ostáva vyriešené — je na jeden
+                    ťuk. Zoznam sa počíta z `TRIP_CATEGORIES`, nepíše sa tu druhýkrát.
+
+                    ⚠️ CHIPY IDÚ DO `acts`, SPOLU S KATEGÓRIOU (§2.3). Jedno pole, jeden
+                    mechanizmus — filter aj karta ich čítajú tou istou cestou ako kategóriu. */}
+                {(ownChips.length > 0 || moreChips.length > 0) && (
+                  <div className="atl-field">
+                    {ownChips.length > 0 && (
+                      <>
+                        <label>{t('pack.addTrip.log.chipsOwn')}</label>
+                        <div className="atl-chips">
+                          {ownChips.map((ch) => (
+                            <button
+                              key={ch.id}
+                              type="button"
+                              aria-pressed={chips.has(ch.id)}
+                              className={`atl-chip${chips.has(ch.id) ? ' on' : ''}`}
+                              onClick={() => toggleChip(ch.id, false)}
+                            >
+                              <span className="atl-chip-emoji" style={{ fontFamily: FONT_EMOJI }}>{ch.emoji}</span>
+                              <span className="atl-chip-label">{chipTx(ch.id, ch.label)}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+
+                    {moreChips.length > 0 && (
+                      <div className={ownChips.length > 0 ? 'atl-more' : undefined}>
+                        <button
+                          type="button"
+                          className="atl-morebtn"
+                          aria-expanded={moreChipsOpen}
+                          onClick={() => setMoreChipsOpen((o) => !o)}
+                        >
+                          <span>{t('pack.addTrip.log.chipsMore')}</span>
+                          <span className="atl-morebtn-arw" aria-hidden="true">{moreChipsOpen ? '⌃' : '⌄'}</span>
+                        </button>
+                        {moreChipsOpen && (
+                          <div className="atl-more-body">
+                            <div className="atl-chips">
+                              {moreChips.map((ch) => (
+                                <button
+                                  key={ch.id}
+                                  type="button"
+                                  aria-pressed={chips.has(ch.id)}
+                                  className={`atl-chip${chips.has(ch.id) ? ' on' : ''}`}
+                                  onClick={() => toggleChip(ch.id, true)}
+                                >
+                                  <span className="atl-chip-emoji" style={{ fontFamily: FONT_EMOJI }}>{ch.emoji}</span>
+                                  <span className="atl-chip-label">{chipTx(ch.id, ch.label)}</span>
+                                </button>
+                              ))}
+                            </div>
+                            {/* ── TICHÁ PONUKA MIESTA (§3 zadania, Matej 2026-08-31) ──────────
+                                „lenže človek to nie vždy chce a vie priznať, nevie kde na mape
+                                 to bolo… keby to mal klikať, neurobí to lebo je náročné nájsť"
+
+                                🔴 APPKA SA NIKDY NEPÝTA „KDE", ABY DOSTALA „ČO". Chip je už
+                                zapísaný — táto ponuka nič neblokuje, nemá potvrdenie a slovo
+                                „nemusíš" je vidieť bez rozklikávania. Kto ju ignoruje, ide
+                                ďalej a nič nestratí.
+                                ⚠️ Ukazuje sa LEN pri chipe z DRUHÉHO radu a len pri poslednom
+                                zapnutom — pri každom naraz by z tichej ponuky bol zoznam otázok.
+                                ⚠️ Tlačidlo vedie do EXISTUJÚCEHO označovania na mape (skupina
+                                „tip"), nezakladá druhý spôsob zápisu bodu. Krok 2 sa nemení. */}
+                            {chipAsk && chips.has(chipAsk) && (
+                              <div className="atl-where">
+                                <span className="atl-where-txt">
+                                  <b>{t('pack.addTrip.log.whereAsk')}</b>
+                                  <i>{t('pack.addTrip.log.whereSkip')}</i>
+                                </span>
+                                <button
+                                  type="button"
+                                  className="atl-where-btn"
+                                  onClick={() => { setChipAsk(null); startPlacing('comment'); }}
+                                >{t('pack.addTrip.log.whereBtn')}</button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* ⚠️ PRÍBEH SA PÍŠE V KROKU 3, NIE TU (Matej 2026-08-26) — viď jeho blok tam.
                     Krok 4 je odteraz len klikanie: náročnosť · ruch · povrch · značky. */}
 
@@ -3603,6 +3751,24 @@ const LOG_CSS = `
 .atl-chip-emoji{display:inline-flex;align-items:center;justify-content:center;width:15px;flex:0 0 15px;line-height:1;font-size:13px;margin-right:5px;}
 .atl-chip-label{line-height:1;}
 .atl-chip-add{border-style:dashed;}
+/* ── DRUHÝ, ZBALENÝ RAD CHIPOV (2026-08-31) ────────────────────────────────────────────
+   Prerušovaný rám je zámer: hovorí „toto je ponuka, nie pole na vyplnenie". Plný rám by
+   z rozbaľovača spravil rovnocenný ovládač s chipmi nad ním, a práve to sa nemá stať —
+   druhý rad si musí človek vypýtať. */
+.atl-more{margin-top:9px;}
+.atl-morebtn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;text-align:left;font-family:${FONT_UI};font-weight:500;font-size:11.5px;letter-spacing:.02em;padding:9px 12px;border-radius:10px;background:transparent;border:1px dashed ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;}
+.atl-morebtn:hover{border-color:${GOLD};color:${T.onDark};}
+.atl-morebtn-arw{flex:0 0 auto;font-size:11px;line-height:1;opacity:.7;}
+.atl-more-body{margin-top:9px;padding-top:10px;border-top:1px solid ${T.onDarkBorder};display:flex;flex-direction:column;gap:9px;}
+/* ── TICHÁ PONUKA MIESTA ───────────────────────────────────────────────────────────────
+   LAPIS, nie zelená: zelená v tomto toku znamená „vybral som si", lapis „appka niečo
+   ponúka / vie". Rovnaká dvojica ako pri odysei o kus vyššie. */
+.atl-where{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border:1px solid transparent;border-radius:10px;${pickTintCSS(LAPIS.edge, LAPIS.ink, 0.20)}}
+.atl-where-txt{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.atl-where-txt b{font-family:${FONT_UI};font-weight:500;font-size:11.5px;letter-spacing:.02em;}
+/* „nemusíš" musí byť vidno bez rozklikávania — je to celý zmysel tejto ponuky. */
+.atl-where-txt i{font-style:normal;font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.72;}
+.atl-where-btn{flex:0 0 auto;font-family:${FONT_UI};font-weight:600;font-size:11px;letter-spacing:.03em;white-space:nowrap;padding:7px 11px;border-radius:8px;background:${LAPIS.grad};border:1px solid ${LAPIS.deep};color:${LAPIS.ink};cursor:pointer;box-shadow:${LAPIS_BTN_SHADOW};}
 /* ── ODISTENÝ CHIP ZNAČKY (mazanie dvoma ťukmi) ───────────────────────────────────────
    Odistený chip zčervenie a pribudne mu × — druhý ťuk už značku zmaže, a to nevratne,
    takže to musí vyzerať inak než „vybraté". Červená je tá istá, akú nesie upozornenie
@@ -3771,6 +3937,13 @@ const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
   /* Odistený chip mazania ostáva ČERVENÝ — je to jediná nevratná akcia v toku a farba
      nesie význam, nie štýl. Mení sa len inkoust, aby bol na svetlom čitateľný. */
   .atl-chip--del.armed{background:rgba(206,75,60,0.16);border-color:rgba(176,52,40,0.7);color:#8E2A20;}
+  /* Dva rady chipov na papyruse — inkoust musí stmavnúť, inak zbalený rad na piesku zanikne
+     (tá istá chyba, ktorá 26. 8. dotlačila výbery k plnej farbe). */
+  .atl-morebtn{border-color:${P_BORDER};color:${P_DIM};}
+  .atl-morebtn:hover{border-color:${P_EDGE};color:${P_DEEP};}
+  .atl-more-body{border-top-color:${P_BORDER};}
+  .atl-where{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}}
+  .atl-where-btn{color:${LAPIS.ink};}
   .atl-file-btn{background:${P_FIELD};border-color:${P_BORDER};color:${P_INK};}
   .atl-file-btn:hover:not(:disabled){border-color:${P_DEEP};color:${P_DEEP};}
   .atl-photo-thumb{border-color:${P_BORDER};}

@@ -216,14 +216,33 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.dogs.phMonth': 'Mesiac',
   'heroglyph.flow.dogs.phYear': 'Rok',
 
-  // ── /heroglyph/why — krok 4: jediná obrazovka vstupu, ktorá nič nepýta ──
-  'heroglyph.flow.why.title': 'Prečo vôbec heroglyf',
-  'heroglyph.flow.why.sub':
-    'Meno je krásne, ale nosia ho tisíce psov. Naša misia je urobiť každého psa výnimočným — zachytiť jeho osobnosť do dizajnu, ktorý nemá nikto iný.',
-  'heroglyph.flow.why.note':
-    'Kartuša — oválny rámik, do ktorého starí Egypťania vpisovali jediné meno, ktoré smelo prežiť. Kleopatra ho mala. Tvoj pes ho bude mať tiež.',
+  // ── PÁS FÁZ NAD CELÝM VSTUPOM (31. 8. 2026) ──────────────────────────────
+  'heroglyph.flow.phase.dog': 'PES',
+  'heroglyph.flow.phase.you': 'TY',
+  'heroglyph.flow.phase.symbol': 'SYMBOL',
+  'heroglyph.flow.phase.done': 'HOTOVO',
+
+  // ── /heroglyph/why — jediná obrazovka vstupu, ktorá nič nepýta ───────────
+  // Prestavané 31. 8. 2026 — dôvody a zamietnuté nadpisy pozri v `en.ts`.
+  'heroglyph.flow.why.head1': 'TVOJ PES JE UNIKÁT.',
+  'heroglyph.flow.why.head2': 'HEROGLYF TO ZAPÍŠE.',
+  'heroglyph.flow.why.leadStrong': 'Toto je ALBA:',
+  'heroglyph.flow.why.leadRest': 'totožné meno, celkom iné psy.',
+  'heroglyph.flow.why.albNote': 'Na rozdiel od mena, každá ALBA má svoj unikátny heroglyf!',
+  'heroglyph.flow.why.cta': 'Vytvoriť heroglyf',
+  'heroglyph.flow.why.link': 'prečo heroglyf, aký to má zmysel?',
+  'heroglyph.flow.why.egyptTitle': 'VEČNÝ ODKAZ',
+  'heroglyph.flow.why.egyptP1':
+    'V starovekom Egypte sa mená panovníkov písali do oválneho rámiku — kartuše. Tá im mala poskytnúť večnú ochranu.',
+  'heroglyph.flow.why.egyptP2':
+    'Heroglyf je to isté pre tvojho psa. Dvanásť znakov — sedem o ňom, päť o tebe. Nie ako sa volá, ale aký je.',
+  'heroglyph.flow.why.egyptP3':
+    'Tento symbol je zároveň kľúč do DOGYPTU, kde je každý pes unikát!',
+  'heroglyph.flow.why.cleopatraCaption': 'Toto je Kleopatrino meno v hieroglyfoch.',
   'heroglyph.flow.about.title': 'Odkiaľ {dogName} je?',
-  'heroglyph.flow.about.sub': 'Obe odpovede idú rovno do symbolu — krajina a rok narodenia sú dve z jeho šestnástich častí.',
+  // POZOR: heroglyf má DVANÁSŤ znakov (7 psa + 5 majiteľa) — spočítané v `VerticalHeroglyphFrame`,
+  // zhodne s DOGMOU 8.2 aj brand manuálom. Do 31. 8. 2026 tu stálo „šestnástich", čo bolo zle.
+  'heroglyph.flow.about.sub': 'Obe odpovede idú rovno do symbolu — krajina a rok narodenia sú dve z jeho dvanástich častí.',
 
   // ── /heroglyph flow — krok 1: meno ──
   'heroglyph.flow.name.greetingPrefix': 'Ahoj, ja som',
@@ -2026,6 +2045,12 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.log.activityNote.skating': "Poznač miesto s asfaltovou cestou.",
   'pack.addTrip.log.activityNote.paddleboard': "Vyber vodnú plochu.",
   'pack.addTrip.log.activityNote.explore': "Iná aktivita — hrad, pamiatka, park…",
+  'pack.addTrip.log.activityNote.visit': "Park, hrad, voda, táborisko — miesto, kam sa dá zájsť bez výkonu.",
+  'pack.addTrip.log.chipsOwn': "Čo sme tam robili",
+  'pack.addTrip.log.chipsMore': "Dalo sa tam ešte niečo?",
+  'pack.addTrip.log.whereAsk': "Vieš, kde presne to bolo?",
+  'pack.addTrip.log.whereBtn': "Ukázať na mape",
+  'pack.addTrip.log.whereSkip': "nemusíš",
   'pack.addTrip.ainubis.findPlace': "Vyhľadaj miesto, kde ste boli — alebo si mapu priblíž.",
   'pack.addTrip.ainubis.findPlace.plan': "Hurá za dobrodružstvom! Nájdi miesto, kam pôjdete, a nakresli si trasu.",
   'pack.addTrip.ainubis.zoomOk.plan': "Super. Teraz dlhým stlačením označ, odkiaľ vyrazíte — tým sa začne trasa.",
@@ -2497,6 +2522,18 @@ export const sk: Partial<Dict> = {
   'pack.map.activityLabel.skating': "Korčule",
   'pack.map.activityLabel.paddleboard': "Paddleboard/kúpanie",
   'pack.map.activityLabel.explore': "Objavovanie",
+  'pack.map.activityLabel.visit': "Návšteva",
+  'pack.map.chipLabel.park': "Park",
+  'pack.map.chipLabel.sight': "Pamiatka",
+  'pack.map.chipLabel.zoo': "Zoo / farma",
+  'pack.map.chipLabel.water': "Voda",
+  'pack.map.chipLabel.meadow': "Lúka na piknik",
+  'pack.map.chipLabel.camp': "Táborisko",
+  'pack.map.chipLabel.skate': "Korčule",
+  'pack.map.chipLabel.run': "Beh",
+  'pack.map.chipLabel.paddle': "Pádlovanie",
+  'pack.map.chipLabel.bike': "Bicykel",
+  'pack.map.chipLabel.train': "Výcvik",
   'pack.map.levelAriaLabel': "Úroveň {level}",
   "pack.map.rankPilgrim": "Pútnik",
   'pack.map.mstatsOne': "{n} výlet · {km} km",

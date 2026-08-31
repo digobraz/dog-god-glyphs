@@ -147,7 +147,31 @@ export function DogsScreen() {
     setLeg(-1);
   };
 
+  // ── KEDY JE PES HOTOVÝ ────────────────────────────────────────────────────
+  // Matej 31. 8.: *„aktuálne môže človek kliknúť na pokračovať a nemať nič
+  // vyplnené! oprava = tlačidlo pokračovať bude aktívne len ak budú údaje
+  // kompletne vyplnené = buď jeden pes, alebo ak bude 2. začatý musí byť vždy
+  // kompletný"*.
+  //
+  // Požadované údaje sú tie, ktoré nesie kód heroglyfu: meno · stav · dátum
+  // narodenia · (pri anjelovi dátum odchodu) · krajina. Stav hodnotu má vždy
+  // (predvolene „žijúca legenda"), ale ostáva v rade pilulek — inak by sa rad
+  // nikdy nezložil do jednej zelenej odpovede.
+  //
+  // ⚠️ Krajina psa #1 JE spoločná `nat` — pes #1 vlastnú nemá (pole `country`
+  // v `first` je natvrdo `null`). Ďalší pes ju má buď zdedenú (`null`), alebo
+  // vlastnú, a tá potom nesmie byť prázdna.
+  const dogFlags = (d: Row, i: number) => ({
+    name: !!d.name.trim(),
+    born: !!d.birthday,
+    gone: d.lifeStatus === 'alive' || !!d.deathDate,
+    country: i === 0 || d.country === null ? !!nat : !!d.country,
+  });
+  const dogDone = (d: Row, i: number) => Object.values(dogFlags(d, i)).every(Boolean);
+  const allDone = all.every(dogDone);
+
   const handleContinue = () => {
+    if (!allDone) return;
     if (nat) setSelection('country', nat);
     track('flow_dogs_continue', { dogs: all.length });
     navigate('/heroglyph/email');
@@ -217,6 +241,9 @@ export function DogsScreen() {
               {all.map((d, i) => {
                 const named = !!d.name.trim();
                 const year = (d.birthday || '').slice(0, 4);
+                const fl = dogFlags(d, i);
+                const goneYear = (d.deathDate || '').slice(0, 4);
+                const dogISO = countryISO2((i === 0 || d.country === null ? nat : d.country) || '');
                 return (
                   <button
                     key={i}
@@ -230,27 +257,50 @@ export function DogsScreen() {
                         ? <img src={d.photo} alt="" />
                         : (d.name || '?').charAt(0).toUpperCase()}
                     </span>
+                    {/* JEDEN RIADOK — meno vycentrované na fotku (Matej 31. 8.:
+                        *„druhý riadok pod menom zruš a meno zacentruj na fotku ako
+                        keby jeden riadok"*). Stav aj rok narodenia, ktoré ten riadok
+                        niesol, sú odteraz v pilulkách vpravo — hovoril to isté dvakrát. */}
                     <span className="txt">
                       <span className="nm">
                         {d.name || t('heroglyph.flow.dogs.unnamed')}
                       </span>
-                      {/* Druhý riadok nesie ROZDIEL medzi psami: stav a rok narodenia.
-                          Kým pes meno nemá, nesie výzvu — inak sú dva riadky „ĎALŠÍ PES"
-                          nerozoznateľné a nevidno, že na ne treba ťuknúť. */}
-                      <span className="meta">
-                        {named
-                          ? [t(d.lifeStatus === 'alive'
-                              ? 'heroglyph.flow.dogs.statusAlive'
-                              : 'heroglyph.flow.dogs.statusAngel'),
-                             year].filter(Boolean).join(' · ')
-                          : t('heroglyph.flow.dogs.tapToName')}
-                      </span>
                     </span>
-                    <span className="st">
-                      <img
-                        src={d.lifeStatus === 'alive' ? legendIconUrl : angelIconUrl}
-                        alt=""
-                      />
+                    {/* ── STAV NA PRVÝ POHĽAD (Matej 31. 8.) ────────────────────
+                        Pilulka na každý údaj, ktorý pes musí mať. Zelená = máme ho,
+                        červená = chýba, a zámok tlačidla dole je presne súčet tohto
+                        radu.
+                        🔑 Poradie NARODENINY · NÁRODNOSŤ · STAV je Matejovo
+                        (31. 8.) — údaje, ktoré sa vypĺňajú, idú prvé; stav je
+                        vždy nastavený, takže uzatvára rad.
+                        🔑 Chýbajúca hodnota je \`???\` za tým istým znakom, aký
+                        nesie vyplnená (\`🎂\`, \`†\`) — pilulka tak nemení tvar ani
+                        význam, mení sa len to, či hodnotu poznáme. Slovná skratka
+                        („NAR.?") sa musela prekladať a v každom jazyku bola inak
+                        dlhá, takže rad pri anjelovi preskakoval do dvoch riadkov. */}
+                    <span className="hf-dogpills">
+                      <span className={`hf-dpill ${fl.born ? 'ok' : 'miss'}`}
+                            title={t('heroglyph.flow.dogs.born')}>
+                        <span className="em">🎂</span>{fl.born ? year : '???'}
+                      </span>
+                      {d.lifeStatus === 'deceased' && (
+                        <span className={`hf-dpill ${d.deathDate ? 'ok' : 'miss'}`}
+                              title={t('heroglyph.flow.dogs.died')}>
+                          †&nbsp;{d.deathDate ? goneYear : '???'}
+                        </span>
+                      )}
+                      <span className={`hf-dpill solo ${fl.country ? 'ok' : 'miss'}`}
+                            title={t('heroglyph.flow.dogs.nationality')}>
+                        <span className="em">{fl.country ? (countryFlag(dogISO || '') || '🏳') : '?'}</span>
+                      </span>
+                      <span
+                        className={`hf-dpill solo ${fl.gone ? 'ok' : 'miss'}`}
+                        title={t(d.lifeStatus === 'alive'
+                          ? 'heroglyph.flow.dogs.statusAlive'
+                          : 'heroglyph.flow.dogs.statusAngel')}
+                      >
+                        <img src={d.lifeStatus === 'alive' ? legendIconUrl : angelIconUrl} alt="" />
+                      </span>
                     </span>
                   </button>
                 );
@@ -288,7 +338,9 @@ export function DogsScreen() {
               )}
               </div>
 
-              <button type="button" className="hf-cta" onClick={handleContinue} disabled={!nat}>
+              {/* Zámok vysvetľujú pilulky v riadkoch vyššie — veta pod tlačidlom by
+                  hovorila to isté tretíkrát. */}
+              <button type="button" className="hf-cta" onClick={handleContinue} disabled={!allDone}>
                 {t('heroglyph.flow.name.continue')}
               </button>
             </div>
@@ -322,7 +374,7 @@ export function DogsScreen() {
                 onClick={() => patch(leg, { lifeStatus: 'alive' })}
               >
                 <img src={legendIconUrl} alt="" />
-                <span>{t('intro.alive')}</span>
+                <span>{t('heroglyph.flow.dogs.statusAlive')}</span>
               </button>
               <button
                 type="button"
@@ -330,13 +382,22 @@ export function DogsScreen() {
                 onClick={() => patch(leg, { lifeStatus: 'deceased' })}
               >
                 <img src={angelIconUrl} alt="" />
-                <span>{t('intro.deceased')}</span>
+                <span>{t('heroglyph.flow.dogs.statusAngel')}</span>
               </button>
             </div>
 
             <p className="hf-qlabel">{t('heroglyph.flow.dogs.born')}</p>
+            {/* `empty` = rolety mlčia, kým človek nevyberie. Bez neho by ukazovali
+                hotový dátum (1. 1. pred piatimi rokmi), ktorý nikto nezadal — a nad
+                nimi by svietila červená pilulka, že dátum chýba. */}
             <DateDropdowns
               {...(() => { const b = parseBd(open.birthday); return { day: b.d, month: b.m, year: b.y }; })()}
+              empty={!open.birthday}
+              emptyLabels={{
+                day: t('heroglyph.flow.dogs.phDay'),
+                month: t('heroglyph.flow.dogs.phMonth'),
+                year: t('heroglyph.flow.dogs.phYear'),
+              }}
               minYear={currentYear - 25}
               maxYear={currentYear}
               maxDate={today}
@@ -352,6 +413,12 @@ export function DogsScreen() {
                 <p className="hf-qlabel">{t('heroglyph.flow.dogs.died')}</p>
                 <DateDropdowns
                   {...(() => { const b = parseDd(open.deathDate); return { day: b.d, month: b.m, year: b.y }; })()}
+                  empty={!open.deathDate}
+                  emptyLabels={{
+                    day: t('heroglyph.flow.dogs.phDay'),
+                    month: t('heroglyph.flow.dogs.phMonth'),
+                    year: t('heroglyph.flow.dogs.phYear'),
+                  }}
                   minYear={currentYear - 25}
                   maxYear={currentYear}
                   maxDate={today}

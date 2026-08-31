@@ -70,7 +70,7 @@ import { upsertMyTrip } from '@/components/pack/triplist/triplist'; // TRIPLIST 
 import { useOpenTrips, useTripEventTravel } from '@/components/pack/triplist/useOpenTrips';
 import { useTripParties, partyKey } from '@/components/pack/triplist/useTripParty';
 import { PartyMemberCard, PARTY_CARD_CSS } from '@/components/pack/triplist/PartyMemberCard';
-import { ACT_TAG_EMOJI, ACT_TO_CATEGORY, categoriesOf } from '@/components/pack/tripCategories';
+import { ACT_TAG_EMOJI, ACT_TO_CATEGORY, categoriesOf, chipsOf } from '@/components/pack/tripCategories';
 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
@@ -983,6 +983,12 @@ export default function PackTripArticle() {
     const v = t(k);
     return v === k ? a : v;
   };
+  /** Názov chipu — slovník, s anglickým textom z `tripCategories.ts` ako záchranou. */
+  const chipTx = (id: string, fallback: string) => {
+    const k = `pack.map.chipLabel.${id}`;
+    const v = t(k);
+    return v === k ? fallback : v;
+  };
   const tagTx = (tg: string) => {
     const k = TAG_I18N_KEY[tg];
     return k ? t(k) : tg;
@@ -991,8 +997,14 @@ export default function PackTripArticle() {
   // do jednej kategórie (piknik + nocľah = CHILL) a chip by potom stál na karte dvakrát
   // s tým istým slovom. `categoriesOf()` ich zlúči — a zároveň je to presne ten zoznam,
   // podľa ktorého výlet nachádza filter, takže karta ukáže, PREČO sa našla.
+  // ⚠️ CHIPY KROKU 4 STOJA VEDĽA KATEGÓRIÍ, NIE NAMIESTO NICH (2026-08-31). Kategória hovorí,
+  // ČO VÝLET JE („Visit"), chip ČO SME TAM ROBILI („⛺ Táborisko") — na túre s táboriskom sú
+  // to dva rôzne údaje a zlúčiť ich do jedného slova by znamenalo jeden z nich zahodiť.
+  // `chipsOf()` prepustí LEN skutočné chipy: staré `picnic`/`overnight` do kategórie patria,
+  // ale chipom nikdy neboli a nemajú vlastný preklad — tie ostávajú len v kategórii.
   const tripChips = [
     ...categoriesOf(trail.acts).map((c) => ({ key: `a:${c}`, label: actTx(c), emoji: ACT_EMOJI[c] ?? '' })),
+    ...chipsOf(trail.acts).map((ch) => ({ key: `c:${ch.id}`, label: chipTx(ch.id, ch.label), emoji: ch.emoji })),
     ...(trail.tags ?? []).map((tg) => ({ key: `t:${tg}`, label: tagTx(tg), emoji: TAG_EMOJI[tg] ?? '' })),
   ];
 

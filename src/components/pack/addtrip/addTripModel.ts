@@ -206,6 +206,17 @@ export type AddTripDraft = {
   minutes?: number;
   diff?: 'Easy' | 'Moderate' | 'Hard' | 'Odyssey';
   crowd?: string; surface?: string[]; tags?: string[];
+  /**
+   * ── CHIPY KROKU 4 — „ČO SME TAM ROBILI" (2026-08-31) ────────────────────────────────────
+   *
+   * Id z `TripCategory.chips` (`tripCategories.ts`). Sem ich píše FORMULÁR; pri ukladaní sa
+   * vlievajú do `HeroTrail.acts` SPOLU s kategóriou (§2.3 zadania) — jedno pole, jeden
+   * mechanizmus, filter ich číta rovnako. Druhé pole na uloženom výlete sa nezakladá: údaj
+   * odvoditeľný z iného po prvej úprave klame.
+   * ⚠️ Smú tu byť aj chipy CUDZEJ kategórie — druhý, zbalený rad kroku 4 je presne na to, aby
+   * túra smela niesť piknik bez toho, aby sa piknik ponúkal tam, kde nedáva zmysel.
+   */
+  chips?: string[];
   hazards?: string[];             // vrátane custom (§7 — text sa zobrazí, nefiltruje kým ho Matej neschváli)
   paws?: number;                  // 1–5, bez polovičných
   photos?: string[];
@@ -266,8 +277,9 @@ export const SUBMIT_REQUIRED: Record<TripState, Array<keyof AddTripDraft>> = {
  */
 export const APPROVAL_REQUIRED: Array<keyof AddTripDraft> = ['diff', 'surface', 'crowd', 'tags', 'paws'];
 
-// NÁROČNOSŤ MAJÚ LEN HIKE A SPORT (§10.2 kánonu, Matej 2026-08-26: „táborenie nemá
-// náročnosť vôbec"). Do 27. 8. to bola množina `HIKE_LIKE` so štyrmi zápismi tej istej
+// NÁROČNOSŤ MÁ LEN HIKE (Matej 2026-08-31: „chill nebude mať náročnosť a nedal by som ani
+// na sport ani na explore"; do 31. 8. ju mal aj SPORT). Do 27. 8. to bola množina
+// `HIKE_LIKE` so štyrmi zápismi tej istej
 // aktivity ('hiking' z formulára, 'hike'/'journey' z dát) — dnes to nesie príznak
 // `hasDifficulty` pri kategórii, teda na jednom mieste a spolu s ňou.
 // ⚠️ Pravidlo musí platiť na oboch stranách zápisu rovnako, inak by uložený výlet vyšiel

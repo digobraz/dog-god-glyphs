@@ -432,6 +432,15 @@ export function NameScreen() {
             transition={{ duration: 0.35, delay: 0.1 }}
           >
             <div className="hf-plate">
+            {/* ── DVA BLOKY, NIE ŠTYRI SAMOSTATNÉ VECI (Matej 31. 8.) ────────────
+                *„tie pod texty prisuň viac hore k text area aj k cta, patria k nim,
+                nie do stredu — sú to 2 bloky s dvomi textami, nie 4 obsahy
+                samostatne (tak to teraz vyzerá)"*. Doska mala jednu medzeru medzi
+                všetkými štyrmi prvkami, takže veta patriaca k poľu stála rovnako
+                ďaleko od poľa ako od tlačidla a nebolo vidno, ku ktorému hovorí.
+                `.hf-group` drží dvojicu pri sebe (6 px); medzi dvojicami ostáva
+                medzera dosky. */}
+            <div className="hf-group">
             {/* Name + Dog Country row — name 70 %, country select 30 % */}
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
 
@@ -484,6 +493,9 @@ export function NameScreen() {
                 🚩 Konkrétne číslo („toto meno nosí 123 554 psov") tu byť NESMIE —
                 taký dataset neexistuje a bola by to vymyslená štatistika. */}
             {canContinue && <p className="hf-alert">{t('heroglyph.flow.name.alert')}</p>}
+            </div>{/* end skupina POLE + napätie */}
+
+            <div className="hf-group">
 
             {/* 🚩 Tlačidlo sľubuje CIEĽ, nie akciu — klik heroglyf nevytvorí, otvorí
                 ďalšiu otázku. Vedomé rozhodnutie z LABu, nie prehliadnutie. */}
@@ -491,11 +503,18 @@ export function NameScreen() {
                 (Matej 28. 8.): kým je pole prázdne, je vyblednuté a hovorí len
                 „Ďalej" — sľubovať heroglyf pred menom je sľub do prázdna.
                 S menom sa odomkne a prevezme cieľ: VYTVORIŤ HEROGLYPH. */}
+            {/* Hviezdička je v JSX, nie v preklade — je to typografická značka
+                a nemusí ju niesť 18 jazykov. Stojí len pri odomknutom CTA, teda
+                spolu s vetou, ktorú vysvetľuje. */}
             <button type="button" className="hf-cta" onClick={() => handleSend()} disabled={!canContinue}>
               {t(canContinue ? 'heroglyph.flow.name.createCta' : 'heroglyph.flow.name.nextCta')}
+              {canContinue && '*'}
             </button>
 
-            {canContinue && <p className="hf-promise">{t('heroglyph.flow.name.promise')}</p>}
+            {canContinue && (
+              <p className="hf-promise"><span className="star">*</span>{t('heroglyph.flow.name.promise')}</p>
+            )}
+            </div>{/* end skupina CTA + vysvetlivka */}
             </div>
           </motion.div>
         </div>

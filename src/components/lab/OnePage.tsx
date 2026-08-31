@@ -26,7 +26,7 @@
 // ⚠️ CSS je JS template literal: spätný apostrof v komentári zhodí build a `tsc`
 //    to nechytí. Po zásahu do štýlov vždy `npm run build`.
 // ════════════════════════════════════════════════════════════════════════════
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import LanguagePicker from '@/components/LanguagePicker';
 import { HandHouseHeart } from '@/components/pack/HandIcons';
@@ -38,6 +38,13 @@ import ReligionLab from '@/pages/ReligionLab';
 import VisionLab from '@/pages/VisionLab';
 import AboutLab from '@/pages/AboutLab';
 import { Footer } from '@/components/landing/Footer';
+// Citáty sa sem NEOPISUJÚ — pod TestimonialsSection leží 44 zdrojovaných
+// výrokov so zdrojovou URL a tie sa nesmú rozdvojiť.
+import {
+  pickCelebQuotes,
+  quoteSlug,
+  CELEB_QUOTE_COUNT,
+} from '@/components/landing/TestimonialsSection';
 import ConstitutionBook from '@/components/religion/ConstitutionBook';
 import {
   NAV_R,
@@ -50,6 +57,8 @@ import {
   NAV_PLATE_SHADOW,
   NAV_PILL_SHADOW,
   NAV_GRAIN_SCREEN_CSS,
+  LAPIS,
+  LAPIS_BTN_SHADOW,
 } from '@/components/pack/navGoldSkin';
 import NavMedallion, { NAV_MEDALLION_CSS } from './NavMedallion';
 
@@ -432,6 +441,65 @@ const MILESTONES = [
   { n: '∞', title: 'The Pantheon', note: 'Every dog on Earth carries a name that lasts.' },
 ];
 
+/* ── OBLÚK ZA PRÍBEHOM — ČASOVANIE ODSÚHLASENÉ 31. 8. 2026 ──────────────────
+   Objekt je 1:1 prenos z `plany/nakres-po-starwars-2026-08-31.html`, kde sa
+   ladí posuvníkmi a vyváža tlačidlom. Matej ho odklepol slovami *„Sedí, prenes
+   to do kódu"*. Kto ho chce meniť, mení ho V NÁKRESE a prenesie znova — dve
+   miesta s tými istými číslami sa pri prvej úprave rozídu.
+
+   Dráha 0–1 je scroll VNÚTRI oblúka. Vnútri každého prilepenia má obrazovka
+   vlastnú dráhu 0–1, takže sa dá ladiť bez prepočítavania globálnych čísel.
+
+   ⚠️ `rev.darkOut` z nákresu tu NIE JE a je to správne: odchod z čiernej do
+   papyrusu vo filme UŽ EXISTUJE (`NIGHT_OUT` hore) a meria sa spodnou hranou
+   sekvencie príbehu, nie touto dráhou. V nákrese musel byť, lebo tam príbeh
+   nad oblúkom nestojí. Druhé stmievanie na tom istom mieste by bolo druhá
+   réžia tej istej veci — presne to, čo `put()` nižšie zakazuje aj pre jednu
+   vlastnosť jedného prvku. */
+const ARC = {
+  /** Globálny koniec prilepenia recenzií. */
+  revEnd: 0.4,
+  /** Globálny koniec presunu na NEXT STEP. */
+  travEnd: 0.52,
+  /** Podiely VNÚTRI prvého prilepenia. */
+  rev: { headIn: [0.3, 0.56], cardsIn: [0.46, 0.8], cardStagger: 0.12 },
+  /** Podiely VNÚTRI druhého prilepenia. */
+  nxt: {
+    headIn: [0.02, 0.22], lineIn: [0.14, 0.48], stopStagger: 0.05,
+    lensIn: [0.42, 0.66], kotaIn: [0.58, 0.8], ctaIn: [0.74, 1],
+  },
+  /* 🔴 PREKRYV PRESUNU. Bez neho začne NEXT STEP písať sám seba až keď je pás
+     na mieste — a keďže recenzie už odišli, príde PRÁZDNA obrazovka a až potom
+     sa na nej niečo objaví. Je to tá istá vec, ktorou drží pohyb pokope zvyšok
+     filmu: úseky sa prekrývajú, inak z jedného príchodu vzniknú dva deje za
+     sebou. Číslo je podiel CELEJ dráhy, o ktorý sa druhé prilepenie začne
+     skôr, než presun skončí. */
+  travOverlap: 0.07,
+} as const;
+
+/** Dĺžka dráhy oblúka. Prilepené okno + dve obrazovky + presun medzi nimi. */
+const ARC_VH = 3.2;
+
+/** Skratky pre mobil — „1 000 000" má pod zastávkou pri 390 px dvojnásobok
+ *  šírky, ktorú tam má. */
+const ARC_SHORT = ['1K', '10K', '100K', '1M', '∞'];
+
+/** Zastávky mierky. Rovnaké kroky, NIE číselná os: na lineárnej by tisícka
+ *  sedela na 0,1 % a prvé štyri by sa zlepili na okraji; na logaritmickej by
+ *  71 sedelo na 31 % dráhy, čo je pocitová lož. Pravdivá je značka VNÚTRI
+ *  prvej fázy — 71 z 1 000.
+ *  ⚠️ Mená aj čísla si berie zo `MILESTONES`, teda zo severky. Opísané by sa
+ *  pri prvej úprave severky rozišli. */
+const ARC_STOPS = MILESTONES.map((m, i) => ({
+  at: (i + 1) * 20,
+  n: m.n,
+  short: ARC_SHORT[i],
+  ph: m.title,
+}));
+
+/** Strop prvej fázy — DOPOČÍTANÝ zo severky, nie zapísaný druhýkrát. */
+const FOUNDERS_TARGET = Number(MILESTONES[0].n.replace(/\D/g, '')) || 1000;
+
 export default function OnePage() {
   const t = useT();
   const [scene, setScene] = useState(0);
@@ -448,6 +516,14 @@ export default function OnePage() {
   // patrí scroll handleru — viď komentár pri pozorovateľovi nižšie.
   const sceneRef = useRef(0);
   const [dogCount, setDogCount] = useState<number | null>(null);
+  // 🔴 Choreografia beží v efekte s prázdnym poľom závislostí, takže vnútri
+  // vidí `dogCount` navždy ako null. Značka „tu môžeš byť ty" by preto zamrzla
+  // na nule aj potom, čo číslo dorazí. Ref + jedno prekreslenie po príchode.
+  const dogCountRef = useRef<number | null>(null);
+  // Tri citáty na obrazovku RECENZIE. Výber sa mieša raz za načítanie stránky
+  // (to isté správanie ako pás na `/about`), preto useMemo bez závislostí —
+  // s novým výberom pri každom prekreslení by sa citáty menili počas scrollu.
+  const quotes = useMemo(() => pickCelebQuotes(3), []);
 
   // ── PRECHOD 1. → 2. OBRAZU ───────────────────────────────────────────────
   // Jedna obrazovka, ktorá sa nehýbe.
@@ -478,6 +554,16 @@ export default function OnePage() {
       vinner?: HTMLElement | null;
       veil?: HTMLElement | null; night?: HTMLElement | null;
       nav?: HTMLElement | null; crawl?: HTMLElement | null;
+      // Oblúk za príbehom (recenzie → next step).
+      arc?: HTMLElement | null; belt?: HTMLElement | null;
+      revH2?: HTMLElement | null; revSub?: HTMLElement | null;
+      revCards?: NodeListOf<HTMLElement>;
+      nxEyebrow?: HTMLElement | null; nxH2?: HTMLElement | null;
+      nxFill?: HTMLElement | null; nxStops?: NodeListOf<HTMLElement>;
+      nxHere?: HTMLElement | null; nxLens?: HTMLElement | null;
+      nxRays?: HTMLElement | null; nxBand?: HTMLElement | null;
+      nxBandFill?: HTMLElement | null; nxBandLbl?: HTMLElement | null;
+      nxKota?: HTMLElement | null; nxTail?: HTMLElement | null;
     } = {};
     const resolve = () => {
       n = {
@@ -520,6 +606,30 @@ export default function OnePage() {
         // Sekvencia príbehu. Meria sa len jej SPODNÁ HRANA, a to kvôli návratu
         // do papyrusu — dĺžku (340vh) drží AboutLab a nesmie sa sem opísať.
         crawl: q<HTMLElement>('.op-film .swcrawl'),
+        // ── OBLÚK ZA PRÍBEHOM ────────────────────────────────────────────
+        // Dráhu meria SEKCIA (je vyššia než okno), pohyb dostáva PÁS vnútri
+        // prilepeného javiska. Sú to dva prvky zámerne: keby sa posúvala
+        // sekcia, odniesla by so sebou aj svoju vlastnú dráhu.
+        arc: q<HTMLElement>('.op-arc'),
+        belt: q<HTMLElement>('.op-arc-belt'),
+        revH2: q<HTMLElement>('.op-rev-h2'),
+        revSub: q<HTMLElement>('.op-rev-sub'),
+        revCards: document.querySelectorAll<HTMLElement>('.op-rev-card'),
+        nxEyebrow: q<HTMLElement>('.op-nxt-eyebrow'),
+        nxH2: q<HTMLElement>('.op-nxt-h2'),
+        nxFill: q<HTMLElement>('.op-nxt-axis-fill'),
+        nxStops: document.querySelectorAll<HTMLElement>('.op-nxt-stop'),
+        nxHere: q<HTMLElement>('.op-nxt-here'),
+        nxLens: q<HTMLElement>('.op-nxt-lens'),
+        nxRays: q<HTMLElement>('.op-nxt-rays'),
+        nxBand: q<HTMLElement>('.op-nxt-band'),
+        nxBandFill: q<HTMLElement>('.op-nxt-band-fill'),
+        nxBandLbl: q<HTMLElement>('.op-nxt-band-lbl'),
+        nxKota: q<HTMLElement>('.op-nxt-kota'),
+        // Chvost obrazovky (veta + CTA + poznámka) je JEDEN prvok: prichádzajú
+        // spolu ako jeden dej, takže tri zápisy do troch prvkov by boli tri
+        // stmievačky, ktoré sa pri prvom ladení rozídu.
+        nxTail: q<HTMLElement>('.op-nxt-tail'),
       };
     };
     resolve();
@@ -531,6 +641,13 @@ export default function OnePage() {
       prev[key] = val;
       if (prop.startsWith('--')) el.style.setProperty(prop, val);
       else (el.style as unknown as Record<string, string>)[prop] = val;
+    };
+    /** To isté pre text. Nejde to cez `put()`: ten zapisuje do `style`, takže
+     *  `textContent` by ticho skončil ako neexistujúca CSS vlastnosť. */
+    const putText = (el: HTMLElement | null | undefined, key: string, val: string) => {
+      if (!el || prev[key] === val) return;
+      prev[key] = val;
+      el.textContent = val;
     };
 
     let raf = 0;
@@ -774,6 +891,89 @@ export default function OnePage() {
       put(n.veil, 'vlv', 'visibility', veil <= 0.002 ? 'hidden' : 'visible');
       put(n.night, 'wlv', 'visibility', night <= 0.002 ? 'hidden' : 'visible');
 
+      // ── 6. OBLÚK ZA PRÍBEHOM: RECENZIE → NEXT STEP ───────────────────
+      // Tri úseky na jednej dráhe. Prvé prilepenie píše recenzie, presun
+      // posunie pás o obrazovku, druhé prilepenie píše NEXT STEP — a druhé
+      // sa začne o `travOverlap` skôr, než presun skončí, aby medzi nimi
+      // nevznikla prázdna obrazovka.
+      // ⚠️ Čierna sa tu NEHASÍ — to robí `nightOut` vyššie a meria to koncom
+      // príbehu. Toto je len to, čo sa pod ňou medzitým píše.
+      if (n.arc && n.belt) {
+        const rect = n.arc.getBoundingClientRect();
+        // Dráha = výška sekcie mínus prilepené okno. Meria sa z prvku, nie
+        // z konštanty ARC_VH: tú istú hodnotu drží CSS a dve miesta s tým
+        // istým číslom sa pri prvej zmene rozídu.
+        const run = Math.max(1, rect.height - vh);
+        const at = clamp01(-rect.top / run);
+
+        const A = ARC.revEnd;
+        const B = ARC.travEnd;
+        const rp = clamp01(at / A);                 // dráha recenzií
+        const tv = seg(at, A, B);                   // presun
+        const B0 = Math.max(0, B - ARC.travOverlap);
+        const np = clamp01((at - B0) / Math.max(0.001, 1 - B0)); // dráha next stepu
+
+        const revH = seg(rp, ARC.rev.headIn[0], ARC.rev.headIn[1]);
+        const head = seg(np, ARC.nxt.headIn[0], ARC.nxt.headIn[1]);
+        const line = seg(np, ARC.nxt.lineIn[0], ARC.nxt.lineIn[1]);
+        const lens = seg(np, ARC.nxt.lensIn[0], ARC.nxt.lensIn[1]);
+        const kota = seg(np, ARC.nxt.kotaIn[0], ARC.nxt.kotaIn[1]);
+        const tail = seg(np, ARC.nxt.ctaIn[0], ARC.nxt.ctaIn[1]);
+
+        // Podiel prvej fázy, ktorý je už zaplnený. Kým číslo nedorazí, je 0 —
+        // značka teda stojí na začiatku, nie na vymyslenom mieste.
+        const inFounders = clamp01((dogCountRef.current ?? 0) / FOUNDERS_TARGET);
+
+        // Pás je dvakrát vyšší než okno ⇒ posun o polovicu = o jednu obrazovku.
+        put(n.belt, 'abt', 'transform', `translateY(${(-50 * tv).toFixed(3)}%)`);
+
+        put(n.revH2, 'arh', 'opacity', revH.toFixed(3));
+        put(n.revH2, 'arht', 'transform', `translateY(${((1 - revH) * 16).toFixed(1)}px)`);
+        put(n.revSub, 'ars', 'opacity', (revH * 0.95).toFixed(3));
+        n.revCards?.forEach((c, i) => {
+          const cp = seg(rp, ARC.rev.cardsIn[0] + i * ARC.rev.cardStagger,
+                             ARC.rev.cardsIn[1] + i * ARC.rev.cardStagger);
+          put(c, 'arc' + i, 'opacity', cp.toFixed(3));
+          put(c, 'arct' + i, 'transform', `translateY(${((1 - cp) * 14).toFixed(1)}px)`);
+        });
+
+        put(n.nxEyebrow, 'ane', 'opacity', head.toFixed(3));
+        put(n.nxH2, 'anh', 'opacity', head.toFixed(3));
+        put(n.nxH2, 'anht', 'transform', `translateY(${((1 - head) * 16).toFixed(1)}px)`);
+
+        put(n.nxFill, 'anf', 'transform', `scaleX(${line.toFixed(3)})`);
+        n.nxStops?.forEach((el, i) => {
+          const sp = seg(np, ARC.nxt.lineIn[0] + i * ARC.nxt.stopStagger,
+                             ARC.nxt.lineIn[1] + i * ARC.nxt.stopStagger);
+          put(el, 'ans' + i, 'opacity', sp.toFixed(3));
+          put(el, 'anst' + i, 'transform',
+              `translateX(-50%) translateY(${((1 - sp) * 8).toFixed(1)}px)`);
+        });
+        put(n.nxHere, 'anhl', 'left', `${(inFounders * ARC_STOPS[0].at).toFixed(3)}%`);
+        put(n.nxHere, 'anho', 'opacity',
+            seg(np, ARC.nxt.lineIn[1] - 0.04, ARC.nxt.lineIn[1] + 0.06).toFixed(3));
+
+        // Lúče výrezu sú kreslené priesvitnosťou FARBY, nie krytím prvku:
+        // `currentColor` dedia obe cesty, takže je to jeden zápis namiesto dvoch.
+        put(n.nxRays, 'anr', 'color', `rgba(140,96,20,${(0.3 * lens).toFixed(3)})`);
+        put(n.nxBand, 'anb', 'opacity', lens.toFixed(3));
+        put(n.nxBand, 'anbt', 'transform', `translateY(${((1 - lens) * 10).toFixed(1)}px)`);
+        put(n.nxBandFill, 'anbf', 'width', `${(inFounders * 100 * lens).toFixed(2)}%`);
+        // 🔴 Popisok hovorí ZOSTÁVAJÚCU kapacitu, nie vyplnenú. Výrez malosť
+        // neodstráni, len ju zväčší: 71 z 1 000 je aj po dvadsaťnásobnom
+        // priblížení sedem percent. Chcieť byť medzi prvými robí to, čo ešte
+        // ostáva — prvá tisícka sa raz zavrie.
+        putText(n.nxBandLbl, 'anbl',
+            dogCountRef.current === null
+              ? ''
+              : `${(FOUNDERS_TARGET - dogCountRef.current).toLocaleString('en-US')} spots left`);
+        put(n.nxKota, 'ankl', 'left', `${(inFounders * 100).toFixed(2)}%`);
+        put(n.nxKota, 'anko', 'opacity', kota.toFixed(3));
+
+        put(n.nxTail, 'ant', 'opacity', tail.toFixed(3));
+        put(n.nxTail, 'antt', 'transform', `translateY(${((1 - tail) * 14).toFixed(1)}px)`);
+      }
+
       // Tieto tri sa menia DVAKRÁT za celý film, tak smú ostať premennými.
       const gone = o <= 0.002;
       put(n.planet, 'vis', '--op-vis', gone ? 'hidden' : 'visible');
@@ -883,6 +1083,12 @@ export default function OnePage() {
       .catch(() => { /* číslo je ozdoba, nie podmienka — sekcia funguje aj bez neho */ });
     return () => { alive = false; };
   }, []);
+
+  // Číslo dorazilo → značka na mierke sa musí prekresliť aj bez scrollu.
+  useEffect(() => {
+    dogCountRef.current = dogCount;
+    applyRef.current();
+  }, [dogCount]);
 
   /**
    * KLIK NA „POZRI DOGYPT INTROFILM" = SKOK NA PLÁTNO (Matej 28. 8. 2026:
@@ -2454,57 +2660,245 @@ export default function OnePage() {
           cursor: pointer;
         }
 
-        /* ── OBRAZ 5: CIEĽ, KROKY, ČÍSLO, CTA ─────────────────────────────
-           Posledný obraz je jediné miesto filmu, kde sa hovorí o vstupe. */
-        .op-join { padding: 110px 22px 130px; display: flex; flex-direction: column; align-items: center; gap: 34px; text-align: center; }
-        .op-count { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-        .op-count-n {
+        /* ── OBRAZ 5: OBLÚK — RECENZIE → NEXT STEP ────────────────────────
+           Dve obrazovky na JEDNEJ dráhe, nie dve sekcie pod sebou. Sekcia je
+           vyššia než okno, javisko v nej stojí prilepené a pás vnútri javiska
+           je dvakrát vyšší než okno — presun medzi obrazovkami je jeho posun
+           o polovicu. Kto sem siahne, mení VÝŠKU v ARC_VH hore v súbore;
+           choreografia si dráhu meria z prvku, takže sa prispôsobí sama.
+           ⚠️ Zanikli tu .op-steps (päť dlaždíc míľnikov) a .op-count — severka
+           je odteraz mierka a jedna veta, nie rad kariet. */
+        .op-arc { position: relative; height: ${ARC_VH * 100}vh; }
+        .op-arc-stage { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+        .op-arc-belt { position: absolute; left: 0; right: 0; top: 0; height: 200%; will-change: transform; }
+        .op-arc-scr {
+          position: relative;
+          height: 50%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+        }
+        /* Rezervu pod hornou lištou drží PREMENNÁ, nie vlastné číslo — inak sa
+           pri zmene MEDAL.lift rozíde s preambulou aj s hero vízie. */
+        .op-rev { gap: clamp(14px, 2.4vh, 30px); padding: calc(var(--op-nav-h) + 10px) clamp(18px, 4vw, 54px) 40px; }
+        .op-nxt { gap: clamp(12px, 2vh, 26px); padding: calc(var(--op-nav-h) + 6px) clamp(18px, 4vw, 54px) 40px; }
+
+        /* ── A — RECENZIE ───────────────────────────────────────────────── */
+        .op-rev-h2 {
+          margin: 0;
+          opacity: 0;
           font-family: 'Cinzel', serif;
           font-weight: 700;
-          font-size: clamp(3rem, 12vw, 6.5rem);
-          line-height: 1;
+          font-size: clamp(1.9rem, 5.2vw, 3.4rem);
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          line-height: 1.06;
           background: ${LAB.goldText};
           -webkit-background-clip: text;
           background-clip: text;
           -webkit-text-fill-color: transparent;
         }
-        .op-count-l {
+        .op-rev-sub {
+          margin: 0;
+          opacity: 0;
+          max-width: 46ch;
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: clamp(0.86rem, 1.5vw, 1rem);
+          line-height: 1.55;
+          color: ${LAB.inkSoft};
+        }
+        .op-rev-cards { display: flex; gap: 14px; width: min(1040px, 100%); align-items: stretch; }
+        /* Karta = PACK_BOX.card: papyrusový gradient, zlatý rám, radius 16.
+           Plochá biela s šedým vlasom je iný materiál, nie iná farba. */
+        .op-rev-card {
+          flex: 1 1 0;
+          min-width: 0;
+          opacity: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          text-align: left;
+          padding: 18px 20px;
+          border-radius: 16px;
+          background: linear-gradient(160deg, rgba(255,252,244,0.92), rgba(248,237,214,0.78));
+          border: 1px solid ${LAB.edge};
+          box-shadow: ${LAB.shadow};
+        }
+        .op-rev-q {
+          margin: 0;
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: clamp(0.82rem, 1.4vw, 0.95rem);
+          line-height: 1.5;
+          color: ${LAB.inkBody};
+        }
+        .op-rev-n { font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.9rem; letter-spacing: 0.02em; color: ${LAB.goldInk}; }
+        .op-rev-r {
           font-family: 'Space Grotesk', sans-serif;
           font-weight: 500;
-          font-size: 0.72rem;
-          letter-spacing: 0.24em;
+          font-size: 0.6rem;
+          letter-spacing: 0.16em;
           text-transform: uppercase;
           color: ${LAB.inkSoft};
         }
-        /* Rad míľnikov = celá šírka, rovnaké diely. Na mobile stĺpec — päť
-           krokov vedľa seba je pri 390 px nečitateľných päť slov pod sebou. */
-        .op-steps { display: flex; gap: 12px; width: min(1040px, 100%); align-items: stretch; }
-        .op-step {
-          flex: 1 1 0;
-          min-width: 0;
+
+        /* ── B — NEXT STEP ──────────────────────────────────────────────── */
+        .op-nxt-eyebrow, .op-nxt-h2 { opacity: 0; }
+        .op-nxt-h2 { margin: 0; }
+        .op-nxt-plot { position: relative; width: min(1040px, 100%); padding: 0 clamp(22px, 4vw, 54px); }
+        .op-nxt-scale { position: relative; width: 100%; height: 78px; margin-top: 6px; }
+        .op-nxt-axis { position: absolute; left: 0; right: 0; top: 20px; height: 4px; background: ${LAB.hairline}; border-radius: 999px; overflow: hidden; }
+        .op-nxt-axis-fill {
+          position: absolute;
+          inset: 0;
+          transform: scaleX(0);
+          transform-origin: left center;
+          background: linear-gradient(90deg, #6E4A12, #C99A3F 40%, #D8A93F 70%, #A3782B);
+        }
+        .op-nxt-stop {
+          position: absolute;
+          top: 0;
+          opacity: 0;
+          transform: translateX(-50%);
           display: flex;
           flex-direction: column;
-          gap: 6px;
-          padding: 18px 14px;
-          text-align: left;
-          background: linear-gradient(160deg, rgba(255,252,244,0.72), rgba(248,237,214,0.5));
-          border: 1px solid ${LAB.edge};
-          border-radius: 12px;
-          box-shadow: ${LAB.shadow};
+          align-items: center;
+          gap: 3px;
+          width: 116px;
         }
-        .op-step-n { font-family: 'Cinzel', serif; font-weight: 700; font-size: 1.02rem; color: ${LAB.goldInk}; letter-spacing: 0.02em; }
-        .op-step-t {
+        .op-nxt-stop i { display: block; width: 4px; height: 26px; background: ${LAB.edge}; border-radius: 999px; }
+        .op-nxt-stop b { font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.95rem; letter-spacing: 0.02em; color: ${LAB.goldInk}; white-space: nowrap; }
+        .op-nxt-stop em {
+          font-style: normal;
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 500;
+          font-size: 0.58rem;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: ${LAB.inkSoft};
+          white-space: nowrap;
+        }
+        .op-nxt-short { display: none; }
+        .op-nxt-here {
+          position: absolute;
+          top: 12px;
+          left: 0;
+          opacity: 0;
+          transform: translateX(-50%);
+          width: 11px;
+          height: 11px;
+          border-radius: 50%;
+          background: linear-gradient(180deg, #F5C73D, #E69E1A);
+          box-shadow: 0 0 0 3px rgba(201,154,63,0.28);
+        }
+
+        .op-nxt-lens { position: relative; width: 100%; height: 112px; }
+        .op-nxt-rays { position: absolute; left: 0; top: 0; width: 100%; height: 34px; display: block; overflow: visible; color: rgba(140,96,20,0); }
+        .op-nxt-band { position: absolute; left: 0; right: 0; bottom: 24px; height: 46px; opacity: 0; }
+        .op-nxt-band-rail { position: absolute; left: 0; right: 0; top: 20px; height: 5px; border-radius: 999px; background: rgba(140,96,20,0.18); overflow: hidden; }
+        .op-nxt-band-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 999px; background: linear-gradient(90deg, #A3782B, #D8A93F); }
+        .op-nxt-band-cap { position: absolute; top: 10px; transform: translateX(-50%); width: 4px; height: 26px; background: ${LAB.edge}; border-radius: 999px; }
+        .op-nxt-band-lbl {
+          position: absolute;
+          top: 38px;
+          right: 0;
+          text-align: right;
           font-family: 'Space Grotesk', sans-serif;
           font-weight: 500;
           font-size: 0.62rem;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: ${LAB.inkSoft};
+          white-space: nowrap;
+        }
+        .op-nxt-kota {
+          position: absolute;
+          top: -42px;
+          left: 0;
+          opacity: 0;
+          transform: translateX(-50%);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 3px;
+        }
+        .op-nxt-kota span {
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 500;
+          font-size: 0.6rem;
           letter-spacing: 0.2em;
           text-transform: uppercase;
           color: ${LAB.goldSolid};
+          white-space: nowrap;
         }
-        .op-step-d { font-family: 'Space Grotesk', sans-serif; font-size: 0.82rem; line-height: 1.5; color: ${LAB.inkSoft}; }
+        .op-nxt-kota i { display: block; width: 3px; height: 20px; background: ${LAB.goldSolid}; border-radius: 999px; }
+
+        /* Veta, tlačidlo a poznámka prichádzajú ako JEDEN dej — preto jeden
+           obal a jeden zápis, nie tri stmievačky, ktoré sa raz rozídu. */
+        .op-nxt-tail { opacity: 0; display: flex; flex-direction: column; align-items: center; gap: clamp(12px, 1.8vh, 22px); }
+        .op-nxt-lead {
+          margin: 0;
+          max-width: 44ch;
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: clamp(0.9rem, 1.5vw, 1.02rem);
+          line-height: 1.6;
+          color: ${LAB.inkBody};
+        }
+        /* 🔵 HLAVNÉ CTA = LAPIS (brandový kánon od 28. 8. 2026). Geometriu
+           preberá od .btn-gold — radius 8, NIE pilulka; mení sa výplň, nie tvar.
+           Zlaté písmo na modrom nie je ozdoba: bez neho je z lapisu len tmavé
+           tlačidlo bez príslušnosti k brandu. */
+        .op-nxt-cta {
+          display: inline-block;
+          text-decoration: none;
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: clamp(0.86rem, 1.4vw, 1rem);
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          padding: 0.78em 1.9em;
+          border-radius: 8px;
+          background: ${LAPIS.grad};
+          color: ${LAPIS.ink};
+          border: 1px solid rgba(250,244,236,0.30);
+          box-shadow: ${LAPIS_BTN_SHADOW};
+        }
+        .op-nxt-cta:hover { background: ${LAPIS.gradHover}; }
+        .op-nxt-note {
+          margin: 0;
+          max-width: 44ch;
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.76rem;
+          line-height: 1.5;
+          color: ${LAB.inkSoft};
+        }
+
         @media (max-width: 860px) {
-          .op-steps { flex-direction: column; }
-          .op-join { padding: 80px 18px 120px; gap: 26px; }
+          /* Tri karty vedľa seba sú pri 390 px tri stĺpce po štyroch znakoch.
+             Tretia odchádza celá — dve stačia na dôkaz a zmestia sa. */
+          .op-rev-cards { flex-direction: column; gap: 10px; width: 100%; }
+          .op-rev-card { padding: 13px 15px; gap: 5px; }
+          .op-rev-card:nth-child(3) { display: none; }
+          .op-rev, .op-nxt { padding-left: 16px; padding-right: 16px; }
+          .op-nxt-plot { padding: 0 18px; }
+          /* Číslo sa skracuje a názvy fáz odchádzajú — päť popiskov vedľa seba
+             je pri 390 px päť orezaných slov. Prvá fáza si svoj necháva: je to
+             jediná, v ktorej značka niečo ukazuje. */
+          .op-nxt-stop { width: 54px; }
+          .op-nxt-stop em { display: none; }
+          .op-nxt-stop--f em { display: block; font-size: 0.52rem; letter-spacing: 0.1em; }
+          .op-nxt-long { display: none; }
+          .op-nxt-short { display: inline; }
+          /* Značka „tu môžeš byť ty" stojí v prvých percentách mierky (71
+             z 1 000), takže vycentrovaný popisok vytečie z ľavého okraja —
+             pri 390 px mu chýba 60 px. Na úzkom okne preto číta DOPRAVA od
+             zárezu: zárez ostáva na pravdivom mieste, posúva sa len text.
+             ⚠️ Nie je to meranie po vykreslení — je to iný ukotvovací bod. */
+          .op-nxt-kota { transform: none; align-items: flex-start; }
+          .op-nxt-scale { height: 86px; }
+          .op-nxt-lens { height: 124px; }
+          .op-nxt-band { bottom: 32px; }
         }
 
         /* ── CTA ────────────────────────────────────────────────────────────
@@ -2689,33 +3083,110 @@ export default function OnePage() {
           <AboutLab embedded part="film" />
         </section>
 
-        {/* ── OBRAZ 5 — CIEĽ, KROKY, ČÍSLO, CTA ──────────────────────────*/}
-        <section className="op-scene op-join" id="op-join" aria-label="Join">
-          <div>
-            <p className="op-eyebrow">The north star</p>
-            <h2 className="op-h2">One million Dogyptians</h2>
-          </div>
-          <p className="op-lead">
-            No deadline, no countdown. The milestones are counted in dogs, not in years — and every
-            one of them starts with a single heroglyph.
-          </p>
+        {/* ── OBRAZ 5 — OBLÚK: RECENZIE → NEXT STEP ──────────────────────
+            Matej 31. 8. 2026, po zamietnutí prvého kola (*„nehovoril som aby si
+            to staval! … a to čo si spravil je hnus"*): vecná príčina bola, že
+            sa obrazy NASKLADALI pod seba, kým zvyšok `/onepage` sa prevaľuje.
+            Tu je preto jedna dráha a na nej dve obrazovky — pás je dvakrát
+            vyšší než okno a presun medzi nimi je jeho posun o jednu obrazovku.
+            Časovanie drží objekt ARC hore v súbore, ladí sa v nákrese
+            `plany/nakres-po-starwars-2026-08-31.html`.
 
-          <div className="op-steps">
-            {MILESTONES.map((m) => (
-              <div className="op-step" key={m.title}>
-                <span className="op-step-n">{m.n}</span>
-                <span className="op-step-t">{m.title}</span>
-                <span className="op-step-d">{m.note}</span>
-              </div>
-            ))}
-          </div>
+            PREČO RECENZIE PRVÉ: príbeh končí tvrdením, že vzniká nová viera.
+            Po takom tvrdení nepotrebuje človek výzvu, ale dôkaz, že nie je
+            blázon — a ten je hotový. NEXT STEP potom už nemusí presviedčať,
+            len povedať, čo urobiť.
 
-          <div className="op-count">
-            <span className="op-count-n">{dogCount === null ? '—' : dogCount.toLocaleString('en-US')}</span>
-            <span className="op-count-l">dogs already carry their sign</span>
-          </div>
+            ⚠️ ID ostáva `op-join` — visí na ňom snap bod aj pozorovateľ
+            obrazov v nave. Zmena mena by ticho zabila oboje. */}
+        <section className="op-scene op-arc" id="op-join" aria-label="Join">
+          <div className="op-arc-stage">
+            <div className="op-arc-belt">
 
-          <a href="/entry" className="btn-gold">{t('wall.hero.cta')}</a>
+              {/* ── A — RECENZIE ─────────────────────────────────────────── */}
+              <section className="op-arc-scr op-rev">
+                <h2 className="op-rev-h2">We didn&rsquo;t invent this</h2>
+                <p className="op-rev-sub">
+                  {CELEB_QUOTE_COUNT} famous people describing the same religion. None of them
+                  knew its name.
+                </p>
+                <div className="op-rev-cards">
+                  {quotes.map((qt) => (
+                    <article className="op-rev-card" key={qt.name}>
+                      <p className="op-rev-q">
+                        &ldquo;{t(`about.legends.q.${quoteSlug(qt.name)}.text`)}&rdquo;
+                      </p>
+                      <span className="op-rev-n">{qt.name}</span>
+                      <span className="op-rev-r">{t(`about.legends.q.${quoteSlug(qt.name)}.role`)}</span>
+                    </article>
+                  ))}
+                </div>
+              </section>
+
+              {/* ── B — NEXT STEP ────────────────────────────────────────── */}
+              <section className="op-arc-scr op-nxt">
+                <p className="op-eyebrow op-nxt-eyebrow">Next step</p>
+                <h2 className="op-h2 op-nxt-h2">Join the mission</h2>
+
+                {/* ⚠️ MIERKA AJ VÝREZ STOJA V TOM ISTOM POLI. Lúče výrezu sa
+                    kreslia v percentách, takže keby mala mierka iné okraje než
+                    pás pod ňou, mierili by mimo úsek, ktorý zväčšujú.
+                    Odsadenie je aj preto, že popisky krajných zastávok by sa
+                    inak orezali o hranu obrazovky. */}
+                <div className="op-nxt-plot">
+                  <div className="op-nxt-scale">
+                    <div className="op-nxt-axis"><span className="op-nxt-axis-fill" /></div>
+                    {ARC_STOPS.map((st, i) => (
+                      <span
+                        className={`op-nxt-stop${i === 0 ? ' op-nxt-stop--f' : ''}`}
+                        style={{ left: `${st.at}%` }}
+                        key={st.ph}
+                      >
+                        <i />
+                        <b><span className="op-nxt-long">{st.n}</span><span className="op-nxt-short">{st.short}</span></b>
+                        <em>{st.ph}</em>
+                      </span>
+                    ))}
+                    <span className="op-nxt-here" />
+                  </div>
+
+                  <div className="op-nxt-lens">
+                    {/* preserveAspectRatio="none" ⇒ súradnice sú percentá
+                        a fungujú na PC aj na mobile bez prepočtu. Lúče idú
+                        z prvého úseku (0–20 %) na kraje zväčšeného pásu. */}
+                    <svg className="op-nxt-rays" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                      <path d="M0,0 L0,100" stroke="currentColor" strokeWidth="0.6" fill="none" />
+                      <path d="M20,0 L100,100" stroke="currentColor" strokeWidth="0.6" fill="none" />
+                    </svg>
+                    <div className="op-nxt-band">
+                      <div className="op-nxt-band-rail"><span className="op-nxt-band-fill" /></div>
+                      <span className="op-nxt-band-cap" style={{ left: 0 }} />
+                      <span className="op-nxt-band-cap" style={{ left: '100%' }} />
+                      <span className="op-nxt-band-lbl" />
+                      {/* 🚩 ČÍSLO TU ZÁMERNE NIE JE. Poradové číslo prideľuje
+                          až platba (`seal_pack_number`), takže počet psov
+                          a poradie sa môžu rozísť — stránka by sľúbila číslo,
+                          ktoré človek nedostane. Značka preto ukazuje MIESTO,
+                          nie číslo. */}
+                      <span className="op-nxt-kota"><span>You can be here</span><i /></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="op-nxt-tail">
+                  <p className="op-nxt-lead">
+                    The first thousand carry the flame. Your number is given once and never moves
+                    again &mdash; not when he grows old, not when he is gone.
+                  </p>
+                  <a href="/entry" className="op-nxt-cta">{t('wall.hero.cta')}</a>
+                  <p className="op-nxt-note">
+                    No deadline, no countdown. Counted in dogs, not in years.
+                  </p>
+                </div>
+              </section>
+
+            </div>
+          </div>
         </section>
 
         {/* ── PODPIS — LOGO + TAGLINE ────────────────────────────────────

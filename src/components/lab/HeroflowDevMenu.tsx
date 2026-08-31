@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { openPhotoConfirm } from '@/components/gods/photoConfirm';
 import hekthorImg from '@/assets/hekthor.png';
+import { useFlowSkin, setFlowSkin } from '@/components/screens/flowRedress';
 
 // ════════════════════════════════════════════════════════════════════════════
 // DEV MENU NA PREKLIKANIE NOVÉHO HEROFLOW (28. 8. 2026)
@@ -108,6 +109,7 @@ export function HeroflowDevMenu() {
   const email = useDogyptStore((s) => s.email);
   const setEmail = useDogyptStore((s) => s.setEmail);
   const panelRef = useRef<HTMLDivElement>(null);
+  const skin = useFlowSkin();
 
   // Odchod klikom mimo a Esc. Oboje visí na okne len keď je panel otvorený —
   // zavretý dev nástroj nemá počúvať klávesnicu filmu.
@@ -207,6 +209,21 @@ export function HeroflowDevMenu() {
 
       {open && (
         <div className="hfd-panel">
+          {/* Prezlečenie starých obrazoviek (31. 8. 2026). Stojí navrchu, lebo ako
+              jediné mení CELÝ vstup naraz — ostatné riadky menia len, kde stojíš.
+              Text hovorí, čo je ZAPNUTÉ; klik prepne na druhý. */}
+          <div className="hfd-head">Šat vstupu</div>
+          <button
+            type="button"
+            className={`hfd-row${skin === 'pale' ? ' is-done' : ''}`}
+            onClick={() => setFlowSkin(skin === 'pale' ? 'dark' : 'pale')}
+          >
+            <span className="hfd-dot" />
+            <span>{skin === 'pale' ? 'NOVÝ — bledý' : 'STARÝ — tmavý'}</span>
+            <span className="tag">{skin === 'pale' ? 'na starý' : 'na nový'}</span>
+          </button>
+          <div className="hfd-sep" />
+
           {GROUPS.map((g, gi) => (
             <div key={g.label}>
               {gi > 0 && <div className="hfd-sep" />}

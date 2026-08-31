@@ -36,6 +36,7 @@ export function EmailScreen() {
   const t = useT();
   const { lang } = useLang();
   const dogName = useDogyptStore((s) => s.dogName);
+  const extraDogs = useDogyptStore((s) => s.extraDogs);
   const storedEmail = useDogyptStore((s) => s.email);
   const setEmail = useDogyptStore((s) => s.setEmail);
 
@@ -68,6 +69,29 @@ export function EmailScreen() {
 
   const displayName = dogName || t('heroglyph.flow.yourDogFallback');
 
+  // ── VETA SA MENÍ PODĽA TOHO, KOĽKO PSOV ČLOVEK PRIVIEDOL (Matej 31. 8.) ────
+  // *„musí rozlišovať či človek robí pre jedného psa alebo viacerých psov… čiže
+  // texting: Tvorba heroglyfu pre HEktora(,xxx,yyy,zzz,) trvá zhruba 3 minúty
+  // (4,5,6…minút) zanechaj nám email nech sa ti email nestratí."*
+  //
+  // Odhad času rastie s počtom psov presne podľa jeho zátvorky: 1 pes = 3 min,
+  // 2 = 4, 3 = 5 ⇒ `2 + počet`. Nie je to meranie, je to sľub — a musí byť
+  // radšej mierne štedrý než tesný.
+  //
+  // ⚠️ Mená stoja v NOMINATÍVE za slovom „psa"/„psov". Matejova veta znela
+  // „pre HEktora", lenže skloňovanie mena sa v slovenčine nedá odvodiť: HEKTOR →
+  // Hektora, ale BELLA → Bellu, CINDY → Cindy, MAXI → Maxiho. Veta „pre psa
+  // HEKTOR" drží gramatiku pri každom mene a je to zároveň tvar, aký tento kľúč
+  // mal už predtým.
+  const dogNames = [displayName, ...extraDogs.map((d) => d.name.trim()).filter(Boolean)];
+  const manyDogs = dogNames.length > 1;
+  const nameList = manyDogs
+    ? `${dogNames.slice(0, -1).join(', ')} ${t('heroglyph.flow.email.and')} ${dogNames[dogNames.length - 1]}`
+    : dogNames[0];
+  const minutes = dogNames.length + 2;
+  // SK: 3–4 „minúty", 5+ „minút". EN má jeden tvar, kľúče sú tam zhodné.
+  const minuteWord = t(minutes >= 5 ? 'heroglyph.flow.email.minMany' : 'heroglyph.flow.email.minFew');
+
   if (!flowOk) return null;
 
   return (
@@ -89,7 +113,11 @@ export function EmailScreen() {
           >
             <img src={hekthorImg} alt="HEKTHOR" className="hf-hek" />
             <h2>{t('heroglyph.flow.email.title')}</h2>
-            <p>{t('heroglyph.flow.email.reason', { dogName: displayName })}</p>
+            <p>{t(manyDogs ? 'heroglyph.flow.email.reasonMany' : 'heroglyph.flow.email.reasonOne', {
+              names: nameList,
+              minutes: String(minutes),
+              minuteWord,
+            })}</p>
           </motion.div>
 
           <motion.div

@@ -275,16 +275,71 @@ export const en = {
   'heroglyph.flow.dogs.phMonth': 'Month',
   'heroglyph.flow.dogs.phYear': 'Year',
 
-  // ── /heroglyph/why — krok 4: jediná obrazovka vstupu, ktorá nič nepýta ──
-  // Vysvetlenie kartuše si obrazovka POŽIČIAVA z `ownerFinal.*` (ten istý text
-  // aj obrázok), tu sú len vlastné tri riadky.
-  'heroglyph.flow.why.title': 'Why a heroglyph at all',
-  'heroglyph.flow.why.sub':
-    'The name is beautiful — but thousands of dogs carry it. Our mission is to make every dog singular: to catch who they are in a design nobody else has.',
-  'heroglyph.flow.why.note':
-    'A cartouche — the oval frame ancient Egyptians drew around the one name allowed to outlive its owner. Cleopatra had one. Your dog will have one too.',
+  // ── PÁS FÁZ NAD CELÝM VSTUPOM ────────────────────────────────────────────
+  // Štyri slová, nie čísla krokov ani percentá (Matej 31. 8.: „ok nie percenta").
+  // Číslo kroku sa mení, ako flow režeme; fáza nie. Kľúče sú spoločné pre celý
+  // vstup — nesie ich `FlowPhases.tsx`, nie jednotlivé obrazovky.
+  'heroglyph.flow.phase.dog': 'DOG',
+  'heroglyph.flow.phase.you': 'YOU',
+  'heroglyph.flow.phase.symbol': 'SYMBOL',
+  'heroglyph.flow.phase.done': 'DONE',
+
+  // ── /heroglyph/why — jediná obrazovka vstupu, ktorá nič nepýta ───────────
+  // Prestavané 31. 8. 2026 podľa `plany/nakres-heroflow-why-2026-08-31.html`.
+  // Nadpis je Matejova vlastná veta plus druhá polovica, ktorá jej dáva dôvod —
+  // a práve tú dokazujú tri ALBY pod ňou (skutoční psi #43, #59, #61 z našej steny).
+  // ⚠️ Zamietnuté cestou a nevracať: „DOGYPT je miesto, kde je každý pes unikát!"
+  //    (bije sa s mottom steny „Miesto, kde PES JE BOH") a „HEROGLYF pre každého
+  //    psa na svete!" (hovorí o MNOŽSTVE nad obrazom, ktorý dokazuje ROZDIEL —
+  //    jej miesto je stena, nie flow). → pamäť `feedback_nadpis_nesmie_hovorit_opak_dokazu_pod_nim`
+  // ⚠️ Zanikli kľúče `why.title`, `why.sub` a `why.note` — s bublinou a jedným
+  //    heroglyfom, ktoré obrazovka niesla do 31. 8.
+  // ⚠️ Druhá veta bola do 31. 8. „DOKÁŽE" / „PROVES IT" a NEVRACAJ ju: v slovenčine má
+  //    *dokáže* dva významy a bežnejší je „zvládne", nie „preukáže" — veta sa prvý raz
+  //    čítala ako *heroglyf to zvládne*, teda ako schopnosť, nie ako dôkaz. *Zapíše* tú
+  //    dvojznačnosť nemá a hovorí, čo produkt naozaj robí: unikátnosť nevyrába, zapisuje.
+  //    EN drží ten istý obraz slovesom `inscribe` — tým istým, ktorým sa vpisovalo
+  //    do kartuše.
+  'heroglyph.flow.why.head1': 'YOUR DOG IS ONE OF A KIND.',
+  'heroglyph.flow.why.head2': 'THE HEROGLYPH INSCRIBES IT.',
+  // Veta NAD tromi stĺpcami a veta POD nimi. Prvá pomenuje, čo je zhodné (meno),
+  // druhá to, čo zhodné nie je (znak) — dôkaz stojí medzi nimi.
+  // Veta sa láme na dve polovice zámerne: tučné je len PREDSTAVENIE po dvojbodku
+  // (Matej 31. 8.: „Toto je alba daj boldom"), vysvetlenie za ňou ostáva tenké.
+  // Ten istý vzor ako `ownerFinal.messageLine3Prefix/Suffix`.
+  'heroglyph.flow.why.leadStrong': 'Meet ALBA:',
+  'heroglyph.flow.why.leadRest': 'the same name, completely different dogs.',
+  'heroglyph.flow.why.albNote': 'Unlike the name, every ALBA has her own unique heroglyph!',
+  'heroglyph.flow.why.cta': 'Create heroglyph',
+  'heroglyph.flow.why.link': 'why a heroglyph, and what is it for?',
+  // ── Popup za odkazom pod CTA (Matejovo znenie, 31. 8.) ────────────────────
+  // Nadpis pomenúva SĽUB, nie zdroj — na odkaz „aký to má zmysel?" patrí odpoveď.
+  // (Predtým tu stálo „Inšpirácia z Egypta", teda odkiaľ to je.)
+  //
+  // ⚠️ **„panovníkov", nie „kráľov"** — Kleopatra bola kráľovná a jej kartuša je
+  //    hneď nad textom; „králi" by si s obrázkom protirečili.
+  // ⚠️ **NEPÍŠ, že druhý rovnaký nemôže vzniknúť ani že je unikátny ako odtlačok
+  //    prsta.** Heroglyf je dvanásť výberov z konečných zoznamov (≈59,7 mld.
+  //    kombinácií) — dvaja ľudia s rovnakými odpoveďami dostanú ten istý obrázok
+  //    a pri severke 1 M psov vychádza ~8 takých dvojíc. Preto tretia veta
+  //    NETVRDÍ unikátnosť; hovorí, čo tých dvanásť znakov je. Unikátnosť už
+  //    dokázal OBRÁZOK nad textom (tri ALBY), tvrdiť ju druhýkrát netreba.
+  //    → pamäť `reference_dogypt_heroglyf_kombinacny_priestor`
+  // ⚠️ Fakty overené 31. 8. (Wikipedia Cartouche / Sneferu, Ancient Egypt Online):
+  //    kartuša = „šenu" od slova „obkolesiť", ochrana; kráľovské mená; ~2600 pred n. l.
+  'heroglyph.flow.why.egyptTitle': 'ETERNAL LEGACY',
+  'heroglyph.flow.why.egyptP1':
+    'In ancient Egypt, the names of rulers were written inside an oval frame — a cartouche. It was meant to give them eternal protection.',
+  'heroglyph.flow.why.egyptP2':
+    'The heroglyph does the same for your dog. Twelve signs — seven about them, five about you. Not what they are called, but who they are.',
+  'heroglyph.flow.why.egyptP3':
+    'This symbol is also your key to DOGYPT, where every dog is one of a kind!',
+  // Popiska pod kartušou. Vlastný kľúč, nie `ownerFinal.cleopatraAlt` — ten ostáva
+  // popisom obrázka pre čítačky, toto je veta pre oči.
+  'heroglyph.flow.why.cleopatraCaption': "This is Cleopatra's name in hieroglyphs.",
   'heroglyph.flow.about.title': 'Where is {dogName} from?',
-  'heroglyph.flow.about.sub': 'Both answers go straight into the symbol — the country and the year of birth are two of its sixteen parts.',
+  // See sk.ts — the heroglyph has TWELVE parts (7 dog + 5 owner), not sixteen.
+  'heroglyph.flow.about.sub': 'Both answers go straight into the symbol — the country and the year of birth are two of its twelve parts.',
 
   // ── /heroglyph flow — step 1: name ──
   'heroglyph.flow.name.greetingPrefix': "Hi, I'm",
@@ -2148,6 +2203,14 @@ export const en = {
   'pack.addTrip.log.activityNote.skating': "Mark a place with an asphalt path.",
   'pack.addTrip.log.activityNote.paddleboard': "Pick the body of water.",
   'pack.addTrip.log.activityNote.explore': "Anything else \u2014 a castle, a landmark, a park\u2026",
+  'pack.addTrip.log.activityNote.visit': "A park, a castle, water, a campsite \u2014 a place you reach without a workout.",
+  // Dva rady chipov v kroku 4. Prvý = vlastná kategória, druhý = ostatné, zbalený.
+  'pack.addTrip.log.chipsOwn': "What we did there",
+  'pack.addTrip.log.chipsMore': "Was there anything else to do?",
+  // Tichá ponuka miesta \u2014 nesmie znieť ako povinnosť, „you don't have to" je vidno hneď.
+  'pack.addTrip.log.whereAsk': "Do you know exactly where it was?",
+  'pack.addTrip.log.whereBtn': "Show on the map",
+  'pack.addTrip.log.whereSkip': "you don't have to",
   // KROK 0b — pova\u017eovan\u00e9 za povinn\u00fa vo\u013ebu (Matej 24. 8. 2026). Kr\u00e1tke labely, nie vety:
   // rozba\u013eova\u010d st\u00ed pod dla\u017edicou a dve dlh\u00e9 vety by ho spravili vy\u0161\u0161\u00edm ne\u017e sama dla\u017edica.
   // AINUBIS \u2014 sprievodca nad mapou, stup\u0148ovan\u00e9 pod\u013ea pribl\u00ed\u017eenia (Matej 24. 8. 2026).
@@ -2655,6 +2718,23 @@ export const en = {
   'pack.map.activityLabel.skating': "Skate",
   'pack.map.activityLabel.paddleboard': "SUP/swim",
   'pack.map.activityLabel.explore': "Explore",
+  // VISIT (2026-08-31) — CHILL a EXPLORE splynuli. Staré kľúče sa NEMAŽÚ: ležia v dátach
+  // 81 seed výletov a karta ich zobrazuje ako tag.
+  'pack.map.activityLabel.visit': "Visit",
+  // ── CHIPY KROKU 4 (2026-08-31) — „čo sme tam robili" ───────────────────────────────────
+  // Zdroj id + anglický fallback: `components/pack/tripCategories.ts`. Tieto kľúče ho len
+  // prekladajú; nový chip musí pribudnúť TAM, inak sa preklad nemá k čomu prilepiť.
+  'pack.map.chipLabel.park': "Park",
+  'pack.map.chipLabel.sight': "Landmark",
+  'pack.map.chipLabel.zoo': "Zoo / farm",
+  'pack.map.chipLabel.water': "Water",
+  'pack.map.chipLabel.meadow': "Picnic spot",
+  'pack.map.chipLabel.camp': "Campsite",
+  'pack.map.chipLabel.skate': "Skating",
+  'pack.map.chipLabel.run': "Running",
+  'pack.map.chipLabel.paddle': "Paddling",
+  'pack.map.chipLabel.bike': "Cycling",
+  'pack.map.chipLabel.train': "Training",
   'pack.map.levelAriaLabel': "Level {level}",
   // Rang v hlavičke mapy aj na karte /pack — jeden kľúč, aby oba povrchy hovorili to isté
   'pack.map.rankPilgrim': "Pilgrim",

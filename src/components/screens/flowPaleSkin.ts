@@ -14,6 +14,7 @@ import { goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/
 //   skin:'new' · page:'pale'
 //   bubble:{ mode:'dark', hek:144, radius:16, pad:20, title:17 }
 //   card:{ fill:'gold', pad:14, gap:10 }        ← `radius`/`edge` sú tu MŔTVE kľúče
+//                                                 (pad/gap prevzdušnené 31. 8., viď `HF`)
 //   cta:{ tone:'lapis', h:40, radius:12, size:14 }
 //   pick:{ style:'tint' } · field:{ h:48, radius:12 }
 //
@@ -39,7 +40,12 @@ export const HF = {
   // ⚠️ 144 bolo z LABu; Matej 28. 8.: „foto hektora je enormne veľká" ⇒ 96 na mobile,
   //    112 od 768 px. Je to JEDNO číslo pre celý vstup — obrazovky si veľkosť nepíšu samy.
   bubble: { hek: 96, hekMd: 112, radius: 16, pad: 20, title: 17 },
-  card: { pad: 14, gap: 10 },
+  // ⚠️ Matej 31. 8.: *„pri /name sú horizontálne veľké CTA a text area = malý priestor
+  //    medzi okrajom bloku a obsahom, trošku to prevzdušnime"*. Doska mala 14 px na
+  //    všetky strany a 10 px medzi prvkami — pole aj tlačidlo sa lepili na zlatý rám.
+  //    Po stranách je vzduchu viac než hore a dole zámerne: rám je hrubý 6 px a
+  //    vodorovne stojí tesne pri hrane okna, takže sa oko oprie práve tam.
+  card: { pad: 18, padX: 22, gap: 14 },
   gapBlocks: 12,
   cta: { h: 40, radius: 12, size: 14 },
   field: { h: 48, radius: 12 },
@@ -73,6 +79,38 @@ export const FLOW_PALE_CSS = `
   filter: brightness(.34) sepia(1) saturate(2.2) hue-rotate(-12deg);
 }
 .hf-topbar button { color: ${LAB.goldInk}; }
+
+/* ── PÁS FÁZ (31. 8. 2026) ────────────────────────────────────────────────
+   PES -> TY -> SYMBOL -> HOTOVO. Spoločný prvok CELÉHO vstupu, markup nesie
+   'FlowPhases.tsx'; tu je len šat, aby si ho každá obrazovka nepísala znova.
+
+   Prečo fázy a nie percentá ani číslo kroku (Matej 31. 8.: "ok nie percenta"):
+   na tejto obrazovke by percento svietilo na 5 % — teda "nemáš za sebou nič"
+   presne v momente, keď má človek povedať áno. Kroky navyše nie sú rovnako
+   dlhé (výber farby 3 s, výrez fotky 30 s), takže 40 % by neznamenalo 40 %
+   času. A číslo kroku sa mení pri každom reze flow, fáza nie.
+
+   ⚠️ Pás fáz NIE JE dopĺňajúci sa heroglyf. Plátno (heroglyf, ktorý sa vypĺňa
+   pred očami) príde až za checkoutom a je to dramaturgia. Bar hovorí KDE SOM,
+   plátno ČO VZNIKÁ — keby bol bar tiež heroglyf, je to jedna vec dvakrát a
+   plátno stratí prekvapenie.
+
+   Aktívna fáza berie LAPIS (moja poloha v akcii), zvyšok vyblednuté zlato —
+   tá istá deliaca čiara ako inde: zlato = konštrukcia, lapis = ja. */
+.hf-phases { display: flex; gap: 6px; width: 100%; padding: 4px 2px 0; }
+.hf-phase { flex: 1; min-width: 0; text-align: center; }
+.hf-phase i {
+  display: block; height: 3px; border-radius: 2px; margin-bottom: 5px;
+  background: rgba(163,120,43,.28);
+}
+.hf-phase span {
+  display: block; font-family: 'Space Grotesk', sans-serif; font-weight: 500;
+  font-size: 8.5px; letter-spacing: .16em; text-transform: uppercase;
+  color: ${LAB.inkMuted};
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hf-phase.on i { background: ${LAPIS.edge}; }
+.hf-phase.on span { color: ${LAPIS.edge}; font-weight: 600; }
 
 /* ── BUBLINA (tmavá, jediný tmavý prvok obrazovky) ────────────────────── */
 .hf-bubble {
@@ -120,18 +158,34 @@ export const FLOW_PALE_CSS = `
   display: flex;
   flex-direction: column;
   gap: ${HF.card.gap}px;
-  padding: ${HF.card.pad}px;
+  padding: ${HF.card.pad}px ${HF.card.padX}px;
 }
 
 /* ── NAPÄTIE A SĽUB OKOLO TLAČIDLA (krok 2) ───────────────────────────────
-   Červená hovorí, čo je zlé (meno samo nestačí), zelená čo z toho bude.
-   Sú to brandové tokeny \`alertRed\` / \`growGreen\` z \`packTheme.ts\`, nie voľná
-   červená a zelená — obe sú kalibrované na papyrus, takže tu držia bez úpravy.
-   ⚠️ Zelená je VETA POD tlačidlom, nie tlačidlo: lapisový kánon CTA platí. */
+   Červená hovorí, čo je zlé (meno samo nestačí) — token \`alertRed\` z
+   \`packTheme.ts\`, kalibrovaný na papyrus.
+   🔴 **Sľub UŽ NIE JE ZELENÝ (Matej 31. 8.):** *„dajme to čiernym resp tmavým
+   písmom — nie zeleným"*. Zmenil sa mu zmysel: odkedy má CTA hviezdičku, nie je
+   to samostatný odkaz, ale VYSVETLIVKA k tlačidlu — a vysvetlivka je poznámka
+   pod čiarou, nie druhý farebný signál. Zelená navyše stála oproti červenej
+   o dva riadky vyššie a robila z dosky semafor.
+   ⚠️ Farba textu je jediná zmena; lapisový kánon CTA sa ničoho z toho netýka. */
 .hf-alert   { margin: 0; text-align: center; font-size: 12px; line-height: 1.4; font-weight: 500;
               font-family: 'Space Grotesk', sans-serif; color: #B25640; }
+/* Matej 31. 8., druhé kolo: *„skús to dať inou farbou viac ako keby šedou, nie
+   sýtou čiernou ale skôr nenápadnejšou, hnedou, tmavou"* ⇒ \`inkSoft\`
+   (rgba(60,40,12,0.62)) — tá istá tlmená hneď, akou hovoria popisky na papyruse
+   inde v šate. Poznámka pod čiarou sa nemá čítať skôr než tlačidlo nad ňou. */
 .hf-promise { margin: 0; text-align: center; font-size: 12px; line-height: 1.4; font-weight: 500;
-              font-family: 'Space Grotesk', sans-serif; color: #3D7A4E; }
+              font-family: 'Space Grotesk', sans-serif; color: ${LAB.inkSoft}; }
+/* Hviezdička visí tesne pri texte a nesie zlatú — je to značka odkazu na CTA,
+   nie prvé písmeno vety. */
+.hf-promise .star { color: ${LAB.goldInk}; font-weight: 700; margin-right: 4px; }
+
+/* ── DVOJICA, KTORÁ PATRÍ K SEBE ──────────────────────────────────────────
+   Prvok + veta, ktorá o ňom hovorí. Bez toho ich doska rozostupuje rovnako ako
+   všetko ostatné a štyri prvky sa čítajú ako štyri samostatné veci. */
+.hf-group { display: flex; flex-direction: column; gap: 6px; width: 100%; }
 
 .hf-qlabel {
   margin: 0; text-align: center; font-family: 'Cinzel', serif; font-weight: 700;
@@ -168,20 +222,15 @@ export const FLOW_PALE_CSS = `
   font-family: 'Cinzel', serif; font-weight: 700; font-size: 17px; color: ${LAB.goldInk};
 }
 .hf-dogrow .pic img { width: 100%; height: 100%; object-fit: cover; }
-/* Dva riadky textu sú to, čo psov ROZLIŠUJE — samotné meno nestačí, kým ho pes nemá. */
-.hf-dogrow .txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+/* JEDEN riadok (31. 8.): meno stojí vycentrované na fotku. Druhý riadok so stavom
+   a rokom zanikol — pilulky vpravo hovoria to isté a presnejšie. */
+.hf-dogrow .txt { flex: 1; min-width: 0; display: flex; align-items: center; }
 .hf-dogrow .nm {
   min-width: 0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 14.5px;
   letter-spacing: .05em; color: ${LAB.ink};
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .hf-dogrow.is-empty .nm { color: ${LAB.inkMuted}; }
-.hf-dogrow .meta {
-  min-width: 0; font-family: 'Space Grotesk', sans-serif; font-size: 11.5px;
-  line-height: 1.3; color: ${LAB.inkSoft};
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.hf-dogrow.is-empty .meta { color: ${LAB.goldInk}; }
 /* Ikonka stavu je ZNAČKA, nie tlačidlo — klikateľný je CELÝ riadok (Matej 28. 8.:
    „pri kliknutí na MENO psa je možnosť živúca legenda / psí anjel"). Tlačidlo
    vnorené v tlačidle je navyše neplatné HTML. */
@@ -192,6 +241,49 @@ export const FLOW_PALE_CSS = `
 }
 /* Ikonky sú čierne kresby na priehľadnom — na papyruse ostávajú čierne. */
 .hf-dogrow .st img { width: 19px; height: 19px; object-fit: contain; filter: brightness(0); }
+
+/* ── STAV PSA V RIADKU — PILULKY (31. 8. 2026) ────────────────────────────
+   Matej 31. 8.: *„na pravej strane psieho bloku musia byť pils s požadovanými
+   info ktoré budú svietiť na červeno/zeleno podľa toho či sú alebo nie sú
+   vyplnené — vrátane ikonky legendy/anjela, aby človek hneď videl stav čo mu
+   chýba"*. Nahradili jedinú ikonku stavu (\`.st\`), ktorá hovorila len o jednom
+   z troch údajov a mlčala o tom, čo psovi chýba.
+   🔑 **Rad zozelenie = pes je hotový.** Tlačidlo POKRAČOVAŤ sa odomkne presne
+   vtedy, keď je zelený každý pes — pilulky sú teda vysvetlenie zámku, nie
+   ozdoba. Preto zelenú nesie aj stav, hoci ten hodnotu má vždy: inak by sa
+   rad nikdy nezložil do jednej odpovede.
+   ⚠️ Farby sú tie isté brandové tokeny ako \`.hf-alert\` / \`.hf-promise\`
+   (\`alertRed\` / \`growGreen\` z \`packTheme.ts\`), nie voľná červená a zelená.
+   ⚠️ Nie je to VÝBER — pilulka je neinteraktívna menovka stavu, takže sa jej
+   netýka lock „výber je priesvitný tint" (26. 8.). Čitateľnosť napriek tomu
+   nesie TMAVÝ inkoust a plný farebný rám, nie krytie výplne. */
+.hf-dogpills {
+  /* 192 px = štyri pilulky anjela (narodenie · odchod · vlajka · stav) v JEDNOM
+     riadku aj na 390 px. Pri 148 px sa štvrtá zalomila pod ne a riadok anjela bol
+     o 15 px vyšší než riadok živého psa — dva rôzne riadky pre to isté.
+     Zalomenie ostáva ako poistka pre dlhšie hodnoty; meno pri ňom ustúpi (má
+     \`min-width: 0\` a orezanie textom). */
+  flex: 0 0 auto; display: flex; flex-wrap: wrap; justify-content: flex-end;
+  align-items: center; gap: 5px; max-width: 192px;
+}
+.hf-dpill {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  height: 26px; padding: 0 8px; border-radius: 999px; border: 1.5px solid;
+  font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 500;
+  line-height: 1; white-space: nowrap;
+}
+.hf-dpill.ok   { border-color: #3D7A4E; background: rgba(61,122,78,.12);  color: #2E5C3B; }
+.hf-dpill.miss { border-color: #B25640; background: rgba(178,86,64,.12);  color: #8E3F2C; }
+/* Ikonka legendy/anjela je čierna kresba — na oboch výplniach drží kontrast. */
+.hf-dpill img { width: 15px; height: 15px; object-fit: contain; filter: brightness(0); }
+/* Emoji (vlajka, torta) nesmie dediť font okolia — na Windows/Androide by sadol
+   čiernobiely textový variant. Ten istý dôvod aj stack ako \`FONT_EMOJI\` na mape. */
+.hf-dpill .em {
+  font-size: 13px; line-height: 1;
+  font-family: 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji','Twemoji Mozilla',sans-serif;
+}
+/* Pilulka bez textu (stav, vlajka) má byť KRUH, nie krátka kapsula. */
+.hf-dpill.solo { width: 26px; padding: 0; }
 
 .hf-addrow {
   display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
@@ -321,20 +413,90 @@ export const FLOW_PALE_CSS = `
   font-size: 15px; letter-spacing: .06em; color: ${LAB.ink};
 }
 
-/* ── UKÁŽKA HEROGLYFU ─────────────────────────────────────────────────────
-   Heroglyf je ZLATÁ kresba. Na zlatej doske zaniká — potrebuje tmu pod sebou,
-   presne ako v LABe (\`.glyphdemo\`). Je to jediný tmavý prvok vnútri bloku
-   a nesie ho význam: je to ten predmet, o ktorom obrazovka hovorí. */
-.hf-glyphdemo {
-  width: 100%;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #0b0805;
-  display: grid;
-  place-items: center;
-  padding: 10px;
+/* ── DÔKAZ: NADPIS, DVA PÁSY, POPISKY (31. 8. 2026) ───────────────────────
+   Obrazovka netvrdí, že je pes unikát — ukazuje to. Traja SKUTOČNÍ psi menom
+   ALBA z našej steny (#43, #59, #61): najprv tri psy, pod nimi ich tri znaky.
+   Čítanie ide zhora ("toto sú tri Alby" -> "toto sú ich tri znaky"), takže
+   rozdiel netreba hľadať očami hore-dole.
+
+   ⚠️ Zanikla '.hf-glyphdemo' — tmavá doska pod JEDNÝM heroglyfom. Bola tam
+   preto, že ZLATÁ kresba na zlatej doske zanikne. Tieto glyfy sú ČIERNE
+   (kánon počas života psa, DOGMA 8.3), takže idú priamo na papyrus a tmavý
+   podklad by z troch dôkazov urobil tri fotografie v ráme. Keď sa niekde vo
+   flow objaví zlatý heroglyf, tmavú dosku si vypýta znova — ale nech si ju
+   vypýta ten povrch, nie mŕtve pravidlo tu. */
+.hf-head {
+  margin: 0; text-align: center;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 18px; line-height: 1.25;
+  color: ${LAB.ink};
 }
-.hf-glyphdemo img { width: 78%; max-width: 280px; }
+/* Druhá veta nesie zlatú — je to tá polovica, ktorú tri ALBY pod ňou dokazujú,
+   takže hierarchia vedie oko rovno na dôkaz. */
+.hf-head em { font-style: normal; color: ${LAB.goldInk}; }
+.hf-lead {
+  margin: 0; text-align: center;
+  font-family: 'Space Grotesk', sans-serif; font-size: 12.5px; line-height: 1.5;
+  color: ${LAB.inkSoft};
+}
+/* Matej 31. 8.: *„Toto je alba daj boldom"* — tučná je PRVÁ polovica po dvojbodku,
+   teda predstavenie; druhá polovica je vysvetlenie a tučná byť nemá, inak veta
+   začne konkurovať nadpisu nad sebou.
+   ⚠️ 600, NIE 700: Space Grotesk je načítaný len vo váhach 300–600, sedmička by
+   bola fake bold (lock v CLAUDE.md). Inkoust ide o stupeň tmavšie, lebo samotná
+   váha na papyruse rozdiel neurobí. */
+.hf-lead strong { font-weight: 600; color: ${LAB.ink}; }
+
+/* ── TRI STĹPCE (Matej 31. 8., druhé kolo) ────────────────────────────────
+   *„skúsme urobiť namiesto 2 blokov 3 stlpce = pod nadpisom bude veta Toto je
+   alba: totožné meno celkom iné psy. 3 stlpce meno + hero a pod nimi text"*.
+
+   Zanikli tým dva orámované pásy (tri psy zvlášť, tri znaky zvlášť). Rozdiel
+   proti nim: pes a jeho znak stoja v JEDNOM stĺpci, takže dvojica sa neskladá
+   očami hore-dole — a meno medzi nimi je to, čo je na všetkých troch zhodné,
+   teda presne ten kontrast, o ktorom obe vety hovoria.
+   Rámy odišli s pásmi: bez nich stoja tri stĺpce priamo na doske a text nad
+   nimi aj pod nimi ich drží ako jednu myšlienku. */
+.hf-albs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
+.hf-alb { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+/* Matej 31. 8.: *„fotky by som dal o 15% menšie"*. Šírka stĺpca ostáva, ustupuje
+   len fotka — inak by sa zúžil aj heroglyf, ktorý je tu dôkazom.
+   ⚠️ 79 %, nie 85 %: tých 15 % je oproti tomu, čo Matej VIDEL, teda fotke v dvoch
+   pásoch (87 px na 390 px okna) ⇒ cieľ 74 px. Stĺpec je tu 94 px široký, takže
+   85 % by dalo 80 px a ubralo by len 8 %. Percento sa počíta z toho, čo sa mení,
+   nie z nového rodiča. */
+.hf-alb .pic {
+  width: 100%; aspect-ratio: 1; border-radius: 50%; object-fit: cover; display: block;
+  border: 2px solid ${LAB.goldSolid}; background: rgba(201,154,63,.14);
+}
+/* ── ČÍSLO NA FOTKE, MENO POD ŇOU ZANIKLO (Matej 31. 8.) ──────────────────
+   *„pod fotkami daj preč meno alba a chipy s # daj na foto ako som ti dal
+   v pôvodnom nákrese a ako je to aj v dog id alebo inde na webe"*.
+
+   🔑 Recept NIE JE nový — je to odliatok \`.dogblk-num\` z \`pages/PackDogs.tsx\`
+   (zlatá pilulka na spodnom oblúku kruhu, Cinzel 700, ink #3d1f00, papyrusový
+   lem). Tá istá pilulka nesie číslo aj na DOG ID, takže človek ju pozná skôr,
+   než sem príde. Zmenšené sú len rozmery: fotka je tu 66–132 px, nie 152.
+   ⚠️ Číslo si pýta \`position: relative\` na OBALE fotky, nie na stĺpci — inak
+   by pilulka sadla na spodok celého stĺpca, teda pod heroglyf. */
+.hf-alb .pw { position: relative; width: 79%; display: block; }
+.hf-alb .num {
+  position: absolute; bottom: -3px; left: 50%; transform: translateX(-50%);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 9.5px;
+  letter-spacing: .02em; line-height: 1; white-space: nowrap;
+  padding: 3px 7px; border-radius: 999px;
+  background: linear-gradient(180deg,#F5C73D,#E69E1A); color: #3d1f00;
+  border: 1px solid rgba(250,244,236,0.55);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.28);
+}
+/* Heroglyf potrebuje pod pilulkou vzduch, inak sa mu lepí na hornú hranu. */
+.hf-alb .glyf { width: 100%; display: block; margin-top: 3px; }
+/* Veta pod stĺpcami — uzatvára dôkaz, preto je bližšie k nemu než k tlačidlu. */
+.hf-albnote {
+  margin: 0; text-align: center;
+  font-family: 'Space Grotesk', sans-serif; font-size: 11.5px; line-height: 1.45;
+  color: ${LAB.inkSoft};
+}
 
 /* ── POLE NA PÍSANIE ──────────────────────────────────────────────────────
    Zaostrené a vyplnené berie LAPIS — ale ako TINT s plným rámom, nie plnú

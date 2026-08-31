@@ -377,7 +377,7 @@ const VISIBLE = 21; // random subset shown per page load (7 per column on deskto
 
 // i18n kľúč citátu zo slugu mena (POOL je module-level → preklad až pri renderi).
 // EN text v POOL = canonical verbatim; preklady v locale slovníkoch sú preklady citátu.
-const quoteSlug = (name: string) =>
+export const quoteSlug = (name: string) =>
   name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]+/g, '-');
 
 function shuffle<T>(arr: readonly T[]): T[] {
@@ -388,6 +388,22 @@ function shuffle<T>(arr: readonly T[]): T[] {
   }
   return a;
 }
+
+/**
+ * Náhodný výber citátov pre film na `/onepage` — obrazovka RECENZIE ich ukazuje
+ * tri po sebe, nie v páse.
+ *
+ * ⚠️ Je to funkcia TU a nie kópia troch citátov v OnePage: pod týmto súborom
+ * leží 44 zdrojovaných výrokov a tie sa nesmú rozdvojiť (to isté pravidlo, aké
+ * drží `variant` namiesto `*Lab` kópie — viď poznámka nižšie).
+ */
+export function pickCelebQuotes(count: number): CelebQuote[] {
+  return shuffle(POOL).slice(0, count);
+}
+
+/** Koľko ľudí v poli reálne je. Číslo v texte sa NEOPISUJE — po pridaní citátu
+ *  by veta klamala a nikto by si toho nevšimol. */
+export const CELEB_QUOTE_COUNT = POOL.length;
 
 /**
  * ⚠️ `variant` má východisko `dark` ⇒ ostrá `/about` sa nemení. Papyrus si pýta

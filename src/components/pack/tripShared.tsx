@@ -88,7 +88,11 @@ export const GOLD_ICON_FILTER =
 const WATER_TAGS = new Set(['lake', 'water']);
 export const isWaterTrail = (tr: { acts?: string[]; tags?: string[]; path?: unknown[] }): boolean => {
   if (tr.acts?.includes('journey')) return false;
-  if (tr.acts?.includes('paddleboard')) return true;
+  // ⚠️ 'paddle' JE NÁSTUPCA 'paddleboard' (2026-08-31). Nová sada chipov SPORTu nesie
+  // pádlovanie pod kľúčom `paddle`; bez tohto riadku by výlet zapísaný po 31. 8. stratil
+  // presne to správanie, kvôli ktorému tu výnimka stojí — a rozdiel by sa prejavil až
+  // na karte ako fabrikované km a náročnosť vodnej plochy.
+  if (tr.acts?.includes('paddleboard') || tr.acts?.includes('paddle')) return true;
   const hasRoute = (tr.path?.length ?? 0) > 1;
   return !hasRoute && !!tr.tags?.some((tag) => WATER_TAGS.has(tag.toLowerCase()));
 };
