@@ -222,5 +222,5 @@ export const MSG_SKIN_CSS = `
       nie siahnuť po lucide. Potom sa tu vymení ikonka podľa stavu. */
 .msg-skinbtn{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:var(--msg-btn);border:1px solid var(--msg-btn-edge);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,background .15s;}
 .msg-skinbtn:hover{border-color:${T.cardEdge};background:var(--msg-btn-hot);}
-.msg-skinbtn img{width:17px;height:17px;object-fit:contain;filter:var(--msg-glyph);}
+.msg-skinbtn img{width:17px;height:17px;object-fit:contain;filter:var(--msg-glyph) !important;}
 `;

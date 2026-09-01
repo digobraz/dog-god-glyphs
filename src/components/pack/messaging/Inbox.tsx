@@ -25,10 +25,6 @@
 import { useEffect, useState } from 'react';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { MSG_SKIN_CSS, useMsgSkin } from './msgTheme';
-// Heroglyfové značky FARBY SRSTI — v našom jazyku sú to znaky pre SVETLÉ a TMAVÉ.
-// Matej 1. 9. 2026: „veď máš toto bright button sign." Nový mesiac teda netreba.
-import colourBrightSvg from '@/assets/colour/COLOUR-BRIGHT.svg';
-import colourDarkSvg from '@/assets/colour/COLOUR-DARK.svg';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
@@ -133,13 +129,18 @@ function fmtTime(iso: string, locale: string): string {
 }
 
 /**
- * Prepínač šatu. Značka NIE JE nová ikonka — sú to heroglyfové znaky FARBY SRSTI
- * (`COLOUR-BRIGHT` / `COLOUR-DARK`), teda náš vlastný jazyk pre svetlé a tmavé
- * (Matej 1. 9. 2026: „veď máš toto bright button sign"). Slnko z kitu ustúpilo im
- * a mesiac sa dokresľovať nemusí.
+ * Prepínač šatu. Ikonka je BRIGHT BUTTON SIGN z hand-drawn kitu — Matej 1. 9. 2026:
+ * „myslel som toto z brandu." Zdroj `vstupy/vizualna-identita/Icons hand drawn/
+ * bright-hand-drawn-button-sign-svgrepo-com.svg`, skopírovaný do `public/icons/pack/bright.svg`
+ * verbatim (tak, ako sú tam ostatné).
  *
- * Tlačidlo ukazuje CIEĽ, nie stav: v svetlom šate tmavú značku („prepni do tmavej"),
- * v tmavom svetlú. Sú to čierne cesty, takže sa tónujú filtrom `--msg-glyph`.
+ * JEDNA ikonka pre oba stavy, nie dve. Je to znak JASU (kruh z polovice vyplnený, okolo
+ * lúče) — hovorí „tu sa prepína svetlo", nie „práve je deň". Stav nesie tlačidlo: v tmavom
+ * šate má značka zlatý odtieň, v svetlom inkoustový (`--msg-glyph`).
+ *
+ * ⚠️ Predtým tu stáli heroglyfové značky farby srsti (`COLOUR-DARK` = mesiac,
+ *    `COLOUR-BRIGHT` = slnko). Fungovali, ale sú to znaky PSA — farba jeho srsti, nie
+ *    ovládací prvok rozhrania. Matej ich preto vymenil za ikonku z kitu.
  */
 export function SkinToggle({ skin, onToggle }: { skin: 'light' | 'dark'; onToggle: () => void }) {
   // ⚠️ Popisok je zatiaľ natvrdo po anglicky. Nový i18n kľúč si žiada `en.ts` (SK je proti nemu
@@ -154,7 +155,7 @@ export function SkinToggle({ skin, onToggle }: { skin: 'light' | 'dark'; onToggl
       aria-label={label}
       title={label}
     >
-      <img src={skin === 'dark' ? colourBrightSvg : colourDarkSvg} alt="" aria-hidden="true" />
+      <BrandIcon name="bright" size={17} />
     </button>
   );
 }
