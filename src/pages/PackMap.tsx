@@ -1952,10 +1952,15 @@ ${TRAIL_LINE_CSS}
      zmysel (je to zoznamový povrch), v headeri mapy bol len ďalšia ikonka v rade. */
 
   /* full-page card list — replaces the map (not an overlay) when mobileView==='list'.
-     top padding sedí s výškou .trp-mheader (viď .trp-ctlstack vyššie). */
-  /* Horný padding počítal s .trp-mlist-head (triplist + 12 px pod ním), ktorý 28. 8. zanikol —
-     triplist je v hlavičke. Bez tých 12 px by prvá karta vyskočila o kúsok vyššie než predtým. */
-  .trp-mlist{position:absolute;inset:0;z-index:60;overflow-y:auto;background:#050505;padding:calc(env(safe-area-inset-top,0px) + 118px) 14px 150px;}
+     ⚠️ HORNÝ PADDING JE PREMENNÁ, NIE ČÍSLO (oprava 2026-09-01) — presne ako .trp-ctlstack.
+     Komentár tu roky tvrdil „top padding sedí s výškou .trp-mheader", ale sedel len náhodou:
+     bolo to natvrdo napísaných 118 px, čo je výška hlavičky pri DVOCH riadkoch. Keď hlavičke
+     pribudol tretí riadok (prepínač kategórií), narástla na 159 px a prvých 41 px zoznamu —
+     vrátane prepínača NADCHÁDZAJÚCE/ARCHÍV — zmizlo POD hlavičkou. Odmerané, nie odhadnuté.
+     --trp-mheader-h publikuje ResizeObserver v PackMap (~4180) a SKUTOČNÁ výška už v sebe
+     má env(safe-area-inset-top) z paddingu hlavičky ⇒ pripočítať ho ešte raz by ho zdvojil.
+     Fallback 159px = stav pri troch riadkoch (kým observer prvýkrát nezmeria). */
+  .trp-mlist{position:absolute;inset:0;z-index:60;overflow-y:auto;background:#050505;padding:var(--trp-mheader-h,159px) 14px 150px;}
   .trp-root.mlist-active .trp-mapregion{display:none;}
   .trp-root.mlist-active .trp-mlist{display:block;}
   /* BUG FIX 2026-08-03 (Matej: „pri otvorenom liste zmizne spodný NAV! skontroluj to"):
@@ -2384,6 +2389,21 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-mheader .trp-mapsearch img{filter:none;opacity:.75;}
   .trp-mheader .trp-mapsearch-x{color:${P_DIM};}
 
+  /* ── KATEGÓRIA: VÝLETY / PODUJATIA — TRETÍ RIADOK HLAVIČKY (2026-09-01) ────────────
+     Jediné dvere k podujatiam na telefóne — dôvod aj rozhodnutie sú pri JSX nižšie.
+     Tvar = MALÝ SEGMENT, predloha .pev-toggle v components/pack/events/EventsPanel.tsx
+     (ten istý recept: pilulkový obal, dve tlačidlá vnútri, aktívne cez pickTintCSS).
+     ⚠️ NIE plný lapis. Plnú farebnú plochu má na tejto obrazovke PRIDAŤ (.trp-mfab) —
+     dve plné plochy vedľa seba a ani jedna nevedie (lock 26. 8.: výber je priesvitný tint,
+     plná výplň je rezervovaná pre JEDINÉ hlavné CTA na obrazovke).
+     ⚠️ Riadok NEMÁ vlastné pozadie — dosku pod ním nesie hlavička (goldPlateCSS).
+     ⚠️ Žiadne nové natvrdo písané číslo výšky: hlavička publikuje svoju SKUTOČNÚ výšku
+     ako --trp-mheader-h (ResizeObserver, PackMap ~4180), takže ovládače mapy aj zoznam
+     pod ňou sa posunú samy. */
+  .trp-mheader-cats{display:inline-flex;align-self:flex-start;gap:2px;padding:3px;border-radius:999px;background:${P_SOFT};border:1px solid ${P_BORDER};}
+  .trp-mheader-cats button{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:999px;border:0;background:transparent;color:${P_DIM};cursor:pointer;transition:all .15s;}
+  .trp-mheader-cats button.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}font-weight:600;}
+
   /* ── DVE TLAČIDLÁ NAD SPODNÝM NAVOM ────────────────────────────────────────────────
      Matej: „zmeň farbu aj dolným tlačítkam - pridať lapis zoznam bude gold a oprav šírky
      tie dve tlačítka musia byť na šírku ako spodnýnav blok."
@@ -2424,9 +2444,11 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
      v dotyku s hornym headrom."
      ⚠️ Odsadenie je odvodené od SKUTOČNEJ výšky hlavičky (--trp-mheader-h, ResizeObserver
      v PackMap), nie z čísla. Natvrdo zapísaných 118 px bolo presne to, čo sa o hlavičku oprelo,
-     keď jej pribudol riadok. Fallback 124px = stav pri dvoch riadkoch.
+     keď jej pribudol riadok. Fallback 159px = stav pri TROCH riadkoch (2026-09-01, prepínač
+     kategórií); do vtedy tu stálo 124px = stav pri dvoch. Fallback zostarne pri každom
+     ďalšom riadku — meraná hodnota z premennej nie.
      ⚠️ Plná výplň, nie priesvitná — ovládače stoja nad mapou. */
-  .trp-ctlstack{top:calc(var(--trp-mheader-h,124px) + 14px);}
+  .trp-ctlstack{top:calc(var(--trp-mheader-h,159px) + 14px);}
   .trp-zoomgroup,.trp-locatebtn,.trp-layersdd-panel{background:${NAV_GOLD.surface};backdrop-filter:none;-webkit-backdrop-filter:none;border:1px solid ${P_BORDER};box-shadow:0 4px 12px -3px rgba(20,14,4,0.5);}
   .trp-zoomgroup button{color:${P_INK};}
   .trp-zoomgroup button:first-child{border-bottom:1px solid ${P_HAIR};}
@@ -5936,6 +5958,25 @@ export default function PackMap() {
               <span>{activeFilterCount > 0 ? t('pack.map.filtersCount', { n: activeFilterCount }) : t('pack.map.filters')}</span>
             </button>
           </div>
+        </div>
+        {/* ── KATEGÓRIA: VÝLETY / PODUJATIA (2026-09-01) ──────────────────────────────
+            `setActiveCat('events')` malo do dnes JEDINÉ volanie — pilulku `.trp-catpill`
+            v `.trp-sidebar`, a ten je pod PALE_PC_MIN `display:none`. Na telefóne sa teda
+            ku kategórii PODUJATIA nedalo dostať vôbec: ani k zoznamu (EventsPanel
+            + EventsView v `.trp-mlist`), ani k PINOM NA MAPE (kreslia sa len pri
+            `activeCat === 'events'`). Nebola to regresia — bolo to tak, odkedy mobilná
+            vetva vznikla; bledý šat to len zviditeľnil.
+            PREČO POD HLAVIČKOU a nie v zozname: kategória neprepína len zoznam, prepína aj
+            MAPU, takže v MAPOVOM pohľade by sa k podujatiam nedalo dostať nikdy — tá istá
+            diera, len menšia. Hlavička je jediné miesto viditeľné v OBOCH pohľadoch a je to
+            tá istá poloha ako na PC, kde pilulky stoja hore v paneli. Jeden model, dva tvary.
+            PREČO NIE vedľa LIST/MAP: tá dvojica hovorí *ako sa pozerám*, nie *na čo sa
+            pozerám*, a je centrovaná ako celok — tretí prvok jej rozbije os.
+            SERVICES tu zámerne NIE JE: na PC je to vypnutá pilulka `soon`, na 390 px by
+            zabrala tretinu šírky a nerobí nič. */}
+        <div className="trp-mheader-cats" role="tablist">
+          <button type="button" role="tab" aria-selected={activeCat === 'trips'} className={activeCat === 'trips' ? 'on' : ''} onClick={() => setActiveCat('trips')}>{t('pack.map.catTrips')}</button>
+          <button type="button" role="tab" aria-selected={activeCat === 'events'} className={activeCat === 'events' ? 'on' : ''} onClick={() => setActiveCat('events')}>{t('pack.map.catEvents')}</button>
         </div>
       </div>
 
