@@ -57,9 +57,19 @@ export const THREAD_CSS = `
 .msg-tagchip--click{cursor:pointer;}
 .msg-tagchip--click:hover{background:rgba(201,154,63,0.32);border-color:${T.cardEdge};}
 .msg-thread-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:18px 16px;max-width:640px;width:100%;margin:0 auto;display:flex;flex-direction:column;position:relative;z-index:2;}
-.msg-bubblewrap{display:flex;flex-direction:column;align-items:flex-start;margin-bottom:11px;max-width:78%;}
+.msg-bubblewrap{display:flex;flex-direction:column;align-items:flex-start;margin-bottom:11px;max-width:82%;}
 .msg-bubblewrap.me{align-items:flex-end;align-self:flex-end;}
-.msg-bubble-sender{font-family:${FONT_TITLE};font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:${P.dim};margin-bottom:3px;padding:0 3px;}
+/* FOTKA TOHO, KTO PÍŠE, VEDĽA BUBLINY (Matej 1. 9. 2026: „vedľa bublinky by mala byť
+   ikonka fotka"). Cudzia správa má fotku vľavo, moja vpravo — teda na tej strane, kde
+   bublina aj stojí; zrkadlí to row-reverse, nie druhá sada pravidiel. */
+.msg-bubblerow{display:flex;align-items:flex-end;gap:8px;min-width:0;}
+.msg-bubblewrap.me .msg-bubblerow{flex-direction:row-reverse;}
+/* Kruh je menší než v inboxe (28 vs 42) — tam je fotka predmetom riadku, tu sprevádza text.
+   Zlatá PLOCHA berie brandovú rampu okolo #C99A3F, nie gradient .btn-gold (ten je locknutý
+   pre tlačidlo a na ploche sa číta ako ainubisovská žltá). */
+.msg-bubbleav{flex:0 0 auto;width:28px;height:28px;border-radius:50%;background:linear-gradient(140deg,#C99A3F,#A3782B);background-size:cover;background-position:center;border:1px solid ${P.border};box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:11px;color:#FBF5E6;}
+/* Meno odosielateľa sedí nad BUBLINOU, nie nad fotkou — odsadenie = šírka kruhu + medzera. */
+.msg-bubble-sender{font-family:${FONT_TITLE};font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:${P.dim};margin-bottom:3px;padding:0 3px 0 39px;}
 /* BUBLINY — Matej 1. 9. 2026: „musia byť výraznejšie tie čo prídu od človeka aj odomňa,
    jedna z nich by mohla byť lapis."
    CUDZIA = svetlý papyrusový blok s PLNÝM zlatým rámom a nadvihnutím (rovnaká odpoveď ako
@@ -83,7 +93,11 @@ export const THREAD_CSS = `
 .msg-thread-input::placeholder{color:${P.faint};}
 .msg-thread-input:focus{border-color:${LAPIS.edge};box-shadow:0 0 0 3px ${LAPIS.halo};}
 /* Jediné hlavné CTA v send boxe -> plný lapis. Ikonka je 'white', nie 'gold': brandová
-   #C99A3F má na #16307A kontrast pod 3:1 a 16px kresba by sa v nej stratila. */
+   #C99A3F má na #16307A kontrast pod 3:1 a 16px kresba by sa v nej stratila.
+   ⚠️ IKONKA JE DOČASNE 'feather' (Matej 1. 9. 2026). Do vtedy tu stálo 'chat' — dve bubliny
+   konverzácie, čo je NÁZOV povrchu, nie akcia odoslania. Hand-drawn kit plachtičku ani šípku
+   nemá; brko je z neho jediné, čo o poslaní odkazu hovorí a nehovorí pritom nič iné
+   (link = odkaz, walk = výlet). Matej dokreslí vlastnú — potom sa vymení TU. */
 .msg-sendbtn{flex-shrink:0;width:42px;height:42px;border-radius:50%;background:${LAPIS.grad};border:1px solid ${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .msg-sendbtn:hover:not(:disabled){background:${LAPIS.gradHover};}
 /* ⚠️ Zoslabenie krytím na svetlom povrchu takmer nevidno (blednutie do skoro bielej).
@@ -326,6 +340,11 @@ export function Thread({ convId, onClose, onOpenTrip }: {
         {conv.messages.map((m) => {
           const mine = m.senderId === me.id;
           const sender = conv.members.find((p) => p.id === m.senderId);
+          // Fotku nesie iba druhá strana (`other_photo` z DB); `getMe()` ju zatiaľ nemá,
+          // takže moja bublina ukazuje iniciálu — nie je to chyba, len nedoplnený údaj.
+          const who = mine ? (sender ?? me) : sender;
+          const avatar = who?.avatarUrl;
+          const initial = (who?.name ?? '?').charAt(0).toUpperCase();
           return (
             <div key={m.id} className={`msg-bubblewrap${mine ? ' me' : ''}`}>
               {isGroup && !mine && (
@@ -337,7 +356,16 @@ export function Thread({ convId, onClose, onOpenTrip }: {
                   {sender?.packNumber ? ` ${t('pack.msg.senderPackNumberSuffix', { n: sender.packNumber })}` : ''}
                 </div>
               )}
-              <div className={`msg-bubble${mine ? ' me' : ''}`}>{m.text}</div>
+              <div className="msg-bubblerow">
+                <span
+                  className="msg-bubbleav"
+                  aria-hidden="true"
+                  style={avatar ? { backgroundImage: `url('${avatar}')` } : undefined}
+                >
+                  {!avatar && initial}
+                </span>
+                <div className={`msg-bubble${mine ? ' me' : ''}`}>{m.text}</div>
+              </div>
             </div>
           );
         })}
@@ -366,7 +394,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
             placeholder={t('pack.msg.messageInputPlaceholder')}
           />
           <button type="button" className="msg-sendbtn" onClick={() => void send()} disabled={!text.trim()} aria-label={t('pack.msg.sendMessageAriaLabel')}>
-            <BrandIcon name="chat" size={16} tint="white" />
+            <BrandIcon name="feather" size={17} tint="white" />
           </button>
         </div>
       ) : (
