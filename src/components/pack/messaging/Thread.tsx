@@ -6,8 +6,10 @@
 // Do 1. 9. 2026 tmavá plocha (`T.pageBg` + `onDark*` inkoust). Prezlečené do papyrusu podľa
 // `plany/zadanie-drak-bright-pokracovanie-FRESH-SESSION.md`; predloha = `PackTriplist.tsx`.
 //
-// ⚠️ PODKLAD SA TU NEPÍŠE — nesie ho `.pk-paper` z `packTheme.ts`. `<HieroglyphBg />` sa
-//    k nemu NEVOLÁ (je tmavá, boli by dve tapety cez seba).
+// ⚠️ DVA ŠATY, JEDNA SADA PRAVIDIEL (2026-09-01). Matej: „správy daj možnosť aj prepnúť
+//    do tmavej = to isté ale v čiernej s oranžovozlatou a bledou farbou bubliniek."
+//    Farby sú CSS premenné z `msgTheme.ts`; tento súbor nevie, ktorý šat beží.
+//    Podklad nesie trieda `.msg-skin`, nie tento súbor.
 //
 // ⚠️ MOJA BUBLINA JE PLNÝ LAPIS (Matej 1. 9. 2026). Prvé kolo tu malo tint pri 14 % podľa
 //    pravidla „plná farebná plocha len pre hlavné CTA"; on ho pre bubliny zrušil: bublina
@@ -19,8 +21,9 @@
 //    CTA). Bezpečnosť má na starosti on, nie appka. Tokeny v `ainubisSkin.ts`.
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
-import { PALE, LAPIS, LAPIS_BTN_SHADOW, PICK_INK } from '@/components/pack/navGoldSkin';
+import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { MSG_SKIN_CSS, useMsgSkin } from './msgTheme';
+import { SkinToggle } from './Inbox';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import ainubisFace from '@/assets/ainubis-head.png';
 import { BrandIcon } from '@/components/pack/BrandIcon';
@@ -32,7 +35,6 @@ import {
 } from './packMessaging';
 
 const T = PACK_THEME;
-const P = PALE;
 const A = AINUBIS;
 
 // Brand lock: meno psa je VŽDY Cinzel Decorative, na každom povrchu.
@@ -41,21 +43,21 @@ const DOG_NAME_FONT = "'Cinzel Decorative', 'Cinzel', serif";
 const HUMAN_NAME_FONT = "'Cinzel', serif";
 
 export const THREAD_CSS = `
-/* ⚠️ Dvojtriedny selektor (0,2,0) prebije position:relative z .pk-paper bez ohľadu na poradie
-   <style> blokov — to isté ako v Inbox.tsx. Pozadie ani min-height tu NIE SÚ, nesie ich .pk-paper. */
-.msg-thread.pk-paper{position:fixed;inset:0;z-index:1300;display:flex;flex-direction:column;}
-/* Lepiaca hlavička je LIŠTA (panelový gradient + zlatá spodná hrana), nie holá stránka —
-   musí byť nepriehľadná, lebo pod ňou podchádzajú bubliny. */
-.msg-thread-head{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 22px) 20px 16px;background:${T.panelGrad};border-bottom:1px solid ${P.border};box-shadow:0 2px 10px rgba(122,90,42,0.10);flex-shrink:0;}
-.msg-back{flex-shrink:0;width:34px;height:34px;border-radius:50%;background:${P.soft};border:1px solid ${P.border};color:${P.ink};font-size:17px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s,background .15s;}
-.msg-back:hover{border-color:${T.cardEdge};color:${P.deep};background:#FFFDF6;}
+/* ⚠️ FARBY SÚ PREMENNÉ z msgTheme.ts (.msg-skin / .msg-skin--dark). Konkrétna farba napísaná
+   sem platí len pre jeden šat a v druhom z nej bude nečitateľné miesto.
+   Dvojtriedny selektor (0,2,0) prebije position:relative z .msg-skin bez ohľadu na poradie
+   <style> blokov. Pozadie ani tapetu tu nehľadaj — nesie ich .msg-skin. */
+.msg-thread.msg-skin{position:fixed;inset:0;z-index:1300;display:flex;flex-direction:column;}
+.msg-thread-head{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 22px) 20px 16px;background:var(--msg-bar);border-bottom:1px solid var(--msg-bar-edge);box-shadow:var(--msg-bar-shadow);flex-shrink:0;}
+.msg-back{flex-shrink:0;width:34px;height:34px;border-radius:50%;background:var(--msg-btn);border:1px solid var(--msg-btn-edge);color:var(--msg-btn-ink);font-size:17px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s,background .15s;}
+.msg-back:hover{border-color:${T.cardEdge};color:var(--msg-title);background:var(--msg-btn-hot);}
 .msg-thread-headtxt{min-width:0;}
 /* Meno v hlavičke je IDENTITA -> FONT_TITLE (pri psovi Decorative, to rieši inline štýl). */
-.msg-thread-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${P.ink};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.msg-thread-sub{font-family:${FONT_UI};font-size:11px;color:${P.dim};margin-top:2px;}
-.msg-tagchip{display:inline-flex;align-items:center;gap:4px;margin-top:5px;font-family:${FONT_TITLE};font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:${P.hot};border:1px solid ${P.border};color:${P.deep};white-space:nowrap;}
+.msg-thread-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:var(--msg-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.msg-thread-sub{font-family:${FONT_UI};font-size:11px;color:var(--msg-dim);margin-top:2px;}
+.msg-tagchip{display:inline-flex;align-items:center;gap:4px;margin-top:5px;font-family:${FONT_TITLE};font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:var(--msg-chip);border:1px solid var(--msg-btn-edge);color:var(--msg-chip-ink);white-space:nowrap;}
 .msg-tagchip--click{cursor:pointer;}
-.msg-tagchip--click:hover{background:rgba(201,154,63,0.32);border-color:${T.cardEdge};}
+.msg-tagchip--click:hover{background:var(--msg-chip-hot);border-color:${T.cardEdge};}
 .msg-thread-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:18px 16px;max-width:640px;width:100%;margin:0 auto;display:flex;flex-direction:column;position:relative;z-index:2;}
 .msg-bubblewrap{display:flex;flex-direction:column;align-items:flex-start;margin-bottom:11px;max-width:82%;}
 .msg-bubblewrap.me{align-items:flex-end;align-self:flex-end;}
@@ -64,64 +66,59 @@ export const THREAD_CSS = `
    bublina aj stojí; zrkadlí to row-reverse, nie druhá sada pravidiel. */
 .msg-bubblerow{display:flex;align-items:flex-end;gap:8px;min-width:0;}
 .msg-bubblewrap.me .msg-bubblerow{flex-direction:row-reverse;}
-/* Kruh je menší než v inboxe (28 vs 42) — tam je fotka predmetom riadku, tu sprevádza text.
-   Zlatá PLOCHA berie brandovú rampu okolo #C99A3F, nie gradient .btn-gold (ten je locknutý
-   pre tlačidlo a na ploche sa číta ako ainubisovská žltá). */
-.msg-bubbleav{flex:0 0 auto;width:28px;height:28px;border-radius:50%;background:linear-gradient(140deg,#C99A3F,#A3782B);background-size:cover;background-position:center;border:1px solid ${P.border};box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:11px;color:#FBF5E6;}
+/* Kruh je menší než v inboxe (28 vs 42) — tam je fotka predmetom riadku, tu sprevádza text. */
+.msg-bubbleav{flex:0 0 auto;width:28px;height:28px;border-radius:50%;background:linear-gradient(140deg,#C99A3F,#A3782B);background-size:cover;background-position:center;border:1px solid rgba(179,130,45,0.55);box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:11px;color:#FBF5E6;}
 /* Meno odosielateľa sedí nad BUBLINOU, nie nad fotkou — odsadenie = šírka kruhu + medzera. */
-.msg-bubble-sender{font-family:${FONT_TITLE};font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:${P.dim};margin-bottom:3px;padding:0 3px 0 39px;}
+.msg-bubble-sender{font-family:${FONT_TITLE};font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--msg-dim);margin-bottom:3px;padding:0 3px 0 39px;}
 /* BUBLINY — Matej 1. 9. 2026: „musia byť výraznejšie tie čo prídu od človeka aj odomňa,
    jedna z nich by mohla byť lapis."
-   CUDZIA = svetlý papyrusový blok s PLNÝM zlatým rámom a nadvihnutím (rovnaká odpoveď ako
-   pri riadkoch inboxu — plochá výplň so slabým vlasom je na tapete takmer neviditeľná).
-   MOJA = PLNÝ LAPIS so zlatým písmom. Prvé kolo tu malo tint pri 14 % podľa pravidla
-   „plná farebná plocha len pre hlavné CTA"; Matej ho pre bubliny zrušil a má na to dôvod:
-   bublina nie je tlačidlo ani výber, je to OBSAH, a v rozhovore musí byť na prvý pohľad
-   vidno, kto hovorí. Tint to nedokázal.
-   ⚠️ Lapis tu preto NEZNAMENÁ „moja akcia" ale „môj hlas" — a keďže odosielacie tlačidlo je
-   tiež lapisové, čítajú sa ako jedna rodina („ja"), nie ako dve súperiace hlavné veci. */
-.msg-bubble{font-family:${FONT_UI};font-size:13px;line-height:1.5;padding:11px 15px;border-radius:16px;background:${T.panelGrad};color:${P.ink};border:1px solid ${T.cardEdge};box-shadow:0 2px 7px rgba(122,90,42,0.18),inset 0 1px 0 rgba(255,255,255,0.45);}
-.msg-bubble.me{background:${LAPIS.grad};color:${LAPIS.ink};border-color:${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};}
-.msg-empty{text-align:center;padding:40px 16px;color:${P.dim};font-size:12.5px;font-style:italic;}
-/* Chyby na papyruse idú do TMAVEJ červenej (PICK_INK.red). Svetlé #E0A0A0 z tmavého šatu
-   by na piesku zmizlo — svetlý inkoust na svetlom je presne ten pád z 26. 8. */
-.msg-senderr{flex-shrink:0;max-width:640px;width:100%;margin:0 auto;padding:0 16px 8px;box-sizing:border-box;font-family:${FONT_UI};font-size:11.5px;color:${PICK_INK.red};}
-.msg-thread-send{flex-shrink:0;display:flex;gap:10px;padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 14px);border-top:1px solid ${P.border};background:${T.panelGrad};max-width:640px;width:100%;margin:0 auto;box-sizing:border-box;position:relative;z-index:2;}
-/* Písacie pole ostáva PAPYRUSOVÉ (.pf-field--flat) — čierna je na čítanie, nie na vypĺňanie.
-   Zaostrenie je lapisové: „čo práve robím" je moja akcia, nie konštrukcia. */
-.msg-thread-input{flex:1;background:${P.field};border:1px solid ${P.border};border-radius:999px;padding:11px 16px;color:${P.ink};font-family:${FONT_UI};font-size:13px;outline:0;}
-.msg-thread-input::placeholder{color:${P.faint};}
-.msg-thread-input:focus{border-color:${LAPIS.edge};box-shadow:0 0 0 3px ${LAPIS.halo};}
-/* Jediné hlavné CTA v send boxe -> plný lapis. Ikonka je 'white', nie 'gold': brandová
-   #C99A3F má na #16307A kontrast pod 3:1 a 16px kresba by sa v nej stratila.
-   ⚠️ IKONKA JE DOČASNE 'feather' (Matej 1. 9. 2026). Do vtedy tu stálo 'chat' — dve bubliny
+   CUDZIA = svetlý blok s plným zlatým rámom a nadvihnutím (v tmavom šate BLEDÁ plôška
+   na čiernom — v oboch prípadoch svetlá, len na inom podklade).
+   MOJA = plná farba: v svetlom šate LAPIS so zlatým písmom, v tmavom ORANŽOVOZLATÁ
+   s tmavým. Prvé kolo tu malo tint pri 14 %; Matej ho zrušil a má na to dôvod: bublina nie
+   je tlačidlo ani výber, je to OBSAH, a v rozhovore musí byť na prvý pohľad vidno, kto hovorí.
+   ⚠️ Plná farba tu preto NEZNAMENÁ „moja akcia" ale „môj hlas" — a keďže odosielacie tlačidlo
+      má tú istú farbu, čítajú sa ako jedna rodina („ja"), nie ako dve súperiace hlavné veci. */
+.msg-bubble{font-family:${FONT_UI};font-size:13px;line-height:1.5;padding:11px 15px;border-radius:16px;background:var(--msg-block);color:var(--msg-block-ink);border:1px solid var(--msg-block-edge);box-shadow:var(--msg-block-shadow);}
+.msg-bubble.me{background:var(--msg-mine);color:var(--msg-mine-ink);border-color:var(--msg-mine-edge);box-shadow:var(--msg-mine-shadow);}
+.msg-empty{text-align:center;padding:40px 16px;color:var(--msg-dim);font-size:12.5px;font-style:italic;}
+.msg-senderr{flex-shrink:0;max-width:640px;width:100%;margin:0 auto;padding:0 16px 8px;box-sizing:border-box;font-family:${FONT_UI};font-size:11.5px;color:var(--msg-err);}
+.msg-thread-send{flex-shrink:0;display:flex;gap:10px;padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 14px);border-top:1px solid var(--msg-bar-edge);background:var(--msg-bar);max-width:640px;width:100%;margin:0 auto;box-sizing:border-box;position:relative;z-index:2;}
+/* Písacie pole je v OBOCH šatoch plochá výplň bez gradientu; zaostrenie nesie farbu „mojej"
+   strany, teda to isté, čo bublina a tlačidlo. */
+.msg-thread-input{flex:1;background:var(--msg-field);border:1px solid var(--msg-btn-edge);border-radius:999px;padding:11px 16px;color:var(--msg-field-ink);font-family:${FONT_UI};font-size:13px;outline:0;}
+.msg-thread-input::placeholder{color:var(--msg-faint);}
+.msg-thread-input:focus{border-color:var(--msg-focus);box-shadow:0 0 0 3px var(--msg-focus-halo);}
+/* ⚠️ IKONKA JE DOČASNE 'feather' (Matej 1. 9. 2026). Do vtedy tu stálo 'chat' — dve bubliny
    konverzácie, čo je NÁZOV povrchu, nie akcia odoslania. Hand-drawn kit plachtičku ani šípku
    nemá; brko je z neho jediné, čo o poslaní odkazu hovorí a nehovorí pritom nič iné
-   (link = odkaz, walk = výlet). Matej dokreslí vlastnú — potom sa vymení TU. */
-.msg-sendbtn{flex-shrink:0;width:42px;height:42px;border-radius:50%;background:${LAPIS.grad};border:1px solid ${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.msg-sendbtn:hover:not(:disabled){background:${LAPIS.gradHover};}
-/* ⚠️ Zoslabenie krytím na svetlom povrchu takmer nevidno (blednutie do skoro bielej).
-   Vypnuté tlačidlo preto stráca FARBU, nie priehľadnosť. */
-.msg-sendbtn:disabled{background:${P.hot};border-color:${P.border};box-shadow:none;cursor:default;}
+   (link = odkaz, walk = výlet). Matej dokreslí vlastnú — potom sa vymení TU.
+   ⚠️ Filter ikonky sa mení so šatom: na lapise musí byť biela, na oranžovozlatej tmavá.
+      Nesie to premenná --msg-icon, nie prop komponentu — inak by sa to muselo riešiť
+      v JSX na dvoch miestach a rozišlo by sa. */
+.msg-sendbtn{flex-shrink:0;width:42px;height:42px;border-radius:50%;background:var(--msg-mine);border:1px solid var(--msg-mine-edge);box-shadow:var(--msg-mine-shadow);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.msg-sendbtn img{filter:var(--msg-icon) !important;}
+.msg-sendbtn:hover:not(:disabled){background:var(--msg-mine-hover);}
+/* ⚠️ Zoslabenie krytím na svetlom povrchu takmer nevidno. Vypnuté tlačidlo preto stráca
+   FARBU, nie priehľadnosť — a v tmavom šate platí to isté opačne. */
+.msg-sendbtn:disabled{background:var(--msg-off);border-color:var(--msg-btn-edge);box-shadow:none;cursor:default;}
 .msg-sendbtn:disabled img{opacity:.55;}
-.msg-thread-join{flex-shrink:0;padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 16px);border-top:1px solid ${P.border};background:${T.panelGrad};max-width:640px;width:100%;margin:0 auto;box-sizing:border-box;position:relative;z-index:2;}
-/* Geometria z .btn-gold (radius 8, NIE pilulka), výplň lapis — zmena farby nie je
-   povolenie na iný tvar. */
-.msg-joinbtn{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:14px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
-.msg-joinbtn:hover{background:${LAPIS.gradHover};}
+.msg-thread-join{flex-shrink:0;padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 16px);border-top:1px solid var(--msg-bar-edge);background:var(--msg-bar);max-width:640px;width:100%;margin:0 auto;box-sizing:border-box;position:relative;z-index:2;}
+/* Geometria z .btn-gold (radius 8, NIE pilulka) — zmena farby nie je povolenie na iný tvar. */
+.msg-joinbtn{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:14px;border-radius:8px;background:var(--msg-mine);color:var(--msg-mine-ink);border:1px solid var(--msg-mine-edge);box-shadow:var(--msg-mine-shadow);cursor:pointer;}
+.msg-joinbtn:hover{background:var(--msg-mine-hover);}
 
 /* ══ MODERÁCIA (#54) — TENTO PANEL JE AINUBISOV, NIE PAPYRUSOVÝ ══════════════
-   Matej 1. 9. 2026: „Report ako aj iné nahlásenia či otázky o bezpečnosti má na starosti
+   Matej 1. 9. 2026: „Report ako aj ine nahlasenia či otazky o bezpečnosti ma na starosti
    AINUBIS = tento panel bude ainubis brand."
-   Nie je to odchýlka od bledého šatu, je to priradenie vlastníka: papyrus a lapis sú hlas
-   DOGYPTU, toto je hlas stroja, ktorý bezpečnosť rieši. Tokeny z ainubisSkin.ts (jeden
-   zdroj), predloha .mcoach-bubble v MapCoach.tsx — tú Matej výslovne pochválil.
-   ⚠️ CTA je jeho ZLATO-ORANŽOVÉ, nie lapis. Priznaná výnimka z kánonu (28. 8.:
-      „AINUBIS je výnimka! Je to jeho brand"). Kto to sem vráti na lapis, prepíše ho na appku. */
-.msg-mod{margin-left:auto;flex-shrink:0;width:34px;height:34px;border-radius:50%;background:${P.soft};border:1px solid ${P.border};color:${P.dim};font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s,background .15s;}
-.msg-mod:hover{border-color:${T.cardEdge};color:${P.deep};background:#FFFDF6;}
-/* Závoj je tmavší než pri papyrusovom paneli — pod svietiacim displejom musí byť noc,
-   inak sa jeho dosvit nemá o čo oprieť. Odchod klikom mimo; krížik tu nie je (lock 28. 8.). */
+   Nie je to odchýlka od šatu, je to priradenie vlastníka: papyrus a lapis sú hlas DOGYPTU,
+   toto je hlas stroja, ktorý bezpečnosť rieši. Tokeny z ainubisSkin.ts (jeden zdroj),
+   predloha .mcoach-bubble v MapCoach.tsx — tú Matej výslovne pochválil.
+   🔑 PRETO SA NEPREPÍNA SO ŠATOM. Je tmavý vždy, aj keď správy svietia nabielo — Ainubis
+      má jednu podobu a prepínanie by z nej spravilo motív appky.
+   ⚠️ CTA je jeho ZLATO-ORANŽOVÉ, nie lapis (28. 8.: „AINUBIS je výnimka! Je to jeho brand"). */
+.msg-mod{margin-left:auto;flex-shrink:0;width:34px;height:34px;border-radius:50%;background:var(--msg-btn);border:1px solid var(--msg-btn-edge);color:var(--msg-dim);font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s,background .15s;}
+.msg-mod:hover{border-color:${T.cardEdge};color:var(--msg-title);background:var(--msg-btn-hot);}
 .msg-modsheet{position:fixed;inset:0;z-index:1400;background:rgba(2,6,11,0.74);display:flex;align-items:flex-end;justify-content:center;}
 .msg-modpanel{width:100%;max-width:460px;background:${A.surface};border:1px solid ${A.edgeStrong};border-bottom:0;border-radius:16px 16px 0 0;box-shadow:${A.panelShadow};padding:18px 20px calc(env(safe-area-inset-bottom,0px) + 20px);box-sizing:border-box;}
 /* Hlava a meno hovoria, KTO to rieši — bez nich je to len tmavý panel bez majiteľa. */
@@ -143,15 +140,14 @@ export const THREAD_CSS = `
 .msg-modnote:focus{border-color:${A.cyan};box-shadow:0 0 0 3px rgba(91,224,240,0.20);}
 .msg-modsend{width:100%;margin-top:12px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:8px;background:${A.ctaGrad};color:${A.ctaInk};border:1px solid rgba(250,244,236,0.30);box-shadow:${A.ctaShadow};cursor:pointer;}
 .msg-modsend:hover:not(:disabled){background:${A.ctaGradHover};}
-/* Vypnuté stráca FARBU, nie priehľadnosť — to isté pravidlo ako na papyruse, len naopak:
-   krytím by na tmavom povrchu splynulo s pozadím. */
 .msg-modsend:disabled{background:rgba(91,224,240,0.10);color:${A.inkFaint};border-color:${A.edge};box-shadow:none;cursor:default;}
 .msg-modcancel{width:100%;margin-top:8px;background:none;border:0;color:${A.inkFaint};font-family:${FONT_UI};font-size:12.5px;padding:9px;cursor:pointer;}
 .msg-modcancel:hover{color:${A.ink};}
-.msg-blocked{flex-shrink:0;max-width:640px;width:100%;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 16px);border-top:1px solid ${P.border};background:${T.panelGrad};box-sizing:border-box;text-align:center;position:relative;z-index:2;}
-.msg-blockedtxt{font-family:${FONT_UI};font-size:12.5px;line-height:1.6;color:${P.dim};}
-.msg-unblock{margin-top:10px;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:10px 20px;border-radius:8px;background:${P.soft};border:1px solid ${P.border};color:${P.ink};cursor:pointer;transition:border-color .15s,color .15s,background .15s;}
-.msg-unblock:hover{border-color:${T.cardEdge};color:${P.deep};background:#FFFDF6;}
+.msg-blocked{flex-shrink:0;max-width:640px;width:100%;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 16px);border-top:1px solid var(--msg-bar-edge);background:var(--msg-bar);box-sizing:border-box;text-align:center;position:relative;z-index:2;}
+.msg-blockedtxt{font-family:${FONT_UI};font-size:12.5px;line-height:1.6;color:var(--msg-dim);}
+.msg-unblock{margin-top:10px;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:10px 20px;border-radius:8px;background:var(--msg-btn);border:1px solid var(--msg-btn-edge);color:var(--msg-btn-ink);cursor:pointer;transition:border-color .15s,color .15s,background .15s;}
+.msg-unblock:hover{border-color:${T.cardEdge};color:var(--msg-title);background:var(--msg-btn-hot);}
+
 `;
 
 // Dôvody nahlásenia — label sa berie cez t() v komponente, mapa drží len kľúč (i18n fáza A).
@@ -179,6 +175,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
   const [modErr, setModErr] = useState<string | null>(null);
   const me = getMe();
   const t = useT();
+  const [skin, toggleSkin] = useMsgSkin();
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -220,8 +217,8 @@ export function Thread({ convId, onClose, onOpenTrip }: {
 
   if (!conv) {
     return (
-      <div className="msg-thread pk-paper">
-        <style>{PAPER_PAGE_CSS}</style>
+      <div className={`msg-thread msg-skin${skin === 'dark' ? ' msg-skin--dark' : ''}`}>
+        <style>{MSG_SKIN_CSS}</style>
         <style>{THREAD_CSS}</style>
         <div className="msg-thread-head">
           <BackButton tone="dark" onClick={onClose} label={t('pack.msg.backAriaLabel')} />
@@ -305,9 +302,9 @@ export function Thread({ convId, onClose, onOpenTrip }: {
   };
 
   return (
-    <div className="msg-thread pk-paper">
-      {/* Tapeta je súčasť .pk-paper — <HieroglyphBg /> sa sem NEPRIDÁVA (je tmavá). */}
-      <style>{PAPER_PAGE_CSS}</style>
+    <div className={`msg-thread msg-skin${skin === 'dark' ? ' msg-skin--dark' : ''}`}>
+      {/* Tapetu nesie .msg-skin — <HieroglyphBg /> sa sem NEPRIDÁVA (bola by druhá vrstva). */}
+      <style>{MSG_SKIN_CSS}</style>
       <style>{THREAD_CSS}</style>
       <div className="msg-thread-head">
         <BackButton tone="dark" onClick={onClose} label={t('pack.msg.backToInboxAriaLabel')} />
@@ -323,6 +320,9 @@ export function Thread({ convId, onClose, onOpenTrip }: {
               <BrandIcon name="walk" size={10} tint="gold" /> {tripNameSync(conv.tag.id, conv.tag.label)}
             </button>
           )}
+        </div>
+        <div className="msg-inbox-acts" style={{ marginLeft: 'auto' }}>
+          <SkinToggle skin={skin} onToggle={toggleSkin} />
         </div>
         {!isGroup && (
           <button
@@ -382,7 +382,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
           <button type="button" className="msg-unblock" disabled={modBusy} onClick={() => void handleBlock(false)}>
             {modBusy ? t('pack.msg.working') : t('pack.msg.unblock')}
           </button>
-          {modErr && <div className="msg-blockedtxt" role="alert" style={{ marginTop: 10, color: PICK_INK.red }}>{modErr}</div>}
+          {modErr && <div className="msg-blockedtxt" role="alert" style={{ marginTop: 10, color: 'var(--msg-err)' }}>{modErr}</div>}
         </div>
       ) : iAmMember ? (
         <div className="msg-thread-send">
