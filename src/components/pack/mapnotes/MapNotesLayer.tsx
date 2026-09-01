@@ -25,8 +25,11 @@ import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI } from '@/components/pac
 import { useT } from '@/i18n/LanguageContext';
 import { groupOf, type MapNote, type NoteKind, type TickDisease } from './mapNotesData';
 import { isDatasetNote } from './mapNotesGeo';
-import { clusterByPixels, clusterPx } from './clusterPoints';
+import { clusterByPixels, clusterPx, clusterRadiusForZoom } from './clusterPoints';
 import { GROUP_TINT, HAZARD_RED, noteTint } from './NotePalette';
+// Kruh (rozmery + staviteľ + CSS) je od 22. 8. spoločný s udalosťami v PackMap.tsx —
+// dôvod, prečo sa vysťahoval z tohto súboru, je v hlavičke `circleMark.ts`.
+import { circleMarkHtml, CIRCLE_MARK_CSS } from './circleMark';
 import { FONT_EMOJI, MARK_EMOJI, threatEmoji } from './markEmoji';
 
 // Pod týmto priblížením sa vrstva NEKRESLÍ. Zápis je bod na konkrétnom mieste;
@@ -42,10 +45,24 @@ const MIN_ZOOM_VISIBLE = 12;
 const POPUP_PAD_TOP = 170;
 const POPUP_PAD_BOTTOM = 110;
 
-// Polomer zhluku v pixeloch. Rovnaké číslo ako spodná vrstva výletov (28 px) —
-// dve vrstvy nad tou istou mapou nesmú zhlukovať s rôznym odstupom, inak sa
-// pri rovnakom výreze rozpadne jedna skôr než druhá a vyzerá to ako chyba.
-const CLUSTER_R_PX = 28;
+// Odstup zhlukovania berie `clusterRadiusForZoom()` — ten istý zdroj ako vrstva
+// vreteníc, aby sa dve vrstvy nad jedným výrezom nerozpadali každá inokedy.
+// Pevných 28 px tu stálo do 22. 8. 2026.
+
+// ── OD KEDY MÁ ZNAČKA EMOJI (Matej 2026-08-22) ─────────────────────────────
+// „tipy, samostané upozronenia sa môžu zobraziť ale len ako bodky a až pri
+// veľkom zoome sa zobrazí aj emoji."
+//
+// Osamotený zápis teda hovorí V DVOCH STUPŇOCH: z diaľky bodka („tu niečo je"),
+// zblízka celá značka („a toto to je"). Dôvod je ten istý, prečo vôbec vznikli
+// zhluky — 28 px kruh s emoji je na prehľade kraja rovnako veľký ako pilulka
+// výletu, takže desať zápisov prekryje trasy, kvôli ktorým sem človek prišiel.
+// Bodka zaberá desatinu plochy a nesie presne toľko informácie, koľko sa z tej
+// vzdialenosti dá použiť.
+//
+// Prah je NIŽŠÍ než ten na písanie (z14): najprv vidím, že tu niekto niečo
+// napísal, potom to viem prečítať, a až nakoniec smiem pridať svoje.
+const EMOJI_ZOOM = 13;
 
 /** Egyptská modrá — existujúci token, nie nová farba (viď noteIcons.ts). */
 /** Komentár. Modrý, nie zlatý — dôvod je pri `GROUP_TINT` v NotePalette.tsx. */
@@ -95,7 +112,7 @@ export function noteMarkHtml(kind: NoteKind, extra = '', dataset = false, diseas
     // ako pri zaniknutej dvojici ⚠️ + hrozba.
     // Lem sa píše inline, lebo pri kliešti závisí od TOHO ZÁPISU (oranžový výskyt
     // vs. červená potvrdená choroba), nie od druhu. CSS by vedelo len druh.
-    return `<div class="mn-mark mn-mark--threat${extra}" style="border-color:${noteTint(kind, disease)}"><i>${threatEmoji(kind)}</i></div>`;
+    return circleMarkHtml(threatEmoji(kind), noteTint(kind, disease), extra);
   }
   // TIP má ten istý kruh ako hrozba, len ZELENÝ lem (Matej 2026-08-22, oprava modrej
   // z toho istého dňa: „tip je ešte lepšie ako rada = bude to niečo v pozitívnom duchu,
@@ -105,7 +122,7 @@ export function noteMarkHtml(kind: NoteKind, extra = '', dataset = false, diseas
   // 🅿️ ostáva jediná HOLÁ značka — modrý štvorec nesie natívne a druhá podložka
   // okolo neho by bola podložka v podložke.
   if (groupOf(kind) === 'comment') {
-    return `<div class="mn-mark mn-mark--tip${extra}"><i>${MARK_EMOJI[kind] ?? ''}</i></div>`;
+    return circleMarkHtml(MARK_EMOJI[kind] ?? '', GROUP_TINT.comment, extra);
   }
   return `<div class="mn-mark mn-mark--emoji${extra}"><i>${MARK_EMOJI[kind] ?? ''}</i></div>`;
 }
@@ -117,12 +134,37 @@ function noteIcon(n: MapNote, stale: boolean): L.DivIcon {
   });
 }
 
-/** Bublina zhluku — biely kruh, červený lem, počet vnútri. */
-function clusterIcon(n: number): L.DivIcon {
-  const s = clusterPx(n);
+/** BODKA — osamotený zápis pri oddialení (Matej: „len ako bodky").
+ *  Farbu ťahá z `noteTint`, teda z toho istého zdroja ako značka aj kruh
+ *  polomeru; bodka je zmenšená TÁ ISTÁ vec, nie nový druh značky. */
+function dotIcon(n: MapNote): L.DivIcon {
   return L.divIcon({
     className: 'mn-wrap',
-    html: `<div class="mn-mark mn-cluster" style="width:${s}px;height:${s}px;font-size:${n < 12 ? 12 : 13}px">${n}</div>`,
+    html: `<div class="mn-dot${n.isStale ? ' mn-mark--stale' : ''}" style="background:${noteTint(n.kind, n.disease)}"></div>`,
+  });
+}
+
+/** Bublina zhluku — biely kruh, farebný lem podľa skupiny, počet vnútri.
+ *
+ * 🔴 ŠTÝL JE INLINE, NIE CSS TRIEDA, a je to OPRAVA CHYBY: bublina sa kreslila
+ * s triedou `.mn-cluster`, ktorú nikto nikdy nenapísal. Zhluk teda na mape nebol
+ * biely kruh s červeným lemom, ale HOLÉ ČÍSLO bez podložky — `.mn-mark` dá len
+ * vycentrovanie a posun o polovicu. Overené v zostavenom balíku: trieda je
+ * v HTML, v CSS nie je. Inline štýl navyše nesie farbu skupiny, čo trieda
+ * nevedela — červená pre výstrahu, zelená pre tip.
+ *
+ * Rovnaký recept ako `clusterMark()` vo `ViperAreasLayer`; tam bol inline od
+ * začiatku, a práve preto vretenice bublinu mali a zápisy svorky nie. */
+function clusterIcon(n: number, tint: string): L.DivIcon {
+  const px = clusterPx(n);
+  const fs = px < 36 ? 12 : px < 48 ? 13 : 15;
+  return L.divIcon({
+    className: 'mn-wrap',
+    html:
+      `<div class="mn-mark mn-cluster" style="box-sizing:border-box;width:${px}px;height:${px}px;` +
+      `border-radius:999px;background:#FFFFFF;border:2.5px solid ${tint};` +
+      `box-shadow:0 1px 3px rgba(0,0,0,0.45),0 0 0 1px rgba(0,0,0,0.10);` +
+      `font-family:${FONT_TITLE};font-weight:700;font-size:${fs}px;color:${tint};">${n}</div>`,
   });
 }
 
@@ -140,9 +182,24 @@ export type MapNotesLayerProps = {
   onDelete?: (noteId: string) => void;
   /** aktuálny jazyk pre formát dátumu (`sk-SK` / `en-US`) */
   locale?: string;
+  /** Vrstva „hrozby" z prepínača mapy. Vypnutá skryje upozornenia AJ ich kruhy
+   *  polomeru — kruh bez značky je fľak, o ktorom sa nedá zistiť, čo znamená.
+   *  Tipy a parkoviská NEGATUJE: nie sú hrozba a človek, ktorý si vypol výstrahy,
+   *  neprosil o to, aby prišiel aj o parkovisko. */
+  showThreats?: boolean;
+  /**
+   * Berie vrstva kliky? Vypína sa počas kreslenia trasy (PackMap `mapDrawing`) — vtedy patrí
+   * každé ťuknutie do mapy kotve, nie bubline zápisu. Značky sa NESKRÝVAJÚ: kreslíš okolo
+   * nich, takže musia byť vidno.
+   *
+   * ⚠️ Prejaví sa cez `key` markera, nie len cez prop — react-leaflet `interactive` po
+   * vytvorení vrstvy neprepína (Leaflet ho číta pri `_initIcon`), takže bez remountu by sa
+   * zmena ticho zahodila.
+   */
+  interactive?: boolean;
 };
 
-export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US' }: MapNotesLayerProps) {
+export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showThreats = true, interactive = true }: MapNotesLayerProps) {
   const t = useT();
   const map = useMap();
   const [zoom, setZoom] = useState(() => map.getZoom());
@@ -158,45 +215,71 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US' }: Map
   // Oblasti sa kreslia POD značkami — kruh je kontext, značka je to, na čo sa klikne.
   const areas = useMemo(() => notes.filter((n) => n.radiusM != null), [notes]);
 
-  // ── HROZBY SA ZHLUKUJÚ, ZVYŠOK SA SKRÝVA (Matej 2026-08-22) ──────────────
-  // „tie hrozby musíme upraviť tak ako sú výlety… z diaľky to budú len biele
-  // kruhy z červeným lemom a číslom vo vnútri a pri vačšom zoome sa rozpadnú
-  // na jednotlivé ikonky."
+  // ── TRI VRSTVY VIDITEĽNOSTI (Matej 2026-08-22) ──────────────────────────
+  // „parkoviská sa zobrazia až pri zoome, tipy, samostané upozronenia sa môžu
+  // zobraziť ale len ako bodky a až pri veľkom zoome sa zobrazí aj emoji."
   //
-  // Nahradilo to červené bodky z toho istého dňa. Bodka povedala „tu niečo je",
-  // ale nie KOĽKO — a pri desiatkach zápisov by sa z nej stala súvislá červená
-  // šmuha po severe. Číslo v bublinke je ten istý jazyk, akým hovoria výlety,
-  // takže sa mapa nemusí učiť dvakrát.
+  //   UPOZORNENIA — vidno vždy. Viac pokope = bublina s číslom, jedno samotné
+  //                 = bodka, a od `EMOJI_ZOOM` celá značka s emoji.
+  //   TIPY        — to isté, len zelené. Do 22. 8. sa pod z12 VYPÍNALI; teraz
+  //                 sa zmenšia, lebo „niekto tu nechal odkaz" je použiteľná
+  //                 informácia aj z diaľky, kým emoji z tej diaľky nie je.
+  //   PARKOVISKO + DATASET — bez zmeny, až od `MIN_ZOOM_VISIBLE`. Parkovisko
+  //                 hľadá človek, ktorý UŽ vie kam ide, a datasetové body nemajú
+  //                 autora, takže z prehľadu kraja by z nich bola len šedina.
   //
-  // Upozornenia sú preto viditeľné VŽDY. Parkovisko, tip a datasetové body
-  // ostávajú pod prahom skryté: nie sú dôvod meniť trasu a z odstupu by z nich
-  // bola len šedina nad pilulkami výletov.
-  const warnings = useMemo(() => notes.filter((n) => groupOf(n.kind) === 'warning'), [notes]);
-  const rest = useMemo(() => notes.filter((n) => groupOf(n.kind) !== 'warning'), [notes]);
+  // Zhlukuje sa KAŽDÁ SKUPINA ZVLÁŠŤ. Jedno číslo nad výstrahou a tipom by
+  // v červenej bubline tvrdilo, že aj ten tip je hrozba.
+  const warnings = useMemo(
+    () => (showThreats ? notes.filter((n) => groupOf(n.kind) === 'warning') : []),
+    [notes, showThreats],
+  );
+  const tips = useMemo(
+    () => notes.filter((n) => groupOf(n.kind) === 'comment' && !isDatasetNote(n)),
+    [notes],
+  );
+  const rest = useMemo(
+    () => notes.filter((n) => groupOf(n.kind) === 'parking' || (groupOf(n.kind) === 'comment' && isDatasetNote(n))),
+    [notes],
+  );
 
   // `moveTick` v závislostiach NIE JE zbytočný — projekcia do pixelov závisí od
   // výrezu, takže po pane treba prepočítať, aj keď sa zoznam zápisov nezmenil.
-  const warnItems = useMemo(() => {
-    const bounds = map.getBounds().pad(0.35);
-    const vis = warnings.filter((n) => bounds.contains([n.lat, n.lon]));
-    const proj = vis.map((n) => {
-      const pt = map.latLngToContainerPoint([n.lat, n.lon]);
-      return { n, x: pt.x, y: pt.y };
-    });
-    return clusterByPixels(proj, CLUSTER_R_PX).map((c) => {
-      if (c.items.length === 1) return { kind: 'single' as const, n: c.items[0].n };
-      const ll = map.containerPointToLatLng([c.x, c.y]);
-      return { kind: 'cluster' as const, lat: ll.lat, lon: ll.lng, count: c.items.length };
-    });
+  const clusterVisible = useCallback(
+    (list: MapNote[]) => {
+      const bounds = map.getBounds().pad(0.35);
+      const proj = list
+        .filter((n) => bounds.contains([n.lat, n.lon]))
+        .map((n) => {
+          const pt = map.latLngToContainerPoint([n.lat, n.lon]);
+          return { n, x: pt.x, y: pt.y };
+        });
+      return clusterByPixels(proj, clusterRadiusForZoom(zoom)).map((c) => {
+        if (c.items.length === 1) return { kind: 'single' as const, n: c.items[0].n };
+        const ll = map.containerPointToLatLng([c.x, c.y]);
+        return { kind: 'cluster' as const, lat: ll.lat, lon: ll.lng, count: c.items.length, sample: c.items[0].n };
+      });
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [warnings, map, zoom, moveTick]);
+    [map, zoom, moveTick],
+  );
+
+  const warnItems = useMemo(() => clusterVisible(warnings), [warnings, clusterVisible]);
+  const tipItems = useMemo(() => clusterVisible(tips), [tips, clusterVisible]);
 
   const showRest = zoom >= MIN_ZOOM_VISIBLE;
+  /** Osamotený zápis: pod prahom bodka, nad prahom celá značka s emoji. */
+  const showEmoji = zoom >= EMOJI_ZOOM;
 
   const renderNote = (n: MapNote) => {
     const dataset = isDatasetNote(n);
     const canVote = !!onVote && !dataset && !n.isMine;
     const canDelete = !!onDelete && !dataset && n.isMine;
+    // Kreslí sa trasa → tá istá značka, len hluchá. Bublina sa nerenderuje vôbec; marker,
+    // ktorý ju drží, by klik zožral aj so zavretým popupom.
+    if (!interactive) {
+      return <Marker key={`ro:${n.id}`} position={[n.lat, n.lon]} icon={noteIcon(n, n.isStale)} interactive={false} />;
+    }
     return (
     <Marker key={n.id} position={[n.lat, n.lon]} icon={noteIcon(n, n.isStale)}>
       <Popup
@@ -296,42 +379,63 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US' }: Map
     );
   };
 
+  /** Osamotený zápis. Pod `EMOJI_ZOOM` bodka, nad ním celá značka s bublinou.
+   *  Bodka je NEKLIKATEĽNÁ zámerne: na 10 px sa prstom netrafí a otvorená bublina
+   *  by z tej diaľky aj tak stála mimo miesta, o ktorom hovorí. „Priblíž sa"
+   *  povie tvar sám, rovnako ako pri zhluku. */
+  const renderSingle = (n: MapNote) =>
+    showEmoji ? (
+      renderNote(n)
+    ) : (
+      <Marker key={`dot:${n.id}`} position={[n.lat, n.lon]} icon={dotIcon(n)} interactive={false} />
+    );
+
+  const renderCluster = (it: { lat: number; lon: number; count: number; sample: MapNote }, tint: string) => (
+    <Marker
+      key={`cl:${it.lat.toFixed(4)}:${it.lon.toFixed(4)}:${it.count}`}
+      position={[it.lat, it.lon]}
+      icon={clusterIcon(it.count, tint)}
+      interactive={false}
+    />
+  );
+
   return (
     <>
-      {/* Kruhy oblastí len nad prahom — pri oddialení ich zastupuje číslo v zhluku. */}
-      {showRest && areas.map((n) => (
-        <Circle
-          key={`area:${n.id}`}
-          center={[n.lat, n.lon]}
-          radius={n.radiusM as number}
-          pathOptions={{
-            color: noteTint(n.kind, n.disease),
-            weight: 1.5,
-            opacity: n.isStale ? 0.25 : 0.55,
-            fillColor: noteTint(n.kind, n.disease),
-            fillOpacity: n.isStale ? 0.05 : 0.12,
-          }}
-          interactive={false}
-        />
-      ))}
+      {/* Kruhy oblastí len nad prahom — pri oddialení ich zastupuje číslo v zhluku.
+          Vypnutá vrstva hrozieb berie aj ICH kruhy: kruh bez značky je fľak,
+          o ktorom sa nedá zistiť, čo znamená. */}
+      {showRest &&
+        areas
+          .filter((n) => (groupOf(n.kind) === 'warning' ? showThreats : true))
+          .map((n) => (
+            <Circle
+              key={`area:${n.id}`}
+              center={[n.lat, n.lon]}
+              radius={n.radiusM as number}
+              pathOptions={{
+                color: noteTint(n.kind, n.disease),
+                weight: 1.5,
+                opacity: n.isStale ? 0.25 : 0.55,
+                fillColor: noteTint(n.kind, n.disease),
+                fillOpacity: n.isStale ? 0.05 : 0.12,
+              }}
+              interactive={false}
+            />
+          ))}
 
-      {/* HROZBY: zhluk s číslom, alebo konkrétna značka. Zhluk je neklikateľný
-          zámerne — otvoriť bublinu k šiestim zápisom naraz sa nedá a „priblíž sa"
-          povie tvar sám. */}
+      {/* UPOZORNENIA — zhluk s číslom, bodka, alebo celá značka. Zhluk je
+          neklikateľný zámerne: otvoriť bublinu k šiestim zápisom naraz sa nedá. */}
       {warnItems.map((it) =>
-        it.kind === 'cluster' ? (
-          <Marker
-            key={`cl:${it.lat.toFixed(4)}:${it.lon.toFixed(4)}:${it.count}`}
-            position={[it.lat, it.lon]}
-            icon={clusterIcon(it.count)}
-            interactive={false}
-          />
-        ) : (
-          renderNote(it.n)
-        ),
+        it.kind === 'cluster' ? renderCluster(it, HAZARD_RED) : renderSingle(it.n),
       )}
 
-      {/* Parkovisko, tip a datasetové body — len nad prahom. */}
+      {/* TIPY — to isté v zelenej. Vlastný zhluk, nie spoločný s výstrahami:
+          jedno číslo v červenej bubline by tvrdilo, že aj tip je hrozba. */}
+      {tipItems.map((it) =>
+        it.kind === 'cluster' ? renderCluster(it, GROUP_TINT.comment) : renderSingle(it.n),
+      )}
+
+      {/* Parkovisko a datasetové body — bez zmeny, len nad prahom a vždy s emoji. */}
       {showRest && rest.map(renderNote)}
     </>
   );
@@ -362,18 +466,27 @@ export const MAP_NOTES_CSS = `
    prečítať, čo je vnútri.
 
    Kruh je súmerný ⇒ stred sedí na súradnici bez dopočtu posunu. Práve preto
-   zanikla trieda mn-mark--pair aj rovnica 23+1+16 pod ňou. */
-.mn-mark--threat{width:28px;height:28px;border-radius:999px;background:#FFFFFF;border:2.5px solid ${HAZARD_RED};box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.45),0 0 0 1px rgba(0,0,0,0.10);}
-/* Emoji je menšie než pri holej značke — kruh mu zobral lem aj vnútorný okraj. */
-.mn-mark--threat i{font-size:16px;}
-/* TIP — ten istý kruh, zelený lem. Rozmery sa NEROZCHÁDZAJÚ zámerne: dve veľkosti
-   kruhu by na mape čítali ako dve dôležitosti, a tip nie je menej dôležitý než
-   výstraha, len je iný. */
-.mn-mark--tip{width:28px;height:28px;border-radius:999px;background:#FFFFFF;border:2.5px solid ${GROUP_TINT.comment};box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.45),0 0 0 1px rgba(0,0,0,0.10);}
-.mn-mark--tip i{font-size:16px;}
+   zanikla trieda mn-mark--pair aj rovnica 23+1+16 pod ňou.
+
+   TIP nesie ten istý kruh so zeleným lemom a UDALOSŤ s modrým (PackMap.tsx).
+   Rozmery sa NEROZCHÁDZAJÚ zámerne: dve veľkosti kruhu by na mape čítali ako dve
+   dôležitosti, a tip nie je menej dôležitý než výstraha, len je iný. Preto ho
+   všetci traja berú z jedného zdroja: mapnotes/circleMark.ts (spätný apostrof sa
+   sem PISAT NESMIE, je to JS literal). */
+${CIRCLE_MARK_CSS}
 /* Zošednutý zápis NEMIZNE — Matej: „poznámka neumiera". Len prestáva byť to prvé,
    čo oko na mape chytí. */
 .mn-mark--stale{opacity:.42;filter:grayscale(1);}
+/* ── BODKA — OSAMOTENÝ ZÁPIS PRI ODDIALENÍ ────────────────────────────────
+   Matej 2026-08-22: „tipy, samostané upozronenia sa môžu zobraziť ale len ako
+   bodky a až pri veľkom zoome sa zobrazí aj emoji."
+
+   Biely prstenec, nie holý bod: nad lesom aj snehom je farebná bodka bez obrysu
+   presne tak neviditeľná ako bolo holé emoji, kvôli čomu vznikol biely kruh pri
+   hrozbách. Je to teda TÁ ISTÁ značka zmenšená na doraz, nie iný jazyk.
+   Farbu nesie inline background z noteTint — jediny zdroj pre znacku, kruh
+   polomeru aj bodku (spatny apostrof sa sem PISAT NESMIE, je to JS literal). */
+.mn-dot{position:relative;transform:translate(-50%,-50%);width:11px;height:11px;border-radius:999px;border:2px solid #FFFFFF;box-sizing:border-box;box-shadow:0 1px 2px rgba(0,0,0,0.55);}
 .mn-mark--stale:hover{opacity:.8;}
 
 /* ── OTVORENÁ POZNÁMKA JE PAPYRUS (Matej 2026-08-21) ───────────────────────

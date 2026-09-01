@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { UserPlus } from 'lucide-react';
 import { BrandIcon } from './BrandIcon';
-import { HandBell } from './HandIcons';
+import { HandNose } from './HandIcons';
 import { PACK_THEME } from './packTheme';
+import { pluralKey } from '@/lib/plural';
 import { useT } from '@/i18n/LanguageContext';
 import { DEV_FULL } from '@/lib/packFlags';
 // `import type` (nie runtime import) — packMessaging.ts ťahá pri module-load
@@ -12,10 +13,15 @@ import { DEV_FULL } from '@/lib/packFlags';
 // dynamickým import()-om nižšie, vyhodnoteným až v efekte, keď je DEV_FULL true.
 import type { Conversation } from './messaging/packMessaging';
 import { emitOpenInbox, emitOpenThread } from './messaging/openBridge';
+// UPOZORNENIA (NOS) — rovnaký dôvod pre `import type` + dynamický import ako pri messagingu:
+// `packAlerts` siaha cez `tripLabel` na dataset trás a cez `tripShared` na packStore.
+import type { PackAlert } from './packAlerts';
+import { useNavigate } from 'react-router-dom';
 
 const T = PACK_THEME;
 
 type PackMessagingModule = typeof import('./messaging/packMessaging');
+type PackAlertsModule = typeof import('./packAlerts');
 
 // unread konverzácie pre dropdown položky — rovnaká logika ako Inbox.tsx (zámerne duplikovaná,
 // UI komponenty na seba nenaväzujú, viď packMessaging.ts vzor).
@@ -82,6 +88,36 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
     return () => { cancelled = true; };
   }, []);
 
+  // ── NOS: upozornenia (Matej 26. 8. 2026: „nos sú upozornenie a obálka sú správy") ──
+  // Modul sa načíta rovnakou cestou ako messaging — dynamicky a len za DEV_FULL, aby sa
+  // dataset trás nedostal do hlavného bundlu.
+  const navigate = useNavigate();
+  const [alertsMod, setAlertsMod] = useState<PackAlertsModule | null>(null);
+  const [alerts, setAlerts] = useState<PackAlert[]>([]);
+  useEffect(() => {
+    if (!DEV_FULL) return;
+    let cancelled = false;
+    void import('./packAlerts').then((m) => { if (!cancelled) setAlertsMod(m); });
+    return () => { cancelled = true; };
+  }, []);
+  useEffect(() => {
+    if (!alertsMod) return;
+    let cancelled = false;
+    const load = () => { void alertsMod.loadAlerts().then((a) => { if (!cancelled) setAlerts(a); }); };
+    load();
+    // Znovu pri návrate na kartu — žiadosť mohla prísť, kým bola appka na pozadí. Bez toho
+    // by odznak visel na starom čísle až do reloadu.
+    const onVis = () => { if (document.visibilityState === 'visible') load(); };
+    document.addEventListener('visibilitychange', onVis);
+    return () => { cancelled = true; document.removeEventListener('visibilitychange', onVis); };
+  }, [alertsMod]);
+
+  // Neprečítané sa počítajú pri každom renderi zo živej `seen` — otvorenie panela ju zmení
+  // a odznak musí zhasnúť hneď, nie až po ďalšom načítaní.
+  const [seenEpoch, setSeenEpoch] = useState(0);
+  const freshAlerts = alertsMod ? alertsMod.unseen(alerts, alertsMod.readSeen()) : [];
+  void seenEpoch; // len spúšťač prepočtu vyššie
+
   const [msgCount, setMsgCount] = useState(0);
   const [meId, setMeId] = useState('me');
   const [unreadConvs, setUnreadConvs] = useState<Conversation[]>([]);
@@ -139,7 +175,9 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
     ...(last30d != null ? [{ iconNode: <UserPlus className="h-3.5 w-3.5 shrink-0" style={{ color: T.accentGold, marginTop: 2 }} />, text: t('pack.notif.joinedLast30d', { count: last30d }) }] : []),
     ...(total != null ? [{ iconNode: <BrandIcon name="globe" size={14} tint="gold" className="shrink-0" style={{ marginTop: 2 }} />, text: t('pack.notif.totalWorldwide', { count: total.toLocaleString('en-US') }) }] : []),
   ];
-  const bellCount = last24h ?? 0;
+  // Odznak NOSA = neprečítané upozornenia + dnešný prírastok svorky. Správy sa sem
+  // ZÁMERNE nepočítajú — má ich obálka vedľa a dve rovnaké čísla vedľa seba nič nehovoria.
+  const bellCount = (last24h ?? 0) + freshAlerts.length;
 
   return (
     <div
@@ -237,10 +275,19 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
         </button>
       )}
 
-      {/* Notifications bell — napravo od správ na všetkých povrchoch (Matej 2026-07-26) */}
+      {/* NOS — upozornenia, napravo od obálky na všetkých povrchoch (Matej 2026-07-26) */}
       <button
         type="button"
-        onClick={() => setOpen((p) => !p)}
+        onClick={() => setOpen((p) => {
+          const next = !p;
+          // Otvorenie = prečítanie. Označujeme presne to, čo bolo v tej chvíli na zozname —
+          // nie „všetko", inak by žiadosť, ktorá dorazí o sekundu neskôr, zhasla nevidená.
+          if (next && alertsMod && freshAlerts.length) {
+            alertsMod.markSeen(freshAlerts.map((x) => x.id));
+            setSeenEpoch((e) => e + 1);
+          }
+          return next;
+        })}
         aria-label={t('pack.notif.ariaNotifications')}
         className="relative inline-flex items-center justify-center"
         style={{
@@ -256,7 +303,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           cursor: 'pointer',
         }}
       >
-        <HandBell size={17} />
+        <HandNose size={17} />
         {bellCount > 0 && (
           <span
             style={{
@@ -306,6 +353,59 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
             WebkitBackdropFilter: dark ? 'blur(14px)' : undefined,
           }}
         >
+          {DEV_FULL && alerts.length > 0 && (
+            <>
+              <div
+                style={{
+                  fontFamily: "'Cinzel', serif", fontSize: 9.5, letterSpacing: '0.28em',
+                  textTransform: 'uppercase', color: c.inkDim, marginBottom: 8,
+                }}
+              >
+                {t('pack.alerts.title')}
+              </div>
+              <ul className="flex flex-col gap-2 mb-3">
+                {alerts.slice(0, 6).map((al) => (
+                  <li key={al.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOpen(false);
+                        // Žiadosť sa vybavuje v zozname výletov (tam je meno aj tlačidlo PRIJAŤ),
+                        // prijatie patrí na samotný výlet — tam človek vidí, s kým ide.
+                        navigate(al.kind === 'trip_request' ? '/pack/map/triplist' : al.tripPath);
+                      }}
+                      className="flex items-start gap-2 w-full text-left"
+                      style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}
+                    >
+                      <HandNose size={14} style={{ flexShrink: 0, marginTop: 2, color: T.accentGold }} />
+                      <span style={{ minWidth: 0, flex: 1 }}>
+                        <span
+                          style={{
+                            display: 'block', fontFamily: "'Space Grotesk', sans-serif",
+                            fontSize: 12, lineHeight: 1.35, color: c.ink,
+                          }}
+                        >
+                          {al.kind === 'trip_request'
+                            ? t('pack.alerts.request' + pluralKey(al.count), { count: al.count })
+                            : t('pack.alerts.accepted')}
+                        </span>
+                        <span
+                          style={{
+                            display: 'block', fontFamily: "'Cinzel', serif", fontWeight: 700,
+                            fontSize: 8.5, letterSpacing: '0.04em', textTransform: 'uppercase',
+                            color: T.accentGold, marginTop: 1,
+                          }}
+                        >
+                          {al.tripName}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <div style={{ borderTop: `1px solid ${c.hairline}`, marginBottom: 10 }} />
+            </>
+          )}
           {DEV_FULL && unreadConvs.length > 0 && (
             <>
               <div
@@ -396,19 +496,25 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
               </li>
             ))}
           </ul>
-          <div
-            style={{
-              marginTop: 12,
-              paddingTop: 10,
-              borderTop: `1px solid ${c.hairline}`,
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 11,
-              color: c.inkDim,
-              textAlign: 'center',
-            }}
-          >
-            {t('pack.notif.personalComingSoon')}
-          </div>
+          {/* „Osobné upozornenia už čoskoro" — pätička z čias, keď NOS hlásil len prírastok
+              svorky. Odkedy vie o žiadostiach a prijatiach (26. 8. 2026), by nad vlastným
+              zoznamom osobných upozornení tvrdila, že ešte neexistujú. Ostáva len pre toho,
+              kto žiadne nemá — tam je to stále pravda o zvyšku. */}
+          {!(DEV_FULL && alerts.length > 0) && (
+            <div
+              style={{
+                marginTop: 12,
+                paddingTop: 10,
+                borderTop: `1px solid ${c.hairline}`,
+                fontFamily: "'Space Grotesk', sans-serif",
+                fontSize: 11,
+                color: c.inkDim,
+                textAlign: 'center',
+              }}
+            >
+              {t('pack.notif.personalComingSoon')}
+            </div>
+          )}
         </div>,
         document.body,
       )}

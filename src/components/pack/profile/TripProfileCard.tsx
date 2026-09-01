@@ -17,18 +17,27 @@ import {
   PERSONALITY_OPTIONS,
   SMOKE_OPTIONS,
 } from './packProfile';
+import { useMemberProfile, memberToCentralProfile, memberDisplayName, memberAvatarUrl } from './memberProfile';
 
 // ── Reálny člen partie (whitelist z get_trip_party — meno, pes, fotka, číslo) → props, ktoré
-// táto karta žiada (issue #41: „prepoužiť TripProfileCard, nestavať druhú"). Trip-tier polia
-// (osobnosť/jazyky/fajčenie) o CUDZOM človeku appka nemá odkiaľ vziať — žijú len v localStorage
-// vlastného prehliadača (packProfile.ts:757) — profil ostáva prázdny a karta ich jednoducho
-// nezobrazí (žiadna pilulka), presne ako keď ich pri sebe nevyplníš ty. Nič sa nefabrikuje.
+// táto karta žiada (issue #41: „prepoužiť TripProfileCard, nestavať druhú").
+//
+// ZMENA 26. 8. 2026: trip-tier polia (osobnosť/jazyky/fajčenie) o cudzom človeku UŽ ZDROJ MAJÚ.
+// Do vtedy žili len v localStorage jeho vlastného prehliadača, takže karta ostávala prázdna;
+// migrácia `20260826_pack_profiles.sql` ich presunula do DB a `useMemberProfile()` ich dotiahne
+// podľa poradového čísla. Preto tu pribudlo `remote: true` — je to príznak „toto je CUDZÍ človek,
+// dotiahni si ho", nie dáta. Vlastný profil (živý náhľad v `PackProfile.tsx`) ide bez neho a karta
+// doňho nesiaha.
+//
+// Keď člen profil nevyplnil (alebo sa ešte nenačítal), ostáva presne to, čo bolo doteraz: meno,
+// pes, fotka, číslo. Nič sa nefabrikuje.
 export function partyMemberToProfileCardProps(member: PartyMember): {
   profile: CentralProfile;
   name: string;
   avatarUrl?: string | null;
   dogs: PackDogFull[];
   packNumber?: number;
+  remote: true;
 } {
   const dogName = member.dogName?.trim();
   return {
@@ -53,6 +62,7 @@ export function partyMemberToProfileCardProps(member: PartyMember): {
       pack_number: member.packNumber,
     }] : [],
     packNumber: member.packNumber ?? undefined,
+    remote: true,
   };
 }
 
@@ -69,16 +79,43 @@ export function TripProfileCard({
   avatarUrl,
   dogs,
   packNumber,
+  remote,
 }: {
   profile: CentralProfile;
   name: string;
   avatarUrl?: string | null;
   dogs: PackDogFull[];
   packNumber?: number; // ak nie je v scope (napr. mock/no-auth), vynechá sa gracefully
+  /** `true` = ide o CUDZIEHO člena, dotiahni jeho profil z DB podľa `packNumber`. */
+  remote?: boolean;
 }) {
   const t = useT();
-  const { human } = profile;
-  const isTrip = (key: ProfileFieldKey) => getTier(profile, key) === 'trip';
+  // Hook sa volá vždy (pravidlá hookov), ale bez `remote` dostane `undefined` a
+  // nič nenačíta — vlastný profil ide výhradne z prop `profile`.
+  const member = useMemberProfile(remote ? packNumber : undefined);
+
+  // Server posiela profil UŽ OREZANÝ o skryté polia (`get_member_profiles`), takže
+  // tu sa nič nefiltruje — čo prišlo, to sa smie ukázať.
+  const effProfile = member ? memberToCentralProfile(member) : profile;
+  // Meno a fotka ČLOVEKA — rozhoduje `memberDisplayName` / `memberAvatarUrl`, aby to bolo
+  // zhodné s profilom aj s kartou partie. `name`/`avatarUrl` z výletu sú poslednou záchranou
+  // (krstné meno a fotka PSA), keď o človeku ešte nič nemáme.
+  const effName = remote ? memberDisplayName(member, name) : name;
+  const effAvatar = remote ? memberAvatarUrl(member, avatarUrl) : avatarUrl;
+  // Psy: z profilu má člen VŠETKY svoje psy, `get_trip_party` vydáva len prvého.
+  const effDogs: PackDogFull[] = member && member.dogs.length
+    ? member.dogs.map((d) => ({
+        id: d.dogId,
+        dog_name: d.name,
+        cloudinary_main_url: d.photo,
+        selections: null,
+        created_at: new Date(0).toISOString(),
+        pack_number: d.packNumber,
+      }))
+    : dogs;
+
+  const { human } = effProfile;
+  const isTrip = (key: ProfileFieldKey) => getTier(effProfile, key) === 'trip';
 
   // Koncentrát osobnosti — top few pills + Smoke Y/N (zadanie-profil-
   // koncentrat-2026-07-24 ČASŤ C, replaces the old interests/personType/
@@ -104,8 +141,8 @@ export function TripProfileCard({
   const tripPills = [...personalityLabels, smokeLabel, ...languageLabels]
     .filter((v): v is string => Boolean(v));
 
-  const initial = (name?.[0] || 'D').toUpperCase();
-  const hasAvatar = !!avatarUrl;
+  const initial = (effName?.[0] || 'D').toUpperCase();
+  const hasAvatar = !!effAvatar;
 
   return (
     <div
@@ -129,7 +166,7 @@ export function TripProfileCard({
           }}
         >
           {hasAvatar ? (
-            <img src={avatarUrl!} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={effAvatar!} alt={effName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
             <span style={{ fontFamily: "'Cinzel', serif", fontSize: 18, fontWeight: 700, color: T.inkDim }}>
               {initial}
@@ -138,21 +175,21 @@ export function TripProfileCard({
         </span>
         <div className="min-w-0">
           <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 15, fontWeight: 600, color: T.ink }}>
-            {name || t('pack.profileCard.aDogyptian')}
+            {effName || t('pack.profileCard.aDogyptian')}
           </div>
-          {packNumber != null && (
+          {(member?.memberNumber ?? packNumber) != null && (
             <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: T.inkFaint }}>
-              {t('pack.profileCard.dogyptianNumber', { n: packNumber })}
+              {t('pack.profileCard.dogyptianNumber', { n: member?.memberNumber ?? packNumber })}
             </div>
           )}
         </div>
       </div>
 
       {/* psy — meno + energy + size + goodWith(dogs) */}
-      {dogs.length > 0 && (
+      {effDogs.length > 0 && (
         <div className="flex flex-col gap-2" style={{ marginTop: 14 }}>
-          {dogs.map((d) => {
-            const attrs = profile.dogs[d.id] ?? emptyDogAttrs(d.id);
+          {effDogs.map((d) => {
+            const attrs = effProfile.dogs[d.id] ?? emptyDogAttrs(d.id);
             const energyLabel = ENERGY_OPTIONS.find((o) => o.value === attrs.energy)?.labelEN;
             const goodWithDogs = attrs.goodWith.includes('dogs');
             return (

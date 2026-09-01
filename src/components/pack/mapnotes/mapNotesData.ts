@@ -8,13 +8,22 @@
 //
 // Vzor prevzatý 1:1 z `trip/tripCommentsData.ts`: zápis NIE JE optimistický —
 // insert/vote/delete čaká na odpoveď DB a až potom sa prejaví v UI. Keď RLS
-// zápis odmietne (odhlásený, neplatiaci, DEV_NOAUTH), komponent dostane throw
-// a musí sa tváriť, že sa nič neodoslalo. Ticho „uložené" pri parkovisku je
-// horšie než chyba — človek by sa spoľahol na informáciu, ktorá nikde nie je.
+// zápis odmietne (odhlásený, neplatiaci), komponent dostane throw a musí sa
+// tváriť, že sa nič neodoslalo. Ticho „uložené" pri parkovisku je horšie než
+// chyba — človek by sa spoľahol na informáciu, ktorá nikde nie je.
+//
+// ⚠️ VÝNIMKA: DEV BEZ PRIHLÁSENIA (`VITE_PACK_NOAUTH=1`) ide do `localStorage`
+// (`devMockNotes.ts`), nie do DB. Nie je to zmäkčenie pravidla vyššie — RPC
+// `add_map_note` má EXECUTE len pre `authenticated`, takže anon kľúč dostane
+// `42501 permission denied` a v sprievodcovi výletu sa to prejaví ako
+// „Neuložilo sa, skús to znova". Matej 2026-08-23 tak na telefóne nevedel
+// prejsť krokom 2 a vyzeralo to ako pokazené ukladanie, hoci to bola brána.
+// Do produkčného buildu sa vetva nedostane (`import.meta.env.DEV`).
 //
 // Typy tabuliek/RPC nie sú v generovanom `types.ts` (migrácia čaká na aplikáciu)
 // — rovnaký dôvod pre `supabase as any` ako v `packMessaging.ts`.
 import { supabase } from '@/integrations/supabase/client';
+import { DEV_NOAUTH, devAddNote, devLikeNote, devListNotes, devRemoveNote, devVoteNote } from './devMockNotes';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as any;
@@ -105,10 +114,31 @@ export interface RadiusRule {
   def: number;
 }
 
+// ⚠️ UPOZORNENIE JE VŽDY OKRUH (Matej 2026-08-23: „nebezpečenstvo nedávaj body ale iba okruhy
+// — bod je hlúposť"). Tým sa VRACIA pravidlo z 21. 8., ktoré 22. 8. zmäklo na voliteľné.
+// Dôvod je ten istý, aký stál za pôvodným znením: nebezpečenstvo je rozptýlené. Kliešte
+// nekončia na súradnici, medveď sa medzitým pohol a ovčiarske psy chodia so stádom — bod
+// tvrdí presnosť, ktorú o hrozbe nikto nemá.
+// ⚠️ DOLNÁ HRANICA 100 m (Matej 24. 8. 2026: „tie okruhy dajme od 100m nie od 500").
+// Päťsto metrov bolo najmenšie, čo sa dalo nastaviť, takže „tu pri tom moste je pes na
+// vodítko" sa zapísalo ako polkilometrový kruh cez pol dediny. Predvolená hodnota ostáva
+// 500 — väčšina hrozieb naozaj je rozptýlená; mení sa len to, kam sa dá posuvník stiahnuť.
+// ⚠️ HORNÁ HRANICA 1 km (Matej 25. 8. 2026: „treba zmeniť logiku okruhov! od 100m do 1km").
+// Päť kilometrov bol polomer, do ktorého sa zmestí celé pohorie — taký kruh už nehovorí
+// „daj si tu pozor", ale „niekde v tomto kraji". Posuvník má odteraz desať zastávok po 100 m,
+// takže sa dá trafiť skutočný rozsah hrozby, nie len jej rád veľkosti.
+// ⚠️ Staré zápisy s väčším okruhom ostávajú, ako sú — pravidlo platí na to, čo sa dá NASTAVIŤ.
+// ⚠️ STROP 500 m A PREDVOLENÝCH 150 m (Matej 28. 8. 2026: „opäť je okruh nezmenený! rozsah
+// bude natívne od 100–500 a pri výbere dajme 150 v základe"). Kilometrový okruh v praxi
+// prekryl celé údolie aj s trasou pod ním — kruh, ktorý zafarbí polovicu výrezu, prestane
+// byť informáciou o mieste. Predvolených 500 m bolo to isté o polovicu menšie: väčšina
+// zápisov ostala na ňom, lebo posuvník sa nikomu nechcelo ťahať. Krok je preto 50 m —
+// pri rozpätí 400 m je desať zastávok stále dosť jemných na to, aby sa dala trafiť
+// skutočná veľkosť hrozby.
 export const RADIUS_RULES: Record<NoteGroup, RadiusRule> = {
   parking: { mode: 'none', min: 0, max: 0, step: 0, def: 0 },
-  warning: { mode: 'optional', min: 500, max: 5000, step: 100, def: 500 },
-  comment: { mode: 'optional', min: 200, max: 5000, step: 100, def: 500 },
+  warning: { mode: 'required', min: 100, max: 500, step: 50, def: 150 },
+  comment: { mode: 'optional', min: 100, max: 500, step: 50, def: 150 },
 };
 
 // ── VÝNIMKY SÚ VLASTNOSŤOU DRUHU, NIE SKUPINY (Matej 2026-08-22) ────────────
@@ -117,10 +147,10 @@ export const RADIUS_RULES: Record<NoteGroup, RadiusRule> = {
 // Rebrík je jediná hrozba, ktorá NIE JE rozptýlená: je priskrutkovaný do skaly
 // a o 50 m ďalej naozaj nie je. Okruh okolo neho by tvrdil niečo, čo nie je pravda.
 //
-// ⚠️ TÝMTO PADOL POVINNÝ POLOMER UPOZORNENÍ z 21. 8. („všetky budú mať polomer
-// nastaviteľný najmenej vždy 500 m"). Zostala z neho SPODNÁ HRANICA: keď si
-// človek okruh zapne, menší než 500 m mu appka nedovolí. Kedy ho zapne, je
-// odteraz jeho rozhodnutie — „zákaz vstupu" je bod ako rampa, „medveď" nie je.
+// ⚠️ 23. 8. sa povinný polomer upozornení VRÁTIL (viď RADIUS_RULES vyššie), takže
+// táto výnimka je odteraz JEDINÁ hrozba bez okruhu. Zostáva zámerne — dôvod je
+// vlastnosť rebríka, nie nálada pravidla. Keby ju Matej chcel zrušiť, stačí zmazať
+// tento záznam; nič iné na nej nevisí.
 const KIND_RADIUS: Partial<Record<NoteKind, RadiusRule>> = {
   ladders: { mode: 'none', min: 0, max: 0, step: 0, def: 0 },
 };
@@ -241,6 +271,7 @@ function fromRow(r: NoteRow): MapNote {
  * k tým istým dátam.
  */
 export async function fetchMapNotes(): Promise<MapNote[]> {
+  if (DEV_NOAUTH) return devListNotes();
   const { data, error } = await db.rpc('list_map_notes');
   if (error) throw error;
   return ((data ?? []) as NoteRow[]).map(fromRow);
@@ -261,6 +292,7 @@ export interface NewMapNote {
 
 /** Vráti id nového zápisu. Throwne pri RLS odmietnutí aj pri dennom strope. */
 export async function addMapNote(n: NewMapNote): Promise<string> {
+  if (DEV_NOAUTH) return devAddNote(n);
   const { data, error } = await db.rpc('add_map_note', {
     p_kind: n.kind,
     p_disease: n.disease ?? null,
@@ -277,6 +309,7 @@ export async function addMapNote(n: NewMapNote): Promise<string> {
 
 /** `valid = null` hlas stiahne. Na vlastný zápis hlasovať nejde (DB to odmietne). */
 export async function voteMapNote(noteId: string, valid: boolean | null): Promise<void> {
+  if (DEV_NOAUTH) { devVoteNote(noteId, valid); return; }
   const { error } = await db.rpc('vote_map_note', { p_note_id: noteId, p_valid: valid });
   if (error) throw error;
 }
@@ -287,11 +320,13 @@ export async function voteMapNote(noteId: string, valid: boolean | null): Promis
  * Na vlastný zápis lajk ide, na rozdiel od hlasu.
  */
 export async function likeMapNote(noteId: string, on: boolean): Promise<void> {
+  if (DEV_NOAUTH) { devLikeNote(noteId, on); return; }
   const { error } = await db.rpc('like_map_note', { p_note_id: noteId, p_on: on });
   if (error) throw error;
 }
 
 export async function deleteMapNote(noteId: string): Promise<void> {
+  if (DEV_NOAUTH) { devRemoveNote(noteId); return; }
   const { error } = await db.rpc('delete_map_note', { p_note_id: noteId });
   if (error) throw error;
 }

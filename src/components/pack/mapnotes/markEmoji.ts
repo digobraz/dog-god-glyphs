@@ -13,7 +13,10 @@
 // `ACT_EMOJI` a `TAG_EMOJI` v `PackMap.tsx` ostávajú, kde sú. Sú to filtre
 // a nahadzovanie, nie mapové značky — iný povrch, iná životnosť.
 import type { TrailPoiType } from '@/data/trailPoi.generated';
+import { PACK_THEME as T } from '@/components/pack/packTheme';
+import type { EventKind } from '../events/eventModel';
 import type { NoteGroup, NoteKind } from './mapNotesData';
+import type { SleepKind } from '@/components/geo/sleepSpots';
 
 /**
  * Emoji sa NESMIE nechať na `font-family` okolia. Na macOS by ho zdedený Cinzel
@@ -36,7 +39,7 @@ export const FONT_EMOJI =
  */
 export const MARK_EMOJI: Record<NoteKind, string> = {
   parking: '🅿️',
-  ticks: '🕷️',
+  ticks: '🩸',
   wildlife: '🦌',
   viper: '🐍',
   bear: '🐻',
@@ -97,6 +100,49 @@ export const POI_EMOJI: Record<TrailPoiType, string> = {
   cliff: '⛰️',
 };
 
+/**
+ * SPACIE MIESTA — tretia vrstva mapy (kánon `zadanie-aktivity-taxonomia.md` §12 a §14.1).
+ *
+ * Matej 2026-08-27: „nocľah a kempovanie by malo vidieť stále, v tom je ten vtip…
+ * dal by som to do mapy ako body na úroveň kreslených hikov, pretože budú mať svoj
+ * vlastný zoznam."
+ *
+ * ✅ VYBRAL MATEJ 27. 8. 2026 v matrici značiek (`npm run emoji-matrica`, sekcia
+ * „Spacie miesta"). Prevzal 🛏️ útulňu, ⛺ kemp a 🌙 divoké miesto z návrhu §14.1,
+ * bivak a chatu prepísal. Zápis do state.json: `sleep::bivak`, `sleep::lodge`.
+ * ⚠️ `sleep::lodge` v state.json OSTÁVA ako Matejov historický výber, ale druh `lodge`
+ *    27. 8. zanikol (splynul s `hut`) — matrica ho teda už neponúka.
+ *
+ * · 🛁 CHATA S OBSLUHOU nesie vaňu, nie budovu — a je to presnejšie než čokoľvek
+ *   domčekové. Rozdiel oproti útulni nie je v tvare strechy, ale v tom, že je tam
+ *   obsluha, teplá voda a platí sa. To je to, čo si chodec potrebuje prečítať.
+ * · 🛖 BIVAK je zhodný s `POI_EMOJI.shelter` a nie je to kolízia: obe veci SÚ chatrč
+ *   so strechou a na jednej ploche sa nestretnú (článok výletu kreslí `TRAIL_POI`,
+ *   hlavná mapa dlaždice). Rozdiel, na ktorom záleží, drží zoznam a popisok.
+ *
+ * ⚠️ 🛖 je Emoji 13.0 (2020) — na starých telefónoch môže vypadnúť ako prázdny
+ * obdĺžnik, presne ako 🪜, ktorý 22. 8. z toho dôvodu padol. Matrica to pri výbere
+ * hlási oranžovou bodkou a Matej ho zvolil s týmto vedomím; nie je to prehliadnutie.
+ * Zvyšok sady je Emoji 1.0.
+ *
+ * ⚠️ `bivak` NIE JE to isté ČO `POI_EMOJI.shelter`, hoci nesie tú istú značku.
+ * Prístrešok je strecha bez spania; bivak je `shelter_type=basic_hut`, teda ten,
+ * v ktorom sa prespať dá. Podrobne v `sleepSpots.ts`.
+ */
+export const SLEEP_EMOJI: Record<SleepKind, string> = {
+  hut: '🛏️',    // útulňa AJ chata — budova, v ktorej spíš vnútri (od 27. 8. spojené)
+  camp: '⛺',             // kemp — oficiálne táborisko, väčšinou za peniaze
+  bivak: '🛖',           // bivak — strecha a lavica, prespíš núdzovo
+  wild: '🌙',            // divoké miesto — lúka, les, breh; v OSM neexistuje
+};
+
+/** Emoji bodu v dlaždici (`sleep_hut`…). Poistka pre starý uložený typ vracia útulňu —
+ *  prázdna značka na mape je horšia než mierne nepresná. */
+export function sleepEmoji(t: string): string {
+  const k = t.startsWith('sleep_') ? t.slice(6) : t;
+  return (SLEEP_EMOJI as Record<string, string>)[k] ?? SLEEP_EMOJI.hut;
+}
+
 // ── UPOZORNENIE = EMOJI V BIELOM KRUHU S ČERVENÝM LEMOM ─────────────────────
 // Matej 2026-08-22, k mapke výskytu vretenice (biely kruh vo farebnom špendlíku):
 // „emoji vretenice daj do bieleho kruhu s červeným lemom".
@@ -122,4 +168,103 @@ export const POI_EMOJI: Record<TrailPoiType, string> = {
  */
 export function threatEmoji(kind: NoteKind): string {
   return MARK_EMOJI[kind] ?? MARK_EMOJI.hazard;
+}
+
+// ── UDALOSTI = EMOJI V KRUHU S MODRÝM LEMOM (Matej 2026-08-22) ──────────────
+// „ružový pin… musíme to nahradiť takisto emoji v krúžku s modrým lemom.
+//  a emoji — terč 🎯 = event cieľ výletu"
+//
+// Zanikli tým DVE kvapky, ktoré na mape stáli vedľa seba bez legendy (tú Matej
+// zrušil 3. 8.): ružová `.trp-planmarker-dot` (cieľ plánovaného výletu) a zlatá
+// `.trp-eventmarker-dot` (podujatie). Obe hovorili to isté — „tu sa niekto s
+// niekým stretne" — dvoma tvarmi, ktoré sa nedali odvodiť.
+//
+// Kruh a MODRÝ lem = skupina „stretnutie", emoji vnútri = podtyp. To je presne
+// to isté delenie ako pri hrozbách, len iná farba lemu ⇒ mapa má jeden jazyk:
+//   červený lem = daj si pozor · zelený lem = toto ťa poteší · modrý = tu sa ide
+//
+// ⚠️ Modrá nie je nová farba. `NotePalette` ju 22. 8. zamietol PRE TIPY práve
+// preto, že „tou istou modrou appka značí «ideš s niekým»" — tu teda konečne
+// stojí tam, kam podľa toho zdôvodnenia patrí.
+/** Lem kruhu udalosti = `T.brandBlueLite`, tá istá modrá ako parkovacia bodka.
+ *  Ťahá sa zo `packTheme`, NIE opísaná ako literál — pravidlo z `PointsPill.tsx`
+ *  znie „nevymýšľaj druhú modrú", a opísaný `#2E5FD0` by presne tou druhou modrou
+ *  ticho stal v deň, keď sa téma zmení. */
+export const EVENT_RIM = T.brandBlueLite;
+
+// ── LEM SVETA — ZEMITÁ HNEDÁ (Matej 2026-08-27) ─────────────────────────────
+// Matej: „dajme ich do bielych krúžkov nech sú lepšie vidno… s tmavozeleným okrajom
+// (to by sme mohli aplikovať na všetky emoji na mape týkajúce sa prírody - pramene
+// lavičky skaly)". Kruh áno, zelená nie — a nebola to estetika:
+//
+// 🔴 TMAVOZELENÁ UŽ NA MAPE JE. `GROUP_TINT.comment` = `T.growGreen` (#3D7A4E) nesie
+// TIP OD SVORKY. Rozhodujúci argument je PREVAHA POČTU: tipov je zopár, prírodných
+// bodov 738 spacích miest + 11 956 prameňov + 34 677 lavičiek. Zelená by v hlave
+// človeka prestala znamenať „tip" a začala znamenať „príroda" — tip by zanikol vo
+// vlastnej farbe. Matej si po tomto vysvetlení vybral zemitú hnedú.
+//
+// 🔑 PRAVIDLO, KTORÉ TÝM VZNIKLO: lem nesie KTO TO NAPÍSAL, nie čo to je.
+//    farebný lem (červená/zelená/modrá/zlatá) = SVORKA — toto niekto z nás videl
+//    hnedý lem                                = SVET  — toto je bod z OpenStreetMap
+// Preto sa hnedá NESMIE použiť na zápis svorky a farby svorky na bod zo sveta.
+// Až útulňu niekto PREVEZME (pridá fotku a popis), zmena lemu povie bez slova, že
+// prešla zo sveta k nám.
+/** Lem kruhu bodu zo sveta (OSM) — zemitá hnedá. Vlastná farba, nie odtieň z brandu:
+ *  brand nemá zem a najbližší `T.cardEdge` (#C99A3F) je zlatá, ktorou appka značí
+ *  KOMENTÁR svorky — presne tá zámena, ktorej sa toto pravidlo vyhýba. */
+export const WORLD_RIM = '#4A3826';
+
+/**
+ * CIEĽ PLÁNOVANÉHO VÝLETU — Matejov výber. Bývalá ružová kvapka.
+ *
+ * 📍 od 24. 8. 2026 (matrica značiek). Terč 🎯 padol preto, že sa mal zároveň stať
+ * ikonkou tlačidla „Označ cieľ trasy" v kreslení — tá istá značka by tak naraz
+ * hovorila „sem klikni" aj „tu to je". Špendlík je navyše jediný tvar, ktorý sa
+ * na mape číta ako miesto bez toho, aby si ho človek musel vysvetliť.
+ */
+export const TRIP_TARGET_EMOJI = '📍';
+
+/**
+ * PODUJATIE — emoji podľa TYPU (Matej 2026-08-22: „každý typ vlastné").
+ *
+ * ⚠️ Emoji 1.0 (2015) = pravidlo sady, teda bezpečné aj na starých telefónoch.
+ * Je to to isté kritérium, kvôli ktorému 22. 8. padol rebrík 🪜 (Emoji 13.0, 2020)
+ * v prospech reťaze ⛓️ — značka, ktorú vidno len na novom prístroji, nie je značka.
+ *
+ * ── ZRUŠENÉ TYPY 24. 8. 2026 (matrica značiek) ──────────────────────────────
+ * `workshop` 🛠️, `meetup` 🤝 a `adoption` 🏠 vypadli na Matejov pokyn — workshop
+ * a prednáška sú pre psíčkara to isté podujatie, zraz bez programu je spoločná
+ * prechádzka a adopčný deň si útulok aj tak vypíše ako charitu. Jedenásť pilulek
+ * vo formulári bolo viac deliacich čiar než rozdielov.
+ * ⚠️ `eventEmoji()` a `EventCard` majú fallback, takže starý localStorage záznam
+ * s týmto typom nespadne — dostane 🎪 a holý anglický názov.
+ *
+ * Prečo tieto:
+ * · 🏁 preteky — cieľová vlajka, nie 🏃 (ten by čítal ako „tu sa behá")
+ * · 🏆 výstava — jediná disciplína v sade, kde sa naozaj súťaží o umiestnenie
+ * · 🎖️ tréning — odznak za zvládnutý výcvik; 🐕‍🦺 je ZWJ sekvencia a na starších
+ *      systémoch sa rozpadne na psa + oranžovú vestu vedľa seba, 🎾 zase čítalo
+ *      ako hra, nie ako práca
+ * · 🎓 prednáška — sedí sa a počúva
+ * · 🐕 spoločná prechádzka — celý pes; 🐶 (hlava) je v tejto sade obsadené
+ *      komentárom svorky, ale ten stojí v ZELENOM kruhu, takže sa nepomýlia
+ * · ❤️ charita — nie 🎗️ (stužka je v Európe čítaná ako konkrétna choroba)
+ * · 🏕️ tábor — viacdňové; ⛺ je obsadené aktivitou „overnight" v chipoch mapy
+ * · 🎪 veľtrh — veľká hala plná stánkov
+ */
+export const EVENT_EMOJI: Record<EventKind, string> = {
+  race: '🏁',
+  show: '🏆',
+  training: '🎖️',
+  lecture: '🎓',
+  social_walk: '🐕',
+  charity: '❤️',
+  camp: '🏕️',
+  expo: '🎪',
+};
+
+/** Emoji podujatia s poistkou — neznámy typ (starý uložený záznam) dostane 🎪,
+ *  nikdy prázdny kruh. Rovnaký vzor ako `threatEmoji()` vyššie. */
+export function eventEmoji(kind: EventKind): string {
+  return EVENT_EMOJI[kind] ?? EVENT_EMOJI.expo;
 }

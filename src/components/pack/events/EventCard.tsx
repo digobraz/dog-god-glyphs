@@ -8,21 +8,10 @@
 // (AEV_CSS) namiesto tichej väzby na CSS blok v PackMap.tsx.
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
-import type { AddEventDraft, EventKind } from './eventModel';
+import { DeleteButton } from '@/components/pack/DeleteButton';
+import { EVENT_KIND_LABEL_KEYS, type AddEventDraft } from './eventModel';
 
 const GOLD = '#C99A3F';
-
-// t() sa volá v komponente — mapa je modulová konštanta (rovnaký vzor ako KIND_LABEL_KEYS
-// v AddEvent.tsx; needituje sa ten súbor, tak ide lokálna kópia tých istých i18n kľúčov).
-const KIND_LABEL_KEYS: Record<EventKind, string> = {
-  race: 'pack.addEvent.kind.race',
-  show: 'pack.addEvent.kind.show',
-  training: 'pack.addEvent.kind.training',
-  social_walk: 'pack.addEvent.kind.social_walk',
-  lecture: 'pack.addEvent.kind.lecture',
-  charity: 'pack.addEvent.kind.charity',
-  expo: 'pack.addEvent.kind.expo',
-};
 
 // interný LangCode (LanguageContext, `dogypt_lang`) → BCP-47 pre Intl.DateTimeFormat. Appka
 // nikde takú tabuľku nemá (jediný predchodca je natvrdo 'en-US' v messaging/Inbox.tsx) —
@@ -66,13 +55,15 @@ export type EventCardProps = {
   /** origin:'tip' — kartа je <a> na sourceUrl (nové okno); origin:'own' — toggluje expanded. */
   onClick: (draft: AddEventDraft) => void;
   cardRef?: (el: HTMLDivElement | HTMLAnchorElement | null) => void;
+  /** Zmazanie podujatia. Chýba = tlačidlo sa nevykreslí (archív, cudzí povrch). */
+  onDelete?: (id: string) => void;
 };
 
-export function EventCard({ draft, highlighted, expanded, onClick, cardRef }: EventCardProps) {
+export function EventCard({ draft, highlighted, expanded, onClick, cardRef, onDelete }: EventCardProps) {
   const t = useT();
   const { lang } = useLang();
   const dateLabel = formatEventDate(draft.startsAt, draft.endsAt, lang);
-  const kindLabel = t(KIND_LABEL_KEYS[draft.kind] ?? draft.kind);
+  const kindLabel = t(EVENT_KIND_LABEL_KEYS[draft.kind] ?? draft.kind);
   const className = `pev-card${highlighted ? ' hot' : ''}`;
 
   const body = (
@@ -98,6 +89,17 @@ export function EventCard({ draft, highlighted, expanded, onClick, cardRef }: Ev
       )}
       {draft.origin === 'own' && expanded && draft.description && (
         <div className="pev-desc">{draft.description}</div>
+      )}
+      {/* Mazanie sa ukáže AŽ V ROZBALENEJ karte (a pri tipoch, ktoré sa rozbaliť nedajú,
+          rovno) — v zloženom zozname by červený riadok pod každou položkou prekričal
+          samotné podujatia. Uložené podujatia sú dnes výhradne moje (localStorage), takže
+          sa vlastníctvo neskúma; keď príde DB, pribudne sem podmienka na autora. */}
+      {onDelete && (draft.origin === 'tip' || expanded) && (
+        <DeleteButton
+          label={t('pack.eventsList.deleteEvent')}
+          hint={t('pack.eventsList.deleteEventAsk')}
+          onConfirm={() => onDelete(draft.id)}
+        />
       )}
     </>
   );

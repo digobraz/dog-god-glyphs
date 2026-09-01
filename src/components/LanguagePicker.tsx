@@ -205,13 +205,24 @@ export default function LanguagePicker({ variant = 'nav' }: { variant?: 'nav' | 
           width: 1.55em;             /* single flag = normálny 3:2 aspect */
         }
 
-        /* Panel: position:absolute voči .nav-left (fixed parent = positioning context).
-           left/right:0 → presne šírka pill. */
+        /* Panel: position:absolute voči pozicovanému predkovi v nave.
+           🔴 ŠÍRKU DIKTUJE OBSAH, NIE RODIČ (oprava 27. 8. 2026). Pôvodné
+           left:0 + right:0 znamenalo „presne šírka pill" a fungovalo, kým bol
+           predkom široký nav. V nave na /onepage je predkom UŽ LEN TRIGGER
+           (64 px), takže panel spadol na 118 px a z dvoch stĺpcov ostalo
+           „SV / CZ / D / N" — texty sa orezali, hoci jazykov bolo správnych 18.
+           ⚠️ min-width 100 % drží starý vzhľad tam, kde je predok širší než
+           obsah (produkčná stena): panel sa nezúži pod šírku pilulky. Rozšíri sa
+           len tam, kde by inak rezal text.
+           ⚠️ Kotva je PRAVÁ hrana — panel je posledný prvok vpravo v nave,
+           takže musí padať doľava, inak vytečie z obrazovky. */
         .lang-panel {
           position: absolute;
           top: calc(100% + 10px);
-          left: 0;
+          left: auto;
           right: 0;
+          width: max-content;
+          min-width: 100%;
           z-index: 110;
           background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
           border: 1px solid rgba(201,154,63,0.55);

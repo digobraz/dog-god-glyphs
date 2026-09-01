@@ -12,6 +12,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
 import { EDGE_BASE } from '@/lib/env';
 import { track } from '@/lib/analytics';
+import { Camera } from 'lucide-react';
 
 function useSessionData(sessionId: string | null, fallbackStore: { dogName: string; ownerName: string; email: string; selections: Record<string, string>; dogPhotoUrl: string; patronSvg: string; patronSvg2: string }) {
   const [data, setData] = useState<typeof fallbackStore & { packNumber: number | null }>({ ...fallbackStore, packNumber: null });
@@ -338,6 +339,37 @@ export function WelcomeScreen() {
               className="w-full h-full object-cover object-center"
               onError={() => setPhotoFailed(true)}
             />
+          </div>
+        )}
+
+        {/* PES BEZ TVÁRE — od 28. 8. 2026 sa dá fotka vo flow preskočiť, takže sem
+            dôjdu aj psi bez nej. Dovtedy sa v tom mieste NEVYKRESLILO NIČ: stránka
+            vyzerala kompletne a človek nemal ako zistiť, že mu niečo chýba.
+            ⚠️ Zámerne to NIE JE nahrávanie ani druhé tlačidlo — po platbe nemá klient
+            cestu zapísať fotku do `dogs` (robí to až prihlásený /pack, kde `handleRegenerate`
+            prepečie aj certifikát a share kartu). Toto je značka a veta, akciu nesie
+            existujúce CTA nižšie, ktoré tam presne vedie. */}
+        {(!photoUrl || photoFailed) && (
+          <div className="flex flex-col items-center gap-2">
+            <div
+              className="relative flex items-center justify-center mx-auto rounded-full"
+              style={{
+                aspectRatio: '1 / 1',
+                width: 'clamp(140px, 42vw, 200px)',
+                border: '2px dashed hsl(45 80% 60% / 0.55)',
+                background: 'hsl(45 60% 92% / 0.35)',
+              }}
+            >
+              <Camera className="h-7 w-7" style={{ color: 'hsl(45 55% 45% / 0.75)' }} aria-hidden="true" />
+            </div>
+            <div className="flex flex-col items-center gap-0.5 text-center" style={{ maxWidth: 280 }}>
+              <span style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#7a5a2a' }}>
+                {t('welcome.photoMissing.title')}
+              </span>
+              <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, lineHeight: 1.45, color: '#666' }}>
+                {t('welcome.photoMissing.sub')}
+              </span>
+            </div>
           </div>
         )}
 

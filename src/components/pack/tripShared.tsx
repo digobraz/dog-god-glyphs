@@ -2,13 +2,18 @@
 // (PackTripArticle.tsx) — iterácia 12 bod 5/6: expand (⤢) teraz navigates to a SEPARATE
 // route/page (article), not a modal, so anything both surfaces render (author fallback,
 // difficulty pictogram) lives here once instead of being copy-pasted across two files.
+import { useState } from 'react';
+import type React from 'react';
 import type { HeroTrail } from '@/data/heroTrails.generated';
+import { planPhase, readMissedPlans } from './planReminder';
 import { PACK_THEME } from '@/components/pack/packTheme';
 import { iso2ToISO3, trailCountry } from '@/lib/countryGeo';
 import {
   packStorage, PACK_KEYS, readStringSet as readSet,
   persistWalked, persistFav, scheduleFounderSeed, queueLocalTripUpload,
+  readLocalTrailMeta,
 } from '@/lib/packStore';
+import { missingOnTrail } from '@/components/pack/addtrip/addTripModel';
 
 export const ICON = (n: string) => `/icons/pack/${n}.svg`;
 
@@ -83,7 +88,11 @@ export const GOLD_ICON_FILTER =
 const WATER_TAGS = new Set(['lake', 'water']);
 export const isWaterTrail = (tr: { acts?: string[]; tags?: string[]; path?: unknown[] }): boolean => {
   if (tr.acts?.includes('journey')) return false;
-  if (tr.acts?.includes('paddleboard')) return true;
+  // ⚠️ 'paddle' JE NÁSTUPCA 'paddleboard' (2026-08-31). Nová sada chipov SPORTu nesie
+  // pádlovanie pod kľúčom `paddle`; bez tohto riadku by výlet zapísaný po 31. 8. stratil
+  // presne to správanie, kvôli ktorému tu výnimka stojí — a rozdiel by sa prejavil až
+  // na karte ako fabrikované km a náročnosť vodnej plochy.
+  if (tr.acts?.includes('paddleboard') || tr.acts?.includes('paddle')) return true;
   const hasRoute = (tr.path?.length ?? 0) > 1;
   return !hasRoute && !!tr.tags?.some((tag) => WATER_TAGS.has(tag.toLowerCase()));
 };
@@ -96,9 +105,36 @@ export const isWaterTrail = (tr: { acts?: string[]; tags?: string[]; path?: unkn
 // ⚠️ Kľúče musia existovať vo VŠETKÝCH troch tvaroch, inak sa pri konkrétnom počte zobrazí
 // holý kľúč. Jazyky bez vlastného prekladu padajú na EN, čo je správne aj pre CS (rovnaké
 // pravidlá ako SK, ale vlastné texty zatiaľ nemá).
-export function pluralKey(n: number): 'One' | 'Few' | 'Many' {
-  if (n === 1) return 'One';
-  return n >= 2 && n <= 4 ? 'Few' : 'Many';
+// Presunuté do `lib/plural.ts` (25. 8. 2026) — potrebuje ju aj `lib/tripPoints.ts`, ktorý
+// nesmie závisieť od tohto súboru. Re-export drží staršie importy nažive.
+export { pluralKey } from '@/lib/plural';
+
+/**
+ * ── ODYSEA = VIACDŇOVOSŤ, NA JEDNOM MIESTE (Matej 2026-08-27) ─────────────────────────────
+ *
+ * Do 27. 8. bola odysea ŠTVRTÝM STUPŇOM NÁROČNOSTI. Odvtedy je to samostatný príznak:
+ * výlet nesie náročnosť AJ odyseu, takže dvojdňová túra môže byť „stredná" a zároveň odysea.
+ *
+ * 🔴 PRETO TÁ FUNKCIA EXISTUJE. `diff === 'Odyssey'` ostáva pravdou pre 11 katalógových
+ * magistrál (nemigruje sa nič), ale členova dvojdňovka so strednou náročnosťou by pod tou
+ * podmienkou do filtra ODYSEA nespadla — ticho, bez chyby. Kto sa pýta „je to odysea?",
+ * pýta sa TU; kto sa pýta „je to katalógová magistrála?", pýta sa `diff === 'Odyssey'`
+ * a je to iná otázka (viď `packCommunity.ts` a hviezdy v `PackTripArticle.tsx`).
+ *
+ * ⚠️ Dni sa RÁTAJÚ z dvoch dátumov, neukladajú sa — uložený počet by po oprave dátumu klamal.
+ * Cez `Date.UTC`, nie cez lokálny čas: v deň prechodu na letný čas má deň 23 hodín a
+ * delenie 86 400 000 by vrátilo 0,96 dňa, teda „jednodňový" dvojdňový výlet.
+ */
+export function tripDayCount(tr: { date?: string; dateEnd?: string }): number {
+  if (!tr.date || !tr.dateEnd || tr.dateEnd <= tr.date) return 0;
+  const [ay, am, ad] = tr.date.split('-').map(Number);
+  const [by, bm, bd] = tr.dateEnd.split('-').map(Number);
+  if (!ay || !am || !ad || !by || !bm || !bd) return 0;
+  return Math.round((Date.UTC(by, bm - 1, bd) - Date.UTC(ay, am - 1, ad)) / 86400000) + 1;
+}
+
+export function isOdyssey(tr: { diff?: string; date?: string; dateEnd?: string }): boolean {
+  return tr.diff === 'Odyssey' || tripDayCount(tr) >= 2;
 }
 
 export const diffMarkShape = (diff: string): 'circle' | 'square' | 'triangle' =>
@@ -153,12 +189,19 @@ export const WATER_COLOR = '#2E6FD6';
 // sviatkov, minula by sa na najbežnejší prvok mapy.
 // POZOR: toto je farba ČIARY = samostatná os. Náročnosť ostáva na markeroch/pilulkách
 // (DIFF_COLOR) a nesmie sa s ňou zliať — presne to sme rozpletali 2026-07-27.
-export const TRAIL_LINE = { edge: '#170424', mid: '#7A2FBF', light: '#B36BFF', core: '#FFFFFF' } as const;
+// `mid` = telo meča = KANONICKÁ FIALOVÁ VÝLETOV, preto sa berie z témy a nie ako
+// literál (Matej 2026-08-28: „nepoužívajme viac fialových len jednu a tú si definujme").
+// `edge` a `light` sú vrstvy ŽIARY tej istej čiary, nie ďalšie farby palety.
+export const TRAIL_LINE = { edge: '#170424', mid: PACK_THEME.tripPurple, light: '#B36BFF', core: '#FFFFFF' } as const;
 
 // Dosvit sa NEDÁ spraviť hrúbkou čiary — robí ho SVG filter na strednej vrstve (Leaflet
 // renderuje <path>, filter naň sadne). Trieda sa podáva cez pathOptions.className.
 export const TRAIL_LINE_CSS = `
 .trp-saber-glow{filter:drop-shadow(0 0 3px rgba(179,107,255,0.95)) drop-shadow(0 0 9px rgba(155,60,255,0.55));}
+.trp-anchor-live{filter:drop-shadow(0 0 4px rgba(179,107,255,0.9));}
+.trp-anchor-halo{animation:trp-anchor-pulse 1.7s ease-in-out infinite;}
+@keyframes trp-anchor-pulse{0%{opacity:.55;r:9;}50%{opacity:.06;r:19;}100%{opacity:.55;r:9;}}
+@media (prefers-reduced-motion: reduce){.trp-anchor-halo{animation:none;opacity:.3;}}
 `;
 
 // Štyri vrstvy na tých istých bodoch, zdola nahor: tmavý okraj → sýta (nesie dosvit) → svetlá
@@ -220,12 +263,19 @@ export function RatingPaws({ stars, size = 15, gap = 4 }: { stars: number; size?
         const fillPct = Math.round(Math.max(0, Math.min(1, rounded - (n - 1))) * 100);
         return (
           <span key={n} style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+            {/* ⚠️ NEVYPLNENÁ ČASŤ SA RIADI PREMENNOU, NIE PEVNÝM FILTROM. Widget stojí na
+                tmavom povrchu (mobil, článok) aj na papyrusovom (karty v ľavom paneli /map
+                na PC) — a `brightness(0) invert(1)` je BIELA, teda na piesku neviditeľná.
+                Vtedy by z päťky ostali len vyplnené labky a stupnica by zanikla: 3,0 a 5,0
+                by vyzerali rovnako. Východisko je biele (tmavý povrch), bledý chrome si
+                premenné prepíše. */}
             <img
               src={ICON('paw')}
               alt=""
               style={{
                 position: 'absolute', inset: 0, width: size, height: size,
-                filter: 'brightness(0) invert(1)', opacity: 0.28,
+                filter: 'var(--rp-empty-filter, brightness(0) invert(1))',
+                opacity: 'var(--rp-empty-opacity, 0.28)' as unknown as number,
               }}
             />
             {fillPct > 0 && (
@@ -253,7 +303,44 @@ export function RatingPaws({ stars, size = 15, gap = 4 }: { stars: number; size?
 // 🔴 Krivka je taká presná ako geometria trasy — pri kľukatých/skracujúcich trasách (viď
 // pamäť trasy_geometria) môže vyhladiť serpentíny; presnosť sa zlepší až po snap-to-trail.
 // Menej než 2 body → nezmysel na vykreslenie, vráti null (caller sekciu vôbec nezobrazí).
-export function ElevationProfile({ elev, km }: { elev: number[] | undefined; km: number }) {
+/**
+ * ── ČÍTANIE PROFILU MYŠOU (Matej 2026-08-26) ────────────────────────────────────────────
+ *
+ * „dá sa v prevýšení pri dotyku myšou na trase spozorovať aké sú to metre = priložím šípku
+ *  na fialovú úsečku v ľavom paneli a na trase v mape budem vidieť pohyb bodky."
+ *
+ * Graf dovtedy hlásil len tri čísla (najvyšší bod, najnižší, dĺžka) — tvar kopca bol vidieť,
+ * ale nedalo sa zistiť, KDE na trase ten kopec je. Ukazovateľ odpovedá na obe polovice naraz:
+ * v grafe povie metre a kilometer, na mape sa v tej istej chvíli rozsvieti bodka.
+ *
+ * ⚠️ `onHover` je NEPOVINNÉ a hlási INDEX, nie súradnicu. Profil nevie, z akej čiary tie
+ * výšky vznikli — bod na mape musí dopočítať ten, kto mu ich podal (`GeometryPicker`).
+ * Povrchy, ktoré ukazovateľ nechcú (článok výletu, detail v mape), prop nepodajú a dostanú
+ * presne to, čo mali doteraz.
+ * ⚠️ `pointer-events` je na SVG zapnuté len vtedy, keď o hover niekto stojí — inak by graf
+ * kradol ťuk na povrchoch, kde je len obrázkom.
+ */
+export function ElevationProfile({ elev, km, onHover }: {
+  elev: number[] | undefined;
+  km: number;
+  onHover?: (index: number | null) => void;
+}) {
+  const [at, setAt] = useState<number | null>(null);
+  const interactive = !!onHover;
+  const move = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (!interactive || !elev) return;
+    const box = e.currentTarget.getBoundingClientRect();
+    if (!box.width) return;
+    const W = 300, P = { r: 4, l: 28 };
+    // Z pixelov okna na index vzorky: najprv na súradnicu viewBoxu, potom na podiel kreslenej
+    // plochy (graf nezačína na nule — vľavo stoja popisky metrov).
+    const vx = ((e.clientX - box.left) / box.width) * W;
+    const frac = (vx - P.l) / (W - P.l - P.r);
+    const i = Math.round(Math.min(1, Math.max(0, frac)) * (elev.length - 1));
+    setAt(i);
+    onHover(i);
+  };
+  const leave = () => { if (!interactive) return; setAt(null); onHover?.(null); };
   if (!elev || elev.length < 2 || !(km > 0)) return null;
   const W = 300, H = 84, P = { t: 8, r: 4, b: 16, l: 28 };
   const minY = Math.min(...elev), maxY = Math.max(...elev);
@@ -261,8 +348,15 @@ export function ElevationProfile({ elev, km }: { elev: number[] | undefined; km:
   const sy = (v: number) => H - P.b - ((v - minY) / Math.max(maxY - minY, 1)) * (H - P.t - P.b);
   const d = elev.map((v, i) => `${i ? 'L' : 'M'}${sx(i).toFixed(1)} ${sy(v).toFixed(1)}`).join(' ');
   const area = `${d} L${sx(elev.length - 1).toFixed(1)} ${H - P.b} L${sx(0).toFixed(1)} ${H - P.b} Z`;
+  const cur = at !== null && at >= 0 && at < elev.length ? at : null;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }} aria-hidden="true">
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      style={{ width: '100%', height: 'auto', display: 'block', touchAction: 'pan-y' }}
+      aria-hidden="true"
+      onPointerMove={interactive ? move : undefined}
+      onPointerLeave={interactive ? leave : undefined}
+    >
       <line x1={P.l} y1={H - P.b} x2={W - P.r} y2={H - P.b} stroke={PACK_THEME.onDarkBorder} />
       <path d={area} fill="url(#elevFill)" />
       <path d={d} fill="none" stroke="#F5C73D" strokeWidth={1.8} strokeLinejoin="round" strokeLinecap="round" />
@@ -275,6 +369,25 @@ export function ElevationProfile({ elev, km }: { elev: number[] | undefined; km:
       <text x={2} y={sy(maxY) + 4} fill={PACK_THEME.onDarkDim} fontSize="9">{Math.round(maxY)} m</text>
       <text x={2} y={sy(minY) + 4} fill={PACK_THEME.onDarkDim} fontSize="9">{Math.round(minY)} m</text>
       <text x={W - P.r} y={H - 4} fill={PACK_THEME.onDarkDim} fontSize="9" textAnchor="end">{km.toFixed(1)} km</text>
+      {/* Ukazovateľ: zvislica cez celý graf, guľôčka na krivke a metre nad ňou. Farbu nesie
+          krivka (currentColor cez triedu `.trp-elev-cursor` v hostiteľovi), aby ukazovateľ
+          patril k tej istej čiare, na ktorej stojí — a nie k pozadiu grafu. */}
+      {cur !== null && (
+        <g className="trp-elev-cursor">
+          <line x1={sx(cur)} y1={P.t - 4} x2={sx(cur)} y2={H - P.b} stroke="currentColor" strokeWidth={1} strokeDasharray="2 3" opacity={0.9} />
+          <circle cx={sx(cur)} cy={sy(elev[cur])} r={3.4} fill="currentColor" stroke="#FFFFFF" strokeWidth={1.2} />
+          <text
+            x={Math.min(W - P.r, Math.max(P.l, sx(cur)))}
+            y={Math.max(9, sy(elev[cur]) - 7)}
+            fill="currentColor"
+            fontSize="10"
+            fontWeight={700}
+            textAnchor={sx(cur) > W * 0.7 ? 'end' : sx(cur) < W * 0.3 ? 'start' : 'middle'}
+          >
+            {Math.round(elev[cur])} m · {((cur / (elev.length - 1)) * km).toFixed(1)} km
+          </text>
+        </g>
+      )}
     </svg>
   );
 }
@@ -443,6 +556,76 @@ export function migrateRenamedTripIds(): void {
 // Modul už na tejto úrovni siaha na storage (trpStore probe vyššie), takže to nič nemení navyše.
 migrateRenamedTripIds();
 
+// ── PRIEHRADKA NA NEDOKONČENÉ VÝLETY (2026-08-25) ────────────────────────────────────────
+//
+// Výlet, ktorému chýba niektoré z povinných polí (náročnosť · povrch · ruch · tagy · labky),
+// je KONCEPT: autor ho vidí a môže dopísať, pack ho nevidí.
+//
+// Prečo to musí byť aj v prehliadači, keď to drží RLS: `pack_trips_read` pustí cudzí výlet až
+// po schválení, takže cudzí koncept sa sem dnes nedostane — a presne preto je to lacná poistka.
+// Prvý, kto ju obíde, bude admin, ktorý koncept omylom schváli; vtedy sa má výlet chovať ako
+// koncept ďalej, nie sa zjaviť na mape polovičný.
+//
+// ⚠️ NEZNÁMY autor = MÔJ. Meta mapa je prázdna, kým sa nehydratovalo (packStore.ts), a čerstvo
+// zapísaný výlet v nej nie je vôbec. Opačná voľba by človeku zmizla vlastná práca hneď po
+// uložení — teda presne v okamihu, keď mu appka tvrdí „nájdeš ho tam a tam".
+
+/**
+ * Čo výletu chýba do zverejnenia. Prázdne pole = hotový alebo sa ho pravidlo netýka.
+ *
+ * `members` je nepovinné len kvôli cene: bez neho sa `trp-local-trails` prečíta a rozparsuje
+ * pri KAŽDOM volaní. Jeden výlet (článok, reveal) to znesie; zoznam si množinu vytiahne raz
+ * cez `memberTrailIds()` a podá ju sem.
+ */
+export function tripDraftMissing(trail: HeroTrail, members?: Set<string>): string[] {
+  // Plán nemá povinné polia (§4.3 platí len pre prejdené) a katalóg nie je členský obsah.
+  if (trail.id.startsWith('plan-')) return [];
+  if (!(members ?? memberTrailIds()).has(trail.id)) return [];
+  return missingOnTrail(trail);
+}
+
+export const isTripDraft = (trail: HeroTrail, members?: Set<string>): boolean =>
+  tripDraftMissing(trail, members).length > 0;
+
+/** Id výletov, ktoré nahodili členovia — kurátorovaný dataset sem nepatrí. */
+export function memberTrailIds(): Set<string> {
+  return new Set(readLocalTrails().map((t) => t.id));
+}
+
+/**
+ * Vyhodí zo zoznamu CUDZIE nedokončené výlety. Volá sa nad `readLocalTrails()` VŠADE, kde sa
+ * skladá `allTrails` — dnes je to šesť miest a každé si zoznam skladalo samo, takže siedme by
+ * na priehradku zabudlo bez toho, aby si to niekto všimol.
+ */
+/**
+ * @param opts.withMissedPlans TRIPLIST a nič iné. Plán, na ktorý človek odpovedal „nešiel som",
+ *   má podľa Matejovho rozhodnutia (25. 8. 2026) ostať **iba v tripliste u autora, nikde inde** —
+ *   teda von z mapy, z „next up" aj zo zoznamov, ale bez zmazania. Preto sa neškrtá záznam, len
+ *   sa tu odfiltruje; triplist si ho vypýta príznakom.
+ *
+ *   ⚠️ TO ISTÉ PLATÍ PRE PLÁN, NA KTORÝ NIKTO NEODPOVEDAL (doplnené 26. 8.). Matejovo štvrté
+ *   rozhodnutie znie: „karta sa pýta 7 dní, potom prestane a plán ide do triplistu ako
+ *   neuskutočnený — rovnaký koniec, len bez klikania". Bez tohto riadku sa mlčanie končilo
+ *   inak než kliknutie: karta stíchla, ale plán ostal visieť na mape s termínom v minulosti.
+ *   Fáza sa POČÍTA (`planPhase`), neukladá — uložený príznak by po presune termínu klamal.
+ */
+export function visibleLocalTrails(local: HeroTrail[], opts?: { withMissedPlans?: boolean }): HeroTrail[] {
+  const meta = readLocalTrailMeta();
+  const keepPlans = !!opts?.withMissedPlans;
+  const missed = keepPlans ? null : readMissedPlans();
+  const nowMs = Date.now();
+  return local.filter((tr) => {
+    if (tr.id.startsWith('plan-')) {
+      if (keepPlans) return true;
+      if (missed && tr.id in missed) return false;
+      return planPhase(tr.date, nowMs) !== 'gone';
+    }
+    const mine = meta[tr.id]?.mine ?? true;
+    if (mine) return true;
+    return missingOnTrail(tr).length === 0;
+  });
+}
+
 export function readLocalTrails(): HeroTrail[] {
   try {
     const raw = trpStore.getItem(LOCAL_TRAILS_KEY);
@@ -462,6 +645,25 @@ export function writeLocalTrails(trails: HeroTrail[]): boolean {
   } catch { return false; /* private mode / quota — volajúci nech to ošetrí */ }
   const added = trails.filter((t) => !prevIds.has(t.id)).map((t) => t.id);
   if (added.length) queueLocalTripUpload(added);
+  return true;
+}
+
+/**
+ * PREPÍŠE UŽ ULOŽENÝ ČLENSKÝ VÝLET a postará sa, aby zmena došla aj do Supabase.
+ *
+ * ⚠️ `writeLocalTrails` posiela do fronty len NOVÉ id (diff proti predošlému zápisu), takže
+ * úprava existujúceho výletu by skončila v prehliadači a najbližšia hydratácia by ju prebila
+ * záznamom z `pack_trips`. Vyzeralo by to, že sa dopísané polia „neuložili" — pritom sa
+ * uložili, len ich server o chvíľu vrátil do pôvodného stavu. Preto sa fronta volá výslovne.
+ */
+export function updateLocalTrail(id: string, patch: Partial<HeroTrail>): boolean {
+  const all = readLocalTrails();
+  if (!all.some((t) => t.id === id)) return false;
+  const next = all.map((t) => (t.id === id ? { ...t, ...patch } : t));
+  try {
+    trpStore.setItem(LOCAL_TRAILS_KEY, JSON.stringify(next));
+  } catch { return false; /* kvóta — volajúci nech to ošetrí, rovnako ako writeLocalTrails */ }
+  queueLocalTripUpload([id]);
   return true;
 }
 

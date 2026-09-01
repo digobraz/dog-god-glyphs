@@ -8,15 +8,42 @@
 import type { LatLngTuple } from 'leaflet';
 
 // Poradie = poradie pillov vo formulári (zhluknuté podľa príbuznosti, nie abecedne).
-// `workshop` doplnil Matej 6.8.2026; `meetup`/`adoption`/`camp` pribudli s ním — zraz bez
-// prechádzky nie je `social_walk`, adopčný deň útulku nie je `charity` (nič sa nevyberá,
-// hľadá sa domov) a viacdňový tábor nie je `training`. Musí sedieť na CHECK constraint
-// v `vystupy/supabase/migrations/20260806_events.sql`.
-export type EventKind = 'race' | 'show' | 'training' | 'workshop' | 'lecture'
-  | 'social_walk' | 'meetup' | 'charity' | 'adoption' | 'camp' | 'expo';
+// `camp` pribudol 6.8.2026 — viacdňový tábor nie je `training`. Musí sedieť na CHECK
+// constraint v `vystupy/supabase/migrations/20260806_events.sql`.
+//
+// ── OSMIČKA, NIE JEDENÁSTKA (Matej 24. 8. 2026, matrica značiek) ────────────────────────
+// Von išli `workshop`, `meetup` a `adoption`. Nie preto, že by sa nekonali, ale preto, že
+// človek, ktorý ich zapisuje, si medzi nimi a susedom nevyberie: workshop vs. prednáška,
+// zraz vs. spoločná prechádzka, adopčný deň vs. charita. Jedenásť pilulek vo formulári
+// bolo viac deliacich čiar než rozdielov — a typ, ktorý sa vyberá hodom mincou, dataset
+// neupratuje, ale špiní.
+// ⚠️ Migrácia `20260806_events.sql` NIE JE nasadená na žiadnej DB (eventy žijú
+// v localStorage), takže sa nič nemigruje. Starý uložený draft s týmto typom prežije:
+// `eventEmoji()` mu dá 🎪 a `EventCard` padne na `?? draft.kind`.
+export type EventKind = 'race' | 'show' | 'training' | 'lecture'
+  | 'social_walk' | 'charity' | 'camp' | 'expo';
 export type EventOrigin = 'own' | 'tip';
 
-export const EVENT_KINDS: EventKind[] = ['race', 'show', 'training', 'workshop', 'lecture', 'social_walk', 'meetup', 'charity', 'adoption', 'camp', 'expo'];
+export const EVENT_KINDS: EventKind[] = ['race', 'show', 'training', 'lecture', 'social_walk', 'charity', 'camp', 'expo'];
+
+// ── i18n KĽÚČE TYPOV — JEDEN ZDROJ (oprava 2026-08-22) ─────────────────────────────────────
+// Túto tabuľku mali OPÍSANÚ dva súbory (AddEvent.tsx, EventCard.tsx) a obe kópie zamrzli na
+// SIEDMICH typoch z 6. 8. ráno. Keď v ten istý deň pribudli `workshop`, `meetup`, `adoption`
+// a `camp`, preklady sa do `sk.ts`/`en.ts` doplnili — ale nikto sa na ne nepýtal:
+//   · vo FORMULÁRI dostal `t(undefined)` → štyri PRÁZDNE pilulky, ktoré sa dali stlačiť
+//   · na KARTE padol fallback na `t(draft.kind)` → holé anglické „workshop" aj v slovenčine
+// Typ `Record<EventKind, string>` je tu tá poistka, ktorá to už nedovolí: ďalší typ v
+// `EventKind` neprejde prekladačom, kým nedostane kľúč.
+export const EVENT_KIND_LABEL_KEYS: Record<EventKind, string> = {
+  race: 'pack.addEvent.kind.race',
+  show: 'pack.addEvent.kind.show',
+  training: 'pack.addEvent.kind.training',
+  lecture: 'pack.addEvent.kind.lecture',
+  social_walk: 'pack.addEvent.kind.social_walk',
+  charity: 'pack.addEvent.kind.charity',
+  camp: 'pack.addEvent.kind.camp',
+  expo: 'pack.addEvent.kind.expo',
+};
 
 // Jeden ročník (event_editions riadok) + denormalizovaný `title`/`kind`/`country` zo série —
 // vo vlne 1 nemá zmysel držať dve tabuľky v localStorage, kým DB neexistuje (§9 krok 2→3).

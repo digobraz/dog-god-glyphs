@@ -27,15 +27,18 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { X, ChevronLeft, RotateCcw, Check } from 'lucide-react';
 import { PACK_THEME, PACK_BOX, PACK_COL, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import {
-  NATURE_QUESTIONS, NATURE_ELEMENTS, NATURE_ROLES, NATURE_SPECIALS,
-  SPECIAL_KEYS, ELEMENT_KEYS, ROLE_KEYS, NATURE_ATTRIBUTION, scoreNature, natureTitleEN,
-  natureResultFromStored, hasNatureScores, guidanceFor, NUTRITION_DISCLAIMER,
+  ELEMENT_QUESTIONS, ROLE_QUESTIONS, BALANCE_ITEMS, BALANCE_VET_NOTE,
+  NATURE_ELEMENTS, NATURE_ROLES, NATURE_SPECIALS,
+  SPECIAL_KEYS, ELEMENT_KEYS, ROLE_KEYS, NATURE_ATTRIBUTION, scoreNature, scoreBalance,
+  natureTitleEN, natureResultFromStored, hasNatureScores, guidanceFor, NUTRITION_DISCLAIMER,
   type SpecialAnswer, type SpecialKey, type NatureResult, type Guidance,
+  type BalanceResult, type BalanceItem, type ElementKey,
 } from '@/components/pack/natureQuiz';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { appendDogEvents, readLatestForDogs, type DogEventInput } from '@/lib/dogEvents';
 import ainubisBadge from '@/assets/ainubis-badge.png';
 import { supabase } from '@/integrations/supabase/client';
+import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
@@ -45,6 +48,17 @@ const NAME_FONT = "'Cinzel Decorative', 'Cinzel', serif";
 const INTRO_ART = '/images/nature-quiz-art.webp';
 /** Kam vedie X, „Odísť" aj „Hotovo". Viď komentár pri `leave()` v stránke. */
 const QUIZ_EXIT = '/pack/dogs';
+/**
+ * Výsledok otvorený z DOG ID sa musí vrátiť NA TEN DOKLAD, nie o poschodie vyššie
+ * na zoznam psov (Matej 22. 8.: „následne sa vrátiť na dog id šípkou").
+ *
+ * ⚠️ Cieľ sa skladá z `?dog=`, nie z cesty v URL. Parameter `from` nesie len príznak
+ * `id` — keby niesol celú cestu, dal by sa cez odkaz poslať človek kamkoľvek.
+ * Vracia `null`, keď sa neprišlo z dokladu; volajúci vtedy použije `QUIZ_EXIT`.
+ */
+function exitFor(from: string | null, dogId: string | null): string | null {
+  return from === 'id' && dogId ? `/pack/dogs/${dogId}` : null;
+}
 
 interface QuizDog {
   id: string; dog_name: string | null; cloudinary_main_url: string | null;
@@ -366,10 +380,20 @@ const NQ_CSS = `
    šírku — text bez obrazu, nič, na čo by oko skočilo.
    Geometria je z matrice PACK_BOX.subblock: papyrusový gradient + PLNÝ zlatý rám
    + r12, nie plochý tileBg so slabým okrajom. */
-.nq-axes{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.nq-axes{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
 .nq-axis{
-  aspect-ratio:1/1;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  /* ŽIADNY pomer strán. Pri dvoch dlaždiciach bol štvorec pekný, pri troch má
+     dlaždica ~225 px a text „what everyone gets wrong about it" sa doň nezmestí —
+     orezal by sa. Rovnakú výšku drží stretch mriežky, teda najvyšší súrodenec. */
+  min-height:186px;
+  /* ⚠️ flex-start, NIE center (22. 8. 2026). Pri centrovaní visí zvislá poloha
+     ikony na dĺžke textu POD ňou, takže tri dlaždice majú tri rôzne výšky ikon —
+     v EN to bolo náhodou v poriadku (všetky popisy vyšli na štyri riadky), v SK
+     hneď vidno rozhádzaný rad. Zhodnú výšku dlaždíc drží stretch mriežky, nie
+     zarovnanie obsahu; mobilná vetva nižšie mala flex-start odjakživa.
+     ⚠️ Tento blok je JS template literal — spätný apostrof ho zhodí a tsc to
+     nechytí. Do komentárov v CSS ich nepíš. */
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
   text-align:center; gap:11px; padding:18px 14px;
   background:linear-gradient(135deg,#FBF5E6 0%,#F2E2BD 100%);
   border:1.5px solid #C99A3F; border-radius:14px;
@@ -543,7 +567,10 @@ const NQ_CSS = `
   .nq-axisicon img{ width:26px; height:26px; }
   .nq-axistitle{ font-size:11.5px; letter-spacing:.1em; }
   .nq-axissub{ font-size:11px; line-height:1.42; }
-  .nq-axes{ gap:10px; }
+  /* Pod 760 px idú POD SEBA. Tri stĺpce by na telefóne dali ~110 px na dlaždicu —
+     nadpis „ROLE IN THE PACK" by sa lámal na tri riadky. */
+  .nq-axes{ grid-template-columns:1fr; gap:10px; }
+  .nq-axis{ min-height:0; }
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
@@ -945,15 +972,23 @@ function DogIdNote({ tx }: { tx: (k: string, f: string) => string }) {
           boxShadow: '0 0 0 4px rgba(59,158,255,0.06), 0 0 20px rgba(59,158,255,0.34)',
         }}
       />
+      {/* ⚠️ VLASTNÉ KĽÚČE, NIE `axis3`. Tento panel a TRETIA DLAŽDICA úvodu
+          (r. ~2176) mali do 22. 8. 2026 obe kľúč `pack.nature.intro.axis3`,
+          len s iným fallbackom — panel „It goes into the DOG ID", dlaždica
+          „Balance right now". Kým kvíz nemal v i18n ani jeden kľúč, každé
+          miesto si vzalo svoj fallback a nikto si toho nevšimol. Prvý zápis
+          do slovníka to okamžite zlomil: obe miesta začali ukazovať ten istý
+          text a z tretej dlaždice („rovnováha") sa stala kópia panela.
+          Kolízia kľúčov sa neprejaví ako chyba, len ako zlý text. */}
       <div style={{ minWidth: 0 }}>
         <div style={{
           fontFamily: FONT_TITLE, fontWeight: 700, textTransform: 'uppercase',
           fontSize: 12.5, letterSpacing: '.08em', color: '#5BE0F0', marginBottom: 5,
-        }}>{tx('pack.nature.intro.axis3', 'It goes into the DOG ID')}</div>
+        }}>{tx('pack.nature.intro.dogid', 'It goes into the DOG ID')}</div>
         <div style={{
           fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.55, color: T.onDarkDim,
         }}>
-          {tx('pack.nature.intro.axis3sub',
+          {tx('pack.nature.intro.dogidSub',
             'Your answers are written onto your dog’s DOG ID and stay there. From there they shape the advice you get later — food, daily routine, training — so it fits this dog, not dogs in general.')}
         </div>
       </div>
@@ -1358,8 +1393,118 @@ function Shell({ children, onClose, fill, overlay }: {
  *  • Zvláštna úloha NIKDY bez prefixu — `The Loner` by sa zrazil s tagom povahy
  *    `loner` („Samotár").
  */
-function ResultDoc({ dog, r, tx }: {
-  dog: QuizDog; r: NatureResult; tx: (k: string, f: string) => string;
+/* ── I·b · ROVNOVÁHA (kvíz 2) ─────────────────────────────────────────────────
+   Stojí HNEĎ ZA konštitúciou, lebo sa k nej vzťahuje: nadbytok a nedostatok sú
+   posuny toho istého elementu. Vykresľuje sa len keď človek niečo zaškrtol —
+   prázdny zoznam je najčastejšia a najlepšia odpoveď a prázdna sekcia by z nej
+   robila chýbajúci údaj.
+
+   🔴 DIAGNÓZY DOSTÁVAJÚ INÚ VETU NEŽ PREJAVY, a to je celá poistka tejto vrstvy.
+   Zdrojový hárok Dr. Judy dáva na nádor v mieche rovnakú odpoveď ako na suchú
+   srsť („feed X"). Tu sa diagnózy do obrazu rovnováhy počítajú, ale rada k miske
+   sa k nim nepíše — patrí k nim `BALANCE_VET_NOTE` a nič iné.
+
+   🔑 VÝŽIVA OPORY SA VYKRESĽUJE TU, NIE ODKAZOM (22. 8. 2026). Do tohto dňa tu
+   stála veta „ich výživa hore je odkiaľ začať" — lenže „hore" je výživa psovho
+   VLASTNÉHO elementu (`el = NATURE_ELEMENTS[r.element]`), kým opora je spravidla
+   iný element. Majiteľ teda dostal príkaz „opri sa o Vodu" a odkaz na text, ktorý
+   na stránke nebol. Tým sa celý kvíz 2 zmenšil na holé meno elementu — presne
+   preto pôsobil, že nič nerobí.
+   ⚠️ Opora, ktorá sa ROVNÁ psovmu elementu, sa nevykresľuje znova (pri nedostatku
+   je prvou oporou vždy element sám). V tom prípade — a len v ňom — je pôvodná veta
+   „ich výživa hore" VECNE SPRÁVNA, tak zostáva. */
+function BalanceSection({ b, own, tx }: {
+  b: BalanceResult; own: ElementKey; tx: (k: string, f: string) => string;
+}) {
+  if (!b.top) return null;
+  const dir = b.top.side === 'excess'
+    ? tx('pack.nature.balance.excess', 'too much')
+    : tx('pack.nature.balance.deficiency', 'not enough');
+  const leaning = tx(NATURE_ELEMENTS[b.top.element].i18n, NATURE_ELEMENTS[b.top.element].labelEN);
+  /** Opory, ktoré na stránke ešte nie sú. Prázdne pole = všetko je už v sekcii I. */
+  const extra = b.top.support.filter((k) => k !== own);
+  const chip = (it: BalanceItem) => (
+    <span key={it.id} className="pf-pill" style={{
+      fontFamily: FONT_UI, fontSize: 11.5, padding: '5px 11px', borderRadius: 999,
+      border: `1px solid ${T.border}`, background: T.tileBg, color: T.inkStrong,
+    }}>{tx(it.i18n, it.labelEN)}</span>
+  );
+  return (
+    <>
+      <SecHead num="I·b"
+        title={tx('pack.nature.doc.ib.title', 'Where the balance is leaning')}
+        sub={tx('pack.nature.doc.ib.sub', 'What you ticked, read the way Chinese medicine reads it')}
+      />
+      <p style={{ fontFamily: FONT_UI, fontSize: 13.5, lineHeight: 1.6, color: T.inkStrong, margin: '0 0 12px' }}>
+        {tx('pack.nature.balance.reading', 'In Traditional Chinese Medicine this reads as')}{' '}
+        <b>{dir} {leaning}</b>.
+      </p>
+
+      {b.signs.length > 0 && (
+        <div className="nqd-panel quiet">
+          <p className="nqd-eyebrow">{tx('pack.nature.balance.signs', 'What you ticked')}</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>{b.signs.map(chip)}</div>
+          {b.top.support.length > 0 && (
+            <p className="dim" style={{ marginTop: 11 }}>
+              {tx('pack.nature.balance.support', 'The elements to lean on here are')}{' '}
+              <b>{b.top.support.map((k) => tx(NATURE_ELEMENTS[k].i18n, NATURE_ELEMENTS[k].labelEN)).join(' · ')}</b>
+              {'. '}
+              {extra.length === 0
+                // Opora = psov vlastný element. „Hore" je vtedy naozaj hore.
+                ? tx('pack.nature.balance.supportHow',
+                  'Their food notes above are where to start — this is a leaning, not a prescription.')
+                : tx('pack.nature.balance.supportBelow',
+                  'Where to start is right below — this is a leaning, not a prescription.')}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Výživa opory. Ten istý zámok ako v sekcii I (`natureQuiz.ts`): sklon,
+          suroviny a réžia misky ÁNO — dávky, doplnky a liečba NIE. Preto sa berie
+          `foodEN` toho istého datasetu, nič sa pre rovnováhu nepíše zvlášť. */}
+      {extra.map((k) => {
+        const s = NATURE_ELEMENTS[k];
+        return (
+          <div key={k} className="nqd-panel" style={{ marginTop: 12 }}>
+            <p className="nqd-eyebrow">
+              {tx(s.i18n, s.labelEN)} · {tx('pack.nature.doc.food', 'What suits them')}
+            </p>
+            <ul className="nqd-list tight">
+              {s.foodEN.map((t, i) => <li key={i}><Bold s={tx(`${s.i18n}.food${i}`, t)} /></li>)}
+            </ul>
+          </div>
+        );
+      })}
+
+      {/* Tmavý podblok — jediná výnimka z papyrusového locku, siaha sa po nej za
+          VÝZNAM. Presne ako ZÁVET na DOG ID: sekcia, ktorá hovorí o chorobe, nesmie
+          mať na papyruse rovnakú váhu ako obľúbená maškrta. */}
+      {b.diagnoses.length > 0 && (
+        <div style={{ ...PACK_BOX.subblockDark, padding: '14px 16px', marginTop: 12 }}>
+          <p className="nqd-eyebrow" style={{ color: T.cardEdge }}>
+            {tx('pack.nature.balance.vet', 'This belongs with your vet')}
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '8px 0 10px' }}>
+            {b.diagnoses.map((it) => (
+              <span key={it.id} className="pk-pill--dark" style={{
+                fontFamily: FONT_UI, fontSize: 11.5, padding: '5px 11px', borderRadius: 999,
+                border: `1px solid ${T.cardEdge}`, background: 'rgba(201,154,63,0.10)', color: T.onDark,
+              }}>{tx(it.i18n, it.labelEN)}</span>
+            ))}
+          </div>
+          <p style={{ fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.6, color: T.onDarkDim, margin: 0 }}>
+            {tx(BALANCE_VET_NOTE.i18n, BALANCE_VET_NOTE.textEN)}
+          </p>
+        </div>
+      )}
+      <Orn />
+    </>
+  );
+}
+
+function ResultDoc({ dog, r, b, tx }: {
+  dog: QuizDog; r: NatureResult; b?: BalanceResult; tx: (k: string, f: string) => string;
 }) {
   const role = NATURE_ROLES[r.role];
   const el = NATURE_ELEMENTS[r.element];
@@ -1509,6 +1654,8 @@ function ResultDoc({ dog, r, tx }: {
 
         <Orn />
 
+        {b && <BalanceSection b={b} own={r.element} tx={tx} />}
+
         {/* ── II · ÚLOHA VO SVORKE ───────────────────────────────────────────
             Hovorí o RÉŽII DŇA — koľko práce a koľko vypnutia. O jedle nikdy.
             `functionEN` sa tu ZÁMERNE nevykresľuje (Matej 21.8. ju zrušil):
@@ -1655,7 +1802,16 @@ function ResultDoc({ dog, r, tx }: {
 
 /* ── stránka ──────────────────────────────────────────────────────────────── */
 
-type Phase = 'intro' | 'core' | 'special' | 'result';
+/**
+ * Od prestavby 22. 8. 2026 sú to TRI kvízy za sebou, nie jeden zmiešaný.
+ * Poradie je vecné: element hovorí, z čoho je pes stvorený → rovnováha stojí NA
+ * ňom (nadbytok/nedostatok sa vzťahuje k elementu) → úloha je iná os a ide až
+ * potom, aby sa človeku nemiešali dve rôzne otázky o tom istom psovi.
+ *
+ * `element` a `role` majú zhodné vykreslenie — líšia sa len zoznamom otázok.
+ * Preto ich obsluhuje jedna vetva, nie dve kópie, ktoré sa časom rozídu.
+ */
+type Phase = 'intro' | 'element' | 'balance' | 'role' | 'special' | 'result';
 
 export default function PackNatureQuiz() {
   const navigate = useNavigate();
@@ -1673,10 +1829,15 @@ export default function PackNatureQuiz() {
    *  `/pack/dogs` teda vysypal človeka na úvod kvízu a výsledok sa po odchode
    *  z obrazovky nedal pozrieť už NIKDY. */
   const wantStored = params.get('view') === 'result';
+  /** Odkiaľ sa prišlo. Dnes jediná hodnota: `id` = z DOG ID konkrétneho psa. */
+  const cameFrom = params.get('from');
+  /** JEDNO miesto, kam vedie odchod. Lock z 18. 8. platí ďalej — päť rozsypaných
+   *  `navigate()` sa raz už rozišlo, preto sa cieľ počíta tu a nikde inde. */
+  const exitTo = exitFor(cameFrom, onlyDogId) ?? QUIZ_EXIT;
 
   const [dogs, setDogs] = useState<QuizDog[] | null>(null);
   /** `null` = ešte sa načítava, `[]` = niet čo čítať (→ spadne to na kvíz). */
-  const [stored, setStored] = useState<{ dog: QuizDog; r: NatureResult }[] | null>(null);
+  const [stored, setStored] = useState<{ dog: QuizDog; r: NatureResult; b: BalanceResult }[] | null>(null);
   const [reading, setReading] = useState(wantStored);
   const [phase, setPhase] = useState<Phase>('intro');
   const [idx, setIdx] = useState(0);
@@ -1684,6 +1845,13 @@ export default function PackNatureQuiz() {
   const [answers, setAnswers] = useState<Record<string, Record<string, string>>>({});
   /** dogId → zvláštna úloha → yes/sometimes/no */
   const [specials, setSpecials] = useState<Record<string, Partial<Record<SpecialKey, SpecialAnswer>>>>({});
+  /**
+   * dogId → zaškrtnuté `id` z `BALANCE_ITEMS`. Kvíz 2 je JEDINÁ obrazovka, kde sa
+   * nevyberá jedna možnosť z piatich — pes môže mať päť prejavov naraz a nútiť ho
+   * vybrať jeden by výsledok falšoval. Prázdne pole je platná odpoveď: „nič z toho
+   * na neho nesedí" je najčastejší a najlepší výsledok.
+   */
+  const [balance, setBalance] = useState<Record<string, string[]>>({});
   const [saved, setSaved] = useState(false);
   const [askLeave, setAskLeave] = useState(false);
   // Zrkadlo stavu pre kliky, ktoré prídu skôr, než React stihne prekresliť.
@@ -1703,7 +1871,15 @@ export default function PackNatureQuiz() {
     (async () => {
       const { data: auth } = await supabase.auth.getUser();
       const uid = auth?.user?.id;
-      if (!uid) { if (alive) setDogs([]); return; }
+      // Dev bez prihlásenia (`VITE_PACK_NOAUTH=1`) → tá istá mock svorka ako v hube,
+      // inak by sa kvíz na telefóne nedal otvoriť. Prod tu ostáva prázdny.
+      if (!uid) {
+        if (alive) {
+          const mock = DEV_MOCK_DOGS.filter((d) => !onlyDogId || d.id === onlyDogId);
+          setDogs(DEV_NOAUTH ? (mock as QuizDog[]) : []);
+        }
+        return;
+      }
       let q = supabase
         .from('dogs')
         .select('id, dog_name, cloudinary_main_url, heroglyph_png_url')
@@ -1730,7 +1906,7 @@ export default function PackNatureQuiz() {
     let alive = true;
     readLatestForDogs(dogs.map((d) => d.id)).then((byDog) => {
       if (!alive) return;
-      const out: { dog: QuizDog; r: NatureResult }[] = [];
+      const out: { dog: QuizDog; r: NatureResult; b: BalanceResult }[] = [];
       for (const d of dogs) {
         const v = byDog[d.id] ?? {};
         const r = natureResultFromStored({
@@ -1739,7 +1915,13 @@ export default function PackNatureQuiz() {
           specials: v['nature.specials']?.value,
           scores: v['nature.scores']?.value,
         });
-        if (r) out.push({ dog: d, r });
+        // Rovnováha sa dopočíta zo ZAŠKRTNUTÝCH `id`, nie zo zapísaného záveru —
+        // preto sa smie triedenie prejav/diagnóza aj prevodná tabuľka opraviť bez
+        // toho, aby karty psov ostali visieť na starej rade. Pes, ktorý kvíz prešiel
+        // pred 22. 8., pole nemá a sekcia sa proste nevykreslí.
+        const picked = v['nature.balance']?.value;
+        const b = scoreBalance(Array.isArray(picked) ? (picked as string[]) : []);
+        if (r) out.push({ dog: d, r, b });
       }
       setStored(out);
       if (out.length === 0) setReading(false);
@@ -1752,18 +1934,32 @@ export default function PackNatureQuiz() {
   const startOver = () => {
     setReading(false);
     setStored(null);
-    navigate(onlyDogId ? `/pack/nature?dog=${onlyDogId}` : '/pack/nature', { replace: true });
+    // ⚠️ `from` musí prežiť. Zhadzuje sa len `view=result`, lebo po novom behu by
+    // človeka vrátilo do čítania toho STARÉHO výsledku — ale cesta späť na doklad
+    // patrí k tomu, odkiaľ prišiel, a nie k tomu, čo práve robí.
+    const q = new URLSearchParams();
+    if (onlyDogId) q.set('dog', onlyDogId);
+    if (cameFrom) q.set('from', cameFrom);
+    navigate(q.toString() ? `/pack/nature?${q}` : '/pack/nature', { replace: true });
   };
 
-  const total = NATURE_QUESTIONS.length + SPECIAL_KEYS.length;
+  /** Otázky oboch kvízov v poradí, v akom idú za sebou. */
+  const QUESTIONS = [...ELEMENT_QUESTIONS, ...ROLE_QUESTIONS];
+  // Rovnováha sa do počtu NERÁTA — je to jedna obrazovka a nemá správnu odpoveď,
+  // takže „hotová" sa pri nej nedá určiť. Rátať ju ako krok by znamenalo, že
+  // progres buď stojí (nikto nič nezaškrtol), alebo skočí za zaškrtnutie choroby.
+  const total = QUESTIONS.length + SPECIAL_KEYS.length;
   // Otázka je hotová, až keď na ňu odpovedali VŠETCI psy — inak by prúžok sľuboval
   // hotovo pri svorke, kde je vyplnený jeden pes z troch.
   const done = useMemo(() => {
     if (list.length === 0) return 0;
-    const core = NATURE_QUESTIONS.filter((q) => list.every((d) => answers[d.id]?.[q.id])).length;
+    const core = QUESTIONS.filter((q) => list.every((d) => answers[d.id]?.[q.id])).length;
     const spec = SPECIAL_KEYS.filter((k) => list.every((d) => specials[d.id]?.[k])).length;
     return core + spec;
   }, [list, answers, specials]);
+
+  /** Zoznam otázok práve bežiacej fázy. Mimo oboch kvízov prázdny. */
+  const activeQs = phase === 'element' ? ELEMENT_QUESTIONS : phase === 'role' ? ROLE_QUESTIONS : [];
 
   const allSpecialsDone = list.length > 0
     && list.every((d) => SPECIAL_KEYS.every((k) => specials[d.id]?.[k]));
@@ -1771,10 +1967,14 @@ export default function PackNatureQuiz() {
   /** Jeden výsledok na psa — `scoreNature` je čistá funkcia, takže sa len zavolá N×. */
   const results = useMemo(() => {
     if (phase !== 'result') return [];
-    return list.map((d) => ({ dog: d, r: scoreNature(answers[d.id] ?? {}, specials[d.id] ?? {}) }));
-  }, [phase, list, answers, specials]);
+    return list.map((d) => ({
+      dog: d,
+      r: scoreNature(answers[d.id] ?? {}, specials[d.id] ?? {}),
+      b: scoreBalance(balance[d.id] ?? []),
+    }));
+  }, [phase, list, answers, specials, balance]);
 
-  const finish = async (rs: { dog: QuizDog; r: NatureResult }[]) => {
+  const finish = async (rs: { dog: QuizDog; r: NatureResult; b?: BalanceResult }[]) => {
     if (saved || rs.length === 0) return;
     const inputs: DogEventInput[] = [];
     for (const { dog, r } of rs) {
@@ -1789,6 +1989,16 @@ export default function PackNatureQuiz() {
       // ⚠️ `noProgress` v `dogQuiz.ts` toto pole NEMÁ, lebo tam žiadny krok nemá —
       // `nature.scores` je odvodený zápis, nie otázka, a do progresu dokladu nevstupuje.
       inputs.push({ dogId: dog.id, field: 'nature.scores', value: r.scores, source: 'quiz' });
+      // ROVNOVÁHA SA UKLADÁ AKO ZAŠKRTNUTÉ `id`, NIE AKO VYPOČÍTANÝ ZÁVER.
+      // Závery sa menia — triedenie prejav/diagnóza aj prevodná tabuľka podpory
+      // sú naše rozhodnutia a môžu sa opraviť. Zaškrtnutia sú to, čo majiteľ
+      // naozaj povedal, a z nich sa záver kedykoľvek prepočíta. Uložiť „podpor
+      // Vodu" by znamenalo, že po prvej oprave tabuľky ukazuje karta psa radu,
+      // ktorá už z jeho odpovedí nevyplýva — a nič to nenahlási.
+      const picked = balance[dog.id] ?? [];
+      if (picked.length) {
+        inputs.push({ dogId: dog.id, field: 'nature.balance', value: picked, source: 'quiz' });
+      }
     }
     try {
       await appendDogEvents(inputs);
@@ -1824,14 +2034,29 @@ export default function PackNatureQuiz() {
   const answeredHere = (qid: string) =>
     list.length > 0 && list.every((d) => answers[d.id]?.[qid]);
 
+  /** Postupnosť fáz. Jedno miesto, aby sa ĎALEJ a SPÄŤ nemohli rozísť. */
+  const FLOW: Phase[] = ['element', 'balance', 'role', 'special'];
+
   const goNext = () => {
     clearAdvance();
-    if (idx < NATURE_QUESTIONS.length - 1) setIdx((i) => i + 1);
-    else setPhase('special');
+    if (activeQs.length && idx < activeQs.length - 1) { setIdx((i) => i + 1); return; }
+    const next = FLOW[FLOW.indexOf(phase) + 1];
+    setIdx(0);
+    setPhase(next ?? 'special');
   };
   /** SPÄŤ musí najprv zrušiť bežiaci posun — inak by časovač z predošlej otázky
-   *  hodil človeka vzápätí zase dopredu a vyzeralo by to, že tlačidlo nefunguje. */
-  const goBack = () => { clearAdvance(); setIdx((i) => Math.max(0, i - 1)); };
+   *  hodil človeka vzápätí zase dopredu a vyzeralo by to, že tlačidlo nefunguje.
+   *  Na prvej otázke fázy vracia do PREDOŠLEJ fázy, na jej poslednú otázku — inak
+   *  by sa človek z kvízu 3 nedostal späť k rovnováhe ani k elementu. */
+  const goBack = () => {
+    clearAdvance();
+    if (idx > 0) { setIdx((i) => i - 1); return; }
+    const prev = FLOW[FLOW.indexOf(phase) - 1];
+    if (!prev) return;
+    setPhase(prev);
+    setIdx(prev === 'element' ? ELEMENT_QUESTIONS.length - 1
+      : prev === 'role' ? ROLE_QUESTIONS.length - 1 : 0);
+  };
 
   const pickSpecial = (k: SpecialKey, a: SpecialAnswer, dogId: string | null) => {
     const targets = dogId ? [dogId] : list.map((d) => d.id);
@@ -1845,28 +2070,38 @@ export default function PackNatureQuiz() {
     // nikdy použiť. Rovnaké pravidlo ako v jadre: potvrdzuje človek, nie časovač.
   };
 
+  /** Zaškrtnutie v kvíze 2. Prepína, nie nastavuje — tie isté dôvody s refom neplatia,
+   *  lebo tu sa neklikáva za viacerých psov naraz v jednom ticku. */
+  const toggleBalance = (dogId: string, itemId: string) => {
+    setBalance((prev) => {
+      const cur = prev[dogId] ?? [];
+      return { ...prev, [dogId]: cur.includes(itemId) ? cur.filter((x) => x !== itemId) : [...cur, itemId] };
+    });
+  };
+
   const restart = () => {
     clearAdvance();
     answersRef.current = {}; specialsRef.current = {};
-    setAnswers({}); setSpecials({}); setIdx(0); setSaved(false); setPhase('intro');
+    setAnswers({}); setSpecials({}); setBalance({}); setIdx(0); setSaved(false); setPhase('intro');
   };
 
   // Je čo stratiť? Stačí JEDNA odpoveď — nie hotová otázka za celú svorku. Človek,
   // ktorý odklikal pol kvízu pre prvého psa, prišiel o rovnako veľa.
   const hasProgress =
     Object.values(answers).some((a) => Object.keys(a).length > 0)
-    || Object.values(specials).some((a) => Object.keys(a).length > 0);
+    || Object.values(specials).some((a) => Object.keys(a).length > 0)
+    || Object.values(balance).some((a) => a.length > 0);
 
   // ODCHOD Z KVÍZU VEDIE NA `/pack/dogs`, NIE NA `/pack` (Matej 18.8.: „ak dám na
   // teste X, cráti ma na homepage a nie na /dogs"). Kvíz sa otvára z dlaždice na
   // `/pack/dogs`, zapisuje do DOG ID a po zavretí má človek stáť tam, odkiaľ prišiel —
   // nie o poschodie vyššie na hube. Rovnako to robí aj DOG ID kvíz (`PackDogQuiz.tsx`).
   // Jedna konštanta, nie päť rozsypaných `navigate()` — presne tie sa rozišli.
-  const leave = () => navigate(QUIZ_EXIT);
+  const leave = () => navigate(exitTo);
   // Pýtame sa len tam, kde sa naozaj niečo stratí: úvod nemá čo, výsledok je už
   // zapísaný do DOG ID.
   const requestClose = () => {
-    if ((phase === 'core' || phase === 'special') && hasProgress) { setAskLeave(true); return; }
+    if (phase !== 'intro' && phase !== 'result' && hasProgress) { setAskLeave(true); return; }
     leave();
   };
   const leaveOverlay = askLeave
@@ -1877,9 +2112,9 @@ export default function PackNatureQuiz() {
   // preto je to odteraz vidieť hneď na začiatku, nie až (ne)uložením na konci.
   if (dogs !== null && list.length === 0) {
     return (
-      <Shell onClose={() => navigate(QUIZ_EXIT)}>
+      <Shell onClose={() => navigate(exitTo)}>
         <Card>
-          <Eyebrow>{tx('pack.nature.intro.eyebrow', 'Two questions in one')}</Eyebrow>
+          <Eyebrow>{tx('pack.nature.intro.eyebrow', 'Three short quizzes, one document')}</Eyebrow>
           <p style={{ fontFamily: FONT_UI, fontSize: 13.5, lineHeight: 1.6, color: T.inkStrong, margin: 0 }}>
             {tx('pack.nature.noDogs', 'This quiz writes its result onto a dog’s card, and there is no dog on your account yet.')}
           </p>
@@ -1901,20 +2136,20 @@ export default function PackNatureQuiz() {
     if (stored === null) {
       // Prázdna škrupina, nie úvod kvízu: preblesknutý úvod by vyzeral ako by odkaz
       // „pozri výsledok" viedol na opakovanie testu.
-      return <Shell onClose={() => navigate(QUIZ_EXIT)}><div style={{ minHeight: 260 }} /></Shell>;
+      return <Shell onClose={() => navigate(exitTo)}><div style={{ minHeight: 260 }} /></Shell>;
     }
     return (
-      <Shell onClose={() => navigate(QUIZ_EXIT)}>
-        {stored.map(({ dog, r }, i) => (
+      <Shell onClose={() => navigate(exitTo)}>
+        {stored.map(({ dog, r, b }, i) => (
           <div key={dog.id} style={{ marginTop: i === 0 ? 0 : 26 }}>
-            <ResultDoc dog={dog} r={r} tx={tx} />
+            <ResultDoc dog={dog} r={r} b={b} tx={tx} />
           </div>
         ))}
         <div style={{ marginTop: 18, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button type="button" className="nq-ghost is-ondark" onClick={startOver}>
             <RotateCcw className="h-3.5 w-3.5" /> {tx('pack.nature.result.again', 'Take it again')}
           </button>
-          <button type="button" className="nq-gold is-ondark" onClick={() => navigate(QUIZ_EXIT)}>
+          <button type="button" className="nq-gold is-ondark" onClick={() => navigate(exitTo)}>
             {tx('pack.nature.result.done', 'Done')}
           </button>
         </div>
@@ -1926,7 +2161,7 @@ export default function PackNatureQuiz() {
   /* — intro — */
   if (phase === 'intro') {
     return (
-      <Shell onClose={() => navigate(QUIZ_EXIT)} fill>
+      <Shell onClose={() => navigate(exitTo)} fill>
         {/* ⚠️ `padding` a `overflow` musia ísť INLINE — `Card` si padding píše inline
             a inline vždy prebije triedu `.nq-intro`. */}
         <Card className="nq-intro" style={{ flex: 1, padding: 0, overflow: 'hidden' }}>
@@ -1936,7 +2171,7 @@ export default function PackNatureQuiz() {
           </div>
 
           <div className="nq-introbody">
-            <Eyebrow>{tx('pack.nature.intro.eyebrow', 'Two questions in one')}</Eyebrow>
+            <Eyebrow>{tx('pack.nature.intro.eyebrow', 'Three short quizzes, one document')}</Eyebrow>
             <h1 style={{
               fontFamily: FONT_TITLE, fontWeight: 700, textTransform: 'uppercase',
               fontSize: 'clamp(1.35rem, 4.2vw, 2.05rem)', lineHeight: 1.15, color: T.inkStrong,
@@ -1944,7 +2179,7 @@ export default function PackNatureQuiz() {
             }}>{tx('pack.nature.intro.title', 'Who is your dog?')}</h1>
             <p style={{ fontFamily: FONT_UI, fontSize: 13.5, lineHeight: 1.6, color: T.inkStrong, marginTop: 12 }}>
               {tx('pack.nature.intro.body',
-                'Eighteen questions give you two answers at once: what your dog is made of, and what job they do for your family. Nobody taught them that job — they were born into it.')}
+                'Twenty-two questions and one checklist. You come out with three things: what your dog is made of, where their balance is leaning right now, and what job they do for your family. Nobody taught them that job — they were born into it.')}
             </p>
             <Rule />
             <div className="nq-axes">
@@ -1958,12 +2193,19 @@ export default function PackNatureQuiz() {
                 title={tx('pack.nature.intro.axis2', 'Role in the pack')}
                 sub={tx('pack.nature.intro.axis2sub', 'What your dog is trying to do for your family — and what everyone gets wrong about it.')}
               />
+              {/* Tretia dlaždica pribudla s kvízom 2 (22. 8.). Bez nej by sa na výsledku
+                  zjavila celá sekcia, ktorú úvod nikdy nesľúbil. */}
+              <AxisTile
+                icon="sliders"
+                title={tx('pack.nature.intro.axis3', 'Balance right now')}
+                sub={tx('pack.nature.intro.axis3sub', 'Constitution is set for life; balance is not. Tick what is going on and see which way it leans.')}
+              />
             </div>
 
             <DogIdNote tx={tx} />
 
             <div style={{ marginTop: 18 }}>
-              <button type="button" className="nq-gold is-big" onClick={() => setPhase('core')}>
+              <button type="button" className="nq-gold is-big" onClick={() => setPhase('element')}>
                 {tx('pack.nature.intro.cta', 'Start')}
               </button>
             </div>
@@ -1974,9 +2216,10 @@ export default function PackNatureQuiz() {
     );
   }
 
-  /* — 14 jadrových otázok — */
-  if (phase === 'core') {
-    const q = NATURE_QUESTIONS[idx];
+  /* — kvíz 1 (element, 10) a kvíz 3 (úloha, 8): zhodné vykreslenie, iný zoznam — */
+  if (phase === 'element' || phase === 'role') {
+    const q = activeQs[idx];
+    const isLast = idx === activeQs.length - 1;
     return (
       <Shell onClose={requestClose} fill overlay={leaveOverlay}>
         {/* Karta je široká ako panely `/pack`, ale ČÍTACÍ stĺpec vnútri je zúžený
@@ -1985,10 +2228,15 @@ export default function PackNatureQuiz() {
         <Card style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <QuizArt />
           <div style={readStyle(list.length)}>
+            {/* Číslo je „v tomto kvíze", nie „zo všetkých 22" — po prestavbe sú to
+                tri samostatné kvízy a „11 z 22" by po predele pôsobilo, akoby sa
+                nič neposunulo. Prúžok naďalej meria celý priebeh. */}
             <Progress
               done={done}
               total={total}
-              label={`${tx('pack.nature.question', 'Question')} ${idx + 1} / ${total}`}
+              label={`${phase === 'element'
+                ? tx('pack.nature.part.element', 'Body')
+                : tx('pack.nature.part.role', 'Pack')} · ${tx('pack.nature.question', 'Question')} ${idx + 1} / ${activeQs.length}`}
             />
 
             {/* Otázka je najväčší text na obrazovke a stojí na vlastnom riadku so
@@ -2006,7 +2254,7 @@ export default function PackNatureQuiz() {
               background: `linear-gradient(90deg, ${T.cardEdge}, rgba(201,154,63,0))`,
             }} />
 
-            {idx === 0 && <HowItWorks solo={solo} tx={tx} />}
+            {idx === 0 && phase === 'element' && <HowItWorks solo={solo} tx={tx} />}
 
             <div className="nq-opts">
               {q.options.map((o, oi) => (
@@ -2028,7 +2276,7 @@ export default function PackNatureQuiz() {
               <button
                 type="button"
                 className="nq-ghost"
-                disabled={idx === 0}
+                disabled={phase === 'element' && idx === 0}
                 onClick={goBack}
               >
                 <ChevronLeft className="h-3.5 w-3.5" /> {tx('pack.nature.back', 'Back')}
@@ -2039,9 +2287,107 @@ export default function PackNatureQuiz() {
                 disabled={!answeredHere(q.id)}
                 onClick={goNext}
               >
-                {idx < NATURE_QUESTIONS.length - 1
+                {!isLast
                   ? tx('pack.nature.next', 'Next')
                   : tx('pack.nature.toSpecial', 'Continue')}
+              </button>
+            </div>
+          </div>
+        </Card>
+        <Attribution tx={tx} />
+      </Shell>
+    );
+  }
+
+  /* — kvíz 2: rovnováha. Jediná obrazovka bez správnej odpovede. — */
+  if (phase === 'balance') {
+    return (
+      <Shell onClose={requestClose} fill overlay={leaveOverlay}>
+        <Card style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <QuizArt />
+          <div style={readStyle(list.length)}>
+            <Progress done={done} total={total} label={tx('pack.nature.part.balance', 'Balance')} />
+            <h2 style={{
+              fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 'clamp(1.2rem,4.4vw,1.65rem)',
+              lineHeight: 1.22, letterSpacing: '.01em', color: T.inkStrong, margin: 0,
+            }}>{tx('pack.nature.balance.title', 'Anything going on right now?')}</h2>
+            <div aria-hidden style={{
+              height: 2, width: 132, borderRadius: 2, margin: '13px 0 16px',
+              background: `linear-gradient(90deg, ${T.cardEdge}, rgba(201,154,63,0))`,
+            }} />
+            <p style={{ fontFamily: FONT_UI, fontSize: 13, lineHeight: 1.6, color: T.inkStrong, margin: '0 0 6px' }}>
+              {tx('pack.nature.balance.body',
+                'Your dog’s constitution is set for life, but it can tip out of balance. Tick anything that applies — as much or as little as you like.')}
+            </p>
+            <p style={{ fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.55, color: T.inkWarm, margin: '0 0 16px' }}>
+              {tx('pack.nature.balance.none', 'Nothing on the list? Leave it empty and carry on — that is the best answer there is.')}
+            </p>
+
+            {/* Pes po psovi. Pri svorke sa NEPONÚKA „platí pre všetkých" ako pri
+                otázkach — príznaky sú vec jedného konkrétneho tela a hromadné
+                zaškrtnutie astmy trom psom naraz je presne ten druh úspory, ktorý
+                spraví z posudku nezmysel. */}
+            {list.map((d) => (
+              <div key={d.id} style={{ marginTop: 18 }}>
+                {!solo && (
+                  <div style={{
+                    fontFamily: NAME_FONT, fontWeight: 700, fontSize: 15, letterSpacing: '.02em',
+                    color: T.inkStrong, marginBottom: 10, textTransform: 'uppercase',
+                  }}>{d.dog_name ?? '—'}</div>
+                )}
+                <div style={{ display: 'grid', gap: 14 }}>
+                  {ELEMENT_KEYS.map((el) => {
+                    const items = BALANCE_ITEMS.filter((b) => b.element === el);
+                    return (
+                      <div key={el} style={{ ...PACK_BOX.subblock, padding: '13px 15px' }}>
+                        <div style={{
+                          fontFamily: FONT_UI, fontWeight: 500, fontSize: 10.5, letterSpacing: '.26em',
+                          textTransform: 'uppercase', color: T.cardEdge, marginBottom: 10,
+                        }}>{tx(NATURE_ELEMENTS[el].i18n, NATURE_ELEMENTS[el].labelEN)}</div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+                          {items.map((b) => {
+                            const on = (balance[d.id] ?? []).includes(b.id);
+                            return (
+                              <button
+                                key={b.id}
+                                type="button"
+                                onClick={() => toggleBalance(d.id, b.id)}
+                                aria-pressed={on}
+                                title={b.noteEN ? tx(`${b.i18n}.note`, b.noteEN) : undefined}
+                                className={`pf-pill${on ? ' is-on' : ''}`}
+                                style={{
+                                  fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.35, textAlign: 'left',
+                                  padding: '7px 12px', borderRadius: 999, cursor: 'pointer',
+                                  border: `1px solid ${on ? T.cardEdge : 'rgba(179,130,45,0.55)'}`,
+                                  background: on ? 'linear-gradient(180deg,#F5C73D,#E69E1A)' : T.tileBg,
+                                  color: on ? '#3d1f00' : T.inkStrong,
+                                  fontWeight: on ? 600 : 400,
+                                }}
+                              >
+                                {tx(b.i18n, b.labelEN)}
+                                {b.noteEN && (
+                                  <span style={{ display: 'block', fontSize: 10.5, opacity: 0.75, marginTop: 1 }}>
+                                    {tx(`${b.i18n}.note`, b.noteEN)}
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            <div className="nq-nav">
+              <button type="button" className="nq-ghost" onClick={goBack}>
+                <ChevronLeft className="h-3.5 w-3.5" /> {tx('pack.nature.back', 'Back')}
+              </button>
+              {/* ĎALEJ nie je nikdy zhasnuté — prázdny zoznam je platná odpoveď. */}
+              <button type="button" className="nq-gold" onClick={goNext}>
+                {tx('pack.nature.next', 'Next')}
               </button>
             </div>
           </div>
@@ -2115,7 +2461,7 @@ export default function PackNatureQuiz() {
               <button
                 type="button"
                 className="nq-ghost"
-                onClick={() => { setIdx(NATURE_QUESTIONS.length - 1); setPhase('core'); }}
+                onClick={goBack}
               >
                 <ChevronLeft className="h-3.5 w-3.5" /> {tx('pack.nature.back', 'Back')}
               </button>
@@ -2124,7 +2470,11 @@ export default function PackNatureQuiz() {
                 className="nq-gold"
                 disabled={!allSpecialsDone}
                 onClick={() => {
-                  const rs = list.map((d) => ({ dog: d, r: scoreNature(answers[d.id] ?? {}, specials[d.id] ?? {}) }));
+                  const rs = list.map((d) => ({
+                    dog: d,
+                    r: scoreNature(answers[d.id] ?? {}, specials[d.id] ?? {}),
+                    b: scoreBalance(balance[d.id] ?? []),
+                  }));
                   setPhase('result');
                   void finish(rs);
                 }}
@@ -2142,13 +2492,13 @@ export default function PackNatureQuiz() {
   /* — výsledok: jeden na psa — */
   if (results.length === 0) return null;
   return (
-    <Shell onClose={() => navigate(QUIZ_EXIT)}>
+    <Shell onClose={() => navigate(exitTo)}>
       {/* JEDEN DOKUMENT NA PSA — fotka a meno sú vnútri karty, nie nad ňou na
           čiernom, a sú tam aj pri sólo psovi. Medzera medzi dokumentami je väčšia
           než čokoľvek vnútri nich, aby bolo vidieť, kde jeden pes končí. */}
-      {results.map(({ dog, r }, i) => (
+      {results.map(({ dog, r, b }, i) => (
         <div key={dog.id} style={{ marginTop: i === 0 ? 0 : 26 }}>
-          <ResultDoc dog={dog} r={r} tx={tx} />
+          <ResultDoc dog={dog} r={r} b={b} tx={tx} />
         </div>
       ))}
       {/* JEDINÉ dve tlačidlá kvízu na ČIERNOM podklade — stoja pod kartami, nie v nich.
@@ -2157,7 +2507,7 @@ export default function PackNatureQuiz() {
         <button type="button" className="nq-ghost is-ondark" onClick={restart}>
           <RotateCcw className="h-3.5 w-3.5" /> {tx('pack.nature.result.again', 'Take it again')}
         </button>
-        <button type="button" className="nq-gold is-ondark" onClick={() => navigate(QUIZ_EXIT)}>
+        <button type="button" className="nq-gold is-ondark" onClick={() => navigate(exitTo)}>
           {tx('pack.nature.result.done', 'Done')}
         </button>
       </div>

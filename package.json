@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "typecheck": "node ../../scripts/tsc-baseline.mjs",
     "check:css": "node scripts/check-css-literals.mjs",
     "build": "node scripts/check-css-literals.mjs && vite build",
     "build:dev": "vite build --mode development",

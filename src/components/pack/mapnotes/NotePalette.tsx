@@ -13,6 +13,7 @@
 // ⚠️ Emoji MUSÍ mať `FONT_EMOJI` — zdedený Cinzel by na Windows sadol na
 // čiernobiely textový variant.
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { MAP_SKIN, PALE } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 import { NOTE_GROUPS, groupOf, type NoteGroup, type NoteKind, type TickDisease } from './mapNotesData';
 import { FONT_EMOJI, GROUP_EMOJI } from './markEmoji';
@@ -77,16 +78,47 @@ export function GroupMark({ group, size = 26 }: { group: NoteGroup; size?: numbe
   );
 }
 
+/**
+ * DLAŽDICE MIMO ODKAZOV (beh 2, rez C — Matej 22. 8.).
+ *
+ * Dlhé podržanie prsta doteraz vedelo založiť len ODKAZ. Výlet a udalosť sa dali pridať
+ * jedine tlačidlom PRIDAŤ, ktoré otvorí formulár cez celú obrazovku — teda presne tá cesta,
+ * pri ktorej Matej píše: „mám kresliť po mape = mapu nevidím lebo sú tam len textové polia".
+ * Gesto aj paleta existovali, pribúdajú DVE DLAŽDICE — nepíše sa nové gesto.
+ *
+ * Emoji sú tie isté, akými appka značí výlet a udalosť inde (🥾 / 📣), aby paleta hovorila
+ * rovnakým jazykom ako mapa pod ňou.
+ */
+export type PaletteExtra = 'trip' | 'event';
+
+const EXTRA_EMOJI: Record<PaletteExtra, string> = { trip: '🥾', event: '📣' };
+
 export type NotePaletteProps = {
   onPick: (group: NoteGroup) => void;
   /** `blocks` = veľké dlaždice do vstupného popupu, `strip` = úzky rad pri bode na mape */
   variant?: 'blocks' | 'strip';
+  /**
+   * Dlaždice nad rámec odkazov. Zámerne oddelené od `onPick` — `NoteGroup` je uzavretý
+   * číselník zápisov do mapy a natlačiť doň „výlet" by rozbilo všetko, čo sa naň spolieha
+   * (farba značky, polomer, tabuľka). Volajúci, ktorý ich nepodá, dostane paletu ako predtým.
+   */
+  extras?: PaletteExtra[];
+  onPickExtra?: (extra: PaletteExtra) => void;
 };
 
-export function NotePalette({ onPick, variant = 'blocks' }: NotePaletteProps) {
+export function NotePalette({ onPick, variant = 'blocks', extras, onPickExtra }: NotePaletteProps) {
   const t = useT();
   return (
     <div className={`np-wrap np-wrap--${variant}`}>
+      {(extras ?? []).map((x) => (
+        <button key={x} type="button" className="np-item" onClick={() => onPickExtra?.(x)}>
+          <span className="np-mark" style={{ width: variant === 'blocks' ? 30 : 24, height: variant === 'blocks' ? 30 : 24, fontSize: Math.round((variant === 'blocks' ? 30 : 24) * 0.82) }}>
+            {EXTRA_EMOJI[x]}
+          </span>
+          <span className="np-name">{t(`pack.mapNotes.palette.extra.${x}`)}</span>
+          {variant === 'blocks' && <span className="np-text">{t(`pack.mapNotes.palette.extra.${x}.text`)}</span>}
+        </button>
+      ))}
       {NOTE_GROUPS.map((g) => (
         <button key={g} type="button" className="np-item" onClick={() => onPick(g)}>
           <GroupMark group={g} size={variant === 'blocks' ? 30 : 24} />
@@ -116,4 +148,15 @@ export const NOTE_PALETTE_CSS = `
 .np-text{font-family:${FONT_UI};font-size:11.5px;line-height:1.45;color:${T.onDarkDim};}
 
 .np-mark{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;font-family:${FONT_EMOJI};line-height:1;-webkit-user-select:none;user-select:none;}
+${MAP_SKIN !== 'pale' ? '' : `
+/* ── BLEDÝ SKIN PC (2026-08-26) ─────────────────────────────────────────────────────────
+   Paleta stojí v dvoch papyrusových hostiteľoch naraz — vo vstupnom popupe pridávania a
+   v doku nad mapou — takže v onDark tokenoch bola na PC DOSLOVA neviditeľná: pilulka mala
+   výplň rgba(245,240,228,0.04) a názov svetlý inkoust, teda takmer biele na piesku.
+   ⚠️ Media query zanikla 28. 8. 2026 — oba hostitelia sú bledí na každej šírke. */
+  .np-item{background:${PALE.field};border-color:${PALE.border};}
+  .np-item:hover{border-color:${PALE.deep};background:#FFF6E2;}
+  .np-name{color:${PALE.ink};}
+  .np-text{color:${PALE.dim};}
+`}
 `;

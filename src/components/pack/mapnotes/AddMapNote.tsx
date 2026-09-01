@@ -24,12 +24,17 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import { Circle, Marker } from 'react-leaflet';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { MAP_SKIN, PALE, LAPIS, LAPIS_BTN_SHADOW, tintRGBA } from '@/components/pack/navGoldSkin';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
-import { GROUP_KINDS, TICK_DISEASES, bodyRequired, groupOf, radiusRule, type NewMapNote, type NoteGroup, type NoteKind, type TickDisease } from './mapNotesData';
-import { FONT_EMOJI, threatEmoji } from './markEmoji';
+import { GROUP_KINDS, NOTE_GROUPS, TICK_DISEASES, bodyRequired, groupOf, radiusRule, type NewMapNote, type NoteGroup, type NoteKind, type TickDisease } from './mapNotesData';
+import { MAP_DOCK_CSS, DOCK_COL_W, DOCK_MOBILE_MAX, DOCK_VH } from '@/components/pack/mapDockShape';
+import { FONT_EMOJI, GROUP_EMOJI, threatEmoji } from './markEmoji';
+import { KindGrid, KIND_GRID_CSS } from './KindGrid';
+import { AinubisGuide } from '@/components/pack/addtrip/AinubisGuide';
+import { HandArrowLeft } from '@/components/pack/HandIcons';
 import { noteMarkHtml } from './MapNotesLayer';
-import { GROUP_TINT, HAZARD_RED, NotePalette, NOTE_PALETTE_CSS } from './NotePalette';
+import { GROUP_TINT, HAZARD_RED, TICK_ORANGE, NotePalette, NOTE_PALETTE_CSS, type PaletteExtra } from './NotePalette';
 
 const GOLD = '#C99A3F';
 const PARK_BLUE = T.brandBlueLite;
@@ -46,7 +51,47 @@ const BODY_MAX = 600;
  * ZDVIHNÚŤ AJ TU — inak sa mapa odpanuje primálo a značka skončí pod formulárom,
  * čo je presne tá chyba, kvôli ktorej panel vznikol.
  */
-export const NOTE_PANEL_H = 340;
+// Výška panela. Slúži DVOM veciam a preto je to jedno číslo: strop panela v CSS
+// a odsadenie, o ktoré sa mapa odpanuje, nech značka ostane nad ním.
+//
+// 340 → 420 (22. 8. 2026). Matej: „nesmie tam byť scrolling musí to byť celé na
+// jedno videnie v popupe". Samotné stlačenie druhov z troch riadkov na jeden
+// ušetrilo ~62 px, ale pri kliešti s potvrdenou chorobou a zapnutým okruhom je
+// obsah aj tak ~350 px — strop 340 by scrolloval ďalej, len o vlások.
+// ⚠️ Vyššie sa ísť NEDÁ bez toho, aby panel na nižších telefónoch zožral mapu:
+// ⚠️ TOTO ČÍSLO JE ZMLUVA S `panBy` (PackMap.tsx: `safeY = size.y - NOTE_PANEL_H - 40`).
+// Strop v CSS musí byť TO ISTÉ číslo, inak mapa odsunie značku o menej, než panel zaberie,
+// a bod, ktorý človek práve položil, mu zmizne za panelom — teda presne to, čo má odsun riešiť.
+// Od 24. 8. 2026 je panel DOK pri spodnej hrane, nie karta 96 px nad ňou, takže z obrazovky
+// berie o tých 96 px MENEJ a zmluva konečne sedí presne (predtým sa v najvyššom stave o ~56 px
+// míňala). Preto je v CSS `min(78vh, 420px)` — na nízkom displeji rozhoduje vh, a vtedy je
+// odsun konzervatívny, teda bezpečný smer.
+//
+// NAJVYŠŠÍ STAV panela (kliešte + potvrdená choroba + zapnutý okruh + text) meria
+// **366 px** — odmerané v prehliadači, nie odhadnuté. Pri `64vh` sa teda zmestí bez
+// scrollovania do okna vysokého **573 px a viac**, čo pokrýva každý telefón na výšku.
+// Keď do panela pribudne blok, TOTO číslo premeraj znova; „vyzerá to OK" nestačí,
+// scrollbar sa objaví až v tom najvyššom stave, do ktorého sa človek preklikáva.
+export const NOTE_PANEL_H = 420;
+
+/**
+ * SKUTOČNÁ VÝŠKA PANELA, nie jeho strop (2026-08-24).
+ *
+ * Odkedy má panel značky ten istý tvar ako dok sprievodcu (`.trp-dockpanel`), je na telefóne
+ * vysoký presne 33vh — teda na bežnom displeji OKOLO 250 px, nie 420. Odpanovanie mapy podľa
+ * 420 by značku odsunulo vyššie, než treba: bod by síce ostal vidieť (chyba na bezpečnú
+ * stranu), ale mapa by pri každom zápise nezmyselne odskočila.
+ *
+ * ⚠️ ZMLUVA S CSS PLATÍ ĎALEJ, len sa počíta z toho istého zdroja (`DOCK_VH`, mapDockShape.ts)
+ * ako výška v CSS. Keby sa jedno z tých čísel zmenilo bez druhého, značka, ktorú človek práve
+ * položil, mu zmizne za panelom — teda presne to, čo má odsun riešiť.
+ */
+export function notePanelH(): number {
+  if (typeof window === 'undefined') return NOTE_PANEL_H;
+  return window.innerWidth <= DOCK_MOBILE_MAX
+    ? Math.round(window.innerHeight * DOCK_VH)
+    : NOTE_PANEL_H;
+}
 
 /**
  * Bod z dlhého podržania, kým človek vyberá typ.
@@ -130,35 +175,199 @@ export function AddMapNotePin({ lat, lon, kind, disease = null, radiusM = null, 
 // ─────────────────────────────────────────────────────────────────────────────
 export function MapNotePlacing({
   group,
+  kind,
   ready,
   onCancel,
+  edgeLeft,
+  onPickType,
 }: {
   group: NoteGroup;
+  /**
+   * Druh vybraný ešte pred ťuknutím do mapy (sprievodca výletu, krok 2). Keď je podaný,
+   * lišta hovorí MEDVEĎ, nie UPOZORNENIE — inak by človek po výbere konkrétnej hrozby
+   * stratil potvrdenie, že si vybral práve ju.
+   */
+  kind?: NoteKind | null;
   /** mapa je dosť priblížená na to, aby klik dával zmysel */
   ready: boolean;
   onCancel: () => void;
+  /** v sprievodcovi výletu ľavý panel ustúpi ⇒ bublina patrí k okraju okna, nie za panel */
+  edgeLeft?: boolean;
+  /**
+   * ── PREPÍNANIE TYPU BEZ NÁVRATU DO PANELA (Matej 2026-08-27) ────────────────────────
+   *
+   * „počas označovania panel zmizne aj s chipmi" ⇒ druhý odkaz znamenal vrátiť sa, znova
+   * vybrať typ a znova spustiť označovanie. Tri odkazy = tri okružné jazdy. Keď je podaný
+   * tento callback, pod bublinu si sadne úzka lišta s tromi typmi (a pri upozornení
+   * s radom hrozieb), takže sa typ prepne priamo nad mapou.
+   *
+   * Podáva ho LEN sprievodca výletu — na holej mape sa označovanie spúšťa z palety pri
+   * prste a lišta by tam bola druhý ovládač tej istej veci.
+   */
+  onPickType?: (g: NoteGroup, k: NoteKind | null) => void;
 }) {
   const t = useT();
   const touch = typeof window !== 'undefined' && window.matchMedia('(hover:none)').matches;
   const key = !ready ? 'pack.mapNotes.place.zoomIn' : touch ? 'pack.mapNotes.place.touch' : 'pack.mapNotes.place.mouse';
+  const what = kind ? t(`pack.mapNotes.kind.${kind}`) : t(`pack.mapNotes.group.${group}`);
+  /**
+   * ⚠️ HOVORÍ TO AINUBIS A HORE, NIE VLASTNÁ LIŠTA (Matej 24. 8. 2026: „po kliknutí na označ
+   * parkovisko je na obrazovke správa — potrebujeme aby ju povedal ainubis a bola hore ako
+   * vždy, a to isté platí aj pri ďalších odkazoch pri tom výbere a kliku na mapu").
+   *
+   * Pilulka `.mnp-bar` bola posledné miesto, kde s človekom hovoril niekto iný než AInubis —
+   * a bola to práve tá chvíľa, keď sa naňho najviac spolieha (drží prst nad mapou a hľadá,
+   * kam ťuknúť). Sprievodca výletu si v tejto chvíli svoju bublinu skrýva
+   * (`drawBar.active` = false pri `notePlacing`), takže sa dve nikdy neprekryjú.
+   *
+   * ⚠️ ŠÍPKA JE POD BUBLINOU, VEDĽA ODKAZOV (Matej 1. 9. 2026: „mala by tam byť šípka dozadu…
+   * tú šípku dozadu by som dal pod neho vedľa tých odkazov"). Prvé kolo ju dalo do bubliny
+   * namiesto × — lenže tam sedí ODCHOD Z PRIDÁVANIA, a dve východiská na jednom mieste sú tá
+   * istá chyba, len naopak. Návrat o krok patrí k tomu, čo ruší: k radu odkazov.
+   *
+   * 🔑 V BUBLINE PRETO PRI OZNAČOVANÍ NIE JE NIČ (`onAbort` sa nepodáva) — jediné východisko
+   *    je šípka. Na HOLEJ MAPE (bez `onPickType`, teda bez radu) ostáva v bubline, inak by
+   *    označovanie nemalo ako skončiť.
+   */
   return (
-    <div className={`mnp-bar${ready ? '' : ' is-warn'}`} role="status">
-      <style>{ADD_NOTE_CSS}</style>
-      <span className="mnp-dot" style={{ background: GROUP_TINT[group] }} aria-hidden />
-      <span className="mnp-text">
-        <b>{t(`pack.mapNotes.group.${group}`)}</b>
-        {t(key)}
-      </span>
-      <button type="button" className="mnp-cancel" onClick={onCancel}>{t('pack.mapNotes.add.cancel')}</button>
+    <AinubisGuide
+      text={`${what} ${t(key)}`}
+      onAbort={onPickType ? undefined : onCancel}
+      abortLabel={t('pack.mapNotes.add.cancel')}
+      edgeLeft={edgeLeft}
+      /* ⚠️ Lišta patrí POD bublinu, nie nad spodnú hranu: dole v tej chvíli nič nestojí
+         (panel ustúpil mape) a nová škatuľa pri palci by prekryla presne ten pás mapy,
+         kam sa najčastejšie ťuká. `below` je ten istý slot, v ktorom v kroku 1 visia
+         bodky 1–5, takže nad mapou nepribúda ďalšie poschodie. */
+      below={onPickType ? (
+        <div className="mnp-below">
+          <style>{NOTE_TYPE_STRIP_CSS}</style>
+          <button
+            type="button"
+            className="mnts mnts-back"
+            onClick={onCancel}
+            aria-label={t('pack.mapNotes.add.back')}
+            title={t('pack.mapNotes.add.back')}
+          >
+            <HandArrowLeft size={17} />
+          </button>
+          <NoteTypeStrip group={group} kind={kind ?? null} onPick={onPickType} />
+        </div>
+      ) : undefined}
+    />
+  );
+}
+
+/**
+ * ── LIŠTA TYPOV NAD MAPOU ────────────────────────────────────────────────────────────────
+ *
+ * Tri typy vedľa seba; ťuk prepne, čo sa práve zapichuje, a označovanie beží ďalej.
+ *
+ * ⚠️ UPOZORNENIE SA NEPREPNE ŤUKOM DO SVOJHO CHIPU — ten len vysunie rad hrozieb a skupina
+ * sa zmení až vybranou hrozbou. Inak by kurzor niesol rozcestník ⚠️ a `placeNote` by pri
+ * kliknutí položil PRVÝ druh skupiny (kliešte) človeku, ktorý ide označiť medveďa. Je to
+ * to isté pravidlo, aké drží `MapNoteCursor.tsx`, a to isté poradie, aké má panel kroku 2.
+ *
+ * ⚠️ TVAR SI NEVYMÝŠĽA: podklad je recept bodiek 1–5 nad mapou (`.atl-steps--onmap`) —
+ * plná tmavá výplň, rám, tieň, žiadny priesvit (feedback_priesvitna_plocha_nad_mapou);
+ * pilulky sú `.mnk-tile` v rade z `KindGrid`, teda presne tie, ktoré človek pozná z panela.
+ */
+function NoteTypeStrip({ group, kind, onPick }: { group: NoteGroup; kind: NoteKind | null; onPick: (g: NoteGroup, k: NoteKind | null) => void }) {
+  const t = useT();
+  const [openGroup, setOpenGroup] = useState<NoteGroup | null>(null);
+  // Po prepnutí skupiny sa rad zavrie — inak by nad mapou ostal visieť výber, ktorý už
+  // nepatrí k tomu, čo kurzor nesie.
+  useEffect(() => { setOpenGroup(null); }, [group, kind]);
+  const openKinds = openGroup ? GROUP_KINDS[openGroup] : null;
+  return (
+    <div className="mnts-wrap">
+      <style>{KIND_GRID_CSS}</style>
+      <style>{NOTE_TYPE_STRIP_CSS}</style>
+      <div className="mnts">
+        <div className="mnk-grid mnk-grid--row" role="group" aria-label={t('pack.mapNotes.place.switchType')}>
+          {NOTE_GROUPS.map((g) => {
+            const on = g === group;
+            const many = GROUP_KINDS[g].length > 1;
+            return (
+              <button
+                key={g}
+                type="button"
+                className={`mnk-tile${on ? ' on' : ''}${openGroup === g ? ' mnts-open' : ''}`}
+                aria-pressed={on}
+                aria-expanded={many ? openGroup === g : undefined}
+                style={on ? { background: tintRGBA(GROUP_TINT[g], 0.24), borderColor: GROUP_TINT[g] } : undefined}
+                onClick={() => {
+                  if (many) { setOpenGroup((v) => (v === g ? null : g)); return; }
+                  setOpenGroup(null);
+                  onPick(g, null);
+                }}
+              >
+                <i style={{ fontFamily: FONT_EMOJI }}>{GROUP_EMOJI[g]}</i>
+                <em>{t(`pack.mapNotes.group.${g}`)}</em>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      {openKinds && (
+        <div className="mnts">
+          <KindGrid
+            row
+            kinds={openKinds}
+            selected={openGroup === group ? kind : null}
+            tint={GROUP_TINT[openGroup!]}
+            onPick={(k) => { const g = openGroup!; setOpenGroup(null); onPick(g, k); }}
+          />
+        </div>
+      )}
     </div>
   );
 }
+
+export const NOTE_TYPE_STRIP_CSS = `
+.mnts-wrap{display:flex;flex-direction:column;gap:7px;align-items:flex-start;max-width:100%;}
+/* NÁVRAT O KROK STOJÍ VEDĽA ODKAZOV, nie v bubline (Matej 1. 9. 2026) — dôvod pri
+   MapNotePlacing. Materiál je ten istý .mnts, takže sa číta ako súčasť toho istého radu.
+   align-items:flex-start drží šípku na prvom riadku aj vtedy, keď sa rad hrozieb zalomí. */
+.mnp-below{display:flex;align-items:flex-start;gap:7px;max-width:100%;}
+.mnts-back{flex:0 0 auto;display:flex;align-items:center;justify-content:center;min-height:34px;padding:5px 11px;color:${T.onDark};cursor:pointer;}
+.mnts-back svg{display:block;}
+/* Recept je 1:1 z .atl-steps--onmap (bodky 1–5 nad mapou) — jeden materiál pre všetko,
+   čo v krokoch 1–2 visí pod AInubisovou bublinou. */
+.mnts{max-width:100%;box-sizing:border-box;border-radius:999px;background:rgba(18,13,7,0.94);backdrop-filter:blur(10px);border:1px solid rgba(245,240,228,0.16);box-shadow:0 6px 20px rgba(0,0,0,0.55);padding:5px 7px;}
+/* Mriežka si odstup nesie pre panel, kde pod ňou stojí text; tu je podkladom pilulka. */
+.mnts .mnk-grid{margin-top:0;}
+/* ── RAD HROZIEB SA ZALAMUJE AJ TU (Matej 2026-08-28: „tu stále je jeden riadok… toto som
+   myslel, že je zle") ──────────────────────────────────────────────────────────────────
+   Zalomenie dostala 28. 8. ráno mriežka v paneli — lenže deväť hrozieb Matej videl v TEJTO
+   lište nad mapou, kde ich rovnaký KindGrid row roztiahol cez celé okno (wrap sa nemá kde
+   zalomiť, keď je k dispozícii 1200 px). Strop je preto tu, nie v mriežke: v paneli šírku
+   určuje stĺpec, nad mapou ju neurčuje nič.
+   560 px = dva riadky pri deviatich pilulkách; užšie by dalo tri, širšie jeden. */
+.mnts .mnk-grid--row{padding-bottom:0;max-width:560px;}
+/* OTVORENÝ ROZCESTNÍK NIE JE VÝBER. Upozornenie po ťuknutí len vysunulo rad hrozieb —
+   plná výplň by tvrdila, že sa už zapichuje ono. Preto samotný rám, a to prerušovaný:
+   je to jediný stav v lište, ktorý na niečo ČAKÁ. */
+.mnts .mnk-tile.mnts-open:not(.on){border-style:dashed;border-color:${GROUP_TINT.warning};}
+${MAP_SKIN !== 'pale' ? '' : `
+/* ── BLEDÝ SKIN PC ─────────────────────────────────────────────────────────────────────
+   ⚠️ PODKLAD MUSÍ BYŤ SVETLÝ, INAK JE VYBRANÁ PILULKA NEČITATEĽNÁ. Dlaždica .mnk-tile.on si
+   výplň nesie zvonku ako 24 % tint farby skupiny a inkoust má v bledom skine TMAVÝ
+   (PALE.ink) — recept počíta s papyrusom pod sebou. Na tmavej pilulke z toho vyšla
+   tmavomodrá výplň s tmavohnedým písmom, teda Parkovisko, ktoré nebolo vidieť. Overené
+   naživo 28. 8.
+   Hodnoty sú tie isté, aké má bledá verzia bodiek 1–5 nad mapou (.atl-steps--onmap
+   v PALE_LOG_CSS) — je to ten istý prvok na tom istom mieste, len s iným obsahom.
+   ⚠️ Media query zanikla 28. 8. 2026 spolu s tmavou mobilnou vetvou toku pridávania. */
+  .mnts{background:linear-gradient(180deg,#F6EAD0,#E9D9AE);border:1.5px solid ${PALE.edge};box-shadow:0 8px 24px rgba(70,45,10,0.35);backdrop-filter:none;-webkit-backdrop-filter:none;}
+`}
+`;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // RÝCHLA CESTA — paleta priamo pri bode, kam človek podržal prst.
 // Poradie je tu obrátené (miesto → typ), lebo gesto začalo na mieste.
 // ─────────────────────────────────────────────────────────────────────────────
-export function NoteQuickPalette({ onPick, onCancel }: { onPick: (g: NoteGroup) => void; onCancel: () => void }) {
+export function NoteQuickPalette({ onPick, onPickExtra, onCancel }: { onPick: (g: NoteGroup) => void; onPickExtra?: (x: PaletteExtra) => void; onCancel: () => void }) {
   const t = useT();
   return (
     <div className="mnq-wrap" role="dialog" aria-modal="true">
@@ -170,10 +379,12 @@ export function NoteQuickPalette({ onPick, onCancel }: { onPick: (g: NoteGroup) 
             keby bol v toku, centroval by sa len zvyšok šírky po jeho odčítaní a nadpis by
             sa opticky zosunul vľavo. */}
         <div className="mnq-head">
-          <h3 className="mnq-title">{t('pack.mapNotes.quick.title')}</h3>
+          {/* Nadpis sa mení podľa toho, čo paleta ponúka: s výletom a udalosťou v rade by
+              „Pridaj odkaz" klamal o dvoch z piatich dlaždíc. */}
+          <h3 className="mnq-title">{t(onPickExtra ? 'pack.mapNotes.quick.titleAny' : 'pack.mapNotes.quick.title')}</h3>
           <button type="button" className="mna-close mnq-close" onClick={onCancel} aria-label={t('pack.mapNotes.add.close')}>×</button>
         </div>
-        <NotePalette variant="strip" onPick={onPick} />
+        <NotePalette variant="strip" onPick={onPick} extras={onPickExtra ? ['trip', 'event'] : undefined} onPickExtra={onPickExtra} />
       </div>
     </div>
   );
@@ -210,6 +421,12 @@ export type AddMapNotePanelProps = {
   pinnedName?: string | null;
   onSubmit: (n: NewMapNote) => Promise<void>;
   onCancel: () => void;
+  /**
+   * Panel stojí v SPRIEVODCOVI VÝLETU (krok 2), nie na holej mape. Na PC si vtedy sadne
+   * do toho istého ľavého stĺpca ako dok sprievodcu — inak by tvar odskočil práve v kroku,
+   * ktorý má byť pod prstom nemenný.
+   */
+  dock?: boolean;
 };
 
 export function AddMapNotePanel({
@@ -226,6 +443,7 @@ export function AddMapNotePanel({
   pinnedName,
   onSubmit,
   onCancel,
+  dock = false,
 }: AddMapNotePanelProps) {
   const t = useT();
   const { lang } = useLang();
@@ -256,6 +474,10 @@ export function AddMapNotePanel({
     if (k !== 'ticks') onDisease(null);
     const r = radiusRule(k);
     if (r.mode === 'none') onRadius(null);
+    // Povinný okruh sa musí DOSADIŤ, nie len orezať. Prechod z druhu, ktorý bod dovoľuje
+    // (rebríky, komentár), by inak nechal `radiusM === null` — posuvník by sa nevykreslil
+    // a hrozba by sa uložila ako bod, hoci ju pravidlo zakazuje.
+    else if (r.mode === 'required') onRadius(Math.min(Math.max(radiusM ?? r.def, r.min), r.max));
     else if (radiusM != null) onRadius(Math.min(Math.max(radiusM, r.min), r.max));
   };
 
@@ -290,25 +512,45 @@ export function AddMapNotePanel({
   };
 
   return (
-    <div className="mna-sheet" role="dialog" aria-modal="false">
+    <div className={`mna-sheet trp-dockpanel${dock ? ' mna-sheet--dock' : ''}`} role="dialog" aria-modal="false">
+      <style>{MAP_DOCK_CSS}</style>
       <style>{ADD_NOTE_CSS}</style>
+      {/* Hlavička nesie SKUPINU a za ňou VYBRANÝ DRUH. Druh mal do 22. 8. vlastný
+          riadok pod kruhmi — stál 24 px v paneli, ktorý sa nesmie scrollovať,
+          a hovoril to isté, čo sa zmestí sem. Skupina ostáva, lebo farba panela
+          aj kruhov ide z nej. */}
       <div className="mna-head">
-        <span className="mna-title" style={{ color: GROUP_TINT[group] }}>{t(`pack.mapNotes.group.${group}`)}</span>
+        <span className="mna-title" style={{ color: GROUP_TINT[group] }}>
+          {t(`pack.mapNotes.group.${group}`)}
+          {subKinds.length > 1 && <b className="mna-title-kind">{t(`pack.mapNotes.kind.${kind}`)}</b>}
+        </span>
         <button type="button" className="mna-close" onClick={onCancel} aria-label={t('pack.mapNotes.add.close')}>×</button>
       </div>
+
+      {/* ── SKROLUJE SA LEN STRED (Matej 2026-08-24) ────────────────────────
+          Hlavička hovorí ČO píšem, CTA hovorí ako to uložiť — ani jedno nesmie odísť
+          z dohľadu. Skrol tu ostáva len ako poistka pre najvyšší stav panela (kliešť
+          s potvrdenou chorobou a zapnutým okruhom na nízkom displeji). */}
+      <div className="mna-scroll">
 
       {/* ROZPAD UPOZORNENIA NA KONKRÉTNE HROZBY (Matej 2026-08-21).
           Trojuholník je spoločný tvar celej skupiny, emoji vnútri nesie podtyp —
           takže voľba tu OKAMŽITE mení značku na mape (`kind` je riadený zvonku). */}
       {subKinds.length > 1 && (
-        <div className="mna-kinds">
-          {subKinds.map((k) => (
-            <button key={k} type="button" className={`mna-kind${kind === k ? ' on' : ''}`} onClick={() => pickKind(k)}>
-              <i>{threatEmoji(k)}</i>
-              {t(`pack.mapNotes.kind.${k}`)}
-            </button>
-          ))}
-        </div>
+        <>
+          {/* NÁZOV, NIE LEN EMOJI (Matej 2026-08-23). Deväť samotných emoji je hádanka:
+              🦌 je zver, ale 🕷️ môže byť pavúk aj kliešť a ⚠️ nepovie nič. Popis bol doteraz
+              len v `title`, ktorý na dotykovom displeji neexistuje. Tá istá mriežka stojí
+              v kroku 2 sprievodcu výletu — preto zdieľaný komponent, nie dve kópie. */}
+          {/* ⚠️ VODOROVNÝ RAD, ROVNAKO AKO V SPRIEVODCOVI (Matej 24. 8. 2026: „otvorí mi dolný
+              panel so všetkými možnosťami, ale sú 3x3 a nezmestí sa to + panel je ešte väčší…
+              potrebujeme docieliť súrodosť, takto to vyzerá amatérsky, každý slajd má iný vajb
+              a logiku"). Mriežka 3×3 tu vyrábala tri riadky v paneli, ktorý je zámerne nízky,
+              aby nezakryl mapu — a hneď po tom, čo si človek ten istý druh vybral o obrazovku
+              skôr. Rad ostáva VIDNO (druh sa tu dá ešte prepnúť, panel je práve na doladenie),
+              len má výšku jedného riadku a vybraná dlaždica je zvýraznená. */}
+          <KindGrid row kinds={subKinds} selected={kind} tint={GROUP_TINT[group]} onPick={pickKind} />
+        </>
       )}
 
       {/* ── KLIEŠŤ MÁ DVA STUPNE (Matej 2026-08-22) ──────────────────────────
@@ -325,14 +567,14 @@ export function AddMapNotePanel({
           <div className="mna-tick-switch">
             <button
               type="button"
-              className={`mna-opt${disease == null ? ' on' : ''}`}
+              className={`mna-opt mna-opt--sight${disease == null ? ' on' : ''}`}
               onClick={() => onDisease(null)}
             >
               {t('pack.mapNotes.tick.sighting')}
             </button>
             <button
               type="button"
-              className={`mna-opt${disease != null ? ' on' : ''}`}
+              className={`mna-opt mna-opt--ill${disease != null ? ' on' : ''}`}
               onClick={() => onDisease(disease ?? TICK_DISEASES[0])}
             >
               {t('pack.mapNotes.tick.confirmed')}
@@ -426,8 +668,23 @@ export function AddMapNotePanel({
       {pinnedName && <p className="mna-pinned">{t('pack.mapNotes.add.pinned').replace('{trip}', pinnedName)}</p>}
       {error && <p className="mna-error">{error}</p>}
 
+      </div>
+
       <div className="mna-actions">
-        <span className="mna-hint">{t('pack.mapNotes.add.dragHint')}</span>
+        {/* UKAZOVATEĽ „SPLNENÉ" (Matej 2026-08-22: „vizuálne ukazovatele že je to
+            vybraté a splnené"). Do 22. 8. tu stála len nápoveda o ťahaní značky
+            a jediná spätná väzba o pripravenosti bolo ZOŠEDNUTÉ tlačidlo — teda
+            informácia podaná NEPRÍTOMNOSŤOU, ktorú si človek všimne až keď
+            klikne a nič sa nestane. Teraz sa riadok prepne na zelenú fajku
+            v momente, keď je zápis odosielateľný. Text ostáva nápovedou dovtedy,
+            takže riadok nepribudol — len zmenil obsah a výška panela sa nehla. */}
+        {canSubmit ? (
+          <span className="mna-hint mna-hint--ok">
+            <i aria-hidden="true">✓</i>{t('pack.mapNotes.add.ready')}
+          </span>
+        ) : (
+          <span className="mna-hint">{t('pack.mapNotes.add.dragHint')}</span>
+        )}
         <button type="button" className="btn-gold mna-submit" onClick={submit} disabled={!canSubmit}>
           {busy ? t('pack.mapNotes.add.saving') : t('pack.mapNotes.add.submit')}
         </button>
@@ -505,25 +762,103 @@ export const markHintSeen = (): void => {
 
 export const ADD_NOTE_CSS = `
 /* ── PANEL AKO NÍZKY PÁS ───────────────────────────────────────────────────
-   Žiadny backdrop: mapa musí ostať vidieť aj klikateľná mimo panela. Výška je
-   obmedzená (NOTE_PANEL_H), obsah sa v krajnom prípade scrolluje vnútri.
+   Žiadny backdrop: mapa musí ostať vidieť aj klikateľná mimo panela.
+   ⚠️ overflow-y:auto je POISTKA, nie návrh — obsah sa má do panela zmestiť
+   VŽDY (Matej 22. 8.: „nesmie tam byť scrolling"). Necháva sa tu len pre prípad
+   jazyka s výrazne dlhšími slovami; keď sa scrollbar objaví v SK alebo EN, je to
+   chyba na opravu, nie stav na strpenie. Meraj scrollHeight vs clientHeight
+   pri kliešti s potvrdenou chorobou a zapnutým okruhom — to je najvyšší stav.
    POZOR: PLNÁ TMAVÁ VÝPLŇ, NIE sklo (pk-glass). Sklo je priehľadné a leží tu nad
    SVETLOU mapou, takže panel zbelie a text z neho zmizne (overené screenshotom —
    celý formulár bol nečitateľný nad zeleným podkladom). To isté platí pre lištu
    aj nápovedu nižšie; tmavé sklo funguje len nad tmavou stránkou. */
-.mna-sheet{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:1200;width:min(94vw,440px);max-height:${NOTE_PANEL_H}px;overflow-y:auto;padding:12px 14px 14px;border-radius:14px;background:rgba(5,5,5,0.94);border:1px solid rgba(201,154,63,0.5);box-shadow:0 12px 34px rgba(0,0,0,0.55);}
-@media (max-width:720px){.mna-sheet{bottom:82px;}}
+/* ── SPODNÝ DOK, NIE PLÁVAJÚCA KARTA (Matej 2026-08-24) ────────────────────
+   „klik na napr. kliešte → klik na mapu → a v tomto popupe nie je vidno CTA
+    (zapísať na mapu), lebo nie je ako spodný panel, ako by mal byť."
+
+   Karta visela 96 px nad spodnou hranou, mala strop 64vh a vnútri skrol — takže
+   na telefóne CTA leží POD zlomom a človek ho nájde, len ak tuší, že tam je.
+   Dok je pripútaný k hrane, má tvar lišty kreslenia (rovnaký povrch v tom istom
+   kroku) a hlavne: CTA sa už nikam neposúva.
+   ⚠️ Skrol NEZANIKOL, len sa presunul dovnútra — strop musí ostať, lebo kliešť
+   s potvrdenou chorobou a zapnutým okruhom je vyšší než nízky displej. Zmenilo sa,
+   ČO sa skroluje: teraz stred, kým hlavička aj CTA stoja. */
+/* ── TVAR JE SPOLOČNÝ S DOKOM SPRIEVODCU (Matej 2026-08-24) ────────────────
+   „pri označení parkoviska sa vysunie iný dolný panel… musí byť taký istý ako ten panel
+    predtým, treba ustáliť ten istý tvar aj veľkosť."
+   Povrch, výplň aj výška prišli do .trp-dockpanel (components/pack/mapDockShape.ts) —
+   ten istý zdroj, z akého ich berie .trp-dstart a .trp-dbar. Tu ostáva len to, čo je
+   vlastné TOMUTO panelu: pripútanie k hrane a vnútorné rozvrhnutie (hlavička a CTA stoja,
+   skroluje sa stred). */
+.mna-sheet{position:fixed;left:0;right:0;bottom:0;z-index:1200;display:flex;flex-direction:column;max-height:min(78vh,${NOTE_PANEL_H}px);}
+/* ── 33vh JE SPODNÁ HRANICA, NIE PEVNÁ VÝŠKA ───────────────────────────────
+   Dok sprievodcu má v krokoch 1-2 presných 33vh, aby sa výrez mapy nehýbal. Tento panel
+   z toho berie SPODNÚ hranicu — nikdy nie je nižší než dok, ktorý práve vystriedal, takže
+   nevznikne dojem, že sa vysunulo niečo iné a menšie. Strop si drží vlastný.
+
+   ⚠️ PEVNÝCH 33vh SA VEDOME NEDRŽÍ. Odskúšané naživo: pri parkovisku (text + zadarmo/platené)
+   sa obsah do 232 px na 704 px vysokom okne nezmestí a pilulky sa prerežú v polovici — a
+   prerezaný riadok nevyzerá ako "skroluj", vyzerá ako pokazené. Pri upozornení je obsah
+   dvojnásobný (rad hrozieb + posuvník okruhu + veta). Rásť je menšie zlo než rezať: rozdiel
+   oproti doku je desiatky pixelov, kým povrch, výplň aj rám ostávajú tie isté. */
+@media (max-width:${DOCK_MOBILE_MAX}px){
+  .mna-sheet{height:auto;min-height:${DOCK_VH * 100}vh;max-height:min(78vh,${NOTE_PANEL_H}px);}
+}
+/* ── V SPRIEVODCOVI VÝLETU AJ NA PC SEDÍ V ĽAVOM STĹPCI ────────────────────
+   Bez tohto by na PC panel v kroku 2 odskočil z ľavého bloku na pás cez celú spodnú hranu —
+   tá istá chyba ako na telefóne, len s väčším skokom. Miery sú zhodné s .trp-dock
+   (GeometryPicker.tsx): je to ten istý stĺpec, nie jeho druhá verzia.
+   ⚠️ Platí LEN v sprievodcovi. Na holej mape žiadny ľavý blok nie je a panel tam ostáva
+   spodným pásom. */
+@media (min-width:1024px){
+  /* ⚠️ ZAROVNANÝ HORE A VYSOKÝ PODĽA OBSAHU (bottom:auto). Dok má síce top aj bottom 20 px,
+     ale je to len RÁM stĺpca — panely v ňom stoja hore (justify-content:flex-start) a výšku
+     si berú podľa obsahu. Keď si tie isté dve hodnoty vzal panel značky priamo na seba,
+     natiahol sa cez celú obrazovku a medzi vetou o okruhu a tlačidlom ostala pol metra diera. */
+  .mna-sheet--dock{top:20px;bottom:auto;left:20px;right:auto;width:${DOCK_COL_W}px;max-width:calc(100vw - 40px);max-height:calc(100vh - 40px);}
+}
+@media (min-width:1024px) and (max-width:1400px){
+  .mna-sheet--dock{width:360px;}
+}
+/* Na holej mape ostáva panel PRIPÚTANÝ k spodnej hrane, takže dole nemá čo zaobľovať ani
+   rámovať — .trp-dockpanel zaobľuje dokola, lebo tam je karta plávajúca. */
+@media (min-width:1024px){
+  .mna-sheet:not(.mna-sheet--dock){border-radius:16px 16px 0 0;border-bottom:0;border-left:0;border-right:0;}
+}
+/* Hlavička a CTA stoja, skroluje sa len stred v .mna-scroll.
+   ⚠️ NIE mna-body — to je trieda TEXTAREY o pár riadkov nižšie a obal s tým istým
+   názvom by jej pretlačil výšku aj skrol. */
+.mna-sheet > .mna-head{flex:0 0 auto;}
+.mna-sheet > .mna-actions{flex:0 0 auto;margin-top:10px;}
+.mna-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:10px;padding-top:8px;}
+
 .mna-head{display:flex;align-items:center;justify-content:space-between;gap:12px;}
 .mna-title{font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;}
 .mna-close{width:30px;height:30px;border:0;background:transparent;color:${T.onDarkDim};font-size:16px;line-height:1;cursor:pointer;padding:0;}
 .mna-close:hover{color:${GOLD};}
-/* PILULKY HROZIEB — päť podtypov sa na 390 px do jedného riadku nezmestí, takže
-   sa rad zalamuje a pilulka NERASTIE do celej šírky (flex:0 1 auto). S 1 1 0
-   by posledná v riadku bola trikrát širšia než jej dvojičky nad ňou. */
-.mna-kinds{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
-.mna-kind{flex:0 1 auto;display:inline-flex;align-items:center;gap:5px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:${T.onDarkDim};background:transparent;border:1px solid ${T.onDarkBorder};border-radius:999px;padding:6px 10px;cursor:pointer;}
-.mna-kind i{font-style:normal;font-family:${FONT_EMOJI};font-size:12px;line-height:1;}
-.mna-kind.on{color:${HAZARD_RED};border-color:${HAZARD_RED};background:rgba(206,75,60,0.14);}
+/* ── DRUHY HROZBY = RAD EMOJI KRUHOV, NIE PILULKY S TEXTOM ─────────────────
+   Matej 2026-08-22: „nesmie tam byť scrolling musí to byť celé na jedno videnie
+   v popupe… neviem kam mam kliknúť musí to mať kekné body ako aj vizuálne
+   ukazovatele že je to vybraté a splnené."
+
+   Deväť pilulek s textom sa lámalo do TROCH riadkov a zaberalo 99 px — samo
+   o sebe skoro tretinu panela a hlavný dôvod, prečo panel scrolloval (namerané:
+   391 px obsahu do 338 px). Kruh s emoji zaberie JEDEN riadok (34 px) a názov
+   vybraného druhu sa presunul do hlavičky (UPOZORNENIE · KLIEŠTE), takže text sa
+   nestratil — len sa prestal opakovať deväťkrát a nestojí vlastný riadok.
+
+   Kruh je zámerne TÝŽ TVAR ako značka na mape (28 px, biele pole, farebný lem) —
+   človek vyberá presne to, čo o chvíľu uvidí pod prstom. Vybraný je VYPLNENÝ
+   farbou skupiny a má prstenec, takže „vybraté" sa dá prečítať aj periférne. */
+/* Rad zaberá CELÚ šírku panela rovnakými dielmi (flex:1 1 0) a NEZALAMUJE sa.
+   Pevná šírka 34 px sa pri 360 px telefóne (panel 338) zlomila do dvoch radov
+   a obsah vyskočil na 407 px, teda 2 px pod strop — teoreticky prešlo, prakticky
+   by to spadlo pri prvom dlhšom preklade. Deliť šírku je odolnejšie než ju hádať.
+   max-width drží kruh na 34 px na širokom paneli, nech z neho nie je ovál. */
+/* Druh za skupinou. Oddelený bodkou a stlmený, aby hlavička ostala jedným
+   prvkom a nie dvoma nadpismi vedľa seba. */
+.mna-title-kind{font-weight:700;opacity:.72;}
+.mna-title-kind::before{content:' · ';opacity:.6;}
 
 /* ── POLOMER ───────────────────────────────────────────────────────────────
    Posuvník má vlastný vzhľad, lebo natívny je na tmavom paneli takmer neviditeľný
@@ -533,13 +868,16 @@ export const ADD_NOTE_CSS = `
 /* ── KLIEŠŤ: VÝSKYT / POTVRDENÁ CHOROBA ───────────────────────────────────
    Prepínač je ten istý tvar ako bod/okruh pri polomere (.mna-opt) — je to tá
    istá otázka „ktorá z dvoch verzií", takže nemá dôvod vyzerať inak. */
-.mna-tick{margin-top:9px;display:flex;flex-direction:column;gap:7px;}
-.mna-tick-switch{display:flex;gap:6px;}
+/* Prepínač a výber choroby stoja VEDĽA SEBA, nie pod sebou — pod sebou to bolo
+   69 px a panel sa práve o toľko nezmestil. Sú to dve časti jednej vety
+   („potvrdená choroba: borelióza"), takže jeden riadok je aj vecne správnejší. */
+.mna-tick{margin-top:9px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.mna-tick-switch{display:flex;gap:6px;flex:1 1 auto;}
 .mna-tick-switch .mna-opt{flex:1 1 0;font-size:10px;padding:6px 10px;}
 /* Natívny select nesie na macOS aj Windows vlastný chrome — prefarbuje sa len
    to, čo sa dá, a color-scheme:dark povie prehliadaču, nech rozbaľovací zoznam
    nakreslí tmavý. Bez toho je zoznam biely nad čiernym panelom. */
-.mna-select{width:100%;color-scheme:dark;font-family:${FONT_UI};font-size:11.5px;color:${T.onDark};background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};border-radius:8px;padding:7px 9px;cursor:pointer;}
+.mna-select{flex:1 1 150px;min-width:0;color-scheme:dark;font-family:${FONT_UI};font-size:11.5px;color:${T.onDark};background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};border-radius:8px;padding:7px 9px;cursor:pointer;}
 
 .mna-radius{margin-top:10px;}
 .mna-radius-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
@@ -565,10 +903,23 @@ export const ADD_NOTE_CSS = `
 .mna-paid{display:flex;gap:6px;margin-top:8px;}
 .mna-opt{flex:1 1 0;font-family:${FONT_UI};font-weight:600;font-size:11px;color:${T.onDarkDim};background:transparent;border:1px solid ${T.onDarkBorder};border-radius:999px;padding:7px 10px;cursor:pointer;}
 .mna-opt.on{color:${PARK_BLUE};border-color:${PARK_BLUE};background:rgba(46,95,208,0.14);}
+/* ── PREPÍNAČ KLIEŠŤA NESIE FARBU, KTORÚ DOSTANE ZNAČKA ────────────────────
+   Do 22. 8. dedil .mna-opt.on, teda MODRÚ — a modrá je v tejto appke farba
+   parkoviska. V paneli o kliešťoch tak svietila tretia farba, ktorá nič
+   neznamenala, vedľa červeného kruhu a zlatého okruhu. Teraz je vybraný stav
+   presne ten odtieň, aký bude mať lem značky na mape: oranžová = výskyt,
+   červená = potvrdené ochorenie. Človek teda vidí následok voľby, nie len ktorá
+   je aktívna. Zdroj oboch farieb je noteTint, nie nové hodnoty. */
+.mna-opt--sight.on{color:${TICK_ORANGE};border-color:${TICK_ORANGE};background:rgba(224,138,46,0.16);}
+.mna-opt--ill.on{color:${HAZARD_RED};border-color:${HAZARD_RED};background:rgba(206,75,60,0.16);}
 .mna-pinned{margin:8px 0 0;font-family:${FONT_UI};font-size:11px;color:${T.onDarkDim};}
 .mna-error{margin:8px 0 0;font-family:${FONT_UI};font-size:11.5px;color:#E0796D;}
 .mna-actions{display:flex;gap:10px;align-items:center;margin-top:10px;}
-.mna-hint{flex:1 1 auto;font-family:${FONT_UI};font-size:10.5px;line-height:1.35;color:${T.onDarkDim};}
+.mna-hint{flex:1 1 auto;display:flex;align-items:center;gap:6px;font-family:${FONT_UI};font-size:10.5px;line-height:1.35;color:${T.onDarkDim};}
+/* Zelená je tu JEDINÁ v paneli a nesie presne jeden význam: „môžeš odoslať".
+   Je to ten istý odtieň, aký na mape nesie tip — pozitívny stav, nie výstraha. */
+.mna-hint--ok{color:${GROUP_TINT.comment};font-weight:600;}
+.mna-hint--ok i{font-style:normal;display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:999px;background:${GROUP_TINT.comment};color:#08150c;font-size:10px;font-weight:700;line-height:1;}
 /* CTA (brand v3.2 LOCKED): .btn-gold sa nikde neimportuje globálne (žije v
    SpiralLanding.css) — lokálna kópia hodnôt 1:1, rovnaký zavedený vzor ako
    AddTripPlan.tsx a AddEvent.tsx. Gradient 135°, radius 8, papyrusový rám. */
@@ -584,26 +935,24 @@ export const ADD_NOTE_CSS = `
 /* ── LIŠTA „UKÁŽ MIESTO" ───────────────────────────────────────────────────
    Plná tmavá výplň, nie sklo: leží nad SVETLOU mapou, kde priesvitné sklo zmizne
    (overené screenshotom pri prvej verzii — biely text na svetlozelenej mape). */
-.mnp-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:1200;display:flex;align-items:center;gap:10px;width:min(94vw,440px);padding:10px 12px;border-radius:14px;background:rgba(5,5,5,0.94);border:1px solid rgba(201,154,63,0.5);box-shadow:0 8px 26px rgba(0,0,0,0.55);transition:border-color .18s ease,box-shadow .18s ease;}
 /* VÝZVA PRIBLÍŽIŤ = jediný stav, keď lišta hovorí „takto to nepôjde" (Matej 2026-08-21:
    „daj ju do červeného rámika ten čierny sa stratí"). Zlatý rám na mape splýva s okolím
    aj s vlastnou paletou; červená je jediná farba, ktorú appka inde nepoužíva na nič iné
    než na upozornenie. NEDÁVAJ ju na MapNoteHint — tá privíta, nie varuje. */
-.mnp-bar.is-warn{border-color:${HAZARD_RED};box-shadow:0 8px 26px rgba(0,0,0,0.55),0 0 0 1px rgba(206,75,60,0.45),0 0 18px rgba(206,75,60,0.35);}
-.mnp-bar.is-warn .mnp-text b{color:${HAZARD_RED};}
-@media (max-width:720px){.mnp-bar{bottom:82px;}}
-.mnp-dot{flex:0 0 auto;width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 3px rgba(255,255,255,0.14);}
-.mnp-text{flex:1 1 auto;font-family:${FONT_UI};font-size:11.5px;line-height:1.4;color:${T.onDark};}
-.mnp-text b{font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-right:7px;}
-.mnp-cancel{flex:0 0 auto;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:${T.onDarkDim};background:transparent;border:0;padding:6px 2px;cursor:pointer;}
-.mnp-cancel:hover{color:${T.onDark};}
 
 /* ── RÝCHLA PALETA PRI BODE ────────────────────────────────────────────────── */
 /* Šírka je ORÁMOVANÁ, nie max-content: tri pilulky s celými názvami merajú ~470 px
    a na 390 px displeji by z panela vytiekli von. S obmedzením sa rad zalomí. */
-.mnq-wrap{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:1250;width:min(94vw,470px);}
-@media (max-width:720px){.mnq-wrap{bottom:82px;}}
-.mnq-panel{padding:10px 12px 12px;border-radius:14px;background:rgba(5,5,5,0.94);border:1px solid rgba(201,154,63,0.5);box-shadow:0 10px 28px rgba(0,0,0,0.55);}
+/* ── PALETA TIEŽ DO SPODNÉHO DOKU (Matej 2026-08-24) ───────────────────────
+   „pri výbere ODKAZU mi otvorí popup, treba tam scrollovať, je tam moc obsahu —
+    uprav to tak, že to natiahni, resp. daj to do spodného panela ako je to pri
+    2. kroku."
+   Ide o tvar, nie o obsah: mriežka s NÁZVAMI ostáva. Rad holých kruhov padol
+   23. 8. práve preto, že voľba schovaná za akciu je voľba, ktorú človek nevidí —
+   a rozbaľovací zoznam by ju schoval znova. Šetrí sa teda na TVARE panela
+   (pripútaný k hrane, plná šírka), nie na tom, čo je v ňom čitateľné. */
+.mnq-wrap{position:fixed;left:0;right:0;bottom:0;z-index:1250;}
+.mnq-panel{max-height:70vh;overflow-y:auto;overscroll-behavior:contain;padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px));border-radius:16px 16px 0 0;background:rgba(5,5,5,0.96);backdrop-filter:blur(12px);border-top:1px solid rgba(201,154,63,0.5);box-shadow:0 -14px 40px rgba(0,0,0,0.6);}
 .mnq-head{position:relative;display:flex;align-items:center;justify-content:center;min-height:30px;margin-bottom:8px;}
 /* Panel je RASTÚCI ZOZNAM („tu časom vieme pridať dalšie položky") — nadpis preto
    patrí nad celý panel, nie k prvej dlaždici. */
@@ -640,4 +989,60 @@ export const ADD_NOTE_CSS = `
 .mntf:not(.is-below)::after{bottom:-6px;border-right:1px solid ${HAZARD_RED};border-bottom:1px solid ${HAZARD_RED};}
 .mntf.is-below::after{top:-6px;border-left:1px solid ${HAZARD_RED};border-top:1px solid ${HAZARD_RED};}
 @keyframes mntfIn{from{opacity:0;transform:scale(.94);}to{opacity:1;transform:scale(1);}}
+
+/* ⚠️ TENTO BLOK MUSÍ OSTAŤ POSLEDNÝ. Pravidlá v ňom majú ROVNAKÚ špecifickosť
+   ako ich široké dvojičky, takže rozhoduje PORADIE v súbore. (Historicky sa na tom
+   zlomil kruh druhu: media query sa vyhodnotila správne, ale neskoršie pravidlo ju
+   prebilo — vyzeralo to ako nefunkčná media query, bola to kaskáda.)
+   ⚠️ Rad kruhov .mna-kinds/.mna-kind 23. 8. 2026 ZANIKOL — druhy kreslí KindGrid
+   (mriežka 3 stĺpce, emoji + názov), ktorá si nesie vlastné CSS. Pravidlá pre neho tu nie sú.
+   ⚠️ A dôvod, prečo je tu trieda bez spätných apostrofov: toto je JS template literal,
+   takže spätný apostrof v CSS komentári ho ukončí a zhodí build (CLAUDE.md, HUB_CSS). */
+/* ── ÚZKY DISPLEJ ─────────────────────────────────────────────────────────
+   Pri 390 px je panel 367 px široký a dva rady sa zalomia naraz. Namerané: obsah
+   skočil z 366 na 447 px, teda nad strop 64vh na 667 px vysokom telefóne — panel by
+   scrolloval presne tam, kde to Matej zakázal, a na širokom okne by o tom nikto nevedel.
+   ⚠️ Responzívnu zmenu preto meraj v PÁSME (338/367/400/440), nie na jednej
+   šírke — to je tá istá pasca ako pri psom bloku na /pack/dogs. */
+@media (max-width:430px){
+  .mna-sheet .mnk-tile{padding:8px 3px;}
+  .mna-sheet .mnk-tile i{font-size:17px;}
+  .mna-sheet .mnk-tile em{font-size:9.5px;}
+  .mna-sheet .mna-tick-switch .mna-opt{font-size:9px;padding:6px 5px;letter-spacing:.04em;}
+  .mna-sheet .mna-select{flex:1 1 120px;font-size:11px;padding:6px 7px;}
+  .mna-sheet .mna-radius-note{font-size:10px;}
+}
+${MAP_SKIN !== 'pale' ? '' : `
+/* ══ BLEDÝ SKIN PC (2026-08-26) ══════════════════════════════════════════════════════════
+   Kartička značky sedí na spoločnom povrchu .trp-dockpanel (mapDockShape.ts), ktorý je na PC
+   papyrusový — obsah tu preto nesmie ostať v onDark tokenoch. Mobil ostáva tmavý.
+   ⚠️ .mna-title-kind a .mna-opt--sight/--ill si držia SVOJE farby (skupina značky, potvrdená
+   choroba): tie nesú význam a menia sa len tam, kde by boli na svetlom nečitateľné.
+   ⚠️ color-scheme na <select> sa musí prepnúť na light, inak WebKit kreslí rozbaľovaciu
+   ponuku ďalej načierno a v papyrusovom paneli vyskočí tmavý zoznam.
+   ⚠️ Media query zanikla 28. 8. 2026 — dok je bledý na každej šírke. */
+  /* ── HLAVNÉ CTA JE LAPIS, NIE ZLATÉ (Matej 2026-08-26: „CTA oprav máme predsa modrú") ───
+     Formulár značky sa otvára Z KROKU 2 pridávania výletu, takže stojí v tom istom slede
+     obrazoviek ako HOTOVO a OZNAČ — a pre ten platí Matejov lock z 24. 8.: „každý slajd musí
+     mať totožné CTA, rovnaká farba a štýl". Kým tie dve zmodreli a toto ostalo zlaté, bola
+     v jednom toku dvojica CTA v dvoch farbách.
+     ⚠️ Od 28. 8. to platí aj na telefóne — panel je bledý aj tam, takže zlatá by bola zlatá
+     na zlatom a hlavná akcia by splynula s doskou, ktorá ju drží. */
+  .mna-submit.btn-gold{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};}
+  .mna-submit.btn-gold:hover:not(:disabled){background:${LAPIS.gradHover};box-shadow:${LAPIS_BTN_SHADOW};}
+  .mna-close{color:${PALE.dim};}
+  .mna-close:hover{color:${PALE.deep};}
+  .mna-select{color-scheme:light;color:${PALE.ink};background:${PALE.field};border-color:${PALE.border};}
+  .mna-radius-label{color:${PALE.dim};}
+  .mna-radius-val{color:${PALE.ink};}
+  .mna-radius-note{color:${PALE.dim};}
+  .mna-body{color:${PALE.ink};background:${PALE.field};border-color:${PALE.border};}
+  .mna-body::placeholder{color:${PALE.dim};opacity:.75;}
+  .mna-opt{color:${PALE.dim};background:${PALE.soft};border-color:${PALE.border};}
+  .mna-opt.on{color:${PALE.ink};}
+  .mna-pinned{color:${PALE.dim};}
+  .mna-hint{color:${PALE.dim};}
+  .mnq-title{color:${PALE.ink};}
+`}
+
 `;

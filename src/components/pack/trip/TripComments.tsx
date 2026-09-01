@@ -24,6 +24,7 @@
 // (signed out, unpaid, DEV_NOAUTH) the popup shows an error instead of pretending it saved — same
 // rule as `sendMessage()` in packMessaging.ts.
 import { useCallback, useEffect, useState } from 'react';
+import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
@@ -157,12 +158,13 @@ function PawPicker({ value, onChange }: { value: number; onChange: (n: number) =
 
 // ── pager — "‹ 1/N ›", edges disabled (no wrap) ──
 function Pager({ page, totalPages, onPrev, onNext }: { page: number; totalPages: number; onPrev: () => void; onNext: () => void }) {
+  const t = useT();
   if (totalPages <= 1) return null;
   return (
     <div className="tcm-pager">
-      <button type="button" onClick={onPrev} disabled={page <= 1} aria-label="Previous page">‹</button>
+      <button type="button" onClick={onPrev} disabled={page <= 1} aria-label={t('pack.trip.cm.prevPage')}>‹</button>
       <span>{page}/{totalPages}</span>
-      <button type="button" onClick={onNext} disabled={page >= totalPages} aria-label="Next page">›</button>
+      <button type="button" onClick={onNext} disabled={page >= totalPages} aria-label={t('pack.trip.cm.nextPage')}>›</button>
     </div>
   );
 }
@@ -175,6 +177,7 @@ function ReviewPopup({ trailName, initial, canWrite, saving, error, onSubmit, on
   trailName: string; initial?: RealReview | null; canWrite: boolean; saving: boolean; error: string | null;
   onSubmit: (v: { paws: number; text?: string }) => void; onDelete?: () => void; onClose: () => void;
 }) {
+  const t = useT();
   const [paws, setPaws] = useState(initial?.paws ?? 0);
   const [text, setText] = useState(initial?.body ?? '');
   const canSubmit = paws > 0 && canWrite && !saving;
@@ -183,26 +186,26 @@ function ReviewPopup({ trailName, initial, canWrite, saving, error, onSubmit, on
       <div className="tcm-modal" onClick={(e) => e.stopPropagation()}>
         <div className="tcm-modal-head">
           <div>
-            <div className="tcm-modal-title">{initial ? 'Edit your review' : 'Add a review'}</div>
+            <div className="tcm-modal-title">{initial ? t('pack.trip.cm.editYours') : t('pack.trip.cm.addYours')}</div>
             <div className="tcm-modal-sub">{trailName}</div>
           </div>
-          <button type="button" className="tcm-x" onClick={onClose} aria-label="Close">×</button>
+          <button type="button" className="tcm-x" onClick={onClose} aria-label={t('pack.trip.cm.close')}>×</button>
         </div>
         <div className="tcm-field" style={{ textAlign: 'center' }}>
-          <label className="tcm-label">How was it? (paws)</label>
+          <label className="tcm-label">{t('pack.trip.cm.howWas')}</label>
           <PawPicker value={paws} onChange={setPaws} />
         </div>
         <div className="tcm-field">
-          <label className="tcm-label">Say more (optional)</label>
-          <textarea className="tcm-textarea" value={text} onChange={(e) => setText(e.target.value)} placeholder="Muddy after rain, great off-leash stretch near the top…" />
+          <label className="tcm-label">{t('pack.trip.cm.sayMore')}</label>
+          <textarea className="tcm-textarea" value={text} onChange={(e) => setText(e.target.value)} placeholder={t('pack.trip.cm.sayMorePlaceholder')} />
         </div>
         <button type="button" className="tcm-submit" disabled={!canSubmit} onClick={() => canSubmit && onSubmit({ paws, text: text.trim() || undefined })}>
-          {saving ? 'Saving…' : initial ? 'Update review' : 'Post review'}
+          {saving ? 'Saving…' : initial ? t('pack.trip.cm.update') : t('pack.trip.cm.post')}
         </button>
         {initial && onDelete && (
-          <button type="button" className="tcm-deletebtn" disabled={saving} onClick={onDelete}>Delete review</button>
+          <button type="button" className="tcm-deletebtn" disabled={saving} onClick={onDelete}>{t('pack.trip.cm.delete')}</button>
         )}
-        {!canWrite && <div className="tcm-gatehint">Sign in to post a review.</div>}
+        {!canWrite && <div className="tcm-gatehint">{t('pack.trip.cm.signInReview')}</div>}
         {error && <div className="tcm-gatehint" style={{ color: '#E0796D' }}>{error}</div>}
       </div>
     </div>
@@ -211,12 +214,14 @@ function ReviewPopup({ trailName, initial, canWrite, saving, error, onSubmit, on
 
 // Dôvody nahlásenia — rovnaké znenie ako Thread.tsx (§54), duplikované zámerne: ten súbor sa
 // needituje (pracujú na ňom iní agenti) a `REPORT_REASONS` v ňom nie je exportovaný.
+// ⚠️ `label` je i18n KĽÚČ, nie text — konštanta je modulová a `useT()` je hook, takže
+// prekladá až komponent (rovnaký vzor ako ACTIVITIES v AddTripPlan).
 const REPORT_REASONS: Array<{ id: ReportReason; label: string }> = [
-  { id: 'harassment', label: 'Harassment or abuse' },
-  { id: 'spam', label: 'Spam or advertising' },
-  { id: 'unsafe', label: 'Unsafe for people or dogs' },
-  { id: 'not_dog_related', label: 'Not dog related' },
-  { id: 'other', label: 'Something else' },
+  { id: 'harassment', label: 'pack.trip.rp.reasonHarassment' },
+  { id: 'spam', label: 'pack.trip.rp.reasonSpam' },
+  { id: 'unsafe', label: 'pack.trip.rp.reasonUnsafe' },
+  { id: 'not_dog_related', label: 'pack.trip.rp.reasonOffTopic' },
+  { id: 'other', label: 'pack.trip.rp.reasonOther' },
 ];
 
 // ── nahlásenie cudzieho (reálneho, nie mock) komentára — issue #54. Vzor prevzatý z
@@ -225,17 +230,18 @@ const REPORT_REASONS: Array<{ id: ReportReason; label: string }> = [
 function ReportSheet({ onClose, onSend, busy, error, sent }: {
   onClose: () => void; onSend: (reason: ReportReason, note?: string) => void; busy: boolean; error: string | null; sent: boolean;
 }) {
+  const t = useT();
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [note, setNote] = useState('');
   return (
     <div className="tcm-overlay" onClick={onClose}>
       <div className="tcm-modal" onClick={(e) => e.stopPropagation()}>
         <div className="tcm-modal-head">
-          <div className="tcm-modal-title">{sent ? 'Report sent' : 'Why are you reporting this?'}</div>
-          <button type="button" className="tcm-x" onClick={onClose} aria-label="Close">×</button>
+          <div className="tcm-modal-title">{sent ? t('pack.trip.rp.sent') : t('pack.trip.rp.why')}</div>
+          <button type="button" className="tcm-x" onClick={onClose} aria-label={t('pack.trip.cm.close')}>×</button>
         </div>
         {sent ? (
-          <div className="tcm-modal-sub">Matej reads every report himself.</div>
+          <div className="tcm-modal-sub">{t('pack.trip.rp.matejReads')}</div>
         ) : (
           <>
             <div className="tcm-field">
@@ -245,17 +251,17 @@ function ReportSheet({ onClose, onSend, busy, error, sent }: {
                   type="button"
                   className={`tcm-reportreason${reason === r.id ? ' on' : ''}`}
                   onClick={() => setReason(r.id)}
-                >{r.label}</button>
+                >{t(r.label)}</button>
               ))}
             </div>
             <div className="tcm-field">
-              <textarea className="tcm-textarea" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Anything Matej should know (optional)" />
+              <textarea className="tcm-textarea" value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('pack.trip.rp.notePlaceholder')} />
             </div>
             {error && <div className="tcm-gatehint" style={{ color: '#E0796D' }}>{error}</div>}
             <button type="button" className="tcm-submit" disabled={!reason || busy} onClick={() => reason && onSend(reason, note.trim() || undefined)}>
-              {busy ? 'Sending…' : 'Send report'}
+              {busy ? 'Sending…' : t('pack.trip.rp.send')}
             </button>
-            <button type="button" className="tcm-reportcancel" onClick={onClose}>Cancel</button>
+            <button type="button" className="tcm-reportcancel" onClick={onClose}>{t('pack.trip.rp.cancel')}</button>
           </>
         )}
       </div>
@@ -263,9 +269,35 @@ function ReportSheet({ onClose, onSend, busy, error, sent }: {
   );
 }
 
-export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequestWalk }: {
+/**
+ * ── AUTOROVO HODNOTENIE JE PRVÉ V ZOZNAME (Matej 2026-08-25) ─────────────────────────────
+ *
+ * „pri autorovom hodnotení bude fotka autora — Autor tripu a počet hviezdičiek… musí tam
+ *  svietiť (1) a hodnotenie (1)."
+ *
+ * Do teraz sa počítali DVE rôzne čísla pod tým istým slovom: hore v článku „(2)" (chodci
+ * z `crowdAggregate` — a tí sú pri seed výlete DVAJA, lebo Matej + Hekthor) a tu „REVIEWS (0)"
+ * (riadky v `trip_reviews`). Obe boli po svojom pravdivé a spolu nedávali zmysel.
+ *
+ * Zjednotené na jednu vetu: **hodnotenie výletu má autor a majú ho členovia, ktorí ho napísali.**
+ * Autorovo hodnotenie NIE JE v `trip_reviews` — je to `trail.stars`, teda labky, ktoré dal pri
+ * zakladaní výletu (`stars: draft.paws` v `PackMap.tsx`; pri seed výletoch hodnota z nahadzovača).
+ * Preto sa sem posiela zvonku a rátame ho ako JEDNO hodnotenie, nie ako dvoch chodcov.
+ *
+ * ⚠️ `authorRating = 0` znamená NEHODNOTENÉ, nie nula labiek — vtedy riadok nie je a počet
+ * o neho nerastie. Rovnaké pravidlo ako `agg.rating > 0` v článku.
+ */
+export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequestWalk, authorRating = 0, authorName, onCountChange }: {
   tripId: string; tripName?: string; walked?: boolean; onMarkWalked?: () => void; onRequestWalk?: () => void;
+  /** Labky autora výletu (`trail.stars`). 0 = nehodnotil. */
+  authorRating?: number;
+  /** Meno autora — do riadku aj do iniciálky v krúžku. */
+  authorName?: string;
+  /** Hlási počet hodnotení hore do článku, aby zátvorka pri labkách a tento tab
+   *  nikdy neukazovali dve rôzne čísla. */
+  onCountChange?: (n: number) => void;
 }) {
+  const t = useT();
   const [tab, setTab] = useState<'reviews' | 'advice'>('reviews');
   const [page, setPage] = useState(1);
   const changeTab = (t: 'reviews' | 'advice') => { setTab(t); setPage(1); };
@@ -316,8 +348,14 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   const myQuestionsForTrip = realQuestions.filter((q) => q.isMine);
   const otherQuestions = realQuestions.filter((q) => !q.isMine);
 
-  const reviewCount = realReviews.length;
+  // Autor sa počíta ako jedno hodnotenie — viď blok pri signatúre.
+  const hasAuthorRating = authorRating > 0;
+  const reviewCount = realReviews.length + (hasAuthorRating ? 1 : 0);
   const adviceCount = realQuestions.length;
+
+  // Hore do článku. Beží po každej zmene zoznamu (dotiahnutie z DB, pridanie, zmazanie), aby
+  // zátvorka pri labkách nezamrzla na čísle z prvého renderu.
+  useEffect(() => { onCountChange?.(reviewCount); }, [reviewCount, onCountChange]);
 
   const reviewPages = Math.max(1, Math.ceil(reviewCount / PAGE_SIZE));
   const advicePages = Math.max(1, Math.ceil(adviceCount / PAGE_SIZE));
@@ -335,7 +373,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
       onMarkWalked?.(); // reviewing implies (and guarantees) the trip is marked walked
       setReviewPopupOpen(false);
     } catch (err) {
-      setReviewError(err instanceof Error ? err.message : 'Could not save your review — try again.');
+      setReviewError(err instanceof Error ? err.message : t('pack.trip.cm.saveFailed'));
     } finally {
       setReviewSaving(false);
     }
@@ -348,7 +386,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
       await refreshReviews();
       setReviewPopupOpen(false);
     } catch (err) {
-      setReviewError(err instanceof Error ? err.message : 'Could not delete your review — try again.');
+      setReviewError(err instanceof Error ? err.message : t('pack.trip.cm.deleteFailed'));
     } finally {
       setReviewSaving(false);
     }
@@ -364,7 +402,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
       await refreshQuestions();
       setAskText('');
     } catch (err) {
-      setQuestionError(err instanceof Error ? err.message : 'Could not post — try again.');
+      setQuestionError(err instanceof Error ? err.message : t('pack.trip.cm.postFailed'));
     } finally {
       setQuestionPosting(false);
     }
@@ -399,9 +437,13 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   // single localStorage row — the DB can hold reviews/questions from any number of real members,
   // so the list needs to generalize instead of special-casing one row. ──
   type ReviewItem =
+    | { kind: 'author' }
     | { kind: 'mine'; review: RealReview }
     | { kind: 'real'; review: RealReview };
+  // Autor je PRVÝ, pred mojím hodnotením: je to hodnotenie človeka, ktorý výlet zapísal,
+  // teda jediné, ktoré tam bolo od začiatku.
   const reviewItems: ReviewItem[] = [
+    ...(hasAuthorRating ? [{ kind: 'author' as const }] : []),
     ...(myReview ? [{ kind: 'mine' as const, review: myReview }] : []),
     ...otherReviews.map((review) => ({ kind: 'real' as const, review })),
   ];
@@ -419,14 +461,14 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   const advicePageItems = questionItems.slice(adviceStart, adviceStart + PAGE_SIZE);
 
   return (
-    <div className="tcm-wrap" aria-label={`Reviews and advice for ${tripName ?? 'this trip'}`}>
+    <div className="tcm-wrap" aria-label={t('pack.trip.cm.aria', { name: tripName ?? t('pack.trip.cm.thisTrip') })}>
       <style>{TRIP_COMMENTS_CSS}</style>
       <div className="tcm-tabs">
         <button type="button" className={`tcm-tab${tab === 'reviews' ? ' on' : ''}`} onClick={() => changeTab('reviews')}>
-          Reviews ({reviewCount})
+          {t('pack.trip.cm.reviews', { n: reviewCount })}
         </button>
         <button type="button" className={`tcm-tab${tab === 'advice' ? ' on' : ''}`} onClick={() => changeTab('advice')}>
-          Advice ({adviceCount})
+          {t('pack.trip.cm.advice', { n: adviceCount })}
         </button>
       </div>
       <div className="tcm-body">
@@ -441,22 +483,43 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                 className="tcm-btn-gold"
                 onClick={() => (walked ? setReviewPopupOpen(true) : onRequestWalk?.())}
               >
-                {walked ? (myReview ? 'Edit my review' : 'Add review') : 'Walked this trail? ADD REVIEW!'}
+                {walked ? (myReview ? t('pack.trip.cm.editMine') : t('pack.trip.cm.addShort')) : t('pack.trip.cm.walkedThen')}
               </button>
             </div>
 
             {reviewCount > 0 && (
               <button type="button" className="tcm-collapse-toggle" onClick={() => setReviewsOpen((v) => !v)}>
-                {reviewsOpen ? 'Hide reviews' : `Show ${reviewCount} review${reviewCount === 1 ? '' : 's'}`}
+                {reviewsOpen ? t('pack.trip.cm.hide') : `Show ${reviewCount} review${reviewCount === 1 ? '' : 's'}`}
                 <span className={`tcm-collapse-chevron${reviewsOpen ? ' open' : ''}`}>⌄</span>
               </button>
             )}
 
-            {reviewCount === 0 && <div className="tcm-empty">Be the first Dogyptian to review this trail.</div>}
+            {reviewCount === 0 && <div className="tcm-empty">{t('pack.trip.cm.beFirstReview')}</div>}
 
             {reviewsOpen && (
               <>
                 {reviewPageItems.map((item) => {
+                  if (item.kind === 'author') {
+                    /* ⚠️ Avatar je INICIÁLKA, nie fotka — a je to dočasné. Matej si pýtal
+                       „fotka autora", ale dataset o autorovi nesie JEDINE meno
+                       (`HeroTrail.author`, pri seed výletoch ani to — `AUTHOR_FALLBACK`),
+                       a `list_trip_reviews()` vracia tiež len krstné meno a číslo v svorke.
+                       Fotka sa teda nedá vziať odnikiaľ bez toho, aby sme ju vymysleli.
+                       Zapojí sa, keď budú profily členov vracať avatar. */
+                    const nm = authorName?.trim() || t('pack.trip.cm.dogyptian');
+                    return (
+                      <div className="tcm-review" key="author">
+                        <span className="tcm-avatar">{nm.charAt(0).toUpperCase()}</span>
+                        <div className="tcm-review-main">
+                          <div className="tcm-review-top">
+                            <span className="tcm-review-name">{nm}</span>
+                            <span className="tcm-review-badge">{t('pack.trip.cm.tripAuthor')}</span>
+                          </div>
+                          <Paws rating={authorRating} />
+                        </div>
+                      </div>
+                    );
+                  }
                   if (item.kind === 'mine') {
                     const r = item.review;
                     return (
@@ -465,7 +528,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                         <div className="tcm-review-main">
                           <div className="tcm-review-top">
                             <span className="tcm-review-name">You</span>
-                            <span className="tcm-review-badge">Your review</span>
+                            <span className="tcm-review-badge">{t('pack.trip.cm.yourReview')}</span>
                           </div>
                           <Paws rating={r.paws} />
                           {r.body && <div className="tcm-review-text">{r.body}</div>}
@@ -475,7 +538,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                   }
                   if (item.kind === 'real') {
                     const r = item.review;
-                    const name = r.ownerFirst ?? 'Dogyptian';
+                    const name = r.ownerFirst ?? t('pack.trip.cm.dogyptian');
                     return (
                       <div className="tcm-review" key={r.id}>
                         <span className="tcm-avatar">{name.charAt(0).toUpperCase()}</span>
@@ -488,7 +551,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                           {r.body && <div className="tcm-review-text">{r.body}</div>}
                           {canWrite && (
                             <div className="tcm-review-footer">
-                              <button type="button" className="tcm-reportlink" onClick={() => openReport(r.id)}>Report</button>
+                              <button type="button" className="tcm-reportlink" onClick={() => openReport(r.id)}>{t('pack.trip.cm.report')}</button>
                             </div>
                           )}
                         </div>
@@ -508,19 +571,19 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                 className="tcm-textarea"
                 value={askText}
                 onChange={(e) => setAskText(e.target.value)}
-                placeholder="Ask a question…"
+                placeholder={t('pack.trip.cm.askPlaceholder')}
               />
               <div className="tcm-ask-actions">
                 <button type="button" className="tcm-postbtn" disabled={!askText.trim() || !canWrite || questionPosting} onClick={postQuestion}>
-                  {questionPosting ? 'Posting…' : 'Post'}
+                  {questionPosting ? t('pack.trip.cm.postQuestion') + '…' : t('pack.trip.cm.postQuestion')}
                 </button>
               </div>
-              {!canWrite && <div className="tcm-gatehint">Sign in to ask a question.</div>}
+              {!canWrite && <div className="tcm-gatehint">{t('pack.trip.cm.signInAsk')}</div>}
               {questionError && <div className="tcm-gatehint" style={{ color: '#E0796D' }}>{questionError}</div>}
             </div>
 
             {adviceCount === 0 ? (
-              <div className="tcm-empty">No questions yet — ask the pack.</div>
+              <div className="tcm-empty">{t('pack.trip.cm.noQuestions')}</div>
             ) : (
               advicePageItems.map((item) => {
                 if (item.kind === 'mine') {
@@ -529,20 +592,20 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                       <div className="tcm-advice-text">{item.q.body}</div>
                       <div className="tcm-advice-meta">
                         <span>You</span>
-                        <button type="button" className="tcm-advice-del" onClick={() => deleteQuestion(item.q.id)} aria-label="Delete question">✕</button>
+                        <button type="button" className="tcm-advice-del" onClick={() => deleteQuestion(item.q.id)} aria-label={t('pack.trip.cm.deleteQuestion')}>✕</button>
                       </div>
                     </div>
                   );
                 }
                 if (item.kind === 'real') {
-                  const name = item.q.ownerFirst ?? 'Dogyptian';
+                  const name = item.q.ownerFirst ?? t('pack.trip.cm.dogyptian');
                   return (
                     <div className="tcm-advice" key={item.q.id}>
                       <div className="tcm-advice-text">{item.q.body}</div>
                       <div className="tcm-advice-meta">
                         <span>{name}{item.q.packNumber != null ? ` · Dogyptian #${item.q.packNumber}` : ''}</span>
                         {canWrite && (
-                          <button type="button" className="tcm-reportlink" onClick={() => openReport(item.q.id)}>Report</button>
+                          <button type="button" className="tcm-reportlink" onClick={() => openReport(item.q.id)}>{t('pack.trip.cm.report')}</button>
                         )}
                       </div>
                     </div>

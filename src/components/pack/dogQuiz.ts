@@ -104,6 +104,17 @@ export interface QuizStep {
    * vlastnom povrchu. Bez tohto by ✎ pri nich viedol do kvízu ZÁKLAD, kde nie sú.
    */
   editHref?: string;
+  /**
+   * Kam vedie ČÍTANIE výsledku, keď je hodnota poľa len vrcholom väčšieho posudku.
+   * Vzniklo 22. 8. 2026 (Matej: „k výsledku sa musí dať prekliknúť z DOG ID na jeden
+   * klik a následne sa vrátiť na dog id šípkou").
+   *
+   * ⚠️ NIE JE to `editHref`. Ten vedie do kvízu, teda na PREPÍSANIE výsledku — a pes
+   * má za sebou dvadsaťdva otázok, takže „chcem si to prečítať" a „chcem to vyplniť
+   * znova" sa nesmú spájať do jedného odkazu. `editHref` ostáva na ✎, toto visí na
+   * samotnej hodnote.
+   */
+  resultHref?: string;
 }
 
 // 'scored' = kvíz s VÁHAMI a vlastným povrchom (osobnostný kvíz `/pack/nature`).
@@ -481,6 +492,7 @@ export const QUIZ_SECTIONS: QuizSection[] = [
         rowEN: 'Pack role', rowI18n: 'pack.quiz.nature.role.row',
         views: ['story', 'sitter'],
         editHref: '/pack/nature',
+        resultHref: '/pack/nature?view=result',
       },
       {
         // Element ide aj veterinárovi — je to konštitúcia a predispozície, teda
@@ -493,6 +505,7 @@ export const QUIZ_SECTIONS: QuizSection[] = [
         rowEN: 'Element', rowI18n: 'pack.quiz.nature.element.row',
         views: ['story', 'sitter', 'vet'],
         editHref: '/pack/nature',
+        resultHref: '/pack/nature?view=result',
       },
       {
         // Riadok „Special roles" JE ten povinný prefix z locku — zvláštna úloha
@@ -503,6 +516,7 @@ export const QUIZ_SECTIONS: QuizSection[] = [
         rowEN: 'Special role', rowI18n: 'pack.quiz.nature.specials.row',
         views: ['story'],
         editHref: '/pack/nature',
+        resultHref: '/pack/nature?view=result',
       },
     ],
   },

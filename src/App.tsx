@@ -11,6 +11,8 @@ import { LanguageProvider, useLang } from "@/i18n/LanguageContext";
 import { GodsGrid } from "@/components/gods/GodsGrid";
 import NotFound from "./pages/NotFound.tsx";
 import { DevNav } from "@/components/DevNav";
+import { HeroflowDevMenu } from "@/components/lab/HeroflowDevMenu";
+import { FlowRedress } from "@/components/screens/flowRedress";
 import { ConsentBanner } from "@/components/ConsentBanner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { captureRefFromSearch } from "@/lib/refCapture";
@@ -29,14 +31,23 @@ const SpiralLanding = lazy(() =>
 const AinubisWidget = lazy(() =>
   import("@/components/ainubis/AinubisWidget").then((m) => ({ default: m.AinubisWidget }))
 );
-const IntroScreen = lazy(() =>
-  import("@/components/screens/IntroScreen").then((m) => ({ default: m.IntroScreen }))
-);
 const NameScreen = lazy(() =>
   import("@/components/screens/NameScreen").then((m) => ({ default: m.NameScreen }))
 );
 const PhotoScreen = lazy(() =>
   import("@/components/screens/PhotoScreen").then((m) => ({ default: m.PhotoScreen }))
+);
+const EmailScreen = lazy(() =>
+  import("@/components/screens/EmailScreen").then((m) => ({ default: m.EmailScreen }))
+);
+const DogsScreen = lazy(() =>
+  import("@/components/screens/DogsScreen").then((m) => ({ default: m.DogsScreen }))
+);
+const WhyScreen = lazy(() =>
+  import("@/components/screens/WhyScreen").then((m) => ({ default: m.WhyScreen }))
+);
+const CropScreen = lazy(() =>
+  import("@/components/screens/CropScreen").then((m) => ({ default: m.CropScreen }))
 );
 const BreedPatronScreen = lazy(() =>
   import("@/components/screens/BreedPatronScreen").then((m) => ({ default: m.BreedPatronScreen }))
@@ -101,6 +112,17 @@ const Vision = lazy(() => import("./pages/Vision.tsx"));
 const BetaVision = lazy(() => import("./pages/BetaVision.tsx"));
 // DEV-only dielňa hero radu — pyramída svorky pri 1–20 psoch (route nižšie za import.meta.env.DEV)
 const HeroLab = lazy(() => import("./pages/HeroLab.tsx"));
+// DEV-only pieskovisko homepage — WALL/GLOBE. `/` sa NEMENÍ (CLAUDE.md lock).
+// Namontuje ho `LabShell` ako panel homepage, priamu routu už nemá.
+
+// LAB stránky svetlého režimu (DEV ONLY) — pozri src/lib/labTheme.ts
+// LAB SHELL — jeden rám pre celý svetlý web: horný nav sa montuje RAZ, obsah sa
+// pod ním posúva vodorovne. Všetky štyri *-lab cesty mieria na TEN ISTÝ element,
+// takže React rám nechá stáť a prepne sa len panel (žiadne načítanie stránky).
+const LabShell = lazy(() => import("./components/lab/LabShell"));
+// ONEPAGE — druhý koncept toho istého webu: celý film v jednom zvislom scrolle
+// (Matej 26. 8. 2026). Beží VEDĽA LabShellu, nie namiesto neho.
+const OnePage = lazy(() => import("./components/lab/OnePage"));
 const Religion = lazy(() => import("./pages/Religion.tsx"));
 const About = lazy(() => import("./pages/About.tsx"));
 const Entry = lazy(() => import("./pages/Entry.tsx"));
@@ -151,6 +173,10 @@ const App = () => (
           <AinubisWidget />
         </Suspense>
         <DevNav />
+        {/* Úzke dev menu vstupu — beží aj POČAS flow (Matej 28. 8.:
+            „pri flow zostáva ten dev menu aby som vedel prepínať vždy"). */}
+        <FlowRedress />
+        <HeroflowDevMenu />
         <ErrorBoundary>
           <Suspense fallback={<RouteFallback />}>
             <Routes>
@@ -159,16 +185,43 @@ const App = () => (
               <Route path="/wall" element={<GodsGrid />} />
               <Route path="/grid" element={<GodsGrid />} />
               <Route path="/spiral" element={<SpiralLanding />} />
+              {/* LAB — svetlý (papyrusový) web, dev-only pieskovisko.
+                  `/wall-lab` = homepage (GLOBE + spodná lišta), ostatné cesty sú
+                  sekcie toho istého rámu. Ostré `/`, `/religion`, `/vision`,
+                  `/about` ostávajú nedotknuté. */}
+              {import.meta.env.DEV && (
+                <>
+                  <Route path="/wall-lab" element={<LabShell />} />
+                  <Route path="/vision-lab" element={<LabShell />} />
+                  <Route path="/religion-lab" element={<LabShell />} />
+                  <Route path="/about-lab" element={<LabShell />} />
+                  <Route path="/onepage" element={<OnePage />} />
+                </>
+              )}
 
               {/* /entry — verejná conviction gate PRED flow (2026-07-12). CTA → /heroglyph/intro. */}
               <Route path="/entry" element={<Entry />} />
 
-              {/* Heroglyph flow — prefix /heroglyph/<step> (14 krokov + nepočítaný intro predkrok).
-                  /heroglyph sales page retirovaná → redirect na /entry (pokryje všetky staré CTA/inbound linky). */}
+              {/* Heroglyph flow — prefix /heroglyph/<step>.
+                  PORADIE OD 28. 8. 2026: fotka → meno → e-mail → papierovačky → plemeno → …
+                  → povaha → výrez → odhalenie. Fotka je prvá otázka, e-mail padá skoro
+                  (predtým až 17. krok z 19), výrez sa odsunul za skladanie heroglyfu.
+                  /heroglyph/intro zanikol — jeho jediná otázka (žije pes?) je pri mene.
+                  /heroglyph sales page retirovaná → redirect na /entry (staré CTA a inbound linky). */}
               <Route path="/heroglyph" element={<Heroglyph />} />
-              <Route path="/heroglyph/intro" element={<IntroScreen />} />
-              <Route path="/heroglyph/name" element={<NameScreen />} />
+              <Route path="/heroglyph/intro" element={<Navigate to="/heroglyph/photo" replace />} />
               <Route path="/heroglyph/photo" element={<PhotoScreen />} />
+              <Route path="/heroglyph/name" element={<NameScreen />} />
+              <Route path="/heroglyph/dogs" element={<DogsScreen />} />
+              <Route path="/heroglyph/email" element={<EmailScreen />} />
+              <Route path="/heroglyph/why" element={<WhyScreen />} />
+              {/* 🔴 PAPIEROVAČKY ZRUŠENÉ 31. 8. 2026 (Matej: „papierovačky krok zruš").
+                  Krajinu aj dátum narodenia zbiera UŽ krok 3 (`/heroglyph/dogs`) — a to pre
+                  KAŽDÉHO psa vrátane prvého, do tých istých polí store (`selections.country`,
+                  `birthdayDay/Month/Year`). Navyše bez nich `allDone` ďalej nepustí, takže sa
+                  nedali obísť. Obrazovka teda nič nenesie; ostáva presmerovanie, aby staré
+                  odkazy a história prehliadača nekončili na prázdnej ceste. */}
+              <Route path="/heroglyph/about" element={<Navigate to="/heroglyph/breed" replace />} />
               <Route path="/heroglyph/breed" element={<BreedPatronScreen />} />
               <Route path="/heroglyph/ranking" element={<RankingScreen />} />
               <Route path="/heroglyph/owner-info" element={<OwnerInfoScreen />} />
@@ -179,6 +232,7 @@ const App = () => (
               <Route path="/heroglyph/dog-colour" element={<DogColourScreen />} />
               <Route path="/heroglyph/dog-bloodline" element={<DogBloodlineScreen />} />
               <Route path="/heroglyph/dog-character" element={<DogCharacterScreen />} />
+              <Route path="/heroglyph/crop" element={<CropScreen />} />
               <Route path="/heroglyph/reveal" element={<HeroglyphRevealScreen />} />
               <Route path="/heroglyph/message" element={<MessageScreen />} />
 

@@ -98,6 +98,15 @@ const PASS_CSS = `
    a váha 600 sú tu preto, že jeden znak v riadku s 11.5px popiskom inak zanikne —
    pomlčka má byť vidieť cez celý blok. Váha 600 je STROP: Space Grotesk je načítaný
    300–600, pri 700 by prehliadač dosyntetizoval fake bold. */
+.pass-toresult{
+  color:inherit; text-decoration:none;
+  /* Podčiarknutie musí byť VIDIEŤ, inak je to mŕtve tlačidlo — bodkovaná zlatá
+     linka pod hodnotou hovorí „dá sa na to kliknúť" bez toho, aby z údaja spravila
+     modrý odkaz. Ostatné riadky dokladu klikateľné nie sú a nesmú tak vyzerať. */
+  border-bottom:1px dotted rgba(201,154,63,0.75);
+  transition:border-color .15s ease, opacity .15s ease;
+}
+.pass-toresult:hover{ border-bottom-color:#C99A3F; opacity:.85; }
 .pass-missing{ font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:600;
   letter-spacing:.06em; color:${T.alertRed}; text-decoration:none; }
 /* zámerne prázdne pole (zvláštna úloha) — pomlčka bez poplachu */
@@ -319,6 +328,7 @@ export function DogPassport({
                 trend={step.field === 'health.weightKg' ? weightTrend : null}
                 // Kam ide oprava PRÁVE TOHTO poľa. Krok si smer nesie sám, keď sa
                 // needituje kvízom svojej skupiny (`nature.*` → osobnostný kvíz).
+                dogId={dogId}
                 editTo={step.editHref
                   ? `${step.editHref}?dog=${dogId}`
                   : `/pack/dogs/quiz/${group.editSection}?dog=${dogId}&field=${step.field}`}
@@ -451,9 +461,10 @@ function FixedPassRow({ row, tx }: { row: FixedRow; tx: (k: string, f: string) =
 }
 
 function PassRow({
-  step, value, trend, editTo, onEditPanel, tx,
+  step, value, trend, editTo, dogId, onEditPanel, tx,
 }: {
   step: QuizStep; value: LatestValue | undefined; trend: string | null; editTo: string;
+  dogId: string;
   onEditPanel?: () => void;
   tx: (k: string, f: string) => string;
 }) {
@@ -503,7 +514,21 @@ function PassRow({
         {tx(step.rowI18n, step.rowEN)}
       </dt>
       <dd style={{ margin: 0, fontFamily: FONT_UI, fontSize: 13, color: 'var(--pass-val)', fontWeight: 500 }}>
-        {renderValue(step, value.value, tx)}
+        {/* HODNOTA JE ODKAZ NA VÝSLEDOK, nie samostatné tlačidlo vedľa nej.
+            „Metal" a „The Defender" nie sú údaje ako výška v kohútiku — sú to
+            závery dvadsiatich dvoch otázok a za každým stojí celá strana textu.
+            Odkaz preto visí priamo na nich: jeden klik, žiadny nový prvok v mriežke.
+            `from=id` povie kvízu, že šípka späť patrí na TENTO doklad — posiela sa
+            príznak, nie cesta, aby sa cez parameter nedalo poslať človeka inam. */}
+        {step.resultHref ? (
+          <Link
+            to={`${step.resultHref}&dog=${dogId}&from=id`}
+            className="pass-toresult"
+            title={tx('pack.pass.openResult', 'Open the full result')}
+          >
+            {renderValue(step, value.value, tx)}
+          </Link>
+        ) : renderValue(step, value.value, tx)}
         {trend && (
           <span style={{ fontFamily: FONT_UI, fontSize: 10.5, color: T.growGreen, marginLeft: 6 }}>{trend}</span>
         )}

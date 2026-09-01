@@ -16,9 +16,9 @@ import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { useT } from '@/i18n/LanguageContext';
 import { trailCountry } from '@/lib/countryGeo';
-import { MAPY_API_KEY } from '@/lib/env';
+import { MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
 import {
-  EVENT_KINDS, missingEventFields,
+  EVENT_KINDS, EVENT_KIND_LABEL_KEYS, missingEventFields,
   type AddEventDraft, type EventKind, type EventOrigin,
 } from './eventModel';
 
@@ -37,17 +37,6 @@ export type AddEventProps = {
 };
 
 type PlaceSug = { name: string; sub: string; lat: number; lon: number };
-
-// t() sa volá až v komponente (KIND_LABEL_KEYS je modulová konštanta, useT() je hook).
-const KIND_LABEL_KEYS: Record<EventKind, string> = {
-  race: 'pack.addEvent.kind.race',
-  show: 'pack.addEvent.kind.show',
-  training: 'pack.addEvent.kind.training',
-  social_walk: 'pack.addEvent.kind.social_walk',
-  lecture: 'pack.addEvent.kind.lecture',
-  charity: 'pack.addEvent.kind.charity',
-  expo: 'pack.addEvent.kind.expo',
-};
 
 // missingEventFields() vracia field ID-čka (eventModel.ts nevie o i18n) — tu sa mapujú na
 // preložené labely pre nápovedu pri disabled submite, vzor `FIELD_LABEL` v addTripModel.ts.
@@ -92,7 +81,7 @@ export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddE
     if (pickedRef.current === q) { setSuggestions([]); return; }
     const timer = setTimeout(async () => {
       try {
-        const url = `https://api.mapy.com/v1/suggest?query=${encodeURIComponent(q)}&lang=en&limit=6&apikey=${MAPY_API_KEY}`;
+        const url = `${MAPY_BASE}/v1/suggest?query=${encodeURIComponent(q)}&lang=en&limit=6&apikey=${MAPY_API_KEY}`;
         const res = await fetch(url);
         const data = await res.json();
         const items: PlaceSug[] = (data.items || [])
@@ -220,7 +209,7 @@ export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddE
                 type="button"
                 className={`aev-pill${kind === k ? ' on' : ''}`}
                 onClick={() => setKind(k)}
-              >{t(KIND_LABEL_KEYS[k])}</button>
+              >{t(EVENT_KIND_LABEL_KEYS[k])}</button>
             ))}
           </div>
         </div>

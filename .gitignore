@@ -38,3 +38,4 @@ dist-ssr
 
 # QA screenshot dumps (local, throwaway)
 .qa-screens/
+.gstack/

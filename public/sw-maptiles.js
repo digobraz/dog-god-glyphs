@@ -43,6 +43,11 @@ self.addEventListener('activate', (event) => {
 });
 
 function isTileRequest(url) {
+  // Prod: dlaždice idú priamo na api.mapy.com.
+  // Dev: idú na vlastný pôvod `/mapyapi/...`, kde Vite proxy dosadí povolený Referer
+  // (inak 403 na tuneli aj na LAN IP — pozri `src/lib/env.ts`, MAPY_BASE).
+  // Bez druhej vetvy by sa cache v deve ticho vypla a každý pohyb mapou by šiel po sieti.
+  if (url.pathname.includes('/mapyapi/v1/maptiles/')) return true;
   return url.hostname === 'api.mapy.com' && url.pathname.includes('/v1/maptiles/');
 }
 

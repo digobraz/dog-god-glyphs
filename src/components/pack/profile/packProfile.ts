@@ -633,8 +633,36 @@ export function dogCardCompletion(card: DogCard): { filled: number; total: numbe
   return { filled, total, pct: Math.round((filled / total) * 100) };
 }
 
-// ── localStorage CRUD (async-tvarované kvôli budúcemu Supabase swapu) ──
+// ── DÁTOVÁ VRSTVA — Supabase, s localStorage ako vyrovnávacou pamäťou ─────────
+//
+// Do 26. 8. 2026 tu bol IBA localStorage (`dogypt.profile.v1`). Fungovalo to,
+// kým bol profil vec jedného človeka; v okamihu, keď `/pack` dostal partiu
+// výletu a správy, sa to prejavilo ako diera: o CUDZOM členovi appka nemala čo
+// ukázať, lebo jeho profil ležal v jeho prehliadači. Migrácia
+// `20260826_pack_profiles.sql` presunula dáta do `pack_profiles` + `dog_profiles`.
+//
+// ČO SA NEZMENILO: verejné API (`getProfile` / `saveHuman` / `saveDogAttrs` /
+// `useProfile`). Komponenty sa nedotýkajú ani localStorage, ani Supabase.
+//
+// PREČO LOCALSTORAGE OSTÁVA: je to vyrovnávacia pamäť, nie druhý zdroj pravdy.
+//   • prvé vykreslenie nečaká na sieť (profil sa číta na `/pack/profile`,
+//     `/pack/u/:číslo` aj na každej karte partie výletu),
+//   • bez session (odhlásený, `DEV_NOAUTH`) appka ďalej funguje ako predtým,
+//   • je to zdroj JEDNORAZOVÉHO PRESYPANIA — 165 reálnych ľudí otvorilo
+//     `/pack/profile` za 90 dní (PostHog, 26. 8.), takže vyplnené profily reálne
+//     ležia v ich prehliadačoch a bez presypania by sa prepnutím stratili.
+// Autorita je server: čo príde z DB, prepíše vyrovnávaciu pamäť.
+import { supabase } from '@/integrations/supabase/client';
+
+// `pack_profiles` / `dog_profiles` nie sú v generovanom `types.ts` (generuje ho
+// Lovable a prepisuje si ho sám — CLAUDE.md). Rovnaký únik ako v `mapNotesData.ts`
+// a `packMessaging.ts`; tvary riadkov drží `HumanRow` / `DogRow` nižšie.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = supabase as any;
+
 const STORAGE_KEY = 'dogypt.profile.v1';
+/** Aby sa localStorage profil nevysypal do DB druhýkrát a neprepísal novšie zmeny z iného zariadenia. */
+const MIGRATED_KEY = 'dogypt.profile.migrated.v1';
 
 function emptyProfile(): CentralProfile {
   return {
@@ -672,29 +700,189 @@ type Listener = () => void;
 const listeners = new Set<Listener>();
 function emitChange(): void { listeners.forEach((l) => l()); }
 
-export async function getProfile(): Promise<CentralProfile> {
-  return readRaw();
+// ── stav modulu ──────────────────────────────────────────────────────────────
+// `hydrating` je JEDEN spoločný sľub zámerne: `useProfile()` visí na piatich
+// povrchoch naraz (editor, read-profil, karty partie, psia galéria, kvíz) a bez
+// neho by každý z nich vypálil vlastný dotaz do DB pri tom istom načítaní.
+let hydrating: Promise<CentralProfile> | null = null;
+let hydrated = false;
+
+/** Prihlásený používateľ, alebo `null` (odhlásený / `DEV_NOAUTH`). */
+async function currentUserId(): Promise<string | null> {
+  try {
+    const { data } = await supabase.auth.getUser();
+    return data.user?.id ?? null;
+  } catch {
+    return null; // sieť / neplatná session — správame sa ako odhlásený, appka beží ďalej z pamäte
+  }
 }
 
+type HumanRow = { user_id: string; human: unknown; avatar_url: string | null; updated_at: string };
+type DogRow = { dog_id: string; attrs: unknown };
+
+/** Poskladá `CentralProfile` z riadkov DB. Tvar polí drží ten istý normalizátor ako localStorage. */
+function fromRows(human: HumanRow | null, dogRows: DogRow[]): CentralProfile {
+  const h = (human?.human ?? {}) as Partial<HumanProfile>;
+  return {
+    human: {
+      interests: [], vibes: [], languages: [], intents: [], personality: [], visibility: {},
+      ...h,
+    },
+    dogs: Object.fromEntries(
+      dogRows.map((r) => [r.dog_id, normalizeDogAttrs({ ...(r.attrs as Partial<DogProfileAttrs>), dogId: r.dog_id })]),
+    ),
+    updatedAt: human?.updated_at ?? new Date(0).toISOString(),
+  };
+}
+
+/** Vyplnil používateľ vôbec niečo? Prázdny profil sa do DB nevysypáva — vyrobil by prázdny riadok. */
+function hasContent(p: CentralProfile): boolean {
+  const h = p.human as unknown as Record<string, unknown>;
+  const filled = Object.entries(h).some(([k, v]) => {
+    if (k === 'visibility') return false; // samotné nastavenie viditeľnosti nie je obsah
+    if (Array.isArray(v)) return v.length > 0;
+    return v !== undefined && v !== null && v !== '';
+  });
+  return filled || Object.keys(p.dogs).length > 0;
+}
+
+/**
+ * JEDNORAZOVÉ PRESYPANIE localStorage → DB.
+ *
+ * Beží len keď na serveri ešte nič nie je — nikdy neprepíše novší profil z iného
+ * zariadenia. Psy, ktoré v `dogs` neexistujú, sa preskakujú: v reálnej zálohe
+ * (`plany/profil-localstorage-backup-2026-08-06.json`) sedia dve vývojové mock id
+ * a cudzí kľúč by celý zápis odmietol — teda by sa nepresypalo ani to, čo platné je.
+ */
+async function migrateLocalToServer(uid: string, local: CentralProfile): Promise<void> {
+  if (!hasContent(local)) return;
+
+  await db.from('pack_profiles').upsert({ user_id: uid, human: local.human }, { onConflict: 'user_id' });
+
+  const dogIds = Object.keys(local.dogs);
+  if (dogIds.length) {
+    const { data: mine } = await supabase
+      .from('dogs').select('id').eq('user_id', uid).eq('payment_status', 'paid');
+    const ownIds = new Set((mine ?? []).map((d: { id: string }) => d.id));
+    const rows = dogIds
+      .filter((id) => ownIds.has(id))
+      .map((id) => ({ dog_id: id, user_id: uid, attrs: local.dogs[id] as unknown as Record<string, unknown> }));
+    if (rows.length) await db.from('dog_profiles').upsert(rows, { onConflict: 'dog_id' });
+  }
+
+  try { localStorage.setItem(MIGRATED_KEY, '1'); } catch { /* non-fatal */ }
+}
+
+async function hydrate(): Promise<CentralProfile> {
+  const local = readRaw();
+  const uid = await currentUserId();
+  if (!uid) { hydrated = true; return local; } // odhlásený / DEV_NOAUTH — beží sa z pamäte, ako predtým
+
+  const [{ data: humanRow }, { data: dogRows }] = await Promise.all([
+    db.from('pack_profiles').select('user_id,human,avatar_url,updated_at').eq('user_id', uid).maybeSingle(),
+    db.from('dog_profiles').select('dog_id,attrs').eq('user_id', uid),
+  ]);
+
+  const alreadyMigrated = (() => { try { return localStorage.getItem(MIGRATED_KEY) === '1'; } catch { return false; } })();
+  if (!humanRow && !alreadyMigrated) {
+    await migrateLocalToServer(uid, local);
+    if (hasContent(local)) { hydrated = true; writeRaw(local); return local; }
+  }
+
+  const server = fromRows((humanRow as HumanRow | null) ?? null, (dogRows ?? []) as DogRow[]);
+  hydrated = true;
+  writeRaw(server);
+  return server;
+}
+
+/** Vynúti nové načítanie z DB (po prihlásení/odhlásení sa mení, čí profil to je). */
+export function resetProfileCache(): void {
+  hydrated = false;
+  hydrating = null;
+}
+
+// Zmena prihlásenia MUSÍ zahodiť vyrovnávaciu pamäť aj localStorage kópiu: bez toho
+// by druhý účet na tom istom zariadení uvidel profil prvého a — horšie — jeho zápis
+// by sa uložil pod svoje `user_id`, teda by si cudzí profil skopíroval k sebe.
+supabase.auth.onAuthStateChange((event) => {
+  if (event !== 'SIGNED_IN' && event !== 'SIGNED_OUT' && event !== 'USER_UPDATED') return;
+  resetProfileCache();
+  if (event === 'SIGNED_OUT') {
+    try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(MIGRATED_KEY); } catch { /* non-fatal */ }
+  }
+  emitChange();
+});
+
+export async function getProfile(): Promise<CentralProfile> {
+  if (hydrated) return readRaw();
+  if (!hydrating) hydrating = hydrate().finally(() => { hydrating = null; });
+  return hydrating;
+}
+
+// Zápis je OPTIMISTICKÝ: vyrovnávacia pamäť aj obrazovka sa menia hneď, sieť
+// dobehne potom. Editor profilu je jedno pole za druhým a čakanie na odpoveď
+// servera pri každom chipe by sa prejavilo ako sekanie.
+// Keď zápis do DB zlyhá, zmena ostane lokálne a `MIGRATED_KEY` sa NEnastaví,
+// takže ju najbližšie načítanie s prázdnym serverom presype.
 export async function saveHuman(patch: Partial<HumanProfile>): Promise<CentralProfile> {
   const cur = readRaw();
   const next: CentralProfile = { ...cur, human: { ...cur.human, ...patch }, updatedAt: new Date().toISOString() };
   writeRaw(next);
   emitChange();
+
+  const uid = await currentUserId();
+  if (uid) {
+    await db.from('pack_profiles')
+      .upsert({ user_id: uid, human: next.human as unknown as Record<string, unknown> }, { onConflict: 'user_id' });
+  }
   return next;
 }
 
 export async function saveDogAttrs(dogId: string, patch: Partial<DogProfileAttrs>): Promise<CentralProfile> {
   const cur = readRaw();
   const existing = cur.dogs[dogId] ?? emptyDogAttrs(dogId);
+  const merged: DogProfileAttrs = { ...existing, ...patch, dogId };
   const next: CentralProfile = {
     ...cur,
-    dogs: { ...cur.dogs, [dogId]: { ...existing, ...patch, dogId } },
+    dogs: { ...cur.dogs, [dogId]: merged },
     updatedAt: new Date().toISOString(),
   };
   writeRaw(next);
   emitChange();
+
+  const uid = await currentUserId();
+  if (uid) {
+    await db.from('dog_profiles')
+      .upsert({ dog_id: dogId, user_id: uid, attrs: merged as unknown as Record<string, unknown> }, { onConflict: 'dog_id' });
+  }
   return next;
+}
+
+/**
+ * MENO ČLOVEKA do `pack_profiles` — rovnaký dôvod ako pri fotke: `user_metadata`
+ * cudzieho účtu je neviditeľné, takže bez kópie by sa meno nastavené v profile
+ * navonok nikdy neprejavilo a všade by svietilo meno z objednávky.
+ * Prázdne = „nič som nevypísal", vtedy platí meno z objednávky (`memberDisplayName`).
+ */
+export async function saveDisplayName(name: string | null): Promise<void> {
+  const uid = await currentUserId();
+  if (!uid) return;
+  await db.from('pack_profiles')
+    .upsert({ user_id: uid, display_name: name?.trim() || null }, { onConflict: 'user_id' });
+}
+
+/**
+ * Fotka ČLOVEKA do `pack_profiles`.
+ *
+ * Žije aj v `auth.users.user_metadata` (tam ju píše `PackProfile.tsx` a odtiaľ ju
+ * číta hlavička), lenže do metadát CUDZIEHO účtu sa iný člen nedostane vôbec —
+ * bez tejto kópie by na cudzom profile nebola fotka človeka nikdy. Preto sa píše
+ * na obe miesta; metadáta ostávajú, aby sa nerozbila hlavička ani starý kód.
+ */
+export async function saveAvatarUrl(url: string | null): Promise<void> {
+  const uid = await currentUserId();
+  if (!uid) return;
+  await db.from('pack_profiles').upsert({ user_id: uid, avatar_url: url }, { onConflict: 'user_id' });
 }
 
 // ── hook ──
@@ -713,5 +901,3 @@ export function useProfile(): { profile: CentralProfile | null; reload: () => vo
 
   return { profile, reload };
 }
-
-// SWAP: localStorage → supabase.from('profiles'/'dog_attrs') — verejné API sa nemení.

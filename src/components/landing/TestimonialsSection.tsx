@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useT } from '@/i18n/LanguageContext';
-import { TestimonialsColumn, type Testimonial } from './TestimonialsColumn';
+import { TestimonialsColumn, type Testimonial, type TestimonialVariant } from './TestimonialsColumn';
 
 /**
  * Real, sourced quotes from world-famous people about their love for their dogs.
@@ -377,7 +377,7 @@ const VISIBLE = 21; // random subset shown per page load (7 per column on deskto
 
 // i18n kľúč citátu zo slugu mena (POOL je module-level → preklad až pri renderi).
 // EN text v POOL = canonical verbatim; preklady v locale slovníkoch sú preklady citátu.
-const quoteSlug = (name: string) =>
+export const quoteSlug = (name: string) =>
   name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]+/g, '-');
 
 function shuffle<T>(arr: readonly T[]): T[] {
@@ -389,7 +389,29 @@ function shuffle<T>(arr: readonly T[]): T[] {
   return a;
 }
 
-export function TestimonialsSection() {
+/**
+ * Náhodný výber citátov pre film na `/onepage` — obrazovka RECENZIE ich ukazuje
+ * tri po sebe, nie v páse.
+ *
+ * ⚠️ Je to funkcia TU a nie kópia troch citátov v OnePage: pod týmto súborom
+ * leží 44 zdrojovaných výrokov a tie sa nesmú rozdvojiť (to isté pravidlo, aké
+ * drží `variant` namiesto `*Lab` kópie — viď poznámka nižšie).
+ */
+export function pickCelebQuotes(count: number): CelebQuote[] {
+  return shuffle(POOL).slice(0, count);
+}
+
+/** Koľko ľudí v poli reálne je. Číslo v texte sa NEOPISUJE — po pridaní citátu
+ *  by veta klamala a nikto by si toho nevšimol. */
+export const CELEB_QUOTE_COUNT = POOL.length;
+
+/**
+ * ⚠️ `variant` má východisko `dark` ⇒ ostrá `/about` sa nemení. Papyrus si pýta
+ *    volajúci (`AboutLab`). Dôvod, prečo je to prop a nie `*Lab` kópia, stojí
+ *    v `TestimonialsColumn.tsx`: pod týmto komponentom leží 355 riadkov citátov
+ *    so zdrojmi a tie sa nesmú rozdvojiť.
+ */
+export function TestimonialsSection({ variant = 'dark' }: { variant?: TestimonialVariant } = {}) {
   const t = useT();
   // Shuffle + pick a random subset once per mount → line-up changes each refresh.
   const { columns } = useMemo(() => {
@@ -411,7 +433,14 @@ export function TestimonialsSection() {
     <section
       id="testimonials"
       className="relative py-24 md:py-32 overflow-hidden"
-      style={{ background: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.45) 18%, #000000 42%)' }}
+      style={{
+        background:
+          variant === 'papyrus'
+            // Pás sa zlieva do pätičky (#EFDEBB je jej horný odtieň), takže koniec
+            // stránky je JEDEN povrch — na tmavom webe tú istú úlohu plnila čierna.
+            ? 'linear-gradient(180deg, transparent 0%, rgba(233,215,177,0.55) 26%, #EFDEBB 100%)'
+            : 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.45) 18%, #000000 42%)',
+      }}
     >
       <div className="max-w-6xl mx-auto px-6 md:px-8">
         <motion.div
@@ -427,11 +456,18 @@ export function TestimonialsSection() {
               fontFamily: "'Cinzel', serif",
               textTransform: 'uppercase',
               letterSpacing: '0.02em',
-              background: 'linear-gradient(135deg, #F5C73D 0%, #FFB840 40%, #E69E1A 70%, #F5C73D 100%)',
+              background:
+                variant === 'papyrus'
+                  ? 'linear-gradient(100deg, #6E4A12 0%, #A3782B 30%, #D8A93F 50%, #A3782B 70%, #6E4A12 100%)'
+                  : 'linear-gradient(135deg, #F5C73D 0%, #FFB840 40%, #E69E1A 70%, #F5C73D 100%)',
               WebkitBackgroundClip: 'text',
               backgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              filter: 'drop-shadow(0 0 16px rgba(245,199,61,0.32))',
+              // Žiara svieti len na tmavom — na papyruse by nadpis len zašpinila.
+              filter:
+                variant === 'papyrus'
+                  ? 'drop-shadow(0 1px 1px rgba(110,71,16,0.20))'
+                  : 'drop-shadow(0 0 16px rgba(245,199,61,0.32))',
               // headroom pre diakritiku nad verzálkami (background-clip:text by ju osekol)
               paddingTop: '0.12em',
             }}
@@ -440,7 +476,11 @@ export function TestimonialsSection() {
           </h2>
           <p
             className="mt-4 max-w-xl text-base md:text-lg"
-            style={{ color: 'rgba(250,244,236,0.76)', fontFamily: "'Space Grotesk', sans-serif", lineHeight: 1.65 }}
+            style={{
+              color: variant === 'papyrus' ? 'rgba(35,22,8,0.82)' : 'rgba(250,244,236,0.76)',
+              fontFamily: "'Space Grotesk', sans-serif",
+              lineHeight: 1.65,
+            }}
           >
             {t('about.legends.sub')}
           </p>
@@ -450,22 +490,28 @@ export function TestimonialsSection() {
           className="flex justify-center gap-6 [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]"
           style={{ maxHeight: '640px', overflow: 'hidden' }}
         >
-          <TestimonialsColumn testimonials={columns[0].map(localize)} duration={48} />
-          <TestimonialsColumn testimonials={columns[1].map(localize)} className="hidden md:block" duration={56} />
-          <TestimonialsColumn testimonials={columns[2].map(localize)} className="hidden lg:block" duration={52} />
+          <TestimonialsColumn testimonials={columns[0].map(localize)} duration={48} variant={variant} />
+          <TestimonialsColumn testimonials={columns[1].map(localize)} className="hidden md:block" duration={56} variant={variant} />
+          <TestimonialsColumn testimonials={columns[2].map(localize)} className="hidden lg:block" duration={52} variant={variant} />
         </div>
 
         {/* CC attribution — required for the Wikimedia Commons portraits (CC BY / BY-SA / public domain) */}
         <details className="mt-10 mx-auto max-w-2xl text-center">
           <summary
             className="cursor-pointer text-[11px] tracking-wide select-none"
-            style={{ color: 'rgba(250,244,236,0.4)', fontFamily: "'Space Grotesk', sans-serif" }}
+            style={{
+              color: variant === 'papyrus' ? 'rgba(60,40,12,0.58)' : 'rgba(250,244,236,0.4)',
+              fontFamily: "'Space Grotesk', sans-serif",
+            }}
           >
             {t('about.legends.creditsSummary')}
           </summary>
           <p
             className="mt-3 text-[10px] leading-relaxed"
-            style={{ color: 'rgba(250,244,236,0.32)', fontFamily: "'Space Grotesk', sans-serif" }}
+            style={{
+              color: variant === 'papyrus' ? 'rgba(60,40,12,0.52)' : 'rgba(250,244,236,0.32)',
+              fontFamily: "'Space Grotesk', sans-serif",
+            }}
           >
             {t('about.legends.creditsIntro')}{' '}
             {POOL.map((q) => `${q.name} — ${q.credit}`).join(' · ')}

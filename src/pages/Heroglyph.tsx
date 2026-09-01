@@ -309,7 +309,7 @@ export default function Heroglyph() {
 
   const enterFlow = () => {
     track('cta_become_dogyptian_click', { location: 'heroglyph_sales' });
-    navigate('/heroglyph/intro');
+    navigate('/heroglyph/photo');
   };
 
   return (

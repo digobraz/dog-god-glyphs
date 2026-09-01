@@ -21,11 +21,16 @@ import createGlobe from 'cobe';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
-import { readLocalTrails, readWalkedIds, tripPath, pluralKey } from './tripShared';
+import { readLocalTrails, readWalkedIds, tripPath, pluralKey, visibleLocalTrails } from './tripShared';
 import { readTriplist } from './triplist/triplist';
+import { parsePlanDate, planDateLabel, planStart } from './addtrip/planDate';
+import { planPhase } from './planReminder';
+import { tierVars } from '@/lib/packTiers';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from './packTheme';
 import { trailCountry } from '@/lib/countryGeo';
-import { profileLevelFor, readVotes } from './packCommunity';
+import { placeholderFor } from '@/lib/tripPlaceholder';
+import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
+import { profileLevelFor, readVotes, readPlans } from './packCommunity';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
@@ -187,8 +192,11 @@ const CSS = `
   text-shadow:0 2px 14px rgba(250,244,236,0.95);
 }
 .ts-globe-title span{ display:block; }
-/* Rang + level — PRESNE ten istý vzor ako v hlavičke mapy (.trp-level-name / .trp-level-num):
-   meno rangu Cinzel, číslo v PLNEJ zlatej pilulke bez popisky „Lvl" (Matej 3.8.: „to LVL ma ruší").
+/* Rang + level: meno rangu Cinzel, číslo v PLNEJ pilulke vo farbe pásma bez popisky „Lvl"
+   (Matej 3.8.: „to LVL ma ruší").
+   ⚠️ Od 28. 8. 2026 to UŽ NIE JE ten istý vzor ako v hlavičke mapy — tam sa pilulka zrušila
+   a číslo sedí na okraji avatara, v prstenci postupu (lock v CLAUDE.md). Tu pilulka OSTÁVA:
+   karta nemá avatar, o ktorý by sa číslo mohlo oprieť. Farbu pásma berú obe z packTiers.
    ⚠️ Od 12.8.2026 sedí v PRAVOM HORNOM ROHU karty (Matej: „pútnika daj do pravého horného
    rohu"), nie pod nadpisom — nadpis má odvtedy tri riadky a dvojica pod sebou robila stĺpec
    textu cez pol karty. Preto je absolútny; nadpis si tým drží celú ľavú stranu. */
@@ -200,11 +208,16 @@ const CSS = `
   font-family:${FONT_TITLE}; font-weight:700; font-size:13px; letter-spacing:0.16em;
   text-transform:uppercase; color:${T.inkStrong}; text-shadow:0 2px 10px rgba(250,244,236,0.9);
 }
+/* FARBA PÁSMA (2026-08-24) — gradient a inkoust berie z premenných --tier-a / --tier-b /
+   --tier-ink, ktoré vešia tierVars(level); fallback drží pôvodnú zlatú.
+   Tá istá pilulka ako v hlavičke mapy, tá istá farba. */
 .ts-rank-num{
   display:inline-flex; align-items:center; padding:3px 11px 4px; border-radius:999px;
-  background:linear-gradient(135deg,#F5C73D,#E69E1A); color:#1F1A0E;
+  background:linear-gradient(135deg,var(--tier-a,#F5C73D),var(--tier-b,#E69E1A));
+  color:var(--tier-ink,#1F1A0E);
   font-family:${FONT_UI}; font-weight:600; font-size:14px; line-height:1;
-  box-shadow:0 2px 8px rgba(245,199,61,0.28);
+  box-shadow:0 2px 8px var(--tier-glow,rgba(245,199,61,0.28));
+  transition:background .5s, color .5s, box-shadow .5s;
 }
 /* TRI bloky vedľa seba na SPODNOM okraji karty (Matej 9.8.) — level odišiel hore k rangu.
    margin-top:auto ich pritlačí dole nezávisle od výšky karty; pevná výška by sa rozišla
@@ -284,12 +297,10 @@ function daysFromNow(dateStr: string, nowMs: number): number {
  * ⚠️ Nie je to „posledná číslica 2–4": podľa CLDR ide 22 do `other`, teda „22 krajín".
  * Angličtina má len dva tvary, preto tam Few = Many.
  */
-/** `2026-08-22` → `22. 8.` Surový ISO dátum vedľa odpočtu vyzerá ako debug výpis. */
-function shortDate(iso: string): string {
-  const d = new Date(iso + 'T00:00:00');
-  if (Number.isNaN(d.getTime())) return iso;
-  return `${d.getDate()}. ${d.getMonth() + 1}.`;
-}
+/* ⚠️ `shortDate()` TU BOL DO 26. 8. a mlčky prepúšťal surové `2026-09` na obrazovku:
+   `new Date('2026-09T00:00:00')` je Invalid Date, takže funkcia vrátila vstup nezmenený.
+   Odkedy má plán tri presnosti (`addtrip/planDate.ts`), formátuje termín `planDateLabel()` —
+   jedna funkcia pre túto kartu aj pre `PlanAskCard`. */
 
 function kmNumber(km: string | undefined): number {
   const n = parseFloat(String(km ?? '').replace(',', '.'));
@@ -307,18 +318,37 @@ interface TripSpotlightProps {
 export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps) {
   const t = useT();
 
+  // Body za odkazy — to isté číslo, aké má hlavička mapy aj TRIPSTATS.
+  const myNotePoints = useMyNotePoints();
   const view = useMemo(() => {
     const nowMs = Date.now();
-    const allTrails: HeroTrail[] = [...readLocalTrails(), ...HERO_JOURNEYS, ...HERO_TRAILS];
+    const allTrails: HeroTrail[] = [...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS];
     const walked = readWalkedIds();
     const triplist = readTriplist();
 
     // 1 · naplánovaný výlet má prednosť pred čímkoľvek iným
-    const planned = Object.values(triplist)
-      .filter((e) => e.date && !walked.has(e.tripId) && daysFromNow(e.date as string, nowMs) >= 0)
+    //
+    // ⚠️ TERMÍN SA NEČÍTA `daysFromNow`-om (opravené 26. 8.). Odkedy má plán tri presnosti,
+    // je `date` aj `2026-09-W2` alebo `2026-09` — `new Date()` z toho vyrobí NaN, NaN >= 0 je
+    // false, a plán „niekedy v septembri" z homepage BEZ SLOVA vypadol. Fázu preto počíta
+    // `planPhase()` (z KONCA obdobia), poradie `planStart()` (od kedy sa naň dá ísť).
+    //
+    // `'upcoming'` navyše vyradí plány, ktorých termín už uplynul — na tie sa v tej istej
+    // chvíli pýta `PlanAskCard` nad touto kartou. Odpočet „dnes" vedľa otázky „bol si tam?"
+    // sú dve tvrdenia o jednom výlete.
+    // ⚠️ ZDROJE SÚ DVA (opravené 26. 8.). Sprievodca pri založení plánu zapisuje do
+    // `trp-plans` (`addPlan`), triplist entry vzniká až pri MOUNTE triplistu
+    // (`seedTriplistFromPlans`) — čerstvo naplánovaný výlet sa preto na plagát nedostal,
+    // kým si člen neotvoril MY TRIPS. Rovnaká konvencia, akú má `nextPlannedTrip()`
+    // v `packCommunity.ts`: volajúci posiela OBOJE a duplicity nevadia.
+    // Triplist má prednosť — tam sa dátum priamo edituje.
+    const planRows = [...readPlans(), ...Object.values(triplist)]
+      .reduce((acc, e) => { acc.set(e.tripId, e); return acc; }, new Map<string, { tripId: string; date?: string; joiners?: { memberId: string; acceptedAt: number }[] }>());
+    const planned = [...planRows.values()]
+      .filter((e) => e.date && !walked.has(e.tripId) && planPhase(e.date, nowMs) === 'upcoming')
       .map((e) => ({ entry: e, trail: allTrails.find((tr) => tr.id === e.tripId) ?? null }))
       .filter((x): x is { entry: typeof x.entry; trail: HeroTrail } => !!x.trail)
-      .sort((a, b) => daysFromNow(a.entry.date as string, nowMs) - daysFromNow(b.entry.date as string, nowMs))[0] ?? null;
+      .sort((a, b) => (planStart(a.entry.date) ?? '').localeCompare(planStart(b.entry.date) ?? ''))[0] ?? null;
 
     // 2 · bez plánu: najprv POSLEDNE PRIDANÝ výlet, ak ho člen ešte neprešiel.
     // ⚠️ „Posledne pridaný" je ODVODENÉ Z PORADIA v datasete — generátor zachováva poradie
@@ -362,6 +392,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
       votes: readVotes(),
       email,
       ownerName,
+      notePoints: myNotePoints,
     });
 
     // Piny na guli = štart každého výletu (`path[0]`). Prejdené sú väčšie a zlaté,
@@ -382,7 +413,11 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
     return {
       trail,
       kind,
-      days: planned ? daysFromNow(planned.entry.date as string, nowMs) : null,
+      // Odpočet LEN pri presnom dni. Pri „druhý septembrový týždeň" by číslo dní tvrdilo
+      // presnosť, ktorú človek sám nepovedal — tam hovorí len popisok termínu.
+      days: planned && parsePlanDate(planned.entry.date)?.precision === 'exact'
+        ? daysFromNow(planned.entry.date as string, nowMs)
+        : null,
       dateLabel: planned?.entry.date ?? null,
       joiners: planned?.entry.joiners?.length ?? 0,
       walkedCount,
@@ -391,18 +426,23 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
       level: level.level,
       markers,
     };
-  }, [email, ownerName]);
+  }, [email, ownerName, myNotePoints]);
 
   // Bez jediného výletu s fotkou nemá plagát čo ukázať — radšej nič než prázdny rám.
   if (!view.trail) return null;
 
   const { trail, kind } = view;
-  const photo = trail.photos[0];
+  // ⚠️ ILUSTRAČNÁ FOTKA (doplnené 26. 8.). Plán nemá vlastnú fotku — obrázok mu dáva databáza
+  // podľa aktivity. Bez tohto riadku bol plagát naplánovaného výletu ČIERNA PLOCHA; to je tá
+  // istá diera, akú Matej našiel 25. 8. („výlet sa pridal ale nepridala sa fotka") na troch
+  // iných povrchoch. `lib/tripPlaceholder.ts` je jediný zdroj — volaj ho, nekopíruj tabuľku.
+  const photo = trail.photos[0] || placeholderFor(trail.acts, trail.id);
   const countdown =
     view.days === null ? null
       : view.days <= 0 ? t('pack.nextTrip.today')
       : view.days === 1 ? t('pack.nextTrip.tomorrow')
       : t('pack.tree.daysUnit', { days: String(view.days) });
+  const dateLabel = planDateLabel(view.dateLabel, (n) => t('pack.addTrip.plan.whenWeekN', { n: String(n) }));
 
   const eyebrow =
     kind === 'plan' ? t('pack.spotlight.eyebrowPlan')
@@ -431,12 +471,12 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
 
         {/* Odpočet vľavo hore, nie v spodnom texte: je to jediný údaj, ktorý sa mení
             každý deň, takže má sedieť tam, kam padne oko prvé. */}
-        {countdown && (
+        {(countdown || dateLabel) && (
           <span className="ts-count" style={DAYS_PILL}>
-            {countdown}
-            {view.dateLabel && (
+            {countdown ?? dateLabel}
+            {countdown && dateLabel && (
               <small style={{ fontFamily: FONT_UI, fontWeight: 500, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.72 }}>
-                {shortDate(view.dateLabel)}
+                {dateLabel}
               </small>
             )}
           </span>
@@ -498,7 +538,11 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
             Stojí MIMO hlavičky, lebo je absolútne ukotvený v pravom hornom rohu karty. */}
         <span className="ts-rank">
           <span className="ts-rank-name">{t('pack.map.rankPilgrim')}</span>
-          <span className="ts-rank-num" aria-label={t('pack.map.levelAriaLabel', { level: view.level })}>
+          <span
+            className="ts-rank-num"
+            style={tierVars(view.level)}
+            aria-label={t('pack.map.levelAriaLabel', { level: view.level })}
+          >
             {view.level}
           </span>
         </span>

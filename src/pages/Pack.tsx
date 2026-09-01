@@ -9,10 +9,13 @@ import { GlobePulse } from '@/components/pack/GlobePulse';
 import { FounderInvite } from '@/components/pack/FounderInvite';
 import { VerseOfTheDay } from '@/components/pack/VerseOfTheDay';
 import { PackWizard } from '@/components/pack/PackWizard';
+import { WIZ } from '@/components/pack/wizAnchors';
 // NextTripCard parkuje (nahradený TripSpotlightom 9.8.2026) — pozri komentár pri bloku nižšie.
 import { TripSpotlight } from '@/components/pack/TripSpotlight';
+import { PlanAskCard } from '@/components/pack/PlanAskCard';
 import { Gateways } from '@/components/pack/Gateways';
 import { DEV_FULL } from '@/lib/packFlags';
+import { DEV_NOAUTH, DEV_MOCK_DOGS, DEV_MOCK_USER } from '@/lib/devMockDogs';
 import { EDGE_BASE } from '@/lib/env';
 
 const T = PACK_THEME;
@@ -105,6 +108,37 @@ export default function Pack() {
     let mounted = true;
 
     async function load() {
+      // DEV bez prihlásenia (`VITE_PACK_NOAUTH=1`) — zdroj mocka je jeden pre celý
+      // pack (`lib/devMockDogs.ts`), tu sa len premapuje na tvar `DogRow`.
+      // Bez toho homepage zamrzne na skeletone a prehliadka svieti do prázdna.
+      if (DEV_NOAUTH) {
+        if (!mounted) return;
+        setUser({ ...DEV_MOCK_USER });
+        setDogs(DEV_MOCK_DOGS.map((d) => ({
+          id: d.id,
+          user_id: 'dev-mock-user',
+          dog_name: d.dog_name,
+          owner_name: DEV_MOCK_USER.fullName,
+          cloudinary_main_url: d.cloudinary_main_url,
+          cloudinary_extras: null,
+          heroglyph_code: null,
+          heroglyph_png_url: d.heroglyph_png_url,
+          share_card_url: null,
+          breed: null,
+          country: d.country,
+          grid_message: null,
+          stripe_session_id: null,
+          created_at: new Date().toISOString(),
+          pack_number: d.pack_number,
+          selections: d.selections as DogRow['selections'],
+          birth_year: d.birth_year,
+          life_status: d.life_status,
+          death_date: d.death_date,
+          health_status: null,
+        })));
+        return;
+      }
+
       const { data: { user: u } } = await supabase.auth.getUser();
       if (!u) return;
 
@@ -223,10 +257,11 @@ export default function Pack() {
   return (
     <PackLayout wide>
       <PackAnimations />
-      {/* PackWizard PARKED z launchu (2026-06-22) — DEV-only, v produkčnom Lovable builde
-          sa nevykreslí. NEMAZAŤ: po launchi sa vráti ako AINUBIS sprievodca (Matej 5.8.).
-          ⚠️ Jeho posledný krok mieril na `#wiz-steps` (First Steps), ktoré týmto redizajnom
-          zanikli — spotlight tam už nemá čo zvýrazniť. Rieši sa pri prestavbe na AINUBISA. */}
+      {/* PREHLIADKA (AInubis) — prestavaná 24. 8. 2026 podľa `plany/wizard-ainubis.md`.
+          Stále DEV-only: scenár vedie do svorky a na mapu, obe sú na LIVE za `DEV_FULL`,
+          a spodná lišta tiež — pustiť ju skôr = viesť členov do zamknutých dverí.
+          Ide von s vlnou, ktorá pack odomkne (+ mail o novinke, uvidia ju VŠETCI členovia).
+          Kotvy spotlightu čítaj z `components/pack/wizAnchors.ts`, nie ako voľný string. */}
       {import.meta.env.DEV && (
         <PackWizard primaryDogId={primaryDog?.id ?? null} primaryDogName={primaryDog?.dog_name ?? null} />
       )}
@@ -239,10 +274,11 @@ export default function Pack() {
             zjednodušiť, 1 blok nie dva v riadku… nakoniec tie veci sú aj v /dogs").
             Fialový `PackTree` sa tu už nemountuje; rad [majiteľ] [psy] [+] je vnútri
             HeroCard. `PackTree.tsx` NEMAZAŤ — parkuje, tak ako DailyPrayers.
-            ⚠️ `wiz-pack` kotva ostáva na tom istom bloku ako `wiz-hero` — PackWizard
-            na ňu ukazuje spotlightom a bez nej by mieril do prázdna. */}
-        <div id="wiz-hero" className="relative">
-          <div id="wiz-pack">
+            Kotva `WIZ.hero` = prvý krok prehliadky. Druhý krok svieti na rad psov
+            VNÚTRI HeroCard (`WIZ.dogsRow`) — dve kotvy na tom istom bloku by boli
+            dva kroky s tým istým spotlightom. */}
+        <div id={WIZ.hero} className="relative">
+          <div>
             {!user ? (
               <TreeSkeleton />
             ) : (
@@ -274,6 +310,15 @@ export default function Pack() {
             ⚠️ `NextTripCard` tu bol do 9.8.2026 a robil ten istý odpočet — `TripSpotlight`
             ho NAHRADIL, nie doplnil. Nemountovať oba naraz (odpočet dvakrát). Starý
             komponent parkuje ako `PackTree`/`DailyPrayers`. */}
+        {/* ── BOL SI TAM? — karta v deň výletu (Matej 2026-08-25, postavená 26. 8.) ──
+            Objaví sa LEN keď je na čo odpovedať: vlastný plán, ktorého termín už uplynul
+            (7-dňové okno, `planReminder.planPhase`). Zámerne NAD plagátom a ako vlastný blok
+            — Matej si to tak vybral, keď dostal na výber oproti prepnutiu plagátu na otázku:
+            plagát tak ostane plagátom a otázka zmizne v momente odpovede.
+            ⚠️ Za `DEV_FULL` z toho istého dôvodu ako `TripSpotlight` nižšie — všetky tri
+            odpovede vedú do `/pack/map`, ktorá zatiaľ nie je pre členov živá. */}
+        {DEV_FULL && <PlanAskCard />}
+
         {DEV_FULL && <TripSpotlight email={user?.email} ownerName={user?.name} />}
 
         {/* ── KAM IDEM — dva zrkadlové bloky: DOGMA · AINUBIS (Matej 9.8.) ──
@@ -282,13 +327,15 @@ export default function Pack() {
             ⚠️ `QuickTiles` (pás MAPA · DOGMA · AINUBIS) tým skončil — súbor NEMAZAŤ,
             parkuje ako `PackTree`/`DailyPrayers`. Dlaždica MAPA nie je diera: na mapu
             vedie celá pravá karta bloku 2 vyššie. */}
-        <Gateways />
+        <div id={WIZ.gateways}>
+          <Gateways />
+        </div>
 
         {/* Sacred interlude — verš dňa z ústavy (rotuje denne) */}
         <VerseOfTheDay />
 
         {/* ── KTO SME — planéta + míľniky + TOP krajiny + POKLADNICA ── */}
-        <div id="wiz-globe">
+        <div id={WIZ.globe}>
           <GlobePulse total={stats?.total ?? 0} topCountries={stats?.topCountries ?? []} topBreeds={stats?.topBreeds ?? []} ownerCountry={ownerCountry} />
         </div>
 

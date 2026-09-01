@@ -6,6 +6,7 @@ import { devotionLevel } from '@/lib/devotion';
 import { DEV_FULL } from '@/lib/packFlags';
 import { usePackIdentity, type PackDog } from './usePackIdentity';
 import { PackNotifications } from './PackNotifications';
+import { WIZ } from './wizAnchors';
 import iconHome from '@/assets/icons/nav-home.svg';
 import statBadge from '@/assets/icons/stat-badge.svg';
 import statBars from '@/assets/icons/stat-bars.svg';
@@ -15,6 +16,10 @@ import { onOpenMessaging, type MessagingOpenEvent } from './messaging/openBridge
 // import je preto lacný, na rozdiel od `heroTrails.generated`, ktorý sa načíta
 // lazy až pri kliku na štítok výletu.
 import { currentTripId, tripPathById } from './tripShared';
+import {
+  NAV_R, NAV_GOLD, NAV_GRAIN, NAV_MOTTLE,
+  NAV_FRAME_SHADOW, NAV_PLATE_SHADOW, NAV_PILL_SHADOW,
+} from './navGoldSkin';
 
 // Inbox/Thread lazy — statický import by ich (a s nimi packMessaging.ts: HERO_TRAILS 1,5 MB,
 // HERO_JOURNEYS) ťahal do PackLayout chunku vždy, aj keď overlay na LIVE
@@ -215,6 +220,50 @@ export function MessagingOverlayHost() {
   );
 }
 
+// ── SKIN dolného navu — SKÚŠKA (2026-08-24) ─────────────────────────────────
+// Matej: „ten starý (čierne sklo) sa mi už vôbec nepáči" — skúšame bledý zlatý bar
+// v duchu papyrusového locku. Zatiaľ LEN na očiach v lokáli, preto PREPÍNAČ a nie
+// prepis: `'glass'` vráti pôvodný stav jedným slovom (zamietnuté sa odkladá, nemaže).
+export const NAV_SKIN: 'gold' | 'glass' = 'gold';
+
+// Zlatý rám navu — kreslené podľa Matejovej predlohy (`nav-predloha` 24.8., 2. kolo).
+//
+// ⚠️ 1. kolo som mal tvar NAOPAK. Matejovo „nebolo to ako pils" platí na VONKAJŠÍ bar
+// (ten je zaoblený obdĺžnik, r ≈ 0,2 × výška), NIE na položky vnútri — MAP aj G sú
+// v predlohe PLNÉ pilulky/kruh. Meranie z predlohy (výška baru 325 px):
+//   rám 35 px (11 %) · doska 255 px · aktívna pilulka 215 px · polomer rohu ~65 px (20 %)
+// Prepočítané na bar ~60 px: rám 6 · doska 48 · pilulka 40 · polomer 14.
+//
+// Ďalšie tri veci z predlohy, ktoré CSS gradient sám nedá:
+//   1. TMAVÝ OBRYS na oboch stranách rámu — vonku aj na hranici s doskou. Bez tejto
+//      vnútornej linky rám „pretečie" do dosky a celé to vyzerá ako nálepka.
+//   2. TEXTÚRA papiera na doske (zrno + mramorovanie). Rovnomerný gradient bol to,
+//      čo Matej čítal ako „umelo".
+//   3. Doska je TEPLEJŠÍ piesok, nie krémová — moja bola vybledená do biela.
+// ⚠️ TOKENY SA PRESŤAHOVALI (25. 8. 2026) do `navGoldSkin.ts` — ten istý rám
+// potrebujú aj povrchy mimo Reactu (stena `/wall-lab` má nav v CSS template
+// literáli). Dve kópie gradientov by sa rozišli pri prvej úprave. Merania
+// a dôvody jednotlivých kôl ladenia ostávajú v komentároch vyššie.
+
+/**
+ * Zrnitá vrstva nad ľubovoľným povrchom navu. `radius` musí sedieť s podkladom.
+ * Vykresľuje sa dvakrát (tmavé + svetlé zrno) s posunutou dlaždicou.
+ */
+function NavGrain({ radius, opacity = 0.3, inset = 0 }: { radius: number | string; opacity?: number; inset?: number }) {
+  const base: React.CSSProperties = {
+    position: 'absolute', inset, borderRadius: radius,
+    backgroundImage: NAV_GRAIN,
+    backgroundSize: '180px 180px',
+    pointerEvents: 'none',
+  };
+  return (
+    <>
+      <div aria-hidden style={{ ...base, mixBlendMode: 'multiply', opacity: opacity * 0.85 }} />
+      <div aria-hidden style={{ ...base, backgroundPosition: '37px 23px', mixBlendMode: 'screen', opacity: opacity * 0.6 }} />
+    </>
+  );
+}
+
 // ── Floating bottom pill nav — Home · Map · Avatar (D4 nav rework 2026-07-24) ─
 // Shared between PackLayout (every narrow-column pack page) and the full-bleed
 // Portal Trips surface (its own <DevotionHeader>, but the same bottom nav so
@@ -272,6 +321,37 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
             ⚠️ Maska NESMIE byť na kontajneri s obsahom: `mask-image` klipuje celý podstrom na
             svoj box, takže dropdown avatara (visí nad pill-om) sa vôbec nenamaľoval — DOM ho
             mal, geometriu mal správnu, ale bol odmaskovaný preč (Matej 2026-08-06). */}
+        {NAV_SKIN === 'gold' ? (
+          <>
+            {/* RÁM — tmavý obrys vonku, leštené zlato, svetlá hrana hore.
+                Maska sa tu NEPOUŽÍVA: fade horného okraja má zmysel na skle,
+                na plnom zlate by len odhryzol rám. */}
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute', inset: 0, borderRadius: NAV_R.frame,
+                background: NAV_GOLD.frame,
+                border: `${NAV_R.line}px solid ${NAV_GOLD.edge}`,
+                boxShadow: NAV_FRAME_SHADOW,
+                pointerEvents: 'none',
+              }}
+            />
+            <NavGrain radius={NAV_R.frame} opacity={0.2} />
+            {/* DOSKA — pieskovec s vlastným tmavým obrysom. Bez tej vnútornej linky
+                rám pretečie do dosky a bar vyzerá ako nálepka, nie ako odliatok. */}
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute', inset: NAV_R.rim, borderRadius: NAV_R.plate,
+                background: `${NAV_MOTTLE}, ${NAV_GOLD.surface}`,
+                border: `${NAV_R.line}px solid ${NAV_GOLD.edge}`,
+                boxShadow: NAV_PLATE_SHADOW,
+                pointerEvents: 'none',
+              }}
+            />
+            <NavGrain radius={NAV_R.plate} opacity={0.46} inset={NAV_R.rim} />
+          </>
+        ) : (
         <div
           aria-hidden
           style={{
@@ -288,9 +368,15 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
             pointerEvents: 'none',
           }}
         />
-        <div className="relative flex items-center gap-1" style={{ padding: 6 }}>
+        )}
+        <div className="relative flex items-center" style={{ gap: NAV_SKIN === 'gold' ? 10 : 4, padding: NAV_SKIN === 'gold' ? NAV_R.rim + 5 : 6 }}>
           <FloatingNavLink to="/pack" label={t('pack.layout.navHome')} icon={iconHome} end />
-          <FloatingNavLink to="/pack/map" label={t('pack.layout.navMap')} icon="/icons/pack/world-grid.svg" />
+          {/* `WIZ.navMap` — sem svieti krok prehliadky o mape (spotlight na IKONKU,
+              nie na blok stránky). Kotva sedí na obale, nie na `NavLink`: spotlight
+              pridáva `position:relative` + `z-index`, a to by prebilo štýl pillu. */}
+          <span id={WIZ.navMap} style={{ display: 'inline-flex', borderRadius: 999 }}>
+            <FloatingNavLink to="/pack/map" label={t('pack.layout.navMap')} icon="/icons/pack/world-grid.svg" />
+          </span>
           <AvatarNavButton avatarUrl={avatarUrl} avatarInitial={avatarInitial} dogs={dogs} />
         </div>
       </div>
@@ -327,18 +413,34 @@ function AvatarNavButton({ avatarUrl, avatarInitial, dogs = [] }: { avatarUrl?: 
         aria-label={t('pack.layout.profileAriaLabel')}
         aria-expanded={open}
         className="flex items-center justify-center"
-        style={{ ...pillStyle(open), padding: 4, lineHeight: 0 }}
+        style={NAV_SKIN === 'gold' ? {
+          padding: 5, lineHeight: 0, borderRadius: '50%',
+          background: NAV_GOLD.activeFill,
+          border: `${NAV_R.line}px solid ${NAV_GOLD.edge}`,
+          boxShadow: [
+            'inset 0 2px 0 rgba(255,250,222,0.85)',
+            'inset 0 -3px 5px rgba(110,74,20,0.42)',
+            open ? '0 1px 2px rgba(70,45,10,0.5)' : '0 3px 6px -1px rgba(70,45,10,0.5)',
+          ].join(', '),
+          cursor: 'pointer',
+          position: 'relative',
+        } : { ...pillStyle(open), padding: 4, lineHeight: 0 }}
       >
         {avatarUrl ? (
           <img
             src={avatarUrl}
             alt=""
-            style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', display: 'block', border: '1.5px solid rgba(201,154,63,0.45)' }}
+            style={{
+              width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', display: 'block',
+              border: NAV_SKIN === 'gold' ? '1.5px solid rgba(150,105,30,0.7)' : '1.5px solid rgba(201,154,63,0.45)',
+            }}
           />
         ) : (
           <div style={{
             width: 28, height: 28, borderRadius: '50%',
             background: 'radial-gradient(circle at 35% 30%, #F5C73D, #E69E1A)',
+            border: NAV_SKIN === 'gold' ? '1.5px solid rgba(150,105,30,0.7)' : 'none',
+            boxSizing: 'border-box',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 12, color: '#1c160c',
           }}>
@@ -352,9 +454,13 @@ function AvatarNavButton({ avatarUrl, avatarInitial, dogs = [] }: { avatarUrl?: 
           className="pack-avatar-menu"
           style={{
             position: 'absolute', right: 0, minWidth: 190,
-            background: T.glass, border: `1px solid ${T.onDarkBorder}`, borderRadius: 14,
-            backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
-            boxShadow: '0 12px 36px -10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,240,228,0.06)',
+            ...(NAV_SKIN === 'gold'
+              ? { background: T.panelGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 14, boxShadow: T.panelShadow }
+              : {
+                  background: T.glass, border: `1px solid ${T.onDarkBorder}`, borderRadius: 14,
+                  backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
+                  boxShadow: '0 12px 36px -10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,240,228,0.06)',
+                }),
             padding: 6, zIndex: 50,
           }}
         >
@@ -454,13 +560,13 @@ function AvatarMenuItem({ label, onClick, thumb }: { label: string; onClick: () 
         width: '100%', textAlign: 'left', padding: '8px 10px', gap: 9,
         borderRadius: 9, background: 'none', border: 'none', cursor: 'pointer',
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(245,240,228,0.08)'; }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = NAV_SKIN === 'gold' ? 'rgba(201,154,63,0.18)' : 'rgba(245,240,228,0.08)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}
     >
       {thumb}
       <span style={{
         fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: '0.12em',
-        textTransform: 'uppercase', fontWeight: 700, color: T.onDark,
+        textTransform: 'uppercase', fontWeight: 700, color: NAV_SKIN === 'gold' ? T.inkStrong : T.onDark,
       }}>
         {label}
       </span>
@@ -740,7 +846,20 @@ export function HieroglyphBg() {
 
 // ── Bottom pill nav ─────────────────────────────────────────────────────────
 
-const pillStyle = (active: boolean): React.CSSProperties => ({
+const pillStyle = (active: boolean): React.CSSProperties =>
+  NAV_SKIN === 'gold' ? {
+    padding: '10px 18px',
+    // PLNÁ pilulka — v predlohe sú MAP aj G celkom okrúhle. Hranatý bol len bar.
+    borderRadius: 999,
+    // Neaktívna položka NIE JE vyblednutá: v predlohe je HOME rovnako tmavé ako MAP,
+    // rozdiel nesie vystúpená pilulka, nie sila inkoustu.
+    color: NAV_GOLD.ink,
+    background: active ? NAV_GOLD.activeFill : 'transparent',
+    border: `${NAV_R.line}px solid ${active ? NAV_GOLD.edge : 'transparent'}`,
+    boxShadow: active ? NAV_PILL_SHADOW : 'none',
+    textDecoration: 'none',
+    position: 'relative',
+  } : ({
   padding: '10px 16px',
   borderRadius: 999,
   color: active ? '#FFF6E6' : T.onDarkDim,
@@ -752,7 +871,7 @@ const pillStyle = (active: boolean): React.CSSProperties => ({
     ? '0 5px 16px -5px rgba(16, 52, 166, 0.55), inset 0 1px 0 rgba(255,255,255,0.25)'
     : 'none',
   textDecoration: 'none',
-});
+  });
 
 const pillLabelStyle: React.CSSProperties = {
   fontFamily: "'Cinzel', serif",
@@ -769,7 +888,12 @@ function BrandIcon({ src, active }: { src: string; active: boolean }) {
       alt=""
       aria-hidden
       className="h-5 w-5 shrink-0"
-      style={{ filter: 'brightness(0) invert(1)', opacity: active ? 1 : 0.55, transition: 'opacity 0.15s' }}
+      style={{
+        position: 'relative',
+        filter: NAV_SKIN === 'gold' ? 'brightness(0)' : 'brightness(0) invert(1)',
+        opacity: active ? (NAV_SKIN === 'gold' ? 0.92 : 1) : 0.55,
+        transition: 'opacity 0.15s',
+      }}
     />
   );
 }
@@ -784,8 +908,9 @@ function FloatingNavLink({ to, label, icon, end }: { to: string; label: string; 
     >
       {({ isActive }) => (
         <>
+          {NAV_SKIN === 'gold' && isActive && <NavGrain radius={999} opacity={0.22} />}
           <BrandIcon src={icon} active={isActive} />
-          <span className="hidden sm:inline" style={pillLabelStyle}>{label}</span>
+          <span className="hidden sm:inline" style={{ ...pillLabelStyle, position: 'relative' }}>{label}</span>
         </>
       )}
     </NavLink>

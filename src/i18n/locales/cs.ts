@@ -19,6 +19,20 @@ export const cs: Partial<Dict> = {
   'vision.hero.videoTitle': 'DOGYPT intro film',
   'vision.hero.playLabel': 'Přehrát Dogypt intro film',
 
+  // ── /vision — tři bloky vedle videa (film /onepage) ──
+  'vision.hero.b1.v': 'Spojit',
+  'vision.hero.b1.t': 'pejskaře.',
+  'vision.hero.b1.d': 'Každý pes má vlastní heroglyf. Jeden znak, jeden jazyk.',
+  'vision.hero.b1.c': '1M pejskařů',
+  'vision.hero.b2.v': 'Vytvořit',
+  'vision.hero.b2.t': 'ekosystém.',
+  'vision.hero.b2.d': 'Jedna appka, která změní, co znamená mít psa.',
+  'vision.hero.b2.c': 'Transparentní systém',
+  'vision.hero.b3.v': 'Pomáhat',
+  'vision.hero.b3.t': 'psům.',
+  'vision.hero.b3.d': 'Ne jednorázové sbírky. Systém, který funguje stále.',
+  'vision.hero.b3.c': 'Systematická pomoc',
+
   // ── /vision — WHAT IF beaty ──
   'vision.beat.dream.bigW': 'MĚL JSEM',
   'vision.beat.dream.bigG': 'SEN',
@@ -153,7 +167,8 @@ export const cs: Partial<Dict> = {
   // ── /heroglyph flow — krok 1: meno ──
   'heroglyph.flow.name.greetingPrefix': 'Ahoj, já jsem',
   'heroglyph.flow.name.greetingQuestion': 'Jak se jmenuje tvůj pejsek?',
-  'heroglyph.flow.name.placeholder': 'Napiš jméno svého psa…',
+  'heroglyph.flow.name.nextCta': 'Dále',
+  'heroglyph.flow.name.placeholder': 'Napiš jméno svého pejska…',
   'heroglyph.flow.name.dogCountry': 'Domov',
   'heroglyph.flow.name.birthday': 'Kdy se tvůj pes narodil?',
   'heroglyph.flow.name.continue': 'Pokračovat',
@@ -588,7 +603,16 @@ export const cs: Partial<Dict> = {
   // ── /religion — preambule ──
   'religion.preamble.text':
     'My, národ pejskařů — vnímajíce <strong>nekonečnou oddanost</strong>, <strong>pravou lásku</strong> a <strong>čistou duši</strong> každého psa na světě — abychom upevnili postavení psů v lidské společnosti, vytvořili jim <strong>podpůrnou komunitu</strong>, <strong>zlepšili</strong> jim životy a <strong>změnili</strong> osud každého psa v nouzi, dáváme si tuto ústavu.',
-  'religion.preamble.oath': 'Přísaha smečky',
+  // Znenie odklepnuté 28. 8. 2026 spolu so SK — viď komentár v en.ts.
+  'religion.preamble.eyebrow': 'Toto je naše motto. Souhlasíš?',
+  'religion.spot.hint': 'Začalo to tímto psem.',
+  'religion.spot.body':
+    'Nikdo ho nechtěl. Rok čekal za plotem útulku — a pak založil náboženství.',
+  'religion.spot.ageOne': 'Hekthor má dnes {n} rok.',
+  'religion.spot.ageFew': 'Hekthor má dnes {n} roky.',
+  'religion.spot.ageMany': 'Hekthor má dnes {n} let.',
+
+  'religion.preamble.oath': 'Dogyptská ústava',
 
   // ── /religion — sacred index ──
   'religion.bookTitle': '„Bible" pro pejskaře',
@@ -652,7 +676,7 @@ export const cs: Partial<Dict> = {
   'whatNext.close': 'Zavřít',
   'whatNext.prev': 'Předchozí',
   'whatNext.next': 'Dál',
-  'whatNext.motto': "Ve psa věříme.",
+  'whatNext.motto': "Věříme ve psa.",
   'whatNext.s1.title': 'První krok',
   'whatNext.s1.hook': 'Malý krok pro člověka — obrovský skok pro psí rod.',
   'whatNext.s1.body': 'Tvůj Heroglyph tě právě prohlásil součástí hnutí, které ctí psy po celém světě. <b>První krok je hotový.</b>',
@@ -966,15 +990,19 @@ export const cs: Partial<Dict> = {
   "heroglyph.flow.dogCharacter.slide.gourmet.desc": "Žrádlo je mise. Plné nasazení, nula váhání — a sní i to, co ty ne.",
   "heroglyph.flow.dogCharacter.slide.lover.desc": "Cizí člověk pro něj neexistuje. Pošťáka vítá jako dávno ztraceného spřízněnce. Pokaždé.",
   "heroglyph.flow.dogCharacter.slide.chiller.desc": "Ovládl prastaré umění nedělat absolutně nic — a krásně.",
+  // CS ide slovesom napred rovnako ako SK (Matej 28. 8. 2026: „aj v CZ
+  // minimálne"). Zlato drží .grad, teda PSA — príznak ho len presunie na
+  // koniec vety, nemení, čo svieti.
   "religion.preamble.headlineGrad": "Ve psa",
-  "religion.preamble.headlineLine": "věříme",
+  "religion.preamble.headlineLine": "Věříme",
+  "religion.preamble.headlineVerbFirst": "1",
   "religion.book.titleThe": "",
   "religion.book.titleBrand": "Dogypt",
   "religion.book.titleConstitution": "Ústava",
-  "religion.book.trust": "Ve psa věříme",
+  "religion.book.trust": "Věříme ve psa",
   "legal.eyebrow": "DOGYPT · Právní",
-  "legal.motto": "DOGYPT · Ve psa věříme",
-  "about.footer.motto": "Ve psa věříme.",
+  "legal.motto": "DOGYPT · Věříme ve psa",
+  "about.footer.motto": "Věříme ve psa.",
 
   // ── PACK (klientská zóna) i18n — 2026-06-24 ──
   // pack.dog

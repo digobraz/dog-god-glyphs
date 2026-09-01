@@ -20,8 +20,9 @@ import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI, PACK_COL, PACK_COL_PAD } from '@/components/pack/packTheme';
-import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER, tripPath, tripPathById } from '@/components/pack/tripShared';
+import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER, tripPath, tripPathById, visibleLocalTrails, tripDraftMissing, memberTrailIds } from '@/components/pack/tripShared';
 import { closeMyTripEvents, readLocalTrailMeta } from '@/lib/packStore';
+import { placeholderFor } from '@/lib/tripPlaceholder';
 import { readPlans } from '@/components/pack/packCommunity';
 import { COMMUNITY_CSS, TripStatsPanel } from '@/components/pack/packCommunityUI';
 import { flagUrl, trailCountry } from '@/lib/countryGeo';
@@ -33,7 +34,7 @@ import {
 } from '@/components/pack/triplist/tripRequests';
 import { PartyMemberCard, PARTY_CARD_CSS } from '@/components/pack/triplist/PartyMemberCard';
 import {
-  readTriplist, upsertMyTrip, seedTriplistFromPlans,
+  readTriplist, upsertMyTrip, seedTriplistFromPlans, seedTriplistFromWalked,
   trailWCE, WCE_LABEL, type WCE,
   type TriplistTrip, type TripStatus,
 } from '@/components/pack/triplist/triplist';
@@ -323,7 +324,11 @@ export default function PackTriplist() {
 
   // Hydratácia z DB (issue #32) dobehne po mounte → epoch prečíta walked/triplist znova.
   const storeEpoch = usePackStoreEpoch();
-  const allTrails = useMemo(() => [...readLocalTrails(), ...HERO_JOURNEYS, ...HERO_TRAILS], []);
+  // ⚠️ `withMissedPlans` — TRIPLIST je JEDINÉ miesto, kde neuskutočnený plán ostáva (Matej
+  // 25. 8. 2026: „nechať v historii iba v tripliste u autora nikde inde"). Všade inde ho
+  // `visibleLocalTrails` odfiltruje; bez tohto príznaku by zmizol aj tu a „ostáva v histórii"
+  // by neznamenalo nič.
+  const allTrails = useMemo(() => [...visibleLocalTrails(readLocalTrails(), { withMissedPlans: true }), ...HERO_JOURNEYS, ...HERO_TRAILS], []);
   // Founder walked seed (Matej 2026-07-24): nahodené = prejdené + z červených len SNP/Poloniny.
   // Seedne raz za session aj keď sa na vysvedčenie príde priamo (mimo PackMap mapy).
   useMemo(() => ensureWalkedSeeded([
@@ -347,7 +352,17 @@ export default function PackTriplist() {
   const walkedKm = useMemo(() => walkedTrails.reduce((s, tr) => s + (Number(tr.km) || 0), 0), [walkedTrails]);
 
   // migrácia existujúcich wishlist plánov → triplist entries, idempotentné (viď triplist.ts).
-  useEffect(() => { seedTriplistFromPlans(readPlans()); }, []);
+  useEffect(() => {
+    seedTriplistFromPlans(readPlans());
+    // ⚠️ A ZAPÍSANÉ VÝLETY TIEŽ (2026-08-26). Do opravy v `submitAddTripDraft` sa vlastný
+    // zápis do triplistu nedostal vôbec (Matej: „po zápise výlet nevidím v tripliste"), takže
+    // výlety zapísané pred ňou by tu chýbali naďalej. Berú sa LEN moje (`meta.mine`, prázdna
+    // mapa = ešte sa nehydratovalo ⇒ ber ako moje, rovnaká úvaha ako vo `visibleLocalTrails`).
+    const meta = readLocalTrailMeta();
+    seedTriplistFromWalked(
+      readLocalTrails().filter((tr) => meta[tr.id]?.mine ?? true).map((tr) => tr.id),
+    );
+  }, []);
 
   const [triplist, setTriplist] = useState<Record<string, TriplistTrip>>(() => readTriplist());
   useEffect(() => { if (storeEpoch) setTriplist(readTriplist()); }, [storeEpoch]);
@@ -562,10 +577,18 @@ export default function PackTriplist() {
                         {/* #53 — organizátor si vie so žiadateľom napísať EŠTE PRED
                             rozhodnutím; „idem/nejdem" sa dohaduje v správach, nie
                             slepým Accept. Organizátorom tejto schránky som ja. */}
+                        {/* Klik na fotku otvorí profil žiadateľa (2026-08-26). Dovtedy tu
+                            nebolo kam ísť — o cudzom členovi appka nemala čo ukázať. Adresa
+                            je PORADOVÉ ČÍSLO, nie `user_id`: to sa o cudzom človeku nevydáva
+                            (`get_trip_party`). Bez čísla (zakladajúci pes ho nemá) sa fotka
+                            nechá nekliknuteľná — mŕtve tlačidlo je horšie než žiadne. */}
                         <PartyMemberCard
                           member={member ?? UNKNOWN_MEMBER}
                           roleLabel={trail?.name ?? slug}
                           dm={id.session?.user?.id ? { tripSlug: slug, organizerId: id.session.user.id } : undefined}
+                          onOpenProfile={member?.packNumber != null
+                            ? () => navigate(`/pack/u/${member.packNumber}`)
+                            : undefined}
                         />
                       </div>
                       <div className="tl-req-acts">
@@ -633,6 +656,12 @@ export default function PackTriplist() {
                   // dátumom — a majiteľ ho nemá ako stiahnuť. Badge vtedy hlási „Done", nie
                   // „Looking", takže o tom ani nevie.
                   const canToggleVis = !placeholder;
+                  /* ⚠️ ILUSTRAČNÁ FOTKA, NIE ŠEDÁ HORA (Matej 2026-08-25: „výlet sa pridal ale
+                     nepridala sa fotka (ilustračná)"). Mapa ju kreslila, triplist nie — tá istá
+                     trasa mala na dvoch obrazovkách dva rôzne obrázky, a na tej, kde plány
+                     naozaj žijú, ten horší. `.nophoto` ostáva len pre PLACEHOLDER riadky
+                     (výlet, ktorý ešte neexistuje) — tam naozaj niet čo ilustrovať. */
+                  const cover = trail.photos[0] ?? (placeholder ? '' : placeholderFor(trail.acts, trail.id));
                   // stav v moderácii — len pre členom nahodené výlety, generovaný dataset ho nemá
                   const mod = trailMeta[entry.tripId]?.status;
                   return (
@@ -641,7 +670,7 @@ export default function PackTriplist() {
                       <span className={`tl-countdown${dleft <= 3 ? ' soon' : ''}`}>{countdownLabel(t, dleft)}</span>
                     )}
                   <div className="pk-glass-block tl-block" onClick={() => navigate(tripPath(trail))}>
-                    <div className={`tl-block-cover${trail.photos[0] ? '' : ' nophoto'}`} style={trail.photos[0] ? { backgroundImage: `url('${trail.photos[0]}')` } : undefined}>
+                    <div className={`tl-block-cover${cover ? '' : ' nophoto'}`} style={cover ? { backgroundImage: `url('${cover}')` } : undefined}>
                       <img className="tl-flag" src={flagUrl(trailCountry(trail))} alt="" loading="lazy" draggable={false} />
                       {/* Kým výlet čaká na schválenie, badge NIE JE prepínač viditeľnosti —
                           prepínať nie je čo, pack ho aj tak nevidí. */}
@@ -719,7 +748,7 @@ export default function PackTriplist() {
                     className="pk-glass-block tl-block"
                     onClick={() => navigate(tripPath(c.trail))}
                   >
-                    <div className={`tl-block-cover${c.trail.photos[0] ? '' : ' nophoto'}`} style={c.trail.photos[0] ? { backgroundImage: `url('${c.trail.photos[0]}')` } : undefined}>
+                    <div className={`tl-block-cover${(c.trail.photos[0] ?? placeholderFor(c.trail.acts, c.trail.id)) ? '' : ' nophoto'}`} style={{ backgroundImage: `url('${c.trail.photos[0] ?? placeholderFor(c.trail.acts, c.trail.id)}')` }}>
                       <img className="tl-flag" src={flagUrl(trailCountry(c.trail))} alt="" loading="lazy" draggable={false} />
                       <span className="tl-block-badge looking">{c.joiners > 0 ? t('pack.triplist.lookingWithJoiners', { n: c.joiners }) : t('pack.triplist.statusLookingForPack')}</span>
                     </div>

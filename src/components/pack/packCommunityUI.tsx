@@ -4,6 +4,7 @@
 // Fáza UI-first: žiadna perzistencia, všetko dostáva dáta/handlery cez props z PackMap.
 import { useEffect, useMemo, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
+import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { HieroglyphBg } from '@/components/pack/PackLayout';
 import { ICON, RatingPaws, DiffMark, GOLD_ICON_FILTER } from '@/components/pack/tripShared';
@@ -30,6 +31,8 @@ import { useProfile } from '@/components/pack/profile/packProfile';
 // Real len pre MOJE vlastné inzeráty (organizátor = ja) — pozri BuddyList nižšie.
 import { useTripParty, type TripParty } from '@/components/pack/triplist/useTripParty';
 import { PartyDmButton } from '@/components/pack/triplist/PartyMemberCard';
+// CSS tlačidla injectuje PackMap.tsx (a EventsPanel) — komunitné karty žijú vnútri nich.
+import { DeleteButton } from '@/components/pack/DeleteButton';
 
 // ── Companion (Matej 2026-07-23) — vybratý spoločník do „kto bol so mnou": môj pes (zo svorky,
 // reálna cloudinary fotka) alebo iný člen (mock, initial avatar). key = unikát pre dedup/remove. ──
@@ -163,7 +166,10 @@ export const COMMUNITY_CSS = `
 .comm-seg button:hover{border-color:${GOLD};}
 .comm-seg button.on{background:rgba(201,154,63,0.16);border-color:${GOLD};color:${GOLD};font-weight:600;}
 
-.comm-textarea,.comm-input,.comm-selectinput{width:100%;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:10px;padding:10px 12px;color:${T.onDark};font-family:inherit;font-size:13px;outline:0;resize:vertical;}
+/* ⚠️ 16 px = strop proti iOS zoomu dokumentu (feedback_dogypt_form_input_recurring_bugs).
+   Týka sa aj poľa „kto bol so mnou" v pridávaní výletu — pri 13 px sa pri kliknutí do neho
+   priblížil celý dokument a spodné ovládanie mapy vypadlo mimo obrazovky. */
+.comm-textarea,.comm-input,.comm-selectinput{width:100%;min-width:0;max-width:100%;box-sizing:border-box;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:10px;padding:10px 12px;color:${T.onDark};font-family:inherit;font-size:16px;outline:0;resize:vertical;}
 .comm-textarea:focus,.comm-input:focus,.comm-selectinput:focus{border-color:${GOLD};}
 .comm-textarea{min-height:66px;}
 
@@ -190,11 +196,21 @@ export const COMMUNITY_CSS = `
 
 /* ── BigRating (Matej 2026-07-22): pravý stĺpec karty/detailu = LEN 1 packa + veľké číslo X.Y,
    ostatné (náročnosť/popularita/hazard) sa presunuli na fotku ako PhotoMetaPills. ── */
-.comm-bigrating{display:inline-flex;align-items:center;gap:8px;}
-.comm-bigrating img{width:30px;height:30px;flex-shrink:0;}
+/* Rad sa zalomí, keď je stĺpec úzky — päť packiek s číslom a zátvorkou je širšie než jedna
+   ikonka, ktorá tu stála predtým. Zarovnanie doprava drží celý blok pri hrane karty. */
+.comm-bigrating{display:inline-flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:4px 7px;}
 .comm-bigrating b{font-family:${FONT_UI};font-weight:600;font-size:26px;color:${GOLD};line-height:1;}
-.comm-bigrating.compact img{width:25px;height:25px;}
-.comm-bigrating.compact b{font-size:22px;}
+/* Počet hlasov je poznámka k číslu, nie druhé číslo — najmenší stupeň, bez kurzívy navyše. */
+.comm-bigrating i{font-style:normal;font-family:${FONT_UI};font-weight:500;font-size:11px;color:${T.onDarkDim};line-height:1;}
+.comm-bigrating.compact b{font-size:20px;}
+.comm-bigrating.compact i{font-size:10px;}
+/* mini = podpisový riadok karty (autor + hodnotenie). Nezalamuje sa: je to jedna poznámka,
+   nie stĺpec — pri zalomení by odtlačila meno autora do druhého riadku. */
+.comm-bigrating.mini{flex-wrap:nowrap;gap:0 5px;}
+/* Matej 2026-08-26: „hodnotenie o 10 % zväčši" — podpis vedľa klesol na 12 px, takže hodnotenie
+   musí zostať tým, čo v riadku vedie. 12 → 13,2 px, labky 10 → 11 px, počet hlasov 9 → 10 px. */
+.comm-bigrating.mini b{font-size:13.2px;}
+.comm-bigrating.mini i{font-size:10px;}
 
 /* ── PhotoMetaPills — DOLNÝ pruh fotky. Hazard TU NIE JE (ten je až v detaile vedľa tagov).
    Hover na pilulku = vysvetlenie (%-rozpad hlasov členov).
@@ -455,7 +471,24 @@ export const COMMUNITY_CSS = `
 .comm-comp-dog-av.ph{background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);}
 .comm-comp-dog span{font-size:12.5px;color:${T.onDark};}
 .comm-comp-dog .plus{margin-left:2px;color:${GOLD};font-size:15px;font-weight:600;line-height:1;}
+/* ⚠️ VYBRATÝ PES SVIETI NAZELENO, NIE NAZLATO (Matej 2026-08-25: „musí tam svietiť hlavy
+   psov a po kliknutí sa zazelenajú"). Zlatá na tejto obrazovke znamená „tu si" a nesie ju
+   postup krokov; zelená znamená HOTOVO — tá istá, akou svieti dokončený krok v číselníku
+   a splnená značka na trase (GROUP_TINT.comment). Jeden význam, jedna farba. */
+.comm-comp-dog.on{background:rgba(58,150,88,0.18);border-color:#3A9658;}
+.comm-comp-dog.on .comm-comp-dog-av{box-shadow:0 0 0 2px #3A9658;}
+/* Zbalené + pred otvorením poľa s menami. Nie zlaté CTA — je to rozbalenie, nie akcia kroku. */
+.comm-comp-openothers{display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;margin-top:10px;border-radius:10px;background:rgba(245,240,228,0.04);border:1px dashed ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};font-size:12px;cursor:pointer;}
+.comm-comp-openothers:hover{border-color:${GOLD};color:${T.onDark};}
+.comm-comp-openplus{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:rgba(201,154,63,0.16);color:${GOLD};font-size:15px;line-height:1;}
 .comm-comp-searchwrap{position:relative;}
+.comm-comp-searchrow{display:flex;gap:8px;align-items:stretch;}
+.comm-comp-searchrow .comm-input{flex:1 1 auto;min-width:0;}
+/* Štvorec vedľa poľa, nie zlaté CTA: zlatá je vyhradená hlavnej akcii obrazovky a tou je
+   ĎALEJ dole. Toto je pomocné potvrdenie jedného poľa. */
+.comm-comp-addbtn{flex:0 0 auto;width:44px;border-radius:9px;background:rgba(201,154,63,0.14);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-size:20px;line-height:1;cursor:pointer;padding:0;}
+.comm-comp-addbtn:disabled{opacity:.38;cursor:default;}
+.comm-comp-addbtn:not(:disabled):hover{border-color:${GOLD};}
 .comm-comp-sug{position:absolute;top:calc(100% + 6px);left:0;right:0;background:rgba(6,5,3,0.96);backdrop-filter:blur(8px);border:1px solid ${T.onDarkBorder};border-radius:11px;overflow:hidden;box-shadow:0 12px 34px rgba(0,0,0,0.55);z-index:30;max-height:210px;overflow-y:auto;}
 .comm-comp-sugitem{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid ${T.onDarkHair};}
 .comm-comp-sugitem:last-child{border-bottom:0;}
@@ -763,7 +796,7 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
           <div className="comm-seg">
             {DIFFICULTIES.map((d) => (
               <button key={d} type="button" className={difficulty === d ? 'on' : ''} onClick={() => setDifficulty(d)}>
-                <DiffMark diff={d} /> {d}
+                <DiffMark diff={d} /> {diffTx(t, d)}
               </button>
             ))}
           </div>
@@ -773,7 +806,7 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
           <div className="comm-seg">
             {CROWDS.map((v) => (
               <button key={v} type="button" className={crowd === v ? 'on' : ''} onClick={() => setCrowd(v)}>
-                {CROWD_EMOJI[v]} {v}
+                {CROWD_EMOJI[v]} {crowdTx(t, v)}
               </button>
             ))}
           </div>
@@ -842,8 +875,20 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
 
 
 // ── crowd meta (agregát) — karta (compact) aj inline detail ──────────────────────────────────
-function diffTip(agg: CrowdAgg): string { return agg.difficultyBreakdown.map((s) => `${s.pct}% ${s.value}`).join(' · '); }
-function crowdTip(agg: CrowdAgg): string { return agg.crowdBreakdown.map((s) => `${s.pct}% ${s.value}`).join(' · '); }
+/**
+ * NÁROČNOSŤ A RUCH SÚ DÁTOVÉ HODNOTY, NIE TEXT (2026-08-23).
+ *
+ * `agg.difficulty` je `Easy|Moderate|Hard|Odyssey` a `agg.crowd` je `Empty|Calm|Busy` — to sú
+ * kľúče do DB aj do filtra na mape, takže sa neprekladajú. Na obrazovke ich však človek číta,
+ * a v slovenskom zozname výletov svietilo „Odyssey" a „🌿 Calm". Slovník je ten istý, aký
+ * používa filter mapy aj formulár výletu, nech tá istá vec nemá tri názvy.
+ */
+type TFn = (key: string, vars?: Record<string, string | number>) => string;
+const diffTx = (t: TFn, v?: string | null) => (v ? t(`pack.map.diff.${v}`) : '');
+const crowdTx = (t: TFn, v?: string | null) => (v ? t(`pack.map.crowdKind.${v}`) : '');
+
+function diffTip(t: TFn, agg: CrowdAgg): string { return agg.difficultyBreakdown.map((s) => `${s.pct}% ${diffTx(t, s.value)}`).join(' · '); }
+function crowdTip(t: TFn, agg: CrowdAgg): string { return agg.crowdBreakdown.map((s) => `${s.pct}% ${crowdTx(t, s.value)}`).join(' · '); }
 function hazardTip(agg: CrowdAgg): string { return agg.hazardBreakdown.map((s) => `${s.pct}% reported ${s.value}`).join(' · '); }
 
 // crowd agregát na karte/detaile. „N walked" počet sa TU už NEzobrazuje — presunul sa k autorom
@@ -852,6 +897,7 @@ function hazardTip(agg: CrowdAgg): string { return agg.hazardBreakdown.map((s) =
 // difficultyBreakdown/crowdBreakdown prázdne — tooltip sa vtedy nedáva (žiadny prázdny
 // rámik na hover), zobrazuje sa len seedová hodnota (difficulty/crowd) bez %-rozpadu.
 export function CrowdMeta({ agg, km, compact }: { agg: CrowdAgg; km: string; compact?: boolean }) {
+  const t = useT();
   const rSize = compact ? 10 : 15;
   const fs = compact ? 10.5 : 11.5;
   const hasDiffTip = agg.difficultyBreakdown.length > 0;
@@ -868,17 +914,17 @@ export function CrowdMeta({ agg, km, compact }: { agg: CrowdAgg; km: string; com
       <span
         className={`comm-crowd-row${hasDiffTip ? ' comm-hastip' : ''}`}
         style={{ fontSize: fs }}
-        data-tip={hasDiffTip ? diffTip(agg) : undefined}
+        data-tip={hasDiffTip ? diffTip(t, agg) : undefined}
       >
-        <DiffMark diff={agg.difficulty} /> {agg.difficulty} · {km} km
+        <DiffMark diff={agg.difficulty} /> {diffTx(t, agg.difficulty)} · {km} km
       </span>
       {agg.crowd && (
         <span
           className={`comm-crowd-row${hasCrowdTip ? ' comm-hastip' : ''}`}
           style={{ fontSize: fs }}
-          data-tip={hasCrowdTip ? crowdTip(agg) : undefined}
+          data-tip={hasCrowdTip ? crowdTip(t, agg) : undefined}
         >
-          {CROWD_EMOJI[agg.crowd]} {agg.crowd}
+          {CROWD_EMOJI[agg.crowd]} {crowdTx(t, agg.crowd)}
         </span>
       )}
       {!compact && agg.hazardBreakdown.length > 0 && (
@@ -891,15 +937,32 @@ export function CrowdMeta({ agg, km, compact }: { agg: CrowdAgg; km: string; com
 }
 export { VOLUME_THRESHOLD };
 
-// ── BigRating (Matej 2026-07-22) — pravý stĺpec karty/detailu: 1 packa + veľké číslo X.Y.
-// Náročnosť/popularita/hazard sa presunuli na fotku (PhotoMetaPills), tu ostáva len rating. ──
-export function BigRating({ rating, compact }: { rating: number; compact?: boolean }) {
-  // Matej 2026-07-22: „našu packu s jedným väčším prstom, nie random" → brand Hekypaw (paw.svg,
-  // jeden zreteľne väčší prst), NIE generický paw-solid. Jedna väčšia packa + číslo.
+// ── BigRating — hodnotenie v pravom stĺpci karty a inline detailu.
+//
+// Matej 2026-08-26: „v zozname potrebujeme packu vyplniť farbou, nie obrys — daj to ako na
+// mobile: číslo, 5× packa a v zátvorke hodnotenia."
+//
+// Do teraz tu stála JEDNA packa (obrys `paw.svg`, len prefarbený filtrom) a vedľa nej veľké
+// číslo. Obrysová packa vedľa čísla nič nemeria — je to ikonka, ktorá hovorí „toto je
+// hodnotenie", nie stupnica. Päť packiek so zlomkovou výplňou (`RatingPaws`) tú istú hodnotu
+// UKAZUJE, a je to ten istý widget, aký nesie článok výletu a jeho mobilná podoba.
+//
+// Zátvorka = koľko chodcov hlasovalo (`walkedCount` z agregátu, teda `ratings.length`) — váha
+// toho čísla. Bez nej „5,0" z jedného hlasu a „5,0" z tridsiatich vyzerajú rovnako.
+//
+// ⚠️ Poradie je Matejovo (číslo → packy → zátvorka). Článok výletu (`.pta-byrating`) má
+// packy pred číslom; keby sa mali zjednotiť, mení sa TAM, nie tu — toto je vypýtaný tvar.
+//
+// `mini` (2026-08-26) = tretia veľkosť pre PODPISOVÝ RIADOK karty. Matej: „druhý riadok bude
+// fotka a meno autora a vedľa hodnotenie — malým písmom." Hodnotenie tam už nie je pravý
+// stĺpec karty (kde smie vážiť), ale poznámka vedľa autora — musí sedieť na jeho výšku, inak
+// riadok rozhodí. Veľkosť packiek je PROP, nie CSS, takže samotná trieda by nestačila.
+export function BigRating({ rating, count, compact, mini }: { rating: number; count?: number; compact?: boolean; mini?: boolean }) {
   return (
-    <span className={`comm-bigrating${compact ? ' compact' : ''}`}>
-      <img src={ICON('paw')} alt="" style={{ filter: GOLD_ICON_FILTER }} />
+    <span className={`comm-bigrating${compact ? ' compact' : ''}${mini ? ' mini' : ''}`}>
       <b>{rating.toFixed(1)}</b>
+      <RatingPaws stars={rating} size={mini ? 11 : compact ? 13 : 17} gap={mini ? 1.5 : compact ? 2 : 3} />
+      {count != null && count > 0 && <i>({count})</i>}
     </span>
   );
 }
@@ -910,6 +973,7 @@ export function BigRating({ rating, compact }: { rating: number; compact?: boole
 // Hazard TU NIE (ten je len v detaile vedľa tagov — HazardTags). Hover na pilulku = %-rozpad
 // hlasov členov. Zdieľané karta + inline detail. ──
 export function PhotoMetaPills({ agg, km, ascentM }: { agg: CrowdAgg; km: string; ascentM?: number }) {
+  const t = useT();
   // Prázdny breakdown (walkedCount 0, „začíname so všetkým do nuly") → žiadny %-rozpad na
   // ponuku, takže žiadny tooltip (inak by hover ukázal prázdny rámik „Difficulty — ").
   const hasDiffTip = agg.difficultyBreakdown.length > 0;
@@ -921,16 +985,16 @@ export function PhotoMetaPills({ agg, km, ascentM }: { agg: CrowdAgg; km: string
       </span>
       <span
         className={`comm-mpill${hasDiffTip ? ' comm-hastip' : ''}`}
-        data-tip={hasDiffTip ? `Difficulty — ${diffTip(agg)}` : undefined}
+        data-tip={hasDiffTip ? `${t('pack.map.difficulty')} — ${diffTip(t, agg)}` : undefined}
       >
-        <DiffMark diff={agg.difficulty} /> {agg.difficulty}
+        <DiffMark diff={agg.difficulty} /> {diffTx(t, agg.difficulty)}
       </span>
       {agg.crowd && (
         <span
           className={`comm-mpill${hasCrowdTip ? ' comm-hastip' : ''}`}
-          data-tip={hasCrowdTip ? `Crowd — ${crowdTip(agg)}` : undefined}
+          data-tip={hasCrowdTip ? `${t('pack.map.crowd')} — ${crowdTip(t, agg)}` : undefined}
         >
-          {CROWD_EMOJI[agg.crowd]} {agg.crowd}
+          {CROWD_EMOJI[agg.crowd]} {crowdTx(t, agg.crowd)}
         </span>
       )}
     </div>
@@ -964,7 +1028,13 @@ export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
   onChange: (next: Companion[]) => void;
   onOpenProfile?: (memberId: string) => void; // avatar klik → /pack/u/:id, zatiaľ bez zdroja id (žiadny členský adresár)
 }) {
+  // ⚠️ TENTO KOMPONENT BOL CELÝ PO ANGLICKY (Matej 2026-08-23, sweep mobilu). Pod slovenským
+  // nadpisom SVORKA NA VÝLETE stálo „Add other companions" a „Type a name and press Enter…".
+  const t = useT();
   const [q, setQ] = useState('');
+  // Otvorí sa samo, keď už nejaký človek vybratý je — inak by po návrate do kroku 5 vyzeralo,
+  // že sa vybraté mená stratili.
+  const [othersOpen, setOthersOpen] = useState(() => selected.some((c) => !c.key.startsWith('dog-')));
   const selectedKeys = new Set(selected.map((c) => c.key));
   const add = (c: Companion) => { if (!selectedKeys.has(c.key)) onChange([...selected, c]); };
   const remove = (key: string) => onChange(selected.filter((c) => c.key !== key));
@@ -980,11 +1050,22 @@ export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
     add({ key: `member-${name}`, name });
     setQ('');
   };
+  /**
+   * ── PES JE V ZOZNAME RAZ, NIE DVAKRÁT (Matej 2026-08-26) ─────────────────────────────
+   * „v 5. kroku sú 2× Hektorove fotky — musí byť len jedna! v jednom riadku, na zeleno už
+   *  vopred označený."
+   * Vlastný pes je predvyplnený, takže sa objavil naraz HORE ako vybratý chip a DOLE
+   * v rade „tvoja svorka" so zeleným prstencom. Dva rovnaké portréty nad sebou čítajú ako
+   * dvaja psi, nie ako jeden vybratý — a rad svorky to už hovorí sám: zelený = ide s tebou.
+   * ⚠️ MENÁ ĽUDÍ V CHIPOCH OSTÁVAJÚ. Tie nemajú svoj rad, v ktorom by sa dali označiť —
+   * bez chipu by po napísaní mena nebolo vidieť vôbec nič.
+   */
+  const namedSelected = selected.filter((c) => !c.key.startsWith('dog-'));
   return (
     <div>
-      {selected.length > 0 && (
+      {namedSelected.length > 0 && (
         <div className="comm-comp-selected">
-          {selected.map((c) => (
+          {namedSelected.map((c) => (
             <span key={c.key} className="comm-comp-chip">
               {/* meno reálneho člena bez známeho id nie je klikateľné — žiadny odkaz do prázdna. */}
               <span
@@ -994,14 +1075,14 @@ export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
                 {c.photo ? '' : c.name.charAt(0).toUpperCase()}
               </span>
               <b>{c.name}</b>
-              <button type="button" onClick={() => remove(c.key)} aria-label={`Remove ${c.name}`}>×</button>
+              <button type="button" onClick={() => remove(c.key)} aria-label={t('pack.companions.remove', { name: c.name })}>×</button>
             </span>
           ))}
         </div>
       )}
       {myDogs.length > 0 && (
         <>
-          <div className="comm-comp-grouplabel">Your pack</div>
+          <div className="comm-comp-grouplabel">{t('pack.companions.yourPack')}</div>
           <div className="comm-comp-pack">
             {myDogs.map((d) => {
               const on = selectedKeys.has(`dog-${d.id}`);
@@ -1010,7 +1091,7 @@ export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
                   <span className={`comm-comp-dog-av${d.photo ? '' : ' ph'}`} style={d.photo ? { backgroundImage: `url('${d.photo}')` } : undefined}>
                     {d.photo ? '' : (d.name || 'D').charAt(0).toUpperCase()}
                   </span>
-                  <span>{d.name || 'My dog'}</span>
+                  <span>{d.name || t('pack.companions.myDog')}</span>
                   {!on && <span className="plus">+</span>}
                 </button>
               );
@@ -1018,16 +1099,55 @@ export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
           </div>
         </>
       )}
-      <div className="comm-comp-grouplabel">Add other companions</div>
+      {/* ── MENÁ ĽUDÍ SA OTVÁRAJÚ, NESTOJA OTVORENÉ (Matej 2026-08-25) ──────────────────
+          „musíme zjednodušiť to pridávanie členov — je to matúce… musí tam svietiť hlavy
+           psov a po kliknutí sa zazelenajú a potom bude +, ktoré otvorí textareu, kde môže
+           človek písať mená dogypťanov."
+          Matúce to bolo tým, že sa naraz ponúkali DVE rôzne veci: hlavy psov (jeden ťuk)
+          a textové pole (napíš a potvrď). Pole vyzeralo ako hlavná cesta, hoci väčšina
+          výletov je „ja a môj pes" a stačil ten jeden ťuk. Teraz je viditeľné len +;
+          kto ho potrebuje, otvorí si ho. */}
+      {!othersOpen && (
+        <button type="button" className="comm-comp-openothers" onClick={() => setOthersOpen(true)}>
+          <span className="comm-comp-openplus">+</span>
+          <span>{t('pack.companions.addOthers')}</span>
+        </button>
+      )}
+      {othersOpen && (
+      <>
+      <div className="comm-comp-grouplabel">{t('pack.companions.addOthers')}</div>
+      {/* ── PRIDANIE NESMIE VISIEŤ NA ENTERI (Matej 2026-08-25) ──────────────────────────
+          „nefunguje načítanie členov podľa mena… každopádne ak to tam bude, musí to byť
+           funkčné."
+          Pole fungovalo — len jedinou cestou dnu bol Enter, a na telefónnej klávesnici je
+          tam „hotovo"/„prejsť", nie zjavné potvrdenie. Kto meno napísal a ťukol vedľa,
+          nedostal nič a pole vyzeralo pokazené. Tlačidlo je viditeľné potvrdenie tej istej
+          akcie; Enter funguje ďalej pre toho, kto píše na klávesnici.
+          ⚠️ Vypnuté, kým nie je čo pridať — tlačidlo, ktoré po ťuknutí mlčí, je ten istý
+          problém len o krok neskôr. */}
       <div className="comm-comp-searchwrap">
-        <input
-          className="comm-input"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTyped(); } }}
-          placeholder="Type a name and press Enter…"
-        />
+        <div className="comm-comp-searchrow">
+          <input
+            className="comm-input"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTyped(); } }}
+            placeholder={t('pack.companions.typeName')}
+          />
+          <button
+            type="button"
+            className="comm-comp-addbtn"
+            onClick={addTyped}
+            disabled={!q.trim()}
+            aria-label={t('pack.companions.addTyped')}
+            title={t('pack.companions.addTyped')}
+          >
+            +
+          </button>
+        </div>
       </div>
+      </>
+      )}
     </div>
   );
 }
@@ -1075,6 +1195,9 @@ function pointsLegend(): Array<[string, string]> {
     ['Add a trail', `+${POINTS.add}`],
     ['Add a place', `+${POINTS.place}`],
     ['Walk a trail', `+${POINTS.walk}`],
+    // Odkaz do legendy pribudol s jeho zapojením do skóre (25. 8. 2026) — dovtedy tu chýbal,
+    // hoci dlaždica ODKAZ pri pridávaní jeho cenu vypisovala.
+    ['Map note', `+${POINTS.note}`],
     ['Visit a place', `+${POINTS.visit}`],
     ['Every km walked', `+${POINTS_PER_KM}`],
     ['Every 100 m of climb', `+${POINTS_PER_100M}`],
@@ -1214,7 +1337,11 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
     addedByMe: approvedAddedIds(addedByMeIds(walkedTrails, { ownerName, isFounder: isFounderEmail(id.session?.user?.email) })),
     myRatings: ratedCountFor(walkedTrails, readVotes()),
   }), [walkedTrails, ownerName, id.session, storeEpoch]);
-  const profilePoints = profilePointsFor(walkedTrails, { addedIds: addedByMe, ratings: myRatings, countries: countriesTraveled });
+  // Odkazy sa do skóre pripočítali až 25. 8. 2026 — dovtedy appka sľubovala +3 za kus na troch
+  // miestach a neplatila ani raz. Číslo chodí hotové (po stropoch) z jedného zdroja, nech sa
+  // štyri povrchy s levelom nerozídu.
+  const myNotePoints = useMyNotePoints();
+  const profilePoints = profilePointsFor(walkedTrails, { addedIds: addedByMe, ratings: myRatings, countries: countriesTraveled, notePoints: myNotePoints });
   const lvl = levelProgress(profilePoints.total);
 
   return (
@@ -1634,7 +1761,7 @@ function HostNameLink({ host }: { host: string }) {
   return <>{host}</>;
 }
 
-export function EventsView({ events, trailsById, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, photoFor, onBrowseTrips, myId, onShareTrip }: {
+export function EventsView({ events, trailsById, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, photoFor, onBrowseTrips, myId, onShareTrip, onDelete }: {
   events: PartnerEvent[];
   trailsById: (id: string) => HeroTrail | undefined;
   onJoin: (id: string) => void;
@@ -1649,6 +1776,9 @@ export function EventsView({ events, trailsById, onJoin, onToggleClosed, onOpenT
   myId?: string | null;
   /** #55 — prázdna partia potrebuje akciu: pozvať niekoho = zdieľať odkaz na výlet. */
   onShareTrip?: (tripId: string) => void;
+  /** Zrušenie VLASTNEJ pozvánky (2026-08-22). Ruší sa inzerát, nie plán — výlet ostáva
+   *  v triplistе. Chýba = tlačidlo sa nevykreslí. */
+  onDelete?: (id: string) => void;
 }) {
   if (events.length === 0) {
     // ⚠️ Tento zoznam drží LEN MOJE inzeráty — `trip_events` sa ťahá s `.eq('host_id', uid)`
@@ -1676,6 +1806,7 @@ export function EventsView({ events, trailsById, onJoin, onToggleClosed, onOpenT
           photoFor={photoFor}
           myId={myId}
           onShareTrip={onShareTrip}
+          onDelete={onDelete}
         />
       ))}
     </>
@@ -1685,7 +1816,7 @@ export function EventsView({ events, trailsById, onJoin, onToggleClosed, onOpenT
 // Jeden inzerát. Vydelené z `EventsView`, lebo partia (`get_trip_party`) je hook — a počet
 // „ide N Dogypťanov" musí sedieť s tým, čo rozbalí buddy list. Predtým to bolo `seedGoing`
 // (vymyslený počet ostatných) a po purge už len konštantná 1.
-function EventCard({ ev, tr, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, photoFor, myId, onShareTrip }: {
+function EventCard({ ev, tr, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, photoFor, myId, onShareTrip, onDelete }: {
   ev: PartnerEvent;
   tr: HeroTrail | undefined;
   onJoin: (id: string) => void;
@@ -1695,6 +1826,7 @@ function EventCard({ ev, tr, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, 
   photoFor?: (tr: HeroTrail) => string;
   myId?: string | null;
   onShareTrip?: (tripId: string) => void;
+  onDelete?: (id: string) => void;
 }) {
   const t = useT();
   const isMine = isMyEvent(ev);
@@ -1704,6 +1836,11 @@ function EventCard({ ev, tr, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, 
   // takže seba pripočítavam podľa `joinedByMe` — presne ako doteraz, len bez mock zvyšku.
   const going = party.joiners.length + (ev.joinedByMe ? 1 : 0);
   const whenLabel = ev.dates.length > 0 ? ev.dates.join(' or ') : (ev.month ? `${ev.month} (flexible)` : 'Flexible');
+  // ⚠️ `ev.host` po hydratácii z DB CHÝBA — `trip_events` meno hostiteľa nedrží (len `host_id`).
+  // Do 22. 8. tu bolo holé `ev.host.charAt(0)` a zhodilo to celú mapu, len čo človek na druhom
+  // zariadení klikol na UDALOSTI. Tento panel navyše vypisuje VÝHRADNE moje inzeráty
+  // (`.eq('host_id', uid)`), takže keď meno chýba, správna náhrada nie je „—", ale „ty".
+  const hostLabel = ev.host?.trim() || t('pack.eventsList.hostYou');
   const photo = tr && photoFor ? photoFor(tr) : '';
   return (
     <div className="comm-plan">
@@ -1723,7 +1860,7 @@ function EventCard({ ev, tr, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, 
           <div className="comm-plan-name" onClick={() => onOpenTrip(ev.tripId)} style={{ cursor: 'pointer' }}>{tr?.name ?? 'Planned walk'}</div>
           <div className="comm-plan-meta">
             {whenLabel} · hosted by{' '}
-            <HostNameLink host={ev.host} />
+            <HostNameLink host={hostLabel} />
             {tr ? ` · ${tr.region}` : ''}
           </div>
         </div>
@@ -1744,7 +1881,7 @@ function EventCard({ ev, tr, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, 
         <div className="comm-person">
           {/* host bez známeho profil id (žiadny členský adresár) → statický avatar, nie klik do prázdna */}
           <span className="comm-person-av">
-            {ev.host.charAt(0)}
+            {hostLabel.charAt(0)}
           </span>
           {/* „Message host" tu bolo do 2026-08-04 a otváralo mock composer. Tento panel drží
               VÝHRADNE moje inzeráty (`trip_events` sa ťahá s `.eq('host_id', uid)`), takže
@@ -1767,6 +1904,17 @@ function EventCard({ ev, tr, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, 
           >
             {ev.closed ? '🔒 Closed — reopen' : '🔒 Close to others'}
           </button>
+        )}
+        {/* ZRUŠIŤ POZVÁNKU — len autor (2026-08-22). Zámok a mazanie sú dve rôzne veci
+            a musia tak aj vyzerať: zámok povie „už nikoho neberiem", mazanie „táto pozvánka
+            nikdy nebola". Zámok preto ostáva prvý a dostupný skôr — mazanie je pod ním
+            a pýta sa. Výlet v plánoch prežije, čo hovorí aj text otázky. */}
+        {isMine && onDelete && (
+          <DeleteButton
+            label={t('pack.eventsList.deleteListing')}
+            hint={t('pack.eventsList.deleteListingAsk')}
+            onConfirm={() => onDelete(ev.id)}
+          />
         )}
       </div>
     </div>

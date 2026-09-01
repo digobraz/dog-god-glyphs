@@ -22,7 +22,7 @@ import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packThem
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { useT } from '@/i18n/LanguageContext';
 import { VIPER_POINTS, VIPER_SOURCE, VIPER_FINDS_TOTAL } from '@/data/viperAreas';
-import { clusterByPixels, clusterPx } from '@/components/pack/mapnotes/clusterPoints';
+import { clusterByPixels, clusterPx, clusterRadiusForZoom } from '@/components/pack/mapnotes/clusterPoints';
 
 /** Nad týmto priblížením vrstva mizne — krajová značka bez odstupu začína klamať. */
 export const VIPER_MAX_ZOOM = 11;
@@ -42,9 +42,9 @@ const HAZARD_RED = '#CE4B3C';
 const VIPER_DOT_PX = 34;
 const VIPER_EMOJI_PX = 19;
 
-// Rovnaký odstup ako zhluky zápisov aj výletov — tri vrstvy nad jednou mapou
-// nesmú zhlukovať inak, inak sa pri tom istom výreze rozpadne jedna skôr než druhá.
-const VIPER_CLUSTER_R_PX = 28;
+// Odstup zhlukovania berie `clusterRadiusForZoom()` — rovnaký zdroj ako zápisy
+// svorky, aby sa dve vrstvy nad jedným výrezom nerozpadali každá inokedy.
+// Pevných 28 px tu stálo do 22. 8. a pri z10 nechávalo zo 107 bodov 103 bubliniek.
 
 const VIPER_MARK = `position:relative;left:-50%;top:-50%;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:${VIPER_DOT_PX}px;height:${VIPER_DOT_PX}px;border-radius:999px;background:#FFFFFF;border:2.5px solid ${HAZARD_RED};box-shadow:0 1px 3px rgba(0,0,0,0.45),0 0 0 1px rgba(0,0,0,0.10);font-family:${FONT_EMOJI};font-size:${VIPER_EMOJI_PX}px;line-height:1;cursor:pointer;`;
 const viperIcon = () => L.divIcon({ className: 'vp-wrap', html: `<div style="${VIPER_MARK}">🐍</div>` });
@@ -53,7 +53,7 @@ const viperIcon = () => L.divIcon({ className: 'vp-wrap', html: `<div style="${V
 // (Matej 2026-08-22: „z diaľky to budú len biele kruhy z červeným lemom a číslom
 // vo vnútri a pri vačšom zoome sa rozpadnú na jednotlivé ikonky").
 const clusterMark = (px: number) =>
-  `position:relative;left:-50%;top:-50%;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:${px}px;height:${px}px;border-radius:999px;background:#FFFFFF;border:2.5px solid ${HAZARD_RED};box-shadow:0 1px 3px rgba(0,0,0,0.45),0 0 0 1px rgba(0,0,0,0.10);font-family:${FONT_TITLE};font-weight:700;font-size:${px < 36 ? 12 : 13}px;color:${HAZARD_RED};`;
+  `position:relative;left:-50%;top:-50%;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:${px}px;height:${px}px;border-radius:999px;background:#FFFFFF;border:2.5px solid ${HAZARD_RED};box-shadow:0 1px 3px rgba(0,0,0,0.45),0 0 0 1px rgba(0,0,0,0.10);font-family:${FONT_TITLE};font-weight:700;font-size:${px < 36 ? 12 : px < 48 ? 13 : 15}px;color:${HAZARD_RED};`;
 const viperClusterIcon = (n: number) =>
   L.divIcon({ className: 'vp-wrap', html: `<div style="${clusterMark(clusterPx(n))}">${n}</div>` });
 
@@ -79,7 +79,7 @@ export function ViperAreasLayer({ lang }: { lang: string }) {
       const pt = map.latLngToContainerPoint(p.at);
       return { p, x: pt.x, y: pt.y };
     });
-    return clusterByPixels(proj, VIPER_CLUSTER_R_PX).map((c) => {
+    return clusterByPixels(proj, clusterRadiusForZoom(zoom)).map((c) => {
       if (c.items.length === 1) return { kind: 'single' as const, p: c.items[0].p };
       const ll = map.containerPointToLatLng([c.x, c.y]);
       return { kind: 'cluster' as const, lat: ll.lat, lon: ll.lng, count: c.items.length };

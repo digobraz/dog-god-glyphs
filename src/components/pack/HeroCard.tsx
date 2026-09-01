@@ -8,6 +8,7 @@ import { INVITE_ANCHOR_ID } from './FounderInvite';
 import { BrandIcon } from './BrandIcon';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PILL_CSS } from './packTheme';
 import { PackNotifications } from './PackNotifications';
+import { WIZ } from './wizAnchors';
 import { DEV_FULL } from '@/lib/packFlags';
 import { devotionLevel } from '@/lib/devotion';
 import { useDogyptStore } from '@/store/dogyptStore';
@@ -306,7 +307,10 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
             kruhy sedia na spoločnej osi a VŠETKY menovky radu začínajú na rovnakej y,
             aj keď je pes menší. Zarovnanie zhora by menovky psov vytiahlo nad meno
             majiteľa. Rozdelenie do radov počíta `planRow()` — viď komentár hore. */}
-        <div ref={rowRef} className="w-full">
+        {/* `WIZ.dogsRow` — sem svieti druhý krok prehliadky (AInubis: „poď so mnou do
+            svorky"). Kotva sedí na RADE, nie na celej karte: prvý krok už zvýrazňuje
+            celý blok, dva rovnaké spotlighty za sebou by nič nepovedali. */}
+        <div ref={rowRef} id={WIZ.dogsRow} className="w-full">
           {innerW > 0 && (
             <>
               <div className="flex items-start justify-center" style={{ gap: plan.gap }}>
@@ -636,7 +640,7 @@ function AddDogSlot({ size, boxH, gap }: { size: number; boxH: number; gap: numb
   const resetFlow = useDogyptStore((s) => s.reset);
   return (
     <Link
-      to="/heroglyph/intro"
+      to="/heroglyph/photo"
       onClick={resetFlow}
       className="flex flex-col items-center group"
       style={{ width: size, textDecoration: 'none' }}

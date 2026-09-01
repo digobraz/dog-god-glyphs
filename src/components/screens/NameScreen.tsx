@@ -8,10 +8,15 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { PageTopBar } from '@/components/PageTopBar';
 import hekthorImg from '@/assets/hekthor.png';
 import { DateDropdowns } from '@/components/DateDropdowns';
+import legendIconUrl from '@/assets/legend-icon.svg';
+import angelIconUrl from '@/assets/angel-icon.svg';
 import { useT } from '@/i18n/LanguageContext';
+
+// Najstarší rok v prepínači dátumu úmrtia.
+const MIN_DEATH_YEAR = 1990;
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 import { useBlockAutocorrect } from '@/hooks/useBlockAutocorrect';
-import { countryFlag } from '@/lib/countryGeo';
+import { FLOW_PALE_CSS } from './flowPaleSkin';
 
 // Android keyboards (Gboard/Samsung) ignore autoCorrect/autoComplete="off" and may
 // silently swap a typed word for a predicted one (e.g. BELGA → BELGICKO). We can't
@@ -20,26 +25,14 @@ import { countryFlag } from '@/lib/countryGeo';
 // iOS/desktop respect the attributes, so they get nothing (no clutter).
 const IS_ANDROID = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
 
-// Countries list shared with CheckoutScreen (owner billing country).
-// Used here for dog's country of origin / home country.
-const COUNTRIES = [
-  'Afghanistan','Albania','Algeria','Andorra','Angola','Argentina','Armenia','Australia','Austria','Azerbaijan',
-  'Bahamas','Bahrain','Bangladesh','Barbados','Belarus','Belgium','Belize','Benin','Bhutan','Bolivia',
-  'Bosnia and Herzegovina','Botswana','Brazil','Brunei','Bulgaria','Burkina Faso','Burundi','Cambodia','Cameroon',
-  'Canada','Central African Republic','Chad','Chile','China','Colombia','Comoros','Congo','Costa Rica','Croatia',
-  'Cuba','Cyprus','Czech Republic','Denmark','Djibouti','Dominican Republic','Ecuador','Egypt','El Salvador',
-  'Estonia','Ethiopia','Fiji','Finland','France','Gabon','Gambia','Georgia','Germany','Ghana','Greece',
-  'Guatemala','Guinea','Haiti','Honduras','Hungary','Iceland','India','Indonesia','Iran','Iraq','Ireland',
-  'Israel','Italy','Jamaica','Japan','Jordan','Kazakhstan','Kenya','Kuwait','Kyrgyzstan','Laos','Latvia',
-  'Lebanon','Libya','Liechtenstein','Lithuania','Luxembourg','Madagascar','Malaysia','Maldives','Mali','Malta',
-  'Mexico','Moldova','Monaco','Mongolia','Montenegro','Morocco','Mozambique','Myanmar','Namibia','Nepal',
-  'Netherlands','New Zealand','Nicaragua','Niger','Nigeria','North Macedonia','Norway','Oman','Pakistan',
-  'Panama','Paraguay','Peru','Philippines','Poland','Portugal','Qatar','Romania','Russia','Rwanda',
-  'Saudi Arabia','Senegal','Serbia','Singapore','Slovakia','Slovenia','Somalia','South Africa','South Korea',
-  'Spain','Sri Lanka','Sudan','Sweden','Switzerland','Syria','Taiwan','Tanzania','Thailand','Tunisia',
-  'Turkey','Uganda','Ukraine','United Arab Emirates','United Kingdom','United States','Uruguay','Uzbekistan',
-  'Venezuela','Vietnam','Yemen','Zambia','Zimbabwe',
-];
+// ── ZADNÁ STRANA BUBLINY (klik na „i") ───────────────────────────────────────
+// Matej 28. 8.: „my sa bavíme o zadnej strane!" + „dať blok do brandovej farby,
+// bloku". Predná a zadná strana sú TÁ ISTÁ karta, len otočená — zadná preto nemá
+// vlastnú výplň (dedí brandový povrch rodiča) a mení sa len inkoust na tmavý
+// podklad. Predtým to bol plochý `hsl(var(--papyrus))` bez rámu, čo na papyrusovej
+// stránke nebol blok, ale svetlejšia škvrna.
+const BACK_GOLD = '#FCD34D';
+
 
 // ── Name Entry Modal ─────────────────────────────────────────────────────────
 // Always mounted & portaled to document.body. Two things matter on iOS:
@@ -206,6 +199,9 @@ export function NameScreen() {
   const storedDogName = useDogyptStore((s) => s.dogName);
   const setSelection = useDogyptStore((s) => s.setSelection);
   const selections = useDogyptStore((s) => s.selections);
+  // Otázka „žije pes?" tu 28. 8. 2026 chvíľu bola (prišla zo zaniknutého
+  // /heroglyph/intro), ale putovala ďalej na krok 3 (/heroglyph/dogs) — tam sa
+  // pýta pri KAŽDOM psovi, nielen pri prvom. Meno má byť ľahká otázka.
 
   const initialName = storedDogName || '';
   const today = new Date();
@@ -248,25 +244,38 @@ export function NameScreen() {
   const closeNameModal = () => {
     nameInputRef.current?.blur();
     setNameModalOpen(false);
+    // Zavretie popupu je vedomé „dopísal som" — odpočet 900 ms by tu len zdržal.
+    if (input.trim().length >= 1) setSettled(true);
   };
 
   const trimmed = input.trim();
   const nameValid = trimmed.length >= 1 && trimmed.length <= 30;
-  const dateValid = touched;
-  const countryValid = dogCountry !== '';
-  const canContinue = nameValid && dateValid && countryValid;
 
-  const handleSend = () => {
-    if (!canContinue) return;
-    setDogName(trimmed.toUpperCase());
-    setSelection('birthdayDay', String(day).padStart(2, '0'));
-    setSelection('birthdayMonth', String(month).padStart(2, '0'));
-    setSelection('birthdayYear', String(year));
-    // Dog's country → heroglyph pos 15 + dogs.country + WALL flag.
-    // Stored as English name (matches COUNTRY_TO_ISO3 map in heroglyphCode.ts).
-    setSelection('country', dogCountry);
-    navigate('/heroglyph/photo');
+  // ── KEDY JE MENO „DOPÍSANÉ" ────────────────────────────────────────────────
+  // Matej 28. 8.: „až po dopísaní mena sa zjaví červený text nie pri začiatku
+  // písania…ak človek dopíše!". Pri prvom písmene by červená hláška a odomknutie
+  // tlačidla reagovali na „B" z BARÓNA — teda na pol slova.
+  // Dopísané = 900 ms bez ďalšieho písmena, ALEBO človek to povedal sám (opustil
+  // pole, Enter, HOTOVO v mobilnom popupe) — vtedy sa nečaká.
+  const [settled, setSettled] = useState(false);
+  useEffect(() => {
+    if (!nameValid) { setSettled(false); return; }
+    setSettled(false);
+    const id = window.setTimeout(() => setSettled(true), 900);
+    return () => window.clearTimeout(id);
+  }, [input, nameValid]);
+  // Krajina a dátum narodenia sa 28. 8. 2026 presunuli na /heroglyph/about — meno má byť
+  // ľahká otázka, nie formulár. Tu drží tlačidlo platné a DOPÍSANÉ meno.
+  const canContinue = nameValid && settled;
+
+  const handleSend = (name = trimmed) => {
+    if (!(name.length >= 1 && name.length <= 30)) return;
+    setDogName(name.toUpperCase());
+    navigate('/heroglyph/dogs');
   };
+
+
+
 
   const handleDateChange = (d: number, m: number, y: number) => {
     setDay(d);
@@ -276,8 +285,12 @@ export function NameScreen() {
   };
 
   return (
-    <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <PageTopBar onBack={() => navigate('/heroglyph/intro')} />
+    <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
+      <style>{FLOW_PALE_CSS}</style>
+
+      <div className="hf-topbar flex-shrink-0">
+        <PageTopBar onBack={() => navigate('/heroglyph/photo')} />
+      </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
         <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 min-h-0">
@@ -296,9 +309,9 @@ export function NameScreen() {
               aria-label={t('heroglyph.flow.name.infoAria')}
               onClick={() => setShowInfo((p) => !p)}
             >
-              <span className="w-7 h-7 rounded-full border-2 border-foreground/40 flex items-center justify-center transition-colors hover:border-foreground/70">
+              <span className="w-7 h-7 rounded-full border-2 border-white/40 flex items-center justify-center transition-colors hover:border-white/70">
                 {showInfo
-                  ? <X className="h-4 w-4 text-foreground/70" />
+                  ? <X className="h-4 w-4 text-white/80" />
                   : <Info className="h-4 w-4 text-white/80" />}
               </span>
             </button>
@@ -309,13 +322,16 @@ export function NameScreen() {
               {!showInfo ? (
                 <motion.div
                   key="front"
-                  className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4"
+                  className="px-4 py-4 md:p-5 flex flex-col items-center gap-2.5 md:gap-3"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.25 }}
                 >
-                  <img src={hekthorImg} alt="HEKTHOR" className="hek-lg w-36 h-36 md:w-56 md:h-56 object-contain" />
+                  {/* Matej 28. 8.: „foto hektora je enormne veľká" — bublina je úvod,
+                      nie hrdina obrazovky. Hrdinom je pole pod ňou, tak sa fotka
+                      zmenšila zo 144/224 px na 96/112 a bublina stiahla výplň. */}
+                  <img src={hekthorImg} alt="HEKTHOR" className="hek-lg hf-hek" />
                   <p className="text-white text-center text-[15px] md:text-2xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
                     <span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingPrefix')} <span className="font-bold text-amber-300">HEKTHOR</span>.</span><br />
                     <span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingQuestion')}</span>
@@ -325,11 +341,14 @@ export function NameScreen() {
                 <motion.div
                   key="info"
                   className="rounded-2xl"
+                  /* Závoj nad brandovým gradientom: text zadnej strany stojí vpravo, teda
+                     nad jeho ZLATÝM koncom (#C99A3F) — biele písmo tam má kontrast 2,7:1
+                     a nedá sa čítať. Závoj drží povrch brandový a text čitateľný (~6:1). */
+                  style={{ background: 'linear-gradient(180deg, rgba(6,4,2,0.58), rgba(6,4,2,0.58))' }}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.25 }}
-                  style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                 >
                   {/* pt accounts for the X button */}
                   <div className="p-4 pt-11 pb-4 md:p-5 md:pt-14 md:pb-5">
@@ -351,13 +370,13 @@ export function NameScreen() {
                       <div className="flex-1 flex flex-col gap-1.5 md:gap-2.5 min-w-0">
                         <h3
                           className="text-sm md:text-xl font-bold leading-tight"
-                          style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
+                          style={{ fontFamily: "'Cinzel', serif", color: BACK_GOLD }}
                         >
                           {t('heroglyph.flow.name.whoTitle')} {t('heroglyph.flow.name.whoTitleName')}
                         </h3>
 
                         <p
-                          className="text-foreground/80 text-[11px] md:text-[13px] leading-snug line-clamp-6 md:line-clamp-none"
+                          className="text-[#FAF4EC]/80 text-[11px] md:text-[13px] leading-snug line-clamp-6 md:line-clamp-none"
                           style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                         >
                           {t('heroglyph.flow.name.whoBody')}
@@ -368,32 +387,32 @@ export function NameScreen() {
                           {/* Mobile: simple stacked */}
                           <div className="flex flex-col gap-1 md:hidden">
                             <div className="flex items-center gap-1.5">
-                              <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>{t('heroglyph.flow.name.born')}:</p>
-                              <p className="text-foreground text-sm font-semibold">2016</p>
+                              <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: BACK_GOLD }}>{t('heroglyph.flow.name.born')}:</p>
+                              <p className="text-[#FAF4EC] text-sm font-semibold">2016</p>
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>{t('heroglyph.flow.name.adopted')}:</p>
-                              <p className="text-foreground text-sm font-semibold">2017</p>
+                              <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: BACK_GOLD }}>{t('heroglyph.flow.name.adopted')}:</p>
+                              <p className="text-[#FAF4EC] text-sm font-semibold">2017</p>
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>{t('heroglyph.flow.name.location')}:</p>
-                              <p className="text-foreground text-sm font-semibold">{t('heroglyph.flow.name.locationValue')}</p>
+                              <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: BACK_GOLD }}>{t('heroglyph.flow.name.location')}:</p>
+                              <p className="text-[#FAF4EC] text-sm font-semibold">{t('heroglyph.flow.name.locationValue')}</p>
                             </div>
                           </div>
 
                           {/* Desktop: decorative open-table style */}
-                          <div className="hidden md:flex md:gap-0 w-full rounded-lg border-2" style={{ borderColor: 'hsl(var(--gold-dark) / 0.35)' }}>
+                          <div className="hidden md:flex md:gap-0 w-full rounded-lg border-2" style={{ borderColor: 'rgba(201,154,63,0.45)' }}>
                             <div className="flex-1 flex flex-col items-center py-1.5">
-                              <p className="text-[10px] font-bold uppercase tracking-widest mb-0" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>{t('heroglyph.flow.name.born')}</p>
-                              <p className="text-foreground text-sm font-semibold">2016</p>
+                              <p className="text-[10px] font-bold uppercase tracking-widest mb-0" style={{ fontFamily: "'Cinzel', serif", color: BACK_GOLD }}>{t('heroglyph.flow.name.born')}</p>
+                              <p className="text-[#FAF4EC] text-sm font-semibold">2016</p>
                             </div>
-                            <div className="flex-1 flex flex-col items-center py-1.5 border-l-2 border-r-2" style={{ borderColor: 'hsl(var(--gold-dark) / 0.35)' }}>
-                              <p className="text-[10px] font-bold uppercase tracking-widest mb-0" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>{t('heroglyph.flow.name.adopted')}</p>
-                              <p className="text-foreground text-sm font-semibold">2017</p>
+                            <div className="flex-1 flex flex-col items-center py-1.5 border-l-2 border-r-2" style={{ borderColor: 'rgba(201,154,63,0.45)' }}>
+                              <p className="text-[10px] font-bold uppercase tracking-widest mb-0" style={{ fontFamily: "'Cinzel', serif", color: BACK_GOLD }}>{t('heroglyph.flow.name.adopted')}</p>
+                              <p className="text-[#FAF4EC] text-sm font-semibold">2017</p>
                             </div>
                             <div className="flex-1 flex flex-col items-center py-1.5">
-                              <p className="text-[10px] font-bold uppercase tracking-widest mb-0" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>{t('heroglyph.flow.name.location')}</p>
-                              <p className="text-foreground text-sm font-semibold">{t('heroglyph.flow.name.locationValue')}</p>
+                              <p className="text-[10px] font-bold uppercase tracking-widest mb-0" style={{ fontFamily: "'Cinzel', serif", color: BACK_GOLD }}>{t('heroglyph.flow.name.location')}</p>
+                              <p className="text-[#FAF4EC] text-sm font-semibold">{t('heroglyph.flow.name.locationValue')}</p>
                             </div>
                           </div>
                         </div>
@@ -407,32 +426,35 @@ export function NameScreen() {
 
           {/* Input */}
           <motion.div
-            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-3 md:p-4 flex-shrink-0"
+            className="hf-block flex-shrink-0"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35, delay: 0.1 }}
           >
-            <div className="flex flex-col gap-2 md:gap-3">
+            <div className="hf-plate">
+            {/* ── DVA BLOKY, NIE ŠTYRI SAMOSTATNÉ VECI (Matej 31. 8.) ────────────
+                *„tie pod texty prisuň viac hore k text area aj k cta, patria k nim,
+                nie do stredu — sú to 2 bloky s dvomi textami, nie 4 obsahy
+                samostatne (tak to teraz vyzerá)"*. Doska mala jednu medzeru medzi
+                všetkými štyrmi prvkami, takže veta patriaca k poľu stála rovnako
+                ďaleko od poľa ako od tlačidla a nebolo vidno, ku ktorému hovorí.
+                `.hf-group` drží dvojicu pri sebe (6 px); medzi dvojicami ostáva
+                medzera dosky. */}
+            <div className="hf-group">
             {/* Name + Dog Country row — name 70 %, country select 30 % */}
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
 
             {/* Name input — modal on mobile (keeps field above iOS keyboard),
                 inline input on desktop (direct keyboard typing). */}
-            <div className={`name-preview-wrap${trimmed.length > 0 ? ' is-filled' : ''}`} style={{ flex: '7 0 0', minWidth: 0 }}>
+            <div className={`hf-ring${trimmed.length > 0 ? ' is-filled' : ''}`} style={{ flex: '7 0 0', minWidth: 0 }}>
               {isMobile ? (
                 <button
                   type="button"
                   onClick={openNameModal}
-                  className="name-preview-btn w-full rounded-xl px-4 py-3 border-2 transition-colors"
+                  className={`hf-field${trimmed.length > 0 ? ' is-valid' : ''}`}
                   style={{
-                    fontFamily: "'Space Grotesk', sans-serif",
-                    fontSize: '16px',
-                    textAlign: 'center',
                     textTransform: trimmed.length > 0 ? 'uppercase' : 'none',
                     letterSpacing: trimmed.length > 0 ? '0.05em' : 'normal',
-                    background: trimmed.length > 0 ? 'hsl(224 60% 45% / 0.10)' : 'hsl(var(--card))',
-                    borderColor: trimmed.length > 0 ? 'hsl(224 60% 45%)' : 'rgba(47, 107, 255, 0.30)',
-                    color: trimmed.length > 0 ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground) / 0.5)',
                     cursor: 'text',
                   }}
                 >
@@ -443,7 +465,8 @@ export function NameScreen() {
                   ref={desktopInputRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value.toUpperCase().slice(0, 30))}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && canContinue) handleSend(); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && nameValid) { setSettled(true); handleSend(trimmed); } }}
+                  onBlur={() => { if (nameValid) setSettled(true); }}
                   placeholder={t('heroglyph.flow.name.placeholder')}
                   maxLength={30}
                   autoComplete="off"
@@ -452,142 +475,46 @@ export function NameScreen() {
                   spellCheck={false}
                   data-1p-ignore
                   data-lpignore="true"
-                  className="name-preview-btn w-full rounded-xl px-4 py-3 border-2 transition-colors"
+                  className={`hf-field${trimmed.length > 0 ? ' is-valid' : ''}`}
                   style={{
-                    fontFamily: "'Space Grotesk', sans-serif",
-                    fontSize: '16px',
-                    textAlign: 'center',
                     textTransform: trimmed.length > 0 ? 'uppercase' : 'none',
                     letterSpacing: trimmed.length > 0 ? '0.05em' : 'normal',
-                    background: trimmed.length > 0 ? 'hsl(224 60% 45% / 0.10)' : 'hsl(var(--card))',
-                    borderColor: trimmed.length > 0 ? 'hsl(224 60% 45%)' : 'rgba(47, 107, 255, 0.30)',
-                    color: trimmed.length > 0 ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground) / 0.5)',
-                    outline: 'none',
                   }}
                 />
               )}
-              <style>{`
-                @property --name-prev-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
-                .name-preview-wrap { position: relative; border-radius: 0.75rem; box-shadow: 0 0 10px rgba(47, 107, 255, 0.14); }
-                .name-preview-btn { position: relative; z-index: 1; }
-                .name-preview-wrap::before {
-                  content: ''; position: absolute; inset: -2px; border-radius: 14px; z-index: 0;
-                  pointer-events: none; padding: 2px;
-                  background: conic-gradient(from var(--name-prev-ang),
-                    transparent 0deg, transparent 250deg,
-                    rgba(47,107,255,0.85) 312deg, rgba(156,196,255,0.95) 334deg,
-                    rgba(47,107,255,0.85) 352deg, transparent 360deg);
-                  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-                  -webkit-mask-composite: xor;
-                          mask-composite: exclude;
-                  filter: blur(1px);
-                  animation: namePrevSpin 3.8s linear infinite;
-                }
-                @keyframes namePrevSpin { to { --name-prev-ang: 360deg; } }
-                @media (prefers-reduced-motion: reduce) { .name-preview-wrap::before { animation: none; } }
-                /* Filled = no animation, static "selected" highlight (like flow options) */
-                .name-preview-wrap.is-filled::before { animation: none; opacity: 0; }
-                .name-preview-wrap.is-filled { box-shadow: 0 0 0 2px hsl(224 60% 45% / 0.45), 0 0 14px hsl(224 60% 45% / 0.22); }
-              `}</style>
-            </div>
-
-            {/* Dog Country select — 30% of name row; placeholder = short "HOME" label.
-                Closed box shows ONLY the flag (full "flag + name" option text is kept for
-                the native dropdown list — full names help pick, but overflow the tiny
-                closed box). The select's own text is made transparent once a value is
-                chosen; a non-interactive flag overlay renders on top of it instead. */}
-            <div style={{ flex: '3 0 0', minWidth: 0, position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <select
-                value={dogCountry}
-                onChange={(e) => setDogCountry(e.target.value)}
-                aria-label={t('heroglyph.flow.name.dogCountry')}
-                style={{
-                  appearance: 'none',
-                  WebkitAppearance: 'none',
-                  width: '100%',
-                  height: 48,
-                  background: dogCountry ? 'hsl(var(--papyrus))' : 'hsl(var(--card))',
-                  border: dogCountry
-                    ? '2px solid hsl(var(--gold))'
-                    : '2px solid hsl(var(--gold) / 0.5)',
-                  borderRadius: 12,
-                  fontFamily: "'Cinzel', serif",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  textAlign: 'center',
-                  color: dogCountry ? 'transparent' : 'hsl(var(--muted-foreground) / 0.6)',
-                  paddingLeft: 4,
-                  paddingRight: 20,
-                  cursor: 'pointer',
-                  outline: 'none',
-                }}
-              >
-                <option value="">{t('heroglyph.flow.name.dogCountry')}</option>
-                {COUNTRIES.map((c) => (
-                  <option key={c} value={c}>{countryFlag(c) || '🏳'} {c}</option>
-                ))}
-              </select>
-              {dogCountry && (
-                <span
-                  aria-hidden
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    textAlign: 'center',
-                    pointerEvents: 'none',
-                    fontSize: 20,
-                    lineHeight: 1,
-                  }}
-                >{countryFlag(dogCountry) || '🏳'}</span>
-              )}
-              <span
-                aria-hidden
-                style={{
-                  position: 'absolute',
-                  right: 8,
-                  pointerEvents: 'none',
-                  color: 'hsl(var(--gold))',
-                  fontSize: 12,
-                  lineHeight: 1,
-                }}
-              >▾</span>
             </div>
 
             </div>{/* end name + country flex row */}
 
-            {/* Birthday — inline iOS-style 3-wheel picker */}
-            <p
-              className="text-xs md:text-sm uppercase tracking-widest text-muted-foreground text-center"
-              style={{ fontFamily: "'Cinzel', serif" }}
-            >
-              {t('heroglyph.flow.name.birthday')}
-            </p>
-            <DateDropdowns
-              day={day}
-              month={month}
-              year={year}
-              minYear={minYear}
-              maxYear={maxYear}
-              maxDate={today}
-              onChange={handleDateChange}
-            />
+            {/* NAPÄTIE → TLAČIDLO → SĽUB (LAB, krok 2 · 28. 8. 2026).
+                Červená hovorí, čo je zlé (meno samo nestačí), zelená čo z toho bude.
+                Objavia sa až keď meno stojí — pred vstupom by to bol sľub do prázdna,
+                takto je to odpoveď na to, čo človek práve napísal.
+                🚩 Konkrétne číslo („toto meno nosí 123 554 psov") tu byť NESMIE —
+                taký dataset neexistuje a bola by to vymyslená štatistika. */}
+            {canContinue && <p className="hf-alert">{t('heroglyph.flow.name.alert')}</p>}
+            </div>{/* end skupina POLE + napätie */}
 
-            <Button
-              onClick={handleSend}
-              disabled={!canContinue}
-              className="w-full rounded-xl gap-2 h-10 md:h-11 font-bold tracking-wider hover:scale-[1.02] transition-transform disabled:opacity-40 disabled:hover:scale-100"
-              style={{
-                fontFamily: "'Cinzel', serif",
-                background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-                color: '#000',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
-              }}
-            >
-              {t('heroglyph.flow.name.continue')}
-            </Button>
+            <div className="hf-group">
+
+            {/* 🚩 Tlačidlo sľubuje CIEĽ, nie akciu — klik heroglyf nevytvorí, otvorí
+                ďalšiu otázku. Vedomé rozhodnutie z LABu, nie prehliadnutie. */}
+            {/* Text tlačidla sa mení s tým, čo tlačidlo v tej chvíli znamená
+                (Matej 28. 8.): kým je pole prázdne, je vyblednuté a hovorí len
+                „Ďalej" — sľubovať heroglyf pred menom je sľub do prázdna.
+                S menom sa odomkne a prevezme cieľ: VYTVORIŤ HEROGLYPH. */}
+            {/* Hviezdička je v JSX, nie v preklade — je to typografická značka
+                a nemusí ju niesť 18 jazykov. Stojí len pri odomknutom CTA, teda
+                spolu s vetou, ktorú vysvetľuje. */}
+            <button type="button" className="hf-cta" onClick={() => handleSend()} disabled={!canContinue}>
+              {t(canContinue ? 'heroglyph.flow.name.createCta' : 'heroglyph.flow.name.nextCta')}
+              {canContinue && '*'}
+            </button>
+
+            {canContinue && (
+              <p className="hf-promise"><span className="star">*</span>{t('heroglyph.flow.name.promise')}</p>
+            )}
+            </div>{/* end skupina CTA + vysvetlivka */}
             </div>
           </motion.div>
         </div>

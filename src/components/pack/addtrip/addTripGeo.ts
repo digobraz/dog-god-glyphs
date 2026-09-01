@@ -75,6 +75,25 @@ export function rawAscent(elevations: Array<number | null | undefined>): number 
   return sum;
 }
 
+// ── rawDescent — zrkadlo `rawAscent`, len opačným smerom ───────────────────────────────
+// Klesanie potrebuje odhad času (SAC ho ráta zvlášť, 500 m/h). Je to tá istá stopa a tie isté
+// výšky, takže žiadne nové volania siete — len druhé znamienko.
+export function rawDescent(elevations: Array<number | null | undefined>): number {
+  const e = elevations.filter((x): x is number => x !== null && x !== undefined);
+  if (e.length < 2) return 0;
+  let sum = 0;
+  for (let i = 1; i < e.length; i++) sum += Math.max(0, e[i - 1] - e[i]);
+  return sum;
+}
+
+// ⚠️ TÁ ISTÁ KALIBRÁCIA AKO PRI STÚPANÍ. `CALIB_FACTOR` opravuje šum modelu terénu (DEM), a ten
+// nafukuje oba smery rovnako — použiť ho len na jednu stranu by pri okruhu dalo stúpanie
+// a klesanie rôzne, hoci sa človek vrátil na to isté miesto.
+export function calibratedDescent(path: LatLngTuple[], elevAt: (p: LatLngTuple) => number | null | undefined): number {
+  const resampled = interp(path, SPACING);
+  return Math.round(rawDescent(resampled.map(elevAt)) * CALIB_FACTOR);
+}
+
 // ── calibratedAscent — spojí interp + rawAscent + CALIB_FACTOR (§5.2a) ──────────────────
 // KRITICKÉ (§5.2a): prevýšenie sa NESMIE sčítavať po segmentoch — pri každom kliku sa musí
 // prepočítať CELÁ trasa odznova z cachovaných výšok (elevAt), presne ako batch skript počíta

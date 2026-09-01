@@ -171,11 +171,30 @@ export function ShareCard({ packNumber, dogName, photoUrl, heroglyphUrl, onHerog
           right: 0,
           bottom: 'auto',
           height: '72%',
-          backgroundImage: `url(${photoUrl})`,
+          // Pes bez fotky — od 28. 8. 2026 sa dá fotka pri vstupe preskočiť.
+          // Prázdna plocha by kartu rozbila, tak drží miesto zlatý prechod
+          // s iniciálou; rovnaký fallback ako na certifikáte a na stene.
+          backgroundImage: photoUrl
+            ? `url(${photoUrl})`
+            : 'linear-gradient(135deg, #d4a94a, #8a5c10)',
           backgroundSize: 'cover',
           backgroundPosition: '50% 30%',
+          display: photoUrl ? undefined : 'flex',
+          alignItems: photoUrl ? undefined : 'center',
+          justifyContent: photoUrl ? undefined : 'center',
         }}
       >
+        {!photoUrl && (
+          <span
+            style={{
+              font: `700 220px/1 'Cinzel', serif`,
+              color: 'rgba(250,244,236,0.92)',
+              letterSpacing: '.04em',
+            }}
+          >
+            {upperName.charAt(0)}
+          </span>
+        )}
         <div
           style={{
             position: 'absolute',

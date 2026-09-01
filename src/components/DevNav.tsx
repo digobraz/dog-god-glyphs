@@ -27,23 +27,29 @@ const GROUPS: RouteGroup[] = [
     ],
   },
   {
+    // ⚠️ PORADIE KROKOV MÁ KÁNON V `components/lab/HeroflowDevMenu.tsx` — tento
+    // zoznam sa od neho 28. 8. 2026 rozišiel (chýbal e-mail aj `why`, fotka bola
+    // dvakrát a poradie bolo predlaunchové). Keď sa vstup zmení, meň OBA.
     label: "Heroglyph wizard",
     routes: [
-      { path: "/heroglyph/intro", name: "0. Intro" },
-      { path: "/heroglyph/name", name: "1. Name" },
-      { path: "/heroglyph/photo", name: "2. Photo" },
-      { path: "/heroglyph/breed", name: "3. Breed / Patron" },
-      { path: "/heroglyph/ranking", name: "4. Ranking" },
-      { path: "/heroglyph/owner-info", name: "5. Owner info" },
-      { path: "/heroglyph/owner-zodiac", name: "6. Owner zodiac" },
-      { path: "/heroglyph/owner-final", name: "7. Owner final" },
-      { path: "/heroglyph/dog-gender", name: "8. Dog gender" },
-      { path: "/heroglyph/dog-fate", name: "9. Dog fate" },
-      { path: "/heroglyph/dog-colour", name: "10. Dog colour" },
-      { path: "/heroglyph/dog-bloodline", name: "11. Dog bloodline" },
-      { path: "/heroglyph/dog-character", name: "12. Dog character" },
-      { path: "/heroglyph/reveal", name: "13. Reveal" },
-      { path: "/heroglyph/message", name: "14. Message" },
+      { path: "/heroglyph/photo", name: "1. Fotka" },
+      { path: "/heroglyph/name", name: "2. Meno" },
+      { path: "/heroglyph/email", name: "3. E-mail" },
+      { path: "/heroglyph/why", name: "4. Prečo heroglyf" },
+      { path: "/heroglyph/about", name: "5. Papierovačky" },
+      { path: "/heroglyph/breed", name: "6. Breed / Patron" },
+      { path: "/heroglyph/ranking", name: "7. Ranking" },
+      { path: "/heroglyph/owner-info", name: "8. Owner info" },
+      { path: "/heroglyph/owner-zodiac", name: "9. Owner zodiac" },
+      { path: "/heroglyph/owner-final", name: "10. Owner final" },
+      { path: "/heroglyph/dog-gender", name: "11. Dog gender" },
+      { path: "/heroglyph/dog-fate", name: "12. Dog fate" },
+      { path: "/heroglyph/dog-colour", name: "13. Dog colour" },
+      { path: "/heroglyph/dog-bloodline", name: "14. Dog bloodline" },
+      { path: "/heroglyph/dog-character", name: "15. Dog character" },
+      { path: "/heroglyph/crop", name: "16. Výrez" },
+      { path: "/heroglyph/reveal", name: "17. Reveal" },
+      { path: "/heroglyph/message", name: "18. Message" },
     ],
   },
   {
@@ -69,6 +75,11 @@ export function DevNav() {
 
   // Never on headless render targets — would bleed into the generated PDF / share card PNG.
   if (pathname.startsWith("/cert-render") || pathname.startsWith("/share-render")) return null;
+  // ONEPAGE sa ladí ako HOTOVÝ web, aj na telefóne cez tunel (Matej 27. 8. 2026:
+  // „odstráň pomocné dev menu aj TEXT1/2“). Vývojárske ovládanie v rohu tam kazí
+  // dojem z návrhu a na mobile prekrýva spodnú lištu. Na ostatných dev cestách
+  // menu zostáva — je to jediný spôsob, ako sa medzi nimi preklikať.
+  if (pathname.startsWith("/onepage")) return null;
 
   // Hide on production custom domain (dogypt.com). Show in dev + lovable.app preview/published.
   if (typeof window !== "undefined") {

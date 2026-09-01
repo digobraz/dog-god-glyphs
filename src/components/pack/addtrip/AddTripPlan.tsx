@@ -13,6 +13,7 @@ import type { HeroTrail } from '@/data/heroTrails.generated';
 import { trailCountry } from '@/lib/countryGeo';
 import { useT } from '@/i18n/LanguageContext';
 import { GeometryPicker, allowedKindsFor, defaultKindFor } from './GeometryPicker';
+import { TRIP_CATEGORIES } from '@/components/pack/tripCategories';
 import {
   missingFields,
   type AddTripDraft, type TripGeometry,
@@ -34,6 +35,8 @@ export type AddTripPlanProps = {
   placeholderFor: (actIds: string[] | undefined, seed: string) => string;
   /** Mapa žije v PackMap.tsx — GeometryPicker ju nevytvára, len dostane ref (kontrakt §2). */
   mapRef: MutableRefObject<LeafletMap | null>;
+  /** Lišta kreslenia (rez B) — prechádza rovno do GeometryPickera, viď jeho `drawBar`. */
+  drawBar?: { active: boolean; onDone: () => void };
 };
 
 // Aktivita taxonómia — lokálna kópia (id/label/emoji + dátové ACT_DATA_ID mapovanie pre
@@ -42,15 +45,18 @@ export type AddTripPlanProps = {
 // už lokálna kópia z __TrailsPreview.tsx (viď komentár tam), takže toto je tá istá, už zavedená
 // duplicačná konvencia, nie nový vzor.
 // labelKey → t() sa volá až v komponente (ACTIVITIES je modulová konštanta, useT() je hook).
-const ACTIVITIES: Array<{ id: string; labelKey: string; emoji: string; dataId: string }> = [
-  { id: 'hiking', labelKey: 'pack.addTrip.plan.activities.hiking', emoji: '🥾', dataId: 'hike' },
-  { id: 'journey', labelKey: 'pack.addTrip.plan.activities.journey', emoji: '🎒', dataId: 'journey' },
-  { id: 'picnic', labelKey: 'pack.addTrip.plan.activities.picnic', emoji: '🧺', dataId: 'picnic' },
-  { id: 'overnight', labelKey: 'pack.addTrip.plan.activities.overnight', emoji: '⛺', dataId: 'overnight' },
-  { id: 'skating', labelKey: 'pack.addTrip.plan.activities.skating', emoji: '🛼', dataId: 'skating' },
-  { id: 'paddleboard', labelKey: 'pack.addTrip.plan.activities.paddleboard', emoji: '🏄', dataId: 'paddleboard' },
-  { id: 'explore', labelKey: 'pack.addTrip.plan.activities.explore', emoji: '🧭', dataId: 'explore' },
-];
+// ── ŠTYRI KATEGÓRIE, JEDEN ZDROJ (2026-08-27) ───────────────────────────────────────────
+// Zoznam ani emoji sa tu NEPÍŠU — sú v `components/pack/tripCategories.ts`. Táto kópia bola
+// dôvod, prečo mal plán pri nocľahu ⛺ tam, kde filter na mape 💤, a pri objavovaní 🧭 tam,
+// kde filter 🏰: dva zoznamy tej istej veci sa rozišli a nikto to nevidel, lebo každý žije
+// na inej obrazovke.
+const ACTIVITIES: Array<{ id: string; labelKey: string; emoji: string; dataId: string }> =
+  TRIP_CATEGORIES.map((c) => ({
+    id: c.id,
+    labelKey: `pack.addTrip.plan.activities.${c.id}`,
+    emoji: c.emoji,
+    dataId: c.dataId,
+  }));
 const ACT_BY_ID: Record<string, (typeof ACTIVITIES)[number]> = Object.fromEntries(ACTIVITIES.map((a) => [a.id, a]));
 
 // §4.2: „Placeholder rotuje z poolu" — kľúče, t() sa volá v komponente.
@@ -96,7 +102,7 @@ function CompanionAvatarsOnly(props: {
   );
 }
 
-export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef }: AddTripPlanProps) {
+export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef, drawBar }: AddTripPlanProps) {
   const t = useT();
   const [name, setName] = useState('');
   const [activity, setActivity] = useState<string>('hiking');
@@ -206,6 +212,7 @@ export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, 
               mode="plan"
               allTrails={allTrails}
               mapRef={mapRef}
+              drawBar={drawBar}
             />
           </div>
         </div>
@@ -283,7 +290,7 @@ export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, 
         <button type="button" className="btn-gold" disabled={!canSubmit} onClick={handleSubmit}>
           Plan trip
         </button>
-        {!canSubmit && <p className="att-plan-hint">Missing: {missing.join(', ')}</p>}
+        {!canSubmit && <p className="att-plan-hint">{t('pack.addTrip.log.missing', { fields: missing.map((k) => t(k)).join(', ') })}</p>}
         {submitError && <p className="att-plan-error">{submitError}</p>}
       </div>
     </div>

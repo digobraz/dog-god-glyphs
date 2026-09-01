@@ -187,7 +187,12 @@ if (typeof window !== 'undefined') {
 // vyrobil cyklus. Store potrebuje len tie polia, ktoré ide do DB.
 interface VoteLike { tripId: string; rating?: number; difficulty?: string; crowd?: string; comment?: string; when?: string; hazards?: string[]; at: number }
 interface PlanLike { tripId: string; date?: string; intent?: string; at: number }
-interface EventLike { id: string; tripId: string; dates?: string[]; month?: string; socialization?: string; closed?: boolean; hostIsMe?: boolean; host?: string }
+// ⚠️ `host`, `at` a `joinedByMe` sú tu VOLITEĽNÉ, hoci v `PartnerEvent` (packCommunity.ts)
+// sú POVINNÉ. Práve tá medzera spôsobila, že prekladač nechal prejsť hydratáciu nižšie, ktorá
+// ich nevypĺňala — a `ev.host.charAt(0)` v karte inzerátu potom zhodil CELÚ mapu, len čo
+// človek klikol na UDALOSTI. Voliteľné ostávajú (staré záznamy ich naozaj nemajú), ale kto
+// z tohto tvaru skladá `PartnerEvent`, MUSÍ ich doplniť.
+interface EventLike { id: string; tripId: string; dates?: string[]; month?: string; socialization?: string; closed?: boolean; hostIsMe?: boolean; host?: string; at?: number; joinedByMe?: boolean; travel?: unknown }
 interface TriplistLike { tripId: string; date?: string; status: string; openness: string; joiners?: unknown[]; requests?: unknown[]; addedAt: number }
 
 const isoOf = (ms: number): string => new Date(ms || Date.now()).toISOString();
@@ -294,6 +299,10 @@ export function persistEvents(next: EventLike[]): void {
       row: {
         client_id: e.id, trip_slug: e.tripId, dates: e.dates ?? [],
         month: e.month ?? null, socialization: e.socialization ?? null, closed: e.closed ?? false,
+        // AKO SA TAM IDE (stĺpec `travel jsonb`, migrácia 20260827). Posiela sa `null`, nie
+        // `undefined` — pri upserte by sa vynechaný kľúč tváril ako „nemeň", takže vymazaná
+        // doprava by v DB ostala visieť aj potom, čo ju človek odobral.
+        travel: e.travel ?? null,
       },
     });
   }
@@ -347,6 +356,27 @@ const TRIP_MIGRATED_KEY = 'trp-trips-db-migrated-v1';
 
 const readTripPending = (): string[] => readJson<string[]>(TRIP_PENDING_KEY, []);
 const writeTripPending = (ids: string[]): void => { writeJson(TRIP_PENDING_KEY, Array.from(new Set(ids))); };
+
+/**
+ * ZMAZANIE členmi nahodeného výletu z `pack_trips` (2026-08-22).
+ *
+ * ⚠️ BEZ TOHTO SA VÝLET ZMAZAŤ NEDÁ, len na oko. Hydratácia nižšie robí
+ * `writeJson(PACK_KEYS.localTrails, fromDb)` — teda `trp-local-trails` PREPÍŠE celým
+ * obsahom `pack_trips`, nezlučuje. Odstránenie len z prehliadača preto vydrží presne
+ * do najbližšieho prihlásenia (alebo do ďalšieho pullu na inom zariadení) a výlet aj
+ * s pinom sa vráti. Vyzeralo by to ako „mazanie sa neukladá", pritom sa ukladá — len
+ * ho server o chvíľu prebije.
+ *
+ * Poradie: najprv VON z čakajúcej fronty uploadu (inak by `processTripUploadQueue()`
+ * stihol nahrať práve zmazaný výlet naspäť a delete by dopadol na už neexistujúci
+ * riadok), potom delete op, potom meta.
+ */
+export function deletePackTrip(slug: string): void {
+  writeTripPending(readTripPending().filter((s) => s !== slug));
+  enqueue([{ kind: 'delete', tbl: 'pack_trips', match: { slug }, own: 'author_id' }]);
+  const meta = readJson<Record<string, LocalTrailMeta>>(PACK_KEYS.localTrailsMeta, {});
+  if (slug in meta) { delete meta[slug]; writeJson(PACK_KEYS.localTrailsMeta, meta); }
+}
 
 /** Volá `writeLocalTrails` (tripShared.tsx) pre každý nový/nemigrovaný trip id. Idempotentné —
  *  bezpečné volať opakovane, slug sa vo fronte nezduplikuje. */
@@ -527,10 +557,33 @@ export function hydratePackStore(): Promise<boolean> {
         // nechávame lokálne cudzie/seed záznamy tak, ako sú.
         const local = readJson<EventLike[]>(PACK_KEYS.events, []);
         const notMine = local.filter((e) => !(e.hostIsMe === true && !e.id.startsWith('seed-')));
-        const dbMine: EventLike[] = (events.data as any[]).map((r) => ({
-          id: r.client_id, tripId: r.trip_slug, dates: r.dates ?? [], month: r.month ?? '',
-          socialization: r.socialization ?? '', closed: r.closed ?? false, hostIsMe: true,
-        }));
+        // ⚠️ `trip_events` NEMÁ stĺpec `host` — drží len `host_id` (uuid). Meno hostiteľa teda
+        // z DB dotiahnuť NEVIEME a do 22. 8. sa jednoducho nevypĺňalo: po hydratácii mal každý
+        // vlastný inzerát `host: undefined` a karta padla na `ev.host.charAt(0)`. Zhodila celú
+        // mapu, nielen kartu. Prejavilo sa to až na DRUHOM zariadení (alebo po vymazaní cache),
+        // lebo v prehliadači, kde inzerát vznikol, meno v localStorage prežilo.
+        // Riešenie bez vymýšľania dát: čo o inzeráte vieme LOKÁLNE, to si ponecháme; čo nevieme,
+        // necháme prázdne a text dorobí UI (fallback „ty"). `at` berieme z `created_at`, nech
+        // zoradenie po hydratácii nespadne na 0.
+        const localById = new Map(local.map((e) => [e.id, e]));
+        const dbMine: EventLike[] = (events.data as any[]).map((r) => {
+          const had = localById.get(r.client_id);
+          return {
+            id: r.client_id, tripId: r.trip_slug, dates: r.dates ?? [], month: r.month ?? '',
+            socialization: r.socialization ?? '', closed: r.closed ?? false, hostIsMe: true,
+            host: had?.host ?? '',
+            at: had?.at ?? (Date.parse(r.created_at) || Date.now()),
+            // Inzerát som vypísal ja, teda idem — presne to sa zapisuje pri jeho vzniku
+            // (`joinedByMe: true` v PackMap.tsx). Nie je to odhad, je to ten istý fakt.
+            joinedByMe: had?.joinedByMe ?? true,
+            // AKO SA TAM IDE — od 27. 8. má vlastný stĺpec (migrácia 20260827_trip_events_travel),
+            // takže na rozdiel od `host`/`at` nad ním sa NEBERIE z lokálnej kópie: server je
+            // zdroj pravdy a doprava zapísaná na inom zariadení sem musí dôjsť.
+            // Lokálna hodnota drží len záznamy, ktoré do DB ešte neodišli (offline fronta) —
+            // bez toho fallbacku by ju pull stihol zmazať skôr, než sa odošle.
+            travel: (r.travel ?? had?.travel) as EventLike['travel'],
+          };
+        });
         writeJson(PACK_KEYS.events, [...dbMine, ...notMine]);
       }
       // pack_trips (issue #32 fáza F5): vlastný "blocked" — okrem SyncOp fronty (`enqueue`) môže

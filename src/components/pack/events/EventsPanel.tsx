@@ -8,6 +8,7 @@
 import type { MutableRefObject } from 'react';
 import { PACK_THEME as T, FONT_UI, FONT_TITLE } from '@/components/pack/packTheme';
 import { useT } from '@/i18n/LanguageContext';
+import { DELETE_BUTTON_CSS } from '@/components/pack/DeleteButton';
 import { EventCard, EVENT_CARD_CSS } from './EventCard';
 import type { AddEventDraft } from './eventModel';
 
@@ -25,15 +26,18 @@ export type EventsPanelProps = {
   onAddEvent: () => void;
   withRef?: boolean;
   cardRefs?: MutableRefObject<Record<string, HTMLElement | null>>;
+  /** Zmazanie podujatia — prepošle sa karte. */
+  onDelete?: (id: string) => void;
 };
 
-export function EventsPanel({ events, view, onViewChange, selectedId, expandedId, onCardClick, onAddEvent, withRef, cardRefs }: EventsPanelProps) {
+export function EventsPanel({ events, view, onViewChange, selectedId, expandedId, onCardClick, onAddEvent, withRef, cardRefs, onDelete }: EventsPanelProps) {
   const t = useT();
 
   return (
     <div className="pev-root">
       <style>{EVP_CSS}</style>
       <style>{EVENT_CARD_CSS}</style>
+      <style>{DELETE_BUTTON_CSS}</style>
       {/* prepínač nadchádzajúce/archív — zámerne MALÝ segment, vizuálne podradený .trp-cat-pills
           (§ „malý pill/segment... nie ďalší trp-catpill"). Archív = FILTER, nič sa nemaže. */}
       <div className="pev-toggle" role="tablist">
@@ -60,6 +64,7 @@ export function EventsPanel({ events, view, onViewChange, selectedId, expandedId
             highlighted={selectedId === ev.id}
             expanded={expandedId === ev.id}
             onClick={onCardClick}
+            onDelete={onDelete}
             cardRef={withRef ? (el) => { if (cardRefs) cardRefs.current[ev.id] = el; } : undefined}
           />
         ))

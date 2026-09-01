@@ -70,6 +70,21 @@ export function upsertMyTrip(tripId: string, patch: Partial<TriplistTrip>): Trip
   return next;
 }
 
+/**
+ * Zmazanie položky z triplistu (2026-08-22).
+ *
+ * ⚠️ Volaj to VÝHRADNE spolu so zmazaním plánu (`plan-` trail + TripPlan). Samotné
+ * odstránenie riadku tu je totiž DOČASNÉ: `seedTriplistFromPlans()` ho pri ďalšom
+ * mounte hubu z prežívajúceho plánu poslušne založí naspäť, a vyzeralo by to ako
+ * „zmazanie sa neuložilo".
+ */
+export function removeMyTrip(tripId: string): void {
+  const all = readTriplist();
+  if (!(tripId in all)) return;
+  delete all[tripId];
+  writeTriplist(all);
+}
+
 // Migrácia z existujúcich wishlist plánov (packCommunity.ts TripPlan) → triplist entries.
 // Idempotentné — NIKDY neprepíše existujúcu triplist entry, volá sa raz pri mounte hubu.
 export function seedTriplistFromPlans(plans: TripPlan[]): void {
@@ -85,6 +100,41 @@ export function seedTriplistFromPlans(plans: TripPlan[]): void {
       joiners: [],
       requests: [],
       addedAt: p.at,
+    };
+    changed = true;
+  }
+  if (changed) writeTriplist(all);
+}
+
+/**
+ * ── DOLIEČENIE: ZAPÍSANÉ VÝLETY, KTORÉ VZNIKLI PRED 26. 8. 2026 ─────────────────────────
+ *
+ * Do 26. 8. zápis výletu do triplistu vôbec nezapisoval (opravené v `submitAddTripDraft`
+ * v PackMap.tsx) — takže MY TRIPS ukazoval plány a hviezdičkované trasy, ale vlastné
+ * zapísané výlety nie. Oprava rieši nové zápisy; tie staré by v zozname chýbali naďalej
+ * a vyzeralo by to, že chyba pretrváva.
+ *
+ * ⚠️ IDEMPOTENTNÉ a len na VLASTNÉ zápisy: `local-*` bez `plan-` prefixu (plány rieši
+ * `seedTriplistFromPlans`) a nikdy neprepíše existujúci záznam — kto si výlet medzitým
+ * otvoril pre svorku, oň nepríde.
+ * `addedAt` sa odvodzuje z id (`local-<timestamp>-<m>`), lebo `HeroTrail` čas vzniku
+ * nenesie; keď sa nedá prečítať, ide 0 — riadok potom sadne na koniec zoznamu, čo je pre
+ * starý výlet správne.
+ */
+export function seedTriplistFromWalked(trailIds: string[]): void {
+  const all = readTriplist();
+  let changed = false;
+  for (const id of trailIds) {
+    if (!id.startsWith('local-')) continue;
+    if (all[id]) continue;
+    const stamp = Number(id.split('-')[1]);
+    all[id] = {
+      tripId: id,
+      status: 'solo',
+      openness: 'closed',
+      joiners: [],
+      requests: [],
+      addedAt: Number.isFinite(stamp) ? stamp : 0,
     };
     changed = true;
   }

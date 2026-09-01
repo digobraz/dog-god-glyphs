@@ -1,8 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { DEV_FULL } from '@/lib/packFlags';
 import { FOUNDER_ACCOUNT_EMAIL } from '@/components/pack/packCommunity';
+import { MapLocked } from '@/components/pack/MapLocked';
 
 /**
  * MapGate — brána pre povrch výletov (mapa + tripy) na PRODUKCII.
@@ -15,9 +15,18 @@ import { FOUNDER_ACCOUNT_EMAIL } from '@/components/pack/packCommunity';
  * Po flipe `DEV_FULL=true` (launch) je `state` rovno `allowed` a auth sa vôbec nerieši.
  *
  * Race-safe: kým sa session nevyrieši, renderuje `null` (žiadny blesk-redirect pre
- * prihláseného foundera). Až po vyriešení buď pustí deti, alebo redirect na `/pack`.
+ * prihláseného foundera).
+ *
+ * ── 2026-08-22 (beh 1 zadania mapy, §1.5) ───────────────────────────────────
+ * Odmietnutie UŽ NIE JE `<Navigate to="/pack" />`. Tiché odhodenie späť na homepage bolo
+ * pre platiaceho člena slepá ulička bez vysvetlenia (priznané v `QuickTiles.tsx`) a pre
+ * neprihláseného skončilo na `/login` — teda na formulári, nie na pozvánke.
+ * Odmietnutie sa preto delí na DVA stavy podľa toho, KTO stojí predo dvermi:
+ *   · `soon` — prihlásený člen: mapa sa otvára o chvíľu, cesta späť do `/pack`
+ *   · `join` — bez session: pozvánka BECOME DOGYPTIAN + „už som člen"
+ * Verejný NÁHĽAD mapy (kurátorované výlety, stena na akciách) je až beh 5 zadania.
  */
-type GateState = 'loading' | 'allowed' | 'denied';
+type GateState = 'loading' | 'allowed' | 'soon' | 'join';
 
 export function MapGate({ children }: { children: ReactNode }) {
   const [state, setState] = useState<GateState>(DEV_FULL ? 'allowed' : 'loading');
@@ -27,7 +36,10 @@ export function MapGate({ children }: { children: ReactNode }) {
     let cancelled = false;
     const resolve = (email?: string | null) => {
       if (cancelled) return;
-      setState(email === FOUNDER_ACCOUNT_EMAIL ? 'allowed' : 'denied');
+      if (email === FOUNDER_ACCOUNT_EMAIL) { setState('allowed'); return; }
+      // `email` je nenulový len keď session existuje — prihlásený člen dostane „čoskoro",
+      // ktokoľvek iný pozvánku.
+      setState(email ? 'soon' : 'join');
     };
     supabase.auth.getSession().then(({ data }) => resolve(data.session?.user?.email));
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -40,6 +52,6 @@ export function MapGate({ children }: { children: ReactNode }) {
   }, []);
 
   if (state === 'loading') return null;
-  if (state === 'denied') return <Navigate to="/pack" replace />;
+  if (state !== 'allowed') return <MapLocked variant={state} />;
   return <>{children}</>;
 }
