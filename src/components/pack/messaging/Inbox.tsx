@@ -68,12 +68,21 @@ export const INBOX_CSS = `
 /* ⚠️ Riadok je <div role="button">, NIE <button> — vnútri je vlastné tlačidlo
    (štítok výletu) a <button> v <button> je nevalidný HTML, ktorý prehliadač
    ticho rozbije. Preto tu musí ostať aj :focus-visible, klávesnica sa inak stratí.
-   Vizuálne je to ÚROVEŇ 3 MATRICE — RIADOK (tileBg · 1px border · r10), nie karta:
-   desať kariet pod sebou by z inboxu spravilo schodisko. */
-.msg-row{display:flex;align-items:flex-start;gap:12px;width:100%;text-align:left;background:${T.tileBg};border:1px solid ${T.border};border-radius:10px;padding:13px 15px;margin-bottom:9px;cursor:pointer;transition:border-color .15s,background .15s;font-family:inherit;}
+
+   🔴 RIADOK JE SVETLÝ PAPYRUS, NIE tileBg (Matej 1. 9. 2026: „jednotlivé bloky viac
+   zvýraznené, sú teraz takmer neviditeľné").
+   Prvé kolo držalo úroveň 3 matrice doslova (tileBg · 1px border · r10) a bolo to zle:
+   tileBg je ZLATÁ PRI 6 %, a odkedy riadky stoja na pieskovcovej doske, je to zlatá
+   na zlatej — kontrast takmer nula. Úroveň 3 je definovaná proti cardGrad, teda proti
+   SVETLEJ karte; na zlatej doske jej podklad chýba.
+   Riadok preto berie výplň úrovne 2 (panelGrad) a PLNÝ zlatý rám — svetlý blok na
+   tmavšej doske. Je to ten istý záver, ku ktorému Matej dotlačil bledý blok už trikrát
+   („je to suche bez šťavy" · „je to také plané" · „majú slabé okraje"), len o poschodie
+   nižšie. Radius ostáva bližšie k riadku (12, nie 16), nech to v zozname nie sú karty. */
+.msg-row{display:flex;align-items:flex-start;gap:12px;width:100%;text-align:left;background:${T.panelGrad};border:1px solid ${T.cardEdge};border-radius:12px;padding:13px 15px;margin-bottom:10px;cursor:pointer;box-shadow:0 2px 6px rgba(122,90,42,0.16),inset 0 1px 0 rgba(255,255,255,0.45);transition:border-color .15s,transform .15s,box-shadow .15s;font-family:inherit;}
 .msg-row:last-child{margin-bottom:0;}
-.msg-row:hover{border-color:${T.cardEdge};background:${P.hot};}
-.msg-row:focus-visible{outline:none;border-color:${T.cardEdge};box-shadow:0 0 0 3px rgba(201,154,63,0.28);}
+.msg-row:hover{transform:translateY(-1px);box-shadow:0 0 0 3px rgba(201,154,63,0.28),0 3px 9px rgba(122,90,42,0.20);}
+.msg-row:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(201,154,63,0.45),0 3px 9px rgba(122,90,42,0.20);}
 /* Avatar bez fotky = zlatá PLOCHA, teda brandová rampa okolo #C99A3F — NIE gradient
    .btn-gold (#F5C73D→#E69E1A). Ten je locknutý pre TLAČIDLO, kde je malý a lesklý, takže sa
    číta ako svetlo; tá istá zmes na súvislej ploche je žltá a Matej si ju spája s AINUBISOM
@@ -90,7 +99,7 @@ export const INBOX_CSS = `
    v PackNotifications (T.accentGold + badgeBorder). Bez prstenca by zlatá bodka na
    zlatkasto tónovanom riadku splynula. Nie je to lapis: lapis znamená „moja voľba / moja
    akcia", a neprečítaná správa nie je ani jedno — je to stav. */
-.msg-dot{flex-shrink:0;width:9px;height:9px;border-radius:50%;background:${T.accentGold};box-shadow:0 0 0 2px ${T.card};}
+.msg-dot{flex-shrink:0;width:9px;height:9px;border-radius:50%;background:${T.accentGold};box-shadow:0 0 0 2px #FBF5E6;}
 .msg-tagchip{display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-family:${FONT_TITLE};font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:${P.hot};border:1px solid ${P.border};color:${P.deep};white-space:nowrap;}
 .msg-tagchip--click{cursor:pointer;}
 .msg-tagchip--click:hover{background:rgba(201,154,63,0.32);border-color:${T.cardEdge};}
