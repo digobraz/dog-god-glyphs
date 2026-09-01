@@ -119,6 +119,9 @@ export const MSG_SKIN_CSS = `
      Su to DOSLOVNE retazce z FILTERS v BrandIcon.tsx — ten ich sype inline, takze sa
      z CSS prebijaju len s !important (precedens .trp-header-notif v PackMap.tsx). */
   --msg-icon:brightness(0) invert(1);
+  /* Značka prepínača je čierna cesta — v svetlom šate ju stmavíme do inkoustu,
+     v tmavom zosvetlíme. Zhodné filtre s FILTERS v BrandIcon.tsx. */
+  --msg-glyph:brightness(0) saturate(100%) invert(20%) sepia(30%) saturate(800%) hue-rotate(2deg) brightness(75%) contrast(90%);
 }
 .msg-skin .msg-plate{${goldFrameCSS()}}
 
@@ -165,8 +168,37 @@ export const MSG_SKIN_CSS = `
   --msg-err:#E8A79A;
   --msg-off:rgba(245,240,228,0.10);
   --msg-icon:brightness(0) saturate(100%) invert(20%) sepia(30%) saturate(800%) hue-rotate(2deg) brightness(75%) contrast(90%);
+  --msg-glyph:brightness(0) saturate(100%) invert(58%) sepia(56%) saturate(481%) hue-rotate(2deg) brightness(91%) contrast(86%);
 }
-.msg-skin--dark .msg-plate{${goldFrameCSS({ surface: PLATE_DARK })}}
+/* ⚠️ V TMAVOM ŠATE NIE JE DOSKA ZLATO-RÁMOVANÝ BLOK, ALE LIQUID GLASS
+   (Matej 1. 9. 2026: „pri dark mode nedávaj blok s okrajom ale liquid glass").
+   Recept NEVYMÝŠĽAM — je to .pk-glass z packTheme.ts, teda tmavé sklo, ktoré appka
+   používa všade inde; mení sa len polomer, aby sedel s ostatnými blokmi správ (14, nie 24).
+   Tenká svetlá hrana NIE JE „okraj" v tom zmysle, čo Matej zamietol — je to odlesk skla;
+   zamietnutý bol ťažký zlatý rám. Bez nej sklo nemá hranu a rozteká sa do pozadia.
+   ⚠️ backdrop-filter rozmazáva to, čo je POD prvkom. Funguje tu preto, že tapeta .msg-skin
+      leží na pseudoprvkoch so z-index:-1, teda v tom istom vrstviacom kontexte — keby sa
+      tapeta presunula mimo neho, sklo by zostalo prázdne. */
+.msg-skin--dark .msg-plate{
+  background:linear-gradient(180deg,rgba(245,240,228,0.075) 0%,rgba(245,240,228,0.028) 100%);
+  -webkit-backdrop-filter:blur(24px) saturate(120%);
+  backdrop-filter:blur(24px) saturate(120%);
+  border:1px solid rgba(245,240,228,0.14);
+  border-radius:14px;
+  box-shadow:0 30px 70px rgba(0,0,0,0.5),inset 0 1px 0 rgba(245,240,228,0.12);
+}
+/* Lepiaca hlavička je nad scrollujúcim obsahom, teda ten istý prípad — v tmavom šate
+   ide tiež do skla, nech na jednej obrazovke nestoja dva rôzne materiály. */
+.msg-skin--dark .msg-inbox-head,
+.msg-skin--dark .msg-thread-head,
+.msg-skin--dark .msg-thread-send,
+.msg-skin--dark .msg-thread-join,
+.msg-skin--dark .msg-blocked{
+  background:linear-gradient(180deg,rgba(245,240,228,0.075) 0%,rgba(245,240,228,0.028) 100%);
+  -webkit-backdrop-filter:blur(24px) saturate(120%);
+  backdrop-filter:blur(24px) saturate(120%);
+  border-color:rgba(245,240,228,0.14);
+}
 
 /* ── PODKLAD STRÁNKY ────────────────────────────────────────────────────────
    Rovnaký recept ako .pk-paper v packTheme.ts, len s premennými, aby ho vedeli
@@ -190,6 +222,5 @@ export const MSG_SKIN_CSS = `
       nie siahnuť po lucide. Potom sa tu vymení ikonka podľa stavu. */
 .msg-skinbtn{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:var(--msg-btn);border:1px solid var(--msg-btn-edge);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,background .15s;}
 .msg-skinbtn:hover{border-color:${T.cardEdge};background:var(--msg-btn-hot);}
-.msg-skinbtn img{width:16px;height:16px;object-fit:contain;transition:opacity .15s;}
-.msg-skin--dark .msg-skinbtn img{opacity:.5;}
+.msg-skinbtn img{width:17px;height:17px;object-fit:contain;filter:var(--msg-glyph);}
 `;
