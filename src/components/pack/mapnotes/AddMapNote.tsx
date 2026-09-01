@@ -32,6 +32,7 @@ import { MAP_DOCK_CSS, DOCK_COL_W, DOCK_MOBILE_MAX, DOCK_VH } from '@/components
 import { FONT_EMOJI, GROUP_EMOJI, threatEmoji } from './markEmoji';
 import { KindGrid, KIND_GRID_CSS } from './KindGrid';
 import { AinubisGuide } from '@/components/pack/addtrip/AinubisGuide';
+import { HandArrowLeft } from '@/components/pack/HandIcons';
 import { noteMarkHtml } from './MapNotesLayer';
 import { GROUP_TINT, HAZARD_RED, TICK_ORANGE, NotePalette, NOTE_PALETTE_CSS, type PaletteExtra } from './NotePalette';
 
@@ -219,19 +220,40 @@ export function MapNotePlacing({
    * kam ťuknúť). Sprievodca výletu si v tejto chvíli svoju bublinu skrýva
    * (`drawBar.active` = false pri `notePlacing`), takže sa dve nikdy neprekryjú.
    *
-   * × = ZRUŠIŤ. Je to to isté východisko, aké × nesie po celý zvyšok sprievodcu.
+   * ⚠️ ŠÍPKA JE POD BUBLINOU, VEDĽA ODKAZOV (Matej 1. 9. 2026: „mala by tam byť šípka dozadu…
+   * tú šípku dozadu by som dal pod neho vedľa tých odkazov"). Prvé kolo ju dalo do bubliny
+   * namiesto × — lenže tam sedí ODCHOD Z PRIDÁVANIA, a dve východiská na jednom mieste sú tá
+   * istá chyba, len naopak. Návrat o krok patrí k tomu, čo ruší: k radu odkazov.
+   *
+   * 🔑 V BUBLINE PRETO PRI OZNAČOVANÍ NIE JE NIČ (`onAbort` sa nepodáva) — jediné východisko
+   *    je šípka. Na HOLEJ MAPE (bez `onPickType`, teda bez radu) ostáva v bubline, inak by
+   *    označovanie nemalo ako skončiť.
    */
   return (
     <AinubisGuide
       text={`${what} ${t(key)}`}
-      onAbort={onCancel}
+      onAbort={onPickType ? undefined : onCancel}
       abortLabel={t('pack.mapNotes.add.cancel')}
       edgeLeft={edgeLeft}
       /* ⚠️ Lišta patrí POD bublinu, nie nad spodnú hranu: dole v tej chvíli nič nestojí
          (panel ustúpil mape) a nová škatuľa pri palci by prekryla presne ten pás mapy,
          kam sa najčastejšie ťuká. `below` je ten istý slot, v ktorom v kroku 1 visia
          bodky 1–5, takže nad mapou nepribúda ďalšie poschodie. */
-      below={onPickType ? <NoteTypeStrip group={group} kind={kind ?? null} onPick={onPickType} /> : undefined}
+      below={onPickType ? (
+        <div className="mnp-below">
+          <style>{NOTE_TYPE_STRIP_CSS}</style>
+          <button
+            type="button"
+            className="mnts mnts-back"
+            onClick={onCancel}
+            aria-label={t('pack.mapNotes.add.back')}
+            title={t('pack.mapNotes.add.back')}
+          >
+            <HandArrowLeft size={17} />
+          </button>
+          <NoteTypeStrip group={group} kind={kind ?? null} onPick={onPickType} />
+        </div>
+      ) : undefined}
     />
   );
 }
@@ -304,6 +326,12 @@ function NoteTypeStrip({ group, kind, onPick }: { group: NoteGroup; kind: NoteKi
 
 export const NOTE_TYPE_STRIP_CSS = `
 .mnts-wrap{display:flex;flex-direction:column;gap:7px;align-items:flex-start;max-width:100%;}
+/* NÁVRAT O KROK STOJÍ VEDĽA ODKAZOV, nie v bubline (Matej 1. 9. 2026) — dôvod pri
+   MapNotePlacing. Materiál je ten istý .mnts, takže sa číta ako súčasť toho istého radu.
+   align-items:flex-start drží šípku na prvom riadku aj vtedy, keď sa rad hrozieb zalomí. */
+.mnp-below{display:flex;align-items:flex-start;gap:7px;max-width:100%;}
+.mnts-back{flex:0 0 auto;display:flex;align-items:center;justify-content:center;min-height:34px;padding:5px 11px;color:${T.onDark};cursor:pointer;}
+.mnts-back svg{display:block;}
 /* Recept je 1:1 z .atl-steps--onmap (bodky 1–5 nad mapou) — jeden materiál pre všetko,
    čo v krokoch 1–2 visí pod AInubisovou bublinou. */
 .mnts{max-width:100%;box-sizing:border-box;border-radius:999px;background:rgba(18,13,7,0.94);backdrop-filter:blur(10px);border:1px solid rgba(245,240,228,0.16);box-shadow:0 6px 20px rgba(0,0,0,0.55);padding:5px 7px;}

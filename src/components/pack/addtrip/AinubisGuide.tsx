@@ -19,6 +19,7 @@ import { useEffect, useRef, useState } from 'react';
 import type React from 'react';
 import ainubisFace from '@/assets/ainubis-head.png';
 import { PACK_THEME as T, FONT_UI } from '@/components/pack/packTheme';
+import { HandExit } from '@/components/pack/HandIcons';
 
 /** ms na znak — 22 je rýchlosť, pri ktorej sa veta stihne prečítať skôr, než dopíše. */
 const CHAR_MS = 22;
@@ -34,6 +35,7 @@ export function AinubisGuide({
   text: string;
   onAbort?: () => void;
   abortLabel?: string;
+
   /** bodky 1–5 — stoja POD bublinou, nie v paneli (Matej 24. 8. 2026) */
   below?: React.ReactNode;
   /**
@@ -84,7 +86,14 @@ export function AinubisGuide({
               V DOM stojí pred textom zámerne: čítačka ohlási východisko skôr, než začne
               čítať dlhý pokyn. */}
           {onAbort && (
-            <button type="button" className="ang-x" onClick={onAbort} aria-label={abortLabel} title={abortLabel}>×</button>
+            /* ⚠️ ODCHOD JE HAND-DRAWN IKONKA, NIE × (Matej 1. 9. 2026: „pri ainubisovi by som
+               nedal X ale ikonku odísť preč handdrawn po celý čas"). Krížik je systémová
+               hláška; dvere so šípkou von hovoria, čo sa stane. Zdroj je kit (`HandExit`),
+               takže sa nekreslí nič nové. Návrat O KROK sa v bubline NEZOBRAZUJE VÔBEC —
+               býva pod ňou, vedľa odkazov (viď `MapNotePlacing`). */
+            <button type="button" className="ang-x" onClick={onAbort} aria-label={abortLabel} title={abortLabel}>
+              <HandExit size={17} />
+            </button>
           )}
           <span aria-hidden="true">{shown}</span>
           {typing && <i className="ang-caret" aria-hidden="true" />}
@@ -139,6 +148,8 @@ export const AINUBIS_GUIDE_CSS = `
 .ang-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
 .ang-x{float:right;width:30px;height:26px;margin:-2px -2px 0 6px;border:0;background:transparent;color:${T.onDarkDim};font-size:19px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
 .ang-x:hover{color:#5BE0F0;}
+/* Ikonka dedí farbu textu (fill:currentColor v HandIcons), takže hover platí aj pre ňu. */
+.ang-x svg{display:block;}
 /* Riadok pod bublinou. Ťuky berie len on sám, nie celý pás — pod ním sa musí dať kresliť. */
 .ang-below{margin-top:9px;pointer-events:auto;}
 @media (prefers-reduced-motion: reduce){

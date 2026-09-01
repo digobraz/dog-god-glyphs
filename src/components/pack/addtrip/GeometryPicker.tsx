@@ -67,12 +67,15 @@ const GLOW_PAD = 16;
 // Pôvodne 200 m – 20 km s východiskom 1,5 km — to je polomer, do ktorého sa zmestí celé
 // mesto, takže „oblasť" nehovorila, kde ste boli, ale v ktorom kraji. Nové rozpätie je
 // veľkosť lúky, jazera či parku, teda toho, čo oblasť reálne označuje.
-// Východisko = MINIMUM, nie stred rozpätia: kruh sa dá len roztiahnuť, a keď začne malý,
-// človek ho zväčšuje, kým sedí. Keby začal veľký, musel by najprv uhádnuť, o koľko ho zmenšiť.
-// ⚠️ Krok jazdca je preto 25 m, nie 100 — pri rozpätí 400 m by 100 m dalo len päť polôh.
-const AREA_MIN_M = 100;
-const AREA_MAX_M = 500;
-const AREA_DEFAULT_M = AREA_MIN_M;
+// 🔴 VÝCHODISKO UŽ NIE JE MINIMUM (Matej 1. 9. 2026: „polomer zmenšiť na 100 m… ale bude sa
+// dať aj zmenšiť aj zväčšiť"). Kým sa default rovnal minimu, tlačidlo ZMENŠIŤ bolo hneď po
+// položení kruhu ZAŠEDNUTÉ — človek dostal dve tlačidlá, z ktorých jedno nikdy nefungovalo,
+// a to sa nedá odlíšiť od poruchy. Minimum preto kleslo na 50 m: 100 m ostáva východiskom,
+// ale je to poloha UPROSTRED ovládania, nie na jeho okraji.
+// ⚠️ Krok jazdca je 25 m, nie 100 — pri rozpätí 450 m by 100 m dalo len päť polôh.
+export const AREA_MIN_M = 50;
+export const AREA_MAX_M = 500;
+export const AREA_DEFAULT_M = 100;
 const AREA_STEP_M = 25;
 
 // Kontrola duplicity (§5.3): štart do 300 m od existujúcej trasy s dĺžkou ±20 %.
@@ -131,6 +134,12 @@ export type GeometryPickerProps = {
      * nie druhý vedľa neho.
      */
     hint?: string | null;
+    /**
+     * PILULKA S VOĽBOU Z PREDOŠLÉHO KROKU (NÁVŠTEVA, 1. 9. 2026). Stojí NAD hľadaním, nie
+     * vo vete pokynu: menovka chipu je v nominatíve („Pamiatka") a vsadená do slovenskej vety
+     * by dala „Kde pamiatka bola?". Pilulka nesie kontext bez skloňovania.
+     */
+    contextPill?: React.ReactNode;
     /**
      * Mapa práve patrí niekomu inému (krok 2 = zapichovanie značiek). Picker prestane brať
      * kliky aj dlhé stlačenia, ale vrstvy kreslí ďalej — trasa musí byť vidno, veď sa značky
@@ -440,6 +449,13 @@ export function GeometryPicker({
 
     if (value.kind === 'point') { onChange({ kind: 'point', center: p }); return; }
     if (value.kind === 'area') {
+      // ⚠️ PRAH PRIBLÍŽENIA MUSÍ PLATIŤ AJ PRE KLIK (2026-08-31). Kým sa oblasť kládla dlhým
+      //    stlačením, strážil ho `useLongPressPoint` cez `TRIP_HOLD_MIN_ZOOM`. Odkedy stačí
+      //    ťuk, tá stráž z cesty vypadla — a nad celým Slovenskom (z~7) by sa dal položiť
+      //    kruh s polomerom 100 m, teda na kilometre vedľa. Ainubis pritom v tej chvíli
+      //    hovorí „Vyhľadaj miesto — alebo si mapu priblíž": text a správanie by si odporovali.
+      //    Prah je JEDEN a ten istý ako pre trasu, nie druhé číslo.
+      if (!value.center && (mapRef.current?.getZoom() ?? 0) < TRIP_HOLD_MIN_ZOOM) return;
       onChange({ kind: 'area', center: p, radiusM: value.radiusM || AREA_DEFAULT_M });
       return;
     }
@@ -655,8 +671,13 @@ export function GeometryPicker({
   // prvej zmene rozíde a vznikne pásmo, kde vyzerá ako PC a správa sa ako mobil.
   const paused = !!drawBar?.paused;
   const isPC = usePcPointer();
+  // ⚠️ LEN TRASA (Matej 2026-08-31: „ainubis nepovie dlhým stlačením ale iba klikom označ
+  //    oblasť"). Dôvod držania hore platí pre KOTVU, nie pre oblasť: zle položená kotva začne
+  //    čiaru a človek ju musí vracať, kým zle položený stred okruhu ďalší ťuk jednoducho
+  //    presunie (`placePoint` pri `area` prepisuje `center`). Riziko mistuku je tu teda
+  //    samoopravné a 600 ms držania si nezaslúži.
   const needsHold = !!drawBar?.active && !paused && !isPC
-    && (value.kind === 'route' ? value.path.length === 0 : !value.center);
+    && value.kind === 'route' && value.path.length === 0;
 
   const handleMapClick = useCallback((lat: number, lng: number) => {
     if (paused || needsHold) return;
@@ -912,12 +933,18 @@ export function GeometryPicker({
         className: 'trp-anchor-live', interactive: false,
       }));
     }
+    // ⚠️ OKRUH JE FIALOVÝ, NIE ZLATÝ (Matej 2026-08-31: „okruh by mal byť fialový ako pri
+    //    trase = ten istý brand/kategória výlety"). Fialová `PACK_THEME.tripPurple` znamená
+    //    naprieč appkou VÝLET; zlatá je konštrukcia a akcent ovládania (hover tlačidiel, rám
+    //    aktívneho prepínača), takže okruh v nej tvrdil, že je nábytok, nie výlet. Bod
+    //    (`point`) fialový bol už predtým — okruh bol jediný tvar výletu mimo rodiny.
     if (value.kind === 'area' && value.center) {
       add(L.circle(value.center, {
-        radius: value.radiusM, color: GOLD, weight: 2, fillColor: GOLD, fillOpacity: 0.12, interactive: false,
+        radius: value.radiusM, color: TRAIL_LINE.mid, weight: 2,
+        fillColor: TRAIL_LINE.mid, fillOpacity: 0.12, interactive: false,
       }));
       add(L.circleMarker(value.center, {
-        radius: 6, color: '#000', weight: 2, fillColor: GOLD_BRIGHT, fillOpacity: 1, interactive: false,
+        radius: 6, color: TRAIL_LINE.edge, weight: 2, fillColor: TRAIL_LINE.light, fillOpacity: 1, interactive: false,
       }));
     }
 
@@ -965,7 +992,28 @@ export function GeometryPicker({
     // jednoducho preklikká, či už okruh alebo aj späť — sám si to určí"). Trasa je hotová,
     // keď je z čoho nakresliť čiaru. Kam sa ňou došlo a či sa vracal, hovorí sám tvar.
     : routePath.length >= 2;
-  const showReadout = value.kind === 'route' && routePath.length >= 2;
+  // ⚠️ AJ PRE OBLASŤ (2026-08-31). Text `pack.addTrip.geo.areaRadiusM` („Oblasť · polomer
+  //    {m} m") sa počítal, ale nikto ho nevidel: pilulka bola route-only, takže človek menil
+  //    veľkosť kruhu naslepo. Číslo je jediná spätná väzba, ktorú okruh má — čiara má aspoň
+  //    km a tvar.
+  const showReadout = value.kind === 'route' ? routePath.length >= 2 : !!value.center;
+
+  const isArea = value.kind === 'area';
+  /**
+   * ZVÄČŠOVANIE A ZMENŠOVANIE OKRUHU V KROKU 1 (Matej 2026-08-31: „v 1. kroku by mala byť
+   * voliteľná oblasť teda okruh by sa mal vedieť zväčšovať, zmenšovať").
+   *
+   * 🔴 Jazdec (`<input type="range">`) na to existoval od 27. 8., ale bol NEDOSIAHNUTEĽNÝ:
+   * stojí v ľavom paneli formulára, a ten je počas kreslenia skrytý (`.trp-addhost.is-hidden`
+   * pri `mapPhase !== 'off'`). Kruh sa preto vždy zapísal na `AREA_DEFAULT_M`, teda 100 m,
+   * a jediná veta v slovníku, ktorá spomína nastavenie veľkosti (`geo.hintArea`), sa
+   * nezobrazovala tiež. Ovládanie patrí tam, kde človek v tej chvíli je — do lišty nad mapou.
+   */
+  const stepRadius = useCallback((d: number) => {
+    if (value.kind !== 'area' || !value.center) return;
+    const next = Math.min(AREA_MAX_M, Math.max(AREA_MIN_M, value.radiusM + d));
+    if (next !== value.radiusM) onChange({ kind: 'area', center: value.center, radiusM: next });
+  }, [value, onChange]);
   // Volajúci (sprievodca) má prednosť: v kroku 2 sa na mape pichajú značky, nie kreslí trasa,
   // takže veta o dlhom stlačení by radila niečo, čo v tej chvíli nie je úloha.
   // ⚠️ PO ~2 KM SA APPKA OZVE O CIELI (Matej 23. 8.: „po 2 km by sa pri kurzore mohla objaviť
@@ -1017,9 +1065,15 @@ export function GeometryPicker({
           : t('pack.addTrip.ainubis.closerMore'))
         // Dve znenia, lebo sú to dve rôzne gestá — nie dva preklady toho istého. `needsHold`
         // je JEDINÝ zdroj toho, ktoré platí, takže sa text nemá ako rozísť so správaním.
+        // ⚠️ OBLASŤ SA OZNAČUJE KLIKOM, NIE DRŽANÍM (Matej 2026-08-31: „ainubis nepovie
+        //    dlhým stlačením ale iba klikom označ oblasť"). Stálo tu `geo.startHoldSpot` =
+        //    „Dlhým stlačením na mape označ cieľ" a boli v tom tri chyby naraz: gesto (od
+        //    dnes stačí ťuk, viď `needsHold`), slovo „cieľ" (okruh nie je cieľ trasy, ale
+        //    miesto, kde ste boli) a to, že veta platila aj na PC, kde držanie nikdy
+        //    potrebné nebolo.
         : (value.kind === 'route'
             ? tp(needsHold ? 'pack.addTrip.ainubis.zoomOk' : 'pack.addTrip.ainubis.zoomOkClick')
-            : t('pack.addTrip.geo.startHoldSpot')))
+            : t(isPC ? 'pack.addTrip.geo.startClickArea' : 'pack.addTrip.geo.startTapArea')))
       // ⚠️ VETY O CIELI A O NÁVRATE ZANIKLI (Matej 24. 8. 2026). Sprievodca hovorí už len
       // dve veci: „klikaj ďalej" a — od druhej kotvy — že sa dá skončiť. Tvar trasy (okruh,
       // tam a späť, z A do B) si človek určuje sám tým, kam klikne, takže sa naň appka
@@ -1036,7 +1090,13 @@ export function GeometryPicker({
             : routeLooksDone
               ? t('pack.addTrip.ainubis.routeLooksDone')
               : tp('pack.addTrip.ainubis.drawDone'))
-        : null;
+        // ⚠️ TU AINUBIS MLČAL (opravené 2026-08-31). Po položení okruhu ostala jeho bublina
+        //    prázdna — samotný krížik — lebo `ownHint` vracal `null`, kým sa sprievodca
+        //    vykresľuje aj bez textu. Pritom je práve toto chvíľa, keď má čo povedať: kruh
+        //    sa dá zväčšiť a potom sa dáva HOTOVO.
+        : isArea && value.center
+          ? t('pack.addTrip.geo.areaSetSize')
+          : null;
   const drawHint = drawBar?.hint !== undefined ? drawBar.hint : ownHint;
 
   // ── ČÍTANIE: JEDEN ZDROJ PRE PANEL AJ LIŠTU ───────────────────────────────────────────
@@ -1481,6 +1541,7 @@ export function GeometryPicker({
                 POVEDALA „ešte kúsok, približuj". Presne to, čo mal vyhľadávač ušetriť (viď
                 hlavičku PlaceSearch.tsx). Hodnota sa berie z prahu, nie ako druhé číslo. */}
             {stepsInPanel}
+            {drawBar.contextPill}
             <PlaceSearch mapRef={mapRef} zoom={TRIP_HOLD_MIN_ZOOM} />
             {backLink}
           </div>
@@ -1543,6 +1604,31 @@ export function GeometryPicker({
           {(() => {
             const tools = !paused && (
               <div className={`trp-dbar-row${doneReady ? ' trp-dbar-row--minor' : ''}`}>
+                {/* ⚠️ OBLASŤ NEMÁ BOD, KTORÝ BY SA DAL VRÁTIŤ (Matej 2026-08-31: „späť o bod
+                    tam nemá čo robiť"). `undo` má prvým riadkom `if (value.kind !== 'route')
+                    return;`, takže tlačidlo stálo v lište plne kontrastné a po stlačení sa
+                    nestalo nič — mŕtvy ovládač, nie zašednutý. Jeho miesto berie to, čo pri
+                    okruhu naozaj treba: ZMENŠIŤ a ZVÄČŠIŤ. */}
+                {isArea ? (<>
+                  <button
+                    type="button"
+                    className="trp-dbar-btn"
+                    onClick={() => stepRadius(-AREA_STEP_M)}
+                    disabled={busy || !hasSomething || value.radiusM <= AREA_MIN_M}
+                    style={{ opacity: hasSomething && value.radiusM > AREA_MIN_M ? 1 : 0.4 }}
+                  >
+                    − {t('pack.addTrip.geo.areaSmaller')}
+                  </button>
+                  <button
+                    type="button"
+                    className="trp-dbar-btn"
+                    onClick={() => stepRadius(AREA_STEP_M)}
+                    disabled={busy || !hasSomething || value.radiusM >= AREA_MAX_M}
+                    style={{ opacity: hasSomething && value.radiusM < AREA_MAX_M ? 1 : 0.4 }}
+                  >
+                    + {t('pack.addTrip.geo.areaBigger')}
+                  </button>
+                </>) : (
                 <button
                   type="button"
                   className="trp-dbar-btn"
@@ -1553,6 +1639,7 @@ export function GeometryPicker({
                   <HandArrowLeft size={14} />
                   {t('pack.addTrip.geo.undoPoint')}
                 </button>
+                )}
                 <button
                   type="button"
                   className="trp-dbar-btn"

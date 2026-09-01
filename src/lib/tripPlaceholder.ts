@@ -37,9 +37,18 @@ const ACTIVITY_PLACEHOLDERS: Record<string, string[]> = {
   // dostal fotku lesnej túry (fallback `hike`) — a bola by to tichá chyba: obrázok tam JE,
   // len hovorí o inom výlete. `chill` a `explore` ostávajú, ležia v `acts` starých výletov.
   // Žiadne nové assety: kategória si berie fotky všetkých troch aktivít, z ktorých vznikla.
-  visit: [`${CLD}/picnic-1.webp`, `${CLD}/picnic-2.webp`, `${CLD}/picnic-3.webp`,
-          `${CLD}/overnight-1.webp`, `${CLD}/overnight-2.webp`, `${CLD}/overnight-3.webp`,
-          `${CLD}/explore-1.webp`, `${CLD}/explore-2.webp`, `${CLD}/explore-3.webp`],
+  // ── VISIT = KAM SME ŠLI · ACTIVITY = ČO SME ROBILI (2026-09-01) ─────────────────────────
+  // Piknik a nocľah odišli z NÁVŠTEVY medzi AKTIVITY, tak s nimi odišli aj ich fotky:
+  // návšteva je odteraz park, pamiatka, zoo, jazero, lúka a útulňa — pamiatkové `explore-*`
+  // a lúkovité `picnic-*`. `sport` ostáva ako kľúč starých výletov (bol to `dataId` do 1. 9.).
+  // ⚠️ Bez riadku `activity` by KAŽDÝ nový výlet tej kategórie dostal fotku lesnej túry —
+  //    tichá chyba, presne tá istá, kvôli ktorej vznikli riadky vyššie.
+  visit: [`${CLD}/explore-1.webp`, `${CLD}/explore-2.webp`, `${CLD}/explore-3.webp`,
+          `${CLD}/picnic-1.webp`, `${CLD}/picnic-2.webp`, `${CLD}/picnic-3.webp`],
+  activity: [`${CLD}/skating-1.webp`, `${CLD}/skating-2.webp`, `${CLD}/skating-3.webp`,
+             `${CLD}/paddleboard-1.webp`, `${CLD}/paddleboard-2.webp`, `${CLD}/paddleboard-3.webp`,
+             `${CLD}/picnic-1.webp`, `${CLD}/picnic-2.webp`, `${CLD}/picnic-3.webp`,
+             `${CLD}/overnight-1.webp`, `${CLD}/overnight-2.webp`, `${CLD}/overnight-3.webp`],
 };
 // vyber 1 z 3 stabilne podľa seedu (id tripu / názov) → variety naprieč kartami, ale nemení sa pri re-renderi
 export function placeholderFor(actIds: string[] | undefined, seed: string): string {

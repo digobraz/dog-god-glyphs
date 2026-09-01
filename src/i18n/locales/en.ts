@@ -1212,6 +1212,20 @@ export const en = {
 
   // ── /about — Legends (testimonials) ──
   'about.legends.title': 'EVEN LEGENDS KNELT',
+  // Nadpis pásu VO FILME (/onepage). Samostatný kľúč, nie prepis — pôvodný drží
+  // ostrá /about v 18 jazykoch. Matej 1. 9. 2026 vybral toto znenie z nákresu
+  // plany/nakres-po-starwars-2026-08-31.html: príbeh práve skončil tvrdením, že
+  // vzniká nová viera, a pás je dôkaz, že to netvrdí jeden človek.
+  // Matej 1. 9. 2026 (popoludní) prepísal ranné znenie „WE DIDN'T INVENT THIS":
+  // *„PSOV miluje každý, ale nikto im ešte nevytvoril celosvetovú podpornú komunitu."*
+  // Z DÔKAZU („nie sme blázni, aj legendy to hovoria") sa stala DIERA („láska tam už je,
+  // chýba jej miesto") — a tú má o obrazovku nižšie zaplniť výzva.
+  'about.legends.titleFilm': 'EVERYONE LOVES DOGS',
+  // 🔴 PODNADPIS SA MUSEL ZMENIŤ SPOLU S NADPISOM. Pôvodný („The most powerful humans who
+  // ever lived all bowed to the same quiet teacher") DOKAZOVAL to isté, čo nový nadpis
+  // TVRDÍ ⇒ dvojica by povedala jednu vec dvakrát. Nadpis tvrdí, podnadpis otvára dieru.
+  'about.legends.subFilm':
+    'It is the one thing this whole planet already agrees on. And nobody has ever done anything with it.',
   'about.legends.sub':
     'The most powerful humans who ever lived all bowed to the same quiet teacher — and they wrote it down.',
   'about.legends.creditsSummary': 'Quotes from public interviews · Photo credits',
@@ -2184,10 +2198,18 @@ export const en = {
   'pack.addTrip.geo.zoomInFirst': "Zoom in — or find a place below",
   'pack.addTrip.geo.startHoldSpot': "Press and hold on the map to mark the destination",
   'pack.addTrip.geo.continueTap': "Tap along the paths — marked or not — to build your route.",
+  // OBLASŤ — klik/ťuk, nie držanie (Matej 2026-08-31). Dvojica PC/mobil je zámerná, rovnako
+  // ako pri `continueClick`/`continueTap`: sú to dve rôzne gestá, nie dva preklady jedného.
+  'pack.addTrip.geo.startClickArea': "Click the map where you were — that marks the area.",
+  'pack.addTrip.geo.startTapArea': "Tap the map where you were — that marks the area.",
+  'pack.addTrip.geo.areaSetSize': "Now size the circle to the place. When it fits, hit Done.",
   'pack.addTrip.geo.continueClick': "Click along the paths — marked or not — to build your route.",
   'pack.addTrip.geo.routeDone': "Route",
+  'pack.addTrip.geo.placeDone': "Place",
   // Jeden formulár výletu (rez C) — o type rozhoduje dátum, nie otázka navyše.
-  'pack.addTrip.log.titleActivity': "Pick an activity",
+  // „Vyber aktivitu" → „Čo zapisuješ?" (Matej 1. 9. 2026): aktivita je odteraz JEDNA z troch
+  // kategórií, takže by sa časť volala rovnako ako celok.
+  'pack.addTrip.log.titleActivity': "What are you logging?",
   'pack.addTrip.log.titleActivitySub': "Log a trip you have already walked \u2014 and give the others something to follow. Or plan one and invite them along.",
   // JEDNA VETA POD KAŽDOU DLAŽDICOU (Matej 2026-08-23: „k výberom aktivity musí byť
   // vysvetlivka"). Nie je to ozdoba — voľba aktivity rozhoduje o tom, ČO sa bude na mape
@@ -2196,6 +2218,7 @@ export const en = {
   'pack.addTrip.log.activityNote.hike': "A walk along a route \u2014 one day or several.",
   'pack.addTrip.log.activityNote.chill': "Picnic, barbecue, a night out \u2014 staying in one place.",
   'pack.addTrip.log.activityNote.sport': "Skating, paddleboard, swimming.",
+  'pack.addTrip.log.activityNote.activity': "Picnic, camping, swimming, skating \u2014 what you did.",
   'pack.addTrip.log.activityNote.hiking': "Draw your walk together in 3 minutes.",
   'pack.addTrip.log.activityNote.journey': "Pick this if you are logging a trek over several days.",
   'pack.addTrip.log.activityNote.picnic': "Mark the spot on the map.",
@@ -2203,7 +2226,7 @@ export const en = {
   'pack.addTrip.log.activityNote.skating': "Mark a place with an asphalt path.",
   'pack.addTrip.log.activityNote.paddleboard': "Pick the body of water.",
   'pack.addTrip.log.activityNote.explore': "Anything else \u2014 a castle, a landmark, a park\u2026",
-  'pack.addTrip.log.activityNote.visit': "A park, a castle, water, a campsite \u2014 a place you reach without a workout.",
+  'pack.addTrip.log.activityNote.visit': "A park, a landmark, a lake, a meadow \u2014 where you went.",
   // Dva rady chipov v kroku 4. Prvý = vlastná kategória, druhý = ostatné, zbalený.
   'pack.addTrip.log.chipsOwn': "What we did there",
   'pack.addTrip.log.chipsMore': "Was there anything else to do?",
@@ -2259,6 +2282,11 @@ export const en = {
   'pack.addTrip.log.date': "Date",
   'pack.addTrip.log.where': "Where",
   'pack.addTrip.log.tags': "Tags",
+  'pack.addTrip.log.conditions': "Conditions",
+  'pack.addTrip.log.whatPlace': "What kind of place was it?",
+  'pack.addTrip.log.whatPlaceSub': "Pick one — the reason you went.",
+  'pack.addTrip.log.placeMore': "What else was there",
+  'pack.addTrip.log.placeDoable': "What you can do there",
   'pack.addTrip.log.pack': "Trip pack",
   'pack.addTrip.log.story': "Tell the pack about it",
   'pack.addTrip.log.routeSoFar': "YOUR ROUTE SO FAR",
@@ -2304,6 +2332,8 @@ export const en = {
   'pack.addTrip.geo.undoPoint': "Undo point",
   'pack.addTrip.geo.done': "Done",
   'pack.addTrip.geo.clear': "Clear",
+  'pack.addTrip.geo.areaSmaller': "Smaller",
+  'pack.addTrip.geo.areaBigger': "Bigger",
   'pack.addTrip.geo.snappingBusy': "snapping…",
   'pack.addTrip.geo.ghostHint': "Faded lines are existing trails — click one to log it instead",
   // ── KROKOVÝ SPRIEVODCA PRIDÁVANIA VÝLETU (Matej 2026-08-23) ─────────────────────────────
@@ -2328,10 +2358,15 @@ export const en = {
   'pack.addTrip.geo.minimalPleaOk': "Got it",
   'pack.addTrip.step.progress': "Steps",
   'pack.addTrip.step.name.route': "Route",
+  // Krok 1 a 4 pri OBLASTI (Matej 2026-08-31) — výlet bez trasy sa nesmie volať trasa.
+  'pack.addTrip.step.name.place': "Place",
+  'pack.addTrip.step.name.aboutPlace': "About",
   'pack.addTrip.step.name.notes': "Marks",
   'pack.addTrip.step.name.basics': "Basics",
   'pack.addTrip.step.name.about': "About",
   'pack.addTrip.step.name.rest': "Rest",
+  'pack.addTrip.step.name.what': "What",
+  'pack.addTrip.step.name.feel': "Impression",
   'pack.addTrip.step.name.departure': "Departure",
   'pack.addTrip.step.hint.route': "Draw roughly the way you walked, so others can see it.",
   'pack.addTrip.step.hint.notes': "Mark what mattered on the way — parking, danger, a good spot.",
@@ -2341,11 +2376,13 @@ export const en = {
   'pack.addTrip.step.doneRoute': "Done",
   'pack.addTrip.step.doneNotes': "Continue",
   'pack.addTrip.step.backToRoute': "Back to the route",
+  'pack.addTrip.step.backToPlace': "Back to the place",
   // Názvy polí do hlášky „Chýba: …". Kľúče drží model (`addTripModel.ts` FIELD_LABEL),
   // text vzniká až v komponente — model nemá jazyk.
   'pack.addTrip.field.name': "name",
   'pack.addTrip.field.activity': "activity",
   'pack.addTrip.field.geometry': "route on the map",
+  'pack.addTrip.field.geometryArea': "the place on the map",
   'pack.addTrip.field.date': "date",
   'pack.addTrip.field.diff': "difficulty",
   'pack.addTrip.field.crowd': "crowd",
@@ -2353,9 +2390,10 @@ export const en = {
   'pack.addTrip.field.hazards': "hazards",
   // ⚠️ KĽÚČ CHÝBAL (nájdené 2026-08-26). `stepMissing[2]` ho hlási, keď človek prejde krokom
   // ODKAZY bez jedinej značky — AInubis potom povedal „Ešte chýba: pack.addTrip.field.notes".
-  'pack.addTrip.field.notes': "marks on the route",
+  'pack.addTrip.field.notes': "marks on the trip",
   'pack.addTrip.field.tags': "tags",
   'pack.addTrip.field.paws': "rating",
+  'pack.addTrip.field.place': "main place",
   'pack.addTrip.field.photos': "photo",
   // CompanionPicker („kto bol so mnou") — do 23. 8. 2026 bol celý natvrdo po anglicky.
   'pack.companions.yourPack': "Your pack",
@@ -2368,7 +2406,9 @@ export const en = {
   // do DB a filtra na mape) — prekladá sa len to, čo človek vidí.
   'pack.map.surface': "Surface",
   'pack.map.anySurface': "Any surface",
-  'pack.map.surfaceLabel.forest': "Forest path",
+  // Premenované 1. 9. 2026 — „Forest path" sa bilo so ZNAČKOU „Forest" (63 × 60 výletov,
+  // dve rôzne polia). Hodnota v dátach (`forest`) sa NEMENÍ, mení sa text na obrazovke.
+  'pack.map.surfaceLabel.forest': "Dirt / path",
   'pack.map.surfaceLabel.asphalt': "Asphalt",
   'pack.map.surfaceLabel.rocky': "Rocky",
   'pack.map.crowdKind.Empty': "Empty",
@@ -2464,6 +2504,7 @@ export const en = {
   'pack.addTrip.step.back': "Back",
   'pack.addTrip.step.next': "Next",
   'pack.addTrip.step.needRoute': "Draw the route first — or pick start and finish only.",
+  'pack.addTrip.step.needPlace': "Mark the place on the map first — tap where you were.",
   // ⚠️ KĽÚČ CHÝBAL ÚPLNE (nájdené 2026-08-26 pri prechode toku na PC). AInubis ho hlási po
   // NÁVRATE na nedokončený krok — teda presne vtedy, keď má človek niečo doplniť — a namiesto
   // vety mu ukazoval `pack.addTrip.step.stillMissing trasa na mape`. Volajúci je
@@ -2483,7 +2524,7 @@ export const en = {
   'pack.addTrip.step.ptsMany': "{n} points",
   'pack.addTrip.step.askHowTo': "Tap what you are marking, then show the spot on the map.",
   'pack.addTrip.step.askParking': "Where did you park?",
-  'pack.addTrip.step.askWarning': "Was there anything dangerous on the way?",
+  'pack.addTrip.step.askWarning': "Was there anything dangerous there?",
   'pack.addTrip.step.askTip': "A quiet spot, water, a view — anything worth knowing?",
   'pack.addTrip.step.markShort': "Mark",
   'pack.addTrip.step.markParking': "Mark parking",
@@ -2495,9 +2536,9 @@ export const en = {
   'pack.addTrip.step.noNotesYet': "Nothing marked yet.",
   'pack.addTrip.step.noteArm': "tap to select for removal",
   'pack.addTrip.step.noteRemove': "tap again to delete",
-  'pack.addTrip.step.noNotesSummary': "You marked nothing on this route.",
+  'pack.addTrip.step.noNotesSummary': "You haven\u2019t marked anything yet.",
   'pack.addTrip.step.markMore': "Mark something else",
-  'pack.addTrip.step.markedOnRoute': "Marked on the route",
+  'pack.addTrip.step.markedOnRoute': "Marked on the map",
   'pack.addTrip.step.backToNotes': "Add another mark",
   'pack.addTrip.step.searchTrails': "Search trails…",
   'pack.addTrip.step.noTrails': "No trails match.",
@@ -2721,6 +2762,8 @@ export const en = {
   // VISIT (2026-08-31) — CHILL a EXPLORE splynuli. Staré kľúče sa NEMAŽÚ: ležia v dátach
   // 81 seed výletov a karta ich zobrazuje ako tag.
   'pack.map.activityLabel.visit': "Visit",
+  // 💪 ACTIVITY nahradilo SPORT (Matej 1. 9. 2026). Kľúč `sport` ostáva — staré `acts` ho nesú.
+  'pack.map.activityLabel.activity': "Activity",
   // ── CHIPY KROKU 4 (2026-08-31) — „čo sme tam robili" ───────────────────────────────────
   // Zdroj id + anglický fallback: `components/pack/tripCategories.ts`. Tieto kľúče ho len
   // prekladajú; nový chip musí pribudnúť TAM, inak sa preklad nemá k čomu prilepiť.
@@ -2728,13 +2771,19 @@ export const en = {
   'pack.map.chipLabel.sight': "Landmark",
   'pack.map.chipLabel.zoo': "Zoo / farm",
   'pack.map.chipLabel.water': "Water",
-  'pack.map.chipLabel.meadow': "Picnic spot",
+  'pack.map.chipLabel.meadow': "Meadow",
+  'pack.map.chipLabel.lake': "Lake / reservoir",
+  'pack.map.chipLabel.hut': "Mountain hut",
+  'pack.map.chipLabel.picnic': "Picnic",
+  'pack.map.chipLabel.camping': "Camping",
+  'pack.map.chipLabel.mushrooms': "Mushrooms",
   'pack.map.chipLabel.camp': "Campsite",
   'pack.map.chipLabel.skate': "Skating",
   'pack.map.chipLabel.run': "Running",
-  'pack.map.chipLabel.paddle': "Paddling",
+  'pack.map.chipLabel.paddle': "Swimming / SUP",
   'pack.map.chipLabel.bike': "Cycling",
   'pack.map.chipLabel.train': "Training",
+  'pack.map.chipLabel.scooter': "Scootering",
   'pack.map.levelAriaLabel': "Level {level}",
   // Rang v hlavičke mapy aj na karte /pack — jeden kľúč, aby oba povrchy hovorili to isté
   'pack.map.rankPilgrim': "Pilgrim",
@@ -2898,6 +2947,8 @@ export const en = {
   'pack.mapNotes.add.placeholder.viewpoint': "What can you see from here?",
   'pack.mapNotes.add.placeholder.wildlife': "What lives here and when to be careful?",
   'pack.mapNotes.add.cancel': "Cancel",
+  // Návrat o krok pri označovaní značky — NIE „Zrušiť": výlet sa nikam nestráca.
+  'pack.mapNotes.add.back': "Back",
   'pack.mapNotes.add.submit': "Put it on the map",
   'pack.mapNotes.add.saving': "Saving…",
   'pack.mapNotes.add.pinned': "Pinned to {trip}.",
