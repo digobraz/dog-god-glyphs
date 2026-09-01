@@ -554,11 +554,14 @@ export default function PackTriplist() {
       trail,
       date: o.date ?? '',
       joiners: party?.joiners.length ?? 0,
-      ownerName: who || 'A Dogyptian',
+      // ⚠️ CEZ t(), NIE NATVRDO. Kľúč existoval (`fallbackDogyptian`, SK „Dogypťan") a volalo
+      // ho tlačidlo o pár riadkov nižšie — menovka na fotke si napísala vlastný anglický
+      // reťazec, takže SK karta cudzieho výletu bez mena organizátora hovorila „A Dogyptian".
+      ownerName: who || t('pack.triplist.fallbackDogyptian'),
       ownerInitial: (org?.ownerFirst ?? org?.dogName ?? '?').charAt(0).toUpperCase(),
       real: { slug: o.slug, organizerId: o.organizerId },
     }];
-  }), [dbOpenTrips, openParties, allTrails]);
+  }), [dbOpenTrips, openParties, allTrails, t]);
 
   const openCardsAll = realOpenCards;
   const openCards = useMemo(
