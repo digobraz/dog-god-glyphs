@@ -1,11 +1,25 @@
 // Thread overlay — jedna konverzácia (DM alebo open group). Design:
-// plany/zadanie-profil-messaging-2026-07-23.md §4.3/§12. Bubliny (me vpravo gold-akcent / member
-// vľavo papyrus), send box (Enter=send), auto-scroll dole, markRead pri mounte/otvorení. Nejoinnutá
-// open group → "Join the pack" namiesto send boxu (§ zadanie bod 2 Thread). Web texty = EN.
+// plany/zadanie-profil-messaging-2026-07-23.md §4.3/§12. Send box (Enter=send), auto-scroll dole,
+// markRead pri mounte/otvorení. Nejoinnutá open group → "Join the pack" namiesto send boxu.
+//
+// ── DRAK → BRIGHT, krok 2 (2026-09-02) ─────────────────────────────────────
+// Do 1. 9. 2026 tmavá plocha (`T.pageBg` + `onDark*` inkoust). Prezlečené do papyrusu podľa
+// `plany/zadanie-drak-bright-pokracovanie-FRESH-SESSION.md`; predloha = `PackTriplist.tsx`.
+//
+// ⚠️ PODKLAD SA TU NEPÍŠE — nesie ho `.pk-paper` z `packTheme.ts`. `<HieroglyphBg />` sa
+//    k nemu NEVOLÁ (je tmavá, boli by dve tapety cez seba).
+//
+// ⚠️ MOJA BUBLINA JE LAPISOVÝ TINT, NIE PLNÁ FARBA. Na tmavom ich odlišovala svetlosť; na
+//    papyruse to nestačí, tak sa siahlo po farbe — ale plná farebná plocha je vyhradená
+//    JEDINÉMU hlavnému CTA na obrazovke (tu odosielanie / JOIN). Recept je `pickTintCSS`,
+//    nie tri opísané rgba čísla: čitateľnosť tintu nesie TMAVÝ inkoust a plný farebný rám,
+//    nie krytie výplne (to je presne to, na čom padlo 26. 8. prvé kolo bledých chipov).
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME } from '@/components/pack/packTheme';
+import { PACK_THEME, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PALE, LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { BackButton } from '@/components/pack/BackButton';
 import { tripNames, tripNameSync } from './tripLabel';
 import {
   getConversation, getMe, joinGroup, markRead, reportContent, sendMessage, setPeerBlocked,
@@ -13,8 +27,7 @@ import {
 } from './packMessaging';
 
 const T = PACK_THEME;
-const GOLD = '#C99A3F';
-const INK = '#1F1A0E';
+const P = PALE;
 
 // Brand lock: meno psa je VŽDY Cinzel Decorative, na každom povrchu.
 // Meno človeka (účet bez psa) ostáva Cinzel — Decorative je vyhradený psom.
@@ -22,54 +35,84 @@ const DOG_NAME_FONT = "'Cinzel Decorative', 'Cinzel', serif";
 const HUMAN_NAME_FONT = "'Cinzel', serif";
 
 export const THREAD_CSS = `
-.msg-thread{position:fixed;inset:0;z-index:1300;background:${T.pageBg};display:flex;flex-direction:column;}
-.msg-thread-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 22px) 20px 16px;background:${T.pageBg};border-bottom:1px solid ${T.onDarkHair};flex-shrink:0;}
-.msg-back{flex-shrink:0;width:34px;height:34px;border-radius:50%;background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:17px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.msg-back:hover{border-color:${GOLD};color:${GOLD};}
+/* ⚠️ Dvojtriedny selektor (0,2,0) prebije position:relative z .pk-paper bez ohľadu na poradie
+   <style> blokov — to isté ako v Inbox.tsx. Pozadie ani min-height tu NIE SÚ, nesie ich .pk-paper. */
+.msg-thread.pk-paper{position:fixed;inset:0;z-index:1300;display:flex;flex-direction:column;}
+/* Lepiaca hlavička je LIŠTA (panelový gradient + zlatá spodná hrana), nie holá stránka —
+   musí byť nepriehľadná, lebo pod ňou podchádzajú bubliny. */
+.msg-thread-head{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 22px) 20px 16px;background:${T.panelGrad};border-bottom:1px solid ${P.border};box-shadow:0 2px 10px rgba(122,90,42,0.10);flex-shrink:0;}
+.msg-back{flex-shrink:0;width:34px;height:34px;border-radius:50%;background:${P.soft};border:1px solid ${P.border};color:${P.ink};font-size:17px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s,background .15s;}
+.msg-back:hover{border-color:${T.cardEdge};color:${P.deep};background:#FFFDF6;}
 .msg-thread-headtxt{min-width:0;}
-.msg-thread-title{font-family:'Cinzel',serif;font-weight:700;font-size:16px;color:${T.onDark};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.msg-thread-sub{font-size:11px;color:${T.onDarkDim};margin-top:2px;}
-.msg-tagchip{display:inline-flex;align-items:center;gap:4px;margin-top:5px;font-family:'Cinzel',serif;font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:rgba(201,154,63,0.14);border:1px solid rgba(201,154,63,0.4);color:${GOLD};white-space:nowrap;}
-.msg-tagchip--click{cursor:pointer;font-family:'Cinzel',serif;border:1px solid rgba(201,154,63,0.4);}
-.msg-tagchip--click:hover{background:rgba(201,154,63,0.24);}
-.msg-thread-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:18px 16px;max-width:640px;width:100%;margin:0 auto;display:flex;flex-direction:column;}
+/* Meno v hlavičke je IDENTITA -> FONT_TITLE (pri psovi Decorative, to rieši inline štýl). */
+.msg-thread-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${P.ink};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.msg-thread-sub{font-family:${FONT_UI};font-size:11px;color:${P.dim};margin-top:2px;}
+.msg-tagchip{display:inline-flex;align-items:center;gap:4px;margin-top:5px;font-family:${FONT_TITLE};font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:${P.hot};border:1px solid ${P.border};color:${P.deep};white-space:nowrap;}
+.msg-tagchip--click{cursor:pointer;}
+.msg-tagchip--click:hover{background:rgba(201,154,63,0.32);border-color:${T.cardEdge};}
+.msg-thread-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:18px 16px;max-width:640px;width:100%;margin:0 auto;display:flex;flex-direction:column;position:relative;z-index:2;}
 .msg-bubblewrap{display:flex;flex-direction:column;align-items:flex-start;margin-bottom:11px;max-width:78%;}
 .msg-bubblewrap.me{align-items:flex-end;align-self:flex-end;}
-.msg-bubble-sender{font-family:'Cinzel',serif;font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:3px;padding:0 3px;}
-.msg-bubble{font-size:13px;line-height:1.5;padding:10px 14px;border-radius:16px;background:${T.card};color:${INK};border:1px solid rgba(201,154,63,0.25);}
-.msg-bubble.me{background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border-color:rgba(250,244,236,0.3);}
-.msg-empty{text-align:center;padding:40px 16px;color:${T.onDarkDim};font-size:12.5px;font-style:italic;}
-.msg-senderr{flex-shrink:0;max-width:640px;width:100%;margin:0 auto;padding:0 16px 8px;box-sizing:border-box;font-size:11.5px;color:#E0A0A0;}
-.msg-thread-send{flex-shrink:0;display:flex;gap:10px;padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 14px);border-top:1px solid ${T.onDarkHair};max-width:640px;width:100%;margin:0 auto;box-sizing:border-box;}
-.msg-thread-input{flex:1;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:999px;padding:11px 16px;color:${T.onDark};font-family:inherit;font-size:13px;outline:0;}
-.msg-thread-input:focus{border-color:${GOLD};}
-.msg-sendbtn{flex-shrink:0;width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#F5C73D,#E69E1A);border:1px solid rgba(250,244,236,0.3);cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.msg-sendbtn:disabled{opacity:.4;cursor:default;}
-.msg-thread-join{flex-shrink:0;padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 16px);border-top:1px solid ${T.onDarkHair};max-width:640px;width:100%;margin:0 auto;box-sizing:border-box;}
-.msg-joinbtn{width:100%;font-family:'Cinzel',serif;font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:14px;border-radius:8px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);cursor:pointer;}
-.msg-joinbtn:hover{filter:brightness(1.05);}
+.msg-bubble-sender{font-family:${FONT_TITLE};font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:${P.dim};margin-bottom:3px;padding:0 3px;}
+/* CUDZIA bublina = papyrusová doska (plochá výplň .pf-field--flat + zlatý vlas).
+   MOJA = lapisový tint, teda tá istá doska podfarbená modrou — plnú modrú si drží tlačidlo. */
+.msg-bubble{font-family:${FONT_UI};font-size:13px;line-height:1.5;padding:10px 14px;border-radius:16px;background:${P.field};color:${P.ink};border:1px solid ${P.border};}
+.msg-bubble.me{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}}
+.msg-empty{text-align:center;padding:40px 16px;color:${P.dim};font-size:12.5px;font-style:italic;}
+/* Chyby na papyruse idú do TMAVEJ červenej (PICK_INK.red). Svetlé #E0A0A0 z tmavého šatu
+   by na piesku zmizlo — svetlý inkoust na svetlom je presne ten pád z 26. 8. */
+.msg-senderr{flex-shrink:0;max-width:640px;width:100%;margin:0 auto;padding:0 16px 8px;box-sizing:border-box;font-family:${FONT_UI};font-size:11.5px;color:${PICK_INK.red};}
+.msg-thread-send{flex-shrink:0;display:flex;gap:10px;padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 14px);border-top:1px solid ${P.border};background:${T.panelGrad};max-width:640px;width:100%;margin:0 auto;box-sizing:border-box;position:relative;z-index:2;}
+/* Písacie pole ostáva PAPYRUSOVÉ (.pf-field--flat) — čierna je na čítanie, nie na vypĺňanie.
+   Zaostrenie je lapisové: „čo práve robím" je moja akcia, nie konštrukcia. */
+.msg-thread-input{flex:1;background:${P.field};border:1px solid ${P.border};border-radius:999px;padding:11px 16px;color:${P.ink};font-family:${FONT_UI};font-size:13px;outline:0;}
+.msg-thread-input::placeholder{color:${P.faint};}
+.msg-thread-input:focus{border-color:${LAPIS.edge};box-shadow:0 0 0 3px ${LAPIS.halo};}
+/* Jediné hlavné CTA v send boxe -> plný lapis. Ikonka je 'white', nie 'gold': brandová
+   #C99A3F má na #16307A kontrast pod 3:1 a 16px kresba by sa v nej stratila. */
+.msg-sendbtn{flex-shrink:0;width:42px;height:42px;border-radius:50%;background:${LAPIS.grad};border:1px solid ${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.msg-sendbtn:hover:not(:disabled){background:${LAPIS.gradHover};}
+/* ⚠️ Zoslabenie krytím na svetlom povrchu takmer nevidno (blednutie do skoro bielej).
+   Vypnuté tlačidlo preto stráca FARBU, nie priehľadnosť. */
+.msg-sendbtn:disabled{background:${P.hot};border-color:${P.border};box-shadow:none;cursor:default;}
+.msg-sendbtn:disabled img{opacity:.55;}
+.msg-thread-join{flex-shrink:0;padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 16px);border-top:1px solid ${P.border};background:${T.panelGrad};max-width:640px;width:100%;margin:0 auto;box-sizing:border-box;position:relative;z-index:2;}
+/* Geometria z .btn-gold (radius 8, NIE pilulka), výplň lapis — zmena farby nie je
+   povolenie na iný tvar. */
+.msg-joinbtn{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:14px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
+.msg-joinbtn:hover{background:${LAPIS.gradHover};}
 
 /* ── moderácia (#54): nahlásiť / zablokovať ── */
-.msg-mod{margin-left:auto;flex-shrink:0;width:34px;height:34px;border-radius:50%;background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.msg-mod:hover{border-color:${GOLD};color:${GOLD};}
+.msg-mod{margin-left:auto;flex-shrink:0;width:34px;height:34px;border-radius:50%;background:${P.soft};border:1px solid ${P.border};color:${P.dim};font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s,background .15s;}
+.msg-mod:hover{border-color:${T.cardEdge};color:${P.deep};background:#FFFDF6;}
+/* Závoj ostáva TMAVÝ aj na bledom šate — je to zatemnenie pozadia, nie povrch (precedens
+   components/gods/photoConfirm.ts). Odchod je klikom mimo; krížik tu nie je zámerne (lock 28. 8.). */
 .msg-modsheet{position:fixed;inset:0;z-index:1400;background:rgba(0,0,0,0.62);display:flex;align-items:flex-end;justify-content:center;}
-.msg-modpanel{width:100%;max-width:460px;background:${T.pageBg};border:1px solid ${T.onDarkBorder};border-bottom:0;border-radius:16px 16px 0 0;padding:20px 20px calc(env(safe-area-inset-bottom,0px) + 20px);box-sizing:border-box;}
-.msg-modtitle{font-family:'Cinzel',serif;font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.onDark};}
-.msg-modsub{font-size:12px;line-height:1.55;color:${T.onDarkDim};margin-top:6px;}
+/* ÚROVEŇ 4 MATRICE — PANEL (panelGrad · 1.5px cardEdge · panelShadow). Radius je spodný
+   plát (16/16/0/0), lebo je to sheet zdola; to je tvar, nie iná úroveň. */
+.msg-modpanel{width:100%;max-width:460px;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-bottom:0;border-radius:16px 16px 0 0;box-shadow:${T.panelShadow};padding:20px 20px calc(env(safe-area-inset-bottom,0px) + 20px);box-sizing:border-box;}
+.msg-modtitle{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${P.ink};}
+.msg-modsub{font-family:${FONT_UI};font-size:12px;line-height:1.55;color:${P.dim};margin-top:6px;}
 .msg-modrow{display:flex;flex-direction:column;gap:8px;margin-top:16px;}
-.msg-modbtn{width:100%;text-align:left;font-size:13px;padding:12px 14px;border-radius:10px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};color:${T.onDark};cursor:pointer;}
-.msg-modbtn:hover{border-color:${GOLD};}
-.msg-modbtn--danger{color:#E8A79A;}
-.msg-modnote{width:100%;box-sizing:border-box;margin-top:10px;min-height:74px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:10px;padding:11px 13px;color:${T.onDark};font-family:inherit;font-size:13px;outline:0;resize:vertical;}
-.msg-modnote:focus{border-color:${GOLD};}
-.msg-modsend{width:100%;margin-top:12px;font-family:'Cinzel',serif;font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:8px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);cursor:pointer;}
-.msg-modsend:disabled{opacity:.45;cursor:default;}
-.msg-modcancel{width:100%;margin-top:8px;background:none;border:0;color:${T.onDarkDim};font-family:inherit;font-size:12.5px;padding:9px;cursor:pointer;}
-.msg-modcancel:hover{color:${T.onDark};}
-.msg-blocked{flex-shrink:0;max-width:640px;width:100%;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 16px);border-top:1px solid ${T.onDarkHair};box-sizing:border-box;text-align:center;}
-.msg-blockedtxt{font-size:12.5px;line-height:1.6;color:${T.onDarkDim};}
-.msg-unblock{margin-top:10px;font-family:'Cinzel',serif;font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:10px 20px;border-radius:8px;background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};color:${T.onDark};cursor:pointer;}
-.msg-unblock:hover{border-color:${GOLD};color:${GOLD};}
+/* Voľba dôvodu = RIADOK (úroveň 3), vybraný = lapisový tint, nie zlatý rám: výber je
+   „moja voľba", a tá je na papyruse modrá. */
+.msg-modbtn{width:100%;text-align:left;font-family:${FONT_UI};font-size:13px;padding:12px 14px;border-radius:10px;background:${T.tileBg};border:1px solid ${T.border};color:${P.ink};cursor:pointer;transition:border-color .15s,background .15s;}
+.msg-modbtn:hover{border-color:${T.cardEdge};background:${P.hot};}
+.msg-modbtn.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis)}}
+.msg-modbtn--danger{color:${PICK_INK.red};}
+.msg-modbtn--danger:hover{border-color:${PICK_INK.red};background:rgba(142,42,32,0.08);}
+.msg-modnote{width:100%;box-sizing:border-box;margin-top:10px;min-height:74px;background:${P.field};border:1px solid ${P.border};border-radius:10px;padding:11px 13px;color:${P.ink};font-family:${FONT_UI};font-size:13px;outline:0;resize:vertical;}
+.msg-modnote::placeholder{color:${P.faint};}
+.msg-modnote:focus{border-color:${LAPIS.edge};box-shadow:0 0 0 3px ${LAPIS.halo};}
+.msg-modsend{width:100%;margin-top:12px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
+.msg-modsend:hover:not(:disabled){background:${LAPIS.gradHover};}
+.msg-modsend:disabled{background:${P.hot};color:${P.faint};border-color:${P.border};box-shadow:none;cursor:default;}
+.msg-modcancel{width:100%;margin-top:8px;background:none;border:0;color:${P.dim};font-family:${FONT_UI};font-size:12.5px;padding:9px;cursor:pointer;}
+.msg-modcancel:hover{color:${P.ink};}
+.msg-blocked{flex-shrink:0;max-width:640px;width:100%;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 16px);border-top:1px solid ${P.border};background:${T.panelGrad};box-sizing:border-box;text-align:center;position:relative;z-index:2;}
+.msg-blockedtxt{font-family:${FONT_UI};font-size:12.5px;line-height:1.6;color:${P.dim};}
+.msg-unblock{margin-top:10px;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:10px 20px;border-radius:8px;background:${P.soft};border:1px solid ${P.border};color:${P.ink};cursor:pointer;transition:border-color .15s,color .15s,background .15s;}
+.msg-unblock:hover{border-color:${T.cardEdge};color:${P.deep};background:#FFFDF6;}
 `;
 
 // Dôvody nahlásenia — label sa berie cez t() v komponente, mapa drží len kľúč (i18n fáza A).
@@ -138,10 +181,11 @@ export function Thread({ convId, onClose, onOpenTrip }: {
 
   if (!conv) {
     return (
-      <div className="msg-thread">
+      <div className="msg-thread pk-paper">
+        <style>{PAPER_PAGE_CSS}</style>
         <style>{THREAD_CSS}</style>
         <div className="msg-thread-head">
-          <button type="button" className="msg-back" onClick={onClose} aria-label={t('pack.msg.backAriaLabel')}>←</button>
+          <BackButton tone="dark" onClick={onClose} label={t('pack.msg.backAriaLabel')} />
           <div className="msg-thread-headtxt"><div className="msg-thread-title">{t('pack.msg.loading')}</div></div>
         </div>
       </div>
@@ -222,10 +266,12 @@ export function Thread({ convId, onClose, onOpenTrip }: {
   };
 
   return (
-    <div className="msg-thread">
+    <div className="msg-thread pk-paper">
+      {/* Tapeta je súčasť .pk-paper — <HieroglyphBg /> sa sem NEPRIDÁVA (je tmavá). */}
+      <style>{PAPER_PAGE_CSS}</style>
       <style>{THREAD_CSS}</style>
       <div className="msg-thread-head">
-        <button type="button" className="msg-back" onClick={onClose} aria-label={t('pack.msg.backToInboxAriaLabel')}>←</button>
+        <BackButton tone="dark" onClick={onClose} label={t('pack.msg.backToInboxAriaLabel')} />
         <div className="msg-thread-headtxt">
           <div className="msg-thread-title" style={{ fontFamily: titleFont }}>{title}</div>
           {isGroup && (
@@ -283,7 +329,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
           <button type="button" className="msg-unblock" disabled={modBusy} onClick={() => void handleBlock(false)}>
             {modBusy ? t('pack.msg.working') : t('pack.msg.unblock')}
           </button>
-          {modErr && <div className="msg-blockedtxt" role="alert" style={{ marginTop: 10, color: '#E0A0A0' }}>{modErr}</div>}
+          {modErr && <div className="msg-blockedtxt" role="alert" style={{ marginTop: 10, color: PICK_INK.red }}>{modErr}</div>}
         </div>
       ) : iAmMember ? (
         <div className="msg-thread-send">
@@ -295,7 +341,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
             placeholder={t('pack.msg.messageInputPlaceholder')}
           />
           <button type="button" className="msg-sendbtn" onClick={() => void send()} disabled={!text.trim()} aria-label={t('pack.msg.sendMessageAriaLabel')}>
-            <BrandIcon name="chat" size={16} tint="dark" />
+            <BrandIcon name="chat" size={16} tint="white" />
           </button>
         </div>
       ) : (
@@ -323,7 +369,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
                     {modBusy ? t('pack.msg.blocking') : t('pack.msg.blockButton', { name: title })}
                   </button>
                 </div>
-                {modErr && <div className="msg-modsub" role="alert" style={{ color: '#E8A79A' }}>{modErr}</div>}
+                {modErr && <div className="msg-modsub" role="alert" style={{ color: PICK_INK.red }}>{modErr}</div>}
                 <button type="button" className="msg-modcancel" onClick={closeMod}>{t('pack.msg.cancel')}</button>
               </>
             )}
@@ -336,8 +382,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
                     <button
                       key={r.id}
                       type="button"
-                      className="msg-modbtn"
-                      style={reason === r.id ? { borderColor: GOLD, color: GOLD } : undefined}
+                      className={`msg-modbtn${reason === r.id ? ' on' : ''}`}
                       onClick={() => setReason(r.id)}
                     >{t(r.labelKey)}</button>
                   ))}
@@ -348,7 +393,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
                   onChange={(e) => setReportNote(e.target.value)}
                   placeholder={t('pack.msg.reportNotePlaceholder')}
                 />
-                {modErr && <div className="msg-modsub" role="alert" style={{ color: '#E8A79A' }}>{modErr}</div>}
+                {modErr && <div className="msg-modsub" role="alert" style={{ color: PICK_INK.red }}>{modErr}</div>}
                 <button type="button" className="msg-modsend" disabled={!reason || modBusy} onClick={() => void handleReport()}>
                   {modBusy ? t('pack.msg.sending') : t('pack.msg.sendReport')}
                 </button>
