@@ -5934,7 +5934,14 @@ export default function PackMap() {
           >
             <img src={ICON('clipboard')} alt="" />
           </button>
-          {renderHeaderRight()}
+          {/* ⚠️ Mobilná hlavička si musí pýtať šat ROVNAKO ako PC (opravené 2026-09-02).
+              Do dneška tu stálo holé `renderHeaderRight()`, teda východisková hodnota
+              `dark = true` — lenže tá pochádza z čias, keď bol mobilný chrome mapy tmavý.
+              Odkedy je bledý aj on (28. 8.), sedel na papyrusovej hlavičke tmavý zvonček
+              so sklenným rozostrením a tieňom. Vidno to na KAŽDOM otvorení mapy na telefóne.
+              Farby má komponent v inline štýloch, takže CSS skinu ich neprebije — musí sa
+              mu povedať pravda, presne ako na PC vetve nižšie. */}
+          {renderHeaderRight(MAP_SKIN !== 'pale')}
         </div>
         <div className="trp-mheader-row2">
           <div className="trp-mapsearch">

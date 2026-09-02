@@ -143,9 +143,10 @@ function fmtTime(iso: string, locale: string): string {
  *    ovládací prvok rozhrania. Matej ich preto vymenil za ikonku z kitu.
  */
 export function SkinToggle({ skin, onToggle }: { skin: 'light' | 'dark'; onToggle: () => void }) {
-  // ⚠️ Popisok je zatiaľ natvrdo po anglicky. Nový i18n kľúč si žiada `en.ts` (SK je proti nemu
-  //    typované ako Partial<Dict>), a ten má rozrobený iná session — dopísať sa musí, keď ho pustí.
-  const label = skin === 'dark' ? 'Switch to light' : 'Switch to dark';
+  // Popisok hovorí, KAM sa prepne, nie kde práve stojím — tlačidlo je akcia, nie stav.
+  // (Stav nesie odtieň značky: v tmavom šate zlatý, v svetlom inkoustový.)
+  const t = useT();
+  const label = skin === 'dark' ? t('pack.msg.skinToLight') : t('pack.msg.skinToDark');
   return (
     <button
       type="button"

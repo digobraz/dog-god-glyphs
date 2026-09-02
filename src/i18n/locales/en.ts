@@ -2639,6 +2639,16 @@ export const en = {
   'pack.msg.fallbackMemberName': "Dogyptian",
   'pack.msg.packNumberSuffix': "· Dogyptian #{n}",
   'pack.msg.noMessagesYet': "No messages yet",
+  // Prepínač svetlého/tmavého šatu správ (`Inbox.tsx` → `SkinToggle`). Jedna ikonka,
+  // dva stavy — popisok hovorí, KAM sa prepne, nie kde práve som.
+  'pack.msg.skinToLight': "Switch to light",
+  'pack.msg.skinToDark': "Switch to dark",
+  // Potvrdenie po odoslaní hlásenia (`Thread.tsx`, vetva `modView === 'sent'`).
+  // Blokovanie sa tu NEDUPLIKUJE — `pack.msg.blocking` a `pack.msg.blockButton` už
+  // existujú pre vetvu `menu` a tá istá dvojica sa používa aj tu.
+  'pack.msg.reportSentTitle': "Report sent",
+  'pack.msg.reportSentBody': "Matej reads every report himself. If this person is bothering you, block them too — that takes effect right away.",
+  'pack.msg.done': "Done",
   'pack.community.closeAriaLabel': "Close",
   'pack.community.pawsAriaLabel': "{n} paws",
   'pack.community.walkedTitle': "Great job! You did it! 🐾",
@@ -2657,6 +2667,11 @@ export const en = {
   'pack.community.rewardEyebrow': "You earned",
   'pack.community.rewardNextRating': "Add a rating and earn more points",
   'pack.community.notNowBtn': "Not now",
+  // Prázdny stav zoznamu MOJICH inzerátov (`packCommunityUI.tsx`). ⚠️ Veta nesmie znieť
+  // „nikto nič neplánuje" — panel drží len vlastné inzeráty (`.eq('host_id', uid)`),
+  // cudzie otvorené výlety žijú v Triplist → OPEN TRIPS FROM THE PACK.
+  'pack.community.noAnnouncedWalk': "You haven’t announced a walk yet. Open a trip, pick “Find a buddy”, and the pack will see it.",
+  'pack.community.browseTrips': "Browse trips",
   'pack.profileCard.removeTag': "Remove {tag}",
   'pack.profileCard.smokeLabel': "Smoke: {value}",
   'pack.profileCard.aDogyptian': "A Dogyptian",

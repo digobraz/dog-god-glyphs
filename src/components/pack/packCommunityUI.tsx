@@ -1777,9 +1777,12 @@ export function EventsView({ events, trailsById, onJoin, onToggleClosed, onOpenT
   /** #55 — prázdna partia potrebuje akciu: pozvať niekoho = zdieľať odkaz na výlet. */
   onShareTrip?: (tripId: string) => void;
   /** Zrušenie VLASTNEJ pozvánky (2026-08-22). Ruší sa inzerát, nie plán — výlet ostáva
-   *  v triplistе. Chýba = tlačidlo sa nevykreslí. */
+   *  v tripliste. Chýba = tlačidlo sa nevykreslí. */
   onDelete?: (id: string) => void;
 }) {
+  // ⚠️ Hook MUSÍ stáť nad `if (events.length === 0)` — za skorým návratom by sa pri prechode
+  //    z prázdneho na neprázdny zoznam zmenil počet zavolaných hookov a React by spadol.
+  const t = useT();
   if (events.length === 0) {
     // ⚠️ Tento zoznam drží LEN MOJE inzeráty — `trip_events` sa ťahá s `.eq('host_id', uid)`
     // a cudzie sa sem zámerne neťahajú (packStore.ts:508). Veta preto nesmie znieť „nikto
@@ -1787,8 +1790,8 @@ export function EventsView({ events, trailsById, onJoin, onToggleClosed, onOpenT
     // Cudzie otvorené výlety žijú v Triplist → OPEN TRIPS FROM THE PACK (useOpenTrips.ts).
     return (
       <div className="comm-emptybox">
-        <p>You haven’t announced a walk yet. Open a trip, pick “Find a buddy”, and the pack will see it.</p>
-        {onBrowseTrips && <button type="button" className="comm-emptybtn" onClick={onBrowseTrips}>Browse trips</button>}
+        <p>{t('pack.community.noAnnouncedWalk')}</p>
+        {onBrowseTrips && <button type="button" className="comm-emptybtn" onClick={onBrowseTrips}>{t('pack.community.browseTrips')}</button>}
       </div>
     );
   }

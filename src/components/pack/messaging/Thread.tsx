@@ -464,17 +464,19 @@ export function Thread({ convId, onClose, onOpenTrip }: {
 
             {modView === 'sent' && (
               <>
-                <div className="msg-modtitle">Report sent</div>
+                <div className="msg-modtitle">{t('pack.msg.reportSentTitle')}</div>
                 <div className="msg-modsub">
-                  Matej reads every report himself. If this person is bothering you, block them too —
-                  that takes effect right away.
+                  {t('pack.msg.reportSentBody')}
                 </div>
                 <div className="msg-modrow">
+                  {/* Blokovanie tu NEMÁ vlastné kľúče — je to tá istá akcia ako vo vetve
+                      `menu`, takže berie tú istú dvojicu. Dva kľúče pre jedno tlačidlo by
+                      sa pri prvej úprave znenia rozišli. */}
                   <button type="button" className="msg-modbtn msg-modbtn--danger" disabled={modBusy} onClick={() => void handleBlock(true)}>
-                    {modBusy ? 'Blocking…' : `Block ${title}`}
+                    {modBusy ? t('pack.msg.blocking') : t('pack.msg.blockButton', { name: title })}
                   </button>
                 </div>
-                <button type="button" className="msg-modcancel" onClick={closeMod}>Done</button>
+                <button type="button" className="msg-modcancel" onClick={closeMod}>{t('pack.msg.done')}</button>
               </>
             )}
           </div>
