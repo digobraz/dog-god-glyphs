@@ -974,6 +974,13 @@ export const ADD_NOTE_CSS = `
 .mna-tip button{flex:0 0 auto;border:0;background:transparent;color:${T.onDarkDim};font-size:15px;line-height:1;cursor:pointer;padding:0 2px;}
 .mna-tip button:hover{color:${GOLD};}
 @media (max-width:720px){.mna-tip{bottom:156px;}}
+/* ⚠️ PÁS PATRÍ LEN DOTYKU (2026-09-02). Hovorí „podrž dlhšie PRST" — gesto, ktoré myš nemá.
+   Na PC to isté a správne hovorí plusko pri kurzore (MapNoteCursor), takže tam svietili DVE
+   nápovedy na tú istú vec naraz a jedna z nich radila prstom. Je to zrkadlo pravidla, ktoré
+   MapNoteCursor už má opačným smerom (hover:none skryje .mnc) — a rieši sa to médiom, nie
+   príznakom v stave: držať šírku okna v Reacte tento súbor nikde nerobí.
+   ⚠️ Pozor na spätné apostrofy v tomto komentári — celý blok je JS template literal. */
+@media (hover:hover) and (pointer:fine){.mna-tip{display:none;}}
 
 /* ── VÝZVA PRIBLÍŽIŤ — V MIESTE KLIKU ──────────────────────────────────────
    absolute, nie fixed: kotví sa do kontajnera mapy, lebo súradnice prichádzajú
