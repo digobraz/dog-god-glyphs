@@ -36,7 +36,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
 import {
-  ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail, pluralKey,
+  ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail, hasRouteMetrics, pluralKey,
   readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, RENAMED_TRIP_IDS, tripPath,
   tripShareText, tripText, TRAIL_SABER_LAYERS, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing } from '@/components/pack/tripShared';
 import {
@@ -1344,6 +1344,7 @@ export default function PackTripArticle() {
                   diff: trail.diff,
                   label: trail.name,
                   water: isWaterTrail(trail),
+                  hasRoute: hasRouteMetrics(trail),
                 })}
               />
               {/* POI z OSM (issue #40) — pramene/výhľady/prístrešky pozdĺž TEJTO trasy.
