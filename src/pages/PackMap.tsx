@@ -4792,6 +4792,20 @@ export default function PackMap() {
         // Platí pre nový výlet aj pre dopĺňanie konceptu — inak by dopísaný výlet psa stratil.
         ...(draft.crew?.length ? { dogs: draft.crew.length } : {}),
         ...(draft.dateKind !== 'flexible' && draft.date ? { date: draft.date } : {}),
+        /**
+         * ── CHIPY SA ZAPISUJÚ AJ TU (2026-09-02) ───────────────────────────────────────
+         * Patch ich nemal vôbec, takže odpoveď na krok „ČO" sa pri dokončovaní zahodila —
+         * a pri prejdenom pláne kategórie AKTIVITA je ten krok POVINNÝ (bez chipu nepustí
+         * ďalej). Odmerané: naplánuj, prejdi, vyber „Camping", ulož ⇒ v zázname ostalo
+         * `acts: ['activity']`. Skladá sa to rovnako ako pri novom výlete nižšie — jedno
+         * pole, jeden mechanizmus, filter aj karta ich čítajú rovnako.
+         * ⚠️ Píše sa len keď chip naozaj je. Prázdny zoznam by `acts` PREPÍSAL na samotnú
+         * kategóriu a zmazal staré hodnoty datasetu (`picnic`, `overnight`), ktoré formulár
+         * nepozná — tie nesie `legacyActs`, nie chipy.
+         */
+        ...(draft.chips?.length
+          ? { acts: [ACT_DATA_ID[draft.activity] ?? draft.activity, ...draft.chips] }
+          : {}),
       };
       if (!updateLocalTrail(finishId, patch)) {
         setAddError(t('pack.map.errorPhotosStorage'));

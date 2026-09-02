@@ -54,7 +54,7 @@ import {
   type TravelMode, TRAVEL_MODES,
   readAddDraft, writeAddDraft, clearAddDraft, clearTripNotes,
 } from './addTripModel';
-import { TRIP_CATEGORIES, chipsForCategory, otherChips, type TripChip } from '@/components/pack/tripCategories';
+import { TRIP_CATEGORIES, chipsForCategory, chipsOf, otherChips, type TripChip } from '@/components/pack/tripCategories';
 
 const GOLD = '#C99A3F';
 
@@ -889,17 +889,50 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
     // acts nesú DATA id (hike/journey/…), formulár pracuje s id aktivity (hiking/journey/…).
     const act = ACTIVITIES.find((a) => (finishTrail.acts ?? []).includes(a.dataId));
     if (act) setActivity(act.id);
-    setGeometry({
-      kind: 'route',
-      // `path` v zázname je odvodená stopa. Do oboch vrstiev ide to isté, nech sa z nej
-      // počíta rovnako ako predtým; editovať sa v tomto režime nedá (minStep).
-      // ⚠️ PRI PLÁNE IDÚ DO `path` KOTVY, nie stopa. `finishTrail.path` je prichytená čiara
-      // (stovky bodov po chodníkoch) — ako kotvy by dala stovky uzlov a trasa by sa nedala
-      // rozumne opraviť. `planPath` drží kliky, ktoré ju vyrobili (viď `planTrail` v PackMap).
-      path: (fromPlan ? finishTrail.planPath : undefined) ?? finishTrail.path ?? [],
-      snapPath: finishTrail.path ?? [],
-      snapped: true,
-    });
+    /**
+     * ── CHIPY SA MUSIA VRÁTIŤ SPOLU S KATEGÓRIOU (2026-09-02) ──────────────────────────
+     * `acts` nesie kategóriu AJ chipy v jednom poli, ale sem sa dosiaľ čítala len kategória.
+     * Dôsledok: krok „ČO" sa otvoril prázdny, hoci výlet chip mal — a keďže sa `acts` pri
+     * ukladaní skladá z toho, čo je vo formulári, uložením by o svoj chip prišiel.
+     * `chipsOf()` prepustí len skutočné chipy; staré `picnic`/`overnight` z datasetu do
+     * kategórie patria, ale chipom nikdy neboli, takže sa sem nedostanú a ani nezmiznú —
+     * nesie ich `legacyActs` kategórie.
+     */
+    const seededChips = chipsOf(finishTrail.acts ?? []).map((c) => c.id);
+    if (seededChips.length) setChips(new Set(seededChips));
+    /**
+     * ── TVAR SA ČÍTA ZO ZÁZNAMU, NEPREDPOKLADÁ SA TRASA (opravené 2026-09-02) ────────────
+     *
+     * Do dnes tu stálo `kind: 'route'` natvrdo. Pri OKRUHU to znamenalo, že sa jeho stred
+     * vložil ako JEDINÁ kotva trasy — a `geoDone` chce pri trase dve. Odmerané v prehliadači:
+     * naplánuješ výlet s okruhom, prejdeš ho, dáš „označiť ako prejdené" a sprievodca ťa
+     * postaví na krok MIESTO s prázdnou mapou celého Slovenska, s vetou „Ešte chýba: trasa
+     * na mape" a BEZ tlačidla ĎALEJ. Miesto, ktoré si pri plánovaní označil, je preč a musíš
+     * ho nájsť a označiť znova — hoci appka ho celý čas má uložené.
+     * (Pri kategórii s chipom je to ešte tvrdšie: chip prepne povolený tvar na `area`,
+     * podsunutá trasa doň nepatrí a synchronizácia geometrie ju zahodí celú.)
+     *
+     * 🔑 `areaR` je príznak okruhu — zapisuje ho `savedGeometry()` a nesie ho len okruh.
+     *    Bod (`kind: 'point'`) sa sem nedostane: z tripflow vypadol 31. 8. a uložené
+     *    záznamy ho nemajú, takže druhá vetva je zámerne len trasa.
+     */
+    const savedAreaR = (finishTrail as { areaR?: number }).areaR;
+    const savedCenter = finishTrail.path?.[0];
+    setGeometry(
+      savedAreaR && savedAreaR > 0 && savedCenter
+        ? { kind: 'area', center: savedCenter, radiusM: savedAreaR }
+        : {
+            kind: 'route',
+            // `path` v zázname je odvodená stopa. Do oboch vrstiev ide to isté, nech sa z nej
+            // počíta rovnako ako predtým; editovať sa v tomto režime nedá (minStep).
+            // ⚠️ PRI PLÁNE IDÚ DO `path` KOTVY, nie stopa. `finishTrail.path` je prichytená
+            // čiara (stovky bodov po chodníkoch) — ako kotvy by dala stovky uzlov a trasa by
+            // sa nedala rozumne opraviť. `planPath` drží kliky, ktoré ju vyrobili.
+            path: (fromPlan ? finishTrail.planPath : undefined) ?? finishTrail.path ?? [],
+            snapPath: finishTrail.path ?? [],
+            snapped: true,
+          },
+    );
     if (finishTrail.country) setCountryOverride(finishTrail.country);
     // ⚠️ PLÁN NESIE DÁTUM, KEDY SA MALO ÍSŤ — nie kedy sa išlo. Plánovalo sa na sobotu,
     // šlo sa v nedeľu, a zápis má hovoriť pravdu o tom, čo sa stalo. Preto DNEŠOK; človek

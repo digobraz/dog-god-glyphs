@@ -1041,7 +1041,26 @@ export default function PackTripArticle() {
             <button
               type="button"
               className="pta-actbtn pta-actbtn--ghost"
-              onClick={() => toggleWalked(trail.id)}
+              /**
+               * ⚠️ VLASTNÝ NEPREJDENÝ PLÁN IDE DO SPRIEVODCU, NIE DO POPUPU (2026-09-02).
+               * Mapa aj inline detail to tak robia od zavedenia `openWalkPlan()` — komentár
+               * pri nej hovorí doslova, že NAHRÁDZA `toggleWalked()` pre vlastný neprejdený
+               * plán, lebo ten otvára len malý popup na náročnosť a ruch a o značkách,
+               * fotkách, príbehu ani o oprave trasy a dátumu nevie. Článok tú podmienku
+               * nemal, takže tá istá veta „Označiť ako prejdené" viedla na dvoch obrazovkách
+               * do dvoch rôznych tokov a z jedného z nich sa výlet zapísal chudobnejší.
+               * `?walk=` číta `PackMap` a otvára presne `openWalkPlan()` — tú istú cestu
+               * používa aj karta „ideš dnes?" na `/pack` (`PlanAskCard`).
+               * ⚠️ Vlastníctvo sa testuje ÚLOŽISKOM (`canEdit`), nie menom autora — viď
+               * zdôvodnenie pri `canEdit` vyššie.
+               */
+              onClick={() => {
+                if (trail.id.startsWith('plan-') && canEdit && !walkedIds.has(trail.id)) {
+                  navigate(`/pack/map?walk=${encodeURIComponent(trail.id)}`);
+                  return;
+                }
+                toggleWalked(trail.id);
+              }}
             >
               <span className="pta-actbtn-icon">🐾</span>
               <span className="pta-actbtn-label">{t('pack.trip.markWalked')}</span>
