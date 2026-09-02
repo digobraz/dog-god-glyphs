@@ -7,7 +7,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { HieroglyphBg } from '@/components/pack/PackLayout';
-import { ICON, RatingPaws, DiffMark, GOLD_ICON_FILTER } from '@/components/pack/tripShared';
+import { ICON, RatingPaws, DiffMark, GOLD_ICON_FILTER, hasRouteMetrics } from '@/components/pack/tripShared';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import {
   DIFFICULTIES, CROWDS, CROWD_EMOJI, VOLUME_THRESHOLD, SK_GEO, HAZARDS, HAZARD_EMOJI,
@@ -1217,6 +1217,20 @@ function pointsLegend(): Array<[string, string]> {
 // z MySlovakiaDashboard nech ho vie rendrovať aj /pack/map/triplist ako druhá karta. Žiadny
 // modal chrome (fixed overlay, close, tabs) ani wishlist — ten splynul do TRIPLISTU. Konzument
 // dodá <style>{COMMUNITY_CSS}</style>. completion sa počíta interne z walkedTrails. ──
+/**
+ * ── RIADOK PREJDENÉHO VÝLETU — OKRUH TU KM TIEŽ NEMÁ (2026-09-02) ─────────────────────────
+ * Tri riadky nižšie písali `{region} · {km} km` na všetko, takže návšteva nakreslená klikom
+ * do mapy hlásila „0.0 km" aj v tripliste. Je to tá istá lož ako na karte, v článku a na mape,
+ * len na piatom povrchu — a triplist je pritom jedna z troch stránok, ktoré člen dnes vidí.
+ * Región ostáva: ten okruh MÁ. Vypadne len číslo, ktoré neexistuje, aj s oddeľovačom pred ním
+ * (osamotená bodka na konci riadku vyzerá ako chýbajúci text).
+ */
+const walkedMeta = (tr: HeroTrail, withRegion: boolean): string => {
+  const km = hasRouteMetrics(tr) ? `${tr.km} km` : '';
+  const region = withRegion ? tr.region : '';
+  return [region, km].filter(Boolean).join(' · ');
+};
+
 export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }: {
   walkedTrails: HeroTrail[];
   walkedKm: number;
@@ -1576,7 +1590,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
             {cTrails.map((tr) => (
               <div key={tr.id} className="comm-walkedrow" onClick={() => onOpenTrip(tr.id)}>
                 <span className="comm-walkedrow-name">{tr.name}</span>
-                <span className="comm-walkedrow-meta">{tr.region} · {tr.km} km</span>
+                <span className="comm-walkedrow-meta">{walkedMeta(tr, true)}</span>
               </div>
             ))}
             <div className="comm-unit-addrow" style={{ marginTop: 12 }} onClick={() => onAddTrip()}>＋ Add a trip in {cName}</div>
@@ -1669,7 +1683,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
                       matches.map((tr) => (
                         <div key={tr.id} className="comm-walkedrow" onClick={() => onOpenTrip(tr.id)} style={{ marginBottom: 8 }}>
                           <span className="comm-walkedrow-name">{tr.name}</span>
-                          <span className="comm-walkedrow-meta">· {tr.km} km</span>
+                          <span className="comm-walkedrow-meta">{walkedMeta(tr, false) && `· ${walkedMeta(tr, false)}`}</span>
                         </div>
                       ))
                     ) : (
@@ -1738,7 +1752,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
           {walkedOpen && cTrails.map((tr) => (
             <div key={tr.id} className="comm-walkedrow" onClick={() => onOpenTrip(tr.id)}>
               <span className="comm-walkedrow-name">{tr.name}</span>
-              <span className="comm-walkedrow-meta">{tr.region} · {tr.km} km</span>
+              <span className="comm-walkedrow-meta">{walkedMeta(tr, true)}</span>
             </div>
           ))}
         </>

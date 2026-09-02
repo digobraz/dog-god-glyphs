@@ -97,6 +97,31 @@ export const isWaterTrail = (tr: { acts?: string[]; tags?: string[]; path?: unkn
   return !hasRoute && !!tr.tags?.some((tag) => WATER_TAGS.has(tag.toLowerCase()));
 };
 
+/**
+ * ── MÁ VÝLET NAKRESLENÚ ČIARU, Z KTOREJ SA DÁ MERAŤ? (2026-08-31) ─────────────────────────
+ *
+ * Okruh (geometria `area` — klik do mapy, nie ťah) nemá kilometre ani prevýšenie. Nie sú to
+ * CHÝBAJÚCE údaje, ony pri okruhu NEEXISTUJÚ: `km: "0.0"` je poctivý zápis. Appka to napriek
+ * tomu kreslila ako pilulku `↔ 0.0 km` a k nej vymyslenú náročnosť.
+ *
+ * Do 31. 8. to trafilo len mŕtve kategórie; odvtedy je okruh POVINNÝ tvar kategórie VISIT
+ * (`tripCategories.ts`: `visit.geometry = { default:'area', allowed:['area'] }`), teda tretinu
+ * všetkých nových výletov.
+ *
+ * 🔑 PÝTA SA NA GEOMETRIU, NIE NA `km`. „0.0" vie mať aj rozbitý zápis trasy a vtedy je
+ *    správne mlčať tiež — číslo bez čiary nemá odkiaľ vzniknúť.
+ *
+ * ⚠️ NIE JE TO `isWaterTrail` A NEZLUČUJE SA S NÍM. Ten hovorí o inej veci (vodná plocha ako
+ *    MIESTO) a je len zhodou okolností takmer podmnožinou: paddleboard je voda SO stopou,
+ *    teda `hasRouteMetrics` true a `isWaterTrail` tiež true. Kde má platiť oboje (náročnosť
+ *    v článku), musia stáť obe podmienky vedľa seba.
+ *
+ * ⚠️ Keď vráti `false`, pilulka sa NEKRESLÍ CELÁ (km aj náročnosť) — nie „km bez čísla".
+ *    Prázdna pilulka je horšia než žiadna. Ruch (`crowd`) ostáva: ten sa vypĺňa vo všetkých
+ *    kategóriách.
+ */
+export const hasRouteMetrics = (tr: { path?: unknown[] }): boolean => (tr.path?.length ?? 0) > 1;
+
 // SLOVENSKÉ SKLOŇOVANIE POČTU — 1 výlet · 2–4 výlety · 5+ výletov.
 // Prečo tu a nie v každom komponente zvlášť: kópia tejto funkcie žila v `TripSpotlight.tsx`
 // a mapa ju nemala vôbec, takže sa na nej písalo „1 výletov" (Matej 2026-08-20).

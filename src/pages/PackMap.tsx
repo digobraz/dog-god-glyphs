@@ -86,7 +86,7 @@ import ainubisFace from '@/assets/ainubis-head.png';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import {
   ICON, authorOf, REGION_OF, diffMarkShape, DiffMark, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
-  DIFF_COLOR, TRAIL_LINE, TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, tripShareText, pluralKey,
+  DIFF_COLOR, TRAIL_LINE, TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, hasRouteMetrics, tripShareText, pluralKey,
   readLocalTrails, writeLocalTrails, updateLocalTrail, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
   tripPath, tripPathById, tripText, visibleLocalTrails, tripDraftMissing, memberTrailIds, isOdyssey } from '@/components/pack/tripShared';
@@ -449,6 +449,25 @@ const JOURNEY_KM_ZOOM = { min: 9, max: 11 };
 const pointIsPill = (p: MapPoint, zoom: number) =>
   p.journey ? zoom >= JOURNEY_KM_ZOOM.min && zoom <= JOURNEY_KM_ZOOM.max : mapTier(zoom) === 2;
 
+/**
+ * ── ČO STOJÍ V PILULKE — ŠTVRTÝ POVRCH TEJ ISTEJ LŽI (2026-09-02) ─────────────────────────
+ * Okruh nemá kilometre (`hasRouteMetrics`), a predsa tu stálo `${p.tr.km} km` pre všetko,
+ * čo nie je voda ⇒ návšteva nakreslená klikom do mapy hlásila **„0.0 km" priamo na mape**.
+ * Zadanie z 31. 8. inventarizovalo kartu, článok a reveal; toto miesto v ňom nebolo, hoci je
+ * z nich najviditeľnejšie — mapa je hlavná obrazovka. Odkedy je okruh povinný tvar kategórie
+ * VISIT, týka sa to tretiny nových výletov.
+ *
+ * Náhrada nie je nový nápad: vodná plocha tu ukazuje NÁZOV už dávno a z toho istého dôvodu
+ * (miesto sa nemeria, miesto sa volá). Okruh je tiež miesto, tak dostáva to isté.
+ *
+ * ⚠️ ŠÍRKA SA MUSÍ MERAŤ NA TOM ISTOM TEXTE. Výpočet prekážok nižšie meral `${km} km` aj
+ *    tam, kde sa kreslil názov — pri vodných plochách teda počítal s cudzou šírkou (napr.
+ *    „Liptovská Mara" 14 znakov proti „0.0 km" 6) a zhluky ustupovali nesprávnemu obdĺžniku.
+ *    Preto to má jeden zdroj, nie dva zápisy toho istého.
+ */
+const pillLabel = (p: MapPoint): string =>
+  p.water || !hasRouteMetrics(p.tr) ? p.tr.name : `${p.tr.km} km`;
+
 // vlnky vodnej plochy — rovnaká krivka ako pôvodný waterIcon() (Matej 2026-07-24: počet = veľkosť
 // plochy z OSM), teraz zdieľaná bodkou aj pilulkou namiesto vlastnej .trp-waterdot veľkosti.
 const waterWaves = (waves?: number): string => {
@@ -479,7 +498,7 @@ const pointTypeClass = (p: MapPoint): string => (p.journey ? '--journey' : p.wat
 const pointIcon = (p: MapPoint, hot: boolean, zoom: number) => {
   const type = pointTypeClass(p);
   if (pointIsPill(p, zoom)) {
-    const label = p.water ? p.tr.name : `${p.tr.km} km`;
+    const label = pillLabel(p);
     return L.divIcon({
       className: 'trp-pinwrap',
       html: `<div class="trp-pill${type ? ` trp-pill${type}` : ''}${hot ? ' hot' : ''}">${pointPicto(p)}<span>${label}</span></div>`,
@@ -924,7 +943,7 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
     // (.trp-pill má top:-100% → sedí NAD bodom, preto je stred obdĺžnika o PILL_H/2 vyššie)
     const pillBoxes = pillPts.map((p) => {
       const pt = map.latLngToContainerPoint([p.lat, p.lon]);
-      const w = `${p.tr.km} km`.length * PILL_CHAR_PX + PILL_PAD_PX;
+      const w = pillLabel(p).length * PILL_CHAR_PX + PILL_PAD_PX;
       return { cx: pt.x, cy: pt.y - PILL_H / 2, hw: w / 2 + PILL_GAP, hh: PILL_H / 2 + PILL_GAP };
     });
     // Bublina je súhrn, nie konkrétna trasa — posunúť ju o pár pixelov je prijateľné.
