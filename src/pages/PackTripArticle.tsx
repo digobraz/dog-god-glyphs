@@ -70,30 +70,17 @@ import { upsertMyTrip } from '@/components/pack/triplist/triplist'; // TRIPLIST 
 import { useOpenTrips, useTripEventTravel } from '@/components/pack/triplist/useOpenTrips';
 import { useTripParties, partyKey } from '@/components/pack/triplist/useTripParty';
 import { PartyMemberCard, PARTY_CARD_CSS } from '@/components/pack/triplist/PartyMemberCard';
-import { ACT_TAG_EMOJI, ACT_TO_CATEGORY, categoriesOf, chipsOf } from '@/components/pack/tripCategories';
+import { ACT_TAG_EMOJI, ACT_TO_CATEGORY, TAG_EMOJI, TAG_I18N, categoriesOf, chipsOf } from '@/components/pack/tripCategories';
 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
 const T = PACK_THEME;
 
-// bod 2 (iterácia 14): rovnaké emoji mapovanie ako inline detail v PackMap.tsx (Aktivita/
-// Tag vocabulary) — LOKÁLNA kópia, lebo zadanie scopuje bod 2 výhradne na tento súbor
-// (PackMap.tsx sa v tejto iterácii nemení). Ak sa emoji sada niekedy zmení, treba upraviť
-// na oboch miestach. Rovnaká poznámka ako PackMap: tr.acts[] nesie dátové id 'hike' (nie
-// 'hiking'), takže ACT_EMOJI['hike'] je undefined — zdedený stav z inline detailu, flag v reporte.
-//
-// ✅ OPRAVENÉ 2026-08-03 (audit #45): kľúče sú odteraz TIE, ktoré reálne sú v dátach.
-// Zmerané na `heroTrails.generated.ts`: acts = hike 55× · picnic 18 · overnight 7 ·
-// skating 7 · paddleboard 7 · explore 1; tags = Forest 55 · View 49 · Meadow 34 ·
-// River 18 · Sunset 12 · Mountains 12 · Lake 8. Staré kľúče `hiking` a `Lake/Reservoir`
-// nemali v dátach ani jeden výskyt, takže tie dve emoji sa nikdy nezobrazili na
-// 55, resp. 8 výletoch. `Asphalt` v tagoch neexistuje (je to hodnota `surface`) —
-// nechávam ho tu len ako neškodnú rezervu.
-// ⚠️ Dorovnané s `ACT_EMOJI`/`TAG_EMOJI` v `PackMap.tsx` (matrica 24. 8. 2026). Kľúče sú tu
-// DATASETOVÉ (`hike`, `Lake`), emoji musia byť tie isté — článok a filter ukazujú ten istý výlet.
-// ⚠️ ŽIADNA ŠTVRTÁ KÓPIA (2026-08-27). Do 27. 8. tu chýbalo `journey` úplne — magistrála
-// teda v článku ostala bez emoji, hoci ho filter aj formulár mali. Zoznam je jeden:
-// `components/pack/tripCategories.ts`.
+// ALIAS, NIE KÓPIA. Zoznam je jeden — `components/pack/tripCategories.ts`. Meno tu ostáva
+// kvôli volajúcim nižšie. Predtým tu stála vlastná tabuľka a chýbalo v nej `journey`, takže
+// magistrála bola v článku bez emoji, hoci ho filter aj formulár mali (opravené 27. 8. 2026).
+// ⚠️ `tr.acts[]` nesie DATASETOVÉ id (`hike`), slovník kľúčuje na kategórii (`hiking`) —
+// preklad medzi nimi robí `ACT_ID_TO_UI` nižšie, nie tretia sada názvov.
 const ACT_EMOJI: Record<string, string> = ACT_TAG_EMOJI;
 // Dataset nesie `hike`, slovník kľúč `hiking` (ten používa filter aj formulár) — jeden riadok
 // prekladu medzi nimi je lacnejší než tretí názov tej istej aktivity.
@@ -101,20 +88,11 @@ const ACT_EMOJI: Record<string, string> = ACT_TAG_EMOJI;
 // v datasete ďalej a preložia sa cez kategóriu, do ktorej patria — nový názov teda dostanú
 // aj výlety, ktoré sa nikdy nemigrovali.
 const ACT_ID_TO_UI = (a: string): string => ACT_TO_CATEGORY[a] ?? a;
-const TAG_I18N_KEY: Record<string, string> = {
-  Mountains: 'pack.map.tagLabel.mountains', Forest: 'pack.map.tagLabel.forest',
-  'Lake/Reservoir': 'pack.map.tagLabel.lake', River: 'pack.map.tagLabel.river',
-  View: 'pack.map.tagLabel.view', Meadow: 'pack.map.tagLabel.meadow', Sunset: 'pack.map.tagLabel.sunset',
-  Shade: 'pack.map.tagLabel.shade', 'No shade': 'pack.map.tagLabel.noshade',
-  'Forest path': 'pack.map.surfaceLabel.forest', Asphalt: 'pack.map.surfaceLabel.asphalt',
-  Rocky: 'pack.map.surfaceLabel.rocky',
-};
-const TAG_EMOJI: Record<string, string> = {
-  Mountains: '🏔️', Forest: '🌲', Lake: '🔵', River: '🌀', View: '👁️', Meadow: '🌼', Sunset: '🌅', Asphalt: '🛣️',
-  // Tieň (Matej 2026-08-24) — v dátach zatiaľ nula výskytov, chip sa objaví až prvému
-  // výletu, ktorý ho dostane. Kľúč je `label` z `TAG_OPTIONS`, nie `id`.
-  Shade: '⛱️', 'No shade': '🌡️',
-};
+// ⚠️ ŽIADNA DRUHÁ TABUĽKA TAGOV (2026-09-02). `TAG_EMOJI` aj slovník tagov stáli tu aj
+// v `PackMap.tsx` a rozišli sa — tunajšia kópia mala `Lake`, mapa `Lake/Reservoir`, a oba
+// povrchy (`Forest path`, `Rocky`) tu chýbali úplne. Zdroj je `tripCategories.ts` a pozná
+// obe sady kľúčov: surové dátové (`Lake`) aj UI (`Lake/Reservoir`).
+const TAG_I18N_KEY = TAG_I18N;
 
 // bod 6 (iterácia 13): mobile route mapa sa renderovala sčasti čierna — Leaflet meria
 // veľkosť pri mounte, kedy layout (hero/statrow nad ňou) ešte nemusí byť dokončený. Rovnaký

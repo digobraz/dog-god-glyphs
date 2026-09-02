@@ -154,7 +154,7 @@ import {
 // krok 5) — dovtedy sa event po uložení nikde nezobrazoval (formulár aj store boli hotové,
 // panel ostal viazaný len na TRIP vetvu).
 import { EventsPanel } from '@/components/pack/events/EventsPanel';
-import { TRIP_CATEGORIES, ACT_TAG_EMOJI, ACT_TO_CATEGORY, CHIP_BY_ID, categoriesOf, chipsOf, isInCategory, primaryCategoryOf, type TripCategoryId } from '@/components/pack/tripCategories';
+import { TRIP_CATEGORIES, ACT_TAG_EMOJI, ACT_TO_CATEGORY, CHIP_BY_ID, DATA_TAG_TO_UI, TAG_EMOJI, TAG_I18N, categoriesOf, chipsOf, isInCategory, primaryCategoryOf, type TripCategoryId } from '@/components/pack/tripCategories';
 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
@@ -325,7 +325,10 @@ const TRIP_ACTIVITIES: { id: string; label: string }[] =
 //    túra s piknikom je na karte HIKE, ale pod filtrom VISIT sa MUSÍ nájsť. Bez toho by
 //    na 81 seed výletoch ostal VISIT chudobný — 19 piknikov a 7 z 8 nocľahov leží na výlete,
 //    ktorý je zároveň túra. Prečo tam tá karta je, povie dvojica odznakov v `renderTripCard`.
-const ACT_EMOJI: Record<string, string> = { ...ACT_TAG_EMOJI, ...Object.fromEntries(TRIP_CATEGORIES.map((c) => [c.id, c.emoji])) };
+// ⚠️ ALIAS, NIE DRUHÁ TABUĽKA (2026-09-02). `ACT_TAG_EMOJI` kategórie už spreaduje samo,
+// takže tunajší rozšírený zápis dával presne tú istú mapu — len budil dojem, že sa niekde
+// dopĺňa. Meno ostáva kvôli volajúcim nižšie.
+const ACT_EMOJI: Record<string, string> = ACT_TAG_EMOJI;
 // Čo sa zapíše novému výletu do `tr.acts` — staré hodnoty ('picnic', 'skating'…) v datasete
 // ostávajú a kategórie ich čítajú ďalej (`TripCategory.acts`), nemigruje sa nič.
 const ACT_DATA_ID: Record<string, string> = Object.fromEntries(TRIP_CATEGORIES.map((c) => [c.id, c.dataId]));
@@ -365,27 +368,9 @@ const TAG_VOCAB = [
 // štvrtý povrch, objaví sa v rozbaľovačke sám.
 const SURFACE_TAGS = ['Forest path', 'Asphalt', 'Rocky'] as const;
 const IS_SURFACE = new Set<string>(SURFACE_TAGS);
-// Matrica značiek 24. 8. 2026: 🏞️→🔵, 💧→🌀, 🌄→👁️, 🥾→👣. Dôvod je kolízny, nie estetický —
-// 💧 nesie prameň v POI, 🥾 preskočilo na turistiku v `ACT_EMOJI` a 👣 sa uvoľnilo tým, že
-// návštevnosť „Rušno" prešla na 🚨.
-const TAG_EMOJI: Record<string, string> = {
-  Mountains: '🏔️', Forest: '🌲', 'Lake/Reservoir': '🔵', River: '🌀', View: '👁️', Meadow: '🌼', Sunset: '🌅',
-  Shade: '⛱️', 'No shade': '🌡️',
-  'Forest path': '👣', Asphalt: '🛣️', Rocky: '🪨',
-};
-// ⚠️ HODNOTA ≠ TEXT NA OBRAZOVKE (2026-08-23). `TAG_VOCAB` sú dátové hodnoty z `tr.tags`
-// a `tr.surface` — filtruje sa podľa nich, takže sa NEPREKLADAJÚ. Chip však človek číta,
-// a v slovenskom paneli FILTRE stálo „Mountains / Forest / Lake/Reservoir". Slovník je
-// spoločný s formulárom výletu (`pack.map.tagLabel.*`, `surfaceLabel.*`), aby tá istá vec
-// nemala na dvoch obrazovkách dva názvy. Chýbajúci kľúč padá na pôvodnú hodnotu.
-const TAG_I18N: Record<string, string> = {
-  Mountains: 'pack.map.tagLabel.mountains', Forest: 'pack.map.tagLabel.forest',
-  'Lake/Reservoir': 'pack.map.tagLabel.lake', River: 'pack.map.tagLabel.river',
-  View: 'pack.map.tagLabel.view', Meadow: 'pack.map.tagLabel.meadow', Sunset: 'pack.map.tagLabel.sunset',
-  Shade: 'pack.map.tagLabel.shade', 'No shade': 'pack.map.tagLabel.noshade',
-  'Forest path': 'pack.map.surfaceLabel.forest', Asphalt: 'pack.map.surfaceLabel.asphalt',
-  Rocky: 'pack.map.surfaceLabel.rocky',
-};
+// ⚠️ `TAG_EMOJI` a `TAG_I18N` sa presťahovali do `tripCategories.ts` (2026-09-02). Stáli tu
+// aj v `PackTripArticle.tsx` a rozišli sa: tunajšia kópia nepoznala dátový tag `Lake`, takže
+// 13 z 81 výletov malo na karte chip bez emoji a s nepreloženým anglickým slovom.
 
 // Per-aktivita placeholder fotky (Cloudinary pack/placeholders, webp). Kľúč = ACT_DATA_ID
 // (hike/journey/picnic/overnight/skating/paddleboard). Použité pre tripy bez vlastnej fotky
@@ -414,15 +399,8 @@ const EVENT_PIN = (kind: EventKind, hot: boolean) => L.divIcon({
   className: 'mk-wrap',
   html: circleMarkHtml(eventEmoji(kind), EVENT_RIM, hot ? ' mk-circle--hot' : ''),
 });
-const DATA_TAG_TO_UI: Record<string, string> = {
-  Mountains: 'Mountains', Forest: 'Forest', View: 'View', Meadow: 'Meadow', Sunset: 'Sunset',
-  Shade: 'Shade', 'No shade': 'No shade',
-  Lake: 'Lake/Reservoir', Reservoir: 'Lake/Reservoir',
-  Stream: 'River', River: 'River',
-  // prostredie vodných tripov — 1:1, hodnoty z nahadzovača sa nepremenúvajú
-  // ('In the middle of nature'/'In the middle of nowhere' zámerne bez mapovania —
-  // Matej 2026-07-26 oba chipy zrušil; 'Embankment' zrušil 2026-07-27)
-};
+// `DATA_TAG_TO_UI` sa presťahovalo do `tripCategories.ts` — odvodzujú sa z neho aliasy
+// `TAG_EMOJI`/`TAG_I18N` pre surové dátové kľúče, takže musí stáť pri nich.
 // tr.surface[] → chip. Všetky tri hodnoty z SURFACE_VOCAB (nahadzovač) majú teraz svoj chip,
 // aby sa dalo filtrovať podľa toho, čo sa dá zadať (F1 2026-07-24). `forest` už NEsplýva so
 // scenérickým tagom `Forest` — sú to dve rôzne veci (les okolo vs. lesná cesta pod nohami).
@@ -5524,7 +5502,11 @@ export default function PackMap() {
             })),
             // 'In the middle of nature'/'nowhere' zrušené (Matej 2026-07-26) — filter aj tu, nielen
             // v TAG_VOCAB, lebo dtChips číta dt.tags priamo (surová dátová hodnota, nie cez TAG_VOCAB).
-            ...(dt.tags ?? []).filter((tg) => tg !== 'In the middle of nature' && tg !== 'In the middle of nowhere').map((tg) => ({ key: `t:${tg}`, label: tg, emoji: TAG_EMOJI[tg] ?? '' })),
+            // ⚠️ CHIP SA PREKLADÁ, HODNOTA NIE (2026-09-02). Do dnes tu stálo `label: tg`, takže
+            // karta na mape ukazovala slovenskému členovi „Forest / Lake", kým ten istý výlet mal
+            // v článku „Les / Jazero". Slovník je ten istý, aký používa panel FILTRE — chýbajúci
+            // kľúč padá na pôvodnú dátovú hodnotu.
+            ...(dt.tags ?? []).filter((tg) => tg !== 'In the middle of nature' && tg !== 'In the middle of nowhere').map((tg) => ({ key: `t:${tg}`, label: TAG_I18N[tg] ? t(TAG_I18N[tg]) : tg, emoji: TAG_EMOJI[tg] ?? '' })),
           ];
           const dtAgg = crowdAggregate(dt, votes[dt.id]);
           const isUnwalkedPlan = dt.id.startsWith('plan-') && !walkedIds.has(dt.id);

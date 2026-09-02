@@ -323,3 +323,60 @@ export const ACT_TAG_EMOJI: Record<string, string> = {
   ...Object.fromEntries(TRIP_CATEGORIES.map((c) => [c.id, c.emoji])),
   ...Object.fromEntries(Object.values(CHIP_BY_ID).map((ch) => [ch.id, ch.emoji])),
 };
+
+// ── TAGY: JEDEN ZDROJ PRE EMOJI AJ SLOVNÍK (2026-09-02) ─────────────────────────────────────
+// Do 2. 9. stáli `TAG_EMOJI` a slovník tagov DVAKRÁT — v `PackMap.tsx` a v `PackTripArticle.tsx`
+// — a už sa rozišli: článok mal `Lake`, mapa `Lake/Reservoir`, a článku chýbali oba povrchy.
+// Následok bol vidieť: dataset nesie tag `Lake` (13 z 81 výletov), takže na karte výletu na
+// mape stál chip BEZ emoji a s nepreloženým anglickým slovom, kým ten istý výlet mal v článku
+// 🔵 správne. Preklad tagov sa preto nedal spraviť raz — a to je blokátor E5.
+//
+// ⚠️ DVE SADY KĽÚČOV, JEDNA TABUĽKA. `tr.tags[]` nesie SUROVÉ dátové hodnoty (`Lake`, `Stream`),
+// filtre a chipy `TAG_VOCAB` pracujú s UI hodnotami (`Lake/Reservoir`, `River`). Karta aj článok
+// čítajú `tr.tags` PRIAMO, takže tabuľka musí poznať obe — ale druhý ručný zoznam by sa rozišiel
+// rovnako ako ten, ktorý toto nahrádza. Aliasy sa preto DOPOČÍTAVAJÚ z `DATA_TAG_TO_UI` nižšie.
+// ⚠️ Povrch (`tr.surface`) tu zámerne nie je: jeho dátové hodnoty sú malým písmom (`forest`)
+// a na emoji sa nikde nepýtajú — do chipov ide až cez `SURFACE_TAG_MAP` ako UI hodnota.
+
+/** Surová hodnota z `tr.tags[]` → hodnota vo `TAG_VOCAB`. Presunuté z `PackMap.tsx` 2026-09-02,
+ *  aby sa z nej dali odvodiť aliasy tabuliek nižšie. Hodnoty bez mapovania (napr.
+ *  'In the middle of nature') sa zámerne nezobrazujú ako chip a nefiltrujú — nefabrikuje sa
+ *  nový dátový tag, len sa neponúka chip preň. */
+export const DATA_TAG_TO_UI: Record<string, string> = {
+  Mountains: 'Mountains', Forest: 'Forest', View: 'View', Meadow: 'Meadow', Sunset: 'Sunset',
+  Shade: 'Shade', 'No shade': 'No shade',
+  Lake: 'Lake/Reservoir', Reservoir: 'Lake/Reservoir',
+  Stream: 'River', River: 'River',
+};
+
+/** Doplní tabuľke kľúčované UI hodnotami aj surové dátové kľúče, ktoré na ne mapujú. */
+function withDataTagAliases(byUi: Record<string, string>): Record<string, string> {
+  const out = { ...byUi };
+  for (const [raw, ui] of Object.entries(DATA_TAG_TO_UI)) {
+    if (out[raw] === undefined && byUi[ui] !== undefined) out[raw] = byUi[ui];
+  }
+  return out;
+}
+
+// Matrica značiek 24. 8. 2026: 🏞️→🔵, 💧→🌀, 🌄→👁️, 🥾→👣. Dôvod je kolízny, nie estetický —
+// 💧 nesie prameň v POI, 🥾 preskočilo na turistiku v `ACT_TAG_EMOJI` a 👣 sa uvoľnilo tým, že
+// návštevnosť „Rušno" prešla na 🚨.
+export const TAG_EMOJI: Record<string, string> = withDataTagAliases({
+  Mountains: '🏔️', Forest: '🌲', 'Lake/Reservoir': '🔵', River: '🌀', View: '👁️', Meadow: '🌼', Sunset: '🌅',
+  Shade: '⛱️', 'No shade': '🌡️',
+  'Forest path': '👣', Asphalt: '🛣️', Rocky: '🪨',
+});
+
+// ⚠️ HODNOTA ≠ TEXT NA OBRAZOVKE (2026-08-23). Tagy sú dátové hodnoty z `tr.tags` a `tr.surface`
+// — filtruje sa podľa nich, takže sa NEPREKLADAJÚ. Chip však človek číta, a v slovenskom paneli
+// FILTRE stálo „Mountains / Forest / Lake/Reservoir". Slovník je spoločný s formulárom výletu
+// (`pack.map.tagLabel.*`, `surfaceLabel.*`), aby tá istá vec nemala na dvoch obrazovkách dva
+// názvy. Chýbajúci kľúč padá na pôvodnú hodnotu.
+export const TAG_I18N: Record<string, string> = withDataTagAliases({
+  Mountains: 'pack.map.tagLabel.mountains', Forest: 'pack.map.tagLabel.forest',
+  'Lake/Reservoir': 'pack.map.tagLabel.lake', River: 'pack.map.tagLabel.river',
+  View: 'pack.map.tagLabel.view', Meadow: 'pack.map.tagLabel.meadow', Sunset: 'pack.map.tagLabel.sunset',
+  Shade: 'pack.map.tagLabel.shade', 'No shade': 'pack.map.tagLabel.noshade',
+  'Forest path': 'pack.map.surfaceLabel.forest', Asphalt: 'pack.map.surfaceLabel.asphalt',
+  Rocky: 'pack.map.surfaceLabel.rocky',
+});
