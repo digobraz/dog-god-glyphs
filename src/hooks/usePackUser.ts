@@ -97,12 +97,35 @@ export function usePackUser(userId: string | null): PackUserData {
       const bones = Number(meta.bones) || 0;
       const avatarUrl = (meta.avatar_url || meta.avatar || null) as string | null;
 
+      // ⚠️ LEN ZAPLATENÍ PSI A V PORADÍ PODĽA ČÍSLA (opravené 2026-09-02).
+      //
+      // Dovtedy tu nebol filter na `payment_status` a radilo sa podľa `created_at`. Obe
+      // veci boli zle a obe bolo VIDNO:
+      //
+      // · BEZ FILTRA sa do zoznamu dostal nedokončený `draft` — teda pes, za ktorého sa
+      //   nezaplatilo. Odmerané na LIVE 2. 9. 2026: **6 ľudí zo 56** malo v profile presne
+      //   jedného takého navyše, takže im `/pack/profile` písal „2 dogs" namiesto „1 dog"
+      //   a `/pack/dogs` vykreslil kartu psa **bez heroglyfu** — a práve pes bez glyfu
+      //   rozbíja rovnicu psieho bloku (meno sa nafúkne cez celý riadok). Filter teda
+      //   neodstraňuje len nesprávne číslo, ale aj spúšťač toho rozbitia.
+      //   Kánon: „Bez heroglyfu nie si DOGYPŤAN" — draft do svorky ešte nepatrí.
+      //
+      // · PODĽA `created_at` sa radilo v domnení, že je to to isté ako poradie vstupu do
+      //   svorky. **Nie je.** `created_at` je okamih, keď niekto ZAČAL vypĺňať formulár,
+      //   kdežto číslo prideľuje až platba (`seal_pack_number`). Kto psa vyplnil skôr, než
+      //   zaplatil, sa tým rozíde — a `dogs[0]` (z ktorého sa berie `ownerGender`) mu potom
+      //   ukazoval draft. Mapové značky radia podľa `pack_number` už dnes; toto je krok
+      //   k tomu, aby appka odpovedala na „koľký si" všade rovnako.
+      //
+      // Overené na LIVE: všetkých 72 zaplatených psov MÁ číslo (1–72, bez dier) a žiadny
+      // draft ani pending ho nemá — po filtri teda v radení nevzniknú NULL hodnoty.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: dogRows } = await (supabase as any)
         .from('dogs')
         .select('id, dog_name, cloudinary_main_url, selections, created_at, pack_number, heroglyph_png_url, owner_name')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: true }) as { data: PackDogFull[] | null };
+        .eq('payment_status', 'paid')
+        .order('pack_number', { ascending: true }) as { data: PackDogFull[] | null };
 
       if (!mounted) return;
 
