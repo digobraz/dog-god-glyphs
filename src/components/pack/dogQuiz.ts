@@ -68,6 +68,20 @@ export interface QuizStep {
   options?: readonly TaxonomyOption[];
   /** Návrhy pre `chips` — hodnoty sa prekladajú cez `pack.dogCard.opt.<value>`. */
   suggestions?: readonly string[];
+  /**
+   * Strop viacnásobného výberu (Matej odklepol 2026-09-02: „fakty bez stropu, povahové
+   * otázky so stropom 3").
+   *
+   * Deliaca čiara: pole, ktoré je FAKT o psovi (povely, alergie, diagnózy, krmivo, zákazy),
+   * strop NEMÁ — tam je dlhý zoznam pravdivá odpoveď a orezať ho znamená klamať v doklade.
+   * Pole, ktoré je VOĽBA charakteru (aký je, čoho sa bojí, čo ho spustí, čo ho teší), strop
+   * má: keď je pes „všetko naraz", z odpovede nevyjde profil, len šum.
+   *
+   * ⚠️ Platí len pre `multi` a `chips`; na ostatných druhoch je bez účinku.
+   * ⚠️ Strop NEOREZÁVA už uložené odpovede — pes, ktorý má zo staršieho behu štyri, si ich
+   *    nechá a odobrať sa dajú len ručne. Tichá orezávka by zmazala údaj bez slova.
+   */
+  maxPick?: number;
   unit?: string;
   /** Do ktorých pohľadov pole patrí. 'full' sa NEUVÁDZA — obsahuje všetko. */
   views: Exclude<PassView, 'full'>[];
@@ -291,26 +305,26 @@ export const QUIZ_SECTIONS: QuizSection[] = [
     emoji: '🐾', kind: 'quiz',
     steps: [
       {
-        field: 'temperament.tags', kind: 'chips', suggestions: TEMPERAMENT_CHIPS,
+        field: 'temperament.tags', kind: 'chips', maxPick: 3, suggestions: TEMPERAMENT_CHIPS,
         labelEN: 'What is your dog like?', i18n: 'pack.quiz.temperament.tags.q',
         rowEN: 'Character', rowI18n: 'pack.quiz.temperament.tags.row',
         views: ['sitter', 'story'],
       },
       {
-        field: 'temperament.fears', kind: 'chips', suggestions: DOG_FEAR_SUGGESTIONS,
+        field: 'temperament.fears', kind: 'chips', maxPick: 3, suggestions: DOG_FEAR_SUGGESTIONS,
         labelEN: 'What are they afraid of?', i18n: 'pack.quiz.temperament.fears.q',
         hintEN: 'A sitter needs to know before the first storm, not after.', hintI18n: 'pack.quiz.temperament.fears.hint',
         rowEN: 'Afraid of', rowI18n: 'pack.quiz.temperament.fears.row',
         views: ['sitter'],
       },
       {
-        field: 'temperament.triggers', kind: 'chips', suggestions: DOG_TRIGGER_SUGGESTIONS,
+        field: 'temperament.triggers', kind: 'chips', maxPick: 3, suggestions: DOG_TRIGGER_SUGGESTIONS,
         labelEN: 'What sets them off?', i18n: 'pack.quiz.temperament.triggers.q',
         rowEN: 'Triggers', rowI18n: 'pack.quiz.temperament.triggers.row',
         views: ['sitter'],
       },
       {
-        field: 'temperament.joys', kind: 'chips', suggestions: DOG_JOY_SUGGESTIONS,
+        field: 'temperament.joys', kind: 'chips', maxPick: 3, suggestions: DOG_JOY_SUGGESTIONS,
         labelEN: 'What makes them happy?', i18n: 'pack.quiz.temperament.joys.q',
         rowEN: 'Loves', rowI18n: 'pack.quiz.temperament.joys.row',
         // BONUS, nie diera: „čo ho teší" nikoho neohrozí. Spúšťače (`triggers`) a

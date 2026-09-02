@@ -2505,6 +2505,7 @@ export const en = {
   'pack.addTrip.step.next': "Next",
   'pack.addTrip.step.needRoute': "Draw the route first — or pick start and finish only.",
   'pack.addTrip.step.needPlace': "Mark the place on the map first — tap where you were.",
+  'pack.addTrip.step.needChip': "Pick one first — the rest of the form depends on it.",
   // ⚠️ KĽÚČ CHÝBAL ÚPLNE (nájdené 2026-08-26 pri prechode toku na PC). AInubis ho hlási po
   // NÁVRATE na nedokončený krok — teda presne vtedy, keď má človek niečo doplniť — a namiesto
   // vety mu ukazoval `pack.addTrip.step.stillMissing trasa na mape`. Volajúci je
@@ -3203,6 +3204,7 @@ export const en = {
   'pack.quiz.allSame': "Same for all",
   'pack.quiz.allSameHint': "pick once, applies to the whole pack",
   'pack.quiz.addOwn': "Add your own…",
+  'pack.quiz.maxPick': "Pick up to {n} — untick one to swap.",
   'pack.quiz.close': "Close",
   'pack.quiz.back': "Back",
   'pack.quiz.next': "Next",

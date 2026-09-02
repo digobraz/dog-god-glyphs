@@ -102,7 +102,7 @@ import { packStorage } from '@/lib/packStore';
 import {
   COMMUNITY_CSS, BigRating, PhotoMetaPills, HazardTags, WalkedPopup,
   EventsView,
-  type WalkedInput, type WalkReward,
+  type WalkedInput, type WalkReward, type Companion,
 } from '@/components/pack/packCommunityUI';
 import { PointsPill, POINTS_PILL_CSS } from '@/components/pack/PointsPill';
 import { deletePackTrip } from '@/lib/packStore';
@@ -4640,11 +4640,10 @@ export default function PackMap() {
 
     // ⚠️ ÚDAJE IDÚ PO KUSOCH, nie ako veta (Matej 28. 8. 2026 — reveal ich kreslí do chipov).
     // Veta sa skladá naďalej: nesie ju scéna level-upu, kde chipy nie sú.
-    const stats = [
+    const stats = revealStats(trail, [
       trail.km && Number(trail.km) > 0 ? { value: String(trail.km), unit: 'km' } : null,
       draft.ascentM ? { value: String(draft.ascentM), unit: 'm ↑' } : null,
-      revealPlaceStat(trail),
-    ].filter(Boolean) as TripStat[];
+    ], draft.crew);
     const meta = stats.map((x) => [x.value, x.unit].filter(Boolean).join(' ')).join(' · ');
 
     setReveal({
@@ -4670,14 +4669,82 @@ export default function PackMap() {
    * preklep, nie ako miesto.
    *
    * Pohorie sa lokálnemu výletu doplní až po schválení (`mountains`), takže kým ho nemá,
-   * je správne NEUKÁZAŤ NIČ: chip s menovkou miesta je nepovinný a prázdny rad sa nekreslí.
-   * Rozlišuje sa dĺžkou — kód má jeden znak, názov pohoria vždy viac.
+   * niesol chip prázdno. Rozlišuje sa dĺžkou — kód má jeden znak, názov pohoria vždy viac.
+   *
+   * ✅ KÓD SA UŽ NEZAHADZUJE, VYPÍŠE SA SLOVOM (Matej 31. 8. 2026). Čerstvo zapísaný okruh
+   * tak nemá v odmene o mieste ani slovo, hoci polovicu Slovenska vieme. Slová sa NEVYMÝŠĽAJÚ
+   * — berú sa z `pack.map.macroRegion.*`, teda z toho istého slovníka, akým hovorí druhý
+   * riadok karty („Malé Karpaty · Západ"). Dva rôzne názvy pre tú istú polovicu krajiny by
+   * sa rozišli pri prvej úprave prekladu.
    */
+  const MACRO_BY_CODE: Record<string, 'West' | 'Center' | 'East'> = { W: 'West', C: 'Center', E: 'East' };
   const revealPlaceStat = (trail: HeroTrail): TripStat | null => {
     const mountains = (trail as HeroTrail & { mountains?: string }).mountains;
     if (mountains) return { value: mountains };
     const region = trail.region ?? '';
-    return region.length > 2 ? { value: region } : null;
+    if (region.length > 2) return { value: region };
+    const macro = MACRO_BY_CODE[region];
+    return macro ? { value: t(`pack.map.macroRegion.${macro}`) } : null;
+  };
+
+  /**
+   * ── ČO UKÁŽE REVEAL PRI OKRUHU (Matej 31. 8. 2026: „reveal podla teba je ok") ──────────
+   * Okruh nemá km ani prevýšenie (`hasRouteMetrics`), takže reveal ostával s jedinou
+   * pilulkou — často aj bez nej, teda prázdny moment tam, kde má byť odmena. Dvojicu
+   * „km · prevýšenie" nahrádza REGIÓN · CHIPY · S KÝM; pilulka miesta ostáva, aká bola.
+   *
+   * ⚠️ TRASA SI SVOJE PILULKY DRŽÍ. Toto je vetva pre okruh, nie prepis revealu.
+   */
+  const revealStats = (trail: HeroTrail, route: Array<TripStat | null>, crew?: Companion[]): TripStat[] => {
+    const list: Array<TripStat | null> = hasRouteMetrics(trail)
+      ? [...route, revealPlaceStat(trail)]
+      : [revealCategoryStat(trail), revealChipStat(trail), revealPlaceStat(trail), revealCrewStat(crew)];
+    return list.filter(Boolean) as TripStat[];
+  };
+
+  /**
+   * -- S KYM (Matej odklepol 2. 9. 2026) -------------------------------------------------
+   * Schvalena trojica okruhu bola *region - chipy - s kym*; postavene boli len prve dve --
+   * pilulka o posadke chybala aj s prekladmi. Matejova volba: doplnit, ale LEN KED tam
+   * s tebou naozaj niekto bol -- pri solo vylete riadok nie je vobec, nie prazdne miesto.
+   *
+   * WARN: CITA SA POSADKA Z FORMULARA, NIE `trail.dogs`. Do trasy sa uklada len POCET psov,
+   *   takze mena by sa z nej ziskat nedali -- a pocet sam o sebe na otazku "s kym" neodpoveda.
+   * WARN: VLASTNY PES SA NERATA. Sprievodca ho do posadky nasadi sam (`crewSeededRef`
+   *   v AddTripLog), takze by "s kym" svietilo uplne kazdemu, aj tomu, kto siel sam.
+   *   Rozlisuje ho `sub === 'your pack'` -- tu istu menovku mu dava seed.
+   */
+  const revealCrewStat = (crew?: Companion[]): TripStat | null => {
+    const others = (crew ?? []).filter((c) => c.sub !== 'your pack');
+    if (others.length === 0) return null;
+    const names = others.slice(0, 2).map((c) => c.name).join(', ');
+    const rest = others.length - Math.min(2, others.length);
+    return { value: rest > 0 ? `${names} +${rest}` : names };
+  };
+
+  /**
+   * ČO TO BOL ZA VÝLET — tá istá dvojica ako odznaky na karte: kategória (čo výlet JE) plus
+   * jeden chip (čo je to za miesto). Kategória je vždy, chip len keď ho človek vybral.
+   */
+  const revealCategoryStat = (trail: HeroTrail): TripStat => {
+    const c = primaryCategoryOf(trail.acts);
+    return { value: `${ACT_EMOJI[c] ?? ''} ${t(`pack.map.activityLabel.${c}`)}`.trim() };
+  };
+
+  /**
+   * ⚠️ JEDEN CHIP, NIE VŠETKY (Matej 31. 8. 2026: „ten zápis bude tam len pils ktorý sa vyberie
+   * nie všetky"). Reveal vysypával celý štvrtý krok — pri štyroch chipoch z toho bol zoznam
+   * toho, čo človek práve naklikal, nie odmena. Berie sa PRVÝ vybraný, teda ten, ktorý stojí
+   * najbližšie ku kategórii v `acts`.
+   * `chipsOf()` prepustí len skutočné chipy — staré `picnic`/`overnight` do kategórie patria,
+   * ale vlastný preklad nikdy nemali.
+   */
+  const revealChipStat = (trail: HeroTrail): TripStat | null => {
+    const ch = chipsOf(trail.acts)[0];
+    if (!ch) return null;
+    const k = `pack.map.chipLabel.${ch.id}`;
+    const lbl = t(k);
+    return { value: `${ch.emoji} ${lbl === k ? ch.label : lbl}` };
   };
 
   /**
@@ -4750,11 +4817,12 @@ export default function PackMap() {
       newCountry: !!planTrail.country && !countriesBefore.has(planTrail.country),
     });
 
-    const stats = [
+    // ⚠️ TÁ ISTÁ VETVA AKO PRI ZÁPISE. Okruhový plán nesie ako `path` jedinú kotvu (stred),
+    //    takže `hasRouteMetrics` je `false` a km sú aj tu číslo bez zmyslu.
+    const stats = revealStats(planTrail, [
       km > 0 ? { value: km.toFixed(1), unit: 'km' } : null,
       draft.ascentM ? { value: String(draft.ascentM), unit: 'm ↑' } : null,
-      revealPlaceStat(planTrail),
-    ].filter(Boolean) as TripStat[];
+    ], draft.crew);
 
     setReveal({
       tripName: planTrail.name,

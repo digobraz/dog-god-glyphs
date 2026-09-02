@@ -940,7 +940,13 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
     if (fromPlan) setDate(todayISO);
     else if (finishTrail.date) setDate(finishTrail.date);
     else setDontRemember(true);
-    if (finishTrail.dateEnd) setDateEnd(finishTrail.dateEnd);
+    // ⚠️ KONIEC BEZ PRÍZNAKU VIACDŇOVOSTI SA PRI ULOŽENÍ ZAHODÍ (oprava 2026-09-02).
+    // `dateEnd` v drafte visí na `isMultiDay`, a ten na stavovom `multiDay` — ktorý sa
+    // odtiaľto nikdy nenastavoval. Kto naplánoval dvojdňovku a po návrate ju dokončil,
+    // dostal jednodňový výlet: pole „koniec" sa ani nevykreslilo (render ho má tiež pod
+    // `isMultiDay`), takže strata nebola na obrazovke vidieť. Obnova konceptu to robí
+    // správne (`setMultiDay(!!restored.multiDay)`) — chýbalo to len na tejto ceste.
+    if (finishTrail.dateEnd) { setDateEnd(finishTrail.dateEnd); setMultiDay(true); }
     if (finishTrail.crowd && (CROWDS as readonly string[]).includes(finishTrail.crowd)) setCrowd(finishTrail.crowd as Crowd);
     if (finishTrail.diff && (DIFF_OPTIONS as readonly string[]).includes(finishTrail.diff)) setDiff(finishTrail.diff as typeof diff);
     if (finishTrail.surface?.length) setTerrain(new Set(finishTrail.surface));
@@ -951,9 +957,26 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
     if (fromPlan) {
       // Prejdený plán ide sprievodcom OD ZAČIATKU: trasu smie opraviť, značky pichá teraz.
       // Číselník sa preto NEotvára celý — človek tie kroky naozaj prechádza, nedopisuje ich.
-      setStep(1);
+      /**
+       * ── ZAČÍNA SA PRVÝM KROKOM V PORADÍ, NIE JEDNOTKOU (Matej odklepol 2. 9. 2026) ─────
+       *
+       * `STEP_SEQ` je pri AKTIVITE a NÁVŠTEVE `[7,1,2,3,5]` — sedmička („ČO sme tam robili")
+       * stojí PRED mapou. Natvrdo zapísaná jednotka teda povinný krok obchádzala: chip sa
+       * nikdy nespýtal, a keď sa naň človek vrátil šípkou, ĎALEJ bolo vypnuté
+       * (`nextBlocked = step === 7 && !effMainChip`) bez jediného slova prečo.
+       * Chipy sa pritom z plánu SEEDUJÚ (`seededChips` vyššie), takže krok nie je otázka
+       * navyše — je to potvrdenie toho, čo si človek vybral pri plánovaní.
+       * ⚠️ `STEP_SEQ` je definovaný nižšie v tele komponentu; poradie sa preto odvodzuje
+       *    z `act`, nie z neho — v tomto efekte stav `activity` ešte nesie starú hodnotu.
+       */
+      setStep(act && CHIP_FIRST.includes(act.id) ? 7 : 1);
       setMaxPos(0);
-      setPlanAsk(true);
+      /**
+       * Otázka „išlo to podľa plánu?" patrí k MAPE, nie k chipom — jej scrim leží nad
+       * mapou v režime kreslenia a pýta sa na trasu. Pri chip-first toku sa preto nespúšťa
+       * hneď, ale až keď človek na mapu naozaj príde (efekt nižšie).
+       */
+      setPlanAskPending(true);
     } else {
       setStep(3);
       // Číselník sa otvára celý: kto dopĺňa, má kroky 3–5 splnené alebo rozpracované a musí
@@ -2025,6 +2048,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
    * v kroku 1 s nakreslenou trasou a odomknutými nástrojmi.
    */
   const [planAsk, setPlanAsk] = useState(false);
+  /**
+   * „Ešte sa treba spýtať na trasu." Pri chip-first toku (AKTIVITA, NÁVŠTEVA) stojí pred
+   * mapou krok ČO, takže otázka nesmie vyskočiť hneď pri otvorení sprievodcu — čakala by
+   * nad obrazovkou, ktorej sa netýka. Príznak sa spotrebuje pri prvom príchode na krok 1.
+   */
+  const [planAskPending, setPlanAskPending] = useState(false);
 
   /** Veta o čase → dvojička `.plan` pri pláne. Neutrálne vety ju nemajú (viď GeometryPicker). */
   const tq = (key: string) => t(isPlan ? `${key}.plan` : key);
@@ -2054,6 +2083,16 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
    * nechať ich visieť na výlete, ktorý už viacdňový nie je, znamená uložiť výlet s koncom
    * skôr, než sa človek dozvie, že tam ešte je. Preto to nie je holé `setMultiDay`.
    */
+  /**
+   * Otázka o trase sa spustí až NA MAPE. Pri hike toku je krok 1 hneď prvý, takže sa
+   * správanie nemení; pri chip-first toku otázka počká, kým človek prejde krokom ČO.
+   */
+  useEffect(() => {
+    if (!planAskPending || step !== 1) return;
+    setPlanAskPending(false);
+    setPlanAsk(true);
+  }, [planAskPending, step]);
+
   const setDayMode = (next: boolean) => {
     setMultiDay(next);
     if (!next) {
@@ -3337,6 +3376,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
             )}
             {step === 1 && !drawingStep && nextBlocked && (
               <p className="atl-log-hint">{t(isPlaceTrip ? 'pack.addTrip.step.needPlace' : 'pack.addTrip.step.needRoute')}</p>
+            )}
+            {/* ⚠️ VYPNUTÉ ĎALEJ MUSÍ POVEDAŤ PREČO (2026-09-02). Krok 1 to hovoril od začiatku,
+                sedmička nie — a keďže chip je povinný (`nextBlocked`), človek stál pred sivým
+                tlačidlom bez jediného vodidla. Tá istá trieda aj miesto ako pri mape. */}
+            {step === 7 && nextBlocked && (
+              <p className="atl-log-hint">{t('pack.addTrip.step.needChip')}</p>
             )}
 
             {isLastStep && (
