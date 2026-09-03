@@ -53,7 +53,7 @@ import {
 } from '@/components/pack/packCommunityUI';
 import { PointsPill, POINTS_PILL_CSS } from '@/components/pack/PointsPill';
 import { TripComments } from '@/components/pack/trip/TripComments';
-import { TripEditPanel } from '@/components/pack/trip/TripEditPanel';
+import { TripEditPanel, type PlanEdit } from '@/components/pack/trip/TripEditPanel';
 // ZÁPISY DO MAPY (2026-08-20) — v článku sú ROZBALENÉ, v mape schované pod ikonkou.
 // Ktoré sem patria, rozhoduje geometria (notesForTrail), nie uložený kľúč.
 import { MapNotesSection, MAP_NOTES_SECTION_CSS } from '@/components/pack/mapnotes/MapNotesSection';
@@ -818,6 +818,76 @@ export default function PackTripArticle() {
     if (!trail || !trail.id.startsWith('plan-') || walkedIds.has(trail.id)) return undefined;
     return events.find((e) => e.tripId === trail.id && e.hostIsMe && !e.closed)?.travel;
   }, [events, trail, walkedIds]);
+
+  /**
+   * ── ÚPRAVA PLÁNU (Matej 2026-09-03) ───────────────────────────────────────────────────
+   * Panel úpravy má pri PLÁNE inú tvár než pri zápise (dátum · viditeľnosť · doprava
+   * namiesto fotiek a hodnotenia). Rozhodnutie „je to plán" patrí SEM, nie do panela:
+   * jediné, čo o prejdení vie, je `walkedIds`, a odvodiť to z dátumu by znamenalo, že plán,
+   * ktorý termín prešvihol, si sám zmení podobu.
+   * `undefined` = prejdený výlet alebo cudzí (bez `canEdit` sa panel neotvorí ani tak).
+   */
+  const planEdit = useMemo<PlanEdit | undefined>(() => {
+    if (!trail || !trail.id.startsWith('plan-') || walkedIds.has(trail.id)) return undefined;
+    const p = plans.find((x) => x.tripId === trail.id);
+    const ev = events.find((e) => e.tripId === trail.id && e.hostIsMe && !e.closed);
+    return {
+      date: p?.date ?? '',
+      // Zdroj pravdy o viditeľnosti je ŽIVÝ INZERÁT, nie `intent` v pláne: inzerát je to,
+      // čo svorka reálne vidí. `intent: 'partner'` bez inzerátu (zavretý, alebo zaniknutý)
+      // by v paneli svietil ako „hľadám svorku", hoci sa už nikto pridať nemôže.
+      visibility: ev ? 'open' : 'private',
+      travel: ev?.travel,
+    };
+  }, [trail, plans, events, walkedIds]);
+
+  /**
+   * Uloží dátum · viditeľnosť · dopravu NARAZ do plánu aj do inzerátu — dva zápisy, jedno
+   * gesto. Rozdelené by to znamenalo, že v triplistе svieti jeden termín a v inzeráte,
+   * ktorý ľudia vidia, druhý.
+   *
+   * ⚠️ Prepnutie na súkromný inzerát MAŽE, nie zatvára. Zavretý inzerát (`closed`) znamená
+   *    „skupina je plná" a v zozname ostáva vidieť; „idem sám" znamená, že tam nikdy nemal
+   *    byť. Kto sa medzitým pridal, ostáva v `trip_requests` — o tom rozhoduje autor
+   *    v žiadostiach, nie táto zmena.
+   */
+  const savePlanEdit = (pe: PlanEdit) => {
+    if (!trail) return;
+    const tid = trail.id;
+    setPlans((prev) => {
+      const mine = prev.find((x) => x.tripId === tid);
+      const next = { tripId: tid, intent: (pe.visibility === 'open' ? 'partner' : 'solo') as 'solo' | 'partner',
+        date: pe.date, at: mine?.at ?? nowMs };
+      return [next, ...prev.filter((x) => x.tripId !== tid)];
+    });
+    setEvents((prev) => {
+      const rest = prev.filter((e) => !(e.tripId === tid && e.hostIsMe));
+      if (pe.visibility !== 'open') return rest;
+      const mine = prev.find((e) => e.tripId === tid && e.hostIsMe);
+      const ev: PartnerEvent = {
+        ...(mine ?? {
+          id: `plan-event-${nowMs}`, tripId: tid, socialization: '',
+          host: '', hostIsMe: true, at: nowMs, joinedByMe: true,
+          dates: [], month: '',
+        }),
+        // Dátum sa prepisuje na OBOCH poliach naraz: `dates` je zoznam návrhov a `month`
+        // hrubší filter. Nechať jedno staré znamená kartu, ktorá o sebe tvrdí dve veci.
+        dates: pe.date.length >= 7 ? [pe.date] : [],
+        month: pe.date.length >= 7 ? pe.date.slice(0, 7) : pe.date,
+        travel: pe.travel,
+      };
+      return [ev, ...rest];
+    });
+    // TRIPLIST vedie vlastný záznam toho istého plánu — bez tohto by v ňom ostal starý
+    // termín a starý stav otvorenosti.
+    // ⚠️ TRIPLIST NEPOZNÁ STAV 'partner' — to je hodnota ZÁMERU plánu
+    // (`PlanIntent` v packCommunity.ts). Jeho vlastný stav sa volá 'looking'
+    // a mapovanie je rovnaké ako v triplist.ts:98 a packStore.ts:278.
+    // Zapísané 'partner' by neprešlo ani jednou vetvou `blockClass()`
+    // v PackTriplist.tsx, takže by karta stratila odznak — ticho, bez chyby.
+    upsertMyTrip(tid, { status: pe.visibility === 'open' ? 'looking' : 'solo',
+      openness: pe.visibility === 'open' ? 'open' : 'closed', date: pe.date });
+  };
 
   const [walkedPopupOpen, setWalkedPopupOpen] = useState(false);
 
@@ -1713,7 +1783,9 @@ export default function PackTripArticle() {
       {editOpen && (
         <TripEditPanel
           trail={trail}
+          plan={planEdit}
           onSaved={(patch) => setEdits((prev) => ({ ...(prev ?? {}), ...patch }))}
+          onPlanSaved={savePlanEdit}
           onClose={() => setEditOpen(false)}
         />
       )}

@@ -175,15 +175,6 @@ const FILM_SLIDES: FilmSlide[] = [
     from: () => window.innerHeight * (PIN_VH + PIN2_VH + PIN3_VH + PIN4_VH + PIN5_VH),
   },
   {
-    // Pás recenzií. Klik má pristáť tam, kde sú karty v strede obrazovky —
-    // teda na konci posledného beatu (`QUO.colsIn`), nie na nadpise, ktorý
-    // sa o chvíľu rozplynie.
-    id: 'stars',
-    navKey: 'film.slide.stars',
-    at: () => pinnedAt('.op-quo', QUO.colsIn[1]),
-    from: () => absTop('.op-quo'),
-  },
-  {
     // WE NEED YOU. Klik pristane na začiatku VÝDRŽE — presne tam, kde obraz
     // dobehol celý aj s CTA (to isté miesto, kde stojí odpočívadlo snapu
     // `.op-arc-rest`).
@@ -200,6 +191,22 @@ const FILM_SLIDES: FilmSlide[] = [
     navKey: 'film.slide.heroglyph',
     at: () => pinnedAt('.op-arc', ARC_REST2_VH / ARC_TOTAL_VH),
     from: () => pinnedAt('.op-arc', ARC_SPLIT + ARC_DWELL + ARC_XFADE),
+  },
+
+  {
+    // Pás recenzií. Klik má pristáť tam, kde sú karty v strede obrazovky —
+    // teda na konci posledného beatu (`QUO.colsIn`), nie na nadpise, ktorý
+    // sa o chvíľu rozplynie.
+    // 🔴 STOJÍ AŽ ZA CELÝM OBLÚKOM (3. 9. 2026). Matej: *„slajd psov miluje
+    // každý a recenzie od hviezd presuň na koniec aby nezavadzali, po príbehu
+    // pôjde slajd we need you."* Je to JEDEN obraz, nie dva — „PSOV MILUJE
+    // KAŽDÝ" je nadpis toho istého pásu (`about.legends.titleFilm`).
+    // ⚠️ Poradie tu musí sedieť s poradím sekcií v `.op-film`: pilulka v nave
+    // sa podsvecuje podľa `from()`, ale MENO obrazu berie z tohto zoznamu.
+    id: 'stars',
+    navKey: 'film.slide.stars',
+    at: () => pinnedAt('.op-quo', QUO.colsIn[1]),
+    from: () => absTop('.op-quo'),
   },
 ];
 
@@ -6331,22 +6338,6 @@ export default function OnePage() {
           <AboutLab embedded part="film" />
         </section>
 
-        {/* ── OBRAZ — RECENZIE ───────────────────────────────────────────
-            Matej 1. 9. 2026: *„najprv zobraziť nadpis a text na stred obrazovky
-            a potom pri scrole sa rozplynie a tie recenzie budú presne na strede
-            obrazovky."*
-            Pás sem prišiel z AboutLabu, kde stál ako obyčajná sekcia bez réžie.
-            Fázy sú v `QUO` hore v súbore.
-            ⚠️ `pinned` vypína v komponente jeho VLASTNÝ nábeh (framer
-            whileInView) — dva stmievače na jednom prvku sa prepisujú a nadpis
-            bliká. A prepína nadpis na filmový kľúč: ostrá /about si necháva
-            svoj vo všetkých 18 jazykoch. */}
-        <section className="op-scene op-quo" aria-label={t('about.legends.titleFilm')}>
-          <div className="op-quo-stage">
-            <TestimonialsSection variant="papyrus" pinned />
-          </div>
-        </section>
-
         {/* ── OBRAZ — NEXT STEP: ZÁPIS ───────────────────────────────────
             Matej 31. 8. 2026: *„nebolo by lepšie dať 6. namiesto 3 = že next
             stepp je zápis, a potom ukázať čo je zápis?"* Tento obraz dej
@@ -6734,6 +6725,37 @@ export default function OnePage() {
                 <p className="op-most-q">&ldquo;Am I doing right by him?&rdquo;</p>
               </div></div>
             </section>
+          </div>
+        </section>
+
+        {/* ── OBRAZ — RECENZIE ───────────────────────────────────────────
+            Matej 1. 9. 2026: *„najprv zobraziť nadpis a text na stred obrazovky
+            a potom pri scrole sa rozplynie a tie recenzie budú presne na strede
+            obrazovky."*
+            Pás sem prišiel z AboutLabu, kde stál ako obyčajná sekcia bez réžie.
+            Fázy sú v `QUO` hore v súbore.
+
+            🔴 PRESUNUTÝ NA KONIEC FILMU (3. 9. 2026). Matej: *„slajd psov miluje
+            každý a recenzie od hviezd presuň na koniec aby nezavadzali, po
+            príbehu pôjde slajd we need you."* Do 3. 9. stál MEDZI príbehom na
+            čiernej a obrazom WE NEED YOU — teda presne v mieste, kde má film
+            vyzvať, a citáty hviezd tam výzvu odsúvali o dve a pol obrazovky.
+            ⚠️ „Slajd psov miluje každý" a „recenzie od hviezd" NIE SÚ DVA obrazy:
+            *PSOV MILUJE KAŽDÝ* je NADPIS toho istého pásu (`about.legends.titleFilm`,
+            EN *EVERYONE LOVES DOGS*), ktorý sa scrollom rozplynie na citáty.
+            🔴 TÝM PADLA STARŠIA VETA *„čierna sa rozplýva na ne"* (bola o pár
+            riadkov nižšie v pôvodnom komentári): po presune čierna z príbehu
+            ústi rovno do WE NEED YOU. Pás teraz nadväzuje na poslednú otázku
+            oblúka — *„Am I doing right by him?"*
+            ⚠️ Poradie MUSÍ sedieť s poradím v `FILM_SLIDES` hore v súbore:
+            polohu si pilulka v nave meria odtiaľto, ale MENO obrazu berie odtiaľ.
+            ⚠️ `pinned` vypína v komponente jeho VLASTNÝ nábeh (framer
+            whileInView) — dva stmievače na jednom prvku sa prepisujú a nadpis
+            bliká. A prepína nadpis na filmový kľúč: ostrá /about si necháva
+            svoj vo všetkých 18 jazykoch. */}
+        <section className="op-scene op-quo" aria-label={t('about.legends.titleFilm')}>
+          <div className="op-quo-stage">
+            <TestimonialsSection variant="papyrus" pinned />
           </div>
         </section>
 

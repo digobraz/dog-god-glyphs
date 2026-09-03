@@ -376,6 +376,44 @@ export function DogPlanetLab({
   // našiel — `dogPhotoUrl` sa NEpersistuje (`partialize` v `dogyptStore.ts`),
   // takže blob nemá ako prežiť reload a zostať visieť.
   const [photo, setPhoto] = useState<string | null>(null);
+
+  // ── NAJPRV PLANÉTKA, AŽ POTOM VÝZVA (Matej 3. 9. 2026) ───────────────────
+  // Matej: *„úvodné načítanie musí byť najprv planétka a až potom portál (CTA),
+  // teraz som si všimol že to robí naopak."*
+  //
+  // 🔑 PRÍČINA NIE JE V PORADÍ KÓDU, ALE V ČASE NAČÍTANIA. Hero (nadpis, veta,
+  // portál) je hotový v prvom snímku — je to text a jedna dlaždica. Guľa je
+  // ~1000 dlaždíc s fotkami z Cloudinary, takže dobieha ešte sekundy potom.
+  // Vidieť je preto CTA nad prázdnou guľou, čiže presne opačné poradie, než
+  // aké má obraz rozprávať: *toto je svorka → pridaj sa*.
+  //
+  // ⚠️ NEDÁ SA TO RIEŠIŤ KRYTÍM NA `.planet-hero`. Film (/onepage) mu zapisuje
+  // `style.opacity` priamo (`put(n.pHero, 'pho', …)` v OnePage.tsx), a inline
+  // zápis prebije každé CSS pravidlo. Preto nábeh nesú DETI hera — ich krytie
+  // sa s tým filmovým prirodzene násobí a nebijú sa.
+  //
+  // ⚠️ STROP JE PODMIENKA, NIE POISTKA. Dlaždice majú `loading="lazy"`, takže
+  // tie na odvrátenej strane gule sa nenačítajú NIKDY — čakanie na „všetky
+  // hotové" by výzvu skrylo natrvalo. Preto sa čaká na PRVÝCH pár a strop
+  // dorazí aj tak.
+  const [heroIn, setHeroIn] = useState(false);
+  useEffect(() => {
+    if (heroIn) return;
+    let done = false;
+    const arrive = () => { if (!done) { done = true; setHeroIn(true); } };
+    // Strop: výzva príde aj keby sa nenačítala ani jedna fotka (offline, 404).
+    const cap = window.setTimeout(arrive, 1800);
+    const poll = window.setInterval(() => {
+      const imgs = document.querySelectorAll<HTMLImageElement>('.planet-ball img');
+      if (!imgs.length) return;
+      let ok = 0;
+      imgs.forEach((im) => { if (im.complete && im.naturalWidth > 0) ok++; });
+      // Prah je počet, nie podiel: podiel by sa pri lazy dlaždiciach nikdy
+      // nenaplnil. 24 je zhruba predná pologuľa — teda to, čo je vidieť.
+      if (ok >= Math.min(24, imgs.length)) arrive();
+    }, 90);
+    return () => { window.clearTimeout(cap); window.clearInterval(poll); };
+  }, [heroIn]);
   // Tváre, ktoré sa v prázdnej dlaždici striedajú. Berú sa z psov NA GULI, nie
   // z pevného zoznamu — dlaždica má ukazovať, kam sa človek pridáva.
   const cycPhotos = dogs.slice(0, 12).map(d => d.photo).filter(Boolean);
@@ -2088,6 +2126,25 @@ export function DogPlanetLab({
              cesta k ďalšiemu psovi viedla vždy cez zavretie karty. */
           .pp-nav { display: inline-flex; }
         }
+
+        /* ── VÝZVA PRICHÁDZA ZA GUĽOU (Matej 3. 9. 2026) ───────────────────
+           Nábeh nesú DETI .planet-hero, nie ona sama — dôvod je pri stave
+           heroIn v tomto súbore (film jej zapisuje inline opacity, ktorá by
+           pravidlo na ňu prebila).
+           Rozostupy čítajú vetu v poradí, v akom má znieť: guľa → *tvoj pes je
+           tu boh* → *a stále nám chýba jeho tvár* → dlaždica, kam ho pridať.
+           ⚠️ Žiadny transform — pod portálom je plátno s iskrami a vlastná
+           vrstva by mu zmenila rasterizáciu. Nábeh je čisté krytie. */
+        .planet-hero > * {
+          opacity: 0;
+          transition: opacity 560ms ease;
+        }
+        .planet-hero.hero-in > * { opacity: 1; }
+        .planet-hero.hero-in .ph-lead { transition-delay: 110ms; }
+        .planet-hero.hero-in .ph-mount { transition-delay: 240ms; }
+        @media (prefers-reduced-motion: reduce) {
+          .planet-hero > * { transition: none; }
+        }
       `}</style>
 
       {/* DEV PULT (dizajn · pozadie · psov) tu STÁL a 25. 8. zanikol — voľby sú
@@ -2114,7 +2171,7 @@ export function DogPlanetLab({
 
         <div className="planet-shade" />
 
-        <div className="planet-hero">
+        <div className={`planet-hero${heroIn ? ' hero-in' : ''}`}>
           {/* Logo a tagline sa odtiaľto odsťahovali do pätičky filmu
               (Matej 26. 8.: „Logo aj tagline preč — dáme to úplne dolu").
               Prvá obrazovka teraz hovorí jedinú vec: pridaj svojho psa. */}
