@@ -945,6 +945,19 @@ export const en = {
   'nav.about': 'About',
   'nav.login': 'LOGIN',
 
+  // ── /onepage FILM — názvy obrazov v ľavej pilulke horného navu ──
+  // Matejov zoznam (2. 9. 2026). Home/Vision/Religion si berú existujúce
+  // `nav.*` kľúče — sú preložené vo všetkých 18 jazykoch, nový kľúč by ich
+  // preklad zahodil. Nové sú len tie, ktoré vo webe dosiaľ neexistovali.
+  'film.slide.cowdog': 'Cow vs Dog',
+  'film.slide.story': 'Story',
+  'film.slide.stars': 'Dogs and Stars',
+  'film.slide.mission': 'Mission',
+  'film.slide.heroglyph': 'Heroglyph',
+  'film.slide.menu': 'Jump to a scene',
+  // Výzva na čiernej sále medzi víziou a príbehom — viď KEEP_IN v OnePage.tsx.
+  'film.keepScrolling': 'Keep scrolling',
+
   // ── / (Wall / GodsGrid) ──
   // hero card
   'wall.hero.taglineLead': 'The place where',
@@ -2162,6 +2175,7 @@ export const en = {
   'pack.addTrip.geo.hintRoute': "Click along the map to draw your route",
   'pack.addTrip.geo.hintSpot': "Click the map to drop a pin",
   'pack.addTrip.geo.hintArea': "Click the map to place the area, then set its size",
+  'pack.addTrip.geo.kindPick': "Shape of the trip",
   'pack.addTrip.geo.kindRoute': "Route",
   'pack.addTrip.geo.kindSpot': "Spot",
   'pack.addTrip.geo.kindArea': "Area",
@@ -2170,8 +2184,11 @@ export const en = {
   'pack.addTrip.geo.pointsSuffix.one': "{n} point",
   'pack.addTrip.geo.pointsSuffix.few': "{n} points",
   'pack.addTrip.geo.pointsSuffix.many': "{n} points",
-  'pack.addTrip.geo.areaRadius': "Area · {km} km radius",
   'pack.addTrip.geo.areaRadiusM': "Area · {m} m radius",
+  // {r} je UŽ NAFORMÁTOVANÝ údaj (formatRadius) — jednotka je v ňom, nie v tomto texte.
+  // Nahradilo `areaRadiusM`, ktoré malo „m" napevno: odkedy okruh siaha po 5 km, čítalo sa
+  // „5000 m radius". Starý kľúč ostáva (nerenderované kľúče sa v tomto repe nemažú).
+  'pack.addTrip.geo.areaRadius': "Area · {r} radius",
   'pack.addTrip.geo.spotSet': "Spot set",
   // MAPA JE PRVÁ OBRAZOVKA (Matej 2026-08-22) — na mobile sa po výbere aktivity otvára rovno
   // mapa, takže vysvetlenie „ako začať" a hľadanie miesta musia stáť NA nej, nie vo formulári.
@@ -2285,8 +2302,12 @@ export const en = {
   'pack.addTrip.log.conditions': "Conditions",
   'pack.addTrip.log.whatPlace': "What kind of place was it?",
   'pack.addTrip.log.whatPlaceSub': "Pick one — the reason you went.",
+  // ⚠️ AKTIVITA sa na tej istej obrazovke pýta na ČINNOSŤ, nie na miesto (Matej 1. 9. 2026).
+  'pack.addTrip.log.whatDid': "What did you do?",
+  'pack.addTrip.log.whatDidSub': "Pick one — it also sets the shape you will draw.",
   'pack.addTrip.log.placeMore': "What else was there",
   'pack.addTrip.log.placeDoable': "What you can do there",
+  'pack.addTrip.log.whereWasIt': "Where was it",
   'pack.addTrip.log.pack': "Trip pack",
   'pack.addTrip.log.story': "Tell the pack about it",
   'pack.addTrip.log.routeSoFar': "YOUR ROUTE SO FAR",
@@ -2394,6 +2415,7 @@ export const en = {
   'pack.addTrip.field.tags': "tags",
   'pack.addTrip.field.paws': "rating",
   'pack.addTrip.field.place': "main place",
+  'pack.addTrip.field.doing': "activity",
   'pack.addTrip.field.photos': "photo",
   // CompanionPicker („kto bol so mnou") — do 23. 8. 2026 bol celý natvrdo po anglicky.
   'pack.companions.yourPack': "Your pack",
@@ -2556,6 +2578,9 @@ export const en = {
   'pack.addTrip.step.difficulty': "Difficulty",
   'pack.addTrip.step.terrain': "Terrain",
   'pack.addTrip.step.whoWasWithYou': "Who was with you on this trip?",
+  // Jeden pes = žiadny výber (kompaktný variant kroku 5, Matej 1. 9. 2026 „pri edite je udaje
+  // o psovi… by som dal preč"). Otázka na ĎALŠIEHO človeka, pes sa zapíše ticho sám.
+  'pack.addTrip.step.anyoneElse': "Was anyone else with you?",
   'pack.addTrip.step.storyPlaceholder': "Tell the story of your adventure — or pass on tips and advice that could help others.",
   // §4.5 — príbeh výletu sa dá otvoriť na celú obrazovku (Matej 2026-08-26)
   'pack.addTrip.step.expandEditor': "Open full screen",
@@ -2760,6 +2785,12 @@ export const en = {
   'pack.map.macroRegion.West': "West",
   'pack.map.macroRegion.Center': "Center",
   'pack.map.macroRegion.East': "East",
+  // Plné mená makroregiónov — riadok nad názvom výletu (Matej 1. 9. 2026: „nie W ale
+  // západ celým menom"). Krátke varianty vyššie ostávajú pre filtre a chipy, kde je málo
+  // miesta; tu, kde je riadok jediný, sa píše celé meno.
+  'pack.map.macroRegionFull.West': "Western Slovakia",
+  'pack.map.macroRegionFull.Center': "Central Slovakia",
+  'pack.map.macroRegionFull.East': "Eastern Slovakia",
   'pack.map.activity': "Activity",
   'pack.map.activities': "Activities",
   'pack.map.anyActivity': "All activities",
@@ -3021,6 +3052,9 @@ export const en = {
   'pack.triplist.whoCanSee': "Who can see this trip",
   'pack.triplist.addDate': "+ Add date",
   'pack.triplist.openTripsFromPack': "Open trips from the pack",
+  'pack.triplist.hideOpenTrips': "Hide",
+  'pack.triplist.showOpenTrips': "Show",
+  'pack.triplist.openTripsHiddenHint': "Open trips from the pack are hidden. Tap Show to see them again.",
   'pack.triplist.allRegions': "All regions",
   'pack.triplist.slovakiaOption': "🇸🇰 Slovakia",
   'pack.triplist.czechiaSoon': "Czechia — soon",

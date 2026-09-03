@@ -13,6 +13,7 @@ import type { HeroTrail } from '@/data/heroTrails.generated';
 import { trailCountry } from '@/lib/countryGeo';
 import { useT } from '@/i18n/LanguageContext';
 import { GeometryPicker, allowedKindsFor, defaultKindFor } from './GeometryPicker';
+import { BackButton } from '@/components/pack/BackButton';
 import { TRIP_CATEGORIES } from '@/components/pack/tripCategories';
 import {
   missingFields,
@@ -178,7 +179,7 @@ export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, 
     <div className="att-plan">
       <style>{PLAN_CSS}</style>
       <div className="att-plan-head">
-        <button type="button" className="att-plan-back" onClick={onClose} aria-label="Back">←</button>
+        <BackButton tone="dark" onClick={onClose} label="Back" />
         <div className="att-plan-title">Plan a trip</div>
       </div>
       <div className="att-plan-body">
@@ -331,8 +332,6 @@ const COMPANION_CSS = `
 const PLAN_CSS = `
 .att-plan{display:flex;flex-direction:column;height:100%;min-height:0;}
 .att-plan-head{display:flex;align-items:center;gap:10px;padding:16px 20px 10px;flex-shrink:0;}
-.att-plan-back{background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};color:${T.onDark};width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;line-height:1;}
-.att-plan-back:hover{border-color:${GOLD};color:${GOLD};}
 .att-plan-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.onDark};}
 .att-plan-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:4px 20px 16px;display:flex;flex-direction:column;gap:14px;}
 /* flex:0 0 auto NIE JE kozmetika: .att-plan-body je flex column so scrollom a obsah ho pretečie

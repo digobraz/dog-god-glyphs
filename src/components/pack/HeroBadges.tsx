@@ -62,13 +62,21 @@ function HeroRevealCard({ badge, kicker, locked, onClose }: {
   onClose: () => void;
 }) {
   const t = useT();
+  // ── BEZ KRÍŽIKA (lock 2026-08-28, Matej: „nedávajme tie krížiky na bloky") ──
+  // Von sa ide klikom vedľa karty (to vedel aj Matejov pôvodný popis reveal-momentu:
+  // „klikne vedľa zmizne to") alebo Esc. Esc je podmienka locku, nie ozdoba — na PC
+  // je to jediná cesta von, ktorú netreba trafiť myšou.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
   return createPortal(
     <div
       className="comm-reveal"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="comm-reveal-card">
-        <button type="button" className="comm-reveal-x" aria-label="Close" onClick={onClose}>×</button>
         <div className="comm-reveal-left">
           <img className={`comm-reveal-badge${locked ? ' comm-reveal-badge--off' : ''}`} src={badge.img} alt={badge.name} />
           <div className="comm-reveal-trips">{t('pack.heroBadge.trips', { n: badge.trips })}</div>

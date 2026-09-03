@@ -744,6 +744,15 @@ export const sk: Partial<Dict> = {
   'nav.about': 'O nás',
   'nav.login': 'PRIHLÁSIŤ',
 
+  // ── /onepage FILM — názvy obrazov v ľavej pilulke horného navu ──
+  'film.slide.cowdog': 'Krava vs pes',
+  'film.slide.story': 'Príbeh',
+  'film.slide.stars': 'Psy a hviezdy',
+  'film.slide.mission': 'Misia',
+  'film.slide.heroglyph': 'Heroglyf',
+  'film.slide.menu': 'Skoč na obraz',
+  'film.keepScrolling': 'Skroluj ďalej',
+
   // ── / (Wall / GodsGrid) ──
   'wall.hero.taglineLead': 'Miesto, kde',
   'wall.hero.taglineGod': 'PES JE BOH.',

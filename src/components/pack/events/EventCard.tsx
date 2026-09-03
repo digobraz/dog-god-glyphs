@@ -2,16 +2,17 @@
 // Presentational only — filtrovanie/zoradenie/výber žije v EventsPanel.tsx a v PackMap.tsx
 // (rovnaký rozdiel zodpovednosti ako renderTripCard vs. PackMap state).
 //
-// Vizuálne v jazyku existujúcich trip kariet (.trp-bigcard v PackMap.tsx CSS — radius 14px,
-// jemný border, gold hover/highlight) — VLASTNÁ lokálna kópia tých istých hodnôt (nie import
-// cudzích .trp-* tried), rovnaký vzor izolovaného štýlovaného komponentu ako AddEvent.tsx
-// (AEV_CSS) namiesto tichej väzby na CSS blok v PackMap.tsx.
+// Vizuálne v jazyku existujúcich trip kariet (.trp-bigcard v bledom skine PackMap.tsx —
+// papyrusový gradient, zlatý rám, radius 16) — VLASTNÁ lokálna kópia tých istých hodnôt
+// (nie import cudzích .trp-* tried), rovnaký vzor izolovaného štýlovaného komponentu ako
+// AddEvent.tsx (AEV_CSS) namiesto tichej väzby na CSS blok v PackMap.tsx.
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+// Bledý chrome: inkousty a plochy (PALE) — tie isté hodnoty drží bledý skin mapy,
+// v ktorej táto karta jediná žije (.trp-sidebar na PC, .trp-mlist na mobile).
+import { PALE as P } from '@/components/pack/navGoldSkin';
 import { DeleteButton } from '@/components/pack/DeleteButton';
 import { EVENT_KIND_LABEL_KEYS, type AddEventDraft } from './eventModel';
-
-const GOLD = '#C99A3F';
 
 // interný LangCode (LanguageContext, `dogypt_lang`) → BCP-47 pre Intl.DateTimeFormat. Appka
 // nikde takú tabuľku nemá (jediný predchodca je natvrdo 'en-US' v messaging/Inbox.tsx) —
@@ -139,20 +140,33 @@ export function EventCard({ draft, highlighted, expanded, onClick, cardRef, onDe
 // karta (rovnaká úvaha ako AEV_CSS v AddEvent.tsx, len tu by opakovaný <style> na kartu bol
 // zbytočný pri zozname N eventov).
 export const EVENT_CARD_CSS = `
-.pev-card{display:block;border-radius:14px;background:rgba(245,240,228,0.03);border:1px solid rgba(245,240,228,0.10);padding:12px 13px;cursor:pointer;text-decoration:none;transition:all .15s;}
-.pev-card:hover,.pev-card.hot{border-color:${GOLD};background:rgba(201,154,63,0.07);}
+/* ── BLEDÁ KARTA PODUJATIA (DRAK → BRIGHT, 2026-09-01, 2. beh) ────────────────────────
+   Karta žije VÝHRADNE v ľavom paneli mapy a v mobilnom zozname — obidva sú od 26.–28. 8.
+   papyrusové, takže tmavá karta tam stála ako jediný tmavý blok v stĺpci.
+   ⚠️ HODNOTY SÚ TIE ISTÉ, AKÉ MÁ .trp-bigcard V BLEDOM SKINE (PackMap.tsx) — karta výletu
+   a karta podujatia sú súrodenci v jednom zozname a druhá sada čísel by sa rozišla pri
+   prvej úprave. Teplý tieň BEZ zlatého halo ringu: matricový T.cardShadow je pre kartu na
+   ČIERNEJ stránke, na papyruse je z neho čierny mrak.
+   ⚠️ Bez transform:translateY na hover — na dotyku :hover po ťuknutí zostane visieť
+   (to isté rozhodnutie ako v mobilnej vetve bledého skinu). */
+.pev-card{display:block;border-radius:16px;background:${T.cardGrad};border:1.5px solid ${T.cardEdge};box-shadow:0 2px 8px rgba(122,90,42,0.16),inset 0 1px 0 rgba(255,255,255,0.45);padding:12px 13px;cursor:pointer;text-decoration:none;transition:all .15s;}
+.pev-card:hover,.pev-card.hot{border-color:${P.deep};box-shadow:0 0 0 3px rgba(201,154,63,0.28),0 2px 8px rgba(122,90,42,0.16);}
 .pev-card + .pev-card{margin-top:9px;}
 .pev-toprow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;}
-.pev-date{font-family:${FONT_UI};font-weight:600;font-size:13px;color:${GOLD};white-space:nowrap;}
+/* ⚠️ Dátum bol zlatý #C99A3F — na piesku má ~1.9:1 a bol by to najdôležitejší údaj karty
+   napísaný najslabšou farbou. P.deep je tá istá zlatá, len čitateľná (rovnaká hodnota nesie
+   zvýraznený stav v celom bledom skine). */
+.pev-date{font-family:${FONT_UI};font-weight:600;font-size:13px;color:${P.deep};white-space:nowrap;}
 /* typový štítok = ZLATÝ (podujatie). Protipól je neutrálny .comm-plan-type (výlet)
-   v packCommunityUI.tsx — dvojica musí ostať odlíšiteľná farbou, nielen textom. */
-.pev-typechip{font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid ${GOLD};color:${GOLD};background:rgba(201,154,63,0.10);white-space:nowrap;}
+   v packCommunityUI.tsx — dvojica musí ostať odlíšiteľná farbou, nielen textom. Na papyruse
+   je rozdiel v tom, že tento má teplú VÝPLŇ a ten druhý holý obrys. */
+.pev-typechip{font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid ${P.deep};color:${P.deep};background:${P.hot};white-space:nowrap;}
 .pev-kindrow{margin-bottom:6px;}
-.pev-kindchip{font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.10em;text-transform:uppercase;padding:3px 8px;border-radius:999px;border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};white-space:nowrap;}
-.pev-name{font-family:${FONT_TITLE};font-weight:700;font-size:13.5px;color:rgba(245,240,228,0.92);}
-.pev-venue{font-family:${FONT_UI};font-size:11px;color:${T.onDarkDim};margin-top:3px;}
-.pev-sourcebadge{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.04em;color:${GOLD};margin-top:6px;}
-.pev-desc{font-family:${FONT_UI};font-size:11.5px;color:${T.onDark};margin-top:8px;line-height:1.5;white-space:pre-wrap;}
+.pev-kindchip{font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.10em;text-transform:uppercase;padding:3px 8px;border-radius:999px;border:1px solid ${P.border};color:${P.dim};white-space:nowrap;}
+.pev-name{font-family:${FONT_TITLE};font-weight:700;font-size:13.5px;color:${P.ink};}
+.pev-venue{font-family:${FONT_UI};font-size:11px;color:${P.dim};margin-top:3px;}
+.pev-sourcebadge{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.04em;color:${P.deep};margin-top:6px;}
+.pev-desc{font-family:${FONT_UI};font-size:11.5px;color:rgba(42,22,8,0.86);margin-top:8px;line-height:1.5;white-space:pre-wrap;}
 `;
 
 export default EventCard;

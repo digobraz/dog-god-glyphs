@@ -17,6 +17,7 @@ import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packThem
 import { useT } from '@/i18n/LanguageContext';
 import { trailCountry } from '@/lib/countryGeo';
 import { MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
+import { BackButton } from '@/components/pack/BackButton';
 import {
   EVENT_KINDS, EVENT_KIND_LABEL_KEYS, missingEventFields,
   type AddEventDraft, type EventKind, type EventOrigin,
@@ -186,7 +187,7 @@ export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddE
     <div className="aev-root">
       <style>{AEV_CSS}</style>
       <div className="aev-head">
-        <button type="button" className="aev-back" onClick={onClose} aria-label={t('pack.addEvent.backAriaLabel')}>←</button>
+        <BackButton tone="dark" onClick={onClose} label={t('pack.addEvent.backAriaLabel')} />
         <div className="aev-title">{origin === 'own' ? t('pack.addEvent.title.own') : t('pack.addEvent.title.tip')}</div>
       </div>
       <div className="aev-body">
@@ -325,8 +326,6 @@ export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddE
 const AEV_CSS = `
 .aev-root{display:flex;flex-direction:column;height:100%;min-height:0;}
 .aev-head{display:flex;align-items:center;gap:10px;padding:16px 20px 10px;flex-shrink:0;}
-.aev-back{background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};color:${T.onDark};width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;line-height:1;}
-.aev-back:hover{border-color:${GOLD};color:${GOLD};}
 .aev-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.onDark};}
 .aev-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:4px 20px 16px;display:flex;flex-direction:column;gap:14px;}
 .aev-field label{display:block;font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:6px;}

@@ -94,6 +94,31 @@ export function displayPath(g: TripGeometry): LatLngTuple[] {
   return g.kind === 'route' ? (g.snapPath ?? g.path) : [];
 }
 
+/**
+ * ── ČO SA Z GEOMETRIE ULOŽÍ DO VÝLETU (2026-09-01) ─────────────────────────────────────
+ *
+ * `displayPath` vyššie vracia pre miesto aj okruh PRÁZDNE pole — a presne to sa až do 1. 9.
+ * ukladalo aj do `HeroTrail.path`. Zapísaná návšteva tak nemala ani jeden bod: `mapPoints`
+ * ju preskočil (`path.length === 0`), v článku sa nevykreslila a jazdec polomeru, ktorý
+ * človek práve nastavoval, sa zahodil. Nevyzeralo to ako chyba, len ako výlet, čo na mape
+ * nie je.
+ *
+ * Stred miesta preto ide do `path` ako JEDINÝ BOD (rovnako, ako to už robil plán cez svoj
+ * `anchor`) a polomer do `areaR`. Dve polia namiesto jedného objektu preto, že `path[0]`
+ * číta celá appka — klaster, bbox, článok aj krajina výletu — a stred v cudzom tvare by
+ * musel doplniť každý z tých čitateľov.
+ *
+ * ⚠️ Vracaj `areaR` len pri okruhu. Bod s polomerom 0 by v `HeroTrail` znamenal „okruh
+ * s nulovou plochou" a mapa by preň kreslila neviditeľný kruh.
+ */
+export function savedGeometry(g: TripGeometry): { path: LatLngTuple[]; areaR?: number } {
+  if (g.kind === 'route') return { path: displayPath(g) };
+  if (!g.center) return { path: [] };
+  return g.kind === 'area' && g.radiusM > 0
+    ? { path: [g.center], areaR: g.radiusM }
+    : { path: [g.center] };
+}
+
 // ── „Hide the first 300 m" (§5.4) ───────────────────────────────────────────────────────
 // Chráni domácu adresu autora. Km a prevýšenie sa počítajú z CELEJ trasy — oreže sa výhradne
 // to, čo vidia ostatní. Autor vidí svoju trasu celú, preto `viewerIsAuthor`.

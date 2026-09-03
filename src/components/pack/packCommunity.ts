@@ -75,8 +75,23 @@ export const CROWD_EMOJI: Record<Crowd, string> = { Empty: '🦋', Calm: '🌿',
 
 /** SK dátový kľúč z nahadzovača → `Crowd`. Vystavené kvôli filtru mapy (ten drží SK kľúče). */
 export const CROWD_KEY_TO_CROWD = SEED_CROWD;
+/**
+ * ⚠️ DVE PODOBY TEJ ISTEJ HODNOTY (opravené 2026-08-31) — kurátorovaný dataset nesie SLOVENSKÚ
+ * menovku (`crowd: "Pokojné"`), ale SPRIEVODCA ukladá rovno kanonickú hodnotu
+ * (`AddTripLog.tsx`: `crowd` je typ `Crowd`, teda `"Calm"`). Kým sa tu prekladala len menovka,
+ * členský výlet vrátil `null` a **pilulka ruchu sa mu nevykreslila nikdy** — ani na karte,
+ * ani v článku — hoci je to pole povinné na schválenie. Vyzeralo to ako dizajn, nie ako
+ * stratený údaj.
+ *
+ * 🔴 A tichšia polovica tej istej chyby: hlas členov sa zapisoval cez
+ * `seedCrowd({ crowd: draft.crowd }) ?? 'Calm'` (`PackMap.tsx`), takže kto vybral RUŠNÉ,
+ * zahlasoval Calm. Fallback ostáva, ale odteraz sa naň nepadá.
+ */
 export function seedCrowd(trail: HeroTrail): Crowd | null {
-  return trail.crowd ? SEED_CROWD[trail.crowd] ?? null : null;
+  if (!trail.crowd) return null;
+  const bySkLabel = SEED_CROWD[trail.crowd];
+  if (bySkLabel) return bySkLabel;
+  return CROWDS.includes(trail.crowd as Crowd) ? (trail.crowd as Crowd) : null;
 }
 
 // ── deterministický PRNG z trip id (mulberry32 + FNV-1a hash) — mock hlasy/ľudia musia byť
@@ -336,7 +351,11 @@ export const SK_GEO: GeoCategoryDef[] = [
     'Gerlachovský štít', 'Ďumbier', 'Veľký Kriváň', 'Ostrá (V. Fatra)', 'Záruby',
     'Vápeč', 'Inovec', 'Poľana (vrchol)', 'Kľak',
   ] },
-  { key: 'waters', label: 'Top waters', icon: 'water-waves', units: [
+  // ⚠️ Label je „Waters", nie „Top waters" (2026-09-01): zoznam už nie je len kurátorovaná
+  // osmička — TRIPSTATS k nej pripája všetky prejdené vodné plochy (viď render medailí
+  // v packCommunityUI.tsx). Osmička nižšie ostáva CIEĽOVNÍKOM a jediným zdrojom BODOV za
+  // „novú vodu"; rozšírenie je čisto zobrazovacie.
+  { key: 'waters', label: 'Waters', icon: 'water-waves', units: [
     'Liptovská Mara', 'Oravská priehrada', 'Zemplínska šírava', 'Sĺňava', 'Domaša',
     'Ružín', 'Štrbské pleso', 'Zelené pleso',
   ] },

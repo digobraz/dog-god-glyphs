@@ -382,18 +382,35 @@ export function ElevationProfile({ elev, km, onHover }: {
       onPointerMove={interactive ? move : undefined}
       onPointerLeave={interactive ? leave : undefined}
     >
-      <line x1={P.l} y1={H - P.b} x2={W - P.r} y2={H - P.b} stroke={PACK_THEME.onDarkBorder} />
+      {/* ── FARBU POPISKOV NESIE HOSTITEĽ (2026-09-01) ─────────────────────────
+          Do 1. 9. tu stálo `PACK_THEME.onDarkDim` / `onDarkBorder`, teda SVETLÝ inkoust
+          natvrdo — a to platilo len dovtedy, kým bol každý hostiteľ tmavý. Odkedy sú
+          panel v mape aj článok papyrusové, svetlé číslo na svetlej ploche zmizne
+          (v článku boli „1133 m" a „792 m" po prezlečení neviditeľné).
+          `currentColor` to rieši na jednom mieste: graf si farbu neurčuje, dedí ju z
+          textu okolo seba. Tmavý hostiteľ dá svetlú, papyrusový tmavú — bez prepínača
+          a bez propu, ktorý by musel každý volajúci vypĺňať správne. */}
+      <line x1={P.l} y1={H - P.b} x2={W - P.r} y2={H - P.b} stroke="currentColor" opacity={0.22} />
+      {/* ── KRIVKA JE FIALOVÁ, NIE ZLATÁ (Matej 1. 9. 2026) ──────────────────────
+          „treba zmeniť farbu prevýšenia lebo na papyruse splýva! treba ju dať fialovou!
+           aj na detaile aj na blogu."
+          Zlatá #F5C73D bola na čiernom pozadí kontrastná; na papyruse je to takmer tá istá
+          farba ako podklad a graf zanikol. Fialová nie je náhodná náhrada — je to
+          `PACK_THEME.tripPurple`, LOCKNUTÁ farba VÝLETOV (28. 8. 2026), tou istou sa kreslí
+          trasa na mape. Profil prevýšenia je údaj o trase, takže sedí významom, nie len
+          kontrastom. ⚠️ Nezakladaj druhý odtieň fialovej — plocha pod krivkou je TÁ ISTÁ
+          farba s nižším krytím, nie svetlejší hex. */}
       <path d={area} fill="url(#elevFill)" />
-      <path d={d} fill="none" stroke="#F5C73D" strokeWidth={1.8} strokeLinejoin="round" strokeLinecap="round" />
+      <path d={d} fill="none" stroke={PACK_THEME.tripPurple} strokeWidth={1.8} strokeLinejoin="round" strokeLinecap="round" />
       <defs>
         <linearGradient id="elevFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#F5C73D" stopOpacity="0.28" />
-          <stop offset="100%" stopColor="#F5C73D" stopOpacity="0" />
+          <stop offset="0%" stopColor={PACK_THEME.tripPurple} stopOpacity="0.22" />
+          <stop offset="100%" stopColor={PACK_THEME.tripPurple} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <text x={2} y={sy(maxY) + 4} fill={PACK_THEME.onDarkDim} fontSize="9">{Math.round(maxY)} m</text>
-      <text x={2} y={sy(minY) + 4} fill={PACK_THEME.onDarkDim} fontSize="9">{Math.round(minY)} m</text>
-      <text x={W - P.r} y={H - 4} fill={PACK_THEME.onDarkDim} fontSize="9" textAnchor="end">{km.toFixed(1)} km</text>
+      <text x={2} y={sy(maxY) + 4} fill="currentColor" opacity={0.62} fontSize="9">{Math.round(maxY)} m</text>
+      <text x={2} y={sy(minY) + 4} fill="currentColor" opacity={0.62} fontSize="9">{Math.round(minY)} m</text>
+      <text x={W - P.r} y={H - 4} fill="currentColor" opacity={0.62} fontSize="9" textAnchor="end">{km.toFixed(1)} km</text>
       {/* Ukazovateľ: zvislica cez celý graf, guľôčka na krivke a metre nad ňou. Farbu nesie
           krivka (currentColor cez triedu `.trp-elev-cursor` v hostiteľovi), aby ukazovateľ
           patril k tej istej čiare, na ktorej stojí — a nie k pozadiu grafu. */}

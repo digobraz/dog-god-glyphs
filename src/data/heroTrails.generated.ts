@@ -41,6 +41,13 @@ export type HeroTrail = {
   // kliky, ktoré ju vyrobili. Bez tohto poľa by človek, ktorý po prejdení povie
   // "šiel som inak", musel celú trasu nakresliť odznova namiesto posunutia kotvy.
   planPath?: LatLngTuple[];
+  // OKRUH MIESTA (2026-09-01) — len ADD-flow zápisy, kurátorovaný dataset ho nemá.
+  // Návšteva a časť aktivít nemajú trasu, ale PLOCHU: stred leží v 'path[0]', polomer tu.
+  // ⚠️ Do 1. 9. sa oboje pri ukladaní ZAHADZOVALO ('line' bolo prázdne pole pre všetko,
+  // čo nie je 'route'), takže zapísaná návšteva nemala na mape ani jeden bod — vyzeralo to
+  // ako prázdny zoznam, nie ako chyba. Jazdec polomeru pritom bežal a človek ním nastavoval
+  // číslo, ktoré nikam neviedlo.
+  areaR?: number;
 };
 
 export const HERO_TRAILS: HeroTrail[] = [

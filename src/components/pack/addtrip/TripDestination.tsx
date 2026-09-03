@@ -20,6 +20,7 @@ import type { Map as LeafletMap } from 'leaflet';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { searchDestinations, nearestTrails, describeTrails, type DestinationHit } from './tripSearch';
+import { BackButton } from '@/components/pack/BackButton';
 
 const GOLD = '#C99A3F';
 /** Meno psa/výletu = Cinzel Decorative je rezervované pre psov; trip nesie Cinzel (brand v3.2). */
@@ -126,7 +127,7 @@ export function TripDestination({ allTrails, mapRef, onPick, onCreateNew, onClos
     <div className="atd">
       <style>{DEST_CSS}</style>
       <div className="atd-head">
-        <button type="button" className="atd-back" onClick={onClose} aria-label="Back">←</button>
+        <BackButton tone="dark" onClick={onClose} label="Back" />
         <div className="atd-title">Plan a trip</div>
       </div>
 
@@ -261,8 +262,6 @@ function DestinationCard({
 const DEST_CSS = `
 .atd{display:flex;flex-direction:column;height:100%;min-height:0;}
 .atd-head{display:flex;align-items:center;gap:10px;padding:16px 20px 10px;flex-shrink:0;}
-.atd-back{background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};color:${T.onDark};width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;line-height:1;}
-.atd-back:hover{border-color:${GOLD};color:${GOLD};}
 .atd-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.onDark};}
 .atd-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:4px 20px 12px;display:flex;flex-direction:column;gap:14px;}
 .atd-field label{display:block;font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:6px;}

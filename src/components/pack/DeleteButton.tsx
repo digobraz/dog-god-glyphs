@@ -15,6 +15,10 @@
 // zaniká, vie volajúci; tento súbor len zaručí, že sa to nestane omylom.
 import { useEffect, useRef, useState } from 'react';
 import { PACK_THEME as T, FONT_UI } from '@/components/pack/packTheme';
+// Bledý chrome — inkousty a plochy papyrusu. Všetky TRI dnešné použitia tlačidla
+// (karta podujatia, inzerát „hľadám partiu", detail výletu) sedia v paneli mapy,
+// ktorý je od 26.–28. 8. papyrusový; tmavé tokeny tam boli neviditeľné.
+import { PALE as P } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 
 const DANGER = '#CE4B3C'; // tá istá červená ako HAZARD_RED na mape — jeden význam, jedna farba
@@ -105,20 +109,25 @@ export function DeleteButton({ label, onConfirm, variant = 'inline', hint }: Del
  * nikto nedotkne, nemá kartu ovládať.
  */
 export const DELETE_BUTTON_CSS = `
+/* ── BLEDÝ ŠAT (DRAK → BRIGHT, 2026-09-01) ─────────────────────────────────────────────
+   ⚠️ Bez scopovania zámerne: tlačidlo dnes NIKDE nestojí na tmavom povrchu (tri volajúci,
+   všetci v paneli mapy). Keby pribudlo tmavé miesto, výnimka sa scopuje TAM — základ
+   ostáva bledý, nie naopak.
+   ČERVENÁ SA NEMENÍ — nesie význam (nevratný úkon), nie šat. Mení sa len to, čo bolo
+   postavené na svetlom inkouste. */
 .pdel{margin-top:10px;}
 .pdel--ghost{margin-top:8px;}
-.pdel-btn{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:${T.onDarkDim};background:transparent;border:0;padding:4px 0;cursor:pointer;transition:color .15s;}
+.pdel-btn{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:${P.dim};background:transparent;border:0;padding:4px 0;cursor:pointer;transition:color .15s;}
 .pdel-btn:hover{color:${DANGER};}
 .pdel--armed{padding:9px 11px;border-radius:10px;border:1px solid rgba(206,75,60,0.45);background:rgba(206,75,60,0.10);}
-.pdel-ask{display:block;font-family:${FONT_UI};font-size:11.5px;line-height:1.45;color:${T.onDark};margin-bottom:8px;}
+.pdel-ask{display:block;font-family:${FONT_UI};font-size:11.5px;line-height:1.45;color:${P.ink};margin-bottom:8px;}
 .pdel-row{display:flex;gap:7px;}
 .pdel-yes,.pdel-no{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:6px 12px;border-radius:999px;cursor:pointer;}
 .pdel-yes{background:${DANGER};border:1px solid ${DANGER};color:#fff;}
-.pdel-no{background:transparent;border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};}
-.pdel-no:hover{color:${T.onDark};}
-/* GHOST — v svetlom/detailovom kontexte, kde tmavé tokeny nesedia. Rám aj v pokoji,
-   lebo tam tlačidlo nestojí v karte a bez rámu by sa stratilo. */
-.pdel--ghost .pdel-btn{border:1px solid ${T.onDarkBorder};border-radius:999px;padding:6px 12px;}
+.pdel-no{background:transparent;border:1px solid ${P.border};color:${P.dim};}
+.pdel-no:hover{color:${P.ink};border-color:${T.cardEdge};}
+/* GHOST — v svetlom/detailovom kontexte, kde tlačidlo nestojí v karte a bez rámu by sa stratilo. */
+.pdel--ghost .pdel-btn{border:1px solid ${P.border};border-radius:999px;padding:6px 12px;}
 .pdel--ghost .pdel-btn:hover{border-color:${DANGER};}
 `;
 

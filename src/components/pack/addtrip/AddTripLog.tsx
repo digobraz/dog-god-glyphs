@@ -35,7 +35,7 @@ import { pluralKey } from '@/components/pack/tripShared';
 import { DiffMark, DIFF_MARK_CSS } from '@/components/pack/tripShared';
 import { dockFitPadding, dockPadX } from '@/components/pack/mapDockShape';
 import { notePanelH } from '@/components/pack/mapnotes/AddMapNote';
-import { GeometryPicker, allowedKindsFor, defaultKindFor, findDuplicate, TRIP_HOLD_MIN_ZOOM, AREA_DEFAULT_M } from './GeometryPicker';
+import { GeometryPicker, defaultKindFor, findDuplicate, TRIP_HOLD_MIN_ZOOM, AREA_DEFAULT_M } from './GeometryPicker';
 import { MAX_PHOTOS, optimizePhoto } from './photoOptimize';
 import { SPACING, interp, calibratedAscent } from './addTripGeo';
 import { buildPlanDate, parsePlanDate, type PlanPrecision } from './planDate';
@@ -54,7 +54,7 @@ import {
   type TravelMode, TRAVEL_MODES,
   readAddDraft, writeAddDraft, clearAddDraft, clearTripNotes,
 } from './addTripModel';
-import { TRIP_CATEGORIES, chipsForCategory, chipsOf, otherChips, type TripChip } from '@/components/pack/tripCategories';
+import { TRIP_CATEGORIES, chipsForCategory, chipsOf, otherChips, geometryForCategory, type TripChip } from '@/components/pack/tripCategories';
 
 const GOLD = '#C99A3F';
 
@@ -215,6 +215,25 @@ export type AddTripLogProps = {
 // Sedem dlaždíc zaniklo — zoznam žije v `components/pack/tripCategories.ts` spolu s tým,
 // ktoré staré aktivity do ktorej kategórie patria a akú má kategória geometriu. Tu ostal
 // len tvar, ktorý čaká mriežka dlaždíc.
+/**
+ * ── KTORÉ KATEGÓRIE ZAČÍNAJÚ OTÁZKOU, NIE MAPOU (Matej 1. 9. 2026) ────────────────────────
+ *
+ * „ideme ladiť ACTIVITY trip flow… postup ako pri VISIT."
+ *
+ * Pri TURISTIKE je mapa samovysvetľujúca — turistika JE trasa. Pri návšteve aj pri aktivite
+ * človek ešte netuší, čo ide zapisovať, a pokyn „klikom označ oblasť" dostane na miesto, ktoré
+ * nepomenoval. Preto ide chip PRED mapu.
+ *
+ * 🔑 PRI AKTIVITE MÁ TEN CHIP AJ DRUHÚ ÚLOHU: určuje TVAR výletu (bicykel a beh trasa, SUP
+ *    okruh), takže odpoveď z tejto obrazovky rovno nastaví, čo sa na mape kreslí. Bez nej by
+ *    sa tvar prepínal ručne o obrazovku ďalej.
+ *
+ * ⚠️ JEDEN ZOZNAM. To isté rozhodnutie čítajú tri miesta (prvý krok, poradie krokov, dlaždica
+ *    bez vidlice pri návšteve) — tri podmienky `id === '…'` by sa pri štvrtej kategórii
+ *    rozišli.
+ */
+const CHIP_FIRST: readonly string[] = ['visit', 'activity'];
+
 // ⚠️ Emoji ani poradie sa TU nemenia — meň ich v `tripCategories.ts`, inak sa filter,
 // plán a článok znova rozídu (do 27. 8. mal plán pri nocľahu ⛺ tam, kde filter 💤).
 const ACTIVITIES: Array<{ id: string; label: string; emoji: string; dataId: string }> =
@@ -280,8 +299,10 @@ const COUNTRY_OPTIONS = ['sk', 'cz', 'at', 'hu', 'pl', 'de', 'ch', 'it', 'si', '
 
 // Počiatočná prázdna geometria — `defaultKindFor(activity,'log')` je vždy TABUĽKOVÝ default
 // z ACTIVITY_GEOMETRY (nie najvoľnejší ako pri pláne — §5: log = „čo si skutočne prešiel").
-function emptyGeometryFor(activity: string, multiDay = false): TripGeometry {
-  const kind = defaultKindFor(activity, 'log', multiDay);
+// ⚠️ `chip` = hlavný chip kroku „Čo sme robili". Pri AKTIVITE ním určuje tvar bicykel (trasa),
+// beh (trasa) a SUP (okruh) — Matej 1. 9. 2026. Bez neho platí tvar kategórie.
+function emptyGeometryFor(activity: string, multiDay = false, chip?: string): TripGeometry {
+  const kind = defaultKindFor(activity, 'log', multiDay, chip);
   if (kind === 'point') return { kind: 'point', center: undefined as unknown as LatLngTuple };
   if (kind === 'area') return { kind: 'area', center: undefined as unknown as LatLngTuple, radiusM: 0 };
   return { kind: 'route', path: [], snapped: false };
@@ -294,16 +315,101 @@ function emptyGeometryFor(activity: string, multiDay = false): TripGeometry {
 // CSS obal nad tou istou komponentou — CompanionAvatarsOnly z AddTripPlan.tsx nie je exportovaná,
 // preto lokálna kópia (`.atl-` prefix, aby sa CSS nebilo s `.att-` variantom, ak by obe niekedy
 // žili v DOM naraz).
+/**
+ * ── JEDEN PES = ŽIADNY RAD NA VÝBER (Matej 1. 9. 2026) ──────────────────────────────────────
+ * „nechápem pri edite je udaje o psovi… pri detaile tripu/edite to by som dal asi preč."
+ * Z nákresu vybral variant, ktorý CELÝ blok NEZRUŠÍ — len ho stíši. `CompanionPicker` totiž
+ * nie je len o psoch: vie pridať aj ĽUDÍ voľným textom, a tí sa nikam inak zapísať nedajú.
+ * Pri jednom psovi appka pozná odpoveď sama (ten istý pes, zakaždým) — pýtať sa na ňu znamená
+ * pýtať sa na zrejmé. Rad psích avatarov sa preto vôbec nekreslí a pes sa ticho zapíše cez
+ * `crewSeededRef` efekt vyššie (ten beží nezávisle od toho, čo sa tu vykreslí — nie je
+ * podmienený tým, že táto komponenta pošle prvý zápis). Ostáva len riadok na PRIDANIE
+ * ĎALŠIEHO človeka — to appka odvodiť nevie.
+ * Pri DVOCH a viacerých psoch výber naozaj rozhoduje (s ktorým psom si šiel) — tam ostáva
+ * pôvodný `CompanionPicker` bezo zmeny.
+ * ⚠️ Prázdny `myDogs` (0) NIE JE „jeden pes" — môže byť len ešte nenačítaný zoznam (§ zadania),
+ * takže sa nesmie tváriť ako kompaktný variant. Podmienka je preto presne `=== 1`.
+ */
 function CompanionAvatarsOnly(props: {
   myDogs: { id: string; name: string; photo?: string | null }[];
   selected: Companion[];
   onChange: (next: Companion[]) => void;
 }) {
+  const { myDogs, selected, onChange } = props;
+  if (myDogs.length === 1) {
+    return (
+      <div className="atl-companions">
+        <style>{COMPANION_CSS}</style>
+        <SoloCompanionAdd selected={selected} onChange={onChange} />
+      </div>
+    );
+  }
   return (
     <div className="atl-companions">
       <style>{COMPANION_CSS}</style>
-      <CompanionPicker {...props} />
+      <CompanionPicker myDogs={myDogs} selected={selected} onChange={onChange} />
     </div>
+  );
+}
+
+// Kompaktný variant kroku 5 pre jedného psa — chipy pridaných ľudí (rovnaký vzor ako
+// `CompanionPicker`, ktorý needitujeme, viď komentár vyššie) + jeden riadok na napísanie mena.
+// Vlastný pes v `selected` (kľúč `dog-…`) sa tu nezobrazuje ani neponúka na odobratie — pri
+// jednom psovi nie je čo prepínať.
+function SoloCompanionAdd({ selected, onChange }: {
+  selected: Companion[];
+  onChange: (next: Companion[]) => void;
+}) {
+  const t = useT();
+  const [q, setQ] = useState('');
+  const named = selected.filter((c) => !c.key.startsWith('dog-'));
+  const addTyped = () => {
+    const name = q.trim();
+    if (!name || selected.some((c) => c.key === `member-${name}`)) return;
+    onChange([...selected, { key: `member-${name}`, name }]);
+    setQ('');
+  };
+  const remove = (key: string) => onChange(selected.filter((c) => c.key !== key));
+  return (
+    <>
+      {named.length > 0 && (
+        <div className="comm-comp-selected">
+          {named.map((c) => (
+            <span key={c.key} className="comm-comp-chip">
+              <span
+                className={`comm-comp-chip-av${c.photo ? '' : ' ph'}`}
+                style={c.photo ? { backgroundImage: `url('${c.photo}')` } : undefined}
+              >
+                {c.photo ? '' : c.name.charAt(0).toUpperCase()}
+              </span>
+              <b>{c.name}</b>
+              <button type="button" onClick={() => remove(c.key)} aria-label={t('pack.companions.remove', { name: c.name })}>×</button>
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="comm-comp-searchwrap">
+        <div className="comm-comp-searchrow">
+          <input
+            className="atl-input comm-input"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTyped(); } }}
+            placeholder={t('pack.addTrip.step.anyoneElse')}
+          />
+          <button
+            type="button"
+            className="comm-comp-addbtn"
+            onClick={addTyped}
+            disabled={!q.trim()}
+            aria-label={t('pack.companions.addTyped')}
+            title={t('pack.companions.addTyped')}
+          >
+            +
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -475,24 +581,18 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
   const metricsRef = useRef<{ km: number; ascentM: number | null; minutes: number | null; points: number }>({ km: 0, ascentM: null, minutes: null, points: 0 });
   const photoInputRef = useRef<HTMLInputElement>(null);
 
-  // aktivita mení povolené druhy geometrie — ak aktuálny kind už nesedí, resetni na nový default.
-  useEffect(() => {
-    if (!activity) return;
-    // ⚠️ ZÁVISÍ AJ NA VIACDŇOVOSTI: odpoveď „na viac dní" zúži povolené druhy na samotnú
-    // trasu, takže rozkreslený kruh treba zahodiť v tej istej chvíli, keď prestal byť legálny.
-    const allowed = allowedKindsFor(activity, multiDay);
-    setGeometry((prev) => (allowed.includes(prev.kind) ? prev : emptyGeometryFor(activity, multiDay)));
-  }, [activity, multiDay]);
-
   // NAJPRV MAPA, POTOM FORMULÁR (Matej 2026-08-22, rozvinuté 23. 8. do krokov): po výbere
   // aktivity sa ide rovno na KROK 1 = trasa. Formulár prichádza až od kroku 3.
   const pickActivity = (id: string, mode: TripState) => {
     setActivity(id);
     setTripMode(mode);
     setPendingActivity(null);
-    // NÁVŠTEVA začína otázkou „čo to bolo za miesto", nie mapou (`STEP_SEQ` má na prvom
-    // mieste sedmičku). Bez tejto vetvy by prvé ťuknutie pristálo na druhej bodke.
-    setStep(id === 'visit' && mode !== 'planned' ? 7 : 1);
+    // NÁVŠTEVA aj AKTIVITA začínajú otázkou „čo to bolo / čo sme robili", nie mapou
+    // (`STEP_SEQ` má na prvom mieste sedmičku). Bez tejto vetvy by prvé ťuknutie pristálo
+    // na druhej bodke.
+    // ⚠️ LEN ZÁPIS. Plán aktivity sa kreslí ako doteraz — chip je spomienka na to, čo sa
+    //    STALO, a na výlete o mesiac ju nikto nemá (Matej 1. 9. 2026: plán aktivite ostáva).
+    setStep(CHIP_FIRST.includes(id) && mode !== 'planned' ? 7 : 1);
     setNoteAsk(0);
     setExistingTripId(undefined);
     setDrawManually(false);
@@ -508,9 +608,10 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
           : empty.kind === 'point'
             ? { kind: 'point', center: p }
             // ⚠️ 1500 m BOLO TROJNÁSOBKOM STROPU (opravené 2026-08-31). Rozsah okruhu je
-            //    50–500 m (`AREA_MAX_M`), takže zasiaty bod z mapy zakladal kruh, ktorý sa
-            //    ovládaním nedal ani zmenšiť na povolenú hodnotu — číslo tu ostalo z čias,
-            //    keď mal okruh rozsah 200 m – 20 km.
+            //    50 m – 5 km (`AREA_MIN_M`/`AREA_MAX_M`), takže zasiaty bod z mapy zakladal
+            //    kruh, ktorý sa ovládaním nedal ani zmenšiť na povolenú hodnotu — číslo tu
+            //    ostalo z čias, keď mal okruh rozsah 200 m – 20 km. Strop stúpol 1. 9. 2026
+            //    (priehrady), východisko `AREA_DEFAULT_M` ostáva 100 m.
             : { kind: 'area', center: p, radiusM: AREA_DEFAULT_M },
       );
       return;
@@ -565,10 +666,10 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
    */
   const isVisit = activity === 'visit';
   const PLACE_STEP_NAME: Record<string, string> = { route: 'place', about: 'aboutPlace' };
-  /** Krok 5 sa pri návšteve volá DOJEM, nie OSTATNÉ — pribudol doň ruch zo zaniknutej štvorky. */
+  /** Krok 5 sa pri chip-first toku volá DOJEM, nie OSTATNÉ — pribudol doň ruch zo zaniknutej štvorky. */
   const VISIT_STEP_NAME: Record<string, string> = { rest: 'feel' };
   const stepNameKey = (k: string) =>
-    (isVisit && VISIT_STEP_NAME[k]) || (isPlaceTrip && PLACE_STEP_NAME[k]) || k;
+    (isChipFirst && VISIT_STEP_NAME[k]) || (isPlaceTrip && PLACE_STEP_NAME[k]) || k;
   /**
    * ── DVA RADY CHIPOV (§2.1 zadania, Matej 2026-08-31) ─────────────────────────────────
    *
@@ -605,6 +706,35 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
     });
     setMainChip(id);
   };
+
+  /**
+   * ── TVAR VÝLETU SA RIADI VÝBEROM, KTORÝ ČLOVEK PRÁVE UROBIL ───────────────────────────
+   *
+   * Aktivita mení povolené druhy geometrie — a od 1. 9. 2026 ich mení aj HLAVNÝ CHIP: bicykel
+   * a beh začínajú trasou, SUP okruhom (`CHIP_GEOMETRY` v `tripCategories.ts`).
+   *
+   * 🔴 SAMOTNÉ „JE TO EŠTE POVOLENÉ?" NESTAČÍ. Aktivita povoľuje trasu aj okruh, takže po
+   *    výbere SUPu by stará podmienka nechala trasu stáť — bola by naďalej legálna — a človek
+   *    by dostal presne ten tvar, ktorý si nevybral. Preto sa PRÁZDNA geometria prispôsobí
+   *    východiskovému tvaru chipu, nielen povolenému zoznamu.
+   * 🔴 ROZKRESLENÚ TRASU TO NEZAHODÍ. Kto sa vráti do kroku „Čo" a preklikne chip, príde
+   *    o svoju prácu len vtedy, keď jej tvar prestal byť povolený (to isté pravidlo, aké
+   *    platí pre odpoveď „na viac dní": tá zúži aktivitu na samotnú trasu).
+   *
+   * ⚠️ EFEKT MUSÍ STÁŤ POD `effMainChip`. Pole závislostí sa vyhodnocuje pri vykreslení, nie
+   *    až v tele — nad deklaráciou by spadol na TDZ.
+   */
+  useEffect(() => {
+    if (!activity) return;
+    const cfg = geometryForCategory(activity, multiDay, effMainChip);
+    setGeometry((prev) => {
+      if (!cfg.allowed.includes(prev.kind)) return emptyGeometryFor(activity, multiDay, effMainChip);
+      const drawn = prev.kind === 'route' ? prev.path.length > 0 : !!prev.center;
+      if (!drawn && prev.kind !== cfg.default) return emptyGeometryFor(activity, multiDay, effMainChip);
+      return prev;
+    });
+  }, [activity, multiDay, effMainChip]);
+
   const act = ACT_BY_ID[activity];
   // titulná fotka = vybraná (coverIndex), fallback na placeholder kým nie je nahraná žiadna.
   const effCoverIndex = photos.length > 0 ? Math.min(coverIndex, photos.length - 1) : 0;
@@ -657,6 +787,21 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
    * Fallback na dátum drží OBNOVENÉ náčrty z čias pred touto zmenou — tie mód neniesli.
    */
   const isPlan = tripMode ? tripMode === 'planned' : (!dontRemember && !!date && date > todayISO);
+
+  /**
+   * ── AKTIVITA IDE TÝM ISTÝM TOKOM AKO NÁVŠTEVA (Matej 1. 9. 2026: „postup ako pri VISIT") ─
+   *
+   * Chip pred mapou, chip povinný, päť krokov, zaniknutá štvorka. Rozdiel je JEDEN: aktivita
+   * si plán ponechala (Matej 1. 9., potvrdené) — bicykel či camping sa so svorkou reálne
+   * plánujú, návšteva hradu nie. Preto je v podmienke aj `!isPlan`: plánovaná aktivita kreslí
+   * trasu ako doteraz a chip sa jej nepýta, lebo spomienku na výlet o mesiac nikto nemá.
+   *
+   * ⚠️ MUSÍ STÁŤ POD `isPlan`, nie hore pri `isVisit`. `const` je v dočasnej mŕtvej zóne až
+   *    po svoju deklaráciu, takže odkaz naň o 130 riadkov vyššie zhodí celý panel na
+   *    „Something went wrong" — a `tsc` to nechytí. Funkcie, ktoré ho čítajú (`stepNameKey`),
+   *    sú uzávery volané až pri vykreslení, tie sa presunúť nemusia.
+   */
+  const isChipFirst = CHIP_FIRST.includes(activity) && !isPlan;
 
   /**
    * IDEM SÁM (Matej 2026-08-26) — odvodené z `visibility`, nie ďalší stav. Pri sólo výlete
@@ -1449,8 +1594,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
    *    obnovil na inom kroku, než na ktorom človek skončil.
    */
   const STEP_SEQ = useMemo<readonly number[]>(
-    () => (isPlan ? [1, 3, 6] : isVisit ? [7, 1, 2, 3, 5] : [1, 2, 3, 4, 5]),
-    [isPlan, isVisit],
+    () => (isPlan ? [1, 3, 6] : isChipFirst ? [7, 1, 2, 3, 5] : [1, 2, 3, 4, 5]),
+    [isPlan, isChipFirst],
   );
   const seqPos = Math.max(0, STEP_SEQ.indexOf(step));
   /**
@@ -1625,8 +1770,6 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
   // takže mriežka s jednou dlaždicou by bola ozdoba a nie voľba.
   const askGroup = NOTE_ASKS[Math.min(noteAsk, NOTE_ASKS.length - 1)].group;
   const askKinds = GROUP_KINDS[askGroup];
-  /** posledná z troch otázok — jej tlačidlo nevedie na ďalšiu otázku, ale rovno do kroku 3 */
-  const lastAsk = noteAsk >= NOTE_ASKS.length - 1;
 
   /**
    * ── RÁMOVANIE OBOCH MAPOVÝCH KROKOV MÁ JEDNÉHO VLASTNÍKA ──────────────────────────────
@@ -1742,8 +1885,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
 
   /* ⚠️ FÁZA „VŠETKY TRI OTÁZKY SÚ ZA MNOU" ZANIKLA (Matej 2026-08-28) ────────────────────
      Bola to obrazovka s vetou „hotovo", odkazom „označiť ešte" a zlatým POKRAČOVAŤ — teda
-     tretí klik navyše za tým, čo už človek povedal treťou odpoveďou. Tlačidlo poslednej
-     otázky vedie odteraz rovno do kroku 3 (`lastAsk`).
+     tretí klik navyše za tým, čo už človek povedal treťou odpoveďou. Tlačidlo panela vedie
+     odteraz rovno do kroku 3 — od 1. 9. 2026 z KTOREJKOĽVEK otázky, nielen z tretej.
      ⚠️ ČO S ŇOU PADLO: AInubisova reakcia na výsledok z 25. 8. („škoda, že si nič neoznačil"
      / pochvala za označené). Vety `step.notesNone` a `step.notesPraise` ostávajú v slovníku,
      ale nemá ich kto povedať — v krokoch 3–5 sprievodca nestojí (`drawBar.active`).
@@ -1772,17 +1915,25 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
             />
           )}
           <div className="atl-noteask-btns">
-            {/* PRESKOČIŤ vs. ĎALEJ — to isté tlačidlo, iné slovo (2026-08-27). Kým človek
-                v tejto otázke nič neoznačil, naozaj ju PRESKAKUJE; keď už značku položil,
-                „preskočiť" by tvrdilo, že o ňu príde. Odkedy sa otázka po značke sama
-                neposúva, je to jediná cesta ďalej — a musí povedať, že ňou nič nestráca.
+            {/* ⚠️ JEDNO TLAČIDLO ZAVRIE CELÝ KROK (Matej 2026-09-01, po otázke „zliať tri
+                otázky ODKAZOV do jednej obrazovky?"): „Bublina sa ďalej pýta podľa chipu,
+                na ktorom stojíš — ale dole je JEDNO tlačidlo, ktoré krok zavrie."
+                Kto nemá čo označiť, klikne RAZ namiesto troch ráz.
 
-                ⚠️ PRI TRETEJ OTÁZKE JE TO ROVNO POKRAČOVAŤ (Matej 2026-08-28: „po kliknutí
-                sa otvorilo CTA Pokračovať, ale pripadá mi to zbytočné — namiesto Ďalej mohlo
-                byť hneď Pokračovať, nie?"). Medziobrazovka „hotovo, chceš označiť ešte?"
-                zanikla: bola to otázka, na ktorú je odpoveďou chip v rade nad ňou, teda
-                jeden ťuk, ktorý je vidno po celý krok. Preskočenie ostáva vedomé — tretia
-                otázka sa ním neprejde tichom, len sa neopýta dvakrát.
+                ⚠️ ČO TÝM ZANIKLO: dve slová toho istého tlačidla (`step.skip` „Preskočiť"
+                a `step.nextAsk` „Ďalej“) aj jeho posun na ďalšiu otázku (`setNoteAsk(i+1)`).
+                Tri otázky NEZANIKLI — bublina ich hovorí ďalej, len sa medzi nimi chodí
+                RADOM CHIPOV nad tlačidlom (`noteTrack`, ťuk = `setNoteAsk(i)`), ktorý je
+                vidno po celý krok a farbou hovorí, čo ostalo neoznačené. Vedenie za ruku
+                tak drží bublina a farba chipu, nie postupnosť klikov.
+                Kľúče `step.skip` a `step.nextAsk` ostávajú v slovníku — tu ich nemá kto
+                povedať. Text je vždy `step.doneNotes` („Pokračovať"), lebo tlačidlo robí
+                vždy to isté: ide sa z kroku von.
+
+                ⚠️ HISTÓRIA, ABY SA NEVRÁTILA: do 27. 8. tu boli DVE slová podľa toho, či
+                už človek v skupine niečo označil („preskočiť" by po položenej značke tvrdilo,
+                že o ňu príde), a do 28. 8. viedlo tlačidlo na ďalšiu otázku, takže tretia
+                mala vlastný text. Obe pravidlá padli s posledným klikom, ktorý ich držal.
 
                 ⚠️ A JE TO LAPIS, NIE BLEDÉ TLAČIDLO (Matej 2026-08-28: „tu to Ďalej nie je
                 vôbec vidno! CTA musí byť lapisové a dobre viditeľné"). Je to JEDINÉ CTA
@@ -1792,11 +1943,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
             <button
               type="button"
               className="trp-dbar-done trp-dbar-done--hero"
-              onClick={() => { if (lastAsk) setStep(3); else setNoteAsk((i) => i + 1); }}
+              onClick={() => setStep(3)}
             >
-              {t(lastAsk
-                ? 'pack.addTrip.step.doneNotes'
-                : placedInGroup(askGroup) > 0 ? 'pack.addTrip.step.nextAsk' : 'pack.addTrip.step.skip')}
+              {t('pack.addTrip.step.doneNotes')}
             </button>
             {/* ⚠️ TLAČIDLO OZNAČ TU UŽ NIE JE (Matej 2026-08-27: „chip → OZNAČ sú dva kliky
                 na jednu vec"). Označovanie zapína ťuk do chipu skupiny, resp. do dlaždice
@@ -1856,10 +2005,10 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
     3: [
       ...(name.trim() ? [] : ['pack.addTrip.field.name']),
       ...(isPlan || dontRemember || date ? [] : ['pack.addTrip.field.date']),
-      // Pri NÁVŠTEVE sem prišli ZNAČKY zo zaniknutej štvorky — hlásia sa tam, kde sa aj
-      // vypĺňajú. (Tá istá lekcia ako s labkami 26. 8.: pole hlásené na susednom kroku sa
-      // nedá doplniť, lebo tam nie je.)
-      ...(!isVisit || tags.size ? [] : ['pack.addTrip.field.tags']),
+      // Pri NÁVŠTEVE a AKTIVITE sem prišli ZNAČKY zo zaniknutej štvorky — hlásia sa tam, kde
+      // sa aj vypĺňajú. (Tá istá lekcia ako s labkami 26. 8.: pole hlásené na susednom kroku
+      // sa nedá doplniť, lebo tam nie je.)
+      ...(!isChipFirst || tags.size ? [] : ['pack.addTrip.field.tags']),
     ],
     4: isPlan ? [] : [
       ...(!isHikeLike || diff ? [] : ['pack.addTrip.field.diff']),
@@ -1884,9 +2033,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
      * Svorka a príbeh ostávajú dobrovoľné.
      */
     5: isPlan ? [] : [
-      // Pri NÁVŠTEVE sem prišiel ruch a značky zo zaniknutej štvorky — hlásiť ich na kroku,
+      // Pri NÁVŠTEVE a AKTIVITE sem prišiel ruch zo zaniknutej štvorky — hlásiť ho na kroku,
       // ktorý sa nezobrazuje, by bola oranžová bodka za pole, ktoré nikde nie je.
-      ...(!isVisit || crowd ? [] : ['pack.addTrip.field.crowd']),
+      ...(!isChipFirst || crowd ? [] : ['pack.addTrip.field.crowd']),
       ...(paws > 0 ? [] : ['pack.addTrip.field.paws']),
     ],
     /**
@@ -1896,9 +2045,14 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
      * že sa niekam chystá.
      */
     6: !isPlan || date ? [] : ['pack.addTrip.field.date'],
-    /** 7 ČO (len návšteva) — jediné povinné pole celého kroku je hlavné miesto. */
-    7: effMainChip ? [] : ['pack.addTrip.field.place'],
-  }), [geoDone, placedCount, name, dontRemember, date, isPlan, isVisit, isHikeLike, diff, terrain, crowd, tags, paws, effMainChip]);
+    /**
+     * 7 ČO (návšteva a aktivita) — jediné povinné pole celého kroku je hlavný chip.
+     * ⚠️ Názov chýbajúceho poľa sa mení podľa toho, na čo sa krok pýtal: pri návšteve je to
+     *    MIESTO, pri aktivite ČINNOSŤ. Jeden spoločný text by na jednej z dvoch obrazoviek
+     *    posielal človeka hľadať pole, ktoré tam pod tým menom nestojí.
+     */
+    7: effMainChip ? [] : [activity === 'activity' ? 'pack.addTrip.field.doing' : 'pack.addTrip.field.place'],
+  }), [geoDone, placedCount, name, dontRemember, date, isPlan, isChipFirst, isHikeLike, diff, terrain, crowd, tags, paws, effMainChip, activity]);
 
   /**
    * ČERVENÁ SA ZAPÍNA AŽ PO NÁVRATE, NIE PRI PRVOM PRÍCHODE.
@@ -2143,7 +2297,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
      * vidí, že jeho odpoveď niekam šla. Do vety pokynu sa vsadiť nedá — menovka je
      * v nominatíve a slovenčina ju v „Kde bola …?" skloňuje.
      */
-    contextPill: isVisit && effMainChip ? (
+    contextPill: isChipFirst && effMainChip ? (
       <span className="atl-ctxpill">
         <span style={{ fontFamily: FONT_EMOJI }}>{ownChips.find((c) => c.id === effMainChip)?.emoji}</span>
         <span>{chipTx(effMainChip, ownChips.find((c) => c.id === effMainChip)?.label ?? '')}</span>
@@ -2583,6 +2737,10 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                     onChange={setGeometry}
                     activity={activity}
                     multiDay={isMultiDay}
+                    /* ⚠️ TVAR URČUJE HLAVNÝ CHIP (Matej 1. 9. 2026): bicykel a beh začínajú
+                       trasou a okruh majú ako alternatívu, SUP naopak. Picker z neho berie
+                       aj PORADIE tlačidiel prepínača — prvá položka je hlavná možnosť. */
+                    chip={effMainChip}
                     // ⚠️ `mode` NIE JE natvrdo 'log'. Vnútri pickera ho číta JEDINÉ miesto —
                     // výber času sprievodcových viet (`planning`) — takže sa tým nemení nič
                     // v geometrii; `defaultKindFor(activity, 'plan')` je samostatná funkcia
@@ -2623,12 +2781,16 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                     Štítok poľa je 9,5 px eyebrow — na obrazovke, kde je JEDINÝ obsah otázka
                     a šesť dlaždíc, to nie je nadpis, je to popisok. `.atl-ask` je Cinzel, teda
                     to isté písmo, akým sa v celom brande pýtame. */}
-                <h2 className="atl-ask">{t('pack.addTrip.log.whatPlace')}</h2>
-                <p className="atl-ask-sub">{t('pack.addTrip.log.whatPlaceSub')}</p>
+                {/* ⚠️ TÁ ISTÁ OBRAZOVKA, DVE OTÁZKY (Matej 1. 9. 2026). Návšteva sa pýta na
+                    MIESTO („čo to bolo za miesto"), aktivita na ČINNOSŤ („čo ste robili") —
+                    je to os celej taxonómie (VISIT = kam sme šli · ACTIVITY = čo sme robili)
+                    a spoločné znenie by ju hneď na prvej obrazovke zotrelo. */}
+                <h2 className="atl-ask">{t(isVisit ? 'pack.addTrip.log.whatPlace' : 'pack.addTrip.log.whatDid')}</h2>
+                <p className="atl-ask-sub">{t(isVisit ? 'pack.addTrip.log.whatPlaceSub' : 'pack.addTrip.log.whatDidSub')}</p>
                 <div
                   className="atl-chips atl-chips--picks"
                   role="radiogroup"
-                  aria-label={t('pack.addTrip.log.whatPlace')}
+                  aria-label={t(isVisit ? 'pack.addTrip.log.whatPlace' : 'pack.addTrip.log.whatDid')}
                 >
                   {ownChips.map((ch) => (
                     <button
@@ -2711,7 +2873,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
 
                 {!isPlan && (
                   <>
-                <div className={isMultiDay && !dontRemember ? 'atl-row3' : 'atl-row2'}>
+                <div className={isMultiDay && !dontRemember ? 'atl-row3' : 'atl-row2 atl-row2--date'}>
                   <div className="atl-field">
                     <label>{t('pack.addTrip.log.date')}</label>
                     {/* ⚠️ MEDZE PODĽA VOĽBY Z KROKU 0b. Typ výletu rozhoduje `tripMode`, takže
@@ -2840,14 +3002,26 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                     a ponúkať mu ho znova by bola tá istá otázka druhýkrát. */}
                 {/* ⚠️ STOJÍ NAD PRÍBEHOM. `atl-field--grow` (príbeh) zaberá zvyšok stĺpca a musí
                     byť POSLEDNÝ — pod ním sa nové bloky prekryli s jeho textovým poľom. */}
-                {isVisit && !isPlan && (
+                {isChipFirst && (
                   <>
                     {/* 🔴 „ČO TAM EŠTE BOLO" ZANIKLO (Matej 1. 9. 2026: „daj celkom preč").
                         Miesto je JEDNO — vybralo sa v kroku ČO a je povinné. Druhý rad tých
                         istých šiestich dlaždíc hovoril, že výber z jednotky bol len začiatok,
                         a pýtal sa na to isté druhýkrát. S ním odišiel aj `restOwnChips` —
                         pilulka nad mapou si hlavné miesto berie z `effMainChip`. */}
-                    {moreChips.length > 0 && (
+                    {/* 🔴 „KDE TO BOLO" PRI AKTIVITE ZANIKLO (Matej 1. 9. 2026: „pri aktivite
+                        (piknik), ale myslím že pri každej, netreba v 4. kroku kde to bolo —
+                        tú sekciu daj preč").
+                        Aktivita hovorí, ČO ste robili; miesto pod ňou je len kulisa a človek
+                        ho už raz označil kruhom na mape v kroku 2. Zoznam šiestich miest sa
+                        teda pýtal na to, čo appka o výlete vie z geometrie.
+                        ⚠️ NÁVŠTEVE DRUHÝ RAD OSTÁVA a je to zámer, nie prehliadnutie: nesie
+                        OPAČNÚ polovicu osi — „čo sa tam dá robiť" (činnosti), teda údaj, ktorý
+                        z ničoho iného neplynie. Preto `isVisit`, nie zmazanie bloku.
+                        Kľúč `pack.addTrip.log.whereWasIt` ostáva v slovníkoch (nerenderované
+                        kľúče sa v tomto repe nemažú), rovnako `otherChips()` — druhý rad ho
+                        používa aj vo vetve turistiky nižšie. */}
+                    {isVisit && moreChips.length > 0 && (
                       <div className="atl-field">
                         <label>{t('pack.addTrip.log.placeDoable')}</label>
                         {/* ⚠️ BEZ TICHEJ PONUKY MIESTA (Matej 1. 9.: „daj preč tú funkciu, že sa
@@ -3109,7 +3283,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                 {/* Pri NÁVŠTEVE je krok 5 DOJEM: ruch prišiel zo zaniknutej štvorky a stojí
                     ako prvý — je to jediná vec, ktorú človek hodnotí o mieste, zvyšok kroku
                     je o výlete (svorka, labky, fotky). */}
-                {isVisit && !isPlan && crowdField(5)}
+                {isChipFirst && crowdField(5)}
                 <div className="atl-field">
                   {/* Nadpis sa pýta, nepomenúva (Matej 2026-08-25: „namiesto svorka na
                       výlete tam musí byť Kto bol s tebou na výlete?"). „Svorka na výlete" je
@@ -4228,6 +4402,14 @@ const LOG_CSS = `
 @media (max-width:640px){
   .atl-row2,.atl-row3{grid-template-columns:minmax(0,1fr);}
   /* .atl-row3--tight sem ZÁMERNE nepatrí — viď jeho komentár vyššie. */
+  /* ── DÁTUM A „NEPAMÄTÁM SI" OSTÁVAJÚ VEDĽA SEBA (Matej 1. 9. 2026: „datum a nepamatam si
+     na mobile daj do jedneho riadku nie do dvoch") ────────────────────────────────────────
+     Ten istý dôvod ako pri .atl-row2--tight: kalendár si plnú šírku nepýta a tlačidlo je
+     jednoslovné (white-space:nowrap už má), takže pod sebou stoja len riadok skrolu navyše.
+     Stojí ZA pravidlom vyššie — obe sú 0-1-0, rozhoduje poradie.
+     ⚠️ align-items:end je nutné: distančník .atl-label-spacer je o riadok nižšie na mobile
+     skrytý, takže tlačidlo nemá popisok a bez tohto by viselo pri hornej hrane radu. */
+  .atl-row2--date{grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;}
   /* Dvojtriedne zámerne: .atl-field label je 0-1-1 a jednotriedny prepis by prehral,
      media query špecificitu nepridáva (to je presne to, na čo upozorňuje check:css). */
   .atl-field .atl-label-spacer{display:none;}

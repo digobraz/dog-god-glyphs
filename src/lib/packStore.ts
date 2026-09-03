@@ -59,6 +59,9 @@ export const PACK_KEYS = {
   plans: 'trp-plans',
   events: 'trp-events-v2',
   triplist: 'dogypt.triplist.v1',
+  // Zbalenie sekcie OPEN TRIPS v tripliste (Matej 1. 9. 2026) — čisto lokálna preferencia
+  // zobrazenia, nesynchronizuje sa s DB.
+  openTripsCollapsed: 'trp-opentrips-collapsed',
 } as const;
 
 const QUEUE_KEY = 'trp-sync-queue-v1';

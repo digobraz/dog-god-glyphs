@@ -179,6 +179,16 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
      ⚠️ Časová os tým z webu NEZMIZLA: žije na `/about`, kým ju neprenesieme
      do DOGMY. Ten prenos je iný repo a iný deploy, nepatrí sem. */
   const showStory = part !== 'crawl' && part !== 'film';
+  /* 🔑 RECENZIE VO FILME OSTÁVAJÚ — a je to ten istý pás, aký beží na `/about`
+     (Matej 31. 8. 2026: *„halo zmizli recenzie tie pekne čo su v troch stlpcoch
+     a pohybuju sa mal si ich len prehodiť... nie dať nieco ine... vrat tie
+     recenzie ihned za starwars story"*).
+     Vo filme sa teda MENÍ LEN ICH MIESTO: idú hneď za crawl, takže čierna sa
+     rozplýva priamo na ne. Zvyšok chvosta (Council, outro) vo filme nie je —
+     Council má doslova nadpis „JOIN THE MISSION", teda ten istý ako obrazovka
+     NEXT STEP, a outro končí druhým zlatým CTA tesne pred tým, ktoré má film
+     uzavrieť. */
+  const showQuotes = part !== 'crawl';
   /** Pätičku nesie len celá stránka — film si ju kladie sám na koniec. */
   const showFooter = part === 'all';
   /**
@@ -1038,6 +1048,17 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
         </div>
       </section>
       )}
+
+      {/* 🔴 RECENZIE VO FILME UŽ NEKRESLÍ TENTO SÚBOR (1. 9. 2026).
+          Do 1. 9. tu stáli ako obyčajná sekcia hneď za príbehom — a presne to
+          Matej pomenoval: *„aktuálne je to klasický scroll... bez fantázie."*
+          Obraz je odteraz PRILEPENÝ (nadpis v strede → rozplynie sa → citáty
+          dosadnú do stredu) a taká réžia patrí tam, kde beží réžia celého filmu,
+          teda do `components/lab/OnePage.tsx` (sekcia `.op-quo`). Odtiaľ sa
+          `TestimonialsSection` volá s propom `pinned`.
+          ⚠️ Táto vetva slúžila VÝHRADNE filmu (`part="film"` je jediný stav, kde
+          `!showStory && showQuotes` platí), takže `/about` ani `/about-lab` sa
+          tým nemenia — pás nižšie v tomto súbore ostáva nedotknutý. */}
 
       {showStory && (<>
       {/* ───────────── TIMELINE — PC: pinned cinematic reveal ─────────────

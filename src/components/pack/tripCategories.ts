@@ -29,7 +29,7 @@ import type { GeometryKind } from './addtrip/addTripModel';
  *    výlety, ktoré nesú piknik alebo táborisko.
  *
  * 🔴 BOD (`point`) VYPADOL Z CELÉHO TRIPFLOW (Matej 31. 8.: „bod zbytočný v celom tripflow…
- *    nie?"). Najmenší okruh je bod s toleranciou — rozsah 50–500 m, východisko 100 (`AREA_MIN_M`/`AREA_MAX_M`
+ *    nie?"). Najmenší okruh je bod s toleranciou — rozsah 50 m – 5 km, východisko 100 (`AREA_MIN_M`/`AREA_MAX_M`
  *    v GeometryPicker). Z typu `GeometryKind` sa NEMAŽE: 8 výletov ho má v datasete zapísaný
  *    (7 vodných plôch + Bled) a zúžený typ by ich pri čítaní zhodil. Zaniklo len to, že sa dá
  *    VYBRAŤ. Prekreslenie tých ôsmich na okruh je samostatná úloha (`npm run trip-audit`).
@@ -141,6 +141,41 @@ const ACTIVITY_CHIPS: TripChip[] = [
   { id: 'mushrooms', emoji: '🍄', label: 'Mushrooms' },    // Matej 1. 9., vlastný zápis v matrici
 ];
 
+/**
+ * ── TVAR VÝLETU URČUJE CHIP, NIE KATEGÓRIA (Matej 1. 9. 2026) ─────────────────────────────
+ *
+ * „beh, bike a sup budú mať na výber aj trasovanie — bike a beh 1. možnosť trasa / alternatíva
+ *  okruh, sup bude hlavná možnosť okruh a alternatíva trasa"
+ *
+ * 🔑 PORADIE POĽA JE PORADIE NA OBRAZOVKE a prvá položka je zároveň VÝCHODISKOVÝ TVAR. Preto
+ *    tu nie je druhé pole `default`: dve hodnoty pre tú istú vec by sa pri prvej zmene rozišli
+ *    a prepínač by ukazoval iné poradie, než aké appka nastaví.
+ *
+ * 🔴 PLATÍ LEN PRE VLASTNÉ CHIPY KATEGÓRIE. Turistika smie mať piknik z druhého (zbaleného)
+ *    radu — a keby jej ten chip prepol geometriu na okruh, appka by človeku zahodila
+ *    rozkreslenú trasu za to, že si spomenul, kde obedoval. Guard je v `geometryForCategory`.
+ *
+ * ⚠️ CHIP BEZ ZÁZNAMU TU NIE JE CHYBA — padá na geometriu kategórie. Návšteva tak ostáva
+ *    okruhom pri všetkých šiestich miestach a nemusí sa tu opisovať šesťkrát to isté.
+ *
+ * ⚠️ KORČULE MAJÚ VOĽBU TIEŽ (Matej 1. 9. 2026: „korčule su trasa s okruhom!"). Prvé kolo
+ *    im ju nedalo, lebo v zadaní boli menované len bicykel, beh a SUP — lenže korčuľovanie
+ *    v parku je kolieska na jednom mieste presne tak, ako beh po hrádzi je trasa. Poradie
+ *    má zhodné s behom a bicyklom: trasa prvá.
+ *
+ * 🚩 BEZ ALTERNATÍVY OSTÁVAJÚ piknik, camping a hubárčenie — pri tých je „trasa" naozaj
+ *    nezmysel (nikto nepiknikuje po línii). Ak sa ozve opak, je to jedno slovo tu.
+ */
+const CHIP_GEOMETRY: Record<string, GeometryKind[]> = {
+  run: ['route', 'area'],      // beh: 1. trasa · alt okruh
+  bike: ['route', 'area'],     // bicykel: 1. trasa · alt okruh
+  paddle: ['area', 'route'],   // plávanie / SUP: 1. okruh · alt trasa
+  skate: ['route', 'area'],    // korčule: 1. trasa · alt okruh (Matej 1. 9.)
+  picnic: ['area'],
+  camping: ['area'],
+  mushrooms: ['area'],
+};
+
 /** kategória bez chipov — HIKE nesie náročnosť a príznak viacdňovosti (odysea), to stačí */
 const NO_CHIPS: TripChip[] = [];
 
@@ -173,9 +208,10 @@ const SPECS: CategorySpec[] = [
     legacyActs: ['sport', 'skating', 'paddleboard', 'overnight'],
     chips: ACTIVITY_CHIPS,
     hasDifficulty: false,
-    // Trasa aj okruh: korčule, beh a bicykel sú trasa, plávanie a piknik plocha. Default ostáva
-    // trasa — 🅿️ určenie tvaru CHIPOM (Matej 1. 9.) je súčasť tripflow ACTIVITY, ktorý sa stavia
-    // samostatne; dovtedy sa prepína ručne o obrazovku ďalej.
+    // ✅ TVAR URČUJE CHIP (postavené 1. 9. 2026) — `CHIP_GEOMETRY` vyššie. Beh a bicykel
+    // začínajú trasou, SUP okruhom; človek si to prepne v doku nad mapou.
+    // Tento riadok je ZÁCHRANA pre prípady, keď chip ešte nie je vybraný: plán aktivity
+    // (ten sa chipu nepýta) a starý koncept uložený pred touto zmenou.
     geometry: { default: 'route', allowed: ['route', 'area'] },
     label: 'Activity',
   },
@@ -305,8 +341,18 @@ export function chipsOf(acts?: string[] | null): TripChip[] {
 export function geometryForCategory(
   id: string,
   multiDay = false,
+  chip?: string,
 ): { default: GeometryKind; allowed: GeometryKind[] } {
   if (id === 'hike' && multiDay) return { default: 'route', allowed: ['route'] };
+  /**
+   * ⚠️ CHIP PREBÍJA KATEGÓRIU, ale LEN keď je to chip TEJTO kategórie (viď `CHIP_GEOMETRY`).
+   * Bez tejto podmienky by turistika s piknikom z druhého radu prepla tvar na okruh a prišla
+   * o rozkreslenú trasu.
+   */
+  const byChip = chip ? CHIP_GEOMETRY[chip] : undefined;
+  if (byChip?.length && CATEGORY_BY_ID[id]?.chips.some((c) => c.id === chip)) {
+    return { default: byChip[0], allowed: byChip };
+  }
   return CATEGORY_BY_ID[id]?.geometry ?? { default: 'route', allowed: ['route', 'area'] };
 }
 

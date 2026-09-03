@@ -15,12 +15,13 @@ import type React from 'react';
 import { createPortal } from 'react-dom';
 import L from 'leaflet';
 import { dockFitPadding } from '@/components/pack/mapDockShape';
-import { notePanelH } from '@/components/pack/mapnotes/AddMapNote';
+import { notePanelH, formatRadius } from '@/components/pack/mapnotes/AddMapNote';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
-import { MAP_SKIN, PALE, PALE_PC_MIN, goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
-import { useT } from '@/i18n/LanguageContext';
+import { MAP_SKIN, PALE, PALE_PC_MIN, goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
+import { useLang, useT } from '@/i18n/LanguageContext';
+import { intlLocale } from '@/i18n/bcp47';
 import { geometryForCategory } from '@/components/pack/tripCategories';
 import {
   type GeometryKind,
@@ -34,7 +35,8 @@ import { PlaceSearch } from './PlaceSearch';
 import { AinubisGuide, AINUBIS_GUIDE_CSS } from './AinubisGuide';
 import { MiniOverview, MINI_OVERVIEW_CSS } from '@/components/pack/MiniOverview';
 import { MAP_DOCK_CSS, DOCK_COL_W, DOCK_MOBILE_MAX } from '@/components/pack/mapDockShape';
-import { HandTrash, HandArrowLeft } from '@/components/pack/HandIcons';
+import { HandTrash } from '@/components/pack/HandIcons';
+import { BackLinkIcon } from '@/components/pack/BackButton';
 import { EVENT_RIM, FONT_EMOJI, TRIP_TARGET_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { circleMarkHtml, CIRCLE_MARK_CSS } from '@/components/pack/mapnotes/circleMark';
 import {
@@ -72,11 +74,53 @@ const GLOW_PAD = 16;
 // položení kruhu ZAŠEDNUTÉ — človek dostal dve tlačidlá, z ktorých jedno nikdy nefungovalo,
 // a to sa nedá odlíšiť od poruchy. Minimum preto kleslo na 50 m: 100 m ostáva východiskom,
 // ale je to poloha UPROSTRED ovládania, nie na jeho okraji.
-// ⚠️ Krok jazdca je 25 m, nie 100 — pri rozpätí 450 m by 100 m dalo len päť polôh.
+//
+// 🔴 STROP 500 m → 5 km (Matej 1. 9. 2026, na priamu otázku po zavedení jazdca).
+// Dôvod je v jeho zadaní: „pri veľkých priehradách". Liptovská Mara meria ~9 km, Oravská
+// ~8 km — pri 500 m označil človek stred vodnej plochy kruhom, ktorý na nej nebolo vidieť.
+// 5 km = kruh 10 km cez, teda celá Mara. Vyššie sa nešlo zámerne: 10 km by dalo kruh cez
+// pol kraja a „miesto, kde sme boli" by prestalo niečo znamenať.
 export const AREA_MIN_M = 50;
-export const AREA_MAX_M = 500;
+export const AREA_MAX_M = 5000;
 export const AREA_DEFAULT_M = 100;
-const AREA_STEP_M = 25;
+
+/**
+ * ── JAZDEC MÁ NELINEÁRNU STUPNICU (1. 9. 2026) ──────────────────────────────────────────
+ *
+ * Rovnomerné rozdelenie 50 m – 5 km po jednom kroku by na telefóne znamenalo ~17 m na pixel:
+ * park by sa nedal nastaviť vôbec (celý rozsah 50–500 m by ležal v prvých 27 px dráhy),
+ * pritom drvivá väčšina okruhov je práve tam. Zastávky sú preto HUSTEJŠIE DOLE:
+ *   ·   50 –  500 m po 25 m  (19 polôh) — park, lúka, pamiatka, útulňa
+ *   ·  550 – 1000 m po 50 m  (10 polôh) — veľký areál, mestské jazero
+ *   · 1100 – 5000 m po 100 m (40 polôh) — priehrady
+ * Prvá tretina dráhy tak nesie bežný okruh a zvyšok tie výnimočné.
+ *
+ * ⚠️ JAZDEC JAZDÍ PO INDEXE, NIE PO METROCH. `min/max/step` v metroch sa nedá zahnúť —
+ * `<input type="range">` vie len rovnomerný krok. Prevod drží dvojica `areaIdx` / `AREA_STOPS`
+ * a používajú ju OBA jazdce v tomto súbore (lišta nad mapou aj panel), takže stupnica je
+ * jedna. Dva vlastné `min/max/step` sa pri prvej zmene rozídu.
+ */
+const AREA_STOPS: readonly number[] = (() => {
+  const out: number[] = [];
+  for (let m = AREA_MIN_M; m <= 500; m += 25) out.push(m);
+  for (let m = 550; m <= 1000; m += 50) out.push(m);
+  for (let m = 1100; m <= AREA_MAX_M; m += 100) out.push(m);
+  return out;
+})();
+/**
+ * Podiel voľnej plochy mapy, pod ktorým sa kruh pokladá za stratený a mapa sa priblíži.
+ * 0.35 = kruh musí zaberať aspoň tretinu kratšej strany; nižšie by z 5 km cesty späť na
+ * 100 m ostala bodka, vyššie by sa mapa rovnala aj pri bežnom posune o jednu zastávku.
+ */
+const AREA_FIT_MIN_SHARE = 0.35;
+/** Najbližšia zastávka k danému polomeru — uložené výlety nesú aj hodnoty mimo zoznamu. */
+const areaIdx = (m: number) => {
+  let best = 0;
+  for (let i = 1; i < AREA_STOPS.length; i++) {
+    if (Math.abs(AREA_STOPS[i] - m) < Math.abs(AREA_STOPS[best] - m)) best = i;
+  }
+  return best;
+};
 
 // Kontrola duplicity (§5.3): štart do 300 m od existujúcej trasy s dĺžkou ±20 %.
 const DUPLICATE_RADIUS_M = 300;
@@ -93,6 +137,13 @@ export type GeometryPickerProps = {
    * takže bez tejto informácie by picker ponúkal kruh na výlet, ktorý ho mať nesmie.
    */
   multiDay?: boolean;
+  /**
+   * HLAVNÝ CHIP z kroku „Čo sme robili" (Matej 1. 9. 2026). Pri AKTIVITE mení POVOLENÉ tvary
+   * aj ich PORADIE: bicykel a beh majú prvú trasu a okruh ako alternatívu, SUP naopak.
+   * ⚠️ Poradie nie je kozmetika — prepínač nižšie kreslí tlačidlá presne v poradí `allowed`,
+   * takže prvá položka je zároveň hlavná možnosť. Prázdny chip = tvar kategórie ako doteraz.
+   */
+  chip?: string;
   mode: 'plan' | 'log';
   allTrails: HeroTrail[];
   onPickExisting?: (trail: HeroTrail) => void;
@@ -199,15 +250,18 @@ export type GeometryPickerProps = {
 // ⚠️ `multiDay` NIE JE nepovinná ozdoba: viacdňová HIKE smie byť LEN trasa (odysea), takže
 // ten istý `activity` má podľa nej dva rôzne zoznamy. Volajúci, ktorý ju nepodá, dostane
 // jednodňovú vetvu — to je bezpečná strana (širší výber), nie tichá chyba.
-export function defaultKindFor(activity: string, mode: 'plan' | 'log', multiDay = false): GeometryKind {
-  const cfg = geometryForCategory(activity, multiDay);
+// ⚠️ `chip` je HLAVNÝ chip kategórie (krok „Čo sme robili"). Pri AKTIVITE ním určuje tvar
+// bicykel, beh a SUP — viď `CHIP_GEOMETRY` v `tripCategories.ts`. Volajúci, ktorý ho nepodá,
+// dostane tvar kategórie; to je pôvodné správanie, nie tichá chyba.
+export function defaultKindFor(activity: string, mode: 'plan' | 'log', multiDay = false, chip?: string): GeometryKind {
+  const cfg = geometryForCategory(activity, multiDay, chip);
   if (mode === 'log') return cfg.default;
   const looseFirst: GeometryKind[] = ['area', 'point', 'route'];
   return looseFirst.find((k) => cfg.allowed.includes(k)) ?? cfg.default;
 }
 
-export function allowedKindsFor(activity: string, multiDay = false): GeometryKind[] {
-  return geometryForCategory(activity, multiDay).allowed;
+export function allowedKindsFor(activity: string, multiDay = false, chip?: string): GeometryKind[] {
+  return geometryForCategory(activity, multiDay, chip).allowed;
 }
 
 /**
@@ -288,6 +342,7 @@ export function GeometryPicker({
   onChange,
   activity,
   multiDay = false,
+  chip,
   mode,
   allTrails,
   onPickExisting,
@@ -297,6 +352,7 @@ export function GeometryPicker({
   drawBar,
 }: GeometryPickerProps) {
   const t = useT();
+  const { lang } = useLang();
   // legs[i] = geometria medzi kotvou i a i+1. Držané v ref, nie v state: undo musí prepočítať
   // stopu BEZ sieťového volania (§10.2 bod 2) a nesmie spustiť re-render uprostred kreslenia.
   const legsRef = useRef<Array<LatLngTuple[]>>([]);
@@ -328,7 +384,7 @@ export function GeometryPicker({
    * profil tam neplatí.
    */
 
-  const allowed = useMemo(() => allowedKindsFor(activity, multiDay), [activity, multiDay]);
+  const allowed = useMemo(() => allowedKindsFor(activity, multiDay, chip), [activity, multiDay, chip]);
   const line = useMemo(
     () => (value.kind === 'route' ? value.snapPath ?? value.path : []),
     [value],
@@ -992,7 +1048,7 @@ export function GeometryPicker({
     // jednoducho preklikká, či už okruh alebo aj späť — sám si to určí"). Trasa je hotová,
     // keď je z čoho nakresliť čiaru. Kam sa ňou došlo a či sa vracal, hovorí sám tvar.
     : routePath.length >= 2;
-  // ⚠️ AJ PRE OBLASŤ (2026-08-31). Text `pack.addTrip.geo.areaRadiusM` („Oblasť · polomer
+  // ⚠️ AJ PRE OKRUH (2026-08-31). Text `pack.addTrip.geo.areaRadiusM` („Okruh · polomer
   //    {m} m") sa počítal, ale nikto ho nevidel: pilulka bola route-only, takže človek menil
   //    veľkosť kruhu naslepo. Číslo je jediná spätná väzba, ktorú okruh má — čiara má aspoň
   //    km a tvar.
@@ -1009,11 +1065,63 @@ export function GeometryPicker({
    * a jediná veta v slovníku, ktorá spomína nastavenie veľkosti (`geo.hintArea`), sa
    * nezobrazovala tiež. Ovládanie patrí tam, kde človek v tej chvíli je — do lišty nad mapou.
    */
-  const stepRadius = useCallback((d: number) => {
+  const setRadius = useCallback((m: number) => {
     if (value.kind !== 'area' || !value.center) return;
-    const next = Math.min(AREA_MAX_M, Math.max(AREA_MIN_M, value.radiusM + d));
+    const next = Math.min(AREA_MAX_M, Math.max(AREA_MIN_M, m));
     if (next !== value.radiusM) onChange({ kind: 'area', center: value.center, radiusM: next });
   }, [value, onChange]);
+
+  /**
+   * ── PO ZMENE OKRUHU MUSÍ BYŤ KRUH VIDNO CELÝ (Matej 1. 9. 2026: „ano odzoomovat") ───────
+   *
+   * Pri strope 5 km sa kruh do okna nezmestí a človek vidí len jeho výsek — teda ladí
+   * veľkosť miesta podľa čísla, nie podľa toho, čo na mape prekrýva. Rovnaký dôvod, pre aký
+   * sa rámuje zdvojená trasa (`mirrorBack` vyššie): appka nesmie pýtať potvrdenie tvaru,
+   * ktorý nie je vidieť.
+   *
+   * ⚠️ PÁSMO TOLERANCIE, NIE RÁMOVANIE PRI KAŽDOM ŤUKU. Jazdec má 69 polôh; keby sa mapa
+   * rovnala po každej z nich, poskakovala by pod prstom a človek by stratil miesto, ktoré si
+   * práve priblížil. Hýbe sa preto len na dvoch koncoch:
+   *   · kruh sa do voľnej plochy NEZMESTÍ  → oddialiť
+   *   · kruh zaberá menej než `AREA_FIT_MIN_SHARE` → priblížiť (inak ostane po ceste z 5 km
+   *     na 100 m bodka uprostred kraja a človek doklikáva zoom ručne — presne to klikanie,
+   *     kvôli ktorému jazdec vznikol)
+   * Medzi tým sa mapa NEHÝBE, takže nastavovanie o jednu-dve zastávky je vždy pokojné.
+   *
+   * ⚠️ Rezerva je spoločná `dockFitPadding(notePanelH())` — dole dok, hore bublina AInubisa,
+   * po stranách stĺpec. Vlastné čísla by kruh vycentrovali pod panel.
+   * ⚠️ `maxZoom: 17` je to isté číslo, aké má rámovanie kroku 2 v `AddTripLog.tsx`: bez neho
+   * by 50 m kruh vyskočil na najtesnejší zoom dlaždíc a okolie by zmizlo.
+   */
+  const areaCenter = value.kind === 'area' ? value.center : undefined;
+  const areaR = value.kind === 'area' ? value.radiusM : 0;
+  const areaKey = areaCenter ? `${areaCenter[0]},${areaCenter[1]}` : '';
+  const fitSeenRef = useRef<{ key: string; r: number } | null>(null);
+  useEffect(() => {
+    if (!areaCenter || !areaKey) { fitSeenRef.current = null; return; }
+    const prev = fitSeenRef.current;
+    fitSeenRef.current = { key: areaKey, r: areaR };
+    // Prvý polomer po položení kruhu sa NERÁMUJE: mapa práve priletela na vybrané miesto
+    // (hľadanie / ťuk) a druhý pohyb v tej istej sekunde vyzerá ako trhnutie.
+    if (!prev || prev.key !== areaKey || prev.r === areaR) return;
+    const map = mapRef.current;
+    if (!map) return;
+    const id = window.setTimeout(() => {
+      const pad = dockFitPadding(notePanelH());
+      const size = map.getSize();
+      const freeW = size.x - pad.paddingTopLeft[0] - pad.paddingBottomRight[0];
+      const freeH = size.y - pad.paddingTopLeft[1] - pad.paddingBottomRight[1];
+      if (freeW <= 0 || freeH <= 0) return;
+      const b = L.latLng(areaCenter).toBounds(areaR * 2);
+      const nw = map.latLngToContainerPoint(b.getNorthWest());
+      const se = map.latLngToContainerPoint(b.getSouthEast());
+      const share = Math.max(Math.abs(se.x - nw.x) / freeW, Math.abs(se.y - nw.y) / freeH);
+      if (share <= 1 && share >= AREA_FIT_MIN_SHARE) return;
+      map.fitBounds(b, { ...pad, maxZoom: 17, animate: true, duration: 0.35 });
+    }, 220);
+    return () => window.clearTimeout(id);
+  }, [areaKey, areaR, areaCenter, mapRef]);
+
   // Volajúci (sprievodca) má prednosť: v kroku 2 sa na mape pichajú značky, nie kreslí trasa,
   // takže veta o dlhom stlačení by radila niečo, čo v tej chvíli nie je úloha.
   // ⚠️ PO ~2 KM SA APPKA OZVE O CIELI (Matej 23. 8.: „po 2 km by sa pri kurzore mohla objaviť
@@ -1137,9 +1245,12 @@ export function GeometryPicker({
           </>
   ) : value.center ? (
     value.kind === 'area'
-      // METRE, NIE KILOMETRE — pri rozpätí 100–500 m ukazoval „0.1 km" a jazdec vyzeral
-      // pokazený: tri polohy po sebe hlásili to isté číslo.
-      ? t('pack.addTrip.geo.areaRadiusM', { m: value.radiusM })
+      // ⚠️ METRE DO 1 KM, VYŠŠIE KILOMETRE (`formatRadius`). Do 31. 8. tu stálo, že sa
+      // kilometre NEPOUŽÍVAJÚ, lebo pri rozpätí 100–500 m ukazovali „0.1 km" a tri polohy
+      // jazdca po sebe hlásili to isté číslo. Ten dôvod padol 1. 9. so stropom 5 km:
+      // „polomer 5000 m" sa číta ako číslo, nie ako vzdialenosť. Zlom je na 1000 m, teda
+      // presne tam, kde sa aj zastávky jazdca rozrieďujú.
+      ? t('pack.addTrip.geo.areaRadius', { r: formatRadius(value.radiusM, intlLocale(lang)) })
       : t('pack.addTrip.geo.spotSet')
   ) : (
     <span className="trp-dread-dim">{barOn ? '' : hint}</span>
@@ -1347,39 +1458,51 @@ export function GeometryPicker({
   // tesne nad panelom a pri zmene jeho výšky ide s ním. Vlastný `position:fixed` by sa musel
   // dopočítavať z výšky panela a rozišiel by sa s ňou pri prvej zmene.
 
+  /**
+   * ── PREPÍNAČ TVARU — JEDEN UZOL PRE PANEL AJ PRE DOK (Matej 1. 9. 2026) ───────────────
+   *
+   * „beh, bike a sup budú mať na výber aj trasovanie."
+   *
+   * 🔴 DOVTEDY SA TÁ VOĽBA NEDALA UROBIŤ. Prepínač stál len v hlavnom `return`, teda v paneli
+   *    sprievodcu — a ten je počas kreslenia SKRYTÝ (mapa je celá obrazovka). Alternatívny
+   *    tvar tak v kóde existoval a na obrazovke neexistoval. Preto ide TEN ISTÝ uzol aj do
+   *    doku nad mapou.
+   *
+   * ⚠️ LEN V STUPNI 0, teda kým nie je nič nakreslené. `switchKind` geometriu zahadzuje
+   *    (inak by kruh dedil kotvy trasy) — ponúkať ho nad hotovou trasou znamená ponúkať
+   *    tlačidlo, ktoré bez varovania zmaže prácu.
+   * ⚠️ PORADIE TLAČIDIEL JE PORADIE `allowed`, teda poradie z `CHIP_GEOMETRY`: prvé je
+   *    hlavná možnosť. Netriediť.
+   */
+  const kindSwitch = allowed.length > 1 ? (
+    <div className="trp-dkind" role="radiogroup" aria-label={t('pack.addTrip.geo.kindPick')}>
+      {allowed.map((k) => (
+        <button
+          key={k}
+          type="button"
+          role="radio"
+          aria-checked={k === value.kind}
+          className={`trp-dkind-btn${k === value.kind ? ' on' : ''}`}
+          onClick={() => switchKind(k)}
+        >
+          {k === 'route' ? t('pack.addTrip.geo.kindRoute') : k === 'point' ? t('pack.addTrip.geo.kindSpot') : t('pack.addTrip.geo.kindArea')}
+        </button>
+      ))}
+    </div>
+  ) : null;
+
   const backLink = drawBar?.onBack ? (
     <button type="button" className="trp-dback" onClick={drawBar.onBack}>
-      ← {t(drawBar.backLabel ?? 'pack.addTrip.geo.backToActivity')}
+      <BackLinkIcon /> {t(drawBar.backLabel ?? 'pack.addTrip.geo.backToActivity')}
     </button>
   ) : null;
 
   return (
     <div style={{ display: 'grid', gap: 10 }}>
-      {/* prepínač režimu — len ak aktivita povoľuje viac než jeden */}
-      {allowed.length > 1 && (
-        <div style={{ display: 'flex', gap: 6 }}>
-          {allowed.map((k) => {
-            const on = k === value.kind;
-            return (
-              <button
-                key={k}
-                type="button"
-                onClick={() => switchKind(k)}
-                style={{
-                  flex: 1, padding: '7px 10px', borderRadius: 10, cursor: 'pointer',
-                  fontFamily: FONT_UI, fontSize: 12, fontWeight: 500,
-                  letterSpacing: '.08em', textTransform: 'uppercase',
-                  background: on ? 'rgba(201,154,63,0.18)' : 'transparent',
-                  border: `1px solid ${on ? GOLD : T.onDarkBorder}`,
-                  color: on ? GOLD_BRIGHT : T.onDarkDim,
-                }}
-              >
-                {k === 'route' ? t('pack.addTrip.geo.kindRoute') : k === 'point' ? t('pack.addTrip.geo.kindSpot') : t('pack.addTrip.geo.kindArea')}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      {/* ⚠️ V PANELI LEN VTEDY, KEĎ NESTOJÍ LIŠTA. Odkedy ten istý prepínač žije aj v doku
+          nad mapou, boli by to dve tlačidlá pre tú istú voľbu na jednej obrazovke — tá istá
+          úvaha, akou sa `!barOn` riadi čítanie km o kus nižšie. */}
+      {!barOn && kindSwitch}
 
       {/* ČÍSLA A NÁSTROJE SÚ V LIŠTE, KEĎ LIŠTA STOJÍ.
           Kým bežala len na mobile, panel si readout aj Undo držal aj tak — na PC ich totiž
@@ -1407,15 +1530,15 @@ export function GeometryPicker({
         </div>
       )}
 
-      {/* územie — polomer 200 m – 20 km (§5) */}
+      {/* územie — polomer 50 m – 5 km, stupnica AREA_STOPS (jedna pre oba jazdce) */}
       {value.kind === 'area' && value.center && (
         <input
           type="range"
-          min={AREA_MIN_M}
-          max={AREA_MAX_M}
-          step={AREA_STEP_M}
-          value={value.radiusM}
-          onChange={(e) => onChange({ kind: 'area', center: value.center, radiusM: Number(e.target.value) })}
+          min={0}
+          max={AREA_STOPS.length - 1}
+          step={1}
+          value={areaIdx(value.radiusM)}
+          onChange={(e) => onChange({ kind: 'area', center: value.center, radiusM: AREA_STOPS[Number(e.target.value)] })}
           style={{ width: '100%', accentColor: GOLD }}
         />
       )}
@@ -1542,6 +1665,10 @@ export function GeometryPicker({
                 hlavičku PlaceSearch.tsx). Hodnota sa berie z prahu, nie ako druhé číslo. */}
             {stepsInPanel}
             {drawBar.contextPill}
+            {/* ⚠️ TVAR STOJÍ NAD HĽADANÍM, NIE POD NÍM. Je to odpoveď na „čo idem kresliť",
+                teda pokračovanie kontextovej pilulky; hľadanie miesta je až ďalšia otázka
+                („kde"). Pod poľom by človek prepínal tvar potom, ako mapu už odletel. */}
+            {kindSwitch}
             <PlaceSearch mapRef={mapRef} zoom={TRIP_HOLD_MIN_ZOOM} />
             {backLink}
           </div>
@@ -1609,26 +1736,31 @@ export function GeometryPicker({
                     return;`, takže tlačidlo stálo v lište plne kontrastné a po stlačení sa
                     nestalo nič — mŕtvy ovládač, nie zašednutý. Jeho miesto berie to, čo pri
                     okruhu naozaj treba: ZMENŠIŤ a ZVÄČŠIŤ. */}
-                {isArea ? (<>
-                  <button
-                    type="button"
-                    className="trp-dbar-btn"
-                    onClick={() => stepRadius(-AREA_STEP_M)}
-                    disabled={busy || !hasSomething || value.radiusM <= AREA_MIN_M}
-                    style={{ opacity: hasSomething && value.radiusM > AREA_MIN_M ? 1 : 0.4 }}
-                  >
-                    − {t('pack.addTrip.geo.areaSmaller')}
-                  </button>
-                  <button
-                    type="button"
-                    className="trp-dbar-btn"
-                    onClick={() => stepRadius(AREA_STEP_M)}
-                    disabled={busy || !hasSomething || value.radiusM >= AREA_MAX_M}
-                    style={{ opacity: hasSomething && value.radiusM < AREA_MAX_M ? 1 : 0.4 }}
-                  >
-                    + {t('pack.addTrip.geo.areaBigger')}
-                  </button>
-                </>) : (
+                {/* ── VEĽKOSŤ OKRUHU JE JAZDEC, NIE DVE TLAČIDLÁ (Matej 1. 9. 2026) ────────
+                    „zväčšiť a zmenšiť okruh by som dal na slider, nech sa nemusí klikať
+                     toľko… pri veľkých priehradách napr., ale aj celkovo."
+                    Dvojica − / + z 31. 8. dala cestu z 50 na 500 m za 18 ťuknutí; jazdec
+                    je jedno potiahnutie a zároveň UKAZUJE, kde v rozpätí človek stojí —
+                    tlačidlá o rozpätí nehovoria nič a koniec oznámia až zašednutím.
+                    ⚠️ Číslo si NEKRESLÍ: polomer stojí nad mapou v `.trp-dread` a mení sa
+                    ťahom, takže druhý výpis by bol ten istý údaj dvakrát na jednej doske.
+                    ⚠️ Jazdec beží po INDEXE zastávok (AREA_STOPS hore v súbore), nie po
+                    metroch — dôvod je pri jeho definícii. Klávesnica (šípky) sa tým vezie
+                    s ním a preskočí presne na susednú zastávku. */}
+                {isArea ? (
+                  <input
+                    type="range"
+                    className="trp-dbar-range"
+                    min={0}
+                    max={AREA_STOPS.length - 1}
+                    step={1}
+                    value={areaIdx(value.radiusM)}
+                    disabled={busy || !hasSomething}
+                    style={{ opacity: hasSomething ? 1 : 0.4 }}
+                    aria-label={t('pack.addTrip.geo.areaRadius', { r: formatRadius(value.radiusM, intlLocale(lang)) })}
+                    onChange={(e) => setRadius(AREA_STOPS[Number(e.target.value)])}
+                  />
+                ) : (
                 <button
                   type="button"
                   className="trp-dbar-btn"
@@ -1636,7 +1768,7 @@ export function GeometryPicker({
                   disabled={busy || !hasSomething}
                   style={{ opacity: hasSomething ? 1 : 0.4 }}
                 >
-                  <HandArrowLeft size={14} />
+                  <BackLinkIcon />
                   {t('pack.addTrip.geo.undoPoint')}
                 </button>
                 )}
@@ -1947,6 +2079,19 @@ const DRAW_BAR_CSS = `
 .trp-dbar{min-height:${DRAW_BAR_H}px;display:flex;flex-direction:column;gap:12px;}
 .trp-dbar-read{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:20px;}
 .trp-dbar-row{display:flex;gap:8px;}
+/* ── PREPÍNAČ TVARU (trasa / okruh) ────────────────────────────────────────────────────
+   Rovnaké tvary aj rovnaký materiál ako .trp-dbar-btn — je to ten istý druh ovládania
+   v tom istom paneli, len o otázku skôr. Vybraný stav je zlatý rám a zlaté písmo na
+   priesvitnom zlate; PLNÁ farebná plocha je v celom doku vyhradená HOTOVU (.trp-dbar-done),
+   takže by tu robila druhé „hlavné" tlačidlo na jednej obrazovke.
+   ⚠️ flex:1 1 0 = rovnaké diely cez celú šírku (feedback_rad_prvkov_plna_sirka_kontajnera);
+   pri max-content by sa OKRUH a TRASA rozišli šírkou a rad by vpravo nechal dieru.
+   ⚠️ V CSS KOMENTÁRI ŽIADNE SPÄTNÉ APOSTROFY — celý blok je JS template literal a jeden
+   apostrof ho ukončí (chytí to npm run check:css, vite build padne). */
+.trp-dkind{display:flex;gap:6px;}
+.trp-dkind-btn{flex:1 1 0;padding:9px 10px;border-radius:8px;background:${T.glass};border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};font-size:11.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;}
+.trp-dkind-btn:hover{border-color:${GOLD};color:${GOLD};}
+.trp-dkind-btn.on{background:rgba(201,154,63,0.18);border-color:${GOLD};color:${GOLD_BRIGHT};}
 .trp-dbar-btn{flex:1 1 0;display:flex;align-items:center;justify-content:center;gap:7px;padding:12px 10px;border-radius:8px;background:${T.glass};border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;}
 /* NÁSTROJE POD HOTOVOM SÚ VEDĽAJŠIE (Matej 23. 8.: „pod ňou menšími späť o bod a vymazať").
    Keď je trasa hotová, tieto dve už nie sú úloha — sú oprava. */
@@ -1955,6 +2100,22 @@ const DRAW_BAR_CSS = `
 .trp-dbar-btn:hover:not(:disabled){border-color:${GOLD};color:${GOLD};}
 .trp-dbar-btn:disabled{cursor:default;}
 .trp-dbar-wide{flex:1 1 100%;}
+/* ── JAZDEC VEĽKOSTI OKRUHU (Matej 1. 9. 2026) ────────────────────────────────────────
+   Berie miesto po dvojici − / + , teda DVA diely radu (flex:2 1 0) proti jednému, aký
+   má VYMAZAŤ vedľa neho — rovnaký pomer, aký mal rad predtým, takže sa lišta nepohla.
+   Výška riadku drží min-height zhodné s .trp-dbar-btn (12 px padding + 12 px text
+   + lem): jazdec je nižší než tlačidlo a bez toho by rad pri okruhu poskočil.
+   ⚠️ Dráha aj hlavička dostávajú farbu ZVLÁŠŤ pre WebKit aj Gecko — accent-color by
+   síce stačil na jeden riadok, ale zafarbí len hlavičku a dráha by ostala v systémovej
+   šedej, ktorá na tmavom skle aj na papyruse vyzerá ako vypnutý prvok. */
+.trp-dbar-range{flex:2 1 0;min-width:0;min-height:41px;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;}
+.trp-dbar-range:focus{outline:none;}
+.trp-dbar-range:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 3px rgba(201,154,63,0.45);}
+.trp-dbar-range:disabled{cursor:default;}
+.trp-dbar-range::-webkit-slider-runnable-track{height:4px;border-radius:999px;background:rgba(245,240,228,0.18);}
+.trp-dbar-range::-moz-range-track{height:4px;border-radius:999px;background:rgba(245,240,228,0.18);}
+.trp-dbar-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;margin-top:-9px;border-radius:50%;background:${GOLD};border:2px solid rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.5);}
+.trp-dbar-range::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:${GOLD};border:2px solid rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.5);}
 /* HOTOVO — brand CTA podľa .btn-gold locku: gradient 135°, radius 8, papyrusový rám. */
 .trp-dbar-done{flex:1 1 0;padding:12px 10px;border-radius:8px;background:linear-gradient(135deg,#F5C73D,#E69E1A);border:1px solid rgba(250,244,236,0.3);color:#1c160c;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;box-shadow:0 0 40px rgba(230,158,26,0.4),inset 0 1px 0 rgba(255,255,255,0.3);cursor:pointer;}
 /* CELÁ ŠÍRKA, KEĎ JE TO JEDINÁ ÚLOHA NA OBRAZOVKE (Matej 23. 8.: „dominantné tlačidlo
@@ -2114,6 +2275,26 @@ ${MAP_SKIN !== 'pale' ? '' : `
   .trp-dback:hover{color:${PALE.deep};}
   .trp-dbar-btn{background:${PALE.field};border-color:${PALE.border};color:${PALE.ink};}
   .trp-dbar-btn:hover:not(:disabled){border-color:${PALE.deep};color:${PALE.deep};background:#FFF6E2;}
+  /* ⚠️ DRÁHA JAZDCA JE BIELA NA 18 % — na papyruse ju nevidno vôbec, takže tu nesie
+     vlastnú farbu, nie krytie. Hlavička ostáva zlatá (je to ovládač, nie výber), ale
+     dostáva tmavší lem: biely obrys sa na piesku stráca a guľôčka vyzerá ako škvrna. */
+  .trp-dbar-range::-webkit-slider-runnable-track{background:rgba(122,90,42,0.28);}
+  .trp-dbar-range::-moz-range-track{background:rgba(122,90,42,0.28);}
+  .trp-dbar-range::-webkit-slider-thumb{border-color:${PALE.deep};box-shadow:0 2px 6px rgba(70,45,10,0.35);}
+  .trp-dbar-range::-moz-range-thumb{border-color:${PALE.deep};box-shadow:0 2px 6px rgba(70,45,10,0.35);}
+  /* ── PREPÍNAČ TVARU NA PAPYRUSE ────────────────────────────────────────────────────────
+     Bez tohto bloku niesol tmavé tokeny na svetlej doske a čítal sa NAOPAK: vybraná TRASA
+     bola zlaté písmo na piesku (mizne), nevybraná OBLASŤ tmavý blok (kričí). To je presne
+     to, čo hovorí feedback_prevratena_doska_prevrati_aj_stitky — prevrátený povrch treba
+     prevrátiť aj štítkom, nielen podložiť.
+     Vybraný stav = PRIESVITNÝ LAPISOVÝ TINT (lock z 26. 8., recept pickTintCSS), nie plná
+     farba: plný lapis v tomto doku už nesie HOTOVO a dve plné plochy = dve „hlavné" veci na
+     jednej obrazovke. Zhodný recept aj krytie ako aktívna bodka číselníka (.atl-step.on),
+     lebo je to tá istá vec — „tu práve som / toto som si vybral". */
+  .trp-dkind-btn{background:${PALE.field};border-color:${PALE.border};color:${PALE.ink};}
+  .trp-dkind-btn:hover{border-color:${PALE.deep};color:${PALE.deep};background:#FFF6E2;}
+  .trp-dkind-btn.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}font-weight:600;}
+  .trp-dkind-btn.on:hover{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}}
   /* ── SPÄŤ O BOD A VYMAZAŤ SÚ TLAČIDLÁ, NIE ODKAZY (Matej 2026-08-26: „undo a clear tiež
      zvýrazni") ───────────────────────────────────────────────────────────────────────────
      Trieda --minor im brala výplň aj rám, takže na papyruse ostal bledý text na bledom podklade —

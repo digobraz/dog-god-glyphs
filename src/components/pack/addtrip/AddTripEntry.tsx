@@ -18,6 +18,7 @@ import { TRIP_CATEGORIES } from '@/components/pack/tripCategories';
 import { EVENT_KINDS, EVENT_KIND_LABEL_KEYS, type EventKind } from '@/components/pack/events/eventModel';
 import type { TripState } from './addTripModel';
 import { POINTS } from '@/lib/tripPoints';
+import { BackIcon, BackLinkIcon } from '@/components/pack/BackButton';
 
 const GOLD = '#C99A3F'; // §8: hover na aktívnej dlaždici = zlatý okraj, presne tento hex
 
@@ -136,7 +137,7 @@ export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
             Kľúč `pack.addTrip.entry.closeAriaLabel` ostáva — nesie ho podklad. */}
         {step !== 'kind' && (
           <button type="button" className="att-entry-back" onClick={() => setStep('kind')} aria-label={t('pack.addTrip.entry.backAriaLabel')}>
-            ‹ {t('pack.addTrip.entry.backAriaLabel')}
+            <BackLinkIcon /> {t('pack.addTrip.entry.backAriaLabel')}
           </button>
         )}
         {/* ── VÝCHOD Z CELOOBRAZOVKOVEJ PODOBY (Matej 2026-08-28) ────────────────────────
@@ -152,7 +153,7 @@ export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
             rozhoduje CSS v PALE_ADD_CSS (PackMap.tsx), nie meranie šírky v JS. */}
         {step === 'kind' && (
           <button type="button" className="att-entry-x" onClick={onClose} aria-label={t('pack.addTrip.entry.closeAriaLabel')}>
-            ←
+            <BackIcon />
           </button>
         )}
         {step === 'kind' && (

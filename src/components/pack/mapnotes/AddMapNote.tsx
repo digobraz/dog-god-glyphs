@@ -32,7 +32,7 @@ import { MAP_DOCK_CSS, DOCK_COL_W, DOCK_MOBILE_MAX, DOCK_VH } from '@/components
 import { FONT_EMOJI, GROUP_EMOJI, threatEmoji } from './markEmoji';
 import { KindGrid, KIND_GRID_CSS } from './KindGrid';
 import { AinubisGuide } from '@/components/pack/addtrip/AinubisGuide';
-import { HandArrowLeft } from '@/components/pack/HandIcons';
+import { BackIcon } from '@/components/pack/BackButton';
 import { noteMarkHtml } from './MapNotesLayer';
 import { GROUP_TINT, HAZARD_RED, TICK_ORANGE, NotePalette, NOTE_PALETTE_CSS, type PaletteExtra } from './NotePalette';
 
@@ -249,7 +249,7 @@ export function MapNotePlacing({
             aria-label={t('pack.mapNotes.add.back')}
             title={t('pack.mapNotes.add.back')}
           >
-            <HandArrowLeft size={17} />
+            <BackIcon />
           </button>
           <NoteTypeStrip group={group} kind={kind ?? null} onPick={onPickType} />
         </div>
@@ -360,6 +360,13 @@ ${MAP_SKIN !== 'pale' ? '' : `
    v PALE_LOG_CSS) — je to ten istý prvok na tom istom mieste, len s iným obsahom.
    ⚠️ Media query zanikla 28. 8. 2026 spolu s tmavou mobilnou vetvou toku pridávania. */
   .mnts{background:linear-gradient(180deg,#F6EAD0,#E9D9AE);border:1.5px solid ${PALE.edge};box-shadow:0 8px 24px rgba(70,45,10,0.35);backdrop-filter:none;-webkit-backdrop-filter:none;}
+  /* ⚠️ ŠÍPKA MÁ SVOJ VLASTNÝ INKOUST — pilulka sa prezliekla, obsah nie (Matej 1. 9. 2026:
+     „šípka dozadu pri ODKAZE… je biela, nie je vidno"). Kresba dedí farbu textu
+     (currentColor, HandIcons), takže na piesku ostala biela na bielom. To isté zistenie
+     ako pri .mnk-tile.on o pár riadkov vyššie: prevrátený povrch treba prevrátiť aj
+     v štítkoch (feedback_prevratena_doska_prevrati_aj_stitky). */
+  .mnts-back{color:${PALE.ink};}
+  .mnts-back:hover{color:${PALE.deep};}
 `}
 `;
 
@@ -397,7 +404,7 @@ export function NoteQuickPalette({ onPick, onPickExtra, onCancel }: { onPick: (g
  * ⚠️ Desatinný oddeľovač NEPÍŠ natvrdo — SK má čiarku, EN bodku. Preto `Intl`,
  * a jazyk cezeň vždy prekladá `intlLocale()` (viď hlavičku `i18n/bcp47.ts`).
  */
-function formatRadius(m: number, locale: string): string {
+export function formatRadius(m: number, locale: string): string {
   if (m < 1000) return `${m} m`;
   return `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(m / 1000)} km`;
 }
@@ -1043,6 +1050,14 @@ ${MAP_SKIN !== 'pale' ? '' : `
   .mna-radius-label{color:${PALE.dim};}
   .mna-radius-val{color:${PALE.ink};}
   .mna-radius-note{color:${PALE.dim};}
+  /* ⚠️ Tá istá diera ako pri .mnts-back: dráha jazdca je BIELA na 16 %, čo bola farba pre
+     tmavé sklo — na papyruse z nej ostane takmer nič a jazdec vyzerá ako vypnutý. Krytie
+     to nezachráni, farbu musí niesť sama dráha. Palec ostáva zlatý (resp. v tinte skupiny),
+     len dostáva tmavší lem — biely obrys sa na piesku stráca. */
+  .mna-range::-webkit-slider-runnable-track{background:rgba(122,90,42,0.28);}
+  .mna-range::-moz-range-track{background:rgba(122,90,42,0.28);}
+  .mna-range::-webkit-slider-thumb{border-color:${PALE.deep};box-shadow:0 2px 6px rgba(70,45,10,0.35);}
+  .mna-range::-moz-range-thumb{border-color:${PALE.deep};box-shadow:0 2px 6px rgba(70,45,10,0.35);}
   .mna-body{color:${PALE.ink};background:${PALE.field};border-color:${PALE.border};}
   .mna-body::placeholder{color:${PALE.dim};opacity:.75;}
   .mna-opt{color:${PALE.dim};background:${PALE.soft};border-color:${PALE.border};}

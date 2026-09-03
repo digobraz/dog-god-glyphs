@@ -389,21 +389,13 @@ function shuffle<T>(arr: readonly T[]): T[] {
   return a;
 }
 
-/**
- * Náhodný výber citátov pre film na `/onepage` — obrazovka RECENZIE ich ukazuje
- * tri po sebe, nie v páse.
- *
- * ⚠️ Je to funkcia TU a nie kópia troch citátov v OnePage: pod týmto súborom
- * leží 44 zdrojovaných výrokov a tie sa nesmú rozdvojiť (to isté pravidlo, aké
- * drží `variant` namiesto `*Lab` kópie — viď poznámka nižšie).
- */
-export function pickCelebQuotes(count: number): CelebQuote[] {
-  return shuffle(POOL).slice(0, count);
-}
-
-/** Koľko ľudí v poli reálne je. Číslo v texte sa NEOPISUJE — po pridaní citátu
- *  by veta klamala a nikto by si toho nevšimol. */
-export const CELEB_QUOTE_COUNT = POOL.length;
+/* 🔴 ODTIAĽTO ZMIZLI `pickCelebQuotes` A `CELEB_QUOTE_COUNT` (1. 9. 2026).
+   Boli to MŔTVE EXPORTY: nikto ich nevolal a komentár nad prvým z nich popisoval
+   obrazovku, ktorá nikdy nevznikla („citáty tri po sebe, nie v páse"). Matej
+   1. 9. 2026 potvrdil PÁS — kým je obraz prilepený, človek nescrolluje a pás je
+   jediná vec, čo na obrazovke žije; tri citáty za sebou by si vypýtali tri
+   ďalšie beaty. Komentár, ktorý popisuje neexistujúci návrh, je horší než
+   prázdne miesto: pri ďalšom čítaní vyzerá ako zadanie. */
 
 /**
  * ⚠️ `variant` má východisko `dark` ⇒ ostrá `/about` sa nemení. Papyrus si pýta
@@ -411,7 +403,8 @@ export const CELEB_QUOTE_COUNT = POOL.length;
  *    v `TestimonialsColumn.tsx`: pod týmto komponentom leží 355 riadkov citátov
  *    so zdrojmi a tie sa nesmú rozdvojiť.
  */
-export function TestimonialsSection({ variant = 'dark' }: { variant?: TestimonialVariant } = {}) {
+export function TestimonialsSection({ variant = 'dark', pinned = false }:
+  { variant?: TestimonialVariant; pinned?: boolean } = {}) {
   const t = useT();
   // Shuffle + pick a random subset once per mount → line-up changes each refresh.
   const { columns } = useMemo(() => {
@@ -432,7 +425,7 @@ export function TestimonialsSection({ variant = 'dark' }: { variant?: Testimonia
   return (
     <section
       id="testimonials"
-      className="relative py-24 md:py-32 overflow-hidden"
+      className={`relative overflow-hidden ${pinned ? 'tst-pinned' : 'py-24 md:py-32'}`}
       style={{
         background:
           variant === 'papyrus'
@@ -443,12 +436,16 @@ export function TestimonialsSection({ variant = 'dark' }: { variant?: Testimonia
       }}
     >
       <div className="max-w-6xl mx-auto px-6 md:px-8">
+        {/* ⚠️ V prilepenom obraze si nábeh riadi RÉŽIA SCROLLU (OnePage), takže
+            vlastná animácia sa musí vypnúť — dva stmievače na jednom prvku sa
+            navzájom prepisujú a nadpis bliká. `initial={false}` je framerov
+            spôsob, ako povedať „nehýb sa, hodnoty ti nastaví niekto iný". */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={pinned ? false : { opacity: 0, y: 20 }}
+          whileInView={pinned ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="flex flex-col items-center text-center mb-12 md:mb-16"
+          className={`flex flex-col items-center text-center mb-12 md:mb-16${pinned ? ' tst-head' : ''}`}
         >
           <h2
             className="text-4xl md:text-5xl font-black tracking-wider"
@@ -472,7 +469,11 @@ export function TestimonialsSection({ variant = 'dark' }: { variant?: Testimonia
               paddingTop: '0.12em',
             }}
           >
-            {t('about.legends.title')}
+            {/* Vo filme má pás vlastný nadpis (Matej 1. 9. 2026 vybral
+                „WE DIDN'T INVENT THIS"). Je to SAMOSTATNÝ KĽÚČ, nie prepis
+                pôvodného: ten drží ostrá /about v 18 jazykoch a zmenou by sa
+                prepísal aj tam. */}
+            {t(pinned ? 'about.legends.titleFilm' : 'about.legends.title')}
           </h2>
           <p
             className="mt-4 max-w-xl text-base md:text-lg"
@@ -482,12 +483,15 @@ export function TestimonialsSection({ variant = 'dark' }: { variant?: Testimonia
               lineHeight: 1.65,
             }}
           >
-            {t('about.legends.sub')}
+            {/* Podnadpis ide cez filmový kľúč z toho istého dôvodu ako nadpis: pod novým
+                nadpisom má niesť DIERU, nie dôkaz. Rozdvojiť len jeden z tejto dvojice by
+                znamenalo, že sa pri prvej ďalšej úprave rozídu. */}
+            {t(pinned ? 'about.legends.subFilm' : 'about.legends.sub')}
           </p>
         </motion.div>
 
         <div
-          className="flex justify-center gap-6 [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]"
+          className={`flex justify-center gap-6 [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]${pinned ? ' tst-cols' : ''}`}
           style={{ maxHeight: '640px', overflow: 'hidden' }}
         >
           <TestimonialsColumn testimonials={columns[0].map(localize)} duration={48} variant={variant} />
@@ -496,7 +500,7 @@ export function TestimonialsSection({ variant = 'dark' }: { variant?: Testimonia
         </div>
 
         {/* CC attribution — required for the Wikimedia Commons portraits (CC BY / BY-SA / public domain) */}
-        <details className="mt-10 mx-auto max-w-2xl text-center">
+        <details className={`mt-10 mx-auto max-w-2xl text-center${pinned ? ' tst-credits' : ''}`}>
           <summary
             className="cursor-pointer text-[11px] tracking-wide select-none"
             style={{

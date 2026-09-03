@@ -1,7 +1,7 @@
 import { lazy, ReactNode, Suspense, useEffect, useRef, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { BrandIcon as PackBrandIcon } from './BrandIcon';
-import { PACK_THEME, PACK_COL } from './packTheme';
+import { PACK_THEME, PACK_COL, isPaperRoute } from './packTheme';
 import { devotionLevel } from '@/lib/devotion';
 import { DEV_FULL } from '@/lib/packFlags';
 import { usePackIdentity, type PackDog } from './usePackIdentity';
@@ -147,8 +147,17 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
 // (PackLayout column pages + the full-bleed PackMap map). DEV_FULL-only; LIVE
 // build renders nothing here (PackNotifications stays inside HeroCard, unchanged).
 export function PackTopRight({ last24h, total, className, layout }: { last24h: number | null; total: number | null; className?: string; layout?: 'overlay' | 'inline' }) {
+  // ⚠️ ŠAT SA PÝTA CESTY, NIE SA ZAPISUJE NATVRDO (2026-09-02).
+  // Do dneška tu stálo holé `dark`, čo bola pravda, kým bol tmavý celý `/pack`. Počas
+  // prezliekania (DRAK → BRIGHT) sa to ale mení stránku po stránke, a natvrdo zapísaná
+  // hodnota by na každej novo zosvetlenej stránke nechala tmavý zvonček so sklenným
+  // rozostrením — teda diera, ktorá vznikne až o niekoľko commitov neskôr a nikomu sa
+  // neohlási. `isPaperRoute` je ten istý zdroj pravdy, aký používa `RouteFallback`
+  // v `App.tsx`, takže zvonček sa prepne v tom istom okamihu ako podklad pod ním:
+  // kto prezlečie stránku, pridá jej riadok do `PAPER_ROUTES` a hotovo, sem nesiaha.
+  const paper = isPaperRoute(useLocation().pathname);
   if (!DEV_FULL) return null;
-  return <PackNotifications dark last24h={last24h} total={total} className={className} layout={layout} />;
+  return <PackNotifications dark={!paper} last24h={last24h} total={total} className={className} layout={layout} />;
 }
 
 // ── Messaging overlay host (Inbox/Thread) — design:
