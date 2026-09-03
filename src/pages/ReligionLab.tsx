@@ -207,9 +207,10 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
   //
   // ⚠️ Iba vo filme. Mimo neho stoja sekcie ako samostatné obrazovky pod
   // sebou, neprekrývajú sa a nikto im nemení priehľadnosť podľa scrollu.
-  // ⚠️ Zapisuje sa VÝHRADNE `pointer-events` na sekciu; keďže dnes je všade
-  // `auto`, zmena môže prst iba ODOBRAŤ neviditeľnému obsahu, nikdy ho pridať
-  // niečomu, čo ho doteraz nemalo.
+  // ⚠️ Zapisuje sa VÝHRADNE `pointer-events` na sekciu, a viditeľnej sa zapisuje
+  // PRÁZDNY REŤAZEC, nie `auto`. Pôvodne tu stálo `auto` s odôvodnením, že
+  // „dnes je všade auto, takže sa prst môže iba odobrať" — to bolo NEPRAVDIVÉ:
+  // zdedená hodnota z `.op-film` je na prvej obrazovke `none`. Detail pri zápise.
   useEffect(() => {
     if (!flow) return;
     const sections = sectionRefs.current.filter(Boolean) as HTMLElement[];
@@ -225,7 +226,21 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
     let raf = 0;
     const apply = () => {
       raf = 0;
-      for (const s of sections) s.style.pointerEvents = painted(s) ? 'auto' : 'none';
+      // 🔴 PRÁZDNY REŤAZEC, NIE 'auto' (oprava 3. 9. 2026, o hodinu neskôr).
+      // Tvrdé 'auto' PREBIJE bránu celého filmu: `.op-film` má
+      // `pointer-events: var(--op-film-pe)` a kým svieti guľa na prvej
+      // obrazovke, je to `none` — film musí byť pre prst priehľadný, aby sa
+      // dalo ťahať planétou a kliknúť ADD PHOTO. Zápisom 'auto' si sekcia
+      // náboženstva ten prst vzala späť, hoci z nej nebolo vidno nič, a
+      // ĽAHLA SI NA VSTUP DO PRODUKTU. Odmerané: na scrollY 0 vracal
+      // `elementsFromPoint` v strede dlaždice ADD PHOTO
+      // `SECTION.codex-section.in-view`, nie dlaždicu — na všetkých šírkach.
+      // Prázdny reťazec inline hodnotu ZRUŠÍ, takže sa dedí tá z filmu:
+      //   guľa svieti  → film `none`  → sekcia zdedí `none`  ✔
+      //   film beží    → film `auto`  → viditeľná sekcia zdedí `auto`,
+      //                                 neviditeľnej ho odoberie `none` ✔
+      // Preto tu NESMIE stáť 'auto' ani nič, čo dedenie preruší.
+      for (const s of sections) s.style.pointerEvents = painted(s) ? '' : 'none';
     };
     // Scroll sa zlučuje do jedného snímku — čítanie štýlu v každej udalosti
     // by bolo to isté meranie niekoľkokrát za snímok.
