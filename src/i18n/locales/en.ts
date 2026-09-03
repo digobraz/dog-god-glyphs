@@ -977,6 +977,109 @@ export const en = {
   // Výzva na čiernej sále medzi víziou a príbehom — viď KEEP_IN v OnePage.tsx.
   'film.keepScrolling': 'Keep scrolling',
 
+  // ── /onepage FILM — texty obrazov 6–9 (WE NEED YOU · DOGTRIX · ALBA · MOST) ──
+  // Do 3. 9. 2026 stáli natvrdo v JSX `components/lab/OnePage.tsx`, takže sa
+  // v slovenskej verzii filmu čítali po anglicky. Vlastné mená (DOGYPT,
+  // HEROGLYPH, Dogtrix, Alba, Hekthor) ostávajú MIMO kľúčov — nesú vlastnú
+  // sadzbu (Cinzel / Cinzel Decorative) a neprekladajú sa.
+
+  // WE NEED YOU — nadpis prichádza PO SLOVÁCH (tri beaty). 🔴 PRÁZDNY KĽÚČ
+  // BEAT PRESKOČÍ: SK je dvojslovné („Potrebujeme ťa"), takže `w3` je tam
+  // prázdny reťazec a tretí `<span>` sa vôbec nevykreslí (prázdny by si
+  // v `column-gap` nechal medzeru a nadpis by sa odcentroval). Výkričník si
+  // vezme POSLEDNÉ vykreslené slovo, nech je ich dva alebo tri.
+  'onepage.need.w1': 'We',
+  'onepage.need.w2': 'need',
+  'onepage.need.w3': 'you',
+  // Podtitul má DVA kusy, každý `nowrap` — veľkosť písma sa dopočíta tak, aby
+  // sa zmestil ten širší. DOGYPT je značka a stojí v `<b>` MIMO kľúča.
+  'onepage.need.sub1': 'Our goal is to unite one million dog lovers',
+  'onepage.need.sub2': 'in one place —',
+  'onepage.need.goal': 'Our goal',
+  'onepage.need.step': 'Next step',
+  'onepage.need.cta': 'Join the mission',
+  // Číslo je dopočítané (počet psov + 1) a stojí v `<b>` za týmto kusom.
+  'onepage.need.ctasub': 'Get your number —',
+  // Chvost obrazu — dnes VYPNUTÝ (`ARC_TAIL` v OnePage.tsx). Kľúče tu sú, aby
+  // sa dal vrátiť jedným prepnutím a nie aj prekladom.
+  'onepage.need.tailLead': 'All you can do is —',
+  'onepage.need.tailFree': 'this one is free',
+  'onepage.aria.join': 'Join',
+  'onepage.aria.most': 'What the Heroglyph opens',
+
+  // DOGTRIX — dážď heroglyfov a dekodér. Popisky skupín aj bubliny píše
+  // vanilla DOM v mount-once efekte, preto sa po zmene jazyka prepisujú
+  // ručne (`retext` v OnePage.tsx), nie cez React.
+  'onepage.dgx.eye': 'The ticket to Dogypt',
+  'onepage.dgx.rule': 'Unique symbol for every dog.',
+  'onepage.dgx.sigrole': 'First Dogyptian',
+  'onepage.dgx.hint.hover': 'Hover a symbol — it tells you what it means.',
+  'onepage.dgx.hint.touch': 'Touch a symbol to read it.',
+  // Poradie 1–4 = basics · breed · char · own (to isté ako `DGX_GROUPS`).
+  'onepage.dgx.k.1.name': 'ORIGINS',
+  'onepage.dgx.k.1.desc': 'Sex · Colour · Origin · Bloodline',
+  'onepage.dgx.k.2.name': 'BREED',
+  'onepage.dgx.k.2.desc': 'His patron silhouette',
+  'onepage.dgx.k.3.name': 'CHARACTER',
+  'onepage.dgx.k.3.desc': 'Two traits · who he is',
+  'onepage.dgx.k.4.name': 'AND YOU',
+  'onepage.dgx.k.4.desc': 'You live inside his frame.',
+  // Bubliny podržaného symbolu — tri riadky: čo je to za údaj · aká je
+  // hodnota · ako sa tá kresba volá. Hodnoty sú Hektorove (pes #1).
+  'onepage.dgx.bub.dogGender.label': 'Sex',
+  'onepage.dgx.bub.dogGender.value': 'Male',
+  'onepage.dgx.bub.dogGender.glyph': "King's crown",
+  'onepage.dgx.bub.colour.label': 'Colour',
+  'onepage.dgx.bub.colour.value': 'Dark',
+  'onepage.dgx.bub.colour.glyph': 'Moon',
+  'onepage.dgx.bub.fate.label': 'Origin',
+  'onepage.dgx.bub.fate.value': 'Rescued',
+  'onepage.dgx.bub.fate.glyph': 'Rescue ring',
+  'onepage.dgx.bub.bloodline.label': 'Bloodline',
+  'onepage.dgx.bub.bloodline.value': 'Mutt',
+  'onepage.dgx.bub.bloodline.glyph': 'Bloodline scroll',
+  'onepage.dgx.bub.shape.label': 'Breed',
+  'onepage.dgx.bub.shape.value': 'His patron silhouette',
+  'onepage.dgx.bub.shape.glyph': 'Patron silhouette',
+  'onepage.dgx.bub.char1.label': 'Character',
+  'onepage.dgx.bub.char1.value': 'Ready for orders',
+  'onepage.dgx.bub.char1.glyph': 'Winged emblem',
+  'onepage.dgx.bub.char2.label': 'Character',
+  'onepage.dgx.bub.char2.value': 'Water lover',
+  'onepage.dgx.bub.char2.glyph': 'Water waves',
+  'onepage.dgx.bub.ownGender.label': 'You',
+  'onepage.dgx.bub.ownGender.value': 'Man',
+  'onepage.dgx.bub.ownGender.glyph': 'Man silhouette',
+  'onepage.dgx.bub.ownChinese.label': 'Your Chinese sign',
+  'onepage.dgx.bub.ownChinese.value': 'Rooster',
+  'onepage.dgx.bub.ownChinese.glyph': 'Rooster',
+  'onepage.dgx.bub.ownZodiac.label': 'Your zodiac',
+  'onepage.dgx.bub.ownZodiac.value': 'Leo',
+  'onepage.dgx.bub.ownZodiac.glyph': 'Lion',
+  'onepage.dgx.bub.ownInitial.label': 'Your initial',
+  'onepage.dgx.bub.ownInitial.value': 'M',
+  'onepage.dgx.bub.ownInitial.glyph': 'Initial letter',
+  'onepage.dgx.bub.ownRank.label': 'His place in your life',
+  'onepage.dgx.bub.ownRank.value': 'Your 1st dog',
+  'onepage.dgx.bub.ownRank.glyph': 'Number one',
+
+  // ALBA — tri psy s tým istým menom. Meno psa stojí v `<span class="nm">`
+  // MIMO kľúča: nesie Cinzel Decorative a preklad ho nesmie zhltnúť.
+  'onepage.alba.head': 'Meet',
+  'onepage.alba.eye': 'The same name — different dog — unique symbol',
+  // ⚪ VYPNUTÉ (`ALBA_SAME`) — kľúč existuje pre návrat jedným prepnutím.
+  'onepage.alba.same': 'Same name. Different dog.',
+  'onepage.alba.says': 'Every dog deserves a',
+  // ⚪ VYPNUTÉ (`ALBA_CNT`) — dtto.
+  'onepage.alba.cnt': 'ways to draw one',
+
+  // MOST — brána a jediná otázka, ktorou sa oblúk končí.
+  'onepage.most.eye': 'The Heroglyph is the key',
+  'onepage.most.head': 'This is the door it opens.',
+  // ⚠️ ÚVODZOVKY SÚ SÚČASŤOU HODNOTY, nie JSX: EN má párové „ ” (&ldquo;/&rdquo;),
+  // SK musí niesť SK dvojicu. V JSX by to bola natvrdo anglická sadzba.
+  'onepage.most.q': '“Am I doing right by him?”',
+
   // ── / (Wall / GodsGrid) ──
   // hero card
   'wall.hero.taglineLead': 'The place where',

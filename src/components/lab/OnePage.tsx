@@ -836,10 +836,12 @@ const dgxPulseAt = (pc: number, a: number, w: number, n: number) => {
   const t = clamp01((pc - a) / w);
   return 1 - (1 - t) * 0.85 * (0.5 + 0.5 * Math.cos(2 * Math.PI * n * t));
 };
-/** Znenie pilulky podľa zariadenia — hover na mobile neexistuje. */
+/** Znenie pilulky podľa zariadenia — hover na mobile neexistuje.
+ *  Text je v slovníku; tu ostávajú len KĽÚČE, lebo pilulku píše vanilla DOM
+ *  v mount-once efekte (viď `retext` nižšie). */
 const DGX_HINT = {
-  hover: 'Hover a symbol — it tells you what it means.',
-  touch: 'Touch a symbol to read it.',
+  hover: 'onepage.dgx.hint.hover',
+  touch: 'onepage.dgx.hint.touch',
 };
 
 /* ══ DOGTRIX / HEROGLYF — konfigurácia zo zdroja ═══════════════════════════
@@ -914,7 +916,7 @@ const DGX_ROW_GAP = 7;
 /** Zvislá verzia: skupiny idú POD SEBOU. `ay` = stred zvislého rozsahu
  *  skupiny v % `DGX_VB_V` (pre `own` rozsah KARTUŠE, nie jednotlivých
  *  slotov). Poradie v poli je basics·breed·char·own (TO ISTÉ ako `DGX_GROUPS`
- *  a `DGX_KNAME`/`DGX_KTEXT`) — adresuje sa indexom, nie fyzickým poradím
+ *  a `DGX_KKEY`) — adresuje sa indexom, nie fyzickým poradím
  *  zhora nadol. */
 const DGX_GROUPS_V = [
   { id: 'basics', side: 'left',  ay: 15.49, row: 0 },
@@ -923,30 +925,24 @@ const DGX_GROUPS_V = [
   { id: 'own',    side: 'left',  ay: 57.32, row: 0, dogma: true },
 ] as const;
 
-/** Názov sekcie je STÁLY, mení sa len popisok pod ním. */
-const DGX_KNAME = ['ORIGINS', 'BREED', 'CHARACTER', 'AND YOU'];
-const DGX_KTEXT = ['Sex · Colour · Origin · Bloodline', 'His patron silhouette', 'Two traits · who he is', 'You live inside his frame.'];
+/** Kľúče popisiek skupín. Poradie basics·breed·char·own — TO ISTÉ ako
+ *  `DGX_GROUPS`/`DGX_GROUPS_V`; adresuje sa indexom, nie fyzickým poradím.
+ *  Text je v slovníku (`onepage.dgx.k.<n>.name` / `.desc`). */
+const DGX_KKEY = ['onepage.dgx.k.1', 'onepage.dgx.k.2', 'onepage.dgx.k.3', 'onepage.dgx.k.4'];
 
-/** Obsah bublín — Hektorove SKUTOČNÉ hodnoty (pes #1). Tri riadky: čo je to
- *  za údaj · aká je hodnota · ako sa tá kresba volá — bez tretieho riadku sa
- *  človek dozvie význam, ale nenaučí sa symbol prečítať inde.
+/** Ktoré sloty majú bublinu. Jej obsah (Hektorove SKUTOČNÉ hodnoty, pes #1)
+ *  je v slovníku: `onepage.dgx.bub.<slot>.label` / `.value` / `.glyph` — tri
+ *  riadky: čo je to za údaj · aká je hodnota · ako sa tá kresba volá; bez
+ *  tretieho sa človek dozvie význam, ale nenaučí sa symbol prečítať inde.
+ *  🔴 ZOZNAM JE STRÁŽ, NIE OZDOBA: `t()` vráti pri chýbajúcom kľúči SÁM KĽÚČ,
+ *  takže slot mimo tohto zoznamu by do bubliny vypísal `onepage.dgx.bub.…`.
  *  🚩 `fate` OTVORENÉ NA MATEJA: dáta hovoria „rescue ring" (bajt-zhoda
  *  s FATE-RESCUED.svg); Matej ho číta ako „tanier s 3 dierami = frisbee".
  *  Zapísané dáta, nie jeho čítanie — viď report tejto úlohy. */
-const DGX_BUB: Record<string, [string, string, string]> = {
-  dogGender:  ['Sex', 'Male', "King's crown"],
-  colour:     ['Colour', 'Dark', 'Moon'],
-  fate:       ['Origin', 'Rescued', 'Rescue ring'],
-  bloodline:  ['Bloodline', 'Mutt', 'Bloodline scroll'],
-  shape:      ['Breed', 'His patron silhouette', 'Patron silhouette'],
-  char1:      ['Character', 'Ready for orders', 'Winged emblem'],
-  char2:      ['Character', 'Water lover', 'Water waves'],
-  ownGender:  ['You', 'Man', 'Man silhouette'],
-  ownChinese: ['Your Chinese sign', 'Rooster', 'Rooster'],
-  ownZodiac:  ['Your zodiac', 'Leo', 'Lion'],
-  ownInitial: ['Your initial', 'M', 'Initial letter'],
-  ownRank:    ['His place in your life', 'Your 1st dog', 'Number one'],
-};
+const DGX_BUB = new Set([
+  'dogGender', 'colour', 'fate', 'bloodline', 'shape', 'char1', 'char2',
+  'ownGender', 'ownChinese', 'ownZodiac', 'ownInitial', 'ownRank',
+]);
 
 /** 20 zvislých heroglyfov psov #1–#20 (dážď = LEN celé heroglyfy, žiadne
  *  samostatné symboly — Matej 1. 9. 2026 zamietol pôvodnú deľbu). */
@@ -1255,6 +1251,11 @@ const ALBA_CNT = false as boolean;
 
 export default function OnePage() {
   const t = useT();
+  /** 🔴 DGX (dážď + dekodér) STAVIA VANILLA DOM V MOUNT-ONCE EFEKTE, takže by
+   *  `t` z prvého renderu držal navždy. Ref nesie AKTUÁLNU funkciu; prepísanie
+   *  textov po zmene jazyka robí `retext` (viď efekt s `[t]` nižšie). */
+  const tRef = useRef(t);
+  tRef.current = t;
   const [scene, setScene] = useState(0);
   const [past, setPast] = useState(false);       // je už guľa preč?
   // Ústava v prekrytí. Kniha ako OBRAZ filmu zanikla (Matej 28. 8. 2026),
@@ -1265,6 +1266,9 @@ export default function OnePage() {
   const [wallOpen, setWallOpen] = useState(false);
   /** Choreografia filmu — drží sa v refe, aby sa dala vyvolať aj mimo scrollu. */
   const applyRef = useRef<() => void>(() => {});
+  /** To isté pre PRESTAVBU: zahodí uzlovú tabuľku, pamäť zapísaných hodnôt aj
+   *  namerané pomery písma. Volá to zmena jazyka — viď efekt s `[t]` nižšie. */
+  const relayoutRef = useRef<() => void>(() => {});
   /** Je rozbaľovacia navigácia obrazov otvorená? */
   const [menuOpen, setMenuOpen] = useState(false);
   const sceneNavRef = useRef<HTMLDivElement>(null);
@@ -1300,7 +1304,7 @@ export default function OnePage() {
   // choreografického efektu nižšie — tá istá deľba ako pri zvyšku filmu:
   // TOTO postaví štruktúru raz, HLAVNÝ efekt ňou hýbe pri každom snímku.
   const dgxRootRef = useRef<HTMLDivElement | null>(null);
-  const dgxApiRef = useRef<{ draw: (dp: number) => void } | null>(null);
+  const dgxApiRef = useRef<{ draw: (dp: number) => void; retext: () => void } | null>(null);
 
   useEffect(() => {
     const sec = dgxRootRef.current;
@@ -1585,8 +1589,13 @@ export default function OnePage() {
       return spr;
     };
 
+    // Rozmery plátna sa NEČÍTAJU Z DOM-u v každom snímku — menia sa len pri
+    // zmene veľkosti a vtedy ich prepíše sizeCanvas(). Čítanie clientWidth po
+    // zmene štýlov je vynútený prepočet rozloženia a v stope načítania to bol
+    // najväčší jediný pôvodca (182 ms).
+    let cvW = 0, cvH = 0;
     const paintRain = (amp: number) => {
-      const W = cv.clientWidth, H = cv.clientHeight;
+      const W = cvW, H = cvH;
       cx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
       cx.clearRect(0, 0, W, H);
       if (amp <= 0.002) return;
@@ -1622,10 +1631,16 @@ export default function OnePage() {
       const W = sec.clientWidth, H = sec.clientHeight;
       cv.width = Math.round(W * devicePixelRatio);
       cv.height = Math.round(H * devicePixelRatio);
+      // Plátno je roztiahnuté na sekciu, takže jeho CSS rozmer = jej rozmer.
+      cvW = W; cvH = H;
     };
 
     let lastDp = 0;
     let rainAmpNow = 0;
+    /** Beží kresliaca slučka dažďa? Riadi ju syncRainLoop() nižšie. */
+    let rainOn = false;
+    /** Je obrazovka s dažďom vôbec v okne? Zapisuje pozorovateľ nižšie. */
+    let rainInView = false;
     const rainAmp = (dp: number) => {
       const pc = dp * 100;
       const up = seg(pc, 0, DGX.rainFull * 0.5);
@@ -1634,11 +1649,60 @@ export default function OnePage() {
     };
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     const loop = (t: number) => {
-      rafId = requestAnimationFrame(loop);
       const dt = lastT ? Math.min(0.05, (t - lastT) / 1000) : 0;
       lastT = t;
       if (!reducedMotion) rainT += dt;
       paintRain(rainAmpNow);
+      // Slučka sa NEPREDLŽUJE bezpodmienečne — po každom snímku sa spýta, či má
+      // pokračovať. Reštartovať ju vie draw() aj pozorovateľ nižšie.
+      rafId = 0;
+      syncRainLoop();
+    };
+    // 🔴 SLUČKA SA ZASTAVUJE, KEĎ DÁŽĎ NIE JE VIDIEŤ (4. 9. 2026).
+    // Predtým bežala od mountu po unmount — teda cez CELÝ film, aj kým sa
+    // človek pozerá na guľu alebo na recenzie. Skorý návrat vnútri paintRain
+    // to nezastavil: stál AŽ ZA čítaním rozmerov a za clearRect, takže
+    // „nekreslíme" neznamenalo „nestojí to nič".
+    // Je to presne to isté opatrenie, aké má guľa (prop `paused`) — a z toho
+    // istého dôvodu: dážď je vidieť na jednej obrazovke z ôsmich.
+    // ⚠️ `rainT` sa počas zastavenia neposúva, takže dážď pokračuje tam, kde
+    //    prestal. Nikto to nevidí — a je to lacnejšie než ho dopočítavať.
+    // ⚠️ `lastT` sa pri štarte nuluje, inak by prvý snímok dostal dt za celý
+    //    čas státia (strop 0,05 s by to síce zrezal, ale kvapky by poskočili).
+    const syncRainLoop = () => {
+      // 🔴 DVE PODMIENKY, NIE JEDNA. Samotné `rainAmpNow` nestačí: dážď má po
+      // obrazovke DOGTRIX ZÁMERNE doznievať na pozadovú úroveň (`DGX.rainBg`),
+      // takže jeho hodnota už nikdy neklesne na nulu — a slučka by od DOGTRIXu
+      // po pätu stránky bežala ďalej. Odmerané: pri recenziách (scrollY 24 390)
+      // kreslilo plátno `dgx-rain` 60× za sekundu, hoci jeho obrazovka má
+      // krytie 0 a je o desaťtisíc pixelov vyššie.
+      // Druhú podmienku nesie POZOROVATEĽ PRIESEČNÍKOV, nie čítanie štýlu:
+      // je udalostný, takže nestojí ani snímok navyše.
+      // Tri podmienky. `rainAmpNow` samo nestačí (dážď zámerne doznieva na
+      // pozadovú úroveň, takže na nulu už neklesne) a `rainInView` samo tiež
+      // nie: štyri obrazovky oblúka stoja NA SEBE v jednom prilepenom javisku,
+      // takže kým beží ALBA alebo MOST, obrazovka dažďa je stále „v okne" —
+      // len ju nevidno. Rozhoduje `visibility`, ktorú jej prelínačka oblúka
+      // zapisuje inline (r. ~3175). Čítanie inline štýlu je zadarmo: na rozdiel
+      // od `getComputedStyle` nevynúti prepočet rozloženia.
+      const want = rainAmpNow > 0.002 && rainInView && sec.style.visibility !== 'hidden';
+      // ⚠️ TU NESMIE BYŤ SKRATKA `if (want === rainOn) return`. Slučka si po
+      // každom snímku nuluje `rafId` a znovu sa pýta cez túto funkciu — pri
+      // nezmenenom stave by sa teda vrátila BEZ obnovenia rAF a dážď by zhasol
+      // po prvom snímku. (Stalo sa: 0 snímkov aj na obrazovke, kde padať má.)
+      // Rozhoduje `rafId`, nie zmena stavu.
+      if (want) {
+        if (!rainOn) { rainOn = true; lastT = 0; }
+        if (!rafId) rafId = requestAnimationFrame(loop);
+        return;
+      }
+      if (!rainOn && !rafId) return;
+      rainOn = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = 0;
+      // Jedno posledné zotretie, nech po zastavení neostane visieť snímok.
+      cx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+      cx.clearRect(0, 0, cvW, cvH);
     };
 
     // ── NADPIS: veľkosť sa POČÍTA, nemeria po nastavení ─────────────────────
@@ -1955,9 +2019,10 @@ export default function OnePage() {
       // 🔴 REZERVA SA PREPOČÍTA LEN PRI ZMENE ORIENTÁCIE (curVertical guard v
       // buildGlyph) — narrow≤768px = zvislý (mobil), inak vodorovný (PC).
       const vertical = narrow;
-      if (curVertical !== vertical) { buildGlyph(vertical); fitKotaScale(narrow, vertical); measureHead(); paintGold(); }
+      if (curVertical !== vertical) { buildGlyph(vertical); retext(); fitKotaScale(narrow, vertical); measureHead(); paintGold(); }
       const pc = dp * 100;
       rainAmpNow = rainAmp(dp);
+      syncRainLoop();
       sec.dataset.narrow = narrow ? '1' : '0';
 
       put2(el.eye, seg(pc, DGX.eye, DGX.eye + DGX.dur));
@@ -2035,7 +2100,10 @@ export default function OnePage() {
         (nd as unknown as HTMLElement).style.filter = `url(#dgx-t-${g}) drop-shadow(0 0 ${DGX.glow}px ${DGX_COL[g]})`;
         const slot = (vertical ? DGX_SLOTS_V : DGX_SLOTS).find((s) => s.k === hoverKey)!;
         bub.style.color = DGX_COL[g];
-        const [label, val, name] = DGX_BUB[hoverKey] || ['', '', ''];
+        const bk = `onepage.dgx.bub.${hoverKey}`;
+        const [label, val, name] = DGX_BUB.has(hoverKey)
+          ? [tRef.current(`${bk}.label`), tRef.current(`${bk}.value`), tRef.current(`${bk}.glyph`)]
+          : ['', '', ''];
         bub.innerHTML = `<b>${label}</b><i>${val}</i><em>${name}</em>`;
         bub.classList.add('on');
         const gr = gbox.getBoundingClientRect(), sr = sec.getBoundingClientRect();
@@ -2090,23 +2158,30 @@ export default function OnePage() {
     // glyphMode je vždy 'auto' v produkcii — vodorovný na PC, zvislý na
     // mobile, TO ISTÉ `narrow` ako všade v tomto súbore (NARROW_MAX).
     const narrow0 = window.innerWidth <= NARROW_MAX;
-    hint.textContent = narrow0 ? DGX_HINT.touch : DGX_HINT.hover;
+    /** Všetok text tejto obrazovky na jednom mieste — píše ho vanilla DOM,
+     *  takže po zmene jazyka ho musí niekto prepísať ručne. */
+    const retext = () => {
+      hint.textContent = tRef.current(window.innerWidth <= NARROW_MAX ? DGX_HINT.touch : DGX_HINT.hover);
+      K.forEach((k, i) => {
+        k.nameEl.textContent = tRef.current(`${DGX_KKEY[i]}.name`);
+        k.descEl.textContent = tRef.current(`${DGX_KKEY[i]}.desc`);
+      });
+    };
     buildGlyph(narrow0);
     fitKotaScale(narrow0, narrow0);
-    K.forEach((k, i) => { k.nameEl.textContent = DGX_KNAME[i]; k.descEl.textContent = DGX_KTEXT[i]; });
+    retext();
     sec.dataset.narrow = narrow0 ? '1' : '0';
     sizeCanvas();
     buildDrops(sec.clientWidth, sec.clientHeight, narrow0);
     measureHead();
-    dgxApiRef.current = { draw };
+    dgxApiRef.current = { draw, retext };
     draw(0);
 
     const onResize = () => {
       const narrow = window.innerWidth <= NARROW_MAX;
-      hint.textContent = narrow ? DGX_HINT.touch : DGX_HINT.hover;
       const vertical = narrow;
       buildGlyph(vertical);
-      K.forEach((k, i) => { k.nameEl.textContent = DGX_KNAME[i]; k.descEl.textContent = DGX_KTEXT[i]; });
+      retext();
       sizeCanvas();
       buildDrops(sec.clientWidth, sec.clientHeight, narrow);
       measureHead(); fitKotaScale(narrow, vertical); draw(lastDp);
@@ -2115,9 +2190,21 @@ export default function OnePage() {
     ro.observe(sec);
     if (document.fonts) document.fonts.ready.then(() => { measureHead(); paintGold(); draw(lastDp); });
 
-    rafId = requestAnimationFrame(loop);
+    // Slučka sa NEŠTARTUJE natvrdo — naštartuje ju syncRainLoop(), keď dážď
+    // začne byť vidieť (prvé volanie príde z draw() hneď pri prvom snímku).
+    // Pozorovateľ drží druhú podmienku: obrazovka dažďa musí byť v okne.
+    // ⚠️ Rezerva je polovica okna, nie celé: javisko oblúka je prilepené, takže
+    // obrazovka dažďa doň vchádza aj z neho odchádza spolu s ním a hrana stačí.
+    // Väčšia rezerva ju držala „v okne" ešte pri recenziách (odmerané).
+    const rainIo = new IntersectionObserver(
+      (ents) => { rainInView = ents.some((e) => e.isIntersecting); syncRainLoop(); },
+      { rootMargin: '50% 0px' },
+    );
+    rainIo.observe(sec);
+    syncRainLoop();
     return () => {
       cancelAnimationFrame(rafId);
+      rainIo.disconnect();
       ro.disconnect();
       dgxApiRef.current = null;
     };
@@ -2928,8 +3015,19 @@ export default function OnePage() {
         });
         const shr = ph(W.shrink, W.shrinkD);
         // Konečná veľkosť je vo `vw` (Matejov posuvník), nábehová sa POČÍTA.
-        const finPx = ((narrow ? W.finSizeM : W.finSize) / 100) * window.innerWidth;
-        put(n.nxH2, 'ahs', '--hs', `${mix(bigSize(narrow), finPx, shr).toFixed(1)}px`);
+        // 🔴 STROPOM JE TO, ČO SA ZMESTÍ (`Math.min`, doplnené 3. 9. 2026).
+        // Číslo vo `vw` bolo odmerané na ANGLICKOM nadpise (We · need · you!)
+        // a pri slovenskom „POTREBUJEME ŤA!" je konečná veľkosť VÄČŠIA než
+        // nábehová: 13 vw = 65 px pri 500 px okne, kým sa zmestí 57,4 px —
+        // posledné „E" v POTREBUJEME odrezalo o 14,4 px. Nie je to nové
+        // pravidlo, je to vyrovnanie s ostatnými dvoma obrazovkami oblúka:
+        // ALBA (`glfFin`) aj DOGTRIX (`fin`) svoj `finSize` takto stropujú už
+        // dávno, WE NEED YOU ako jediná nie. Pre angličtinu je to no-op —
+        // tam sa zmestí 134 px, teda `min` vracia nezmenených 65.
+        // ⚠️ `bigSize()` číta rozloženie — jedno volanie na snímok, nie dve.
+        const headBig = bigSize(narrow);
+        const finPx = Math.min(headBig, ((narrow ? W.finSizeM : W.finSize) / 100) * window.innerWidth);
+        put(n.nxH2, 'ahs', '--hs', `${mix(headBig, finPx, shr).toFixed(1)}px`);
         // 🔴 VYSTÚPENIE = HUSTOTA, NIE DOSAH. Na papyruse (svetlé na svetlom)
         // sa široké rozostrenie rozriedi do neviditeľna — preto sú to tri
         // BLÍZKE vrstvy, ktoré sa sčítajú: tvrdý tmavý reliéf, mäkký hnedý
@@ -3303,6 +3401,21 @@ export default function OnePage() {
     };
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(apply); };
     applyRef.current = apply;
+    /* 🔴 ZMENA JAZYKA MENÍ TEXT, TEDA AJ UZLY AJ MERANIE.
+       Uzly: SK nadpis WE NEED YOU má DVE slová, nie tri, takže `n.nxWords`
+       drží odpojený `<span>` — a pri návrate do EN je ten nový `<span>` iný
+       uzol, ktorý by v pamäti `prev` našiel svoju starú hodnotu `--o`, zápis
+       by sa preskočil a slovo by ostalo neviditeľné.
+       Meranie: veľkosť nadpisov sa POČÍTA z pomeru šírka : veľkosť písma,
+       zmeraného RAZ nad vtedajším textom (`perRow`, `perWord`, `perSub`,
+       `perGlfLine`, `perMostHead`). Nad slovenským textom je ten pomer iný.
+       `resolve()` zahodí `n` celé, takže si lenivé stráže (`if (!n.perRow)…`)
+       všetko premerajú samy pri najbližšom snímku. */
+    relayoutRef.current = () => {
+      for (const k of Object.keys(prev)) delete prev[k];
+      resolve();
+      apply();
+    };
     apply();
     // ⚠️ Nadpis WE NEED YOU si veľkosť POČÍTA z pomeru šírka : veľkosť písma,
     // a ten je pri systémovom náhradnom písme iný. Bez tohto by po dosadnutí
@@ -3404,6 +3517,20 @@ export default function OnePage() {
   // ako pri glyfoch vyššie: bez tohto by pás ostal prázdny až do najbližšieho
   // scrollu — a keby človek dovtedy stál, vyzeralo by to ako chyba.
   useEffect(() => { packRef.current = pack; applyRef.current(); }, [pack]);
+
+  // ── ZMENA JAZYKA ────────────────────────────────────────────────────────
+  // 🔴 PREPNUTIE JAZYKA FILM NEPREMONTUJE. Dva veľké efekty (DOGTRIX a
+  // choreografia) bežia s prázdnym poľom závislostí — stavajú DOM a merajú
+  // ho — takže by po prepnutí držali starý text aj staré meranie. React
+  // prekreslí len to, čo píše sám; zvyšok si musí vypýtať prestavbu.
+  //   · `retext()` — texty, ktoré kreslí vanilla DOM (pilulka nápovedy, kóty
+  //     skupín); bublina si text berie pri každom snímku sama.
+  //   · `relayoutRef()` — uzly a premeranie pomerov písma. Bez neho by SK
+  //     nadpisy dostali veľkosť dopočítanú z ANGLICKEJ šírky.
+  useEffect(() => {
+    dgxApiRef.current?.retext();
+    relayoutRef.current();
+  }, [t]);
 
   /** Dvadsaťšesť psov ROVNOMERNE z celej svorky — nie prvých dvadsaťšesť.
    *  Pás inak ukazuje len najstarších členov a „je nás more" sa zmení na
@@ -4136,8 +4263,33 @@ export default function OnePage() {
                  a rámik by dosadol vedľa textu, ktorý má orámovať. */
               translateX(calc(var(--op-split, 0) * -22vw + var(--op-slide, 0) * 47vw));
           }
+          /* 🔴 ŠÍRKA SA VIAŽE NA POLOVICU, KTORÁ BLOKU NAOZAJ OSTANE (4. 9. 2026).
+             Pevných 540 px tu odrezávalo text ústavy cez ĽAVÝ okraj v celom
+             pásme 768–961 px. Odmerané na odpočívadle preambuly:
+
+               šírka okna   ľavý okraj bloku   mimo obrazovky
+                  740 px        +40,0 px            0     (mobilná vetva)
+                  768 px        −55,0 px           55 px  ← „ALTY" namiesto „LOYALTY"
+                  840 px        −34,8 px           35 px
+                  920 px        −12,4 px           12 px
+                  980 px         +4,4 px            0
+
+             Rozdelenie obrazovky posadí stred stĺpca na 28vw (viď −22vw vyššie),
+             takže bloku ostane 56vw. Pevných 540 px sa doň zmestí až od ~962 px —
+             ale pravidlo nastupuje už od 768. Vzorec sedí na meranie na pixel:
+             28vw − 540/2 pri 768 px = 215,04 − 270 = −54,96.
+
+             ⚠️ NAD ~1007 px SA NEMENÍ NIČ — tam vyhráva pôvodných 540 px, takže
+             odklepnutý vzhľad na PC ostáva presne taký, aký bol. Zužuje sa len
+             tam, kde sa dnes text nedá prečítať.
+             ⚠️ 24 px je rezerva na oboch stranách (2 × 12), nie odsadenie bloku —
+             ten si svoj padding nesie sám vo vlastnom pravidle.
+             ⚠️ Druhá cesta bola posunúť prah rozdelenia zo 768 na ~960 px a nechať
+             v tom pásme bežať centrovanú mobilnú vetvu. Je vernejšia zámeru „dva
+             stĺpce", ale MENÍ VZHĽAD celého pásma — to je rozhodnutie pre Mateja,
+             nie oprava chyby. Preto tu stojí menší zásah. */
           .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-wrap {
-            max-width: 540px;
+            max-width: min(540px, 56vw - 24px);
           }
           /* MOTTO NA JEDEN RIADOK (Matej 28. 8. 2026: „daj ho do jedného
              riadku (PC)"). Obe polovice sú v základe display: block, teda dva
@@ -6430,7 +6582,7 @@ export default function OnePage() {
             vo filme AboutLabu) — čierna sa rozplýva na ne.
             ⚠️ ID ostáva `op-join` — visí na ňom snap aj pozorovateľ obrazov
             v nave. Zmena mena by ticho zabila oboje. */}
-        <section className="op-scene op-arc" id="op-join" aria-label="Join">
+        <section className="op-scene op-arc" id="op-join" aria-label={t('onepage.aria.join')}>
           {/* Odpočívadlo na hotovom obraze — viď .op-arc-rest v štýloch. */}
           <i className="op-arc-rest" aria-hidden="true" />
           {/* Dvojča o obraz ďalej — DOGTRIX dobehol, viď .op-arc-rest2. */}
@@ -6480,8 +6632,19 @@ export default function OnePage() {
                   {/* Zlato musí niesť KAŽDÉ SLOVO SAMO (v súradniciach celého
                       nadpisu) — gradient na rodičovi by zabil potomka s vlastným
                       krytím, a krytie je tu to, čo slová privádza po jednom. */}
+                  {/* 🔴 PRÁZDNY KĽÚČ BEAT PRESKOČÍ. EN sype tri slová
+                      (We · need · you!), SK je dvojslovné — `onepage.need.w3`
+                      je v `sk.ts` prázdny reťazec a tretí `<span>` sa
+                      nevykreslí vôbec. Prázdny by tu ostal ako flex položka
+                      a `column-gap` by nadpis odcentroval o 0,22 em doľava.
+                      Výkričník preto visí na POSLEDNOM vykreslenom slove,
+                      nie na treťom. */}
                   <h2 className="op-nxt-h2">
-                    <span>We</span><span>need</span><span>you<i>!</i></span>
+                    {[t('onepage.need.w1'), t('onepage.need.w2'), t('onepage.need.w3')]
+                      .filter((w) => w.trim() !== '')
+                      .map((w, i, a) => (
+                        <span key={i}>{w}{i === a.length - 1 ? <i>!</i> : null}</span>
+                      ))}
                   </h2>
                 </div></div>
 
@@ -6493,8 +6656,8 @@ export default function OnePage() {
                     DOGYPT je značka, nie slovo vety — Cinzel a zlato. */}
                 <div className="op-beat op-b-sub"><div className="op-bin">
                   <p className="op-nxt-line">
-                    <span>Our goal is to unite one million dog lovers</span>
-                    <span>in one place &mdash; <b>DOGYPT.</b></span>
+                    <span>{t('onepage.need.sub1')}</span>
+                    <span>{t('onepage.need.sub2')} <b>DOGYPT.</b></span>
                   </p>
                 </div></div>
 
@@ -6514,7 +6677,7 @@ export default function OnePage() {
                           posledného psa (Matej 1. 9. 2026: *„ten goal daj hore
                           pri progresbar"*), a bez zvislej značky — tá ukazovala
                           na koniec pásu, čiže hovorila to, čo už bolo vidieť. */}
-                      <span className="op-nxt-goal"><b>1M</b><em>Our goal</em></span>
+                      <span className="op-nxt-goal"><b>1M</b><em>{t('onepage.need.goal')}</em></span>
 
                       {/* Psy MEDZI zakladateľom a posledným. Vypĺňajú modrý
                           úsek TVÁRAMI, nie farbou; sú menšie zámerne (väčšie sú
@@ -6584,7 +6747,7 @@ export default function OnePage() {
                     Cinzel nápisy na jednej obrazovke si konkurujú. Tá veľká vec
                     dole má byť CTA. */}
                 <div className="op-beat op-b-step"><div className="op-bin">
-                  <p className="op-nxt-ns">Next step</p>
+                  <p className="op-nxt-ns">{t('onepage.need.step')}</p>
                 </div></div>
 
                 {/* ── CTA ────────────────────────────────────────────────────
@@ -6602,7 +6765,7 @@ export default function OnePage() {
                     stojí v tom istom javisku. */}
                 <div className="op-beat op-b-cta"><div className="op-bin">
                   <button type="button" className="op-nxt-cta" onClick={goToGlyph}>
-                    Join the mission
+                    {t('onepage.need.cta')}
                   </button>
                   {/* Riadok pod tlačidlom je jeho popiska, nie druhé CTA —
                       Space Grotesk, bez rámu, bez farebnej plochy.
@@ -6611,7 +6774,7 @@ export default function OnePage() {
                       ⚠️ Kým počet nedorazí, riadok je prázdny — nie nula. */}
                   <p className="op-nxt-ctasub">
                     {dogCount === null ? '' : (
-                      <>Get your number &mdash; <b>#{(dogCount + 1).toLocaleString('en-US')}</b>.</>
+                      <>{t('onepage.need.ctasub')} <b>#{(dogCount + 1).toLocaleString('en-US')}</b>.</>
                     )}
                   </p>
                 </div></div>
@@ -6623,12 +6786,12 @@ export default function OnePage() {
                     dala vrátiť jedným prepnutím. */}
                 {ARC_TAIL && (
                   <div className="op-beat op-b-tail"><div className="op-bin">
-                    <p className="op-nxt-lead">All you can do is &mdash;</p>
+                    <p className="op-nxt-lead">{t('onepage.need.tailLead')}</p>
                     <p className="op-nxt-be">
                       <span className="op-nxt-be-slot">
                         <b className="op-nxt-be-num"><i>#</i>{dogCount === null ? '' : (dogCount + 1).toLocaleString('en-US')}</b>
                       </span>
-                      <span className="op-nxt-be-free">this one is free</span>
+                      <span className="op-nxt-be-free">{t('onepage.need.tailFree')}</span>
                     </p>
                   </div></div>
                 )}
@@ -6658,7 +6821,7 @@ export default function OnePage() {
               <canvas className="dgx-rain" aria-hidden="true" />
 
               <div className="op-beat dgx-b-eye"><div className="op-bin">
-                <p className="dgx-eye">The ticket to Dogypt</p>
+                <p className="dgx-eye">{t('onepage.dgx.eye')}</p>
               </div></div>
 
               <div className="op-beat dgx-b-head"><div className="op-bin">
@@ -6666,7 +6829,7 @@ export default function OnePage() {
               </div></div>
 
               <div className="op-beat dgx-b-rule"><div className="op-bin">
-                <p className="dgx-rule">Unique symbol for every dog.</p>
+                <p className="dgx-rule">{t('onepage.dgx.rule')}</p>
               </div></div>
 
               <div className="op-beat dgx-b-glf"><div className="op-bin">
@@ -6678,7 +6841,7 @@ export default function OnePage() {
                   <div className="dgx-sigph"><img alt="Hekthor" /></div>
                   <div className="dgx-sigtx">
                     <div className="dgx-signm"><span>Hekthor</span><span className="dgx-signum">#1</span></div>
-                    <p className="dgx-sigrole">First Dogyptian</p>
+                    <p className="dgx-sigrole">{t('onepage.dgx.sigrole')}</p>
                   </div>
                 </div>
               </div></div>
@@ -6713,12 +6876,12 @@ export default function OnePage() {
                     tam teraz)"*). Jeden riadok, aby na sirokom a nizkom okne
                     zostal naozaj velky; meno psa v Cinzel Decorative. */}
                 <h2 className="op-glf-h2">
-                  <span className="ln">Meet <span className="nm">Alba</span></span>
+                  <span className="ln">{t('onepage.alba.head')} <span className="nm">Alba</span></span>
                 </h2>
               </div></div>
 
               <div className="op-beat op-b-glfeye"><div className="op-bin">
-                <p className="op-glf-eye">The same name &mdash; different dog &mdash; unique symbol</p>
+                <p className="op-glf-eye">{t('onepage.alba.eye')}</p>
               </div></div>
 
               <div className="op-beat op-b-glftrio"><div className="op-bin">
@@ -6745,7 +6908,7 @@ export default function OnePage() {
                   údaj, možno niekde využijeme." */}
               {ALBA_SAME && (
                 <div className="op-beat op-b-glfsame"><div className="op-bin">
-                  <p className="op-glf-same">Same name. Different dog.</p>
+                  <p className="op-glf-same">{t('onepage.alba.same')}</p>
                 </div></div>
               )}
 
@@ -6756,7 +6919,7 @@ export default function OnePage() {
                     your dog and you, drawn in symbols." — to uz povie obraz HEROGLYPH
                     pred touto obrazovkou, takze sa to tu hovorilo druhy raz. */}
                 <p className="op-glf-says">
-                  Every dog deserves a <b>HEROGLYPH</b>!
+                  {t('onepage.alba.says')} <b>HEROGLYPH</b>!
                 </p>
               </div></div>
 
@@ -6767,7 +6930,7 @@ export default function OnePage() {
                 <div className="op-beat op-b-glfcnt"><div className="op-bin">
                   <p className="op-glf-cnt">
                     <b>{GLYPH_COMBINATIONS.toLocaleString('en-US')}</b>
-                    <span>ways to draw one</span>
+                    <span>{t('onepage.alba.cnt')}</span>
                   </p>
                 </div></div>
               )}
@@ -6788,13 +6951,13 @@ export default function OnePage() {
                 v nákrese, alternatívy sú v zadaní.
                 ⚠️ Text je natvrdo EN, rovnako ako celý oblúk (DOGTRIX aj ALBA)
                 — i18n sa naň nasadí naraz, nie po obrazovkách. */}
-            <section className="op-arc-scr op-most" aria-label="What the Heroglyph opens">
+            <section className="op-arc-scr op-most" aria-label={t('onepage.aria.most')}>
               <div className="op-beat op-b-mosteye"><div className="op-bin">
-                <p className="op-most-eye">The Heroglyph is the key</p>
+                <p className="op-most-eye">{t('onepage.most.eye')}</p>
               </div></div>
 
               <div className="op-beat op-b-mosthead"><div className="op-bin">
-                <h2 className="op-most-h2">This is the door it opens.</h2>
+                <h2 className="op-most-h2">{t('onepage.most.head')}</h2>
               </div></div>
 
               {/* Otázka stojí SAMA — brána nad ňou v tej chvíli už zhasla.
@@ -6802,10 +6965,11 @@ export default function OnePage() {
                   dva beaty na jednej obrazovke sa navzájom nevidia, takže sa
                   prvý smie hasiť, kým druhý nabieha. */}
               <div className="op-beat op-b-mostq"><div className="op-bin">
-                {/* Uvodzovky su EN parove (&ldquo; &rdquo;), nie SK/DE dvojica &bdquo;/&ldquo;
-                    — text filmu je anglicky. A su tu zamerne: veta je MYSLIENKA
-                    divaka, nie otazka, ktoru mu kladie film. */}
-                <p className="op-most-q">&ldquo;Am I doing right by him?&rdquo;</p>
+                {/* 🔴 ÚVODZOVKY SÚ V HODNOTE KĽÚČA, NIE TU. Anglická veta nesie
+                    párové “ ”, slovenská SK dvojicu „ “ — natvrdo v JSX by SK
+                    veta stála v anglických úvodzovkách. A sú tu zámerne: veta
+                    je MYŠLIENKA diváka, nie otázka, ktorú mu kladie film. */}
+                <p className="op-most-q">{t('onepage.most.q')}</p>
               </div></div>
             </section>
           </div>
