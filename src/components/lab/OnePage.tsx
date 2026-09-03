@@ -656,6 +656,13 @@ const QUO = {
  *  miesto vo filme, kde má človek čo pozerať bez toho, aby scrolloval. */
 const QUO_VH = 2.4;
 
+/** Výška hornej lišty v px — tá istá hodnota ako `--op-nav-h` v štýloch nižšie.
+ *  ⚠️ CSS premennú číta prehliadač, JS ju tu potrebuje ako číslo; keby sa
+ *  čítala cez `getComputedStyle` v každom snímku, je to layout read navyše.
+ *  Kto mení `--op-nav-h`, mení aj toto — sú to dve zapísania jedného čísla
+ *  a rozídu sa ticho. */
+const NAV_H = 124;
+
 /* ── OBLÚK = DVE OBRAZOVKY NA JEDNEJ DRÁHE (prestavané 1. 9. 2026) ──────────
    NEXT STEP a HEROGLYF stoja v tom istom prilepenom javisku, jeden cez druhý,
    a prepína ich PRELÍNAČKA.
@@ -2142,6 +2149,7 @@ export default function OnePage() {
       overlay?: HTMLElement | null; pre?: HTMLElement | null;
       planet?: HTMLElement | null; film?: HTMLElement | null;
       dock?: HTMLElement | null;
+      vhero?: HTMLElement | null;
       vstage?: HTMLElement | null; vblocks?: HTMLElement | null;
       vinner?: HTMLElement | null;
       veil?: HTMLElement | null; night?: HTMLElement | null;
@@ -2184,6 +2192,7 @@ export default function OnePage() {
       // Recenzie.
       quo?: HTMLElement | null; quoHead?: HTMLElement | null;
       quoCols?: NodeListOf<HTMLElement>; quoCredits?: HTMLElement | null;
+      quoCreditsSum?: HTMLElement | null;
     } = {};
     const resolve = () => {
       n = {
@@ -2209,6 +2218,7 @@ export default function OnePage() {
         // Tretí prechod: ľavá polovica (video) a pravá (nadpis + tri bloky).
         // Sú to dva prvky a nie jeden, lebo sa hýbu inak — video priletí zľava,
         // bloky sa na mieste dopíšu.
+        vhero: q<HTMLElement>('#op-vision .vision-video-hero'),
         vstage: q<HTMLElement>('#op-vision .vhero-stage'),
         vblocks: q<HTMLElement>('#op-vision .vhero-blocks'),
         // 4. prechod (video na celú obrazovku) sedí na SPOLOČNOM rodičovi oboch
@@ -2303,6 +2313,7 @@ export default function OnePage() {
         // čo vedieť. Prvý stĺpec navyše žiadny className nedostáva.
         quoCols: document.querySelectorAll<HTMLElement>('.op-quo .tst-cols > div'),
         quoCredits: q<HTMLElement>('.op-quo .tst-credits'),
+        quoCreditsSum: q<HTMLElement>('.op-quo .tst-credits > summary'),
       };
     };
     resolve();
@@ -2697,7 +2708,21 @@ export default function OnePage() {
       // Rámik odchádza posledný — až keď v ňom stojí nový text.
       put(n.pre, 'fr', '--op-frame', seg(r, FRAME_OUT[0], FRAME_OUT[1]).toFixed(3));
       // Video prichádza zdola · nadpis a bloky nabiehajú v oblasti rámika.
-      put(n.vstage, 'vd', '--op-vid', seg(r, VID_IN[0], VID_IN[1]).toFixed(3));
+      const vid = seg(r, VID_IN[0], VID_IN[1]);
+      put(n.vstage, 'vd', '--op-vid', vid.toFixed(3));
+      // 🔴 PRÁZDNA SEKCIA VÍZIE KRADLA KLIK CTA DO ÚSTAVY (3. 9. 2026).
+      // Odmerané: pri scrollY 3495 svieti READ THE BIBLE naplno (krytie 1,
+      // pointer-events auto), ale `elementsFromPoint` v jeho strede vracia
+      // SECTION.vision-video-hero — z NASLEDUJÚCEHO obrazu, s z-index 2,
+      // krytím 1 a prstom `auto`, hoci --op-vid aj --op-vb sú vtedy 0.000,
+      // teda vidieť z nej nie je nič. Je to tá istá porucha, akú má výjav
+      // krava/pes o obraz vyššie, len o poschodie vyššie: sekcia, ktorá ešte
+      // nezačala, leží v DOM-e neskôr, takže bez z-indexu vyhráva.
+      // ⚠️ Vnútro (`.vhero-inner`) prst nemá — preto to nikoho nechytilo.
+      //    Berie ho SÁM OBAL, čo je prázdny box cez celú obrazovku.
+      // ⚠️ Prah je príchod VIDEA, nie blokov: video je prvá vec vízie, ktorú
+      //    vidieť, a je zároveň jediná klikateľná (spustenie introfilmu).
+      put(n.vhero, 'vhpe', 'pointerEvents', vid > 0.01 ? '' : 'none');
       const vb = seg(r, VB_IN[0], VB_IN[1]);
       put(n.vblocks, 'vb', '--op-vb', vb.toFixed(3));
       // Bloky ležia presne nad textom DOGMY a sú neviditeľné takmer celý
@@ -3213,7 +3238,38 @@ export default function OnePage() {
         });
         // Zdroje fotiek (CC) sú právna podmienka, nie ozdoba — držia sa krytia
         // citátov, aby sa neobjavili skôr než to, k čomu patria.
-        put(n.quoCredits, 'qcr', 'opacity', seg(qp, QUO.colsIn[0], QUO.colsIn[1]).toFixed(3));
+        const qcr = seg(qp, QUO.colsIn[0], QUO.colsIn[1]).toFixed(3);
+        put(n.quoCredits, 'qcr', 'opacity', qcr);
+        // 🔴 ZDROJE SA MUSIA DAŤ ZAVRIEŤ (Matej 3. 9. 2026: *„otvorím popisok
+        // ale nejde mi zavrieť — bug"*). Odmerané: panel je ABSOLÚTNY vnútri
+        // prilepeného javiska, takže na konci dráhy javisko odopne a panel
+        // odchádza HORE — pri scrollY 25 360 stálo jeho zhrnutie na y=55, teda
+        // POD horným navom, a `elementsFromPoint` tam vrátil medailón (z-index 9),
+        // nie <summary>. Klik teda dopadol na logo.
+        // Druhá polovica toho istého: kým je krytie 0, panel je NEVIDITEĽNÝ,
+        // ale prst berie ďalej — leží nad stĺpcami citátov, takže kradol kliky
+        // niečomu, čo tam človek ani nevidí.
+        // ⚠️ Nedá sa to spraviť zdvihnutím z-indexu: nad navom nesmie byť nič.
+        // Preto panel v tom úseku ODÍDE z cesty — zhasne, prestane brať prst
+        // a ak je otvorený, zatvorí sa sám.
+        // ⚠️ PRAH JE GEOMETRICKÝ, NIE PODIEL DRÁHY. Prvý pokus vypínal panel
+        // pri qp >= 0.995 — lenže javisko sa odopne o CELÚ obrazovku skôr, než
+        // panel dorazí k lište, takže sa vypol na mieste, kde bol ešte celý
+        // vidieť a normálne sa otváral (odmerané: pri y=25 164 stálo zhrnutie
+        // na y=445, teda 320 px pod lištou, a bolo už inertné).
+        // Kým je javisko PRILEPENÉ, panel stojí, kde má — vtedy sa nič nemeria.
+        // Merať treba až v chvoste dráhy, a len jeden prvok.
+        // 🔴 MERIA SA <summary>, NIE CELÝ <details>. Otvorený panel rastie
+        // NAHOR (je ukotvený spodkom), takže jeho vlastný horný okraj zaliezol
+        // pod lištu v tej istej chvíli, ako sa otvoril — a pravidlo ho hneď
+        // zase zavrelo. Rozhoduje poloha toho, na čo sa klikne.
+        const qcrOff = qcr === '0.000' || (rect.bottom < vh && (() => {
+          const cr = n.quoCreditsSum?.getBoundingClientRect();
+          return !cr || cr.top < NAV_H;
+        })());
+        put(n.quoCredits, 'qcrpe', 'pointerEvents', qcrOff ? 'none' : '');
+        const qcrEl = n.quoCredits as HTMLDetailsElement | null | undefined;
+        if (qcrOff && qcrEl?.open) qcrEl.open = false;
       }
 
       // Tieto tri sa menia DVAKRÁT za celý film, tak smú ostať premennými.
@@ -5217,6 +5273,28 @@ export default function OnePage() {
         /* Zdroje fotiek (CC) sú právna podmienka vrstvy, nie ozdoba — musia byť
            vidieť. Sedia ABSOLÚTNE pri spodnej hrane, aby citáty ostali presne
            v strede okna; v toku by ich o svoju výšku vytlačili hore. */
+        /* ── ZDROJE FOTIEK: MENŠIE A NENÁPADNEJŠIE (Matej 3. 9. 2026) ─────
+           Matej: *„zdroje na fotky treba zmenšiť a dať ešte nenápadnejším
+           písmom."* Je to právna podmienka licencií CC, takže zmiznúť nesmú —
+           ale nemajú súperiť s citátmi, kvôli ktorým tam človek je.
+           ⚠️ PREPISUJE SA TU, NIE V KOMPONENTE: ten istý pás beží aj na ostrej
+           /about, kde stojí ako posledná vec pred pätičkou a väčšie písmo tam
+           je správne. Diff /about musí ostať prázdny.
+           ⚠️ Text sa zmenšuje, ale CIEĽ PRSTA nie — odsadenie na zhrnutí drží
+           výšku na 24 px. Inak by z toho bol 9 px vysoký prúžok, do ktorého sa
+           na telefóne nedá trafiť. */
+        .op-root .op-quo .tst-credits > summary {
+          font-size: 9.5px;
+          letter-spacing: .08em;
+          padding: 4px 8px;
+          opacity: .72;
+        }
+        .op-root .op-quo .tst-credits > summary:hover { opacity: 1; }
+        .op-root .op-quo .tst-credits > p {
+          font-size: 9px;
+          line-height: 1.7;
+          opacity: .82;
+        }
         .op-root .op-quo .tst-credits {
           position: absolute;
           left: 50%;
@@ -5224,7 +5302,12 @@ export default function OnePage() {
           transform: translateX(-50%);
           width: min(90vw, 640px);
           margin: 0;
-          max-height: 30vh;
+          /* ⚠️ STROP NIE JE VKUS. Panel je ukotvený SPODKOM, takže otvorený
+             rastie nahor — a bez stropu si vyzobal miesto až pod hornú lištu,
+             kde je jeho text nečitateľný a zhrnutie sa nedá kliknúť.
+             --op-nav-h je jediné miesto s výškou lišty (rezerva 2× je na
+             spodné ukotvenie aj na lištu samu). */
+          max-height: min(30vh, calc(100dvh - 2 * var(--op-nav-h)));
           overflow: auto;
           opacity: 0;
         }

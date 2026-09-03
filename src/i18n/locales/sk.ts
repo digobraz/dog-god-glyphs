@@ -735,6 +735,21 @@ export const sk: Partial<Dict> = {
   'religion.book.close': 'Zavrieť knihu',
   'religion.book.prevPage': 'Predošlá strana',
   'religion.book.nextPage': 'Ďalšia strana',
+  // ── Kniha ústavy: popisky 12 kapitol ──
+  // Názvy kapitol (CANON, CREDO, …) sú kánonické pojmy DOGMY a neprekladajú sa;
+  // prekladá sa len popisok pod nimi.
+  'religion.book.ch.1.desc': 'kto sme',
+  'religion.book.ch.2.desc': 'v čo veríme',
+  'religion.book.ch.3.desc': 'ako konáme',
+  'religion.book.ch.4.desc': 'ako sa modlíme',
+  'religion.book.ch.5.desc': 'kto je kto',
+  'religion.book.ch.6.desc': 'kde sa stretávame',
+  'religion.book.ch.7.desc': 'čo čítame',
+  'religion.book.ch.8.desc': 'ako hovoríme',
+  'religion.book.ch.9.desc': 'z čoho žijeme',
+  'religion.book.ch.10.desc': 'ako sa spravujeme',
+  'religion.book.ch.11.desc': 'ako rastieme',
+  'religion.book.ch.12.desc': 'čím nie sme',
 
   // ── shared nav (PageNav top-bar + Wall) ──
   'nav.home': 'Domov',
@@ -2288,6 +2303,12 @@ export const sk: Partial<Dict> = {
   'pack.trip.edit.desc': "Popis",
   'pack.trip.edit.dogNote': "Poznámka o psovi",
   'pack.trip.edit.rating': "Tvoje hodnotenie",
+  'pack.trip.edit.planTitle': "Upraviť plán",
+  'pack.trip.edit.planDate': "Dátum",
+  'pack.trip.edit.planDateHint': "Nechaj prázdne, ak ešte nevieš kedy.",
+  'pack.trip.edit.planVisibility': "Kto ide",
+  'pack.trip.edit.planSolo': "Ideme sami",
+  'pack.trip.edit.planOpen': "Hľadám svorku",
   'pack.trip.edit.save': "Uložiť zmeny",
   'pack.trip.edit.saveFailed': "Nepodarilo sa uložiť — úložisko môže byť plné. Odober fotku a skús znova.",
   'pack.trip.edit.open': "Upraviť",

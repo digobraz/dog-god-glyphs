@@ -634,6 +634,19 @@ export const cs: Partial<Dict> = {
   'religion.book.close': 'Zavřít knihu',
   'religion.book.prevPage': 'Předchozí strana',
   'religion.book.nextPage': 'Další strana',
+  // ── Kniha ústavy: popisky 12 kapitol (názvy kapitol se nepřekládají) ──
+  'religion.book.ch.1.desc': 'kdo jsme',
+  'religion.book.ch.2.desc': 'v co věříme',
+  'religion.book.ch.3.desc': 'jak jednáme',
+  'religion.book.ch.4.desc': 'jak se modlíme',
+  'religion.book.ch.5.desc': 'kdo je kdo',
+  'religion.book.ch.6.desc': 'kde se scházíme',
+  'religion.book.ch.7.desc': 'co čteme',
+  'religion.book.ch.8.desc': 'jak mluvíme',
+  'religion.book.ch.9.desc': 'z čeho žijeme',
+  'religion.book.ch.10.desc': 'jak se spravujeme',
+  'religion.book.ch.11.desc': 'jak rosteme',
+  'religion.book.ch.12.desc': 'čím nejsme',
 
   // ── shared nav (PageNav top-bar + Wall) ──
   'nav.wall': 'Zeď',

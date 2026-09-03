@@ -181,6 +181,67 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
     return () => { io.disconnect(); io2?.disconnect(); };
   }, [flow]);
 
+  // ── PRST BERIE LEN TEN OBRAZ, KTORÝ PRÁVE VIDNO (2026-09-03) ──────────
+  // 🔴 CHYBA: CTA „BECOME DOGYPTIAN" sa vo filme nedalo kliknúť. Odmerané
+  // pri 1280×699 v pokoji prvého výjavu (scrollY 2097): odkaz mal
+  // pointer-events auto aj opacity 1, ale `elementsFromPoint()` v jeho strede
+  // vracal ako najvrchnejší prvok `.codex-slide` NASLEDUJÚCEJ sekcie
+  // (preambula) — tá je vo filme vtiahnutá o obrazovku hore
+  // (`margin-top: -100dvh` v OnePage) a jej prilepený stĺpec teda leží na
+  // poslednej obrazovke prvého výjavu ešte predtým, než sa vôbec začne
+  // vykresľovať. Obe sekcie stoja v tom istom stohovacom kontexte s
+  // `z-index: auto`, takže rozhoduje poradie v DOM-e a preambula je neskôr.
+  //
+  // ⚠️ NEDÁ SA TO ROZHODNÚŤ ANI TRIEDOU .in-view, ANI STAVOM `active`:
+  //   • `.in-view` drží `seen`, ktoré je ZÁMERNE jednosmerné — od scrollY
+  //     ~1600 ju nesú OBE sekcie naraz (odmerané), takže by nerozlíšila nič;
+  //   • `active` (io2, rootMargin −45 %) preskočí na preambulu už pri
+  //     scrollY ~1799, teda o celú obrazovku SKÔR, než sa prvý výjav odmlčí
+  //     — podľa neho by CTA prestalo brať prst práve tam, kde ho vidno.
+  //   • zdvihnutý z-index by problém len otočil: o obraz ďalej by neviditeľný
+  //     prvý výjav bral prst preambule.
+  // Jediný pravdivý signál je to, či zo sekcie NIEČO VIDNO. Réžia filmu je
+  // v OnePage (`--op-txt` a spol.) a opisovať jej čísla sem by znamenalo dve
+  // miesta, ktoré sa pri prvej zmene rozídu — preto sa tu nečíta réžia, ale
+  // JEJ VÝSLEDOK: vykreslené `opacity` obsahu sekcie.
+  //
+  // ⚠️ Iba vo filme. Mimo neho stoja sekcie ako samostatné obrazovky pod
+  // sebou, neprekrývajú sa a nikto im nemení priehľadnosť podľa scrollu.
+  // ⚠️ Zapisuje sa VÝHRADNE `pointer-events` na sekciu; keďže dnes je všade
+  // `auto`, zmena môže prst iba ODOBRAŤ neviditeľnému obsahu, nikdy ho pridať
+  // niečomu, čo ho doteraz nemalo.
+  useEffect(() => {
+    if (!flow) return;
+    const sections = sectionRefs.current.filter(Boolean) as HTMLElement[];
+    if (!sections.length) return;
+
+    // Vidno zo sekcie aspoň kúsok? Meria sa na priamych deťoch slajdu, lebo
+    // presne im film mení priehľadnosť (prvý výjav = celý .codex-3-overlay,
+    // preambula = eyebrow / nadpis / rámik / motto / tlačidlo zvlášť).
+    const painted = (s: HTMLElement) =>
+      Array.from(s.querySelectorAll<HTMLElement>(':scope > .codex-slider > .codex-slide > *'))
+        .some((k) => (parseFloat(getComputedStyle(k).opacity) || 0) > 0.01);
+
+    let raf = 0;
+    const apply = () => {
+      raf = 0;
+      for (const s of sections) s.style.pointerEvents = painted(s) ? 'auto' : 'none';
+    };
+    // Scroll sa zlučuje do jedného snímku — čítanie štýlu v každej udalosti
+    // by bolo to isté meranie niekoľkokrát za snímok.
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(apply); };
+
+    apply();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      for (const s of sections) s.style.pointerEvents = '';
+    };
+  }, [flow]);
+
   const go = (i: number) => {
     sectionRefs.current[i]?.scrollIntoView({ behavior: 'smooth' });
   };

@@ -1344,11 +1344,15 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
       // reťazec: karta výletu sa pýta `travel?`, nie `travel !== ''`.
       travelMode: isPlan && travelMode ? travelMode : undefined,
       travelFrom: isPlan && travelFrom.trim() ? travelFrom.trim() : undefined,
-      // Vyzdvihnutie je sľub CUDZÍM ľuďom — na súkromnom výlete ho nemá kto prijať, takže
-      // ani neodchádza. Bez toho by stačilo prepnúť plán na súkromný a v dátach by ostalo
-      // „mám dve voľné miesta" pre nikoho.
-      pickup: isPlan && visibility === 'open' && pickup ? true : undefined,
-      pickupSeats: isPlan && visibility === 'open' && pickup ? pickupSeats : undefined,
+      // VYZDVIHNUTIE SA SKRÝVA, NEMAŽE SA (Matej 2026-09-03: „nemazať, len skryť").
+      // Do 3. 9. 2026 sa pri prepnutí na súkromný z draftu vyhodilo — a keďže draft je aj
+      // to, čo sa obnovuje po zavretí sprievodcu, človek, ktorý si prepol viditeľnosť tam
+      // a späť, prišiel o vyplnené miesta bez slova. Sľub cudzím ľuďom to stále nie je:
+      // do inzerátu (`PartnerEvent.travel`) sa `pickup` dostáva VÝHRADNE vo vetve
+      // `isOpen` v PackMap.submitPlan, takže na súkromnom pláne ho nemá kto uvidieť.
+      // Draft = pamäť toho, čo si napísal. Inzerát = to, čo z toho vidí svorka.
+      pickup: isPlan && pickup ? true : undefined,
+      pickupSeats: isPlan && pickup ? pickupSeats : undefined,
       name: name.trim(),
       activity,
       geometry,

@@ -936,6 +936,25 @@ export const en = {
   'religion.book.close': 'Close book',
   'religion.book.prevPage': 'Previous page',
   'religion.book.nextPage': 'Next page',
+  // ── Kniha ústavy: popisky 12 kapitol (`SACRED_INDEX`) ──
+  // Kapitola má DVE polia: NÁZOV (CANON, CREDO, …) a POPISOK. Názvy sú kánonické
+  // pojmy DOGMY a naprieč jazykmi sa NEPREKLADAJÚ — mení sa len popisok, teda tá
+  // polovica, ktorá je obyčajná veta. Kľúč je poradové číslo, nie rímska číslica:
+  // `num` v datasete je „I." a bodka by rozsekla plochý dotted kľúč.
+  // ⚠️ Dáta žijú v `src/data/sacredIndex.generated.ts` (AUTO-GENERATED, needituj
+  //    ho ručne) — tieto kľúče ho PREBÍJAJÚ, EN hodnota tu musí byť zhodná s ním.
+  'religion.book.ch.1.desc': 'who we are',
+  'religion.book.ch.2.desc': 'what we believe',
+  'religion.book.ch.3.desc': 'how we act',
+  'religion.book.ch.4.desc': 'how we pray',
+  'religion.book.ch.5.desc': 'who is who',
+  'religion.book.ch.6.desc': 'where we gather',
+  'religion.book.ch.7.desc': 'what we read',
+  'religion.book.ch.8.desc': 'how we speak',
+  'religion.book.ch.9.desc': 'how we sustain',
+  'religion.book.ch.10.desc': 'how we govern',
+  'religion.book.ch.11.desc': 'how we grow',
+  'religion.book.ch.12.desc': 'what we are not',
 
   // ── shared nav (PageNav top-bar + Wall) — CSS uppercases for display ──
   'nav.home': 'Home',
@@ -2498,6 +2517,12 @@ export const en = {
   'pack.trip.edit.desc': "Description",
   'pack.trip.edit.dogNote': "Note about the dog",
   'pack.trip.edit.rating': "Your rating",
+  'pack.trip.edit.planTitle': "Edit plan",
+  'pack.trip.edit.planDate': "Date",
+  'pack.trip.edit.planDateHint': "Leave empty if you don't know the date yet.",
+  'pack.trip.edit.planVisibility': "Who's coming",
+  'pack.trip.edit.planSolo': "Just us",
+  'pack.trip.edit.planOpen': "Looking for pack",
   'pack.trip.edit.save': "Save changes",
   'pack.trip.edit.saveFailed': "Couldn't save — storage might be full. Remove a photo and try again.",
   'pack.trip.edit.open': "Edit",

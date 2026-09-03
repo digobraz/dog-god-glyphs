@@ -867,7 +867,11 @@ export default function PackTripArticle() {
       const ev: PartnerEvent = {
         ...(mine ?? {
           id: `plan-event-${nowMs}`, tripId: tid, socialization: '',
-          host: '', hostIsMe: true, at: nowMs, joinedByMe: true,
+          // MENO HOSTITEĽA V TOM ISTOM TVARE AKO V SPRIEVODCOVI (`PackMap.submitPlan`).
+          // Prázdny reťazec by prešiel — `hostIsMe` drží vlastníctvo aj bez neho — ale
+          // v zozname inzerátov by vznikla pozvánka bez toho, kto pozýva.
+          host: t('pack.map.hostAndYourDog', { name: authorOf(trail) }),
+          hostIsMe: true, at: nowMs, joinedByMe: true,
           dates: [], month: '',
         }),
         // Dátum sa prepisuje na OBOCH poliach naraz: `dates` je zoznam návrhov a `month`
