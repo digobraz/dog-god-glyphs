@@ -37,6 +37,9 @@ import { Seo } from '@/components/Seo';
  * ⚠️ Zapína sa TÝMTO JEDNÝM SLOVOM — variant 1 aj jeho CSS ostávajú v súbore
  * (Matej ich sám odložil ako „variant 1 je ULOŽENÝ, nie zmazaný“), takže
  * porovnanie sa spustí prepísaním na `true`, nie písaním kódu odznova.
+ * ⚠️ Toto slovo riadi aj `localStorage` (4. 9. 2026): pri `false` sa uložená voľba
+ * vôbec nečíta, aby starý klik na jednom počítači nerozhodoval o tom, čo vidí
+ * návštevník. Pri `true` sa čítanie vráti — porovnávanie ho potrebuje.
  */
 const SHOW_VARIANT_SWITCH = false;
 
@@ -261,14 +264,22 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
     sectionRefs.current[i]?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // ── VARIANT TEXTINGU DRUHEJ SEKCIE (Matej 27. 8. 2026) ────────────────────
-  // 1 = pôvodný rozpis (veľké číslo, podčiarknuté sub, obvinenie, CTA veta)
-  // 2 = súvislý odsek jednej veľkosti, ktorý sa pod scrollom píše po znakoch
-  // Východisko je 2 — je to nová vec na posúdenie. Jednotka ostáva dostupná
-  // prepínačom a je ULOŽENÁ, nie zmazaná (Matej: „toto berme ako variant 1
-  // a ulož to"). localStorage, aby voľba prežila reload pri porovnávaní.
-  const [textVariant, setTextVariant] = useState<1 | 2>(2);
+  // ── VARIANT TEXTINGU DRUHEJ SEKCIE (Matej 27. 8. 2026, uzavreté 4. 9. 2026) ─
+  // 1 = dve tvrdenia s tou istou kostrou (KRAVA MÁ / 1,2 MILIARDY / VERIACICH ·
+  //     PES MÁ / NIKOHO · ZATIAĽ…) — VYBRANÝ, toto vidí návštevník
+  // 2 = súvislý odsek jednej veľkosti, ktorý sa pod scrollom píše po znakoch —
+  //     ULOŽENÝ, nie zmazaný (Matej: „toto berme ako variant 1 a ulož to")
+  //
+  // ⚠️ VÝCHODISKO JE V KÓDE, NIE V `localStorage` (4. 9. 2026). Predtým tu stálo
+  // východisko 2 a vybraný texting držal len uložený klik — ten ale žije výhradne
+  // na tom origine, kde padol. Matejov `localhost:8080` preto ukazoval vybranú
+  // verziu, kým tunel, telefón aj `dogypt.com` (každý vlastný origin s prázdnym
+  // úložiskom) padali na starý variant 2. Matej 4. 9.: „nemôžem vidieť niečo čo
+  // nie je pravda." Úložisko sa preto číta LEN pri zapnutom prepínači — s vypnutým
+  // nemá starý klik ako prehovoriť do toho, čo je na obrazovke.
+  const [textVariant, setTextVariant] = useState<1 | 2>(1);
   useEffect(() => {
+    if (!SHOW_VARIANT_SWITCH) return;
     try {
       const v = localStorage.getItem(TEXT_VARIANT_KEY);
       if (v === '1' || v === '2') setTextVariant(Number(v) as 1 | 2);

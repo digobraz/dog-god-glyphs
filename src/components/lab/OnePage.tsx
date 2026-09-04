@@ -3653,7 +3653,7 @@ export default function OnePage() {
 
   return (
     <div className="op-root">
-      <Seo path="/onepage" title="DOGYPT" description="One page, one story: the planet, the question, the vision, the pack." />
+      <Seo path="/onepage" noindex title="DOGYPT" description="One page, one story: the planet, the question, the vision, the pack." />
       <style>{`
         /* ── PLÁTNO ───────────────────────────────────────────────────────
            Papyrus je JEDEN na celý film a je fixed. Sekcie si vlastný podklad
