@@ -330,7 +330,14 @@ const TileField = memo(function TileField({ tiles }: { tiles: Tile[] }) {
           data-i={i}
           style={{ ['--t' as string]: `rotateY(${lon}deg) rotateX(${-lat}deg) translateZ(${R}px)` }}
         >
-          <img src={dog.photo} alt="" draggable={false} loading="lazy" />
+          {/* 🔴 BEZ loading="lazy" (4. 9. 2026). Matej: „na planétke sú voľné
+              sloty = nenačítajú sa všetky obrázky, vyzerá to ako chyba."
+              Dlaždíc je 200, ale ADRIES len toľko, koľko má svorka psov (dnes
+              72) — každá sa na guli opakuje. Lazy dlaždice na odvrátenej strane
+              sa nenačítali nikdy, a keď ich otáčanie prinieslo dopredu, boli
+              prázdne. Prehliadač teda sťahuje 72 súborov po 160 px, nie 200 —
+              to je lacnejšie než diery v guli. */}
+          <img src={dog.photo} alt="" draggable={false} decoding="async" />
         </div>
       ))}
     </>
@@ -392,17 +399,20 @@ export function DogPlanetLab({
   // zápis prebije každé CSS pravidlo. Preto nábeh nesú DETI hera — ich krytie
   // sa s tým filmovým prirodzene násobí a nebijú sa.
   //
-  // ⚠️ STROP JE PODMIENKA, NIE POISTKA. Dlaždice majú `loading="lazy"`, takže
-  // tie na odvrátenej strane gule sa nenačítajú NIKDY — čakanie na „všetky
-  // hotové" by výzvu skrylo natrvalo. Preto sa čaká na PRVÝCH pár a strop
-  // dorazí aj tak.
+  // ⚠️ STROP JE PODMIENKA, NIE POISTKA. Čakať na „všetky hotové" nemá zmysel
+  // ani teraz, keď dlaždice nie sú lazy: guľa má 200 dlaždíc a stačí, aby sa
+  // jedna adresa nedala stiahnuť, a výzva by neprišla nikdy. Preto sa čaká na
+  // PRVÝCH pár a strop dorazí aj tak.
+  // ⚠️ Strop je 1200 ms, nie 1800 (Matej 4. 9. 2026: „zrýchli to maximálne
+  // možné, web musí byť rýchly a pružný"). Poradie *guľa → výzva* ostáva, len
+  // sa naň nečaká dlhšie, než trvá prvá pologuľa.
   const [heroIn, setHeroIn] = useState(false);
   useEffect(() => {
     if (heroIn) return;
     let done = false;
     const arrive = () => { if (!done) { done = true; setHeroIn(true); } };
     // Strop: výzva príde aj keby sa nenačítala ani jedna fotka (offline, 404).
-    const cap = window.setTimeout(arrive, 1800);
+    const cap = window.setTimeout(arrive, 1200);
     const poll = window.setInterval(() => {
       const imgs = document.querySelectorAll<HTMLImageElement>('.planet-ball img');
       if (!imgs.length) return;

@@ -29,6 +29,7 @@ import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 import { CouncilSection } from '@/components/landing/CouncilSection';
 import { Footer } from '@/components/landing/Footer';
 import { Seo } from '@/components/Seo';
+import { filmVh } from '@/lib/filmVh';
 
 /**
  * /about — „A Dog Changed My Life." (So did yours.)
@@ -126,8 +127,13 @@ function scrollHost(node: HTMLElement) {
     host,
     /** Koľko je odscrollované. */
     sy: () => (isWin ? window.scrollY : el().scrollTop),
-    /** Výška viditeľnej plochy — okna alebo panela. */
-    vh: () => (isWin ? window.innerHeight : el().clientHeight),
+    /** Výška viditeľnej plochy — okna alebo panela.
+     *  ⚠️ Pri okne NIE `window.innerHeight`: mobilný prehliadač pri scrolle
+     *  skrýva adresný riadok, takže tá hodnota rastie POČAS pohybu a dráha
+     *  crawlu sa pod prstom prepočítava — text potom kmitá. `filmVh()` vracia
+     *  nemennú `lvh`, to isté číslo, na ktorom stojí réžia filmu.
+     *  Panel (`.lsh-scroll`) tým netrpí, jeho `clientHeight` sa nehýbe. */
+    vh: () => (isWin ? filmVh() : el().clientHeight),
     /** Šírka viditeľnej plochy (rozhoduje o PC/mobil vetve pinnutej kroniky). */
     vw: () => (isWin ? window.innerWidth : el().clientWidth),
     /** `getBoundingClientRect` meria voči OKNU — odčítaj vlastný okraj panela. */
@@ -264,10 +270,40 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
     const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
     const band = (p: number, a: number, b: number) => clamp((p - a) / (b - a));
 
+    /* 🔴 ROZMERY SA MERAJÚ MIMO SNÍMKU (4. 9. 2026).
+       `wrap.offsetHeight` a `text.offsetHeight` sú stále tie isté (dráha je
+       340vh, text má pevný obsah), ale čítali sa PRI KAŽDOM snímku — a to
+       druhé až ZA zápismi na hero, nápis a logo. Prehliadač preto musel medzi
+       zápisom a čítaním prepočítať rozloženie CELÉHO dokumentu (2500 prvkov),
+       a to na každý snímok scrollu kdekoľvek na stránke. V stope to bola
+       najdrahšia jediná funkcia na celej stránke (599 ms vynúteného
+       prepočtu). Teraz sa merajú raz a znovu až pri zmene okna. */
+    let wrapH = 0;
+    let textH = 0;
+    /** Naposledy vykreslený bod dráhy — stráži, aby sa koncový stav dokreslil
+     *  aspoň raz predtým, než sa scéna prestane počítať. */
+    let lastP = -1;
+    const remeasure = () => { wrapH = wrap.offsetHeight; textH = text.offsetHeight; };
+
     const render = () => {
       const vh = SC.vh();
-      const total = wrap.offsetHeight - vh;
-      const raw = total > 0 ? clamp(-SC.top(wrap) / total) : 0;
+      if (!wrapH) remeasure();
+      // JEDINÉ ČÍTANIE ROZLOŽENIA V SNÍMKU — a je PRED všetkými zápismi.
+      const top = SC.top(wrap);
+      // 🔴 KEĎ JE SEKVENCIA MIMO OKNA, NEROBÍ SA NIČ. Crawl je jedna scéna
+      // z ôsmich, ale jeho handler visel na scrolle CELEJ stránky (32 000 px)
+      // a prepisoval štyri prvky aj vtedy, keď bol o desaťtisíc pixelov preč.
+      // Rezerva je jedna obrazovka na každú stranu, aby scéna nikdy nenabehla
+      // až na obrazovke.
+      // ⚠️ VYNECHAŤ SA SMIE AŽ VTEDY, KEĎ KONCOVÝ STAV UŽ NA PRVKOCH JE.
+      // Inak by pri načítaní stránky (crawl je 14 obrazoviek nižšie) scéna
+      // ostala na svojich CSS východiskách — zlatý text by visel v strede
+      // filmu. Preto sa raz dokreslí a mlčí až potom.
+      const edge = top > vh ? 0 : (top + wrapH < -vh ? 1 : -1);
+      if (edge >= 0 && lastP === edge) return;
+      const total = wrapH - vh;
+      const raw = edge >= 0 ? edge : (total > 0 ? clamp(-top / total) : 0);
+      lastP = raw;
       // BEZ ÚVODU SA DRÁHA POSUNIE, NEPREPÍŠU SA PÁSMA. Úvod drží prvú desatinu
       // (rozpustenie hera 0–0.08, potom nábeh modrého nápisu od 0.10). Keď sa
       // nekreslí, tá desatina by bola prázdna čierna obrazovka navyše — takže
@@ -309,7 +345,7 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
       //    full vanish right AT the section end (p=1) — gradual recede, then the
       //    next section pins the instant the text is off the top edge. No dead
       //    tail (-1.1*vh overshot into emptiness), no lingering (-0.1*vh).
-      const H = text.offsetHeight || vh;
+      const H = textH || vh;
       const ct = band(p, 0.56, 1);
       const y = lerp(H + 0.12 * vh, -0.85 * vh, ct);
       text.style.opacity = String(clamp(band(p, 0.55, 0.60)));
@@ -321,14 +357,17 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
 
 
     const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(render); };
+    const onResize = () => { remeasure(); onScroll(); };
     render();
-    const t = setTimeout(render, 200);
+    // Písmo dosadne neskôr než prvý snímok a zmení výšku textu crawlu.
+    const t = setTimeout(() => { remeasure(); render(); }, 200);
+    if (document.fonts) document.fonts.ready.then(() => { remeasure(); render(); }).catch(() => { /* premeria sa pri prvom resize */ });
     SC.host.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
+    window.addEventListener('resize', onResize);
     return () => {
       clearTimeout(t);
       SC.host.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
+      window.removeEventListener('resize', onResize);
       cancelAnimationFrame(raf);
     };
   }, []);
