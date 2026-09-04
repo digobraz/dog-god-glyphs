@@ -52,6 +52,20 @@ const CHAPTER_PAGES = [
 ];
 
 function ChapterList({ rows }: { rows: typeof SACRED_INDEX }) {
+  const t = useT();
+  // Kapitola má DVE polia a prekladá sa LEN jedno: NÁZOV (CANON, CREDO, …) je
+  // kánonický pojem DOGMY a ostáva rovnaký vo všetkých jazykoch, POPISOK je
+  // obyčajná veta a musí hovoriť jazykom čitateľa.
+  // ⚠️ Dáta sú v `src/data/sacredIndex.generated.ts` (AUTO-GENERATED — needituj
+  //    ho ručne). Slovník ho preto PREBÍJA a EN hodnoty kľúčov sú s ním zhodné;
+  //    keď kľúč chýba, `t()` vráti sám kľúč, tak padáme späť na dataset.
+  // ⚠️ Kľúč je PORADOVÉ ČÍSLO, nie `r.num` — to je „I.\" a bodka by rozsekla
+  //    plochý dotted kľúč slovníka.
+  const desc = (r: (typeof SACRED_INDEX)[number]) => {
+    const key = `religion.book.ch.${SACRED_INDEX.indexOf(r) + 1}.desc`;
+    const v = t(key);
+    return v === key ? r.desc : v;
+  };
   return (
     <ul className="cb-chapters">
       {rows.map((r) => (
@@ -59,7 +73,7 @@ function ChapterList({ rows }: { rows: typeof SACRED_INDEX }) {
           <span className="cb-ch-num">{r.num}</span>
           <span className="cb-ch-text">
             <span className="cb-ch-name">{r.name}</span>
-            <span className="cb-ch-desc">{r.desc}</span>
+            <span className="cb-ch-desc">{desc(r)}</span>
           </span>
         </li>
       ))}

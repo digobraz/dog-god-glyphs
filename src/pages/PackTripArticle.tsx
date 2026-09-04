@@ -12,7 +12,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 import L from 'leaflet';
-import { MapContainer, TileLayer, Polyline, Marker, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Polyline, Circle, Marker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css'; // KRITICKÉ: bez neho .leaflet-tile stratí position:absolute a
 // dlaždice kaskádujú dole ako bloky (Matej 2026-07-22 „mapa sa vykresľuje zle"). PackMap ho
 // importuje, ale pri PRIAMOM otvorení článku (deep-link / ⤢ expand) PackMap nie je mountnutý.
@@ -27,7 +27,10 @@ import { PackBottomNav, HieroglyphBg } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT, useLang } from '@/i18n/LanguageContext';
-import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { BackButton } from '@/components/pack/BackButton';
+// Lapisové hlavné CTA + priesvitný tint stavu — jeden zdroj pre celý /pack (2026-08-26/28).
+import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 // Emoji v čísle výletu (km, prevýšenie) — bez tohto fontu sadne Windows na čiernobiely
 // textový variant. Ten istý zdroj, aký drží značky na mape.
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
@@ -36,9 +39,9 @@ import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
 import {
-  ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail, pluralKey,
+  ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail, hasRouteMetrics, pluralKey,
   readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, RENAMED_TRIP_IDS, tripPath,
-  tripShareText, tripText, TRAIL_SABER_LAYERS, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing } from '@/components/pack/tripShared';
+  tripShareText, tripText, TRAIL_SABER_LAYERS, TRAIL_LINE, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing } from '@/components/pack/tripShared';
 import {
   crowdAggregate, founderWalkers, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
   walkPointsFor, walkRewardBase, RATE_PROMPT_POINTS, discoveryBonusFor, bonusToastText,
@@ -50,7 +53,7 @@ import {
 } from '@/components/pack/packCommunityUI';
 import { PointsPill, POINTS_PILL_CSS } from '@/components/pack/PointsPill';
 import { TripComments } from '@/components/pack/trip/TripComments';
-import { TripEditPanel } from '@/components/pack/trip/TripEditPanel';
+import { TripEditPanel, type PlanEdit } from '@/components/pack/trip/TripEditPanel';
 // ZÁPISY DO MAPY (2026-08-20) — v článku sú ROZBALENÉ, v mape schované pod ikonkou.
 // Ktoré sem patria, rozhoduje geometria (notesForTrail), nie uložený kľúč.
 import { MapNotesSection, MAP_NOTES_SECTION_CSS } from '@/components/pack/mapnotes/MapNotesSection';
@@ -70,30 +73,17 @@ import { upsertMyTrip } from '@/components/pack/triplist/triplist'; // TRIPLIST 
 import { useOpenTrips, useTripEventTravel } from '@/components/pack/triplist/useOpenTrips';
 import { useTripParties, partyKey } from '@/components/pack/triplist/useTripParty';
 import { PartyMemberCard, PARTY_CARD_CSS } from '@/components/pack/triplist/PartyMemberCard';
-import { ACT_TAG_EMOJI, ACT_TO_CATEGORY, categoriesOf, chipsOf } from '@/components/pack/tripCategories';
+import { ACT_TAG_EMOJI, ACT_TO_CATEGORY, TAG_EMOJI, TAG_I18N, categoriesOf, chipsOf } from '@/components/pack/tripCategories';
 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
 const T = PACK_THEME;
 
-// bod 2 (iterácia 14): rovnaké emoji mapovanie ako inline detail v PackMap.tsx (Aktivita/
-// Tag vocabulary) — LOKÁLNA kópia, lebo zadanie scopuje bod 2 výhradne na tento súbor
-// (PackMap.tsx sa v tejto iterácii nemení). Ak sa emoji sada niekedy zmení, treba upraviť
-// na oboch miestach. Rovnaká poznámka ako PackMap: tr.acts[] nesie dátové id 'hike' (nie
-// 'hiking'), takže ACT_EMOJI['hike'] je undefined — zdedený stav z inline detailu, flag v reporte.
-//
-// ✅ OPRAVENÉ 2026-08-03 (audit #45): kľúče sú odteraz TIE, ktoré reálne sú v dátach.
-// Zmerané na `heroTrails.generated.ts`: acts = hike 55× · picnic 18 · overnight 7 ·
-// skating 7 · paddleboard 7 · explore 1; tags = Forest 55 · View 49 · Meadow 34 ·
-// River 18 · Sunset 12 · Mountains 12 · Lake 8. Staré kľúče `hiking` a `Lake/Reservoir`
-// nemali v dátach ani jeden výskyt, takže tie dve emoji sa nikdy nezobrazili na
-// 55, resp. 8 výletoch. `Asphalt` v tagoch neexistuje (je to hodnota `surface`) —
-// nechávam ho tu len ako neškodnú rezervu.
-// ⚠️ Dorovnané s `ACT_EMOJI`/`TAG_EMOJI` v `PackMap.tsx` (matrica 24. 8. 2026). Kľúče sú tu
-// DATASETOVÉ (`hike`, `Lake`), emoji musia byť tie isté — článok a filter ukazujú ten istý výlet.
-// ⚠️ ŽIADNA ŠTVRTÁ KÓPIA (2026-08-27). Do 27. 8. tu chýbalo `journey` úplne — magistrála
-// teda v článku ostala bez emoji, hoci ho filter aj formulár mali. Zoznam je jeden:
-// `components/pack/tripCategories.ts`.
+// ALIAS, NIE KÓPIA. Zoznam je jeden — `components/pack/tripCategories.ts`. Meno tu ostáva
+// kvôli volajúcim nižšie. Predtým tu stála vlastná tabuľka a chýbalo v nej `journey`, takže
+// magistrála bola v článku bez emoji, hoci ho filter aj formulár mali (opravené 27. 8. 2026).
+// ⚠️ `tr.acts[]` nesie DATASETOVÉ id (`hike`), slovník kľúčuje na kategórii (`hiking`) —
+// preklad medzi nimi robí `ACT_ID_TO_UI` nižšie, nie tretia sada názvov.
 const ACT_EMOJI: Record<string, string> = ACT_TAG_EMOJI;
 // Dataset nesie `hike`, slovník kľúč `hiking` (ten používa filter aj formulár) — jeden riadok
 // prekladu medzi nimi je lacnejší než tretí názov tej istej aktivity.
@@ -101,20 +91,11 @@ const ACT_EMOJI: Record<string, string> = ACT_TAG_EMOJI;
 // v datasete ďalej a preložia sa cez kategóriu, do ktorej patria — nový názov teda dostanú
 // aj výlety, ktoré sa nikdy nemigrovali.
 const ACT_ID_TO_UI = (a: string): string => ACT_TO_CATEGORY[a] ?? a;
-const TAG_I18N_KEY: Record<string, string> = {
-  Mountains: 'pack.map.tagLabel.mountains', Forest: 'pack.map.tagLabel.forest',
-  'Lake/Reservoir': 'pack.map.tagLabel.lake', River: 'pack.map.tagLabel.river',
-  View: 'pack.map.tagLabel.view', Meadow: 'pack.map.tagLabel.meadow', Sunset: 'pack.map.tagLabel.sunset',
-  Shade: 'pack.map.tagLabel.shade', 'No shade': 'pack.map.tagLabel.noshade',
-  'Forest path': 'pack.map.surfaceLabel.forest', Asphalt: 'pack.map.surfaceLabel.asphalt',
-  Rocky: 'pack.map.surfaceLabel.rocky',
-};
-const TAG_EMOJI: Record<string, string> = {
-  Mountains: '🏔️', Forest: '🌲', Lake: '🔵', River: '🌀', View: '👁️', Meadow: '🌼', Sunset: '🌅', Asphalt: '🛣️',
-  // Tieň (Matej 2026-08-24) — v dátach zatiaľ nula výskytov, chip sa objaví až prvému
-  // výletu, ktorý ho dostane. Kľúč je `label` z `TAG_OPTIONS`, nie `id`.
-  Shade: '⛱️', 'No shade': '🌡️',
-};
+// ⚠️ ŽIADNA DRUHÁ TABUĽKA TAGOV (2026-09-02). `TAG_EMOJI` aj slovník tagov stáli tu aj
+// v `PackMap.tsx` a rozišli sa — tunajšia kópia mala `Lake`, mapa `Lake/Reservoir`, a oba
+// povrchy (`Forest path`, `Rocky`) tu chýbali úplne. Zdroj je `tripCategories.ts` a pozná
+// obe sady kľúčov: surové dátové (`Lake`) aj UI (`Lake/Reservoir`).
+const TAG_I18N_KEY = TAG_I18N;
 
 // bod 6 (iterácia 13): mobile route mapa sa renderovala sčasti čierna — Leaflet meria
 // veľkosť pri mounte, kedy layout (hero/statrow nad ňou) ešte nemusí byť dokončený. Rovnaký
@@ -130,14 +111,45 @@ const TAG_EMOJI: Record<string, string> = {
 // JE stred trasy: je to bod v polovici ZOZNAMU, čo pri nerovnomerne hustej stope sedí inde.
 // `fitBounds` s odsadením drží celú trasu vnútri vždy; `maxZoom` bráni tomu, aby sa krátky
 // výlet priblížil tak, že z mapy ostane textúra bez orientačných bodov.
-function FitRoute({ path }: { path: [number, number][] }) {
+function FitRoute({ path, areaR }: { path: [number, number][]; areaR?: number }) {
   const map = useMap();
   useEffect(() => {
+    // OKRUH SA RÁMUJE PODĽA POLOMERU (2026-09-01). Miesto má v `path` jediný bod, takže
+    // rámovanie trasy ho preskočí a ostane počiatočný zoom 13 — pri okruhu 100 m by z neho
+    // bola bodka a pri 5 km by kruh z mapy vytiekol. `toBounds` berie PRIEMER, preto ×2.
+    if (path.length === 1 && areaR) {
+      let done = false;
+      const fit = () => {
+        map.invalidateSize();
+        // Poistka, nie liek na konkrétnu poruchu: `fitBounds` nad kontajnerom bez výšky
+        // počíta zoom pre nulové okno a vyjde z neho ODDIALENIE. Preto sa rámuje až vtedy,
+        // keď mapa naozaj má rozmer — a strážca sa potom odpojí.
+        if (map.getSize().y < 80) return;
+        // ⚠️ `animate: false` JE TU PODSTATA, NIE DETAIL (odmerané 1. 9. 2026). S animáciou
+        //    mapa uviazla v medzistave zoomu: `getZoom()` aj dlaždice hlásili 13, ale celá
+        //    animovaná vrstva ostala zmenšená na ~27 %, takže výrez vyzeral ako z11 a okruh
+        //    950 m ako bodka nad mestom. Zoom animáciu prerušila druhá úprava pohľadu
+        //    (`invalidateSize` + opakovaný fit) v tej istej snímke. Skok bez animácie je pri
+        //    PRVOM zobrazení aj tak správnejší — človek neprichádza odnikiaľ.
+        map.fitBounds(L.latLng(path[0]).toBounds(areaR * 2), {
+          paddingTopLeft: [28, 48], paddingBottomRight: [28, 28], maxZoom: 16, animate: false,
+        });
+        done = true;
+        ro?.disconnect();
+      };
+      const ro = typeof ResizeObserver !== 'undefined'
+        ? new ResizeObserver(() => { if (!done) fit(); })
+        : null;
+      ro?.observe(map.getContainer());
+      const raf = requestAnimationFrame(fit);
+      const t = setTimeout(fit, 300);
+      return () => { cancelAnimationFrame(raf); clearTimeout(t); ro?.disconnect(); };
+    }
     if (path.length < 2) return;
     // Hore je odsadenie VÄČŠIE: na prvom bode trasy stojí pilulka s km a tá rastie NAHOR
     // (`translate(-50%,-100%)`). So symetrickým odsadením ju horná hrana mapy orezala.
     map.fitBounds(path, { paddingTopLeft: [28, 48], paddingBottomRight: [28, 28], maxZoom: 15 });
-  }, [map, path]);
+  }, [map, path, areaR]);
   return null;
 }
 
@@ -158,15 +170,29 @@ const CSS = `
 /* bod 1 (iterácia 14): action bar presunutý z fixného spodného pruhu (.pta-actions zrušený)
    na spodný okraj hero fotky — .pta-root už nepotrebuje veľkú rezervu, len bežný bottom
    padding nech posledná sekcia (Comments) nezmizne za PackBottomNav. */
-.pta-root{min-height:100dvh;background:${T.pageBg};color:${T.onDark};font-family:${FONT_UI};position:relative;padding-bottom:100px;}
-/* §16 (2026-07-23): fotka je VNÚTRI glass rámika (.pta-shell) — full-bleed hore, zaoblené rohy
-   dedí z rámika (overflow:hidden). Už NIE samostatná karta + rámik pod ňou, ale fotka v rámiku. */
-.pta-shell{max-width:800px;width:calc(100% - 32px);margin:22px auto 0;position:relative;z-index:2;overflow:hidden;}
+/* ── DRAK → BRIGHT (2026-09-01) ────────────────────────────────────────────
+   Článok je prvý povrch /pack, ktorý ide celý do bledého šatu. Podklad stránky
+   NIE JE napísaný tu — je to .pk-paper z packTheme.ts (variant B, Matej 1. 9.:
+   papyrus aj na pozadí, tapeta preladená do zlata na piesku). Kto sem píše novú
+   farbu plochy, píše ju na zlé miesto.
+   ⚠️ .pta-root už NEMÁ vlastné pozadie ani min-height — oboje nesie .pk-paper.
+      Dve plochy nad sebou by znamenali dva podklady a tapeta by sa stratila pod
+      neprieshľadným potomkom. */
+.pta-root{color:${T.inkStrong};font-family:${FONT_UI};position:relative;padding-bottom:100px;}
+/* §16 (2026-07-23): fotka je VNÚTRI rámika (.pta-shell) — full-bleed hore, zaoblené rohy
+   dedí z rámika (overflow:hidden). Už NIE samostatná karta + rámik pod ňou, ale fotka v rámiku.
+   2026-09-01: rámik prestal byť tmavý .pk-glass a stal sa papyrusovou KARTOU — úroveň 1
+   matrice PACK_BOX.card (cardGrad · 1.5px cardEdge · r16 · cardShadow). Zapísané ako CSS,
+   nie style={{...PACK_BOX.card}}, lebo .pta-shell potrebuje ešte overflow, z-index
+   a media query — hodnoty sú však TIE ISTÉ a menia sa v matrici, nie tu. */
+.pta-shell{max-width:800px;width:calc(100% - 32px);margin:22px auto 0;position:relative;z-index:2;overflow:hidden;
+  background:${T.cardGrad};border:1.5px solid ${T.cardEdge};border-radius:16px;box-shadow:${T.cardShadow};}
 .pta-hero{position:relative;width:100%;height:34vh;min-height:230px;max-height:360px;overflow:hidden;background-size:cover;background-position:center;background-color:#111;}
 .pta-hero-grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.30) 0%,rgba(0,0,0,0) 34%,rgba(0,0,0,0.55) 100%);}
 /* CC atribúcia cover fotky (Wikimedia Commons, CC BY-SA — legálne nutná viditeľnosť) */
 .pta-hero-credit{position:absolute;top:8px;right:10px;z-index:4;font-family:system-ui,sans-serif;font-size:9.5px;letter-spacing:.02em;line-height:1.25;color:rgba(255,255,255,0.72);background:rgba(0,0,0,0.34);padding:3px 8px;border-radius:6px;max-width:62%;text-align:right;pointer-events:none;}
-.pta-back{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);left:18px;z-index:5;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.28);color:#fff;font-size:17px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+/* Vzhľad kruhu ide z BackButton.tsx (tone scrim) — tu ostáva len POLOHA nad hero fotkou. */
+.pta-back{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);left:18px;z-index:5;}
 /* Zrkadlo .pta-back — rovnaká výška aj tvar, aby hero mal dva rovnocenné rohy a nie jeden
    ovládač a jednu ozdobu. Zlatý inkoust hovorí „toto je tvoje", nie „pozor". */
 .pta-edit{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);right:18px;z-index:5;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.55);border:1px solid rgba(201,154,63,0.55);color:#E9C46A;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;}
@@ -185,11 +211,12 @@ const CSS = `
    inak menu vypadne mimo tlačidla. */
 .pta-actwrap{position:relative;flex:1;display:flex;}
 .pta-actwrap .pta-actbtn{flex:1;}
-.pta-actmenu{position:absolute;left:0;top:calc(100% + 6px);z-index:20;min-width:200px;background:#0d0d0d;border:1px solid ${T.onDarkBorder};border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,0.6);overflow:hidden;}
-.pta-actmenu button{display:flex;width:100%;align-items:center;gap:9px;padding:11px 13px;background:none;border:0;cursor:pointer;font-family:${FONT_UI};font-size:12px;font-weight:500;color:${T.onDark};text-align:left;}
-.pta-actmenu button + button{border-top:1px solid ${T.onDarkHair};}
-.pta-actmenu button:hover{background:rgba(245,240,228,0.07);}
-.pta-actmenu .pta-actmenu-off{color:${T.onDarkDim};}
+/* Rozbaľovacie menu je plávajúci panel nad stránkou = úroveň 4 matrice (PACK_BOX.panel). */
+.pta-actmenu{position:absolute;left:0;top:calc(100% + 6px);z-index:20;min-width:200px;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};overflow:hidden;}
+.pta-actmenu button{display:flex;width:100%;align-items:center;gap:9px;padding:11px 13px;background:none;border:0;cursor:pointer;font-family:${FONT_UI};font-size:12px;font-weight:500;color:${T.inkStrong};text-align:left;}
+.pta-actmenu button + button{border-top:1px solid ${T.hairline};}
+.pta-actmenu button:hover{background:rgba(201,154,63,0.12);}
+.pta-actmenu .pta-actmenu-off{color:${T.inkWarm};}
 .pta-caret{font-size:9px;opacity:0.8;}
 .pta-actbtn-label{white-space:nowrap;}
 /* Body za prejdenie = <PointsPill> (components/pack/PointsPill.tsx). Zlatý <span>
@@ -243,28 +270,58 @@ const CSS = `
 /* §16 (2026-07-23): obsahová časť článku do zdieľaného LIQUID GLASS panelu (.pk-glass z GLASS_CSS)
    — nemá plávať na plnej čiernej, rovnaká situácia ako triplist/walked. */
 .pta-panel{padding:22px 20px 26px;}
-.pta-loc{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};display:flex;align-items:center;gap:7px;}
+/* Eyebrow na papyruse = Space Grotesk 500 / rozpal / uppercase v ZLATEJ (cardEdge),
+   nie v tlmenom inkouste — vzor .religion-eyebrow z Entry.tsx. */
+.pta-loc{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.cardEdge};display:flex;align-items:center;gap:7px;}
 /* vlajka krajiny — na karte v mape je (.trp-cardflag), v článku chýbala, takže zahraničný
    výlet stratil pri otvorení jediný signál, že je v cudzine (audit #45) */
-.pta-flag{width:16px;height:16px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,0.55);flex-shrink:0;}
-.pta-title{font-family:${FONT_TITLE};font-weight:700;font-size:26px;line-height:1.15;color:${T.onDark};margin-top:4px;}
+.pta-flag{width:16px;height:16px;border-radius:50%;object-fit:cover;border:1px solid ${T.border};flex-shrink:0;}
+.pta-title{font-family:${FONT_TITLE};font-weight:700;font-size:26px;line-height:1.15;color:${T.inkStrong};margin-top:4px;}
 /* Autor vľavo, hodnotenie vpravo — jeden riadok pod titulom (Matej 2026-08-25).
    align-items:baseline (nie center): meno aj číslo sedia na tej istej linke písma, inak
    labky riadok opticky roztiahnu a podpis odskočí nahor. Na úzkom mobile sa smie zalomiť. */
 .pta-byline{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px;}
-.pta-author{font-size:11.5px;color:${T.onDarkDim};}
+.pta-author{font-size:11.5px;color:${T.inkWarm};}
 .pta-byrating{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;}
-.pta-byrating b{font-family:${FONT_UI};font-weight:600;font-size:13px;color:${T.onDark};}
+.pta-byrating b{font-family:${FONT_UI};font-weight:600;font-size:13px;color:${T.inkStrong};}
 /* Počet hodnotení je váha čísla, nie údaj sám o sebe — preto tichšie a bez kurzívy. */
 /* Zátvorka s počtom je tlačidlo, ale nesmie vyzerať ako tlačidlo — je to počet, ktorý sa dá
    nasledovať. Podčiarknutie bodkami hovorí „dá sa kliknúť" tichšie než rám alebo farba. */
-.pta-bycount{font-family:${FONT_UI};font-size:11px;color:${T.onDarkDim};background:none;border:none;padding:0;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;}
-.pta-bycount:hover{color:${T.onDark};}
-.pta-statrow{display:flex;margin-top:20px;border-radius:14px;overflow:hidden;border:1px solid ${T.onDarkBorder};background:${T.glassSoft};}
-.pta-stat{flex:1;padding:13px 6px;text-align:center;display:flex;flex-direction:column;justify-content:center;}
-.pta-stat + .pta-stat{border-left:1px solid ${T.onDarkBorder};}
-.pta-stat b{display:flex;align-items:center;justify-content:center;gap:5px;font-family:${FONT_UI};font-size:15px;font-weight:600;color:${T.onDark};}
-.pta-stat span{display:block;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:${T.onDarkDim};margin-top:2px;}
+.pta-bycount{font-family:${FONT_UI};font-size:11px;color:${T.inkWarm};background:none;border:none;padding:0;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;}
+.pta-bycount:hover{color:${T.inkStrong};}
+/* Tabuľka čísel = PODBLOK vnútri karty (úroveň 2 matrice): papyrusový gradient + plný
+   zlatý rám. Plochá výplň so slabým rámom je úroveň 3 a Matej ju na sekcii zamietol
+   dvakrát („je to suche bez šťavy" 26. 7., „je to také plané" 12. 8.). */
+/* ── TRI DLAŽDICE, NIE JEDNA TABUĽKA (Matej 1. 9. 2026) ────────────────────
+   „tá tabulka s km a naročnosťou, aj chipy sú také nevýrazné... myslím že sme to
+   riešili už pri DOG ID a profile tak sa inšpiruj."
+   Recept je teda PREVZATÝ z "ActionTile" v "PackDogs.tsx", nie vymyslený: panelGrad
+   + 1.5px plný zlatý rám + panelShadow + hover lift. Bunky oddelené MEDZEROU, nie
+   vlasovou čiarou — každé číslo je vlastný údaj, nie riadok tabuľky, a v mriežke
+   článku tak stoja ako súrodenci dlaždíc DOG ID.
+   Hodnota je Cinzel (identita čísla), popisok zlatý eyebrow — ten istý pár ako
+   na dlaždici pasu. */
+/* ⚠️ POČET STĹPCOV SA RIADI POČTOM DLAŽDÍC, NIE PEVNOU TROJKOU (Matej 1. 9. 2026:
+   „navštevnosť hentak je škaredá sama... dal by som to ked tak cez celu šírku, nie
+   takto vyzera to chybne").
+   Okruh (kategória VISIT) nemá km ani náročnosť — ostane z toho JEDINÁ dlaždica a v
+   trojstĺpcovej mriežke stála vľavo s dvoma dierami vedľa seba, čo sa číta ako chyba
+   vykresľovania, nie ako „tento údaj tu nie je".
+   "auto-fit" + "minmax" to rieši bez počítania v JS: jedna dlaždica dostane celý riadok,
+   dve sa rozdelia na polovice, tri na tretiny. */
+.pta-statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px;margin-top:20px;}
+.pta-stat{padding:14px 8px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:5px;
+  background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};
+  transition:transform .2s ease;}
+.pta-stat:hover{transform:translateY(-2px);}
+/* ⚠️ HODNOTA JE Space Grotesk, NIE Cinzel — typografický lock: FONT_TITLE nesie
+   IDENTITU (nadpisy, názvy, CTA, rang), FONT_UI nesie DÁTA a čísla. „11.3 km" aj
+   „Moderate" sú hodnoty polí, teda dáta. Výraznosť dlaždice nesie RÁM, TIEŇ A LIFT,
+   nie prezlečenie čísla do nadpisového písma.
+   Váha 600 je strop: Space Grotesk je načítaný len v 300–600 a 700 by prehliadač
+   dosyntetizoval na rozmazaný fake bold. */
+.pta-stat b{display:flex;align-items:center;justify-content:center;gap:6px;font-family:${FONT_UI};font-size:16px;font-weight:600;color:${T.inkStrong};line-height:1.15;}
+.pta-stat span{display:block;font-family:${FONT_UI};font-weight:500;font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;color:${T.cardEdge};}
 /* F1 (Matej 2026-07-24): „Zlúčiť dĺžka + prevýšenie do jedného bloku oddeleného zvislou čiarou
    + spraviť miesto na VIBE." Route = km │ ↑m v jednej bunke, uvoľnená bunka ide na Crowd. */
 .pta-route{display:flex;align-items:center;justify-content:center;gap:8px;}
@@ -282,20 +339,41 @@ const CSS = `
 }
 /* bod 2 (iterácia 14): tagy + aktivity s emoji, POD stat tabuľkou */
 .pta-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;}
-.pta-tag{background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:11px;font-weight:600;padding:5px 11px;border-radius:999px;}
+/* Chip = pilulka úrovne 5 matrice: radius 999, jeden zlatý rám (nie dva odtiene).
+   Výplň a rám PREVZATÉ z pilulky stavu na dlaždici DOG ID ("ActionTile" v PackDogs.tsx):
+   "rgba(201,154,63,0.16)" + "1px rgba(179,130,45,0.5)". Pôvodný "tileBg" (krytie 0.06)
+   bol na papyruse takmer neviditeľný — Matej 1. 9.: „aj chipy sú také nevýrazné".
+   Inkoust je tmavý a písmo o stupeň väčšie; jemný lift dáva pilulke telo bez toho,
+   aby si pýtala pozornosť ako tlačidlo. */
+/* ZLATÉ, NECH VYNIKNÚ (Matej 1. 9. 2026: „dal by som ich asi zlatou nech vyniknú
+   — všade, nie len tu, celý blog"). Gradient je brandová rampa okolo tokenu "#C99A3F",
+   NIE locknutý gradient tlačidla "#F5C73D→#E69E1A": ten je zlatooranžový, patrí tlačidlu
+   a Matej si tú zmes spája s AINUBISOM. Chip nie je tlačidlo — nedá sa naň kliknúť a
+   nemá stav, je to menovka. Preto plná plocha, ale v tmavšej brandovej zlatej.
+   Inkoust je tmavý ("#3d2405"), aby text na zlatej držal kontrast. */
+.pta-tag{background:linear-gradient(140deg,#D9AE55,#B98F33);border:1px solid #8C6014;color:#3d2405;font-size:11.5px;font-weight:600;padding:6px 13px;border-radius:999px;
+  box-shadow:0 2px 5px -1px rgba(110,71,16,0.35), inset 0 1px 0 rgba(255,255,255,0.38);}
 .pta-gallery{display:flex;gap:8px;overflow-x:auto;margin-top:20px;padding-bottom:4px;scrollbar-width:none;}
 .pta-gallery::-webkit-scrollbar{display:none;}
 .pta-gallery img{flex:0 0 148px;height:104px;border-radius:11px;object-fit:cover;background:#111;cursor:pointer;}
 /* AKO SA TAM IDE — riadok plánu nad popisom. Bodka medzi políčkami je pseudoprvok medzi
    súrodencami, nie znak v texte: ktorékoľvek z troch políčok môže chýbať. */
-.pta-travel{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:20px;font-family:${FONT_UI};font-weight:500;font-size:13px;color:${PACK_THEME.onDarkDim};}
+.pta-travel{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:20px;font-family:${FONT_UI};font-weight:500;font-size:13px;color:${PACK_THEME.inkWarm};}
 /* Pod kartou organizátora stojí tesnejšie — nie je to odsek stránky, ale poznámka k nemu. */
 .pta-travel--host{margin:6px 0 10px 4px;font-size:12.5px;}
 .pta-travel > span + span::before{content:'·';margin-right:8px;opacity:.5;}
-.pta-travel-seats{color:#C99A3F;}
-.pta-desc{font-size:14px;line-height:1.75;color:${T.onDarkDim};margin-top:20px;}
-.pta-dognote{font-size:14px;line-height:1.75;color:${T.onDarkDim};margin-top:10px;}
-.pta-mapwrap{position:relative;margin-top:24px;border-radius:16px;overflow:hidden;height:320px;border:1px solid ${T.onDarkBorder};background:#0a0a0a;}
+.pta-travel-seats{color:#8a5a14;}
+/* Telo článku je to, kvôli čomu sa sem chodí — na papyruse teda NIE tlmený inkoust
+   ("inkWarm" je na popisky), ale plný "inkStrong" s tichším krytím cez "opacity"
+   nastavené farbou. Odsek v "inkWarm" sa čítal ako poznámka pod čiarou. */
+.pta-desc{font-size:14px;line-height:1.75;color:rgba(42,22,8,0.86);margin-top:20px;}
+.pta-dognote{font-size:14px;line-height:1.75;color:rgba(42,22,8,0.86);margin-top:10px;}
+/* Mapa si podklad kreslí sama (dlaždice), rám a radius sú z úrovne 2. Farba pod
+   dlaždicami ostáva tmavá len na tú chvíľu, kým sa nenačítajú — na papyruse by
+   biele okno blikalo výraznejšie než tmavé. */
+.pta-mapwrap{position:relative;margin-top:24px;border-radius:12px;overflow:hidden;height:320px;border:1px solid ${T.cardEdge};background:#0a0a0a;}
+/* Keď mapa nie je, obal nesmie presvitať čiernou spoza papyrusového prázdneho stavu. */
+.pta-mapwrap:has(> .pta-mapempty){background:${T.panelGrad};}
 .pta-mapwrap .leaflet-container{width:100%;height:100%;background:#0a0a0a;}
 .pta-mapwrap .leaflet-interactive{transition:opacity .2s ease;}
 /* ── CELOOBRAZOVKOVÝ REŽIM MAPY POČAS ZÁPISU ODKAZU (Matej 2026-08-25) ──────
@@ -347,28 +425,65 @@ body.pta-mapfull .pta-shell{z-index:1100;}
    pri plnej veľkosti sa obe zrazia až pod ~334 px okna, so zúžením pod ~305 px.
    Výška 40 px ostáva — je to dotykové minimum, nie ozdoba. */
 @media (max-width:420px){.pta-mapadd{padding:0 11px;font-size:9.5px;letter-spacing:.09em;gap:5px;}}
-.pta-mapempty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:${T.onDarkDim};font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;text-align:center;padding:20px;}
+/* PRÁZDNY STAV JE PAPYRUSOVÝ, NIE ČIERNA DIERA (Matej 1. 9. 2026 — na okruhu z neho
+   bol čierny blok cez pol obrazovky). Vlastný podklad má preto tento prvok, nie obal:
+   ".pta-mapwrap" drží tmavú farbu zámerne (pod dlaždicami mapy, kým sa načítajú), ale
+   keď mapa nie je vôbec, tá tmavá nemá čo prekrývať a číta sa ako porucha. */
+.pta-mapempty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  background:${T.panelGrad};color:${T.inkWarm};font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;text-align:center;padding:20px;}
 .pta-section{margin-top:28px;}
 /* #41 — blok jednej partie (organizátor + kto s ním ide) */
 .pta-host + .pta-host{margin-top:10px;}
-.pta-section h3{font-family:${FONT_UI};font-weight:500;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:${GOLD};margin-bottom:8px;}
-.pta-empty{font-size:12.5px;color:${T.onDarkDim};font-style:italic;}
+/* Nadpis sekcie na papyruse: zlatá je tmavšia ("#8a5a14"), nie brandová "#C99A3F" —
+   tá je na svetlom podklade len o niečo tmavšia než sám papyrus a stráca sa. */
+.pta-section h3{font-family:${FONT_UI};font-weight:500;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:#8a5a14;margin-bottom:8px;}
+.pta-empty{font-size:12.5px;color:${T.inkWarm};font-style:italic;}
 /* .pta-actbtn — zdieľané medzi .pta-acts (iterácia 15; predtým .pta-hero-actions na fotke) */
-.pta-actbtn{flex:1;font-family:${FONT_TITLE};font-weight:700;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:12px 6px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:all .15s;}
-.pta-actbtn--gold{background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border-color:rgba(250,244,236,0.3);}
-.pta-actbtn--gold.on{background:rgba(201,154,63,0.18);color:${GOLD};border-color:${GOLD};}
-/* Ghost = len „Mark walked" pred označením. Zosilnené oproti iterácii 14 (0.06/0.18 splývalo
-   s podkladom — Matej: „slabo viditeľné a biedne"). */
-.pta-actbtn--ghost{background:rgba(245,240,228,0.10);color:${T.onDark};border-color:rgba(245,240,228,0.34);}
-.pta-actbtn--ghost:hover{background:rgba(245,240,228,0.16);}
-/* Modrá SHARE + zelená WALKED ✓ — obe kotvené na kánonické brand tokeny z packTheme:
-   T.partHek #2E5FD0 (Egyptian blue) a T.growGreen #3D7A4E. Gradient je len svetlejší/tmavší
-   odtieň okolo tokenu, aby držal rovnaký diagonálny vzor ako zlatý .btn-gold. */
-.pta-actbtn--blue{background:linear-gradient(135deg,#3A6BDD,#2148B8);color:#fff;border-color:rgba(255,255,255,0.24);box-shadow:0 6px 16px rgba(46,95,208,0.30);}
-.pta-actbtn--blue:hover{background:linear-gradient(135deg,#4478EC,#264FC7);}
-.pta-actbtn--green{background:linear-gradient(135deg,#4A8F5D,#2F6440);color:#fff;border-color:rgba(255,255,255,0.22);box-shadow:0 6px 16px rgba(61,122,78,0.28);}
-.pta-actbtn--green:hover{background:linear-gradient(135deg,#549C68,#356E47);}
-.pta-notfound{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:${T.onDarkDim};font-family:${FONT_UI};text-align:center;padding:20px;}
+/* ════════════════════════════════════════════════════════════════════════
+   AKČNÝ RAD — HIERARCHIA PREPÍSANÁ 2026-09-01 (DRAK → BRIGHT)
+   ────────────────────────────────────────────────────────────────────────
+   Do 1. 9. tu stáli DVE plné farby vedľa seba (zlatý TRIPLIST + modrý SHARE,
+   po označení zelený WALKED ✓ + modrý SHARE) a hlavná akcia stránky —
+   „označ ako prejdené" — bola ghost, teda NAJSLABŠÍ prvok radu. Hierarchia
+   bola presne naopak, než čo človek na článku výletu robí.
+
+   Kánon (CLAUDE.md, 2026-08-28): plná farebná plocha je rezervovaná pre
+   JEDINÉ hlavné CTA na obrazovke a to CTA je LAPIS. Výbery a stavy sú
+   priesvitný tint ("pickTintCSS"), nie plná farba.
+
+   Rozdelenie preto je:
+     ✓ PREJDENÉ (pred označením) = hlavné CTA  → plný LAPIS so zlatým písmom
+     TRIPLIST                     = moja voľba → zlatý tint (a "on" = sýtejší)
+     SHARE                        = vedľajšia  → papyrusový outline
+     ✓ PREJDENÉ (po označení)     = STAV       → zelený tint
+   Po označení tak na obrazovke NIE JE plné CTA — a to je správne: hlavná
+   akcia je hotová a zostal z nej záznam, nie výzva. */
+.pta-actbtn{flex:1;font-family:${FONT_TITLE};font-weight:700;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:12px 6px;border-radius:8px;cursor:pointer;border:1px solid transparent;transition:all .15s;}
+/* HLAVNÉ CTA. Radius 8 (nie pilulka) — geometriu preberá od ".btn-gold", mení sa
+   len výplň; zmena farby nie je povolenie na iný tvar. Zlaté písmo na modrom nie je
+   ozdoba: lapis + zlato je pôvodná egyptská dvojica a bez nej je z toho len tmavé
+   tlačidlo bez príslušnosti k brandu. */
+.pta-actbtn--lapis{background:${LAPIS.grad};color:${LAPIS.ink};border-color:${LAPIS.edge};box-shadow:${LAPIS_BTN_SHADOW};}
+.pta-actbtn--lapis:hover{background:${LAPIS.gradHover};}
+/* TRIPLIST = moja voľba ⇒ tint, nie plná zlatá. "on" je ten istý tint sýtejší —
+   nie druhá farba: stav „už je v zozname" je viac toho istého, nie niečo iné. */
+.pta-actbtn--gold{background:rgba(201,154,63,0.14);color:#6E4A12;border-color:${T.border};box-shadow:inset 0 0 0 1px rgba(201,154,63,0.35);}
+.pta-actbtn--gold:hover{background:rgba(201,154,63,0.22);}
+.pta-actbtn--gold.on{background:rgba(201,154,63,0.30);color:#4A2F08;border-color:${T.cardEdge};}
+/* SHARE = vedľajšia akcia ⇒ papyrusový outline. Ghost s bielym krytím (starý recept)
+   je na papyruse neviditeľný — priesvitná biela na svetlom podklade nekreslí nič.
+   → [[feedback_svetly_povrch_zabija_priesvitnost]] */
+.pta-actbtn--blue{background:rgba(255,255,255,0.42);color:${T.inkStrong};border-color:${T.border};}
+.pta-actbtn--blue:hover{background:rgba(255,255,255,0.66);border-color:${T.cardEdge};}
+/* STAV „prejdené" = zelený tint. Zelená drží význam (hotové), váhu si necháva CTA.
+   Inkoust "PICK_INK.green" — tmavý, lebo čitateľnosť na papyruse nesie inkoust
+   a plný rám, nie krytie výplne. */
+.pta-actbtn--green{${pickTintCSS(T.growGreen, PICK_INK.green, 0.18)}}
+.pta-actbtn--green:hover{background:rgba(61,122,78,0.26);}
+/* Ghost už nikto nevolá — trieda ostáva len ako bezpečná výplň, keby na ňu niekde
+   ostal odkaz; vyzerá ako SHARE, teda nikdy ako diera. */
+.pta-actbtn--ghost{background:rgba(255,255,255,0.42);color:${T.inkStrong};border-color:${T.border};}
+.pta-notfound{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:${T.inkWarm};font-family:${FONT_UI};text-align:center;padding:20px;}
 ${DIFF_MARK_CSS}
 `;
 
@@ -379,6 +494,28 @@ function voteTip(t: ReturnType<typeof useT>, slices: CrowdSlice<string>[]): stri
   return slices
     .map((s) => `${s.count} ${s.count === 1 ? t('pack.trip.walkerSingular') : t('pack.trip.walkerPlural')}: ${s.value} (${s.pct}%)`)
     .join(' · ');
+}
+
+/** Krajina · makroregión · pohorie — jediný riadok nad názvom výletu.
+ *
+ * Kľúč `W`/`C`/`E` platí len pre SK (`addTripModel.ts`: „LEN pre SK; inak undefined"),
+ * takže zahraničný výlet dostane krajinu a prípadné pohorie, nie vymyslený makroregión.
+ *
+ * 🚩 KRAJ TU ZATIAĽ NIE JE — v dátach neexistuje. `HeroTrail` ho nemá a ADD flow ho
+ *    neukladá, hoci ho Mapy.com suggest VRACIA (pole `location`, dnes sa použije len
+ *    ako popisok návrhu v `PackMap.tsx`). Dopísať sa musí pri ZÁPISE výletu, nie tu —
+ *    odvodiť ho z lat/lon obálkou kraja by dávalo nepresný údaj a nepresný údaj je
+ *    horší než žiadny.
+ */
+const MACRO_KEYS: Record<string, 'West' | 'Center' | 'East'> = { W: 'West', C: 'Center', E: 'East' };
+function locLine(trail: HeroTrail, t: ReturnType<typeof useT>): string {
+  const parts: string[] = [countryName(trailCountry(trail))];
+  const raw = (trail.region || '').trim();
+  const macro = MACRO_KEYS[raw] ?? REGION_OF[raw];
+  if (macro) parts.push(t(`pack.map.macroRegionFull.${macro}`));
+  // Pohorie pridaj len keď to naozaj pohorie je — teda keď `region` nebol kód makroregiónu.
+  if (raw && !MACRO_KEYS[raw]) parts.push(raw);
+  return parts.join(' · ');
 }
 
 export default function PackTripArticle() {
@@ -682,6 +819,80 @@ export default function PackTripArticle() {
     return events.find((e) => e.tripId === trail.id && e.hostIsMe && !e.closed)?.travel;
   }, [events, trail, walkedIds]);
 
+  /**
+   * ── ÚPRAVA PLÁNU (Matej 2026-09-03) ───────────────────────────────────────────────────
+   * Panel úpravy má pri PLÁNE inú tvár než pri zápise (dátum · viditeľnosť · doprava
+   * namiesto fotiek a hodnotenia). Rozhodnutie „je to plán" patrí SEM, nie do panela:
+   * jediné, čo o prejdení vie, je `walkedIds`, a odvodiť to z dátumu by znamenalo, že plán,
+   * ktorý termín prešvihol, si sám zmení podobu.
+   * `undefined` = prejdený výlet alebo cudzí (bez `canEdit` sa panel neotvorí ani tak).
+   */
+  const planEdit = useMemo<PlanEdit | undefined>(() => {
+    if (!trail || !trail.id.startsWith('plan-') || walkedIds.has(trail.id)) return undefined;
+    const p = plans.find((x) => x.tripId === trail.id);
+    const ev = events.find((e) => e.tripId === trail.id && e.hostIsMe && !e.closed);
+    return {
+      date: p?.date ?? '',
+      // Zdroj pravdy o viditeľnosti je ŽIVÝ INZERÁT, nie `intent` v pláne: inzerát je to,
+      // čo svorka reálne vidí. `intent: 'partner'` bez inzerátu (zavretý, alebo zaniknutý)
+      // by v paneli svietil ako „hľadám svorku", hoci sa už nikto pridať nemôže.
+      visibility: ev ? 'open' : 'private',
+      travel: ev?.travel,
+    };
+  }, [trail, plans, events, walkedIds]);
+
+  /**
+   * Uloží dátum · viditeľnosť · dopravu NARAZ do plánu aj do inzerátu — dva zápisy, jedno
+   * gesto. Rozdelené by to znamenalo, že v triplistе svieti jeden termín a v inzeráte,
+   * ktorý ľudia vidia, druhý.
+   *
+   * ⚠️ Prepnutie na súkromný inzerát MAŽE, nie zatvára. Zavretý inzerát (`closed`) znamená
+   *    „skupina je plná" a v zozname ostáva vidieť; „idem sám" znamená, že tam nikdy nemal
+   *    byť. Kto sa medzitým pridal, ostáva v `trip_requests` — o tom rozhoduje autor
+   *    v žiadostiach, nie táto zmena.
+   */
+  const savePlanEdit = (pe: PlanEdit) => {
+    if (!trail) return;
+    const tid = trail.id;
+    setPlans((prev) => {
+      const mine = prev.find((x) => x.tripId === tid);
+      const next = { tripId: tid, intent: (pe.visibility === 'open' ? 'partner' : 'solo') as 'solo' | 'partner',
+        date: pe.date, at: mine?.at ?? nowMs };
+      return [next, ...prev.filter((x) => x.tripId !== tid)];
+    });
+    setEvents((prev) => {
+      const rest = prev.filter((e) => !(e.tripId === tid && e.hostIsMe));
+      if (pe.visibility !== 'open') return rest;
+      const mine = prev.find((e) => e.tripId === tid && e.hostIsMe);
+      const ev: PartnerEvent = {
+        ...(mine ?? {
+          id: `plan-event-${nowMs}`, tripId: tid, socialization: '',
+          // MENO HOSTITEĽA V TOM ISTOM TVARE AKO V SPRIEVODCOVI (`PackMap.submitPlan`).
+          // Prázdny reťazec by prešiel — `hostIsMe` drží vlastníctvo aj bez neho — ale
+          // v zozname inzerátov by vznikla pozvánka bez toho, kto pozýva.
+          host: t('pack.map.hostAndYourDog', { name: authorOf(trail) }),
+          hostIsMe: true, at: nowMs, joinedByMe: true,
+          dates: [], month: '',
+        }),
+        // Dátum sa prepisuje na OBOCH poliach naraz: `dates` je zoznam návrhov a `month`
+        // hrubší filter. Nechať jedno staré znamená kartu, ktorá o sebe tvrdí dve veci.
+        dates: pe.date.length >= 7 ? [pe.date] : [],
+        month: pe.date.length >= 7 ? pe.date.slice(0, 7) : pe.date,
+        travel: pe.travel,
+      };
+      return [ev, ...rest];
+    });
+    // TRIPLIST vedie vlastný záznam toho istého plánu — bez tohto by v ňom ostal starý
+    // termín a starý stav otvorenosti.
+    // ⚠️ TRIPLIST NEPOZNÁ STAV 'partner' — to je hodnota ZÁMERU plánu
+    // (`PlanIntent` v packCommunity.ts). Jeho vlastný stav sa volá 'looking'
+    // a mapovanie je rovnaké ako v triplist.ts:98 a packStore.ts:278.
+    // Zapísané 'partner' by neprešlo ani jednou vetvou `blockClass()`
+    // v PackTriplist.tsx, takže by karta stratila odznak — ticho, bez chyby.
+    upsertMyTrip(tid, { status: pe.visibility === 'open' ? 'looking' : 'solo',
+      openness: pe.visibility === 'open' ? 'open' : 'closed', date: pe.date });
+  };
+
   const [walkedPopupOpen, setWalkedPopupOpen] = useState(false);
 
   // ── BRÁNA NA ZÁPIS ODKAZU: PREJDENÉ **A** OHODNOTENÉ (Matej 2026-08-21) ───
@@ -890,10 +1101,15 @@ export default function PackTripArticle() {
 
   if (id.loading) {
     return (
-      <div className="min-h-[100dvh] flex items-center justify-center relative" style={{ backgroundColor: T.pageBg }}>
-        <HieroglyphBg />
+      /* ⚠️ NAČÍTAVACIA OBRAZOVKA SA PREZLIEKA SPOLU SO STRÁNKOU (Matej 1. 9. 2026:
+         „sekunda pred načítaním sa stále zobrazuje tmavé pozadie a slovo načítavam").
+         Je to prvá vec, ktorú človek na route uvidí — keď ostane tmavá, každý vstup do
+         článku začne bliknutím čiernej a až potom prejde do papyrusu. Prezliekať povrch
+         a nechať jeho `loading` vetvu tmavú znamená prezliecť ho len spolovice. */
+      <div className="pk-paper flex items-center justify-center" style={{ minHeight: '100dvh' }}>
+        <style>{PAPER_PAGE_CSS}</style>
         <div className="relative" style={{ zIndex: 1 }}>
-          <div style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.3em', fontSize: 12, color: T.onDarkDim }}>
+          <div style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.3em', fontSize: 12, color: T.inkWarm }}>
             {t('pack.layout.loading')}
           </div>
         </div>
@@ -1062,8 +1278,27 @@ export default function PackTripArticle() {
           ) : (
             <button
               type="button"
-              className="pta-actbtn pta-actbtn--ghost"
-              onClick={() => toggleWalked(trail.id)}
+              className="pta-actbtn pta-actbtn--lapis"
+              /**
+               * ⚠️ VLASTNÝ NEPREJDENÝ PLÁN IDE DO SPRIEVODCU, NIE DO POPUPU (2026-09-02).
+               * Mapa aj inline detail to tak robia od zavedenia `openWalkPlan()` — komentár
+               * pri nej hovorí doslova, že NAHRÁDZA `toggleWalked()` pre vlastný neprejdený
+               * plán, lebo ten otvára len malý popup na náročnosť a ruch a o značkách,
+               * fotkách, príbehu ani o oprave trasy a dátumu nevie. Článok tú podmienku
+               * nemal, takže tá istá veta „Označiť ako prejdené" viedla na dvoch obrazovkách
+               * do dvoch rôznych tokov a z jedného z nich sa výlet zapísal chudobnejší.
+               * `?walk=` číta `PackMap` a otvára presne `openWalkPlan()` — tú istú cestu
+               * používa aj karta „ideš dnes?" na `/pack` (`PlanAskCard`).
+               * ⚠️ Vlastníctvo sa testuje ÚLOŽISKOM (`canEdit`), nie menom autora — viď
+               * zdôvodnenie pri `canEdit` vyššie.
+               */
+              onClick={() => {
+                if (trail.id.startsWith('plan-') && canEdit && !walkedIds.has(trail.id)) {
+                  navigate(`/pack/map?walk=${encodeURIComponent(trail.id)}`);
+                  return;
+                }
+                toggleWalked(trail.id);
+              }}
             >
               <span className="pta-actbtn-icon">🐾</span>
               <span className="pta-actbtn-label">{t('pack.trip.markWalked')}</span>
@@ -1075,17 +1310,24 @@ export default function PackTripArticle() {
             </button>
           )}
           <button type="button" className="pta-actbtn pta-actbtn--blue" onClick={handleShare} aria-label={t('pack.trip.share')}>
-            <span className="pta-actbtn-icon"><img src={ICON('link')} alt="" style={{ width: 12, height: 12, filter: 'brightness(0) invert(1)' }} /></span>
+            {/* Ikonka reťaze bola prebielená na modré tlačidlo (`invert(1)`). SHARE je od
+                1. 9. papyrusový outline s tmavým inkoustom — biela ikonka by na ňom zmizla,
+                takže sa maskuje na farbu textu ako ikonka v TRIPLIST tlačidle vedľa. */}
+            <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${ICON('link')})` } as React.CSSProperties} />
             <span className="pta-actbtn-label">{t('pack.trip.share')}</span>
           </button>
         </div>
   );
 
   return (
-    <div className="pta-root">
+    <div className="pk-paper pta-root">
+      <style>{PAPER_PAGE_CSS}</style>
       <style>{CSS}</style>
       <style>{COMMUNITY_CSS}</style>
       <style>{POINTS_PILL_CSS}</style>
+      {/* GLASS_CSS ostáva: `.pk-glass` na koreni článku UŽ NIE JE, ale vnorené povrchy
+          (karty partie, sekcia zápisov) si `.pk-glass-block` ešte berú — prezliekajú sa
+          vo vlastnom kroku, nie tu. */}
       <style>{GLASS_CSS}</style>
       <style>{PARTY_CARD_CSS}</style>
       <style>{MAP_NOTES_SECTION_CSS}</style>
@@ -1094,17 +1336,18 @@ export default function PackTripArticle() {
           `.leaflet-container`, takže CSS musí byť na stránke, nie v komponente. */}
       <style>{LONG_PRESS_CSS}</style>
       <style>{ADD_NOTE_CSS}</style>
-      {/* §16 (2026-07-23): heroglyf textúra ZA obsahom — bez nej glass panel nemá čo rozmazať
-          (predtým holá čierna = „všetko na čiernej"). Rovnaké pozadie ako triplist/pack. */}
-      <HieroglyphBg />
+      {/* §16 (2026-07-23): heroglyf textúra ZA obsahom — bez nej nemá karta na čom stáť.
+          2026-09-01: `<HieroglyphBg />` (tmavá tapeta na čiernej) nahradená papyrusovým
+          podkladom `.pk-paper` na koreni — tapeta je jeho súčasť, preto sa sem už nič
+          nevkladá. Volať oboje naraz = dve tapety cez seba. */}
 
-      <div className="pta-shell pk-glass">
+      <div className="pta-shell">
       <div className="pta-hero" ref={heroRef} style={cover ? { backgroundImage: `url('${cover}')` } : undefined}>
         <div className="pta-hero-grad" />
         {(trail as { photoCredit?: string }).photoCredit && (
           <div className="pta-hero-credit">{(trail as { photoCredit?: string }).photoCredit}</div>
         )}
-        <button type="button" className="pta-back" onClick={() => navigate('/pack/map')} aria-label={t('pack.trip.backToTrips')}>←</button>
+        <BackButton tone="scrim" className="pta-back" onClick={() => navigate('/pack/map')} label={t('pack.trip.backToTrips')} />
         {/* Ceruzka je v hero oproti šípke späť — je to akcia nad CELÝM článkom, nie nad jeho
             sekciou, a v rade pod titulom (triplist / prešiel som / zdieľať) by si konkurovala
             s vecami, ktoré robí ktokoľvek. Vidí ju len autor (`canEdit`). */}
@@ -1116,7 +1359,16 @@ export default function PackTripArticle() {
         <div className="pta-panel">
         <div className="pta-loc">
           <img className="pta-flag" src={flagUrl(trailCountry(trail))} alt={countryName(trailCountry(trail))} loading="lazy" draggable={false} />
-          <span>{trail.region}{REGION_OF[trail.region] ? ` · ${t(`pack.map.macroRegion.${REGION_OF[trail.region]}`)}` : ''}</span>
+          {/* ── KRAJINA · MAKROREGIÓN · POHORIE (Matej 1. 9. 2026) ─────────────────────
+              „hore bude slovensko nie W ale západ (celym menom) a mal by tam byť kraj."
+
+              ⚠️ `trail.region` NESIE DVA RÔZNE VÝZNAMY podľa toho, odkiaľ výlet prišiel:
+              seed dataset tam má POHORIE („Volovské vrchy"), ADD flow MAKROREGIÓN
+              (`'W' | 'C' | 'E'`, viď `addTripModel.ts`). Riadok preto vypisoval holé „W" —
+              nebola to chyba prekladu, ale dve veci v jednom poli.
+              Rozlíši sa to tak, že písmeno JE kľúč makroregiónu; čokoľvek iné je pohorie
+              a makroregión sa k nemu dopočíta cez `REGION_OF`. */}
+          <span>{locLine(trail, t)}</span>
         </div>
         <div className="pta-title">{trail.name}</div>
         {/* bod 4 (iterácia 13): samostatný DiffMark+diff riadok pod titulom ZMAZANÝ —
@@ -1164,8 +1416,11 @@ export default function PackTripArticle() {
           {/* 6 výletov (vodné plochy: Bukovská priehrada, Liptovská Mara, Kráľová, Sĺňava,
               Orešianska, Palcmanská Maša) má `km: ""` a žiadne ascentM — bez tejto podmienky na
               CELEJ dlaždici (nie len na obsahu <b>) ostala prázdna .pta-stat bunka vedľa
-              Crowd/Rating (audit #45 + doplnené: prázdny obal, nie len prázdny text). */}
-          {(trail.km?.trim() || (trail as { ascentM?: number }).ascentM != null) && (
+              Crowd/Rating (audit #45 + doplnené: prázdny obal, nie len prázdny text).
+              ⚠️ SAMOTNÉ `km?.trim()` NESTAČÍ (2026-08-31): okruh nesie poctivé `km: "0.0"`,
+              takže podmienkou prešiel a článok kreslil riadok `↔️ 0.0 km`. Pýtame sa preto na
+              GEOMETRIU (`hasRouteMetrics`) — bez nakreslenej čiary niet čo merať. */}
+          {hasRouteMetrics(trail) && (trail.km?.trim() || (trail as { ascentM?: number }).ascentM != null) && (
             <div className="pta-stat">
               {/* ⚠️ OBE ČÍSLA NESÚ EMOJI, NIE JEDNO (Matej 2026-08-25: „dvojšípka znázorňujúca
                   km je emoji = musí byť aj prevýšenie"). Do teraz tu stálo textové `↑` vedľa
@@ -1185,8 +1440,11 @@ export default function PackTripArticle() {
             </div>
           )}
           {/* vodná plocha (isWaterTrail) nikdy nemá náročnosť — tvrdé pravidlo, nie len chýbajúca
-              hodnota (audit #45, Bled ukazoval fabrikované „Moderate"). */}
-          {!isWaterTrail(trail) && (
+              hodnota (audit #45, Bled ukazoval fabrikované „Moderate").
+              ⚠️ DVE PODMIENKY, NIE JEDNA. Okruh náročnosť nemá tiež (`needsDifficulty()` ju má
+              od 31. 8. len pri HIKE), ale `hasRouteMetrics` sám by nestačil: paddleboard je
+              voda SO stopou, teda by mu náročnosť prepustil. */}
+          {!isWaterTrail(trail) && hasRouteMetrics(trail) && (
             <div
               className={agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}
               data-tip={agg.belowThreshold ? undefined : voteTip(t, agg.difficultyBreakdown)}
@@ -1214,7 +1472,7 @@ export default function PackTripArticle() {
         {/* turistické značky (KČT) v poradí štart→cieľ — auto z OSM (compute-trail-marks.py) */}
         {(trail as { marks?: TrailMarkColor[][] }).marks?.length ? (
           <div style={{ marginTop: 14 }}>
-            <TrailMarks marks={(trail as { marks?: TrailMarkColor[][] }).marks} labelColor={PACK_THEME.onDark} label={t('pack.trip.followMarkers')} />
+            <TrailMarks marks={(trail as { marks?: TrailMarkColor[][] }).marks} labelColor={PACK_THEME.inkWarm} label={t('pack.trip.followMarkers')} />
           </div>
         ) : null}
 
@@ -1261,11 +1519,18 @@ export default function PackTripArticle() {
             Tlačidlo „Nechať odkaz" sa ukáže LEN tomu, kto trasu prešiel — a klik
             cez `passNoteGate()` ešte pýta hodnotenie, ak chýba (viď `noteGate`).
             Druhý, primárny vstup je tlačidlo priamo v rohu mapy nižšie. */}
+        {/* ⚠️ BEZ `onAdd` — VSTUP DO ZÁPISU JE LEN V NÁHĽADE MAPY (Matej 1. 9. 2026:
+            „nechať odkaz daj preč — z celého blogu; nechať odkaz bude len priamo
+            v náhľade mapky").
+            Dva vstupy do tej istej veci na jednej stránke sú duplicita, nie dostupnosť —
+            a ten druhý, `.pta-mapadd` na mape, je na správnom mieste: značka sa píše
+            NA MIESTO, takže gesto patrí tam, kde človek to miesto vidí.
+            Bez `onAdd` sa sekcia pri prázdnom zozname sama nevykreslí (`MapNotesSection`
+            má na to guard) — nezostane po nej prázdny nadpis. */}
         <MapNotesSection
           trail={trail}
           notes={mapNotes.notes}
           locale={dateLocale}
-          onAdd={noteGate !== 'none' ? () => { if (passNoteGate()) setNotePick(true); } : undefined}
         />
 
         {/* §16 (2026-07-23): reviews + advice (rovnaká komponenta ako inline detail v PackMap)
@@ -1301,7 +1566,7 @@ export default function PackTripArticle() {
               <InvalidateSizeOnMount />
               {/* `center`/`zoom` vyššie sú len počiatočné — skutočný záber dá FitRoute. Ostávajú
                   kvôli jedinému bodu (vodné plochy), kde sa niet čo zmestiť. */}
-              <FitRoute path={trail.path} />
+              <FitRoute path={trail.path} areaR={trail.areaR} />
               {/* FARBA TRASY = FIALOVÝ MEČ, ROVNAKO AKO NA MAPE (Matej 2026-08-20:
                   „ak je blogovy clanok tak tam moze byt fialova, lebo bude vzdy iba jedna").
                   Predtým tu bol čierno-zlatý casing, takže tá istá trasa vyzerala na mape
@@ -1337,6 +1602,24 @@ export default function PackTripArticle() {
                   />
                 ))}
               </>)}
+              {/* OKRUH MIESTA (2026-09-01) — návšteva nemá trasu, ale plochu. Ten istý recept
+                  ako v sprievodcovi aj na mape: fialová `TRAIL_LINE.mid`, výplň 0.12. Bez neho
+                  ostal v článku holý špendlík a údaj o veľkosti miesta, ktorý človek pri zápise
+                  nastavoval jazdcom, sa nikde neprejavil.
+                  `routeDimmed` stlmí okruh spolu s trasou — je to tá istá geometria výletu. */}
+              {!!trail.areaR && trail.path.length === 1 && (
+                <Circle
+                  center={trail.path[0]}
+                  radius={trail.areaR}
+                  pathOptions={{
+                    color: TRAIL_LINE.mid,
+                    weight: 2,
+                    opacity: routeDimmed ? 0.5 : 1,
+                    fillColor: TRAIL_LINE.mid,
+                    fillOpacity: (routeDimmed ? 0.5 : 1) * 0.12,
+                  }}
+                />
+              )}
               {/* Začiatok trasy nesie ÚDAJ (km, resp. názov pri vodnej ploche), nie packu —
                   Matej 2026-08-20: „daj preč tú packu a nechaj tam ten pils s km radšej".
                   Rovnaký tvar, aký má výlet na `/pack/map`, takže dva povrchy hovoria rovnako. */}
@@ -1347,6 +1630,7 @@ export default function PackTripArticle() {
                   diff: trail.diff,
                   label: trail.name,
                   water: isWaterTrail(trail),
+                  hasRoute: hasRouteMetrics(trail),
                 })}
               />
               {/* POI z OSM (issue #40) — pramene/výhľady/prístrešky pozdĺž TEJTO trasy.
@@ -1503,7 +1787,9 @@ export default function PackTripArticle() {
       {editOpen && (
         <TripEditPanel
           trail={trail}
+          plan={planEdit}
           onSaved={(patch) => setEdits((prev) => ({ ...(prev ?? {}), ...patch }))}
+          onPlanSaved={savePlanEdit}
           onClose={() => setEditOpen(false)}
         />
       )}

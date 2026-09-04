@@ -6,13 +6,14 @@
 // `renderTripList(withRef)` / `<EventsView>` v PackMap.tsx — `withRef` zapína registráciu
 // card-refov (len desktop potrebuje pin→scroll, mobile je touch/bez hoveru).
 import type { MutableRefObject } from 'react';
-import { PACK_THEME as T, FONT_UI, FONT_TITLE } from '@/components/pack/packTheme';
+import { FONT_UI, FONT_TITLE } from '@/components/pack/packTheme';
+// Bledý chrome: inkousty a plochy (PALE), lapisové CTA a priesvitný tint výberu —
+// jeden zdroj pre celý /pack, tie isté hodnoty drží bledý skin mapy.
+import { PALE as P, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 import { DELETE_BUTTON_CSS } from '@/components/pack/DeleteButton';
 import { EventCard, EVENT_CARD_CSS } from './EventCard';
 import type { AddEventDraft } from './eventModel';
-
-const GOLD = '#C99A3F';
 
 export type EventsPanelProps = {
   /** už filtrovaný + zoradený zoznam PRE aktuálny `view` (PackMap.tsx robí upcomingEvents/archivedEvents). */
@@ -74,14 +75,23 @@ export function EventsPanel({ events, view, onViewChange, selectedId, expandedId
 }
 
 const EVP_CSS = `
+/* ── BLEDÝ PANEL PODUJATÍ (DRAK → BRIGHT, 2026-09-01, 2. beh) ─────────────────────────
+   Panel žije len v ľavom paneli mapy a v mobilnom zozname — obidva papyrusové, takže
+   svetlý inkoust na nich bol prakticky neviditeľný. */
 .pev-root{display:flex;flex-direction:column;}
-.pev-toggle{display:inline-flex;align-self:flex-start;gap:2px;padding:3px;border-radius:999px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkHair};margin-bottom:12px;}
-.pev-toggle button{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:999px;border:0;background:transparent;color:${T.onDarkDim};cursor:pointer;transition:all .15s;}
-.pev-toggle button.on{background:rgba(201,154,63,0.16);color:${GOLD};}
-.pev-toggle button:hover{color:${T.onDark};}
+.pev-toggle{display:inline-flex;align-self:flex-start;gap:2px;padding:3px;border-radius:999px;background:${P.soft};border:1px solid ${P.border};margin-bottom:12px;}
+.pev-toggle button{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:999px;border:0;background:transparent;color:${P.dim};cursor:pointer;transition:all .15s;}
+/* ⚠️ VÝBER JE PRIESVITNÝ TINT, NIE PLNÁ FARBA (lock 2026-08-26). Plný lapis nesie
+   .trp-catpill.on — hlavný prepínač kategórií, ktorému je tento segment zámerne
+   podriadený. Rovnaká váha by z dvoch prepínačov nad sebou spravila dva rovnocenné. */
+.pev-toggle button.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}font-weight:600;}
+.pev-toggle button:hover{color:${P.ink};}
 .pev-empty{display:flex;flex-direction:column;align-items:center;gap:14px;padding:34px 16px;text-align:center;}
-.pev-empty p{margin:0;color:${T.onDarkDim};font-size:12.5px;font-style:italic;line-height:1.5;}
-.pev-emptybtn{font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:11px 20px;border-radius:8px;border:1px solid rgba(250,244,236,0.30);background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#1c160c;cursor:pointer;}
+.pev-empty p{margin:0;color:${P.dim};font-size:12.5px;font-style:italic;line-height:1.5;}
+/* Jediná akcia prázdneho stavu = hlavné CTA ⇒ LAPIS (kánon 28. 8.). Radius 8 ostáva
+   z locku .btn-gold — mení sa výplň, nie tvar. Dvojička je .comm-emptybtn (packCommunityUI). */
+.pev-emptybtn{font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:11px 20px;border-radius:8px;border:1px solid ${LAPIS.deep};background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
+.pev-emptybtn:hover{background:${LAPIS.gradHover};}
 `;
 
 export default EventsPanel;

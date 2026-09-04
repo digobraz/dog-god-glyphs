@@ -53,6 +53,11 @@ const QUIZ_CSS = `
 .qz-ghost:hover{ border-color:#C99A3F; color:#2a1608; }
 .qz-pill{ font-family:'Space Grotesk',sans-serif; font-size:11.5px; font-weight:500;
   padding:7px 13px; border-radius:999px; cursor:pointer; }
+/* STROP VÝBERU (2026-09-02) — pilulka nad strop nezhasína priesvitnosťou: papyrus je svetlý
+   a krytie na ňom takmer nič neurobí (to isté zistenie ako pri prezliekaní na bledé).
+   Stlmí sa preto INKOUST a rám, výplň ostáva. */
+.qz-pill.is-capped{ cursor:not-allowed; color:rgba(42,22,8,.34); border-color:rgba(179,130,45,.22); }
+.qz-cap-note{ font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:#7a5a2a; margin:2px 0 0; }
 `;
 
 export default function PackDogQuiz() {
@@ -319,27 +324,45 @@ function AnswerControl({
     return translated || tx(`pack.dogTag.${v}`, fallback);
   };
 
+  /**
+   * STROP VÝBERU (2026-09-02). Plný sa nedá pridať ďalšie, ale odobrať áno — vybrané pilulky
+   * ostávajú aktívne, hasnú len tie, ktoré by výber prekročili. Bez tohto rozlíšenia by sa
+   * plný krok zamkol celý a nedal by sa opraviť.
+   * ⚠️ Hláška musí byť VIDNO. Zhasnutá pilulka bez slova vyzerá ako pokazená appka —
+   *    presne to je dôvod, prečo krok 7 v sprievodcovi dostal tú istú vetu.
+   */
+  const cap = step.maxPick ?? 0;
+  const capped = cap > 0 && list.length >= cap;
+  const capNote = capped ? (
+    <p className="qz-cap-note">{tx('pack.quiz.maxPick', `Pick up to ${cap} — untick one to swap.`).replace('{n}', String(cap))}</p>
+  ) : null;
+
   if (step.kind === 'single' || step.kind === 'multi') {
     const options = step.options ?? [];
     return (
-      <div className="flex flex-wrap gap-2">
-        {options.map((o) => {
-          const on = step.kind === 'single' ? value === o.value : list.includes(o.value);
-          return (
-            <button
-              key={o.value}
-              type="button"
-              className={`pf-pill qz-pill${on ? ' is-selected' : ''}`}
-              onClick={() =>
-                step.kind === 'single'
-                  ? onChange(on ? null : o.value)
-                  : onChange(on ? list.filter((x) => x !== o.value) : [...list, o.value])
-              }
-            >
-              {o.emoji ? `${o.emoji} ` : ''}{optLabel(o.value, o.labelEN)}
-            </button>
-          );
-        })}
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap gap-2">
+          {options.map((o) => {
+            const on = step.kind === 'single' ? value === o.value : list.includes(o.value);
+            const blocked = step.kind !== 'single' && capped && !on;
+            return (
+              <button
+                key={o.value}
+                type="button"
+                disabled={blocked}
+                className={`pf-pill qz-pill${on ? ' is-selected' : ''}${blocked ? ' is-capped' : ''}`}
+                onClick={() =>
+                  step.kind === 'single'
+                    ? onChange(on ? null : o.value)
+                    : onChange(on ? list.filter((x) => x !== o.value) : [...list, o.value])
+                }
+              >
+                {o.emoji ? `${o.emoji} ` : ''}{optLabel(o.value, o.labelEN)}
+              </button>
+            );
+          })}
+        </div>
+        {step.kind !== 'single' && capNote}
       </div>
     );
   }
@@ -354,11 +377,13 @@ function AnswerControl({
         <div className="flex flex-wrap gap-2">
           {[...suggestions, ...extras].map((v) => {
             const on = list.includes(v);
+            const blocked = capped && !on;
             return (
               <button
                 key={v}
                 type="button"
-                className={`pf-pill qz-pill${on ? ' is-selected' : ''}`}
+                disabled={blocked}
+                className={`pf-pill qz-pill${on ? ' is-selected' : ''}${blocked ? ' is-capped' : ''}`}
                 onClick={() => onChange(on ? list.filter((x) => x !== v) : [...list, v])}
               >
                 {optLabel(v, humanize(v))}
@@ -370,17 +395,22 @@ function AnswerControl({
           <input
             className="pf-field"
             value={custom}
+            disabled={capped}
             onChange={(e) => setCustom(e.target.value)}
             placeholder={tx('pack.quiz.addOwn', 'Add your own…')}
             style={fieldStyle}
             onKeyDown={(e) => {
               if (e.key !== 'Enter' || !custom.trim()) return;
               e.preventDefault();
+              // ⚠️ Aj tu, nie len na pilulkách — vlastný text je tá istá položka zoznamu
+              //    a bez brzdy by strop obišiel každý, kto ho napíše ručne.
+              if (capped) return;
               onChange([...list, custom.trim()]);
               setCustom('');
             }}
           />
         </div>
+        {capNote}
       </div>
     );
   }

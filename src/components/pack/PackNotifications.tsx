@@ -371,7 +371,8 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                       onClick={() => {
                         setOpen(false);
                         // Žiadosť sa vybavuje v zozname výletov (tam je meno aj tlačidlo PRIJAŤ),
-                        // prijatie patrí na samotný výlet — tam človek vidí, s kým ide.
+                        // prijatie aj cudzie prejdenie patria na samotný výlet — tam človek vidí,
+                        // s kým ide, a pri prejdení má rovno tlačidlo zapísať si ho aj za seba.
                         navigate(al.kind === 'trip_request' ? '/pack/map/triplist' : al.tripPath);
                       }}
                       className="flex items-start gap-2 w-full text-left"
@@ -387,7 +388,13 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                         >
                           {al.kind === 'trip_request'
                             ? t('pack.alerts.request' + pluralKey(al.count), { count: al.count })
-                            : t('pack.alerts.accepted')}
+                            : al.kind === 'trip_walked'
+                              // Pozvánka, nie hotový záznam — appka za človeka nič nezapisuje
+                              // (viď packAlerts.ts, tretí druh). Počet ľudí, čo už výlet
+                              // zapísali, sa ZÁMERNE nespomína: na rozhodnutí „zapíš si ho aj
+                              // ty" nič nemení a jedna veta sa číta rýchlejšie než tri tvary.
+                              ? t('pack.alerts.walked')
+                              : t('pack.alerts.accepted')}
                         </span>
                         <span
                           style={{

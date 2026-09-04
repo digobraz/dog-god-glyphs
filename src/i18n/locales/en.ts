@@ -936,6 +936,25 @@ export const en = {
   'religion.book.close': 'Close book',
   'religion.book.prevPage': 'Previous page',
   'religion.book.nextPage': 'Next page',
+  // ── Kniha ústavy: popisky 12 kapitol (`SACRED_INDEX`) ──
+  // Kapitola má DVE polia: NÁZOV (CANON, CREDO, …) a POPISOK. Názvy sú kánonické
+  // pojmy DOGMY a naprieč jazykmi sa NEPREKLADAJÚ — mení sa len popisok, teda tá
+  // polovica, ktorá je obyčajná veta. Kľúč je poradové číslo, nie rímska číslica:
+  // `num` v datasete je „I." a bodka by rozsekla plochý dotted kľúč.
+  // ⚠️ Dáta žijú v `src/data/sacredIndex.generated.ts` (AUTO-GENERATED, needituj
+  //    ho ručne) — tieto kľúče ho PREBÍJAJÚ, EN hodnota tu musí byť zhodná s ním.
+  'religion.book.ch.1.desc': 'who we are',
+  'religion.book.ch.2.desc': 'what we believe',
+  'religion.book.ch.3.desc': 'how we act',
+  'religion.book.ch.4.desc': 'how we pray',
+  'religion.book.ch.5.desc': 'who is who',
+  'religion.book.ch.6.desc': 'where we gather',
+  'religion.book.ch.7.desc': 'what we read',
+  'religion.book.ch.8.desc': 'how we speak',
+  'religion.book.ch.9.desc': 'how we sustain',
+  'religion.book.ch.10.desc': 'how we govern',
+  'religion.book.ch.11.desc': 'how we grow',
+  'religion.book.ch.12.desc': 'what we are not',
 
   // ── shared nav (PageNav top-bar + Wall) — CSS uppercases for display ──
   'nav.home': 'Home',
@@ -944,6 +963,122 @@ export const en = {
   'nav.religion': 'Religion',
   'nav.about': 'About',
   'nav.login': 'LOGIN',
+
+  // ── /onepage FILM — názvy obrazov v ľavej pilulke horného navu ──
+  // Matejov zoznam (2. 9. 2026). Home/Vision/Religion si berú existujúce
+  // `nav.*` kľúče — sú preložené vo všetkých 18 jazykoch, nový kľúč by ich
+  // preklad zahodil. Nové sú len tie, ktoré vo webe dosiaľ neexistovali.
+  'film.slide.cowdog': 'Cow vs Dog',
+  'film.slide.story': 'Story',
+  'film.slide.stars': 'Dogs and Stars',
+  'film.slide.mission': 'Mission',
+  'film.slide.heroglyph': 'Heroglyph',
+  'film.slide.menu': 'Jump to a scene',
+  // Výzva na čiernej sále medzi víziou a príbehom — viď KEEP_IN v OnePage.tsx.
+  'film.keepScrolling': 'Keep scrolling',
+
+  // ── /onepage FILM — texty obrazov 6–9 (WE NEED YOU · DOGTRIX · ALBA · MOST) ──
+  // Do 3. 9. 2026 stáli natvrdo v JSX `components/lab/OnePage.tsx`, takže sa
+  // v slovenskej verzii filmu čítali po anglicky. Vlastné mená (DOGYPT,
+  // HEROGLYPH, Dogtrix, Alba, Hekthor) ostávajú MIMO kľúčov — nesú vlastnú
+  // sadzbu (Cinzel / Cinzel Decorative) a neprekladajú sa.
+
+  // WE NEED YOU — nadpis prichádza PO SLOVÁCH (tri beaty). 🔴 PRÁZDNY KĽÚČ
+  // BEAT PRESKOČÍ: SK je dvojslovné („Potrebujeme ťa"), takže `w3` je tam
+  // prázdny reťazec a tretí `<span>` sa vôbec nevykreslí (prázdny by si
+  // v `column-gap` nechal medzeru a nadpis by sa odcentroval). Výkričník si
+  // vezme POSLEDNÉ vykreslené slovo, nech je ich dva alebo tri.
+  'onepage.need.w1': 'We',
+  'onepage.need.w2': 'need',
+  'onepage.need.w3': 'you',
+  // Podtitul má DVA kusy, každý `nowrap` — veľkosť písma sa dopočíta tak, aby
+  // sa zmestil ten širší. DOGYPT je značka a stojí v `<b>` MIMO kľúča.
+  'onepage.need.sub1': 'Our goal is to unite one million dog lovers',
+  'onepage.need.sub2': 'in one place —',
+  'onepage.need.goal': 'Our goal',
+  'onepage.need.step': 'Next step',
+  'onepage.need.cta': 'Join the mission',
+  // Číslo je dopočítané (počet psov + 1) a stojí v `<b>` za týmto kusom.
+  'onepage.need.ctasub': 'Get your number —',
+  // Chvost obrazu — dnes VYPNUTÝ (`ARC_TAIL` v OnePage.tsx). Kľúče tu sú, aby
+  // sa dal vrátiť jedným prepnutím a nie aj prekladom.
+  'onepage.need.tailLead': 'All you can do is —',
+  'onepage.need.tailFree': 'this one is free',
+  'onepage.aria.join': 'Join',
+  'onepage.aria.most': 'What the Heroglyph opens',
+
+  // DOGTRIX — dážď heroglyfov a dekodér. Popisky skupín aj bubliny píše
+  // vanilla DOM v mount-once efekte, preto sa po zmene jazyka prepisujú
+  // ručne (`retext` v OnePage.tsx), nie cez React.
+  'onepage.dgx.eye': 'The ticket to Dogypt',
+  'onepage.dgx.rule': 'Unique symbol for every dog.',
+  'onepage.dgx.sigrole': 'First Dogyptian',
+  'onepage.dgx.hint.hover': 'Hover a symbol — it tells you what it means.',
+  'onepage.dgx.hint.touch': 'Touch a symbol to read it.',
+  // Poradie 1–4 = basics · breed · char · own (to isté ako `DGX_GROUPS`).
+  'onepage.dgx.k.1.name': 'ORIGINS',
+  'onepage.dgx.k.1.desc': 'Sex · Colour · Origin · Bloodline',
+  'onepage.dgx.k.2.name': 'BREED',
+  'onepage.dgx.k.2.desc': 'His patron silhouette',
+  'onepage.dgx.k.3.name': 'CHARACTER',
+  'onepage.dgx.k.3.desc': 'Two traits · who he is',
+  'onepage.dgx.k.4.name': 'AND YOU',
+  'onepage.dgx.k.4.desc': 'You live inside his frame.',
+  // Bubliny podržaného symbolu — tri riadky: čo je to za údaj · aká je
+  // hodnota · ako sa tá kresba volá. Hodnoty sú Hektorove (pes #1).
+  'onepage.dgx.bub.dogGender.label': 'Sex',
+  'onepage.dgx.bub.dogGender.value': 'Male',
+  'onepage.dgx.bub.dogGender.glyph': "King's crown",
+  'onepage.dgx.bub.colour.label': 'Colour',
+  'onepage.dgx.bub.colour.value': 'Dark',
+  'onepage.dgx.bub.colour.glyph': 'Moon',
+  'onepage.dgx.bub.fate.label': 'Origin',
+  'onepage.dgx.bub.fate.value': 'Rescued',
+  'onepage.dgx.bub.fate.glyph': 'Rescue ring',
+  'onepage.dgx.bub.bloodline.label': 'Bloodline',
+  'onepage.dgx.bub.bloodline.value': 'Mutt',
+  'onepage.dgx.bub.bloodline.glyph': 'Bloodline scroll',
+  'onepage.dgx.bub.shape.label': 'Breed',
+  'onepage.dgx.bub.shape.value': 'His patron silhouette',
+  'onepage.dgx.bub.shape.glyph': 'Patron silhouette',
+  'onepage.dgx.bub.char1.label': 'Character',
+  'onepage.dgx.bub.char1.value': 'Ready for orders',
+  'onepage.dgx.bub.char1.glyph': 'Winged emblem',
+  'onepage.dgx.bub.char2.label': 'Character',
+  'onepage.dgx.bub.char2.value': 'Water lover',
+  'onepage.dgx.bub.char2.glyph': 'Water waves',
+  'onepage.dgx.bub.ownGender.label': 'You',
+  'onepage.dgx.bub.ownGender.value': 'Man',
+  'onepage.dgx.bub.ownGender.glyph': 'Man silhouette',
+  'onepage.dgx.bub.ownChinese.label': 'Your Chinese sign',
+  'onepage.dgx.bub.ownChinese.value': 'Rooster',
+  'onepage.dgx.bub.ownChinese.glyph': 'Rooster',
+  'onepage.dgx.bub.ownZodiac.label': 'Your zodiac',
+  'onepage.dgx.bub.ownZodiac.value': 'Leo',
+  'onepage.dgx.bub.ownZodiac.glyph': 'Lion',
+  'onepage.dgx.bub.ownInitial.label': 'Your initial',
+  'onepage.dgx.bub.ownInitial.value': 'M',
+  'onepage.dgx.bub.ownInitial.glyph': 'Initial letter',
+  'onepage.dgx.bub.ownRank.label': 'His place in your life',
+  'onepage.dgx.bub.ownRank.value': 'Your 1st dog',
+  'onepage.dgx.bub.ownRank.glyph': 'Number one',
+
+  // ALBA — tri psy s tým istým menom. Meno psa stojí v `<span class="nm">`
+  // MIMO kľúča: nesie Cinzel Decorative a preklad ho nesmie zhltnúť.
+  'onepage.alba.head': 'Meet',
+  'onepage.alba.eye': 'The same name — different dog — unique symbol',
+  // ⚪ VYPNUTÉ (`ALBA_SAME`) — kľúč existuje pre návrat jedným prepnutím.
+  'onepage.alba.same': 'Same name. Different dog.',
+  'onepage.alba.says': 'Every dog deserves a',
+  // ⚪ VYPNUTÉ (`ALBA_CNT`) — dtto.
+  'onepage.alba.cnt': 'ways to draw one',
+
+  // MOST — brána a jediná otázka, ktorou sa oblúk končí.
+  'onepage.most.eye': 'The Heroglyph is the key',
+  'onepage.most.head': 'This is the door it opens.',
+  // ⚠️ ÚVODZOVKY SÚ SÚČASŤOU HODNOTY, nie JSX: EN má párové „ ” (&ldquo;/&rdquo;),
+  // SK musí niesť SK dvojicu. V JSX by to bola natvrdo anglická sadzba.
+  'onepage.most.q': '“Am I doing right by him?”',
 
   // ── / (Wall / GodsGrid) ──
   // hero card
@@ -1433,6 +1568,7 @@ export const en = {
   'pack.alerts.requestFew': "{count} Dogyptians want to join",
   'pack.alerts.requestMany': "{count} Dogyptians want to join",
   'pack.alerts.accepted': "You're in the party",
+  'pack.alerts.walked': "You walked this one together — log it too",
   // pack.notif
   'pack.notif.ariaMessages': "Messages — coming soon",
   'pack.notif.ariaNotifications': "Notifications",
@@ -2162,6 +2298,7 @@ export const en = {
   'pack.addTrip.geo.hintRoute': "Click along the map to draw your route",
   'pack.addTrip.geo.hintSpot': "Click the map to drop a pin",
   'pack.addTrip.geo.hintArea': "Click the map to place the area, then set its size",
+  'pack.addTrip.geo.kindPick': "Shape of the trip",
   'pack.addTrip.geo.kindRoute': "Route",
   'pack.addTrip.geo.kindSpot': "Spot",
   'pack.addTrip.geo.kindArea': "Area",
@@ -2170,8 +2307,11 @@ export const en = {
   'pack.addTrip.geo.pointsSuffix.one': "{n} point",
   'pack.addTrip.geo.pointsSuffix.few': "{n} points",
   'pack.addTrip.geo.pointsSuffix.many': "{n} points",
-  'pack.addTrip.geo.areaRadius': "Area · {km} km radius",
   'pack.addTrip.geo.areaRadiusM': "Area · {m} m radius",
+  // {r} je UŽ NAFORMÁTOVANÝ údaj (formatRadius) — jednotka je v ňom, nie v tomto texte.
+  // Nahradilo `areaRadiusM`, ktoré malo „m" napevno: odkedy okruh siaha po 5 km, čítalo sa
+  // „5000 m radius". Starý kľúč ostáva (nerenderované kľúče sa v tomto repe nemažú).
+  'pack.addTrip.geo.areaRadius': "Area · {r} radius",
   'pack.addTrip.geo.spotSet': "Spot set",
   // MAPA JE PRVÁ OBRAZOVKA (Matej 2026-08-22) — na mobile sa po výbere aktivity otvára rovno
   // mapa, takže vysvetlenie „ako začať" a hľadanie miesta musia stáť NA nej, nie vo formulári.
@@ -2285,8 +2425,12 @@ export const en = {
   'pack.addTrip.log.conditions': "Conditions",
   'pack.addTrip.log.whatPlace': "What kind of place was it?",
   'pack.addTrip.log.whatPlaceSub': "Pick one — the reason you went.",
+  // ⚠️ AKTIVITA sa na tej istej obrazovke pýta na ČINNOSŤ, nie na miesto (Matej 1. 9. 2026).
+  'pack.addTrip.log.whatDid': "What did you do?",
+  'pack.addTrip.log.whatDidSub': "Pick one — it also sets the shape you will draw.",
   'pack.addTrip.log.placeMore': "What else was there",
   'pack.addTrip.log.placeDoable': "What you can do there",
+  'pack.addTrip.log.whereWasIt': "Where was it",
   'pack.addTrip.log.pack': "Trip pack",
   'pack.addTrip.log.story': "Tell the pack about it",
   'pack.addTrip.log.routeSoFar': "YOUR ROUTE SO FAR",
@@ -2394,6 +2538,7 @@ export const en = {
   'pack.addTrip.field.tags': "tags",
   'pack.addTrip.field.paws': "rating",
   'pack.addTrip.field.place': "main place",
+  'pack.addTrip.field.doing': "activity",
   'pack.addTrip.field.photos': "photo",
   // CompanionPicker („kto bol so mnou") — do 23. 8. 2026 bol celý natvrdo po anglicky.
   'pack.companions.yourPack': "Your pack",
@@ -2476,6 +2621,12 @@ export const en = {
   'pack.trip.edit.desc': "Description",
   'pack.trip.edit.dogNote': "Note about the dog",
   'pack.trip.edit.rating': "Your rating",
+  'pack.trip.edit.planTitle': "Edit plan",
+  'pack.trip.edit.planDate': "Date",
+  'pack.trip.edit.planDateHint': "Leave empty if you don't know the date yet.",
+  'pack.trip.edit.planVisibility': "Who's coming",
+  'pack.trip.edit.planSolo': "Just us",
+  'pack.trip.edit.planOpen': "Looking for pack",
   'pack.trip.edit.save': "Save changes",
   'pack.trip.edit.saveFailed': "Couldn't save — storage might be full. Remove a photo and try again.",
   'pack.trip.edit.open': "Edit",
@@ -2505,6 +2656,7 @@ export const en = {
   'pack.addTrip.step.next': "Next",
   'pack.addTrip.step.needRoute': "Draw the route first — or pick start and finish only.",
   'pack.addTrip.step.needPlace': "Mark the place on the map first — tap where you were.",
+  'pack.addTrip.step.needChip': "Pick one first — the rest of the form depends on it.",
   // ⚠️ KĽÚČ CHÝBAL ÚPLNE (nájdené 2026-08-26 pri prechode toku na PC). AInubis ho hlási po
   // NÁVRATE na nedokončený krok — teda presne vtedy, keď má človek niečo doplniť — a namiesto
   // vety mu ukazoval `pack.addTrip.step.stillMissing trasa na mape`. Volajúci je
@@ -2555,6 +2707,9 @@ export const en = {
   'pack.addTrip.step.difficulty': "Difficulty",
   'pack.addTrip.step.terrain': "Terrain",
   'pack.addTrip.step.whoWasWithYou': "Who was with you on this trip?",
+  // Jeden pes = žiadny výber (kompaktný variant kroku 5, Matej 1. 9. 2026 „pri edite je udaje
+  // o psovi… by som dal preč"). Otázka na ĎALŠIEHO človeka, pes sa zapíše ticho sám.
+  'pack.addTrip.step.anyoneElse': "Was anyone else with you?",
   'pack.addTrip.step.storyPlaceholder': "Tell the story of your adventure — or pass on tips and advice that could help others.",
   // §4.5 — príbeh výletu sa dá otvoriť na celú obrazovku (Matej 2026-08-26)
   'pack.addTrip.step.expandEditor': "Open full screen",
@@ -2639,6 +2794,16 @@ export const en = {
   'pack.msg.fallbackMemberName': "Dogyptian",
   'pack.msg.packNumberSuffix': "· Dogyptian #{n}",
   'pack.msg.noMessagesYet': "No messages yet",
+  // Prepínač svetlého/tmavého šatu správ (`Inbox.tsx` → `SkinToggle`). Jedna ikonka,
+  // dva stavy — popisok hovorí, KAM sa prepne, nie kde práve som.
+  'pack.msg.skinToLight': "Switch to light",
+  'pack.msg.skinToDark': "Switch to dark",
+  // Potvrdenie po odoslaní hlásenia (`Thread.tsx`, vetva `modView === 'sent'`).
+  // Blokovanie sa tu NEDUPLIKUJE — `pack.msg.blocking` a `pack.msg.blockButton` už
+  // existujú pre vetvu `menu` a tá istá dvojica sa používa aj tu.
+  'pack.msg.reportSentTitle': "Report sent",
+  'pack.msg.reportSentBody': "Matej reads every report himself. If this person is bothering you, block them too — that takes effect right away.",
+  'pack.msg.done': "Done",
   'pack.community.closeAriaLabel': "Close",
   'pack.community.pawsAriaLabel': "{n} paws",
   'pack.community.walkedTitle': "Great job! You did it! 🐾",
@@ -2657,6 +2822,11 @@ export const en = {
   'pack.community.rewardEyebrow': "You earned",
   'pack.community.rewardNextRating': "Add a rating and earn more points",
   'pack.community.notNowBtn': "Not now",
+  // Prázdny stav zoznamu MOJICH inzerátov (`packCommunityUI.tsx`). ⚠️ Veta nesmie znieť
+  // „nikto nič neplánuje" — panel drží len vlastné inzeráty (`.eq('host_id', uid)`),
+  // cudzie otvorené výlety žijú v Triplist → OPEN TRIPS FROM THE PACK.
+  'pack.community.noAnnouncedWalk': "You haven’t announced a walk yet. Open a trip, pick “Find a buddy”, and the pack will see it.",
+  'pack.community.browseTrips': "Browse trips",
   'pack.profileCard.removeTag': "Remove {tag}",
   'pack.profileCard.smokeLabel': "Smoke: {value}",
   'pack.profileCard.aDogyptian': "A Dogyptian",
@@ -2744,6 +2914,12 @@ export const en = {
   'pack.map.macroRegion.West': "West",
   'pack.map.macroRegion.Center': "Center",
   'pack.map.macroRegion.East': "East",
+  // Plné mená makroregiónov — riadok nad názvom výletu (Matej 1. 9. 2026: „nie W ale
+  // západ celým menom"). Krátke varianty vyššie ostávajú pre filtre a chipy, kde je málo
+  // miesta; tu, kde je riadok jediný, sa píše celé meno.
+  'pack.map.macroRegionFull.West': "Western Slovakia",
+  'pack.map.macroRegionFull.Center': "Central Slovakia",
+  'pack.map.macroRegionFull.East': "Eastern Slovakia",
   'pack.map.activity': "Activity",
   'pack.map.activities': "Activities",
   'pack.map.anyActivity': "All activities",
@@ -3005,6 +3181,9 @@ export const en = {
   'pack.triplist.whoCanSee': "Who can see this trip",
   'pack.triplist.addDate': "+ Add date",
   'pack.triplist.openTripsFromPack': "Open trips from the pack",
+  'pack.triplist.hideOpenTrips': "Hide",
+  'pack.triplist.showOpenTrips': "Show",
+  'pack.triplist.openTripsHiddenHint': "Open trips from the pack are hidden. Tap Show to see them again.",
   'pack.triplist.allRegions': "All regions",
   'pack.triplist.slovakiaOption': "🇸🇰 Slovakia",
   'pack.triplist.czechiaSoon': "Czechia — soon",
@@ -3188,6 +3367,7 @@ export const en = {
   'pack.quiz.allSame': "Same for all",
   'pack.quiz.allSameHint': "pick once, applies to the whole pack",
   'pack.quiz.addOwn': "Add your own…",
+  'pack.quiz.maxPick': "Pick up to {n} — untick one to swap.",
   'pack.quiz.close': "Close",
   'pack.quiz.back': "Back",
   'pack.quiz.next': "Next",

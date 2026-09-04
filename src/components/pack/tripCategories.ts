@@ -29,7 +29,7 @@ import type { GeometryKind } from './addtrip/addTripModel';
  *    výlety, ktoré nesú piknik alebo táborisko.
  *
  * 🔴 BOD (`point`) VYPADOL Z CELÉHO TRIPFLOW (Matej 31. 8.: „bod zbytočný v celom tripflow…
- *    nie?"). Najmenší okruh je bod s toleranciou — rozsah 50–500 m, východisko 100 (`AREA_MIN_M`/`AREA_MAX_M`
+ *    nie?"). Najmenší okruh je bod s toleranciou — rozsah 50 m – 5 km, východisko 100 (`AREA_MIN_M`/`AREA_MAX_M`
  *    v GeometryPicker). Z typu `GeometryKind` sa NEMAŽE: 8 výletov ho má v datasete zapísaný
  *    (7 vodných plôch + Bled) a zúžený typ by ich pri čítaní zhodil. Zaniklo len to, že sa dá
  *    VYBRAŤ. Prekreslenie tých ôsmich na okruh je samostatná úloha (`npm run trip-audit`).
@@ -141,6 +141,41 @@ const ACTIVITY_CHIPS: TripChip[] = [
   { id: 'mushrooms', emoji: '🍄', label: 'Mushrooms' },    // Matej 1. 9., vlastný zápis v matrici
 ];
 
+/**
+ * ── TVAR VÝLETU URČUJE CHIP, NIE KATEGÓRIA (Matej 1. 9. 2026) ─────────────────────────────
+ *
+ * „beh, bike a sup budú mať na výber aj trasovanie — bike a beh 1. možnosť trasa / alternatíva
+ *  okruh, sup bude hlavná možnosť okruh a alternatíva trasa"
+ *
+ * 🔑 PORADIE POĽA JE PORADIE NA OBRAZOVKE a prvá položka je zároveň VÝCHODISKOVÝ TVAR. Preto
+ *    tu nie je druhé pole `default`: dve hodnoty pre tú istú vec by sa pri prvej zmene rozišli
+ *    a prepínač by ukazoval iné poradie, než aké appka nastaví.
+ *
+ * 🔴 PLATÍ LEN PRE VLASTNÉ CHIPY KATEGÓRIE. Turistika smie mať piknik z druhého (zbaleného)
+ *    radu — a keby jej ten chip prepol geometriu na okruh, appka by človeku zahodila
+ *    rozkreslenú trasu za to, že si spomenul, kde obedoval. Guard je v `geometryForCategory`.
+ *
+ * ⚠️ CHIP BEZ ZÁZNAMU TU NIE JE CHYBA — padá na geometriu kategórie. Návšteva tak ostáva
+ *    okruhom pri všetkých šiestich miestach a nemusí sa tu opisovať šesťkrát to isté.
+ *
+ * ⚠️ KORČULE MAJÚ VOĽBU TIEŽ (Matej 1. 9. 2026: „korčule su trasa s okruhom!"). Prvé kolo
+ *    im ju nedalo, lebo v zadaní boli menované len bicykel, beh a SUP — lenže korčuľovanie
+ *    v parku je kolieska na jednom mieste presne tak, ako beh po hrádzi je trasa. Poradie
+ *    má zhodné s behom a bicyklom: trasa prvá.
+ *
+ * 🚩 BEZ ALTERNATÍVY OSTÁVAJÚ piknik, camping a hubárčenie — pri tých je „trasa" naozaj
+ *    nezmysel (nikto nepiknikuje po línii). Ak sa ozve opak, je to jedno slovo tu.
+ */
+const CHIP_GEOMETRY: Record<string, GeometryKind[]> = {
+  run: ['route', 'area'],      // beh: 1. trasa · alt okruh
+  bike: ['route', 'area'],     // bicykel: 1. trasa · alt okruh
+  paddle: ['area', 'route'],   // plávanie / SUP: 1. okruh · alt trasa
+  skate: ['route', 'area'],    // korčule: 1. trasa · alt okruh (Matej 1. 9.)
+  picnic: ['area'],
+  camping: ['area'],
+  mushrooms: ['area'],
+};
+
 /** kategória bez chipov — HIKE nesie náročnosť a príznak viacdňovosti (odysea), to stačí */
 const NO_CHIPS: TripChip[] = [];
 
@@ -173,9 +208,10 @@ const SPECS: CategorySpec[] = [
     legacyActs: ['sport', 'skating', 'paddleboard', 'overnight'],
     chips: ACTIVITY_CHIPS,
     hasDifficulty: false,
-    // Trasa aj okruh: korčule, beh a bicykel sú trasa, plávanie a piknik plocha. Default ostáva
-    // trasa — 🅿️ určenie tvaru CHIPOM (Matej 1. 9.) je súčasť tripflow ACTIVITY, ktorý sa stavia
-    // samostatne; dovtedy sa prepína ručne o obrazovku ďalej.
+    // ✅ TVAR URČUJE CHIP (postavené 1. 9. 2026) — `CHIP_GEOMETRY` vyššie. Beh a bicykel
+    // začínajú trasou, SUP okruhom; človek si to prepne v doku nad mapou.
+    // Tento riadok je ZÁCHRANA pre prípady, keď chip ešte nie je vybraný: plán aktivity
+    // (ten sa chipu nepýta) a starý koncept uložený pred touto zmenou.
     geometry: { default: 'route', allowed: ['route', 'area'] },
     label: 'Activity',
   },
@@ -254,6 +290,18 @@ export function primaryCategoryOf(acts?: string[] | null): TripCategoryId {
    * rozhodnutie, ktoré od človeka práve dostala.
    * `IDENTITY_ORDER` nižšie preto rozhoduje LEN tam, kde nikto nevyberal — teda na 81 seed
    * výletoch, ktoré nesú iba staré aktivity ('picnic', 'skating'…).
+   *
+   * 🔵 PRIEHRADY VYBERAL MATEJ (2026-09-04): „PRIEHRADA dajme visit natívne ale bude sa
+   *    zobrazovať aj v activity ale nie na HIKE." Ôsmim výletom, ktorých CIEĽ je vodná plocha
+   *    (7 priehrad + Bled — presne tá istá osmička, čo má v datasete geometriu `point`), preto
+   *    `acts` v `trails-nahadzovac-state.json` začína `['visit', 'lake', …]` a pôvodné činnosti
+   *    (`paddleboard`, `skating`, `picnic`, `overnight`, `explore`) stoja za nimi. Dôsledok je
+   *    presne Matejova veta: odznak VISIT (táto vetva), vo filtri ACTIVITY sa nájdu ďalej (cez
+   *    `categoriesOf`, ktoré číta všetky hodnoty), a do HIKE nespadnú, lebo `hike` v `acts`
+   *    nemajú. Zmena je LEN v dátach — nezakladalo sa pravidlo „miesto prebíja činnosť", lebo
+   *    kto zapíše priehradu sprievodcom, kategóriu si vyberie sám a táto vetva ju rešpektuje.
+   *    ⚠️ Túra OKOLO priehrady sa tým NEMENÍ: `zaruby-3` má `acts: ['hike']` a jazero nesie
+   *    ako TAG — ostáva HIKE.
    */
   const chosen = TRIP_CATEGORIES.find((c) => c.dataId === (acts ?? [])[0]);
   if (chosen) return chosen.id;
@@ -305,8 +353,18 @@ export function chipsOf(acts?: string[] | null): TripChip[] {
 export function geometryForCategory(
   id: string,
   multiDay = false,
+  chip?: string,
 ): { default: GeometryKind; allowed: GeometryKind[] } {
   if (id === 'hike' && multiDay) return { default: 'route', allowed: ['route'] };
+  /**
+   * ⚠️ CHIP PREBÍJA KATEGÓRIU, ale LEN keď je to chip TEJTO kategórie (viď `CHIP_GEOMETRY`).
+   * Bez tejto podmienky by turistika s piknikom z druhého radu prepla tvar na okruh a prišla
+   * o rozkreslenú trasu.
+   */
+  const byChip = chip ? CHIP_GEOMETRY[chip] : undefined;
+  if (byChip?.length && CATEGORY_BY_ID[id]?.chips.some((c) => c.id === chip)) {
+    return { default: byChip[0], allowed: byChip };
+  }
   return CATEGORY_BY_ID[id]?.geometry ?? { default: 'route', allowed: ['route', 'area'] };
 }
 
@@ -323,3 +381,60 @@ export const ACT_TAG_EMOJI: Record<string, string> = {
   ...Object.fromEntries(TRIP_CATEGORIES.map((c) => [c.id, c.emoji])),
   ...Object.fromEntries(Object.values(CHIP_BY_ID).map((ch) => [ch.id, ch.emoji])),
 };
+
+// ── TAGY: JEDEN ZDROJ PRE EMOJI AJ SLOVNÍK (2026-09-02) ─────────────────────────────────────
+// Do 2. 9. stáli `TAG_EMOJI` a slovník tagov DVAKRÁT — v `PackMap.tsx` a v `PackTripArticle.tsx`
+// — a už sa rozišli: článok mal `Lake`, mapa `Lake/Reservoir`, a článku chýbali oba povrchy.
+// Následok bol vidieť: dataset nesie tag `Lake` (13 z 81 výletov), takže na karte výletu na
+// mape stál chip BEZ emoji a s nepreloženým anglickým slovom, kým ten istý výlet mal v článku
+// 🔵 správne. Preklad tagov sa preto nedal spraviť raz — a to je blokátor E5.
+//
+// ⚠️ DVE SADY KĽÚČOV, JEDNA TABUĽKA. `tr.tags[]` nesie SUROVÉ dátové hodnoty (`Lake`, `Stream`),
+// filtre a chipy `TAG_VOCAB` pracujú s UI hodnotami (`Lake/Reservoir`, `River`). Karta aj článok
+// čítajú `tr.tags` PRIAMO, takže tabuľka musí poznať obe — ale druhý ručný zoznam by sa rozišiel
+// rovnako ako ten, ktorý toto nahrádza. Aliasy sa preto DOPOČÍTAVAJÚ z `DATA_TAG_TO_UI` nižšie.
+// ⚠️ Povrch (`tr.surface`) tu zámerne nie je: jeho dátové hodnoty sú malým písmom (`forest`)
+// a na emoji sa nikde nepýtajú — do chipov ide až cez `SURFACE_TAG_MAP` ako UI hodnota.
+
+/** Surová hodnota z `tr.tags[]` → hodnota vo `TAG_VOCAB`. Presunuté z `PackMap.tsx` 2026-09-02,
+ *  aby sa z nej dali odvodiť aliasy tabuliek nižšie. Hodnoty bez mapovania (napr.
+ *  'In the middle of nature') sa zámerne nezobrazujú ako chip a nefiltrujú — nefabrikuje sa
+ *  nový dátový tag, len sa neponúka chip preň. */
+export const DATA_TAG_TO_UI: Record<string, string> = {
+  Mountains: 'Mountains', Forest: 'Forest', View: 'View', Meadow: 'Meadow', Sunset: 'Sunset',
+  Shade: 'Shade', 'No shade': 'No shade',
+  Lake: 'Lake/Reservoir', Reservoir: 'Lake/Reservoir',
+  Stream: 'River', River: 'River',
+};
+
+/** Doplní tabuľke kľúčované UI hodnotami aj surové dátové kľúče, ktoré na ne mapujú. */
+function withDataTagAliases(byUi: Record<string, string>): Record<string, string> {
+  const out = { ...byUi };
+  for (const [raw, ui] of Object.entries(DATA_TAG_TO_UI)) {
+    if (out[raw] === undefined && byUi[ui] !== undefined) out[raw] = byUi[ui];
+  }
+  return out;
+}
+
+// Matrica značiek 24. 8. 2026: 🏞️→🔵, 💧→🌀, 🌄→👁️, 🥾→👣. Dôvod je kolízny, nie estetický —
+// 💧 nesie prameň v POI, 🥾 preskočilo na turistiku v `ACT_TAG_EMOJI` a 👣 sa uvoľnilo tým, že
+// návštevnosť „Rušno" prešla na 🚨.
+export const TAG_EMOJI: Record<string, string> = withDataTagAliases({
+  Mountains: '🏔️', Forest: '🌲', 'Lake/Reservoir': '🔵', River: '🌀', View: '👁️', Meadow: '🌼', Sunset: '🌅',
+  Shade: '⛱️', 'No shade': '🌡️',
+  'Forest path': '👣', Asphalt: '🛣️', Rocky: '🪨',
+});
+
+// ⚠️ HODNOTA ≠ TEXT NA OBRAZOVKE (2026-08-23). Tagy sú dátové hodnoty z `tr.tags` a `tr.surface`
+// — filtruje sa podľa nich, takže sa NEPREKLADAJÚ. Chip však človek číta, a v slovenskom paneli
+// FILTRE stálo „Mountains / Forest / Lake/Reservoir". Slovník je spoločný s formulárom výletu
+// (`pack.map.tagLabel.*`, `surfaceLabel.*`), aby tá istá vec nemala na dvoch obrazovkách dva
+// názvy. Chýbajúci kľúč padá na pôvodnú hodnotu.
+export const TAG_I18N: Record<string, string> = withDataTagAliases({
+  Mountains: 'pack.map.tagLabel.mountains', Forest: 'pack.map.tagLabel.forest',
+  'Lake/Reservoir': 'pack.map.tagLabel.lake', River: 'pack.map.tagLabel.river',
+  View: 'pack.map.tagLabel.view', Meadow: 'pack.map.tagLabel.meadow', Sunset: 'pack.map.tagLabel.sunset',
+  Shade: 'pack.map.tagLabel.shade', 'No shade': 'pack.map.tagLabel.noshade',
+  'Forest path': 'pack.map.surfaceLabel.forest', Asphalt: 'pack.map.surfaceLabel.asphalt',
+  Rocky: 'pack.map.surfaceLabel.rocky',
+});

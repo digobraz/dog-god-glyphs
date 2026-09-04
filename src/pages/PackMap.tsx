@@ -46,7 +46,7 @@
 // ikonka = sliders (nie graph).
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { MapContainer, TileLayer, Polyline, Polygon, Marker, ScaleControl, useMap, useMapEvent } from 'react-leaflet';
+import { MapContainer, TileLayer, Polyline, Polygon, Circle, Marker, ScaleControl, useMap, useMapEvent } from 'react-leaflet';
 import L from 'leaflet';
 import type { LatLngTuple } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -80,13 +80,14 @@ import { intlLocale } from '@/i18n/bcp47';
 import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
 import { PoiLayer, PoiAttribution } from '@/components/geo/PoiLayer';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { goldFrameCSS, goldPlateCSS, pickTintCSS, PICK_INK, SLAB, LAPIS, LAPIS_BTN_SHADOW, MAP_SKIN, NAV_GOLD, NAV_PILL_SHADOW, NAV_R, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
 import { estimateTripMinutes, formatTripTime } from '@/lib/tripTime';
 import ainubisFace from '@/assets/ainubis-head.png';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import {
   ICON, authorOf, REGION_OF, diffMarkShape, DiffMark, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
-  DIFF_COLOR, TRAIL_LINE, TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, tripShareText, pluralKey,
+  DIFF_COLOR, TRAIL_LINE, TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, hasRouteMetrics, tripShareText, pluralKey,
   readLocalTrails, writeLocalTrails, updateLocalTrail, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
   tripPath, tripPathById, tripText, visibleLocalTrails, tripDraftMissing, memberTrailIds, isOdyssey } from '@/components/pack/tripShared';
@@ -102,7 +103,7 @@ import { packStorage } from '@/lib/packStore';
 import {
   COMMUNITY_CSS, BigRating, PhotoMetaPills, HazardTags, WalkedPopup,
   EventsView,
-  type WalkedInput, type WalkReward,
+  type WalkedInput, type WalkReward, type Companion,
 } from '@/components/pack/packCommunityUI';
 import { PointsPill, POINTS_PILL_CSS } from '@/components/pack/PointsPill';
 import { deletePackTrip } from '@/lib/packStore';
@@ -142,6 +143,7 @@ import { TRAVEL_EMOJI } from '@/components/pack/addtrip/addTripModel';
 import { TRIP_HOLD_MIN_ZOOM } from '@/components/pack/addtrip/GeometryPicker';
 import type { AddTripDraft, TripState } from '@/components/pack/addtrip/addTripModel';
 import { clearTripNotes, readTripNotesForSession, writeTripNotes, missingOnTrail, type TripNoteRef } from '@/components/pack/addtrip/addTripModel';
+import { savedGeometry } from '@/components/pack/addtrip/addTripModel';
 import { devSyncLocalTrips } from '@/lib/devTripSync';
 // EVENT formulár (krok 3, plany/zadanie-eventy-2026-08-06.md §4) — vedľa ADD TRIP, vlastný
 // adresár. Storage je zatiaľ len localStorage (migrácia z kroku 2 nie je nasadená, §9 zadania).
@@ -154,7 +156,7 @@ import {
 // krok 5) — dovtedy sa event po uložení nikde nezobrazoval (formulár aj store boli hotové,
 // panel ostal viazaný len na TRIP vetvu).
 import { EventsPanel } from '@/components/pack/events/EventsPanel';
-import { TRIP_CATEGORIES, ACT_TAG_EMOJI, ACT_TO_CATEGORY, CHIP_BY_ID, categoriesOf, chipsOf, isInCategory, primaryCategoryOf, type TripCategoryId } from '@/components/pack/tripCategories';
+import { TRIP_CATEGORIES, ACT_TAG_EMOJI, ACT_TO_CATEGORY, CHIP_BY_ID, DATA_TAG_TO_UI, TAG_EMOJI, TAG_I18N, categoriesOf, chipsOf, isInCategory, primaryCategoryOf, type TripCategoryId } from '@/components/pack/tripCategories';
 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
@@ -325,7 +327,10 @@ const TRIP_ACTIVITIES: { id: string; label: string }[] =
 //    túra s piknikom je na karte HIKE, ale pod filtrom VISIT sa MUSÍ nájsť. Bez toho by
 //    na 81 seed výletoch ostal VISIT chudobný — 19 piknikov a 7 z 8 nocľahov leží na výlete,
 //    ktorý je zároveň túra. Prečo tam tá karta je, povie dvojica odznakov v `renderTripCard`.
-const ACT_EMOJI: Record<string, string> = { ...ACT_TAG_EMOJI, ...Object.fromEntries(TRIP_CATEGORIES.map((c) => [c.id, c.emoji])) };
+// ⚠️ ALIAS, NIE DRUHÁ TABUĽKA (2026-09-02). `ACT_TAG_EMOJI` kategórie už spreaduje samo,
+// takže tunajší rozšírený zápis dával presne tú istú mapu — len budil dojem, že sa niekde
+// dopĺňa. Meno ostáva kvôli volajúcim nižšie.
+const ACT_EMOJI: Record<string, string> = ACT_TAG_EMOJI;
 // Čo sa zapíše novému výletu do `tr.acts` — staré hodnoty ('picnic', 'skating'…) v datasete
 // ostávajú a kategórie ich čítajú ďalej (`TripCategory.acts`), nemigruje sa nič.
 const ACT_DATA_ID: Record<string, string> = Object.fromEntries(TRIP_CATEGORIES.map((c) => [c.id, c.dataId]));
@@ -365,27 +370,9 @@ const TAG_VOCAB = [
 // štvrtý povrch, objaví sa v rozbaľovačke sám.
 const SURFACE_TAGS = ['Forest path', 'Asphalt', 'Rocky'] as const;
 const IS_SURFACE = new Set<string>(SURFACE_TAGS);
-// Matrica značiek 24. 8. 2026: 🏞️→🔵, 💧→🌀, 🌄→👁️, 🥾→👣. Dôvod je kolízny, nie estetický —
-// 💧 nesie prameň v POI, 🥾 preskočilo na turistiku v `ACT_EMOJI` a 👣 sa uvoľnilo tým, že
-// návštevnosť „Rušno" prešla na 🚨.
-const TAG_EMOJI: Record<string, string> = {
-  Mountains: '🏔️', Forest: '🌲', 'Lake/Reservoir': '🔵', River: '🌀', View: '👁️', Meadow: '🌼', Sunset: '🌅',
-  Shade: '⛱️', 'No shade': '🌡️',
-  'Forest path': '👣', Asphalt: '🛣️', Rocky: '🪨',
-};
-// ⚠️ HODNOTA ≠ TEXT NA OBRAZOVKE (2026-08-23). `TAG_VOCAB` sú dátové hodnoty z `tr.tags`
-// a `tr.surface` — filtruje sa podľa nich, takže sa NEPREKLADAJÚ. Chip však človek číta,
-// a v slovenskom paneli FILTRE stálo „Mountains / Forest / Lake/Reservoir". Slovník je
-// spoločný s formulárom výletu (`pack.map.tagLabel.*`, `surfaceLabel.*`), aby tá istá vec
-// nemala na dvoch obrazovkách dva názvy. Chýbajúci kľúč padá na pôvodnú hodnotu.
-const TAG_I18N: Record<string, string> = {
-  Mountains: 'pack.map.tagLabel.mountains', Forest: 'pack.map.tagLabel.forest',
-  'Lake/Reservoir': 'pack.map.tagLabel.lake', River: 'pack.map.tagLabel.river',
-  View: 'pack.map.tagLabel.view', Meadow: 'pack.map.tagLabel.meadow', Sunset: 'pack.map.tagLabel.sunset',
-  Shade: 'pack.map.tagLabel.shade', 'No shade': 'pack.map.tagLabel.noshade',
-  'Forest path': 'pack.map.surfaceLabel.forest', Asphalt: 'pack.map.surfaceLabel.asphalt',
-  Rocky: 'pack.map.surfaceLabel.rocky',
-};
+// ⚠️ `TAG_EMOJI` a `TAG_I18N` sa presťahovali do `tripCategories.ts` (2026-09-02). Stáli tu
+// aj v `PackTripArticle.tsx` a rozišli sa: tunajšia kópia nepoznala dátový tag `Lake`, takže
+// 13 z 81 výletov malo na karte chip bez emoji a s nepreloženým anglickým slovom.
 
 // Per-aktivita placeholder fotky (Cloudinary pack/placeholders, webp). Kľúč = ACT_DATA_ID
 // (hike/journey/picnic/overnight/skating/paddleboard). Použité pre tripy bez vlastnej fotky
@@ -414,15 +401,8 @@ const EVENT_PIN = (kind: EventKind, hot: boolean) => L.divIcon({
   className: 'mk-wrap',
   html: circleMarkHtml(eventEmoji(kind), EVENT_RIM, hot ? ' mk-circle--hot' : ''),
 });
-const DATA_TAG_TO_UI: Record<string, string> = {
-  Mountains: 'Mountains', Forest: 'Forest', View: 'View', Meadow: 'Meadow', Sunset: 'Sunset',
-  Shade: 'Shade', 'No shade': 'No shade',
-  Lake: 'Lake/Reservoir', Reservoir: 'Lake/Reservoir',
-  Stream: 'River', River: 'River',
-  // prostredie vodných tripov — 1:1, hodnoty z nahadzovača sa nepremenúvajú
-  // ('In the middle of nature'/'In the middle of nowhere' zámerne bez mapovania —
-  // Matej 2026-07-26 oba chipy zrušil; 'Embankment' zrušil 2026-07-27)
-};
+// `DATA_TAG_TO_UI` sa presťahovalo do `tripCategories.ts` — odvodzujú sa z neho aliasy
+// `TAG_EMOJI`/`TAG_I18N` pre surové dátové kľúče, takže musí stáť pri nich.
 // tr.surface[] → chip. Všetky tri hodnoty z SURFACE_VOCAB (nahadzovač) majú teraz svoj chip,
 // aby sa dalo filtrovať podľa toho, čo sa dá zadať (F1 2026-07-24). `forest` už NEsplýva so
 // scenérickým tagom `Forest` — sú to dve rôzne veci (les okolo vs. lesná cesta pod nohami).
@@ -471,6 +451,25 @@ const JOURNEY_KM_ZOOM = { min: 9, max: 11 };
 const pointIsPill = (p: MapPoint, zoom: number) =>
   p.journey ? zoom >= JOURNEY_KM_ZOOM.min && zoom <= JOURNEY_KM_ZOOM.max : mapTier(zoom) === 2;
 
+/**
+ * ── ČO STOJÍ V PILULKE — ŠTVRTÝ POVRCH TEJ ISTEJ LŽI (2026-09-02) ─────────────────────────
+ * Okruh nemá kilometre (`hasRouteMetrics`), a predsa tu stálo `${p.tr.km} km` pre všetko,
+ * čo nie je voda ⇒ návšteva nakreslená klikom do mapy hlásila **„0.0 km" priamo na mape**.
+ * Zadanie z 31. 8. inventarizovalo kartu, článok a reveal; toto miesto v ňom nebolo, hoci je
+ * z nich najviditeľnejšie — mapa je hlavná obrazovka. Odkedy je okruh povinný tvar kategórie
+ * VISIT, týka sa to tretiny nových výletov.
+ *
+ * Náhrada nie je nový nápad: vodná plocha tu ukazuje NÁZOV už dávno a z toho istého dôvodu
+ * (miesto sa nemeria, miesto sa volá). Okruh je tiež miesto, tak dostáva to isté.
+ *
+ * ⚠️ ŠÍRKA SA MUSÍ MERAŤ NA TOM ISTOM TEXTE. Výpočet prekážok nižšie meral `${km} km` aj
+ *    tam, kde sa kreslil názov — pri vodných plochách teda počítal s cudzou šírkou (napr.
+ *    „Liptovská Mara" 14 znakov proti „0.0 km" 6) a zhluky ustupovali nesprávnemu obdĺžniku.
+ *    Preto to má jeden zdroj, nie dva zápisy toho istého.
+ */
+const pillLabel = (p: MapPoint): string =>
+  p.water || !hasRouteMetrics(p.tr) ? p.tr.name : `${p.tr.km} km`;
+
 // vlnky vodnej plochy — rovnaká krivka ako pôvodný waterIcon() (Matej 2026-07-24: počet = veľkosť
 // plochy z OSM), teraz zdieľaná bodkou aj pilulkou namiesto vlastnej .trp-waterdot veľkosti.
 const waterWaves = (waves?: number): string => {
@@ -501,7 +500,7 @@ const pointTypeClass = (p: MapPoint): string => (p.journey ? '--journey' : p.wat
 const pointIcon = (p: MapPoint, hot: boolean, zoom: number) => {
   const type = pointTypeClass(p);
   if (pointIsPill(p, zoom)) {
-    const label = p.water ? p.tr.name : `${p.tr.km} km`;
+    const label = pillLabel(p);
     return L.divIcon({
       className: 'trp-pinwrap',
       html: `<div class="trp-pill${type ? ` trp-pill${type}` : ''}${hot ? ' hot' : ''}">${pointPicto(p)}<span>${label}</span></div>`,
@@ -946,7 +945,7 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
     // (.trp-pill má top:-100% → sedí NAD bodom, preto je stred obdĺžnika o PILL_H/2 vyššie)
     const pillBoxes = pillPts.map((p) => {
       const pt = map.latLngToContainerPoint([p.lat, p.lon]);
-      const w = `${p.tr.km} km`.length * PILL_CHAR_PX + PILL_PAD_PX;
+      const w = pillLabel(p).length * PILL_CHAR_PX + PILL_PAD_PX;
       return { cx: pt.x, cy: pt.y - PILL_H / 2, hw: w / 2 + PILL_GAP, hh: PILL_H / 2 + PILL_GAP };
     });
     // Bublina je súhrn, nie konkrétna trasa — posunúť ju o pár pixelov je prijateľné.
@@ -1484,8 +1483,10 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
    stavy — LIST (default, vyššie), inline DETAIL, ADD setup. Mobile skrýva celý
    .trp-sidebar (viď mobile media query) — DETAIL/ADD sú desktop-only, mobile
    detail ide cez existujúci .trp-detoverlay full-page modal. ── */
-.trp-panelnav-btn{width:32px;height:32px;border-radius:50%;background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
-.trp-panelnav-btn:hover{border-color:${GOLD};color:${GOLD};}
+/* Zdieľa ju aj tlačidlo „rozbaliť" ⤢ vedľa — tvar (BackButton.tsx) sa aplikuje na oboje,
+   znak ⤢ zámerne ostáva textom a len zdedí nový rozmer kruhu. */
+.trp-panelnav-btn{${backCircleCSS('dark')}}
+.trp-panelnav-btn:hover{${backHoverCSS('dark')}}
 
 .trp-inldet{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden;}
 .trp-inldet-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px;flex-shrink:0;}
@@ -1517,7 +1518,15 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 .trp-inldet-rating b{font-family:${FONT_UI};font-weight:600;font-size:12px;color:${GOLD};}
 /* bod 4: tagy JEDEN riadok vedľa seba (nie stĺpec/pravá strana ako v i12) */
 .trp-inldet-tagrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;}
-.trp-inldet-tag{background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:10.5px;font-weight:600;padding:5px 10px;border-radius:999px;white-space:nowrap;}
+/* ZLATÉ CHIPY — ZHODNÉ S ČLÁNKOM (Matej 1. 9. 2026: „ked si dal do blogu zlaté chipy
+   daj ich aj na detail tripu nech to ladí"). Dvojička je ".pta-tag" v PackTripArticle.tsx;
+   je to tá istá vec na dvoch povrchoch, takže hodnoty musia sedieť do písmena.
+   Gradient je brandová rampa okolo tokenu "#C99A3F", NIE locknutý gradient tlačidla
+   "#F5C73D→#E69E1A" — ten je zlatooranžový, patrí tlačidlu a Matej si tú zmes spája
+   s AINUBISOM. Chip nie je tlačidlo: nedá sa naň kliknúť a nemá stav, je to menovka.
+   Menšie písmo a padding než v článku sú zámerné — panel mapy je užší než stránka. */
+.trp-inldet-tag{background:linear-gradient(140deg,#D9AE55,#B98F33);border:1px solid #8C6014;color:#3d2405;font-size:10.5px;font-weight:600;padding:5px 11px;border-radius:999px;white-space:nowrap;
+  box-shadow:0 2px 5px -1px rgba(110,71,16,0.35), inset 0 1px 0 rgba(255,255,255,0.38);}
 .trp-inldet-desc{font-size:12.5px;line-height:1.6;color:${T.onDarkDim};margin-top:10px;}
 /* bod 4: Comments + "Walked by N Dogyptians" — placeholder empty-state sekcie */
 .trp-inldet-section{margin-top:16px;}
@@ -2289,14 +2298,21 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-topbar .trp-avatarcircle{border-color:#FBF5E6;}
 
   /* ── 6. PANEL — vnorený detail výletu ─────────────────────────────────────────────────*/
-  .trp-sidebar .trp-panelnav-btn{background:${P_SOFT};border-color:${P_BORDER};color:${P_INK};}
-  .trp-sidebar .trp-panelnav-btn:hover{border-color:${T.cardEdge};color:#8A5F1E;background:#FFFDF6;}
+  .trp-sidebar .trp-panelnav-btn{${backCircleCSS('pale')}}
+  .trp-sidebar .trp-panelnav-btn:hover{${backHoverCSS('pale')}}
   .trp-sidebar .trp-inldet-loc{color:${P_DIM};}
   .trp-sidebar .trp-inldet-name{color:${P_INK};}
   .trp-sidebar .trp-inldet-author{color:${P_DIM};}
   .trp-sidebar .trp-inldet-meta2-row{color:${P_DIM};}
   .trp-sidebar .trp-inldet-rating b{color:#8A5F1E;}
-  .trp-sidebar .trp-inldet-tag{background:${P_SOFT};border-color:${P_BORDER};color:${P_INK};}
+  /* ⚠️ CHIPY ZOSTÁVAJÚ ZLATÉ AJ V PAPYRUSOVOM PANELI (Matej 1. 9. 2026: „ked si dal do
+     blogu zlaté chipy daj ich aj na detail tripu nech to ladí"). Toto pravidlo má dve
+     triedy, teda VYŠŠIU špecificitu než základné ".trp-inldet-tag" o 780 riadkov vyššie —
+     prepísanie chipu tam sa sem nikdy nedostalo a panel ostal bledý, hoci článok už bol
+     zlatý. Kto mení vzhľad chipu, mení ho TU aj tam; hodnoty musia sedieť s ".pta-tag"
+     v PackTripArticle.tsx do písmena, je to tá istá vec na dvoch povrchoch. */
+  .trp-sidebar .trp-inldet-tag{background:linear-gradient(140deg,#D9AE55,#B98F33);border-color:#8C6014;color:#3d2405;
+    box-shadow:0 2px 5px -1px rgba(110,71,16,0.35), inset 0 1px 0 rgba(255,255,255,0.38);}
   .trp-sidebar .trp-inldet-desc{color:${P_DIM};}
   .trp-sidebar .trp-inldet-section h4{color:${P_INK};}
   .trp-sidebar .trp-inldet-empty{color:${P_FAINT};}
@@ -2749,9 +2765,9 @@ const PALE_ADD_CSS = MAP_SKIN !== 'pale' ? '' : `
      obrazovky toku za sebou, na ktorých by návrat skákal z rohu do stredu, sú dva rôzne
      jazyky pre tú istú cestu von. Rohová poloha (.atl-log-back v úzkej hlavičke) ostáva
      krokom, kde nadpis drží riadok; tu je riadok prázdny a stred ho vyplní. */
-  .trp-root .att-entry-x{display:flex;align-items:center;justify-content:center;position:absolute;
-    top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);width:34px;height:34px;border-radius:50%;
-    background:${P_SOFT};border:1px solid ${P_BORDER};color:${P_INK};font-size:16px;line-height:1;cursor:pointer;}
+  .trp-root .att-entry-x{position:absolute;
+    top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);
+    ${backCircleCSS('pale')}}
   /* Návrat z druhej úrovne stojí na TOM ISTOM mieste ako šípka — nikdy nie sú na obrazovke
      obidva (šípka je len na kroku „čo pridávam"), takže odsadenie vedľa nej by bolo odsadenie
      vedľa prázdna. */
@@ -4643,11 +4659,10 @@ export default function PackMap() {
 
     // ⚠️ ÚDAJE IDÚ PO KUSOCH, nie ako veta (Matej 28. 8. 2026 — reveal ich kreslí do chipov).
     // Veta sa skladá naďalej: nesie ju scéna level-upu, kde chipy nie sú.
-    const stats = [
+    const stats = revealStats(trail, [
       trail.km && Number(trail.km) > 0 ? { value: String(trail.km), unit: 'km' } : null,
       draft.ascentM ? { value: String(draft.ascentM), unit: 'm ↑' } : null,
-      revealPlaceStat(trail),
-    ].filter(Boolean) as TripStat[];
+    ], draft.crew);
     const meta = stats.map((x) => [x.value, x.unit].filter(Boolean).join(' ')).join(' · ');
 
     setReveal({
@@ -4673,14 +4688,82 @@ export default function PackMap() {
    * preklep, nie ako miesto.
    *
    * Pohorie sa lokálnemu výletu doplní až po schválení (`mountains`), takže kým ho nemá,
-   * je správne NEUKÁZAŤ NIČ: chip s menovkou miesta je nepovinný a prázdny rad sa nekreslí.
-   * Rozlišuje sa dĺžkou — kód má jeden znak, názov pohoria vždy viac.
+   * niesol chip prázdno. Rozlišuje sa dĺžkou — kód má jeden znak, názov pohoria vždy viac.
+   *
+   * ✅ KÓD SA UŽ NEZAHADZUJE, VYPÍŠE SA SLOVOM (Matej 31. 8. 2026). Čerstvo zapísaný okruh
+   * tak nemá v odmene o mieste ani slovo, hoci polovicu Slovenska vieme. Slová sa NEVYMÝŠĽAJÚ
+   * — berú sa z `pack.map.macroRegion.*`, teda z toho istého slovníka, akým hovorí druhý
+   * riadok karty („Malé Karpaty · Západ"). Dva rôzne názvy pre tú istú polovicu krajiny by
+   * sa rozišli pri prvej úprave prekladu.
    */
+  const MACRO_BY_CODE: Record<string, 'West' | 'Center' | 'East'> = { W: 'West', C: 'Center', E: 'East' };
   const revealPlaceStat = (trail: HeroTrail): TripStat | null => {
     const mountains = (trail as HeroTrail & { mountains?: string }).mountains;
     if (mountains) return { value: mountains };
     const region = trail.region ?? '';
-    return region.length > 2 ? { value: region } : null;
+    if (region.length > 2) return { value: region };
+    const macro = MACRO_BY_CODE[region];
+    return macro ? { value: t(`pack.map.macroRegion.${macro}`) } : null;
+  };
+
+  /**
+   * ── ČO UKÁŽE REVEAL PRI OKRUHU (Matej 31. 8. 2026: „reveal podla teba je ok") ──────────
+   * Okruh nemá km ani prevýšenie (`hasRouteMetrics`), takže reveal ostával s jedinou
+   * pilulkou — často aj bez nej, teda prázdny moment tam, kde má byť odmena. Dvojicu
+   * „km · prevýšenie" nahrádza REGIÓN · CHIPY · S KÝM; pilulka miesta ostáva, aká bola.
+   *
+   * ⚠️ TRASA SI SVOJE PILULKY DRŽÍ. Toto je vetva pre okruh, nie prepis revealu.
+   */
+  const revealStats = (trail: HeroTrail, route: Array<TripStat | null>, crew?: Companion[]): TripStat[] => {
+    const list: Array<TripStat | null> = hasRouteMetrics(trail)
+      ? [...route, revealPlaceStat(trail)]
+      : [revealCategoryStat(trail), revealChipStat(trail), revealPlaceStat(trail), revealCrewStat(crew)];
+    return list.filter(Boolean) as TripStat[];
+  };
+
+  /**
+   * -- S KYM (Matej odklepol 2. 9. 2026) -------------------------------------------------
+   * Schvalena trojica okruhu bola *region - chipy - s kym*; postavene boli len prve dve --
+   * pilulka o posadke chybala aj s prekladmi. Matejova volba: doplnit, ale LEN KED tam
+   * s tebou naozaj niekto bol -- pri solo vylete riadok nie je vobec, nie prazdne miesto.
+   *
+   * WARN: CITA SA POSADKA Z FORMULARA, NIE `trail.dogs`. Do trasy sa uklada len POCET psov,
+   *   takze mena by sa z nej ziskat nedali -- a pocet sam o sebe na otazku "s kym" neodpoveda.
+   * WARN: VLASTNY PES SA NERATA. Sprievodca ho do posadky nasadi sam (`crewSeededRef`
+   *   v AddTripLog), takze by "s kym" svietilo uplne kazdemu, aj tomu, kto siel sam.
+   *   Rozlisuje ho `sub === 'your pack'` -- tu istu menovku mu dava seed.
+   */
+  const revealCrewStat = (crew?: Companion[]): TripStat | null => {
+    const others = (crew ?? []).filter((c) => c.sub !== 'your pack');
+    if (others.length === 0) return null;
+    const names = others.slice(0, 2).map((c) => c.name).join(', ');
+    const rest = others.length - Math.min(2, others.length);
+    return { value: rest > 0 ? `${names} +${rest}` : names };
+  };
+
+  /**
+   * ČO TO BOL ZA VÝLET — tá istá dvojica ako odznaky na karte: kategória (čo výlet JE) plus
+   * jeden chip (čo je to za miesto). Kategória je vždy, chip len keď ho človek vybral.
+   */
+  const revealCategoryStat = (trail: HeroTrail): TripStat => {
+    const c = primaryCategoryOf(trail.acts);
+    return { value: `${ACT_EMOJI[c] ?? ''} ${t(`pack.map.activityLabel.${c}`)}`.trim() };
+  };
+
+  /**
+   * ⚠️ JEDEN CHIP, NIE VŠETKY (Matej 31. 8. 2026: „ten zápis bude tam len pils ktorý sa vyberie
+   * nie všetky"). Reveal vysypával celý štvrtý krok — pri štyroch chipoch z toho bol zoznam
+   * toho, čo človek práve naklikal, nie odmena. Berie sa PRVÝ vybraný, teda ten, ktorý stojí
+   * najbližšie ku kategórii v `acts`.
+   * `chipsOf()` prepustí len skutočné chipy — staré `picnic`/`overnight` do kategórie patria,
+   * ale vlastný preklad nikdy nemali.
+   */
+  const revealChipStat = (trail: HeroTrail): TripStat | null => {
+    const ch = chipsOf(trail.acts)[0];
+    if (!ch) return null;
+    const k = `pack.map.chipLabel.${ch.id}`;
+    const lbl = t(k);
+    return { value: `${ch.emoji} ${lbl === k ? ch.label : lbl}` };
   };
 
   /**
@@ -4753,11 +4836,12 @@ export default function PackMap() {
       newCountry: !!planTrail.country && !countriesBefore.has(planTrail.country),
     });
 
-    const stats = [
+    // ⚠️ TÁ ISTÁ VETVA AKO PRI ZÁPISE. Okruhový plán nesie ako `path` jedinú kotvu (stred),
+    //    takže `hasRouteMetrics` je `false` a km sú aj tu číslo bez zmyslu.
+    const stats = revealStats(planTrail, [
       km > 0 ? { value: km.toFixed(1), unit: 'km' } : null,
       draft.ascentM ? { value: String(draft.ascentM), unit: 'm ↑' } : null,
-      revealPlaceStat(planTrail),
-    ].filter(Boolean) as TripStat[];
+    ], draft.crew);
 
     setReveal({
       tripName: planTrail.name,
@@ -4795,6 +4879,20 @@ export default function PackMap() {
         // Platí pre nový výlet aj pre dopĺňanie konceptu — inak by dopísaný výlet psa stratil.
         ...(draft.crew?.length ? { dogs: draft.crew.length } : {}),
         ...(draft.dateKind !== 'flexible' && draft.date ? { date: draft.date } : {}),
+        /**
+         * ── CHIPY SA ZAPISUJÚ AJ TU (2026-09-02) ───────────────────────────────────────
+         * Patch ich nemal vôbec, takže odpoveď na krok „ČO" sa pri dokončovaní zahodila —
+         * a pri prejdenom pláne kategórie AKTIVITA je ten krok POVINNÝ (bez chipu nepustí
+         * ďalej). Odmerané: naplánuj, prejdi, vyber „Camping", ulož ⇒ v zázname ostalo
+         * `acts: ['activity']`. Skladá sa to rovnako ako pri novom výlete nižšie — jedno
+         * pole, jeden mechanizmus, filter aj karta ich čítajú rovnako.
+         * ⚠️ Píše sa len keď chip naozaj je. Prázdny zoznam by `acts` PREPÍSAL na samotnú
+         * kategóriu a zmazal staré hodnoty datasetu (`picnic`, `overnight`), ktoré formulár
+         * nepozná — tie nesie `legacyActs`, nie chipy.
+         */
+        ...(draft.chips?.length
+          ? { acts: [ACT_DATA_ID[draft.activity] ?? draft.activity, ...draft.chips] }
+          : {}),
       };
       if (!updateLocalTrail(finishId, patch)) {
         setAddError(t('pack.map.errorPhotosStorage'));
@@ -4822,11 +4920,19 @@ export default function PackMap() {
         // 1. TRASA. Dopĺňanie ju nemení (je zamknutá), tu sa opraviť smie — takže ide von
         //    aj stopa, aj kotvy, aj prepočítané kilometre. `planPath` sa NEMAŽE: keby sa
         //    človek k výletu vrátil, sú to jediné kotvy, ktoré k čiare existujú.
-        const line = draft.geometry.kind === 'route' ? (draft.geometry.snapPath ?? draft.geometry.path) : [];
-        if (line.length >= 2) {
+        // ⚠️ MIESTO A OKRUH MAJÚ V `path` JEDEN BOD (2026-09-01). Podmienka znela `>= 2`,
+        //    teda „aspoň úsečka", a plán návštevy tak prešiel bez zápisu: zmena stredu ani
+        //    polomeru pri zapisovaní prejdeného plánu sa neuložila. `savedGeometry` vracia
+        //    stred ako jediný bod, takže sa mení aj prah.
+        const geo = savedGeometry(draft.geometry);
+        const drawn = draft.geometry.kind === 'route' ? geo.path.length >= 2 : geo.path.length === 1;
+        if (drawn) {
           updateLocalTrail(finishId, {
-            path: line,
-            km: (totalDistanceM(line) / 1000).toFixed(1),
+            path: geo.path,
+            // `areaR` sa posiela VŽDY, aj ako `undefined` — kto plán prekreslil z okruhu na
+            // trasu, musí o starý polomer prísť; `...geo` by ho pri chýbajúcom kľúči nechal.
+            areaR: geo.areaR,
+            km: (totalDistanceM(geo.path) / 1000).toFixed(1),
             ...(draft.geometry.kind === 'route' && draft.geometry.path.length ? { planPath: draft.geometry.path } : {}),
           });
           setLocalTrails(readLocalTrails());
@@ -4890,7 +4996,12 @@ export default function PackMap() {
         closeAdd();
         return true;
       }
-      const line = draft.geometry.kind === 'route' ? (draft.geometry.snapPath ?? draft.geometry.path) : [];
+      // ⚠️ MIESTO A OKRUH SA SEM DOTERAZ NEDOSTALI (2026-09-01). Stálo tu prázdne pole pre
+      //    všetko, čo nie je trasa, takže zapísaná návšteva mala `path: []` — `mapPoints` ju
+      //    preskočil a na mape nebola vôbec. `savedGeometry` nesie stred ako jediný bod
+      //    a polomer okruhu zvlášť (viď addTripModel.ts).
+      const geo = savedGeometry(draft.geometry);
+      const line = geo.path;
       const km = (totalDistanceM(line) / 1000).toFixed(1);
       const tid = `local-${Date.now()}-${Math.round(totalDistanceM(line))}`;
       const newTrail: HeroTrail = {
@@ -4904,6 +5015,7 @@ export default function PackMap() {
         km,
         stars: draft.paws ?? 0,
         path: line,
+        ...(geo.areaR ? { areaR: geo.areaR } : {}),
         photos: draft.photos ?? [],
         seasons: [],
         desc: draft.note ?? '',
@@ -4989,13 +5101,15 @@ export default function PackMap() {
 
     // ── PLÁNOVANIE ──
     const now = Date.now();
-    const anchor: LatLngTuple[] = draft.geometry.kind === 'route'
-      ? (draft.geometry.snapPath ?? draft.geometry.path)
-      : (draft.geometry.center ? [draft.geometry.center] : []);
+    // Stred aj polomer nesie jeden zdroj (`savedGeometry`) — plán ho čítal po svojom
+    // a polomer okruhu si nebral vôbec, takže naplánovaná návšteva prišla o svoju plochu.
+    const planGeo = savedGeometry(draft.geometry);
+    const anchor: LatLngTuple[] = planGeo.path;
     const tid = `plan-${now}`;
     const planTrail: HeroTrail = {
       id: tid, name: draft.name.trim(), region: draft.region ?? '', country: draft.country,
       diff: 'Moderate', km: '0', stars: 0, path: anchor,
+      ...(planGeo.areaR ? { areaR: planGeo.areaR } : {}),
       // ⚠️ `desc` BOLO NATVRDO PRÁZDNE (opravené 2026-08-25). Krok 2 plánu sa pýta „čo je
       // v pláne" a odpoveď sa doteraz zahodila pri ukladaní — pole, ktoré nikam nevedie.
       // Po prejdení sa ten istý text stáva základom príbehu výletu, takže sa musí dochovať.
@@ -5410,12 +5524,14 @@ export default function PackMap() {
             {/* vodná plocha (isWaterTrail) nikdy nemá náročnosť/km — PhotoMetaPills (packCommunityUI)
                 by ich vykreslilo naostro („↔  km", fake difficulty), preto sa tu pre vodu vôbec
                 nevolá namiesto snahy dotlačiť do neho prázdne hodnoty. */}
+            {/* OKRUH (bez nakreslenej čiary) nemá km ani náročnosť rovnako — ale MÁ ruch, takže
+                sa PhotoMetaPills volá a mlčia v ňom len tie dve pilulky (`hasRouteMetrics`). */}
             {isUnwalkedPlan
               ? <span className="trp-plannedpill">🗓️ {t('pack.map.planned')}</span>
               : draftMissing.length > 0
               ? <span className="trp-draftpill">📝 {t('pack.map.draftPill')}</span>
               : isWaterTrail(tr) ? null
-              : <PhotoMetaPills agg={agg} km={tr.km} ascentM={(tr as { ascentM?: number }).ascentM} />}
+              : <PhotoMetaPills agg={agg} km={tr.km} ascentM={(tr as { ascentM?: number }).ascentM} hasRoute={hasRouteMetrics(tr)} />}
           </div>
         </div>
         {/* MIESTO, KDE SA KONCEPT DOPÍŠE. Bez neho je „doplň neskôr" sľub bez adresy —
@@ -5524,7 +5640,11 @@ export default function PackMap() {
             })),
             // 'In the middle of nature'/'nowhere' zrušené (Matej 2026-07-26) — filter aj tu, nielen
             // v TAG_VOCAB, lebo dtChips číta dt.tags priamo (surová dátová hodnota, nie cez TAG_VOCAB).
-            ...(dt.tags ?? []).filter((tg) => tg !== 'In the middle of nature' && tg !== 'In the middle of nowhere').map((tg) => ({ key: `t:${tg}`, label: tg, emoji: TAG_EMOJI[tg] ?? '' })),
+            // ⚠️ CHIP SA PREKLADÁ, HODNOTA NIE (2026-09-02). Do dnes tu stálo `label: tg`, takže
+            // karta na mape ukazovala slovenskému členovi „Forest / Lake", kým ten istý výlet mal
+            // v článku „Les / Jazero". Slovník je ten istý, aký používa panel FILTRE — chýbajúci
+            // kľúč padá na pôvodnú dátovú hodnotu.
+            ...(dt.tags ?? []).filter((tg) => tg !== 'In the middle of nature' && tg !== 'In the middle of nowhere').map((tg) => ({ key: `t:${tg}`, label: TAG_I18N[tg] ? t(TAG_I18N[tg]) : tg, emoji: TAG_EMOJI[tg] ?? '' })),
           ];
           const dtAgg = crowdAggregate(dt, votes[dt.id]);
           const isUnwalkedPlan = dt.id.startsWith('plan-') && !walkedIds.has(dt.id);
@@ -5538,7 +5658,7 @@ export default function PackMap() {
           return (
             <div className="trp-inldet">
               <div className="trp-inldet-head">
-                <button type="button" className="trp-panelnav-btn" onClick={() => { setInlineDetailId(null); setHeroBounds(SVK_BORDER); }} aria-label={t('pack.map.backToList')}>←</button>
+                <button type="button" className="trp-panelnav-btn" onClick={() => { setInlineDetailId(null); setHeroBounds(SVK_BORDER); }} aria-label={t('pack.map.backToList')}><BackIcon /></button>
                 <button type="button" className="trp-panelnav-btn" onClick={() => expandDetail(dt.id)} aria-label={t('pack.map.expandToFullPage')}>⤢</button>
               </div>
               <div className="trp-inldet-body">
@@ -5584,7 +5704,7 @@ export default function PackMap() {
                     {isUnwalkedPlan
                       ? <span className="trp-plannedpill">🗓️ {t('pack.map.planned')}</span>
                       : isWaterTrail(dt) ? null
-                      : <PhotoMetaPills agg={dtAgg} km={dt.km} ascentM={(dt as { ascentM?: number }).ascentM} />}
+                      : <PhotoMetaPills agg={dtAgg} km={dt.km} ascentM={(dt as { ascentM?: number }).ascentM} hasRoute={hasRouteMetrics(dt)} />}
                   </div>
                   {dt.photos.length > 1 && (
                     <div className="trp-bigcard-photonav">
@@ -5934,7 +6054,14 @@ export default function PackMap() {
           >
             <img src={ICON('clipboard')} alt="" />
           </button>
-          {renderHeaderRight()}
+          {/* ⚠️ Mobilná hlavička si musí pýtať šat ROVNAKO ako PC (opravené 2026-09-02).
+              Do dneška tu stálo holé `renderHeaderRight()`, teda východisková hodnota
+              `dark = true` — lenže tá pochádza z čias, keď bol mobilný chrome mapy tmavý.
+              Odkedy je bledý aj on (28. 8.), sedel na papyrusovej hlavičke tmavý zvonček
+              so sklenným rozostrením a tieňom. Vidno to na KAŽDOM otvorení mapy na telefóne.
+              Farby má komponent v inline štýloch, takže CSS skinu ich neprebije — musí sa
+              mu povedať pravda, presne ako na PC vetve nižšie. */}
+          {renderHeaderRight(MAP_SKIN !== 'pale')}
         </div>
         <div className="trp-mheader-row2">
           <div className="trp-mapsearch">
@@ -6491,6 +6618,30 @@ export default function PackMap() {
                   ADD flow, sú preč — GeometryPicker (vnútri AddTripPlan/AddTripLog) kreslí kotvy,
                   snapnutú stopu aj bod/územie imperatívne priamo na túto mapu cez mapRef, takže
                   duplicitné React vrstvy tu už nie sú potrebné (viď kontrakt §2.1 „vrstvy na mape"). */}
+              {/* OKRUH ZAPÍSANÉHO MIESTA (2026-09-01) — návšteva a časť aktivít nemajú trasu, ale
+                  plochu: stred je `path[0]`, polomer `areaR`. Kreslí sa TÝM ISTÝM receptom ako
+                  v sprievodcovi (`GeometryPicker`, fialová `TRAIL_LINE.mid`, výplň 0.12), aby
+                  okruh po uložení vyzeral rovnako ako v chvíli, keď ho človek nastavoval.
+                  ⚠️ Trasy vyššie filtruje `path.length > 1`, takže do tej vetvy okruh nespadne —
+                  bez tejto vrstvy by bol na mape len holý bod v klastri.
+                  `eventHandlers` sa pri kreslení vypína z rovnakého dôvodu ako pri trasách:
+                  stlmená plocha je stále plocha a klik do nej by namiesto kotvy otvoril cudzí
+                  výlet. */}
+              {allTrails.filter((tr) => tr.areaR && tr.path.length === 1 && (!isCleanMode || walkedTrailIds.has(tr.id))).map((tr) => (
+                <Circle
+                  key={`area-${tr.id}`}
+                  center={tr.path[0]}
+                  radius={tr.areaR as number}
+                  pathOptions={{
+                    color: TRAIL_LINE.mid,
+                    weight: 2,
+                    opacity: mapDrawing ? DRAW_TRAIL_DIM : 1,
+                    fillColor: TRAIL_LINE.mid,
+                    fillOpacity: (mapDrawing ? DRAW_TRAIL_DIM : 1) * 0.12,
+                  }}
+                  eventHandlers={mapDrawing ? undefined : { click: () => selectTrail(tr) }}
+                />
+              ))}
               {/* uložené PLÁNY (nie vodné plochy!) = jeden RUŽOVÝ bod na mape → Marker, klik vyberie
                   trip. Gate na id 'plan-' — vodné plochy s 1 bodom nesmú dostať pin. Skryté v
                   DOGYPT rovnako ako ostatné trip markery — je to pin, ktorý potrebuje legendu. */}
@@ -6876,7 +7027,12 @@ export default function PackMap() {
           onCancel={() => setNoteSpot(null)}
         />
       )}
-      {noteHint && !noteDraft && !notePlacing && !noteSpot && (
+      {/* ⚠️ NIE POČAS SPRIEVODCU (2026-08-31). Nápoveda o odkazoch svieti podľa priblíženia
+          mapy, teda aj v kroku 1 pridávania výletu — a tam hovorí „podrž dlhšie prst"
+          zároveň s Ainubisom, ktorý pri oblasti hovorí „ťukni". Dve bubliny, dve gestá,
+          dva rôzne účely (odkaz vs. výlet) na jednej obrazovke. Odkazy majú vlastný krok 2,
+          takže sa o nich človek dozvie aj tak. */}
+      {noteHint && addMapPhase === 'off' && !noteDraft && !notePlacing && !noteSpot && (
         <MapNoteHint onDismiss={() => { setNoteHint(false); markHintSeen(); }} />
       )}
       {/* `reward` sa pustí dnu len keď patrí PRÁVE otvorenému výletu (WalkReward.tid) — inak by

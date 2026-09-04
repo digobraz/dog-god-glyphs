@@ -36,6 +36,7 @@ import type { TripGeometry } from '@/components/pack/addtrip/addTripModel';
 import { calibratedAscent, totalDistanceM } from '@/components/pack/addtrip/addTripGeo';
 import { ICON } from '@/components/pack/tripShared';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { BackLinkIcon } from '@/components/pack/BackButton';
 
 const GOLD = T.accentGold; // #C99A3F
 
@@ -350,7 +351,7 @@ export function GpxImport({ onImport, onCancel }: GpxImportProps) {
                 />
                 {error && <div className="gpxi-error">{error}</div>}
                 <div className="gpxi-rowlinks">
-                  <button type="button" className="gpxi-backlink" onClick={backToSources}>‹ Back</button>
+                  <button type="button" className="gpxi-backlink" onClick={backToSources}><BackLinkIcon /> Back</button>
                   <button type="button" className="gpxi-drawlink" onClick={drawOnMap}>Or draw it on the map</button>
                 </div>
               </>
@@ -385,7 +386,7 @@ export function GpxImport({ onImport, onCancel }: GpxImportProps) {
                 </div>
 
                 <div className="gpxi-rowlinks">
-                  <button type="button" className="gpxi-backlink" onClick={() => setScreen('app')}>‹ Choose a different file</button>
+                  <button type="button" className="gpxi-backlink" onClick={() => setScreen('app')}><BackLinkIcon /> Choose a different file</button>
                 </div>
                 <button type="button" className="gpxi-btn-gold" onClick={confirm}>Use this route</button>
               </>

@@ -41,6 +41,13 @@ export type HeroTrail = {
   // kliky, ktoré ju vyrobili. Bez tohto poľa by človek, ktorý po prejdení povie
   // "šiel som inak", musel celú trasu nakresliť odznova namiesto posunutia kotvy.
   planPath?: LatLngTuple[];
+  // OKRUH MIESTA (2026-09-01) — len ADD-flow zápisy, kurátorovaný dataset ho nemá.
+  // Návšteva a časť aktivít nemajú trasu, ale PLOCHU: stred leží v 'path[0]', polomer tu.
+  // ⚠️ Do 1. 9. sa oboje pri ukladaní ZAHADZOVALO ('line' bolo prázdne pole pre všetko,
+  // čo nie je 'route'), takže zapísaná návšteva nemala na mape ani jeden bod — vyzeralo to
+  // ako prázdny zoznam, nie ako chyba. Jazdec polomeru pritom bežal a človek ním nastavoval
+  // číslo, ktoré nikam neviedlo.
+  areaR?: number;
 };
 
 export const HERO_TRAILS: HeroTrail[] = [
@@ -30384,6 +30391,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     "dogNote": "",
     "descEN": "A beautiful reservoir at the \"end of the world\". Surprisingly far from the village. No civilisation, a few anglers and divine quiet. Plenty of room for hiking in the beautiful forests around. The water is great for paddleboarding, and the shoreline works for skating too :)",
     "acts": [
+      "visit",
+      "lake",
       "skating",
       "paddleboard"
     ],
@@ -43140,6 +43149,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     "dogNote": "",
     "descEN": "A picturesque reservoir surrounded by forest.",
     "acts": [
+      "visit",
+      "lake",
       "paddleboard"
     ],
     "surface": [],
@@ -116188,6 +116199,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     "dogNote": "",
     "descEN": "Epic swimming in beautiful and rather cold water :)",
     "acts": [
+      "visit",
+      "lake",
       "paddleboard"
     ],
     "surface": [],
@@ -116219,6 +116232,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     "dogNote": "",
     "descEN": "A genuinely enormous body of water = privacy on the surface. (sunbathing without swimwear — safe)",
     "acts": [
+      "visit",
+      "lake",
       "skating",
       "paddleboard"
     ],
@@ -116251,6 +116266,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     "dogNote": "",
     "descEN": "An interesting reservoir — with a bird island :)) Worth doing the full loop. I've marked a great parking spot on the map — right by the water.",
     "acts": [
+      "visit",
+      "lake",
       "picnic",
       "skating",
       "paddleboard"
@@ -116291,6 +116308,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     "dogNote": "",
     "descEN": "Probably the most beautiful stretch of water in western Slovakia — in the middle of nature, few people, coves you can land in, hills casting shade, clean water… in short, our favourite reservoir, and it's just down the road from home!",
     "acts": [
+      "visit",
+      "lake",
       "picnic",
       "paddleboard"
     ],
@@ -116333,6 +116352,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     "dogNote": "",
     "descEN": "For us: the most beautiful water in Slovakia, and we've come back every year since 2019 :)) Excellent campsite right on the shore — perfection.",
     "acts": [
+      "visit",
+      "lake",
       "picnic",
       "overnight",
       "paddleboard"
@@ -116366,6 +116387,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     "dogNote": "",
     "descEN": "A gorgeous but rather commercial lake in Slovenia. It was a pleasant walk on our road trip, even though we were only stopping by and never found a way into the water :)",
     "acts": [
+      "visit",
+      "lake",
       "explore"
     ],
     "surface": [

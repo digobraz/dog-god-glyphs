@@ -146,6 +146,36 @@ const ENROLL_FACES = 5;
 const ENROLL_KEY = 'wall-lab-enroll-v2';
 
 /**
+ * 🔴 BRÁNA PRE DEV POMÔCKY V TOMTO SÚBORE (2026-09-03).
+ * Komentár v hlavičke tvrdí, že celý lab je za `import.meta.env.DEV` — to platí
+ * len pre ROUTU `/wall-lab`. Do filmu (`components/lab/OnePage.tsx`) je tá istá
+ * stena vložená ako EMBED (`<GodsGridLab embedded portalDock … />`), takže brána
+ * routy na ňu nedosiahne: čokoľvek „lab-only" tu vykreslené visí na `/onepage`
+ * vždy, keď je tá stránka dostupná. Preto si pomôcky pýtajú vlastnú bránu.
+ *
+ * ⚠️ Dnes to NIE JE diera na produkciu — `/onepage` aj `/wall-lab` sú v
+ * `App.tsx` obe za `import.meta.env.DEV` a inde sa táto stena nemontuje
+ * (overené: jediní volajúci sú `OnePage.tsx` a `LabShell.tsx`). Táto brána je
+ * teda poistka, ktorá začne niesť váhu v deň, keď film pôjde von — nie oprava
+ * niečoho, čo dnes vidno na `dogypt.com`.
+ *
+ * ⚠️ Podmienka je ZÁMERNE tá istá ako `isDevHost()` v
+ * `components/lab/HeroflowDevMenu.tsx` (lovable.app je „dev" tiež — tam sa
+ * návrhy ukazujú). Tamtá funkcia sa neexportuje; keď sa bude exportovať,
+ * nahraď túto kópiu importom, nech sa obe nerozídu.
+ */
+function isDevHost(): boolean {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname;
+  return (
+    import.meta.env.DEV ||
+    host.endsWith('lovable.app') ||
+    host === 'localhost' ||
+    host === '127.0.0.1'
+  );
+}
+
+/**
  * Variant B posúva východiskový pohľad o pol bunky hore, aby boli v zábere
  * hero (0,0) AJ dlaždica (0,1). Bez toho vidno z dlaždice pri načítaní len
  * horný okraj — teda to jediné, čo tam má človek urobiť, je pod ohybom.
@@ -3452,8 +3482,13 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       <div className={`gods-root theme-${theme}`}>
         {/* A/B prepínač — DEV pieskovisko, Matej: „nech si to viem rýchlo prepnúť".
             Voľba prežije reload (localStorage), inak by sa pri každom uložení
-            súboru vrátila na A. Sedí POD navom — dole ho zakrýva cookie lišta. */}
-        <div className="ab-switch" role="group" aria-label="Variant steny">
+            súboru vrátila na A. Sedí POD navom — dole ho zakrýva cookie lišta.
+            ⚠️ VYKRESĽUJE SA LEN V DEVE (2026-09-03, `isDevHost()` hore). Stena
+            beží aj ako embed vo filme, kde brána routy `/wall-lab` neplatí, a
+            prepínač tak svietil v ľavom hornom rohu `/onepage`. Mimo devu
+            ostáva variant na východiskovej hodnote (`ENROLL_KEY !== '0'` ⇒
+            zápis psa); funkcionalita sa neruší, len jej ovládanie. */}
+        {isDevHost() && <div className="ab-switch" role="group" aria-label="Variant steny">
           <button
             type="button"
             className={enrollOn ? '' : 'is-on'}
@@ -3464,7 +3499,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
             className={enrollOn ? 'is-on' : ''}
             onClick={() => { setEnrollOn(true); try { localStorage.setItem(ENROLL_KEY, '1'); } catch { /* private mode */ } }}
           >B · ZÁPIS PSA</button>
-        </div>
+        </div>}
         {/* HORNÝ NAV TU UŽ NIE JE — kreslí ho RÁM `components/lab/LabShell.tsx`.
             Stáli tu holé <a href="/vision|/religion|/about">, teda tvrdé načítanie
             celého webu pri každom kliku: nav sa vždy prekreslil a „nav zostáva,

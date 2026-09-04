@@ -37,6 +37,9 @@ import { Seo } from '@/components/Seo';
  * ⚠️ Zapína sa TÝMTO JEDNÝM SLOVOM — variant 1 aj jeho CSS ostávajú v súbore
  * (Matej ich sám odložil ako „variant 1 je ULOŽENÝ, nie zmazaný“), takže
  * porovnanie sa spustí prepísaním na `true`, nie písaním kódu odznova.
+ * ⚠️ Toto slovo riadi aj `localStorage` (4. 9. 2026): pri `false` sa uložená voľba
+ * vôbec nečíta, aby starý klik na jednom počítači nerozhodoval o tom, čo vidí
+ * návštevník. Pri `true` sa čítanie vráti — porovnávanie ho potrebuje.
  */
 const SHOW_VARIANT_SWITCH = false;
 
@@ -181,18 +184,102 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
     return () => { io.disconnect(); io2?.disconnect(); };
   }, [flow]);
 
+  // ── PRST BERIE LEN TEN OBRAZ, KTORÝ PRÁVE VIDNO (2026-09-03) ──────────
+  // 🔴 CHYBA: CTA „BECOME DOGYPTIAN" sa vo filme nedalo kliknúť. Odmerané
+  // pri 1280×699 v pokoji prvého výjavu (scrollY 2097): odkaz mal
+  // pointer-events auto aj opacity 1, ale `elementsFromPoint()` v jeho strede
+  // vracal ako najvrchnejší prvok `.codex-slide` NASLEDUJÚCEJ sekcie
+  // (preambula) — tá je vo filme vtiahnutá o obrazovku hore
+  // (`margin-top: -100dvh` v OnePage) a jej prilepený stĺpec teda leží na
+  // poslednej obrazovke prvého výjavu ešte predtým, než sa vôbec začne
+  // vykresľovať. Obe sekcie stoja v tom istom stohovacom kontexte s
+  // `z-index: auto`, takže rozhoduje poradie v DOM-e a preambula je neskôr.
+  //
+  // ⚠️ NEDÁ SA TO ROZHODNÚŤ ANI TRIEDOU .in-view, ANI STAVOM `active`:
+  //   • `.in-view` drží `seen`, ktoré je ZÁMERNE jednosmerné — od scrollY
+  //     ~1600 ju nesú OBE sekcie naraz (odmerané), takže by nerozlíšila nič;
+  //   • `active` (io2, rootMargin −45 %) preskočí na preambulu už pri
+  //     scrollY ~1799, teda o celú obrazovku SKÔR, než sa prvý výjav odmlčí
+  //     — podľa neho by CTA prestalo brať prst práve tam, kde ho vidno.
+  //   • zdvihnutý z-index by problém len otočil: o obraz ďalej by neviditeľný
+  //     prvý výjav bral prst preambule.
+  // Jediný pravdivý signál je to, či zo sekcie NIEČO VIDNO. Réžia filmu je
+  // v OnePage (`--op-txt` a spol.) a opisovať jej čísla sem by znamenalo dve
+  // miesta, ktoré sa pri prvej zmene rozídu — preto sa tu nečíta réžia, ale
+  // JEJ VÝSLEDOK: vykreslené `opacity` obsahu sekcie.
+  //
+  // ⚠️ Iba vo filme. Mimo neho stoja sekcie ako samostatné obrazovky pod
+  // sebou, neprekrývajú sa a nikto im nemení priehľadnosť podľa scrollu.
+  // ⚠️ Zapisuje sa VÝHRADNE `pointer-events` na sekciu, a viditeľnej sa zapisuje
+  // PRÁZDNY REŤAZEC, nie `auto`. Pôvodne tu stálo `auto` s odôvodnením, že
+  // „dnes je všade auto, takže sa prst môže iba odobrať" — to bolo NEPRAVDIVÉ:
+  // zdedená hodnota z `.op-film` je na prvej obrazovke `none`. Detail pri zápise.
+  useEffect(() => {
+    if (!flow) return;
+    const sections = sectionRefs.current.filter(Boolean) as HTMLElement[];
+    if (!sections.length) return;
+
+    // Vidno zo sekcie aspoň kúsok? Meria sa na priamych deťoch slajdu, lebo
+    // presne im film mení priehľadnosť (prvý výjav = celý .codex-3-overlay,
+    // preambula = eyebrow / nadpis / rámik / motto / tlačidlo zvlášť).
+    const painted = (s: HTMLElement) =>
+      Array.from(s.querySelectorAll<HTMLElement>(':scope > .codex-slider > .codex-slide > *'))
+        .some((k) => (parseFloat(getComputedStyle(k).opacity) || 0) > 0.01);
+
+    let raf = 0;
+    const apply = () => {
+      raf = 0;
+      // 🔴 PRÁZDNY REŤAZEC, NIE 'auto' (oprava 3. 9. 2026, o hodinu neskôr).
+      // Tvrdé 'auto' PREBIJE bránu celého filmu: `.op-film` má
+      // `pointer-events: var(--op-film-pe)` a kým svieti guľa na prvej
+      // obrazovke, je to `none` — film musí byť pre prst priehľadný, aby sa
+      // dalo ťahať planétou a kliknúť ADD PHOTO. Zápisom 'auto' si sekcia
+      // náboženstva ten prst vzala späť, hoci z nej nebolo vidno nič, a
+      // ĽAHLA SI NA VSTUP DO PRODUKTU. Odmerané: na scrollY 0 vracal
+      // `elementsFromPoint` v strede dlaždice ADD PHOTO
+      // `SECTION.codex-section.in-view`, nie dlaždicu — na všetkých šírkach.
+      // Prázdny reťazec inline hodnotu ZRUŠÍ, takže sa dedí tá z filmu:
+      //   guľa svieti  → film `none`  → sekcia zdedí `none`  ✔
+      //   film beží    → film `auto`  → viditeľná sekcia zdedí `auto`,
+      //                                 neviditeľnej ho odoberie `none` ✔
+      // Preto tu NESMIE stáť 'auto' ani nič, čo dedenie preruší.
+      for (const s of sections) s.style.pointerEvents = painted(s) ? '' : 'none';
+    };
+    // Scroll sa zlučuje do jedného snímku — čítanie štýlu v každej udalosti
+    // by bolo to isté meranie niekoľkokrát za snímok.
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(apply); };
+
+    apply();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      for (const s of sections) s.style.pointerEvents = '';
+    };
+  }, [flow]);
+
   const go = (i: number) => {
     sectionRefs.current[i]?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // ── VARIANT TEXTINGU DRUHEJ SEKCIE (Matej 27. 8. 2026) ────────────────────
-  // 1 = pôvodný rozpis (veľké číslo, podčiarknuté sub, obvinenie, CTA veta)
-  // 2 = súvislý odsek jednej veľkosti, ktorý sa pod scrollom píše po znakoch
-  // Východisko je 2 — je to nová vec na posúdenie. Jednotka ostáva dostupná
-  // prepínačom a je ULOŽENÁ, nie zmazaná (Matej: „toto berme ako variant 1
-  // a ulož to"). localStorage, aby voľba prežila reload pri porovnávaní.
-  const [textVariant, setTextVariant] = useState<1 | 2>(2);
+  // ── VARIANT TEXTINGU DRUHEJ SEKCIE (Matej 27. 8. 2026, uzavreté 4. 9. 2026) ─
+  // 1 = dve tvrdenia s tou istou kostrou (KRAVA MÁ / 1,2 MILIARDY / VERIACICH ·
+  //     PES MÁ / NIKOHO · ZATIAĽ…) — VYBRANÝ, toto vidí návštevník
+  // 2 = súvislý odsek jednej veľkosti, ktorý sa pod scrollom píše po znakoch —
+  //     ULOŽENÝ, nie zmazaný (Matej: „toto berme ako variant 1 a ulož to")
+  //
+  // ⚠️ VÝCHODISKO JE V KÓDE, NIE V `localStorage` (4. 9. 2026). Predtým tu stálo
+  // východisko 2 a vybraný texting držal len uložený klik — ten ale žije výhradne
+  // na tom origine, kde padol. Matejov `localhost:8080` preto ukazoval vybranú
+  // verziu, kým tunel, telefón aj `dogypt.com` (každý vlastný origin s prázdnym
+  // úložiskom) padali na starý variant 2. Matej 4. 9.: „nemôžem vidieť niečo čo
+  // nie je pravda." Úložisko sa preto číta LEN pri zapnutom prepínači — s vypnutým
+  // nemá starý klik ako prehovoriť do toho, čo je na obrazovke.
+  const [textVariant, setTextVariant] = useState<1 | 2>(1);
   useEffect(() => {
+    if (!SHOW_VARIANT_SWITCH) return;
     try {
       const v = localStorage.getItem(TEXT_VARIANT_KEY);
       if (v === '1' || v === '2') setTextVariant(Number(v) as 1 | 2);

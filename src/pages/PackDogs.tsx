@@ -658,6 +658,13 @@ function useFitName(
   wrapRef: React.RefObject<HTMLDivElement>,
   textRef: React.RefObject<HTMLSpanElement>,
   text: string,
+  /**
+   * Signál na PREPOČET, nie vstup rovnice (2026-09-02). Keď sa heroglyf nepodarí načítať,
+   * blok ho vymení za prázdnu kartušu — a rovnica musí bežať znova, lebo až vtedy pozná
+   * pomer strán. `ResizeObserver` na to spoľahnúť nemožno: obe podoby glyfu majú rovnaké
+   * CSS rozmery, takže výmena `<img>` za `<div>` nemusí zmeniť ani pixel.
+   */
+  retrigger?: unknown,
 ) {
   useLayoutEffect(() => {
     const wrap = wrapRef.current;
@@ -862,7 +869,7 @@ function useFitName(
     const rowEl = cardEl?.querySelector('.dogblk');
     if (rowEl) ro.observe(rowEl);
     return () => { alive = false; ro.disconnect(); cancelAnimationFrame(raf); };
-  }, [wrapRef, textRef, text]);
+  }, [wrapRef, textRef, text, retrigger]);
 }
 
 // ── 1 · psí blok ─────────────────────────────────────────────────────────────
@@ -877,6 +884,16 @@ function DogBlock({
 }) {
   const idwRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLSpanElement>(null);
+  /**
+   * ⚠️ NENAČÍTANÝ GLYF ROZBÍJAL ROVNICU (oprava 2026-09-02, Matej odklepol 2. 9.).
+   * Pes BEZ glyfu ošetrený bol (prázdna kartuša + `GLYPH_RATIO`), ale pes, ktorého glyf
+   * sa načítať NEPODARÍ (404, výpadok CDN, nedorenderovaný obrázok), držal `naturalWidth`
+   * na nule ⇒ `ratio = 0` ⇒ rovnica sa nespustila NIKDY a meno ostalo v štartovacej
+   * veľkosti, roztiahnuté cez celý riadok. Zlyhaný obrázok sa preto vymení za tú istú
+   * prázdnu kartušu, akú dostane pes bez glyfu — geometria bloku sa tým nemení.
+   * Pre psa s načítaným glyfom sa nemení NIČ: `onError` sa nespustí.
+   */
+  const [glyphBroken, setGlyphBroken] = useState(false);
 
   const filled = PROGRESS_STEPS.filter((s) => hasValue(latest?.[s.field])).length;
   const pct = total === 0 ? 0 : Math.round((filled / total) * 100);
@@ -889,7 +906,7 @@ function DogBlock({
   // pilulka sa nevykreslí — lock „nič sa nedogeneruje", žiadny odhad veku.
   const life = dogLifeLine(dog);
 
-  useFitName(idwRef, nameRef, name);
+  useFitName(idwRef, nameRef, name, glyphBroken);
 
   const roleKey = latest?.['nature.role']?.value;
   const elementKey = latest?.['nature.element']?.value;
@@ -1005,8 +1022,14 @@ function DogBlock({
             {/* Heroglyf ostáva ČIERNY — filter na zlato zanikol spolu s tmavým pozadím.
                 Bez glyfu sa kreslí prázdna kartuša rovnakého tvaru — miesto si drží vždy,
                 nech blok nemá dve rôzne geometrie podľa toho, či sa render podaril. */}
-            {dog.heroglyph_png_url ? (
-              <img className="dogblk-glyph" src={dog.heroglyph_png_url} alt="" aria-hidden />
+            {dog.heroglyph_png_url && !glyphBroken ? (
+              <img
+                className="dogblk-glyph"
+                src={dog.heroglyph_png_url}
+                alt=""
+                aria-hidden
+                onError={() => setGlyphBroken(true)}
+              />
             ) : (
               <div className="dogblk-glyph dogblk-glyph--empty" aria-hidden />
             )}

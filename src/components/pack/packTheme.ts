@@ -173,6 +173,111 @@ export const PACK_BOX = {
   },
 } as const;
 
+// ════════════════════════════════════════════════════════════════════════════
+// PAPYRUSOVÁ STRÁNKA — podklad celého povrchu (DRAK → BRIGHT, 2026-09-01)
+// ────────────────────────────────────────────────────────────────────────────
+// Matej 1. 9. 2026 vybral variant **B**: pri prezliekaní `/pack` do bledého šatu
+// nezostáva pod papyrusovými blokmi čierna stránka — papyrus ide aj na POZADIE
+// a heroglyfová tapeta sa preladí do zlata na piesku.
+//
+// ⚠️ TOTO NIE JE `PACK_THEME.pageBg`. Ten (#050505) ostáva platný pre povrchy,
+//    ktoré ešte prezlečené NIE SÚ — a je ich väčšina. Čierna na neprezlečenej
+//    stránke NIE JE bug, len ešte nevykonaná práca; zoznam čo kedy ide je
+//    v `plany/zadanie-drak-bright-pack-2026-09-01.md`.
+//
+// ⚠️ Prečo tu a nie v `lib/labTheme.ts` (`LAB`): LAB je označený DEV ONLY a slúži
+//    labom (`VisionLab`, `AboutLab`, `OnePage`). `/pack` je produkt a berie svoje
+//    tokeny odtiaľto. Odtiene sú ZLADENÉ s LAB aj so svetlou WALL (`GodsGrid`
+//    `.theme-light`, kde ich Matej doladil ako prvé 9. 8.) — keby sa niekedy
+//    LAB a PACK rozišli, rozíde sa aj film od produktu, takže sa menia SPOLU.
+//
+// Použitie: `<div className="pk-paper">` + jeden `<style>{PAPER_PAGE_CSS}</style>`.
+// Tapeta je súčasť receptu — NEVOLAJ k tomu `<HieroglyphBg />` (tá je tmavá).
+// ════════════════════════════════════════════════════════════════════════════
+
+/** Základná farba plochy pod tapetou. Zhodné s `LAB.pageBg`. */
+export const PAPER_BG = '#F3E4C4';
+
+export const PAPER_PAGE_CSS = `
+/* ⚠️ "isolation:isolate" JE NOSNÉ, NIE KOZMETIKA — bez neho tapeta ZMIZNE.
+   Vrstvy nižšie stoja na "z-index:-1". Taký potomok sa kreslí v NAJBLIŽŠOM vrstviacom
+   kontexte, a keď ho rodič netvorí, prepadne až pod jeho vlastné pozadie — teda pod
+   nepriehľadné "background-color" tejto triedy (a ďalej pod čierne pozadie stránky).
+   Presne to sa stalo 1. 9. 2026: Matej „prečo si vymazal to pozadie na blogu? bolo tam
+   to s heroglyfmi a dal si len čisté". Odmerané: po vypnutí farby rodiča bola plocha
+   ČIERNA, nie s glyfmi — vrstva teda ležala pod všetkým.
+   "isolation" vrstviaci kontext vytvorí, ale (na rozdiel od "transform"/"filter")
+   NEMENÍ obklopujúci blok pre "position:fixed" potomkov, takže spodná navigácia ostáva
+   ukotvená k oknu. */
+.pk-paper{position:relative;isolation:isolate;min-height:100dvh;background-color:${PAPER_BG};color:${PACK_THEME.inkStrong};}
+/* Tapeta a papyrusový odtieň sú DVE vrstvy, nie jedna: obrázok nesie kresbu glyfov,
+   gradient nad ním ich zjednotí do teplej plochy. Zlúčené do jedného pravidla by sa
+   odtieň nedal stlmiť bez toho, aby zbledli aj glyfy.
+   position:fixed (nie absolute): pri scrollovaní článku má tapeta stáť, inak pláva s obsahom. */
+.pk-paper::before{content:'';position:fixed;top:0;left:0;width:100vw;height:100lvh;
+  background-image:url('/images/bg-light.webp');background-size:cover;background-position:center;
+  background-repeat:no-repeat;filter:blur(4px);pointer-events:none;}
+/* Multiply-ová logika bledej vinjety z WALL: v strede sýty papyrus, na okrajoch takmer
+   čistý — aby sa okraje strácali do SVETLA, nie do tmy. Na tmavom webe to robila čierna
+   vinjeta; jej doslovné prefarbenie na bielu by plochu vyžralo do mliečna. */
+.pk-paper::after{content:'';position:fixed;top:0;left:0;width:100vw;height:100lvh;
+  pointer-events:none;background:
+    radial-gradient(ellipse at 52% 58%, rgba(223,196,144,0.62) 0%, rgba(238,221,186,0.34) 52%, rgba(255,252,244,0.10) 100%),
+    linear-gradient(135deg, rgba(250,243,225,0.35) 0%, rgba(244,231,199,0.40) 50%, rgba(236,218,175,0.45) 100%);}
+/* ⚠️ VRSTVY IDÚ POD OBSAH ZÁPORNÝM z-indexom, NIE dvíhaním obsahu (opravené 2026-09-01).
+   Pôvodne tu stálo ".pk-paper > *{position:relative;z-index:1}" — a to je plošný hák,
+   ktorý prepíše "position" KAŽDÉMU priamemu potomkovi. Spodná navigácia je "position:fixed";
+   prepnutá na "relative" spadla do toku a roztiahla sa cez celú šírku okna (Matej 1. 9.:
+   „opäť je zlý spodný nav"). → [[feedback_plosny_hacik_najprv_vypis_co_chyti]]
+   "z-index:-1" na pseudoprvkoch ich položí nad pozadie rodiča, ale pod jeho obsah —
+   presne to, čo tapeta potrebuje, a obsahu sa nedotýka vôbec.
+   ⚠️ PODMIENKA: ".pk-paper" NESMIE byť vrstviaci kontext (žiadny vlastný "z-index",
+   "transform", "filter" ani "opacity"), inak by sa doň záporná vrstva uzavrela a zmizla
+   pod pozadím. Preto má len "position:relative". */
+.pk-paper::before,.pk-paper::after{z-index:-1;}
+`;
+
+/**
+ * ── KTORÉ POVRCHY SÚ UŽ PREZLEČENÉ DO PAPYRUSU ──────────────────────────────
+ * Matej 1. 9. 2026: *„sekunda pred načítaním sa stále zobrazuje tmavé pozadie
+ * a slovo načítavam... to treba fixnúť"*.
+ *
+ * Príčina nebola v stránke, ale v `RouteFallback` v `App.tsx` — celoobrazovkovej
+ * ČIERNEJ ploche, ktorá stojí, kým sa donačíta lazy chunk routy. Prefarbiť ju
+ * naplocho sa NEDÁ: slúži aj tmavým povrchom (WALL, heroglyph flow, /spiral),
+ * kde by z nej bolo biele bliknutie — presne ten istý problém, len naopak.
+ *
+ * Fallback si preto pýta farbu podľa cesty. Zoznam je TU, vedľa `PAPER_PAGE_CSS`,
+ * a nie v `App.tsx`: prezliekanie povrchu a jeho zápis do tohto zoznamu je JEDNA
+ * práca a majú byť na dosah. **Kto prezlečie ďalšiu stránku, pridá sem riadok** —
+ * inak mu ostane blikať čierna, hoci stránka samotná je papyrusová.
+ *
+ * ⚠️ `/pack` samotný sem NEPATRÍ — homepage prezlečená ešte nie je a chytila by
+ *    prefixom všetko pod sebou.
+ */
+export const PAPER_ROUTES: readonly RegExp[] = [
+  // CELÁ vetva mapy — `/pack/map` samotná, `/pack/map/triplist` (TRIPLIST + TRIPSTATS)
+  // aj článok výletu `/pack/map/<ISO3>/<slug>` a jeho starý tvar `/pack/map/<slug>`.
+  // ⚠️ Vzor, nie zoznam krajín: ten by sa musel dopĺňať pri každej novej krajine
+  //    a chýbajúci riadok by sa prejavil len bliknutím, teda by si ho nikto nevšimol.
+  //
+  // ⚠️ KONIEC VZORU MUSÍ BYŤ `(\/|$)`, NIE `\/[^/]*` (opravené 2026-09-02).
+  //    Do dneška tu stálo `/^\/pack\/map\/[^/]+/`, čo si pýtalo lomku A ZA ŇOU aspoň
+  //    jeden znak — teda `/pack/map/triplist` prešlo, ale SAMOTNÁ MAPA `/pack/map` nie,
+  //    hoci je referenciou celého bledého šatu. Pred najčastejšie otváranou stránkou
+  //    appky tak blikala čierna. Ani `\/[^/]*` to nerieši: prepustí `/pack/map/`
+  //    s lomkou na konci, ale React Router taký tvar nedáva. Odmerané na deviatich
+  //    cestách — `(\/|$)` je jediný z troch vzorov, ktorý chytí `/pack/map`.
+  /^\/pack\/map(\/|$)/,
+  // Tok pridávania — `/pack/add` (redirect) aj `/pack/add/trip`. Obe routy renderujú
+  // `PackMap`, teda ten istý papyrusový povrch, len s otvoreným dokom pridávania.
+  /^\/pack\/add(\/|$)/,
+];
+
+/** Má daná cesta stáť na papyruse? Používa `RouteFallback` v `App.tsx`. */
+export const isPaperRoute = (pathname: string): boolean =>
+  PAPER_ROUTES.some((r) => r.test(pathname));
+
 // ── ŠÍRKA OBSAHOVÉHO STĹPCA — JEDEN zdroj pre celý /pack (2026-08-13) ────────
 // Matej: „vidím že po prekliku na turistický profil je šírka iná ako pri profile...
 // možno by bolo fajn to zjednotiť aby tieto bloky boli v /packu jednotné".

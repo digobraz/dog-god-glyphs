@@ -18,6 +18,13 @@
 // samostatná stavba a nie je to podmienka pre to, aby NOS začal fungovať. Keď taký stĺpec
 // raz vznikne, mení sa telo `readSeen`/`markSeen`, nič iné.
 //
+// ── TRETÍ DRUH: „NIEKTO Z PARTIE UŽ VÝLET ZAPÍSAL" (Matej 4. 9. 2026) ────────────────────
+// Kto výlet prejde, potvrdí ho ZA SEBA; ostatní z partie dostanú upozornenie a svoj záznam
+// si spravia sami tým istým tokom, akoby výlet našli. Appka nikomu nezapisuje, kde bol —
+// vedomý dôsledok je, že kto neklikne, výlet mať nebude (Matej: „podme to zjednodušiť nie
+// komplikovať"). Zdroj = RPC `get_walked_alerts()` (20260904_trip_walked_alerts.sql), lebo
+// cudzí riadok `trip_walked` je pod RLS neviditeľný — a má byť.
+//
 // ── ID UPOZORNENIA NESIE ČAS ─────────────────────────────────────────────────────────────
 // `req|<slug>|<čas najnovšej žiadosti>`. Keby id bolo len `req|<slug>`, druhá žiadosť na ten
 // istý výlet by sa už nikdy nerozsvietila — človek ju označil za prečítanú pri prvej.
@@ -34,7 +41,7 @@ const SEEN_KEY = 'pack-alerts-seen';
  *  už aj tak nie je čo „znovu ukázať", a neorezaný zoznam by rástol donekonečna. */
 const SEEN_MAX = 200;
 
-export type AlertKind = 'trip_request' | 'trip_accepted';
+export type AlertKind = 'trip_request' | 'trip_accepted' | 'trip_walked';
 
 /**
  * Dataset trás — LAZY, rovnaký dôvod ako v `messaging/tripLabel.ts`: `heroTrails.generated.ts`
@@ -109,10 +116,18 @@ interface RequestRow {
   decided_at: string | null;
 }
 
+/** riadok z `get_walked_alerts()` — bez identity, len počet a čas (viď migráciu) */
+interface WalkedRow {
+  trip_slug: string;
+  walkers: number;
+  at: string;
+}
+
 /**
  * Všetky upozornenia pre prihláseného člena, najnovšie prvé.
  *
- * Dva dotazy, obe nad `trip_requests` — políčka sú úzke zámerne: kto ten človek je, vydáva
+ * Tri dotazy — dva nad `trip_requests`, tretí RPC na prejdenia partie. Políčka sú úzke
+ * zámerne: kto ten človek je, vydáva
  * len `get_trip_party()` a to je dotaz na výlet, nie na schránku. Upozornenie preto hovorí
  * „dvaja ľudia žiadajú o Rokoš", nie mená; mená uvidí organizátor v zozname výletov, kam ho
  * upozornenie pošle. Menej dotazov aj menej cudzej identity rozsypanej po appke.
@@ -122,13 +137,17 @@ export async function loadAlerts(): Promise<PackAlert[]> {
   const uid = sess.session?.user?.id;
   if (!uid) return []; // odhlásený / DEV_NOAUTH — RLS by aj tak nevydala nič
 
-  const [incoming, mine] = await Promise.all([
+  const [incoming, mine, walked] = await Promise.all([
     db.from('trip_requests').select('trip_slug,created_at,decided_at')
       .eq('organizer_id', uid).eq('status', 'requested') as
       Promise<{ data: RequestRow[] | null }>,
     db.from('trip_requests').select('trip_slug,created_at,decided_at')
       .eq('from_user_id', uid).eq('status', 'accepted') as
       Promise<{ data: RequestRow[] | null }>,
+    // Tretí dotaz je RPC, nie select — `trip_walked` cudzieho človeka je pod RLS neviditeľný.
+    // Chyba sa prehltne na prázdno: upozornenia sú chrome na každej stránke /packu a jedna
+    // nedostupná funkcia (napr. migrácia ešte nenasadená na DEV) nesmie zhasnúť celý panel.
+    db.rpc('get_walked_alerts') as Promise<{ data: WalkedRow[] | null }>,
   ]);
 
   const trails = await loadTrails();
@@ -155,6 +174,13 @@ export async function loadAlerts(): Promise<PackAlert[]> {
   for (const r of mine.data ?? []) {
     const at = r.decided_at ?? r.created_at;
     out.push({ id: `acc|${r.trip_slug}|${at}`, kind: 'trip_accepted', tripSlug: r.trip_slug, tripName: nameOf(r.trip_slug), tripPath: pathOf(r.trip_slug), count: 1, at });
+  }
+
+  // VÝLET PREŠIEL NIEKTO ZO SVORKY, ja ho zapísaný nemám — pozvánka zapísať si ho tiež.
+  // Čas v id je najnovší cudzí zápis: keď potvrdí ďalší človek, upozornenie sa rozsvieti
+  // znova (rovnaký dôvod ako pri žiadostiach — inak by druhého už nikto nevidel).
+  for (const w of walked.data ?? []) {
+    out.push({ id: `walk|${w.trip_slug}|${w.at}`, kind: 'trip_walked', tripSlug: w.trip_slug, tripName: nameOf(w.trip_slug), tripPath: pathOf(w.trip_slug), count: w.walkers, at: w.at });
   }
 
   return out.sort((a, b) => (a.at < b.at ? 1 : -1));

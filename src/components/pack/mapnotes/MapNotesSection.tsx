@@ -118,15 +118,20 @@ export function MapNotesSection({ trail, notes, locale = 'en-US', onAdd }: MapNo
   );
 }
 
+// DRAK → BRIGHT (2026-09-01): sekcia žije LEN v článku výletu (grep `<MapNotesSection`),
+// ktorý je od 1. 9. papyrusový — svetlý inkoust tu preto nemá na čom stáť a nadpis
+// „ZÁPISY DO MAPY" bol po prezlečení karty prakticky neviditeľný.
+// Zlatá je `#8a5a14`, nie brandová `#C99A3F`: tá je na svetlom podklade len o odtieň
+// tmavšia než sám papyrus.
 export const MAP_NOTES_SECTION_CSS = `
 .mns-wrap{margin-top:18px;}
 .mns-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;}
-.mns-title{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:${T.onDark};}
-.mns-add{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:${GOLD};background:transparent;border:1px solid rgba(201,154,63,0.5);border-radius:999px;padding:6px 12px;cursor:pointer;transition:background .15s,border-color .15s;}
+.mns-title{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
+.mns-add{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8a5a14;background:transparent;border:1px solid rgba(201,154,63,0.5);border-radius:999px;padding:6px 12px;cursor:pointer;transition:background .15s,border-color .15s;}
 .mns-add:hover{background:rgba(201,154,63,0.12);border-color:${GOLD};}
-.mns-empty{margin:0;font-family:${FONT_UI};font-size:12px;font-style:italic;color:${T.onDarkDim};}
+.mns-empty{margin:0;font-family:${FONT_UI};font-size:12px;font-style:italic;color:${T.inkWarm};}
 .mns-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}
-.mns-item{display:flex;gap:11px;align-items:flex-start;padding:11px 12px;background:${T.glass};border:1px solid ${T.onDarkBorder};border-radius:10px;}
+.mns-item{display:flex;gap:11px;align-items:flex-start;padding:11px 12px;background:${T.tileBg};border:1px solid ${T.border};border-radius:10px;}
 /* Zošednutý zápis NEMIZNE (Matej: „poznámka neumiera") — len klesá na koniec
    a stráca kontrast. Čitateľný ostáva. */
 .mns-item--stale{opacity:.55;}
@@ -144,9 +149,9 @@ export const MAP_NOTES_SECTION_CSS = `
 .mns-main{flex:1;min-width:0;}
 .mns-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
 .mns-kind{font-family:${FONT_TITLE};font-weight:700;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;}
-.mns-tag{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:${T.onDarkDim};border:1px solid ${T.onDarkBorder};border-radius:999px;padding:2px 7px;}
-.mns-stale{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:${T.onDarkDim};}
-.mns-body{margin:5px 0 0;font-family:${FONT_UI};font-size:12.5px;line-height:1.5;color:${T.onDark};white-space:pre-wrap;word-break:break-word;}
-.mns-meta{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin-top:6px;font-family:${FONT_UI};font-size:10.5px;color:${T.onDarkDim};}
-.mns-author{font-family:${FONT_TITLE};font-weight:700;font-size:11px;color:${T.onDark};}
+.mns-tag{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:${T.inkWarm};border:1px solid ${T.border};border-radius:999px;padding:2px 7px;}
+.mns-stale{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:${T.inkWarm};}
+.mns-body{margin:5px 0 0;font-family:${FONT_UI};font-size:12.5px;line-height:1.5;color:rgba(42,22,8,0.86);white-space:pre-wrap;word-break:break-word;}
+.mns-meta{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin-top:6px;font-family:${FONT_UI};font-size:10.5px;color:${T.inkWarm};}
+.mns-author{font-family:${FONT_TITLE};font-weight:700;font-size:11px;color:${T.inkStrong};}
 `;

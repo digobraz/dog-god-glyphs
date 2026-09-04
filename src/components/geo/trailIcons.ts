@@ -84,16 +84,24 @@ const DIFF_DOT: Record<string, string> = {
 const diffShape = (d?: string) =>
   d === 'Easy' ? 'circle' : (d === 'Hard' || d === 'Odyssey') ? 'triangle' : 'square';
 
-export function tripPillIcon(opts: { km?: string; diff?: string; label?: string; water?: boolean }): L.DivIcon {
+/**
+ * ⚠️ `hasRoute: false` = OKRUH, teda výlet BEZ kilometrov (2026-09-02). Pilulka vtedy nesie
+ *    NÁZOV, presne ako pri vodnej ploche a z toho istého dôvodu: miesto sa nemeria, miesto
+ *    sa volá. Bez toho hlásila v článku „0 km" — okruh má `km` zapísané ako nulu, čo je
+ *    poctivý zápis, ale nie údaj na zobrazenie. Príznak si volajúci berie z `hasRouteMetrics`
+ *    (tripShared.tsx), nie z hodnoty `km`: nula vie mať aj rozbitý zápis trasy.
+ */
+export function tripPillIcon(opts: { km?: string; diff?: string; label?: string; water?: boolean; hasRoute?: boolean }): L.DivIcon {
   const water = !!opts.water;
-  const text = water ? (opts.label ?? '') : (opts.km ? `${opts.km} km` : (opts.label ?? ''));
+  const noKm = water || opts.hasRoute === false;
+  const text = noKm ? (opts.label ?? '') : (opts.km ? `${opts.km} km` : (opts.label ?? ''));
   const skin = water
     ? 'background:#2E6FD6;color:#fff;border:1px solid rgba(255,255,255,0.55);box-shadow:0 2px 7px rgba(0,0,0,0.34);'
     : 'background:linear-gradient(180deg,#FFFFFF,#F2ECE0);color:#1c160c;border:1px solid rgba(122,47,191,0.55);'
       + 'box-shadow:0 0 0 3px rgba(179,107,255,0.35),0 4px 12px rgba(0,0,0,0.5);';
   // Odyssey má biely trojuholník (viď DIFF_MARK_CSS) — na bielej pilulke by zmizol, preto
   // sa značka náročnosti pri ňom vynecháva, nefabrikuje sa iná farba.
-  const showDiff = !water && !!opts.diff && opts.diff !== 'Odyssey';
+  const showDiff = !noKm && !!opts.diff && opts.diff !== 'Odyssey';
   const mark = showDiff ? `<i style="display:inline-block;flex-shrink:0;${DIFF_DOT[diffShape(opts.diff)]}"></i>` : '';
   ensureTripPillCss();
   return L.divIcon({

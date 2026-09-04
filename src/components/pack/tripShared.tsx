@@ -97,6 +97,31 @@ export const isWaterTrail = (tr: { acts?: string[]; tags?: string[]; path?: unkn
   return !hasRoute && !!tr.tags?.some((tag) => WATER_TAGS.has(tag.toLowerCase()));
 };
 
+/**
+ * ── MÁ VÝLET NAKRESLENÚ ČIARU, Z KTOREJ SA DÁ MERAŤ? (2026-08-31) ─────────────────────────
+ *
+ * Okruh (geometria `area` — klik do mapy, nie ťah) nemá kilometre ani prevýšenie. Nie sú to
+ * CHÝBAJÚCE údaje, ony pri okruhu NEEXISTUJÚ: `km: "0.0"` je poctivý zápis. Appka to napriek
+ * tomu kreslila ako pilulku `↔ 0.0 km` a k nej vymyslenú náročnosť.
+ *
+ * Do 31. 8. to trafilo len mŕtve kategórie; odvtedy je okruh POVINNÝ tvar kategórie VISIT
+ * (`tripCategories.ts`: `visit.geometry = { default:'area', allowed:['area'] }`), teda tretinu
+ * všetkých nových výletov.
+ *
+ * 🔑 PÝTA SA NA GEOMETRIU, NIE NA `km`. „0.0" vie mať aj rozbitý zápis trasy a vtedy je
+ *    správne mlčať tiež — číslo bez čiary nemá odkiaľ vzniknúť.
+ *
+ * ⚠️ NIE JE TO `isWaterTrail` A NEZLUČUJE SA S NÍM. Ten hovorí o inej veci (vodná plocha ako
+ *    MIESTO) a je len zhodou okolností takmer podmnožinou: paddleboard je voda SO stopou,
+ *    teda `hasRouteMetrics` true a `isWaterTrail` tiež true. Kde má platiť oboje (náročnosť
+ *    v článku), musia stáť obe podmienky vedľa seba.
+ *
+ * ⚠️ Keď vráti `false`, pilulka sa NEKRESLÍ CELÁ (km aj náročnosť) — nie „km bez čísla".
+ *    Prázdna pilulka je horšia než žiadna. Ruch (`crowd`) ostáva: ten sa vypĺňa vo všetkých
+ *    kategóriách.
+ */
+export const hasRouteMetrics = (tr: { path?: unknown[] }): boolean => (tr.path?.length ?? 0) > 1;
+
 // SLOVENSKÉ SKLOŇOVANIE POČTU — 1 výlet · 2–4 výlety · 5+ výletov.
 // Prečo tu a nie v každom komponente zvlášť: kópia tejto funkcie žila v `TripSpotlight.tsx`
 // a mapa ju nemala vôbec, takže sa na nej písalo „1 výletov" (Matej 2026-08-20).
@@ -357,18 +382,35 @@ export function ElevationProfile({ elev, km, onHover }: {
       onPointerMove={interactive ? move : undefined}
       onPointerLeave={interactive ? leave : undefined}
     >
-      <line x1={P.l} y1={H - P.b} x2={W - P.r} y2={H - P.b} stroke={PACK_THEME.onDarkBorder} />
+      {/* ── FARBU POPISKOV NESIE HOSTITEĽ (2026-09-01) ─────────────────────────
+          Do 1. 9. tu stálo `PACK_THEME.onDarkDim` / `onDarkBorder`, teda SVETLÝ inkoust
+          natvrdo — a to platilo len dovtedy, kým bol každý hostiteľ tmavý. Odkedy sú
+          panel v mape aj článok papyrusové, svetlé číslo na svetlej ploche zmizne
+          (v článku boli „1133 m" a „792 m" po prezlečení neviditeľné).
+          `currentColor` to rieši na jednom mieste: graf si farbu neurčuje, dedí ju z
+          textu okolo seba. Tmavý hostiteľ dá svetlú, papyrusový tmavú — bez prepínača
+          a bez propu, ktorý by musel každý volajúci vypĺňať správne. */}
+      <line x1={P.l} y1={H - P.b} x2={W - P.r} y2={H - P.b} stroke="currentColor" opacity={0.22} />
+      {/* ── KRIVKA JE FIALOVÁ, NIE ZLATÁ (Matej 1. 9. 2026) ──────────────────────
+          „treba zmeniť farbu prevýšenia lebo na papyruse splýva! treba ju dať fialovou!
+           aj na detaile aj na blogu."
+          Zlatá #F5C73D bola na čiernom pozadí kontrastná; na papyruse je to takmer tá istá
+          farba ako podklad a graf zanikol. Fialová nie je náhodná náhrada — je to
+          `PACK_THEME.tripPurple`, LOCKNUTÁ farba VÝLETOV (28. 8. 2026), tou istou sa kreslí
+          trasa na mape. Profil prevýšenia je údaj o trase, takže sedí významom, nie len
+          kontrastom. ⚠️ Nezakladaj druhý odtieň fialovej — plocha pod krivkou je TÁ ISTÁ
+          farba s nižším krytím, nie svetlejší hex. */}
       <path d={area} fill="url(#elevFill)" />
-      <path d={d} fill="none" stroke="#F5C73D" strokeWidth={1.8} strokeLinejoin="round" strokeLinecap="round" />
+      <path d={d} fill="none" stroke={PACK_THEME.tripPurple} strokeWidth={1.8} strokeLinejoin="round" strokeLinecap="round" />
       <defs>
         <linearGradient id="elevFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#F5C73D" stopOpacity="0.28" />
-          <stop offset="100%" stopColor="#F5C73D" stopOpacity="0" />
+          <stop offset="0%" stopColor={PACK_THEME.tripPurple} stopOpacity="0.22" />
+          <stop offset="100%" stopColor={PACK_THEME.tripPurple} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <text x={2} y={sy(maxY) + 4} fill={PACK_THEME.onDarkDim} fontSize="9">{Math.round(maxY)} m</text>
-      <text x={2} y={sy(minY) + 4} fill={PACK_THEME.onDarkDim} fontSize="9">{Math.round(minY)} m</text>
-      <text x={W - P.r} y={H - 4} fill={PACK_THEME.onDarkDim} fontSize="9" textAnchor="end">{km.toFixed(1)} km</text>
+      <text x={2} y={sy(maxY) + 4} fill="currentColor" opacity={0.62} fontSize="9">{Math.round(maxY)} m</text>
+      <text x={2} y={sy(minY) + 4} fill="currentColor" opacity={0.62} fontSize="9">{Math.round(minY)} m</text>
+      <text x={W - P.r} y={H - 4} fill="currentColor" opacity={0.62} fontSize="9" textAnchor="end">{km.toFixed(1)} km</text>
       {/* Ukazovateľ: zvislica cez celý graf, guľôčka na krivke a metre nad ňou. Farbu nesie
           krivka (currentColor cez triedu `.trp-elev-cursor` v hostiteľovi), aby ukazovateľ
           patril k tej istej čiare, na ktorej stojí — a nie k pozadiu grafu. */}

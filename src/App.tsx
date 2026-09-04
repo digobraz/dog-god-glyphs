@@ -3,7 +3,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { DEV_FULL } from "@/lib/packFlags";
+import { ONEPAGE_PREVIEW } from "@/lib/onepagePreview";
 import { MapGate } from "@/components/pack/MapGate";
+// Papyrusový podklad + zoznam prezlečených ciest — jeden zdroj, viď RouteFallback nižšie.
+import { PAPER_BG, isPaperRoute } from "@/components/pack/packTheme";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -133,9 +136,20 @@ const InvoiceRender = lazy(() => import("./pages/InvoiceRender.tsx"));
 const ShareRender = lazy(() => import("./pages/ShareRender.tsx"));
 const DogShare = lazy(() => import("./pages/DogShare.tsx"));
 
-// Fullscreen black div — no spinner/text, so nothing brand-foreign flashes
-// while a route chunk loads.
-const RouteFallback = () => <div style={{ position: "fixed", inset: 0, background: "#000" }} />;
+// Fullscreen div — no spinner/text, so nothing brand-foreign flashes while a route
+// chunk loads.
+//
+// ⚠️ FARBU URČUJE CESTA (2026-09-01). Do 1. 9. tu stála natvrdo čierna a platilo to,
+// kým bol každý povrch tmavý. Odkedy sa `/pack` prezlieka do papyrusu, znamenala tá
+// čierna bliknutie tmy pred každým vstupom do prezlečenej stránky — Matej: „sekunda
+// pred načítaním sa stále zobrazuje tmavé pozadie". Naplocho ju prefarbiť nemožno:
+// slúži aj WALL, heroglyph flow a /spiral, kde by z nej bolo biele bliknutie.
+// Zoznam prezlečených ciest drží `isPaperRoute` v packTheme.ts — pri prezliekaní
+// ďalšieho povrchu sa dopĺňa TAM, nie tu.
+const RouteFallback = () => {
+  const { pathname } = useLocation();
+  return <div style={{ position: "fixed", inset: 0, background: isPaperRoute(pathname) ? PAPER_BG : "#000" }} />;
+};
 
 const queryClient = new QueryClient();
 
@@ -195,8 +209,16 @@ const App = () => (
                   <Route path="/vision-lab" element={<LabShell />} />
                   <Route path="/religion-lab" element={<LabShell />} />
                   <Route path="/about-lab" element={<LabShell />} />
-                  <Route path="/onepage" element={<OnePage />} />
                 </>
+              )}
+
+              {/* /onepage — film je od 4. 9. 2026 aj na OSTROM webe, ale len pre toho,
+                  kto ma token (`dogypt.com/onepage?preview=...`). Dovod: pod
+                  `import.meta.env.DEV` sa rychlost filmu nedala zmerat — produkcny build
+                  routu vobec nemal a nacitala sa prazdna stranka. Cely recept aj postup
+                  zrusenia je v `src/lib/onepagePreview.ts`. */}
+              {(import.meta.env.DEV || ONEPAGE_PREVIEW) && (
+                <Route path="/onepage" element={<OnePage />} />
               )}
 
               {/* /entry — verejná conviction gate PRED flow (2026-07-12). CTA → /heroglyph/intro. */}
