@@ -1664,6 +1664,7 @@ export const sk: Partial<Dict> = {
   "pack.layout.navMap": "Mapa",
   "pack.layout.navDogs": "Psy",
   "pack.layout.navProfile": "Profil",
+  "pack.layout.navAinubis": "AINUBIS — spýtaj sa",
   // pack.survey
   "pack.survey.heading": "Formuj appku",
   "pack.survey.subheading": "Čo máme postaviť ako prvé?",

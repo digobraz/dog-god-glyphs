@@ -20,6 +20,7 @@ import {
   NAV_R, NAV_GOLD, NAV_GRAIN, NAV_MOTTLE,
   NAV_FRAME_SHADOW, NAV_PLATE_SHADOW, NAV_PILL_SHADOW,
 } from './navGoldSkin';
+import { DOCK, DOCK_MEDAL_CSS, DockMedallion } from './packDockMedal';
 
 // Inbox/Thread lazy — statický import by ich (a s nimi packMessaging.ts: HERO_TRAILS 1,5 MB,
 // HERO_JOURNEYS) ťahal do PackLayout chunku vždy, aj keď overlay na LIVE
@@ -378,8 +379,18 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
           }}
         />
         )}
+        {/* ── ZLOŽENIE: DOMOV │ AINUBIS │ MAPA · PROFIL (Matej 4. 9. 2026) ──────
+            „na lavej strane bude len HOME a na pravej bude map a profil (profil
+             a svorka) nie dalšie tlačítko svorka."
+            SVORKA teda vlastné tlačidlo NEMÁ — ostáva položkou v rozbaľovačke
+            avatara, kde bola aj doteraz.
+            ⚠️ Vľavo jedna položka, vpravo dve, takže medailón v toku sedí vľavo od
+            stredu lišty; naprávajú to `DOCK.slot` a `DOCK.medalX` (obe odmerané
+            v nákrese, viď `packDockMedal.tsx`). */}
+        <style>{DOCK_MEDAL_CSS}</style>
         <div className="relative flex items-center" style={{ gap: NAV_SKIN === 'gold' ? 10 : 4, padding: NAV_SKIN === 'gold' ? NAV_R.rim + 5 : 6 }}>
           <FloatingNavLink to="/pack" label={t('pack.layout.navHome')} icon={iconHome} end />
+          <DockMedallion label={t('pack.layout.navAinubis')} />
           {/* `WIZ.navMap` — sem svieti krok prehliadky o mape (spotlight na IKONKU,
               nie na blok stránky). Kotva sedí na obale, nie na `NavLink`: spotlight
               pridáva `position:relative` + `z-index`, a to by prebilo štýl pillu. */}
@@ -423,7 +434,9 @@ function AvatarNavButton({ avatarUrl, avatarInitial, dogs = [] }: { avatarUrl?: 
         aria-expanded={open}
         className="flex items-center justify-center"
         style={NAV_SKIN === 'gold' ? {
-          padding: 5, lineHeight: 0, borderRadius: '50%',
+          // Šírka zlatého rámu aj priemer fotky sú Matejov výber z nákresu — `DOCK`,
+          // nie čísla natvrdo (4. 9. 2026: „nech sa pohrám aj so šírkou toho orámovania").
+          padding: DOCK.avRing, lineHeight: 0, borderRadius: '50%',
           background: NAV_GOLD.activeFill,
           border: `${NAV_R.line}px solid ${NAV_GOLD.edge}`,
           boxShadow: [
@@ -440,13 +453,13 @@ function AvatarNavButton({ avatarUrl, avatarInitial, dogs = [] }: { avatarUrl?: 
             src={avatarUrl}
             alt=""
             style={{
-              width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', display: 'block',
+              width: DOCK.avPhoto, height: DOCK.avPhoto, borderRadius: '50%', objectFit: 'cover', display: 'block',
               border: NAV_SKIN === 'gold' ? '1.5px solid rgba(150,105,30,0.7)' : '1.5px solid rgba(201,154,63,0.45)',
             }}
           />
         ) : (
           <div style={{
-            width: 28, height: 28, borderRadius: '50%',
+            width: DOCK.avPhoto, height: DOCK.avPhoto, borderRadius: '50%',
             background: 'radial-gradient(circle at 35% 30%, #F5C73D, #E69E1A)',
             border: NAV_SKIN === 'gold' ? '1.5px solid rgba(150,105,30,0.7)' : 'none',
             boxSizing: 'border-box',
@@ -478,7 +491,12 @@ function AvatarNavButton({ avatarUrl, avatarInitial, dogs = [] }: { avatarUrl?: 
               inak ju prekrýva a schová druhú položku menu pod ňou (Matej 2026-07-27 bug report). */}
           <style>{`
             .pack-avatar-menu{bottom:calc(100% + 10px);}
-            @media (max-width:1023px){.pack-avatar-menu{bottom:calc(100% + 76px);}}
+            /* ⚠️ Tá istá rezerva ako u dvojice ZOZNAM/PRIDAŤ (.trp-mactions v PackMap):
+               menu ju musí preskočiť, inak mu spodnú položku prekryje — dvojica má
+               z-index 900, menu žije v nave na z-40. Preto obe strany berú kotúč
+               AINUBISA z jedného zdroja (--pack-medal-rise), nie z dvoch čísel, ktoré
+               sa rozišli pri prvej úprave (stalo sa 4. 9. 2026, prekryv 4 px). */
+            @media (max-width:1023px){.pack-avatar-menu{bottom:calc(100% + 76px + var(--pack-medal-rise, 0px) + 4px);}}
           `}</style>
           <AvatarMenuItem
             label={t('pack.layout.navProfile')}

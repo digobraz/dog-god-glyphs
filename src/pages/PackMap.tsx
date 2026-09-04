@@ -1933,7 +1933,11 @@ ${TRAIL_LINE_CSS}
      pridaj tlačítko ADD aby boli vedľa seba a obidve centruj aby boli nad NAV panelom".
      ADD teda UŽ NIE JE roh-FAB — obe tlačidlá sedia v jednom centrovanom páre. Posun dole
      o polovicu = 96 → 87px (predtým 78, čo nechávalo nad navom 8px). */
-  .trp-mactions{display:flex;align-items:center;justify-content:center;gap:10px;position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 87px);z-index:900;}
+  /* ⚠️ Rezerva navyše na KOTÚČ AINUBISA, ktorý zo spodného navu vystupuje nahor.
+     Číslo sa nepíše natvrdo — --pack-medal-rise publikuje packDockMedal.tsx, takže
+     zmena priemeru či zdvihu medailóna posunie tlačidlá sama. Bez tejto rezervy ostal
+     medzi kotúčom a dvojicou 1 px (odmerané 4. 9. 2026) a vyzerali ako zlepené. */
+  .trp-mactions{display:flex;align-items:center;justify-content:center;gap:10px;position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 87px + var(--pack-medal-rise, 0px) + 4px);z-index:900;}
   /* 2026-08-22: dve tlačidlá vedľa seba robili DVE RÔZNE veci a vyzerali IDENTICKY — obe zlatá
      pilulka 999px, rovnaká výplň, rovnaká veľkosť. Rozdelené podľa toho, čo sú zač:
        · .trp-mfab = CTA „pridaj výlet" → vzor .btn-gold (LOCK): radius 8 + zlatý dosvit.
