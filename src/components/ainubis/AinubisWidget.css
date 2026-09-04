@@ -62,12 +62,26 @@
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-/* Prilepenie k pillu: odsadenie od stredu o polovicu navu + 10 px medzera.
-   `min()` je strop — keby bol pill na úzkom displeji taký široký, že by widget
-   vytlačil von, zastaví sa 16 px pred pravým okrajom (52 + 16 = 68). */
+/* ── GUĽA SA PRESŤAHOVALA DO LIŠTY (Matej 4. 9. 2026) ──────────────────────
+   „ainubisa dali do stredu spodného navu … len ju presuňme do lišty namiesto
+    toho kde je teraz."
+   Kde spodný nav `/pack` beží (značka `has-pack-nav` na <body>), sedí AINUBIS
+   v ňom ako medailón — `DockMedallion` v `components/pack/packDockMedal.tsx`,
+   klik ide cez ten istý `openAinubis()`, teda ten istý panel a tá istá história.
+   Guľa v rohu by bola druhý spúšťač toho istého chatu na jednej obrazovke.
+
+   ⚠️ SKRÝVA SA LEN TU, NIE VŠADE. Widget je root-level singleton a beží aj mimo
+   `/pack`; tam guľa ostáva jediným vstupom a nesmie zmiznúť. Preto podmienka na
+   `has-pack-nav`, nie odstránenie pravidla — a preto sa značka aj naďalej nasadzuje.
+   ⚠️ `visibility` a nie `display:none`: tlačidlo drží stav mihania a odznaku,
+   ktorý panel číta; s `display:none` by ho prehliadač prestal rozkladať a
+   `getBoundingClientRect()` v ťahaní panela by dostal samé nuly.
+   ⚠️ Odznak neprečítaných preberá medailón — widget svoje číslo publikuje cez
+   `setAinubisUnread()` v `lib/ainubisBus.ts`. Bez toho by upozornenie „máš odo mňa
+   správu" v `/pack` ticho zmizlo spolu s guľou. */
 body.has-pack-nav .ainubis-launcher {
-  left: min(calc(50% + var(--pack-nav-half, 0px) + 10px), calc(100vw - 76px));
-  right: auto;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .ainubis-launcher:hover,
@@ -158,15 +172,27 @@ body.has-pack-nav .ainubis-launcher {
   animation: ainubis-panel-in 0.18s ease-out;
 }
 
-/* Keď je tlačidlo prilepené k navu (stred obrazovky), panel musí vyrásť Z NEHO,
-   nie z pravého rohu — inak spolu vizuálne nesúvisia. Ľavý okraj panelu sedí na
-   ľavom okraji tlačidla, `min()` ho podrží 16 px pred pravým okrajom (380+16).
+/* Panel musí vyrásť ZO SPÚŠŤAČA, inak spolu vizuálne nesúvisia. Spúšťačom je od
+   4. 9. 2026 MEDAILÓN V STREDE LIŠTY, nie guľa napravo od nej — preto sa panel
+   centruje na stred medailónu (`50%` je stred navu, `--pack-medal-x` jeho posun),
+   nie na jeho ľavý okraj. Predtým tu stálo `50% + --pack-nav-half + 10px`, čo je
+   miesto, kde guľa stála; po presťahovaní by panel vyskakoval vedľa ničoho.
+   `clamp()` ho podrží 16 px od oboch okrajov. 210 = polovica šírky panela (420).
    Len desktop: pod 768 px je panel fullscreen sheet a to má prednosť. */
 @media (min-width: 768px) {
   body.has-pack-nav .ainubis-panel {
-    left: min(calc(50% + var(--pack-nav-half, 0px) + 10px), calc(100vw - 436px));
+    left: clamp(16px, calc(50% + var(--pack-medal-x, 0px) - 210px), calc(100vw - 436px));
     right: auto;
   }
+}
+
+/* Spodná hranica panela nad lištou. ⚠️ Číslo sa NEPÍŠE NATVRDO: nav publikuje svoju
+   skutočnú výšku ako `--pack-nav-h` (ResizeObserver v PackBottomNav), takže panel
+   sa posunie sám, keď v lište pribudne alebo ubudne položka. 14 px navyše je vôľa
+   pre kotúč, ktorý nad lištu vystupuje — absolútne pozicovaný medailón výšku navu
+   NEZVÄČŠUJE, takže by ho panel inak preklopil. */
+body.has-pack-nav .ainubis-panel {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px + var(--pack-nav-h, 64px) + 14px);
 }
 
 /* Fullscreen sheet na mobile. Spodná medzera 76 je späť — tlačidlo je opäť

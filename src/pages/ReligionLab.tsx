@@ -1994,12 +1994,17 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
         }
         .codex-flow .codex-section {
           height: auto;
-          min-height: 100dvh;
+          min-height: 100lvh;
           scroll-snap-align: none;
           scroll-snap-stop: normal;
         }
-        .codex-flow .codex-slider { height: auto; min-height: 100dvh; }
-        .codex-flow .codex-slide-3 { height: auto; min-height: 100dvh; }
+        /* 🔴 lvh, NIE dvh — vo filme (4. 9. 2026). Mobilný prehliadač pri scrolle
+           skrýva adresný riadok, takže dvh počas pohybu rastie a výjav sa pod
+           prstom posúva; réžia filmu pritom počíta dráhu z vlastnej, nemennej
+           výšky (filmVh v OnePage.tsx). Dve rôzne výšky = text kmitá hore-dole.
+           Samostatná stránka /religion si dvh nechala: tá sa nescrolluje. */
+        .codex-flow .codex-slider { height: auto; min-height: 100lvh; }
+        .codex-flow .codex-slide-3 { height: auto; min-height: 100lvh; }
         /* Bleed (krava + Hektor) je absolute voči STRÁNKE. Tá je v filme vysoká
            tri obrazovky, takže bez výšky by obe zvieratá sadli na spodok
            posledného výjavu — o dve obrazovky nižšie, než majú stáť.
@@ -2024,8 +2029,8 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
           position: sticky;
           top: 0;
           left: 0;
-          height: 100dvh;
-          margin-bottom: -100dvh;
+          height: 100lvh;
+          margin-bottom: -100lvh;
         }
 
         /* ── REVEAL PLATÍ AJ VO FILME — okrem PRVÉHO výjavu ────────────────

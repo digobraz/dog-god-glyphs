@@ -4,7 +4,7 @@ import { X, Send, Paperclip, Mic, Square, Move, LayoutDashboard } from 'lucide-r
 import { supabase } from '@/integrations/supabase/client';
 import { useLang } from '@/i18n/LanguageContext';
 import { getAinubisCopy } from './ainubisCopy';
-import { AINUBIS_OPEN_EVENT } from '@/lib/ainubisBus';
+import { AINUBIS_OPEN_EVENT, setAinubisUnread } from '@/lib/ainubisBus';
 import ainubisFace from '@/assets/ainubis-badge.png';
 import './AinubisWidget.css';
 
@@ -406,6 +406,9 @@ function AinubisWidgetInner() {
   /** Aby sa uvítanie neprehralo druhýkrát pri zavretí a znovuotvorení panela. */
   const welcomePlayedRef = useRef(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  // Číslo ide von, nech ho vie ukázať aj medailón v spodnom nave `/pack` — tam je
+  // guľa s odznakom skrytá (viď `.ainubis-launcher` v AinubisWidget.css).
+  useEffect(() => { setAinubisUnread(unreadCount); }, [unreadCount]);
   const [takeoverActive, setTakeoverActive] = useState(false);
   const [input, setInput] = useState('');
   const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);

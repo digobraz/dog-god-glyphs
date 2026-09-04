@@ -1466,6 +1466,9 @@ export const en = {
   "pack.layout.navMap": "Map",
   'pack.layout.navDogs': "Dogs",
   'pack.layout.navProfile': "Profile",
+  /* AINUBIS v strede spodného navu (4. 9. 2026) — len pre čítačku obrazovky,
+     medailón nesie tvár, nie text. Meno sa NEPREKLADÁ, je to jeho meno. */
+  'pack.layout.navAinubis': "AINUBIS — ask me",
   'pack.layout.profileAriaLabel': "Profile",
   'pack.layout.yourAvatarAlt': "Your avatar",
   // pack.tree

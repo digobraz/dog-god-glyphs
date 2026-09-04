@@ -59,6 +59,7 @@ import {
   tintRGBA,
 } from '@/components/pack/navGoldSkin';
 import NavMedallion, { NAV_MEDALLION_CSS } from './NavMedallion';
+import { filmVh } from '@/lib/filmVh';
 
 // ── OBRAZY FILMU SÚ NA JEDNOM MIESTE ────────────────────────────────────────
 // Matejov zoznam z 2. 9. 2026, doslova: *„1-HOME · 2 COW vs DOG · 3 Religion ·
@@ -90,6 +91,7 @@ import NavMedallion, { NAV_MEDALLION_CSS } from './NavMedallion';
 //    (`PIN_VH`, `ARC_SPLIT`, …) sú deklarované NIŽŠIE v súbore; zápis hodnotou
 //    by spadol do temporálnej mŕtvej zóny a stránka by sa nenamountovala.
 
+
 /** Absolútna výška prvku v dokumente.
  *  ⚠️ NIE `offsetTop`: `#op-vision` má záporný `margin-top` o celé obrazovky
  *  a sekcie filmu si navzájom lezú do dráhy, takže offsetTop v tomto strome
@@ -105,7 +107,7 @@ const pinnedAt = (sel: string, f: number): number | null => {
   const el = document.querySelector<HTMLElement>(sel);
   if (!el) return null;
   const top = el.getBoundingClientRect().top + window.scrollY;
-  return top + Math.max(1, el.offsetHeight - window.innerHeight) * f;
+  return top + Math.max(1, el.offsetHeight - filmVh()) * f;
 };
 
 /** Kde na dráhe crawlu stojí ROZBEHNUTÝ príbeh (zlatý text). Odmerané na
@@ -139,25 +141,25 @@ const FILM_SLIDES: FilmSlide[] = [
     // to je zároveň značka snapu č. 3.
     id: 'cowdog',
     navKey: 'film.slide.cowdog',
-    at: () => window.innerHeight * PIN_VH,
+    at: () => filmVh() * PIN_VH,
     // 0.55 dráhy = to isté číslo, akým si prvý obraz odovzdával pilulku aj
     // predtým; guľa je v tej chvíli zhasnutá a zvieratá sú vonku.
-    from: () => window.innerHeight * PIN_VH * 0.55,
+    from: () => filmVh() * PIN_VH * 0.55,
   },
   {
     // Preambula — motto a prísaha. Značka snapu č. 5.
     id: 'religion',
     navKey: 'nav.religion',
-    at: () => window.innerHeight * (PIN_VH + PIN2_VH),
-    from: () => window.innerHeight * (PIN_VH + PIN2_VH * 0.5),
+    at: () => filmVh() * (PIN_VH + PIN2_VH),
+    from: () => filmVh() * (PIN_VH + PIN2_VH * 0.5),
   },
   {
     // Vízia — video hero a tri bloky. Značka snapu č. 7. Za ňou pokračuje
     // ešte jej vlastný chvost (video na celú obrazovku, potom čierna).
     id: 'vision',
     navKey: 'nav.vision',
-    at: () => window.innerHeight * (PIN_VH + PIN2_VH + PIN3_VH),
-    from: () => window.innerHeight * (PIN_VH + PIN2_VH + PIN3_VH * 0.5),
+    at: () => filmVh() * (PIN_VH + PIN2_VH + PIN3_VH),
+    from: () => filmVh() * (PIN_VH + PIN2_VH + PIN3_VH * 0.5),
   },
   {
     // Príbeh na čiernej.
@@ -171,8 +173,8 @@ const FILM_SLIDES: FilmSlide[] = [
     // údaj o tom, kde stojí prvý riadok (šípka musí zhasnúť pred ním).
     id: 'story',
     navKey: 'film.slide.story',
-    at: () => window.innerHeight * (PIN_VH + PIN2_VH + PIN3_VH + PIN4_VH + PIN5_VH),
-    from: () => window.innerHeight * (PIN_VH + PIN2_VH + PIN3_VH + PIN4_VH + PIN5_VH),
+    at: () => filmVh() * (PIN_VH + PIN2_VH + PIN3_VH + PIN4_VH + PIN5_VH),
+    from: () => filmVh() * (PIN_VH + PIN2_VH + PIN3_VH + PIN4_VH + PIN5_VH),
   },
   {
     // WE NEED YOU. Klik pristane na začiatku VÝDRŽE — presne tam, kde obraz
@@ -271,30 +273,29 @@ const ANIMALS_IN: readonly [number, number] = [0.10, 0.74];
 /** Text v strede nastupuje posledný, ale do toho istého záberu — nie až za ním. */
 const TEXT_IN: readonly [number, number] = [0.24, 0.92];
 /**
- * SVÄTOŽIARA HEKTORA — pointa výjavu (Matej 27. 8. 2026). Krava ju má od začiatku,
- * Hektorova sa rozsvieti až na konci argumentu.
+ * SVÄTOŽIARA HEKTORA — a pozor, NIE NA VÝJAVE S KRAVOU.
  *
- * 🔴 VLASTNÝ VÝSEK, NIE PRAH NA `--op-txt`. Prahy textu platia len pre variant 1
- * (šesť blokov, --tx-at). Variant 2 sa píše po znakoch a jeho posledný znak
- * dobieha až na `--op-txt` ≈ 1, takže prah odvodený z blokov by v ňom halo
- * rozsvietil doprostred vety. Vlastný výsek je nezávislý od oboch variantov.
+ * 🔴 PRESUNUTÁ NA TRETÍ OBRAZ (Matej 4. 9. 2026: *„na tomto slajde pes nemá
+ * svätožiaru — až na tom, kde je pes sám."*). Do 4. 9. sa rozsvietila ešte na
+ * druhom obraze, súbežne s CTA, ako „odmena za doscrollovanie" (27. 8.). Tým
+ * ale výjav strácal svoju vlastnú pointu: druhý obraz je OTÁZKA — krava je
+ * posvätná, pes nie („1,2 miliardy veriacich · pes má nikoho"). Keď mal
+ * svätožiaru aj pes, obaja stáli ako rovní a otázka zanikla.
  *
- * 🔴 ZAČÍNA S CTA, NIE AŽ ZA NÍM (Matej 28. 8. 2026: *„v tomto momente, ešte keď
- * sa nenačíta CTA, by sa mala zobraziť aj svätožiara — lebo sa zobrazí neskôr
- * a takmer to človek nezachytí."*). Pôvodných [0.92, 1.0] bolo postavených na
- * úvahe, že halo je odmena za doscrollovanie a má doraziť presne na odpočívadlo
- * snapu. Lenže tým padlo do posledných ~200 px dráhy, kde už scroll dobieha
- * zotrvačnosťou — človek sa medzitým pozerá na CTA v strede, a svetlo nad psom
- * na kraji obrazovky mu prebehne mimo pohľadu. Teraz nabieha SÚBEŽNE s CTA
- * a dosvieti ešte pred koncom dráhy — je teda na obrazovke dosť dlho na to, aby
- * si ho niekto všimol, a na odpočívadle už len svieti.
+ * Teraz nabieha až v DRUHOM prechode, keď krava vybledne a pes ostane na
+ * obrazovke sám — a je to odpoveď na obraz predtým, nie jeho ozdoba.
  *
- * ⚠️ SPODNÁ HRANICA SA VIAŽE NA CTA, NIE NA KONIEC DRÁHY. Odmerané vo variante 1
- * (ten Matej používa): 4. blok — CTA — nabieha od `p` ≈ 0.648 a dopĺňa sa
- * na 0.821. Výsek 0.60–0.82 teda leží presne na ňom. Keby halo skĺzlo výrazne
- * nižšie, rozsvieti sa uprostred „YET." a prestane byť odpoveďou naň.
+ * ⚠️ MERIA SA `q`, NIE `p`. Zápis preto NESMIE ostať hore pri `--op-txt`
+ * (prvý prechod) — `q` tam ešte neexistuje. Sedí v bloku druhého prechodu,
+ * hneď za blednutím kravy (`COW_OUT`).
+ *
+ * ⚠️ Výsek leží ZA `COW_OUT` [0.10, 0.44] a prekrýva sa so `SPLIT_IN`
+ * [0.44, 0.58]: svetlo prichádza v momente, keď je krava už len duch a pes
+ * ostáva sám — nie skôr (to by bol ten istý bug, len o obraz ďalej) a nie až
+ * na odpočívadle (tam už scroll dobieha zotrvačnosťou a nikto si to nevšimne —
+ * to je pôvodné zistenie z 28. 8. a platí ďalej).
  */
-const HALO_IN: readonly [number, number] = [0.60, 0.82];
+const HALO_IN: readonly [number, number] = [0.46, 0.70];
 
 /**
  * DĹŽKA PRECHODU 2. → 3. OBRAZU (výjav krava/pes → preambula), v obrazovkách
@@ -1930,7 +1931,7 @@ export default function OnePage() {
       const availW = r.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
       const availH = r.height - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
       if (availW <= 0 || availH <= 0) return fixedPct;
-      const gapPx = (vh: number) => (window.innerHeight * vh) / 100;
+      const gapPx = (vh: number) => (filmVh() * vh) / 100;
       const eyeH = (narrow ? DGX.eyePxM : DGX.eyePx) * 1.2;
       const ruleH = rulePxV * 1.4;
       const sigH = narrow ? DGX.fpM : DGX.fp;
@@ -1978,7 +1979,7 @@ export default function OnePage() {
       const cs = getComputedStyle(sec), r = sec.getBoundingClientRect();
       const availH = r.height - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
       if (availH <= 0) return;
-      const gapPx = (vh: number) => (window.innerHeight * vh) / 100;
+      const gapPx = (vh: number) => (filmVh() * vh) / 100;
       const big = bigSize(narrow);
       const fin = Math.min(big, (narrow ? DGX.finSizeM : DGX.finSize) / 100 * window.innerWidth);
       const headH = fin * 0.98; // po ustálení (mix big→fin) — kóty aj tak prídu až potom
@@ -2562,7 +2563,7 @@ export default function OnePage() {
       // položky) — preto sa počíta zo VŠETKÝCH vykreslených, nie z otvorených.
       const gapPx = parseFloat(cs.rowGap) || 0;
       const beats = 4 + (ALBA_SAME ? 1 : 0) + (ALBA_CNT ? 1 : 0);   // nadpis, eyebrow, trojica, veta
-      const vh1 = window.innerHeight / 100;
+      const vh1 = filmVh() / 100;
       const binPad = 1.8 * vh1;   // `.op-beat > .op-bin` padding-top
       const colGap = 0.9 * vh1;   // `.op-glf-al` gap
       // Nadpis sa počíta z KONEČNEJ veľkosti, nie z tej, ktorú má práve teraz:
@@ -2623,19 +2624,47 @@ export default function OnePage() {
     };
 
     const prev: Record<string, string> = {};
+    /* 🔴 NAJPRV SA ČÍTA, AŽ POTOM ZAPISUJE (4. 9. 2026).
+       Réžia si počas jedného snímku sedemkrát pýta rozloženie
+       (`getBoundingClientRect` — crawl, oblúk, os, pilulka, trojica, recenzie,
+       zhrnutie) a medzi tými čítaniami zapisuje štýly. Každý taký zápis
+       zneplatní rozloženie, takže najbližšie čítanie donúti prehliadač
+       prepočítať ho ZNOVA — a to nad celým dokumentom (2500 prvkov). V stope
+       to bolo 143 ms vynúteného prepočtu na jednom jedinom mieste.
+
+       Zápisy preto idú do fronty a vysypú sa NARAZ na konci snímku
+       (`flush()`). Čítania tak vidia rozloženie usadené z minulého snímku,
+       ktoré prehliadač spočítal sám pri kreslení — teda zadarmo.
+
+       ⚠️ Vnútri jedného snímku sa už NESMIE čítať rozmer prvku, ktorý ten istý
+       snímok posúva. Dnes to nikde nerobí (číta sa poloha prilepených sekcií
+       a šírky textu, tie réžia nehýbe), a keby raz bolo treba, správna cesta
+       je zmerať to RAZ mimo snímku — nie vrátiť okamžitý zápis. */
+    const wq: Array<[HTMLElement, string, string]> = [];
+    const tq: Array<[HTMLElement, string]> = [];
     /** Zápis len pri zmene — inak sa štýl invaliduje aj keď scroll stojí. */
     const put = (el: HTMLElement | null | undefined, key: string, prop: string, val: string) => {
       if (!el || prev[key] === val) return;
       prev[key] = val;
-      if (prop.startsWith('--')) el.style.setProperty(prop, val);
-      else (el.style as unknown as Record<string, string>)[prop] = val;
+      wq.push([el, prop, val]);
     };
     /** To isté pre text. Nejde to cez `put()`: ten zapisuje do `style`, takže
      *  `textContent` by ticho skončil ako neexistujúca CSS vlastnosť. */
     const putText = (el: HTMLElement | null | undefined, key: string, val: string) => {
       if (!el || prev[key] === val) return;
       prev[key] = val;
-      el.textContent = val;
+      tq.push([el, val]);
+    };
+    /** Vysypanie fronty. Volá sa RAZ, na konci `apply()`. */
+    const flush = () => {
+      for (let i = 0; i < wq.length; i++) {
+        const [el, prop, val] = wq[i];
+        if (prop.startsWith('--')) el.style.setProperty(prop, val);
+        else (el.style as unknown as Record<string, string>)[prop] = val;
+      }
+      wq.length = 0;
+      for (let i = 0; i < tq.length; i++) tq[i][0].textContent = tq[i][1];
+      tq.length = 0;
     };
 
     let raf = 0;
@@ -2643,7 +2672,7 @@ export default function OnePage() {
     const apply = () => {
       raf = 0;
       if (!n.planetRoot || !n.bleed) { if (tries++ < 60) resolve(); }
-      const vh = window.innerHeight;
+      const vh = filmVh();
       const span = Math.max(1, vh * PIN_VH);
       const p = clamp01(window.scrollY / span);
 
@@ -2661,6 +2690,16 @@ export default function OnePage() {
       // natrvalo rozsvietil nad stenou.
       const planetOpen = !!n.planetRoot?.classList.contains('open');
       put(n.planetRoot, 'pr', 'opacity', planetOpen ? o.toFixed(3) : '');
+      // 🔴 ZHASNUTÁ GUĽA SA MUSÍ AJ SCHOVAŤ (4. 9. 2026). Guľa je prilepená na
+      // CELÝ film, takže po odchode leží ďalej pod zvyšnými ~35 obrazovkami —
+      // 200 dlaždíc s fotkami, každá vo vlastnej 3D rovine. Pri `opacity: 0`
+      // ich prehliadač ďalej skladá na každý snímok scrollu; `visibility` ich
+      // z toho vyradí a vráti ich hneď, len čo sa človek vráti hore.
+      // ⚠️ To isté pre stenu — je to súrodenec gule, nie jej dieťa, a hasne
+      // tou istou hodnotou.
+      const ballGone = o <= 0.002;
+      put(n.planetRoot, 'prv', 'visibility', ballGone ? 'hidden' : '');
+      put(n.wall, 'wlv2', 'visibility', ballGone ? 'hidden' : '');
       // ⚠️ ZAPISUJE SA NÁSOBIČ, NIE HOTOVÝ TRANSFORM. Priamy zápis transformu
       // na prvok prebije každé CSS pravidlo — vrátane toho, ktorým sa guľa
       // uhýba panelu s kartou psa (a na mobile aj jej vlastnej mierky 0.62,
@@ -2690,9 +2729,9 @@ export default function OnePage() {
       put(n.bleed, 'in', '--op-in', (1 - seg(p, ANIMALS_IN[0], ANIMALS_IN[1])).toFixed(3));
       // TEXT V STREDE: nabieha posledný.
       put(n.overlay, 'tx', '--op-txt', seg(p, TEXT_IN[0], TEXT_IN[1]).toFixed(3));
-      // SVÄTOŽIARA HEKTORA: úplne posledná — je to odmena za doscrollovanie.
-      // Sedí na bleede (tam žijú obe zvieratá aj obe halá), nie na texte.
-      put(n.bleed, 'hl', '--op-halo', seg(p, HALO_IN[0], HALO_IN[1]).toFixed(3));
+      // ⚠️ SVÄTOŽIARA HEKTORA TU UŽ NIE JE. Od 4. 9. 2026 patrí až tretiemu
+      // obrazu (pes sám) — zápis je nižšie, v bloku druhého prechodu. Viď
+      // HALO_IN. Na tomto výjave má halo len KRAVA, a je to jeho pointa.
 
       // ── PRECHOD 2. → 3. OBRAZU ───────────────────────────────────────
       // Jedna obrazovka, ktorá sa nehýbe — druhýkrát. Rozdiel oproti prvému
@@ -2760,6 +2799,10 @@ export default function OnePage() {
       // BLEDNE UŽ LEN KRAVA (viď COW_OUT). Hektor si drží farbu po celý film —
       // spoločné stlmenie oboch zaniklo spolu so štvrtým obrazom.
       put(n.bleed, 'cw', '--op-cow', (1 - (1 - COW_DIM) * seg(q, COW_OUT[0], COW_OUT[1])).toFixed(3));
+      // SVÄTOŽIARA HEKTORA — odpoveď na predchádzajúci obraz, nie jeho ozdoba.
+      // Prichádza hneď za blednutím kravy: pes ostal sám, a až vtedy svieti.
+      // Sedí na bleede (tam žijú obe zvieratá aj obe halá), nie na texte.
+      put(n.bleed, 'hl', '--op-halo', seg(q, HALO_IN[0], HALO_IN[1]).toFixed(3));
 
       // ── PRECHOD 3. → 4. OBRAZU: PÁS SA POSUNIE DOPRAVA ───────────────
       // Prvý prechod, pri ktorom sa hýbe svet a nielen to, čo je vidieť.
@@ -3398,6 +3441,10 @@ export default function OnePage() {
       let cur = 0;
       for (let i = 0; i < froms.length; i++) if (mid >= froms[i]) cur = i;
       setScene(cur);
+
+      // ⚠️ AŽ TU sa všetko odmerané vysype na obrazovku — viď `flush()` vyššie.
+      // Nový zápis pridaný ZA tento riadok by sa v tomto snímku nevykreslil.
+      flush();
     };
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(apply); };
     applyRef.current = apply;
@@ -3565,7 +3612,7 @@ export default function OnePage() {
   const goToGlyph = useCallback(() => {
     const arc = document.querySelector<HTMLElement>('.op-arc');
     if (!arc) return;
-    const vh = window.innerHeight;
+    const vh = filmVh();
     const span = Math.max(1, arc.offsetHeight - vh);
     const at = ARC_SPLIT + ARC_DWELL + ARC_XFADE;
     window.scrollTo({ top: arc.offsetTop + span * at, behavior: 'smooth' });
@@ -3587,7 +3634,7 @@ export default function OnePage() {
    */
   const goCinema = useCallback(() => {
     window.scrollTo({
-      top: window.innerHeight * (PIN_VH + PIN2_VH + PIN3_VH + PIN4_VH),
+      top: filmVh() * (PIN_VH + PIN2_VH + PIN3_VH + PIN4_VH),
       behavior: 'smooth',
     });
   }, []);
@@ -3706,7 +3753,7 @@ export default function OnePage() {
         /* Guľa stojí na TOM ISTOM papyruse ako zvyšok filmu.
            Wall si nesie vlastný nepriehľadný podklad (plná farba + radiálny
            gradient v ::before). Ten hasne spolu s hero, takže na jeho spodnej
-           hrane — presne na 100dvh — vznikne ostrá vodorovná hrana medzi dvoma
+           hrane — presne na 100lvh — vznikne ostrá vodorovná hrana medzi dvoma
            rôzne svetlými papyrusmi, ktorá sa cez celý prechod plazí obrazovkou.
            Rovnaký dôvod, pre ktorý sú priehľadné aj sekcie filmu nižšie. */
         .op-planet .gods-root { background-color: transparent; }
@@ -3721,7 +3768,7 @@ export default function OnePage() {
         .op-planet {
           position: sticky;
           top: 0;
-          height: 100dvh;
+          height: 100lvh;
           overflow: hidden;
           transform: translateZ(0);
           /* 🔴 POD FILMOM, A JE TO PODMIENKA, NIE VOĽBA. Prilepený obal s
@@ -3796,7 +3843,7 @@ export default function OnePage() {
         .op-film {
           position: relative;
           z-index: 2;
-          margin-top: -100dvh;
+          margin-top: -100lvh;
           /* Film leží NAD guľou od prvého pixela, takže by jej vzal prst:
              ťahanie planéty ani kliky na karty by sa k nej nedostali. Kým je
              guľa na obrazovke, film je pre prst priehľadný. */
@@ -3989,8 +4036,13 @@ export default function OnePage() {
            Opakuje sa tu ZÁMERNE: film nesmie závisieť na tom, či je vízia
            práve v strome.
 
-           ⚠️ Iba desktop, rovnako ako vo VisionLab. Na mobile mení lišta
-           prehliadača 100dvh počas scrollu — značky by sa pod prstom hýbali.
+           ⚠️ Iba desktop, rovnako ako vo VisionLab. Pôvodný dôvod bol, že na
+           mobile mení lišta prehliadača 100dvh počas scrollu a značky by sa
+           pod prstom hýbali; od 4. 9. 2026 film na dvh nestojí (celý je na
+           lvh, viď hlavičku súboru), takže tento konkrétny dôvod padol.
+           Snap na mobile sa napriek tomu NEZAPÍNA bez Matejovho slova —
+           odpočívadlá stoja po jednej obrazovke a on ich agresivitu už raz
+           zamietol (28. 8. 2026, schodisko „1-2-2-3").
 
            ⚠️ .codex-flow .codex-section si snap vypína (ReligionLab ho v režime
            filmu ruší), preto sa sem zapisuje cez #op-religion — (1,2,0) prebije
@@ -4029,8 +4081,8 @@ export default function OnePage() {
              zamietnutý (28. 8. 2026: schodisko „1-2-2-3"). Odpočívadlo nikoho
              nezastaví, len mu dá kde zastať.
              ⚠️ Je to poistka NAD výdržou, nie namiesto nej: snap je len na
-             desktope (na mobile mení lišta prehliadača 100dvh počas scrollu),
-             takže na telefóne musí stačiť samotných ARC_HOLD_VH. */
+             desktope (viď dôvod vyššie), takže na telefóne musí stačiť
+             samotných ARC_HOLD_VH. */
           .op-root .op-arc-rest,
           /* Dvojča vyššie, o obraz ďalej — DOGTRIX dobieha svoje vlastné
              písanie (kóty, čierny klikateľný glyf) presne tak, ako WE NEED
@@ -4054,21 +4106,21 @@ export default function OnePage() {
            center by prilepený obsah začínal až v polovici jej výšky, takže by
            sa prilepil až v polovici prechodu. */
         .op-root #op-religion .codex-section[data-idx="0"] {
-          min-height: calc(100dvh + ${PIN_VH * 100}dvh);
+          min-height: calc(100lvh + ${PIN_VH * 100}lvh);
           align-items: flex-start;
         }
         .op-root #op-religion .codex-section[data-idx="0"] .codex-slider {
           position: sticky;
           top: 0;
-          height: 100dvh;
-          min-height: 100dvh;
+          height: 100lvh;
+          min-height: 100lvh;
         }
 
         /* ── PREAMBULA SA MUSÍ ZMESTIŤ POD LIŠTU ──────────────────────────
            Matej 28. 8. 2026 (screenshot zastavenej obrazovky): *„musíme to
            všetko zmenšiť a centrovať tak, aby sa to vošlo pod NAV BAR."*
 
-           Príčina merateľná, nie odhadnutá: výjav je stavaný na 100dvh a
+           Príčina merateľná, nie odhadnutá: výjav je stavaný na 100lvh a
            centruje sa v CELEJ obrazovke, lenže horná lišta je fixed a siaha
            s medailónom po 112 px. Obsah preambuly meria pri 1512×704 spolu
            572 px a začína 100 px od vrchu sekcie — teda 12 px POD spodkom
@@ -4098,10 +4150,10 @@ export default function OnePage() {
              obrazovky (na tom stoja značky snapu).
              align-items: flex-start je tu z rovnakého dôvodu ako pri výjave:
              s center by sa obsah prilepil až v polovici výšky sekcie. */
-          margin-top: -100dvh;
+          margin-top: -100lvh;
           /* ⚠️ +PIN3_VH: prilepenie musí prežiť aj TRETÍ prechod, inak sa
              preambula uprostred neho odlepí a rámik sa začne triasť. */
-          min-height: calc(100dvh + ${(PIN2_VH + PIN3_VH) * 100}dvh);
+          min-height: calc(100lvh + ${(PIN2_VH + PIN3_VH) * 100}lvh);
           align-items: flex-start;
           padding-top: 0;
           padding-bottom: 0;
@@ -4110,12 +4162,12 @@ export default function OnePage() {
            padding-top na sekcii — ten by pri prilepení posunul až samotné
            prilepenie). top = --op-nav-h ⇒ „stred" ostáva stredom VIDITEĽNEJ
            plochy, presne ako predtým.
-           .codex-flow .codex-slider ma min-height: 100dvh — to sa musí zrušiť,
+           .codex-flow .codex-slider ma min-height: 100lvh — to sa musí zrušiť,
            inak je box o výšku lišty vyšší než miesto, kam sa má zmestiť. */
         .op-root #op-religion .codex-section[data-idx="1"] .codex-slider {
           position: sticky;
           top: var(--op-nav-h);
-          height: calc(100dvh - var(--op-nav-h));
+          height: calc(100lvh - var(--op-nav-h));
           min-height: 0;
           padding-bottom: clamp(10px, 2.4vh, 28px);
           box-sizing: border-box;
@@ -4185,6 +4237,39 @@ export default function OnePage() {
           }
           .op-root #op-religion .codex-section[data-idx="1"] .codex-slide > * + * {
             margin-top: min(clamp(13px, 2.2vh, 20px), 2.6vh);
+          }
+
+          /* ── NADPIS HORE, CTA DOLE (Matej 4. 9. 2026) ────────────────────
+             *„nadpis posuň hore a hektora viac centruj a zväčši CTA nechaj
+              dolu kúsok od okraja (mobil)."*
+             Obsah sa dovtedy CENTROVAL v ploche pod lištou, takže nad nadpisom
+             aj pod CTA ostával skoro rovnaký prázdny pás (odmerané pri 390×844:
+             190 px hore, 183 px dole). Obrazovka pôsobila poloprázdna a modré
+             tlačidlo plávalo v strede medzi textom a psom, kde ho nič nedržalo.
+             Odteraz drží nadpis hornú hranu a CTA spodnú; celý vzduch je medzi
+             nimi — teda tam, kde ho nikto nepočíta.
+             ⚠️ Odsadenie CTA od hrany okna NIE JE tu — nesie ho padding-bottom
+             na .codex-slider vyššie (jedno miesto pre celý prilepený box). */
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-slide {
+            justify-content: flex-start;
+            padding-top: clamp(6px, 1.6vh, 18px);
+          }
+          /* Hodnota auto zhltne všetok zvyšný vzduch, takže CTA sadne na spodok bez
+             jediného čísla navyše — a ostane tam pri akejkoľvek výške okna. */
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-book-cta {
+            margin-top: auto;
+            font-size: 0.92rem;
+            padding: 14px 18px;
+            width: min(100%, 340px);
+            /* ⚠️ ZALAMOVANIE JE PODMIENKA VÄČŠIEHO PÍSMA, NIE VOĽBA.
+               Základ má white-space: nowrap (na PC sa veta do jedného riadku
+               zmestí). Na 390 px má slovenské „Prečítaj si «Bibliu» pre
+               psíčkarov" pri 14,7 px Cinzeli ~340 px, takže pri nowrap
+               vytieklo z tlačidla von — text ležal na psovi vedľa modrej
+               plochy. Dva riadky sú tu správne: tlačidlo má byť VÄČŠIE. */
+            white-space: normal;
+            line-height: 1.25;
+            text-align: center;
           }
         }
 
@@ -4362,7 +4447,7 @@ export default function OnePage() {
            (ten istý, kvôli ktorému vznikol).
 
            ⚠️ Pätičková kniha stojí v TOKU, nie v prilepenej obrazovke — nesmie
-           preto dediť height: 100dvh z .codex-slide. Preto tu má vlastný
+           preto dediť height: 100lvh z .codex-slide. Preto tu má vlastný
            obal .op-book a nie .codex-section.
            ⚠️ overflow-anchor: none je prevzaté z .codex-scroll: keď sa na
            tretej dvojstrane zjavia CTA tlačidlá, výška obsahu narastie a bez
@@ -4417,7 +4502,7 @@ export default function OnePage() {
            🔴 PRÍČINA NIE JE V PRECHODE, ALE V TOM, ŽE VINETA JE STRÁNKOVÁ.
            Každá lab stránka si nesie vlastnú vinetu — inline div s inset: 0
            a radiálnym gradientom (LAB.pageVeil). Komentár pri nej v
-           ReligionLab hovorí *„drží sa 1 obrazovky (page = 100dvh)"*, a to je
+           ReligionLab hovorí *„drží sa 1 obrazovky (page = 100lvh)"*, a to je
            pravda len MIMO filmu: v režime flow má stránka h-auto, takže sa
            tá istá vrstva roztiahne na celú svoju výšku (odmerané: 7 200 px,
            teda osem obrazoviek). Radiálny gradient sa tým rozťahuje s ňou.
@@ -4517,7 +4602,7 @@ export default function OnePage() {
            stránka náboženstva je odteraz o dráhu vyššia, aby na nej preambula
            vydržala prilepená. Vízia ju musí dobehnúť, inak by prechod začal
            o dve obrazovky neskôr než DOGMA dostojí. */
-        .op-root #op-vision { margin-top: calc(-${(1 + PIN3_VH) * 100}dvh); }
+        .op-root #op-vision { margin-top: calc(-${(1 + PIN3_VH) * 100}lvh); }
         .op-root #op-vision .vision-video-hero {
           display: block;
           /* ⚠️ TRI DRÁHY, NIE JEDNA. PIN3_VH je príchod vízie (pás sa posunie
@@ -4527,7 +4612,7 @@ export default function OnePage() {
              obrazovke, takže sa pripočítavajú k výške JEDNEJ sekcie. Keby mal
              ktorýkoľvek z nich vlastnú sekciu, bol by medzi nimi strih — a
              práve plynulosť je pri poslednom z nich celý efekt. */
-          min-height: calc(100dvh + ${(PIN3_VH + PIN4_VH + PIN5_VH) * 100}dvh);
+          min-height: calc(100lvh + ${(PIN3_VH + PIN4_VH + PIN5_VH) * 100}lvh);
           /* ⚠️ ŽIADNY VODOROVNÝ PADDING — z rovnakého dôvodu ako nulový gap
              nižšie. Padding zúži mriežku a stred pravého stĺpca sa posunie
              dovnútra; odmerané pri 1440 px: rámik dosadol na 1080, text na
@@ -4550,7 +4635,7 @@ export default function OnePage() {
              priehľadná, takže optický stred je stred OKNA. Obsah sa pod ňu
              nedostane: video je stropované výškou okna a bloky sú nižšie. */
           top: 0;
-          height: 100dvh;
+          height: 100lvh;
           /* ⚠️ CENTRUJE SA V PÁSE POD LIŠTOU, nie v celom okne (Matej 28. 8.
              2026, 3. kolo: *„presne v strede obrazovky — spodný okraj / dolný
              okraj horného navbaru"*). Tým padol zápis o riadok vyššie: keď
@@ -4696,8 +4781,8 @@ export default function OnePage() {
            ⚠️ max(--vf-rest, …) je poistka na nízke okno: keby pás pod lištou
            vyšiel užší než pokojná šírka, video by sa „zväčšením" zmenšilo. */
         .op-root #op-vision .video-embed-frame {
-          --vf-rest: min(680px, 100%, max(320px, calc((100dvh - 330px) * 16 / 9)));
-          --vf-full: max(var(--vf-rest), min(100vw, calc((100dvh - var(--op-nav-h)) * 16 / 9)));
+          --vf-rest: min(680px, 100%, max(320px, calc((100lvh - 330px) * 16 / 9)));
+          --vf-full: max(var(--vf-rest), min(100vw, calc((100lvh - var(--op-nav-h)) * 16 / 9)));
           /* TRETÍ BOD — CELÉ OKNO (5. prechod). Plátno bolo stropované výškou
              pásu POD lištou; tu už lišta černie, takže strop padá a obraz
              zaberie okno celé. Je to CELÉ POKRYTIE, nie zmestenie sa: kratšia
@@ -4708,7 +4793,7 @@ export default function OnePage() {
              *„treba aby to video malo stále zaoblené rohy"*). Nemení sa ani
              o pixel — rohy len odídu za hranu okna. Ak v tejto rovnici raz
              nájdeš interpoláciu border-radius, je to chyba. */
-          --vf-cover: max(var(--vf-full), 100vw, calc(100dvh * 16 / 9));
+          --vf-cover: max(var(--vf-full), 100vw, calc(100lvh * 16 / 9));
           width: calc(var(--vf-rest)
                     + (var(--vf-full)  - var(--vf-rest)) * var(--op-grow, 0)
                     + (var(--vf-cover) - var(--vf-full)) * var(--op-grow2, 0));
@@ -4741,7 +4826,7 @@ export default function OnePage() {
             grid-template-columns: minmax(0, 1fr);
             align-content: center;
             height: auto;
-            min-height: 100dvh;
+            min-height: 100lvh;
             padding-top: var(--op-nav-h);
             box-sizing: border-box;
             gap: clamp(14px, 2.4vh, 22px);
@@ -4764,7 +4849,7 @@ export default function OnePage() {
           .op-root #op-vision .video-embed-frame {
             --vf-rest: min(100%, calc(31vh * 16 / 9));
             /* ⚠️ A CELÉ OKNO JE TU CELÁ ŠÍRKA, nie pokrytie. Zdedený strop
-               z PC (100dvh * 16/9) je na výšku držanom telefóne skoro štvornásobok
+               z PC (100lvh * 16/9) je na výšku držanom telefóne skoro štvornásobok
                šírky okna — video by narástlo mimo obraz a z filmu by ostal
                orezaný stred. Je to tá istá úvaha, pre ktorú sa 16:9 neoreže do
                portrétu ani na plátne: film sa nereže, len sa doň nevojde výška. */
@@ -4862,6 +4947,24 @@ export default function OnePage() {
         }
 
         @media (max-width: 767px) {
+          /* 🔴 ZVIERATÁ MUSIA DOSADNÚŤ NA SPODNÚ HRANU OKNA (Matej 4. 9. 2026:
+             *„krava aj pes začína nad okrajom, vyzerá to zle"*).
+             Mobilná vetva v ReligionLab ich vešia za HORNÚ hranu (top: 50px)
+             a dáva im výšku 90vh, takže im spodok skončil o 34 px nad dolným
+             okrajom okna (odmerané pri 390×844: spodok 810, okno 844) — a na
+             papyruse z toho vznikol svetlý pás pod nimi, ktorý sa číta ako
+             nedokreslený obrázok. Ukotvenie zdola ten pás ruší a je aj
+             odolnejšie: pri akejkoľvek výške okna zvieratá stoja na jeho hrane.
+             ⚠️ top: auto je podmienka — pri zadanom top aj bottom NARAZ vyhrá
+             top a bottom sa ticho zahodí.
+             ⚠️ Platí to aj na svätožiary: prstence sú SVG s tými istými
+             triedami, takže sa posunú s hlavami. Presne o to ide.
+             ⚠️ Iba vo filme (.op-root) — samostatná /religion má mobilnú vetvu
+             LOCKED z 24. 5. 2026 a jej sa toto netýka. */
+          .op-root :is(.codex-bleed, .codex-spotlayer) :is(.codex-cow, .codex-hektor) {
+            top: auto;
+            bottom: 0;
+          }
           /* ⚠️ --op-hek MUSÍ BYŤ AJ TU, A AJ NA KRAVE. Na PC ju z obrazu
              vytlačí rozdelenie obrazovky (--op-split), lenže to na mobile
              neexistuje — takže bez tohto by krava ostala stáť pod textom
@@ -4869,8 +4972,21 @@ export default function OnePage() {
           .op-root.op-root .codex-bleed .codex-cow {
             transform: translateX(calc(var(--op-in, 0) * -120% - var(--op-hek, 0) * 140%)) scale(1.377);
           }
+          /* 🔴 NA TREŤOM OBRAZE SA PES POSUNIE DO ZÁBERU (Matej 4. 9. 2026:
+             *„hektora viac centruj"*). Mobil nemá rozdelenie obrazovky, takže
+             pes stál v oboch obrazoch v tom istom rohu — na treťom je pritom
+             jediný, kto na obrazovke ostal, a pritom mu z nej trčala len hlava
+             (mobilná vetva ho posúva o 14vw + 15 px za pravý okraj).
+             --op-split je tá istá premenná, ktorou sa na PC preskupuje obrazovka
+             — tu robí jedinú vec: dotiahne psa naspäť k hrane okna.
+             ⚠️ Sčítava sa s --op-hek, nie nahrádza ho: štvrtý prechod psa
+             vytláča von a musí ho vytlačiť aj z tejto novej polohy. */
           .op-root.op-root :is(.codex-bleed, .codex-spotlayer) .codex-hektor {
-            transform: translateX(calc(var(--op-in, 0) * 120% + var(--op-hek, 0) * 140%)) scale(1.352);
+            transform: translateX(calc(
+              var(--op-in, 0) * 120%
+              - var(--op-split, 0) * 15%
+              + var(--op-hek, 0) * 140%
+            )) scale(1.352);
           }
         }
 
@@ -4878,7 +4994,10 @@ export default function OnePage() {
            Na samostatnej /religion-lab spúšťa halo časovač (--halo-delay
            v ReligionLab.tsx). Vo filme by sa bil so scrollom presne tak, ako
            sa bili časovače textu — preto sa tu vypína a hodnotu preberá
-           --op-halo z výseku HALO_IN, teda AŽ ZA celým textom (oba varianty).
+           --op-halo z výseku HALO_IN.
+           ⚠️ Od 4. 9. 2026 ten výsek leží až v DRUHOM prechode (pes sám na
+           treťom obraze), nie na výjave s kravou — viď HALO_IN. Na výjave
+           s kravou má halo len ona, a to je jeho pointa.
 
            🔴 ZDVOJENÉ .op-root.op-root z rovnakého dôvodu ako pri zvieratách
            vyššie: .codex-bleed.active .codex-halo-hektor má (0,3,0) a
@@ -4915,9 +5034,9 @@ export default function OnePage() {
              0.20  pes — A DOG HAS NONE (pauza, prichádza druhá strana)
              0.44  YET. (najväčšia pauza — obrat má doraziť do ticha)
              0.64  CTA
-           Svätožiara Hektora ostáva ÚPLNE POSLEDNÁ (HALO_IN 0.92–1.0): „YET."
-           teda stojí na obrazovke, keď sa svetlo rozsvieti — slovo je sľub,
-           svetlo jeho splnenie. Preto sa poradie nemá prehadzovať.
+           ⚠️ SVÄTOŽIARA HEKTORA UŽ NA TOMTO VÝJAVE NIE JE (4. 9. 2026). Tu
+           dobehne text „YET." a tým sa obraz končí ako OTÁZKA; odpoveďou je až
+           nasledujúci obraz, kde pes ostane sám a rozsvieti sa. Viď HALO_IN.
            ⚠️ Posledný prah + 0.29 musí ostať pod 1.0, inak sa CTA nedopočíta do
            plnej krycej hodnoty a ostane priesvitné aj na konci výjavu. */
         .op-root #op-religion .codex-section[data-idx="0"] .codex-3-overlay > * {
@@ -5134,7 +5253,7 @@ export default function OnePage() {
           width: max-content;
           min-width: 100%;
           max-width: min(78vw, 300px);
-          max-height: calc(100dvh - 140px);
+          max-height: calc(100lvh - 140px);
           overflow-y: auto;
           background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
           border: 1px solid rgba(201,154,63,0.55);
@@ -5419,7 +5538,7 @@ export default function OnePage() {
            pás stojí v toku). Vo filme musí zmiznúť pod lištu, preto !important:
            inline zápis sa inak prebiť nedá. */
         .op-root .op-quo .tst-cols {
-          max-height: min(640px, calc(100dvh - 2 * var(--op-nav-h) - 96px)) !important;
+          max-height: min(640px, calc(100lvh - 2 * var(--op-nav-h) - 96px)) !important;
         }
         .op-root .op-quo .tst-cols > div { opacity: 0; }
         /* Zdroje fotiek (CC) sú právna podmienka vrstvy, nie ozdoba — musia byť
@@ -5459,7 +5578,7 @@ export default function OnePage() {
              kde je jeho text nečitateľný a zhrnutie sa nedá kliknúť.
              --op-nav-h je jediné miesto s výškou lišty (rezerva 2× je na
              spodné ukotvenie aj na lištu samu). */
-          max-height: min(30vh, calc(100dvh - 2 * var(--op-nav-h)));
+          max-height: min(30vh, calc(100lvh - 2 * var(--op-nav-h)));
           overflow: auto;
           opacity: 0;
         }
@@ -6513,7 +6632,7 @@ export default function OnePage() {
             nič nemerajú a nič nekreslia. */}
         <div className="op-snaps" aria-hidden>
           {Array.from({ length: PIN_VH + PIN2_VH + PIN3_VH + PIN4_VH + PIN5_VH + 1 }, (_, i) => (
-            <span key={i} style={{ top: `${i * 100}dvh` }} />
+            <span key={i} style={{ top: `${i * 100}lvh` }} />
           ))}
         </div>
 
