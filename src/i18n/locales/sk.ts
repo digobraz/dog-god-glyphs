@@ -1559,6 +1559,7 @@ export const sk: Partial<Dict> = {
   "pack.alerts.requestFew": "{count} Dogypťania sa chcú pridať",
   "pack.alerts.requestMany": "{count} Dogypťanov sa chce pridať",
   "pack.alerts.accepted": "Si vo svorke",
+  "pack.alerts.walked": "Prešli ste ho spolu — zapíš si výlet aj ty",
   // pack.notif
   "pack.notif.ariaMessages": "Správy — už čoskoro",
   "pack.notif.ariaNotifications": "Upozornenia",

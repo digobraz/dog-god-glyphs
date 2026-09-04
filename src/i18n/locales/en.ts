@@ -1568,6 +1568,7 @@ export const en = {
   'pack.alerts.requestFew': "{count} Dogyptians want to join",
   'pack.alerts.requestMany': "{count} Dogyptians want to join",
   'pack.alerts.accepted': "You're in the party",
+  'pack.alerts.walked': "You walked this one together — log it too",
   // pack.notif
   'pack.notif.ariaMessages': "Messages — coming soon",
   'pack.notif.ariaNotifications': "Notifications",

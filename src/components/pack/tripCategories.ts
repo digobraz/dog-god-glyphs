@@ -290,6 +290,18 @@ export function primaryCategoryOf(acts?: string[] | null): TripCategoryId {
    * rozhodnutie, ktoré od človeka práve dostala.
    * `IDENTITY_ORDER` nižšie preto rozhoduje LEN tam, kde nikto nevyberal — teda na 81 seed
    * výletoch, ktoré nesú iba staré aktivity ('picnic', 'skating'…).
+   *
+   * 🔵 PRIEHRADY VYBERAL MATEJ (2026-09-04): „PRIEHRADA dajme visit natívne ale bude sa
+   *    zobrazovať aj v activity ale nie na HIKE." Ôsmim výletom, ktorých CIEĽ je vodná plocha
+   *    (7 priehrad + Bled — presne tá istá osmička, čo má v datasete geometriu `point`), preto
+   *    `acts` v `trails-nahadzovac-state.json` začína `['visit', 'lake', …]` a pôvodné činnosti
+   *    (`paddleboard`, `skating`, `picnic`, `overnight`, `explore`) stoja za nimi. Dôsledok je
+   *    presne Matejova veta: odznak VISIT (táto vetva), vo filtri ACTIVITY sa nájdu ďalej (cez
+   *    `categoriesOf`, ktoré číta všetky hodnoty), a do HIKE nespadnú, lebo `hike` v `acts`
+   *    nemajú. Zmena je LEN v dátach — nezakladalo sa pravidlo „miesto prebíja činnosť", lebo
+   *    kto zapíše priehradu sprievodcom, kategóriu si vyberie sám a táto vetva ju rešpektuje.
+   *    ⚠️ Túra OKOLO priehrady sa tým NEMENÍ: `zaruby-3` má `acts: ['hike']` a jazero nesie
+   *    ako TAG — ostáva HIKE.
    */
   const chosen = TRIP_CATEGORIES.find((c) => c.dataId === (acts ?? [])[0]);
   if (chosen) return chosen.id;
