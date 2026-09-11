@@ -5,7 +5,8 @@ import { Loader2, X, Check } from 'lucide-react';
 import { HandExit, HandKey } from './HandIcons';
 import { BrandIcon } from './BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
-import { PACK_THEME, FONT_TITLE, FONT_UI, PILL_CSS } from './packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, PILL_CSS, PF_FIELD_CSS } from './packTheme';
+import { usePackSkin, setPackSkin, type PackSkin } from './packSkin';
 import { useToast } from '@/hooks/use-toast';
 import { useT } from '@/i18n/LanguageContext';
 import LanguagePicker from '@/components/LanguagePicker';
@@ -27,6 +28,11 @@ export function PackSettings() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const t = useT();
+  /* Fallback pre kľúče, ktoré v niektorej mutácii ešte nie sú — `t()` vracia pri
+     chýbajúcom preklade SAMOTNÝ KĽÚČ, čo by na obrazovke svietilo ako
+     „pack.settings.skin". Zavedený vzor naprieč /pack. */
+  const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
+  const skin = usePackSkin();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -88,6 +94,8 @@ export function PackSettings() {
       }}
     >
       <style>{PILL_CSS}</style>
+      {/* Prepínač šatu stojí na `.pf-toggle` — jeho recept žije v `PF_FIELD_CSS`. */}
+      <style>{PF_FIELD_CSS}</style>
       <div
         style={{
           fontFamily: FONT_TITLE,
@@ -131,6 +139,33 @@ export function PackSettings() {
       </Field>
       <Field icon={<BrandIcon name="globe" size={16} tint="gold" />} label={t('pack.settings.language')}>
         <LanguagePicker variant="settings" />
+      </Field>
+      {/* ── ŠAT — TMAVÝ (východisko) ↔ BLEDÝ (2026-09-11) ──────────────────────
+          Matej: „v tejto fázy vráť tmavý šat do nastavenia (bude sa dať prepínať)
+          páči sa mi to viac - väčší kontrast... v originály by to mohlo ostať tmavé
+          a dať prepnúť na bledé (zatiaľ len pridaj prepínacie tlačítko)".
+          Zámer je REVIEW: prejsť a schváliť najprv bledú verziu, potom tmavú.
+          ⚠️ Prepínač NEOVLÁDA mapu, triplist ani článok výletu — tie tmavú verziu
+             už nemajú (1. 9. sa nahradila, nie zdvojila), viď `packSkin.ts`.
+          Tvar prepínača je ten istý ako „zobraziť meno/prezývku" v profile
+          (`.pf-toggle`), nie druhý vlastný — preto sem ide aj `PF_FIELD_CSS`. */}
+      <Field icon={<BrandIcon name="bright" size={16} tint="gold" />} label={tx('pack.settings.skin', 'Appearance')}>
+        <div className="pf-toggle inline-flex items-center" style={{ borderRadius: 999, padding: 3, gap: 3 }}>
+          {([
+            { key: 'dark' as PackSkin, label: tx('pack.settings.skinDark', 'Dark') },
+            { key: 'paper' as PackSkin, label: tx('pack.settings.skinPaper', 'Papyrus') },
+          ]).map((opt) => (
+            <button
+              key={opt.key}
+              type="button"
+              onClick={() => setPackSkin(opt.key)}
+              aria-pressed={skin === opt.key}
+              className={`pf-toggle__opt${skin === opt.key ? ' is-on' : ''}`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </Field>
       {/* Riadok „Upozornenia · UŽ ČOSKORO" zmazaný 13. 8. 2026 (audit D2, Matej:
           „Preč, kým to nefunguje"). Vráti sa aj s `Badge`, keď notifikácie reálne pôjdu —

@@ -1,3 +1,4 @@
+import { getPackSkin, usePackSkin } from './packSkin';
 // Pack theme tokens — vlastný modul (NIE v PackLayout.tsx).
 // Dôvod: konštanta exportovaná spolu s React komponentmi láme Vite Fast Refresh
 // (každý edit PackLayout = full reload → cobe globe sa roztrhne). Oddelené = HMR čisté.
@@ -255,30 +256,21 @@ export const PAPER_PAGE_CSS = `
  * ⚠️ `/pack` samotný sem NEPATRÍ — homepage prezlečená ešte nie je a chytila by
  *    prefixom všetko pod sebou.
  */
-export const PAPER_ROUTES: readonly RegExp[] = [
-  // Homepage `/pack` — PRESNÁ zhoda, nie prefix (prezlečená 2026-09-08). Prefixový
-  // vzor `/^\/pack/` by chytil aj `/pack/dogs`, `/pack/profile` a kvízy, ktoré sú
-  // ešte čierne, a pred nimi by bliklo BIELE — ten istý problém, len naopak.
-  // Pri prezliekaní ďalšej stránky pribudne jej vlastný riadok; keď budú bledé
-  // všetky, tieto riadky sa dajú zliať do jedného prefixu.
-  /^\/pack$/,
-  // Zoznam psov `/pack/dogs` — opäť PRESNÁ zhoda: `/pack/dogs/:id` je DOG ID,
-  // samostatný povrch (3 287 r.), ktorý sa prezlieka vlastným krokom.
-  /^\/pack\/dogs$/,
-  // DOG ID `/pack/dogs/<uuid>` — karty tejto stránky UŽ papyrusové boli, chýbal
-  // len shell: pod nimi svietila čierna a `RouteFallback` ňou blikal pred každým
-  // otvorením dokladu psa.
-  // ⚠️ `quiz` je z tohto vzoru VYNECHANÝ zámerne — `/pack/dogs/quiz/<key>` je
-  //    samostatný povrch (551 r.), ktorý sa prezlieka vlastným krokom; bez tejto
-  //    výnimky by ho chytilo holé `/pack/dogs/quiz` a bliklo by pred ním BIELE.
-  /^\/pack\/dogs\/(?!quiz(?:\/|$))[^/]+$/,
-  // Profil POUŽÍVATEĽA `/pack/profile` — s DOG ID nesúvisí (2026-08-27).
-  /^\/pack\/profile(\/|$)/,
-  // Cudzí profil `/pack/u/<uuid>` — jeho karty papyrusové boli, ale odkaz späť
-  // („← SVORKA") mal TMAVÝ inkoust na ČIERNOM pozadí, teda bol neviditeľný.
-  /^\/pack\/u(\/|$)/,
+// ── DVE SKUPINY, LEBO PREPÍNAČ ŠATU NEPOKRÝVA VŠETKO (2026-09-11) ───────────
+// `PAPER_ROUTES_LOCKED` = povrchy, ktoré tmavú verziu UŽ NEMAJÚ. Prepínač ich
+// preto neovláda a ostávajú bledé v oboch polohách. Nie je to opomenutie:
+// 1. 9. 2026 sa ich tmavý šat NAHRADIL, nie zdvojil — `.tl-root` (TRIPLIST) aj
+// `.pta-root` (článok výletu) prišli o vlastné pozadie a `min-height` a oboje
+// nesie `.pk-paper`, ktorý majú v JSX natvrdo. Vrátiť ich do tmavej znamená
+// postaviť tmavú vetvu nanovo, nie prehodiť príznak.
+// ✅ A nepostaví sa — Matej 11. 9. 2026: „mapy nemusíš meniť, mapy budú mať len
+// bledý dizajn, nie liquid glass." Tento zoznam je teda cieľový stav, nie dočasný.
+// ⚠️ Musia ostať aj tu, nielen v JSX: `RouteFallback` v `App.tsx` číta TENTO
+//    zoznam, a keby v ňom neboli, bliklo by pred mapou ČIERNE.
+export const PAPER_ROUTES_LOCKED: readonly RegExp[] = [
   // CELÁ vetva mapy — `/pack/map` samotná, `/pack/map/triplist` (TRIPLIST + TRIPSTATS)
   // aj článok výletu `/pack/map/<ISO3>/<slug>` a jeho starý tvar `/pack/map/<slug>`.
+  //
   // ⚠️ Vzor, nie zoznam krajín: ten by sa musel dopĺňať pri každej novej krajine
   //    a chýbajúci riadok by sa prejavil len bliknutím, teda by si ho nikto nevšimol.
   //
@@ -295,9 +287,53 @@ export const PAPER_ROUTES: readonly RegExp[] = [
   /^\/pack\/add(\/|$)/,
 ];
 
-/** Má daná cesta stáť na papyruse? Používa `RouteFallback` v `App.tsx`. */
+// `PAPER_ROUTES_PAGES` = povrchy prezlečené 8. 9. 2026, ktoré tmavú vetvu MAJÚ
+// (ich karty boli papyrusové už predtým, bledý šat je len prepnutie shellu).
+// TIETO prepínač ovláda — pri `dark` sa vrátia do stavu spred 8. 9.
+//
+// ⚠️ Vzory sú PRESNÉ, nie prefixové. `/^\/pack/` by chytilo aj podstránky, ktoré
+//    bledú verziu nemajú, a pred nimi by bliklo BIELE — ten istý problém, naopak.
+export const PAPER_ROUTES_PAGES: readonly RegExp[] = [
+  // Homepage `/pack`.
+  /^\/pack$/,
+  // Zoznam psov `/pack/dogs` — `/pack/dogs/:id` je DOG ID, samostatný povrch nižšie.
+  /^\/pack\/dogs$/,
+  // DOG ID `/pack/dogs/<uuid>`.
+  // ⚠️ `quiz` je z vzoru VYNECHANÝ zámerne — `/pack/dogs/quiz/<key>` je samostatný
+  //    povrch (551 r.), ktorý bledú verziu nemá; bez výnimky by ho chytilo holé
+  //    `/pack/dogs/quiz` a bliklo by pred ním BIELE.
+  /^\/pack\/dogs\/(?!quiz(?:\/|$))[^/]+$/,
+  // Profil POUŽÍVATEĽA (s DOG ID nesúvisí) a cudzí profil.
+  /^\/pack\/profile(\/|$)/,
+  /^\/pack\/u(\/|$)/,
+];
+
+/** Spolu — na výpis/diagnostiku. Rozhoduje `isPaperRoute`, nie tento zoznam. */
+export const PAPER_ROUTES: readonly RegExp[] = [...PAPER_ROUTES_LOCKED, ...PAPER_ROUTES_PAGES];
+
+/**
+ * Má daná cesta stáť na papyruse PRÁVE TERAZ?
+ *
+ * Vrstvy sú dve: `PAPER_ROUTES_LOCKED` platí vždy, `PAPER_ROUTES_PAGES` len keď je
+ * v nastaveniach zapnutý bledý šat (`packSkin.ts`, východisko `dark`).
+ *
+ * ⚠️ Táto funkcia NIE JE reaktívna — číta šat v okamihu volania. Komponent, ktorý sa
+ *    má prekresliť pri prepnutí prepínača, volá `usePaperRoute()` nižšie. Priame
+ *    volanie `isPaperRoute` v rendere by po prepnutí nechalo starý šat až do ďalšej
+ *    navigácie, a vyzeralo by to, že prepínač nefunguje.
+ */
 export const isPaperRoute = (pathname: string): boolean =>
-  PAPER_ROUTES.some((r) => r.test(pathname));
+  PAPER_ROUTES_LOCKED.some((r) => r.test(pathname)) ||
+  (getPackSkin() === 'paper' && PAPER_ROUTES_PAGES.some((r) => r.test(pathname)));
+
+/** To isté, ale prihlásené na prepnutie šatu — pre komponenty. */
+export function usePaperRoute(pathname: string): boolean {
+  const skin = usePackSkin();
+  return (
+    PAPER_ROUTES_LOCKED.some((r) => r.test(pathname)) ||
+    (skin === 'paper' && PAPER_ROUTES_PAGES.some((r) => r.test(pathname)))
+  );
+}
 
 // ── ŠÍRKA OBSAHOVÉHO STĹPCA — JEDEN zdroj pre celý /pack (2026-08-13) ────────
 // Matej: „vidím že po prekliku na turistický profil je šírka iná ako pri profile...
@@ -477,13 +513,19 @@ export const PF_FIELD_CSS = `
 /* Selektor MUSÍ byť potomkovský, nie holá trieda: .pf-inline > :not(.pf-inline-lbl)
    má špecificitu 0,2,0 a holú .pf-toggle (0,1,0) prebije — dráha by sa naťahovala
    ďalej. Toto je tá istá váha a stojí nižšie, takže vyhráva. */
+/* VZHĽAD dráhy je na HOLEJ triede (rozdelené 2026-09-11) — prepínač sa používa aj
+   mimo .pf-inline (šat v nastaveniach) a tam by inak ostal bez pozadia aj rámu,
+   teda ako dva holé texty vedľa seba. Potomkovský selektor nižšie si necháva len to,
+   čo kvôli špecificite naozaj potrebuje: rozmer. */
+.pf-toggle{
+  background: #FBF5E6;
+  border: 1.5px solid rgba(179,130,45,0.55);
+  box-shadow: inset 0 1px 2px rgba(122,90,42,0.16);
+}
 .pf-inline > .pf-toggle{
   flex: 0 1 auto;
   width: max-content;
   max-width: 100%;
-  background: #FBF5E6;
-  border: 1.5px solid rgba(179,130,45,0.55);
-  box-shadow: inset 0 1px 2px rgba(122,90,42,0.16);
 }
 /* Možnosti prepínača sú v CSS, NIE inline — inline štýl by media query nižšie prebil
    a na mobile by sa nedalo zmenšiť to, čo je zapísané v style={{}}. */

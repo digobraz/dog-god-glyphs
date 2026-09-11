@@ -6,7 +6,7 @@ import { DEV_FULL } from "@/lib/packFlags";
 import { ONEPAGE_PREVIEW } from "@/lib/onepagePreview";
 import { MapGate } from "@/components/pack/MapGate";
 // Papyrusový podklad + zoznam prezlečených ciest — jeden zdroj, viď RouteFallback nižšie.
-import { PAPER_BG, isPaperRoute } from "@/components/pack/packTheme";
+import { PAPER_BG, usePaperRoute } from "@/components/pack/packTheme";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -148,7 +148,7 @@ const DogShare = lazy(() => import("./pages/DogShare.tsx"));
 // ďalšieho povrchu sa dopĺňa TAM, nie tu.
 const RouteFallback = () => {
   const { pathname } = useLocation();
-  return <div style={{ position: "fixed", inset: 0, background: isPaperRoute(pathname) ? PAPER_BG : "#000" }} />;
+  return <div style={{ position: "fixed", inset: 0, background: usePaperRoute(pathname) ? PAPER_BG : "#000" }} />;
 };
 
 const queryClient = new QueryClient();

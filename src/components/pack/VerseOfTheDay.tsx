@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { verseForDay } from '@/data/dailyQuotes';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
-import { FONT_TITLE, FONT_UI, PACK_THEME, isPaperRoute } from './packTheme';
+import { FONT_TITLE, FONT_UI, PACK_THEME, usePaperRoute } from './packTheme';
 import { useLocation } from 'react-router-dom';
 
 const GOLD = '#C99A3F';
@@ -10,7 +10,7 @@ const GOLD = '#C99A3F';
 // ── INKOUST PODĽA PODKLADU (2026-09-08) ──────────────────────────────────────
 // Verš stojí na DVOCH povrchoch: na homepage `/pack` (od 8. 9. papyrus) a v
 // `HeroLab`, ktorý ostáva tmavý. Farby preto nie sú natvrdo — komponent si
-// podklad zistí sám z `PAPER_ROUTES`, teda z toho ISTÉHO zoznamu, ktorý prepína
+// podklad zistí sám cez `usePaperRoute`, teda z toho ISTÉHO zdroja, ktorý prepína
 // shell v `PackLayout` a fallback v `App.tsx`. Prop od volajúceho by znamenal
 // tretie miesto, kde sa dá zabudnúť, a prejavilo by sa to bielym textom na
 // papyruse — teda neviditeľným veršom, nie chybou, ktorú niekto nahlási.
@@ -30,7 +30,7 @@ const T = PACK_THEME;
 const HOVER_QUERY = '(hover: hover) and (pointer: fine)';
 
 export function VerseOfTheDay() {
-  const paper = isPaperRoute(useLocation().pathname);
+  const paper = usePaperRoute(useLocation().pathname);
   const t = useT();
   const { lang } = useLang();
   // 365-day curated calendar — same quote all day, rotates at midnight, holiday-anchored.

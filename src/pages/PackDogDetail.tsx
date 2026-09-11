@@ -94,11 +94,16 @@ const DOGID_CSS = `
 
 /* späť = holá šípka v STREDE nad blokom (rovnaký tvar ako .tl-back v TRIPSTATS) */
 .did-backrow{display:flex;justify-content:center;margin-bottom:16px;}
-/* Farby sú tie isté ako v .tl-back (PackTriplist) — komentár vyššie sľubuje
-   "rovnaký tvar ako .tl-back v TRIPSTATS" a od 8. 9., keď stránka sadla na papyrus,
-   to platí aj pre výplň. Tmavý krúžok tu ostal ako jediný prvok z čierneho šatu. */
-.did-back{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:${PALE.soft};border:1px solid ${PALE.border};color:${PALE.ink};cursor:pointer;transition:border-color .15s,color .15s,background .15s;}
-.did-back:hover{border-color:${T.cardEdge};color:${PALE.deep};background:#FFFDF6;}
+/* ZÁKLAD je TMAVÝ — to je východiskový šat (prepínač v nastaveniach, packSkin.ts).
+   Bledú verziu nesie rodič .pk-paper, ktorý na koreň stránky dáva PackLayout,
+   keď je zapnutý papyrus. Prop by sem musel pretiecť cez celý súbor a CSS blok
+   sa renderuje raz, takže rodičovský selektor je tu jediná lacná cesta.
+   Bledé farby sú tie isté ako v .tl-back (PackTriplist) — komentár vyššie sľubuje
+   "rovnaký tvar ako .tl-back v TRIPSTATS", takže to platí aj pre výplň. */
+.did-back{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.42);border:1px solid ${T.onDarkBorder};color:${T.onDark};cursor:pointer;transition:border-color .15s,color .15s,background .15s;}
+.did-back:hover{border-color:${T.accentGold};color:${T.accentGold};}
+.pk-paper .did-back{background:${PALE.soft};border-color:${PALE.border};color:${PALE.ink};}
+.pk-paper .did-back:hover{border-color:${T.cardEdge};color:${PALE.deep};background:#FFFDF6;}
 
 @media (max-width:720px){
   .did-photoframe{width:112px;height:112px;}

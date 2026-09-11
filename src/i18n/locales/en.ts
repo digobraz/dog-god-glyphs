@@ -1950,6 +1950,10 @@ export const en = {
   'pack.settings.pwNewPlaceholder': "New password (min 8 characters)",
   'pack.settings.pwSubmit': "Set password",
   'pack.settings.setChange': "Set / Change",
+  // Šat /pack — prepínač v nastaveniach (2026-09-11). Východisko je tmavý.
+  'pack.settings.skin': "Appearance",
+  'pack.settings.skinDark': "Dark",
+  'pack.settings.skinPaper': "Papyrus",
   'pack.settings.signOut': "Sign out",
   'pack.settings.toastDesc': "You can now log in with email + password.",
   'pack.settings.toastTitle': "Password set",

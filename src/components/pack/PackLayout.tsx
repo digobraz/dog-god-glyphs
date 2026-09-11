@@ -1,7 +1,7 @@
 import { lazy, ReactNode, Suspense, useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { BrandIcon as PackBrandIcon } from './BrandIcon';
-import { PACK_THEME, PACK_COL, isPaperRoute, PAPER_PAGE_CSS } from './packTheme';
+import { PACK_THEME, PACK_COL, usePaperRoute, PAPER_PAGE_CSS } from './packTheme';
 import { devotionLevel } from '@/lib/devotion';
 import { DEV_FULL } from '@/lib/packFlags';
 import { usePackIdentity, type PackDog } from './usePackIdentity';
@@ -49,7 +49,7 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
   // rozišli a prejavilo by sa to bliknutím čiernej pred bledou stránkou.
   // ⚠️ `pk-paper` NESMIE dostať vlastný `z-index`/`transform`/`opacity` — jeho
   //    tapeta stojí na `z-index:-1` a uzavrela by sa doň (viď PAPER_PAGE_CSS).
-  const paperPage = isPaperRoute(useLocation().pathname);
+  const paperPage = usePaperRoute(useLocation().pathname);
 
   if (loading) {
     return (
@@ -167,10 +167,10 @@ export function PackTopRight({ last24h, total, className, layout }: { last24h: n
   // prezliekania (DRAK → BRIGHT) sa to ale mení stránku po stránke, a natvrdo zapísaná
   // hodnota by na každej novo zosvetlenej stránke nechala tmavý zvonček so sklenným
   // rozostrením — teda diera, ktorá vznikne až o niekoľko commitov neskôr a nikomu sa
-  // neohlási. `isPaperRoute` je ten istý zdroj pravdy, aký používa `RouteFallback`
+  // neohlási. `usePaperRoute` je ten istý zdroj pravdy, aký používa `RouteFallback`
   // v `App.tsx`, takže zvonček sa prepne v tom istom okamihu ako podklad pod ním:
   // kto prezlečie stránku, pridá jej riadok do `PAPER_ROUTES` a hotovo, sem nesiaha.
-  const paper = isPaperRoute(useLocation().pathname);
+  const paper = usePaperRoute(useLocation().pathname);
   if (!DEV_FULL) return null;
   return <PackNotifications dark={!paper} last24h={last24h} total={total} className={className} layout={layout} />;
 }

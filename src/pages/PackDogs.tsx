@@ -42,9 +42,9 @@
 //  • AINUBIS má meno ako nadpis + tagline; ostáva „Čoskoro" a NIKAM nevedie —
 //    plán sa nestavia. (Chat AINUBISA beží zvlášť ako plávajúci widget.)
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { PackLayout } from '@/components/pack/PackLayout';
-import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, usePaperRoute } from '@/components/pack/packTheme';
 import { PALE } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { FlagCircle } from '@/components/pack/FlagCircle';
@@ -482,6 +482,12 @@ const NATURE_FIELD = 'nature.role';
 
 export default function PackDogs() {
   const t = useT();
+  /* Šat stránky — od 11. 9. prepínateľný v nastaveniach (`packSkin.ts`).
+     Farby, ktoré 8. 9. dostali natvrdo papyrusovú hodnotu, musia poznať OBE polohy:
+     tmavá zlatá `PALE.deep` je na čiernom takmer nečitateľná a bledá dlaždica na
+     čiernom svieti. Rozhoduje ROUTA, nie prepínač sám — `/pack/dogs` je medzi
+     prepínateľnými povrchmi, takže hook vráti presne to, čo vidí oko. */
+  const paper = usePaperRoute(useLocation().pathname);
   const tx: Tx = (key, fallback) => {
     const v = t(key);
     return v === key ? fallback : v;
@@ -587,17 +593,18 @@ export default function PackDogs() {
           <div
             style={{
               fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 13, letterSpacing: '0.22em',
-              // `accentGold` (#C99A3F) je NA papyruse slabá — od 8. 9. je stránka bledá,
-              // takže nadpis sekcie berie tmavšiu `PALE.deep`. Je to ten istý dôvod aj tá
-              // istá hodnota, akú už používa TRIPLIST (`.tl-sechead h3`), nie nová farba.
-              textTransform: 'uppercase', color: PALE.deep,
+              // Na PAPYRUSE je `accentGold` (#C99A3F) slabá, preto tmavšia `PALE.deep` —
+              // tá istá hodnota aj dôvod ako v TRIPLISTE (`.tl-sechead h3`), nie nová farba.
+              // Na ČIERNOM je to naopak: `PALE.deep` na tmavom takmer zaniká a správna
+              // je pôvodná `accentGold`. Preto obe polohy, nie jedna natvrdo.
+              textTransform: 'uppercase', color: paper ? PALE.deep : T.accentGold,
             }}
           >
             {tx('pack.hub.profileTitle', 'DOG ID')}
           </div>
           <div
             style={{
-              fontFamily: FONT_UI, fontSize: 11.5, color: T.inkWarm, marginTop: 4,
+              fontFamily: FONT_UI, fontSize: 11.5, color: paper ? T.inkWarm : 'hsl(45 70% 90% / 0.5)', marginTop: 4,
             }}
           >
             {tx('pack.hub.profileSub', 'fill in what you know — it builds their DOG ID')}
@@ -622,7 +629,7 @@ export default function PackDogs() {
              (jediný prípad: ZÁVET na DOG ID), nie za „ešte to nejde". ── */}
       <div className="hub-media" style={{ marginTop: 20 }}>
         {QUIZ_SECTIONS.filter((s) => s.kind === 'gallery' || s.kind === 'journal').map((s) => (
-          <MediaTile key={s.key} section={s} tx={tx} />
+          <MediaTile key={s.key} section={s} tx={tx} paper={paper} />
         ))}
       </div>
 
@@ -1366,31 +1373,41 @@ function ActionTile({
 // ── 4 · galéria / denník — tmavá dlaždica, bez progresu ──────────────────────
 // Nemajú vlastný flow (hromadný vstup s tagovaním psov). Dlaždica sa zobrazuje,
 // ale nikam nevedie — inak by z mapy funkcií zmizli a nikto by si nevšimol, že chýbajú.
-function MediaTile({ section, tx }: { section: QuizSection; tx: Tx }) {
+function MediaTile({ section, tx, paper }: { section: QuizSection; tx: Tx; paper: boolean }) {
   return (
     <div
       className="flex items-center gap-3"
-      style={{ ...PACK_BOX.row, padding: '15px 16px' }}
+      style={
+        paper
+          ? { ...PACK_BOX.row, padding: '15px 16px' }
+          : {
+              background: 'rgba(245,240,228,0.05)',
+              border: `1px solid ${T.onDarkBorder}`,
+              borderRadius: 14,
+              padding: '15px 16px',
+            }
+      }
     >
       <div style={{ fontSize: 24, lineHeight: 1, flex: '0 0 auto' }}>{section.emoji}</div>
       <div style={{ minWidth: 0 }}>
         <h4
           style={{
             fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, letterSpacing: '0.1em',
-            textTransform: 'uppercase', color: T.inkStrong, margin: '0 0 3px',
+            textTransform: 'uppercase', color: paper ? T.inkStrong : 'hsl(45 75% 92%)', margin: '0 0 3px',
           }}
         >
           {tx(section.i18n, section.labelEN)}
         </h4>
-        <p style={{ fontFamily: FONT_UI, fontSize: 11, color: T.inkWarm, margin: 0, lineHeight: 1.45 }}>
+        <p style={{ fontFamily: FONT_UI, fontSize: 11, color: paper ? T.inkWarm : T.onDarkDim, margin: 0, lineHeight: 1.45 }}>
           {tx(section.subI18n, section.subEN)}
         </p>
         <span
           style={{
             display: 'inline-block', marginTop: 6, fontFamily: FONT_UI, fontSize: 9.5,
             letterSpacing: '0.1em', textTransform: 'uppercase', borderRadius: 999, padding: '3px 9px',
-            background: 'rgba(201,154,63,0.10)', border: `1px solid ${T.border}`,
-            color: T.inkWarm,
+            background: paper ? 'rgba(201,154,63,0.10)' : 'rgba(245,240,228,0.07)',
+            border: `1px solid ${paper ? T.border : T.onDarkBorder}`,
+            color: paper ? T.inkWarm : T.onDarkDim,
           }}
         >
           {tx('pack.hub.soon', 'Soon')}
