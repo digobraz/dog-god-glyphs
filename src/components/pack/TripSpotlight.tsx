@@ -161,6 +161,16 @@ const CSS = `
   box-shadow:${LAPIS_BTN_SHADOW};
   transition:transform .18s ease, box-shadow .22s ease;
 }
+/* Rovnaká ikonka ako tlačidlo PRIDAŤ v hlavičke mapy (Matej 11. 9.: "pred slovo pridaj svoj...
+   daj ikonku + našu ako je aj v map") — hand-drawn plus z brand kitu, public/icons/pack/plus.svg.
+   ⚠️ Kresba je natívne ČIERNA (fill je v súbore natvrdo, nie currentColor), takže na lapise
+   zanikne; filter ju prefarbí na LAPIS.ink — tie isté hodnoty používa .trp-addtrip-icon
+   v PackMap.tsx. Bez neho z tlačidla zmizne. */
+.ts-cta-row{display:inline-flex;align-items:center;justify-content:center;gap:9px;}
+.ts-cta-icon{
+  width:15px;height:15px;flex-shrink:0;display:block;
+  filter:brightness(0) saturate(100%) invert(89%) sepia(23%) saturate(720%) hue-rotate(348deg) brightness(101%) contrast(92%);
+}
 .ts-globe:hover .ts-cta{ transform:translateY(-1px); }
 /* ⚠️ Ten padding nie je vzduch, ale VYHNUTIE SA RANGU. Rang sedí absolútne v pravom hornom
    rohu a nadpis má celú šírku karty: pri "ROZŠÍR" sa míňali o vlások, pri "NAKRESLI" sa
@@ -530,7 +540,12 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
             CSS `.ts-pills` / `.ts-pill` nižšie NEMAŽEM — čísla sa môžu vrátiť, keď sa karta
             bude rozhodovať znova; mŕtvy je len tento JSX blok. */}
 
-        <span className="ts-cta">{t('pack.spotlight.mapTitle')}</span>
+        <span className="ts-cta">
+          <span className="ts-cta-row">
+            <img src="/icons/pack/plus.svg" alt="" aria-hidden className="ts-cta-icon" />
+            {t('pack.spotlight.mapTitle')}
+          </span>
+        </span>
       </Link>
     </div>
   );

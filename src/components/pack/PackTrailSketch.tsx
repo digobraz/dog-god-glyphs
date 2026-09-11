@@ -74,8 +74,12 @@ const MARKS: {
   areaM?: number;
   /** Hľadaj miesto od najpravejšieho bodu trasy, nie od `at`. */
   right?: boolean;
+  /** Hľadaj miesto od NAJNIŽŠIEHO bodu trasy (najväčšie y na karte). */
+  bottom?: boolean;
 }[] = [
-  { em: MARK_EMOJI.parking, rim: null, at: 0.005, side: -0.62 },          // 🅿️ štart pri aute
+  /* 🅿️ Matej 11. 9.: "parkovisko daj nižšie pri najnižší bod". Auto stojí dole pod trasou —
+     tam sa aj v teréne parkuje a zhora sa vychádza. */
+  { em: MARK_EMOJI.parking, rim: null, at: 0.005, side: -0.62, bottom: true },
   { em: MARK_EMOJI.ticks, rim: noteTint('ticks'), at: 0.14, side: 0.6 }, // 🩸 kliešte
   { em: POI_EMOJI.cliff, rim: WORLD_RIM, at: 0.30, side: -0.6 },         // ⛰️ vršatecké bralá
   { em: POI_EMOJI.viewpoint, rim: WORLD_RIM, at: 0.42, side: 0.6 },      // 👁️ vyhliadka
@@ -229,11 +233,12 @@ export function PackTrailSketch({ markSize = 23 }: { markSize?: number }) {
       /* Značka označená `right` štartuje od najpravejšieho bodu trasy — inak by "vpravo"
          záviselo od toho, kde má trasa práve svoj `at`. */
       let from = m.at;
-      if (m.right) {
-        let bestX = -Infinity;
+      if (m.right || m.bottom) {
+        let bestV = -Infinity;
         for (let i = 0; i < path.length; i += 4) {
-          const [px] = P(path[i][0], path[i][1]);
-          if (px > bestX) { bestX = px; from = i / (path.length - 1); }
+          const [px, py] = P(path[i][0], path[i][1]);
+          const v = m.right ? px : py;   // y rastie nadol, takže najnižší bod = najväčšie y
+          if (v > bestV) { bestV = v; from = i / (path.length - 1); }
         }
       }
       outer: for (const side of [m.side, -m.side]) {
@@ -249,6 +254,13 @@ export function PackTrailSketch({ markSize = 23 }: { markSize?: number }) {
         }
       }
       const pos = best ?? fallback;
+      /* ⚠️ Najnižší bod trasy leží tesne nad CTA, takže značka naň posadená mizne pod
+         tlačidlom (Matej 11. 9.: "ale vedľa z ľava nad CTA aby sa neprekrývali!").
+         Posunie sa preto DOĽAVA od stopy a dostane strop nad spodnou hranou pásu. */
+      if (m.bottom) {
+        pos.x -= markSize * 1.15;
+        pos.y = Math.min(pos.y, band.y1 * H - markSize * 0.8);
+      }
       placed.push({ ...pos, r: markSize * 0.55 });
       /* Meter na pixel: jeden stupeň zemepisnej šírky je 111 320 m, `scale` je px na stupeň. */
       const areaR = m.areaM ? (m.areaM / 111320) * scale : 0;
