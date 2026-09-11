@@ -29,12 +29,17 @@ import { noteTint } from './mapnotes/NotePalette';
 /* ── FARBY PODKLADU ────────────────────────────────────────────────────────────────────
    Papyrusová mapa, nie turistická: podklad musí ostať kartou DOGYPTu, nie výrezom z Mapy.com.
    Bez popiskov — tie v dátach ani nie sú, takže "bez slov, len farebnosť" vychádza samo. */
+/* ⚠️ PREČO BOLO "TAK MÁLO ZELENEJ" (Matej 11. 9.) — odmerané v dátach pre tento výrez:
+   lúky 58 % plochy · les 12,7 % · polia 11,5 % · skaly 9,9 % · kroviny 7,8 %. Vršatec sú
+   vápencové bralá s pasienkami, nie hlboký les — a lúka mala farbu #E8E6C4, teda takmer
+   papyrus. Najväčšia plocha mapy tak nebola vidieť vôbec. Zeleň sa preto nepridáva do lesa,
+   ale do LÚKY; les ide ešte o stupeň tmavšie, aby sa od nej odlíšil. */
 const FILL: Record<BaseKind, string | null> = {
-  wood: '#CBD9B4',
-  scrub: '#D9E0BE',
-  meadow: '#E8E6C4',
-  field: '#EFE5C6',
-  rock: '#DCD2C1',
+  wood: '#B4CE96',
+  scrub: '#C9DCA6',
+  meadow: '#DCE6B4',
+  field: '#EDE3C0',
+  rock: '#D6CCBA',
   water: '#A9C6DF',
   building: '#CFBEA2',
   stream: null,
@@ -42,9 +47,9 @@ const FILL: Record<BaseKind, string | null> = {
   road: null,
 };
 const STROKE: Record<BaseKind, [string, number, string?] | null> = {
-  wood: ['rgba(96,120,72,0.35)', 0.6],
-  scrub: ['rgba(110,126,80,0.30)', 0.5],
-  meadow: ['rgba(140,130,80,0.28)', 0.5],
+  wood: ['rgba(78,104,58,0.45)', 0.7],
+  scrub: ['rgba(100,124,70,0.34)', 0.5],
+  meadow: ['rgba(120,132,74,0.32)', 0.5],
   field: ['rgba(150,132,84,0.28)', 0.5],
   rock: ['rgba(120,102,80,0.55)', 0.8],
   water: ['rgba(70,110,150,0.45)', 0.6],
@@ -113,8 +118,12 @@ const DRAFT_FROM = 0.9;
 /* ⚠️ Od 11. 9. 2026 je karta rozdelená na MAPKU HORE a CTA DOLE — trojriadkový nadpis
    z nej odišiel. Hore drží miesto už len rang v pravom rohu, dole lapisové tlačidlo.
    Mapa teda dostala takmer celú kartu. */
-const WIDE_BAND = { x0: 0.06, x1: 0.96, y0: 0.14, y1: 0.80 };
-const NARROW_BAND = { x0: 0.05, x1: 0.95, y0: 0.12, y1: 0.72 };
+/* ⚠️ y1 musí skončiť NAD CTA (Matej 11. 9.: "opäť prekrýva CTA body na mape, prečo to
+   neotočíš tak, aby tam nebolo nič"). Tlačidlo začína na 0,776 výšky karty; pás preto končí
+   skôr a značky sa navyše orezávajú CELÝM svojím polomerom — oblasť hada má 31 px a pri
+   polovičnej rezerve podliezla pod tlačidlo. */
+const WIDE_BAND = { x0: 0.06, x1: 0.96, y0: 0.13, y1: 0.735 };
+const NARROW_BAND = { x0: 0.05, x1: 0.95, y0: 0.11, y1: 0.66 };
 /** ⚠️ To isté číslo ako media query pre .ts-row v TripSpotlight.tsx. */
 const NARROW_MAX = 860;
 
@@ -156,18 +165,52 @@ export function PackTrailSketch({ markSize = 23 }: { markSize?: number }) {
       if (lo > lo1) lo1 = lo;
     }
     const kx = Math.cos(((la0 + la1) / 2) * D2R);
+    const cxDeg = (lo0 + lo1) / 2, cyDeg = (la0 + la1) / 2;
+
+    /* ── NATOČENIE NA NAJVÄČŠÍ MOŽNÝ ZÁBER ──────────────────────────────────────────────
+       Matej 11. 9.: "čo keby si to otočil... aby to bolo roztiahnuté na horizontál, nie
+       vertikál" a hneď nato "respektíve to ešte viac nakloniť, aby to bolo čo najväčšie".
+
+       Vršatecký okruh je vyšší než širší (2 x 1,6 km), takže v karte na šírku vyplnil výšku
+       a po stranách ostalo prázdno. Otočiť hlavnú os do vodorovna je len prvý krok — najväčší
+       záber dá spravidla iný, šikmý uhol, lebo trasa nie je obdĺžnik. Preto sa uhol HĽADÁ:
+       pre každý stupeň sa spočíta, aká mierka sa doň zmestí, a vyhrá najväčšia. 180 krokov
+       nad 506 bodmi je jeden priebeh v useMemo, nie práca pri každom prekreslení.
+
+       ⚠️ Sever tým prestáva byť hore. Je to náhľad, nie navigácia: karta hovorí "takto si
+       výlet pridáš", nie "takto sa tam dostaneš". Na /pack/map, kde sa podľa mapy naozaj
+       chodí, sa NIČ neotáča. */
+
     /* Od pásu si odhryzne rezervu na značky: sedia mimo stopy a bez nej by z pásu vytiekli
        práve tie, ktoré sú na kraji trasy. */
     const pad = markSize * 0.9;
     const bw = Math.max(40, (band.x1 - band.x0) * W - pad * 2);
     const bh = Math.max(40, (band.y1 - band.y0) * H - pad * 2);
-    const scale = Math.min(bw / ((lo1 - lo0) * kx), bh / (la1 - la0));
-    const cxDeg = (lo0 + lo1) / 2, cyDeg = (la0 + la1) / 2;
+
+    const local = path.map(([la, lo]) => [(lo - cxDeg) * kx, la - cyDeg] as [number, number]);
+    let theta = 0, scale = 0, rcx = 0, rcy = 0;
+    for (let deg = 0; deg < 180; deg++) {
+      const a = deg * D2R;
+      const c = Math.cos(a), n = Math.sin(a);
+      let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+      for (const [dx, dy] of local) {
+        const rx = dx * c - dy * n, ry = dx * n + dy * c;
+        if (rx < x0) x0 = rx;
+        if (rx > x1) x1 = rx;
+        if (ry < y0) y0 = ry;
+        if (ry > y1) y1 = ry;
+      }
+      const sc = Math.min(bw / Math.max(1e-9, x1 - x0), bh / Math.max(1e-9, y1 - y0));
+      if (sc > scale) { scale = sc; theta = a; rcx = (x0 + x1) / 2; rcy = (y0 + y1) / 2; }
+    }
+    const ca = Math.cos(theta), sa = Math.sin(theta);
+
     const cxPx = (band.x0 + band.x1) / 2 * W, cyPx = (band.y0 + band.y1) / 2 * H;
-    const P = (la: number, lo: number): [number, number] => [
-      cxPx + (lo - cxDeg) * kx * scale,
-      cyPx - (la - cyDeg) * scale,
-    ];
+    const P = (la: number, lo: number): [number, number] => {
+      const dx = (lo - cxDeg) * kx, dy = la - cyDeg;
+      const rx = dx * ca - dy * sa, ry = dx * sa + dy * ca;
+      return [cxPx + (rx - rcx) * scale, cyPx - (ry - rcy) * scale];
+    };
 
     /* Podklad — zoskupený podľa druhu, aby sa dal kresliť v poradí Z. */
     const base = new Map<BaseKind, string[]>();
@@ -259,11 +302,19 @@ export function PackTrailSketch({ markSize = 23 }: { markSize?: number }) {
          Posunie sa preto DOĽAVA od stopy a dostane strop nad spodnou hranou pásu. */
       if (m.bottom) {
         pos.x -= markSize * 1.15;
-        pos.y = Math.min(pos.y, band.y1 * H - markSize * 0.8);
+        pos.y = Math.min(pos.y, band.y1 * H - markSize * 0.9);
       }
-      placed.push({ ...pos, r: markSize * 0.55 });
       /* Meter na pixel: jeden stupeň zemepisnej šírky je 111 320 m, `scale` je px na stupeň. */
       const areaR = m.areaM ? (m.areaM / 111320) * scale : 0;
+
+      /* ⚠️ Krajná značka vytečie z karty — najpravejší bod trasy leží pri okraji a značka
+         (najmä tá s oblasťou) siaha ešte ďalej. Preto sa poloha na koniec oreže do pásu,
+         s rezervou na vlastný polomer. */
+      const keep = Math.max(markSize * 0.5, areaR);
+      pos.x = Math.min(Math.max(pos.x, keep + 2), W - keep - 2);
+      pos.y = Math.min(Math.max(pos.y, band.y0 * H + keep), band.y1 * H - keep);
+
+      placed.push({ ...pos, r: markSize * 0.55 });
       return { ...m, ...pos, areaR };
     });
 
