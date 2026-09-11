@@ -79,23 +79,26 @@ const MARKS: {
   areaM?: number;
   /** Hľadaj miesto od najpravejšieho bodu trasy, nie od `at`. */
   right?: boolean;
-  /** Hľadaj miesto od NAJNIŽŠIEHO bodu trasy (najväčšie y na karte). */
-  bottom?: boolean;
+  /** Posaď značku PRIAMO POD bod trasy, nie kolmo na jej smer. */
+  below?: boolean;
 }[] = [
-  /* 🅿️ Matej 11. 9.: "parkovisko daj nižšie pri najnižší bod". Auto stojí dole pod trasou —
-     tam sa aj v teréne parkuje a zhora sa vychádza. */
-  { em: MARK_EMOJI.parking, rim: null, at: 0.005, side: -0.62, bottom: true },
-  { em: MARK_EMOJI.ticks, rim: noteTint('ticks'), at: 0.14, side: 0.6 }, // 🩸 kliešte
-  { em: POI_EMOJI.cliff, rim: WORLD_RIM, at: 0.30, side: -0.6 },         // ⛰️ vršatecké bralá
-  { em: POI_EMOJI.viewpoint, rim: WORLD_RIM, at: 0.42, side: 0.6 },      // 👁️ vyhliadka
+  /* 👁️ Matej 11. 9.: "oko daj k tomu bodu čo je aktuálne pod kvapku krvi, daj emoji pod
+     ten bod" — vyhliadka teda sadla na miesto zrušenej kvapky a visí pod kotvou. */
+  { em: POI_EMOJI.viewpoint, rim: WORLD_RIM, at: 0.14, side: 0.6, below: true },
+  { em: POI_EMOJI.cliff, rim: WORLD_RIM, at: 0.30, side: -1.0 },          // ⛰️ vršatecké bralá
   { em: MARK_EMOJI.note, rim: noteTint('note'), at: 0.56, side: -0.58 },  // 🐶 tip svorky
-  { em: POI_EMOJI.shelter, rim: WORLD_RIM, at: 0.68, side: 0.62 },       // 🛖 prístrešok
-  { em: MARK_EMOJI.water, rim: WORLD_RIM, at: 0.80, side: -0.6 },       // 💧 prameň
-  /* 🐍 Matej 11. 9.: "hada daj do pravej časti a okolo neho urob okruh, ako to máme reálne
-     v mape (oblasť)". Výskyt vretenice sa v appke značí ÚZEMÍM, nie bodom — je to riziko
-     úseku, nie miesto. */
-  { em: MARK_EMOJI.viper, rim: noteTint('viper'), at: 0.92, side: 0.6, areaM: 260, right: true },
+  { em: POI_EMOJI.shelter, rim: WORLD_RIM, at: 0.68, side: 0.62 },        // 🛖 prístrešok
+  /* 🐍 Výskyt vretenice sa v appke značí ÚZEMÍM, nie bodom — je to riziko úseku, nie miesto.
+     Matej 11. 9.: "hada daj na trasu medzi vodu a prístrešok" (teda medzi 0,68 a 0,80). */
+  { em: MARK_EMOJI.viper, rim: noteTint('viper'), at: 0.74, side: 0.6, areaM: 260 },
+  { em: MARK_EMOJI.water, rim: WORLD_RIM, at: 0.80, side: -0.6 },         // 💧 prameň
+  /* 🅿️ Auto stojí na najvzdialenejšom konci trasy — miesto, kde predtým sedel had
+     (Matej: "namiesto neho tam daj parkovisko"). Holé emoji, bez kruhu (lock z 20. 8.). */
+  { em: MARK_EMOJI.parking, rim: null, at: 0.005, side: 0.6, right: true },
 ];
+
+/* ⚠️ 🩸 KLIEŠTE SÚ ZRUŠENÉ CELKOM (Matej 11. 9.: "kvapku krvi zruš celkom"). Emoji ostáva
+   v MARK_EMOJI pre mapu, z tejto karty len zmizlo. */
 
 /** Podiely dĺžky, kde sedia kotvy. Nie rovnomerne — človek klikne tam, kde trasa zabáča. */
 const ANCHORS_AT = [0, 0.11, 0.26, 0.38, 0.52, 0.63, 0.75, 0.88];
@@ -276,12 +279,11 @@ export function PackTrailSketch({ markSize = 23 }: { markSize?: number }) {
       /* Značka označená `right` štartuje od najpravejšieho bodu trasy — inak by "vpravo"
          záviselo od toho, kde má trasa práve svoj `at`. */
       let from = m.at;
-      if (m.right || m.bottom) {
-        let bestV = -Infinity;
+      if (m.right) {
+        let bestX = -Infinity;
         for (let i = 0; i < path.length; i += 4) {
-          const [px, py] = P(path[i][0], path[i][1]);
-          const v = m.right ? px : py;   // y rastie nadol, takže najnižší bod = najväčšie y
-          if (v > bestV) { bestV = v; from = i / (path.length - 1); }
+          const [px] = P(path[i][0], path[i][1]);
+          if (px > bestX) { bestX = px; from = i / (path.length - 1); }
         }
       }
       outer: for (const side of [m.side, -m.side]) {
@@ -300,9 +302,10 @@ export function PackTrailSketch({ markSize = 23 }: { markSize?: number }) {
       /* ⚠️ Najnižší bod trasy leží tesne nad CTA, takže značka naň posadená mizne pod
          tlačidlom (Matej 11. 9.: "ale vedľa z ľava nad CTA aby sa neprekrývali!").
          Posunie sa preto DOĽAVA od stopy a dostane strop nad spodnou hranou pásu. */
-      if (m.bottom) {
-        pos.x -= markSize * 1.15;
-        pos.y = Math.min(pos.y, band.y1 * H - markSize * 0.9);
+      if (m.below) {
+        const [bx, by] = at(from);
+        pos.x = bx;
+        pos.y = by + markSize * 0.95;
       }
       /* Meter na pixel: jeden stupeň zemepisnej šírky je 111 320 m, `scale` je px na stupeň. */
       const areaR = m.areaM ? (m.areaM / 111320) * scale : 0;
