@@ -546,22 +546,19 @@ export const PF_FIELD_CSS = `
   background: transparent;
   cursor: pointer;
 }
-/* ── VYBRANÁ MOŽNOSŤ KONTRASTUJE S PODKLADOM (2026-09-11) ────────────────────────
-   Matej: „zlatooranžovú používame pri dark teme a lapis pri bledej ok?"
-   TMAVÝ ŠAT = zlatý gradient (ten istý, aký má locknuté .btn-gold).
-   BLEDÝ ŠAT = lapis so zlatým písmom — lapis je tmavá farba a na tmavom podklade
-   zanikne; presne preto má AINUBIS výber v cyane a nie v lapise.
-   ⚠️ Rozhoduje TRIEDA PODKLADU .pk-paper, nie hodnota prepínača šatu: papyrusové
-   povrchy (mapa, triplist, článok výletu) ju nesú aj v tmavom šate, a práve tam by
-   zlato na piesku splynulo. Jedno pravidlo, žiadny nový stav. */
+/* ── VYBRANÁ MOŽNOSŤ JE LAPIS (2026-09-11) ──────────────────────────────────────
+   Matej: „vzhlad - tmavý/bledý prepínač v lapise a nie v zlatej!"
+   Rozhoduje PODKLAD POD PRVKOM, nie poloha prepínača šatu — a prepínač sedí na
+   papyrusovej karte, ktorá je papyrusová aj v tmavom šate. Zlatý gradient by sa
+   vrátil len na naozaj TMAVOM povrche (tam zase zaniká lapis); taký povrch dnes
+   prepínač nemá, preto tu druhá vetva nie je. Zlaté písmo na modrom nie je ozdoba:
+   lapis + zlato je pôvodná egyptská dvojica. */
 .pf-toggle__opt.is-on{
-  background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
-  color: #241a06;
-  font-weight: 700;
-}
-.pk-paper .pf-toggle__opt.is-on{
   background: ${LAPIS.grad};
   color: ${LAPIS.ink};
+  font-weight: 700;
+}
+
 }
 @media (max-width:720px){
   /* min-height drží klikací cieľ (audit B1) — prepínač bol 22px, čo je polovica prsta.

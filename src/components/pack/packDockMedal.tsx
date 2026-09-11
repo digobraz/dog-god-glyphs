@@ -64,7 +64,16 @@ export const DOCK: {
   // 0 = medailón NEMÁ vnútorný modrý lem, aký má logo na /onepage. Zlato ide priamo
   // na jeho displej — s lemom bol kotúč pri 74 px opticky menší a lem čítal ako tretí kruh.
   iw: 0,
-  faceW: 72,
+  // 88 = VÝŠKA hlavy v % z displeja (74 px medailón − 2× lem 5 = 64 px).
+  // Kým tu sedel odznak so štítom, to isté číslo 72 meralo ŠÍRKU a kresba mala
+  // 46,1 × 40,9 px. Hlava bez štítu pri 72 % spadla na 46,1 × 39,2 a Matej si to
+  // hneď všimol („obrázok AInubisa v spodnom nave = nebola vačšia?") — nie preto,
+  // že by bola menšia o 1,7 px, ale preto, že s čiernou doskou zmizla tmavá masa,
+  // ktorá kruh vypĺňala. Pri 88 % má 56,3 × 47,9 px, teda je väčšia než pôvodný
+  // odznak v oboch osiach.
+  // ⚠️ STROP JE 99 % — nad ním kruh (overflow:hidden) odreže korunu nemesu a bradu.
+  //    Odmerané nad alfa kanálom assetu, nie odhadom.
+  faceW: 88,
   ring: 'smooth',
   segs: 22,
   deco: 0.95,

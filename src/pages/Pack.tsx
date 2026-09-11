@@ -441,6 +441,16 @@ function PackAnimations() {
       }
       .pack-card-hover:hover {
         transform: translateY(-3px);
+      }
+      /* ⚠️ TIEŇ PRI DOTYKU NEDOSTANE BLOK V ZLATOM RÁME (2026-09-11). Matej: „pri dotyku
+         1.bloku a komunity sa stratí 3d vykreslenie a vyzerá to blbo — pri dotyku sa dizajn
+         nemení, len sa pohne, štruktúra sa nemení."
+         PREČO: box-shadow je jedna vlastnosť, nie zoznam, do ktorého sa dá prispieť.
+         goldFrameCSS() má v nej NAHUSTENÝ celý odliatok — 1px zlatý obrys, vrhnutý tieň
+         rámu a inset, ktorým je doska zapustená do lemu. Hover ju prepísal jedným mäkkým
+         tieňom, takže blok na dotyk stratil rám aj hĺbku a vyzeral ako plochá nálepka.
+         Riešenie je NEDOTKNÚŤ SA JEJ — nadvihnutie nesie transform, ten stačí. */
+      .pack-card-hover:not(.pk-goldblock):hover {
         box-shadow: 0 28px 60px -25px rgba(31, 26, 14, 0.28);
       }
     `}</style>
