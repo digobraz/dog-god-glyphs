@@ -1533,7 +1533,7 @@ export const en = {
   'pack.spotlight.open': "Open the trip",
   'pack.spotlight.plan': "Plan this trip",
   'pack.spotlight.joiners': "{count} packs are coming with you",
-  'pack.spotlight.mapTitle': "Expand DOGYPT's borders",
+  'pack.spotlight.mapTitle': "Draw your trip",
   // Tri tvary na jednotku (CLDR: one / few = 2–4 / other). Angličtina má len dva,
   // takže Few = Many; slovenčina ich potrebuje všetky tri („2 krajiny" vs „20 krajín").
   'pack.spotlight.pillTripsOne': "Trip",

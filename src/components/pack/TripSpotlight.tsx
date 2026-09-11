@@ -17,7 +17,6 @@
 // odpočet na neexistujúci výlet je klamstvo (to je presne to, čo riešila issue #44).
 import { useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import createGlobe from 'cobe';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
@@ -28,6 +27,7 @@ import { planPhase } from './planReminder';
 import { tierVars } from '@/lib/packTiers';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from './packTheme';
 import { LAPIS } from './navGoldSkin';
+import { PackTrailSketch } from './PackTrailSketch';
 import { trailCountry } from '@/lib/countryGeo';
 import { placeholderFor } from '@/lib/tripPlaceholder';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
@@ -50,10 +50,6 @@ const DAYS_PILL = {
 // bola obava z duplicity s bledou guľou v `GlobePulse` nižšie. Odlíšenie teraz nerobí
 // FARBA, ale KOMPOZÍCIA: tu je guľa orezaná hranou karty (vidno ~štvrtinu) a nesie
 // tri tmavé pilulky, dole je celá guľa v strede karty. Farebne sú obe papyrusové.
-const GLOBE_GOLD: [number, number, number] = [1.0, 0.80, 0.30];   // pin prejdeného výletu — zlato viditeľné na béžovom oceáne
-const GLOBE_INK: [number, number, number] = [0.42, 0.30, 0.10];   // neprejdené — tmavá zem, nie modrá
-const PHI_EUROPE = 4.7;  // Európa čelom k divákovi (rovnaká konštanta ako v GlobePulse)
-const THETA = 0.42;      // väčší sklon než v GlobePulse — naše piny sedia na 47–49° s. š.
 const SPIN = 0.0011;     // rad/frame, ~jedna otáčka za 95 s
 
 // ── CSS ──────────────────────────────────────────────────────────────────────
@@ -137,47 +133,22 @@ const CSS = `
 }
 .ts-globe:hover{ transform: translateY(-2px); }
 
-/* Guľa je ZÁMERNE väčšia než karta a ukotvená vľavo dole — vidno z nej ~štvrtinu.
-   Celá guľa v rámčeku = druhý GlobePulse; výrez = pozadie, cez ktoré sa dá čítať.
-   ⚠️ Box MUSÍ byť štvorcový (aspect-ratio) — cobe kreslí do štvorcového bufferu a
-   obdĺžnikový box guľu roztiahne na elipsu. */
-.ts-canvas-wrap{
-  position:absolute; left:-52%; bottom:-54%; width:148%; aspect-ratio:1 / 1;
-  z-index:0; pointer-events:none;
-}
-/* Kontrast kontinentov. Bez neho je guľa béžová na béžovej karte a vyzerá ako nedonačítaný
-   obrázok (Matej 13.8.). Príčina NIE JE cobe — oceán má baseColor ≈ farbu karty, takže guľa
-   nemá okraj, a navrch ju zrážal závoj s krytím 0,94. Rieši sa TU a v .ts-scrim nižšie;
-   do konfigurácie cobe sa nesiaha, aby ostala zhodná s guľou v GlobePulse. */
-.ts-canvas{ position:absolute; inset:0; filter:contrast(1.45) brightness(0.96) saturate(1.1); }
+/* MAPA je pozadie karty, nie obrázok v rámčeku — kreslí ju PackAtlas do SVG.
+   Presahuje kartu zámerne: výrez Európy tak ide až pod text a nevzniká rám v ráme.
+   Guľa (cobe) tu stála do 11. 9. 2026 a odišla preto, že tá istá bola o dva bloky nižšie
+   v GlobePulse — Matej: "je tam teraz planétka ako je aj nižšie". */
+.ts-atlas{ position:absolute; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; }
 
-/* ZLATÝ OBLÚK — obežná dráha po obvode gule (Matej 13.8.: „skus dať na mapu zlatý oblúk").
-   Dáva guli hranu, ktorú jej farba oceánu nedokáže dať, takže sa číta ako planéta, nie ako
-   svetlá škvrna v pozadí.
-   ⚠️ inset:7% NIE JE ozdobná hodnota — cobe kreslí guľu menšiu než buffer. Pri inset:0
-   je kruh väčší než vykreslená guľa a oblúk prejde krížom cez nadpis karty (overené).
-   Ak sa mení width alebo aspect-ratio na .ts-canvas-wrap, treba ho premerať znova. */
-.ts-orbit{
-  position:absolute; inset:7%; border-radius:50%; z-index:1; pointer-events:none;
-  border:1.5px solid rgba(201,154,63,0.65);
-  box-shadow:
-    inset 0 0 50px rgba(122,90,42,0.26),
-    inset -24px -24px 70px rgba(122,90,42,0.20);
-}
-/* ⚠️ Závoj je v PAPYRUSOVÝCH tónoch karty (#FBF5E6 → #F3E4C4 → #EAD6A6), NIE v bielej
-   (Matej 12.8.: „bledá brand nie biela! má to byť podklad ako pri 1 bloku"). Predtým
-   tu ležala rgba(250,244,236) cez celú plochu — to je skoro čistá biela a prebila
-   papyrusový gradient karty pod ňou, takže karta vyzerala ako biely papier.
-   DVE vrstvy závoja, nie jedna. Vodorovná drží voľný pravý okraj pod pilulkami,
-   zvislá drží čitateľný nadpis hore a popisku dole — tie sedia nad guľou a na
-   rozsvietených kontinentoch by zanikli. */
 .ts-scrim{
   position:absolute; inset:0; z-index:1; pointer-events:none;
   background:
-    linear-gradient(to left, rgba(243,228,196,0.88) 4%, rgba(243,228,196,0.18) 44%, rgba(243,228,196,0) 72%),
-    linear-gradient(to bottom, rgba(251,245,230,0.80) 0%, rgba(243,228,196,0.34) 20%, rgba(243,228,196,0) 40%, rgba(234,214,166,0.06) 66%, rgba(234,214,166,0.72) 100%);
+    linear-gradient(to bottom, rgba(251,245,230,0.92) 0%, rgba(243,228,196,0.30) 18%, rgba(243,228,196,0) 34%, rgba(234,214,166,0) 62%, rgba(234,214,166,0.55) 86%, rgba(234,214,166,0.80) 100%);
 }
-.ts-globe-head{ position:relative; z-index:2; }
+.ts-globe-head{ position:relative; z-index:2; padding-top:26px; }
+/* ⚠️ Ten padding nie je vzduch, ale VYHNUTIE SA RANGU. Rang sedí absolútne v pravom hornom
+   rohu a nadpis má celú šírku karty: pri "ROZŠÍR" sa míňali o vlások, pri "NAKRESLI" sa
+   prekryli o 110 px (odmerané). Kto mení nadpis, nech to premeria znova — 30 px Cinzelu
+   je lock (rovnaká úroveň ako názov výletu v susednej karte), takže ustupuje nadpis. */
 /* Nadpis má ROVNAKÚ veľkosť ako názov výletu v susednej karte (30px Cinzel 700) — dva bloky
    v jednom riadku musia mať jednu typografickú úroveň, inak menší vyzerá ako podradený.
    ⚠️ TRI riadky = JEDNO SLOVO NA RIADOK (Matej 12.8.: „daj tam 3 riadky - Rozšír hranice
@@ -273,7 +244,6 @@ const CSS = `
   /* 148 % šírky karty, nie 98 % (Matej 9.8.: „zväčši tú planétku, je moc malá a veľa
      priestoru čierneho je okolo"). Menšia guľa nechávala v strede karty prázdny čierny
      pás — orezaná guľa musí kartu VYPLNIŤ, inak je to len ikonka na čiernom. */
-  .ts-canvas-wrap{ left:-44%; bottom:auto; top:-16%; width:148%; }
   .ts-scrim{
     background:
       linear-gradient(to left, rgba(243,228,196,0.90) 6%, rgba(243,228,196,0.30) 46%, rgba(243,228,196,0) 76%),
@@ -402,21 +372,6 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
       notePoints: myNotePoints,
     });
 
-    // Piny na guli = štart každého výletu (`path[0]`). Prejdené sú väčšie a zlaté,
-    // ostatné drobné tmavé — na guli tak vidno, kde svorka reálne bola.
-    const markers = allTrails
-      .map((tr) => {
-        const p = tr.path?.[0];
-        if (!p || typeof p[0] !== 'number' || typeof p[1] !== 'number') return null;
-        const done = walked.has(tr.id);
-        return {
-          location: [p[0], p[1]] as [number, number],
-          size: done ? 0.075 : 0.03,
-          color: done ? GLOBE_GOLD : GLOBE_INK,
-        };
-      })
-      .filter((m): m is { location: [number, number]; size: number; color: [number, number, number] } => !!m);
-
     return {
       trail,
       kind,
@@ -431,7 +386,6 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
       walkedKm: Math.round(walkedKm),
       countryCount: countries.size,
       level: level.level,
-      markers,
     };
   }, [email, ownerName, myNotePoints]);
 
@@ -524,18 +478,12 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
       <Link
         className="ts-globe"
         to="/pack/map"
-        style={{
-          // Brand v3.2: čierna + zlatá. Modrá navy z prvej verzie bola mimo palety.
-          background: 'radial-gradient(circle at 26% 78%, #1a1206 0%, #0a0704 56%, #050505 100%)',
-          border: `1px solid ${T.border}`,
-          boxShadow: '0 30px 74px -32px rgba(0,0,0,0.95)',
-        }}
       >
         {/* Guľa je pozadie karty (z-index 0), nie ilustrácia v rámčeku. */}
-        <div className="ts-canvas-wrap">
-          <TripGlobe markers={view.markers} />
-          <span className="ts-orbit" aria-hidden />
-        </div>
+        {/* Náhľad kreslenia trasy (Matej 11. 9.: "daj predsa len tú možnosť - nakresli svoj
+            výlet"). Mapa Európy so značkami tu stála pár hodín a odišla — "tie emoji musíme
+            zmeniť, vyzerá to hrozne". Parkuje ako PackAtlas.tsx, vrátiť ju sem = jeden riadok. */}
+        <PackTrailSketch />
         <span className="ts-scrim" aria-hidden />
 
         {/* JEDEN nadpis, žiadny podnadpis a žiadna popiska dole (Matej 9.8.:
@@ -583,96 +531,5 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
 
       </Link>
     </div>
-  );
-}
-
-// ── Guľa ─────────────────────────────────────────────────────────────────────
-// Rovnaká cobe konfigurácia ako `GlobePulse` (dark:0 + baseColor ≈ papyrus), aby obe
-// gule na homepage vyzerali ako jeden objekt, nie dva rôzne widgety.
-//
-// ⚠️ Guľa sa NEOTÁČA dokola ako v GlobePulse, len sa jemne kolíše okolo Európy. Dôvod:
-//    všetky naše piny sedia v jednom regióne, takže plná rotácia by ich polovicu času
-//    schovala za odvrátenú stranu a karta by vyzerala prázdna.
-function TripGlobe({ markers }: { markers: { location: [number, number]; size: number; color: [number, number, number] }[] }) {
-  const t = useT();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    let globe: ReturnType<typeof createGlobe> | null = null;
-    let raf = 0;
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    function init() {
-      if (!canvas) return;
-      const w = Math.min(canvas.offsetWidth, canvas.offsetHeight || canvas.offsetWidth);
-      if (w === 0 || globe) return;
-      globe = createGlobe(canvas, {
-        devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
-        width: w * 2,
-        height: w * 2,
-        phi: PHI_EUROPE,
-        theta: THETA,
-        // Presne vzor `GlobePulse`: dark:0 = béžový oceán z `baseColor` + TMAVÉ kontinenty.
-        // Béžová sedí na papyrusovej karte, takže guľa pôsobí ako výrez do nej, nie ako
-        // nalepený widget — to je celý zmysel bledej verzie.
-        dark: 0,
-        diffuse: 1.3,
-        mapSamples: 16000,
-        mapBrightness: 9,                // ostré tmavé kontinenty
-        mapBaseBrightness: 0,            // odvrátená strana ostáva v tieni
-        baseColor: [0.95, 0.89, 0.77],   // ≈ #F3E4C4, stredný tón papyrusu karty (nie biela)
-        markerColor: GLOBE_GOLD,
-        glowColor: [0.12, 0.10, 0.06],   // tmavá jemná aura, nie svetelný prstenec
-        markerElevation: 0,
-        markers,
-      });
-
-      if (!reduceMotion) {
-        // Plná pomalá rotácia (Matej: „bude sa to točiť ale bude vidno len 1/4").
-        // Guľa je orezaná, takže sa točí ako pozadie — piny prechádzajú výrezom.
-        let phi = PHI_EUROPE;
-        const render = () => {
-          phi += SPIN;
-          globe!.update({ phi, theta: THETA, markers });
-          raf = requestAnimationFrame(render);
-        };
-        raf = requestAnimationFrame(render);
-      }
-
-      requestAnimationFrame(() => { if (canvas) canvas.style.opacity = '1'; });
-    }
-
-    if (canvas.offsetWidth > 0) {
-      init();
-    } else {
-      // Canvas sa mountuje s nulovou šírkou (grid ešte nemá rozmery) — bez tohto by
-      // cobe dostal width 0 a guľa by sa nikdy nevykreslila.
-      const ro = new ResizeObserver((entries) => {
-        if ((entries[0]?.contentRect.width ?? 0) > 0) { ro.disconnect(); init(); }
-      });
-      ro.observe(canvas);
-    }
-
-    return () => {
-      if (raf) cancelAnimationFrame(raf);
-      if (globe) globe.destroy();
-    };
-  }, [markers]);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="ts-canvas"
-      style={{
-        width: '100%',
-        height: '100%',
-        opacity: 0,
-        transition: 'opacity 1.1s ease',
-        contain: 'layout paint size',
-      }}
-      aria-label={t('pack.spotlight.mapTitle')}
-    />
   );
 }
