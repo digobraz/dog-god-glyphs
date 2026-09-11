@@ -132,6 +132,9 @@ const CSS = `
   transition: transform .2s ease;
 }
 .ts-globe:hover{ transform: translateY(-2px); }
+/* Odkaz na mapu pokrýva celú kartu; CTA leží nad ním vyšším z-indexom, takže si klik vezme
+   ono. Bez tohto prekrytia by telo karty prestalo byť klikateľné úplne. */
+.ts-globe-hit{ position:absolute; inset:0; z-index:2; border-radius:16px; }
 
 /* MAPA je pozadie karty, nie obrázok v rámčeku — kreslí ju PackAtlas do SVG.
    Presahuje kartu zámerne: výrez Európy tak ide až pod text a nevzniká rám v ráme.
@@ -153,7 +156,7 @@ const CSS = `
    ⚠️ Je to <span> vnútri <a>, nie vlastný odkaz — celá karta vedie na mapu a tlačidlo je
    pozvánka, nie druhá cieľová adresa. Tlačidlo v odkaze by bolo neplatné HTML. */
 .ts-cta{
-  position:relative; z-index:2; display:block; width:100%; margin-top:auto;
+  position:relative; z-index:3; display:block; width:100%; margin-top:auto;
   padding:14px 18px; border-radius:8px; text-align:center;
   background:${LAPIS.grad}; border:1px solid rgba(250,244,236,0.30);
   color:${LAPIS.ink}; font-family:${FONT_TITLE}; font-weight:700; font-size:12.5px;
@@ -502,10 +505,11 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
       </Link>
 
       {/* ── 38 % · planéta ───────────────────────────────────────────────── */}
-      <Link
-        className="ts-globe"
-        to="/pack/map"
-      >
+      {/* ⚠️ KARTA UŽ NIE JE JEDEN ODKAZ (Matej 11. 9. 2026, voľba z dvoch ciest): telo vedie
+          na mapu, tlačidlo rovno do pridávania. Odkaz v odkaze je neplatné HTML, takže obal
+          je <div> a sú v ňom DVA odkazy — neviditeľný cez celú plochu (.ts-globe-hit) a CTA
+          nad ním. Poradie rieši z-index, nie DOM: CTA má vyšší, takže klik naň ide doň. */}
+      <div className="ts-globe">
         {/* Guľa je pozadie karty (z-index 0), nie ilustrácia v rámčeku. */}
         {/* Náhľad kreslenia trasy (Matej 11. 9.: "daj predsa len tú možnosť - nakresli svoj
             výlet"). Mapa Európy so značkami tu stála pár hodín a odišla — "tie emoji musíme
@@ -540,13 +544,15 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
             CSS `.ts-pills` / `.ts-pill` nižšie NEMAŽEM — čísla sa môžu vrátiť, keď sa karta
             bude rozhodovať znova; mŕtvy je len tento JSX blok. */}
 
-        <span className="ts-cta">
+        <Link className="ts-globe-hit" to="/pack/map" aria-label={t('pack.layout.navMap')} />
+
+        <Link className="ts-cta" to="/pack/add/trip">
           <span className="ts-cta-row">
             <img src="/icons/pack/plus.svg" alt="" aria-hidden className="ts-cta-icon" />
             {t('pack.spotlight.mapTitle')}
           </span>
-        </span>
-      </Link>
+        </Link>
+      </div>
     </div>
   );
 }

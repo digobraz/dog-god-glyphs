@@ -2796,7 +2796,13 @@ const PALE_ADD_CSS = MAP_SKIN !== 'pale' ? '' : `
      svojho obsahu a voľná výška ide na okraje — panel ho centruje ("justify-content:safe
      center" vyššie; slovo safe drží vrch dosiahnuteľný, keď sa obsah na nízky telefón
      nezmestí). */
-  .trp-root .att-entry-blocks{gap:14px;flex:0 0 auto;}
+  /* 🔴 STĹPEC — deklarácia flex-direction:column tu CHÝBALA (Matej 11. 9. 2026: "toto je zle
+     lebo nevidno dalšie možnosti su na horizontálny scrol čo je hluposť! responzivita je zla").
+     Komentáre nižšie o stĺpci hovoria a flex-wrap:nowrap naň spolieha — lenže základné
+     .att-entry-blocks je RIADOK, takže bez tejto deklarácie sa nowrap prejavil presne opačne:
+     tri dlaždice po ~830 px ostali vedľa seba v kontajneri širokom 840 px (scrollWidth
+     2530 px) a PODUJATIE aj ODKAZ vypadli mimo obrazovku. */
+  .trp-root .att-entry-blocks{gap:14px;flex:0 0 auto;flex-direction:column;}
   /* ⚠️ :first-child MUSÍ BYŤ VYMENOVANÝ. Na PC má prvá dlaždica flex:1 1 100% (zaberá celý
      prvý riadok) a v STĹPCI znamená tá istá deklarácia 100 % VÝŠKY — VÝLET tak vyrástol na
      dvojnásobok susedov. Špecificita je zhodná, takže by rozhodlo poradie v DOM a to má
