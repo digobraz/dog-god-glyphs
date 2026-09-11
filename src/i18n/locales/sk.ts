@@ -1524,7 +1524,7 @@ export const sk: Partial<Dict> = {
   "pack.spotlight.open": "Otvoriť výlet",
   "pack.spotlight.plan": "Naplánovať výlet",
   "pack.spotlight.joiners": "Idú s tebou {count} svorky",
-  "pack.spotlight.mapTitle": "Nakresli svoj výlet",
+  "pack.spotlight.mapTitle": "Pridaj svoj výlet",
   "pack.spotlight.pillTripsOne": "Výlet",
   "pack.spotlight.pillTripsFew": "Výlety",
   "pack.spotlight.pillTripsMany": "Výletov",

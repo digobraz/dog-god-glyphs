@@ -26,7 +26,7 @@ import { parsePlanDate, planDateLabel, planStart } from './addtrip/planDate';
 import { planPhase } from './planReminder';
 import { tierVars } from '@/lib/packTiers';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from './packTheme';
-import { LAPIS } from './navGoldSkin';
+import { LAPIS, LAPIS_BTN_SHADOW } from './navGoldSkin';
 import { PackTrailSketch } from './PackTrailSketch';
 import { trailCountry } from '@/lib/countryGeo';
 import { placeholderFor } from '@/lib/tripPlaceholder';
@@ -145,6 +145,23 @@ const CSS = `
     linear-gradient(to bottom, rgba(251,245,230,0.92) 0%, rgba(243,228,196,0.30) 18%, rgba(243,228,196,0) 34%, rgba(234,214,166,0) 62%, rgba(234,214,166,0.55) 86%, rgba(234,214,166,0.80) 100%);
 }
 .ts-globe-head{ position:relative; z-index:2; padding-top:26px; }
+/* CTA CEZ CELÚ ŠÍRKU (Matej 11. 9. 2026: "dolu daj cez šírku CTA (pridaj svoj výlet do
+   lapisu) = bude len mapka hore a dole cta"). Nadpis tým z karty odišiel — jeho text sa
+   presťahoval do tlačidla, takže karta hovorí jednu vec a nie tú istú dvakrát.
+   LAPIS = brandový kánon pre hlavné CTA na BLEDOM podklade (CLAUDE.md 28. 8.); geometriu
+   (radius 8, nie pilulka) preberá od locknutého .btn-gold, mení sa len výplň.
+   ⚠️ Je to <span> vnútri <a>, nie vlastný odkaz — celá karta vedie na mapu a tlačidlo je
+   pozvánka, nie druhá cieľová adresa. Tlačidlo v odkaze by bolo neplatné HTML. */
+.ts-cta{
+  position:relative; z-index:2; display:block; width:100%; margin-top:auto;
+  padding:14px 18px; border-radius:8px; text-align:center;
+  background:${LAPIS.grad}; border:1px solid rgba(250,244,236,0.30);
+  color:${LAPIS.ink}; font-family:${FONT_TITLE}; font-weight:700; font-size:12.5px;
+  letter-spacing:0.14em; text-transform:uppercase;
+  box-shadow:${LAPIS_BTN_SHADOW};
+  transition:transform .18s ease, box-shadow .22s ease;
+}
+.ts-globe:hover .ts-cta{ transform:translateY(-1px); }
 /* ⚠️ Ten padding nie je vzduch, ale VYHNUTIE SA RANGU. Rang sedí absolútne v pravom hornom
    rohu a nadpis má celú šírku karty: pri "ROZŠÍR" sa míňali o vlások, pri "NAKRESLI" sa
    prekryli o 110 px (odmerané). Kto mení nadpis, nech to premeria znova — 30 px Cinzelu
@@ -502,33 +519,18 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
           </span>
         </span>
 
-        <div className="ts-globe-head">
-          {/* JEDNO SLOVO = JEDEN RIADOK. Preklad `pack.spotlight.mapTitle` musí mať tri
-              slová, inak nevyjdú tri riadky (viď poznámka pri .ts-globe-title). */}
-          <p className="ts-globe-title">
-            {t('pack.spotlight.mapTitle').split(' ').filter(Boolean).map((word, i) => (
-              <span key={i}>{word}</span>
-            ))}
-          </p>
-        </div>
+        {/* ⚠️ TROJRIADKOVÝ NADPIS ODIŠIEL 11. 9. 2026 — jeho text je teraz na CTA dole
+            ("bude len mapka hore a dole cta"). CSS `.ts-globe-title` nižšie NEMAŽEM: keby sa
+            nadpis vracal, vracia sa aj jeho lock na tri slová a tri riadky. */}
 
-        {/* Tri bloky = TVOJ záznam. Poradie krajiny → kilometre → výlety je Matejovo
-            (9.8.); level odišiel hore k rangu, aby sa neopakoval. */}
-        <div className="ts-pills">
-          <span className="ts-pill">
-            <b>{view.countryCount}</b>
-            <span>{t('pack.spotlight.pillCountries' + pluralKey(view.countryCount))}</span>
-          </span>
-          <span className="ts-pill">
-            <b>{view.walkedKm.toLocaleString('sk-SK')}</b>
-            <span>{t('pack.spotlight.pillKm' + pluralKey(view.walkedKm))}</span>
-          </span>
-          <span className="ts-pill">
-            <b>{view.walkedCount}</b>
-            <span>{t('pack.spotlight.pillTrips' + pluralKey(view.walkedCount))}</span>
-          </span>
-        </div>
+        {/* ⚠️ TRI BLOKY S ČÍSLAMI (krajiny · kilometre · výlety) SÚ PREČ (Matej 11. 9. 2026:
+            "tie 3 bloky daj preč"). Karta odvtedy nehovorí o tvojom zázname, ale o jedinej
+            veci — že si výlet vieš pridať sám. Uvoľnená spodná tretina je presne to miesto,
+            ktoré si pýtal ("je to moc malé, roztiahni to").
+            CSS `.ts-pills` / `.ts-pill` nižšie NEMAŽEM — čísla sa môžu vrátiť, keď sa karta
+            bude rozhodovať znova; mŕtvy je len tento JSX blok. */}
 
+        <span className="ts-cta">{t('pack.spotlight.mapTitle')}</span>
       </Link>
     </div>
   );
