@@ -256,6 +256,27 @@ export const PAPER_PAGE_CSS = `
  *    prefixom všetko pod sebou.
  */
 export const PAPER_ROUTES: readonly RegExp[] = [
+  // Homepage `/pack` — PRESNÁ zhoda, nie prefix (prezlečená 2026-09-08). Prefixový
+  // vzor `/^\/pack/` by chytil aj `/pack/dogs`, `/pack/profile` a kvízy, ktoré sú
+  // ešte čierne, a pred nimi by bliklo BIELE — ten istý problém, len naopak.
+  // Pri prezliekaní ďalšej stránky pribudne jej vlastný riadok; keď budú bledé
+  // všetky, tieto riadky sa dajú zliať do jedného prefixu.
+  /^\/pack$/,
+  // Zoznam psov `/pack/dogs` — opäť PRESNÁ zhoda: `/pack/dogs/:id` je DOG ID,
+  // samostatný povrch (3 287 r.), ktorý sa prezlieka vlastným krokom.
+  /^\/pack\/dogs$/,
+  // DOG ID `/pack/dogs/<uuid>` — karty tejto stránky UŽ papyrusové boli, chýbal
+  // len shell: pod nimi svietila čierna a `RouteFallback` ňou blikal pred každým
+  // otvorením dokladu psa.
+  // ⚠️ `quiz` je z tohto vzoru VYNECHANÝ zámerne — `/pack/dogs/quiz/<key>` je
+  //    samostatný povrch (551 r.), ktorý sa prezlieka vlastným krokom; bez tejto
+  //    výnimky by ho chytilo holé `/pack/dogs/quiz` a bliklo by pred ním BIELE.
+  /^\/pack\/dogs\/(?!quiz(?:\/|$))[^/]+$/,
+  // Profil POUŽÍVATEĽA `/pack/profile` — s DOG ID nesúvisí (2026-08-27).
+  /^\/pack\/profile(\/|$)/,
+  // Cudzí profil `/pack/u/<uuid>` — jeho karty papyrusové boli, ale odkaz späť
+  // („← SVORKA") mal TMAVÝ inkoust na ČIERNOM pozadí, teda bol neviditeľný.
+  /^\/pack\/u(\/|$)/,
   // CELÁ vetva mapy — `/pack/map` samotná, `/pack/map/triplist` (TRIPLIST + TRIPSTATS)
   // aj článok výletu `/pack/map/<ISO3>/<slug>` a jeho starý tvar `/pack/map/<slug>`.
   // ⚠️ Vzor, nie zoznam krajín: ten by sa musel dopĺňať pri každej novej krajine

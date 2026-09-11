@@ -1,7 +1,7 @@
 import { lazy, ReactNode, Suspense, useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { BrandIcon as PackBrandIcon } from './BrandIcon';
-import { PACK_THEME, PACK_COL, isPaperRoute } from './packTheme';
+import { PACK_THEME, PACK_COL, isPaperRoute, PAPER_PAGE_CSS } from './packTheme';
 import { devotionLevel } from '@/lib/devotion';
 import { DEV_FULL } from '@/lib/packFlags';
 import { usePackIdentity, type PackDog } from './usePackIdentity';
@@ -43,12 +43,23 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
   const navigate = useNavigate();
   const { session, loading, dogs, devotion, bones, avatarUrl, avatarInitial, packTotal, packToday } = usePackIdentity();
 
+  // ── PAPYRUSOVÝ SHELL (2026-09-08) ────────────────────────────────────────────
+  // Pozadie stránky sa riadi TÝM ISTÝM zoznamom `PAPER_ROUTES`, aký používa
+  // `RouteFallback` v `App.tsx` a `PackNotifications` nižšie. Dva zoznamy by sa
+  // rozišli a prejavilo by sa to bliknutím čiernej pred bledou stránkou.
+  // ⚠️ `pk-paper` NESMIE dostať vlastný `z-index`/`transform`/`opacity` — jeho
+  //    tapeta stojí na `z-index:-1` a uzavrela by sa doň (viď PAPER_PAGE_CSS).
+  const paperPage = isPaperRoute(useLocation().pathname);
+
   if (loading) {
     return (
-      <div className="min-h-[100dvh] flex items-center justify-center relative" style={{ backgroundColor: T.pageBg }}>
-        <HieroglyphBg />
+      <div
+        className={`min-h-[100dvh] flex items-center justify-center relative${paperPage ? ' pk-paper' : ''}`}
+        style={paperPage ? undefined : { backgroundColor: T.pageBg }}
+      >
+        {paperPage ? <style>{PAPER_PAGE_CSS}</style> : <HieroglyphBg />}
         <div className="relative" style={{ zIndex: 1 }}>
-          <div style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.3em', fontSize: 12, color: T.onDarkDim }}>
+          <div style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.3em', fontSize: 12, color: paperPage ? T.inkWarm : T.onDarkDim }}>
             {t('pack.layout.loading')}
           </div>
         </div>
@@ -59,8 +70,11 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
   if (!session) return null;
 
   return (
-    <div className="min-h-[100dvh] relative" style={{ backgroundColor: T.pageBg, color: T.onDark }}>
-      <HieroglyphBg />
+    <div
+      className={`min-h-[100dvh] relative${paperPage ? ' pk-paper' : ''}`}
+      style={paperPage ? { color: T.inkStrong } : { backgroundColor: T.pageBg, color: T.onDark }}
+    >
+      {paperPage ? <style>{PAPER_PAGE_CSS}</style> : <HieroglyphBg />}
 
       {/* FLOATING STATUS HUB — fixed top, slim single-row pill. DEV_FULL target model
           (D4 nav rework) drops this entirely — identity moved to the bottom nav avatar,

@@ -28,6 +28,7 @@ import {
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
+import { PALE } from '@/components/pack/navGoldSkin';
 import { DogPassport, type FixedRow } from '@/components/pack/DogPassport';
 import { WillPanel } from '@/components/pack/WillPanel';
 import { PACK_THEME, PILL_CSS } from '@/components/pack/packTheme';
@@ -93,8 +94,11 @@ const DOGID_CSS = `
 
 /* späť = holá šípka v STREDE nad blokom (rovnaký tvar ako .tl-back v TRIPSTATS) */
 .did-backrow{display:flex;justify-content:center;margin-bottom:16px;}
-.did-back{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.42);border:1px solid ${T.onDarkBorder};color:${T.onDark};cursor:pointer;transition:border-color .15s,color .15s;}
-.did-back:hover{border-color:${T.accentGold};color:${T.accentGold};}
+/* Farby sú tie isté ako v .tl-back (PackTriplist) — komentár vyššie sľubuje
+   "rovnaký tvar ako .tl-back v TRIPSTATS" a od 8. 9., keď stránka sadla na papyrus,
+   to platí aj pre výplň. Tmavý krúžok tu ostal ako jediný prvok z čierneho šatu. */
+.did-back{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:${PALE.soft};border:1px solid ${PALE.border};color:${PALE.ink};cursor:pointer;transition:border-color .15s,color .15s,background .15s;}
+.did-back:hover{border-color:${T.cardEdge};color:${PALE.deep};background:#FFFDF6;}
 
 @media (max-width:720px){
   .did-photoframe{width:112px;height:112px;}

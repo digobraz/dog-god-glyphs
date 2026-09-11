@@ -2,9 +2,20 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { verseForDay } from '@/data/dailyQuotes';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
-import { FONT_TITLE, FONT_UI } from './packTheme';
+import { FONT_TITLE, FONT_UI, PACK_THEME, isPaperRoute } from './packTheme';
+import { useLocation } from 'react-router-dom';
 
 const GOLD = '#C99A3F';
+
+// ── INKOUST PODĽA PODKLADU (2026-09-08) ──────────────────────────────────────
+// Verš stojí na DVOCH povrchoch: na homepage `/pack` (od 8. 9. papyrus) a v
+// `HeroLab`, ktorý ostáva tmavý. Farby preto nie sú natvrdo — komponent si
+// podklad zistí sám z `PAPER_ROUTES`, teda z toho ISTÉHO zoznamu, ktorý prepína
+// shell v `PackLayout` a fallback v `App.tsx`. Prop od volajúceho by znamenal
+// tretie miesto, kde sa dá zabudnúť, a prejavilo by sa to bielym textom na
+// papyruse — teda neviditeľným veršom, nie chybou, ktorú niekto nahlási.
+// Zlatá (GOLD) drží na oboch podkladoch, mení sa len inkoust a tieň.
+const T = PACK_THEME;
 
 // KÁNON JE ORIGINÁL (Matej 2026-08-13: „dajme každému anglický originál citátu a pri kliknutí
 // naň sa zobrazí preklad — ktorý vedia členovia nahlásiť ako zlý… ale nech máme všade ok
@@ -19,6 +30,7 @@ const GOLD = '#C99A3F';
 const HOVER_QUERY = '(hover: hover) and (pointer: fine)';
 
 export function VerseOfTheDay() {
+  const paper = isPaperRoute(useLocation().pathname);
   const t = useT();
   const { lang } = useLang();
   // 365-day curated calendar — same quote all day, rotates at midnight, holiday-anchored.
@@ -118,8 +130,8 @@ export function VerseOfTheDay() {
           fontSize: 'clamp(20px, 3.4vw, 31px)',
           lineHeight: 1.4,
           letterSpacing: '0.01em',
-          color: '#FAF4EC',
-          textShadow: '0 2px 24px rgba(0,0,0,0.5)',
+          color: paper ? T.inkStrong : '#FAF4EC',
+          textShadow: paper ? 'none' : '0 2px 24px rgba(0,0,0,0.5)',
         }}
       >
         {verse.original}
@@ -134,7 +146,7 @@ export function VerseOfTheDay() {
             fontSize: 12,
             letterSpacing: '0.12em',
             textTransform: 'uppercase',
-            color: 'rgba(250,244,236,0.62)',
+            color: paper ? T.inkWarm : 'rgba(250,244,236,0.62)',
           }}
         >
           {verse.author || t('pack.verse.unknownAuthor')}
@@ -185,7 +197,7 @@ export function VerseOfTheDay() {
                   fontSize: 'clamp(13px, 1.6vw, 15px)',
                   fontWeight: 400,
                   lineHeight: 1.55,
-                  color: 'rgba(250,244,236,0.72)',
+                  color: paper ? T.inkWarm : 'rgba(250,244,236,0.72)',
                 }}
               >
                 {verse.translation}
@@ -200,7 +212,7 @@ export function VerseOfTheDay() {
                   fontFamily: FONT_UI,
                   fontSize: 11,
                   fontWeight: 500,
-                  color: reportState === 'sent' ? GOLD : 'rgba(250,244,236,0.45)',
+                  color: reportState === 'sent' ? GOLD : (paper ? T.inkWarm : 'rgba(250,244,236,0.45)'),
                   background: 'none',
                   border: 'none',
                   padding: '2px 4px',
