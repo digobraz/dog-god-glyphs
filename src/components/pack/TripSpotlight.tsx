@@ -27,6 +27,7 @@ import { parsePlanDate, planDateLabel, planStart } from './addtrip/planDate';
 import { planPhase } from './planReminder';
 import { tierVars } from '@/lib/packTiers';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from './packTheme';
+import { LAPIS } from './navGoldSkin';
 import { trailCountry } from '@/lib/countryGeo';
 import { placeholderFor } from '@/lib/tripPlaceholder';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
@@ -226,15 +227,21 @@ const CSS = `
   position:relative; z-index:2; margin-top:auto; width:100%;
   display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;
 }
-/* Pilulky ostávajú TMAVÉ so svetlým číslom (Matej 12.8.: „tie 3 pills viac výrazné resp
-   ponechaj ich v tej farbe") — na bledej karte sú tým jediný tmavý prvok, takže sa z
-   priesvitného skla stal kontrastný akcent. Preto tu už nie je backdrop-filter: pod
-   plnou výplňou nemá čo rozostrovať a stál výkon pri každom prekreslení gule. */
+/* LAPIS, NIE ČIERNA (Matej 11. 9. 2026: „tie bloky by som dal lapisom nie čiernou farbou,
+   riad sa brandom"). Prebíja to jeho staršie „tie 3 pills viac výrazné resp ponechaj ich
+   v tej farbe" z 12. 8. — kontrastný akcent na bledej karte ostáva, len prestal byť bez
+   farby. Zlaté písmo na modrom nie je ozdoba: lapis + zlato je pôvodná egyptská dvojica,
+   a bez nej je to len tmavý blok bez príslušnosti k brandu.
+   ⚠️ Plná farebná plocha inak patrí JEDINÉMU hlavnému CTA na obrazovke — tu platí výnimka
+   pre neinteraktívny štítok (CLAUDE.md 28. 8.): dlaždice sa nedajú kliknúť samostatne,
+   nemajú stav a na paneli nie je iné plné farebné CTA.
+   Preto tu nie je backdrop-filter: pod plnou výplňou nemá čo rozostrovať a stál výkon
+   pri každom prekreslení gule. */
 .ts-pill{
   position:relative; overflow:hidden; border-radius:12px; padding:10px 12px; text-align:center;
-  background:linear-gradient(180deg, #15110B 0%, #070604 100%);
+  background:${LAPIS.grad};
   border:1px solid rgba(201,154,63,0.55);
-  box-shadow:inset 0 1px 0 rgba(255,246,226,0.14), 0 10px 24px -14px rgba(31,26,14,0.75);
+  box-shadow:inset 0 1px 0 rgba(201,154,63,0.22), 0 10px 24px -14px rgba(5,15,48,0.75);
 }
 /* Zlatý svetelný pruh po hornej hrane — to je celý „šperk" pilulky, nie ďalší rám. */
 .ts-pill::before{
@@ -248,11 +255,11 @@ const CSS = `
    (fake bold, rozmazané hrany). */
 .ts-pill b{
   display:block; font-family:${FONT_UI}; font-weight:600; font-size:22px;
-  line-height:1; color:#FFF6E2; letter-spacing:0; text-shadow:0 2px 10px rgba(0,0,0,0.6);
+  line-height:1; color:${LAPIS.ink}; letter-spacing:0; text-shadow:0 2px 10px rgba(3,10,34,0.7);
 }
 .ts-pill span{
   display:block; margin-top:6px; font-family:${FONT_UI}; font-weight:500;
-  font-size:8.5px; letter-spacing:0.2em; text-transform:uppercase; color:rgba(245,240,228,0.62);
+  font-size:8.5px; letter-spacing:0.2em; text-transform:uppercase; color:rgba(239,215,154,0.66);
 }
 
 @media (max-width: 860px){

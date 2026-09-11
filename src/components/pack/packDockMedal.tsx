@@ -26,7 +26,14 @@ import { useEffect, useState } from 'react';
 import { NAV_GRAIN } from './navGoldSkin';
 import { AINUBIS } from './ainubisSkin';
 import { openAinubis, getAinubisUnread, onAinubisUnread } from '@/lib/ainubisBus';
-import ainubisFace from '@/assets/ainubis-badge.png';
+// ⚠️ `ainubis-head.png` (800 px, PRIEHĽADNÉ okolie), NIE `ainubis-badge.png`.
+//    Badge je odznak v tvare ŠTÍTU — čierna doska s modrým obrysom; rohy má síce
+//    priehľadné, ale jeho hranatá silueta sa na tmavomodrom displeji medailónu čítala
+//    ako tmavý štvorec v kruhu (Matej 11. 9. 2026: „fotka ainubisa v strede je na nej
+//    vidno tmavý štvorec - nie je to pekné"). Hlava je navyše 5× väčšia (800 vs 160 px),
+//    takže pri tej istej veľkosti na obrazovke stúpla ostrosť, neklesla.
+//    Ten istý zdroj používajú `Gateways.tsx` a `MapCoach.tsx`.
+import ainubisFace from '@/assets/ainubis-head.png';
 
 type Ring = 'smooth' | 'alt' | 'engraved' | 'beads';
 
@@ -46,12 +53,13 @@ export const DOCK: {
   // o 5 px a pod jeho spodnú hranu o 3 px.
   lift: 1,
   slot: 90,
-  // Vľavo je JEDNA položka a vpravo DVE, takže medailón v toku sedí vľavo od stredu
-  // lišty. Toto je ručná náprava, odmeraná v nákrese: do stredu chýba +10 px na mobile
-  // ale len +4 px na PC (tam nesie pravá strana text MAPA, ktorý rastie s jazykom),
-  // takže jedno číslo obe šírky netrafí a 10 je Matejom vybraný kompromis.
-  // ⚠️ Nezvyšuj ho bez nákresu: pri +17 sa kotúč na 390 px dotkne zemegule.
-  medalX: 10,
+  // 0 = ŽIADNA ručná náprava. Do 11. 9. 2026 tu stálo +10 px, lebo vľavo bola jedna
+  // položka a vpravo dve, takže medailón v toku sedel vľavo od stredu lišty — a keďže
+  // rozdiel bol na mobile +10 a na PC +4, jedno číslo obe šírky netrafilo.
+  // Odvtedy majú obe krídla lišty rovnaký diel (`1fr auto 1fr` v `PackLayout.tsx`),
+  // takže slot medailóna JE stred a posun by ho z neho vyhodil.
+  // ⚠️ Kto sa vráti k nesymetrickému radu, vráti aj toto číslo — nie naopak.
+  medalX: 0,
   ow: 5,
   // 0 = medailón NEMÁ vnútorný modrý lem, aký má logo na /onepage. Zlato ide priamo
   // na jeho displej — s lemom bol kotúč pri 74 px opticky menší a lem čítal ako tretí kruh.
@@ -209,7 +217,11 @@ export const DOCK_MEDAL_CSS = `
     inset 0 -8px 14px -6px rgba(0,0,0,0.65),
     inset 0 0 0 1px rgba(0,0,0,0.4);
 }
-.pk-medal-face img{display:block;height:auto;width:${DOCK.faceW}%;}
+.pk-medal-face img{display:block;width:auto;height:${DOCK.faceW}%;}
+/* ⚠️ Rozmer drží VÝŠKA, nie šírka: hlava je 800×940, teda vyššia než širšia —
+   pri width v percentách by pretiekla kruh zhora aj zdola a orezala sa jej
+   koruna aj brada. Kľúč faceW tak ostáva Matejovo číslo z nákresu, len meria druhú
+   os; odznak bol skoro štvorcový, takže pri ňom bol rozdiel neviditeľný. */
 .pk-medal-gloss{
   position:absolute;inset:0;border-radius:50%;pointer-events:none;mix-blend-mode:screen;
   background:

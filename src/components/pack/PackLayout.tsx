@@ -331,11 +331,28 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
 
   if (!DEV_FULL) return null;
   return (
-    <nav
-      ref={navRef}
+    /* ── LIŠTA JE PÁS CEZ CELÉ OKNO, BAR STOJÍ V JEHO STREDE (2026-09-11) ─────────
+       Matej: „obsahy na obidvoch stranách centruj (teraz je tlačítko domov viac na
+       lavo… a pravá strana je nalepená moc na pravo)."
+       ⚠️ Prečo pás a nie pôvodné `left:50%` + `translateX(-50%)`: fixovaný prvok
+       s `left:50%` má dostupnú šírku len POLOVICU okna. Kým sa doň bar zmestí, je
+       sizovaný na max-content a rovnaké `1fr` stĺpce dostanú rovnaký diel; len čo sa
+       nezmestí (mobil), prepne sa na min-content a KAŽDÝ `1fr` dostane svoju vlastnú
+       šírku — centrovanie by na telefóne ticho zmizlo. Tú istú pascu má zapísanú
+       `.nav-top` na `/onepage` (CLAUDE.md, 28. 8. 2026).
+       ⚠️ `navRef` MUSÍ ostať na bare, nie na páse: publikuje `--pack-nav-half`,
+       z ktorej si AINUBIS panel počíta polohu (`AinubisWidget.css`). Na páse by to
+       bola polovica okna. */
+    <div
       className="fixed z-40"
-      style={{ left: '50%', transform: 'translateX(-50%)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
+      style={{
+        left: 0, right: 0, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
+        display: 'flex', justifyContent: 'center',
+        // Pás je cez celé okno — bez tohto by prekryl obsah stránky po oboch stranách baru.
+        pointerEvents: 'none',
+      }}
     >
+    <nav ref={navRef} className="relative" style={{ pointerEvents: 'auto' }}>
       <div className="relative">
         {/* Sklenená vrstva pill-u — VLASTNÝ element, nie pozadie riadku s ikonami.
             issue #51 (Instagram-style fade): horný okraj pill-u sa rozplýva do priehľadna
@@ -402,19 +419,35 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
             stredu lišty; naprávajú to `DOCK.slot` a `DOCK.medalX` (obe odmerané
             v nákrese, viď `packDockMedal.tsx`). */}
         <style>{DOCK_MEDAL_CSS}</style>
-        <div className="relative flex items-center" style={{ gap: NAV_SKIN === 'gold' ? 10 : 4, padding: NAV_SKIN === 'gold' ? NAV_R.rim + 5 : 6 }}>
-          <FloatingNavLink to="/pack" label={t('pack.layout.navHome')} icon={iconHome} end />
-          <DockMedallion label={t('pack.layout.navAinubis')} />
-          {/* `WIZ.navMap` — sem svieti krok prehliadky o mape (spotlight na IKONKU,
-              nie na blok stránky). Kotva sedí na obale, nie na `NavLink`: spotlight
-              pridáva `position:relative` + `z-index`, a to by prebilo štýl pillu. */}
-          <span id={WIZ.navMap} style={{ display: 'inline-flex', borderRadius: 999 }}>
-            <FloatingNavLink to="/pack/map" label={t('pack.layout.navMap')} icon="/icons/pack/world-grid.svg" />
+        {/* `1fr auto 1fr` = obe krídla dostanú ROVNAKÝ diel a v ňom sa obsah vycentruje.
+            Vľavo je jedna položka a vpravo dve, takže bez toho sedel DOMOV nalepený na
+            ľavom okraji a dvojica MAPA+avatar na pravom (odmerané: DOMOV 29 px prid
+            ďaleko vľavo, pravé krídlo 15 px príliš vpravo). Šírku baru teraz drží
+            ŠIRŠIE krídlo — bar je o niečo širší než predtým, to je cena za symetriu. */}
+        <div
+          className="relative items-center"
+          style={{
+            display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center',
+            gap: NAV_SKIN === 'gold' ? 10 : 4, padding: NAV_SKIN === 'gold' ? NAV_R.rim + 5 : 6,
+          }}
+        >
+          <span className="flex items-center justify-center" style={{ minWidth: 0 }}>
+            <FloatingNavLink to="/pack" label={t('pack.layout.navHome')} icon={iconHome} end />
           </span>
-          <AvatarNavButton avatarUrl={avatarUrl} avatarInitial={avatarInitial} dogs={dogs} />
+          <DockMedallion label={t('pack.layout.navAinubis')} />
+          <span className="flex items-center justify-center" style={{ minWidth: 0, gap: NAV_SKIN === 'gold' ? 10 : 4 }}>
+            {/* `WIZ.navMap` — sem svieti krok prehliadky o mape (spotlight na IKONKU,
+                nie na blok stránky). Kotva sedí na obale, nie na `NavLink`: spotlight
+                pridáva `position:relative` + `z-index`, a to by prebilo štýl pillu. */}
+            <span id={WIZ.navMap} style={{ display: 'inline-flex', borderRadius: 999 }}>
+              <FloatingNavLink to="/pack/map" label={t('pack.layout.navMap')} icon="/icons/pack/world-grid.svg" />
+            </span>
+            <AvatarNavButton avatarUrl={avatarUrl} avatarInitial={avatarInitial} dogs={dogs} />
+          </span>
         </div>
       </div>
     </nav>
+    </div>
   );
 }
 

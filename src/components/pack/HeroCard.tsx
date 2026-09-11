@@ -6,6 +6,7 @@ import { X } from 'lucide-react';
 import { HandLink, HandPaw, HandPencil, HandPlus } from './HandIcons';
 import { INVITE_ANCHOR_ID } from './FounderInvite';
 import { BrandIcon } from './BrandIcon';
+import { GOLD_BLOCK_CSS } from './navGoldSkin';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PILL_CSS } from './packTheme';
 import { PackNotifications } from './PackNotifications';
 import { WIZ } from './wizAnchors';
@@ -168,7 +169,6 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
 
   // DEVOTION úroveň počítaná z bodov → poháňa LEVEL badge (žiadny hardcode „Pharaoh" pre všetkých).
   const lv = devotionLevel(devotion);
-  const topTier = lv.key === 'pharaoh' || lv.key === 'demigod';
 
   // Jediný VSTUP do rovnice pyramídy = šírka obsahu karty. Wrapper je `w-full` blok,
   // takže jeho šírka NEZÁVISÍ od toho, čo doň rovnica vloží — inak by ResizeObserver
@@ -197,19 +197,20 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
 
   return (
     <section
-      className="pack-card-hover h-full"
+      className="pack-card-hover pk-goldblock h-full"
+      /* ZLATÝ RÁM ako spodný nav (Matej 11. 9. 2026, „ano daj to len pri 1. bloku
+         a komunite"). Výplň, rám, polomer aj tieň nesie trieda `.pk-goldblock`
+         (`GOLD_BLOCK_CSS` → `goldFrameCSS()`); inline ostáva LEN to, čo trieda
+         nerieši. Vrátiť sem `background`/`border`/`borderRadius`/`boxShadow` znamená
+         rám prebiť a zrušiť. */
       style={{
-        background: T.cardGrad,
-        borderRadius: 16,
         padding: '22px 20px 20px',
-        border: `1.5px solid ${T.cardEdge}`,
-        boxShadow: T.cardShadow,
-        position: 'relative',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
       }}
     >
+      <style>{GOLD_BLOCK_CSS}</style>
       {/* corner ornament */}
       <div
         aria-hidden
@@ -347,11 +348,12 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
           )}
         </div>
 
-        {/* Badge riadok — STATUS (Pawtner) + LEVEL + BONES. Každý = tlačidlo s popupom.
-            grid-cols-3 = tri totožné stĺpce; každý badge w-full + centrovaný = rovnaká veľkosť.
-            maxWidth: blok je po zlúčení na celú šírku stránky — bez stropu by sa tri pilulky
-            roztiahli na 900+ px a rad by prestal pôsobiť ako skupina. */}
-        <div className="mt-7 grid grid-cols-3 gap-2 w-full" style={{ maxWidth: 620 }}>
+        {/* Badge riadok — STATUS (Pawtner) + BONES. Každý = tlačidlo s popupom.
+            grid-cols-2 = dva totožné stĺpce; každý badge w-full + centrovaný = rovnaká veľkosť.
+            maxWidth: blok je po zlúčení na celú šírku stránky — bez stropu by sa pilulky
+            roztiahli na 900+ px a rad by prestal pôsobiť ako skupina. Strop klesol z 620 na
+            440 spolu s tretou pilulkou (11. 9. 2026), inak by dve pilulky držali šírku troch. */}
+        <div className="mt-7 grid grid-cols-2 gap-2 w-full" style={{ maxWidth: 440 }}>
           {/* STATUS */}
           <button
             type="button"
@@ -374,18 +376,17 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
             </span>
           </button>
 
-          {/* LEVEL — počítaný z DEVOTION (nie natvrdo). Top tier (Pharaoh/Demigod) = zlatá
-              varianta pilulky (`.pk-pill--gold`) + trofej; nižšie úrovne = neutrálna pilulka. */}
-          <button
-            type="button"
-            onClick={() => setPop('level')}
-            className={`pk-pill pk-pill--tap w-full${topTier ? ' pk-pill--gold' : ''}`}
-          >
-            {topTier && <BrandIcon name="trophy" size={12} tint="gold" className="shrink-0" />}
-            <span style={{ fontFamily: FONT_TITLE, fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
-              {t('pack.ladder.' + lv.key)}
-            </span>
-          </button>
+          {/* ⚠️ PILULKA RANGU (Nováčik) ZRUŠENÁ 2026-09-11 — Matej: „myslím si že toto môžme
+              vypustiť a komunikovať to budeme až ked otvoríme apku aby ludia nemali pocit že
+              je to nedokončené alebo teraz o niečo prichádzajú ked to nefunguje."
+              Merala DEVOTION (`lib/devotion.ts`), ktorá je pre všetkých zamrznutá na 100 —
+              teda rebríček, po ktorom sa zatiaľ nedá stúpať. Vlastný popup to priznával
+              („Začne rátať s appkou"), čo je presne ten pocit nedokončenosti.
+              🔴 NEPLIESŤ SI S LEVELOM NA `/map`: ten stojí na `lib/tripPoints.ts` (PÚTNIK +
+              číslo), ráta sa z reálnych km a výletov a ŽIJE — ostáva, kde je. Dva rebríčky
+              vedľa seba boli aj dôvod, prečo bol člen tu „Nováčik" a na mape „Pútnik 16".
+              Kľúče `pack.ladder.*`, `pack.hero.popLevel*` a `DevotionPanel.tsx` NEMAZAŤ —
+              pilulka sa vráti s appkou. */}
 
           {/* BONES — minca + kostička */}
           <button

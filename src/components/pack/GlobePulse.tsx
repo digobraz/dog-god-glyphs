@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import createGlobe from 'cobe';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from './packTheme';
+import { GOLD_BLOCK_CSS } from './navGoldSkin';
 import { Ranking, RankingBoardsModal } from './Ranking';
 import { TransparentStats } from './TransparentStats';
 import { countryCentroid, countryISO2 } from '@/lib/countryGeo';
@@ -470,17 +471,16 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
 
   return (
     <section
-      className="pack-card-hover w-full"
+      className="pack-card-hover pk-goldblock w-full"
+      /* ZLATÝ RÁM ako spodný nav — druhý a posledný blok homepage, ktorý ho má
+         (Matej 11. 9. 2026). Materiál nesie `.pk-goldblock`, inline len rozostupy;
+         výplň/rám/polomer/tieň sem NEVRACAJ, prebili by triedu. */
       style={{
-        background: T.cardGrad,
-        borderRadius: 16,
         padding: '26px 24px',
-        border: `1.5px solid ${T.cardEdge}`,
-        boxShadow: T.cardShadow,
-        position: 'relative',
         overflow: 'hidden',
       }}
     >
+      <style>{GOLD_BLOCK_CSS}</style>
       <div
         aria-hidden
         style={{

@@ -231,6 +231,7 @@ export const NAV_FRAME_PX =
  */
 export const BLOCK = { radius: NAV_R.frame, rim: NAV_R.rim } as const;
 
+
 /**
  * Polomer DLAŽDICE NA DOSKE — druhá a posledná geometria bloku.
  *
@@ -523,3 +524,16 @@ export const PICK_INK = {
 export function tintRGBA(hex: string, alpha: number): string {
   return `rgba(${rgbOf(hex)},${alpha})`;
 }
+/**
+ * BLOK STRÁNKY V ZLATOM RÁME — jedna trieda, jeden zdroj (2026-09-11).
+ *
+ * Matej: „tie bloky bledé dať do dbloku nie? (ako je spodný nav = zlaté okraje)" — a hneď
+ * na to zúžil rozsah: „ano daj to len pri 1. bloku a komunite". Rám teda NEDOSTÁVA každý
+ * blok na stránke: keby áno, homepage je stĺpec identických rámov a hierarchia zmizne.
+ * Rámujú sa dva bloky, ktoré nesú identitu (JA + SVORKA) a celok (KOMUNITA).
+ *
+ * ⚠️ Kto ju nasadí, MUSÍ z inline štýlu sekcie odstrániť `background`, `border`,
+ * `borderRadius` a `boxShadow` — inline štýl triedu prebije a z bloku ostane papyrusová
+ * karta s neviditeľným zlatým rámom pod ňou.
+ */
+export const GOLD_BLOCK_CSS = `.pk-goldblock{${goldFrameCSS()}}`;
