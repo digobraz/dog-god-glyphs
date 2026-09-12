@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { X } from 'lucide-react';
 // Brandové hand-drawn ikonky namiesto lucide (audit 12.8., nasadené 13.8.). `X` ostáva
 // lucide zámerne — systémový ovládač zavretia, brand glyf by tam pridal len šum.
-import { HandHouseHeart, HandLink, HandPaw, HandPencil, HandPlus } from './HandIcons';
+import { HandHouseHeart, HandKey, HandLink, HandPaw, HandPencil, HandPlus } from './HandIcons';
 import { INVITE_ANCHOR_ID } from './FounderInvite';
 import { BrandIcon } from './BrandIcon';
 import { GOLD_BLOCK_CSS, LAPIS, LAPIS_BTN_SHADOW } from './navGoldSkin';
@@ -199,10 +199,8 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
 
   const displayName = name;
   const initial = displayName?.[0]?.toUpperCase() || email?.[0]?.toUpperCase() || 'D';
-  // Meno svorky. ⚠️ Prázdne pole = ŽIADNA MENOVKA (Matej 12. 9. 2026, po prvom pokuse).
-  // Východisko „krstné meno" zo zadania na obrazovke nefunguje: meno majiteľa už stojí
-  // pod jeho avatarom, takže rám nad ním zopakoval to isté slovo a čítalo sa to ako
-  // preklep, nie ako názov domácnosti. Menovka sa objaví, až keď si ju človek zvolí.
+  // Meno svorky z profilu. Prázdne = padá na `pack.pack.defaultName` („Svorka <meno>") —
+  // menovka na ráme stojí VŽDY (Matej 12. 9. 2026). Podrobnosti pri `PackNameRow`.
   const packLabel = (packName || '').trim();
   // Prázdna svorka = človek bez psa. Vtedy je „pridať psa" HLAVNÁ akcia a 26px krúžok
   // v menovkovom riadku ju neunesie — nabehne plné CTA a malý „+" sa vypne. Dva „+"
@@ -366,7 +364,14 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
             celý blok, dva rovnaké spotlighty za sebou by nič nepovedali. */}
         {/* RÁM SVORKY — obopína [majiteľ + psy]. Podrobnosti pri `PackNameRow`. */}
         <div className="w-full hc-packframe" style={PACK_BOX.subblock}>
-          {!emptyPack && <PackNameRow label={packLabel} onAdd={() => setAddOpen(true)} />}
+          {/* Menovka stojí VŽDY (aj pri prázdnej svorke) — „+" len keď je koho pridať vedľa;
+              bez psa ho nesie plné CTA pod čiarou. `dogs === null` = načítavanie, vtedy
+              nesmie bliknúť ani jedno. */}
+          <PackNameRow
+            label={packLabel}
+            fallback={t('pack.pack.defaultName', { name: displayName })}
+            onAdd={emptyPack ? undefined : () => setAddOpen(true)}
+          />
         <div ref={rowRef} id={WIZ.dogsRow} className="w-full">
           {innerW > 0 && (
             <>
@@ -495,7 +500,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
       </div>
 
       {pop && <HeroPopup which={pop} bones={bones} level={t('pack.ladder.' + lv.key)} levelIndex={lv.index} onClose={() => setPop(null)} />}
-      {addOpen && <AddPopup packName={packLabel} onClose={() => setAddOpen(false)} />}
+      {addOpen && <AddPopup onClose={() => setAddOpen(false)} />}
     </section>
   );
 }
@@ -685,13 +690,9 @@ function DogSlot({ dog, size, boxH, gap }: { dog: HeroDog; size: number; boxH: n
   );
 }
 
-// Prázdny slot „+" = pridať ďalšieho psa. Nahradil zlaté ADD DOG tlačidlo z PackTree.
-// issue #34: kto už má heroglyf, NEmá prechádzať `/entry` (to je conviction gate pre
-// ľudí zvonku) — ide rovno do tvorby. `reset()` je súčasť fixu, nie navyše: store
-// nepersistuje buyer dáta, ale v tej istej SPA session v ňom visí prvý pes → druhý by
-// mal predvyplnené meno a dátum.
-// ⚠️ LAPIS, NIE ZLATÁ (Matej 12. 9. 2026: „ten kruh + pridať … urob to v lapise, nie
-// ── MENOVKOVÝ RIADOK RÁMU — meno svorky vľavo, „+" vpravo (Matej 12. 9. 2026) ─────
+// ── MENOVKOVÝ RIADOK RÁMU — „+" vľavo, meno svorky + ceruzka v strede ────────────
+// (Matej 12. 9. 2026: „hore nad čiaru bude vždy Matejś pack (prve meno a pack) s ceruzkou
+// na premenovanie"; „vidíš že + prekrývajú tlačítka")
 //
 // 🔒 „+" PATRÍ RÁMU, NIE RADU. Matej: „frajerkina strana nemusí mať + lebo ja si neviem
 // pridať psa k jej... ale iba sebe" + „to + by sme mohli inak vymyslieť a moťno to dať inam
@@ -699,70 +700,168 @@ function DogSlot({ dog, size, boxH, gap }: { dog: HeroDog; size: number; boxH: n
 // svojej svorky 1. typu". Dôsledok pre VLNU B: „+" nedostane ani frajerkin rám, ani vonkajší
 // spoločný — pes sa nikdy nepridáva „do svorky", vždy do SVOJEJ.
 //
-// Prečo práve sem (vybrané z nákresu `plany/nakres-svorka-ramik-2026-09-12.html`, štyri
-// verzie): slot v rade stál ~90 px šírky. Pri 360 px okna ostáva pyramíde 258 px a
+// Prečo riadok a nie slot v rade (vybrané z nákresu `plany/nakres-svorka-ramik-2026-09-12.html`,
+// štyri verzie): slot v rade stál ~90 px šírky. Pri 360 px okna ostáva pyramíde 258 px a
 // majiteľ + pes + „+" potrebuje 280 ⇒ rad sa LÁMAL NA DVA. Pri 390 px zaberal miesto, kde sa
 // vojde druhý pes. Menovkový riadok stojí NULA na šírke aj na výške — už tam bol.
 //
-// ⚠️ RIADOK MUSÍ STÁŤ AJ PRI PRÁZDNOM MENE, inak „+" nemá kde sedieť. Meno je vtedy prázdne
-// (žiadne „padni na krstné meno" — to sa 12. 9. zamietlo, lebo pod avatarom už jeho meno je
-// a rám nad ním ho zopakoval; čítalo sa to ako preklep).
-// ⚠️ Prázdna medzera vľavo drží meno v OPTICKOM strede rámu. Bez nej by ho „+" vytlačil
-// doľava a centrovanie pod ním (rad avatarov) by sa s menovkou rozišlo.
-function PackNameRow({ label, onAdd }: { label: string; onAdd: () => void }) {
+// ⚠️ „+" JE VĽAVO, NIE VPRAVO (opravené 12. 9. 2026). Vpravo hore stoja absolútne pilulky
+// UPRAVIŤ PROFIL / UPRAVIŤ PSOV (`right:14`, na PC v stĺpci) a druhá z nich siaha presne do
+// pravého horného kúta rámu. Ľavý pruh rámu je prázdny na každej šírke.
+// ⚠️ MENOVKA STOJÍ VŽDY — prázdne pole padá na „Svorka <krstné meno>" (`pack.pack.defaultName`).
+// Tým padlo ranné rozhodnutie „prázdne pole = žiadna menovka": bez mena nie je čo premenovať
+// a ceruzka by visela pri prázdnom mieste. Pôvodná obava (meno majiteľa zopakované nad jeho
+// avatarom sa čítalo ako preklep) je vyriešená slovom SVORKA pred ním — je to názov domácnosti,
+// nie druhýkrát to isté.
+// ⚠️ DVE TLAČIDLÁ = DVE VECI. „+" pridáva ČLENA (rázcestie pes / pawmate / pawtner), ceruzka
+// PREMENUJE. Dovtedy premenovanie viselo ako tretie dvere pod „+" a jedno tlačidlo tak
+// odpovedalo na dve rôzne otázky.
+function PackNameRow({ label, fallback, onAdd }: { label: string; fallback: string; onAdd?: () => void }) {
   const t = useT();
+  // Premenovanie sa deje NA MIESTE — riadok sa zmení na pole, žiadny ďalší popup.
+  // Dovtedy to bývali dvere „SVORKA" v rázcestí pod „+"; Matej 12. 9. 2026 to rozdelil:
+  // „hore nad čiaru bude vždy Matejś pack … s ceruzkou na premenovanie", takže „+" znamená
+  // PRIDAŤ ČLENA a ceruzka PREMENOVAŤ. Jedno tlačidlo pre dve rôzne veci bol ten zmätok.
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(label);
+  const [saving, setSaving] = useState(false);
+
+  // Jediný zdroj pravdy je `pack_profiles.human.packName` — to isté API, aké volá pole
+  // v `/pack/profile`. `saveHuman` ohlási zmenu (`emitChange`), takže `useProfile()`
+  // v `Pack.tsx` prekreslí menovku bez reloadu.
+  const save = async (e: FormEvent) => {
+    e.preventDefault();
+    if (saving) return;
+    setSaving(true);
+    try {
+      await saveHuman({ packName: draft.trim() || undefined });
+      setEditing(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openEdit = () => { setDraft(label); setEditing(true); };
+
   return (
     <>
-      <div className="flex items-center" style={{ gap: 8 }}>
-        <div aria-hidden style={{ width: 26, flex: '0 0 26px' }} />
-        <div
-          style={{
-            flex: 1,
-            minWidth: 0,
-            fontFamily: FONT_TITLE,
-            fontWeight: 700,
-            fontSize: 13,
-            letterSpacing: '0.20em',
-            textTransform: 'uppercase',
-            color: T.inkStrong,
-            lineHeight: 1.25,
-            textAlign: 'center',
-            /* Dlhé meno sa nezalomí na tri riadky — ukrojí sa. Rám má na mobile ~270 px
-               a menovka nie je nadpis stránky. */
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {label}
+      {editing ? (
+        <form onSubmit={save} className="flex items-center" style={{ gap: 8 }}>
+          <style>{PF_FIELD_CSS}</style>
+          {/* `.pf-field--flat` = plochá papyrusová výplň — ten istý primitív, na akom
+              stojí pole mena svorky v `/pack/profile`. Zaostrenie svieti lapisom. */}
+          <input
+            className="pf-field pf-field--flat"
+            autoFocus
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); setEditing(false); } }}
+            placeholder={fallback}
+            aria-label={t('pack.profile.packName')}
+            maxLength={40}
+            style={{
+              flex: 1, minWidth: 0, borderRadius: 8, padding: '7px 11px',
+              color: T.ink, fontFamily: FONT_UI, fontSize: 13,
+            }}
+          />
+          {/* Jediné plné lapisové CTA v riadku. Geometriu berie z locku `.btn-gold`
+              (radius 8, NIE pilulka) — lapis mení výplň, nie tvar. */}
+          <button
+            type="submit"
+            disabled={saving}
+            style={{
+              flexShrink: 0, padding: '8px 12px', borderRadius: 8, cursor: 'pointer',
+              background: LAPIS.grad, border: '1px solid rgba(250,244,236,0.30)',
+              color: LAPIS.ink, boxShadow: LAPIS_BTN_SHADOW,
+              fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 10,
+              letterSpacing: '0.14em', textTransform: 'uppercase',
+              opacity: saving ? 0.6 : 1,
+            }}
+          >
+            {t('pack.add.packSave')}
+          </button>
+        </form>
+      ) : (
+        <div className="flex items-center" style={{ gap: 8 }}>
+          {/* „+" JE VĽAVO (Matej 12. 9. 2026: „vidíš že + prekrývajú tlačítka"). Vpravo hore
+              stoja absolútne pilulky UPRAVIŤ PROFIL / UPRAVIŤ PSOV (`right:14`, na PC pod
+              sebou) a druhá z nich zasahuje presne do pravého horného kúta rámu — teda tam,
+              kde „+" sedel. Vľavo je ten pruh prázdny na každej šírke.
+              Lapis, nie zlato — pridanie je MOJA AKCIA, nie nábytok (brand lock 28. 8.).
+              Výplň ostáva papyrusová: tmavý tint nad pieskom zošedne a prázdny krúžok by
+              potom vážil viac než fotky psov pod ním.
+              ⚠️ NIE JE TO ODKAZ — otvára rázcestie „čo pridávam" (pes / pawmate / pawtner). */}
+          {onAdd ? (
+            <button
+              type="button"
+              onClick={onAdd}
+              aria-label={t('pack.tree.addDog')}
+              title={t('pack.tree.addDog')}
+              className="flex items-center justify-center shrink-0"
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: '50%',
+                border: `2px dashed ${LAPIS.edge}`,
+                background: T.tileBg,
+                color: LAPIS.edge,
+                cursor: 'pointer',
+                padding: 0,
+              }}
+            >
+              <HandPlus size={13} />
+            </button>
+          ) : (
+            /* Prázdna svorka → „+" je dole ako plné CTA (`EmptyPackCta`). Dva „+" v jednom
+               ráme sú dve odpovede na tú istú otázku, preto tu ostane len medzera. */
+            <div aria-hidden style={{ width: 26, flex: '0 0 26px' }} />
+          )}
+
+          {/* Meno svorky + ceruzka ako JEDNA centrovaná skupina. ⚠️ Menovka stojí VŽDY
+              (Matej 12. 9.: „hore nad čiaru bude vždy Matejś pack"), takže prázdne pole
+              padá na `fallback` = „Svorka <krstné meno>". Tým padlo ranné rozhodnutie
+              „prázdne pole = žiadna menovka": vtedy rám bez mena nemal čo premenovať. */}
+          <div className="flex items-center justify-center" style={{ flex: 1, minWidth: 0, gap: 6 }}>
+            <span
+              style={{
+                minWidth: 0,
+                fontFamily: FONT_TITLE,
+                fontWeight: 700,
+                fontSize: 13,
+                letterSpacing: '0.20em',
+                textTransform: 'uppercase',
+                color: T.inkStrong,
+                lineHeight: 1.25,
+                /* Dlhé meno sa nezalomí na tri riadky — ukrojí sa. Rám má na mobile ~270 px
+                   a menovka nie je nadpis stránky. */
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {label || fallback}
+            </span>
+            <button
+              type="button"
+              onClick={openEdit}
+              aria-label={t('pack.pack.rename')}
+              title={t('pack.pack.rename')}
+              className="flex items-center justify-center shrink-0"
+              style={{
+                width: 22, height: 22, borderRadius: '50%',
+                border: 0, background: 'none', color: T.inkWarm,
+                cursor: 'pointer', padding: 0,
+              }}
+            >
+              <HandPencil size={12} />
+            </button>
+          </div>
+
+          {/* Prázdna medzera vpravo drží skupinu v OPTICKOM strede rámu — bez nej by ju
+              „+" vytlačil vpravo a centrovanie pod ňou (rad avatarov) by sa rozišlo. */}
+          <div aria-hidden style={{ width: 26, flex: '0 0 26px' }} />
         </div>
-        {/* Lapis, nie zlato — pridanie je MOJA AKCIA, nie nábytok (brand lock 28. 8.).
-            Výplň ostáva papyrusová: tmavý tint nad pieskom zošedne a prázdny krúžok by
-            potom vážil viac než fotky psov pod ním.
-            ⚠️ NIE JE TO ODKAZ (12. 9. 2026). Dovtedy viedol rovno na `/heroglyph/photo`,
-            teda tvrdil, že „pridať" znamená vždy psa. Odkedy sa dá pridať aj svorka, je
-            to OTÁZKA — preto `<button>`, ktorý otvorí rázcestie. To isté platí pre
-            `EmptyPackCta`; dva rôzne ciele pre ten istý „+" by boli bug, nie dizajn. */}
-        <button
-          type="button"
-          onClick={onAdd}
-          aria-label={t('pack.tree.addDog')}
-          title={t('pack.tree.addDog')}
-          className="flex items-center justify-center shrink-0"
-          style={{
-            width: 26,
-            height: 26,
-            borderRadius: '50%',
-            border: `2px dashed ${LAPIS.edge}`,
-            background: T.tileBg,
-            color: LAPIS.edge,
-            cursor: 'pointer',
-            padding: 0,
-          }}
-        >
-          <HandPlus size={13} />
-        </button>
-      </div>
+      )}
       {/* Deliaca čiara = `T.rule` (zlatá, vyblednutá do strán) — NIE šedý hairline. */}
       <div aria-hidden style={{ height: 2, background: T.rule, margin: '8px auto 14px', maxWidth: 280 }} />
     </>
@@ -950,8 +1049,9 @@ function HeroPopup({
 }
 
 // ── „+" → RÁZCESTIE: ČO PRIDÁVAM (12. 9. 2026) ───────────────────────────────
-// Matej: „tlačítko + otvorí popup (pawmate, pes, svorka)". Zadanie
-// `plany/zadanie-plus-popup-2026-09-12.md`.
+// Matej: „po kliknutí na + budú 3 možnosti — pes (tvorba heroglyfu), pawmate (volba
+// prístupu, emailu a pozvánka), pawtner (další pawtner so psom = partner so psom ak sa
+// pár dá dokopy)". Zadanie `plany/zadanie-plus-popup-2026-09-12.md`.
 //
 // TVAR JE PREVZATÝ Z `HeroPopup` VYŠŠIE, nie vymyslený nanovo — `absolute; inset:0`
 // vnútri `<section>` karty (tá má `position:relative` + `overflow:hidden`, takže sa
@@ -961,13 +1061,24 @@ function HeroPopup({
 // ⚠️ BEZ KRÍŽIKA. `HeroPopup` ho má, ale je z 12. 8.; lock „nedávajme tie krížiky na
 // bloky" je z 28. 8. a je novší. Von sa ide klikom mimo alebo Esc.
 //
-// ⚠️ DVERE PAWMATE SA NEKRESLIA. Nie „coming soon" — pozvánka potrebuje zoznam práv
-// (R4, čaká Matejovo slovo) a tabuľky `dog_humans`/`dog_invites` (F1). Mŕtve tlačidlo je
-// presne to, čo BEH 2 odstraňuje. Tretie dvere pribudnú s F2, nie skôr.
+// 🔒 DVOJE DVERE SÚ ZAMKNUTÉ ZÁMERNE — Matej 12. 9. 2026: „pripravme to do tejto fázy
+// pričom sa bude dať pridať len pes a ostatné dve budú zatial neprístupné (to pustíme až
+// ked to vyladíme)". Je to jeho rozhodnutie s flagom pred sebou: inak platí, že mŕtve
+// tlačidlo je to, čo BEH 2 odstraňuje. Dôvod, prečo sa nedajú pustiť dnes:
+//   · PAWMATE — potrebuje zoznam práv (R4, čaká Matejovo slovo) + tabuľky
+//     `dog_humans` / `dog_invites` (F1). Pozvanie ďalšieho ČLOVEKA k tomu istému psovi
+//     dnes v kóde NEEXISTUJE (`co_owner`, `dog_members`, `invite_member` = 0 výskytov).
+//   · PAWTNER — spojenie dvoch svoriek (F2), teda vlna B.
+// Zamknuté dvere NEMAJÚ `onClick` ani `href` — sú `aria-disabled` a nesú pilulku ČOSKORO,
+// aby bolo na prvý pohľad jasné, že sa nerozbijú, ale ešte nie sú.
+//
+// ⚠️ PREMENOVANIE SVORKY TU UŽ NIE JE. Bývalo štvrtými dverami („SVORKA"); presunulo sa
+// na ceruzku pri menovke rámu, kde aj patrí — „+" je o PRIDANÍ ČLENA.
+// Kľúče `pack.add.pack` / `packSub` NEMAZAŤ, `packSave` číta pole pri ceruzke.
 //
 // FARBA: nadpis = zlato/inkoust (konštrukcia), dlaždice ostávajú PAPYRUSOVÉ
-// (`PACK_BOX.row`). Lapis nesie len ikonku a potvrdenie — tri rovnaké plné plochy sú
-// zoznam, nie tri hlavné CTA, a plná farba patrí najviac jednej veci na obrazovke.
+// (`PACK_BOX.row`). Lapis nesie len ikonku — tri rovnaké plné plochy sú zoznam, nie tri
+// hlavné CTA, a plná farba patrí najviac jednej veci na obrazovke.
 const DOOR: CSSProperties = {
   ...PACK_BOX.row,
   display: 'flex',
@@ -980,9 +1091,18 @@ const DOOR: CSSProperties = {
   textDecoration: 'none',
 };
 
+/** Zamknuté dvere — ten istý tvar, len bez akcie. Kurzor `default`, žiadny hover;
+ *  krytie 0.62 je najviac, čo ešte drží text čitateľný a zároveň povie „toto nie je
+ *  na klik". Ikonka stráca lapis (nie je to moja akcia) a ide do tichého inkoustu. */
+const DOOR_LOCKED: CSSProperties = {
+  ...DOOR,
+  cursor: 'default',
+  opacity: 0.62,
+};
+
 /** Tvár dverí — kruh s hand-drawn ikonkou + menovka a jednoriadkové vysvetlenie.
  *  Ikonky sú z brandového setu (`HandIcons`), lucide je povolený len na funkčné chrome. */
-function DoorFace({ icon, label, sub }: { icon: ReactNode; label: string; sub: string }) {
+function DoorFace({ icon, label, sub, locked = false, soon }: { icon: ReactNode; label: string; sub: string; locked?: boolean; soon?: string }) {
   return (
     <>
       <span
@@ -990,17 +1110,32 @@ function DoorFace({ icon, label, sub }: { icon: ReactNode; label: string; sub: s
         className="flex items-center justify-center shrink-0"
         style={{
           width: 34, height: 34, borderRadius: '50%',
-          border: `1.5px solid ${LAPIS.edge}`, background: T.tileBg, color: LAPIS.edge,
+          border: `1.5px solid ${locked ? T.border : LAPIS.edge}`,
+          background: T.tileBg,
+          color: locked ? T.inkWarm : LAPIS.edge,
         }}
       >
         {icon}
       </span>
-      <span style={{ minWidth: 0 }}>
-        <span style={{
-          display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12,
-          letterSpacing: '0.16em', textTransform: 'uppercase', color: T.inkStrong,
-        }}>
-          {label}
+      <span style={{ minWidth: 0, flex: 1 }}>
+        <span className="flex items-center" style={{ gap: 7, flexWrap: 'wrap' }}>
+          <span style={{
+            fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12,
+            letterSpacing: '0.16em', textTransform: 'uppercase', color: T.inkStrong,
+          }}>
+            {label}
+          </span>
+          {/* Pilulka ČOSKORO = ten istý primitív `.pk-pill` ako pilulky v karte, nie
+              štvrtá varianta štítku. Neinteraktívna, preto smie stáť pri texte. */}
+          {soon && (
+            <span className="pk-pill" style={{
+              fontFamily: FONT_UI, fontWeight: 500, fontSize: 8.5,
+              letterSpacing: '0.16em', textTransform: 'uppercase',
+              padding: '2px 7px',
+            }}>
+              {soon}
+            </span>
+          )}
         </span>
         {/* Vysvetlenie = DÁTA/popis → Space Grotesk (typo lock: Cinzel = identita). */}
         <span style={{
@@ -1014,15 +1149,10 @@ function DoorFace({ icon, label, sub }: { icon: ReactNode; label: string; sub: s
   );
 }
 
-function AddPopup({ packName, onClose }: { packName: string; onClose: () => void }) {
+function AddPopup({ onClose }: { onClose: () => void }) {
   const t = useT();
   // ⚠️ RESET STORU SA NESMIE VYNECHAŤ — bez neho zdedí druhý pes dáta prvého.
   const resetFlow = useDogyptStore((s) => s.reset);
-  // Dvere SVORKA sa rozbaľujú NA MIESTE (zoznam ostáva stáť), nie ako druhá obrazovka —
-  // inak by popup potreboval šípku späť, teda ďalší ovládač na bloku, ktorý ich nemá mať.
-  const [nameOpen, setNameOpen] = useState(false);
-  const [draft, setDraft] = useState(packName);
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -1030,20 +1160,7 @@ function AddPopup({ packName, onClose }: { packName: string; onClose: () => void
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  // Jediný zdroj pravdy je `pack_profiles.human.packName` — to isté API, aké volá pole
-  // v `/pack/profile`. `saveHuman` ohlási zmenu (`emitChange`), takže `useProfile()`
-  // v `Pack.tsx` prekreslí menovku na ráme bez reloadu.
-  const saveName = async (e: FormEvent) => {
-    e.preventDefault();
-    if (saving) return;
-    setSaving(true);
-    try {
-      await saveHuman({ packName: draft.trim() || undefined });
-      onClose();
-    } finally {
-      setSaving(false);
-    }
-  };
+  const soon = t('pack.add.soon');
 
   return (
     <div
@@ -1058,7 +1175,6 @@ function AddPopup({ packName, onClose }: { packName: string; onClose: () => void
         background: T.panelGrad,
       }}
     >
-      <style>{PF_FIELD_CSS}</style>
       <div
         onClick={(e) => e.stopPropagation()}
         style={{ position: 'relative', width: '100%', maxWidth: 360 }}
@@ -1071,59 +1187,34 @@ function AddPopup({ packName, onClose }: { packName: string; onClose: () => void
         </h3>
 
         <div className="flex flex-col" style={{ gap: 10 }}>
-          {/* DVERE PES — heroglyf flow. Reset storu je na `onClick`, nie na cieľovej
-              obrazovke: tá o tom, odkiaľ sa prišlo, nič nevie. */}
+          {/* DVERE PES — heroglyf flow. JEDINÉ ŽIVÉ. Reset storu je na `onClick`, nie na
+              cieľovej obrazovke: tá o tom, odkiaľ sa prišlo, nič nevie. */}
           <Link to="/heroglyph/photo" onClick={resetFlow} style={DOOR}>
             <DoorFace icon={<HandPaw size={18} />} label={t('pack.add.dog')} sub={t('pack.add.dogSub')} />
           </Link>
 
-          {/* DVERE SVORKA — pomenovanie domácnosti (svorka 1. typu JE ten človek, preto
-              meno sedí v jeho profile a nie vo vlastnej tabuľke). */}
-          <div style={{ ...PACK_BOX.row, overflow: 'hidden' }}>
-            <button
-              type="button"
-              onClick={() => setNameOpen((v) => !v)}
-              aria-expanded={nameOpen}
-              style={{ ...DOOR, background: 'none', border: 0, borderRadius: 0 }}
-            >
-              <DoorFace icon={<HandHouseHeart size={18} />} label={t('pack.add.pack')} sub={t('pack.add.packSub')} />
-            </button>
+          {/* DVERE PAWMATE — ďalší ČLOVEK k tomu istému psovi (prístup + pozvánka mailom).
+              Zamknuté: čaká R4 (práva) + F1 (`dog_humans` / `dog_invites`). */}
+          <div style={DOOR_LOCKED} aria-disabled="true">
+            <DoorFace
+              icon={<HandKey size={18} />}
+              label={t('pack.add.pawmate')}
+              sub={t('pack.add.pawmateSub')}
+              locked
+              soon={soon}
+            />
+          </div>
 
-            {nameOpen && (
-              <form onSubmit={saveName} style={{ padding: '0 14px 12px', display: 'flex', gap: 8 }}>
-                {/* `.pf-field--flat` = plochá papyrusová výplň — ten istý primitív, na akom
-                    stojí pole mena svorky v `/pack/profile`. Zaostrenie svieti lapisom. */}
-                <input
-                  className="pf-field pf-field--flat"
-                  autoFocus
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  placeholder={t('pack.profile.packNamePlaceholder')}
-                  aria-label={t('pack.add.pack')}
-                  maxLength={40}
-                  style={{
-                    flex: 1, minWidth: 0, borderRadius: 8, padding: '8px 12px',
-                    color: T.ink, fontFamily: FONT_UI, fontSize: 13,
-                  }}
-                />
-                {/* Jediné plné lapisové CTA na prekrytí. Geometriu berie z locku `.btn-gold`
-                    (radius 8, NIE pilulka) — lapis mení výplň, nie tvar. */}
-                <button
-                  type="submit"
-                  disabled={saving}
-                  style={{
-                    flexShrink: 0, padding: '9px 14px', borderRadius: 8, cursor: 'pointer',
-                    background: LAPIS.grad, border: '1px solid rgba(250,244,236,0.30)',
-                    color: LAPIS.ink, boxShadow: LAPIS_BTN_SHADOW,
-                    fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 11,
-                    letterSpacing: '0.14em', textTransform: 'uppercase',
-                    opacity: saving ? 0.6 : 1,
-                  }}
-                >
-                  {t('pack.add.packSave')}
-                </button>
-              </form>
-            )}
+          {/* DVERE PAWTNER — partner s VLASTNÝM psom, dve svorky sa spoja. Zamknuté: F2,
+              teda vlna B. `HandHouseHeart` = dve domácnosti dokopy, nie tretia labka. */}
+          <div style={DOOR_LOCKED} aria-disabled="true">
+            <DoorFace
+              icon={<HandHouseHeart size={18} />}
+              label={t('pack.add.pawtner')}
+              sub={t('pack.add.pawtnerSub')}
+              locked
+              soon={soon}
+            />
           </div>
         </div>
       </div>

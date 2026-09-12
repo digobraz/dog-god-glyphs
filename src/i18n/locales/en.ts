@@ -1485,11 +1485,22 @@ export const en = {
   'pack.gateway.ainubis.lead': "A virtual member of your pack. An AI helper that knows your dogs and gives advice made for them.",
   'pack.gateway.comingSoon': "Full version coming soon",
   'pack.tree.addDog': "Add",
+  // Menovka rámu svorky v bloku 1 (components/pack/HeroCard.tsx → PackNameRow).
+  // `defaultName` stojí, kým si človek svorku nepomenuje — menovka je tam VŽDY.
+  'pack.pack.defaultName': "{name}'s pack",
+  'pack.pack.rename': "Rename pack",
   // Rázcestie po kliku na „+" v bloku 1 (components/pack/HeroCard.tsx → AddPopup).
-  // Dvere PAWMATE tu ZÁMERNE nie sú — kreslia sa až s pozvánkou (F2), mŕtve tlačidlo nie.
+  // PAWMATE a PAWTNER sú zamknuté dvere (`soon`) — Matejov pokyn 12. 9. 2026; pustia sa
+  // s R4 + F1, resp. F2. `pack.add.pack`/`packSub` osireli premiestnením premenovania
+  // na ceruzku pri menovke — NEMAZAŤ, `packSave` číta to pole.
   'pack.add.title': "Add",
   'pack.add.dog': "Dog",
   'pack.add.dogSub': "A heroglyph for another dog",
+  'pack.add.pawmate': "Pawmate",
+  'pack.add.pawmateSub': "Another human for the same dog — access and an invite",
+  'pack.add.pawtner': "Pawtner",
+  'pack.add.pawtnerSub': "A partner with their own dog — two packs become one",
+  'pack.add.soon': "Soon",
   'pack.add.pack': "Pack",
   'pack.add.packSub': "Name your household",
   'pack.add.packSave': "Save",
