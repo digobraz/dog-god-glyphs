@@ -3666,6 +3666,9 @@ export const en = {
   'pack.profile.nicknamePlaceholder': "Pack calls you",
   'pack.profile.optional': "Optional",
   'pack.profile.personality': "Personality",
+  // Meno SVORKY (domácnosti) — stojí v zlatom ráme na /pack. Prázdne = krstné meno.
+  'pack.profile.packName': "Pack name",
+  'pack.profile.packNamePlaceholder': "Your household",
   'pack.profile.showAs': "Show as",
   'pack.profile.smokePlaceholder': "Smoke",
   'pack.profile.statusPlaceholder': "Status",

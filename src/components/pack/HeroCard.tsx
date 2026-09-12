@@ -8,7 +8,7 @@ import { INVITE_ANCHOR_ID } from './FounderInvite';
 import { BrandIcon } from './BrandIcon';
 import { GOLD_BLOCK_CSS, LAPIS, LAPIS_BTN_SHADOW } from './navGoldSkin';
 import { BonesCoin } from './BonesCoin';
-import { PACK_THEME, FONT_TITLE, FONT_UI, PILL_CSS } from './packTheme';
+import { PACK_BOX, PACK_THEME, FONT_TITLE, FONT_UI, PILL_CSS } from './packTheme';
 import { PackNotifications } from './PackNotifications';
 import { WIZ } from './wizAnchors';
 import { DEV_FULL } from '@/lib/packFlags';
@@ -25,6 +25,30 @@ const DOG_SIZE = 100;
 // Ring = náš brandový gradient `--brand-gradient` (egyptská modrá → čierna → zlatá;
 // do 2026-06-15 bol fialový, odtiaľ staré „fialovo-zlatý" v komentároch)
 const STORY_RING = 'var(--brand-gradient)';
+
+// ── RÁM SVORKY (F0b, 12. 9. 2026) ────────────────────────────────────────────
+// Matej: „dve fotky majitel/pes budu vo farebnom ramiku s možnosťou zvoliť meno
+// svorky ako sa budu zobrazovať". Rám NIE JE farebný — R10 (zadanie
+// `plany/zadanie-clenovia-svorky-2026-09-12.md`, §7b): hierarchiu kreslí HĹBKA,
+// nie farba. Lapis, fialová aj tyrkysová sú v brande rozdané.
+//
+// 🔴 A NIE JE ANI ZLATÝ DBLOK (Matej 12. 9., prvý pokus vrátený: „nemože byť dblok
+// v dbloku"). Zadanie počítalo s tým, že vonkajší zlatý rám je až SPOJENÁ svorka
+// (vlna B) — lenže blok 1 zlatý rám UŽ MÁ od 11. 9. (`.pk-goldblock`), takže
+// `goldFrameCSS()` vnútri neho je ten istý odliatok dvakrát nad sebou a hierarchia
+// zmizne. Správna úroveň je **PODBLOK z matrice** (`PACK_BOX.subblock`) — presne to,
+// čo brand definuje ako sekciu VNÚTRI karty: papyrusový gradient, 1px zlatý okraj,
+// radius 12. Vlastné čísla sem nepíš, ber ich z matrice.
+//
+// ⚠️ Rám a menovka UBERAJÚ ŠÍRKU pyramíde. Nie je to problém: `rowRef` sedí VNÚTRI
+// rámu, takže `planRow()` dostane už zúženú šírku a prepočíta sa sám — nič sa nemeria
+// po tom, čo sa niečo nastavilo (tá istá pasca ako v psom bloku). Vodorovné odsadenie
+// je preto na mobile menšie: pri 390 px je rovnica na hrane (majiteľ + pes + „+" =
+// 280 px) a každý pixel, čo si rám vezme, chýba zámku „všetci psi viditeľní VŽDY".
+const PACK_FRAME_CSS = `
+.hc-packframe{padding:12px 8px 14px;}
+@media(min-width:480px){.hc-packframe{padding:14px 16px 18px;}}
+`;
 
 // ── PYRAMÍDA SVORKY (Matej 2026-08-09, po klikacom nákrese) ──────────────────
 // Rad avatarov NIE JE `flex-wrap` — ten sa pri 5+ psoch lámal náhodne. Rozloženie
@@ -56,18 +80,23 @@ interface RowPlan {
   rowSize: number;
 }
 
-/** `inner` = čistá šírka obsahu karty (bez paddingu). */
-function planRow(n: number, inner: number): RowPlan {
+/** `inner` = čistá šírka obsahu karty (bez paddingu).
+ *  `plus` = či „+" ešte stojí V RADE. Od 12. 9. 2026 je to `false` — „+" sa presunul na
+ *  menovkový riadok rámu (viď `PackNameRow`), takže z rovnice VYPADNE. Parameter tu ostáva,
+ *  lebo je to jediná vec, ktorá o pyramíde rozhoduje zvonku, a bez neho by sa tá zmena
+ *  musela zapísať do rovnice natvrdo. */
+function planRow(n: number, inner: number, plus = true): RowPlan {
   const mobile = inner < MOBILE_INNER;
   const s = mobile ? MOBILE_SCALE : 1;
   const owner = Math.round(AVATAR_SIZE * s);
   const big = Math.round(DOG_SIZE * s);
   const gap = mobile ? 14 : 22;
+  const P = plus ? 1 : 0;
   const fits = (count: number, size: number) => owner + count * (size + gap) <= inner;
 
-  // Malá svorka → majiteľ + psy + „+" v jednom rade, spodný rad nevznikne
-  if (n <= MAX_TOP_DOGS && fits(n + 1, big)) {
-    return { owner, big, gap, topDogs: n, plusInTop: true, rows: [], rowSize: big };
+  // Malá svorka → majiteľ + psy (+ „+") v jednom rade, spodný rad nevznikne
+  if (n <= MAX_TOP_DOGS && fits(n + P, big)) {
+    return { owner, big, gap, topDogs: n, plusInTop: plus, rows: [], rowSize: big };
   }
 
   let topDogs = Math.min(MAX_TOP_DOGS, n);
@@ -75,8 +104,13 @@ function planRow(n: number, inner: number): RowPlan {
   // „ked su 3 psy tak jeden hore dvaja dolu"). Rieši to zároveň starší prípad, keď by v
   // spodnom rade zostalo osamotené „+" („aby v 2 riadku bol pes a plus nie len + samotné").
   // Horný rad má `topDogs + 1` slotov (majiteľ sa počíta), spodný `n - topDogs + 1` („+").
-  while (topDogs > 0 && n - topDogs + 1 < topDogs + 1) topDogs -= 1;
-  const items = n - topDogs + 1;                  // zvyšok psov + miesto pre „+"
+  while (topDogs > 0 && n - topDogs + P < topDogs + 1) topDogs -= 1;
+  const items = n - topDogs + P;                  // zvyšok psov (+ miesto pre „+")
+
+  // Bez „+" sa spodný rad nemusí otvoriť vôbec — všetci psi sú hore.
+  if (items === 0) {
+    return { owner, big, gap, topDogs, plusInTop: false, rows: [], rowSize: big };
+  }
 
   if (items <= 2 && items * (big + gap) - gap <= inner) {
     return { owner, big, gap, topDogs, plusInTop: false, rows: [items], rowSize: big };
@@ -147,16 +181,28 @@ interface HeroCardProps {
   stats?: { last24h: number; last30d: number; total: number } | null;
   /** Svorka vedľa majiteľa. `null` = ešte sa načítava (rad sa nevykreslí, aby neblikol „+"). */
   dogs?: HeroDog[] | null;
+  /** Meno svorky na ráme (`pack_profiles.human.packName`). Prázdne = krstné meno majiteľa. */
+  packName?: string | null;
 }
 
 type PopKey = 'pawtner' | 'level' | 'bones' | 'devotion';
 
-export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, devotion = 100, bones = 0, stats = null, dogs = null }: HeroCardProps) {
+export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, devotion = 100, bones = 0, stats = null, dogs = null, packName = null }: HeroCardProps) {
   const t = useT();
   const [pop, setPop] = useState<PopKey | null>(null);
 
   const displayName = name;
   const initial = displayName?.[0]?.toUpperCase() || email?.[0]?.toUpperCase() || 'D';
+  // Meno svorky. ⚠️ Prázdne pole = ŽIADNA MENOVKA (Matej 12. 9. 2026, po prvom pokuse).
+  // Východisko „krstné meno" zo zadania na obrazovke nefunguje: meno majiteľa už stojí
+  // pod jeho avatarom, takže rám nad ním zopakoval to isté slovo a čítalo sa to ako
+  // preklep, nie ako názov domácnosti. Menovka sa objaví, až keď si ju človek zvolí.
+  const packLabel = (packName || '').trim();
+  // Prázdna svorka = človek bez psa. Vtedy je „pridať psa" HLAVNÁ akcia a 26px krúžok
+  // v menovkovom riadku ju neunesie — nabehne plné CTA a malý „+" sa vypne. Dva „+"
+  // v jednom ráme sú dve odpovede na tú istú otázku. ⚠️ `dogs === null` je NAČÍTAVANIE,
+  // nie prázdno — vtedy sa nesmie bliknúť ani CTA, ani „+".
+  const emptyPack = dogs !== null && dogs.length === 0;
   const hasAvatar = !!avatarUrl;
   const placeholderSrc = genderPlaceholder ? `/images/avatars/pharaoh-${genderPlaceholder}.png` : null;
 
@@ -188,7 +234,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
 
   const pack = dogs ?? [];
   // `dogs === null` = ešte sa načítava → majiteľ sám, žiadny „+" (nesmie bliknúť).
-  const plan = planRow(pack.length, innerW);
+  const plan = planRow(pack.length, innerW, false);   // „+" už nie je v rade, viď PackNameRow
   let cursor = plan.topDogs;
   const bottomRows = plan.rows.map((count) => {
     const slice = pack.slice(cursor, cursor + count);
@@ -211,7 +257,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
         flexDirection: 'column',
       }}
     >
-      <style>{GOLD_BLOCK_CSS}</style>
+      <style>{GOLD_BLOCK_CSS + PACK_FRAME_CSS}</style>
       {/* corner ornament */}
       <div
         aria-hidden
@@ -312,6 +358,9 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
         {/* `WIZ.dogsRow` — sem svieti druhý krok prehliadky (AInubis: „poď so mnou do
             svorky"). Kotva sedí na RADE, nie na celej karte: prvý krok už zvýrazňuje
             celý blok, dva rovnaké spotlighty za sebou by nič nepovedali. */}
+        {/* RÁM SVORKY — obopína [majiteľ + psy]. Podrobnosti pri `PackNameRow`. */}
+        <div className="w-full hc-packframe" style={PACK_BOX.subblock}>
+          {!emptyPack && <PackNameRow label={packLabel} />}
         <div ref={rowRef} id={WIZ.dogsRow} className="w-full">
           {innerW > 0 && (
             <>
@@ -326,7 +375,6 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
                 {pack.slice(0, plan.topDogs).map((d) => (
                   <DogSlot key={d.id} dog={d} size={plan.big} boxH={plan.owner} gap={plan.gap} />
                 ))}
-                {dogs && plan.plusInTop && <AddDogSlot size={plan.big} boxH={plan.owner} gap={plan.gap} />}
               </div>
 
               {dogs &&
@@ -339,14 +387,12 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
                     {row.map((d) => (
                       <DogSlot key={d.id} dog={d} size={plan.rowSize} boxH={plan.rowSize} gap={plan.gap} />
                     ))}
-                    {/* „+" je vždy posledný slot posledného radu — je zarátaný do delenia */}
-                    {r === bottomRows.length - 1 && (
-                      <AddDogSlot size={plan.rowSize} boxH={plan.rowSize} gap={plan.gap} />
-                    )}
                   </div>
                 ))}
             </>
           )}
+        </div>
+          {emptyPack && <EmptyPackCta />}
         </div>
 
         {/* Badge riadok — STATUS (Pawtner) + BONES. Každý = tlačidlo s popupom.
@@ -396,10 +442,18 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
             className="pk-pill pk-pill--tap w-full"
             aria-label={`${bones} BONES`}
           >
-            {/* Minca má JEDEN zdroj — `BonesCoin` (locked 12. 9. 2026). Opísaná bola v troch
-                súboroch a kópie sa už rozišli; tento tvar bol ten „správny", takže ho komponent
-                prevzal. Veľkosť `s` = 17 px, presne ako tu stálo. */}
-            <BonesCoin size="s" />
+            <span
+              aria-hidden
+              style={{
+                width: 17, height: 17, borderRadius: '50%', flexShrink: 0,
+                background: 'radial-gradient(circle at 35% 30%, #F7DD92 0%, #C99A3F 68%, #9A742B 100%)',
+                border: '1px solid rgba(120,90,30,0.7)',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.55), 0 1px 3px rgba(0,0,0,0.2)',
+              }}
+            >
+              <BrandIcon name="bone" size={9} tint="dark" />
+            </span>
             {/* Číslo = DÁTA → Space Grotesk (typo lock: Cinzel = identita, Grotesk = čísla).
                 ⚠️ Váha STROP 600 — Grotesk je načítaný len v 300–600, 700 by bol fake bold. */}
             <span style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: '0.02em' }}>
@@ -630,51 +684,117 @@ function DogSlot({ dog, size, boxH, gap }: { dog: HeroDog; size: number; boxH: n
 // nepersistuje buyer dáta, ale v tej istej SPA session v ňom visí prvý pes → druhý by
 // mal predvyplnené meno a dátum.
 // ⚠️ LAPIS, NIE ZLATÁ (Matej 12. 9. 2026: „ten kruh + pridať … urob to v lapise, nie
-// v zlatej"). Sedí s deliacou čiarou brandu: zlato je konštrukcia (rám karty, čiary),
-// lapis je MOJA AKCIA na papyruse — a pridanie psa je akcia, nie nábytok. Výplň ostáva
-// papyrusová (`T.tileBg`): plná farebná plocha je na obrazovke rezervovaná pre jediné
-// hlavné CTA a modrý tint (`LAPIS.fill`) na piesku zošedivie — disk potom váži viac než
-// fotky psov vedľa, hoci je to len prázdny slot. Lapis nesie lem, plus a menovka.
-// ⚠️ Menovka je len „PRIDAŤ", nie „Pridať psa" (ten istý pokyn) — slot stojí v rade psích
-// koliesok, takže slovo „psa" opakuje to, čo je vedľa vidieť.
-function AddDogSlot({ size, boxH, gap }: { size: number; boxH: number; gap: number }) {
+// ── MENOVKOVÝ RIADOK RÁMU — meno svorky vľavo, „+" vpravo (Matej 12. 9. 2026) ─────
+//
+// 🔒 „+" PATRÍ RÁMU, NIE RADU. Matej: „frajerkina strana nemusí mať + lebo ja si neviem
+// pridať psa k jej... ale iba sebe" + „to + by sme mohli inak vymyslieť a moťno to dať inam
+// aby nezaberalo miesto". Plynie to zo zadania: „ak ktokolvek prida psa prida sa najprv do
+// svojej svorky 1. typu". Dôsledok pre VLNU B: „+" nedostane ani frajerkin rám, ani vonkajší
+// spoločný — pes sa nikdy nepridáva „do svorky", vždy do SVOJEJ.
+//
+// Prečo práve sem (vybrané z nákresu `plany/nakres-svorka-ramik-2026-09-12.html`, štyri
+// verzie): slot v rade stál ~90 px šírky. Pri 360 px okna ostáva pyramíde 258 px a
+// majiteľ + pes + „+" potrebuje 280 ⇒ rad sa LÁMAL NA DVA. Pri 390 px zaberal miesto, kde sa
+// vojde druhý pes. Menovkový riadok stojí NULA na šírke aj na výške — už tam bol.
+//
+// ⚠️ RIADOK MUSÍ STÁŤ AJ PRI PRÁZDNOM MENE, inak „+" nemá kde sedieť. Meno je vtedy prázdne
+// (žiadne „padni na krstné meno" — to sa 12. 9. zamietlo, lebo pod avatarom už jeho meno je
+// a rám nad ním ho zopakoval; čítalo sa to ako preklep).
+// ⚠️ Prázdna medzera vľavo drží meno v OPTICKOM strede rámu. Bez nej by ho „+" vytlačil
+// doľava a centrovanie pod ním (rad avatarov) by sa s menovkou rozišlo.
+function PackNameRow({ label }: { label: string }) {
+  const t = useT();
+  const resetFlow = useDogyptStore((s) => s.reset);
+  return (
+    <>
+      <div className="flex items-center" style={{ gap: 8 }}>
+        <div aria-hidden style={{ width: 26, flex: '0 0 26px' }} />
+        <div
+          style={{
+            flex: 1,
+            minWidth: 0,
+            fontFamily: FONT_TITLE,
+            fontWeight: 700,
+            fontSize: 13,
+            letterSpacing: '0.20em',
+            textTransform: 'uppercase',
+            color: T.inkStrong,
+            lineHeight: 1.25,
+            textAlign: 'center',
+            /* Dlhé meno sa nezalomí na tri riadky — ukrojí sa. Rám má na mobile ~270 px
+               a menovka nie je nadpis stránky. */
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {label}
+        </div>
+        {/* Lapis, nie zlato — pridanie psa je MOJA AKCIA, nie nábytok (brand lock 28. 8.).
+            Výplň ostáva papyrusová: tmavý tint nad pieskom zošedne a prázdny krúžok by
+            potom vážil viac než fotky psov pod ním. */}
+        <Link
+          to="/heroglyph/photo"
+          onClick={resetFlow}
+          aria-label={t('pack.tree.addDog')}
+          title={t('pack.tree.addDog')}
+          className="flex items-center justify-center shrink-0"
+          style={{
+            width: 26,
+            height: 26,
+            borderRadius: '50%',
+            border: `2px dashed ${LAPIS.edge}`,
+            background: T.tileBg,
+            color: LAPIS.edge,
+            textDecoration: 'none',
+          }}
+        >
+          <HandPlus size={13} />
+        </Link>
+      </div>
+      {/* Deliaca čiara = `T.rule` (zlatá, vyblednutá do strán) — NIE šedý hairline. */}
+      <div aria-hidden style={{ height: 2, background: T.rule, margin: '8px auto 14px', maxWidth: 280 }} />
+    </>
+  );
+}
+
+// ── PRÁZDNA SVORKA — „pridať psa" je tu HLAVNÁ akcia, nie krúžok v riadku ─────────
+// Bez psa je blok 1 len tvár majiteľa a jedna vec, ktorú má urobiť. Malý „+" z menovkového
+// riadku sa vtedy VYPÍNA (viď `emptyPack` vyššie) — dva „+" v jednom ráme sú dve odpovede
+// na tú istú otázku.
+function EmptyPackCta() {
   const t = useT();
   const resetFlow = useDogyptStore((s) => s.reset);
   return (
     <Link
       to="/heroglyph/photo"
       onClick={resetFlow}
-      className="flex flex-col items-center group"
-      style={{ width: size, textDecoration: 'none' }}
+      className="flex flex-col items-center"
+      style={{ gap: 10, paddingTop: 16, textDecoration: 'none' }}
     >
-      <div className="flex items-center justify-center" style={{ height: boxH }}>
-        <div
-          className="flex items-center justify-center"
-          style={{
-            width: size,
-            height: size,
-            borderRadius: '50%',
-            border: `2px dashed ${LAPIS.edge}`,
-            background: T.tileBg,
-            color: LAPIS.edge,
-            transition: 'border-color .18s ease, background .18s ease',
-          }}
-        >
-          <HandPlus size={Math.round(size * 0.32)} />
-        </div>
+      <div
+        className="flex items-center justify-center"
+        style={{
+          width: 64,
+          height: 64,
+          borderRadius: '50%',
+          border: `2px dashed ${LAPIS.edge}`,
+          background: T.tileBg,
+          color: LAPIS.edge,
+        }}
+      >
+        <HandPlus size={28} />
       </div>
+      {/* Menovka je „PRIDAŤ" (`pack.tree.addDog`), nie „Pridať psa" — Matejov pokyn
+          z 12. 9.; kľúč je zdieľaný s menovkovým riadkom, aby sa dve miesta nerozišli. */}
       <div
         style={{
-          width: size + Math.max(0, Math.min(18, gap - 6)),
           fontFamily: FONT_TITLE,
-          fontSize: Math.max(8, Math.round(size * 0.1)),
           fontWeight: 700,
-          letterSpacing: '0.16em',
+          fontSize: 11,
+          letterSpacing: '0.18em',
           textTransform: 'uppercase',
           color: LAPIS.edge,
-          lineHeight: 1.2,
-          textAlign: 'center',
-          marginTop: 12,
         }}
       >
         {t('pack.tree.addDog')}

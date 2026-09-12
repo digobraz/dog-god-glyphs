@@ -717,6 +717,21 @@ export default function PackProfile() {
                 />
               </div>
 
+              {/* MENO SVORKY — stojí na zlatom ráme v bloku 1 na `/pack` (F0b, 12. 9. 2026).
+                  Prázdne pole nie je chyba: vtedy rám nesie krstné meno. Ide o meno
+                  DOMÁCNOSTI (svorka 1. typu), nie o komunitu — tú appka od 12. 9. volá
+                  DOGYPT / Dogypťania. Ukladá sa do `pack_profiles.human.packName`,
+                  žiadna migrácia. */}
+              <div className="pf-inline">
+                <span className="pf-inline-lbl">{tx('pack.profile.packName', 'Pack name')}</span>
+                <AutoSaveTextInput
+                  value={human?.packName ?? ''}
+                  onSave={(v) => patchHuman({ packName: v || undefined })}
+                  placeholder={tx('pack.profile.packNamePlaceholder', 'Your household')}
+                  align="left"
+                />
+              </div>
+
               <div className="pf-inline pf-inline--toggle">
                 <span className="pf-inline-lbl">{tx('pack.profile.showAs', 'Show as')}</span>
                 <DisplayAsToggle
