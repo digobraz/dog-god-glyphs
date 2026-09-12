@@ -6,8 +6,8 @@ import { X } from 'lucide-react';
 import { HandLink, HandPaw, HandPencil, HandPlus } from './HandIcons';
 import { INVITE_ANCHOR_ID } from './FounderInvite';
 import { BrandIcon } from './BrandIcon';
-import { GOLD_BLOCK_CSS, LAPIS, goldFrameCSS } from './navGoldSkin';
-import { PACK_THEME, FONT_TITLE, FONT_UI, PILL_CSS } from './packTheme';
+import { GOLD_BLOCK_CSS, LAPIS } from './navGoldSkin';
+import { PACK_BOX, PACK_THEME, FONT_TITLE, FONT_UI, PILL_CSS } from './packTheme';
 import { PackNotifications } from './PackNotifications';
 import { WIZ } from './wizAnchors';
 import { DEV_FULL } from '@/lib/packFlags';
@@ -27,29 +27,26 @@ const STORY_RING = 'var(--brand-gradient)';
 
 // ── RÁM SVORKY (F0b, 12. 9. 2026) ────────────────────────────────────────────
 // Matej: „dve fotky majitel/pes budu vo farebnom ramiku s možnosťou zvoliť meno
-// svorky ako sa budu zobrazovať". Rám je ZLATÝ, nie farebný — R10 (zadanie
+// svorky ako sa budu zobrazovať". Rám NIE JE farebný — R10 (zadanie
 // `plany/zadanie-clenovia-svorky-2026-09-12.md`, §7b): hierarchiu kreslí HĹBKA,
-// nie farba. Lapis, fialová aj tyrkysová sú v brande rozdané a na otázku „akú
-// farbu má siedma svorka" farba odpoveď nemá.
-// ⚠️ Tvar sa NELADÍ — `goldFrameCSS()` BEZ parametrov, tá istá geometria ako
-// spodný nav a ako karta okolo (14/6). Vlastné čísla sem nepíš.
-// ⚠️ Rám a menovka UBERAJÚ ŠÍRKU pyramíde. Nie je to problém: `rowRef` sedí
-// VNÚTRI rámu, takže `planRow()` dostane už zúženú šírku a prepočíta sa sám —
-// nič sa nemeria po tom, čo sa niečo nastavilo (tá istá pasca ako v psom bloku).
-// Vodorovné odsadenie je preto na mobile menšie: každý pixel, čo si rám vezme,
-// chýba pyramíde, a zámok „všetci psi viditeľní VŽDY" platí ďalej.
-// ⚠️ Vodorovné odsadenie KARTY klesá na mobile z 20 na 14 px. Nie je to kozmetika:
-// rám si z pyramídy vezme 24 px (lem 2×6 + výplň 2×6) a pri 390 px je rovnica presne
-// na hrane — bez tejto náhrady by sa majiteľ + pes + „+" prestali vojsť do jedného radu
-// a pyramída by sa zlomila na dva. `padding` preto NESMIE ostať v inline štýle sekcie;
-// inline prebije triedu a médiá sa nikdy neuplatnia.
+// nie farba. Lapis, fialová aj tyrkysová sú v brande rozdané.
+//
+// 🔴 A NIE JE ANI ZLATÝ DBLOK (Matej 12. 9., prvý pokus vrátený: „nemože byť dblok
+// v dbloku"). Zadanie počítalo s tým, že vonkajší zlatý rám je až SPOJENÁ svorka
+// (vlna B) — lenže blok 1 zlatý rám UŽ MÁ od 11. 9. (`.pk-goldblock`), takže
+// `goldFrameCSS()` vnútri neho je ten istý odliatok dvakrát nad sebou a hierarchia
+// zmizne. Správna úroveň je **PODBLOK z matrice** (`PACK_BOX.subblock`) — presne to,
+// čo brand definuje ako sekciu VNÚTRI karty: papyrusový gradient, 1px zlatý okraj,
+// radius 12. Vlastné čísla sem nepíš, ber ich z matrice.
+//
+// ⚠️ Rám a menovka UBERAJÚ ŠÍRKU pyramíde. Nie je to problém: `rowRef` sedí VNÚTRI
+// rámu, takže `planRow()` dostane už zúženú šírku a prepočíta sa sám — nič sa nemeria
+// po tom, čo sa niečo nastavilo (tá istá pasca ako v psom bloku). Vodorovné odsadenie
+// je preto na mobile menšie: pri 390 px je rovnica na hrane (majiteľ + pes + „+" =
+// 280 px) a každý pixel, čo si rám vezme, chýba zámku „všetci psi viditeľní VŽDY".
 const PACK_FRAME_CSS = `
-.hc-card{padding:22px 14px 20px;}
-.hc-packframe{${goldFrameCSS()}padding:12px 6px 14px;}
-@media(min-width:480px){
-  .hc-card{padding:22px 20px 20px;}
-  .hc-packframe{padding:14px 16px 18px;}
-}
+.hc-packframe{padding:12px 8px 14px;}
+@media(min-width:480px){.hc-packframe{padding:14px 16px 18px;}}
 `;
 
 // ── PYRAMÍDA SVORKY (Matej 2026-08-09, po klikacom nákrese) ──────────────────
@@ -185,9 +182,11 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
 
   const displayName = name;
   const initial = displayName?.[0]?.toUpperCase() || email?.[0]?.toUpperCase() || 'D';
-  // Meno svorky. Prázdne pole = KRSTNÉ meno, nie celé — rám nesie domácnosť („HEKTHOROVCI",
-  // „MATEJ"), nie riadok z objednávky. Priezvisko by pri dvoch slovách menovku zalomilo.
-  const packLabel = (packName || '').trim() || (displayName || '').trim().split(/\s+/)[0] || '';
+  // Meno svorky. ⚠️ Prázdne pole = ŽIADNA MENOVKA (Matej 12. 9. 2026, po prvom pokuse).
+  // Východisko „krstné meno" zo zadania na obrazovke nefunguje: meno majiteľa už stojí
+  // pod jeho avatarom, takže rám nad ním zopakoval to isté slovo a čítalo sa to ako
+  // preklep, nie ako názov domácnosti. Menovka sa objaví, až keď si ju človek zvolí.
+  const packLabel = (packName || '').trim();
   const hasAvatar = !!avatarUrl;
   const placeholderSrc = genderPlaceholder ? `/images/avatars/pharaoh-${genderPlaceholder}.png` : null;
 
@@ -229,13 +228,14 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
 
   return (
     <section
-      className="pack-card-hover pk-goldblock hc-card h-full"
+      className="pack-card-hover pk-goldblock h-full"
       /* ZLATÝ RÁM ako spodný nav (Matej 11. 9. 2026, „ano daj to len pri 1. bloku
          a komunite"). Výplň, rám, polomer aj tieň nesie trieda `.pk-goldblock`
          (`GOLD_BLOCK_CSS` → `goldFrameCSS()`); inline ostáva LEN to, čo trieda
          nerieši. Vrátiť sem `background`/`border`/`borderRadius`/`boxShadow` znamená
          rám prebiť a zrušiť. */
       style={{
+        padding: '22px 20px 20px',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
@@ -347,7 +347,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
             Menovka + zlatá čiara delia rám na hlavičku a telo; v1 má rám JEDEN, takže
             je to ten najvyšší a nesie nadpis (Cinzel 700). Druhý rám a vonkajší obal
             spojenej svorky prídu s vlnou B — vtedy vnútorné menovky klesnú na eyebrow. */}
-        <div className="w-full hc-packframe">
+        <div className="w-full hc-packframe" style={PACK_BOX.subblock}>
           {packLabel && (
             <>
               <div
