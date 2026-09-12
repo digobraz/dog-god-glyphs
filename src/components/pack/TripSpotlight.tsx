@@ -199,12 +199,29 @@ const CSS = `
    ⚠️ Od 28. 8. 2026 to UŽ NIE JE ten istý vzor ako v hlavičke mapy — tam sa pilulka zrušila
    a číslo sedí na okraji avatara, v prstenci postupu (lock v CLAUDE.md). Tu pilulka OSTÁVA:
    karta nemá avatar, o ktorý by sa číslo mohlo oprieť. Farbu pásma berú obe z packTiers.
-   ⚠️ Od 12.8.2026 sedí v PRAVOM HORNOM ROHU karty (Matej: „pútnika daj do pravého horného
-   rohu"), nie pod nadpisom — nadpis má odvtedy tri riadky a dvojica pod sebou robila stĺpec
-   textu cez pol karty. Preto je absolútny; nadpis si tým drží celú ľavú stranu. */
+   ⚠️ Od 12. 9. 2026 je z toho CELÝ HORNÝ RIADOK karty: vľavo rang a level, vpravo km
+   a výlety (Matej: „v hornom riadku už je putnik 16, len to treba presunut doľava a pridať
+   stats"). Tým padlo umiestnenie z 12. 8. („pútnika daj do pravého horného rohu") — dôvod
+   preň bol trojriadkový nadpis pod ním, a ten z karty odišiel 11. 9. Absolútne ukotvenie
+   ostáva: riadok leží nad náhľadom trasy, ktorý je pozadím karty. */
 .ts-rank{
-  position:absolute; top:22px; right:22px; z-index:3;
-  display:inline-flex; align-items:center; gap:9px;
+  position:absolute; top:22px; left:22px; right:22px; z-index:3;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.ts-rank-me{ display:inline-flex; align-items:center; gap:9px; min-width:0; }
+/* Čísla vpravo v rade = ten istý údaj a to isté poradie ako hlavička /map
+   (trieda .trp-mstats2): km, potom výlety. Číslo je Space Grotesk (dáta), popisok malý
+   a tlmený — nie druhá pilulka, aby si váhu v riadku držal level. */
+.ts-rank-stats{ display:inline-flex; align-items:baseline; gap:14px; flex-shrink:0; }
+.ts-rank-stats span{ display:inline-flex; align-items:baseline; gap:4px; white-space:nowrap; }
+.ts-rank-stats b{
+  font-family:${FONT_UI}; font-weight:600; font-size:16px; line-height:1;
+  color:${T.inkStrong}; text-shadow:0 2px 10px rgba(250,244,236,0.9);
+}
+.ts-rank-stats i{
+  font-family:${FONT_UI}; font-style:normal; font-weight:500; font-size:10px;
+  letter-spacing:0.14em; text-transform:uppercase; color:${T.inkWarm};
+  text-shadow:0 2px 10px rgba(250,244,236,0.9);
 }
 .ts-rank-name{
   font-family:${FONT_TITLE}; font-weight:700; font-size:13px; letter-spacing:0.16em;
@@ -528,13 +545,27 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
         {/* Rang + level — ten istý výpočet ako hlavička mapy (`profileLevelFor`).
             Stojí MIMO hlavičky, lebo je absolútne ukotvený v pravom hornom rohu karty. */}
         <span className="ts-rank">
-          <span className="ts-rank-name">{t('pack.map.rankPilgrim')}</span>
-          <span
-            className="ts-rank-num"
-            style={tierVars(view.level)}
-            aria-label={t('pack.map.levelAriaLabel', { level: view.level })}
-          >
-            {view.level}
+          <span className="ts-rank-me">
+            <span className="ts-rank-name">{t('pack.map.rankPilgrim')}</span>
+            <span
+              className="ts-rank-num"
+              style={tierVars(view.level)}
+              aria-label={t('pack.map.levelAriaLabel', { level: view.level })}
+            >
+              {view.level}
+            </span>
+          </span>
+          {/* ⚠️ TOTO NIE JE NÁVRAT TROCH DLAŽDÍC z 11. 9. („tie 3 bloky daj preč"). Tie
+              zaberali spodnú tretinu karty, ktorú si pýtal pre CTA, a hovorili o krajinách
+              navyše. Tu sú DVE čísla v riadku, ktorý na karte už aj tak stál kvôli rangu —
+              spodok ostáva CTA. Kľúče sú tie isté ako v hlavičke `/map`, takže sa nemôžu
+              rozísť v skloňovaní. */}
+          <span className="ts-rank-stats">
+            <span><b>{view.walkedKm}</b><i>{t('pack.map.statKm')}</i></span>
+            <span>
+              <b>{view.walkedCount}</b>
+              <i>{t('pack.map.statTrips' + pluralKey(view.walkedCount))}</i>
+            </span>
           </span>
         </span>
 
