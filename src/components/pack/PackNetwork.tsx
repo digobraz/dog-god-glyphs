@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
 import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 // Len pre ukážkovú líniu (`?netdemo=62`) — reálne psy z WALLu, aby simulácia
@@ -373,6 +374,16 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
   // nie „kto je na ktorej úrovni"; úroveň nesie odznak na riadku.
   const recent = [...l1.map((m) => ({ m, lvl: 1 })), ...l2.map((m) => ({ m, lvl: 2 }))]
     .sort((a, b) => Date.parse(b.m.created_at) - Date.parse(a.m.created_at));
+  // Náhľad tabuľky: POSLEDNÁ päťka vo vzostupnom poradí + prázdne sloty do troch riadkov.
+  // `recent` je zoradený od najnovšieho, takže vzostupné poradie = otočiť a vziať chvost.
+  // `firstNo` je poradové číslo prvého zobrazeného riadku v celej línii.
+  const PREVIEW_ROWS = 5;
+  const MIN_ROWS = 3;
+  const ascending = [...recent].reverse();
+  const shownRows = ascending.slice(-PREVIEW_ROWS);
+  const firstNo = ascending.length - shownRows.length + 1;
+  const emptySlots = Math.max(0, MIN_ROWS - shownRows.length);
+
   // V ukážke musí sedieť aj zostatok — inak by karta ukazovala 62 ľudí v línii
   // a pomlčku namiesto BONES, čo je stav, ktorý v realite nikdy nenastane.
   const shownBones = demo ? recent.reduce((s, r) => s + r.m.points, 0) : bones;
@@ -437,7 +448,7 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
               color: T.cardEdge,
             }}
           >
-            {tx('pack.network.eyebrow', 'The pack grows through you')}
+            {tx('pack.network.eyebrow', 'The pack grows because of you')}
           </span>
           <h3
             style={{
@@ -462,7 +473,7 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
             dangerouslySetInnerHTML={{
               __html: tx(
                 'pack.network.intro',
-                'A movement this size can’t be bought — it only grows when one Dogyptian brings another. '
+                'A movement only grows when its members carry the message and bring new people in. '
                   + 'So we’re asking you directly: <strong style="color:#2a1608;font-weight:600">invite the dog people you know</strong>. '
                   + 'Here is exactly how it works.',
               ),
@@ -576,7 +587,7 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
             „je hlúposť") — tie isté značky nesú odznaky na riadkoch zoznamu,
             takže sa dvakrát neučí to isté dvoma slovníkmi. */}
         <BigStat
-          icon={<BrandIcon name="people" size={22} tint="dark" />}
+          icon={<BrandIcon name="people" size={22} tint="gold" />}
           value={loading && !demo ? '—' : String(lineCount)}
           label={tx('pack.network.inLine', 'In your line')}
           sub={
@@ -592,14 +603,23 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
         />
       </div>
 
-      {/* ── KTO PRIŠIEL CEZ TEBA — jediné miesto so zoznamom (Matej 12.8.2026:
-          „premserovanie na /profil na 2 blok kde budeme centralizovať tieto info aby
-          sme ich nemali na viacerých miestach"). Homepage `/pack` má len rýchly stav
-          a zdieľanie a odkazuje SEM (`/pack/profile#network`).
-          ⚠️ E-MAIL TU NIE JE — `get_my_network()` ho zámerne nevracia („Email stays
-          private", migrácia 20260609_affiliate_two_level.sql). Vracia krstné meno
-          majiteľa, meno psa, dátum a pripísané BONES. Doplniť e-mail = zmena RPC na
-          DEV aj LIVE + rozhodnutie, či člen smie vidieť e-maily ľudí zo svojej línie. */}
+      {/* ── KOHO SI PRIVIEDOL DO DOGYPTU — jediné miesto so zoznamom (Matej 12.8.2026:
+          „centralizovať tieto info aby sme ich nemali na viacerých miestach"). Homepage
+          `/pack` má len rýchly stav a zdieľanie a odkazuje SEM (`/pack/profile#network`).
+
+          ⚠️ TABUĽKA STOJÍ AJ KEĎ JE PRÁZDNA (Matej 2026-09-12: „treba už vytvoriť aj keď
+          prázdnu tabuľku s poradovým číslom, nie iba prázdne miesto — vyzerá to pokazene").
+          Jedna veta („zatiaľ nikto") nepovie, čo sa tam raz objaví; tri očíslované sloty áno.
+
+          PORADIE JE VZOSTUPNÉ a číslo znamená poradie VSTUPU do tvojej línie — #1 je prvý
+          človek, ktorého si priviedol. Preto sa berie posledná päťka a NEOBRACIA sa:
+          čísla tak plynulo prechádzajú do prázdnych slotov (…#4, #5, potom #6 prázdny).
+          Pri obrátenom poradí (najnovší hore) by prázdny slot s vyšším číslom sedel POD
+          nižšími a sekvencia by čítala 5-4-3-6.
+
+          ⚠️ E-MAIL TU NIE JE — `get_my_network()` ho zámerne nevracia („Email stays private",
+          migrácia 20260609_affiliate_two_level.sql). Vracia krstné meno majiteľa, meno psa,
+          dátum a pripísané BONES. */}
       <div style={{ marginTop: 14 }}>
         <span
           style={{
@@ -613,22 +633,26 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
             marginBottom: 8,
           }}
         >
-          {tx('pack.network.whoJoined', 'Who joined through you')}
+          {tx('pack.network.whoJoined', 'Who have you brought into DOGYPT?')}
         </span>
 
         {loading && !demo ? (
           <Loader2 className="h-4 w-4 animate-spin" style={{ color: T.inkFaint }} />
-        ) : recent.length === 0 ? (
-          <span style={{ fontFamily: FONT_UI, fontSize: 12.5, color: T.inkWarm }}>
-            {tx('pack.network.emptyLine', 'No one yet — the first name here is the beginning of your line.')}
-          </span>
         ) : (
           <>
             <div className="flex flex-col" style={{ gap: 5 }}>
-              {recent.slice(0, 5).map(({ m, lvl }, i) => (
-                <MemberRow key={`${m.created_at}-${i}`} m={m} lvl={lvl} />
+              {shownRows.map(({ m, lvl }, i) => (
+                <MemberRow key={`${m.created_at}-${i}`} m={m} lvl={lvl} no={firstNo + i} />
+              ))}
+              {Array.from({ length: emptySlots }, (_, i) => (
+                <EmptyRow key={`empty-${i}`} no={firstNo + shownRows.length + i} />
               ))}
             </div>
+            {recent.length === 0 && (
+              <span style={{ display: 'block', marginTop: 8, fontFamily: FONT_UI, fontSize: 12, color: T.inkWarm }}>
+                {tx('pack.network.emptyLine', 'No one yet — the first name here is the beginning of your line.')}
+              </span>
+            )}
           </>
         )}
       </div>
@@ -647,17 +671,22 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
           zmenšil a stal sa ilustráciou kroku 2, takže má konečne kontext. */}
       <ol className="flex flex-col" style={{ gap: 10, margin: 0, padding: 0, listStyle: 'none' }}>
         <Step n={1} icon="link" title={tx('pack.network.step1Title', 'Share your link')}>
-          {tx('pack.network.step1Body', 'Send it to one dog person who’d get it. That’s the whole ask.')}
+          {tx('pack.network.step1Body', 'Send it to the friends of yours who’d back a good cause. That’s the whole ask.')}
         </Step>
 
         <Step n={2} icon="add-user" title={tx('pack.network.step2Title', 'They join — you get BONES')}>
           <span
             style={{ display: 'block', marginBottom: 10 }}
             dangerouslySetInnerHTML={{
+              /* ⚠️ Text hovorí aj to, čo dostane TEN DRUHÝ (Matej 2026-09-12: „Ak tento člen
+                 tiež niekoho privedie, on získa 20 a ty 10 BONES"). Bez toho to čítalo tak,
+                 že druhá úroveň je odmena len pre teba — a prvá otázka, ktorú človek položí,
+                 znie „a čo z toho má on". */
               __html: tx(
                 'pack.network.step2Body',
-                'Someone forges a Heroglyph through your link and <strong style="color:#2a1608;font-weight:600">you get {l1} BONES</strong>. '
-                  + 'When they bring someone, <strong style="color:#2a1608;font-weight:600">you get {l2} more</strong>.',
+                'If someone forges a <strong style="color:#2a1608;font-weight:600">Heroglyph</strong> through your link, '
+                  + 'you get <strong style="color:#2a1608;font-weight:600">{l1} BONES</strong>. '
+                  + 'If that member brings someone too, they get {l1} and <strong style="color:#2a1608;font-weight:600">you get {l2} more</strong>.',
                 { l1: L1_BONES, l2: L2_BONES },
               ),
             }}
@@ -668,25 +697,20 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
         <Step n={3} icon="bone" title={tx('pack.network.step3Title', 'Spend them inside DOGYPT')}>
           {tx(
             'pack.network.step3Body',
-            '{n} BONES = €1. They go back into the mission — helping dogs, merch, and paying other Dogyptians for what they make.',
+            '{n} BONES = €1. The money goes back into the mission — helping dogs, merch, and paying other members for what they make.',
             { n: BONES_PER_EUR },
           )}
         </Step>
       </ol>
 
-      {/* „Zlá klasická možnosť" — Matej 2026-08-12: „daj to na červeno a vysvetli
-          to tam trochu inak s tým že to nie je efektívne a že namiesto vyhodených
-          penazi do reklamy zostavaju zdroje u nas a nasich členov."
-          ⚠️ Tvrdenie ostáva o ÚČINNOSTI kanála, nie o našom rozpočte — nikde
-          nehovoríme „reklamu nepoužívame" (na štarte sa používať bude).
-          TEXT PREPÍSANÝ 2026-08-12 večer (Matej: „ten text je krkolomný …
-          potrebujeme ho zjednodušiť aby to pochopil každý"). Pôvodné znenie
-          („Tie peniaze sú preč. Tie isté peniaze dané našim vlastným členom…")
-          opakovalo „tie peniaze" trikrát a nikdy nepovedalo, PREČO to čítaš.
-          Nová logika je Matejova a ide v poradí, v akom sa myslí:
-          rásť = noví ľudia → kúpiť sa dajú aj reklamou → ale je účinnejšie
-          zaplatiť vlastným ľuďom. Nadpis to hovorí rovno („platíme radšej vás"),
-          nie cez dvojitý zápor („prečo si radšej nekúpiť reklamu"). */}
+      {/* PREČO TENTO SPÔSOB — červený blok (Matej 2026-09-12 prepísal celé znenie).
+          Pôvodný nadpis „Prečo platíme radšej vás" hovoril o NÁS; nový sa pýta otázku,
+          ktorú si kladie čitateľ. Telo je Matejovo a končí háčikom — bez neho blok
+          vysvetlí ekonomiku a nepovie, čo z toho plynie pre teba.
+          ⚠️ Zanikol riadok „€ — reklama — cudzí človek si scrolluje ďalej": bol to
+          minidiagram tej istej vety, ktorú blok teraz hovorí rovno. Kľúče
+          `pack.network.ads.wordAd` / `wordScroll` sa v i18n NEMAŽÚ (`Dict = typeof en`,
+          takže by musel padnúť zápis v 18 jazykoch) — sú len bez volajúceho. */}
       <div
         style={{
           background: 'rgba(160,64,64,0.10)',
@@ -708,25 +732,17 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
             marginBottom: 8,
           }}
         >
-          {tx('pack.network.ads.header', 'Why we pay you, not ads')}
-        </span>
-        <span
-          className="flex items-center flex-wrap"
-          style={{ gap: 8, fontFamily: FONT_UI, fontSize: 13, color: RED_INK, marginBottom: 8 }}
-        >
-          <b style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 15 }}>€</b>
-          <Dash />
-          {tx('pack.network.ads.wordAd', 'an ad')}
-          <Dash />
-          {tx('pack.network.ads.wordScroll', 'a stranger scrolls past')}
+          {tx('pack.network.ads.header', 'Why this way?')}
         </span>
         <span
           style={{ display: 'block', fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.55, color: RED_INK }}
           dangerouslySetInnerHTML={{
             __html: tx(
               'pack.network.ads.body',
-              'DOGYPT only grows when new dog people join. Ads can buy them — but the same money can work harder. '
-                + '<strong style="font-weight:600">We’d rather give it to you</strong>, for being active and bringing new members, than let it end up in someone else’s account.',
+              'Paid ads are a very inefficient way to find new dog people — and a way to throw our money '
+                + 'at big corporations. It works far better to reward the members of the movement directly for being active. '
+                + 'There is one catch: <strong style="font-weight:600">it only really works if you go out and '
+                + 'tell the people around you about us</strong> :)',
             ),
           }}
         />
@@ -754,18 +770,22 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
             {tx('pack.network.inviteLinkHeader', 'Your invite link')}
           </div>
 
-          {/* CTA drží brand lock `.btn-gold` — diagonálny gradient, radius 8,
-              papyrusový okraj. NIE pill, NIE vlastný gradient. */}
+          {/* HLAVNÉ CTA JE LAPIS (brandový kánon od 28. 8. 2026; sem nasadené 12. 9. na
+              Matejov pokyn „CTA daj lapis"). GEOMETRIU si ďalej berie z locku `.btn-gold` —
+              radius 8, NIE pilulka; zmena farby nie je povolenie na iný tvar. Podklad pod
+              tlačidlom je papyrusová karta, teda BLEDÝ povrch, a tam je hlavná akcia lapis
+              (zlatý gradient patrí na naozaj tmavý povrch). */}
           <button
             type="button"
             onClick={handleShare}
             disabled={!link}
             className="inline-flex items-center justify-center gap-2 w-full"
             style={{
-              background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
-              border: '1px solid rgba(250,244,236,0.30)',
+              background: LAPIS.grad,
+              border: `1px solid ${LAPIS.edge}`,
               borderRadius: 8,
-              color: '#1F1A0E',
+              boxShadow: LAPIS_BTN_SHADOW,
+              color: LAPIS.ink,
               padding: '11px 18px',
               fontFamily: FONT_TITLE,
               fontSize: 11.5,
@@ -776,7 +796,7 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
               opacity: link ? 1 : 0.5,
             }}
           >
-            <BrandIcon name="link" size={16} tint="dark" />
+            <BrandIcon name="link" size={16} tint="gold" />
             {tx('pack.network.shareLink', 'Share your link')}
           </button>
 
@@ -1366,11 +1386,83 @@ function Step({
   );
 }
 
+// Poradové číslo riadku — pevná šírka, aby čísla pod sebou stáli na jednej osi
+// a prázdny slot bol presne taký široký ako naplnený.
+function RowNo({ n, dim }: { n: number; dim?: boolean }) {
+  return (
+    <span
+      aria-hidden
+      style={{
+        flex: '0 0 22px',
+        textAlign: 'right',
+        fontFamily: FONT_UI,
+        fontWeight: 500,
+        fontSize: 11,
+        lineHeight: 1,
+        color: dim ? T.inkFaint : T.inkWarm,
+      }}
+    >
+      {n}
+    </span>
+  );
+}
+
+// Prázdny slot línie. Nie je to „placeholder" v zmysle nedokončenej obrazovky —
+// je to viditeľné miesto, ktoré na niekoho čaká, a preto má číslo (Matej 2026-09-12:
+// „aj keď prázdnu tabuľku s poradovým číslom, nie iba prázdne miesto").
+// Prerušovaný rám a priehľadné pozadie ho odlíšia od naplneného riadku bez toho, aby
+// zoznam vyzeral ako chyba načítania.
+function EmptyRow({ no }: { no: number }) {
+  return (
+    <div
+      className="flex items-center"
+      style={{
+        gap: 10,
+        padding: '8px 10px',
+        borderRadius: 10,
+        background: 'transparent',
+        border: `1px dashed ${T.border}`,
+      }}
+    >
+      <RowNo n={no} dim />
+      <span
+        aria-hidden
+        style={{
+          width: 30,
+          height: 30,
+          borderRadius: '50%',
+          flexShrink: 0,
+          border: `1px dashed ${T.border}`,
+        }}
+      />
+      <span aria-hidden className="flex-1 min-w-0 flex flex-col" style={{ gap: 5 }}>
+        <span style={{ display: 'block', width: '58%', height: 7, borderRadius: 4, background: 'rgba(122,90,42,0.13)' }} />
+        <span style={{ display: 'block', width: '34%', height: 5, borderRadius: 4, background: 'rgba(122,90,42,0.09)' }} />
+      </span>
+      <span
+        aria-hidden
+        style={{
+          fontFamily: FONT_UI,
+          fontWeight: 600,
+          fontSize: 10.5,
+          color: T.inkFaint,
+          border: `1px dashed ${T.border}`,
+          borderRadius: 999,
+          padding: '2px 8px',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        +{L1_BONES}
+      </span>
+    </div>
+  );
+}
+
 // Jeden riadok línie. Ten istý komponent nesie zoznam v stĺpci aj v popupe —
 // `full` len dokreslí e-mail a poradové číslo, ktoré sa do úzkeho stĺpca
 // nezmestia. Dva odlišné riadky pre tú istú vec by sa rozišli pri prvej zmene.
 // ⚠️ Meno PSA = Cinzel Decorative (brand lock), meno ČLOVEKA ostáva Cinzel/Grotesk.
-function MemberRow({ m, lvl, full }: { m: Member; lvl: number; full?: boolean }) {
+function MemberRow({ m, lvl, full, no }: { m: Member; lvl: number; full?: boolean; no?: number }) {
   const t = useT();
   const { lang } = useLang();
   const tx: Tx = (key, fallback, vars) => {
@@ -1393,6 +1485,9 @@ function MemberRow({ m, lvl, full }: { m: Member; lvl: number; full?: boolean })
         border: `1px solid ${T.border}`,
       }}
     >
+      {/* Poradové číslo v línii — rovnaký stĺpec ako v prázdnom slote, aby sa pri
+          dopĺňaní riadkov nič nepohlo. */}
+      {no != null && <RowNo n={no} />}
       <Avatar src={m.avatar} name={m.dog_name} size={full ? 36 : 30} />
 
       <span className="flex-1 min-w-0">
@@ -1665,10 +1760,6 @@ function Link20({ pill, small }: { pill: string; small?: boolean }) {
   );
 }
 
-function Dash() {
-  return <span aria-hidden style={{ width: 20, height: 1.5, background: 'currentColor', opacity: 0.45, flexShrink: 0 }} />;
-}
-
 function Lab({ children, dim }: { children: React.ReactNode; dim?: boolean }) {
   return (
     <span
@@ -1791,12 +1882,21 @@ function BigStat({
       type={onClick ? 'button' : undefined}
       onClick={onClick}
       className={onClick ? 'pknet-tile text-left w-full' : undefined}
+      /* LAPIS, NIE PLNÁ ZLATÁ (Matej 2026-09-12: „CTA daj lapis, ako aj bloky Tvoje bones").
+         Zlatooranžová plocha je podľa brand locku z 28. 8. AINUBISOVA — na tlačidle sa číta
+         ako svetlo, na celej ploche ako žltá. Recept je identický s `.ts-pill` na karte
+         homepage (11. 9.): lapis + zlatý vlasový rám + zlatý inkoust, čo je pôvodná
+         egyptská dvojica.
+         ⚠️ Dlaždice KLIKATEĽNÉ SÚ (peňaženka, celý zoznam), takže výnimka pre neinteraktívny
+         štítok sem nesiaha — na karte tak stoja tri plné farebné plochy vrátane CTA. Váhu
+         medzi nimi drží tieň: CTA má `LAPIS_BTN_SHADOW` (vystúpené tlačidlo), dlaždice
+         zapustený tieň. */
       style={{
-        background: GOLD_SOLID,
-        border: `1.5px solid ${GOLD_SOLID_EDGE}`,
+        background: LAPIS.grad,
+        border: '1px solid rgba(201,154,63,0.55)',
         borderRadius: 14,
         padding: '14px 15px',
-        boxShadow: '0 4px 16px rgba(122,90,42,0.34), inset 0 1px 0 rgba(255,248,231,0.32)',
+        boxShadow: 'inset 0 1px 0 rgba(201,154,63,0.22), 0 10px 24px -14px rgba(5,15,48,0.75)',
         cursor: onClick ? 'pointer' : undefined,
       }}
     >
@@ -1814,7 +1914,7 @@ function BigStat({
             letterSpacing: '0.14em',
             textTransform: 'uppercase',
             whiteSpace: 'nowrap',
-            color: GOLD_INK_DIM,
+            color: LAPIS_INK_DIM,
           }}
         >
           {label}
@@ -1827,14 +1927,13 @@ function BigStat({
           fontWeight: 700,
           fontSize: 'clamp(30px, 8vw, 40px)',
           lineHeight: 1,
-          color: GOLD_INK,
-          textShadow: '0 1px 0 rgba(255,248,231,0.45)',
+          color: LAPIS.ink,
         }}
       >
         {value}
       </b>
       {sub && (
-        <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 11.5, color: GOLD_INK_DIM, marginTop: 6 }}>
+        <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 11.5, color: LAPIS_INK_DIM, marginTop: 6 }}>
           {sub}
         </span>
       )}
@@ -1847,7 +1946,7 @@ function BigStat({
             fontFamily: FONT_UI,
             fontSize: 11.5,
             fontWeight: 500,
-            color: GOLD_INK,
+            color: LAPIS.ink,
             textDecoration: 'underline',
             textUnderlineOffset: 3,
           }}

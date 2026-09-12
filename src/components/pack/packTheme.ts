@@ -1,7 +1,7 @@
 import { getPackSkin, usePackSkin } from './packSkin';
 // LAPIS = hlavná akcia na BLEDOM podklade (viď `.pf-toggle__opt.is-on` nižšie).
 // `navGoldSkin.ts` nemá žiadne importy, takže kruh nevzniká.
-import { LAPIS } from './navGoldSkin';
+import { LAPIS, PICK_INK, pickTintCSS } from './navGoldSkin';
 // Pack theme tokens — vlastný modul (NIE v PackLayout.tsx).
 // Dôvod: konštanta exportovaná spolu s React komponentmi láme Vite Fast Refresh
 // (každý edit PackLayout = full reload → cobe globe sa roztrhne). Oddelené = HMR čisté.
@@ -453,10 +453,14 @@ export const PF_FIELD_CSS = `
 }
 .pf-field::placeholder{ color: rgba(122,90,42,0.5); }
 .pf-field:hover{ border-color: rgba(179,130,45,0.8); }
+/* ZAOSTRENÉ POLE = LAPIS (2026-09-12). Matej: „výbery na stránke = nie zlatožlté ale
+   lapis (meno/prezývka, výber pilsov)". Sedí to na deliacu čiaru brandu — zlato je
+   konštrukcia (rám poľa), lapis je „čo robím JA" (pole, do ktorého práve píšem).
+   Rám ostáva zlatý, mení sa halo a jeho farba pri zaostrení. */
 .pf-field:focus{
   outline: none;
-  border-color: #C99A3F;
-  box-shadow: inset 0 1px 2px rgba(122,90,42,0.16), 0 0 0 3px rgba(201,154,63,0.28);
+  border-color: ${LAPIS.edge};
+  box-shadow: inset 0 1px 2px rgba(122,90,42,0.16), 0 0 0 3px ${LAPIS.halo};
 }
 
 /* Riadok „popisok VEDĽA poľa" (Matej 2026-08-12). Popisok má pevnú šírku, aby
@@ -492,10 +496,13 @@ export const PF_FIELD_CSS = `
 /* ⚠️ 13. 8. 2026: zvýraznenie „toto pole svorka vidí" už NEMENÍ VÝPLŇ. Matej žiada,
    aby meno a prezývka vyzerali totožne ako bio, takže rozdiel nesie len obrys — a hlavne
    samotný prepínač nižšie, ktorý je odteraz výrazný. Podfarbenie by rozdiel vrátilo. */
+/* ⚠️ 12. 9. 2026: obrys je LAPIS, nie zlatooranžový (Matej: „výbery na stránke = nie
+   zlatožlté ale lapis — meno/prezývka"). Je to VOĽBA ktoré pole svorka vidí, a voľba
+   má v brande modrú; zlatá tu navyše splývala s rámom karty aj s pilulkou levelu. */
 .pf-inline.is-shown .pf-field{
-  border-color:#E69E1A;
+  border-color:${LAPIS.edge};
   border-width:2px;
-  box-shadow:inset 0 1px 2px rgba(122,90,42,0.16), 0 0 0 3px rgba(230,158,26,0.22);
+  box-shadow:inset 0 1px 2px rgba(122,90,42,0.16), 0 0 0 3px ${LAPIS.halo};
 }
 
 /* Plochá papyrusová výplň — TEN ISTÝ tón, aký nesie BIO textarea (Matej 2026-08-13:
@@ -559,7 +566,6 @@ export const PF_FIELD_CSS = `
   font-weight: 700;
 }
 
-}
 @media (max-width:720px){
   /* min-height drží klikací cieľ (audit B1) — prepínač bol 22px, čo je polovica prsta.
      38px na možnosti + 3px padding dráhy = celý prepínač má 44px. */
@@ -572,6 +578,32 @@ export const PF_FIELD_CSS = `
   .pf-inline--toggle{ flex-wrap: wrap; row-gap: 6px; }
   .pf-inline--toggle > .pf-inline-lbl{ flex: 0 0 100%; text-align: left; }
 }
+
+/* ── VÝBER KRAJINY: ÚZKY CHIP + NATÍVNY ZOZNAM (2026-09-12) ───────────────────
+   Matej: „krajina je velmi široká a dropdown šípka nalepená na kraji… vždy musí byť
+   kúsok od kraja, nie nalepená."
+   Natívny <select> zobrazuje TEXT vybranej položky, takže odkedy zoznam nesie celé
+   názvy krajín (13. 8., „potrebujeme všetky vlajky sveta"), sa chip roztiahol na
+   „max-width" a šípka sa oprela o oblúk pilulky. Vrátiť krátke názvy do zoznamu sa
+   nedá — 249 položiek „SVK / CZE / DEU" nikto neprečíta.
+   Riešenie: viditeľný chip je NÁŠ (vlajka + ISO3 + šípka), natívny <select> nad ním
+   leží priehľadný cez celú plochu. Zoznam teda ostáva natívny (na mobile je to
+   systémový picker), šírku a odsadenie šípky si určujeme sami.
+   ⚠️ Zaostrenie nesadne na obal, ale na <select> vnútri — preto sa berie focus-within, inak by chip pri otvorení nedal žiadnu odozvu. */
+.pf-selchip{ position: relative; }
+.pf-selchip > select{
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  opacity: 0; cursor: pointer; border: none; padding: 0; margin: 0;
+}
+.pf-selchip:focus-within{
+  border-color: ${LAPIS.edge};
+  box-shadow: inset 0 1px 2px rgba(122,90,42,0.16), 0 0 0 3px ${LAPIS.halo};
+}
+
+/* Šípka natívneho <select> sa kreslí tesne pri vnútornej hrane. V pilulke (radius 999)
+   ju oblúk „zožerie" a vyzerá nalepená — preto majú selecty väčší pravý padding než
+   ľavý. Platí na oba zvyšné natívne selecty (stav, životný štýl). */
+.pf-selpad{ padding: 4px 14px 4px 10px; }
 
 .pf-pill{
   background: linear-gradient(180deg, #FFFDF7 0%, #EFDDAE 100%);
@@ -587,13 +619,24 @@ export const PF_FIELD_CSS = `
   transform: translateY(-1px);
   box-shadow: 0 3px 10px rgba(122,90,42,0.22);
 }
+/* ── VYBRANÝ CHIP = LAPIS TINT (2026-09-12) ────────────────────────────────────
+   Matej: „výbery na stránke = nie zlatožlté ale lapis (… výber pilsov — aký si)".
+   Recept NIE JE plná modrá, ale pickTintCSS() — lock z 26. 8.: plná farebná plocha
+   patrí JEDINÉMU hlavnému CTA na obrazovke, a chipov povahy je na karte 24.
+   Čitateľnosť nesie TMAVÝ inkoust (PICK_INK.lapis) a plný farebný rám, nie krytie
+   výplne — svetlý inkoust na papyruse bol presne ten dôvod, prečo sa vtedy siahlo
+   po plnej farbe.
+   ⚠️ PF_FIELD_CSS je zdieľaná s psou kartou (DogGallery / DogCardFields) a
+   read-profilom — výber je odteraz lapisový AJ tam. Je to zámer: jedna appka, jedna
+   farba výberu. */
 .pf-pill.is-selected{
-  background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
-  border-color: #E69E1A;
-  color: #241a06;
-  box-shadow: 0 3px 12px rgba(230,158,26,0.5);
+  ${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}
+  font-weight: 600;
 }
-.pf-pill.is-selected:hover{ box-shadow: 0 4px 16px rgba(230,158,26,0.62); }
+.pf-pill.is-selected:hover{
+  border-color: ${LAPIS.edge};
+  box-shadow: inset 0 0 0 1px rgba(22,48,122,0.6), 0 3px 12px rgba(22,48,122,0.22);
+}
 .pf-pill:disabled{ opacity: 0.4; cursor: default; transform: none; box-shadow: none; }
 
 /* MOBILNÉ KLIKACIE CIELE (audit 12. 8., B1) — pri 390px malo 24 prvkov výšku pod

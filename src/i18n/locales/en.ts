@@ -3661,6 +3661,7 @@ export const en = {
   'pack.profile.countryFrequent': "Nearby",
   'pack.profile.countryAll': "All countries",
   'pack.profile.countryOther': "Rather not say",
+  'pack.profile.countryOtherShort': "N/A",
   'pack.profile.nickname': "Nickname",
   'pack.profile.nicknamePlaceholder': "Pack calls you",
   'pack.profile.optional': "Optional",

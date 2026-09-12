@@ -3376,6 +3376,7 @@ export const sk: Partial<Dict> = {
   'pack.profile.countryFrequent': "Blízke",
   'pack.profile.countryAll': "Všetky krajiny",
   'pack.profile.countryOther': "Radšej nepoviem",
+  'pack.profile.countryOtherShort': "NEUVEDENÉ",
   'pack.profile.nickname': "Prezývka",
   'pack.profile.nicknamePlaceholder': "Ako ťa volá svorka",
   'pack.profile.optional': "Nepovinné",

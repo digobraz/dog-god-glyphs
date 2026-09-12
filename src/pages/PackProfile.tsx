@@ -1,17 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Camera, ChevronRight, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { ArrowLeft, Camera, ChevronDown, ChevronRight, Eye, EyeOff, Loader2 } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PackNetwork } from '@/components/pack/PackNetwork';
 import { PackSettings } from '@/components/pack/PackSettings';
 import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
-import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { GOLD_BLOCK_CSS } from '@/components/pack/navGoldSkin';
+import { tierVars } from '@/lib/packTiers';
 import { uploadExtraPhoto } from '@/services/cloudinaryService';
 import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { countryOptions, normalizeCountryValue, COUNTRY_OTHER } from '@/lib/countryOptions';
+import { flagEmojiFromISO2, iso2ToISO3 } from '@/lib/countryGeo';
 import { DEV_FULL } from '@/lib/packFlags';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
@@ -50,33 +53,77 @@ import { useDogyptStore } from '@/store/dogyptStore';
 
 const T = PACK_THEME;
 
+// ── TURISTICKÝ PROFIL V PROFILE (2026-09-12) ────────────────────────────────
+// Vzhľad riadku je kópiou `.ts-rank` z karty homepage (`TripSpotlight.tsx`) — ten istý
+// údaj má naprieč appkou ten istý tvar. Nesedí tu preto v `PF_FIELD_CSS`: tá je zdieľaná
+// s psou kartou a read-profilom, a tie tento riadok nemajú.
+const PILGRIM_CSS = `
+.pf-pilgrim{ transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease; }
+.pf-pilgrim:hover{
+  border-color: ${PACK_THEME.cardEdge};
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(122,90,42,0.24), inset 0 1px 0 rgba(255,255,255,0.45);
+}
+/* FARBA PÁSMA — gradient a inkoust vešia premenné --tier-a / --tier-b / --tier-ink
+   (tierVars(level)); fallback drží pôvodnú zlatú. Tá istá pilulka ako v hlavičke mapy. */
+.pf-pilgrim-num{
+  display:inline-flex; align-items:center; padding:3px 11px 4px; border-radius:999px;
+  background:linear-gradient(135deg,var(--tier-a,#F5C73D),var(--tier-b,#E69E1A));
+  color:var(--tier-ink,#1F1A0E);
+  font-family:${FONT_UI}; font-weight:600; font-size:14px; line-height:1;
+  box-shadow:0 2px 8px var(--tier-glow,rgba(245,199,61,0.28));
+}
+.pf-pilgrim-stats span{ display:inline-flex; align-items:baseline; gap:4px; white-space:nowrap; }
+/* Číslo = DÁTA → Space Grotesk. ⚠️ Váha STROP 600 (font je načítaný len 300–600). */
+.pf-pilgrim-stats b{ font-family:${FONT_UI}; font-weight:600; font-size:16px; line-height:1; color:${PACK_THEME.inkStrong}; }
+.pf-pilgrim-stats i{
+  font-family:${FONT_UI}; font-style:normal; font-weight:500; font-size:10px;
+  letter-spacing:0.14em; text-transform:uppercase; color:${PACK_THEME.inkWarm};
+}
+@media (max-width:420px){
+  .pf-pilgrim-stats{ gap:9px; }
+  .pf-pilgrim-stats b{ font-size:14px; }
+}
+`;
+
 // ── PAPYRUS PRIMITÍVY (lock 2026-07-26) ──────────────────────────────────────
 // Matej: „dizajn bledých blokov sme si lockli na základe toho aký je v /entry"
 // + „je to všetko moc na sebe — oddeliť okrajmi vizuálne ale aj rozdeliť
 // logicky". Preto profil UŽ NIE JE jedna karta s dvoma stĺpcami (ten layout
 // vyrábal prázdny pravý stĺpec, ktorý Matej zamietol 25.7.), ale stack
 // samostatných papyrusových kariet s medzerami — každá = jedna téma.
+// `gold` = BLOK V ZLATOM RÁME (Matej 2026-09-12: „1. blok daj do dbloku"). Ten istý
+// recept ako JA+SVORKA a KOMUNITA na homepage — `.pk-goldblock` z `navGoldSkin.ts`,
+// nie druhá kópia rámu. ⚠️ Trieda nesie výplň, rám, polomer aj tieň, takže inline
+// `background`/`border`/`borderRadius`/`boxShadow` sa v tejto vetve NESMÚ objaviť —
+// inline štýl triedu prebije a rám ostane neviditeľný pod papyrusovou kartou.
 function PapyrusCard({
   children,
   id,
   pad = 26,
+  gold = false,
 }: {
   children: React.ReactNode;
   id?: string;
   pad?: number;
+  gold?: boolean;
 }) {
   return (
     <section
       id={id}
-      style={{
-        background: T.cardGrad,
-        border: `1.5px solid ${T.cardEdge}`,
-        borderRadius: 16,
-        boxShadow: T.cardShadow,
-        padding: pad,
-        scrollMarginTop: 90,
-      }}
+      className={gold ? 'pk-goldblock' : undefined}
+      style={gold
+        ? { padding: pad, scrollMarginTop: 90 }
+        : {
+            background: T.cardGrad,
+            border: `1.5px solid ${T.cardEdge}`,
+            borderRadius: 16,
+            boxShadow: T.cardShadow,
+            padding: pad,
+            scrollMarginTop: 90,
+          }}
     >
+      {gold && <style>{GOLD_BLOCK_CSS}</style>}
       {children}
     </section>
   );
@@ -497,10 +544,7 @@ export default function PackProfile() {
             (psia karta), definícia žije v `packTheme.ts` (`PF_FIELD_CSS`),
             presne ako `GLASS_CSS`. Render raz na stránke. */}
         <style>{PF_FIELD_CSS}</style>
-        {/* Sklo pre PÚTNIK riadok (`.pk-glass-onlight`). Rovnaké pravidlá ako inde v /packu —
-            duplicitný <style> s tým istým obsahom je neškodný, chýbajúci by riadok zhodil
-            na priehľadný obdĺžnik bez rámu. */}
-        <style>{GLASS_CSS}</style>
+        <style>{PILGRIM_CSS}</style>
 
         {/* SEKCIA 1+2 VRÁTENÉ SPÄŤ POD SEBA (Matej 2026-07-26, tretí pokus:
             „toto rozloženie je zlé vráť to... na 2 bloky pod sebou"). Vedľa
@@ -512,7 +556,7 @@ export default function PackProfile() {
             zjavne majiteľ len z obsahu. Hlavný hrdina profilu je pes („OH, MY
             DOG!" vpravo), majiteľ nepotrebuje vlastný label na to, aby to bolo
             jasné. Zrkadlí brand princíp: majiteľ je vnútri rámiku psa. */}
-        <PapyrusCard>
+        <PapyrusCard gold>
           {/* Bar stavu vyplnenia je VYPNUTÝ (Matej 2026-07-26: „ten progres nemá
               zmysel - vypni ho"). Komponent `ProfileProgress` aj
               `humanProfileCompletion()` zostávajú v kóde — zapnutie = vrátiť
@@ -658,60 +702,64 @@ export default function PackProfile() {
           </div>
           </Column>
 
-          {/* PÚTNIK riadok — hodnosť + level, hneď pod hlavičkou a nad prvým GoldRule
-              (zadanie-profil-uzavret-2026-08-12, bod 5). Za `DEV_FULL`, viď komentár
-              pri výpočte `pilgrim` vyššie. Nula prejdených výletov = riadok sa vôbec
-              nerenderuje (prázdna vitrína je horšia než žiadna). */}
+          {/* PÚTNIK riadok — TURISTICKÝ PROFIL NA PAPYRUSE (Matej 2026-09-12: „ten čierny
+              rámik s turistickým profilom… nesmie byť čierny, vymyslime ako tam ten turistický
+              profil zachovať aj s tými stats ale nie v aktuálnom dizajne").
+              Tým padlo tmavé sklo z 13. 8. („skús dať ten blok pútnika v liquid tmavom glasse").
+              Náhrada sa NEVYMÝŠĽA: je to ten istý riadok, aký si Matej odklepol deň predtým na
+              karte homepage (`.ts-rank` v `TripSpotlight.tsx`) — vľavo PÚTNIK + level, vpravo
+              km a výlety, tie isté i18n kľúče (`pack.map.statKm`, `pack.map.statTrips*`), takže
+              sa tri povrchy nemôžu rozísť v čísle ani v skloňovaní.
+              ⚠️ Pilulka levelu berie farbu PÁSMA z `tierVars(level)` — rovnako ako hlavička mapy
+              a karta homepage. Natvrdo zapísaná zlatá (do 12. 9. tu bola) hovorila pri leveli 19
+              inú farbu než tie isté dva povrchy.
+              Za `DEV_FULL`, viď komentár pri výpočte `pilgrim` vyššie. Nula prejdených výletov =
+              riadok sa vôbec nerenderuje (prázdna vitrína je horšia než žiadna). */}
           {pilgrim && (
             <Column max={640} mt={14}>
               <Link
                 to="/pack/map/triplist?tab=stats"
-                className="pk-glass-onlight pf-tap flex items-center justify-between"
+                className="pf-tap pf-pilgrim flex items-center justify-between"
                 style={{
-                  /* Matej 2026-08-13, druhé kolo: „skús dať ten blok pútnika v liquid
-                     tmavom glasse... (štýl mapy)". Papyrusová verzia z prvého kola
-                     vyzerala na papyrusovej karte „ako navyše" — rovnaká farba, rovnaký
-                     rám, len ďalší riadok. Tmavé sklo hovorí, že to NIE JE súčasť profilu,
-                     ale VSTUP do inej časti appky — a je to presne povrch, na ktorý ten
-                     preklik vedie (`/pack/map/*` je celé tmavé sklo).
-                     Recept žije v `pk-glass-onlight` (packTheme.ts) — nie tu. */
-                  padding: '16px 18px',
+                  ...PACK_BOX.subblock,
+                  padding: '13px 15px',
                   textDecoration: 'none',
+                  gap: 12,
                 }}
               >
-                <span className="flex items-center flex-wrap" style={{ gap: 10, minWidth: 0 }}>
-                  <span style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 16, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.onDark }}>
+                <span className="flex items-center shrink-0" style={{ gap: 9, minWidth: 0 }}>
+                  <span style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 13, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.inkStrong }}>
                     {t('pack.map.rankPilgrim')}
                   </span>
-                  {/* Level = PLNÁ zlatá pilulka s holým číslom, rovnako ako v hlavičke mapy
-                      (`.trp-level-num`, PackMap.tsx:757). Popisok „Lvl" tam Matej 3. 8. zrušil
-                      („to LVL ma ruší") — rang vedľa povie, čo to číslo je. Ten istý údaj musí
-                      mať naprieč appkou ten istý tvar, presne ako pilulka dní. */}
+                  {/* Level = pilulka s holým číslom, rovnako ako v hlavičke mapy a na karte
+                      homepage. Popisok „Lvl" Matej 3. 8. zrušil („to LVL ma ruší") — rang vedľa
+                      povie, čo to číslo je. Číslo je Space Grotesk (dáta), nie Cinzel. */}
                   <span
-                    style={{
-                      fontFamily: FONT_TITLE,
-                      fontWeight: 700,
-                      fontSize: 15,
-                      lineHeight: 1,
-                      padding: '4px 12px 5px',
-                      borderRadius: 999,
-                      background: 'linear-gradient(135deg,#F5C73D,#E69E1A)',
-                      color: '#1F1A0E',
-                      boxShadow: '0 2px 8px rgba(245,199,61,0.28)',
-                    }}
+                    className="pf-pilgrim-num"
+                    style={tierVars(pilgrim.level)}
+                    aria-label={t('pack.map.levelAriaLabel', { level: pilgrim.level })}
                   >
                     {pilgrim.level}
                   </span>
-                  <span style={{ fontFamily: FONT_UI, fontSize: 13, color: T.onDarkDim }}>
-                    {t('pack.map.mstats' + pluralKey(pilgrim.count), { n: pilgrim.count, km: String(pilgrim.km) })}
+                </span>
+
+                {/* Čísla vpravo — to isté poradie ako hlavička /map a karta homepage:
+                    najprv km, potom výlety. */}
+                <span className="pf-pilgrim-stats flex items-baseline" style={{ gap: 13, minWidth: 0 }}>
+                  <span><b>{pilgrim.km}</b><i>{t('pack.map.statKm')}</i></span>
+                  <span>
+                    <b>{pilgrim.count}</b>
+                    <i>{t('pack.map.statTrips' + pluralKey(pilgrim.count))}</i>
                   </span>
                 </span>
-                {/* Text pri šípke — bez neho riadok nepovie, kam vedie. */}
-                <span className="flex items-center shrink-0" style={{ gap: 4 }}>
-                  <span className="hidden sm:inline" style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: T.accentGold }}>
+
+                {/* Šípka nesie „vedie to inam". Text pri nej sa na mobile skrýva — riadok už
+                    aj tak nesie dve čísla a nadpis by ho zlomil. */}
+                <span className="flex items-center shrink-0" style={{ gap: 3 }}>
+                  <span className="hidden sm:inline" style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.inkDim }}>
                     {tx('pack.profile.pilgrimCta', 'Hiking profile')}
                   </span>
-                  <ChevronRight className="h-5 w-5" style={{ color: T.accentGold }} />
+                  <ChevronRight className="h-4 w-4" style={{ color: T.cardEdge }} />
                 </span>
               </Link>
             </Column>
@@ -1109,10 +1157,9 @@ function LifestyleSelect<V extends string>({
     <select
       value={value ?? ''}
       onChange={(e) => onChange(e.target.value ? (e.target.value as V) : undefined)}
-      className="pf-field"
+      className="pf-field pf-selpad"
       style={{
         borderRadius: 999,
-        padding: '4px 8px',
         fontFamily: "'Space Grotesk', sans-serif",
         fontSize: 11,
         color: value ? T.ink : T.inkFaint,
@@ -1428,37 +1475,48 @@ function NationalitySelect({ value, onChange }: { value: string; onChange: (v: s
   const { lang } = useLang();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
   const { frequent, rest } = countryOptions(lang);
-  const selected = value?.toUpperCase() === COUNTRY_OTHER
-    ? COUNTRY_OTHER
-    : (normalizeCountryValue(value) ?? '');
+  const isOther = value?.toUpperCase() === COUNTRY_OTHER;
+  const iso2 = isOther ? null : normalizeCountryValue(value);
+  const selected = isOther ? COUNTRY_OTHER : (iso2 ?? '');
   return (
-    <select
-      value={selected}
-      onChange={(e) => onChange(e.target.value)}
-      className="pf-field"
-      aria-label={tx('pack.profile.countryAria', 'Country')}
+    <span
+      className="pf-field pf-selchip inline-flex items-center gap-1.5"
       style={{
         borderRadius: 999,
-        padding: '4px 6px',
+        padding: '4px 12px 4px 10px',
         fontFamily: "'Space Grotesk', sans-serif",
         fontSize: 11,
         color: T.ink,
         cursor: 'pointer',
-        maxWidth: 200,
       }}
     >
-      <optgroup label={tx('pack.profile.countryFrequent', 'Nearby')}>
-        {frequent.map((o) => (
-          <option key={o.value} value={o.value}>{o.flag} {o.label}</option>
-        ))}
-      </optgroup>
-      <optgroup label={tx('pack.profile.countryAll', 'All countries')}>
-        {rest.map((o) => (
-          <option key={o.value} value={o.value}>{o.flag} {o.label}</option>
-        ))}
-        <option value={COUNTRY_OTHER}>🏳️ {tx('pack.profile.countryOther', 'Other')}</option>
-      </optgroup>
-    </select>
+      <span aria-hidden style={{ fontSize: 13, lineHeight: 1 }}>
+        {iso2 ? flagEmojiFromISO2(iso2) : '\u{1F3F3}\uFE0F'}
+      </span>
+      <span style={{ fontWeight: 600, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
+        {iso2 ? iso2ToISO3(iso2) : tx('pack.profile.countryOtherShort', 'N/A')}
+      </span>
+      <ChevronDown aria-hidden className="h-3 w-3 shrink-0" style={{ color: T.inkDim }} />
+      {/* Natívny <select> leží priehľadný nad celým chipom — zoznam ostáva systémový
+          (na mobile je to picker, ktorý človek pozná), viditeľný tvar je náš. */}
+      <select
+        value={selected}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label={tx('pack.profile.countryAria', 'Country')}
+      >
+        <optgroup label={tx('pack.profile.countryFrequent', 'Nearby')}>
+          {frequent.map((o) => (
+            <option key={o.value} value={o.value}>{o.flag} {o.label}</option>
+          ))}
+        </optgroup>
+        <optgroup label={tx('pack.profile.countryAll', 'All countries')}>
+          {rest.map((o) => (
+            <option key={o.value} value={o.value}>{o.flag} {o.label}</option>
+          ))}
+          <option value={COUNTRY_OTHER}>{'\u{1F3F3}\uFE0F'} {tx('pack.profile.countryOther', 'Other')}</option>
+        </optgroup>
+      </select>
+    </span>
   );
 }
 
@@ -1477,10 +1535,9 @@ function StatusSelect({
     <select
       value={value ?? ''}
       onChange={(e) => onChange(e.target.value ? (e.target.value as RelationshipStatus) : undefined)}
-      className="pf-field"
+      className="pf-field pf-selpad"
       style={{
         borderRadius: 999,
-        padding: '4px 8px',
         fontFamily: "'Space Grotesk', sans-serif",
         fontSize: 11,
         color: value ? T.ink : T.inkFaint,
