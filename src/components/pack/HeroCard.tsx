@@ -1,14 +1,16 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import type { CSSProperties, FormEvent, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { X } from 'lucide-react';
 // Brandové hand-drawn ikonky namiesto lucide (audit 12.8., nasadené 13.8.). `X` ostáva
 // lucide zámerne — systémový ovládač zavretia, brand glyf by tam pridal len šum.
-import { HandLink, HandPaw, HandPencil, HandPlus } from './HandIcons';
+import { HandHouseHeart, HandLink, HandPaw, HandPencil, HandPlus } from './HandIcons';
 import { INVITE_ANCHOR_ID } from './FounderInvite';
 import { BrandIcon } from './BrandIcon';
 import { GOLD_BLOCK_CSS, LAPIS, LAPIS_BTN_SHADOW } from './navGoldSkin';
 import { BonesCoin } from './BonesCoin';
-import { PACK_BOX, PACK_THEME, FONT_TITLE, FONT_UI, PILL_CSS } from './packTheme';
+import { PACK_BOX, PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, PILL_CSS } from './packTheme';
+import { saveHuman } from './profile/packProfile';
 import { PackNotifications } from './PackNotifications';
 import { WIZ } from './wizAnchors';
 import { DEV_FULL } from '@/lib/packFlags';
@@ -190,6 +192,10 @@ type PopKey = 'pawtner' | 'level' | 'bones' | 'devotion';
 export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, devotion = 100, bones = 0, stats = null, dogs = null, packName = null }: HeroCardProps) {
   const t = useT();
   const [pop, setPop] = useState<PopKey | null>(null);
+  // „+" už nevedie priamo do heroglyf flow — otvára popup, ktorý sa pýta ČO sa pridáva
+  // (Matej 12. 9. 2026: „tlačítko + otvorí popup"). Vlastný stav, nie ďalší `PopKey`:
+  // `HeroPopup` je vysvetľovač pilulky (eyebrow + text), toto je rázcestie s dverami.
+  const [addOpen, setAddOpen] = useState(false);
 
   const displayName = name;
   const initial = displayName?.[0]?.toUpperCase() || email?.[0]?.toUpperCase() || 'D';
@@ -360,7 +366,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
             celý blok, dva rovnaké spotlighty za sebou by nič nepovedali. */}
         {/* RÁM SVORKY — obopína [majiteľ + psy]. Podrobnosti pri `PackNameRow`. */}
         <div className="w-full hc-packframe" style={PACK_BOX.subblock}>
-          {!emptyPack && <PackNameRow label={packLabel} />}
+          {!emptyPack && <PackNameRow label={packLabel} onAdd={() => setAddOpen(true)} />}
         <div ref={rowRef} id={WIZ.dogsRow} className="w-full">
           {innerW > 0 && (
             <>
@@ -392,7 +398,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
             </>
           )}
         </div>
-          {emptyPack && <EmptyPackCta />}
+          {emptyPack && <EmptyPackCta onAdd={() => setAddOpen(true)} />}
         </div>
 
         {/* Badge riadok — STATUS (Pawtner) + BONES. Každý = tlačidlo s popupom.
@@ -489,6 +495,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
       </div>
 
       {pop && <HeroPopup which={pop} bones={bones} level={t('pack.ladder.' + lv.key)} levelIndex={lv.index} onClose={() => setPop(null)} />}
+      {addOpen && <AddPopup packName={packLabel} onClose={() => setAddOpen(false)} />}
     </section>
   );
 }
@@ -702,9 +709,8 @@ function DogSlot({ dog, size, boxH, gap }: { dog: HeroDog; size: number; boxH: n
 // a rám nad ním ho zopakoval; čítalo sa to ako preklep).
 // ⚠️ Prázdna medzera vľavo drží meno v OPTICKOM strede rámu. Bez nej by ho „+" vytlačil
 // doľava a centrovanie pod ním (rad avatarov) by sa s menovkou rozišlo.
-function PackNameRow({ label }: { label: string }) {
+function PackNameRow({ label, onAdd }: { label: string; onAdd: () => void }) {
   const t = useT();
-  const resetFlow = useDogyptStore((s) => s.reset);
   return (
     <>
       <div className="flex items-center" style={{ gap: 8 }}>
@@ -730,12 +736,16 @@ function PackNameRow({ label }: { label: string }) {
         >
           {label}
         </div>
-        {/* Lapis, nie zlato — pridanie psa je MOJA AKCIA, nie nábytok (brand lock 28. 8.).
+        {/* Lapis, nie zlato — pridanie je MOJA AKCIA, nie nábytok (brand lock 28. 8.).
             Výplň ostáva papyrusová: tmavý tint nad pieskom zošedne a prázdny krúžok by
-            potom vážil viac než fotky psov pod ním. */}
-        <Link
-          to="/heroglyph/photo"
-          onClick={resetFlow}
+            potom vážil viac než fotky psov pod ním.
+            ⚠️ NIE JE TO ODKAZ (12. 9. 2026). Dovtedy viedol rovno na `/heroglyph/photo`,
+            teda tvrdil, že „pridať" znamená vždy psa. Odkedy sa dá pridať aj svorka, je
+            to OTÁZKA — preto `<button>`, ktorý otvorí rázcestie. To isté platí pre
+            `EmptyPackCta`; dva rôzne ciele pre ten istý „+" by boli bug, nie dizajn. */}
+        <button
+          type="button"
+          onClick={onAdd}
           aria-label={t('pack.tree.addDog')}
           title={t('pack.tree.addDog')}
           className="flex items-center justify-center shrink-0"
@@ -746,11 +756,12 @@ function PackNameRow({ label }: { label: string }) {
             border: `2px dashed ${LAPIS.edge}`,
             background: T.tileBg,
             color: LAPIS.edge,
-            textDecoration: 'none',
+            cursor: 'pointer',
+            padding: 0,
           }}
         >
           <HandPlus size={13} />
-        </Link>
+        </button>
       </div>
       {/* Deliaca čiara = `T.rule` (zlatá, vyblednutá do strán) — NIE šedý hairline. */}
       <div aria-hidden style={{ height: 2, background: T.rule, margin: '8px auto 14px', maxWidth: 280 }} />
@@ -762,15 +773,16 @@ function PackNameRow({ label }: { label: string }) {
 // Bez psa je blok 1 len tvár majiteľa a jedna vec, ktorú má urobiť. Malý „+" z menovkového
 // riadku sa vtedy VYPÍNA (viď `emptyPack` vyššie) — dva „+" v jednom ráme sú dve odpovede
 // na tú istú otázku.
-function EmptyPackCta() {
+function EmptyPackCta({ onAdd }: { onAdd: () => void }) {
   const t = useT();
-  const resetFlow = useDogyptStore((s) => s.reset);
   return (
-    <Link
-      to="/heroglyph/photo"
-      onClick={resetFlow}
+    <button
+      type="button"
+      onClick={onAdd}
       className="flex flex-col items-center"
-      style={{ gap: 10, paddingTop: 16, textDecoration: 'none' }}
+      /* `margin:'0 auto'` — tlačidlo je blokové dieťa rámu, takže bez toho by sedelo vľavo;
+         `<Link>` pred ním bol inline a centroval sa sám. */
+      style={{ gap: 10, paddingTop: 16, background: 'none', border: 0, cursor: 'pointer', margin: '0 auto' }}
     >
       <div
         className="flex items-center justify-center"
@@ -799,7 +811,7 @@ function EmptyPackCta() {
       >
         {t('pack.tree.addDog')}
       </div>
-    </Link>
+    </button>
   );
 }
 
@@ -932,6 +944,188 @@ function HeroPopup({
             {t('pack.hero.popBonesCta')}
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ── „+" → RÁZCESTIE: ČO PRIDÁVAM (12. 9. 2026) ───────────────────────────────
+// Matej: „tlačítko + otvorí popup (pawmate, pes, svorka)". Zadanie
+// `plany/zadanie-plus-popup-2026-09-12.md`.
+//
+// TVAR JE PREVZATÝ Z `HeroPopup` VYŠŠIE, nie vymyslený nanovo — `absolute; inset:0`
+// vnútri `<section>` karty (tá má `position:relative` + `overflow:hidden`, takže sa
+// prekrytie samo oreže na radius bloku). `createPortal` sem NEPATRÍ: zámerom je prekryť
+// TENTO blok, nie stránku (portál je pre modál cez stránku — precedens `FounderInvite`).
+//
+// ⚠️ BEZ KRÍŽIKA. `HeroPopup` ho má, ale je z 12. 8.; lock „nedávajme tie krížiky na
+// bloky" je z 28. 8. a je novší. Von sa ide klikom mimo alebo Esc.
+//
+// ⚠️ DVERE PAWMATE SA NEKRESLIA. Nie „coming soon" — pozvánka potrebuje zoznam práv
+// (R4, čaká Matejovo slovo) a tabuľky `dog_humans`/`dog_invites` (F1). Mŕtve tlačidlo je
+// presne to, čo BEH 2 odstraňuje. Tretie dvere pribudnú s F2, nie skôr.
+//
+// FARBA: nadpis = zlato/inkoust (konštrukcia), dlaždice ostávajú PAPYRUSOVÉ
+// (`PACK_BOX.row`). Lapis nesie len ikonku a potvrdenie — tri rovnaké plné plochy sú
+// zoznam, nie tri hlavné CTA, a plná farba patrí najviac jednej veci na obrazovke.
+const DOOR: CSSProperties = {
+  ...PACK_BOX.row,
+  display: 'flex',
+  alignItems: 'center',
+  gap: 12,
+  width: '100%',
+  padding: '12px 14px',
+  textAlign: 'left',
+  cursor: 'pointer',
+  textDecoration: 'none',
+};
+
+/** Tvár dverí — kruh s hand-drawn ikonkou + menovka a jednoriadkové vysvetlenie.
+ *  Ikonky sú z brandového setu (`HandIcons`), lucide je povolený len na funkčné chrome. */
+function DoorFace({ icon, label, sub }: { icon: ReactNode; label: string; sub: string }) {
+  return (
+    <>
+      <span
+        aria-hidden
+        className="flex items-center justify-center shrink-0"
+        style={{
+          width: 34, height: 34, borderRadius: '50%',
+          border: `1.5px solid ${LAPIS.edge}`, background: T.tileBg, color: LAPIS.edge,
+        }}
+      >
+        {icon}
+      </span>
+      <span style={{ minWidth: 0 }}>
+        <span style={{
+          display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12,
+          letterSpacing: '0.16em', textTransform: 'uppercase', color: T.inkStrong,
+        }}>
+          {label}
+        </span>
+        {/* Vysvetlenie = DÁTA/popis → Space Grotesk (typo lock: Cinzel = identita). */}
+        <span style={{
+          display: 'block', fontFamily: FONT_UI, fontSize: 11.5, lineHeight: 1.4,
+          color: T.inkWarm, marginTop: 2,
+        }}>
+          {sub}
+        </span>
+      </span>
+    </>
+  );
+}
+
+function AddPopup({ packName, onClose }: { packName: string; onClose: () => void }) {
+  const t = useT();
+  // ⚠️ RESET STORU SA NESMIE VYNECHAŤ — bez neho zdedí druhý pes dáta prvého.
+  const resetFlow = useDogyptStore((s) => s.reset);
+  // Dvere SVORKA sa rozbaľujú NA MIESTE (zoznam ostáva stáť), nie ako druhá obrazovka —
+  // inak by popup potreboval šípku späť, teda ďalší ovládač na bloku, ktorý ich nemá mať.
+  const [nameOpen, setNameOpen] = useState(false);
+  const [draft, setDraft] = useState(packName);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  // Jediný zdroj pravdy je `pack_profiles.human.packName` — to isté API, aké volá pole
+  // v `/pack/profile`. `saveHuman` ohlási zmenu (`emitChange`), takže `useProfile()`
+  // v `Pack.tsx` prekreslí menovku na ráme bez reloadu.
+  const saveName = async (e: FormEvent) => {
+    e.preventDefault();
+    if (saving) return;
+    setSaving(true);
+    try {
+      await saveHuman({ packName: draft.trim() || undefined });
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={t('pack.add.title')}
+      onClick={onClose}
+      style={{
+        position: 'absolute', inset: 0, zIndex: 20,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '26px 24px', overflowY: 'auto',
+        background: T.panelGrad,
+      }}
+    >
+      <style>{PF_FIELD_CSS}</style>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ position: 'relative', width: '100%', maxWidth: 360 }}
+      >
+        <h3 style={{
+          fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 15, letterSpacing: '0.16em',
+          textTransform: 'uppercase', color: T.inkStrong, textAlign: 'center', margin: '0 0 14px',
+        }}>
+          {t('pack.add.title')}
+        </h3>
+
+        <div className="flex flex-col" style={{ gap: 10 }}>
+          {/* DVERE PES — heroglyf flow. Reset storu je na `onClick`, nie na cieľovej
+              obrazovke: tá o tom, odkiaľ sa prišlo, nič nevie. */}
+          <Link to="/heroglyph/photo" onClick={resetFlow} style={DOOR}>
+            <DoorFace icon={<HandPaw size={18} />} label={t('pack.add.dog')} sub={t('pack.add.dogSub')} />
+          </Link>
+
+          {/* DVERE SVORKA — pomenovanie domácnosti (svorka 1. typu JE ten človek, preto
+              meno sedí v jeho profile a nie vo vlastnej tabuľke). */}
+          <div style={{ ...PACK_BOX.row, overflow: 'hidden' }}>
+            <button
+              type="button"
+              onClick={() => setNameOpen((v) => !v)}
+              aria-expanded={nameOpen}
+              style={{ ...DOOR, background: 'none', border: 0, borderRadius: 0 }}
+            >
+              <DoorFace icon={<HandHouseHeart size={18} />} label={t('pack.add.pack')} sub={t('pack.add.packSub')} />
+            </button>
+
+            {nameOpen && (
+              <form onSubmit={saveName} style={{ padding: '0 14px 12px', display: 'flex', gap: 8 }}>
+                {/* `.pf-field--flat` = plochá papyrusová výplň — ten istý primitív, na akom
+                    stojí pole mena svorky v `/pack/profile`. Zaostrenie svieti lapisom. */}
+                <input
+                  className="pf-field pf-field--flat"
+                  autoFocus
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  placeholder={t('pack.profile.packNamePlaceholder')}
+                  aria-label={t('pack.add.pack')}
+                  maxLength={40}
+                  style={{
+                    flex: 1, minWidth: 0, borderRadius: 8, padding: '8px 12px',
+                    color: T.ink, fontFamily: FONT_UI, fontSize: 13,
+                  }}
+                />
+                {/* Jediné plné lapisové CTA na prekrytí. Geometriu berie z locku `.btn-gold`
+                    (radius 8, NIE pilulka) — lapis mení výplň, nie tvar. */}
+                <button
+                  type="submit"
+                  disabled={saving}
+                  style={{
+                    flexShrink: 0, padding: '9px 14px', borderRadius: 8, cursor: 'pointer',
+                    background: LAPIS.grad, border: '1px solid rgba(250,244,236,0.30)',
+                    color: LAPIS.ink, boxShadow: LAPIS_BTN_SHADOW,
+                    fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 11,
+                    letterSpacing: '0.14em', textTransform: 'uppercase',
+                    opacity: saving ? 0.6 : 1,
+                  }}
+                >
+                  {t('pack.add.packSave')}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

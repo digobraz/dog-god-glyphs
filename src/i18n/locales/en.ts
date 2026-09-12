@@ -1485,6 +1485,14 @@ export const en = {
   'pack.gateway.ainubis.lead': "A virtual member of your pack. An AI helper that knows your dogs and gives advice made for them.",
   'pack.gateway.comingSoon': "Full version coming soon",
   'pack.tree.addDog': "Add",
+  // Rázcestie po kliku na „+" v bloku 1 (components/pack/HeroCard.tsx → AddPopup).
+  // Dvere PAWMATE tu ZÁMERNE nie sú — kreslia sa až s pozvánkou (F2), mŕtve tlačidlo nie.
+  'pack.add.title': "Add",
+  'pack.add.dog': "Dog",
+  'pack.add.dogSub': "A heroglyph for another dog",
+  'pack.add.pack': "Pack",
+  'pack.add.packSub': "Name your household",
+  'pack.add.packSave': "Save",
   'pack.tree.addHumanMember': "Add human member",
   'pack.tree.addHumanMemberTooltip': "Coming soon — invite one human member",
   'pack.tree.emptyState': "No heroglyphs yet",
