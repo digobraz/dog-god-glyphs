@@ -7,7 +7,8 @@ import { HandLink, HandPaw, HandPencil, HandPlus } from './HandIcons';
 import { INVITE_ANCHOR_ID } from './FounderInvite';
 import { BrandIcon } from './BrandIcon';
 import { GOLD_BLOCK_CSS, LAPIS } from './navGoldSkin';
-import { PACK_BOX, PACK_THEME, FONT_TITLE, FONT_UI, PILL_CSS } from './packTheme';
+import { BonesCoin } from './BonesCoin';
+import { PACK_THEME, FONT_TITLE, FONT_UI, PILL_CSS } from './packTheme';
 import { PackNotifications } from './PackNotifications';
 import { WIZ } from './wizAnchors';
 import { DEV_FULL } from '@/lib/packFlags';
@@ -24,30 +25,6 @@ const DOG_SIZE = 100;
 // Ring = náš brandový gradient `--brand-gradient` (egyptská modrá → čierna → zlatá;
 // do 2026-06-15 bol fialový, odtiaľ staré „fialovo-zlatý" v komentároch)
 const STORY_RING = 'var(--brand-gradient)';
-
-// ── RÁM SVORKY (F0b, 12. 9. 2026) ────────────────────────────────────────────
-// Matej: „dve fotky majitel/pes budu vo farebnom ramiku s možnosťou zvoliť meno
-// svorky ako sa budu zobrazovať". Rám NIE JE farebný — R10 (zadanie
-// `plany/zadanie-clenovia-svorky-2026-09-12.md`, §7b): hierarchiu kreslí HĹBKA,
-// nie farba. Lapis, fialová aj tyrkysová sú v brande rozdané.
-//
-// 🔴 A NIE JE ANI ZLATÝ DBLOK (Matej 12. 9., prvý pokus vrátený: „nemože byť dblok
-// v dbloku"). Zadanie počítalo s tým, že vonkajší zlatý rám je až SPOJENÁ svorka
-// (vlna B) — lenže blok 1 zlatý rám UŽ MÁ od 11. 9. (`.pk-goldblock`), takže
-// `goldFrameCSS()` vnútri neho je ten istý odliatok dvakrát nad sebou a hierarchia
-// zmizne. Správna úroveň je **PODBLOK z matrice** (`PACK_BOX.subblock`) — presne to,
-// čo brand definuje ako sekciu VNÚTRI karty: papyrusový gradient, 1px zlatý okraj,
-// radius 12. Vlastné čísla sem nepíš, ber ich z matrice.
-//
-// ⚠️ Rám a menovka UBERAJÚ ŠÍRKU pyramíde. Nie je to problém: `rowRef` sedí VNÚTRI
-// rámu, takže `planRow()` dostane už zúženú šírku a prepočíta sa sám — nič sa nemeria
-// po tom, čo sa niečo nastavilo (tá istá pasca ako v psom bloku). Vodorovné odsadenie
-// je preto na mobile menšie: pri 390 px je rovnica na hrane (majiteľ + pes + „+" =
-// 280 px) a každý pixel, čo si rám vezme, chýba zámku „všetci psi viditeľní VŽDY".
-const PACK_FRAME_CSS = `
-.hc-packframe{padding:12px 8px 14px;}
-@media(min-width:480px){.hc-packframe{padding:14px 16px 18px;}}
-`;
 
 // ── PYRAMÍDA SVORKY (Matej 2026-08-09, po klikacom nákrese) ──────────────────
 // Rad avatarov NIE JE `flex-wrap` — ten sa pri 5+ psoch lámal náhodne. Rozloženie
@@ -170,23 +147,16 @@ interface HeroCardProps {
   stats?: { last24h: number; last30d: number; total: number } | null;
   /** Svorka vedľa majiteľa. `null` = ešte sa načítava (rad sa nevykreslí, aby neblikol „+"). */
   dogs?: HeroDog[] | null;
-  /** Meno svorky na ráme (`pack_profiles.human.packName`). Prázdne = krstné meno majiteľa. */
-  packName?: string | null;
 }
 
 type PopKey = 'pawtner' | 'level' | 'bones' | 'devotion';
 
-export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, devotion = 100, bones = 0, stats = null, dogs = null, packName = null }: HeroCardProps) {
+export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, devotion = 100, bones = 0, stats = null, dogs = null }: HeroCardProps) {
   const t = useT();
   const [pop, setPop] = useState<PopKey | null>(null);
 
   const displayName = name;
   const initial = displayName?.[0]?.toUpperCase() || email?.[0]?.toUpperCase() || 'D';
-  // Meno svorky. ⚠️ Prázdne pole = ŽIADNA MENOVKA (Matej 12. 9. 2026, po prvom pokuse).
-  // Východisko „krstné meno" zo zadania na obrazovke nefunguje: meno majiteľa už stojí
-  // pod jeho avatarom, takže rám nad ním zopakoval to isté slovo a čítalo sa to ako
-  // preklep, nie ako názov domácnosti. Menovka sa objaví, až keď si ju človek zvolí.
-  const packLabel = (packName || '').trim();
   const hasAvatar = !!avatarUrl;
   const placeholderSrc = genderPlaceholder ? `/images/avatars/pharaoh-${genderPlaceholder}.png` : null;
 
@@ -241,7 +211,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
         flexDirection: 'column',
       }}
     >
-      <style>{GOLD_BLOCK_CSS + PACK_FRAME_CSS}</style>
+      <style>{GOLD_BLOCK_CSS}</style>
       {/* corner ornament */}
       <div
         aria-hidden
@@ -342,39 +312,6 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
         {/* `WIZ.dogsRow` — sem svieti druhý krok prehliadky (AInubis: „poď so mnou do
             svorky"). Kotva sedí na RADE, nie na celej karte: prvý krok už zvýrazňuje
             celý blok, dva rovnaké spotlighty za sebou by nič nepovedali. */}
-        {/* RÁM SVORKY — obopína [majiteľ + psy + „+"]. „+" ostáva VNÚTRI rámu zámerne
-            (Matej: „ak ktokolvek prida psa prida sa najprv do svojej svorky 1. typu").
-            Menovka + zlatá čiara delia rám na hlavičku a telo; v1 má rám JEDEN, takže
-            je to ten najvyšší a nesie nadpis (Cinzel 700). Druhý rám a vonkajší obal
-            spojenej svorky prídu s vlnou B — vtedy vnútorné menovky klesnú na eyebrow. */}
-        <div className="w-full hc-packframe" style={PACK_BOX.subblock}>
-          {packLabel && (
-            <>
-              <div
-                style={{
-                  fontFamily: FONT_TITLE,
-                  fontWeight: 700,
-                  fontSize: 13,
-                  letterSpacing: '0.20em',
-                  textTransform: 'uppercase',
-                  color: T.inkStrong,
-                  lineHeight: 1.25,
-                  /* Dlhé meno sa nezalomí na tri riadky — ukrojí sa. Rám má na mobile
-                     ~270 px a menovka nie je nadpis stránky. */
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {packLabel}
-              </div>
-              {/* Deliaca čiara = `T.rule` (zlatá, vyblednutá do strán) — NIE šedý hairline. */}
-              <div
-                aria-hidden
-                style={{ height: 2, background: T.rule, margin: '8px auto 14px', maxWidth: 280 }}
-              />
-            </>
-          )}
         <div ref={rowRef} id={WIZ.dogsRow} className="w-full">
           {innerW > 0 && (
             <>
@@ -410,7 +347,6 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
                 ))}
             </>
           )}
-        </div>
         </div>
 
         {/* Badge riadok — STATUS (Pawtner) + BONES. Každý = tlačidlo s popupom.
@@ -460,18 +396,10 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
             className="pk-pill pk-pill--tap w-full"
             aria-label={`${bones} BONES`}
           >
-            <span
-              aria-hidden
-              style={{
-                width: 17, height: 17, borderRadius: '50%', flexShrink: 0,
-                background: 'radial-gradient(circle at 35% 30%, #F7DD92 0%, #C99A3F 68%, #9A742B 100%)',
-                border: '1px solid rgba(120,90,30,0.7)',
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.55), 0 1px 3px rgba(0,0,0,0.2)',
-              }}
-            >
-              <BrandIcon name="bone" size={9} tint="dark" />
-            </span>
+            {/* Minca má JEDEN zdroj — `BonesCoin` (locked 12. 9. 2026). Opísaná bola v troch
+                súboroch a kópie sa už rozišli; tento tvar bol ten „správny", takže ho komponent
+                prevzal. Veľkosť `s` = 17 px, presne ako tu stálo. */}
+            <BonesCoin size="s" />
             {/* Číslo = DÁTA → Space Grotesk (typo lock: Cinzel = identita, Grotesk = čísla).
                 ⚠️ Váha STROP 600 — Grotesk je načítaný len v 300–600, 700 by bol fake bold. */}
             <span style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: '0.02em' }}>
