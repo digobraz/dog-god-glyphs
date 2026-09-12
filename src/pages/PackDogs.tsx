@@ -1122,8 +1122,13 @@ function Pill({ children, dashed = false, mono = false, solid = false }: {
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5,
         borderRadius: 999, textAlign: 'center',
         background: bg,
+        // ⚠️ `border:'none'` SAMO NESTAČÍ — nasledujúci `borderStyle` ho prebije a z lemu
+        // ostane `medium solid currentColor`, teda 3 px vo farbe TEXTU. Na zlatej pilulke
+        // to bola tmavá hnedá na zlatej a nikto si to nevšimol; na lapise je to zlatý ring
+        // a Matej ho videl hneď (12. 9. 2026: „tam kde sú dni, prečo taký hrubý rámik? daj
+        // ho preč, bez rámiku bude pils"). Preto sa `borderStyle` vetví tiež.
         border: solid ? 'none' : `1px solid ${dashed ? 'rgba(179,130,45,0.6)' : T.border}`,
-        borderStyle: dashed ? 'dashed' : 'solid',
+        borderStyle: solid ? 'none' : (dashed ? 'dashed' : 'solid'),
         fontFamily: mono ? "'JetBrains Mono', ui-monospace, monospace" : FONT_TITLE,
         fontWeight: 700,
         textTransform: solid ? 'none' : 'uppercase',
@@ -1382,9 +1387,15 @@ function ActionTile({
         style={{
           display: 'inline-block', marginTop: 8, fontFamily: FONT_UI, fontSize: 9.5,
           letterSpacing: '0.1em', textTransform: 'uppercase', borderRadius: 999, padding: '3px 9px',
-          background: filledPill ? 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)' : 'rgba(201,154,63,0.16)',
-          border: `1px solid ${filledPill ? '#E69E1A' : 'rgba(179,130,45,0.5)'}`,
-          color: filledPill ? '#241a06' : T.inkWarm,
+          // HOTOVO = ZELENÁ (Matej 12. 9. 2026: „pri tých 6 blokoch… sú opäť oranžové pils,
+          // daj ich zelenou ak sú hotové"). Zelená znamená v brande SPLNENÉ a tú istú nesie
+          // pilulka percenta v psom bloku (`.dogblk-fill.is-done`, #3D7A4E) — je to teda ten
+          // istý údaj v tej istej farbe na dvoch miestach, nie nová farba.
+          // Nehotový stav ostáva tichý zlatý tint: „ešte nie" nie je chyba, takže červená
+          // by tu klamala — tá patrí percentu, ktoré hovorí o CELOM doklade.
+          background: filledPill ? '#3D7A4E' : 'rgba(201,154,63,0.16)',
+          border: `1px solid ${filledPill ? '#2F5F3D' : 'rgba(179,130,45,0.5)'}`,
+          color: filledPill ? '#EAF7ED' : T.inkWarm,
         }}
       >
         {pill}
