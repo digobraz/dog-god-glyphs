@@ -139,9 +139,14 @@ const ISO2_TO_ISO3: Record<string, string> = (() => {
   return m;
 })();
 
-/** ISO2 → ISO3 uppercase (e.g. "sk"→"SVK"). Fallback = ISO2 uppercased if unmapped. */
+/** ISO2 → ISO3 uppercase (e.g. "sk"→"SVK"). Fallback = ISO2 uppercased if unmapped.
+ *  ⚠️ Kľúče mapy sú MALÝMI písmenami (hodnoty `NAME_TO_ISO2`), takže sa vstup musí
+ *  znormalizovať — inak `iso2ToISO3('SK')` ticho spadne na fallback a vráti „SK".
+ *  Presne to robil výber krajiny v profile (12. 9. 2026): `normalizeCountryValue()`
+ *  vracia VEĽKÝMI, takže chip ukazoval „SK" namiesto „SVK" a vyzeralo to, že kód
+ *  pre Slovensko v mape chýba. */
 export function iso2ToISO3(iso2: string): string {
-  return ISO2_TO_ISO3[iso2] ?? iso2.toUpperCase();
+  return ISO2_TO_ISO3[iso2.toLowerCase()] ?? iso2.toUpperCase();
 }
 
 /** ISO2 → flagcdn PNG URL. Jediný zdroj vlajkových URL (GRID, LanguagePicker,

@@ -49,30 +49,18 @@ type Tx = (key: string, fallback: string, vars?: Record<string, string | number>
 const RED_INK = '#A04040';
 const RED_EDGE = 'rgba(160,64,64,0.45)';
 
-// PLNÁ ZLATÁ pre dlaždice BONES a LÍNIA (Matej 2026-08-12: „BONES a linia blok
-// skúsme dať zlatým plným … aby to vyniklo ešte viac"). Dovtedy to bola
-// priehľadná zlatá 22 % na papyruse — dlaždica splývala s kartou.
-// Text je TMAVÝ (Matej o kolo neskôr: „daj tam tmavé texty bledé sú nevýrazné").
+// LAPIS pre dlaždice BONES a LÍNIA (Matej 2026-09-12: „CTA daj lapis, ako aj bloky
+// Tvoje bones"). Predtým to bola plná brand zlatá `#C99A3F` (od 13. 8.), predtým
+// oranžovozlatá, predtým priehľadná zlatá — tri kolá toho istého sporu „dlaždica
+// vs. CTA sú rovnaká farba". Lapis ho zavrel: dlaždice a CTA sú síce rovnakého rodu,
+// ale zlato na nich už nesúperí s tlačidlom a plocha prestala byť žltá (lock 28. 8.:
+// zlatooranžová plocha sa číta ako AINUBIS, nie ako DOGYPT).
 //
-// ⚠️ PREFARBENÉ 13. 8. 2026 (Matej: „CTA zaniká ak sú tie bloky tej istej farby ---
-// tie by mali byť zlatej nie ,oranžovozlatej' z brandu"). Prvý deň to bolo
-// `#F7CC4A → #EFB52C → #DE9C15`, čo je ten istý ORANŽOVOZLATÝ rod ako `.btn-gold`
-// CTA (`#F5C73D → #E69E1A`) — dve najväčšie plochy karty teda kričali rovnako ako
-// tlačidlo a to sa v nich stratilo. Teraz nesú brand zlatú C·01 `#C99A3F`;
-// oranžovozlatá ostáva VÝHRADNE CTA.
-//
-// ⚠️ Farba textu a sýtosť zlatej sa menia SPOLU — a gradient NESMIE klesnúť pod
-// `#C99A3F`. Ink `#3d1f00` na nej dáva 5,9 : 1 (WCAG AA prejde), ale na tmavšom
-// `#9E6F26` už len 3,4 : 1 (padá). Preto svetlejší koniec hore a `#C99A3F` ako
-// najtmavší bod — nie naopak. Meniť jedno bez druhého = nečitateľná dlaždica.
-// `#3d1f00` je ten istý tmavý odtieň, aký nesie pilulka s dňami v `PackTree`.
-const GOLD_SOLID = 'linear-gradient(160deg, #E0BB6A 0%, #D3A950 52%, #C99A3F 100%)';
-const GOLD_SOLID_EDGE = 'rgba(250,244,236,0.42)';
-const GOLD_INK = '#3d1f00';
-// ⚠️ 0.74 → 0.86 spolu s prefarbením dlaždíc (13. 8.). Na pôvodnej svetlej zlatej
-// mal tlmený popisok dosť kontrastu; na `#C99A3F` klesol na 3,7 : 1 (AA žiada 4,5).
-// Pri 0.86 je to 4,6 : 1. Kto siahne na `GOLD_SOLID`, musí prepočítať aj toto.
-const GOLD_INK_DIM = 'rgba(61,31,0,0.86)';
+// ⚠️ Inkoust je ZLATÝ na modrom — `LAPIS.ink` (#EFD79A). Nie je to ozdoba: lapis
+// + zlato je pôvodná egyptská dvojica a bez nej je z dlaždice len tmavý obdĺžnik.
+// Tlmený popisok je tá istá farba pri 0,72 — na `#0A1A4A` to dáva 7,5 : 1 (AA s
+// rezervou). Kto stmaví gradient, musí toto číslo prepočítať.
+const LAPIS_INK_DIM = 'rgba(239,215,154,0.72)';
 
 const APP_ORIGIN = 'https://dogypt.com';
 const BONES_PER_EUR = 10;
