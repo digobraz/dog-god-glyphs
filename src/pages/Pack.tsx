@@ -14,6 +14,7 @@ import { WIZ } from '@/components/pack/wizAnchors';
 import { TripSpotlight } from '@/components/pack/TripSpotlight';
 import { PlanAskCard } from '@/components/pack/PlanAskCard';
 import { Gateways } from '@/components/pack/Gateways';
+import { useProfile } from '@/components/pack/profile/packProfile';
 import { DEV_FULL } from '@/lib/packFlags';
 import { DEV_NOAUTH, DEV_MOCK_DOGS, DEV_MOCK_USER } from '@/lib/devMockDogs';
 import { EDGE_BASE } from '@/lib/env';
@@ -103,6 +104,9 @@ export default function Pack() {
   const [dogs, setDogs] = useState<DogRow[] | null>(null);
   const [stats, setStats] = useState<PackStats | null>(null);
   const [user, setUser] = useState<UserMeta | null>(null);
+  // Meno svorky na zlatom ráme v bloku 1. Profil sa aj tak číta z vyrovnávacej pamäte,
+  // takže prvé vykreslenie nečaká na sieť a bez session (DEV_NOAUTH) beží ďalej.
+  const { profile } = useProfile();
 
   useEffect(() => {
     let mounted = true;
@@ -291,6 +295,7 @@ export default function Pack() {
                 bones={user.bones}
                 stats={stats ? { last24h: stats.last24h, last30d: stats.last30d, total: stats.total } : null}
                 dogs={dogs === null ? null : treeDogs}
+                packName={profile?.human.packName ?? null}
               />
             )}
 

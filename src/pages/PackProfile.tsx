@@ -536,11 +536,22 @@ export default function PackProfile() {
     <PackLayout wide>
       <div className="flex flex-col gap-5">
         {/* Back to Home — bottom nav is hidden on LIVE, so profile needs its own way back */}
-        {/* ⚠️ Odkaz späť stojí MIMO karty, teda na podklade STRÁNKY — a ten sa prepína
-            (`packSkin.ts`, východisko `dark`). `T.inkDim` je tmavohnedá; na čiernom
-            pozadí bola neviditeľná (Matej 2026-09-12: „na tmavom podklade nie je vidno
-            šípka naspať"). Rozhoduje ten istý hook, aký prepína celý shell — vlastná
-            podmienka by sa s ním rozišla. */}
+        {/* ── ŠÍPKA SPÄŤ JE LEN TAM, KDE NIE JE SPODNÝ NAV (2026-09-12) ─────────────
+            Matej: „ta šípka dozadu na SVORKA je zbytočná daj to preč, veď ani pri /dogs
+            nie je šípka späť, dá sa ísť preč cez spodný nav."
+            Presne tak — a `!DEV_FULL` je tá istá podmienka, len zapísaná v kóde: spodný
+            nav (`PackBottomNav`) vracia pri vypnutom flagu `null`.
+            ⚠️ PRETO SA NEMAŽE NASLEPO. `/pack/dogs` je CELÉ za `DEV_FULL` (App.tsx:313),
+            takže tam spodný nav je vždy — kým `/pack/profile` je na LIVE dostupný od
+            6. 8. 2026 (avatar v plávajúcej hlavičke naň vedie) a tam spodný nav NIE JE.
+            Plošné zmazanie by na LIVE nechalo profil bez jedinej cesty naspäť.
+            Až spodný nav pôjde na LIVE, šípka zmizne aj tam — sama, bez ďalšieho zásahu.
+
+            ⚠️ Odkaz stojí MIMO karty, teda na podklade STRÁNKY — a ten sa prepína
+            (`packSkin.ts`, východisko `dark`). `T.inkDim` je tmavohnedá a na čiernom bola
+            neviditeľná (Matej 2026-09-12: „na tmavom podklade nie je vidno šípka naspať").
+            Rozhoduje ten istý hook, aký prepína celý shell. */}
+        {!DEV_FULL && (
         <Link
           to="/pack"
           className="pf-tap inline-flex items-center gap-2"
@@ -556,6 +567,7 @@ export default function PackProfile() {
           <ArrowLeft className="h-3 w-3" />
           {tx('pack.profile.back', 'Pack')}
         </Link>
+        )}
         {/* `.pf-field`/`.pf-pill` — zdieľané s DogGallery.tsx/DogCardFields.tsx
             (psia karta), definícia žije v `packTheme.ts` (`PF_FIELD_CSS`),
             presne ako `GLASS_CSS`. Render raz na stránke. */}
@@ -705,6 +717,21 @@ export default function PackProfile() {
                   value={human?.nickname ?? ''}
                   onSave={(v) => patchHuman({ nickname: v || undefined })}
                   placeholder={tx('pack.profile.nicknamePlaceholder', 'Pack calls you')}
+                  align="left"
+                />
+              </div>
+
+              {/* MENO SVORKY — stojí na zlatom ráme v bloku 1 na `/pack` (F0b, 12. 9. 2026).
+                  Prázdne pole nie je chyba: vtedy rám nesie krstné meno. Ide o meno
+                  DOMÁCNOSTI (svorka 1. typu), nie o komunitu — tú appka od 12. 9. volá
+                  DOGYPT / Dogypťania. Ukladá sa do `pack_profiles.human.packName`,
+                  žiadna migrácia. */}
+              <div className="pf-inline">
+                <span className="pf-inline-lbl">{tx('pack.profile.packName', 'Pack name')}</span>
+                <AutoSaveTextInput
+                  value={human?.packName ?? ''}
+                  onSave={(v) => patchHuman({ packName: v || undefined })}
+                  placeholder={tx('pack.profile.packNamePlaceholder', 'Your household')}
                   align="left"
                 />
               </div>

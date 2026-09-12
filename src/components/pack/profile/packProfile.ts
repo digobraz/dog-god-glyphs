@@ -71,6 +71,10 @@ export interface HumanProfile {
   gender?: Gender;
   age?: number;
   nickname?: string;        // voliteľná prezývka (zadanie-profil-blok1-rework-2026-07-24)
+  /** Meno SVORKY — domácnosti, čo stojí v ráme na `/pack` (F0b, 12. 9. 2026).
+   *  Prázdne = krstné meno majiteľa. Žiadna migrácia: svorka 1. typu JE ten človek,
+   *  takže meno patrí k nemu a nie do vlastnej tabuľky. */
+  packName?: string;
   displayAs?: 'name' | 'nickname'; // ktorá verzia sa ukazuje navonok, default 'name'
   nationality?: string;     // country code z NATIONALITY_OPTIONS, default 'SK' (nezapisuje sa kým user nevyberie)
   relationship?: RelationshipStatus;
