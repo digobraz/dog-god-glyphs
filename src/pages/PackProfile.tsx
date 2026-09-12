@@ -7,7 +7,7 @@ import { PackLayout } from '@/components/pack/PackLayout';
 import { PackNetwork } from '@/components/pack/PackNetwork';
 import { PackSettings } from '@/components/pack/PackSettings';
 import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
-import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, FONT_TITLE, FONT_UI, usePaperRoute } from '@/components/pack/packTheme';
 import { GOLD_BLOCK_CSS } from '@/components/pack/navGoldSkin';
 import { tierVars } from '@/lib/packTiers';
 import { uploadExtraPhoto } from '@/services/cloudinaryService';
@@ -342,6 +342,9 @@ export default function PackProfile() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [searchParams] = useSearchParams();
   const location = useLocation();
+  // Šat stránky — ten istý zdroj, aký prepína shell (`PackLayout`, `RouteFallback`).
+  // Potrebuje ho VŠETKO, čo stojí mimo papyrusovej karty, teda priamo na podklade.
+  const paperPage = usePaperRoute(location.pathname);
   const { toast } = useToast();
   const { dogs, loading: dogsLoading } = usePackUser(session?.user?.id ?? null);
   // Central profile (bio/basics/pills) — read here for BLOK 1 (identity+bio card);
@@ -525,6 +528,11 @@ export default function PackProfile() {
     <PackLayout wide>
       <div className="flex flex-col gap-5">
         {/* Back to Home — bottom nav is hidden on LIVE, so profile needs its own way back */}
+        {/* ⚠️ Odkaz späť stojí MIMO karty, teda na podklade STRÁNKY — a ten sa prepína
+            (`packSkin.ts`, východisko `dark`). `T.inkDim` je tmavohnedá; na čiernom
+            pozadí bola neviditeľná (Matej 2026-09-12: „na tmavom podklade nie je vidno
+            šípka naspať"). Rozhoduje ten istý hook, aký prepína celý shell — vlastná
+            podmienka by sa s ním rozišla. */}
         <Link
           to="/pack"
           className="pf-tap inline-flex items-center gap-2"
@@ -533,7 +541,7 @@ export default function PackProfile() {
             letterSpacing: '0.22em',
             fontSize: 11,
             textTransform: 'uppercase',
-            color: T.inkDim,
+            color: paperPage ? T.inkDim : T.accentGold,
             textDecoration: 'none',
           }}
         >
@@ -648,7 +656,12 @@ export default function PackProfile() {
                 vedľa seba v `sm:grid-cols-2` a čítali sa ako dva rovnocenné údaje —
                 hlavička pôsobila ako formulár. Text v poli je zarovnaný VĽAVO:
                 pri popisku vľavo by centrovaný text plával medzi ním a okrajom. */}
-            <div className="flex-1 min-w-0">
+            {/* JEDNA MRIEŽKA na všetky tri riadky (Matej 2026-09-12: „polia by mali byť
+                rovnaké… nadpisy zarovnané napravo"). Popisky tak zdieľajú jeden stĺpec
+                širokosti NAJDLHŠIEHO z nich a polia majú zhodnú šírku aj zvislú os —
+                predtým si každý riadok počítal svoju šírku sám a PREZÝVKA (63px) si
+                ukrojila z poľa vedľa. Recept `.pf-inline-grid` žije v `packTheme.ts`. */}
+            <div className="flex-1 min-w-0 pf-inline-grid">
               <div className={`pf-inline${(human?.displayAs ?? 'name') === 'name' ? ' is-shown' : ''}`}>
                 <span className="pf-inline-lbl">{tx('pack.profile.name', 'Name')}</span>
                 <input
@@ -678,10 +691,7 @@ export default function PackProfile() {
                 />
               </div>
 
-              <div
-                className={`pf-inline${human?.displayAs === 'nickname' ? ' is-shown' : ''}`}
-                style={{ marginTop: 8 }}
-              >
+              <div className={`pf-inline${human?.displayAs === 'nickname' ? ' is-shown' : ''}`}>
                 <span className="pf-inline-lbl">{tx('pack.profile.nickname', 'Nickname')}</span>
                 <AutoSaveTextInput
                   value={human?.nickname ?? ''}
@@ -691,7 +701,7 @@ export default function PackProfile() {
                 />
               </div>
 
-              <div className="pf-inline pf-inline--toggle" style={{ marginTop: 12 }}>
+              <div className="pf-inline pf-inline--toggle">
                 <span className="pf-inline-lbl">{tx('pack.profile.showAs', 'Show as')}</span>
                 <DisplayAsToggle
                   value={human?.displayAs ?? 'name'}

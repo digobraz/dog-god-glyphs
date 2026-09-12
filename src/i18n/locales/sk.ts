@@ -3293,7 +3293,7 @@ export const sk: Partial<Dict> = {
   'pack.network.copyLinkAria': "Skopírovať pozývací odkaz",
   'pack.network.devotionWord': "oddanosť",
   'pack.network.emptyLine': "Zatiaľ nikto — prvé meno tu je začiatok tvojej línie.",
-  'pack.network.eyebrow': "Svorka rastie vďaka tebe",
+  'pack.network.eyebrow': "DOGYPT rastie vďaka tebe",
   'pack.network.generatingLink': "Generujeme tvoj odkaz…",
   'pack.network.linkFailed': "Pozývací odkaz sa nepodarilo načítať.",
   'pack.network.linkRetry': "Skúsiť znova",

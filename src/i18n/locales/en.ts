@@ -3578,7 +3578,7 @@ export const en = {
   'pack.network.copyLinkAria': "Copy invite link",
   'pack.network.devotionWord': "devotion",
   'pack.network.emptyLine': "No one yet — the first name here is the beginning of your line.",
-  'pack.network.eyebrow': "The pack grows because of you",
+  'pack.network.eyebrow': "DOGYPT grows because of you",
   'pack.network.generatingLink': "Generating your link…",
   'pack.network.linkFailed': "Could not load your invite link.",
   'pack.network.linkRetry': "Try again",

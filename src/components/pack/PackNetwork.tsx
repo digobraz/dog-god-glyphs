@@ -235,7 +235,7 @@ const rpc = supabase.rpc.bind(supabase) as unknown as LooseRpc;
 const NET_CSS = `
 @keyframes pknet-flow{from{background-position:0 0}to{background-position:46px 0}}
 @keyframes pknet-halo{0%,100%{box-shadow:0 0 0 4px rgba(201,154,63,.14)}50%{box-shadow:0 0 0 8px rgba(201,154,63,.26)}}
-@keyframes pknet-glow{0%,100%{box-shadow:0 0 0 rgba(230,158,26,0)}50%{box-shadow:0 2px 12px rgba(230,158,26,.55)}}
+@keyframes pknet-glow{0%,100%{box-shadow:0 0 0 rgba(22,48,122,0)}50%{box-shadow:0 2px 12px rgba(22,48,122,.45)}}
 .pknet-track{background:linear-gradient(90deg,rgba(201,154,63,.25) 0%,#F5C73D 45%,rgba(201,154,63,.25) 90%);
   background-size:46px 100%;animation:pknet-flow 2s linear infinite}
 .pknet-me{animation:pknet-halo 3s ease-in-out infinite}
@@ -436,7 +436,7 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
               color: T.cardEdge,
             }}
           >
-            {tx('pack.network.eyebrow', 'The pack grows because of you')}
+            {tx('pack.network.eyebrow', 'DOGYPT grows because of you')}
           </span>
           <h3
             style={{
@@ -468,27 +468,11 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
             }}
           />
         </div>
-        <button
-          type="button"
-          onClick={() => setInfo('why')}
-          aria-label={tx('pack.network.whyAria', 'Why BONES exist')}
-          className="pf-hit shrink-0"
-          style={{
-            width: 26,
-            height: 26,
-            borderRadius: '50%',
-            border: `1px solid ${T.border}`,
-            background: 'rgba(255,255,255,0.4)',
-            color: T.inkWarm,
-            fontFamily: FONT_TITLE,
-            fontWeight: 700,
-            fontSize: 12,
-            lineHeight: 1,
-            cursor: 'pointer',
-          }}
-        >
-          i
-        </button>
+        {/* Kruhové „i" v pravom hornom rohu ZRUŠENÉ (Matej 2026-09-12: „v 2. bloku zruš (i)
+            v pravom hornom rohu"). Blok po prepise textov vysvetľuje sám seba — kroky 1–3
+            aj červený „Prečo tento spôsob?" hovoria to, čo bolo schované za ikonkou.
+            `InfoPanel` ani `INFO.why` sa NEMAŽÚ: panel ďalej otvára peňaženka (variant
+            `bones`) a vrátenie tohto vstupu = jedno tlačidlo s `setInfo('why')`. */}
       </div>
 
       {/* ══ ROZDELENIE POD ÚVODNOU VETOU ══════════════════════════════════
@@ -1337,14 +1321,17 @@ function Step({
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'linear-gradient(180deg, #F5C73D, #E69E1A)',
-            border: '1px solid rgba(250,244,236,0.45)',
-            color: '#3d1f00',
+            /* LAPIS (Matej 2026-09-12: „kroky 1-3 aj +20 +10 v tých krokoch daj lapisom
+               nie zlatou"). Číslo kroku je malý plný disk, nie plocha — zlatý gradient
+               `.btn-gold` na ňom kričal rovnako ako CTA o pár riadkov nižšie. */
+            background: LAPIS.grad,
+            border: '1px solid rgba(201,154,63,0.55)',
+            color: LAPIS.ink,
             fontFamily: FONT_TITLE,
             fontWeight: 700,
             fontSize: 14,
             lineHeight: 1,
-            boxShadow: '0 3px 10px rgba(230,158,26,0.45), inset 0 1px 0 rgba(255,255,255,0.5)',
+            boxShadow: '0 3px 10px rgba(5,15,48,0.35), inset 0 1px 0 rgba(201,154,63,0.28)',
           }}
         >
           {n}
@@ -1731,8 +1718,11 @@ function Link20({ pill, small }: { pill: string; small?: boolean }) {
           fontSize: small ? 10 : 11,
           letterSpacing: '0.02em',
           whiteSpace: 'nowrap',
-          color: '#3d1f00',
-          background: 'linear-gradient(180deg, #F5C73D, #E69E1A)',
+          /* LAPIS spolu s číslami krokov (Matej 2026-09-12). Dráha pod pilulkou ostáva
+             zlatá — je to SPOJKA medzi uzlami, teda konštrukcia, nie odmena. */
+          color: LAPIS.ink,
+          background: LAPIS.grad,
+          border: '1px solid rgba(201,154,63,0.55)',
           borderRadius: 999,
           padding: '2px 8px',
         }}

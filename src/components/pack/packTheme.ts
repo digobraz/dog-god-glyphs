@@ -469,6 +469,32 @@ export const PF_FIELD_CSS = `
    zmenšiť input a riadok pretečie z karty.
    POZOR: tento súbor je JS template literal — spätný apostrof v CSS komentári
    ho ukončí a build padne. */
+/* ── JEDNA MRIEŽKA NA VŠETKY TRI RIADKY (2026-09-12) ──────────────────────────
+   Matej: „na PC je zobraziť (pod prezývka) dobre pod seba ale na mobile to tak nie je
+   + nie je to zarovnané dobre na mobile = polia by mali byť rovnake - textarea ale
+   nadpisy by mali byť zarovnané napravo."
+   PREČO SA TO ROZCHÁDZALO: každý riadok bol samostatný flex a popisok mal
+   flex-basis 52px pri mobile — lenže flex-shrink je 0 a min-width auto, takže dlhší
+   popisok (PREZÝVKA 63px) svoju bunku ROZTIAHOL a pole vedľa neho sa o tých 11px
+   zúžilo. Tri riadky mali tri rôzne šírky polí a tri rôzne zvislé osi.
+   Riešenie je jedna mriežka pre všetky riadky: prvý stĺpec max-content (teda šírka
+   NAJDLHŠIEHO popisku, nech je jazyk aký chce), druhý 1fr. Riadky sú
+   display:contents, takže do mriežky prispievajú priamo svojím popiskom a poľom.
+   Pevné číslo v px by sa rozišlo pri prvom preklade (DE SPITZNAME, PL PSEUDONIM). */
+.pf-inline-grid{
+  display:grid;
+  grid-template-columns:minmax(0,max-content) minmax(0,1fr);
+  column-gap:10px;
+  row-gap:8px;
+  align-items:center;
+}
+.pf-inline-grid > .pf-inline{ display:contents; }
+/* Prepínač má nad sebou o kúsok viac vzduchu než majú polia medzi sebou — je to iný
+   druh ovládača, nie tretie pole. Robí sa to na jeho DVOCH bunkách, nie na riadku:
+   display:contents žiadny box nemá, takze margin na nom by sa zahodil. */
+.pf-inline-grid > .pf-inline--toggle > *{ margin-top:4px; }
+
+/* Mimo mriežky (zdieľané povrchy, ktoré ju ešte nemajú) ostáva riadok flexom. */
 .pf-inline{ display:flex; align-items:center; gap:10px; }
 .pf-inline > :not(.pf-inline-lbl){ flex:1 1 auto; min-width:0; }
 .pf-inline-lbl{
@@ -483,6 +509,7 @@ export const PF_FIELD_CSS = `
 @media (max-width:640px){
   .pf-inline{ gap:8px; }
   .pf-inline-lbl{ flex-basis:52px; letter-spacing:0.14em; }
+  .pf-inline-grid{ column-gap:8px; }
 }
 
 /* Pole, ktoré svorka reálne vidí (Matej 2026-08-12: „zvýraznil by som rámik
@@ -537,6 +564,10 @@ export const PF_FIELD_CSS = `
   width: max-content;
   max-width: 100%;
 }
+/* V mriežke to isté pravidlo inak: bunka je 1fr, takže bez justify-self by sa dráha
+   natiahla až po koniec poľa nad sebou — a to Matej 13. 8. výslovne zamietol
+   („tú pils okolo tú nezarovnaj až po koniec textarea nad ňou"). */
+.pf-inline-grid > .pf-inline > .pf-toggle{ width:max-content; max-width:100%; justify-self:start; }
 /* Možnosti prepínača sú v CSS, NIE inline — inline štýl by media query nižšie prebil
    a na mobile by sa nedalo zmenšiť to, čo je zapísané v style={{}}. */
 .pf-toggle__opt{
@@ -570,13 +601,19 @@ export const PF_FIELD_CSS = `
   /* min-height drží klikací cieľ (audit B1) — prepínač bol 22px, čo je polovica prsta.
      38px na možnosti + 3px padding dráhy = celý prepínač má 44px. */
   .pf-toggle__opt{ padding: 6px 12px; font-size: 10.5px; letter-spacing: 0.08em; min-height: 38px; }
-  /* Popisok ide NAD prepínač. Pri 360px sa „ZOBRAZIŤ" a obe možnosti do jedného riadku
-     nezmestia a max-width:100% dráhu oreže — text PREZÝVKA potom trčí von z rámu
-     (možnosti majú nowrap, takže sa nezmenšia). Zalomením dostane prepínač celý
-     riadok a orezávať netreba. Týka sa LEN riadku s prepínačom, ostatné polia
-     zostávajú vedľa popisku. */
-  .pf-inline--toggle{ flex-wrap: wrap; row-gap: 6px; }
-  .pf-inline--toggle > .pf-inline-lbl{ flex: 0 0 100%; text-align: left; }
+}
+/* ⚠️ PRAH ZALOMENIA JE 459px, NIE 720px (opravené 2026-09-12).
+   Prepínač je 160px široký a popisok si berie ~63px; vedľa avatara (clamp 88–148px)
+   sa dvojica zmestí do stĺpca s menami až od ~455px šírky okna. Pôvodných 720px bolo
+   o 260px príliš veľa, takže sa riadok lámal aj tam, kde na to nebol dôvod — vrátane
+   Matejovho ~500px okna, kde to práve vyzeralo „nie ako na PC".
+   Popisok pritom ostáva ZAROVNANÝ VPRAVO (Matej 2026-09-12) — vľavo bol jediný
+   popisok v hlavičke, ktorý nestál na zvislej osi tých ostatných, a presne to
+   z riadku robilo cudzí prvok. Pod prahom ide popisok aj prepínač na plnú šírku
+   a oba k pravému okraju, teda k tej istej hrane, na ktorej končia polia nad nimi. */
+@media (max-width:459px){
+  .pf-inline-grid > .pf-inline--toggle > .pf-inline-lbl{ grid-column:1 / -1; text-align:right; }
+  .pf-inline-grid > .pf-inline--toggle > .pf-toggle{ grid-column:1 / -1; justify-self:end; margin-top:0; }
 }
 
 /* ── VÝBER KRAJINY: ÚZKY CHIP + NATÍVNY ZOZNAM (2026-09-12) ───────────────────
