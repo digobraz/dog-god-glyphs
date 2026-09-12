@@ -1141,7 +1141,7 @@ export const nld: Partial<Dict> = {
   "pack.tree.noPhoto": "GEEN FOTO",
   "pack.tree.openDogProfileTitle": "Open hondenprofiel — certificaten, PDF's, foto's",
   "pack.tree.openDogProfileAriaLabel": "Open hondenprofiel",
-  "pack.tree.addDog": "Hond toevoegen",
+  "pack.tree.addDog": "Toevoegen",
   "pack.tree.addHumanMember": "Menselijk lid toevoegen",
   "pack.tree.addHumanMemberTooltip": "Binnenkort beschikbaar — nodig één menselijk lid uit",
   "pack.tree.ownerAvatarAlt": "eigenaar",

@@ -1138,7 +1138,7 @@ export const jpn: Partial<Dict> = {
   "pack.tree.noPhoto": "写真なし",
   "pack.tree.openDogProfileTitle": "犬のプロフィールを開く — 証明書、PDF、写真",
   "pack.tree.openDogProfileAriaLabel": "犬のプロフィールを開く",
-  "pack.tree.addDog": "犬を追加",
+  "pack.tree.addDog": "追加",
   "pack.tree.addHumanMember": "人間のメンバーを追加",
   "pack.tree.addHumanMemberTooltip": "近日公開 — 人間のメンバーをひとり招待",
   "pack.tree.ownerAvatarAlt": "飼い主",

@@ -1142,7 +1142,7 @@ export const ind: Partial<Dict> = {
   "pack.tree.noPhoto": "कोई फ़ोटो नहीं",
   "pack.tree.openDogProfileTitle": "कुत्ते की प्रोफ़ाइल खोलें — प्रमाणपत्र, PDF, फ़ोटो",
   "pack.tree.openDogProfileAriaLabel": "कुत्ते की प्रोफ़ाइल खोलें",
-  "pack.tree.addDog": "कुत्ता जोड़ें",
+  "pack.tree.addDog": "जोड़ें",
   "pack.tree.addHumanMember": "मानव सदस्य जोड़ें",
   "pack.tree.addHumanMemberTooltip": "जल्द आ रहा है — एक मानव सदस्य को आमंत्रित करें",
   "pack.tree.ownerAvatarAlt": "मालिक",

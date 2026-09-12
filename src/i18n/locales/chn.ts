@@ -1138,7 +1138,7 @@ export const chn: Partial<Dict> = {
   "pack.tree.noPhoto": "暂无照片",
   "pack.tree.openDogProfileTitle": "打开爱犬资料——证书、PDF、照片",
   "pack.tree.openDogProfileAriaLabel": "打开爱犬资料",
-  "pack.tree.addDog": "添加爱犬",
+  "pack.tree.addDog": "添加",
   "pack.tree.addHumanMember": "添加人类成员",
   "pack.tree.addHumanMemberTooltip": "即将上线——邀请一名人类成员",
   "pack.tree.ownerAvatarAlt": "主人",

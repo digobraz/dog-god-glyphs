@@ -1484,7 +1484,7 @@ export const en = {
   'pack.gateway.dogma.lead': "Read the philosophy of the Dogyptians and learn the whole DNA of DOGYPT.",
   'pack.gateway.ainubis.lead': "A virtual member of your pack. An AI helper that knows your dogs and gives advice made for them.",
   'pack.gateway.comingSoon': "Full version coming soon",
-  'pack.tree.addDog': "Add dog",
+  'pack.tree.addDog': "Add",
   'pack.tree.addHumanMember': "Add human member",
   'pack.tree.addHumanMemberTooltip': "Coming soon — invite one human member",
   'pack.tree.emptyState': "No heroglyphs yet",

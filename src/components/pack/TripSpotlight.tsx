@@ -20,7 +20,7 @@ import { Link } from 'react-router-dom';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
-import { readLocalTrails, readWalkedIds, tripPath, pluralKey, visibleLocalTrails } from './tripShared';
+import { readLocalTrails, readWalkedIds, tripPath, pluralKey, visibleLocalTrails, RatingPaws } from './tripShared';
 import { readTriplist } from './triplist/triplist';
 import { parsePlanDate, planDateLabel, planStart } from './addtrip/planDate';
 import { planPhase } from './planReminder';
@@ -486,9 +486,14 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
             {trail.region && <span className="ts-chip">{trail.region}</span>}
             {trail.km && <span className="ts-chip">{trail.km} km</span>}
             {trail.diff && <span className="ts-chip">{t('pack.map.diff.' + trail.diff)}</span>}
+            {/* HODNOTENIE = PACKY, NIE HVIEZDIČKY (Matej 12. 9. 2026: „v 2. bloku sú
+                hviezdičky ale my používame packy“). Rovnaký widget ako karty a inline detail
+                v /map a článok výletu — `RatingPaws` z `tripShared`, nie vlastná kresba.
+                Chip stojí na tmavom plagáte, takže nevyplnená časť ostáva na východiskovom
+                bielom filtri widgetu (na papyruse by sa prepisovala premennými). */}
             {trail.stars > 0 && (
-              <span className="ts-chip" style={{ color: '#F5C73D' }}>
-                {'★'.repeat(trail.stars)}{'☆'.repeat(Math.max(0, 5 - trail.stars))}
+              <span className="ts-chip" style={{ display: 'inline-flex', alignItems: 'center', padding: '4px 10px' }}>
+                <RatingPaws stars={trail.stars} size={12} gap={3} />
               </span>
             )}
           </div>

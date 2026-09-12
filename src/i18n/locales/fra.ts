@@ -1327,7 +1327,7 @@ export const fra: Partial<Dict> = {
   "pack.tree.noPhoto": "PAS DE PHOTO",
   "pack.tree.openDogProfileTitle": "Ouvrir le profil du chien — certificats, PDF, photos",
   "pack.tree.openDogProfileAriaLabel": "Ouvrir le profil du chien",
-  "pack.tree.addDog": "Ajouter un chien",
+  "pack.tree.addDog": "Ajouter",
   "pack.tree.addHumanMember": "Ajouter un membre humain",
   "pack.tree.addHumanMemberTooltip": "Bientôt disponible — invite un membre humain",
   "pack.tree.ownerAvatarAlt": "propriétaire",

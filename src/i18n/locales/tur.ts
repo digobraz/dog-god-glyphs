@@ -1141,7 +1141,7 @@ export const tur: Partial<Dict> = {
   "pack.tree.noPhoto": "FOTOĞRAF YOK",
   "pack.tree.openDogProfileTitle": "Köpek profilini aç — sertifikalar, PDF'ler, fotoğraflar",
   "pack.tree.openDogProfileAriaLabel": "Köpek profilini aç",
-  "pack.tree.addDog": "Köpek ekle",
+  "pack.tree.addDog": "Ekle",
   "pack.tree.addHumanMember": "İnsan üye ekle",
   "pack.tree.addHumanMemberTooltip": "Çok yakında — bir insan üye davet et",
   "pack.tree.ownerAvatarAlt": "sahip",

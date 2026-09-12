@@ -1141,7 +1141,7 @@ export const kor: Partial<Dict> = {
   "pack.tree.noPhoto": "사진 없음",
   "pack.tree.openDogProfileTitle": "개 프로필 열기 — 인증서, PDF, 사진",
   "pack.tree.openDogProfileAriaLabel": "개 프로필 열기",
-  "pack.tree.addDog": "개 추가",
+  "pack.tree.addDog": "추가",
   "pack.tree.addHumanMember": "사람 멤버 추가",
   "pack.tree.addHumanMemberTooltip": "곧 공개 — 사람 멤버 한 명 초대",
   "pack.tree.ownerAvatarAlt": "주인",

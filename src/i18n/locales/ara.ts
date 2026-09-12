@@ -1138,7 +1138,7 @@ export const ara: Partial<Dict> = {
   "pack.tree.noPhoto": "لا توجد صورة",
   "pack.tree.openDogProfileTitle": "افتح ملف الكلب — الشهادات، ملفات PDF، الصور",
   "pack.tree.openDogProfileAriaLabel": "افتح ملف الكلب",
-  "pack.tree.addDog": "أضف كلبًا",
+  "pack.tree.addDog": "إضافة",
   "pack.tree.addHumanMember": "أضف عضوًا بشريًا",
   "pack.tree.addHumanMemberTooltip": "قريبًا — ادعُ عضوًا بشريًا واحدًا",
   "pack.tree.ownerAvatarAlt": "المالك",

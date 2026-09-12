@@ -1653,7 +1653,7 @@ export const sk: Partial<Dict> = {
   "pack.tree.noPhoto": "BEZ FOTKY",
   "pack.tree.openDogProfileTitle": "Otvoriť profil psa — certifikáty, PDF, fotky",
   "pack.tree.openDogProfileAriaLabel": "Otvoriť profil psa",
-  "pack.tree.addDog": "Pridať psa",
+  "pack.tree.addDog": "Pridať",
   "pack.tree.addHumanMember": "Pridať ľudského člena",
   "pack.tree.addHumanMemberTooltip": "Už čoskoro — pozvi jedného ľudského člena",
   "pack.tree.ownerAvatarAlt": "majiteľ",

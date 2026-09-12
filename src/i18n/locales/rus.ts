@@ -1308,7 +1308,7 @@ export const rus: Partial<Dict> = {
   "pack.tree.noPhoto": "НЕТ ФОТО",
   "pack.tree.openDogProfileTitle": "Открыть профиль собаки — сертификаты, PDF, фото",
   "pack.tree.openDogProfileAriaLabel": "Открыть профиль собаки",
-  "pack.tree.addDog": "Добавить собаку",
+  "pack.tree.addDog": "Добавить",
   "pack.tree.addHumanMember": "Добавить человека",
   "pack.tree.addHumanMemberTooltip": "Скоро — пригласите одного участника-человека",
   "pack.tree.ownerAvatarAlt": "владелец",

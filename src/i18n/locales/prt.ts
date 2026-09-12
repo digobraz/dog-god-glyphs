@@ -1330,7 +1330,7 @@ export const prt: Partial<Dict> = {
   "pack.tree.noPhoto": "SEM FOTO",
   "pack.tree.openDogProfileTitle": "Abrir perfil do cão — certificados, PDFs, fotos",
   "pack.tree.openDogProfileAriaLabel": "Abrir perfil do cão",
-  "pack.tree.addDog": "Adicionar cão",
+  "pack.tree.addDog": "Adicionar",
   "pack.tree.addHumanMember": "Adicionar membro humano",
   "pack.tree.addHumanMemberTooltip": "Em breve — convida um membro humano",
   "pack.tree.ownerAvatarAlt": "dono",

@@ -6,7 +6,7 @@ import { X } from 'lucide-react';
 import { HandLink, HandPaw, HandPencil, HandPlus } from './HandIcons';
 import { INVITE_ANCHOR_ID } from './FounderInvite';
 import { BrandIcon } from './BrandIcon';
-import { GOLD_BLOCK_CSS } from './navGoldSkin';
+import { GOLD_BLOCK_CSS, LAPIS } from './navGoldSkin';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PILL_CSS } from './packTheme';
 import { PackNotifications } from './PackNotifications';
 import { WIZ } from './wizAnchors';
@@ -636,6 +636,14 @@ function DogSlot({ dog, size, boxH, gap }: { dog: HeroDog; size: number; boxH: n
 // ľudí zvonku) — ide rovno do tvorby. `reset()` je súčasť fixu, nie navyše: store
 // nepersistuje buyer dáta, ale v tej istej SPA session v ňom visí prvý pes → druhý by
 // mal predvyplnené meno a dátum.
+// ⚠️ LAPIS, NIE ZLATÁ (Matej 12. 9. 2026: „ten kruh + pridať … urob to v lapise, nie
+// v zlatej"). Sedí s deliacou čiarou brandu: zlato je konštrukcia (rám karty, čiary),
+// lapis je MOJA AKCIA na papyruse — a pridanie psa je akcia, nie nábytok. Výplň ostáva
+// papyrusová (`T.tileBg`): plná farebná plocha je na obrazovke rezervovaná pre jediné
+// hlavné CTA a modrý tint (`LAPIS.fill`) na piesku zošedivie — disk potom váži viac než
+// fotky psov vedľa, hoci je to len prázdny slot. Lapis nesie lem, plus a menovka.
+// ⚠️ Menovka je len „PRIDAŤ", nie „Pridať psa" (ten istý pokyn) — slot stojí v rade psích
+// koliesok, takže slovo „psa" opakuje to, čo je vedľa vidieť.
 function AddDogSlot({ size, boxH, gap }: { size: number; boxH: number; gap: number }) {
   const t = useT();
   const resetFlow = useDogyptStore((s) => s.reset);
@@ -653,9 +661,9 @@ function AddDogSlot({ size, boxH, gap }: { size: number; boxH: number; gap: numb
             width: size,
             height: size,
             borderRadius: '50%',
-            border: `2px dashed ${T.border}`,
+            border: `2px dashed ${LAPIS.edge}`,
             background: T.tileBg,
-            color: T.accentGold,
+            color: LAPIS.edge,
             transition: 'border-color .18s ease, background .18s ease',
           }}
         >
@@ -670,7 +678,7 @@ function AddDogSlot({ size, boxH, gap }: { size: number; boxH: number; gap: numb
           fontWeight: 700,
           letterSpacing: '0.16em',
           textTransform: 'uppercase',
-          color: T.inkDim,
+          color: LAPIS.edge,
           lineHeight: 1.2,
           textAlign: 'center',
           marginTop: 12,
