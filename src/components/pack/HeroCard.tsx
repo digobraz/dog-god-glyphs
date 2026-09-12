@@ -6,7 +6,7 @@ import { X } from 'lucide-react';
 import { HandLink, HandPaw, HandPencil, HandPlus } from './HandIcons';
 import { INVITE_ANCHOR_ID } from './FounderInvite';
 import { BrandIcon } from './BrandIcon';
-import { GOLD_BLOCK_CSS, LAPIS } from './navGoldSkin';
+import { GOLD_BLOCK_CSS, LAPIS, LAPIS_BTN_SHADOW } from './navGoldSkin';
 import { BonesCoin } from './BonesCoin';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PILL_CSS } from './packTheme';
 import { PackNotifications } from './PackNotifications';
@@ -795,14 +795,17 @@ function HeroPopup({
             type="button"
             onClick={goToInvite}
             style={{
-              // .btn-gold (brand manuál v3.2 — LOCKED): gradient 135°, radius 8, papyrusový okraj.
+              // LAPIS = hlavné CTA na BLEDOM podklade (brandový kánon 28. 8. 2026). Overlay
+              // stojí na `T.panelGrad`, teda na papyruse — zlatý gradient tu 12. 9. 2026
+              // zamietol Matej („cta pozvi priatela oranžová — zmeň"). GEOMETRIU si ďalej
+              // berie z locku `.btn-gold` (radius 8, NIE pilulka); mení sa len výplň.
               display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 8,
               padding: '11px 18px', borderRadius: 8, cursor: 'pointer',
-              background: 'linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%)',
-              border: '1px solid rgba(250,244,236,0.30)', color: '#000',
+              background: LAPIS.grad,
+              border: '1px solid rgba(250,244,236,0.30)', color: LAPIS.ink,
               fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 11.5,
               letterSpacing: '0.14em', textTransform: 'uppercase',
-              boxShadow: '0 0 24px rgba(230,158,26,0.28), inset 0 1px 0 rgba(255,255,255,0.3)',
+              boxShadow: LAPIS_BTN_SHADOW,
             }}
           >
             <HandLink size={16} />

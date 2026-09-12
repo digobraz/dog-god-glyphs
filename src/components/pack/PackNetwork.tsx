@@ -6,6 +6,7 @@ import { BrandIcon } from '@/components/pack/BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
 import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { BonesCoin } from '@/components/pack/BonesCoin';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 // Len pre ukážkovú líniu (`?netdemo=62`) — reálne psy z WALLu, aby simulácia
@@ -541,8 +542,8 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
           /* ZLATÁ MINCA, nie bledá (Matej 2026-09-12: „v lapisovom bloku daj farebnú ikonku
              bones ako je aj na homepage"). Bledý variant vznikol pre PLNÚ ZLATÚ dlaždicu,
              kde by zlato na zlate zmizlo — tá dlaždica je od dnes lapisová, takže dôvod
-             zanikol spolu s ňou a minca je zase tá istá ako v pilulke na homepage. */
-          icon={<Coin size={30} />}
+             zanikol spolu s ňou. Tvar nesie `BonesCoin`, nie tento súbor. */
+          icon={<BonesCoin size="m" />}
           value={shownBones == null ? '—' : shownBones.toLocaleString('en-US')}
           label={tx('pack.network.bonesLabel', 'Your BONES')}
           sub={
@@ -904,7 +905,7 @@ function WalletPanel({
       >
         <div className="flex items-start justify-between" style={{ gap: 12 }}>
           <div className="flex items-center" style={{ gap: 13, minWidth: 0 }}>
-            <Coin size={52} />
+            <BonesCoin size="l" />
             <div style={{ minWidth: 0 }}>
               <span style={{ display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 22, letterSpacing: '0.06em', lineHeight: 1.05, color: T.inkStrong }}>
                 {balance.toLocaleString('en-US')}
@@ -1940,33 +1941,9 @@ function BigStat({
   );
 }
 
-// Minca BONES. Bledý variant (`onGold`) ZANIKOL 2026-09-12 spolu s plnou zlatou dlaždicou,
-// pre ktorú vznikol — na lapise aj na papyruse je minca zlatá, teda tá istá ako v pilulke
-// na homepage. Jeden vzhľad na všetkých povrchoch je celý zmysel.
-// ⚠️ Tie isté čísla ležia ešte v dvoch kópiách (`HeroCard.tsx` pilulka BONES,
-// `PackLayout.tsx` ukazovateľ v nave) a nie sú presne zhodné — lem 0.6 vs 0.7, tieň
-// 0.18 vs 0.2. Zlúčenie do jedného komponentu čaká na Matejovo rozhodnutie o veľkostiach.
-function Coin({ size = 26 }: { size?: number }) {
-  return (
-    <span
-      aria-hidden
-      style={{
-        width: size,
-        height: size,
-        borderRadius: '50%',
-        flexShrink: 0,
-        background: 'radial-gradient(circle at 35% 30%, #F7DD92 0%, #C99A3F 68%, #9A742B 100%)',
-        border: '1px solid rgba(120,90,30,0.6)',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.55), 0 1px 3px rgba(0,0,0,0.18)',
-      }}
-    >
-      <BrandIcon name="bone" size={Math.round(size * 0.55)} tint="dark" />
-    </span>
-  );
-}
+// `Coin()` ZANIKOL 12. 9. 2026 — minca má odteraz jediný zdroj: `BonesCoin.tsx`.
+// Bledý variant (`onGold`) padol ešte skôr, spolu s plnou zlatou dlaždicou, pre ktorú
+// vznikol. Volajúci si berú veľkosť menom (`m` = dlaždica, `l` = peňaženka), nie číslom.
 
 // Dlhý text — klikateľný panel, NIE `title` tooltip: na mobile hover neexistuje.
 // Kľúče a EN fallbacky (žiadna JSX) — preklad + interpolácia {l1}/{l2}/{n} sa

@@ -1,6 +1,6 @@
 import { lazy, ReactNode, Suspense, useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { BrandIcon as PackBrandIcon } from './BrandIcon';
+import { BonesCoin } from './BonesCoin';
 import { PACK_THEME, PACK_COL, usePaperRoute, PAPER_PAGE_CSS } from './packTheme';
 import { devotionLevel } from '@/lib/devotion';
 import { DEV_FULL } from '@/lib/packFlags';
@@ -791,15 +791,8 @@ function BonesChip({ bones }: { bones: number }) {
       aria-label={`${bones} BONES`}
       style={{ display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0 }}
     >
-      <span aria-hidden style={{
-        width: 17, height: 17, borderRadius: '50%', flexShrink: 0,
-        background: 'radial-gradient(circle at 35% 30%, #F7DD92 0%, #C99A3F 68%, #9A742B 100%)',
-        border: '1px solid rgba(120,90,30,0.7)',
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.55), 0 1px 3px rgba(0,0,0,0.2)',
-      }}>
-        <PackBrandIcon name="bone" size={9} tint="dark" />
-      </span>
+      {/* Minca = `BonesCoin`, jediný zdroj značky meny (locked 12. 9. 2026). */}
+      <BonesCoin size="s" />
       <span style={{
         fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: 11,
         color: 'rgba(245,240,228,0.92)',

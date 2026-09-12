@@ -28,6 +28,7 @@ import { buildPlanDate, planDateLabel, planDeadline, type PlanPrecision } from '
 import { clearPlanMissed, markPlanMissed, planPhase } from './planReminder';
 import { placeholderFor } from '@/lib/tripPlaceholder';
 import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI } from './packTheme';
+import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, tintRGBA } from './navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
@@ -144,12 +145,15 @@ export function PlanAskCard() {
     cursor: 'pointer',
     whiteSpace: 'nowrap',
   };
-  // CTA (§14 LOCKED): .btn-gold — gradient 135°, radius 8, papyrusový rám. NIE pilulka.
-  const btnGold: React.CSSProperties = {
+  // HLAVNÉ CTA = LAPIS (brandový kánon 28. 8. 2026) — karta stojí na `PACK_BOX.card`,
+  // teda na papyruse, a na bledom podklade nesie akciu lapis. GEOMETRIU si ďalej berie
+  // z locku `.btn-gold` (radius 8, NIE pilulka); mení sa len výplň.
+  const btnPrimary: React.CSSProperties = {
     ...btnBase,
-    background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
+    background: LAPIS.grad,
     border: '1px solid rgba(250, 244, 236, 0.30)',
-    color: '#000',
+    color: LAPIS.ink,
+    boxShadow: LAPIS_BTN_SHADOW,
   };
   const btnGhost: React.CSSProperties = {
     ...btnBase,
@@ -157,15 +161,30 @@ export function PlanAskCard() {
     border: `1px solid ${T.border}`,
     color: T.inkWarm,
   };
-  const toggle = (on: boolean): React.CSSProperties => ({
-    ...btnBase,
-    flex: '1 1 0',
-    padding: '8px 10px',
-    fontSize: 10,
-    background: on ? 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)' : 'transparent',
-    border: `1px solid ${on ? 'rgba(250,244,236,0.30)' : T.border}`,
-    color: on ? '#000' : T.inkWarm,
-  });
+  // VÝBER JE PRIESVITNÝ TINT, NIE PLNÁ FARBA (LOCKED 26. 8. 2026). Plná výplň je
+  // rezervovaná pre JEDINÉ hlavné CTA na obrazovke — keď tú istú váhu dostane aj prepínač
+  // presnosti termínu, karta má dve „hlavné" veci a ani jedna nevedie. Recept je
+  // `pickTintCSS`, nie tri rgba čísla opísané tu: čitateľnosť nesie TMAVÝ inkoust
+  // (`PICK_INK.lapis`) a plný farebný rám, nie krytie výplne.
+  const toggle = (on: boolean): React.CSSProperties => {
+    const base: React.CSSProperties = {
+      ...btnBase,
+      flex: '1 1 0',
+      padding: '8px 10px',
+      fontSize: 10,
+      background: 'transparent',
+      border: `1px solid ${T.border}`,
+      color: T.inkWarm,
+    };
+    if (!on) return base;
+    return {
+      ...base,
+      background: LAPIS.fill,
+      border: `1px solid ${LAPIS.edge}`,
+      boxShadow: `inset 0 0 0 1px ${tintRGBA(LAPIS.edge, 0.45)}`,
+      color: PICK_INK.lapis,
+    };
+  };
   const input: React.CSSProperties = {
     width: '100%',
     marginTop: 8,
@@ -249,13 +268,13 @@ export function PlanAskCard() {
               </>
             )}
             <div className="pac-btns" style={{ marginTop: 10 }}>
-              <button type="button" className="pac-primary" style={btnGold} onClick={reschedule}>{t('pack.planAsk.moveSave')}</button>
+              <button type="button" className="pac-primary" style={btnPrimary} onClick={reschedule}>{t('pack.planAsk.moveSave')}</button>
               <button type="button" style={btnGhost} onClick={() => setMoving(false)}>{t('pack.planAsk.cancel')}</button>
             </div>
           </div>
         ) : (
           <div className="pac-btns">
-            <button type="button" className="pac-primary" style={btnGold} onClick={logIt}>{t('pack.planAsk.yes')}</button>
+            <button type="button" className="pac-primary" style={btnPrimary} onClick={logIt}>{t('pack.planAsk.yes')}</button>
             <button type="button" style={btnGhost} onClick={() => setMoving(true)}>{t('pack.planAsk.move')}</button>
             <button type="button" style={btnGhost} onClick={dismiss}>{t('pack.planAsk.no')}</button>
           </div>

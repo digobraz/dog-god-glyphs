@@ -109,16 +109,6 @@ const CSS = `
   background:rgba(4,2,0,0.42); border:1px solid rgba(245,240,228,0.28);
   border-radius:999px; padding:4px 11px;
 }
-/* .btn-gold sa neimportuje globálne (žije v SpiralLanding.css) — zavedený vzor je
-   lokálna kópia PRESNÝCH hodnôt. Radius 8px, NIE pill. Nedoladovať, CTA je LOCKED. */
-.ts-cta{
-  display:inline-flex; align-items:center; gap:9px; margin-top:16px;
-  padding:11px 20px; border-radius:8px;
-  background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);
-  border:1px solid rgba(250,244,236,0.30); color:#000;
-  font-family:${FONT_TITLE}; font-weight:700; font-size:11.5px;
-  letter-spacing:0.14em; text-transform:uppercase;
-}
 /* BLEDÁ karta = papyrus lock (Entry.tsx): T.cardGrad · 1.5px T.cardEdge · radius 16.
    ⚠️ Do 12.8.2026 bola TMAVÁ. Matej: „zmeňme to na bledú verziu pretože to na tom čiernom
    pozadí zaniká" — tmavá karta na čiernej stránke nemala hranu a splývala s pozadím,
