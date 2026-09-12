@@ -51,6 +51,7 @@ import { FlagCircle } from '@/components/pack/FlagCircle';
 import { DogStats } from '@/components/pack/DogStats';
 import ainubisBadge from '@/assets/ainubis-badge.png';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
+import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import {
   QUIZ_SECTIONS, PROGRESS_STEPS, STEP_BY_FIELD, type QuizSection,
 } from '@/components/pack/dogQuiz';
@@ -132,11 +133,20 @@ const NATURE_ART = '/images/nature-quiz-art.webp';
 // rám. Predtým tu bola vlastná verzia (135° gradient s alfou, uppercase, .12em) a ten
 // istý údaj tak vyzeral na každej obrazovke inak (Matej 7.8.: „aby to bolo konštantné").
 // ⚠️ Keď meníš tento vizuál, meň ho v PackTree.tsx a sem to prenes — nie naopak.
+// DNI PSA SU V LAPISE (Matej 12. 9. 2026: „dni psa treba dat do lapisu").
+// Do dneska boli zlate a lock znel „jeden vizual naprieč appkou" — ten lock TRVA,
+// zmenila sa len farba, a to na obidvoch miestach naraz (tu + zdroj `PackTree.tsx`).
+// PRECO: na papyruse je zlata sucasne ramom karty, pilulkou dni aj odznakom cisla,
+// takze hlavny udaj bloku splyval s nabytkom. Lapis = „moja vec", teda presne to,
+// co dni su. GEOMETRIA sa nemeni (radius 999, rovnake odsadenie) — meni sa vyplň.
+// ⚠️ Plna farebna plocha je inak vyhradena pre jedine hlavne CTA na obrazovke; tu plati
+// vynimka pre NEINTERAKTIVNY STITOK (CLAUDE.md 28. 8.): pilulka sa neda kliknut, nema
+// stav a v psom bloku ziadne ine plne farebne CTA nie je (cely blok je <Link>).
 const DAYS_PILL = {
-  background: 'linear-gradient(180deg, #F5C73D 0%, #E69E1A 100%)',
-  color: '#3d1f00',
+  background: LAPIS.grad,
+  color: LAPIS.ink,
   letterSpacing: '0.02em',
-  boxShadow: '0 6px 16px -6px rgba(201,154,63,0.6)',
+  boxShadow: LAPIS_BTN_SHADOW,
 } as const;
 
 // `.btn-gold` sa v projekte NEIMPORTUJE globálne — žije v `SpiralLanding.css` pod
@@ -288,21 +298,25 @@ const HUB_CSS = `
   text-transform:uppercase; color:#2a1608; white-space:nowrap;
 }
 /* Progres = pilulka NAD posterom (Matej 12.8.). Percento je ÚDAJ, takže Space Grotesk
-   600 (strop načítanej váhy), nie Cinzel. TRI STAVY, farby z brand tokenov:
-     0 %      červená  T.alertRed  #B25640
-     1–99 %   modrá    T.partHek   #2E5FD0
-     100 %    zelená   T.growGreen #3D7A4E
+   600 (strop načítanej váhy), nie Cinzel.
+   ⚠️ MODRÁ ODIŠLA 12. 9. 2026 (Matej: „% vyplnenie nejak inak v inej farbe, napr.
+   červená"). Dôvod je konkrétny: v ten istý deň prešli DNI na lapis, takže modré
+   percento stálo pár pixelov od modrej pilulky a blok mal dve modré, ktoré spolu
+   nesúvisia. Zostali DVA STAVY a nesú presne brandový význam:
+     < 100 %   červená  #B25640  = chýba
+     100 %     zelená   #3D7A4E  = splnené
+   Zanikol tým samostatný stav 0 % — bol to tretí odtieň pre to isté („nie je hotovo")
+   a koľko presne chýba, hovorí číslo v pilulke, nie farba.
    ⚠️ min-width je nutnosť, nie kozmetika: bez neho je „24%" o polovicu užšie než
    „COMPLETE" a poster by sa v zozname psov pri každom bloku posunul inam. */
 .dogblk-fill{
   min-width:78px; text-align:center;
   padding:4px 10px; border-radius:999px; white-space:nowrap;
-  background:#2E5FD0; color:#EAF0FF;
+  background:#B25640; color:#FDECE7;
   font-family:${FONT_UI}; font-weight:600;
   font-size:9.5px; letter-spacing:.08em; text-transform:uppercase;
-  box-shadow:0 4px 12px rgba(46,95,208,0.4);
+  box-shadow:0 4px 12px rgba(178,86,64,0.4);
 }
-.dogblk-fill.is-zero{ background:#B25640; color:#FDECE7; box-shadow:0 4px 12px rgba(178,86,64,0.4); }
 .dogblk-fill.is-done{ background:#3D7A4E; color:#EAF7ED; box-shadow:0 4px 12px rgba(61,122,78,0.4); }
 
 /* Heroglyf: zdrojový PNG má ČIERNE ťahy. Na tmavom podklade sa musel prefarbovať na
@@ -607,8 +621,14 @@ export default function PackDogs() {
         <div
           className="text-center"
           style={{
-            fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 13, letterSpacing: '0.22em',
-            textTransform: 'uppercase', color: PALE.deep, marginBottom: 14,
+            // VÄČŠÍ (Matej 12. 9. 2026: „blok DOG ID nadpis musí byť väčší"). 24 px nie je
+            // vybrané od oka — je to TÁ ISTÁ veľkosť, akú má nadpis ŠTATISTIKY v `DogStats`
+            // o blok nižšie. Dva vedľa seba stojace bloky stránky majú mať rovnako veľký
+            // nadpis; pri 13 px vyzeral DOG ID ako popisok skupiny, nie ako názov bloku.
+            // Preloženie písmen sa pritom zúžilo (.22em → .16em): to isté preloženie, ktoré
+            // drobný text drží čitateľný, roztrhá 24 px nadpis na samostatné písmená.
+            fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 24, letterSpacing: '0.16em',
+            textTransform: 'uppercase', color: PALE.deep, marginBottom: 16,
           }}
         >
           {tx('pack.hub.profileTitle', 'DOG ID')}
@@ -984,7 +1004,7 @@ function DogBlock({
   // psa. Rastie SÁM, keď do kvízu pribudne pole; nikde sa nezapisuje ručne. Preto
   // percento a nie zlomok: „23/34" znamená po rozšírení kvízu zakaždým niečo iné.
   const fillDone = total > 0 && filled >= total;
-  const fillClass = fillDone ? ' is-done' : (pct <= 0 ? ' is-zero' : '');
+  const fillClass = fillDone ? ' is-done' : '';
   const fillText = fillDone ? tx('pack.hub.passComplete', 'Complete') : `${pct}%`;
 
   return (
@@ -1084,9 +1104,9 @@ function DogBlock({
  *  na bledom podklade zmizol.
  *  `mono` = poradové číslo. V psom bloku sa UŽ NEPOUŽÍVA (číslo sedí na kruhu fotky),
  *  variant ostáva pre prípad ďalšieho číselného údaja.
- *  `solid` = vyfarbená zlatá (dni — Matej 7.8. „DNI pils vyfarbi"). Jediný údaj v bloku,
- *  ktorý rastie každý deň, takže má niesť farbu; ostatné pilulky sú tiché. Zlatá pilulka
- *  je locknutá naprieč appkou, papyrus sa jej NETÝKA.
+ *  `solid` = vyfarbená LAPISOM (dni — Matej 7.8. „DNI pils vyfarbi", farba 12.9. „dni psa
+ *  treba dať do lapisu"). Jediný údaj v bloku, ktorý rastie každý deň, takže má niesť farbu;
+ *  ostatné pilulky sú tiché. Vizuál je locknutý naprieč appkou (zdroj `PackTree.tsx`).
  *  ⚠️ Rozmery sú v triede .dogblk-pill, nie tu — inline štýl by ju prebil a mobil
  *  by sa nezmenšil. */
 function Pill({ children, dashed = false, mono = false, solid = false }: {
@@ -1440,7 +1460,10 @@ function AinubisBlock({ tx }: { tx: Tx }) {
         alt=""
         aria-hidden
         style={{
-          width: 62, height: 62, objectFit: 'contain', borderRadius: '50%', flex: '0 0 auto',
+          // VÄČŠIA (Matej 12. 9. 2026: „blok s ainubisom fotka v kruhu musí byť väčšia").
+          // 88 px je výška, ktorú blok má aj tak z troch riadkov textu vedľa — dovtedy
+          // okolo kruhu ostával prázdny pás a hlava pôsobila ako ikonka, nie ako tvár.
+          width: 88, height: 88, objectFit: 'contain', borderRadius: '50%', flex: '0 0 auto',
           background: 'radial-gradient(circle at 35% 28%, #12233a 0%, #01050A 74%)',
           border: '1px solid rgba(91,224,240,0.35)',
           boxShadow: '0 0 0 5px rgba(59,158,255,0.06), 0 0 26px rgba(59,158,255,0.34)',

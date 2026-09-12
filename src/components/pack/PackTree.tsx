@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { PACK_THEME } from './packTheme';
+import { LAPIS, LAPIS_BTN_SHADOW } from './navGoldSkin';
 import { BrandIcon } from './BrandIcon';
 import heroglyphFrame from '@/assets/heroglyph-frame.svg';
 import { useT } from '@/i18n/LanguageContext';
@@ -130,13 +131,18 @@ function LifeLine({ dog, center = false }: { dog: DogNode; center?: boolean }) {
         style={{
           padding: '4px 12px',
           borderRadius: 999,
-          background: 'linear-gradient(180deg, #F5C73D 0%, #E69E1A 100%)',
-          color: '#3d1f00',
+          // DNI SU V LAPISE od 12. 9. 2026 (Matej: „dni psa treba dat do lapisu").
+          // Tento subor je ZDROJ PRAVDY vizualu pilulky dni (CLAUDE.md); kopiu drzi
+          // `DAYS_PILL` v `PackDogs.tsx` a musi sa menit spolu s tymto miestom.
+          // ⚠️ Komponent dnes PARKUJE (na homepage sa nemountuje) — zmena je tu preto,
+          // aby sa zdroj a kopia nerozisli, kym sa vrati.
+          background: LAPIS.grad,
+          color: LAPIS.ink,
           fontFamily: "'Cinzel', serif",
           fontSize: 13.5,
           fontWeight: 700,
           letterSpacing: '0.02em',
-          boxShadow: '0 6px 16px -6px rgba(201, 154, 63, 0.6)',
+          boxShadow: LAPIS_BTN_SHADOW,
           lineHeight: 1.1,
           whiteSpace: 'nowrap',
         }}
