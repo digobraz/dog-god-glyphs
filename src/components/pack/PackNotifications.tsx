@@ -72,9 +72,20 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
   // mounts on PackMap's full-bleed light map (not just the black hieroglyph bg), so a
   // transparent pale-on-pale button would vanish there; same blurred glass chip language as
   // the bottom nav / PackMap's own map controls.
+  // ⚠️ BLEDÝ VARIANT MÁ PLNÝ KOTÚČ, NIE PRIESVITNÝ OBRYS (Matej 12. 9. 2026:
+  // „pri bledom režime sú notifikácie a správy slabo viditeľné = mali by byť ako
+  // v tmavom móde alebo nejak inak, aby vynikli a nezanikli ako teraz").
+  // Do dneška mal `buttonBg: 'transparent'` + slabý `T.border`, takže z tlačidla
+  // ostal bledý obrys na bledej tapete a zmizol. Tmavý variant vyniká preto, že má
+  // PLNÚ výplň (`T.glass`), lem a vrhnutý tieň — bledý dostáva to isté v papyrusovej
+  // reči: `PACK_BOX.panel` (plávajúci prvok NAD stránkou), teda `panelGrad` +
+  // 1.5px `cardEdge` + `panelShadow`. Inkoust ide na `inkStrong`, lebo `ink` je na
+  // papyruse rovnaká šeď ako popisky a ikonka sa v nej stráca.
+  // ⚠️ Nie je to lapis ani zlatá plocha: sú to DVE rovnocenné tlačidlá chrome, nie
+  // hlavné CTA — plná farba je rezervovaná pre jediné CTA na obrazovke.
   const c = dark
-    ? { border: T.onDarkBorder, ink: T.onDark, inkDim: T.onDarkDim, hairline: T.onDarkHair, panelBg: T.glass, badgeBorder: T.pageBg, buttonBg: T.glass }
-    : { border: T.border, ink: T.ink, inkDim: T.inkDim, hairline: T.hairline, panelBg: T.card, badgeBorder: T.card, buttonBg: 'transparent' };
+    ? { border: T.onDarkBorder, ink: T.onDark, inkDim: T.onDarkDim, hairline: T.onDarkHair, panelBg: T.glass, badgeBorder: T.pageBg, buttonBg: T.glass, buttonShadow: '0 4px 14px rgba(0,0,0,0.4)', buttonBorderW: 1 }
+    : { border: T.cardEdge, ink: T.inkStrong, inkDim: T.inkDim, hairline: T.hairline, panelBg: T.card, badgeBorder: T.card, buttonBg: T.panelGrad, buttonShadow: T.panelShadow, buttonBorderW: 1.5 };
 
   // packMessaging modul sa načíta dynamicky, len keď je DEV_FULL true (na LIVE sa toto
   // import() telo nikdy nespustí → chunk sa nestiahne). msgCount preto štartuje na 0 a
@@ -198,16 +209,19 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
             width: 38,
             height: 38,
             borderRadius: 999,
-            border: `1px solid ${c.border}`,
+            border: `${c.buttonBorderW}px solid ${c.border}`,
             background: c.buttonBg,
             backdropFilter: dark ? 'blur(14px)' : undefined,
             WebkitBackdropFilter: dark ? 'blur(14px)' : undefined,
-            boxShadow: dark ? '0 4px 14px rgba(0,0,0,0.4)' : undefined,
+            boxShadow: c.buttonShadow,
             color: c.ink,
             cursor: 'pointer',
           }}
         >
-          <BrandIcon name="envelope" size={16} tint="gold" />
+          {/* Na tmavom skle je zlata spravna; na papyrusovom kotuci je zlata na zlatom
+              a obalka zanikne rovnako, ako zanikalo cele tlacidlo. `dark` (#5A3F12) je
+              ten isty tint, akym sa kreslia ikonky na zlatych plochach. */}
+          <BrandIcon name="envelope" size={16} tint={dark ? 'gold' : 'dark'} />
           {msgCount > 0 && (
             <span
               style={{
@@ -294,11 +308,16 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           width: 38,
           height: 38,
           borderRadius: 999,
-          border: `1px solid ${c.border}`,
-          background: open ? (dark ? 'rgba(245,240,228,0.14)' : 'rgba(31,26,14,0.05)') : c.buttonBg,
+          border: `${c.buttonBorderW}px solid ${c.border}`,
+          // Otvorený stav = stmavená TÁ ISTÁ výplň, nie iný materiál. Na papyruse to
+          // robí zlatý tint nad gradientom (holé `rgba(31,26,14,0.05)` by pod sebou
+          // nemalo nič, keďže bledý variant mal doteraz priesvitné pozadie).
+          background: open
+            ? (dark ? 'rgba(245,240,228,0.14)' : `linear-gradient(0deg, rgba(201,154,63,0.18), rgba(201,154,63,0.18)), ${T.panelGrad}`)
+            : c.buttonBg,
           backdropFilter: dark ? 'blur(14px)' : undefined,
           WebkitBackdropFilter: dark ? 'blur(14px)' : undefined,
-          boxShadow: dark ? '0 4px 14px rgba(0,0,0,0.4)' : undefined,
+          boxShadow: c.buttonShadow,
           color: c.ink,
           cursor: 'pointer',
         }}

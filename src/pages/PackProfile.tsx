@@ -535,27 +535,35 @@ export default function PackProfile() {
   return (
     <PackLayout wide>
       <div className="flex flex-col gap-5">
-        {/* Back to Home — bottom nav is hidden on LIVE, so profile needs its own way back */}
-        {/* ⚠️ Odkaz späť stojí MIMO karty, teda na podklade STRÁNKY — a ten sa prepína
+        {/* ŠÍPKA ← SVORKA SA KRESLÍ LEN TAM, KDE NIE JE SPODNÝ NAV (Matej 2026-09-12:
+            „tá šípka dozadu na SVORKA je zbytočná, daj to preč, veď ani pri /dogs nie je
+            šípka späť, dá sa ísť preč cez spodný nav"). Podmienka nesie PRESNE jeho dôvod:
+            `PackBottomNav` je `DEV_FULL`-gated, takže na LIVE spodný nav NIE JE — a
+            `/pack/profile` je na LIVE od 6. 8. 2026 bez gate. Plošné zmazanie by tam
+            členovi nenechalo jedinú cestu naspäť [[feedback_flag_nesmie_nechat_dieru]].
+            Keď nav pôjde na LIVE, šípka zmizne aj tam sama a tento blok sa môže zmazať.
+            ⚠️ Odkaz stojí MIMO karty, teda na podklade STRÁNKY — a ten sa prepína
             (`packSkin.ts`, východisko `dark`). `T.inkDim` je tmavohnedá; na čiernom
             pozadí bola neviditeľná (Matej 2026-09-12: „na tmavom podklade nie je vidno
             šípka naspať"). Rozhoduje ten istý hook, aký prepína celý shell — vlastná
             podmienka by sa s ním rozišla. */}
-        <Link
-          to="/pack"
-          className="pf-tap inline-flex items-center gap-2"
-          style={{
-            fontFamily: "'Cinzel', serif",
-            letterSpacing: '0.22em',
-            fontSize: 11,
-            textTransform: 'uppercase',
-            color: paperPage ? T.inkDim : T.accentGold,
-            textDecoration: 'none',
-          }}
-        >
-          <ArrowLeft className="h-3 w-3" />
-          {tx('pack.profile.back', 'Pack')}
-        </Link>
+        {!DEV_FULL && (
+          <Link
+            to="/pack"
+            className="pf-tap inline-flex items-center gap-2"
+            style={{
+              fontFamily: "'Cinzel', serif",
+              letterSpacing: '0.22em',
+              fontSize: 11,
+              textTransform: 'uppercase',
+              color: paperPage ? T.inkDim : T.accentGold,
+              textDecoration: 'none',
+            }}
+          >
+            <ArrowLeft className="h-3 w-3" />
+            {tx('pack.profile.back', 'Pack')}
+          </Link>
+        )}
         {/* `.pf-field`/`.pf-pill` — zdieľané s DogGallery.tsx/DogCardFields.tsx
             (psia karta), definícia žije v `packTheme.ts` (`PF_FIELD_CSS`),
             presne ako `GLASS_CSS`. Render raz na stránke. */}

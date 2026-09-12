@@ -52,6 +52,18 @@ export const AINUBIS = {
   ctaGradHover: 'linear-gradient(135deg,#FFD65A 0%,#F0A81E 100%)',
   ctaInk: '#2a1608',
   ctaShadow: '0 4px 14px -4px rgba(230,158,26,0.55), inset 0 1px 0 rgba(255,255,255,0.30)',
+  // ── MENO MÁ TVAR, NIE JE TO OBYČAJNÉ SLOVO ────────────────────────────────
+  // Matej 12. 9. 2026: „AINUBIS je tu napísaný bez toho, aby bolo AI zvýraznené!
+  // On má predsa svoj tvar, tak ho dodržuj VŠADE."
+  // Meno sa píše `AI` + `NUBIS` a prvé dve písmená sú cyan — kúsok stroja v mene
+  // strážcu. Zapisuje sa v MARKUPE, nie v preklade (`<span>AI</span>NUBIS`), lebo
+  // preklad je holý text a farbu niesť nevie. Meno sa NEPREKLADÁ.
+  // ⚠️ Tie isté dve hodnoty ležia ešte v dvoch CSS kópiách (`.gw-ai` v Gateways.tsx,
+  // `.ainubis-ai` v AinubisWidget.css) — keď sa niektorej dotkneš, prepíš ju sem.
+  /** Farba „AI" v mene. */
+  aiInk: '#5BE0F0',
+  /** Dosvit „AI" — bez neho je z toho len iná farba, nie podsvietený displej. */
+  aiShadow: '0 0 16px rgba(91,224,240,0.75)',
   /** Podklad pod jeho hlavou (kruh). */
   faceBg: 'radial-gradient(circle at 35% 28%, #12233a 0%, #01050A 74%)',
   faceRing: '0 0 0 1.5px rgba(91,224,240,0.45), 0 0 16px rgba(59,158,255,0.38)',

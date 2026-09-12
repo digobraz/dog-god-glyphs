@@ -414,7 +414,8 @@ export function Thread({ convId, onClose, onOpenTrip }: {
               {/* Vlastné meno sa neprekladá (rovnako ako DOG ID), takže tu t() netreba.
                   Rolu už nesie nadpis panela pod tým — druhý riadok by ju len zopakoval,
                   a nový i18n kľúč by si vyžiadal en.ts, ktorý má rozrobený iná session. */}
-              <b>AINUBIS</b>
+              {/* MENO MA TVAR - "AI" je cyan, token `AINUBIS.aiInk` v ainubisSkin.ts. */}
+              <b><span style={{ color: AINUBIS.aiInk, textShadow: AINUBIS.aiShadow }}>AI</span>NUBIS</b>
             </div>
             {modView === 'menu' && (
               <>

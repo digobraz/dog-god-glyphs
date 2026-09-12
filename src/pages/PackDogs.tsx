@@ -42,14 +42,15 @@
 //  • AINUBIS má meno ako nadpis + tagline; ostáva „Čoskoro" a NIKAM nevedie —
 //    plán sa nestavia. (Chat AINUBISA beží zvlášť ako plávajúci widget.)
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { PackLayout } from '@/components/pack/PackLayout';
-import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, usePaperRoute } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { PALE } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { FlagCircle } from '@/components/pack/FlagCircle';
 import { DogStats } from '@/components/pack/DogStats';
 import ainubisBadge from '@/assets/ainubis-badge.png';
+import { AINUBIS } from '@/components/pack/ainubisSkin';
 import {
   QUIZ_SECTIONS, PROGRESS_STEPS, STEP_BY_FIELD, type QuizSection,
 } from '@/components/pack/dogQuiz';
@@ -487,7 +488,6 @@ export default function PackDogs() {
      tmavá zlatá `PALE.deep` je na čiernom takmer nečitateľná a bledá dlaždica na
      čiernom svieti. Rozhoduje ROUTA, nie prepínač sám — `/pack/dogs` je medzi
      prepínateľnými povrchmi, takže hook vráti presne to, čo vidí oko. */
-  const paper = usePaperRoute(useLocation().pathname);
   const tx: Tx = (key, fallback) => {
     const v = t(key);
     return v === key ? fallback : v;
@@ -585,67 +585,70 @@ export default function PackDogs() {
         ))}
       </div>
 
-      {/* ── 2 · PROFIL PSA — 6 dlaždíc ─────────────────────────────────────── */}
-      <div style={{ marginTop: 20 }}>
-        {/* „Čo chceš spraviť" padlo (Matej 6.8.: hlúpy nadpis) — sekcia sa menuje
-            podľa toho, ČO to je, nie podľa otázky. */}
-        <div className="text-center" style={{ marginBottom: 12 }}>
-          <div
-            style={{
-              fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 13, letterSpacing: '0.22em',
-              // Na PAPYRUSE je `accentGold` (#C99A3F) slabá, preto tmavšia `PALE.deep` —
-              // tá istá hodnota aj dôvod ako v TRIPLISTE (`.tl-sechead h3`), nie nová farba.
-              // Na ČIERNOM je to naopak: `PALE.deep` na tmavom takmer zaniká a správna
-              // je pôvodná `accentGold`. Preto obe polohy, nie jedna natvrdo.
-              textTransform: 'uppercase', color: paper ? PALE.deep : T.accentGold,
-            }}
-          >
-            {tx('pack.hub.profileTitle', 'DOG ID')}
-          </div>
-          <div
-            style={{
-              fontFamily: FONT_UI, fontSize: 11.5, color: paper ? T.inkWarm : 'hsl(45 70% 90% / 0.5)', marginTop: 4,
-            }}
-          >
-            {tx('pack.hub.profileSub', 'fill in what you know — it builds their DOG ID')}
-          </div>
+      {/* ── 2 · DOG ID — JEDEN VEĽKÝ BLOK (Matej 12. 9. 2026) ─────────────────
+             „Prvé bloky patria psom a ďalší by mal byť jeden veľký blok s nadpisom
+             DOG ID BEZ PODNADPISU a v tom bloku budú bloky (základ, ako funguje…
+             kto je tvoj pes…), teda VŠETKO, čo tvorí DOG ID."
+             Do dneška to boli TRI voľné sekcie pod sebou (dlaždice · galéria+denník ·
+             kvíz), ktoré na stránke nič nedržalo pokope — vyzerali ako tri rôzne témy,
+             hoci všetky tri sú vstupy do jedného dokumentu.
+             ⚠️ AINUBIS a ŠTATISTIKY ostávajú VONKU zámerne: ani jedno DOG ID netvorí.
+             AINUBIS z neho číta (výstup) a štatistiky sú kalendár dochádzky. Keby sa
+             vnorili tiež, „jeden veľký blok" by prestal znamenať DOG ID a začal by
+             znamenať „zvyšok stránky".
+             ⚠️ Podnadpis („vyplň, čo o ňom vieš…") ZANIKOL — kľúč `pack.hub.profileSub`
+             sa NEMAŽE, nesie ho ešte lišta psieho bloku. */}
+      <section style={{ ...PACK_BOX.card, marginTop: 20, padding: '20px 18px' }}>
+        {/* Nadpis vnútri karty = VŽDY papyrusový inkoust. Rozhoduje PODKLAD POD PRVKOM,
+            nie poloha prepínača šatu (CLAUDE.md 11. 9.) — karta je papyrusová aj v tmavom
+            šate, takže staré `paper ? PALE.deep : T.accentGold` by v tmavom šate napísalo
+            svetlé zlato na piesok. `PALE.deep` je tá istá hodnota aj dôvod ako v TRIPLISTE
+            (`.tl-sechead h3`), nie nová farba. */}
+        <div
+          className="text-center"
+          style={{
+            fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 13, letterSpacing: '0.22em',
+            textTransform: 'uppercase', color: PALE.deep, marginBottom: 14,
+          }}
+        >
+          {tx('pack.hub.profileTitle', 'DOG ID')}
         </div>
+
+        {/* 6 dlaždíc — polia pasu */}
         <div className="hub-tiles">
           {QUIZ_SECTIONS.filter((s) => s.kind === 'quiz').map((s) => (
             <ActionTile key={s.key} section={s} progress={sectionProgress[s.key]} tx={tx} />
           ))}
         </div>
-      </div>
 
-      {/* ── 3 · GALÉRIA + DENNÍK — TLMENÝ riadok mimo mriežky polí pasu.
-             Nie sú to polia pasu a nemajú progres, ktorý sa dá „dokončiť" —
-             béžová pilulka im klamala stav (Matej 6.8.). Ten zámer platí ďalej,
-             len sa od 8. 9. nesie TLMENÍM, nie čiernou: odkedy je stránka na
-             papyruse, je čierny riadok najkrikľavejšia vec na obrazovke, takže
-             oko ťahá práve to jediné, čo NEFUNGUJE. Rozdiel voči poliam pasu
-             drží úroveň v matrici — `PACK_BOX.row` (plochá výplň, slabý rám)
-             proti `PACK_BOX.subblock` (gradient, plný zlatý rám) dlaždíc vyššie.
-             ⚠️ Čierna je vyhradená pre `subblockDark` a siaha sa po nej za VÝZNAM
-             (jediný prípad: ZÁVET na DOG ID), nie za „ešte to nejde". ── */}
-      <div className="hub-media" style={{ marginTop: 20 }}>
-        {QUIZ_SECTIONS.filter((s) => s.kind === 'gallery' || s.kind === 'journal').map((s) => (
-          <MediaTile key={s.key} section={s} tx={tx} paper={paper} />
-        ))}
-      </div>
-
-      {/* ── 4 · KVÍZ (hero) — VŽDY, nezmizne po absolvovaní ──────────────────
-             Do 21. 8. sa po dokončení scvrkol na úzky riadok POD šiestimi dlaždicami
-             (Matej: „zmizol blok kde bol obrázok"). Hotový kvíz nie je odbavená
-             položka — je to jediná cesta k výsledku, takže blok ostáva na mieste
-             a mení sa len to, čo ponúka: vyplniť → pozrieť výsledok / spraviť znova.
-             ⚠️ POZÍCIA: 22. 8. sa presunul spod psích blokov sem, TESNE NAD AINUBISA
-             (Matej: „celý blok presun dolu nad blok ainubisa"). Zhora už stránku
-             neotvára — prvé je psy, potom DOG ID, a kvíz stojí až pri výstupoch. */}
-      {natureSection && latestLoaded && (
-        <div style={{ marginTop: 20 }}>
-          <NatureHero section={natureSection} dogs={dogs} latest={latest} tx={tx} />
+        {/* GALÉRIA + DENNÍK — TLMENÝ riadok mimo mriežky polí pasu.
+            Nie sú to polia pasu a nemajú progres, ktorý sa dá „dokončiť" —
+            béžová pilulka im klamala stav (Matej 6.8.). Ten zámer platí ďalej,
+            len sa od 8. 9. nesie TLMENÍM, nie čiernou. Rozdiel voči poliam pasu
+            drží úroveň v matrici — `PACK_BOX.row` (plochá výplň, slabý rám)
+            proti `PACK_BOX.subblock` (gradient, plný zlatý rám) dlaždíc vyššie.
+            ⚠️ Čierna je vyhradená pre `subblockDark` a siaha sa po nej za VÝZNAM
+            (jediný prípad: ZÁVET na DOG ID), nie za „ešte to nejde". */}
+        <div className="hub-media" style={{ marginTop: 10 }}>
+          {QUIZ_SECTIONS.filter((s) => s.kind === 'gallery' || s.kind === 'journal').map((s) => (
+            <MediaTile key={s.key} section={s} tx={tx} />
+          ))}
         </div>
-      )}
+
+        {/* KVÍZ (hero) — VŽDY, nezmizne po absolvovaní.
+            Do 21. 8. sa po dokončení scvrkol na úzky riadok POD šiestimi dlaždicami
+            (Matej: „zmizol blok kde bol obrázok"). Hotový kvíz nie je odbavená
+            položka — je to jediná cesta k výsledku, takže blok ostáva na mieste
+            a mení sa len to, čo ponúka: vyplniť → pozrieť výsledok / spraviť znova.
+            ⚠️ POZÍCIA: 22. 8. odišiel spod psích blokov nad AINUBISA; 12. 9. sa
+            zasunul DOVNÚTRA bloku DOG ID (Matej ho vymenoval: „…kto je tvoj pes…"),
+            ako posledný vstup pred výstupmi. */}
+        {natureSection && latestLoaded && (
+          <div style={{ marginTop: 10 }}>
+            <NatureHero section={natureSection} dogs={dogs} latest={latest} tx={tx} />
+          </div>
+        )}
+      </section>
 
       {/* ── 5 · AINUBIS — VÝSTUP, nie vstup ────────────────────────────────── */}
       <div style={{ marginTop: 12 }}>
@@ -1373,41 +1376,36 @@ function ActionTile({
 // ── 4 · galéria / denník — tmavá dlaždica, bez progresu ──────────────────────
 // Nemajú vlastný flow (hromadný vstup s tagovaním psov). Dlaždica sa zobrazuje,
 // ale nikam nevedie — inak by z mapy funkcií zmizli a nikto by si nevšimol, že chýbajú.
-function MediaTile({ section, tx, paper }: { section: QuizSection; tx: Tx; paper: boolean }) {
+// ⚠️ Tmavá vetva ZANIKLA 12. 9. 2026. Dlaždica stála na podklade STRÁNKY, ktorý sa
+// prepína, takže mala dva šaty; odkedy sedí vnútri papyrusovej karty DOG ID, je pod ňou
+// papyrus v OBOCH polohách prepínača a tmavý variant by na piesku kreslil bledý text
+// na bledom. Rozhoduje podklad pod prvkom, nie poloha prepínača (CLAUDE.md 11. 9.).
+function MediaTile({ section, tx }: { section: QuizSection; tx: Tx }) {
   return (
     <div
       className="flex items-center gap-3"
-      style={
-        paper
-          ? { ...PACK_BOX.row, padding: '15px 16px' }
-          : {
-              background: 'rgba(245,240,228,0.05)',
-              border: `1px solid ${T.onDarkBorder}`,
-              borderRadius: 14,
-              padding: '15px 16px',
-            }
-      }
+      style={{ ...PACK_BOX.row, padding: '15px 16px' }}
     >
       <div style={{ fontSize: 24, lineHeight: 1, flex: '0 0 auto' }}>{section.emoji}</div>
       <div style={{ minWidth: 0 }}>
         <h4
           style={{
             fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, letterSpacing: '0.1em',
-            textTransform: 'uppercase', color: paper ? T.inkStrong : 'hsl(45 75% 92%)', margin: '0 0 3px',
+            textTransform: 'uppercase', color: T.inkStrong, margin: '0 0 3px',
           }}
         >
           {tx(section.i18n, section.labelEN)}
         </h4>
-        <p style={{ fontFamily: FONT_UI, fontSize: 11, color: paper ? T.inkWarm : T.onDarkDim, margin: 0, lineHeight: 1.45 }}>
+        <p style={{ fontFamily: FONT_UI, fontSize: 11, color: T.inkWarm, margin: 0, lineHeight: 1.45 }}>
           {tx(section.subI18n, section.subEN)}
         </p>
         <span
           style={{
             display: 'inline-block', marginTop: 6, fontFamily: FONT_UI, fontSize: 9.5,
             letterSpacing: '0.1em', textTransform: 'uppercase', borderRadius: 999, padding: '3px 9px',
-            background: paper ? 'rgba(201,154,63,0.10)' : 'rgba(245,240,228,0.07)',
-            border: `1px solid ${paper ? T.border : T.onDarkBorder}`,
-            color: paper ? T.inkWarm : T.onDarkDim,
+            background: 'rgba(201,154,63,0.10)',
+            border: `1px solid ${T.border}`,
+            color: T.inkWarm,
           }}
         >
           {tx('pack.hub.soon', 'Soon')}
@@ -1448,16 +1446,20 @@ function AinubisBlock({ tx }: { tx: Tx }) {
           boxShadow: '0 0 0 5px rgba(59,158,255,0.06), 0 0 26px rgba(59,158,255,0.34)',
         }}
       />
-      {/* Meno je NADPIS, nie drobný eyebrow (Matej 6.8.). Značka sa neprekladá. */}
+      {/* Meno je NADPIS, nie drobný eyebrow (Matej 6.8.). Značka sa neprekladá.
+          MENO MA TVAR: „AI" je cyan (Matej 12. 9. 2026 - „AINUBIS je tu napisany bez
+          toho aby bolo AI zvyraznene! on ma predsa svoj tvar tak ho dodrzuj vsade").
+          Deli sa v MARKUPE, nie v preklade - holy text farbu niest nevie. Tokeny z
+          `ainubisSkin.ts`, rovnake ako `.gw-ai` v Gateways a `.ainubis-ai` vo widgete. */}
       <div style={{ flex: 1, minWidth: 200 }}>
         <h4
           style={{
             fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 28, lineHeight: 1,
-            letterSpacing: '0.14em', textTransform: 'uppercase', color: '#E6FAFF', margin: 0,
+            letterSpacing: '0.14em', textTransform: 'uppercase', color: AINUBIS.ink, margin: 0,
             textShadow: '0 0 22px rgba(91,224,240,0.55)',
           }}
         >
-          Ainubis
+          <span style={{ color: AINUBIS.aiInk, textShadow: AINUBIS.aiShadow }}>AI</span>NUBIS
         </h4>
         <div
           style={{
