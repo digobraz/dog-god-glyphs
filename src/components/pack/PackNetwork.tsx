@@ -538,7 +538,11 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
           oko nájde po nadpise, a jediné číslice takej veľkosti na stránke. */}
       <div className="grid grid-cols-2 gap-3">
         <BigStat
-          icon={<Coin size={30} onGold />}
+          /* ZLATÁ MINCA, nie bledá (Matej 2026-09-12: „v lapisovom bloku daj farebnú ikonku
+             bones ako je aj na homepage"). Bledý variant vznikol pre PLNÚ ZLATÚ dlaždicu,
+             kde by zlato na zlate zmizlo — tá dlaždica je od dnes lapisová, takže dôvod
+             zanikol spolu s ňou a minca je zase tá istá ako v pilulke na homepage. */
+          icon={<Coin size={30} />}
           value={shownBones == null ? '—' : shownBones.toLocaleString('en-US')}
           label={tx('pack.network.bonesLabel', 'Your BONES')}
           sub={
@@ -1936,9 +1940,13 @@ function BigStat({
   );
 }
 
-// `onGold` = minca leží na plnej zlatej dlaždici, kde by zlatá na zlatej zmizla.
-// Prevracia sa: bledý papyrusový kotúč s tmavou kosťou.
-function Coin({ size = 26, onGold }: { size?: number; onGold?: boolean }) {
+// Minca BONES. Bledý variant (`onGold`) ZANIKOL 2026-09-12 spolu s plnou zlatou dlaždicou,
+// pre ktorú vznikol — na lapise aj na papyruse je minca zlatá, teda tá istá ako v pilulke
+// na homepage. Jeden vzhľad na všetkých povrchoch je celý zmysel.
+// ⚠️ Tie isté čísla ležia ešte v dvoch kópiách (`HeroCard.tsx` pilulka BONES,
+// `PackLayout.tsx` ukazovateľ v nave) a nie sú presne zhodné — lem 0.6 vs 0.7, tieň
+// 0.18 vs 0.2. Zlúčenie do jedného komponentu čaká na Matejovo rozhodnutie o veľkostiach.
+function Coin({ size = 26 }: { size?: number }) {
   return (
     <span
       aria-hidden
@@ -1947,10 +1955,8 @@ function Coin({ size = 26, onGold }: { size?: number; onGold?: boolean }) {
         height: size,
         borderRadius: '50%',
         flexShrink: 0,
-        background: onGold
-          ? 'radial-gradient(circle at 35% 30%, #FFFDF6 0%, #F3E6C6 62%, #DCC48C 100%)'
-          : 'radial-gradient(circle at 35% 30%, #F7DD92 0%, #C99A3F 68%, #9A742B 100%)',
-        border: onGold ? '1px solid rgba(255,248,231,0.7)' : '1px solid rgba(120,90,30,0.6)',
+        background: 'radial-gradient(circle at 35% 30%, #F7DD92 0%, #C99A3F 68%, #9A742B 100%)',
+        border: '1px solid rgba(120,90,30,0.6)',
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
