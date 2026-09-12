@@ -15,7 +15,7 @@
 // má vlastný:
 //   1 psy · 2 kvíz hero (kým ho aspoň jeden pes nemá) · 3 profil (6 dlaždíc) ·
 //   3b kvíz kompaktne (keď ho majú všetci) · 4 galéria + denník (tmavý riadok) ·
-//   5 AINUBIS · 6 DogStats
+//   5 AINUBIS · 6 KALENDÁR (dochádzka, mimo DOG ID)
 // Bloky 2 a 3b sú TEN ISTÝ blok v dvoch stavoch — prepína sa DÁTAMI, nie ručne:
 // príde nový pes bez kvízu → blok sa vráti hore ako hero.
 //
@@ -48,7 +48,7 @@ import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI } from '@/components/pack/pac
 import { PALE } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { FlagCircle } from '@/components/pack/FlagCircle';
-import { DogStats } from '@/components/pack/DogStats';
+import { PackCalendar } from '@/components/pack/calendar/PackCalendar';
 import ainubisBadge from '@/assets/ainubis-badge.png';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
@@ -675,9 +675,13 @@ export default function PackDogs() {
         <AinubisBlock tx={tx} />
       </div>
 
-      {/* ── 6 · ŠTATISTIKY — posledný blok stránky (ročný heatmap) ─────────── */}
+      {/* ── 6 · KALENDÁR — posledný blok stránky, MIMO bloku DOG ID ───────────
+           Matej 12. 9. 2026: „kalendár nie je časť dokladu, je to dochádzka."
+           Nahradil `DogStats` (demo heatmap pod prekrytím COMING SOON) — ten
+           kreslil VYMYSLENÉ farby, takže sa nedal začať čítať ako pravda o psovi.
+           Nákres: plany/nakres-kalendar-dogs-2026-09-12.html */}
       <div style={{ marginTop: 20 }}>
-        <DogStats />
+        <PackCalendar dogs={dogs} latest={latest} tx={tx} />
       </div>
     </PackLayout>
   );

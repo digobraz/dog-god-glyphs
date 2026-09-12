@@ -1,0 +1,411 @@
+// ════════════════════════════════════════════════════════════════════════════
+// KALENDÁR `/pack/dogs` — LOGIKA (dátumy, sezóny, fázy mesiaca, protokol).
+// Bez JSX, bez React, bez i18n — texty sem chodia len ako SK fallback.
+// ⚠️ NEPREMENÚVAJ na `packCalendar.ts`: disk na macOS nerozlišuje veľké písmená,
+//    takže import './packCalendar' by kolidoval s `PackCalendar.tsx` (TS1261).
+// Nákres a rozhodnutia: plany/nakres-kalendar-dogs-2026-09-12.html
+//
+// JEDNO PRAVIDLO CELÉHO MODULU (Matej 12. 9. 2026): **KALENDÁR KRESLÍ LEN TO,
+// ČO MÁ DEŇ.** Žiadne „približne", žiadny tlmený pás cez mesiac, žiadna pilulka
+// s otáznikom. Výlet s presnosťou „niekedy v septembri" tu NIE JE — ostáva
+// v tripliste. Matej: „ak človek nechce dať dátum, tak sa mu to nezapíše. Smola."
+// Dôsledok, ktorý je vedomá voľba: kalendár je v deň spustenia takmer prázdny
+// a naplní sa až tým, čo príde potom. Radšej prázdny a pravdivý.
+//
+// DRUHÉ PRAVIDLO: **bunka nesie JEDEN DEŇ.** Všetko, čo TRVÁ — sezóna, okno
+// protokolu, kliešťová sezóna — stojí v páse období vpravo a MÁ TAM MENO.
+// Prvá verzia nákresu mala v 9 px bunke päť vrstiev a Matej ju musel lúštiť
+// („je veľmi chaotický a neprehľadný… tie čiarky dolu je vždy nejaká kúra").
+// Značka, ktorú treba lúštiť, nie je značka.
+// ════════════════════════════════════════════════════════════════════════════
+
+import type { ElementKey } from '@/components/pack/natureQuiz';
+
+// ── KALENDÁRNA ARITMETIKA ───────────────────────────────────────────────────
+// Rok je PARAMETER, nie konštanta: nákres mal `var YEAR = 2026` a v appke by to
+// bola tichá bomba na Nový rok. `dim` preto berie rok a prestupný február sedí.
+export const dim = (year: number, m: number): number => new Date(year, m, 0).getDate();
+
+/** Poradie dňa v roku (1–365/366). */
+export function doy(year: number, m: number, d: number): number {
+  let t = 0;
+  for (let i = 1; i < m; i++) t += dim(year, i);
+  return t + d;
+}
+
+export interface CalDate { m: number; d: number }
+export const dateKey = (m: number, d: number): string => `${m}-${d}`;
+
+/** `yyyy-mm-dd` (aj s časom) → deň v danom roku, alebo null keď je to iný rok. */
+export function parseDayInYear(iso: string | null | undefined, year: number): CalDate | null {
+  if (!iso || typeof iso !== 'string') return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  if (!m) return null;
+  if (Number(m[1]) !== year) return null;
+  const mo = Number(m[2]);
+  const da = Number(m[3]);
+  if (mo < 1 || mo > 12 || da < 1 || da > dim(year, mo)) return null;
+  return { m: mo, d: da };
+}
+
+// ── SEZÓNY ──────────────────────────────────────────────────────────────────
+// Dátumy sú TIE ISTÉ ako na papierovom protokole 1.0 — papier a appka musia
+// hovoriť to isté, inak je jedno z nich zlé.
+//
+// NÁLEZ, KTORÝ SA TÝM OPRAVIL: protokol mal štyri sezóny a medzi LETOM (do 21. 7.)
+// a JESEŇOU (od 8. 8.) osemnásťdňovú NEPOMENOVANÚ medzeru. To je presne neskoré
+// leto = element ZEM, ktorý appka v kvíze už má. Kalendár tú dieru zaplnil a
+// protokol sa tým dotiahol zo 4 na 5 sezón — bez vymýšľania.
+//
+// `key` je zhodný s `ElementKey` z natureQuiz.ts (fire/earth/metal/water/wood).
+// Nie je to náhoda a nesmie sa to rozísť: práve tá zhoda dáva kvízu dôsledok,
+// ktorý je vidieť celý rok.
+export interface Season {
+  key: ElementKey;
+  /** Fallback názov sezóny (SK) — i18n kľúč `pack.cal.season.<key>`. */
+  nameSK: string;
+  /** Fallback názov elementu (SK) — i18n kľúč `pack.nature.el.<key>`. */
+  elementSK: string;
+  /** Skratka do menovky mesiaca (tam je miesto na ~7 znakov). */
+  shortSK: string;
+  from: CalDate;
+  to: CalDate;
+  /** Pastel pozadia mriežky. */
+  bg: string;
+  /** Inkoust menovky mesiaca — tmavý odtieň tej istej farby. */
+  ink: string;
+}
+
+export const SEASONS: Season[] = [
+  { key: 'water', nameSK: 'ZIMA', elementSK: 'Voda', shortSK: 'zima', from: { m: 11, d: 7 }, to: { m: 2, d: 3 }, bg: '#D6E6EF', ink: '#2C5870' },
+  { key: 'wood', nameSK: 'JAR', elementSK: 'Drevo', shortSK: 'jar', from: { m: 2, d: 4 }, to: { m: 5, d: 5 }, bg: '#DCE9CE', ink: '#4A6B2F' },
+  { key: 'fire', nameSK: 'LETO', elementSK: 'Oheň', shortSK: 'leto', from: { m: 5, d: 6 }, to: { m: 7, d: 21 }, bg: '#F6D8D6', ink: '#8E3A32' },
+  { key: 'earth', nameSK: 'NESKORÉ LETO', elementSK: 'Zem', shortSK: 'n. leto', from: { m: 7, d: 22 }, to: { m: 8, d: 7 }, bg: '#F1E4C4', ink: '#7A5A2A' },
+  { key: 'metal', nameSK: 'JESEŇ', elementSK: 'Kov', shortSK: 'jeseň', from: { m: 8, d: 8 }, to: { m: 11, d: 6 }, bg: '#E2E2E4', ink: '#55565C' },
+];
+
+export function seasonOf(year: number, m: number, d: number): Season {
+  const n = doy(year, m, d);
+  for (const s of SEASONS) {
+    const a = doy(year, s.from.m, s.from.d);
+    const b = doy(year, s.to.m, s.to.d);
+    // ZIMA prechádza Novým rokom, takže jej interval je obrátený — bez tejto
+    // vetvy by 1. januára nesedela žiadna sezóna.
+    if (a <= b ? n >= a && n <= b : n >= a || n <= b) return s;
+  }
+  return SEASONS[0];
+}
+
+/**
+ * Všetky sezóny, ktoré do mesiaca zasahujú, aj s počtom dní.
+ * ⚠️ Prevažujúca sezóna SAMA NESTAČÍ: NESKORÉ LETO trvá 17 dní a nie je
+ * väčšinové v žiadnom mesiaci — pes s elementom ZEM by prstenec „jeho sezóna"
+ * nedostal nikdy.
+ */
+export function seasonsInMonth(year: number, m: number): { season: Season; days: number }[] {
+  const seen = new Map<ElementKey, { season: Season; days: number }>();
+  const out: { season: Season; days: number }[] = [];
+  for (let d = 1; d <= dim(year, m); d++) {
+    const s = seasonOf(year, m, d);
+    let hit = seen.get(s.key);
+    if (!hit) { hit = { season: s, days: 0 }; seen.set(s.key, hit); out.push(hit); }
+    hit.days += 1;
+  }
+  return out;
+}
+
+/** Farbu menovky mesiaca nesie PREVAŽUJÚCA sezóna, aby stĺpec ostal pokojný. */
+export function seasonOfMonth(year: number, m: number): Season {
+  let best = SEASONS[0];
+  let bn = -1;
+  for (const o of seasonsInMonth(year, m)) if (o.days > bn) { bn = o.days; best = o.season; }
+  return best;
+}
+
+// ── MESIAC NA OBLOHE ────────────────────────────────────────────────────────
+// Nákres počítal fázu zo STREDNEJ synodickej periódy a sám si k tomu napísal
+// „skutočný spln kolíše o ±0,5 dňa; v appke ber presnejší výpočet". Presne to je
+// tu: Meeus, Astronomical Algorithms, kap. 49 — hlavné členy rovnice stredu.
+// Stredná perioda sa mýli až o ±14 h, čo značku posunie o CELÝ DEŇ; s týmito
+// členmi je chyba v desiatkach minút a deň sedí.
+const SYNODIC = 29.530588861;
+
+const rad = (deg: number): number => (deg * Math.PI) / 180;
+
+/** Juliánsky deň pre 0h UT daného dátumu (Meeus 7.1, gregoriánsky kalendár). */
+function julianDay(y: number, m: number, d: number): number {
+  let yy = y;
+  let mm = m;
+  if (mm <= 2) { yy -= 1; mm += 12; }
+  const a = Math.floor(yy / 100);
+  const b = 2 - a + Math.floor(a / 4);
+  return Math.floor(365.25 * (yy + 4716)) + Math.floor(30.6001 * (mm + 1)) + d + b - 1524.5;
+}
+
+/**
+ * Juliánsky dátum fázy. `k` celé = NOV, `k + 0.5` = SPLN.
+ * (`k = 0` je nov 6. 1. 2000; k rastie o 1 za lunáciu.)
+ */
+function phaseJDE(k: number): number {
+  const T = k / 1236.85;
+  const T2 = T * T;
+  const T3 = T2 * T;
+  let jde = 2451550.09766 + SYNODIC * k + 0.00015437 * T2 - 0.000000150 * T3;
+  const E = 1 - 0.002516 * T - 0.0000074 * T2;                       // excentricita Zeme
+  const M = rad(2.5534 + 29.10535670 * k - 0.0000014 * T2);          // stredná anomália Slnka
+  const Mp = rad(201.5643 + 385.81693528 * k + 0.0107582 * T2);      // stredná anomália Mesiaca
+  const F = rad(160.7108 + 390.67050284 * k - 0.0016118 * T2);       // argument šírky
+  const isFull = Math.abs(k - Math.round(k)) > 0.25;
+  // Sedem najväčších členov. Ďalšie sú pod 1 minútu a na určenie DŇA nemajú vplyv.
+  const c1 = isFull ? -0.40614 : -0.40720;
+  const c3 = isFull ? 0.01614 : 0.01608;
+  const c4 = isFull ? 0.01043 : 0.01039;
+  const c5 = isFull ? 0.00734 : 0.00739;
+  const c6 = isFull ? -0.00515 : -0.00514;
+  jde += c1 * Math.sin(Mp)
+    + (isFull ? 0.17302 : 0.17241) * E * Math.sin(M)
+    + c3 * Math.sin(2 * Mp)
+    + c4 * Math.sin(2 * F)
+    + c5 * E * Math.sin(Mp - M)
+    + c6 * E * Math.sin(Mp + M)
+    + 0.00208 * E * E * Math.sin(2 * M);
+  return jde;
+}
+
+export type MoonPhase = 'new' | 'full';
+
+/**
+ * Dni splnu a novu v danom roku. Vracia mapu `"m-d" → fáza`, lebo mriežka sa
+ * pýta „čo je dnes", nie „kedy bol ďalší spln" — a takto sa celý rok počíta raz.
+ */
+export function moonDaysOfYear(year: number): Map<string, MoonPhase> {
+  const out = new Map<string, MoonPhase>();
+  // k pre začiatok roka; berieme so rezervou ±2 lunácie, aby okraje roka sedeli.
+  const kStart = Math.floor((year - 2000) * 12.3685) - 2;
+  const jdJan1 = julianDay(year, 1, 1);
+  const jdNextJan1 = julianDay(year + 1, 1, 1);
+  for (let i = 0; i < 18; i++) {
+    for (const half of [0, 0.5]) {
+      const jde = phaseJDE(kStart + i + half);
+      if (jde < jdJan1 || jde >= jdNextJan1) continue;
+      // JDE je v Terrestrial Time pre 0h; +0.5 posunie na kalendárny deň.
+      const day = Math.floor(jde + 0.5);
+      const date = new Date(Date.UTC(2000, 0, 1) + (day - julianDay(2000, 1, 1) - 0.5) * 86_400_000);
+      out.set(dateKey(date.getUTCMonth() + 1, date.getUTCDate()), half === 0 ? 'new' : 'full');
+    }
+  }
+  return out;
+}
+
+// ── PROTOKOL: okná, nie dni ─────────────────────────────────────────────────
+// `group` nesie SKUPINU (čo podáš / čo zmeriaš), nie vlastnú farbu — sedem okien
+// = sedem farieb bol presne dôvod, prečo sa pás nedal prečítať.
+//
+// ⚠️ Toto je ODPORÚČANIE z protokolu 1.0, nie termín používateľa. Je to rovnaké
+// pre všetkých (preto konštanta, nie tabuľka) a `dogOnly` drží jedinú výnimku:
+// kĺbová kúra staršieho psa je jeho, nie svorková.
+export type ProtGroup = 'give' | 'lab';
+
+export interface ProtWindow {
+  nameSK: string;
+  /** i18n kľúč `pack.cal.prot.<id>`. */
+  id: string;
+  emoji: string;
+  group: ProtGroup;
+  from: CalDate;
+  to: CalDate;
+  /** `null` = celá svorka. Inak sa okno kreslí len pri tomto psovi. */
+  dogOnly?: 'senior' | null;
+}
+
+export const PROTOCOL: ProtWindow[] = [
+  { id: 'dewormSpring', nameSK: 'Odčervenie', emoji: '💊', group: 'give', from: { m: 3, d: 1 }, to: { m: 3, d: 31 } },
+  { id: 'coproSpring', nameSK: 'Koprológia', emoji: '🔬', group: 'lab', from: { m: 3, d: 1 }, to: { m: 3, d: 31 } },
+  { id: 'biochem', nameSK: 'Biochémia', emoji: '🔬', group: 'lab', from: { m: 5, d: 1 }, to: { m: 7, d: 31 } },
+  { id: 'dewormAugust', nameSK: 'Odčervenie', emoji: '💊', group: 'give', from: { m: 8, d: 1 }, to: { m: 8, d: 31 } },
+  { id: 'coproAutumn', nameSK: 'Koprológia', emoji: '🔬', group: 'lab', from: { m: 9, d: 1 }, to: { m: 10, d: 31 } },
+  { id: 'immune', nameSK: 'Imunitná kúra', emoji: '🌿', group: 'give', from: { m: 9, d: 1 }, to: { m: 10, d: 15 } },
+  { id: 'joints', nameSK: 'Kĺbová kúra', emoji: '🌿', group: 'give', from: { m: 11, d: 1 }, to: { m: 12, d: 31 }, dogOnly: 'senior' },
+];
+
+/** Kliešťová sezóna — apríl až október. Nepíše to nikto, počíta sa to. */
+export const TICKS = { id: 'ticks', nameSK: 'Kliešťová sezóna', emoji: '🩸', fromMonth: 4, toMonth: 10 } as const;
+
+export const protWindowColor = (w: ProtWindow, C: typeof CAL_RGB): string => (w.group === 'lab' ? C.vet : C.give);
+
+/**
+ * Okná viditeľné pri danom výbere. Filter psa je SÚČASŤ výberu, nie nadstavba
+ * volajúceho — inak si každé miesto filtruje po svojom a psie okno vyskočí pri
+ * cudzom psovi (v nákrese sa to stalo v chipoch mesiaca).
+ */
+export function visibleProtocol(seniorSelected: boolean): ProtWindow[] {
+  return PROTOCOL.filter((w) => !w.dogOnly || seniorSelected);
+}
+
+export function protocolOn(year: number, m: number, d: number, seniorSelected: boolean): ProtWindow[] {
+  const n = doy(year, m, d);
+  return visibleProtocol(seniorSelected).filter(
+    (w) => n >= doy(year, w.from.m, w.from.d) && n <= doy(year, w.to.m, w.to.d),
+  );
+}
+
+export const ticksInMonth = (m: number): boolean => m >= TICKS.fromMonth && m <= TICKS.toMonth;
+
+export const protWholeMonth = (year: number, w: ProtWindow, m: number): boolean =>
+  doy(year, w.from.m, w.from.d) <= doy(year, m, 1) && doy(year, w.to.m, w.to.d) >= doy(year, m, dim(year, m));
+
+/**
+ * Rozdelenie okien do dvoch dráh pásu období. Okno, ktoré sa s ničím
+ * neprekrýva, ide do prvej.
+ */
+export function protocolLanes(seniorSelected: boolean): { w: ProtWindow; lane: number; m1: number; m2: number }[] {
+  const ws = visibleProtocol(seniorSelected)
+    .map((w) => ({ w, lane: 0, m1: w.from.m, m2: w.to.m }))
+    .sort((a, b) => a.m1 - b.m1 || a.m2 - b.m2);
+  const lanes: typeof ws[] = [[], []];
+  for (const item of ws) {
+    let placed = false;
+    for (let i = 0; i < lanes.length; i++) {
+      if (lanes[i].every((o) => item.m1 > o.m2 || item.m2 < o.m1)) {
+        item.lane = i; lanes[i].push(item); placed = true; break;
+      }
+    }
+    if (!placed) { item.lane = lanes.length - 1; lanes[lanes.length - 1].push(item); }
+  }
+  return ws;
+}
+
+// ── FARBA: šesť významov namiesto pätnástich ────────────────────────────────
+// ⚠️ Modrá je zámerne na dvoch miestach (veterinár + laboratórne okno) — je to
+// tá istá téma: ZDRAVIE. Nie je to kolízia, je to jazyk.
+// ⚠️ Fialová sa nepoužila vôbec: v brande drží VÝLETY (`PACK_THEME.tripPurple`)
+// a druhý význam by ju rozpustil.
+export const CAL_RGB = {
+  /** zelená — bol si vonku (hustota zápisov) */
+  log: '61,122,78',
+  /** modrá — zdravie: zápis u veterinára aj okno odberov */
+  vet: '16,52,166',
+  /** jantárová — čo sa podáva (odčervenie, kúry) */
+  give: '224,138,46',
+  /** zlatá — identita (prstenec narodenín, nikdy výplň) */
+  gold: '201,154,63',
+  /** červená — príroda varuje (kliešte) */
+  nat: '142,42,32',
+} as const;
+
+export const calRGBA = (k: keyof typeof CAL_RGB, a: number): string => `rgba(${CAL_RGB[k]},${a})`;
+
+/** hex → rgba, aby sa pastel sezóny dal stlmiť bez druhého tokenu. */
+export function hexRGBA(hex: string, a: number): string {
+  let h = hex.replace('#', '');
+  if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+  const n = parseInt(h, 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+}
+
+// ── ZÁPISY ──────────────────────────────────────────────────────────────────
+// `group` rozhoduje o farbe bunky v ROKU, `emoji` o značke v MESIACI a v popupe.
+//
+// PRECHÁDZKA ZRUŠENÁ (Matej 12. 9. 2026): appka nemá miesto, kde sa zapisuje —
+// bol by to riadok legendy bez zdroja. A stála vedľa VÝLETU ako jeho tretí
+// odtieň. Jednotka je výlet, lebo jedine ten má v appke dátum.
+//
+// Emoji sú **Emoji 1.0 (2015)** — to isté kritérium, podľa ktorého v mapovej sade
+// padol rebrík 🪜: značka, ktorú vidno len na novom telefóne, nie je značka.
+// Kde to šlo, berie sa tá istá značka, akú už appka používa na mape
+// (`mapnotes/markEmoji.ts`), aby sa jeden pojem nekreslil dvoma spôsobmi.
+export type LogKind = 'trip' | 'vet' | 'deworm' | 'note' | 'alone' | 'weigh' | 'plan';
+export type LogGroup = 'log' | 'vet' | 'plan';
+
+export interface LogType {
+  emoji: string;
+  group: LogGroup;
+  nameSK: string;
+  /** i18n kľúč `pack.cal.type.<kind>`. */
+  i18n: string;
+}
+
+export const LOG_TYPES: Record<LogKind, LogType> = {
+  // ⛰️ zhodné s `POI_EMOJI.cliff` na mape.
+  trip: { emoji: '⛰️', group: 'log', nameSK: 'Výlet', i18n: 'pack.cal.type.trip' },
+  // 💉 kryje odber, vakcínu aj odčervenie u lekára. 🩺 je Emoji 12.0 (2019) = mimo sady.
+  vet: { emoji: '💉', group: 'vet', nameSK: 'Veterinár', i18n: 'pack.cal.type.vet' },
+  deworm: { emoji: '💊', group: 'vet', nameSK: 'Odčervenie', i18n: 'pack.cal.type.deworm' },
+  // 📝 písanie, nie čítanie. 📖 je otvorená kniha — to je ústava, nie zápisník.
+  note: { emoji: '📝', group: 'log', nameSK: 'Denník', i18n: 'pack.cal.type.note' },
+  alone: { emoji: '🏠', group: 'log', nameSK: 'Deň bez seba', i18n: 'pack.cal.type.alone' },
+  weigh: { emoji: '⚖️', group: 'log', nameSK: 'Váženie', i18n: 'pack.cal.type.weigh' },
+  // 📍 zhodné s `TRIP_TARGET_EMOJI` na mape — plánovaný výlet je tá istá vec.
+  plan: { emoji: '📍', group: 'plan', nameSK: 'Plán', i18n: 'pack.cal.type.plan' },
+};
+
+export interface CalEntry {
+  kind: LogKind;
+  m: number;
+  d: number;
+  /** Nadpis riadku v popupe — názov výletu, hodnota váhy, titulok zápisu. */
+  title: string;
+  /** Druhý riadok. Prázdny = nekreslí sa. */
+  text?: string;
+  /** `null` = celá svorka (spoločný výlet). Inak id psa. */
+  dogId: string | null;
+  /** Odkaz, keď zápis niekam vedie (výlet → článok). */
+  href?: string;
+}
+
+/**
+ * Výplň bunky v ROKU. Rok odpovedá na „mám rytmus?", nie na „čo to bolo" —
+ * preto JEDNA zelená škála a jediná výnimka: veterinár. To je druhá otázka roka.
+ * (Sedem farieb typov v mriežke roka bolo v prvom nákrese a nedalo sa to čítať.)
+ */
+export function cellFill(entries: CalEntry[]): string | null {
+  let vet = false;
+  let n = 0;
+  for (const e of entries) {
+    const g = LOG_TYPES[e.kind].group;
+    if (g === 'vet') vet = true;
+    else if (g === 'log') n += 1;
+  }
+  if (vet) return calRGBA('vet', 0.72);
+  if (n >= 3) return calRGBA('log', 0.92);
+  if (n === 2) return calRGBA('log', 0.66);
+  if (n === 1) return calRGBA('log', 0.42);
+  return null;
+}
+
+// ── NARODENINY A ĽUDSKÉ ROKY ────────────────────────────────────────────────
+// Nezapisujú sa, počítajú sa z DOG ID. Preto nie sú `CalEntry` a nemajú emoji
+// v mriežke roka — nesú PRSTENEC (zlatá = identita, nikdy výplň).
+export interface CalDog {
+  id: string;
+  name: string;
+  birth: CalDate | null;
+  element: ElementKey | null;
+  /** Vek v celých rokoch — do popupu („Hekthor má 9"). */
+  years: number | null;
+  senior: boolean;
+}
+
+export const birthdaysOn = (dogs: CalDog[], m: number, d: number): CalDog[] =>
+  dogs.filter((g) => g.birth && g.birth.m === m && g.birth.d === d);
+
+/**
+ * Ľudské roky — 6 medzidátumov (rok ÷ 7).
+ * ⚠️ Kreslia sa až po VÝBERE psa: tá istá úvaha ako pri zvýraznení sezóny —
+ * dvaja psi = dvanásť prstencov naprieč rokom a značka prestane niečo znamenať.
+ * Narodeniny ostávajú vždy, tie sú dve.
+ */
+export function humanYearsOn(year: number, dogs: CalDog[], m: number, d: number, soloSelected: boolean): CalDog[] {
+  if (!soloSelected) return [];
+  const n = doy(year, m, d);
+  const len = doy(year, 12, 31);
+  const out: CalDog[] = [];
+  for (const g of dogs) {
+    if (!g.birth) continue;
+    const b = doy(year, g.birth.m, g.birth.d);
+    for (let i = 1; i < 7; i++) {
+      if (((b + Math.round((i * len) / 7) - 1) % len) + 1 === n) { out.push(g); break; }
+    }
+  }
+  return out;
+}
