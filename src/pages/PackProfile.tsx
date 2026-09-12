@@ -80,9 +80,17 @@ const PILGRIM_CSS = `
   font-family:${FONT_UI}; font-style:normal; font-weight:500; font-size:10px;
   letter-spacing:0.14em; text-transform:uppercase; color:${PACK_THEME.inkWarm};
 }
-@media (max-width:420px){
-  .pf-pilgrim-stats{ gap:9px; }
-  .pf-pilgrim-stats b{ font-size:14px; }
+/* ⚠️ POD 460px SA RIADOK LÁME NA DVA (2026-09-12). PÚTNIK + pilulka (112px) a dvojica
+   čísel (~150px) sa aj so šípkou do 262px vnútra karty nezmestia — spany majú nowrap,
+   takže sa nezmenšia a text pretiekol cez pravý okraj papyrusového rámu.
+   Zmenšovaním písma sa to dá natlačiť na 255px, ale za cenu 9px popiskov; dva riadky
+   sú čitateľnejšie aj na 320px. Prvý riadok nesie identitu (rang + level) a šípku,
+   druhý čísla. Ten istý prah ako pri prepínači MENO/PREZÝVKA — obe veci sa lámu
+   z toho istého dôvodu (stĺpec vedľa avatara je pod ním priúzky). */
+@media (max-width:459px){
+  .pf-pilgrim{ flex-wrap:wrap; row-gap:8px; }
+  .pf-pilgrim-stats{ order:3; flex:0 0 100%; gap:14px; }
+  .pf-pilgrim-stats b{ font-size:15px; }
 }
 `;
 
