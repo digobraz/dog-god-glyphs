@@ -1656,7 +1656,7 @@ export const sk: Partial<Dict> = {
   "pack.tree.openDogProfileTitle": "Otvoriť profil psa — certifikáty, PDF, fotky",
   "pack.tree.openDogProfileAriaLabel": "Otvoriť profil psa",
   "pack.tree.addDog": "Pridať",
-  "pack.pack.defaultName": "Svorka {name}",
+  "pack.pack.defaultName": "{owner} svorka",
   "pack.pack.rename": "Premenovať svorku",
   "pack.add.title": "Pridať",
   "pack.add.dog": "Pes",

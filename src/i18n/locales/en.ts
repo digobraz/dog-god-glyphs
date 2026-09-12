@@ -1487,7 +1487,9 @@ export const en = {
   'pack.tree.addDog': "Add",
   // Menovka rámu svorky v bloku 1 (components/pack/HeroCard.tsx → PackNameRow).
   // `defaultName` stojí, kým si človek svorku nepomenuje — menovka je tam VŽDY.
-  'pack.pack.defaultName': "{name}'s pack",
+  // ⚠️ `{owner}` je v SK už PRIVLASTŇOVACÍ TVAR mena (`lib/skPossessive.ts`), v EN holé
+  // meno. Jazyk, ktorý potrebuje inú väzbu, si ju zapíše do svojho reťazca.
+  'pack.pack.defaultName': "{owner}'s pack",
   'pack.pack.rename': "Rename pack",
   // Rázcestie po kliku na „+" v bloku 1 (components/pack/HeroCard.tsx → AddPopup).
   // PAWMATE a PAWTNER sú zamknuté dvere (`soon`) — Matejov pokyn 12. 9. 2026; pustia sa

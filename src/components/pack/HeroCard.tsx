@@ -16,7 +16,8 @@ import { WIZ } from './wizAnchors';
 import { DEV_FULL } from '@/lib/packFlags';
 import { devotionLevel } from '@/lib/devotion';
 import { useDogyptStore } from '@/store/dogyptStore';
-import { useT } from '@/i18n/LanguageContext';
+import { useLang, useT } from '@/i18n/LanguageContext';
+import { skPossessive } from '@/lib/skPossessive';
 
 const T = PACK_THEME;
 
@@ -196,6 +197,7 @@ type PopKey = 'pawtner' | 'level' | 'bones' | 'devotion';
 
 export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, devotion = 100, bones = 0, stats = null, dogs = null, packName = null }: HeroCardProps) {
   const t = useT();
+  const { lang } = useLang();
   const [pop, setPop] = useState<PopKey | null>(null);
   // „+" už nevedie priamo do heroglyf flow — otvára popup, ktorý sa pýta ČO sa pridáva
   // (Matej 12. 9. 2026: „tlačítko + otvorí popup"). Vlastný stav, nie ďalší `PopKey`:
@@ -382,9 +384,16 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
           {/* Menovka stojí VŽDY (aj pri prázdnej svorke) — „+" len keď je koho pridať vedľa;
               bez psa ho nesie plné CTA pod čiarou. `dogs === null` = načítavanie, vtedy
               nesmie bliknúť ani jedno. */}
+          {/* Východisko menovky = „MATEJOVA SVORKA" (Matej 12. 9. 2026: „a text je matejova
+              svorka... nie matej svorka"). SK potrebuje PRIVLASTŇOVACÍ TVAR mena, preto sa
+              do kľúča posiela už ohnuté slovo (`skPossessive`) a reťazec je „{owner} svorka";
+              EN si vystačí s holým menom a „{owner}'s pack". Ostatné jazyky padajú na EN.
+              Odhad tvaru sa NIKAM NEUKLADÁ — kto si ho neuzná, prepíše menovku ceruzkou. */}
           <PackNameRow
             label={packLabel}
-            fallback={t('pack.pack.defaultName', { name: displayName })}
+            fallback={t('pack.pack.defaultName', {
+              owner: lang === 'sk' ? skPossessive(displayName, genderPlaceholder) : displayName,
+            })}
           />
         <div ref={rowRef} id={WIZ.dogsRow} className="w-full">
           {innerW > 0 && (
