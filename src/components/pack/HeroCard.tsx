@@ -28,6 +28,11 @@ const DOG_SIZE = 100;
 // do 2026-06-15 bol fialový, odtiaľ staré „fialovo-zlatý" v komentároch)
 const STORY_RING = 'var(--brand-gradient)';
 
+/** Šírka, ktorú si v hornom rade berie „+" (krúžok 26 px + medzera). Odkrája sa z dosky
+ *  PRED rovnicou pyramídy — viď komentár pri `planRow()` volaní. */
+const PLUS_SIZE = 26;
+const PLUS_RESERVE = PLUS_SIZE + 14;
+
 // ── RÁM SVORKY (F0b, 12. 9. 2026) ────────────────────────────────────────────
 // Matej: „dve fotky majitel/pes budu vo farebnom ramiku s možnosťou zvoliť meno
 // svorky ako sa budu zobrazovať". Rám NIE JE farebný — R10 (zadanie
@@ -238,7 +243,12 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
 
   const pack = dogs ?? [];
   // `dogs === null` = ešte sa načítava → majiteľ sám, žiadny „+" (nesmie bliknúť).
-  const plan = planRow(pack.length, innerW, false);   // „+" už nie je v rade, viď PackNameRow
+  // ⚠️ ŠÍRKA „+" SA ODKRÁJA PRED ROVNICOU, nie po nej. Rovnica dostane užšiu dosku a
+  // preskupí rady sama — nič sa nemeria po tom, čo sa niečo nastavilo (tá istá pasca ako
+  // v psom bloku). `plus` parameter rovnice ostáva `false`: „+" nie je slot veľkosti psa,
+  // je to 26 px krúžok, takže by ho počítala priveľký.
+  const plusReserve = pack.length > 0 ? PLUS_RESERVE : 0;
+  const plan = planRow(pack.length, Math.max(120, innerW - plusReserve), false);
   let cursor = plan.topDogs;
   const bottomRows = plan.rows.map((count) => {
     const slice = pack.slice(cursor, cursor + count);
@@ -298,25 +308,30 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
       )}
 
       {/* Odchody na editáciu — DVE nenápadné pilulky, NIE veľké zlaté CTA (Matej
-          2026-08-06: „CTA uprav profil pri človeku je zbytočne veľké"). Keď je v rohu
-          bell od notifikácií, posunú sa vedľa neho, nie pod.
+          2026-08-06: „CTA uprav profil pri človeku je zbytočne veľké"). */}
+      {/* 🔴 JEDEN RAD NA KAŽDEJ ŠÍRKE + SKRÁTENÉ MENOVKY (Matej 12. 9. 2026: „stale su
+          tlačítka cez okra vnutorneho ramu… ten rám zúž alebo tie tlačítka daj vedľa seba
+          alebo zkrat nazvy"). Tým padol stĺpec z 8. 8. 2026.
+          PREČO RAD: kolízia je VERTIKÁLNA, nie vodorovná. Pilulka je ~24 px vysoká, stojí
+          na `top:14` ⇒ prvá končí na 38, druhá v stĺpci (gap 8) až na 70 — a rám svorky
+          začína na ~60 (22 px padding karty + 20 px eyebrow + 18 px medzera). Jeden rad
+          končí na 38, teda 22 px nad rámom. Zúženie rámu by nepomohlo: musel by ustúpiť
+          ~180 px z každej strany, aby sa pilulkám vyhol, a to je pol pyramídy.
+          PREČO AJ KRATŠIE MENOVKY: dva PLNÉ názvy vedľa seba majú ~330 px a pri užšom okne
+          prejdú cez centrovaný eyebrow „VITAJ SPÄŤ!" — presne to, čo 12. 8. poslalo texty
+          na mobile dolu. „PROFIL" + „PSY" majú ~175 px, čo sa zmestí aj pri 640 px.
+          ⚠️ `aria-label` a `title` NESÚ PLNÉ znenie — skratka je vizuálna, nie významová.
+          ⚠️ Popisok na mobile (<640 px) NEVRÁTIŤ (overené meraním 2026-08-12): aj skrátený
+          rad tam ide cez eyebrow, ktorý má na 360 px len ~150 px voľna.
           ⚠️ EDIT DOGS má DVA ciele zámerne: hub `/pack/dogs` je v `App.tsx` za `DEV_FULL`
           a bez flagu redirectuje späť na `/pack` — bežný člen by klikal do slepej ulice.
           Bez flagu preto mieri na DOG ID prvého psa (`/pack/dogs/:id`), ktoré je živé pre
-          všetkých. Žiadny pes = pilulka sa nevykreslí, nie je čo upravovať. */}
-      {/* Mobil = vedľa seba (sú to len ikonky, stĺpec by kradol výšku). Desktop = pod
-          sebou (Matej 2026-08-08) — `sm:` je ten istý breakpoint, na ktorom pilulkám
-          pribudnú texty. `items-stretch` v stĺpci ich zrovná na šírku tej širšej;
-          bez neho by mali každá inú a pravý okraj by sa rozstrapkal. */}
+          všetkých. Žiadny pes = pilulka sa nevykreslí, nie je čo upravovať.
+          Keď je v rohu bell od notifikácií, rad sa posunie vedľa neho, nie pod. */}
       <div
-        className="absolute inline-flex items-center gap-2 sm:flex-col sm:items-stretch"
+        className="absolute inline-flex items-center gap-2"
         style={{ top: 14, right: stats && !DEV_FULL ? 60 : 14, zIndex: 3 }}
       >
-        {/* ⚠️ Popisok na mobile NEVRÁTIŤ (overené meraním 2026-08-12): s textom má rad
-            275 px a prejde priamo cez centrovaný eyebrow „VITAJ SPÄŤ" — na 360, 390 aj 430.
-            Matej: „ak je tam miesto ok ale by sa ničoho nedotýkali ani nezavadzali" → miesto
-            nie je. Namiesto toho aspoň `aria-label` + `title`, aby ikonka nebola nemá pre
-            čítačku a dala sa podržať pre popis. Skutočná oprava = presunúť pilulky inam. */}
         <Link
           to="/pack/profile"
           className="pk-pill pk-pill--tap hc-edit"
@@ -324,7 +339,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
           title={t('pack.hero.editProfile')}
         >
           <HandPencil size={12} className="shrink-0" />
-          <span className="hidden sm:inline">{t('pack.hero.editProfile')}</span>
+          <span className="hidden sm:inline">{t('pack.hero.editProfileShort')}</span>
         </Link>
         {dogsHref && (
           <Link
@@ -334,7 +349,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
             title={t('pack.hero.editDogs')}
           >
             <HandPaw size={12} className="shrink-0" />
-            <span className="hidden sm:inline">{t('pack.hero.editDogs')}</span>
+            <span className="hidden sm:inline">{t('pack.hero.editDogsShort')}</span>
           </Link>
         )}
       </div>
@@ -370,7 +385,6 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
           <PackNameRow
             label={packLabel}
             fallback={t('pack.pack.defaultName', { name: displayName })}
-            onAdd={emptyPack ? undefined : () => setAddOpen(true)}
           />
         <div ref={rowRef} id={WIZ.dogsRow} className="w-full">
           {innerW > 0 && (
@@ -386,6 +400,13 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
                 {pack.slice(0, plan.topDogs).map((d) => (
                   <DogSlot key={d.id} dog={d} size={plan.big} boxH={plan.owner} gap={plan.gap} />
                 ))}
+                {/* „+" STOJÍ V RADE ZA PSAMI (Matej 12. 9. 2026: „to plusko daj vedla toho
+                    psa take male ako je teraz… matej hektor a +"). Nie je to návrat slotu
+                    z 11. 9.: ten mal šírku psa (~90 px) a pri 360 px lámal rad na dva.
+                    Tento má 26 px — tú istú veľkosť, akú mal v menovkovom riadku — a jeho
+                    šírku si rovnica ODKROJILA DOPREDU (`PLUS_RESERVE`), takže sa
+                    neprepočítava po vykreslení. */}
+                {!emptyPack && <AddSlot boxH={plan.owner} onAdd={() => setAddOpen(true)} />}
               </div>
 
               {dogs &&
@@ -690,33 +711,63 @@ function DogSlot({ dog, size, boxH, gap }: { dog: HeroDog; size: number; boxH: n
   );
 }
 
-// ── MENOVKOVÝ RIADOK RÁMU — „+" vľavo, meno svorky + ceruzka v strede ────────────
+// ── „+" V RADE — pridať člena, vedľa posledného psa ──────────────────────────────
+// Matej 12. 9. 2026: „to plusko daj vedla toho psa take male ako je teraz… matej hektor a +".
+// Veľkosť ostáva 26 px (`PLUS_SIZE`) — teda tá, akú mal krúžok v menovkovom riadku, nie
+// veľkosť psieho slotu. Preto sa nevracia problém z 11. 9., kvôli ktorému „+" z radu odišiel:
+// slot šírky psa (~90 px) lámal pri 360 px rad na dva.
+// ⚠️ Krúžok sa centruje v boxe výšky najväčšieho prvku radu (`boxH`), presne ako menšia
+// psia fotka v `DogSlot` — inak by visel pri hornej hrane a rad by mal dve osi.
+// ⚠️ Lapis, nie zlato — pridanie je MOJA AKCIA, nie nábytok (brand lock 28. 8.). Výplň
+// ostáva papyrusová: tmavý tint nad pieskom zošedne.
+function AddSlot({ boxH, onAdd }: { boxH: number; onAdd: () => void }) {
+  const t = useT();
+  return (
+    <div className="flex items-center justify-center" style={{ height: boxH, width: PLUS_SIZE }}>
+      <button
+        type="button"
+        onClick={onAdd}
+        aria-label={t('pack.tree.addDog')}
+        title={t('pack.tree.addDog')}
+        className="flex items-center justify-center shrink-0"
+        style={{
+          width: PLUS_SIZE,
+          height: PLUS_SIZE,
+          borderRadius: '50%',
+          border: `2px dashed ${LAPIS.edge}`,
+          background: T.tileBg,
+          color: LAPIS.edge,
+          cursor: 'pointer',
+          padding: 0,
+        }}
+      >
+        <HandPlus size={13} />
+      </button>
+    </div>
+  );
+}
+
+// ── MENOVKOVÝ RIADOK RÁMU — meno svorky + ceruzka, centrované ────────────────────
 // (Matej 12. 9. 2026: „hore nad čiaru bude vždy Matejś pack (prve meno a pack) s ceruzkou
-// na premenovanie"; „vidíš že + prekrývajú tlačítka")
+// na premenovanie")
 //
-// 🔒 „+" PATRÍ RÁMU, NIE RADU. Matej: „frajerkina strana nemusí mať + lebo ja si neviem
-// pridať psa k jej... ale iba sebe" + „to + by sme mohli inak vymyslieť a moťno to dať inam
-// aby nezaberalo miesto". Plynie to zo zadania: „ak ktokolvek prida psa prida sa najprv do
-// svojej svorky 1. typu". Dôsledok pre VLNU B: „+" nedostane ani frajerkin rám, ani vonkajší
-// spoločný — pes sa nikdy nepridáva „do svorky", vždy do SVOJEJ.
+// 🔒 „+" TU UŽ NIE JE — stojí V RADE za psami (`AddSlot`, Matejov pokyn z toho istého dňa:
+// „to plusko daj vedla toho psa take male ako je teraz"). Riadok teda nesie len MENO a
+// PREMENOVANIE; kto hľadá pridávanie člena, nech ide do `AddSlot` vyššie.
+// Historický kontext, ktorý platí ďalej: „+" patrí VLASTNEJ svorke — Matej „frajerkina
+// strana nemusí mať + lebo ja si neviem pridať psa k jej... ale iba sebe", zo zadania
+// „ak ktokolvek prida psa prida sa najprv do svojej svorky 1. typu". Dôsledok pre VLNU B:
+// „+" nedostane ani frajerkin rám, ani vonkajší spoločný.
 //
-// Prečo riadok a nie slot v rade (vybrané z nákresu `plany/nakres-svorka-ramik-2026-09-12.html`,
-// štyri verzie): slot v rade stál ~90 px šírky. Pri 360 px okna ostáva pyramíde 258 px a
-// majiteľ + pes + „+" potrebuje 280 ⇒ rad sa LÁMAL NA DVA. Pri 390 px zaberal miesto, kde sa
-// vojde druhý pes. Menovkový riadok stojí NULA na šírke aj na výške — už tam bol.
-//
-// ⚠️ „+" JE VĽAVO, NIE VPRAVO (opravené 12. 9. 2026). Vpravo hore stoja absolútne pilulky
-// UPRAVIŤ PROFIL / UPRAVIŤ PSOV (`right:14`, na PC v stĺpci) a druhá z nich siaha presne do
-// pravého horného kúta rámu. Ľavý pruh rámu je prázdny na každej šírke.
 // ⚠️ MENOVKA STOJÍ VŽDY — prázdne pole padá na „Svorka <krstné meno>" (`pack.pack.defaultName`).
 // Tým padlo ranné rozhodnutie „prázdne pole = žiadna menovka": bez mena nie je čo premenovať
 // a ceruzka by visela pri prázdnom mieste. Pôvodná obava (meno majiteľa zopakované nad jeho
 // avatarom sa čítalo ako preklep) je vyriešená slovom SVORKA pred ním — je to názov domácnosti,
 // nie druhýkrát to isté.
-// ⚠️ DVE TLAČIDLÁ = DVE VECI. „+" pridáva ČLENA (rázcestie pes / pawmate / pawtner), ceruzka
-// PREMENUJE. Dovtedy premenovanie viselo ako tretie dvere pod „+" a jedno tlačidlo tak
-// odpovedalo na dve rôzne otázky.
-function PackNameRow({ label, fallback, onAdd }: { label: string; fallback: string; onAdd?: () => void }) {
+// ⚠️ DVE TLAČIDLÁ = DVE VECI. „+" v rade pridáva ČLENA (rázcestie pes / pawmate / pawtner),
+// ceruzka pri menovke PREMENUJE. Dovtedy premenovanie viselo ako tretie dvere pod „+" a jedno
+// tlačidlo tak odpovedalo na dve rôzne otázky.
+function PackNameRow({ label, fallback }: { label: string; fallback: string }) {
   const t = useT();
   // Premenovanie sa deje NA MIESTE — riadok sa zmení na pole, žiadny ďalší popup.
   // Dovtedy to bývali dvere „SVORKA" v rázcestí pod „+"; Matej 12. 9. 2026 to rozdelil:
@@ -782,46 +833,12 @@ function PackNameRow({ label, fallback, onAdd }: { label: string; fallback: stri
           </button>
         </form>
       ) : (
-        <div className="flex items-center" style={{ gap: 8 }}>
-          {/* „+" JE VĽAVO (Matej 12. 9. 2026: „vidíš že + prekrývajú tlačítka"). Vpravo hore
-              stoja absolútne pilulky UPRAVIŤ PROFIL / UPRAVIŤ PSOV (`right:14`, na PC pod
-              sebou) a druhá z nich zasahuje presne do pravého horného kúta rámu — teda tam,
-              kde „+" sedel. Vľavo je ten pruh prázdny na každej šírke.
-              Lapis, nie zlato — pridanie je MOJA AKCIA, nie nábytok (brand lock 28. 8.).
-              Výplň ostáva papyrusová: tmavý tint nad pieskom zošedne a prázdny krúžok by
-              potom vážil viac než fotky psov pod ním.
-              ⚠️ NIE JE TO ODKAZ — otvára rázcestie „čo pridávam" (pes / pawmate / pawtner). */}
-          {onAdd ? (
-            <button
-              type="button"
-              onClick={onAdd}
-              aria-label={t('pack.tree.addDog')}
-              title={t('pack.tree.addDog')}
-              className="flex items-center justify-center shrink-0"
-              style={{
-                width: 26,
-                height: 26,
-                borderRadius: '50%',
-                border: `2px dashed ${LAPIS.edge}`,
-                background: T.tileBg,
-                color: LAPIS.edge,
-                cursor: 'pointer',
-                padding: 0,
-              }}
-            >
-              <HandPlus size={13} />
-            </button>
-          ) : (
-            /* Prázdna svorka → „+" je dole ako plné CTA (`EmptyPackCta`). Dva „+" v jednom
-               ráme sú dve odpovede na tú istú otázku, preto tu ostane len medzera. */
-            <div aria-hidden style={{ width: 26, flex: '0 0 26px' }} />
-          )}
-
+        <div className="flex items-center justify-center" style={{ gap: 8 }}>
           {/* Meno svorky + ceruzka ako JEDNA centrovaná skupina. ⚠️ Menovka stojí VŽDY
               (Matej 12. 9.: „hore nad čiaru bude vždy Matejś pack"), takže prázdne pole
               padá na `fallback` = „Svorka <krstné meno>". Tým padlo ranné rozhodnutie
               „prázdne pole = žiadna menovka": vtedy rám bez mena nemal čo premenovať. */}
-          <div className="flex items-center justify-center" style={{ flex: 1, minWidth: 0, gap: 6 }}>
+          <div className="flex items-center justify-center" style={{ minWidth: 0, gap: 6 }}>
             <span
               style={{
                 minWidth: 0,
@@ -857,9 +874,6 @@ function PackNameRow({ label, fallback, onAdd }: { label: string; fallback: stri
             </button>
           </div>
 
-          {/* Prázdna medzera vpravo drží skupinu v OPTICKOM strede rámu — bez nej by ju
-              „+" vytlačil vpravo a centrovanie pod ňou (rad avatarov) by sa rozišlo. */}
-          <div aria-hidden style={{ width: 26, flex: '0 0 26px' }} />
         </div>
       )}
       {/* Deliaca čiara = `T.rule` (zlatá, vyblednutá do strán) — NIE šedý hairline. */}

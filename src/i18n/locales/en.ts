@@ -1527,8 +1527,12 @@ export const en = {
   'pack.hero.toastPhotoUpdated': "Photo updated",
   'pack.hero.toastUploadFailed': "Upload failed",
   'pack.hero.welcomeBack': "Hey, pack!",
+  // Plné znenie nesie `aria-label` + `title`; na pilulke sa kreslí `*Short` — dva plné
+  // názvy vedľa seba prejdú cez centrovaný eyebrow. Viď komentár v HeroCard.tsx.
   'pack.hero.editProfile': "Edit profile",
+  'pack.hero.editProfileShort': "Profile",
   'pack.hero.editDogs': "Edit dogs",
+  'pack.hero.editDogsShort': "Dogs",
   'pack.nextTrip.eyebrow': "Next up",
   'pack.nextTrip.today': "Today",
   'pack.nextTrip.tomorrow': "Tomorrow",
