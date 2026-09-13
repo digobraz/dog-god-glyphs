@@ -209,8 +209,12 @@ export async function revokeDogInvite(dogId: string, inviteId: string): Promise<
  * Vracia kód chyby (`no_slots`, `rate_limited`, …), nie vetu — preklad robí panel.
  */
 export async function invitePawmate(
-  dogId: string, email: string, role: PawmateRole, rights: PawmateRights,
+  dogIds: string | string[], email: string, role: PawmateRole, rights: PawmateRights,
 ): Promise<{ ok: true } | { ok: false; code: string }> {
+  // Jedna pozvánka smie niesť VIAC PSOV (B6b — Matej 13. 9. 2026 na otázku, ku ktorým
+  // psom sa pozýva z profilu: *„vyberiem psov pri pozývaní"*). Jeden token, jeden mail,
+  // jeden klik; server z toho urobí N riadkov v `dog_invites`.
+  const ids = Array.isArray(dogIds) ? dogIds : [dogIds];
   if (DEV_NOAUTH) {
     DEV_MOCK_ACCESS.push({
       kind: 'invite', user_id: null, role, rights: { ...rights } as Record<string, boolean>,
@@ -222,7 +226,7 @@ export async function invitePawmate(
     return { ok: true };
   }
   const { data, error } = await supabase.functions.invoke('invite-pawmate', {
-    body: { dogId, email, role, rights },
+    body: { dogIds: ids, email, role, rights },
   });
   // `invoke` hlási neúspešný HTTP kód ako `error` a telo zahodí, takže dôvod
   // treba vytiahnuť z odpovede ručne — rovnako to robí `PackJoin.tsx`.
