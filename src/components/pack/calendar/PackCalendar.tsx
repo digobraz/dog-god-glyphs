@@ -47,7 +47,8 @@ import {
   moonDaysOfYear, PROTOCOL, TICKS, visibleProtocol, protocolOn, protocolLanes, ticksInMonth,
   protWholeMonth, protWindowColor, CAL_RGB, calRGBA, hexRGBA, LOG_TYPES, cellFill,
   birthdaysOn, humanYearsOn,
-  LIFE_YEARS, LIFE_ACTIVE_YEARS, WEEKS_PER_YEAR, LIFE_WEEKS, LIFE_RECORDS, LIFE_TIPS, weekIndex, weekStart, ageParts,
+  LIFE_YEARS, LIFE_ACTIVE_YEARS, WEEKS_PER_YEAR, LIFE_WEEKS, LIFE_RECORDS, LIFE_TIPS,
+  TARGET_EXTRA_YEARS, weekIndex, weekStart, ageParts,
   type CalDog, type CalEntry, type LogKind, type MoonPhase, type ProtWindow,
 } from './calendarModel';
 import { estimateLife, SIZE_NAME_SK, type LifeEstimate } from '@/data/breedLifespan';
@@ -963,6 +964,14 @@ function LifeGrid({
   // 9–12. Matej: „daj do rámika čísla, ktorých sa pásmo týka = 9-12".
   const bandFirst = Math.floor(band.low);
   const bandLast = Math.floor(band.high);
+  // 🎯 CIEĽOVÉ PÁSMO — päť rokov hneď NAD priemerom (Matej 13. 9. 2026:
+  // „pridaj 5 rokov rámik… ten bude zelený"). Začína rokom za horným okrajom
+  // priemeru, aby sa rámiky neprekrývali: dva rámiky na tom istom čísle by
+  // nepovedali, do ktorého ten rok patrí. Strop je posledný riadok mriežky —
+  // pri dlhovekom plemene (napr. 12–16) by inak cieľ vyliezol za tridsiatku.
+  // Psovi, ktorý odišiel, sa cieľ nekreslí: nemá komu patriť.
+  const tgtFirst = deceased ? -1 : bandLast + 1;
+  const tgtLast = Math.min(bandLast + TARGET_EXTRA_YEARS, gridYears - 1);
   // Popis pásma má JEDNO znenie pre dve miesta: bublinu nad blokom a `title`
   // rámika pri číslach rokov. Dva ručne opísané texty by sa rozišli pri prvej
   // úprave zdroja odhadu.
@@ -976,12 +985,32 @@ function LifeGrid({
         : est.size
           ? ` · ${tx('pack.cal.life.srcWeight', 'odhad podľa hmotnosti')} (${SIZE_NAME_SK[est.size]}, ${band.kgSK})`
           : '');
+  // ⚠️ ODKIAĽ SA ČÍSLO BERIE, MUSÍ BYŤ V POPISKU (Matej 13. 9. 2026: „aj
+  // s odkazom, odkiaľ sa čerpá! wikipedia napr."). Wikipédia to ale NIE JE
+  // a napísať ju by bolo nepresné: `BREED_LIFESPAN` stojí na publikovaných
+  // rozpätiach plemenných klubov (AKC / The Kennel Club), hmotnostné triedy
+  // na veterinárnych prehľadoch (UK VetCompass / RVC life tables 2024).
+  // Popisok preto menuje ten zdroj, ktorý sa na TENTO odhad naozaj použil.
   const bandTitle = `${bandText}\n${tx('pack.cal.life.bandNote',
-    'Je to priemer tisícok psov, nie predpoveď o tomto jednom.')}`;
+    'Je to priemer tisícok psov, nie predpoveď o tomto jednom.')}`
+    + `\n${band.fromBreed
+      ? tx('pack.cal.life.srcRefBreed', 'Zdroj: publikované rozpätie plemenného klubu (AKC / The Kennel Club).')
+      : tx('pack.cal.life.srcRefWeight', 'Zdroj: veterinárne prehľady dožitia podľa hmotnosti (UK VetCompass / RVC life tables).')}`;
+  // 🎯 CIEĽ — musí byť počuť, že je to CIEĽ, nie údaj. Tvrdé číslo v ňom je
+  // len jedno (Purina, +1,8 roka za štíhlosť); päť je horná hranica súčtu
+  // všetkého ostatného. Bez zdroja by to bola nepodložená zdravotná veta.
+  const tgtText = `${tx('pack.cal.life.tgtPre', 'Cieľ:')} ${num(bandLast + 1)}–${num(tgtLast)} `
+    + `${tx('pack.cal.life.years', 'rokov')} · `
+    + tx('pack.cal.life.tgtBody',
+      'až päť rokov navyše, ktoré vie pridať holistická starostlivosť — štíhlosť, '
+      + 'pohyb v teréne, chrup, spánok a čo najmenej zbytočnej chémie.');
+  const tgtTitle = `${tgtText}\n${tx('pack.cal.life.tgtSrc',
+    'Hrubý odhad, nie sľub. Zmerané je z toho zatiaľ jedno: samotná štíhlosť pridala '
+    + 'labradorom 1,8 roka (Purina Life Span Study, JAVMA 2002).')}`;
 
-  const hoverInBand = hover !== null
-    && Math.floor(hover.wi / WEEKS_PER_YEAR) >= bandFirst
-    && Math.floor(hover.wi / WEEKS_PER_YEAR) <= bandLast;
+  const hoverYear = hover === null ? -1 : Math.floor(hover.wi / WEEKS_PER_YEAR);
+  const hoverInBand = hoverYear >= bandFirst && hoverYear <= bandLast;
+  const hoverInTarget = tgtFirst >= 0 && hoverYear >= tgtFirst && hoverYear <= tgtLast;
 
   // Popis dňa v týždni na popisky — „14. 4. – 20. 4. 2019".
   const weekLabel = (wi: number): string => {
@@ -1077,15 +1106,19 @@ function LifeGrid({
             // je to tá istá informácia, ale mimo mriežky: rámik povie
             // „týchto rokov sa to týka" a života sa nedotkne.
             const inBand = yr >= bandFirst && yr <= bandLast;
+            const inTgt = tgtFirst >= 0 && yr >= tgtFirst && yr <= tgtLast;
             return (
               <Fragment key={yr}>
                 {/* ČÍSLO MÁ KAŽDÝ RIADOK (Matej 13. 9.: „do každého riadku daj
                     čísla rokov, nie len 0-5-10"). Po piatich sa nedalo povedať,
                     v ktorom roku života leží konkrétny tmavý týždeň — človek
                     musel počítať riadky od najbližšej päťky. */}
-                <div className={`cal-lifeyr${past ? ' faded' : ''}${inBand ? ' inband' : ''}`
-                  + (yr === bandFirst ? ' bandtop' : '') + (yr === bandLast ? ' bandbot' : '')}
-                  title={bandTitle}
+                <div className={`cal-lifeyr${past ? ' faded' : ''}`
+                  + (inBand ? ' inband' : '') + (yr === bandFirst ? ' bandtop' : '')
+                  + (yr === bandLast ? ' bandbot' : '')
+                  + (inTgt ? ' intgt' : '') + (yr === tgtFirst ? ' tgttop' : '')
+                  + (yr === tgtLast ? ' tgtbot' : '')}
+                  title={inTgt ? tgtTitle : inBand ? bandTitle : undefined}
                 >{yr}</div>
                 <div
                   className={`cal-liferow${past ? ' faded' : ''}${inBand ? ' inband' : ''}${yr === LIFE_ACTIVE_YEARS ? ' zone' : ''}`}
@@ -1193,6 +1226,16 @@ function LifeGrid({
             </div>
           ))}
         </div>
+        {/* ⚠️ PÔVOD FOTKY JE PODMIENKA LICENCIE, NIE ZDVORILOSŤ (Matej: „fotky
+            stiahni všetky, a uvedieme, odkiaľ sú"). Pri PD/CC snímke je uvedenie
+            autora presne to, čo z použitia robí legálne — riadok teda nesmie
+            zmiznúť „kvôli čistote". Skladá sa z tých kariet, ktoré fotku majú;
+            keď fotku nemá ani jedna, riadok sa nevykreslí. */}
+        {LIFE_RECORDS.some((r) => r.photo && r.photoCredit) && (
+          <p className="cal-reccredit">
+            {LIFE_RECORDS.filter((r) => r.photo && r.photoCredit).map((r) => r.photoCredit).join(' · ')}
+          </p>
+        )}
       </div>
       )}
 
@@ -1261,7 +1304,15 @@ function LifeGrid({
           {hoverEntries.map((e, i) => (
             <span key={i}>{LOG_TYPES[e.kind].emoji} {e.title || tx(LOG_TYPES[e.kind].i18n, LOG_TYPES[e.kind].nameSK)}</span>
           ))}
-          {hoverInBand && <span className="wrap dim">{bandText}</span>}
+          {hoverInBand && (
+            <span className="wrap dim">
+              {bandText}
+              {est.basis !== 'default' && ` · ${band.fromBreed
+                ? tx('pack.cal.life.srcRefShort', 'zdroj: plemenný klub (AKC / The Kennel Club)')
+                : tx('pack.cal.life.srcRefShortW', 'zdroj: UK VetCompass / RVC life tables')}`}
+            </span>
+          )}
+          {hoverInTarget && <span className="wrap tgt">{tgtText}</span>}
         </div>
       )}
 
@@ -1583,6 +1634,26 @@ const CAL_CSS = `
 .cal-lifeyr.inband.bandbot::before{bottom:0;border-radius:0 0 3px 3px;
   box-shadow:inset 1px 0 0 ${T.accentGold},inset -1px 0 0 ${T.accentGold},inset 0 -1px 0 ${T.accentGold}}
 .cal-lifeyr.inband.bandtop.bandbot::before{box-shadow:inset 0 0 0 1px ${T.accentGold};border-radius:3px}
+/* ── 🎯 CIEĽOVÉ PÁSMO = ZELENÝ RÁMIK HNEĎ POD ZLATÝM (13. 9. 2026) ────────
+   Matej: „pridaj 5 rokov rámik… ten bude zelený a bude hovoriť: pridaj až
+   extra 5 rokov super starostlivosťou (target – longevity)".
+   Zlatý rámik hovorí, čo je PRIEMER; zelený, čo je CIEĽ. Zelená je tá istá,
+   akou appka inde značí „splnené" a „tip od svorky" (T.growGreen), takže
+   nesie rovnaký význam: toto sa dá dosiahnuť.
+   ⚠️ Recept je zhodný so zlatým rámikom vrátane ::before — pozri poznámku
+   vyššie o zápornom margine a o z-index:-1. Kto sem pridá tretie pásmo,
+   kopíruje TENTO tvar, nie vlastné čísla. */
+.cal-lifeyr.intgt{color:${T.growGreen};opacity:1;position:relative;
+  align-self:stretch;display:flex;align-items:center;justify-content:flex-end}
+.cal-lifeyr.intgt::before{content:'';position:absolute;left:-3px;right:-2px;top:-1px;bottom:-1px;
+  pointer-events:none;
+  box-shadow:inset 1px 0 0 ${T.growGreen},inset -1px 0 0 ${T.growGreen}}
+.cal-lifeyr.intgt.tgttop::before{top:0;border-radius:3px 3px 0 0;
+  box-shadow:inset 1px 0 0 ${T.growGreen},inset -1px 0 0 ${T.growGreen},inset 0 1px 0 ${T.growGreen}}
+.cal-lifeyr.intgt.tgtbot::before{bottom:0;border-radius:0 0 3px 3px;
+  box-shadow:inset 1px 0 0 ${T.growGreen},inset -1px 0 0 ${T.growGreen},inset 0 -1px 0 ${T.growGreen}}
+/* Vyblednutá zóna 20+ nesmie zhasnúť cieľ: pri dlhovekom plemene doň zasahuje. */
+.cal-lifeyr.intgt.faded,.cal-lifeyr.inband.faded{opacity:.75}
 /* Hranica dvadsiatky je PREDEL, nie ďalší riadok mriežky: nad ňou je pes,
    pod ňou je história. Bez nej sa vyblednutá zóna pri prázdnych bunkách
    nedala odlíšiť od zvyšku prázdneho miesta. */
@@ -1680,6 +1751,9 @@ const CAL_CSS = `
    z vysvetlenia spravilo hádanku. */
 .cal-lifetip span.wrap{white-space:normal;overflow:visible;text-overflow:clip}
 .cal-lifetip span.dim{color:${T.inkFaint};font-size:10px;margin-top:5px}
+/* Cieľ je zelený aj v bubline — tá istá farba ako jeho rámik, inak si človek
+   nespojí, ktorý z dvoch rámikov práve číta. */
+.cal-lifetip span.tgt{color:${T.growGreen};font-size:10px;margin-top:5px}
 
 /* ── REKORDY a RADY ─────────────────────────────────────────────────────── */
 .cal-records{margin-top:18px}
@@ -1728,6 +1802,10 @@ const CAL_CSS = `
 .cal-rec em{display:block;font-style:normal;font-family:${FONT_UI};font-size:9.5px;line-height:1.4;
   color:${T.alertRed};letter-spacing:.02em}
 .cal-rec.unver{opacity:.82}
+/* Pôvod fotiek — tichý riadok pod pásom. Je to licenčná podmienka, takže musí
+   byť čitateľný, nie schovaný: 9,5 px a inkFaint, rovnako ako ostatné popisky. */
+.cal-reccredit{font-family:${FONT_UI};font-size:9.5px;line-height:1.5;color:${T.inkFaint};
+  margin:2px 0 0;letter-spacing:.02em}
 .cal-tipgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:9px}
 .cal-tip{display:flex;gap:10px;background:${T.tileBg};border:1px solid ${T.border};border-radius:10px;padding:11px 12px}
 .cal-tip em{font-style:normal;font-size:19px;line-height:1.1;flex:0 0 auto;font-family:${EMOJI_FONT}}

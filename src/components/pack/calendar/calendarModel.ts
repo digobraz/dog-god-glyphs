@@ -444,6 +444,23 @@ export const WEEKS_PER_YEAR = 52;
 export const LIFE_WEEKS = LIFE_YEARS * WEEKS_PER_YEAR;
 
 /**
+ * 🎯 CIEĽOVÉ PÁSMO — koľko rokov navyše si dať za cieľ. Matej 13. 9. 2026:
+ * „pridaj 5 rokov rámik… ten bude zelený a bude hovoriť: pridaj až extra
+ * 5 rokov super starostlivosťou (target – longevity)… hrubý odhad toho, čo
+ * dokáže holistický prístup k životnému štýlu psa."
+ *
+ * ⚠️ JE TO CIEĽ, NIE ÚDAJ — a v texte to musí byť počuť („až", „cieľ"), inak
+ * appka tvrdí niečo, čo nikto nezmeral. Jediné TVRDÉ číslo, ktoré k tomu
+ * existuje, je Purina Life Span Study (Kealy a kol., JAVMA 2002): 48 labradorov
+ * v dvojiciach, jeden z páru o 25 % menej krmiva celý život ⇒ medián dožitia
+ * **13,0 vs 11,2 roka, teda +1,8 roka (+15 %)** len tým, že pes ostal štíhly.
+ * To je JEDEN faktor z mnohých; päť rokov je horná hranica toho, čo by dal
+ * súčet všetkých (štíhlosť, pohyb, chrup, spánok, menej chémie) — nie priemer
+ * a nie sľub. Zdroj drž v popiske, nech sa dá overiť.
+ */
+export const TARGET_EXTRA_YEARS = 5;
+
+/**
  * Index týždňa od narodenia. Rovnaký vzorec pre psa aj pre zápis, inak by
  * zápis sadol o týždeň vedľa.
  *
@@ -505,22 +522,33 @@ export interface LifeRecord {
   /** true = doložené a uznané · false = tvrdenie, ktoré nikto nepotvrdil. */
   verified: boolean;
   /**
-   * 🔴 FOTKA REKORDMANA — ZATIAĽ PRÁZDNA U VŠETKÝCH, A JE TO ZÁMER.
-   * Matej 13. 9. 2026: „k rekordmanom sa hodia aj fotky!". Karta na ňu miesto
-   * MÁ (`.cal-recphoto`), ale sú to snímky skutočných psov s vlastníkom práv —
-   * stiahnuť ich z Wikipédie „lebo tam sú" znamená publikovať cudzí obrázok
-   * na komerčnom povrchu. Bez fotky karta nevyzerá rozbito: kruh ukáže
-   * iniciálu mena, teda ten istý vzor, aký má appka na chýbajúci avatar.
-   * Realisticky použiteľné sú len tie s vypršanými právami (Bluey 1939,
-   * Adjutant 1963) — zvyšok treba buď licencovať, alebo nechať iniciálu.
-   * Hodnota = cesta v `public/` alebo Cloudinary URL.
+   * FOTKA REKORDMANA. Matej 13. 9. 2026: „fotky stiahni všetky, a uvedieme,
+   * odkiaľ sú."
+   *
+   * 🔴 VYPLNENÁ JE JEDNA Z TRINÁSTICH a nie je to lenivosť — VIAC ICH VOĽNÝCH
+   * NIE JE. Prehľadané Wikimedia Commons aj Wikipédia (13× dopyt, september
+   * 2026): jediná voľná snímka niektorého z týchto psov je `File:Dog Bluey.jpg`
+   * (public domain, 1920-te roky). Články o Blueym, Pusukem, Spikeovi a Bobim
+   * síce existujú, ale **bez jedinej fotky**; Maggie, Bramble, Adjutant, Taffy
+   * a TobyKeith článok nemajú vôbec. Zvyšok žije len ako tlačová alebo
+   * Guinnessova snímka, teda cudzie autorské právo na komerčnej stránke —
+   * a to je vec fotografa, nie majiteľa psa (GDPR s tým nesúvisí).
+   *
+   * Kto sem bude dopĺňať ďalšiu: musí mať PD alebo CC licenciu a MUSÍ vyplniť
+   * `photoCredit`, inak sa poruší práve tá podmienka, ktorá licenciu platnou
+   * robí. Kruh bez fotky nevyzerá rozbito — ukáže iniciálu, ten istý vzor,
+   * aký má appka na chýbajúci avatar.
    */
   photo?: string;
+  /** Povinná dvojička `photo`: autor / zdroj / licencia do riadku pod pásom. */
+  photoCredit?: string;
 }
 
 export const LIFE_RECORDS: LifeRecord[] = [
   { name: 'Bluey', years: 29.4, exactSK: '29 rokov 160 dní', breedSK: 'Austrálsky honácky pes',
-    fromTo: '1910 – 1939', countrySK: 'Austrália', verified: true },
+    fromTo: '1910 – 1939', countrySK: 'Austrália', verified: true,
+    photo: '/images/records/bluey.jpg',
+    photoCredit: 'Bluey: neznámy autor, 20. roky 20. st. · public domain · Wikimedia Commons' },
   { name: 'Lazare', years: 30.4, exactSK: '30 rokov 161 dní', breedSK: 'Papillon',
     fromTo: '1995 – 2026', countrySK: 'Francúzsko', verified: false },
   { name: 'Maggie', years: 30, exactSK: '', breedSK: 'Austrálsky kelpie',
