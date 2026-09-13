@@ -968,8 +968,8 @@ function LifeGrid({
   // úprave zdroja odhadu.
   const bandText = est.basis === 'default'
     ? tx('pack.cal.life.srcNone',
-      'Pásmo dožitia: plemeno ani hmotnosť zatiaľ nepoznáme, takže stojí na strednej triede. Doplň plemeno v DOG ID.')
-    : `${tx('pack.cal.life.srcPre', 'Pásmo dožitia:')} ${num(band.low)}–${num(band.high)} `
+      'Priemerný vek dožitia: plemeno ani hmotnosť zatiaľ nepoznáme, takže odhad stojí na strednej triede. Doplň plemeno v DOG ID.')
+    : `${tx('pack.cal.life.srcPre', 'Priemerný vek dožitia:')} ${num(band.low)}–${num(band.high)} `
       + `${tx('pack.cal.life.years', 'rokov')} · ${est.labelSK}`
       + (band.fromBreed
         ? ` · ${tx('pack.cal.life.srcBreed', 'publikovaný údaj plemena')}`
@@ -992,7 +992,27 @@ function LifeGrid({
 
   return (
     <div className="cal-life">
-      {/* ── ZHRNUTIE: tri čísla, nie odsek ───────────────────────────────── */}
+      {/* ── ÚVODNÁ VETA (Matej 13. 9. 2026) ───────────────────────────────
+          „pod nadpisom kalendár bude krátka veta… nižšie vidíš celý život
+          tvojho psa v blokoch… na jednej strane desivé, ale na druhej strane
+          nám táto vizualizácia pripomenie, že si treba užiť každý okamih
+          a neodkladať veci na potom."
+          Je to JEHO text, nie môj opis. Nahradila suchý riadok o mierke
+          (`pack.cal.life.scale`) — mierku hovorí druhá veta a tretia dáva
+          mriežke dôvod, prečo sa na ňu človek díva.
+          ⚠️ Vykresľuje sa LEN v pohľade ŽIVOT: v ROKU a MESIACI by tvrdila
+          niečo, čo tam nie je (blok = deň, nie týždeň). */}
+      <p className="cal-intro">{tx('pack.cal.life.intro',
+        'Nižšie vidíš celý život svojho psa v blokoch. Jeden blok = jeden týždeň, riadok = jeden rok. '
+        + 'Na jednej strane je to desivé, na druhej presne tá pripomienka, že si treba užiť každý '
+        + 'okamih a neodkladať veci na potom.')}</p>
+
+      {/* ── HLAVIČKA: ČÍSLA VĽAVO POD SEBOU, LEGENDA VPRAVO ────────────────
+          Matej 13. 9. 2026: „na ľavú stranu pod seba DNI celkovo a dni spolu,
+          a doprava premiestnil legendy". Predtým stáli dlaždice vedľa seba cez
+          celú šírku a legenda pod nimi ako tretí pás — tri vodorovné vrstvy
+          nad mriežkou, kým na papieri je vedľa seba miesta dosť. */}
+      <div className="cal-lifetop">
       <div className="cal-lifehead">
         {/* DNI, nie roky+týždne. Matej 13. 9.: „v prvom bloku mi chýbajú aj dni
             (livin his best life - xyz dní)". Je to ten istý údaj, aký nesie
@@ -1026,6 +1046,8 @@ function LifeGrid({
           </div>
         )}
       </div>
+      <LifeLegend tx={tx} />
+      </div>
 
       {/* 🕊️ Veta pre psa, ktorý odišiel. Stojí NAD mriežkou, nie pod ňou —
           človek, ktorý sem príde, nemá najprv čítať štatistiku. */}
@@ -1035,26 +1057,12 @@ function LifeGrid({
         </p>
       )}
 
-      {/* ⚠️ TU STÁVAL POPIS PÁSMA DOŽITIA a odišiel 13. 9. 2026 (Matej: „tam daj
-          skôr info, že 1 blok = 1 týždeň"). Veta „Pásmo dožitia: 9–12 rokov ·
-          25 kg · odhad podľa hmotnosti" bola na prvom mieste, kam oko padne —
-          teda prvá vec, ktorú sa človek o svojom psovi dozvedel, bol odhad, kedy
-          zomrie. Pásmo sa dnes ukáže AŽ na dotyk myšou v mriežke; text tu
-          vysvetľuje MIERKU, bez ktorej sa mriežka nedá začať čítať.
-          Zdroj odhadu (plemeno / hmotnosť) sa presunul do bubliny pásma. */}
-      <p className="cal-note cal-lifesrc">
-        {/* ⚠️ Dve vety, nič viac (Matej 13. 9. večer: „toto zruš: Pri prejdení myšou
-            na blok sa zobrazí vek… Tmavé políčko = výlet."). Hover si človek nájde
-            sám a nemá sa mu prikazovať; tmavé políčko hovorí legenda. */}
-        {tx('pack.cal.life.scale', 'Jeden blok = jeden týždeň života. Riadok = jeden rok.')}
-      </p>
-
-      {/* ── AKO ČÍTAŤ MRIEŽKU — NAD ŇOU, nie pod stránkou ──────────────────
-          Matej 13. 9. 2026: „ako čítať mriežku by som dal nad tabuľku, nie úplne
-          dolu". Legenda pod mriežkou je návod, ku ktorému sa človek dostane až
-          potom, čo si obrázok vyložil po svojom. */}
-      <LifeLegend tx={tx} />
-
+      {/* ⚠️ POPIS PÁSMA DOŽITIA TU NIE JE a nikdy sa sem nevracia (13. 9. 2026).
+          Veta „Pásmo dožitia: 9–12 rokov · odhad podľa hmotnosti" bola prvá vec,
+          ktorú sa človek o svojom psovi dozvedel — teda odhad, kedy zomrie.
+          Pásmo hovorí rámik pri rokoch a bublina na dotyk, nič iné.
+          ⚠️ Riadok o mierke (`pack.cal.life.scale`) SPLYNUL s úvodnou vetou
+          hore; legenda sa presunula vedľa dlaždíc. */}
       {/* ── MRIEŽKA ──────────────────────────────────────────────────────── */}
       <div className="cal-lifewrap">
         <div className="cal-lifegrid" onMouseLeave={() => setHover(null)}>
@@ -1135,16 +1143,21 @@ function LifeGrid({
         <div className="cal-lifeend" aria-hidden />
       </div>
 
-      {/* ── ZÓNA REKORDOV — prečo mriežka nekončí na dvadsiatke ───────────── */}
+      {/* ── ZÓNA REKORDOV — prečo mriežka nekončí na dvadsiatke ─────────────
+          🔴 SPODOK BLOKU JE ODDELENÝ (Matej 13. 9. 2026: „tú časť treba
+          «oddeliť» vizuálne, zväčšiť nadpis… treba pekne rozčleniť sekciu,
+          zväčšiť tie nadpisy, lebo sa strácajú"). Nad mriežkou sa hovorí
+          o TOMTO psovi, pod ňou o dlhovekosti vôbec — dve témy, ktoré tu
+          predtým odlišoval len 9,5 px zlatý mikropopisok. */}
       {!deceased && (
-      <div className="cal-records">
+      <div className="cal-records cal-sec">
         {/* ⚠️ NADPIS AJ PODNADPIS SÚ MATEJOVE SLOVÁ (13. 9. 2026) — nie môj
             opis. Predošlé znenie („Vyblednutá časť mriežky nie je predpoveď…")
             vysvetľovalo MRIEŽKU, teda vec nad sebou, a rekordmanov podávalo
             ako poznámku pod čiarou k odhadu dožitia. Nové znenie hovorí o tom,
             čo má človek s dlhovekosťou spoločné: rozhodnutia. */}
-        <div className="cal-lgtitle">{tx('pack.cal.life.recTitle', 'Dlhovekosť psov nie je náhoda')}</div>
-        <p className="cal-note" style={{ marginBottom: 9 }}>
+        <h4 className="cal-sectitle">{tx('pack.cal.life.recTitle', 'Dlhovekosť psov nie je náhoda')}</h4>
+        <p className="cal-secsub">
           {tx('pack.cal.life.recSub',
             'Nižšie nájdeš zopár rekordmanov, ktorí sa dožili takmer 30 rokov. Dlhý a šťastný život stojí hlavne na tvojich každodenných rozhodnutiach.')}
         </p>
@@ -1156,8 +1169,21 @@ function LifeGrid({
         <div className="cal-recgrid">
           {LIFE_RECORDS.map((r) => (
             <div className={`cal-rec${r.verified ? '' : ' unver'}`} key={r.name}>
-              <b>{r.name}</b>
-              <u>{r.exactSK || `${num(r.years)} ${tx('pack.cal.life.years', 'rokov')}`}</u>
+              {/* 🔴 FOTKA JE ZATIAĽ U VŠETKÝCH PRÁZDNA A JE TO ZÁMER (Matej 13. 9.:
+                  „k rekordmanom sa hodia aj fotky!"). Sú to snímky skutočných psov
+                  s vlastníkom práv; stiahnuť ich odniekiaľ „lebo tam sú" znamená
+                  publikovať cudzí obrázok na komerčnom povrchu. Kruh preto ukáže
+                  iniciálu — ten istý vzor, aký má appka na chýbajúci avatar —
+                  a karta nevyzerá rozbito. Detail v `LifeRecord.photo`. */}
+              <div className="cal-rechead">
+                <span className="cal-recphoto" aria-hidden>
+                  {r.photo ? <img src={r.photo} alt="" /> : r.name.slice(0, 1)}
+                </span>
+                <span className="cal-recname">
+                  <b>{r.name}</b>
+                  <u>{r.exactSK || `${num(r.years)} ${tx('pack.cal.life.years', 'rokov')}`}</u>
+                </span>
+              </div>
               <i>{r.breedSK} · {r.countrySK} · {r.fromTo}</i>
               {/* Neoverený rekord sa NESKRÝVA, ale ani nepredstiera. Značka je
                   jediné, čo ho odlišuje — a je to tá dôležitá časť. */}
@@ -1172,8 +1198,10 @@ function LifeGrid({
 
       {/* ── RADY ─────────────────────────────────────────────────────────── */}
       {tips.length > 0 && (
-      <div className="cal-records">
-        <div className="cal-lgtitle">{tx('pack.cal.life.tipsTitle', 'Čo s tým vieš urobiť')}</div>
+      <div className="cal-records cal-sec">
+        <h4 className="cal-sectitle">{tx('pack.cal.life.tipsTitle', 'Čo s tým vieš urobiť')}</h4>
+        <p className="cal-secsub">{tx('pack.cal.life.tipsSub',
+          'Šesť vecí, ktoré rozhodujú viac než plemeno. Nič z toho nestojí peniaze, všetko stojí pozornosť.')}</p>
         <div className="cal-tipgrid">
           {tips.map((t) => (
             <div className="cal-tip" key={t.id}>
@@ -1475,8 +1503,18 @@ const CAL_CSS = `
 }
 /* ── ŽIVOT: 30 rokov × 52 týždňov ───────────────────────────────────────── */
 .cal-life{margin-top:2px}
-.cal-lifehead{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
-.cal-lifestat{flex:1 1 130px;min-width:0;
+/* Úvodná veta — Matejov text pod nadpisom bloku. Šírka je obmedzená: riadok
+   cez celých 1100 px sa nečíta, oko stratí návrat na začiatok. */
+.cal-intro{font-family:${FONT_UI};font-size:12.5px;line-height:1.6;color:${T.inkWarm};
+  max-width:62ch;margin:0 0 14px}
+/* ĽAVÁ POLOVICA = ČÍSLA POD SEBOU, PRAVÁ = LEGENDA (13. 9. 2026).
+   Pravý stĺpec je širší: legenda má štyri položky s dvoma riadkami textu,
+   dlaždice majú jedno číslo. Pri rovnakých dieloch sa legenda lámala na štyri
+   riadky, kým vedľa nej stál poloprázdny stĺpec. */
+.cal-lifetop{display:grid;grid-template-columns:minmax(0,0.85fr) minmax(0,1.15fr);
+  gap:12px 18px;align-items:start;margin-bottom:12px}
+.cal-lifehead{display:flex;flex-direction:column;gap:8px;margin-bottom:0}
+.cal-lifestat{min-width:0;
   background:${T.tileBg};border:1px solid ${T.border};border-radius:10px;padding:9px 12px}
 .cal-lifestat b{display:block;font-family:${FONT_TITLE};font-size:21px;font-weight:700;line-height:1.05;color:${T.inkStrong}}
 .cal-lifestat b i{font-style:normal;font-size:12px;opacity:.6;margin-right:4px}
@@ -1492,6 +1530,10 @@ const CAL_CSS = `
   text-decoration:none;padding:2px 4px;border-radius:6px}
 .cal-statedit:hover{color:${T.inkStrong};background:rgba(201,154,63,.16)}
 .cal-lifesrc{margin-bottom:12px}
+/* Legenda stojí v pravom stĺpci, takže sa skladá na DVA stĺpce po dvoch —
+   pôvodné auto-fit ju v polovičnej šírke natiahlo na štyri riadky. */
+.cal-lifetop .cal-lgroup{margin-top:0}
+.cal-lifetop .cal-lgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
 /* Veta o psovi, ktorý odišiel. Cinzel a pokoj — nie štatistika, nie tučné. */
 .cal-bestlife{font-family:${FONT_TITLE};font-size:15px;font-weight:700;letter-spacing:.1em;
   text-transform:uppercase;color:${T.accentGold};text-align:center;margin:2px 0 14px}
@@ -1518,19 +1560,29 @@ const CAL_CSS = `
    spodnú posledný.
    ⚠️ ČÍSLO MUSÍ VYPLNIŤ CELÝ RIADOK (align-self:stretch), inak je vysoké
    len ako písmo (8 px) a rámik sa medzi rokmi rozpadne na štyri visiace
-   zátvorky — presne tak vyzeral prvý pokus. Zvyšné 2 px medzery (row-gap)
-   zošíva zvislý presah -1px. */
+   zátvorky.
+   🔴 RÁMIK KRESLÍ ::before, NIE SAMOTNÉ ČÍSLO (Matej 13. 9.: „nepáči sa mi,
+   že z ľavej strany je vyššie než z pravej"). Prvá verzia zošívala 2 px
+   medzeru medzi riadkami záporným marginom, lenže ten prvok naozaj POSUNIE —
+   orámované číslo sedelo o 1 px vyššie než jeho riadok buniek, teda ľavá
+   strana bola oproti pravej posunutá hore. Odmerané: číslo 11 malo top
+   1672,23 px, jeho riadok 1673,23 px. Pseudo-prvok sa smie roztiahnuť cez
+   medzeru (top:-1px; bottom:-1px) bez toho, aby s číslom pohol. */
 .cal-liferow{position:relative}
 .cal-lifeyr.inband{color:${T.accentGold};opacity:1;position:relative;
-  align-self:stretch;display:flex;align-items:center;justify-content:flex-end;
-  padding:0 3px 0 2px;margin:-1px -3px -1px -2px;
-  box-shadow:inset 1px 0 0 ${T.accentGold},inset -1px 0 0 ${T.accentGold};
-  background:rgba(201,154,63,.08)}
-.cal-lifeyr.inband.bandtop{box-shadow:inset 1px 0 0 ${T.accentGold},inset -1px 0 0 ${T.accentGold},
-  inset 0 1px 0 ${T.accentGold};border-radius:3px 3px 0 0;margin-top:0;padding-top:1px}
-.cal-lifeyr.inband.bandbot{box-shadow:inset 1px 0 0 ${T.accentGold},inset -1px 0 0 ${T.accentGold},
-  inset 0 -1px 0 ${T.accentGold};border-radius:0 0 3px 3px;margin-bottom:0;padding-bottom:1px}
-.cal-lifeyr.inband.bandtop.bandbot{box-shadow:inset 0 0 0 1px ${T.accentGold};border-radius:3px}
+  align-self:stretch;display:flex;align-items:center;justify-content:flex-end}
+/* ⚠️ BEZ z-index:-1 A BEZ VÝPLNE. Prvá verzia mala jemný zlatý tint a pseudo-prvok
+   poslala pod obsah — a tam zmizol úplne: najbližší stacking context nie je
+   papyrusová karta, takže sa vrstva schovala za jej pozadie a ostalo len zlaté
+   písmo bez rámika. Samotné čiary smú stáť NAD číslom, lebo ležia na okrajoch. */
+.cal-lifeyr.inband::before{content:'';position:absolute;left:-3px;right:-2px;top:-1px;bottom:-1px;
+  pointer-events:none;
+  box-shadow:inset 1px 0 0 ${T.accentGold},inset -1px 0 0 ${T.accentGold}}
+.cal-lifeyr.inband.bandtop::before{top:0;border-radius:3px 3px 0 0;
+  box-shadow:inset 1px 0 0 ${T.accentGold},inset -1px 0 0 ${T.accentGold},inset 0 1px 0 ${T.accentGold}}
+.cal-lifeyr.inband.bandbot::before{bottom:0;border-radius:0 0 3px 3px;
+  box-shadow:inset 1px 0 0 ${T.accentGold},inset -1px 0 0 ${T.accentGold},inset 0 -1px 0 ${T.accentGold}}
+.cal-lifeyr.inband.bandtop.bandbot::before{box-shadow:inset 0 0 0 1px ${T.accentGold};border-radius:3px}
 /* Hranica dvadsiatky je PREDEL, nie ďalší riadok mriežky: nad ňou je pes,
    pod ňou je história. Bez nej sa vyblednutá zóna pri prázdnych bunkách
    nedala odlíšiť od zvyšku prázdneho miesta. */
@@ -1631,6 +1683,19 @@ const CAL_CSS = `
 
 /* ── REKORDY a RADY ─────────────────────────────────────────────────────── */
 .cal-records{margin-top:18px}
+/* ── SPODNÁ ČASŤ BLOKU = VLASTNÉ SEKCIE (13. 9. 2026) ─────────────────────
+   Matej: „tú časť treba oddeliť vizuálne, zväčšiť nadpis… zväčšiť tie nadpisy,
+   lebo sa strácajú". Nadpis sekcie mal 9,5 px a rovnaký tvar ako popisok
+   legendy, takže sa čítal ako menovka, nie ako nová téma.
+   Oddelenie nesie zlatá čiara + vzduch, nie rám: ďalší rámik vnútri papyrusovej
+   karty by robil kartu v karte. */
+.cal-sec{margin-top:26px;padding-top:20px;position:relative}
+.cal-sec::before{content:'';position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,rgba(201,154,63,.10),rgba(201,154,63,.5) 10%,rgba(201,154,63,.5) 90%,rgba(201,154,63,.10))}
+.cal-sectitle{font-family:${FONT_TITLE};font-size:17px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:${T.inkStrong};margin:0 0 6px;line-height:1.25}
+.cal-secsub{font-family:${FONT_UI};font-size:12.5px;line-height:1.6;color:${T.inkWarm};
+  max-width:66ch;margin:0 0 12px}
 /* ── REKORDMANI = JEDEN RIADOK NA SLAJD (13. 9. 2026) ─────────────────────
    Trinásť kariet v mriežke auto-fill zabralo na PC štyri rady a zo zóny
    rekordov spravilo hlavnú tému stránky. Vodorovný pás drží jednu výšku,
@@ -1645,9 +1710,19 @@ const CAL_CSS = `
 .cal-recgrid::-webkit-scrollbar-track{background:transparent}
 .cal-rec{background:${T.tileBg};border:1px solid ${T.border};border-radius:10px;padding:10px 12px;
   flex:0 0 232px;scroll-snap-align:start}
-.cal-rec b{font-family:${FONT_TITLE};font-size:12.5px;font-weight:700;letter-spacing:.06em;color:${T.inkStrong};
-  display:inline-block;margin-right:7px}
-.cal-rec u{font-family:${FONT_UI};font-size:11px;font-weight:600;text-decoration:none;color:${T.accentGold}}
+.cal-rechead{display:flex;align-items:center;gap:9px;margin-bottom:5px}
+/* Kruh drží rozmer aj bez fotky — s iniciálou vnútri. Prázdny slot, ktorý
+   zmizne, by posunul text a karty by mali každá inú výšku. */
+.cal-recphoto{flex:0 0 auto;width:38px;height:38px;border-radius:50%;overflow:hidden;
+  display:grid;place-items:center;background:${T.panelGrad};border:1px solid ${T.cardEdge};
+  font-family:${FONT_TITLE};font-size:15px;font-weight:700;color:${T.accentGold};
+  line-height:1;user-select:none}
+.cal-recphoto img{width:100%;height:100%;object-fit:cover;display:block}
+.cal-recname{min-width:0;display:block}
+.cal-rec b{font-family:${FONT_TITLE};font-size:13px;font-weight:700;letter-spacing:.06em;color:${T.inkStrong};
+  display:block;line-height:1.2}
+.cal-rec u{font-family:${FONT_UI};font-size:11px;font-weight:600;text-decoration:none;color:${T.accentGold};
+  display:block;margin-top:2px}
 .cal-rec i{display:block;font-style:normal;font-family:${FONT_UI};font-size:9.5px;letter-spacing:.04em;
   text-transform:uppercase;color:${T.inkFaint};margin:3px 0 5px}
 .cal-rec em{display:block;font-style:normal;font-family:${FONT_UI};font-size:9.5px;line-height:1.4;
@@ -1712,6 +1787,15 @@ const CAL_CSS = `
   /* Karta rekordu sa na telefóne zúži, aby bolo vidieť kúsok tej ďalšej —
      to je jediný signál, že sa pás dá posunúť. */
   .cal-rec{flex:0 0 78%}
+  /* Dva stĺpce (čísla | legenda) sú rozdelenie pre PLOCHU. Na 390 px z toho
+     vzniknú dva úzke pruhy: popisok dlaždice sa láme na tri riadky a legenda
+     na štyri — teda vyššie a horšie čitateľné než pod sebou. */
+  .cal-lifetop{grid-template-columns:1fr;gap:12px}
+  .cal-lifehead{flex-direction:row;flex-wrap:wrap}
+  .cal-lifehead .cal-lifestat{flex:1 1 140px}
+  .cal-sectitle{font-size:15px;letter-spacing:.08em}
+  .cal-sec{margin-top:22px;padding-top:16px}
+  .cal-intro,.cal-secsub{font-size:12px}
 }
 
 `;

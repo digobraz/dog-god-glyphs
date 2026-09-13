@@ -504,6 +504,18 @@ export interface LifeRecord {
   countrySK: string;
   /** true = doložené a uznané · false = tvrdenie, ktoré nikto nepotvrdil. */
   verified: boolean;
+  /**
+   * 🔴 FOTKA REKORDMANA — ZATIAĽ PRÁZDNA U VŠETKÝCH, A JE TO ZÁMER.
+   * Matej 13. 9. 2026: „k rekordmanom sa hodia aj fotky!". Karta na ňu miesto
+   * MÁ (`.cal-recphoto`), ale sú to snímky skutočných psov s vlastníkom práv —
+   * stiahnuť ich z Wikipédie „lebo tam sú" znamená publikovať cudzí obrázok
+   * na komerčnom povrchu. Bez fotky karta nevyzerá rozbito: kruh ukáže
+   * iniciálu mena, teda ten istý vzor, aký má appka na chýbajúci avatar.
+   * Realisticky použiteľné sú len tie s vypršanými právami (Bluey 1939,
+   * Adjutant 1963) — zvyšok treba buď licencovať, alebo nechať iniciálu.
+   * Hodnota = cesta v `public/` alebo Cloudinary URL.
+   */
+  photo?: string;
 }
 
 export const LIFE_RECORDS: LifeRecord[] = [
