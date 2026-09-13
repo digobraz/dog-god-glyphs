@@ -28,6 +28,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, PF_FIELD_CSS } from '@/components/pack/packTheme';
 import { LAPIS, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
+import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { readSeries, type LatestValue } from '@/lib/dogEvents';
 import { readTriplist } from '@/components/pack/triplist/triplist';
@@ -260,30 +261,26 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
   return (
     <section id="calendar" style={{ ...PACK_BOX.card, padding: 24 }}>
       <style>{CAL_CSS}</style>
+      <style>{PF_FIELD_CSS}</style>
 
       {/* Podnadpis pod nadpisom ODIŠIEL 13. 9. 2026 (Matej: „preč pod text pod
           nadpisom"). Vetu „čo sa stalo, čo sa má a čo je vonku" hovorí legenda
           pod mriežkou konkrétnejšie — text ju len predbiehal.
           ⚠️ Kľúč `pack.cal.sub` sa NEMAŽE zo slovníkov, kým sa neoverí, že ho
           nečíta iný povrch. */}
-      <div className="flex items-center gap-2.5" style={{ marginBottom: 14 }}>
-        <BrandIcon name="bars" size={24} tint="gold" />
-        <h2 style={{ fontFamily: FONT_TITLE, fontSize: 24, fontWeight: 700, letterSpacing: '0.14em', color: T.inkStrong, lineHeight: 1.05, textTransform: 'uppercase' }}>
-          {tx('pack.cal.title', 'Kalendár')}
-        </h2>
-      </div>
-      {/* ── OVLÁDANIE — TRI TVARY, nie jeden rad ôsmich rovnakých pilulek ─────
-           Prvá verzia mala pohľad, psov aj vrstvy ako identické lapisové pilulky
-           v jednom rade: osem rovnakých prvkov, z ktorých päť svietilo rovnako,
-           takže sa nedalo prečítať, čo je pohľad, čo filter a čo vrstva. Nákres
-           to mal rozdelené od začiatku a toto je návrat k nemu:
-             • POHĽAD  = spojený prepínač v jednej dráhe (`.pf-toggle` — ten istý,
-               aký má prepínač šatu; aktívna polovica je PLNÝ lapis)
-             • VRSTVY  = tiché pilulky s bodkou, na opačnom konci riadku
-             • PSY     = vlastný riadok, lapis TINT (výber, nie akcia) */}
-      <div className="cal-ctl">
-        <style>{PF_FIELD_CSS}</style>
-        <div className="pf-toggle inline-flex items-center" style={{ borderRadius: 999, padding: 3, gap: 3 }}>
+      {/* PREPÍNAČ POHĽADU SEDÍ V PRAVOM HORNOM ROHU BLOKU (Matej 13. 9. 2026:
+          „prepínač rok mesiac život daj do pravého horného rohu"). Je to voľba
+          OBRAZOVKY, nie nastavenie mriežky — patrí k nadpisu, nie medzi vrstvy.
+          Na mobile sa zalomí pod nadpis a zaberie celú šírku, aby sa tri slová
+          nestlačili do rohu. */}
+      <div className="cal-head">
+        <div className="flex items-center gap-2.5">
+          <BrandIcon name="bars" size={24} tint="gold" />
+          <h2 style={{ fontFamily: FONT_TITLE, fontSize: 24, fontWeight: 700, letterSpacing: '0.14em', color: T.inkStrong, lineHeight: 1.05, textTransform: 'uppercase' }}>
+            {tx('pack.cal.title', 'Kalendár')}
+          </h2>
+        </div>
+        <div className="pf-toggle inline-flex items-center cal-viewsw" style={{ borderRadius: 999, padding: 3, gap: 3 }}>
           {(['year', 'month', 'life'] as const).map((v) => (
             <button
               key={v} type="button"
@@ -297,7 +294,16 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
             </button>
           ))}
         </div>
-
+      </div>
+      {/* ── OVLÁDANIE — TRI TVARY, nie jeden rad ôsmich rovnakých pilulek ─────
+           Prvá verzia mala pohľad, psov aj vrstvy ako identické lapisové pilulky
+           v jednom rade: osem rovnakých prvkov, z ktorých päť svietilo rovnako,
+           takže sa nedalo prečítať, čo je pohľad, čo filter a čo vrstva:
+             • POHĽAD  = spojený prepínač v jednej dráhe, ale od 13. 9. 2026 je
+               HORE PRI NADPISE (`.cal-head`), nie v tomto rade
+             • VRSTVY  = tiché pilulky s bodkou
+             • PSY     = vlastný riadok, lapis TINT (výber, nie akcia) */}
+      <div className="cal-ctl">
         {/* V ŽIVOTNEJ osi rad vrstiev ZMIZNE: mriežka nekreslí ani okná protokolu,
             ani fázy mesiaca, takže dve z troch pilulek by neprepínali nič —
             a prepínač, ktorý nič nerobí, sa číta ako pokazený. */}
@@ -377,10 +383,8 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
 
       {/* Legenda hovorí o sezónach, protokole a fázach mesiaca — ŽIVOTNÁ os
           z toho nekreslí nič, takže by pod ňou stála legenda k inému obrázku.
-          Vlastnú legendu má životná mriežka v riadku pod sebou. */}
-      {view !== 'life'
-        ? <Legend layers={layers} solo={solo} tx={tx} typeName={typeName} />
-        : <LifeLegend tx={tx} deceased={lifeRow?.life_status === 'deceased' && !!lifeRow?.death_date} />}
+          Vlastnú legendu si životná mriežka kreslí sama NAD sebou (13. 9. 2026). */}
+      {view !== 'life' && <Legend layers={layers} solo={solo} tx={tx} typeName={typeName} />}
 
       {open && (
         <DayPopup
@@ -818,6 +822,9 @@ function LifeGrid({
 }) {
   const [hover, setHover] = useState<{ wi: number; x: number; y: number } | null>(null);
   const [openWeek, setOpenWeek] = useState<number | null>(null);
+  // Bublina pásma dožitia. Nesie len polohu myši — čo v nej stojí, sa počíta
+  // z `est`, takže sa nedá rozísť s hranami v mriežke.
+  const [bandTip, setBandTip] = useState<{ x: number; y: number } | null>(null);
 
   const s = row.selections ?? undefined;
   const by = parseInt(s?.birthdayYear || '', 10) || row.birth_year || 0;
@@ -886,25 +893,22 @@ function LifeGrid({
   // s infom že žil najlepší život a pásmo dožitia priemer"). Mriežka končí na
   // dvadsiatke, zóna rekordov aj rady odchádzajú — rekord je súťaž a rada je
   // budúcnosť, a ani jedno už nemá komu patriť.
-  const overMedian = livedYears >= band.median;
-  const remainLow = Math.max(0, Math.round((band.low - livedYears) * 10) / 10);
-  const remainHigh = Math.max(0, Math.round((band.high - livedYears) * 10) / 10);
+  // ⚠️ DLAŽDICA „ROKOV PODĽA PRIEMERU" ODIŠLA 13. 9. 2026 (Matej: „tam bude
+  // stačiť len pásmo v blokoch"). Bolo to pásmo dožitia napísané číslom, teda
+  // tá istá predpoveď dvakrát — a v čísle znie oveľa tvrdšie než dve tiché
+  // hrany v mriežke. S ňou odišla aj rada „priemer už prekonal", takže
+  // `band.median` dnes nečíta nikto; `band.low`/`.high` kreslia hrany.
 
   const senior = livedYears >= 8;
-  const weighCount = entries.filter((e) => e.kind === 'weigh').length;
   // Do počtu „týždňov spolu vonku" ide len to, čo sa naozaj stalo. Plán
   // v budúcnosti by inak nafúkol číslo, ktoré má byť odmenou za prežité.
   const darkWeeks = [...byWeek.keys()].filter((wi) => wi < livedWeeks).length;
 
   const gridYears = deceased ? LIFE_ACTIVE_YEARS : LIFE_YEARS;
-  const tips = deceased ? [] : LIFE_TIPS.filter((t) => {
-    if (t.when === 'always') return true;
-    if (t.when === 'senior') return senior;
-    if (t.when === 'noWeight') return weighCount === 0;
-    if (t.when === 'fewTrips') return darkWeeks < Math.max(4, livedYears * 4);
-    if (t.when === 'overMedian') return overMedian;
-    return false;
-  });
+  // ŠESŤ STÁLYCH RÁD + siedma pre seniora. Rady o stave kalendára („nemáš
+  // váženie", „mriežka je svetlá", „priemer prekonal") odišli 13. 9. 2026 —
+  // hovorili o appke, nie o psovi.
+  const tips = deceased ? [] : LIFE_TIPS.filter((t) => t.when === 'always' || senior);
 
   const hoverEntries = hover ? byWeek.get(hover.wi) ?? [] : [];
 
@@ -938,14 +942,6 @@ function LifeGrid({
             <span>{tx('pack.cal.life.together', 'dní spolu')}</span>
           </div>
         )}
-        {!deceased && (
-          <div className="cal-lifestat">
-            <b>{overMedian ? '∞' : `${num(remainLow)}–${num(remainHigh)}`}</b>
-            <span>{overMedian
-              ? tx('pack.cal.life.overMedian', 'nad priemerom plemena')
-              : tx('pack.cal.life.remain', 'rokov podľa priemeru')}</span>
-          </div>
-        )}
       </div>
 
       {/* 🕊️ Veta pre psa, ktorý odišiel. Stojí NAD mriežkou, nie pod ňou —
@@ -956,49 +952,63 @@ function LifeGrid({
         </p>
       )}
 
-      {/* Odkiaľ je čiara. Bez tejto vety je to číslo z neba. */}
+      {/* ⚠️ TU STÁVAL POPIS PÁSMA DOŽITIA a odišiel 13. 9. 2026 (Matej: „tam daj
+          skôr info, že 1 blok = 1 týždeň"). Veta „Pásmo dožitia: 9–12 rokov ·
+          25 kg · odhad podľa hmotnosti" bola na prvom mieste, kam oko padne —
+          teda prvá vec, ktorú sa človek o svojom psovi dozvedel, bol odhad, kedy
+          zomrie. Pásmo sa dnes ukáže AŽ na dotyk myšou v mriežke; text tu
+          vysvetľuje MIERKU, bez ktorej sa mriežka nedá začať čítať.
+          Zdroj odhadu (plemeno / hmotnosť) sa presunul do bubliny pásma. */}
       <p className="cal-note cal-lifesrc">
-        {est.basis === 'default'
-          ? tx('pack.cal.life.srcNone',
-            'Plemeno ani hmotnosť zatiaľ nepoznáme, takže čiara stojí na strednej triede. Doplň plemeno v DOG ID a posunie sa na správne miesto.')
-          : `${tx('pack.cal.life.srcPre', 'Pásmo dožitia:')} ${num(band.low)}–${num(band.high)} `
-            + `${tx('pack.cal.life.years', 'rokov')} · ${est.labelSK}`
-            + (band.fromBreed
-              ? ` · ${tx('pack.cal.life.srcBreed', 'publikovaný údaj plemena')}`
-              : est.size
-                ? ` · ${tx('pack.cal.life.srcWeight', 'odhad podľa hmotnosti')} (${SIZE_NAME_SK[est.size]}, ${band.kgSK})`
-                : '')}
+        {tx('pack.cal.life.scale', 'Jeden blok = jeden týždeň života. Riadok = jeden rok, číslo vľavo hovorí ktorý.')}
       </p>
+
+      {/* ── AKO ČÍTAŤ MRIEŽKU — NAD ŇOU, nie pod stránkou ──────────────────
+          Matej 13. 9. 2026: „ako čítať mriežku by som dal nad tabuľku, nie úplne
+          dolu". Legenda pod mriežkou je návod, ku ktorému sa človek dostane až
+          potom, čo si obrázok vyložil po svojom. */}
+      <LifeLegend tx={tx} />
 
       {/* ── MRIEŽKA ──────────────────────────────────────────────────────── */}
       <div className="cal-lifewrap">
-        <div className="cal-lifegrid" onMouseLeave={() => setHover(null)}>
+        <div className="cal-lifegrid" onMouseLeave={() => { setHover(null); setBandTip(null); }}>
           {Array.from({ length: gridYears }, (_, yr) => {
             const past = yr >= LIFE_ACTIVE_YEARS;
             // ⚠️ PÁSMO, NIE ČIARA (Matej 13. 9.: „ten median dožitia by som dal
             // ako pásmo od do nie len čiaru v istý rok"). Priemer je rozsah,
-            // takže jedna čiara o ňom klamala presnosťou, ktorú nemá. Kreslia sa
-            // dve hrany — spodná hranica a horná — a medzi nimi tichý tint.
+            // takže jedna čiara o ňom klamala presnosťou, ktorú nemá.
             //
             // ⚠️ HRANY STOJA VNÚTRI RIADKU, NIE POD NÍM. Verzia s čiarou ako
             // spodnou hranou riadku `floor(x)` ukazovala 10,0 opticky na
             // jedenástke — o celý rok vedľa. `top` podľa desatinnej časti to
             // rieši a zároveň prežije medzeru pred zónou rekordov, ktorú by
             // percento nad celou mriežkou rozhodilo.
+            //
+            // ⚠️ TINT PÁSMA ODIŠIEL 13. 9. 2026 (Matej: „pásmo dožitia by som
+            // dal preč… ukáže sa, keď prejdeš šípkou na hranicu priamo pri
+            // blokoch"). Zostali DVE HRANY, ktoré v CSS o kúsok trčia do strán
+            // (`.cal-medline`), aby sa čítali ako pásmo, a nie ako dva nesúvisiace
+            // škrty. Popis pásma vyskočí v bubline pri prechode myšou po jeho
+            // riadkoch (`onMouseEnter` na riadku).
             const edges: { key: string; top: string }[] = [];
             if (Math.floor(band.low) === yr) edges.push({ key: 'lo', top: `${(band.low % 1) * 100}%` });
             if (Math.floor(band.high) === yr) edges.push({ key: 'hi', top: `${(band.high % 1) * 100}%` });
             const inBand = yr >= Math.floor(band.low) && yr < Math.ceil(band.high);
             return (
               <Fragment key={yr}>
-                <div className={`cal-lifeyr${past ? ' faded' : ''}${inBand ? ' inband' : ''}`}>
-                  {yr % 5 === 0 || yr === LIFE_ACTIVE_YEARS ? yr : ''}
-                </div>
+                {/* ČÍSLO MÁ KAŽDÝ RIADOK (Matej 13. 9.: „do každého riadku daj
+                    čísla rokov, nie len 0-5-10"). Po piatich sa nedalo povedať,
+                    v ktorom roku života leží konkrétny tmavý týždeň — človek
+                    musel počítať riadky od najbližšej päťky. */}
+                <div className={`cal-lifeyr${past ? ' faded' : ''}${inBand ? ' inband' : ''}`}>{yr}</div>
                 <div
                   className={`cal-liferow${past ? ' faded' : ''}${inBand ? ' inband' : ''}${yr === LIFE_ACTIVE_YEARS ? ' zone' : ''}`}
                   data-zone={yr === LIFE_ACTIVE_YEARS
                     ? tx('pack.cal.life.zone', 'Odtiaľto ďalej sa dostala hŕstka psov v histórii')
                     : undefined}
+                  onMouseEnter={inBand ? (ev) => setBandTip({ x: ev.clientX, y: ev.clientY }) : undefined}
+                  onMouseMove={inBand ? (ev) => setBandTip({ x: ev.clientX, y: ev.clientY }) : undefined}
+                  onMouseLeave={inBand ? () => setBandTip(null) : undefined}
                 >
                   {edges.map((e) => (
                     <i
@@ -1013,11 +1023,20 @@ function LifeGrid({
                     // ⚠️ TMAVÁ PATRÍ LEN PREŽITÉMU TÝŽDŇU. Zápis s dátumom
                     // v budúcnosti je PLÁN — nakreslený ako plná tmavá by tvrdil,
                     // že ste tam už boli. Dostáva obrys, tak ako v pohľade ROK.
+                    // ⚠️ `empty` je od 13. 9. 2026 PRIEHĽADNÁ, nie biela: v pohľade
+                    // ŽIVOT je realita, nie budúcnosť. Bunka si drží miesto aj
+                    // udalosti myši (bublina pásma), len sa nekreslí.
                     const cls = hits ? (lived ? 'dark' : 'plan') : lived ? 'lived' : 'empty';
-                    // Dve udalosti života na osi: ZELENÁ na spodnej hrane =
-                    // odkedy ste spolu · ZLATÁ na hornej = odkedy je v Dogypte.
-                    // Zlatá je zámerne tá druhá — v brande nesie príslušnosť.
-                    const mark = (wi === sinceWeek ? ' mSince' : '') + (wi === joinWeek ? ' mJoin' : '');
+                    // ⚠️ DVE UDALOSTI SÚ STAVY, NIE OKAMIHY (Matej 13. 9. 2026:
+                    // „dolná zelená čiarka bude od týždňa, čo sú spolu, na každom
+                    // bloku, nie len na jednom — a to isté aj Dogypt"). Jediná
+                    // čiarka hovorila „v tomto týždni sa niečo stalo"; súvislá
+                    // hovorí „odvtedy to platí", čo je to, čo obe udalosti
+                    // znamenajú. Podčiarknutie končí na aktuálnom týždni —
+                    // do budúcnosti sa „sme spolu" natiahnuť nedá.
+                    const upToNow = wi <= livedWeeks;
+                    const mark = (upToNow && sinceWeek !== null && wi >= sinceWeek ? ' mSince' : '')
+                      + (upToNow && joinWeek !== null && wi >= joinWeek ? ' mJoin' : '');
                     return (
                       <span
                         key={w}
@@ -1028,7 +1047,9 @@ function LifeGrid({
                         role={hits ? 'button' : undefined}
                         tabIndex={-1}
                         aria-label={hits ? weekLabel(wi) : undefined}
-                      />
+                      >
+                        {wi === livedWeeks && <i className="cal-nowdot" aria-hidden />}
+                      </span>
                     );
                   })}
                 </div>
@@ -1046,6 +1067,11 @@ function LifeGrid({
           {tx('pack.cal.life.recSub',
             'Vyblednutá časť mriežky nie je predpoveď. Je to miesto, kam sa dostala hŕstka psov — a dôkaz, že priemer nie je strop. Polovica týchto rekordov je doložená, polovica stojí na slove majiteľa; kde chýba dôkaz, je to napísané.')}
         </p>
+        {/* JEDEN RIADOK NA SLAJD (Matej 13. 9. 2026: „rekordmanov daj do jedného
+            riadku na slajd"). Trinásť kariet v mriežke zabralo pol obrazovky
+            a zo zóny rekordov spravilo hlavnú tému stránky — pritom je to
+            poznámka pod čiarou k mriežke nad ňou. Vodorovný pás s prichytávaním
+            drží jednu výšku a zároveň hovorí „je toho viac, posuň". */}
         <div className="cal-recgrid">
           {LIFE_RECORDS.map((r) => (
             <div className={`cal-rec${r.verified ? '' : ' unver'}`} key={r.name}>
@@ -1078,7 +1104,55 @@ function LifeGrid({
             </div>
           ))}
         </div>
+
+        {/* ── KAM TIETO RADY VEDÚ ────────────────────────────────────────────
+            Matej 13. 9. 2026: „odkaz na LONGEVITY PROTOKOL / KURZ (bude
+            odkazovať na AINUBISOVU DATABÁZU) Čoskoro…".
+            ⚠️ NIE JE TO ODKAZ, kým databáza neexistuje — mŕtve tlačidlo, ktoré
+            nikam nevedie, je horšie než žiadne. Je to OZNAM, a preto nemá
+            `href` ani kurzor ruky. Keď databáza vznikne, zmení sa `<div>` na
+            `<Link>` a pilulka ČOSKORO odíde.
+            ⚠️ Povrch je AINUBISOV, nie papyrusový: hovorí ON, a jeho meno sa
+            píše `<span>AI</span>NUBIS` s cyan prvými dvomi písmenami (lock
+            12. 9. 2026) — nie holým textom z prekladu. */}
+        <div className="cal-longev">
+          <div className="cal-longev-txt">
+            <b>{tx('pack.cal.life.protoTitle', 'Longevity protokol')}</b>
+            <p>
+              {tx('pack.cal.life.protoBody', 'Celý postup, na ktorom týchto pár rád stojí — výživa, záťaž, pokoj a čo si nechať zmerať. Bude žiť v databáze, ktorú stráži ')}
+              <span className="cal-ai"><span>AI</span>NUBIS</span>.
+            </p>
+          </div>
+          <span className="cal-soon">{tx('pack.cal.life.protoSoon', 'Čoskoro')}</span>
+        </div>
       </div>
+      )}
+
+      {/* ── BUBLINA PÁSMA DOŽITIA ────────────────────────────────────────
+          Ukáže sa AŽ pri prechode myšou po riadkoch rokov, v ktorých pásmo leží
+          (Matej 13. 9. 2026). Je to jediné miesto, kde appka odhad dožitia
+          vysloví slovami — v mriežke sú len dve tiché hrany, ktoré nikoho
+          neprepadnú. Keď má týždeň zápis, prednosť má bublina týždňa: človek
+          mieril na svoj výlet, nie na štatistiku. */}
+      {bandTip && hoverEntries.length === 0 && (
+        <div className="cal-lifetip" style={{ left: bandTip.x + 14, top: bandTip.y + 14 }}>
+          <b>{tx('pack.cal.life.bandTitle', 'Pásmo dožitia')}</b>
+          {est.basis === 'default' ? (
+            <span className="wrap">{tx('pack.cal.life.srcNone',
+              'Plemeno ani hmotnosť zatiaľ nepoznáme, takže pásmo stojí na strednej triede. Doplň plemeno v DOG ID a posunie sa na správne miesto.')}</span>
+          ) : (
+            <>
+              <span>{`${num(band.low)}–${num(band.high)} ${tx('pack.cal.life.years', 'rokov')}`}</span>
+              <span>{est.labelSK}</span>
+              <span>{band.fromBreed
+                ? tx('pack.cal.life.srcBreed', 'publikovaný údaj plemena')
+                : est.size
+                  ? `${tx('pack.cal.life.srcWeight', 'odhad podľa hmotnosti')} (${SIZE_NAME_SK[est.size]}, ${band.kgSK})`
+                  : ''}</span>
+            </>
+          )}
+          <span className="wrap dim">{tx('pack.cal.life.srcNote', 'Je to priemer tisícok psov, nie predpoveď o tomto jednom.')}</span>
+        </div>
       )}
 
       {/* ── TOOLTIP pri myši ─────────────────────────────────────────────── */}
@@ -1179,13 +1253,19 @@ function WeekPopup({
 }
 
 /** Legenda ŽIVOTNEJ mriežky — stavy bunky a dve značky udalostí. */
-function LifeLegend({ tx, deceased }: { tx: Tx; deceased: boolean }) {
+// ⚠️ POLOŽKA „EŠTE LEN BUDE" ODIŠLA 13. 9. 2026 spolu s bielymi bunkami
+// (Matej: „biele pásmo «ešte len bude» by som tu neukazoval… v ŽIVOTE je
+// realita, nie budúcnosť"). Legenda nesmie vysvetľovať farbu, ktorú mriežka
+// nekreslí — to je návod k inému obrázku.
+function LifeLegend({ tx }: { tx: Tx }) {
   const items: { cls: string; b: string; t: string }[] = [
     { cls: 'lived', b: tx('pack.cal.life.lgLived', 'Prežitý týždeň'), t: tx('pack.cal.life.lgLivedSub', 'ubehnutý čas') },
     { cls: 'dark', b: tx('pack.cal.life.lgDark', 'Boli ste vonku'), t: tx('pack.cal.life.lgDarkSub', 'klik = mesiac') },
-    ...(deceased ? [] : [{ cls: 'empty', b: tx('pack.cal.life.lgEmpty', 'Ešte len bude'), t: tx('pack.cal.life.lgEmptySub', 'nezapísaný čas') }]),
+    { cls: 'nowsw', b: tx('pack.cal.life.lgNow', 'Tento týždeň'), t: tx('pack.cal.life.lgNowSub', 'práve tu ste') },
     { cls: 'sincesw', b: tx('pack.cal.life.lgSince', 'Odkedy ste spolu'), t: tx('pack.cal.life.lgSinceSub', 'z DOG ID') },
     { cls: 'joinsw', b: tx('pack.cal.life.lgJoin', 'Vstup do Dogyptu'), t: tx('pack.cal.life.lgJoinSub', 'deň heroglyfu') },
+    // ⚠️ Popisok hovorí, ČO tá farba znamená, nie ako ju ovládať: „prejdi naň
+    // myšou" je na telefóne návod na nemožné — tam je mriežka obraz, nie nástroj.
     { cls: 'mediansw', b: tx('pack.cal.life.lgMedian', 'Pásmo dožitia'), t: tx('pack.cal.life.lgMedianSub', 'priemer, nie strop') },
   ];
   return (
@@ -1206,8 +1286,12 @@ function LifeLegend({ tx, deceased }: { tx: Tx; deceased: boolean }) {
 const CAL_CSS = `
 /* Pohľad vľavo, vrstvy na opačnom konci riadku — sú tichšie, je to nastavenie
    viditeľnosti, nie hlavná voľba. */
+/* Nadpis vľavo, prepínač pohľadu v PRAVOM HORNOM ROHU bloku (13. 9. 2026).
+   Na telefóne sa zalomí pod nadpis a roztiahne na celú šírku — tri slová
+   stlačené do rohu 360 px displeja sa nedajú trafiť palcom. */
+.cal-head{display:flex;align-items:center;justify-content:space-between;gap:10px 14px;flex-wrap:wrap;margin-bottom:14px}
 .cal-ctl{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-bottom:10px}
-.cal-layers{display:flex;gap:7px;flex-wrap:wrap;margin-left:auto}
+.cal-layers{display:flex;gap:7px;flex-wrap:wrap}
 .cal-lay{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;
   font-family:${FONT_UI};font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
   cursor:pointer;border:1px solid ${T.border};background:${T.tileBg};color:${T.inkWarm};user-select:none}
@@ -1304,10 +1388,9 @@ const CAL_CSS = `
   .cal-mocell{min-height:0;aspect-ratio:1/1;padding:3px;border-radius:7px}
   .cal-momk{font-size:12px}
   .cal-mogrid{gap:4px}
-  /* Na mobile sa rad vrstiev zalomí na vlastný riadok a margin-left:auto ho
-     odtlačí od ľavej hrany — tri rady ovládania by potom začínali na troch
-     rôznych miestach. Na šírke telefónu preto zarovnanie vľavo ako ostatné. */
-  .cal-layers{margin-left:0}
+  /* Prepínač pohľadu na celú šírku — tri rovnaké diely, palcom trafiteľné. */
+  .cal-viewsw{width:100%}
+  .cal-viewsw .pf-toggle__opt{flex:1 1 0;padding-left:0;padding-right:0}
 }
 /* ── ŽIVOT: 30 rokov × 52 týždňov ───────────────────────────────────────── */
 .cal-life{margin-top:2px}
@@ -1325,25 +1408,30 @@ const CAL_CSS = `
 
 /* Mriežka nesmie tlačiť stránku do vodorovného rolovania — 52 buniek sa vojde
    do šírky vždy, lebo bunka je zlomok riadku, nie pevné číslo. */
-.cal-lifewrap{overflow:hidden}
-.cal-lifegrid{display:grid;grid-template-columns:22px 1fr;row-gap:2px;column-gap:7px;align-items:center}
+/* ⚠️ Mriežka má po stranách 10 px vzduchu ZÁMERNE: hrany pásma dožitia z nej
+   o pol bunky trčia (.cal-medline), a bez rezervy by ich overflow:hidden
+   vpravo odrezal a vľavo by naliezli na číslo roka. */
+.cal-lifewrap{overflow:hidden;padding:0 10px;margin:0 -10px}
+.cal-lifegrid{display:grid;grid-template-columns:22px 1fr;row-gap:2px;column-gap:11px;align-items:center}
 .cal-lifeyr{font-family:ui-monospace,Menlo,monospace;font-size:8px;color:${T.inkFaint};text-align:right;line-height:1}
 .cal-liferow{display:flex;gap:2px;min-width:0;padding-bottom:1px}
 /* Vyblednutá zóna 20–30 — história, nie predpoveď. */
 .cal-lifeyr.faded{opacity:.4}
 .cal-liferow.faded{opacity:.42}
-/* Pásmo low–high je TIEŇ, nie druhá čiara: dve čiary by sa čítali ako dva
-   priemery. Tichý zlatý podklad hovorí „niekde tu", čiara hovorí „stred". */
-/* Pásmo low–high je tichý tint riadku; ČÍSLO roka, v ktorom leží priemer,
-   sa navyše rozsvieti zlatou.
-   ⚠️ Zvislá zlatá hrana na stĺpci s rokom sa SKÚŠALA a vypadla: čísla sú len
-   po piatich, takže na rokoch bez čísla z nej ostal plávajúci zlatý pruh
-   a vedľa čísla 10 to vyzeralo ako preškrtnutie. */
-.cal-liferow.inband{background:rgba(201,154,63,.13);border-radius:3px}
-.cal-lifeyr.inband{color:${T.accentGold};font-weight:700}
+/* ── PÁSMO DOŽITIA = DVE HRANY, ŽIADNA VÝPLŇ (13. 9. 2026) ────────────────
+   Tint riadkov aj zlaté číslo roka ODIŠLI (Matej: „pásmo dožitia by som dal
+   preč"). Ostali dve čiary, ktoré o POL BUNKY trčia do strán — Matej: „tie dve
+   zlaté čiary ohraničujúce pásmo jemne predlž, nech trčia po stranách 0,5 dĺžky
+   jedného bloku, nech to vyzerá ako pásmo". Bez presahu to boli dva nezávislé
+   škrty cez mriežku; s ním je medzi nimi zjavne JEDNA vec.
+   Pol bunky = 0,5 × (1/52 riadku) ≈ 0,96 %, preto -1 %.
+   Popis pásma sa neukazuje stále — vyskočí v bubline pri prechode myšou. */
 .cal-liferow{position:relative}
-.cal-medline{position:absolute;left:0;right:0;height:1.5px;background:${T.accentGold};
-  border-radius:1px;pointer-events:none;z-index:3;transform:translateY(-0.75px)}
+.cal-liferow.inband{border-radius:3px}
+.cal-medline{position:absolute;left:-1%;right:-1%;height:1.5px;background:${T.accentGold};
+  border-radius:1px;pointer-events:none;z-index:3;transform:translateY(-0.75px);
+  opacity:.8;transition:opacity .16s ease}
+.cal-liferow.inband:hover .cal-medline{opacity:1}
 /* Hranica dvadsiatky je PREDEL, nie ďalší riadok mriežky: nad ňou je pes,
    pod ňou je história. Bez nej sa vyblednutá zóna pri prázdnych bunkách
    nedala odlíšiť od zvyšku prázdneho miesta. */
@@ -1354,36 +1442,73 @@ const CAL_CSS = `
 .cal-liferow.zone::after{content:'';position:absolute;left:0;right:0;top:-7px;height:1px;
   background:linear-gradient(90deg,rgba(201,154,63,.55),rgba(201,154,63,0))}
 .cal-lifecell{flex:1 1 0;min-width:0;aspect-ratio:1/1;border-radius:1.5px;background:transparent;
-  box-shadow:inset 0 0 0 .5px rgba(122,90,42,.22);cursor:default}
+  box-shadow:inset 0 0 0 .5px rgba(122,90,42,.22);cursor:default;position:relative}
 /* Prežitý čas = bledá modrá. Je to ten istý lapis, akým appka hovorí „moje" —
    len stiahnutý na tapetu, lebo ubehnutý čas nie je akcia. */
 .cal-lifecell.lived{background:rgba(46,95,208,.30);box-shadow:none}
 /* Tmavá = boli ste spolu vonku. Plná, neškálovaná — jeden zápis stačí. */
 .cal-lifecell.dark{background:#14243F;box-shadow:none;cursor:pointer}
 .cal-lifecell.dark:hover{background:${LAPIS.edge};transform:scale(1.55);border-radius:2px;position:relative;z-index:2}
-.cal-lifecell.empty{background:rgba(250,244,236,.55)}
+/* ⚠️ BUDÚCNOSŤ SA NEKRESLÍ (13. 9. 2026, Matej: „biele pásmo «ešte len bude»
+   by som tu neukazoval… iba v roku ŽIVOT je realita, nie budúcnosť"). Bunka
+   si drží miesto v mriežke a naďalej prijíma myš (bublina pásma), ale je
+   ÚPLNE priehľadná — biele štvorčeky až do tridsiatky boli odpočítavanie. */
+.cal-lifecell.empty{background:transparent;box-shadow:none}
 /* PLÁN = týždeň, ktorý má zápis, ale ešte neprišiel. Obrys, nie výplň —
    tá istá reč ako .cal-cell.isPlan v pohľade ROK. */
 .cal-lifecell.plan{background:rgba(250,244,236,.55);box-shadow:inset 0 0 0 1px ${LAPIS.edge};cursor:pointer}
-.cal-lifecell.now{box-shadow:inset 0 0 0 1px ${T.accentGold}}
-/* DVE UDALOSTI ŽIVOTA. Sú to HRANY bunky, nie výplň — výplň už nesie „prežité"
-   a „boli sme vonku", a tretí význam v tom istom mieste by prepísal jeden z nich.
+/* ── AKTUÁLNY TÝŽDEŇ = PULZUJÚCA ZELENÁ BODKA (13. 9. 2026) ────────────────
+   Zlatý obrys bunky zanikol medzi hranami pásma aj podčiarknutiami udalostí —
+   a hlavne stál na tom istom mieste ako výplň, takže na ňom nebolo čo chytiť
+   okom. Bodka je VLASTNÝ prvok nad bunkou: jediná vec v mriežke, ktorá sa hýbe,
+   preto oko padne presne na „tu sme teraz".
+   ⚠️ Nesmie to byť ::before ani ::after — obe sú obsadené podčiarknutiami
+   „odkedy sme spolu" a „odkedy je v Dogypte", a práve aktuálny týždeň ich má
+   spravidla obe. */
+.cal-lifecell.now{box-shadow:none}
+.cal-nowdot{position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;
+  border-radius:50%;background:${T.growGreen};z-index:6;pointer-events:none;
+  box-shadow:0 0 0 1.5px rgba(250,244,236,.9);animation:calNowPulse 1.9s ease-in-out infinite}
+@keyframes calNowPulse{
+  0%,100%{transform:scale(1);box-shadow:0 0 0 1.5px rgba(250,244,236,.9),0 0 0 0 rgba(61,122,78,.55)}
+  55%{transform:scale(1.25);box-shadow:0 0 0 1.5px rgba(250,244,236,.9),0 0 0 5px rgba(61,122,78,0)}
+}
+@media(prefers-reduced-motion:reduce){.cal-nowdot{animation:none}}
+/* ── DVE UDALOSTI ŽIVOTA = DVE SÚVISLÉ ČIARY POD/NAD MRIEŽKOU ─────────────
+   Sú to HRANY bunky, nie výplň — výplň už nesie „prežité" a „boli sme vonku",
+   a tretí význam v tom istom mieste by prepísal jeden z nich.
    Zelená = odkedy ste spolu (spodná hrana) · LAPIS = odkedy je v Dogypte (horná).
    ⚠️ Obe naraz na jednej bunke sa nebijú — každá má svoju hranu.
+   ⚠️ ČIARA BEŽÍ OD TEJ UDALOSTI ĎALEJ, nie len na jednej bunke (Matej 13. 9. 2026:
+   „dolná zelená čiarka bude od týždňa, čo sú spolu, na každom bloku, nie len na
+   jednom — a to isté aj Dogypt"). Jedna čiarka hovorila „v tomto týždni sa niečo
+   stalo"; súvislá hovorí „odvtedy to platí", čo je presne to, čo obe udalosti
+   znamenajú. Preto presah -1.5 px na oboch stranách: medzera medzi bunkami je
+   2 px a bez preklenutia by z čiary bola bodkovaná čiara.
    ⚠️ Vstup do Dogyptu bol najprv ZLATÝ (zlato = príslušnosť) a bola to chyba:
-   pásmo dožitia má zlaté hrany cez celú šírku, takže 6 px zlatý ťah na bunke
-   sa čítal ako ich odrobinka. Lapis je navyše presnejší — vstup do svorky je
+   pásmo dožitia má zlaté hrany cez celú šírku, takže zlatý ťah na bunke sa
+   čítal ako ich odrobinka. Lapis je navyše presnejší — vstup do svorky je
    ČIN člena, a lapis v brande znamená práve „čo urobím ja". */
-.cal-lifecell.mSince{position:relative;z-index:4}
-.cal-lifecell.mSince::after{content:'';position:absolute;left:-0.5px;right:-0.5px;bottom:-2px;height:2.5px;
-  background:${T.growGreen};border-radius:1px}
-.cal-lifecell.mJoin{position:relative;z-index:4}
-.cal-lifecell.mJoin::before{content:'';position:absolute;left:-0.5px;right:-0.5px;top:-2px;height:2.5px;
-  background:${LAPIS.edge};border-radius:1px}
+/* ⚠️ ČIARA LEŽÍ VNÚTRI BUNKY (bottom/top:0), NIE V MEDZERE POD ŇOU. Kým to bola
+   jedna čiarka na jednej bunke, sedela v 2 px medzere medzi riadkami a bolo to
+   v poriadku. Len čo beží cez celý riadok a cez desať riadkov pod sebou, tá istá
+   medzera je jediné, čo riadky oddeľuje — a mriežka sa zmenila na linajkový
+   papier, v ktorom sa stratili tmavé týždne. Vnútri bunky je z toho podčiarknutie
+   modrých buniek, teda vlastnosť času, nie mreža cez obrázok. */
+.cal-lifecell.mSince{z-index:4}
+.cal-lifecell.mSince::after{content:'';position:absolute;left:-1.5px;right:-1.5px;bottom:0;height:1.5px;
+  background:${T.growGreen}}
+.cal-lifecell.mJoin{z-index:4}
+.cal-lifecell.mJoin::before{content:'';position:absolute;left:-1.5px;right:-1.5px;top:0;height:1.5px;
+  background:${LAPIS.edge}}
 .cal-sw.cal-lifecell{aspect-ratio:auto;border-radius:4px;flex:0 0 auto}
 .cal-sw.cal-lifecell.mediansw{background:rgba(201,154,63,.30);box-shadow:inset 0 2px 0 ${T.accentGold},inset 0 -2px 0 ${T.accentGold}}
 .cal-sw.cal-lifecell.sincesw{background:rgba(46,95,208,.30);box-shadow:inset 0 -3px 0 ${T.growGreen}}
 .cal-sw.cal-lifecell.joinsw{background:rgba(46,95,208,.30);box-shadow:inset 0 3px 0 ${LAPIS.edge}}
+.cal-sw.cal-lifecell.nowsw{background:rgba(46,95,208,.30);position:relative}
+.cal-sw.cal-lifecell.nowsw::after{content:'';position:absolute;left:50%;top:50%;width:6px;height:6px;
+  margin:-3px 0 0 -3px;border-radius:50%;background:${T.growGreen};
+  box-shadow:0 0 0 1.5px rgba(250,244,236,.9);animation:calNowPulse 1.9s ease-in-out infinite}
 
 .cal-lifetip{position:fixed;z-index:70;pointer-events:none;max-width:250px;
   background:${T.panelGrad};border:1px solid ${T.cardEdge};border-radius:9px;padding:8px 10px;box-shadow:${T.panelShadow}}
@@ -1391,11 +1516,27 @@ const CAL_CSS = `
   text-transform:uppercase;color:${T.inkStrong};margin-bottom:4px}
 .cal-lifetip span{display:block;font-family:${FONT_UI};font-size:11px;color:${T.inkWarm};line-height:1.45;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Bublina pásma nesie vetu, nie zoznam položiek — orezanie tromi bodkami by
+   z vysvetlenia spravilo hádanku. */
+.cal-lifetip span.wrap{white-space:normal;overflow:visible;text-overflow:clip}
+.cal-lifetip span.dim{color:${T.inkFaint};font-size:10px;margin-top:5px}
 
 /* ── REKORDY a RADY ─────────────────────────────────────────────────────── */
 .cal-records{margin-top:18px}
-.cal-recgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px}
-.cal-rec{background:${T.tileBg};border:1px solid ${T.border};border-radius:10px;padding:10px 12px}
+/* ── REKORDMANI = JEDEN RIADOK NA SLAJD (13. 9. 2026) ─────────────────────
+   Trinásť kariet v mriežke auto-fill zabralo na PC štyri rady a zo zóny
+   rekordov spravilo hlavnú tému stránky. Vodorovný pás drží jednu výšku,
+   prichytáva sa po kartách a samotným odrezaním poslednej karty hovorí
+   „je toho viac". Karta má PEVNÚ šírku — flex-basis:auto by ju nafúkol
+   podľa najdlhšieho názvu plemena. */
+.cal-recgrid{display:flex;gap:9px;overflow-x:auto;overflow-y:hidden;
+  scroll-snap-type:x proximity;padding-bottom:8px;scrollbar-width:thin;
+  scrollbar-color:rgba(201,154,63,.45) transparent;overscroll-behavior-x:contain}
+.cal-recgrid::-webkit-scrollbar{height:6px}
+.cal-recgrid::-webkit-scrollbar-thumb{background:rgba(201,154,63,.45);border-radius:3px}
+.cal-recgrid::-webkit-scrollbar-track{background:transparent}
+.cal-rec{background:${T.tileBg};border:1px solid ${T.border};border-radius:10px;padding:10px 12px;
+  flex:0 0 232px;scroll-snap-align:start}
 .cal-rec b{font-family:${FONT_TITLE};font-size:12.5px;font-weight:700;letter-spacing:.06em;color:${T.inkStrong};
   display:inline-block;margin-right:7px}
 .cal-rec u{font-family:${FONT_UI};font-size:11px;font-weight:600;text-decoration:none;color:${T.accentGold}}
@@ -1411,6 +1552,27 @@ const CAL_CSS = `
   color:${T.inkStrong};margin-bottom:3px;line-height:1.25}
 .cal-tip p{font-family:${FONT_UI};font-size:11px;line-height:1.55;color:${T.inkWarm};margin:0}
 
+/* ── KAM RADY VEDÚ — AINUBISOV POVRCH, NIE PAPYRUS ────────────────────────
+   Longevity protokol bude bývať v jeho databáze, takže hovorí ON. Papyrusová
+   dlaždica by tvrdila, že je to ďalšia rada v poradí; tmavý displej hovorí,
+   že je to iná vrstva appky. Nie je to odkaz, kým databáza neexistuje — preto
+   žiadny hover ani kurzor ruky. */
+.cal-longev{margin-top:12px;display:flex;align-items:center;justify-content:space-between;
+  gap:12px 16px;flex-wrap:wrap;border-radius:12px;padding:13px 16px;
+  background:${AINUBIS.surface};border:1px solid ${AINUBIS.edge};
+  box-shadow:0 10px 30px rgba(0,0,0,.34),0 0 26px rgba(59,158,255,.10)}
+.cal-longev-txt{min-width:0;flex:1 1 260px}
+.cal-longev-txt b{display:block;font-family:${FONT_TITLE};font-size:13px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:${AINUBIS.ink};line-height:1.2}
+.cal-longev-txt p{font-family:${FONT_UI};font-size:11px;line-height:1.55;
+  color:${AINUBIS.inkDim};margin:4px 0 0}
+/* Meno má tvar: AI je cyan a svieti (lock 12. 9. 2026). */
+.cal-ai{font-family:${FONT_TITLE};font-weight:700;letter-spacing:.06em;color:${AINUBIS.ink};white-space:nowrap}
+.cal-ai > span{color:${AINUBIS.aiInk};text-shadow:${AINUBIS.aiShadow}}
+.cal-soon{flex:0 0 auto;font-family:${FONT_UI};font-size:9.5px;font-weight:600;letter-spacing:.2em;
+  text-transform:uppercase;padding:6px 14px;border-radius:999px;
+  border:1px solid ${AINUBIS.edge};background:${AINUBIS.raised};color:${AINUBIS.inkFaint}}
+
 /* ── MINI MESIAC v popupe týždňa ────────────────────────────────────────── */
 .cal-wkmini{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:14px}
 .cal-wkday{aspect-ratio:1/1;border-radius:6px;border:1px solid rgba(179,130,45,.25);background:${T.tileBg};
@@ -1423,13 +1585,18 @@ const CAL_CSS = `
 .cal-wkday.has u{color:${T.inkStrong};font-weight:700}
 
 @media(max-width:700px){
-  .cal-lifegrid{column-gap:5px;grid-template-columns:18px 1fr}
+  .cal-lifegrid{column-gap:9px;grid-template-columns:16px 1fr}
+  .cal-lifeyr{font-size:7px}
   .cal-liferow{gap:1px}
   .cal-lifecell{border-radius:1px}
   /* Bunka má na telefóne ~5 px — kliknúť sa na ňu nedá a hover tam neexistuje.
      Mriežka je tam OBRAZ, nie nástroj; detail týždňa je na PC. */
   .cal-lifecell.dark{cursor:default}
+  .cal-nowdot{width:4px;height:4px;margin:-2px 0 0 -2px;box-shadow:0 0 0 1px rgba(250,244,236,.9)}
   .cal-lifestat b{font-size:18px}
+  /* Karta rekordu sa na telefóne zúži, aby bolo vidieť kúsok tej ďalšej —
+     to je jediný signál, že sa pás dá posunúť. */
+  .cal-rec{flex:0 0 78%}
 }
 
 `;

@@ -521,12 +521,19 @@ export const LIFE_RECORDS: LifeRecord[] = [
 // 🔴 TOTO JE MATEJOV TEXT A ČAKÁ NA PREPIS. Zadanie znelo „rady ako život ešte
 // predĺžiť (bez chémie, narkózy, granule...) budu tam tipy vychádzajúce
 // z psieho profilu". Vymyslieť za neho 15 rokov výživy a tréningu sa nedá,
-// takže sem sadlo LEN to, čo appka už niekde hovorí sama:
-//   • okná protokolu (`PROTOCOL` vyššie — jeho vlastný protokol 1.0)
-//   • rad vážení a rad výletov (dáta, ktoré kalendár už kreslí)
-//   • seniorské pásmo (tá istá hranica 8 rokov ako pri kĺbovej kúre)
-// Žiadne tvrdenie tu nie je diagnóza — sú to jeho vlastné pravidlá,
-// prerozprávané konkrétnemu psovi.
+// takže sem sadlo LEN to, čo appka už niekde hovorí sama.
+//
+// ⚠️ ZÚŽENÉ 13. 9. 2026 (Matej: „dáme preč o tom že je kalendár prázdny aj že
+// priemer už prekonal — budú tu len longevity odporúčania"). Odišli tri rady,
+// ktoré neboli rady, ale komentár k stavu kalendára: `noWeight` („nemáš ani
+// jedno váženie"), `fewTrips` („mriežka je skoro celá svetlá") a `overMedian`
+// („priemer už prekonal"). Hovorili o appke, nie o psovi — a mriežka nad nimi
+// to isté ukazuje bez slov.
+//
+// **ŠESŤ STÁLYCH BLOKOV** (Matej: „pridaj aby bolo 6 blokov, že vyhýbať sa
+// chémii, stresu…"): štíhlosť · pohyb · jedlo · chémia · stres · protokol.
+// Siedmy (kĺby) sa pridá len seniorovi — je to jediná rada viazaná na vek,
+// nie na stav zápisov.
 //
 // `when` rozhoduje, komu sa rada ukáže.
 export interface LifeTip {
@@ -534,7 +541,7 @@ export interface LifeTip {
   titleSK: string;
   bodySK: string;
   emoji: string;
-  when: 'always' | 'senior' | 'noWeight' | 'fewTrips' | 'overMedian';
+  when: 'always' | 'senior';
 }
 
 export const LIFE_TIPS: LifeTip[] = [
@@ -558,6 +565,20 @@ export const LIFE_TIPS: LifeTip[] = [
       + 'Granule nie sú hriech, ale nie sú ani strava — sú skratka.',
   },
   {
+    id: 'chem', emoji: '🧪', when: 'always',
+    titleSK: 'Chémia len vtedy, keď ju naozaj treba',
+    bodySK: 'Celoročné antiparazitiká, narkóza pre pohodlie a antibiotiká „pre istotu" sú rozhodnutia, '
+      + 'nie rutina. Pýtaj sa pri každom jednom: čo sa stane, ak to nedám? '
+      + 'Kde je odpoveď „nič", tam to nedávaj.',
+  },
+  {
+    id: 'stress', emoji: '🌙', when: 'always',
+    titleSK: 'Pokoj sa počíta rovnako ako pohyb',
+    bodySK: 'Pes, ktorý je stále v strehu, spaľuje telo zvnútra. Spánok bez vyrušovania, '
+      + 'predvídateľný deň a ticho po záťaži nie sú lenivosť — sú to hodiny, '
+      + 'v ktorých sa telo opravuje.',
+  },
+  {
     id: 'protocol', emoji: '🌿', when: 'always',
     titleSK: 'Protokol namiesto panického behu k vete',
     bodySK: 'Odčervenie, koprológia a biochémia majú v kalendári svoje okná. '
@@ -568,23 +589,5 @@ export const LIFE_TIPS: LifeTip[] = [
     titleSK: 'Kĺby sa riešia PRED tým, než začnú bolieť',
     bodySK: 'Tvoj pes je v seniorskom pásme. Kĺbová kúra má v kalendári okno od novembra — '
       + 'nie preto, že kríva, ale preto, aby nezačal.',
-  },
-  {
-    id: 'noWeight', emoji: '📏', when: 'noWeight',
-    titleSK: 'Nemáš ani jedno váženie',
-    bodySK: 'Bez čísla sa hmotnosť odhaduje okom, a oko si na vlastného psa zvykne. '
-      + 'Jedno váženie mesačne z toho spraví krivku, ktorá varuje skôr než postava.',
-  },
-  {
-    id: 'fewTrips', emoji: '🗺️', when: 'fewTrips',
-    titleSK: 'Mriežka je skoro celá svetlá',
-    bodySK: 'Tmavé týždne sú tie, v ktorých ste boli spolu niekde inde než doma. '
-      + 'Keď ich je málo, nie je to výčitka — je to jediné miesto, kde vidíš, koľko ich naozaj bolo.',
-  },
-  {
-    id: 'overMedian', emoji: '🏆', when: 'overMedian',
-    titleSK: 'Priemer svojho plemena už prekonal',
-    bodySK: 'Čiara priemeru je populačný medián, nie strop. Tvoj pes je za ňou — '
-      + 'odtiaľto sa každý ďalší týždeň počíta dvakrát.',
   },
 ];
