@@ -282,8 +282,13 @@ const ENTRY_CSS = `
    Druhé kolo: krúžok preč, samotný znak menší — kruh z neho robil ovládací prvok rovnakej váhy
    ako dva hlavné bloky pod ním, hoci je to len východ. Klikacia plocha ostáva 32×32 px (dotyk),
    viditeľný je iba znak. */
-.att-entry-panel{position:relative;width:100%;max-width:640px;padding:32px;}
-.att-entry-back{position:absolute;top:18px;left:32px;border:0;background:transparent;color:${T.onDarkDim};font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.02em;cursor:pointer;padding:4px 0;}
+/* ⚠️ HORNÁ VÝPLŇ JE VÄČŠIA ZÁMERNE (2026-09-13). Trieda .att-entry-back je absolútne
+   umiestnená (top:18px) a výšku si teda nerezervuje — pri 32 px zhora ju dlaždice
+   prekrývali (Matej zo screenshotu: „cta prekrývajú zadnú šípku"). Na prvej úrovni to
+   nebolo vidno, lebo tam medzi ňou a dlaždicami stojí .att-entry-lead; druhá úroveň
+   (VLASTNÉ PODUJATIE / Z ODKAZU) žiadny text nemá. */
+.att-entry-panel{position:relative;width:100%;max-width:640px;padding:52px 32px 32px;}
+.att-entry-back{position:absolute;top:18px;left:32px;white-space:nowrap;border:0;background:transparent;color:${T.onDarkDim};font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.02em;cursor:pointer;padding:4px 0;}
 .att-entry-back:hover{color:${GOLD};}
 /* Skrytá, kým je popup plávajúci blok — tam sa zatvára klikom vedľa. Viď komentár pri
    jej vykreslení; zobrazuje ju bledá mobilná vetva v PALE_ADD_CSS (PackMap.tsx). */

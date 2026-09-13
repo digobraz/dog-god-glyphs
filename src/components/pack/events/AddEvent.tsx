@@ -18,6 +18,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { trailCountry } from '@/lib/countryGeo';
 import { MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
 import { BackButton } from '@/components/pack/BackButton';
+import { MAP_SKIN, PALE, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import {
   EVENT_KINDS, EVENT_KIND_LABEL_KEYS, missingEventFields,
   type AddEventDraft, type EventKind, type EventOrigin,
@@ -186,8 +187,9 @@ export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddE
   return (
     <div className="aev-root">
       <style>{AEV_CSS}</style>
+      <style>{PALE_AEV_CSS}</style>
       <div className="aev-head">
-        <BackButton tone="dark" onClick={onClose} label={t('pack.addEvent.backAriaLabel')} />
+        <BackButton tone={MAP_SKIN === 'pale' ? 'pale' : 'dark'} onClick={onClose} label={t('pack.addEvent.backAriaLabel')} />
         <div className="aev-title">{origin === 'own' ? t('pack.addEvent.title.own') : t('pack.addEvent.title.tip')}</div>
       </div>
       <div className="aev-body">
@@ -361,6 +363,43 @@ const AEV_CSS = `
 @media (max-width:640px){
   .aev-row2{grid-template-columns:1fr;}
 }
+`;
+
+// ── BLEDÝ (PAPYRUSOVÝ) PREPIS — 2026-09-13 ───────────────────────────────────────────────
+// Matej zo screenshotu /pack/map: „je vidno že je zlá farba textu aj CTA."
+// PRÍČINA: formulár bol písaný pre TMAVÝ povrch Portalu (T.onDark*), ale `.trp-addhost` je od
+// redizajnu mapy papyrusová doska (goldFrameCSS v PackMap.tsx) — svetlý text na svetlom
+// podklade zmizol. `AddTripLog` má na to `PALE_LOG_CSS`; toto je tá istá vec pre podujatia.
+//
+// ⚠️ BEZ MEDIA QUERY, zámerne. Chrome mapy je bledý na KAŽDEJ šírke (usePaleChrome.ts,
+// 28. 8. 2026) — druhá kópia farieb pre mobil by sa rozišla pri prvej úprave.
+// ⚠️ Vkladá sa ako DRUHÝ <style>, teda za AEV_CSS: pri rovnakej špecificite (0-1-0) rozhoduje
+// poradie v DOM. Prepínač späť na tmavé sklo je `MAP_SKIN` v navGoldSkin.ts, nie zmazanie.
+//
+// Plochy podľa matrice PACK_BOX: pole = úroveň 5 (plochý papyrus `PALE.field`), pilulka = 5.
+// CTA je LAPIS — na papyruse je zlatá naraz rámom, doskou aj tlačidlom (ten istý dôvod
+// a ten istý zápis ako `.atl-log-foot .btn-gold` v AddTripLog).
+const PALE_AEV_CSS = MAP_SKIN !== 'pale' ? '' : `
+.aev-title{color:${PALE.ink};}
+.aev-field label{color:${PALE.dim};}
+.aev-input{background:${PALE.field};border-color:${PALE.border};color:${PALE.ink};}
+.aev-input:focus{border-color:${PALE.edge};}
+.aev-input::placeholder{color:${PALE.faint};}
+.aev-pill{background:${PALE.soft};border-color:${PALE.border};color:${PALE.dim};}
+.aev-pill:hover{border-color:${PALE.edge};color:${PALE.ink};}
+/* Vybraná pilulka = priesvitný tint, nie plná farba (LOCKED 2026-08-26) — plná výplň je
+   vyhradená jedinému hlavnému CTA na doske, a to je PRIDAŤ PODUJATIE dole. */
+.aev-pill.on{background:rgba(201,154,63,0.22);border-color:${PALE.edge};color:${PALE.ink};}
+.aev-suggest{background:#FFFDF6;border-color:${PALE.border};box-shadow:0 12px 32px rgba(122,90,42,0.28);}
+.aev-suggest-item{border-bottom-color:${PALE.hair};}
+.aev-suggest-item:hover{background:rgba(201,154,63,0.12);}
+.aev-suggest-name{color:${PALE.ink};}
+.aev-suggest-sub{color:${PALE.dim};}
+.aev-hint{color:${PALE.dim};}
+.aev-foot .btn-gold{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};}
+.aev-foot .btn-gold:hover:not(:disabled){background:${LAPIS.gradHover};box-shadow:${LAPIS_BTN_SHADOW};}
+.aev-foot .btn-gold:disabled{box-shadow:none;}
+.aev-error{color:#8E2A20;}
 `;
 
 export default AddEvent;

@@ -2674,7 +2674,7 @@ const PALE_ADD_CSS = MAP_SKIN !== 'pale' ? '' : `
      ⚠️ ROZMERY SÚ PC-ONLY, farby nie. Na telefóne je 34 px výplne a 760 px šírky nezmysel —
      mobilná dvojička stojí v bloku „PRISPÔSOBENIE VIEWPORTU" na konci súboru. */
   @media (min-width:${PALE_PC_MIN}px){
-    .trp-root .att-entry-panel.pk-glass{max-width:760px;padding:34px;}
+    .trp-root .att-entry-panel.pk-glass{max-width:760px;padding:56px 34px 34px;}
     .trp-root .att-entry-blocks{gap:16px;}
     .trp-root .att-entry-block{padding:28px 22px;}
   }
