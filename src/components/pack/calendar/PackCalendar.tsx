@@ -104,6 +104,12 @@ export interface CalendarDogRow {
   /** Vstup do Dogyptu. `created_at` je začiatok flow, platba je o minúty neskôr —
       na mriežke, kde bunka je TÝŽDEŇ, je ten rozdiel neviditeľný. */
   created_at?: string | null;
+  /** ZÁLOHA PLEMENA. Flow zapisuje meno na DVE miesta naraz — `selections.breed`
+      aj stĺpec `dogs.breed` — a pásmo dožitia stálo len na tom prvom. Pes,
+      ktorému sa `selections` nezapísali celé, tak padal až na hmotnostnú triedu
+      a hlásil o 1–3 roky kratší život, než má jeho plemeno publikované.
+      Obsah je EN meno z `breeds.json` alebo „Mixed" — SK je len zobrazenie. */
+  breed?: string | null;
 }
 
 const MONTHS_SHORT_SK = ['Jan', 'Feb', 'Mar', 'Apr', 'Máj', 'Jún', 'Júl', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
@@ -882,9 +888,12 @@ function LifeGrid({
   const lastWeight = typeof lastWeightRaw === 'number' ? lastWeightRaw
     : parseFloat(String(lastWeightRaw ?? '')) || null;
 
+  // `selections.breed` má prednosť (nesie aj polovice kríženca), stĺpec je
+  // záchranná sieť pre riadok, ktorému sa selections nezapísali celé.
+  const breedName = s?.breed || row.breed || null;
   const est: LifeEstimate = useMemo(
-    () => estimateLife(s?.breed, s?.mixBreed1, s?.mixBreed2, lastWeight),
-    [s?.breed, s?.mixBreed1, s?.mixBreed2, lastWeight],
+    () => estimateLife(breedName, s?.mixBreed1, s?.mixBreed2, lastWeight),
+    [breedName, s?.mixBreed1, s?.mixBreed2, lastWeight],
   );
 
   // Týždne so zápisom. Index je JEDEN pre celú mriežku — 1560 buniek sa nemôže
@@ -933,9 +942,11 @@ function LifeGrid({
   // `band.median` dnes nečíta nikto; `band.low`/`.high` kreslia hrany.
 
   const senior = livedYears >= 8;
-  // Do počtu „týždňov spolu vonku" ide len to, čo sa naozaj stalo. Plán
-  // v budúcnosti by inak nafúkol číslo, ktoré má byť odmenou za prežité.
-  const darkWeeks = [...byWeek.keys()].filter((wi) => wi < livedWeeks).length;
+  // ⚠️ DLAŽDICA „AKTÍVNYCH TÝŽDŇOV" ODIŠLA 13. 9. 2026 (Matej: „tie aktívne
+  // týždne daj preč… bude to divne, ako v mojom prípade vyzerá to, že sme celý
+  // život nič nerobili"). Kalendár začal zbierať zápisy dnes, takže číslo
+  // meria vek KALENDÁRA, nie život psa — a postavené vedľa „4 000 dní" čítalo
+  // ako obžaloba. Tmavé bunky v mriežke to isté hovoria bez sčítania.
 
   const gridYears = deceased ? LIFE_ACTIVE_YEARS : LIFE_YEARS;
   // ŠESŤ STÁLYCH RÁD + siedma pre seniora. Rady o stave kalendára („nemáš
@@ -946,9 +957,31 @@ function LifeGrid({
   const hoverEntries = hover ? byWeek.get(hover.wi) ?? [] : [];
   // Leží týždeň pod kurzorom v pásme dožitia? Rok života je celé delenie indexu,
   // takže sa to nemusí ťahať cez stav riadku — bublina si to zistí sama.
+  // ⚠️ PÁSMO JE INKLUZÍVNE PO `floor(high)` (13. 9. 2026). Kým sa kreslili dve
+  // hrany vnútri riadkov, končilo pásmo `< ceil(high)`, teda pri 9–12 rámovalo
+  // roky 9, 10, 11 — a v rámiku by potom stálo „9–11", hoci popisok hovorí
+  // 9–12. Matej: „daj do rámika čísla, ktorých sa pásmo týka = 9-12".
+  const bandFirst = Math.floor(band.low);
+  const bandLast = Math.floor(band.high);
+  // Popis pásma má JEDNO znenie pre dve miesta: bublinu nad blokom a `title`
+  // rámika pri číslach rokov. Dva ručne opísané texty by sa rozišli pri prvej
+  // úprave zdroja odhadu.
+  const bandText = est.basis === 'default'
+    ? tx('pack.cal.life.srcNone',
+      'Pásmo dožitia: plemeno ani hmotnosť zatiaľ nepoznáme, takže stojí na strednej triede. Doplň plemeno v DOG ID.')
+    : `${tx('pack.cal.life.srcPre', 'Pásmo dožitia:')} ${num(band.low)}–${num(band.high)} `
+      + `${tx('pack.cal.life.years', 'rokov')} · ${est.labelSK}`
+      + (band.fromBreed
+        ? ` · ${tx('pack.cal.life.srcBreed', 'publikovaný údaj plemena')}`
+        : est.size
+          ? ` · ${tx('pack.cal.life.srcWeight', 'odhad podľa hmotnosti')} (${SIZE_NAME_SK[est.size]}, ${band.kgSK})`
+          : '');
+  const bandTitle = `${bandText}\n${tx('pack.cal.life.bandNote',
+    'Je to priemer tisícok psov, nie predpoveď o tomto jednom.')}`;
+
   const hoverInBand = hover !== null
-    && Math.floor(hover.wi / WEEKS_PER_YEAR) >= Math.floor(band.low)
-    && Math.floor(hover.wi / WEEKS_PER_YEAR) < Math.ceil(band.high);
+    && Math.floor(hover.wi / WEEKS_PER_YEAR) >= bandFirst
+    && Math.floor(hover.wi / WEEKS_PER_YEAR) <= bandLast;
 
   // Popis dňa v týždni na popisky — „14. 4. – 20. 4. 2019".
   const weekLabel = (wi: number): string => {
@@ -979,10 +1012,6 @@ function LifeGrid({
             ? tx('pack.cal.life.daysLived', 'dní najlepšieho života')
             : tx('pack.cal.life.days', 'dní najlepšieho života')}</span>
           <u>{ageText(ageParts(birth, endDate))}</u>
-        </div>
-        <div className="cal-lifestat">
-          <b>{darkWeeks}</b>
-          <span>{tx('pack.cal.life.darkWeeks', 'aktívnych týždňov')}</span>
         </div>
         {togetherDays !== null && sinceDate && (
           /* ✎ VEDIE DO DOG ID, NEEDITUJE TU (Matej: „to by bolo prepojené aj
@@ -1031,45 +1060,31 @@ function LifeGrid({
         <div className="cal-lifegrid" onMouseLeave={() => setHover(null)}>
           {Array.from({ length: gridYears }, (_, yr) => {
             const past = yr >= LIFE_ACTIVE_YEARS;
-            // ⚠️ PÁSMO, NIE ČIARA (Matej 13. 9.: „ten median dožitia by som dal
-            // ako pásmo od do nie len čiaru v istý rok"). Priemer je rozsah,
-            // takže jedna čiara o ňom klamala presnosťou, ktorú nemá.
-            //
-            // ⚠️ HRANY STOJA VNÚTRI RIADKU, NIE POD NÍM. Verzia s čiarou ako
-            // spodnou hranou riadku `floor(x)` ukazovala 10,0 opticky na
-            // jedenástke — o celý rok vedľa. `top` podľa desatinnej časti to
-            // rieši a zároveň prežije medzeru pred zónou rekordov, ktorú by
-            // percento nad celou mriežkou rozhodilo.
-            //
-            // ⚠️ TINT PÁSMA ODIŠIEL 13. 9. 2026 (Matej: „pásmo dožitia by som
-            // dal preč… ukáže sa, keď prejdeš šípkou na hranicu priamo pri
-            // blokoch"). Zostali DVE HRANY, ktoré v CSS o kúsok trčia do strán
-            // (`.cal-medline`), aby sa čítali ako pásmo, a nie ako dva nesúvisiace
-            // škrty. Popis pásma vyskočí v bubline pri prechode myšou po jeho
-            // riadkoch (`onMouseEnter` na riadku).
-            const edges: { key: string; top: string }[] = [];
-            if (Math.floor(band.low) === yr) edges.push({ key: 'lo', top: `${(band.low % 1) * 100}%` });
-            if (Math.floor(band.high) === yr) edges.push({ key: 'hi', top: `${(band.high % 1) * 100}%` });
-            const inBand = yr >= Math.floor(band.low) && yr < Math.ceil(band.high);
+            // 🔴 PÁSMO DOŽITIA ODIŠLO Z MRIEŽKY DO ČÍSEL ROKOV (Matej 13. 9. 2026:
+            // „tú hranicu/pásmo dožitia daj preč a dávajme ho za okraj blokov =
+            // daj do rámika čísla, ktorých sa pásmo týka = 9-12 bude
+            // v ohraničenom bloku"). Dve zlaté hrany ležali PRIAMO NA
+            // prežitých týždňoch, takže cez život psa viedli dva škrty —
+            // predpoveď nakreslená do jeho vlastných dát. V ľavom stĺpci
+            // je to tá istá informácia, ale mimo mriežky: rámik povie
+            // „týchto rokov sa to týka" a života sa nedotkne.
+            const inBand = yr >= bandFirst && yr <= bandLast;
             return (
               <Fragment key={yr}>
                 {/* ČÍSLO MÁ KAŽDÝ RIADOK (Matej 13. 9.: „do každého riadku daj
                     čísla rokov, nie len 0-5-10"). Po piatich sa nedalo povedať,
                     v ktorom roku života leží konkrétny tmavý týždeň — človek
                     musel počítať riadky od najbližšej päťky. */}
-                <div className={`cal-lifeyr${past ? ' faded' : ''}${inBand ? ' inband' : ''}`}>{yr}</div>
+                <div className={`cal-lifeyr${past ? ' faded' : ''}${inBand ? ' inband' : ''}`
+                  + (yr === bandFirst ? ' bandtop' : '') + (yr === bandLast ? ' bandbot' : '')}
+                  title={bandTitle}
+                >{yr}</div>
                 <div
                   className={`cal-liferow${past ? ' faded' : ''}${inBand ? ' inband' : ''}${yr === LIFE_ACTIVE_YEARS ? ' zone' : ''}`}
                   data-zone={yr === LIFE_ACTIVE_YEARS
                     ? tx('pack.cal.life.zone', 'Odtiaľto ďalej sa dostala hŕstka psov v histórii')
                     : undefined}
                 >
-                  {edges.map((e) => (
-                    <i
-                      key={e.key} className="cal-medline" style={{ top: e.top }}
-                      aria-label={`${tx('pack.cal.life.srcPre', 'Pásmo dožitia:')} ${num(band.low)}–${num(band.high)}`}
-                    />
-                  ))}
                   {Array.from({ length: WEEKS_PER_YEAR }, (__, w) => {
                     const wi = yr * WEEKS_PER_YEAR + w;
                     const lived = wi < livedWeeks;
@@ -1114,15 +1129,24 @@ function LifeGrid({
             );
           })}
         </div>
+        {/* Koniec tabuľky. Vlastný prvok POD mriežkou, nie ::after posledného
+            riadku: riadok sedí v druhom stĺpci gridu, takže by čiara začala až
+            za číslami rokov a mriežka by končila zoseknutá. */}
+        <div className="cal-lifeend" aria-hidden />
       </div>
 
       {/* ── ZÓNA REKORDOV — prečo mriežka nekončí na dvadsiatke ───────────── */}
       {!deceased && (
       <div className="cal-records">
-        <div className="cal-lgtitle">{tx('pack.cal.life.recTitle', 'Nad dvadsiatkou — psy, ktoré tam naozaj boli')}</div>
+        {/* ⚠️ NADPIS AJ PODNADPIS SÚ MATEJOVE SLOVÁ (13. 9. 2026) — nie môj
+            opis. Predošlé znenie („Vyblednutá časť mriežky nie je predpoveď…")
+            vysvetľovalo MRIEŽKU, teda vec nad sebou, a rekordmanov podávalo
+            ako poznámku pod čiarou k odhadu dožitia. Nové znenie hovorí o tom,
+            čo má človek s dlhovekosťou spoločné: rozhodnutia. */}
+        <div className="cal-lgtitle">{tx('pack.cal.life.recTitle', 'Dlhovekosť psov nie je náhoda')}</div>
         <p className="cal-note" style={{ marginBottom: 9 }}>
           {tx('pack.cal.life.recSub',
-            'Vyblednutá časť mriežky nie je predpoveď. Je to miesto, kam sa dostala hŕstka psov — a dôkaz, že priemer nie je strop. Polovica týchto rekordov je doložená, polovica stojí na slove majiteľa; kde chýba dôkaz, je to napísané.')}
+            'Nižšie nájdeš zopár rekordmanov, ktorí sa dožili takmer 30 rokov. Dlhý a šťastný život stojí hlavne na tvojich každodenných rozhodnutiach.')}
         </p>
         {/* JEDEN RIADOK NA SLAJD (Matej 13. 9. 2026: „rekordmanov daj do jedného
             riadku na slajd"). Trinásť kariet v mriežke zabralo pol obrazovky
@@ -1209,20 +1233,7 @@ function LifeGrid({
           {hoverEntries.map((e, i) => (
             <span key={i}>{LOG_TYPES[e.kind].emoji} {e.title || tx(LOG_TYPES[e.kind].i18n, LOG_TYPES[e.kind].nameSK)}</span>
           ))}
-          {hoverInBand && (
-            <span className="wrap dim">
-              {est.basis === 'default'
-                ? tx('pack.cal.life.srcNone',
-                  'Pásmo dožitia: plemeno ani hmotnosť zatiaľ nepoznáme, takže stojí na strednej triede. Doplň plemeno v DOG ID.')
-                : `${tx('pack.cal.life.srcPre', 'Pásmo dožitia:')} ${num(band.low)}–${num(band.high)} `
-                  + `${tx('pack.cal.life.years', 'rokov')} · ${est.labelSK}`
-                  + (band.fromBreed
-                    ? ` · ${tx('pack.cal.life.srcBreed', 'publikovaný údaj plemena')}`
-                    : est.size
-                      ? ` · ${tx('pack.cal.life.srcWeight', 'odhad podľa hmotnosti')} (${SIZE_NAME_SK[est.size]}, ${band.kgSK})`
-                      : '')}
-            </span>
-          )}
+          {hoverInBand && <span className="wrap dim">{bandText}</span>}
         </div>
       )}
 
@@ -1497,20 +1508,29 @@ const CAL_CSS = `
 /* Vyblednutá zóna 20–30 — história, nie predpoveď. */
 .cal-lifeyr.faded{opacity:.4}
 .cal-liferow.faded{opacity:.42}
-/* ── PÁSMO DOŽITIA = DVE HRANY, ŽIADNA VÝPLŇ (13. 9. 2026) ────────────────
-   Tint riadkov aj zlaté číslo roka ODIŠLI (Matej: „pásmo dožitia by som dal
-   preč"). Ostali dve čiary, ktoré o POL BUNKY trčia do strán — Matej: „tie dve
-   zlaté čiary ohraničujúce pásmo jemne predlž, nech trčia po stranách 0,5 dĺžky
-   jedného bloku, nech to vyzerá ako pásmo". Bez presahu to boli dva nezávislé
-   škrty cez mriežku; s ním je medzi nimi zjavne JEDNA vec.
-   Pol bunky = 0,5 × (1/52 riadku) ≈ 0,96 %, preto -1 %.
-   Popis pásma sa neukazuje stále — vyskočí v bubline pri prechode myšou. */
+/* ── PÁSMO DOŽITIA = RÁMIK OKOLO ČÍSEL ROKOV (13. 9. 2026) ────────────────
+   🔴 Z MRIEŽKY VON (Matej: „tú hranicu/pásmo dožitia daj preč a dávajme ho za
+   okraj blokov = daj do rámika čísla, ktorých sa pásmo týka"). Dve zlaté hrany
+   ležali priamo na prežitých týždňoch — predpoveď prekreslená cez život psa.
+   Rámik stojí v ľavom stĺpci, teda MIMO mriežky, a hovorí to isté.
+   Skladá sa z troch tried, aby to bol JEDEN box cez viac riadkov, nie štyri
+   samostatné rámčeky: bočnice má každý riadok pásma, hornú hranu prvý,
+   spodnú posledný.
+   ⚠️ ČÍSLO MUSÍ VYPLNIŤ CELÝ RIADOK (align-self:stretch), inak je vysoké
+   len ako písmo (8 px) a rámik sa medzi rokmi rozpadne na štyri visiace
+   zátvorky — presne tak vyzeral prvý pokus. Zvyšné 2 px medzery (row-gap)
+   zošíva zvislý presah -1px. */
 .cal-liferow{position:relative}
-.cal-liferow.inband{border-radius:3px}
-.cal-medline{position:absolute;left:-1%;right:-1%;height:1.5px;background:${T.accentGold};
-  border-radius:1px;pointer-events:none;z-index:3;transform:translateY(-0.75px);
-  opacity:.8;transition:opacity .16s ease}
-.cal-liferow.inband:hover .cal-medline{opacity:1}
+.cal-lifeyr.inband{color:${T.accentGold};opacity:1;position:relative;
+  align-self:stretch;display:flex;align-items:center;justify-content:flex-end;
+  padding:0 3px 0 2px;margin:-1px -3px -1px -2px;
+  box-shadow:inset 1px 0 0 ${T.accentGold},inset -1px 0 0 ${T.accentGold};
+  background:rgba(201,154,63,.08)}
+.cal-lifeyr.inband.bandtop{box-shadow:inset 1px 0 0 ${T.accentGold},inset -1px 0 0 ${T.accentGold},
+  inset 0 1px 0 ${T.accentGold};border-radius:3px 3px 0 0;margin-top:0;padding-top:1px}
+.cal-lifeyr.inband.bandbot{box-shadow:inset 1px 0 0 ${T.accentGold},inset -1px 0 0 ${T.accentGold},
+  inset 0 -1px 0 ${T.accentGold};border-radius:0 0 3px 3px;margin-bottom:0;padding-bottom:1px}
+.cal-lifeyr.inband.bandtop.bandbot{box-shadow:inset 0 0 0 1px ${T.accentGold};border-radius:3px}
 /* Hranica dvadsiatky je PREDEL, nie ďalší riadok mriežky: nad ňou je pes,
    pod ňou je história. Bez nej sa vyblednutá zóna pri prázdnych bunkách
    nedala odlíšiť od zvyšku prázdneho miesta. */
@@ -1520,6 +1540,12 @@ const CAL_CSS = `
   color:${T.accentGold};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.95}
 .cal-liferow.zone::after{content:'';position:absolute;left:0;right:0;top:-7px;height:1px;
   background:linear-gradient(90deg,rgba(201,154,63,.55),rgba(201,154,63,0))}
+/* KONIEC TABUĽKY (Matej 13. 9. 2026: „pod 30 riadkom treba urobiť vizuálnu
+   čiaru, koniec tabuľky"). Bez nej sa posledný riadok prázdnych buniek stratil
+   v papyruse a mriežka nikde nekončila — jednoducho prestala byť. Čiara ide
+   cez celú šírku riadku, teda vrátane stĺpca s číslami. */
+.cal-lifeend{height:1px;margin:9px 0 0;
+  background:linear-gradient(90deg,rgba(201,154,63,.12),rgba(201,154,63,.55) 10%,rgba(201,154,63,.55) 90%,rgba(201,154,63,.12))}
 .cal-lifecell{flex:1 1 0;min-width:0;aspect-ratio:1/1;border-radius:1.5px;background:transparent;
   box-shadow:inset 0 0 0 .5px rgba(122,90,42,.22);cursor:default;position:relative}
 /* Prežitý čas = bledá modrá. Je to ten istý lapis, akým appka hovorí „moje" —

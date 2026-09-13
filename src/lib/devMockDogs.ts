@@ -47,7 +47,18 @@ export const DEV_MOCK_DOGS: DevMockDog[] = [
     life_status: 'alive',
     death_date: null,
     birth_year: 2016,
-    selections: { birthdayYear: '2016', birthdayMonth: '3', birthdayDay: '15' },
+    // ⚠️ PLEMENO PATRÍ DO `selections`, NIE DO STĹPCA `breed` (13. 9. 2026).
+    // Životná mriežka kalendára číta `selections.breed` / `mixBreed1` /
+    // `mixBreed2` — presne to, čo do nich zapíše heroglyph flow. Mock ich
+    // nemal, takže Hekthor v DEV padal na hmotnostnú triedu a pásmo dožitia
+    // hlásilo 9–12 rokov ako veľkému psovi bez plemena. Hektor je labrador ×
+    // vlčiak (nemecký ovčiak), teda 10–13. Mená sú EN — tak ich ukladá flow
+    // (`BreedPatronScreen`: „Storage stays EN"), SK je len zobrazenie.
+    selections: {
+      birthdayYear: '2016', birthdayMonth: '3', birthdayDay: '15',
+      breed: 'Mixed', breedType: 'mix',
+      mixBreed1: 'Labrador Retriever', mixBreed2: 'German Shepherd',
+    },
   },
 ];
 
@@ -124,10 +135,11 @@ export const DEV_MOCK_DOG_ROW = {
   user_id: 'dev-mock-owner',
   dog_name: DEV_MOCK_DOGS[0].dog_name,
   cloudinary_main_url: DEV_MOCK_DOGS[0].cloudinary_main_url,
-  cloudinary_extras: [] as string[],
   pdf_cert_url: null, pdf_vertical_url: null, pdf_horizontal_url: null,
   heroglyph_code: 'DEV-MOCK-0001',
-  breed: 'Nemecký ovčiak',
+  // ⚠️ Stĺpec `dogs.breed` drží EN meno alebo „Mixed" (flow: `setBreed(isMix
+  // ? 'Mixed' : breed1)`), nie slovenský preklad — ten je len na zobrazenie.
+  breed: 'Mixed',
   country: DEV_MOCK_DOGS[0].country,
   birth_year: DEV_MOCK_DOGS[0].birth_year,
   life_status: DEV_MOCK_DOGS[0].life_status,
