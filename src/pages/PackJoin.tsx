@@ -17,6 +17,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
 import { PACK_BOX, PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { PAWMATE_RIGHTS } from '@/lib/pawmateRights';
 
 type Preview = {
   dogName: string;
@@ -37,11 +38,11 @@ type Phase =
   | { k: 'full' }
   | { k: 'done'; dogName: string };
 
-/** Poradie je zámerné: najprv to, čo pawmate uvidí, potom to, čo smie zmeniť. */
-const RIGHT_ORDER = [
-  'dogid.edit', 'dog.photo', 'trips.draw', 'trips.log',
-  'map.notes', 'social', 'grid.message', 'will',
-] as const;
+/** Poradie je zámerné: najprv to, čo pawmate uvidí, potom to, čo smie zmeniť.
+ *  ⚠️ Zoznam sa tu UŽ NEOPISUJE — je v `@/lib/pawmateRights` spolu s menovkami
+ *  pre panel majiteľa. Tu ostávajú len vety v hlase POZVANÉHO („čo budeš môcť"),
+ *  ktoré sú zámerne iné než menovky zaškrtávatiek („čo dávam"). */
+const RIGHT_ORDER = PAWMATE_RIGHTS;
 
 export default function PackJoin() {
   const t = useT();

@@ -26,6 +26,7 @@
 // §5: **dať sa dá len to, čo sa dá vziať späť.**
 // ============================================================================
 import { supabase } from '@/integrations/supabase/client';
+import { DEV_NOAUTH, DEV_MOCK_ACCESS } from '@/lib/devMockDogs';
 
 /**
  * Osem zaškrtávacích práv. Poradie je zámerné a drží ho aj `/pack/join/:token`:
@@ -153,7 +154,17 @@ export interface AccessRow {
   invite_id: string | null;
 }
 
+/**
+ * 🔴 POD `DEV_NOAUTH` SA SUPABASE NEVOLÁ. Nie je to úspora: `rpc()` si pýta token
+ * cez `navigator.locks`, a keď je ten zámok v profile prehliadača zaseknutý,
+ * volanie sa nevráti nikdy a panel ostane na spinneri bez chyby. Ten istý lock
+ * drží `usePackIdentity.ts`; zoznam je atrapa v pamäti (`lib/devMockDogs.ts`),
+ * takže sa dá celý flow prejsť na telefóne bez prihlásenia.
+ */
 export async function listDogAccess(dogId: string): Promise<AccessRow[]> {
+  // Kópia, nie tá istá referencia — `setRows()` s identickým poľom React zahodí
+  // (Object.is) a panel by sa po pozvaní neprekreslil.
+  if (DEV_NOAUTH) return [...DEV_MOCK_ACCESS] as unknown as AccessRow[];
   const { data, error } = await (supabase as any).rpc('dog_access_list', { p_dog: dogId });
   if (error) throw new Error(error.message);
   return (data ?? []) as AccessRow[];
@@ -162,6 +173,11 @@ export async function listDogAccess(dogId: string): Promise<AccessRow[]> {
 export async function setPawmateAccess(
   dogId: string, userId: string, role: PawmateRole, rights: PawmateRights,
 ): Promise<void> {
+  if (DEV_NOAUTH) {
+    const row = DEV_MOCK_ACCESS.find((r) => r.user_id === userId);
+    if (row) { row.role = role; row.rights = { ...rights } as Record<string, boolean>; }
+    return;
+  }
   const { error } = await (supabase as any).rpc('set_pawmate_access', {
     p_dog: dogId, p_user: userId, p_role: role, p_rights: rights,
   });
@@ -169,11 +185,13 @@ export async function setPawmateAccess(
 }
 
 export async function revokePawmate(dogId: string, userId: string): Promise<void> {
+  if (DEV_NOAUTH) { dropMock((r) => r.user_id === userId && r.source !== 'owner'); return; }
   const { error } = await (supabase as any).rpc('revoke_pawmate', { p_dog: dogId, p_user: userId });
   if (error) throw new Error(error.message);
 }
 
 export async function revokeDogInvite(dogId: string, inviteId: string): Promise<void> {
+  if (DEV_NOAUTH) { dropMock((r) => r.invite_id === inviteId); return; }
   const { error } = await (supabase as any).rpc('revoke_dog_invite', { p_dog: dogId, p_invite: inviteId });
   if (error) throw new Error(error.message);
 }
@@ -193,6 +211,16 @@ export async function revokeDogInvite(dogId: string, inviteId: string): Promise<
 export async function invitePawmate(
   dogId: string, email: string, role: PawmateRole, rights: PawmateRights,
 ): Promise<{ ok: true } | { ok: false; code: string }> {
+  if (DEV_NOAUTH) {
+    DEV_MOCK_ACCESS.push({
+      kind: 'invite', user_id: null, role, rights: { ...rights } as Record<string, boolean>,
+      source: 'invite', name: null, email, avatar_url: null,
+      since: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 7 * 864e5).toISOString(),
+      invite_id: 'dev-mock-invite-' + Date.now(),
+    });
+    return { ok: true };
+  }
   const { data, error } = await supabase.functions.invoke('invite-pawmate', {
     body: { dogId, email, role, rights },
   });
@@ -213,4 +241,11 @@ export async function invitePawmate(
     return { ok: false, code: String((data as { error: unknown }).error) };
   }
   return { ok: true };
+}
+
+/** DEV atrapa — vyhodí riadok zo zoznamu v pamäti (pole musí ostať TO ISTÉ,
+ *  panel naň drží referenciu cez `listDogAccess`). */
+function dropMock(match: (r: typeof DEV_MOCK_ACCESS[number]) => boolean): void {
+  const i = DEV_MOCK_ACCESS.findIndex(match);
+  if (i >= 0) DEV_MOCK_ACCESS.splice(i, 1);
 }

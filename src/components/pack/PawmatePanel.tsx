@@ -203,7 +203,7 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
     setBusy(true); setErr(null);
     const res = await invitePawmate(dogId, email.trim(), role, rights);
     setBusy(false);
-    if (!res.ok) { setErr(errText(res.code)); return; }
+    if (res.ok === false) { setErr(errText(res.code)); return; }
     setSentTo(email.trim()); setForm(null);
     void load(dogId);
   };

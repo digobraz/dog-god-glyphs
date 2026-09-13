@@ -74,3 +74,39 @@ export const DEV_MOCK_USER: DevMockUser = {
   devotion: 100,
   bones: 0,
 };
+
+// ── DEV: ĽUDIA PRI PSOVI — panel „kto má prístup" (B5/F3, 13. 9. 2026) ──────
+// `PawmatePanel` číta zoznam cez `security definer` RPC `dog_access_list()`,
+// ktorá stojí na `auth.uid()`. Bez session by teda vrátila prázdno — a panel by
+// vyzeral ako rozbitý, hoci by len nemal koho ukázať.
+//
+// 🔴 A HORŠIE: pod NOAUTH sa Supabase volať NEMÁ VÔBEC (lock v CLAUDE.md).
+// `rpc()` si pýta token cez `navigator.locks`, a keď je ten zámok v profile
+// prehliadača zaseknutý, volanie sa nevráti NIKDY — panel ostane na spinneri
+// bez chyby a bez konca.
+//
+// Preto tu leží živý zoznam v pamäti: pozvanie doň pridá riadok, stiahnutie ho
+// odoberie, takže sa celý flow (voľné miesto → čakajúca pozvánka → zase voľné)
+// dá prejsť na telefóne bez prihlásenia. Po obnovení stránky je znova prázdny —
+// je to atrapa, nie databáza.
+export interface DevMockAccessRow {
+  kind: 'human' | 'invite';
+  user_id: string | null;
+  role: string;
+  rights: Record<string, boolean>;
+  source: 'owner' | 'invite' | 'merge';
+  name: string | null;
+  email: string | null;
+  avatar_url: string | null;
+  since: string;
+  expires_at: string | null;
+  invite_id: string | null;
+}
+
+export const DEV_MOCK_ACCESS: DevMockAccessRow[] = [
+  {
+    kind: 'human', user_id: 'dev-mock-owner', role: 'pawtner', rights: {},
+    source: 'owner', name: DEV_MOCK_USER.name, email: null, avatar_url: null,
+    since: '2026-01-01T00:00:00.000Z', expires_at: null, invite_id: null,
+  },
+];
