@@ -36,15 +36,28 @@ import { readStringSet, PACK_KEYS } from '@/lib/packStore';
 import { computeAge } from '@/lib/dogAge';
 import type { ElementKey } from '@/components/pack/natureQuiz';
 import {
-  SEASONS, seasonOf, seasonsInMonth, seasonOfMonth, dim, doy, dateKey, parseDayInYear,
+  SEASONS, seasonOf, seasonsInMonth, seasonOfMonth, dim, doy, dateKey, parseFullDay,
   moonDaysOfYear, PROTOCOL, TICKS, visibleProtocol, protocolOn, protocolLanes, ticksInMonth,
   protWholeMonth, protWindowColor, CAL_RGB, calRGBA, hexRGBA, LOG_TYPES, cellFill,
   birthdaysOn, humanYearsOn,
+  LIFE_YEARS, LIFE_ACTIVE_YEARS, WEEKS_PER_YEAR, LIFE_WEEKS, LIFE_RECORDS, LIFE_TIPS, weekIndex, weekStart,
   type CalDog, type CalEntry, type LogKind, type MoonPhase, type ProtWindow,
 } from './calendarModel';
+import { estimateLife, SIZE_NAME_SK, type LifeEstimate } from '@/data/breedLifespan';
 
 const T = PACK_THEME;
 const EMOJI_FONT = "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
+
+/**
+ * Desatinné číslo v jazyku, v ktorom appka práve hovorí. `String(29.5)` dá
+ * v slovenčine „29.5", čo je anglická interpunkcia uprostred slovenskej vety.
+ * Jazyk berieme z `<html lang>` — `tx` vracia len texty, nie kód jazyka.
+ */
+const num = (v: number): string => {
+  const lang = (typeof document !== 'undefined' && document.documentElement.lang) || 'sk';
+  try { return new Intl.NumberFormat(lang, { maximumFractionDigits: 1 }).format(v); }
+  catch { return String(v); }
+};
 
 type Tx = (key: string, fallback: string) => string;
 type Latest = Record<string, Record<string, LatestValue>>;
@@ -71,7 +84,7 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
   const year = new Date().getFullYear();
   const today = useMemo(() => { const n = new Date(); return { m: n.getMonth() + 1, d: n.getDate(), year: n.getFullYear() }; }, []);
 
-  const [view, setView] = useState<'year' | 'month'>(() =>
+  const [view, setView] = useState<'year' | 'month' | 'life'>(() =>
     typeof window !== 'undefined' && window.matchMedia(MOBILE_Q).matches ? 'month' : 'year');
   const [sel, setSel] = useState<string>('all');          // 'all' | dogId
   const [layers, setLayers] = useState({ log: true, prot: true, nat: true });
@@ -98,6 +111,14 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
   }), [dogs, latest]);
 
   const shown = useMemo(() => (sel === 'all' ? calDogs : calDogs.filter((g) => g.id === sel)), [sel, calDogs]);
+  // ŽIVOTNÁ OS JE VŽDY JEDNÉHO PSA. „Celá svorka" je pre ňu nezmysel — dva psy
+  // majú dva rôzne dni narodenia, takže by sa mriežka musela začínať dvakrát.
+  // Pri výbere `all` berie prvého psa a pilulka „Celá svorka" v tomto pohľade
+  // ZMIZNE, aby sa nedalo vybrať niečo, čo sa nedá nakresliť.
+  const lifeRow = useMemo(
+    () => (sel === 'all' ? dogs[0] : dogs.find((r) => r.id === sel)) ?? dogs[0],
+    [sel, dogs],
+  );
   const solo = sel !== 'all';
   // Zvýraznená sezóna sa objaví AŽ po výbere psa: element je psí a dvaja psi =
   // dve sezóny, čím by zvýraznenie prestalo niečo znamenať. To je zároveň dôvod,
@@ -127,7 +148,7 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
       const byId = new Map([...mod.HERO_TRAILS, ...readLocalTrails()].map((t) => [t.id, t]));
       const out: CalEntry[] = [];
       for (const [slug, t] of slugs) {
-        const day = parseDayInYear(t.date, year);
+        const day = parseFullDay(t.date);
         if (!day) continue;
         const trail = byId.get(slug);
         // Keď meno nepoznáme ani z jedného zdroja, ostáva PRÁZDNE a názov typu
@@ -139,7 +160,7 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
         // aj o týždeň a deň zostáva ten, ktorý si zapísal.
         out.push({
           kind: walked.has(slug) ? 'trip' : 'plan',
-          m: day.m, d: day.d,
+          y: day.y, m: day.m, d: day.d,
           title: trail?.name || '',
           dogId: null,
           href: trail ? `/pack/map/${trail.country ? trail.country.toLowerCase() : 'svk'}/${slug}` : undefined,
@@ -148,7 +169,9 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
       setTripEntries(out);
     })();
     return () => { alive = false; };
-  }, [year]);
+    // ⚠️ BEZ `year` v závislostiach — od 13. 9. 2026 sa zbiera CELÁ história,
+    // nie jeden rok. Pohľad ROK si svoj rok filtruje až v `byDay`.
+  }, []);
 
   // Váženia — append-only séria, teda krivka, ktorú dnes nikto nekreslí.
   useEffect(() => {
@@ -161,17 +184,17 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
       const out: CalEntry[] = [];
       all.forEach((series, i) => {
         for (const ev of series) {
-          const day = parseDayInYear(ev.recordedAt, year);
+          const day = parseFullDay(ev.recordedAt);
           if (!day) continue;
           const kg = typeof ev.value === 'number' ? ev.value : parseFloat(String(ev.value ?? ''));
           if (!kg || Number.isNaN(kg)) continue;
-          out.push({ kind: 'weigh', m: day.m, d: day.d, title: `${kg} kg`, dogId: ids[i] });
+          out.push({ kind: 'weigh', y: day.y, m: day.m, d: day.d, title: `${kg} kg`, dogId: ids[i] });
         }
       });
       setWeighEntries(out);
     })();
     return () => { alive = false; };
-  }, [dogs, year]);
+  }, [dogs]);
 
   // Veterinár a odčervenie z DOG ID. Sú to dátumy udalostí, ktoré sa STALI —
   // teda plnohodnotné zápisy, len ich nikto nikdy nenakreslil.
@@ -185,25 +208,31 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
     for (const row of dogs) {
       for (const f of FIELDS) {
         const v = latest[row.id]?.[f.field]?.value;
-        const day = parseDayInYear(typeof v === 'string' ? v : null, year);
+        const day = parseFullDay(typeof v === 'string' ? v : null);
         if (!day) continue;
-        out.push({ kind: f.kind, m: day.m, d: day.d, title: tx(f.key, f.fb), dogId: row.id });
+        out.push({ kind: f.kind, y: day.y, m: day.m, d: day.d, title: tx(f.key, f.fb), dogId: row.id });
       }
     }
     return out;
-  }, [dogs, latest, year, tx]);
+  }, [dogs, latest, tx]);
 
   // Jeden index na celý rok — mriežka sa pýta 372× „čo je v tento deň".
   const byDay = useMemo(() => {
     const map = new Map<string, CalEntry[]>();
     for (const e of [...tripEntries, ...weighEntries, ...vetEntries]) {
+      if (e.y !== year) continue;                                  // pohľad ROK drží jeden rok
       if (e.dogId !== null && solo && e.dogId !== sel) continue;   // cudzieho psa skryjeme
       const k = dateKey(e.m, e.d);
       const arr = map.get(k);
       if (arr) arr.push(e); else map.set(k, [e]);
     }
     return map;
-  }, [tripEntries, weighEntries, vetEntries, solo, sel]);
+  }, [tripEntries, weighEntries, vetEntries, solo, sel, year]);
+
+  /** CELÁ história pre životnú os — bez filtra roka, s filtrom psa. */
+  const allEntries = useMemo(() => [...tripEntries, ...weighEntries, ...vetEntries]
+    .filter((e) => !(e.dogId !== null && solo && e.dogId !== sel)),
+  [tripEntries, weighEntries, vetEntries, solo, sel]);
 
   const entriesOn = (m: number, d: number): CalEntry[] => (layers.log ? byDay.get(dateKey(m, d)) ?? [] : []);
   const moons = useMemo(() => moonDaysOfYear(year), [year]);
@@ -229,16 +258,17 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
     <section id="calendar" style={{ ...PACK_BOX.card, padding: 24 }}>
       <style>{CAL_CSS}</style>
 
-      <div className="flex items-center gap-2.5" style={{ marginBottom: 4 }}>
+      {/* Podnadpis pod nadpisom ODIŠIEL 13. 9. 2026 (Matej: „preč pod text pod
+          nadpisom"). Vetu „čo sa stalo, čo sa má a čo je vonku" hovorí legenda
+          pod mriežkou konkrétnejšie — text ju len predbiehal.
+          ⚠️ Kľúč `pack.cal.sub` sa NEMAŽE zo slovníkov, kým sa neoverí, že ho
+          nečíta iný povrch. */}
+      <div className="flex items-center gap-2.5" style={{ marginBottom: 14 }}>
         <BrandIcon name="bars" size={24} tint="gold" />
         <h2 style={{ fontFamily: FONT_TITLE, fontSize: 24, fontWeight: 700, letterSpacing: '0.14em', color: T.inkStrong, lineHeight: 1.05, textTransform: 'uppercase' }}>
           {tx('pack.cal.title', 'Kalendár')}
         </h2>
       </div>
-      <p style={{ fontFamily: FONT_UI, fontSize: 12.5, color: T.inkWarm, marginBottom: 16 }}>
-        {tx('pack.cal.sub', 'Jedna os času: čo sa stalo, čo sa má a čo je vonku.')}
-      </p>
-
       {/* ── OVLÁDANIE — TRI TVARY, nie jeden rad ôsmich rovnakých pilulek ─────
            Prvá verzia mala pohľad, psov aj vrstvy ako identické lapisové pilulky
            v jednom rade: osem rovnakých prvkov, z ktorých päť svietilo rovnako,
@@ -251,19 +281,25 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
       <div className="cal-ctl">
         <style>{PF_FIELD_CSS}</style>
         <div className="pf-toggle inline-flex items-center" style={{ borderRadius: 999, padding: 3, gap: 3 }}>
-          {(['year', 'month'] as const).map((v) => (
+          {(['year', 'month', 'life'] as const).map((v) => (
             <button
               key={v} type="button"
               className={`pf-toggle__opt${view === v ? ' is-on' : ''}`}
               aria-pressed={view === v}
               onClick={() => setView(v)}
             >
-              {v === 'year' ? tx('pack.cal.viewYear', 'Rok') : tx('pack.cal.viewMonth', 'Mesiac')}
+              {v === 'year' ? tx('pack.cal.viewYear', 'Rok')
+                : v === 'month' ? tx('pack.cal.viewMonth', 'Mesiac')
+                  : tx('pack.cal.viewLife', 'Život')}
             </button>
           ))}
         </div>
 
-        <div className="cal-layers" role="group" aria-label={tx('pack.cal.layers', 'Vrstvy')}>
+        {/* V ŽIVOTNEJ osi rad vrstiev ZMIZNE: mriežka nekreslí ani okná protokolu,
+            ani fázy mesiaca, takže dve z troch pilulek by neprepínali nič —
+            a prepínač, ktorý nič nerobí, sa číta ako pokazený. */}
+        <div className="cal-layers" role="group" aria-label={tx('pack.cal.layers', 'Vrstvy')}
+          style={view === 'life' ? { display: 'none' } : undefined}>
           {([
             ['log', tx('pack.cal.layerLog', 'Zápisy')],
             ['prot', tx('pack.cal.layerProt', 'Protokol')],
@@ -288,18 +324,30 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
           bez úlohy. Výber NESKRÝVA spoločné výlety: pes tam bol tiež. */}
       {calDogs.length > 1 && (
         <div className="cal-dogsel" role="group" aria-label={tx('pack.cal.filter', 'Filter psov')}>
-          <button type="button" className={`cal-dogpill${sel === 'all' ? ' on' : ''}`} onClick={() => setSel('all')}>
-            {tx('pack.cal.allDogs', 'Celá svorka')}
-          </button>
+          {view !== 'life' && (
+            <button type="button" className={`cal-dogpill${sel === 'all' ? ' on' : ''}`} onClick={() => setSel('all')}>
+              {tx('pack.cal.allDogs', 'Celá svorka')}
+            </button>
+          )}
           {calDogs.map((g) => (
-            <button key={g.id} type="button" className={`cal-dogpill${sel === g.id ? ' on' : ''}`} onClick={() => setSel(g.id)}>
+            <button
+              key={g.id} type="button"
+              className={`cal-dogpill${(view === 'life' ? lifeRow?.id === g.id : sel === g.id) ? ' on' : ''}`}
+              onClick={() => setSel(g.id)}
+            >
               {g.name}
             </button>
           ))}
         </div>
       )}
 
-      {view === 'year' ? (
+      {view === 'life' ? (
+        lifeRow ? (
+          <LifeGrid
+            row={lifeRow} dogs={shown} entries={allEntries} latest={latest} tx={tx} monthName={monthName}
+          />
+        ) : null
+      ) : view === 'year' ? (
         <YearGrid
           year={year} today={today} dogs={shown} solo={solo} myElement={myElement}
           seniorSelected={seniorSelected} layers={layers}
@@ -318,13 +366,18 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
       )}
 
       {/* Prázdny kalendár musí POVEDAŤ, prečo je prázdny — inak vyzerá pokazený. */}
-      {layers.log && !hasAnyEntry && (
+      {view !== 'life' && layers.log && !hasAnyEntry && (
         <p className="cal-note" style={{ marginTop: 12 }}>
           {tx('pack.cal.emptyHint', 'Zatiaľ tu nie je ani jeden zápis. Kalendár kreslí len to, čo má DEŇ — výlet s dátumom, očkovanie, váženie.')}
         </p>
       )}
 
-      <Legend layers={layers} solo={solo} tx={tx} typeName={typeName} />
+      {/* Legenda hovorí o sezónach, protokole a fázach mesiaca — ŽIVOTNÁ os
+          z toho nekreslí nič, takže by pod ňou stála legenda k inému obrázku.
+          Vlastnú legendu má životná mriežka v riadku pod sebou. */}
+      {view !== 'life'
+        ? <Legend layers={layers} solo={solo} tx={tx} typeName={typeName} />
+        : <LifeLegend tx={tx} />}
 
       {open && (
         <DayPopup
@@ -735,6 +788,357 @@ function DayPopup({
 //    lapisová plocha je vyhradená jedinému hlavnému CTA na obrazovke a tu žiadne
 //    nie je. Čitateľnosť nesie TMAVÝ inkoust a plný rám, nie krytie výplne.
 // ════════════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════════════
+// ŽIVOT — 30 rokov × 52 týždňov. Jedna bunka = JEDEN TÝŽDEŇ života psa.
+// Zadanie: Matej 13. 9. 2026, predloha „your life in weeks" (engaging-data).
+//
+// ČO KTORÁ BUNKA ZNAMENÁ (a prečo práve tak):
+//   • prežitý týždeň BEZ zápisu → bledá modrá — ubehnutý čas
+//   • prežitý týždeň SO zápisom → TMAVÁ — boli ste spolu niekde inde než doma
+//   • ešte neprežitý týždeň     → prázdna papyrusová bunka
+//   • riadky 20–29              → vyblednuté, to už nie je predpoveď, ale história
+//
+// ⚠️ TMAVÁ JE ODMENA, NIE HUSTOTA. Prvá úvaha bola škálovať tmavosť počtom
+// zápisov, ale to by z mriežky spravilo teplotnú mapu, v ktorej sa týždeň
+// s jedným výletom stratí. Jeden zápis = plná tmavá. Koľko ich bolo, povie
+// tooltip a popup.
+//
+// ⚠️ ČIARA PRIEMERU NIE JE PREDPOVEĎ SMRTI. Je to populačný medián hmotnostnej
+// triedy plemena (`@/data/breedLifespan`), teda číslo o tisíckach psov, nie
+// o tomto. Preto je pod ňou PÁSMO (low–high) a preto appka nikde nepíše dátum.
+// ════════════════════════════════════════════════════════════════════════════
+function LifeGrid({
+  row, dogs, entries, latest, tx, monthName,
+}: {
+  row: CalendarDogRow; dogs: CalDog[]; entries: CalEntry[]; latest: Latest; tx: Tx;
+  monthName: (m: number) => string;
+}) {
+  const [hover, setHover] = useState<{ wi: number; x: number; y: number } | null>(null);
+  const [openWeek, setOpenWeek] = useState<number | null>(null);
+
+  const s = row.selections ?? undefined;
+  const by = parseInt(s?.birthdayYear || '', 10) || row.birth_year || 0;
+  const bm = parseInt(s?.birthdayMonth || '', 10) || 1;
+  const bd = parseInt(s?.birthdayDay || '', 10) || 1;
+  const birth = by >= 1990 ? new Date(by, bm - 1, bd) : null;
+
+  // Koniec osi: živý pes → dnes, pes po smrti → deň úmrtia. Mriežka psa, ktorý
+  // odišiel, sa nesmie ďalej plniť — bol by to čas, ktorý nikto nežil.
+  const deceased = row.life_status === 'deceased' && !!row.death_date;
+  const endDate = useMemo(() => (deceased ? new Date(row.death_date as string) : new Date()), [deceased, row.death_date]);
+
+  const lastWeightRaw = latest[row.id]?.['health.weightKg']?.value;
+  const lastWeight = typeof lastWeightRaw === 'number' ? lastWeightRaw
+    : parseFloat(String(lastWeightRaw ?? '')) || null;
+
+  const est: LifeEstimate = useMemo(
+    () => estimateLife(s?.breed, s?.mixBreed1, s?.mixBreed2, lastWeight),
+    [s?.breed, s?.mixBreed1, s?.mixBreed2, lastWeight],
+  );
+
+  // Týždne so zápisom. Index je JEDEN pre celú mriežku — 1560 buniek sa nemôže
+  // pýtať zoznamu zápisov jedna po druhej.
+  const byWeek = useMemo(() => {
+    const map = new Map<number, CalEntry[]>();
+    if (!birth) return map;
+    for (const e of entries) {
+      const wi = weekIndex(birth, new Date(e.y, e.m - 1, e.d));
+      if (wi < 0 || wi >= LIFE_WEEKS) continue;
+      const arr = map.get(wi);
+      if (arr) arr.push(e); else map.set(wi, [e]);
+    }
+    return map;
+  }, [entries, birth]);
+
+  if (!birth) {
+    return (
+      <p className="cal-note" style={{ marginTop: 4 }}>
+        {tx('pack.cal.life.noBirth',
+          'Životná os potrebuje dátum narodenia. Doplň ho psovi v DOG ID a mriežka sa vykreslí od prvého týždňa.')}
+      </p>
+    );
+  }
+
+  const livedWeeks = Math.max(0, weekIndex(birth, endDate));
+  const livedYears = livedWeeks / WEEKS_PER_YEAR;
+  const band = est.band;
+  const overMedian = livedYears >= band.median;
+  const remainLow = Math.max(0, Math.round((band.low - livedYears) * 10) / 10);
+  const remainHigh = Math.max(0, Math.round((band.high - livedYears) * 10) / 10);
+
+  const senior = livedYears >= 8;
+  const weighCount = entries.filter((e) => e.kind === 'weigh').length;
+  // Do počtu „týždňov spolu vonku" ide len to, čo sa naozaj stalo. Plán
+  // v budúcnosti by inak nafúkol číslo, ktoré má byť odmenou za prežité.
+  const darkWeeks = [...byWeek.keys()].filter((wi) => wi < livedWeeks).length;
+
+  const tips = LIFE_TIPS.filter((t) => {
+    if (t.when === 'always') return true;
+    if (t.when === 'senior') return senior;
+    if (t.when === 'noWeight') return weighCount === 0;
+    if (t.when === 'fewTrips') return darkWeeks < Math.max(4, livedYears * 4);
+    if (t.when === 'overMedian') return overMedian;
+    return false;
+  });
+
+  const hoverEntries = hover ? byWeek.get(hover.wi) ?? [] : [];
+
+  // Popis dňa v týždni na popisky — „14. 4. – 20. 4. 2019".
+  const weekLabel = (wi: number): string => {
+    const a = weekStart(birth, wi);
+    const b = new Date(a.getTime() + 6 * 86_400_000);
+    return `${a.getDate()}. ${a.getMonth() + 1}. – ${b.getDate()}. ${b.getMonth() + 1}. ${b.getFullYear()}`;
+  };
+
+  return (
+    <div className="cal-life">
+      {/* ── ZHRNUTIE: tri čísla, nie odsek ───────────────────────────────── */}
+      <div className="cal-lifehead">
+        <div className="cal-lifestat">
+          <b>{Math.floor(livedYears)}<i>r</i> {Math.floor(livedWeeks % WEEKS_PER_YEAR)}<i>t</i></b>
+          <span>{deceased
+            ? tx('pack.cal.life.lived', 'prežil')
+            : tx('pack.cal.life.behind', 'za sebou')}</span>
+        </div>
+        <div className="cal-lifestat">
+          <b>{darkWeeks}</b>
+          <span>{tx('pack.cal.life.darkWeeks', 'týždňov spolu vonku')}</span>
+        </div>
+        {!deceased && (
+          <div className="cal-lifestat">
+            <b>{overMedian ? '∞' : `${num(remainLow)}–${num(remainHigh)}`}</b>
+            <span>{overMedian
+              ? tx('pack.cal.life.overMedian', 'nad priemerom plemena')
+              : tx('pack.cal.life.remain', 'rokov podľa priemeru')}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Odkiaľ je čiara. Bez tejto vety je to číslo z neba. */}
+      <p className="cal-note cal-lifesrc">
+        {est.basis === 'default'
+          ? tx('pack.cal.life.srcNone',
+            'Plemeno ani hmotnosť zatiaľ nepoznáme, takže čiara stojí na strednej triede. Doplň plemeno v DOG ID a posunie sa na správne miesto.')
+          : `${tx('pack.cal.life.srcPre', 'Čiara priemeru:')} ${num(band.median)} ${tx('pack.cal.life.years', 'rokov')} `
+            + `(${num(band.low)}–${num(band.high)}) · ${est.labelSK}`
+            + (est.size ? ` · ${SIZE_NAME_SK[est.size]}, ${band.kgSK}` : '')}
+      </p>
+
+      {/* ── MRIEŽKA ──────────────────────────────────────────────────────── */}
+      <div className="cal-lifewrap">
+        <div className="cal-lifegrid" onMouseLeave={() => setHover(null)}>
+          {Array.from({ length: LIFE_YEARS }, (_, yr) => {
+            const past = yr >= LIFE_ACTIVE_YEARS;
+            // ⚠️ ČIARA STOJÍ VNÚTRI RIADKU, NIE POD NÍM. Prvá verzia ju kreslila
+            // ako spodnú hranu riadku `floor(median)`, takže medián 10,0 vyšiel
+            // opticky na jedenástku — o celý rok vedľa. Teraz je to prvok
+            // s `top` podľa desatinnej časti: 10,0 sedí na hornej hrane riadku 10
+            // (presne desať rokov), 14,5 v jeho strede. Zároveň to prežije
+            // medzeru pred zónou rekordov, ktorú by percento nad celou mriežkou
+            // rozhodilo.
+            const isMedianRow = Math.floor(band.median) === yr;
+            const medianTop = `${(band.median % 1) * 100}%`;
+            const inBand = yr >= Math.floor(band.low) && yr < Math.ceil(band.high);
+            return (
+              <Fragment key={yr}>
+                <div className={`cal-lifeyr${past ? ' faded' : ''}${inBand ? ' inband' : ''}`}>
+                  {yr % 5 === 0 || yr === LIFE_ACTIVE_YEARS ? yr : ''}
+                </div>
+                <div
+                  className={`cal-liferow${past ? ' faded' : ''}${inBand ? ' inband' : ''}${yr === LIFE_ACTIVE_YEARS ? ' zone' : ''}`}
+                  data-zone={yr === LIFE_ACTIVE_YEARS
+                    ? tx('pack.cal.life.zone', 'Odtiaľto ďalej sa dostala hŕstka psov v histórii')
+                    : undefined}
+                >
+                  {isMedianRow && (
+                    <i
+                      className="cal-medline" style={{ top: medianTop }}
+                      aria-label={`${tx('pack.cal.life.srcPre', 'Čiara priemeru:')} ${num(band.median)}`}
+                    />
+                  )}
+                  {Array.from({ length: WEEKS_PER_YEAR }, (__, w) => {
+                    const wi = yr * WEEKS_PER_YEAR + w;
+                    const lived = wi < livedWeeks;
+                    const hits = byWeek.get(wi);
+                    // ⚠️ TMAVÁ PATRÍ LEN PREŽITÉMU TÝŽDŇU. Zápis s dátumom
+                    // v budúcnosti je PLÁN — nakreslený ako plná tmavá by tvrdil,
+                    // že ste tam už boli. Dostáva obrys, tak ako v pohľade ROK.
+                    const cls = hits ? (lived ? 'dark' : 'plan') : lived ? 'lived' : 'empty';
+                    return (
+                      <span
+                        key={w}
+                        className={`cal-lifecell ${cls}${wi === livedWeeks ? ' now' : ''}`}
+                        onMouseEnter={(ev) => setHover({ wi, x: ev.clientX, y: ev.clientY })}
+                        onMouseMove={(ev) => setHover({ wi, x: ev.clientX, y: ev.clientY })}
+                        onClick={() => { if (hits) setOpenWeek(wi); }}
+                        role={hits ? 'button' : undefined}
+                        tabIndex={-1}
+                        aria-label={hits ? weekLabel(wi) : undefined}
+                      />
+                    );
+                  })}
+                </div>
+              </Fragment>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── ZÓNA REKORDOV — prečo mriežka nekončí na dvadsiatke ───────────── */}
+      <div className="cal-records">
+        <div className="cal-lgtitle">{tx('pack.cal.life.recTitle', 'Nad dvadsiatkou — psy, ktoré tam naozaj boli')}</div>
+        <p className="cal-note" style={{ marginBottom: 9 }}>
+          {tx('pack.cal.life.recSub',
+            'Vyblednutá časť mriežky nie je predpoveď. Je to miesto, kam sa dostala hŕstka psov — a dôkaz, že priemer nie je strop.')}
+        </p>
+        <div className="cal-recgrid">
+          {LIFE_RECORDS.map((r) => (
+            <div className="cal-rec" key={r.name}>
+              <b>{r.name}</b>
+              <u>{num(r.years)} {tx('pack.cal.life.years', 'rokov')}</u>
+              <i>{r.breedSK} · {r.fromTo}</i>
+              <p>{r.noteSK}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── RADY ─────────────────────────────────────────────────────────── */}
+      <div className="cal-records">
+        <div className="cal-lgtitle">{tx('pack.cal.life.tipsTitle', 'Čo s tým vieš urobiť')}</div>
+        <div className="cal-tipgrid">
+          {tips.map((t) => (
+            <div className="cal-tip" key={t.id}>
+              <em>{t.emoji}</em>
+              <div>
+                <b>{t.titleSK}</b>
+                <p>{t.bodySK}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── TOOLTIP pri myši ─────────────────────────────────────────────── */}
+      {hover && hoverEntries.length > 0 && (
+        <div className="cal-lifetip" style={{ left: hover.x + 14, top: hover.y + 14 }}>
+          <b>{weekLabel(hover.wi)}</b>
+          {hoverEntries.slice(0, 5).map((e, i) => (
+            <span key={i}>{LOG_TYPES[e.kind].emoji} {e.title || tx(LOG_TYPES[e.kind].i18n, LOG_TYPES[e.kind].nameSK)}</span>
+          ))}
+          {hoverEntries.length > 5 && <span>+{hoverEntries.length - 5}</span>}
+        </div>
+      )}
+
+      {openWeek !== null && (
+        <WeekPopup
+          birth={birth} wi={openWeek} entries={byWeek.get(openWeek) ?? []}
+          onClose={() => setOpenWeek(null)} monthName={monthName} tx={tx}
+          label={weekLabel(openWeek)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// POPUP TÝŽDŇA — mesačný kalendárik so zvýrazneným týždňom + zápisy.
+// Matej: „pri kliku sa zobrazí mesačný kalendárik". Je to VLASTNÁ mriežka,
+// nie `MonthGrid` — ten je zviazaný s aktuálnym rokom (sezóny, okná protokolu,
+// fázy mesiaca sa počítajú pre `year`), kým tu ide o mesiac spred rokov.
+// ════════════════════════════════════════════════════════════════════════════
+function WeekPopup({
+  birth, wi, entries, onClose, monthName, tx, label,
+}: {
+  birth: Date; wi: number; entries: CalEntry[]; onClose: () => void;
+  monthName: (m: number) => string; tx: Tx; label: string;
+}) {
+  const start = weekStart(birth, wi);
+  const end = new Date(start.getTime() + 6 * 86_400_000);
+  // ⚠️ MESIAC BERIEME PODĽA STREDU TÝŽDŇA, nie podľa jeho začiatku. Týždeň
+  // 31. 7. – 6. 8. má v júli JEDINÝ deň, takže pri kotve na začiatku popup
+  // otvoril júl, zvýraznil v ňom jeden štvorček a zápisy (3. 8.) v mriežke
+  // nezvýraznil vôbec — vyzeralo to ako prázdny mesiac s náhodnou bunkou.
+  // Stred týždňa vždy padne do mesiaca, ktorý má z týždňa väčšinu dní.
+  const anchor = new Date(start.getTime() + 3 * 86_400_000);
+  const y = anchor.getFullYear();
+  const m = anchor.getMonth() + 1;
+  const first = new Date(y, m - 1, 1);
+  const lead = (first.getDay() + 6) % 7;                 // pondelok = 0
+  const days = dim(y, m);
+
+  const inWeek = (d: number): boolean => {
+    const t = new Date(y, m - 1, d).getTime();
+    return t >= start.getTime() && t <= end.getTime();
+  };
+  const entryOn = (d: number): CalEntry[] => entries.filter((e) => e.y === y && e.m === m && e.d === d);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return (
+    <div className="cal-popbg" onClick={onClose} role="presentation">
+      <div className="cal-pop" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <h4>{monthName(m)} {y}</h4>
+        <div className="cal-when">{label}</div>
+
+        <div className="cal-wkmini">
+          {DOW_SK.map((w) => <div className="cal-dow" key={w}>{w}</div>)}
+          {Array.from({ length: lead }, (_, i) => <div key={`l${i}`} />)}
+          {Array.from({ length: days }, (_, i) => {
+            const d = i + 1;
+            const hits = entryOn(d);
+            return (
+              <div key={d} className={`cal-wkday${inWeek(d) ? ' on' : ''}${hits.length ? ' has' : ''}`}>
+                <u>{d}</u>
+                {hits.length > 0 && <em>{LOG_TYPES[hits[0].kind].emoji}</em>}
+              </div>
+            );
+          })}
+        </div>
+
+        {entries.length === 0 ? (
+          <p className="cal-note">{tx('pack.cal.life.weekEmpty', 'V tomto týždni nemáš zapísané nič. Prežili ste ho, len o ňom nič nevieme.')}</p>
+        ) : entries.map((e, i) => (
+          <div className="cal-entry" key={i}>
+            <span className="cal-ico">{LOG_TYPES[e.kind].emoji}</span>
+            <div style={{ minWidth: 0 }}>
+              <b>{e.title || tx(LOG_TYPES[e.kind].i18n, LOG_TYPES[e.kind].nameSK)}</b>
+              <p>{e.d}. {e.m}. {e.y}{e.text ? ` · ${e.text}` : ''}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Legenda ŽIVOTNEJ mriežky — štyri stavy bunky, nič viac. */
+function LifeLegend({ tx }: { tx: Tx }) {
+  const items: { cls: string; b: string; t: string }[] = [
+    { cls: 'lived', b: tx('pack.cal.life.lgLived', 'Prežitý týždeň'), t: tx('pack.cal.life.lgLivedSub', 'ubehnutý čas') },
+    { cls: 'dark', b: tx('pack.cal.life.lgDark', 'Boli ste vonku'), t: tx('pack.cal.life.lgDarkSub', 'klik = mesiac') },
+    { cls: 'empty', b: tx('pack.cal.life.lgEmpty', 'Ešte len bude'), t: tx('pack.cal.life.lgEmptySub', 'nezapísaný čas') },
+    { cls: 'mediansw', b: tx('pack.cal.life.lgMedian', 'Priemer plemena'), t: tx('pack.cal.life.lgMedianSub', 'medián, nie strop') },
+  ];
+  return (
+    <div className="cal-lgroup">
+      <div className="cal-lgtitle">{tx('pack.cal.life.legend', 'Ako čítať mriežku')}</div>
+      <div className="cal-lgrid">
+        {items.map((i) => (
+          <div className="cal-lg" key={i.cls}>
+            <span className={`cal-sw cal-lifecell ${i.cls}`} />
+            <div><b>{i.b}</b><span>{i.t}</span></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const CAL_CSS = `
 /* Pohľad vľavo, vrstvy na opačnom konci riadku — sú tichšie, je to nastavenie
    viditeľnosti, nie hlavná voľba. */
@@ -841,4 +1245,106 @@ const CAL_CSS = `
      rôznych miestach. Na šírke telefónu preto zarovnanie vľavo ako ostatné. */
   .cal-layers{margin-left:0}
 }
+/* ── ŽIVOT: 30 rokov × 52 týždňov ───────────────────────────────────────── */
+.cal-life{margin-top:2px}
+.cal-lifehead{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.cal-lifestat{flex:1 1 130px;min-width:0;
+  background:${T.tileBg};border:1px solid ${T.border};border-radius:10px;padding:9px 12px}
+.cal-lifestat b{display:block;font-family:${FONT_TITLE};font-size:21px;font-weight:700;line-height:1.05;color:${T.inkStrong}}
+.cal-lifestat b i{font-style:normal;font-size:12px;opacity:.6;margin-right:4px}
+.cal-lifestat span{display:block;font-family:${FONT_UI};font-size:9.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:${T.inkFaint};margin-top:3px}
+.cal-lifesrc{margin-bottom:12px}
+
+/* Mriežka nesmie tlačiť stránku do vodorovného rolovania — 52 buniek sa vojde
+   do šírky vždy, lebo bunka je zlomok riadku, nie pevné číslo. */
+.cal-lifewrap{overflow:hidden}
+.cal-lifegrid{display:grid;grid-template-columns:22px 1fr;row-gap:2px;column-gap:7px;align-items:center}
+.cal-lifeyr{font-family:ui-monospace,Menlo,monospace;font-size:8px;color:${T.inkFaint};text-align:right;line-height:1}
+.cal-liferow{display:flex;gap:2px;min-width:0;padding-bottom:1px}
+/* Vyblednutá zóna 20–30 — história, nie predpoveď. */
+.cal-lifeyr.faded{opacity:.4}
+.cal-liferow.faded{opacity:.42}
+/* Pásmo low–high je TIEŇ, nie druhá čiara: dve čiary by sa čítali ako dva
+   priemery. Tichý zlatý podklad hovorí „niekde tu", čiara hovorí „stred". */
+/* Pásmo low–high je tichý tint riadku; ČÍSLO roka, v ktorom leží priemer,
+   sa navyše rozsvieti zlatou.
+   ⚠️ Zvislá zlatá hrana na stĺpci s rokom sa SKÚŠALA a vypadla: čísla sú len
+   po piatich, takže na rokoch bez čísla z nej ostal plávajúci zlatý pruh
+   a vedľa čísla 10 to vyzeralo ako preškrtnutie. */
+.cal-liferow.inband{background:rgba(201,154,63,.07);border-radius:3px}
+.cal-lifeyr.inband{color:${T.accentGold};font-weight:700}
+.cal-liferow{position:relative}
+.cal-medline{position:absolute;left:0;right:0;height:1.5px;background:${T.accentGold};
+  border-radius:1px;pointer-events:none;z-index:3;transform:translateY(-0.75px)}
+/* Hranica dvadsiatky je PREDEL, nie ďalší riadok mriežky: nad ňou je pes,
+   pod ňou je história. Bez nej sa vyblednutá zóna pri prázdnych bunkách
+   nedala odlíšiť od zvyšku prázdneho miesta. */
+.cal-liferow.zone{position:relative;margin-top:26px}
+.cal-liferow.zone::before{content:attr(data-zone);position:absolute;left:0;right:0;top:-21px;
+  font-family:${FONT_UI};font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:${T.accentGold};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.95}
+.cal-liferow.zone::after{content:'';position:absolute;left:0;right:0;top:-7px;height:1px;
+  background:linear-gradient(90deg,rgba(201,154,63,.55),rgba(201,154,63,0))}
+.cal-lifecell{flex:1 1 0;min-width:0;aspect-ratio:1/1;border-radius:1.5px;background:transparent;
+  box-shadow:inset 0 0 0 .5px rgba(122,90,42,.22);cursor:default}
+/* Prežitý čas = bledá modrá. Je to ten istý lapis, akým appka hovorí „moje" —
+   len stiahnutý na tapetu, lebo ubehnutý čas nie je akcia. */
+.cal-lifecell.lived{background:rgba(46,95,208,.30);box-shadow:none}
+/* Tmavá = boli ste spolu vonku. Plná, neškálovaná — jeden zápis stačí. */
+.cal-lifecell.dark{background:#14243F;box-shadow:none;cursor:pointer}
+.cal-lifecell.dark:hover{background:${LAPIS.edge};transform:scale(1.55);border-radius:2px;position:relative;z-index:2}
+.cal-lifecell.empty{background:rgba(250,244,236,.55)}
+/* PLÁN = týždeň, ktorý má zápis, ale ešte neprišiel. Obrys, nie výplň —
+   tá istá reč ako .cal-cell.isPlan v pohľade ROK. */
+.cal-lifecell.plan{background:rgba(250,244,236,.55);box-shadow:inset 0 0 0 1px ${LAPIS.edge};cursor:pointer}
+.cal-lifecell.now{box-shadow:inset 0 0 0 1px ${T.accentGold}}
+.cal-sw.cal-lifecell{aspect-ratio:auto;border-radius:4px;flex:0 0 auto}
+.cal-sw.cal-lifecell.mediansw{background:${T.accentGold}}
+
+.cal-lifetip{position:fixed;z-index:70;pointer-events:none;max-width:250px;
+  background:${T.panelGrad};border:1px solid ${T.cardEdge};border-radius:9px;padding:8px 10px;box-shadow:${T.panelShadow}}
+.cal-lifetip b{display:block;font-family:${FONT_TITLE};font-size:10px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:${T.inkStrong};margin-bottom:4px}
+.cal-lifetip span{display:block;font-family:${FONT_UI};font-size:11px;color:${T.inkWarm};line-height:1.45;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── REKORDY a RADY ─────────────────────────────────────────────────────── */
+.cal-records{margin-top:18px}
+.cal-recgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px}
+.cal-rec{background:${T.tileBg};border:1px solid ${T.border};border-radius:10px;padding:10px 12px}
+.cal-rec b{font-family:${FONT_TITLE};font-size:12.5px;font-weight:700;letter-spacing:.06em;color:${T.inkStrong};
+  display:inline-block;margin-right:7px}
+.cal-rec u{font-family:${FONT_UI};font-size:11px;font-weight:600;text-decoration:none;color:${T.accentGold}}
+.cal-rec i{display:block;font-style:normal;font-family:${FONT_UI};font-size:9.5px;letter-spacing:.04em;
+  text-transform:uppercase;color:${T.inkFaint};margin:3px 0 5px}
+.cal-rec p{font-family:${FONT_UI};font-size:11px;line-height:1.5;color:${T.inkWarm};margin:0}
+.cal-tipgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:9px}
+.cal-tip{display:flex;gap:10px;background:${T.tileBg};border:1px solid ${T.border};border-radius:10px;padding:11px 12px}
+.cal-tip em{font-style:normal;font-size:19px;line-height:1.1;flex:0 0 auto;font-family:${EMOJI_FONT}}
+.cal-tip b{display:block;font-family:${FONT_TITLE};font-size:12px;font-weight:700;letter-spacing:.05em;
+  color:${T.inkStrong};margin-bottom:3px;line-height:1.25}
+.cal-tip p{font-family:${FONT_UI};font-size:11px;line-height:1.55;color:${T.inkWarm};margin:0}
+
+/* ── MINI MESIAC v popupe týždňa ────────────────────────────────────────── */
+.cal-wkmini{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:14px}
+.cal-wkday{aspect-ratio:1/1;border-radius:6px;border:1px solid rgba(179,130,45,.25);background:${T.tileBg};
+  display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.cal-wkday u{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;text-decoration:none;color:${T.inkFaint};line-height:1}
+.cal-wkday em{font-style:normal;font-size:11px;line-height:1;font-family:${EMOJI_FONT}}
+/* Zvýraznený je TÝŽDEŇ, na ktorý sa kliklo — preto plný lapis tint, nie rám:
+   rám by sa bil s rámom dnešného dňa v mriežke mesiaca vedľa. */
+.cal-wkday.on{background:rgba(46,95,208,.16);border-color:${LAPIS.edge}}
+.cal-wkday.has u{color:${T.inkStrong};font-weight:700}
+
+@media(max-width:700px){
+  .cal-lifegrid{column-gap:5px;grid-template-columns:18px 1fr}
+  .cal-liferow{gap:1px}
+  .cal-lifecell{border-radius:1px}
+  /* Bunka má na telefóne ~5 px — kliknúť sa na ňu nedá a hover tam neexistuje.
+     Mriežka je tam OBRAZ, nie nástroj; detail týždňa je na PC. */
+  .cal-lifecell.dark{cursor:default}
+  .cal-lifestat b{font-size:18px}
+}
+
 `;

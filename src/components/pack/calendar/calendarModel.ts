@@ -341,6 +341,8 @@ export const LOG_TYPES: Record<LogKind, LogType> = {
 
 export interface CalEntry {
   kind: LogKind;
+  /** Rok zápisu. Pohľad ROK si ním filtruje, pohľad ŽIVOT z neho ráta týždeň. */
+  y: number;
   m: number;
   d: number;
   /** Nadpis riadku v popupe — názov výletu, hodnota váhy, titulok zápisu. */
@@ -409,3 +411,153 @@ export function humanYearsOn(year: number, dogs: CalDog[], m: number, d: number,
   }
   return out;
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// ŽIVOTNÁ MRIEŽKA — týždne celého života psa (pohľad ŽIVOT, 13. 9. 2026).
+//
+// ⚠️ PREČO TU PRIBUDOL PLNÝ DÁTUM: `parseDayInYear()` zahodí všetko, čo nie je
+// v aktuálnom roku — pre kalendár roka je to správne, pre životnú os je to
+// smrteľné. Preto `parseFullDay()`: ten istý parser, ktorý rok NEZAHADZUJE,
+// ale vracia. Pohľad ROK si svoj rok odfiltruje sám.
+// ════════════════════════════════════════════════════════════════════════════
+
+export interface FullDate { y: number; m: number; d: number }
+
+export function parseFullDay(iso: string | null | undefined): FullDate | null {
+  if (!iso || typeof iso !== 'string') return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  if (!m) return null;
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  const da = Number(m[3]);
+  if (y < 1900 || y > 2200) return null;
+  if (mo < 1 || mo > 12 || da < 1 || da > dim(y, mo)) return null;
+  return { y, m: mo, d: da };
+}
+
+/** Mriežka drží 30 rokov. 20+ je ZÓNA REKORDOV — pozri `LIFE_ACTIVE_YEARS`. */
+export const LIFE_YEARS = 30;
+/** Do 20 rokov je mriežka „živá". Nad ňou je história, nie predpoveď. */
+export const LIFE_ACTIVE_YEARS = 20;
+/** 52 týždňov v riadku — ostatok roka (1,25 dňa) sa do mriežky nevojde a to je v poriadku. */
+export const WEEKS_PER_YEAR = 52;
+export const LIFE_WEEKS = LIFE_YEARS * WEEKS_PER_YEAR;
+
+/**
+ * Index týždňa od narodenia. Rovnaký vzorec pre psa aj pre zápis, inak by
+ * zápis sadol o týždeň vedľa.
+ *
+ * ⚠️ Rok mriežky má 52 týždňov = 364 dní, teda o 1,25 dňa menej než skutočný.
+ * Po 20 rokoch je posun ~25 dní — na mriežke, kde bunka JE týždeň, je to menej
+ * než štyri bunky a nikto to nevidí. Presné riadky by si vyžiadali nerovnaké
+ * dĺžky riadkov a mriežka by prestala byť mriežkou. Je to vedomý kompromis,
+ * ten istý, aký robí každá „life in weeks" tabuľka.
+ */
+export function weekIndex(birth: Date, day: Date): number {
+  return Math.floor((day.getTime() - birth.getTime()) / (7 * 86_400_000));
+}
+
+/** Prvý deň daného týždňa života (na popisok „24. 3. – 30. 3. 2019"). */
+export function weekStart(birth: Date, wi: number): Date {
+  return new Date(birth.getTime() + wi * 7 * 86_400_000);
+}
+
+// ── REKORDMANI — prečo mriežka pokračuje za 20 rokov ────────────────────────
+// Nie je to výzdoba: zóna 20–30 je jediné miesto, kde sa dá ukázať, že strop
+// nie je tam, kde ho vidí štatistika. Čísla sú overiteľné, nie „hovorí sa".
+//
+// ⚠️ BOBI (31 r., 2023) TU ZÁMERNE NIE JE. Guinness mu titul po vyšetrovaní
+// vo februári 2024 ODOBRAL — dôkazy o veku neobstáli. Zapísať ho ako rekord
+// by znamenalo tvrdiť niečo, čo držiteľ rekordu sám stiahol.
+export interface LifeRecord {
+  name: string;
+  years: number;
+  breedSK: string;
+  fromTo: string;
+  noteSK: string;
+}
+
+export const LIFE_RECORDS: LifeRecord[] = [
+  { name: 'Bluey', years: 29.5, breedSK: 'Austrálsky honácky pes', fromTo: '1910 – 1939',
+    noteSK: 'Doteraz platný oficiálny rekord. Pracoval s dobytkom takmer dvadsať rokov.' },
+  { name: 'Butch', years: 28, breedSK: 'Beagle', fromTo: '1975 – 2003',
+    noteSK: 'Virginia, USA. Druhý najstarší doložený pes.' },
+  { name: 'Taffy', years: 27.5, breedSK: 'Border kólia', fromTo: '1975 – 2003',
+    noteSK: 'Veľká Británia. Pracujúce plemeno, celý život vonku.' },
+  { name: 'Snookie', years: 27, breedSK: 'Kríženec', fromTo: '1953 – 1980',
+    noteSK: 'Juhoafrická republika. Kríženci sa dožívajú v priemere viac než čistokrvní psi.' },
+  { name: 'Pusuke', years: 26, breedSK: 'Kríženec šiba inu', fromTo: '1985 – 2011',
+    noteSK: 'Japonsko. Držiteľ titulu najstaršieho žijúceho psa do roku 2011.' },
+];
+
+// ── RADY, AKO PREDĹŽIŤ ŽIVOT ────────────────────────────────────────────────
+// 🔴 TOTO JE MATEJOV TEXT A ČAKÁ NA PREPIS. Zadanie znelo „rady ako život ešte
+// predĺžiť (bez chémie, narkózy, granule...) budu tam tipy vychádzajúce
+// z psieho profilu". Vymyslieť za neho 15 rokov výživy a tréningu sa nedá,
+// takže sem sadlo LEN to, čo appka už niekde hovorí sama:
+//   • okná protokolu (`PROTOCOL` vyššie — jeho vlastný protokol 1.0)
+//   • rad vážení a rad výletov (dáta, ktoré kalendár už kreslí)
+//   • seniorské pásmo (tá istá hranica 8 rokov ako pri kĺbovej kúre)
+// Žiadne tvrdenie tu nie je diagnóza — sú to jeho vlastné pravidlá,
+// prerozprávané konkrétnemu psovi.
+//
+// `when` rozhoduje, komu sa rada ukáže.
+export interface LifeTip {
+  id: string;
+  titleSK: string;
+  bodySK: string;
+  emoji: string;
+  when: 'always' | 'senior' | 'noWeight' | 'fewTrips' | 'overMedian';
+}
+
+export const LIFE_TIPS: LifeTip[] = [
+  {
+    id: 'weight', emoji: '⚖️', when: 'always',
+    titleSK: 'Štíhlosť je jediné, čo je dokázané',
+    bodySK: 'Zo všetkého, čo sa dá so psom urobiť, má na dĺžku života najtvrdší doklad jedna vec: '
+      + 'nenechať ho pribrať. Rozdiel medzi štíhlym a mierne obéznym psom sú roky, nie mesiace. '
+      + 'Rebrá musia byť nahmatateľné bez tlaku.',
+  },
+  {
+    id: 'move', emoji: '🥾', when: 'always',
+    titleSK: 'Pohyb v teréne, nie kolečko okolo bloku',
+    bodySK: 'Nerovný povrch drží kĺby, svaly aj hlavu. Každý výlet, ktorý si zapíšeš, '
+      + 'je na tejto mriežke tmavý týždeň — a tmavých týždňov je to jediné, čo vieš ovplyvniť.',
+  },
+  {
+    id: 'food', emoji: '🍖', when: 'always',
+    titleSK: 'Jedlo, ktoré pes pozná ako jedlo',
+    bodySK: 'Čím menej krokov medzi surovinou a miskou, tým menej vecí sa cestou pokazí. '
+      + 'Granule nie sú hriech, ale nie sú ani strava — sú skratka.',
+  },
+  {
+    id: 'protocol', emoji: '🌿', when: 'always',
+    titleSK: 'Protokol namiesto panického behu k vete',
+    bodySK: 'Odčervenie, koprológia a biochémia majú v kalendári svoje okná. '
+      + 'Pes, ktorému sa dvakrát ročne pozrieš do krvi, sa nelieči — predchádza.',
+  },
+  {
+    id: 'joints', emoji: '🦴', when: 'senior',
+    titleSK: 'Kĺby sa riešia PRED tým, než začnú bolieť',
+    bodySK: 'Tvoj pes je v seniorskom pásme. Kĺbová kúra má v kalendári okno od novembra — '
+      + 'nie preto, že kríva, ale preto, aby nezačal.',
+  },
+  {
+    id: 'noWeight', emoji: '📏', when: 'noWeight',
+    titleSK: 'Nemáš ani jedno váženie',
+    bodySK: 'Bez čísla sa hmotnosť odhaduje okom, a oko si na vlastného psa zvykne. '
+      + 'Jedno váženie mesačne z toho spraví krivku, ktorá varuje skôr než postava.',
+  },
+  {
+    id: 'fewTrips', emoji: '🗺️', when: 'fewTrips',
+    titleSK: 'Mriežka je skoro celá svetlá',
+    bodySK: 'Tmavé týždne sú tie, v ktorých ste boli spolu niekde inde než doma. '
+      + 'Keď ich je málo, nie je to výčitka — je to jediné miesto, kde vidíš, koľko ich naozaj bolo.',
+  },
+  {
+    id: 'overMedian', emoji: '🏆', when: 'overMedian',
+    titleSK: 'Priemer svojho plemena už prekonal',
+    bodySK: 'Čiara priemeru je populačný medián, nie strop. Tvoj pes je za ňou — '
+      + 'odtiaľto sa každý ďalší týždeň počíta dvakrát.',
+  },
+];
