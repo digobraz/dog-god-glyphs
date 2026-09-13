@@ -1,12 +1,20 @@
 // ════════════════════════════════════════════════════════════════════════════
 // DOŽITIE PODĽA PLEMENA — podklad pre čiaru priemeru v ŽIVOTNEJ mriežke `/dogs`.
 //
-// ⚠️ ČÍSLO NIE JE PRE PLEMENO, JE PRE HMOTNOSŤ. Matej to povedal sám
-// (13. 9. 2026: „male plemena kludne 13-15, velke a obrie menej niekedy aj len
-// 7-9") a veterinárna epidemiológia hovorí to isté: dĺžka života psa koreluje
-// s TELESNOU HMOTNOSŤOU, nie s menom plemena. Preto je zdrojom pravdy
-// päť hmotnostných tried a nie 380 ručne opísaných čísel — tie by sa pri prvom
-// novom plemene rozišli a nikto by nevedel, odkiaľ ktoré je.
+// 🔴 PORADIE ZDROJOV (Matej 13. 9. 2026): „každé plemeno má udavanu dlzku
+// dozitia takže prirad to ku konkretnym plemenám a vahu použime len ak nemáme
+// dosť info o plemene." Teda:
+//   1. PUBLIKOVANÉ ROZPÄTIE PLEMENA (`BREED_LIFESPAN`) — 302 z 378 plemien
+//   2. hmotnostná trieda (`LIFE_BANDS`) — zvyšných 76, kde publikovaný údaj
+//      neexistuje (väčšinou európske honiče a pastierske plemená bez klubu,
+//      ktorý by ho vydával)
+//
+// ⚠️ PRVÁ VERZIA STÁLA LEN NA HMOTNOSTI a bola to chyba — hmotnosť je dobrá
+// aproximácia populácie, nie plemena. Dôkaz je v dátach: **strážcovia stád**
+// (kangal, stredoázijský ovčiak, tornjak, karakačan) sú hmotnostne „obrie",
+// ale publikované dožitie majú 12–15 rokov, teda o 5 rokov nad triedou. Mastify
+// rovnakej hmotnosti majú 7–9. Jedno číslo pre „nad 45 kg" tie dve skupiny
+// zlúči a obom klame.
 //
 // ⚠️ `breeds.json` VEĽKOSŤ NEMÁ — má len FCI-nepodobnú „skupinu" siluety
 // (Furballs, Speedsters…), a tá veľkosť nenesie: v `04 Speedsters` sedí
@@ -14,14 +22,20 @@
 // po plemene. Pokrytie je 378/378 UNIKÁTNYCH mien (`breeds.json` má 380
 // položiek, z toho 2 duplicitné: Smålandsstövare a Tornjak).
 //
-// ODKIAĽ ČÍSLA: mediány sú konsenzus veterinárnych prehľadov dožitia podľa
-// hmotnostnej triedy (UK VetCompass / RVC life tables 2024 a staršie kohortové
-// štúdie). PÁSMO je zámerné — jedno číslo by predstieralo presnosť, ktorú
-// populačný medián nemá. Appka preto nikdy nepíše dátum, píše ROZSAH.
+// ODKIAĽ ČÍSLA: rozpätia plemien sú publikované údaje plemenných klubov
+// (AKC / The Kennel Club / klub plemena); hmotnostné triedy sú konsenzus
+// veterinárnych prehľadov (UK VetCompass / RVC life tables 2024).
+// PÁSMO je zámerné — jedno číslo by predstieralo presnosť, ktorú populačný
+// medián nemá. Appka preto nikdy nepíše dátum, píše ROZSAH.
 //
-// VÝNIMKY (`BREED_EXCEPTIONS`) sú plemená, kde publikované dožitie leží
-// o 2+ roky mimo toho, čo predpovedá hmotnosť. Drvivá väčšina z nich sú
-// brachycefalické plemená — nie je to chyba modelu, je to nález.
+// ⚠️ NEDOPLŇUJ plemeno preto, že „sa to tak hovorí". Sem patrí len to, pre čo
+// existuje publikované rozpätie — inak je to hádanie s väčšou autoritou, a od
+// hmotnostnej triedy sa to nelíši ničím okrem falošnej presnosti.
+//
+// ⚠️ STRÁŽ PRI ROZŠIROVANÍ: po pridaní plemien porovnaj ich medián s mediánom
+// ich hmotnostnej triedy. Odchýlka nad 3 roky je buď skutočný nález (strážcovia
+// stád, chrty, brachycefalici), alebo preklep — takto sa chytil pudel zapísaný
+// ako 10–18 (to je údaj AKC pre VŠETKY tri veľkosti naraz, nie pre standarda).
 // ════════════════════════════════════════════════════════════════════════════
 
 export type DogSize = 'toy' | 'small' | 'medium' | 'large' | 'giant';
@@ -35,6 +49,8 @@ export interface LifeBand {
   high: number;
   /** Orientačná dospelá hmotnosť, ktorá triedu definuje (do popisku). */
   kgSK: string;
+  /** true = číslo je PUBLIKOVANÉ pre plemeno; false/chýba = odvodené z hmotnosti. */
+  fromBreed?: boolean;
 }
 
 export const LIFE_BANDS: Record<DogSize, LifeBand> = {
@@ -149,29 +165,314 @@ const BY_SIZE: Record<DogSize, string[]> = {
     'Spanish Mastiff', 'Tibetan Mastiff', 'Tornjak', 'Tosa Inu', 'Šarplaninac',
   ],};
 
-// ── VÝNIMKY — kde hmotnosť KLAME ────────────────────────────────────────────
-// Publikované dožitie leží o 2+ roky mimo predpovede hmotnostnej triedy.
-// Skoro všetko sú brachycefalické („smushface") plemená — plochá tvár je
-// samostatný rizikový faktor, ktorý hmotnosť nezachytí. Čísla sú mediány
-// z britských kohortových dát (VetCompass), teda populácia, nie jeden pes.
-//
-// ⚠️ Nedopĺňaj sem plemeno preto, že „sa to tak hovorí". Sem patrí len to,
-// pre čo existuje publikovaný medián — inak je to hádanie s väčšou autoritou.
-const BREED_EXCEPTIONS: Record<string, LifeBand> = {
-  'French Bulldog':      { median: 9.0,  low: 7,  high: 11, kgSK: '6–12 kg' },
-  'English Bulldog':     { median: 8.5,  low: 7,  high: 10, kgSK: '12–25 kg' },
-  'Pug':                 { median: 10.0, low: 9,  high: 12, kgSK: '6–12 kg' },
-  'Olde English Bulldogge': { median: 9.0, low: 8, high: 11, kgSK: '25–45 kg' },
-  'Shar Pei':            { median: 10.0, low: 8,  high: 12, kgSK: '12–25 kg' },
-  'Bloodhound':          { median: 7.0,  low: 6,  high: 9,  kgSK: 'nad 45 kg' },
-  'Dogue de Bordeaux':   { median: 6.5,  low: 5,  high: 8,  kgSK: 'nad 45 kg' },
-  'Neapolitan Mastiff':  { median: 7.0,  low: 6,  high: 9,  kgSK: 'nad 45 kg' },
-  'Irish Wolfhound':     { median: 7.0,  low: 6,  high: 9,  kgSK: 'nad 45 kg' },
-  'Great Dane':          { median: 7.5,  low: 6,  high: 9,  kgSK: 'nad 45 kg' },
-  'Bernese Mountain Dog':{ median: 8.0,  low: 7,  high: 10, kgSK: 'nad 45 kg' },
-  'Jack Russell Terrier':{ median: 14.0, low: 13, high: 16, kgSK: '6–12 kg' },
-  'Border Collie':       { median: 13.5, low: 12, high: 15, kgSK: '12–25 kg' },
-  'Miniature Dachshund': { median: 14.0, low: 13, high: 16, kgSK: 'do 6 kg' },
+// ── PUBLIKOVANÉ ROZPÄTIE DOŽITIA PO PLEMENÁCH ──────────────────────────────
+// Kľúč = ANGLICKÝ názov z `breeds.json` (`selections.breed` ukladá práve ten).
+// Hodnota = [spodná hranica, horná hranica] v rokoch; medián je ich stred.
+// 302 z 378 plemien. Čo tu nie je, padne na hmotnostnú triedu — a appka to
+// v popisku PRIZNÁ (`LifeEstimate.basis`), nikdy nepredstiera plemenný údaj.
+const BREED_LIFESPAN: Record<string, [number, number]> = {
+  'Affenpinscher': [12, 15],
+  'Biewer Terrier': [12, 15],
+  'Bolognese': [12, 14],
+  'Brussels Griffon': [12, 15],
+  'Chihuahua': [14, 16],
+  'Chinese Crested': [13, 18],
+  'Coton de Tulear': [15, 19],
+  'English Toy Terrier': [12, 13],
+  'Havanese': [14, 16],
+  'Italian Greyhound': [14, 15],
+  'Japanese Chin': [10, 12],
+  'Japanese Terrier': [12, 15],
+  'Löwchen': [13, 15],
+  'Maltese': [12, 15],
+  'Maltipoo': [12, 16],
+  'Morkie': [10, 13],
+  'Papillon': [14, 16],
+  'Pekingese': [12, 14],
+  'Petit Brabançon': [12, 15],
+  'Phalène': [14, 16],
+  'Pomeranian': [12, 16],
+  'Prague Ratter': [12, 14],
+  'Russian Toy': [12, 14],
+  'Russkiy Toy (long-haired)': [12, 14],
+  'Toy Fox Terrier': [13, 15],
+  'Toy Poodle': [14, 17],
+  'Volpino Italiano': [14, 16],
+  'Yorkshire Terrier': [11, 15],
+  'Alaskan Klee Kai': [13, 16],
+  'Alpine Dachsbracke': [12, 14],
+  'Australian Terrier': [11, 15],
+  'Basenji': [13, 14],
+  'Basset Fauve de Bretagne': [11, 14],
+  'Bichon Frise': [14, 15],
+  'Border Terrier': [12, 15],
+  'Boston Terrier': [11, 13],
+  'Cairn Terrier': [13, 15],
+  'Cardigan Welsh Corgi': [12, 15],
+  'Cavachon': [12, 15],
+  'Cavalier King Charles Spaniel': [12, 15],
+  'Cavapoo': [12, 15],
+  'Cesky Terrier': [12, 15],
+  'Cockapoo': [12, 15],
+  'Croatian Sheepdog': [13, 14],
+  'Dachshund': [12, 16],
+  'Dandie Dinmont Terrier': [12, 15],
+  'Drever': [12, 15],
+  'French Bulldog': [10, 12],
+  'German Hunting Terrier': [13, 15],
+  'German Pinscher': [12, 14],
+  'German Spitz (Klein)': [13, 15],
+  'German Spitz (Mittel)': [13, 15],
+  'Glen of Imaal Terrier': [10, 15],
+  'Grand Basset Griffon Vendéen': [12, 14],
+  'Jack Russell Terrier': [13, 16],
+  'Japanese Spitz': [12, 16],
+  'King Charles Spaniel': [10, 12],
+  'Kooikerhondje': [12, 15],
+  'Kromfohrländer': [13, 15],
+  'Lagotto Romagnolo': [15, 17],
+  'Lakeland Terrier': [12, 15],
+  'Lancashire Heeler': [12, 15],
+  'Lhasa Apso': [12, 15],
+  'Manchester Terrier': [15, 17],
+  'Miniature Bull Terrier': [11, 13],
+  'Miniature Pinscher': [12, 16],
+  'Miniature Poodle': [13, 16],
+  'Miniature Schnauzer': [12, 15],
+  'Mudi': [12, 14],
+  'Norfolk Terrier': [12, 16],
+  'Norwegian Lundehund': [12, 15],
+  'Norwich Terrier': [12, 15],
+  'Parson Russell Terrier': [13, 15],
+  'Pembroke Welsh Corgi': [12, 13],
+  'Petit Basset Griffon Vendéen': [14, 16],
+  'Pomsky': [12, 15],
+  'Pug': [13, 15],
+  'Puggle': [10, 15],
+  'Pumi': [12, 13],
+  'Rat Terrier': [12, 18],
+  'Schapendoes': [12, 15],
+  'Schipperke': [13, 15],
+  'Schnoodle': [12, 15],
+  'Scottish Terrier': [11, 13],
+  'Sealyham Terrier': [12, 14],
+  'Shetland Sheepdog': [12, 14],
+  'Shih Tzu': [11, 15],
+  'Silky Terrier': [13, 15],
+  'Skye Terrier': [12, 14],
+  'Smooth Fox Terrier': [12, 15],
+  'Spanish Water Dog': [12, 14],
+  'Stabyhoun': [13, 14],
+  'Swedish Vallhund': [12, 15],
+  'Teddy Roosevelt Terrier': [14, 16],
+  'Tibetan Spaniel': [12, 15],
+  'Tibetan Terrier': [12, 15],
+  'Welsh Terrier': [12, 15],
+  'West Highland White Terrier': [13, 15],
+  'Westphalian Dachsbracke': [12, 14],
+  'Wire Fox Terrier': [12, 15],
+  'Afghan Hound': [12, 18],
+  'Aidi': [10, 12],
+  'Airedale Terrier': [11, 14],
+  'American Cocker Spaniel': [10, 14],
+  'American English Coonhound': [11, 12],
+  'American Foxhound': [11, 13],
+  'American Pit Bull Terrier': [12, 16],
+  'American Staffordshire Terrier': [12, 16],
+  'American Water Spaniel': [10, 14],
+  'Appenzeller Sennenhund': [12, 15],
+  'Aussiedoodle': [10, 13],
+  'Australian Cattle Dog': [12, 16],
+  'Australian Shepherd': [12, 15],
+  'Azawakh': [12, 15],
+  'Barbet': [12, 14],
+  'Basset Hound': [12, 13],
+  'Bavarian Mountain Scent Hound': [12, 14],
+  'Beagle': [10, 15],
+  'Bearded Collie': [12, 14],
+  'Bedlington Terrier': [11, 16],
+  'Belgian Groenendael': [10, 14],
+  'Belgian Laekenois': [10, 12],
+  'Belgian Malinois': [14, 16],
+  'Belgian Tervuren': [12, 14],
+  'Bergamasco Sheepdog': [13, 15],
+  'Berger Picard': [12, 13],
+  'Berger des Pyrénées': [15, 17],
+  'Black and Tan Coonhound': [10, 12],
+  'Blue Picardy Spaniel': [12, 14],
+  'Bluetick Coonhound': [11, 12],
+  'Border Collie': [12, 15],
+  'Borzoi': [9, 14],
+  'Boykin Spaniel': [10, 15],
+  'Bracco Italiano': [10, 14],
+  'Brittany': [12, 14],
+  'Bull Terrier': [12, 13],
+  'Canaan Dog': [12, 15],
+  'Catalan Sheepdog': [12, 14],
+  'Cesky Fousek': [12, 15],
+  'Chart Polski': [10, 12],
+  'Chow Chow': [8, 12],
+  "Cirneco dell'Etna": [12, 14],
+  'Clumber Spaniel': [10, 12],
+  'Curly-Coated Retriever': [10, 12],
+  'Czechoslovakian Wolfdog': [12, 16],
+  'Dalmatian': [11, 13],
+  'Deutscher Wachtelhund': [12, 14],
+  'Drentse Patrijshond': [12, 14],
+  'Dutch Shepherd': [11, 14],
+  'English Bulldog': [8, 10],
+  'English Cocker Spaniel': [12, 14],
+  'English Foxhound': [10, 13],
+  'English Springer Spaniel': [12, 14],
+  'Entlebucher Mountain Dog': [11, 13],
+  'Eurasier': [12, 16],
+  'Field Spaniel': [12, 13],
+  'Finnish Hound': [12, 14],
+  'Finnish Lapphund': [12, 15],
+  'Finnish Spitz': [13, 15],
+  'Flat-Coated Retriever': [8, 10],
+  'French Spaniel': [10, 12],
+  'Galgo Español': [12, 15],
+  'German Longhaired Pointer': [12, 14],
+  'German Shorthaired Pointer': [10, 12],
+  'German Wirehaired Pointer': [12, 14],
+  'Goldendoodle': [10, 15],
+  'Greenland Dog': [12, 14],
+  'Harrier': [12, 15],
+  'Hokkaido': [11, 13],
+  'Ibizan Hound': [11, 14],
+  'Icelandic Sheepdog': [12, 14],
+  'Irish Terrier': [13, 15],
+  'Irish Water Spaniel': [10, 12],
+  'Italian Spinone': [10, 12],
+  'Kai Ken': [12, 15],
+  'Karelian Bear Dog': [11, 13],
+  'Keeshond': [12, 15],
+  'Kerry Blue Terrier': [12, 15],
+  'Labradoodle': [12, 14],
+  'Norwegian Buhund': [12, 15],
+  'Norwegian Elkhound': [12, 15],
+  'Nova Scotia Duck Tolling Retriever': [12, 14],
+  'Peruvian Inca Orchid': [12, 14],
+  'Pharaoh Hound': [12, 14],
+  'Picardy Spaniel': [12, 14],
+  'Plott Hound': [12, 14],
+  'Polish Hound': [13, 14],
+  'Polish Lowland Sheepdog': [12, 14],
+  'Portuguese Podengo': [12, 15],
+  'Portuguese Water Dog': [11, 13],
+  'Puli': [12, 16],
+  'Redbone Coonhound': [12, 15],
+  'Rough Collie': [12, 14],
+  'Saarloos Wolfdog': [10, 12],
+  'Saluki': [10, 17],
+  'Shar Pei': [8, 12],
+  'Shiba Inu': [13, 16],
+  'Sloughi': [10, 15],
+  'Smooth Collie': [12, 14],
+  'Soft Coated Wheaten Terrier': [12, 14],
+  'Staffordshire Bull Terrier': [12, 14],
+  'Standard Poodle': [11, 14],
+  'Standard Schnauzer': [13, 16],
+  'Sussex Spaniel': [12, 15],
+  'Thai Ridgeback': [12, 13],
+  'Transylvanian Hound': [10, 14],
+  'Treeing Walker Coonhound': [12, 13],
+  'Vizsla': [12, 14],
+  'Weimaraner': [10, 13],
+  'Welsh Springer Spaniel': [12, 15],
+  'Whippet': [12, 15],
+  'Wirehaired Vizsla': [12, 14],
+  'Xoloitzcuintli': [13, 18],
+  'Akita Inu': [10, 13],
+  'Alaskan Malamute': [10, 14],
+  'American Akita': [10, 13],
+  'American Bulldog': [10, 12],
+  'Anatolian Shepherd': [11, 13],
+  'Australian Kelpie': [12, 15],
+  'Beauceron': [10, 12],
+  'Bernedoodle': [10, 14],
+  'Bernese Mountain Dog': [7, 10],
+  'Black Russian Terrier': [10, 12],
+  'Bloodhound': [10, 12],
+  'Bouvier des Flandres': [10, 12],
+  'Boxer': [10, 12],
+  'Briard': [12, 12],
+  'Bullmastiff': [7, 9],
+  'Ca de Bou': [10, 12],
+  'Cane Corso': [9, 12],
+  'Caucasian Shepherd': [10, 12],
+  'Central Asian Shepherd': [12, 15],
+  'Chesapeake Bay Retriever': [10, 13],
+  'Dobermann': [10, 12],
+  'Dogo Argentino': [9, 15],
+  'Dogue de Bordeaux': [5, 8],
+  'English Setter': [10, 12],
+  'Estrela Mountain Dog': [10, 14],
+  'Fila Brasileiro': [9, 11],
+  'German Shepherd': [9, 13],
+  'Giant Schnauzer': [10, 12],
+  'Golden Retriever': [10, 12],
+  'Gordon Setter': [12, 13],
+  'Grand Bleu de Gascogne': [10, 12],
+  'Greater Swiss Mountain Dog': [8, 11],
+  'Greyhound': [10, 13],
+  'Hovawart': [10, 14],
+  'Irish Red and White Setter': [11, 15],
+  'Irish Setter': [12, 15],
+  'Irish Wolfhound': [6, 8],
+  'Kangal': [12, 15],
+  'Komondor': [10, 12],
+  'Kuvasz': [10, 12],
+  'Labrador Retriever': [11, 13],
+  'Landseer': [9, 11],
+  'Lapinporokoira': [10, 14],
+  'Large Münsterländer': [12, 13],
+  'Leonberger': [7, 9],
+  'Maremma Sheepdog': [11, 13],
+  'Newfoundland': [9, 10],
+  'Old English Sheepdog': [10, 12],
+  'Otterhound': [10, 13],
+  'Perro de Presa Canario': [9, 11],
+  'Pointer (English)': [12, 17],
+  'Polish Tatra Sheepdog': [10, 12],
+  'Pyrenean Mountain Dog': [10, 12],
+  'Rhodesian Ridgeback': [10, 12],
+  'Rottweiler': [9, 10],
+  'Saint Bernard': [8, 10],
+  'Samoyed': [12, 14],
+  'Sarplaninac': [11, 13],
+  'Scottish Deerhound': [8, 11],
+  'Sheepadoodle': [12, 15],
+  'Siberian Husky': [12, 14],
+  'Slovensky Cuvac': [11, 13],
+  'Small Münsterländer': [12, 14],
+  'South African Boerboel': [9, 11],
+  'Spanish Mastiff': [10, 12],
+  'Tibetan Mastiff': [10, 12],
+  'Tornjak': [12, 14],
+  'Tosa Inu': [10, 12],
+  'White Swiss Shepherd': [12, 14],
+  'Wirehaired Pointing Griffon': [12, 15],
+  'Broholmer': [8, 10],
+  'English Mastiff': [6, 10],
+  'Great Dane': [7, 10],
+  'Moscow Watchdog': [9, 11],
+  'Neapolitan Mastiff': [7, 9],
+  'Pyrenean Mastiff': [10, 13],
+  'American Bully': [8, 13],
+  'American Eskimo Dog': [13, 15],
+  'Akbash': [10, 11],
+  'Bucovina Shepherd': [10, 12],
+  'Karakachan': [12, 14],
+  'Catahoula Leopard Dog': [10, 14],
+  'Black Mouth Cur': [12, 16],
+  'Patterdale Terrier': [11, 13],
+  'Toy Manchester Terrier': [14, 16],
+  'Olde English Bulldogge': [9, 14],
+  'Danish-Swedish Farmdog': [11, 13],
+  'Boerboel': [9, 11],
+  'Šarplaninac': [11, 13],
 };
 
 // ── Index sa stavia RAZ, nie pri každom pohľade ─────────────────────────────
@@ -191,12 +492,24 @@ export function sizeOfBreed(breedEN: string | null | undefined): DogSize | null 
   return index().get(breedEN.trim().toLowerCase()) ?? null;
 }
 
-/** Pásmo pre jedno plemeno. Výnimka prebíja triedu. */
+/**
+ * Pásmo pre jedno plemeno. PUBLIKOVANÝ ÚDAJ PLEMENA PREBÍJA hmotnostnú triedu;
+ * trieda je záchranná sieť, nie základ.
+ */
 export function bandOfBreed(breedEN: string | null | undefined): LifeBand | null {
   if (!breedEN) return null;
-  const ex = BREED_EXCEPTIONS[breedEN.trim()];
-  if (ex) return ex;
-  const size = sizeOfBreed(breedEN);
+  const name = breedEN.trim();
+  const pub = BREED_LIFESPAN[name];
+  const size = sizeOfBreed(name);
+  if (pub) {
+    const [low, high] = pub;
+    return {
+      low, high,
+      median: Math.round(((low + high) / 2) * 10) / 10,
+      kgSK: size ? LIFE_BANDS[size].kgSK : '',
+      fromBreed: true,
+    };
+  }
   return size ? LIFE_BANDS[size] : null;
 }
 

@@ -70,6 +70,9 @@ export interface CalendarDogRow {
   birth_year?: number | null;
   life_status?: string | null;
   death_date?: string | null;
+  /** Vstup do Dogyptu. `created_at` je začiatok flow, platba je o minúty neskôr —
+      na mriežke, kde bunka je TÝŽDEŇ, je ten rozdiel neviditeľný. */
+  created_at?: string | null;
 }
 
 const MONTHS_SHORT_SK = ['Jan', 'Feb', 'Mar', 'Apr', 'Máj', 'Jún', 'Júl', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
@@ -377,7 +380,7 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
           Vlastnú legendu má životná mriežka v riadku pod sebou. */}
       {view !== 'life'
         ? <Legend layers={layers} solo={solo} tx={tx} typeName={typeName} />
-        : <LifeLegend tx={tx} />}
+        : <LifeLegend tx={tx} deceased={lifeRow?.life_status === 'deceased' && !!lifeRow?.death_date} />}
 
       {open && (
         <DayPopup
@@ -827,6 +830,14 @@ function LifeGrid({
   const deceased = row.life_status === 'deceased' && !!row.death_date;
   const endDate = useMemo(() => (deceased ? new Date(row.death_date as string) : new Date()), [deceased, row.death_date]);
 
+  // ── DVE UDALOSTI NA OSI ────────────────────────────────────────────────
+  // „Odkedy sme spolu" = DOG ID pole `basics.since` (rovnaký údaj, aký doklad
+  // ukazuje ako „Together since"), NIE nové úložisko.
+  // „Odkedy je v Dogypte" = `created_at` riadku psa.
+  const sinceRaw = latest[row.id]?.['basics.since']?.value;
+  const sinceDate = parseFullDay(typeof sinceRaw === 'string' ? sinceRaw : null);
+  const joinDate = parseFullDay(row.created_at);
+
   const lastWeightRaw = latest[row.id]?.['health.weightKg']?.value;
   const lastWeight = typeof lastWeightRaw === 'number' ? lastWeightRaw
     : parseFloat(String(lastWeightRaw ?? '')) || null;
@@ -861,7 +872,20 @@ function LifeGrid({
 
   const livedWeeks = Math.max(0, weekIndex(birth, endDate));
   const livedYears = livedWeeks / WEEKS_PER_YEAR;
+  const livedDays = Math.max(0, Math.floor((endDate.getTime() - birth.getTime()) / 86_400_000));
   const band = est.band;
+
+  const sinceWeek = sinceDate ? weekIndex(birth, new Date(sinceDate.y, sinceDate.m - 1, sinceDate.d)) : null;
+  const joinWeek = joinDate ? weekIndex(birth, new Date(joinDate.y, joinDate.m - 1, joinDate.d)) : null;
+  const togetherDays = sinceDate
+    ? Math.max(0, Math.floor((endDate.getTime() - new Date(sinceDate.y, sinceDate.m - 1, sinceDate.d).getTime()) / 86_400_000))
+    : null;
+
+  // 🕊️ PES PO SMRTI DOSTÁVA INÚ STRÁNKU, nie tú istú s vypnutými kúskami
+  // (Matej 13. 9. 2026: „pes po smrti bude mať citlivo len vyplnený celý blok
+  // s infom že žil najlepší život a pásmo dožitia priemer"). Mriežka končí na
+  // dvadsiatke, zóna rekordov aj rady odchádzajú — rekord je súťaž a rada je
+  // budúcnosť, a ani jedno už nemá komu patriť.
   const overMedian = livedYears >= band.median;
   const remainLow = Math.max(0, Math.round((band.low - livedYears) * 10) / 10);
   const remainHigh = Math.max(0, Math.round((band.high - livedYears) * 10) / 10);
@@ -872,7 +896,8 @@ function LifeGrid({
   // v budúcnosti by inak nafúkol číslo, ktoré má byť odmenou za prežité.
   const darkWeeks = [...byWeek.keys()].filter((wi) => wi < livedWeeks).length;
 
-  const tips = LIFE_TIPS.filter((t) => {
+  const gridYears = deceased ? LIFE_ACTIVE_YEARS : LIFE_YEARS;
+  const tips = deceased ? [] : LIFE_TIPS.filter((t) => {
     if (t.when === 'always') return true;
     if (t.when === 'senior') return senior;
     if (t.when === 'noWeight') return weighCount === 0;
@@ -894,16 +919,25 @@ function LifeGrid({
     <div className="cal-life">
       {/* ── ZHRNUTIE: tri čísla, nie odsek ───────────────────────────────── */}
       <div className="cal-lifehead">
+        {/* DNI, nie roky+týždne. Matej 13. 9.: „v prvom bloku mi chýbajú aj dni
+            (livin his best life - xyz dní)". Je to ten istý údaj, aký nesie
+            pilulka v psom bloku vyššie (`3 768 DNÍ`) — jedno číslo, dve miesta. */}
         <div className="cal-lifestat">
-          <b>{Math.floor(livedYears)}<i>r</i> {Math.floor(livedWeeks % WEEKS_PER_YEAR)}<i>t</i></b>
+          <b>{num(livedDays)}</b>
           <span>{deceased
-            ? tx('pack.cal.life.lived', 'prežil')
-            : tx('pack.cal.life.behind', 'za sebou')}</span>
+            ? tx('pack.cal.life.daysLived', 'dní najlepšieho života')
+            : tx('pack.cal.life.days', 'dní najlepšieho života')}</span>
         </div>
         <div className="cal-lifestat">
           <b>{darkWeeks}</b>
-          <span>{tx('pack.cal.life.darkWeeks', 'týždňov spolu vonku')}</span>
+          <span>{tx('pack.cal.life.darkWeeks', 'aktívnych týždňov')}</span>
         </div>
+        {togetherDays !== null && (
+          <div className="cal-lifestat">
+            <b>{num(togetherDays)}</b>
+            <span>{tx('pack.cal.life.together', 'dní spolu')}</span>
+          </div>
+        )}
         {!deceased && (
           <div className="cal-lifestat">
             <b>{overMedian ? '∞' : `${num(remainLow)}–${num(remainHigh)}`}</b>
@@ -914,30 +948,46 @@ function LifeGrid({
         )}
       </div>
 
+      {/* 🕊️ Veta pre psa, ktorý odišiel. Stojí NAD mriežkou, nie pod ňou —
+          človek, ktorý sem príde, nemá najprv čítať štatistiku. */}
+      {deceased && (
+        <p className="cal-bestlife">
+          {tx('pack.cal.life.bestLife', 'Žil najlepší život.')}
+        </p>
+      )}
+
       {/* Odkiaľ je čiara. Bez tejto vety je to číslo z neba. */}
       <p className="cal-note cal-lifesrc">
         {est.basis === 'default'
           ? tx('pack.cal.life.srcNone',
             'Plemeno ani hmotnosť zatiaľ nepoznáme, takže čiara stojí na strednej triede. Doplň plemeno v DOG ID a posunie sa na správne miesto.')
-          : `${tx('pack.cal.life.srcPre', 'Čiara priemeru:')} ${num(band.median)} ${tx('pack.cal.life.years', 'rokov')} `
-            + `(${num(band.low)}–${num(band.high)}) · ${est.labelSK}`
-            + (est.size ? ` · ${SIZE_NAME_SK[est.size]}, ${band.kgSK}` : '')}
+          : `${tx('pack.cal.life.srcPre', 'Pásmo dožitia:')} ${num(band.low)}–${num(band.high)} `
+            + `${tx('pack.cal.life.years', 'rokov')} · ${est.labelSK}`
+            + (band.fromBreed
+              ? ` · ${tx('pack.cal.life.srcBreed', 'publikovaný údaj plemena')}`
+              : est.size
+                ? ` · ${tx('pack.cal.life.srcWeight', 'odhad podľa hmotnosti')} (${SIZE_NAME_SK[est.size]}, ${band.kgSK})`
+                : '')}
       </p>
 
       {/* ── MRIEŽKA ──────────────────────────────────────────────────────── */}
       <div className="cal-lifewrap">
         <div className="cal-lifegrid" onMouseLeave={() => setHover(null)}>
-          {Array.from({ length: LIFE_YEARS }, (_, yr) => {
+          {Array.from({ length: gridYears }, (_, yr) => {
             const past = yr >= LIFE_ACTIVE_YEARS;
-            // ⚠️ ČIARA STOJÍ VNÚTRI RIADKU, NIE POD NÍM. Prvá verzia ju kreslila
-            // ako spodnú hranu riadku `floor(median)`, takže medián 10,0 vyšiel
-            // opticky na jedenástku — o celý rok vedľa. Teraz je to prvok
-            // s `top` podľa desatinnej časti: 10,0 sedí na hornej hrane riadku 10
-            // (presne desať rokov), 14,5 v jeho strede. Zároveň to prežije
-            // medzeru pred zónou rekordov, ktorú by percento nad celou mriežkou
-            // rozhodilo.
-            const isMedianRow = Math.floor(band.median) === yr;
-            const medianTop = `${(band.median % 1) * 100}%`;
+            // ⚠️ PÁSMO, NIE ČIARA (Matej 13. 9.: „ten median dožitia by som dal
+            // ako pásmo od do nie len čiaru v istý rok"). Priemer je rozsah,
+            // takže jedna čiara o ňom klamala presnosťou, ktorú nemá. Kreslia sa
+            // dve hrany — spodná hranica a horná — a medzi nimi tichý tint.
+            //
+            // ⚠️ HRANY STOJA VNÚTRI RIADKU, NIE POD NÍM. Verzia s čiarou ako
+            // spodnou hranou riadku `floor(x)` ukazovala 10,0 opticky na
+            // jedenástke — o celý rok vedľa. `top` podľa desatinnej časti to
+            // rieši a zároveň prežije medzeru pred zónou rekordov, ktorú by
+            // percento nad celou mriežkou rozhodilo.
+            const edges: { key: string; top: string }[] = [];
+            if (Math.floor(band.low) === yr) edges.push({ key: 'lo', top: `${(band.low % 1) * 100}%` });
+            if (Math.floor(band.high) === yr) edges.push({ key: 'hi', top: `${(band.high % 1) * 100}%` });
             const inBand = yr >= Math.floor(band.low) && yr < Math.ceil(band.high);
             return (
               <Fragment key={yr}>
@@ -950,12 +1000,12 @@ function LifeGrid({
                     ? tx('pack.cal.life.zone', 'Odtiaľto ďalej sa dostala hŕstka psov v histórii')
                     : undefined}
                 >
-                  {isMedianRow && (
+                  {edges.map((e) => (
                     <i
-                      className="cal-medline" style={{ top: medianTop }}
-                      aria-label={`${tx('pack.cal.life.srcPre', 'Čiara priemeru:')} ${num(band.median)}`}
+                      key={e.key} className="cal-medline" style={{ top: e.top }}
+                      aria-label={`${tx('pack.cal.life.srcPre', 'Pásmo dožitia:')} ${num(band.low)}–${num(band.high)}`}
                     />
-                  )}
+                  ))}
                   {Array.from({ length: WEEKS_PER_YEAR }, (__, w) => {
                     const wi = yr * WEEKS_PER_YEAR + w;
                     const lived = wi < livedWeeks;
@@ -964,10 +1014,14 @@ function LifeGrid({
                     // v budúcnosti je PLÁN — nakreslený ako plná tmavá by tvrdil,
                     // že ste tam už boli. Dostáva obrys, tak ako v pohľade ROK.
                     const cls = hits ? (lived ? 'dark' : 'plan') : lived ? 'lived' : 'empty';
+                    // Dve udalosti života na osi: ZELENÁ na spodnej hrane =
+                    // odkedy ste spolu · ZLATÁ na hornej = odkedy je v Dogypte.
+                    // Zlatá je zámerne tá druhá — v brande nesie príslušnosť.
+                    const mark = (wi === sinceWeek ? ' mSince' : '') + (wi === joinWeek ? ' mJoin' : '');
                     return (
                       <span
                         key={w}
-                        className={`cal-lifecell ${cls}${wi === livedWeeks ? ' now' : ''}`}
+                        className={`cal-lifecell ${cls}${mark}${wi === livedWeeks ? ' now' : ''}`}
                         onMouseEnter={(ev) => setHover({ wi, x: ev.clientX, y: ev.clientY })}
                         onMouseMove={(ev) => setHover({ wi, x: ev.clientX, y: ev.clientY })}
                         onClick={() => { if (hits) setOpenWeek(wi); }}
@@ -985,25 +1039,32 @@ function LifeGrid({
       </div>
 
       {/* ── ZÓNA REKORDOV — prečo mriežka nekončí na dvadsiatke ───────────── */}
+      {!deceased && (
       <div className="cal-records">
         <div className="cal-lgtitle">{tx('pack.cal.life.recTitle', 'Nad dvadsiatkou — psy, ktoré tam naozaj boli')}</div>
         <p className="cal-note" style={{ marginBottom: 9 }}>
           {tx('pack.cal.life.recSub',
-            'Vyblednutá časť mriežky nie je predpoveď. Je to miesto, kam sa dostala hŕstka psov — a dôkaz, že priemer nie je strop.')}
+            'Vyblednutá časť mriežky nie je predpoveď. Je to miesto, kam sa dostala hŕstka psov — a dôkaz, že priemer nie je strop. Polovica týchto rekordov je doložená, polovica stojí na slove majiteľa; kde chýba dôkaz, je to napísané.')}
         </p>
         <div className="cal-recgrid">
           {LIFE_RECORDS.map((r) => (
-            <div className="cal-rec" key={r.name}>
+            <div className={`cal-rec${r.verified ? '' : ' unver'}`} key={r.name}>
               <b>{r.name}</b>
-              <u>{num(r.years)} {tx('pack.cal.life.years', 'rokov')}</u>
-              <i>{r.breedSK} · {r.fromTo}</i>
-              <p>{r.noteSK}</p>
+              <u>{r.exactSK || `${num(r.years)} ${tx('pack.cal.life.years', 'rokov')}`}</u>
+              <i>{r.breedSK} · {r.countrySK} · {r.fromTo}</i>
+              {/* Neoverený rekord sa NESKRÝVA, ale ani nepredstiera. Značka je
+                  jediné, čo ho odlišuje — a je to tá dôležitá časť. */}
+              {!r.verified && (
+                <em>{tx('pack.cal.life.unverified', 'neoverené — stojí na tvrdení majiteľa')}</em>
+              )}
             </div>
           ))}
         </div>
       </div>
+      )}
 
       {/* ── RADY ─────────────────────────────────────────────────────────── */}
+      {tips.length > 0 && (
       <div className="cal-records">
         <div className="cal-lgtitle">{tx('pack.cal.life.tipsTitle', 'Čo s tým vieš urobiť')}</div>
         <div className="cal-tipgrid">
@@ -1018,6 +1079,7 @@ function LifeGrid({
           ))}
         </div>
       </div>
+      )}
 
       {/* ── TOOLTIP pri myši ─────────────────────────────────────────────── */}
       {hover && hoverEntries.length > 0 && (
@@ -1116,13 +1178,15 @@ function WeekPopup({
   );
 }
 
-/** Legenda ŽIVOTNEJ mriežky — štyri stavy bunky, nič viac. */
-function LifeLegend({ tx }: { tx: Tx }) {
+/** Legenda ŽIVOTNEJ mriežky — stavy bunky a dve značky udalostí. */
+function LifeLegend({ tx, deceased }: { tx: Tx; deceased: boolean }) {
   const items: { cls: string; b: string; t: string }[] = [
     { cls: 'lived', b: tx('pack.cal.life.lgLived', 'Prežitý týždeň'), t: tx('pack.cal.life.lgLivedSub', 'ubehnutý čas') },
     { cls: 'dark', b: tx('pack.cal.life.lgDark', 'Boli ste vonku'), t: tx('pack.cal.life.lgDarkSub', 'klik = mesiac') },
-    { cls: 'empty', b: tx('pack.cal.life.lgEmpty', 'Ešte len bude'), t: tx('pack.cal.life.lgEmptySub', 'nezapísaný čas') },
-    { cls: 'mediansw', b: tx('pack.cal.life.lgMedian', 'Priemer plemena'), t: tx('pack.cal.life.lgMedianSub', 'medián, nie strop') },
+    ...(deceased ? [] : [{ cls: 'empty', b: tx('pack.cal.life.lgEmpty', 'Ešte len bude'), t: tx('pack.cal.life.lgEmptySub', 'nezapísaný čas') }]),
+    { cls: 'sincesw', b: tx('pack.cal.life.lgSince', 'Odkedy ste spolu'), t: tx('pack.cal.life.lgSinceSub', 'z DOG ID') },
+    { cls: 'joinsw', b: tx('pack.cal.life.lgJoin', 'Vstup do Dogyptu'), t: tx('pack.cal.life.lgJoinSub', 'deň heroglyfu') },
+    { cls: 'mediansw', b: tx('pack.cal.life.lgMedian', 'Pásmo dožitia'), t: tx('pack.cal.life.lgMedianSub', 'priemer, nie strop') },
   ];
   return (
     <div className="cal-lgroup">
@@ -1255,6 +1319,9 @@ const CAL_CSS = `
 .cal-lifestat span{display:block;font-family:${FONT_UI};font-size:9.5px;letter-spacing:.1em;
   text-transform:uppercase;color:${T.inkFaint};margin-top:3px}
 .cal-lifesrc{margin-bottom:12px}
+/* Veta o psovi, ktorý odišiel. Cinzel a pokoj — nie štatistika, nie tučné. */
+.cal-bestlife{font-family:${FONT_TITLE};font-size:15px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:${T.accentGold};text-align:center;margin:2px 0 14px}
 
 /* Mriežka nesmie tlačiť stránku do vodorovného rolovania — 52 buniek sa vojde
    do šírky vždy, lebo bunka je zlomok riadku, nie pevné číslo. */
@@ -1272,7 +1339,7 @@ const CAL_CSS = `
    ⚠️ Zvislá zlatá hrana na stĺpci s rokom sa SKÚŠALA a vypadla: čísla sú len
    po piatich, takže na rokoch bez čísla z nej ostal plávajúci zlatý pruh
    a vedľa čísla 10 to vyzeralo ako preškrtnutie. */
-.cal-liferow.inband{background:rgba(201,154,63,.07);border-radius:3px}
+.cal-liferow.inband{background:rgba(201,154,63,.13);border-radius:3px}
 .cal-lifeyr.inband{color:${T.accentGold};font-weight:700}
 .cal-liferow{position:relative}
 .cal-medline{position:absolute;left:0;right:0;height:1.5px;background:${T.accentGold};
@@ -1299,8 +1366,24 @@ const CAL_CSS = `
    tá istá reč ako .cal-cell.isPlan v pohľade ROK. */
 .cal-lifecell.plan{background:rgba(250,244,236,.55);box-shadow:inset 0 0 0 1px ${LAPIS.edge};cursor:pointer}
 .cal-lifecell.now{box-shadow:inset 0 0 0 1px ${T.accentGold}}
+/* DVE UDALOSTI ŽIVOTA. Sú to HRANY bunky, nie výplň — výplň už nesie „prežité"
+   a „boli sme vonku", a tretí význam v tom istom mieste by prepísal jeden z nich.
+   Zelená = odkedy ste spolu (spodná hrana) · LAPIS = odkedy je v Dogypte (horná).
+   ⚠️ Obe naraz na jednej bunke sa nebijú — každá má svoju hranu.
+   ⚠️ Vstup do Dogyptu bol najprv ZLATÝ (zlato = príslušnosť) a bola to chyba:
+   pásmo dožitia má zlaté hrany cez celú šírku, takže 6 px zlatý ťah na bunke
+   sa čítal ako ich odrobinka. Lapis je navyše presnejší — vstup do svorky je
+   ČIN člena, a lapis v brande znamená práve „čo urobím ja". */
+.cal-lifecell.mSince{position:relative;z-index:4}
+.cal-lifecell.mSince::after{content:'';position:absolute;left:-0.5px;right:-0.5px;bottom:-2px;height:2.5px;
+  background:${T.growGreen};border-radius:1px}
+.cal-lifecell.mJoin{position:relative;z-index:4}
+.cal-lifecell.mJoin::before{content:'';position:absolute;left:-0.5px;right:-0.5px;top:-2px;height:2.5px;
+  background:${LAPIS.edge};border-radius:1px}
 .cal-sw.cal-lifecell{aspect-ratio:auto;border-radius:4px;flex:0 0 auto}
-.cal-sw.cal-lifecell.mediansw{background:${T.accentGold}}
+.cal-sw.cal-lifecell.mediansw{background:rgba(201,154,63,.30);box-shadow:inset 0 2px 0 ${T.accentGold},inset 0 -2px 0 ${T.accentGold}}
+.cal-sw.cal-lifecell.sincesw{background:rgba(46,95,208,.30);box-shadow:inset 0 -3px 0 ${T.growGreen}}
+.cal-sw.cal-lifecell.joinsw{background:rgba(46,95,208,.30);box-shadow:inset 0 3px 0 ${LAPIS.edge}}
 
 .cal-lifetip{position:fixed;z-index:70;pointer-events:none;max-width:250px;
   background:${T.panelGrad};border:1px solid ${T.cardEdge};border-radius:9px;padding:8px 10px;box-shadow:${T.panelShadow}}
@@ -1318,7 +1401,9 @@ const CAL_CSS = `
 .cal-rec u{font-family:${FONT_UI};font-size:11px;font-weight:600;text-decoration:none;color:${T.accentGold}}
 .cal-rec i{display:block;font-style:normal;font-family:${FONT_UI};font-size:9.5px;letter-spacing:.04em;
   text-transform:uppercase;color:${T.inkFaint};margin:3px 0 5px}
-.cal-rec p{font-family:${FONT_UI};font-size:11px;line-height:1.5;color:${T.inkWarm};margin:0}
+.cal-rec em{display:block;font-style:normal;font-family:${FONT_UI};font-size:9.5px;line-height:1.4;
+  color:${T.alertRed};letter-spacing:.02em}
+.cal-rec.unver{opacity:.82}
 .cal-tipgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:9px}
 .cal-tip{display:flex;gap:10px;background:${T.tileBg};border:1px solid ${T.border};border-radius:10px;padding:11px 12px}
 .cal-tip em{font-style:normal;font-size:19px;line-height:1.1;flex:0 0 auto;font-family:${EMOJI_FONT}}

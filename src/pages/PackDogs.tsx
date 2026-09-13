@@ -487,6 +487,8 @@ interface HubDog {
   death_date: string | null;
   birth_year: number | null;
   selections: Record<string, string> | null;
+  /** Kedy pes vstúpil do Dogyptu — kreslí sa ako čiarka v ŽIVOTNEJ mriežke. */
+  created_at: string | null;
 }
 
 type Latest = Record<string, Record<string, LatestValue>>;
@@ -528,7 +530,7 @@ export default function PackDogs() {
       if (!uid) { if (alive) setDogs(DEV_NOAUTH ? (DEV_MOCK_DOGS as HubDog[]) : []); return; }
       const { data } = await supabase
         .from('dogs')
-        .select('id, dog_name, cloudinary_main_url, heroglyph_png_url, pack_number, country, life_status, death_date, birth_year, selections')
+        .select('id, dog_name, cloudinary_main_url, heroglyph_png_url, pack_number, country, life_status, death_date, birth_year, selections, created_at')
         .eq('user_id', uid)
         .eq('payment_status', 'paid')
         .order('created_at', { ascending: true });

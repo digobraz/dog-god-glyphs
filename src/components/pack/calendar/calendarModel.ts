@@ -464,30 +464,57 @@ export function weekStart(birth: Date, wi: number): Date {
 
 // ── REKORDMANI — prečo mriežka pokračuje za 20 rokov ────────────────────────
 // Nie je to výzdoba: zóna 20–30 je jediné miesto, kde sa dá ukázať, že strop
-// nie je tam, kde ho vidí štatistika. Čísla sú overiteľné, nie „hovorí sa".
+// nie je tam, kde ho vidí štatistika.
 //
-// ⚠️ BOBI (31 r., 2023) TU ZÁMERNE NIE JE. Guinness mu titul po vyšetrovaní
-// vo februári 2024 ODOBRAL — dôkazy o veku neobstáli. Zapísať ho ako rekord
-// by znamenalo tvrdiť niečo, čo držiteľ rekordu sám stiahol.
+// 🔴 `verified` NIE JE OZDOBA, JE TO PODMIENKA ZÁPISU. Psov nad 20 rokov je
+// doložených cez dvadsať, ale zhruba polovica stojí na tvrdení majiteľa. Kto
+// sem pridáva ďalšieho, musí vedieť povedať, do ktorej polovice patrí — inak
+// z rekordov vznikne zbierka historiek.
+//
+// ⚠️ BOBI (31 r., Portugalsko) TU ZÁMERNE NIE JE. Guinness mu titul
+// **22. 2. 2024 odobral**: dôkaz o veku stál na zápise v portugalskej štátnej
+// databáze SIAC z roku 2022, a SIAC pri psoch narodených pred rokom 2008
+// doklad o veku nepožadoval — stačilo vyhlásenie majiteľa. Nie je to obvinenie
+// z podvodu, je to „nedá sa to doložiť". Titul sa vrátil Blueymu.
 export interface LifeRecord {
   name: string;
   years: number;
+  /** Do popisku: „29 rokov 160 dní". Prázdne = známe sú len roky. */
+  exactSK: string;
   breedSK: string;
   fromTo: string;
-  noteSK: string;
+  countrySK: string;
+  /** true = doložené a uznané · false = tvrdenie, ktoré nikto nepotvrdil. */
+  verified: boolean;
 }
 
 export const LIFE_RECORDS: LifeRecord[] = [
-  { name: 'Bluey', years: 29.5, breedSK: 'Austrálsky honácky pes', fromTo: '1910 – 1939',
-    noteSK: 'Doteraz platný oficiálny rekord. Pracoval s dobytkom takmer dvadsať rokov.' },
-  { name: 'Butch', years: 28, breedSK: 'Beagle', fromTo: '1975 – 2003',
-    noteSK: 'Virginia, USA. Druhý najstarší doložený pes.' },
-  { name: 'Taffy', years: 27.5, breedSK: 'Border kólia', fromTo: '1975 – 2003',
-    noteSK: 'Veľká Británia. Pracujúce plemeno, celý život vonku.' },
-  { name: 'Snookie', years: 27, breedSK: 'Kríženec', fromTo: '1953 – 1980',
-    noteSK: 'Juhoafrická republika. Kríženci sa dožívajú v priemere viac než čistokrvní psi.' },
-  { name: 'Pusuke', years: 26, breedSK: 'Kríženec šiba inu', fromTo: '1985 – 2011',
-    noteSK: 'Japonsko. Držiteľ titulu najstaršieho žijúceho psa do roku 2011.' },
+  { name: 'Bluey', years: 29.4, exactSK: '29 rokov 160 dní', breedSK: 'Austrálsky honácky pes',
+    fromTo: '1910 – 1939', countrySK: 'Austrália', verified: true },
+  { name: 'Lazare', years: 30.4, exactSK: '30 rokov 161 dní', breedSK: 'Papillon',
+    fromTo: '1995 – 2026', countrySK: 'Francúzsko', verified: false },
+  { name: 'Maggie', years: 30, exactSK: '', breedSK: 'Austrálsky kelpie',
+    fromTo: '1986 – 2016', countrySK: 'Austrália', verified: false },
+  { name: 'Max', years: 29.8, exactSK: '29 rokov 282 dní', breedSK: 'Kríženec beagla a jazvečíka',
+    fromTo: '1983 – 2013', countrySK: 'USA', verified: false },
+  { name: 'Bella', years: 29, exactSK: '', breedSK: 'Kríženec labradora',
+    fromTo: '1979 – 2008', countrySK: 'Veľká Británia', verified: true },
+  { name: 'Butch', years: 28, exactSK: '', breedSK: 'Plemeno sa neuvádza',
+    fromTo: '1975 – 2003', countrySK: 'USA', verified: true },
+  { name: 'Taffy', years: 27.6, exactSK: '27 rokov 211 dní', breedSK: 'Welšský ovčiak',
+    fromTo: '1975 – 2003', countrySK: 'Veľká Británia', verified: true },
+  { name: 'Adjutant', years: 27.3, exactSK: '27 rokov 98 dní', breedSK: 'Labradorský retríver',
+    fromTo: '1936 – 1963', countrySK: 'Veľká Británia', verified: true },
+  { name: 'Pusuke', years: 26.7, exactSK: '26 rokov 8 mesiacov', breedSK: 'Kríženec šiba inu',
+    fromTo: '1985 – 2011', countrySK: 'Japonsko', verified: true },
+  { name: 'Spike', years: 26.8, exactSK: '26 rokov 286 dní', breedSK: 'Kríženec čivavy',
+    fromTo: 'od 1999', countrySK: 'USA', verified: true },
+  { name: 'Bramble', years: 25, exactSK: '', breedSK: 'Border kólia',
+    fromTo: '1978 – 2003', countrySK: 'Veľká Británia', verified: false },
+  { name: 'TobyKeith', years: 23.3, exactSK: '23 rokov 112 dní', breedSK: 'Čivava',
+    fromTo: '2001 – 2024', countrySK: 'USA', verified: true },
+  { name: 'Pebbles', years: 22.5, exactSK: '22 rokov 189 dní', breedSK: 'Toy foxteriér',
+    fromTo: '2000 – 2022', countrySK: 'USA', verified: true },
 ];
 
 // ── RADY, AKO PREDĹŽIŤ ŽIVOT ────────────────────────────────────────────────
