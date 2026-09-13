@@ -3771,7 +3771,7 @@ const STEP_CSS = `
    krúžok bez obsahu, teda presne to, čo sa má na prvý pohľad prečítať, sa prečítať nedalo.
    Biely inkoust drží vo VŠETKÝCH stavoch (aktívny, hotový, splnený), aby číslo nemenilo
    čitateľnosť podľa toho, kde človek stojí. */
-.atl-step b{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:rgba(122,90,42,0.55);border:1px solid ${T.onDarkBorder};color:#FFF;font-family:${FONT_UI};font-weight:700;font-size:12.5px;line-height:1;}
+.atl-step b{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:rgba(122,90,42,0.55);border:1px solid ${T.onDarkBorder};color:#FFF;font-family:${FONT_UI};font-weight:600;font-size:12.5px;line-height:1;}
 .atl-step span{font-family:${FONT_UI};font-weight:500;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;text-align:center;line-height:1.2;}
 .atl-step.done{cursor:pointer;color:${T.onDark};}
 .atl-step.done b{background:#8A5F1E;border-color:#8A5F1E;color:#FFF;}
@@ -3808,7 +3808,7 @@ const STEP_CSS = `
    nemá inú cestu, ako celý krok zopakovať odznova. */
 .atl-ntrack{display:flex;gap:6px;}
 .atl-ntrack-i{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 5px;border-radius:999px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};cursor:pointer;}
-.atl-ntrack-i b{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:17px;height:17px;border-radius:50%;background:rgba(245,240,228,0.07);font-size:9.5px;font-weight:700;line-height:1;}
+.atl-ntrack-i b{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:17px;height:17px;border-radius:50%;background:rgba(245,240,228,0.07);font-size:9.5px;font-weight:600;line-height:1;}
 /* ⚠️ TESNEJŠIE PREKLADANIE PÍSMEN NEŽ INDE (Matej 2026-08-26, druhé kolo). Odkedy je
    neoznačená možnosť ČERVENÁ, nesie chip s bodmi KAŽDÁ z troch (predtým len tie, ktoré človek
    nechal za sebou) — a na kompaktnom PC (stĺpec 360 px) sa z „PARKOVISKO" stalo „PARK…".
@@ -3849,7 +3849,7 @@ const STEP_CSS = `
 .atl-ntrack-i.miss b{background:rgba(255,217,210,0.22);border:1px solid ${HAZARD_RED};color:#FFD9D2;}
 /* Chip s bodmi. Malý a bez rámu — je to poznámka k pilulke, nie druhá pilulka v nej.
    tabular-nums, aby sa „+3" a „0" nehojdali v rade vedľa seba. */
-.atl-ntrack-pts{flex:0 0 auto;font-style:normal;font-size:9px;font-weight:700;line-height:1;letter-spacing:.02em;font-variant-numeric:tabular-nums;padding:3px 4px;border-radius:999px;}
+.atl-ntrack-pts{flex:0 0 auto;font-style:normal;font-size:9px;font-weight:600;line-height:1;letter-spacing:.02em;font-variant-numeric:tabular-nums;padding:3px 4px;border-radius:999px;}
 .atl-ntrack-i.ok .atl-ntrack-pts{background:rgba(61,122,78,0.30);color:#D8F2E0;}
 .atl-ntrack-i.miss .atl-ntrack-pts{background:rgba(206,75,60,0.30);color:#FFD9D2;}
 .atl-noteask{padding:12px 14px;border-radius:12px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};}

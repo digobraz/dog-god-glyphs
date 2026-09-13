@@ -27,6 +27,7 @@
 // Dizajn = papyrus lock (Entry.tsx): `T.cardGrad` · 1.5px `T.cardEdge` · radius 16 ·
 // `T.cardShadow`. Nadpis Cinzel 700 uppercase, text Space Grotesk — dva fonty, nie jeden.
 import { PACK_THEME, FONT_TITLE, FONT_UI } from './packTheme';
+import { AINUBIS } from './ainubisSkin';
 import { markConstitutionOpened } from '@/lib/constitutionRead';
 import { openAinubis } from '@/lib/ainubisBus';
 import { useT } from '@/i18n/LanguageContext';
@@ -102,8 +103,9 @@ const CSS = `
 /* ── AINUBIS = VLASTNÝ BRAND, nie papyrus (Matej 9.8.: „musí byť v jeho brande, modro
    zlatá, AI vibe… farebne odlíšiteľné"). Tmavá modrá karta so zlatým rámom a cyan svetlom;
    papyrusový dvojník vedľa (DOGMA) tak ostáva rozoznateľný na prvý pohľad.
-   Cyan #5BE0F0 = cyborg paleta AINUBISA, vedomá odchýlka od brand v3.2
-   (reference_dogypt_ainubis_cyborg_palette). */
+   Cyan = cyborg paleta AINUBISA, vedomá odchýlka od brand v3.2
+   (reference_dogypt_ainubis_cyborg_palette). Čísla NEPÍŠ — zdroj je ainubisSkin.ts
+   (zjednotené 13. 9. 2026), krytie sa skladá z AINUBIS.cyanRGB. */
 .gw-ainubis{
   /* ŠEDÝ FADE = „ešte nefunkčné" (Matej 12.8.: „len tam daj taký šedý fade ako keby
      nefunkčné ešte"). Karta klikom OTVÁRA chat, takže sa nesmie zamknúť ani stlmiť na
@@ -121,12 +123,12 @@ const CSS = `
     /* Tlmiaca vrstva spiacej karty — nahrádza to, čo predtým robil grayscale na celej karte.
        Je to POZADIE, takže na deti (a teda ani na čip) nesiaha. Pri hoveri mizne. */
     linear-gradient(rgba(16,20,26,0.52), rgba(16,20,26,0.52)),
-    linear-gradient(118deg, rgba(91,224,240,0.10) 0%, rgba(126,90,240,0.08) 42%, rgba(245,199,61,0.05) 100%),
-    radial-gradient(78% 105% at 76% 54%, rgba(70,168,255,0.52) 0%, rgba(59,158,255,0.12) 52%, rgba(59,158,255,0) 74%),
+    linear-gradient(118deg, rgba(${AINUBIS.cyanRGB},0.10) 0%, rgba(126,90,240,0.08) 42%, rgba(${AINUBIS.ctaRGB},0.05) 100%),
+    radial-gradient(78% 105% at 76% 54%, rgba(70,168,255,0.52) 0%, rgba(${AINUBIS.glowRGB},0.12) 52%, rgba(${AINUBIS.glowRGB},0) 74%),
     linear-gradient(160deg, #08131f 0%, #04090f 62%, #061119 100%);
   transition:filter .4s ease, background .4s ease;
-  border:1.5px solid rgba(91,224,240,0.34);
-  box-shadow:0 26px 60px -30px rgba(0,0,0,0.95), inset 0 1px 0 rgba(91,224,240,0.20);
+  border:1.5px solid rgba(${AINUBIS.cyanRGB},0.34);
+  box-shadow:0 26px 60px -30px rgba(0,0,0,0.95), inset 0 1px 0 rgba(${AINUBIS.cyanRGB},0.20);
 }
 /* Fade nesú deti, nie karta — zoznam je úplný a ZÁMERNE bez .gw-flag. */
 /* ⚠️ Na hlavu ide filter cez IMG, nie cez .gw-art — ten span má o 35 riadkov nižšie
@@ -146,8 +148,8 @@ const CSS = `
 .gw-ainubis:hover::after, .gw-ainubis:focus-visible::after{ filter:none; }
 .gw-ainubis:hover, .gw-ainubis:focus-visible{
   background:
-    linear-gradient(118deg, rgba(91,224,240,0.10) 0%, rgba(126,90,240,0.08) 42%, rgba(245,199,61,0.05) 100%),
-    radial-gradient(78% 105% at 76% 54%, rgba(70,168,255,0.52) 0%, rgba(59,158,255,0.12) 52%, rgba(59,158,255,0) 74%),
+    linear-gradient(118deg, rgba(${AINUBIS.cyanRGB},0.10) 0%, rgba(126,90,240,0.08) 42%, rgba(${AINUBIS.ctaRGB},0.05) 100%),
+    radial-gradient(78% 105% at 76% 54%, rgba(70,168,255,0.52) 0%, rgba(${AINUBIS.glowRGB},0.12) 52%, rgba(${AINUBIS.glowRGB},0) 74%),
     linear-gradient(160deg, #08131f 0%, #04090f 62%, #061119 100%);
 }
 /* ⚠️ Dotykové zariadenia hover nemajú — tam karta ostáva šedá natrvalo. To je v poriadku:
@@ -161,8 +163,8 @@ const CSS = `
 .gw-ainubis::after{
   content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
   background-image:
-    linear-gradient(rgba(91,224,240,0.16) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(91,224,240,0.16) 1px, transparent 1px);
+    linear-gradient(rgba(${AINUBIS.cyanRGB},0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(${AINUBIS.cyanRGB},0.16) 1px, transparent 1px);
   background-size:28px 28px, 28px 28px;
   -webkit-mask-image:radial-gradient(115% 95% at 72% 26%, #000 0%, rgba(0,0,0,0.45) 52%, rgba(0,0,0,0) 84%);
   mask-image:radial-gradient(115% 95% at 72% 26%, #000 0%, rgba(0,0,0,0.45) 52%, rgba(0,0,0,0) 84%);
@@ -179,7 +181,7 @@ const CSS = `
   right:-24%; width:56%; top:50%; transform:translateY(-50%);
   /* Hlava je tmavá modrá na takmer čiernom pozadí — svetlo za ňou (radiála v pozadí karty)
      ju drží ako kresbu, nie siluetu. Žiara je len dokreslenie, jas sa NEZVYŠUJE. */
-  filter:drop-shadow(0 0 40px rgba(91,224,240,0.55));
+  filter:drop-shadow(0 0 40px rgba(${AINUBIS.cyanRGB},0.55));
 }
 @media (min-width:721px){ .gw-ainubis .gw-art{ right:-28%; width:66%; } }
 
@@ -193,7 +195,7 @@ const CSS = `
   display:inline-block; margin-bottom:8px; padding:3px 9px; border-radius:999px;
   font-family:${FONT_UI}; font-weight:600; font-size:8.5px;
   letter-spacing:.14em; text-transform:uppercase; color:#04121a;
-  background:linear-gradient(90deg, #3FB6CC 0%, #5BE0F0 50%, #3FB6CC 100%);
+  background:linear-gradient(90deg, #3FB6CC 0%, ${AINUBIS.cyan} 50%, #3FB6CC 100%);
   box-shadow:0 4px 14px rgba(0,0,0,0.45);
 }
 @media (min-width:721px){ .gw-flag{ font-size:9.5px; padding:4px 11px; margin-bottom:10px; } }
@@ -204,19 +206,19 @@ const CSS = `
    Drží to zoznam selektorov pri .gw-ainubis vyššie: čip v ňom NIE JE, takže naň žiadny
    filter nesadá. Nič sa tu neprepočítava. */
 .gw-ainubis .gw-flag{
-  box-shadow:0 4px 14px rgba(0,0,0,0.45), 0 0 18px rgba(91,224,240,0.55);
+  box-shadow:0 4px 14px rgba(0,0,0,0.45), 0 0 18px rgba(${AINUBIS.cyanRGB},0.55);
 }
 
 /* Typografia NIE JE zlatá (Matej 9.8.: „nadpis musí byt brandovY AI inej farby… pozri si ako
    sme to spravili inde"). Zdroj pravdy = hlavička widgetu v AinubisWidget.css: meno = Cinzel 700
    v ľadovo bielej #E6FAFF s cyan žiarou, „AI" v cyan. Zlatá v cyborg palete patrí ČLOVEKU. */
 .gw-ainubis .gw-title{
-  color:#E6FAFF; letter-spacing:.16em; text-indent:.16em;
-  text-shadow:0 0 18px rgba(91,224,240,0.55);
+  color:${AINUBIS.ink}; letter-spacing:.16em; text-indent:.16em;
+  text-shadow:0 0 18px rgba(${AINUBIS.cyanRGB},0.55);
 }
-/* „AI" v mene je modré — kúsok stroja v mene strážcu. Tá istá dvojica hodnôt ako
-   .ainubis-ai v AinubisWidget.css; keď sa mení tam, musí sa aj tu. */
-.gw-ai{ color:#5BE0F0; text-shadow:0 0 16px rgba(91,224,240,0.75); }
+/* „AI" v mene je modré — kúsok stroja v mene strážcu. Tvar mena je lock (12. 9. 2026),
+   hodnoty sú AINUBIS.aiInk / aiShadow — tie isté číta .ainubis-ai v AinubisWidget.css. */
+.gw-ai{ color:${AINUBIS.aiInk}; text-shadow:${AINUBIS.aiShadow}; }
 .gw-ainubis .gw-lead{ color:rgba(230,250,255,0.82); text-shadow:0 2px 10px rgba(3,7,12,0.85); }
 
 /* Závoj drží text čitateľný tam, kde obrázok podlieza — smeruje VŽDY od textovej strany. */

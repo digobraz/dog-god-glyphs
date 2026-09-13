@@ -44,7 +44,9 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PackLayout } from '@/components/pack/PackLayout';
-import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import {
+  PACK_THEME, PACK_BOX, PACK_HEAD, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI,
+} from '@/components/pack/packTheme';
 import { PALE } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { FlagCircle } from '@/components/pack/FlagCircle';
@@ -152,26 +154,29 @@ const DAYS_PILL = {
 
 // `.btn-gold` sa v projekte NEIMPORTUJE globálne — žije v `SpiralLanding.css` pod
 // selektorom `.dogypt-spiral-root`. Zavedený vzor (AddTripPlan.tsx, AddEvent.tsx):
-// lokálna kópia PRESNÝCH hodnôt zo SpiralLanding.css, nie vlastný gradient.
-// Radius 8px, NIE pill. Hodnoty sa nesmú „doladiť" — CTA je LOCKED.
+// lokálna kópia TVARU zo SpiralLanding.css, nie vlastný gradient.
+// Radius 8px, NIE pill. Gradient, lem a radius sa nesmú „doladiť" — CTA je LOCKED.
+// ⚠️ Veľkosť písma a odsadenie idú od 13. 9. 2026 zo stupníc `PACK_TEXT` / `PACK_SPACE`
+//    (nákres dizajnového systému, 11/11) — kópia nikdy nemala rozmery zdroja (ten má
+//    14px 32px / 0.85rem), takže lock tu drží tvar, nie tieto dve čísla.
 const HUB_CSS = `
 .hub-hover{ transition: transform .2s ease, box-shadow .2s ease; }
 .hub-hover:hover{ transform: translateY(-2px); }
 /* Mriežka dlaždíc profilu — PEVNÝ počet stĺpcov, nie auto-fill. Šesť dlaždíc delia
    2 aj 3 stĺpce BEZ ZVYŠKU; 4 stĺpce (predošlý stav pri ôsmich) by pri šiestich
    nechali v druhom rade dieru vpravo. */
-.hub-tiles{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.hub-tiles{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
 @media (min-width:760px){ .hub-tiles{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
-.hub-media{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.hub-media{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
 @media (max-width:560px){ .hub-media{ grid-template-columns:1fr; } }
 .hub-gold{
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
-  padding:13px 24px;
+  padding:12px 24px;
   background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);
   border:1px solid rgba(250,244,236,0.30);
   border-radius:8px;
   color:#000;
-  font-family:'Cinzel',serif; font-size:11px; font-weight:800;
+  font-family:'Cinzel',serif; font-size:12px; font-weight:800;
   letter-spacing:.12em; text-transform:uppercase;
   cursor:pointer; white-space:nowrap; text-decoration:none;
   box-shadow:0 0 28px rgba(230,158,26,0.34), inset 0 1px 0 rgba(255,255,255,0.3);
@@ -190,7 +195,7 @@ const HUB_CSS = `
    (.dogblk-side) a pod fotkou ostávala mŕtva plocha.
    ZANIKLO 12.8.: progresbar (.dogblk-prog), zlaté CTA (.dogblk-open), stĺpec pilulek
    (.dogblk-side) aj spodný riadok (.dogblk-foot). Nehľadaj ich, nie sú parkované. */
-.dogblk{ display:flex; align-items:center; gap:18px; }
+.dogblk{ display:flex; align-items:center; gap:16px; }
 /* Ľavý stĺpec je LEN fotka. position:relative tu je kvôli pilulke s číslom, ktorá
    sadá na spodný okraj kruhu a vnútri neho by sa orezala. */
 .dogblk-left{ position:relative; flex:0 0 auto; line-height:0; }
@@ -233,7 +238,7 @@ const HUB_CSS = `
   position:absolute; bottom:-4px; left:50%; transform:translateX(-50%);
   display:inline-flex; align-items:center; justify-content:center;
   font-family:'Cinzel',serif; font-weight:700; font-size:14px; letter-spacing:0.02em;
-  line-height:1; white-space:nowrap; padding:5px 10px; border-radius:999px;
+  line-height:1; white-space:nowrap; padding:4px 8px; border-radius:999px;
   background:linear-gradient(180deg,#F5C73D,#E69E1A); color:#3d1f00;
   border:1px solid rgba(250,244,236,0.55);
   box-shadow:0 2px 6px rgba(0,0,0,0.28);
@@ -251,12 +256,12 @@ const HUB_CSS = `
      dostatočný a totožný rozostup od fotky aj heroglyfu"). Prvá je medzera fotka↔meno,
      druhá meno↔glyf — sú to dva RÔZNE flex kontajnery, takže sa nedajú zapísať raz.
      Obe si useFitName číta zo štýlu, čiže nikde inde v kóde zapísané nie sú. */
-  .dogblk{ gap:22px; }
-  .dogblk-idw{ gap:22px; }
+  .dogblk{ gap:24px; }
+  .dogblk-idw{ gap:24px; }
 }
 /* PAPYRUS (lock 2026-07-26, zdroj pravdy Entry.tsx): odsadenie je TU, nie v inline
    štýle — inak by ho media query nižšie nemala ako prebiť. */
-.dogblk-card{ padding:20px 22px; }
+.dogblk-card{ padding:24px; }
 
 /* Rad pilulek pod menom. Rovnaké diely sa tu ZÁMERNE nepoužívajú — pilulky sú rôzne
    dlhé údaje, nie tlačidlá, a naťahovanie na rovnakú šírku by z „SVK" spravilo prázdny
@@ -264,10 +269,10 @@ const HUB_CSS = `
 .dogblk-pills{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 /* Rozmery pilulky žijú TU, nie v inline štýle komponentu — inline by triedu prebil
    a mobilné zmenšenie by ticho nezabralo. */
-.dogblk-pill{ padding:5px 11px; font-size:9px; letter-spacing:.12em; }
+.dogblk-pill{ padding:4px 12px; font-size:10px; letter-spacing:.12em; }
 /* Dni majú vlastnú veľkosť — sú to hlavné číslo bloku, nie tag. Hodnota z PackTree,
    aby bol ten istý údaj rovnako veľký aj rovnako farebný. */
-.dogblk-days{ padding:5px 12px; font-size:12.5px; }
+.dogblk-days{ padding:4px 12px; font-size:12px; }
 
 /* ── lišta na pravom kraji ──────────────────────────────────────────────────── */
 /* Nesie progres, poster a slovo DOG ID. Jej šírku určuje POSTER a pilulka s pevným
@@ -276,8 +281,8 @@ const HUB_CSS = `
 .dogblk-rail{
   position:relative;
   flex:0 0 auto; align-self:stretch;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px;
-  padding-left:20px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+  padding-left:16px;
   --poster-h:78px;
 }
 /* Deliaca čiara = papyrusový lock (2026-07-26): zlatá, 2px, VYBLEDNUTÁ DO STRÁN — nie
@@ -312,10 +317,10 @@ const HUB_CSS = `
    „COMPLETE" a poster by sa v zozname psov pri každom bloku posunul inam. */
 .dogblk-fill{
   min-width:78px; text-align:center;
-  padding:4px 10px; border-radius:999px; white-space:nowrap;
+  padding:4px 8px; border-radius:999px; white-space:nowrap;
   background:#B25640; color:#FDECE7;
   font-family:${FONT_UI}; font-weight:600;
-  font-size:9.5px; letter-spacing:.08em; text-transform:uppercase;
+  font-size:10px; letter-spacing:.08em; text-transform:uppercase;
   box-shadow:0 4px 12px rgba(178,86,64,0.4);
 }
 .dogblk-fill.is-done{ background:#3D7A4E; color:#EAF7ED; box-shadow:0 4px 12px rgba(61,122,78,0.4); }
@@ -344,7 +349,7 @@ const HUB_CSS = `
    ⚠️ POSTER SA NEZMENŠUJE — --poster-h ostáva 78 px ako na PC (Matej 12.8.). Zmenšuje sa
    meno a heroglyf; šírku, ktorú tým uvoľnia, dostane lišta a poster sa v nej vycentruje. */
 @media (max-width:720px){
-  .dogblk-card{ padding:15px 13px; }
+  .dogblk-card{ padding:16px 12px; }
   /* KRAJE DRŽIA FOTKA A LIŠTA (Matej 12.8., 4. kolo). space-between, NIE center:
      nad stropmi MOBILE_PHOTO_MAX a MOBILE_MAX_IDW ostane voľné miesto a musí ísť do
      dvoch MEDZIER medzi stĺpcami, nie do okrajov. S center stála pri 680 px fotka
@@ -352,28 +357,28 @@ const HUB_CSS = `
      flex:0 1 auto na strednom stĺpci musí ostať: s flex:1 by sa celý zvyšok nalepil
      doň a vznikla by jedna diera medzi glyfom a deliacou čiarou. */
   .dogblk{ gap:16px; justify-content:space-between; }
-  .dogblk-main{ gap:9px; flex:0 1 auto; }
+  .dogblk-main{ gap:8px; flex:0 1 auto; }
   /* Štartovacia hodnota = MOBILE_PHOTO_MIN. Konkrétny rozmer dopočíta useFitName
      (rastie s dostupnou šírkou po MOBILE_PHOTO_MAX); toto je len to, čo platí, kým sa
      nenačíta glyf a rovnica nemá pomer strán. */
   .dogblk-photo{ width:96px; height:96px; }
-  .dogblk-num{ font-size:11px; padding:4px 8px; bottom:-3px; }
+  .dogblk-num{ font-size:12px; padding:4px 8px; bottom:-3px; }
   .dogblk-idw{ --fit-min:14px; --fit-max:60px; }
   .dogblk-name{ font-size:clamp(14px, calc(100cqw / (var(--len,7) * 0.86)), 36px); }
   /* O chlp menšie než predtým: stredný stĺpec sa zúžil kvôli väčšej lište a rad
      „3 736 DNÍ + SK" sa doň pri pôvodných rozmeroch nezmestil na jeden riadok. */
-  .dogblk-pill{ padding:4px 7px; font-size:8px; letter-spacing:.05em; }
-  .dogblk-days{ padding:4px 9px; font-size:10px; }
-  .dogblk-rail{ padding-left:12px; gap:5px; }
-  .dogblk-railcap{ font-size:8px; letter-spacing:.1em; }
-  .dogblk-fill{ min-width:58px; font-size:8px; padding:3px 7px; letter-spacing:.04em; }
+  .dogblk-pill{ padding:4px 8px; font-size:10px; letter-spacing:.05em; }
+  .dogblk-days{ padding:4px 8px; font-size:10px; }
+  .dogblk-rail{ padding-left:12px; gap:4px; }
+  .dogblk-railcap{ font-size:10px; letter-spacing:.1em; }
+  .dogblk-fill{ min-width:58px; font-size:10px; padding:4px 8px; letter-spacing:.04em; }
 }
 /* Úzke telefóny (iPhone SE 375, staršie 360): ustupuje odsadenie karty a medzery,
    meno a glyf nie. */
 @media (max-width:430px){
-  .dogblk-card{ padding:14px 11px; }
-  .dogblk{ gap:10px; }
-  .dogblk-rail{ padding-left:9px; }
+  .dogblk-card{ padding:12px; }
+  .dogblk{ gap:8px; }
+  .dogblk-rail{ padding-left:8px; }
 }
 
 /* ── kvíz hero (stav A) ───────────────────────────────────── */
@@ -385,7 +390,7 @@ const HUB_CSS = `
    pribudnúť ďalšie <a> — vnorený odkaz je neplatné HTML. */
 .hub-hero{
   position:relative; overflow:hidden; display:flex; align-items:flex-end;
-  min-height:300px; padding:28px 30px 26px;
+  min-height:300px; padding:24px;
   border-radius:16px; border:1px solid rgba(201,154,63,0.5);
   box-shadow:0 30px 74px -32px rgba(0,0,0,0.95);
   text-decoration:none; cursor:pointer;
@@ -408,13 +413,13 @@ const HUB_CSS = `
       rgba(4,2,0,0.94) 6%, rgba(4,2,0,0.72) 40%, rgba(4,2,0,0.18) 78%, transparent 100%);
 }
 .hub-hero-body{ position:relative; z-index:2; width:100%; min-width:0; }
-.hub-hero-title{ font-size:30px; }
+.hub-hero-title{ font-size:24px; }
 /* Rohová stuha „KVÍZ" — človek musí vedieť, že ide niečo vypĺňať (Matej 6.8.).
    TYRKYSOVÁ, nie zlatá: farba = T.partMkt (#1AA39A, brand faience), a na zlatozelenej
    vitráži je to jediný odtieň, ktorý sa nestratí. */
 .hub-ribbon{
   position:absolute; top:24px; right:-56px; z-index:3; pointer-events:none;
-  width:190px; padding:6px 0; text-align:center; transform:rotate(45deg);
+  width:190px; padding:8px 0; text-align:center; transform:rotate(45deg);
   background:linear-gradient(135deg,#22C3B6 0%,#0E7A72 100%);
   border-top:1px solid rgba(234,251,248,0.42);
   border-bottom:1px solid rgba(6,58,54,0.35);
@@ -424,26 +429,26 @@ const HUB_CSS = `
 }
 /* Chipy — tmavé sklo, nie papyrusové pilulky: ležia na fotke, takže potrebujú
    vlastný podklad. Šírka podľa obsahu, vedľa seba. */
-.hub-axes{ display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 18px; }
+.hub-axes{ display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 16px; }
 .hub-chip{
-  display:inline-flex; align-items:center; gap:7px;
-  padding:8px 13px; border-radius:999px;
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 12px; border-radius:999px;
   background:rgba(8,5,2,0.55); border:1px solid rgba(255,236,190,0.42);
   backdrop-filter:blur(6px);
 }
 /* CTA a meta vedľa seba na jednom riadku — spodok karty je úzky pruh, stĺpec pod
    tlačidlom by ho zbytočne predĺžil. */
 .hub-cta{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
-.hub-gold.is-big{ padding:15px 28px; font-size:12px; letter-spacing:.13em; }
+.hub-gold.is-big{ padding:16px 24px; font-size:12px; letter-spacing:.13em; }
 /* Druhá akcia karty (SPRAVIŤ ZNOVA / POZRIEŤ VÝSLEDOK vedľa zlatého). Tmavé sklo
    ako chipy vyššie — na vitráži je to jediný podklad, ktorý drží text čitateľný,
    a zároveň je jasné, že hlavná akcia je tá zlatá. */
 .hub-ghost{
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
-  padding:14px 20px; border-radius:8px;
+  padding:16px 24px; border-radius:8px;
   background:rgba(8,5,2,0.55); border:1px solid rgba(255,236,190,0.42);
   backdrop-filter:blur(6px);
-  color:#FFF3DA; font-family:'Cinzel',serif; font-size:11px; font-weight:700;
+  color:#FFF3DA; font-family:'Cinzel',serif; font-size:12px; font-weight:700;
   letter-spacing:.12em; text-transform:uppercase;
   cursor:pointer; white-space:nowrap; text-decoration:none;
   transition: transform .2s, background .2s, border-color .2s;
@@ -466,14 +471,13 @@ const HUB_CSS = `
 }
 @media (max-width:720px){
   /* Vyššia, nie nižšia: na úzkom sa obraz orezáva do stredu a pes by z neho vypadol. */
-  .hub-hero{ min-height:390px; padding:20px 18px 18px; }
-  .hub-hero-title{ font-size:25px; }
-  .hub-gold.is-big{ width:100%; padding:14px 16px; font-size:11.5px; white-space:normal; }
+  .hub-hero{ min-height:390px; padding:16px; }
+  .hub-gold.is-big{ width:100%; padding:12px 16px; white-space:normal; }
   /* Ghost ide na mobile pod zlaté, v rovnakej šírke — dve tlačidlá rôznej šírky
      pod sebou vyzerajú ako nedorobený rad. */
-  .hub-ghost{ width:100%; padding:13px 16px; white-space:normal; }
-  .hub-cta{ gap:10px; }
-  .hub-ribbon{ top:16px; right:-58px; width:184px; font-size:9px; letter-spacing:.2em; }
+  .hub-ghost{ width:100%; padding:12px 16px; white-space:normal; }
+  .hub-cta{ gap:12px; }
+  .hub-ribbon{ top:16px; right:-58px; width:184px; letter-spacing:.2em; }
 }
 `;
 
@@ -617,7 +621,7 @@ export default function PackDogs() {
              znamenať „zvyšok stránky".
              ⚠️ Podnadpis („vyplň, čo o ňom vieš…") ZANIKOL — kľúč `pack.hub.profileSub`
              sa NEMAŽE, nesie ho ešte lišta psieho bloku. */}
-      <section style={{ ...PACK_BOX.card, marginTop: 20, padding: '20px 18px' }}>
+      <section style={{ ...PACK_BOX.card, marginTop: PACK_SPACE.xl, padding: PACK_SPACE.xl }}>
         {/* Nadpis vnútri karty = VŽDY papyrusový inkoust. Rozhoduje PODKLAD POD PRVKOM,
             nie poloha prepínača šatu (CLAUDE.md 11. 9.) — karta je papyrusová aj v tmavom
             šate, takže staré `paper ? PALE.deep : T.accentGold` by v tmavom šate napísalo
@@ -626,14 +630,11 @@ export default function PackDogs() {
         <div
           className="text-center"
           style={{
-            // VÄČŠÍ (Matej 12. 9. 2026: „blok DOG ID nadpis musí byť väčší"). 24 px nie je
-            // vybrané od oka — je to TÁ ISTÁ veľkosť, akú má nadpis ŠTATISTIKY v `DogStats`
-            // o blok nižšie. Dva vedľa seba stojace bloky stránky majú mať rovnako veľký
-            // nadpis; pri 13 px vyzeral DOG ID ako popisok skupiny, nie ako názov bloku.
-            // Preloženie písmen sa pritom zúžilo (.22em → .16em): to isté preloženie, ktoré
-            // drobný text drží čitateľný, roztrhá 24 px nadpis na samostatné písmená.
-            fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 24, letterSpacing: '0.16em',
-            textTransform: 'uppercase', color: PALE.deep, marginBottom: 16,
+            // VÄČŠÍ (Matej 12. 9. 2026: „blok DOG ID nadpis musí byť väčší"). Od 13. 9. je to
+            // NÁZOV KARTY = `PACK_HEAD.card` (Cinzel 700 / 24 / .14em) — ten istý tvar, aký má
+            // KALENDÁR o blok nižšie. Dva vedľa seba stojace bloky stránky majú jeden nadpis;
+            // pri 13 px vyzeral DOG ID ako popisok skupiny, nie ako názov bloku.
+            ...PACK_HEAD.card, color: PALE.deep, marginBottom: PACK_SPACE.lg,
           }}
         >
           {tx('pack.hub.profileTitle', 'DOG ID')}
@@ -654,7 +655,7 @@ export default function PackDogs() {
             proti `PACK_BOX.subblock` (gradient, plný zlatý rám) dlaždíc vyššie.
             ⚠️ Čierna je vyhradená pre `subblockDark` a siaha sa po nej za VÝZNAM
             (jediný prípad: ZÁVET na DOG ID), nie za „ešte to nejde". */}
-        <div className="hub-media" style={{ marginTop: 10 }}>
+        <div className="hub-media" style={{ marginTop: PACK_SPACE.md }}>
           {QUIZ_SECTIONS.filter((s) => s.kind === 'gallery' || s.kind === 'journal').map((s) => (
             <MediaTile key={s.key} section={s} tx={tx} />
           ))}
@@ -669,14 +670,14 @@ export default function PackDogs() {
             zasunul DOVNÚTRA bloku DOG ID (Matej ho vymenoval: „…kto je tvoj pes…"),
             ako posledný vstup pred výstupmi. */}
         {natureSection && latestLoaded && (
-          <div style={{ marginTop: 10 }}>
+          <div style={{ marginTop: PACK_SPACE.md }}>
             <NatureHero section={natureSection} dogs={dogs} latest={latest} tx={tx} />
           </div>
         )}
       </section>
 
       {/* ── 5 · AINUBIS — VÝSTUP, nie vstup ────────────────────────────────── */}
-      <div style={{ marginTop: 12 }}>
+      <div style={{ marginTop: PACK_SPACE.md }}>
         <AinubisBlock tx={tx} />
       </div>
 
@@ -685,7 +686,7 @@ export default function PackDogs() {
            Nahradil `DogStats` (demo heatmap pod prekrytím COMING SOON) — ten
            kreslil VYMYSLENÉ farby, takže sa nedal začať čítať ako pravda o psovi.
            Nákres: plany/nakres-kalendar-dogs-2026-09-12.html */}
-      <div style={{ marginTop: 20 }}>
+      <div style={{ marginTop: PACK_SPACE.xl }}>
         <PackCalendar dogs={dogs} latest={latest} tx={tx} />
       </div>
     </PackLayout>
@@ -1022,13 +1023,10 @@ function DogBlock({
       className="hub-hover dogblk-card"
       style={{
         // PAPYRUS (Matej 12.8.: „switchneme to bledého bloku, nie gradient ale papyrus").
-        // Hodnoty sú z locku 2026-07-26, zdroj pravdy `Entry.tsx` / `packTheme.ts` —
+        // KARTA z matrice (`PACK_BOX.card`, lock 2026-07-26, zdroj `Entry.tsx`) —
         // NIE plochá biela so šedým hairlinom.
+        ...PACK_BOX.card,
         display: 'block', textDecoration: 'none',
-        background: T.cardGrad,
-        borderRadius: 16,
-        border: `1.5px solid ${T.cardEdge}`,
-        boxShadow: T.cardShadow,
       }}
     >
       {/* Tri stĺpce: fotka · (meno+glyf nad pilulkami) · lišta s posterom. */}
@@ -1128,8 +1126,8 @@ function Pill({ children, dashed = false, mono = false, solid = false }: {
     <span
       className={`dogblk-pill${solid ? ' dogblk-days' : ''}`}
       style={{
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-        borderRadius: 999, textAlign: 'center',
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: PACK_SPACE.xs,
+        borderRadius: PACK_R.pill, textAlign: 'center',
         background: bg,
         // ⚠️ `border:'none'` SAMO NESTAČÍ — nasledujúci `borderStyle` ho prebije a z lemu
         // ostane `medium solid currentColor`, teda 3 px vo farbe TEXTU. Na zlatej pilulke
@@ -1188,12 +1186,9 @@ function NatureHero({
     return role && el ? `${role} / ${el}` : null;
   })();
 
-  const cardStyle = {
-    background: T.cardGrad,
-    border: `1.5px solid ${T.cardEdge}`,
-    borderRadius: 16,
-    boxShadow: T.cardShadow,
-  } as const;
+  // KARTA z matrice — vitráž je tmavý povrch, ale obal má ten istý rám a radius ako
+  // ostatné karty stránky (inline prebíja `.hub-hero` v CSS).
+  const cardStyle = PACK_BOX.card;
 
   const body = (
     <>
@@ -1212,8 +1207,8 @@ function NatureHero({
             a nadpis musí sedieť čo najbližšie k chipom a CTA. */}
         <p
           style={{
-            fontFamily: FONT_UI, fontWeight: 500, fontSize: 11.5, letterSpacing: '0.22em',
-            textTransform: 'uppercase', color: '#F5C73D', margin: '0 0 8px',
+            // Eyebrow nad nadpisom = tvar SEKCIE (`PACK_HEAD.section`).
+            ...PACK_HEAD.section, color: '#F5C73D', margin: '0 0 8px',
             textShadow: '0 2px 12px rgba(0,0,0,0.8)',
           }}
         >
@@ -1235,7 +1230,7 @@ function NatureHero({
             // Bez radu chipov pod nadpisom si medzeru k tlačidlám musí urobiť nadpis sám.
             // Rad je preč pri sólo odpovedi v nadpise AJ pri hotovej svorke (od 22.8.) —
             // podmienka teda musí byť tá istá ako pri chipoch, inak nadpis dosadne na CTA.
-            margin: (soloAnswer || allDone) ? '0 0 18px' : 0,
+            margin: (soloAnswer || allDone) ? '0 0 16px' : 0,
             textShadow: '0 4px 26px rgba(0,0,0,0.9)',
           }}
         >
@@ -1265,8 +1260,8 @@ function NatureHero({
         {!solo && missing.length > 0 && (
           <div
             style={{
-              fontFamily: FONT_UI, fontSize: 11.5, color: 'rgba(255,246,226,0.72)',
-              marginBottom: 14, textShadow: '0 2px 10px rgba(0,0,0,0.8)',
+              fontFamily: FONT_UI, fontSize: PACK_TEXT.label, color: 'rgba(255,246,226,0.72)',
+              marginBottom: PACK_SPACE.md, textShadow: '0 2px 10px rgba(0,0,0,0.8)',
             }}
           >
             {tx('pack.hub.nature.pending', 'Still missing')}:{' '}
@@ -1308,7 +1303,7 @@ function NatureHero({
               )}
               <div
                 style={{
-                  fontFamily: FONT_UI, fontSize: 10.5, letterSpacing: '0.1em',
+                  fontFamily: FONT_UI, fontSize: PACK_TEXT.micro, letterSpacing: '0.1em',
                   textTransform: 'uppercase', color: 'rgba(255,246,226,0.62)',
                   textShadow: '0 2px 10px rgba(0,0,0,0.8)',
                 }}
@@ -1339,7 +1334,7 @@ function RevealChip({ label }: { label: string }) {
       <BrandIcon name="question" size={12} tint="gold" style={{ flex: '0 0 auto' }} />
       <b
         style={{
-          fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 11.5, lineHeight: 1.2,
+          fontFamily: FONT_TITLE, fontWeight: 700, fontSize: PACK_TEXT.label, lineHeight: 1.2,
           letterSpacing: '0.08em', textTransform: 'uppercase', color: '#FFF3DA',
         }}
       >
@@ -1374,11 +1369,10 @@ function ActionTile({
       to={`/pack/dogs/quiz/${section.key}`}
       className="hub-hover"
       style={{
-        background: T.panelGrad,
-        border: `1.5px solid ${T.cardEdge}`,
-        borderRadius: 14,
-        boxShadow: T.panelShadow,
-        padding: '15px 13px',
+        // PODBLOK z matrice — dlaždica poľa pasu (katalóg `PACK_BLOCKS.PODBLOK`).
+        // Radius 14 bol chyba: ten stupeň patrí len D-BLOKU so zlatým rámom.
+        ...PACK_BOX.subblock,
+        padding: '16px 12px',
         textAlign: 'left',
         display: 'block',
         textDecoration: 'none',
@@ -1388,18 +1382,18 @@ function ActionTile({
       <h4
         style={{
           fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, letterSpacing: '0.1em',
-          textTransform: 'uppercase', color: T.inkStrong, margin: '9px 0 3px',
+          textTransform: 'uppercase', color: T.inkStrong, margin: '8px 0 4px',
         }}
       >
         {tx(section.i18n, section.labelEN)}
       </h4>
-      <p style={{ fontFamily: FONT_UI, fontSize: 11, color: T.inkWarm, margin: 0, lineHeight: 1.45 }}>
+      <p style={{ fontFamily: FONT_UI, fontSize: PACK_TEXT.label, color: T.inkWarm, margin: 0, lineHeight: 1.45 }}>
         {tx(section.subI18n, section.subEN)}
       </p>
       <span
         style={{
-          display: 'inline-block', marginTop: 8, fontFamily: FONT_UI, fontSize: 9.5,
-          letterSpacing: '0.1em', textTransform: 'uppercase', borderRadius: 999, padding: '3px 9px',
+          display: 'inline-block', marginTop: PACK_SPACE.sm, fontFamily: FONT_UI, fontSize: PACK_TEXT.micro,
+          letterSpacing: '0.1em', textTransform: 'uppercase', borderRadius: PACK_R.pill, padding: '4px 8px',
           // HOTOVO = ZELENÁ (Matej 12. 9. 2026: „pri tých 6 blokoch… sú opäť oranžové pils,
           // daj ich zelenou ak sú hotové"). Zelená znamená v brande SPLNENÉ a tú istú nesie
           // pilulka percenta v psom bloku (`.dogblk-fill.is-done`, #3D7A4E) — je to teda ten
@@ -1429,25 +1423,25 @@ function MediaTile({ section, tx }: { section: QuizSection; tx: Tx }) {
   return (
     <div
       className="flex items-center gap-3"
-      style={{ ...PACK_BOX.row, padding: '15px 16px' }}
+      style={{ ...PACK_BOX.row, padding: PACK_SPACE.lg }}
     >
       <div style={{ fontSize: 24, lineHeight: 1, flex: '0 0 auto' }}>{section.emoji}</div>
       <div style={{ minWidth: 0 }}>
         <h4
           style={{
             fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, letterSpacing: '0.1em',
-            textTransform: 'uppercase', color: T.inkStrong, margin: '0 0 3px',
+            textTransform: 'uppercase', color: T.inkStrong, margin: '0 0 4px',
           }}
         >
           {tx(section.i18n, section.labelEN)}
         </h4>
-        <p style={{ fontFamily: FONT_UI, fontSize: 11, color: T.inkWarm, margin: 0, lineHeight: 1.45 }}>
+        <p style={{ fontFamily: FONT_UI, fontSize: PACK_TEXT.label, color: T.inkWarm, margin: 0, lineHeight: 1.45 }}>
           {tx(section.subI18n, section.subEN)}
         </p>
         <span
           style={{
-            display: 'inline-block', marginTop: 6, fontFamily: FONT_UI, fontSize: 9.5,
-            letterSpacing: '0.1em', textTransform: 'uppercase', borderRadius: 999, padding: '3px 9px',
+            display: 'inline-block', marginTop: PACK_SPACE.sm, fontFamily: FONT_UI, fontSize: PACK_TEXT.micro,
+            letterSpacing: '0.1em', textTransform: 'uppercase', borderRadius: PACK_R.pill, padding: '4px 8px',
             background: 'rgba(201,154,63,0.10)',
             border: `1px solid ${T.border}`,
             color: T.inkWarm,
@@ -1474,7 +1468,8 @@ function AinubisBlock({ tx }: { tx: Tx }) {
     <div
       className="flex items-center gap-4 flex-wrap"
       style={{
-        padding: '18px 20px', borderRadius: 16,
+        // AI-PALUBA (katalóg `PACK_BLOCKS`): vlastná paleta, polomer KARTY.
+        padding: '16px 24px', borderRadius: PACK_R.card,
         background: 'radial-gradient(circle at 22% 20%, #12233a 0%, #01050A 74%)',
         border: '1px solid rgba(91,224,240,0.28)',
         boxShadow: '0 0 0 4px rgba(59,158,255,0.05), 0 18px 44px -22px rgba(59,158,255,0.45)',
@@ -1502,7 +1497,7 @@ function AinubisBlock({ tx }: { tx: Tx }) {
       <div style={{ flex: 1, minWidth: 200 }}>
         <h4
           style={{
-            fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 28, lineHeight: 1,
+            fontFamily: FONT_TITLE, fontWeight: 700, fontSize: PACK_TEXT.h1, lineHeight: 1,
             letterSpacing: '0.14em', textTransform: 'uppercase', color: AINUBIS.ink, margin: 0,
             textShadow: '0 0 22px rgba(91,224,240,0.55)',
           }}
@@ -1511,15 +1506,15 @@ function AinubisBlock({ tx }: { tx: Tx }) {
         </h4>
         <div
           style={{
-            fontFamily: FONT_UI, fontWeight: 500, fontSize: 12.5, letterSpacing: '0.06em',
-            color: '#5BE0F0', margin: '8px 0 6px',
+            fontFamily: FONT_UI, fontWeight: 500, fontSize: PACK_TEXT.label, letterSpacing: '0.06em',
+            color: '#5BE0F0', margin: '8px 0 4px',
           }}
         >
           {tx('pack.hub.ainubisTagline', 'your virtual pack member!')}
         </div>
         <p
           style={{
-            fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.55,
+            fontFamily: FONT_UI, fontSize: PACK_TEXT.label, lineHeight: 1.55,
             color: 'rgba(230,250,255,0.62)', margin: 0, maxWidth: '52ch',
           }}
         >
@@ -1550,10 +1545,9 @@ function HubSkeleton() {
       {[0, 1].map((i) => (
         <div
           key={i}
-          style={{
-            height: 132, borderRadius: 24, background: 'var(--brand-gradient)',
-            border: '1px solid hsl(45 80% 60% / 0.28)', opacity: 0.5,
-          }}
+          // Kostra má TEN ISTÝ obal ako psí blok, ktorý nahrádza (KARTA z matrice) —
+          // zlatý gradient s radiusom 24 bol zvyšok z tmavej éry.
+          style={{ ...PACK_BOX.card, height: 132, opacity: 0.5 }}
         />
       ))}
     </div>
@@ -1566,13 +1560,10 @@ function EmptyState() {
   return (
     <div
       className="flex flex-col items-center text-center gap-4"
-      style={{
-        background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`,
-        borderRadius: 16, padding: '36px 24px', boxShadow: T.cardShadow,
-      }}
+      style={{ ...PACK_BOX.card, padding: PACK_SPACE.xl }}
     >
       <BrandIcon name="bone" size={30} tint="dark" />
-      <p style={{ fontFamily: FONT_UI, fontSize: 14.5, lineHeight: 1.6, color: T.inkDim, margin: 0, maxWidth: 320 }}>
+      <p style={{ fontFamily: FONT_UI, fontSize: PACK_TEXT.body, lineHeight: 1.6, color: T.inkDim, margin: 0, maxWidth: 320 }}>
         {tx('pack.hub.empty', "No dog on your leash yet. Give one a heroglyph and it'll show up here.")}
       </p>
       <Link to="/heroglyph" className="hub-gold">

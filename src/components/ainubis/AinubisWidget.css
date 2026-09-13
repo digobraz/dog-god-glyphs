@@ -36,6 +36,27 @@
  * a práve kvôli ConsentBanneru — história v gite, keby sa bolo treba vrátiť.
  */
 
+/* ── PALETA MÁ JEDEN DOMOV: `src/components/pack/ainubisSkin.ts` ─────────────
+   Toto je samostatný .css súbor — TS token doň nedosiahne, preto tu stoja
+   CSS premenné s TÝMI ISTÝMI hodnotami (zjednotené 13. 9. 2026). Sú to jediné
+   miesta v tomto súbore, kde číslo palety stojí napísané; zvyšok číta `var()`.
+   ⚠️ Zmena čísla = zmena v ainubisSkin.ts AJ tu. Nepíš nové `#5BE0F0` ani
+   `rgba(91, 224, 240, …)` ručne — krytie skladaj z `--ainubis-cyan-rgb`. */
+:root {
+  --ainubis-cyan: #5BE0F0;              /* AINUBIS.cyan / aiInk */
+  --ainubis-cyan-rgb: 91, 224, 240;     /* AINUBIS.cyanRGB */
+  --ainubis-glow-rgb: 59, 158, 255;     /* AINUBIS.glowRGB */
+  --ainubis-bg: #071019;                /* AINUBIS.bg */
+  --ainubis-bg-deep: #03070C;           /* AINUBIS.bgDeep */
+  --ainubis-ink: #E6FAFF;               /* AINUBIS.ink */
+  --ainubis-cta-a: #F5C73D;             /* AINUBIS.ctaA */
+  --ainubis-cta-b: #E69E1A;             /* AINUBIS.ctaB */
+  --ainubis-cta-ink: #2a1608;           /* AINUBIS.ctaInk */
+  --ainubis-face-bg: radial-gradient(circle at 35% 28%, #12233a 0%, #01050A 74%); /* AINUBIS.faceBg */
+  --ainubis-ai-ink: var(--ainubis-cyan);                                  /* AINUBIS.aiInk */
+  --ainubis-ai-shadow: 0 0 16px rgba(var(--ainubis-cyan-rgb), 0.75);     /* AINUBIS.aiShadow */
+}
+
 .ainubis-launcher {
   position: fixed;
   left: auto;
@@ -51,7 +72,7 @@
   border-radius: 50%;
   border: 1.5px solid rgba(250, 244, 236, 0.30);
   background: radial-gradient(circle at 35% 30%, #101d2b 0%, #000 72%);
-  box-shadow: 0 0 0 1px rgba(91, 224, 240, 0.22), 0 6px 18px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 0 0 1px rgba(var(--ainubis-cyan-rgb), 0.22), 0 6px 18px rgba(0, 0, 0, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -86,8 +107,8 @@ body.has-pack-nav .ainubis-launcher {
 
 .ainubis-launcher:hover,
 .ainubis-launcher:focus-visible {
-  box-shadow: 0 0 0 1px rgba(91, 224, 240, 0.6), 0 0 22px rgba(91, 224, 240, 0.7),
-    0 0 46px rgba(59, 158, 255, 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--ainubis-cyan-rgb), 0.6), 0 0 22px rgba(var(--ainubis-cyan-rgb), 0.7),
+    0 0 46px rgba(var(--ainubis-glow-rgb), 0.35);
   transform: scale(1.04);
   outline: none;
 }
@@ -121,7 +142,7 @@ body.has-pack-nav .ainubis-launcher {
   height: 18px;
   padding: 0 4px;
   border-radius: 999px;
-  background: #5BE0F0;
+  background: var(--ainubis-cyan);
   color: #041018;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
@@ -130,13 +151,13 @@ body.has-pack-nav .ainubis-launcher {
   align-items: center;
   justify-content: center;
   border: 1px solid #000;
-  box-shadow: 0 0 8px rgba(91, 224, 240, 0.85);
+  box-shadow: 0 0 8px rgba(var(--ainubis-cyan-rgb), 0.85);
 }
 
 /* Jemný modrý dych — kyborgské „stand by", nie blikajúca reklama. */
 @keyframes ainubis-idle-pulse {
-  0%, 100% { box-shadow: 0 0 0 1px rgba(91, 224, 240, 0.22), 0 0 10px rgba(59, 158, 255, 0.18), 0 6px 18px rgba(0, 0, 0, 0.55); }
-  50% { box-shadow: 0 0 0 1px rgba(91, 224, 240, 0.42), 0 0 20px rgba(91, 224, 240, 0.40), 0 0 38px rgba(59, 158, 255, 0.20), 0 6px 18px rgba(0, 0, 0, 0.55); }
+  0%, 100% { box-shadow: 0 0 0 1px rgba(var(--ainubis-cyan-rgb), 0.22), 0 0 10px rgba(var(--ainubis-glow-rgb), 0.18), 0 6px 18px rgba(0, 0, 0, 0.55); }
+  50% { box-shadow: 0 0 0 1px rgba(var(--ainubis-cyan-rgb), 0.42), 0 0 20px rgba(var(--ainubis-cyan-rgb), 0.40), 0 0 38px rgba(var(--ainubis-glow-rgb), 0.20), 0 6px 18px rgba(0, 0, 0, 0.55); }
 }
 
 /* ── Panel ───────────────────────────────────────────────────────────── */
@@ -160,12 +181,12 @@ body.has-pack-nav .ainubis-launcher {
   /* CYBORG povrch: čierna so studeným nádychom + slabý modrý svit zhora, aby
      panel vyzeral ako podsvietený displej, nie ako čierny obdĺžnik. */
   background:
-    radial-gradient(120% 80% at 50% -10%, rgba(59, 158, 255, 0.16) 0%, rgba(59, 158, 255, 0) 60%),
-    linear-gradient(180deg, #071019 0%, #03070C 100%);
-  border: 1px solid rgba(91, 224, 240, 0.30);
+    radial-gradient(120% 80% at 50% -10%, rgba(var(--ainubis-glow-rgb), 0.16) 0%, rgba(var(--ainubis-glow-rgb), 0) 60%),
+    linear-gradient(180deg, var(--ainubis-bg) 0%, var(--ainubis-bg-deep) 100%);
+  border: 1px solid rgba(var(--ainubis-cyan-rgb), 0.30);
   border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(91, 224, 240, 0.10),
-    0 0 40px rgba(59, 158, 255, 0.14);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(var(--ainubis-cyan-rgb), 0.10),
+    0 0 40px rgba(var(--ainubis-glow-rgb), 0.14);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -216,7 +237,7 @@ body.has-pack-nav .ainubis-panel {
 /* Rám svieti LEN počas ťahania — nie je to režim, ktorý treba zapnúť a vypnúť,
    ale spätná väzba na to, že práve teraz držíš okno. */
 .ainubis-panel--dragging {
-  outline: 1px dashed rgba(91, 224, 240, 0.55);
+  outline: 1px dashed rgba(var(--ainubis-cyan-rgb), 0.55);
   outline-offset: 3px;
   /* Ťahanie nesmie chytať text správ ani spúšťať natívny drag obrázkov. */
   user-select: none;
@@ -228,7 +249,7 @@ body.has-pack-nav .ainubis-panel {
   padding: 10px 12px;
   /* Deliaca čiara ako svetelná stopa — jasná v strede, mizne do strán. */
   border-bottom: 1px solid transparent;
-  border-image: linear-gradient(90deg, rgba(91, 224, 240, 0) 0%, rgba(91, 224, 240, 0.45) 50%, rgba(91, 224, 240, 0) 100%) 1;
+  border-image: linear-gradient(90deg, rgba(var(--ainubis-cyan-rgb), 0) 0%, rgba(var(--ainubis-cyan-rgb), 0.45) 50%, rgba(var(--ainubis-cyan-rgb), 0) 100%) 1;
   display: flex;
   align-items: center;
   /* TRI IKONKY: dashboard vľavo, krížik vpravo, kríž na presúvanie v strede
@@ -240,8 +261,8 @@ body.has-pack-nav .ainubis-panel {
 /* „AI" v mene je modré — kúsok stroja v mene strážcu. Platí v hlavičke aj
    v intre, obe používajú ten istý span. */
 .ainubis-ai {
-  color: #5BE0F0;
-  text-shadow: 0 0 16px rgba(91, 224, 240, 0.75);
+  color: var(--ainubis-ai-ink);
+  text-shadow: var(--ainubis-ai-shadow);
 }
 
 /* Portrét, meno, podtitul a stav ONLINE tu boli do 9. 8. 2026. Odišli spolu s tým, ako
@@ -278,7 +299,7 @@ body.has-pack-nav .ainubis-panel {
 /* Pri prechode myšou zosvetlie — sľub sa má „prebrať", nie ostať mŕtvy. */
 .ainubis-panel__dash:hover,
 .ainubis-panel__dash--hint {
-  color: rgba(91, 224, 240, 0.85);
+  color: rgba(var(--ainubis-cyan-rgb), 0.85);
 }
 
 /* Bublina visí POD ikonkou a je `pointer-events:none` — inak by si pod kurzorom
@@ -293,7 +314,7 @@ body.has-pack-nav .ainubis-panel {
   padding: 4px 8px;
   border-radius: 6px;
   background: rgba(4, 16, 24, 0.96);
-  border: 1px solid rgba(91, 224, 240, 0.35);
+  border: 1px solid rgba(var(--ainubis-cyan-rgb), 0.35);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 8.5px;
@@ -333,13 +354,13 @@ body.has-pack-nav .ainubis-panel {
 }
 
 .ainubis-panel__move:hover {
-  color: #5BE0F0;
+  color: var(--ainubis-cyan);
 }
 
 /* Počas ťahania — svieti a kurzor drží zovretú ruku. */
 .ainubis-panel__move--on {
-  color: #5BE0F0;
-  text-shadow: 0 0 12px rgba(91, 224, 240, 0.8);
+  color: var(--ainubis-cyan);
+  text-shadow: 0 0 12px rgba(var(--ainubis-cyan-rgb), 0.8);
   cursor: grabbing;
 }
 
@@ -364,7 +385,7 @@ body.has-pack-nav .ainubis-panel {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #F5C73D;
+  background: var(--ainubis-cta-a);
   box-shadow: 0 0 8px rgba(245, 199, 61, 0.9);
   animation: ainubis-blip 2.4s ease-in-out infinite;
   flex-shrink: 0;
@@ -384,7 +405,7 @@ body.has-pack-nav .ainubis-panel {
 }
 
 .ainubis-panel__close:hover {
-  color: #5BE0F0;
+  color: var(--ainubis-cyan);
 }
 
 /* ── Intro (len kým je otvorená prvá konverzácia) ──────────────────────── */
@@ -403,9 +424,9 @@ body.has-pack-nav .ainubis-panel {
   height: 96px;
   object-fit: contain;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 28%, #12233a 0%, #01050A 74%);
-  border: 1px solid rgba(91, 224, 240, 0.35);
-  box-shadow: 0 0 0 6px rgba(59, 158, 255, 0.06), 0 0 34px rgba(59, 158, 255, 0.38);
+  background: var(--ainubis-face-bg);
+  border: 1px solid rgba(var(--ainubis-cyan-rgb), 0.35);
+  box-shadow: 0 0 0 6px rgba(var(--ainubis-glow-rgb), 0.06), 0 0 34px rgba(var(--ainubis-glow-rgb), 0.38);
   margin-bottom: 10px;
 }
 
@@ -416,8 +437,8 @@ body.has-pack-nav .ainubis-panel {
   letter-spacing: 0.30em;
   text-indent: 0.30em;
   text-transform: uppercase;
-  color: #E6FAFF;
-  text-shadow: 0 0 18px rgba(91, 224, 240, 0.5);
+  color: var(--ainubis-ink);
+  text-shadow: 0 0 18px rgba(var(--ainubis-cyan-rgb), 0.5);
   margin: 0;
 }
 
@@ -429,7 +450,7 @@ body.has-pack-nav .ainubis-panel {
   font-size: 9.5px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(91, 224, 240, 0.7);
+  color: rgba(var(--ainubis-cyan-rgb), 0.7);
   margin: 7px 0 0;
 }
 
@@ -437,7 +458,7 @@ body.has-pack-nav .ainubis-panel {
   width: 100%;
   height: 1px;
   margin-top: 14px;
-  background: linear-gradient(90deg, rgba(91, 224, 240, 0) 0%, rgba(91, 224, 240, 0.40) 50%, rgba(91, 224, 240, 0) 100%);
+  background: linear-gradient(90deg, rgba(var(--ainubis-cyan-rgb), 0) 0%, rgba(var(--ainubis-cyan-rgb), 0.40) 50%, rgba(var(--ainubis-cyan-rgb), 0) 100%);
 }
 
 .ainubis-panel__body {
@@ -481,7 +502,7 @@ body.has-pack-nav .ainubis-panel {
   border-radius: 50%;
   object-fit: contain;
   background: radial-gradient(circle at 35% 30%, #101d2b 0%, #000 72%);
-  border: 1px solid rgba(91, 224, 240, 0.30);
+  border: 1px solid rgba(var(--ainubis-cyan-rgb), 0.30);
   /* Portrét sedí na spodnej hrane bubliny, nie na účaří textu. */
   margin-bottom: 1px;
 }
@@ -521,23 +542,23 @@ body.has-pack-nav .ainubis-panel {
    nie biely: na zlate by biela nemala kontrast. */
 .ainubis-msg--user {
   align-self: flex-end;
-  background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
+  background: linear-gradient(135deg, var(--ainubis-cta-a) 0%, var(--ainubis-cta-b) 100%);
   border: 1px solid rgba(250, 244, 236, 0.30);
-  color: #2a1608;
+  color: var(--ainubis-cta-ink);
   box-shadow: 0 0 18px rgba(245, 199, 61, 0.26);
 }
 
 .ainubis-msg--assistant {
   align-self: flex-start;
-  background: linear-gradient(180deg, rgba(91, 224, 240, 0.09) 0%, rgba(91, 224, 240, 0.04) 100%);
-  border: 1px solid rgba(91, 224, 240, 0.22);
+  background: linear-gradient(180deg, rgba(var(--ainubis-cyan-rgb), 0.09) 0%, rgba(var(--ainubis-cyan-rgb), 0.04) 100%);
+  border: 1px solid rgba(var(--ainubis-cyan-rgb), 0.22);
   color: #E2F0F8;
 }
 
 .ainubis-msg--system {
   align-self: center;
   background: transparent;
-  border: 1px dashed rgba(91, 224, 240, 0.35);
+  border: 1px dashed rgba(var(--ainubis-cyan-rgb), 0.35);
   color: rgba(226, 240, 248, 0.65);
   font-size: 10.5px;
   text-align: center;
@@ -557,7 +578,7 @@ body.has-pack-nav .ainubis-panel {
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #F5C73D;
+  color: var(--ainubis-cta-a);
 }
 
 .ainubis-typing {
@@ -565,7 +586,7 @@ body.has-pack-nav .ainubis-panel {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 11px;
   letter-spacing: 0.06em;
-  color: rgba(91, 224, 240, 0.7);
+  color: rgba(var(--ainubis-cyan-rgb), 0.7);
 }
 
 .ainubis-suggestions {
@@ -591,15 +612,15 @@ body.has-pack-nav .ainubis-panel {
 }
 
 .ainubis-suggestion:hover {
-  background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
+  background: linear-gradient(135deg, var(--ainubis-cta-a) 0%, var(--ainubis-cta-b) 100%);
   border-color: rgba(250, 244, 236, 0.30);
-  color: #2a1608;
+  color: var(--ainubis-cta-ink);
   box-shadow: 0 0 16px rgba(245, 199, 61, 0.30);
 }
 
 .ainubis-composer {
   flex-shrink: 0;
-  border-top: 1px solid rgba(91, 224, 240, 0.20);
+  border-top: 1px solid rgba(var(--ainubis-cyan-rgb), 0.20);
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
@@ -628,7 +649,7 @@ body.has-pack-nav .ainubis-panel {
   border-radius: 50%;
   background: #000;
   border: 1px solid rgba(245, 199, 61, 0.6);
-  color: #F5C73D;
+  color: var(--ainubis-cta-a);
   font-size: 11px;
   line-height: 1;
   cursor: pointer;
@@ -641,14 +662,14 @@ body.has-pack-nav .ainubis-panel {
 /* Hlasovka — ľudská akcia, teda zlatá. Počas nahrávania tlačidlo pulzuje
    a nad poľom svieti riadok „Počúvam…", aby bolo jasné, že mikrofón beží. */
 .ainubis-composer__mic--live {
-  background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
+  background: linear-gradient(135deg, var(--ainubis-cta-a) 0%, var(--ainubis-cta-b) 100%);
   border-color: rgba(250, 244, 236, 0.30);
-  color: #2a1608;
+  color: var(--ainubis-cta-ink);
   animation: ainubis-mic-pulse 1.6s ease-in-out infinite;
 }
 
 .ainubis-composer__mic--live:hover {
-  color: #2a1608;
+  color: var(--ainubis-cta-ink);
 }
 
 @keyframes ainubis-mic-pulse {
@@ -671,7 +692,7 @@ body.has-pack-nav .ainubis-panel {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #F5C73D;
+  background: var(--ainubis-cta-a);
   box-shadow: 0 0 8px rgba(245, 199, 61, 0.9);
   animation: ainubis-blip 1.2s ease-in-out infinite;
   flex-shrink: 0;
@@ -701,8 +722,8 @@ body.has-pack-nav .ainubis-panel {
 .ainubis-composer__textarea {
   flex: 1 1 auto;
   resize: none;
-  background: rgba(91, 224, 240, 0.05);
-  border: 1px solid rgba(91, 224, 240, 0.22);
+  background: rgba(var(--ainubis-cyan-rgb), 0.05);
+  border: 1px solid rgba(var(--ainubis-cyan-rgb), 0.22);
   border-radius: 10px;
   padding: 8px 10px;
   color: #E2F0F8;
@@ -726,7 +747,7 @@ body.has-pack-nav .ainubis-panel {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  border: 1px solid rgba(91, 224, 240, 0.22);
+  border: 1px solid rgba(var(--ainubis-cyan-rgb), 0.22);
   background: transparent;
   color: rgba(207, 243, 250, 0.7);
   cursor: pointer;
@@ -738,21 +759,21 @@ body.has-pack-nav .ainubis-panel {
 
 .ainubis-composer__icon-btn:hover {
   border-color: rgba(245, 199, 61, 0.65);
-  color: #F5C73D;
+  color: var(--ainubis-cta-a);
 }
 
 /* Odoslanie = ľudská akcia → brandová zlatá dvojica `.btn-gold` (F5C73D→E69E1A)
    s papyrusovým okrajom. Radius ostáva 10, aby sedel s poľom vedľa. */
 .ainubis-composer__send {
-  background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
+  background: linear-gradient(135deg, var(--ainubis-cta-a) 0%, var(--ainubis-cta-b) 100%);
   border: 1px solid rgba(250, 244, 236, 0.30);
-  color: #2a1608;
+  color: var(--ainubis-cta-ink);
   box-shadow: 0 0 16px rgba(245, 199, 61, 0.35);
 }
 
 .ainubis-composer__send:hover {
   border-color: rgba(250, 244, 236, 0.55);
-  color: #2a1608;
+  color: var(--ainubis-cta-ink);
   box-shadow: 0 0 22px rgba(245, 199, 61, 0.5);
 }
 
@@ -818,8 +839,8 @@ body.has-pack-nav .ainubis-panel {
   flex-direction: column;
   gap: 2px;
   text-align: left;
-  background: linear-gradient(180deg, rgba(91, 224, 240, 0.07) 0%, rgba(91, 224, 240, 0.03) 100%);
-  border: 1px solid rgba(91, 224, 240, 0.28);
+  background: linear-gradient(180deg, rgba(var(--ainubis-cyan-rgb), 0.07) 0%, rgba(var(--ainubis-cyan-rgb), 0.03) 100%);
+  border: 1px solid rgba(var(--ainubis-cyan-rgb), 0.28);
   border-radius: 8px;
   padding: 8px 11px;
   cursor: pointer;
@@ -827,8 +848,8 @@ body.has-pack-nav .ainubis-panel {
 }
 
 .ainubis-door:hover {
-  border-color: rgba(91, 224, 240, 0.55);
-  box-shadow: 0 0 18px rgba(59, 158, 255, 0.18);
+  border-color: rgba(var(--ainubis-cyan-rgb), 0.55);
+  box-shadow: 0 0 18px rgba(var(--ainubis-glow-rgb), 0.18);
 }
 
 .ainubis-door__label {
@@ -897,7 +918,7 @@ body.has-pack-nav .ainubis-panel {
 .ainubis-switch__pill {
   flex: 1 1 0;
   background: transparent;
-  border: 1px solid rgba(91, 224, 240, 0.20);
+  border: 1px solid rgba(var(--ainubis-cyan-rgb), 0.20);
   border-radius: 999px;
   padding: 4px 8px;
   font-family: 'Space Grotesk', sans-serif;
@@ -908,11 +929,11 @@ body.has-pack-nav .ainubis-panel {
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.ainubis-switch__pill:hover { color: #9BE9F6; border-color: rgba(91, 224, 240, 0.45); }
+.ainubis-switch__pill:hover { color: #9BE9F6; border-color: rgba(var(--ainubis-cyan-rgb), 0.45); }
 
 .ainubis-switch__pill--on {
-  background: rgba(91, 224, 240, 0.12);
-  border-color: rgba(91, 224, 240, 0.55);
+  background: rgba(var(--ainubis-cyan-rgb), 0.12);
+  border-color: rgba(var(--ainubis-cyan-rgb), 0.55);
   color: #9BE9F6;
 }
 

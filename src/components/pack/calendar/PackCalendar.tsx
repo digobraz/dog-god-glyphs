@@ -27,7 +27,9 @@
 // ════════════════════════════════════════════════════════════════════════════
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, PF_FIELD_CSS } from '@/components/pack/packTheme';
+import {
+  PACK_THEME, PACK_BOX, PACK_HEAD, PACK_R, PACK_SHADOW, FONT_TITLE, FONT_UI, PF_FIELD_CSS,
+} from '@/components/pack/packTheme';
 import { LAPIS, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 // ⚠️ `ainubis-head.png` (800 px, PRIEHĽADNÉ okolie), NIE `ainubis-badge.png` — badge je
@@ -55,6 +57,16 @@ import { estimateLife, SIZE_NAME_SK, type LifeEstimate } from '@/data/breedLifes
 
 const T = PACK_THEME;
 const EMOJI_FONT = "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
+
+/** Záznam matrice `PACK_BOX` ako CSS text — do template literalu sa spread nedá,
+ *  a opísať štyri hodnoty ručne znamená mať ich o mesiac iné než v matrici. */
+const boxCSS = (b: { background: string; border: string; borderRadius: number; boxShadow?: string }): string =>
+  `background:${b.background};border:${b.border};border-radius:${b.borderRadius}px`
+  + (b.boxShadow ? `;box-shadow:${b.boxShadow}` : '');
+/** Tvar nadpisu (`PACK_HEAD.*`) ako CSS text. */
+const headCSS = (h: typeof PACK_HEAD.card | typeof PACK_HEAD.section): string =>
+  `font-family:${h.fontFamily};font-weight:${h.fontWeight};font-size:${h.fontSize}px;`
+  + `letter-spacing:${h.letterSpacing};text-transform:${h.textTransform}`;
 
 /**
  * Desatinné číslo v jazyku, v ktorom appka práve hovorí. `String(29.5)` dá
@@ -127,6 +139,11 @@ const DOW_SK = ['Po', 'Ut', 'St', 'Št', 'Pi', 'So', 'Ne'];
 // ⚠️ Tým padol aj `matchMedia` pri štarte — pohľad už nezávisí od šírky okna,
 // takže dve šírky dostanú tú istú prvú obrazovku. Hranica 700 px žije ďalej
 // len v CSS (`@media(max-width:700px)` na konci tohto súboru).
+
+
+/** Dni, ktoré v ročnom pohľade nesú číslo. Zvyšné bunky ostávajú prázdne — pri 31
+ *  stĺpcoch na ~250 px sa dvojciferné čísla pri 10 px prekrývajú. */
+const DAY_TICKS = new Set([1, 5, 10, 15, 20, 25, 31]);
 
 export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; latest: Latest; tx: Tx }) {
   const year = new Date().getFullYear();
@@ -317,13 +334,13 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
           Na mobile sa zalomí pod nadpis a zaberie celú šírku, aby sa tri slová
           nestlačili do rohu. */}
       <div className="cal-head">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <BrandIcon name="bars" size={24} tint="gold" />
-          <h2 style={{ fontFamily: FONT_TITLE, fontSize: 24, fontWeight: 700, letterSpacing: '0.14em', color: T.inkStrong, lineHeight: 1.05, textTransform: 'uppercase' }}>
+          <h2 style={{ ...PACK_HEAD.card, color: T.inkStrong, lineHeight: 1.05 }}>
             {tx('pack.cal.title', 'Kalendár')}
           </h2>
         </div>
-        <div className="pf-toggle inline-flex items-center cal-viewsw" style={{ borderRadius: 999, padding: 3, gap: 3 }}>
+        <div className="pf-toggle inline-flex items-center cal-viewsw" style={{ borderRadius: PACK_R.pill, padding: 4, gap: 4 }}>
           {(['life', 'year', 'month'] as const).map((v) => (
             <button
               key={v} type="button"
@@ -464,7 +481,13 @@ function YearGrid({
       <div className="cal-yr">
         <span />
         <div className="cal-yr-hdnum" aria-hidden>
-          {Array.from({ length: 31 }, (_, i) => <span key={i}>{i + 1}</span>)}
+          {/* ⚠️ Bunka dňa má na mobile ~4,8 px, najmenšie povolené písmo je 10 px
+              (`PACK_TEXT.micro`) — všetkých 31 čísel vedľa seba je nečitateľná kaša
+              („1111111111222222…"). Píšu sa preto len ORIENTAČNÉ dni; ostatné bunky
+              ostávajú, aby mriežka sedela so stĺpcami pod ňou. */}
+          {Array.from({ length: 31 }, (_, i) => (
+            <span key={i} className={DAY_TICKS.has(i + 1) ? 'is-tick' : undefined}>{i + 1}</span>
+          ))}
         </div>
         <div className="cal-yr-hdrail">{tx('pack.cal.periods', 'Obdobia')}</div>
 
@@ -555,7 +578,7 @@ function YearGrid({
           )}
         </div>
       </div>
-      <p className="cal-note" style={{ marginTop: 10 }}>
+      <p className="cal-note" style={{ marginTop: 12 }}>
         {tx('pack.cal.yearNote', 'Bunka nesie jeden deň. Všetko, čo trvá — sezóna, okno protokolu, kliešte — stojí vpravo a má meno.')}
       </p>
     </>
@@ -650,7 +673,7 @@ function MonthGrid({
           );
         })}
       </div>
-      <p className="cal-note" style={{ marginTop: 10 }}>
+      <p className="cal-note" style={{ marginTop: 12 }}>
         {tx('pack.cal.monthNote', 'Kalendár kreslí len to, čo má deň. Výlet bez dátumu tu nie je — ostáva v tripliste.')}
       </p>
     </>
@@ -766,7 +789,7 @@ function DayPopup({
         <div className="cal-when">{when}</div>
 
         {empty && (
-          <p className="cal-note" style={{ marginBottom: 10 }}>
+          <p className="cal-note" style={{ marginBottom: 12 }}>
             {tx('pack.cal.emptyDay', 'Tento deň je zatiaľ prázdny. To nie je dlh — je to len deň.')}
           </p>
         )}
@@ -798,7 +821,7 @@ function DayPopup({
             <>
               <b>{title}</b>
               {e.text && <p>{e.text}</p>}
-              <p style={{ color: col, marginTop: 3, fontWeight: 600 }}>
+              <p style={{ color: col, marginTop: 4, fontWeight: 600 }}>
                 {typeName(e.kind)} · {nameOf(e.dogId)}
               </p>
             </>
@@ -822,7 +845,7 @@ function DayPopup({
           </div>
         ))}
 
-        <p className="cal-note" style={{ marginTop: 10, textAlign: 'center' }}>
+        <p className="cal-note" style={{ marginTop: 12, textAlign: 'center' }}>
           {tx('pack.cal.closeHint', 'Klikni mimo bloku alebo Esc')}
         </p>
       </div>
@@ -831,7 +854,11 @@ function DayPopup({
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// CSS. Rozmery sú prenesené z nákresu 1:1 — tam sa ladili na živých dátach.
+// CSS. Rozmery boli prenesené z nákresu 1:1; 13. 9. 2026 (nákres dizajnového systému,
+// 11/11) sa PRICHYTILI na stupnice: polomery `PACK_R`, písmo `PACK_TEXT`, odsadenia
+// `PACK_SPACE`, obaly `PACK_BOX` (cez `boxCSS`), nadpisy `PACK_HEAD` (cez `headCSS`).
+// ⚠️ Medzery MRIEŽKY (1–3 px medzi bunkami dňa/týždňa) na rebríku NIE SÚ a ostali —
+//    52 buniek v riadku 4 px medzeru neunesie; je to hairline, nie odsadenie.
 // ⚠️ JE TO JS TEMPLATE LITERAL: spätný apostrof v komentári zhodí build a `tsc`
 //    to nechytí. Po zásahu pusti `npm run check:css` z `vystupy/web/`.
 // ⚠️ Výber JE PRIESVITNÝ TINT, nie plná farba (brand lock 2026-08-26) — plná
@@ -1483,36 +1510,37 @@ const CAL_CSS = `
 /* Nadpis vľavo, prepínač pohľadu v PRAVOM HORNOM ROHU bloku (13. 9. 2026).
    Na telefóne sa zalomí pod nadpis a roztiahne na celú šírku — tri slová
    stlačené do rohu 360 px displeja sa nedajú trafiť palcom. */
-.cal-head{display:flex;align-items:center;justify-content:space-between;gap:10px 14px;flex-wrap:wrap;margin-bottom:14px}
-.cal-ctl{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-bottom:10px}
-.cal-layers{display:flex;gap:7px;flex-wrap:wrap}
-.cal-lay{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;
-  font-family:${FONT_UI};font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+.cal-head{display:flex;align-items:center;justify-content:space-between;gap:8px 16px;flex-wrap:wrap;margin-bottom:16px}
+.cal-ctl{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:12px}
+.cal-layers{display:flex;gap:8px;flex-wrap:wrap}
+.cal-lay{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;
+  font-family:${FONT_UI};font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
   cursor:pointer;border:1px solid ${T.border};background:${T.tileBg};color:${T.inkWarm};user-select:none}
 /* Vypnutá vrstva je TICHÁ PILULKA, nie preškrtnutá: preškrtnutie hovorí „chyba",
    pritom vypnutá vrstva je legitímny stav, ktorý si človek práve vybral. */
 .cal-lay.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis)}}
 .cal-lay .cal-dot{width:8px;height:8px;border-radius:2px;background:currentColor;opacity:.75;flex:0 0 auto}
-.cal-dogsel{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.cal-dogsel{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
 /* Meno psa je na OFICIÁLNYCH povrchoch Cinzel Decorative (DOG ID, certifikát,
    WALL), ale filter kalendára oficiálny povrch NIE JE — brand lock zúžený
    2026-08-14: mapa, zoznamy a bežná prevádzka smú mať meno v obyčajnom Cinzeli. */
-.cal-dogpill{font-family:${FONT_TITLE};font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-  padding:6px 13px;border-radius:999px;border:1px solid ${T.border};background:${T.tileBg};color:${T.inkWarm};cursor:pointer}
+.cal-dogpill{font-family:${FONT_TITLE};font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  padding:8px 12px;border-radius:999px;border:1px solid ${T.border};background:${T.tileBg};color:${T.inkWarm};cursor:pointer}
 .cal-dogpill.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis)}}
-.cal-note{font-family:${FONT_UI};font-size:10.5px;line-height:1.55;color:${T.inkFaint};margin:0}
+.cal-note{font-family:${FONT_UI};font-size:10px;line-height:1.55;color:${T.inkFaint};margin:0}
 
 /* ── ROK: menovka mesiaca · 31 dní · pás období ─────────────────────────── */
-.cal-yr{display:grid;grid-template-columns:76px 1fr 200px;column-gap:9px;row-gap:3px}
+.cal-yr{display:grid;grid-template-columns:76px 1fr 200px;column-gap:8px;row-gap:4px}
 .cal-yr-hdnum{display:flex;gap:3px;min-width:0;align-items:flex-end}
-.cal-yr-hdnum span{flex:1 1 0;min-width:0;text-align:center;font-family:ui-monospace,Menlo,monospace;font-size:7px;color:${T.inkFaint}}
-.cal-yr-hdrail{font-family:${FONT_TITLE};font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:${T.inkFaint};align-self:end;padding-bottom:2px}
-.cal-mlbl{display:flex;flex-direction:column;justify-content:center;border-radius:6px;padding:3px 6px;min-width:0}
-.cal-mlbl b{font-family:${FONT_TITLE};font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;line-height:1.15}
-.cal-mlbl i{font-style:normal;font-size:6.6px;letter-spacing:.05em;text-transform:uppercase;opacity:.9;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-yr-hdnum span{flex:1 1 0;min-width:0;text-align:center;font-family:ui-monospace,Menlo,monospace;font-size:10px;color:${T.inkFaint};visibility:hidden}
+.cal-yr-hdnum span.is-tick{visibility:visible;overflow:visible;white-space:nowrap}
+.cal-yr-hdrail{font-family:${FONT_TITLE};font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:${T.inkFaint};align-self:end;padding-bottom:2px}
+.cal-mlbl{display:flex;flex-direction:column;justify-content:center;border-radius:8px;padding:4px 8px;min-width:0}
+.cal-mlbl b{font-family:${FONT_TITLE};font-size:10px;letter-spacing:.08em;text-transform:uppercase;line-height:1.15}
+.cal-mlbl i{font-style:normal;font-size:10px;letter-spacing:.05em;text-transform:uppercase;opacity:.9;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cal-mlbl.mine{box-shadow:inset 0 0 0 1.5px currentColor}
 .cal-yr-cells{display:flex;gap:3px;min-width:0;align-items:center}
-.cal-cell{flex:1 1 0;min-width:0;aspect-ratio:1/1;border-radius:3px;position:relative;cursor:pointer}
+.cal-cell{flex:1 1 0;min-width:0;aspect-ratio:1/1;border-radius:2px;position:relative;cursor:pointer}
 .cal-cell.void{background:transparent!important;cursor:default;pointer-events:none}
 .cal-cell.ringBirth{box-shadow:inset 0 0 0 1.8px ${T.accentGold}}
 .cal-cell.ringHuman{box-shadow:inset 0 0 0 1.2px rgba(201,154,63,.6)}
@@ -1525,51 +1553,53 @@ const CAL_CSS = `
 .cal-cell .moonN{background:rgba(36,26,9,.62)}
 .cal-cell.today{outline:2px solid ${LAPIS.edge};outline-offset:1px}
 .cal-rail{grid-column:3;grid-row:2/14;display:grid;grid-template-columns:1fr 1fr 20px;grid-template-rows:repeat(12,1fr);gap:3px;align-self:stretch}
-.cal-bar{border-radius:5px;padding:2px 5px;display:flex;align-items:center;gap:4px;font-family:${FONT_UI};font-size:8.5px;font-weight:600;line-height:1.15;overflow:hidden;min-width:0}
+.cal-bar{border-radius:8px;padding:4px;display:flex;align-items:center;gap:4px;font-family:${FONT_UI};font-size:10px;font-weight:600;line-height:1.15;overflow:hidden;min-width:0}
 .cal-bar span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .cal-bar em{font-style:normal;font-size:10px;flex:0 0 auto}
-.cal-barnat{grid-column:3;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px}
+.cal-barnat{grid-column:3;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px}
 
 /* ── MESIAC ─────────────────────────────────────────────────────────────── */
-.cal-monav{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:10px}
+.cal-monav{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px}
 .cal-monav button{border:1.5px solid ${T.border};background:${T.tileBg};border-radius:8px;width:34px;height:30px;font-size:14px;color:${T.inkWarm};cursor:pointer}
-.cal-moname{font-family:${FONT_TITLE};font-size:15px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:${T.inkStrong}}
-.cal-band{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-.cal-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-family:${FONT_UI};
-  font-size:10.5px;font-weight:600;border:1px solid ${T.border};background:${T.tileBg};color:${T.inkWarm}}
-.cal-chip small{font-size:9px;opacity:.75;font-weight:500}
-.cal-mogrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-.cal-dow{text-align:center;font-family:${FONT_TITLE};font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:${T.inkFaint};padding-bottom:2px}
+.cal-moname{font-family:${FONT_TITLE};font-size:16px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:${T.inkStrong}}
+.cal-band{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.cal-chip{display:inline-flex;align-items:center;gap:8px;padding:4px 12px;border-radius:999px;font-family:${FONT_UI};
+  font-size:10px;font-weight:600;border:1px solid ${T.border};background:${T.tileBg};color:${T.inkWarm}}
+.cal-chip small{font-size:10px;opacity:.75;font-weight:500}
+.cal-mogrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-dow{text-align:center;font-family:${FONT_TITLE};font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:${T.inkFaint};padding-bottom:4px}
 /* Bunka mesiaca je NEUTRÁLNA. Sezóna aj okná protokolu sú v pilulkách nad
    mriežkou, takže ich netreba opakovať 31-krát pod sebou — a zápis konečne vidno. */
-.cal-mocell{min-height:74px;border-radius:9px;border:1px solid rgba(179,130,45,.30);position:relative;padding:4px;
-  display:flex;flex-direction:column;cursor:pointer;background:${T.tileBg};overflow:hidden}
+.cal-mocell{${boxCSS(PACK_BOX.row)};min-height:74px;position:relative;padding:4px;
+  display:flex;flex-direction:column;cursor:pointer;overflow:hidden}
 .cal-mocell.out{opacity:.25;cursor:default;pointer-events:none}
 .cal-mocell.today{border:1.5px solid ${LAPIS.edge};box-shadow:0 0 0 2px rgba(22,48,122,.14)}
 .cal-monum{font-family:ui-monospace,Menlo,monospace;font-size:10px;color:${T.inkWarm};line-height:1}
-.cal-momk{margin-top:auto;display:flex;gap:3px;flex-wrap:wrap;font-size:16px;line-height:1}
-.cal-momk u{font-style:normal;text-decoration:none;font-family:ui-monospace,Menlo,monospace;font-size:9px;color:${T.inkWarm};align-self:center}
+.cal-momk{margin-top:auto;display:flex;gap:4px;flex-wrap:wrap;font-size:16px;line-height:1}
+.cal-momk u{font-style:normal;text-decoration:none;font-family:ui-monospace,Menlo,monospace;font-size:10px;color:${T.inkWarm};align-self:center}
 .cal-momoon{position:absolute;top:4px;right:4px;width:9px;height:9px;border-radius:50%;border:1.4px solid #6b5a34}
 
 /* ── POPUP DŇA ──────────────────────────────────────────────────────────── */
-.cal-popbg{position:fixed;inset:0;background:rgba(20,12,4,.55);display:flex;align-items:center;justify-content:center;padding:18px;z-index:60}
-.cal-pop{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;padding:18px 18px 16px;max-width:420px;width:100%;
-  box-shadow:${T.panelShadow};max-height:86vh;overflow:auto}
-.cal-pop h4{font-family:${FONT_TITLE};font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin:0 0 2px;color:${T.inkStrong}}
-.cal-when{font-family:${FONT_UI};font-size:11px;color:${T.inkWarm};margin-bottom:12px}
-.cal-entry{display:flex;gap:10px;align-items:flex-start;background:${T.tileBg};border:1px solid ${T.border};border-radius:10px;padding:10px 11px;margin-bottom:7px}
-.cal-ico{font-size:17px;line-height:1.1;flex:0 0 auto}
+.cal-popbg{position:fixed;inset:0;background:rgba(20,12,4,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:60}
+.cal-pop{${boxCSS(PACK_BOX.panel)};padding:16px;max-width:420px;width:100%;
+  max-height:86vh;overflow:auto}
+.cal-pop h4{font-family:${FONT_TITLE};font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin:0 0 4px;color:${T.inkStrong}}
+.cal-when{font-family:${FONT_UI};font-size:12px;color:${T.inkWarm};margin-bottom:12px}
+.cal-entry{${boxCSS(PACK_BOX.row)};display:flex;gap:8px;align-items:flex-start;padding:8px 12px;margin-bottom:8px}
+.cal-ico{font-size:16px;line-height:1.1;flex:0 0 auto}
 .cal-entry b{font-family:${FONT_TITLE};font-size:12px;font-weight:700;letter-spacing:.06em;display:block;margin-bottom:2px;color:${T.inkStrong}}
-.cal-entry p{font-family:${FONT_UI};font-size:11.5px;color:${T.inkWarm};margin:0;line-height:1.5}
+.cal-entry p{font-family:${FONT_UI};font-size:12px;color:${T.inkWarm};margin:0;line-height:1.5}
 
 /* ── LEGENDA ────────────────────────────────────────────────────────────── */
 .cal-lgroup{margin-top:16px}
-.cal-lgtitle{font-family:${FONT_TITLE};font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:${T.accentGold};margin-bottom:7px}
+/* Názov SEKCIE vnútri karty = PACK_HEAD.section (Space Grotesk 500 / 10 / .22em) —
+   do 13. 9. tu bol Cinzel 9,5 px, teda siedmy tvar nadpisu v appke. */
+.cal-lgtitle{${headCSS(PACK_HEAD.section)};color:${T.accentGold};margin-bottom:8px}
 .cal-lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:8px}
 .cal-lg{display:flex;gap:8px;align-items:center}
-.cal-lg .cal-sw{width:17px;height:17px;border-radius:4px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:11px}
-.cal-lg b{font-family:${FONT_TITLE};font-size:11px;font-weight:700;display:block;line-height:1.2;color:${T.inkStrong}}
-.cal-lg span{font-family:${FONT_UI};font-size:9.5px;color:${T.inkFaint};display:block}
+.cal-lg .cal-sw{width:17px;height:17px;border-radius:2px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:12px}
+.cal-lg b{font-family:${FONT_TITLE};font-size:12px;font-weight:700;display:block;line-height:1.2;color:${T.inkStrong}}
+.cal-lg span{font-family:${FONT_UI};font-size:10px;color:${T.inkFaint};display:block}
 
 /* Pás období sa pod 860 px NEZMRŠŤUJE, ale ODCHÁDZA: jeho mená potrebujú šírku
    a v pohľade MESIAC sú tie isté okná ako pilulky nad mriežkou, kde je na ne miesto. */
@@ -1579,7 +1609,7 @@ const CAL_CSS = `
   .cal-yr-hdrail{display:none}
 }
 @media(max-width:700px){
-  .cal-mocell{min-height:0;aspect-ratio:1/1;padding:3px;border-radius:7px}
+  .cal-mocell{min-height:0;aspect-ratio:1/1}
   .cal-momk{font-size:12px}
   .cal-mogrid{gap:4px}
   /* Prepínač pohľadu na celú šírku — tri rovnaké diely, palcom trafiteľné. */
@@ -1590,29 +1620,28 @@ const CAL_CSS = `
 .cal-life{margin-top:2px}
 /* Úvodná veta — Matejov text pod nadpisom bloku. Šírka je obmedzená: riadok
    cez celých 1100 px sa nečíta, oko stratí návrat na začiatok. */
-.cal-intro{font-family:${FONT_UI};font-size:12.5px;line-height:1.6;color:${T.inkWarm};
-  max-width:62ch;margin:0 0 14px}
+.cal-intro{font-family:${FONT_UI};font-size:12px;line-height:1.6;color:${T.inkWarm};
+  max-width:62ch;margin:0 0 16px}
 /* ĽAVÁ POLOVICA = ČÍSLA POD SEBOU, PRAVÁ = LEGENDA (13. 9. 2026).
    Pravý stĺpec je širší: legenda má štyri položky s dvoma riadkami textu,
    dlaždice majú jedno číslo. Pri rovnakých dieloch sa legenda lámala na štyri
    riadky, kým vedľa nej stál poloprázdny stĺpec. */
 .cal-lifetop{display:grid;grid-template-columns:minmax(0,0.85fr) minmax(0,1.15fr);
-  gap:12px 18px;align-items:start;margin-bottom:12px}
+  gap:12px 16px;align-items:start;margin-bottom:12px}
 .cal-lifehead{display:flex;flex-direction:column;gap:8px;margin-bottom:0}
-.cal-lifestat{min-width:0;
-  background:${T.tileBg};border:1px solid ${T.border};border-radius:10px;padding:9px 12px}
-.cal-lifestat b{display:block;font-family:${FONT_TITLE};font-size:21px;font-weight:700;line-height:1.05;color:${T.inkStrong}}
+.cal-lifestat{${boxCSS(PACK_BOX.row)};min-width:0;padding:8px 12px}
+.cal-lifestat b{display:block;font-family:${FONT_TITLE};font-size:20px;font-weight:700;line-height:1.05;color:${T.inkStrong}}
 .cal-lifestat b i{font-style:normal;font-size:12px;opacity:.6;margin-right:4px}
 .cal-lifestat{position:relative}
-.cal-lifestat span{display:block;font-family:${FONT_UI};font-size:9.5px;letter-spacing:.1em;
-  text-transform:uppercase;color:${T.inkFaint};margin-top:3px}
+.cal-lifestat span{display:block;font-family:${FONT_UI};font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:${T.inkFaint};margin-top:4px}
 /* Prevod veľkého čísla na ľudský vek — tichý riadok pod popiskom, nie druhé
    číslo: dlaždica má jednu hlavnú hodnotu a toto je jej preklad. */
-.cal-lifestat u{display:block;font-family:${FONT_UI};font-size:10.5px;text-decoration:none;
-  color:${T.inkWarm};margin-top:5px;line-height:1.35}
+.cal-lifestat u{display:block;font-family:${FONT_UI};font-size:10px;text-decoration:none;
+  color:${T.inkWarm};margin-top:4px;line-height:1.35}
 /* ✎ vedie do DOG ID, needituje tu — preto je tichá a malá. */
 .cal-statedit{position:absolute;top:6px;right:8px;font-size:12px;line-height:1;color:${T.cardEdge};
-  text-decoration:none;padding:2px 4px;border-radius:6px}
+  text-decoration:none;padding:4px;border-radius:8px}
 .cal-statedit:hover{color:${T.inkStrong};background:rgba(201,154,63,.16)}
 .cal-lifesrc{margin-bottom:12px}
 /* Legenda stojí v pravom stĺpci, takže sa skladá na DVA stĺpce po dvoch —
@@ -1620,17 +1649,17 @@ const CAL_CSS = `
 .cal-lifetop .cal-lgroup{margin-top:0}
 .cal-lifetop .cal-lgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
 /* Veta o psovi, ktorý odišiel. Cinzel a pokoj — nie štatistika, nie tučné. */
-.cal-bestlife{font-family:${FONT_TITLE};font-size:15px;font-weight:700;letter-spacing:.1em;
-  text-transform:uppercase;color:${T.accentGold};text-align:center;margin:2px 0 14px}
+.cal-bestlife{font-family:${FONT_TITLE};font-size:16px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:${T.accentGold};text-align:center;margin:2px 0 16px}
 
 /* Mriežka nesmie tlačiť stránku do vodorovného rolovania — 52 buniek sa vojde
    do šírky vždy, lebo bunka je zlomok riadku, nie pevné číslo. */
 /* ⚠️ Mriežka má po stranách 10 px vzduchu ZÁMERNE: hrany pásma dožitia z nej
    o pol bunky trčia (.cal-medline), a bez rezervy by ich overflow:hidden
    vpravo odrezal a vľavo by naliezli na číslo roka. */
-.cal-lifewrap{overflow:hidden;padding:0 10px;margin:0 -10px}
-.cal-lifegrid{display:grid;grid-template-columns:22px 1fr;row-gap:2px;column-gap:11px;align-items:center}
-.cal-lifeyr{font-family:ui-monospace,Menlo,monospace;font-size:8px;color:${T.inkFaint};text-align:right;line-height:1}
+.cal-lifewrap{overflow:hidden;padding:0 12px;margin:0 -12px}
+.cal-lifegrid{display:grid;grid-template-columns:22px 1fr;row-gap:2px;column-gap:12px;align-items:center}
+.cal-lifeyr{font-family:ui-monospace,Menlo,monospace;font-size:10px;color:${T.inkFaint};text-align:right;line-height:1}
 .cal-liferow{display:flex;gap:2px;min-width:0;padding-bottom:1px}
 /* Vyblednutá zóna 20–30 — história, nie predpoveď. */
 .cal-lifeyr.faded{opacity:.4}
@@ -1663,11 +1692,11 @@ const CAL_CSS = `
 .cal-lifeyr.inband::before{content:'';position:absolute;left:-3px;right:-2px;top:-1px;bottom:-1px;
   pointer-events:none;
   box-shadow:inset 1px 0 0 ${T.accentGold},inset -1px 0 0 ${T.accentGold}}
-.cal-lifeyr.inband.bandtop::before{top:0;border-radius:3px 3px 0 0;
+.cal-lifeyr.inband.bandtop::before{top:0;border-radius:2px 2px 0 0;
   box-shadow:inset 1px 0 0 ${T.accentGold},inset -1px 0 0 ${T.accentGold},inset 0 1px 0 ${T.accentGold}}
-.cal-lifeyr.inband.bandbot::before{bottom:0;border-radius:0 0 3px 3px;
+.cal-lifeyr.inband.bandbot::before{bottom:0;border-radius:0 0 2px 2px;
   box-shadow:inset 1px 0 0 ${T.accentGold},inset -1px 0 0 ${T.accentGold},inset 0 -1px 0 ${T.accentGold}}
-.cal-lifeyr.inband.bandtop.bandbot::before{box-shadow:inset 0 0 0 1px ${T.accentGold};border-radius:3px}
+.cal-lifeyr.inband.bandtop.bandbot::before{box-shadow:inset 0 0 0 1px ${T.accentGold};border-radius:2px}
 /* ── 🎯 CIEĽOVÉ PÁSMO = ZELENÝ RÁMIK HNEĎ POD ZLATÝM (13. 9. 2026) ────────
    Matej: „pridaj 5 rokov rámik… ten bude zelený a bude hovoriť: pridaj až
    extra 5 rokov super starostlivosťou (target – longevity)".
@@ -1682,18 +1711,18 @@ const CAL_CSS = `
 .cal-lifeyr.intgt::before{content:'';position:absolute;left:-3px;right:-2px;top:-1px;bottom:-1px;
   pointer-events:none;
   box-shadow:inset 1px 0 0 ${T.growGreen},inset -1px 0 0 ${T.growGreen}}
-.cal-lifeyr.intgt.tgttop::before{top:0;border-radius:3px 3px 0 0;
+.cal-lifeyr.intgt.tgttop::before{top:0;border-radius:2px 2px 0 0;
   box-shadow:inset 1px 0 0 ${T.growGreen},inset -1px 0 0 ${T.growGreen},inset 0 1px 0 ${T.growGreen}}
-.cal-lifeyr.intgt.tgtbot::before{bottom:0;border-radius:0 0 3px 3px;
+.cal-lifeyr.intgt.tgtbot::before{bottom:0;border-radius:0 0 2px 2px;
   box-shadow:inset 1px 0 0 ${T.growGreen},inset -1px 0 0 ${T.growGreen},inset 0 -1px 0 ${T.growGreen}}
 /* Vyblednutá zóna 20+ nesmie zhasnúť cieľ: pri dlhovekom plemene doň zasahuje. */
 .cal-lifeyr.intgt.faded,.cal-lifeyr.inband.faded{opacity:.75}
 /* Hranica dvadsiatky je PREDEL, nie ďalší riadok mriežky: nad ňou je pes,
    pod ňou je história. Bez nej sa vyblednutá zóna pri prázdnych bunkách
    nedala odlíšiť od zvyšku prázdneho miesta. */
-.cal-liferow.zone{position:relative;margin-top:26px}
-.cal-liferow.zone::before{content:attr(data-zone);position:absolute;left:0;right:0;top:-21px;
-  font-family:${FONT_UI};font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;
+.cal-liferow.zone{position:relative;margin-top:24px}
+.cal-liferow.zone::before{content:attr(data-zone);position:absolute;left:0;right:0;top:-20px;
+  font-family:${FONT_UI};font-size:10px;letter-spacing:.13em;text-transform:uppercase;
   color:${T.accentGold};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.95}
 .cal-liferow.zone::after{content:'';position:absolute;left:0;right:0;top:-7px;height:1px;
   background:linear-gradient(90deg,rgba(201,154,63,.55),rgba(201,154,63,0))}
@@ -1701,9 +1730,9 @@ const CAL_CSS = `
    čiaru, koniec tabuľky"). Bez nej sa posledný riadok prázdnych buniek stratil
    v papyruse a mriežka nikde nekončila — jednoducho prestala byť. Čiara ide
    cez celú šírku riadku, teda vrátane stĺpca s číslami. */
-.cal-lifeend{height:1px;margin:9px 0 0;
+.cal-lifeend{height:1px;margin:8px 0 0;
   background:linear-gradient(90deg,rgba(201,154,63,.12),rgba(201,154,63,.55) 10%,rgba(201,154,63,.55) 90%,rgba(201,154,63,.12))}
-.cal-lifecell{flex:1 1 0;min-width:0;aspect-ratio:1/1;border-radius:1.5px;background:transparent;
+.cal-lifecell{flex:1 1 0;min-width:0;aspect-ratio:1/1;border-radius:2px;background:transparent;
   box-shadow:inset 0 0 0 .5px rgba(122,90,42,.22);cursor:default;position:relative}
 /* Prežitý čas = bledá modrá. Je to ten istý lapis, akým appka hovorí „moje" —
    len stiahnutý na tapetu, lebo ubehnutý čas nie je akcia. */
@@ -1768,41 +1797,42 @@ const CAL_CSS = `
 .cal-sw.cal-lifecell{aspect-ratio:auto;border-radius:0;flex:0 0 auto;
   background:transparent;box-shadow:none;display:flex;align-items:center;justify-content:center}
 /* Aktivita je VÝPLŇ bunky, nie značka na nej — jej swatch má teda blok. */
-.cal-sw.cal-lifecell.dark{width:17px;height:17px;border-radius:4px;background:#14243F}
+.cal-sw.cal-lifecell.dark{width:17px;height:17px;border-radius:2px;background:#14243F}
 .cal-sw.cal-lifecell.sincesw{height:3px;border-radius:2px;background:${T.growGreen}}
 .cal-sw.cal-lifecell.joinsw{height:3px;border-radius:2px;background:${LAPIS.edge}}
 .cal-sw.cal-lifecell.nowsw{background:transparent}
 .cal-sw.cal-lifecell.nowsw::after{content:'';width:7px;height:7px;border-radius:50%;background:${T.growGreen};
   box-shadow:0 0 0 1.5px rgba(250,244,236,.9);animation:calNowPulse 1.9s ease-in-out infinite}
 
-.cal-lifetip{position:fixed;z-index:70;pointer-events:none;max-width:250px;
-  background:${T.panelGrad};border:1px solid ${T.cardEdge};border-radius:9px;padding:8px 10px;box-shadow:${T.panelShadow}}
+.cal-lifetip{${boxCSS(PACK_BOX.panel)};position:fixed;z-index:70;pointer-events:none;max-width:250px;padding:8px 12px}
 .cal-lifetip b{display:block;font-family:${FONT_TITLE};font-size:10px;font-weight:700;letter-spacing:.08em;
   text-transform:uppercase;color:${T.inkStrong};margin-bottom:4px}
-.cal-lifetip span{display:block;font-family:${FONT_UI};font-size:11px;color:${T.inkWarm};line-height:1.45;
+.cal-lifetip span{display:block;font-family:${FONT_UI};font-size:12px;color:${T.inkWarm};line-height:1.45;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Bublina pásma nesie vetu, nie zoznam položiek — orezanie tromi bodkami by
    z vysvetlenia spravilo hádanku. */
 .cal-lifetip span.wrap{white-space:normal;overflow:visible;text-overflow:clip}
-.cal-lifetip span.dim{color:${T.inkFaint};font-size:10px;margin-top:5px}
+.cal-lifetip span.dim{color:${T.inkFaint};font-size:10px;margin-top:4px}
 /* Cieľ je zelený aj v bubline — tá istá farba ako jeho rámik, inak si človek
    nespojí, ktorý z dvoch rámikov práve číta. */
-.cal-lifetip span.tgt{color:${T.growGreen};font-size:10px;margin-top:5px}
+.cal-lifetip span.tgt{color:${T.growGreen};font-size:10px;margin-top:4px}
 
 /* ── REKORDY a RADY ─────────────────────────────────────────────────────── */
-.cal-records{margin-top:18px}
+.cal-records{margin-top:16px}
 /* ── SPODNÁ ČASŤ BLOKU = VLASTNÉ SEKCIE (13. 9. 2026) ─────────────────────
    Matej: „tú časť treba oddeliť vizuálne, zväčšiť nadpis… zväčšiť tie nadpisy,
    lebo sa strácajú". Nadpis sekcie mal 9,5 px a rovnaký tvar ako popisok
    legendy, takže sa čítal ako menovka, nie ako nová téma.
    Oddelenie nesie zlatá čiara + vzduch, nie rám: ďalší rámik vnútri papyrusovej
    karty by robil kartu v karte. */
-.cal-sec{margin-top:26px;padding-top:20px;position:relative}
+.cal-sec{margin-top:24px;padding-top:24px;position:relative}
 .cal-sec::before{content:'';position:absolute;left:0;right:0;top:0;height:1px;
   background:linear-gradient(90deg,rgba(201,154,63,.10),rgba(201,154,63,.5) 10%,rgba(201,154,63,.5) 90%,rgba(201,154,63,.10))}
-.cal-sectitle{font-family:${FONT_TITLE};font-size:17px;font-weight:700;letter-spacing:.1em;
-  text-transform:uppercase;color:${T.inkStrong};margin:0 0 6px;line-height:1.25}
-.cal-secsub{font-family:${FONT_UI};font-size:12.5px;line-height:1.6;color:${T.inkWarm};
+/* Nadpis sekcie v Cinzeli = PACK_TEXT.h2 (20). Matej 13. 9. žiadal ZVÄČŠIŤ, takže
+   tichý eyebrow (PACK_HEAD.section) tu nie je na mieste. */
+.cal-sectitle{font-family:${FONT_TITLE};font-size:20px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:${T.inkStrong};margin:0 0 8px;line-height:1.25}
+.cal-secsub{font-family:${FONT_UI};font-size:12px;line-height:1.6;color:${T.inkWarm};
   max-width:66ch;margin:0 0 12px}
 /* ── REKORDMANI = JEDEN RIADOK NA SLAJD (13. 9. 2026) ─────────────────────
    Trinásť kariet v mriežke auto-fill zabralo na PC štyri rady a zo zóny
@@ -1815,7 +1845,7 @@ const CAL_CSS = `
 .cal-recarrow{position:absolute;top:calc(50% - 4px);transform:translateY(-50%);z-index:3;
   width:28px;height:28px;border-radius:50%;display:grid;place-items:center;cursor:pointer;
   background:${T.card};border:1px solid ${T.cardEdge};color:${T.inkStrong};
-  font-size:17px;line-height:1;padding:0 0 2px;
+  font-size:16px;line-height:1;padding:0 0 2px;
   box-shadow:0 2px 8px rgba(90,62,20,.22)}
 .cal-recarrow:hover{background:#FFFDF6;border-color:${T.accentGold}}
 .cal-recarrow.left{left:0}
@@ -1834,11 +1864,11 @@ const CAL_CSS = `
   scroll-padding-left:34px;scroll-padding-right:34px}}
 /* Na dotykovom displeji je gesto prirodzené a šípky by len zakrývali karty. */
 @media(hover:none){.cal-recarrow{display:none}}
-.cal-recgrid{display:flex;gap:9px;overflow-x:auto;overflow-y:hidden;
+.cal-recgrid{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;
   scroll-snap-type:x proximity;padding-bottom:8px;scrollbar-width:thin;
   scrollbar-color:rgba(201,154,63,.45) transparent;overscroll-behavior-x:contain}
 .cal-recgrid::-webkit-scrollbar{height:6px}
-.cal-recgrid::-webkit-scrollbar-thumb{background:rgba(201,154,63,.45);border-radius:3px}
+.cal-recgrid::-webkit-scrollbar-thumb{background:rgba(201,154,63,.45);border-radius:2px}
 .cal-recgrid::-webkit-scrollbar-track{background:transparent}
 /* ── KARTA REKORDMANA JE BLEDÁ, NIE PIESKOVÁ (13. 9. 2026) ────────────────
    Matej: „tie bloky so psami daj bledou/bielou, trochu to treba oživiť,
@@ -1847,54 +1877,56 @@ const CAL_CSS = `
    výplň ich zdvihne z podkladu, zlatý rám im dá tvar a tieň hĺbku.
    Nie je to nová farba: #FFFDF6 je papyrusová biela, ktorú appka už
    používa (.pf-field--flat je jej o odtieň tmavší súrodenec). */
+/* ⚠️ Výplň NIE JE z matrice (Matejova bledá z 13. 9.); rám, radius a tieň už áno. */
 .cal-rec{background:linear-gradient(160deg,#FFFDF6,#FBF5E6);
-  border:1px solid ${T.cardEdge};border-radius:12px;padding:11px 13px;
+  border:1px solid ${T.cardEdge};border-radius:${PACK_R.tile}px;padding:12px;
   flex:0 0 232px;scroll-snap-align:start;
-  box-shadow:0 2px 6px rgba(90,62,20,.08),inset 0 1px 0 rgba(255,255,255,.7)}
-.cal-rechead{display:flex;align-items:center;gap:9px;margin-bottom:5px}
+  box-shadow:${PACK_SHADOW.lift}}
+.cal-rechead{display:flex;align-items:center;gap:8px;margin-bottom:4px}
 /* Kruh drží rozmer aj bez fotky — s iniciálou vnútri. Prázdny slot, ktorý
    zmizne, by posunul text a karty by mali každá inú výšku. */
 .cal-recphoto{flex:0 0 auto;width:38px;height:38px;border-radius:50%;overflow:hidden;
   display:grid;place-items:center;background:${T.panelGrad};border:1px solid ${T.cardEdge};
-  font-family:${FONT_TITLE};font-size:15px;font-weight:700;color:${T.accentGold};
+  font-family:${FONT_TITLE};font-size:16px;font-weight:700;color:${T.accentGold};
   line-height:1;user-select:none}
 .cal-recphoto img{width:100%;height:100%;object-fit:cover;display:block}
 /* Silueta plemena nie je fotka — nesmie sa orezávať na kruh, musí sa doň
    zmestiť celá, a dýchať. Zlatý filter ju zladí s rámom (SVG sú čierne). */
-.cal-recphoto.pat img{object-fit:contain;padding:6px;
+.cal-recphoto.pat img{object-fit:contain;padding:4px;
   filter:brightness(0) saturate(100%) invert(62%) sepia(35%) saturate(680%) hue-rotate(1deg) brightness(93%) contrast(88%)}
 .cal-recname{min-width:0;display:block}
-.cal-rec b{font-family:${FONT_TITLE};font-size:13px;font-weight:700;letter-spacing:.06em;color:${T.inkStrong};
+.cal-rec b{font-family:${FONT_TITLE};font-size:14px;font-weight:700;letter-spacing:.06em;color:${T.inkStrong};
   display:block;line-height:1.2}
-.cal-rec u{font-family:${FONT_UI};font-size:11px;font-weight:600;text-decoration:none;color:${T.accentGold};
+.cal-rec u{font-family:${FONT_UI};font-size:12px;font-weight:600;text-decoration:none;color:${T.accentGold};
   display:block;margin-top:2px}
-.cal-rec i{display:block;font-style:normal;font-family:${FONT_UI};font-size:9.5px;letter-spacing:.04em;
-  text-transform:uppercase;color:${T.inkFaint};margin:3px 0 5px}
-.cal-rec em{display:block;font-style:normal;font-family:${FONT_UI};font-size:9.5px;line-height:1.4;
+.cal-rec i{display:block;font-style:normal;font-family:${FONT_UI};font-size:10px;letter-spacing:.04em;
+  text-transform:uppercase;color:${T.inkFaint};margin:4px 0}
+.cal-rec em{display:block;font-style:normal;font-family:${FONT_UI};font-size:10px;line-height:1.4;
   color:${T.alertRed};letter-spacing:.02em}
 .cal-rec.unver{opacity:.82}
 /* Pôvod fotiek — tichý riadok pod pásom. Je to licenčná podmienka, takže musí
    byť čitateľný, nie schovaný: 9,5 px a inkFaint, rovnako ako ostatné popisky. */
-.cal-reccredit{font-family:${FONT_UI};font-size:9.5px;line-height:1.5;color:${T.inkFaint};
+.cal-reccredit{font-family:${FONT_UI};font-size:10px;line-height:1.5;color:${T.inkFaint};
   margin:2px 0 0;letter-spacing:.02em}
 /* Rady sú ZAVRETÉ rozbaľovačky — jeden stĺpec, nie mriežka: v dvoch stĺpcoch
    by sa pri otvorení jednej posunula susedná a zoznam by poskakoval. */
-.cal-tipgrid{display:flex;flex-direction:column;gap:7px}
-.cal-tip{background:${T.tileBg};border:1px solid ${T.border};border-radius:10px}
-.cal-tip>summary{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;
+.cal-tipgrid{display:flex;flex-direction:column;gap:8px}
+.cal-tip{${boxCSS(PACK_BOX.row)}}
+.cal-tip>summary{display:flex;align-items:center;gap:12px;padding:12px;cursor:pointer;
   list-style:none;user-select:none}
 .cal-tip>summary::-webkit-details-marker{display:none}
-.cal-tip em{font-style:normal;font-size:18px;line-height:1.1;flex:0 0 auto;font-family:${EMOJI_FONT}}
+.cal-tip em{font-style:normal;font-size:20px;line-height:1.1;flex:0 0 auto;font-family:${EMOJI_FONT}}
 .cal-tip b{flex:1 1 auto;min-width:0;font-family:${FONT_TITLE};font-size:12px;font-weight:700;
   letter-spacing:.05em;color:${T.inkStrong};line-height:1.3}
 /* Šípka sa otočí — jediný signál, že blok je otvorený, keď je text dlhý
    a jeho koniec už nie je na obrazovke. */
-.cal-tip>summary i{flex:0 0 auto;font-style:normal;font-size:11px;color:${T.cardEdge};
+.cal-tip>summary i{flex:0 0 auto;font-style:normal;font-size:12px;color:${T.cardEdge};
   transition:transform .18s ease}
 .cal-tip[open]>summary i{transform:rotate(180deg)}
 .cal-tip[open]>summary{padding-bottom:4px}
-.cal-tip p{font-family:${FONT_UI};font-size:11.5px;line-height:1.6;color:${T.inkWarm};
-  margin:0;padding:0 12px 11px 40px}
+/* Ľavé odsadenie = padding 12 + emoji 20 + gap 12: text sedí pod nadpisom, nie pod ikonkou. */
+.cal-tip p{font-family:${FONT_UI};font-size:12px;line-height:1.6;color:${T.inkWarm};
+  margin:0;padding:0 12px 12px 44px}
 
 /* ── KAM RADY VEDÚ — AINUBISOV POVRCH, NIE PAPYRUS ────────────────────────
    Longevity protokol bude bývať v jeho databáze, takže hovorí ON. Papyrusová
@@ -1902,7 +1934,7 @@ const CAL_CSS = `
    že je to iná vrstva appky. Nie je to odkaz, kým databáza neexistuje — preto
    žiadny hover ani kurzor ruky. */
 .cal-longev{margin-top:12px;display:flex;align-items:center;justify-content:space-between;
-  gap:12px 16px;flex-wrap:wrap;border-radius:12px;padding:13px 16px;
+  gap:12px 16px;flex-wrap:wrap;border-radius:${PACK_R.card}px;padding:12px 16px;
   background:${AINUBIS.surface};border:1px solid ${AINUBIS.edge};
   box-shadow:0 10px 30px rgba(0,0,0,.34),0 0 26px rgba(59,158,255,.10)}
 /* Hlava má PEVNÝ kruh a nesmie sa zmršťovať (flex:0 0 auto), inak ju text
@@ -1913,38 +1945,37 @@ const CAL_CSS = `
 /* Rozmer drží VÝŠKA — hlava je vyššia než širšia, tak ako v medailóne navu. */
 .cal-longev-face img{height:82%;width:auto;display:block}
 .cal-longev-txt{min-width:0;flex:1 1 230px}
-.cal-longev-txt b{display:block;font-family:${FONT_TITLE};font-size:13px;font-weight:700;
+.cal-longev-txt b{display:block;font-family:${FONT_TITLE};font-size:14px;font-weight:700;
   letter-spacing:.14em;text-transform:uppercase;color:${AINUBIS.ink};line-height:1.2}
-.cal-longev-txt p{font-family:${FONT_UI};font-size:11px;line-height:1.55;
+.cal-longev-txt p{font-family:${FONT_UI};font-size:12px;line-height:1.55;
   color:${AINUBIS.inkDim};margin:4px 0 0}
 /* Meno má tvar: AI je cyan a svieti (lock 12. 9. 2026). */
 .cal-ai{font-family:${FONT_TITLE};font-weight:700;letter-spacing:.06em;color:${AINUBIS.ink};white-space:nowrap}
 .cal-ai > span{color:${AINUBIS.aiInk};text-shadow:${AINUBIS.aiShadow}}
-.cal-soon{flex:0 0 auto;font-family:${FONT_UI};font-size:9.5px;font-weight:600;letter-spacing:.2em;
-  text-transform:uppercase;padding:6px 14px;border-radius:999px;
+.cal-soon{flex:0 0 auto;font-family:${FONT_UI};font-size:10px;font-weight:600;letter-spacing:.2em;
+  text-transform:uppercase;padding:8px 16px;border-radius:999px;
   border:1px solid ${AINUBIS.edge};background:${AINUBIS.raised};color:${AINUBIS.inkFaint}}
 
 /* ── MINI MESIAC v popupe týždňa ────────────────────────────────────────── */
-.cal-wkmini{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:14px}
-.cal-wkday{aspect-ratio:1/1;border-radius:6px;border:1px solid rgba(179,130,45,.25);background:${T.tileBg};
+.cal-wkmini{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:16px}
+.cal-wkday{${boxCSS(PACK_BOX.row)};aspect-ratio:1/1;
   display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
-.cal-wkday u{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;text-decoration:none;color:${T.inkFaint};line-height:1}
-.cal-wkday em{font-style:normal;font-size:11px;line-height:1;font-family:${EMOJI_FONT}}
+.cal-wkday u{font-family:ui-monospace,Menlo,monospace;font-size:10px;text-decoration:none;color:${T.inkFaint};line-height:1}
+.cal-wkday em{font-style:normal;font-size:12px;line-height:1;font-family:${EMOJI_FONT}}
 /* Zvýraznený je TÝŽDEŇ, na ktorý sa kliklo — preto plný lapis tint, nie rám:
    rám by sa bil s rámom dnešného dňa v mriežke mesiaca vedľa. */
 .cal-wkday.on{background:rgba(46,95,208,.16);border-color:${LAPIS.edge}}
 .cal-wkday.has u{color:${T.inkStrong};font-weight:700}
 
 @media(max-width:700px){
-  .cal-lifegrid{column-gap:9px;grid-template-columns:16px 1fr}
-  .cal-lifeyr{font-size:7px}
+  .cal-lifegrid{column-gap:8px;grid-template-columns:16px 1fr}
   .cal-liferow{gap:1px}
   .cal-lifecell{border-radius:1px}
   /* Bunka má na telefóne ~5 px — kliknúť sa na ňu nedá a hover tam neexistuje.
      Mriežka je tam OBRAZ, nie nástroj; detail týždňa je na PC. */
   .cal-lifecell.dark{cursor:default}
   .cal-nowdot{width:4px;height:4px;margin:-2px 0 0 -2px;box-shadow:0 0 0 1px rgba(250,244,236,.9)}
-  .cal-lifestat b{font-size:18px}
+  .cal-lifestat b{font-size:16px}
   /* Karta rekordu sa na telefóne zúži, aby bolo vidieť kúsok tej ďalšej —
      to je jediný signál, že sa pás dá posunúť. */
   .cal-rec{flex:0 0 78%}
@@ -1954,9 +1985,8 @@ const CAL_CSS = `
   .cal-lifetop{grid-template-columns:1fr;gap:12px}
   .cal-lifehead{flex-direction:row;flex-wrap:wrap}
   .cal-lifehead .cal-lifestat{flex:1 1 140px}
-  .cal-sectitle{font-size:15px;letter-spacing:.08em}
-  .cal-sec{margin-top:22px;padding-top:16px}
-  .cal-intro,.cal-secsub{font-size:12px}
+  .cal-sectitle{font-size:16px;letter-spacing:.08em}
+  .cal-sec{padding-top:16px}
 }
 
 `;

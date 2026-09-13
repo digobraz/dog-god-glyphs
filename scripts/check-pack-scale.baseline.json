@@ -175,10 +175,6 @@
     "radius": 5,
     "font": 13
   },
-  "components/pack/calendar/PackCalendar.tsx": {
-    "radius": 19,
-    "font": 48
-  },
   "components/pack/events/AddEvent.tsx": {
     "radius": 2,
     "font": 7
@@ -294,10 +290,6 @@
   "pages/PackDogQuiz.tsx": {
     "radius": 2,
     "font": 10
-  },
-  "pages/PackDogs.tsx": {
-    "radius": 1,
-    "font": 25
   },
   "pages/PackJoin.tsx": {
     "radius": 0,

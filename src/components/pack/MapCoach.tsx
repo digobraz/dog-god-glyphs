@@ -21,6 +21,7 @@ import { createPortal } from 'react-dom';
 import ainubisFace from '@/assets/ainubis-head.png';
 import { FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { PALE } from '@/components/pack/navGoldSkin';
+import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { useT } from '@/i18n/LanguageContext';
 
 /** Vzduch okolo zvýrazneného prvku, aby ho prstenec neorezal. */
@@ -178,7 +179,8 @@ export const MAP_COACH_CSS = `
 /* ── BUBLINA OSTÁVA V AINUBISOVOM BRANDE (Matej 2026-08-28: „AInubisovu bublinu nechaj
    v brande! ako bola") ──────────────────────────────────────────────────────────────────
    Tmavý modrý podklad, cyan rám a dosvit — presne ako .ang-bar v AinubisGuide, teda
-   všade, kde hovorí on. Papyrusová verzia bola omyl v čítaní zadania (ono mierilo na
+   všade, kde hovorí on. Čísla nesie ainubisSkin.ts (zjednotené 13. 9. 2026); vlastná je
+   tu len RADIÁLA svitu (120% 160% at 50% -40%), lebo bublina svieti inde než panel. Papyrusová verzia bola omyl v čítaní zadania (ono mierilo na
    plochu okolo, viď .mcoach-hole vyššie) a zároveň by z jeho hlasu spravila hlas appky.
 
    ⚠️ ČO Z PREDOŠLÉHO KOLA ZOSTÁVA, LEBO TO MATEJ POCHVÁLIL: šírka karty (430, nie celé
@@ -186,30 +188,30 @@ export const MAP_COACH_CSS = `
    hlava + text a päta s tichým odkazom vľavo a odpoveďou vpravo. */
 .mcoach-bubble{position:fixed;display:grid;grid-template-columns:auto 1fr;gap:11px 12px;
   padding:14px 14px 12px;border-radius:15px;
-  background:radial-gradient(120% 160% at 50% -40%,rgba(59,158,255,0.20) 0%,rgba(59,158,255,0) 62%),linear-gradient(180deg,#071019 0%,#03070C 100%);
-  border:1.5px solid rgba(91,224,240,0.55);
-  box-shadow:0 0 0 3px rgba(59,158,255,0.20),0 0 30px rgba(59,158,255,0.42),0 14px 40px rgba(0,0,0,0.45);}
+  background:radial-gradient(120% 160% at 50% -40%,rgba(${AINUBIS.glowRGB},0.20) 0%,rgba(${AINUBIS.glowRGB},0) 62%),${AINUBIS.surfaceBase};
+  border:1.5px solid ${AINUBIS.edgeStrong};
+  box-shadow:0 0 0 3px rgba(${AINUBIS.glowRGB},0.20),0 0 30px rgba(${AINUBIS.glowRGB},0.42),0 14px 40px rgba(0,0,0,0.45);}
 .mcoach-arrow{position:fixed;width:0;height:0;margin-left:-9px;border-left:9px solid transparent;border-right:9px solid transparent;}
-.mcoach-arrow.up{margin-top:-9px;border-bottom:9px solid rgba(91,224,240,0.75);}
-.mcoach-arrow.down{margin-top:0;border-top:9px solid rgba(91,224,240,0.75);}
-.mcoach-face{flex:0 0 auto;width:46px;height:46px;object-fit:contain;border-radius:50%;background:radial-gradient(circle at 35% 28%,#12233a 0%,#01050A 74%);box-shadow:0 0 0 1.5px rgba(91,224,240,0.45),0 0 16px rgba(59,158,255,0.38);}
+.mcoach-arrow.up{margin-top:-9px;border-bottom:9px solid rgba(${AINUBIS.cyanRGB},0.75);}
+.mcoach-arrow.down{margin-top:0;border-top:9px solid rgba(${AINUBIS.cyanRGB},0.75);}
+.mcoach-face{flex:0 0 auto;width:46px;height:46px;object-fit:contain;border-radius:50%;background:${AINUBIS.faceBg};box-shadow:${AINUBIS.faceRing};}
 .mcoach-txt{min-width:0;}
-.mcoach-txt b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:#E6FAFF;margin-bottom:4px;}
-.mcoach-txt p{margin:0;font-family:${FONT_UI};font-size:12.5px;line-height:1.45;color:rgba(207,243,250,0.82);}
+.mcoach-txt b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:${AINUBIS.ink};margin-bottom:4px;}
+.mcoach-txt p{margin:0;font-family:${FONT_UI};font-size:12.5px;line-height:1.45;color:${AINUBIS.inkDim};}
 .mcoach-foot{grid-column:1 / -1;display:flex;align-items:center;justify-content:space-between;gap:12px;}
 .mcoach-mute{padding:0 0 1px;background:none;border:0;cursor:pointer;
-  font-family:${FONT_UI};font-size:11px;color:rgba(207,243,250,0.55);
+  font-family:${FONT_UI};font-size:11px;color:${AINUBIS.inkFaint};
   border-bottom:1px dotted currentColor;}
-.mcoach-mute:hover{color:#E6FAFF;}
+.mcoach-mute:hover{color:${AINUBIS.ink};}
 /* ⚠️ CTA JE AINUBISOVO ZLATO-ORANŽOVÉ, NIE LAPIS — VÝNIMKA Z BRANDOVÉHO KÁNONU
    (Matej 2026-08-28: „Rozumiem môže byť v oranžovom prevedení, AINUBIS je výnimka! Je to
    jeho brand", potvrdené v ďalšom kole: „CTA si dal správne"). Lapis je hlas APPKY („čo
    urobím ja"); táto bublina je hlas SPRIEVODCU a nesie jeho paletu. Gradient nie je nový —
-   je to presne ten, ktorý má AInubisov widget pre svoje tlačidlá (AinubisWidget.css). */
+   je to presne ten, ktorý má AInubisov widget pre svoje tlačidlá — AINUBIS.ctaGrad. */
 .mcoach-ok{flex:0 0 auto;padding:10px 18px;border-radius:8px;cursor:pointer;
-  background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);
-  border:1px solid rgba(250,244,236,0.30);color:#2a1608;
-  box-shadow:0 4px 14px -4px rgba(230,158,26,0.55),inset 0 1px 0 rgba(255,255,255,0.30);
+  background:${AINUBIS.ctaGrad};
+  border:1px solid rgba(250,244,236,0.30);color:${AINUBIS.ctaInk};
+  box-shadow:${AINUBIS.ctaShadow};
   font-family:${FONT_TITLE};font-weight:700;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;}
-.mcoach-ok:hover{background:linear-gradient(135deg,#FFD65A 0%,#F0A81E 100%);}
+.mcoach-ok:hover{background:${AINUBIS.ctaGradHover};}
 `;

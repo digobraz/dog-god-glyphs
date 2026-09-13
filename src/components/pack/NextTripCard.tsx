@@ -17,7 +17,7 @@ import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { readLocalTrails, readWalkedIds, tripPath, visibleLocalTrails } from './tripShared';
 import { readTriplist } from './triplist/triplist';
-import { PACK_THEME, FONT_UI } from './packTheme';
+import { PACK_THEME, PACK_BOX, FONT_UI } from './packTheme';
 import { BrandIcon } from './BrandIcon';
 import { useT } from '@/i18n/LanguageContext';
 
@@ -66,10 +66,7 @@ export function NextTripCard() {
       <div
         className="ntc-empty"
         style={{
-          background: T.cardGrad,
-          border: `1.5px solid ${T.cardEdge}`,
-          borderRadius: 16,
-          boxShadow: T.cardShadow,
+          ...PACK_BOX.card,
           padding: '22px 24px',
           display: 'flex',
           alignItems: 'center',
@@ -129,10 +126,7 @@ export function NextTripCard() {
       to={tripPath(trail)}
       className="pack-card-hover ntc-card"
       style={{
-        background: T.cardGrad,
-        border: `1.5px solid ${T.cardEdge}`,
-        borderRadius: 16,
-        boxShadow: T.cardShadow,
+        ...PACK_BOX.card,
         display: 'flex',
         alignItems: 'stretch',
         gap: 16,
@@ -181,7 +175,7 @@ export function NextTripCard() {
         >
           {trail.name}
         </span>
-        <span style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 700, color: T.cardEdge }}>
+        <span style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 600, color: T.cardEdge }}>
           {countdownLabel(days, t)}
         </span>
       </div>

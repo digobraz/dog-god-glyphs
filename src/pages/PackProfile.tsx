@@ -124,10 +124,9 @@ function PapyrusCard({
       style={gold
         ? { padding: pad, scrollMarginTop: 90 }
         : {
-            background: T.cardGrad,
-            border: `1.5px solid ${T.cardEdge}`,
-            borderRadius: 16,
-            boxShadow: T.cardShadow,
+            // Úroveň 1 MATRICE (`PACK_BOX.card`) — matrica dáva výplň/rám/radius/tieň,
+            // komponent len rozostupy.
+            ...PACK_BOX.card,
             padding: pad,
             scrollMarginTop: 90,
           }}
@@ -815,7 +814,7 @@ export default function PackProfile() {
           <Column max={640}>
             {/* BIO heading — one bold, oversized line. It's the funny/unique hook
                 of the profile, so it should pop (Matej 2026-07-24). */}
-            <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 17, fontWeight: 700, lineHeight: 1.2, color: T.inkStrong, marginBottom: 10 }}>
+            <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 17, fontWeight: 600, lineHeight: 1.2, color: T.inkStrong, marginBottom: 10 }}>
               {tx('pack.profile.bioHeading', 'BIO: What my dog would probably say about me')}
             </div>
             <WordLimitTextarea

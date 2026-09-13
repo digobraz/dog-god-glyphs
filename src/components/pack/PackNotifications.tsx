@@ -236,7 +236,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                 color: '#1F1A0E',
                 fontFamily: "'Space Grotesk', sans-serif",
                 fontSize: 9,
-                fontWeight: 700,
+                fontWeight: 600,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -337,7 +337,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
               color: '#1F1A0E',
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: 9,
-              fontWeight: 700,
+              fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -469,7 +469,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                         </span>
                         <span style={{ minWidth: 0, flex: 1 }}>
                           <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                            <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11.5, fontWeight: 700, color: c.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11.5, fontWeight: 600, color: c.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {name}
                             </span>
                             <span style={{ flexShrink: 0, width: 6, height: 6, borderRadius: '50%', background: T.accentGold }} />

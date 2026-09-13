@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
-import { PACK_THEME } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX } from '@/components/pack/packTheme';
 import { HeroCard } from '@/components/pack/HeroCard';
 import { PackSettings } from '@/components/pack/PackSettings';
 import { GlobePulse } from '@/components/pack/GlobePulse';
@@ -468,10 +468,9 @@ function TreeSkeleton() {
     <div
       className="animate-pulse"
       style={{
-        background: T.cardGrad,
-        border: `1.5px solid ${T.cardEdge}`,
-        borderRadius: 16,
-        boxShadow: T.cardShadow,
+        // Úroveň 1 MATRICE (`PACK_BOX.card`) — matrica dáva výplň/rám/radius/tieň,
+        // komponent len rozostupy.
+        ...PACK_BOX.card,
         padding: 26,
       }}
     >
