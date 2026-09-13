@@ -1492,6 +1492,7 @@ export const en = {
   'pack.join.expiredTitle': "The invitation expired",
   'pack.join.expiredBody': "An invitation lasts seven days. Ask the person who invited you for a new one — it takes one click.",
   'pack.join.invalidTitle': "This invitation is not valid",
+  'pack.join.invalidBody': "This link is not an invitation, or it was withdrawn. Ask the person who invited you for a new one.",
   'pack.join.title': "{owner} put you beside {dog}",
   'pack.join.body': "In DOGYPT a dog is not owned alone. You will see what {dog} needs — food, health, what scares them, where they have walked.",
   'pack.join.signedAs': "You are signed in as {email}.",

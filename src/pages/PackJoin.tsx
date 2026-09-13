@@ -141,7 +141,11 @@ export default function PackJoin() {
               <Line>{
                 phase.why === 'already_accepted'
                   ? tx('pack.join.usedBody', 'Sign in and you will find the dog in your pack.')
-                  : tx('pack.join.expiredBody', 'An invitation lasts seven days. Ask the person who invited you for a new one — it takes one click.')
+                  : phase.why === 'expired'
+                  ? tx('pack.join.expiredBody', 'An invitation lasts seven days. Ask the person who invited you for a new one — it takes one click.')
+                  // Neplatný a ODVOLANÝ token dostávajú tú istú vetu zámerne — server ich
+                  // nerozlišuje, aby sa z odpovede nedalo zisťovať, ktoré tokeny existujú.
+                  : tx('pack.join.invalidBody', 'This link is not an invitation, or it was withdrawn. Ask the person who invited you for a new one.')
               }</Line>
             </>
           )}
@@ -309,8 +313,10 @@ function RightsList({ rights, tx }: { rights: Record<string, boolean>; tx: (k: s
       <p style={{ ...sub, margin: '0 0 6px' }}>
         {tx('pack.join.rightsBase', 'See everything about the dog — health, food, trips.')}
       </p>
+      {/* `listStyleType` výslovne — globálny reset odrážky vypína a zoznam bez nich
+          sa číta ako odsadený odsek, nie ako výpočet. */}
       {granted.length > 0 && (
-        <ul style={{ margin: 0, paddingLeft: 18 }}>
+        <ul style={{ margin: 0, paddingLeft: 18, listStyleType: 'disc' }}>
           {granted.map((r) => (
             <li key={r} style={{ ...sub, marginBottom: 2 }}>{tx(label[r][0], label[r][1])}</li>
           ))}
