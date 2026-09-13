@@ -30,6 +30,11 @@ import { Link } from 'react-router-dom';
 import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, PF_FIELD_CSS } from '@/components/pack/packTheme';
 import { LAPIS, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
+// ⚠️ `ainubis-head.png` (800 px, PRIEHĽADNÉ okolie), NIE `ainubis-badge.png` — badge je
+//    odznak v tvare štítu a jeho hranatá silueta sa na tmavom displeji číta ako tmavý
+//    štvorec v kruhu (lock 11. 9. 2026). Ten istý zdroj má medailón spodného navu,
+//    `Gateways.tsx` aj `MapCoach.tsx`.
+import ainubisFace from '@/assets/ainubis-head.png';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { readSeries, type LatestValue } from '@/lib/dogEvents';
 import { readTriplist } from '@/components/pack/triplist/triplist';
@@ -105,16 +110,22 @@ const MONTHS_SHORT_SK = ['Jan', 'Feb', 'Mar', 'Apr', 'Máj', 'Jún', 'Júl', 'Au
 const MONTHS_LONG_SK = ['Január', 'Február', 'Marec', 'Apríl', 'Máj', 'Jún', 'Júl', 'August', 'September', 'Október', 'November', 'December'];
 const DOW_SK = ['Po', 'Ut', 'St', 'Št', 'Pi', 'So', 'Ne'];
 
-// Mobil otvára MESIAC, PC ROK (nákres §7). Bunka roka má na telefóne ~9 px —
-// kliknúť sa na ňu nedá, takže ROK je tam pohľad, nie nástroj.
-const MOBILE_Q = '(max-width:700px)';
+// ⚠️ ŽIVOT JE HLAVNÝ POHĽAD NA OBOCH ŠÍRKACH (Matej 13. 9. 2026 večer: „tento
+// život prehoď ako MAIN = človek ho uvidí ako prvý a potom vie prepínať na rok
+// a mesiac"). Predtým otváral mobil MESIAC a PC ROK. Dôvod zmeny je obsahový:
+// ROK aj MESIAC ukazujú prevádzku (kedy čo bolo), ŽIVOT ukazuje CELOK — a ten
+// je to, kvôli čomu sa sem človek vracia. Preto je aj v prepínači prvý zľava.
+// Mobilná výhrada ostáva v platnosti a je v CSS: bunka má na telefóne ~5 px,
+// takže tam je mriežka OBRAZ, nie nástroj (klik a hover sú vypnuté).
+// ⚠️ Tým padol aj `matchMedia` pri štarte — pohľad už nezávisí od šírky okna,
+// takže dve šírky dostanú tú istú prvú obrazovku. Hranica 700 px žije ďalej
+// len v CSS (`@media(max-width:700px)` na konci tohto súboru).
 
 export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; latest: Latest; tx: Tx }) {
   const year = new Date().getFullYear();
   const today = useMemo(() => { const n = new Date(); return { m: n.getMonth() + 1, d: n.getDate(), year: n.getFullYear() }; }, []);
 
-  const [view, setView] = useState<'year' | 'month' | 'life'>(() =>
-    typeof window !== 'undefined' && window.matchMedia(MOBILE_Q).matches ? 'month' : 'year');
+  const [view, setView] = useState<'year' | 'month' | 'life'>('life');
   const [sel, setSel] = useState<string>('all');          // 'all' | dogId
   const [layers, setLayers] = useState({ log: true, prot: true, nat: true });
   const [month, setMonth] = useState(today.m);
@@ -306,7 +317,7 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
           </h2>
         </div>
         <div className="pf-toggle inline-flex items-center cal-viewsw" style={{ borderRadius: 999, padding: 3, gap: 3 }}>
-          {(['year', 'month', 'life'] as const).map((v) => (
+          {(['life', 'year', 'month'] as const).map((v) => (
             <button
               key={v} type="button"
               className={`pf-toggle__opt${view === v ? ' is-on' : ''}`}
@@ -1003,8 +1014,10 @@ function LifeGrid({
           vysvetľuje MIERKU, bez ktorej sa mriežka nedá začať čítať.
           Zdroj odhadu (plemeno / hmotnosť) sa presunul do bubliny pásma. */}
       <p className="cal-note cal-lifesrc">
-        {tx('pack.cal.life.scale',
-          'Jeden blok = jeden týždeň života. Riadok = jeden rok. Pri prejdení myšou na blok sa zobrazí vek (roky, mesiace, týždne). Tmavé políčko = výlet.')}
+        {/* ⚠️ Dve vety, nič viac (Matej 13. 9. večer: „toto zruš: Pri prejdení myšou
+            na blok sa zobrazí vek… Tmavé políčko = výlet."). Hover si človek nájde
+            sám a nemá sa mu prikazovať; tmavé políčko hovorí legenda. */}
+        {tx('pack.cal.life.scale', 'Jeden blok = jeden týždeň života. Riadok = jeden rok.')}
       </p>
 
       {/* ── AKO ČÍTAŤ MRIEŽKU — NAD ŇOU, nie pod stránkou ──────────────────
@@ -1160,6 +1173,13 @@ function LifeGrid({
             píše `<span>AI</span>NUBIS` s cyan prvými dvomi písmenami (lock
             12. 9. 2026) — nie holým textom z prekladu. */}
         <div className="cal-longev">
+          {/* HLAVA (Matej 13. 9. večer: „pri longevity protokol chýba AINUBIS logo").
+              Bez nej to bol tmavý pruh, ktorý sa ako jeho povrch dal len tušiť —
+              a v mene sú jeho jediné dve písmená v cyane. Kruh je ten istý recept
+              ako v medailóne: `faceBg` radiála + `faceRing`. */}
+          <span className="cal-longev-face" aria-hidden>
+            <img src={ainubisFace} alt="" />
+          </span>
           <div className="cal-longev-txt">
             <b>{tx('pack.cal.life.protoTitle', 'Longevity protokol')}</b>
             <p>
@@ -1299,13 +1319,21 @@ function WeekPopup({
 // spoločný život a z legendy daj preč pásmo dožitia, zelenú guličku bez bloku…
 // a nie vstup do dogyptu ale len v dogypte."
 //
-// Čo z toho plynie: čo povie VETA nad mriežkou (týždeň, rok, tmavé políčko),
-// sa v legende neopakuje. Ostali tri veci, ktoré sa vetou povedať nedajú, lebo
-// to nie sú výplne, ale ZNAČKY NA bunkách — a preto sú aj ich swatche holé
-// značky bez podkladového bloku: pásik je pásik, gulička gulička.
-// Pásmo dožitia z legendy odišlo; hovorí o sebe samo v bubline nad mriežkou.
+// Čo z toho plynie: výplň „prežitý týždeň" a pásmo dožitia z legendy odišli —
+// prvé povie veta nad mriežkou, druhé sa ozve samo v bubline. Značky udalostí
+// majú swatche HOLÉ, bez podkladového bloku: pásik je pásik, gulička gulička.
+//
+// ⚠️ TMAVÉ POLÍČKO SA VRÁTILO (13. 9. večer, Matej: „z legendy si vyhodil aj
+// tmavé políčko… a to znamená aktivita (výlet, váženie, denník…)"). Vyhodil som
+// ho spolu s výplňami, lebo vetu „tmavé políčko = výlet" mala niesť veta nad
+// mriežkou — lenže tá veta z jeho zadania vypadla, a hlavne: tmavá NIE JE len
+// výlet. Je to KAŽDÝ zápis, ktorý ten týždeň má (výlet, váženie, očkovanie,
+// odčervenie a neskôr denník), takže to po prvé nemá byť v jednej vete odbavené
+// a po druhé sa to slovom „výlet" nedá pomenovať správne.
+// Jeho swatch má blok — je to výplň bunky, nie značka na nej.
 function LifeLegend({ tx }: { tx: Tx }) {
   const items: { cls: string; b: string; t: string }[] = [
+    { cls: 'dark', b: tx('pack.cal.life.lgDark', 'Aktivita'), t: tx('pack.cal.life.lgDarkSub', 'výlet, váženie, zápis') },
     { cls: 'sincesw', b: tx('pack.cal.life.lgSince', 'Spoločný život'), t: tx('pack.cal.life.lgSinceSub', 'z DOG ID') },
     { cls: 'nowsw', b: tx('pack.cal.life.lgNow', 'Tento týždeň'), t: tx('pack.cal.life.lgNowSub', 'práve tu ste') },
     { cls: 'joinsw', b: tx('pack.cal.life.lgJoin', 'V Dogypte'), t: tx('pack.cal.life.lgJoinSub', 'od dňa heroglyfu') },
@@ -1556,6 +1584,8 @@ const CAL_CSS = `
    ako samostatná značka. Bez neho je swatch presne to, čo v mriežke vidno. */
 .cal-sw.cal-lifecell{aspect-ratio:auto;border-radius:0;flex:0 0 auto;
   background:transparent;box-shadow:none;display:flex;align-items:center;justify-content:center}
+/* Aktivita je VÝPLŇ bunky, nie značka na nej — jej swatch má teda blok. */
+.cal-sw.cal-lifecell.dark{width:17px;height:17px;border-radius:4px;background:#14243F}
 .cal-sw.cal-lifecell.sincesw{height:3px;border-radius:2px;background:${T.growGreen}}
 .cal-sw.cal-lifecell.joinsw{height:3px;border-radius:2px;background:${LAPIS.edge}}
 .cal-sw.cal-lifecell.nowsw{background:transparent}
@@ -1613,7 +1643,14 @@ const CAL_CSS = `
   gap:12px 16px;flex-wrap:wrap;border-radius:12px;padding:13px 16px;
   background:${AINUBIS.surface};border:1px solid ${AINUBIS.edge};
   box-shadow:0 10px 30px rgba(0,0,0,.34),0 0 26px rgba(59,158,255,.10)}
-.cal-longev-txt{min-width:0;flex:1 1 260px}
+/* Hlava má PEVNÝ kruh a nesmie sa zmršťovať (flex:0 0 auto), inak ju text
+   pri úzkom okne stlačí na ovál. */
+.cal-longev-face{flex:0 0 auto;width:46px;height:46px;border-radius:50%;
+  background:${AINUBIS.faceBg};box-shadow:${AINUBIS.faceRing};
+  display:flex;align-items:center;justify-content:center;overflow:hidden}
+/* Rozmer drží VÝŠKA — hlava je vyššia než širšia, tak ako v medailóne navu. */
+.cal-longev-face img{height:82%;width:auto;display:block}
+.cal-longev-txt{min-width:0;flex:1 1 230px}
 .cal-longev-txt b{display:block;font-family:${FONT_TITLE};font-size:13px;font-weight:700;
   letter-spacing:.14em;text-transform:uppercase;color:${AINUBIS.ink};line-height:1.2}
 .cal-longev-txt p{font-family:${FONT_UI};font-size:11px;line-height:1.55;
