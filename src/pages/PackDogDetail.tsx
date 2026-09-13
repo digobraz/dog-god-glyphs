@@ -8,7 +8,6 @@ import {
   Mail,
   ExternalLink,
   Save,
-  Trash2,
   RefreshCw,
   Sparkles,
   BookOpen,
@@ -132,7 +131,6 @@ interface DogRow {
   user_id: string | null;
   dog_name: string | null;
   cloudinary_main_url: string | null;
-  cloudinary_extras: string[] | null;
   pdf_cert_url: string | null;
   pdf_vertical_url: string | null;
   pdf_horizontal_url: string | null;
@@ -228,9 +226,6 @@ export default function PackDogDetail() {
   const [messageSaving, setMessageSaving] = useState(false);
   const [messageDirty, setMessageDirty] = useState(false);
 
-  const [extras, setExtras] = useState<string[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [showCert, setShowCert] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [wallOpen, setWallOpen] = useState(false);
@@ -354,7 +349,6 @@ export default function PackDogDetail() {
         const row = DEV_MOCK_DOG_ROW as unknown as DogRow;
         setDog(row);
         setMessageDraft(row.grid_message ?? '');
-        setExtras([]);
         setWeightKgDb(row.weight_kg != null ? String(row.weight_kg) : '');
         setStatus('ready');
         return;
@@ -375,7 +369,7 @@ export default function PackDogDetail() {
       })
         .from('dogs')
         .select(
-          'id, user_id, dog_name, cloudinary_main_url, cloudinary_extras, pdf_cert_url, pdf_vertical_url, pdf_horizontal_url, heroglyph_code, breed, country, birth_year, life_status, death_date, patron_svg, patron_svg2, selections, grid_message, created_at, stripe_session_id, pack_number, owner_name, weight_kg, health_status, allergies, conditions, medication, diet',
+          'id, user_id, dog_name, cloudinary_main_url, pdf_cert_url, pdf_vertical_url, pdf_horizontal_url, heroglyph_code, breed, country, birth_year, life_status, death_date, patron_svg, patron_svg2, selections, grid_message, created_at, stripe_session_id, pack_number, owner_name, weight_kg, health_status, allergies, conditions, medication, diet',
         )
         .eq('id', id)
         .eq('user_id', user.id)
@@ -394,7 +388,6 @@ export default function PackDogDetail() {
       setDog(data);
       // Fallback for dogs bought before grid_message column was populated (message lived in selections.dogMessage).
       setMessageDraft(data.grid_message ?? data.selections?.dogMessage ?? '');
-      setExtras(Array.isArray(data.cloudinary_extras) ? data.cloudinary_extras : []);
       // Populate health fields from DB
       if (mounted) {
         setWeightKgDb(data.weight_kg != null ? String(data.weight_kg) : '');
@@ -530,76 +523,6 @@ export default function PackDogDetail() {
       });
     } finally {
       setMessageSaving(false);
-    }
-  };
-
-  const handleAddPhoto = () => fileInputRef.current?.click();
-
-  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file || !dog?.id) return;
-    setUploading(true);
-    try {
-      const sessionFolder = dog.stripe_session_id || dog.id;
-      const result = await uploadExtraPhoto(file, sessionFolder, extras.length + 1);
-      const next = [...extras, result.secureUrl];
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-      const { error: upErr } = await (supabase as unknown as {
-        from: (t: string) => {
-          update: (vals: { cloudinary_extras: string[] }) => {
-            eq: (col: string, val: string) => {
-              eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
-            };
-          };
-        };
-      })
-        .from('dogs')
-        .update({ cloudinary_extras: next })
-        .eq('id', dog.id)
-        .eq('user_id', user.id);
-      if (upErr) throw new Error(upErr.message);
-      setExtras(next);
-      toast({ title: t('pack.dog.toastPhotoAdded') });
-    } catch (err) {
-      toast({
-        title: t('pack.dog.toastUploadFailed'),
-        description: err instanceof Error ? err.message : t('pack.dog.toastUnknownError'),
-        variant: 'destructive',
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleRemovePhoto = async (url: string) => {
-    if (!dog?.id) return;
-    const next = extras.filter((u) => u !== url);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-      const { error: upErr } = await (supabase as unknown as {
-        from: (t: string) => {
-          update: (vals: { cloudinary_extras: string[] }) => {
-            eq: (col: string, val: string) => {
-              eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
-            };
-          };
-        };
-      })
-        .from('dogs')
-        .update({ cloudinary_extras: next })
-        .eq('id', dog.id)
-        .eq('user_id', user.id);
-      if (upErr) throw new Error(upErr.message);
-      setExtras(next);
-    } catch (err) {
-      toast({
-        title: t('pack.dog.toastCouldNotRemove'),
-        description: err instanceof Error ? err.message : t('pack.dog.toastUnknownError'),
-        variant: 'destructive',
-      });
     }
   };
 
@@ -3097,68 +3020,6 @@ function HubTile({
         )}
       </div>
     </button>
-  );
-}
-
-function PhotoTile({ url, primary, onRemove }: { url: string; primary?: boolean; onRemove?: () => void }) {
-  const t = useT();
-  return (
-    <div
-      className="relative group"
-      style={{
-        aspectRatio: '1 / 1',
-        background: T.bg,
-        borderRadius: 12,
-        overflow: 'hidden',
-        border: `1px solid ${T.hairline}`,
-      }}
-    >
-      <img src={url} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-      {primary && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 6,
-            left: 6,
-            padding: '3px 8px',
-            background: 'rgba(255, 251, 242, 0.94)',
-            color: T.ink,
-            fontFamily: "'Cinzel', serif",
-            fontSize: 8,
-            letterSpacing: '0.22em',
-            borderRadius: 4,
-            fontWeight: 700,
-          }}
-        >
-          {t('pack.dog.mainBadge')}
-        </div>
-      )}
-      {onRemove && (
-        <button
-          type="button"
-          onClick={onRemove}
-          aria-label={t('pack.dog.ariaRemovePhoto')}
-          className="opacity-0 group-hover:opacity-100 transition-opacity"
-          style={{
-            position: 'absolute',
-            top: 6,
-            right: 6,
-            width: 26,
-            height: 26,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(10, 10, 10, 0.78)',
-            color: T.card,
-            border: 'none',
-            borderRadius: 6,
-            cursor: 'pointer',
-          }}
-        >
-          <Trash2 className="h-3 w-3" />
-        </button>
-      )}
-    </div>
   );
 }
 
