@@ -1547,6 +1547,20 @@ export const en = {
   // ⚠️ Zoznam ôsmich práv žije okrem menoviek aj v `src/lib/pawmateRights.ts`,
   // v `functions/invite-pawmate/index.ts` a v `pawmate_rights_catalog()` — deviate
   // právo sa pridáva na všetky štyri miesta.
+  // ── PAWMATES V PROFILE (B6b) — svorka z pohľadu ČLOVEKA ────────────────────
+  'pack.mates.eyebrow': "Pawmates",
+  'pack.mates.title': "Your people",
+  'pack.mates.dogsTitle': "Which of your dogs",
+  'pack.mates.mixed': "Right now {name} has different access at each dog. What you save here applies to all of them.",
+  'pack.mates.removeAsk': "Take {name} out of your pack completely?",
+  'pack.mates.removeAll': "Remove from the pack",
+  'pack.mates.emptyBody': "Bring one human into DOGYPT beside you. Give them access, let them look in — so they are in the picture too.",
+  'pack.mates.emptyCta': "Add a pack member",
+  'pack.mates.inviteCta': "Invite someone else",
+  'pack.mates.allTaken': "Every one of your dogs has its place taken. Free one up and you can invite again.",
+  'pack.mates.roleMixed': "Mixed",
+  'pack.mates.err.noSlots': "That dog already has its place taken.",
+  'pack.mates.err.stranger': "They are not in your pack yet — invite them first.",
   'pack.mate.eyebrow': "Pawmate",
   'pack.mate.title': "Who has access",
   'pack.mate.pickDog': "Access is given to a dog, not to your account. Which one?",

@@ -122,6 +122,61 @@ export const DEV_MOCK_ACCESS: DevMockAccessRow[] = [
   },
 ];
 
+// ── DEV: PAWMATES V PROFILE (B6b, 13. 9. 2026) ────────────────────────────────
+// Sekcia PAWMATES v `/pack/profile` sa pýta `my_pawmates()`, a pod `DEV_NOAUTH`
+// sa Supabase nevolá (ten istý lock ako vyššie). Atrapa preto nesie celý obraz:
+// moje psy + ľudí pri nich.
+//
+// 🔴 DVA PSY A JEDEN ČLOVEK PRI OBOCH S RÔZNYMI PRÁVAMI — a je to zámer. Toto
+// je JEDINÝ prípad, ktorý sa dá pokaziť ticho: obrazovka, ktorá by tvárila, že
+// práva sú jedny, by pri uložení prepísala druhého psa. Na jednom psovi to nikdy
+// nevyskočí. ⚠️ Druhý pes žije LEN v tejto atrape — `DEV_MOCK_DOGS` má naďalej
+// jediného Hekthora (Matej 29. 7. 2026: „vymaž rexa a nechaj len hektora").
+export const DEV_MOCK_PAWMATES = {
+  dogs: [
+    { id: DEV_MOCK_DOGS[0].id, name: DEV_MOCK_DOGS[0].dog_name, pack_number: DEV_MOCK_DOGS[0].pack_number, photo: DEV_MOCK_DOGS[0].cloudinary_main_url },
+    { id: 'dev-mock-dog-kleopatra', name: 'Kleopatra', pack_number: 4, photo: null },
+  ],
+  people: [
+    {
+      kind: 'human' as const,
+      user_id: 'dev-mock-mate-zuzka',
+      email: 'zuzka@example.com',
+      name: 'Zuzka',
+      avatar_url: null,
+      role: 'family',
+      dogs: [
+        {
+          dog_id: DEV_MOCK_DOGS[0].id, dog_name: DEV_MOCK_DOGS[0].dog_name, pack_number: DEV_MOCK_DOGS[0].pack_number,
+          role: 'partner', rights: { 'dogid.edit': true, 'trips.log': true, 'dog.photo': true },
+          since: '2026-06-01T00:00:00.000Z',
+        },
+        {
+          dog_id: 'dev-mock-dog-kleopatra', dog_name: 'Kleopatra', pack_number: 4,
+          role: 'family', rights: { 'trips.log': true },
+          since: '2026-08-01T00:00:00.000Z',
+        },
+      ],
+      since: '2026-06-01T00:00:00.000Z',
+      expires_at: null,
+    },
+  ] as Array<{
+    kind: 'human' | 'invite';
+    user_id: string | null;
+    email: string | null;
+    name: string | null;
+    avatar_url: string | null;
+    role: string;
+    dogs: Array<{
+      dog_id: string; dog_name: string | null; pack_number: number | null;
+      role: string; rights: Record<string, boolean>;
+      since?: string; invite_id?: string; expires_at?: string;
+    }>;
+    since: string;
+    expires_at: string | null;
+  }>,
+};
+
 // ── DEV: CELÝ RIADOK PSA PRE DOG ID `/pack/dogs/:id` (B6/F4, 13. 9. 2026) ──────
 // `PackDogDetail.tsx` si psa ťahá vlastným dotazom a začína `supabase.auth.getUser()`;
 // bez session z tej funkcie ticho vypadne (`if (!user) return`) a stránka ostane na

@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PackNetwork } from '@/components/pack/PackNetwork';
 import { PackSettings } from '@/components/pack/PackSettings';
+import { PawmatesSection } from '@/components/pack/PawmatesSection';
 import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
 import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, FONT_TITLE, FONT_UI, usePaperRoute } from '@/components/pack/packTheme';
 import { GOLD_BLOCK_CSS } from '@/components/pack/navGoldSkin';
@@ -15,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { countryOptions, normalizeCountryValue, COUNTRY_OTHER } from '@/lib/countryOptions';
 import { flagEmojiFromISO2, iso2ToISO3 } from '@/lib/countryGeo';
-import { DEV_FULL } from '@/lib/packFlags';
+import { DEV_FULL, PAWMATE_LIVE } from '@/lib/packFlags';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
@@ -952,6 +953,14 @@ export default function PackProfile() {
 
         {/* Bones + your network — split two-column block */}
         <PackNetwork avatarUrl={avatarUrl} initial={initial} />
+
+        {/* PAWMATES — správa svorky z pohľadu ČLOVEKA (B6b, Matej 13. 9. 2026:
+            „tieto nastavenia musia byť v profile — tam bude PAWMATES s možnosťou
+            pridať/ubrať psa"). Dvere v rázcestí „+" na homepage sem vedú
+            (`/pack/profile#pawmates`).
+            🔒 `PAWMATE_LIVE` je dnes `false` — sekcia sa stavia za zamknutými
+            dverami a odomkne ju až beh B8 po teste F7. */}
+        {PAWMATE_LIVE && <PawmatesSection />}
 
         {/* Account info + password modal — vlastná karta ZMAZANÁ 2026-08-12 (bola duplikát
             `PackSettings`, ktorý robí presne to isté a je už plne preložený). */}

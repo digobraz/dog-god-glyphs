@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties, FormEvent, ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
 // Brandové hand-drawn ikonky namiesto lucide (audit 12.8., nasadené 13.8.). `X` ostáva
 // lucide zámerne — systémový ovládač zavretia, brand glyf by tam pridal len šum.
@@ -14,7 +14,6 @@ import { saveHuman } from './profile/packProfile';
 import { PackNotifications } from './PackNotifications';
 import { WIZ } from './wizAnchors';
 import { DEV_FULL, PAWMATE_LIVE } from '@/lib/packFlags';
-import { PawmatePanel } from './PawmatePanel';
 import { devotionLevel } from '@/lib/devotion';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { useLang, useT } from '@/i18n/LanguageContext';
@@ -204,9 +203,8 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
   // (Matej 12. 9. 2026: „tlačítko + otvorí popup"). Vlastný stav, nie ďalší `PopKey`:
   // `HeroPopup` je vysvetľovač pilulky (eyebrow + text), toto je rázcestie s dverami.
   const [addOpen, setAddOpen] = useState(false);
-  // Panel „kto má prístup" (B5/F3). Vlastný stav, nie ďalšie dvere v `AddPopup`:
-  // rázcestie je vnútri karty, panel je modál cez celú stránku (portál).
-  const [matesOpen, setMatesOpen] = useState(false);
+  // Dvere PAWMATE vedú do `/pack/profile#pawmates` (B6b) — nie do modálu nad kartou.
+  const nav = useNavigate();
 
   const displayName = name;
   const initial = displayName?.[0]?.toUpperCase() || email?.[0]?.toUpperCase() || 'D';
@@ -537,11 +535,13 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
       {addOpen && (
         <AddPopup
           onClose={() => setAddOpen(false)}
-          onPawmate={PAWMATE_LIVE && dogs && dogs.length > 0 ? () => { setAddOpen(false); setMatesOpen(true); } : null}
+          // DVERE PAWMATE VEDÚ DO PROFILU, NIE DO PANELA (B6b, Matej 13. 9. 2026:
+          // *„tieto nastavenia musia byť v profile — tam bude PAWMATES s možnosťou
+          // pridať/ubrať psa"*). Jedna správa pawmatov, jedno miesto; panel by bol
+          // druhý vstup do tej istej veci s iným rozsahom (jeden pes vs. celá svorka).
+          // ⚠️ `PawmatePanel` NEZANIKÁ — `/pack/join/:token` a jeho formulár žijú ďalej.
+          onPawmate={PAWMATE_LIVE && dogs && dogs.length > 0 ? () => { setAddOpen(false); nav('/pack/profile#pawmates'); } : null}
         />
-      )}
-      {matesOpen && dogs && dogs.length > 0 && (
-        <PawmatePanel dogs={dogs} onClose={() => setMatesOpen(false)} />
       )}
     </section>
   );
@@ -1232,12 +1232,14 @@ function AddPopup({ onClose, onPawmate }: {
             <DoorFace icon={<HandPaw size={18} />} label={t('pack.add.dog')} sub={t('pack.add.dogSub')} />
           </Link>
 
-          {/* DVERE PAWMATE — ďalší ČLOVEK k tomu istému psovi (prístup + pozvánka mailom).
-              Za nimi stojí `PawmatePanel` (B5/F3) a hotové edge funkcie `invite-pawmate`
-              + `accept-pawmate` (B4). ZÁMOK DRŽÍ JEDINE `PAWMATE_LIVE` — odomkne ho beh B8
-              po teste na dvoch telefónoch (F7), nie zásah tu.
-              ⚠️ Bez psa ostávajú zamknuté aj pri zapnutej vlajke: prístup sa dáva K PSOVI,
-              takže by panel nemal ku komu pustiť. */}
+          {/* DVERE PAWMATE — ďalší ČLOVEK vo svorke (prístup + pozvánka mailom).
+              Od B6b vedú do sekcie PAWMATES v `/pack/profile` (Matej 13. 9. 2026:
+              *„tieto nastavenia musia byť v profile"*), nie do modálu nad kartou.
+              Edge funkcie `invite-pawmate` + `accept-pawmate` (B4) stoja za ňou ďalej.
+              ZÁMOK DRŽÍ JEDINE `PAWMATE_LIVE` — odomkne ho beh B8 po teste na dvoch
+              telefónoch (F7), nie zásah tu.
+              ⚠️ Bez psa ostávajú zamknuté aj pri zapnutej vlajke: prístup sa dáva
+              K PSOVI, takže by sekcia nemala ku komu pustiť. */}
           {onPawmate ? (
             <button type="button" style={DOOR} onClick={onPawmate}>
               <DoorFace icon={<HandKey size={18} />} label={t('pack.add.pawmate')} sub={t('pack.add.pawmateSub')} />

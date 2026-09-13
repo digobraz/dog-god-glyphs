@@ -176,6 +176,9 @@ export async function setPawmateAccess(
   if (DEV_NOAUTH) {
     const row = DEV_MOCK_ACCESS.find((r) => r.user_id === userId);
     if (row) { row.role = role; row.rights = { ...rights } as Record<string, boolean>; }
+    // Tá istá zmena aj v atrape profilu — sú to dva pohľady na to isté, takže
+    // keby ju niesla len jedna, sekcia a panel by si na DEV protirečili.
+    await patchMockPawmate(userId, dogId, (d) => { d.role = role; d.rights = { ...rights } as Record<string, boolean>; });
     return;
   }
   const { error } = await (supabase as any).rpc('set_pawmate_access', {
@@ -185,7 +188,11 @@ export async function setPawmateAccess(
 }
 
 export async function revokePawmate(dogId: string, userId: string): Promise<void> {
-  if (DEV_NOAUTH) { dropMock((r) => r.user_id === userId && r.source !== 'owner'); return; }
+  if (DEV_NOAUTH) {
+    dropMock((r) => r.user_id === userId && r.source !== 'owner');
+    await patchMockPawmate(userId, dogId, null);
+    return;
+  }
   const { error } = await (supabase as any).rpc('revoke_pawmate', { p_dog: dogId, p_user: userId });
   if (error) throw new Error(error.message);
 }
@@ -245,6 +252,142 @@ export async function invitePawmate(
     return { ok: false, code: String((data as { error: unknown }).error) };
   }
   return { ok: true };
+}
+
+// ── PAWMATES V PROFILE — OPAČNÝ POHĽAD (B6b) ────────────────────────────────
+// Matej 13. 9. 2026: *„PAWMATE = človek vo svorke, nie pre konkrétneho PSA…
+// ak si ja adoptujem ďalšieho psa, môj prípadný pawtner ho uvidí a dostane práva
+// aké mal aj pri Hektorovi."*
+//
+// Panel psa (`listDogAccess`) sa pýta „kto má prístup k TOMUTO psovi"; profil sa
+// pýta „čo smie TENTO človek a ku ktorým mojim psom". Preto vlastná RPC
+// `my_pawmates()` — poskladať to z N volaní `dog_access_list` by znamenalo, že
+// zlučovanie práv robí prehliadač.
+
+/** Jeden pes v živote pawmata — práva sú TU, nie na človeku. */
+export interface MateDogRef {
+  dog_id: string;
+  dog_name: string | null;
+  pack_number: number | null;
+  role: string;
+  rights: PawmateRights;
+  since?: string;
+  /** Len pri čakajúcej pozvánke — zrušiť sa dá po psoch. */
+  invite_id?: string;
+  expires_at?: string;
+}
+
+export interface PawmateRow {
+  kind: 'human' | 'invite';
+  user_id: string | null;
+  email: string | null;
+  name: string | null;
+  avatar_url: string | null;
+  /** Postavenie pri NAPOSLEDY rozhodnutom psovi. Záväzné je to v `dogs[].role`. */
+  role: string;
+  dogs: MateDogRef[];
+  since: string;
+  expires_at: string | null;
+}
+
+export interface MyDogRef {
+  id: string;
+  name: string | null;
+  pack_number: number | null;
+  photo: string | null;
+}
+
+export interface MyPawmates {
+  people: PawmateRow[];
+  /** Moje ZAPLATENÉ psy — podklad pre zaškrtávatká. Chodia z tej istej RPC
+   *  zámerne: zoznam a serverová podmienka (`is_dog_owner` = môj + zaplatený)
+   *  musia mať jeden zdroj, inak sa dá zaškrtnúť pes, ktorého server odmietne. */
+  dogs: MyDogRef[];
+}
+
+/**
+ * 🔴 POD `DEV_NOAUTH` SA SUPABASE NEVOLÁ — ten istý lock ako pri `listDogAccess`.
+ */
+export async function listMyPawmates(): Promise<MyPawmates> {
+  if (DEV_NOAUTH) {
+    const { DEV_MOCK_PAWMATES } = await import('@/lib/devMockDogs');
+    return { people: DEV_MOCK_PAWMATES.people.map((p) => ({ ...p })) as PawmateRow[], dogs: [...DEV_MOCK_PAWMATES.dogs] };
+  }
+  const { data, error } = await (supabase as any).rpc('my_pawmates');
+  if (error) throw new Error(error.message);
+
+  const people: PawmateRow[] = [];
+  const dogs: MyDogRef[] = [];
+  for (const r of (data ?? []) as Array<Record<string, unknown>>) {
+    if (r.kind === 'dog') {
+      dogs.push({
+        id: String(r.dog_id),
+        name: (r.dog_name as string | null) ?? null,
+        pack_number: (r.pack_number as number | null) ?? null,
+        photo: (r.photo_url as string | null) ?? null,
+      });
+      continue;
+    }
+    people.push({
+      kind: r.kind as 'human' | 'invite',
+      user_id: (r.user_id as string | null) ?? null,
+      email: (r.email as string | null) ?? null,
+      name: (r.name as string | null) ?? null,
+      avatar_url: (r.avatar_url as string | null) ?? null,
+      role: (r.role as string) ?? 'partner',
+      dogs: ((r.dogs as MateDogRef[] | null) ?? []),
+      since: String(r.since ?? ''),
+      expires_at: (r.expires_at as string | null) ?? null,
+    });
+  }
+  // Psy podľa poradového čísla — to je poradie vstupu do svorky, nie abeceda.
+  dogs.sort((a, b) => (a.pack_number ?? 1e9) - (b.pack_number ?? 1e9));
+  return { people, dogs };
+}
+
+/**
+ * Zaškrtnutie psa u človeka, ktorý UŽ JE mojím pawmatom pri inom psovi.
+ * Práva sa kopírujú od najstaršieho psa (Matej: *„skopírovať z prvého"*).
+ *
+ * ⚠️ Nie je to „pozvať" — cudzie `user_id` cez toto neprejde (`not_a_pawmate`).
+ * Vzťah vzniká výhradne prijatou pozvánkou; toto ho len rozširuje.
+ */
+export async function addPawmateDog(dogId: string, userId: string): Promise<void> {
+  if (DEV_NOAUTH) {
+    const { DEV_MOCK_PAWMATES } = await import('@/lib/devMockDogs');
+    const person = DEV_MOCK_PAWMATES.people.find((p) => p.user_id === userId);
+    const dog = DEV_MOCK_PAWMATES.dogs.find((d) => d.id === dogId);
+    if (person && dog && !person.dogs.some((d) => d.dog_id === dogId)) {
+      person.dogs.push({
+        dog_id: dog.id, dog_name: dog.name, pack_number: dog.pack_number,
+        role: person.dogs[0]?.role ?? 'partner', rights: { ...(person.dogs[0]?.rights ?? {}) },
+      });
+    }
+    return;
+  }
+  const { error } = await (supabase as any).rpc('add_pawmate_dog', { p_dog: dogId, p_user: userId });
+  if (error) throw new Error(error.message);
+}
+
+/** DEV atrapa profilu — zmení alebo odoberie psa u človeka. `patch === null` =
+ *  odobrať; keď človeku nezostane pes, zmizne zo zoznamu celý (to isté, čo robí
+ *  `my_pawmates()`, ktorá ľudí bez psa nevracia). */
+async function patchMockPawmate(
+  userId: string,
+  dogId: string,
+  patch: ((d: { role: string; rights: Record<string, boolean> }) => void) | null,
+): Promise<void> {
+  const { DEV_MOCK_PAWMATES } = await import('@/lib/devMockDogs');
+  const person = DEV_MOCK_PAWMATES.people.find((p) => p.user_id === userId);
+  if (!person) return;
+  const i = person.dogs.findIndex((d) => d.dog_id === dogId);
+  if (i < 0) return;
+  if (patch) { patch(person.dogs[i]); return; }
+  person.dogs.splice(i, 1);
+  if (person.dogs.length === 0) {
+    const j = DEV_MOCK_PAWMATES.people.indexOf(person);
+    if (j >= 0) DEV_MOCK_PAWMATES.people.splice(j, 1);
+  }
 }
 
 /** DEV atrapa — vyhodí riadok zo zoznamu v pamäti (pole musí ostať TO ISTÉ,

@@ -20,9 +20,14 @@ import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { PAWMATE_RIGHTS } from '@/lib/pawmateRights';
 
 type Preview = {
+  /** Mená psov spojené „&" — server ich skladá sám, aby stránka nemusela poznať
+   *  pravidlo pre množné číslo. Pri jednom psovi je to jedno meno. */
   dogName: string;
   dogPhoto: string | null;
   packNumber: number | null;
+  /** Jedna pozvánka smie niesť VIAC PSOV (B6b). Staršia podoba stránky pole
+   *  nepoznala, preto je voliteľné a `dogPhoto` ostáva prvý pes. */
+  dogs?: Array<{ id: string; name: string | null; photo: string | null; packNumber: number | null }>;
   ownerFirst: string;
   role: string;
   rights: Record<string, boolean>;
@@ -154,17 +159,31 @@ export default function PackJoin() {
           {phase.k === 'ready' && (
             <>
               <Eyebrow>{tx('pack.join.eyebrow', 'Pack invitation')}</Eyebrow>
-              {phase.p.dogPhoto && (
-                <img
-                  src={phase.p.dogPhoto}
-                  alt={phase.p.dogName}
-                  style={{
-                    width: 96, height: 96, borderRadius: '50%', objectFit: 'cover',
-                    display: 'block', margin: '4px 0 14px',
-                    border: `2px solid ${T.cardEdge}`,
-                  }}
-                />
-              )}
+              {/* Pri viacerých psoch stoja kruhy vedľa seba a zmenšia sa — jedna fotka
+                  s dvoma menami pod ňou by tvrdila, že ten druhý pes je ten na fotke. */}
+              {(() => {
+                const list = (phase.p.dogs && phase.p.dogs.length > 0)
+                  ? phase.p.dogs
+                  : (phase.p.dogPhoto ? [{ id: 'x', name: phase.p.dogName, photo: phase.p.dogPhoto, packNumber: phase.p.packNumber }] : []);
+                const shown = list.filter((d) => d.photo).slice(0, 3);
+                if (shown.length === 0) return null;
+                const size = shown.length > 1 ? 72 : 96;
+                return (
+                  <div className="flex" style={{ gap: 8, margin: '4px 0 14px' }}>
+                    {shown.map((d) => (
+                      <img
+                        key={d.id}
+                        src={d.photo as string}
+                        alt={d.name ?? ''}
+                        style={{
+                          width: size, height: size, borderRadius: '50%', objectFit: 'cover',
+                          display: 'block', border: `2px solid ${T.cardEdge}`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                );
+              })()}
               <Title>
                 {tx('pack.join.title', '{owner} put you beside {dog}')
                   .replace('{owner}', phase.p.ownerFirst)
