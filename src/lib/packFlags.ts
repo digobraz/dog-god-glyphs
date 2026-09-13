@@ -67,3 +67,19 @@ function sessionEmailFromStorage(): string | null {
 
 export const DEV_FULL =
   import.meta.env.VITE_PACK_FULL === 'true' || isFullPackEmail(sessionEmailFromStorage());
+
+// ── PAWMATE — DVERE, KTORÉ ODOMKNE AŽ B8 ────────────────────────────────────
+// Zadanie `plany/zadanie-clenovia-svorky-2026-09-12.md` §12.1: každá časť sa
+// stavia ZA zamknuté dvere, takže sa dá nasadzovať na produkciu postupne
+// a neviditeľne — člen vidí presne to, čo dnes: dvere s pilulkou ČOSKORO.
+//
+// 🔒 ODOMKNÚŤ SMIE LEN BEH B8, a len keď prejde test na dvoch telefónoch (F7).
+// Poloodomknuté dvere sú horšie než zamknuté: člen pošle pozvánku, ktorá nedôjde.
+// Odomknutie = prepnúť tu `false` na trvalo zapnuté, nie zásah v HeroCard.
+//
+// Lokálne zapnutie:  VITE_PAWMATE=true VITE_PACK_FULL=true npm run dev
+//
+// ⚠️ Ako `DEV_FULL` je to VIDITEĽNOSŤ, nie zámok — kód je v bundli tak či tak.
+//    Skutočnú ochranu drží DB: `invite-pawmate` overuje, že volá MAJITEĽ
+//    zaplateného psa, a všetky štyri RPC panela stoja na `is_dog_owner()`.
+export const PAWMATE_LIVE = import.meta.env.VITE_PAWMATE === 'true';

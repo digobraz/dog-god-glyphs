@@ -13,7 +13,8 @@ import { PACK_BOX, PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, PILL_CSS } fro
 import { saveHuman } from './profile/packProfile';
 import { PackNotifications } from './PackNotifications';
 import { WIZ } from './wizAnchors';
-import { DEV_FULL } from '@/lib/packFlags';
+import { DEV_FULL, PAWMATE_LIVE } from '@/lib/packFlags';
+import { PawmatePanel } from './PawmatePanel';
 import { devotionLevel } from '@/lib/devotion';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { useLang, useT } from '@/i18n/LanguageContext';
@@ -203,6 +204,9 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
   // (Matej 12. 9. 2026: „tlačítko + otvorí popup"). Vlastný stav, nie ďalší `PopKey`:
   // `HeroPopup` je vysvetľovač pilulky (eyebrow + text), toto je rázcestie s dverami.
   const [addOpen, setAddOpen] = useState(false);
+  // Panel „kto má prístup" (B5/F3). Vlastný stav, nie ďalšie dvere v `AddPopup`:
+  // rázcestie je vnútri karty, panel je modál cez celú stránku (portál).
+  const [matesOpen, setMatesOpen] = useState(false);
 
   const displayName = name;
   const initial = displayName?.[0]?.toUpperCase() || email?.[0]?.toUpperCase() || 'D';
@@ -530,7 +534,15 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
       </div>
 
       {pop && <HeroPopup which={pop} bones={bones} level={t('pack.ladder.' + lv.key)} levelIndex={lv.index} onClose={() => setPop(null)} />}
-      {addOpen && <AddPopup onClose={() => setAddOpen(false)} />}
+      {addOpen && (
+        <AddPopup
+          onClose={() => setAddOpen(false)}
+          onPawmate={PAWMATE_LIVE && dogs && dogs.length > 0 ? () => { setAddOpen(false); setMatesOpen(true); } : null}
+        />
+      )}
+      {matesOpen && dogs && dogs.length > 0 && (
+        <PawmatePanel dogs={dogs} onClose={() => setMatesOpen(false)} />
+      )}
     </section>
   );
 }
@@ -1172,7 +1184,11 @@ function DoorFace({ icon, label, sub, locked = false, soon }: { icon: ReactNode;
   );
 }
 
-function AddPopup({ onClose }: { onClose: () => void }) {
+function AddPopup({ onClose, onPawmate }: {
+  onClose: () => void;
+  /** `null` = dvere ostávajú zamknuté (vlajka vypnutá alebo človek nemá psa). */
+  onPawmate: (() => void) | null;
+}) {
   const t = useT();
   // ⚠️ RESET STORU SA NESMIE VYNECHAŤ — bez neho zdedí druhý pes dáta prvého.
   const resetFlow = useDogyptStore((s) => s.reset);
@@ -1217,16 +1233,26 @@ function AddPopup({ onClose }: { onClose: () => void }) {
           </Link>
 
           {/* DVERE PAWMATE — ďalší ČLOVEK k tomu istému psovi (prístup + pozvánka mailom).
-              Zamknuté: čaká R4 (práva) + F1 (`dog_humans` / `dog_invites`). */}
-          <div style={DOOR_LOCKED} aria-disabled="true">
-            <DoorFace
-              icon={<HandKey size={18} />}
-              label={t('pack.add.pawmate')}
-              sub={t('pack.add.pawmateSub')}
-              locked
-              soon={soon}
-            />
-          </div>
+              Za nimi stojí `PawmatePanel` (B5/F3) a hotové edge funkcie `invite-pawmate`
+              + `accept-pawmate` (B4). ZÁMOK DRŽÍ JEDINE `PAWMATE_LIVE` — odomkne ho beh B8
+              po teste na dvoch telefónoch (F7), nie zásah tu.
+              ⚠️ Bez psa ostávajú zamknuté aj pri zapnutej vlajke: prístup sa dáva K PSOVI,
+              takže by panel nemal ku komu pustiť. */}
+          {onPawmate ? (
+            <button type="button" style={DOOR} onClick={onPawmate}>
+              <DoorFace icon={<HandKey size={18} />} label={t('pack.add.pawmate')} sub={t('pack.add.pawmateSub')} />
+            </button>
+          ) : (
+            <div style={DOOR_LOCKED} aria-disabled="true">
+              <DoorFace
+                icon={<HandKey size={18} />}
+                label={t('pack.add.pawmate')}
+                sub={t('pack.add.pawmateSub')}
+                locked
+                soon={soon}
+              />
+            </div>
+          )}
 
           {/* DVERE PAWTNER — partner s VLASTNÝM psom, dve svorky sa spoja. Zamknuté: F2,
               teda vlna B. `HandHouseHeart` = dve domácnosti dokopy, nie tretia labka. */}
