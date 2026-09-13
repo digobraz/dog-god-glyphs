@@ -110,3 +110,36 @@ export const DEV_MOCK_ACCESS: DevMockAccessRow[] = [
     since: '2026-01-01T00:00:00.000Z', expires_at: null, invite_id: null,
   },
 ];
+
+// ── DEV: CELÝ RIADOK PSA PRE DOG ID `/pack/dogs/:id` (B6/F4, 13. 9. 2026) ──────
+// `PackDogDetail.tsx` si psa ťahá vlastným dotazom a začína `supabase.auth.getUser()`;
+// bez session z tej funkcie ticho vypadne (`if (!user) return`) a stránka ostane na
+// „NAČÍTAVAM" navždy — vyzerá to ako zaseknutý dizajn, pritom sú to chýbajúce dáta.
+// Je to ten istý prípad, aký 22. 8. riešil `DEV_MOCK_DOGS` pre hub a 24. 8. pre homepage.
+//
+// Tvar = presne tie stĺpce, ktoré si tá stránka vyberá. Kto do dotazu pridá stĺpec,
+// pridá ho aj sem, inak sa DEV vetva rozíde so skutočnou obrazovkou.
+export const DEV_MOCK_DOG_ROW = {
+  id: DEV_MOCK_DOGS[0].id,
+  user_id: 'dev-mock-owner',
+  dog_name: DEV_MOCK_DOGS[0].dog_name,
+  cloudinary_main_url: DEV_MOCK_DOGS[0].cloudinary_main_url,
+  cloudinary_extras: [] as string[],
+  pdf_cert_url: null, pdf_vertical_url: null, pdf_horizontal_url: null,
+  heroglyph_code: 'DEV-MOCK-0001',
+  breed: 'Nemecký ovčiak',
+  country: DEV_MOCK_DOGS[0].country,
+  birth_year: DEV_MOCK_DOGS[0].birth_year,
+  life_status: DEV_MOCK_DOGS[0].life_status,
+  death_date: DEV_MOCK_DOGS[0].death_date,
+  patron_svg: null, patron_svg2: null,
+  selections: DEV_MOCK_DOGS[0].selections as Record<string, string>,
+  grid_message: null,
+  created_at: '2026-01-01T00:00:00.000Z',
+  stripe_session_id: null,
+  pack_number: DEV_MOCK_DOGS[0].pack_number,
+  owner_name: DEV_MOCK_USER.fullName,
+  weight_kg: 32,
+  health_status: null,
+  allergies: null, conditions: null, medication: null, diet: null,
+};

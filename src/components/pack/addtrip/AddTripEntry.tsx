@@ -19,6 +19,8 @@ import { EVENT_KINDS, EVENT_KIND_LABEL_KEYS, type EventKind } from '@/components
 import type { TripState } from './addTripModel';
 import { POINTS } from '@/lib/tripPoints';
 import { BackIcon, BackLinkIcon } from '@/components/pack/BackButton';
+import { RightGate } from '@/components/pack/RightGate';
+import type { PawmateRight } from '@/lib/pawmateRights';
 
 const GOLD = '#C99A3F'; // §8: hover na aktívnej dlaždici = zlatý okraj, presne tento hex
 
@@ -75,7 +77,13 @@ const KIND_CHIPS: Record<'trip' | 'event' | 'note', Chip[]> = {
 // Prvá úroveň — dve dlaždice (Matej 2026-08-06: SERVICE preč z renderu, viď hlavičkový
 // komentár). `Kind`/`disabled` tvar ostáva nezmenený pre vlnu 2 — SERVICE sa vtedy len pridá
 // späť do tohto poľa, nič iné sa v komponente meniť nemusí.
-const KINDS: Array<{ kind: Kind; emoji: string; titleKey: string; textKey: string; disabled?: boolean; points?: number }> = [
+// `right` = ktoré z ôsmich práv (§5) tá cesta potrebuje. Výlet stojí na DVOCH:
+// formulár zapisuje prejdenú trasu (`trips.log`) a vie v ňom pribudnúť aj nová
+// nakreslená (`trips.draw`) — stačí mať jedno z nich.
+// ⚠️ PODUJATIE nemá vlastné zaškrtávatko a je to zámer: je to pozvanie ĽUDÍ
+// v mene svorky, teda tá istá vec, čo `social` (správy a žiadosti). Deviate
+// právo by muselo prejsť všetkými tromi miestami zoznamu (§5b).
+const KINDS: Array<{ kind: Kind; emoji: string; titleKey: string; textKey: string; disabled?: boolean; points?: number; right?: PawmateRight | PawmateRight[] }> = [
   // ⚠️ BODY PATRIA SEM, NIE NA TLAČIDLO PRIDAŤ (Matej 2026-08-23: „má pridanie konkrétnu taxu?").
   // Tlačidlo otvára tri rôzne veci a každá je inak drahá — číslo na ňom by teda klamalo pri
   // dvoch z troch. Hodnoty sú z `lib/tripPoints.ts`; pri výlete je to ZÁKLAD, reálny výlet
@@ -86,9 +94,9 @@ const KINDS: Array<{ kind: Kind; emoji: string; titleKey: string; textKey: strin
   // nikto nevie, koľko značiek človek zapíše. Povie sa to až vtedy, keď na strop naozaj narazí.
   // 🥾 → 🐾 (matrica 24. 8. 2026): topánka je AKTIVITA „Hiking" o obrazovku ďalej. Dlaždica
   // VÝLET zastrešuje aj korčule, paddleboard a hrad — labka je jediné, čo platí na všetky.
-  { kind: 'trip', emoji: '🐾', titleKey: 'pack.addTrip.entry.kind.trip.title', textKey: 'pack.addTrip.entry.kind.trip.text', points: POINTS.add },
-  { kind: 'event', emoji: '📣', titleKey: 'pack.addTrip.entry.kind.event.title', textKey: 'pack.addTrip.entry.kind.event.text', points: POINTS.event },
-  { kind: 'note', emoji: '💬', titleKey: 'pack.addTrip.entry.kind.note.title', textKey: 'pack.addTrip.entry.kind.note.text', points: POINTS.note },
+  { kind: 'trip', emoji: '🐾', titleKey: 'pack.addTrip.entry.kind.trip.title', textKey: 'pack.addTrip.entry.kind.trip.text', points: POINTS.add, right: ['trips.log', 'trips.draw'] },
+  { kind: 'event', emoji: '📣', titleKey: 'pack.addTrip.entry.kind.event.title', textKey: 'pack.addTrip.entry.kind.event.text', points: POINTS.event, right: 'social' },
+  { kind: 'note', emoji: '💬', titleKey: 'pack.addTrip.entry.kind.note.title', textKey: 'pack.addTrip.entry.kind.note.text', points: POINTS.note, right: 'map.notes' },
 ];
 
 // Druhá úroveň pre TRIP — texty prevzaté 1:1 z pôvodných BLOCKS (needituje sa, len sa
@@ -159,8 +167,11 @@ export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
         {step === 'kind' && (
           <div className="att-entry-blocks att-entry-blocks-kind">
             {KINDS.map((k) => (
+              /* Zápisy z tohto rázcestia patria MNE (`user_id`), nie psovi — km sú
+                 moje (R2). Preto gate bez `dogId`: stačí, že mi to právo dal
+                 aspoň jeden majiteľ. */
+              <RightGate key={k.kind} right={k.right ?? 'trips.log'}>
               <button
-                key={k.kind}
                 type="button"
                 className={`att-entry-block${k.disabled ? ' att-entry-block-disabled' : ''}`}
                 disabled={k.disabled}
@@ -236,6 +247,7 @@ export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
                   </span>
                 )}
               </button>
+              </RightGate>
             ))}
           </div>
         )}

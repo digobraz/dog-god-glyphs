@@ -41,6 +41,7 @@ import {
   trailWCE, WCE_LABEL, type WCE,
   type TriplistTrip, type TripStatus,
 } from '@/components/pack/triplist/triplist';
+import { RightGate } from '@/components/pack/RightGate';
 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
@@ -719,18 +720,22 @@ export default function PackTriplist() {
                         />
                       </div>
                       <div className="tl-req-acts">
+                        <RightGate right="social">
                         <button
                           type="button"
                           className="tl-reqbtn yes"
                           disabled={reqBusy === row.id}
                           onClick={() => void onDecide(row.id, 'accepted', slug, member?.ownerFirst ?? member?.dogName ?? null)}
                         >{t('pack.triplist.accept')}</button>
+                        </RightGate>
+                        <RightGate right="social">
                         <button
                           type="button"
                           className="tl-reqbtn no"
                           disabled={reqBusy === row.id}
                           onClick={() => void onDecide(row.id, 'declined')}
                         >{t('pack.triplist.decline')}</button>
+                        </RightGate>
                       </div>
                     </div>
                   ));
@@ -903,12 +908,16 @@ export default function PackTriplist() {
                       </div>
                       {real && st && (
                         <>
+                          {/* Žiadosť o pridanie k cudzej partii je prejav NAVONOK
+                              v mene svorky ⇒ `social` (§5), rovnako ako správy. */}
+                          <RightGate right="social">
                           <button
                             type="button"
                             className={`tl-join${st.cls}`}
                             disabled={st.disabled || reqBusy === k}
                             onClick={(e) => { e.stopPropagation(); void onRequestJoin(real); }}
                           >{reqBusy === k ? '…' : st.label}</button>
+                          </RightGate>
                           {joinErr[k] && <div className="tl-joinerr">{joinErr[k]}</div>}
                         </>
                       )}

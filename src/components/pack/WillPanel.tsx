@@ -20,6 +20,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { X, Loader2, Save, Send, Check } from 'lucide-react';
 import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, FONT_TITLE, FONT_UI } from './packTheme';
 import { appendDogEvents, readLatest, type LatestValue } from '@/lib/dogEvents';
+import { RightGate } from '@/components/pack/RightGate';
 import { supabase } from '@/integrations/supabase/client';
 import { EDGE_BASE } from '@/lib/env';
 import { useT } from '@/i18n/LanguageContext';
@@ -312,6 +313,7 @@ export function WillPanel({
           </div>
         ) : (
           <div className="flex items-center justify-between" style={{ gap: 10, marginTop: 18 }}>
+            <RightGate right="will" dogId={dogId}>
             <button
               type="button"
               className="pk-pill pk-pill--tap inline-flex items-center gap-2"
@@ -333,7 +335,9 @@ export function WillPanel({
               <Send className="h-3.5 w-3.5" />
               {tx('pack.will.send', 'Send it')}
             </button>
+            </RightGate>
 
+            <RightGate right="will" dogId={dogId}>
             <button
               type="button"
               className="pk-pill pk-pill--gold pk-pill--tap inline-flex items-center gap-2"
@@ -352,6 +356,7 @@ export function WillPanel({
                 ? tx('pack.will.saving', 'Saving…')
                 : savedAt ? tx('pack.will.saved', 'Saved') : tx('pack.will.save', 'Save')}
             </button>
+            </RightGate>
           </div>
         )}
       </div>

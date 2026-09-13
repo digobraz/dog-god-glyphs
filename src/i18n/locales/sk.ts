@@ -1767,6 +1767,10 @@ export const sk: Partial<Dict> = {
   "pack.mate.err.gone": "Toto tu už nie je — zoznam som načítal znova.",
   "pack.mate.err.notOwner": "Toto smie meniť len majiteľ psa.",
   "pack.mate.err.generic": "Neprešlo to. Skús znova.",
+
+  // ── <RightGate> — prvok, na ktorý pawmate nemá právo (B6/F4) ──
+  "pack.gate.ownerOf": "Toto smie meniť majiteľ psa {dog}.",
+  "pack.gate.owner": "Toto smie meniť majiteľ.",
   "pack.tree.addHumanMember": "Pridať ľudského člena",
   "pack.tree.addHumanMemberTooltip": "Už čoskoro — pozvi jedného ľudského člena",
   "pack.tree.ownerAvatarAlt": "majiteľ",

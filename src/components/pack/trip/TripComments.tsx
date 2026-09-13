@@ -43,6 +43,7 @@ import {
 // Nahlásenie (issue #54) — infra (RPC `report_content` + `pack_reports`) žije v messaging module,
 // odtiaľ sa len importuje (needituje sa, iní agenti na ňom pracujú súbežne).
 import { reportContent, type ReportReason } from '@/components/pack/messaging/packMessaging';
+import { useMyDogRights } from '@/lib/dogRights';
 
 const T = PACK_THEME;
 const GOLD = '#C99A3F';
@@ -312,6 +313,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   onCountChange?: (n: number) => void;
 }) {
   const t = useT();
+  const dogRights = useMyDogRights();
   const [tab, setTab] = useState<'reviews' | 'advice'>('reviews');
   const [page, setPage] = useState(1);
   const changeTab = (t: 'reviews' | 'advice') => { setTab(t); setPage(1); };
@@ -325,7 +327,11 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   const [authedUserId, setAuthedUserId] = useState<string | null | undefined>(undefined);
   const [realReviews, setRealReviews] = useState<RealReview[]>([]);
   const [realQuestions, setRealQuestions] = useState<RealQuestion[]>([]);
-  const canWrite = authedUserId != null;
+  // 🔒 Hodnotenie a otázka sú prejav NAVONOK (vidia ich ostatní) ⇒ okrem prihlásenia
+  // ich drží aj právo `social` (§5). Dôvod, prečo je to TU a nie v `<RightGate>`:
+  // `canWrite` už riadi štyri prvky naraz vrátane vysvetľujúceho riadku — druhý
+  // mechanizmus vedľa neho by sa s ním rozišiel.
+  const canWrite = authedUserId != null && dogRights.canAny('social');
 
   const [reviewPopupOpen, setReviewPopupOpen] = useState(false);
   const [reviewSaving, setReviewSaving] = useState(false);

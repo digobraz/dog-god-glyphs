@@ -30,6 +30,7 @@ import { PACK_THEME, PACK_BOX, PILL_CSS, PF_FIELD_CSS, FONT_TITLE, FONT_UI } fro
 import { PASS_GROUPS, STEP_BY_FIELD, PROGRESS_STEPS, type QuizStep } from './dogQuiz';
 import { natureArt, storedSpecials } from './natureQuiz';
 import { readLatest, onDogEventsChange, hasValue, readSeries, appendDogEvents, type LatestValue } from '@/lib/dogEvents';
+import { RightGate } from '@/components/pack/RightGate';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
@@ -288,6 +289,9 @@ export function DogPassport({
                 na jedno pole nedáva zmysel: je to jeden priebeh so scoringom.
                 `editPanel` = needituje sa inde, ale priamo tu (závet). */}
             {group.editPanel ? (
+              /* Závet má vlastné právo — je to jediná sekcia dokladu, ktorá hovorí
+                 o tom, čo bude PO psovi, a §5 ju drží oddelene od `dogid.edit`. */
+              <RightGate right={group.key === 'will' ? 'will' : 'dogid.edit'} dogId={dogId}>
               <button
                 type="button"
                 className={`pk-pill pk-pill--tap pass-edit${dark ? ' pk-pill--dark' : ''}`}
@@ -295,7 +299,9 @@ export function DogPassport({
               >
                 ✎ {tx('pack.pass.edit', 'edit')}
               </button>
+              </RightGate>
             ) : (
+              <RightGate right="dogid.edit" dogId={dogId}>
               <Link
                 className="pk-pill pk-pill--tap pass-edit"
                 to={group.editHref
@@ -304,6 +310,7 @@ export function DogPassport({
               >
                 ✎ {tx('pack.pass.edit', 'edit')}
               </Link>
+              </RightGate>
             )}
           </div>
 
@@ -719,13 +726,19 @@ function GroupNote({
   return (
     <div className="pass-note">
       {value ? (
+        /* Poznámka je ÚDAJ o psovi — píše sa do `dog_events` rovnako ako váha,
+           takže ju drží to isté právo, nie vlastné. */
+        <RightGate right="dogid.edit" dogId={dogId}>
         <p className="pass-notetext" onClick={() => setEditing(true)} style={{ cursor: 'pointer' }}>
           „{value}"
         </p>
+        </RightGate>
       ) : (
+        <RightGate right="dogid.edit" dogId={dogId}>
         <button type="button" className="pass-noteadd" onClick={() => setEditing(true)}>
           ✎ {tx('pack.pass.noteAdd', 'add a note in your own words')}
         </button>
+        </RightGate>
       )}
     </div>
   );

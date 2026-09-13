@@ -75,6 +75,7 @@ import { useOpenTrips, useTripEventTravel } from '@/components/pack/triplist/use
 import { useTripParties, partyKey } from '@/components/pack/triplist/useTripParty';
 import { PartyMemberCard, PARTY_CARD_CSS } from '@/components/pack/triplist/PartyMemberCard';
 import { ACT_TAG_EMOJI, ACT_TO_CATEGORY, TAG_EMOJI, TAG_I18N, categoriesOf, chipsOf } from '@/components/pack/tripCategories';
+import { useMyDogRights } from '@/lib/dogRights';
 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
@@ -521,6 +522,8 @@ function locLine(trail: HeroTrail, t: ReturnType<typeof useT>): string {
 
 export default function PackTripArticle() {
   const t = useT();
+  // Práva pawmata (B6/F4) — článok výletu zapisuje prejdenie aj hodnotenie.
+  const dogRights = useMyDogRights();
   const { lang } = useLang();   // popisy výletov nesú DÁTA, nie i18n kľúče (viď tripText)
   const [goOpen, setGoOpen] = useState(false);   // panel „Vyraziť na miesto"
   const mapNotes = useMapNotes(true);
@@ -1021,6 +1024,13 @@ export default function PackTripArticle() {
     });
   };
   const toggleWalked = (tid: string) => {
+    // 🔒 `trips.log` (§5) — rovnaká kontrola ako v `PackMap.tsx`; tú istú funkciu
+    // volá aj menu aj hlavné tlačidlo článku.
+    if (!dogRights.canAny('trips.log')) {
+      const line = t('pack.gate.owner');
+      toast({ title: line === 'pack.gate.owner' ? 'Only the owner can change this.' : line });
+      return;
+    }
     if (walkedIds.has(tid)) {
       setWalkedIds((prev) => { const n = new Set(prev); n.delete(tid); return n; });
       setVotes((prev) => { const n = { ...prev }; delete n[tid]; return n; });

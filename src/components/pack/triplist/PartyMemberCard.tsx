@@ -14,6 +14,7 @@ import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { emitOpenThread } from '@/components/pack/messaging/openBridge';
 import type { PartyMember } from './useTripParty';
 import { useMemberProfile, memberDisplayName } from '@/components/pack/profile/memberProfile';
+import { RightGate } from '@/components/pack/RightGate';
 
 const T = PACK_THEME;
 const GOLD = '#C99A3F';
@@ -105,6 +106,7 @@ export function PartyDmButton({ member, dm, className = 'pmc-msg' }: {
   };
 
   return (
+    <RightGate right="social">
     <button
       type="button"
       className={className}
@@ -114,6 +116,7 @@ export function PartyDmButton({ member, dm, className = 'pmc-msg' }: {
     >
       {busy ? '…' : failed ? 'Unavailable' : 'Message'}
     </button>
+    </RightGate>
   );
 }
 

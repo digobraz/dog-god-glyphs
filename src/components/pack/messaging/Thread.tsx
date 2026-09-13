@@ -33,6 +33,7 @@ import {
   getConversation, getMe, joinGroup, markRead, reportContent, sendMessage, setPeerBlocked,
   subscribe, type Conversation, type ReportReason,
 } from './packMessaging';
+import { RightGate } from '@/components/pack/RightGate';
 
 const T = PACK_THEME;
 const A = AINUBIS;
@@ -386,6 +387,10 @@ export function Thread({ convId, onClose, onOpenTrip }: {
         </div>
       ) : iAmMember ? (
         <div className="msg-thread-send">
+          {/* Písanie v mene svorky = právo `social` (§5). Gate je na OBOCH prvkoch:
+              pole nesie `readOnly` (klávesnicu `pointer-events` nezastaví), tlačidlo
+              vysvetlenie. */}
+          <RightGate right="social">
           <input
             className="msg-thread-input"
             value={text}
@@ -393,9 +398,12 @@ export function Thread({ convId, onClose, onOpenTrip }: {
             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void send(); } }}
             placeholder={t('pack.msg.messageInputPlaceholder')}
           />
+          </RightGate>
+          <RightGate right="social">
           <button type="button" className="msg-sendbtn" onClick={() => void send()} disabled={!text.trim()} aria-label={t('pack.msg.sendMessageAriaLabel')}>
             <BrandIcon name="feather" size={17} tint="white" />
           </button>
+          </RightGate>
         </div>
       ) : (
         <div className="msg-thread-join">

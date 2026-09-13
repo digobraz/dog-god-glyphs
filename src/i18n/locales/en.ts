@@ -1609,6 +1609,12 @@ export const en = {
   'pack.mate.err.gone': "This is no longer there — the list has been refreshed.",
   'pack.mate.err.notOwner': "Only the owner of the dog can change this.",
   'pack.mate.err.generic': "It did not go through. Try again.",
+
+  // ── <RightGate> — prvok, na ktorý pawmate nemá právo (B6/F4, §6.3) ──
+  // Jeden riadok po ťuknutí na stlmený prvok, nie hover tooltip: na telefóne
+  // hover nie je a člen by dostal mŕtve tlačidlo bez dôvodu.
+  'pack.gate.ownerOf': "Only {dog}'s owner can change this.",
+  'pack.gate.owner': "Only the owner can change this.",
   'pack.tree.addHumanMember': "Add human member",
   'pack.tree.addHumanMemberTooltip': "Coming soon — invite one human member",
   'pack.tree.emptyState': "No heroglyphs yet",

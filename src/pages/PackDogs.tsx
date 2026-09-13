@@ -62,6 +62,7 @@ import { countryISO2 } from '@/lib/countryGeo';
 import { supabase } from '@/integrations/supabase/client';
 import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
 import { useT } from '@/i18n/LanguageContext';
+import { RightGate } from '@/components/pack/RightGate';
 
 const T = PACK_THEME;
 
@@ -1363,6 +1364,10 @@ function ActionTile({
   const filledPill = p.total > 0 && p.filled >= p.total;
 
   return (
+    /* Dlaždica poľa pasu vedie do kvízu, ktorý zapisuje do `dog_events` ⇒ `dogid.edit`.
+       Bez `dogId`: kvíz sa vypĺňa za VIACERÝCH psov naraz, takže stačí mať to právo
+       aspoň pri jednom. Ktorých psov v ňom uvidí, rozhoduje politika na `dogs` (B3b). */
+    <RightGate right="dogid.edit">
     <Link
       to={`/pack/dogs/quiz/${section.key}`}
       className="hub-hover"
@@ -1407,6 +1412,7 @@ function ActionTile({
         {pill}
       </span>
     </Link>
+    </RightGate>
   );
 }
 

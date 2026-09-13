@@ -26,6 +26,8 @@ import {
   X,
 } from 'lucide-react';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { RightGate } from '@/components/pack/RightGate';
+import { DEV_NOAUTH, DEV_MOCK_DOG_ROW } from '@/lib/devMockDogs';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PALE } from '@/components/pack/navGoldSkin';
@@ -342,6 +344,19 @@ export default function PackDogDetail() {
     async function load() {
       if (!id) {
         setStatus('not-found');
+        return;
+      }
+      // 🔴 POD `DEV_NOAUTH` SA SUPABASE NEVOLÁ (lock v CLAUDE.md) — a `if (!user) return`
+      // nižšie by stránku nechalo na „NAČÍTAVAM" navždy. Atrapa je v `lib/devMockDogs.ts`,
+      // spoločná s hubom a homepage; nekopíruj ju, zapoj ju.
+      if (DEV_NOAUTH) {
+        if (!mounted) return;
+        const row = DEV_MOCK_DOG_ROW as unknown as DogRow;
+        setDog(row);
+        setMessageDraft(row.grid_message ?? '');
+        setExtras([]);
+        setWeightKgDb(row.weight_kg != null ? String(row.weight_kg) : '');
+        setStatus('ready');
         return;
       }
       const { data: { user } } = await supabase.auth.getUser();
@@ -915,6 +930,7 @@ export default function PackDogDetail() {
             </div>
 
             {/* Foto — kruh, zlatý prsteň; hover (PC) / tap (mobile) = zmena, ako avatar majiteľa */}
+            <RightGate right="dog.photo" dogId={dog.id} lock="corner">
             <button
               type="button"
               onClick={handleChangeMainPhoto}
@@ -947,6 +963,7 @@ export default function PackDogDetail() {
                 {uploadingMain ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
               </span>
             </button>
+            </RightGate>
             <input
               ref={mainPhotoInputRef}
               type="file"
@@ -1193,6 +1210,7 @@ export default function PackDogDetail() {
               })()}
 
               {/* A word on the Wall — trigger opens a popup so the panel never scrolls */}
+              <RightGate right="grid.message" dogId={dog.id}>
               <button
                 type="button"
                 onClick={() => setWallOpen(true)}
@@ -1215,10 +1233,14 @@ export default function PackDogDetail() {
                 <BrandIcon name="heartpaw" size={12} tint="gold" />
                 {t('pack.dog.wordOnWall')}
               </button>
+              </RightGate>
 
               {/* Memorial — decisive, clearly actionable, last in the panel. Never on the
                   front of a living dog's card (FIX9 polish); lives here behind a hairline divider. */}
               <div style={{ marginTop: 10, paddingTop: 12, borderTop: `1px solid ${T.hairline}` }}>
+                {/* 🔒 Označenie psa za mŕtveho je NEVRATNÉ ⇒ patrí výhradne majiteľovi
+                    a zaškrtávatko preň neexistuje (§5). Preto `right="owner"`. */}
+                <RightGate right="owner" dogId={dog.id}>
                 <button
                   type="button"
                   onClick={() => {
@@ -1247,6 +1269,7 @@ export default function PackDogDetail() {
                       : t('pack.dog.memorial.editDate')
                     : t('pack.dog.memorial.markLink')}
                 </button>
+                </RightGate>
               </div>
             </div>
             )}

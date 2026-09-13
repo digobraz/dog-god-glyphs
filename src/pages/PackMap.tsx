@@ -66,6 +66,7 @@ import { TripComments } from '@/components/pack/trip/TripComments';
 import { TripCreatorPopup } from '@/components/pack/trip/TripCreatorPopup';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { useToast } from '@/hooks/use-toast';
+import { useMyDogRights } from '@/lib/dogRights';
 import { ToastAction } from '@/components/ui/toast';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { levelProgress, calculateTripPoints, levelThreshold } from '@/lib/tripPoints';
@@ -3446,6 +3447,9 @@ function TripPickDropdown({ label, value, options, onPick, anyLabel, anyIcon, pl
 
 export default function PackMap() {
   const t = useT();
+  // Práva pawmata (B6/F4) — mapa má dva zápisy bez prvku: dlhé podržanie (značka)
+  // a kreslenie trasy. Obidva sa pýtajú tu, `<RightGate>` obaľuje len tlačidlá.
+  const dogRights = useMyDogRights();
   const { lang } = useLang();   // popisy výletov nesú DÁTA, nie i18n kľúče (viď tripText)
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -3732,8 +3736,16 @@ export default function PackMap() {
   // RÝCHLA CESTA — podržanie dá miesto, paleta sa spýta na typ. Beží len keď
   // NEPREBIEHA pomalá cesta: v režime „ukáž miesto" by dlhé podržanie a klik
   // súperili o ten istý dotyk.
+  // 🔒 GESTO SA NEDÁ STLMIŤ — `<RightGate>` obalí PRVOK, dlhé podržanie prvok nemá.
+  // Preto sa tu berie tá istá odpoveď priamo z hooku a namiesto palety sa povie,
+  // prečo to nejde; ticho by to vyzeralo ako nefunkčná mapa.
   useLongPressPoint(mapInstance, !noteBusy && !notePlacing, {
     onPoint: (lat, lng) => {
+      if (!dogRights.canAny('map.notes')) {
+        const line = t('pack.gate.owner');
+        toast({ title: line === 'pack.gate.owner' ? 'Only the owner can change this.' : line });
+        return;
+      }
       setNoteTooFar(null);
       setNoteHint(false);
       markHintSeen();
@@ -4308,6 +4320,14 @@ export default function PackMap() {
   // nezruší nič, prejdenie je už zapísané. Od 2026-08-06 sa ponúka pri KAŽDOM prejdení, bez
   // tichého obdobia — dôvod a čo robiť namiesto neho pri dávke: packCommunity.ts. ──
   const toggleWalked = (tid: string) => {
+    // 🔒 Zápis prejdenej trasy = `trips.log` (§5). Kontrola je TU, nie v `<RightGate>`:
+    // tú istú funkciu volajú štyri rôzne prvky (karta, menu, popup, sprievodca)
+    // a štyri obaly by sa pri prvej zmene rozišli.
+    if (!dogRights.canAny('trips.log')) {
+      const line = t('pack.gate.owner');
+      toast({ title: line === 'pack.gate.owner' ? 'Only the owner can change this.' : line });
+      return;
+    }
     if (walkedIds.has(tid)) {
       setWalkedIds((prev) => { const n = new Set(prev); n.delete(tid); return n; });
       setVotes((prev) => { const n = { ...prev }; delete n[tid]; return n; });
