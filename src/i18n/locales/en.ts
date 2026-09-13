@@ -2763,6 +2763,13 @@ export const en = {
   'pack.trip.cm.signInReview': "Sign in to post a review.",
   'pack.trip.cm.editMine': "Edit my review",
   'pack.trip.cm.addShort': "Add review",
+  // ⚠️ TRI TVARY, NIE „+s" (2026-09-13). Vetva „skryť" išla z kľúča, vetva „zobraziť" bola
+  // natvrdo anglický reťazec v TripComments.tsx, takže v slovenčine stálo „Skryť hodnotenia"
+  // proti „Show 1 review". Slovenčina má tri tvary a anglická prípona `s` ich neunesie —
+  // ten istý trojtvarový vzor ako `pack.points.unit.*` a `pack.map.statTrips*`.
+  'pack.trip.cm.showOne': "Show {n} review",
+  'pack.trip.cm.showFew': "Show {n} reviews",
+  'pack.trip.cm.showMany': "Show {n} reviews",
   'pack.trip.cm.walkedThen': "Walked this trail? ADD REVIEW!",
   'pack.trip.cm.hide': "Hide reviews",
   'pack.trip.cm.beFirstReview': "Be the first Dogyptian to review this trail.",
@@ -2997,7 +3004,11 @@ export const en = {
   // Prázdny stav zoznamu MOJICH inzerátov (`packCommunityUI.tsx`). ⚠️ Veta nesmie znieť
   // „nikto nič neplánuje" — panel drží len vlastné inzeráty (`.eq('host_id', uid)`),
   // cudzie otvorené výlety žijú v Triplist → OPEN TRIPS FROM THE PACK.
-  'pack.community.noAnnouncedWalk': "You haven’t announced a walk yet. Open a trip, pick “Find a buddy”, and the pack will see it.",
+  // ⚠️ NÁZOV OVLÁDACIEHO PRVKU MUSÍ SEDIEŤ (2026-09-13). Veta posielala na „Find a buddy",
+  // ktoré v appke neexistuje — prvok sa volá `pack.addTrip.plan.visibilityOpen`, teda
+  // „Looking for pack" / SK „Hľadám partiu". Text, ktorý pomenuje tlačidlo cudzím menom,
+  // je horší než text bez názvu: človek ho hľadá a nenájde.
+  'pack.community.noAnnouncedWalk': "You haven’t announced a walk yet. Open a trip, set it to “Looking for pack”, and the pack will see it.",
   'pack.community.browseTrips': "Browse trips",
   'pack.profileCard.removeTag': "Remove {tag}",
   'pack.profileCard.smokeLabel': "Smoke: {value}",

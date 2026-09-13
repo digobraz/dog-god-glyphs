@@ -2201,6 +2201,16 @@ export const sk: Partial<Dict> = {
   // EVENT zoznam v ľavom paneli mapy (krok 5, plany/zadanie-eventy-2026-08-06.md §9 krok 5).
   'pack.eventsList.upcoming': "Nadchádzajúce",
   'pack.eventsList.archive': "Archív",
+  // ⚠️ TIETO DVA KĽÚČE BOLI LEN V `en.ts` (doplnené 2026-09-13), takže Slovák čítal
+  // v prázdnom stave podujatí anglickú vetu. Pomenovanie prvku sedí s
+  // `pack.addTrip.plan.visibilityOpen` = „Hľadám partiu" — pôvodný EN text posielal na
+  // „Find a buddy", čo sa v appke nevolá nijako.
+  'pack.community.noAnnouncedWalk': "Ešte si nikoho nepozval na výlet. Otvor si výlet, prepni ho na „Hľadám partiu" a svorka ho uvidí.",
+  'pack.community.browseTrips': "Prejdi si výlety",
+  // Tri tvary pre „Zobraziť N hodnotení" — viď komentár pri kľúčoch v `en.ts`.
+  'pack.trip.cm.showOne': "Zobraziť {n} hodnotenie",
+  'pack.trip.cm.showFew': "Zobraziť {n} hodnotenia",
+  'pack.trip.cm.showMany': "Zobraziť {n} hodnotení",
   'pack.eventsList.emptyUpcoming': "Zatiaľ žiadne podujatia — buď prvý, kto pridá niečo, o čom by tvoja svorka mala vedieť.",
   'pack.eventsList.emptyArchive': "Zatiaľ nič — odohrané podujatia sa tu objavia po termíne.",
   'pack.eventsList.emptyCta': "Pridať podujatie",
@@ -2787,7 +2797,11 @@ export const sk: Partial<Dict> = {
   'pack.mapLocked.become': "Staň sa Dogypťanom",
   'pack.mapLocked.alreadyMember': "Už si náš? Prihlás sa",
   'pack.map.catTrips': "Výlety",
-  'pack.map.catEvents': "Udalosti",
+  // ⚠️ „PODUJATIA", NIE „UDALOSTI" (Matej 2026-09-13). Toto bol JEDINÝ výskyt slova
+  // „udalosť" v celom sk.ts proti 11 výskytom „podujatie" (formulár, zoznam, mazanie,
+  // paleta značiek) — teda nedotiahnutý zvyšok, nie druhý pojem. Tá istá situácia ako
+  // „Pack"/„svorka" 1. 9. EN „Events" sa nemení.
+  'pack.map.catEvents': "Podujatia",
   'pack.map.catPlaces': "Miesta",
   'pack.map.catServices': "Služby",
   'pack.map.comingSoon': "Čoskoro",
