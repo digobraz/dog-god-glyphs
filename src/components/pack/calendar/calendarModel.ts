@@ -457,6 +457,24 @@ export function weekIndex(birth: Date, day: Date): number {
   return Math.floor((day.getTime() - birth.getTime()) / (7 * 86_400_000));
 }
 
+/**
+ * Vek v ROKOCH, MESIACOCH a TÝŽDŇOCH k danému dňu (Matej 13. 9. 2026: „pri
+ * prejdení myšou na rôzny blok sa zobrazí roky, mesiace, týždne").
+ *
+ * ⚠️ Ráta sa KALENDÁRNE, nie delením dní. „10 rokov 4 mesiace" musí sedieť
+ * s tým, čo človek vidí na kalendári — pri delení priemernou dĺžkou mesiaca
+ * (30,44 dňa) sa to po desiatich rokoch rozíde o niekoľko dní a v deň narodenín
+ * by mriežka tvrdila „9 rokov 11 mesiacov".
+ */
+export function ageParts(birth: Date, at: Date): { y: number; m: number; w: number } {
+  let y = at.getFullYear() - birth.getFullYear();
+  let m = at.getMonth() - birth.getMonth();
+  let d = at.getDate() - birth.getDate();
+  if (d < 0) { m -= 1; d += dim(at.getFullYear(), at.getMonth() === 0 ? 12 : at.getMonth()); }
+  if (m < 0) { y -= 1; m += 12; }
+  return { y: Math.max(0, y), m: Math.max(0, m), w: Math.max(0, Math.floor(d / 7)) };
+}
+
 /** Prvý deň daného týždňa života (na popisok „24. 3. – 30. 3. 2019"). */
 export function weekStart(birth: Date, wi: number): Date {
   return new Date(birth.getTime() + wi * 7 * 86_400_000);
