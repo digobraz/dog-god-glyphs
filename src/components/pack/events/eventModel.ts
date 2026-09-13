@@ -79,6 +79,35 @@ export function missingEventFields(draft: AddEventDraft): string[] {
   return missing;
 }
 
+// ── PORADIE DÁTUMOV (2026-09-13) ───────────────────────────────────────────────────────
+// `missingEventFields` hovorí o CHÝBAJÚCICH poliach, takže zle usporiadaný rozsah doň
+// nepatrí — bolo by z toho „chýba: Koniec" nad vyplneným poľom. Je to samostatná chyba
+// a samostatná veta.
+// ⚠️ Odfotené 13. 9.: koniec 9. 10. pri začiatku 10. 10. sa uložil bez slova a karta ho
+// vypísala ako „10. 10. – 9. 10.". Formulár má na konci aj `min={startsAt}`, ale natívny
+// `min` drží len klikanie v kalendári — vpísaný alebo vložený text ním neprejde, takže
+// kontrola musí byť aj tu.
+// Reťazce sú `datetime-local` ('YYYY-MM-DDTHH:mm'), teda sa dajú porovnať ako TEXT:
+// formát je zľava doprava od najväčšej jednotky a má pevnú šírku. `new Date()` by tu
+// priniesol časové zóny, ktoré na porovnanie dvoch hodnôt z toho istého poľa netreba.
+export function endsBeforeStarts(draft: AddEventDraft): boolean {
+  if (!draft.startsAt || !draft.endsAt) return false;
+  return draft.endsAt < draft.startsAt;
+}
+
+// ── ODKAZ BEZ SCHÉMY (2026-09-13) ──────────────────────────────────────────────────────
+// Odfotené 13. 9.: `dogypt.com/podujatie` sa uložilo tak, ako ho človek napísal, a keďže
+// `EventCard` z neho robí `<a href>`, prehliadač to vyhodnotil RELATÍVNE — klik otvoril
+// nové okno na `/pack/dogypt.com/podujatie`, teda vo vlastnej appke na neexistujúcej
+// route. Odznak pritom napísal „Z dogypt.com/podujatie", takže to vyzeralo funkčne.
+// Ľudia `https://` nepíšu, preto sa dopĺňa, nie vyžaduje.
+// ⚠️ Doplní sa len tam, kde schéma CHÝBA — `http://`, `mailto:` ani nič iné sa neprepisuje.
+export function normalizeSourceUrl(raw: string): string {
+  const v = raw.trim();
+  if (!v) return v;
+  return /^[a-z][a-z0-9+.-]*:/i.test(v) ? v : `https://${v}`;
+}
+
 // ── Uložené eventy (§ zadania „Úložisko") — kľúč `trp-events-own-v1`, rovnaký obranný vzor
 // ako addStore v addTripModel.ts: localStorage s probe, fallback sessionStorage pri zlyhaní
 // (private mode / quota). Nepridáva sa do PACK_KEYS (lib/packStore.ts) — DB sync príde až po

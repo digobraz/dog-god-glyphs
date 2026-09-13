@@ -509,7 +509,13 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
 
             {reviewCount > 0 && (
               <button type="button" className="tcm-collapse-toggle" onClick={() => setReviewsOpen((v) => !v)}>
-                {reviewsOpen ? t('pack.trip.cm.hide') : `Show ${reviewCount} review${reviewCount === 1 ? '' : 's'}`}
+                {/* ⚠️ SKLOŇUJE SA (2026-09-13). Do dnes tu stál natvrdo anglický reťazec
+                    s príponou `s`, takže v slovenčine sa prepínač čítal „Skryť hodnotenia"
+                    ↔ „Show 1 review" — polovica z kľúča, polovica z kódu. Slovenčina má
+                    tri tvary; ten istý vzor ako `pack.points.unit.*`. */}
+                {reviewsOpen
+                  ? t('pack.trip.cm.hide')
+                  : t(`pack.trip.cm.show${reviewCount === 1 ? 'One' : reviewCount < 5 ? 'Few' : 'Many'}`, { n: reviewCount })}
                 <span className={`tcm-collapse-chevron${reviewsOpen ? ' open' : ''}`}>⌄</span>
               </button>
             )}

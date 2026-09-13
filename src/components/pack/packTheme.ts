@@ -131,19 +131,90 @@ export const PACK_THEME = {
 //
 // Použitie: `style={{ ...PACK_BOX.subblock, padding: '15px 16px' }}` — matrica dáva
 // výplň/rám/radius/tieň, komponent si dopĺňa len rozostupy.
+// ════════════════════════════════════════════════════════════════════════════
+// STUPNICE `/pack` — LOCKED 2026-09-13 (Matejov výber v nákrese, 11/11)
+// ────────────────────────────────────────────────────────────────────────────
+// Nákres: `plany/nakres-dizajnovy-system-pack-2026-09-13.html`
+// Zadanie: `plany/zadanie-dizajnovy-audit-pack-2026-09-13.md`
+//
+// Matej 13. 9. 2026: „nemôžu byť bloky pri komunite na homepage iné ako v DOG ID
+// alebo /dogs, respektíve môžu ale musia byť všetky cheknuté, musíme ich mať
+// v našej databáze a vedieť ich pomenovať ako napr. dblok."
+//
+// 🔴 TOTO NIE JE NÁVRH — je to sada, ktorú vynucuje `scripts/check-pack-scale.mjs`.
+//    Číslo mimo nej zhodí build. Nový tvar sa NEPRIDÁVA do komponentu, ale SEM,
+//    a musí dostať MENO v `PACK_BLOCKS` nižšie.
+// ════════════════════════════════════════════════════════════════════════════
+
+/** Polomery rohov — 4 stupne + 1 locknutý (výber `r4`). */
+export const PACK_R = {
+  /** Pilulka, chip, avatar, odznak. */
+  pill: 999,
+  /** Pole formulára, tlačidlo (`.btn-gold` lock = 8). */
+  field: 8,
+  /** Riadok zoznamu a dlaždica vnútri karty. */
+  tile: 12,
+  /** 🔒 D-BLOK — zlatý rám. Číslo je NAV_R.frame zo spodného navu, teda LOCK,
+   *  nie voľba. Preto má vlastný stupeň: odchýlka, ktorá je pomenovaná a evidovaná,
+   *  nie odchýlka, ktorá sa niekde stratila. */
+  frame: 14,
+  /** Karta stránky a plávajúci panel. */
+  card: 16,
+} as const;
+
+/** Rebrík odsadení — násobky štvorky (výber `s5`). */
+export const PACK_SPACE = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 } as const;
+
+/** Typografická stupnica — 6 veľkostí, ŽIADNE desatiny (výber `t6`).
+ *  ⚠️ 9,5 / 10,5 / 12,5 sú od 13. 9. 2026 mimo sady. Mikropopisok je 10. */
+export const PACK_TEXT = {
+  /** Mikropopisok, eyebrow, odznak. */
+  micro: 10,
+  /** Popisok, chip, meta. */
+  label: 12,
+  /** Bežný text. */
+  body: 14,
+  /** Zvýraznený text, lead odsek. */
+  lead: 16,
+  /** Nadpis sekcie vnútri karty (keď nesie Cinzel). */
+  h2: 20,
+  /** Nadpis karty. */
+  h1: 24,
+} as const;
+
+/** Nadpisy — DVA tvary podľa úrovne (výber `h2`). Sedem tvarov z inventúry končí. */
+export const PACK_HEAD = {
+  /** Názov KARTY — veľký Cinzel. Orientačný bod stránky. */
+  card: {
+    fontFamily: FONT_TITLE,
+    fontWeight: 700,
+    fontSize: PACK_TEXT.h1,
+    letterSpacing: '0.14em',
+    textTransform: 'uppercase',
+  },
+  /** Názov SEKCIE vnútri karty — tichý eyebrow. */
+  section: {
+    fontFamily: FONT_UI,
+    fontWeight: 500,
+    fontSize: PACK_TEXT.micro,
+    letterSpacing: '0.22em',
+    textTransform: 'uppercase',
+  },
+} as const;
+
 export const PACK_BOX = {
   /** 1 — KARTA: samostatný blok stránky (profil, sieť, účet). */
   card: {
     background: PACK_THEME.cardGrad,
     border: `1.5px solid ${PACK_THEME.cardEdge}`,
-    borderRadius: 16,
+    borderRadius: PACK_R.card,
     boxShadow: PACK_THEME.cardShadow,
   },
   /** 2 — PODBLOK: sekcia vnútri karty (ZÁKLAD, ŽIVOTNÝ ŠTÝL, kroky 1–3). */
   subblock: {
     background: PACK_THEME.panelGrad,
     border: `1px solid ${PACK_THEME.cardEdge}`,
-    borderRadius: 12,
+    borderRadius: PACK_R.tile,
     boxShadow: '0 1px 3px rgba(122,90,42,0.10), inset 0 1px 0 rgba(255,255,255,0.40)',
   },
   /** 2b — TMAVÝ PODBLOK: tá istá sekcia, ale čierna. VÝNIMKA Z PAPYRUSOVÉHO LOCKU,
@@ -158,7 +229,7 @@ export const PACK_BOX = {
   subblockDark: {
     background: `linear-gradient(135deg, #171009 0%, ${PACK_THEME.pageBg} 100%)`,
     border: `1px solid ${PACK_THEME.cardEdge}`,
-    borderRadius: 12,
+    borderRadius: PACK_R.tile,
     boxShadow: '0 1px 3px rgba(0,0,0,0.45), inset 0 1px 0 rgba(245,240,228,0.10)',
   },
   /** 3 — RIADOK: položka zoznamu (člen línie, riadok knihy). Plochá, aby ich desať pod
@@ -166,15 +237,81 @@ export const PACK_BOX = {
   row: {
     background: PACK_THEME.tileBg,
     border: `1px solid ${PACK_THEME.border}`,
-    borderRadius: 10,
+    borderRadius: PACK_R.tile,
   },
   /** 4 — MODAL / plávajúci panel nad stránkou. */
   panel: {
     background: PACK_THEME.panelGrad,
     border: `1.5px solid ${PACK_THEME.cardEdge}`,
-    borderRadius: 14,
+    borderRadius: PACK_R.card,
     boxShadow: PACK_THEME.panelShadow,
   },
+} as const;
+
+// ════════════════════════════════════════════════════════════════════════════
+// KATALÓG BLOKOV — „naša databáza blokov" (Matej 2026-09-13)
+// ────────────────────────────────────────────────────────────────────────────
+// Každý tvar bloku, ktorý sa v `/pack` smie objaviť, má MENO a je tu.
+// Blok, ktorý tu nie je, v appke neexistuje — buď použi jeden z týchto, alebo
+// si vypýtaj nový a zapíš ho SEM (aj do sekcie BLOCKS v brand manuáli).
+//
+// Prečo katalóg a nie len matrica: matrica hovorí, ako blok VYZERÁ. Katalóg
+// hovorí, ako sa VOLÁ a KEDY sa používa — bez toho vzniká šiesty tvar zakaždým,
+// keď niekto nevie, či to, čo stavia, je karta alebo panel.
+// ════════════════════════════════════════════════════════════════════════════
+
+export const PACK_BLOCKS = {
+  'D-BLOK': {
+    recept: 'goldFrameCSS() — navGoldSkin.ts',
+    polomer: PACK_R.frame,
+    kedy: 'Blok v zlatom odliatku so zapustenou doskou. Nesie NAJVYŠŠIU úroveň — '
+      + 'spodný nav, dok mapy, a na homepage PRESNE DVA bloky (JA+SVORKA, KOMUNITA).',
+    lock: 'Hover mení iba transform — box-shadow nesie celý odliatok (11. 9. 2026).',
+  },
+  KARTA: {
+    recept: 'PACK_BOX.card',
+    polomer: PACK_R.card,
+    kedy: 'Samostatný blok stránky: DOG ID, profil, kalendár, sieť, účet.',
+  },
+  PODBLOK: {
+    recept: 'PACK_BOX.subblock',
+    polomer: PACK_R.tile,
+    kedy: 'Sekcia vnútri KARTY — ZÁKLAD, ŽIVOTNÝ ŠTÝL, kroky 1–3, dlaždice polí.',
+  },
+  'PODBLOK TMAVÝ': {
+    recept: 'PACK_BOX.subblockDark',
+    polomer: PACK_R.tile,
+    kedy: 'Tá istá sekcia, ale čierna. Siaha sa po nej za VÝZNAM, nie za vkus — '
+      + 'zatiaľ jediný držiteľ je ZÁVET na DOG ID. Nie na písacie povrchy.',
+  },
+  RIADOK: {
+    recept: 'PACK_BOX.row',
+    polomer: PACK_R.tile,
+    kedy: 'Položka zoznamu — člen línie, riadok knihy, správa v inboxe. Plochá, '
+      + 'aby ich desať pod sebou nerobilo z karty schodisko.',
+  },
+  PANEL: {
+    recept: 'PACK_BOX.panel',
+    polomer: PACK_R.card,
+    kedy: 'Plávajúci modal nad stránkou. BEZ KRÍŽIKA — von sa ide klikom mimo alebo Esc.',
+  },
+  'AI-PALUBA': {
+    recept: 'ainubisSkin.ts — AINUBIS.*',
+    polomer: PACK_R.card,
+    kedy: 'Povrch, kde hovorí AINUBIS: chat, koučovanie mapy, a KAŽDÉ hlásenie '
+      + 'či otázka o bezpečnosti. Vlastná paleta (tmavá modrá + cyan, CTA zlato-oranžové) — '
+      + 'je to jeho brand, nie odchýlka od nášho.',
+  },
+} as const;
+
+/** Tiene — 3 výšky (výber `sh3`). Tieň nesie JEDINÚ informáciu: ako vysoko prvok stojí. */
+export const PACK_SHADOW = {
+  /** Leží na stránke. */
+  card: PACK_THEME.cardShadow,
+  /** Pláva nad ňou. */
+  panel: PACK_THEME.panelShadow,
+  /** Reakcia na dotyk. ⚠️ Na D-BLOKU sa nepoužíva — ten sa dvíha transformom. */
+  lift: '0 1px 3px rgba(122,90,42,0.10), inset 0 1px 0 rgba(255,255,255,0.40)',
 } as const;
 
 // ════════════════════════════════════════════════════════════════════════════

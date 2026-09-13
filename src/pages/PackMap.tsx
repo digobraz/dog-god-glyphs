@@ -5970,7 +5970,15 @@ export default function PackMap() {
             {/* Matej 2026-08-06: MIESTA (Places) pill preč — PLACE ako filter kategória bola
                 zrušená (pláže/lúky/parky sú TRIP cez aktivitu `explore`, viď zadanie-eventy §A).
                 i18n kľúč `pack.map.catPlaces` ostáva v locale súboroch pre prípadné budúce použitie. */}
-            <button type="button" className="trp-catpill soon" disabled data-tip={t('pack.map.comingSoon')}>{t('pack.map.catServices')}</button>
+            {/* ⚠️ SLUŽBY ZANIKLI (Matej 2026-09-13: „zmazať z PC"). Bola to vypnutá pilulka
+                `soon`, ktorá nerobila nič — a mobilná vetva ju zámerne nemá už od 1. 9.
+                („na 390 px by zabrala tretinu šírky a nerobí nič"), takže PC bol jediné
+                miesto, kde sľub visel. Ide to v jednej línii s rozhodnutím z 11. 9. o
+                pilulke rangu: *„komunikovať to budeme až keď otvoríme apku, aby ľudia
+                nemali pocit, že je to nedokončené."*
+                Kľúč `pack.map.catServices` v locale súboroch OSTÁVA — rovnako ako
+                `pack.map.catPlaces` po zrušení MIEST 6. 8. Keď služby prídu, pilulka sa
+                vráti sem a mobilná dvojička do `.trp-mheader-cats`. */}
           </div>
 
           {/* geo/tag filtre sú trip-specifické — pri Events kategórii sa skryjú. */}
@@ -6045,7 +6053,18 @@ export default function PackMap() {
                       „v archive nebudu predsa tripy tie sa loguju len do tripov"). Naplánovaný
                       výlet po termíne NEIDE do archívu podujatí — vsiakne sa do tripu ako log
                       v jeho histórii. Archív patrí VÝHRADNE podujatiam. */}
-                  {eventsView === 'upcoming' && (
+                  {/* ⚠️ `events.length > 0` PRIBUDLO 13. 9. 2026 — JEDEN PRÁZDNY STAV, NIE DVA.
+                      Keď boli oba zoznamy prázdne, záložka vypísala dve hlásenia nad sebou
+                      s dvoma rôznymi CTA („PRIDAŤ PODUJATIE“ a „Prejdi si výlety“) — a to
+                      druhé bolo navyše po anglicky, lebo kľúče `pack.community.*` ležali
+                      len v `en.ts`. Odfotené.
+                      Prázdny stav podujatí drží `EventsPanel` a hovorí o TEJTO záložke;
+                      `EventsView` hovorí o mojich otvorených výletoch, čo je iná entita
+                      (viď komentár vyššie) — keď žiadne nemám, nemá čo povedať.
+                      ⚠️ Prázdna vetva v `EventsView` sa NEMAŽE ani sa nemažú jej kľúče:
+                      komponent je napísaný, aby vedel stáť sám, a tu ho len nevoláme
+                      nazmar. SK preklad kľúčov doplnený v tom istom behu. */}
+                  {eventsView === 'upcoming' && events.length > 0 && (
                     <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => { setActiveCat('trips'); selectTrail(trailsById(tid) ?? HERO_TRAILS[0]); }} onBrowseTrips={() => setActiveCat('trips')} myId={id.session?.user?.id ?? null} onShareTrip={shareTripLink} onDelete={deleteListing} />
                   )}
                 </>)}
@@ -6368,7 +6387,8 @@ export default function PackMap() {
                   onDelete={deleteLocalEvent}
                 />
                 {/* 🔴 to isté gatovanie ako na desktope (~2882): eventripy do archívu NEPATRIA. */}
-                {eventsView === 'upcoming' && (
+                {/* to isté ako na desktope: jeden prázdny stav, nie dva (13. 9. 2026) */}
+                {eventsView === 'upcoming' && events.length > 0 && (
                   <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => navigate(tripPathById(tid, allTrails))} onBrowseTrips={() => setActiveCat('trips')} myId={id.session?.user?.id ?? null} onShareTrip={shareTripLink} onDelete={deleteListing} />
                 )}
               </>)}

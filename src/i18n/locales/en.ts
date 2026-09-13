@@ -2402,6 +2402,7 @@ export const en = {
   'pack.addEvent.sourceUrlHint': "We'll show this as sourced, with a link back to the original — please don't paste text from there.",
   'pack.addEvent.organizerLabel': "Organizer (optional)",
   'pack.addEvent.organizerPlaceholder': "Who's running it",
+  'pack.addEvent.datesHint': "The end is before the start — check the dates.",
   'pack.addEvent.submit': "Add event",
   'pack.addEvent.missingHint': "Missing: {fields}",
   'pack.addEvent.submitError': "Couldn't save — storage might be full. Remove something and try again.",

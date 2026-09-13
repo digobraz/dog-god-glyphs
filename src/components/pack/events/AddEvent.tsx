@@ -20,7 +20,7 @@ import { MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
 import { BackButton } from '@/components/pack/BackButton';
 import { MAP_SKIN, PALE, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import {
-  EVENT_KINDS, EVENT_KIND_LABEL_KEYS, missingEventFields,
+  EVENT_KINDS, EVENT_KIND_LABEL_KEYS, missingEventFields, endsBeforeStarts, normalizeSourceUrl,
   type AddEventDraft, type EventKind, type EventOrigin,
 } from './eventModel';
 
@@ -165,7 +165,10 @@ export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddE
       country,
       description: description.trim() || undefined,
       photoUrl: origin === 'own' ? (photoUrl.trim() || undefined) : undefined,
-      sourceUrl: origin === 'tip' ? sourceUrl.trim() : undefined,
+      // Schéma sa dopĺňa TU, nie pri vykreslení karty — do úložiska má ísť odkaz, ktorý
+      // niekam vedie. Karta z neho robí `<a href>` a bez schémy by ho prehliadač
+      // vyhodnotil relatívne, teda dovnútra našej vlastnej appky (viď `normalizeSourceUrl`).
+      sourceUrl: origin === 'tip' ? normalizeSourceUrl(sourceUrl) : undefined,
       organizerCredit: origin === 'tip' ? (organizerCredit.trim() || undefined) : undefined,
       authorName,
       createdAt: now,
@@ -174,7 +177,10 @@ export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddE
   }, [origin, title, kind, startsAt, endsAt, venueName, center, country, description, photoUrl, sourceUrl, organizerCredit, authorName]);
 
   const missing = missingEventFields(draft);
-  const canSubmit = missing.length === 0;
+  // Zle usporiadaný rozsah NIE JE chýbajúce pole — má vlastnú vetu, nie riadok v zozname
+  // „chýba: …" (ten by nad vyplneným poľom hovoril nepravdu).
+  const dateBad = endsBeforeStarts(draft);
+  const canSubmit = missing.length === 0 && !dateBad;
   const missingLabel = missing.map((f) => t(FIELD_LABEL_KEYS[f] ?? f)).join(', ');
 
   const handleSubmit = () => {
@@ -229,9 +235,12 @@ export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddE
           </div>
           <div className="aev-field">
             <label>{t('pack.addEvent.endsLabel')}</label>
+            {/* `min` drží len klikanie v kalendári — vpísaný či vložený text ním
+                neprejde, preto to isté pravidlo stráži aj `endsBeforeStarts` nad CTA. */}
             <input
               type="datetime-local"
               className="aev-input"
+              min={startsAt || undefined}
               value={endsAt}
               onChange={(e) => { setEndsAt(e.target.value); setEndsTouched(true); }}
             />
@@ -316,7 +325,13 @@ export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddE
         <button type="button" className="btn-gold" disabled={!canSubmit} onClick={handleSubmit}>
           {t('pack.addEvent.submit')}
         </button>
-        {!canSubmit && <p className="aev-hint aev-hint-center">{t('pack.addEvent.missingHint', { fields: missingLabel })}</p>}
+        {/* ⚠️ DVE RÔZNE PREKÁŽKY, DVE RÔZNE VETY. `missingHint` vypisuje zoznam chýbajúcich
+            polí — pri zle usporiadanom rozsahu je ten zoznam PRÁZDNY, takže by pod
+            formulárom stálo „chýba:" a nič za tým. Poradie vetiev je zámerné: kým niečo
+            chýba, o dátumoch nemá zmysel hovoriť. */}
+        {missing.length > 0
+          ? <p className="aev-hint aev-hint-center">{t('pack.addEvent.missingHint', { fields: missingLabel })}</p>
+          : dateBad && <p className="aev-error">{t('pack.addEvent.datesHint')}</p>}
         {submitError && <p className="aev-error">{submitError}</p>}
       </div>
     </div>

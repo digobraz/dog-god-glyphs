@@ -2190,6 +2190,7 @@ export const sk: Partial<Dict> = {
   'pack.addEvent.sourceUrlHint': "Zobrazíme to ako prevzatý zdroj s odkazom na originál — text z neho sem prosím nekopíruj.",
   'pack.addEvent.organizerLabel': "Organizátor (voliteľné)",
   'pack.addEvent.organizerPlaceholder': "Kto to organizuje",
+  'pack.addEvent.datesHint': "Koniec je pred začiatkom — pozri sa na dátumy.",
   'pack.addEvent.submit': "Pridať podujatie",
   'pack.addEvent.missingHint': "Chýba: {fields}",
   'pack.addEvent.submitError': "Nepodarilo sa uložiť — úložisko môže byť plné. Niečo odstráň a skús znova.",
@@ -2204,8 +2205,8 @@ export const sk: Partial<Dict> = {
   // ⚠️ TIETO DVA KĽÚČE BOLI LEN V `en.ts` (doplnené 2026-09-13), takže Slovák čítal
   // v prázdnom stave podujatí anglickú vetu. Pomenovanie prvku sedí s
   // `pack.addTrip.plan.visibilityOpen` = „Hľadám partiu" — pôvodný EN text posielal na
-  // „Find a buddy", čo sa v appke nevolá nijako.
-  'pack.community.noAnnouncedWalk': "Ešte si nikoho nepozval na výlet. Otvor si výlet, prepni ho na „Hľadám partiu" a svorka ho uvidí.",
+  // „Find a buddy“, čo sa v appke nevolá nijako.
+  'pack.community.noAnnouncedWalk': "Ešte si nikoho nepozval na výlet. Otvor si výlet, prepni ho na „Hľadám partiu“ a svorka ho uvidí.",
   'pack.community.browseTrips': "Prejdi si výlety",
   // Tri tvary pre „Zobraziť N hodnotení" — viď komentár pri kľúčoch v `en.ts`.
   'pack.trip.cm.showOne': "Zobraziť {n} hodnotenie",

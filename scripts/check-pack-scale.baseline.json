@@ -1,0 +1,326 @@
+{
+  "components/pack/BuildNotice.tsx": {
+    "radius": 4,
+    "font": 6
+  },
+  "components/pack/ConstitutionCard.tsx": {
+    "radius": 0,
+    "font": 2
+  },
+  "components/pack/DailyPrayers.tsx": {
+    "radius": 4,
+    "font": 16
+  },
+  "components/pack/DeleteButton.tsx": {
+    "radius": 1,
+    "font": 1
+  },
+  "components/pack/DevotionPanel.tsx": {
+    "radius": 0,
+    "font": 4
+  },
+  "components/pack/DogPassport.tsx": {
+    "radius": 0,
+    "font": 16
+  },
+  "components/pack/DogStats.tsx": {
+    "radius": 4,
+    "font": 7
+  },
+  "components/pack/FeatureSurveyCard.tsx": {
+    "radius": 2,
+    "font": 6
+  },
+  "components/pack/FounderInvite.tsx": {
+    "radius": 2,
+    "font": 9
+  },
+  "components/pack/Gateways.tsx": {
+    "radius": 0,
+    "font": 5
+  },
+  "components/pack/GlobePulse.tsx": {
+    "radius": 0,
+    "font": 4
+  },
+  "components/pack/HeroCard.tsx": {
+    "radius": 0,
+    "font": 11
+  },
+  "components/pack/MapCoach.tsx": {
+    "radius": 1,
+    "font": 4
+  },
+  "components/pack/MapLocked.tsx": {
+    "radius": 0,
+    "font": 4
+  },
+  "components/pack/MemorialControl.tsx": {
+    "radius": 2,
+    "font": 3
+  },
+  "components/pack/MiniOverview.tsx": {
+    "radius": 1,
+    "font": 0
+  },
+  "components/pack/NatureShareCard.tsx": {
+    "radius": 0,
+    "font": 3
+  },
+  "components/pack/NextTripCard.tsx": {
+    "radius": 1,
+    "font": 3
+  },
+  "components/pack/OnboardingProgress.tsx": {
+    "radius": 2,
+    "font": 2
+  },
+  "components/pack/PackLayout.tsx": {
+    "radius": 1,
+    "font": 9
+  },
+  "components/pack/PackNetwork.tsx": {
+    "radius": 8,
+    "font": 31
+  },
+  "components/pack/PackNotifications.tsx": {
+    "radius": 1,
+    "font": 12
+  },
+  "components/pack/PackSettings.tsx": {
+    "radius": 1,
+    "font": 3
+  },
+  "components/pack/PackTree.tsx": {
+    "radius": 3,
+    "font": 14
+  },
+  "components/pack/PackWizard.tsx": {
+    "radius": 2,
+    "font": 6
+  },
+  "components/pack/PawmatePanel.tsx": {
+    "radius": 3,
+    "font": 20
+  },
+  "components/pack/PawmatesSection.tsx": {
+    "radius": 3,
+    "font": 23
+  },
+  "components/pack/PlanAskCard.tsx": {
+    "radius": 1,
+    "font": 2
+  },
+  "components/pack/PointsPill.tsx": {
+    "radius": 0,
+    "font": 3
+  },
+  "components/pack/QuickTiles.tsx": {
+    "radius": 0,
+    "font": 1
+  },
+  "components/pack/Ranking.tsx": {
+    "radius": 0,
+    "font": 9
+  },
+  "components/pack/TrailMarks.tsx": {
+    "radius": 0,
+    "font": 1
+  },
+  "components/pack/TransparentStats.tsx": {
+    "radius": 2,
+    "font": 12
+  },
+  "components/pack/TripSpotlight.tsx": {
+    "radius": 0,
+    "font": 13
+  },
+  "components/pack/VerseOfTheDay.tsx": {
+    "radius": 0,
+    "font": 1
+  },
+  "components/pack/WillPanel.tsx": {
+    "radius": 1,
+    "font": 6
+  },
+  "components/pack/addtrip/AddTripEntry.tsx": {
+    "radius": 0,
+    "font": 9
+  },
+  "components/pack/addtrip/AddTripLog.tsx": {
+    "radius": 20,
+    "font": 64
+  },
+  "components/pack/addtrip/AddTripPlan.tsx": {
+    "radius": 3,
+    "font": 9
+  },
+  "components/pack/addtrip/AinubisGuide.tsx": {
+    "radius": 1,
+    "font": 2
+  },
+  "components/pack/addtrip/GeometryPicker.tsx": {
+    "radius": 0,
+    "font": 13
+  },
+  "components/pack/addtrip/GpxImport.tsx": {
+    "radius": 1,
+    "font": 13
+  },
+  "components/pack/addtrip/PlaceSearch.tsx": {
+    "radius": 2,
+    "font": 2
+  },
+  "components/pack/addtrip/TripDestination.tsx": {
+    "radius": 5,
+    "font": 13
+  },
+  "components/pack/calendar/PackCalendar.tsx": {
+    "radius": 19,
+    "font": 48
+  },
+  "components/pack/events/AddEvent.tsx": {
+    "radius": 2,
+    "font": 7
+  },
+  "components/pack/events/EventCard.tsx": {
+    "radius": 0,
+    "font": 6
+  },
+  "components/pack/events/EventsPanel.tsx": {
+    "radius": 0,
+    "font": 2
+  },
+  "components/pack/level/LevelPanel.tsx": {
+    "radius": 0,
+    "font": 4
+  },
+  "components/pack/level/LevelPill.tsx": {
+    "radius": 0,
+    "font": 1
+  },
+  "components/pack/level/PointsBreakdown.tsx": {
+    "radius": 1,
+    "font": 2
+  },
+  "components/pack/level/TierScale.tsx": {
+    "radius": 1,
+    "font": 3
+  },
+  "components/pack/mapnotes/AddMapNote.tsx": {
+    "radius": 0,
+    "font": 14
+  },
+  "components/pack/mapnotes/KindGrid.tsx": {
+    "radius": 1,
+    "font": 1
+  },
+  "components/pack/mapnotes/MapNoteCursor.tsx": {
+    "radius": 0,
+    "font": 1
+  },
+  "components/pack/mapnotes/MapNotesLayer.tsx": {
+    "radius": 0,
+    "font": 10
+  },
+  "components/pack/mapnotes/MapNotesSection.tsx": {
+    "radius": 1,
+    "font": 7
+  },
+  "components/pack/mapnotes/NotePalette.tsx": {
+    "radius": 0,
+    "font": 1
+  },
+  "components/pack/messaging/Inbox.tsx": {
+    "radius": 0,
+    "font": 6
+  },
+  "components/pack/messaging/Thread.tsx": {
+    "radius": 2,
+    "font": 14
+  },
+  "components/pack/packCommunityUI.tsx": {
+    "radius": 12,
+    "font": 61
+  },
+  "components/pack/packDockMedal.tsx": {
+    "radius": 0,
+    "font": 1
+  },
+  "components/pack/packTheme.ts": {
+    "radius": 1,
+    "font": 2
+  },
+  "components/pack/profile/DogCardFields.tsx": {
+    "radius": 1,
+    "font": 17
+  },
+  "components/pack/profile/DogGallery.tsx": {
+    "radius": 1,
+    "font": 10
+  },
+  "components/pack/profile/TripProfileCard.tsx": {
+    "radius": 0,
+    "font": 5
+  },
+  "components/pack/trip/TripComments.tsx": {
+    "radius": 5,
+    "font": 16
+  },
+  "components/pack/trip/TripCreatorPopup.tsx": {
+    "radius": 2,
+    "font": 5
+  },
+  "components/pack/trip/TripEditPanel.tsx": {
+    "radius": 9,
+    "font": 7
+  },
+  "components/pack/trip/TripGoPanel.tsx": {
+    "radius": 1,
+    "font": 6
+  },
+  "components/pack/triplist/PartyMemberCard.tsx": {
+    "radius": 0,
+    "font": 4
+  },
+  "pages/Pack.tsx": {
+    "radius": 1,
+    "font": 0
+  },
+  "pages/PackDogDetail.tsx": {
+    "radius": 29,
+    "font": 63
+  },
+  "pages/PackDogQuiz.tsx": {
+    "radius": 2,
+    "font": 10
+  },
+  "pages/PackDogs.tsx": {
+    "radius": 1,
+    "font": 25
+  },
+  "pages/PackJoin.tsx": {
+    "radius": 0,
+    "font": 3
+  },
+  "pages/PackMap.tsx": {
+    "radius": 23,
+    "font": 74
+  },
+  "pages/PackNatureQuiz.tsx": {
+    "radius": 6,
+    "font": 64
+  },
+  "pages/PackProfile.tsx": {
+    "radius": 0,
+    "font": 21
+  },
+  "pages/PackTripArticle.tsx": {
+    "radius": 3,
+    "font": 19
+  },
+  "pages/PackTriplist.tsx": {
+    "radius": 3,
+    "font": 25
+  }
+}
