@@ -542,6 +542,17 @@ export interface LifeRecord {
   photo?: string;
   /** Povinná dvojička `photo`: autor / zdroj / licencia do riadku pod pásom. */
   photoCredit?: string;
+  /**
+   * NÁHRADA ZA FOTKU — hand-drawn silueta plemena z nášho vlastného setu
+   * (`public/patrons/<kat>-<nn>.svg`, 81 kusov, kľúč `patron` v `breeds.json`).
+   * Matej 13. 9. 2026: *„tie bloky so psami daj bledou/bielou, trochu to treba
+   * oživiť, vyzerá to otrasne."* Holá iniciála bola presne to „otrasne" —
+   * kruh s písmenkom nehovorí o psovi nič. Silueta je NAŠA (brand lock
+   * hand-drawn setu), nič nestojí a povie plemeno bez slova.
+   * ⚠️ Nechaj prázdne, keď plemeno nepoznáme (Butch) alebo keď preň silueta
+   * neexistuje (welšský ovčiak) — dokresliť cudziu je horšie než iniciála.
+   */
+  patron?: string;
 }
 
 export const LIFE_RECORDS: LifeRecord[] = [
@@ -550,29 +561,29 @@ export const LIFE_RECORDS: LifeRecord[] = [
     photo: '/images/records/bluey.jpg',
     photoCredit: 'Bluey: neznámy autor, 20. roky 20. st. · public domain · Wikimedia Commons' },
   { name: 'Lazare', years: 30.4, exactSK: '30 rokov 161 dní', breedSK: 'Papillon',
-    fromTo: '1995 – 2026', countrySK: 'Francúzsko', verified: false },
+    fromTo: '1995 – 2026', countrySK: 'Francúzsko', verified: false, patron: '03-02' },
   { name: 'Maggie', years: 30, exactSK: '', breedSK: 'Austrálsky kelpie',
-    fromTo: '1986 – 2016', countrySK: 'Austrália', verified: false },
+    fromTo: '1986 – 2016', countrySK: 'Austrália', verified: false, patron: '09-05' },
   { name: 'Max', years: 29.8, exactSK: '29 rokov 282 dní', breedSK: 'Kríženec beagla a jazvečíka',
-    fromTo: '1983 – 2013', countrySK: 'USA', verified: false },
+    fromTo: '1983 – 2013', countrySK: 'USA', verified: false, patron: '05-06' },
   { name: 'Bella', years: 29, exactSK: '', breedSK: 'Kríženec labradora',
-    fromTo: '1979 – 2008', countrySK: 'Veľká Británia', verified: true },
+    fromTo: '1979 – 2008', countrySK: 'Veľká Británia', verified: true, patron: '08-01' },
   { name: 'Butch', years: 28, exactSK: '', breedSK: 'Plemeno sa neuvádza',
     fromTo: '1975 – 2003', countrySK: 'USA', verified: true },
   { name: 'Taffy', years: 27.6, exactSK: '27 rokov 211 dní', breedSK: 'Welšský ovčiak',
     fromTo: '1975 – 2003', countrySK: 'Veľká Británia', verified: true },
   { name: 'Adjutant', years: 27.3, exactSK: '27 rokov 98 dní', breedSK: 'Labradorský retríver',
-    fromTo: '1936 – 1963', countrySK: 'Veľká Británia', verified: true },
+    fromTo: '1936 – 1963', countrySK: 'Veľká Británia', verified: true, patron: '08-01' },
   { name: 'Pusuke', years: 26.7, exactSK: '26 rokov 8 mesiacov', breedSK: 'Kríženec šiba inu',
-    fromTo: '1985 – 2011', countrySK: 'Japonsko', verified: true },
+    fromTo: '1985 – 2011', countrySK: 'Japonsko', verified: true, patron: '01-05' },
   { name: 'Spike', years: 26.8, exactSK: '26 rokov 286 dní', breedSK: 'Kríženec čivavy',
-    fromTo: 'od 1999', countrySK: 'USA', verified: true },
+    fromTo: 'od 1999', countrySK: 'USA', verified: true, patron: '03-01' },
   { name: 'Bramble', years: 25, exactSK: '', breedSK: 'Border kólia',
-    fromTo: '1978 – 2003', countrySK: 'Veľká Británia', verified: false },
+    fromTo: '1978 – 2003', countrySK: 'Veľká Británia', verified: false, patron: '09-01' },
   { name: 'TobyKeith', years: 23.3, exactSK: '23 rokov 112 dní', breedSK: 'Čivava',
-    fromTo: '2001 – 2024', countrySK: 'USA', verified: true },
+    fromTo: '2001 – 2024', countrySK: 'USA', verified: true, patron: '03-01' },
   { name: 'Pebbles', years: 22.5, exactSK: '22 rokov 189 dní', breedSK: 'Toy foxteriér',
-    fromTo: '2000 – 2022', countrySK: 'USA', verified: true },
+    fromTo: '2000 – 2022', countrySK: 'USA', verified: true, patron: '03-04' },
 ];
 
 // ── RADY, AKO PREDĹŽIŤ ŽIVOT ────────────────────────────────────────────────

@@ -25,7 +25,7 @@
 // nie deň, kedy si šiel. Preto sú tu len výlety, ktoré prešli cez PRIDAJ VÝLET
 // alebo plán s dátumom. Riadok „KEDY" v popupe po ✓ je ďalší krok.
 // ════════════════════════════════════════════════════════════════════════════
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, PF_FIELD_CSS } from '@/components/pack/packTheme';
 import { LAPIS, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
@@ -865,6 +865,11 @@ function LifeGrid({
 }) {
   const [hover, setHover] = useState<{ wi: number; x: number; y: number } | null>(null);
   const [openWeek, setOpenWeek] = useState<number | null>(null);
+  // Pás rekordmanov — šípky ním posúvajú, preto naň treba ref. Krok sa počíta
+  // za behu z reálnej šírky: pevné číslo by na mobile (karta 78 %) preskočilo
+  // dve karty naraz.
+  const recRef = useRef<HTMLDivElement | null>(null);
+  const recStep = () => Math.max(160, (recRef.current?.clientWidth ?? 480) - 96);
 
   const s = row.selections ?? undefined;
   const by = parseInt(s?.birthdayYear || '', 10) || row.birth_year || 0;
@@ -1199,7 +1204,21 @@ function LifeGrid({
             a zo zóny rekordov spravilo hlavnú tému stránky — pritom je to
             poznámka pod čiarou k mriežke nad ňou. Vodorovný pás s prichytávaním
             drží jednu výšku a zároveň hovorí „je toho viac, posuň". */}
-        <div className="cal-recgrid">
+        {/* ŠÍPKY PO BOKOCH (Matej 13. 9. 2026: „chýbajú šípky po bokoch, nech
+            človek vidí, že je to slider"). Odrezaná karta na okraji je signál
+            len pre toho, kto ho pozná; šípka to povie priamo. Posúva sa
+            o ŠÍRKU VIDITEĽNEJ ČASTI mínus jedna karta, aby na novom zábere
+            ostal kúsok predošlej — inak človek stratí, kde bol. */}
+        <div className="cal-recwrap">
+          <button type="button" className="cal-recarrow left"
+            aria-label={tx('pack.cal.life.recPrev', 'Predchádzajúci')}
+            onClick={() => recRef.current?.scrollBy({ left: -recStep(), behavior: 'smooth' })}
+          >‹</button>
+          <button type="button" className="cal-recarrow right"
+            aria-label={tx('pack.cal.life.recNext', 'Ďalší')}
+            onClick={() => recRef.current?.scrollBy({ left: recStep(), behavior: 'smooth' })}
+          >›</button>
+        <div className="cal-recgrid" ref={recRef}>
           {LIFE_RECORDS.map((r) => (
             <div className={`cal-rec${r.verified ? '' : ' unver'}`} key={r.name}>
               {/* 🔴 FOTKA JE ZATIAĽ U VŠETKÝCH PRÁZDNA A JE TO ZÁMER (Matej 13. 9.:
@@ -1209,8 +1228,12 @@ function LifeGrid({
                   iniciálu — ten istý vzor, aký má appka na chýbajúci avatar —
                   a karta nevyzerá rozbito. Detail v `LifeRecord.photo`. */}
               <div className="cal-rechead">
-                <span className="cal-recphoto" aria-hidden>
-                  {r.photo ? <img src={r.photo} alt="" /> : r.name.slice(0, 1)}
+                <span className={`cal-recphoto${r.patron && !r.photo ? ' pat' : ''}`} aria-hidden>
+                  {r.photo
+                    ? <img src={r.photo} alt="" />
+                    : r.patron
+                      ? <img src={`/patrons/${r.patron}.svg`} alt="" />
+                      : r.name.slice(0, 1)}
                 </span>
                 <span className="cal-recname">
                   <b>{r.name}</b>
@@ -1225,6 +1248,7 @@ function LifeGrid({
               )}
             </div>
           ))}
+        </div>
         </div>
         {/* ⚠️ PÔVOD FOTKY JE PODMIENKA LICENCIE, NIE ZDVORILOSŤ (Matej: „fotky
             stiahni všetky, a uvedieme, odkiaľ sú"). Pri PD/CC snímke je uvedenie
@@ -1245,15 +1269,25 @@ function LifeGrid({
         <h4 className="cal-sectitle">{tx('pack.cal.life.tipsTitle', 'Čo s tým vieš urobiť')}</h4>
         <p className="cal-secsub">{tx('pack.cal.life.tipsSub',
           'Šesť vecí, ktoré rozhodujú viac než plemeno. Nič z toho nestojí peniaze, všetko stojí pozornosť.')}</p>
+        {/* ZABALENÉ DO ROZBAĽOVAČIEK (Matej 13. 9. 2026: „tie rady zabaľ do
+            dropdownov, nech tam nie je toľko textu"). Šesť odsekov pod sebou
+            zaberalo viac miesta než celá mriežka nad nimi — a mriežka je dôvod,
+            prečo sem človek prišiel. Nadpis rady je otázka aj odpoveď zároveň,
+            takže zavretý zoznam sa dá prečítať celý za pár sekúnd.
+            ⚠️ `<details>`, nie vlastný stav: natívne to vie klávesnicu, čítačku
+            aj vyhľadávanie v stránke (Cmd+F nájde text v zavretom bloku).
+            🔴 Texty sú stále MOJE — Matej: „musíme ich upraviť a prepísať
+            spoločne". Toto kolo mení len obal. */}
         <div className="cal-tipgrid">
           {tips.map((t) => (
-            <div className="cal-tip" key={t.id}>
-              <em>{t.emoji}</em>
-              <div>
+            <details className="cal-tip" key={t.id}>
+              <summary>
+                <em>{t.emoji}</em>
                 <b>{t.titleSK}</b>
-                <p>{t.bodySK}</p>
-              </div>
-            </div>
+                <i aria-hidden>▾</i>
+              </summary>
+              <p>{t.bodySK}</p>
+            </details>
           ))}
         </div>
 
@@ -1776,14 +1810,47 @@ const CAL_CSS = `
    prichytáva sa po kartách a samotným odrezaním poslednej karty hovorí
    „je toho viac". Karta má PEVNÚ šírku — flex-basis:auto by ju nafúkol
    podľa najdlhšieho názvu plemena. */
+/* Obal pásu — drží šípky. Musí byť position:relative, inak sa pripnú na kartu. */
+.cal-recwrap{position:relative}
+.cal-recarrow{position:absolute;top:calc(50% - 4px);transform:translateY(-50%);z-index:3;
+  width:28px;height:28px;border-radius:50%;display:grid;place-items:center;cursor:pointer;
+  background:${T.card};border:1px solid ${T.cardEdge};color:${T.inkStrong};
+  font-size:17px;line-height:1;padding:0 0 2px;
+  box-shadow:0 2px 8px rgba(90,62,20,.22)}
+.cal-recarrow:hover{background:#FFFDF6;border-color:${T.accentGold}}
+.cal-recarrow.left{left:0}
+.cal-recarrow.right{right:0}
+/* Šípka NESMIE LEŽAŤ NA TEXTE karty. Pás preto dostane po stranách odsadenie
+   presne na jej šírku — v skrolovacom kontajneri sa padding správa ako vzduch
+   pred prvou a za poslednou kartou, takže sa nič neoreže a šípka má kam sadnúť.
+   Odsadenie sa pridáva len tam, kde šípky sú: na dotykovom displeji by
+   zbytočne ujedalo šírku. */
+/* ⚠️ K PADDINGU PATRÍ scroll-padding, INAK SI HO SNAP HNEĎ ODROLUJE.
+   scroll-snap-align:start zarovnáva kartu na začiatok SNAPPORTU, a ten je
+   štandardne padding-box — prehliadač preto pás pri načítaní sám posunul
+   o tých 34 px a karta skončila zase pod šípkou. Odmerané: padding sedel
+   (34 px), a karta aj tak začínala na nule. */
+@media(hover:hover){.cal-recgrid{padding-left:34px;padding-right:34px;
+  scroll-padding-left:34px;scroll-padding-right:34px}}
+/* Na dotykovom displeji je gesto prirodzené a šípky by len zakrývali karty. */
+@media(hover:none){.cal-recarrow{display:none}}
 .cal-recgrid{display:flex;gap:9px;overflow-x:auto;overflow-y:hidden;
   scroll-snap-type:x proximity;padding-bottom:8px;scrollbar-width:thin;
   scrollbar-color:rgba(201,154,63,.45) transparent;overscroll-behavior-x:contain}
 .cal-recgrid::-webkit-scrollbar{height:6px}
 .cal-recgrid::-webkit-scrollbar-thumb{background:rgba(201,154,63,.45);border-radius:3px}
 .cal-recgrid::-webkit-scrollbar-track{background:transparent}
-.cal-rec{background:${T.tileBg};border:1px solid ${T.border};border-radius:10px;padding:10px 12px;
-  flex:0 0 232px;scroll-snap-align:start}
+/* ── KARTA REKORDMANA JE BLEDÁ, NIE PIESKOVÁ (13. 9. 2026) ────────────────
+   Matej: „tie bloky so psami daj bledou/bielou, trochu to treba oživiť,
+   vyzerá to otrasne." Karty stáli na tokene tileBg, teda takmer na tom istom
+   piesku ako papyrus pod nimi — trinásť obdĺžnikov bez hrany. Svetlejšia
+   výplň ich zdvihne z podkladu, zlatý rám im dá tvar a tieň hĺbku.
+   Nie je to nová farba: #FFFDF6 je papyrusová biela, ktorú appka už
+   používa (.pf-field--flat je jej o odtieň tmavší súrodenec). */
+.cal-rec{background:linear-gradient(160deg,#FFFDF6,#FBF5E6);
+  border:1px solid ${T.cardEdge};border-radius:12px;padding:11px 13px;
+  flex:0 0 232px;scroll-snap-align:start;
+  box-shadow:0 2px 6px rgba(90,62,20,.08),inset 0 1px 0 rgba(255,255,255,.7)}
 .cal-rechead{display:flex;align-items:center;gap:9px;margin-bottom:5px}
 /* Kruh drží rozmer aj bez fotky — s iniciálou vnútri. Prázdny slot, ktorý
    zmizne, by posunul text a karty by mali každá inú výšku. */
@@ -1792,6 +1859,10 @@ const CAL_CSS = `
   font-family:${FONT_TITLE};font-size:15px;font-weight:700;color:${T.accentGold};
   line-height:1;user-select:none}
 .cal-recphoto img{width:100%;height:100%;object-fit:cover;display:block}
+/* Silueta plemena nie je fotka — nesmie sa orezávať na kruh, musí sa doň
+   zmestiť celá, a dýchať. Zlatý filter ju zladí s rámom (SVG sú čierne). */
+.cal-recphoto.pat img{object-fit:contain;padding:6px;
+  filter:brightness(0) saturate(100%) invert(62%) sepia(35%) saturate(680%) hue-rotate(1deg) brightness(93%) contrast(88%)}
 .cal-recname{min-width:0;display:block}
 .cal-rec b{font-family:${FONT_TITLE};font-size:13px;font-weight:700;letter-spacing:.06em;color:${T.inkStrong};
   display:block;line-height:1.2}
@@ -1806,12 +1877,24 @@ const CAL_CSS = `
    byť čitateľný, nie schovaný: 9,5 px a inkFaint, rovnako ako ostatné popisky. */
 .cal-reccredit{font-family:${FONT_UI};font-size:9.5px;line-height:1.5;color:${T.inkFaint};
   margin:2px 0 0;letter-spacing:.02em}
-.cal-tipgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:9px}
-.cal-tip{display:flex;gap:10px;background:${T.tileBg};border:1px solid ${T.border};border-radius:10px;padding:11px 12px}
-.cal-tip em{font-style:normal;font-size:19px;line-height:1.1;flex:0 0 auto;font-family:${EMOJI_FONT}}
-.cal-tip b{display:block;font-family:${FONT_TITLE};font-size:12px;font-weight:700;letter-spacing:.05em;
-  color:${T.inkStrong};margin-bottom:3px;line-height:1.25}
-.cal-tip p{font-family:${FONT_UI};font-size:11px;line-height:1.55;color:${T.inkWarm};margin:0}
+/* Rady sú ZAVRETÉ rozbaľovačky — jeden stĺpec, nie mriežka: v dvoch stĺpcoch
+   by sa pri otvorení jednej posunula susedná a zoznam by poskakoval. */
+.cal-tipgrid{display:flex;flex-direction:column;gap:7px}
+.cal-tip{background:${T.tileBg};border:1px solid ${T.border};border-radius:10px}
+.cal-tip>summary{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;
+  list-style:none;user-select:none}
+.cal-tip>summary::-webkit-details-marker{display:none}
+.cal-tip em{font-style:normal;font-size:18px;line-height:1.1;flex:0 0 auto;font-family:${EMOJI_FONT}}
+.cal-tip b{flex:1 1 auto;min-width:0;font-family:${FONT_TITLE};font-size:12px;font-weight:700;
+  letter-spacing:.05em;color:${T.inkStrong};line-height:1.3}
+/* Šípka sa otočí — jediný signál, že blok je otvorený, keď je text dlhý
+   a jeho koniec už nie je na obrazovke. */
+.cal-tip>summary i{flex:0 0 auto;font-style:normal;font-size:11px;color:${T.cardEdge};
+  transition:transform .18s ease}
+.cal-tip[open]>summary i{transform:rotate(180deg)}
+.cal-tip[open]>summary{padding-bottom:4px}
+.cal-tip p{font-family:${FONT_UI};font-size:11.5px;line-height:1.6;color:${T.inkWarm};
+  margin:0;padding:0 12px 11px 40px}
 
 /* ── KAM RADY VEDÚ — AINUBISOV POVRCH, NIE PAPYRUS ────────────────────────
    Longevity protokol bude bývať v jeho databáze, takže hovorí ON. Papyrusová
