@@ -103,6 +103,7 @@ const Pack = lazy(() => import("./pages/Pack.tsx"));
 const PackDogDetail = lazy(() => import("./pages/PackDogDetail.tsx"));
 const PackProfile = lazy(() => import("./pages/PackProfile.tsx"));
 const PublicProfile = lazy(() => import("./pages/PublicProfile.tsx")); // read-profil /pack/u/:id (zadanie-profil-read-dog-2026-07-25)
+const PackJoin = lazy(() => import("./pages/PackJoin.tsx")); // /pack/join/:token — prijatie pozvánky pawmata
 const PackMap = lazy(() => import("./pages/PackMap.tsx"));
 const PackTripArticle = lazy(() => import("./pages/PackTripArticle.tsx")); // iterácia 12 bod 5 — ⤢ expand full-page article
 const PackTriplist = lazy(() => import("./pages/PackTriplist.tsx")); // TRIPLIST hub — Slice A (plany/zadanie-triplist-sliceA-2026-07-23.md)
@@ -276,6 +277,13 @@ const App = () => (
 
               {/* Pack backoffice auth — magic link callback */}
               <Route path="/login" element={<Login />} />
+
+              {/* Pozvánka pawmata — /pack/join/:token. ⚠️ ZÁMERNE BEZ `DEV_FULL` A BEZ
+                  ČLENSTVA: prichádza sem človek, ktorý ešte nemá účet ani psa, takže
+                  brána `/pack` by ho odmietla z definície. Statický segment `join`
+                  vyhráva nad `/pack/dogs/:id` aj ostatnými, lebo je celý doslovný.
+                  (plany/zadanie-clenovia-svorky-2026-09-12.md §5b) */}
+              <Route path="/pack/join/:token" element={<PackJoin />} />
 
               {/* /pack — buyer backoffice (auth-gated) */}
               <Route path="/pack" element={<Pack />} />
