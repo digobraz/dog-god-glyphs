@@ -2674,12 +2674,21 @@ const PALE_ADD_CSS = MAP_SKIN !== 'pale' ? '' : `
      ⚠️ ROZMERY SÚ PC-ONLY, farby nie. Na telefóne je 34 px výplne a 760 px šírky nezmysel —
      mobilná dvojička stojí v bloku „PRISPÔSOBENIE VIEWPORTU" na konci súboru. */
   @media (min-width:${PALE_PC_MIN}px){
-    .trp-root .att-entry-panel.pk-glass{max-width:760px;padding:56px 34px 34px;}
+    .trp-root .att-entry-panel.pk-glass{max-width:760px;padding:66px 34px 34px;}
     .trp-root .att-entry-blocks{gap:16px;}
     .trp-root .att-entry-block{padding:28px 22px;}
   }
-  .trp-root .att-entry-back{color:${P_DIM};}
-  .trp-root .att-entry-back:hover{color:#8A5F1E;}
+  /* Návrat v toku — .att-entry-nav je jeden prvok pre obe úrovne (viď AddTripEntry.tsx).
+     Tu sa mení len TÓN: popup stojí na papyrusovej doske, takže tmavý základ by na nej
+     zmizol. Polohu drží základ v ENTRY_CSS, čísla tvaru BackButton.tsx. */
+  .trp-root .att-entry-nav{${backCircleCSS('pale')}}
+  .trp-root .att-entry-nav:hover{${backHoverCSS('pale')}}
+  /* ⚠️ SKRYTIE VÝCHODU SA MUSÍ ZOPAKOVAŤ TU (2026-09-13). backCircleCSS nesie aj display,
+     a toto pravidlo má špecificitu 0-2-0 proti 0-1-0 základu — bez tejto dvojičky by
+     prebilo .att-entry-nav--close{display:none} a na PC by hore svietila šípka na krok,
+     z ktorého sa naspäť nedá (odfotené). Celoobrazovkovú vetvu to neruší: jej pravidlo
+     má rovnakú špecificitu a stojí v súbore NIŽŠIE, takže vyhrá. */
+  .trp-root .att-entry-nav--close{display:none;}
   .trp-root .att-entry-lead{color:${P_DIM};}
   .trp-root .att-entry-block{background:${T.cardGrad};border:1px solid ${T.cardEdge};box-shadow:0 1px 3px rgba(122,90,42,0.10),inset 0 1px 0 rgba(255,255,255,0.40);}
   .trp-root .att-entry-block:hover,.trp-root .att-entry-block:focus-visible{background:${T.cardGrad};border-color:#8A5F1E;box-shadow:0 0 0 3px rgba(201,154,63,0.28),0 6px 16px rgba(122,90,42,0.22);}
@@ -2758,7 +2767,7 @@ const PALE_ADD_CSS = MAP_SKIN !== 'pale' ? '' : `
      ⚠️ Zlatý rám (goldFrameCSS z bloku vyššie) sa RUŠÍ — lem okolo celej obrazovky nie je rám
      bloku, len zjedený riadok na oboch stranách. To isté rozhodnutie ako pri mobilnej
      hlavičke, hostiteľovi formulára a doku.
-     ⚠️ Východ von preberá šípka .att-entry-x (viď AddTripEntry.tsx) — klik vedľa tu už nemá kam. */
+     ⚠️ Východ von preberá návrat .att-entry-nav (viď AddTripEntry.tsx) — klik vedľa tu už nemá kam. */
   .trp-root .att-entry-backdrop{padding:0;align-items:stretch;justify-content:stretch;${goldPlateCSS({ radius: 0 })}box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;}
   .trp-root .att-entry-panel.pk-glass{background:none;border:0;border-radius:0;box-shadow:none;max-width:none;width:100%;min-height:100%;display:flex;flex-direction:column;justify-content:safe center;
     padding:calc(env(safe-area-inset-top,0px) + 62px) 24px calc(env(safe-area-inset-bottom,0px) + 26px);
@@ -2769,14 +2778,15 @@ const PALE_ADD_CSS = MAP_SKIN !== 'pale' ? '' : `
      do stredu tak ako bude aj pri aktivitách"). Výber aktivity ju tam má od 23. 8. — dve
      obrazovky toku za sebou, na ktorých by návrat skákal z rohu do stredu, sú dva rôzne
      jazyky pre tú istú cestu von. Rohová poloha (.atl-log-back v úzkej hlavičke) ostáva
-     krokom, kde nadpis drží riadok; tu je riadok prázdny a stred ho vyplní. */
-  .trp-root .att-entry-x{position:absolute;
-    top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);
-    ${backCircleCSS('pale')}}
-  /* Návrat z druhej úrovne stojí na TOM ISTOM mieste ako šípka — nikdy nie sú na obrazovke
-     obidva (šípka je len na kroku „čo pridávam"), takže odsadenie vedľa nej by bolo odsadenie
-     vedľa prázdna. */
-  .trp-root .att-entry-back{top:calc(env(safe-area-inset-top,0px) + 22px);left:18px;color:${P_DIM};}
+     krokom, kde nadpis drží riadok; tu je riadok prázdny a stred ho vyplní.
+     ⚠️ Od 13. 9. je to JEDEN prvok pre obe úrovne — dovtedy tu boli dve triedy na tej istej
+     polohe (.att-entry-x kruh von, .att-entry-back textový odkaz späť) a museli si navzájom
+     dokazovať, že nikdy nesvietia spolu. Tu sa prepisuje už len safe-area a viditeľnosť
+     východu; tvar aj stred nesie ENTRY_CSS v AddTripEntry.tsx. */
+  .trp-root .att-entry-nav{top:calc(env(safe-area-inset-top,0px) + 14px);}
+  /* Celá obrazovka zrušila „vedľa" a na telefóne nie je Escape ⇒ východ z prvej úrovne
+     musí byť vidieť. Toto je JEDINÉ miesto, kde sa zobrazuje. */
+  .trp-root .att-entry-nav--close{display:inline-flex;}
   /* ── ROZŤAHOVANIE, NIE CENTROVANIE ───────────────────────────────────────────────────
      Tri bloky s pevnou výškou nechali nad sebou ~150 px prázdna a dole sa dotýkali hrany —
      stránka vyzerala, že sa nedoskrolovala. Voľnú výšku si preto rozdelia rovným dielom,

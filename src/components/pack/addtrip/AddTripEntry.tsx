@@ -18,7 +18,7 @@ import { TRIP_CATEGORIES } from '@/components/pack/tripCategories';
 import { EVENT_KINDS, EVENT_KIND_LABEL_KEYS, type EventKind } from '@/components/pack/events/eventModel';
 import type { TripState } from './addTripModel';
 import { POINTS } from '@/lib/tripPoints';
-import { BackIcon, BackLinkIcon } from '@/components/pack/BackButton';
+import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { RightGate } from '@/components/pack/RightGate';
 import type { PawmateRight } from '@/lib/pawmateRights';
 
@@ -143,27 +143,34 @@ export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
             popup nemá žiadny nevratný účinok, takže východ nepotrebuje vlastný ovládací
             prvok. Padol tým aj celý spor z 5. 8. o tom, ako ďaleko má krížik stáť od rámu.
             Kľúč `pack.addTrip.entry.closeAriaLabel` ostáva — nesie ho podklad. */}
-        {step !== 'kind' && (
-          <button type="button" className="att-entry-back" onClick={() => setStep('kind')} aria-label={t('pack.addTrip.entry.backAriaLabel')}>
-            <BackLinkIcon /> {t('pack.addTrip.entry.backAriaLabel')}
-          </button>
-        )}
-        {/* ── VÝCHOD Z CELOOBRAZOVKOVEJ PODOBY (Matej 2026-08-28) ────────────────────────
-            „na mobile to dať bez toho bloku resp bez okrajov = celá stránka bude bledá ako
-             keby menu na celú obrazovku a na nej 3 bloky, nebude vidno mapu vzadu"
-            ⚠️ Celá obrazovka ZRUŠILA jedinú cestu von. Popup sa dovtedy zatváral klikom na
-            podklad (lock z 26. 8.: „odstráň krížik… stačí len klik vedľa") — lenže keď panel
-            zaberie celé okno, žiadne „vedľa" neostane a na telefóne nie je ani Escape.
-            NIE JE TO NÁVRAT KRÍŽIKA: lock hovorí o BLOKU plávajúcom nad stránkou, toto je
-            celoobrazovková obrazovka toku, a tie majú v pridávaní návrat vľavo hore od
-            začiatku (.atl-log-back). Šípka je teda zhoda so susedom, nie výnimka.
-            Vykresľuje sa vždy, ale VIDITEĽNÁ je len tam, kde je popup na celú obrazovku —
-            rozhoduje CSS v PALE_ADD_CSS (PackMap.tsx), nie meranie šírky v JS. */}
-        {step === 'kind' && (
-          <button type="button" className="att-entry-x" onClick={onClose} aria-label={t('pack.addTrip.entry.closeAriaLabel')}>
-            <BackIcon />
-          </button>
-        )}
+
+        {/* ── JEDEN NÁVRAT PRE OBE ÚROVNE (Matej 2026-09-13) ────────────────────────────
+            „cta prekrývajú zadnú šípku (šípky nemáme)" — šípku /pack MÁ a je locknutá
+            (`BackButton.tsx`, LOCKED 2026-09-01, na Matejovu požiadavku „mali by sme ju
+            ujednotiť aj veľkostne všade"). Volá ju osem povrchov; tento popup bol deviaty
+            a jediný, ktorý ju NEPOUŽIL — druhú úroveň vracal TEXTOVÝ ODKAZ „‹ Späť na výber"
+            absolútne prilepený vľavo hore, kým vedľa v tom istom priestore stál locknutý
+            kruh na zatvorenie. Dva jazyky pre to isté gesto na jednej obrazovke, a odkaz
+            si navyše ako absolútny prvok nerezervoval výšku, takže ho dlaždice prekryli.
+            ⚠️ JE TO JEDEN PRVOK, nie dva vedľa seba. Na obrazovke je vždy práve jeden
+            zmysel: na kroku „čo pridávam" vedie VON, na druhej úrovni NA VÝBER. Dva
+            elementy s rovnakou polohou sa raz rozišli (jeden kruh, jeden text) a druhý
+            raz by si prekryli klikaciu plochu.
+            ⚠️ Von z prvej úrovne je viditeľný LEN v celoobrazovkovej podobe — plávajúci
+            blok sa zatvára klikom vedľa (lock 26. 8.: „odstráň krížik… stačí len klik
+            vedľa"). Rozhoduje CSS (`--close` v PALE_ADD_CSS, PackMap.tsx), nie meranie
+            šírky v JS. Návrat z druhej úrovne je viditeľný vždy — klik vedľa by z nej
+            neviedol o krok späť, ale zahodil celý popup.
+            ⚠️ Nie je to návrat krížika: lock hovorí o ZATVORENÍ plávajúceho bloku, toto je
+            návrat v toku a ten má v pridávaní vlastný tvar od 1. 9. */}
+        <button
+          type="button"
+          className={`att-entry-nav${step === 'kind' ? ' att-entry-nav--close' : ''}`}
+          onClick={() => (step === 'kind' ? onClose() : setStep('kind'))}
+          aria-label={t(step === 'kind' ? 'pack.addTrip.entry.closeAriaLabel' : 'pack.addTrip.entry.backAriaLabel')}
+        >
+          <BackIcon />
+        </button>
         {step === 'kind' && (
           <div className="att-entry-blocks att-entry-blocks-kind">
             {KINDS.map((k) => (
@@ -276,23 +283,27 @@ export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
 
 const ENTRY_CSS = `
 .att-entry-backdrop{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;}
-/* Horný padding je väčší než ostatné strany zámerne: krížik sedí v rohu na vlastnom odsadení
-   (nie na paddingu panela), takže bez tejto rezervy sa dotýka rámu aj blokov pod ním.
-   Matej 2026-08-05: „krížik je nalepený na rámiku = nevkusné, treba dopriať tomu priestor."
-   Druhé kolo: krúžok preč, samotný znak menší — kruh z neho robil ovládací prvok rovnakej váhy
-   ako dva hlavné bloky pod ním, hoci je to len východ. Klikacia plocha ostáva 32×32 px (dotyk),
-   viditeľný je iba znak. */
-/* ⚠️ HORNÁ VÝPLŇ JE VÄČŠIA ZÁMERNE (2026-09-13). Trieda .att-entry-back je absolútne
-   umiestnená (top:18px) a výšku si teda nerezervuje — pri 32 px zhora ju dlaždice
-   prekrývali (Matej zo screenshotu: „cta prekrývajú zadnú šípku"). Na prvej úrovni to
-   nebolo vidno, lebo tam medzi ňou a dlaždicami stojí .att-entry-lead; druhá úroveň
-   (VLASTNÉ PODUJATIE / Z ODKAZU) žiadny text nemá. */
-.att-entry-panel{position:relative;width:100%;max-width:640px;padding:52px 32px 32px;}
-.att-entry-back{position:absolute;top:18px;left:32px;white-space:nowrap;border:0;background:transparent;color:${T.onDarkDim};font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.02em;cursor:pointer;padding:4px 0;}
-.att-entry-back:hover{color:${GOLD};}
-/* Skrytá, kým je popup plávajúci blok — tam sa zatvára klikom vedľa. Viď komentár pri
-   jej vykreslení; zobrazuje ju bledá mobilná vetva v PALE_ADD_CSS (PackMap.tsx). */
-.att-entry-x{display:none;}
+/* ⚠️ HORNÁ VÝPLŇ JE REZERVA POD NÁVRAT, NIE OZDOBA (2026-09-13). .att-entry-nav je
+   absolútne umiestnený, takže si výšku sám nerezervuje — pri 32 px zhora ho dlaždice
+   prekryli (Matej zo screenshotu: „cta prekrývajú zadnú šípku"). Číslo je súčtom:
+   16 odsadenie + BACK.dia 36 + 14 medzera. Kto zmení top alebo priemer v BackButton.tsx,
+   mení aj toto — inak sa prekrytie vráti.
+   Historická poznámka: do 13. 9. tu bola rezerva 52 px pod TEXTOVÝ odkaz „‹ Späť na výber",
+   ktorý zanikol spolu s druhým jazykom návratu. */
+.att-entry-panel{position:relative;width:100%;max-width:640px;padding:66px 32px 32px;}
+/* ── NÁVRAT: TVAR Z JEDNÉHO ZDROJA, POLOHA TU ────────────────────────────────────────
+   backCircleCSS nesie priemer, lem aj farby (BackButton.tsx, LOCKED 2026-09-01);
+   position doň zámerne NEPATRÍ — tú drží volajúci. Stred hore je zhoda so susednou
+   obrazovkou toku (výber aktivity ho tam má od 23. 8., Matej 28. 8.: „pri add daj tú
+   šípku dozadu do stredu tak ako bude aj pri aktivitách").
+   Tón dark je základ pre pk-glass panel; .trp-root ho v mape prebíja na pale
+   (MAP_SKIN), lebo tam popup stojí na papyrusovej doske. */
+.att-entry-nav{position:absolute;top:16px;left:50%;transform:translateX(-50%);${backCircleCSS('dark')}}
+.att-entry-nav:hover{${backHoverCSS('dark')}}
+/* Východ z PRVEJ úrovne je viditeľný len v celoobrazovkovej podobe — plávajúci blok sa
+   zatvára klikom vedľa (lock 26. 8.). Zobrazuje ho mobilná vetva v PALE_ADD_CSS (PackMap.tsx).
+   Návrat z druhej úrovne je bez modifikátora, teda viditeľný vždy. */
+.att-entry-nav--close{display:none;}
 .att-entry-blocks{display:flex;gap:18px;align-items:stretch;}
 .att-entry-lead{margin:0 0 14px;font-family:${FONT_UI};font-size:12.5px;line-height:1.5;color:${T.onDarkDim};}
 .att-entry-blocks-kind{flex-wrap:wrap;}
