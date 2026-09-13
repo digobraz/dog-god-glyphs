@@ -756,23 +756,27 @@ export const ensureWalkedSeeded = scheduleFounderSeed;
 
 // ── POPISY VÝLETOV: SK je zdroj, EN je preklad (2026-08-14) ─────────────────────────────────
 //
-// Matejove popisy a psie poznámky vznikajú po slovensky (`plany/trails-nahadzovac-state.json`)
+// Matejove popisy vznikajú po slovensky (`plany/trails-nahadzovac-state.json`)
 // a do 14. 8. sa v anglickom rozhraní zobrazovali tak, ako boli — po slovensky. Nie je to chyba
 // i18n vrstvy: text nesú DÁTA, nie prekladové kľúče, takže parita kľúčov ho nikdy nepokryla.
 //
-// Zdroj pravdy ostáva SK. `descEN`/`dogNoteEN` sú preklady vedené v tom istom state.json
+// Zdroj pravdy ostáva SK. `descEN` je preklad vedený v tom istom state.json
 // a generátor ich prenáša do datasetu. Ostatných 16 jazykov padá na EN — presne tak, ako to
 // robí `t()` pri chýbajúcom kľúči (viď LanguageContext.tsx), nech je správanie jednotné.
 //
 // ⚠️ Keď pribudne nový výlet, EN preklad NEVZNIKNE sám — dovtedy sa Slovákom aj cudzincom
 //    ukáže SK originál (lepšie než prázdno). Vo `npm run trip-audit` sa preklad needituje.
+//
+// ⚠️ PSIA POZNÁMKA ZANIKLA 13. 9. 2026. Sprievodca pri nahadzovaní pole `dogNote` nikdy nemal
+//    (PackMap.tsx zapisuje dogNote: '' vždy), takže bolo živé len na 12 kurátorovaných výletoch
+//    a ich texty sa prilepili k `desc`. `field` preto už nie je dvojica — ostal jeden údaj.
 export function tripText(
-  trail: { desc?: string; dogNote?: string; descEN?: string; dogNoteEN?: string },
-  field: 'desc' | 'dogNote',
+  trail: { desc?: string; descEN?: string },
+  field: 'desc',
   lang: string,
 ): string {
   const sk = (trail[field] ?? '').trim();
   if (lang === 'sk' || lang === 'cs') return sk;   // čeština rozumie originálu lepšie než prekladu
-  const en = (trail[field === 'desc' ? 'descEN' : 'dogNoteEN'] ?? '').trim();
+  const en = (trail.descEN ?? '').trim();
   return en || sk;
 }

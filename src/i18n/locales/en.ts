@@ -2686,7 +2686,24 @@ export const en = {
   'pack.trip.edit.removePhoto': "Remove photo",
   'pack.trip.edit.photoMax': "Max {n} photos.",
   'pack.trip.edit.desc': "Description",
-  'pack.trip.edit.dogNote': "Note about the dog",
+  // ── GET THERE (2026-09-13) ────────────────────────────────────────────────────────────
+  // `go.fromStart` is DELIBERATELY cautious: a trail only has parking if someone marked it in
+  // the audit — otherwise navigation aims at the first point of the track, and there may be
+  // nowhere to park. Saying so is cheaper than a member blaming the app for it.
+  'pack.trip.go.cta': "Get there",
+  'pack.trip.go.title': "Get there",
+  'pack.trip.go.parking': "Trail parking",
+  'pack.trip.go.fromStart': "No parking marked — navigation aims at the start of the route.",
+  'pack.trip.go.byCar': "Drive to the spot",
+  'pack.trip.go.onFoot': "Route on your phone",
+  'pack.trip.go.app.google': "Google Maps",
+  'pack.trip.go.app.apple': "Apple Maps",
+  'pack.trip.go.app.waze': "Waze",
+  'pack.trip.go.app.mapy': "Mapy.com",
+  'pack.trip.go.gpx': "Download route (GPX)",
+  'pack.trip.go.gpxSub': "Opens in Mapy.com, Locus and Garmin — works without signal.",
+  'pack.trip.go.mapyTrail': "Open in Mapy.com",
+  'pack.trip.go.mapyTrailSub': "Hiking map with trail markings at the start.",
   'pack.trip.edit.rating': "Your rating",
   'pack.trip.edit.planTitle': "Edit plan",
   'pack.trip.edit.planDate': "Date",

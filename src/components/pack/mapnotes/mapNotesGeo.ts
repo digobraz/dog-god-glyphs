@@ -128,6 +128,37 @@ const POI_KIND: Record<string, NoteKind> = {
 export function datasetNotes(trails: HeroTrail[]): MapNote[] {
   const out: MapNote[] = [];
   for (const t of trails) {
+    /**
+     * PARKOVISKO VÝLETU (2026-09-13). Nie je to `customPoi` — je to vlastné pole `parking`,
+     * lebo výlet ho má NAJVIAC JEDNO (Matejov výber) a tlačidlo „Vyraziť na miesto" z neho
+     * skladá navigačné odkazy. Na mape sa ale kreslí presne ako každá iná značka: 🅿️,
+     * `MARK_EMOJI.parking`, tá istá vrstva — inak by mala appka dva rôzne obrázky parkoviska
+     * podľa toho, či ho zapísal Matej alebo člen svorky.
+     */
+    if (t.parking) {
+      out.push({
+        id: `park:${t.id}`,
+        kind: 'parking',
+        disease: null,
+        lat: t.parking.lat,
+        lon: t.parking.lon,
+        radiusM: null,
+        body: t.parking.note ?? '',
+        pinnedSlug: t.id,
+        paid: null,
+        createdAt: '',
+        isMine: false,
+        authorFirst: null,
+        authorPhoto: null,
+        packNumber: null,
+        validVotes: 0,
+        staleVotes: 0,
+        myVote: null,
+        likes: 0,
+        myLike: false,
+        isStale: false,
+      });
+    }
     for (const [i, p] of (t.customPoi ?? []).entries()) {
       out.push({
         id: `poi:${t.id}:${i}`,
@@ -159,4 +190,4 @@ export function datasetNotes(trails: HeroTrail[]): MapNote[] {
 }
 
 /** Zápis z datasetu, nie od člena — nemá autora, nehlasuje sa, nemaže sa. */
-export const isDatasetNote = (n: MapNote): boolean => n.id.startsWith('poi:');
+export const isDatasetNote = (n: MapNote): boolean => n.id.startsWith('poi:') || n.id.startsWith('park:');

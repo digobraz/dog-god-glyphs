@@ -5029,7 +5029,6 @@ export default function PackMap() {
         photos: draft.photos ?? [],
         seasons: [],
         desc: draft.note ?? '',
-        dogNote: '',
         // KATEGÓRIA + CHIPY V JEDNOM POLI (§2.3 zadania, 2026-08-31). Chip z kroku 4 je
         // rovnocenná hodnota `acts` — filter, karta aj článok ho čítajú tou istou cestou
         // ako kategóriu, takže túra s táboriskom sa nájde pod VISIT bez druhého poľa.
@@ -5123,7 +5122,7 @@ export default function PackMap() {
       // ⚠️ `desc` BOLO NATVRDO PRÁZDNE (opravené 2026-08-25). Krok 2 plánu sa pýta „čo je
       // v pláne" a odpoveď sa doteraz zahodila pri ukladaní — pole, ktoré nikam nevedie.
       // Po prejdení sa ten istý text stáva základom príbehu výletu, takže sa musí dochovať.
-      photos: [], seasons: [], desc: draft.note ?? '', dogNote: '',
+      photos: [], seasons: [], desc: draft.note ?? '',
       acts: [ACT_DATA_ID[draft.activity] ?? draft.activity, ...(draft.chips ?? [])], surface: [], crowd: '', tags: [],
       author: firstName,
       // POSÁDKA a DÁTUM na zázname plánu — nie ozdoba, ale podklad pre zápis po prejdení:
@@ -5834,7 +5833,6 @@ export default function PackMap() {
                 )}
 
                 {tripText(dt, 'desc', lang) && <p className="trp-inldet-desc">{tripText(dt, 'desc', lang)}</p>}
-                {tripText(dt, 'dogNote', lang) && <p className="trp-inldet-desc">🐾 {tripText(dt, 'dogNote', lang)}</p>}
 
                 {(dt as { elev?: number[] }).elev && (
                   <div className="trp-inldet-section">

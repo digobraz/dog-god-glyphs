@@ -6,14 +6,19 @@ export type HeroTrail = {
   id: string; name: string; region: string;
   diff?: 'Easy' | 'Moderate' | 'Hard' | 'Odyssey'; km: string; stars: number;
   path: LatLngTuple[]; photos: string[]; seasons: string[];
-  desc: string; dogNote: string;
-  descEN?: string; dogNoteEN?: string;   // EN preklad popisu/psej poznámky (SK je zdroj)
+  desc: string;
+  /** @deprecated zaniklo 13. 9. 2026 — texty sa prilepili k `desc`. Pole tu ostáva, lebo
+   *  ADD-flow zápisy v localStorage ho môžu mať uložené zo staršej verzie a zúžený typ by
+   *  ich pri čítaní zhodil. Nový výlet ho nedostane. */
+  dogNote?: string;
+  descEN?: string; dogNoteEN?: string;   // EN preklad popisu (SK je zdroj)
   acts?: string[]; surface?: string[]; crowd?: string; tags?: string[];
   ascentM?: number;   // prevýšenie z DEM eudem25m (m), kalibrované na SNP=29403
   elev?: number[];    // výškový profil (m), downsamplovaný na ~50 bodov rovnomerne po km trasy
   waves?: number;     // vodná plocha: počet vlniek 1|2|3 podľa OSM plochy (100/1000 ha prahy)
   marks?: ('red'|'blue'|'green'|'yellow')[][];  // turistické značky (KČT) — rad ÚSEKOV štart→cieľ, každý = množina súbežných farieb (auto z OSM)
   customPoi?: Array<{ t: 'viewpoint'|'wildlife'|'ticks'|'shelter'; kind: 'point'|'area'; lat: number; lon: number; r?: number; name?: string }>;  // vlastné body/územia z trip-auditu, NIE z OSM (bez ODbL atribúcie)
+  parking?: { lat: number; lon: number; note?: string };  // odkiaľ sa vyráža — z neho sa skladajú odkazy do navigácií (tripNav.ts)
   // iterácia 11 (Map /pack/map bod 1) — generovaný dataset nemá per-trip author,
   // UI fallbackuje na 'Hekthor & Matej' (viď tripShared.tsx authorOf). Nové ADD-flow tripy
   // (lokálny session state, nie tento generátor) nesú meno prihláseného člena.
@@ -1937,7 +1942,6 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Autumn"
     ],
     "desc": "Cesta vedie od kostola cez krásne zámocké lúky následne cez lúku s altánkom na opekanie a pokračuje cez Čertov žľab – skalnatý priesmyk do sedla, odkiaľ vedie cestička priamo na Záruby.",
-    "dogNote": "",
     "descEN": "The trail starts at the church, crosses the beautiful manor meadows, then a meadow with a barbecue shelter, and continues through Čertov žľab — a rocky pass up to the saddle, where a path leads straight to Záruby.",
     "acts": [
       "hike"
@@ -3912,7 +3916,6 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Autumn"
     ],
     "desc": "Asi najkratšia cesta. Na jar sú po hrebeni nádherné lesné chodníčky lemované medvedím cesnakom :)",
-    "dogNote": "",
     "descEN": "Probably the shortest way up. In spring the ridge is lined with gorgeous forest paths full of wild garlic :)",
     "acts": [
       "hike"
@@ -5210,10 +5213,8 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Summer",
       "Autumn"
     ],
-    "desc": "Asi najnáročnejšia cesta ale za to pre mnohých aj najkrajšia. Trasa vedie cez zrúcaninu hradu Ostrý kameň.",
-    "dogNote": "Cesta pre psíka bezproblémová, žiaľ bez vodného zdroja.",
-    "descEN": "Probably the hardest way up, but for many also the most beautiful. The route passes the ruins of Ostrý Kameň castle.",
-    "dogNoteEN": "No trouble for a dog, but sadly no water source.",
+    "desc": "Asi najnáročnejšia cesta ale za to pre mnohých aj najkrajšia. Trasa vedie cez zrúcaninu hradu Ostrý kameň. Cesta pre psíka bezproblémová, žiaľ bez vodného zdroja.",
+    "descEN": "Probably the hardest way up, but for many also the most beautiful. The route passes the ruins of Ostrý Kameň castle. No trouble for a dog, but sadly no water source.",
     "acts": [
       "hike"
     ],
@@ -6552,10 +6553,8 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Summer",
       "Autumn"
     ],
-    "desc": "Príjemná prechádzka, na tejto trase sme vždy videli najviac zveri.",
-    "dogNote": "Cesta pre psíka bezproblémová, žiaľ bez vodného zdroja.",
-    "descEN": "A pleasant walk — this is the trail where we've always seen the most wildlife.",
-    "dogNoteEN": "No trouble for a dog, but sadly no water source.",
+    "desc": "Príjemná prechádzka, na tejto trase sme vždy videli najviac zveri. Cesta pre psíka bezproblémová, žiaľ bez vodného zdroja.",
+    "descEN": "A pleasant walk — this is the trail where we've always seen the most wildlife. No trouble for a dog, but sadly no water source.",
     "acts": [
       "hike"
     ],
@@ -8222,10 +8221,8 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Summer",
       "Autumn"
     ],
-    "desc": "Cesta vedie cez peknú lúku s altánkom na opekanie a pokračuje cez Čertov žľab – skalnatý priesmyk do sedla, odkiaľ vedie cestička priamo na Záruby.",
-    "dogNote": "Cesta pre psíka bezproblémová, žiaľ bez vodného zdroja.",
-    "descEN": "The trail crosses a lovely meadow with a barbecue shelter and continues through Čertov žľab — a rocky pass up to the saddle, where a path leads straight to Záruby.",
-    "dogNoteEN": "No trouble for a dog, but sadly no water source.",
+    "desc": "Cesta vedie cez peknú lúku s altánkom na opekanie a pokračuje cez Čertov žľab – skalnatý priesmyk do sedla, odkiaľ vedie cestička priamo na Záruby. Cesta pre psíka bezproblémová, žiaľ bez vodného zdroja.",
+    "descEN": "The trail crosses a lovely meadow with a barbecue shelter and continues through Čertov žľab — a rocky pass up to the saddle, where a path leads straight to Záruby. No trouble for a dog, but sadly no water source.",
     "acts": [
       "hike"
     ],
@@ -9414,10 +9411,8 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Summer",
       "Autumn"
     ],
-    "desc": "Výstup na jeden z najvyšších bodov v Malých Karpatoch, ktorý pokračuje po hrebeni na Mesačnú lúku.",
-    "dogNote": "Bez vodného zdroja...",
-    "descEN": "A climb to one of the highest points in the Little Carpathians, continuing along the ridge to Mesačná lúka.",
-    "dogNoteEN": "No water source…",
+    "desc": "Výstup na jeden z najvyšších bodov v Malých Karpatoch, ktorý pokračuje po hrebeni na Mesačnú lúku. Bez vodného zdroja...",
+    "descEN": "A climb to one of the highest points in the Little Carpathians, continuing along the ridge to Mesačná lúka. No water source…",
     "acts": [
       "hike"
     ],
@@ -10448,10 +10443,8 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Autumn",
       "Winter"
     ],
-    "desc": "Nenáročná trasa na malebný kopček s pekným výhľadom.",
-    "dogNote": "Pozor na psov na začiatku trasy v Majdánskom – niektorí sa dokázali dostať za plot a prenasledovať nás (možno už sú diery v plotoch opravené).",
-    "descEN": "An easy route up a picturesque little hill with a nice view.",
-    "dogNoteEN": "Watch out for dogs at the start of the trail in Majdánske — some of them managed to get through the fence and chase us (the holes may well be fixed by now).",
+    "desc": "Nenáročná trasa na malebný kopček s pekným výhľadom. Pozor na psov na začiatku trasy v Majdánskom – niektorí sa dokázali dostať za plot a prenasledovať nás (možno už sú diery v plotoch opravené).",
+    "descEN": "An easy route up a picturesque little hill with a nice view. Watch out for dogs at the start of the trail in Majdánske — some of them managed to get through the fence and chase us (the holes may well be fixed by now).",
     "acts": [
       "hike"
     ],
@@ -12474,7 +12467,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Príjemná pokojná prechádzka - zaručene nestretne nikoho. Krásny výhľad na hrad Červený Kameň.",
-    "dogNote": "",
     "descEN": "A pleasant, quiet walk — you're guaranteed to meet nobody. Beautiful view of Červený Kameň castle.",
     "acts": [
       "hike"
@@ -13407,7 +13399,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Ľahká nenáročná prechádzka v krásnom lesíku s pekným výhľadom pri opekanisku.",
-    "dogNote": "",
     "descEN": "An easy, undemanding walk through a lovely little forest, with a nice view by the fire pit.",
     "acts": [
       "hike",
@@ -15645,10 +15636,8 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Autumn",
       "Winter"
     ],
-    "desc": "Tuto uvidíte o veľa krajší výhľad ako zo Zárub. Na trase však môžu byť obmedzenia – je to chránené vtáčie územie, preto tam treba ísť na vlastné riziko :) ",
-    "dogNote": "Pri výstupe na Čelo a Veterlín majte psíka na vôdzke. Na Veterlíne vždy fúka :)",
-    "descEN": "The view here is far better than from Záruby. There may be restrictions along the way though — it's a protected bird area, so go at your own risk :)",
-    "dogNoteEN": "Keep your dog on a leash on the climb to Čelo and Veterlín. It's always windy on Veterlín :)",
+    "desc": "Tuto uvidíte o veľa krajší výhľad ako zo Zárub. Na trase však môžu byť obmedzenia – je to chránené vtáčie územie, preto tam treba ísť na vlastné riziko :) Pri výstupe na Čelo a Veterlín majte psíka na vôdzke. Na Veterlíne vždy fúka :)",
+    "descEN": "The view here is far better than from Záruby. There may be restrictions along the way though — it's a protected bird area, so go at your own risk :) Keep your dog on a leash on the climb to Čelo and Veterlín. It's always windy on Veterlín :)",
     "acts": [
       "hike"
     ],
@@ -16391,7 +16380,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Krásna lúka v strede lesa s altánkom aj prameňom.",
-    "dogNote": "",
     "descEN": "A beautiful meadow in the middle of the forest, with a shelter and a spring.",
     "acts": [
       "hike",
@@ -18897,7 +18885,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Pekná prechádzka s krásnym výhľadom. Pozor, posledný výstup je dosť ostrý :)",
-    "dogNote": "",
     "descEN": "A nice walk with a beautiful view. Careful — the final climb is fairly steep :)",
     "acts": [
       "hike"
@@ -19159,7 +19146,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Jednoduchá prechádzka, prístupná zrúcanina (mňa moc nenadchla).",
-    "dogNote": "",
     "descEN": "A simple walk to an accessible ruin (it didn't do much for me).",
     "acts": [
       "explore"
@@ -21430,7 +21416,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Tajný klenot Malých Karpát. Zabudnuté miestečko, bez turistov. Jeden z najkrajších západov slnka v Malých Karpatoch - výborné miestečko na prespatie (Jelenec). Na Keltek vedie extréééééémny strmák, ale ten výhľad za to (ne)stojí :)",
-    "dogNote": "",
     "descEN": "The secret gem of the Little Carpathians. A forgotten little place with no tourists. One of the finest sunsets in the whole range — an excellent spot to sleep out (Jelenec). The path to Keltek is an exteeeeeeme grind, but the view is (not) worth it :)",
     "acts": [
       "hike",
@@ -23165,7 +23150,6 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Winter"
     ],
     "desc": "Nádherná prechádzka po novej asfaltovej ceste v strede lesa pri potôčiku – vhodná aj na korčule. Pozor na cyklistov. Najlepšie ísť cez týždeň, víkendy bývajú pomerne plné.",
-    "dogNote": "",
     "descEN": "A gorgeous walk along a new asphalt road in the middle of the forest, following a brook — good for skating too. Watch out for cyclists. Best on a weekday; weekends get fairly busy.",
     "acts": [
       "hike",
@@ -24615,7 +24599,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Vysoká je jedno z najrušnejších miest v Malých Karpatoch, ale takmer nikto nevie o krásnom mieste kúsok od nej. Výhľady sú možno ešte krajšie. Treba skúsiť.",
-    "dogNote": "",
     "descEN": "Vysoká is one of the busiest spots in the Little Carpathians, but almost nobody knows about the beautiful place just next to it. The views might be even better. Worth a try.",
     "acts": [
       "hike"
@@ -25262,10 +25245,8 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784635445/trails/male-karpaty-casta-pila/1784635444208-a618ec.jpg"
     ],
     "seasons": [],
-    "desc": "Krásna prechádzka v absolútnom pokoji po asfaltovej ceste. Odporúčam ísť až k prameňu Žobrák. Po trase je veľká Kobylská lúka. POZOR: celé územie je zvernica – množstvo divokej zveri na každom kroku.",
-    "dogNote": "Pes lovec – na vôdzke!",
-    "descEN": "A beautiful walk in absolute peace along an asphalt road. I'd go all the way to the Žobrák spring. The large Kobylská meadow lies along the route. WARNING: the whole area is a game preserve — wildlife at every step.",
-    "dogNoteEN": "Got a hunter? Leash!",
+    "desc": "Krásna prechádzka v absolútnom pokoji po asfaltovej ceste. Odporúčam ísť až k prameňu Žobrák. Po trase je veľká Kobylská lúka. POZOR: celé územie je zvernica – množstvo divokej zveri na každom kroku. Pes lovec – na vôdzke!",
+    "descEN": "A beautiful walk in absolute peace along an asphalt road. I'd go all the way to the Žobrák spring. The large Kobylská meadow lies along the route. WARNING: the whole area is a game preserve — wildlife at every step. Got a hunter? Leash!",
     "acts": [
       "hike",
       "picnic",
@@ -26208,7 +26189,6 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Autumn"
     ],
     "desc": "Nenápadný kopec, pekné výhľady, pokojná príroda.",
-    "dogNote": "",
     "descEN": "An unassuming hill, nice views, calm nature.",
     "acts": [
       "hike"
@@ -27254,7 +27234,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Krásny a nenápadne obrovský park s discgolfovým ihriskom. Veľmi veľa uličiek na prieskum!",
-    "dogNote": "",
     "descEN": "A beautiful and quietly enormous park with a disc golf course. So many little paths to explore!",
     "acts": [
       "hike",
@@ -28161,10 +28140,8 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Autumn",
       "Winter"
     ],
-    "desc": "Pekná asfaltová cestička cez les vedúca ku krásnemu výhľadu na vysokú skalnú stenu. Hore na výhľade je aj húpačka a ohnisko :) Je dosť možné, že nestretnete nikoho.",
-    "dogNote": "Pozor  na zver je jej tu fakt dosť (diviaky, líšky, vyoká)",
-    "descEN": "A nice asphalt path through the forest leading to a beautiful view of a tall rock face. There's a swing and a fire pit up at the viewpoint :) There's a fair chance you won't meet a soul.",
-    "dogNoteEN": "Watch out for wildlife, there's a lot of it here (boar, foxes, deer).",
+    "desc": "Pekná asfaltová cestička cez les vedúca ku krásnemu výhľadu na vysokú skalnú stenu. Hore na výhľade je aj húpačka a ohnisko :) Je dosť možné, že nestretnete nikoho. Pozor  na zver je jej tu fakt dosť (diviaky, líšky, vyoká)",
+    "descEN": "A nice asphalt path through the forest leading to a beautiful view of a tall rock face. There's a swing and a fire pit up at the viewpoint :) There's a fair chance you won't meet a soul. Watch out for wildlife, there's a lot of it here (boar, foxes, deer).",
     "acts": [
       "hike",
       "picnic",
@@ -29018,10 +28995,8 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Autumn",
       "Winter"
     ],
-    "desc": "Naše najobľúbenejšie miestečko na planéte. Krásna tajná lúka v strede lesa, v sterde lúky sa pýšia dva krásne stromy, ktoré sú na jeseň nádherne sfarbené. Celá lúka je dokonale vidno zo skalného brala, ktoré je nedaľeko. Za zmienku stojí aj magická vyvieračka - toto miesto je naozaj úžasné.",
-    "dogNote": "Pozor je tu dosť zvery - zajace, vysoká ",
-    "descEN": "Our favourite little place on the planet. A beautiful secret meadow in the middle of the forest, with two magnificent trees standing in the middle of it that turn gorgeous colours in autumn. The whole meadow is perfectly visible from the rock face nearby. The magical spring is worth a mention too — this place is genuinely amazing.",
-    "dogNoteEN": "Careful, there's plenty of wildlife here — hares, deer.",
+    "desc": "Naše najobľúbenejšie miestečko na planéte. Krásna tajná lúka v strede lesa, v sterde lúky sa pýšia dva krásne stromy, ktoré sú na jeseň nádherne sfarbené. Celá lúka je dokonale vidno zo skalného brala, ktoré je nedaľeko. Za zmienku stojí aj magická vyvieračka - toto miesto je naozaj úžasné. Pozor je tu dosť zvery - zajace, vysoká",
+    "descEN": "Our favourite little place on the planet. A beautiful secret meadow in the middle of the forest, with two magnificent trees standing in the middle of it that turn gorgeous colours in autumn. The whole meadow is perfectly visible from the rock face nearby. The magical spring is worth a mention too — this place is genuinely amazing. Careful, there's plenty of wildlife here — hares, deer.",
     "acts": [
       "hike",
       "picnic",
@@ -30281,10 +30256,8 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784636536/trails/male-karpaty-dechtice/1784636536210-cd65ce.jpg"
     ],
     "seasons": [],
-    "desc": "Krátka prechádzka cez pekný ihličnatý lesík a lúku vedúca ku gigantickej lavičke a soche Panny Márie. V okolí sú rôzne cestičky vedúce nad kameňolom s peknými výhľadmi na Dechtice a okolie.",
-    "dogNote": "Bez vodného zdroja, čo je škoda – prameň býva vyschnutý.",
-    "descEN": "A short walk through a nice conifer wood and a meadow, leading to a giant bench and a statue of the Virgin Mary. Various paths in the area lead above the quarry, with nice views of Dechtice and the surroundings.",
-    "dogNoteEN": "No water source, which is a shame — the spring is usually dry.",
+    "desc": "Krátka prechádzka cez pekný ihličnatý lesík a lúku vedúca ku gigantickej lavičke a soche Panny Márie. V okolí sú rôzne cestičky vedúce nad kameňolom s peknými výhľadmi na Dechtice a okolie. Bez vodného zdroja, čo je škoda – prameň býva vyschnutý.",
+    "descEN": "A short walk through a nice conifer wood and a meadow, leading to a giant bench and a statue of the Virgin Mary. Various paths in the area lead above the quarry, with nice views of Dechtice and the surroundings. No water source, which is a shame — the spring is usually dry.",
     "acts": [
       "hike"
     ],
@@ -30388,7 +30361,6 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Winter"
     ],
     "desc": "Krásna priehrada na \"konci sveta\". Je prekvapivo ďaľeko od obce. Žiadna civilizácia pár rybárov a božský kľud. V okolí veľmi veľa priestoru na turistiky v krásnych lesoch. Voda výborná aj na paddleboard, okolie priehrady vhodné aj na korčule :)",
-    "dogNote": "",
     "descEN": "A beautiful reservoir at the \"end of the world\". Surprisingly far from the village. No civilisation, a few anglers and divine quiet. Plenty of room for hiking in the beautiful forests around. The water is great for paddleboarding, and the shoreline works for skating too :)",
     "acts": [
       "visit",
@@ -32032,10 +32004,8 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784639469/trails/male-karpaty-plesiva-chtelnica/1784639468982-dad6ec.jpg"
     ],
     "seasons": [],
-    "desc": "Veľmi podarená lokalita. Krásne výhľady, možnosť opekania aj viacerých prechádzok. Miesto ako stvorené na \"nočné dobrodružstvo\" v aute pre zamilovaných :)",
-    "dogNote": "Pozor na zver :) ",
-    "descEN": "A really successful spot. Beautiful views, a place to barbecue and several walks to choose from. Made for a \"night adventure\" in the car, if you're in love :)",
-    "dogNoteEN": "Watch out for wildlife :)",
+    "desc": "Veľmi podarená lokalita. Krásne výhľady, možnosť opekania aj viacerých prechádzok. Miesto ako stvorené na \"nočné dobrodružstvo\" v aute pre zamilovaných :) Pozor na zver :)",
+    "descEN": "A really successful spot. Beautiful views, a place to barbecue and several walks to choose from. Made for a \"night adventure\" in the car, if you're in love :) Watch out for wildlife :)",
     "acts": [
       "hike",
       "picnic",
@@ -33726,7 +33696,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Veľmi podarená lokalita. Krásne výhľady, možnosť opekania aj viacerých prechádzok. Miesto ako stvorené na \"dobrodružstvo\" v aute pre zamilovaných :)",
-    "dogNote": "",
     "descEN": "A really successful spot. Beautiful views, a place to barbecue and several walks to choose from. Made for an \"adventure\" in the car, if you're in love :)",
     "acts": [
       "hike",
@@ -35270,7 +35239,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Zaujímavá lesná prechádzka v súkromí. Trasa vedie cez nádhernú lúku v strede lesa - pripomína obrovské futbalové ihrisko - tu sa žiada stanovať! Určite to raz vyskúšame!",
-    "dogNote": "",
     "descEN": "An interesting forest walk in complete privacy. The route crosses a gorgeous meadow in the middle of the woods — it looks like a huge football pitch and it's begging to be camped on! We'll definitely try it one day.",
     "acts": [
       "hike",
@@ -40384,7 +40352,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Jednoduchá, ale celkom dlhá prechádzka na Malý aj Veľký Plešivec cez Čachtický hrad :) Krásne ale vždy veterné výhľady.",
-    "dogNote": "",
     "descEN": "A simple but fairly long walk to both Malý and Veľký Plešivec via Čachtice castle :) Beautiful, if always windy, views.",
     "acts": [
       "hike"
@@ -41340,7 +41307,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Krásna prechádzka s majestátnym výhľadom na Malé Karpaty",
-    "dogNote": "",
     "descEN": "A beautiful walk with a majestic view over the Little Carpathians.",
     "acts": [
       "hike"
@@ -43054,7 +43020,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Krásna pokojná prechádzka :) Cez Covid obdobie som tu stretol na prechádzke dvoch ľudí čo mali rúško a plastový ochranný štít na hlave - boli sme v strede lesa a v okolí 10 km žiadna živá duša :)))) ľuďom je*e :)))))",
-    "dogNote": "",
     "descEN": "A beautiful, peaceful walk :) During Covid I met two people out here wearing masks and plastic face shields — we were in the middle of the forest with not a living soul within 10 km :)))) people have lost the plot :)))))",
     "acts": [
       "hike"
@@ -43146,7 +43111,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Malebná priehrada obklopená lesom",
-    "dogNote": "",
     "descEN": "A picturesque reservoir surrounded by forest.",
     "acts": [
       "visit",
@@ -45248,7 +45212,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Celodenný výlet. Nenápadný kopček s prekvapivým výhľadom - takmer bez ľudí :))",
-    "dogNote": "",
     "descEN": "A full-day trip. An unassuming little hill with a surprising view — and almost nobody around :))",
     "acts": [
       "hike",
@@ -47378,7 +47341,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Krásny výlet, prekvapí vás už samotná cesta ale aj samotné majestátne skalné bralá. V okolí je kopu ďalších možností krásnych turistík a výhľadov :)",
-    "dogNote": "",
     "descEN": "A beautiful trip — the drive there will surprise you, and so will the majestic rock faces themselves. There are plenty of other great hikes and viewpoints in the area :)",
     "acts": [
       "hike",
@@ -48035,7 +47997,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Celkom pekný výlet, neustále stúpanie - človek sa zapotí. V cieli čaká parádna rozhľadňa. ",
-    "dogNote": "",
     "descEN": "A pretty nice trip, climbing the whole way — you'll break a sweat. A cracking lookout tower waits at the top.",
     "acts": [
       "hike",
@@ -48772,7 +48733,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Vhodné ako krátka zástavka. Aj napriek krátkej trase je to fakt nádherné miesto.",
-    "dogNote": "",
     "descEN": "Good as a short stop. Short as it is, it's a genuinely gorgeous place.",
     "acts": [
       "hike",
@@ -49894,7 +49854,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Nekonečná asfaltová cesta pomedzi krásny prasličkový prales -úplne bez ľudí...  ( na biely vrch môžte ale nemusíte :) )",
-    "dogNote": "",
     "descEN": "An endless asphalt road through a beautiful horsetail jungle — completely free of people… (Biely vrch is optional :) )",
     "acts": [
       "hike"
@@ -50928,7 +50887,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Veľmi krásna prechádzka, super asfalt na korčule, vedľa potôčik. Z Kamennej búdy odporúčam ísť naspäť po žltej lesnej cestičke... magická prechádzka!",
-    "dogNote": "",
     "descEN": "A very beautiful walk, great asphalt for skating, a brook running alongside. From Kamenná búda I'd go back along the yellow forest path… a magical walk!",
     "acts": [
       "hike",
@@ -52787,7 +52745,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Príjemná prechádzka po krásnych lesoch a lúkach – pekné výhľady.",
-    "dogNote": "",
     "descEN": "A pleasant walk through beautiful forests and meadows — nice views.",
     "acts": [
       "hike"
@@ -55534,7 +55491,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Krásna prechádzka, pekné výhľady.",
-    "dogNote": "",
     "descEN": "A beautiful walk, nice views.",
     "acts": [
       "hike"
@@ -57611,7 +57567,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Celkom výživná prechádzka neďaleko Bojnej :)",
-    "dogNote": "",
     "descEN": "A properly filling walk not far from Bojná :)",
     "acts": [
       "hike"
@@ -59347,7 +59302,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Jeden z najkrajších vrchov na Slovensku.",
-    "dogNote": "",
     "descEN": "One of the most beautiful peaks in Slovakia.",
     "acts": [
       "hike"
@@ -61565,7 +61519,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Jedna z najkrajších turistík na SVK s krásnym 360 stupňovým výhľadom! Je relatívne krátka = máte dosť času vychutnať si všetko čo trasa ponúka = výhľady, potôčik, jazierko...",
-    "dogNote": "",
     "descEN": "One of the finest hikes in Slovakia, with a beautiful 360-degree view! It's relatively short = you'll have plenty of time to enjoy everything the route offers = views, a brook, a small lake…",
     "acts": [
       "hike"
@@ -64244,7 +64197,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Ikonické miesto s miliónom ľudí. Ultimátna rada = ak sem ideš nechoď cez víkend! V strede trasy sa cesta rozvetvuje a naspäť sa dá zísť aj žltou značkou cez Šarkaniu dieru, ale vraj je tam rebrík =  pre psa nebezpečné/neschodné. Ale neviem nikdy som to neskúšal - kľudne pridajte koment! ",
-    "dogNote": "",
     "descEN": "An iconic place with a million people. Ultimate tip = if you're going, don't go at the weekend! The path forks halfway and you can also come back on the yellow trail through Šarkania diera, but apparently there's a ladder there = dangerous/impassable for a dog. I don't know though, I've never tried it — feel free to leave a comment!",
     "acts": [
       "hike"
@@ -66041,7 +65993,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Stratený budzogáň sa rozhodne oplatí vidieť :))",
-    "dogNote": "",
     "descEN": "The lost mace is definitely worth seeing :))",
     "acts": [
       "hike"
@@ -67594,7 +67545,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Je to zaujímavý strmáčik, ale výhľady stoja za to!",
-    "dogNote": "",
     "descEN": "It's a proper grind of a climb, but the views are worth it!",
     "acts": [
       "hike"
@@ -68819,7 +68769,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Pekný výlet ale cez zimu... Pri peknom slnečnom počasí by to mohlo byť ešte lepšie :))",
-    "dogNote": "",
     "descEN": "A nice trip, but ours was in winter… In good sunny weather it could be even better :))",
     "acts": [
       "hike",
@@ -70007,7 +69956,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Krásny trip cez skalnaté územie.",
-    "dogNote": "",
     "descEN": "A beautiful trip through rocky terrain.",
     "acts": [
       "hike"
@@ -71426,7 +71374,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Jeden z najikonickejších kopcov, naozaj fotogenický s krásnymi výhľadmi.",
-    "dogNote": "",
     "descEN": "One of the most iconic hills — genuinely photogenic, with beautiful views.",
     "acts": [
       "hike"
@@ -78082,7 +78029,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Jeden z najkrajších vodopádov na Slovensku - ideálna turistika v letných horúčavách. Trasa vedie celý čas v tieni pri zurčajúcom potoku, prvá polovica je vhodná aj pre kočíky (asfalt). Pre maškrtných odporúčam vybehnúť na chatu pod Chlebom - cesta vedie cez krásne lúky, Mojžišove pramene a buchta stojí za to! (2024)",
-    "dogNote": "",
     "descEN": "One of the most beautiful waterfalls in Slovakia — the ideal hike in summer heat. The route stays in the shade the whole way beside a babbling stream, and the first half works for pushchairs too (asphalt). If you've got a sweet tooth, carry on up to the Chata pod Chlebom hut — the path crosses beautiful meadows and the Mojžišove pramene springs, and the cake is worth it! (2024)",
     "acts": [
       "hike"
@@ -79197,7 +79143,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Výstup sa konal cez polmetra snehu v krátkom tričku, takže sme si moc prírodu neužili a nevideli pod nánosom bielej pokrývky ale výhľady aj atmosféra boli super, určite by sme sa chceli vrátiť aj mimo zimy!",
-    "dogNote": "",
     "descEN": "We made the climb through half a metre of snow in a T-shirt, so we didn't get much out of the scenery and saw little under all that white — but the views and the atmosphere were great, and we'd definitely like to come back outside winter!",
     "acts": [
       "hike"
@@ -84575,7 +84520,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Zo všetkých turistík, tu sme boli asi najbližšie k smrti. Išli sme po značenom chodníku, ktorý bol zapadnutý v metre snehu. Zistili sme to, keď sme zišli do doliny... zrazu nebola vidno značka... každý druhý nášľap = prepadnutie do metra, s nohami do potoka. Fakt masaker, nikdy nezabudnem ako sme to všetci prežili. Večerná vírivka potom padla vhod :))) nelozte tam, keď je sneh a zima!!!  Inak kolosálne výhľady 10/10",
-    "dogNote": "",
     "descEN": "Of all our hikes, this is the closest we've come to dying. We were following a marked trail buried under a metre of snow. We only realised once we'd dropped into the valley… suddenly no markers in sight… every second step = falling through up to your waist, feet in the stream. An absolute massacre — I'll never forget that we all made it out. The hot tub that evening was well earned :))) don't go up there in snow and cold!!! Otherwise, colossal views, 10/10.",
     "acts": [
       "hike"
@@ -88720,7 +88664,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Dychberúca turistika, škoda, že na vrchole pršalo aj keď vrchol sme stihli v jaskyni - if you know what I mean :D Odporúčam! Je to fakt bomba.",
-    "dogNote": "",
     "descEN": "A breathtaking hike. Shame it rained at the summit, though we made it into a cave in time — if you know what I mean :D Recommended! It's an absolute belter.",
     "acts": [
       "hike"
@@ -89938,7 +89881,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Nádherná asfaltová cestička v zajatí lesa a potoka - ideálna na korčule. Neodporúčam návštevu cez víkend.",
-    "dogNote": "",
     "descEN": "A gorgeous asphalt path held between forest and stream — ideal for skating. I wouldn't come at the weekend.",
     "acts": [
       "hike",
@@ -91592,7 +91534,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Vraj najkrajší vrchol na Slovensku. Asi to tak bude... Chystám sa tam opäť bez snehu! Aj keď so snehom to malo krásne čaro :)",
-    "dogNote": "",
     "descEN": "They say it's the most beautiful summit in Slovakia. It probably is… I'm planning to go back without the snow! Though the snow gave it its own beautiful magic :)",
     "acts": [
       "hike"
@@ -92613,7 +92554,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Krátka turistika na celkom pekný nenápadný kopček :)",
-    "dogNote": "",
     "descEN": "A short hike up a rather nice, unassuming little hill :)",
     "acts": [
       "hike",
@@ -92667,7 +92607,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "region": "Chočské vrchy",
     "country": "sk",
     "diff": "Moderate",
-    "km": "19.8",
+    "km": "13.8",
     "stars": 5,
     "path": [
       [
@@ -92675,4536 +92615,108 @@ export const HERO_TRAILS: HeroTrail[] = [
         19.54236
       ],
       [
-        49.178426,
-        19.542184
+        49.17967,
+        19.5415
       ],
       [
-        49.178479,
-        19.542175
+        49.18107,
+        19.53987
       ],
       [
-        49.178503,
-        19.542148
+        49.18427,
+        19.5415
       ],
       [
-        49.178514,
-        19.54213
+        49.18609,
+        19.54249
       ],
       [
-        49.17852,
-        19.542085
+        49.18845,
+        19.54592
       ],
       [
-        49.178514,
-        19.542041
+        49.19024,
+        19.54682
       ],
       [
-        49.178632,
-        19.54196
+        49.19153,
+        19.54588
       ],
       [
-        49.17879,
-        19.541861
+        49.19316,
+        19.54644
       ],
       [
-        49.178978,
-        19.541798
-      ],
-      [
-        49.179125,
-        19.541789
-      ],
-      [
-        49.179248,
-        19.541825
-      ],
-      [
-        49.179401,
-        19.54187
-      ],
-      [
-        49.17953,
-        19.541861
-      ],
-      [
-        49.179683,
-        19.541816
-      ],
-      [
-        49.179706,
-        19.541807
-      ],
-      [
-        49.179812,
-        19.54178
-      ],
-      [
-        49.179924,
-        19.541717
-      ],
-      [
-        49.180006,
-        19.541627
-      ],
-      [
-        49.180182,
-        19.541358
-      ],
-      [
-        49.180352,
-        19.541088
-      ],
-      [
-        49.180558,
-        19.540792
-      ],
-      [
-        49.180746,
-        19.540567
-      ],
-      [
-        49.180804,
-        19.540495
-      ],
-      [
-        49.180863,
-        19.540451
-      ],
-      [
-        49.180987,
-        19.540415
-      ],
-      [
-        49.181122,
-        19.540388
-      ],
-      [
-        49.181221,
-        19.540361
-      ],
-      [
-        49.181574,
-        19.54028
-      ],
-      [
-        49.181668,
-        19.540289
-      ],
-      [
-        49.181715,
-        19.540289
-      ],
-      [
-        49.181767,
-        19.540307
-      ],
-      [
-        49.181891,
-        19.540442
-      ],
-      [
-        49.182132,
-        19.540657
-      ],
-      [
-        49.182261,
-        19.540711
-      ],
-      [
-        49.182443,
-        19.540864
-      ],
-      [
-        49.182613,
-        19.540936
-      ],
-      [
-        49.182754,
-        19.540981
-      ],
-      [
-        49.182989,
-        19.541025
-      ],
-      [
-        49.183218,
-        19.54116
-      ],
-      [
-        49.183588,
-        19.541394
-      ],
-      [
-        49.183875,
-        19.541582
-      ],
-      [
-        49.184099,
-        19.541681
-      ],
-      [
-        49.18424,
-        19.541726
-      ],
-      [
-        49.184486,
-        19.541807
-      ],
-      [
-        49.184668,
-        19.541861
-      ],
-      [
-        49.184744,
-        19.541879
-      ],
-      [
-        49.184815,
-        19.541843
-      ],
-      [
-        49.184862,
-        19.541798
-      ],
-      [
-        49.18495,
-        19.541681
-      ],
-      [
-        49.185009,
-        19.5416
-      ],
-      [
-        49.18505,
-        19.541573
-      ],
-      [
-        49.185132,
-        19.541582
-      ],
-      [
-        49.185179,
-        19.541609
-      ],
-      [
-        49.185267,
-        19.541654
-      ],
-      [
-        49.185355,
-        19.541681
-      ],
-      [
-        49.185631,
-        19.541843
-      ],
-      [
-        49.185936,
-        19.542121
-      ],
-      [
-        49.186107,
-        19.542373
-      ],
-      [
-        49.186136,
-        19.542454
-      ],
-      [
-        49.186206,
-        19.542687
-      ],
-      [
-        49.186236,
-        19.542822
-      ],
-      [
-        49.186306,
-        19.542867
-      ],
-      [
-        49.186388,
-        19.542876
-      ],
-      [
-        49.186435,
-        19.54284
-      ],
-      [
-        49.186535,
-        19.54275
-      ],
-      [
-        49.186653,
-        19.542687
-      ],
-      [
-        49.186735,
-        19.54266
-      ],
-      [
-        49.186799,
-        19.542669
-      ],
-      [
-        49.186858,
-        19.542705
-      ],
-      [
-        49.186905,
-        19.542759
-      ],
-      [
-        49.186981,
-        19.542984
-      ],
-      [
-        49.187005,
-        19.543181
-      ],
-      [
-        49.187058,
-        19.543379
-      ],
-      [
-        49.187105,
-        19.54346
-      ],
-      [
-        49.187181,
-        19.543514
-      ],
-      [
-        49.187275,
-        19.543568
-      ],
-      [
-        49.187363,
-        19.543613
-      ],
-      [
-        49.187422,
-        19.543666
-      ],
-      [
-        49.187475,
-        19.543756
-      ],
-      [
-        49.18751,
-        19.543873
-      ],
-      [
-        49.187598,
-        19.544152
-      ],
-      [
-        49.187745,
-        19.544592
-      ],
-      [
-        49.187827,
-        19.544888
-      ],
-      [
-        49.187933,
-        19.545176
-      ],
-      [
-        49.187997,
-        19.545337
-      ],
-      [
-        49.188103,
-        19.545517
-      ],
-      [
-        49.188303,
-        19.545786
-      ],
-      [
-        49.188443,
-        19.545939
-      ],
-      [
-        49.188496,
-        19.545993
-      ],
-      [
-        49.188578,
-        19.546137
-      ],
-      [
-        49.188678,
-        19.546352
-      ],
-      [
-        49.188772,
-        19.546478
-      ],
-      [
-        49.188854,
-        19.546586
-      ],
-      [
-        49.188913,
-        19.546676
-      ],
-      [
-        49.188984,
-        19.546712
-      ],
-      [
-        49.189054,
-        19.546712
-      ],
-      [
-        49.189201,
-        19.546649
-      ],
-      [
-        49.189312,
-        19.546595
-      ],
-      [
-        49.189406,
-        19.546514
-      ],
-      [
-        49.189488,
-        19.546487
-      ],
-      [
-        49.189571,
-        19.546523
-      ],
-      [
-        49.189653,
-        19.546586
-      ],
-      [
-        49.189717,
-        19.546667
-      ],
-      [
-        49.189888,
-        19.546945
-      ],
-      [
-        49.190034,
-        19.547107
-      ],
-      [
-        49.190117,
-        19.547125
-      ],
-      [
-        49.190193,
-        19.547134
-      ],
-      [
-        49.190258,
-        19.547125
-      ],
-      [
-        49.190305,
-        19.547044
-      ],
-      [
-        49.190316,
-        19.546963
-      ],
-      [
-        49.190293,
-        19.546873
-      ],
-      [
-        49.190287,
-        19.546811
-      ],
-      [
-        49.190287,
-        19.546793
-      ],
-      [
-        49.190293,
-        19.546703
-      ],
-      [
-        49.190328,
-        19.546334
-      ],
-      [
-        49.190369,
-        19.546047
-      ],
-      [
-        49.190404,
-        19.545778
-      ],
-      [
-        49.190463,
-        19.545661
-      ],
-      [
-        49.190522,
-        19.545589
-      ],
-      [
-        49.190569,
-        19.545571
-      ],
-      [
-        49.190704,
-        19.545553
-      ],
-      [
-        49.190815,
-        19.545589
-      ],
-      [
-        49.190903,
-        19.545652
-      ],
-      [
-        49.191021,
-        19.545786
-      ],
-      [
-        49.191173,
-        19.545966
-      ],
-      [
-        49.191297,
-        19.546038
-      ],
-      [
-        49.191391,
-        19.546074
-      ],
-      [
-        49.191502,
-        19.546056
-      ],
-      [
-        49.191567,
-        19.54602
-      ],
-      [
-        49.191596,
-        19.546002
-      ],
-      [
-        49.191678,
-        19.545957
-      ],
-      [
-        49.191737,
-        19.54593
-      ],
-      [
-        49.191807,
-        19.545948
-      ],
-      [
-        49.191907,
-        19.545984
-      ],
-      [
-        49.191972,
-        19.545966
-      ],
-      [
-        49.192036,
-        19.545903
-      ],
-      [
-        49.192119,
-        19.545822
-      ],
-      [
-        49.192171,
-        19.54576
-      ],
-      [
-        49.192224,
-        19.545724
-      ],
-      [
-        49.192277,
-        19.545724
-      ],
-      [
-        49.192359,
-        19.545786
-      ],
-      [
-        49.192547,
-        19.54602
-      ],
-      [
-        49.192817,
-        19.546236
-      ],
-      [
-        49.192941,
-        19.546343
-      ],
-      [
-        49.193058,
-        19.546424
-      ],
-      [
-        49.19314,
-        19.546451
-      ],
-      [
-        49.193158,
-        19.546451
-      ],
-      [
-        49.193199,
-        19.546451
-      ],
-      [
-        49.193252,
-        19.546433
-      ],
-      [
-        49.193299,
-        19.546379
-      ],
-      [
-        49.193416,
-        19.5462
-      ],
-      [
-        49.19351,
-        19.54602
-      ],
-      [
-        49.193639,
-        19.545831
-      ],
-      [
-        49.19371,
-        19.545742
-      ],
-      [
-        49.193798,
-        19.545688
-      ],
-      [
-        49.193956,
-        19.545652
-      ],
-      [
-        49.19405,
-        19.545625
-      ],
-      [
-        49.194138,
-        19.545571
-      ],
-      [
-        49.194203,
-        19.545463
-      ],
-      [
-        49.194297,
-        19.545319
-      ],
-      [
-        49.194361,
-        19.545176
-      ],
-      [
-        49.194408,
-        19.545041
-      ],
-      [
-        49.194467,
-        19.544951
-      ],
-      [
-        49.19452,
-        19.544861
-      ],
-      [
-        49.194608,
-        19.544843
-      ],
-      [
-        49.194731,
-        19.544834
-      ],
-      [
-        49.194813,
-        19.544843
-      ],
-      [
-        49.194872,
-        19.544843
-      ],
-      [
-        49.195083,
-        19.544834
-      ],
-      [
-        49.195207,
-        19.544807
-      ],
-      [
-        49.1953,
-        19.544789
-      ],
-      [
-        49.195342,
-        19.544762
-      ],
-      [
-        49.195365,
-        19.544718
-      ],
-      [
-        49.195377,
-        19.544682
-      ],
-      [
-        49.195383,
-        19.544655
-      ],
-      [
-        49.195389,
-        19.544583
-      ],
-      [
-        49.195353,
-        19.54443
-      ],
-      [
-        49.195318,
-        19.544286
-      ],
-      [
-        49.195283,
-        19.544125
-      ],
-      [
-        49.195236,
-        19.543972
-      ],
-      [
-        49.195207,
-        19.543837
-      ],
-      [
-        49.195183,
-        19.543702
-      ],
-      [
-        49.195183,
-        19.54364
-      ],
-      [
-        49.195201,
-        19.543577
-      ],
-      [
-        49.195183,
-        19.54364
-      ],
-      [
-        49.195183,
-        19.543702
-      ],
-      [
-        49.195207,
-        19.543837
-      ],
-      [
-        49.195107,
-        19.543738
-      ],
-      [
-        49.195036,
-        19.543622
-      ],
-      [
-        49.195007,
-        19.543478
-      ],
-      [
-        49.195019,
-        19.543352
-      ],
-      [
-        49.195083,
-        19.543244
-      ],
-      [
-        49.195183,
-        19.543154
-      ],
-      [
-        49.195271,
-        19.543092
-      ],
-      [
-        49.195412,
-        19.54311
-      ],
-      [
-        49.195535,
-        19.543136
-      ],
-      [
-        49.195647,
-        19.543074
-      ],
-      [
-        49.19577,
-        19.542957
-      ],
-      [
-        49.195876,
-        19.542858
-      ],
-      [
-        49.195993,
-        19.542795
-      ],
-      [
-        49.196093,
-        19.542732
-      ],
-      [
-        49.196099,
-        19.542705
-      ],
-      [
-        49.196163,
-        19.542463
-      ],
-      [
-        49.196199,
-        19.542292
-      ],
-      [
-        49.19624,
-        19.542166
-      ],
-      [
-        49.196287,
-        19.541969
-      ],
-      [
-        49.196339,
-        19.541762
-      ],
-      [
-        49.196369,
-        19.541663
-      ],
-      [
-        49.196445,
-        19.541448
-      ],
-      [
-        49.196586,
-        19.54125
-      ],
-      [
-        49.19668,
-        19.54107
-      ],
-      [
-        49.196809,
-        19.541052
-      ],
-      [
-        49.196809,
-        19.541052
-      ],
-      [
-        49.196809,
-        19.541052
-      ],
-      [
-        49.19668,
-        19.54107
-      ],
-      [
-        49.196598,
-        19.541079
-      ],
-      [
-        49.196557,
-        19.541088
-      ],
-      [
-        49.196498,
-        19.541169
-      ],
-      [
-        49.196428,
-        19.541241
-      ],
-      [
-        49.196392,
-        19.541295
-      ],
-      [
-        49.196339,
-        19.541196
-      ],
-      [
-        49.196316,
-        19.541151
-      ],
-      [
-        49.196287,
-        19.541106
-      ],
-      [
-        49.196316,
-        19.541151
-      ],
-      [
-        49.196339,
-        19.541196
-      ],
-      [
-        49.196392,
-        19.541295
-      ],
-      [
-        49.196428,
-        19.541241
-      ],
-      [
-        49.196498,
-        19.541169
-      ],
-      [
-        49.196557,
-        19.541088
-      ],
-      [
-        49.196492,
-        19.541097
-      ],
-      [
-        49.196445,
-        19.541088
-      ],
-      [
-        49.19641,
-        19.541052
-      ],
-      [
-        49.196398,
-        19.541025
-      ],
-      [
-        49.196386,
-        19.540981
-      ],
-      [
-        49.196398,
-        19.540927
-      ],
-      [
-        49.196428,
-        19.540873
-      ],
-      [
-        49.196475,
-        19.540828
-      ],
-      [
-        49.196598,
-        19.540729
-      ],
-      [
-        49.196715,
-        19.540648
-      ],
-      [
-        49.196809,
-        19.540558
-      ],
-      [
-        49.196909,
-        19.540397
-      ],
-      [
-        49.19705,
-        19.540199
-      ],
-      [
-        49.197144,
-        19.540001
-      ],
-      [
-        49.197191,
-        19.539831
-      ],
-      [
-        49.197161,
-        19.539561
-      ],
-      [
-        49.197138,
-        19.539373
-      ],
-      [
-        49.197138,
-        19.539292
-      ],
-      [
-        49.197144,
-        19.539211
-      ],
-      [
-        49.197208,
-        19.53904
-      ],
-      [
-        49.197279,
-        19.538959
-      ],
-      [
-        49.197314,
-        19.538852
-      ],
-      [
-        49.197302,
-        19.538735
-      ],
-      [
-        49.197232,
-        19.538582
-      ],
-      [
-        49.197085,
-        19.538384
-      ],
-      [
-        49.197015,
-        19.538214
-      ],
-      [
-        49.196956,
-        19.538016
-      ],
-      [
-        49.196903,
-        19.537872
-      ],
-      [
-        49.19685,
-        19.537791
-      ],
-      [
-        49.196756,
-        19.537612
-      ],
-      [
-        49.196674,
-        19.537423
-      ],
-      [
-        49.196633,
-        19.537261
-      ],
-      [
-        49.196633,
-        19.537261
-      ],
-      [
-        49.196621,
-        19.537091
-      ],
-      [
-        49.196656,
-        19.536983
-      ],
-      [
-        49.196745,
-        19.536821
-      ],
-      [
-        49.196762,
-        19.536714
-      ],
-      [
-        49.19675,
-        19.536633
-      ],
-      [
-        49.196656,
-        19.536525
-      ],
-      [
-        49.196545,
-        19.536417
-      ],
-      [
-        49.196469,
-        19.536255
-      ],
-      [
-        49.196469,
-        19.536255
-      ],
-      [
-        49.196439,
-        19.53613
-      ],
-      [
-        49.19651,
-        19.535833
-      ],
-      [
-        49.196504,
-        19.535573
-      ],
-      [
-        49.196486,
-        19.535294
-      ],
-      [
-        49.196445,
-        19.535097
-      ],
-      [
-        49.196381,
-        19.534971
-      ],
-      [
-        49.196263,
-        19.534827
-      ],
-      [
-        49.19621,
-        19.53462
-      ],
-      [
-        49.196122,
-        19.534378
-      ],
-      [
-        49.196093,
-        19.534234
-      ],
-      [
-        49.196087,
-        19.534198
-      ],
-      [
-        49.196099,
-        19.534019
-      ],
-      [
-        49.196093,
-        19.533507
-      ],
-      [
-        49.196087,
-        19.533417
-      ],
-      [
-        49.196093,
-        19.533264
-      ],
-      [
-        49.196116,
-        19.533102
-      ],
-      [
-        49.196146,
-        19.532851
-      ],
-      [
-        49.196152,
-        19.532761
-      ],
-      [
-        49.196163,
-        19.53268
-      ],
-      [
-        49.196152,
-        19.532617
-      ],
-      [
-        49.196146,
-        19.532563
-      ],
-      [
-        49.196105,
-        19.532482
-      ],
-      [
-        49.196081,
-        19.532375
-      ],
-      [
-        49.196034,
-        19.532168
-      ],
-      [
-        49.195952,
-        19.531845
-      ],
-      [
-        49.195805,
-        19.531279
-      ],
-      [
-        49.195641,
-        19.530596
-      ],
-      [
-        49.195606,
-        19.53038
-      ],
-      [
-        49.195582,
-        19.530183
-      ],
-      [
-        49.195576,
-        19.530039
-      ],
-      [
-        49.19557,
-        19.52968
-      ],
-      [
-        49.195576,
-        19.529293
-      ],
-      [
-        49.195576,
-        19.528979
-      ],
-      [
-        49.195623,
-        19.528638
-      ],
-      [
-        49.195635,
-        19.528548
-      ],
-      [
-        49.195664,
-        19.528287
-      ],
-      [
-        49.1957,
-        19.528045
-      ],
-      [
-        49.195741,
-        19.527874
-      ],
-      [
-        49.195752,
-        19.527775
-      ],
-      [
-        49.195776,
-        19.527614
-      ],
-      [
-        49.195794,
-        19.527416
-      ],
-      [
-        49.195799,
-        19.527155
-      ],
-      [
-        49.195794,
-        19.526751
-      ],
-      [
-        49.19577,
-        19.526275
-      ],
-      [
-        49.195752,
-        19.526113
-      ],
-      [
-        49.195706,
-        19.526572
-      ],
-      [
-        49.195676,
-        19.526904
-      ],
-      [
-        49.195664,
-        19.527182
-      ],
-      [
-        49.195653,
-        19.527389
-      ],
-      [
-        49.195612,
-        19.52756
-      ],
-      [
-        49.195524,
-        19.527784
-      ],
-      [
-        49.195612,
-        19.52756
-      ],
-      [
-        49.195653,
-        19.527389
-      ],
-      [
-        49.195664,
-        19.527182
-      ],
-      [
-        49.195676,
-        19.526904
-      ],
-      [
-        49.195706,
-        19.526572
-      ],
-      [
-        49.195752,
-        19.526113
-      ],
-      [
-        49.195741,
-        19.525997
-      ],
-      [
-        49.195723,
-        19.525619
-      ],
-      [
-        49.195706,
-        19.525422
-      ],
-      [
-        49.195676,
-        19.525242
-      ],
-      [
-        49.195647,
-        19.525053
-      ],
-      [
-        49.195635,
-        19.524874
-      ],
-      [
-        49.195617,
-        19.524541
-      ],
-      [
-        49.195606,
-        19.524236
-      ],
-      [
-        49.195588,
-        19.52393
-      ],
-      [
-        49.19557,
-        19.523688
-      ],
-      [
-        49.195553,
-        19.523562
-      ],
-      [
-        49.195518,
-        19.523391
+        49.19445,
+        19.54485
       ],
       [
         49.19543,
-        19.522996
+        19.54472
       ],
       [
-        49.1954,
-        19.522879
+        49.19519,
+        19.54352
       ],
       [
-        49.195324,
-        19.522403
-      ],
-      [
-        49.195283,
-        19.522134
-      ],
-      [
-        49.195271,
-        19.521999
-      ],
-      [
-        49.195265,
-        19.521909
-      ],
-      [
-        49.195271,
-        19.521828
-      ],
-      [
-        49.195277,
-        19.521775
-      ],
-      [
-        49.1953,
-        19.521703
-      ],
-      [
-        49.195336,
-        19.521622
-      ],
-      [
-        49.195383,
-        19.521541
-      ],
-      [
-        49.195424,
-        19.521487
-      ],
-      [
-        49.195482,
-        19.521424
-      ],
-      [
-        49.195617,
-        19.521289
-      ],
-      [
-        49.195729,
-        19.521182
-      ],
-      [
-        49.195981,
-        19.520858
-      ],
-      [
-        49.196028,
-        19.520804
-      ],
-      [
-        49.196328,
-        19.5204
-      ],
-      [
-        49.196234,
-        19.520346
-      ],
-      [
-        49.196204,
-        19.520337
-      ],
-      [
-        49.195946,
-        19.520274
-      ],
-      [
-        49.195764,
-        19.520265
-      ],
-      [
-        49.195694,
-        19.520256
-      ],
-      [
-        49.195406,
-        19.520238
-      ],
-      [
-        49.195342,
-        19.52022
-      ],
-      [
-        49.195283,
-        19.520185
-      ],
-      [
-        49.195242,
-        19.520131
-      ],
-      [
-        49.195171,
-        19.520041
-      ],
-      [
-        49.195066,
-        19.519834
-      ],
-      [
-        49.194942,
-        19.519601
-      ],
-      [
-        49.194743,
-        19.519313
-      ],
-      [
-        49.194578,
-        19.519062
-      ],
-      [
-        49.194484,
-        19.518891
-      ],
-      [
-        49.194326,
-        19.518577
-      ],
-      [
-        49.194238,
-        19.518388
-      ],
-      [
-        49.19412,
-        19.518217
-      ],
-      [
-        49.194009,
-        19.518082
-      ],
-      [
-        49.193892,
-        19.517885
-      ],
-      [
-        49.193803,
-        19.517678
-      ],
-      [
-        49.193704,
-        19.5174
-      ],
-      [
-        49.193592,
-        19.516951
-      ],
-      [
-        49.193575,
-        19.51687
-      ],
-      [
-        49.193504,
-        19.516223
-      ],
-      [
-        49.193475,
-        19.515953
-      ],
-      [
-        49.193451,
-        19.515729
-      ],
-      [
-        49.19344,
-        19.515666
-      ],
-      [
-        49.193445,
-        19.51563
-      ],
-      [
-        49.193469,
-        19.515603
-      ],
-      [
-        49.193492,
-        19.515522
-      ],
-      [
-        49.193498,
-        19.515423
-      ],
-      [
-        49.193457,
-        19.515396
-      ],
-      [
-        49.193404,
-        19.515334
-      ],
-      [
-        49.193369,
-        19.515244
-      ],
-      [
-        49.193258,
-        19.514884
-      ],
-      [
-        49.193222,
-        19.514804
-      ],
-      [
-        49.193064,
-        19.514965
-      ],
-      [
-        49.193046,
-        19.51501
-      ],
-      [
-        49.193064,
-        19.514965
-      ],
-      [
-        49.193222,
-        19.514804
-      ],
-      [
-        49.193169,
-        19.514669
-      ],
-      [
-        49.193064,
-        19.514543
-      ],
-      [
-        49.192759,
-        19.514193
-      ],
-      [
-        49.192676,
-        19.514076
-      ],
-      [
-        49.192547,
-        19.513869
-      ],
-      [
-        49.192459,
-        19.513735
-      ],
-      [
-        49.192248,
-        19.513519
-      ],
-      [
-        49.192177,
-        19.513429
-      ],
-      [
-        49.192083,
-        19.513259
-      ],
-      [
-        49.19186,
-        19.512827
-      ],
-      [
-        49.191126,
-        19.511471
-      ],
-      [
-        49.190627,
-        19.510528
-      ],
-      [
-        49.189829,
-        19.509198
-      ],
-      [
-        49.189559,
-        19.508686
-      ],
-      [
-        49.189072,
-        19.508066
-      ],
-      [
-        49.188396,
-        19.507312
-      ],
-      [
-        49.188244,
-        19.507078
-      ],
-      [
-        49.187392,
-        19.505596
-      ],
-      [
-        49.18734,
-        19.505452
-      ],
-      [
-        49.187328,
-        19.505407
-      ],
-      [
-        49.18731,
-        19.505353
-      ],
-      [
-        49.187257,
-        19.505219
-      ],
-      [
-        49.187228,
-        19.505174
-      ],
-      [
-        49.187199,
-        19.505084
-      ],
-      [
-        49.187181,
-        19.504985
-      ],
-      [
-        49.187169,
-        19.504877
-      ],
-      [
-        49.18714,
-        19.504769
-      ],
-      [
-        49.18707,
-        19.504644
-      ],
-      [
-        49.186852,
-        19.504464
-      ],
-      [
-        49.186788,
-        19.50441
-      ],
-      [
-        49.186723,
-        19.504302
-      ],
-      [
-        49.186582,
-        19.504069
-      ],
-      [
-        49.186506,
-        19.503952
-      ],
-      [
-        49.186418,
-        19.503844
-      ],
-      [
-        49.186365,
-        19.503745
-      ],
-      [
-        49.186324,
-        19.503656
-      ],
-      [
-        49.186283,
-        19.503548
-      ],
-      [
-        49.186148,
-        19.503305
-      ],
-      [
-        49.185895,
-        19.502793
-      ],
-      [
-        49.185795,
-        19.502631
-      ],
-      [
-        49.185743,
-        19.502551
-      ],
-      [
-        49.185655,
-        19.502443
-      ],
-      [
-        49.185584,
-        19.502272
-      ],
-      [
-        49.185549,
-        19.502146
-      ],
-      [
-        49.185502,
-        19.502039
-      ],
-      [
-        49.185443,
-        19.501949
-      ],
-      [
-        49.185261,
-        19.501535
-      ],
-      [
-        49.185238,
-        19.501455
-      ],
-      [
-        49.184968,
-        19.500817
-      ],
-      [
-        49.18478,
-        19.500484
-      ],
-      [
-        49.184615,
-        19.500197
-      ],
-      [
-        49.184445,
-        19.499901
-      ],
-      [
-        49.184386,
-        19.499775
-      ],
-      [
-        49.184369,
-        19.499577
-      ],
-      [
-        49.184322,
-        19.499254
-      ],
-      [
-        49.184251,
-        19.499038
-      ],
-      [
-        49.184104,
-        19.498688
-      ],
-      [
-        49.183782,
-        19.498185
-      ],
-      [
-        49.183547,
-        19.497861
-      ],
-      [
-        49.183212,
-        19.497448
-      ],
-      [
-        49.182983,
-        19.497251
-      ],
-      [
-        49.182942,
-        19.497197
-      ],
-      [
-        49.182912,
-        19.497125
-      ],
-      [
-        49.18286,
-        19.497026
-      ],
-      [
-        49.182584,
-        19.496577
-      ],
-      [
-        49.182466,
-        19.496406
-      ],
-      [
-        49.182349,
-        19.496271
-      ],
-      [
-        49.182255,
-        19.496155
-      ],
-      [
-        49.182184,
-        19.496002
-      ],
-      [
-        49.182149,
-        19.495894
-      ],
-      [
-        49.18209,
-        19.495732
-      ],
-      [
-        49.182026,
-        19.495625
-      ],
-      [
-        49.181914,
-        19.49549
-      ],
-      [
-        49.181873,
-        19.495463
-      ],
-      [
-        49.181744,
-        19.495364
-      ],
-      [
-        49.181574,
-        19.495175
-      ],
-      [
-        49.181309,
-        19.49487
-      ],
-      [
-        49.18121,
-        19.494708
-      ],
-      [
-        49.181086,
-        19.494511
-      ],
-      [
-        49.181033,
-        19.494448
-      ],
-      [
-        49.180998,
-        19.494466
-      ],
-      [
-        49.180969,
-        19.494475
-      ],
-      [
-        49.180922,
-        19.494439
-      ],
-      [
-        49.180869,
-        19.494367
-      ],
-      [
-        49.18081,
-        19.494322
-      ],
-      [
-        49.180734,
-        19.494223
-      ],
-      [
-        49.180693,
-        19.494142
-      ],
-      [
-        49.18064,
-        19.494088
-      ],
-      [
-        49.180587,
-        19.494008
-      ],
-      [
-        49.180452,
-        19.493801
-      ],
-      [
-        49.180417,
-        19.493684
-      ],
-      [
-        49.180388,
-        19.493549
-      ],
-      [
-        49.180393,
-        19.4931
-      ],
-      [
-        49.180346,
-        19.492867
-      ],
-      [
-        49.180282,
-        19.492597
-      ],
-      [
-        49.180188,
-        19.492373
-      ],
-      [
-        49.180112,
-        19.492256
-      ],
-      [
-        49.18007,
-        19.492193
-      ],
-      [
-        49.180112,
-        19.492256
-      ],
-      [
-        49.180188,
-        19.492373
-      ],
-      [
-        49.180282,
-        19.492597
-      ],
-      [
-        49.180346,
-        19.492867
-      ],
-      [
-        49.180393,
-        19.4931
-      ],
-      [
-        49.180388,
-        19.493549
-      ],
-      [
-        49.180417,
-        19.493684
-      ],
-      [
-        49.180452,
-        19.493801
-      ],
-      [
-        49.18064,
-        19.494088
-      ],
-      [
-        49.180693,
-        19.494142
-      ],
-      [
-        49.180734,
-        19.494223
-      ],
-      [
-        49.18081,
-        19.494322
-      ],
-      [
-        49.180869,
-        19.494367
-      ],
-      [
-        49.180922,
-        19.494439
-      ],
-      [
-        49.180922,
-        19.494484
-      ],
-      [
-        49.180893,
-        19.494574
-      ],
-      [
-        49.180804,
-        19.494726
-      ],
-      [
-        49.180687,
-        19.494897
-      ],
-      [
-        49.180575,
-        19.49496
-      ],
-      [
-        49.180534,
-        19.495041
-      ],
-      [
-        49.180487,
-        19.495148
-      ],
-      [
-        49.180464,
-        19.495283
-      ],
-      [
-        49.180534,
-        19.495472
-      ],
-      [
-        49.180581,
-        19.495598
-      ],
-      [
-        49.180564,
-        19.495714
-      ],
-      [
-        49.180528,
-        19.49584
-      ],
-      [
-        49.180552,
-        19.496047
-      ],
-      [
-        49.180605,
-        19.496253
-      ],
-      [
-        49.180646,
-        19.496442
-      ],
-      [
-        49.180622,
-        19.49664
-      ],
-      [
-        49.180564,
-        19.496882
-      ],
-      [
-        49.180493,
-        19.497134
-      ],
-      [
-        49.180464,
-        19.497277
-      ],
-      [
-        49.18047,
-        19.497502
-      ],
-      [
-        49.180446,
-        19.497592
-      ],
-      [
-        49.180382,
-        19.4977
-      ],
-      [
-        49.180294,
-        19.497897
-      ],
-      [
-        49.180147,
-        19.498311
-      ],
-      [
-        49.180082,
-        19.498499
-      ],
-      [
-        49.180035,
-        19.498661
-      ],
-      [
-        49.180065,
-        19.498787
-      ],
-      [
-        49.180135,
-        19.498894
-      ],
-      [
-        49.180194,
-        19.499056
-      ],
-      [
-        49.180235,
-        19.499299
-      ],
-      [
-        49.180229,
-        19.499523
-      ],
-      [
-        49.180194,
-        19.499667
-      ],
-      [
-        49.18007,
-        19.499838
-      ],
-      [
-        49.179947,
-        19.500044
-      ],
-      [
-        49.179924,
-        19.500305
-      ],
-      [
-        49.1799,
-        19.500511
-      ],
-      [
-        49.1799,
-        19.500907
-      ],
-      [
-        49.179865,
-        19.501059
-      ],
-      [
-        49.179818,
-        19.501203
-      ],
-      [
-        49.1798,
-        19.501257
-      ],
-      [
-        49.179759,
-        19.50158
-      ],
-      [
-        49.179701,
-        19.501733
-      ],
-      [
-        49.179595,
-        19.501949
-      ],
-      [
-        49.179765,
-        19.502137
-      ],
-      [
-        49.179888,
-        19.502317
-      ],
-      [
-        49.179924,
-        19.502443
-      ],
-      [
-        49.179965,
-        19.502676
-      ],
-      [
-        49.180029,
-        19.503197
-      ],
-      [
-        49.180018,
-        19.503476
-      ],
-      [
-        49.179918,
-        19.503826
-      ],
-      [
-        49.179912,
-        19.50423
-      ],
-      [
-        49.179695,
-        19.504518
-      ],
-      [
-        49.179589,
-        19.504644
-      ],
-      [
-        49.179483,
-        19.504931
-      ],
-      [
-        49.179495,
-        19.505165
-      ],
-      [
-        49.179518,
-        19.505515
-      ],
-      [
-        49.179612,
-        19.506207
-      ],
-      [
-        49.179618,
-        19.506548
-      ],
-      [
-        49.179636,
-        19.506719
-      ],
-      [
-        49.179777,
-        19.507276
-      ],
-      [
-        49.1798,
-        19.507518
-      ],
-      [
-        49.179789,
-        19.507689
-      ],
-      [
-        49.179783,
-        19.507806
-      ],
-      [
-        49.179742,
-        19.508156
-      ],
-      [
-        49.179654,
-        19.5083
-      ],
-      [
-        49.179636,
-        19.508345
-      ],
-      [
-        49.179577,
-        19.50847
-      ],
-      [
-        49.179495,
-        19.508758
-      ],
-      [
-        49.179489,
-        19.509252
-      ],
-      [
-        49.179513,
-        19.509468
-      ],
-      [
-        49.179583,
-        19.509683
-      ],
-      [
-        49.179654,
-        19.509908
-      ],
-      [
-        49.179654,
-        19.510177
-      ],
-      [
-        49.179636,
-        19.510375
-      ],
-      [
-        49.179595,
-        19.510591
-      ],
-      [
-        49.179542,
-        19.510878
-      ],
-      [
-        49.179513,
-        19.511291
-      ],
-      [
-        49.179542,
-        19.510878
-      ],
-      [
-        49.179407,
-        19.510887
-      ],
-      [
-        49.179143,
-        19.51086
-      ],
-      [
-        49.178767,
-        19.510698
-      ],
-      [
-        49.178567,
-        19.510546
-      ],
-      [
-        49.178426,
-        19.510492
-      ],
-      [
-        49.178285,
-        19.510519
-      ],
-      [
-        49.178086,
-        19.510591
-      ],
-      [
-        49.177956,
-        19.510519
-      ],
-      [
-        49.177868,
-        19.51033
-      ],
-      [
-        49.177305,
-        19.509369
-      ],
-      [
-        49.176758,
-        19.508974
-      ],
-      [
-        49.176535,
-        19.508803
-      ],
-      [
-        49.175649,
-        19.507967
-      ],
-      [
-        49.17539,
-        19.507536
-      ],
-      [
-        49.175149,
-        19.507069
-      ],
-      [
-        49.174938,
-        19.506629
-      ],
-      [
-        49.174779,
-        19.506153
-      ],
-      [
-        49.174674,
-        19.505919
-      ],
-      [
-        49.17458,
-        19.505659
-      ],
-      [
-        49.174415,
-        19.505425
-      ],
-      [
-        49.174321,
-        19.505237
-      ],
-      [
-        49.174198,
-        19.505165
-      ],
-      [
-        49.173992,
-        19.50485
-      ],
-      [
-        49.173828,
-        19.504401
-      ],
-      [
-        49.17374,
-        19.504329
-      ],
-      [
-        49.173628,
-        19.504221
-      ],
-      [
-        49.173517,
-        19.50415
-      ],
-      [
-        49.173376,
-        19.503898
-      ],
-      [
-        49.173346,
-        19.503853
-      ],
-      [
-        49.173247,
-        19.503772
-      ],
-      [
-        49.173111,
-        19.503799
-      ],
-      [
-        49.173035,
-        19.503736
-      ],
-      [
-        49.172947,
-        19.503772
-      ],
-      [
-        49.172894,
-        19.503844
-      ],
-      [
-        49.172871,
-        19.503979
-      ],
-      [
-        49.172918,
-        19.504123
-      ],
-      [
-        49.172929,
-        19.504293
-      ],
-      [
-        49.173023,
-        19.504536
-      ],
-      [
-        49.173141,
-        19.504787
-      ],
-      [
-        49.173182,
-        19.505003
-      ],
-      [
-        49.173299,
-        19.50521
-      ],
-      [
-        49.173423,
-        19.505344
-      ],
-      [
-        49.173528,
-        19.505443
-      ],
-      [
-        49.17357,
-        19.505623
-      ],
-      [
-        49.173581,
-        19.505785
-      ],
-      [
-        49.173546,
-        19.505991
-      ],
-      [
-        49.173511,
-        19.506225
-      ],
-      [
-        49.173517,
-        19.506485
-      ],
-      [
-        49.173417,
-        19.506764
-      ],
-      [
-        49.173458,
-        19.506952
-      ],
-      [
-        49.173452,
-        19.507204
-      ],
-      [
-        49.17354,
-        19.507482
-      ],
-      [
-        49.17354,
-        19.507985
-      ],
-      [
-        49.173587,
-        19.508192
-      ],
-      [
-        49.17357,
-        19.508551
-      ],
-      [
-        49.173605,
-        19.508686
-      ],
-      [
-        49.173575,
-        19.508794
-      ],
-      [
-        49.17354,
-        19.508956
-      ],
-      [
-        49.173511,
-        19.509189
-      ],
-      [
-        49.173605,
-        19.509279
-      ],
-      [
-        49.173716,
-        19.509387
-      ],
-      [
-        49.173981,
-        19.510043
-      ],
-      [
-        49.174081,
-        19.510186
-      ],
-      [
-        49.174127,
-        19.510357
-      ],
-      [
-        49.174198,
-        19.510438
-      ],
-      [
-        49.174233,
-        19.510591
-      ],
-      [
-        49.174497,
-        19.511309
-      ],
-      [
-        49.174533,
-        19.511408
-      ],
-      [
-        49.174603,
-        19.511543
-      ],
-      [
-        49.174709,
-        19.511606
-      ],
-      [
-        49.174732,
-        19.511668
-      ],
-      [
-        49.174685,
-        19.511749
-      ],
-      [
-        49.174674,
-        19.511866
-      ],
-      [
-        49.174756,
-        19.511992
-      ],
-      [
-        49.174797,
-        19.512163
-      ],
-      [
-        49.174832,
-        19.512369
-      ],
-      [
-        49.17482,
-        19.512468
-      ],
-      [
-        49.174867,
-        19.512549
-      ],
-      [
-        49.174856,
-        19.51263
-      ],
-      [
-        49.174903,
-        19.512746
-      ],
-      [
-        49.174891,
-        19.512962
-      ],
-      [
-        49.174979,
-        19.513187
-      ],
-      [
-        49.174991,
-        19.51342
-      ],
-      [
-        49.175067,
-        19.513555
-      ],
-      [
-        49.175155,
-        19.513645
-      ],
-      [
-        49.175296,
-        19.513762
-      ],
-      [
-        49.175455,
-        19.513771
-      ],
-      [
-        49.175625,
-        19.513887
-      ],
-      [
-        49.175825,
-        19.513914
-      ],
-      [
-        49.175972,
-        19.514121
-      ],
-      [
-        49.176124,
-        19.51422
-      ],
-      [
-        49.176424,
-        19.514507
-      ],
-      [
-        49.17667,
-        19.514804
-      ],
-      [
-        49.177146,
-        19.515262
-      ],
-      [
-        49.177463,
-        19.516546
-      ],
-      [
-        49.177481,
-        19.516834
-      ],
-      [
-        49.177622,
-        19.516969
-      ],
-      [
-        49.177986,
-        19.51713
-      ],
-      [
-        49.178092,
-        19.517166
-      ],
-      [
-        49.178168,
-        19.517274
-      ],
-      [
-        49.178215,
-        19.517319
-      ],
-      [
-        49.178268,
-        19.517445
-      ],
-      [
-        49.178368,
-        19.51757
-      ],
-      [
-        49.17852,
-        19.51775
-      ],
-      [
-        49.178685,
-        19.517885
-      ],
-      [
-        49.178784,
-        19.518029
-      ],
-      [
-        49.178855,
-        19.518235
-      ],
-      [
-        49.178855,
-        19.518325
-      ],
-      [
-        49.178931,
-        19.518487
-      ],
-      [
-        49.178966,
-        19.51863
-      ],
-      [
-        49.17899,
-        19.518864
-      ],
-      [
-        49.178972,
-        19.519053
-      ],
-      [
-        49.178949,
-        19.519331
-      ],
-      [
-        49.178949,
-        19.519475
-      ],
-      [
-        49.178972,
-        19.519511
-      ],
-      [
-        49.179049,
-        19.519601
-      ],
-      [
-        49.179166,
-        19.519708
-      ],
-      [
-        49.179196,
-        19.519726
-      ],
-      [
-        49.179231,
-        19.519753
-      ],
-      [
-        49.179501,
-        19.519852
-      ],
-      [
-        49.17963,
-        19.519915
-      ],
-      [
-        49.179877,
-        19.519996
-      ],
-      [
-        49.179994,
-        19.520059
-      ],
-      [
-        49.18047,
-        19.520436
-      ],
-      [
-        49.180963,
-        19.52075
-      ],
-      [
-        49.181192,
-        19.520885
-      ],
-      [
-        49.181321,
-        19.520903
-      ],
-      [
-        49.18145,
-        19.520912
-      ],
-      [
-        49.181756,
-        19.520885
-      ],
-      [
-        49.181879,
-        19.520894
-      ],
-      [
-        49.18259,
-        19.52111
-      ],
-      [
-        49.183071,
-        19.521397
-      ],
-      [
-        49.183376,
-        19.521505
-      ],
-      [
-        49.183676,
-        19.521559
-      ],
-      [
-        49.183875,
-        19.521658
-      ],
-      [
-        49.183899,
-        19.521819
-      ],
-      [
-        49.184011,
-        19.521918
-      ],
-      [
-        49.18421,
-        19.522143
-      ],
-      [
-        49.184598,
-        19.522305
-      ],
-      [
-        49.184979,
-        19.522574
-      ],
-      [
-        49.185155,
-        19.522745
-      ],
-      [
-        49.185249,
-        19.522835
-      ],
-      [
-        49.185326,
-        19.522915
-      ],
-      [
-        49.185443,
-        19.523176
-      ],
-      [
-        49.185508,
-        19.523293
-      ],
-      [
-        49.185584,
-        19.523454
-      ],
-      [
-        49.185737,
-        19.523832
-      ],
-      [
-        49.185854,
-        19.524173
-      ],
-      [
-        49.185948,
-        19.524389
-      ],
-      [
-        49.186236,
-        19.524793
-      ],
-      [
-        49.186453,
-        19.52517
-      ],
-      [
-        49.186647,
-        19.525476
-      ],
-      [
-        49.186805,
-        19.52579
-      ],
-      [
-        49.186993,
-        19.526095
-      ],
-      [
-        49.187058,
-        19.526257
-      ],
-      [
-        49.187152,
-        19.526643
-      ],
-      [
-        49.187228,
-        19.527048
-      ],
-      [
-        49.187387,
-        19.527829
-      ],
-      [
-        49.187663,
-        19.528862
-      ],
-      [
-        49.187909,
-        19.529859
-      ],
-      [
-        49.187915,
-        19.530039
-      ],
-      [
-        49.187833,
-        19.530147
-      ],
-      [
-        49.18778,
-        19.530255
-      ],
-      [
-        49.187827,
-        19.530794
-      ],
-      [
-        49.187845,
-        19.530946
-      ],
-      [
-        49.187868,
-        19.531656
-      ],
-      [
-        49.187903,
-        19.532482
-      ],
-      [
-        49.188038,
-        19.533147
-      ],
-      [
-        49.188162,
-        19.533704
-      ],
-      [
-        49.188426,
-        19.534315
-      ],
-      [
-        49.188455,
-        19.534459
-      ],
-      [
-        49.188426,
-        19.534953
-      ],
-      [
-        49.188396,
-        19.535222
-      ],
-      [
-        49.188385,
-        19.535348
-      ],
-      [
-        49.188291,
-        19.535689
-      ],
-      [
-        49.188279,
-        19.535788
-      ],
-      [
-        49.18825,
-        19.536049
-      ],
-      [
-        49.188232,
-        19.536157
-      ],
-      [
-        49.18815,
-        19.536175
-      ],
-      [
-        49.188056,
-        19.536112
-      ],
-      [
-        49.188091,
-        19.536282
-      ],
-      [
-        49.188156,
-        19.53639
-      ],
-      [
-        49.188737,
-        19.536974
-      ],
-      [
-        49.188937,
-        19.537306
-      ],
-      [
-        49.18906,
-        19.53745
-      ],
-      [
-        49.189166,
-        19.537612
-      ],
-      [
-        49.189236,
-        19.537657
-      ],
-      [
-        49.189195,
-        19.537666
-      ],
-      [
-        49.189171,
-        19.537675
-      ],
-      [
-        49.189142,
-        19.537702
-      ],
-      [
-        49.18913,
-        19.53772
-      ],
-      [
-        49.189101,
-        19.537783
-      ],
-      [
-        49.18913,
-        19.53772
-      ],
-      [
-        49.189142,
-        19.537702
-      ],
-      [
-        49.189171,
-        19.537675
-      ],
-      [
-        49.189195,
-        19.537666
-      ],
-      [
-        49.189236,
-        19.537657
-      ],
-      [
-        49.189283,
-        19.537693
-      ],
-      [
-        49.189418,
-        19.537612
-      ],
-      [
-        49.189952,
-        19.537423
-      ],
-      [
-        49.190111,
-        19.537253
-      ],
-      [
-        49.190246,
-        19.536965
-      ],
-      [
-        49.19034,
-        19.537064
-      ],
-      [
-        49.190504,
-        19.537261
-      ],
-      [
-        49.190786,
-        19.53745
-      ],
-      [
-        49.190944,
-        19.537486
-      ],
-      [
-        49.191209,
-        19.537378
-      ],
-      [
-        49.191391,
-        19.537297
-      ],
-      [
-        49.191678,
-        19.537046
-      ],
-      [
-        49.191995,
-        19.536749
-      ],
-      [
-        49.192459,
-        19.536651
-      ],
-      [
-        49.192917,
-        19.536651
-      ],
-      [
-        49.193287,
-        19.536794
-      ],
-      [
-        49.193381,
-        19.536803
-      ],
-      [
-        49.193498,
-        19.536884
-      ],
-      [
-        49.193563,
-        19.536812
-      ],
-      [
-        49.193575,
-        19.536687
-      ],
-      [
-        49.193539,
-        19.53657
-      ],
-      [
-        49.193592,
-        19.536201
-      ],
-      [
-        49.193592,
-        19.536201
-      ],
-      [
-        49.193768,
-        19.535914
-      ],
-      [
-        49.193856,
-        19.535645
-      ],
-      [
-        49.193862,
-        19.535195
-      ],
-      [
-        49.193616,
-        19.534072
-      ],
-      [
-        49.193398,
-        19.533156
-      ],
-      [
-        49.193287,
-        19.532806
-      ],
-      [
-        49.193134,
-        19.532438
-      ],
-      [
-        49.192941,
-        19.531827
-      ],
-      [
-        49.192858,
-        19.53153
-      ],
-      [
-        49.192553,
-        19.530704
-      ],
-      [
-        49.192289,
-        19.529805
-      ],
-      [
-        49.192265,
-        19.529725
-      ],
-      [
-        49.192142,
-        19.529177
-      ],
-      [
-        49.191872,
-        19.528036
-      ],
-      [
-        49.191561,
-        19.527218
-      ],
-      [
-        49.191473,
-        19.526805
-      ],
-      [
-        49.191438,
-        19.526616
-      ],
-      [
-        49.191426,
-        19.526437
-      ],
-      [
-        49.191443,
-        19.526311
-      ],
-      [
-        49.191455,
-        19.526257
-      ],
-      [
-        49.191537,
-        19.526167
-      ],
-      [
-        49.191649,
-        19.526122
-      ],
-      [
-        49.191831,
-        19.526212
-      ],
-      [
-        49.192101,
-        19.526473
-      ],
-      [
-        49.192424,
-        19.52694
-      ],
-      [
-        49.192823,
-        19.527479
-      ],
-      [
-        49.193052,
-        19.527739
-      ],
-      [
-        49.193363,
-        19.528117
-      ],
-      [
-        49.193516,
-        19.528305
-      ],
-      [
-        49.193745,
-        19.528503
-      ],
-      [
-        49.193974,
-        19.528799
-      ],
-      [
-        49.194285,
-        19.529293
-      ],
-      [
-        49.194596,
-        19.529779
-      ],
-      [
-        49.194543,
-        19.53012
-      ],
-      [
-        49.194895,
-        19.530821
-      ],
-      [
-        49.19506,
-        19.531189
-      ],
-      [
-        49.195218,
-        19.531575
-      ],
-      [
-        49.195465,
-        19.532213
-      ],
-      [
-        49.195688,
-        19.532887
-      ],
-      [
-        49.195729,
-        19.532959
-      ],
-      [
-        49.195782,
-        19.532986
-      ],
-      [
-        49.195887,
-        19.533003
-      ],
-      [
-        49.195929,
-        19.532994
-      ],
-      [
-        49.196028,
-        19.532986
-      ],
-      [
-        49.196146,
-        19.532851
-      ],
-      [
-        49.196152,
-        19.532761
-      ],
-      [
-        49.196163,
-        19.53268
-      ],
-      [
-        49.196152,
-        19.532617
-      ],
-      [
-        49.196146,
-        19.532563
-      ],
-      [
-        49.196105,
-        19.532482
-      ],
-      [
-        49.196081,
-        19.532375
-      ],
-      [
-        49.196034,
-        19.532168
-      ],
-      [
-        49.195952,
-        19.531845
-      ],
-      [
-        49.195805,
-        19.531279
-      ],
-      [
-        49.195805,
-        19.531279
-      ],
-      [
-        49.195805,
-        19.531279
-      ],
-      [
-        49.195952,
-        19.531845
-      ],
-      [
-        49.196034,
-        19.532168
-      ],
-      [
-        49.196081,
-        19.532375
-      ],
-      [
-        49.196105,
-        19.532482
-      ],
-      [
-        49.196146,
-        19.532563
-      ],
-      [
-        49.196152,
-        19.532617
-      ],
-      [
-        49.196163,
-        19.53268
-      ],
-      [
-        49.196152,
-        19.532761
-      ],
-      [
-        49.196146,
-        19.532851
-      ],
-      [
-        49.196116,
-        19.533102
-      ],
-      [
-        49.196093,
-        19.533264
-      ],
-      [
-        49.196087,
-        19.533417
-      ],
-      [
-        49.196093,
-        19.533507
-      ],
-      [
-        49.196099,
-        19.534019
-      ],
-      [
-        49.196087,
-        19.534198
-      ],
-      [
-        49.196122,
-        19.534378
-      ],
-      [
-        49.19621,
-        19.53462
-      ],
-      [
-        49.196263,
-        19.534827
-      ],
-      [
-        49.196381,
-        19.534971
-      ],
-      [
-        49.196445,
-        19.535097
-      ],
-      [
-        49.196486,
-        19.535294
-      ],
-      [
-        49.196504,
-        19.535573
-      ],
-      [
-        49.19651,
-        19.535833
-      ],
-      [
-        49.196439,
-        19.53613
-      ],
-      [
-        49.196469,
-        19.536255
-      ],
-      [
-        49.196545,
-        19.536417
-      ],
-      [
-        49.196656,
-        19.536525
-      ],
-      [
-        49.19675,
-        19.536633
-      ],
-      [
-        49.196762,
-        19.536714
-      ],
-      [
-        49.196745,
-        19.536821
-      ],
-      [
-        49.196656,
-        19.536983
-      ],
-      [
-        49.196621,
-        19.537091
-      ],
-      [
-        49.196633,
-        19.537261
-      ],
-      [
-        49.196674,
-        19.537423
-      ],
-      [
-        49.196756,
-        19.537612
-      ],
-      [
-        49.196844,
-        19.537774
-      ],
-      [
-        49.19685,
-        19.537791
-      ],
-      [
-        49.196903,
-        19.537872
-      ],
-      [
-        49.196956,
-        19.538016
-      ],
-      [
-        49.197015,
-        19.538214
-      ],
-      [
-        49.197085,
-        19.538384
-      ],
-      [
-        49.197232,
-        19.538582
-      ],
-      [
-        49.197302,
-        19.538735
-      ],
-      [
-        49.197314,
-        19.538852
-      ],
-      [
-        49.197279,
-        19.538959
-      ],
-      [
-        49.197208,
-        19.53904
-      ],
-      [
-        49.197144,
-        19.539211
-      ],
-      [
-        49.197138,
-        19.539373
-      ],
-      [
-        49.197161,
-        19.539561
-      ],
-      [
-        49.197191,
-        19.539831
-      ],
-      [
-        49.197144,
-        19.540001
-      ],
-      [
-        49.19705,
-        19.540199
-      ],
-      [
-        49.196909,
-        19.540397
-      ],
-      [
-        49.196809,
-        19.540558
-      ],
-      [
-        49.196715,
-        19.540648
-      ],
-      [
-        49.196598,
-        19.540729
-      ],
-      [
-        49.196475,
-        19.540828
-      ],
-      [
-        49.196428,
-        19.540873
-      ],
-      [
-        49.196398,
-        19.540927
-      ],
-      [
-        49.196386,
-        19.540981
-      ],
-      [
-        49.196398,
-        19.541025
-      ],
-      [
-        49.19641,
-        19.541052
-      ],
-      [
-        49.196445,
-        19.541088
-      ],
-      [
-        49.196492,
-        19.541097
-      ],
-      [
-        49.196557,
-        19.541088
-      ],
-      [
-        49.196598,
-        19.541079
-      ],
-      [
-        49.19668,
-        19.54107
-      ],
-      [
-        49.196586,
-        19.54125
-      ],
-      [
-        49.196445,
-        19.541448
-      ],
-      [
-        49.196369,
-        19.541663
-      ],
-      [
-        49.196339,
-        19.541762
-      ],
-      [
-        49.196287,
-        19.541969
-      ],
-      [
-        49.19624,
-        19.542166
-      ],
-      [
-        49.196199,
-        19.542292
-      ],
-      [
-        49.196163,
-        19.542463
-      ],
-      [
-        49.196093,
-        19.542732
-      ],
-      [
-        49.195993,
-        19.542795
-      ],
-      [
-        49.195876,
-        19.542858
-      ],
-      [
-        49.19577,
-        19.542957
-      ],
-      [
-        49.195647,
-        19.543074
-      ],
-      [
-        49.195535,
-        19.543136
-      ],
-      [
-        49.195412,
-        19.54311
-      ],
-      [
-        49.195271,
-        19.543092
-      ],
-      [
-        49.195183,
-        19.543154
-      ],
-      [
-        49.195083,
-        19.543244
-      ],
-      [
-        49.195019,
-        19.543352
-      ],
-      [
-        49.195007,
-        19.543478
-      ],
-      [
-        49.195036,
-        19.543622
-      ],
-      [
-        49.195107,
-        19.543738
-      ],
-      [
-        49.195207,
-        19.543837
-      ],
-      [
-        49.195236,
-        19.543972
-      ],
-      [
-        49.195283,
-        19.544125
-      ],
-      [
-        49.195318,
-        19.544286
-      ],
-      [
-        49.195353,
-        19.54443
-      ],
-      [
-        49.195359,
-        19.544457
-      ],
-      [
-        49.195389,
-        19.544583
-      ],
-      [
-        49.195383,
-        19.544655
-      ],
-      [
-        49.195365,
-        19.544718
-      ],
-      [
-        49.195342,
-        19.544762
-      ],
-      [
-        49.1953,
-        19.544789
-      ],
-      [
-        49.195207,
-        19.544807
-      ],
-      [
-        49.195083,
-        19.544834
-      ],
-      [
-        49.194872,
-        19.544843
-      ],
-      [
-        49.194813,
-        19.544843
-      ],
-      [
-        49.194731,
-        19.544834
-      ],
-      [
-        49.194608,
-        19.544843
-      ],
-      [
-        49.19452,
-        19.544861
-      ],
-      [
-        49.194467,
-        19.544951
-      ],
-      [
-        49.194408,
-        19.545041
-      ],
-      [
-        49.194361,
-        19.545176
-      ],
-      [
-        49.194297,
-        19.545319
-      ],
-      [
-        49.194203,
-        19.545463
-      ],
-      [
-        49.194138,
-        19.545571
-      ],
-      [
-        49.19405,
-        19.545625
-      ],
-      [
-        49.193956,
-        19.545652
-      ],
-      [
-        49.193798,
-        19.545688
-      ],
-      [
-        49.19371,
-        19.545742
-      ],
-      [
-        49.193639,
-        19.545831
-      ],
-      [
-        49.19351,
-        19.54602
-      ],
-      [
-        49.193416,
-        19.5462
-      ],
-      [
-        49.193299,
-        19.546379
-      ],
-      [
-        49.193252,
-        19.546433
-      ],
-      [
-        49.193199,
-        19.546451
-      ],
-      [
-        49.19314,
-        19.546451
-      ],
-      [
-        49.193058,
-        19.546424
-      ],
-      [
-        49.192941,
-        19.546343
-      ],
-      [
-        49.192817,
-        19.546236
-      ],
-      [
-        49.192547,
-        19.54602
-      ],
-      [
-        49.192359,
-        19.545786
-      ],
-      [
-        49.192277,
-        19.545724
-      ],
-      [
-        49.192224,
-        19.545724
-      ],
-      [
-        49.192171,
-        19.54576
-      ],
-      [
-        49.192119,
-        19.545822
-      ],
-      [
-        49.192036,
-        19.545903
-      ],
-      [
-        49.191995,
-        19.545948
-      ],
-      [
-        49.191972,
-        19.545966
-      ],
-      [
-        49.191907,
-        19.545984
-      ],
-      [
-        49.191807,
-        19.545948
-      ],
-      [
-        49.191737,
-        19.54593
-      ],
-      [
-        49.191678,
-        19.545957
-      ],
-      [
-        49.191596,
-        19.546002
-      ],
-      [
-        49.191502,
-        19.546056
-      ],
-      [
-        49.191391,
-        19.546074
-      ],
-      [
-        49.191297,
-        19.546038
-      ],
-      [
-        49.191173,
-        19.545966
-      ],
-      [
-        49.191021,
-        19.545786
-      ],
-      [
-        49.190903,
-        19.545652
-      ],
-      [
-        49.190815,
-        19.545589
-      ],
-      [
-        49.190704,
-        19.545553
-      ],
-      [
-        49.190569,
-        19.545571
-      ],
-      [
-        49.190522,
-        19.545589
-      ],
-      [
-        49.190463,
-        19.545661
-      ],
-      [
-        49.190404,
-        19.545778
-      ],
-      [
-        49.190369,
-        19.546047
-      ],
-      [
-        49.190328,
-        19.546334
-      ],
-      [
-        49.190293,
-        19.546703
-      ],
-      [
-        49.190287,
-        19.546793
-      ],
-      [
-        49.190293,
-        19.546873
-      ],
-      [
-        49.190316,
-        19.546963
-      ],
-      [
-        49.190305,
-        19.547044
-      ],
-      [
-        49.190258,
-        19.547125
-      ],
-      [
-        49.190193,
-        19.547134
-      ],
-      [
-        49.190117,
-        19.547125
-      ],
-      [
-        49.190034,
-        19.547107
-      ],
-      [
-        49.189888,
-        19.546945
-      ],
-      [
-        49.189717,
-        19.546667
-      ],
-      [
-        49.189653,
-        19.546586
-      ],
-      [
-        49.189571,
-        19.546523
-      ],
-      [
-        49.189488,
-        19.546487
-      ],
-      [
-        49.189406,
-        19.546514
-      ],
-      [
-        49.189312,
-        19.546595
-      ],
-      [
-        49.189201,
-        19.546649
-      ],
-      [
-        49.189054,
-        19.546712
-      ],
-      [
-        49.188984,
-        19.546712
-      ],
-      [
-        49.188913,
-        19.546676
-      ],
-      [
-        49.188854,
-        19.546586
-      ],
-      [
-        49.188772,
-        19.546478
-      ],
-      [
-        49.188678,
-        19.546352
-      ],
-      [
-        49.188578,
-        19.546137
-      ],
-      [
-        49.188496,
-        19.545993
-      ],
-      [
-        49.188479,
-        19.545975
-      ],
-      [
-        49.188303,
-        19.545786
-      ],
-      [
-        49.188103,
-        19.545517
-      ],
-      [
-        49.187997,
-        19.545337
-      ],
-      [
-        49.187933,
-        19.545176
-      ],
-      [
-        49.187827,
-        19.544888
-      ],
-      [
-        49.187745,
-        19.544592
-      ],
-      [
-        49.187598,
-        19.544152
-      ],
-      [
-        49.18751,
-        19.543873
-      ],
-      [
-        49.187475,
-        19.543756
-      ],
-      [
-        49.187422,
-        19.543666
-      ],
-      [
-        49.187363,
-        19.543613
-      ],
-      [
-        49.187275,
-        19.543568
-      ],
-      [
-        49.187181,
-        19.543514
-      ],
-      [
-        49.187105,
-        19.54346
-      ],
-      [
-        49.187058,
-        19.543379
-      ],
-      [
-        49.187005,
-        19.543181
-      ],
-      [
-        49.186981,
-        19.542984
-      ],
-      [
-        49.186905,
-        19.542759
-      ],
-      [
-        49.186858,
-        19.542705
-      ],
-      [
-        49.186799,
-        19.542669
-      ],
-      [
-        49.186735,
-        19.54266
-      ],
-      [
-        49.186653,
-        19.542687
-      ],
-      [
-        49.186535,
+        49.19617,
         19.54275
       ],
       [
-        49.186435,
-        19.54284
+        49.1968,
+        19.54127
       ],
       [
-        49.186388,
-        19.542876
+        49.19624,
+        19.54101
       ],
       [
-        49.186306,
-        19.542867
+        49.19711,
+        19.53929
       ],
       [
-        49.186236,
-        19.542822
+        49.19649,
+        19.53727
       ],
       [
-        49.186206,
-        19.542687
+        49.19645,
+        19.53629
       ],
       [
-        49.186107,
-        19.542373
+        49.19599,
+        19.53429
       ],
       [
-        49.186071,
-        19.542328
+        49.19606,
+        19.53273
       ],
       [
-        49.185936,
-        19.542121
+        49.19559,
+        19.52785
       ],
       [
-        49.185631,
-        19.541843
+        49.1954,
+        19.52301
       ],
       [
-        49.185355,
-        19.541681
+        49.19622,
+        19.52017
       ],
       [
-        49.185267,
-        19.541654
+        49.19305,
+        19.51502
       ],
       [
-        49.185179,
-        19.541609
+        49.18738,
+        19.50537
       ],
       [
-        49.185132,
-        19.541582
+        49.18054,
+        19.49408
       ],
       [
-        49.18505,
-        19.541573
-      ],
-      [
-        49.185009,
-        19.5416
-      ],
-      [
-        49.18495,
-        19.541681
-      ],
-      [
-        49.184862,
-        19.541798
-      ],
-      [
-        49.184815,
-        19.541843
-      ],
-      [
-        49.184744,
-        19.541879
-      ],
-      [
-        49.184668,
-        19.541861
-      ],
-      [
-        49.184486,
-        19.541807
-      ],
-      [
-        49.184099,
-        19.541681
-      ],
-      [
-        49.183875,
-        19.541582
-      ],
-      [
-        49.183588,
-        19.541394
-      ],
-      [
-        49.183218,
-        19.54116
-      ],
-      [
-        49.182989,
-        19.541025
-      ],
-      [
-        49.182754,
-        19.540981
-      ],
-      [
-        49.182613,
-        19.540936
-      ],
-      [
-        49.182443,
-        19.540864
-      ],
-      [
-        49.182261,
-        19.540711
-      ],
-      [
-        49.182184,
-        19.540684
-      ],
-      [
-        49.182132,
-        19.540657
-      ],
-      [
-        49.181891,
-        19.540442
-      ],
-      [
-        49.181767,
-        19.540307
-      ],
-      [
-        49.181715,
-        19.540289
-      ],
-      [
-        49.181668,
-        19.540289
-      ],
-      [
-        49.181574,
-        19.54028
-      ],
-      [
-        49.181221,
-        19.540361
-      ],
-      [
-        49.180987,
-        19.540415
-      ],
-      [
-        49.180863,
-        19.540451
-      ],
-      [
-        49.180804,
-        19.540495
-      ],
-      [
-        49.180746,
-        19.540567
-      ],
-      [
-        49.180558,
-        19.540792
-      ],
-      [
-        49.180352,
-        19.541088
-      ],
-      [
-        49.180182,
-        19.541358
-      ],
-      [
-        49.180006,
-        19.541627
-      ],
-      [
-        49.179924,
-        19.541717
-      ],
-      [
-        49.179812,
-        19.54178
-      ],
-      [
-        49.179683,
-        19.541816
-      ],
-      [
-        49.17953,
-        19.541861
-      ],
-      [
-        49.179401,
-        19.54187
-      ],
-      [
-        49.179248,
-        19.541825
-      ],
-      [
-        49.179125,
-        19.541789
-      ],
-      [
-        49.178978,
-        19.541798
-      ],
-      [
-        49.17879,
-        19.541861
-      ],
-      [
-        49.178632,
-        19.54196
-      ],
-      [
-        49.178514,
-        19.542041
-      ],
-      [
-        49.17852,
-        19.542085
-      ],
-      [
-        49.178514,
-        19.54213
-      ],
-      [
-        49.178503,
-        19.542148
-      ],
-      [
-        49.178479,
-        19.542175
-      ],
-      [
-        49.178426,
-        19.542184
-      ],
-      [
-        49.178232,
-        19.542202
-      ],
-      [
-        49.178138,
-        19.542283
+        49.17998,
+        19.49232
       ]
     ],
     "photos": [
@@ -97214,9 +92726,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Krásne miesto na konci Kvačianskej doliny je obrovský rebrík do Prosieckej... s veľkým psom to nedáte a neodporúčal by som to ani s malým. Tam cesta končí... vrátiť sa môžete tak isto alebo ísť cez Prosečné a trošku si zamakať :)",
-    "dogNote": "So psom neprejdete celý úsek... odporúčam začať v Prosieckej :)",
     "descEN": "The beautiful place at the end of Kvačianska dolina is a huge ladder into Prosiecka… you won't manage it with a big dog and I wouldn't recommend it with a small one either. That's where the path ends… you can go back the same way, or take the route via Prosečné and put in a bit of work :)",
-    "dogNoteEN": "You won't get through the whole stretch with a dog… I'd start from Prosiecka :)",
     "acts": [
       "hike"
     ],
@@ -101757,7 +97267,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Epická vysokohorská turistika. Dá sa to síce aj lanovkou ale odporúčam túto časť Nízkych Tatier prejsť pešo, boli sme tam asi 4x :) Klasika z Trangošky...",
-    "dogNote": "",
     "descEN": "An epic high-mountain hike. You can take the cable car, but I'd walk this part of the Low Tatras — we've been up there about 4 times :) The classic from Trangoška…",
     "acts": [
       "hike"
@@ -103555,7 +99064,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Najkrajšie skalné okno na Slovensku - bez pochyby. Predtým, ako tam pôjdeš, si zisti, či je to povolené, počul som že niekedy to zvyknú uzatvoriť... takže na vlastné riziko! Ale tento rok som žiadne upozornenie nevidel :) Na mapy.cz to býva uvedené...alebo priamo značka v teréne :) Určite odporúčam!",
-    "dogNote": "",
     "descEN": "The most beautiful rock window in Slovakia — no question. Before you go, check whether it's allowed; I've heard they close it off sometimes… so, at your own risk! I didn't see any notice this year though :) It's usually flagged on mapy.cz… or on a sign out in the field :) Highly recommended!",
     "acts": [
       "hike"
@@ -105287,7 +100795,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Ako z iného sveta. Krásna príroda aj výhľady - na vrchole už cez skaly so psom celkom neprejdete, ale oplatí sa to vidieť :)",
-    "dogNote": "",
     "descEN": "Like another world. Beautiful nature and views — you won't quite get through the rocks at the top with a dog, but it's worth seeing :)",
     "acts": [
       "hike"
@@ -108679,7 +104186,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Naša prvá Vysokotatranská túra - nič sa na ňu nechytá bola DOKONALÁ. Dostali sme sa po Litvorové pleso a to sme riadne šlapali takmer stále! Pán prsteňov VIBE a málo ľudí. Potôčik, skaly, lesy, ticho fakt krása - toto odštartovalo našu kariéru turistov :)",
-    "dogNote": "",
     "descEN": "Our first hike in the High Tatras — nothing touches it, it was PERFECT. We got as far as Litvorové pleso and we were putting in the work almost the whole way! Lord of the Rings VIBE and few people. A brook, rocks, forest, silence — genuinely beautiful. This is what kicked off our hiking career :)",
     "acts": [
       "hike"
@@ -111713,7 +107219,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Krásne pleso. Je fakt zelené! Hektor sa v ňom okúpal ešte skôr než to bola poburujúca téma :) Nádherná turistika-fakt.",
-    "dogNote": "",
     "descEN": "A beautiful lake. It really is green! Hektor swam in it before that became a scandalous thing to do :) A gorgeous hike, really.",
     "acts": [
       "hike"
@@ -116091,7 +111596,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Toto bola fakt luxusná ale aj veľmi náročná turistika. Na výhľad sa dá ísť aj kratšou cestičkou - toto odporúčam len pokročilým dobrodruhom :) bolo to cez 30 km! Mladosť – pochabosť. Ale za to prejdený Slovenský Raj skrz na skrz!",
-    "dogNote": "",
     "descEN": "This was a truly luxurious but also very demanding hike. You can reach the viewpoint by a shorter path — I'd recommend this one only to seasoned adventurers :) it was over 30 km! Young and foolish. But we got Slovenský raj from end to end!",
     "acts": [
       "hike"
@@ -116196,7 +111700,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Epické kúpanie v krásnej a celkom studenej vode :)",
-    "dogNote": "",
     "descEN": "Epic swimming in beautiful and rather cold water :)",
     "acts": [
       "visit",
@@ -116229,7 +111732,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Fakt obrovské dielo = súkromie na hladine. (opaľovanie bez plaviek - bezpečné)",
-    "dogNote": "",
     "descEN": "A genuinely enormous body of water = privacy on the surface. (sunbathing without swimwear — safe)",
     "acts": [
       "visit",
@@ -116263,7 +111765,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Zaujímavá vodná nádrž - s vtáčím ostrovom :)) Stojí za to urobiť si okružnú jazdu. Na mape som označil super miesto na parking - hneď pri vode.",
-    "dogNote": "",
     "descEN": "An interesting reservoir — with a bird island :)) Worth doing the full loop. I've marked a great parking spot on the map — right by the water.",
     "acts": [
       "visit",
@@ -116305,7 +111806,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Asi najkrajšia vodná plocha na západe - v strede prírody, málo ľudí, možnosť vylodiť sa na opustených zátokách, kopce vrhajú tieň, čistá voda... skrátka naša obľúbená priehrada, ktorú máme kúsok od domu! ",
-    "dogNote": "",
     "descEN": "Probably the most beautiful stretch of water in western Slovakia — in the middle of nature, few people, coves you can land in, hills casting shade, clean water… in short, our favourite reservoir, and it's just down the road from home!",
     "acts": [
       "visit",
@@ -116349,7 +111849,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Za nás: Najkrajšia vodná plocha na SVK kde sa vraciame každý rok od 2019 :)) Výborný kemp hneď na brehu - dokonalosť.",
-    "dogNote": "",
     "descEN": "For us: the most beautiful water in Slovakia, and we've come back every year since 2019 :)) Excellent campsite right on the shore — perfection.",
     "acts": [
       "visit",
@@ -116384,7 +111883,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Nádherné ale aj dosť komerčné jazero v Slovinsku. Bola to príjemná prechádzka na našej ceste aj keď smetam boli len na skok a nenašli sme vstup do vody :)",
-    "dogNote": "",
     "descEN": "A gorgeous but rather commercial lake in Slovenia. It was a pleasant walk on our road trip, even though we were only stopping by and never found a way into the water :)",
     "acts": [
       "visit",
@@ -118177,7 +113675,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Dychberúca tiesňava. Pozor dosť sa šmýka! ",
-    "dogNote": "",
     "descEN": "A breathtaking gorge. Careful, it gets very slippery!",
     "acts": [
       "hike"
@@ -120795,10 +116292,8 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1785751018/trails/seealpsee/1785750990684-081dd2.webp"
     ],
     "seasons": [],
-    "desc": "Krásny výlet, zo začiatku celkom strmák ale za to po celý čas je na čo pozerať. Jazero je super dá sa tam osviežiť. Krásne výhľady na okolité štíty hôr. My sme to stihli absolvovať za 3 hodinky a to som 2 hodinky ležal pri jazere :) Inak parkovné len okolo 3€ (za 3 hodiny). Určite odporúčam.",
-    "dogNote": "Ako býva zvykom aj tu sa kravičky aj kozy voľne pasú tak majte psíkov na vôdzke. ",
-    "descEN": "A beautiful trip — fairly steep at the start, but there's something to look at the whole way. The lake is great and you can cool off in it. Beautiful views of the surrounding peaks. We managed the whole thing in 3 hours, and I spent 2 of those lying by the lake :) Parking is only around €3 (for 3 hours). Definitely recommended.",
-    "dogNoteEN": "As usual, the cows and goats graze freely here too, so keep your dogs on a leash.",
+    "desc": "Krásny výlet, zo začiatku celkom strmák ale za to po celý čas je na čo pozerať. Jazero je super dá sa tam osviežiť. Krásne výhľady na okolité štíty hôr. My sme to stihli absolvovať za 3 hodinky a to som 2 hodinky ležal pri jazere :) Inak parkovné len okolo 3€ (za 3 hodiny). Určite odporúčam. Ako býva zvykom aj tu sa kravičky aj kozy voľne pasú tak majte psíkov na vôdzke.",
+    "descEN": "A beautiful trip — fairly steep at the start, but there's something to look at the whole way. The lake is great and you can cool off in it. Beautiful views of the surrounding peaks. We managed the whole thing in 3 hours, and I spent 2 of those lying by the lake :) Parking is only around €3 (for 3 hours). Definitely recommended. As usual, the cows and goats graze freely here too, so keep your dogs on a leash.",
     "acts": [
       "hike"
     ],
@@ -123024,7 +118519,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Nenáročná príjemná turistika v raji",
-    "dogNote": "",
     "descEN": "An easy, pleasant hike in Slovenský raj.",
     "acts": [
       "hike"
@@ -125482,7 +120976,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Krásna turistika, bolimse dávno a išli sme aj cez pašu za pílou - psík na vôdzke :)",
-    "dogNote": "",
     "descEN": "A beautiful hike — it was a long time ago and we went through the pasture past the sawmill, dog on a leash :)",
     "acts": [
       "hike"
@@ -128036,7 +123529,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "seasons": [],
     "desc": "Magická prechádzka. Zo začiatku…",
-    "dogNote": "",
     "acts": [
       "hike"
     ],

@@ -11,9 +11,9 @@
 //
 // Panel má preto DVE tváre a rozhoduje o nich `plan` prop (dá ho volajúci, ktorý jediný vie,
 // či je výlet prejdený):
-//   PLÁN   → dátum · viditeľnosť · doprava · popis · psia poznámka.  BEZ fotiek a hodnotenia:
+//   PLÁN   → dátum · viditeľnosť · doprava · popis.  BEZ fotiek a hodnotenia:
 //            výlet, ktorý sa ešte nekonal, nemá čo hodnotiť ani z čoho mať fotky.
-//   ZÁPIS  → fotky · popis · psia poznámka · hodnotenie (pôvodný panel, nič sa nemení).
+//   ZÁPIS  → fotky · popis · hodnotenie (pôvodný panel, nič sa nemení).
 //
 // ⚠️ ZMENA DÁTUMU JE ZMENA SĽUBU. Keď je plán verejný, dátum nesie aj inzerát
 // (`PartnerEvent.dates`/`month`) — preto ho ukladá volajúci naraz na obidve miesta, nie tento
@@ -29,7 +29,11 @@
 //  · TRASA, km, PREVÝŠENIE — sú odmerané, nie napísané. Prekreslenie trasy mení geometriu aj
 //    prevýšenie a patrí do sprievodcu, nie do panela na text.
 //
-// ⚠️ EN PREKLAD SA PRI ÚPRAVE ZAHADZUJE. `descEN`/`dogNoteEN` sú preklad SK originálu (viď
+// ⚠️ PSIA POZNÁMKA ZANIKLA 13. 9. 2026. Sprievodca pri nahadzovaní to pole nikdy nemal, takže
+// panel na úpravu ponúkal údaj, ktorý sa pri zakladaní výletu nedal zadať — a appka ho odvtedy
+// nikde nezobrazuje. Zápis `dogNote: undefined` nižšie zároveň VYČISTÍ staré lokálne výlety.
+//
+// ⚠️ EN PREKLAD SA PRI ÚPRAVE ZAHADZUJE. `descEN` je preklad SK originálu (viď
 // `tripText()` v tripShared.tsx). Keby po prepise textu ostali, EN návštevník by čítal PÔVODNÚ
 // verziu — teda text, ktorý autor práve prepísal, a nemal by ako zistiť, že je starý. Pád na SK
 // je horší zážitok, ale pravdivý; preklad sa doplní tou istou cestou ako u ostatných výletov.
@@ -112,7 +116,6 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
 }) {
   const t = useT();
   const [desc, setDesc] = useState(trail.desc ?? '');
-  const [dogNote, setDogNote] = useState(trail.dogNote ?? '');
   const [stars, setStars] = useState(trail.stars ?? 0);
   const [photos, setPhotos] = useState<string[]>(trail.photos ?? []);
   const [busy, setBusy] = useState(false);
@@ -149,14 +152,16 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
 
   const save = () => {
     setErr('');
-    // ⚠️ `descEN`/`dogNoteEN` idú na `undefined` ZÁMERNE — viď hlavička súboru.
+    // ⚠️ `descEN` ide na `undefined` ZÁMERNE — viď hlavička súboru. `dogNote`/`dogNoteEN` tiež,
+    //    ale z iného dôvodu: pole zaniklo a toto je jediné miesto, kde sa dá z uloženého
+    //    lokálneho výletu vymazať.
     // ⚠️ `stars`/`photos` sa pri PLÁNE neposielajú vôbec (nie ako 0 a prázdne pole): panel
     //    ich nezobrazuje, takže by zapisoval hodnotu, ktorú nikto nevidel — a keby plán
     //    nejakú niesol z minulosti, prepísal by ju na prázdno.
     const patch: Partial<HeroTrail> = {
       desc: desc.trim(),
-      dogNote: dogNote.trim(),
       descEN: undefined,
+      dogNote: undefined,
       dogNoteEN: undefined,
       ...(isPlan ? {} : { stars, photos }),
     };
@@ -330,11 +335,6 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
         <div className="tep-field">
           <label className="tep-label">{t('pack.trip.edit.desc')}</label>
           <textarea className="tep-textarea" value={desc} onChange={(e) => setDesc(e.target.value)} />
-        </div>
-
-        <div className="tep-field">
-          <label className="tep-label">{t('pack.trip.edit.dogNote')}</label>
-          <textarea className="tep-textarea" value={dogNote} onChange={(e) => setDogNote(e.target.value)} />
         </div>
 
         {!isPlan && (

@@ -42,6 +42,7 @@ import {
   ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail, hasRouteMetrics, pluralKey,
   readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, RENAMED_TRIP_IDS, tripPath,
   tripShareText, tripText, TRAIL_SABER_LAYERS, TRAIL_LINE, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing } from '@/components/pack/tripShared';
+import { TripGoPanel, TripGoButton } from '@/components/pack/trip/TripGoPanel';
 import {
   crowdAggregate, founderWalkers, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
   walkPointsFor, walkRewardBase, RATE_PROMPT_POINTS, discoveryBonusFor, bonusToastText,
@@ -521,6 +522,7 @@ function locLine(trail: HeroTrail, t: ReturnType<typeof useT>): string {
 export default function PackTripArticle() {
   const t = useT();
   const { lang } = useLang();   // popisy výletov nesú DÁTA, nie i18n kľúče (viď tripText)
+  const [goOpen, setGoOpen] = useState(false);   // panel „Vyraziť na miesto"
   const mapNotes = useMapNotes(true);
 
   // ── DOPĹŇANIE ODKAZOV PRIAMO Z ČLÁNKU (Matej 2026-08-21) ─────────────────
@@ -1512,7 +1514,17 @@ export default function PackTripArticle() {
           </div>
         )}
         {tripText(trail, 'desc', lang) && <p className="pta-desc">{tripText(trail, 'desc', lang)}</p>}
-        {tripText(trail, 'dogNote', lang) && <p className="pta-dognote">🐾 {tripText(trail, 'dogNote', lang)}</p>}
+
+        {/* VYRAZIŤ NA MIESTO (2026-09-13) — Matej: „človek pozrie výlet chce ísť na miesto".
+            Stojí POD popisom a NAD zápismi svorky, teda presne na hrane medzi „čo to je"
+            a „čo treba vedieť, než vyrazíš".
+            ⚠️ ZÁMERNE NIE JE v akčnom rade hore (`pta-acts`): ten má na mobile už štyri
+            tlačidlá a v zrolovanom stave sa mení na rad koliesok s ikonou bez textu —
+            „vyraziť" by tam bola piata ikona bez slova a nikto by ju netrafil.
+            ⚠️ Bez `path[0]` sa nevykreslí: `navTarget()` vráti null a tlačidlo bez cieľa
+            by len otvorilo prázdny panel. */}
+        {trail.path.length > 0 && <TripGoButton onClick={() => setGoOpen(true)} />}
+        {goOpen && <TripGoPanel trail={trail} onClose={() => setGoOpen(false)} />}
 
         {/* Zápisy členov (parkovisko, výstrahy, poznámky) — NAD diskusiou: je to
             informácia „než vyrazíš", nie rozhovor.
