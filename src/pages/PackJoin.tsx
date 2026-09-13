@@ -128,27 +128,27 @@ export default function PackJoin() {
       <PageTopBar />
       <div style={{ maxWidth: 560, margin: '0 auto', padding: '8px 16px 56px' }}>
         <section style={{ ...PACK_BOX.card, padding: '26px 22px', color: T.ink }}>
-          {phase.k === 'loading' && <Line>{tx('pack.join.loading', 'Otváram pozvánku…')}</Line>}
+          {phase.k === 'loading' && <Line>{tx('pack.join.loading', 'Opening the invitation…')}</Line>}
 
           {phase.k === 'dead' && (
             <>
-              <Eyebrow>{tx('pack.join.eyebrow', 'Pozvánka do svorky')}</Eyebrow>
+              <Eyebrow>{tx('pack.join.eyebrow', 'Pack invitation')}</Eyebrow>
               <Title>{
-                phase.why === 'already_accepted' ? tx('pack.join.usedTitle', 'Táto pozvánka už bola prijatá')
-                : phase.why === 'expired' ? tx('pack.join.expiredTitle', 'Pozvánka vypršala')
-                : tx('pack.join.invalidTitle', 'Táto pozvánka neplatí')
+                phase.why === 'already_accepted' ? tx('pack.join.usedTitle', 'This invitation was already accepted')
+                : phase.why === 'expired' ? tx('pack.join.expiredTitle', 'The invitation expired')
+                : tx('pack.join.invalidTitle', 'This invitation is not valid')
               }</Title>
               <Line>{
                 phase.why === 'already_accepted'
-                  ? tx('pack.join.usedBody', 'Prihlás sa a psa nájdeš vo svojej svorke.')
-                  : tx('pack.join.expiredBody', 'Pozvánka platí sedem dní. Popros o novú toho, kto ťa pozval — trvá to jeden klik.')
+                  ? tx('pack.join.usedBody', 'Sign in and you will find the dog in your pack.')
+                  : tx('pack.join.expiredBody', 'An invitation lasts seven days. Ask the person who invited you for a new one — it takes one click.')
               }</Line>
             </>
           )}
 
           {phase.k === 'ready' && (
             <>
-              <Eyebrow>{tx('pack.join.eyebrow', 'Pozvánka do svorky')}</Eyebrow>
+              <Eyebrow>{tx('pack.join.eyebrow', 'Pack invitation')}</Eyebrow>
               {phase.p.dogPhoto && (
                 <img
                   src={phase.p.dogPhoto}
@@ -161,12 +161,12 @@ export default function PackJoin() {
                 />
               )}
               <Title>
-                {tx('pack.join.title', '{owner} ťa postavil vedľa psa {dog}')
+                {tx('pack.join.title', '{owner} put you beside {dog}')
                   .replace('{owner}', phase.p.ownerFirst)
                   .replace('{dog}', phase.p.dogName)}
               </Title>
               <Line>
-                {tx('pack.join.body', 'V DOGYPTe pes nepatrí jednému človeku. Uvidíš, čo {dog} potrebuje — jedlo, zdravie, čoho sa bojí, kade chodil.')
+                {tx('pack.join.body', 'In DOGYPT a dog is not owned alone. You will see what {dog} needs — food, health, what scares them, where they have walked.')
                   .replace('{dog}', phase.p.dogName)}
               </Line>
 
@@ -174,7 +174,7 @@ export default function PackJoin() {
 
               {email && email.toLowerCase() !== '' && (
                 <p style={{ ...sub, marginTop: 14 }}>
-                  {tx('pack.join.signedAs', 'Si prihlásený ako {email}.').replace('{email}', email)}
+                  {tx('pack.join.signedAs', 'You are signed in as {email}.').replace('{email}', email)}
                 </p>
               )}
 
@@ -185,24 +185,24 @@ export default function PackJoin() {
                 style={cta(busy)}
               >
                 {email
-                  ? tx('pack.join.accept', 'PRIJAŤ POZVÁNKU')
-                  : tx('pack.join.sendLink', 'POSLAŤ MI PRIHLASOVACÍ ODKAZ')}
+                  ? tx('pack.join.accept', 'ACCEPT INVITATION')
+                  : tx('pack.join.sendLink', 'SEND ME A SIGN-IN LINK')}
               </button>
 
               <p style={{ ...sub, marginTop: 12 }}>
                 {email
-                  ? tx('pack.join.footNoteIn', 'Pozvánka je osobná a platí len pre adresu {masked}.').replace('{masked}', phase.p.emailMasked)
-                  : tx('pack.join.footNoteOut', 'Odkaz pošleme na {masked} — na tú istú adresu, kam prišla pozvánka. Nič to nestojí: heroglyf patrí psovi a ten už ho má.').replace('{masked}', phase.p.emailMasked)}
+                  ? tx('pack.join.footNoteIn', 'This invitation is personal and only valid for {masked}.').replace('{masked}', phase.p.emailMasked)
+                  : tx('pack.join.footNoteOut', 'We will send the link to {masked} — the same address the invitation went to. It costs nothing: the heroglyph belongs to the dog, and this one already has it.').replace('{masked}', phase.p.emailMasked)}
               </p>
             </>
           )}
 
           {phase.k === 'sent' && (
             <>
-              <Eyebrow>{tx('pack.join.eyebrow', 'Pozvánka do svorky')}</Eyebrow>
-              <Title>{tx('pack.join.sentTitle', 'Pozri sa do schránky')}</Title>
+              <Eyebrow>{tx('pack.join.eyebrow', 'Pack invitation')}</Eyebrow>
+              <Title>{tx('pack.join.sentTitle', 'Check your inbox')}</Title>
               <Line>
-                {tx('pack.join.sentBody', 'Poslali sme odkaz na {masked}. Jeden klik a si vo svorke. Odkaz funguje raz.')
+                {tx('pack.join.sentBody', 'We sent a link to {masked}. One tap and you are in the pack. The link works once.')
                   .replace('{masked}', phase.masked)}
               </Line>
             </>
@@ -210,10 +210,10 @@ export default function PackJoin() {
 
           {phase.k === 'wrong' && (
             <>
-              <Eyebrow>{tx('pack.join.eyebrow', 'Pozvánka do svorky')}</Eyebrow>
-              <Title>{tx('pack.join.wrongTitle', 'Táto pozvánka patrí inej adrese')}</Title>
+              <Eyebrow>{tx('pack.join.eyebrow', 'Pack invitation')}</Eyebrow>
+              <Title>{tx('pack.join.wrongTitle', 'This invitation belongs to another address')}</Title>
               <Line>
-                {tx('pack.join.wrongBody', 'Si prihlásený ako {email}, ale pozvánka prišla na {masked}. Odhlás sa a otvor odkaz znova.')
+                {tx('pack.join.wrongBody', 'You are signed in as {email}, but the invitation went to {masked}. Sign out and open the link again.')
                   .replace('{email}', email ?? '—').replace('{masked}', phase.masked)}
               </Line>
               <button
@@ -221,25 +221,25 @@ export default function PackJoin() {
                 onClick={async () => { await supabase.auth.signOut(); window.location.reload(); }}
                 style={cta(false)}
               >
-                {tx('pack.join.signOut', 'ODHLÁSIŤ SA')}
+                {tx('pack.join.signOut', 'SIGN OUT')}
               </button>
             </>
           )}
 
           {phase.k === 'full' && (
             <>
-              <Eyebrow>{tx('pack.join.eyebrow', 'Pozvánka do svorky')}</Eyebrow>
-              <Title>{tx('pack.join.fullTitle', 'Miesto je už obsadené')}</Title>
-              <Line>{tx('pack.join.fullBody', 'K tomuto psovi už niekto pribudol. Ozvi sa tomu, kto ťa pozval.')}</Line>
+              <Eyebrow>{tx('pack.join.eyebrow', 'Pack invitation')}</Eyebrow>
+              <Title>{tx('pack.join.fullTitle', 'The place is taken')}</Title>
+              <Line>{tx('pack.join.fullBody', 'Someone has already joined this dog. Talk to the person who invited you.')}</Line>
             </>
           )}
 
           {phase.k === 'done' && (
             <>
-              <Eyebrow>{tx('pack.join.eyebrow', 'Pozvánka do svorky')}</Eyebrow>
-              <Title>{tx('pack.join.doneTitle', 'Si vo svorke')}</Title>
+              <Eyebrow>{tx('pack.join.eyebrow', 'Pack invitation')}</Eyebrow>
+              <Title>{tx('pack.join.doneTitle', 'You are in the pack')}</Title>
               <Line>
-                {tx('pack.join.doneBody', 'Vitaj pri psovi {dog}. Otváram svorku…').replace('{dog}', phase.dogName)}
+                {tx('pack.join.doneBody', 'Welcome beside {dog}. Opening the pack…').replace('{dog}', phase.dogName)}
               </Line>
             </>
           )}
@@ -290,24 +290,24 @@ function cta(busy: boolean): React.CSSProperties {
 function RightsList({ rights, tx }: { rights: Record<string, boolean>; tx: (k: string, f: string) => string }) {
   const granted = RIGHT_ORDER.filter((r) => rights[r]);
   const label: Record<string, [string, string]> = {
-    'dogid.edit':   ['pack.join.r.dogid', 'upravovať DOG ID'],
-    'dog.photo':    ['pack.join.r.photo', 'meniť fotku psa'],
-    'trips.draw':   ['pack.join.r.draw', 'kresliť výlety'],
-    'trips.log':    ['pack.join.r.log', 'zapisovať prejdené výlety'],
-    'map.notes':    ['pack.join.r.notes', 'pridávať značky na mapu'],
-    'social':       ['pack.join.r.social', 'písať v mene svorky'],
-    'grid.message': ['pack.join.r.grid', 'odkaz na WALL'],
-    'will':         ['pack.join.r.will', 'upravovať závet'],
+    'dogid.edit':   ['pack.join.r.dogid', 'edit the DOG ID'],
+    'dog.photo':    ['pack.join.r.photo', "change the dog's photo"],
+    'trips.draw':   ['pack.join.r.draw', 'draw trips'],
+    'trips.log':    ['pack.join.r.log', 'log walked trips'],
+    'map.notes':    ['pack.join.r.notes', 'add marks to the map'],
+    'social':       ['pack.join.r.social', 'write on behalf of the pack'],
+    'grid.message': ['pack.join.r.grid', 'a message on the WALL'],
+    'will':         ['pack.join.r.will', 'edit the will'],
   };
   return (
     <div style={{ ...PACK_BOX.subblock, padding: '13px 15px', marginTop: 16 }}>
       <div style={{ ...sub, color: T.inkStrong, fontWeight: 600, marginBottom: 6 }}>
-        {tx('pack.join.rightsTitle', 'Čo budeš môcť')}
+        {tx('pack.join.rightsTitle', 'What you will be able to do')}
       </div>
       {/* Čítanie má KAŽDÝ člen a nedá sa odškrtnúť — preto stojí mimo zoznamu
           zaškrtávacích práv, nie ako prvá odrážka s fajkou. */}
       <p style={{ ...sub, margin: '0 0 6px' }}>
-        {tx('pack.join.rightsBase', 'Vidieť o psovi všetko — zdravie, jedlo, výlety.')}
+        {tx('pack.join.rightsBase', 'See everything about the dog — health, food, trips.')}
       </p>
       {granted.length > 0 && (
         <ul style={{ margin: 0, paddingLeft: 18 }}>
