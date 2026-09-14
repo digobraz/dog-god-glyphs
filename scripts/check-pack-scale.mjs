@@ -35,6 +35,12 @@ const SKIP = [
   'components/pack/navGoldSkin.ts',         // D-BLOK — čísla sú NAV_R zo spodného navu
 ];
 
+/* Súbory, KTORÉ NESÚ RECEPT — v nich primitív patrí, inde je to ručná kópia. */
+const RECEPT = [
+  'components/pack/packTheme.ts',   // VEIL_CSS, PROGRESS_CSS, MEDALLION_CSS, PHOTO_CSS
+  'components/pack/navGoldSkin.ts', // D-BLOK
+];
+
 const inScope = (rel) =>
   (rel.startsWith('pages/Pack') || rel.startsWith('components/pack/')) &&
   /\.(tsx?|css)$/.test(rel) && !SKIP.some((s) => rel.startsWith(s));
@@ -55,7 +61,7 @@ for (const abs of walk(SRC)) {
   const rel = relative(SRC, abs);
   if (!inScope(rel)) continue;
   const src = readFileSync(abs, 'utf8');
-  const bad = { radius: [], font: [] };
+  const bad = { radius: [], font: [], zavoj: [], progres: [] };
 
   for (const m of src.matchAll(/borderRadius\s*:\s*['"]?(-?[\d.]+)(?:px)?['"]?/g))
     if (!R_OK.has(+m[1])) bad.radius.push(+m[1]);
@@ -66,17 +72,34 @@ for (const abs of walk(SRC)) {
   for (const m of src.matchAll(/font-size\s*:\s*(-?[\d.]+)px/g))
     if (!T_OK.has(+m[1])) bad.font.push(+m[1]);
 
-  if (bad.radius.length || bad.font.length) found[rel] = bad;
+  /* ── RUČNÉ KÓPIE POMENOVANÝCH PRIMITÍVOV (14. 9. 2026) ──────────────────────
+   * Od 14. 9. má ZÁVOJ meno (`.pk-veil`, VEIL_CSS) a PROGRES meno
+   * (`.pk-progress`, PROGRESS_CSS). Kto si ich napíše znova vlastnou rukou,
+   * zakladá ďalšiu verziu tej istej veci — presne to, čo Matej zamietol:
+   *   „aby boli text area, bloky, pils, fotky nadpisy progresbary atď vždy
+   *    rovnaké bez toho aby bolo milion verzii."
+   * Meria sa POČET ručných výskytov na súbor a smie LEN KLESAŤ, rovnako ako
+   * polomery a písma. Súbory s receptom sa nemerajú — tam primitív BÝVA. */
+  if (!RECEPT.some((r) => rel.startsWith(r))) {
+    for (const m of src.matchAll(/backdrop-filter\s*:|backdropFilter\s*:/g)) bad.zavoj.push(m[0]);
+    for (const m of src.matchAll(/width\s*:\s*`\$\{[^}]*\}%`|width\s*:\s*[\w.()\[\]]+\s*\+\s*['"]%['"]/g))
+      bad.progres.push(m[0]);
+  }
+
+  if (bad.radius.length || bad.font.length || bad.zavoj.length || bad.progres.length) found[rel] = bad;
 }
 
 const counts = Object.fromEntries(
-  Object.entries(found).map(([f, b]) => [f, { radius: b.radius.length, font: b.font.length }]),
+  Object.entries(found).map(([f, b]) => [f, {
+    radius: b.radius.length, font: b.font.length,
+    zavoj: b.zavoj.length, progres: b.progres.length,
+  }]),
 );
 
 /* ── ZÁPIS ZÁKLADNE ───────────────────────────────────────────────────────── */
 if (process.argv.includes('--write')) {
   writeFileSync(BASE, JSON.stringify(counts, null, 2) + '\n');
-  const tot = Object.values(counts).reduce((a, b) => a + b.radius + b.font, 0);
+  const tot = Object.values(counts).reduce((a, b) => a + b.radius + b.font + b.zavoj + b.progres, 0);
   console.log(`✓ základňa zapísaná — ${Object.keys(counts).length} súborov, ${tot} odchýlok`);
   process.exit(0);
 }
@@ -88,16 +111,23 @@ if (!existsSync(BASE)) {
 const base = JSON.parse(readFileSync(BASE, 'utf8'));
 
 /* ── POROVNANIE — základňa sa smie LEN ZMENŠOVAŤ ──────────────────────────── */
+const KEYS = ['radius', 'font', 'zavoj', 'progres'];
+const NAZOV = {
+  radius: 'polomer', font: 'veľkosť písma',
+  zavoj: 'ručný ZÁVOJ (backdrop-filter) — recept je .pk-veil / VEIL_CSS',
+  progres: 'ručný PROGRES (pruh na percentá) — recept je .pk-progress / PROGRESS_CSS',
+};
 const grew = [], shrank = [];
 for (const [f, b] of Object.entries(counts)) {
-  const was = base[f] || { radius: 0, font: 0 };
-  for (const k of ['radius', 'font']) {
-    if (b[k] > was[k]) grew.push({ f, k, was: was[k], now: b[k], hodnoty: [...new Set(found[f][k])] });
+  const was = { radius: 0, font: 0, zavoj: 0, progres: 0, ...(base[f] || {}) };
+  for (const k of KEYS) {
+    if (b[k] > was[k]) grew.push({ f, k, was: was[k], now: b[k],
+      hodnoty: k === 'radius' || k === 'font' ? [...new Set(found[f][k])] : [] });
     else if (b[k] < was[k]) shrank.push(`${f} · ${k} ${was[k]}→${b[k]}`);
   }
 }
 for (const [f, was] of Object.entries(base))
-  if (!counts[f]) for (const k of ['radius', 'font'])
+  if (!counts[f]) for (const k of KEYS)
     if (was[k]) shrank.push(`${f} · ${k} ${was[k]}→0`);
 
 if (process.argv.includes('--list')) {
@@ -108,16 +138,25 @@ if (process.argv.includes('--list')) {
 if (grew.length) {
   console.error('\n✗ DIZAJNOVÝ SYSTÉM /pack — pribudli čísla mimo sady:\n');
   for (const g of grew)
-    console.error(`  ${g.f}\n    ${g.k === 'radius' ? 'polomer' : 'veľkosť písma'}: ${g.was} → ${g.now}   nepovolené: ${g.hodnoty.join(', ')}`);
-  console.error(`\n  Povolené polomery: ${[...R_OK].sort((a, b) => a - b).join(' · ')}   (PACK_R)`);
-  console.error(`  Povolené písma:    ${[...T_OK].sort((a, b) => a - b).join(' · ')}   (PACK_TEXT)`);
-  console.error('\n  Ber hodnotu z matrice (`PACK_BOX`, `PACK_R`, `PACK_TEXT` v packTheme.ts),');
-  console.error('  nepíš číslo ručne. Nový tvar patrí do katalógu `PACK_BLOCKS`, nie do komponentu.\n');
+    console.error(`  ${g.f}\n    ${NAZOV[g.k]}: ${g.was} → ${g.now}${g.hodnoty.length ? `   nepovolené: ${g.hodnoty.join(', ')}` : ''}`);
+  if (grew.some((g) => g.k === 'radius' || g.k === 'font')) {
+    console.error(`\n  Povolené polomery: ${[...R_OK].sort((a, b) => a - b).join(' · ')}   (PACK_R)`);
+    console.error(`  Povolené písma:    ${[...T_OK].sort((a, b) => a - b).join(' · ')}   (PACK_TEXT)`);
+    console.error('\n  Ber hodnotu z matrice (`PACK_BOX`, `PACK_R`, `PACK_TEXT` v packTheme.ts),');
+    console.error('  nepíš číslo ručne.');
+  }
+  if (grew.some((g) => g.k === 'zavoj' || g.k === 'progres')) {
+    console.error('\n  ZÁVOJ a PROGRES majú od 14. 9. 2026 recept v `packTheme.ts` a meno');
+    console.error('  v katalógu `PACK_BLOCKS`. Použi `.pk-veil--modal/--photo/--plate`,');
+    console.error('  resp. `.pk-progress` — nepíš si vlastnú verziu tej istej veci.');
+  }
+  console.error('\n  Nový tvar patrí do katalógu `PACK_BLOCKS`, nie do komponentu.\n');
   process.exit(1);
 }
 
-const tot = Object.values(counts).reduce((a, b) => a + b.radius + b.font, 0);
-const baseTot = Object.values(base).reduce((a, b) => a + b.radius + b.font, 0);
+const soucet = (o) => KEYS.reduce((a, k) => a + (o[k] || 0), 0);
+const tot = Object.values(counts).reduce((a, b) => a + soucet(b), 0);
+const baseTot = Object.values(base).reduce((a, b) => a + soucet(b), 0);
 console.log(`✓ dizajnový systém /pack — ${tot} odchýlok zo základne ${baseTot}, nič nepribudlo`);
 if (shrank.length) {
   console.log(`  ↓ ubudlo ${shrank.length}× — uprac základňu: npm run check:pack -- --write`);
