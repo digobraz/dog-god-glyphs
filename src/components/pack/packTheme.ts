@@ -977,3 +977,113 @@ export const PF_FIELD_CSS = `
 }
 .pf-subsection:hover .pf-subsection-chevron{ background: rgba(201,154,63,0.26); }
 `;
+
+
+// ════════════════════════════════════════════════════════════════════════════
+// RECEPTY K NOVÝM MENÁM V KATALÓGU (14. 9. 2026)
+// ────────────────────────────────────────────────────────────────────────────
+// Matej: „aby boli text area, bloky, pils, fotky nadpisy progresbary atď vždy
+// rovnaké bez toho aby bolo milion verzii a nesurodych dizajnov na každej
+// stránke." POLE a PILULKA recept už mali (PF_FIELD_CSS a PILL_CSS vyššie) —
+// chýbalo im len meno. Tieto štyri ho nemali ani jedno.
+//
+// ⚠️ PRIDANIE RECEPTU NEHÝBE ANI JEDNÝM PIXELOM. Existujúce povrchy ostávajú,
+//    kým sa prevedú po vrstvách a pozrú v prehliadači (postup v locku
+//    `plany/locky/pack-dizajn-system.md`). Recept je tu preto, aby NOVÁ stránka
+//    nemusela nič vymýšľať.
+// ════════════════════════════════════════════════════════════════════════════
+
+/** MEDAILÓN — priemery kruhu. Štyri stupne, násobky ôsmich.
+ *  Dnešné veľkosti v appke (24 · 26 · 30 · 36 · 54 · 64 · 74) sa na ne prichytia
+ *  AŽ pri prevode — samotné zavedenie stupnice nič neposúva. */
+export const PACK_AVATAR = {
+  /** Vlajka, malý odznak v rohu karty. */
+  xs: 24,
+  /** Avatar v riadku zoznamu, člen svorky. */
+  sm: 32,
+  /** Avatar v hlavičke, autor výletu. */
+  md: 48,
+  /** Hlavná fotka psa na karte, medaila. */
+  lg: 64,
+} as const;
+
+/** ZÁVOJ — tri polohy, tri hodnoty. Štvrtú si komponent nevymýšľa.
+ *  Odtieň `24,14,4` je brandový inkoust (prevzatý z mapového prebitia
+ *  `.trp-root .att-entry-backdrop`), nie čierna — čierna nad papyrusom šedne.
+ *  Sila 0,72 je pôvodná sila základného backdropu. Jedna hodnota nahrádza dve,
+ *  ktoré v appke od 26. 8. bežali vedľa seba (0,72 čierna vs. 0,55 hnedá). */
+export const PACK_VEIL = {
+  /** Za plávajúcim PANELOM. */
+  modal: 'rgba(24,14,4,0.72)',
+  /** Spád pod textom na FOTKE — zhora nič, dole plná sila. */
+  photo: 'linear-gradient(180deg, rgba(24,14,4,0) 0%, rgba(24,14,4,0.72) 100%)',
+  /** Doštička pod pilulkou alebo ikonou na fotke. Zhodná s .pk-pill--dark
+   *  zámerne: je to tá istá vrstva nad tým istým obrázkom. */
+  plate: 'rgba(0,0,0,0.30)',
+  /** Rozostrenie podkladu pod závojom MODAL. Sklo inde v appke (GLASS_CSS)
+   *  má 18–24 px — to je materiál panelu, nie závoj pod ním. */
+  blur: '4px',
+} as const;
+
+export const VEIL_CSS = `
+.pk-veil{ position:fixed; inset:0; z-index:200; }
+.pk-veil--modal{
+  background:${PACK_VEIL.modal};
+  -webkit-backdrop-filter:blur(${PACK_VEIL.blur});
+  backdrop-filter:blur(${PACK_VEIL.blur});
+  display:flex; align-items:center; justify-content:center; padding:20px;
+}
+/* FOTO a DOŠTIČKA ležia VNÚTRI prvku, nie cez okno — preto absolute. */
+.pk-veil--photo{ position:absolute; inset:0; background:${PACK_VEIL.photo}; pointer-events:none; }
+.pk-veil--plate{ position:static; background:${PACK_VEIL.plate}; border-radius:${PACK_R.pill}px; }
+`;
+
+export const MEDALLION_CSS = `
+.pk-medallion{
+  display:inline-flex; align-items:center; justify-content:center;
+  flex:0 0 auto; overflow:hidden;
+  width:${PACK_AVATAR.sm}px; height:${PACK_AVATAR.sm}px;
+  border-radius:${PACK_R.pill}px;
+  background:${PACK_THEME.tileBg};
+  border:1.5px solid rgba(179,130,45,0.55);
+  box-shadow:${PACK_SHADOW.card};
+}
+.pk-medallion > img{ width:100%; height:100%; object-fit:cover; display:block; }
+.pk-medallion--xs{ width:${PACK_AVATAR.xs}px; height:${PACK_AVATAR.xs}px; }
+.pk-medallion--md{ width:${PACK_AVATAR.md}px; height:${PACK_AVATAR.md}px; }
+.pk-medallion--lg{ width:${PACK_AVATAR.lg}px; height:${PACK_AVATAR.lg}px; }
+/* Zlatý prstenec = TOTO JE ON (prihlásený človek, zakladateľ). Nie ozdoba. */
+.pk-medallion--gold{ border-color:#E69E1A; box-shadow:0 3px 12px rgba(230,158,26,0.45); }
+/* Na tmavom podklade sa mení iba lem a výplň, priemer ani polomer nie. */
+.pk-medallion--dark{ background:rgba(0,0,0,0.30); border-color:rgba(245,199,61,0.45); }
+`;
+
+export const PHOTO_CSS = `
+.pk-photo{
+  position:relative; display:block; overflow:hidden;
+  border-radius:${PACK_R.tile}px;
+  background:${PACK_THEME.tileBg};
+  border:1px solid ${PACK_THEME.border};
+}
+.pk-photo > img{ width:100%; height:100%; object-fit:cover; display:block; }
+/* Text na fotke potrebuje ZÁVOJ — .pk-veil--photo ako posledné dieťa. */
+.pk-photo--card{ border-radius:${PACK_R.card}px; }
+`;
+
+export const PROGRESS_CSS = `
+.pk-progress{
+  position:relative; width:100%; height:6px; overflow:hidden;
+  border-radius:${PACK_R.pill}px;
+  background:rgba(122,90,42,0.18);
+}
+.pk-progress__fill{
+  height:100%; border-radius:${PACK_R.pill}px;
+  background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);
+  transition:width .3s ease;
+}
+/* DOG ID má na percento vyplnenia vlastný lock (12. 9. 2026): pod 100 percent
+   červená, na 100 percent zelená. Inde ostáva výplň zlatá. */
+.pk-progress__fill--low{ background:#B25640; }
+.pk-progress__fill--done{ background:#3D7A4E; }
+.pk-progress--dark{ background:rgba(245,240,228,0.14); }
+`;
