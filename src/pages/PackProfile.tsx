@@ -950,16 +950,19 @@ export default function PackProfile() {
             len sa pýtajú inde. `DogGallery.tsx` / `DogCardFields.tsx` ostávajú v repe
             (používa ich read-profil `/pack/u/:id`), tu sa už nemountujú. */}
 
-        {/* Bones + your network — split two-column block */}
-        <PackNetwork avatarUrl={avatarUrl} initial={initial} />
-
         {/* PAWMATES — správa svorky z pohľadu ČLOVEKA (B6b, Matej 13. 9. 2026:
             „tieto nastavenia musia byť v profile — tam bude PAWMATES s možnosťou
             pridať/ubrať psa"). Dvere v rázcestí „+" na homepage sem vedú
             (`/pack/profile#pawmates`).
             🔒 `PAWMATE_LIVE` je dnes `false` — sekcia sa stavia za zamknutými
-            dverami a odomkne ju až beh B8 po teste F7. */}
+            dverami a odomkne ju až beh B8 po teste F7.
+            ⚠️ POLOHA (Matej 13. 9. 2026): HNEĎ pod prvým blokom (karta človeka) a NAD
+            blokom POTREBUJEME ŤA (`PackNetwork`). Svorka je bližšie k identite človeka
+            než odmeny za pozývanie — nepresúvať späť pod sieť. */}
         {PAWMATE_LIVE && <PawmatesSection />}
+
+        {/* Bones + your network — split two-column block */}
+        <PackNetwork avatarUrl={avatarUrl} initial={initial} />
 
         {/* Account info + password modal — vlastná karta ZMAZANÁ 2026-08-12 (bola duplikát
             `PackSettings`, ktorý robí presne to isté a je už plne preložený). */}
