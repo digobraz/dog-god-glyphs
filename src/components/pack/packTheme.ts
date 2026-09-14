@@ -302,7 +302,100 @@ export const PACK_BLOCKS = {
       + 'či otázka o bezpečnosti. Vlastná paleta (tmavá modrá + cyan, CTA zlato-oranžové) — '
       + 'je to jeho brand, nie odchýlka od nášho.',
   },
+
+  // ── PRIBUDLO 14. 9. 2026 ────────────────────────────────────────────────
+  // Matej po nákrese `plany/nakres-pet-nepomenovanych-2026-09-14.html`:
+  // „dávam na tvoj návrh ale pozor treba rozlišovať, pri mapách sú kruhové
+  //  značky s obrysmi rôznej farby aj veľkosti oprávnene ... aby boli text
+  //  area, bloky, pils, fotky nadpisy progresbary atď vždy rovnaké bez toho
+  //  aby bolo milion verzii a nesurodych dizajnov na každej stránke."
+  //
+  // Meranie, z ktorého to vzišlo (živý sken 9 obrazoviek x 2 šírky):
+  // pilulka 1050 výskytov / 59 verzií · medailón 855 / 71 · lišta 79 / 21 ·
+  // pole 32 (v kóde 132) / 6 · závoj 17 (v kóde 216x backdrop-filter) / 7.
+  // Recepty na POLE a PILULKU v tomto súbore UŽ BOLI — chýbalo im meno,
+  // takže sa ich nikto nedržal. Zvyšok meno nemal vôbec.
+  // ────────────────────────────────────────────────────────────────────────
+
+  POLE: {
+    recept: 'PF_FIELD_CSS — .pf-field',
+    polomer: PACK_R.field,
+    kedy: 'Miesto, kam človek PÍŠE alebo vyberá: input, textarea, select. '
+      + 'Popisok vedľa poľa = .pf-inline-grid (jedna mriežka na všetky riadky).',
+    lock: 'Zaostrené pole má lapisové halo, rám ostáva zlatý (12. 9. 2026). '
+      + 'Písať sa má do svetla — na PODBLOK TMAVÝ sa pole nedáva.',
+  },
+  PILULKA: {
+    recept: 'PILL_CSS — .pk-pill',
+    polomer: PACK_R.pill,
+    kedy: 'Krátky údaj alebo voľba v oblom tvare. DVE POLOHY, ktoré sa nemiešajú: '
+      + 'ŠTÍTOK (needá sa kliknúť, bez .pk-pill--tap) a VOĽBA (klikateľná, --tap). '
+      + 'Na tmavom podklade --dark, aktívna/hodnotná --gold, zamknutá --locked.',
+    lock: 'Plná farebná plocha patrí jedinému hlavnému CTA na obrazovke. Výnimka je '
+      + 'NEINTERAKTÍVNY štítok (pilulka dní na psom bloku, lapis od 12. 9. 2026). '
+      + 'Text: názov/identita Cinzel 700, ČÍSLO Space Grotesk 600.',
+  },
+  NADPIS: {
+    recept: 'PACK_HEAD.card / PACK_HEAD.section',
+    polomer: null,
+    kedy: 'DVA tvary a nič medzi nimi: názov KARTY (Cinzel 700/24/.14em) a názov '
+      + 'SEKCIE vnútri karty (Space Grotesk 500/10/.22em). Tretí tvar nadpisu '
+      + 'znamená, že blok je zle zaradený — nie že potrebuje nové písmo.',
+  },
+  MEDAILÓN: {
+    recept: 'MEDALLION_CSS — .pk-medallion + PACK_AVATAR',
+    polomer: PACK_R.pill,
+    kedy: 'Kruh, ktorý drží FOTKU ALEBO IDENTITU — avatar psa a človeka, vlajka, '
+      + 'heroglyf, odznak poradového čísla.',
+    lock: 'LEN fotka a identita. Počítadlo v kruhu je PILULKA, okrúhle tlačidlo je '
+      + 'tlačidlo — v skene z 14. 9. bolo 71 verzií kruhu práve preto, že tri rôzne '
+      + 'veci nosili jeden tvar a nikto nevedel, ktorú z nich kopíruje.',
+  },
+  FOTKA: {
+    recept: 'PHOTO_CSS — .pk-photo',
+    polomer: PACK_R.tile,
+    kedy: 'Obdĺžnikový držiak obrázka — galéria psa, plagát výletu, náhľad v karte. '
+      + 'Kruhová fotka nie je FOTKA, je to MEDAILÓN.',
+  },
+  PROGRES: {
+    recept: 'PROGRESS_CSS — .pk-progress',
+    polomer: PACK_R.pill,
+    kedy: 'Vodorovný pruh, ktorý hovorí KOĽKO Z CELKU je hotové. Výška 6 px, '
+      + 'koľajnica + výplň, číslo vedľa neho (nie v ňom).',
+    lock: 'Percento vyplnenia DOG ID má VLASTNÉ DVE FARBY (lock 12. 9. 2026): '
+      + 'pod 100 % červená #B25640, na 100 % zelená #3D7A4E. Inde je výplň zlatá.',
+  },
+  ZÁVOJ: {
+    recept: 'VEIL_CSS — .pk-veil--modal / --photo / --plate',
+    polomer: null,
+    kedy: 'Priesvitná plocha, ktorá stmaví to, čo je POD ňou, aby bol nad ňou '
+      + 'čitateľný text alebo aby vystúpil panel. TRI POLOHY a nič medzi nimi: '
+      + 'MODAL (za plávajúcim panelom) · FOTO (spád pod textom na obrázku) · '
+      + 'DOŠTIČKA (malá plocha pod pilulkou alebo ikonou na fotke).',
+    lock: 'Tmavosť si NEVOLÍ komponent. V kóde bolo 14. 9. 2026 dvestošestnásť miest '
+      + 'so sklom a tmavosti 0,28 / 0,32 / 0,55 vedľa seba. Doštička má zámerne '
+      + 'tú istú výplň ako .pk-pill--dark — je to tá istá vrstva nad fotkou.',
+  },
 } as const;
+
+// ════════════════════════════════════════════════════════════════════════════
+// ČO MENO NEDOSTALO — A PREČO (14. 9. 2026)
+// ────────────────────────────────────────────────────────────────────────────
+// LIŠTA (vodorovný pás cez celú šírku — nav, hlavička, pätka) meno NEDOSTALA.
+//   Sken našiel 21 verzií, ale NAJČASTEJŠIA z nich (342x64, radius 14) už meno MÁ:
+//   je to D-BLOK. Ôsme meno by mu konkurovalo. Pás je teda vždy jeden z blokov
+//   vyššie — D-BLOK, PODBLOK alebo RIADOK — podľa toho, akú úroveň nesie.
+//
+// ZNAČKA NA MAPE meno nedostala, lebo NIE JE NÁBYTOK — je to ÚDAJ.
+//   Matej 14. 9. 2026: „pozor treba rozlišovať, pri mapách sú kruhové značky
+//   s obrysmi rôznej farby aj veľkosti oprávnene."
+//   Farba obrysu nesie DRUH značky a veľkosť nesie dôležitosť alebo zhluk —
+//   zjednotiť ich znamená zmazať informáciu. Geometria má vlastný lock
+//   (`mapnotes/circleMark.ts` 28/2.5 px, `mapDockShape.ts`, `markEmoji.ts`)
+//   a stráž `check:pack` tie súbory zámerne nekontroluje.
+//   ⚠️ To isté platí o EMOJI na mape — celá mapa hovorí emoji, hoci inde
+//   v appke platí hand-drawn set. Je to evidovaná výnimka, nie neporiadok.
+// ════════════════════════════════════════════════════════════════════════════
 
 /** Tiene — 3 výšky (výber `sh3`). Tieň nesie JEDINÚ informáciu: ako vysoko prvok stojí. */
 export const PACK_SHADOW = {
