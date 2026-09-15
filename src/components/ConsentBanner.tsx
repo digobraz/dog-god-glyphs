@@ -4,7 +4,7 @@
  * raw kľúč (fallback v useT/t()). Banner sa zobrazuje len ak !hasChoice().
  * Reopen: window event 'dogypt:open-consent' (volá Footer „Cookie settings").
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { getConsent, saveConsent, applyConsent, hasChoice } from '@/lib/consent';
@@ -25,6 +25,33 @@ export function ConsentBanner() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [analyticsOn, setAnalyticsOn] = useState(false);
   const [marketingOn, setMarketingOn] = useState(false);
+  const barRef = useRef<HTMLDivElement | null>(null);
+
+  // ── VÝŠKA LIŠTY IDE VON AKO `--consent-h` (2026-09-15) ────────────────────
+  // Lišta je `position: fixed; bottom: 0`, takže NEZABERÁ miesto v toku — a
+  // obrazovky vstupu sú `min-h-[100dvh]` bez scrollu. Na mobile 390 px je lišta
+  // VYSOKÁ 296 px (35 % okna, lebo text aj tri tlačidlá sú pod sebou) a hlavné
+  // CTA `/heroglyph` skončilo 120 px POD ňou: `elementFromPoint` v strede
+  // tlačidla vracal `consent-body`, takže klik na „VYTVORIŤ HEROGLYF" fyzicky
+  // nešiel — na telefóne sa nedalo vstúpiť do platenej funnely. Na PC (lišta
+  // 118 px) sa to nikdy neprejavilo, preto to prežilo do 15. 9. 2026.
+  //
+  // Riešenie je ODSADENIE, nie nižšia lišta: výšku publikujeme na <html> a
+  // obrazovka si ju pripočíta k spodnému paddingu (`Entry.tsx`). Meriame
+  // `ResizeObserver`-om, lebo výška sa mení jazykom, zalomením aj otvorením
+  // Settings. Keď lišta zmizne, premenná ide na `0px` — inak by pod obsahom
+  // ostala diera po nej.
+  useEffect(() => {
+    const el = barRef.current;
+    const root = document.documentElement;
+    const clear = () => root.style.setProperty('--consent-h', '0px');
+    if (isRenderRoute || !visible || !el) { clear(); return clear; }
+    const publish = () => root.style.setProperty('--consent-h', `${Math.ceil(el.getBoundingClientRect().height)}px`);
+    publish();
+    const ro = new ResizeObserver(publish);
+    ro.observe(el);
+    return () => { ro.disconnect(); clear(); };
+  }, [isRenderRoute, visible, settingsOpen]);
 
   // Mount uloženej voľby — ak už existuje, aplikuj účinky (napr. Tier1 po reloade)
   // a banner sa nezobrazí. Guard proti double-apply cez applyConsent volaný raz.
@@ -80,7 +107,7 @@ export function ConsentBanner() {
   };
 
   return (
-    <div className="consent-banner" role="dialog" aria-live="polite" aria-label={t('consent.title')}>
+    <div ref={barRef} className="consent-banner" role="dialog" aria-live="polite" aria-label={t('consent.title')}>
       <style>{`
         .consent-banner {
           position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
@@ -163,6 +190,32 @@ export function ConsentBanner() {
           transition: transform .15s ease;
         }
         .consent-switch[data-on="true"] .consent-switch-knob { transform: translateX(20px); }
+
+        /* ── MOBIL: LIŠTA NESMIE ZOŽRAŤ TRETINU OBRAZOVKY (2026-09-15) ──────────
+           Pod 760 px stáli akcie v stĺpci, takže tri tlačidlá ležali pod sebou a lišta
+           merala 296 px pri 390x844 a 312 px pri 360x740 — to je 35 %, resp. 42 % okna.
+           Obrazovky vstupu sú min-h-100dvh, takže hlavné CTA skončilo pod lištou a na
+           telefóne sa NEDALO vstúpiť do platenej funnely. Samotné odsadenie cez
+           premennú --consent-h to nezachránilo: pod CTA je na /heroglyph ďalší obsah,
+           takže ani doscrollovanie na koniec ho nedostalo nad lištu.
+           Tu sa preto mení LEN ROZLOŽENIE — tlačidlá idú do riadku a smú zalomiť.
+           Farba, font, radius 8px ani znenie sa nedotkli (brand lock).
+           POZOR: v tomto komentári nesmie byť spätný apostrof — celý blok je template
+           literál a jeden apostrof ho ukončí (zhodí štýl aj build, tsc to nechytí). */
+        @media (max-width: 759px) {
+          .consent-banner { padding: 14px 16px; }
+          .consent-inner { gap: 10px; }
+          .consent-body { font-size: 0.8rem; line-height: 1.5; }
+          .consent-actions { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px; }
+          /* basis 50 % (nie auto) — s "auto" si každé tlačidlo vypýta šírku svojho textu,
+             dve uppercase Cinzel menovky sa vedľa seba nezmestia a grow ich roztiahne na
+             plnú šírku, takže riadok zostal jeden na tlačidlo. Zmerané: 3x 328px = 126px. */
+          .consent-btn-primary, .consent-btn-secondary {
+            flex: 1 1 calc(50% - 4px); min-width: 0; padding: 11px 8px;
+            font-size: 0.68rem; letter-spacing: 0.06em; white-space: nowrap;
+          }
+          .consent-btn-link { flex: 1 0 100%; text-align: center; }
+        }
       `}</style>
 
       <div className="consent-inner">

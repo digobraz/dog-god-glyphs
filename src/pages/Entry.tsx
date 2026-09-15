@@ -174,7 +174,13 @@ export default function Entry() {
   };
 
   return (
-    <div className="entry-page dark-bg flex flex-col min-h-[100dvh] relative">
+    <div
+      className="entry-page dark-bg flex flex-col min-h-[100dvh] relative"
+      /* `paddingBottom: var(--consent-h)` — rovnaký dôvod ako v `Heroglyph.tsx` (15. 9. 2026):
+         cookie lišta je `fixed; bottom: 0` a táto obrazovka je `min-h-[100dvh]` bez scrollu,
+         takže na mobile prekryla spodné CTA. Premennú publikuje `ConsentBanner`, po voľbe `0px`. */
+      style={{ paddingBottom: 'var(--consent-h, 0px)' }}
+    >
       <Seo
         path="/entry"
         title="Become a Dogyptian — The Making of a Religion | DOGYPT"

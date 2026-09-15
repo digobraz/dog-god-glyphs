@@ -15,7 +15,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
-import { PackBottomNav } from '@/components/pack/PackLayout';
+import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT } from '@/i18n/LanguageContext';

@@ -8,7 +8,8 @@
  *   node tokenizuj.mjs            → suchý beh (nič nezapíše)
  *   node tokenizuj.mjs --write    → zapíše
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 
 const SRC = new URL('../src/', import.meta.url).pathname;
 const WRITE = process.argv.includes('--write');
@@ -34,21 +35,56 @@ const norm = (s) => s.toLowerCase().replace(/\s+/g, '');
 const BY_VAL = {};
 for (const [k, v] of Object.entries(TOK)) if (!BY_VAL[norm(v)]) BY_VAL[norm(v)] = k;
 
-/* ⚠️ ZOZNAM SA ROZŠIRUJE. Dnes pokrýva štyri povrchy z Matejovho výberu 15. 9.
- * (homepage · profil · psy · kvízy) a nad nimi hlási 0 — sú prevedené.
- * Pre ďalšie kolo doplň súbory podľa dlhu: `npm run check:pack -- --list`. */
-const FILES = [
-  'pages/Pack.tsx', 'components/pack/PackLayout.tsx', 'components/pack/HeroCard.tsx',
-  'components/pack/PackSettings.tsx', 'components/pack/GlobePulse.tsx',
-  'components/pack/FounderInvite.tsx', 'components/pack/VerseOfTheDay.tsx',
-  'components/pack/PackWizard.tsx', 'components/pack/TripSpotlight.tsx',
-  'components/pack/PlanAskCard.tsx', 'components/pack/Gateways.tsx',
-  'pages/PackProfile.tsx', 'components/pack/profile/DogCardFields.tsx',
-  'components/pack/profile/DogGallery.tsx', 'components/pack/profile/TripProfileCard.tsx',
-  'pages/PackDogs.tsx', 'pages/PackDogDetail.tsx', 'components/pack/calendar/PackCalendar.tsx',
-  'components/pack/DogPassport.tsx', 'components/pack/DogStats.tsx',
-  'pages/PackNatureQuiz.tsx', 'pages/PackDogQuiz.tsx',
+/* ── PAPYRUSOVÉ BIELE: SEDEM ODTIEŇOV → DVA (kolo 2, 15. 9. 2026) ────────────
+ * Na rozdiel od `TOK` vyššie toto NIE SÚ presné zhody — hodnota sa reálne
+ * zmení, len o 1–2 jednotky na kanál. Preto sa na ne spätná expanzia NEVZŤAHUJE
+ * (dokazovala by nulovú zmenu, ktorá tu nenastáva) a vypisujú sa zvlášť.
+ *
+ * Prečo práve takto: `#FFFDF6` je naprieč `/pack` výplň prvku pri NABEHNUTÍ MYŠOU
+ * (`.tl-back:hover`, `.comm-chip:hover`, …), ktorého pokojný stav je priesvitný
+ * `PALE.soft`. `T.card` (#FBF5E6) je tá istá papyrusová biela pod menom
+ * `PALE.field`, takže rozdiel pokoj/hover ostáva čitateľný — mení sa odtieň,
+ * nie kontrast.
+ *
+ * ⚠️ `#FFFDF7` tu NIE JE. Je to vrch gradientu v `PILL_CSS` a `PF_FIELD_CSS`,
+ *    teda RECEPT — jeho dve ručné kópie v `PackNatureQuiz.tsx` treba nahradiť
+ *    triedou `.pk-pill`, čo je zmena komponentu, nie hodnoty.
+ * ⚠️ `#F5F0E4` a `#FAF4EC` sú väčšinou INKOUST na tmavom (meno psa na fotke),
+ *    nie výplň. `T.card` je na to určená — je to PLNÁ farba a `packTheme.ts`
+ *    ju výslovne pripúšťa aj ako `color:`. */
+const BLIZKE = {
+  '#FFFDF6': 'card', '#F5F0E4': 'card', '#FAF4EC': 'card', '#FFF6E2': 'cardSoft',
+};
+
+/* ⚠️ CELÝ `/pack`, nie zoznam povrchov (kolo 2, Matej 15. 9.: „urobime to dnes
+ * pre celý pack"). Ručný zoznam bol pri štyroch povrchoch prehľadný, pri 87
+ * súboroch by bol len ďalším miestom, kde niečo vypadne. Rozsah je TEN ISTÝ,
+ * ktorý meria stráž `check-pack-scale.mjs` — vrátane jej SKIP (locknuté povrchy)
+ * a RECEPT (súbory, kde hodnoty BÝVAJÚ). */
+const SKIP = [
+  'components/pack/ainubisSkin.ts', 'components/pack/ainubis/',
+  'components/pack/PackShareCard.tsx', 'components/pack/level/revealCss.ts',
+  'components/pack/mapnotes/circleMark.ts', 'components/pack/mapDockShape.ts',
+  'components/pack/navGoldSkin.ts',
 ];
+const RECEPT = ['components/pack/packTheme.ts', 'components/pack/navGoldSkin.ts'];
+
+function zbierajSubory(dir, base = '') {
+  const out = [];
+  for (const e of readdirSync(dir)) {
+    const p = join(dir, e), rel = base ? `${base}/${e}` : e;
+    if (statSync(p).isDirectory()) { out.push(...zbierajSubory(p, rel)); continue; }
+    out.push(rel);
+  }
+  return out;
+}
+const FILES = zbierajSubory(SRC).filter(
+  (rel) =>
+    (rel.startsWith('pages/Pack') || rel.startsWith('components/pack/')) &&
+    /\.(tsx?|css)$/.test(rel) &&
+    !SKIP.some((s) => rel.startsWith(s)) &&
+    !RECEPT.some((r) => rel.startsWith(r)),
+);
 
 /* Meno, pod ktorým má súbor tému v ruke: `const T = PACK_THEME` alebo priamo. */
 function alias(src) {
@@ -62,7 +98,7 @@ function alias(src) {
  * backticku v komentári, preto to na konci overuje spätná expanzia. */
 const inTemplate = (src, i) => (src.slice(0, i).match(/`/g) || []).length % 2 === 1;
 
-let totalHits = 0, totalFiles = 0, blocked = [];
+let totalHits = 0, totalFiles = 0, blocked = [], blizkeHits = 0, blizkeKde = [];
 
 for (const rel of FILES) {
   const abs = SRC + rel;
@@ -93,7 +129,6 @@ for (const rel of FILES) {
     hits++;
   }
   out += orig.slice(last);
-  if (!hits) continue;
 
   /* ── DÔKAZ: expanduj tokeny v OBOCH a porovnaj ───────────────────────────
    * Expandovať len nový súbor nestačí — pôvodný má vlastné `T.x` odkazy, ktoré
@@ -112,7 +147,7 @@ for (const rel of FILES) {
    * a `rgba(201,154,63,.3)` vs `rgba(201, 154, 63, 0.30)` sú pre prehliadač tá
    * istá farba. Codemod nerobí nič okrem výmeny farieb, takže uvoľnenie na
    * veľkosť písmen a medzery nezakrýva žiadnu inú zmenu. */
-  if (norm(expand(out)) !== norm(expand(orig))) {
+  if (hits && norm(expand(out)) !== norm(expand(orig))) {
     blocked.push(rel);
     if (process.argv.includes('--preco')) {
       const a = norm(expand(out)), b = norm(expand(orig));
@@ -124,12 +159,35 @@ for (const rel of FILES) {
     continue;
   }
 
+  /* ── DRUHÝ PRIECHOD: papyrusové biele ────────────────────────────────────
+   * Beží AŽ TU, po dôkaze — keby šiel spolu s presnými zhodami, spätná
+   * expanzia by ho vyhlásila za rozchod a zablokovala by aj to, čo je dokázané.
+   * Vlastný zoznam zásahov preto nahrádza dôkaz: každá zmena je vypísaná. */
+  let bhits = 0;
+  for (const [lit, tokk] of Object.entries(BLIZKE)) {
+    const reB = new RegExp(`'${lit}'|${lit}\\b`, 'gi');
+    out = out.replace(reB, (m, i, s) => {
+      const je = m.startsWith("'");
+      const repl = je ? `${A}.${tokk}` : (inTemplate(s, i) ? `\${${A}.${tokk}}` : null);
+      if (!repl) return m;                 // vnútri '…' s textom — necháme
+      bhits++;
+      return repl;
+    });
+  }
+  if (bhits) blizkeKde.push(`${String(bhits).padStart(3)}  ${rel}`);
+  blizkeHits += bhits;
+
+  if (!hits && !bhits) continue;
   totalHits += hits; totalFiles++;
-  console.log(`  ${String(hits).padStart(3)}  ${rel}   (${A})`);
+  console.log(`  ${String(hits).padStart(3)} + ${String(bhits).padStart(3)}  ${rel}   (${A})`);
   if (WRITE) writeFileSync(abs, out);
 }
 
-console.log(`\n${WRITE ? 'ZAPÍSANÉ' : 'SUCHÝ BEH'} — ${totalHits} farieb v ${totalFiles} súboroch`);
+console.log(`\n${WRITE ? 'ZAPÍSANÉ' : 'SUCHÝ BEH'} — ${totalHits} presných zhôd + ${blizkeHits} papyrusových bielych v ${totalFiles} súboroch`);
+if (blizkeKde.length) {
+  console.log(`\nPAPYRUSOVÉ BIELE (hodnota sa MENÍ o 1–2 jednotky na kanál — pozri v prehliadači):`);
+  blizkeKde.forEach((b) => console.log('   ' + b));
+}
 if (blocked.length) {
   console.log(`\n⚠️ NEZAPÍSANÉ (spätná expanzia nesedela, teda by sa čosi zmenilo):`);
   blocked.forEach((b) => console.log('   ' + b));
