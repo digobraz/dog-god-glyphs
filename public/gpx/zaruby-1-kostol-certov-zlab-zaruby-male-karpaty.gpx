@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="DOGYPT" xmlns="http://www.topografix.com/GPX/1/1">
+<gpx version="1.1" creator="DOGYPT" xmlns="http://www.topografix.com/GPX/1/1"
+     xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3"
+     xmlns:gpx_style="http://www.topografix.com/GPX/gpx_style/0/2">
   <metadata><name>Záruby 1 (kostol-čertov žľab-Záruby)</name></metadata>
   <wpt lat="48.50964" lon="17.43241"><name>Parking</name><sym>Parking Area</sym></wpt>
   <trk>
     <name>Záruby 1 (kostol-čertov žľab-Záruby)</name>
+    <extensions>
+      <gpxx:TrackExtension><gpxx:DisplayColor>Magenta</gpxx:DisplayColor></gpxx:TrackExtension>
+      <gpx_style:line><gpx_style:color>7A2FBF</gpx_style:color><gpx_style:width>4</gpx_style:width></gpx_style:line>
+    </extensions>
     <trkseg>
       <trkpt lat="48.50991" lon="17.43245"/>
       <trkpt lat="48.510048" lon="17.432284"/>

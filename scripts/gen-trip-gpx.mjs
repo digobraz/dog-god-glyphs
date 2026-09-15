@@ -44,6 +44,21 @@ function readTrails() {
 const esc = (v) => String(v).replace(/[<>&'"]/g, (c) =>
   ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c]));
 
+/**
+ * FARBA STOPY (15. 9. 2026). Matej po prvom úspešnom otvorení v appke Mapy.com:
+ * „Nakresli ale nejak divne nie je dobre vidno nie je ich farbou ale červenou ktorá zaniká…"
+ * — appka importovanej trase pridelila červenú, a tá na turistickej mape splýva s červenou
+ * KČT značkou, po ktorej trasa ide.
+ *
+ * GPX farbu v základnej schéme nemá, nesú ju dve rozšírenia a každá appka číta iné, preto
+ * sú v súbore OBE:
+ *   · Garmin `gpxx:DisplayColor` — číselník mien, nie hex (najbližšie našej fialovej je
+ *     `Magenta`);
+ *   · `gpx_style:line` — hex bez mriežky, tu presne brandová `PACK_THEME.tripPurple` #7A2FBF.
+ * Keď ich appka nečíta, nič sa nerozbije — sú to voliteľné vetvy, nie povinný obsah.
+ */
+const TRIP_PURPLE = '7A2FBF';
+
 export function tripGpx(trail) {
   const pts = trail.path ?? [];
   const wpt = trail.parking
@@ -52,10 +67,16 @@ export function tripGpx(trail) {
     : '';
   const seg = pts.map(([lat, lon]) => `      <trkpt lat="${lat}" lon="${lon}"/>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="DOGYPT" xmlns="http://www.topografix.com/GPX/1/1">
+<gpx version="1.1" creator="DOGYPT" xmlns="http://www.topografix.com/GPX/1/1"
+     xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3"
+     xmlns:gpx_style="http://www.topografix.com/GPX/gpx_style/0/2">
   <metadata><name>${esc(trail.name)}</name></metadata>${wpt}
   <trk>
     <name>${esc(trail.name)}</name>
+    <extensions>
+      <gpxx:TrackExtension><gpxx:DisplayColor>Magenta</gpxx:DisplayColor></gpxx:TrackExtension>
+      <gpx_style:line><gpx_style:color>${TRIP_PURPLE}</gpx_style:color><gpx_style:width>4</gpx_style:width></gpx_style:line>
+    </extensions>
     <trkseg>
 ${seg}
     </trkseg>
