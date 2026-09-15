@@ -10,7 +10,7 @@
 import { useEffect } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
-import { LAPIS, LAPIS_BTN_SHADOW, TRAIL, TRAIL_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { LAPIS, LAPIS_BTN_SHADOW, MAPY, MAPY_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { navTarget, navUrl, isAppleDevice, mapyTrailUrl, downloadGpx, type NavApp } from '@/components/pack/tripNav';
@@ -53,16 +53,21 @@ const GO_CSS = `
    na parkovisko a stopa do mobilu. Po teste v teréne (appka Mapy.com náš GPX otvorí a
    nakreslí) prestala byť tá druhá poznámka pod čiarou a stala sa samostatnou akciou.
 
-   Farby sú OBE z brandu, nová nevzniká:
+   Farby:
      · 🅿️ parkovisko = LAPIS — naša akčná farba a zároveň modrá, akou je parkovisko na mape;
-     · 🥾 trasa = tripPurple #7A2FBF — fialová znamená VÝLETY v celej appke, a stopa je výlet.
-   Mapy.com zelená sa zámerne nepoužila: cudzia značka na našom povrchu by navyše klamala,
-   že súbor patrí len im — vezme ho Locus, Garmin aj Organic Maps. Návod to povie slovami.
+     · 🥾 trasa = MAPY #1EAE00 — značková zelená Mapy.com, odpísaná z ich theme-color.
+
+   ⚠️ FIALOVÁ TU STÁLA LEN JEDEN DEŇ. Ráno to bola tripPurple #7A2FBF s odôvodnením
+   „fialová znamená VÝLETY v celej appke" a zelenú som ZAMIETOL ako cudziu značku, ktorá
+   klame, že súbor patrí len Mapy.com (otvorí ho aj Locus, Garmin, Organic Maps).
+   Matej 15. 9. poobede: „fialové tlačítko nahraď zelenou farbou (farba mapy cz)" —
+   rozhodujúce je, že človek v teréne hľadá tlačidlo vo farbe appky, do ktorej ide; že
+   súbor berú aj iné appky, hovorí návod v paneli slovami. Fialová ostáva na mape.
 
    ⚠️ ODCHÝLKA OD LOCKU, VEDOMÁ: brand manuál rezervuje plnú farebnú plochu pre JEDINÉ hlavné
    CTA na obrazovke. Tu stoja dve — Matej to tak chcel a dôvod je vecný (dva ciele, nie dva
-   dôrazy). Tretia akcia v článku (PRIDAŤ HODNOTENIE) preto plnú farbu STRATILA a nesie len
-   zlatý rám: prispievanie nie je odchod na výlet. → .tcm-btn-gold v TripComments.tsx
+   dôrazy). Tretia akcia v článku (PRIDAŤ HODNOTENIE) nesie BRANDOVÚ ZLATÚ, teda tretiu
+   farbu a najtichšiu z troch. → .tcm-btn-brandgold v TripComments.tsx
    ⚠️ V CSS komentári nesmie byť spätný apostrof — ukončí template literál (check:css). */
 .tgo-ctas{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;}
 @media(max-width:439px){.tgo-ctas{grid-template-columns:1fr;}}
@@ -73,9 +78,9 @@ const GO_CSS = `
 .tgo-cta .tgo-ic{font-size:15px;}
 .tgo-cta--park{background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.edge};box-shadow:${LAPIS_BTN_SHADOW};}
 .tgo-cta--park:hover{background:${LAPIS.gradHover};}
-/* Fialová nesie ten istý odliatok ako lapis, aby tlačidlá čítali ako dvojica. */
-.tgo-cta--trail{background:${TRAIL.grad};color:${TRAIL.ink};border:1px solid ${TRAIL.edge};box-shadow:${TRAIL_BTN_SHADOW};}
-.tgo-cta--trail:hover{background:linear-gradient(180deg,#8C3ED6,#5B2291);}
+/* Zelená nesie ten istý odliatok ako lapis, aby tlačidlá čítali ako dvojica. */
+.tgo-cta--trail{background:${MAPY.grad};color:${MAPY.ink};border:1px solid ${MAPY.edge};box-shadow:${MAPY_BTN_SHADOW};}
+.tgo-cta--trail:hover{background:${MAPY.gradHover};}
 `;
 
 /** Poradie = čo ľudia na Slovensku reálne otvárajú. Apple pribúda len na Apple zariadení. */

@@ -317,13 +317,16 @@ export const PACK_BLOCKS = {
     kedy: 'Plávajúci modal nad stránkou. BEZ KRÍŽIKA — von sa ide klikom mimo alebo Esc.',
   },
   'CTA ZLATÉ': {
-    recept: 'GOLD_BTN — grad · edge · glow · glowHover',
+    recept: 'DVE POLOHY — GOLD_BTN (tmavý podklad) · BRAND_GOLD_BTN (papyrus)',
     polomer: PACK_R.field,
-    kedy: 'Tlačidlo hlavnej akcie na NAOZAJ TMAVOM podklade (tmavý panel, pk-glass, '
-      + 'fotka). Na bledom podklade je hlavná akcia LAPIS, nie toto.',
+    kedy: 'Zlaté tlačidlo. Na NAOZAJ TMAVOM podklade (tmavý panel, pk-glass, fotka) '
+      + 'je to zlato-oranžový GOLD_BTN; na PAPYRUSE brandová zlatá BRAND_GOLD_BTN '
+      + '(Matej 15. 9.: „oranžovo-žltá sa používa najmä na dark téme"). Hlavná akcia '
+      + 'na bledom je stále LAPIS — zlaté je až druhá či tretia akcia na obrazovke.',
     lock: 'Tvar je locknutý: radius 8, NIE pilulka. Hodnoty opísané z `.btn-gold` '
-      + 'v SpiralLanding.css (brand lock). ⚠️ Povolenie platí pre TLAČIDLO — tá istá '
-      + 'zmes na karte alebo páse je žltá plocha a patrí AINUBISOVI, nie nám.',
+      + 'v SpiralLanding.css (brand lock), brandová rampa z locku „ZLATÁ PLOCHA ≠ '
+      + 'ZLATÉ TLAČIDLO". ⚠️ Povolenie platí pre TLAČIDLO — tá istá zmes na karte '
+      + 'alebo páse je žltá plocha a patrí AINUBISOVI, nie nám.',
   },
   'AI-PALUBA': {
     recept: 'ainubisSkin.ts — AINUBIS.*',
@@ -474,6 +477,42 @@ export const GOLD_BTN = {
   glow: '0 0 40px rgba(230,158,26,0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
   /** Dotyk: tá istá žiara, širšia a sýtejšia. Lem sa nemení. */
   glowHover: '0 0 56px rgba(230,158,26,0.55), inset 0 1px 0 rgba(255,255,255,0.3)',
+} as const;
+
+// ── CTA ZLATÉ, DRUHÁ POLOHA: BRANDOVÁ ZLATÁ NA PAPYRUSE (2026-09-15 večer) ───
+// Matej: „na bledom papyruse sú CTA farby lapis a gold a tá oranžovo-žltá sa
+// používa najmä na dark téme."
+//
+// Tým sa `GOLD_BTN` vyššie ZÚŽIL na tmavý podklad — presne ako hovorí jeho vlastné
+// varovanie — a papyrus dostal vlastnú zlatú. Nie je to nová farba ani nový tvar:
+//  · zastávky `#C99A3F → #A3782B` a rám `#8C6014` sú TÁ ISTÁ brandová rampa, akú
+//    lock „ZLATÁ PLOCHA ≠ ZLATÉ TLAČIDLO" (28. 8. 2026) menuje pre plochy, a aké
+//    má `TITLE_GRAD` nadpisov — Matejova „zlatá tmavá brand", nie AINUBISOVA;
+//  · geometria je locknutá `.btn-gold` (radius 8, Cinzel 700 uppercase) a NEMENÍ sa.
+//
+// ⚠️ PREČO NIE `GOLD_BTN` NA PAPYRUSE: `#F5C73D→#E69E1A` je svetlejšia ako samotný
+//    papyrus, takže tlačidlo na ňom svieti ako lampa a Matej si tú zmes spája
+//    s AINUBISOM. Brandová zlatá je od papyrusu TMAVŠIA — číta sa ako tlačidlo.
+// ⚠️ INKOUST JE TMAVÝ, nie krémový. Brandová zlatá má jas ~0,36; krémové písmo na nej
+//    padá pod 3:1, tmavý inkoust drží nad 5:1. (Na lapise je to naopak — preto tam
+//    zlaté písmo ostáva.)
+// ⚠️ TOTO STÁLE NIE JE HLAVNÉ CTA. Hlavná akcia na bledom je LAPIS (kánon 28. 8.).
+//    Brandová zlatá je TRETIA farba pre tretiu akciu na tej istej obrazovke —
+//    precedens: PRIDAŤ HODNOTENIE pod článkom výletu, kde nad ním stoja lapis
+//    (parkovisko) a zelená Mapy.com (trasa).
+export const BRAND_GOLD_BTN = {
+  /** Výplň — brandová rampa, ten istý smer ako `.btn-gold`. */
+  grad: 'linear-gradient(135deg,#C99A3F 0%,#A3782B 100%)',
+  /** Rám — tmavá zlatá, aby tlačidlo na papyruse malo hranu. NIE krémový lem. */
+  edge: '#8C6014',
+  /** Inkoust — tmavý papyrusový, `PACK_THEME.inkStrong`. */
+  ink: PACK_THEME.inkStrong,
+  /** Pokoj: odliatok ako lapisové CTA (vrhnutý tieň + svetlá horná hrana), nie žiara. */
+  glow: '0 4px 13px -3px rgba(90,62,16,0.45), inset 0 1px 0 rgba(255,255,255,0.28)',
+  /** Dotyk: ten istý odliatok, o kúsok hlbší. */
+  glowHover: '0 6px 18px -4px rgba(90,62,16,0.55), inset 0 1px 0 rgba(255,255,255,0.28)',
+  /** Dotyk: výplň o odtieň svetlejšia — nie iný gradient. */
+  gradHover: 'linear-gradient(135deg,#D9AD55 0%,#B58A34 100%)',
 } as const;
 
 // ════════════════════════════════════════════════════════════════════════════

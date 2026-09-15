@@ -477,28 +477,42 @@ export const LAPIS = {
 } as const;
 
 /**
- * FIALOVÉ CTA — „vezmi si trasu" (15. 9. 2026).
+ * ZELENÉ CTA — „vezmi si trasu" (15. 9. 2026 večer).
  *
- * Druhé plné CTA v článku výletu. Nie je to nová farba: je to `PACK_THEME.tripPurple`
- * #7A2FBF, teda tá istá fialová, akou appka kreslí VÝLETY (čiara trasy, značky výletu).
+ * Druhé plné CTA v článku výletu. Nesie ZNAČKOVÚ ZELENÚ MAPY.COM `#1EAE00` — odpísanú
+ * z ich vlastného `<meta name="theme-color">` a `mask-icon`, nie odhadnutú od oka.
+ *
+ * ⚠️ ZÁMERNE PREBILO FIALOVÚ, KTORÁ TU STÁLA RÁNO (token `TRAIL`, `PACK_THEME.tripPurple`
+ *    #7A2FBF). Matej 15. 9. poobede: „fialové tlačítko nahraď zelenou farbou (farba mapy
+ *    cz)". Ráno som zelenú sám ZAMIETOL s odôvodnením, že cudzia značka na našom povrchu
+ *    klame, akoby súbor patril len Mapy.com (otvorí ho aj Locus, Garmin, Organic Maps).
+ *    Matej to rozhodol opačne: človek v teréne hľadá tlačidlo, ktoré vyzerá ako appka,
+ *    do ktorej ide — a že súbor berú aj iné appky, povie návod v paneli slovami.
+ *    Fialová tým z CTA odišla ÚPLNE; v mape ostáva, kde bola vždy (čiara trasy, značky).
+ *    Nezakladaj ju tu znova „pre konzistenciu s výletmi".
+ *
  * Tvar tokenu je zámerne ZHODNÝ s LAPIS — rovnaké kľúče, rovnaký odliatok — aby dve
  * tlačidlá vedľa seba čítali ako dvojica, nie ako dva cudzie prvky.
  *
+ * ⚠️ Spodok gradientu je stmavená zelená, nie značková: `#1EAE00` je taká svetlá, že na
+ *    nej Cinzel 11,5 px v krémovej nedrží kontrast. Značková zelená preto sedí HORE, kde
+ *    ju oko číta ako farbu tlačidla, a text stojí nad tmavšou polovicou.
  * ⚠️ Doslovné hexy patria SEM a nikam inam; v komponente sa berie token, inak ho zhodí
- * stráž `npm run check:pack` (meria RÁM a TIEŇ doslovnou farbou).
+ *    stráž `npm run check:pack` (meria RÁM a TIEŇ doslovnou farbou).
  */
-export const TRAIL = {
-  edge: '#5E2394',
-  deep: '#4E1C7C',
-  lite: '#8C3ED6',
-  grad: 'linear-gradient(180deg,#7A2FBF,#4E1C7C)',
-  gradHover: 'linear-gradient(180deg,#8C3ED6,#5B2291)',
-  ink: '#F3E2C7',
+export const MAPY = {
+  edge: '#0B5A00',
+  deep: '#0C6300',
+  lite: '#2AC80B',
+  grad: 'linear-gradient(180deg,#1EAE00,#0C6300)',
+  gradHover: 'linear-gradient(180deg,#2AC80B,#0F7400)',
+  /** Teplá takmer-biela so zlatým nádychom — zlatý ink lapisu by na zelenej spadol pod 3:1. */
+  ink: '#FFF6E3',
 } as const;
 
-/** Odliatok fialového CTA — tá istá stavba ako LAPIS_BTN_SHADOW, len vo fialovej. */
-export const TRAIL_BTN_SHADOW = [
-  '0 4px 13px -3px rgba(40,10,70,0.6)',
+/** Odliatok zeleného CTA — tá istá stavba ako LAPIS_BTN_SHADOW, len v zelenej. */
+export const MAPY_BTN_SHADOW = [
+  '0 4px 13px -3px rgba(6,40,0,0.6)',
   'inset 0 1px 0 rgba(201,154,63,0.30)',
 ].join(', ');
 

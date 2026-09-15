@@ -25,7 +25,7 @@
 // rule as `sendMessage()` in packMessaging.ts.
 import { useCallback, useEffect, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_SHADOW, GOLD_BTN } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_SHADOW, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PALE } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
@@ -108,14 +108,19 @@ export const TRIP_COMMENTS_CSS = `
    15. 9. 2026 ráno: nad ním pribudli DVE plné CTA (parkovisko lapis, trasa fialová), tak
    som ho stiahol na zlatý RÁM bez výplne.
    ⚠️ 15. 9. 2026 poobede to Matej VRÁTIL: „pridať hodnotenie zaniklo (daj to ked tak
-   oranžovým?)" — rám bol príliš potichu. Oranžová sa nevymýšľa: je to locknutý zlato-
-   oranžový gradient .btn-gold / GOLD_BTN (#F5C73D→#E69E1A), teda presne to, čím tlačidlo bolo
-   pred 1. 9. Kruh sa uzavrel, ale s iným dôvodom: vtedy bolo zlaté ako hlavné CTA, dnes
-   je zlaté preto, že zlato NIE JE ani lapis, ani fialová — tri akcie, tri farby.
+   oranžovým?)" — rám bol príliš potichu, tlačidlo teda plnú farbu dostalo späť.
+   ⚠️ 15. 9. 2026 večer to Matej SPRESNIL: „na bledom papyruse sú CTA farby lapis a gold
+   a tá oranžovo-žltá sa používa najmä na dark téme." Zostáva teda PLNÉ a zlaté, ale
+   berie BRANDOVÚ zlatú (#C99A3F→#A3782B, rám #8C6014, tmavý inkoust) namiesto zlato-
+   oranžovej GOLD_BTN — tá patrí AINUBISOVI a tmavému podkladu. Na papyruse navyše
+   oranžová SVIETI (je svetlejšia ako podklad), kým brandová zlatá je od papyrusu
+   tmavšia, takže sa číta ako tlačidlo.
+   Dôvod farby sa NEMENÍ: zlato tu nie je „hlavné CTA", ale TRETIA farba pre tretiu
+   akciu — nad ňou stojí lapis (parkovisko) a zelená Mapy.com (trasa).
    Geometria (šírka, radius 8, Cinzel 700 uppercase) sa NEMENÍ, mení sa výplň. */
-.tcm-btn-gold{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:12px;border-radius:8px;background:${GOLD_BTN.grad};color:${T.ink};border:1px solid ${GOLD_BTN.edge};cursor:pointer;box-shadow:${GOLD_BTN.glow};transition:box-shadow .15s;}
-.tcm-btn-gold:hover:not(:disabled){box-shadow:${GOLD_BTN.glowHover};}
-.tcm-btn-gold:disabled{opacity:.35;cursor:default;box-shadow:none;filter:none;}
+.tcm-btn-brandgold{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:12px;border-radius:8px;background:${BRAND_GOLD_BTN.grad};color:${BRAND_GOLD_BTN.ink};border:1px solid ${BRAND_GOLD_BTN.edge};cursor:pointer;box-shadow:${BRAND_GOLD_BTN.glow};transition:box-shadow .15s,background .15s;}
+.tcm-btn-brandgold:hover:not(:disabled){background:${BRAND_GOLD_BTN.gradHover};box-shadow:${BRAND_GOLD_BTN.glowHover};}
+.tcm-btn-brandgold:disabled{opacity:.35;cursor:default;box-shadow:none;filter:none;}
 .tcm-gatehint{text-align:center;font-size:11px;color:${T.inkWarm};font-style:italic;margin-top:7px;}
 
 /* ask a question box */
@@ -506,7 +511,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                   walked" (onRequestWalk). Po walked submitte sa z neho stane bežné Add/Edit review. */}
               <button
                 type="button"
-                className="tcm-btn-gold"
+                className="tcm-btn-brandgold"
                 onClick={() => (walked ? setReviewPopupOpen(true) : onRequestWalk?.())}
               >
                 {walked ? (myReview ? t('pack.trip.cm.editMine') : t('pack.trip.cm.addShort')) : t('pack.trip.cm.walkedThen')}
