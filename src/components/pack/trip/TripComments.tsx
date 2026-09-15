@@ -102,13 +102,18 @@ export const TRIP_COMMENTS_CSS = `
 
 /* add review CTA */
 .tcm-addrow{margin-bottom:14px;}
-/* HLAVNÉ CTA SEKCIE = LAPIS (Matej 1. 9. 2026: „to CTA pridať hodnotenie by malo byť
-   lapisom"). Zlatý gradient tu stál od začiatku a na papyruse bol druhou plnou farebnou
-   plochou v článku — kánon má plnú farbu vyhradenú pre hlavné CTA a to je lapisové.
-   Geometria (radius 8, Cinzel 700 uppercase) sa NEMENÍ: preberá sa z locknutého
-   ".btn-gold", mení sa len výplň. Zlaté písmo na modrom je egyptská dvojica, nie ozdoba. */
-.tcm-btn-gold{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:12px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.edge};cursor:pointer;box-shadow:${LAPIS_BTN_SHADOW};}
-.tcm-btn-gold:hover:not(:disabled){background:${LAPIS.gradHover};}
+/* ── HISTÓRIA TOHTO TLAČIDLA, DVE MATEJOVE VETY ───────────────────────────────────────
+   1. 9. 2026: „to CTA pridať hodnotenie by malo byť lapisom" — dovtedy bolo zlaté plné
+   a kánon vyhradzuje plnú farbu hlavnému CTA, ktoré je lapisové. Platilo, kým bolo
+   v článku hlavné ono.
+   ⚠️ PREBITÉ 15. 9. 2026 (Matej: „teraz je lapisom aj pridať recenziu a aby sa to
+   nemýlilo - mli by mať každé inú farbu"). Nad týmto tlačidlom stoja od toho dňa DVE plné CTA
+   — parkovisko (lapis) a trasa (fialová) — a tretia plná plocha z toho robila jarmok, v ktorom
+   nevedie nič. Zlatý rám bez výplne je pritom SPRÁVNEJŠÍ význam: hodnotenie je prispievanie,
+   nie odchod na výlet, a zlato v brande znamená konštrukciu, nie akciu.
+   Geometria (šírka, radius 8, písmo) sa NEMENÍ — mení sa len výplň. */
+.tcm-btn-gold{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:12px;border-radius:8px;background:transparent;color:${T.inkStrong};border:1.5px solid ${T.cardEdge};cursor:pointer;box-shadow:none;transition:background .15s,border-color .15s;}
+.tcm-btn-gold:hover:not(:disabled){background:rgba(201,154,63,0.12);}
 .tcm-btn-gold:disabled{opacity:.35;cursor:default;box-shadow:none;filter:none;}
 .tcm-gatehint{text-align:center;font-size:11px;color:${T.inkWarm};font-style:italic;margin-top:7px;}
 

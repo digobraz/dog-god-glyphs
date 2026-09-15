@@ -747,7 +747,7 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 2,
-    "odsadenie": 3
+    "odsadenie": 2
   },
   "components/pack/tripShared.tsx": {
     "radius": 0,

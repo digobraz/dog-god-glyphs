@@ -42,7 +42,7 @@ import {
   ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail, hasRouteMetrics, pluralKey,
   readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, RENAMED_TRIP_IDS, tripPath,
   tripShareText, tripText, TRAIL_SABER_LAYERS, TRAIL_LINE, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing } from '@/components/pack/tripShared';
-import { TripGoPanel, TripGoButton } from '@/components/pack/trip/TripGoPanel';
+import { TripGoPanel, TripGoButtons, type TripGoMode } from '@/components/pack/trip/TripGoPanel';
 import {
   crowdAggregate, founderWalkers, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
   walkPointsFor, walkRewardBase, RATE_PROMPT_POINTS, discoveryBonusFor, bonusToastText,
@@ -526,7 +526,8 @@ export default function PackTripArticle() {
   // Práva pawmata (B6/F4) — článok výletu zapisuje prejdenie aj hodnotenie.
   const dogRights = useMyDogRights();
   const { lang } = useLang();   // popisy výletov nesú DÁTA, nie i18n kľúče (viď tripText)
-  const [goOpen, setGoOpen] = useState(false);   // panel „Vyraziť na miesto"
+  // `null` = zavreté · 'drive' = autom na parkovisko · 'route' = stopa do mobilu (15. 9. 2026)
+  const [goOpen, setGoOpen] = useState<TripGoMode | null>(null);
   const mapNotes = useMapNotes(true);
 
   // ── DOPĹŇANIE ODKAZOV PRIAMO Z ČLÁNKU (Matej 2026-08-21) ─────────────────
@@ -1541,8 +1542,14 @@ export default function PackTripArticle() {
             „vyraziť" by tam bola piata ikona bez slova a nikto by ju netrafil.
             ⚠️ Bez `path[0]` sa nevykreslí: `navTarget()` vráti null a tlačidlo bez cieľa
             by len otvorilo prázdny panel. */}
-        {trail.path.length > 0 && <TripGoButton onClick={() => setGoOpen(true)} />}
-        {goOpen && <TripGoPanel trail={trail} onClose={() => setGoOpen(false)} />}
+        {trail.path.length > 0 && (
+          <TripGoButtons
+            hasRoute={trail.path.length > 1}
+            onDrive={() => setGoOpen('drive')}
+            onRoute={() => setGoOpen('route')}
+          />
+        )}
+        {goOpen && <TripGoPanel trail={trail} mode={goOpen} onClose={() => setGoOpen(null)} />}
 
         {/* Zápisy členov (parkovisko, výstrahy, poznámky) — NAD diskusiou: je to
             informácia „než vyrazíš", nie rozhovor.

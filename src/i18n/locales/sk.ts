@@ -2586,6 +2586,8 @@ export const sk: Partial<Dict> = {
   'pack.trip.edit.photoMax': "Najviac {n} fotiek.",
   'pack.trip.edit.desc': "Popis",
   // ── VYRAZIŤ NA MIESTO (2026-09-13) ────────────────────────────────────────────────────
+  'pack.trip.go.ctaRoute': "Trasa do mobilu",
+  'pack.trip.go.routeHow': "Stiahni súbor a otvor ho v appke Mapy.com (alebo Locus, Garmin, Organic Maps) — trasa sa ti nakreslí na mape aj s výškovým profilom.",
   'pack.trip.go.cta': "Vyraziť na miesto",
   'pack.trip.go.title': "Vyraziť na miesto",
   'pack.trip.go.parking': "Parkovisko výletu",

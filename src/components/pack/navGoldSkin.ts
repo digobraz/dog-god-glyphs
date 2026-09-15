@@ -476,6 +476,32 @@ export const LAPIS = {
   halo: 'rgba(22,48,122,0.22)',
 } as const;
 
+/**
+ * FIALOVÉ CTA — „vezmi si trasu" (15. 9. 2026).
+ *
+ * Druhé plné CTA v článku výletu. Nie je to nová farba: je to `PACK_THEME.tripPurple`
+ * #7A2FBF, teda tá istá fialová, akou appka kreslí VÝLETY (čiara trasy, značky výletu).
+ * Tvar tokenu je zámerne ZHODNÝ s LAPIS — rovnaké kľúče, rovnaký odliatok — aby dve
+ * tlačidlá vedľa seba čítali ako dvojica, nie ako dva cudzie prvky.
+ *
+ * ⚠️ Doslovné hexy patria SEM a nikam inam; v komponente sa berie token, inak ho zhodí
+ * stráž `npm run check:pack` (meria RÁM a TIEŇ doslovnou farbou).
+ */
+export const TRAIL = {
+  edge: '#5E2394',
+  deep: '#4E1C7C',
+  lite: '#8C3ED6',
+  grad: 'linear-gradient(180deg,#7A2FBF,#4E1C7C)',
+  gradHover: 'linear-gradient(180deg,#8C3ED6,#5B2291)',
+  ink: '#F3E2C7',
+} as const;
+
+/** Odliatok fialového CTA — tá istá stavba ako LAPIS_BTN_SHADOW, len vo fialovej. */
+export const TRAIL_BTN_SHADOW = [
+  '0 4px 13px -3px rgba(40,10,70,0.6)',
+  'inset 0 1px 0 rgba(201,154,63,0.30)',
+].join(', ');
+
 /** Tieň hlavného CTA — odliatok ako nav, len v modrej: vrhnutý tieň + zlatá horná hrana. */
 export const LAPIS_BTN_SHADOW = [
   '0 4px 13px -3px rgba(5,15,48,0.6)',
