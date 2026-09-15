@@ -54,7 +54,13 @@ export const INBOX_CSS = `
 /* Lepiaca hlavička MUSÍ byť nepriehľadná (riadky pod ňou podchádzajú), a tým pádom sa nesmie
    tváriť, že je to holá stránka: doska by na tapete vytvorila obdĺžnik iného odtieňa.
    Číta sa preto ako LIŠTA — vlastný povrch a zlatá spodná hrana. */
-.msg-inbox-head{position:sticky;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 22px) 20px 16px;background:var(--msg-bar);border-bottom:1px solid var(--msg-bar-edge);box-shadow:var(--msg-bar-shadow);flex-shrink:0;}
+/* ⚠️ LIŠTA JE PÁS CEZ CELÉ OKNO, OBSAH STOJÍ V STĹPCI. Do 15. 9. 2026 tu bol flex priamo
+   na páse, takže názov a tlačidlá viseli na krajoch okna, kým doska pod nimi stála
+   v strede v 640 px — na širokej obrazovke to bola hlavička od inej stránky.
+   Rovnica je ZHODNÁ s .msg-thread-headinner vo vlákne (max-width 640 + calc(100% - 32px)),
+   aby sa krok späť zo správy nepohol o pixel. Vodorovný padding preto drží vnútro, nie pás. */
+.msg-inbox-head{position:sticky;top:0;z-index:3;padding:calc(env(safe-area-inset-top,0px) + 22px) 0 16px;background:var(--msg-bar);border-bottom:1px solid var(--msg-bar-edge);box-shadow:var(--msg-bar-shadow);flex-shrink:0;}
+.msg-inbox-headinner{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:640px;width:calc(100% - 32px);margin:0 auto;}
 .msg-inbox-title{font-family:${FONT_TITLE};font-weight:700;font-size:20px;color:var(--msg-title);}
 .msg-inbox-acts{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .msg-x{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:var(--msg-btn);border:1px solid var(--msg-btn-edge);color:var(--msg-btn-ink);font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s,background .15s;}
@@ -69,15 +75,19 @@ export const INBOX_CSS = `
    a <button> v <button> je nevalidný HTML, ktorý prehliadač ticho rozbije. Preto tu musí
    ostať aj :focus-visible, klávesnica sa inak stratí.
 
-   🔑 RIADOK JE SVETLÝ BLOK, NIE priesvitná dlaždica (Matej 1. 9. 2026: „jednotlivé bloky viac
+   🔑 RIADOK JE VÝRAZNÝ BLOK, NIE priesvitná dlaždica (Matej 1. 9. 2026: „jednotlivé bloky viac
    zvýraznené, sú teraz takmer neviditeľné"). Prvé kolo držalo úroveň 3 matrice doslova
    (tileBg = zlatá pri 6 %) a na pieskovcovej doske to bola zlatá na zlatej. Úroveň 3 je
-   definovaná proti SVETLEJ karte; na doske jej podklad chýba. Riadok musí byť SVETLEJŠÍ než
-   jeho kontajner, nie tmavší — a v tmavom šate to platí dvojnásobne (bledá plôška na čiernom). */
-.msg-row{display:flex;align-items:flex-start;gap:12px;width:100%;text-align:left;background:var(--msg-block);color:var(--msg-block-ink);border:1px solid var(--msg-block-edge);border-radius:12px;padding:13px 15px;margin-bottom:10px;cursor:pointer;box-shadow:var(--msg-block-shadow);transition:border-color .15s,transform .15s,box-shadow .15s;font-family:inherit;}
+   definovaná proti SVETLEJ karte; na doske jej podklad chýba.
+   ⚠️ „VÝRAZNÝ" NEZNAMENÁ „SVETLÝ" — od 15. 9. 2026 to rozhoduje ŠAT (Matej: „pri dark by
+   nemali byť bledé bloky ale tmavé"). V svetlom šate je riadok svetlejší než doska, v tmavom
+   tmavší; obe polohy nesie --msg-row-* v msgTheme.ts, tento súbor o šate nevie.
+   ⚠️ Bubliny vo VLÁKNE sa tým NEMENIA — cudzia ostáva bledá aj v tmavom šate (Matej 1. 9.).
+   Preto má riadok vlastné tokeny a nesiaha už na --msg-block-*. */
+.msg-row{display:flex;align-items:flex-start;gap:12px;width:100%;text-align:left;background:var(--msg-row-bg);color:var(--msg-row-ink);border:1px solid var(--msg-row-edge);border-radius:12px;padding:13px 15px;margin-bottom:10px;cursor:pointer;box-shadow:var(--msg-row-shadow);transition:border-color .15s,transform .15s,box-shadow .15s;font-family:inherit;}
 .msg-row:last-child{margin-bottom:0;}
-.msg-row:hover{transform:translateY(-1px);box-shadow:var(--msg-block-hover);}
-.msg-row:focus-visible{outline:none;box-shadow:var(--msg-block-hover);}
+.msg-row:hover{transform:translateY(-1px);box-shadow:var(--msg-row-hover);}
+.msg-row:focus-visible{outline:none;box-shadow:var(--msg-row-hover);}
 /* Avatar bez fotky = zlatá PLOCHA, teda brandová rampa okolo #C99A3F — NIE gradient .btn-gold
    (#F5C73D->#E69E1A). Ten je locknutý pre TLAČIDLO, kde je malý a lesklý, takže sa číta ako
    svetlo; tá istá zmes na súvislej ploche je žltá a Matej si ju spája s AINUBISOM (lock 28. 8.).
@@ -85,26 +95,26 @@ export const INBOX_CSS = `
 .msg-avatar{flex-shrink:0;width:42px;height:42px;border-radius:50%;background:linear-gradient(140deg,${T.cardEdge},#A3782B);background-size:cover;background-position:center;border:1px solid ${PALE.border};box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:16px;color:${T.card};}
 .msg-row-mid{flex:1;min-width:0;}
 .msg-row-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
-.msg-row-name{font-weight:700;font-size:13.5px;color:var(--msg-block-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.msg-row-name{font-weight:700;font-size:13.5px;color:var(--msg-row-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 /* ⚠️ Riadok má v tmavom šate BLEDÝ podklad, takže jeho druhotné texty NEMÔŽU brať --msg-dim
    (ten je počítaný pre tmavé pozadie stránky). Tlmenie sa robí krytím TEJ ISTEJ farby
    inkoustu riadku — inak by v tmavom šate zmizli. */
-.msg-row-pack{font-family:${FONT_UI};font-weight:400;font-size:11px;color:var(--msg-block-ink);opacity:.66;}
-.msg-row-time{flex-shrink:0;font-size:10px;color:var(--msg-block-ink);opacity:.52;}
+.msg-row-pack{font-family:${FONT_UI};font-weight:400;font-size:11px;color:var(--msg-row-ink);opacity:.66;}
+.msg-row-time{flex-shrink:0;font-size:10px;color:var(--msg-row-ink);opacity:.52;}
 .msg-row-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:3px;}
-.msg-row-preview{font-size:12px;color:var(--msg-block-ink);opacity:.72;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.msg-row-preview{font-size:12px;color:var(--msg-row-ink);opacity:.72;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 /* Neprečítané = zlatá bodka s prstencom farby PODKLADU (ako odznak počtu správ
    v PackNotifications). Bez prstenca by na zlatkasto tónovanom riadku splynula.
    Nie je to lapis: lapis znamená „moja voľba / moja akcia", a neprečítaná správa
    nie je ani jedno — je to stav. */
-.msg-dot{flex-shrink:0;width:9px;height:9px;border-radius:50%;background:${T.accentGold};box-shadow:0 0 0 2px ${T.card};}
-.msg-tagchip{display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-family:${FONT_TITLE};font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:rgba(201,154,63,0.20);border:1px solid ${PALE.border};color:#8A5F1E;white-space:nowrap;}
+.msg-dot{flex-shrink:0;width:9px;height:9px;border-radius:50%;background:${T.accentGold};box-shadow:0 0 0 2px var(--msg-dot-ring);}
+.msg-tagchip{display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-family:${FONT_TITLE};font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:var(--msg-chip);border:1px solid var(--msg-btn-edge);color:var(--msg-chip-ink);white-space:nowrap;}
 .msg-tagchip--click{cursor:pointer;}
-.msg-tagchip--click:hover{background:rgba(201,154,63,0.32);border-color:${T.cardEdge};}
+.msg-tagchip--click:hover{background:var(--msg-chip-hot);border-color:${T.cardEdge};}
 .msg-empty{text-align:center;padding:40px 16px;color:var(--msg-dim);font-size:12.5px;font-style:italic;}
 /* #55 — prázdny inbox je celá obrazovka s jednou vetou; bez akcie je to slepá ulička. */
 .msg-emptybox{display:flex;flex-direction:column;align-items:center;gap:16px;padding:40px 16px;text-align:center;}
-.msg-emptybox p{margin:0;color:var(--msg-block-ink);opacity:.72;font-size:12.5px;font-style:italic;line-height:1.5;max-width:320px;}
+.msg-emptybox p{margin:0;color:var(--msg-ink);opacity:.72;font-size:12.5px;font-style:italic;line-height:1.5;max-width:320px;}
 /* Jediné hlavné CTA na tejto obrazovke → farba MOJEJ bubliny (v svetlom šate lapis,
    v tmavom oranžovozlatá). Geometriu si berie od .btn-gold (radius 8, NIE pilulka) —
    zmena farby nie je povolenie na iný tvar. */
@@ -203,10 +213,12 @@ export function Inbox({ onOpenThread, onClose, onBrowseTrips, onOpenTrip }: {
       <style>{MSG_SKIN_CSS}</style>
       <style>{INBOX_CSS}</style>
       <div className="msg-inbox-head">
-        <div className="msg-inbox-title">{t('pack.msg.inboxTitle')}</div>
-        <div className="msg-inbox-acts">
-          <SkinToggle skin={skin} onToggle={toggleSkin} />
-          <button type="button" className="msg-x" onClick={onClose} aria-label={t('pack.msg.closeAriaLabel')}>×</button>
+        <div className="msg-inbox-headinner">
+          <div className="msg-inbox-title">{t('pack.msg.inboxTitle')}</div>
+          <div className="msg-inbox-acts">
+            <SkinToggle skin={skin} onToggle={toggleSkin} />
+            <button type="button" className="msg-x" onClick={onClose} aria-label={t('pack.msg.closeAriaLabel')}>×</button>
+          </div>
         </div>
       </div>
       <div className="msg-inbox-list msg-plate">

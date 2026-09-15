@@ -100,6 +100,14 @@ export const MSG_SKIN_CSS = `
   --msg-block-ink:${T.inkStrong};
   --msg-block-shadow:0 2px 6px rgba(122,90,42,0.16), inset 0 1px 0 rgba(255,255,255,0.45);
   --msg-block-hover:0 0 0 3px rgba(201,154,63,0.28), 0 3px 9px rgba(122,90,42,0.20);
+  /* RIADOK INBOXU. V svetlom šate je to TEN ISTÝ blok ako bublina — preto tu stoja
+     odkazy, nie kópie čísel; rozídu sa až v tmavom šate, kde si Matej 15. 9. 2026
+     vypýtal tmavé riadky („pri dark by nemali byť bledé bloky ale tmavé"). */
+  --msg-row-bg:var(--msg-block);
+  --msg-row-edge:var(--msg-block-edge);
+  --msg-row-ink:var(--msg-block-ink);
+  --msg-row-shadow:var(--msg-block-shadow);
+  --msg-row-hover:var(--msg-block-hover);
   /* MOJA bublina + odosielacie tlačidlo = jedna rodina „ja". */
   --msg-mine:linear-gradient(180deg,#16307A,#0A1A4A);
   --msg-mine-hover:linear-gradient(180deg,#1E3C90,#0F2560);
@@ -156,6 +164,18 @@ export const MSG_SKIN_CSS = `
   --msg-block-ink:${T.inkStrong};
   --msg-block-shadow:0 3px 12px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.55);
   --msg-block-hover:0 0 0 3px rgba(201,154,63,0.42), 0 4px 14px rgba(0,0,0,0.6);
+  /* ⚠️ RIADOK INBOXU SA OD BUBLINY 15. 9. 2026 ODDELIL. Matej 1. 9.: „to isté ale
+     v čiernej s oranžovozlatou a bledou farbou bubliniek" — to je o BUBLINÁCH a platí
+     ďalej. Matej 15. 9.: „pri dark by nemali byť bledé bloky ale tmavé" — to je o ZOZNAME
+     konverzácií, kde tri papyrusové platne na čiernom zrušili tmavý šat.
+     Recept NEVYMÝŠĽAM: je to PACK_BOX.subblockDark z katalógu (TMAVÝ PODBLOK) — tá istá
+     geometria ako svetlý riadok, mení sa výplň a inkoust. Rám ostáva zlatý (cardEdge),
+     aby riadok na sklenenej doske nezanikol (Matej 1. 9.: „bloky sú takmer neviditeľné"). */
+  --msg-row-bg:linear-gradient(135deg,#171009 0%,${T.pageBg} 100%);
+  --msg-row-edge:${T.cardEdge};
+  --msg-row-ink:${T.onDark};
+  --msg-row-shadow:0 1px 3px rgba(0,0,0,0.45), inset 0 1px 0 rgba(245,240,228,0.10);
+  --msg-row-hover:0 0 0 3px rgba(201,154,63,0.30), 0 6px 18px rgba(0,0,0,0.55);
   /* MOJA bublina = oranžovozlatá; tlačidlo odoslania ju nasleduje. */
   --msg-mine:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);
   --msg-mine-hover:linear-gradient(135deg,#FFD65A 0%,#F0A81E 100%);
