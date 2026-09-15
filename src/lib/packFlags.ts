@@ -82,4 +82,18 @@ export const DEV_FULL =
 // ⚠️ Ako `DEV_FULL` je to VIDITEĽNOSŤ, nie zámok — kód je v bundli tak či tak.
 //    Skutočnú ochranu drží DB: `invite-pawmate` overuje, že volá MAJITEĽ
 //    zaplateného psa, a všetky štyri RPC panela stoja na `is_dog_owner()`.
-export const PAWMATE_LIVE = import.meta.env.VITE_PAWMATE === 'true';
+//
+// ── DRUHÁ VETVA PRIBUDLA 15. 9. 2026 ────────────────────────────────────────
+// Matej: *„publishni to do live ale neviditelne pre klientov a až pri launchi to
+// pojde von aj pre klientov — pojdem si preklikať pawmate."*
+//
+// Samotný `VITE_PAWMATE` to neumožní: v produkčnom builde `.env.development`
+// neplatí, takže dvere by boli zamknuté VŠETKÝM — aj Matejovi, ktorý si ich chce
+// prejsť. Preto tá istá výnimka, akú má `DEV_FULL` o pár riadkov vyššie:
+// prihlásený účet z `FULL_PACK_EMAILS` vidí pawmate aj na ostrej doméne.
+//
+// 🔴 NIE JE TO ODOMKNUTIE PODĽA B8 a lock tým neplatí za splnený — pre KLIENTA
+// sa nemení nič, dvere mu ostávajú zamknuté s pilulkou ČOSKORO. B8 je stále to,
+// čo `isFullPackEmail(...)` odtiaľto ODSTRÁNI a nechá zapnuté pre všetkých.
+export const PAWMATE_LIVE =
+  import.meta.env.VITE_PAWMATE === 'true' || isFullPackEmail(sessionEmailFromStorage());
