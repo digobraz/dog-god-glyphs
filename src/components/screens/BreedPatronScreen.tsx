@@ -887,9 +887,7 @@ export function BreedPatronScreen() {
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       <PageTopBar
-        // Späť viedlo na `/heroglyph/photo`, teda o štyri obrazovky naspäť — chyba, ktorá tu
-        // bola aj predtým. Po zrušení papierovačiek (31. 8. 2026) je predošlý krok `why`.
-        onBack={() => sub === 0 ? navigate('/heroglyph/why') : handleBack()}
+        onBack={() => sub === 0 ? navigate('/heroglyph/photo') : handleBack()}
       />
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3 overflow-hidden">

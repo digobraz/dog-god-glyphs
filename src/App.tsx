@@ -14,8 +14,6 @@ import { LanguageProvider, useLang } from "@/i18n/LanguageContext";
 import { GodsGrid } from "@/components/gods/GodsGrid";
 import NotFound from "./pages/NotFound.tsx";
 import { DevNav } from "@/components/DevNav";
-import { HeroflowDevMenu } from "@/components/lab/HeroflowDevMenu";
-import { FlowRedress } from "@/components/screens/flowRedress";
 import { ConsentBanner } from "@/components/ConsentBanner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { captureRefFromSearch } from "@/lib/refCapture";
@@ -34,23 +32,14 @@ const SpiralLanding = lazy(() =>
 const AinubisWidget = lazy(() =>
   import("@/components/ainubis/AinubisWidget").then((m) => ({ default: m.AinubisWidget }))
 );
+const IntroScreen = lazy(() =>
+  import("@/components/screens/IntroScreen").then((m) => ({ default: m.IntroScreen }))
+);
 const NameScreen = lazy(() =>
   import("@/components/screens/NameScreen").then((m) => ({ default: m.NameScreen }))
 );
 const PhotoScreen = lazy(() =>
   import("@/components/screens/PhotoScreen").then((m) => ({ default: m.PhotoScreen }))
-);
-const EmailScreen = lazy(() =>
-  import("@/components/screens/EmailScreen").then((m) => ({ default: m.EmailScreen }))
-);
-const DogsScreen = lazy(() =>
-  import("@/components/screens/DogsScreen").then((m) => ({ default: m.DogsScreen }))
-);
-const WhyScreen = lazy(() =>
-  import("@/components/screens/WhyScreen").then((m) => ({ default: m.WhyScreen }))
-);
-const CropScreen = lazy(() =>
-  import("@/components/screens/CropScreen").then((m) => ({ default: m.CropScreen }))
 );
 const BreedPatronScreen = lazy(() =>
   import("@/components/screens/BreedPatronScreen").then((m) => ({ default: m.BreedPatronScreen }))
@@ -188,10 +177,6 @@ const App = () => (
           <AinubisWidget />
         </Suspense>
         <DevNav />
-        {/* Úzke dev menu vstupu — beží aj POČAS flow (Matej 28. 8.:
-            „pri flow zostáva ten dev menu aby som vedel prepínať vždy"). */}
-        <FlowRedress />
-        <HeroflowDevMenu />
         <ErrorBoundary>
           <Suspense fallback={<RouteFallback />}>
             <Routes>
@@ -225,26 +210,26 @@ const App = () => (
               {/* /entry — verejná conviction gate PRED flow (2026-07-12). CTA → /heroglyph/intro. */}
               <Route path="/entry" element={<Entry />} />
 
-              {/* Heroglyph flow — prefix /heroglyph/<step>.
-                  PORADIE OD 28. 8. 2026: fotka → meno → e-mail → papierovačky → plemeno → …
-                  → povaha → výrez → odhalenie. Fotka je prvá otázka, e-mail padá skoro
-                  (predtým až 17. krok z 19), výrez sa odsunul za skladanie heroglyfu.
-                  /heroglyph/intro zanikol — jeho jediná otázka (žije pes?) je pri mene.
-                  /heroglyph sales page retirovaná → redirect na /entry (staré CTA a inbound linky). */}
+              {/* Heroglyph flow — prefix /heroglyph/<step> (14 krokov + nepočítaný intro predkrok).
+                  /heroglyph sales page retirovaná → redirect na /entry (pokryje všetky staré CTA/inbound linky).
+
+                  🔴 VRÁTENÉ 15. 9. 2026 DO STAVU Z 24. 8. (Matej: „ja chcem IBA HEROFLOW do
+                  pôvodnej podoby pred tým ako sme ho zmenili … IBA HEROFLOW od /entry - po welcome").
+                  Prepísaný vstup z 28.–31. 8. (fotka prvá, krok MULTI PES, e-mail, „prečo heroglyf",
+                  zrušené papierovačky, bledý šat) sa 1. 9. NEPLÁNOVANE odviezol na ostrý web
+                  v deploy commite `24382ba` „Nasadenie /pack" a 15 dní tam stál nepreverený.
+                  Kód si to pýtal sám — `dogyptStore.ts` pri `extraDogs` hovorí:
+                  „krok 3 NESMIE ísť na produkciu bez [multi-módu] — inak si niekto naklikal
+                  troch psov, zaplatil raz a dostal jeden heroglyf."
+
+                  Obrazovky nového vstupu sa NEMAZALI, len sa sem nevešajú: `DogsScreen`,
+                  `EmailScreen`, `WhyScreen`, `CropScreen`, `CountryPick`, `AboutScreen`,
+                  `FlowPhases`, `flowPaleSkin.ts`, `flowRedress.tsx` ležia ďalej v `screens/`.
+                  Pri veľkom launchi sa vráti späť tento blok + `<FlowRedress />` v strome vyššie. */}
               <Route path="/heroglyph" element={<Heroglyph />} />
-              <Route path="/heroglyph/intro" element={<Navigate to="/heroglyph/photo" replace />} />
-              <Route path="/heroglyph/photo" element={<PhotoScreen />} />
+              <Route path="/heroglyph/intro" element={<IntroScreen />} />
               <Route path="/heroglyph/name" element={<NameScreen />} />
-              <Route path="/heroglyph/dogs" element={<DogsScreen />} />
-              <Route path="/heroglyph/email" element={<EmailScreen />} />
-              <Route path="/heroglyph/why" element={<WhyScreen />} />
-              {/* 🔴 PAPIEROVAČKY ZRUŠENÉ 31. 8. 2026 (Matej: „papierovačky krok zruš").
-                  Krajinu aj dátum narodenia zbiera UŽ krok 3 (`/heroglyph/dogs`) — a to pre
-                  KAŽDÉHO psa vrátane prvého, do tých istých polí store (`selections.country`,
-                  `birthdayDay/Month/Year`). Navyše bez nich `allDone` ďalej nepustí, takže sa
-                  nedali obísť. Obrazovka teda nič nenesie; ostáva presmerovanie, aby staré
-                  odkazy a história prehliadača nekončili na prázdnej ceste. */}
-              <Route path="/heroglyph/about" element={<Navigate to="/heroglyph/breed" replace />} />
+              <Route path="/heroglyph/photo" element={<PhotoScreen />} />
               <Route path="/heroglyph/breed" element={<BreedPatronScreen />} />
               <Route path="/heroglyph/ranking" element={<RankingScreen />} />
               <Route path="/heroglyph/owner-info" element={<OwnerInfoScreen />} />
@@ -255,7 +240,6 @@ const App = () => (
               <Route path="/heroglyph/dog-colour" element={<DogColourScreen />} />
               <Route path="/heroglyph/dog-bloodline" element={<DogBloodlineScreen />} />
               <Route path="/heroglyph/dog-character" element={<DogCharacterScreen />} />
-              <Route path="/heroglyph/crop" element={<CropScreen />} />
               <Route path="/heroglyph/reveal" element={<HeroglyphRevealScreen />} />
               <Route path="/heroglyph/message" element={<MessageScreen />} />
 

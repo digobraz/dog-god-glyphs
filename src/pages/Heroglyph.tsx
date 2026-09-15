@@ -309,11 +309,23 @@ export default function Heroglyph() {
 
   const enterFlow = () => {
     track('cta_become_dogyptian_click', { location: 'heroglyph_sales' });
-    navigate('/heroglyph/photo');
+    navigate('/heroglyph/intro');
   };
 
   return (
-    <div className="hg-page dark-bg flex flex-col min-h-[100dvh] relative">
+    <div
+      className="hg-page dark-bg flex flex-col min-h-[100dvh] relative"
+      /* `paddingBottom: var(--consent-h)` — cookie lišta je `fixed; bottom: 0`, teda mimo toku,
+         a táto obrazovka je `min-h-[100dvh]` bez scrollu. Na mobile 390 px má lišta 296 px
+         (35 % okna) a hlavné CTA „VYTVORIŤ HEROGLYF" skončilo 120 px POD ňou — `elementFromPoint`
+         v strede tlačidla vracal `consent-body`, takže sa na telefóne NEDALO vstúpiť do platenej
+         funnely. Na PC (lišta 118 px) prekryv nikdy nenastal, preto to prežilo do 15. 9. 2026.
+         Odsadenie, nie nižšia lišta: premennú publikuje `ConsentBanner` a po voľbe ide na `0px`,
+         takže po nej neostane diera. Fallback `0px` = stránka nezmenená, keby banner nebol
+         mountnutý (render routy). Ten istý vzor ako `--op-nav-h` v locku `onepage-nav.md`:
+         kto potrebuje miesto pod lištou, číta premennú, nie vlastné číslo. */
+      style={{ paddingBottom: 'var(--consent-h, 0px)' }}
+    >
       <Seo
         path="/heroglyph"
         type="product"
