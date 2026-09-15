@@ -414,7 +414,15 @@ export default function PackTriplist() {
   // 25. 8. 2026: „nechať v historii iba v tripliste u autora nikde inde"). Všade inde ho
   // `visibleLocalTrails` odfiltruje; bez tohto príznaku by zmizol aj tu a „ostáva v histórii"
   // by neznamenalo nič.
-  const allTrails = useMemo(() => [...visibleLocalTrails(readLocalTrails(), { withMissedPlans: true }), ...HERO_JOURNEYS, ...HERO_TRAILS], []);
+  /**
+   * 🔴 `storeEpoch` V DEPS (UX audit 14. 9. 2026). Pole bolo prázdne, takže sa zoznam
+   * skladal RAZ pri mounte — teda PRED hydratáciou z `pack_trips`, ktorá beží async.
+   * Členský výlet stiahnutý z DB sa doň už nikdy nedostal, a keďže MY TRIPS zahadzuje
+   * záznam bez trasy (`.filter((x) => !!x.trail)` nižšie), zapísaný výlet v zozname
+   * chýbal, hoci `dogypt.triplist.v1` ho mal. Presne to audit odmeral: 11 záznamov
+   * v úložisku, 5 zobrazených kariet.
+   */
+  const allTrails = useMemo(() => [...visibleLocalTrails(readLocalTrails(), { withMissedPlans: true }), ...HERO_JOURNEYS, ...HERO_TRAILS], [storeEpoch]);
   // Founder walked seed (Matej 2026-07-24): nahodené = prejdené + z červených len SNP/Poloniny.
   // Seedne raz za session aj keď sa na vysvedčenie príde priamo (mimo PackMap mapy).
   useMemo(() => ensureWalkedSeeded([
@@ -427,7 +435,15 @@ export default function PackTriplist() {
   // konsolidácia headera 4→2 pilulky). Header ✓/km pilulka linkuje sem s ?tab=stats.
   const [searchParams, setSearchParams] = useSearchParams();
   const view: 'list' | 'stats' = searchParams.get('tab') === 'stats' ? 'stats' : 'list';
-  const setView = (v: 'list' | 'stats') => setSearchParams(v === 'stats' ? { tab: 'stats' } : {}, { replace: true });
+  // ⚠️ `replace: true` tu NESMIE byť (UX audit 14. 9. 2026). Prepnutie záložky ním
+  // neurobilo záznam v histórii, takže Späť zo ŠTATISTÍK preskočilo TRIPLIST rovno na mapu —
+  // človek stratil obrazovku, na ktorú sa chcel vrátiť. Obe volania sú klik na záložku, teda
+  // úmysel používateľa; `replace` patrí presmerovaniam, nie navigácii, ktorú si vypýtal.
+  // Guard na zhodný stav drží históriu čistú pri opakovanom kliku na už aktívnu záložku.
+  const setView = (v: 'list' | 'stats') => {
+    if (v === view) return;
+    setSearchParams(v === 'stats' ? { tab: 'stats' } : {});
+  };
 
   // TRIPSTATS dáta — prejdené (walked) tripy + km, rovnaký zdroj ako bývalý „Trippin'" dashboard.
   const walkedTrails = useMemo(() => {

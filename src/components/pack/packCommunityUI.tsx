@@ -1365,26 +1365,29 @@ function countryTier(trips: number, countryLabel: string) {
 // #46 — cenník do ⓘ popupu. Čísla sa NEPÍŠU ručne: ťahajú sa z bodového enginu (tripPoints.ts),
 // inak by popup sľuboval iné hodnoty, než appka pripisuje. Geo objavenia sa zlievajú do jedného
 // riadku LEN keď majú rovnakú cenu — keď sa raz rozídu, riadky sa rozpadnú samy.
-function pointsLegend(): Array<[string, string]> {
+// ⚠️ VRACIA KĽÚČE, NIE TEXT (14. 9. 2026). Legenda bola natvrdo po anglicky aj pod SK účtom;
+// `t` sa sem podáva zvonku, lebo je to čistá funkcia mimo komponentu (hook by tu nesmel byť).
+// Poradie riadkov je obsahové rozhodnutie a ostáva v kóde — prekladá sa iba popis.
+function pointsLegend(t: TFn): Array<[string, string]> {
   const geo = [POINTS.range, POINTS.np, POINTS.chko, POINTS.water];
   const rows: Array<[string, string]> = [
-    ['Add a trail', `+${POINTS.add}`],
-    ['Add a place', `+${POINTS.place}`],
-    ['Walk a trail', `+${POINTS.walk}`],
+    [t('pack.stats.legend.addTrail'), `+${POINTS.add}`],
+    [t('pack.stats.legend.addPlace'), `+${POINTS.place}`],
+    [t('pack.stats.legend.walkTrail'), `+${POINTS.walk}`],
     // Odkaz do legendy pribudol s jeho zapojením do skóre (25. 8. 2026) — dovtedy tu chýbal,
     // hoci dlaždica ODKAZ pri pridávaní jeho cenu vypisovala.
-    ['Map note', `+${POINTS.note}`],
-    ['Visit a place', `+${POINTS.visit}`],
-    ['Every km walked', `+${POINTS_PER_KM}`],
-    ['Every 100 m of climb', `+${POINTS_PER_100M}`],
+    [t('pack.stats.legend.mapNote'), `+${POINTS.note}`],
+    [t('pack.stats.legend.visitPlace'), `+${POINTS.visit}`],
+    [t('pack.stats.legend.perKm'), `+${POINTS_PER_KM}`],
+    [t('pack.stats.legend.per100m'), `+${POINTS_PER_100M}`],
   ];
-  if (geo.every((p) => p === geo[0])) rows.push(['New range, park, protected area or water', `+${geo[0]}`]);
-  else rows.push(['New range', `+${POINTS.range}`], ['New national park', `+${POINTS.np}`], ['New protected area', `+${POINTS.chko}`], ['New water', `+${POINTS.water}`]);
+  if (geo.every((p) => p === geo[0])) rows.push([t('pack.stats.legend.newGeoAny'), `+${geo[0]}`]);
+  else rows.push([t('pack.stats.legend.newRange'), `+${POINTS.range}`], [t('pack.stats.legend.newPark'), `+${POINTS.np}`], [t('pack.stats.legend.newProtected'), `+${POINTS.chko}`], [t('pack.stats.legend.newWater'), `+${POINTS.water}`]);
   rows.push(
-    ['New country', `+${POINTS.country}`],
-    ['Rate a trail you walked', `+${POINTS.rate}`],
-    ['Complete a collection', `+${POINTS.collection}`],
-    ['Long-distance trail', 'fixed price'],
+    [t('pack.stats.legend.newCountry'), `+${POINTS.country}`],
+    [t('pack.stats.legend.rateWalked'), `+${POINTS.rate}`],
+    [t('pack.stats.legend.collection'), `+${POINTS.collection}`],
+    [t('pack.stats.legend.longDistance'), t('pack.stats.legend.fixedPrice')],
   );
   return rows;
 }
@@ -1405,6 +1408,18 @@ const walkedMeta = (tr: HeroTrail, withRegion: boolean): string => {
   const km = hasRouteMetrics(tr) ? `${tr.km} km` : '';
   const region = withRegion ? tr.region : '';
   return [region, km].filter(Boolean).join(' · ');
+};
+
+/**
+ * Názov geo kategórie — 14. 9. 2026. `SK_GEO` (`packCommunity.ts`) nesie `label` po anglicky
+ * a ten sa vypisoval aj pod SK účtom. Kľúč sa skladá z `c.key`, `label` ostáva ZÁLOHOU pre
+ * kategóriu, ktorá preklad ešte nemá — `t()` pri chýbajúcom kľúči vráti holý kľúč, a to by
+ * na obrazovke vyzeralo ako porucha. Nová kategória potrebuje riadok v i18n aj v dátach.
+ */
+const catName = (t: TFn, c: { key: string; label: string }): string => {
+  const key = `pack.stats.geo.${c.key}`;
+  const out = t(key);
+  return out === key ? c.label : out;
 };
 
 export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }: {
@@ -1579,14 +1594,16 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
               style={tierPillStyle(lvl.level)}
               onClick={(e) => { e.stopPropagation(); setTierOpen((v) => !v); }}
               aria-expanded={tierOpen}
-              aria-label={`${lvl.rank}, level ${lvl.level} — ${tierOfLevel(lvl.level).name}`}
+              aria-label={t('pack.stats.rankAria', { rank: t('pack.map.rankPilgrim'), level: lvl.level, tier: tierOfLevel(lvl.level).name })}
             >
               <span className="comm-level-ic" style={{ '--ic': `url(${ICON('trophy')})` } as React.CSSProperties} />
-              {lvl.rank} · Level {lvl.level}
+              {/* Rang ide cez `pack.map.rankPilgrim`, nie cez `lvl.rank` — `tripPoints.ts`
+                  ho drží natvrdo ako 'Pilgrim'. Tú istú výmenu má hlavička `/map`. */}
+              {t('pack.stats.rankLine', { rank: t('pack.map.rankPilgrim'), level: lvl.level })}
             </button>
             {tierOpen && (
               <span className="comm-tiers" onClick={(e) => e.stopPropagation()}>
-                <span className="comm-pts-eyebrow">Level colours</span>
+                <span className="comm-pts-eyebrow">{t('pack.stats.levelColours')}</span>
                 <TierScale level={lvl.level} onDark={false} />
                 <span className="comm-pts-rule" />
                 {/* DVA STĹPCE: vľavo cenník (platí pre každého), vpravo MOJE body + TOTAL.
@@ -1594,8 +1611,8 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
                     takže patria vedľa seba, nie pod seba oddelené linajkou. */}
                 <span className="comm-pts-cols">
                   <span className="comm-pts-col">
-                    <span className="comm-pts-eyebrow">How points work</span>
-                    {pointsLegend().map(([label, val]) => (
+                    <span className="comm-pts-eyebrow">{t('pack.stats.howPointsWork')}</span>
+                    {pointsLegend(t).map(([label, val]) => (
                       <span key={label} className="comm-pts-row">{label}<b>{val}</b></span>
                     ))}
                     {/* ⚠️ Ranky krajiny tu BOLI a sú PREČ (Matej 2026-08-06: „odtialto to coutry
@@ -1603,17 +1620,17 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
                         miestach znamená dva zoznamy, ktoré sa raz rozídu. Nevracaj ich sem. */}
                   </span>
                   <span className="comm-pts-col">
-                    <span className="comm-pts-eyebrow">Your points</span>
+                    <span className="comm-pts-eyebrow">{t('pack.stats.yourPoints')}</span>
                     {profilePoints.rows.length > 0 ? (
                       <>
                         {profilePoints.rows.map((r) => (
                           <span key={r.labelKey} className="comm-pts-row">{t(r.labelKey, r.labelParams)}<b>{r.points}</b></span>
                         ))}
                         <span className="comm-pts-rule" />
-                        <span className="comm-pts-tot">Total<b>{profilePoints.total}</b></span>
+                        <span className="comm-pts-tot">{t('pack.stats.total')}<b>{profilePoints.total}</b></span>
                       </>
                     ) : (
-                      <span className="comm-pts-none">Nothing yet — your first walked trip starts the count.</span>
+                      <span className="comm-pts-none">{t('pack.stats.noPointsYet')}</span>
                     )}
                   </span>
                 </span>
@@ -1655,29 +1672,29 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
           <div className="comm-lvlbar"><i style={{ width: `${lvl.pct}%` }} /></div>
           {/* Rebrík nemá strop (rozhodnuté 29. 7.) → žiadny „Top rank" stav, vždy je kam ísť. */}
           <div className="comm-lvlfoot">
-            <span>{lvl.points} pts</span>
-            <span>{lvl.toNext} pts to Level {lvl.level + 1}</span>
+            <span>{t('pack.stats.pts', { n: lvl.points })}</span>
+            <span>{t('pack.stats.ptsToLevel', { n: lvl.toNext, level: lvl.level + 1 })}</span>
           </div>
         </div>
       </div>
 
       {/* WORLD prehľad — precestované krajiny/vrch/výlety/km (scope select presunutý do BLOKU 2). */}
       <div className="comm-worldstats">
-        <div className="comm-wstat"><b>{countriesTraveled}</b><span>Countries</span></div>
-        <div className="comm-wstat"><b>{walkedTrails.length}</b><span>Trips</span></div>
-        <div className="comm-wstat"><b>{fmtKm(walkedKm)}</b><span>Km</span></div>
+        <div className="comm-wstat"><b>{countriesTraveled}</b><span>{t('pack.stats.countries')}</span></div>
+        <div className="comm-wstat"><b>{walkedTrails.length}</b><span>{t('pack.stats.trips')}</span></div>
+        <div className="comm-wstat"><b>{fmtKm(walkedKm)}</b><span>{t('pack.stats.km')}</span></div>
         {/* MENO VRCHOLU ide v Cinzeli (identita miesta), nie zmenšeným Space Groteskom —
             trieda `--name` prepína písmo aj veľkosť, aby to nerobil inline style. Pomlčka
             (žiadny vrchol) ostáva číselným písmom: je to prázdna hodnota, nie meno. */}
-        <div className={`comm-wstat${highest === '—' ? '' : ' comm-wstat--name'}`}><b>{highest}</b><span>Highest point</span></div>
+        <div className={`comm-wstat${highest === '—' ? '' : ' comm-wstat--name'}`}><b>{highest}</b><span>{t('pack.stats.highestPoint')}</span></div>
       </div>
 
       {/* #55 — štyri nuly a deväť zhasnutých odznakov sú konštatovanie bez pokračovania.
           Jedna veta + jedno tlačidlo; mizne hneď po prvom zapísanom výlete. */}
       {walkedTrails.length === 0 && (
         <div className="comm-emptybox" style={{ paddingTop: 8, paddingBottom: 4 }}>
-          <p>Nothing walked yet — your first trip starts the record.</p>
-          <button type="button" className="comm-emptybtn" onClick={() => onAddTrip()}>Log your first trip</button>
+          <p>{t('pack.stats.emptyWalked')}</p>
+          <button type="button" className="comm-emptybtn" onClick={() => onAddTrip()}>{t('pack.stats.logFirstTrip')}</button>
         </div>
       )}
 
@@ -1712,7 +1729,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
         style={heroPhoto ? { backgroundImage: `url('${heroPhoto}')` } : undefined}
       >
         <div className="comm-chero-sel">
-          <select value={country} onChange={(e) => pickCountry(e.target.value)} aria-label="Country">
+          <select value={country} onChange={(e) => pickCountry(e.target.value)} aria-label={t('pack.stats.countryAria')}>
             {countries.map((c) => (
               <option key={c.iso} value={c.iso}>{flagEmojiFromISO2(c.iso)} {c.name}</option>
             ))}
@@ -1742,12 +1759,12 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
                   className={`comm-rankinfo-btn${ranksOpen ? ' on' : ''}`}
                   onClick={(e) => { e.stopPropagation(); setRanksOpen((v) => !v); }}
                   aria-expanded={ranksOpen}
-                  aria-label="How country ranks work"
+                  aria-label={t('pack.stats.countryRanksAria')}
                 >i</button>
                 {ranksOpen && (
                   <span className="comm-ranks" onClick={(e) => e.stopPropagation()}>
                     <span className="comm-pts-eyebrow">{cName} ranks</span>
-                    <span className="comm-pts-note">Earned separately in every country, by trips walked there.</span>
+                    <span className="comm-pts-note">{t('pack.stats.countryRanksNote')}</span>
                     {COUNTRY_TIERS.map((ct) => {
                       const done = cTrails.length >= ct.trips;
                       const isNext = !done && ct.trips === tier.nextAt;
@@ -1779,8 +1796,8 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
         ) : (
           <>
             <div className="comm-worldstats" style={{ gridTemplateColumns: 'repeat(3,1fr)', marginBottom: 16 }}>
-              <div className="comm-wstat"><b>{cTrails.filter((tr) => tr.acts?.includes('hike')).length}</b><span>Hikes</span></div>
-              <div className="comm-wstat"><b>{cTrails.filter((tr) => !tr.acts?.includes('hike')).length}</b><span>Places</span></div>
+              <div className="comm-wstat"><b>{cTrails.filter((tr) => tr.acts?.includes('hike')).length}</b><span>{t('pack.stats.hikes')}</span></div>
+              <div className="comm-wstat"><b>{cTrails.filter((tr) => !tr.acts?.includes('hike')).length}</b><span>{t('pack.stats.places')}</span></div>
               <div className="comm-wstat"><b>{fmtKm(cKm)}</b><span>Km</span></div>
             </div>
             <div className="comm-dash-section-title">Trips in {cName}</div>
@@ -1809,7 +1826,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
                 onClick={() => setJourneysOpen((v) => !v)}
                 aria-expanded={journeysOpen}
               >
-                <span className="comm-cat-name">{c.label}</span>
+                <span className="comm-cat-name">{catName(t, c)}</span>
                 <span className="comm-cat-count">{c.done.length}/{c.total}</span>
                 <span className="comm-drop-chev" />
               </button>
@@ -1848,7 +1865,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
           return (
             <div key={c.key} className="comm-cat">
               <div className="comm-cat-head">
-                  <span className="comm-cat-name">{c.label}</span>
+                  <span className="comm-cat-name">{catName(t, c)}</span>
                 <span className="comm-cat-pct">{c.done.length}/{c.total}</span>
               </div>
               <div className="comm-cat-bar"><div className="comm-cat-fill" style={{ width: `${c.pct}%` }} /></div>
@@ -1882,7 +1899,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
                         </div>
                       ))
                     ) : (
-                      <div className="comm-unit-empty">No trails here yet.</div>
+                      <div className="comm-unit-empty">{t('pack.stats.noTrailsHere')}</div>
                     )}
                     <div className="comm-unit-addrow" onClick={() => onAddTrip(expandedUnit)}>＋ Add a trip here</div>
                   </div>
@@ -1913,7 +1930,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
         return (
           <div key={c.key} className="comm-cat">
             <div className="comm-cat-head">
-              <span className="comm-cat-name">{c.label}</span>
+              <span className="comm-cat-name">{catName(t, c)}</span>
               <span className="comm-cat-count">{c.done.length + extraUnits.length}/{c.total + extraUnits.length}</span>
             </div>
             <div className="comm-medals">
@@ -1946,8 +1963,8 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
          predtým sa nedalo uhádnuť, že sa to dá rozkliknúť. */}
       {cTrails.length === 0 ? (
         <>
-          <div className="comm-dash-section-title">Trips you've walked</div>
-          <div className="comm-empty">Log a walk to start ticking places.</div>
+          <div className="comm-dash-section-title">{t('pack.stats.walkedTitle')}</div>
+          <div className="comm-empty">{t('pack.stats.walkedEmpty')}</div>
         </>
       ) : (
         <>

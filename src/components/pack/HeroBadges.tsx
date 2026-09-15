@@ -153,7 +153,7 @@ export function HeroBadges({ walkedCount }: { walkedCount: number }) {
   return (
     <>
       <div className="comm-dash-section-title" style={{ marginTop: 26, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span>Hero badges</span>
+        <span>{t('pack.stats.heroBadges')}</span>
         <span>{earnedCount}/9</span>
       </div>
       <div className="comm-heroes">

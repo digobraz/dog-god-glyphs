@@ -4006,6 +4006,22 @@ export default function PackMap() {
     setVotes(readVotes());
     setPlans(readPlans());
     setEvents((prev) => { const stored = readEvents(); return stored.length ? stored : prev; });
+    /**
+     * 🔴 ČLENSKÉ VÝLETY TU CHÝBALI (UX audit 14. 9. 2026) — jediná množina, ktorú
+     * post-hydratačný refresh nebral, hoci `packStore` prepisuje `PACK_KEYS.localTrails`
+     * celým obsahom `pack_trips` (`writeJson(PACK_KEYS.localTrails, fromDb)`).
+     *
+     * Prejavilo sa to ako „zapísaný výlet je preč": inicializátor `useState` prečítal
+     * úložisko PRED hydratáciou, takže v prehliadači, kde výlet nevznikol (druhé zariadenie,
+     * vyčistená cache, nový Playwright kontext) ostal state prázdny navždy — dáta v
+     * `localStorage` boli, render ich nemal odkiaľ vziať. Navyše efekt o pár riadkov vyššie
+     * (`writeLocalTrails(localTrails)`) ten zastaraný state pri najbližšej zmene zapísal
+     * SPÄŤ do úložiska, takže sa stiahnutý výlet ešte aj stratil.
+     *
+     * ⚠️ Rozrobený zápis to neprebije: `packStore` pull nad `pack_trips` preskočí, kým je
+     * čo odoslať (`tripsBlocked` = fronta SyncOp alebo nedokončený upload fotiek).
+     */
+    setLocalTrails(readLocalTrails());
   }, [storeEpoch]);
 
   // flow modal (design §A): ponuka hodnotenia po ✓. Zámer wishlistu a inzerát na parťáka
@@ -5276,7 +5292,7 @@ export default function PackMap() {
             ktoré z dvojice je vidieť; render je jeden pre obe šírky. */}
         <span className="trp-mstats2">
           <span><b>{fmtKm(walkedKm)}</b><i>{t('pack.map.statKm')}</i></span>
-          <span><b>{walkedIds.size}</b><i>{t('pack.map.statTrips' + pluralKey(walkedIds.size))}</i></span>
+          <span><b>{walkedCount}</b><i>{t('pack.map.statTrips' + pluralKey(walkedCount))}</i></span>
         </span>
       </span>
     </button>
@@ -5294,7 +5310,7 @@ export default function PackMap() {
           CELÉHO navu, nie jeho položiek. Nepýtal si dosku, pýtal si pilulky. */}
       <button type="button" className="trp-stat-pill" onClick={() => navigate('/pack/map/triplist?tab=stats')} title={t('pack.map.tripStatsTitle')}>
         <img src={ICON('trophy')} alt="" />
-        <b>{walkedIds.size} · {fmtKm(walkedKm)} km</b>
+        <b>{walkedCount} · {fmtKm(walkedKm)} km</b>
       </button>
       {/* Matej 2026-07-27: na mobile (a v kompaktnom desktope) je Triplist LEN ikonka — text
           by rozbil jednoriadkový status. Klikacia plocha, route aj title/aria zostávajú. */}
@@ -5368,8 +5384,15 @@ export default function PackMap() {
 
   // status riadok staty — reálne z lokálneho walked/fav stavu (žiadny mock); allTrails, nech
   // aj prípadný walked toggle na ADD-flow tripe počíta do celkového km (bod 2 + bod 6).
-  const walkedKm = allTrails
-    .filter((tr) => walkedIds.has(tr.id))
+  // 🔴 POČET AJ KM IDÚ Z JEDNEJ MNOŽINY (UX audit 14. 9. 2026). Do opravy brala hlavička
+  // počet zo surového `walkedIds.size` (131) a km hneď vedľa z `allTrails.filter` (69) —
+  // dve čísla vedľa seba z dvoch rôznych množín. Surová množina obsahuje aj ID trás, ktoré
+  // v katalógu už nie sú (premenované/zrušené slugy, starý seed), takže sa počítali do
+  // výletov, ale nie do km. Zvyšok appky (`/pack`, ŠTATISTIKY `PackTriplist.tsx:432`,
+  // `PublicProfile.tsx:93`) počíta cez `allTrails.filter` — hlavička bola jediná výnimka.
+  const walkedTrails = allTrails.filter((tr) => walkedIds.has(tr.id));
+  const walkedCount = walkedTrails.length;
+  const walkedKm = walkedTrails
     .reduce((sum, tr) => sum + (parseFloat(tr.km) || 0), 0);
   const fmtKm = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
