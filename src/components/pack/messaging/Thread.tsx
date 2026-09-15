@@ -21,7 +21,7 @@
 //    CTA). Bezpečnosť má na starosti on, nie appka. Tokeny v `ainubisSkin.ts`.
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
 import { MSG_SKIN_CSS, useMsgSkin } from './msgTheme';
 import { SkinToggle } from './Inbox';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
@@ -53,11 +53,13 @@ export const THREAD_CSS = `
 .msg-thread-head{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 22px) 20px 16px;background:var(--msg-bar);border-bottom:1px solid var(--msg-bar-edge);box-shadow:var(--msg-bar-shadow);flex-shrink:0;}
 .msg-back{flex-shrink:0;width:34px;height:34px;border-radius:50%;background:var(--msg-btn);border:1px solid var(--msg-btn-edge);color:var(--msg-btn-ink);font-size:17px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s,background .15s;}
 .msg-back:hover{border-color:${T.cardEdge};color:var(--msg-title);background:var(--msg-btn-hot);}
-.msg-thread-headtxt{min-width:0;}
+/* flex:1 + min-width:0 — bez toho dlhý štítok výletu na mobile podlezie ovládania vpravo. */
+.msg-thread-headtxt{flex:1 1 auto;min-width:0;}
 /* Meno v hlavičke je IDENTITA -> FONT_TITLE (pri psovi Decorative, to rieši inline štýl). */
 .msg-thread-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:var(--msg-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .msg-thread-sub{font-family:${FONT_UI};font-size:11px;color:var(--msg-dim);margin-top:2px;}
-.msg-tagchip{display:inline-flex;align-items:center;gap:4px;margin-top:5px;font-family:${FONT_TITLE};font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:var(--msg-chip);border:1px solid var(--msg-btn-edge);color:var(--msg-chip-ink);white-space:nowrap;}
+/* max-width + ellipsis: štítok je jeden riadok (nowrap), takže sa musí dať orezať. */
+.msg-tagchip{max-width:100%;overflow:hidden;text-overflow:ellipsis;display:inline-flex;align-items:center;gap:4px;margin-top:5px;font-family:${FONT_TITLE};font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:var(--msg-chip);border:1px solid var(--msg-btn-edge);color:var(--msg-chip-ink);white-space:nowrap;}
 .msg-tagchip--click{cursor:pointer;}
 .msg-tagchip--click:hover{background:var(--msg-chip-hot);border-color:${T.cardEdge};}
 .msg-thread-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:18px 16px;max-width:640px;width:100%;margin:0 auto;display:flex;flex-direction:column;position:relative;z-index:2;}
@@ -85,7 +87,20 @@ export const THREAD_CSS = `
 .msg-bubble.me{background:var(--msg-mine);color:var(--msg-mine-ink);border-color:var(--msg-mine-edge);box-shadow:var(--msg-mine-shadow);}
 .msg-empty{text-align:center;padding:40px 16px;color:var(--msg-dim);font-size:12.5px;font-style:italic;}
 .msg-senderr{flex-shrink:0;max-width:640px;width:100%;margin:0 auto;padding:0 16px 8px;box-sizing:border-box;font-family:${FONT_UI};font-size:11.5px;color:var(--msg-err);}
-.msg-thread-send{flex-shrink:0;display:flex;gap:10px;padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 14px);border-top:1px solid var(--msg-bar-edge);background:var(--msg-bar);max-width:640px;width:100%;margin:0 auto;box-sizing:border-box;position:relative;z-index:2;}
+/* ── PÍSANIE SPRÁVY = LEVITUJÚCI PANEL (Matej 15. 9. 2026) ───────────────────────────
+   „dolný rámik je divný — urob panel s oblými rohmi a levitujúci ako pri spodnom nave,
+   nemusí byť dblok ale nech to je pekne v priestore."
+   Dovtedy to bol pás cez celú šírku s rovnou hornou čiarou (border-top), ktorý sa na
+   širokej obrazovke skončil v strede na 640 px — teda ani pás, ani panel: obdĺžnik
+   s dvoma ostrými rohmi visiaci nad okrajom. Teraz je to plávajúca doska: rám dookola,
+   radius 16, tieň panela a odsadenie od spodnej hrany (safe-area sa PRIPOČÍTAVA k medzere,
+   nie nahrádza). Tapeta pod ním presvitá — o to Matejovi šlo („pekne v priestore").
+   ⚠️ Šírku drží width:calc(100% - 32px), nie padding na rodičovi — pás totiž sedí
+   v stĺpci s max-width 640px a bočné odsadenie musí platiť aj pod tou hranicou. */
+.msg-thread-send{flex-shrink:0;display:flex;gap:10px;align-items:center;padding:12px;
+  border:1px solid var(--msg-bar-edge);border-radius:16px;background:var(--msg-bar);
+  box-shadow:${PACK_SHADOW.panel};max-width:640px;width:calc(100% - 32px);
+  margin:0 auto calc(env(safe-area-inset-bottom,0px) + 14px);box-sizing:border-box;position:relative;z-index:2;}
 /* Písacie pole je v OBOCH šatoch plochá výplň bez gradientu; zaostrenie nesie farbu „mojej"
    strany, teda to isté, čo bublina a tlačidlo. */
 .msg-thread-input{flex:1;background:var(--msg-field);border:1px solid var(--msg-btn-edge);border-radius:999px;padding:11px 16px;color:var(--msg-field-ink);font-family:${FONT_UI};font-size:13px;outline:0;}
@@ -105,7 +120,11 @@ export const THREAD_CSS = `
    FARBU, nie priehľadnosť — a v tmavom šate platí to isté opačne. */
 .msg-sendbtn:disabled{background:var(--msg-off);border-color:var(--msg-btn-edge);box-shadow:none;cursor:default;}
 .msg-sendbtn:disabled img{opacity:.55;}
-.msg-thread-join{flex-shrink:0;padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 16px);border-top:1px solid var(--msg-bar-edge);background:var(--msg-bar);max-width:640px;width:100%;margin:0 auto;box-sizing:border-box;position:relative;z-index:2;}
+/* Pridanie sa do svorky stojí na TOM ISTOM mieste ako písacie pole, takže nesie ten istý
+   tvar — inak by sa spodok obrazovky menil podľa toho, či som členom. */
+.msg-thread-join{flex-shrink:0;padding:12px;border:1px solid var(--msg-bar-edge);border-radius:16px;
+  background:var(--msg-bar);box-shadow:${PACK_SHADOW.panel};max-width:640px;width:calc(100% - 32px);
+  margin:0 auto calc(env(safe-area-inset-bottom,0px) + 14px);box-sizing:border-box;position:relative;z-index:2;}
 /* Geometria z .btn-gold (radius 8, NIE pilulka) — zmena farby nie je povolenie na iný tvar. */
 .msg-joinbtn{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:14px;border-radius:8px;background:var(--msg-mine);color:var(--msg-mine-ink);border:1px solid var(--msg-mine-edge);box-shadow:var(--msg-mine-shadow);cursor:pointer;}
 .msg-joinbtn:hover{background:var(--msg-mine-hover);}
@@ -119,10 +138,22 @@ export const THREAD_CSS = `
    🔑 PRETO SA NEPREPÍNA SO ŠATOM. Je tmavý vždy, aj keď správy svietia nabielo — Ainubis
       má jednu podobu a prepínanie by z nej spravilo motív appky.
    ⚠️ CTA je jeho ZLATO-ORANŽOVÉ, nie lapis (28. 8.: „AINUBIS je výnimka! Je to jeho brand"). */
-.msg-mod{margin-left:auto;flex-shrink:0;width:34px;height:34px;border-radius:50%;background:var(--msg-btn);border:1px solid var(--msg-btn-edge);color:var(--msg-dim);font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s,background .15s;}
+/* Obe ovládania hlavičky v jednom bloku pri pravom okraji (Matej 15. 9. 2026). */
+.msg-thread-acts{margin-left:auto;flex-shrink:0;display:flex;align-items:center;gap:8px;}
+.msg-mod{flex-shrink:0;width:34px;height:34px;border-radius:50%;background:var(--msg-btn);border:1px solid var(--msg-btn-edge);color:var(--msg-dim);font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s,background .15s;}
 .msg-mod:hover{border-color:${T.cardEdge};color:var(--msg-title);background:var(--msg-btn-hot);}
+/* ── PANEL AINUBISA: MOBIL DOLE, PC V STREDE (Matej 15. 9. 2026) ─────────────────────
+   „ten blok dajme do stredu na PC a na spodný okraj na mobile."
+   Dovtedy bol align-items:flex-end bez rozlíšenia, takže aj na 1900 px monitore visel
+   panel na spodnej hrane okna — na mobile je to správny tvar (palec ho dosiahne),
+   na PC je to odrezaný pás pri hrane. Rozhoduje CSS, render je jeden. */
 .msg-modsheet{position:fixed;inset:0;z-index:1400;background:rgba(2,6,11,0.74);display:flex;align-items:flex-end;justify-content:center;}
-.msg-modpanel{width:100%;max-width:460px;background:${A.surface};border:1px solid ${A.edgeStrong};border-bottom:0;border-radius:16px 16px 0 0;box-shadow:${A.panelShadow};padding:18px 20px calc(env(safe-area-inset-bottom,0px) + 20px);box-sizing:border-box;}
+.msg-modpanel{width:100%;max-width:460px;background:${A.surface};border:1px solid ${A.edgeStrong};border-bottom:0;border-radius:16px 16px 0 0;box-shadow:${A.panelShadow};padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 16px);box-sizing:border-box;}
+@media(min-width:600px){
+  .msg-modsheet{align-items:center;padding:24px;}
+  /* V strede okna panel stojí celý, teda má aj spodnú hranu a všetky štyri rohy oblé. */
+  .msg-modpanel{border-bottom:1px solid ${A.edgeStrong};border-radius:16px;padding:16px;max-height:calc(100dvh - 48px);overflow-y:auto;}
+}
 /* Hlava a meno hovoria, KTO to rieši — bez nich je to len tmavý panel bez majiteľa. */
 .msg-modwho{display:flex;align-items:center;gap:11px;margin-bottom:13px;}
 .msg-modface{flex:0 0 auto;width:38px;height:38px;object-fit:contain;border-radius:50%;background:${A.faceBg};box-shadow:${A.faceRing};}
@@ -323,18 +354,23 @@ export function Thread({ convId, onClose, onOpenTrip }: {
             </button>
           )}
         </div>
-        <div className="msg-inbox-acts" style={{ marginLeft: 'auto' }}>
+        {/* ⚠️ PREPÍNAČ ŠATU PATRÍ VPRAVO HORE, NIE DO STREDU (Matej 15. 9. 2026:
+            „prepínač farbnosti daj na pravú stranu hore nie do stredu"). Dovtedy mal
+            vlastný obal s marginLeft:auto a ⋯ za ním svoje — medzi nimi ostala diera
+            a slniečko skončilo opticky v strede lišty. Obe ovládania sú odteraz v JEDNOM
+            bloku úplne vpravo; poradie je slniečko → ⋯, aby sa ⋯ držalo rohu. */}
+        <div className="msg-thread-acts">
           <SkinToggle skin={skin} onToggle={toggleSkin} />
+          {!isGroup && (
+            <button
+              type="button"
+              className="msg-mod"
+              onClick={() => setModView('menu')}
+              aria-label={t('pack.msg.reportBlockAriaLabel')}
+              title={t('pack.msg.reportBlockTitle')}
+            >⋯</button>
+          )}
         </div>
-        {!isGroup && (
-          <button
-            type="button"
-            className="msg-mod"
-            onClick={() => setModView('menu')}
-            aria-label={t('pack.msg.reportBlockAriaLabel')}
-            title={t('pack.msg.reportBlockTitle')}
-          >⋯</button>
-        )}
       </div>
 
       <div className="msg-thread-body">

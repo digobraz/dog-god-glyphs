@@ -159,12 +159,20 @@ export const TRIP_COMMENTS_CSS = `
 .tcm-reportcancel:hover{color:${T.onDark};}
 `;
 
+/**
+ * Hodnotenie POD RECENZIOU — len na čítanie.
+ *
+ * ⚠️ PREPÍSANÉ NA `PawRating` 15. 9. 2026 (Matej: „hodnotenie má byť plné nie obrys").
+ * Dovtedy to bolo päť `BrandIcon name="paw"`, teda 5× OBRYS, kde vybrané od nevybraných
+ * odlišovalo len krytie 1 vs 0,22 — na papyruse rozdiel takmer neviditeľný, takže päťka
+ * a jednotka vyzerali rovnako. `PawRating` má DVA assety (`paw-full` plná · `paw` obrys)
+ * a presnú farbu cez masku, teda presne to, čo tu chýbalo; `readOnly` z neho spraví
+ * `role="img"` bez tlačidiel.
+ */
 function Paws({ rating }: { rating: number }) {
   return (
-    <span className="tcm-paws" aria-label={`${rating} out of 5 paws`}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <BrandIcon key={n} name="paw" size={12} tint="gold" style={{ opacity: n <= rating ? 1 : 0.22 }} />
-      ))}
+    <span className="tcm-paws">
+      <PawRating value={rating} size={12} readOnly />
     </span>
   );
 }
@@ -177,7 +185,8 @@ function Paws({ rating }: { rating: number }) {
 function PawPicker({ value, onChange }: { value: number; onChange: (n: number) => void }) {
   return (
     <div className="tcm-pawpick">
-      <PawRating value={value} onChange={onChange} onDark size={30} />
+      {/* ⚠️ `onDark` ZRUŠENÉ 15. 9. 2026 — popup je papyrusový, svetlá žltá na ňom zanikla. */}
+      <PawRating value={value} onChange={onChange} size={30} />
     </div>
   );
 }

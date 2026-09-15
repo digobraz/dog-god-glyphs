@@ -288,28 +288,37 @@ export function RatingPaws({ stars, size = 15, gap = 4 }: { stars: number; size?
         const fillPct = Math.round(Math.max(0, Math.min(1, rounded - (n - 1))) * 100);
         return (
           <span key={n} style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-            {/* ⚠️ NEVYPLNENÁ ČASŤ SA RIADI PREMENNOU, NIE PEVNÝM FILTROM. Widget stojí na
-                tmavom povrchu (mobil, článok) aj na papyrusovom (karty v ľavom paneli /map
-                na PC) — a `brightness(0) invert(1)` je BIELA, teda na piesku neviditeľná.
-                Vtedy by z päťky ostali len vyplnené labky a stupnica by zanikla: 3,0 a 5,0
-                by vyzerali rovnako. Východisko je biele (tmavý povrch), bledý chrome si
-                premenné prepíše. */}
-            <img
-              src={ICON('paw')}
-              alt=""
+            {/* ⚠️ FARBA IDE MASKOU, NIE FILTROM (15. 9. 2026) — tá istá mechanika, akú má
+                `addtrip/PawRating.tsx` od 27. 7. Filter `hue-rotate` vie farbu len
+                APROXIMOVAŤ, takže packy v článku svietili svetlou žltou a Matej ich na
+                papyruse takmer nevidel („to treba urobiť tmavšie, zlaté"). Maska dá presný hex.
+                ⚠️ POVRCH ROZHODUJE, PRETO SÚ TO PREMENNÉ. Widget stojí na tmavom (mobil,
+                karty) aj na papyrusovom povrchu (článok, ľavý panel /map). Východisko je
+                tmavý povrch — svetlá zlatá a biely obrys; bledý chrome si premenné prepíše
+                (`.pta-root`, `.trp-sidebar`). */}
+            <span
+              aria-hidden
               style={{
                 position: 'absolute', inset: 0, width: size, height: size,
-                filter: 'var(--rp-empty-filter, brightness(0) invert(1))',
-                opacity: 'var(--rp-empty-opacity, 0.28)' as unknown as number,
+                backgroundColor: 'var(--rp-empty, #FFFFFF)',
+                opacity: 'var(--rp-empty-op, 0.28)' as unknown as number,
+                WebkitMaskImage: `url(${ICON('paw')})`, maskImage: `url(${ICON('paw')})`,
+                WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat',
+                WebkitMaskPosition: 'center', maskPosition: 'center',
+                WebkitMaskSize: 'contain', maskSize: 'contain',
               }}
             />
             {fillPct > 0 && (
-              <img
-                src={ICON('paw-full')}
-                alt=""
+              <span
+                aria-hidden
                 style={{
                   position: 'absolute', inset: 0, width: size, height: size,
-                  filter: GOLD_ICON_FILTER, clipPath: `inset(0 ${100 - fillPct}% 0 0)`,
+                  backgroundColor: 'var(--rp-fill, #F5C73D)',
+                  clipPath: `inset(0 ${100 - fillPct}% 0 0)`,
+                  WebkitMaskImage: `url(${ICON('paw-full')})`, maskImage: `url(${ICON('paw-full')})`,
+                  WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat',
+                  WebkitMaskPosition: 'center', maskPosition: 'center',
+                  WebkitMaskSize: 'contain', maskSize: 'contain',
                 }}
               />
             )}

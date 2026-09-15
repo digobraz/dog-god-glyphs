@@ -152,18 +152,23 @@ export function notesForTrail(notes: MapNote[], trail: HeroTrail): MapNote[] {
 }
 
 /**
- * Zápisy pre NÁHĽAD MAPY V ČLÁNKU. Mapa ukazuje aj okolie, takže sa neoreže na
- * trasu — zahodí sa z nej len to, čo pravidlo „jedno parkovisko na výlet"
- * vylúčilo zo zoznamu pod ňou. Inak by na štarte stáli dve 🅿️ na sebe (presne
- * to Matej 15. 9. odfotil) a zoznam by hovoril niečo iné než značka nad ním.
- * Vzdialené parkoviská ostávajú — tie patria iným výletom a mapa je aj o okolí.
+ * Zápisy pre NÁHĽAD MAPY V ČLÁNKU.
+ *
+ * 🅿️ **V NÁHĽADE JE PRÁVE JEDNO PARKOVISKO — TO, KTORÉ PATRÍ TOMUTO VÝLETU.**
+ * Matej 15. 9. 2026 (druhé kolo): „na obrázku môžeš vidieť PARKOVISKÁ — v tomto
+ * náhľade sme sa dohodli že bude vidno len parkovisko prislušné na výlet."
+ *
+ * ⚠️ Ranná verzia nechávala VZDIALENÉ parkoviská s odôvodnením „patria iným výletom
+ * a mapa je aj o okolí" — na výreze okolo Smoleníc z toho boli ŠTYRI modré 🅿️,
+ * z ktorých tri vedú inam. Náhľad je ilustrácia JEDNÉHO výletu, nie mapa kraja;
+ * kto chce okolie, otvorí `/pack/map`. Cudzie parkoviská preto padajú všetky.
+ *
+ * Ostatné druhy zápisov (upozornenia, tipy, komentáre) sa NEOREZÁVAJÚ — o tých
+ * reč nebola a v okolí trasy dávajú zmysel.
  */
 export function notesForTripMap(notes: MapNote[], trail: HeroTrail): MapNote[] {
   const park = parkingForTrail(notes, trail);
-  return notes.filter((n) => {
-    if (n.kind !== 'parking' || n.id === park?.id) return true;
-    return !noteBelongsToTrail(n, trail);   // mimo dosahu ⇒ patrí inam, nechaj ho
-  });
+  return notes.filter((n) => n.kind !== 'parking' || n.id === park?.id);
 }
 
 /**

@@ -2181,7 +2181,9 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-sidebar .trp-tagdd-chevron{opacity:.55;}
 
   /* Nevyplnená časť labiek v hodnotení — na papyruse tmavá, nie biela (viď RatingPaws). */
-  .trp-sidebar{--rp-empty-filter:brightness(0);--rp-empty-opacity:0.20;}
+  /* Packy na papyruse: presná brandová zlatá maskou (15. 9. 2026) — staré
+     --rp-empty-filter/-opacity zanikli spolu s filtrom vo RatingPaws. */
+  .trp-sidebar{--rp-fill:#A3782B;--rp-empty:#A3782B;--rp-empty-op:0.28;}
 
   /* Rozbaľovacie panely hlavičky (návrhy miest, výber tagov) — úroveň 4 matrice (PANEL). */
   .trp-topbar .trp-mapsug,

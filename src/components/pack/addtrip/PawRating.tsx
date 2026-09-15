@@ -43,7 +43,11 @@ import { PACK_THEME as T } from '@/components/pack/packTheme';
 import { useT } from '@/i18n/LanguageContext';
 
 const GOLD_ON_DARK = '#F5C73D'; // CLAUDE.md gold-cta-bg-rule — tmavé pozadie
-const GOLD_ON_LIGHT = T.accentGold; // '#C99A3F' — bledé pozadie
+// ⚠️ STMAVENÉ 15. 9. 2026 (Matej: „pridaj hodnotenie takmer nie je vidno tá žltá…
+// to treba urobiť tmavšie, zlaté"). Bolo `T.accentGold` #C99A3F — na papyrusovej doske
+// je to len o odtieň tmavšie než podklad, takže packy splývali. Nová hodnota je SPODOK
+// tej istej brandovej rampy (`BRAND_GOLD_BTN.grad` končí presne na #A3782B), nie nová farba.
+const GOLD_ON_LIGHT = '#A3782B'; // bledé pozadie — tmavý koniec brandovej zlatej
 
 const PACKS = [1, 2, 3, 4, 5];
 

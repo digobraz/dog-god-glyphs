@@ -955,7 +955,11 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
           </div>
         ) : null}
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <PawRating value={rating} onChange={setRating} onDark size={40} />
+          {/* ⚠️ `onDark` ZRUŠENÉ 15. 9. 2026 — popup je od prezlečenia do bledého šatu
+              PAPYRUSOVÝ, ale packy si stále brali svetlú `#F5C73D` pre tmavé pozadie a na
+              piesku takmer zanikli (Matej: „pridaj hodnotenie takmer nie je vidno tá žltá").
+              Prop ostáva v komponente pre povrchy, ktoré tmavé naozaj sú. */}
+          <PawRating value={rating} onChange={setRating} size={40} />
         </div>
       </div>
       {reward && <WalkRewardBlock trailName={trailName} reward={reward} ratingPoints={rewardPoints} />}

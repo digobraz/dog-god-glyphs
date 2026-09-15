@@ -181,7 +181,10 @@ const CSS = `
    ⚠️ .pta-root už NEMÁ vlastné pozadie ani min-height — oboje nesie .pk-paper.
       Dve plochy nad sebou by znamenali dva podklady a tapeta by sa stratila pod
       neprieshľadným potomkom. */
-.pta-root{color:${T.inkStrong};font-family:${FONT_UI};position:relative;padding-bottom:100px;}
+/* Packy hodnotenia na papyruse — presná brandová zlatá (15. 9. 2026, Matej: „to treba
+   urobiť tmavšie, zlaté"). Východisko RatingPaws je tmavý povrch (svetlá zlatá, biely
+   obrys); článok je pieskový, takže si premenné prepisuje. */
+.pta-root{color:${T.inkStrong};font-family:${FONT_UI};position:relative;padding-bottom:100px;--rp-fill:#A3782B;--rp-empty:#A3782B;--rp-empty-op:0.28;}
 /* §16 (2026-07-23): fotka je VNÚTRI rámika (.pta-shell) — full-bleed hore, zaoblené rohy
    dedí z rámika (overflow:hidden). Už NIE samostatná karta + rámik pod ňou, ale fotka v rámiku.
    2026-09-01: rámik prestal byť tmavý .pk-glass a stal sa papyrusovou KARTOU — úroveň 1

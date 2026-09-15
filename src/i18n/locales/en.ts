@@ -2967,7 +2967,7 @@ export const en = {
   'pack.msg.sendMessageAriaLabel': "Send message",
   'pack.msg.joinTripPack': "Join the pack on this trip",
   'pack.msg.joinPack': "Join this pack",
-  'pack.msg.modMenuExplain': "Blocking is instant and works both ways — neither of you can write to the other. Reporting sends the thread to Matej, who reads it himself.",
+  'pack.msg.modMenuExplain': "Blocking is instant and works both ways — neither of you can write to the other. Reporting punishes no one: the thread goes quietly to the pack's keepers, who step in only if there is something to sort out.",
   'pack.msg.reportConversation': "Report this conversation",
   'pack.msg.blocking': "Blocking…",
   'pack.msg.blockButton': "Block {name}",
@@ -2991,7 +2991,7 @@ export const en = {
   // Blokovanie sa tu NEDUPLIKUJE — `pack.msg.blocking` a `pack.msg.blockButton` už
   // existujú pre vetvu `menu` a tá istá dvojica sa používa aj tu.
   'pack.msg.reportSentTitle': "Report sent",
-  'pack.msg.reportSentBody': "Matej reads every report himself. If this person is bothering you, block them too — that takes effect right away.",
+  'pack.msg.reportSentBody': "Thank you. We read every thread that comes in and get back to you if it needs sorting out. If this person keeps bothering you, block them too — that takes effect right away.",
   'pack.msg.done': "Done",
   'pack.community.closeAriaLabel': "Close",
   'pack.community.pawsAriaLabel': "{n} paws",
@@ -3004,7 +3004,7 @@ export const en = {
   'pack.community.commentLabel': "Comment (optional)",
   'pack.community.commentPlaceholder': "Muddy after rain, great off-leash stretch near the top…",
   'pack.community.updateVoteBtn': "Update my vote",
-  'pack.community.logWalkBtn': "Log this walk",
+  'pack.community.logWalkBtn': "Log this trip",
   // 2026-08-05: číslo vyšlo z nadpisu von do béžovej pilulky nad labkami (Matej: „to rate it
   // +3? je úplne stratené"). Nadpis ostal vetou — bez `{n}`.
   'pack.community.rateRewardTitle': "Rate it and earn points",
