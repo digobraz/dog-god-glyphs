@@ -1,5 +1,16 @@
 // GPX SÚBORY VÝLETOV DO `public/gpx/` — aby trasa mala VEREJNÝ ODKAZ.
 //
+// 🛑 ZAPARKOVANÉ 15. 9. 2026 — SKRIPT JE HOTOVÝ, ALE NEPÚŠŤA SA. Pilot na jednom výlete
+// (Matej: „vyskušajme to najprv na jednom vylete… a ak hej aplikuješ to na každú") skončil
+// na ŠTYROCH stenách za sebou: trasa sa do URL Mapy.com vložiť nedá · import GPX na ich webe
+// je za prihlásením („Logging in will give you access to view GPX routes directly on the map")
+// · na telefóne sa súbor najprv zobrazil ako XML a po oprave hlavičky sa zastavil na sťahovaní
+// („nejde mi to chce niečo stiahnuť") · a aj po dotiahnutí by čakal ich účet. Posielať člena,
+// ktorý práve zaplatil za heroglyf, zakladať si účet na Sezname = odbočka z našej appky do
+// cudzej. Trasu preto naďalej kreslí NAŠA mapa v /pack; GPX ostáva ako tlačidlo pre toho, kto
+// si ju vedome chce odniesť do Locusu či Garminu.
+// Oživiť má zmysel LEN vtedy, keď Mapy.com import bez účtu otvoria.
+//
 // Prečo vôbec: Mapy.com **nevedia prijať trasu v URL** (overené 13. aj 15. 9. 2026 na troch
 // tvaroch — viď hlavičku `components/pack/tripNav.ts`). Import GPX majú len tri cesty:
 // pretiahnutie do mapy, Nástroje → Import GPX, a na telefóne OTVORENIE SÚBORU v aplikácii.
