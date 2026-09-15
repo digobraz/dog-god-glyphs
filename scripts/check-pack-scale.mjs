@@ -22,10 +22,14 @@ const BASE = new URL('./check-pack-scale.baseline.json', import.meta.url).pathna
 /* ── SADA (zdroj pravdy = components/pack/packTheme.ts) ───────────────────── */
 const R_OK = new Set([0, 1, 2, 8, 12, 14, 16, 50, 999]); //  1/2 = hairline triky, 50 = kruh
 const T_OK = new Set([10, 12, 14, 16, 20, 24]);
-const S_OK = new Set([0, 4, 8, 12, 16, 24]);             // PACK_SPACE
-/* PACK_HEAD má DVA tvary: karta .14em · sekcia .22em. `.02em` je pilulka dní
- * (lock 12. 9., zdroj PackTree.tsx). Iná hodnota = tretí tvar nadpisu. */
-const LS_OK = new Set([0, 0.02, 0.14, 0.22]);
+/* PACK_SPACE — 15. 9. 2026 pribudli 32 a 48 (Matejov výber). Kód po veľkých
+ * medzerách siahal aj predtým (44/46/48), len si ich vymýšľal zakaždým nanovo. */
+const S_OK = new Set([0, 4, 8, 12, 16, 24, 32, 48]);
+/* PACK_HEAD má TRI tvary: karta .14em · sekcia .22em · štítok .26em.
+ * `.02em` je pilulka dní (lock 12. 9., zdroj PackTree.tsx).
+ * ⚠️ `.26em` nie je úľava — rozsudzuje rozpor v brand locku, ktorý pre eyebrow
+ * predpisoval .22em (r. 36) aj .26em (r. 112). Iná hodnota = štvrtý tvar. */
+const LS_OK = new Set([0, 0.02, 0.14, 0.22, 0.26]);
 
 /* ── ČO STRÁŽ NEKONTROLUJE (a prečo) ─────────────────────────────────────────
  * Nie je to amnestia na nepodarky — sú to povrchy s VLASTNÝM, zapísaným systémom. */

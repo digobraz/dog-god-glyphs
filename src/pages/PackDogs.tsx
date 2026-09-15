@@ -178,7 +178,7 @@ const HUB_CSS = `
   border-radius:8px;
   color:#000;
   font-family:'Cinzel',serif; font-size:12px; font-weight:800;
-  letter-spacing:.12em; text-transform:uppercase;
+  letter-spacing:0.14em; text-transform:uppercase;
   cursor:pointer; white-space:nowrap; text-decoration:none;
   box-shadow:0 0 28px rgba(230,158,26,0.34), inset 0 1px 0 rgba(255,255,255,0.3);
   transition: transform .2s, box-shadow .22s;
@@ -270,7 +270,7 @@ const HUB_CSS = `
 .dogblk-pills{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 /* Rozmery pilulky žijú TU, nie v inline štýle komponentu — inline by triedu prebil
    a mobilné zmenšenie by ticho nezabralo. */
-.dogblk-pill{ padding:4px 12px; font-size:10px; letter-spacing:.12em; }
+.dogblk-pill{ padding:4px 12px; font-size:10px; letter-spacing:0.14em; }
 /* Dni majú vlastnú veľkosť — sú to hlavné číslo bloku, nie tag. Hodnota z PackTree,
    aby bol ten istý údaj rovnako veľký aj rovnako farebný. */
 .dogblk-days{ padding:4px 12px; font-size:12px; }
@@ -301,7 +301,7 @@ const HUB_CSS = `
 .dogblk-poster{ opacity:.88; transition:transform .2s ease, opacity .2s ease; }
 .hub-hover:hover .dogblk-poster{ transform:translateX(3px); opacity:1; }
 .dogblk-railcap{
-  font-family:${FONT_TITLE}; font-weight:800; font-size:10px; letter-spacing:.16em;
+  font-family:${FONT_TITLE}; font-weight:800; font-size:10px; letter-spacing:0.22em;
   text-transform:uppercase; color:${T.inkStrong}; white-space:nowrap;
 }
 /* Progres = pilulka NAD posterom (Matej 12.8.). Percento je ÚDAJ, takže Space Grotesk
@@ -321,7 +321,7 @@ const HUB_CSS = `
   padding:4px 8px; border-radius:999px; white-space:nowrap;
   background:${T.alertRed}; color:#FDECE7;
   font-family:${FONT_UI}; font-weight:600;
-  font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+  font-size:10px; letter-spacing:0.02em; text-transform:uppercase;
   box-shadow:0 4px 12px rgba(178,86,64,0.4);
 }
 .dogblk-fill.is-done{ background:${T.growGreen}; color:#EAF7ED; box-shadow:0 4px 12px rgba(61,122,78,0.4); }
@@ -368,11 +368,11 @@ const HUB_CSS = `
   .dogblk-name{ font-size:clamp(14px, calc(100cqw / (var(--len,7) * 0.86)), 36px); }
   /* O chlp menšie než predtým: stredný stĺpec sa zúžil kvôli väčšej lište a rad
      „3 736 DNÍ + SK" sa doň pri pôvodných rozmeroch nezmestil na jeden riadok. */
-  .dogblk-pill{ padding:4px 8px; font-size:10px; letter-spacing:.05em; }
+  .dogblk-pill{ padding:4px 8px; font-size:10px; letter-spacing:0.02em; }
   .dogblk-days{ padding:4px 8px; font-size:10px; }
   .dogblk-rail{ padding-left:12px; gap:4px; }
-  .dogblk-railcap{ font-size:10px; letter-spacing:.1em; }
-  .dogblk-fill{ min-width:58px; font-size:10px; padding:4px 8px; letter-spacing:.04em; }
+  .dogblk-railcap{ font-size:10px; letter-spacing:0.14em; }
+  .dogblk-fill{ min-width:58px; font-size:10px; padding:4px 8px; letter-spacing:0.02em; }
 }
 /* Úzke telefóny (iPhone SE 375, staršie 360): ustupuje odsadenie karty a medzery,
    meno a glyf nie. */
@@ -426,7 +426,7 @@ const HUB_CSS = `
   border-bottom:1px solid rgba(6,58,54,0.35);
   box-shadow:0 6px 18px rgba(0,0,0,0.28);
   color:#F2FFFD; font-family:'Cinzel',serif; font-weight:800;
-  font-size:10px; letter-spacing:.24em; text-transform:uppercase;
+  font-size:10px; letter-spacing:0.22em; text-transform:uppercase;
 }
 /* Chipy — tmavé sklo, nie papyrusové pilulky: ležia na fotke, takže potrebujú
    vlastný podklad. Šírka podľa obsahu, vedľa seba. */
@@ -440,7 +440,7 @@ const HUB_CSS = `
 /* CTA a meta vedľa seba na jednom riadku — spodok karty je úzky pruh, stĺpec pod
    tlačidlom by ho zbytočne predĺžil. */
 .hub-cta{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
-.hub-gold.is-big{ padding:16px 24px; font-size:12px; letter-spacing:.13em; }
+.hub-gold.is-big{ padding:16px 24px; font-size:12px; letter-spacing:0.14em; }
 /* Druhá akcia karty (SPRAVIŤ ZNOVA / POZRIEŤ VÝSLEDOK vedľa zlatého). Tmavé sklo
    ako chipy vyššie — na vitráži je to jediný podklad, ktorý drží text čitateľný,
    a zároveň je jasné, že hlavná akcia je tá zlatá. */
@@ -450,7 +450,7 @@ const HUB_CSS = `
   background:rgba(8,5,2,0.55); border:1px solid rgba(255,236,190,0.42);
   backdrop-filter:blur(6px);
   color:#FFF3DA; font-family:'Cinzel',serif; font-size:12px; font-weight:700;
-  letter-spacing:.12em; text-transform:uppercase;
+  letter-spacing:0.14em; text-transform:uppercase;
   cursor:pointer; white-space:nowrap; text-decoration:none;
   transition: transform .2s, background .2s, border-color .2s;
 }
@@ -478,7 +478,7 @@ const HUB_CSS = `
      pod sebou vyzerajú ako nedorobený rad. */
   .hub-ghost{ width:100%; padding:12px 16px; white-space:normal; }
   .hub-cta{ gap:12px; }
-  .hub-ribbon{ top:16px; right:-58px; width:184px; letter-spacing:.2em; }
+  .hub-ribbon{ top:16px; right:-58px; width:184px; letter-spacing:0.22em; }
 }
 `;
 
@@ -1231,7 +1231,7 @@ function NatureHero({
           className="hub-hero-title"
           style={{
             fontFamily: FONT_TITLE, fontWeight: 700, lineHeight: 1.08,
-            letterSpacing: '0.04em', textTransform: 'uppercase', color: '#FFF6E2',
+            letterSpacing: '0.02em', textTransform: 'uppercase', color: '#FFF6E2',
             // Bez radu chipov pod nadpisom si medzeru k tlačidlám musí urobiť nadpis sám.
             // Rad je preč pri sólo odpovedi v nadpise AJ pri hotovej svorke (od 22.8.) —
             // podmienka teda musí byť tá istá ako pri chipoch, inak nadpis dosadne na CTA.
@@ -1308,7 +1308,7 @@ function NatureHero({
               )}
               <div
                 style={{
-                  fontFamily: FONT_UI, fontSize: PACK_TEXT.micro, letterSpacing: '0.1em',
+                  fontFamily: FONT_UI, fontSize: PACK_TEXT.micro, letterSpacing: '0.14em',
                   textTransform: 'uppercase', color: 'rgba(255,246,226,0.62)',
                   textShadow: '0 2px 10px rgba(0,0,0,0.8)',
                 }}
@@ -1340,7 +1340,7 @@ function RevealChip({ label }: { label: string }) {
       <b
         style={{
           fontFamily: FONT_TITLE, fontWeight: 700, fontSize: PACK_TEXT.label, lineHeight: 1.2,
-          letterSpacing: '0.08em', textTransform: 'uppercase', color: '#FFF3DA',
+          letterSpacing: '0.02em', textTransform: 'uppercase', color: '#FFF3DA',
         }}
       >
         {label}
@@ -1386,7 +1386,7 @@ function ActionTile({
       <div style={{ fontSize: 20, lineHeight: 1 }}>{section.emoji}</div>
       <h4
         style={{
-          fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, letterSpacing: '0.1em',
+          fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, letterSpacing: '0.14em',
           textTransform: 'uppercase', color: T.inkStrong, margin: '8px 0 4px',
         }}
       >
@@ -1398,7 +1398,7 @@ function ActionTile({
       <span
         style={{
           display: 'inline-block', marginTop: PACK_SPACE.sm, fontFamily: FONT_UI, fontSize: PACK_TEXT.micro,
-          letterSpacing: '0.1em', textTransform: 'uppercase', borderRadius: PACK_R.pill, padding: '4px 8px',
+          letterSpacing: '0.14em', textTransform: 'uppercase', borderRadius: PACK_R.pill, padding: '4px 8px',
           // HOTOVO = ZELENÁ (Matej 12. 9. 2026: „pri tých 6 blokoch… sú opäť oranžové pils,
           // daj ich zelenou ak sú hotové"). Zelená znamená v brande SPLNENÉ a tú istú nesie
           // pilulka percenta v psom bloku (`.dogblk-fill.is-done`, #3D7A4E) — je to teda ten
@@ -1434,7 +1434,7 @@ function MediaTile({ section, tx }: { section: QuizSection; tx: Tx }) {
       <div style={{ minWidth: 0 }}>
         <h4
           style={{
-            fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, letterSpacing: '0.1em',
+            fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, letterSpacing: '0.14em',
             textTransform: 'uppercase', color: T.inkStrong, margin: '0 0 4px',
           }}
         >
@@ -1446,7 +1446,7 @@ function MediaTile({ section, tx }: { section: QuizSection; tx: Tx }) {
         <span
           style={{
             display: 'inline-block', marginTop: PACK_SPACE.sm, fontFamily: FONT_UI, fontSize: PACK_TEXT.micro,
-            letterSpacing: '0.1em', textTransform: 'uppercase', borderRadius: PACK_R.pill, padding: '4px 8px',
+            letterSpacing: '0.14em', textTransform: 'uppercase', borderRadius: PACK_R.pill, padding: '4px 8px',
             background: 'rgba(201,154,63,0.10)',
             border: `1px solid ${T.border}`,
             color: T.inkWarm,
@@ -1511,7 +1511,7 @@ function AinubisBlock({ tx }: { tx: Tx }) {
         </h4>
         <div
           style={{
-            fontFamily: FONT_UI, fontWeight: 500, fontSize: PACK_TEXT.label, letterSpacing: '0.06em',
+            fontFamily: FONT_UI, fontWeight: 500, fontSize: PACK_TEXT.label, letterSpacing: '0.02em',
             color: '#5BE0F0', margin: '8px 0 4px',
           }}
         >
@@ -1532,7 +1532,7 @@ function AinubisBlock({ tx }: { tx: Tx }) {
       <span
         style={{
           fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 10,
-          letterSpacing: '0.2em', textTransform: 'uppercase', whiteSpace: 'nowrap',
+          letterSpacing: '0.22em', textTransform: 'uppercase', whiteSpace: 'nowrap',
           color: '#5BE0F0', background: 'rgba(91,224,240,0.08)',
           border: '1px solid rgba(91,224,240,0.35)', borderRadius: 999, padding: '8px 16px',
         }}

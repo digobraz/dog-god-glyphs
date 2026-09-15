@@ -133,7 +133,7 @@ const GOLD_BTN: React.CSSProperties = {
   fontSize: 14,
   border: '1px solid rgba(250,244,236,.30)',
   borderRadius: 8,
-  padding: '11px 18px',
+  padding: '12px 16px',
   cursor: 'pointer',
 };
 
@@ -178,7 +178,7 @@ function Wordmark({ size = 13 }: { size?: number }) {
   return (
     <span style={{
       fontFamily: "'Cinzel',serif", fontWeight: 700,
-      fontSize: size, letterSpacing: '.30em', textIndent: '.30em',
+      fontSize: size, letterSpacing: '0.26em', textIndent: '.30em',
       textTransform: 'uppercase', whiteSpace: 'nowrap',
     }}>
       <span style={{ color: CY, fontWeight: 900, fontSize: '1.16em', textShadow: `0 0 18px rgba(91,224,240,.75)` }}>AI</span>
@@ -216,7 +216,7 @@ function CoachCard({ children }: { children: React.ReactNode }) {
       background: 'linear-gradient(180deg,#071019 0%,#03070C 100%)',
       border: '1px solid rgba(91,224,240,.30)',
       borderRadius: 14,
-      padding: '15px 17px 16px',
+      padding: '16px 16px 16px',
       boxShadow: '0 20px 60px rgba(0,0,0,.7), 0 0 0 1px rgba(91,224,240,.10), 0 0 44px rgba(59,158,255,.20)',
       animation: 'wiz-in 0.3s ease',
       maxWidth: 480,
@@ -405,7 +405,7 @@ export function PackWizard({ primaryDogId, primaryDogName }: PackWizardProps) {
           position: 'fixed', inset: 0, zIndex: 90,
           background: 'radial-gradient(120% 80% at 50% 34%, #0c1c2b 0%, #030A12 46%, #01050A 100%)',
           display: 'flex', flexDirection: 'column',
-          padding: '48px 28px 44px',
+          padding: '48px 32px 48px',
           animation: 'wiz-in 0.4s ease',
           overflowY: 'auto',
         }}>

@@ -136,11 +136,11 @@ export function PlanAskCard() {
 
   const btnBase: React.CSSProperties = {
     borderRadius: 8,
-    padding: '10px 14px',
+    padding: '12px 16px',
     fontFamily: FONT_TITLE,
     fontSize: 11,
     fontWeight: 700,
-    letterSpacing: '0.1em',
+    letterSpacing: '0.14em',
     textTransform: 'uppercase',
     cursor: 'pointer',
     whiteSpace: 'nowrap',
@@ -170,7 +170,7 @@ export function PlanAskCard() {
     const base: React.CSSProperties = {
       ...btnBase,
       flex: '1 1 0',
-      padding: '8px 10px',
+      padding: '8px 12px',
       fontSize: 10,
       background: 'transparent',
       border: `1px solid ${T.border}`,
@@ -188,7 +188,7 @@ export function PlanAskCard() {
   const input: React.CSSProperties = {
     width: '100%',
     marginTop: 8,
-    padding: '9px 10px',
+    padding: '8px 12px',
     borderRadius: 8,
     border: '1px solid rgba(179,130,45,0.55)',
     background: T.card,

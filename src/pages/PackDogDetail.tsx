@@ -73,18 +73,18 @@ const DOGID_CSS = `
    pilulky na homepage a v profile — DNA nesie .pk-pill, tu je len typografia a
    rozostupy. */
 .did-head{display:flex;flex-direction:column;align-items:center;margin-bottom:16px;}
-.did-idpill{font-family:'Cinzel',serif;font-weight:700;font-size:11px;letter-spacing:.28em;text-transform:uppercase;padding:6px 18px;}
+.did-idpill{font-family:'Cinzel',serif;font-weight:700;font-size:11px;letter-spacing:0.26em;text-transform:uppercase;padding:8px 16px;}
 /* Poradové číslo = ČÍSLO ⇒ Space Grotesk 600 (strop načítanej váhy), nie Cinzel —
    pravidlo pilulky z packTheme.ts: názov Cinzel, číslo Grotesk. */
 /* Výška 30px je spoločná pre všetky TRI čipy v rade (číslo · vlajka · zdravie) —
    inak je jeden o 6 px vyšší a rad vyzerá nedbalo. Preto pevná výška, nie padding. */
-.did-numpill{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.02em;height:30px;padding:0 13px;}
+.did-numpill{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.02em;height:30px;padding:0 12px;}
 
 /* fotka = KRUH so zlatým prsteňom (ako na certifikáte a na GRIDE) */
 .did-photoframe{position:relative;display:block;width:136px;height:136px;border-radius:50%;overflow:hidden;padding:0;background:${T.bg};border:2px solid ${T.accentGold};box-shadow:0 0 0 1px rgba(201,154,63,.45),0 10px 26px rgba(201,154,63,.24);}
 
 .did-main{margin-top:14px;width:100%;}
-.did-name{font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;font-size:clamp(24px,4.4vw,34px);line-height:1.05;letter-spacing:.03em;text-transform:uppercase;color:${T.ink};overflow-wrap:anywhere;}
+.did-name{font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;font-size:clamp(24px,4.4vw,34px);line-height:1.05;letter-spacing:0.02em;text-transform:uppercase;color:${T.ink};overflow-wrap:anywhere;}
 .did-chips{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:9px;margin-top:12px;}
 .did-health{width:150px;flex:0 0 auto;}
 
@@ -663,7 +663,7 @@ export default function PackDogDetail() {
       <PackLayout>
         <div className="flex items-center justify-center py-16" style={{ color: T.inkDim }}>
           <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.28em', fontSize: 11 }}>
+          <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.26em', fontSize: 11 }}>
             {t('pack.dog.loading')}
           </span>
         </div>
@@ -810,7 +810,7 @@ export default function PackDogDetail() {
               background: T.cardGrad,
               border: `1.5px solid ${T.cardEdge}`,
               borderRadius: 16,
-              padding: '18px 20px 22px',
+              padding: '16px 24px 24px',
               boxShadow: T.cardShadow,
             }}
           >
@@ -880,7 +880,7 @@ export default function PackDogDetail() {
                    pozvanie nesie IKONKA, nie nové anglické slovo v 16 jazykoch. */
                 <div
                   className="flex flex-col items-center justify-center h-full"
-                  style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.2em', gap: 4 }}
+                  style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.22em', gap: 4 }}
                 >
                   <Camera className="h-4 w-4" aria-hidden="true" />
                   {t('pack.dog.noPhoto')}
@@ -1066,7 +1066,7 @@ export default function PackDogDetail() {
                   borderRadius: 10,
                   fontFamily: "'Cinzel', serif",
                   fontSize: 9.5,
-                  letterSpacing: '0.18em',
+                  letterSpacing: '0.22em',
                   textTransform: 'uppercase',
                   fontWeight: 700,
                   color: T.ink,
@@ -1125,7 +1125,7 @@ export default function PackDogDetail() {
                       border: 'none',
                       fontFamily: "'Cinzel', serif",
                       fontSize: 8.5,
-                      letterSpacing: '0.2em',
+                      letterSpacing: '0.22em',
                       textTransform: 'uppercase',
                       fontWeight: 700,
                       color: hasPdfs ? T.inkFaint : T.accentGold,
@@ -1153,7 +1153,7 @@ export default function PackDogDetail() {
                   borderRadius: 10,
                   fontFamily: "'Cinzel', serif",
                   fontSize: 9.5,
-                  letterSpacing: '0.18em',
+                  letterSpacing: '0.22em',
                   textTransform: 'uppercase',
                   fontWeight: 700,
                   color: T.ink,
@@ -1182,11 +1182,11 @@ export default function PackDogDetail() {
                     background: T.ink,
                     color: T.card,
                     border: 'none',
-                    padding: '9px 14px',
+                    padding: '8px 16px',
                     borderRadius: 10,
                     fontFamily: "'Cinzel', serif",
                     fontSize: 9.5,
-                    letterSpacing: '0.18em',
+                    letterSpacing: '0.22em',
                     textTransform: 'uppercase',
                     fontWeight: 700,
                     cursor: 'pointer',
@@ -1242,7 +1242,7 @@ export default function PackDogDetail() {
                   background: T.panelGrad,
                   border: `1.5px solid ${T.cardEdge}`,
                   borderRadius: 14,
-                  padding: '24px 22px',
+                  padding: '24px 24px',
                   maxWidth: 360,
                   width: '90vw',
                   boxShadow: T.panelShadow,
@@ -1284,14 +1284,14 @@ export default function PackDogDetail() {
                     onClick={() => setWallOpen(false)}
                     disabled={messageSaving}
                     style={{
-                      padding: '9px 18px',
+                      padding: '8px 16px',
                       borderRadius: 10,
                       background: 'transparent',
                       border: `1px solid ${T.hairline}`,
                       color: T.inkDim,
                       fontFamily: "'Cinzel', serif",
                       fontSize: 10,
-                      letterSpacing: '0.18em',
+                      letterSpacing: '0.22em',
                       textTransform: 'uppercase',
                       fontWeight: 700,
                       cursor: messageSaving ? 'default' : 'pointer',
@@ -1308,11 +1308,11 @@ export default function PackDogDetail() {
                       background: messageDirty ? T.ink : 'transparent',
                       color: messageDirty ? T.card : T.inkFaint,
                       border: messageDirty ? 'none' : `1px solid ${T.hairline}`,
-                      padding: '9px 18px',
+                      padding: '8px 16px',
                       borderRadius: 10,
                       fontFamily: "'Cinzel', serif",
                       fontSize: 10,
-                      letterSpacing: '0.18em',
+                      letterSpacing: '0.22em',
                       textTransform: 'uppercase',
                       fontWeight: 700,
                       cursor: messageDirty ? 'pointer' : 'default',
@@ -1502,7 +1502,7 @@ function StatsCalendar({ birthMonth, birthDay }: { birthMonth: number | null; bi
               flexShrink: 0,
               fontFamily: "'Cinzel', serif",
               fontSize: 9,
-              letterSpacing: '0.08em',
+              letterSpacing: '0.02em',
               textTransform: 'uppercase',
               color: T.inkFaint,
             }}
@@ -1538,7 +1538,7 @@ function StatsLegend({ onAdd }: { onAdd: () => void }) {
         style={{
           fontFamily: "'Cinzel', serif",
           fontSize: 10,
-          letterSpacing: '0.28em',
+          letterSpacing: '0.26em',
           textTransform: 'uppercase',
           color: T.inkDim,
           marginBottom: 2,
@@ -1623,7 +1623,7 @@ function NumberPill({ number, since }: { number: string; since: string }) {
             left: '50%',
             transform: 'translateX(-50%)',
             whiteSpace: 'nowrap',
-            padding: '9px 15px',
+            padding: '8px 16px',
             borderRadius: 10,
             background: T.ink,
             color: T.card,
@@ -1655,7 +1655,7 @@ function BestLifeBadge({ age }: { age: DogAge }) {
         onClick={() => setOpen((v) => !v)}
         aria-label={t('pack.dog.ariaShowAgeDetail')}
         style={{
-          padding: '5px 14px',
+          padding: '4px 16px',
           borderRadius: 999,
           background: 'linear-gradient(180deg, #F5C73D 0%, #E69E1A 100%)',
           color: '#3d1f00',
@@ -1679,7 +1679,7 @@ function BestLifeBadge({ age }: { age: DogAge }) {
             left: '50%',
             transform: 'translateX(-50%)',
             whiteSpace: 'nowrap',
-            padding: '9px 15px',
+            padding: '8px 16px',
             borderRadius: 10,
             background: T.ink,
             color: T.card,
@@ -1712,7 +1712,7 @@ function AngelBadge({ days, sinceLabel }: { days: number; sinceLabel: string | n
         onClick={() => setOpen((v) => !v)}
         aria-label={t('pack.dog.inAngelForm')}
         style={{
-          padding: '5px 14px',
+          padding: '4px 16px',
           borderRadius: 999,
           background: 'linear-gradient(180deg, #F4F6FB 0%, #D9DEE8 100%)',
           color: '#3a4256',
@@ -1737,7 +1737,7 @@ function AngelBadge({ days, sinceLabel }: { days: number; sinceLabel: string | n
             left: '50%',
             transform: 'translateX(-50%)',
             whiteSpace: 'nowrap',
-            padding: '9px 15px',
+            padding: '8px 16px',
             borderRadius: 10,
             background: T.ink,
             color: T.card,
@@ -1762,7 +1762,7 @@ function SectionHeading({ icon, label, inline }: { icon: React.ReactNode; label:
       style={{
         fontFamily: "'Cinzel', serif",
         fontSize: 10,
-        letterSpacing: '0.3em',
+        letterSpacing: '0.26em',
         textTransform: 'uppercase',
         color: T.inkDim,
         marginBottom: inline ? 0 : 16,
@@ -1783,7 +1783,7 @@ function LevelMeter({ title, pct, label }: { title: string; pct: number; label: 
           style={{
             fontFamily: "'Cinzel', serif",
             fontSize: 11,
-            letterSpacing: '0.16em',
+            letterSpacing: '0.22em',
             textTransform: 'uppercase',
             color: T.ink,
           }}
@@ -1841,7 +1841,7 @@ function EditableHealthText({ value, placeholder, onSave }: { value: string; pla
         background: T.card,
         border: `1px solid ${T.border}`,
         borderRadius: 6,
-        padding: '2px 6px',
+        padding: '4px 8px',
       }}
     />
   ) : (
@@ -1867,7 +1867,7 @@ function EditableCriticalChip({ lucide, label, value, placeholder, onSave }: { l
   return (
     <div
       className="flex items-start gap-2.5"
-      style={{ padding: '10px 12px', borderRadius: 10, background: T.tileBg, border: `1px solid ${T.border}` }}
+      style={{ padding: '12px 12px', borderRadius: 10, background: T.tileBg, border: `1px solid ${T.border}` }}
     >
       <span style={{ color: T.accentGold, display: 'inline-flex', paddingTop: 2 }}>{lucide}</span>
       <div className="flex flex-col" style={{ gap: 1, minWidth: 0, flex: 1 }}>
@@ -1875,7 +1875,7 @@ function EditableCriticalChip({ lucide, label, value, placeholder, onSave }: { l
           style={{
             fontFamily: "'Cinzel', serif",
             fontSize: 8.5,
-            letterSpacing: '0.16em',
+            letterSpacing: '0.22em',
             textTransform: 'uppercase',
             color: T.inkFaint,
           }}
@@ -1900,7 +1900,7 @@ function EditableCriticalChip({ lucide, label, value, placeholder, onSave }: { l
               background: T.bg,
               border: `1px solid ${T.border}`,
               borderRadius: 5,
-              padding: '2px 5px',
+              padding: '4px 4px',
             }}
           />
         ) : (
@@ -1952,7 +1952,7 @@ const PTS_PILL: React.CSSProperties = {
   color: '#FAF4EC',
   background: 'rgba(0,0,0,0.22)',
   borderRadius: 999,
-  padding: '3px 9px',
+  padding: '4px 8px',
   whiteSpace: 'nowrap',
 };
 
@@ -1999,7 +1999,7 @@ function PrayerRow({
         style={{
           background: PRAYER_GRADIENT,
           borderRadius: 14,
-          padding: '0 14px',
+          padding: '0 16px',
           minHeight: 58,
           boxShadow: '0 10px 28px -16px rgba(40, 16, 70, 0.6)',
           cursor: rowClickable ? 'pointer' : 'default',
@@ -2078,7 +2078,7 @@ function PrayerRow({
             fontFamily: "'Space Grotesk', sans-serif",
             fontSize: 10.5,
             lineHeight: 1.4,
-            padding: '8px 10px',
+            padding: '8px 12px',
             borderRadius: 10,
             boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
           }}
@@ -2122,7 +2122,7 @@ function HealthBadge({
         className="flex w-full items-center justify-center gap-1.5"
         style={{
           height: 30,
-          padding: '0 10px',
+          padding: '0 12px',
           borderRadius: 999,
           background: `${current.color}1F`,
           // 1.5px = tá istá hrúbka ako .pk-pill vedľa (číslo, vlajka). Pilulka mení
@@ -2130,7 +2130,7 @@ function HealthBadge({
           border: `1.5px solid ${current.color}`,
           fontFamily: "'Cinzel', serif",
           fontSize: 9,
-          letterSpacing: '0.16em',
+          letterSpacing: '0.22em',
           textTransform: 'uppercase',
           fontWeight: 700,
           color: current.color,
@@ -2169,7 +2169,7 @@ function HealthBadge({
                 onClick={() => onSelect(o.key)}
                 className="flex items-center gap-2.5 w-full"
                 style={{
-                  padding: '8px 10px',
+                  padding: '8px 12px',
                   borderRadius: 9,
                   background: o.key === status ? `${o.color}14` : 'transparent',
                   border: o.key === status ? `1px solid ${o.color}66` : '1px solid transparent',
@@ -2196,7 +2196,7 @@ function HealthBadge({
                 marginTop: 6,
                 fontFamily: "'Cinzel', serif",
                 fontSize: 8,
-                letterSpacing: '0.18em',
+                letterSpacing: '0.22em',
                 textTransform: 'uppercase',
                 color: T.inkFaint,
               }}
@@ -2219,13 +2219,13 @@ function InLovingMemoryBadge() {
       className="flex w-full items-center justify-center gap-1.5"
       style={{
         height: 30,
-        padding: '0 10px',
+        padding: '0 12px',
         borderRadius: 999,
         background: 'linear-gradient(180deg, #F4F6FB 0%, #D9DEE8 100%)',
         border: '1.5px solid rgba(180,190,210,0.6)',
         fontFamily: "'Cinzel', serif",
         fontSize: 9,
-        letterSpacing: '0.16em',
+        letterSpacing: '0.22em',
         textTransform: 'uppercase',
         fontWeight: 700,
         color: '#3a4256',
@@ -2277,7 +2277,7 @@ function AliveDot() {
             fontFamily: "'Space Grotesk', sans-serif",
             fontSize: 11,
             fontWeight: 500,
-            padding: '7px 12px',
+            padding: '8px 12px',
             borderRadius: 9,
             boxShadow: '0 8px 24px rgba(10,10,10,0.28)',
           }}
@@ -2333,7 +2333,7 @@ function AngelDot() {
             fontFamily: "'Space Grotesk', sans-serif",
             fontSize: 11,
             fontWeight: 500,
-            padding: '7px 12px',
+            padding: '8px 12px',
             borderRadius: 9,
             boxShadow: '0 8px 24px rgba(10,10,10,0.28)',
           }}
@@ -2423,7 +2423,7 @@ function IconBtn({
             fontFamily: "'Space Grotesk', sans-serif",
             fontSize: 10.5,
             lineHeight: 1.4,
-            padding: '8px 10px',
+            padding: '8px 12px',
             borderRadius: 10,
             boxShadow: '0 8px 24px rgba(0,0,0,0.28)',
             textAlign: 'left',
@@ -2481,7 +2481,7 @@ function TilePanel({
               fontFamily: "'Cinzel', serif",
               fontSize: 18,
               fontWeight: 700,
-              letterSpacing: '0.1em',
+              letterSpacing: '0.14em',
               textTransform: 'uppercase',
               color: T.ink,
               lineHeight: 1,
@@ -2517,7 +2517,7 @@ function PreviewRow({
     <div
       className="flex items-start gap-3"
       style={{
-        padding: '13px 15px',
+        padding: '12px 16px',
         borderRadius: 14,
         background: live ? 'rgba(61, 122, 78, 0.07)' : T.cardSoft,
         border: `1px solid ${live ? 'rgba(61, 122, 78, 0.28)' : T.hairline}`,
@@ -2542,7 +2542,7 @@ function PreviewRow({
               fontFamily: "'Cinzel', serif",
               fontSize: 12.5,
               fontWeight: 700,
-              letterSpacing: '0.08em',
+              letterSpacing: '0.02em',
               textTransform: 'uppercase',
               color: T.ink,
             }}
@@ -2567,7 +2567,7 @@ function PreviewRow({
             <span
               className="inline-flex items-center gap-1"
               style={{
-                padding: '2px 7px',
+                padding: '4px 8px',
                 borderRadius: 999,
                 background: T.tileBg,
                 fontFamily: "'Cinzel', serif",
@@ -2599,7 +2599,7 @@ function VisionCallout({ title, body, tone = 'gold' }: { title: string; body: st
     <div
       style={{
         marginTop: 4,
-        padding: '14px 16px',
+        padding: '16px 16px',
         borderRadius: 14,
         background: purple ? 'rgba(46, 95, 208, 0.10)' : 'rgba(201, 154, 63, 0.07)',
         border: `1px solid ${purple ? 'rgba(46, 95, 208, 0.34)' : 'rgba(201, 154, 63, 0.26)'}`,
@@ -2612,7 +2612,7 @@ function VisionCallout({ title, body, tone = 'gold' }: { title: string; body: st
             fontFamily: "'Cinzel', serif",
             fontSize: 11,
             fontWeight: 700,
-            letterSpacing: '0.12em',
+            letterSpacing: '0.14em',
             textTransform: 'uppercase',
             color: T.ink,
           }}
@@ -2648,7 +2648,7 @@ function OverviewFact({
         style={{
           fontFamily: "'Cinzel', serif",
           fontSize: 8.5,
-          letterSpacing: '0.18em',
+          letterSpacing: '0.22em',
           textTransform: 'uppercase',
           color: T.inkFaint,
         }}
@@ -2684,7 +2684,7 @@ function CriticalChip({ lucide, label, value }: { lucide: React.ReactNode; label
   return (
     <div
       className="flex items-center gap-2.5"
-      style={{ padding: '10px 12px', borderRadius: 10, background: T.tileBg, border: `1px solid ${T.border}` }}
+      style={{ padding: '12px 12px', borderRadius: 10, background: T.tileBg, border: `1px solid ${T.border}` }}
     >
       <span style={{ color: T.accentGold, display: 'inline-flex' }}>{lucide}</span>
       <div className="flex flex-col" style={{ gap: 1, minWidth: 0 }}>
@@ -2692,7 +2692,7 @@ function CriticalChip({ lucide, label, value }: { lucide: React.ReactNode; label
           style={{
             fontFamily: "'Cinzel', serif",
             fontSize: 8.5,
-            letterSpacing: '0.16em',
+            letterSpacing: '0.22em',
             textTransform: 'uppercase',
             color: T.inkFaint,
           }}
@@ -2725,7 +2725,7 @@ function TestChip({
       onClick={onClick}
       className="flex items-center gap-3 text-left"
       style={{
-        padding: '12px 14px',
+        padding: '12px 16px',
         borderRadius: 14,
         background: 'rgba(46, 95, 208, 0.09)',
         border: '1px solid rgba(46, 95, 208, 0.30)',
@@ -2744,7 +2744,7 @@ function TestChip({
             fontFamily: "'Cinzel', serif",
             fontSize: 12,
             fontWeight: 700,
-            letterSpacing: '0.06em',
+            letterSpacing: '0.02em',
             textTransform: 'uppercase',
             color: T.ink,
           }}
@@ -2758,14 +2758,14 @@ function TestChip({
       <span
         className="inline-flex items-center gap-1.5 shrink-0"
         style={{
-          padding: '7px 11px',
+          padding: '8px 12px',
           borderRadius: 999,
           background: 'rgba(46, 95, 208, 0.16)',
           border: '1px solid rgba(46, 95, 208, 0.42)',
           fontFamily: "'Cinzel', serif",
           fontSize: 9,
           fontWeight: 700,
-          letterSpacing: '0.12em',
+          letterSpacing: '0.14em',
           textTransform: 'uppercase',
           color: T.partHek,
         }}
@@ -2802,7 +2802,7 @@ function SubCard({ lucide, title, desc }: { lucide: React.ReactNode; title: stri
         style={{
           top: 12,
           right: 12,
-          padding: '3px 8px',
+          padding: '4px 8px',
           borderRadius: 999,
           background: T.tileBg,
           fontFamily: "'Cinzel', serif",
@@ -2834,7 +2834,7 @@ function SubCard({ lucide, title, desc }: { lucide: React.ReactNode; title: stri
           fontFamily: "'Cinzel', serif",
           fontSize: 14,
           fontWeight: 700,
-          letterSpacing: '0.1em',
+          letterSpacing: '0.14em',
           textTransform: 'uppercase',
           color: T.ink,
           marginBottom: 5,
@@ -2881,7 +2881,7 @@ function PrayersComingSoon({ dogName }: { dogName: string }) {
           background: T.tileBg,
           fontFamily: "'Cinzel', serif",
           fontSize: 9,
-          letterSpacing: '0.18em',
+          letterSpacing: '0.22em',
           textTransform: 'uppercase',
           color: T.inkDim,
         }}
@@ -2926,7 +2926,7 @@ function HubTile({
       onMouseLeave={() => setHover(false)}
       className="relative flex flex-col items-center justify-center text-center"
       style={{
-        padding: '28px 14px',
+        padding: '32px 16px',
         borderRadius: 16,
         background: T.cardGrad,
         border: `1.5px solid ${T.cardEdge}`,
@@ -2949,7 +2949,7 @@ function HubTile({
           style={{
             top: 11,
             right: 11,
-            padding: '3px 8px',
+            padding: '4px 8px',
             borderRadius: 999,
             background: T.tileBg,
             fontFamily: "'Cinzel', serif",
@@ -3003,7 +3003,7 @@ function HubTile({
           style={{
             fontFamily: "'Cinzel', serif",
             fontSize: 15,
-            letterSpacing: '0.1em',
+            letterSpacing: '0.14em',
             textTransform: 'uppercase',
             color: active ? T.ink : T.inkDim,
             fontWeight: 700,
@@ -3051,7 +3051,7 @@ function DownloadButton({
       alignItems: 'center',
       gap: 12,
       width: '100%',
-      padding: '13px 15px',
+      padding: '12px 16px',
       borderRadius: 14,
       textDecoration: 'none',
       background: enabled ? 'linear-gradient(180deg, #F5C73D 0%, #E69E1A 100%)' : 'rgba(201,154,63,0.12)',
@@ -3069,7 +3069,7 @@ function DownloadButton({
           <span style={{ fontFamily: "'Cinzel', serif", fontSize: 8, letterSpacing: '0.22em', textTransform: 'uppercase', opacity: 0.7, lineHeight: 1 }}>
             {t('pack.dog.certOfficialRecord')}
           </span>
-          <span style={{ fontFamily: "'Cinzel', serif", fontSize: 14, fontWeight: 700, letterSpacing: '0.04em', lineHeight: 1.25 }}>
+          <span style={{ fontFamily: "'Cinzel', serif", fontSize: 14, fontWeight: 700, letterSpacing: '0.02em', lineHeight: 1.25 }}>
             {t('pack.dog.docCertificate')}
           </span>
         </span>
@@ -3093,7 +3093,7 @@ function DownloadButton({
     justifyContent: 'center',
     gap: 7,
     width: '100%',
-    padding: '11px 10px',
+    padding: '12px 12px',
     borderRadius: 10,
     textDecoration: 'none',
     background: T.tileBg,
@@ -3101,7 +3101,7 @@ function DownloadButton({
     color: enabled ? T.ink : T.inkFaint,
     fontFamily: "'Cinzel', serif",
     fontSize: 10,
-    letterSpacing: '0.18em',
+    letterSpacing: '0.22em',
     textTransform: 'uppercase',
     fontWeight: 700,
     cursor: enabled ? 'pointer' : 'not-allowed',
@@ -3137,7 +3137,7 @@ function NotFoundBox() {
         style={{
           fontFamily: "'Cinzel', serif",
           fontSize: 22,
-          letterSpacing: '0.08em',
+          letterSpacing: '0.02em',
           textTransform: 'uppercase',
           fontWeight: 700,
           color: T.ink,

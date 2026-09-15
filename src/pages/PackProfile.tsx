@@ -68,7 +68,7 @@ const PILGRIM_CSS = `
 /* FARBA PÁSMA — gradient a inkoust vešia premenné --tier-a / --tier-b / --tier-ink
    (tierVars(level)); fallback drží pôvodnú zlatú. Tá istá pilulka ako v hlavičke mapy. */
 .pf-pilgrim-num{
-  display:inline-flex; align-items:center; padding:3px 11px 4px; border-radius:999px;
+  display:inline-flex; align-items:center; padding:4px 12px 4px; border-radius:999px;
   background:linear-gradient(135deg,var(--tier-a,#F5C73D),var(--tier-b,#E69E1A));
   color:var(--tier-ink,${T.ink});
   font-family:${FONT_UI}; font-weight:600; font-size:14px; line-height:1;
@@ -177,7 +177,7 @@ function SubBlock({
         ...PACK_BOX.subblock,
         // Matej 2026-07-26: „obidva bloky maju male okraje zhora a dola" —
         // 11/13px hore/dole zväčšené na 17/19px, bočný padding nedotknutý.
-        padding: '17px 13px 19px',
+        padding: '16px 12px 16px',
       }}
     >
       <div
@@ -763,13 +763,13 @@ export default function PackProfile() {
                 className="pf-tap pf-pilgrim flex items-center justify-between"
                 style={{
                   ...PACK_BOX.subblock,
-                  padding: '13px 15px',
+                  padding: '12px 16px',
                   textDecoration: 'none',
                   gap: 12,
                 }}
               >
                 <span className="flex items-center shrink-0" style={{ gap: 9, minWidth: 0 }}>
-                  <span style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 13, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.inkStrong }}>
+                  <span style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 13, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkStrong }}>
                     {t('pack.map.rankPilgrim')}
                   </span>
                   {/* Level = pilulka s holým číslom, rovnako ako v hlavičke mapy a na karte
@@ -797,7 +797,7 @@ export default function PackProfile() {
                 {/* Šípka nesie „vedie to inam". Text pri nej sa na mobile skrýva — riadok už
                     aj tak nesie dve čísla a nadpis by ho zlomil. */}
                 <span className="flex items-center shrink-0" style={{ gap: 3 }}>
-                  <span className="hidden sm:inline" style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.inkDim }}>
+                  <span className="hidden sm:inline" style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkDim }}>
                     {tx('pack.profile.pilgrimCta', 'Hiking profile')}
                   </span>
                   <ChevronRight className="h-4 w-4" style={{ color: T.cardEdge }} />
@@ -1002,7 +1002,7 @@ function countWords(s: string): number {
 // Small sub-heading above a field/group.
 function SubFieldLabel({ label }: { label: string }) {
   return (
-    <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.24em', textTransform: 'uppercase', color: T.inkDim, display: 'block', marginBottom: 8 }}>
+    <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkDim, display: 'block', marginBottom: 8 }}>
       {label}
     </span>
   );
@@ -1034,7 +1034,7 @@ function ProfilePill<V extends string>({
       className={`pf-pill inline-flex items-center gap-1${selected ? ' is-selected' : ''}`}
       style={{
         borderRadius: 999,
-        padding: '3px 9px',
+        padding: '4px 8px',
         fontFamily: "'Space Grotesk', sans-serif",
         fontSize: 11,
         fontWeight: selected ? 600 : 500,
@@ -1096,7 +1096,7 @@ function PersonalityConcentrate({
         style={{ marginBottom: 10, gap: center ? 8 : 0 }}
       >
         {!hideLabel && (
-          <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.24em', textTransform: 'uppercase', color: T.inkDim }}>
+          <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkDim }}>
             {tx('pack.profile.personality', 'Personality')}
           </span>
         )}
@@ -1130,7 +1130,7 @@ function PersonalityConcentrate({
             className="pf-pill is-selected inline-flex items-center gap-1"
             style={{
               borderRadius: 999,
-              padding: '3px 9px',
+              padding: '4px 8px',
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: 11,
               fontWeight: 600,
@@ -1156,7 +1156,7 @@ function PersonalityConcentrate({
             className="pf-field"
             style={{
               borderRadius: 999,
-              padding: '3px 10px',
+              padding: '4px 12px',
               width: 120,
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: 11,
@@ -1172,7 +1172,7 @@ function PersonalityConcentrate({
               background: 'transparent',
               border: `1px dashed ${T.border}`,
               borderRadius: 999,
-              padding: '3px 9px',
+              padding: '4px 8px',
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: 11,
               fontWeight: 500,
@@ -1276,7 +1276,7 @@ function WordLimitTextarea({
           // radius 8 = úroveň 4 MATRICE, rovnako ako MENO a PREZÝVKA nad ňou.
           // Textarea tu mala 10 a vedľajšie polia 8 — rozdiel, ktorý oko vidí a nevie pomenovať.
           borderRadius: 8,
-          padding: '8px 12px 22px',
+          padding: '8px 12px 24px',
           minHeight: 48,
           color: T.ink,
           fontFamily: "'Space Grotesk', sans-serif",
@@ -1423,7 +1423,7 @@ function IdentityVisibilityEye({
                   style={{
                     background: 'none',
                     border: 'none',
-                    padding: '6px 4px',
+                    padding: '8px 4px',
                     cursor: 'pointer',
                     textAlign: 'left',
                     fontFamily: "'Space Grotesk', sans-serif",
@@ -1535,7 +1535,7 @@ function NationalitySelect({ value, onChange }: { value: string; onChange: (v: s
       className="pf-field pf-selchip inline-flex items-center gap-1.5"
       style={{
         borderRadius: 999,
-        padding: '4px 12px 4px 10px',
+        padding: '4px 12px 4px 12px',
         fontFamily: "'Space Grotesk', sans-serif",
         fontSize: 11,
         color: T.ink,
@@ -1545,7 +1545,7 @@ function NationalitySelect({ value, onChange }: { value: string; onChange: (v: s
       <span aria-hidden style={{ fontSize: 13, lineHeight: 1 }}>
         {iso2 ? flagEmojiFromISO2(iso2) : '\u{1F3F3}\uFE0F'}
       </span>
-      <span style={{ fontWeight: 600, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
+      <span style={{ fontWeight: 600, letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
         {iso2 ? iso2ToISO3(iso2) : tx('pack.profile.countryOtherShort', 'N/A')}
       </span>
       <ChevronDown aria-hidden className="h-3 w-3 shrink-0" style={{ color: T.inkDim }} />

@@ -162,8 +162,12 @@ export const PACK_R = {
   card: 16,
 } as const;
 
-/** Rebrík odsadení — násobky štvorky (výber `s5`). */
-export const PACK_SPACE = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 } as const;
+/** Rebrík odsadení — násobky štvorky (výber `s5`).
+ *  ⚠️ 15. 9. 2026 pribudli `xxl` 32 a `xxxl` 48 (Matej). Dovtedy rebrík končil na
+ *  24, no kód reálne používal 26 · 28 · 30 · 32 · 34 · 44 · 46 · 48 — teda si
+ *  veľké medzery vymýšľal zakaždým nanovo. Pomer medzi stupňami ostáva ~1,5×.
+ *  Medzi 24 a 32 sa neotvára nič ďalšie: 26/28/30 patria na 24 alebo 32. */
+export const PACK_SPACE = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48 } as const;
 
 /** Typografická stupnica — 6 veľkostí, ŽIADNE desatiny (výber `t6`).
  *  ⚠️ 9,5 / 10,5 / 12,5 sú od 13. 9. 2026 mimo sady. Mikropopisok je 10. */
@@ -182,7 +186,15 @@ export const PACK_TEXT = {
   h1: 24,
 } as const;
 
-/** Nadpisy — DVA tvary podľa úrovne (výber `h2`). Sedem tvarov z inventúry končí. */
+/** Nadpisy — TRI tvary podľa úrovne (výber `h2`, tretí pribudol 15. 9. 2026).
+ *
+ *  ⚠️ Tretí tvar nie je nový nápad — rozsudzuje ROZPOR, ktorý si brand lock
+ *  niesol sám v sebe: `plany/locky/brand.md` r. 36 predpisuje eyebrow
+ *  „Space Grotesk 500 / letter-spacing .22em", r. 112 pre ten istý eyebrow na
+ *  papyruse „.26em". Dve čísla pre jeden prvok na dvoch riadkoch jedného locku.
+ *  Preto sú odteraz DVA prvky s menom: `section` (tichý eyebrow vnútri karty)
+ *  a `label` (široký, rozstrelený štítok — pečiatka). Naprieč `/pack` bežalo
+ *  20 hodnôt `letterSpacing`; skupina .26–.34em je práve tento druhý prvok. */
 export const PACK_HEAD = {
   /** Názov KARTY — veľký Cinzel. Orientačný bod stránky. */
   card: {
@@ -198,6 +210,15 @@ export const PACK_HEAD = {
     fontWeight: 500,
     fontSize: PACK_TEXT.micro,
     letterSpacing: '0.22em',
+    textTransform: 'uppercase',
+  },
+  /** ŠTÍTOK — široký rozstrelený popisok, číta sa ako pečiatka.
+   *  Zlatý inkoust na papyruse (`T.cardEdge`) je brandový vzor z r. 112 locku. */
+  label: {
+    fontFamily: FONT_UI,
+    fontWeight: 500,
+    fontSize: PACK_TEXT.micro,
+    letterSpacing: '0.26em',
     textTransform: 'uppercase',
   },
 } as const;

@@ -100,7 +100,7 @@ export function PackSettings() {
         style={{
           fontFamily: FONT_TITLE,
           fontSize: 10,
-          letterSpacing: '0.32em',
+          letterSpacing: '0.26em',
           textTransform: 'uppercase',
           color: T.inkDim,
           marginBottom: 6,
@@ -125,10 +125,10 @@ export function PackSettings() {
             // pre deliace čiary; na ohraničenie prvku pôsobí ako nedokončený návrh.
             border: `1px solid ${T.border}`,
             borderRadius: 8,
-            padding: '6px 14px',
+            padding: '8px 16px',
             fontFamily: FONT_TITLE,
             fontSize: 10,
-            letterSpacing: '0.28em',
+            letterSpacing: '0.26em',
             textTransform: 'uppercase',
             color: T.inkDim,
             cursor: 'pointer',
@@ -182,10 +182,10 @@ export function PackSettings() {
             // pre deliace čiary; na ohraničenie prvku pôsobí ako nedokončený návrh.
             border: `1px solid ${T.border}`,
             borderRadius: 8,
-            padding: '6px 14px',
+            padding: '8px 16px',
             fontFamily: FONT_TITLE,
             fontSize: 10,
-            letterSpacing: '0.28em',
+            letterSpacing: '0.26em',
             textTransform: 'uppercase',
             color: T.inkDim,
             cursor: signingOut ? 'default' : 'pointer',
@@ -220,7 +220,7 @@ export function PackSettings() {
             }}
           >
             <div className="flex items-center justify-between" style={{ marginBottom: 6 }}>
-              <span style={{ fontFamily: FONT_TITLE, fontSize: 11, letterSpacing: '0.32em', textTransform: 'uppercase', color: T.inkDim }}>
+              <span style={{ fontFamily: FONT_TITLE, fontSize: 11, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.inkDim }}>
                 {t('pack.settings.password')}
               </span>
               <button
@@ -249,7 +249,7 @@ export function PackSettings() {
                    bol ručne písaný štýl (`T.bg` výplň, hairline rám, radius 10), takže
                    jediné dve textové polia v settings vyzerali inak než celý zvyšok appky. */
                 className="pf-field pf-field--flat"
-                style={{ width: '100%', borderRadius: 8, padding: '12px 14px', color: T.ink, fontFamily: FONT_UI, fontSize: 14, outline: 'none' }}
+                style={{ width: '100%', borderRadius: 8, padding: '12px 16px', color: T.ink, fontFamily: FONT_UI, fontSize: 14, outline: 'none' }}
               />
               <input
                 type="password"
@@ -258,7 +258,7 @@ export function PackSettings() {
                 onChange={(e) => setPwConfirm(e.target.value)}
                 placeholder={t('pack.settings.pwConfirmPlaceholder')}
                 className="pf-field pf-field--flat"
-                style={{ width: '100%', borderRadius: 8, padding: '12px 14px', color: T.ink, fontFamily: FONT_UI, fontSize: 14, outline: 'none' }}
+                style={{ width: '100%', borderRadius: 8, padding: '12px 16px', color: T.ink, fontFamily: FONT_UI, fontSize: 14, outline: 'none' }}
               />
               {pwError && (
                 <span style={{ fontFamily: FONT_UI, fontSize: 12, color: '#A04040' }}>{pwError}</span>
@@ -268,7 +268,7 @@ export function PackSettings() {
                 onClick={handleSetPassword}
                 disabled={pwSaving || pwValue.length === 0}
                 className="inline-flex items-center justify-center gap-2"
-                style={{ background: T.ink, color: T.card, border: 'none', padding: '12px 16px', borderRadius: 10, fontFamily: FONT_TITLE, fontSize: 11, letterSpacing: '0.24em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', opacity: (pwSaving || pwValue.length === 0) ? 0.6 : 1 }}
+                style={{ background: T.ink, color: T.card, border: 'none', padding: '12px 16px', borderRadius: 10, fontFamily: FONT_TITLE, fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', opacity: (pwSaving || pwValue.length === 0) ? 0.6 : 1 }}
               >
                 {pwSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : pwDone ? <Check className="h-3 w-3" /> : null}
                 {t('pack.settings.pwSubmit')}
@@ -289,7 +289,7 @@ function Field({ icon, label, children, last }: { icon: React.ReactNode; label: 
     >
       <div className="flex items-center gap-3" style={{ color: T.inkDim }}>
         {icon}
-        <span style={{ fontFamily: FONT_TITLE, fontSize: 10, letterSpacing: '0.32em', textTransform: 'uppercase' }}>
+        <span style={{ fontFamily: FONT_TITLE, fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase' }}>
           {label}
         </span>
       </div>

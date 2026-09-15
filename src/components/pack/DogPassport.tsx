@@ -49,10 +49,10 @@ const PASS_CSS = `
    + hover lift) — rozdiel medzi nimi nesie len veľkosť písma a výplň, nie iný rám. */
 .pass-share{ display:inline-flex; align-items:center; gap:7px;
   font-family:'Cinzel',serif; font-size:10px; font-weight:700; letter-spacing:.14em;
-  text-transform:uppercase; padding:9px 15px; }
+  text-transform:uppercase; padding:8px 16px; }
 .pass-share:disabled{ opacity:.5; cursor:default; }
-.pass-edit{ font-family:'Space Grotesk',sans-serif; font-size:10px; letter-spacing:.1em;
-  text-transform:uppercase; padding:4px 11px; text-decoration:none; }
+.pass-edit{ font-family:'Space Grotesk',sans-serif; font-size:10px; letter-spacing:0.14em;
+  text-transform:uppercase; padding:4px 12px; text-decoration:none; }
 /* KATEGÓRIE = SAMOSTATNÉ BLOKY (Matej 12.8.: „kategorie treba vizualne zoradit do
    blokov … vacsie nadpisy kategorii a viac strukturovane"). Blok = ÚROVEŇ 2 matrice
    (PODBLOK) — je to sekcia vnútri karty DOG ID, presne ako ZÁKLAD a ŽIVOTNÝ ŠTÝL
@@ -61,7 +61,7 @@ const PASS_CSS = `
 @media (max-width:720px){ .pass-groups{ columns:1; } }
 .pass-block{ break-inside:avoid; -webkit-column-break-inside:avoid; margin:0 0 14px;
   background:${B.background}; border:${B.border}; border-radius:${B.borderRadius}px;
-  padding:16px 17px 15px; box-shadow:${B.boxShadow};
+  padding:16px 16px 16px; box-shadow:${B.boxShadow};
   /* Inkoust bloku je premenná, nie natvrdo písaná farba v každom riadku — inak by sa
      tmavá varianta nedala prefarbiť: riadky si farbu nesú v inline style a ten CSS
      trieda neprebije. Takto stačí prepísať tri premenné na obale. */
@@ -89,7 +89,7 @@ const PASS_CSS = `
 .pass-block--dark .pass-noteadd:hover{ color:rgba(245,240,228,0.88); }
 .pass-bhead{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
 .pass-btitle{ display:flex; align-items:center; gap:9px; font-family:'Cinzel',serif; font-weight:700;
-  font-size:16.5px; letter-spacing:.12em; text-transform:uppercase; color:${T.inkStrong}; margin:0; }
+  font-size:16.5px; letter-spacing:0.14em; text-transform:uppercase; color:${T.inkStrong}; margin:0; }
 .pass-bnum{ font-family:'JetBrains Mono',ui-monospace,monospace; font-size:10px; font-weight:700;
   color:${T.cardEdge}; opacity:.75; }
 /* deliaca čiara vnútri bloku = predpísaný token T.rule, nie vlastný gradient.
@@ -109,7 +109,7 @@ const PASS_CSS = `
 }
 .pass-toresult:hover{ border-bottom-color:${T.cardEdge}; opacity:.85; }
 .pass-missing{ font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:600;
-  letter-spacing:.06em; color:${T.alertRed}; text-decoration:none; }
+  letter-spacing:0.02em; color:${T.alertRed}; text-decoration:none; }
 /* zámerne prázdne pole (zvláštna úloha) — pomlčka bez poplachu */
 .pass-missing--optional{ color:${T.inkFaint}; }
 .pass-missing:hover{ text-decoration:underline; }
@@ -130,12 +130,12 @@ const PASS_CSS = `
 /* riadok, ktorý sa needituje (plemeno, narodenie, pohlavie) */
 .pass-fixed{ font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:500;
   color:${T.inkStrong}; }
-.pass-fixed--empty{ font-size:15px; font-weight:600; letter-spacing:.06em; color:${T.inkFaint}; }
+.pass-fixed--empty{ font-size:15px; font-weight:600; letter-spacing:0.02em; color:${T.inkFaint}; }
 /* poznámka vlastnými slovami — to, čo z údajov robí psa */
-.pass-note{ margin-top:12px; padding-top:11px; border-top:1px dashed ${T.hairline}; }
+.pass-note{ margin-top:12px; padding-top:12px; border-top:1px dashed ${T.hairline}; }
 .pass-notetext{ font-family:'Space Grotesk',sans-serif; font-size:12.5px; line-height:1.55;
   color:${T.inkWarm}; font-style:italic; white-space:pre-wrap; margin:0; }
-.pass-noteadd{ font-family:'Space Grotesk',sans-serif; font-size:10.5px; letter-spacing:.1em;
+.pass-noteadd{ font-family:'Space Grotesk',sans-serif; font-size:10.5px; letter-spacing:0.14em;
   text-transform:uppercase; color:rgba(31,26,14,.42); background:transparent; border:0; padding:0;
   cursor:pointer; }
 .pass-noteadd:hover{ color:${T.inkStrong}; }
@@ -236,7 +236,7 @@ export function DogPassport({
         ? { color: T.ink }
         : {
           background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 16,
-          boxShadow: T.cardShadow, padding: '22px 20px', color: T.ink,
+          boxShadow: T.cardShadow, padding: '24px 24px', color: T.ink,
         }}
     >
       {/* Poradie je záväzné: matrica (PILL_CSS, PF_FIELD_CSS) najprv, lokálna
@@ -581,7 +581,7 @@ function renderValue(step: QuizStep, v: unknown, tx: (k: string, f: string) => s
             key={String(x)}
             className="pk-pill"
             style={{
-              fontFamily: FONT_UI, fontSize: 11, padding: '3px 10px',
+              fontFamily: FONT_UI, fontSize: 11, padding: '4px 12px',
               display: 'inline-flex', alignItems: 'center', gap: 5,
             }}
           >
@@ -707,7 +707,7 @@ function GroupNote({
           // (plochý papyrus #FBF5E6, radius 8). Vlastný rám a výplň tu nemajú čo robiť.
           className="pf-field pf-field--flat"
           style={{
-            width: '100%', borderRadius: 8, padding: '9px 10px', fontFamily: FONT_UI,
+            width: '100%', borderRadius: 8, padding: '8px 12px', fontFamily: FONT_UI,
             fontSize: 12.5, lineHeight: 1.5, color: T.inkStrong, resize: 'none', outline: 'none',
           }}
         />

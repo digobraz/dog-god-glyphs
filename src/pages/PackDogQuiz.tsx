@@ -34,11 +34,11 @@ type Answer = string | string[] | null;
 const QUIZ_CSS = `
 .qz-gold{
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
-  padding:13px 24px;
+  padding:12px 24px;
   background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);
   border:1px solid rgba(250,244,236,0.30); border-radius:8px; color:#000;
   font-family:'Cinzel',serif; font-size:11px; font-weight:800;
-  letter-spacing:.12em; text-transform:uppercase; cursor:pointer; white-space:nowrap;
+  letter-spacing:0.14em; text-transform:uppercase; cursor:pointer; white-space:nowrap;
   box-shadow:0 0 28px rgba(230,158,26,0.34), inset 0 1px 0 rgba(255,255,255,0.3);
   transition: transform .2s, box-shadow .22s;
 }
@@ -46,14 +46,14 @@ const QUIZ_CSS = `
 .qz-gold:disabled{ opacity:.45; cursor:default; transform:none; box-shadow:none; }
 .qz-ghost{
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
-  padding:12px 22px; background:transparent;
+  padding:12px 24px; background:transparent;
   border:1.5px solid ${T.border}; border-radius:8px; color:${T.inkWarm};
   font-family:'Cinzel',serif; font-size:11px; font-weight:700;
-  letter-spacing:.12em; text-transform:uppercase; cursor:pointer;
+  letter-spacing:0.14em; text-transform:uppercase; cursor:pointer;
 }
 .qz-ghost:hover{ border-color:${T.cardEdge}; color:${T.inkStrong}; }
 .qz-pill{ font-family:'Space Grotesk',sans-serif; font-size:11.5px; font-weight:500;
-  padding:7px 13px; border-radius:999px; cursor:pointer; }
+  padding:8px 12px; border-radius:999px; cursor:pointer; }
 /* STROP VÝBERU (2026-09-02) — pilulka nad strop nezhasína priesvitnosťou: papyrus je svetlý
    a krytie na ňom takmer nič neurobí (to isté zistenie ako pri prezliekaní na bledé).
    Stlmí sa preto INKOUST a rám, výplň ostáva. */
@@ -225,7 +225,7 @@ export default function PackDogQuiz() {
             onClick={() => setAllSame((p) => ({ ...p, [step!.field]: !p[step!.field] }))}
             className="flex items-center gap-2 w-full"
             style={{
-              padding: '11px 13px', borderRadius: 11, marginBottom: 12, textAlign: 'left',
+              padding: '12px 12px', borderRadius: 11, marginBottom: 12, textAlign: 'left',
               border: `1.5px dashed ${isAll ? T.cardEdge : 'rgba(179,130,45,0.6)'}`,
               background: isAll ? 'rgba(201,154,63,0.10)' : 'transparent',
               color: T.inkWarm, fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, cursor: 'pointer',
@@ -251,7 +251,7 @@ export default function PackDogQuiz() {
               key={d.id}
               className="flex items-center gap-3 flex-wrap"
               style={{
-                padding: '11px 12px', borderRadius: 12, background: T.tileBg,
+                padding: '12px 12px', borderRadius: 12, background: T.tileBg,
                 border: `1px solid ${T.border}`, marginBottom: 9,
               }}
             >
@@ -461,7 +461,7 @@ function AnswerControl({
 const fieldStyle: React.CSSProperties = {
   width: '100%',
   borderRadius: 10,
-  padding: '10px 12px',
+  padding: '12px 12px',
   fontFamily: FONT_UI,
   fontSize: 13,
   color: T.inkStrong,
@@ -522,7 +522,7 @@ function Card({ children }: { children: React.ReactNode }) {
     <div
       style={{
         background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 16,
-        boxShadow: T.cardShadow, padding: '22px 20px', color: T.ink,
+        boxShadow: T.cardShadow, padding: '24px 24px', color: T.ink,
       }}
     >
       {children}

@@ -136,7 +136,7 @@ export function DogGalleryAccordion({
           <div
             style={{
               marginTop: 14,
-              padding: '16px 16px 18px',
+              padding: '16px 16px 16px',
               background: T.cardSoft,
               border: `1px solid ${T.border}`,
               borderRadius: 14,
@@ -150,7 +150,7 @@ export function DogGalleryAccordion({
                   fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
                   fontWeight: 700,
                   fontSize: 15,
-                  letterSpacing: '0.1em',
+                  letterSpacing: '0.14em',
                   textTransform: 'uppercase',
                   color: T.inkStrong,
                 }}
@@ -165,7 +165,7 @@ export function DogGalleryAccordion({
                   background: 'none',
                   border: `1px solid ${T.border}`,
                   borderRadius: 8,
-                  padding: '4px 10px',
+                  padding: '4px 12px',
                   fontFamily: "'Space Grotesk', sans-serif",
                   fontSize: 11,
                   letterSpacing: '0.14em',
@@ -272,7 +272,7 @@ function DogGalleryRow({
       </button>
 
       {open && (
-        <div style={{ padding: '0 14px 16px' }}>
+        <div style={{ padding: '0 16px 16px' }}>
           <DogGalleryBody
             dog={dog}
             editable={editable}
@@ -382,7 +382,7 @@ function DogOpenCard({
               fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
               fontWeight: 700,
               fontSize: 'clamp(22px, 5vw, 36px)',
-              letterSpacing: '0.03em',
+              letterSpacing: '0.02em',
               textTransform: 'uppercase',
               color: T.inkStrong,
             }}
@@ -474,7 +474,7 @@ function DogOpenCard({
       </button>
 
       {open && (
-        <div style={{ padding: '0 16px 18px' }}>
+        <div style={{ padding: '0 16px 16px' }}>
           <DogGalleryBody
             dog={dog}
             editable={editable}
@@ -536,7 +536,7 @@ function DogTile({
           <span style={{ fontFamily: "'Cinzel', serif", fontSize: 46, fontWeight: 700, color: 'rgba(31,26,14,0.28)', lineHeight: 1 }}>
             {(dog.name?.[0] || '?').toUpperCase()}
           </span>
-          <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.inkFaint }}>
+          <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10.5, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkFaint }}>
             Add a photo
           </span>
         </span>
@@ -548,7 +548,7 @@ function DogTile({
         className="absolute inset-x-0 bottom-0 flex items-end justify-between"
         style={{
           gap: 8,
-          padding: '22px 10px 9px',
+          padding: '24px 12px 8px',
           background: 'linear-gradient(to top, rgba(20,14,4,0.88) 0%, rgba(20,14,4,0.55) 55%, transparent 100%)',
           textAlign: 'left',
         }}
@@ -560,7 +560,7 @@ function DogTile({
               fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
               fontWeight: 700,
               fontSize: 14,
-              letterSpacing: '0.06em',
+              letterSpacing: '0.02em',
               textTransform: 'uppercase',
               color: T.card,
             }}
@@ -861,7 +861,7 @@ function BioTextarea({ value, onSave }: { value: string; onSave: (v: string) => 
           // v `PackProfile.tsx`. `.pf-field` okraj/focus glow ostávajú.
           background: T.card,
           borderRadius: 10,
-          padding: '8px 12px 20px',
+          padding: '8px 12px 24px',
           minHeight: 48,
           color: T.ink,
           fontFamily: "'Space Grotesk', sans-serif",

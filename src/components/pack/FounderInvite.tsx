@@ -67,10 +67,10 @@ interface FounderInviteProps {
 // ⚠️ Template literal — spätný apostrof v komentári vnútri zhodí build a tsc to nechytí.
 const CSS = `
 .fi-grid{ display:grid; grid-template-columns:1fr; gap:22px; }
-.fi-right{ padding-top:22px; border-top:1px solid rgba(245,199,61,0.22); }
+.fi-right{ padding-top:24px; border-top:1px solid rgba(245,199,61,0.22); }
 @media (min-width:721px){
   .fi-grid{ grid-template-columns:1fr 1fr; gap:28px; }
-  .fi-right{ padding-top:0; border-top:0; padding-left:28px; border-left:1px solid rgba(245,199,61,0.22); }
+  .fi-right{ padding-top:0; border-top:0; padding-left:32px; border-left:1px solid rgba(245,199,61,0.22); }
   /* Obsah pravej polovice sa centruje ZVISLE voči karte psa vľavo (Matej 13.8.:
      „obsah z pravej strany gradient bloku centrovať"). Karta psa je vyššia než stĺpec
      s BONES, takže bez tohto visel obsah pri hornej hrane a pod ním ostávala diera.
@@ -81,7 +81,7 @@ const CSS = `
 }
 .fi-h{
   font-family:${FONT_TITLE}; font-weight:700; font-size:clamp(16px,3.2vw,19px); line-height:1.25;
-  letter-spacing:0.06em; text-transform:uppercase; color:hsl(45 95% 92%); margin:0;
+  letter-spacing:0.02em; text-transform:uppercase; color:hsl(45 95% 92%); margin:0;
 }
 /* Rad tlačidiel = CELÁ šírka karty v ROVNAKÝCH dieloch. Nezalamuje sa ani na mobile:
    tri krátke slová sa do 300 px zmestia a zalomený rad by vyzeral ako tri rôzne akcie. */
@@ -89,8 +89,8 @@ const CSS = `
 .fi-btn{
   flex:1 1 0; min-width:0;
   display:inline-flex; align-items:center; justify-content:center; gap:7px;
-  padding:12px 6px; border-radius:8px; text-decoration:none; cursor:pointer;
-  font-family:${FONT_TITLE}; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase;
+  padding:12px 8px; border-radius:8px; text-decoration:none; cursor:pointer;
+  font-family:${FONT_TITLE}; font-size:10.5px; letter-spacing:0.14em; text-transform:uppercase;
   white-space:nowrap;
   transition:background .18s ease, border-color .18s ease;
 }
@@ -111,7 +111,7 @@ const CSS = `
    rôzne pilulky vedľa seba. */
 .fi-pill{
   font-family:${FONT_UI}; font-size:10.5px; font-weight:500;
-  letter-spacing:0.08em; text-transform:uppercase; text-decoration:none;
+  letter-spacing:0.02em; text-transform:uppercase; text-decoration:none;
 }
 `;
 
@@ -225,7 +225,7 @@ export function FounderInvite({ dogName, packNumber, shareCardUrl }: FounderInvi
         // nesedia"). Karta ostáva TMAVÁ — to je jeho rozhodnutie z toho istého dňa.
         border: '1.5px solid rgba(201,154,63,0.34)',
         borderRadius: 16,
-        padding: '28px 24px',
+        padding: '32px 24px',
         boxShadow: '0 24px 55px -28px rgba(31, 26, 14, 0.45)',
         position: 'relative',
         overflow: 'hidden',
@@ -397,7 +397,7 @@ export function FounderInvite({ dogName, packNumber, shareCardUrl }: FounderInvi
                   fontFamily: FONT_UI,
                   fontSize: 12.5,
                   color: 'hsl(45 60% 92%)',
-                  letterSpacing: '0.01em',
+                  letterSpacing: '0.02em',
                 }}
               >
                 {link ? link.replace(/^https?:\/\//, '') : t('pack.invite.generatingLink')}
@@ -479,7 +479,7 @@ function StatTile({
           : 'linear-gradient(180deg, rgba(0,0,0,0.34) 0%, rgba(0,0,0,0.18) 100%)',
         border: `1px solid ${highlight ? 'rgba(245,199,61,0.62)' : 'rgba(245,199,61,0.34)'}`,
         borderRadius: 10,
-        padding: '14px 6px 12px',
+        padding: '16px 8px 12px',
         boxShadow: highlight
           ? '0 10px 26px -16px rgba(245,199,61,0.75), inset 0 1px 0 rgba(255,246,226,0.22)'
           : 'inset 0 1px 0 rgba(255,246,226,0.12)',
@@ -491,7 +491,7 @@ function StatTile({
           fontSize: 'clamp(26px, 5.4vw, 34px)',
           fontWeight: 600,
           lineHeight: 1,
-          letterSpacing: '-0.01em',
+          letterSpacing: '0em',
           color: highlight ? 'hsl(45 96% 76%)' : 'hsl(45 92% 94%)',
           textShadow: highlight ? '0 2px 14px rgba(245,199,61,0.45)' : 'none',
         }}
@@ -502,7 +502,7 @@ function StatTile({
         style={{
           fontFamily: FONT_UI,
           fontSize: 9.5,
-          letterSpacing: '0.1em',
+          letterSpacing: '0.14em',
           textTransform: 'uppercase',
           color: 'hsl(45 40% 88% / 0.78)',
           marginTop: 5,

@@ -305,7 +305,7 @@ function MilestoneSwiper({
             style={{
               display: 'block',
               border: 'none',
-              padding: '13px 3px',
+              padding: '12px 4px',
               background: 'transparent',
               cursor: 'pointer',
               lineHeight: 0,
@@ -337,7 +337,7 @@ function MilestoneSwiper({
         className="select-none"
         style={{
           borderRadius: 16,
-          padding: '11px 12px',
+          padding: '12px 12px',
           background: 'var(--brand-gradient)',
           border: '1.5px solid rgba(201,154,63,0.34)',
           // Tieň bol fialový (124,58,237) z pôvodnej palety — gradient je pritom modro-zlatý,
@@ -381,7 +381,7 @@ function MilestoneSwiper({
                     fontFamily: FONT_TITLE,
                     fontSize: 'clamp(19px, 4.6vw, 24px)',
                     fontWeight: 700,
-                    letterSpacing: '0.1em',
+                    letterSpacing: '0.14em',
                     color: 'hsl(45 96% 90%)',
                   }}
                 >
@@ -408,7 +408,7 @@ function MilestoneSwiper({
                   // štvrtým fontom na jednej stránke. Číslo = dáta → Space Grotesk.
                   fontFamily: FONT_UI,
                   fontSize: 10.5,
-                  letterSpacing: '0.04em',
+                  letterSpacing: '0.02em',
                   color: 'hsl(45 40% 90% / 0.8)',
                   marginTop: 4,
                 }}
@@ -476,7 +476,7 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
          (Matej 11. 9. 2026). Materiál nesie `.pk-goldblock`, inline len rozostupy;
          výplň/rám/polomer/tieň sem NEVRACAJ, prebili by triedu. */
       style={{
-        padding: '26px 24px',
+        padding: '24px 24px',
         overflow: 'hidden',
       }}
     >
@@ -505,7 +505,7 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
             fontFamily: FONT_TITLE,
             fontWeight: 700,
             fontSize: 'clamp(18px, 3.8vw, 26px)',
-            letterSpacing: '0.08em',
+            letterSpacing: '0.02em',
             textTransform: 'uppercase',
             color: T.inkStrong,
           }}
@@ -614,7 +614,7 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
                     fontFamily: FONT_UI,
                     fontWeight: 500,
                     fontSize: 9.5,
-                    letterSpacing: '0.34em',
+                    letterSpacing: '0.26em',
                     textTransform: 'uppercase',
                     color: T.ink,
                     marginBottom: 5,

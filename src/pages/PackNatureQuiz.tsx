@@ -90,11 +90,11 @@ const NQ_CSS = `
    ⚠️ Cinzel je načítaný vo váhe 700; pôvodných 800 tu bol fake bold. */
 .nq-gold{
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
-  padding:13px 26px;
+  padding:12px 24px;
   background:var(--cta-gradient);
   border:none; border-radius:8px; color:#000;
   font-family:'Cinzel',serif; font-size:11px; font-weight:700;
-  letter-spacing:.12em; text-transform:uppercase; cursor:pointer; white-space:nowrap;
+  letter-spacing:0.14em; text-transform:uppercase; cursor:pointer; white-space:nowrap;
   box-shadow:var(--cta-shadow-grounded);
   transition: transform .2s, box-shadow .22s;
 }
@@ -117,15 +117,15 @@ const NQ_CSS = `
    nesmie byť menšie než dlaždice nad ním (Matej 14.8.: „urob vačšie širšie").
    ⚠️ Gradient, radius 8 a papyrusový rám sa NEMENIA — CTA je LOCKED. */
 .nq-gold.is-big{
-  width:100%; padding:18px 26px; font-size:13px; letter-spacing:.16em;
+  width:100%; padding:16px 24px; font-size:13px; letter-spacing:0.22em;
   border-radius:8px;
 }
 .nq-ghost{
   display:inline-flex; align-items:center; justify-content:center; gap:7px;
-  padding:11px 20px; background:transparent;
+  padding:12px 24px; background:transparent;
   border:1.5px solid ${T.border}; border-radius:8px; color:${T.inkWarm};
   font-family:'Cinzel',serif; font-size:10.5px; font-weight:700;
-  letter-spacing:.12em; text-transform:uppercase; cursor:pointer;
+  letter-spacing:0.14em; text-transform:uppercase; cursor:pointer;
 }
 .nq-ghost:hover{ border-color:${T.cardEdge}; color:${T.inkStrong}; }
 .nq-ghost:disabled{ opacity:.32; cursor:default; border-color:${T.border}; color:${T.inkWarm}; }
@@ -156,7 +156,7 @@ const NQ_CSS = `
    na papyruse rozdiel skoro neviditeľný. */
 .nq-opt, .nq-optlbl{
   display:flex; align-items:center; gap:12px; width:100%; text-align:left; cursor:pointer;
-  padding:13px 15px; border-radius:12px;
+  padding:12px 16px; border-radius:12px;
   background:linear-gradient(180deg,#FFFDF7 0%,#EFDDAE 100%);
   border:1.5px solid rgba(179,130,45,0.55);
   font-family:'Space Grotesk',sans-serif; font-size:13.5px; line-height:1.45;
@@ -232,7 +232,7 @@ const NQ_CSS = `
 
 /* Trojlístok áno/občas/nie pri jednom psovi — tá istá koža, len na šírku. */
 .nq-tri{
-  flex:1 1 0; cursor:pointer; padding:11px 8px; border-radius:999px;
+  flex:1 1 0; cursor:pointer; padding:12px 8px; border-radius:999px;
   background:linear-gradient(180deg,#FFFDF7 0%,#EFDDAE 100%);
   border:1.5px solid rgba(179,130,45,0.55);
   font-family:'Space Grotesk',sans-serif; font-size:12.5px; font-weight:500; color:#5c4318;
@@ -372,7 +372,7 @@ const NQ_CSS = `
     #000 30%, rgba(0,0,0,0.86) 52%, rgba(0,0,0,0.45) 76%, transparent 97%);
 }
 .nq-introbody{
-  padding:26px 24px; display:flex; flex-direction:column; justify-content:center;
+  padding:24px 24px; display:flex; flex-direction:column; justify-content:center;
   min-width:0;
 }
 /* DVE OSI = DVE VEĽKÉ ŠTVORCOVÉ DLAŽDICE VEDĽA SEBA (Matej 14.8.: „daj ich vačšie
@@ -395,7 +395,7 @@ const NQ_CSS = `
      ⚠️ Tento blok je JS template literal — spätný apostrof ho zhodí a tsc to
      nechytí. Do komentárov v CSS ich nepíš. */
   display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
-  text-align:center; gap:11px; padding:18px 14px;
+  text-align:center; gap:11px; padding:16px 16px;
   background:linear-gradient(135deg,${T.card} 0%,#F2E2BD 100%);
   border:1.5px solid ${T.cardEdge}; border-radius:14px;
   box-shadow:0 8px 28px -18px rgba(0,0,0,0.75), 0 0 0 3px rgba(201,154,63,0.13),
@@ -426,11 +426,11 @@ const NQ_CSS = `
    Panel = úroveň 4 matrice (PACK_BOX.panel): papyrusový gradient, 1.5px zlatý rám,
    r14. Scrim je tmavý s rozostrením, aby bolo vidno, že kvíz nezmizol — len čaká. */
 .nq-scrim{
-  position:fixed; inset:0; z-index:60; display:grid; place-items:center; padding:20px;
+  position:fixed; inset:0; z-index:60; display:grid; place-items:center; padding:24px;
   background:rgba(3,2,0,0.66); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px);
 }
 .nq-confirm{
-  width:100%; max-width:420px; padding:22px 20px;
+  width:100%; max-width:420px; padding:24px 24px;
   background:linear-gradient(135deg,${T.card} 0%,#F2E2BD 100%);
   border:1.5px solid ${T.cardEdge}; border-radius:14px;
   box-shadow:0 8px 28px rgba(0,0,0,0.45), 0 0 0 3px rgba(201,154,63,0.15);
@@ -499,11 +499,11 @@ const NQ_CSS = `
 }
 .nq-badgelbl{
   font-family:'Space Grotesk',sans-serif; font-size:9.5px; font-weight:500;
-  letter-spacing:.24em; text-transform:uppercase; color:${T.cardEdge}; margin-top:8px;
+  letter-spacing:0.22em; text-transform:uppercase; color:${T.cardEdge}; margin-top:8px;
 }
 .nq-badgename{
   font-family:'Cinzel',serif; font-weight:700; text-transform:uppercase;
-  font-size:clamp(13px,3.6vw,16px); line-height:1.2; letter-spacing:.03em;
+  font-size:clamp(13px,3.6vw,16px); line-height:1.2; letter-spacing:0.02em;
   color:${T.inkStrong}; margin-top:3px;
 }
 /* Zvláštne úlohy: VŠETKY V RADE, menšie (Matej 20.8.). Pes ich môže mať 0–4 —
@@ -554,19 +554,19 @@ const NQ_CSS = `
   .nq-introart::after{
     background:linear-gradient(to bottom, rgba(251,245,230,0) 52%, rgba(251,245,230,0.95) 100%);
   }
-  .nq-introbody{ padding:18px 16px 22px; }
+  .nq-introbody{ padding:16px 16px 24px; }
   /* Pod 760 px dlaždice pustia pomer strán a stlačia sa — výška, ktorú ušetria,
      je presne tá, ktorú dostal obraz nad nimi.
      ⚠️ justify-content:flex-start je POVINNÉ: bez štvorca má každá dlaždica inak
      vysoký text (ROLE IN THE PACK sa láme na dva riadky) a pri centrovaní by
      medailóny sedeli v schodíku. */
   .nq-axis{
-    aspect-ratio:auto; padding:13px 10px 14px; gap:7px; justify-content:flex-start;
+    aspect-ratio:auto; padding:12px 12px 16px; gap:7px; justify-content:flex-start;
     border-radius:12px;
   }
   .nq-axisicon{ width:46px; height:46px; }
   .nq-axisicon img{ width:26px; height:26px; }
-  .nq-axistitle{ font-size:11.5px; letter-spacing:.1em; }
+  .nq-axistitle{ font-size:11.5px; letter-spacing:0.14em; }
   .nq-axissub{ font-size:11px; line-height:1.42; }
   /* Pod 760 px idú POD SEBA. Tri stĺpce by na telefóne dali ~110 px na dlaždicu —
      nadpis „ROLE IN THE PACK" by sa lámal na tri riadky. */
@@ -598,8 +598,8 @@ const NQ_CSS = `
   background:radial-gradient(ellipse 90% 95% at 50% 50%, transparent 58%, rgba(80,45,5,.26) 100%);
 }
 .nqd > *{ position:relative; z-index:3; }
-.nqd-framed{ border:3px solid #8a5c10; border-radius:4px; padding:7px; margin:0; }
-.nqd-inner{ border:1px solid rgba(122,80,16,0.28); border-radius:2px; padding:30px 28px 34px; }
+.nqd-framed{ border:3px solid #8a5c10; border-radius:4px; padding:8px; margin:0; }
+.nqd-inner{ border:1px solid rgba(122,80,16,0.28); border-radius:2px; padding:32px 32px 32px; }
 
 /* ornament medzi sekciami: čiara – kosoštvorce – čiara */
 .nqd-orn{ display:flex; align-items:center; gap:6px; margin:22px 0; }
@@ -619,7 +619,7 @@ const NQ_CSS = `
   font-size:56px; color:#8a5c10;
 }
 .nqd-who{
-  font-family:'Cinzel Decorative','Cinzel',serif; font-weight:900; letter-spacing:.03em;
+  font-family:'Cinzel Decorative','Cinzel',serif; font-weight:900; letter-spacing:0.02em;
   text-transform:uppercase; color:#1a0900; font-size:38px; line-height:1; text-align:center;
 }
 /* Heroglyf VOĽNE — bez rámu. multiply ho posadí do papyrusu namiesto nálepky. */
@@ -631,20 +631,20 @@ const NQ_CSS = `
    popisky by skončili každý inde a rad by vyzeral ako chyba sadzby. */
 .nqd-trio{ display:flex; justify-content:center; align-items:stretch; gap:10px; flex-wrap:wrap; margin-top:6px; }
 .nqd-slot{
-  width:172px; text-align:center; padding:16px 10px 14px; border:1px solid rgba(122,80,16,0.28);
+  width:172px; text-align:center; padding:16px 12px 16px; border:1px solid rgba(122,80,16,0.28);
   border-radius:12px; background:rgba(255,255,255,.24); position:relative;
   display:flex; flex-direction:column;
 }
 .nqd-slot::before,.nqd-slot::after{ content:''; position:absolute; width:9px; height:9px; border:1px solid #8a5c10; }
 .nqd-slot::before{ top:5px; left:5px; border-right:0; border-bottom:0; }
 .nqd-slot::after{ bottom:5px; right:5px; border-left:0; border-top:0; }
-.nqd-rank{ font-family:'Cinzel',serif; font-weight:900; font-size:10px; letter-spacing:.2em; color:#8a5c10; opacity:.8; }
+.nqd-rank{ font-family:'Cinzel',serif; font-weight:900; font-size:10px; letter-spacing:0.22em; color:#8a5c10; opacity:.8; }
 .nqd-art{ height:116px; display:grid; place-items:center; margin:6px 0 8px; }
 .nqd-art img{ width:104px; margin:0; filter:drop-shadow(0 8px 18px rgba(60,38,8,.32)); }
 .nqd-slot.spec .nqd-art img{ width:88px; }
 .nqd-lbl{
   margin-top:auto; font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:8.5px;
-  letter-spacing:.2em; text-transform:uppercase; color:${T.inkWarm};
+  letter-spacing:0.22em; text-transform:uppercase; color:${T.inkWarm};
 }
 .nqd-nm{
   font-family:'Cinzel',serif; font-weight:900; font-size:15px; letter-spacing:.02em;
@@ -656,9 +656,9 @@ const NQ_CSS = `
    ⚠️ Číslo sekcie MUSÍ sedieť s číslom odznaku v hlavičke. I = konštitúcia na
    oboch miestach — číslo je sľub, buď platí dvakrát, alebo tam nemá čo robiť. */
 .nqd-head{ text-align:center; margin:0 0 18px; }
-.nqd-head .num{ font-family:'Cinzel',serif; font-weight:900; font-size:12px; letter-spacing:.34em; color:#8a5c10; }
+.nqd-head .num{ font-family:'Cinzel',serif; font-weight:900; font-size:12px; letter-spacing:0.26em; color:#8a5c10; }
 .nqd-head h2{
-  font-family:'Cinzel',serif; font-weight:900; font-size:27px; letter-spacing:.07em;
+  font-family:'Cinzel',serif; font-weight:900; font-size:27px; letter-spacing:0.02em;
   text-transform:uppercase; color:#1a0900; margin:5px 0 0; line-height:1.1;
 }
 .nqd-head .sub{ font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:${T.inkWarm}; margin-top:6px; }
@@ -669,7 +669,7 @@ const NQ_CSS = `
 
 /* ── PANELY (rohové značky, dva stupne) ───────────────────────────────── */
 .nqd-panel{
-  position:relative; border:1px solid #8a5c10; border-radius:10px; padding:20px 20px 18px;
+  position:relative; border:1px solid #8a5c10; border-radius:10px; padding:24px 24px 16px;
   background:rgba(255,252,242,.42);
 }
 .nqd-panel::before,.nqd-panel::after{ content:''; position:absolute; width:14px; height:14px; border:2px solid #8a5c10; }
@@ -689,7 +689,7 @@ const NQ_CSS = `
 
 .nqd-list{ margin:0; padding:0; display:grid; gap:10px; }
 .nqd-list li{
-  list-style:none; position:relative; padding-left:20px;
+  list-style:none; position:relative; padding-left:24px;
   font-family:'Space Grotesk',sans-serif; font-size:13.5px; line-height:1.6; color:#1a0900;
 }
 .nqd-list li::before{
@@ -702,7 +702,7 @@ const NQ_CSS = `
 /* ── I · KONŠTITÚCIA: čínsky znak + päť korešpondencií ────────────────── */
 .nqd-elhero{ display:grid; grid-template-columns:150px 1fr; gap:20px; align-items:center; }
 .nqd-cnbox{
-  text-align:center; padding:14px 10px 12px; border:1px solid #8a5c10; border-radius:10px;
+  text-align:center; padding:16px 12px 12px; border:1px solid #8a5c10; border-radius:10px;
   background:rgba(255,252,242,.5); position:relative;
 }
 .nqd-cnbox::before,.nqd-cnbox::after{ content:''; position:absolute; width:12px; height:12px; border:1px solid #8a5c10; }
@@ -710,33 +710,33 @@ const NQ_CSS = `
 .nqd-cnbox::after{ bottom:4px; right:4px; border-left:0; border-top:0; }
 .nqd-cn{ font-size:64px; line-height:1; color:#1a0900; font-weight:500; }
 .nqd-cnname{
-  font-family:'Cinzel',serif; font-weight:900; font-size:16px; letter-spacing:.1em;
+  font-family:'Cinzel',serif; font-weight:900; font-size:16px; letter-spacing:0.14em;
   text-transform:uppercase; color:#1a0900; margin-top:8px;
 }
 .nqd-cnpin{ font-family:'Space Grotesk',sans-serif; font-size:11px; color:${T.inkWarm}; font-style:italic; }
 /* ⚠️ Päť PEVNÝCH stĺpcov. auto-fit zalomí 4+1 a Colour ostane sama ako nedorobok. */
 .nqd-facts{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:14px; }
-.nqd-fact{ border:1px solid rgba(122,80,16,0.28); border-radius:8px; padding:8px 10px; background:rgba(255,255,255,.22); }
+.nqd-fact{ border:1px solid rgba(122,80,16,0.28); border-radius:8px; padding:8px 12px; background:rgba(255,255,255,.22); }
 .nqd-fact .k{
   display:block; font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:8.5px;
-  letter-spacing:.2em; text-transform:uppercase; color:${T.inkWarm};
+  letter-spacing:0.22em; text-transform:uppercase; color:${T.inkWarm};
 }
 .nqd-fact .v{ display:block; font-family:'Cinzel',serif; font-weight:700; font-size:12.5px; color:#1a0900; margin-top:2px; }
 
 /* ── IV · USMERNENIE ──────────────────────────────────────────────────────
    Kombinačný riadok stojí SAMOSTATNE nad omylmi. Je to jediná veta dokumentu,
    kde sa obe osi stretnú — zamiešaná medzi šestnásť riadkov by zanikla. */
-.nqd-pair{ position:relative; border:1px solid #8a5c10; border-radius:10px; padding:16px 18px;
+.nqd-pair{ position:relative; border:1px solid #8a5c10; border-radius:10px; padding:16px 16px;
   background:linear-gradient(135deg, rgba(245,199,61,.16), rgba(230,158,26,.09)); margin-bottom:20px; }
 .nqd-pair .cross{
-  font-family:'Cinzel',serif; font-weight:900; font-size:10px; letter-spacing:.24em;
+  font-family:'Cinzel',serif; font-weight:900; font-size:10px; letter-spacing:0.22em;
   text-transform:uppercase; color:#8a5c10; margin-bottom:6px;
 }
 .nqd-cat{ margin-top:20px; }
 .nqd-cat:first-of-type{ margin-top:4px; }
 .nqd-cap{ display:flex; align-items:center; gap:10px; margin-bottom:11px; }
 .nqd-cap h3{
-  font-family:'Cinzel',serif; font-weight:900; font-size:14px; letter-spacing:.16em;
+  font-family:'Cinzel',serif; font-weight:900; font-size:14px; letter-spacing:0.22em;
   text-transform:uppercase; color:#1a0900; margin:0; white-space:nowrap;
 }
 .nqd-cap i{ flex:1; height:1px; background:linear-gradient(90deg,#8a5c10,transparent); }
@@ -744,7 +744,7 @@ const NQ_CSS = `
 .nqd-rules li{ list-style:none; display:grid; grid-template-columns:30px 1fr; gap:12px; align-items:start; }
 .nqd-rules .n{ font-family:'Cinzel',serif; font-weight:900; font-size:14px; color:#8a5c10; text-align:right; line-height:1.3; }
 .nqd-rules b.t{
-  display:block; font-family:'Cinzel',serif; font-weight:700; font-size:12.5px; letter-spacing:.06em;
+  display:block; font-family:'Cinzel',serif; font-weight:700; font-size:12.5px; letter-spacing:0.02em;
   text-transform:uppercase; color:#1a0900; margin-bottom:3px;
 }
 .nqd-rules span.d{ font-family:'Space Grotesk',sans-serif; font-size:13px; line-height:1.6; color:#5a3a0a; }
@@ -759,7 +759,7 @@ const NQ_CSS = `
 
 @media(max-width:900px){ .nqd-facts{ grid-template-columns:repeat(3,1fr); } }
 @media(max-width:720px){
-  .nqd-inner{ padding:20px 15px 24px; }
+  .nqd-inner{ padding:24px 16px 24px; }
   .nqd-who{ font-size:29px; }
   .nqd-head h2{ font-size:21px; }
   .nqd-elhero{ grid-template-columns:1fr; gap:14px; }
@@ -884,7 +884,7 @@ function Card({ children, style, className }: {
   return (
     <div className={className} style={{
       background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 16,
-      boxShadow: T.cardShadow, padding: '20px 18px', ...style,
+      boxShadow: T.cardShadow, padding: '24px 16px', ...style,
     }}>{children}</div>
   );
 }
@@ -896,7 +896,7 @@ function Rule() {
 function Tile({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      background: T.tileBg, border: `1px solid ${T.border}`, borderRadius: 10, padding: '12px 14px',
+      background: T.tileBg, border: `1px solid ${T.border}`, borderRadius: 10, padding: '12px 16px',
     }}>{children}</div>
   );
 }
@@ -957,7 +957,7 @@ function DogIdNote({ tx }: { tx: (k: string, f: string) => string }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 14, marginTop: 14,
-      padding: '14px 16px', borderRadius: 14,
+      padding: '16px 16px', borderRadius: 14,
       background: 'radial-gradient(circle at 22% 20%, #12233a 0%, #01050A 74%)',
       border: '1px solid rgba(91,224,240,0.28)',
       boxShadow: '0 0 0 4px rgba(59,158,255,0.05), 0 18px 44px -22px rgba(59,158,255,0.45)',
@@ -984,7 +984,7 @@ function DogIdNote({ tx }: { tx: (k: string, f: string) => string }) {
       <div style={{ minWidth: 0 }}>
         <div style={{
           fontFamily: FONT_TITLE, fontWeight: 700, textTransform: 'uppercase',
-          fontSize: 12.5, letterSpacing: '.08em', color: '#5BE0F0', marginBottom: 5,
+          fontSize: 12.5, letterSpacing: '0.02em', color: '#5BE0F0', marginBottom: 5,
         }}>{tx('pack.nature.intro.dogid', 'It goes into the DOG ID')}</div>
         <div style={{
           fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.55, color: T.onDarkDim,
@@ -1260,7 +1260,7 @@ function PackHint({ tx }: { tx: (k: string, f: string) => string }) {
  */
 function HowItWorks({ solo, tx }: { solo: boolean; tx: (k: string, f: string) => string }) {
   return (
-    <div style={{ ...PACK_BOX.subblock, padding: '13px 15px', margin: '0 0 16px' }}>
+    <div style={{ ...PACK_BOX.subblock, padding: '12px 16px', margin: '0 0 16px' }}>
       <div style={{
         fontFamily: FONT_UI, fontSize: 10, fontWeight: 500, letterSpacing: '.26em',
         textTransform: 'uppercase', color: T.cardEdge, marginBottom: 6,
@@ -1303,7 +1303,7 @@ function LeaveConfirm({ onStay, onLeave, tx }: {
       <div className="nq-confirm" onClick={(e) => e.stopPropagation()}>
         <h2 style={{
           fontFamily: FONT_TITLE, fontWeight: 700, textTransform: 'uppercase',
-          fontSize: 16, letterSpacing: '.06em', color: T.inkStrong, margin: 0,
+          fontSize: 16, letterSpacing: '0.02em', color: T.inkStrong, margin: 0,
         }}>{tx('pack.nature.leave.title', 'Leave the quiz?')}</h2>
         <p style={{
           fontFamily: FONT_UI, fontSize: 13, lineHeight: 1.55, color: T.inkWarm, margin: '10px 0 0',
@@ -1426,7 +1426,7 @@ function BalanceSection({ b, own, tx }: {
   const extra = b.top.support.filter((k) => k !== own);
   const chip = (it: BalanceItem) => (
     <span key={it.id} className="pf-pill" style={{
-      fontFamily: FONT_UI, fontSize: 11.5, padding: '5px 11px', borderRadius: 999,
+      fontFamily: FONT_UI, fontSize: 11.5, padding: '4px 12px', borderRadius: 999,
       border: `1px solid ${T.border}`, background: T.tileBg, color: T.inkStrong,
     }}>{tx(it.i18n, it.labelEN)}</span>
   );
@@ -1482,14 +1482,14 @@ function BalanceSection({ b, own, tx }: {
           VÝZNAM. Presne ako ZÁVET na DOG ID: sekcia, ktorá hovorí o chorobe, nesmie
           mať na papyruse rovnakú váhu ako obľúbená maškrta. */}
       {b.diagnoses.length > 0 && (
-        <div style={{ ...PACK_BOX.subblockDark, padding: '14px 16px', marginTop: 12 }}>
+        <div style={{ ...PACK_BOX.subblockDark, padding: '16px 16px', marginTop: 12 }}>
           <p className="nqd-eyebrow" style={{ color: T.cardEdge }}>
             {tx('pack.nature.balance.vet', 'This belongs with your vet')}
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '8px 0 10px' }}>
             {b.diagnoses.map((it) => (
               <span key={it.id} className="pk-pill--dark" style={{
-                fontFamily: FONT_UI, fontSize: 11.5, padding: '5px 11px', borderRadius: 999,
+                fontFamily: FONT_UI, fontSize: 11.5, padding: '4px 12px', borderRadius: 999,
                 border: `1px solid ${T.cardEdge}`, background: 'rgba(201,154,63,0.10)', color: T.onDark,
               }}>{tx(it.i18n, it.labelEN)}</span>
             ))}
@@ -1723,7 +1723,7 @@ function ResultDoc({ dog, r, b, tx }: {
                   <img src={sp.art} alt="" aria-hidden loading="lazy" style={{ width: 78, flex: '0 0 auto' }} />
                   <div>
                     <h3 style={{
-                      fontFamily: FONT_TITLE, fontWeight: 900, fontSize: 17, letterSpacing: '.05em',
+                      fontFamily: FONT_TITLE, fontWeight: 900, fontSize: 17, letterSpacing: '0.02em',
                       textTransform: 'uppercase', margin: '0 0 5px', color: '#1a0900',
                     }}>{tx(sp.i18n, sp.labelEN)}</h3>
                     <p className="dim"><Bold s={tx(`${sp.i18n}.desc`, sp.descEN)} /></p>
@@ -1756,7 +1756,7 @@ function ResultDoc({ dog, r, b, tx }: {
               </div>
               <b className="t" style={{
                 display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 13,
-                letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 4, color: '#1a0900',
+                letterSpacing: '0.02em', textTransform: 'uppercase', marginBottom: 4, color: '#1a0900',
               }}>{tx(`${g.pair.i18n}.title`, g.pair.titleEN)}</b>
               <span style={{ fontFamily: FONT_UI, fontSize: 13.5, lineHeight: 1.6, color: '#1a0900' }}>
                 <Bold s={tx(`${g.pair.i18n}.text`, g.pair.textEN)} />
@@ -2249,7 +2249,7 @@ export default function PackNatureQuiz() {
                 odpovede pod ňou, a splývala s nimi do jedného sivého bloku. */}
             <h2 style={{
               fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 'clamp(1.2rem,4.4vw,1.65rem)',
-              lineHeight: 1.22, letterSpacing: '.01em', color: T.inkStrong, margin: 0,
+              lineHeight: 1.22, letterSpacing: '0.02em', color: T.inkStrong, margin: 0,
             }}>{tx(q.i18n, q.labelEN)}</h2>
             {/* Čiara je ukotvená VĽAVO (gradient do stratena vpravo), nie
                 symetrická ako `T.rule` — pod nadpisom sa číta ako podčiarknutie,
@@ -2314,7 +2314,7 @@ export default function PackNatureQuiz() {
             <Progress done={done} total={total} label={tx('pack.nature.part.balance', 'Balance')} />
             <h2 style={{
               fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 'clamp(1.2rem,4.4vw,1.65rem)',
-              lineHeight: 1.22, letterSpacing: '.01em', color: T.inkStrong, margin: 0,
+              lineHeight: 1.22, letterSpacing: '0.02em', color: T.inkStrong, margin: 0,
             }}>{tx('pack.nature.balance.title', 'Anything going on right now?')}</h2>
             <div aria-hidden style={{
               height: 2, width: 132, borderRadius: 2, margin: '13px 0 16px',
@@ -2344,7 +2344,7 @@ export default function PackNatureQuiz() {
                   {ELEMENT_KEYS.map((el) => {
                     const items = BALANCE_ITEMS.filter((b) => b.element === el);
                     return (
-                      <div key={el} style={{ ...PACK_BOX.subblock, padding: '13px 15px' }}>
+                      <div key={el} style={{ ...PACK_BOX.subblock, padding: '12px 16px' }}>
                         <div style={{
                           fontFamily: FONT_UI, fontWeight: 500, fontSize: 10.5, letterSpacing: '.26em',
                           textTransform: 'uppercase', color: T.cardEdge, marginBottom: 10,
@@ -2362,7 +2362,7 @@ export default function PackNatureQuiz() {
                                 className={`pf-pill${on ? ' is-on' : ''}`}
                                 style={{
                                   fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.35, textAlign: 'left',
-                                  padding: '7px 12px', borderRadius: 999, cursor: 'pointer',
+                                  padding: '8px 12px', borderRadius: 999, cursor: 'pointer',
                                   border: `1px solid ${on ? T.cardEdge : 'rgba(179,130,45,0.55)'}`,
                                   background: on ? 'linear-gradient(180deg,#F5C73D,#E69E1A)' : T.tileBg,
                                   color: on ? '#3d1f00' : T.inkStrong,

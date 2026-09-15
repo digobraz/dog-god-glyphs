@@ -57,9 +57,9 @@ export function SubSection({
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         className={`flex items-center gap-2.5 w-full pf-subsection${open ? ' is-open' : ''}`}
-        style={{ borderRadius: 10, padding: '10px 12px', cursor: 'pointer', textAlign: 'left' }}
+        style={{ borderRadius: 10, padding: '12px 12px', cursor: 'pointer', textAlign: 'left' }}
       >
-        <span style={{ ...sectionLabelStyle, fontSize: 10.5, letterSpacing: '0.16em', color: T.inkStrong }}>{title}</span>
+        <span style={{ ...sectionLabelStyle, fontSize: 10.5, letterSpacing: '0.22em', color: T.inkStrong }}>{title}</span>
         {editable && (
           <span className={`pf-subsection-badge${filled > 0 ? ' is-filled' : ' is-empty'}`}>
             {filled}/{total}
@@ -73,7 +73,7 @@ export function SubSection({
           />
         </span>
       </button>
-      {open && <div style={{ marginTop: 10, padding: '0 2px' }}>{children}</div>}
+      {open && <div style={{ marginTop: 10, padding: '0 4px' }}>{children}</div>}
     </div>
   );
 }
@@ -165,7 +165,7 @@ export function SelectRow<V extends string>({
           background: activeColor ? `${activeColor}1F` : undefined,
           border: activeColor ? `1px solid ${activeColor}` : undefined,
           borderRadius: 8,
-          padding: '5px 8px', fontFamily: "'Space Grotesk', sans-serif", fontSize: 12,
+          padding: '4px 8px', fontFamily: "'Space Grotesk', sans-serif", fontSize: 12,
           fontWeight: activeColor ? 600 : 400,
           color: value ? (activeColor ?? T.ink) : T.inkFaint, width: '100%',
         }}
@@ -218,7 +218,7 @@ export function NumberRow({
         className="pf-field"
         style={{
           borderRadius: 8,
-          padding: '5px 8px', fontFamily: "'Space Grotesk', sans-serif", fontSize: 12,
+          padding: '4px 8px', fontFamily: "'Space Grotesk', sans-serif", fontSize: 12,
           color: T.ink, width: '100%',
         }}
       />
@@ -273,7 +273,7 @@ export function NeuterPills({
               style={{
                 background: active ? (o.filled ? tone : 'transparent') : undefined,
                 border: active ? `1.5px solid ${tone}` : undefined,
-                borderRadius: 999, padding: '3px 10px',
+                borderRadius: 999, padding: '4px 12px',
                 fontFamily: "'Space Grotesk', sans-serif", fontSize: 11,
                 fontWeight: active ? 600 : 500,
                 color: active ? (o.filled ? '#FFFBF2' : tone) : T.inkDim,
@@ -317,7 +317,7 @@ export function DateRow({
         className="pf-field"
         style={{
           borderRadius: 8,
-          padding: '5px 8px', fontFamily: "'Space Grotesk', sans-serif", fontSize: 12,
+          padding: '4px 8px', fontFamily: "'Space Grotesk', sans-serif", fontSize: 12,
           color: value ? T.ink : T.inkFaint, width: '100%',
         }}
       />
@@ -361,7 +361,7 @@ export function TrafficRow({
   return (
     <div
       className="flex items-center gap-2"
-      style={{ padding: '3px 0', paddingLeft: indent ? 12 : 0 }}
+      style={{ padding: '4px 0', paddingLeft: indent ? 12 : 0 }}
     >
       <span style={{ ...labelStyle, flex: 1, fontSize: indent ? 11.5 : 12 }}>{label}</span>
       <span className="flex items-center gap-1.5">
@@ -424,7 +424,7 @@ export function ChipMulti({
             disabled={blocked}
             className={`pf-pill${isSelected ? ' is-selected' : ''}`}
             style={{
-              borderRadius: 999, padding: '3px 9px',
+              borderRadius: 999, padding: '4px 8px',
               fontFamily: "'Space Grotesk', sans-serif", fontSize: 11,
               fontWeight: isSelected ? 600 : 500,
               cursor: editable && !blocked ? 'pointer' : 'default',
@@ -491,7 +491,7 @@ export function OpenQuestion({
               className="inline-flex items-center gap-1"
               style={{
                 background: chipBg, border: `1px solid ${chipBg}`, borderRadius: 999,
-                padding: '3px 6px 3px 9px', fontFamily: "'Space Grotesk', sans-serif",
+                padding: '4px 8px 4px 8px', fontFamily: "'Space Grotesk', sans-serif",
                 fontSize: 11, fontWeight: 600, color: chipInk,
               }}
             >
@@ -524,7 +524,7 @@ export function OpenQuestion({
             className="pf-field"
             style={{
               width: '100%', borderRadius: 8,
-              padding: '6px 10px', fontFamily: "'Space Grotesk', sans-serif", fontSize: 12,
+              padding: '8px 12px', fontFamily: "'Space Grotesk', sans-serif", fontSize: 12,
               color: T.ink,
             }}
           />
@@ -537,7 +537,7 @@ export function OpenQuestion({
                   onClick={() => add(s)}
                   style={{
                     background: 'transparent', border: `1px dashed ${T.border}`, borderRadius: 999,
-                    padding: '2px 8px', fontFamily: "'Space Grotesk', sans-serif", fontSize: 10.5,
+                    padding: '4px 8px', fontFamily: "'Space Grotesk', sans-serif", fontSize: 10.5,
                     color: T.inkFaint, cursor: 'pointer',
                   }}
                 >

@@ -224,7 +224,7 @@ export function TripProfileCard({
                 background: T.bg,
                 border: `1px solid ${T.hairline}`,
                 borderRadius: 999,
-                padding: '4px 10px',
+                padding: '4px 12px',
                 fontFamily: "'Space Grotesk', sans-serif",
                 fontSize: 11.5,
                 color: T.inkDim,

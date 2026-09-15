@@ -37,7 +37,7 @@
     "ram": 2,
     "tien": 4,
     "pismenka": 4,
-    "odsadenie": 18
+    "odsadenie": 17
   },
   "components/pack/DeleteButton.tsx": {
     "radius": 1,
@@ -66,8 +66,8 @@
     "progres": 1,
     "ram": 1,
     "tien": 0,
-    "pismenka": 7,
-    "odsadenie": 12
+    "pismenka": 0,
+    "odsadenie": 0
   },
   "components/pack/DogStats.tsx": {
     "radius": 4,
@@ -76,8 +76,8 @@
     "progres": 0,
     "ram": 1,
     "tien": 1,
-    "pismenka": 3,
-    "odsadenie": 1
+    "pismenka": 0,
+    "odsadenie": 0
   },
   "components/pack/FeatureSurveyCard.tsx": {
     "radius": 2,
@@ -106,8 +106,8 @@
     "progres": 0,
     "ram": 7,
     "tien": 4,
-    "pismenka": 6,
-    "odsadenie": 6
+    "pismenka": 0,
+    "odsadenie": 0
   },
   "components/pack/Gateways.tsx": {
     "radius": 0,
@@ -116,8 +116,8 @@
     "progres": 0,
     "ram": 1,
     "tien": 3,
-    "pismenka": 3,
-    "odsadenie": 7
+    "pismenka": 0,
+    "odsadenie": 0
   },
   "components/pack/GlobePulse.tsx": {
     "radius": 0,
@@ -126,8 +126,8 @@
     "progres": 0,
     "ram": 2,
     "tien": 1,
-    "pismenka": 6,
-    "odsadenie": 4
+    "pismenka": 0,
+    "odsadenie": 0
   },
   "components/pack/HeroCard.tsx": {
     "radius": 0,
@@ -136,8 +136,8 @@
     "progres": 0,
     "ram": 5,
     "tien": 5,
-    "pismenka": 11,
-    "odsadenie": 17
+    "pismenka": 0,
+    "odsadenie": 1
   },
   "components/pack/MapCoach.tsx": {
     "radius": 1,
@@ -156,7 +156,7 @@
     "progres": 0,
     "ram": 1,
     "tien": 2,
-    "pismenka": 2,
+    "pismenka": 1,
     "odsadenie": 8
   },
   "components/pack/MemorialControl.tsx": {
@@ -186,7 +186,7 @@
     "progres": 0,
     "ram": 0,
     "tien": 1,
-    "pismenka": 2,
+    "pismenka": 1,
     "odsadenie": 2
   },
   "components/pack/NextTripCard.tsx": {
@@ -196,7 +196,7 @@
     "progres": 0,
     "ram": 1,
     "tien": 0,
-    "pismenka": 2,
+    "pismenka": 1,
     "odsadenie": 3
   },
   "components/pack/OnboardingProgress.tsx": {
@@ -216,8 +216,8 @@
     "progres": 1,
     "ram": 7,
     "tien": 4,
-    "pismenka": 9,
-    "odsadenie": 7
+    "pismenka": 0,
+    "odsadenie": 1
   },
   "components/pack/PackNetwork.tsx": {
     "radius": 8,
@@ -226,7 +226,7 @@
     "progres": 0,
     "ram": 6,
     "tien": 7,
-    "pismenka": 17,
+    "pismenka": 15,
     "odsadenie": 35
   },
   "components/pack/PackNotifications.tsx": {
@@ -246,8 +246,8 @@
     "progres": 0,
     "ram": 0,
     "tien": 0,
-    "pismenka": 6,
-    "odsadenie": 9
+    "pismenka": 0,
+    "odsadenie": 3
   },
   "components/pack/PackTree.tsx": {
     "radius": 3,
@@ -266,8 +266,8 @@
     "progres": 0,
     "ram": 2,
     "tien": 4,
-    "pismenka": 1,
-    "odsadenie": 8
+    "pismenka": 0,
+    "odsadenie": 1
   },
   "components/pack/PawmatePanel.tsx": {
     "radius": 3,
@@ -276,7 +276,7 @@
     "progres": 0,
     "ram": 0,
     "tien": 0,
-    "pismenka": 7,
+    "pismenka": 6,
     "odsadenie": 14
   },
   "components/pack/PawmatesSection.tsx": {
@@ -286,7 +286,7 @@
     "progres": 0,
     "ram": 0,
     "tien": 0,
-    "pismenka": 7,
+    "pismenka": 6,
     "odsadenie": 16
   },
   "components/pack/PlanAskCard.tsx": {
@@ -296,8 +296,8 @@
     "progres": 0,
     "ram": 2,
     "tien": 0,
-    "pismenka": 2,
-    "odsadenie": 6
+    "pismenka": 0,
+    "odsadenie": 1
   },
   "components/pack/PointsPill.tsx": {
     "radius": 0,
@@ -366,8 +366,8 @@
     "progres": 0,
     "ram": 4,
     "tien": 7,
-    "pismenka": 7,
-    "odsadenie": 19
+    "pismenka": 0,
+    "odsadenie": 0
   },
   "components/pack/VerseOfTheDay.tsx": {
     "radius": 0,
@@ -376,8 +376,8 @@
     "progres": 0,
     "ram": 0,
     "tien": 0,
-    "pismenka": 4,
-    "odsadenie": 3
+    "pismenka": 0,
+    "odsadenie": 0
   },
   "components/pack/WillPanel.tsx": {
     "radius": 1,
@@ -386,7 +386,7 @@
     "progres": 0,
     "ram": 0,
     "tien": 0,
-    "pismenka": 5,
+    "pismenka": 4,
     "odsadenie": 5
   },
   "components/pack/addtrip/AddTripEntry.tsx": {
@@ -397,7 +397,7 @@
     "ram": 1,
     "tien": 0,
     "pismenka": 4,
-    "odsadenie": 13
+    "odsadenie": 11
   },
   "components/pack/addtrip/AddTripLog.tsx": {
     "radius": 20,
@@ -476,8 +476,8 @@
     "progres": 0,
     "ram": 3,
     "tien": 14,
-    "pismenka": 20,
-    "odsadenie": 4
+    "pismenka": 0,
+    "odsadenie": 0
   },
   "components/pack/events/AddEvent.tsx": {
     "radius": 2,
@@ -516,7 +516,7 @@
     "progres": 1,
     "ram": 2,
     "tien": 1,
-    "pismenka": 2,
+    "pismenka": 1,
     "odsadenie": 6
   },
   "components/pack/level/LevelPill.tsx": {
@@ -656,7 +656,7 @@
     "progres": 3,
     "ram": 15,
     "tien": 15,
-    "pismenka": 26,
+    "pismenka": 24,
     "odsadenie": 84
   },
   "components/pack/packDockMedal.tsx": {
@@ -686,8 +686,8 @@
     "progres": 0,
     "ram": 0,
     "tien": 0,
-    "pismenka": 1,
-    "odsadenie": 17
+    "pismenka": 0,
+    "odsadenie": 0
   },
   "components/pack/profile/DogGallery.tsx": {
     "radius": 1,
@@ -696,8 +696,8 @@
     "progres": 0,
     "ram": 0,
     "tien": 0,
-    "pismenka": 4,
-    "odsadenie": 9
+    "pismenka": 0,
+    "odsadenie": 1
   },
   "components/pack/profile/TripProfileCard.tsx": {
     "radius": 0,
@@ -707,7 +707,7 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 3
+    "odsadenie": 2
   },
   "components/pack/trip/TripComments.tsx": {
     "radius": 5,
@@ -746,7 +746,7 @@
     "progres": 0,
     "ram": 0,
     "tien": 0,
-    "pismenka": 3,
+    "pismenka": 2,
     "odsadenie": 3
   },
   "components/pack/tripShared.tsx": {
@@ -786,8 +786,8 @@
     "progres": 1,
     "ram": 12,
     "tien": 15,
-    "pismenka": 31,
-    "odsadenie": 63
+    "pismenka": 0,
+    "odsadenie": 7
   },
   "pages/PackDogQuiz.tsx": {
     "radius": 2,
@@ -796,8 +796,8 @@
     "progres": 1,
     "ram": 1,
     "tien": 1,
-    "pismenka": 3,
-    "odsadenie": 10
+    "pismenka": 0,
+    "odsadenie": 0
   },
   "pages/PackDogs.tsx": {
     "radius": 0,
@@ -806,7 +806,7 @@
     "progres": 0,
     "ram": 11,
     "tien": 11,
-    "pismenka": 20,
+    "pismenka": 0,
     "odsadenie": 0
   },
   "pages/PackJoin.tsx": {
@@ -816,7 +816,7 @@
     "progres": 0,
     "ram": 0,
     "tien": 0,
-    "pismenka": 2,
+    "pismenka": 1,
     "odsadenie": 7
   },
   "pages/PackMap.tsx": {
@@ -836,8 +836,8 @@
     "progres": 1,
     "ram": 20,
     "tien": 16,
-    "pismenka": 26,
-    "odsadenie": 50
+    "pismenka": 0,
+    "odsadenie": 0
   },
   "pages/PackProfile.tsx": {
     "radius": 0,
@@ -846,8 +846,8 @@
     "progres": 1,
     "ram": 0,
     "tien": 2,
-    "pismenka": 6,
-    "odsadenie": 20
+    "pismenka": 0,
+    "odsadenie": 2
   },
   "pages/PackTripArticle.tsx": {
     "radius": 3,

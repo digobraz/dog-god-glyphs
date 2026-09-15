@@ -79,13 +79,13 @@ export function DogStats({ birthMonth = null, birthDay = null }: { birthMonth?: 
                 fontFamily: "'Cinzel', serif",
                 fontSize: 16,
                 fontWeight: 700,
-                letterSpacing: '0.32em',
+                letterSpacing: '0.26em',
                 textTransform: 'uppercase',
                 color: T.accentGold,
                 background: 'rgba(255, 251, 242, 0.72)',
                 border: '1px solid rgba(201, 154, 63, 0.40)',
                 backdropFilter: 'blur(1px)',
-                padding: '12px 26px',
+                padding: '12px 24px',
                 borderRadius: 999,
                 boxShadow: '0 10px 30px -10px rgba(20, 8, 40, 0.35)',
               }}
@@ -192,7 +192,7 @@ function StatsCalendar({ birthMonth, birthDay }: { birthMonth: number | null; bi
               flexShrink: 0,
               fontFamily: "'Cinzel', serif",
               fontSize: 9,
-              letterSpacing: '0.08em',
+              letterSpacing: '0.02em',
               textTransform: 'uppercase',
               color: T.inkFaint,
             }}
@@ -228,7 +228,7 @@ function StatsLegend({ onAdd }: { onAdd: () => void }) {
         style={{
           fontFamily: "'Cinzel', serif",
           fontSize: 10,
-          letterSpacing: '0.28em',
+          letterSpacing: '0.26em',
           textTransform: 'uppercase',
           color: T.inkDim,
           marginBottom: 2,

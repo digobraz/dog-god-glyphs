@@ -45,12 +45,12 @@ const CSS = `
 
 .gw{
   position:relative; overflow:hidden; display:flex; align-items:center;
-  min-height:172px; border-radius:16px; padding:18px 20px;
+  min-height:172px; border-radius:16px; padding:16px 24px;
   background:${T.cardGrad}; border:1.5px solid ${T.cardEdge}; box-shadow:${T.cardShadow};
   text-decoration:none; cursor:pointer; font:inherit; color:inherit; text-align:left;
   width:100%;
 }
-@media (min-width:721px){ .gw{ min-height:220px; padding:26px 28px; } }
+@media (min-width:721px){ .gw{ min-height:220px; padding:24px 32px; } }
 
 /* Obrázok je PRVOK KARTY, nie ikonka v rámčeku — presahuje hranu, aby karta pôsobila ako
    výrez do niečoho väčšieho. */
@@ -192,13 +192,13 @@ const CSS = `
    sa s textom, takže nekradne roh ani nediktuje odsadenie tela karty.
    ⚠️ Preto zmizol aj padding-top na .gw-ainubis .gw-body — bol tam len kvôli stužke. */
 .gw-flag{
-  display:inline-block; margin-bottom:8px; padding:3px 9px; border-radius:999px;
+  display:inline-block; margin-bottom:8px; padding:4px 8px; border-radius:999px;
   font-family:${FONT_UI}; font-weight:600; font-size:8.5px;
   letter-spacing:.14em; text-transform:uppercase; color:#04121a;
   background:linear-gradient(90deg, #3FB6CC 0%, ${AINUBIS.cyan} 50%, #3FB6CC 100%);
   box-shadow:0 4px 14px rgba(0,0,0,0.45);
 }
-@media (min-width:721px){ .gw-flag{ font-size:9.5px; padding:4px 11px; margin-bottom:10px; } }
+@media (min-width:721px){ .gw-flag{ font-size:9.5px; padding:4px 12px; margin-bottom:10px; } }
 
 /* ČIP „PLNÁ VERZIA ČOSKORO" — PLNÁ CYAN VŽDY, aj keď karta spí (Matej 13.8.: „chcem aby bol
    v plnej farbe ako pri hovery"). Fade hovorí „karta ešte nie je hotová", čip hovorí PREČO —
@@ -213,7 +213,7 @@ const CSS = `
    sme to spravili inde"). Zdroj pravdy = hlavička widgetu v AinubisWidget.css: meno = Cinzel 700
    v ľadovo bielej #E6FAFF s cyan žiarou, „AI" v cyan. Zlatá v cyborg palete patrí ČLOVEKU. */
 .gw-ainubis .gw-title{
-  color:${AINUBIS.ink}; letter-spacing:.16em; text-indent:.16em;
+  color:${AINUBIS.ink}; letter-spacing:0.22em; text-indent:.16em;
   text-shadow:0 0 18px rgba(${AINUBIS.cyanRGB},0.55);
 }
 /* „AI" v mene je modré — kúsok stroja v mene strážcu. Tvar mena je lock (12. 9. 2026),
@@ -236,14 +236,14 @@ const CSS = `
 
 .gw-title{
   display:block; font-family:${FONT_TITLE}; font-weight:700; font-size:22px; line-height:1.08;
-  letter-spacing:.1em; text-transform:uppercase; color:${T.inkStrong};
+  letter-spacing:0.14em; text-transform:uppercase; color:${T.inkStrong};
 }
 /* ⚠️ Na PC je stupeň PLYNULÝ (clamp s vw), nie pevný. Karta má na 1440 px šírku ~478 px,
    ale hneď za hranicou 721 px len ~326 px — pri pevných 23/38 px sa nadpis DOGMY zlomil na
    tri riadky a podtitulok vypadol pod dolnú hranu karty, a jednoslovné AINUBIS (nemá kde
    zalomiť) prebehlo pod hlavu psa. Horná medza clampu = stav pri 1440 px, dolná = stav,
    ktorý sa ešte zmestí do najužšej dvojstĺpcovej karty. */
-@media (min-width:721px){ .gw-title{ font-size:clamp(19px, 2.5vw, 27px); letter-spacing:.12em; } }
+@media (min-width:721px){ .gw-title{ font-size:clamp(19px, 2.5vw, 27px); letter-spacing:0.14em; } }
 /* Meno AINUBIS je DOMINANTA karty (Matej 9.8.: „tento nadpis zvačši musí byť dominanta") —
    je to jedno slovo, unesie výrazne väčší stupeň než dvojriadkový nadpis DOGMY.
    Horná medza clampu je držaná ŠÍRKOU tela karty: „AINUBIS" je 7 znakov a pri 56 % šírky

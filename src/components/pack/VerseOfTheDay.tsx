@@ -84,7 +84,7 @@ export function VerseOfTheDay() {
     <section
       aria-label={t('pack.verse.ariaLabel')}
       className="relative flex flex-col items-center text-center"
-      style={{ padding: 'clamp(8px, 1.8vw, 18px) 16px' }}
+      style={{ padding: 'clamp(8px, 1.8vw, 16px) 16px' }}
       // Hover drží CELÚ sekciu, nielen text — inak by cesta myšou na odkaz „nesedí preklad?"
       // opustila hover oblasť a preklad by zmizol skôr, než sa naň dá kliknúť.
       onMouseEnter={canHover && hasTranslation ? () => setShown(true) : undefined}
@@ -95,7 +95,7 @@ export function VerseOfTheDay() {
         style={{
           fontFamily: FONT_TITLE,
           fontSize: 10,
-          letterSpacing: '0.34em',
+          letterSpacing: '0.26em',
           textTransform: 'uppercase',
           color: GOLD,
           opacity: 0.9,
@@ -129,7 +129,7 @@ export function VerseOfTheDay() {
           fontWeight: 700,
           fontSize: 'clamp(20px, 3.4vw, 31px)',
           lineHeight: 1.4,
-          letterSpacing: '0.01em',
+          letterSpacing: '0.02em',
           color: paper ? T.inkStrong : '#FAF4EC',
           textShadow: paper ? 'none' : '0 2px 24px rgba(0,0,0,0.5)',
         }}
@@ -144,7 +144,7 @@ export function VerseOfTheDay() {
           style={{
             fontFamily: FONT_UI,
             fontSize: 12,
-            letterSpacing: '0.12em',
+            letterSpacing: '0.14em',
             textTransform: 'uppercase',
             color: paper ? T.inkWarm : 'rgba(250,244,236,0.62)',
           }}
@@ -174,7 +174,7 @@ export function VerseOfTheDay() {
               opacity: shown ? 0.55 : 0.75,
               background: 'none',
               border: 'none',
-              padding: '4px 6px',
+              padding: '4px 8px',
               cursor: 'pointer',
               transition: 'opacity .18s ease',
             }}
@@ -215,7 +215,7 @@ export function VerseOfTheDay() {
                   color: reportState === 'sent' ? GOLD : (paper ? T.inkWarm : 'rgba(250,244,236,0.45)'),
                   background: 'none',
                   border: 'none',
-                  padding: '2px 4px',
+                  padding: '4px 4px',
                   textDecoration: reportState === 'sent' ? 'none' : 'underline',
                   textUnderlineOffset: 3,
                   cursor: reportState === 'sent' ? 'default' : 'pointer',

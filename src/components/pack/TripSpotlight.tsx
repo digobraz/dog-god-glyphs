@@ -61,7 +61,7 @@ const CSS = `
 .ts-row{ display:grid; grid-template-columns: 62fr 38fr; gap:16px; }
 .ts-hero{
   position:relative; overflow:hidden; display:flex; align-items:flex-end;
-  min-height:300px; padding:28px 30px 26px;
+  min-height:300px; padding:32px 32px 24px;
   border-radius:16px; border:1px solid rgba(201,154,63,0.5);
   box-shadow:0 30px 74px -32px rgba(0,0,0,0.95);
   text-decoration:none; cursor:pointer;
@@ -85,7 +85,7 @@ const CSS = `
 .ts-body{ position:relative; z-index:2; width:100%; min-width:0; }
 .ts-ribbon{
   position:absolute; top:24px; right:-56px; z-index:3; pointer-events:none;
-  width:200px; text-align:center; transform:rotate(45deg); padding:6px 0;
+  width:200px; text-align:center; transform:rotate(45deg); padding:8px 0;
   font-family:${FONT_UI}; font-weight:600; font-size:10px;
   letter-spacing:0.22em; text-transform:uppercase; color:#04140f;
   background:#1AA39A; box-shadow:0 6px 18px rgba(0,0,0,0.5);
@@ -93,7 +93,7 @@ const CSS = `
 .ts-count{
   position:absolute; top:22px; left:24px; z-index:3;
   display:inline-flex; align-items:center; gap:7px;
-  padding:8px 15px; border-radius:999px; white-space:nowrap;
+  padding:8px 16px; border-radius:999px; white-space:nowrap;
   font-family:${FONT_TITLE}; font-weight:700; font-size:13px;
   box-shadow:0 6px 20px -6px rgba(0,0,0,0.9);
   animation: ts-glow 2.6s ease-in-out infinite;
@@ -104,10 +104,10 @@ const CSS = `
 }
 @media (prefers-reduced-motion: reduce){ .ts-count{ animation:none; } }
 .ts-chip{
-  font-family:${FONT_UI}; font-size:10.5px; letter-spacing:0.1em;
+  font-family:${FONT_UI}; font-size:10.5px; letter-spacing:0.14em;
   text-transform:uppercase; color:rgba(255,246,226,0.9);
   background:rgba(4,2,0,0.42); border:1px solid rgba(245,240,228,0.28);
-  border-radius:999px; padding:4px 11px;
+  border-radius:999px; padding:4px 12px;
 }
 /* BLEDÁ karta = papyrus lock (Entry.tsx): T.cardGrad · 1.5px T.cardEdge · radius 16.
    ⚠️ Do 12.8.2026 bola TMAVÁ. Matej: „zmeňme to na bledú verziu pretože to na tom čiernom
@@ -118,7 +118,7 @@ const CSS = `
   background:${T.cardGrad}; border:1.5px solid ${T.cardEdge}; box-shadow:${T.cardShadow};
   display:flex; flex-direction:column; justify-content:space-between;
   /* Väčší odstup od okrajov (Matej 9.8.: „je to moc na kraji") — rovnaký rád ako plagát vľavo. */
-  padding:26px 24px 22px; text-decoration:none; cursor:pointer;
+  padding:24px 24px 24px; text-decoration:none; cursor:pointer;
   transition: transform .2s ease;
 }
 .ts-globe:hover{ transform: translateY(-2px); }
@@ -137,7 +137,7 @@ const CSS = `
   background:
     linear-gradient(to bottom, rgba(251,245,230,0.92) 0%, rgba(243,228,196,0.30) 18%, rgba(243,228,196,0) 34%, rgba(234,214,166,0) 62%, rgba(234,214,166,0.55) 86%, rgba(234,214,166,0.80) 100%);
 }
-.ts-globe-head{ position:relative; z-index:2; padding-top:26px; }
+.ts-globe-head{ position:relative; z-index:2; padding-top:24px; }
 /* CTA CEZ CELÚ ŠÍRKU (Matej 11. 9. 2026: "dolu daj cez šírku CTA (pridaj svoj výlet do
    lapisu) = bude len mapka hore a dole cta"). Nadpis tým z karty odišiel — jeho text sa
    presťahoval do tlačidla, takže karta hovorí jednu vec a nie tú istú dvakrát.
@@ -147,7 +147,7 @@ const CSS = `
    pozvánka, nie druhá cieľová adresa. Tlačidlo v odkaze by bolo neplatné HTML. */
 .ts-cta{
   position:relative; z-index:3; display:block; width:100%; margin-top:auto;
-  padding:14px 18px; border-radius:8px; text-align:center;
+  padding:16px 16px; border-radius:8px; text-align:center;
   background:${LAPIS.grad}; border:1px solid rgba(250,244,236,0.30);
   color:${LAPIS.ink}; font-family:${FONT_TITLE}; font-weight:700; font-size:12.5px;
   letter-spacing:0.14em; text-transform:uppercase;
@@ -178,7 +178,7 @@ const CSS = `
    riadky a karta ostane hore prázdna, pri štyroch pretečie. */
 .ts-globe-title{
   font-family:${FONT_TITLE}; font-weight:700; font-size:30px; line-height:1.08;
-  letter-spacing:0.04em; text-transform:uppercase; color:${T.inkStrong}; margin:0;
+  letter-spacing:0.02em; text-transform:uppercase; color:${T.inkStrong}; margin:0;
   /* Svetlé halo, nie tmavý tieň — nadpis stojí nad kontinentmi, ktoré sú v bledej
      verzii TMAVÉ, takže ho drží čitateľný rozžiarený papyrus okolo písmen. */
   text-shadow:0 2px 14px rgba(250,244,236,0.95);
@@ -214,14 +214,14 @@ const CSS = `
   text-shadow:0 2px 10px rgba(250,244,236,0.9);
 }
 .ts-rank-name{
-  font-family:${FONT_TITLE}; font-weight:700; font-size:13px; letter-spacing:0.16em;
+  font-family:${FONT_TITLE}; font-weight:700; font-size:13px; letter-spacing:0.22em;
   text-transform:uppercase; color:${T.inkStrong}; text-shadow:0 2px 10px rgba(250,244,236,0.9);
 }
 /* FARBA PÁSMA (2026-08-24) — gradient a inkoust berie z premenných --tier-a / --tier-b /
    --tier-ink, ktoré vešia tierVars(level); fallback drží pôvodnú zlatú.
    Tá istá pilulka ako v hlavičke mapy, tá istá farba. */
 .ts-rank-num{
-  display:inline-flex; align-items:center; padding:3px 11px 4px; border-radius:999px;
+  display:inline-flex; align-items:center; padding:4px 12px 4px; border-radius:999px;
   background:linear-gradient(135deg,var(--tier-a,#F5C73D),var(--tier-b,#E69E1A));
   color:var(--tier-ink,${T.ink});
   font-family:${FONT_UI}; font-weight:600; font-size:14px; line-height:1;
@@ -246,7 +246,7 @@ const CSS = `
    Preto tu nie je backdrop-filter: pod plnou výplňou nemá čo rozostrovať a stál výkon
    pri každom prekreslení gule. */
 .ts-pill{
-  position:relative; overflow:hidden; border-radius:12px; padding:10px 12px; text-align:center;
+  position:relative; overflow:hidden; border-radius:12px; padding:12px 12px; text-align:center;
   background:${LAPIS.grad};
   border:1px solid rgba(201,154,63,0.55);
   box-shadow:inset 0 1px 0 rgba(201,154,63,0.22), 0 10px 24px -14px rgba(5,15,48,0.75);
@@ -267,14 +267,14 @@ const CSS = `
 }
 .ts-pill span{
   display:block; margin-top:6px; font-family:${FONT_UI}; font-weight:500;
-  font-size:8.5px; letter-spacing:0.2em; text-transform:uppercase; color:rgba(239,215,154,0.66);
+  font-size:8.5px; letter-spacing:0.22em; text-transform:uppercase; color:rgba(239,215,154,0.66);
 }
 
 @media (max-width: 860px){
   .ts-row{ grid-template-columns: 1fr; }
-  .ts-hero{ min-height:340px; padding:20px 18px 18px; }
+  .ts-hero{ min-height:340px; padding:24px 16px 16px; }
   .ts-globe{ min-height:270px; }
-  .ts-ribbon{ top:16px; right:-58px; width:184px; font-size:9px; letter-spacing:0.2em; }
+  .ts-ribbon{ top:16px; right:-58px; width:184px; font-size:9px; letter-spacing:0.22em; }
   /* Mobil: nadpis + rang sa zarovnajú DOPRAVA (vľavo je guľa, vpravo voľné miesto),
      tri pilulky sedia na spodnej hrane. Guľa preto nesedí pri spodku — tam by ju pilulky
      prekryli — ale v STREDOVEJ medzere vľavo. */
@@ -288,7 +288,7 @@ const CSS = `
   }
   /* Rang sedí v pravom hornom rohu aj tu, preto hlavička začína pod ním — inak by sa
      prvý riadok nadpisu (zarovnaný doprava) prekryl s pilulkou levelu. */
-  .ts-globe-head{ text-align:right; display:flex; flex-direction:column; align-items:flex-end; padding-top:28px; }
+  .ts-globe-head{ text-align:right; display:flex; flex-direction:column; align-items:flex-end; padding-top:32px; }
   .ts-globe-title{ font-size:28px; }
   .ts-pills{ grid-template-columns:repeat(3, 1fr); }
 }
@@ -473,7 +473,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
           <span className="ts-count" style={DAYS_PILL}>
             {countdown ?? dateLabel}
             {countdown && dateLabel && (
-              <small style={{ fontFamily: FONT_UI, fontWeight: 500, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.72 }}>
+              <small style={{ fontFamily: FONT_UI, fontWeight: 500, fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', opacity: 0.72 }}>
                 {dateLabel}
               </small>
             )}
@@ -485,7 +485,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
             {eyebrow}
           </p>
 
-          <h3 style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 30, lineHeight: 1.08, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#FFF6E2', margin: 0, textShadow: '0 4px 26px rgba(0,0,0,0.9)' }}>
+          <h3 style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 30, lineHeight: 1.08, letterSpacing: '0.02em', textTransform: 'uppercase', color: '#FFF6E2', margin: 0, textShadow: '0 4px 26px rgba(0,0,0,0.9)' }}>
             {trail.name}
           </h3>
 
@@ -499,7 +499,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
                 Chip stojí na tmavom plagáte, takže nevyplnená časť ostáva na východiskovom
                 bielom filtri widgetu (na papyruse by sa prepisovala premennými). */}
             {trail.stars > 0 && (
-              <span className="ts-chip" style={{ display: 'inline-flex', alignItems: 'center', padding: '4px 10px' }}>
+              <span className="ts-chip" style={{ display: 'inline-flex', alignItems: 'center', padding: '4px 12px' }}>
                 <RatingPaws stars={trail.stars} size={12} gap={3} />
               </span>
             )}

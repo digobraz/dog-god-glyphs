@@ -59,7 +59,7 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
       >
         {paperPage ? <style>{PAPER_PAGE_CSS}</style> : <HieroglyphBg />}
         <div className="relative" style={{ zIndex: 1 }}>
-          <div style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.3em', fontSize: 12, color: paperPage ? T.inkWarm : T.onDarkDim }}>
+          <div style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.26em', fontSize: 12, color: paperPage ? T.inkWarm : T.onDarkDim }}>
             {t('pack.layout.loading')}
           </div>
         </div>
@@ -131,7 +131,7 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
           <header className="mb-7 text-center">
             {subtitle && (
               <div className="mb-2" style={{
-                fontFamily: "'Cinzel', serif", letterSpacing: '0.32em',
+                fontFamily: "'Cinzel', serif", letterSpacing: '0.26em',
                 fontSize: 10, textTransform: 'uppercase', color: T.onDarkDim,
               }}>
                 {subtitle}
@@ -139,7 +139,7 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
             )}
             {title && (
               <h1 style={{
-                fontFamily: "'Cinzel', serif", letterSpacing: '0.1em',
+                fontFamily: "'Cinzel', serif", letterSpacing: '0.14em',
                 fontSize: 28, textTransform: 'uppercase', fontWeight: 700, color: T.onDark,
               }}>
                 {title}
@@ -631,7 +631,7 @@ function AvatarMenuItem({ label, onClick, thumb }: { label: string; onClick: () 
       onClick={onClick}
       className="flex items-center"
       style={{
-        width: '100%', textAlign: 'left', padding: '8px 10px', gap: 9,
+        width: '100%', textAlign: 'left', padding: '8px 12px', gap: 9,
         borderRadius: 9, background: 'none', border: 'none', cursor: 'pointer',
       }}
       onMouseEnter={(e) => { e.currentTarget.style.background = NAV_SKIN === 'gold' ? 'rgba(201,154,63,0.18)' : 'rgba(245,240,228,0.08)'; }}
@@ -639,7 +639,7 @@ function AvatarMenuItem({ label, onClick, thumb }: { label: string; onClick: () 
     >
       {thumb}
       <span style={{
-        fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: '0.12em',
+        fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: '0.14em',
         textTransform: 'uppercase', fontWeight: 700, color: NAV_SKIN === 'gold' ? T.inkStrong : T.onDark,
       }}>
         {label}
@@ -676,7 +676,7 @@ export function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, pack
     backdropFilter: 'blur(14px)',
     WebkitBackdropFilter: 'blur(14px)',
     boxShadow: '0 12px 36px -10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,240,228,0.06)',
-    padding: '13px 14px',
+    padding: '12px 16px',
     display: 'flex',
     alignItems: 'center',
   };
@@ -754,11 +754,11 @@ export function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, pack
           ) : (
             <span style={{ display: 'inline-flex', alignItems: 'baseline', whiteSpace: 'nowrap' }}>
               {/* leading zeros — hidden on mobile, visible sm+ */}
-              <span className="hidden sm:inline" style={{ fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: Math.round(17 * 0.8), color: 'rgba(245,240,228,0.2)', letterSpacing: '0.01em' }}>
+              <span className="hidden sm:inline" style={{ fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: Math.round(17 * 0.8), color: 'rgba(245,240,228,0.2)', letterSpacing: '0.02em' }}>
                 {'0'.repeat(Math.max(0, 7 - String(packTotal).length))}
               </span>
               {/* Mobile: 13px, desktop: 17px */}
-              <span className="text-[13px] sm:text-[17px]" style={{ fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, color: T.cardEdge, letterSpacing: '0.01em' }}>
+              <span className="text-[13px] sm:text-[17px]" style={{ fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, color: T.cardEdge, letterSpacing: '0.02em' }}>
                 {String(packTotal)}
               </span>
             </span>
@@ -773,7 +773,7 @@ export function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, pack
             <img src={statBars} alt="" aria-hidden style={{ height: 22, width: 'auto', objectFit: 'contain', flexShrink: 0, display: 'block', filter: 'saturate(0.1) brightness(1.8) opacity(0.45)' }} />
             <span style={{
               fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: 13,
-              letterSpacing: '0.03em', color: 'rgba(120,200,120,0.9)', whiteSpace: 'nowrap',
+              letterSpacing: '0.02em', color: 'rgba(120,200,120,0.9)', whiteSpace: 'nowrap',
             }}>
               +{packToday ?? 0}/d
             </span>
@@ -831,7 +831,7 @@ function DevotionBarCompact({ devotion }: { devotion: number }) {
         zIndex: 3, display: 'inline-flex', alignItems: 'baseline', gap: 2,
         pointerEvents: 'none',
         fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: 11,
-        color: 'rgba(245, 240, 228, 0.92)', letterSpacing: '0.01em',
+        color: 'rgba(245, 240, 228, 0.92)', letterSpacing: '0.02em',
         textShadow: '0 1px 3px rgba(0,0,0,0.6)',
       }}>
         {Math.round(devotion).toLocaleString('en-US')}
@@ -915,7 +915,7 @@ export function HieroglyphBg() {
 
 const pillStyle = (active: boolean): React.CSSProperties =>
   NAV_SKIN === 'gold' ? {
-    padding: '10px 18px',
+    padding: '12px 16px',
     // PLNÁ pilulka — v predlohe sú MAP aj G celkom okrúhle. Hranatý bol len bar.
     borderRadius: 999,
     // Neaktívna položka NIE JE vyblednutá: v predlohe je HOME rovnako tmavé ako MAP,
@@ -927,7 +927,7 @@ const pillStyle = (active: boolean): React.CSSProperties =>
     textDecoration: 'none',
     position: 'relative',
   } : ({
-  padding: '10px 16px',
+  padding: '12px 16px',
   borderRadius: 999,
   color: active ? '#FFF6E6' : T.onDarkDim,
   background: active
@@ -943,7 +943,7 @@ const pillStyle = (active: boolean): React.CSSProperties =>
 const pillLabelStyle: React.CSSProperties = {
   fontFamily: "'Cinzel', serif",
   fontSize: 11,
-  letterSpacing: '0.2em',
+  letterSpacing: '0.22em',
   textTransform: 'uppercase',
   fontWeight: 700,
 };

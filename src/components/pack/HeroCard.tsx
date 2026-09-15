@@ -54,8 +54,8 @@ const PLUS_RESERVE = PLUS_SIZE + 14;
 // je preto na mobile menšie: pri 390 px je rovnica na hrane (majiteľ + pes + „+" =
 // 280 px) a každý pixel, čo si rám vezme, chýba zámku „všetci psi viditeľní VŽDY".
 const PACK_FRAME_CSS = `
-.hc-packframe{padding:12px 8px 14px;}
-@media(min-width:480px){.hc-packframe{padding:14px 16px 18px;}}
+.hc-packframe{padding:12px 8px 16px;}
+@media(min-width:480px){.hc-packframe{padding:16px 16px 16px;}}
 `;
 
 // ── PYRAMÍDA SVORKY (Matej 2026-08-09, po klikacom nákrese) ──────────────────
@@ -269,7 +269,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
          nerieši. Vrátiť sem `background`/`border`/`borderRadius`/`boxShadow` znamená
          rám prebiť a zrušiť. */
       style={{
-        padding: '22px 20px 20px',
+        padding: '24px 24px 24px',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
@@ -364,7 +364,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
             fontFamily: FONT_TITLE,
             fontWeight: 700,
             fontSize: 16,
-            letterSpacing: '0.12em',
+            letterSpacing: '0.14em',
             textTransform: 'uppercase',
             color: T.inkStrong,
             marginBottom: 18,
@@ -461,7 +461,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
                 boxShadow: '0 0 6px rgba(201, 154, 63, 0.6)',
               }}
             />
-            <span style={{ fontFamily: FONT_TITLE, fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
+            <span style={{ fontFamily: FONT_TITLE, fontSize: 10, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase' }}>
               Pawtner
             </span>
           </button>
@@ -667,7 +667,7 @@ function DogSlot({ dog, size, boxH, gap }: { dog: HeroDog; size: number; boxH: n
             ) : (
               <div
                 className="flex items-center justify-center h-full"
-                style={{ color: T.inkFaint, fontFamily: FONT_TITLE, fontSize: Math.max(7, Math.round(size * 0.09)), letterSpacing: '0.18em' }}
+                style={{ color: T.inkFaint, fontFamily: FONT_TITLE, fontSize: Math.max(7, Math.round(size * 0.09)), letterSpacing: '0.22em' }}
               >
                 {t('pack.tree.noPhoto')}
               </div>
@@ -832,7 +832,7 @@ function PackNameRow({ label, fallback }: { label: string; fallback: string }) {
             aria-label={t('pack.profile.packName')}
             maxLength={40}
             style={{
-              flex: 1, minWidth: 0, borderRadius: 8, padding: '7px 11px',
+              flex: 1, minWidth: 0, borderRadius: 8, padding: '8px 12px',
               color: T.ink, fontFamily: FONT_UI, fontSize: 13,
             }}
           />
@@ -866,7 +866,7 @@ function PackNameRow({ label, fallback }: { label: string; fallback: string }) {
                 fontFamily: FONT_TITLE,
                 fontWeight: 700,
                 fontSize: 13,
-                letterSpacing: '0.20em',
+                letterSpacing: '0.22em',
                 textTransform: 'uppercase',
                 color: T.inkStrong,
                 lineHeight: 1.25,
@@ -938,7 +938,7 @@ function EmptyPackCta({ onAdd }: { onAdd: () => void }) {
           fontFamily: FONT_TITLE,
           fontWeight: 700,
           fontSize: 11,
-          letterSpacing: '0.18em',
+          letterSpacing: '0.22em',
           textTransform: 'uppercase',
           color: LAPIS.edge,
         }}
@@ -1011,7 +1011,7 @@ function HeroPopup({
       style={{
         // Prekrýva PRESNE tento blok. zIndex 20 = nad ornamentmi aj pilulkami editácie (zIndex 3).
         position: 'absolute', inset: 0, zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '26px 24px', overflowY: 'auto',
+        padding: '24px 24px', overflowY: 'auto',
         background: T.panelGrad,
       }}
     >
@@ -1038,7 +1038,7 @@ function HeroPopup({
         <span style={{ fontFamily: FONT_UI, fontWeight: 500, fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.cardEdge }}>
           {c.eyebrow}
         </span>
-        <h3 style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 17, letterSpacing: '0.06em', textTransform: 'uppercase', color: T.inkStrong, margin: '8px 0 10px' }}>
+        <h3 style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 17, letterSpacing: '0.02em', textTransform: 'uppercase', color: T.inkStrong, margin: '8px 0 10px' }}>
           {c.title}
         </h3>
         {c.body.map((line, i) => (
@@ -1048,9 +1048,9 @@ function HeroPopup({
         ))}
         {c.stamp && (
           <span style={{
-            display: 'inline-block', marginTop: 6, padding: '5px 12px', borderRadius: 999,
+            display: 'inline-block', marginTop: 6, padding: '4px 12px', borderRadius: 999,
             border: '1px dashed rgba(179,130,45,0.6)', color: T.inkWarm,
-            fontFamily: FONT_UI, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+            fontFamily: FONT_UI, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
           }}>
             {c.stamp}
           </span>
@@ -1066,7 +1066,7 @@ function HeroPopup({
               // zamietol Matej („cta pozvi priatela oranžová — zmeň"). GEOMETRIU si ďalej
               // berie z locku `.btn-gold` (radius 8, NIE pilulka); mení sa len výplň.
               display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 8,
-              padding: '11px 18px', borderRadius: 8, cursor: 'pointer',
+              padding: '12px 16px', borderRadius: 8, cursor: 'pointer',
               background: LAPIS.grad,
               border: '1px solid rgba(250,244,236,0.30)', color: LAPIS.ink,
               fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 11.5,
@@ -1120,7 +1120,7 @@ const DOOR: CSSProperties = {
   alignItems: 'center',
   gap: 12,
   width: '100%',
-  padding: '12px 14px',
+  padding: '12px 16px',
   textAlign: 'left',
   cursor: 'pointer',
   textDecoration: 'none',
@@ -1156,7 +1156,7 @@ function DoorFace({ icon, label, sub, locked = false, soon }: { icon: ReactNode;
         <span className="flex items-center" style={{ gap: 7, flexWrap: 'wrap' }}>
           <span style={{
             fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12,
-            letterSpacing: '0.16em', textTransform: 'uppercase', color: T.inkStrong,
+            letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkStrong,
           }}>
             {label}
           </span>
@@ -1165,8 +1165,8 @@ function DoorFace({ icon, label, sub, locked = false, soon }: { icon: ReactNode;
           {soon && (
             <span className="pk-pill" style={{
               fontFamily: FONT_UI, fontWeight: 500, fontSize: 8.5,
-              letterSpacing: '0.16em', textTransform: 'uppercase',
-              padding: '2px 7px',
+              letterSpacing: '0.22em', textTransform: 'uppercase',
+              padding: '4px 8px',
             }}>
               {soon}
             </span>
@@ -1210,7 +1210,7 @@ function AddPopup({ onClose, onPawmate }: {
       style={{
         position: 'absolute', inset: 0, zIndex: 20,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '26px 24px', overflowY: 'auto',
+        padding: '24px 24px', overflowY: 'auto',
         background: T.panelGrad,
       }}
     >
@@ -1219,7 +1219,7 @@ function AddPopup({ onClose, onPawmate }: {
         style={{ position: 'relative', width: '100%', maxWidth: 360 }}
       >
         <h3 style={{
-          fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 15, letterSpacing: '0.16em',
+          fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 15, letterSpacing: '0.22em',
           textTransform: 'uppercase', color: T.inkStrong, textAlign: 'center', margin: '0 0 14px',
         }}>
           {t('pack.add.title')}
