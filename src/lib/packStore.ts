@@ -506,6 +506,25 @@ export function hydratePackStore(): Promise<boolean> {
     }
     await flushQueue();
 
+    /**
+     * (1c) 🔴 DORUČENIE ZASEKNUTÉHO VÝLETU (2026-09-15) — „naklikal som výlet a neuložil sa".
+     *
+     * `processTripUploadQueue()` sa do dnes volalo z DVOCH miest: `queueLocalTripUpload()`
+     * (teda v okamihu zápisu) a z `online` udalosti. Keď upload v tom okamihu neprešiel —
+     * človek bol offline, zavrel kartu uprostred nahrávania fotiek, alebo `uploadTrailPhotos`
+     * hodil chybu a slučka spravila `break` — slug ostal vo fronte `trp-trip-upload-pending-v1`
+     * a NIKTO sa k nemu už nevrátil: krok (1b) nad týmto má vlastný guard `TRIP_MIGRATED_KEY`,
+     * takže po prvom behu je slepý, a ďalšie otvorenie appky frontu nespúšťa vôbec.
+     * Výlet teda v prehliadači bol, na mape sa kreslil — a v `pack_trips` nikdy nevznikol.
+     * Odmerané 15. 9.: slug vo fronte prežil celé načítanie appky bez jediného POST-u,
+     * a hneď po umelej `online` udalosti odišiel na prvý pokus (201).
+     *
+     * ⚠️ BEZ `await` zámerne: fronta ťahá fotky cez Cloudinary a hydratácia appky na ňu
+     * nesmie čakať. Pull nižšie sa s ňou nepobije — `tripsBlocked` (§ pack_trips) sa pýta
+     * priamo `readTripPending()`, takže kým je čo odoslať, pull `pack_trips` preskočí.
+     */
+    if (readTripPending().length) void processTripUploadQueue();
+
     // (2) pull — doménu s nevyslanou frontou nechávame na pokoji
     const blocked = pendingTables();
     try {
