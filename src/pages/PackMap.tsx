@@ -157,6 +157,7 @@ import {
 // krok 5) — dovtedy sa event po uložení nikde nezobrazoval (formulár aj store boli hotové,
 // panel ostal viazaný len na TRIP vetvu).
 import { EventsPanel } from '@/components/pack/events/EventsPanel';
+import { EVENTS_LIVE } from '@/lib/packFlags';
 import { TRIP_CATEGORIES, ACT_TAG_EMOJI, ACT_TO_CATEGORY, CHIP_BY_ID, DATA_TAG_TO_UI, TAG_EMOJI, TAG_I18N, categoriesOf, chipsOf, isInCategory, primaryCategoryOf, type TripCategoryId } from '@/components/pack/tripCategories';
 
 const GOLD = '#C99A3F';
@@ -4037,7 +4038,12 @@ export default function PackMap() {
   // #41 / A4 — klik na „by <autor>" otvorí popup tvorcu (Message + reálni účastníci).
   const [creatorTrail, setCreatorTrail] = useState<HeroTrail | null>(null);
   // Portal kategória (design §D): Trips ↔ Events (Events pill sa aktivoval).
+  // `EVENTS_LIVE` vypnuté ⇒ kategória `events` je nedosiahnuteľná (pilulka sa nerenderuje),
+  // ale uložený/zdedený stav by ju udržal a obrazovka by ostala prázdna BEZ CESTY SPÄŤ —
+  // pilulka, ktorou by sa človek prepol naspäť na výlety, tam totiž tiež nie je. Preto sa
+  // počiatočná hodnota vyhodnocuje cez flag, nie napevno.
   const [activeCat, setActiveCat] = useState<'trips' | 'events'>('trips');
+  useEffect(() => { if (!EVENTS_LIVE && activeCat === 'events') setActiveCat('trips'); }, [activeCat]);
   // EVENT zoznam v paneli (krok 5, zadanie-eventy §9 krok 5) — rovnaký trojicový vzor ako trip
   // hoverId/inlineDetailId + heroCardRefs nižšie, len na vlastnom lokálnom localEvents stave.
   // `eventsView`: default = nadchádzajúce, 'archive' = filter na ends_at < now (§4.5, NIKDY delete).
@@ -5988,8 +5994,15 @@ export default function PackMap() {
           <div className="trp-cat-pills">
             <button type="button" className={`trp-catpill${activeCat === 'trips' ? ' on' : ''}`} onClick={() => setActiveCat('trips')}>{t('pack.map.catTrips')}</button>
             {/* design §D: Events sa aktivoval — zoznam plánovaných spoločných výletov + join.
-                Matej 2026-07-26: presunuté hneď vedľa Trips (pred Places/Services placeholdery). */}
-            <button type="button" className={`trp-catpill${activeCat === 'events' ? ' on' : ''}`} onClick={() => setActiveCat('events')}>{t('pack.map.catEvents')}</button>
+                Matej 2026-07-26: presunuté hneď vedľa Trips (pred Places/Services placeholdery).
+                🔒 ZAMKNUTÉ ZA `EVENTS_LIVE` 15. 9. 2026 — na LIVE neexistuje ani schéma podujatí
+                (migrácia 20260806_events.sql tam nikdy nebežala) a frontend backend ani nevolá,
+                takže založené podujatie žije len v localStorage jedného prehliadača. Doteraz to
+                nevadilo, lebo mapa je na LIVE za DEV_FULL — ale launch = flip DEV_FULL, a vtedy
+                by sa podujatia odomkli naraz s ňou. Odôvodnenie celé v `lib/packFlags.ts`. */}
+            {EVENTS_LIVE && (
+              <button type="button" className={`trp-catpill${activeCat === 'events' ? ' on' : ''}`} onClick={() => setActiveCat('events')}>{t('pack.map.catEvents')}</button>
+            )}
             {/* Matej 2026-08-06: MIESTA (Places) pill preč — PLACE ako filter kategória bola
                 zrušená (pláže/lúky/parky sú TRIP cez aktivitu `explore`, viď zadanie-eventy §A).
                 i18n kľúč `pack.map.catPlaces` ostáva v locale súboroch pre prípadné budúce použitie. */}

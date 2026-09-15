@@ -97,3 +97,30 @@ export const DEV_FULL =
 // čo `isFullPackEmail(...)` odtiaľto ODSTRÁNI a nechá zapnuté pre všetkých.
 export const PAWMATE_LIVE =
   import.meta.env.VITE_PAWMATE === 'true' || isFullPackEmail(sessionEmailFromStorage());
+
+// ── PODUJATIA — DVERE ZAMKNUTÉ, KÝM NA LIVE NIE JE SCHÉMA (2026-09-15) ──────
+// Audit funkčnosti pred launchom (plany/audit-launch-2026-09-15/2-podujatia.md)
+// našiel toto: formulár aj zoznam podujatí existujú a fungujú bezchybne, backend
+// (event_series, event_editions, event_rsvps, event_comments + RLS + 2 RPC) je
+// nasadený — ale LEN NA DEV. Frontend ho navyše nikdy nevolá: podujatie sa uloží
+// do localStorage jedného prehliadača a tam skončí.
+//
+// Zmerané naživo, nie odhadnuté: pri odoslaní formulára odišlo 0 requestov na
+// Supabase, event_series aj event_editions mali 0 riadkov pred aj po, a druhý účet
+// v samostatnom prehliadači videl prázdny stav. Nefunguje teda ani zápis, ani
+// nájdenie druhou stranou, ani RSVP, ani odhlásenie, ani zrušenie, ani notifikácia.
+//
+// 🔴 PREČO SA TO NEDÁ „RÝCHLO DOPOJIŤ": na produkcii pre podujatia NEEXISTUJE ANI
+//    SCHÉMA — information_schema.tables vráti na lnzurwmdgvzlqhsbhrvi prázdno, kým
+//    na DEV sú všetky štyri tabuľky. Migrácia 20260806_events.sql teda na LIVE nikdy
+//    nebežala. Dopojenie frontendu bez nej by písalo do tabuliek, ktoré tam nie sú.
+//
+// ⚠️ Doteraz to nevadilo, lebo podujatia žijú vnútri /pack/map, a mapa je na LIVE
+//    schovaná za DEV_FULL. Lenže LAUNCH = flip DEV_FULL na true, takže by sa odomkli
+//    naraz s mapou — a člen by zakladal podujatia, ktoré nikto nikdy neuvidí. Presne
+//    to sú tie „poloodomknuté dvere", pred ktorými varuje blok PAWMATE vyššie.
+//
+// Lokálne zapnutie:  VITE_EVENTS=true VITE_PACK_FULL=true npm run dev
+// Odomknutie natrvalo = až keď (1) migrácia beží na LIVE a (2) frontend naozaj
+// zapisuje do DB a druhá strana to vidí. Dovtedy false.
+export const EVENTS_LIVE = import.meta.env.VITE_EVENTS === 'true';

@@ -18,6 +18,7 @@ import { TRIP_CATEGORIES } from '@/components/pack/tripCategories';
 import { EVENT_KINDS, EVENT_KIND_LABEL_KEYS, type EventKind } from '@/components/pack/events/eventModel';
 import type { TripState } from './addTripModel';
 import { POINTS } from '@/lib/tripPoints';
+import { EVENTS_LIVE } from '@/lib/packFlags';
 import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { RightGate } from '@/components/pack/RightGate';
 import type { PawmateRight } from '@/lib/pawmateRights';
@@ -173,7 +174,12 @@ export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
         </button>
         {step === 'kind' && (
           <div className="att-entry-blocks att-entry-blocks-kind">
-            {KINDS.map((k) => (
+            {/* 🔒 Dlaždica PODUJATIE je za `EVENTS_LIVE` (15. 9. 2026): na LIVE pre podujatia
+                neexistuje ani schéma a formulár píše len do localStorage, takže by človek
+                zakladal podujatie, ktoré nikto nikdy neuvidí. Odôvodnenie v `lib/packFlags.ts`.
+                Filtruje sa TU, nie v `KINDS` — to pole je zároveň zdrojom tvarov `Kind`
+                a `KIND_CHIPS`, takže vyhodenie položky z neho by siahlo aj na ne. */}
+            {KINDS.filter((k) => k.kind !== 'event' || EVENTS_LIVE).map((k) => (
               /* Zápisy z tohto rázcestia patria MNE (`user_id`), nie psovi — km sú
                  moje (R2). Preto gate bez `dogId`: stačí, že mi to právo dal
                  aspoň jeden majiteľ. */
