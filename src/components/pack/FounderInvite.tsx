@@ -10,7 +10,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { track } from '@/lib/analytics';
 import { shareDog, downloadCard } from '@/lib/useShareCard';
 import { dogPagePath } from '@/lib/dogSlug';
-import { FONT_TITLE, FONT_UI, PILL_CSS } from './packTheme';
+import { FONT_TITLE, FONT_UI, PILL_CSS, GOLD_BTN } from './packTheme';
 
 const APP_ORIGIN = 'https://dogypt.com';
 
@@ -96,8 +96,8 @@ const CSS = `
 }
 /* .btn-gold (brand manuál v3.2 — LOCKED): gradient, radius 8, papyrusový okraj. */
 .fi-btn-gold{
-  background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);
-  border:1px solid rgba(250,244,236,0.30); color:#000; font-weight:700;
+  background:${GOLD_BTN.grad};
+  border:1px solid ${GOLD_BTN.edge}; color:#000; font-weight:700;
   box-shadow:0 0 28px rgba(230,158,26,0.34), inset 0 1px 0 rgba(255,255,255,0.3);
 }
 .fi-btn-ghost{

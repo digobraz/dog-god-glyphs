@@ -13,7 +13,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { MutableRefObject } from 'react';
 import L from 'leaflet';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
-import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
 import { useT } from '@/i18n/LanguageContext';
 import { trailCountry } from '@/lib/countryGeo';
 import { MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
@@ -366,13 +366,13 @@ const AEV_CSS = `
 .aev-hint-center{text-align:center;font-style:normal;}
 .aev-foot{flex-shrink:0;margin:0 20px 20px;display:flex;flex-direction:column;gap:8px;}
 .aev-foot .btn-gold{
-  width:100%;padding:13px;background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);
-  border:1px solid rgba(250,244,236,0.30);border-radius:8px;color:#000;font-family:${FONT_TITLE};
+  width:100%;padding:13px;background:${GOLD_BTN.grad};
+  border:1px solid ${GOLD_BTN.edge};border-radius:8px;color:#000;font-family:${FONT_TITLE};
   font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
-  box-shadow:0 0 40px rgba(230,158,26,0.4),inset 0 1px 0 rgba(255,255,255,0.3);
+  box-shadow:${GOLD_BTN.glow};
   transition:transform .2s,box-shadow .22s,opacity .22s;
 }
-.aev-foot .btn-gold:hover:not(:disabled){transform:scale(1.02);box-shadow:0 0 56px rgba(230,158,26,0.55),inset 0 1px 0 rgba(255,255,255,0.3);}
+.aev-foot .btn-gold:hover:not(:disabled){transform:scale(1.02);box-shadow:${GOLD_BTN.glowHover};}
 .aev-foot .btn-gold:disabled{opacity:.45;cursor:default;box-shadow:none;}
 .aev-error{margin:0;font-family:${FONT_UI};font-size:11.5px;color:#E08A6E;text-align:center;}
 @media (max-width:640px){

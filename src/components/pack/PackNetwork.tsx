@@ -4,7 +4,7 @@ import { Loader2, Copy, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
-import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { BonesCoin } from '@/components/pack/BonesCoin';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -1190,7 +1190,7 @@ function SendStep({
             className="inline-flex items-center justify-center gap-2"
             style={{
               flex: 1.4,
-              background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
+              background: GOLD_BTN.grad,
               border: '1px solid rgba(250,244,236,0.30)',
               borderRadius: 8,
               color: T.ink,

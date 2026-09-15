@@ -35,7 +35,7 @@ import type { LatLngTuple } from 'leaflet';
 import type { TripGeometry } from '@/components/pack/addtrip/addTripModel';
 import { calibratedAscent, totalDistanceM } from '@/components/pack/addtrip/addTripGeo';
 import { ICON } from '@/components/pack/tripShared';
-import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
 import { BackLinkIcon } from '@/components/pack/BackButton';
 
 const GOLD = T.accentGold; // #C99A3F
@@ -437,6 +437,6 @@ const GPXI_CSS = `
 .gpxi-trim-row input[type="range"]{flex:1;}
 .gpxi-trim-tag{flex-shrink:0;width:38px;font-family:${FONT_UI};font-weight:600;font-size:10.5px;text-transform:uppercase;color:${T.onDarkDim};}
 
-.gpxi-btn-gold{width:100%;margin-top:14px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:8px;background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);color:#000;border:1px solid rgba(250,244,236,0.30);cursor:pointer;box-shadow:0 0 22px rgba(230,158,26,0.32),inset 0 1px 0 rgba(255,255,255,0.3);}
+.gpxi-btn-gold{width:100%;margin-top:14px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:8px;background:${GOLD_BTN.grad};color:#000;border:1px solid ${GOLD_BTN.edge};cursor:pointer;box-shadow:0 0 22px rgba(230,158,26,0.32),inset 0 1px 0 rgba(255,255,255,0.3);}
 .gpxi-btn-gold:hover{filter:brightness(1.04);}
 `;

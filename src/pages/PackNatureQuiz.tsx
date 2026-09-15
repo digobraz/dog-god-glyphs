@@ -25,7 +25,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { X, ChevronLeft, RotateCcw, Check } from 'lucide-react';
-import { PACK_THEME, PACK_BOX, PACK_COL, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, PACK_COL, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
 import {
   ELEMENT_QUESTIONS, ROLE_QUESTIONS, BALANCE_ITEMS, BALANCE_VET_NOTE,
   NATURE_ELEMENTS, NATURE_ROLES, NATURE_SPECIALS,
@@ -102,7 +102,7 @@ const NQ_CSS = `
 .nq-gold:disabled{ opacity:.45; cursor:default; transform:none; box-shadow:none; }
 .nq-gold.is-ondark{
   background:var(--cta-gradient-dark);
-  border:1px solid rgba(250,244,236,0.30);
+  border:1px solid ${GOLD_BTN.edge};
   box-shadow:var(--cta-shadow-glow);
 }
 /* Ghost na čiernom: teplý hnedý ink "${T.inkWarm}" je inkoust NA PAPYRUS a na čiernej ho
@@ -169,7 +169,7 @@ const NQ_CSS = `
   box-shadow:0 3px 10px rgba(122,90,42,0.22);
 }
 .nq-opt.is-on, .nq-optlbl.is-on{
-  background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);
+  background:${GOLD_BTN.grad};
   border-color:#E69E1A; color:#241a06;
   box-shadow:0 3px 12px rgba(230,158,26,0.5);
 }
@@ -243,7 +243,7 @@ const NQ_CSS = `
   box-shadow:0 3px 10px rgba(122,90,42,0.22);
 }
 .nq-tri.is-on{
-  background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);
+  background:${GOLD_BTN.grad};
   border-color:#E69E1A; color:#241a06; box-shadow:0 3px 12px rgba(230,158,26,0.5);
 }
 
@@ -433,7 +433,7 @@ const NQ_CSS = `
   width:100%; max-width:420px; padding:24px 24px;
   background:linear-gradient(135deg,${T.card} 0%,#F2E2BD 100%);
   border:1.5px solid ${T.cardEdge}; border-radius:14px;
-  box-shadow:0 8px 28px rgba(0,0,0,0.45), 0 0 0 3px rgba(201,154,63,0.15);
+  box-shadow:${PACK_SHADOW.panel};
 }
 /* Zostať je hlavná voľba, preto zlatá a prvá. Odísť je stratové — ostáva ghost.
    Na mobile idú pod seba, aby sa nedalo trafiť odchod pri mierení na zostať. */

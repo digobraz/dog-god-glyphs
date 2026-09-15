@@ -16,7 +16,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { X, ChevronLeft, ChevronRight, Check } from 'lucide-react';
-import { PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, GOLD_BTN } from '@/components/pack/packTheme';
 import { QUIZ_BY_KEY, type QuizStep } from '@/components/pack/dogQuiz';
 import { appendDogEvents, readLatestForDogs, type DogEventInput, type LatestValue } from '@/lib/dogEvents';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,8 +35,8 @@ const QUIZ_CSS = `
 .qz-gold{
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
   padding:12px 24px;
-  background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);
-  border:1px solid rgba(250,244,236,0.30); border-radius:8px; color:#000;
+  background:${GOLD_BTN.grad};
+  border:1px solid ${GOLD_BTN.edge}; border-radius:8px; color:#000;
   font-family:'Cinzel',serif; font-size:11px; font-weight:800;
   letter-spacing:0.14em; text-transform:uppercase; cursor:pointer; white-space:nowrap;
   box-shadow:0 0 28px rgba(230,158,26,0.34), inset 0 1px 0 rgba(255,255,255,0.3);

@@ -23,7 +23,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import { Circle, Marker } from 'react-leaflet';
-import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
 import { MAP_SKIN, PALE, LAPIS, LAPIS_BTN_SHADOW, tintRGBA } from '@/components/pack/navGoldSkin';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
@@ -931,10 +931,10 @@ export const ADD_NOTE_CSS = `
    SpiralLanding.css) — lokálna kópia hodnôt 1:1, rovnaký zavedený vzor ako
    AddTripPlan.tsx a AddEvent.tsx. Gradient 135°, radius 8, papyrusový rám. */
 .mna-submit.btn-gold{
-  flex:0 0 auto;padding:11px 18px;background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);
-  border:1px solid rgba(250,244,236,0.30);border-radius:8px;color:#000;font-family:${FONT_TITLE};
+  flex:0 0 auto;padding:11px 18px;background:${GOLD_BTN.grad};
+  border:1px solid ${GOLD_BTN.edge};border-radius:8px;color:#000;font-family:${FONT_TITLE};
   font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
-  box-shadow:0 0 40px rgba(230,158,26,0.4),inset 0 1px 0 rgba(255,255,255,0.3);
+  box-shadow:${GOLD_BTN.glow};
   transition:transform .2s,box-shadow .22s,opacity .22s;
 }
 .mna-submit.btn-gold:disabled{opacity:.45;cursor:default;box-shadow:none;}

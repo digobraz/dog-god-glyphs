@@ -22,7 +22,7 @@ import L from 'leaflet';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
-import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
 import { MAP_SKIN, PALE, PALE_PC_MIN, LAPIS, LAPIS_BTN_SHADOW, PLATE_TILE_R, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { useIsPaleChrome } from '@/components/pack/usePaleChrome';
 import { CompanionPicker, type Companion } from '@/components/pack/packCommunityUI';
@@ -3747,7 +3747,7 @@ const STEP_CSS = `
 .atl-abort--ainubis .atl-abort-face{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#12233a 0%,#01050A 74%);box-shadow:0 0 0 1.5px rgba(91,224,240,0.40),0 0 26px rgba(59,158,255,0.34);margin-bottom:12px;}
 /* CTA = brandový zlatý gradient ('.btn-gold' lock: #F5C73D→#E69E1A, papyrusový rám, r8).
    NIE pilulka a NIE vlastný gradient. */
-.atl-abort-cta{width:100%;padding:12px 12px;border-radius:8px;background:linear-gradient(135deg,#F5C73D,#E69E1A);border:1px solid rgba(250,244,236,0.30);color:#1c160c;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 6px 18px rgba(230,158,26,0.28);}
+.atl-abort-cta{width:100%;padding:12px 12px;border-radius:8px;background:${GOLD_BTN.grad};border:1px solid ${GOLD_BTN.edge};color:#1c160c;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 6px 18px rgba(230,158,26,0.28);}
 .atl-abort-cta:hover{filter:brightness(1.06);}
 /* Druhá voľba hovorí AInubisovým hlasom (cyan obrys), aby bolo vidieť, že ju ponúka ON —
    nie je to odmietnutie dialógu, je to rovnocenná odpoveď. */
@@ -4387,14 +4387,14 @@ const LOG_CSS = `
    .btn-gold lock (CLAUDE.md) hovorí, že gradient existuje na jednom mieste na súbor. */
 .atl-log-foot .btn-gold,
 .atl-editor .btn-gold{
-  width:100%;padding:13px;background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);
-  border:1px solid rgba(250,244,236,0.30);border-radius:8px;color:#000;font-family:${FONT_TITLE};
+  width:100%;padding:13px;background:${GOLD_BTN.grad};
+  border:1px solid ${GOLD_BTN.edge};border-radius:8px;color:#000;font-family:${FONT_TITLE};
   font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
-  box-shadow:0 0 40px rgba(230,158,26,0.4),inset 0 1px 0 rgba(255,255,255,0.3);
+  box-shadow:${GOLD_BTN.glow};
   transition:transform .2s,box-shadow .22s,opacity .22s;
 }
 .atl-log-foot .btn-gold:hover:not(:disabled),
-.atl-editor .btn-gold:hover:not(:disabled){transform:scale(1.02);box-shadow:0 0 56px rgba(230,158,26,0.55),inset 0 1px 0 rgba(255,255,255,0.3);}
+.atl-editor .btn-gold:hover:not(:disabled){transform:scale(1.02);box-shadow:${GOLD_BTN.glowHover};}
 .atl-log-foot .btn-gold:disabled,
 .atl-editor .btn-gold:disabled{opacity:.45;cursor:default;box-shadow:none;}
 .atl-log-hint{margin:0;font-family:${FONT_UI};font-size:11px;color:${T.onDarkDim};text-align:center;}
@@ -4467,7 +4467,7 @@ const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
   .atl-steps--onmap{background:linear-gradient(180deg,#F6EAD0,#E9D9AE);border:1.5px solid ${P_EDGE};box-shadow:0 8px 24px rgba(70,45,10,0.35);backdrop-filter:none;-webkit-backdrop-filter:none;}
 
   /* ── dlaždice výberu aktivity (krok 1) ──────────────────────────────────────────────── */
-  .atl-tile{background:linear-gradient(160deg,${T.card} 0%,#F3E4C4 55%,#EAD6A6 100%);border:1px solid ${P_EDGE};box-shadow:0 1px 3px rgba(122,90,42,0.10),inset 0 1px 0 rgba(255,255,255,0.40);}
+  .atl-tile{background:linear-gradient(160deg,${T.card} 0%,#F3E4C4 55%,#EAD6A6 100%);border:1px solid ${P_EDGE};box-shadow:${PACK_SHADOW.lift};}
   .atl-tile:hover{background:linear-gradient(160deg,#FFFBF0 0%,#F6E9CF 55%,#EEDCB0 100%);border-color:${P_DEEP};box-shadow:0 0 0 3px rgba(201,154,63,0.26);}
   .atl-tile-label{color:${P_INK};}
   .atl-tile-note{color:${P_DIM};}
@@ -4593,7 +4593,7 @@ const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
   /* Rozlúčka s AINUBISOM (.atl-abort--ainubis) sa ZÁMERNE nemení: je to jeho vlastný modrý
      povrch, rovnaký ako v konzole, a pale skin mapy naň nesiaha. */
   .atl-abort-scrim{background:rgba(24,14,4,0.55);}
-  .atl-abort:not(.atl-abort--ainubis){background:linear-gradient(135deg,${T.card} 0%,#F2E2BD 100%);border:1.5px solid ${P_EDGE};box-shadow:0 8px 28px rgba(0,0,0,0.45),0 0 0 3px rgba(201,154,63,0.15);}
+  .atl-abort:not(.atl-abort--ainubis){background:linear-gradient(135deg,${T.card} 0%,#F2E2BD 100%);border:1.5px solid ${P_EDGE};box-shadow:${PACK_SHADOW.panel};}
   .atl-abort:not(.atl-abort--ainubis) h2{color:${P_INK};}
   .atl-abort:not(.atl-abort--ainubis) p{color:${P_DIM};}
   .atl-abort:not(.atl-abort--ainubis) .atl-abort-quit{background:rgba(176,52,40,0.14);border-color:rgba(176,52,40,0.65);color:#8E2A20;}

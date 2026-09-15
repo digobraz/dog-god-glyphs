@@ -21,7 +21,7 @@
 //    CTA). Bezpečnosť má na starosti on, nie appka. Tokeny v `ainubisSkin.ts`.
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
 import { MSG_SKIN_CSS, useMsgSkin } from './msgTheme';
 import { SkinToggle } from './Inbox';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
@@ -139,7 +139,7 @@ export const THREAD_CSS = `
 .msg-modnote{width:100%;box-sizing:border-box;margin-top:10px;min-height:74px;background:rgba(2,8,14,0.55);border:1px solid ${A.edge};border-radius:10px;padding:11px 13px;color:${A.ink};font-family:${FONT_UI};font-size:13px;outline:0;resize:vertical;}
 .msg-modnote::placeholder{color:${A.inkFaint};}
 .msg-modnote:focus{border-color:${A.cyan};box-shadow:0 0 0 3px rgba(91,224,240,0.20);}
-.msg-modsend{width:100%;margin-top:12px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:8px;background:${A.ctaGrad};color:${A.ctaInk};border:1px solid rgba(250,244,236,0.30);box-shadow:${A.ctaShadow};cursor:pointer;}
+.msg-modsend{width:100%;margin-top:12px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:8px;background:${A.ctaGrad};color:${A.ctaInk};border:1px solid ${GOLD_BTN.edge};box-shadow:${A.ctaShadow};cursor:pointer;}
 .msg-modsend:hover:not(:disabled){background:${A.ctaGradHover};}
 .msg-modsend:disabled{background:rgba(91,224,240,0.10);color:${A.inkFaint};border-color:${A.edge};box-shadow:none;cursor:default;}
 .msg-modcancel{width:100%;margin-top:8px;background:none;border:0;color:${A.inkFaint};font-family:${FONT_UI};font-size:12.5px;padding:9px;cursor:pointer;}

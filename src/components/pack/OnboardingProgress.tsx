@@ -1,7 +1,7 @@
 import { Check, Circle, Sparkles } from 'lucide-react';
 import { useT } from '@/i18n/LanguageContext';
 import { BrandIcon } from './BrandIcon';
-import { PACK_THEME } from './packTheme';
+import { PACK_THEME, GOLD_BTN } from './packTheme';
 
 const T = PACK_THEME;
 
@@ -110,7 +110,7 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
                   width: 18,
                   height: 18,
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
+                  background: GOLD_BTN.grad,
                   boxShadow: '0 2px 6px -1px rgba(201,154,63,0.55)',
                 }}
               >
@@ -155,7 +155,7 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
               marginTop: 16,
               padding: '12px 14px',
               borderRadius: 12,
-              background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
+              background: GOLD_BTN.grad,
               border: '1px solid rgba(250,244,236,0.30)',
               boxShadow: '0 6px 18px -6px rgba(201,154,63,0.6)',
             }}

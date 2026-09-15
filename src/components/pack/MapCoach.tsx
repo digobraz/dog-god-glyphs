@@ -19,7 +19,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import ainubisFace from '@/assets/ainubis-head.png';
-import { FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
 import { PALE } from '@/components/pack/navGoldSkin';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { useT } from '@/i18n/LanguageContext';
@@ -210,7 +210,7 @@ export const MAP_COACH_CSS = `
    je to presne ten, ktorý má AInubisov widget pre svoje tlačidlá — AINUBIS.ctaGrad. */
 .mcoach-ok{flex:0 0 auto;padding:10px 18px;border-radius:8px;cursor:pointer;
   background:${AINUBIS.ctaGrad};
-  border:1px solid rgba(250,244,236,0.30);color:${AINUBIS.ctaInk};
+  border:1px solid ${GOLD_BTN.edge};color:${AINUBIS.ctaInk};
   box-shadow:${AINUBIS.ctaShadow};
   font-family:${FONT_TITLE};font-weight:700;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;}
 .mcoach-ok:hover{background:${AINUBIS.ctaGradHover};}

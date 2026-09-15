@@ -17,7 +17,7 @@ import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { readLocalTrails, readWalkedIds, tripPath, visibleLocalTrails } from './tripShared';
 import { readTriplist } from './triplist/triplist';
-import { PACK_THEME, PACK_BOX, FONT_UI } from './packTheme';
+import { PACK_THEME, PACK_BOX, FONT_UI, GOLD_BTN } from './packTheme';
 import { BrandIcon } from './BrandIcon';
 import { useT } from '@/i18n/LanguageContext';
 
@@ -97,7 +97,7 @@ export function NextTripCard() {
           className="inline-flex items-center justify-center gap-2"
           style={{
             // .btn-gold (brand manuál v3.2 — LOCKED)
-            background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
+            background: GOLD_BTN.grad,
             border: '1px solid rgba(250, 244, 236, 0.30)',
             borderRadius: 8,
             color: '#000',

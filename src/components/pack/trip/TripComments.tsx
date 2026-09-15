@@ -25,7 +25,7 @@
 // rule as `sendMessage()` in packMessaging.ts.
 import { useCallback, useEffect, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_SHADOW } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
@@ -57,7 +57,7 @@ const PAGE_SIZE = 5;
 // na papyruse takmer neviditeľná. Textové pole ostáva PLOCHÝ papyrus (vzor
 // `.pf-field--flat`): písať sa má do svetla, nie do skla.
 export const TRIP_COMMENTS_CSS = `
-.tcm-wrap{margin-top:16px;border:1px solid ${T.cardEdge};border-radius:12px;background:${T.panelGrad};overflow:hidden;box-shadow:0 1px 3px rgba(122,90,42,0.10), inset 0 1px 0 rgba(255,255,255,0.40);}
+.tcm-wrap{margin-top:16px;border:1px solid ${T.cardEdge};border-radius:12px;background:${T.panelGrad};overflow:hidden;box-shadow:${PACK_SHADOW.lift};}
 .tcm-tabs{display:flex;border-bottom:1px solid ${T.hairline};}
 .tcm-tab{flex:1;text-align:center;padding:12px 8px;font-family:${FONT_UI};font-weight:600;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};background:transparent;border:none;cursor:pointer;transition:color .15s,background .15s;}
 .tcm-tab:hover{color:${T.inkStrong};}

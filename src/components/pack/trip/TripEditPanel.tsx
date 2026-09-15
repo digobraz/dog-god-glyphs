@@ -39,7 +39,7 @@
 // je horší zážitok, ale pravdivý; preklad sa doplní tou istou cestou ako u ostatných výletov.
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { updateLocalTrail } from '@/components/pack/tripShared';
 import { MAX_PHOTOS, optimizePhoto } from '@/components/pack/addtrip/photoOptimize';
@@ -77,7 +77,7 @@ const TRIP_EDIT_CSS = `
 .tep-addphoto:hover{border-color:${GOLD};color:${GOLD};}
 .tep-addphoto:disabled{opacity:.35;cursor:default;}
 .tep-pawpick{display:flex;justify-content:center;}
-.tep-submit{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:10px;background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);color:#000;border:1px solid rgba(250,244,236,0.30);cursor:pointer;}
+.tep-submit{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:10px;background:${GOLD_BTN.grad};color:#000;border:1px solid ${GOLD_BTN.edge};cursor:pointer;}
 .tep-submit:disabled{opacity:.4;cursor:default;}
 .tep-err{font-size:12px;color:#E0796D;margin-top:9px;text-align:center;}
 /* ── PLÁN ────────────────────────────────────────────────────────────────────────────────

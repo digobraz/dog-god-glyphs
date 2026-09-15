@@ -11,7 +11,7 @@
 // nenesie žiadne uuid. Keď výlet organizátora MÁ, ide jeho id a platí bežné
 // pravidlo „museli ste sa stretnúť na výlete".
 import { useState } from 'react';
-import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
 import { emitOpenThread } from '@/components/pack/messaging/openBridge';
 import { PartyMemberCard } from '@/components/pack/triplist/PartyMemberCard';
 import type { PartyMember } from '@/components/pack/triplist/useTripParty';
@@ -32,7 +32,7 @@ export const TRIP_CREATOR_CSS = `
 .tcp-av{flex-shrink:0;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_TITLE};font-weight:700;font-size:18px;color:${INK};}
 .tcp-name{font-family:${FONT_TITLE};font-weight:700;font-size:14px;color:${T.onDark};}
 .tcp-role{font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:${GOLD};margin-bottom:3px;}
-.tcp-msg{margin-top:14px;width:100%;height:42px;border-radius:8px;border:1px solid rgba(250,244,236,0.30);background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;}
+.tcp-msg{margin-top:14px;width:100%;height:42px;border-radius:8px;border:1px solid ${GOLD_BTN.edge};background:${GOLD_BTN.grad};color:${INK};font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;}
 .tcp-msg:disabled{opacity:.5;cursor:default;}
 .tcp-sec{margin-top:18px;}
 .tcp-sec h4{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${GOLD};margin:0 0 10px;}

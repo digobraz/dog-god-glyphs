@@ -45,7 +45,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PackLayout } from '@/components/pack/PackLayout';
 import {
-  PACK_THEME, PACK_BOX, PACK_HEAD, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI,
+  PACK_THEME, PACK_BOX, PACK_HEAD, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, GOLD_BTN,
 } from '@/components/pack/packTheme';
 import { PALE } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
@@ -173,8 +173,8 @@ const HUB_CSS = `
 .hub-gold{
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
   padding:12px 24px;
-  background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);
-  border:1px solid rgba(250,244,236,0.30);
+  background:${GOLD_BTN.grad};
+  border:1px solid ${GOLD_BTN.edge};
   border-radius:8px;
   color:#000;
   font-family:'Cinzel',serif; font-size:12px; font-weight:800;

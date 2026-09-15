@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
-import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI, PACK_SHADOW, GOLD_BTN } from '@/components/pack/packTheme';
 // Bledý chrome: inkousty a plochy (PALE), lapisové CTA a priesvitný tint výberu.
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy aj triplist.
 import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
@@ -163,7 +163,7 @@ export const COMMUNITY_CSS = `
    správna — bola v ňom jediná svetlá plocha. Odkedy je papyrusový celý panel, sú to dve
    rovnaké karty v sebe a matricový tieň karty (0 14px 44px čiernej + halo ring) urobí okolo
    odmeny tmavý prstenec. Úroveň 2 = panelGrad, 1px rám, radius 12, jemný lift. */
-.comm-reward{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;padding:15px 16px;border-radius:12px;background:${T.panelGrad};border:1px solid ${T.cardEdge};box-shadow:0 1px 3px rgba(122,90,42,0.10),inset 0 1px 0 rgba(255,255,255,0.40);}
+.comm-reward{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;padding:15px 16px;border-radius:12px;background:${T.panelGrad};border:1px solid ${T.cardEdge};box-shadow:${PACK_SHADOW.lift};}
 .comm-reward-eyebrow{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:${T.cardEdge};}
 .comm-reward-row{display:flex;align-items:center;gap:11px;min-width:0;}
 .comm-reward-txt{font-family:${FONT_UI};font-weight:600;font-size:12.5px;color:${T.inkStrong};min-width:0;overflow:hidden;text-overflow:ellipsis;}
@@ -306,7 +306,7 @@ export const COMMUNITY_CSS = `
    panel papyrusová karta, sú to dve rovnaké karty v sebe: rovnaký gradient, rovnaký rám,
    a matricový tieň (0 14px 44px čiernej + halo ring) z toho urobí tmavý mrak vnútri svetlého
    bloku. Úroveň 2 = panelGrad, 1px rám, radius 12, jemný lift. */
-.comm-vhead{position:relative;display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:${T.panelGrad};border:1px solid ${T.cardEdge};border-radius:12px;box-shadow:0 1px 3px rgba(122,90,42,0.10),inset 0 1px 0 rgba(255,255,255,0.40);padding:18px 20px;margin-bottom:22px;}
+.comm-vhead{position:relative;display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:${T.panelGrad};border:1px solid ${T.cardEdge};border-radius:12px;box-shadow:${PACK_SHADOW.lift};padding:18px 20px;margin-bottom:22px;}
 .comm-vhead-pack{display:flex;align-items:center;flex-shrink:0;}
 /* prstenec okolo avatara = farba PODKLADU, nie čierna stránka — na papyruse by čierny krúžok
    vyzeral ako dier(k)a. T.card je plná papyrusová, T.cardGrad by sa v box-shadow nedal použiť. */
@@ -333,7 +333,7 @@ export const COMMUNITY_CSS = `
 /* Výplň, inkoust a rám dodáva tierPillStyle(level) inline — tu ostáva len tvar. Pilulka je
    TLAČIDLO (otvára škálu pásiem), takže potrebuje reset kurzora a rodinu písma. */
 .comm-tierwrap{position:relative;display:inline-flex;flex-shrink:0;}
-.comm-level-pill{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(250,244,236,0.3);border-radius:999px;padding:7px 14px;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;flex-shrink:0;cursor:pointer;transition:filter .15s;}
+.comm-level-pill{display:inline-flex;align-items:center;gap:7px;border:1px solid ${GOLD_BTN.edge};border-radius:999px;padding:7px 14px;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;flex-shrink:0;cursor:pointer;transition:filter .15s;}
 .comm-level-pill:hover{filter:brightness(1.06);}
 /* Ikonka DEDÍ inkoust pásma cez masku — pri tmavých pásmach (karneol, cyprus, lapis, ametyst)
    je tier.ink svetlý a čierny filter by z pohára spravil dieru. */
@@ -375,7 +375,7 @@ export const COMMUNITY_CSS = `
        deliaca čiara karty, len 26 px) — dlaždica tým dostane os, na ktorej číslo visí
      · hover dvíha a pridáva zlaté halo, teda to isté správanie ako dlaždice DOG ID */
 .comm-worldstats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:8px;}
-.comm-wstat{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:0 1px 3px rgba(122,90,42,0.10),inset 0 1px 0 rgba(255,255,255,0.40);padding:18px 12px 15px;text-align:center;transition:transform .2s ease,box-shadow .2s ease;}
+.comm-wstat{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${PACK_SHADOW.lift};padding:18px 12px 15px;text-align:center;transition:transform .2s ease,box-shadow .2s ease;}
 .comm-wstat:hover{transform:translateY(-2px);box-shadow:0 0 0 3px rgba(201,154,63,0.22),0 1px 3px rgba(122,90,42,0.10);}
 .comm-wstat b{display:block;font-family:${FONT_UI};font-weight:600;font-size:30px;font-variant-numeric:tabular-nums;color:${P.ink};line-height:1;}
 /* ⚠️ NAJVYŠŠÍ BOD JE MENO MIESTA, NIE ČÍSLO — a typografický lock hovorí, že identitu
@@ -389,7 +389,7 @@ export const COMMUNITY_CSS = `
 .comm-wstat span::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:26px;height:2px;background:${T.rule};}
 @media (max-width:560px){ .comm-worldstats{grid-template-columns:repeat(2,1fr);} .comm-wstat b{font-size:26px;} }
 
-.comm-cat{background:${T.panelGrad};border:1px solid ${T.cardEdge};border-radius:12px;box-shadow:0 1px 3px rgba(122,90,42,0.10),inset 0 1px 0 rgba(255,255,255,0.40);padding:16px 18px;margin-bottom:12px;}
+.comm-cat{background:${T.panelGrad};border:1px solid ${T.cardEdge};border-radius:12px;box-shadow:${PACK_SHADOW.lift};padding:16px 18px;margin-bottom:12px;}
 /* klikateľná geo kategória → ADD TRIP (Matej 2026-07-23): button reset + hover. */
 .comm-cat--click{display:block;width:100%;text-align:left;cursor:pointer;font-family:inherit;transition:border-color .15s;}
 .comm-cat--click:hover{border-color:${P.deep};background:${T.card};}
@@ -440,7 +440,7 @@ export const COMMUNITY_CSS = `
 .comm-medal{width:68px;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;}
 .comm-medal-ic{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .comm-medal-ic img{width:26px;height:26px;}
-.comm-medal--on .comm-medal-ic{background:linear-gradient(135deg,#F5C73D,#E69E1A);box-shadow:0 0 14px rgba(245,199,61,0.45),inset 0 1px 0 rgba(255,255,255,0.35);}
+.comm-medal--on .comm-medal-ic{background:${GOLD_BTN.grad};box-shadow:0 0 14px rgba(245,199,61,0.45),inset 0 1px 0 rgba(255,255,255,0.35);}
 .comm-medal--on .comm-medal-ic img{filter:brightness(0) invert(1);}
 /* ⚠️ VRCHOLY A VODY SÚ LAPISOVÉ, NIE ZLATÉ (Matej 1. 9. 2026: „highest peaks a top waters by
    mali byť lapisom nie zlatou").
@@ -779,7 +779,7 @@ export const COMMUNITY_CSS = `
 .comm-jrow.on .comm-jrow-meta{color:${UNIT_DONE_INK};}
 
 /* zoznam prejdených = viditeľný ovládač, nie holý klikací nadpis (#46) */
-.comm-drop{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:20px 0 12px;padding:12px 15px;border-radius:12px;border:1px solid ${T.cardEdge};background:${T.panelGrad};box-shadow:0 1px 3px rgba(122,90,42,0.10),inset 0 1px 0 rgba(255,255,255,0.40);font-family:inherit;cursor:pointer;transition:border-color .15s,background .15s;}
+.comm-drop{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:20px 0 12px;padding:12px 15px;border-radius:12px;border:1px solid ${T.cardEdge};background:${T.panelGrad};box-shadow:${PACK_SHADOW.lift};font-family:inherit;cursor:pointer;transition:border-color .15s,background .15s;}
 .comm-drop:hover{border-color:${P.deep};background:${T.card};}
 .comm-drop-t{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.04em;color:${P.deep};}
 .comm-drop-n{display:flex;align-items:center;gap:8px;font-family:${FONT_UI};font-weight:500;font-size:11px;color:${P.dim};}

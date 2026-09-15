@@ -14,7 +14,7 @@ import { createPortal } from 'react-dom';
 import L from 'leaflet';
 import type { Map as LeafletMap } from 'leaflet';
 import { MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
-import { PACK_THEME as T, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME as T, FONT_UI, PACK_SHADOW } from '@/components/pack/packTheme';
 import { MAP_SKIN, PALE } from '@/components/pack/navGoldSkin';
 import { dockPadX } from '@/components/pack/mapDockShape';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -75,7 +75,7 @@ ${MAP_SKIN !== 'pale' ? '' : `
   /* Rám poľa drží MODRÚ aj na papyruse — obieha po ňom modré svetlo a zlatý rám
      pod ním by z toho spravil dve rôzne farby na jednom obryse. */
   .trp-ps.is-attn .trp-ps-input{border-color:${GLOW_DIM};}
-  .trp-ps-sug{background:linear-gradient(135deg,${T.card} 0%,#F2E2BD 100%);border:1.5px solid ${PALE.edge};box-shadow:0 8px 28px rgba(0,0,0,0.45),0 0 0 3px rgba(201,154,63,0.15);backdrop-filter:none;-webkit-backdrop-filter:none;}
+  .trp-ps-sug{background:linear-gradient(135deg,${T.card} 0%,#F2E2BD 100%);border:1.5px solid ${PALE.edge};box-shadow:${PACK_SHADOW.panel};backdrop-filter:none;-webkit-backdrop-filter:none;}
   .trp-ps-sugitem{color:${PALE.ink};}
   .trp-ps-sugitem:hover{background:${PALE.hot};}
   .trp-ps-sugitem + .trp-ps-sugitem{border-top:1px solid ${PALE.hair};}

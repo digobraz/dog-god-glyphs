@@ -23,7 +23,7 @@
 // Použitie si musí injektnúť `POINTS_PILL_CSS` (rovnaký vzor ako GLASS_CSS v packTheme.ts).
 
 import { useEffect, useRef, useState } from 'react';
-import { PACK_THEME as T, FONT_UI } from './packTheme';
+import { PACK_THEME as T, FONT_UI, GOLD_BTN } from './packTheme';
 
 /** Papyrusová béžová — najsvetlejšia plocha v tmavom UI. Zhodná s `onDark` rodinou. */
 const PILL_BEIGE = T.card;
@@ -43,8 +43,8 @@ export const POINTS_PILL_CSS = `
 }
 /* BONUS — zlatá. Rovnaký gradient ako .btn-gold / level pilulka, žiadny nový. */
 .pts-pill--bonus{
-  background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#241a06;
-  border:1px solid rgba(250,244,236,0.30);
+  background:${GOLD_BTN.grad};color:#241a06;
+  border:1px solid ${GOLD_BTN.edge};
   box-shadow:0 2px 10px rgba(230,158,26,0.45);
 }
 /* NA PAPYRUSE — LAPIS LAZULI. Béžová pilulka na béžovom podklade zanikne; čierna to vyriešila,

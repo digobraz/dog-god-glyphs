@@ -18,7 +18,7 @@ import { dockFitPadding } from '@/components/pack/mapDockShape';
 import { notePanelH, formatRadius } from '@/components/pack/mapnotes/AddMapNote';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import type { HeroTrail } from '@/data/heroTrails.generated';
-import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
 import { MAP_SKIN, PALE, PALE_PC_MIN, goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
@@ -2117,7 +2117,7 @@ const DRAW_BAR_CSS = `
 .trp-dbar-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;margin-top:-9px;border-radius:50%;background:${GOLD};border:2px solid rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.5);}
 .trp-dbar-range::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:${GOLD};border:2px solid rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.5);}
 /* HOTOVO — brand CTA podľa .btn-gold locku: gradient 135°, radius 8, papyrusový rám. */
-.trp-dbar-done{flex:1 1 0;padding:12px 10px;border-radius:8px;background:linear-gradient(135deg,#F5C73D,#E69E1A);border:1px solid rgba(250,244,236,0.3);color:#1c160c;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;box-shadow:0 0 40px rgba(230,158,26,0.4),inset 0 1px 0 rgba(255,255,255,0.3);cursor:pointer;}
+.trp-dbar-done{flex:1 1 0;padding:12px 10px;border-radius:8px;background:${GOLD_BTN.grad};border:1px solid ${GOLD_BTN.edge};color:#1c160c;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;box-shadow:${GOLD_BTN.glow};cursor:pointer;}
 /* CELÁ ŠÍRKA, KEĎ JE TO JEDINÁ ÚLOHA NA OBRAZOVKE (Matej 23. 8.: „dominantné tlačidlo
    TRASA HOTOVÁ cez celú šírku mobilu"). */
 .trp-dbar-done--hero{width:100%;flex:none;padding:15px 12px;font-size:13.5px;}

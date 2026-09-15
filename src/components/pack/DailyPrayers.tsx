@@ -13,7 +13,7 @@ import React, { useState } from 'react';
 import { Check, ChevronDown, Lock, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
-import { PACK_THEME } from './packTheme';
+import { PACK_THEME, GOLD_BTN } from './packTheme';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { toast } from '@/hooks/use-toast';
@@ -334,7 +334,7 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
                       style={{
                         padding: '9px 20px',
                         borderRadius: 10,
-                        background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
+                        background: GOLD_BTN.grad,
                         border: '1px solid rgba(250, 244, 236, 0.30)',
                         fontFamily: "'Cinzel', serif",
                         fontSize: 11,

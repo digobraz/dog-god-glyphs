@@ -19,7 +19,7 @@ import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayou
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL, PACK_COL_PAD } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL, PACK_COL_PAD, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
 // Bledý chrome: inkousty a plochy (PALE), lapisové CTA a priesvitný tint výberu.
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy.
 import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK, goldFrameCSS } from '@/components/pack/navGoldSkin';
@@ -182,7 +182,7 @@ const CSS = `
 /* výrazný odpočet dní — VYTŔČA nad horný okraj karty (dôležitý údaj), na wrapperi .tl-mycard.
    ⚠️ Krúžok okolo pilulky je farba PODKLADU, teda papyrus karty (${T.card}) — nie T.pageBg.
    Čierny prstenec na bledej karte by vyzeral ako dier(k)a po pilulke. */
-.tl-countdown{position:absolute;top:-11px;right:8px;z-index:6;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:5px 11px;border-radius:999px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#1a1305;box-shadow:0 4px 14px rgba(230,158,26,0.5),0 0 0 3px ${T.card};white-space:nowrap;pointer-events:none;}
+.tl-countdown{position:absolute;top:-11px;right:8px;z-index:6;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:5px 11px;border-radius:999px;background:${GOLD_BTN.grad};color:#1a1305;box-shadow:0 4px 14px rgba(230,158,26,0.5),0 0 0 3px ${T.card};white-space:nowrap;pointer-events:none;}
 .tl-countdown.soon{background:linear-gradient(135deg,#FF7A45,#E5502A);color:#fff;box-shadow:0 4px 16px rgba(229,80,42,0.55),0 0 0 3px ${T.card};}
 /* ⚠️ BADGE SEDÍ NA FOTKE, teda ostáva tmavý (2026-09-01). Prezliekať ho do papyrusu by
    znamenalo bledú pilulku na svetlej fotke — presne to, čo sa na obrázkoch nečíta. Sada
@@ -209,7 +209,7 @@ const CSS = `
 /* ⚠️ Hint UŽ NIE JE na fotke — stojí v .tl-block-info, teda na papyruse. */
 .tl-block-pendhint{margin-top:3px;font-family:${FONT_UI};font-size:9.5px;line-height:1.35;color:${P.dim};}
 .tl-block-badge.with{background:#F0E6D2;color:#1a1305;border:1px solid rgba(201,154,63,0.55);}
-.tl-block-badge.looking{background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#3d1f00;}
+.tl-block-badge.looking{background:${GOLD_BTN.grad};color:#3d1f00;}
 .tl-block-info{padding:9px 11px 11px;}
 .tl-block-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;line-height:1.25;color:${P.ink};display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px;}
 .tl-block-sub{font-size:9.5px;color:${P.dim};margin-top:3px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
@@ -246,7 +246,7 @@ const CSS = `
 .tl-block-badge.tap:hover{filter:brightness(1.08);}
 .tl-vis{display:flex;flex-direction:column;gap:10px;}
 /* voľba = PODBLOK (úroveň 2 matrice), vybraná = lapisový tint */
-.tl-vischoice{display:flex;align-items:flex-start;gap:11px;text-align:left;padding:13px 14px;border-radius:12px;border:1px solid ${T.cardEdge};background:${T.panelGrad};box-shadow:0 1px 3px rgba(122,90,42,0.10),inset 0 1px 0 rgba(255,255,255,0.40);cursor:pointer;transition:all .15s;}
+.tl-vischoice{display:flex;align-items:flex-start;gap:11px;text-align:left;padding:13px 14px;border-radius:12px;border:1px solid ${T.cardEdge};background:${T.panelGrad};box-shadow:${PACK_SHADOW.lift};cursor:pointer;transition:all .15s;}
 .tl-vischoice:hover{border-color:${P.deep};background:${T.card};}
 .tl-vischoice.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.12)}}
 .tl-vischoice-ic{flex-shrink:0;width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(201,154,63,0.14);border:1px solid ${P.border};font-size:14px;}

@@ -25,7 +25,7 @@ import { readTriplist } from './triplist/triplist';
 import { parsePlanDate, planDateLabel, planStart } from './addtrip/planDate';
 import { planPhase } from './planReminder';
 import { tierVars } from '@/lib/packTiers';
-import { PACK_THEME, FONT_TITLE, FONT_UI } from './packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN } from './packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from './navGoldSkin';
 import { PackTrailSketch } from './PackTrailSketch';
 import { trailCountry } from '@/lib/countryGeo';
@@ -148,7 +148,7 @@ const CSS = `
 .ts-cta{
   position:relative; z-index:3; display:block; width:100%; margin-top:auto;
   padding:16px 16px; border-radius:8px; text-align:center;
-  background:${LAPIS.grad}; border:1px solid rgba(250,244,236,0.30);
+  background:${LAPIS.grad}; border:1px solid ${GOLD_BTN.edge};
   color:${LAPIS.ink}; font-family:${FONT_TITLE}; font-weight:700; font-size:12.5px;
   letter-spacing:0.14em; text-transform:uppercase;
   box-shadow:${LAPIS_BTN_SHADOW};

@@ -3,7 +3,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { DateDropdowns } from '@/components/DateDropdowns';
-import { PACK_THEME } from '@/components/pack/packTheme';
+import { PACK_THEME, GOLD_BTN } from '@/components/pack/packTheme';
 
 const T = PACK_THEME;
 
@@ -100,7 +100,7 @@ export function MemorialControl({ dogId, dogName, isDeceased, deathDate, birthYe
   const primaryBtn: React.CSSProperties = {
     padding: '9px 20px',
     borderRadius: 10,
-    background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
+    background: GOLD_BTN.grad,
     border: '1px solid rgba(250, 244, 236, 0.30)',
     color: '#3d1f00',
     fontFamily: "'Cinzel', serif",
