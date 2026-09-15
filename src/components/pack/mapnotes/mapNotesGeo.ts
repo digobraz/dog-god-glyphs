@@ -131,11 +131,18 @@ export function notesForTrail(notes: MapNote[], trail: HeroTrail): MapNote[] {
   // každý nový podtyp upozornenia (pribudli `ticks`) by ticho vypadol na koniec
   // zoznamu za komentáre — teda presne to najdôležitejšie by kleslo najnižšie.
   const rank: Record<NoteGroup, number> = { parking: 0, warning: 1, comment: 2 };
-  // ⚠️ PARKOVISKO PRECHÁDZA CEZ `parkingForTrail()`, NIE CEZ PRAH. Prah povie,
-  // ktoré sú v dosahu (býva ich viac), pravidlo povie, ktoré JEDNO tam patrí.
-  const park = parkingForTrail(notes, trail);
+  /**
+   * 🅿️ PARKOVISKO DO ZOZNAMU NEPATRÍ (Matej 2026-09-15): „parkovisko tam nemá čo byť
+   * je to sucast vyletu (odkazy tam budu upozornenia a tipy iba…".
+   *
+   * Je to ÚDAJ VÝLETU, nie odkaz od člena — od toho istého dňa má vlastné CTA
+   * („Vyraziť na miesto") a vlastnú značku na mape. V zozname stálo ako riadok bez
+   * autora a bez textu, teda ako prázdna položka medzi skutočnými odkazmi.
+   * ⚠️ `parkingForTrail()` sa NERUŠÍ — číta ho mapa v článku a tlačidlo. Mizne len
+   * z tohto zoznamu.
+   */
   return notes
-    .filter((n) => (n.kind === 'parking' ? n.id === park?.id : noteBelongsToTrail(n, trail)))
+    .filter((n) => n.kind !== 'parking' && noteBelongsToTrail(n, trail))
     .sort((a, b) => {
       if (a.isStale !== b.isStale) return a.isStale ? 1 : -1;
       const r = rank[groupOf(a.kind)] - rank[groupOf(b.kind)];

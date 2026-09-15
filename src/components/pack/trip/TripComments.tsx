@@ -25,7 +25,7 @@
 // rule as `sendMessage()` in packMessaging.ts.
 import { useCallback, useEffect, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_SHADOW } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_SHADOW, GOLD_BTN } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PALE } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
@@ -102,18 +102,19 @@ export const TRIP_COMMENTS_CSS = `
 
 /* add review CTA */
 .tcm-addrow{margin-bottom:14px;}
-/* ── HISTÓRIA TOHTO TLAČIDLA, DVE MATEJOVE VETY ───────────────────────────────────────
+/* ── HISTÓRIA TOHTO TLAČIDLA, TRI MATEJOVE VETY ───────────────────────────────────────
    1. 9. 2026: „to CTA pridať hodnotenie by malo byť lapisom" — dovtedy bolo zlaté plné
-   a kánon vyhradzuje plnú farbu hlavnému CTA, ktoré je lapisové. Platilo, kým bolo
-   v článku hlavné ono.
-   ⚠️ PREBITÉ 15. 9. 2026 (Matej: „teraz je lapisom aj pridať recenziu a aby sa to
-   nemýlilo - mli by mať každé inú farbu"). Nad týmto tlačidlom stoja od toho dňa DVE plné CTA
-   — parkovisko (lapis) a trasa (fialová) — a tretia plná plocha z toho robila jarmok, v ktorom
-   nevedie nič. Zlatý rám bez výplne je pritom SPRÁVNEJŠÍ význam: hodnotenie je prispievanie,
-   nie odchod na výlet, a zlato v brande znamená konštrukciu, nie akciu.
-   Geometria (šírka, radius 8, písmo) sa NEMENÍ — mení sa len výplň. */
-.tcm-btn-gold{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:12px;border-radius:8px;background:transparent;color:${T.inkStrong};border:1.5px solid ${T.cardEdge};cursor:pointer;box-shadow:none;transition:background .15s,border-color .15s;}
-.tcm-btn-gold:hover:not(:disabled){background:rgba(201,154,63,0.12);}
+   a kánon vyhradzuje plnú farbu hlavnému CTA. Platilo, kým bolo v článku hlavné ono.
+   15. 9. 2026 ráno: nad ním pribudli DVE plné CTA (parkovisko lapis, trasa fialová), tak
+   som ho stiahol na zlatý RÁM bez výplne.
+   ⚠️ 15. 9. 2026 poobede to Matej VRÁTIL: „pridať hodnotenie zaniklo (daj to ked tak
+   oranžovým?)" — rám bol príliš potichu. Oranžová sa nevymýšľa: je to locknutý zlato-
+   oranžový gradient .btn-gold / GOLD_BTN (#F5C73D→#E69E1A), teda presne to, čím tlačidlo bolo
+   pred 1. 9. Kruh sa uzavrel, ale s iným dôvodom: vtedy bolo zlaté ako hlavné CTA, dnes
+   je zlaté preto, že zlato NIE JE ani lapis, ani fialová — tri akcie, tri farby.
+   Geometria (šírka, radius 8, Cinzel 700 uppercase) sa NEMENÍ, mení sa výplň. */
+.tcm-btn-gold{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:12px;border-radius:8px;background:${GOLD_BTN.grad};color:${T.ink};border:1px solid ${GOLD_BTN.edge};cursor:pointer;box-shadow:${GOLD_BTN.glow};transition:box-shadow .15s;}
+.tcm-btn-gold:hover:not(:disabled){box-shadow:${GOLD_BTN.glowHover};}
 .tcm-btn-gold:disabled{opacity:.35;cursor:default;box-shadow:none;filter:none;}
 .tcm-gatehint{text-align:center;font-size:11px;color:${T.inkWarm};font-style:italic;margin-top:7px;}
 
