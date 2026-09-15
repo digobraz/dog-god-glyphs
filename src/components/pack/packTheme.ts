@@ -316,6 +316,15 @@ export const PACK_BLOCKS = {
     polomer: PACK_R.card,
     kedy: 'Plávajúci modal nad stránkou. BEZ KRÍŽIKA — von sa ide klikom mimo alebo Esc.',
   },
+  'CTA ZLATÉ': {
+    recept: 'GOLD_BTN — grad · edge · glow · glowHover',
+    polomer: PACK_R.field,
+    kedy: 'Tlačidlo hlavnej akcie na NAOZAJ TMAVOM podklade (tmavý panel, pk-glass, '
+      + 'fotka). Na bledom podklade je hlavná akcia LAPIS, nie toto.',
+    lock: 'Tvar je locknutý: radius 8, NIE pilulka. Hodnoty opísané z `.btn-gold` '
+      + 'v SpiralLanding.css (brand lock). ⚠️ Povolenie platí pre TLAČIDLO — tá istá '
+      + 'zmes na karte alebo páse je žltá plocha a patrí AINUBISOVI, nie nám.',
+  },
   'AI-PALUBA': {
     recept: 'ainubisSkin.ts — AINUBIS.*',
     polomer: PACK_R.card,
@@ -426,6 +435,45 @@ export const PACK_SHADOW = {
   panel: PACK_THEME.panelShadow,
   /** Reakcia na dotyk. ⚠️ Na D-BLOKU sa nepoužíva — ten sa dvíha transformom. */
   lift: '0 1px 3px rgba(122,90,42,0.10), inset 0 1px 0 rgba(255,255,255,0.40)',
+} as const;
+
+// ── CTA ZLATÉ — recept zlatého tlačidla (2026-09-15, Matejov výber) ──────────
+// Prečo vzniká: `.btn-gold` je locknuté brandové CTA od začiatku, ale v `/pack`
+// nemalo ANI JEDNU definíciu — bolo RUČNE PREPÍSANÉ v 39 súboroch. Inventúra
+// 15. 9.: gradient v deviatich zápisoch (`135deg,#F5C73D 0%,#E69E1A 100%` 24×
+// a ten istý bez stopiek 16×), lem v šiestich (`0.30` 21× · `0.3` 5× · `0.55`),
+// žiara v siedmich veľkostiach. Z 215 ručných rámov celého `/pack` patrí tomuto
+// tlačidlu 28 a z 26 žiar dvadsať — teda najväčší jediný vinník toho, čo Matej
+// 13. 9. videl ako „každý blok vyzerá inak".
+//
+// 🔴 HODNOTY SÚ OPÍSANÉ, NIE VYBRANÉ. Zdroj je ten, ktorý menuje brand lock
+//    (`plany/locky/brand.md`, „CTA button — TVAR (LOCKED)"): `.btn-gold`
+//    v `components/landing/SpiralLanding.css` r. 228–248 — gradient, lem, radius,
+//    žiara v pokoji aj pri dotyku sedia znak po znaku. Tento recept nič nemení,
+//    len konečne dáva `/pack` miesto, odkiaľ si to má brať.
+//
+// Je to DVOJIČKA `LAPIS` + `LAPIS_BTN_SHADOW` v `navGoldSkin.ts` — tam ten istý
+// tvar pre lapisové CTA existuje od 26. 8. a drží. Zlaté ho dostáva teraz.
+//
+// ⚠️ ZLATÉ CTA NIE JE HLAVNÉ CTA. Kánon od 28. 8. 2026: hlavná akcia je LAPIS
+//    na BLEDOM podklade, zlatý gradient patrí na NAOZAJ TMAVÝ. Tento recept
+//    existujúce tlačidlá ZJEDNOCUJE, nepovyšuje ich — ktoré z nich majú prejsť
+//    na lapis, je samostatná úloha (brand lock: „Plošné prepnutie zvyšku appky").
+// ⚠️ ZLATÁ PLOCHA ≠ ZLATÉ TLAČIDLO (lock 28. 8.). Tá istá zmes natretá na KARTU
+//    alebo PÁS je žltá a Matej si ju spája s AINUBISOM. Na plochu ber rampu
+//    okolo `#C99A3F`. Tento recept je povolenie pre TLAČIDLO, nič viac.
+// ⚠️ Smery 90deg a 180deg sem NEPATRIA — to nie sú tlačidlá, ale pruhy a čiary
+//    (progres, koľajnica), kde smer nesie význam.
+export const GOLD_BTN = {
+  /** Výplň tlačidla. Jediný povolený zápis — stopky sú v ňom zámerne, aby sa
+   *  dva tvary toho istého gradientu už nedali napísať vedľa seba. */
+  grad: 'linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%)',
+  /** Krémový lem. NIE `T.border` — tá je zlatá a na zlatej ploche zmizne. */
+  edge: 'rgba(250,244,236,0.30)',
+  /** Pokoj: žiara okolo tlačidla + horný svetelný lem vo výplni. */
+  glow: '0 0 40px rgba(230,158,26,0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
+  /** Dotyk: tá istá žiara, širšia a sýtejšia. Lem sa nemení. */
+  glowHover: '0 0 56px rgba(230,158,26,0.55), inset 0 1px 0 rgba(255,255,255,0.3)',
 } as const;
 
 // ════════════════════════════════════════════════════════════════════════════
