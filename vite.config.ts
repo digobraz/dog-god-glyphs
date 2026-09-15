@@ -41,7 +41,7 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  plugins: [react(), mode === "development" && componentTagger(), mode === "development" && saveTripPlugin(), mode === "development" && gpxDownloadPlugin()].filter(Boolean),
+  plugins: [react(), mode === "development" && componentTagger(), mode === "development" && saveTripPlugin()].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -99,37 +99,3 @@ function saveTripPlugin() {
   };
 }
 
-/**
- * DEV-ONLY: GPX SA MÁ STIAHNUŤ, NIE ZOBRAZIŤ (2026-09-15).
- *
- * Matej pri teste na telefóne: „nejde mi to otvoriť na mobile mam ciernu obrazovku a bile
- * pismenka velmi vela" — prehliadač dostal `application/gpx+xml`, uznal ho za text a vykreslil
- * XML. Appka Mapy.com sa v tej chvíli nemá čoho chytiť: „otvoriť v…" ponúka systém až nad
- * STIAHNUTÝM súborom, nie nad zobrazenou stránkou.
- *
- * Rozhoduje o tom `Content-Disposition: attachment`, a ten statický server sám od seba
- * neposiela. Preto toto middleware — a preto sa to isté musí doriešiť aj na produkcii,
- * kde hlavičky nenastavujeme (hosting Lovable). Tam je náhrada tlačidlo „Stiahnuť trasu
- * (GPX)", ktoré súbor skladá v prehliadači cez `blob:` a sťahovanie spúšťa samo
- * (`downloadGpx` v `tripNav.ts`) — verejný odkaz je navyše, nie náhrada.
- */
-function gpxDownloadPlugin() {
-  return {
-    name: "dogypt-gpx-download",
-    configureServer(server: { middlewares: { use: (fn: (req: unknown, res: unknown, next: () => void) => void) => void } }) {
-      server.middlewares.use((req, res, next) => {
-        const raw = (req as { url?: string }).url ?? "";
-        // `/g` = skratka na PILOTNÝ výlet, aby sa adresa dala na telefóne napísať rukou.
-        // Dlhý slug sa prepísať nedá (Matej 15. 9.: „nejde mi to skopirovat v celku").
-        const url = raw === "/g" || raw === "/g.gpx"
-          ? "/gpx/zaruby-1-kostol-certov-zlab-zaruby-male-karpaty.gpx"
-          : raw;
-        if (url !== raw) (req as { url?: string }).url = url;
-        if (!url.startsWith("/gpx/") || !url.includes(".gpx")) return next();
-        const name = decodeURIComponent(url.split("?")[0].split("/").pop() ?? "trasa.gpx");
-        (res as { setHeader: (k: string, v: string) => void }).setHeader("Content-Disposition", `attachment; filename="${name}"`);
-        next();
-      });
-    },
-  };
-}

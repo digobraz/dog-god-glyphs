@@ -9,6 +9,8 @@
 // ktorý práve zaplatil za heroglyf, zakladať si účet na Sezname = odbočka z našej appky do
 // cudzej. Trasu preto naďalej kreslí NAŠA mapa v /pack; GPX ostáva ako tlačidlo pre toho, kto
 // si ju vedome chce odniesť do Locusu či Garminu.
+// ✅ OVERENÉ NA TELEFÓNE 15. 9. 2026 (Matej): „nejde mi prihlasit pyta prihlasenie" — appka
+// Mapy.com žiada účet rovnako ako ich web. Otázka je tým uzavretá, nie otvorená.
 // Oživiť má zmysel LEN vtedy, keď Mapy.com import bez účtu otvoria.
 //
 // Prečo vôbec: Mapy.com **nevedia prijať trasu v URL** (overené 13. aj 15. 9. 2026 na troch
