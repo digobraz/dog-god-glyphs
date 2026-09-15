@@ -239,10 +239,23 @@ export default function Admin() {
   const sendMagicLink = async () => {
     setLoginErr('');
     const email = loginEmail.trim().toLowerCase();
-    if (!email) return;
+    // ⚠️ Prázdne pole NESMIE skončiť tichým `return` — tlačidlo, ktoré mlčí, je pre
+    //    človeka rozbité tlačidlo. Ten istý nález ako na `/login` 15. 9. 2026.
+    if (!email) {
+      setLoginErr('Enter your e-mail first.');
+      return;
+    }
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/admin` },
+      options: {
+        emailRedirectTo: `${window.location.origin}/admin`,
+        // `shouldCreateUser: false` (Matej 2026-08-20: „nepustit dnu"). Na `/login` ten
+        // flag bol od 20. 8., TU CHÝBAL: default supabase-js je `create_user: true`,
+        // takže ktokoľvek, kto trafil `/admin` a napísal svoju adresu, si TÝM KLIKOM
+        // založil účet v `auth.users` — bez heroglyfu, bez platby. Doplnené 16. 9. 2026
+        // pri rozbore blokera z 15. 9. Admin účty vznikajú ručne, nie touto cestou.
+        shouldCreateUser: false,
+      },
     });
     if (error) setLoginErr(error.message);
     else setLoginSent(true);
