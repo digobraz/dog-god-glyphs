@@ -637,7 +637,7 @@
     "ram": 0,
     "tien": 2,
     "pismenka": 7,
-    "odsadenie": 16
+    "odsadenie": 15
   },
   "components/pack/messaging/msgTheme.ts": {
     "radius": 0,

@@ -86,6 +86,11 @@ export const MSG_SKIN_CSS = `
   --msg-bar:${T.panelGrad};
   --msg-bar-edge:rgba(179,130,45,0.55);
   --msg-bar-shadow:0 2px 10px rgba(122,90,42,0.10);
+  /* PLOCHA SPRÁV — priesvitná doska medzi hlavičkou a písaním (Matej 15. 9. 2026:
+     „potrebujeme tam panel bud priesvitný alebo liquid glass"). Tapeta pod ňou
+     presvitá a rozmaže sa, takže bubliny na nej stoja a nezanikajú v hieroglyfoch. */
+  --pk-stage:linear-gradient(180deg,rgba(251,245,230,0.58) 0%,rgba(242,229,197,0.42) 100%);
+  --pk-stage-edge:rgba(179,130,45,0.34);
   --msg-title:#8A5F1E;
   --msg-ink:${T.inkStrong};
   --msg-dim:${T.inkWarm};
@@ -137,6 +142,10 @@ export const MSG_SKIN_CSS = `
   --msg-bar:linear-gradient(135deg,#171009 0%,${T.pageBg} 100%);
   --msg-bar-edge:${T.border};
   --msg-bar-shadow:0 2px 12px rgba(0,0,0,0.55);
+  /* V tmavom šate je tá istá doska TMAVÉ sklo — inak by svetlá plocha rozsvietila
+     polovicu obrazovky a z tmavého šatu by ostala len lišta. */
+  --pk-stage:linear-gradient(180deg,rgba(20,14,6,0.58) 0%,rgba(8,6,3,0.44) 100%);
+  --pk-stage-edge:rgba(201,154,63,0.26);
   --msg-title:#E0B457;
   --msg-ink:${T.onDark};
   --msg-dim:rgba(245,240,228,0.52);

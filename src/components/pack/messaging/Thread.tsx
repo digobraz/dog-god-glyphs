@@ -21,7 +21,7 @@
 //    CTA). Bezpečnosť má na starosti on, nie appka. Tokeny v `ainubisSkin.ts`.
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, STAGE_CSS } from '@/components/pack/packTheme';
 import { MSG_SKIN_CSS, useMsgSkin } from './msgTheme';
 import { SkinToggle } from './Inbox';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
@@ -65,7 +65,16 @@ export const THREAD_CSS = `
 .msg-tagchip{max-width:100%;overflow:hidden;text-overflow:ellipsis;display:inline-flex;align-items:center;gap:4px;margin-top:5px;font-family:${FONT_TITLE};font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:var(--msg-chip);border:1px solid var(--msg-btn-edge);color:var(--msg-chip-ink);white-space:nowrap;}
 .msg-tagchip--click{cursor:pointer;}
 .msg-tagchip--click:hover{background:var(--msg-chip-hot);border-color:${T.cardEdge};}
-.msg-thread-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:18px 16px;max-width:640px;width:100%;margin:0 auto;display:flex;flex-direction:column;position:relative;z-index:2;}
+/* ── PLOCHA SPRÁV JE SKLENENÁ DOSKA (Matej 15. 9. 2026) ──────────────────────────────
+   „možno by bolo dobré nad blok kde sa píše pridať blok priesvitný kde pôjdu správy…
+   lebo teraz to zaniká na pozadí… potrebujeme tam panel bud priesvitný alebo liquid glass."
+   Bubliny dovtedy stáli priamo na hieroglyfovej tapete a splývali s ňou. Doska tapetu
+   ROZMAŽE a stlmí, ale nezakryje — preto sklo, nie plná výplň.
+   Šírka je tá istá, akú má hlavička aj písací panel: tri bloky v jednom stĺpci.
+   ⚠️ Vzhľad nesie BLOK SKLENENÁ DOSKA (.pk-stage, STAGE_CSS v packTheme.ts), tu sú len
+   rozmery. Farbu prepínajú premenné pk-stage v msgTheme.ts — v tmavom šate je to TMAVÉ
+   sklo; svetlá doska by tam rozsvietila polovicu obrazovky. */
+.msg-thread-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:16px;max-width:640px;width:calc(100% - 32px);margin:12px auto;display:flex;flex-direction:column;position:relative;z-index:2;}
 .msg-bubblewrap{display:flex;flex-direction:column;align-items:flex-start;margin-bottom:11px;max-width:82%;}
 .msg-bubblewrap.me{align-items:flex-end;align-self:flex-end;}
 /* FOTKA TOHO, KTO PÍŠE, VEDĽA BUBLINY (Matej 1. 9. 2026: „vedľa bublinky by mala byť
@@ -256,9 +265,12 @@ export function Thread({ convId, onClose, onOpenTrip }: {
       <div className={`msg-thread msg-skin${skin === 'dark' ? ' msg-skin--dark' : ''}`}>
         <style>{MSG_SKIN_CSS}</style>
         <style>{THREAD_CSS}</style>
+        <style>{STAGE_CSS}</style>
         <div className="msg-thread-head">
-          <BackButton tone="dark" onClick={onClose} label={t('pack.msg.backAriaLabel')} />
+         <div className="msg-thread-headinner">
+          <BackButton tone={skin === 'dark' ? 'dark' : 'pale'} onClick={onClose} label={t('pack.msg.backAriaLabel')} />
           <div className="msg-thread-headtxt"><div className="msg-thread-title">{t('pack.msg.loading')}</div></div>
+         </div>
         </div>
       </div>
     );
@@ -342,6 +354,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
       {/* Tapetu nesie .msg-skin — <HieroglyphBg /> sa sem NEPRIDÁVA (bola by druhá vrstva). */}
       <style>{MSG_SKIN_CSS}</style>
       <style>{THREAD_CSS}</style>
+      <style>{STAGE_CSS}</style>
       {/* ⚠️ HLAVIČKA MÁ VNÚTORNÝ STĹPEC (Matej 15. 9. 2026): „chcem aby dolná šírka obsahu —
           panel kde sa píše — bola totožná aj hore v headri = meno / prepínač / nahlásenie
           musia byť viac v strede nie na kraji." Pás pozadia ide ďalej cez celé okno (inak by
@@ -349,7 +362,10 @@ export function Thread({ convId, onClose, onOpenTrip }: {
           OBSAH, a jeho šírka je tá istá, akú má telo správ aj písací panel. */}
       <div className="msg-thread-head">
        <div className="msg-thread-headinner">
-        <BackButton tone="dark" onClick={onClose} label={t('pack.msg.backToInboxAriaLabel')} />
+        {/* ⚠️ TÓN SA RIADI ŠATOM (Matej 15. 9. 2026: „nevidím šípku do zadu"). Natvrdo tu
+            stál `dark`, teda takmer biela ikonka v priesvitnom kruhu — na papyrusovej
+            hlavičke neviditeľná. Povrch má dva šaty, takže návrat ich musí mať tiež. */}
+        <BackButton tone={skin === 'dark' ? 'dark' : 'pale'} onClick={onClose} label={t('pack.msg.backToInboxAriaLabel')} />
         <div className="msg-thread-headtxt">
           <div className="msg-thread-title" style={{ fontFamily: titleFont }}>{title}</div>
           {isGroup && (
@@ -383,7 +399,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
        </div>
       </div>
 
-      <div className="msg-thread-body">
+      <div className="msg-thread-body pk-stage">
         {conv.messages.length === 0 && <div className="msg-empty">{t('pack.msg.emptyThread')}</div>}
         {conv.messages.map((m) => {
           const mine = m.senderId === me.id;

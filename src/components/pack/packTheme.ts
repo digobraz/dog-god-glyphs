@@ -409,6 +409,19 @@ export const PACK_BLOCKS = {
       + 'so sklom a tmavosti 0,28 / 0,32 / 0,55 vedľa seba. Doštička má zámerne '
       + 'tú istú výplň ako .pk-pill--dark — je to tá istá vrstva nad fotkou.',
   },
+  // ── PRIBUDLO 15. 9. 2026 ────────────────────────────────────────────────
+  // Matej: „potrebujeme tam panel bud priesvitný alebo liquid glass" (plocha správ,
+  // kde bubliny splývali s hieroglyfovou tapetou).
+  'SKLENENÁ DOSKA': {
+    recept: 'STAGE_CSS — .pk-stage',
+    polomer: PACK_R.card,
+    kedy: 'Plocha, na ktorej stojí OBSAH nad vlastnou tapetou appky — dnes telo '
+      + 'konverzácie. Tapetu nechá presvitať a len ju rozmaže, takže text nad ňou drží.',
+    lock: '⚠️ NIE JE TO ZÁVOJ: ten ZAKRÝVA to, čo je pod ním, a je to prekrytie — '
+      + 'doska je podklad obsahu. Ani `.pk-glass`, to je sklo pre TMAVÝ povrch a na '
+      + 'papyruse zmizne. Farbu nesie povrch (`--pk-stage` / `--pk-stage-edge`), '
+      + 'rozmery volajúci; tvar a rozostrenie tento recept.',
+  },
 } as const;
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -1144,6 +1157,31 @@ export const VEIL_CSS = `
 /* FOTO a DOŠTIČKA ležia VNÚTRI prvku, nie cez okno — preto absolute. */
 .pk-veil--photo{ position:absolute; inset:0; background:${PACK_VEIL.photo}; pointer-events:none; }
 .pk-veil--plate{ position:static; background:${PACK_VEIL.plate}; border-radius:${PACK_R.pill}px; }
+`;
+
+// ── SKLENENÁ DOSKA (2026-09-15, Matej) ──────────────────────────────────────
+// „potrebujeme tam panel bud priesvitný alebo liquid glass" — plocha, na ktorej stojí
+// OBSAH nad vlastnou tapetou appky. Vznikla v konverzácii, kde bubliny ležali priamo na
+// hieroglyfoch a splývali s nimi.
+//
+// ⚠️ NIE JE TO ZÁVOJ. Závoj (`.pk-veil`) ZAKRÝVA to, čo je pod ním, a je to prekrytie —
+//    doska tapetu nechá presvitať a len ju rozmaže, aby text nad ňou držal. Iný význam,
+//    iný recept; závoj svoje tri polohy nerozširuje.
+// ⚠️ NIE JE TO ANI `.pk-glass`. To je sklo pre TMAVÝ povrch (svetlé rgba, čierny tieň
+//    70 px) a na papyruse zmizne.
+//
+// FARBU NESIE POVRCH, TVAR TENTO RECEPT: `--pk-stage` / `--pk-stage-edge` si nastaví
+// povrch podľa svojho šatu (správy to robia v `msgTheme.ts` pre svetlý aj tmavý).
+// Bez nich platí papyrusové východisko. Rozmery (šírka, odsadenie) patria volajúcemu —
+// tá istá deliaca čiara ako pri `BackButton` a `mapDockShape`.
+export const STAGE_CSS = `
+.pk-stage{
+  background:var(--pk-stage, linear-gradient(180deg,rgba(251,245,230,0.58) 0%,rgba(242,229,197,0.42) 100%));
+  border:1px solid var(--pk-stage-edge, rgba(179,130,45,0.34));
+  border-radius:${PACK_R.card}px;
+  -webkit-backdrop-filter:blur(10px) saturate(115%);
+  backdrop-filter:blur(10px) saturate(115%);
+}
 `;
 
 export const MEDALLION_CSS = `
