@@ -1987,7 +1987,7 @@ const DRAW_BAR_CSS = `
 /* ── HLÁSENIE „NEPODARILO SA PRICHYTIŤ" (Matej 2026-08-26) ──────────────────────────────
    „daj inú farbu písma na tento text: Couldn't snap — using straight line, lebo nie je
     vidno."
-   Stálo v GOLD (${T.cardEdge}) — na papyrusovej doske PC je to zlatá na piesku, teda text,
+   Stálo v GOLD (#C99A3F) — na papyrusovej doske PC je to zlatá na piesku, teda text,
    ktorý tam síce je, ale nikto ho neprečíta. A je to jediná veta, ktorá hovorí, že trasa
    NIE JE taká, akú ju človek klikol.
    ⚠️ Nie je to chybová hláška — appka funguje, len kreslí priamku. Preto tlmená výstražná

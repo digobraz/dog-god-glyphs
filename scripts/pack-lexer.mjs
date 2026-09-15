@@ -86,6 +86,22 @@ export function stavy(src) {
     st[i] = TEMPLATE;
     if (c === '\\') { if (i + 1 < src.length) st[i + 1] = TEMPLATE; i += 2; continue; }
     if (c === '`') { mode = KOD; i++; continue; }
+    /* ⚠️ CSS KOMENTÁR VNÚTRI TEMPLATE LITERÁLU JE TIEŽ KOMENTÁR (doplnené 15. 9.
+     * 2026). Celý `/pack` píše CSS do template literálov, takže vysvetlivky ako
+     * „Nie je to nová farba: #FFFDF6 je papyrusová biela" ležia v `/* … *\/`
+     * VNÚTRI templatu. Bez tejto vetvy ich skener videl ako obyčajný CSS text
+     * a codemod ich prepísal na `${T.card}` — kód beží rovnako (template si
+     * CSS komentár nevšíma a hodnotu dosadí), ale veta stratí zmysel a spolu
+     * s ňou doklad o tom, prečo tá farba bola taká. Päť takých viet sa takto
+     * prepísalo v kole 2a a muselo sa vrátiť ručne.
+     * ⚠️ Značí sa BLOKOVY, nie TEMPLATE — vnútri sa teda nenahrádza NIČ, ani
+     * keby tam hodnota naozaj bola. Komentár nie je pravidlo. */
+    if (c === '/' && d === '*') {
+      st[i++] = BLOKOVY; st[i++] = BLOKOVY;
+      while (i < src.length && !(src[i] === '*' && src[i + 1] === '/')) st[i++] = BLOKOVY;
+      if (i < src.length) { st[i++] = BLOKOVY; st[i++] = BLOKOVY; }
+      continue;
+    }
     if (c === '$' && d === '{') { st[i + 1] = KOD; ramy.push(hlbka); hlbka = 0; mode = KOD; i += 2; continue; }
     i++;
   }

@@ -171,7 +171,7 @@ export const MAP_COACH_CSS = `
    (Triplist) vo výreze.
    ⚠️ Krytie je vysoké (0.90): pod tým je farebná OSM mapa a pri nižšom presvitá do textu. */
 .mcoach{position:fixed;inset:0;z-index:1500;}
-.mcoach-hole{position:fixed;border-radius:14px;pointer-events:none;box-shadow:0 0 0 9999px rgba(249,242,226,0.90),0 0 0 2px ${PALE.edge},0 0 22px rgba(201,154,63,0.45);animation:mcoach-ring 2.2s ease-in-out infinite;}
+.mcoach-hole{position:fixed;border-radius:14px;pointer-events:none;box-shadow:0 0 0 9999px rgba(249,242,226,0.90),0 0 0 2px ${PALE.edge},0 0 22px ${PACK_THEME.border};animation:mcoach-ring 2.2s ease-in-out infinite;}
 @keyframes mcoach-ring{
   0%,100%{box-shadow:0 0 0 9999px rgba(249,242,226,0.90),0 0 0 2px rgba(201,154,63,0.70),0 0 18px ${PACK_THEME.border};}
   50%{box-shadow:0 0 0 9999px rgba(249,242,226,0.90),0 0 0 3px ${PALE.edge},0 0 30px rgba(201,154,63,0.60);}

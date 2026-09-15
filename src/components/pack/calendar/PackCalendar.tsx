@@ -1875,13 +1875,25 @@ const CAL_CSS = `
    vyzerá to otrasne." Karty stáli na tokene tileBg, teda takmer na tom istom
    piesku ako papyrus pod nimi — trinásť obdĺžnikov bez hrany. Svetlejšia
    výplň ich zdvihne z podkladu, zlatý rám im dá tvar a tieň hĺbku.
-   Nie je to nová farba: ${T.card} je papyrusová biela, ktorú appka už
-   používa (.pf-field--flat je jej o odtieň tmavší súrodenec). */
-/* ⚠️ Výplň NIE JE z matrice (Matejova bledá z 13. 9.); rám, radius a tieň už áno. */
-.cal-rec{background:linear-gradient(160deg,${T.card},${T.card});
-  border:1px solid ${T.cardEdge};border-radius:${PACK_R.tile}px;padding:12px;
+   Nie je to nová farba: #FFFDF6 je papyrusová biela, ktorú appka už
+   používa (.pf-field--flat je jej o odtieň tmavší súrodenec).
+
+   ── A OD 15. 9. 2026 JE TO PODBLOK ────────────────────────────────────────
+   Výplň bola jediná vec na tejto karte MIMO matrice — ručne miešaný gradient,
+   kým rám, radius aj tieň už z matrice brala. Bol to jeden z troch otvorených
+   bodov locku pack-dizajn-system.md a Matej ho 15. 9. zavrel: karta ide do
+   PODBLOKU, teda PACK_BOX.subblock ako každá iná sekcia vnútri karty.
+
+   Prejaví sa to tak, že karty o odtieň stmavnú do piesku (panelGrad končí na
+   #F2E2BD, nie na papyrusovej bielej). Pôvodný dôvod bledej — „zdvihni ich
+   z podkladu" — tým nepadá: drží ho zlatý RÁM a TIEŇ, ktoré karty predtým
+   nemali vôbec. 13. 9. sa menili tri veci naraz a zásluha sa pripísala výplni.
+   ⚠️ Keby sa to malo vracať, nevracaj ručný gradient — vypýtaj si MENO do
+   PACK_BLOCKS. Blok bez mena je presne to, čo tento prevod odstraňuje. */
+.cal-rec{background:${PACK_BOX.subblock.background};
+  border:${PACK_BOX.subblock.border};border-radius:${PACK_BOX.subblock.borderRadius}px;padding:12px;
   flex:0 0 232px;scroll-snap-align:start;
-  box-shadow:${PACK_SHADOW.lift}}
+  box-shadow:${PACK_BOX.subblock.boxShadow}}
 .cal-rechead{display:flex;align-items:center;gap:8px;margin-bottom:4px}
 /* Kruh drží rozmer aj bez fotky — s iniciálou vnútri. Prázdny slot, ktorý
    zmizne, by posunul text a karty by mali každá inú výšku. */

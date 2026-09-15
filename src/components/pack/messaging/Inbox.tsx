@@ -78,7 +78,7 @@ export const INBOX_CSS = `
 .msg-row:last-child{margin-bottom:0;}
 .msg-row:hover{transform:translateY(-1px);box-shadow:var(--msg-block-hover);}
 .msg-row:focus-visible{outline:none;box-shadow:var(--msg-block-hover);}
-/* Avatar bez fotky = zlatá PLOCHA, teda brandová rampa okolo ${T.cardEdge} — NIE gradient .btn-gold
+/* Avatar bez fotky = zlatá PLOCHA, teda brandová rampa okolo #C99A3F — NIE gradient .btn-gold
    (#F5C73D->#E69E1A). Ten je locknutý pre TLAČIDLO, kde je malý a lesklý, takže sa číta ako
    svetlo; tá istá zmes na súvislej ploche je žltá a Matej si ju spája s AINUBISOM (lock 28. 8.).
    Rampa drží v oboch šatoch — je to identita psa, nie povrch stránky. */

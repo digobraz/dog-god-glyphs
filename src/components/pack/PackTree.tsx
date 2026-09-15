@@ -272,7 +272,7 @@ function PrimaryDog({ dog }: { dog: DogNode }) {
             background: T.bg,
             overflow: 'hidden',
             border: `2px solid ${T.accentGold}`,
-            boxShadow: `0 0 0 1px rgba(201, 154, 63, 0.45), 0 8px 24px ${PACK_THEME.hairline}`,
+            boxShadow: `0 0 0 1px ${T.border}, 0 8px 24px ${PACK_THEME.hairline}`,
           }}
         >
           {dog.cloudinary_main_url ? (

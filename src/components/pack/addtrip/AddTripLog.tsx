@@ -4507,7 +4507,7 @@ const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
      dôvod, prečo sa 26. 8. ráno siahlo po plnej farbe a večer sa to vrátilo späť. */
   /* ⚠️ MODRÁ TU DRŽÍ RÁM A INKOUST, NIE VÝPLŇ — a je to zámer locku, nie nedoladenosť.
      Nad piesok (#E8DCBB) sa akákoľvek TMAVÁ farba pri 20 % krytia zmieša na teplú šedú:
-     lapis #16307A dá (188,185,178), mapová modrá ${T.brandBlueLite} dá (191,193,192) — obe šedé.
+     lapis #16307A dá (188,185,178), mapová modrá #2E5FD0 dá (191,193,192) — obe šedé.
      Vyskúšané 27. 8., preto to netreba skúšať znova: hue sa nedá zachrániť odtieňom,
      len vysokým krytím, a plná farba je vyhradená hlavnému CTA (lock 26. 8.). */
   .atl-odyssey{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.20)}}

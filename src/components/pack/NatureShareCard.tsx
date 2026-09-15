@@ -24,7 +24,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { PACK_THEME } from '@/components/pack/packTheme';
 
-const GOLD = '#C99A3F';
+const GOLD = PACK_THEME.cardEdge;
 const CREAM = '#F7EFDD';
 const NAME_FONT_FAMILY = "'Cinzel Decorative', serif";
 

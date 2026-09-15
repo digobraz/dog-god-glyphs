@@ -412,7 +412,7 @@ export function FounderInvite({ dogName, packNumber, shareCardUrl }: FounderInvi
                   background: 'linear-gradient(to right, hsl(45 92% 62%), hsl(45 96% 52%))',
                   border: 'none',
                   borderRadius: 8,
-                  color: '#1F1A0E',
+                  color: PACK_THEME.ink,
                   width: 38,
                   height: 34,
                   cursor: link ? 'pointer' : 'default',
