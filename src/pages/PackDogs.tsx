@@ -63,6 +63,7 @@ import { dogLifeLine } from '@/lib/dogAge';
 import { countryISO2 } from '@/lib/countryGeo';
 import { supabase } from '@/integrations/supabase/client';
 import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
+import { getAccessibleDogIds } from '@/lib/dogRights';
 import { useT } from '@/i18n/LanguageContext';
 import { RightGate } from '@/components/pack/RightGate';
 
@@ -535,12 +536,16 @@ export default function PackDogs() {
       // zapnutom NOAUTH stál prázdny stav — `getUser()` cez ten flag nejde),
       // v produkcii prázdne pole.
       if (!uid) { if (alive) setDogs(DEV_NOAUTH ? (DEV_MOCK_DOGS as HubDog[]) : []); return; }
-      const { data } = await supabase
+      // B3c: zoznam ide z práv (`my_dog_rights()`), nie z vlastníctva. Majiteľovi
+      // vráti tú istú množinu; pri `null` (RPC zlyhala) ostáva dnešný filter.
+      const accessIds = await getAccessibleDogIds();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let dogsQuery = (supabase as any)
         .from('dogs')
         .select('id, dog_name, cloudinary_main_url, heroglyph_png_url, pack_number, country, life_status, death_date, birth_year, selections, created_at, breed')
-        .eq('user_id', uid)
-        .eq('payment_status', 'paid')
-        .order('created_at', { ascending: true });
+        .eq('payment_status', 'paid');
+      dogsQuery = accessIds ? dogsQuery.in('id', accessIds) : dogsQuery.eq('user_id', uid);
+      const { data } = await dogsQuery.order('created_at', { ascending: true });
       if (alive) setDogs((data as unknown as HubDog[]) ?? []);
     })();
     return () => { alive = false; };

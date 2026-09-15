@@ -20,6 +20,7 @@ import { PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS } from '@/components/pack
 import { QUIZ_BY_KEY, type QuizStep } from '@/components/pack/dogQuiz';
 import { appendDogEvents, readLatestForDogs, type DogEventInput, type LatestValue } from '@/lib/dogEvents';
 import { supabase } from '@/integrations/supabase/client';
+import { getAccessibleDogIds } from '@/lib/dogRights';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
@@ -84,12 +85,16 @@ export default function PackDogQuiz() {
       const { data: auth } = await supabase.auth.getUser();
       const uid = auth?.user?.id;
       if (!uid) { if (alive) setDogs([]); return; }
-      let q = supabase
+      // B3c: zoznam ide z práv (`my_dog_rights()`), nie z vlastníctva. Majiteľovi
+      // vráti tú istú množinu; pri `null` (RPC zlyhala) ostáva dnešný filter.
+      const accessIds = await getAccessibleDogIds();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let q = (supabase as any)
         .from('dogs')
         .select('id, dog_name, cloudinary_main_url')
-        .eq('user_id', uid)
         .eq('payment_status', 'paid')
         .order('created_at', { ascending: true });
+      q = accessIds ? q.in('id', accessIds) : q.eq('user_id', uid);
       if (onlyDogId) q = q.eq('id', onlyDogId);
       const { data } = await q;
       if (alive) setDogs((data as QuizDog[]) ?? []);

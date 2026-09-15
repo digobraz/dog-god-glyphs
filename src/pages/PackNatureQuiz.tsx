@@ -39,6 +39,7 @@ import { appendDogEvents, readLatestForDogs, type DogEventInput } from '@/lib/do
 import ainubisBadge from '@/assets/ainubis-badge.png';
 import { supabase } from '@/integrations/supabase/client';
 import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
+import { getAccessibleDogIds } from '@/lib/dogRights';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
@@ -1880,12 +1881,16 @@ export default function PackNatureQuiz() {
         }
         return;
       }
-      let q = supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let q = (supabase as any)
         .from('dogs')
         .select('id, dog_name, cloudinary_main_url, heroglyph_png_url')
-        .eq('user_id', uid)
         .eq('payment_status', 'paid')
         .order('created_at', { ascending: true });
+      // B3c: zoznam ide z práv (`my_dog_rights()`), nie z vlastníctva. Majiteľovi
+      // vráti tú istú množinu; pri `null` (RPC zlyhala) ostáva dnešný filter.
+      const accessIds = await getAccessibleDogIds();
+      q = accessIds ? q.in('id', accessIds) : q.eq('user_id', uid);
       if (onlyDogId) q = q.eq('id', onlyDogId);
       const { data } = await q;
       if (alive) setDogs((data as QuizDog[]) ?? []);

@@ -27,6 +27,7 @@ import {
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { RightGate } from '@/components/pack/RightGate';
 import { DEV_NOAUTH, DEV_MOCK_DOG_ROW } from '@/lib/devMockDogs';
+import { getAccessibleDogIds } from '@/lib/dogRights';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PALE } from '@/components/pack/navGoldSkin';
@@ -356,24 +357,30 @@ export default function PackDogDetail() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await (supabase as unknown as {
-        from: (t: string) => {
-          select: (cols: string) => {
-            eq: (col: string, val: string) => {
-              eq: (col: string, val: string) => {
-                maybeSingle: () => Promise<{ data: DogRow | null; error: { message: string } | null }>;
-              };
-            };
-          };
-        };
-      })
+      // ── B3c: ČÍTANIE detailu sa pýta PRÁV, zápisy nižšie NIE ──────────────
+      // ⚠️ Tento súbor má `.eq('user_id', …)` ŠTYRIKRÁT, ale len TOTO je čítanie.
+      // Zvyšné tri sú `update()` — stráže zápisu, a tie sú dnes JEDINÁ ochrana
+      // psa na serveri (serverové vynútenie práv patrí k B3b a zatiaľ nie je).
+      // Preto sa nedotýkajú: pawmate má vidieť, nie zapisovať.
+      //
+      // ⚠️ A prečo sa tu NEPOUŽIJE `.in('id', accessIds)` ako inde: tento dotaz
+      // ako JEDINÝ z ôsmich nefiltruje `payment_status`, takže dnes ukáže aj
+      // NEZAPLATENÉHO psa (na LIVE ich je 6). `my_dog_rights()` vracia len
+      // zaplatených ⇒ výmena „jedna za druhú" by tých šesť ľudí pripravila
+      // o detail vlastného psa. Právo teda vlastnícku podmienku iba ODOBERIE,
+      // keď k psovi prístup mám — nikdy ju nenahrádza.
+      const accessIds = await getAccessibleDogIds();
+      const viaRights = !!id && !!accessIds && accessIds.includes(id);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let dogQuery = (supabase as any)
         .from('dogs')
         .select(
           'id, user_id, dog_name, cloudinary_main_url, pdf_cert_url, pdf_vertical_url, pdf_horizontal_url, heroglyph_code, breed, country, birth_year, life_status, death_date, patron_svg, patron_svg2, selections, grid_message, created_at, stripe_session_id, pack_number, owner_name, weight_kg, health_status, allergies, conditions, medication, diet',
         )
-        .eq('id', id)
-        .eq('user_id', user.id)
-        .maybeSingle();
+        .eq('id', id);
+      if (!viaRights) dogQuery = dogQuery.eq('user_id', user.id);
+      const { data, error } = await dogQuery
+        .maybeSingle() as { data: DogRow | null; error: { message: string } | null };
 
       if (!mounted) return;
       if (error) {

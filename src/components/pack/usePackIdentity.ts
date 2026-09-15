@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { EDGE_BASE } from '@/lib/env';
 import { hydratePackStore } from '@/lib/packStore';
 import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
+import { getAccessibleDogIds } from '@/lib/dogRights';
 
 export interface PackDog {
   id: string;
@@ -120,17 +121,26 @@ export function usePackIdentity(): PackIdentity {
         // vnútri sama vypne a store beží lokálne.
         void hydratePackStore();
         try {
+          // B3c: zoznam ide z práv (`my_dog_rights()`), nie z vlastníctva. Majiteľovi
+          // vráti tú istú množinu; pri `null` (RPC zlyhala) ostáva dnešný filter.
+          const accessIds = DEV_NOAUTH ? null : await getAccessibleDogIds();
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { data: dogRows } = DEV_NOAUTH ? { data: null } : await (supabase as any)
+          let identityQuery = DEV_NOAUTH ? null : (supabase as any)
             .from('dogs')
             .select('id, dog_name, cloudinary_main_url, created_at')
-            .eq('user_id', s.user.id)
             // paid only — link_my_dogs also links abandoned checkout drafts by
             // email, so without this the header switcher lists a dog once per
             // attempt (BELGA showed 3×: 1 paid + 2 drafts). Pack.tsx already
             // filters the same way; keep the two in sync.
-            .eq('payment_status', 'paid')
-            .order('created_at', { ascending: true }) as { data: PackDog[] | null };
+            .eq('payment_status', 'paid');
+          if (identityQuery) {
+            identityQuery = accessIds
+              ? identityQuery.in('id', accessIds)
+              : identityQuery.eq('user_id', s.user.id);
+          }
+          const { data: dogRows } = identityQuery
+            ? await identityQuery.order('created_at', { ascending: true }) as { data: PackDog[] | null }
+            : { data: null };
           if (mounted && dogRows) setDogs(dogRows.map(d => ({
             id: d.id,
             dog_name: d.dog_name ?? null,

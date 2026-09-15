@@ -17,6 +17,7 @@ import { Gateways } from '@/components/pack/Gateways';
 import { useProfile } from '@/components/pack/profile/packProfile';
 import { DEV_FULL } from '@/lib/packFlags';
 import { DEV_NOAUTH, DEV_MOCK_DOGS, DEV_MOCK_USER } from '@/lib/devMockDogs';
+import { getAccessibleDogIds } from '@/lib/dogRights';
 import { EDGE_BASE } from '@/lib/env';
 
 const T = PACK_THEME;
@@ -168,22 +169,24 @@ export default function Pack() {
       // payment_status filter: abandoned-cart capture (2026-07-10) writes
       // 'draft' rows that share the buyer's user_id — without the filter the
       // pack shows the same dog twice (draft + paid duplicate avatars).
-      const { data } = await (supabase as unknown as {
-        from: (t: string) => {
-          select: (cols: string) => {
-            eq: (col: string, val: string) => {
-              eq: (col: string, val: string) => {
-                order: (col: string, opts: { ascending: boolean }) => Promise<{ data: DogRow[] | null }>;
-              };
-            };
-          };
-        };
-      })
+      // ── B3c: ZDROJOM ZOZNAMU SÚ PRÁVA, NIE VLASTNÍCTVO ────────────────────
+      // Majiteľovi vráti `getAccessibleDogIds()` tú istú množinu ako doterajšie
+      // `.eq('user_id', …)` — `my_dog_rights()` má v prvej vetve tú istú podmienku
+      // vrátane `paid`. Pri `null` (RPC zlyhala) sa vedome vraciame k dnešnému
+      // filtru: prázdna homepage je horšia než homepage bez pawmata.
+      //
+      // ⚠️ Pôvodný inline cast tu predpisoval presnú reťaz `.eq().eq().order()`,
+      // takže vetvenie na `.in()` ním neprejde. Nahradený `any` + cast výsledku,
+      // rovnako ako v `usePackUser.ts`.
+      const accessIds = await getAccessibleDogIds();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let dogsQuery = (supabase as any)
         .from('dogs')
         .select('id, user_id, dog_name, owner_name, cloudinary_main_url, cloudinary_extras, heroglyph_code, heroglyph_png_url, share_card_url, breed, country, grid_message, stripe_session_id, pack_number, created_at, selections, birth_year, life_status, death_date, health_status')
-        .eq('user_id', u.id)
-        .eq('payment_status', 'paid')
-        .order('created_at', { ascending: false });
+        .eq('payment_status', 'paid');
+      dogsQuery = accessIds ? dogsQuery.in('id', accessIds) : dogsQuery.eq('user_id', u.id);
+      const { data } = await dogsQuery
+        .order('created_at', { ascending: false }) as { data: DogRow[] | null };
 
       if (!mounted) return;
       // pack_number is stored directly on dogs row (seal_pack_number at payment time).
