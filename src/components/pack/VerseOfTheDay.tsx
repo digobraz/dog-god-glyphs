@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { FONT_TITLE, FONT_UI, PACK_THEME, usePaperRoute } from './packTheme';
 import { useLocation } from 'react-router-dom';
 
-const GOLD = '#C99A3F';
+const GOLD = PACK_THEME.cardEdge;
 
 // ── INKOUST PODĽA PODKLADU (2026-09-08) ──────────────────────────────────────
 // Verš stojí na DVOCH povrchoch: na homepage `/pack` (od 8. 9. papyrus) a v

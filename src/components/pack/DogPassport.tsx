@@ -77,7 +77,7 @@ const PASS_CSS = `
   --pass-lbl:${T.onDarkDim}; --pass-val:${T.onDark}; --pass-faint:rgba(245,240,228,0.34); }
 .pass-block--dark .pass-btitle{ color:rgba(245,240,228,0.92); }
 .pass-block--dark .pass-brule{ opacity:.55; }
-/* Červená chýbajúceho poľa musí na čiernej zosvetliť — #B25640 na #050505 je pod
+/* Červená chýbajúceho poľa musí na čiernej zosvetliť — ${T.alertRed} na ${T.pageBg} je pod
    čitateľnou hranicou. Rovnaký odtieň, len vyššia svetlosť. */
 .pass-block--dark .pass-missing{ color:#D9705C; }
 .pass-block--dark .pass-missing--optional{ color:rgba(245,240,228,0.34); }
@@ -89,9 +89,9 @@ const PASS_CSS = `
 .pass-block--dark .pass-noteadd:hover{ color:rgba(245,240,228,0.88); }
 .pass-bhead{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
 .pass-btitle{ display:flex; align-items:center; gap:9px; font-family:'Cinzel',serif; font-weight:700;
-  font-size:16.5px; letter-spacing:.12em; text-transform:uppercase; color:#2a1608; margin:0; }
+  font-size:16.5px; letter-spacing:.12em; text-transform:uppercase; color:${T.inkStrong}; margin:0; }
 .pass-bnum{ font-family:'JetBrains Mono',ui-monospace,monospace; font-size:10px; font-weight:700;
-  color:#C99A3F; opacity:.75; }
+  color:${T.cardEdge}; opacity:.75; }
 /* deliaca čiara vnútri bloku = predpísaný token T.rule, nie vlastný gradient.
    POZOR: tento blok je JS template literal — spätný apostrof v komentári zhodí build. */
 .pass-brule{ height:2px; margin:10px 0 12px; background:${T.rule}; opacity:.75; }
@@ -107,7 +107,7 @@ const PASS_CSS = `
   border-bottom:1px dotted rgba(201,154,63,0.75);
   transition:border-color .15s ease, opacity .15s ease;
 }
-.pass-toresult:hover{ border-bottom-color:#C99A3F; opacity:.85; }
+.pass-toresult:hover{ border-bottom-color:${T.cardEdge}; opacity:.85; }
 .pass-missing{ font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:600;
   letter-spacing:.06em; color:${T.alertRed}; text-decoration:none; }
 /* zámerne prázdne pole (zvláštna úloha) — pomlčka bez poplachu */
@@ -134,11 +134,11 @@ const PASS_CSS = `
 /* poznámka vlastnými slovami — to, čo z údajov robí psa */
 .pass-note{ margin-top:12px; padding-top:11px; border-top:1px dashed ${T.hairline}; }
 .pass-notetext{ font-family:'Space Grotesk',sans-serif; font-size:12.5px; line-height:1.55;
-  color:#7a5a2a; font-style:italic; white-space:pre-wrap; margin:0; }
+  color:${T.inkWarm}; font-style:italic; white-space:pre-wrap; margin:0; }
 .pass-noteadd{ font-family:'Space Grotesk',sans-serif; font-size:10.5px; letter-spacing:.1em;
   text-transform:uppercase; color:rgba(31,26,14,.42); background:transparent; border:0; padding:0;
   cursor:pointer; }
-.pass-noteadd:hover{ color:#2a1608; }
+.pass-noteadd:hover{ color:${T.inkStrong}; }
 `;
 
 /**

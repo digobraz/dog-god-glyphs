@@ -229,8 +229,8 @@ const HUB_CSS = `
    — progres sa presunul do pilulky v lište. */
 .dogblk-photo{
   width:132px; height:132px; border-radius:50%; object-fit:cover; display:block;
-  border:2px solid #C99A3F;
-  box-shadow:0 0 0 1px rgba(201,154,63,0.45), 0 8px 24px rgba(201,154,63,0.24);
+  border:2px solid ${T.cardEdge};
+  box-shadow:0 0 0 1px ${T.border}, 0 8px 24px rgba(201,154,63,0.24);
 }
 /* Poradové číslo NA KRUHU — recept 1:1 z HeroCard.tsx (~riadky 598–624): locknutá
    pilulka dní, navyše svetlý hairline, lebo leží na fotke a bez neho splynie s tmavým
@@ -295,14 +295,14 @@ const HUB_CSS = `
    useFitName počíta dostupnú šírku riadka. */
 .dogblk-rail::before{
   content:''; position:absolute; left:0; top:0; bottom:0; width:2px;
-  background:linear-gradient(180deg, transparent 0%, #C99A3F 28%, #C99A3F 72%, transparent 100%);
+  background:linear-gradient(180deg, transparent 0%, ${T.cardEdge} 28%, ${T.cardEdge} 72%, transparent 100%);
   border-radius:2px; pointer-events:none;
 }
 .dogblk-poster{ opacity:.88; transition:transform .2s ease, opacity .2s ease; }
 .hub-hover:hover .dogblk-poster{ transform:translateX(3px); opacity:1; }
 .dogblk-railcap{
   font-family:${FONT_TITLE}; font-weight:800; font-size:10px; letter-spacing:.16em;
-  text-transform:uppercase; color:#2a1608; white-space:nowrap;
+  text-transform:uppercase; color:${T.inkStrong}; white-space:nowrap;
 }
 /* Progres = pilulka NAD posterom (Matej 12.8.). Percento je ÚDAJ, takže Space Grotesk
    600 (strop načítanej váhy), nie Cinzel.
@@ -310,8 +310,8 @@ const HUB_CSS = `
    červená"). Dôvod je konkrétny: v ten istý deň prešli DNI na lapis, takže modré
    percento stálo pár pixelov od modrej pilulky a blok mal dve modré, ktoré spolu
    nesúvisia. Zostali DVA STAVY a nesú presne brandový význam:
-     < 100 %   červená  #B25640  = chýba
-     100 %     zelená   #3D7A4E  = splnené
+     < 100 %   červená  ${T.alertRed}  = chýba
+     100 %     zelená   ${T.growGreen}  = splnené
    Zanikol tým samostatný stav 0 % — bol to tretí odtieň pre to isté („nie je hotovo")
    a koľko presne chýba, hovorí číslo v pilulke, nie farba.
    ⚠️ min-width je nutnosť, nie kozmetika: bez neho je „24%" o polovicu užšie než
@@ -319,12 +319,12 @@ const HUB_CSS = `
 .dogblk-fill{
   min-width:78px; text-align:center;
   padding:4px 8px; border-radius:999px; white-space:nowrap;
-  background:#B25640; color:#FDECE7;
+  background:${T.alertRed}; color:#FDECE7;
   font-family:${FONT_UI}; font-weight:600;
   font-size:10px; letter-spacing:.08em; text-transform:uppercase;
   box-shadow:0 4px 12px rgba(178,86,64,0.4);
 }
-.dogblk-fill.is-done{ background:#3D7A4E; color:#EAF7ED; box-shadow:0 4px 12px rgba(61,122,78,0.4); }
+.dogblk-fill.is-done{ background:${T.growGreen}; color:#EAF7ED; box-shadow:0 4px 12px rgba(61,122,78,0.4); }
 
 /* Heroglyf: zdrojový PNG má ČIERNE ťahy. Na tmavom podklade sa musel prefarbovať na
    zlato — na PAPYRUSE sa filter ZRUŠIL a glyf ostáva čierny (Matej 12.8.: „čierny
@@ -1405,7 +1405,7 @@ function ActionTile({
           // istý údaj v tej istej farbe na dvoch miestach, nie nová farba.
           // Nehotový stav ostáva tichý zlatý tint: „ešte nie" nie je chyba, takže červená
           // by tu klamala — tá patrí percentu, ktoré hovorí o CELOM doklade.
-          background: filledPill ? '#3D7A4E' : 'rgba(201,154,63,0.16)',
+          background: filledPill ? T.growGreen : 'rgba(201,154,63,0.16)',
           border: `1px solid ${filledPill ? '#2F5F3D' : 'rgba(179,130,45,0.5)'}`,
           color: filledPill ? '#EAF7ED' : T.inkWarm,
         }}

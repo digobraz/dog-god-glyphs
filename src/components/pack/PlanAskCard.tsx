@@ -191,7 +191,7 @@ export function PlanAskCard() {
     padding: '9px 10px',
     borderRadius: 8,
     border: '1px solid rgba(179,130,45,0.55)',
-    background: '#FBF5E6',
+    background: T.card,
     color: T.inkStrong,
     fontFamily: FONT_UI,
     fontSize: 13,

@@ -758,7 +758,7 @@ export function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, pack
                 {'0'.repeat(Math.max(0, 7 - String(packTotal).length))}
               </span>
               {/* Mobile: 13px, desktop: 17px */}
-              <span className="text-[13px] sm:text-[17px]" style={{ fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, color: '#C99A3F', letterSpacing: '0.01em' }}>
+              <span className="text-[13px] sm:text-[17px]" style={{ fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, color: T.cardEdge, letterSpacing: '0.01em' }}>
                 {String(packTotal)}
               </span>
             </span>

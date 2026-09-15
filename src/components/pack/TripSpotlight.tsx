@@ -223,7 +223,7 @@ const CSS = `
 .ts-rank-num{
   display:inline-flex; align-items:center; padding:3px 11px 4px; border-radius:999px;
   background:linear-gradient(135deg,var(--tier-a,#F5C73D),var(--tier-b,#E69E1A));
-  color:var(--tier-ink,#1F1A0E);
+  color:var(--tier-ink,${T.ink});
   font-family:${FONT_UI}; font-weight:600; font-size:14px; line-height:1;
   box-shadow:0 2px 8px var(--tier-glow,rgba(245,199,61,0.28));
   transition:background .5s, color .5s, box-shadow .5s;

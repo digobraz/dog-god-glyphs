@@ -562,7 +562,7 @@ function DogTile({
               fontSize: 14,
               letterSpacing: '0.06em',
               textTransform: 'uppercase',
-              color: '#FBF5E6',
+              color: T.card,
             }}
           >
             {dog.name}
@@ -575,7 +575,7 @@ function DogTile({
         </span>
         <ChevronDown
           className="h-4 w-4 shrink-0"
-          style={{ color: '#FBF5E6', opacity: 0.8, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+          style={{ color: T.card, opacity: 0.8, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
         />
       </span>
     </button>
@@ -857,9 +857,9 @@ function BioTextarea({ value, onSave }: { value: string; onSave: (v: string) => 
           width: '100%',
           // Svetlejšia než zlatý gradient — rovnaké pravidlo ako bio v bloku 1
           // (Matej 2026-07-26: „texta area daj biele"). Od 13. 8. papyrusový
-          // `#FBF5E6` namiesto čistej bielej, viď `WordLimitTextarea`
+          // `${T.card}` namiesto čistej bielej, viď `WordLimitTextarea`
           // v `PackProfile.tsx`. `.pf-field` okraj/focus glow ostávajú.
-          background: '#FBF5E6',
+          background: T.card,
           borderRadius: 10,
           padding: '8px 12px 20px',
           minHeight: 48,

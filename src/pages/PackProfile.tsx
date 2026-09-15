@@ -70,7 +70,7 @@ const PILGRIM_CSS = `
 .pf-pilgrim-num{
   display:inline-flex; align-items:center; padding:3px 11px 4px; border-radius:999px;
   background:linear-gradient(135deg,var(--tier-a,#F5C73D),var(--tier-b,#E69E1A));
-  color:var(--tier-ink,#1F1A0E);
+  color:var(--tier-ink,${T.ink});
   font-family:${FONT_UI}; font-weight:600; font-size:14px; line-height:1;
   box-shadow:0 2px 8px var(--tier-glow,rgba(245,199,61,0.28));
 }
@@ -1243,7 +1243,7 @@ function WordLimitTextarea({
   align?: 'left' | 'center';
   /** Matej 2026-07-26: „texta area daj biele" — textarea má byť SVETLEJŠIA než
    *  zlatý gradient ostatných `.pf-field` prvkov. Od 13. 8. je to najsvetlejší
-   *  papyrusový tón `#FBF5E6`, nie čistá `#FFFFFF`: biela bola jediný taký prvok
+   *  papyrusový tón `${T.card}`, nie čistá `#FFFFFF`: biela bola jediný taký prvok
    *  na celej stránke a porušovala lock bledého bloku (audit A2). Zámer ostáva,
    *  mení sa odtieň. Inline `background` prebije CSS triedu, takže `.pf-field`
    *  border/shadow/focus glow ostávajú. Ten istý tón nesie bio psa
@@ -1359,7 +1359,7 @@ function IdentityVisibilityEye({
         className="pf-hit inline-flex items-center gap-1"
         style={{
           background: anyHidden ? 'rgba(201,154,63,0.10)' : T.bg,
-          border: `1px solid ${anyHidden ? 'rgba(201,154,63,0.45)' : T.hairline}`,
+          border: `1px solid ${anyHidden ? '${T.border}' : T.hairline}`,
           borderRadius: 999,
           padding: '4px 8px',
           color: anyHidden ? T.accentGold : T.inkFaint,

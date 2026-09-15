@@ -47,18 +47,18 @@ const QUIZ_CSS = `
 .qz-ghost{
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
   padding:12px 22px; background:transparent;
-  border:1.5px solid rgba(201,154,63,0.45); border-radius:8px; color:#7a5a2a;
+  border:1.5px solid ${T.border}; border-radius:8px; color:${T.inkWarm};
   font-family:'Cinzel',serif; font-size:11px; font-weight:700;
   letter-spacing:.12em; text-transform:uppercase; cursor:pointer;
 }
-.qz-ghost:hover{ border-color:#C99A3F; color:#2a1608; }
+.qz-ghost:hover{ border-color:${T.cardEdge}; color:${T.inkStrong}; }
 .qz-pill{ font-family:'Space Grotesk',sans-serif; font-size:11.5px; font-weight:500;
   padding:7px 13px; border-radius:999px; cursor:pointer; }
 /* STROP VÝBERU (2026-09-02) — pilulka nad strop nezhasína priesvitnosťou: papyrus je svetlý
    a krytie na ňom takmer nič neurobí (to isté zistenie ako pri prezliekaní na bledé).
    Stlmí sa preto INKOUST a rám, výplň ostáva. */
 .qz-pill.is-capped{ cursor:not-allowed; color:rgba(42,22,8,.34); border-color:rgba(179,130,45,.22); }
-.qz-cap-note{ font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:#7a5a2a; margin:2px 0 0; }
+.qz-cap-note{ font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:${T.inkWarm}; margin:2px 0 0; }
 `;
 
 export default function PackDogQuiz() {

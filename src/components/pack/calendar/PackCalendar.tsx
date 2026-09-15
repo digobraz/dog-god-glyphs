@@ -1549,7 +1549,7 @@ const CAL_CSS = `
    splnom vyzerá ako deň bez zápisu. */
 .cal-cell .moonF,.cal-cell .moonN{position:absolute;top:-1px;right:-1px;width:40%;height:40%;border-radius:50%;
   border:1px solid rgba(107,90,52,.75);box-shadow:0 0 0 1px rgba(247,237,214,.85)}
-.cal-cell .moonF{background:#FBF5E6}
+.cal-cell .moonF{background:${T.card}}
 .cal-cell .moonN{background:rgba(36,26,9,.62)}
 .cal-cell.today{outline:2px solid ${LAPIS.edge};outline-offset:1px}
 .cal-rail{grid-column:3;grid-row:2/14;display:grid;grid-template-columns:1fr 1fr 20px;grid-template-rows:repeat(12,1fr);gap:3px;align-self:stretch}
@@ -1878,7 +1878,7 @@ const CAL_CSS = `
    Nie je to nová farba: #FFFDF6 je papyrusová biela, ktorú appka už
    používa (.pf-field--flat je jej o odtieň tmavší súrodenec). */
 /* ⚠️ Výplň NIE JE z matrice (Matejova bledá z 13. 9.); rám, radius a tieň už áno. */
-.cal-rec{background:linear-gradient(160deg,#FFFDF6,#FBF5E6);
+.cal-rec{background:linear-gradient(160deg,#FFFDF6,${T.card});
   border:1px solid ${T.cardEdge};border-radius:${PACK_R.tile}px;padding:12px;
   flex:0 0 232px;scroll-snap-align:start;
   box-shadow:${PACK_SHADOW.lift}}

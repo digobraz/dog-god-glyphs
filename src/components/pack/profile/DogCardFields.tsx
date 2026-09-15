@@ -233,7 +233,7 @@ export function NumberRow({
  * Farbu nesie pohlavie, výplň nesie stav. Neznáme pohlavie → brand zlatá.
  * Nevybraná pill ostáva neutrálna, aby bola vidieť odpoveď na prvý pohľad.
  */
-export const NEUTER_MALE = '#2E5FD0';   // Egyptian blue (PACK_THEME.partHek)
+export const NEUTER_MALE = T.brandBlueLite;   // Egyptian blue (PACK_THEME.partHek)
 export const NEUTER_FEMALE = '#C4577E'; // tlmená ružová — ladí s papyrusom
 
 export function NeuterPills({
@@ -460,7 +460,7 @@ export function OpenQuestion({
   const t = useT();
   const [draft, setDraft] = useState('');
   const chipBg = tone === 'danger' ? T.alertRed : T.accentGold;
-  const chipInk = tone === 'danger' ? '#FFFBF2' : '#1F1A0E';
+  const chipInk = tone === 'danger' ? '#FFFBF2' : T.ink;
 
   const label = (v: string) => {
     if (!suggestions.includes(v)) return v; // vlastný text — zobraz doslova

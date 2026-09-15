@@ -327,8 +327,8 @@ function MilestoneSwiper({
 
       {/* Rámik — tmavý modro-čierno-zlatý `--brand-gradient` (ako blok ROZŠÍR SVORKU),
           kompaktný; celý swipovateľný.
-          ⚠️ NIE fialová — `--brand-gradient` je od 2026-06-15 `#1034A6` (egyptská modrá)
-          → `#0a0805` → `#C99A3F`. Komentáre, ktoré tu hovorili „fialovo-zlatá", boli
+          ⚠️ NIE fialová — `--brand-gradient` je od 2026-06-15 `${T.brandBlue}` (egyptská modrá)
+          → `#0a0805` → `${T.cardEdge}`. Komentáre, ktoré tu hovorili „fialovo-zlatá", boli
           zdedené z pôvodnej palety a zavádzali. */}
       <div
         onPointerDown={onDown}

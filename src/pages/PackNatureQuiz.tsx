@@ -71,7 +71,7 @@ interface QuizDog {
 const NQ_CSS = `
 /* ── CTA — ZLATÚ URČUJE PODKLAD, NIE VKUS ────────────────────────────────────
    Pravidlo je v index.css od 14. 7. 2026 aj s Matejovým OK:
-     LIGHT/papyrus → --cta-gradient      (medová #C99A3F→#A07423) + --cta-shadow-grounded
+     LIGHT/papyrus → --cta-gradient      (medová ${T.cardEdge}→#A07423) + --cta-shadow-grounded
      DARK/čierne   → --cta-gradient-dark (#F5C73D→#E69E1A)        + --cta-shadow-glow
    Matej 18. 8.: "zlatu myslim taku ako mame aj v heroglyf flowe - zlatá tmavá, táto
    zlatá je pouzivana na tmavom pozadí." Je to teda potvrdenie existujúceho pravidla,
@@ -105,13 +105,13 @@ const NQ_CSS = `
   border:1px solid rgba(250,244,236,0.30);
   box-shadow:var(--cta-shadow-glow);
 }
-/* Ghost na čiernom: teplý hnedý ink "#7a5a2a" je inkoust NA PAPYRUS a na čiernej ho
+/* Ghost na čiernom: teplý hnedý ink "${T.inkWarm}" je inkoust NA PAPYRUS a na čiernej ho
    nevidno. Rovnaká pasca ako pri pätičke s attribution — na tmavých vrstvách sa berú
    onDark odtiene, nie ink*. */
 .nq-ghost.is-ondark{
-  border-color:rgba(201,154,63,0.55); color:rgba(245,240,228,0.86);
+  border-color:rgba(201,154,63,0.55); color:${T.onDark};
 }
-.nq-ghost.is-ondark:hover{ border-color:#C99A3F; color:#F5C73D; }
+.nq-ghost.is-ondark:hover{ border-color:${T.cardEdge}; color:#F5C73D; }
 /* Hlavné CTA úvodu — vzor hub-gold.is-big z PackDogs.tsx. Meria sa na šírku
    textového stĺpca, nie na dĺžku slova START: tlačidlo, ktoré má stránku otvoriť,
    nesmie byť menšie než dlaždice nad ním (Matej 14.8.: „urob vačšie širšie").
@@ -123,12 +123,12 @@ const NQ_CSS = `
 .nq-ghost{
   display:inline-flex; align-items:center; justify-content:center; gap:7px;
   padding:11px 20px; background:transparent;
-  border:1.5px solid rgba(201,154,63,0.45); border-radius:8px; color:#7a5a2a;
+  border:1.5px solid ${T.border}; border-radius:8px; color:${T.inkWarm};
   font-family:'Cinzel',serif; font-size:10.5px; font-weight:700;
   letter-spacing:.12em; text-transform:uppercase; cursor:pointer;
 }
-.nq-ghost:hover{ border-color:#C99A3F; color:#2a1608; }
-.nq-ghost:disabled{ opacity:.32; cursor:default; border-color:rgba(201,154,63,0.45); color:#7a5a2a; }
+.nq-ghost:hover{ border-color:${T.cardEdge}; color:${T.inkStrong}; }
+.nq-ghost:disabled{ opacity:.32; cursor:default; border-color:${T.border}; color:${T.inkWarm}; }
 /* ── POSÚVA SA SAMO, VRÁTIŤ SA DÁ VŽDY ────────────────────────────────────────
    Matej 20.8.: „po výbere sa ide automaticky na ďalšiu stránku ale bude sa dať
    vrátiť." Ruší to pravidlo z 18.8. („označiť a potvrdiť ďalej") — vtedy bol
@@ -197,7 +197,7 @@ const NQ_CSS = `
   color:#4a3410;
 }
 .is-some > .nq-mark{
-  background:#F8E9C2; border-color:#C99A3F; color:#3d2a08;
+  background:#F8E9C2; border-color:${T.cardEdge}; color:#3d2a08;
 }
 
 /* OZNAČENIE ODPOVEDE (Matej 14.8.: „odpovede by mali mať aj označenie").
@@ -209,7 +209,7 @@ const NQ_CSS = `
   display:grid; place-items:center;
   background:rgba(255,255,255,0.55); border:1.5px solid rgba(179,130,45,0.45);
   font-family:'Cinzel',serif; font-weight:700; font-size:11px; letter-spacing:.02em;
-  color:#7a5a2a; transition:background .18s, border-color .18s, color .18s;
+  color:${T.inkWarm}; transition:background .18s, border-color .18s, color .18s;
 }
 .is-on > .nq-mark{
   background:#241a06; border-color:#241a06; color:#F5C73D;
@@ -249,7 +249,7 @@ const NQ_CSS = `
 
 /* ── PROGRES ──────────────────────────────────────────────────────────────────
    MODRÝ, NIE ZLATÝ (Matej 18.8.: „progresbar musí byť výraznejší a krajší, použi
-   modrú farbu z brandu"). Egyptská modrá #1034A6 je kánonická sekundárna brandu
+   modrú farbu z brandu"). Egyptská modrá ${T.brandBlue} je kánonická sekundárna brandu
    ("--brand-blue" v index.css, token T.brandBlue).
 
    Prečo je to aj vecne správne, nielen podľa vkusu: na tejto obrazovke zlatá už
@@ -266,11 +266,11 @@ const NQ_CSS = `
 }
 .nq-proglbl{
   font-family:'Cinzel',serif; font-weight:700; font-size:13px;
-  letter-spacing:.14em; text-transform:uppercase; color:#2a1608;
+  letter-spacing:.14em; text-transform:uppercase; color:${T.inkStrong};
 }
 .nq-prognum{
   font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:12px;
-  color:#1034A6; white-space:nowrap; font-variant-numeric:tabular-nums;
+  color:${T.brandBlue}; white-space:nowrap; font-variant-numeric:tabular-nums;
 }
 .nq-progbar{
   height:14px; border-radius:999px; overflow:hidden; position:relative;
@@ -279,7 +279,7 @@ const NQ_CSS = `
 }
 .nq-progbar__on{
   height:100%; border-radius:999px;
-  background:linear-gradient(90deg,#2E5FD0 0%,#1034A6 100%);
+  background:linear-gradient(90deg,${T.brandBlueLite} 0%,${T.brandBlue} 100%);
   box-shadow:0 0 16px rgba(46,95,208,0.55), inset 0 1px 0 rgba(255,255,255,0.38),
              inset 0 -2px 4px rgba(6,20,60,0.35);
   transition:width .45s cubic-bezier(.4,0,.2,1);
@@ -317,19 +317,19 @@ const NQ_CSS = `
 .nq-dog{
   width:var(--nq-dog,54px); height:var(--nq-dog,54px);
   border-radius:999px; cursor:pointer; padding:0; overflow:hidden; flex:0 0 auto;
-  border:2px solid rgba(201,154,63,0.35); background:#EDDCBD;
+  border:2px solid rgba(201,154,63,0.35); background:${T.bg};
   filter:grayscale(1); opacity:.45;
   transition:opacity .18s, filter .18s, border-color .18s, box-shadow .18s;
 }
 .nq-dog img{ width:100%; height:100%; object-fit:cover; display:block; }
 .nq-dog:hover{ opacity:.8; filter:grayscale(.35); }
 .nq-dog.is-on{
-  opacity:1; filter:none; border-color:#C99A3F; box-shadow:0 0 0 3px rgba(201,154,63,0.22);
+  opacity:1; filter:none; border-color:${T.cardEdge}; box-shadow:0 0 0 3px rgba(201,154,63,0.22);
 }
 .nq-dogfb{
   display:grid; place-items:center; width:100%; height:100%;
   font-family:'Cinzel',serif; font-weight:700; font-size:calc(var(--nq-dog,54px) * 0.34);
-  color:#7a5a2a;
+  color:${T.inkWarm};
 }
 /* Zoznam odpovedí. Trieda, nie inline mriežka — mobil musí vedieť zmeniť rozostup. */
 .nq-opts{ display:grid; gap:9px; }
@@ -360,7 +360,7 @@ const NQ_CSS = `
 .nq-introart{ position:relative; min-height:100%; }
 /* PRECHOD ROBÍ MASKA OBRAZU, NIE FAREBNÝ PREKRYV (Matej 14.8.: „aby nebola vidno
    hranica farebneho prechodu"). Prekryv musel uhádnuť odtieň papyrusu v mieste hrany,
-   lenže T.cardGrad je 160° gradient #FBF5E6 → #EAD6A6 — trafil sa teda v jedinom bode
+   lenže T.cardGrad je 160° gradient ${T.card} → #EAD6A6 — trafil sa teda v jedinom bode
    a všade inde bolo vidno švík. Maskou sa obraz stráca do PRIEHĽADNA a spod neho
    presvitá samotná karta, nech má v tom mieste akúkoľvek farbu. */
 .nq-introart img{
@@ -396,8 +396,8 @@ const NQ_CSS = `
      nechytí. Do komentárov v CSS ich nepíš. */
   display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
   text-align:center; gap:11px; padding:18px 14px;
-  background:linear-gradient(135deg,#FBF5E6 0%,#F2E2BD 100%);
-  border:1.5px solid #C99A3F; border-radius:14px;
+  background:linear-gradient(135deg,${T.card} 0%,#F2E2BD 100%);
+  border:1.5px solid ${T.cardEdge}; border-radius:14px;
   box-shadow:0 8px 28px -18px rgba(0,0,0,0.75), 0 0 0 3px rgba(201,154,63,0.13),
              inset 0 1px 0 rgba(255,255,255,0.6);
   transition:transform .25s ease, box-shadow .25s ease;
@@ -416,10 +416,10 @@ const NQ_CSS = `
 }
 .nq-axistitle{
   font-family:'Cinzel',serif; font-weight:700; text-transform:uppercase;
-  font-size:14px; letter-spacing:.14em; line-height:1.2; color:#2a1608;
+  font-size:14px; letter-spacing:.14em; line-height:1.2; color:${T.inkStrong};
 }
 .nq-axissub{
-  font-family:'Space Grotesk',sans-serif; font-size:12.5px; line-height:1.5; color:#7a5a2a;
+  font-family:'Space Grotesk',sans-serif; font-size:12.5px; line-height:1.5; color:${T.inkWarm};
 }
 
 /* ── POTVRDENIE PRI ODCHODE ──────────────────────────────────────────────────
@@ -431,8 +431,8 @@ const NQ_CSS = `
 }
 .nq-confirm{
   width:100%; max-width:420px; padding:22px 20px;
-  background:linear-gradient(135deg,#FBF5E6 0%,#F2E2BD 100%);
-  border:1.5px solid #C99A3F; border-radius:14px;
+  background:linear-gradient(135deg,${T.card} 0%,#F2E2BD 100%);
+  border:1.5px solid ${T.cardEdge}; border-radius:14px;
   box-shadow:0 8px 28px rgba(0,0,0,0.45), 0 0 0 3px rgba(201,154,63,0.15);
 }
 /* Zostať je hlavná voľba, preto zlatá a prvá. Odísť je stratové — ostáva ghost.
@@ -450,9 +450,9 @@ const NQ_CSS = `
 .nq-scorerow{ display:grid; grid-template-columns:96px 1fr 40px; align-items:center; gap:10px; }
 .nq-scorename{
   font-family:'Space Grotesk',sans-serif; font-size:11.5px; line-height:1.25;
-  color:#7a5a2a; text-align:right;
+  color:${T.inkWarm}; text-align:right;
 }
-.nq-scorename.is-top{ color:#2a1608; font-weight:600; }
+.nq-scorename.is-top{ color:${T.inkStrong}; font-weight:600; }
 .nq-scoretrack{
   position:relative; display:block; height:9px; border-radius:999px; overflow:hidden;
   background:rgba(201,154,63,0.14); box-shadow:inset 0 1px 2px rgba(60,38,8,0.16);
@@ -468,13 +468,13 @@ const NQ_CSS = `
   box-shadow:0 0 14px rgba(230,158,26,0.5);
 }
 .nq-scorepct{
-  font-family:'Space Grotesk',sans-serif; font-size:11px; color:#7a5a2a; text-align:right;
+  font-family:'Space Grotesk',sans-serif; font-size:11px; color:${T.inkWarm}; text-align:right;
   font-variant-numeric:tabular-nums;
 }
-.nq-scorepct.is-top{ color:#2a1608; font-weight:600; }
+.nq-scorepct.is-top{ color:${T.inkStrong}; font-weight:600; }
 .nq-scorenote{
   font-family:'Space Grotesk',sans-serif; font-size:10.5px; line-height:1.5;
-  color:rgba(31,26,14,0.42); margin:10px 0 0;
+  color:${T.inkFaint}; margin:10px 0 0;
 }
 @media (max-width:560px){
   .nq-scorerow{ grid-template-columns:82px 1fr 34px; gap:8px; }
@@ -499,12 +499,12 @@ const NQ_CSS = `
 }
 .nq-badgelbl{
   font-family:'Space Grotesk',sans-serif; font-size:9.5px; font-weight:500;
-  letter-spacing:.24em; text-transform:uppercase; color:#C99A3F; margin-top:8px;
+  letter-spacing:.24em; text-transform:uppercase; color:${T.cardEdge}; margin-top:8px;
 }
 .nq-badgename{
   font-family:'Cinzel',serif; font-weight:700; text-transform:uppercase;
   font-size:clamp(13px,3.6vw,16px); line-height:1.2; letter-spacing:.03em;
-  color:#2a1608; margin-top:3px;
+  color:${T.inkStrong}; margin-top:3px;
 }
 /* Zvláštne úlohy: VŠETKY V RADE, menšie (Matej 20.8.). Pes ich môže mať 0–4 —
    rad sa zalomí, počet sa nikde neskrýva a poradie sedí s popismi pod ním. */
@@ -644,7 +644,7 @@ const NQ_CSS = `
 .nqd-slot.spec .nqd-art img{ width:88px; }
 .nqd-lbl{
   margin-top:auto; font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:8.5px;
-  letter-spacing:.2em; text-transform:uppercase; color:#7a5a2a;
+  letter-spacing:.2em; text-transform:uppercase; color:${T.inkWarm};
 }
 .nqd-nm{
   font-family:'Cinzel',serif; font-weight:900; font-size:15px; letter-spacing:.02em;
@@ -661,7 +661,7 @@ const NQ_CSS = `
   font-family:'Cinzel',serif; font-weight:900; font-size:27px; letter-spacing:.07em;
   text-transform:uppercase; color:#1a0900; margin:5px 0 0; line-height:1.1;
 }
-.nqd-head .sub{ font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:#7a5a2a; margin-top:6px; }
+.nqd-head .sub{ font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:${T.inkWarm}; margin-top:6px; }
 .nqd-wing{ display:flex; align-items:center; justify-content:center; gap:8px; margin-top:9px; }
 .nqd-wing i{ width:64px; height:1px; background:linear-gradient(90deg,transparent,#8a5c10); }
 .nqd-wing i:last-child{ background:linear-gradient(90deg,#8a5c10,transparent); }
@@ -713,13 +713,13 @@ const NQ_CSS = `
   font-family:'Cinzel',serif; font-weight:900; font-size:16px; letter-spacing:.1em;
   text-transform:uppercase; color:#1a0900; margin-top:8px;
 }
-.nqd-cnpin{ font-family:'Space Grotesk',sans-serif; font-size:11px; color:#7a5a2a; font-style:italic; }
+.nqd-cnpin{ font-family:'Space Grotesk',sans-serif; font-size:11px; color:${T.inkWarm}; font-style:italic; }
 /* ⚠️ Päť PEVNÝCH stĺpcov. auto-fit zalomí 4+1 a Colour ostane sama ako nedorobok. */
 .nqd-facts{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:14px; }
 .nqd-fact{ border:1px solid rgba(122,80,16,0.28); border-radius:8px; padding:8px 10px; background:rgba(255,255,255,.22); }
 .nqd-fact .k{
   display:block; font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:8.5px;
-  letter-spacing:.2em; text-transform:uppercase; color:#7a5a2a;
+  letter-spacing:.2em; text-transform:uppercase; color:${T.inkWarm};
 }
 .nqd-fact .v{ display:block; font-family:'Cinzel',serif; font-weight:700; font-size:12.5px; color:#1a0900; margin-top:2px; }
 
@@ -752,7 +752,7 @@ const NQ_CSS = `
 /* ── V · ROZPAD (pentagram) ───────────────────────────────────────────── */
 .nqd-radars{ display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:center; }
 .nqd-radar{ width:100%; max-width:340px; margin-inline:auto; display:block; }
-.nqd-note{ font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:#7a5a2a; margin:14px 0 0; text-align:center; }
+.nqd-note{ font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:${T.inkWarm}; margin:14px 0 0; text-align:center; }
 .nqd-foot{ display:flex; align-items:flex-end; gap:16px; }
 .nqd-foot p{ flex:1; font-family:'Space Grotesk',sans-serif; font-size:10.5px; color:#5a3a0a; line-height:1.55; margin:0; }
 .nqd-seal{ width:98px; opacity:.9; flex:0 0 auto; }
@@ -1639,7 +1639,7 @@ function ResultDoc({ dog, r, b, tx }: {
           <div className="nqd-panel quiet">
             <p className="nqd-eyebrow">{tx('pack.nature.result.watch', 'Worth keeping an eye on')}</p>
             <p className="dim"><Bold s={tx(`${el.i18n}.watch`, el.watchEN)} /></p>
-            <p className="dim" style={{ fontSize: 10.5, color: '#7a5a2a', marginTop: 9 }}>
+            <p className="dim" style={{ fontSize: 10.5, color: T.inkWarm, marginTop: 9 }}>
               {tx('pack.nature.result.notDiagnosis',
                 'This is a conversation to have with your vet — not a diagnosis.')}
             </p>
@@ -1678,7 +1678,7 @@ function ResultDoc({ dog, r, b, tx }: {
         <div className="nqd-panel quiet" style={{ marginTop: 14 }}>
           <p className="nqd-eyebrow">{tx('pack.nature.doc.myth', 'The usual verdict')}</p>
           <p style={{
-            fontFamily: FONT_UI, fontSize: 14, fontStyle: 'italic', color: '#7a5a2a', margin: '0 0 8px',
+            fontFamily: FONT_UI, fontSize: 14, fontStyle: 'italic', color: T.inkWarm, margin: '0 0 8px',
           }}>„{tx(`${role.i18n}.myth`, role.mythEN)}"</p>
           <p className="body" style={{ margin: 0 }}><Bold s={tx(`${role.i18n}.mythAnswer`, role.mythAnswerEN)} /></p>
         </div>

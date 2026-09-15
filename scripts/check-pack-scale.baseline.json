@@ -794,7 +794,7 @@
     "font": 10,
     "zavoj": 0,
     "progres": 1,
-    "ram": 2,
+    "ram": 1,
     "tien": 1,
     "pismenka": 3,
     "odsadenie": 10
@@ -804,7 +804,7 @@
     "font": 0,
     "zavoj": 2,
     "progres": 0,
-    "ram": 12,
+    "ram": 11,
     "tien": 11,
     "pismenka": 20,
     "odsadenie": 0
@@ -834,7 +834,7 @@
     "font": 64,
     "zavoj": 2,
     "progres": 1,
-    "ram": 23,
+    "ram": 20,
     "tien": 16,
     "pismenka": 26,
     "odsadenie": 50
