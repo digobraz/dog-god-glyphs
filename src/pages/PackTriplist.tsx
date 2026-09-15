@@ -1020,6 +1020,12 @@ export default function PackTriplist() {
       })()}
 
       <PackBottomNav />
+      {/* Táto stránka nemountuje <PackLayout> (má vlastnú hlavičku aj nav), takže jej chýbal
+          hostiteľ overlayu — a emitOpenThread() z PartyMemberCard nemal kto odchytiť.
+          Dôsledok pred 15. 9. 2026: klik na „Message" v schránke žiadostí zavolal start_dm
+          (200, konverzácia v DB naozaj vznikla), ale neotvorilo sa NIČ — tlačidlo len bliklo.
+          Ten istý dôvod aj to isté riešenie ako v PackMap.tsx. */}
+      <MessagingOverlayHost />
     </div>
   );
 }

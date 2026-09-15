@@ -23,7 +23,7 @@ import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { placeholderFor } from '@/lib/tripPlaceholder';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
-import { PackBottomNav, HieroglyphBg } from '@/components/pack/PackLayout';
+import { PackBottomNav, HieroglyphBg, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -1873,6 +1873,12 @@ export default function PackTripArticle() {
       )}
 
       <PackBottomNav />
+      {/* Karta výletu nemountuje <PackLayout>, takže jej chýbal hostiteľ overlayu a
+          emitOpenThread() z PartyMemberCard nemal poslucháča: klik na „Message" pri členovi
+          partie zavolal start_dm (200, konverzácia vznikla), ale neotvorilo sa nič.
+          Bolelo to najviac práve tu — kód označuje túto routu za primárnu MOBILNÚ cestu
+          k partii výletu. Ten istý dôvod aj riešenie ako v PackMap.tsx. */}
+      <MessagingOverlayHost />
     </div>
   );
 }
