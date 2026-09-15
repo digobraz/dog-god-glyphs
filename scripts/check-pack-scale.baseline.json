@@ -34,7 +34,7 @@
     "font": 16,
     "zavoj": 1,
     "progres": 0,
-    "ram": 2,
+    "ram": 0,
     "tien": 4,
     "pismenka": 4,
     "odsadenie": 17
@@ -74,7 +74,7 @@
     "font": 7,
     "zavoj": 1,
     "progres": 0,
-    "ram": 1,
+    "ram": 0,
     "tien": 1,
     "pismenka": 0,
     "odsadenie": 0
@@ -104,7 +104,7 @@
     "font": 9,
     "zavoj": 0,
     "progres": 0,
-    "ram": 7,
+    "ram": 5,
     "tien": 4,
     "pismenka": 0,
     "odsadenie": 0
@@ -124,7 +124,7 @@
     "font": 4,
     "zavoj": 0,
     "progres": 0,
-    "ram": 2,
+    "ram": 1,
     "tien": 1,
     "pismenka": 0,
     "odsadenie": 0
@@ -134,7 +134,7 @@
     "font": 11,
     "zavoj": 0,
     "progres": 0,
-    "ram": 5,
+    "ram": 3,
     "tien": 5,
     "pismenka": 0,
     "odsadenie": 1
@@ -144,7 +144,7 @@
     "font": 4,
     "zavoj": 0,
     "progres": 0,
-    "ram": 3,
+    "ram": 2,
     "tien": 4,
     "pismenka": 2,
     "odsadenie": 5
@@ -154,8 +154,8 @@
     "font": 4,
     "zavoj": 0,
     "progres": 0,
-    "ram": 1,
-    "tien": 2,
+    "ram": 0,
+    "tien": 0,
     "pismenka": 1,
     "odsadenie": 8
   },
@@ -164,7 +164,7 @@
     "font": 3,
     "zavoj": 1,
     "progres": 0,
-    "ram": 1,
+    "ram": 0,
     "tien": 1,
     "pismenka": 2,
     "odsadenie": 6
@@ -194,7 +194,7 @@
     "font": 3,
     "zavoj": 0,
     "progres": 0,
-    "ram": 1,
+    "ram": 0,
     "tien": 0,
     "pismenka": 1,
     "odsadenie": 3
@@ -204,7 +204,7 @@
     "font": 2,
     "zavoj": 0,
     "progres": 1,
-    "ram": 1,
+    "ram": 0,
     "tien": 2,
     "pismenka": 2,
     "odsadenie": 2
@@ -214,7 +214,7 @@
     "font": 9,
     "zavoj": 3,
     "progres": 1,
-    "ram": 7,
+    "ram": 4,
     "tien": 4,
     "pismenka": 0,
     "odsadenie": 1
@@ -224,7 +224,7 @@
     "font": 31,
     "zavoj": 0,
     "progres": 0,
-    "ram": 6,
+    "ram": 5,
     "tien": 7,
     "pismenka": 15,
     "odsadenie": 35
@@ -254,8 +254,8 @@
     "font": 14,
     "zavoj": 0,
     "progres": 0,
-    "ram": 6,
-    "tien": 7,
+    "ram": 4,
+    "tien": 3,
     "pismenka": 10,
     "odsadenie": 17
   },
@@ -294,7 +294,7 @@
     "font": 2,
     "zavoj": 0,
     "progres": 0,
-    "ram": 2,
+    "ram": 0,
     "tien": 0,
     "pismenka": 0,
     "odsadenie": 1
@@ -304,7 +304,7 @@
     "font": 3,
     "zavoj": 0,
     "progres": 0,
-    "ram": 3,
+    "ram": 2,
     "tien": 3,
     "pismenka": 1,
     "odsadenie": 4
@@ -364,7 +364,7 @@
     "font": 13,
     "zavoj": 1,
     "progres": 0,
-    "ram": 4,
+    "ram": 3,
     "tien": 7,
     "pismenka": 0,
     "odsadenie": 0
@@ -404,8 +404,8 @@
     "font": 64,
     "zavoj": 5,
     "progres": 0,
-    "ram": 13,
-    "tien": 15,
+    "ram": 8,
+    "tien": 9,
     "pismenka": 24,
     "odsadenie": 79
   },
@@ -414,8 +414,8 @@
     "font": 9,
     "zavoj": 0,
     "progres": 0,
-    "ram": 2,
-    "tien": 2,
+    "ram": 1,
+    "tien": 0,
     "pismenka": 4,
     "odsadenie": 12
   },
@@ -434,8 +434,8 @@
     "font": 13,
     "zavoj": 2,
     "progres": 0,
-    "ram": 3,
-    "tien": 13,
+    "ram": 2,
+    "tien": 11,
     "pismenka": 5,
     "odsadenie": 27
   },
@@ -444,7 +444,7 @@
     "font": 13,
     "zavoj": 4,
     "progres": 0,
-    "ram": 1,
+    "ram": 0,
     "tien": 2,
     "pismenka": 4,
     "odsadenie": 7
@@ -455,7 +455,7 @@
     "zavoj": 4,
     "progres": 0,
     "ram": 1,
-    "tien": 3,
+    "tien": 2,
     "pismenka": 0,
     "odsadenie": 5
   },
@@ -484,8 +484,8 @@
     "font": 7,
     "zavoj": 0,
     "progres": 0,
-    "ram": 1,
-    "tien": 4,
+    "ram": 0,
+    "tien": 2,
     "pismenka": 3,
     "odsadenie": 8
   },
@@ -514,7 +514,7 @@
     "font": 4,
     "zavoj": 1,
     "progres": 1,
-    "ram": 2,
+    "ram": 1,
     "tien": 1,
     "pismenka": 1,
     "odsadenie": 6
@@ -544,7 +544,7 @@
     "font": 3,
     "zavoj": 0,
     "progres": 0,
-    "ram": 1,
+    "ram": 0,
     "tien": 0,
     "pismenka": 2,
     "odsadenie": 3
@@ -564,8 +564,8 @@
     "font": 14,
     "zavoj": 4,
     "progres": 0,
-    "ram": 7,
-    "tien": 13,
+    "ram": 5,
+    "tien": 12,
     "pismenka": 5,
     "odsadenie": 26
   },
@@ -584,7 +584,7 @@
     "font": 1,
     "zavoj": 0,
     "progres": 0,
-    "ram": 1,
+    "ram": 0,
     "tien": 1,
     "pismenka": 0,
     "odsadenie": 2
@@ -624,8 +624,8 @@
     "font": 6,
     "zavoj": 0,
     "progres": 0,
-    "ram": 2,
-    "tien": 1,
+    "ram": 0,
+    "tien": 0,
     "pismenka": 2,
     "odsadenie": 9
   },
@@ -634,7 +634,7 @@
     "font": 14,
     "zavoj": 0,
     "progres": 0,
-    "ram": 2,
+    "ram": 0,
     "tien": 2,
     "pismenka": 7,
     "odsadenie": 16
@@ -654,8 +654,8 @@
     "font": 61,
     "zavoj": 9,
     "progres": 3,
-    "ram": 15,
-    "tien": 15,
+    "ram": 10,
+    "tien": 10,
     "pismenka": 24,
     "odsadenie": 84
   },
@@ -714,8 +714,8 @@
     "font": 16,
     "zavoj": 2,
     "progres": 0,
-    "ram": 4,
-    "tien": 1,
+    "ram": 1,
+    "tien": 0,
     "pismenka": 6,
     "odsadenie": 18
   },
@@ -724,7 +724,7 @@
     "font": 5,
     "zavoj": 1,
     "progres": 0,
-    "ram": 2,
+    "ram": 0,
     "tien": 0,
     "pismenka": 2,
     "odsadenie": 2
@@ -734,7 +734,7 @@
     "font": 7,
     "zavoj": 4,
     "progres": 0,
-    "ram": 1,
+    "ram": 0,
     "tien": 1,
     "pismenka": 2,
     "odsadenie": 7
@@ -764,7 +764,7 @@
     "font": 4,
     "zavoj": 0,
     "progres": 0,
-    "ram": 2,
+    "ram": 1,
     "tien": 0,
     "pismenka": 2,
     "odsadenie": 4
@@ -784,7 +784,7 @@
     "font": 63,
     "zavoj": 1,
     "progres": 1,
-    "ram": 12,
+    "ram": 10,
     "tien": 15,
     "pismenka": 0,
     "odsadenie": 7
@@ -794,7 +794,7 @@
     "font": 10,
     "zavoj": 0,
     "progres": 1,
-    "ram": 1,
+    "ram": 0,
     "tien": 1,
     "pismenka": 0,
     "odsadenie": 0
@@ -804,7 +804,7 @@
     "font": 0,
     "zavoj": 2,
     "progres": 0,
-    "ram": 11,
+    "ram": 9,
     "tien": 11,
     "pismenka": 0,
     "odsadenie": 0
@@ -834,8 +834,8 @@
     "font": 64,
     "zavoj": 2,
     "progres": 1,
-    "ram": 20,
-    "tien": 16,
+    "ram": 15,
+    "tien": 15,
     "pismenka": 0,
     "odsadenie": 0
   },
@@ -855,7 +855,7 @@
     "zavoj": 4,
     "progres": 0,
     "ram": 5,
-    "tien": 4,
+    "tien": 3,
     "pismenka": 8,
     "odsadenie": 18
   },
@@ -864,8 +864,8 @@
     "font": 25,
     "zavoj": 2,
     "progres": 0,
-    "ram": 6,
-    "tien": 10,
+    "ram": 5,
+    "tien": 9,
     "pismenka": 19,
     "odsadenie": 40
   }
