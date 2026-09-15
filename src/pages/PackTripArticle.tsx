@@ -64,6 +64,7 @@ import {
 } from '@/components/pack/mapnotes/AddMapNote';
 import { useLongPressPoint, useMapClickPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS } from '@/components/pack/mapnotes/useLongPressPoint';
 import { GROUP_KINDS, defaultRadius, type NoteGroup, type NoteKind, type TickDisease } from '@/components/pack/mapnotes/mapNotesData';
+import { notesForTripMap, canAddParkingAt, parkingForTrail } from '@/components/pack/mapnotes/mapNotesGeo';
 import { MapNotesLayer, MAP_NOTES_CSS } from '@/components/pack/mapnotes/MapNotesLayer';
 import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
 import { intlLocale } from '@/i18n/bcp47';
@@ -599,6 +600,13 @@ export default function PackTripArticle() {
   const trail = useMemo(
     () => (baseTrail && edits ? { ...baseTrail, ...edits } : baseTrail),
     [baseTrail, edits],
+  );
+  // JEDNO PARKOVISKO NA VÝLET (Matej 2026-09-15) — keď ho tento výlet už má, dlaždica
+  // PARKOVISKO v palete zhasne aj s dôvodom. Vyhodnocuje sa nad TÝM ISTÝM zoznamom, z ktorého
+  // sa kreslí zoznam pod článkom, takže sa obe polovice nemôžu rozísť.
+  const parkingBlocked = useMemo(
+    () => (trail && parkingForTrail(mapNotes.notes, trail) ? { parking: t('pack.mapNotes.parking.already') } : undefined),
+    [trail, mapNotes.notes, t],
   );
   // Starý (premenovaný) slug → redirect na nový, nech zdieľané odkazy nehádžu „trip not found".
   const renamedTo = !trail && slug ? RENAMED_TRIP_IDS[slug] : undefined;
@@ -1660,7 +1668,10 @@ export default function PackTripArticle() {
               <PoiLayer />
               {/* Hlasovanie a mazanie tu vedome NIE SÚ — zoznam pod článkom je miesto,
                   kde sa odkazy spravujú. Lajk zanikol 22. 8. na celom povrchu. */}
-              <MapNotesLayer notes={mapNotes.notes} locale={dateLocale} />
+              {/* ⚠️ `notesForTripMap`, nie holé `mapNotes.notes` — pravidlo „výlet má jedno
+                  parkovisko" platí aj na značky, inak by nad zoznamom s jedným 🅿️ stáli
+                  na štarte dve na sebe. */}
+              <MapNotesLayer notes={notesForTripMap(mapNotes.notes, trail)} locale={dateLocale} />
               {/* Rozpracovaný zápis. Patrí DOVNÚTRA MapContainer (na rozdiel od panela) —
                   viď hlavičku AddMapNote.tsx. */}
               {noteSpot && !noteDraft && <NoteSpotPin lat={noteSpot.lat} lon={noteSpot.lon} />}
@@ -1837,12 +1848,19 @@ export default function PackTripArticle() {
              celá a lišta „ukáž miesto" stojí hore pri AInubisovi, nie nad mapou. */
           onPick={(g) => { setNotePick(false); setNotePlacing(g); }}
           onCancel={() => setNotePick(false)}
+          /* Miesto ešte nie je vybrané, ale výlet áno — a pravidlo je o výlete. */
+          blocked={parkingBlocked}
         />
       )}
       {noteSpot && !noteDraft && (
         <NoteQuickPalette
           onPick={(g) => placeNote(g, noteSpot.lat, noteSpot.lon)}
           onCancel={() => setNoteSpot(null)}
+          /* Tu už miesto vybrané je: rozhoduje výlet, ku ktorému by sa parkovisko priplo —
+             ten nemusí byť ten otvorený (bod smie padnúť bližšie k susednej trase). */
+          blocked={canAddParkingAt(noteSpot.lat, noteSpot.lon, mapNotes.notes, allTrails)
+            ? undefined
+            : { parking: t('pack.mapNotes.parking.already') }}
         />
       )}
       {notePlacing && !noteDraft && (

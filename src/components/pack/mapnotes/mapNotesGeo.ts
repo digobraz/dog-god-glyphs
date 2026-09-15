@@ -75,6 +75,52 @@ export function noteBelongsToTrail(note: MapNote, trail: HeroTrail): boolean {
 }
 
 /**
+ * ── VÝLET MÁ NAJVIAC JEDNO PARKOVISKO (Matej 2026-09-15) ────────────────────
+ * „dal by som podmienku že na výlet = 1x parkovisko a nikto nemôže doplniť
+ * k výletu druhé."
+ *
+ * Dovtedy ich článok ukázal toľko, koľko ich našla geometria — na zaruby-1 tri
+ * naraz (vlastné z datasetu, cudzie od výletu, ktorý štartuje pri tom istom
+ * kostole, a členský zápis). Tri nerozlíšiteľné riadky 🅿️ nie sú ponuka, je to
+ * hádanka: človek nevie, ktoré z nich mu otvorí „Vyraziť na miesto".
+ *
+ * Poradie výberu — prvé, čo existuje:
+ *   1. VLASTNÉ parkovisko výletu (`trail.parking` ⇒ `park:<slug>`). Je to
+ *      Matejov výber v `trip-audit` a to isté miesto, kam vezie `navTarget()`,
+ *      takže zoznam a tlačidlo nesmú hovoriť inak.
+ *   2. Keď vlastné nemá (19 výletov k 15. 9. 2026): NAJBLIŽŠIE parkovisko
+ *      v prahu — členské aj z cudzieho výletu. Pôvodný zámer „parkovisko pri
+ *      štarte slúži všetkým výletom odtiaľ" ostáva v platnosti, len sa z neho
+ *      vyberie jedno namiesto všetkých.
+ */
+export function parkingForTrail(notes: MapNote[], trail: HeroTrail): MapNote | null {
+  const own = notes.find((n) => n.id === `park:${trail.id}`);
+  if (own) return own;
+  const path = trail.path ?? [];
+  if (!path.length) return null;
+  let best: MapNote | null = null;
+  let bestD = PARKING_RADIUS_M;
+  for (const n of notes) {
+    if (n.kind !== 'parking') continue;
+    const d = distToEnds(n.lat, n.lon, path);
+    if (d <= bestD) { bestD = d; best = n; }
+  }
+  return best;
+}
+
+/**
+ * Smie sem pribudnúť parkovisko? Nie, keď by sa priplo k výletu, ktorý už jedno má.
+ * Mimo dosahu každého výletu („poznámka k random miestu") sa nebráni ničomu —
+ * pravidlo je o výlete, nie o mape.
+ */
+export function canAddParkingAt(lat: number, lon: number, notes: MapNote[], trails: HeroTrail[]): boolean {
+  const id = nearestTrailId(lat, lon, 'parking', trails);
+  if (!id) return true;
+  const trail = trails.find((t) => t.id === id);
+  return !trail || !parkingForTrail(notes, trail);
+}
+
+/**
  * Zápisy patriace k výletu, zoradené na čítanie v článku:
  * parkovisko → výstraha → zvyšok, a v rámci skupiny najnovšie hore.
  * Zošednuté („už neplatí") padajú na koniec svojej skupiny — nemiznú, len
@@ -85,14 +131,32 @@ export function notesForTrail(notes: MapNote[], trail: HeroTrail): MapNote[] {
   // každý nový podtyp upozornenia (pribudli `ticks`) by ticho vypadol na koniec
   // zoznamu za komentáre — teda presne to najdôležitejšie by kleslo najnižšie.
   const rank: Record<NoteGroup, number> = { parking: 0, warning: 1, comment: 2 };
+  // ⚠️ PARKOVISKO PRECHÁDZA CEZ `parkingForTrail()`, NIE CEZ PRAH. Prah povie,
+  // ktoré sú v dosahu (býva ich viac), pravidlo povie, ktoré JEDNO tam patrí.
+  const park = parkingForTrail(notes, trail);
   return notes
-    .filter((n) => noteBelongsToTrail(n, trail))
+    .filter((n) => (n.kind === 'parking' ? n.id === park?.id : noteBelongsToTrail(n, trail)))
     .sort((a, b) => {
       if (a.isStale !== b.isStale) return a.isStale ? 1 : -1;
       const r = rank[groupOf(a.kind)] - rank[groupOf(b.kind)];
       if (r !== 0) return r;
       return b.createdAt.localeCompare(a.createdAt);
     });
+}
+
+/**
+ * Zápisy pre NÁHĽAD MAPY V ČLÁNKU. Mapa ukazuje aj okolie, takže sa neoreže na
+ * trasu — zahodí sa z nej len to, čo pravidlo „jedno parkovisko na výlet"
+ * vylúčilo zo zoznamu pod ňou. Inak by na štarte stáli dve 🅿️ na sebe (presne
+ * to Matej 15. 9. odfotil) a zoznam by hovoril niečo iné než značka nad ním.
+ * Vzdialené parkoviská ostávajú — tie patria iným výletom a mapa je aj o okolí.
+ */
+export function notesForTripMap(notes: MapNote[], trail: HeroTrail): MapNote[] {
+  const park = parkingForTrail(notes, trail);
+  return notes.filter((n) => {
+    if (n.kind !== 'parking' || n.id === park?.id) return true;
+    return !noteBelongsToTrail(n, trail);   // mimo dosahu ⇒ patrí inam, nechaj ho
+  });
 }
 
 /**

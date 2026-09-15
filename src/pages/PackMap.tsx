@@ -137,7 +137,7 @@ import { EVENT_RIM, TRIP_TARGET_EMOJI, eventEmoji, FONT_EMOJI } from '@/componen
 import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
 import { useLongPressPoint, useMapClickPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS } from '@/components/pack/mapnotes/useLongPressPoint';
 import { MapNoteCursor, MapPlaceCursor, MAP_NOTE_CURSOR_CSS } from '@/components/pack/mapnotes/MapNoteCursor';
-import { nearestTrailId } from '@/components/pack/mapnotes/mapNotesGeo';
+import { nearestTrailId, canAddParkingAt } from '@/components/pack/mapnotes/mapNotesGeo';
 import { GROUP_KINDS, defaultRadius, type NoteGroup, type NoteKind, type TickDisease } from '@/components/pack/mapnotes/mapNotesData';
 import { AddTripLog } from '@/components/pack/addtrip/AddTripLog';
 import { TRAVEL_EMOJI } from '@/components/pack/addtrip/addTripModel';
@@ -7119,6 +7119,12 @@ export default function PackMap() {
           onPick={(g) => placeNote(g, noteSpot.lat, noteSpot.lon)}
           onPickExtra={(x) => startFromPoint(x, noteSpot.lat, noteSpot.lon)}
           onCancel={() => setNoteSpot(null)}
+          /* JEDNO PARKOVISKO NA VÝLET (Matej 2026-09-15). Rozhoduje výlet, ku ktorému by sa
+             bod pripol (`nearestTrailId`) — na holej mape ho človek nevidí, preto dlaždica
+             nezmizne, len zhasne a povie dôvod. Bod mimo dosahu každej trasy sa neblokuje. */
+          blocked={canAddParkingAt(noteSpot.lat, noteSpot.lon, mapNotes.notes, allTrails)
+            ? undefined
+            : { parking: t('pack.mapNotes.parking.already') }}
         />
       )}
       {/* ⚠️ NIE POČAS SPRIEVODCU (2026-08-31). Nápoveda o odkazoch svieti podľa priblíženia

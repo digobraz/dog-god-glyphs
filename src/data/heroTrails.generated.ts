@@ -1963,8 +1963,8 @@ export const HERO_TRAILS: HeroTrail[] = [
       ]
     ],
     "parking": {
-      "lat": 48.50179,
-      "lon": 17.43757
+      "lat": 48.50964,
+      "lon": 17.43241
     }
   },
   {
@@ -30131,8 +30131,8 @@ export const HERO_TRAILS: HeroTrail[] = [
       ]
     ],
     "parking": {
-      "lat": 48.5473,
-      "lon": 17.59675
+      "lat": 48.55144,
+      "lon": 17.592923
     }
   },
   {

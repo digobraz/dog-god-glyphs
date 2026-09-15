@@ -374,7 +374,13 @@ ${MAP_SKIN !== 'pale' ? '' : `
 // RÝCHLA CESTA — paleta priamo pri bode, kam človek podržal prst.
 // Poradie je tu obrátené (miesto → typ), lebo gesto začalo na mieste.
 // ─────────────────────────────────────────────────────────────────────────────
-export function NoteQuickPalette({ onPick, onPickExtra, onCancel }: { onPick: (g: NoteGroup) => void; onPickExtra?: (x: PaletteExtra) => void; onCancel: () => void }) {
+export function NoteQuickPalette({ onPick, onPickExtra, onCancel, blocked }: {
+  onPick: (g: NoteGroup) => void;
+  onPickExtra?: (x: PaletteExtra) => void;
+  onCancel: () => void;
+  /** zhasnuté skupiny + dôvod — viď `blocked` v NotePalette (jedno parkovisko na výlet) */
+  blocked?: Partial<Record<NoteGroup, string>>;
+}) {
   const t = useT();
   return (
     <div className="mnq-wrap" role="dialog" aria-modal="true">
@@ -391,7 +397,7 @@ export function NoteQuickPalette({ onPick, onPickExtra, onCancel }: { onPick: (g
           <h3 className="mnq-title">{t(onPickExtra ? 'pack.mapNotes.quick.titleAny' : 'pack.mapNotes.quick.title')}</h3>
           <button type="button" className="mna-close mnq-close" onClick={onCancel} aria-label={t('pack.mapNotes.add.close')}>×</button>
         </div>
-        <NotePalette variant="strip" onPick={onPick} extras={onPickExtra ? ['trip', 'event'] : undefined} onPickExtra={onPickExtra} />
+        <NotePalette variant="strip" onPick={onPick} extras={onPickExtra ? ['trip', 'event'] : undefined} onPickExtra={onPickExtra} blocked={blocked} />
       </div>
     </div>
   );

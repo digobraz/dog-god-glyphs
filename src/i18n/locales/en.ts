@@ -3341,6 +3341,7 @@ export const en = {
   // dekorácia ani tooltip: bez nej sa druh `wild` nesmie vykresliť.
   'pack.sleep.wildWarning': "This is not an official campsite. Wild camping is banned in national parks — the responsibility is yours.",
   'pack.map.layer.sleep': "Sleeping spots",
+  'pack.mapNotes.parking.already': "This trip already has a parking spot",
   'pack.mapNotes.parking.free': "Free",
   'pack.mapNotes.parking.paid': "Paid",
   'pack.mapNotes.parking.question': "Does it cost anything?",

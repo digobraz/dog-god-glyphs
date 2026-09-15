@@ -104,9 +104,18 @@ export type NotePaletteProps = {
    */
   extras?: PaletteExtra[];
   onPickExtra?: (extra: PaletteExtra) => void;
+  /**
+   * Skupiny, ktoré sa na TOMTO mieste ponúknuť nedajú (Matej 2026-09-15: „na výlet =
+   * 1x parkovisko a nikto nemôže doplniť k výletu druhé").
+   *
+   * ⚠️ Dlaždica sa NESKRÝVA, len zhasne a povie dôvod. Zmiznutá možnosť vyzerá ako
+   * porucha appky — človek, ktorý parkovisko označiť chcel, by hľadal, kam sa podelo.
+   * Takto vidí, že tento výlet ho už má.
+   */
+  blocked?: Partial<Record<NoteGroup, string>>;
 };
 
-export function NotePalette({ onPick, variant = 'blocks', extras, onPickExtra }: NotePaletteProps) {
+export function NotePalette({ onPick, variant = 'blocks', extras, onPickExtra, blocked }: NotePaletteProps) {
   const t = useT();
   return (
     <div className={`np-wrap np-wrap--${variant}`}>
@@ -119,13 +128,23 @@ export function NotePalette({ onPick, variant = 'blocks', extras, onPickExtra }:
           {variant === 'blocks' && <span className="np-text">{t(`pack.mapNotes.palette.extra.${x}.text`)}</span>}
         </button>
       ))}
-      {NOTE_GROUPS.map((g) => (
-        <button key={g} type="button" className="np-item" onClick={() => onPick(g)}>
-          <GroupMark group={g} size={variant === 'blocks' ? 30 : 24} />
-          <span className="np-name">{t(`pack.mapNotes.group.${g}`)}</span>
-          {variant === 'blocks' && <span className="np-text">{t(`pack.mapNotes.group.${g}.text`)}</span>}
-        </button>
-      ))}
+      {NOTE_GROUPS.map((g) => {
+        const why = blocked?.[g];
+        return (
+          <button
+            key={g}
+            type="button"
+            className={`np-item${why ? ' np-item--off' : ''}`}
+            onClick={() => { if (!why) onPick(g); }}
+            disabled={!!why}
+            title={why}
+          >
+            <GroupMark group={g} size={variant === 'blocks' ? 30 : 24} />
+            <span className="np-name">{t(`pack.mapNotes.group.${g}`)}</span>
+            {variant === 'blocks' && <span className="np-text">{why ?? t(`pack.mapNotes.group.${g}.text`)}</span>}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -143,6 +162,10 @@ export const NOTE_PALETTE_CSS = `
 .np-wrap--blocks .np-item{flex-direction:column;align-items:flex-start;gap:8px;padding:16px 14px;text-align:left;}
 .np-wrap--strip .np-item{padding:8px 12px 8px 8px;border-radius:999px;}
 .np-item:hover{border-color:${GOLD};background:rgba(201,154,63,0.10);transform:translateY(-1px);}
+/* Zhasnutá možnosť: nie je to chyba ani čakanie, je to hotová vec inde (výlet už
+   parkovisko má). Preto tlmená, nie červená — červená by hovorila „pokazil si to". */
+.np-item--off{opacity:.42;cursor:default;}
+.np-item--off:hover{border-color:${T.onDarkBorder};background:rgba(245,240,228,0.04);transform:none;}
 
 .np-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:${T.onDark};white-space:nowrap;}
 .np-text{font-family:${FONT_UI};font-size:11.5px;line-height:1.45;color:${T.onDarkDim};}
