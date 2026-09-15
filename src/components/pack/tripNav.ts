@@ -62,7 +62,15 @@ export function navUrl(app: NavApp, t: NavTarget): string {
 /**
  * TURISTICKÁ MAPA NA ŠTARTE TRASY.
  *
- * 🔴 TRASA SA DO URL MAPY.COM VLOŽIŤ NEDÁ (overené 13. 9. 2026). Starý tvar mapy.cz
+ * 🔴 TRASA SA DO URL MAPY.COM VLOŽIŤ NEDÁ (overené 13. 9. 2026, ZNOVA 15. 9. 2026 po Matejovej
+ * reklamácii „otvoriť v mapach cz neukáže trasu"). Odskúšané tri tvary naživo v prehliadači:
+ * `?planovani-trasy&rs=coor&ri=<lon>,<lat>&rs=coor&ri=…` a `?planovani-trasy&rc=<lon>,<lat>;…`
+ * stránka pri načítaní ZAHODÍ a prehodí na východiskový výrez (Nemecko, z=7);
+ * `?routeStart=…&routeEnd=…` si v adrese nechá, ale ignoruje ich. Preto sa odkaz 15. 9.
+ * PREMENOVAL na „Otvoriť okolie v Mapy.com" — sľubovať trasu a ukázať výrez je horšie než
+ * pomenovať, čo odkaz naozaj robí. NAŠU stopu nesie GPX o riadok vyššie.
+ *
+ * Starý tvar mapy.cz
  * (`&rs=coor&ri=<lon>,<lat>`) nová stránka pri načítaní ZAHODÍ — presmeruje na prázdny
  * plánovač. Preto sa odtiaľto otvára turistická vrstva vycentrovaná na štart (človek má
  * KČT značenie a vie sa zorientovať) a NAŠA stopa ide do mobilu cez GPX nižšie.

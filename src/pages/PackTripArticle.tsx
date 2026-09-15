@@ -1727,6 +1727,7 @@ export default function PackTripArticle() {
             {hosts.map((h) => (
               <div key={h.key} className="pta-host">
                 <PartyMemberCard
+                  pale
                   member={h.organizer}
                   roleLabel={h.date ? `${t('pack.trip.host')} · ${h.date}` : t('pack.trip.host')}
                   dm={{ tripSlug: h.slug, organizerId: h.organizerId, isMe: h.organizerId === id.session?.user?.id }}
@@ -1754,6 +1755,7 @@ export default function PackTripArticle() {
                 )}
                 {h.joiners.map((j, i) => (
                   <PartyMemberCard
+                    pale
                     key={`${h.key}:${i}`}
                     member={j}
                     dm={{ tripSlug: h.slug, organizerId: h.organizerId }}

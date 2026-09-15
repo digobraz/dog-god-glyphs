@@ -11,6 +11,7 @@
 // meno človeka = Cinzel, číslo/rola = Space Grotesk.
 import { useState } from 'react';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { useT } from '@/i18n/LanguageContext';
 import { emitOpenThread } from '@/components/pack/messaging/openBridge';
 import type { PartyMember } from './useTripParty';
 import { useMemberProfile, memberDisplayName } from '@/components/pack/profile/memberProfile';
@@ -38,13 +39,35 @@ button.pmc-av:hover{filter:brightness(1.08);}
 .pmc-msg{flex-shrink:0;align-self:center;display:flex;align-items:center;justify-content:center;height:30px;padding:0 12px;border-radius:999px;background:rgba(201,154,63,0.14);border:1px solid ${PACK_THEME.border};color:${GOLD};font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;white-space:nowrap;}
 .pmc-msg:hover{background:rgba(201,154,63,0.24);}
 .pmc-msg:disabled{opacity:.45;cursor:default;}
+
+/* ── BLEDÁ VETVA — KARTA NA PAPYRUSE (Matej 2026-09-15: „ten otvorený vylet od svorky je
+   furt zle") ──────────────────────────────────────────────────────────────────────────
+   Karta vznikla pre TMAVÝ dok mapy (.trp-dockpanel, rgba(18,13,7,0.94)) a TAM JE SPRÁVNE.
+   V článku výletu a v triplist-e však stojí na papyrusovej doske (goldFrameCSS), takže
+   T.onDark (biely inkoust s 86 % krytím) svietil bielym na krémovom — meno psa sa nedalo
+   prečítať vôbec. To isté zistenie ako pri .mnts-back a .mnk-tile.on: prevrátený povrch
+   treba prevrátiť aj v štítkoch.
+   ⚠️ AVATAR SA NEPREFARBUJE — zlatý kruh je identita člena a na papyruse drží; mení sa len
+   to, čo nesie TEXT a hranicu. Žiadne nové číslo: polomery, odsadenia ani písmo sa netýkajú.
+   ⚠️ V CSS KOMENTÁRI NESMIE BYŤ SPÄTNÝ APOSTROF — ukončí template literál (check:css). */
+.pmc--pale{border-color:${PACK_THEME.border};background:${PACK_THEME.tileBg};}
+.pmc--pale .pmc-dog{color:${PACK_THEME.inkStrong};}
+.pmc--pale .pmc-owner,.pmc--pale .pmc-num,.pmc--pale .pmc-more{color:${PACK_THEME.inkWarm};}
+/* Rola ostáva zlatá (GOLD) — na papyruse je čitateľná a je to tá istá eyebrow, akú má
+   nadpis sekcie nad kartou. */
 `;
 
-/** rola → eyebrow nad menom; `requested` sa vykresľuje len organizátorovi (stráži SQL) */
-const ROLE_LABEL: Record<PartyMember['role'], string> = {
-  organizer: 'Trip host',
-  joiner: 'Going',
-  requested: 'Wants to join',
+/**
+ * rola → eyebrow nad menom; `requested` sa vykresľuje len organizátorovi (stráži SQL).
+ *
+ * ⚠️ NIE NATVRDO PO ANGLICKY (opravené 2026-09-15). Karta písala „GOING" a „with …" aj
+ * v slovenskej appke — grep po slovenskom texte taký reťazec nenájde, lebo v `sk.ts`
+ * nikdy nebol. Toto je kľúč, nie text.
+ */
+const ROLE_KEY: Record<PartyMember['role'], string> = {
+  organizer: 'pack.trip.host',
+  joiner: 'pack.party.role.joiner',
+  requested: 'pack.party.role.requested',
 };
 
 /**
@@ -74,6 +97,7 @@ export function PartyDmButton({ member, dm, className = 'pmc-msg' }: {
   dm?: PartyDmContext;
   className?: string;
 }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const owner = member.ownerFirst?.trim();
@@ -112,22 +136,29 @@ export function PartyDmButton({ member, dm, className = 'pmc-msg' }: {
       className={className}
       onClick={openDm}
       disabled={busy}
-      aria-label={`Message ${owner ?? 'this Dogyptian'}`}
+      aria-label={`${t('pack.party.message')} ${owner ?? ''}`.trim()}
     >
-      {busy ? '…' : failed ? 'Unavailable' : 'Message'}
+      {busy ? '…' : t(failed ? 'pack.party.unavailable' : 'pack.party.message')}
     </button>
     </RightGate>
   );
 }
 
-export function PartyMemberCard({ member, roleLabel, dm, onOpenProfile }: {
+export function PartyMemberCard({ member, roleLabel, dm, onOpenProfile, pale }: {
   member: PartyMember;
   roleLabel?: string;
   dm?: PartyDmContext;
   /** issue #41 — klik na ikonku otvorí TripProfileCard (majiteľ + pes). Bez neho ostáva
    *  avatar čisto zobrazovací, ako doteraz. */
   onOpenProfile?: () => void;
+  /**
+   * Karta stojí na PAPYRUSE, nie na tmavom doku (článok výletu, triplist). Rozhoduje
+   * podklad POD prvkom, nie poloha prepínača šatu — to isté pravidlo, aké má lapisové CTA
+   * v brand locku. Bez neho je meno psa biele na krémovom.
+   */
+  pale?: boolean;
 }) {
+  const t = useT();
   const dog = member.dogName?.trim();
   // MENO ČLOVEKA sa berie z profilu, nie z objednávky (Matej 2026-08-26: „meno ukazuje ako si
   // to človek nastaví v profile… štandardne to bude to čo zadal pri objednávke"). `get_trip_party`
@@ -143,7 +174,7 @@ export function PartyMemberCard({ member, roleLabel, dm, onOpenProfile }: {
     : initial;
 
   return (
-    <div className="pmc">
+    <div className={pale ? 'pmc pmc--pale' : 'pmc'}>
       {onOpenProfile ? (
         <button
           type="button"
@@ -157,10 +188,12 @@ export function PartyMemberCard({ member, roleLabel, dm, onOpenProfile }: {
         <span className="pmc-av">{avatar}</span>
       )}
       <span className="pmc-txt">
-        <span className="pmc-role" style={{ display: 'block' }}>{roleLabel ?? ROLE_LABEL[member.role]}</span>
-        <span className="pmc-dog" style={{ display: 'block' }}>{dog ?? 'A Dogyptian dog'}</span>
+        <span className="pmc-role" style={{ display: 'block' }}>{roleLabel ?? t(ROLE_KEY[member.role])}</span>
+        <span className="pmc-dog" style={{ display: 'block' }}>{dog ?? t('pack.party.someDog')}</span>
+        {/* ⚠️ SK vetva nemá predložku — „s {owner}" by pýtalo inštrumentál (s Matejom), ale
+            meno prichádza z profilu v 1. páde a skloňovať sa nedá. EN si „with" nesie v kľúči. */}
         <span className="pmc-owner" style={{ display: 'block' }}>
-          with {owner ?? 'a Dogyptian'}
+          {t('pack.party.with', { owner: owner ?? t('pack.party.someone') })}
           {member.packNumber ? <span className="pmc-num"> · #{member.packNumber}</span> : null}
         </span>
       </span>

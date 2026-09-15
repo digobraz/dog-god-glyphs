@@ -727,6 +727,7 @@ export default function PackTriplist() {
                             (`get_trip_party`). Bez čísla (zakladajúci pes ho nemá) sa fotka
                             nechá nekliknuteľná — mŕtve tlačidlo je horšie než žiadne. */}
                         <PartyMemberCard
+                          pale
                           member={member ?? UNKNOWN_MEMBER}
                           roleLabel={trail?.name ?? slug}
                           dm={id.session?.user?.id ? { tripSlug: slug, organizerId: id.session.user.id } : undefined}
