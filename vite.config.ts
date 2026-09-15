@@ -118,7 +118,13 @@ function gpxDownloadPlugin() {
     name: "dogypt-gpx-download",
     configureServer(server: { middlewares: { use: (fn: (req: unknown, res: unknown, next: () => void) => void) => void } }) {
       server.middlewares.use((req, res, next) => {
-        const url = (req as { url?: string }).url ?? "";
+        const raw = (req as { url?: string }).url ?? "";
+        // `/g` = skratka na PILOTNÝ výlet, aby sa adresa dala na telefóne napísať rukou.
+        // Dlhý slug sa prepísať nedá (Matej 15. 9.: „nejde mi to skopirovat v celku").
+        const url = raw === "/g" || raw === "/g.gpx"
+          ? "/gpx/zaruby-1-kostol-certov-zlab-zaruby-male-karpaty.gpx"
+          : raw;
+        if (url !== raw) (req as { url?: string }).url = url;
         if (!url.startsWith("/gpx/") || !url.includes(".gpx")) return next();
         const name = decodeURIComponent(url.split("?")[0].split("/").pop() ?? "trasa.gpx");
         (res as { setHeader: (k: string, v: string) => void }).setHeader("Content-Disposition", `attachment; filename="${name}"`);
