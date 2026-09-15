@@ -182,6 +182,31 @@ function hydrateMe(): Promise<void> {
         const name = (user.user_metadata?.dog_name as string | undefined) || email.split('@')[0] || 'You';
         meCache = { id: user.id, name, kind: 'me' };
         emitChange();
+        // ── MOJA FOTKA DO BUBLINY (Matej 15. 9. 2026) ─────────────────────────
+        // „avatar pri pisani bude foto profilu nie len písmenko a iniciála."
+        // Druhá strana fotku mala od začiatku (`other_photo` z `list_my_conversations()`,
+        // teda `dogs.cloudinary_main_url`), ja nie — `getMe()` staval identitu len zo
+        // session, kde fotka nie je. Je to ten istý údaj z tej istej tabuľky, len pre
+        // seba; preto sa doťahuje zvlášť a NEBLOKUJE meno (to je v bubline dôležitejšie
+        // a session ho vie hneď).
+        // ⚠️ Poradie je `pack_number asc` — pri viacerých psoch nesie človeka ten, ktorý
+        //    do svorky vstúpil prvý (CLAUDE.md, identita majiteľa). `created_at`, ktorý
+        //    berie zvyšok kódu, je len okamih založenia formulára.
+        try {
+          const { data: dog } = await supabase
+            .from('dogs')
+            .select('cloudinary_main_url')
+            .eq('user_id', user.id)
+            .eq('payment_status', 'paid')
+            .order('pack_number', { ascending: true, nullsFirst: false })
+            .limit(1)
+            .maybeSingle();
+          const photo = (dog?.cloudinary_main_url as string | null) ?? null;
+          if (photo) {
+            meCache = { ...meCache, avatarUrl: photo };
+            emitChange();
+          }
+        } catch { /* fotka je ozdoba — bez nej ostáva iniciála, vlákno funguje ďalej */ }
       }
     } catch {
       // no session / offline / not signed in yet — stay on the stable dev fallback

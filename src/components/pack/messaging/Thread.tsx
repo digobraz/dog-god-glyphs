@@ -50,7 +50,10 @@ export const THREAD_CSS = `
    Dvojtriedny selektor (0,2,0) prebije position:relative z .msg-skin bez ohľadu na poradie
    <style> blokov. Pozadie ani tapetu tu nehľadaj — nesie ich .msg-skin. */
 .msg-thread.msg-skin{position:fixed;inset:0;z-index:1300;display:flex;flex-direction:column;}
-.msg-thread-head{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 22px) 20px 16px;background:var(--msg-bar);border-bottom:1px solid var(--msg-bar-edge);box-shadow:var(--msg-bar-shadow);flex-shrink:0;}
+/* Pás nesie POZADIE cez celé okno, stĺpec vnútri nesie OBSAH — a jeho šírka je tá istá,
+   akú má telo správ (.msg-thread-body) aj písací panel (.msg-thread-send). */
+.msg-thread-head{position:sticky;top:0;z-index:3;padding:calc(env(safe-area-inset-top,0px) + 22px) 0 16px;background:var(--msg-bar);border-bottom:1px solid var(--msg-bar-edge);box-shadow:var(--msg-bar-shadow);flex-shrink:0;}
+.msg-thread-headinner{display:flex;align-items:center;gap:12px;max-width:640px;width:calc(100% - 32px);margin:0 auto;}
 .msg-back{flex-shrink:0;width:34px;height:34px;border-radius:50%;background:var(--msg-btn);border:1px solid var(--msg-btn-edge);color:var(--msg-btn-ink);font-size:17px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s,background .15s;}
 .msg-back:hover{border-color:${T.cardEdge};color:var(--msg-title);background:var(--msg-btn-hot);}
 /* flex:1 + min-width:0 — bez toho dlhý štítok výletu na mobile podlezie ovládania vpravo. */
@@ -339,7 +342,13 @@ export function Thread({ convId, onClose, onOpenTrip }: {
       {/* Tapetu nesie .msg-skin — <HieroglyphBg /> sa sem NEPRIDÁVA (bola by druhá vrstva). */}
       <style>{MSG_SKIN_CSS}</style>
       <style>{THREAD_CSS}</style>
+      {/* ⚠️ HLAVIČKA MÁ VNÚTORNÝ STĹPEC (Matej 15. 9. 2026): „chcem aby dolná šírka obsahu —
+          panel kde sa píše — bola totožná aj hore v headri = meno / prepínač / nahlásenie
+          musia byť viac v strede nie na kraji." Pás pozadia ide ďalej cez celé okno (inak by
+          pod ním presvitala tapeta a hlavička by prestala byť hlavičkou); v stĺpci je len
+          OBSAH, a jeho šírka je tá istá, akú má telo správ aj písací panel. */}
       <div className="msg-thread-head">
+       <div className="msg-thread-headinner">
         <BackButton tone="dark" onClick={onClose} label={t('pack.msg.backToInboxAriaLabel')} />
         <div className="msg-thread-headtxt">
           <div className="msg-thread-title" style={{ fontFamily: titleFont }}>{title}</div>
@@ -371,6 +380,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
             >⋯</button>
           )}
         </div>
+       </div>
       </div>
 
       <div className="msg-thread-body">
@@ -378,10 +388,12 @@ export function Thread({ convId, onClose, onOpenTrip }: {
         {conv.messages.map((m) => {
           const mine = m.senderId === me.id;
           const sender = conv.members.find((p) => p.id === m.senderId);
-          // Fotku nesie iba druhá strana (`other_photo` z DB); `getMe()` ju zatiaľ nemá,
-          // takže moja bublina ukazuje iniciálu — nie je to chyba, len nedoplnený údaj.
+          // Od 15. 9. 2026 má fotku aj MOJA strana (`getMe()` si ju doťahuje z `dogs`,
+          // rovnaký údaj ako `other_photo` u protistrany). Pri mojej správe preto
+          // rozhoduje `me` — v `conv.members` môžem figurovať bez fotky a ten záznam
+          // by ju prebil. Iniciála ostáva ako záloha, kým sa fotka nenačíta.
           const who = mine ? (sender ?? me) : sender;
-          const avatar = who?.avatarUrl;
+          const avatar = mine ? (me.avatarUrl ?? sender?.avatarUrl) : who?.avatarUrl;
           const initial = (who?.name ?? '?').charAt(0).toUpperCase();
           return (
             <div key={m.id} className={`msg-bubblewrap${mine ? ' me' : ''}`}>
