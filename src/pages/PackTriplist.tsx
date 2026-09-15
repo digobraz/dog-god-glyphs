@@ -67,7 +67,7 @@ const CSS = `
 /* back = holá šípka v STREDE, NAD blokmi (flow, nie absolute — neprekrýva karty) */
 .tl-backrow{display:flex;justify-content:center;margin-bottom:16px;}
 .tl-back{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:${P.soft};border:1px solid ${P.border};color:${P.ink};font-size:19px;line-height:1;cursor:pointer;transition:border-color .15s,color .15s,background .15s;}
-.tl-back:hover{border-color:${T.cardEdge};color:${P.deep};background:#FFFDF6;}
+.tl-back:hover{border-color:${T.cardEdge};color:${P.deep};background:${T.card};}
 .tl-title{font-family:${FONT_TITLE};font-weight:700;font-size:26px;letter-spacing:.03em;color:${P.deep};text-align:center;}
 .tl-sub{font-size:12.5px;color:${P.dim};text-align:center;margin-top:6px;}
 
@@ -115,11 +115,11 @@ const CSS = `
    NIE šedý 1px hairline. */
 .tl-divider{height:2px;background:${T.rule};margin:22px 0;border:0;}
 .tl-sechead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;}
-/* Nadpis sekcie na papyruse: zlatá je TMAVŠIA (#8a5a14), nie brandová #C99A3F — tá je na
+/* Nadpis sekcie na papyruse: zlatá je TMAVŠIA (#8a5a14), nie brandová ${T.cardEdge} — tá je na
    svetlom podklade len o niečo tmavšia než sám papyrus a stráca sa. */
 .tl-sechead h3{font-family:${FONT_UI};font-weight:500;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:${P.deep};margin:0;}
 .tl-seeall{font-family:${FONT_UI};font-weight:600;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:${P.dim};background:${P.soft};border:1px solid ${P.border};border-radius:999px;padding:5px 12px;cursor:pointer;white-space:nowrap;}
-.tl-seeall:hover{color:${P.deep};border-color:${T.cardEdge};background:#FFFDF6;}
+.tl-seeall:hover{color:${P.deep};border-color:${T.cardEdge};background:${T.card};}
 /* prepínač viditeľnosti sekcie OPEN TRIPS (Matej 1. 9. 2026: „možnosť vybrať si či sa mi to
    má zobrazovať alebo nie") — stav pilulky je VÝBER, teda priesvitný lapisový tint (lock
    2026-08-26), nie plná farba; tá je vyhradená jedinému hlavnému CTA na obrazovke. */
@@ -166,7 +166,7 @@ const CSS = `
    background-size:cover by ju roztiahol).
    2026-09-01: pôvodná výplň bola takmer čierna (#0C0903) — na papyrusovej karte z nej bola
    diera. Ten istý recept, len na piesku. */
-.tl-block-cover.nophoto{background:radial-gradient(120% 90% at 50% 15%,rgba(201,154,63,0.30),rgba(234,214,166,0.95) 72%),${T.panelGrad};}
+.tl-block-cover.nophoto{background:radial-gradient(120% 90% at 50% 15%,${T.hairline},rgba(234,214,166,0.95) 72%),${T.panelGrad};}
 .tl-block-cover.nophoto::after{content:'';position:absolute;left:50%;top:50%;width:36%;height:36%;transform:translate(-50%,-50%);background:url('/icons/pack/mountain.svg') no-repeat center/contain;filter:${GOLD_ICON_FILTER};opacity:.55;pointer-events:none;}
 /* vlajka do kruhu — ľavý horný roh, vzor z /wall .card-flag */
 .tl-flag{position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,0.9);box-shadow:0 2px 8px rgba(0,0,0,0.45);background:#1a1a1a;z-index:2;}
@@ -180,10 +180,10 @@ const CSS = `
 .tl-block-ownertag{position:absolute;top:8px;left:8px;z-index:2;display:flex;align-items:center;gap:5px;max-width:calc(100% - 40px);padding:3px 9px 3px 3px;border-radius:999px;background:rgba(20,14,4,0.82);border:1px solid rgba(201,154,63,0.5);}
 .tl-block-ownertag span{font-family:${FONT_UI};font-weight:600;font-size:9px;color:#EFE6D6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 /* výrazný odpočet dní — VYTŔČA nad horný okraj karty (dôležitý údaj), na wrapperi .tl-mycard.
-   ⚠️ Krúžok okolo pilulky je farba PODKLADU, teda papyrus karty (#FBF5E6) — nie T.pageBg.
+   ⚠️ Krúžok okolo pilulky je farba PODKLADU, teda papyrus karty (${T.card}) — nie T.pageBg.
    Čierny prstenec na bledej karte by vyzeral ako dier(k)a po pilulke. */
-.tl-countdown{position:absolute;top:-11px;right:8px;z-index:6;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:5px 11px;border-radius:999px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#1a1305;box-shadow:0 4px 14px rgba(230,158,26,0.5),0 0 0 3px #FBF5E6;white-space:nowrap;pointer-events:none;}
-.tl-countdown.soon{background:linear-gradient(135deg,#FF7A45,#E5502A);color:#fff;box-shadow:0 4px 16px rgba(229,80,42,0.55),0 0 0 3px #FBF5E6;}
+.tl-countdown{position:absolute;top:-11px;right:8px;z-index:6;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:5px 11px;border-radius:999px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#1a1305;box-shadow:0 4px 14px rgba(230,158,26,0.5),0 0 0 3px ${T.card};white-space:nowrap;pointer-events:none;}
+.tl-countdown.soon{background:linear-gradient(135deg,#FF7A45,#E5502A);color:#fff;box-shadow:0 4px 16px rgba(229,80,42,0.55),0 0 0 3px ${T.card};}
 /* ⚠️ BADGE SEDÍ NA FOTKE, teda ostáva tmavý (2026-09-01). Prezliekať ho do papyrusu by
    znamenalo bledú pilulku na svetlej fotke — presne to, čo sa na obrázkoch nečíta. Sada
    nižšie sa preto pri prechode na bledý šat NEMENÍ. */
@@ -197,7 +197,7 @@ const CSS = `
      done      — uzavreté, tiché → tmavá výplň, papyrusový text
      done-open — PREJDENÉ, ALE INZERÁT STÁLE BEŽÍ → zlatý rám + zlatý text = upozornenie
      solo      — najtichší stav, bez rámu */
-.tl-block-badge.done{background:rgba(20,14,4,0.9);color:#EFE6D6;border:1px solid rgba(201,154,63,0.45);}
+.tl-block-badge.done{background:rgba(20,14,4,0.9);color:#EFE6D6;border:1px solid ${T.border};}
 /* done-open nesie DVE informácie naraz, takže sa do jedného riadku pilulky nezmestí a orezal by
    sa na „Hotovo · Hľadám par…". Zalomenie je tu správnejšie než skratka: nový jednoslovný kľúč by
    bolo treba preložiť do 18 jazykov a v každom by hrozilo, že sa oreže znova. */
@@ -217,14 +217,14 @@ const CSS = `
 /* krátka správa usporiadateľa — 2 riadky, celá v natívnom tooltipe (overflow:hidden na karte by orezal custom bublinu) */
 .tl-block-foot{margin-top:8px;}
 .tl-datebtn{font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;border-radius:999px;border:1px solid ${P.border};background:${P.soft};color:${P.dim};cursor:pointer;}
-.tl-datebtn:hover{border-color:${T.cardEdge};color:${P.deep};background:#FFFDF6;}
+.tl-datebtn:hover{border-color:${T.cardEdge};color:${P.deep};background:${T.card};}
 /* dátum v rámiku (open trips) */
 .tl-datepill{display:inline-flex;align-items:center;gap:5px;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.04em;padding:4px 9px;border-radius:8px;border:1px solid ${P.border};background:${P.soft};color:${P.ink};}
 .tl-date{font-size:10px;color:${P.dim};}
 /* OPEN TRIPS filter bar */
 .tl-filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;}
 .tl-filter{font-family:${FONT_UI};font-weight:600;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;padding:6px 12px;border-radius:999px;border:1px solid ${P.border};background:${P.soft};color:${P.dim};cursor:pointer;transition:all .15s;}
-.tl-filter:hover{border-color:${T.cardEdge};color:${P.deep};background:#FFFDF6;}
+.tl-filter:hover{border-color:${T.cardEdge};color:${P.deep};background:${T.card};}
 /* VYBRANÝ FILTER = PRIESVITNÝ LAPISOVÝ TINT, nie plná farba (lock 2026-08-26). Plná plocha je
    vyhradená jedinému hlavnému CTA na obrazovke; keď ju dostane aj chip, ktorý človek práve
    klikol, obrazovka má dve „hlavné" veci a ani jedna nevedie. Čitateľnosť nesie TMAVÝ inkoust
@@ -237,7 +237,7 @@ const CSS = `
 /* OPEN TRIPS pager */
 .tl-pager{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:18px;}
 .tl-pagebtn{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:8px 15px;border-radius:999px;border:1px solid ${P.border};background:${P.soft};color:${P.ink};cursor:pointer;transition:all .15s;}
-.tl-pagebtn:hover:not(:disabled){border-color:${T.cardEdge};color:${P.deep};background:#FFFDF6;}
+.tl-pagebtn:hover:not(:disabled){border-color:${T.cardEdge};color:${P.deep};background:${T.card};}
 .tl-pagebtn:disabled{opacity:.35;cursor:default;}
 .tl-pageinfo{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.06em;color:${P.dim};}
 
@@ -247,7 +247,7 @@ const CSS = `
 .tl-vis{display:flex;flex-direction:column;gap:10px;}
 /* voľba = PODBLOK (úroveň 2 matrice), vybraná = lapisový tint */
 .tl-vischoice{display:flex;align-items:flex-start;gap:11px;text-align:left;padding:13px 14px;border-radius:12px;border:1px solid ${T.cardEdge};background:${T.panelGrad};box-shadow:0 1px 3px rgba(122,90,42,0.10),inset 0 1px 0 rgba(255,255,255,0.40);cursor:pointer;transition:all .15s;}
-.tl-vischoice:hover{border-color:${P.deep};background:#FFFDF6;}
+.tl-vischoice:hover{border-color:${P.deep};background:${T.card};}
 .tl-vischoice.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.12)}}
 .tl-vischoice-ic{flex-shrink:0;width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(201,154,63,0.14);border:1px solid ${P.border};font-size:14px;}
 .tl-vischoice-t{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:12.5px;letter-spacing:.04em;color:${P.ink};}
@@ -270,7 +270,7 @@ const CSS = `
 /* Zelená áno / červená nie ostávajú — nesú význam. Na papyruse len tmavnú do inkoustu:
    svetlé #5FD98C a #FF8A66 boli robené na čiernu dosku a na piesku zaniknú. */
 .tl-reqbtn.yes:not(:disabled):hover{${pickTintCSS(T.growGreen, PICK_INK.green, 0.16)}}
-.tl-reqbtn.no:not(:disabled):hover{${pickTintCSS('#B25640', PICK_INK.red, 0.16)}}
+.tl-reqbtn.no:not(:disabled):hover{${pickTintCSS(T.alertRed, PICK_INK.red, 0.16)}}
 @media(max-width:560px){.tl-req{flex-wrap:wrap;}.tl-req-acts{width:100%;}.tl-reqbtn{flex:1;}}
 
 /* JOIN na karte cudzieho otvoreného výletu (#41) — hlavná akcia karty, teda LAPIS.

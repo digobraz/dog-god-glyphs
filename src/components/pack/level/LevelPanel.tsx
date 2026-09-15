@@ -104,7 +104,7 @@ export function LevelPanel({ level, rows, onClose }: LevelPanelProps) {
         {/* LIŠTA POSTUPU — to isté číslo ako v hlavičke, len väčšie */}
         <div style={{
           position: 'relative', height: 8, borderRadius: 999,
-          background: 'rgba(245,240,228,0.10)', overflow: 'hidden', marginBottom: 6,
+          background: T.onDarkHair, overflow: 'hidden', marginBottom: 6,
         }}>
           <i style={{
             display: 'block', height: '100%', width: `${level.pct}%`, borderRadius: 999,
@@ -132,7 +132,7 @@ export function LevelPanel({ level, rows, onClose }: LevelPanelProps) {
               <span style={{
                 fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12,
                 letterSpacing: '.14em', textTransform: 'uppercase',
-                color: 'rgba(245,240,228,0.86)',
+                color: T.onDark,
               }}>
                 {t('pack.tier.totalLabel')}
               </span>

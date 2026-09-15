@@ -26,7 +26,7 @@ import { useEffect, useRef, useState } from 'react';
 import { PACK_THEME as T, FONT_UI } from './packTheme';
 
 /** Papyrusová béžová — najsvetlejšia plocha v tmavom UI. Zhodná s `onDark` rodinou. */
-const PILL_BEIGE = '#F5F0E4';
+const PILL_BEIGE = T.card;
 
 export const POINTS_PILL_CSS = `
 .pts-pill{

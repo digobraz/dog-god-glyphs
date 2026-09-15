@@ -20,7 +20,7 @@ import {
   type AddTripDraft, type TripGeometry,
 } from './addTripModel';
 
-const GOLD = '#C99A3F';
+const GOLD = T.cardEdge;
 
 export type AddTripPlanProps = {
   /** Pre GeometryPicker — duchovia existujúcich trás + kontrola duplicity (§5.3). */

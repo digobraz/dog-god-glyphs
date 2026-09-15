@@ -233,7 +233,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                 padding: '0 4px',
                 borderRadius: 999,
                 background: T.accentGold,
-                color: '#1F1A0E',
+                color: T.ink,
                 fontFamily: "'Space Grotesk', sans-serif",
                 fontSize: 9,
                 fontWeight: 600,
@@ -334,7 +334,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
               padding: '0 4px',
               borderRadius: 999,
               background: T.accentGold,
-              color: '#1F1A0E',
+              color: T.ink,
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: 9,
               fontWeight: 600,
@@ -462,7 +462,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                             flexShrink: 0, width: 22, height: 22, borderRadius: '50%',
                             background: 'radial-gradient(circle at 35% 30%, #F5C73D, #E69E1A)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 10, color: '#1F1A0E',
+                            fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 10, color: T.ink,
                           }}
                         >
                           {name.charAt(0).toUpperCase()}

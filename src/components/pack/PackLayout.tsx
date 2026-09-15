@@ -664,7 +664,7 @@ interface DevotionHeaderProps {
 }
 
 function VDivider() {
-  return <div aria-hidden style={{ width: 1, height: 20, background: 'rgba(245,240,228,0.18)', flexShrink: 0 }} />;
+  return <div aria-hidden style={{ width: 1, height: 20, background: T.onDarkBorder, flexShrink: 0 }} />;
 }
 
 export function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, packTotal, packToday, dogs, wide, onProfile, onDog }: DevotionHeaderProps) {

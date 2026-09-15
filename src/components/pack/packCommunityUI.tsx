@@ -47,8 +47,8 @@ import { DeleteButton } from '@/components/pack/DeleteButton';
 export interface Companion { key: string; name: string; sub?: string; photo?: string | null; }
 
 const T = PACK_THEME;
-const GOLD = '#C99A3F';
-const INK = '#1F1A0E';
+const GOLD = T.cardEdge;
+const INK = T.ink;
 // skratka do CSS literálu — rgba čísla bledého chrome sa nemajú opisovať po súboroch
 const P = PALE;
 // Papyrus lock (2026-07-26): žiadny hardcoded bledý hex — plná bledá farba ide cez token.
@@ -176,7 +176,7 @@ export const COMMUNITY_CSS = `
 /* ⚠️ zvislá čiara NESMIE byť ${'T.rule'} — ten je gradient, a border:2px solid <gradient> je
    neplatné CSS, ktoré prehliadač ticho zahodí (čiara by zmizla bez chyby). Preto vyblednutá
    zlatá ako plná farba. */
-.comm-reward-break{display:flex;flex-direction:column;gap:3px;margin:-4px 0 0 8px;padding-left:11px;border-left:2px solid rgba(201,154,63,0.45);}
+.comm-reward-break{display:flex;flex-direction:column;gap:3px;margin:-4px 0 0 8px;padding-left:11px;border-left:2px solid ${T.border};}
 .comm-reward-breakrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:${FONT_UI};font-weight:500;font-size:11px;color:${T.inkWarm};}
 .comm-reward-breakrow b{font-weight:600;color:${T.inkStrong};font-variant-numeric:tabular-nums;white-space:nowrap;}
 .comm-reward-unit{font-family:${FONT_TITLE};font-weight:700;}
@@ -195,7 +195,7 @@ export const COMMUNITY_CSS = `
    Plná farebná plocha je vyhradená jedinému hlavnému CTA panela (ODOSLAŤ). */
 .comm-seg{display:flex;gap:8px;}
 .comm-seg button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border-radius:10px;border:1px solid ${P.border};background:${P.soft};color:${P.ink};font-family:inherit;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
-.comm-seg button:hover{border-color:${T.cardEdge};background:#FFFDF6;}
+.comm-seg button:hover{border-color:${T.cardEdge};background:${T.card};}
 .comm-seg button.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}font-weight:600;}
 
 /* ⚠️ 16 px = strop proti iOS zoomu dokumentu (feedback_dogypt_form_input_recurring_bugs).
@@ -220,15 +220,15 @@ export const COMMUNITY_CSS = `
 .comm-submit:disabled{background:rgba(42,22,8,0.06);border-color:${P.hair};color:${P.faint};box-shadow:none;cursor:default;}
 /* „Teraz nie" je rovnocenná ponuka, nie akcia — papyrusový outline, nie druhá plná farba. */
 .comm-ghostbtn{width:100%;margin-top:9px;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:11px;border-radius:8px;background:${P.soft};color:${P.ink};border:1px solid ${P.border};cursor:pointer;}
-.comm-ghostbtn:hover{border-color:${T.cardEdge};color:${P.deep};background:#FFFDF6;}
+.comm-ghostbtn:hover{border-color:${T.cardEdge};color:${P.deep};background:${T.card};}
 
 
 /* multi-select chips (hazards, atď.) — hrozba je červená, lebo červená TU nesie význam
    (nie je to voľba farby): označený hazard je varovanie pre ostatných. */
 .comm-chips{display:flex;flex-wrap:wrap;gap:7px;}
 .comm-chip{padding:7px 12px;border-radius:999px;border:1px solid ${P.border};background:${P.soft};color:${P.ink};font-family:inherit;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
-.comm-chip:hover{border-color:${T.cardEdge};background:#FFFDF6;}
-.comm-chip.on{${pickTintCSS('#B25640', PICK_INK.red, 0.14)}font-weight:600;}
+.comm-chip:hover{border-color:${T.cardEdge};background:${T.card};}
+.comm-chip.on{${pickTintCSS(T.alertRed, PICK_INK.red, 0.14)}font-weight:600;}
 
 
 /* ── crowd meta (agregát na karte + inline detaile) ── */
@@ -392,7 +392,7 @@ export const COMMUNITY_CSS = `
 .comm-cat{background:${T.panelGrad};border:1px solid ${T.cardEdge};border-radius:12px;box-shadow:0 1px 3px rgba(122,90,42,0.10),inset 0 1px 0 rgba(255,255,255,0.40);padding:16px 18px;margin-bottom:12px;}
 /* klikateľná geo kategória → ADD TRIP (Matej 2026-07-23): button reset + hover. */
 .comm-cat--click{display:block;width:100%;text-align:left;cursor:pointer;font-family:inherit;transition:border-color .15s;}
-.comm-cat--click:hover{border-color:${P.deep};background:#FFFDF6;}
+.comm-cat--click:hover{border-color:${P.deep};background:${T.card};}
 .comm-cat-head{display:flex;align-items:center;gap:10px;margin-bottom:11px;}
 /* zbaliteľná hlavička (magistrály) — vyzerá ako ostatné hlavičky kategórií, len je klikacia
    a nesie šípku. "width:100%" + "margin:0" prebíjajú default <button>, aby zavretá kategória
@@ -419,12 +419,12 @@ export const COMMUNITY_CSS = `
 /* položka zoznamu = RIADOK (úroveň 3 matrice): plochá výplň, slabší rám. Desať kariet pod
    sebou by z panela spravilo schodisko. */
 .comm-walkedrow{display:flex;align-items:center;justify-content:space-between;gap:12px;background:${T.tileBg};border:1px solid ${T.border};border-radius:10px;padding:13px 16px;margin-bottom:9px;cursor:pointer;transition:border-color .15s,background .15s;}
-.comm-walkedrow:hover{border-color:${T.cardEdge};background:#FFFDF6;}
+.comm-walkedrow:hover{border-color:${T.cardEdge};background:${T.card};}
 .comm-walkedrow-name{font-family:${FONT_TITLE};font-weight:700;font-size:13px;color:${P.ink};}
 .comm-walkedrow-meta{font-size:11px;color:${P.dim};white-space:nowrap;flex-shrink:0;}
 .comm-cat-units{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px;}
 .comm-unit{font-size:10.5px;padding:4px 9px;border-radius:999px;border:1px solid ${P.border};color:${P.dim};background:${P.soft};font-family:inherit;cursor:pointer;transition:border-color .15s,color .15s,background .15s;}
-.comm-unit:hover{border-color:${T.cardEdge};color:${P.deep};background:#FFFDF6;}
+.comm-unit:hover{border-color:${T.cardEdge};color:${P.deep};background:${T.card};}
 .comm-unit.done{border-color:${T.cardEdge};color:${P.deep};background:rgba(201,154,63,0.18);}
 /* per-unit rozklad (Slice A, bod 2): farba podľa počtu prejdených tripov na jednotku.
    ⚠️ Na papyruse ide TMAVÝ inkoust tej istej farby — UNIT_STARTED_COLOR (#E8B22E) aj
@@ -557,7 +557,7 @@ export const COMMUNITY_CSS = `
 /* NEUTRÁLNY typový štítok (výlet). Protipól je zlatý .pev-typechip (podujatie) v
    events/EventCard.tsx — dvojica sa musí líšiť farbou, nielen textom. Na papyruse je
    z toho holý obrys proti teplej zlatej výplni.
-   ⚠️ Zlatá #C99A3F ako PÍSMO má na piesku ~1.9:1, takže zvýraznenie nesie tmavšia
+   ⚠️ Zlatá ${T.cardEdge} ako PÍSMO má na piesku ~1.9:1, takže zvýraznenie nesie tmavšia
    P.deep — tá istá hodnota, akou svieti zvýraznený stav v celom bledom skine mapy. */
 .comm-plan-type{display:inline-block;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid ${P.border};color:${P.dim};margin-bottom:5px;}
 .comm-plan-name{font-family:${FONT_TITLE};font-weight:700;font-size:14px;color:${P.ink};}
@@ -700,7 +700,7 @@ export const COMMUNITY_CSS = `
 /* VYBRANÁ KRAJINA = PRIESVITNÝ LAPISOVÝ TINT (lock 2026-08-26) — je to moja voľba, čo
    chcem vo vysvedčení vidieť, nie konštrukcia. Plná plocha ostáva hlavnému CTA. */
 .comm-ctry{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:7px 13px 7px 8px;border-radius:999px;border:1px solid ${P.border};background:${P.soft};font-family:inherit;cursor:pointer;transition:border-color .15s,background .15s;}
-.comm-ctry:hover{border-color:${T.cardEdge};background:#FFFDF6;}
+.comm-ctry:hover{border-color:${T.cardEdge};background:${T.card};}
 .comm-ctry.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}}
 .comm-ctry--empty{opacity:.55;}
 /* ⚠️ VYBRANÁ KRAJINA JE VŽDY PLNE VIDITEĽNÁ, aj keď v nej človek ešte nebol. Stlmenie
@@ -742,16 +742,16 @@ export const COMMUNITY_CSS = `
 .comm-chero--noimg .comm-chero-sel select{background:${P.field};border-color:${P.border};color:${P.ink};}
 .comm-chero-flag{display:block;width:54px;height:36px;object-fit:cover;border-radius:8px;border:1px solid rgba(245,240,228,0.35);box-shadow:0 4px 14px rgba(0,0,0,0.5);margin-bottom:11px;}
 .comm-chero-sel{position:absolute;top:12px;right:12px;z-index:2;}
-.comm-chero-sel select{appearance:none;-webkit-appearance:none;background:rgba(3,2,1,0.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(201,154,63,0.55);border-radius:999px;color:#F5F0E4;font-family:${FONT_UI};font-weight:600;font-size:11px;padding:7px 28px 7px 13px;cursor:pointer;}
+.comm-chero-sel select{appearance:none;-webkit-appearance:none;background:rgba(3,2,1,0.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(201,154,63,0.55);border-radius:999px;color:${T.card};font-family:${FONT_UI};font-weight:600;font-size:11px;padding:7px 28px 7px 13px;cursor:pointer;}
 .comm-chero-sel::after{content:'';position:absolute;right:12px;top:50%;width:6px;height:6px;border-right:1.5px solid rgba(201,154,63,0.9);border-bottom:1.5px solid rgba(201,154,63,0.9);transform:translateY(-70%) rotate(45deg);pointer-events:none;}
 .comm-chero-in{position:relative;z-index:1;width:100%;}
-.comm-chero-name{font-family:${FONT_TITLE};font-weight:700;font-size:28px;line-height:1;letter-spacing:.07em;text-transform:uppercase;color:#F5F0E4;text-shadow:0 2px 14px rgba(0,0,0,0.7);}
+.comm-chero-name{font-family:${FONT_TITLE};font-weight:700;font-size:28px;line-height:1;letter-spacing:.07em;text-transform:uppercase;color:${T.card};text-shadow:0 2px 14px rgba(0,0,0,0.7);}
 .comm-chero-sub{font-family:${FONT_UI};font-weight:500;font-size:12px;color:rgba(245,240,228,0.85);margin-top:7px;}
 .comm-chero-goal{margin-top:11px;max-width:340px;}
 .comm-chero-goaltxt{display:flex;align-items:center;gap:8px;font-family:${FONT_UI};font-weight:500;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:rgba(245,240,228,0.8);margin-bottom:5px;}
 /* ⓘ pri titule krajiny — na FOTKE, takže svetlý obrys a tmavé sklo, nie inkoust ako v profile. */
 .comm-rankinfo{position:relative;display:inline-flex;flex-shrink:0;}
-.comm-rankinfo-btn{width:19px;height:19px;border-radius:50%;border:1px solid rgba(245,240,228,0.5);background:rgba(3,2,1,0.45);color:#F5F0E4;font-family:${FONT_UI};font-weight:600;font-size:10px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,border-color .15s;}
+.comm-rankinfo-btn{width:19px;height:19px;border-radius:50%;border:1px solid rgba(245,240,228,0.5);background:rgba(3,2,1,0.45);color:${T.card};font-family:${FONT_UI};font-weight:600;font-size:10px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,border-color .15s;}
 .comm-rankinfo-btn:hover,.comm-rankinfo-btn.on{background:${GOLD};border-color:${GOLD};color:#241a06;}
 /* Otvára sa NAHOR (bottom:100%): titul sedí na spodku hera, smerom dole by popup prekryl
    kategórie pod ním a na nižšom okne by pretiekol pod okraj viewportu — presne tá chyba,
@@ -764,7 +764,7 @@ export const COMMUNITY_CSS = `
 .comm-rankrow.done b{color:${UNIT_DONE_COLOR};}
 .comm-rankrow.next{color:${T.inkStrong};font-weight:600;}
 .comm-rankrow.next b{color:${T.cardEdge};}
-.comm-chero-bar{height:6px;border-radius:999px;background:rgba(245,240,228,0.18);overflow:hidden;}
+.comm-chero-bar{height:6px;border-radius:999px;background:${T.onDarkBorder};overflow:hidden;}
 .comm-chero-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#F5C73D,#E69E1A);}
 @media (max-width:560px){ .comm-chero{min-height:150px;padding:14px;} .comm-chero-name{font-size:22px;} }
 
@@ -772,7 +772,7 @@ export const COMMUNITY_CSS = `
 .comm-jrows{display:flex;flex-direction:column;gap:7px;margin-top:12px;}
 /* položka = RIADOK (úroveň 3 matrice) */
 .comm-jrow{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;text-align:left;padding:11px 14px;border-radius:10px;border:1px solid ${T.border};background:${T.tileBg};font-family:inherit;cursor:pointer;transition:border-color .15s,background .15s;}
-.comm-jrow:hover{border-color:${T.cardEdge};background:#FFFDF6;}
+.comm-jrow:hover{border-color:${T.cardEdge};background:${T.card};}
 .comm-jrow-name{font-family:${FONT_TITLE};font-weight:700;font-size:12.5px;color:${P.ink};}
 .comm-jrow.on .comm-jrow-name{color:${P.deep};}
 .comm-jrow-meta{font-family:${FONT_UI};font-weight:500;font-size:10.5px;color:${P.dim};white-space:nowrap;flex-shrink:0;}
@@ -780,7 +780,7 @@ export const COMMUNITY_CSS = `
 
 /* zoznam prejdených = viditeľný ovládač, nie holý klikací nadpis (#46) */
 .comm-drop{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:20px 0 12px;padding:12px 15px;border-radius:12px;border:1px solid ${T.cardEdge};background:${T.panelGrad};box-shadow:0 1px 3px rgba(122,90,42,0.10),inset 0 1px 0 rgba(255,255,255,0.40);font-family:inherit;cursor:pointer;transition:border-color .15s,background .15s;}
-.comm-drop:hover{border-color:${P.deep};background:#FFFDF6;}
+.comm-drop:hover{border-color:${P.deep};background:${T.card};}
 .comm-drop-t{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.04em;color:${P.deep};}
 .comm-drop-n{display:flex;align-items:center;gap:8px;font-family:${FONT_UI};font-weight:500;font-size:11px;color:${P.dim};}
 .comm-drop-chev{display:inline-block;width:7px;height:7px;border-right:1.5px solid ${P.dim};border-bottom:1.5px solid ${P.dim};transform:translateY(-2px) rotate(45deg);transition:transform .2s;}

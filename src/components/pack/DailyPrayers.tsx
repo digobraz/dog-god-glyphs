@@ -174,7 +174,7 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
                       }}
                     >
                       {WALK_LEVELS.map((lv) => (
-                        <span key={lv.h} style={{ color: walkHours === lv.h ? '#FAF4EC' : undefined }}>
+                        <span key={lv.h} style={{ color: walkHours === lv.h ? T.card : undefined }}>
                           {lv.label}
                         </span>
                       ))}
@@ -379,7 +379,7 @@ const PTS_PILL: React.CSSProperties = {
   fontFamily: "'JetBrains Mono', ui-monospace, monospace",
   fontSize: 11,
   fontWeight: 700,
-  color: '#FAF4EC',
+  color: T.card,
   background: 'rgba(0,0,0,0.22)',
   borderRadius: 999,
   padding: '3px 9px',
@@ -480,7 +480,7 @@ function PrayerRow({
               {eyebrow}
             </div>
           )}
-          <div style={{ fontFamily: "'Cinzel', serif", fontSize: 15, fontWeight: 700, color: '#FAF4EC', lineHeight: 1.15 }}>
+          <div style={{ fontFamily: "'Cinzel', serif", fontSize: 15, fontWeight: 700, color: T.card, lineHeight: 1.15 }}>
             {title}
           </div>
           {sub && (

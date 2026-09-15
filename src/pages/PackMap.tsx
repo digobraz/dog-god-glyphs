@@ -777,9 +777,9 @@ function TerritoryBorders({ countries }: { countries: string[] }) {
           return [];
         }
         return rings.flatMap((ring, i) => [
-          <Polygon key={`border-${iso}-${i}-zone`} positions={ring} pathOptions={{ color: '#C99A3F', weight: zoneWeight, opacity: 0.5, fill: false, interactive: false, lineJoin: 'round' }} />,
+          <Polygon key={`border-${iso}-${i}-zone`} positions={ring} pathOptions={{ color: T.cardEdge, weight: zoneWeight, opacity: 0.5, fill: false, interactive: false, lineJoin: 'round' }} />,
           <Polygon key={`border-${iso}-${i}-casing`} positions={ring} pathOptions={{ color: '#0A0A0A', weight: 11, opacity: 0.9 * casingFade, fill: false, interactive: false, lineJoin: 'round' }} />,
-          <Polygon key={`border-${iso}-${i}-gold`} positions={ring} pathOptions={{ color: '#C99A3F', weight: 2.5, opacity: 0.9 * casingFade, fillColor: '#C99A3F', fillOpacity: 0.03 * casingFade, interactive: false, lineJoin: 'round' }} />,
+          <Polygon key={`border-${iso}-${i}-gold`} positions={ring} pathOptions={{ color: T.cardEdge, weight: 2.5, opacity: 0.9 * casingFade, fillColor: T.cardEdge, fillOpacity: 0.03 * casingFade, interactive: false, lineJoin: 'round' }} />,
         ]);
       })}
     </>
@@ -2020,8 +2020,8 @@ ${TRAIL_LINE_CSS}
 // pridávania, ktoré tento súbor importuje, takže tu stáť nemôže (bol by to kruh).
 
 // Inkoust na papyruse — jedna sada, nech sa neopakujú rgba čísla v päťdesiatich pravidlách.
-const P_INK = T.inkStrong;                      // #2a1608 — nadpisy, mená, hodnoty
-const P_DIM = T.inkWarm;                        // #7a5a2a — podriadky, eyebrow, meta
+const P_INK = T.inkStrong;                      // ${T.inkStrong} — nadpisy, mená, hodnoty
+const P_DIM = T.inkWarm;                        // ${T.inkWarm} — podriadky, eyebrow, meta
 const P_FAINT = 'rgba(42,22,8,0.42)';           // tretia úroveň (oddeľovače, „N ďalších")
 const P_BORDER = 'rgba(179,130,45,0.55)';       // rám poľa/pilulky (zhoda s `.pf-field`)
 const P_HAIR = 'rgba(179,130,45,0.26)';         // vlasová linka MEDZI prvkami (nie rám!)

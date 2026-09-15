@@ -17,8 +17,8 @@ import { useMemberProfile, memberDisplayName } from '@/components/pack/profile/m
 import { RightGate } from '@/components/pack/RightGate';
 
 const T = PACK_THEME;
-const GOLD = '#C99A3F';
-const INK = '#1F1A0E';
+const GOLD = T.cardEdge;
+const INK = T.ink;
 const DOG_FONT = "'Cinzel Decorative', 'Cinzel', serif";
 
 export const PARTY_CARD_CSS = `

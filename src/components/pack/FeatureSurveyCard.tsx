@@ -18,9 +18,9 @@ const FAIENCE = {
   core: '#1AA39A',
   deep: '#0F7E78',
 };
-const CREAM = '#FAF4EC';
+const CREAM = T.card;
 // Výsekové farby koláča — kontrastné na tyrkysovom pozadí (cream / faience light / brand gold)
-const SLICE_COLORS = ['#FAF4EC', '#5BD6D9', '#C99A3F'];
+const SLICE_COLORS = [T.card, '#5BD6D9', T.cardEdge];
 
 // Dáta sa zbierajú do konca tohto roku, potom sa stavia.
 const COLLECT_UNTIL = 'Dec 31, 2026';

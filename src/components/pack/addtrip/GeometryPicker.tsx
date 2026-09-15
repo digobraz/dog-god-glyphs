@@ -47,7 +47,7 @@ import {
   type SnapReason,
 } from './mapProxyClient';
 
-const GOLD = '#C99A3F';
+const GOLD = T.cardEdge;
 const GOLD_BRIGHT = '#F5C73D';
 
 /**
@@ -1987,7 +1987,7 @@ const DRAW_BAR_CSS = `
 /* ── HLÁSENIE „NEPODARILO SA PRICHYTIŤ" (Matej 2026-08-26) ──────────────────────────────
    „daj inú farbu písma na tento text: Couldn't snap — using straight line, lebo nie je
     vidno."
-   Stálo v GOLD (#C99A3F) — na papyrusovej doske PC je to zlatá na piesku, teda text,
+   Stálo v GOLD (${T.cardEdge}) — na papyrusovej doske PC je to zlatá na piesku, teda text,
    ktorý tam síce je, ale nikto ho neprečíta. A je to jediná veta, ktorá hovorí, že trasa
    NIE JE taká, akú ju človek klikol.
    ⚠️ Nie je to chybová hláška — appka funguje, len kreslí priamku. Preto tlmená výstražná
@@ -2110,10 +2110,10 @@ const DRAW_BAR_CSS = `
    šedej, ktorá na tmavom skle aj na papyruse vyzerá ako vypnutý prvok. */
 .trp-dbar-range{flex:2 1 0;min-width:0;min-height:41px;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;}
 .trp-dbar-range:focus{outline:none;}
-.trp-dbar-range:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 3px rgba(201,154,63,0.45);}
+.trp-dbar-range:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 3px ${T.border};}
 .trp-dbar-range:disabled{cursor:default;}
-.trp-dbar-range::-webkit-slider-runnable-track{height:4px;border-radius:999px;background:rgba(245,240,228,0.18);}
-.trp-dbar-range::-moz-range-track{height:4px;border-radius:999px;background:rgba(245,240,228,0.18);}
+.trp-dbar-range::-webkit-slider-runnable-track{height:4px;border-radius:999px;background:${T.onDarkBorder};}
+.trp-dbar-range::-moz-range-track{height:4px;border-radius:999px;background:${T.onDarkBorder};}
 .trp-dbar-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;margin-top:-9px;border-radius:50%;background:${GOLD};border:2px solid rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.5);}
 .trp-dbar-range::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:${GOLD};border:2px solid rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.5);}
 /* HOTOVO — brand CTA podľa .btn-gold locku: gradient 135°, radius 8, papyrusový rám. */
@@ -2274,7 +2274,7 @@ ${MAP_SKIN !== 'pale' ? '' : `
   .trp-dback{color:${PALE.dim};}
   .trp-dback:hover{color:${PALE.deep};}
   .trp-dbar-btn{background:${PALE.field};border-color:${PALE.border};color:${PALE.ink};}
-  .trp-dbar-btn:hover:not(:disabled){border-color:${PALE.deep};color:${PALE.deep};background:#FFF6E2;}
+  .trp-dbar-btn:hover:not(:disabled){border-color:${PALE.deep};color:${PALE.deep};background:${T.cardSoft};}
   /* ⚠️ DRÁHA JAZDCA JE BIELA NA 18 % — na papyruse ju nevidno vôbec, takže tu nesie
      vlastnú farbu, nie krytie. Hlavička ostáva zlatá (je to ovládač, nie výber), ale
      dostáva tmavší lem: biely obrys sa na piesku stráca a guľôčka vyzerá ako škvrna. */
@@ -2292,7 +2292,7 @@ ${MAP_SKIN !== 'pale' ? '' : `
      jednej obrazovke. Zhodný recept aj krytie ako aktívna bodka číselníka (.atl-step.on),
      lebo je to tá istá vec — „tu práve som / toto som si vybral". */
   .trp-dkind-btn{background:${PALE.field};border-color:${PALE.border};color:${PALE.ink};}
-  .trp-dkind-btn:hover{border-color:${PALE.deep};color:${PALE.deep};background:#FFF6E2;}
+  .trp-dkind-btn:hover{border-color:${PALE.deep};color:${PALE.deep};background:${T.cardSoft};}
   .trp-dkind-btn.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}font-weight:600;}
   .trp-dkind-btn.on:hover{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}}
   /* ── SPÄŤ O BOD A VYMAZAŤ SÚ TLAČIDLÁ, NIE ODKAZY (Matej 2026-08-26: „undo a clear tiež
@@ -2302,7 +2302,7 @@ ${MAP_SKIN !== 'pale' ? '' : `
      rám, papyrus namiesto lapisu), ale sú to naďalej tlačidlá: hlavnú akciu nad nimi drží
      lapisové HOTOVO, takže ich zvýraznenie mu nekonkuruje. */
   .trp-dbar-row--minor .trp-dbar-btn{background:${PALE.field};border-color:${PALE.border};color:${PALE.ink};}
-  .trp-dbar-row--minor .trp-dbar-btn:hover:not(:disabled){border-color:${PALE.deep};color:${PALE.deep};background:#FFF6E2;}
+  .trp-dbar-row--minor .trp-dbar-btn:hover:not(:disabled){border-color:${PALE.deep};color:${PALE.deep};background:${T.cardSoft};}
   .trp-dbar-btn:disabled{opacity:.45;}
   /* ── HLAVNÉ CTA JE LAPIS, NIE ZLATÉ (Matej 2026-08-26: „CTA oprav máme predsa modrú") ───
      Platí pre HOTOVO aj pre OZNAČ v kroku 2 — obe nesú .trp-dbar-done, teda jedno tlačidlo

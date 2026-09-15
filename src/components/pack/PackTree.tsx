@@ -254,7 +254,7 @@ function PrimaryDog({ dog }: { dog: DogNode }) {
             height: 36,
             borderRadius: 10,
             background: 'rgba(201, 154, 63, 0.12)',
-            border: `1px solid rgba(201, 154, 63, 0.45)`,
+            border: `1px solid ${T.border}`,
             color: T.accentGold,
             textDecoration: 'none',
           }}

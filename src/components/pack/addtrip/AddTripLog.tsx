@@ -56,7 +56,7 @@ import {
 } from './addTripModel';
 import { TRIP_CATEGORIES, chipsForCategory, chipsOf, otherChips, geometryForCategory, type TripChip } from '@/components/pack/tripCategories';
 
-const GOLD = '#C99A3F';
+const GOLD = T.cardEdge;
 
 /**
  * ── JEDNA FARBA OZNAČENIA V CELOM TOKU (Matej 2026-08-26) ─────────────────────────────────
@@ -3800,7 +3800,7 @@ const STEP_CSS = `
 /* Nevyplnené pole po NÁVRATE do kroku. Rám aj popisok, nie len rám — samotný červený obrys
    sa na tmavom povrchu prehliadne. */
 .atl-miss > label{color:#E08A7A;}
-.atl-miss .atl-input,.atl-miss .atl-diffrow,.atl-miss .atl-chips,.atl-miss .atl-photos{border-radius:9px;box-shadow:0 0 0 1px #B25640;}
+.atl-miss .atl-input,.atl-miss .atl-diffrow,.atl-miss .atl-chips,.atl-miss .atl-photos{border-radius:9px;box-shadow:0 0 0 1px ${T.alertRed};}
 .atl-donepill{margin-left:8px;padding:2px 9px;border-radius:999px;background:rgba(122,47,191,0.22);border:1px solid rgba(179,107,255,0.55);color:#E9D8FF;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;}
 /* ── STOPA P · N · T ───────────────────────────────────────────────────────────
    Tri diely na celú šírku (rad prvkov = celá šírka kontajnera, rovnaké diely).
@@ -3872,13 +3872,13 @@ const STEP_CSS = `
    sklenený panel. Výška je daná oknom, nie obsahom: text má rásť do plochy, ktorá už stojí,
    inak by sa pri písaní hýbalo tlačidlo pod ním. */
 .atl-editor-scrim{position:fixed;inset:0;z-index:1500;background:rgba(24,14,4,0.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px;}
-.atl-editor{display:flex;flex-direction:column;gap:12px;width:min(860px,100%);height:min(80vh,760px);padding:20px;border-radius:18px;background:linear-gradient(135deg,#FBF5E6 0%,#F2E2BD 100%);border:1.5px solid ${T.cardEdge};box-shadow:0 24px 64px rgba(0,0,0,0.55),0 0 0 3px rgba(201,154,63,0.15);}
-.atl-editor-head{display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#2a1608;}
-.atl-editor-x{border:0;background:transparent;color:#7a5a2a;font-size:22px;line-height:1;cursor:pointer;padding:0 4px;}
-.atl-editor-x:hover{color:#2a1608;}
-.atl-editor-area{flex:1 1 auto;min-height:0;resize:none;width:100%;box-sizing:border-box;padding:14px 16px;border-radius:8px;background:#FBF5E6;border:1px solid rgba(179,130,45,0.55);color:#2a1608;font-family:${FONT_UI};font-size:15px;line-height:1.6;}
+.atl-editor{display:flex;flex-direction:column;gap:12px;width:min(860px,100%);height:min(80vh,760px);padding:20px;border-radius:18px;background:linear-gradient(135deg,${T.card} 0%,#F2E2BD 100%);border:1.5px solid ${T.cardEdge};box-shadow:0 24px 64px rgba(0,0,0,0.55),0 0 0 3px rgba(201,154,63,0.15);}
+.atl-editor-head{display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:${T.inkStrong};}
+.atl-editor-x{border:0;background:transparent;color:${T.inkWarm};font-size:22px;line-height:1;cursor:pointer;padding:0 4px;}
+.atl-editor-x:hover{color:${T.inkStrong};}
+.atl-editor-area{flex:1 1 auto;min-height:0;resize:none;width:100%;box-sizing:border-box;padding:14px 16px;border-radius:8px;background:${T.card};border:1px solid rgba(179,130,45,0.55);color:${T.inkStrong};font-family:${FONT_UI};font-size:15px;line-height:1.6;}
 .atl-editor-area:focus{outline:none;border-color:${T.cardEdge};}
-.atl-editor-area::placeholder{color:#7a5a2a;opacity:.7;}
+.atl-editor-area::placeholder{color:${T.inkWarm};opacity:.7;}
 .atl-editor-done{flex:0 0 auto;align-self:flex-end;min-width:180px;}
 /* ── HODNOTENIE JE VÝRAZNEJŠIE (§5.3) ──────────────────────────────────────────────────
    Matej 2026-08-26: „hodnotenie musí byť tiež výraznejšie."
@@ -4292,7 +4292,7 @@ const LOG_CSS = `
 /* Pilulka s voľbou z kroku ČO — stojí v doku nad hľadaním miesta (drawBar.contextPill).
    Rám je ten istý, aký nesú polia a pilulky matrice: rgba(179,130,45,0.55) — jeden, nie dva. */
 .atl-ctxpill{align-self:center;display:inline-flex;align-items:center;gap:7px;height:26px;padding:0 12px;border-radius:999px;
-  background:rgba(255,250,240,0.72);border:1px solid rgba(179,130,45,0.55);color:#2a1608;
+  background:rgba(255,250,240,0.72);border:1px solid rgba(179,130,45,0.55);color:${T.inkStrong};
   font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;}
 .atl-chips--picks .atl-chip{height:46px;justify-content:flex-start;font-size:12px;padding:0 12px;}
 .atl-chips--picks .atl-chip-emoji{width:20px;flex:0 0 20px;font-size:17px;margin-right:9px;}
@@ -4449,7 +4449,7 @@ const { ink: P_INK, dim: P_DIM, edge: P_EDGE, deep: P_DEEP, border: P_BORDER, fi
 const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
   /* ── hlavička kroku ─────────────────────────────────────────────────────────────────── */
   .atl-log-back{background:${P_SOFT};border-color:${P_BORDER};color:${P_INK};}
-  .atl-log-back:hover{border-color:${P_EDGE};color:${P_DEEP};background:#FFFDF6;}
+  .atl-log-back:hover{border-color:${P_EDGE};color:${P_DEEP};background:${T.card};}
   .atl-log-title{color:${P_INK};}
 
   /* ── krokovník ──────────────────────────────────────────────────────────────────────── */
@@ -4467,7 +4467,7 @@ const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
   .atl-steps--onmap{background:linear-gradient(180deg,#F6EAD0,#E9D9AE);border:1.5px solid ${P_EDGE};box-shadow:0 8px 24px rgba(70,45,10,0.35);backdrop-filter:none;-webkit-backdrop-filter:none;}
 
   /* ── dlaždice výberu aktivity (krok 1) ──────────────────────────────────────────────── */
-  .atl-tile{background:linear-gradient(160deg,#FBF5E6 0%,#F3E4C4 55%,#EAD6A6 100%);border:1px solid ${P_EDGE};box-shadow:0 1px 3px rgba(122,90,42,0.10),inset 0 1px 0 rgba(255,255,255,0.40);}
+  .atl-tile{background:linear-gradient(160deg,${T.card} 0%,#F3E4C4 55%,#EAD6A6 100%);border:1px solid ${P_EDGE};box-shadow:0 1px 3px rgba(122,90,42,0.10),inset 0 1px 0 rgba(255,255,255,0.40);}
   .atl-tile:hover{background:linear-gradient(160deg,#FFFBF0 0%,#F6E9CF 55%,#EEDCB0 100%);border-color:${P_DEEP};box-shadow:0 0 0 3px rgba(201,154,63,0.26);}
   .atl-tile-label{color:${P_INK};}
   .atl-tile-note{color:${P_DIM};}
@@ -4507,7 +4507,7 @@ const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
      dôvod, prečo sa 26. 8. ráno siahlo po plnej farbe a večer sa to vrátilo späť. */
   /* ⚠️ MODRÁ TU DRŽÍ RÁM A INKOUST, NIE VÝPLŇ — a je to zámer locku, nie nedoladenosť.
      Nad piesok (#E8DCBB) sa akákoľvek TMAVÁ farba pri 20 % krytia zmieša na teplú šedú:
-     lapis #16307A dá (188,185,178), mapová modrá #2E5FD0 dá (191,193,192) — obe šedé.
+     lapis #16307A dá (188,185,178), mapová modrá ${T.brandBlueLite} dá (191,193,192) — obe šedé.
      Vyskúšané 27. 8., preto to netreba skúšať znova: hue sa nedá zachrániť odtieňom,
      len vysokým krytím, a plná farba je vyhradená hlavnému CTA (lock 26. 8.). */
   .atl-odyssey{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.20)}}
@@ -4593,7 +4593,7 @@ const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
   /* Rozlúčka s AINUBISOM (.atl-abort--ainubis) sa ZÁMERNE nemení: je to jeho vlastný modrý
      povrch, rovnaký ako v konzole, a pale skin mapy naň nesiaha. */
   .atl-abort-scrim{background:rgba(24,14,4,0.55);}
-  .atl-abort:not(.atl-abort--ainubis){background:linear-gradient(135deg,#FBF5E6 0%,#F2E2BD 100%);border:1.5px solid ${P_EDGE};box-shadow:0 8px 28px rgba(0,0,0,0.45),0 0 0 3px rgba(201,154,63,0.15);}
+  .atl-abort:not(.atl-abort--ainubis){background:linear-gradient(135deg,${T.card} 0%,#F2E2BD 100%);border:1.5px solid ${P_EDGE};box-shadow:0 8px 28px rgba(0,0,0,0.45),0 0 0 3px rgba(201,154,63,0.15);}
   .atl-abort:not(.atl-abort--ainubis) h2{color:${P_INK};}
   .atl-abort:not(.atl-abort--ainubis) p{color:${P_DIM};}
   .atl-abort:not(.atl-abort--ainubis) .atl-abort-quit{background:rgba(176,52,40,0.14);border-color:rgba(176,52,40,0.65);color:#8E2A20;}

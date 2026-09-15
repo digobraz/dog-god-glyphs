@@ -75,7 +75,7 @@ ${MAP_SKIN !== 'pale' ? '' : `
   /* Rám poľa drží MODRÚ aj na papyruse — obieha po ňom modré svetlo a zlatý rám
      pod ním by z toho spravil dve rôzne farby na jednom obryse. */
   .trp-ps.is-attn .trp-ps-input{border-color:${GLOW_DIM};}
-  .trp-ps-sug{background:linear-gradient(135deg,#FBF5E6 0%,#F2E2BD 100%);border:1.5px solid ${PALE.edge};box-shadow:0 8px 28px rgba(0,0,0,0.45),0 0 0 3px rgba(201,154,63,0.15);backdrop-filter:none;-webkit-backdrop-filter:none;}
+  .trp-ps-sug{background:linear-gradient(135deg,${T.card} 0%,#F2E2BD 100%);border:1.5px solid ${PALE.edge};box-shadow:0 8px 28px rgba(0,0,0,0.45),0 0 0 3px rgba(201,154,63,0.15);backdrop-filter:none;-webkit-backdrop-filter:none;}
   .trp-ps-sugitem{color:${PALE.ink};}
   .trp-ps-sugitem:hover{background:${PALE.hot};}
   .trp-ps-sugitem + .trp-ps-sugitem{border-top:1px solid ${PALE.hair};}

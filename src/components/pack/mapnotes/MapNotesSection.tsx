@@ -17,7 +17,7 @@ import { notesForTrail, isDatasetNote } from './mapNotesGeo';
 import { FONT_EMOJI, MARK_EMOJI, threatEmoji } from './markEmoji';
 import { GROUP_TINT, HAZARD_RED, noteTint } from './NotePalette';
 
-const GOLD = '#C99A3F';
+const GOLD = T.cardEdge;
 
 // Farbu značky nesie `noteTint()` z NotePalette — jediný zdroj pre mapu aj tento
 // zoznam. Vlastná kópia tu bola do 22. 8. a raz sa už rozišla: v článku svietili

@@ -22,7 +22,7 @@ import type { HeroTrail } from '@/data/heroTrails.generated';
 import { searchDestinations, nearestTrails, describeTrails, type DestinationHit } from './tripSearch';
 import { BackButton } from '@/components/pack/BackButton';
 
-const GOLD = '#C99A3F';
+const GOLD = T.cardEdge;
 /** Meno psa/výletu = Cinzel Decorative je rezervované pre psov; trip nesie Cinzel (brand v3.2). */
 const TRAIL_LINE = { light: '#B98CE8', core: '#F2E9FF' };
 

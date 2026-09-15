@@ -198,7 +198,7 @@ const CSS = `
 /* Zrkadlo .pta-back — rovnaká výška aj tvar, aby hero mal dva rovnocenné rohy a nie jeden
    ovládač a jednu ozdobu. Zlatý inkoust hovorí „toto je tvoje", nie „pozor". */
 .pta-edit{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);right:18px;z-index:5;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.55);border:1px solid rgba(201,154,63,0.55);color:#E9C46A;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;}
-.pta-edit:hover{border-color:#C99A3F;color:#F5C73D;}
+.pta-edit:hover{border-color:${T.cardEdge};color:#F5C73D;}
 /* iterácia 15 (Matej 2026-07-27): akčný rad je VON z hero fotky — sedí v glass paneli NAD
    stat tabuľkou (km/prevýšenie). Dôvod: ghost tlačidlá na fotke boli „slabo viditeľné a biedne",
    plné farby na tmavom paneli čítajú lepšie a fotka ostáva čistá.
@@ -348,7 +348,7 @@ const CSS = `
    Inkoust je tmavý a písmo o stupeň väčšie; jemný lift dáva pilulke telo bez toho,
    aby si pýtala pozornosť ako tlačidlo. */
 /* ZLATÉ, NECH VYNIKNÚ (Matej 1. 9. 2026: „dal by som ich asi zlatou nech vyniknú
-   — všade, nie len tu, celý blog"). Gradient je brandová rampa okolo tokenu "#C99A3F",
+   — všade, nie len tu, celý blog"). Gradient je brandová rampa okolo tokenu "${T.cardEdge}",
    NIE locknutý gradient tlačidla "#F5C73D→#E69E1A": ten je zlatooranžový, patrí tlačidlu
    a Matej si tú zmes spája s AINUBISOM. Chip nie je tlačidlo — nedá sa naň kliknúť a
    nemá stav, je to menovka. Preto plná plocha, ale v tmavšej brandovej zlatej.
@@ -436,7 +436,7 @@ body.pta-mapfull .pta-shell{z-index:1100;}
 .pta-section{margin-top:28px;}
 /* #41 — blok jednej partie (organizátor + kto s ním ide) */
 .pta-host + .pta-host{margin-top:10px;}
-/* Nadpis sekcie na papyruse: zlatá je tmavšia ("#8a5a14"), nie brandová "#C99A3F" —
+/* Nadpis sekcie na papyruse: zlatá je tmavšia ("#8a5a14"), nie brandová "${T.cardEdge}" —
    tá je na svetlom podklade len o niečo tmavšia než sám papyrus a stráca sa. */
 .pta-section h3{font-family:${FONT_UI};font-weight:500;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:#8a5a14;margin-bottom:8px;}
 .pta-empty{font-size:12.5px;color:${T.inkWarm};font-style:italic;}
@@ -471,7 +471,7 @@ body.pta-mapfull .pta-shell{z-index:1100;}
    nie druhá farba: stav „už je v zozname" je viac toho istého, nie niečo iné. */
 .pta-actbtn--gold{background:rgba(201,154,63,0.14);color:#6E4A12;border-color:${T.border};box-shadow:inset 0 0 0 1px rgba(201,154,63,0.35);}
 .pta-actbtn--gold:hover{background:rgba(201,154,63,0.22);}
-.pta-actbtn--gold.on{background:rgba(201,154,63,0.30);color:#4A2F08;border-color:${T.cardEdge};}
+.pta-actbtn--gold.on{background:${T.hairline};color:#4A2F08;border-color:${T.cardEdge};}
 /* SHARE = vedľajšia akcia ⇒ papyrusový outline. Ghost s bielym krytím (starý recept)
    je na papyruse neviditeľný — priesvitná biela na svetlom podklade nekreslí nič.
    → [[feedback_svetly_povrch_zabija_priesvitnost]] */

@@ -77,11 +77,11 @@ export const INBOX_CSS = `
 .msg-row:last-child{margin-bottom:0;}
 .msg-row:hover{transform:translateY(-1px);box-shadow:var(--msg-block-hover);}
 .msg-row:focus-visible{outline:none;box-shadow:var(--msg-block-hover);}
-/* Avatar bez fotky = zlatá PLOCHA, teda brandová rampa okolo #C99A3F — NIE gradient .btn-gold
+/* Avatar bez fotky = zlatá PLOCHA, teda brandová rampa okolo ${T.cardEdge} — NIE gradient .btn-gold
    (#F5C73D->#E69E1A). Ten je locknutý pre TLAČIDLO, kde je malý a lesklý, takže sa číta ako
    svetlo; tá istá zmes na súvislej ploche je žltá a Matej si ju spája s AINUBISOM (lock 28. 8.).
    Rampa drží v oboch šatoch — je to identita psa, nie povrch stránky. */
-.msg-avatar{flex-shrink:0;width:42px;height:42px;border-radius:50%;background:linear-gradient(140deg,#C99A3F,#A3782B);background-size:cover;background-position:center;border:1px solid rgba(179,130,45,0.55);box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:16px;color:#FBF5E6;}
+.msg-avatar{flex-shrink:0;width:42px;height:42px;border-radius:50%;background:linear-gradient(140deg,${T.cardEdge},#A3782B);background-size:cover;background-position:center;border:1px solid rgba(179,130,45,0.55);box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:16px;color:${T.card};}
 .msg-row-mid{flex:1;min-width:0;}
 .msg-row-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
 .msg-row-name{font-weight:700;font-size:13.5px;color:var(--msg-block-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -96,7 +96,7 @@ export const INBOX_CSS = `
    v PackNotifications). Bez prstenca by na zlatkasto tónovanom riadku splynula.
    Nie je to lapis: lapis znamená „moja voľba / moja akcia", a neprečítaná správa
    nie je ani jedno — je to stav. */
-.msg-dot{flex-shrink:0;width:9px;height:9px;border-radius:50%;background:${T.accentGold};box-shadow:0 0 0 2px #FBF5E6;}
+.msg-dot{flex-shrink:0;width:9px;height:9px;border-radius:50%;background:${T.accentGold};box-shadow:0 0 0 2px ${T.card};}
 .msg-tagchip{display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-family:${FONT_TITLE};font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:rgba(201,154,63,0.20);border:1px solid rgba(179,130,45,0.55);color:#8A5F1E;white-space:nowrap;}
 .msg-tagchip--click{cursor:pointer;}
 .msg-tagchip--click:hover{background:rgba(201,154,63,0.32);border-color:${T.cardEdge};}

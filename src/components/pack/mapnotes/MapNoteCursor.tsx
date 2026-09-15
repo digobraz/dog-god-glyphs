@@ -37,7 +37,7 @@ import { GROUP_EMOJI } from './markEmoji';
 import { GROUP_TINT } from './NotePalette';
 import type { NoteGroup, NoteKind } from './mapNotesData';
 
-const GOLD = '#C99A3F';
+const GOLD = T.cardEdge;
 /**
  * Priblíženie, od ktorého sa prstenec začne uzatvárať.
  * Drží sa 4 stupne pod prahom — pri väčšom rozpätí sa kruh na jeden krok zoomu
@@ -265,7 +265,7 @@ export const MAP_NOTE_CURSOR_CSS = `
 .mnc.is-ready .mnc-arc{stroke:rgba(61,31,0,0.35);}
 .mnc.is-ready .mnc-mark{filter:drop-shadow(0 0 10px rgba(245,199,61,0.55)) drop-shadow(0 2px 6px rgba(0,0,0,0.45));transform:scale(1.08);}
 
-.mnc-tip{position:absolute;left:${13 + BOX + 8}px;top:${4 + C}px;transform:translateY(-50%);white-space:nowrap;padding:5px 9px;border-radius:999px;background:rgba(5,5,5,0.92);border:1px solid rgba(201,154,63,0.45);font-family:${FONT_UI};font-size:10.5px;letter-spacing:.02em;color:${T.onDark};box-shadow:0 4px 14px rgba(0,0,0,0.45);}
+.mnc-tip{position:absolute;left:${13 + BOX + 8}px;top:${4 + C}px;transform:translateY(-50%);white-space:nowrap;padding:5px 9px;border-radius:999px;background:rgba(5,5,5,0.92);border:1px solid ${T.border};font-family:${FONT_UI};font-size:10.5px;letter-spacing:.02em;color:${T.onDark};box-shadow:0 4px 14px rgba(0,0,0,0.45);}
 /* Dotykové zariadenia kurzor nemajú — tam nápovedu nesie MapNoteHint. */
 @media (hover:none){.mnc{display:none;}}
 

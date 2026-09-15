@@ -46,8 +46,8 @@ import { reportContent, type ReportReason } from '@/components/pack/messaging/pa
 import { useMyDogRights } from '@/lib/dogRights';
 
 const T = PACK_THEME;
-const GOLD = '#C99A3F';
-const INK = '#1F1A0E';
+const GOLD = T.cardEdge;
+const INK = T.ink;
 const PAGE_SIZE = 5;
 
 // DRAK → BRIGHT (2026-09-01): recenzie a rady stoja na DVOCH povrchoch — v článku
@@ -66,7 +66,7 @@ export const TRIP_COMMENTS_CSS = `
 .tcm-empty{text-align:center;padding:20px 8px;color:${T.inkWarm};font-size:12px;font-style:italic;}
 .tcm-review{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid ${T.hairline};}
 .tcm-review:last-child{border-bottom:none;}
-.tcm-review.mine{cursor:pointer;border:1px solid rgba(201,154,63,0.45);background:rgba(201,154,63,0.07);border-radius:10px;padding:11px 12px;margin-bottom:4px;}
+.tcm-review.mine{cursor:pointer;border:1px solid ${T.border};background:rgba(201,154,63,0.07);border-radius:10px;padding:11px 12px;margin-bottom:4px;}
 .tcm-review.mine:hover{border-color:${GOLD};}
 .tcm-avatar{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:12px;color:${INK};}
 .tcm-review-main{flex:1;min-width:0;}
@@ -78,7 +78,7 @@ export const TRIP_COMMENTS_CSS = `
 .tcm-review-text{font-size:12px;line-height:1.5;color:rgba(42,22,8,0.86);margin-top:5px;}
 .tcm-advice{padding:11px 0;border-bottom:1px solid ${T.hairline};}
 .tcm-advice:last-child{border-bottom:none;}
-.tcm-advice.mine{border:1px solid rgba(201,154,63,0.45);background:rgba(201,154,63,0.07);border-radius:10px;padding:11px 12px;margin-bottom:4px;}
+.tcm-advice.mine{border:1px solid ${T.border};background:rgba(201,154,63,0.07);border-radius:10px;padding:11px 12px;margin-bottom:4px;}
 .tcm-advice-text{font-size:12.5px;line-height:1.5;color:rgba(42,22,8,0.86);}
 .tcm-advice-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:10.5px;color:${T.inkWarm};margin-top:5px;}
 .tcm-advice-del{flex-shrink:0;background:none;border:none;color:${T.inkWarm};font-size:14px;line-height:1;cursor:pointer;padding:0 2px;}
@@ -129,7 +129,7 @@ export const TRIP_COMMENTS_CSS = `
 .tcm-field{margin-bottom:16px;}
 .tcm-label{display:block;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.cardEdge};margin-bottom:9px;}
 .tcm-pawpick{display:flex;justify-content:center;}
-.tcm-textarea{width:100%;background:#FBF5E6;border:1px solid rgba(179,130,45,0.55);border-radius:8px;padding:10px 12px;color:${T.inkStrong};font-family:inherit;font-size:13px;outline:0;resize:vertical;min-height:72px;}
+.tcm-textarea{width:100%;background:${T.card};border:1px solid rgba(179,130,45,0.55);border-radius:8px;padding:10px 12px;color:${T.inkStrong};font-family:inherit;font-size:13px;outline:0;resize:vertical;min-height:72px;}
 .tcm-textarea:focus{border-color:${GOLD};}
 /* Odoslanie v modáli = hlavné CTA toho panela ⇒ tiež lapis, nech sa cesta „pridaj
    hodnotenie → odošli" nemení farbu uprostred. */

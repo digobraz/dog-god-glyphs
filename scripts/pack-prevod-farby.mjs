@@ -86,47 +86,134 @@ const FILES = zbierajSubory(SRC).filter(
     !RECEPT.some((r) => rel.startsWith(r)),
 );
 
-/* Meno, pod ktorým má súbor tému v ruke: `const T = PACK_THEME` alebo priamo. */
-function alias(src) {
-  if (/\bconst\s+T\s*=\s*PACK_THEME\b/.test(src)) return 'T';
-  if (/\bPACK_THEME\b/.test(src)) return 'PACK_THEME';
+/* Meno, pod ktorým má súbor tému v ruke — A OD KTORÉHO MIESTA.
+ *
+ * Tri poruchy, ktoré sa sem zmestili pri rozšírení na celý `/pack` (15. 9. 2026);
+ * pri štyroch povrchoch kola 0 sa ani jedna nevyskytla:
+ *   1. `import { PACK_THEME as T }` — stará vetva „obsahuje slovo PACK_THEME"
+ *      zapísala `PACK_THEME.card` do súboru, kde je naviazané iba `T`. 16 súborov.
+ *   2. Slovo `PACK_THEME` LEN V KOMENTÁRI (`calendarModel.ts`, `packProfile.ts`)
+ *      — codemod z toho usúdil, že téma je po ruke, a vyrobil `Cannot find name`.
+ *      Preto sa väzba hľadá iba v KÓDE, nie v komentári.
+ *   3. `const T = PACK_THEME` STOJÍ AŽ POD prvou farbou (`PackTriplist`, `PackMap`,
+ *      `PackTripArticle` majú CSS literál nad deklaráciou) — `T` sa použilo pred
+ *      deklaráciou. Preto sa vracia aj `odKde` a všetko nad ním sa preskočí. */
+function alias(src, ST) {
+  const vKode = (m) => m && ST[m.index] === KOD;
+  const kandidati = [
+    [/import\s*\{[^}]*\bPACK_THEME\s+as\s+T\b[^}]*\}[^;\n]*;/, 'T'],
+    [/\bconst\s+T\s*=\s*PACK_THEME\b[^;\n]*;/, 'T'],
+    [/import\s*\{[^}]*\bPACK_THEME\b[^}]*\}[^;\n]*;/, 'PACK_THEME'],
+  ];
+  for (const [re, meno] of kandidati) {
+    const m = src.match(re);
+    if (vKode(m)) return { meno, odKde: m.index + m[0].length };
+  }
   return null;
 }
 
-/* V template literáli sa píše `${T.x}`, v obyčajnom výraze `T.x`.
- * Rozlíšenie: počet apostrofovaných úvodzoviek pred pozíciou — nepresné pri
- * backticku v komentári, preto to na konci overuje spätná expanzia. */
-const inTemplate = (src, i) => (src.slice(0, i).match(/`/g) || []).length % 2 === 1;
+/* ── KDE V SÚBORE TÁ FARBA LEŽÍ ──────────────────────────────────────────────
+ * Do 15. 9. 2026 to rozhodoval počet spätných apostrofov pred pozíciou. Ten
+ * odhad na štyroch povrchoch kola 0 vydržal, na celom `/pack` spravil DVE
+ * poruchy, ktoré spätná expanzia NECHYTÍ (obe expandujú naspäť na tú istú
+ * hodnotu, takže dôkaz o nich nevie):
+ *
+ *   1. KOMENTÁR so spätným apostrofom. `// predtým bola zlatá \`#C99A3F\``
+ *      sa prepísal na `\${T.cardEdge}` — kód beží rovnako, ale veta prestala
+ *      dávať zmysel a doklad o histórii je preč.
+ *   2. REŤAZEC VNÚTRI template literálu. V
+ *      `` `1.5px solid ${xs ? 'rgba(…,0.28)' : 'rgba(…,0.45)'}` ``
+ *      je tá druhá farba v obyčajných úvodzovkách, hoci naokolo beží template.
+ *      Odhad povedal „si v template", vložil `\${T.border}` do apostrofov —
+ *      a z rámu sa stal doslovný text `1.5px solid \${T.border}`, teda NEPLATNÉ
+ *      CSS. Prvok prišiel o okraj a nikto by si toho v dôkaze nevšimol.
+ *
+ * Preto sa súbor jednoducho prejde znak po znaku a každá pozícia dostane stav.
+ * Porucha tohto skenera sa prejaví ako „preskočené", nie ako „prepísané zle":
+ * mimo template sa nahrádza iba vtedy, keď je farba CELÝM reťazcom. */
+const KOD = 0, RIADKOVY = 1, BLOKOVY = 2, APOSTROF = 3, UVODZOVKY = 4, TEMPLATE = 5;
+function stavy(src) {
+  const st = new Uint8Array(src.length);
+  let mode = KOD, hlbka = 0, i = 0;
+  const ramy = [];                                   // zanorenie `${ … }` v template
+  while (i < src.length) {
+    const c = src[i], d = src[i + 1];
+    if (mode === KOD) {
+      if (c === '/' && d === '/') { while (i < src.length && src[i] !== '\n') st[i++] = RIADKOVY; continue; }
+      if (c === '/' && d === '*') {
+        st[i++] = BLOKOVY; st[i++] = BLOKOVY;
+        while (i < src.length && !(src[i] === '*' && src[i + 1] === '/')) st[i++] = BLOKOVY;
+        if (i < src.length) { st[i++] = BLOKOVY; st[i++] = BLOKOVY; }
+        continue;
+      }
+      st[i] = KOD;
+      if (c === "'") { mode = APOSTROF; i++; continue; }
+      if (c === '"') { mode = UVODZOVKY; i++; continue; }
+      if (c === '`') { mode = TEMPLATE; i++; continue; }
+      if (c === '{') hlbka++;
+      else if (c === '}') {
+        if (hlbka === 0 && ramy.length) { hlbka = ramy.pop(); mode = TEMPLATE; i++; continue; }
+        hlbka--;
+      }
+      i++; continue;
+    }
+    if (mode === APOSTROF || mode === UVODZOVKY) {
+      st[i] = mode;
+      if (c === '\\') { if (i + 1 < src.length) st[i + 1] = mode; i += 2; continue; }
+      if ((mode === APOSTROF && c === "'") || (mode === UVODZOVKY && c === '"')) { mode = KOD; i++; continue; }
+      i++; continue;
+    }
+    /* TEMPLATE */
+    st[i] = TEMPLATE;
+    if (c === '\\') { if (i + 1 < src.length) st[i + 1] = TEMPLATE; i += 2; continue; }
+    if (c === '`') { mode = KOD; i++; continue; }
+    if (c === '$' && d === '{') { st[i + 1] = KOD; ramy.push(hlbka); hlbka = 0; mode = KOD; i += 2; continue; }
+    i++;
+  }
+  return st;
+}
 
 let totalHits = 0, totalFiles = 0, blocked = [], blizkeHits = 0, blizkeKde = [];
 
 for (const rel of FILES) {
   const abs = SRC + rel;
   const orig = readFileSync(abs, 'utf8');
-  const A = alias(orig);
-  if (!A) continue;
-
-  let out = '', last = 0, hits = 0;
+  const ST = stavy(orig);
+  const vazba = alias(orig, ST);
+  if (!vazba) continue;
+  const { meno: A, odKde } = vazba;
+  let out = '', last = 0, hits = 0, bhits = 0;
   /* Dvojité úvodzovky sa NECHYTAJÚ zámerne — v JSX je to atribút
    * (`stopColor="#1034A6"`) a ten by potreboval zložené zátvorky, nie holý
    * výraz. Jedna trieda zápisu navyše za jednu farbu nestojí. */
-  const re = /'(#[0-9A-Fa-f]{6})'|#[0-9A-Fa-f]{6}\b|rgba?\([^)]*\)/g;
+  const re = /'(#[0-9A-Fa-f]{6})'|'(rgba?\([^)']*\))'|#[0-9A-Fa-f]{6}\b|rgba?\([^)]*\)/g;
   for (const m of orig.matchAll(re)) {
     const whole = m[0];
-    const quoted = m[1];                   // celý reťazec je farba → `T.x`
+    const quoted = m[1] || m[2];           // celý reťazec je farba → `T.x`
     const val = quoted || whole;
-    const tok = BY_VAL[norm(val)];
-    if (!tok) continue;
-
     const i = m.index;
+
+    /* Presná zhoda s tokenom (nulová zmena) má prednosť pred zjednotením
+     * papyrusových bielych — `#FBF5E6` JE `T.card`, netreba ho „približovať". */
+    const tok = BY_VAL[norm(val)];
+    const blizky = tok ? null : BLIZKE[val.toUpperCase()];
+    if (!tok && !blizky) continue;
+    const meno = tok || blizky;
+
+    /* Komentár sa neprepisuje NIKDY — kód by bežal rovnako, ale veta o tom,
+     * prečo tá farba kedysi bola taká, by prestala dávať zmysel.
+     * Nad väzbou tiež nie — tam to meno ešte neexistuje. */
+    const kde = ST[i];
+    if (kde === RIADKOVY || kde === BLOKOVY || i < odKde) continue;
+
     let repl;
-    if (quoted) repl = `${A}.${tok}`;                       // 'x' → T.x
-    else if (inTemplate(orig, i)) repl = `\${${A}.${tok}}`; // v `…` → ${T.x}
-    else continue;                                          // vnútri '…' s textom — necháme
+    if (quoted && kde === KOD) repl = `${A}.${meno}`;        // 'x' → T.x
+    else if (!quoted && kde === TEMPLATE) repl = `\${${A}.${meno}}`; // v `…` → ${T.x}
+    else continue;   // farba je kus dlhšieho reťazca — bez prepisu na template sa nedá
 
     out += orig.slice(last, i) + repl;
     last = i + whole.length;
-    hits++;
+    if (tok) hits++; else bhits++;
   }
   out += orig.slice(last);
 
@@ -143,14 +230,23 @@ for (const rel of FILES) {
     }
     return s;
   };
+  /* Papyrusové biele sa na OBOCH stranách zrovnajú na cieľový token. Tá zmena je
+   * zámer a je vypísaná zvlášť; dôkaz má strážiť to DRUHÉ — že codemod okrem nej
+   * nesiahol na nič iné. Bez tohto kroku by každý súbor s bielou skončil
+   * v „NEZAPÍSANÉ" a spolu s ním aj presné zhody, ktoré dokázané SÚ. */
+  const zrovnaj = (s) => {
+    for (const [lit, meno] of Object.entries(BLIZKE))
+      s = s.split(lit.toLowerCase()).join(norm(TOK[meno]));
+    return s;
+  };
   /* Porovnáva sa cez `norm` (malé písmená, bez medzier): `#2A1608` vs `#2a1608`
    * a `rgba(201,154,63,.3)` vs `rgba(201, 154, 63, 0.30)` sú pre prehliadač tá
    * istá farba. Codemod nerobí nič okrem výmeny farieb, takže uvoľnenie na
    * veľkosť písmen a medzery nezakrýva žiadnu inú zmenu. */
-  if (hits && norm(expand(out)) !== norm(expand(orig))) {
+  if ((hits || bhits) && zrovnaj(norm(expand(out))) !== zrovnaj(norm(expand(orig)))) {
     blocked.push(rel);
     if (process.argv.includes('--preco')) {
-      const a = norm(expand(out)), b = norm(expand(orig));
+      const a = zrovnaj(norm(expand(out))), b = zrovnaj(norm(expand(orig)));
       let i = 0; while (a[i] === b[i] && i < a.length) i++;
       console.log(`   ↳ ${rel} — rozchod na ${i}`);
       console.log(`     nový : …${a.slice(Math.max(0, i - 50), i + 50)}`);
@@ -159,21 +255,6 @@ for (const rel of FILES) {
     continue;
   }
 
-  /* ── DRUHÝ PRIECHOD: papyrusové biele ────────────────────────────────────
-   * Beží AŽ TU, po dôkaze — keby šiel spolu s presnými zhodami, spätná
-   * expanzia by ho vyhlásila za rozchod a zablokovala by aj to, čo je dokázané.
-   * Vlastný zoznam zásahov preto nahrádza dôkaz: každá zmena je vypísaná. */
-  let bhits = 0;
-  for (const [lit, tokk] of Object.entries(BLIZKE)) {
-    const reB = new RegExp(`'${lit}'|${lit}\\b`, 'gi');
-    out = out.replace(reB, (m, i, s) => {
-      const je = m.startsWith("'");
-      const repl = je ? `${A}.${tokk}` : (inTemplate(s, i) ? `\${${A}.${tokk}}` : null);
-      if (!repl) return m;                 // vnútri '…' s textom — necháme
-      bhits++;
-      return repl;
-    });
-  }
   if (bhits) blizkeKde.push(`${String(bhits).padStart(3)}  ${rel}`);
   blizkeHits += bhits;
 

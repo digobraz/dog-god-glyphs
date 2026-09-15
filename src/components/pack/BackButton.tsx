@@ -52,7 +52,7 @@ export type BackTone = 'pale' | 'dark' | 'scrim';
 const TONE: Record<BackTone, { bg: string; border: string; ink: string; hoverBg: string; hoverBorder: string; hoverInk: string }> = {
   pale: {
     bg: PALE.soft, border: PALE.border, ink: PALE.ink,
-    hoverBg: '#FFFDF6', hoverBorder: T.cardEdge, hoverInk: PALE.deep,
+    hoverBg: T.card, hoverBorder: T.cardEdge, hoverInk: PALE.deep,
   },
   dark: {
     bg: 'rgba(245,240,228,0.07)', border: T.onDarkBorder, ink: T.onDark,

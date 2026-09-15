@@ -18,7 +18,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { NOTE_GROUPS, groupOf, type NoteGroup, type NoteKind, type TickDisease } from './mapNotesData';
 import { FONT_EMOJI, GROUP_EMOJI } from './markEmoji';
 
-const GOLD = '#C99A3F';
+const GOLD = T.cardEdge;
 const PARK_BLUE = T.brandBlueLite;
 /** Červená upozornenia. Jediný zdroj — `MapNotesLayer`/`MapNotesSection` si ju zatiaľ držia
  *  vlastnou kópiou, čo je dlh zapísaný v audite vysvetliviek. */
@@ -155,7 +155,7 @@ ${MAP_SKIN !== 'pale' ? '' : `
    výplň rgba(245,240,228,0.04) a názov svetlý inkoust, teda takmer biele na piesku.
    ⚠️ Media query zanikla 28. 8. 2026 — oba hostitelia sú bledí na každej šírke. */
   .np-item{background:${PALE.field};border-color:${PALE.border};}
-  .np-item:hover{border-color:${PALE.deep};background:#FFF6E2;}
+  .np-item:hover{border-color:${PALE.deep};background:${T.cardSoft};}
   .np-name{color:${PALE.ink};}
   .np-text{color:${PALE.dim};}
 `}

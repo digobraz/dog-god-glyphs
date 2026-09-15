@@ -22,7 +22,7 @@ import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackBut
 import { RightGate } from '@/components/pack/RightGate';
 import type { PawmateRight } from '@/lib/pawmateRights';
 
-const GOLD = '#C99A3F'; // §8: hover na aktívnej dlaždici = zlatý okraj, presne tento hex
+const GOLD = T.cardEdge; // §8: hover na aktívnej dlaždici = zlatý okraj, presne tento hex
 
 // §2: kontrakt komponentu rozšírený nad rámec TRIP-only. `kind: 'event'` teraz emituje reálnu
 // voľbu (druhá úroveň EVENT_BLOCKS) — volajúci (PackMap.tsx) ju napája na `AddEvent` formulár

@@ -485,7 +485,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
             {eyebrow}
           </p>
 
-          <h3 style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 30, lineHeight: 1.08, letterSpacing: '0.02em', textTransform: 'uppercase', color: '#FFF6E2', margin: 0, textShadow: '0 4px 26px rgba(0,0,0,0.9)' }}>
+          <h3 style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 30, lineHeight: 1.08, letterSpacing: '0.02em', textTransform: 'uppercase', color: T.cardSoft, margin: 0, textShadow: '0 4px 26px rgba(0,0,0,0.9)' }}>
             {trail.name}
           </h3>
 

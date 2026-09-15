@@ -17,8 +17,8 @@ import { PartyMemberCard } from '@/components/pack/triplist/PartyMemberCard';
 import type { PartyMember } from '@/components/pack/triplist/useTripParty';
 
 const T = PACK_THEME;
-const GOLD = '#C99A3F';
-const INK = '#1F1A0E';
+const GOLD = T.cardEdge;
+const INK = T.ink;
 
 export const TRIP_CREATOR_CSS = `
 .tcp-back{position:fixed;inset:0;z-index:1400;background:rgba(8,7,5,0.72);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;}

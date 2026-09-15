@@ -24,7 +24,7 @@ import {
   type AddEventDraft, type EventKind, type EventOrigin,
 } from './eventModel';
 
-const GOLD = '#C99A3F';
+const GOLD = T.cardEdge;
 const GOLD_BRIGHT = '#F5C73D';
 
 export type AddEventProps = {
@@ -405,7 +405,7 @@ const PALE_AEV_CSS = MAP_SKIN !== 'pale' ? '' : `
 /* Vybraná pilulka = priesvitný tint, nie plná farba (LOCKED 2026-08-26) — plná výplň je
    vyhradená jedinému hlavnému CTA na doske, a to je PRIDAŤ PODUJATIE dole. */
 .aev-pill.on{background:rgba(201,154,63,0.22);border-color:${PALE.edge};color:${PALE.ink};}
-.aev-suggest{background:#FFFDF6;border-color:${PALE.border};box-shadow:0 12px 32px rgba(122,90,42,0.28);}
+.aev-suggest{background:${T.card};border-color:${PALE.border};box-shadow:0 12px 32px rgba(122,90,42,0.28);}
 .aev-suggest-item{border-bottom-color:${PALE.hair};}
 .aev-suggest-item:hover{background:rgba(201,154,63,0.12);}
 .aev-suggest-name{color:${PALE.ink};}

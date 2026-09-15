@@ -1193,7 +1193,7 @@ function SendStep({
               background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
               border: '1px solid rgba(250,244,236,0.30)',
               borderRadius: 8,
-              color: '#1F1A0E',
+              color: T.ink,
               padding: '11px 16px',
               fontFamily: FONT_TITLE,
               fontSize: 11.5,
@@ -1804,7 +1804,7 @@ function Node({
     fontSize: me ? 15 : xs ? 10 : 12,
     color: T.inkWarm,
     background: xs ? 'rgba(201,154,63,0.10)' : 'rgba(201,154,63,0.18)',
-    border: `1.5px solid ${xs ? 'rgba(201,154,63,0.28)' : 'rgba(201,154,63,0.45)'}`,
+    border: `1.5px solid ${xs ? 'rgba(201,154,63,0.28)' : T.border}`,
   };
   if (ghost) {
     // Prerušovaný zlatý ring drží čitateľnú informáciu „toto miesto je voľné",

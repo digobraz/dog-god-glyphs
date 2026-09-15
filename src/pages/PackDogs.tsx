@@ -1231,7 +1231,7 @@ function NatureHero({
           className="hub-hero-title"
           style={{
             fontFamily: FONT_TITLE, fontWeight: 700, lineHeight: 1.08,
-            letterSpacing: '0.02em', textTransform: 'uppercase', color: '#FFF6E2',
+            letterSpacing: '0.02em', textTransform: 'uppercase', color: T.cardSoft,
             // Bez radu chipov pod nadpisom si medzeru k tlačidlám musí urobiť nadpis sám.
             // Rad je preč pri sólo odpovedi v nadpise AJ pri hotovej svorke (od 22.8.) —
             // podmienka teda musí byť tá istá ako pri chipoch, inak nadpis dosadne na CTA.
@@ -1270,7 +1270,7 @@ function NatureHero({
             }}
           >
             {tx('pack.hub.nature.pending', 'Still missing')}:{' '}
-            <strong style={{ fontFamily: NAME_FONT, fontWeight: 700, color: '#FFF6E2' }}>
+            <strong style={{ fontFamily: NAME_FONT, fontWeight: 700, color: T.cardSoft }}>
               {missing.map((d) => (d.dog_name || '').toUpperCase()).join(' · ')}
             </strong>
           </div>

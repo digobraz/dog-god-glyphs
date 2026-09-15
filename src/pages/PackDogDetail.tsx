@@ -105,7 +105,7 @@ const DOGID_CSS = `
 .did-back{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.42);border:1px solid ${T.onDarkBorder};color:${T.onDark};cursor:pointer;transition:border-color .15s,color .15s,background .15s;}
 .did-back:hover{border-color:${T.accentGold};color:${T.accentGold};}
 .pk-paper .did-back{background:${PALE.soft};border-color:${PALE.border};color:${PALE.ink};}
-.pk-paper .did-back:hover{border-color:${T.cardEdge};color:${PALE.deep};background:#FFFDF6;}
+.pk-paper .did-back:hover{border-color:${T.cardEdge};color:${PALE.deep};background:${T.card};}
 
 @media (max-width:720px){
   .did-photoframe{width:112px;height:112px;}
@@ -1949,7 +1949,7 @@ const PTS_PILL: React.CSSProperties = {
   fontFamily: "'JetBrains Mono', ui-monospace, monospace",
   fontSize: 11,
   fontWeight: 700,
-  color: '#FAF4EC',
+  color: T.card,
   background: 'rgba(0,0,0,0.22)',
   borderRadius: 999,
   padding: '4px 8px',
@@ -2050,7 +2050,7 @@ function PrayerRow({
               {eyebrow}
             </div>
           )}
-          <div style={{ fontFamily: "'Cinzel', serif", fontSize: 15, fontWeight: 700, color: '#FAF4EC', lineHeight: 1.15 }}>
+          <div style={{ fontFamily: "'Cinzel', serif", fontSize: 15, fontWeight: 700, color: T.card, lineHeight: 1.15 }}>
             {title}
           </div>
           {sub && (

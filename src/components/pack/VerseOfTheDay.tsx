@@ -130,7 +130,7 @@ export function VerseOfTheDay() {
           fontSize: 'clamp(20px, 3.4vw, 31px)',
           lineHeight: 1.4,
           letterSpacing: '0.02em',
-          color: paper ? T.inkStrong : '#FAF4EC',
+          color: paper ? T.inkStrong : T.card,
           textShadow: paper ? 'none' : '0 2px 24px rgba(0,0,0,0.5)',
         }}
       >

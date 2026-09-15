@@ -50,7 +50,7 @@ import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 /** Čo sa dá na PLÁNE prestaviť. `date` prázdny = „ešte neviem kedy" (flexibilný termín). */
 export type PlanEdit = { date: string; visibility: 'open' | 'private'; travel?: TravelInfo };
 
-const GOLD = '#C99A3F';
+const GOLD = T.cardEdge;
 
 const TRIP_EDIT_CSS = `
 .tep-overlay{position:fixed;inset:0;z-index:1200;background:rgba(3,2,1,0.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;}

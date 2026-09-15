@@ -130,7 +130,7 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
                 style={{
                   color: 'inherit',
                   textDecoration: 'underline',
-                  textDecorationColor: 'rgba(201,154,63,0.45)',
+                  textDecorationColor: T.border,
                   textUnderlineOffset: 3,
                 }}
               >

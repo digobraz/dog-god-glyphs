@@ -23,7 +23,7 @@ export interface TierScaleProps {
 export function TierScale({ level, onDark = true }: TierScaleProps) {
   const t = useT();
   const here = tierIndexOfLevel(level);
-  const ink = onDark ? 'rgba(245,240,228,0.86)' : T.inkStrong;
+  const ink = onDark ? T.onDark : T.inkStrong;
   const dim = onDark ? 'rgba(245,240,228,0.5)' : T.inkWarm;
 
   return (

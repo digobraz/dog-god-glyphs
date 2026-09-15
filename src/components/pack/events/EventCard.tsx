@@ -153,7 +153,7 @@ export const EVENT_CARD_CSS = `
 .pev-card:hover,.pev-card.hot{border-color:${P.deep};box-shadow:0 0 0 3px rgba(201,154,63,0.28),0 2px 8px rgba(122,90,42,0.16);}
 .pev-card + .pev-card{margin-top:9px;}
 .pev-toprow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;}
-/* ⚠️ Dátum bol zlatý #C99A3F — na piesku má ~1.9:1 a bol by to najdôležitejší údaj karty
+/* ⚠️ Dátum bol zlatý ${T.cardEdge} — na piesku má ~1.9:1 a bol by to najdôležitejší údaj karty
    napísaný najslabšou farbou. P.deep je tá istá zlatá, len čitateľná (rovnaká hodnota nesie
    zvýraznený stav v celom bledom skine). */
 .pev-date{font-family:${FONT_UI};font-weight:600;font-size:13px;color:${P.deep};white-space:nowrap;}

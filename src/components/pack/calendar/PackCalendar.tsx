@@ -1847,7 +1847,7 @@ const CAL_CSS = `
   background:${T.card};border:1px solid ${T.cardEdge};color:${T.inkStrong};
   font-size:16px;line-height:1;padding:0 0 4px;
   box-shadow:0 2px 8px rgba(90,62,20,.22)}
-.cal-recarrow:hover{background:#FFFDF6;border-color:${T.accentGold}}
+.cal-recarrow:hover{background:${T.card};border-color:${T.accentGold}}
 .cal-recarrow.left{left:0}
 .cal-recarrow.right{right:0}
 /* Šípka NESMIE LEŽAŤ NA TEXTE karty. Pás preto dostane po stranách odsadenie
@@ -1875,10 +1875,10 @@ const CAL_CSS = `
    vyzerá to otrasne." Karty stáli na tokene tileBg, teda takmer na tom istom
    piesku ako papyrus pod nimi — trinásť obdĺžnikov bez hrany. Svetlejšia
    výplň ich zdvihne z podkladu, zlatý rám im dá tvar a tieň hĺbku.
-   Nie je to nová farba: #FFFDF6 je papyrusová biela, ktorú appka už
+   Nie je to nová farba: ${T.card} je papyrusová biela, ktorú appka už
    používa (.pf-field--flat je jej o odtieň tmavší súrodenec). */
 /* ⚠️ Výplň NIE JE z matrice (Matejova bledá z 13. 9.); rám, radius a tieň už áno. */
-.cal-rec{background:linear-gradient(160deg,#FFFDF6,${T.card});
+.cal-rec{background:linear-gradient(160deg,${T.card},${T.card});
   border:1px solid ${T.cardEdge};border-radius:${PACK_R.tile}px;padding:12px;
   flex:0 0 232px;scroll-snap-align:start;
   box-shadow:${PACK_SHADOW.lift}}

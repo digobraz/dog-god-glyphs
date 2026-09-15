@@ -36,7 +36,7 @@ import { BackIcon } from '@/components/pack/BackButton';
 import { noteMarkHtml } from './MapNotesLayer';
 import { GROUP_TINT, HAZARD_RED, TICK_ORANGE, NotePalette, NOTE_PALETTE_CSS, type PaletteExtra } from './NotePalette';
 
-const GOLD = '#C99A3F';
+const GOLD = T.cardEdge;
 const PARK_BLUE = T.brandBlueLite;
 const BODY_MAX = 600;
 
@@ -967,7 +967,7 @@ export const ADD_NOTE_CSS = `
 .mnq-close{position:absolute;right:0;top:50%;transform:translateY(-50%);}
 
 /* Bod z podržania — kruh bez významu, typ sa vyberá až v palete pod ním. */
-.mn-spot{width:18px;height:18px;border-radius:50%;background:rgba(5,5,5,0.55);border:2px solid rgba(245,240,228,0.9);box-shadow:0 2px 8px rgba(0,0,0,0.5);animation:mnPulse 1.4s ease-in-out infinite;}
+.mn-spot{width:18px;height:18px;border-radius:50%;background:${T.glassSoft};border:2px solid rgba(245,240,228,0.9);box-shadow:0 2px 8px rgba(0,0,0,0.5);animation:mnPulse 1.4s ease-in-out infinite;}
 
 /* Značka počas zakladania pulzuje — odlišuje rozpracovaný zápis od uložených. */
 .mn-mark--draft{animation:mnPulse 1.4s ease-in-out infinite;cursor:grab;}
@@ -977,7 +977,7 @@ export const ADD_NOTE_CSS = `
 /* Nápoveda leží nad MAPOU, nie nad tmavou stránkou — priesvitné sklo na nej
    zmizlo (overené screenshotom: biely text na svetlozelenej mape). Preto plná
    tmavá výplň a papyrusový text, nie pk-glass. */
-.mna-tip{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:900;display:flex;align-items:flex-start;gap:10px;padding:10px 14px;max-width:min(92vw,420px);border-radius:14px;background:rgba(5,5,5,0.92);border:1px solid rgba(201,154,63,0.45);box-shadow:0 6px 20px rgba(0,0,0,0.5);font-family:${FONT_UI};font-size:12px;line-height:1.4;color:${T.onDark};}
+.mna-tip{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:900;display:flex;align-items:flex-start;gap:10px;padding:10px 14px;max-width:min(92vw,420px);border-radius:14px;background:rgba(5,5,5,0.92);border:1px solid ${T.border};box-shadow:0 6px 20px rgba(0,0,0,0.5);font-family:${FONT_UI};font-size:12px;line-height:1.4;color:${T.onDark};}
 .mna-tip button{flex:0 0 auto;border:0;background:transparent;color:${T.onDarkDim};font-size:15px;line-height:1;cursor:pointer;padding:0 2px;}
 .mna-tip button:hover{color:${GOLD};}
 @media (max-width:720px){.mna-tip{bottom:156px;}}

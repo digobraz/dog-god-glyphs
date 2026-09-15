@@ -58,7 +58,7 @@ const PANEL_CSS = `
   transition:border-color .15s ease, color .15s ease;
 }
 .mate-btn:hover{ border-color:${T.cardEdge}; color:${T.inkStrong}; }
-.mate-btn--danger:hover{ border-color:#B25640; color:#8E2A20; }
+.mate-btn--danger:hover{ border-color:${T.alertRed}; color:#8E2A20; }
 .mate-tick{
   display:flex; align-items:flex-start; gap:9px; width:100%; padding:9px 11px;
   border-radius:10px; cursor:pointer; text-align:left;
@@ -560,7 +560,7 @@ function ConfirmRow({ question, yes, no, busy, onYes, onNo }: {
   return (
     <div className="flex items-center" style={{ gap: 8, flexWrap: 'wrap' }}>
       <span style={{ fontFamily: FONT_UI, fontSize: 11.5, color: T.inkStrong, flex: '1 1 100%' }}>{question}</span>
-      <button type="button" className="mate-btn mate-btn--danger" onClick={onYes} disabled={busy} style={{ borderColor: '#B25640', color: '#8E2A20' }}>
+      <button type="button" className="mate-btn mate-btn--danger" onClick={onYes} disabled={busy} style={{ borderColor: T.alertRed, color: '#8E2A20' }}>
         {yes}
       </button>
       <button type="button" className="mate-btn" onClick={onNo} disabled={busy}>{no}</button>
