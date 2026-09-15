@@ -1,17 +1,15 @@
 // GPX SÚBORY VÝLETOV DO `public/gpx/` — aby trasa mala VEREJNÝ ODKAZ.
 //
-// 🛑 ZAPARKOVANÉ 15. 9. 2026 — SKRIPT JE HOTOVÝ, ALE NEPÚŠŤA SA. Pilot na jednom výlete
-// (Matej: „vyskušajme to najprv na jednom vylete… a ak hej aplikuješ to na každú") skončil
-// na ŠTYROCH stenách za sebou: trasa sa do URL Mapy.com vložiť nedá · import GPX na ich webe
-// je za prihlásením („Logging in will give you access to view GPX routes directly on the map")
-// · na telefóne sa súbor najprv zobrazil ako XML a po oprave hlavičky sa zastavil na sťahovaní
-// („nejde mi to chce niečo stiahnuť") · a aj po dotiahnutí by čakal ich účet. Posielať člena,
-// ktorý práve zaplatil za heroglyf, zakladať si účet na Sezname = odbočka z našej appky do
-// cudzej. Trasu preto naďalej kreslí NAŠA mapa v /pack; GPX ostáva ako tlačidlo pre toho, kto
-// si ju vedome chce odniesť do Locusu či Garminu.
-// ✅ OVERENÉ NA TELEFÓNE 15. 9. 2026 (Matej): „nejde mi prihlasit pyta prihlasenie" — appka
-// Mapy.com žiada účet rovnako ako ich web. Otázka je tým uzavretá, nie otvorená.
-// Oživiť má zmysel LEN vtedy, keď Mapy.com import bez účtu otvoria.
+// ✅ OŽIVENÉ 15. 9. 2026 — APPKA MAPY.COM TRASU OTVORÍ A NAKRESLÍ, BEZ ÚČTU.
+// Cesta pilotu: trasa sa do URL vložiť nedá · import na ICH WEBE je za prihlásením
+// („Logging in will give you access to view GPX routes directly on the map") · odkaz cez
+// prehliadač na telefóne skončil pri sťahovaní. Vyhlásil som to za slepú uličku PRIVČAS —
+// Matej sa k samotnej appke ešte nedostal. Keď súbor dostal do telefónu cez **iCloud Drive**
+// (Súbory → ťuknúť → Otvoriť v…), Mapy.com trasu vykreslili a účet NEPÝTALI.
+// ⚠️ Prihlásenie teda platí LEN pre ich web, nie pre appku. Neopisuj starý záver.
+// Otvorené: appka pridelila trase ČERVENÚ, ktorá splýva s červenou KČT značkou pod ňou
+// (Matej: „nie je ich farbou ale červenou ktorá zaniká…") — preto sú v súbore obe farebné
+// rozšírenia nižšie. Či ich Mapy.com čítajú, sa práve testuje.
 //
 // Prečo vôbec: Mapy.com **nevedia prijať trasu v URL** (overené 13. aj 15. 9. 2026 na troch
 // tvaroch — viď hlavičku `components/pack/tripNav.ts`). Import GPX majú len tri cesty:
@@ -70,7 +68,7 @@ export function tripGpx(trail) {
 <gpx version="1.1" creator="DOGYPT" xmlns="http://www.topografix.com/GPX/1/1"
      xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3"
      xmlns:gpx_style="http://www.topografix.com/GPX/gpx_style/0/2">
-  <metadata><name>${esc(trail.name)}</name></metadata>${wpt}
+  <metadata><name>${esc(trail.name)}</name><time>${new Date().toISOString()}</time></metadata>${wpt}
   <trk>
     <name>${esc(trail.name)}</name>
     <extensions>

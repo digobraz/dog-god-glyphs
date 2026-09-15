@@ -94,6 +94,25 @@ const esc = (s: string) => s.replace(/[<>&'"]/g, (c) =>
  * ⚠️ `trail.path` je UŽ prichytená stopa (generátor zapisuje `snapPath ?? anchors`), takže sa
  * tu nič neprepočítava — do súboru ide presne to, čo appka kreslí.
  */
+/**
+ * FARBA A DÁTUM STOPY (doplnené 15. 9. 2026 po teste v teréne).
+ *
+ * Matej otvoril náš GPX v appke Mapy.com na telefóne — trasa sa vykreslila, účet appka
+ * nepýtala (na rozdiel od ich webu). Dve veci ale vyzerali cudzo:
+ *  · stopa dostala ČERVENÚ, ktorá splýva s červenou KČT značkou, po ktorej trasa vedie
+ *    („nie je ich farbou ale červenou ktorá zaniká…"),
+ *  · po uložení sa pri nej ukázal dátum **1. 1. 1970** — Unixová nula, lebo súbor nemal
+ *    v `<metadata>` žiadny čas a appka si dosadila prázdnu hodnotu.
+ *
+ * Farbu GPX v základnej schéme nemá, nesú ju rozšírenia a každá appka číta iné — preto sú
+ * v súbore OBE: Garmin `gpxx:DisplayColor` (číselník MIEN, nie hex; najbližšie našej
+ * fialovej je `Magenta`) a `gpx_style:line` s presnou brandovou `PACK_THEME.tripPurple`.
+ * Keď ich appka nečíta, nič sa nerozbije — sú voliteľné.
+ *
+ * ⚠️ TEN ISTÝ TVAR MÁ `scripts/gen-trip-gpx.mjs`. Keď meníš jednu stranu, meň aj druhú.
+ */
+const GPX_TRIP_PURPLE = '7A2FBF';
+
 export function tripGpx(trail: Pick<HeroTrail, 'id' | 'name' | 'path' | 'parking'>): string {
   const pts = trail.path ?? [];
   const wpt = trail.parking
@@ -102,10 +121,16 @@ export function tripGpx(trail: Pick<HeroTrail, 'id' | 'name' | 'path' | 'parking
     : '';
   const seg = pts.map(([lat, lon]) => `      <trkpt lat="${lat}" lon="${lon}"/>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="DOGYPT" xmlns="http://www.topografix.com/GPX/1/1">
-  <metadata><name>${esc(trail.name)}</name></metadata>${wpt}
+<gpx version="1.1" creator="DOGYPT" xmlns="http://www.topografix.com/GPX/1/1"
+     xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3"
+     xmlns:gpx_style="http://www.topografix.com/GPX/gpx_style/0/2">
+  <metadata><name>${esc(trail.name)}</name><time>${new Date().toISOString()}</time></metadata>${wpt}
   <trk>
     <name>${esc(trail.name)}</name>
+    <extensions>
+      <gpxx:TrackExtension><gpxx:DisplayColor>Magenta</gpxx:DisplayColor></gpxx:TrackExtension>
+      <gpx_style:line><gpx_style:color>${GPX_TRIP_PURPLE}</gpx_style:color><gpx_style:width>4</gpx_style:width></gpx_style:line>
+    </extensions>
     <trkseg>
 ${seg}
     </trkseg>
