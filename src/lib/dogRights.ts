@@ -87,6 +87,10 @@ let cache: DogRightsRow[] | null = null;
 let inflight: Promise<DogRightsRow[]> | null = null;
 const listeners = new Set<() => void>();
 
+// Prázdny zoznam má DVE príčiny a pre načítanie psov sa musia rozlíšiť
+// (viď `getAccessibleDogIds` nižšie): `true` = posledné načítanie ZLYHALO.
+let loadFailed = false;
+
 function emit(): void { listeners.forEach((l) => l()); }
 
 async function load(): Promise<DogRightsRow[]> {
@@ -106,8 +110,10 @@ async function load(): Promise<DogRightsRow[]> {
     // aj tak pustil. Preto sa pri chybe tvárime ako majiteľ (prázdny zoznam =
     // `can()` padne na `true`, viď nižšie).
     console.warn('[dogRights] my_dog_rights failed:', error.message);
+    loadFailed = true;
     return [];
   }
+  loadFailed = false;
   return ((data ?? []) as Array<{
     dog_id: string; dog_name: string | null; is_owner: boolean; role: string; rights: PawmateRights;
   }>).map((r) => ({
@@ -125,10 +131,39 @@ export function getDogRights(): Promise<DogRightsRow[]> {
   return inflight;
 }
 
+// ── ZOZNAM PSOV, KU KTORÝM MÁM PRÍSTUP (B3c) ────────────────────────────────
+// 🔴 PREČO TO NEJDE PRIAMO CEZ `getDogRights()`. Jeho tichý neúspech vracia
+// PRÁZDNY zoznam a pre gate je to správne — prázdno znamená „nič neviem, tvár sa
+// ako majiteľ", teda ODOMKNUTÉ. Lenže ten istý prázdny zoznam by pri načítaní
+// psov znamenal ŽIADNI PSI: biela obrazovka bez chybovej hlášky, presne incident
+// zo 6. 8. 2026 (člen #60 SIMBA). Pre gate je prázdno bezpečná strana, pre zoznam
+// je to tá najhoršia.
+//
+// Preto sa tu chyba a prázdno ROZLIŠUJÚ:
+//   `null`  = nevieme (RPC zlyhala) ⇒ volajúci má ostať pri dnešnom
+//             `.eq('user_id', uid)`, teda pri správaní spred B3c
+//   `[]`    = viem, že nemám prístup k ničomu (a to je platná odpoveď)
+//   `[…]`   = id psov, ktoré smiem vidieť
+//
+// Majiteľovi to dnes vráti PRESNE tú istú množinu ako `.eq('user_id', uid)
+// .eq('payment_status','paid')` — `my_dog_rights()` má v prvej vetve doslova tú
+// istú podmienku. Zmena je teda pre dnešného člena neviditeľná a pawmatovi sa
+// otvorí sama v deň, keď sa pustí B3b (brána). Rozostavané za zamknutými dverami.
+export async function getAccessibleDogIds(): Promise<string[] | null> {
+  if (DEV_NOAUTH) return null;
+  const rows = await getDogRights();
+  // Prázdno z CHYBY sa nedá odlíšiť od prázdna zo skutočnosti až tu, preto sa
+  // `load()` pri chybe pozná podľa toho, že nenaplnil cache žiadnym riadkom a
+  // zároveň je člen prihlásený — v tom prípade radšej `null` (= správaj sa ako dnes).
+  if (rows.length === 0) return loadFailed ? null : [];
+  return rows.map((r) => r.dogId);
+}
+
 /** Po prihlásení/odhlásení je to iný človek, teda iné práva. */
 supabase.auth.onAuthStateChange((event) => {
   if (event !== 'SIGNED_IN' && event !== 'SIGNED_OUT' && event !== 'USER_UPDATED') return;
   cache = null;
+  loadFailed = false;
   emit();
 });
 

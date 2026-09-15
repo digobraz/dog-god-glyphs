@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { getAccessibleDogIds } from '@/lib/dogRights';
 
 export interface PackDogFull {
   id: string;
@@ -119,12 +120,21 @@ export function usePackUser(userId: string | null): PackUserData {
       //
       // Overené na LIVE: všetkých 72 zaplatených psov MÁ číslo (1–72, bez dier) a žiadny
       // draft ani pending ho nemá — po filtri teda v radení nevzniknú NULL hodnoty.
+      // ── B3c: ZDROJOM ZOZNAMU SÚ PRÁVA, NIE VLASTNÍCTVO ────────────────────
+      // `getAccessibleDogIds()` vráti majiteľovi PRESNE tú istú množinu ako
+      // `.eq('user_id', …)` (`my_dog_rights()` má v prvej vetve tú istú
+      // podmienku vrátane `paid`), takže dnes sa nemení nič. Pawmatovi sa to
+      // otvorí samo v deň, keď sa pustí B3b. Pri `null` (RPC zlyhala) sa
+      // vedome vraciame k dnešnému filtru — prázdna appka je horšia než appka
+      // bez pawmata.
+      const ids = await getAccessibleDogIds();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: dogRows } = await (supabase as any)
+      let dogsQuery = (supabase as any)
         .from('dogs')
         .select('id, dog_name, cloudinary_main_url, selections, created_at, pack_number, heroglyph_png_url, owner_name')
-        .eq('user_id', user.id)
-        .eq('payment_status', 'paid')
+        .eq('payment_status', 'paid');
+      dogsQuery = ids ? dogsQuery.in('id', ids) : dogsQuery.eq('user_id', user.id);
+      const { data: dogRows } = await dogsQuery
         .order('pack_number', { ascending: true }) as { data: PackDogFull[] | null };
 
       if (!mounted) return;
