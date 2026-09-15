@@ -591,6 +591,7 @@ export const sk: Partial<Dict> = {
   'login.magicLink.submit': 'Poslať magic link',
   'login.magicLink.submitting': 'Odosielam…',
   'login.magicLink.sent': 'Magic link odoslaný — skontroluj schránku.',
+  'login.magicLink.needEmail': 'Najprv vyplň e-mail — kam ti ten odkaz máme poslať?',
   'login.magicLink.noAccount': 'S týmto e-mailom tu nikto nie je. Najprv heroglyf — ten je kľúč do svorky.',
   // forgot password
   'login.forgot.prompt': 'Zadaj e-mail na resetovanie hesla.',

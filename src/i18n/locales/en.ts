@@ -730,6 +730,7 @@ export const en = {
   'login.magicLink.submit': 'Send magic link',
   'login.magicLink.submitting': 'Sending…',
   'login.magicLink.sent': 'Magic link sent — check your inbox.',
+  'login.magicLink.needEmail': 'Fill in your e-mail first — where should we send the link?',
   'login.magicLink.noAccount': 'No pack member with this e-mail. A heroglyph comes first — that is the key to the pack.',
   // forgot password
   'login.forgot.prompt': 'Enter your email to reset your password.',

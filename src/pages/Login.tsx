@@ -356,6 +356,7 @@ export default function Login() {
               /* ── Primary: email + password form ── */
               <form onSubmit={handlePasswordLogin} className="flex flex-col gap-3">
                 <input
+                  id="login-email"
                   type="email"
                   value={emailInput}
                   onChange={e => { setEmailInput(e.target.value); setPasswordError(""); }}
@@ -433,7 +434,15 @@ export default function Login() {
                     className="text-xs uppercase tracking-[0.22em] underline-offset-4 hover:underline"
                     style={{ fontFamily: "'Cinzel', serif", color: "rgba(14,14,14,0.45)", background: "none", border: "none", cursor: "pointer" }}
                     onClick={() => {
-                      if (!emailInput.trim()) return;
+                      // ⚠️ Prázdne pole NESMIE skončiť tichým `return`. Presne to sa stalo
+                      //    Matejovi 15. 9. 2026 na ostrom /login: klikol a nestalo sa NIČ —
+                      //    žiadna hláška, žiadne zvýraznenie. Tlačidlo, ktoré mlčí, je pre
+                      //    človeka rozbité tlačidlo, aj keď kód „funguje správne".
+                      if (!emailInput.trim()) {
+                        setPasswordError(t('login.magicLink.needEmail'));
+                        document.getElementById('login-email')?.focus();
+                        return;
+                      }
                       setEmailSending(true);
                       setPasswordError("");
                       // `shouldCreateUser: false` (Matej 2026-08-20: „nepustit dnu") — bez
