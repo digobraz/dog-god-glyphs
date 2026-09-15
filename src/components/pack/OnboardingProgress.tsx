@@ -111,7 +111,7 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
                   height: 18,
                   borderRadius: '50%',
                   background: GOLD_BTN.grad,
-                  boxShadow: `0 2px 6px -1px ${PACK_THEME.border}`,
+                  boxShadow: '0 2px 6px -1px rgba(201,154,63,0.55)',
                 }}
               >
                 <Check className="h-3 w-3" strokeWidth={3} style={{ color: '#3A2A06' }} />

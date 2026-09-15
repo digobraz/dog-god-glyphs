@@ -70,17 +70,26 @@ const MAPA = [
  * od oka. Systém má DVE mená: `border` (rám prvku) a `hairline` (deliaca čiara;
  * brand lock: ako rám prvku pôsobí ako nedokončený návrh).
  *
+ * 🔴 ZJEDNOCUJE SA LEN NAHOR — 0.50 a 0.55 OSTÁVAJÚ (Matej 15. 9. 2026).
+ *    Prvý pokus hnal na 0.45 všetko vrátane silných krytí a 29 okrajov tým
+ *    ZBLEDLO — vidno to na pilulkách aktivít v toku pridávania výletu. Matej
+ *    slabé okraje vrátil už trikrát („majú slabé okraje" 13. 8., „je to také
+ *    plané" 12. 8., „je to suche bez šťavy" 26. 7.), takže prevod, ktorý ich
+ *    oslabí, je proti rozhodnutiu, ktoré už padlo — bez ohľadu na to, že
+ *    výsledné číslo je „z matrice".
+ *    Odteraz platí: hodnota sa smie posunúť len k SILNEJŠIEMU krytiu. Zjednotí
+ *    to 33 rámov namiesto 62 a nič nezbledne. Dve silné krytia ostávajú ako
+ *    otvorený bod locku — zjednotiť ich znamená zdvihnúť matricu, nie stlačiť ich.
  * ⚠️ 0.90 sa NEZOVŠEOBECŇUJE — pri tom krytí zlatá už nie je rám, ale plná
  *    čiara, a to je iný zámer. Ostáva.
  * ⚠️ Deliaca čiara sa od rámu automaticky odlíšiť nedá, preto rozhoduje
- *    BLÍZKOSŤ KRYTIA: pod 0.32 na `hairline` (0.30), nad ním na `border` (0.45).
+ *    BLÍZKOSŤ KRYTIA: 0.28 na `hairline` (0.30), zvyšok nahor na `border` (0.45).
  */
 const KRYTIA = [
   { symbol: 'PACK_THEME', modul: THEME, pole: 'hairline', hodnoty: ['rgba(201,154,63,0.28)'] },
   { symbol: 'PACK_THEME', modul: THEME, pole: 'border', hodnoty: [
     'rgba(201,154,63,0.34)', 'rgba(201,154,63,0.35)', 'rgba(201,154,63,0.40)',
-    'rgba(201,154,63,0.4)', 'rgba(201,154,63,0.42)', 'rgba(201,154,63,0.5)',
-    'rgba(201,154,63,0.50)', 'rgba(201,154,63,0.55)',
+    'rgba(201,154,63,0.4)', 'rgba(201,154,63,0.42)',
   ] },
 ];
 

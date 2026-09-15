@@ -24,7 +24,7 @@ const DOG_FONT = "'Cinzel Decorative', 'Cinzel', serif";
 export const PARTY_CARD_CSS = `
 .pmc{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:14px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.04);min-width:0;}
 .pmc + .pmc{margin-top:8px;}
-.pmc-av{position:relative;flex-shrink:0;width:44px;height:44px;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:17px;color:${INK};border:1px solid ${PACK_THEME.border};}
+.pmc-av{position:relative;flex-shrink:0;width:44px;height:44px;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:17px;color:${INK};border:1px solid rgba(201,154,63,0.5);}
 .pmc-av img{width:100%;height:100%;object-fit:cover;display:block;}
 /* #41 — klik na ikonku tvorcu/účastníka otvorí TripProfileCard (padding:0 reset, button je inak UA-štýlovaný) */
 button.pmc-av{padding:0;margin:0;cursor:pointer;}

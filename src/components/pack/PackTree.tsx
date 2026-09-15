@@ -166,7 +166,7 @@ function FlagChip({ country, size = 20 }: { country?: string | null; size?: numb
       aria-hidden
       style={{
         width: size, height: size, borderRadius: '50%', objectFit: 'cover',
-        border: `1px solid ${PACK_THEME.border}`, flexShrink: 0, display: 'block',
+        border: '1px solid rgba(201,154,63,0.55)', flexShrink: 0, display: 'block',
       }}
     />
   );
@@ -226,7 +226,7 @@ function PrimaryDog({ dog }: { dog: DogNode }) {
                 padding: '5px 11px',
                 borderRadius: 999,
                 background: 'rgba(201, 154, 63, 0.14)',
-                border: `1px solid ${PACK_THEME.border}`,
+                border: '1px solid rgba(201, 154, 63, 0.50)',
                 fontFamily: "'JetBrains Mono', ui-monospace, monospace",
                 fontSize: 13,
                 fontWeight: 700,
@@ -581,7 +581,7 @@ function DogRow({ dog }: { dog: DogNode }) {
                 padding: '2px 9px',
                 borderRadius: 999,
                 background: 'rgba(201, 154, 63, 0.14)',
-                border: `1px solid ${PACK_THEME.border}`,
+                border: '1px solid rgba(201, 154, 63, 0.50)',
                 fontFamily: "'JetBrains Mono', ui-monospace, monospace",
                 fontSize: 11,
                 fontWeight: 700,

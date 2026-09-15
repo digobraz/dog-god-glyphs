@@ -110,7 +110,7 @@ const NQ_CSS = `
    nevidno. Rovnaká pasca ako pri pätičke s attribution — na tmavých vrstvách sa berú
    onDark odtiene, nie ink*. */
 .nq-ghost.is-ondark{
-  border-color:${PACK_THEME.border}; color:${T.onDark};
+  border-color:rgba(201,154,63,0.55); color:${T.onDark};
 }
 .nq-ghost.is-ondark:hover{ border-color:${T.cardEdge}; color:#F5C73D; }
 /* Hlavné CTA úvodu — vzor hub-gold.is-big z PackDogs.tsx. Meria sa na šírku
@@ -411,7 +411,7 @@ const NQ_CSS = `
   width:70px; height:70px; border-radius:999px; display:grid; place-items:center;
   flex:0 0 auto;
   background:radial-gradient(circle at 34% 28%, rgba(245,199,61,0.34), rgba(201,154,63,0.08) 72%);
-  border:1px solid ${PACK_THEME.border};
+  border:1px solid rgba(201,154,63,0.55);
   box-shadow:inset 0 1px 0 rgba(255,255,255,0.65);
   transition:transform .35s ease;
 }

@@ -25,7 +25,7 @@ export function FlagCircle({
     height: size,
     borderRadius: '50%',
     flex: '0 0 auto',
-    border: `1.5px solid ${PACK_THEME.border}`,
+    border: '1.5px solid rgba(201, 154, 63, 0.55)',
     boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
     background: '#1a1a1a',
   };

@@ -3725,7 +3725,7 @@ const STEP_CSS = `
 /* ÚNIK — otázka pred zahodením rozrobeného výletu. Tmavý povrch, lebo stojí nad mapou. */
 .atl-abort-scrim{position:fixed;inset:0;z-index:1400;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;}
 .atl-abort{width:100%;max-width:380px;padding:20px;border-radius:14px;background:rgba(18,13,7,0.97);border:1px solid ${T.onDarkBorder};box-shadow:0 18px 50px rgba(0,0,0,0.6);}
-.atl-abort-face{display:block;width:46px;height:46px;object-fit:contain;margin:0 auto 10px;border-radius:12px;background:rgba(201,154,63,0.14);box-shadow:0 0 0 1.5px ${T.border};}
+.atl-abort-face{display:block;width:46px;height:46px;object-fit:contain;margin:0 auto 10px;border-radius:12px;background:rgba(201,154,63,0.14);box-shadow:0 0 0 1.5px rgba(201,154,63,0.55);}
 .atl-abort h2{margin:0;font-family:${FONT_TITLE};font-weight:700;text-transform:uppercase;font-size:15px;letter-spacing:.06em;color:${T.onDark};}
 .atl-abort p{margin:10px 0 0;font-family:${FONT_UI};font-size:12.5px;line-height:1.55;color:${T.onDarkDim};}
 .atl-abort-btns{display:flex;gap:8px;margin-top:16px;}
@@ -4141,7 +4141,7 @@ const LOG_CSS = `
    stĺpca; toto číslo platí len vtedy, keď stĺpec žiadny zvyšok nemá (nízke okno). */
 .atl-field--grow .atl-textarea{flex:1 1 auto;min-height:120px;resize:none;}
 .atl-photo{flex:0 0 auto;position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,#1c2b1a,#0e1a0d);background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;border:1px solid ${T.onDarkBorder};}
-.atl-photo-badge{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.45);padding:8px 14px;border-radius:8px;border:1px solid ${T.border};}
+.atl-photo-badge{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.45);padding:8px 14px;border-radius:8px;border:1px solid rgba(201,154,63,0.5);}
 .atl-field label{display:block;font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:4px;}
 .atl-field-hint{font-weight:400;text-transform:none;letter-spacing:0;opacity:.72;font-size:10.5px;font-family:${FONT_UI};color:${T.onDarkDim};}
 /* ⚠️ 16 px JE MINIMUM, NIE VKUS (feedback_dogypt_form_input_recurring_bugs, tretí výskyt

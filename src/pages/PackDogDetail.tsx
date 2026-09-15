@@ -171,7 +171,7 @@ function FlagCircle({ src, iso2, label }: { src: string; iso2: string; label: st
     height: 30,
     borderRadius: '50%',
     justifySelf: 'center',
-    border: `1.5px solid ${PACK_THEME.border}`,
+    border: '1.5px solid rgba(201, 154, 63, 0.55)',
     boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
     background: '#1a1a1a',
   };

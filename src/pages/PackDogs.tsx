@@ -392,7 +392,7 @@ const HUB_CSS = `
 .hub-hero{
   position:relative; overflow:hidden; display:flex; align-items:flex-end;
   min-height:300px; padding:24px;
-  border-radius:16px; border:1px solid ${PACK_THEME.border};
+  border-radius:16px; border:1px solid rgba(201,154,63,0.5);
   box-shadow:0 30px 74px -32px rgba(0,0,0,0.95);
   text-decoration:none; cursor:pointer;
 }
