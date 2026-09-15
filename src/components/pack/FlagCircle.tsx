@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { flagEmojiFromISO2, flagUrl } from '@/lib/countryGeo';
+import { PACK_THEME } from '@/components/pack/packTheme';
 
 // Vlajkový krúžok — rovnaký ako na GRIDE. Vytiahnuté z `PackDogDetail.tsx` (2026-08-06),
 // aby ho vedel použiť aj MY PACK hub: z detailu psa sa NEIMPORTUJE nič (má ~4000 riadkov
@@ -24,7 +25,7 @@ export function FlagCircle({
     height: size,
     borderRadius: '50%',
     flex: '0 0 auto',
-    border: '1.5px solid rgba(201, 154, 63, 0.55)',
+    border: `1.5px solid ${PACK_THEME.border}`,
     boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
     background: '#1a1a1a',
   };

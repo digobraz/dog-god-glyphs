@@ -24,7 +24,7 @@ const DOG_FONT = "'Cinzel Decorative', 'Cinzel', serif";
 export const PARTY_CARD_CSS = `
 .pmc{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:14px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.04);min-width:0;}
 .pmc + .pmc{margin-top:8px;}
-.pmc-av{position:relative;flex-shrink:0;width:44px;height:44px;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:17px;color:${INK};border:1px solid rgba(201,154,63,0.5);}
+.pmc-av{position:relative;flex-shrink:0;width:44px;height:44px;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:17px;color:${INK};border:1px solid ${PACK_THEME.border};}
 .pmc-av img{width:100%;height:100%;object-fit:cover;display:block;}
 /* #41 — klik na ikonku tvorcu/účastníka otvorí TripProfileCard (padding:0 reset, button je inak UA-štýlovaný) */
 button.pmc-av{padding:0;margin:0;cursor:pointer;}
@@ -35,7 +35,7 @@ button.pmc-av:hover{filter:brightness(1.08);}
 .pmc-owner{font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.03em;color:${T.onDarkDim};margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .pmc-num{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.06em;color:${T.onDarkDim};}
 .pmc-more{font-family:${FONT_UI};font-weight:500;font-size:10.5px;color:${T.onDarkDim};padding:6px 2px 0;}
-.pmc-msg{flex-shrink:0;align-self:center;display:flex;align-items:center;justify-content:center;height:30px;padding:0 12px;border-radius:999px;background:rgba(201,154,63,0.14);border:1px solid rgba(201,154,63,0.42);color:${GOLD};font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;white-space:nowrap;}
+.pmc-msg{flex-shrink:0;align-self:center;display:flex;align-items:center;justify-content:center;height:30px;padding:0 12px;border-radius:999px;background:rgba(201,154,63,0.14);border:1px solid ${PACK_THEME.border};color:${GOLD};font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;white-space:nowrap;}
 .pmc-msg:hover{background:rgba(201,154,63,0.24);}
 .pmc-msg:disabled{opacity:.45;cursor:default;}
 `;

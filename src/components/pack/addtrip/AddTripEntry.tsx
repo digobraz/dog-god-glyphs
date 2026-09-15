@@ -333,7 +333,7 @@ const ENTRY_CSS = `
 .att-entry-block{position:relative;flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(245,240,228,0.04);border:1.5px solid ${T.onDarkBorder};border-radius:${PLATE_TILE_R}px;padding:24px 20px;cursor:pointer;transition:border-color .15s ease,background .15s ease,transform .15s ease;}
 .att-entry-block:hover,.att-entry-block:focus-visible{border-color:${GOLD};background:rgba(201,154,63,0.08);transform:translateY(-2px);outline:none;}
 /* Body za zápis — malá pilulka v rohu dlaždice, nie súčasť nadpisu. Je to odmena, nie názov. */
-.att-entry-pts{position:absolute;top:10px;right:10px;padding:3px 8px;border-radius:999px;background:rgba(201,154,63,0.16);border:1px solid rgba(201,154,63,0.55);font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:${GOLD};}
+.att-entry-pts{position:absolute;top:10px;right:10px;padding:3px 8px;border-radius:999px;background:rgba(201,154,63,0.16);border:1px solid ${T.border};font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:${GOLD};}
 .att-entry-block-disabled{opacity:.42;cursor:default;}
 .att-entry-block-disabled:hover,.att-entry-block-disabled:focus-visible{border-color:${T.onDarkBorder};background:rgba(245,240,228,0.04);transform:none;}
 .att-entry-soon{position:absolute;top:10px;right:10px;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:${T.onDarkDim};border:1px solid ${T.onDarkBorder};border-radius:999px;padding:3px 8px;}
@@ -353,7 +353,7 @@ const ENTRY_CSS = `
 .att-entry-chipset-copy{display:none;}
 .att-entry-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};font-family:${FONT_UI};font-weight:500;font-size:10.5px;letter-spacing:.02em;line-height:1.5;color:${T.onDarkDim};white-space:nowrap;}
 .att-entry-chip-emoji{font-family:${FONT_EMOJI};font-size:12px;line-height:1;}
-.att-entry-block:hover .att-entry-chip,.att-entry-block:focus-visible .att-entry-chip{border-color:rgba(201,154,63,0.42);color:${T.onDark};}
+.att-entry-block:hover .att-entry-chip,.att-entry-block:focus-visible .att-entry-chip{border-color:${T.border};color:${T.onDark};}
 /* Veľká dlaždica má štyri chipy do jedného radu — smie byť voľnejšia (Matej 2026-08-27:
    „pri tripe daj chipy väčšie aj nadpis a podnadpis… celkovo je to také prázdne veľké
    tlačítko"). Šírku má na celý popup, takže rástol obsah, nie dlaždica. */

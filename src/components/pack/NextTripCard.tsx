@@ -98,7 +98,7 @@ export function NextTripCard() {
           style={{
             // .btn-gold (brand manuál v3.2 — LOCKED)
             background: GOLD_BTN.grad,
-            border: '1px solid rgba(250, 244, 236, 0.30)',
+            border: `1px solid ${GOLD_BTN.edge}`,
             borderRadius: 8,
             color: '#000',
             padding: '11px 16px',

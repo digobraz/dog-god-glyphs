@@ -101,7 +101,7 @@ export function MemorialControl({ dogId, dogName, isDeceased, deathDate, birthYe
     padding: '9px 20px',
     borderRadius: 10,
     background: GOLD_BTN.grad,
-    border: '1px solid rgba(250, 244, 236, 0.30)',
+    border: `1px solid ${GOLD_BTN.edge}`,
     color: '#3d1f00',
     fontFamily: "'Cinzel', serif",
     fontSize: 11,

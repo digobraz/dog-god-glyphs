@@ -2,8 +2,8 @@
 /* Kolo 2 prevodu `/pack`: ručne prepísaný RECEPT → jeho meno.
  *
  * Kolo 0 prekladalo jednu farbu na jeden token. Toto prekladá CELÉ VIACHODNOTOVÉ
- * pravidlo (gradient, tieň) na meno receptu — teda to, čo oko na stránke naozaj
- * vidí ako „každý blok vyzerá inak".
+ * pravidlo (gradient, tieň, rám) na meno receptu — teda to, čo oko na stránke
+ * naozaj vidí ako „každý blok vyzerá inak".
  *
  * Zhoda sa hľadá NA NORMALIZOVANOM TVARE (malé písmená, bez medzier), lebo
  * `0 0 40px rgba(230,158,26,0.4)` a `0 0 40px rgba(230, 158, 26, .4)` sú pre
@@ -15,16 +15,18 @@
  */
 import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { KOD, RIADKOVY, BLOKOVY, TEMPLATE, stavy } from './pack-lexer.mjs';
+import { KOD, RIADKOVY, BLOKOVY, APOSTROF, UVODZOVKY, TEMPLATE, stavy, retazec } from './pack-lexer.mjs';
 
 const SRC = new URL('../src/', import.meta.url).pathname;
 const WRITE = process.argv.includes('--write');
 const norm = (s) => s.toLowerCase().replace(/\s+/g, '');
+const THEME = '@/components/pack/packTheme';
+const NAV = '@/components/pack/navGoldSkin';
 
-/* ── ČO SA PREKLADÁ ──────────────────────────────────────────────────────────
- * `hodnota` je OPÍSANÁ z receptu v `packTheme.ts` — musí sedieť znak po znaku,
- * inak by prevod pixel pohol. `varianty` sú ďalšie zápisy TEJ ISTEJ hodnoty,
- * ktoré sa v kóde našli; normalizácia ich zrovná, tu sú len kvôli čitateľnosti.
+/* ── ČO SA PREKLADÁ BEZ ZMENY PIXELU ─────────────────────────────────────────
+ * `hodnota` je OPÍSANÁ z receptu — musí sedieť znak po znaku. `varianty` sú
+ * ďalšie zápisy TEJ ISTEJ hodnoty, ktoré sa v kóde našli; normalizácia ich
+ * zrovná, tu sú len kvôli čitateľnosti.
  *
  * 🔴 ČO TU ZÁMERNE NIE JE:
  *  · Smery `90deg` a `180deg` zlatého gradientu — to nie sú tlačidlá, ale pruhy
@@ -36,44 +38,58 @@ const norm = (s) => s.toLowerCase().replace(/\s+/g, '');
  *  · `PACK_SHADOW.card` — v celom `/pack` nemá ANI JEDNU doslovnú kópiu.
  */
 const MAPA = [
-  {
-    vyraz: 'GOLD_BTN.grad', symbol: 'GOLD_BTN',
+  { symbol: 'GOLD_BTN', modul: THEME, pole: 'grad',
     hodnota: 'linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%)',
-    varianty: ['linear-gradient(135deg,#F5C73D,#E69E1A)'],
-  },
-  {
-    vyraz: 'GOLD_BTN.edge', symbol: 'GOLD_BTN',
-    hodnota: 'rgba(250,244,236,0.30)',
-    varianty: ['rgba(250,244,236,0.3)'],
-  },
-  {
-    vyraz: 'GOLD_BTN.glow', symbol: 'GOLD_BTN',
-    hodnota: '0 0 40px rgba(230,158,26,0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
-    varianty: [],
-  },
-  {
-    vyraz: 'GOLD_BTN.glowHover', symbol: 'GOLD_BTN',
-    hodnota: '0 0 56px rgba(230,158,26,0.55), inset 0 1px 0 rgba(255,255,255,0.3)',
-    varianty: [],
-  },
-  {
-    vyraz: 'PACK_SHADOW.lift', symbol: 'PACK_SHADOW',
-    hodnota: '0 1px 3px rgba(122,90,42,0.10), inset 0 1px 0 rgba(255,255,255,0.40)',
-    varianty: [],
-  },
-  {
-    vyraz: 'PACK_SHADOW.panel', symbol: 'PACK_SHADOW',
-    hodnota: '0 8px 28px rgba(0,0,0,0.45), 0 0 0 3px rgba(201,154,63,0.15)',
-    varianty: [],
-  },
+    varianty: ['linear-gradient(135deg,#F5C73D,#E69E1A)'] },
+  { symbol: 'GOLD_BTN', modul: THEME, pole: 'edge',
+    hodnota: 'rgba(250,244,236,0.30)', varianty: ['rgba(250,244,236,0.3)'] },
+  { symbol: 'GOLD_BTN', modul: THEME, pole: 'glow',
+    hodnota: '0 0 40px rgba(230,158,26,0.4), inset 0 1px 0 rgba(255,255,255,0.3)', varianty: [] },
+  { symbol: 'GOLD_BTN', modul: THEME, pole: 'glowHover',
+    hodnota: '0 0 56px rgba(230,158,26,0.55), inset 0 1px 0 rgba(255,255,255,0.3)', varianty: [] },
+  { symbol: 'PACK_SHADOW', modul: THEME, pole: 'lift',
+    hodnota: '0 1px 3px rgba(122,90,42,0.10), inset 0 1px 0 rgba(255,255,255,0.40)', varianty: [] },
+  { symbol: 'PACK_SHADOW', modul: THEME, pole: 'panel',
+    hodnota: '0 8px 28px rgba(0,0,0,0.45), 0 0 0 3px rgba(201,154,63,0.15)', varianty: [] },
+
+  /* Bledý chrome `PALE` (navGoldSkin.ts) existuje od 24. 8. a jeho hodnoty ležia
+   * v kóde doslovne. Presné zhody, nulová zmena. */
+  { symbol: 'PALE', modul: NAV, pole: 'border',
+    hodnota: 'rgba(179,130,45,0.55)', varianty: [] },
+  { symbol: 'PALE', modul: NAV, pole: 'hair',
+    hodnota: 'rgba(179,130,45,0.26)', varianty: [] },
 ];
 
-/* Normalizovaný tvar → záznam. Najdlhší prvý: `GOLD_BTN.glow` je predponou
- * `glowHover` len v mene, ale HODNOTA kratšieho tieňa nie je predponou dlhšieho —
- * poradie však rozhoduje pri `edge`, ktorý je podreťazcom `glow` by NEBOL, a pri
- * gradiente s stopkami vs. bez. Dlhšie prvé je lacná poistka. */
-const ZAZNAMY = MAPA.flatMap((z) => [z.hodnota, ...z.varianty].map((h) => ({ ...z, hladane: norm(h), dlzka: h.length })))
-  .sort((a, b) => b.dlzka - a.dlzka);
+/* ── ZLATÝ RÁM: DESAŤ KRYTÍ → DVE (zadanie, bod 3c) ──────────────────────────
+ * Na rozdiel od MAPY vyššie tu hodnota REÁLNE MENÍ krytie, najviac o 0,10.
+ * Preto sa počíta a vypisuje zvlášť, rovnako ako papyrusové biele v kole 2a.
+ *
+ * Prečo vôbec: `rgba(201,154,63,…)` leží naprieč `/pack` v krytiach 0.28 · 0.30
+ * · 0.34 · 0.35 · 0.40 · 0.42 · 0.45 · 0.50 · 0.55 · 0.90. Desať čísel pre
+ * „zlatý rám" nie je desať zámerov — je to desať okamihov, keď to niekto písal
+ * od oka. Systém má DVE mená: `border` (rám prvku) a `hairline` (deliaca čiara;
+ * brand lock: ako rám prvku pôsobí ako nedokončený návrh).
+ *
+ * ⚠️ 0.90 sa NEZOVŠEOBECŇUJE — pri tom krytí zlatá už nie je rám, ale plná
+ *    čiara, a to je iný zámer. Ostáva.
+ * ⚠️ Deliaca čiara sa od rámu automaticky odlíšiť nedá, preto rozhoduje
+ *    BLÍZKOSŤ KRYTIA: pod 0.32 na `hairline` (0.30), nad ním na `border` (0.45).
+ */
+const KRYTIA = [
+  { symbol: 'PACK_THEME', modul: THEME, pole: 'hairline', hodnoty: ['rgba(201,154,63,0.28)'] },
+  { symbol: 'PACK_THEME', modul: THEME, pole: 'border', hodnoty: [
+    'rgba(201,154,63,0.34)', 'rgba(201,154,63,0.35)', 'rgba(201,154,63,0.40)',
+    'rgba(201,154,63,0.4)', 'rgba(201,154,63,0.42)', 'rgba(201,154,63,0.5)',
+    'rgba(201,154,63,0.50)', 'rgba(201,154,63,0.55)',
+  ] },
+];
+
+/* Najdlhší tvar prvý — kratšia hodnota môže byť podreťazcom dlhšej (`edge`
+ * je kus `glow`u), a vtedy musí vyhrať tá dlhšia. */
+const ZAZNAMY = [
+  ...MAPA.flatMap((z) => [z.hodnota, ...z.varianty].map((h) => ({ ...z, hladane: norm(h), presna: true }))),
+  ...KRYTIA.flatMap((z) => z.hodnoty.map((h) => ({ ...z, hladane: norm(h), presna: false }))),
+].sort((a, b) => b.hladane.length - a.hladane.length);
 
 const SKIP = [
   'components/pack/ainubisSkin.ts', 'components/pack/ainubis/',
@@ -100,155 +116,201 @@ const FILES = zbieraj(SRC).filter(
     !RECEPT.some((r) => rel.startsWith(r)),
 );
 
-/* Kandidáti na hodnotu: gradient alebo tieň. Berie sa od `:` po koniec
- * deklarácie; koniec riadku je hranica zámerne — viacriadkový tieň sa
- * neprepisuje, lebo by sa doň nezmestil dôkaz o tom, kde naozaj končí. */
-const KANDIDAT = /(?:background(?:-image|-color)?|border(?:-color)?|box-?[Ss]hadow)\s*:\s*(['"`]?)([^;'"`}\n]*(?:#[0-9A-Fa-f]{3,8}|rgba?\()[^;'"`}\n]*)/g;
+/* Vlastnosti, v ktorých má hodnota zmysel. Bez tohto zúženia by sa trafil aj
+ * `color:` a `fill:`, kde rám ani tieň nie je. */
+const KANDIDAT = /(?:background(?:-image|-color)?|border(?:-top|-right|-bottom|-left)?(?:-color)?|box-?[Ss]hadow)\s*:\s*(['"`]?)([^;'"`}\n]*(?:#[0-9A-Fa-f]{3,8}|rgba?\()[^;'"`}\n]*)/g;
 
-/** Kde v súbore je symbol k dispozícii (import z packTheme). Vracia aj koniec
- *  importu — nad ním sa nesmie použiť, rovnako ako pri farbách. */
-function vazba(src, ST, symbol) {
-  const re = new RegExp(`import\\s*\\{[^}]*\\b${symbol}\\b[^}]*\\}[^;\\n]*from\\s*['"][^'"]*packTheme['"]\\s*;`);
-  const m = src.match(re);
-  if (m && ST[m.index] === KOD) return { odKde: m.index + m[0].length, doplnit: false };
+/** Pod akým MENOM je symbol v tomto súbore k dispozícii a OD KTORÉHO MIESTA.
+ *
+ *  ⚠️ Meno nie je vždy rovnaké ako export: `import { PACK_THEME as T }` je
+ *  najčastejší zápis v `/pack`, takže výraz musí znieť `T.border`, nie
+ *  `PACK_THEME.border`. Preto sa vracia `meno`, nie len „áno/nie".
+ *  ⚠️ Vracia sa aj `odKde` — `const T = PACK_THEME` niekedy stojí AŽ POD prvým
+ *  CSS literálom a nad ním sa to meno použiť nesmie. */
+function vazba(src, ST, z) {
+  const { symbol, modul } = z;
+  const cesta = modul === THEME ? 'packTheme' : 'navGoldSkin';
+  const vKode = (m) => m && ST[m.index] === KOD;
+
+  const preMenovany = src.match(
+    new RegExp(`import\\s*\\{[^}]*\\b${symbol}\\s+as\\s+(\\w+)[^}]*\\}[^;\\n]*from\\s*['"][^'"]*${cesta}['"]\\s*;`));
+  if (vKode(preMenovany))
+    return { meno: preMenovany[1], odKde: preMenovany.index + preMenovany[0].length };
+
+  const priamy = src.match(
+    new RegExp(`import\\s*\\{[^}]*\\b${symbol}\\b(?!\\s+as)[^}]*\\}[^;\\n]*from\\s*['"][^'"]*${cesta}['"]\\s*;`));
+  if (vKode(priamy)) return { meno: symbol, odKde: priamy.index + priamy[0].length };
+
   /* ⚠️ MENO UŽ MÔŽE BYŤ OBSADENÉ. `PackWizard.tsx` má vlastnú miestnu konštantu
-   * `const GOLD_BTN: React.CSSProperties` — import rovnakého mena by z toho
-   * spravil dvojitú deklaráciu. Taký súbor sa preskočí a vypíše; premenovať
-   * cudziu konštantu je zmena komponentu, a tá do tohto kola nepatrí. */
-  const miestna = src.match(new RegExp(`^\\s*(?:export\\s+)?(?:const|let|var|function|class)\\s+${symbol}\\b`, 'm'));
-  if (miestna && ST[miestna.index] === KOD) return null;
-  /* Nie je importovaný — pridá sa do EXISTUJÚCEHO importu z packTheme. Vlastný
-   * nový riadok sa nezakladá: dva importy z toho istého modulu sú presne ten
-   * druh drobného neporiadku, ktorý tento prevod odstraňuje. */
-  const any = src.match(/import\s*\{([^}]*)\}([^;\n]*from\s*['"][^'"]*packTheme['"]\s*;)/);
-  if (any && ST[any.index] === KOD)
-    return { odKde: any.index + any[0].length, doplnit: true, kde: any.index, cely: any[0], vnutro: any[1], zvysok: any[2] };
-  /* Súbor neimportuje z `packTheme` vôbec (PackWizard.tsx) — vtedy pribudne
-   * nový riadok za POSLEDNÝ import hore v súbore. */
+   * `const GOLD_BTN: React.CSSProperties` — import rovnakého mena by bol dvojitá
+   * deklarácia. Taký súbor sa preskočí a vypíše; premenovať cudziu konštantu je
+   * zmena komponentu, a tá do tohto kola nepatrí. */
+  const miestna = src.match(
+    new RegExp(`^\\s*(?:export\\s+)?(?:const|let|var|function|class)\\s+${symbol}\\b`, 'm'));
+  if (vKode(miestna)) return null;
+
+  /* Nie je importovaný — doplní sa do EXISTUJÚCEHO importu z toho modulu.
+   * Vlastný nový riadok je až posledná možnosť: dva importy z toho istého
+   * modulu sú presne ten druh drobného neporiadku, ktorý prevod odstraňuje. */
+  const any = src.match(
+    new RegExp(`import\\s*\\{([^}]*)\\}([^;\\n]*from\\s*['"][^'"]*${cesta}['"]\\s*;)`));
+  if (vKode(any))
+    return { meno: symbol, odKde: any.index + any[0].length,
+             doplnit: { cely: any[0], vnutro: any[1], zvysok: any[2] } };
+
   let posledny = null;
   for (const m of src.matchAll(/^import\s[^\n]*;$/gm)) if (ST[m.index] === KOD) posledny = m;
   if (!posledny) return null;
   const koniec = posledny.index + posledny[0].length;
-  return { odKde: koniec, novyRiadok: true, kde: koniec };
+  return { meno: symbol, odKde: koniec, novyRiadok: { kde: koniec, modul } };
 }
 
-let spolu = 0, suborov = 0;
+let spolu = 0, priblizne = 0, suborov = 0;
 const poZazname = {};
 const preskocene = [];
+const priblizneKde = [];
 
 for (const rel of FILES) {
   const abs = SRC + rel;
   const orig = readFileSync(abs, 'utf8');
   const ST = stavy(orig);
 
-  /* Najprv ZISTI, čo sa v súbore dá nahradiť — až potom rieš importy. Opačné
-   * poradie by pridalo import do súboru, kde sa nakoniec nič nezmenilo. */
+  /* ── 1. ČO SA V SÚBORE DÁ NAHRADIŤ ──────────────────────────────────────── */
   const najdene = [];
   for (const m of orig.matchAll(KANDIDAT)) {
     const cela = m[2];
     const zac = m.index + m[0].length - cela.length;
+    const ncela = norm(cela);
     for (const z of ZAZNAMY) {
-      const idx = norm(cela).indexOf(z.hladane);
+      const idx = ncela.indexOf(z.hladane);
       if (idx === -1) continue;
-      /* Normalizovaný index späť na skutočný: prejdi znaky a počítaj tie,
-       * ktoré normalizácia zachováva. */
-      let real = -1, poc = 0;
+      /* Index v normalizovanom tvare späť na skutočný: normalizácia vyhadzuje
+       * len medzery, takže stačí prejsť znaky a nemedzery počítať. */
+      let od = -1, poc = 0;
       for (let k = 0; k < cela.length; k++) {
         if (/\s/.test(cela[k])) continue;
-        if (poc === idx) { real = k; break; }
+        if (poc === idx) { od = k; break; }
         poc++;
       }
-      if (real === -1) continue;
-      let koniec = real, zostava = z.hladane.length;
-      while (koniec < cela.length && zostava > 0) {
-        if (!/\s/.test(cela[koniec])) zostava--;
-        koniec++;
+      if (od === -1) continue;
+      let doo = od, zostava = z.hladane.length;
+      while (doo < cela.length && zostava > 0) {
+        if (!/\s/.test(cela[doo])) zostava--;
+        doo++;
       }
-      najdene.push({ od: zac + real, do: zac + koniec, z });
+      najdene.push({ od: zac + od, do: zac + doo, z });
       break;
     }
   }
   if (!najdene.length) continue;
 
-  /* Jeden import na symbol — a musí stáť NAD prvým použitím. */
-  const symboly = [...new Set(najdene.map((n) => n.z.symbol))];
+  /* ── 2. ODKIAĽ SA MENÁ VEZMÚ ────────────────────────────────────────────── */
+  /* ⚠️ ODDEĽOVAČ NESMIE BYŤ `@` — cesta modulu sa ním ZAČÍNA
+   * (`@/components/pack/packTheme`), takže `split('@')[1]` vracalo prázdny
+   * reťazec a do súboru sa zapísalo `from ''`. */
+  const kluc = (z) => `${z.symbol} ${z.modul}`;
   const vazby = {};
   let chyba = null;
-  for (const s of symboly) {
-    const v = vazba(orig, ST, s);
-    if (!v) { chyba = s; break; }
-    vazby[s] = v;
+  for (const n of najdene) {
+    const k = kluc(n.z);
+    if (vazby[k]) continue;
+    const v = vazba(orig, ST, n.z);
+    if (!v) { chyba = n.z.symbol; break; }
+    vazby[k] = v;
   }
   if (chyba) { preskocene.push(`${rel} — nemá odkiaľ vziať ${chyba}`); continue; }
 
-  let out = '', last = 0, hits = 0;
-  const platne = najdene
-    .filter((n) => {
-      const kde = ST[n.od];
-      if (kde === RIADKOVY || kde === BLOKOVY) return false;      // komentár nikdy
-      if (n.od < vazby[n.z.symbol].odKde) return false;           // nad importom nie
-      /* V template sa vkladá `${…}`. Mimo template to ide len vtedy, keď je
-       * hodnota CELÝM reťazcom — inak by sa výraz vložil do apostrofov a ostal
-       * by z neho doslovný text (porucha, ktorá kolo 2a stála jedno kolo navyše). */
-      if (kde === TEMPLATE) return true;
-      const pred = orig[n.od - 1], po = orig[n.do];
-      return (pred === "'" || pred === '"') && (po === "'" || po === '"');
-    })
-    .sort((a, b) => a.od - b.od);
+  /* ── 3. ÚPRAVY ──────────────────────────────────────────────────────────── */
+  const upravy = [];            // { od, do, text }
+  const naTemplate = new Set(); // indexy úvodzoviek, ktoré sa menia na `
+  let hits = 0, phits = 0;
 
-  for (const n of platne) {
+  for (const n of najdene.sort((a, b) => a.od - b.od)) {
     const kde = ST[n.od];
-    let od = n.od, doo = n.do, repl;
-    if (kde === TEMPLATE) repl = `\${${n.z.vyraz}}`;
-    else { od -= 1; doo += 1; repl = n.z.vyraz; }               // zožer aj úvodzovky
-    if (od < last) continue;                                    // prekryv — preskoč
-    out += orig.slice(last, od) + repl;
-    last = doo;
-    hits++;
-    poZazname[n.z.vyraz] = (poZazname[n.z.vyraz] || 0) + 1;
+    if (kde === RIADKOVY || kde === BLOKOVY) continue;          // komentár nikdy
+    const v = vazby[kluc(n.z)];
+    if (n.od < v.odKde) continue;                               // nad importom nie
+    const vyraz = `${v.meno}.${n.z.pole}`;
+
+    if (kde === TEMPLATE) {
+      upravy.push({ od: n.od, do: n.do, text: `\${${vyraz}}` });
+    } else if (kde === APOSTROF || kde === UVODZOVKY) {
+      /* Hodnota je KUS DLHŠIEHO REŤAZCA (`border: '1px solid rgba(…)'`).
+       * Token sa doň vložiť nedá, kým je to obyčajný reťazec — treba z neho
+       * spraviť template. Tu sa prepíšu OBE úvodzovky a vloží sa `${…}`.
+       * Práve v tomto tvare leží väčšina ručných rámov v `style={{…}}`. */
+      const r = retazec(orig, ST, n.od);
+      if (!r) continue;
+      naTemplate.add(r.otvor); naTemplate.add(r.zavri);
+      upravy.push({ od: n.od, do: n.do, text: `\${${vyraz}}` });
+    } else if (kde === KOD) {
+      /* Celý reťazec JE tá hodnota — zožer aj úvodzovky. */
+      const pred = orig[n.od - 1], po = orig[n.do];
+      if (!((pred === "'" || pred === '"') && (po === "'" || po === '"'))) continue;
+      upravy.push({ od: n.od - 1, do: n.do + 1, text: vyraz });
+    } else continue;
+
+    if (n.z.presna) hits++; else phits++;
+    poZazname[`${n.z.symbol}.${n.z.pole}`] = (poZazname[`${n.z.symbol}.${n.z.pole}`] || 0) + 1;
+  }
+  for (const i of naTemplate) upravy.push({ od: i, do: i + 1, text: '`' });
+  if (!upravy.length) continue;
+
+  upravy.sort((a, b) => a.od - b.od);
+  let out = '', last = 0;
+  for (const u of upravy) {
+    if (u.od < last) continue;                                  // prekryv — preskoč
+    out += orig.slice(last, u.od) + u.text;
+    last = u.do;
   }
   out += orig.slice(last);
-  if (!hits) continue;
 
-  /* Doplnenie importu až teraz, keď je isté, že sa v súbore niečo mení.
-   * Reťazcom, nie regexom — meniť už zmenený `out` regexom by posunulo indexy. */
-  /* ⚠️ VŠETKY CHÝBAJÚCE SYMBOLY NARAZ, NIE PO JEDNOM. Prvý prepis importu zmení
-   * jeho text, takže `replace` toho druhého už nemá čo nájsť a TICHO neurobí nič —
-   * a v súbore ostane `${PACK_SHADOW.lift}` bez importu. Chytené na
-   * `PackTriplist.tsx` a `packCommunityUI.tsx`, kde treba obe mená. */
-  const doplnit = symboly.filter((s) => vazby[s].doplnit);
-  if (doplnit.length) {
-    const v = vazby[doplnit[0]];
-    /* ⚠️ ZOZNAM MÔŽE KONČIŤ ČIARKOU. Viacriadkový import má za posledným menom
-     * čiarku aj zalomenie; holé `+ ', ' + symbol` z toho spraví `FONT_UI,, GOLD_BTN`.
-     * Preto sa odstrihne všetka koncová medzera AJ čiarka — a ak bol import
-     * viacriadkový, zalomenie sa vráti, aby prevod neprestavoval cudzie riadky. */
-    const jadro = v.vnutro.replace(/[\s,]*$/, '');
-    const pridane = doplnit.join(', ');
-    const novy = /\n/.test(v.vnutro)
-      ? `import {${jadro}, ${pridane},\n}${v.zvysok}`
-      : `import {${jadro}, ${pridane} }${v.zvysok}`;
-    out = out.replace(v.cely, novy);
+  /* ── 4. IMPORTY — všetky naraz na modul ─────────────────────────────────────
+   * ⚠️ PO JEDNOM TO NEJDE. Prvý prepis importu zmení jeho text, takže `replace`
+   * toho druhého už nemá čo nájsť a TICHO neurobí nič — a v súbore ostane
+   * `${PACK_SHADOW.lift}` bez importu. Chytené na `PackTriplist.tsx`. */
+  const podlaModulu = {};
+  for (const [k, v] of Object.entries(vazby)) {
+    if (!v.doplnit && !v.novyRiadok) continue;
+    const [sym, modul] = k.split('\u0000');
+    (podlaModulu[modul] ||= []).push([sym, v]);
   }
-  /* Nový riadok sa vkladá NARAZ pre všetky symboly a až tu: `kde` je index do
-   * PÔVODNÉHO textu a platí len preto, že nad importami sa nikdy nenahrádza.
-   * Dve samostatné vloženia by si navzájom posunuli index. */
-  const nove = symboly.filter((s) => vazby[s].novyRiadok);
-  if (nove.length) {
-    const kde = vazby[nove[0]].kde;
-    out = out.slice(0, kde)
-      + `\nimport { ${nove.join(', ')} } from '@/components/pack/packTheme';`
-      + out.slice(kde);
+  for (const [modul, zoznam] of Object.entries(podlaModulu)) {
+    const doplnit = zoznam.filter(([, v]) => v.doplnit);
+    if (doplnit.length) {
+      const v = doplnit[0][1].doplnit;
+      /* ⚠️ ZOZNAM MÔŽE KONČIŤ ČIARKOU. Viacriadkový import má za posledným menom
+       * čiarku aj zalomenie; holé `+ ', ' + symbol` z toho spraví `FONT_UI,, X`. */
+      const jadro = v.vnutro.replace(/[\s,]*$/, '');
+      const mena = doplnit.map(([s]) => s).join(', ');
+      out = out.replace(v.cely, /\n/.test(v.vnutro)
+        ? `import {${jadro}, ${mena},\n}${v.zvysok}`
+        : `import {${jadro}, ${mena} }${v.zvysok}`);
+    }
+    const nove = zoznam.filter(([, v]) => v.novyRiadok);
+    if (nove.length) {
+      /* `kde` je index do PÔVODNÉHO textu a platí len preto, že nad importami
+       * sa nikdy nenahrádza. Preto tiež naraz, nie po jednom. */
+      const kde = nove[0][1].novyRiadok.kde;
+      out = out.slice(0, kde)
+        + `\nimport { ${nove.map(([s]) => s).join(', ')} } from '${modul}';`
+        + out.slice(kde);
+    }
   }
 
-  spolu += hits; suborov++;
-  console.log(`  ${String(hits).padStart(3)}  ${rel}`);
+  spolu += hits; priblizne += phits; suborov++;
+  if (phits) priblizneKde.push(`${String(phits).padStart(3)}  ${rel}`);
+  console.log(`  ${String(hits).padStart(3)} + ${String(phits).padStart(3)}  ${rel}`);
   if (WRITE) writeFileSync(abs, out);
 }
 
-console.log(`\n${WRITE ? 'ZAPÍSANÉ' : 'SUCHÝ BEH'} — ${spolu} receptov v ${suborov} súboroch`);
+console.log(`\n${WRITE ? 'ZAPÍSANÉ' : 'SUCHÝ BEH'} — ${spolu} presných + ${priblizne} zjednotených krytí v ${suborov} súboroch`);
 for (const [k, v] of Object.entries(poZazname).sort((a, b) => b[1] - a[1]))
   console.log(`   ${String(v).padStart(3)}  ${k}`);
+if (priblizneKde.length) {
+  console.log(`\nZJEDNOTENÉ KRYTIE ZLATEJ (mení sa o najviac 0,10 — pozri v prehliadači):`);
+  priblizneKde.forEach((p) => console.log('   ' + p));
+}
 if (preskocene.length) {
   console.log(`\n⚠️ PRESKOČENÉ:`);
   preskocene.forEach((p) => console.log('   ' + p));

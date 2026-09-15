@@ -150,7 +150,7 @@ export const EVENT_CARD_CSS = `
    ⚠️ Bez transform:translateY na hover — na dotyku :hover po ťuknutí zostane visieť
    (to isté rozhodnutie ako v mobilnej vetve bledého skinu). */
 .pev-card{display:block;border-radius:16px;background:${T.cardGrad};border:1.5px solid ${T.cardEdge};box-shadow:0 2px 8px rgba(122,90,42,0.16),inset 0 1px 0 rgba(255,255,255,0.45);padding:12px 13px;cursor:pointer;text-decoration:none;transition:all .15s;}
-.pev-card:hover,.pev-card.hot{border-color:${P.deep};box-shadow:0 0 0 3px rgba(201,154,63,0.28),0 2px 8px rgba(122,90,42,0.16);}
+.pev-card:hover,.pev-card.hot{border-color:${P.deep};box-shadow:0 0 0 3px ${T.hairline},0 2px 8px rgba(122,90,42,0.16);}
 .pev-card + .pev-card{margin-top:9px;}
 .pev-toprow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;}
 /* ⚠️ Dátum bol zlatý ${T.cardEdge} — na piesku má ~1.9:1 a bol by to najdôležitejší údaj karty

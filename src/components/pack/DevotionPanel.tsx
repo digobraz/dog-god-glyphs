@@ -35,7 +35,7 @@ export function DevotionPanel({ devotion }: { devotion: number }) {
             padding: '5px 12px',
             borderRadius: 999,
             background: 'linear-gradient(135deg, hsl(45 80% 48%) 0%, hsl(224 50% 42%) 100%)',
-            border: '1px solid rgba(201,154,63,0.55)',
+            border: `1px solid ${PACK_THEME.border}`,
             boxShadow: '0 5px 18px -6px rgba(124,58,237,0.5)',
           }}
         >

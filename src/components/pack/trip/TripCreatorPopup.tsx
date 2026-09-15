@@ -28,7 +28,7 @@ export const TRIP_CREATOR_CSS = `
 .tcp-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
 .tcp-title{font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:${GOLD};}
 .tcp-x{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:15px;line-height:1;cursor:pointer;}
-.tcp-author{display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;border:1px solid rgba(201,154,63,0.42);background:rgba(201,154,63,0.08);}
+.tcp-author{display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;border:1px solid ${PACK_THEME.border};background:rgba(201,154,63,0.08);}
 .tcp-av{flex-shrink:0;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_TITLE};font-weight:700;font-size:18px;color:${INK};}
 .tcp-name{font-family:${FONT_TITLE};font-weight:700;font-size:14px;color:${T.onDark};}
 .tcp-role{font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:${GOLD};margin-bottom:3px;}

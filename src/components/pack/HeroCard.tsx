@@ -9,7 +9,7 @@ import { INVITE_ANCHOR_ID } from './FounderInvite';
 import { BrandIcon } from './BrandIcon';
 import { GOLD_BLOCK_CSS, LAPIS, LAPIS_BTN_SHADOW } from './navGoldSkin';
 import { BonesCoin } from './BonesCoin';
-import { PACK_BOX, PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, PILL_CSS } from './packTheme';
+import { PACK_BOX, PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, PILL_CSS, GOLD_BTN } from './packTheme';
 import { saveHuman } from './profile/packProfile';
 import { PackNotifications } from './PackNotifications';
 import { WIZ } from './wizAnchors';
@@ -843,7 +843,7 @@ function PackNameRow({ label, fallback }: { label: string; fallback: string }) {
             disabled={saving}
             style={{
               flexShrink: 0, padding: '8px 12px', borderRadius: 8, cursor: 'pointer',
-              background: LAPIS.grad, border: '1px solid rgba(250,244,236,0.30)',
+              background: LAPIS.grad, border: `1px solid ${GOLD_BTN.edge}`,
               color: LAPIS.ink, boxShadow: LAPIS_BTN_SHADOW,
               fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 10,
               letterSpacing: '0.14em', textTransform: 'uppercase',
@@ -1068,7 +1068,7 @@ function HeroPopup({
               display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 8,
               padding: '12px 16px', borderRadius: 8, cursor: 'pointer',
               background: LAPIS.grad,
-              border: '1px solid rgba(250,244,236,0.30)', color: LAPIS.ink,
+              border: `1px solid ${GOLD_BTN.edge}`, color: LAPIS.ink,
               fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 11.5,
               letterSpacing: '0.14em', textTransform: 'uppercase',
               boxShadow: LAPIS_BTN_SHADOW,

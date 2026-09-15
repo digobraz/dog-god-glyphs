@@ -197,7 +197,7 @@ const CSS = `
 .pta-back{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);left:18px;z-index:5;}
 /* Zrkadlo .pta-back — rovnaká výška aj tvar, aby hero mal dva rovnocenné rohy a nie jeden
    ovládač a jednu ozdobu. Zlatý inkoust hovorí „toto je tvoje", nie „pozor". */
-.pta-edit{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);right:18px;z-index:5;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.55);border:1px solid rgba(201,154,63,0.55);color:#E9C46A;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.pta-edit{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);right:18px;z-index:5;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.55);border:1px solid ${PACK_THEME.border};color:#E9C46A;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .pta-edit:hover{border-color:${T.cardEdge};color:#F5C73D;}
 /* iterácia 15 (Matej 2026-07-27): akčný rad je VON z hero fotky — sedí v glass paneli NAD
    stat tabuľkou (km/prevýšenie). Dôvod: ghost tlačidlá na fotke boli „slabo viditeľné a biedne",
@@ -419,7 +419,7 @@ body.pta-mapfull .pta-shell{z-index:1100;}
 
    Vzhľad je .mns-add (zlatý outline pill), nie .btn-gold — plná zlatá by na mape
    kričala hlasnejšie než samotné značky. Výška 40 px je dotykové minimum. */
-.pta-mapadd{position:absolute;left:12px;bottom:12px;z-index:700;display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:0 15px;border-radius:999px;cursor:pointer;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:${GOLD};background:rgba(5,5,5,0.82);border:1px solid rgba(201,154,63,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 4px 14px rgba(0,0,0,0.45);transition:background .15s,border-color .15s;}
+.pta-mapadd{position:absolute;left:12px;bottom:12px;z-index:700;display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:0 15px;border-radius:999px;cursor:pointer;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:${GOLD};background:rgba(5,5,5,0.82);border:1px solid ${PACK_THEME.border};backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 4px 14px rgba(0,0,0,0.45);transition:background .15s,border-color .15s;}
 .pta-mapadd:hover{background:rgba(201,154,63,0.18);border-color:${GOLD};}
 .pta-mapadd b{font-weight:400;font-size:15px;line-height:1;}
 /* ÚZKE OKNO: tlačidlo sa musí zmestiť VEDĽA atribúcie, nie na ňu — zakrytá
@@ -469,7 +469,7 @@ body.pta-mapfull .pta-shell{z-index:1100;}
 .pta-actbtn--lapis:hover{background:${LAPIS.gradHover};}
 /* TRIPLIST = moja voľba ⇒ tint, nie plná zlatá. "on" je ten istý tint sýtejší —
    nie druhá farba: stav „už je v zozname" je viac toho istého, nie niečo iné. */
-.pta-actbtn--gold{background:rgba(201,154,63,0.14);color:#6E4A12;border-color:${T.border};box-shadow:inset 0 0 0 1px rgba(201,154,63,0.35);}
+.pta-actbtn--gold{background:rgba(201,154,63,0.14);color:#6E4A12;border-color:${T.border};box-shadow:inset 0 0 0 1px ${PACK_THEME.border};}
 .pta-actbtn--gold:hover{background:rgba(201,154,63,0.22);}
 .pta-actbtn--gold.on{background:${T.hairline};color:#4A2F08;border-color:${T.cardEdge};}
 /* SHARE = vedľajšia akcia ⇒ papyrusový outline. Ghost s bielym krytím (starý recept)

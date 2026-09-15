@@ -127,7 +127,7 @@ export const MAP_NOTES_SECTION_CSS = `
 .mns-wrap{margin-top:18px;}
 .mns-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;}
 .mns-title{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
-.mns-add{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8a5a14;background:transparent;border:1px solid rgba(201,154,63,0.5);border-radius:999px;padding:6px 12px;cursor:pointer;transition:background .15s,border-color .15s;}
+.mns-add{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8a5a14;background:transparent;border:1px solid ${T.border};border-radius:999px;padding:6px 12px;cursor:pointer;transition:background .15s,border-color .15s;}
 .mns-add:hover{background:rgba(201,154,63,0.12);border-color:${GOLD};}
 .mns-empty{margin:0;font-family:${FONT_UI};font-size:12px;font-style:italic;color:${T.inkWarm};}
 .mns-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}

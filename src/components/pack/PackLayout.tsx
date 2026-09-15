@@ -594,7 +594,7 @@ function MiniDogStack({ dogs }: { dogs: PackDog[] }) {
     return (
       <div style={{
         width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-        background: 'rgba(201, 154, 63, 0.22)', border: '1px solid rgba(201,154,63,0.40)',
+        background: 'rgba(201, 154, 63, 0.22)', border: `1px solid ${PACK_THEME.border}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11,
       }}>🐕</div>
     );
@@ -867,13 +867,13 @@ function DogSvorka({ dogs, onDog }: { dogs: PackDog[]; onDog: (id: string) => vo
             <img
               src={dog.cloudinary_main_url}
               alt={dog.dog_name || ''}
-              style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid rgba(201,154,63,0.40)', display: 'block' }}
+              style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', border: `1.5px solid ${PACK_THEME.border}`, display: 'block' }}
             />
           ) : (
             <div style={{
               width: 28, height: 28, borderRadius: '50%',
               background: 'rgba(201, 154, 63, 0.22)',
-              border: '1.5px solid rgba(201,154,63,0.40)',
+              border: `1.5px solid ${PACK_THEME.border}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 13,
             }}>🐕</div>

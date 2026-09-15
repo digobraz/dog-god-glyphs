@@ -475,7 +475,7 @@ export const COMMUNITY_CSS = `
 .comm-medal--off .comm-medal-name{color:${P.dim};opacity:.7;}
 .comm-unit-drop{margin-top:10px;padding-top:10px;border-top:1px solid ${P.hair};}
 .comm-unit-empty{text-align:center;font-size:11px;color:${P.dim};padding:6px 0 10px;font-style:italic;}
-.comm-unit-addrow{text-align:center;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.04em;color:${P.deep};padding:10px;border-radius:10px;border:1px dashed rgba(201,154,63,0.55);cursor:pointer;transition:border-color .15s,background .15s;}
+.comm-unit-addrow{text-align:center;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.04em;color:${P.deep};padding:10px;border-radius:10px;border:1px dashed ${PACK_THEME.border};cursor:pointer;transition:border-color .15s,background .15s;}
 .comm-unit-addrow:hover{border-color:${T.cardEdge};background:rgba(201,154,63,0.14);}
 
 /* HERO BADGES — deviatka hrdinských odznakov (Matej 2026-07-24), globálny trip-míľnik achievement.
@@ -552,7 +552,7 @@ export const COMMUNITY_CSS = `
    .trp-bigcard-photoactbtn. Radius je o hrúbku rámu menší (16 − 1.5), inak fotka vyčnieva
    z oblúka karty. */
 .comm-plan-photo{position:relative;margin:-15px -17px 13px;height:150px;background-size:cover;background-position:center;border-radius:15px 15px 0 0;cursor:pointer;}
-.comm-plan-planned{position:absolute;left:12px;bottom:10px;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.5);padding:4px 9px;border-radius:7px;border:1px solid rgba(201,154,63,0.5);}
+.comm-plan-planned{position:absolute;left:12px;bottom:10px;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.5);padding:4px 9px;border-radius:7px;border:1px solid ${PACK_THEME.border};}
 .comm-plan-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
 /* NEUTRÁLNY typový štítok (výlet). Protipól je zlatý .pev-typechip (podujatie) v
    events/EventCard.tsx — dvojica sa musí líšiť farbou, nielen textom. Na papyruse je
@@ -601,7 +601,7 @@ export const COMMUNITY_CSS = `
 /* ── CompanionPicker (Matej 2026-07-23): „kto bol so mnou" — svorka (moje psy s fotkami) +
    iní členovia podľa mena. Vybraté = avatar chipy s ×. ── */
 .comm-comp-selected{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:11px;}
-.comm-comp-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(201,154,63,0.12);border:1px solid rgba(201,154,63,0.4);border-radius:999px;padding:5px 11px 5px 5px;}
+.comm-comp-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(201,154,63,0.12);border:1px solid ${PACK_THEME.border};border-radius:999px;padding:5px 11px 5px 5px;}
 .comm-comp-chip-av{width:26px;height:26px;border-radius:50%;flex-shrink:0;background-size:cover;background-position:center;background-color:rgba(245,240,228,0.1);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:11px;color:${INK};}
 .comm-comp-chip-av.ph{background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);}
 .comm-comp-chip b{font-size:12px;color:${T.onDark};font-weight:600;}
@@ -678,10 +678,10 @@ export const COMMUNITY_CSS = `
    ktoré ten popup používa. */
 .comm-pts-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
 /* zvislý predel medzi stĺpcami = zlatý, nie šedý hairline (lock bledého bloku). */
-.comm-pts-col + .comm-pts-col{padding-left:18px;border-left:1.5px solid rgba(201,154,63,0.35);}
+.comm-pts-col + .comm-pts-col{padding-left:18px;border-left:1.5px solid ${PACK_THEME.border};}
 @media (max-width:560px){
   .comm-pts-cols{grid-template-columns:1fr;gap:12px;}
-  .comm-pts-col + .comm-pts-col{padding-left:0;border-left:0;padding-top:12px;border-top:1.5px solid rgba(201,154,63,0.35);}
+  .comm-pts-col + .comm-pts-col{padding-left:0;border-left:0;padding-top:12px;border-top:1.5px solid ${PACK_THEME.border};}
 }
 .comm-pts-eyebrow{display:block;font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.26em;text-transform:uppercase;color:${T.cardEdge};margin-bottom:9px;}
 .comm-pts-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:${FONT_UI};font-weight:500;font-size:11px;color:${T.inkWarm};padding:3px 0;}
@@ -742,7 +742,7 @@ export const COMMUNITY_CSS = `
 .comm-chero--noimg .comm-chero-sel select{background:${P.field};border-color:${P.border};color:${P.ink};}
 .comm-chero-flag{display:block;width:54px;height:36px;object-fit:cover;border-radius:8px;border:1px solid rgba(245,240,228,0.35);box-shadow:0 4px 14px rgba(0,0,0,0.5);margin-bottom:11px;}
 .comm-chero-sel{position:absolute;top:12px;right:12px;z-index:2;}
-.comm-chero-sel select{appearance:none;-webkit-appearance:none;background:rgba(3,2,1,0.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(201,154,63,0.55);border-radius:999px;color:${T.card};font-family:${FONT_UI};font-weight:600;font-size:11px;padding:7px 28px 7px 13px;cursor:pointer;}
+.comm-chero-sel select{appearance:none;-webkit-appearance:none;background:rgba(3,2,1,0.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid ${PACK_THEME.border};border-radius:999px;color:${T.card};font-family:${FONT_UI};font-weight:600;font-size:11px;padding:7px 28px 7px 13px;cursor:pointer;}
 .comm-chero-sel::after{content:'';position:absolute;right:12px;top:50%;width:6px;height:6px;border-right:1.5px solid rgba(201,154,63,0.9);border-bottom:1.5px solid rgba(201,154,63,0.9);transform:translateY(-70%) rotate(45deg);pointer-events:none;}
 .comm-chero-in{position:relative;z-index:1;width:100%;}
 .comm-chero-name{font-family:${FONT_TITLE};font-weight:700;font-size:28px;line-height:1;letter-spacing:.07em;text-transform:uppercase;color:${T.card};text-shadow:0 2px 14px rgba(0,0,0,0.7);}

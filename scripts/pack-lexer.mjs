@@ -25,6 +25,32 @@
  * Porucha tohto skenera sa prejaví ako „preskočené", nie ako „prepísané zle":
  * mimo template sa nahrádza iba vtedy, keď je farba CELÝM reťazcom. */
 export const KOD = 0, RIADKOVY = 1, BLOKOVY = 2, APOSTROF = 3, UVODZOVKY = 4, TEMPLATE = 5;
+
+/** Hranice reťazca, vnútri ktorého leží pozícia `i`.
+ *
+ *  Načo to je: väčšina ručných rámov nie je holá farba, ale KUS DLHŠIEHO
+ *  REŤAZCA — `border: '1px solid rgba(201,154,63,0.55)'` v `style={{…}}`.
+ *  Token sa doň vložiť nedá, kým je to obyčajný reťazec; treba z neho spraviť
+ *  template. Táto funkcia povie, kde ten reťazec začína a končí, aby sa dali
+ *  vymeniť obe úvodzovky naraz.
+ *
+ *  ⚠️ Vráti `null`, keď je v reťazci spätný apostrof alebo `${` — prepis na
+ *  template by ich zmenil na kód. Radšej preskočiť než uhádnuť.
+ *
+ *  (Skener značí OTVÁRACIU úvodzovku ako KOD a ZATVÁRACIU ako obsah reťazca —
+ *  preto sa vľavo hľadá prvý znak mimo stavu a vpravo posledný v ňom.) */
+export function retazec(src, ST, i) {
+  const stav = ST[i];
+  if (stav !== APOSTROF && stav !== UVODZOVKY) return null;
+  let od = i; while (od > 0 && ST[od - 1] === stav) od--;
+  let doo = i; while (doo + 1 < src.length && ST[doo + 1] === stav) doo++;
+  const otvor = od - 1, zavri = doo;            // zatváracia úvodzovka je posledný znak stavu
+  const znak = stav === APOSTROF ? "'" : '"';
+  if (src[otvor] !== znak || src[zavri] !== znak) return null;
+  const vnutro = src.slice(otvor + 1, zavri);
+  if (vnutro.includes('`') || vnutro.includes('${') || vnutro.includes('\\')) return null;
+  return { otvor, zavri };
+}
 export function stavy(src) {
   const st = new Uint8Array(src.length);
   let mode = KOD, hlbka = 0, i = 0;

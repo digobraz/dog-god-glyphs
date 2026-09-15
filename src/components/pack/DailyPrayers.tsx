@@ -335,7 +335,7 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
                         padding: '9px 20px',
                         borderRadius: 10,
                         background: GOLD_BTN.grad,
-                        border: '1px solid rgba(250, 244, 236, 0.30)',
+                        border: `1px solid ${GOLD_BTN.edge}`,
                         fontFamily: "'Cinzel', serif",
                         fontSize: 11,
                         letterSpacing: '0.14em',
@@ -536,7 +536,7 @@ function PrayersComingSoon({ dogName }: { dogName: string }) {
     >
       <span
         className="inline-flex items-center justify-center"
-        style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(201,154,63,0.08)', border: '1px solid rgba(201,154,63,0.28)' }}
+        style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(201,154,63,0.08)', border: `1px solid ${PACK_THEME.hairline}` }}
       >
         <Lock className="h-6 w-6" style={{ color: T.accentGold }} />
       </span>

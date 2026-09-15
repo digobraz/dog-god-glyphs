@@ -166,7 +166,7 @@ function FlagChip({ country, size = 20 }: { country?: string | null; size?: numb
       aria-hidden
       style={{
         width: size, height: size, borderRadius: '50%', objectFit: 'cover',
-        border: '1px solid rgba(201,154,63,0.55)', flexShrink: 0, display: 'block',
+        border: `1px solid ${PACK_THEME.border}`, flexShrink: 0, display: 'block',
       }}
     />
   );
@@ -226,7 +226,7 @@ function PrimaryDog({ dog }: { dog: DogNode }) {
                 padding: '5px 11px',
                 borderRadius: 999,
                 background: 'rgba(201, 154, 63, 0.14)',
-                border: '1px solid rgba(201, 154, 63, 0.50)',
+                border: `1px solid ${PACK_THEME.border}`,
                 fontFamily: "'JetBrains Mono', ui-monospace, monospace",
                 fontSize: 13,
                 fontWeight: 700,
@@ -272,7 +272,7 @@ function PrimaryDog({ dog }: { dog: DogNode }) {
             background: T.bg,
             overflow: 'hidden',
             border: `2px solid ${T.accentGold}`,
-            boxShadow: '0 0 0 1px rgba(201, 154, 63, 0.45), 0 8px 24px rgba(201, 154, 63, 0.28)',
+            boxShadow: `0 0 0 1px rgba(201, 154, 63, 0.45), 0 8px 24px ${PACK_THEME.hairline}`,
           }}
         >
           {dog.cloudinary_main_url ? (
@@ -426,7 +426,7 @@ function DogGridCard({ dog }: { dog: DogNode }) {
           background: T.bg,
           overflow: 'hidden',
           border: `2px solid ${T.accentGold}`,
-          boxShadow: '0 0 0 1px rgba(201, 154, 63, 0.40)',
+          boxShadow: `0 0 0 1px ${PACK_THEME.border}`,
         }}
       >
         {dog.cloudinary_main_url ? (
@@ -488,7 +488,7 @@ function DogAvatar({ dog }: { dog: DogNode }) {
         background: T.bg,
         overflow: 'hidden',
         border: `2px solid ${T.accentGold}`,
-        boxShadow: '0 0 0 1px rgba(201, 154, 63, 0.35)',
+        boxShadow: `0 0 0 1px ${PACK_THEME.border}`,
         textDecoration: 'none',
       }}
     >
@@ -533,7 +533,7 @@ function DogRow({ dog }: { dog: DogNode }) {
           overflow: 'hidden',
           flexShrink: 0,
           border: `2px solid ${T.accentGold}`,
-          boxShadow: '0 0 0 1px rgba(201, 154, 63, 0.40)',
+          boxShadow: `0 0 0 1px ${PACK_THEME.border}`,
         }}
       >
         {dog.cloudinary_main_url ? (
@@ -581,7 +581,7 @@ function DogRow({ dog }: { dog: DogNode }) {
                 padding: '2px 9px',
                 borderRadius: 999,
                 background: 'rgba(201, 154, 63, 0.14)',
-                border: '1px solid rgba(201, 154, 63, 0.50)',
+                border: `1px solid ${PACK_THEME.border}`,
                 fontFamily: "'JetBrains Mono', ui-monospace, monospace",
                 fontSize: 11,
                 fontWeight: 700,
@@ -629,7 +629,7 @@ function PackActions() {
         style={{
           // .btn-gold (brand manuál v3.2 — LOCKED)
           background: GOLD_BTN.grad,
-          border: '1px solid rgba(250, 244, 236, 0.30)',
+          border: `1px solid ${GOLD_BTN.edge}`,
           borderRadius: 8,
           color: '#000',
           padding: '13px 16px',

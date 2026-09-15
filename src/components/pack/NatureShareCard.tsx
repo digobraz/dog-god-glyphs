@@ -22,6 +22,7 @@
 // Text je zámerne EN a NEPREKLADÁ SA: karta ide do sveta, nie do appky — rovnako
 // ako pätička v `ShareCard.tsx`. Mená úloh a elementov sú brand pojmy.
 import { useLayoutEffect, useRef, useState } from 'react';
+import { PACK_THEME } from '@/components/pack/packTheme';
 
 const GOLD = '#C99A3F';
 const CREAM = '#F7EFDD';
@@ -119,7 +120,7 @@ export function NatureShareCard({
       <div
         style={{
           position: 'absolute', inset: 0, zIndex: 4,
-          boxShadow: 'inset 0 0 0 2px rgba(201,154,63,0.35), inset 0 0 120px 30px rgba(0,0,0,0.55)',
+          boxShadow: `inset 0 0 0 2px ${PACK_THEME.border}, inset 0 0 120px 30px rgba(0,0,0,0.55)`,
         }}
       />
 

@@ -424,8 +424,8 @@ function PackAnimations() {
         100% { transform: scale(2.4); opacity: 0; }
       }
       @keyframes pack-bond-pulse {
-        0%, 100% { transform: translate(-50%, 0) scale(1); box-shadow: 0 6px 18px -6px rgba(201, 154, 63, 0.35), 0 0 0 0 rgba(201, 154, 63, 0.4); }
-        50% { transform: translate(-50%, 0) scale(1.08); box-shadow: 0 6px 22px -4px rgba(201, 154, 63, 0.55), 0 0 0 8px rgba(201, 154, 63, 0); }
+        0%, 100% { transform: translate(-50%, 0) scale(1); box-shadow: 0 6px 18px -6px ${PACK_THEME.border}, 0 0 0 0 rgba(201, 154, 63, 0.4); }
+        50% { transform: translate(-50%, 0) scale(1.08); box-shadow: 0 6px 22px -4px ${PACK_THEME.border}, 0 0 0 8px rgba(201, 154, 63, 0); }
       }
       @keyframes pack-bond-flow {
         0% { background-position: 0 0; }

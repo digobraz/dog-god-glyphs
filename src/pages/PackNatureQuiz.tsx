@@ -41,6 +41,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
 import { getAccessibleDogIds } from '@/lib/dogRights';
 import { useT } from '@/i18n/LanguageContext';
+import { PALE } from '@/components/pack/navGoldSkin';
 
 const T = PACK_THEME;
 const NAME_FONT = "'Cinzel Decorative', 'Cinzel', serif";
@@ -109,7 +110,7 @@ const NQ_CSS = `
    nevidno. Rovnaká pasca ako pri pätičke s attribution — na tmavých vrstvách sa berú
    onDark odtiene, nie ink*. */
 .nq-ghost.is-ondark{
-  border-color:rgba(201,154,63,0.55); color:${T.onDark};
+  border-color:${PACK_THEME.border}; color:${T.onDark};
 }
 .nq-ghost.is-ondark:hover{ border-color:${T.cardEdge}; color:#F5C73D; }
 /* Hlavné CTA úvodu — vzor hub-gold.is-big z PackDogs.tsx. Meria sa na šírku
@@ -158,7 +159,7 @@ const NQ_CSS = `
   display:flex; align-items:center; gap:12px; width:100%; text-align:left; cursor:pointer;
   padding:12px 16px; border-radius:12px;
   background:linear-gradient(180deg,#FFFDF7 0%,#EFDDAE 100%);
-  border:1.5px solid rgba(179,130,45,0.55);
+  border:1.5px solid ${PALE.border};
   font-family:'Space Grotesk',sans-serif; font-size:13.5px; line-height:1.45;
   color:#5c4318;
   transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .18s;
@@ -227,14 +228,14 @@ const NQ_CSS = `
    mení sa len to, že nereaguje na myš. */
 .nq-optlbl.is-static{ cursor:default; }
 .nq-optlbl.is-static:hover{
-  border-color:rgba(179,130,45,0.55); transform:none; box-shadow:none;
+  border-color:${PALE.border}; transform:none; box-shadow:none;
 }
 
 /* Trojlístok áno/občas/nie pri jednom psovi — tá istá koža, len na šírku. */
 .nq-tri{
   flex:1 1 0; cursor:pointer; padding:12px 8px; border-radius:999px;
   background:linear-gradient(180deg,#FFFDF7 0%,#EFDDAE 100%);
-  border:1.5px solid rgba(179,130,45,0.55);
+  border:1.5px solid ${PALE.border};
   font-family:'Space Grotesk',sans-serif; font-size:12.5px; font-weight:500; color:#5c4318;
   transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
 }
@@ -317,7 +318,7 @@ const NQ_CSS = `
 .nq-dog{
   width:var(--nq-dog,54px); height:var(--nq-dog,54px);
   border-radius:999px; cursor:pointer; padding:0; overflow:hidden; flex:0 0 auto;
-  border:2px solid rgba(201,154,63,0.35); background:${T.bg};
+  border:2px solid ${PACK_THEME.border}; background:${T.bg};
   filter:grayscale(1); opacity:.45;
   transition:opacity .18s, filter .18s, border-color .18s, box-shadow .18s;
 }
@@ -410,7 +411,7 @@ const NQ_CSS = `
   width:70px; height:70px; border-radius:999px; display:grid; place-items:center;
   flex:0 0 auto;
   background:radial-gradient(circle at 34% 28%, rgba(245,199,61,0.34), rgba(201,154,63,0.08) 72%);
-  border:1px solid rgba(201,154,63,0.55);
+  border:1px solid ${PACK_THEME.border};
   box-shadow:inset 0 1px 0 rgba(255,255,255,0.65);
   transition:transform .35s ease;
 }
@@ -461,7 +462,7 @@ const NQ_CSS = `
    ohnisko, a tým je výsledok. Ak by sa leskli všetky, nevidno víťaza. */
 .nq-scorefill{
   position:absolute; inset:0 auto 0 0; border-radius:999px;
-  background:rgba(201,154,63,0.42); transition:width .5s ease;
+  background:${PACK_THEME.border}; transition:width .5s ease;
 }
 .nq-scorefill.is-top{
   background:linear-gradient(90deg,#F5C73D,#E69E1A);
@@ -1361,7 +1362,7 @@ function Shell({ children, onClose, fill, overlay }: {
         <div className="flex justify-end" style={{ marginBottom: 12 }}>
           <button type="button" onClick={onClose} aria-label="Close" style={{
             width: 36, height: 36, borderRadius: 999, cursor: 'pointer',
-            background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(201,154,63,0.4)',
+            background: 'rgba(0,0,0,0.35)', border: `1px solid ${PACK_THEME.border}`,
             color: '#E9D9B8', display: 'grid', placeItems: 'center',
           }}><X className="h-4 w-4" /></button>
         </div>

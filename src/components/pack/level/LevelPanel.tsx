@@ -15,7 +15,7 @@
 
 import { useEffect } from 'react';
 import { X } from 'lucide-react';
-import { FONT_TITLE, FONT_UI, PACK_THEME as T } from '@/components/pack/packTheme';
+import { FONT_TITLE, FONT_UI, PACK_THEME as T, GOLD_BTN } from '@/components/pack/packTheme';
 import type { LevelProgress, PointsRow } from '@/lib/tripPoints';
 import { tierOfLevel, tierGradient } from '@/lib/packTiers';
 import { useT } from '@/i18n/LanguageContext';
@@ -73,7 +73,7 @@ export function LevelPanel({ level, rows, onClose }: LevelPanelProps) {
               {t('pack.map.rankPilgrim')}
               <span style={{
                 display: 'inline-flex', alignItems: 'center', padding: '3px 11px 4px',
-                borderRadius: 999, border: '1px solid rgba(250,244,236,0.30)',
+                borderRadius: 999, border: `1px solid ${GOLD_BTN.edge}`,
                 background: tierGradient(tier), color: tier.ink,
                 fontFamily: FONT_UI, fontWeight: 600, fontSize: 14, lineHeight: 1,
               }}>

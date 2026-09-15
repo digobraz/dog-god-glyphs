@@ -27,8 +27,8 @@ import { readTriplist, upsertMyTrip } from './triplist/triplist';
 import { buildPlanDate, planDateLabel, planDeadline, type PlanPrecision } from './addtrip/planDate';
 import { clearPlanMissed, markPlanMissed, planPhase } from './planReminder';
 import { placeholderFor } from '@/lib/tripPlaceholder';
-import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI } from './packTheme';
-import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, tintRGBA } from './navGoldSkin';
+import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, GOLD_BTN } from './packTheme';
+import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, tintRGBA, PALE } from './navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
@@ -151,7 +151,7 @@ export function PlanAskCard() {
   const btnPrimary: React.CSSProperties = {
     ...btnBase,
     background: LAPIS.grad,
-    border: '1px solid rgba(250, 244, 236, 0.30)',
+    border: `1px solid ${GOLD_BTN.edge}`,
     color: LAPIS.ink,
     boxShadow: LAPIS_BTN_SHADOW,
   };
@@ -190,7 +190,7 @@ export function PlanAskCard() {
     marginTop: 8,
     padding: '8px 12px',
     borderRadius: 8,
-    border: '1px solid rgba(179,130,45,0.55)',
+    border: `1px solid ${PALE.border}`,
     background: T.card,
     color: T.inkStrong,
     fontFamily: FONT_UI,

@@ -90,7 +90,7 @@ const CSS = `
    ikonka DEDÍ farbu textu — na papyruse inkoust, na lapise zlato, a pri ďalšej zmene farby
    nadpisu ju netreba dolaďovať. Filter by sa musel prepočítavať ku každému odtieňu zvlášť. */
 .tl-tab{display:flex;align-items:center;justify-content:center;padding:20px 14px;border-radius:16px;border:1.5px solid ${T.cardEdge};background:${T.panelGrad};box-shadow:0 2px 8px rgba(122,90,42,0.16),inset 0 1px 0 rgba(255,255,255,0.45);cursor:pointer;text-align:center;transition:border-color .15s,transform .15s,background .15s,box-shadow .15s;}
-.tl-tab:hover{transform:translateY(-1px);box-shadow:0 0 0 3px rgba(201,154,63,0.28),0 2px 8px rgba(122,90,42,0.16);}
+.tl-tab:hover{transform:translateY(-1px);box-shadow:0 0 0 3px ${PACK_THEME.hairline},0 2px 8px rgba(122,90,42,0.16);}
 .tl-tab-label{font-family:${FONT_TITLE};font-weight:700;font-size:15px;letter-spacing:.09em;text-transform:uppercase;color:${P.ink};display:flex;flex-direction:row;align-items:center;gap:11px;min-width:0;}
 .tl-tab-ic{width:26px;height:26px;flex-shrink:0;background:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat;}
 .tl-tab.on{background:${LAPIS.grad};border-color:${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};}
@@ -139,7 +139,7 @@ const CSS = `
 /* MY TRIPS — horizontálny slajd */
 .tl-hscroll{display:flex;gap:12px;overflow-x:auto;padding:15px 2px 10px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:thin;}
 .tl-hscroll::-webkit-scrollbar{height:6px;}
-.tl-hscroll::-webkit-scrollbar-thumb{background:rgba(201,154,63,0.55);border-radius:999px;}
+.tl-hscroll::-webkit-scrollbar-thumb{background:${PACK_THEME.border};border-radius:999px;}
 /* wrapper nesie flex + necháva countdown vytŕčať nad kartu (.tl-block má overflow:hidden) */
 .tl-mycard{position:relative;flex:0 0 170px;scroll-snap-align:start;}
 .tl-mycard .tl-block{width:100%;}
@@ -151,7 +151,7 @@ const CSS = `
    z toho ostane čierny mrak — dostáva preto teplý tieň bez ringu, presne ako .trp-bigcard
    v bledom zozname mapy. */
 .tl-block{cursor:pointer;overflow:hidden;background:${T.cardGrad};border:1.5px solid ${T.cardEdge};border-radius:16px;box-shadow:0 2px 8px rgba(122,90,42,0.16),inset 0 1px 0 rgba(255,255,255,0.45);transition:border-color .15s,transform .15s,box-shadow .15s;}
-.tl-block:hover{border-color:${P.deep};transform:translateY(-2px);box-shadow:0 0 0 3px rgba(201,154,63,0.28),0 2px 8px rgba(122,90,42,0.16);}
+.tl-block:hover{border-color:${P.deep};transform:translateY(-2px);box-shadow:0 0 0 3px ${PACK_THEME.hairline},0 2px 8px rgba(122,90,42,0.16);}
 /* PREJDENÉ v MY TRIPS = ZELENÝ RÁM (Matej 1. 9. 2026: „prejdené v mojich výletoch zelenou").
    T.growGreen je naprieč appkou (mimo mapy) SÉMANTIKA „SPLNENÉ" — comm-unit--done,
    comm-joinbtn.joined, DogCardFields, 100 % na DOG ID a nižšie .tl-closebar v TOMTO súbore.
@@ -177,7 +177,7 @@ const CSS = `
    mape — druhý význam pre tú istú farbu na susediacich povrchoch. Namiesto novej farby preto
    karta ukáže priamo ČÍ výlet to je: existujúci avatar .tl-block-avatar + meno v tmavom
    štítku, presne ako na mape/kartách inde. Rám karty ostáva zlatý. */
-.tl-block-ownertag{position:absolute;top:8px;left:8px;z-index:2;display:flex;align-items:center;gap:5px;max-width:calc(100% - 40px);padding:3px 9px 3px 3px;border-radius:999px;background:rgba(20,14,4,0.82);border:1px solid rgba(201,154,63,0.5);}
+.tl-block-ownertag{position:absolute;top:8px;left:8px;z-index:2;display:flex;align-items:center;gap:5px;max-width:calc(100% - 40px);padding:3px 9px 3px 3px;border-radius:999px;background:rgba(20,14,4,0.82);border:1px solid ${PACK_THEME.border};}
 .tl-block-ownertag span{font-family:${FONT_UI};font-weight:600;font-size:9px;color:#EFE6D6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 /* výrazný odpočet dní — VYTŔČA nad horný okraj karty (dôležitý údaj), na wrapperi .tl-mycard.
    ⚠️ Krúžok okolo pilulky je farba PODKLADU, teda papyrus karty (${T.card}) — nie T.pageBg.
@@ -208,7 +208,7 @@ const CSS = `
 .tl-block-badge.rejected{background:rgba(20,14,4,0.92);color:rgba(239,230,214,0.6);border:1px solid rgba(239,230,214,0.28);}
 /* ⚠️ Hint UŽ NIE JE na fotke — stojí v .tl-block-info, teda na papyruse. */
 .tl-block-pendhint{margin-top:3px;font-family:${FONT_UI};font-size:9.5px;line-height:1.35;color:${P.dim};}
-.tl-block-badge.with{background:#F0E6D2;color:#1a1305;border:1px solid rgba(201,154,63,0.55);}
+.tl-block-badge.with{background:#F0E6D2;color:#1a1305;border:1px solid ${PACK_THEME.border};}
 .tl-block-badge.looking{background:${GOLD_BTN.grad};color:#3d1f00;}
 .tl-block-info{padding:9px 11px 11px;}
 .tl-block-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;line-height:1.25;color:${P.ink};display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px;}

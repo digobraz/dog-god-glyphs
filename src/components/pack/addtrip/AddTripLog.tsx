@@ -3725,7 +3725,7 @@ const STEP_CSS = `
 /* ÚNIK — otázka pred zahodením rozrobeného výletu. Tmavý povrch, lebo stojí nad mapou. */
 .atl-abort-scrim{position:fixed;inset:0;z-index:1400;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;}
 .atl-abort{width:100%;max-width:380px;padding:20px;border-radius:14px;background:rgba(18,13,7,0.97);border:1px solid ${T.onDarkBorder};box-shadow:0 18px 50px rgba(0,0,0,0.6);}
-.atl-abort-face{display:block;width:46px;height:46px;object-fit:contain;margin:0 auto 10px;border-radius:12px;background:rgba(201,154,63,0.14);box-shadow:0 0 0 1.5px rgba(201,154,63,0.55);}
+.atl-abort-face{display:block;width:46px;height:46px;object-fit:contain;margin:0 auto 10px;border-radius:12px;background:rgba(201,154,63,0.14);box-shadow:0 0 0 1.5px ${T.border};}
 .atl-abort h2{margin:0;font-family:${FONT_TITLE};font-weight:700;text-transform:uppercase;font-size:15px;letter-spacing:.06em;color:${T.onDark};}
 .atl-abort p{margin:10px 0 0;font-family:${FONT_UI};font-size:12.5px;line-height:1.55;color:${T.onDarkDim};}
 .atl-abort-btns{display:flex;gap:8px;margin-top:16px;}
@@ -3876,7 +3876,7 @@ const STEP_CSS = `
 .atl-editor-head{display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:${T.inkStrong};}
 .atl-editor-x{border:0;background:transparent;color:${T.inkWarm};font-size:22px;line-height:1;cursor:pointer;padding:0 4px;}
 .atl-editor-x:hover{color:${T.inkStrong};}
-.atl-editor-area{flex:1 1 auto;min-height:0;resize:none;width:100%;box-sizing:border-box;padding:14px 16px;border-radius:8px;background:${T.card};border:1px solid rgba(179,130,45,0.55);color:${T.inkStrong};font-family:${FONT_UI};font-size:15px;line-height:1.6;}
+.atl-editor-area{flex:1 1 auto;min-height:0;resize:none;width:100%;box-sizing:border-box;padding:14px 16px;border-radius:8px;background:${T.card};border:1px solid ${PALE.border};color:${T.inkStrong};font-family:${FONT_UI};font-size:15px;line-height:1.6;}
 .atl-editor-area:focus{outline:none;border-color:${T.cardEdge};}
 .atl-editor-area::placeholder{color:${T.inkWarm};opacity:.7;}
 .atl-editor-done{flex:0 0 auto;align-self:flex-end;min-width:180px;}
@@ -4141,7 +4141,7 @@ const LOG_CSS = `
    stĺpca; toto číslo platí len vtedy, keď stĺpec žiadny zvyšok nemá (nízke okno). */
 .atl-field--grow .atl-textarea{flex:1 1 auto;min-height:120px;resize:none;}
 .atl-photo{flex:0 0 auto;position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,#1c2b1a,#0e1a0d);background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;border:1px solid ${T.onDarkBorder};}
-.atl-photo-badge{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.45);padding:8px 14px;border-radius:8px;border:1px solid rgba(201,154,63,0.5);}
+.atl-photo-badge{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.45);padding:8px 14px;border-radius:8px;border:1px solid ${T.border};}
 .atl-field label{display:block;font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:4px;}
 .atl-field-hint{font-weight:400;text-transform:none;letter-spacing:0;opacity:.72;font-size:10.5px;font-family:${FONT_UI};color:${T.onDarkDim};}
 /* ⚠️ 16 px JE MINIMUM, NIE VKUS (feedback_dogypt_form_input_recurring_bugs, tretí výskyt
@@ -4292,7 +4292,7 @@ const LOG_CSS = `
 /* Pilulka s voľbou z kroku ČO — stojí v doku nad hľadaním miesta (drawBar.contextPill).
    Rám je ten istý, aký nesú polia a pilulky matrice: rgba(179,130,45,0.55) — jeden, nie dva. */
 .atl-ctxpill{align-self:center;display:inline-flex;align-items:center;gap:7px;height:26px;padding:0 12px;border-radius:999px;
-  background:rgba(255,250,240,0.72);border:1px solid rgba(179,130,45,0.55);color:${T.inkStrong};
+  background:rgba(255,250,240,0.72);border:1px solid ${PALE.border};color:${T.inkStrong};
   font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;}
 .atl-chips--picks .atl-chip{height:46px;justify-content:flex-start;font-size:12px;padding:0 12px;}
 .atl-chips--picks .atl-chip-emoji{width:20px;flex:0 0 20px;font-size:17px;margin-right:9px;}
@@ -4365,14 +4365,14 @@ const LOG_CSS = `
 .atl-file-input-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
 .atl-photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;margin-top:8px;}
 .atl-photo-thumb{position:relative;aspect-ratio:1;border-radius:8px;background-size:cover;background-position:center;border:1px solid ${T.onDarkBorder};cursor:pointer;}
-.atl-photo-thumb.cover{border:2px solid ${GOLD};box-shadow:0 0 0 1px rgba(201,154,63,0.35);}
+.atl-photo-thumb.cover{border:2px solid ${GOLD};box-shadow:0 0 0 1px ${T.border};}
 .atl-photo-thumb button{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.7);border:0;color:${T.onDark};cursor:pointer;font-size:12px;line-height:1;}
 .atl-photo-cover-badge{position:absolute;left:0;right:0;bottom:0;text-align:center;font-family:${FONT_UI};font-weight:600;font-size:7.5px;letter-spacing:.12em;color:#000;background:${GOLD};padding:2px 0;border-radius:0 0 6px 6px;}
 .atl-cover-crop{margin-top:10px;display:flex;flex-direction:column;gap:5px;}
 /* Náhľad titulnej fotky priamo nad posuvníkom. Pomer 16:9 = ten istý tvar, v akom fotka
    nakoniec sedí na karte výletu, takže sa neposúva výrez, ktorý človek nikdy neuvidí. */
 .atl-cover-preview{width:100%;aspect-ratio:16/9;border-radius:10px;background-size:cover;
-  background-repeat:no-repeat;border:1px solid rgba(179,130,45,0.55);}
+  background-repeat:no-repeat;border:1px solid ${PALE.border};}
 .atl-cover-crop label{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:${T.onDarkDim};}
 .atl-cover-slider{width:100%;accent-color:${GOLD};}
 /* ⚠️ ODSTUP OD OBSAHU JE NA PÄTE, NIE NA POSLEDNOM POLI (Matej 1. 9. 2026: „text area je

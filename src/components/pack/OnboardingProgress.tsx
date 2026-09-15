@@ -111,7 +111,7 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
                   height: 18,
                   borderRadius: '50%',
                   background: GOLD_BTN.grad,
-                  boxShadow: '0 2px 6px -1px rgba(201,154,63,0.55)',
+                  boxShadow: `0 2px 6px -1px ${PACK_THEME.border}`,
                 }}
               >
                 <Check className="h-3 w-3" strokeWidth={3} style={{ color: '#3A2A06' }} />
@@ -156,7 +156,7 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
               padding: '12px 14px',
               borderRadius: 12,
               background: GOLD_BTN.grad,
-              border: '1px solid rgba(250,244,236,0.30)',
+              border: `1px solid ${GOLD_BTN.edge}`,
               boxShadow: '0 6px 18px -6px rgba(201,154,63,0.6)',
             }}
           >

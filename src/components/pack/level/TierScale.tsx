@@ -9,7 +9,7 @@
 // pokračuje ďalej, než kam človek dovidí.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { FONT_TITLE, FONT_UI, PACK_THEME as T } from '@/components/pack/packTheme';
+import { FONT_TITLE, FONT_UI, PACK_THEME as T, GOLD_BTN } from '@/components/pack/packTheme';
 import { PACK_TIERS, tierGradient, tierIndexOfLevel, tierRangeLabel } from '@/lib/packTiers';
 import { useT } from '@/i18n/LanguageContext';
 
@@ -54,7 +54,7 @@ export function TierScale({ level, onDark = true }: TierScaleProps) {
                 textAlign: 'center',
                 padding: '4px 11px',
                 borderRadius: 999,
-                border: '1px solid rgba(250,244,236,0.30)',
+                border: `1px solid ${GOLD_BTN.edge}`,
                 background: tierGradient(tier),
                 color: tier.ink,
                 fontFamily: FONT_TITLE,

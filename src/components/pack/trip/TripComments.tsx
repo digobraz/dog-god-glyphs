@@ -26,7 +26,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_SHADOW } from '@/components/pack/packTheme';
-import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { LAPIS, LAPIS_BTN_SHADOW, PALE } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
 import {
@@ -129,7 +129,7 @@ export const TRIP_COMMENTS_CSS = `
 .tcm-field{margin-bottom:16px;}
 .tcm-label{display:block;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.cardEdge};margin-bottom:9px;}
 .tcm-pawpick{display:flex;justify-content:center;}
-.tcm-textarea{width:100%;background:${T.card};border:1px solid rgba(179,130,45,0.55);border-radius:8px;padding:10px 12px;color:${T.inkStrong};font-family:inherit;font-size:13px;outline:0;resize:vertical;min-height:72px;}
+.tcm-textarea{width:100%;background:${T.card};border:1px solid ${PALE.border};border-radius:8px;padding:10px 12px;color:${T.inkStrong};font-family:inherit;font-size:13px;outline:0;resize:vertical;min-height:72px;}
 .tcm-textarea:focus{border-color:${GOLD};}
 /* Odoslanie v modáli = hlavné CTA toho panela ⇒ tiež lapis, nech sa cesta „pridaj
    hodnotenie → odošli" nemení farbu uprostred. */

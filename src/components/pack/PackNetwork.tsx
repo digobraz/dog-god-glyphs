@@ -1191,7 +1191,7 @@ function SendStep({
             style={{
               flex: 1.4,
               background: GOLD_BTN.grad,
-              border: '1px solid rgba(250,244,236,0.30)',
+              border: `1px solid ${GOLD_BTN.edge}`,
               borderRadius: 8,
               color: T.ink,
               padding: '11px 16px',
@@ -1330,13 +1330,13 @@ function Step({
                nie zlatou"). Číslo kroku je malý plný disk, nie plocha — zlatý gradient
                `.btn-gold` na ňom kričal rovnako ako CTA o pár riadkov nižšie. */
             background: LAPIS.grad,
-            border: '1px solid rgba(201,154,63,0.55)',
+            border: `1px solid ${PACK_THEME.border}`,
             color: LAPIS.ink,
             fontFamily: FONT_TITLE,
             fontWeight: 700,
             fontSize: 14,
             lineHeight: 1,
-            boxShadow: '0 3px 10px rgba(5,15,48,0.35), inset 0 1px 0 rgba(201,154,63,0.28)',
+            boxShadow: `0 3px 10px rgba(5,15,48,0.35), inset 0 1px 0 ${PACK_THEME.hairline}`,
           }}
         >
           {n}
@@ -1727,7 +1727,7 @@ function Link20({ pill, small }: { pill: string; small?: boolean }) {
              zlatá — je to SPOJKA medzi uzlami, teda konštrukcia, nie odmena. */
           color: LAPIS.ink,
           background: LAPIS.grad,
-          border: '1px solid rgba(201,154,63,0.55)',
+          border: `1px solid ${PACK_THEME.border}`,
           borderRadius: 999,
           padding: '2px 8px',
         }}
@@ -1876,7 +1876,7 @@ function BigStat({
          zapustený tieň. */
       style={{
         background: LAPIS.grad,
-        border: '1px solid rgba(201,154,63,0.55)',
+        border: `1px solid ${PACK_THEME.border}`,
         borderRadius: 14,
         padding: '14px 15px',
         boxShadow: 'inset 0 1px 0 rgba(201,154,63,0.22), 0 10px 24px -14px rgba(5,15,48,0.75)',

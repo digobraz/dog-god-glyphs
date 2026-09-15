@@ -339,7 +339,7 @@ function MilestoneSwiper({
           borderRadius: 16,
           padding: '12px 12px',
           background: 'var(--brand-gradient)',
-          border: '1.5px solid rgba(201,154,63,0.34)',
+          border: `1.5px solid ${PACK_THEME.border}`,
           // Tieň bol fialový (124,58,237) z pôvodnej palety — gradient je pritom modro-zlatý,
           // takže žiaril inou farbou než plocha, na ktorej ležal.
           boxShadow: '0 16px 36px -20px rgba(16,52,166,0.6)',

@@ -19,7 +19,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import ainubisFace from '@/assets/ainubis-head.png';
-import { FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
+import { FONT_TITLE, FONT_UI, GOLD_BTN, PACK_THEME } from '@/components/pack/packTheme';
 import { PALE } from '@/components/pack/navGoldSkin';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { useT } from '@/i18n/LanguageContext';
@@ -173,7 +173,7 @@ export const MAP_COACH_CSS = `
 .mcoach{position:fixed;inset:0;z-index:1500;}
 .mcoach-hole{position:fixed;border-radius:14px;pointer-events:none;box-shadow:0 0 0 9999px rgba(249,242,226,0.90),0 0 0 2px ${PALE.edge},0 0 22px rgba(201,154,63,0.45);animation:mcoach-ring 2.2s ease-in-out infinite;}
 @keyframes mcoach-ring{
-  0%,100%{box-shadow:0 0 0 9999px rgba(249,242,226,0.90),0 0 0 2px rgba(201,154,63,0.70),0 0 18px rgba(201,154,63,0.35);}
+  0%,100%{box-shadow:0 0 0 9999px rgba(249,242,226,0.90),0 0 0 2px rgba(201,154,63,0.70),0 0 18px ${PACK_THEME.border};}
   50%{box-shadow:0 0 0 9999px rgba(249,242,226,0.90),0 0 0 3px ${PALE.edge},0 0 30px rgba(201,154,63,0.60);}
 }
 /* ── BUBLINA OSTÁVA V AINUBISOVOM BRANDE (Matej 2026-08-28: „AInubisovu bublinu nechaj

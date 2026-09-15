@@ -171,7 +171,7 @@ function FlagCircle({ src, iso2, label }: { src: string; iso2: string; label: st
     height: 30,
     borderRadius: '50%',
     justifySelf: 'center',
-    border: '1.5px solid rgba(201, 154, 63, 0.55)',
+    border: `1.5px solid ${PACK_THEME.border}`,
     boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
     background: '#1a1a1a',
   };
@@ -2470,7 +2470,7 @@ function TilePanel({
             borderRadius: '50%',
             flexShrink: 0,
             background: 'rgba(201, 154, 63, 0.10)',
-            border: '1px solid rgba(201, 154, 63, 0.34)',
+            border: `1px solid ${PACK_THEME.border}`,
           }}
         >
           <img src={`/icons/pack/${icon}.svg`} alt="" style={{ width: 24, height: 24, filter: GOLD_FILTER }} />
@@ -2866,7 +2866,7 @@ function PrayersComingSoon({ dogName }: { dogName: string }) {
     >
       <span
         className="inline-flex items-center justify-center"
-        style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(201,154,63,0.08)', border: '1px solid rgba(201,154,63,0.28)' }}
+        style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(201,154,63,0.08)', border: `1px solid ${PACK_THEME.hairline}` }}
       >
         <Lock className="h-6 w-6" style={{ color: T.accentGold }} />
       </span>

@@ -10,7 +10,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { track } from '@/lib/analytics';
 import { shareDog, downloadCard } from '@/lib/useShareCard';
 import { dogPagePath } from '@/lib/dogSlug';
-import { FONT_TITLE, FONT_UI, PILL_CSS, GOLD_BTN } from './packTheme';
+import { FONT_TITLE, FONT_UI, PILL_CSS, GOLD_BTN, PACK_THEME } from './packTheme';
 
 const APP_ORIGIN = 'https://dogypt.com';
 
@@ -223,7 +223,7 @@ export function FounderInvite({ dogName, packNumber, shareCardUrl }: FounderInvi
         background: 'var(--brand-gradient)',
         // Hrúbka okraja = 1.5px ako každý iný blok homepage (Matej 12.8.: „hrúbky okrajov
         // nesedia"). Karta ostáva TMAVÁ — to je jeho rozhodnutie z toho istého dňa.
-        border: '1.5px solid rgba(201,154,63,0.34)',
+        border: `1.5px solid ${PACK_THEME.border}`,
         borderRadius: 16,
         padding: '32px 24px',
         boxShadow: '0 24px 55px -28px rgba(31, 26, 14, 0.45)',

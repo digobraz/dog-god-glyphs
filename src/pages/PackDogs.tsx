@@ -339,7 +339,7 @@ const HUB_CSS = `
    ktorý má súťažiť s menom. Rám aj radius podľa brandu (kartuša 8px, zlatý rám polí). */
 .dogblk-glyph--empty{
   aspect-ratio:${GLYPH_RATIO};
-  border:1px dashed rgba(179,130,45,0.55);
+  border:1px dashed ${PALE.border};
   border-radius:8px;
   background:rgba(201,154,63,0.06);
   box-sizing:border-box;
@@ -392,7 +392,7 @@ const HUB_CSS = `
 .hub-hero{
   position:relative; overflow:hidden; display:flex; align-items:flex-end;
   min-height:300px; padding:24px;
-  border-radius:16px; border:1px solid rgba(201,154,63,0.5);
+  border-radius:16px; border:1px solid ${PACK_THEME.border};
   box-shadow:0 30px 74px -32px rgba(0,0,0,0.95);
   text-decoration:none; cursor:pointer;
 }

@@ -62,7 +62,7 @@ const CSS = `
 .ts-hero{
   position:relative; overflow:hidden; display:flex; align-items:flex-end;
   min-height:300px; padding:32px 32px 24px;
-  border-radius:16px; border:1px solid rgba(201,154,63,0.5);
+  border-radius:16px; border:1px solid ${PACK_THEME.border};
   box-shadow:0 30px 74px -32px rgba(0,0,0,0.95);
   text-decoration:none; cursor:pointer;
   transition: transform .2s ease, box-shadow .2s ease;
@@ -248,7 +248,7 @@ const CSS = `
 .ts-pill{
   position:relative; overflow:hidden; border-radius:12px; padding:12px 12px; text-align:center;
   background:${LAPIS.grad};
-  border:1px solid rgba(201,154,63,0.55);
+  border:1px solid ${PACK_THEME.border};
   box-shadow:inset 0 1px 0 rgba(201,154,63,0.22), 0 10px 24px -14px rgba(5,15,48,0.75);
 }
 /* Zlatý svetelný pruh po hornej hrane — to je celý „šperk" pilulky, nie ďalší rám. */

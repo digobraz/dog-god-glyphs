@@ -959,7 +959,7 @@ export const ADD_NOTE_CSS = `
    a rozbaľovací zoznam by ju schoval znova. Šetrí sa teda na TVARE panela
    (pripútaný k hrane, plná šírka), nie na tom, čo je v ňom čitateľné. */
 .mnq-wrap{position:fixed;left:0;right:0;bottom:0;z-index:1250;}
-.mnq-panel{max-height:70vh;overflow-y:auto;overscroll-behavior:contain;padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px));border-radius:16px 16px 0 0;background:rgba(5,5,5,0.96);backdrop-filter:blur(12px);border-top:1px solid rgba(201,154,63,0.5);box-shadow:0 -14px 40px rgba(0,0,0,0.6);}
+.mnq-panel{max-height:70vh;overflow-y:auto;overscroll-behavior:contain;padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px));border-radius:16px 16px 0 0;background:rgba(5,5,5,0.96);backdrop-filter:blur(12px);border-top:1px solid ${T.border};box-shadow:0 -14px 40px rgba(0,0,0,0.6);}
 .mnq-head{position:relative;display:flex;align-items:center;justify-content:center;min-height:30px;margin-bottom:8px;}
 /* Panel je RASTÚCI ZOZNAM („tu časom vieme pridať dalšie položky") — nadpis preto
    patrí nad celý panel, nie k prvej dlaždici. */

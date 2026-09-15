@@ -83,7 +83,7 @@ export function DogStats({ birthMonth = null, birthDay = null }: { birthMonth?: 
                 textTransform: 'uppercase',
                 color: T.accentGold,
                 background: 'rgba(255, 251, 242, 0.72)',
-                border: '1px solid rgba(201, 154, 63, 0.40)',
+                border: `1px solid ${PACK_THEME.border}`,
                 backdropFilter: 'blur(1px)',
                 padding: '12px 24px',
                 borderRadius: 999,
