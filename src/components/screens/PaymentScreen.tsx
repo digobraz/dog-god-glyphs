@@ -2,7 +2,7 @@ import { useState, useEffect, type CSSProperties } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Lock, Loader2, Check } from 'lucide-react';
+import { ArrowLeft, Lock, Loader2 } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { buildHeroglyphCode, countryISO3 } from '@/lib/heroglyphCode';
 import { getStoredRef } from '@/lib/refCapture';
@@ -12,6 +12,7 @@ import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 import { EDGE_BASE } from '@/lib/env';
 import { track } from '@/lib/analytics';
 import { getAttribution } from '@/lib/attribution';
+import { HandCheck } from '@/components/pack/HandIcons';
 
 const CREATE_CHECKOUT_URL = `${EDGE_BASE}/create-checkout`;
 
@@ -337,17 +338,14 @@ export function PaymentScreen() {
                       }}
                     />
                     {isPromoValid && (
-                      <Check
-                        className="h-4 w-4"
-                        style={{
+                      <HandCheck size={16} style={{
                           position: 'absolute',
                           right: 11,
                           top: '50%',
                           transform: 'translateY(-50%)',
                           color: '#C99A3F',
                           pointerEvents: 'none',
-                        }}
-                      />
+                        }} />
                     )}
                   </div>
 
@@ -362,7 +360,7 @@ export function PaymentScreen() {
                         color: '#fff',
                       }}
                     >
-                      <Check className="h-5 w-5" />
+                      <HandCheck size={20} />
                     </div>
                   ) : (
                     <button

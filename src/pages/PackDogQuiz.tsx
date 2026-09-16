@@ -15,7 +15,7 @@
 // je podľa nákresu, vizuál NIE je finálny.
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { X, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, GOLD_BTN, PAPER_PAGE_CSS, usePaperRoute } from '@/components/pack/packTheme';
 import { PALE } from '@/components/pack/navGoldSkin';
 import { QUIZ_BY_KEY, type QuizStep } from '@/components/pack/dogQuiz';
@@ -23,6 +23,7 @@ import { appendDogEvents, readLatestForDogs, type DogEventInput, type LatestValu
 import { supabase } from '@/integrations/supabase/client';
 import { getAccessibleDogIds } from '@/lib/dogRights';
 import { useT } from '@/i18n/LanguageContext';
+import { HandCheck } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
 const NAME_FONT = "'Cinzel Decorative', 'Cinzel', serif";
@@ -301,7 +302,7 @@ export default function PackDogQuiz() {
             onClick={() => { if (idx + 1 >= total) { void finish(); } else { void flush(); setIdx(idx + 1); } }}
           >
             {idx + 1 >= total ? tx('pack.quiz.done', 'Done') : tx('pack.quiz.next', 'Next')}
-            {idx + 1 >= total ? <Check className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+            {idx + 1 >= total ? <HandCheck size={14} /> : <ChevronRight className="h-3.5 w-3.5" />}
           </button>
         </div>
       </Card>

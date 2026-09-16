@@ -17,13 +17,14 @@
 // zdieľanom pohľade. Veterinár ani opatrovateľ ho neuvidia ani omylom; vidí ho len
 // majiteľ (pohľad `full`) a adresát, ktorému ho pošle.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { X, Loader2, Save, Send, Check } from 'lucide-react';
+import { X, Loader2, Save, Send } from 'lucide-react';
 import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, FONT_TITLE, FONT_UI } from './packTheme';
 import { appendDogEvents, readLatest, type LatestValue } from '@/lib/dogEvents';
 import { RightGate } from '@/components/pack/RightGate';
 import { supabase } from '@/integrations/supabase/client';
 import { EDGE_BASE } from '@/lib/env';
 import { useT } from '@/i18n/LanguageContext';
+import { HandCheck } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
 const LETTER_MAX = 2000;
@@ -351,7 +352,7 @@ export function WillPanel({
             >
               {saving
                 ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                : savedAt ? <Check className="h-3.5 w-3.5" /> : <Save className="h-3.5 w-3.5" />}
+                : savedAt ? <HandCheck size={14} /> : <Save className="h-3.5 w-3.5" />}
               {saving
                 ? tx('pack.will.saving', 'Saving…')
                 : savedAt ? tx('pack.will.saved', 'Saved') : tx('pack.will.save', 'Save')}

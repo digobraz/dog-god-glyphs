@@ -24,7 +24,7 @@
 // Výsledok je JEDEN DOKUMENT NA PSA (`ResultDoc`), nie štyri karty pod sebou.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { X, ChevronLeft, RotateCcw, Check } from 'lucide-react';
+import { X, ChevronLeft, RotateCcw } from 'lucide-react';
 import { PACK_THEME, PACK_BOX, PACK_COL, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, PAPER_PAGE_CSS, usePaperRoute } from '@/components/pack/packTheme';
 import {
   ELEMENT_QUESTIONS, ROLE_QUESTIONS, BALANCE_ITEMS, BALANCE_VET_NOTE,
@@ -42,6 +42,7 @@ import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
 import { getAccessibleDogIds } from '@/lib/dogRights';
 import { useT } from '@/i18n/LanguageContext';
 import { PALE } from '@/components/pack/navGoldSkin';
+import { HandCheck } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
 const NAME_FONT = "'Cinzel Decorative', 'Cinzel', serif";
@@ -1193,7 +1194,7 @@ function OptionRow({
   const someOn = onCount > 0 && !allOn;
   const Mark = (
     <span className="nq-mark" aria-hidden>
-      {allOn ? <Check className="h-3.5 w-3.5" /> : (mark ?? '')}
+      {allOn ? <HandCheck size={14} /> : (mark ?? '')}
     </span>
   );
 
@@ -2534,7 +2535,7 @@ export default function PackNatureQuiz() {
       </div>
       {saved && (
         <p style={{ fontFamily: FONT_UI, fontSize: 11, color: 'rgba(245,240,228,0.55)', marginTop: 12, textAlign: 'center' }}>
-          <Check className="h-3 w-3 inline" />{' '}
+          <HandCheck size={12} />{' '}
           {solo
             ? tx('pack.nature.result.saved', 'Saved to your dog’s card')
             : tx('pack.nature.result.savedAll', 'Saved to every dog’s card')}

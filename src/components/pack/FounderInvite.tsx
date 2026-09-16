@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check } from 'lucide-react';
+;
 // `Check` ostáva lucide — systémové potvrdenie, nie brandový prvok.
 import { HandClipboard, HandStar } from './HandIcons';
 import { BrandIcon } from './BrandIcon';
@@ -11,6 +11,7 @@ import { track } from '@/lib/analytics';
 import { shareDog, downloadCard } from '@/lib/useShareCard';
 import { dogPagePath } from '@/lib/dogSlug';
 import { FONT_TITLE, FONT_UI, PILL_CSS, GOLD_BTN, PACK_THEME } from './packTheme';
+import { HandCheck } from '@/components/pack/HandIcons';
 
 const APP_ORIGIN = 'https://dogypt.com';
 
@@ -420,7 +421,7 @@ export function FounderInvite({ dogName, packNumber, shareCardUrl }: FounderInvi
                   boxShadow: '0 6px 16px -8px rgba(0,0,0,0.6)',
                 }}
               >
-                {copied ? <Check className="h-4 w-4" /> : <HandClipboard size={16} />}
+                {copied ? <HandCheck size={16} /> : <HandClipboard size={16} />}
               </button>
             </div>
             <p

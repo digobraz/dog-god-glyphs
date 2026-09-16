@@ -44,6 +44,12 @@ const KANALY = {
 //    Komentáre naokolo ostávajú slovenské, tie číta len ten, kto sem príde.
 const NAPROTIVOK = {
   ArrowLeft: 'HandArrowLeft — <BackButton> / <BackIcon> already wrap it',
+  // Matej 16. 9. 2026 dokreslil fajku (flaticon 35734, CC0) → 19 miest prevedených
+  // v ten istý deň. Zvyšných 5 sedí v shadcn primitívoch (checkbox, select,
+  // dropdown, context-menu, menubar) — cudzí kód, vlastné rozhodnutie.
+  Check: 'HandCheck',
+  CheckCircle: 'HandCheck',
+  CheckCircle2: 'HandCheck',
   Lock: 'HandLock',
   Plus: 'HandPlus · /icons/pack/plus.svg',
   Trash: 'HandTrash',

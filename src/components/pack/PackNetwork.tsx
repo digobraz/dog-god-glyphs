@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Loader2, Copy, Check, X } from 'lucide-react';
+import { Loader2, Copy, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +13,7 @@ import { intlLocale } from '@/i18n/bcp47';
 // vyzerala ako skutočný zoznam. Súbor je zoznam mien a názvov súborov, nie dáta
 // s obrázkami; do bundlu pridá jednotky kB.
 import { photos as GOD_PHOTOS } from '@/components/gods/godsData';
+import { HandCheck } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
 
@@ -827,7 +828,7 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
                 padding: 2,
               }}
             >
-              {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? <HandCheck size={14} /> : <Copy className="h-3.5 w-3.5" />}
             </button>
             )}
           </div>

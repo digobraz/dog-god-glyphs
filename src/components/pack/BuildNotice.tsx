@@ -1,10 +1,11 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Send, Check, Paperclip, X } from 'lucide-react';
+import { ArrowUpRight, Send, Paperclip, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadFeedbackPhoto } from '@/services/cloudinaryService';
 import { PACK_THEME } from './packTheme';
 import { useT } from '@/i18n/LanguageContext';
+import { HandCheck } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
 
@@ -130,7 +131,7 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
               padding: '10px 0',
             }}
           >
-            <Check className="h-4 w-4 shrink-0" style={{ color: BRICK }} />
+            <HandCheck size={16} style={{ color: BRICK }} />
             {t('pack.build.successMsg')}
           </div>
         ) : (

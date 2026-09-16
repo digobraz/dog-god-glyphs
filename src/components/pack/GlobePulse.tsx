@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import createGlobe from 'cobe';
-import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from './packTheme';
 import { GOLD_BLOCK_CSS } from './navGoldSkin';
 import { Ranking, RankingBoardsModal } from './Ranking';
@@ -9,6 +9,7 @@ import { countryCentroid, countryISO2 } from '@/lib/countryGeo';
 import dogSilhouette from '@/assets/dogypt-logo-mobile.png';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { localizeBreed } from '@/lib/breedDisplay';
+import { HandCheck } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
 
@@ -385,7 +386,7 @@ function MilestoneSwiper({
                     color: 'hsl(45 96% 90%)',
                   }}
                 >
-                  <Check className="h-5 w-5" style={{ color: 'hsl(45 96% 88%)' }} />
+                  <HandCheck size={20} style={{ color: 'hsl(45 96% 88%)' }} />
                   {t('pack.globe.achieved')}
                 </div>
               ) : (

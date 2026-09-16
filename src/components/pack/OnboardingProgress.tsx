@@ -1,7 +1,8 @@
-import { Check, Circle, Sparkles } from 'lucide-react';
+import { Circle, Sparkles } from 'lucide-react';
 import { useT } from '@/i18n/LanguageContext';
 import { BrandIcon } from './BrandIcon';
 import { PACK_THEME, GOLD_BTN } from './packTheme';
+import { HandCheck } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
 
@@ -114,7 +115,7 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
                   boxShadow: '0 2px 6px -1px rgba(201,154,63,0.55)',
                 }}
               >
-                <Check className="h-3 w-3" strokeWidth={3} style={{ color: '#3A2A06' }} />
+                <HandCheck size={12} style={{ color: '#3A2A06' }} />
               </span>
             ) : (
               <Circle className="h-4 w-4 shrink-0" style={{ color: T.inkFaint }} />

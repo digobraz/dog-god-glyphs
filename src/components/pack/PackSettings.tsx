@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Loader2, X, Check } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 // `Loader2`, `X`, `Check` ostávajú lucide — systémové ovládače (spinner, zavrieť, potvrdiť).
 import { HandExit, HandKey } from './HandIcons';
 import { BrandIcon } from './BrandIcon';
@@ -10,6 +10,7 @@ import { usePackSkin, setPackSkin, type PackSkin } from './packSkin';
 import { useToast } from '@/hooks/use-toast';
 import { useT } from '@/i18n/LanguageContext';
 import LanguagePicker from '@/components/LanguagePicker';
+import { HandCheck } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
 
@@ -270,7 +271,7 @@ export function PackSettings() {
                 className="inline-flex items-center justify-center gap-2"
                 style={{ background: T.ink, color: T.card, border: 'none', padding: '12px 16px', borderRadius: 10, fontFamily: FONT_TITLE, fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', opacity: (pwSaving || pwValue.length === 0) ? 0.6 : 1 }}
               >
-                {pwSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : pwDone ? <Check className="h-3 w-3" /> : null}
+                {pwSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : pwDone ? <HandCheck size={12} /> : null}
                 {t('pack.settings.pwSubmit')}
               </button>
             </div>

@@ -14,7 +14,6 @@ import {
   Lock,
   ChevronDown,
   Images,
-  Check,
   Camera,
   Syringe,
   Shield,
@@ -46,6 +45,7 @@ import { DEV_FULL } from '@/lib/packFlags';
 // Vek psa žije v lib/dogAge.ts — tú istú matematiku potrebuje aj svorka na `/pack`.
 import { computeAge, type DogAge } from '@/lib/dogAge';
 import { HEALTH_KEYS, HEALTH_COLORS, healthLabelKey, type HealthKey } from '@/lib/dogHealth';
+import { HandCheck } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
 const MESSAGE_MAX = 150;
@@ -2032,7 +2032,7 @@ function PrayerRow({
             transition: 'all 0.15s',
           }}
         >
-          {checked ? <Check className="h-4 w-4" strokeWidth={3} /> : locked ? <Lock className="h-3.5 w-3.5" /> : null}
+          {checked ? <HandCheck size={16} /> : locked ? <Lock className="h-3.5 w-3.5" /> : null}
         </button>
 
         {/* Text — middle */}
@@ -2181,7 +2181,7 @@ function HealthBadge({
                 <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, fontWeight: 600, color: T.ink }}>
                   {o.label}
                 </span>
-                {o.key === status && <Check className="h-3.5 w-3.5" style={{ marginLeft: 'auto', color: o.color }} />}
+                {o.key === status && <HandCheck size={14} style={{ marginLeft: 'auto', color: o.color }} />}
               </button>
             ))}
           </div>

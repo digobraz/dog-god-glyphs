@@ -10,7 +10,7 @@
 // Zbieranie devotion je zamknuté do 2027 (project_dogypt_devotion_ekonomika_stav_2026-08-06)
 // — táto komponenta sa preto nerozširuje, len sťahuje.
 import React, { useState } from 'react';
-import { Check, ChevronDown, Lock, Sparkles } from 'lucide-react';
+import { ChevronDown, Lock, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
 import { PACK_THEME, GOLD_BTN } from './packTheme';
@@ -18,6 +18,7 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { toast } from '@/hooks/use-toast';
 import { DEV_FULL } from '@/lib/packFlags';
+import { HandCheck } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
 
@@ -223,7 +224,7 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
                     boxShadow: '0 10px 24px -10px rgba(201, 154, 63, 0.7)',
                   }}
                 >
-                  {prayersSubmitted ? <Check className="h-4 w-4" strokeWidth={3} /> : <Sparkles className="h-4 w-4" />}
+                  {prayersSubmitted ? <HandCheck size={16} /> : <Sparkles className="h-4 w-4" />}
                   {prayersSubmitted
                     ? t('pack.dog.prayersLogged', { points: String(prayerLockedPoints ?? todayPoints) })
                     : t('pack.dog.prayersTotal', { points: String(todayPoints) })}
@@ -248,7 +249,7 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
                       boxShadow: (presenceDone || walkHours !== null) ? '0 10px 24px -10px rgba(34, 197, 94, 0.7)' : 'none',
                     }}
                   >
-                    <Check className="h-4 w-4" strokeWidth={3} />
+                    <HandCheck size={16} />
                     {t('pack.dog.submit')}
                   </button>
                 )}
@@ -462,7 +463,7 @@ function PrayerRow({
             transition: 'all 0.15s',
           }}
         >
-          {checked ? <Check className="h-4 w-4" strokeWidth={3} /> : locked ? <Lock className="h-3.5 w-3.5" /> : null}
+          {checked ? <HandCheck size={16} /> : locked ? <Lock className="h-3.5 w-3.5" /> : null}
         </button>
 
         {/* Text — middle */}

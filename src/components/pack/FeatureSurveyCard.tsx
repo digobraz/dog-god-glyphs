@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { PACK_THEME } from './packTheme';
 import imgMobileApp from '@/assets/pack-survey/mobile-app.webp';
@@ -7,6 +7,7 @@ import imgHealth from '@/assets/pack-survey/health.webp';
 import imgMerch from '@/assets/pack-survey/merch.webp';
 import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
 import { useT } from '@/i18n/LanguageContext';
+import { HandCheck } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
 
@@ -376,7 +377,7 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
                           transition: 'all 0.2s',
                         }}
                       >
-                        {isMine ? <Check className="h-3.5 w-3.5" /> : null}
+                        {isMine ? <HandCheck size={14} /> : null}
                         {isMine ? t('pack.survey.voted') : t('pack.survey.voteForThis')}
                       </button>
                     </div>
@@ -535,7 +536,7 @@ function ResultsGraph({
                 }}
               >
                 {s.f.title}
-                {isMine && <Check className="h-3 w-3" style={{ color: FAIENCE.light }} />}
+                {isMine && <HandCheck size={12} style={{ color: FAIENCE.light }} />}
               </span>
               <span
                 style={{
