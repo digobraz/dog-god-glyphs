@@ -29,8 +29,8 @@ export const DEVOTION_LEVELS = [
   { key: 'prophet',  name: 'Prophet', at: 340000 },
   { key: 'nomarch',  name: 'Nomarch', at: 480000 },
   { key: 'vizier',   name: 'Vizier', at: 700000 },
-  { key: 'pharaoh',  name: 'Pharaoh', at: 1000000 },   // founder tier
-  { key: 'demigod',  name: 'Demigod', at: 2000000 },   // poloboh — top of the path
+  { key: 'pharaoh',  name: 'Pharaoh', at: 1000000 },   // ★ founder tier
+  { key: 'demigod',  name: 'Demigod', at: 2000000 },   // ☼ poloboh — top of the path
 ] as const;
 
 export interface DevotionLevel {
