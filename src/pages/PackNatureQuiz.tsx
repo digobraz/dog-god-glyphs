@@ -24,7 +24,7 @@
 // Výsledok je JEDEN DOKUMENT NA PSA (`ResultDoc`), nie štyri karty pod sebou.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { X, ChevronLeft, RotateCcw } from 'lucide-react';
+import { X, ChevronLeft } from 'lucide-react';
 import { PACK_THEME, PACK_BOX, PACK_COL, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, PAPER_PAGE_CSS, usePaperRoute } from '@/components/pack/packTheme';
 import {
   ELEMENT_QUESTIONS, ROLE_QUESTIONS, BALANCE_ITEMS, BALANCE_VET_NOTE,
@@ -42,7 +42,7 @@ import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
 import { getAccessibleDogIds } from '@/lib/dogRights';
 import { useT } from '@/i18n/LanguageContext';
 import { PALE } from '@/components/pack/navGoldSkin';
-import { HandCheck } from '@/components/pack/HandIcons';
+import { HandCheck, HandCycle } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
 const NAME_FONT = "'Cinzel Decorative', 'Cinzel', serif";
@@ -2169,7 +2169,7 @@ export default function PackNatureQuiz() {
         ))}
         <div style={{ marginTop: 18, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button type="button" className="nq-ghost is-ondark" onClick={startOver}>
-            <RotateCcw className="h-3.5 w-3.5" /> {tx('pack.nature.result.again', 'Take it again')}
+            <HandCycle size={14} /> {tx('pack.nature.result.again', 'Take it again')}
           </button>
           <button type="button" className="nq-gold is-ondark" onClick={() => navigate(exitTo)}>
             {tx('pack.nature.result.done', 'Done')}
@@ -2527,7 +2527,7 @@ export default function PackNatureQuiz() {
           Preto `is-ondark`: jasná zlatá so žiarou a svetlý ink v ghoste. */}
       <div style={{ marginTop: 18, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
         <button type="button" className="nq-ghost is-ondark" onClick={restart}>
-          <RotateCcw className="h-3.5 w-3.5" /> {tx('pack.nature.result.again', 'Take it again')}
+          <HandCycle size={14} /> {tx('pack.nature.result.again', 'Take it again')}
         </button>
         <button type="button" className="nq-gold is-ondark" onClick={() => navigate(exitTo)}>
           {tx('pack.nature.result.done', 'Done')}

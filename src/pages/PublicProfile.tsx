@@ -23,7 +23,8 @@
 // shared-trip výpočtu). Psí BIO + tagy = vždy verejné (fixné pravidlo, nie cez getTier()).
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { HandArrowLeft } from '@/components/pack/HandIcons';
 import type { Session } from '@supabase/supabase-js';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { countryLabel } from '@/lib/countryOptions';
@@ -351,7 +352,7 @@ function BackLink() {
         color: T.inkDim, textDecoration: 'none',
       }}
     >
-      <ArrowLeft className="h-3 w-3" />
+      <HandArrowLeft size={12} />
       {t('pack.publicProfile.backToPack')}
     </Link>
   );

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { UserPlus } from 'lucide-react';
 import { BrandIcon } from './BrandIcon';
 import { HandNose } from './HandIcons';
 import { PACK_THEME } from './packTheme';
@@ -182,8 +181,8 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
   // usePackIdentity, already fetched by the parent page), no last30d breakdown; skip
   // whichever stat wasn't passed in rather than showing a bogus 0.
   const items = [
-    ...(last24h != null ? [{ iconNode: <UserPlus className="h-3.5 w-3.5 shrink-0" style={{ color: T.accentGold, marginTop: 2 }} />, text: last24h > 0 ? t(last24h === 1 ? 'pack.notif.newMemberToday' : 'pack.notif.newMembersToday', { count: last24h }) : t('pack.notif.noNewMembersToday') }] : []),
-    ...(last30d != null ? [{ iconNode: <UserPlus className="h-3.5 w-3.5 shrink-0" style={{ color: T.accentGold, marginTop: 2 }} />, text: t('pack.notif.joinedLast30d', { count: last30d }) }] : []),
+    ...(last24h != null ? [{ iconNode: <BrandIcon name="add-user" size={14} tint="gold" className="shrink-0" style={{ marginTop: 2 }} />, text: last24h > 0 ? t(last24h === 1 ? 'pack.notif.newMemberToday' : 'pack.notif.newMembersToday', { count: last24h }) : t('pack.notif.noNewMembersToday') }] : []),
+    ...(last30d != null ? [{ iconNode: <BrandIcon name="add-user" size={14} tint="gold" className="shrink-0" style={{ marginTop: 2 }} />, text: t('pack.notif.joinedLast30d', { count: last30d }) }] : []),
     ...(total != null ? [{ iconNode: <BrandIcon name="globe" size={14} tint="gold" className="shrink-0" style={{ marginTop: 2 }} />, text: t('pack.notif.totalWorldwide', { count: total.toLocaleString('en-US') }) }] : []),
   ];
   // Odznak NOSA = neprečítané upozornenia + dnešný prírastok svorky. Správy sa sem

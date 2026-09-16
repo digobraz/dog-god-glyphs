@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Download, Loader2, Mail, ExternalLink, Save, RefreshCw, Sparkles, BookOpen, Lock, ChevronDown, Images, Syringe, Shield, ShieldPlus, Bone, Bug, Mic, X } from 'lucide-react';
+import { Download, Loader2, Save, Sparkles, ChevronDown, X } from 'lucide-react';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { RightGate } from '@/components/pack/RightGate';
 import { DEV_NOAUTH, DEV_MOCK_DOG_ROW } from '@/lib/devMockDogs';
@@ -24,7 +24,7 @@ import { DEV_FULL } from '@/lib/packFlags';
 // Vek psa žije v lib/dogAge.ts — tú istú matematiku potrebuje aj svorka na `/pack`.
 import { computeAge, type DogAge } from '@/lib/dogAge';
 import { HEALTH_KEYS, HEALTH_COLORS, healthLabelKey, type HealthKey } from '@/lib/dogHealth';
-import { HandCamera, HandCheck } from '@/components/pack/HandIcons';
+import { HandCamera, HandCheck, HandArrowLeft, HandLock, HandCycle } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
 const MESSAGE_MAX = 150;
@@ -769,7 +769,7 @@ export default function PackDogDetail() {
           nedáva zmysel"). */}
       <div className="did-backrow">
         <Link to="/pack/dogs" className="did-back" aria-label={t('pack.tree.title')}>
-          <ArrowLeft className="h-4 w-4" />
+          <HandArrowLeft size={16} />
         </Link>
       </div>
 
@@ -1112,7 +1112,7 @@ export default function PackDogDetail() {
                       opacity: regenerating ? 0.6 : 1,
                     }}
                   >
-                    {regenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+                    {regenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <HandCycle size={12} />}
                     {regenerating ? t('pack.dog.generating') : hasPdfs ? t('pack.dog.regeneratePdfs') : t('pack.dog.generatePdfs')}
                   </button>
                 );
@@ -2013,7 +2013,7 @@ function PrayerRow({
             transition: 'all 0.15s',
           }}
         >
-          {checked ? <HandCheck size={16} /> : locked ? <Lock className="h-3.5 w-3.5" /> : null}
+          {checked ? <HandCheck size={16} /> : locked ? <HandLock size={14} /> : null}
         </button>
 
         {/* Text — middle */}
@@ -2558,7 +2558,7 @@ function PreviewRow({
                 color: T.inkFaint,
               }}
             >
-              <Lock className="h-2.5 w-2.5" />
+              <HandLock size={10} />
               {t('pack.dog.soon')}
             </span>
           )}
@@ -2651,7 +2651,7 @@ function OverviewFact({
           {value}
         </span>
         {live && <span style={{ width: 7, height: 7, borderRadius: '50%', background: T.growGreen, flexShrink: 0 }} />}
-        {soon && <Lock className="h-2.5 w-2.5 shrink-0" style={{ color: T.inkFaint }} />}
+        {soon && <HandLock size={10} className="shrink-0" style={{ color: T.inkFaint }} />}
         {hint && (
           <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, color: T.inkDim }}>· {hint}</span>
         )}
@@ -2751,7 +2751,7 @@ function TestChip({
           color: T.partHek,
         }}
       >
-        <Lock className="h-2.5 w-2.5" />
+        <HandLock size={10} />
         {cta}
       </span>
     </button>
@@ -2793,7 +2793,7 @@ function SubCard({ lucide, title, desc }: { lucide: React.ReactNode; title: stri
           color: T.inkFaint,
         }}
       >
-        <Lock className="h-2.5 w-2.5" />
+        <HandLock size={10} />
         {t('pack.dog.soon')}
       </span>
       <span
@@ -2849,7 +2849,7 @@ function PrayersComingSoon({ dogName }: { dogName: string }) {
         className="inline-flex items-center justify-center"
         style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(201,154,63,0.08)', border: `1px solid ${PACK_THEME.hairline}` }}
       >
-        <Lock className="h-6 w-6" style={{ color: T.accentGold }} />
+        <HandLock size={24} style={{ color: T.accentGold }} />
       </span>
       <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 19, fontWeight: 700, color: T.ink, lineHeight: 1.2 }}>
         {t('pack.dog.dailyPrayers')}
@@ -2867,7 +2867,7 @@ function PrayersComingSoon({ dogName }: { dogName: string }) {
           color: T.inkDim,
         }}
       >
-        <Lock className="h-2.5 w-2.5" />
+        <HandLock size={10} />
         {t('pack.dog.comingSoon')}
       </span>
       <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, lineHeight: 1.5, color: T.inkDim, maxWidth: 280 }}>
@@ -2940,7 +2940,7 @@ function HubTile({
             color: T.inkFaint,
           }}
         >
-          <Lock className="h-2.5 w-2.5" />
+          <HandLock size={10} />
           {t('pack.dog.soon')}
         </span>
       )}
@@ -3146,7 +3146,7 @@ function NotFoundBox() {
           textDecoration: 'none',
         }}
       >
-        <ArrowLeft className="h-3 w-3" />
+        <HandArrowLeft size={12} />
         {t('pack.dog.backToPack')}
       </Link>
     </div>

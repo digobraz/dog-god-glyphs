@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronRight, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Eye, EyeOff, Loader2 } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
@@ -51,7 +51,7 @@ import {
   type ProfileFieldKey,
 } from '@/components/pack/profile/packProfile';
 import { useDogyptStore } from '@/store/dogyptStore';
-import { HandCamera } from '@/components/pack/HandIcons';
+import { HandCamera, HandArrowLeft } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
 
@@ -561,7 +561,7 @@ export default function PackProfile() {
               textDecoration: 'none',
             }}
           >
-            <ArrowLeft className="h-3 w-3" />
+            <HandArrowLeft size={12} />
             {tx('pack.profile.back', 'Pack')}
           </Link>
         )}

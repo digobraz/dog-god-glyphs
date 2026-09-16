@@ -10,7 +10,7 @@
 // Zbieranie devotion je zamknuté do 2027 (project_dogypt_devotion_ekonomika_stav_2026-08-06)
 // — táto komponenta sa preto nerozširuje, len sťahuje.
 import React, { useState } from 'react';
-import { ChevronDown, Lock, Sparkles } from 'lucide-react';
+import { ChevronDown, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
 import { PACK_THEME, GOLD_BTN } from './packTheme';
@@ -18,7 +18,7 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { toast } from '@/hooks/use-toast';
 import { DEV_FULL } from '@/lib/packFlags';
-import { HandCheck } from '@/components/pack/HandIcons';
+import { HandCheck, HandLock } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
 
@@ -463,7 +463,7 @@ function PrayerRow({
             transition: 'all 0.15s',
           }}
         >
-          {checked ? <HandCheck size={16} /> : locked ? <Lock className="h-3.5 w-3.5" /> : null}
+          {checked ? <HandCheck size={16} /> : locked ? <HandLock size={14} /> : null}
         </button>
 
         {/* Text — middle */}
@@ -539,7 +539,7 @@ function PrayersComingSoon({ dogName }: { dogName: string }) {
         className="inline-flex items-center justify-center"
         style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(201,154,63,0.08)', border: `1px solid ${PACK_THEME.hairline}` }}
       >
-        <Lock className="h-6 w-6" style={{ color: T.accentGold }} />
+        <HandLock size={24} style={{ color: T.accentGold }} />
       </span>
       <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 19, fontWeight: 700, color: T.ink, lineHeight: 1.2 }}>
         {t('pack.dog.dailyPrayers')}
@@ -557,7 +557,7 @@ function PrayersComingSoon({ dogName }: { dogName: string }) {
           color: T.inkDim,
         }}
       >
-        <Lock className="h-2.5 w-2.5" />
+        <HandLock size={10} />
         {t('pack.dog.comingSoon')}
       </span>
       <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, lineHeight: 1.5, color: T.inkDim, maxWidth: 280 }}>
