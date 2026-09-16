@@ -22,7 +22,7 @@
 //
 // ⚠️ NEOPISUJ ČÍSLA. Kto potrebuje priemer alebo veľkosť ikonky, číta `BACK`.
 import type { CSSProperties, ReactNode } from 'react';
-import { HandArrowLeft } from '@/components/pack/HandIcons';
+import { HandArrowLeft, HandForward } from '@/components/pack/HandIcons';
 import { PACK_THEME } from '@/components/pack/packTheme';
 import { PALE } from '@/components/pack/navGoldSkin';
 
@@ -94,6 +94,14 @@ export function BackIcon({ className, style }: { className?: string; style?: CSS
 }
 
 /** Šípka v textovom odkaze — o dva pixely menšia, aby nepresahovala výšku písma. */
+/** Zahnutá šípka vpred — dvojička `BackIcon` pre tlačidlo „otvor na celej stránke".
+ *  ⚠️ Berie `BACK.icon`, tú istú veľkosť ako šípka späť. Sedia v tom istom kruhu
+ *  (`.trp-panelnav-btn`) vedľa seba — dve rôzne veľkosti by tam bolo vidno hneď.
+ *  Nahradila textový znak `⤢` (Matej 16. 9. 2026). */
+export function ExpandIcon({ className, style }: { className?: string; style?: CSSProperties }) {
+  return <HandForward size={BACK.icon} className={className} style={style} />;
+}
+
 export function BackLinkIcon({ className, style }: { className?: string; style?: CSSProperties }) {
   return <HandArrowLeft size={BACK.linkIcon} className={className} style={style} />;
 }

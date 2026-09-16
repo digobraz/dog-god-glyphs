@@ -1,28 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { Link, useParams } from 'react-router-dom';
-import {
-  ArrowLeft,
-  Download,
-  Loader2,
-  Mail,
-  ExternalLink,
-  Save,
-  RefreshCw,
-  Sparkles,
-  BookOpen,
-  Lock,
-  ChevronDown,
-  Images,
-  Camera,
-  Syringe,
-  Shield,
-  ShieldPlus,
-  Bone,
-  Bug,
-  Mic,
-  X,
-} from 'lucide-react';
+import { ArrowLeft, Download, Loader2, Mail, ExternalLink, Save, RefreshCw, Sparkles, BookOpen, Lock, ChevronDown, Images, Syringe, Shield, ShieldPlus, Bone, Bug, Mic, X } from 'lucide-react';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { RightGate } from '@/components/pack/RightGate';
 import { DEV_NOAUTH, DEV_MOCK_DOG_ROW } from '@/lib/devMockDogs';
@@ -45,7 +24,7 @@ import { DEV_FULL } from '@/lib/packFlags';
 // Vek psa žije v lib/dogAge.ts — tú istú matematiku potrebuje aj svorka na `/pack`.
 import { computeAge, type DogAge } from '@/lib/dogAge';
 import { HEALTH_KEYS, HEALTH_COLORS, healthLabelKey, type HealthKey } from '@/lib/dogHealth';
-import { HandCheck } from '@/components/pack/HandIcons';
+import { HandCamera, HandCheck } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
 const MESSAGE_MAX = 150;
@@ -882,7 +861,7 @@ export default function PackDogDetail() {
                   className="flex flex-col items-center justify-center h-full"
                   style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.22em', gap: 4 }}
                 >
-                  <Camera className="h-4 w-4" aria-hidden="true" />
+                  <HandCamera size={16} aria-hidden="true" />
                   {t('pack.dog.noPhoto')}
                 </div>
               )}
@@ -890,7 +869,7 @@ export default function PackDogDetail() {
                 className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                 style={{ background: 'rgba(10,10,10,0.55)', color: T.card, borderRadius: '50%' }}
               >
-                {uploadingMain ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
+                {uploadingMain ? <Loader2 className="h-5 w-5 animate-spin" /> : <HandCamera size={20} />}
               </span>
             </button>
             </RightGate>

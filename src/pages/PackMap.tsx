@@ -81,7 +81,7 @@ import { intlLocale } from '@/i18n/bcp47';
 import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
 import { PoiLayer, PoiAttribution } from '@/components/geo/PoiLayer';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
-import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
+import { BackIcon, ExpandIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { goldFrameCSS, goldPlateCSS, pickTintCSS, PICK_INK, SLAB, LAPIS, LAPIS_BTN_SHADOW, MAP_SKIN, NAV_GOLD, NAV_PILL_SHADOW, NAV_R, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
 import { estimateTripMinutes, formatTripTime } from '@/lib/tripTime';
 import ainubisFace from '@/assets/ainubis-head.png';
@@ -5751,7 +5751,7 @@ export default function PackMap() {
             <div className="trp-inldet">
               <div className="trp-inldet-head">
                 <button type="button" className="trp-panelnav-btn" onClick={() => { setInlineDetailId(null); setHeroBounds(SVK_BORDER); }} aria-label={t('pack.map.backToList')}><BackIcon /></button>
-                <button type="button" className="trp-panelnav-btn" onClick={() => expandDetail(dt.id)} aria-label={t('pack.map.expandToFullPage')}>⤢</button>
+                <button type="button" className="trp-panelnav-btn" onClick={() => expandDetail(dt.id)} aria-label={t('pack.map.expandToFullPage')}><ExpandIcon /></button>
               </div>
               <div className="trp-inldet-body">
                 {/* bod 4 (iterácia 15): fotka — avatar autora (initial, ľavý horný roh) + bočné

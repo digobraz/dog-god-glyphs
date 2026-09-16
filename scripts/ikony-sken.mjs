@@ -48,6 +48,13 @@ const NAPROTIVOK = {
   // v ten istý deň. Zvyšných 5 sedí v shadcn primitívoch (checkbox, select,
   // dropdown, context-menu, menubar) — cudzí kód, vlastné rozhodnutie.
   Check: 'HandCheck',
+  // Lupa a foťák: kit ich NEMAL a predlohy, ktoré Matej našiel, boli platený
+  // stock s vodotlačou — nakreslené pre DOGYPT 16. 9. 2026 v rukopise kitu.
+  Search: 'HandSearch',
+  Camera: 'HandCamera',
+  CameraOff: 'HandCamera',
+  ZoomIn: 'HandSearch',
+  ZoomOut: 'HandSearch',
   CheckCircle: 'HandCheck',
   CheckCircle2: 'HandCheck',
   Lock: 'HandLock',
@@ -83,6 +90,96 @@ const NAPROTIVOK = {
   FileText: '/icons/pack/document.svg',
   Users: '/icons/pack/people.svg',
 };
+
+// ── Ľudský názov ikonky ─────────────────────────────────────────────────────
+// ⚠️ TOTO JE DÔVOD, PREČO REGISTER VÔBEC FUNGUJE. Prvá verzia poľa vypisovala
+//    mená z knižnice (`Syringe`, `Loader2`) a cesty k súborom. Matej 16. 9. 2026:
+//    *„nechápem, čo s tým mám robiť? čo je ArrowLeft, ako to vyzerá?"* — mal
+//    pravdu, bol to zoznam pre kód, nie pre človeka.
+//    Meno, ktoré tu chýba, sa v paneli ukáže ako holé lucide meno = ten istý
+//    problém v malom. Keď pribudne nová ikonka, dopíš sem riadok.
+const NAZOV = {
+  Search: 'lupa — hľadanie',
+  Camera: 'foťák — pridaj fotku',
+  Send: 'poslať správu',
+  Paperclip: 'sponka — príloha',
+  Mic: 'mikrofón — nahrávka',
+  Save: 'uložiť',
+  Copy: 'kopírovať',
+  Download: 'stiahnuť',
+  Upload: 'nahrať',
+  Images: 'galéria',
+  Info: 'informácia',
+  Sparkles: 'iskry — novinka',
+  Circle: 'prázdny krúžok',
+  Loader2: 'načítavanie (točí sa)',
+  X: 'zavrieť',
+  ChevronRight: 'šipka doprava (rozbaliť)',
+  ChevronLeft: 'šipka doľava',
+  ChevronDown: 'šipka dole (rozbaliť)',
+  ChevronUp: 'šipka hore',
+  EyeOff: 'preškrtnuté oko — skryť',
+  Hash: 'mriežka — číslo',
+  Bug: 'chrobák — kliešť',
+  Shield: 'štít — ochrana',
+  ShieldPlus: 'štít s plusom — prevencia',
+  Syringe: 'injekcia — očkovanie',
+  BookOpen: 'otvorená kniha — príbeh',
+  ArrowUpRight: 'šipka von — odkaz inam',
+  Move: 'presunúť',
+  Square: 'štvorec — zastaviť',
+  LayoutDashboard: 'panel — prehľad',
+  RotateCcw: 'vrátiť späť',
+  MoreHorizontal: 'tri bodky — viac',
+  Dot: 'bodka',
+  GripVertical: 'úchyt na ťahanie',
+  PanelLeft: 'bočný panel',
+};
+
+// ── Kresba lucide ikonky ────────────────────────────────────────────────────
+// Panel musí ikonku UKÁZAŤ, nie ju pomenovať. Kreslíme ju z toho istého balíka,
+// z ktorého ju berie appka (`lucide-react`), takže v manuáli je presne to, čo
+// vidí človek na obrazovke — nie podobná ikonka z internetu.
+// ⚠️ Balík neexportuje SVG súbory, len moduly s poľom `[tag, atribúty]`. Čítame
+//    ich regexom; keď lucide zmení tvar modulu, vráti sa `null` a panel položku
+//    ukáže bez kresby — nespadne.
+// ⚠️ Číslica je vlastný diel názvu: `Loader2` je súbor `loader-2.js`, nie
+//    `loader2.js`. Bez tohto pravidla vypadne z panela práve ikonka, ktorú appka
+//    používa 10× — a vypadne ticho, lebo chýbajúci súbor vracia `null`.
+const kebab = (n) => n
+  .replace(/([a-z])([0-9])/g, '$1-$2')
+  .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+  .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
+  .toLowerCase();
+
+export function lucideSvg(webKoren, meno) {
+  const DIR = join(webKoren, 'node_modules/lucide-react/dist/esm/icons/');
+  let f = join(DIR, kebab(meno) + '.js');
+  if (!existsSync(f)) return null;
+  let s = readFileSync(f, 'utf8');
+  // ⚠️ Časť mien sú len PRESMEROVANIA: `loader-2.js` neobsahuje kresbu, len
+  //    `export { default } from './loader-circle.js'`. Bez tohto skoku vypadne
+  //    z panela Loader2 — ikonka, ktorú appka používa 10× — a vypadne ticho.
+  for (let skok = 0; skok < 3; skok++) {
+    const re = s.match(/export\s*\{\s*default\s*\}\s*from\s*'\.\/([^']+)'/);
+    if (!re) break;
+    const dalsi = join(DIR, re[1]);
+    if (!existsSync(dalsi)) return null;
+    s = readFileSync(dalsi, 'utf8');
+  }
+  const m = s.match(/createLucideIcon\("[^"]+",\s*(\[[\s\S]*?\])\s*\);/);
+  if (!m) return null;
+  let arr;
+  try { arr = JSON.parse(m[1].replace(/(\w+):/g, '"$1":').replace(/'/g, '"')); } catch { return null; }
+  const el = arr.map(([tag, at]) => {
+    const atr = Object.entries(at).filter(([k]) => k !== 'key').map(([k, v]) => `${k}="${v}"`).join(' ');
+    return `<${tag} ${atr}/>`;
+  }).join('');
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${el}</svg>`;
+}
+
+/** Ľudský názov, alebo lucide meno, keď ho ešte nikto nepomenoval. */
+export const nazov = (meno) => NAZOV[meno] || meno;
 
 // ── Textové znaky, ktoré appka kreslí namiesto ikonky ────────────────────────
 // Nie sú ani lucide, ani brand — je to systémový font. `BackButton.tsx` presne

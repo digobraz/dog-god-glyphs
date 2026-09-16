@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Camera, ChevronDown, ChevronRight, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, Eye, EyeOff, Loader2 } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
@@ -51,6 +51,7 @@ import {
   type ProfileFieldKey,
 } from '@/components/pack/profile/packProfile';
 import { useDogyptStore } from '@/store/dogyptStore';
+import { HandCamera } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
 
@@ -646,7 +647,7 @@ export default function PackProfile() {
                 className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                 style={{ background: 'rgba(10,10,10,0.55)', color: T.card, borderRadius: '50%' }}
               >
-                {uploading ? <Loader2 className="h-7 w-7 animate-spin" /> : <Camera className="h-7 w-7" />}
+                {uploading ? <Loader2 className="h-7 w-7 animate-spin" /> : <HandCamera size={28} />}
               </span>
             </button>
             <input

@@ -12,7 +12,8 @@ import { useT } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
 import { EDGE_BASE } from '@/lib/env';
 import { track } from '@/lib/analytics';
-import { Camera } from 'lucide-react';
+import { HandCamera } from '@/components/pack/HandIcons';
+
 
 function useSessionData(sessionId: string | null, fallbackStore: { dogName: string; ownerName: string; email: string; selections: Record<string, string>; dogPhotoUrl: string; patronSvg: string; patronSvg2: string }) {
   const [data, setData] = useState<typeof fallbackStore & { packNumber: number | null }>({ ...fallbackStore, packNumber: null });
@@ -360,7 +361,7 @@ export function WelcomeScreen() {
                 background: 'hsl(45 60% 92% / 0.35)',
               }}
             >
-              <Camera className="h-7 w-7" style={{ color: 'hsl(45 55% 45% / 0.75)' }} aria-hidden="true" />
+              <HandCamera size={28} style={{ color: 'hsl(45 55% 45% / 0.75)' }} />
             </div>
             <div className="flex flex-col items-center gap-0.5 text-center" style={{ maxWidth: 280 }}>
               <span style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#7a5a2a' }}>

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import breedsData from '@/data/breeds.json';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { localizeBreed } from '@/lib/breedDisplay';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
+import { HandSearch } from '@/components/pack/HandIcons';
 
 type Breed = { id: number; en: string; sk: string; patron: string; group: string };
 type BreedsFile = { version: string; breeds: Breed[] };
@@ -103,7 +104,7 @@ function BreedSearchModal({
         <button type="button" className="breed-modal-close" aria-label={closeLabel} onClick={onClose}>✕</button>
         <p className="breed-modal-title">{title}</p>
         <div className="breed-modal-search">
-          <Search className="h-4 w-4 flex-shrink-0" style={{ color: 'rgba(0,0,0,0.45)' }} />
+          <HandSearch size={16} style={{ color: 'rgba(0,0,0,0.45)' }} />
           <input
             ref={inputRef}
             value={search}
@@ -344,7 +345,7 @@ function BreedSearchField({
             onClick={openModal}
             disabled={disabled}
           >
-            <Search className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+            <HandSearch size={16} className="text-muted-foreground" />
             {selectedBreed ? (
               <span
                 className="rounded-full px-3 py-1 text-sm flex items-center gap-1.5 bg-primary/20 text-foreground"
@@ -371,7 +372,7 @@ function BreedSearchField({
           </button>
         ) : selectedBreed ? (
           <div className="breed-field-btn flex items-center gap-2 w-full rounded-xl px-4 h-11 bg-card">
-            <Search className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+            <HandSearch size={16} className="text-muted-foreground" />
             <span
               className="rounded-full px-3 py-1 text-sm flex items-center gap-1.5 bg-primary/20 text-foreground"
               style={{ fontFamily: "'Cinzel', serif" }}
@@ -394,7 +395,7 @@ function BreedSearchField({
               style={{ padding: 0 }}
             >
               <div className="flex items-center gap-2 w-full h-full px-4">
-                <Search className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                <HandSearch size={16} className="text-muted-foreground" />
                 <input
                   ref={desktopInputRef}
                   value={search}
