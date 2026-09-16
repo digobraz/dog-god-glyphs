@@ -2422,6 +2422,26 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.plan.visibilityOpen': "Hľadám partiu",
   'pack.addTrip.plan.visibilityPrivateNote': "Vidíš to len ty a tvoja partia. Zvonku to nikto nenájde ani sa nepridá.",
   'pack.addTrip.plan.visibilityOpenNote': "Dogypťania uvidia trasu, dátum aj tvojho psa — a môžu sa pridať.",
+  // A3 (2026-09-16) — preklad formulára plánovania výletu (dovtedy celý po anglicky).
+  'pack.addTrip.plan.activity': "Aktivita",
+  'pack.addTrip.plan.whenLabel': "Kedy",
+  'pack.addTrip.plan.whenKind.exact': "Presný dátum",
+  'pack.addTrip.plan.whenKind.month': "Mesiac",
+  'pack.addTrip.plan.whenKind.flexible': "Zatiaľ neviem",
+  'pack.addTrip.plan.flexibleNote': "dohodneme sa v správach",
+  'pack.addTrip.plan.detailsPlaceholder': "Čo je v pláne? Kde sa stretnete, aké tempo, čo si vziať…",
+  'pack.addTrip.plan.photoBadge': "DOBRODRUŽSTVO · ČOSKORO",
+  'pack.addTrip.plan.saveFailed': "Neuložilo sa — úložisko môže byť plné. Niečo zmaž a skús znova.",
+  'pack.trip.creator.title': "Kto výlet napísal",
+  'pack.trip.creator.role': "Autor výletu",
+  'pack.trip.creator.opening': "Otváram…",
+  'pack.trip.creator.failed': "Správy sú nedostupné",
+  // ⚠️ BEZ MENA ZÁMERNE. EN má „Message {name}", slovenčina by potrebovala DATÍV
+  // („Napíš Matejovi") a meno prichádza z dát — skloňovať sa nedá. „Napíš Matej" je krik
+  // v nesprávnom páde; meno pritom stojí o dva riadky vyššie v hlavičke, takže sa nestráca.
+  'pack.trip.creator.message': "Napísať",
+  'pack.trip.creator.going': "Idú",
+  'pack.trip.creator.empty': "Na tento výlet sa zatiaľ nikto nepridal. Pridaj si ho medzi svoje výlety a vyber „Hľadám partiu“ — svorka ho uvidí.",
   'pack.addTrip.plan.when': "Kedy idete?",
   'pack.addTrip.plan.travel': "Ako sa tam dostanete?",
   'pack.addTrip.plan.who': "Ideš sám, alebo hľadáš niekoho?",

@@ -15,6 +15,7 @@ import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/pac
 import { emitOpenThread } from '@/components/pack/messaging/openBridge';
 import { PartyMemberCard } from '@/components/pack/triplist/PartyMemberCard';
 import type { PartyMember } from '@/components/pack/triplist/useTripParty';
+import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
 const GOLD = T.cardEdge;
@@ -48,6 +49,7 @@ export function TripCreatorPopup({ tripSlug, authorName, organizerId, joiners, o
   joiners?: PartyMember[];
   onClose: () => void;
 }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -70,7 +72,7 @@ export function TripCreatorPopup({ tripSlug, authorName, organizerId, joiners, o
 
   const going = joiners ?? [];
   // „Hekthor & Matej" je pes + človek. Písať sa dá ČLOVEKU, takže tlačidlo berie meno
-  // za posledným „&"; pri jednom mene ostáva prvé slovo (napr. „Message Peter").
+  // za posledným „&"; pri jednom mene ostáva prvé slovo (napr. „Napíš Petrovi").
   const humanName = authorName.split('&').pop()!.trim().split(' ')[0] || authorName;
 
   return (
@@ -78,27 +80,29 @@ export function TripCreatorPopup({ tripSlug, authorName, organizerId, joiners, o
       <style>{TRIP_CREATOR_CSS}</style>
       <div className="tcp" onClick={(e) => e.stopPropagation()}>
         <div className="tcp-head">
-          <span className="tcp-title">Who wrote this trip</span>
-          <button type="button" className="tcp-x" onClick={onClose} aria-label="Close">×</button>
+          <span className="tcp-title">{t('pack.trip.creator.title')}</span>
+          <button type="button" className="tcp-x" onClick={onClose} aria-label={t('pack.trip.cm.close')}>×</button>
         </div>
 
         <div className="tcp-author">
           <span className="tcp-av">{authorName.charAt(0).toUpperCase()}</span>
           <span>
-            <span className="tcp-role" style={{ display: 'block' }}>Trip author</span>
+            <span className="tcp-role" style={{ display: 'block' }}>{t('pack.trip.creator.role')}</span>
             <span className="tcp-name">{authorName}</span>
           </span>
         </div>
 
         <button type="button" className="tcp-msg" onClick={openDm} disabled={busy}>
-          {busy ? 'Opening…' : failed ? 'Chat unavailable' : `Message ${humanName}`}
+          {busy ? t('pack.trip.creator.opening')
+            : failed ? t('pack.trip.creator.failed')
+            : t('pack.trip.creator.message', { name: humanName })}
         </button>
 
         <div className="tcp-sec">
-          <h4>Going</h4>
+          <h4>{t('pack.trip.creator.going')}</h4>
           {going.length === 0 ? (
             // #55 — prázdno sa priznáva, nedopĺňa sa vymyslenými ľuďmi
-            <p className="tcp-note">Nobody has joined this trip yet. Add it to your triplist and pick “Find a buddy” — the pack will see it.</p>
+            <p className="tcp-note">{t('pack.trip.creator.empty')}</p>
           ) : (
             going.map((j, i) => (
               <PartyMemberCard

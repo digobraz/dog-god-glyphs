@@ -172,23 +172,23 @@ export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, 
     if (!canSubmit) return;
     setSubmitError('');
     const ok = onSubmit(draft);
-    if (!ok) setSubmitError("Couldn't save — storage might be full. Remove something and try again.");
+    if (!ok) setSubmitError(t('pack.addTrip.plan.saveFailed'));
   };
 
   return (
     <div className="att-plan">
       <style>{PLAN_CSS}</style>
       <div className="att-plan-head">
-        <BackButton tone="dark" onClick={onClose} label="Back" />
-        <div className="att-plan-title">Plan a trip</div>
+        <BackButton tone="dark" onClick={onClose} label={t('pack.addTrip.entry.backAriaLabel')} />
+        <div className="att-plan-title">{t('pack.addTrip.log.titlePlan')}</div>
       </div>
       <div className="att-plan-body">
         <div className="att-photo" style={{ backgroundImage: `linear-gradient(180deg,rgba(0,0,0,0.15),rgba(0,0,0,0.45)), url('${photoUrl}')` }}>
-          <span className="att-photo-badge">ADVENTURE · COMING SOON</span>
+          <span className="att-photo-badge">{t('pack.addTrip.plan.photoBadge')}</span>
         </div>
 
         <div className="att-field">
-          <label>Name</label>
+          <label>{t('pack.addTrip.log.name')}</label>
           <input
             className="att-input"
             value={name}
@@ -199,13 +199,13 @@ export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, 
 
         <div className="att-row2">
           <div className="att-field">
-            <label>Activity</label>
+            <label>{t('pack.addTrip.plan.activity')}</label>
             <select className="att-input" value={activity} onChange={(e) => setActivity(e.target.value)}>
               {ACTIVITIES.map((a) => <option key={a.id} value={a.id}>{a.emoji} {t(a.labelKey)}</option>)}
             </select>
           </div>
           <div className="att-field">
-            <label>Where</label>
+            <label>{t('pack.addTrip.log.where')}</label>
             <GeometryPicker
               value={geometry}
               onChange={setGeometry}
@@ -219,8 +219,8 @@ export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, 
         </div>
 
         <div className="att-field">
-          <label>When</label>
-          <div className="att-when-toggle" role="tablist" aria-label="When">
+          <label>{t('pack.addTrip.plan.whenLabel')}</label>
+          <div className="att-when-toggle" role="tablist" aria-label={t('pack.addTrip.plan.whenLabel')}>
             {(['exact', 'month', 'flexible'] as const).map((k) => (
               <button
                 key={k}
@@ -230,7 +230,7 @@ export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, 
                 className={`att-when-btn${dateKind === k ? ' on' : ''}`}
                 onClick={() => { setDateKind(k); setDate(''); }}
               >
-                {k === 'exact' ? 'Exact date' : k === 'month' ? 'Month' : 'Flexible'}
+                {t(`pack.addTrip.plan.whenKind.${k}`)}
               </button>
             ))}
           </div>
@@ -240,56 +240,56 @@ export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, 
           {dateKind === 'month' && (
             <input type="month" className="att-input" style={{ marginTop: 8 }} value={date} onChange={(e) => setDate(e.target.value)} />
           )}
-          {dateKind === 'flexible' && <p className="att-when-note">we'll agree in the chat</p>}
+          {dateKind === 'flexible' && <p className="att-when-note">{t('pack.addTrip.plan.flexibleNote')}</p>}
         </div>
 
         {/* #42 — viditeľnosť sa volí TU, pri zakladaní, nie schovaná v nastaveniach.
             Default "Private" (konzervatívne) — "Looking for pack" je vedomá voľba. */}
         <div className="att-field">
-          <label>Who can see this</label>
-          <div className="att-when-toggle" role="tablist" aria-label="Who can see this">
+          <label>{t('pack.addTrip.plan.visibility')}</label>
+          <div className="att-when-toggle" role="tablist" aria-label={t('pack.addTrip.plan.visibility')}>
             <button
               type="button"
               role="tab"
               aria-selected={visibility === 'private'}
               className={`att-when-btn${visibility === 'private' ? ' on' : ''}`}
               onClick={() => setVisibility('private')}
-            >Private</button>
+            >{t('pack.addTrip.plan.visibilityPrivate')}</button>
             <button
               type="button"
               role="tab"
               aria-selected={visibility === 'open'}
               className={`att-when-btn${visibility === 'open' ? ' on' : ''}`}
               onClick={() => setVisibility('open')}
-            >Looking for pack</button>
+            >{t('pack.addTrip.plan.visibilityOpen')}</button>
           </div>
           <p className="att-when-note">
-            {visibility === 'private'
-              ? "Only you and your pack see this. Nobody outside can find it or ask to join."
-              : 'Your pack can see the trail, the date and your dog — and ask to join.'}
+            {t(visibility === 'private'
+              ? 'pack.addTrip.plan.visibilityPrivateNote'
+              : 'pack.addTrip.plan.visibilityOpenNote')}
           </p>
         </div>
 
         {/* Note — what's planned */}
         <div className="att-field">
-          <label>Plan details</label>
+          <label>{t('pack.addTrip.plan.details')}</label>
           <textarea
             className="att-input att-textarea"
             rows={3}
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="What's the plan? Meeting point, pace, what to bring…"
+            placeholder={t('pack.addTrip.plan.detailsPlaceholder')}
           />
         </div>
 
         <div className="att-field">
-          <label>Trip pack</label>
+          <label>{t('pack.addTrip.log.pack')}</label>
           <CompanionAvatarsOnly myDogs={myDogs} selected={crew} onChange={setCrew} />
         </div>
       </div>
       <div className="att-plan-foot">
         <button type="button" className="btn-gold" disabled={!canSubmit} onClick={handleSubmit}>
-          Plan trip
+          {t('pack.addTrip.log.submitPlan')}
         </button>
         {!canSubmit && <p className="att-plan-hint">{t('pack.addTrip.log.missing', { fields: missing.map((k) => t(k)).join(', ') })}</p>}
         {submitError && <p className="att-plan-error">{submitError}</p>}
