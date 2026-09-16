@@ -1,5 +1,6 @@
 // ADD EVENT — formulár podujatia (krok 3, plany/zadanie-eventy-2026-08-06.md §4).
-// Vzor architektúry 1:1 z `../addtrip/AddTripPlan.tsx`: panel content, ktorý vyplní sidebar na
+// Vzor architektúry 1:1 z `../addtrip/AddTripLog.tsx` (pôvodne z `AddTripPlan.tsx`, ten je od
+// 16. 9. 2026 zmazaný ako mŕtvy — archív `archiv/addtripplan-2026-09-16`): panel content, ktorý vyplní sidebar na
 // desktope / fullscreen overlay na mobile — kontajner a jeho pozíciu rieši volajúci (PackMap.tsx),
 // tento súbor len vypĺňa vnútro. Mapa žije v Portale (PackMap.tsx `<MapContainer>`), preto miesto
 // sa vyberá cez `mapRef` — klik na mapu položí pin (rovnaká imperatívna technika ako GeometryPicker

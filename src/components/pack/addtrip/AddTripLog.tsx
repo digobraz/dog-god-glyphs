@@ -1,7 +1,15 @@
-// ADD TRIP — log ("WE'VE BEEN THERE"), vlna 1, plany/zadanie-addtrip-flow-2026-07-27.md §4.3.
-// Renderuje sa ako panel content (kontajner + jeho pozíciu rieši volajúci, rovnaký vzor ako
-// AddTripPlan.tsx — sesterský súbor, drž sa jeho štýlu/CSS konvencií, ktoré tento súbor kopíruje
-// 1:1 tam, kde sedia). Mapa žije v Portale — `GeometryPicker` (kontrakt:
+// ADD TRIP — log ("WE'VE BEEN THERE") A ZÁROVEŇ PLÁN, vlna 1,
+// plany/zadanie-addtrip-flow-2026-07-27.md §4.3.
+//
+// 🔴 TENTO SÚBOR JE JEDINÝ FORMULÁR PRIDANIA VÝLETU (od 16. 9. 2026 doslova).
+// Sesterský `AddTripPlan.tsx` bol dovtedy v repe, ale NEIMPORTOVAL HO NIKTO — jeho obsah
+// sa presťahoval sem (viď `VIDITEĽNOSŤ PLÁNU` nižšie: „pole z bývalého AddTripPlan").
+// Napriek tomu ho prevod /pack česal v štyroch kolách a audit ho nahlásil ako živý formulár
+// bez i18n. Zmazaný; archív = git tag `archiv/addtripplan-2026-09-16`, obnova
+// `git show <tag>:src/components/pack/addtrip/AddTripPlan.tsx > <cesta>`.
+// Staršie komentáre v /pack, ktoré sa naň odvolávajú ako na VZOR, hovoria o tomto archíve.
+//
+// Renderuje sa ako panel content (kontajner + jeho pozíciu rieši volajúci). Mapa žije v Portale — `GeometryPicker` (kontrakt:
 // plany/kontrakt-geometrypicker-2026-07-29.md) dostane `mapRef` a kreslí do nej, tento formulár
 // len drží riadený `TripGeometry` state.
 //

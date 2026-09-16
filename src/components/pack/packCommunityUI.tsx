@@ -1028,9 +1028,9 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
 // -- ZMAZANE 2026-08-05: WishlistIntentPopup (27 r.) a PartnerAdForm (56 r.) ----------------
 // Po zluceni vstupov (★ = jeden klik) nemal WishlistIntentPopup volajuceho, a s nim padol aj
 // jediny vstup do PartnerAdForm (otvaral ho `choosePartner`). Verejny inzerat dnes vznika v
-// AddTripPlan ("Looking for pack" -> user_trips + trip_events) a zverejnit ulozeny vylet sa da
+// AddTripLog ("Looking for pack" -> user_trips + trip_events) a zverejnit ulozeny vylet sa da
 // v Triplist ("Who can see this trip").
-// ⚠️ Co s tym odislo a AddTripPlan to zatial NEVIE: 2-3 navrhy terminov naraz a pole
+// ⚠️ Co s tym odislo a AddTripLog to zatial NEVIE: 2-3 navrhy terminov naraz a pole
 // "Socialization for this walk". Ak to ma byt sucastou planovaca, je to samostatne zadanie.
 // Kod je v historii: git log -- src/components/pack/packCommunityUI.tsx
 

@@ -315,7 +315,7 @@ export function persistEvents(next: EventLike[]): void {
 }
 
 // ── privacy close-through: trip_events (issue #42) ──────────────────────────
-// AddTripPlan (PackMap.tsx submitAddTripDraft) môže pri "Looking for pack" spolu s
+// AddTripLog (PackMap.tsx submitAddTripDraft) môže pri "Looking for pack" spolu s
 // user_trips vytvoriť aj vlastný `trip_events` riadok — TEN má svoj vlastný `closed`
 // príznak a vlastnú RLS politiku (`trip_events_read_open`: vidí ho KAŽDÝ platiaci člen,
 // kým `closed=false`, BEZ OHĽADU na `user_trips.openness`). Keď človek výlet neskôr

@@ -590,15 +590,20 @@ export const sk: Partial<Dict> = {
   'login.magicLink.placeholder': 'tvoj@email.com',
   'login.magicLink.submit': 'Poslať magic link',
   'login.magicLink.submitting': 'Odosielam…',
-  'login.magicLink.sent': 'Magic link odoslaný — skontroluj schránku.',
+  // ⚠️ Hláška je zámerne NEURČITÁ. Rovnaká veta odíde aj vtedy, keď adresa konto
+  //    nemá — inak by prihlasovacie pole prezradilo, kto vo svorke je. Pravdu
+  //    povie mail `auth-no-account`, ktorý pristane v tej schránke.
+  'login.magicLink.sent': 'Ak tú adresu poznáme, odkaz je na ceste. Pozri schránku aj spam.',
   'login.magicLink.needEmail': 'Najprv vyplň e-mail — kam ti ten odkaz máme poslať?',
+  // NEPOUŽÍVA SA od 16. 9. 2026 — bola to enumerácia členov. Kľúč ostáva,
+  // aby sa pri prípadnom návrate neobjavil anglický fallback.
   'login.magicLink.noAccount': 'S týmto e-mailom tu nikto nie je. Najprv heroglyf — ten je kľúč do svorky.',
   // forgot password
   'login.forgot.prompt': 'Zadaj e-mail na resetovanie hesla.',
   'login.forgot.placeholder': 'tvoj@email.com',
   'login.forgot.submit': 'Poslať reset link',
   'login.forgot.submitting': 'Odosielam…',
-  'login.forgot.sent': 'Skontroluj schránku pre reset.',
+  'login.forgot.sent': 'Ak tú adresu poznáme, poslali sme na ňu odkaz. Pozri schránku aj spam.',
   'login.forgot.back': 'Späť na prihlásenie',
   // recovery form
   'login.recovery.newPasswordPlaceholder': 'Nové heslo (min. 8 znakov)',

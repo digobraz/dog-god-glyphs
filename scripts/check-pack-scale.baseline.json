@@ -409,16 +409,6 @@
     "pismenka": 24,
     "odsadenie": 79
   },
-  "components/pack/addtrip/AddTripPlan.tsx": {
-    "radius": 3,
-    "font": 9,
-    "zavoj": 0,
-    "progres": 0,
-    "ram": 1,
-    "tien": 0,
-    "pismenka": 4,
-    "odsadenie": 12
-  },
   "components/pack/addtrip/AinubisGuide.tsx": {
     "radius": 1,
     "font": 2,

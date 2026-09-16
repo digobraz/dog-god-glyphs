@@ -1103,7 +1103,7 @@ export default function PackTripArticle() {
   };
   // `choosePartner` + `submitPartnerAd` ZMAZANÉ 2026-08-05 spolu s WishlistIntentPopupom, ktorý
   // ich ako jediný volal — ★ po zlúčení vstupov ukladá jedným klikom (solo/closed). Verejný
-  // inzerát vzniká v AddTripPlan („Looking for pack") a zverejniť uložený výlet sa dá
+  // inzerát vzniká v AddTripLog („Looking for pack") a zverejniť uložený výlet sa dá
   // v Triplistе. Rovnaká zmena ako v PackMap.tsx.
   const chooseSolo = () => {
     if (!trail) return;

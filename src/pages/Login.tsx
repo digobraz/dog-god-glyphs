@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { DEV_FULL, isFullPackEmail } from "@/lib/packFlags";
-import { useT } from "@/i18n/LanguageContext";
+import { useT, useLang } from "@/i18n/LanguageContext";
 import dogyptLogo from "@/assets/dogypt-logo-gold.png";
 
 type Status = "verifying" | "success" | "expired" | "invalid" | "network" | "missing" | "recovery";
@@ -18,6 +18,7 @@ const isExpired = (msg: string) =>
 
 export default function Login() {
   const t = useT();
+  const { lang } = useLang();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState<Status>("verifying");
@@ -168,6 +169,20 @@ export default function Login() {
     };
   }, [params, navigate]);
 
+  // Supabase pri neznámej adrese NEPOŠLE NIČ a `resetPasswordForEmail` naschvál
+  // vráti úspech. Človek teda čaká na mail, ktorý nikdy nepríde, a nedozvie sa
+  // prečo. `auth-no-account` ten mail pošle — a len vtedy, keď účet naozaj nie je;
+  // keď je, ticho skončí a mail posiela GoTrue.
+  //
+  // ⚠️ Volá sa SÚBEŽNE s pôvodným volaním, nie namiesto neho, a jej výsledok sa
+  //    zámerne zahadzuje: obrazovka nesmie prezradiť, či adresa účet má.
+  //    Rozlíšenie by z prihlasovacieho poľa spravilo enumerátor členov svorky.
+  function oznamZiadneKonto(email: string) {
+    void supabase.functions
+      .invoke("auth-no-account", { body: { email, lang: lang === "sk" ? "sk" : "en" } })
+      .catch(() => {});
+  }
+
   async function handleResend() {
     const dogId = params.get("dogId") ?? "";
     if (!dogId) {
@@ -223,6 +238,7 @@ export default function Login() {
       await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/login?type=recovery`,
       });
+      oznamZiadneKonto(email);
       setForgotSent(true);
     } finally {
       setForgotSending(false);
@@ -458,8 +474,14 @@ export default function Login() {
                           shouldCreateUser: false,
                         },
                       }).then(({ error }) => {
-                        if (error) setPasswordError(t('login.magicLink.noAccount'));
-                        else setEmailSent(true);
+                        // ⚠️ Chyba tu znamená „takú adresu nepoznáme" — a presne to
+                        //    sa NESMIE zobraziť. Do 16. 9. 2026 tu stálo
+                        //    `t('login.magicLink.noAccount')`, čím prihlasovacie pole
+                        //    komukoľvek prezradilo, kto vo svorke je. Obrazovka teraz
+                        //    hovorí v oboch prípadoch to isté; pravdu povie len mail,
+                        //    ktorý pristane v tej schránke.
+                        if (error) oznamZiadneKonto(emailInput.trim());
+                        setEmailSent(true);
                       }).finally(() => setEmailSending(false));
                     }}
                   >

@@ -3643,9 +3643,12 @@ export default function PackMap() {
   const [inlineDetailId, setInlineDetailId] = useState<string | null>(null);
 
   // ADD TRIP flow (krok 9, plany/zadanie-addtrip-flow-2026-07-27.md §15 bod 8) — vstupný popup
-  // (AddTripEntry) → AddTripPlan/AddTripLog. Tie dva formuláre si držia vlastný interný state
+  // (AddTripEntry) → AddTripLog. Ten formulár si drží vlastný interný state
   // (name/geometry/photos/…), Portal drží len KTORÝ je otvorený + chybu zápisu + mobile
   // map-reveal toggle.
+  // ⚠️ Vetvy boli pôvodne DVE (`AddTripPlan` + `AddTripLog`). Plánovanie sa presťahovalo
+  // do `AddTripLog` (má `mode` aj pole viditeľnosti), `AddTripPlan.tsx` bol 16. 9. 2026
+  // zmazaný ako mŕtvy — archív: tag `archiv/addtripplan-2026-09-16`.
   const [addEntryOpen, setAddEntryOpen] = useState(false);
   const [addFlow, setAddFlow] = useState<TripState | null>(null);
   // EVENT flow (krok 3 zadania-eventy) — rovnaký vzor ako addFlow, drží len origin ('own'/'tip');
@@ -4427,7 +4430,7 @@ export default function PackMap() {
   // ★ ukladá VŽDY solo/closed. `choosePartner` + `submitPartnerAd` (druhá cesta k inzerátu:
   // 2–3 návrhy termínov + socializácia) sú ZMAZANÉ 2026-08-05 — po zlúčení vstupov ich nemal
   // kto zavolať (jediným volajúcim bol WishlistIntentPopup, ktorý ★ už neotvára). Verejný
-  // inzerát dnes vzniká v AddTripPlan („Looking for pack" → user_trips + trip_events) a
+  // inzerát dnes vzniká v AddTripLog („Looking for pack" → user_trips + trip_events) a
   // zverejniť uložený výlet sa dá v Triplistе („Who can see this trip").
   const chooseSolo = (tid: string) => {
     setFavIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
