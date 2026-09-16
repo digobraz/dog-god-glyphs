@@ -31,6 +31,7 @@ import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
+import { BackIcon } from '@/components/pack/BackButton';
 import { MAP_SKIN, PALE, PALE_PC_MIN, LAPIS, LAPIS_BTN_SHADOW, PLATE_TILE_R, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { useIsPaleChrome } from '@/components/pack/usePaleChrome';
 import { CompanionPicker, type Companion } from '@/components/pack/packCommunityUI';
@@ -2551,7 +2552,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
             onClick={onBackToEntry ?? onClose}
             aria-label={t('pack.addTrip.geo.stepBack')}
           >
-            ←
+            <BackIcon />
           </button>
           <div className="atl-log-title atl-log-title--big">{t('pack.addTrip.log.titleActivity')}</div>
           {/* ⚠️ VETA POD NADPISOM ZANIKLA (Matej 2026-08-28: „odstráň text pod (tie tri
@@ -2573,7 +2574,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
             onClick={goPrev}
             aria-label={t('pack.addTrip.geo.stepBack')}
           >
-            ←
+            <BackIcon />
           </button>
         </div>
       )}
@@ -3966,7 +3967,7 @@ const COMPANION_CSS = `
 const LOG_CSS = `
 .atl-log{display:flex;flex-direction:column;height:100%;min-height:0;}
 .atl-log-head{display:flex;align-items:center;gap:10px;padding:11px 20px 7px;flex-shrink:0;}
-.atl-log-back{background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};color:${T.onDark};width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;line-height:1;}
+.atl-log-back{display:inline-flex;align-items:center;justify-content:center;background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};color:${T.onDark};width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;line-height:1;}
 .atl-log-back:hover{border-color:${GOLD};color:${GOLD};}
 .atl-log-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.onDark};}
 /* Titulná obrazovka pridávania — návrat v strede, pod ním nadpis a jedna veta. */

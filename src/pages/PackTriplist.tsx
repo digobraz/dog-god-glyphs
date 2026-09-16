@@ -42,6 +42,7 @@ import {
   type TriplistTrip, type TripStatus,
 } from '@/components/pack/triplist/triplist';
 import { RightGate } from '@/components/pack/RightGate';
+import { BackIcon } from '@/components/pack/BackButton';
 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
@@ -64,7 +65,9 @@ const CSS = `
    a preklik z profilu (1024px) stránku viditeľne zúžil. */
 .tl-body{max-width:${PACK_COL.wide}px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 26px) ${PACK_COL_PAD.desktop}px 0;position:relative;z-index:2;}
 @media (max-width:640px){ .tl-body{padding-left:${PACK_COL_PAD.mobile}px;padding-right:${PACK_COL_PAD.mobile}px;} }
-/* back = holá šípka v STREDE, NAD blokmi (flow, nie absolute — neprekrýva karty) */
+/* back = šípka v STREDE, NAD blokmi (flow, nie absolute — neprekrýva karty).
+   ⚠️ Kruh si drží tvar TU, ikonku berie z BackButton.tsx — holý znak ← odtiaľto
+   odišiel 16. 9. 2026 (Matej: „stále tu vidím zlú šípku“). */
 .tl-backrow{display:flex;justify-content:center;margin-bottom:16px;}
 .tl-back{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:${P.soft};border:1px solid ${P.border};color:${P.ink};font-size:19px;line-height:1;cursor:pointer;transition:border-color .15s,color .15s,background .15s;}
 .tl-back:hover{border-color:${T.cardEdge};color:${P.deep};background:${T.card};}
@@ -695,7 +698,7 @@ export default function PackTriplist() {
 
       <div className="tl-body">
         <div className="tl-backrow">
-          <button type="button" className="tl-back" onClick={() => navigate('/pack/map')} aria-label={t('pack.triplist.backToMap')}>←</button>
+          <button type="button" className="tl-back" onClick={() => navigate('/pack/map')} aria-label={t('pack.triplist.backToMap')}><BackIcon /></button>
         </div>
 
         {/* dve karty-prepínače (Matej 2026-07-23): naše ikony (paw/trophy), žiadne emoji, žiadne nadpisy nad.

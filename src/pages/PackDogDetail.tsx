@@ -24,7 +24,8 @@ import { DEV_FULL } from '@/lib/packFlags';
 // Vek psa žije v lib/dogAge.ts — tú istú matematiku potrebuje aj svorka na `/pack`.
 import { computeAge, type DogAge } from '@/lib/dogAge';
 import { HEALTH_KEYS, HEALTH_COLORS, healthLabelKey, type HealthKey } from '@/lib/dogHealth';
-import { HandCamera, HandCheck, HandArrowLeft, HandLock, HandCycle } from '@/components/pack/HandIcons';
+import { HandCamera, HandCheck, HandLock, HandCycle } from '@/components/pack/HandIcons';
+import { BackIcon, BackLinkIcon } from '@/components/pack/BackButton';
 
 const T = PACK_THEME;
 const MESSAGE_MAX = 150;
@@ -769,7 +770,7 @@ export default function PackDogDetail() {
           nedáva zmysel"). */}
       <div className="did-backrow">
         <Link to="/pack/dogs" className="did-back" aria-label={t('pack.tree.title')}>
-          <HandArrowLeft size={16} />
+          <BackIcon />
         </Link>
       </div>
 
@@ -3146,7 +3147,7 @@ function NotFoundBox() {
           textDecoration: 'none',
         }}
       >
-        <HandArrowLeft size={12} />
+        <BackLinkIcon />
         {t('pack.dog.backToPack')}
       </Link>
     </div>

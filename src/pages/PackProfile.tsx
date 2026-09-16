@@ -51,7 +51,8 @@ import {
   type ProfileFieldKey,
 } from '@/components/pack/profile/packProfile';
 import { useDogyptStore } from '@/store/dogyptStore';
-import { HandCamera, HandArrowLeft } from '@/components/pack/HandIcons';
+import { HandCamera } from '@/components/pack/HandIcons';
+import { BackLinkIcon } from '@/components/pack/BackButton';
 
 const T = PACK_THEME;
 
@@ -561,7 +562,7 @@ export default function PackProfile() {
               textDecoration: 'none',
             }}
           >
-            <HandArrowLeft size={12} />
+            <BackLinkIcon />
             {tx('pack.profile.back', 'Pack')}
           </Link>
         )}
