@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { en } from './locales/en';
 import { sk } from './locales/sk';
 
@@ -131,6 +132,39 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     document.documentElement.lang = lang;
     document.documentElement.dir = RTL_LANGS.has(lang) ? 'rtl' : 'ltr';
   }, [lang]);
+
+  // ── JAZYK PATRÍ K ÚČTU, NIE LEN DO PREHLIADAČA ─────────────────────────────
+  // Auth maily (reset hesla, magic link, potvrdenie adresy) posiela edge funkcia
+  // `auth-send-email` a jediné, čo o adresátovi vie, je `user_metadata.lang` —
+  // localStorage z prehliadača sa k nej nedostane. Bez tohto zápisu by aj Slovák,
+  // ktorý má appku po slovensky, dostal reset hesla po anglicky.
+  //
+  // ⚠️ Zápis je POHODLIE, nie podmienka: bez session sa ticho preskočí a chyba sa
+  //    nikde neprejaví. Čítame `getSession()` (lokálne), nie `getUser()` (sieť),
+  //    a zapisujeme LEN pri rozdiele — inak by to bolo volanie na každé načítanie.
+  const [authTik, setAuthTik] = useState(0);
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED') setAuthTik((n) => n + 1);
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    let zrusene = false;
+    (async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const u = data.session?.user;
+        if (!u || zrusene) return;
+        if ((u.user_metadata as Record<string, unknown> | undefined)?.lang === lang) return;
+        await supabase.auth.updateUser({ data: { lang } });
+      } catch {
+        /* jazyk v konte je pohodlie — jeho zlyhanie nesmie nič zastaviť */
+      }
+    })();
+    return () => { zrusene = true; };
+  }, [lang, authTik]);
 
   // Sync naprieč tabmi.
   useEffect(() => {
