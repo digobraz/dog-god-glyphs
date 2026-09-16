@@ -26,6 +26,8 @@ import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK, goldFrameCSS } fr
 import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER, tripPath, tripPathById, visibleLocalTrails, tripDraftMissing, memberTrailIds } from '@/components/pack/tripShared';
 import { closeMyTripEvents, readLocalTrailMeta, readJson, writeJson, PACK_KEYS } from '@/lib/packStore';
 import { placeholderFor } from '@/lib/tripPlaceholder';
+// Tvary počítaného mena (1 výlet · 2–4 výlety · 5+ výletov) — jeden zdroj pre celý /pack.
+import { pluralKey } from '@/lib/plural';
 import { readPlans } from '@/components/pack/packCommunity';
 import { COMMUNITY_CSS, TripStatsPanel } from '@/components/pack/packCommunityUI';
 import { flagUrl, trailCountry } from '@/lib/countryGeo';
@@ -121,6 +123,15 @@ const CSS = `
 /* Nadpis sekcie na papyruse: zlatá je TMAVŠIA (#8a5a14), nie brandová ${T.cardEdge} — tá je na
    svetlom podklade len o niečo tmavšia než sám papyrus a stráca sa. */
 .tl-sechead h3{font-family:${FONT_UI};font-weight:500;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:${P.deep};margin:0;}
+/* Počet + PREČO je karta tam, kde je. Pás MOJICH VÝLETOV mal pri meraní 16. 9. 2026
+   73 kariet (11 818 px; na 500 px okne vidno 2,6) a 72 z nich bolo prejdených — bez
+   tejto vety je to nekonečný pás bez zjavného poradia. sortMyTrips radí najbližší
+   dátum dopredu, potom bezdátumové, prejdené dozadu; veta to len hovorí nahlas. */
+.tl-sechint{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${P.dim};white-space:nowrap;}
+/* Pod 480 px ostáva len POČET: vysvetlenie poradia inak vytlačí nadpis sekcie do dvoch
+   riadkov (merané na 360 px) a nápoveda tak vyhrá nad titulkom, čo je naopak. */
+.tl-sechint i{font-style:normal;}
+@media (max-width:480px){.tl-sechint i{display:none;}}
 .tl-seeall{font-family:${FONT_UI};font-weight:600;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:${P.dim};background:${P.soft};border:1px solid ${P.border};border-radius:999px;padding:5px 12px;cursor:pointer;white-space:nowrap;}
 .tl-seeall:hover{color:${P.deep};border-color:${T.cardEdge};background:${T.card};}
 /* prepínač viditeľnosti sekcie OPEN TRIPS (Matej 1. 9. 2026: „možnosť vybrať si či sa mi to
@@ -805,6 +816,12 @@ export default function PackTriplist() {
           <div className="tl-section">
             <div className="tl-sechead">
               <h3>{t('pack.triplist.myTrips')}</h3>
+              {myTrips.length > 0 && (
+                <span className="tl-sechint">
+                  {t(`pack.triplist.myTripsCount${pluralKey(myTrips.length)}`, { n: myTrips.length })}
+                  <i>{` \u00b7 ${t('pack.triplist.myTripsOrderHint')}`}</i>
+                </span>
+              )}
             </div>
             {myTrips.length === 0 ? (
               <div className="tl-emptybox">
@@ -862,8 +879,12 @@ export default function PackTriplist() {
                             {entry.date}
                           </button>
                         ) : (
+                          /* Prejdený výlet bez dátumu: to isté tlačidlo, ale nie tá istá veta.
+                             „+ PRIDAŤ DÁTUM" na karte s odznakom HOTOVO vyzerá, akoby sa výlet
+                             ešte len chystal — a takých kariet je 72 zo 73. Mechanika ostáva
+                             (dátum ho posunie medzi nadchádzajúce), mení sa len to, čo sľubuje. */
                           <button type="button" className="tl-datebtn" onClick={(e) => { e.stopPropagation(); openAddDate(entry.tripId); }}>
-                            {t('pack.triplist.addDate')}
+                            {t(done ? 'pack.triplist.goAgain' : 'pack.triplist.addDate')}
                           </button>
                         )}
                       </div>

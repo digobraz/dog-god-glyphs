@@ -2033,6 +2033,11 @@ export const cs: Partial<Dict> = {
   // ── pack.triplist ──
   'pack.triplist.accept': 'Přijmout',
   'pack.triplist.addDate': '+ Přidat datum',
+  'pack.triplist.goAgain': '+ Jít znovu',
+  'pack.triplist.myTripsCountOne': '{n} výlet',
+  'pack.triplist.myTripsCountFew': '{n} výlety',
+  'pack.triplist.myTripsCountMany': '{n} výletů',
+  'pack.triplist.myTripsOrderHint': 'nejbližší vepředu',
   'pack.triplist.addFirstTrip': 'Přidej svůj první výlet',
   'pack.triplist.allRegions': 'Všechny regiony',
   'pack.triplist.announceTrip': 'Ohlásit výlet',
