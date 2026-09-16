@@ -40,8 +40,10 @@ const KANALY = {
 // znamená: „výnimku netreba, treba výmenu." Keď Matej dokreslí novú ikonku,
 // pribudne sem riadok a položka sa v registri presunie z červeného poľa medzi
 // opraviteľné — bez zásahu do panela aj bez zásahu do stráže.
+// ⚠️ Hodnoty idú DO MANUÁLU, teda na anglický povrch — píš ich po anglicky.
+//    Komentáre naokolo ostávajú slovenské, tie číta len ten, kto sem príde.
 const NAPROTIVOK = {
-  ArrowLeft: 'HandArrowLeft — a je na ňu hotový <BackButton> / <BackIcon>',
+  ArrowLeft: 'HandArrowLeft — <BackButton> / <BackIcon> already wrap it',
   Lock: 'HandLock',
   Plus: 'HandPlus · /icons/pack/plus.svg',
   Trash: 'HandTrash',
