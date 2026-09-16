@@ -86,8 +86,9 @@ export function removeMyTrip(tripId: string): void {
 }
 
 // Migrácia z existujúcich wishlist plánov (packCommunity.ts TripPlan) → triplist entries.
-// Idempotentné — NIKDY neprepíše existujúcu triplist entry, volá sa raz pri mounte hubu.
-export function seedTriplistFromPlans(plans: TripPlan[]): void {
+// Idempotentné — NIKDY neprepíše existujúcu triplist entry. Vracia `true`, keď riadok
+// pribudol: volajúci podľa toho vie, či má zoznam prečítať znova (viď PackTriplist.tsx).
+export function seedTriplistFromPlans(plans: TripPlan[]): boolean {
   const all = readTriplist();
   let changed = false;
   for (const p of plans) {
@@ -104,40 +105,68 @@ export function seedTriplistFromPlans(plans: TripPlan[]): void {
     changed = true;
   }
   if (changed) writeTriplist(all);
+  return changed;
 }
 
 /**
- * ── DOLIEČENIE: ZAPÍSANÉ VÝLETY, KTORÉ VZNIKLI PRED 26. 8. 2026 ─────────────────────────
+ * Založenie položky MY TRIPS pre JEDEN výlet, keď ešte nestojí (2026-09-16).
  *
- * Do 26. 8. zápis výletu do triplistu vôbec nezapisoval (opravené v `submitAddTripDraft`
- * v PackMap.tsx) — takže MY TRIPS ukazoval plány a hviezdičkované trasy, ale vlastné
- * zapísané výlety nie. Oprava rieši nové zápisy; tie staré by v zozname chýbali naďalej
- * a vyzeralo by to, že chyba pretrváva.
+ * ⚠️ NIE `upsertMyTrip` — ten existujúci záznam PREPÍŠE. Tu ide o opak: kto si výlet
+ * otvoril pre svorku alebo mu dal dátum, oň nesmie prísť tým, že ho označí za prejdený.
+ * `addedAt` sa pri vlastnom výlete (`local-<timestamp>-<m>`) odvodí z id, lebo `HeroTrail`
+ * čas vzniku nenesie; inak je to teraz.
  *
- * ⚠️ IDEMPOTENTNÉ a len na VLASTNÉ zápisy: `local-*` bez `plan-` prefixu (plány rieši
- * `seedTriplistFromPlans`) a nikdy neprepíše existujúci záznam — kto si výlet medzitým
- * otvoril pre svorku, oň nepríde.
- * `addedAt` sa odvodzuje z id (`local-<timestamp>-<m>`), lebo `HeroTrail` čas vzniku
- * nenesie; keď sa nedá prečítať, ide 0 — riadok potom sadne na koniec zoznamu, čo je pre
- * starý výlet správne.
+ * Vracia `true`, keď riadok naozaj pribudol — volajúci podľa toho vie, či má zoznam
+ * prečítať znova.
  */
-export function seedTriplistFromWalked(trailIds: string[]): void {
+function blankMyTrip(tripId: string): TriplistTrip {
+  const stamp = tripId.startsWith('local-') ? Number(tripId.split('-')[1]) : NaN;
+  return {
+    tripId,
+    status: 'solo',
+    openness: 'closed',
+    joiners: [],
+    requests: [],
+    addedAt: Number.isFinite(stamp) ? stamp : Date.now(),
+  };
+}
+
+export function ensureMyTrip(tripId: string): boolean {
+  const all = readTriplist();
+  if (all[tripId]) return false;
+  all[tripId] = blankMyTrip(tripId);
+  writeTriplist(all);
+  return true;
+}
+
+/**
+ * ── DOLIEČENIE: PREJDENÉ VÝLETY, KTORÉ V MY TRIPS NIKDY NESTÁLI ────────────────────────
+ *
+ * Do 26. 8. 2026 zápis vlastného výletu do triplistu vôbec nezapisoval (opravené
+ * v `submitAddTripDraft` v PackMap.tsx). **A do 16. 9. 2026 doňho nezapisovalo ani ✓
+ * „označiť ako prejdené"** na cudzej/oficiálnej trase — hlavička PÚTNIK aj ŠTATISTIKY
+ * reagovali, `trip_walked` sa zapísal, ale MY TRIPS zoznam číta `triplist`, takže riadok
+ * sa nemal odkiaľ vziať. Preto sa obmedzenie na `local-` zrušilo: doliečiť treba KAŽDÚ
+ * prejdenú trasu, nielen vlastnú.
+ *
+ * ⚠️ IDEMPOTENTNÉ — nikdy neprepíše existujúci záznam (to je `ensureMyTrip` vyššie).
+ * ⚠️ Volaj to zoznamom, ktorý JE v `allTrails`. Zmazaný plánovaný výlet ostáva v množine
+ * prejdených (`deletePlannedTrip` ju nečistí) a bez filtra by tu vznikol riadok pre trasu,
+ * ktorá už neexistuje — a s ním aj riadok v `user_trips`.
+ *
+ * Vracia `true`, keď niečo pribudlo.
+ */
+export function seedTriplistFromWalked(trailIds: string[]): boolean {
+  // Jedno čítanie a jeden zápis na celú dávku — `ensureMyTrip` v cykle by pri desiatich
+  // prejdených trasách odpálil desať write-through zápisov do `user_trips`.
   const all = readTriplist();
   let changed = false;
   for (const id of trailIds) {
-    if (!id.startsWith('local-')) continue;
     if (all[id]) continue;
-    const stamp = Number(id.split('-')[1]);
-    all[id] = {
-      tripId: id,
-      status: 'solo',
-      openness: 'closed',
-      joiners: [],
-      requests: [],
-      addedAt: Number.isFinite(stamp) ? stamp : 0,
-    };
+    all[id] = { ...blankMyTrip(id) };
     changed = true;
   }
   if (changed) writeTriplist(all);
+  return changed;
 }
 

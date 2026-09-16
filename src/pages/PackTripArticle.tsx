@@ -69,7 +69,7 @@ import { MapNotesLayer, MAP_NOTES_CSS } from '@/components/pack/mapnotes/MapNote
 import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
 import { intlLocale } from '@/i18n/bcp47';
 import { TrailMarks, type TrailMarkColor } from '@/components/pack/TrailMarks';
-import { upsertMyTrip } from '@/components/pack/triplist/triplist'; // TRIPLIST (Slice A) — star popup upserts alongside the existing wishlist plan
+import { upsertMyTrip, ensureMyTrip } from '@/components/pack/triplist/triplist'; // TRIPLIST (Slice A) — star popup upserts alongside the existing wishlist plan
 // #41 — karta tvorcu výletu. Tá istá trojica ako v PackMap (inline detail), lebo
 // mobil sem naviguje namiesto otvorenia panelu.
 import { useOpenTrips, useTripEventTravel } from '@/components/pack/triplist/useOpenTrips';
@@ -665,6 +665,25 @@ export default function PackTripArticle() {
   const [walkedIds, setWalkedIds] = useState<Set<string>>(() => readWalkedIds());
   useEffect(() => { writeFavIds(favIds); }, [favIds]);
   useEffect(() => { writeWalkedIds(walkedIds); }, [walkedIds]);
+
+  // ✓ NA TRASE ZALOŽÍ AJ RIADOK V MY TRIPS (2026-09-16). Zápis prejdenej trasy prešiel
+  // (`trip_walked` → 201), hlavička PÚTNIK aj ŠTATISTIKY reagovali — ale zoznam MY TRIPS
+  // číta `triplist`, a do toho ✓ nezapisovalo nič. Vlastný zápis výletu si ho zakladá sám
+  // od 26. 8. 2026; toto je tá druhá cesta, ktorá sa vtedy neurobila.
+  //
+  // ⚠️ Beží ako ROZDIEL voči predošlej množine, nie nad celou. Nad celou by prvý priebeh po
+  // mounte vzkriesil aj to, čo `deletePlannedTrip` práve zmazalo — a vyzeralo by to ako
+  // „zmazanie sa neuložilo". `null` = ešte sme nemerali, teda mount: vtedy sa nezakladá nič,
+  // históriu doliečuje `seedTriplistFromWalked` v tripliste.
+  // ⚠️ `ensureMyTrip`, nie `upsertMyTrip` — otvorený výlet s dátumom a partiou sa ✓ nesmie
+  // prepísať na solo/closed.
+  const prevWalkedRef = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const prev = prevWalkedRef.current;
+    prevWalkedRef.current = new Set(walkedIds);
+    if (!prev) return;
+    for (const tid of walkedIds) if (!prev.has(tid)) ensureMyTrip(tid);
+  }, [walkedIds]);
 
   // ── VSTUPY DO ZÁPISU NA MAPE V ČLÁNKU ────────────────────────────────────
   // TRI vstupy: dlhé podržanie / pravý klik dá najprv MIESTO a pýta sa typ,

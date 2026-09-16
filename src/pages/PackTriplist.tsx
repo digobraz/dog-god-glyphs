@@ -453,21 +453,37 @@ export default function PackTriplist() {
   // tr.km je STRING (HeroTrail.km: string) → coerce na number, inak reduce reťazí stringy a walkedKm.toFixed spadne
   const walkedKm = useMemo(() => walkedTrails.reduce((s, tr) => s + (Number(tr.km) || 0), 0), [walkedTrails]);
 
-  // migrácia existujúcich wishlist plánov → triplist entries, idempotentné (viď triplist.ts).
-  useEffect(() => {
-    seedTriplistFromPlans(readPlans());
-    // ⚠️ A ZAPÍSANÉ VÝLETY TIEŽ (2026-08-26). Do opravy v `submitAddTripDraft` sa vlastný
-    // zápis do triplistu nedostal vôbec (Matej: „po zápise výlet nevidím v tripliste"), takže
-    // výlety zapísané pred ňou by tu chýbali naďalej. Berú sa LEN moje (`meta.mine`, prázdna
-    // mapa = ešte sa nehydratovalo ⇒ ber ako moje, rovnaká úvaha ako vo `visibleLocalTrails`).
-    const meta = readLocalTrailMeta();
-    seedTriplistFromWalked(
-      readLocalTrails().filter((tr) => meta[tr.id]?.mine ?? true).map((tr) => tr.id),
-    );
-  }, []);
-
   const [triplist, setTriplist] = useState<Record<string, TriplistTrip>>(() => readTriplist());
   useEffect(() => { if (storeEpoch) setTriplist(readTriplist()); }, [storeEpoch]);
+
+  // migrácia existujúcich wishlist plánov → triplist entries, idempotentné (viď triplist.ts).
+  //
+  // ⚠️ BEŽÍ NA `storeEpoch`, NIE LEN PRI MOUNTE (2026-09-16). Dva dôvody, oba boli chyba:
+  //  1. `readWalkedIds()` je pri mounte ešte PREDhydratačné — prejdené trasy prídu z DB
+  //     o pár stoviek ms neskôr (viď `usePackStoreEpoch`), takže seed ich pri mounte nevidel.
+  //  2. `useState(readTriplist())` sa vyhodnocuje počas renderu, teda PRED týmto efektom.
+  //     Čo tu pribudlo, ostávalo do najbližšieho epochu neviditeľné — zoznam vyzeral prázdny
+  //     aj vtedy, keď riadok v úložisku už stál. Preto sa po seede číta znova.
+  useEffect(() => {
+    let changed = seedTriplistFromPlans(readPlans());
+    // ⚠️ A PREJDENÉ VÝLETY TIEŽ. Do 26. 8. 2026 sa vlastný zápis do triplistu nedostal vôbec
+    // (Matej: „po zápise výlet nevidím v tripliste") a do 16. 9. 2026 doňho nezapisovalo ani
+    // ✓ na cudzej/oficiálnej trase — `trip_walked` prešiel, MY TRIPS o ňom nevedel.
+    // Vlastné výlety sa berú cez `meta.mine` (prázdna mapa = ešte sa nehydratovalo ⇒ ber ako
+    // moje, rovnaká úvaha ako vo `visibleLocalTrails`), prejdené cez `allTrails`, aby tu
+    // nevznikol riadok pre trasu, ktorá už neexistuje (viď varovanie v triplist.ts).
+    // ⚠️ `local-` a NIE `plan-`: plánovaný výlet má vlastný seed o riadok vyššie, ktorý mu
+    // prinesie dátum aj „hľadám svorku". Keby sme mu tu založili prázdny solo/closed riadok
+    // prvý, `seedTriplistFromPlans` ho už nechá tak a plán by o oboje ticho prišiel.
+    const meta = readLocalTrailMeta();
+    const mineLocal = readLocalTrails()
+      .filter((tr) => tr.id.startsWith('local-') && (meta[tr.id]?.mine ?? true))
+      .map((tr) => tr.id);
+    const walked = readWalkedIds();
+    const walkedReal = allTrails.filter((tr) => walked.has(tr.id)).map((tr) => tr.id);
+    if (seedTriplistFromWalked([...mineLocal, ...walkedReal])) changed = true;
+    if (changed) setTriplist(readTriplist());
+  }, [storeEpoch, allTrails]);
   const [dateTripId, setDateTripId] = useState<string | null>(null);
   const [dateValue, setDateValue] = useState('');
   const [publicWCE, setPublicWCE] = useState<WCE | 'all'>('all'); // OPEN TRIPS filter (region)
