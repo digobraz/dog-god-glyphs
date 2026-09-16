@@ -792,7 +792,7 @@ export const tur: Partial<Dict> = {
   "pack.dog.loading": "YÜKLENİYOR",
   "pack.dog.unnamed": "İsimsiz",
   "pack.dog.viewOnWall": "WALL üzerinde görüntüle {certNumber}",
-  "pack.dog.passportTooltip": "Köpeğinin pasaportu — küresel bir veri tabanı. Çok yakında.",
+  "pack.dog.passportTooltip": "Köpeğinin DOG ID'si — küresel bir veri tabanı. Çok yakında.",
   "pack.dog.lostDogTooltip": "Kayıp köpek — bir arama başlat, sürüyü uyar. Çok yakında.",
   "pack.dog.profileDocumentsTooltip": "Profil ve belgeler",
   "pack.dog.ariaChangePhoto": "Fotoğrafı değiştir",

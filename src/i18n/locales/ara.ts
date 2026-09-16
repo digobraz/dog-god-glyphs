@@ -789,7 +789,7 @@ export const ara: Partial<Dict> = {
   "pack.dog.loading": "جارٍ التحميل",
   "pack.dog.unnamed": "بلا اسم",
   "pack.dog.viewOnWall": "عرض على WALL {certNumber}",
-  "pack.dog.passportTooltip": "جواز سفر كلبك — قاعدة بيانات عالمية. قريبًا.",
+  "pack.dog.passportTooltip": "بطاقة DOG ID لكلبك — قاعدة بيانات عالمية. قريبًا.",
   "pack.dog.lostDogTooltip": "كلب مفقود — أعلن عن بحث ونبّه القطيع. قريبًا.",
   "pack.dog.profileDocumentsTooltip": "الملف الشخصي والمستندات",
   "pack.dog.ariaChangePhoto": "تغيير الصورة",

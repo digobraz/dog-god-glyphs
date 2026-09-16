@@ -959,7 +959,7 @@ export const rus: Partial<Dict> = {
   "pack.dog.loading": "ЗАГРУЗКА",
   "pack.dog.unnamed": "Без имени",
   "pack.dog.viewOnWall": "Посмотреть на WALL {certNumber}",
-  "pack.dog.passportTooltip": "Паспорт вашей собаки — глобальная база данных. Скоро.",
+  "pack.dog.passportTooltip": "DOG ID вашей собаки — глобальная база данных. Скоро.",
   "pack.dog.lostDogTooltip": "Пропавшая собака — объявите поиск, оповестите Pack. Скоро.",
   "pack.dog.profileDocumentsTooltip": "Профиль и документы",
   "pack.dog.ariaChangePhoto": "Изменить фото",

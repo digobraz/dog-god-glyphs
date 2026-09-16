@@ -789,7 +789,7 @@ export const chn: Partial<Dict> = {
   "pack.dog.loading": "加载中",
   "pack.dog.unnamed": "未命名",
   "pack.dog.viewOnWall": "在 WALL 上查看 {certNumber}",
-  "pack.dog.passportTooltip": "你爱犬的护照——一个全球数据库。即将上线。",
+  "pack.dog.passportTooltip": "你爱犬的 DOG ID——一个全球数据库。即将上线。",
   "pack.dog.lostDogTooltip": "走失的狗——发起寻找，向狗群发出警报。即将上线。",
   "pack.dog.profileDocumentsTooltip": "资料与文件",
   "pack.dog.ariaChangePhoto": "更换照片",

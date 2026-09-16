@@ -977,7 +977,7 @@ export const ukr: Partial<Dict> = {
   "pack.dog.loading": "ЗАВАНТАЖЕННЯ",
   "pack.dog.unnamed": "Без імені",
   "pack.dog.viewOnWall": "Дивитися на WALL {certNumber}",
-  "pack.dog.passportTooltip": "Паспорт вашого пса — глобальна база даних. Незабаром.",
+  "pack.dog.passportTooltip": "DOG ID вашого пса — глобальна база даних. Незабаром.",
   "pack.dog.lostDogTooltip": "Загублений пес — оголосіть пошук, сповістіть зграю. Незабаром.",
   "pack.dog.profileDocumentsTooltip": "Профіль і документи",
   "pack.dog.ariaChangePhoto": "Змінити фото",

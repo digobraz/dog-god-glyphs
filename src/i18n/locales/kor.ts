@@ -792,7 +792,7 @@ export const kor: Partial<Dict> = {
   "pack.dog.loading": "불러오는 중",
   "pack.dog.unnamed": "이름 없음",
   "pack.dog.viewOnWall": "WALL에서 보기 {certNumber}",
-  "pack.dog.passportTooltip": "당신 개의 여권 — 전 세계 데이터베이스. 곧 공개됩니다.",
+  "pack.dog.passportTooltip": "당신 개의 DOG ID — 전 세계 데이터베이스. 곧 공개됩니다.",
   "pack.dog.lostDogTooltip": "잃어버린 개 — 수색을 선언하고 무리에 알립니다. 곧 공개됩니다.",
   "pack.dog.profileDocumentsTooltip": "프로필 및 문서",
   "pack.dog.ariaChangePhoto": "사진 변경",

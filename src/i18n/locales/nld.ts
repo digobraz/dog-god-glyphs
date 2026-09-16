@@ -792,7 +792,7 @@ export const nld: Partial<Dict> = {
   "pack.dog.loading": "LADEN",
   "pack.dog.unnamed": "Naamloos",
   "pack.dog.viewOnWall": "Bekijk op de Wall {certNumber}",
-  "pack.dog.passportTooltip": "Het paspoort van je hond — een wereldwijde database. Binnenkort beschikbaar.",
+  "pack.dog.passportTooltip": "DOG ID van je hond — een wereldwijde database. Binnenkort beschikbaar.",
   "pack.dog.lostDogTooltip": "Vermiste hond — start een zoektocht, waarschuw de Roedel. Binnenkort beschikbaar.",
   "pack.dog.profileDocumentsTooltip": "Profiel & documenten",
   "pack.dog.ariaChangePhoto": "Foto wijzigen",

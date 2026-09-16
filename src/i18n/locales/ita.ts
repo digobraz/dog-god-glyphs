@@ -977,7 +977,7 @@ export const ita: Partial<Dict> = {
   "pack.dog.loading": "CARICAMENTO",
   "pack.dog.unnamed": "Senza nome",
   "pack.dog.viewOnWall": "Vedi sul Wall {certNumber}",
-  "pack.dog.passportTooltip": "Il passaporto del tuo cane — un database globale. Presto disponibile.",
+  "pack.dog.passportTooltip": "DOG ID del tuo cane — un database globale. Presto disponibile.",
   "pack.dog.lostDogTooltip": "Cane smarrito — lancia una ricerca, allerta il branco. Presto disponibile.",
   "pack.dog.profileDocumentsTooltip": "Profilo e documenti",
   "pack.dog.ariaChangePhoto": "Cambia foto",

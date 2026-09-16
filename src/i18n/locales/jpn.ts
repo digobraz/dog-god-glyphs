@@ -789,7 +789,7 @@ export const jpn: Partial<Dict> = {
   "pack.dog.loading": "読み込み中",
   "pack.dog.unnamed": "名前なし",
   "pack.dog.viewOnWall": "WALL で見る {certNumber}",
-  "pack.dog.passportTooltip": "あなたの犬のパスポート — 世界規模のデータベース。近日公開。",
+  "pack.dog.passportTooltip": "あなたの犬の DOG ID — 世界規模のデータベース。近日公開。",
   "pack.dog.lostDogTooltip": "迷子犬 — 捜索を宣言し、群れに知らせる。近日公開。",
   "pack.dog.profileDocumentsTooltip": "プロフィールと書類",
   "pack.dog.ariaChangePhoto": "写真を変更",

@@ -23,9 +23,9 @@
 // cesty nesie pole `art` v `natureQuiz.ts`, obrázky sú v `public/images/nature/`.
 // Výsledok je JEDEN DOKUMENT NA PSA (`ResultDoc`), nie štyri karty pod sebou.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { X, ChevronLeft, RotateCcw, Check } from 'lucide-react';
-import { PACK_THEME, PACK_BOX, PACK_COL, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, PACK_COL, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, PAPER_PAGE_CSS, usePaperRoute } from '@/components/pack/packTheme';
 import {
   ELEMENT_QUESTIONS, ROLE_QUESTIONS, BALANCE_ITEMS, BALANCE_VET_NOTE,
   NATURE_ELEMENTS, NATURE_ROLES, NATURE_SPECIALS,
@@ -1342,28 +1342,43 @@ function LeaveConfirm({ onStay, onLeave, tx }: {
 function Shell({ children, onClose, fill, overlay }: {
   children: React.ReactNode; onClose: () => void; fill?: boolean; overlay?: React.ReactNode;
 }) {
+  // Karty kvízu su papyrusové v oboch šatoch — tmavá ostala len TAPETA za nimi, takže
+  // pri zapnutom bledom šate si z papyrusového hubu prepadol do čiernej. Recept bledej
+  // plochy je `pk-paper` + `PAPER_PAGE_CSS`, ten istý ako v `PackLayout`.
+  const t = useT();
+  const paper = usePaperRoute(useLocation().pathname);
   return (
-    <div className="min-h-[100dvh] relative flex flex-col" style={{ backgroundColor: T.pageBg, color: T.onDark }}>
-      <div aria-hidden style={{
-        position: 'fixed', inset: 0, width: '100vw', height: '100lvh',
-        backgroundImage: "url('/images/bg-dark.webp')", backgroundSize: 'cover',
-        backgroundPosition: 'center', filter: 'blur(3px)', zIndex: 0, pointerEvents: 'none',
-      }} />
-      <div aria-hidden style={{
-        position: 'fixed', inset: 0, width: '100vw', height: '100lvh',
-        background: 'radial-gradient(ellipse at center, rgba(5,5,5,0.25) 0%, rgba(5,5,5,0.45) 60%, rgba(5,5,5,0.6) 100%)',
-        zIndex: 0, pointerEvents: 'none',
-      }} />
+    <div
+      className={`min-h-[100dvh] relative flex flex-col${paper ? ' pk-paper' : ''}`}
+      style={paper ? { color: T.inkStrong } : { backgroundColor: T.pageBg, color: T.onDark }}
+    >
+      {paper ? <style>{PAPER_PAGE_CSS}</style> : (
+        <>
+          <div aria-hidden style={{
+            position: 'fixed', inset: 0, width: '100vw', height: '100lvh',
+            backgroundImage: "url('/images/bg-dark.webp')", backgroundSize: 'cover',
+            backgroundPosition: 'center', filter: 'blur(3px)', zIndex: 0, pointerEvents: 'none',
+          }} />
+          <div aria-hidden style={{
+            position: 'fixed', inset: 0, width: '100vw', height: '100lvh',
+            background: 'radial-gradient(ellipse at center, rgba(5,5,5,0.25) 0%, rgba(5,5,5,0.45) 60%, rgba(5,5,5,0.6) 100%)',
+            zIndex: 0, pointerEvents: 'none',
+          }} />
+        </>
+      )}
       <style>{NQ_CSS}</style>
       <div
         className={`relative z-10 mx-auto w-full px-4 sm:px-6 flex flex-col ${fill ? 'flex-1 pb-6' : 'pb-24'}`}
         style={{ maxWidth: PACK_COL.wide, paddingTop: 'calc(env(safe-area-inset-top, 0px) + 22px)' }}
       >
         <div className="flex justify-end" style={{ marginBottom: 12 }}>
-          <button type="button" onClick={onClose} aria-label="Close" style={{
+          {/* Krížik berie tón PODKLADU, nie šatu appky: tmavý kruh na papyruse
+              bol jediná čierna škvrna na stránke. */}
+          <button type="button" onClick={onClose} aria-label={t('pack.quiz.close')} style={{
             width: 36, height: 36, borderRadius: 999, cursor: 'pointer',
-            background: 'rgba(0,0,0,0.35)', border: `1px solid ${PACK_THEME.border}`,
-            color: '#E9D9B8', display: 'grid', placeItems: 'center',
+            background: paper ? PALE.soft : 'rgba(0,0,0,0.35)',
+            border: `1px solid ${paper ? PALE.border : PACK_THEME.border}`,
+            color: paper ? PALE.dim : '#E9D9B8', display: 'grid', placeItems: 'center',
           }}><X className="h-4 w-4" /></button>
         </div>
         {fill ? <div className="flex-1 flex flex-col" style={{ minHeight: 0 }}>{children}</div> : children}

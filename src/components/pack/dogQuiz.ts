@@ -37,7 +37,7 @@ import {
 export type PassView = 'full' | 'vet' | 'sitter' | 'story';
 
 export const PASS_VIEWS: { key: PassView; labelEN: string; i18n: string }[] = [
-  { key: 'full', labelEN: 'My card', i18n: 'pack.pass.view.full' },
+  { key: 'full', labelEN: 'DOG ID', i18n: 'pack.pass.view.full' },
   { key: 'vet', labelEN: 'Vet', i18n: 'pack.pass.view.vet' },
   { key: 'sitter', labelEN: 'Sitter', i18n: 'pack.pass.view.sitter' },
   { key: 'story', labelEN: 'Story', i18n: 'pack.pass.view.story' },

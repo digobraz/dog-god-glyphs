@@ -978,7 +978,7 @@ export const esp: Partial<Dict> = {
   "pack.dog.loading": "CARGANDO",
   "pack.dog.unnamed": "Sin nombre",
   "pack.dog.viewOnWall": "Ver en el WALL {certNumber}",
-  "pack.dog.passportTooltip": "El pasaporte de tu perro — una base de datos global. Próximamente.",
+  "pack.dog.passportTooltip": "DOG ID de tu perro — una base de datos global. Próximamente.",
   "pack.dog.lostDogTooltip": "Perro perdido — declara una búsqueda, alerta a la jauría. Próximamente.",
   "pack.dog.profileDocumentsTooltip": "Perfil y documentos",
   "pack.dog.ariaChangePhoto": "Cambiar foto",

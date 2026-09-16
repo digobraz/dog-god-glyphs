@@ -653,10 +653,20 @@ export const PAPER_ROUTES_PAGES: readonly RegExp[] = [
   // Zoznam psov `/pack/dogs` — `/pack/dogs/:id` je DOG ID, samostatný povrch nižšie.
   /^\/pack\/dogs$/,
   // DOG ID `/pack/dogs/<uuid>`.
-  // ⚠️ `quiz` je z vzoru VYNECHANÝ zámerne — `/pack/dogs/quiz/<key>` je samostatný
-  //    povrch (551 r.), ktorý bledú verziu nemá; bez výnimky by ho chytilo holé
-  //    `/pack/dogs/quiz` a bliklo by pred ním BIELE.
+  // ⚠️ Lookahead na `quiz` OSTÁVA, ale už len preto, aby holé `/pack/dogs/quiz`
+  //    (bez kľúča) nespadlo do vzoru pre DOG ID — kvíz má vlastný riadok nižšie.
   /^\/pack\/dogs\/(?!quiz(?:\/|$))[^/]+$/,
+  // Kvízy — `/pack/dogs/quiz/<key>` a osobnostný `/pack/nature` (16. 9. 2026).
+  //
+  // ⚠️ Pôvodná výnimka tvrdila, že kvíz „bledú verziu nemá". To PRESTALO PLATIŤ:
+  //    panel kvízu je papyrusový v oboch šatoch (odfotené 16. 9.) — tmavý ostal len
+  //    SHELL za ním. Pri zapnutom bledom šate si tak z papyrusového `/pack/dogs`
+  //    preklikol do čiernej tapety a späť. Papyrusová karta na čiernej tapete NIE JE
+  //    „tmavá vetva", je to nedorobený prevod.
+  // ⚠️ `PAPER_ROUTES_PAGES` sa číta LEN pri `skin === 'paper'`, takže tmavý šat
+  //    tieto dva riadky nevidí a vyzerá presne ako doteraz.
+  /^\/pack\/dogs\/quiz\/[^/]+$/,
+  /^\/pack\/nature$/,
   // Profil POUŽÍVATEĽA (s DOG ID nesúvisí) a cudzí profil.
   /^\/pack\/profile(\/|$)/,
   /^\/pack\/u(\/|$)/,

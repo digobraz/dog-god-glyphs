@@ -793,7 +793,7 @@ export const ind: Partial<Dict> = {
   "pack.dog.loading": "लोड हो रहा है",
   "pack.dog.unnamed": "बिना नाम",
   "pack.dog.viewOnWall": "WALL पर देखें {certNumber}",
-  "pack.dog.passportTooltip": "आपके कुत्ते का पासपोर्ट — एक वैश्विक डेटाबेस। जल्द आ रहा है।",
+  "pack.dog.passportTooltip": "आपके कुत्ते की DOG ID — एक वैश्विक डेटाबेस। जल्द आ रहा है।",
   "pack.dog.lostDogTooltip": "खोया कुत्ता — खोज की घोषणा करें, झुंड को सतर्क करें। जल्द आ रहा है।",
   "pack.dog.profileDocumentsTooltip": "प्रोफ़ाइल और दस्तावेज़",
   "pack.dog.ariaChangePhoto": "फ़ोटो बदलें",

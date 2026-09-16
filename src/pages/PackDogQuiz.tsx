@@ -14,9 +14,10 @@
 // Vizuál: Matej 6.8. — „zmeníme neskôr vizuál toho kvízu na kompaktnejší". Mechanika
 // je podľa nákresu, vizuál NIE je finálny.
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { X, ChevronLeft, ChevronRight, Check } from 'lucide-react';
-import { PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, GOLD_BTN } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, GOLD_BTN, PAPER_PAGE_CSS, usePaperRoute } from '@/components/pack/packTheme';
+import { PALE } from '@/components/pack/navGoldSkin';
 import { QUIZ_BY_KEY, type QuizStep } from '@/components/pack/dogQuiz';
 import { appendDogEvents, readLatestForDogs, type DogEventInput, type LatestValue } from '@/lib/dogEvents';
 import { supabase } from '@/integrations/supabase/client';
@@ -469,26 +470,39 @@ const fieldStyle: React.CSSProperties = {
 
 // ── škrupina ─────────────────────────────────────────────────────────────────
 function Shell({ children, onClose }: { children: React.ReactNode; onClose?: () => void }) {
+  const t = useT();
+  // Panel kvízu bol papyrusový v OBOCH šatoch, tapeta za ním len tmavá — pri zapnutom
+  // bledom šate si sa tak z papyrusového `/pack/dogs` preklikol do čiernej a späť.
+  // Recept bledej plochy je `pk-paper` + `PAPER_PAGE_CSS` (packTheme.ts), rovnako ako
+  // v `PackLayout`; tmavá vetva ostáva nedotknutá.
+  const paper = usePaperRoute(useLocation().pathname);
   return (
-    <div className="min-h-[100dvh] relative" style={{ backgroundColor: T.pageBg, color: T.onDark }}>
-      <div
-        aria-hidden
-        style={{
-          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100lvh',
-          backgroundImage: "url('/images/bg-dark.webp')", backgroundSize: 'cover',
-          backgroundPosition: 'center', filter: 'blur(3px)', zIndex: 0, pointerEvents: 'none',
-        }}
-      />
-      {/* Stmavenie — bez neho je heroglyfová textúra na fullscreen route príliš svetlá
-          a karta na nej stráca kontrast. Rovnaké hodnoty ako `HieroglyphBg` v PackLayout. */}
-      <div
-        aria-hidden
-        style={{
-          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100lvh',
-          background: 'radial-gradient(ellipse at center, rgba(5,5,5,0.25) 0%, rgba(5,5,5,0.45) 60%, rgba(5,5,5,0.6) 100%)',
-          zIndex: 0, pointerEvents: 'none',
-        }}
-      />
+    <div
+      className={`min-h-[100dvh] relative${paper ? ' pk-paper' : ''}`}
+      style={paper ? { color: T.inkStrong } : { backgroundColor: T.pageBg, color: T.onDark }}
+    >
+      {paper ? <style>{PAPER_PAGE_CSS}</style> : (
+        <>
+          <div
+            aria-hidden
+            style={{
+              position: 'fixed', top: 0, left: 0, width: '100vw', height: '100lvh',
+              backgroundImage: "url('/images/bg-dark.webp')", backgroundSize: 'cover',
+              backgroundPosition: 'center', filter: 'blur(3px)', zIndex: 0, pointerEvents: 'none',
+            }}
+          />
+          {/* Stmavenie — bez neho je heroglyfová textúra na fullscreen route príliš svetlá
+              a karta na nej stráca kontrast. Rovnaké hodnoty ako `HieroglyphBg` v PackLayout. */}
+          <div
+            aria-hidden
+            style={{
+              position: 'fixed', top: 0, left: 0, width: '100vw', height: '100lvh',
+              background: 'radial-gradient(ellipse at center, rgba(5,5,5,0.25) 0%, rgba(5,5,5,0.45) 60%, rgba(5,5,5,0.6) 100%)',
+              zIndex: 0, pointerEvents: 'none',
+            }}
+          />
+        </>
+      )}
       <style>{PF_FIELD_CSS}</style>
       <style>{QUIZ_CSS}</style>
       <div
@@ -500,11 +514,15 @@ function Shell({ children, onClose }: { children: React.ReactNode; onClose?: () 
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close"
+              aria-label={t('pack.quiz.close')}
               style={{
                 width: 36, height: 36, borderRadius: 999, cursor: 'pointer',
-                background: 'rgba(245,240,228,0.06)', border: `1px solid ${T.onDarkBorder}`,
-                color: T.onDarkDim, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                // Krížik berie tón PODKLADU, nie šatu appky: na papyruse bol
+                // krémový na krémovom, teda neviditeľný.
+                background: paper ? PALE.soft : 'rgba(245,240,228,0.06)',
+                border: `1px solid ${paper ? PALE.border : T.onDarkBorder}`,
+                color: paper ? PALE.dim : T.onDarkDim,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
               <X className="h-4 w-4" />

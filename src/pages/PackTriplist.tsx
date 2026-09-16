@@ -1036,7 +1036,10 @@ export default function PackTriplist() {
         );
       })()}
 
-      <PackBottomNav />
+      {/* Identita PATRÍ K VOLAJÚCEMU. Bez props padá nav na literál 'D'
+          (PackLayout.tsx) a Matejovi svietil cudzí iniciál v tripliste aj
+          v článku výletu. Vzor je PackMap.tsx:7184 — tá istá trojica props. */}
+      <PackBottomNav avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial} dogs={id.dogs} />
       {/* Táto stránka nemountuje <PackLayout> (má vlastnú hlavičku aj nav), takže jej chýbal
           hostiteľ overlayu — a emitOpenThread() z PartyMemberCard nemal kto odchytiť.
           Dôsledok pred 15. 9. 2026: klik na „Message" v schránke žiadostí zavolal start_dm

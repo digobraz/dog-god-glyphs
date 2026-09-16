@@ -1025,7 +1025,7 @@ export const cs: Partial<Dict> = {
   "pack.dog.loading": "NAČÍTÁM",
   "pack.dog.unnamed": "Beze jména",
   "pack.dog.viewOnWall": "Zobrazit na WALL {certNumber}",
-  "pack.dog.passportTooltip": "Pas tvého psa — globální databáze. Již brzy.",
+  "pack.dog.passportTooltip": "DOG ID tvého psa — globální databáze. Již brzy.",
   "pack.dog.lostDogTooltip": "Ztracený pes — vyhlas pátrání, upozorni smečku. Již brzy.",
   "pack.dog.profileDocumentsTooltip": "Profil a dokumenty",
   "pack.dog.ariaChangePhoto": "Změnit fotku",

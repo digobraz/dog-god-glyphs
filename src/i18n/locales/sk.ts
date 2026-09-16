@@ -1248,7 +1248,7 @@ export const sk: Partial<Dict> = {
   "pack.dog.loading": "NAČÍTAVAM",
   "pack.dog.unnamed": "Bez mena",
   "pack.dog.viewOnWall": "Pozri na WALL {certNumber}",
-  "pack.dog.passportTooltip": "Pas tvojho psa — globálna databáza. Už čoskoro.",
+  "pack.dog.passportTooltip": "DOG ID tvojho psa — globálna databáza. Už čoskoro.",
   "pack.dog.lostDogTooltip": "Stratený pes — vyhlás pátranie, upozorni svorku. Už čoskoro.",
   "pack.dog.profileDocumentsTooltip": "Profil a dokumenty",
   "pack.dog.ariaChangePhoto": "Zmeniť fotku",
@@ -2784,6 +2784,9 @@ export const sk: Partial<Dict> = {
   // takže Matejovi v slovenskom rozhraní vyskočilo „Matej reads every report himself".
   'pack.msg.reportSentTitle': "Nahlásenie odoslané",
   'pack.msg.reportSentBody': "Ďakujeme. Konverzáciu si prečítame a ozveme sa, keď bude čo riešiť. Ak ti ten človek prekáža aj naďalej, môžeš ho rovno zablokovať — to platí okamžite.",
+  // ⚠️ Dopísané 16. 9. 2026 — tlačidlo, ktorým sa potvrdenie zatvára. Bez neho tam
+  // slovenskému divákovi svietilo „Done".
+  'pack.msg.done': "Hotovo",
   'pack.msg.blocking': "Blokujem…",
   'pack.msg.blockButton': "Zablokovať {name}",
   'pack.msg.cancel': "Zrušiť",
@@ -2798,6 +2801,11 @@ export const sk: Partial<Dict> = {
   'pack.msg.fallbackMemberName': "Dogypťan",
   'pack.msg.packNumberSuffix': "· Dogypťan #{n}",
   'pack.msg.noMessagesYet': "Zatiaľ žiadne správy",
+  // Prepínač svetlého/tmavého šatu správ (`Inbox.tsx` → `SkinToggle`). Jedna ikonka,
+  // dva stavy — popisok hovorí, KAM sa prepne, nie kde práve som. Ide len do
+  // `aria-label` a `title`, takže to počuje čítačka obrazovky, nie oko.
+  'pack.msg.skinToLight': "Prepnúť na svetlý vzhľad",
+  'pack.msg.skinToDark': "Prepnúť na tmavý vzhľad",
   'pack.community.closeAriaLabel': "Zavrieť",
   'pack.community.pawsAriaLabel': "{n} labky",
   'pack.community.walkedTitle': "Super! Dali ste to! 🐾",
@@ -2934,7 +2942,7 @@ export const sk: Partial<Dict> = {
   'pack.map.chipLabel.lake': "Jazero / priehrada",
   'pack.map.chipLabel.hut': "Útulňa",
   'pack.map.chipLabel.picnic': "Piknik",
-  'pack.map.chipLabel.camping': "Camping",
+  'pack.map.chipLabel.camping': "Kemping",
   'pack.map.chipLabel.mushrooms': "Huby",
   'pack.map.chipLabel.camp': "Táborisko",
   'pack.map.chipLabel.skate': "Korčule",
@@ -3344,7 +3352,7 @@ export const sk: Partial<Dict> = {
   'pack.quiz.back': "Späť",
   'pack.quiz.next': "Ďalej",
   'pack.quiz.done': "Hotovo",
-  'pack.pass.view.full': "Moja karta",
+  'pack.pass.view.full': "DOG ID",
   'pack.pass.view.vet': "Veterinár",
   'pack.pass.view.sitter': "Opatrovateľ",
   'pack.pass.view.story': "Príbeh",
