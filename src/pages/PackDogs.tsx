@@ -624,8 +624,10 @@ export default function PackDogs() {
              AINUBIS z neho číta (výstup) a štatistiky sú kalendár dochádzky. Keby sa
              vnorili tiež, „jeden veľký blok" by prestal znamenať DOG ID a začal by
              znamenať „zvyšok stránky".
-             ⚠️ Podnadpis („vyplň, čo o ňom vieš…") ZANIKOL — kľúč `pack.hub.profileSub`
-             sa NEMAŽE, nesie ho ešte lišta psieho bloku. */}
+             ⚠️ Podnadpis („vyplň, čo o ňom vieš…") ZANIKOL. Kľúč `pack.hub.profileSub`
+             sa NEMAŽE (vymenúva ho lock názvoslovia DOG ID v CLAUDE.md), ale pozor:
+             živé volanie po ňom dnes NIE JE ani v lište psieho bloku — overené
+             16. 9. 2026, existuje len v sk/en/cs. Je to preklad na sklade, nie použitý text. */}
       <section style={{ ...PACK_BOX.card, marginTop: PACK_SPACE.xl, padding: PACK_SPACE.xl }}>
         {/* Nadpis vnútri karty = VŽDY papyrusový inkoust. Rozhoduje PODKLAD POD PRVKOM,
             nie poloha prepínača šatu (CLAUDE.md 11. 9.) — karta je papyrusová aj v tmavom
@@ -1015,9 +1017,10 @@ function DogBlock({
 
   // Progres = pilulka v lište, tri stavy (Matej 12.8.). Slovo je len pri 100 %; ostatné
   // stavy sú holé percento, aby nad posterom nestáli dva druhy nápisu.
-  // ⚠️ Menovateľ je `PROGRESS_STEPS.length` (dnes 34) — to isté číslo, aké ukazuje karta
-  // psa. Rastie SÁM, keď do kvízu pribudne pole; nikde sa nezapisuje ručne. Preto
-  // percento a nie zlomok: „23/34" znamená po rozšírení kvízu zakaždým niečo iné.
+  // ⚠️ Menovateľ je `PROGRESS_STEPS.length` — to isté číslo, aké ukazuje karta psa.
+  // Rastie SÁM, keď do kvízu pribudne pole; nikde sa nezapisuje ručne. Číslo tu úmyselne
+  // NIE JE napísané: komentár „dnes 34" tu ležal, kým kvíz dávno rástol na 37. Preto
+  // percento a nie zlomok — zlomok znamená po každom rozšírení kvízu niečo iné.
   const fillDone = total > 0 && filled >= total;
   const fillClass = fillDone ? ' is-done' : '';
   const fillText = fillDone ? tx('pack.hub.passComplete', 'Complete') : `${pct}%`;

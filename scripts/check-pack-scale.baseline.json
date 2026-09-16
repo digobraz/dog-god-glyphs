@@ -429,16 +429,6 @@
     "pismenka": 5,
     "odsadenie": 27
   },
-  "components/pack/addtrip/GpxImport.tsx": {
-    "radius": 1,
-    "font": 13,
-    "zavoj": 4,
-    "progres": 0,
-    "ram": 0,
-    "tien": 2,
-    "pismenka": 4,
-    "odsadenie": 7
-  },
   "components/pack/addtrip/PlaceSearch.tsx": {
     "radius": 2,
     "font": 2,
@@ -448,16 +438,6 @@
     "tien": 2,
     "pismenka": 0,
     "odsadenie": 5
-  },
-  "components/pack/addtrip/TripDestination.tsx": {
-    "radius": 5,
-    "font": 13,
-    "zavoj": 0,
-    "progres": 0,
-    "ram": 0,
-    "tien": 0,
-    "pismenka": 3,
-    "odsadenie": 12
   },
   "components/pack/calendar/PackCalendar.tsx": {
     "radius": 0,

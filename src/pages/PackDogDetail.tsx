@@ -1312,7 +1312,9 @@ export default function PackDogDetail() {
             dogName={dogName}
             isDeceased={isDeceased}
             deathDate={dog.death_date ?? null}
-            birthYear={dog.birth_year}
+            // `dog.birth_year` je null u 71 zo 72 psov — rok narodenia žije vo
+            // `selections.birthdayYear`; surový stĺpec by minYear zhodil na pevné 1990.
+            birthYear={birthYear}
             poss={P.poss}
             open={memorialOpen}
             initialStep={memorialStep}

@@ -36,6 +36,10 @@ import {
 // miesto majiteľa). Preto závet NIE JE štvrtý pohľad — je to nosič pohľadu 'full'.
 export type PassView = 'full' | 'vet' | 'sitter' | 'story';
 
+// ⚠️ PARKOVANÉ (overené 16. 9. 2026): `PASS_VIEWS` sa NIKDE nerenderuje — prepínač
+// pohľadov na DOG ID ešte neexistuje. Kľúče `pack.pass.view.*` v i18n sú preto tiež
+// na sklade, nie v prevádzke. Nemaž ich: pohľady sú rozhodnutie (§7), len nepostavené.
+// Kým prepínač nevznikne, je toto zoznam ZÁMERU, nie stopa po zabudnutej funkcii.
 export const PASS_VIEWS: { key: PassView; labelEN: string; i18n: string }[] = [
   { key: 'full', labelEN: 'DOG ID', i18n: 'pack.pass.view.full' },
   { key: 'vet', labelEN: 'Vet', i18n: 'pack.pass.view.vet' },
