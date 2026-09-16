@@ -247,7 +247,7 @@
     "ram": 0,
     "tien": 0,
     "pismenka": 0,
-    "odsadenie": 3
+    "odsadenie": 2
   },
   "components/pack/PackTree.tsx": {
     "radius": 3,
