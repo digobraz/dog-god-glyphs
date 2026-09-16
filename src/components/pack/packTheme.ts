@@ -919,6 +919,14 @@ export const PF_FIELD_CSS = `
   background: #FBF5E6;
   border: 1.5px solid rgba(179,130,45,0.55);
   box-shadow: inset 0 1px 2px rgba(122,90,42,0.16);
+  /* GEOMETRIA DRÁHY PATRÍ SEM, nie do volajúcich (2026-09-16). Dovtedy si ju každý
+     niesol inline a rozišli sa: nastavenia mali 3 px, kalendár 4 px — a 3 nie je
+     v PACK_SPACE, takže každý ďalší prepínač zhodil stráž check:pack. */
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px;
+  gap: 4px;
 }
 .pf-inline > .pf-toggle{
   flex: 0 1 auto;

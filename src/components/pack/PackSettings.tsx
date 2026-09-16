@@ -41,6 +41,61 @@ export function PackSettings() {
     });
   }, []);
 
+  // ── NOTIFIKÁCIE (Matej 16. 9. 2026: „zapnúť vypnúť — budú zapnuté") ────────
+  // Príznak žije v `pack_profiles.human.notifications_enabled` — v tom istom jsonb
+  // ako meno svorky, žiadne nové miesto na údaje o človeku (lock Identita).
+  // ⚠️ VÝCHODISKO JE ZAPNUTÉ a `null` (nikdy nenastavené) tiež znamená zapnuté,
+  //    preto `!== false` a nie `=== true`. Tú istú vetu hovorí aj server
+  //    (`notifications_enabled()` v 20260916_notify_optout.sql) — keby sa
+  //    rozišli, prepínač by ukazoval iné než pošta naozaj robí.
+  const [notifOn, setNotifOn] = useState(true);
+  const [notifSaving, setNotifSaving] = useState(false);
+  useEffect(() => {
+    let zrusene = false;
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      const uid = data.session?.user?.id;
+      if (!uid || zrusene) return;
+      const { data: row } = await supabase
+        .from('pack_profiles' as never)
+        .select('human')
+        .eq('user_id', uid)
+        .maybeSingle();
+      const human = ((row as { human?: Record<string, unknown> } | null)?.human ?? {});
+      if (!zrusene) setNotifOn(human.notifications_enabled !== false);
+    })();
+    return () => { zrusene = true; };
+  }, []);
+
+  const prepniNotifikacie = async (next: boolean) => {
+    if (notifSaving) return;
+    const predtym = notifOn;
+    setNotifOn(next);              // optimisticky — prepínač nesmie „zamrznúť" na sieti
+    setNotifSaving(true);
+    try {
+      const { data } = await supabase.auth.getSession();
+      const uid = data.session?.user?.id;
+      if (!uid) throw new Error('no session');
+      // Zapisuje sa CELÝ `human` s jednou zmenenou vlastnosťou — upsert samotného
+      // objektu by prepísal meno svorky a prezývku.
+      const { data: row } = await supabase
+        .from('pack_profiles' as never)
+        .select('human')
+        .eq('user_id', uid)
+        .maybeSingle();
+      const human = { ...((row as { human?: Record<string, unknown> } | null)?.human ?? {}), notifications_enabled: next };
+      const { error } = await supabase
+        .from('pack_profiles' as never)
+        .upsert({ user_id: uid, human } as never, { onConflict: 'user_id' });
+      if (error) throw error;
+    } catch {
+      setNotifOn(predtym);         // vrátiť späť: tichý neúspech by klamal o stave pošty
+      toast({ title: tx('pack.settings.notifErr', 'Could not save'), description: tx('pack.settings.notifErrDesc', 'Try again in a moment.') });
+    } finally {
+      setNotifSaving(false);
+    }
+  };
+
   // Welcome deep-link (?welcome=1) invites password setup → auto-open the modal.
   const fromWelcome = searchParams.get('welcome') === '1';
   useEffect(() => {
@@ -151,7 +206,7 @@ export function PackSettings() {
           Tvar prepínača je ten istý ako „zobraziť meno/prezývku" v profile
           (`.pf-toggle`), nie druhý vlastný — preto sem ide aj `PF_FIELD_CSS`. */}
       <Field icon={<BrandIcon name="bright" size={16} tint="gold" />} label={tx('pack.settings.skin', 'Appearance')}>
-        <div className="pf-toggle inline-flex items-center" style={{ borderRadius: 999, padding: 3, gap: 3 }}>
+        <div className="pf-toggle">
           {([
             { key: 'dark' as PackSkin, label: tx('pack.settings.skinDark', 'Dark') },
             { key: 'paper' as PackSkin, label: tx('pack.settings.skinPaper', 'Papyrus') },
@@ -168,9 +223,32 @@ export function PackSettings() {
           ))}
         </div>
       </Field>
-      {/* Riadok „Upozornenia · UŽ ČOSKORO" zmazaný 13. 8. 2026 (audit D2, Matej:
-          „Preč, kým to nefunguje"). Vráti sa aj s `Badge`, keď notifikácie reálne pôjdu —
-          kľúče `pack.settings.notifications` / `comingSoon` sú v locale nechané. */}
+      {/* Riadok „Upozornenia" bol 13. 8. 2026 zmazaný ako „UŽ ČOSKORO" (audit D2,
+          Matej: „Preč, kým to nefunguje"). 16. 9. 2026 sa VRÁTIL, lebo už funguje:
+          príznak číta odosielač (`pending_message_notifications()`), nie len obrazovka.
+          Tvar prepínača je ten istý `.pf-toggle` ako šat vyššie — nie tretí vlastný. */}
+      {/* Ikonka je `chat`, nie `envelope`: obálku už nesie riadok E-MAIL o kúsok vyššie
+          a dve rovnaké ikonky v jednom paneli hovoria, že ide o to isté. Notifikácie
+          sú dnes výhradne o SPRÁVACH vo svorke. Zvonček v hand-drawn kite nie je. */}
+      <Field icon={<BrandIcon name="chat" size={16} tint="gold" />} label={t('pack.settings.notifications')}>
+        <div className="pf-toggle">
+          {([
+            { key: true, label: tx('pack.settings.notifOn', 'On') },
+            { key: false, label: tx('pack.settings.notifOff', 'Off') },
+          ]).map((opt) => (
+            <button
+              key={String(opt.key)}
+              type="button"
+              onClick={() => prepniNotifikacie(opt.key)}
+              aria-pressed={notifOn === opt.key}
+              disabled={notifSaving}
+              className={`pf-toggle__opt${notifOn === opt.key ? ' is-on' : ''}`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </Field>
       <Field icon={<HandExit size={16} />} label={t('pack.settings.signOut')} last>
         <button
           type="button"
