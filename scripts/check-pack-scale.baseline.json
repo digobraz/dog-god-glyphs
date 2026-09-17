@@ -281,7 +281,7 @@
   },
   "components/pack/PawmatesSection.tsx": {
     "radius": 3,
-    "font": 23,
+    "font": 22,
     "zavoj": 0,
     "progres": 0,
     "ram": 0,
@@ -790,14 +790,14 @@
     "odsadenie": 7
   },
   "pages/PackMap.tsx": {
-    "radius": 23,
-    "font": 74,
+    "radius": 22,
+    "font": 73,
     "zavoj": 71,
     "progres": 0,
     "ram": 28,
     "tien": 61,
     "pismenka": 31,
-    "odsadenie": 115
+    "odsadenie": 113
   },
   "pages/PackNatureQuiz.tsx": {
     "radius": 6,

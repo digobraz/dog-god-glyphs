@@ -79,7 +79,7 @@ import { MapCoach, coachMuted } from '@/components/pack/MapCoach';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
-import { PoiLayer, PoiAttribution } from '@/components/geo/PoiLayer';
+import { PoiLayer } from '@/components/geo/PoiLayer';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { BackIcon, ExpandIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { goldFrameCSS, goldPlateCSS, pickTintCSS, PICK_INK, SLAB, LAPIS, LAPIS_BTN_SHADOW, MAP_SKIN, NAV_GOLD, NAV_PILL_SHADOW, NAV_R, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
@@ -128,6 +128,7 @@ import { AddTripEntry, type AddChoice } from '@/components/pack/addtrip/AddTripE
 // Zadanie: plany/zadanie-zapisy-do-mapy-2026-08-20.md
 import { MapNotesLayer, MAP_NOTES_CSS } from '@/components/pack/mapnotes/MapNotesLayer';
 import { dockFitPadding } from '@/components/pack/mapDockShape';
+import { MapAttribution, MAP_ATTR_CSS, mapAttrLiftCSS } from '@/components/pack/mapAttribution';
 import { AddMapNotePin, NoteSpotPin, AddMapNotePanel, MapNotePlacing, NoteQuickPalette, MapNoteHint, MapNoteTooFar, ADD_NOTE_CSS, notePanelH, hintSeen, markHintSeen } from '@/components/pack/mapnotes/AddMapNote';
 import { NOTE_PALETTE_CSS } from '@/components/pack/mapnotes/NotePalette';
 import { DeleteButton, DELETE_BUTTON_CSS } from '@/components/pack/DeleteButton';
@@ -1625,7 +1626,9 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 .trp-mapregion{position:absolute;inset:0;z-index:0;}
 .trp-mapfull{position:absolute;inset:0;z-index:0;}
 .trp-mapfull .leaflet-container{width:100%;height:100%;background:#0a0a0a;}
-.trp-attr{position:absolute;right:10px;bottom:10px;z-index:800;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.85);border-radius:4px;padding:2px 7px;font-size:9px;color:#333;}
+/* Atribúcia Mapy.com má JEDEN zdroj — components/pack/mapAttribution.tsx (licenčná
+   podmienka, beží aj v článku výletu). Tu sa len vkladá jej povrch a zdvih nad nav. */
+${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
 /* D4 nav rework (2026-07-24, Matej): notif+messages žijú VNÚTRI status headra, odtlačené do
    jeho pravého rohu. width:auto zruší inline-layout w-full, nech je to kompaktný klaster.
    Matej 2026-07-26: margin-left:auto ZRUŠENÉ — pravý blok je teraz tretina trojdielneho headra
@@ -4325,6 +4328,39 @@ export default function PackMap() {
     // vrátil sa a observer by sa nikdy nezaložil. Ovládače by potom navždy stáli na fallbacku.
   }, [id.loading]);
 
+  // ── POLOHA RADU ZOZNAM/PRIDAŤ IDE VON AKO --trp-mactions-h (2026-09-17) ───────────────
+  // Atribúcia máp (licenčná podmienka) sedela na telefóne POD spodným navom. Keď sa zdvihla
+  // nad nav, sadla si presne na tento rad — premerané na 360/390/430 px: rad stojí y 702–749,
+  // nav y 760–828, spodok mapy je teda obsadený celý a jediné voľné miesto je NAD radom.
+  // Publikuje sa vzdialenosť od spodnej hrany okna po VRCH radu, teda celá jeho rovnica
+  // (`87px + --pack-medal-rise` + výška) jedným číslom — kto ju potrebuje, nemusí ju opisovať.
+  // ⚠️ `resize` je v tom zámerne: ResizeObserver sleduje veľkosť PRVKU, a tá sa pri zmene
+  //    výšky okna nemení — zmení sa len jeho odstup od spodku, teda presne to, čo meriame.
+  // ⚠️ Keď rad nie je vidno (`body.trp-draw-lock` ho skrýva pri kreslení), rect je nulový
+  //    a premenná sa ODOBERÁ, nie zapisuje — `innerHeight - 0` by atribúciu vystrelilo na vrch.
+  const mactionsRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = mactionsRef.current;
+    if (!el) return;
+    const root = document.documentElement;
+    const apply = () => {
+      const r = el.getBoundingClientRect();
+      if (r.height <= 0) { root.style.removeProperty('--trp-mactions-h'); document.body.classList.remove('has-map-actions'); return; }
+      root.style.setProperty('--trp-mactions-h', `${Math.round(window.innerHeight - r.top)}px`);
+      document.body.classList.add('has-map-actions');
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    window.addEventListener('resize', apply);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', apply);
+      root.style.removeProperty('--trp-mactions-h');
+      document.body.classList.remove('has-map-actions');
+    };
+  }, [id.loading, mobileView]);
+
 
   if (id.loading) {
     return (
@@ -6511,7 +6547,7 @@ export default function PackMap() {
       {/* LIST/MAP toggle (mobile only) — default view = map, bod 5.
           Ikonka ukazuje CIEĽ prepnutia, rovnako ako text (v mape ponúka „List", v zozname
           „Map") — nie aktuálny stav. */}
-      <div className="trp-mactions">
+      <div className="trp-mactions" ref={mactionsRef}>
         <button
           type="button"
           className="trp-mtoggle"
@@ -6813,7 +6849,7 @@ export default function PackMap() {
                   súradnice z mapy.cz.
                   Pramene a lavičky tu ZATIAĽ NIE SÚ — je ich 12 000 a 35 000, čo je iná liga
                   než 738 spacích miest; idú do tých istých dlaždíc, keď na ne príde rad.
-                  Atribúcia (`<PoiAttribution />` nižšie) je podmienka licencie ODbL. */}
+                  Atribúcia (`<MapAttribution poi />` nižšie) je podmienka licencie ODbL. */}
               {!isCleanMode && overlayOn.sleep && <PoiLayer tiles minZoom={SLEEP_MIN_ZOOM} />}
               {/* trip markery (pilulky s km, bodky-piktogramy, zhlukové bubliny s počtom) —
                   DOGYPT čistý vizuál (2026-08-04, Matej: „iba hmla a svetelné meče... žiadne
@@ -6944,11 +6980,11 @@ export default function PackMap() {
                 je o tom, čo chce človek vidieť, licencia o tom, čo smieme použiť.
                 Stojí VŽDY, aj pod prahom priblíženia — dáta sú v appke tak či tak.
 
-                ⚠️ `bottom: 34` NIE JE kozmetika. Vpravo dole už sedí `.trp-attr` (© Seznam.cz
-                + logo Mapy.com, `bottom:10px`) — s východzím `bottom: 12` si obe atribúcie
-                sadli NA SEBA a čitateľná nebola ani jedna. Dve rôzne licencie, dva zdroje,
-                dva riadky nad sebou. Zistené meraním, nie odhadom. */}
-            <PoiAttribution style={{ bottom: 34 }} />
+                ⚠️ Obe atribúcie (Mapy.com + OSM) kreslí JEDEN stĺpec `<MapAttribution poi />`
+                vyššie. Ručné `bottom: 34`, ktoré ich dovtedy držalo od seba, zaniklo 17. 9. 2026
+                — bolo to číslo, ktoré tichó rozbila každá zmena výšky ktorejkoľvek z nich.
+                Dve rôzne licencie, dva zdroje, dva riadky nad sebou. */}
+
 
             {/* Plusko s prstencom PRI KURZORE (Matej 2026-08-20) — nahradilo pevné
                 tlačidlo v rohu, ktoré bolo slabo viditeľné a súperilo s tlačidlom
@@ -7176,10 +7212,7 @@ export default function PackMap() {
               </button>
             </div>
 
-            <div className="trp-attr">
-              <a href="https://mapy.com" target="_blank" rel="noopener noreferrer"><img src="https://api.mapy.com/img/api/logo.svg" alt="Mapy.com" style={{ height: 13, display: 'block' }} /></a>
-              <span>© Seznam.cz a.s.</span>
-            </div>
+            <MapAttribution poi />
 
             {/* Červená bublina „ťukni do mapy" tu stála do 23. 8. Zanikla spolu s prepínaním
                 „choď na mapu / hotovo": v krokovom sprievodcovi je krok 1 SÁM tou mapou a

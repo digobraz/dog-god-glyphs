@@ -18,7 +18,8 @@ import 'leaflet/dist/leaflet.css'; // KRITICKÉ: bez neho .leaflet-tile stratí 
 // importuje, ale pri PRIAMOM otvorení článku (deep-link / ⤢ expand) PackMap nie je mountnutý.
 import { mapyTiles } from '@/lib/env';
 import { tripPillIcon } from '@/components/geo/trailIcons';
-import { PoiLayer, PoiAttribution } from '@/components/geo/PoiLayer';
+import { PoiLayer } from '@/components/geo/PoiLayer';
+import { MapAttribution, MAP_ATTR_CSS } from '@/components/pack/mapAttribution';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { placeholderFor } from '@/lib/tripPlaceholder';
 import type { HeroTrail } from '@/data/heroTrails.generated';
@@ -381,6 +382,10 @@ const CSS = `
 /* Keď mapa nie je, obal nesmie presvitať čiernou spoza papyrusového prázdneho stavu. */
 .pta-mapwrap:has(> .pta-mapempty){background:${T.panelGrad};}
 .pta-mapwrap .leaflet-container{width:100%;height:100%;background:#0a0a0a;}
+/* Atribúcia dlaždíc + POI — jeden zdroj, components/pack/mapAttribution.tsx. Zdvih nad
+   spodný nav tu NIE JE: mapa článku je box v texte (.pta-mapwrap, 320 px), nie plátno
+   cez celú obrazovku, takže jej nav do rohu nesiaha. */
+${MAP_ATTR_CSS}
 .pta-mapwrap .leaflet-interactive{transition:opacity .2s ease;}
 /* ── CELOOBRAZOVKOVÝ REŽIM MAPY POČAS ZÁPISU ODKAZU (Matej 2026-08-25) ──────
    „ak chce človek nechať odkaz na mape, tak sa otvorí panel s možnosťami ale zakryje mapu
@@ -1720,10 +1725,13 @@ export default function PackTripArticle() {
           ) : (
             <div className="pta-mapempty">{t('pack.trip.routeSoon')}</div>
           )}
-          {/* ⚠️ Atribúcia je PODMIENKA licencie ODbL, nie dekorácia — v celoobrazovkovom
-              režime by inak zmizla pod spodným panelom. Dvíha sa presne o jeho nameranú
-              výšku (viď `notePanelPx`); počas „ukáž miesto" je dole voľno a ostáva na mieste. */}
-          {trail.path.length > 0 && <PoiAttribution style={notePanelPx ? { bottom: notePanelPx + 12 } : undefined} />}
+          {/* ⚠️ Atribúcia je PODMIENKA licencie — ODbL za POI a licencia Mapy.com za dlaždice.
+              Do 17. 9. 2026 tu stála LEN tá prvá: mapa článku beží s `attributionControl={false}`
+              a Mapy.com nemala vôbec (premerané headless — ani logo, ani „© Seznam.cz a.s.").
+              Teraz ich kreslí jeden stĺpec. V celoobrazovkovom režime by inak zmizli pod spodným
+              panelom, tak sa dvíhajú o jeho NAMERANÚ výšku (`notePanelPx`); počas „ukáž miesto"
+              je dole voľno a stĺpec ostáva na mieste. */}
+          {trail.path.length > 0 && <MapAttribution poi style={notePanelPx ? { bottom: notePanelPx + 12 } : undefined} />}
           {/* Vstup do zápisu priamo na mape. Kreslí sa len tomu, kto trasu prešiel;
               ak ju ešte neohodnotil, klik otvorí najprv hodnotenie (viď `noteGate`).
               Počas rozrobeného zápisu mizne — inak by prekrýval vlastnú paletu. */}
