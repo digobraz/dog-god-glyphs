@@ -1939,7 +1939,16 @@ ${TRAIL_LINE_CSS}
      Číslo sa nepíše natvrdo — --pack-medal-rise publikuje packDockMedal.tsx, takže
      zmena priemeru či zdvihu medailóna posunie tlačidlá sama. Bez tejto rezervy ostal
      medzi kotúčom a dvojicou 1 px (odmerané 4. 9. 2026) a vyzerali ako zlepené. */
-  .trp-mactions{display:flex;align-items:center;justify-content:center;gap:10px;position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 87px + var(--pack-medal-rise, 0px) + 4px);z-index:900;}
+  /* ⚠️ A druhá rezerva: --consent-h = výška cookie lišty (2026-09-17). Lišta je
+     fixed a bottom 0, na mobile má 197 px, takže PRIDAŤ aj ZOZNAM ležali POD ňou —
+     elementFromPoint v strede tlačidla vracal consent-body, teda nový člen si NEMAL
+     AKO zapísať výlet. Ten istý bug sa 15. 9. opravoval na /heroglyph. Premennú publikuje
+     ConsentBanner a po voľbe je 0px, takže po lište neostane diera. Rovnaké odsadenie
+     dostal spodný nav v PackLayout.tsx — lišta prekrývala oboje naraz.
+     ⚠️ Poloha PRIDAŤ sa NEMENÍ (lock map-identita.md: PRIDAŤ na mobile ostáva dole) —
+     premenná sa PRIPOČÍTAVA a bez lišty je nula.
+     ⚠️ ŽIADNE spätné apostrofy v tomto komentári — je vnútri template literálu CSS. */
+  .trp-mactions{display:flex;align-items:center;justify-content:center;gap:10px;position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 87px + var(--pack-medal-rise, 0px) + 4px + var(--consent-h, 0px));z-index:900;}
   /* 2026-08-22: dve tlačidlá vedľa seba robili DVE RÔZNE veci a vyzerali IDENTICKY — obe zlatá
      pilulka 999px, rovnaká výplň, rovnaká veľkosť. Rozdelené podľa toho, čo sú zač:
        · .trp-mfab = CTA „pridaj výlet" → vzor .btn-gold (LOCK): radius 8 + zlatý dosvit.
@@ -5412,6 +5421,23 @@ export default function PackMap() {
       );
     });
 
+  /* 🔴 FILTRE PLATIA AJ NA MAPU (2026-09-17). Do opravy sa `<TripMarkers>` kŕmili surovým
+     `mapPoints` (z `allTrails`), zatiaľ čo filtre žili len tu, vo `visibleHeroTrails` —
+     takže človek zapol filter, bočný zoznam sa prefiltroval a **mapa ostala do jedného
+     bodu rovnaká**. Odmerané 17. 9. na tagu 🏔️ HORY: 21 značiek / súčet 181 pred aj po.
+     A filter je pritom nakreslený NAD mapou, takže vyzerá ako filter celej obrazovky —
+     appka teda odpovedala, že sa nič nestalo.
+     ⚠️ Množina, nie hľadanie v poli: zhlukovanie beží pri každom posune mapy, takže
+     `.some()` by bolo O(n·m) na každý pan.
+     🔴 **ŽIADNY `useMemo`** — tieto riadky sú ZA skorým returnom komponentu, rovnako ako
+     `visibleHeroTrails` nad nimi. Prvý pokus ich zabalil do `useMemo` a appka spadla na
+     „Rendered more hooks than during the previous render" (celá `/map` = ErrorBoundary).
+     Kto to bude „optimalizovať", musí hook vyniesť NAD ten return, nie ho pridať sem.
+     ⚠️ Plánov (`plan-`) sa to NETÝKA — tie do `visibleHeroTrails` zámerne nepatria, ale
+     `mapPoints` ich vylučuje sám pri vzniku, takže cez tento filter ani neprejdú. */
+  const visibleTrailIds = new Set(visibleHeroTrails.map(({ tr }) => tr.id));
+  const visibleMapPoints = mapPoints.filter((pt) => visibleTrailIds.has(pt.id));
+
   // status riadok staty — reálne z lokálneho walked/fav stavu (žiadny mock); allTrails, nech
   // aj prípadný walked toggle na ADD-flow tripe počíta do celkového km (bod 2 + bod 6).
   // 🔴 POČET AJ KM IDÚ Z JEDNEJ MNOŽINY (UX audit 14. 9. 2026). Do opravy brala hlavička
@@ -6722,10 +6748,15 @@ export default function PackMap() {
                   (Matej 2026-08-25: „DOGYPT vrstvu neriešme v súvislosti s tvorbou, je to len
                   funny pohľad kde bol pes"). Čistý vizuál skrýva písmo na PREZERANIE mapy;
                   pri kreslení je otázka „čo tu už je" dôležitejšia než jeho čistota. */}
+              {/* ⚠️ Tu ZÁMERNE surové `mapPoints`, nie filtrované: počas kreslenia je otázka
+                  „čo tu už JE" dôležitejšia než filter — kto má zapnuté HORY, nesmie
+                  nakresliť duplikát trasy, ktorú mu filter práve skryl. */}
               {mapDrawing && <DrawTrailNames points={mapPoints} onPick={setDrawPeek} />}
               {!isCleanMode && !mapDrawing && (
                 <TripMarkers
-                  points={mapPoints}
+                  /* filtrované — inak mapa odpovie, že sa filtrom nič nestalo (viď
+                     `visibleMapPoints` pri definícii) */
+                  points={visibleMapPoints}
                   hoverId={hoverId}
                   inlineDetailId={inlineDetailId}
                   onHover={setHoverId}
