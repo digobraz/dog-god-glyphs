@@ -1231,7 +1231,9 @@ export default function PackTripArticle() {
   // Teraz je zakladateľských hlasov na trasu 0 alebo 2 (founderWalkers(trail)), takže base na
   // odčítanie musí byť per-trail, inak by sa „+X Dogyptians" buď nezobrazilo pri reálnom hlase
   // (0 zakladateľov + 1 user vote by dalo 1-2=-1), alebo počítalo z nesprávneho základu.
-  const extraWalkers = agg.walkedCount - founderWalkers(trail);
+  // 🔴 `walkerCount`, nie `walkedCount` (17. 9. 2026) — odvtedy je `walkedCount` počet
+  // HODNOTENÍ (zakladateľské je jedno), takže by tu vyšlo 1 − 2 = −1.
+  const extraWalkers = agg.walkerCount - founderWalkers(trail);
   // bod 2 (iterácia 14): rovnaká chip-skladačka ako inline detail v PackMap.tsx (acts + tags,
   // emoji prefix keď existuje mapovanie).
   // ⚠️ `label` je DÁTOVÁ hodnota z `heroTrails.generated.ts` (`acts` = 'hike', `tags` =
@@ -1810,8 +1812,9 @@ export default function PackTripArticle() {
           {/* ⚠️ POČÍTAJÚ SA DOGYPŤANIA, NIE HLASY (Matej 2026-08-25: „dogypťan je člen dogyptu,
               teda aj človek aj pes"). Slovenčina má tri tvary — bez varianty `few` by pri dvoch
               stálo „Prešlo 2 Dogypťanov". Podmienka ostáva na `walkedCount`: pýta sa, či tam
-              niekto BOL, a to je otázka o ľuďoch. */}
-          {agg.walkedCount === 0 ? (
+              niekto BOL, a to je otázka o ľuďoch — od 17. 9. 2026 ju nesie `walkerCount`,
+              lebo `walkedCount` znamená počet HODNOTENÍ. */}
+          {agg.walkerCount === 0 ? (
             <h3>{t('pack.trip.beFirstWalk')}</h3>
           ) : (
             <h3>{t(`pack.trip.walkedBy.${pluralKey(agg.dogyptianCount).toLowerCase()}`, { n: agg.dogyptianCount })}</h3>

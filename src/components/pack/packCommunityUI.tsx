@@ -1133,8 +1133,11 @@ export { VOLUME_THRESHOLD };
 // hodnotenie", nie stupnica. Päť packiek so zlomkovou výplňou (`RatingPaws`) tú istú hodnotu
 // UKAZUJE, a je to ten istý widget, aký nesie článok výletu a jeho mobilná podoba.
 //
-// Zátvorka = koľko chodcov hlasovalo (`walkedCount` z agregátu, teda `ratings.length`) — váha
-// toho čísla. Bez nej „5,0" z jedného hlasu a „5,0" z tridsiatich vyzerajú rovnako.
+// Zátvorka = koľko HODNOTENÍ trasa má (`walkedCount` z agregátu) — váha toho čísla. Bez nej
+// „5,0" z jedného hlasu a „5,0" z tridsiatich vyzerajú rovnako.
+// 🔴 Od 17. 9. 2026 to NIE JE počet chodcov (Matej): zakladateľské hodnotenie je JEDNO, hoci
+// prešli dvaja, takže karta hlásila `(2)` tam, kde detail toho istého výletu `(1)`. Koľkí
+// prešli, hovorí `walkerCount` / `dogyptianCount` — sem sa nevracajú.
 //
 // ⚠️ Poradie je Matejovo (číslo → packy → zátvorka). Článok výletu (`.pta-byrating`) má
 // packy pred číslom; keby sa mali zjednotiť, mení sa TAM, nie tu — toto je vypýtaný tvar.

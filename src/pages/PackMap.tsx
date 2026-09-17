@@ -5604,7 +5604,8 @@ export default function PackMap() {
     // trip bez vlastnej fotky → per-aktivita placeholder (paddleboard nedostane les), stabilný podľa id
     const photo = tr.photos[idx] ?? tr.photos[0] ?? placeholderFor(tr.acts, tr.id);
     const agg = crowdAggregate(tr, votes[tr.id]);
-    const others = Math.max(0, agg.walkedCount - FOUNDER_WALKERS); // Dogyptians nad zakladateľov
+    const others = Math.max(0, agg.walkerCount - FOUNDER_WALKERS); // Dogyptians nad zakladateľov
+    // ⚠️ `walkerCount` = koľkí PREŠLI. `walkedCount` je od 17. 9. počet HODNOTENÍ a dal by tu nulu vždy.
     // PLÁN (nepрešiel sa) = ponuka: žiadna náročnosť/popularita/hazard/rating (výlet sa neodohral).
     // Walked vie dať LEN autor → tým sa prepne na odohraný trip (walked-popup vyžiada náročnosť+popularitu).
     const isUnwalkedPlan = tr.id.startsWith('plan-') && !walkedIds.has(tr.id);
@@ -5943,7 +5944,7 @@ export default function PackMap() {
                         type="button"
                         className="trp-inldet-author trp-authorbtn"
                         onClick={(e) => { e.stopPropagation(); setCreatorTrail(dt); }}
-                      >{t('pack.map.byAuthor', { author: authorOf(dt) })}{dtAgg.walkedCount - FOUNDER_WALKERS > 0 ? ` · ${t('pack.map.plusDogyptians' + pluralKey(dtAgg.walkedCount - FOUNDER_WALKERS), { n: dtAgg.walkedCount - FOUNDER_WALKERS })}` : ''}</button>
+                      >{t('pack.map.byAuthor', { author: authorOf(dt) })}{dtAgg.walkerCount - FOUNDER_WALKERS > 0 ? ` · ${t('pack.map.plusDogyptians' + pluralKey(dtAgg.walkerCount - FOUNDER_WALKERS), { n: dtAgg.walkerCount - FOUNDER_WALKERS })}` : ''}</button>
                     </div>
                   </div>
                   {/* Matej 2026-07-22: pravý stĺpec = LEN veľký rating (1 packa + X.Y). Náročnosť/
@@ -6022,9 +6023,13 @@ export default function PackMap() {
                 <div className="trp-inldet-section">
                   {/* Matej 2026-08-03: pri nule chodcov JEDEN riadok a nech je to výzva, nie
                       konštatovanie — drží sa v zhode s PackTripArticle.tsx. */}
-                  {dtAgg.walkedCount === 0
+                  {/* 🔴 `walkerCount`/`dogyptianCount`, nie `walkedCount` (17. 9. 2026): ten je
+                      odteraz počet HODNOTENÍ. Otázka „bol tu niekto" je o ľuďoch, a veta hovorí
+                      o DOGYPŤANOCH (človek + pes) — presne ako článok, s ktorým má byť v zhode.
+                      Dovtedy tu inline detail hlásil iné číslo než článok toho istého výletu. */}
+                  {dtAgg.walkerCount === 0
                     ? <h4>{t('pack.map.beFirstToWalk')}</h4>
-                    : <h4>{t('pack.map.walkedBy' + pluralKey(dtAgg.walkedCount), { n: dtAgg.walkedCount })}</h4>}
+                    : <h4>{t('pack.map.walkedBy' + pluralKey(dtAgg.dogyptianCount), { n: dtAgg.dogyptianCount })}</h4>}
                 </div>
                 {/* §14 zadania (2026-07-23): komentová sekcia nahrádza staré "Message owner" /
                     "Open trip group" placeholdery — reviews (paw rating + voliteľný text) + advice.

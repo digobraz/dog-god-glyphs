@@ -160,7 +160,15 @@ export const isMyEvent = (ev: PartnerEvent): boolean =>
 // ── Crowd-sourced agregát (design §A: priemer na rating, konsenzus + %-rozpad na diff/ruch) ──
 export interface CrowdSlice<T extends string> { value: T; pct: number; count: number; }
 export interface CrowdAgg {
+  /** 🔴 POČET HODNOTENÍ, nie chodcov (Matej 17. 9. 2026). Zátvorka pri labkách `5.0 (N)` je
+   *  VÁHA čísla — „5,0 z jedného hlasu" proti „5,0 z tridsiatich". Zakladateľské hodnotenie
+   *  je JEDNO (redakčná hodnota výletu), hoci prešli dvaja; do 17. 9. sa počítalo dvakrát
+   *  a karta hlásila `(2)` tam, kde detail toho istého výletu hlásil `(1)`.
+   *  „Koľkí prešli" má vlastné pole `walkerCount` nižšie. */
   walkedCount: number;
+  /** Koľko CHODCOV (ľudí) tadiaľ prešlo — zakladatelia + môj hlas. Základ pre
+   *  `dogyptianCount` a pre „+X Dogyptians"; s počtom hodnotení sa NESMIE zamieňať. */
+  walkerCount: number;
   /** Členovia DOGYPTu, ktorí tadiaľ prešli = ľudia + ich psy (Matej 2026-08-25).
    *  Nikdy nie 1: kto tam bol, bol tam aspoň s jedným psom. 0 = neprešiel nikto. */
   dogyptianCount: number;
@@ -202,7 +210,16 @@ export function founderWalkers(trail: HeroTrail): number {
 // odteraz VŽDY prázdne — zdroj pravdy (nahadzovač) žiadne dáta o kliešťoch/vretenicach/zveri
 // nemá; jediný zdroj hazardu je `userVote.hazards`.
 function founderVotes(trail: HeroTrail): { diffs: Difficulty[]; crowds: Crowd[]; ratings: number[]; hazards: Hazard[][] } {
-  const n = founderWalkers(trail);
+  /**
+   * 🔴 JEDNO HODNOTENIE, HOCI PREŠLI DVAJA (Matej 17. 9. 2026).
+   * `founderWalkers()` vracia 2 — Matej a Hekthor — a to je pravda o CHODCOCH. Hodnotenie
+   * výletu je ale jedno: `trail.stars` z nahadzovača, zapísané raz. Kým sa tu duplikovalo,
+   * karta hlásila `5.0 (2)` a detail toho istého výletu `(1)`, lebo článok ráta reálne
+   * hodnotenia (autor + členovia z `trip_reviews`). Dve čísla pod tým istým slovom.
+   * ⚠️ Nemá to vplyv na PRIEMER (obe kópie mali tú istú hodnotu), len na váhu a na prah
+   * `VOLUME_THRESHOLD` — pod ktorým sa drží seed. To je správne: jeden hlas nie je tri.
+   */
+  const n = founderWalkers(trail) > 0 ? 1 : 0;
   const sCrowd = seedCrowd(trail);
   const diffs: Difficulty[] = new Array(n).fill(trail.diff);
   const crowds: Crowd[] = sCrowd ? new Array(n).fill(sCrowd) : [];
@@ -231,7 +248,10 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
     diffs.push(userVote.difficulty); crowds.push(userVote.crowd); ratings.push(userVote.rating);
     hazards.push(userVote.hazards ?? []);
   }
-  const walkedCount = ratings.length;
+  const walkedCount = ratings.length;           // POČET HODNOTENÍ (zátvorka pri labkách)
+  // KOĽKÍ PREŠLI — vlastné číslo, nie dĺžka poľa hlasov. Zakladateľov sú dvaja aj pri jednom
+  // hodnotení; môj hlas znamená, že som tadiaľ prešiel aj ja.
+  const walkerCount = founderWalkers(trail) + (userVote ? 1 : 0);
   /**
    * DOGYPŤAN = ČLOVEK **AJ** PES (Matej 2026-08-25: „dogypťan je člen dogyptu, teda aj človek
    * aj pes… vždy minimálne dvaja dogypťania, ak označím hektora").
@@ -246,7 +266,7 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
    *    stojí na heroglyfe PSA, takže člen bez psa neexistuje. Je to spodná hranica, nie odhad.
    * Preto `max`, nie súčet: pri jednom chodcovi s dvomi psami dá 3, pri troch chodcoch aspoň 6.
    */
-  const dogyptianCount = walkedCount === 0 ? 0 : walkedCount + Math.max(walkedCount, trail.dogs ?? 0);
+  const dogyptianCount = walkerCount === 0 ? 0 : walkerCount + Math.max(walkerCount, trail.dogs ?? 0);
   const sCrowd = seedCrowd(trail);
   if (walkedCount === 0) {
     // Poctivý prázdny agregát — žiadny hlas, nič na agregáciu (a delenie walkedCount by dalo
@@ -258,7 +278,7 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
     // ⚠️ Konzumenti MUSIA rating skryť pri `rating <= 0` (PackMap.tsx, PackTripArticle.tsx,
     // packCommunityUI.tsx) — inak sa vykreslí „0.0" a prázdne labky.
     return {
-      walkedCount: 0, dogyptianCount: 0, belowThreshold: true,
+      walkedCount: 0, walkerCount: 0, dogyptianCount: 0, belowThreshold: true,
       rating: 0,
       // trail.diff je teraz voliteľný (vodná plocha ho nemá, viď isWaterTrail v tripShared.tsx) —
       // CrowdAgg.difficulty ostáva netknuté ako Difficulty (packCommunityUI.tsx ho tak číta),
@@ -279,7 +299,7 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
     .sort((a, b) => b.count - a.count);
   if (walkedCount < VOLUME_THRESHOLD) {
     return {
-      walkedCount, dogyptianCount, belowThreshold: true,
+      walkedCount, walkerCount, dogyptianCount, belowThreshold: true,
       rating: trail.stars,
       difficulty: trail.diff as Difficulty,
       difficultyBreakdown: [{ value: trail.diff as Difficulty, pct: 100, count: walkedCount }],
@@ -292,7 +312,7 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
   const cB = breakdown(crowds, CROWDS);
   const avg = ratings.reduce((s, r) => s + r, 0) / walkedCount;
   return {
-    walkedCount, dogyptianCount, belowThreshold: false,
+    walkedCount, walkerCount, dogyptianCount, belowThreshold: false,
     rating: Math.round(avg * 10) / 10,
     difficulty: dB[0]?.value ?? (trail.diff as Difficulty),
     difficultyBreakdown: dB,
