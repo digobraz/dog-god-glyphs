@@ -1520,7 +1520,6 @@ export const en = {
   'pack.join.r.log': "log walked trips",
   'pack.join.r.notes': "add marks to the map",
   'pack.join.r.social': "write on behalf of the pack",
-  'pack.join.r.grid': "a message on the WALL",
   'pack.join.r.will': "edit the will",
   'pack.tree.addDog': "Add",
   // Menovka rámu svorky v bloku 1 (components/pack/HeroCard.tsx → PackNameRow).
@@ -1559,8 +1558,6 @@ export const en = {
   'pack.mates.removeAll': "Remove from the pack",
   'pack.mates.emptyBody': "Bring one human into DOGYPT beside you. Give them access, let them look in — so they are in the picture too.",
   'pack.mates.emptyCta': "Add a pack member",
-  'pack.mates.inviteCta': "Invite someone else",
-  'pack.mates.allTaken': "Every one of your dogs has its place taken. Free one up and you can invite again.",
   'pack.mates.roleMixed': "Mixed",
   'pack.mates.err.noSlots': "That dog already has its place taken.",
   'pack.mates.err.stranger': "They are not in your pack yet — invite them first.",

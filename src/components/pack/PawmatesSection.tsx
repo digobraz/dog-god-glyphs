@@ -591,18 +591,11 @@ export function PawmatesSection() {
 
         {err && <p style={{ fontFamily: FONT_UI, fontSize: 12, color: '#8E2A20', margin: 0 }}>{err}</p>}
 
-        {/* Koľko psov má ešte voľné miesto — jedna veta namiesto prázdnych riadkov
-            pre každého psa bez pawmata. Sekcia rastie s počtom ĽUDÍ, nie psov. */}
-        {freeDogs.length > 0 ? (
-          <button type="button" className="pws-cta" onClick={openInvite} style={{ marginTop: 4 }}>
-            <HandKey size={15} />
-            {tx('pack.mates.inviteCta', 'Invite someone else')}
-          </button>
-        ) : (
-          <p style={{ fontFamily: FONT_UI, fontSize: 11.5, lineHeight: 1.5, color: T.inkWarm, margin: '4px 0 0' }}>
-            {tx('pack.mates.allTaken', 'Every one of your dogs has its place taken. Free one up and you can invite again.')}
-          </p>
-        )}
+        {/* PÁS POD ZOZNAMOM ZRUŠENÝ (Matej 17. 9. 2026 — obe polia v registri vyprázdnil).
+            Obe vetvy boli o psoch, nie o ľuďoch: „Pozvi ďalšieho" aj oznam „všetky miesta
+            obsadené". Pozvanie žije v prázdnom stave (`pack.mates.emptyCta`) a v paneli práv.
+            ⚠️ Keď sa bude pozývať k DRUHÉMU psovi, cesta musí pribudnúť zámerne — nie
+            vrátením tohto pásu. Kľúče `pack.mates.inviteCta` / `allTaken` sú preto zmazané. */}
       </div>
     );
   }

@@ -3009,7 +3009,6 @@ export const cs: Partial<Dict> = {
   'pack.join.loading': 'Otevírám pozvánku…',
   'pack.join.r.dogid': 'upravovat DOG ID',
   'pack.join.r.draw': 'kreslit výlety',
-  'pack.join.r.grid': 'odkaz na WALL',
   'pack.join.r.log': 'zapisovat zdolané výlety',
   'pack.join.r.notes': 'přidávat značky na mapu',
   'pack.join.r.photo': 'měnit fotku psa',
@@ -3097,14 +3096,12 @@ export const cs: Partial<Dict> = {
   'pack.mate.you': 'Ty',
 
   // ── pack.mates ──
-  'pack.mates.allTaken': 'Každý tvůj pes má místo obsazené. Uvolni jedno a můžeš pozvat znovu.',
   'pack.mates.dogsTitle': 'Ke kterým tvým psům',
   'pack.mates.emptyBody': 'Přiveď do DOGYPTU jednoho člověka vedle sebe. Uděl mu práva a možnost nahlédnout — ať je i on v obraze.',
   'pack.mates.emptyCta': 'Přidej člena smečky',
   'pack.mates.err.noSlots': 'Ten pes už má místo obsazené.',
   'pack.mates.err.stranger': 'Zatím není v tvojí smečce — nejdřív ho pozvi.',
   'pack.mates.eyebrow': 'Pawmates',
-  'pack.mates.inviteCta': 'Pozvi dalšího',
   'pack.mates.mixed': '{name} má teď u každého psa jiná práva. Co tady uložíš, bude platit u všech.',
   'pack.mates.removeAll': 'Vyřadit ze smečky',
   'pack.mates.removeAsk': 'Vyřadit {name} ze smečky úplně?',

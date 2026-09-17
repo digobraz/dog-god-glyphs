@@ -312,7 +312,10 @@ function cta(busy: boolean): React.CSSProperties {
 }
 
 function RightsList({ rights, tx }: { rights: Record<string, boolean>; tx: (k: string, f: string) => string }) {
-  const granted = RIGHT_ORDER.filter((r) => rights[r]);
+  // „odkaz na WALL" z výpočtu VON (Matej 17. 9. 2026 — pole v registri vyprázdnil).
+  // Právo `grid.message` v systéme ZOSTÁVA (PAWMATE_RIGHTS, RightGate) — len sa
+  // pozvanému nesľubuje. Zoznam nesmie mať prázdnu odrážku, preto filter, nie prázdny text.
+  const granted = RIGHT_ORDER.filter((r) => rights[r] && r !== 'grid.message');
   const label: Record<string, [string, string]> = {
     'dogid.edit':   ['pack.join.r.dogid', 'edit the DOG ID'],
     'dog.photo':    ['pack.join.r.photo', "change the dog's photo"],
@@ -320,7 +323,6 @@ function RightsList({ rights, tx }: { rights: Record<string, boolean>; tx: (k: s
     'trips.log':    ['pack.join.r.log', 'log walked trips'],
     'map.notes':    ['pack.join.r.notes', 'add marks to the map'],
     'social':       ['pack.join.r.social', 'write on behalf of the pack'],
-    'grid.message': ['pack.join.r.grid', 'a message on the WALL'],
     'will':         ['pack.join.r.will', 'edit the will'],
   };
   return (
