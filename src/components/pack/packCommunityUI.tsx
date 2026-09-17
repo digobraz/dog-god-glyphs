@@ -21,6 +21,7 @@ import {
 } from '@/components/pack/packCommunity';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
+import { dogTripStats } from '@/lib/dogTripStats';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
 import { PointsPill, POINTS_PILL_CSS } from '@/components/pack/PointsPill';
 import { levelProgress, POINTS, POINTS_PER_KM, POINTS_PER_100M, JOURNEY_POINTS, type PointsRow } from '@/lib/tripPoints';
@@ -388,6 +389,18 @@ export const COMMUNITY_CSS = `
    len na 26 px. Border-top by kreslil ostrý predel cez celú šírku dlaždice. */
 .comm-wstat span::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:26px;height:2px;background:${T.rule};}
 @media (max-width:560px){ .comm-worldstats{grid-template-columns:repeat(2,1fr);} .comm-wstat b{font-size:26px;} }
+/* PSIE KM (B20, Matej 17. 9. 2026) — „v tripstats bude aj pes a jeho stats."
+   🔒 JE TO DRUHÝ RIADOK, NIE DRUHÝ PÚTNIK. WORLD staty nad tým ostávajú ČLOVEKU
+   (pútnik = všetky km so psami) a nič sa im neodoberá; tu stojí, koľko z toho
+   prešiel KTORÝ pes. Preto žiadny level, prstenec ani body — dve čísla a meno.
+   Úroveň RIADOK (r12, plochá výplň), nie karta: je to položka zoznamu pod
+   štyrmi kartami vyššie, nie piata karta. */
+.comm-dogstats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+.comm-dogstat{display:flex;align-items:center;gap:8px;flex:1 1 220px;background:${T.tileBg};border:1px solid ${T.border};border-radius:12px;padding:8px 12px;}
+.comm-dogstat img{width:32px;height:32px;border-radius:999px;object-fit:cover;flex-shrink:0;border:1px solid ${T.cardEdge};}
+.comm-dogstat-txt{display:flex;flex-direction:column;min-width:0;}
+.comm-dogstat-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.02em;color:${P.ink};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.comm-dogstat-num{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.cardEdge};}
 
 .comm-cat{background:${T.panelGrad};border:1px solid ${T.cardEdge};border-radius:12px;box-shadow:${PACK_SHADOW.lift};padding:16px 18px;margin-bottom:12px;}
 /* klikateľná geo kategória → ADD TRIP (Matej 2026-07-23): button reset + hover. */
@@ -1551,6 +1564,22 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
   // miestach a neplatila ani raz. Číslo chodí hotové (po stropoch) z jedného zdroja, nech sa
   // štyri povrchy s levelom nerozídu.
   const myNotePoints = useMyNotePoints();
+  /**
+   * PSIE ČÍSLA (B20). Zdroj je `dog_trips` cez `dogTripStats()` — ten istý modul,
+   * z ktorého číta psí profil, aby dve obrazovky nehlásili o tom istom psovi iné km.
+   * `storeEpoch` je TÁ závislosť: dáta ležia v localStorage, inak sa o hydratácii
+   * z DB nedozvieme.
+   */
+  const dogStats = useMemo(() => (
+    id.dogs
+      .map((d) => ({
+        id: d.id,
+        name: d.dog_name || t('pack.map.myDogFallback'),
+        photo: d.cloudinary_main_url,
+        ...dogTripStats(d.id),
+      }))
+      .filter((d) => d.trips > 0)
+  ), [id.dogs, storeEpoch, t]);
   const profilePoints = profilePointsFor(walkedTrails, { addedIds: addedByMe, ratings: myRatings, countries: countriesTraveled, notePoints: myNotePoints });
   const lvl = levelProgress(profilePoints.total);
 
@@ -1692,6 +1721,27 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
             (žiadny vrchol) ostáva číselným písmom: je to prázdna hodnota, nie meno. */}
         <div className={`comm-wstat${highest === '—' ? '' : ' comm-wstat--name'}`}><b>{highest}</b><span>{t('pack.stats.highestPoint')}</span></div>
       </div>
+
+      {/* PSY A ICH ČÍSLA (B20, Matej 17. 9. 2026: „v tripstats bude aj pes a jeho stats").
+          🔒 WORLD staty vyššie sa NEDELIA — sú človekove a zostávajú celé. Tento riadok
+          odpovedá na inú otázku: koľko z toho prešiel ktorý pes.
+          ⚠️ Zobrazuje sa LEN psom, ktorí už niečo majú. Riadok samých núl by z toho
+          spravil checklist („ktorý pes zaostáva") — presne to, čo brand zakazuje. */}
+      {dogStats.length > 0 && (
+        <div className="comm-dogstats">
+          {dogStats.map((d) => (
+            <div key={d.id} className="comm-dogstat">
+              <img src={d.photo || ICON('paw')} alt="" />
+              <span className="comm-dogstat-txt">
+                <span className="comm-dogstat-name">{d.name}</span>
+                <span className="comm-dogstat-num">
+                  {t('pack.stats.dogLine', { trips: d.trips, km: fmtKm(d.km) })}
+                </span>
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* #55 — štyri nuly a deväť zhasnutých odznakov sú konštatovanie bez pokračovania.
           Jedna veta + jedno tlačidlo; mizne hneď po prvom zapísanom výlete. */}

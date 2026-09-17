@@ -2228,6 +2228,7 @@ export const sk: Partial<Dict> = {
   'pack.stats.pts': "{n} b.",
   'pack.stats.ptsToLevel': "{n} b. do levelu {level}",
   'pack.stats.countries': "Krajiny",
+  'pack.stats.dogLine': "{trips} výletov · {km} km",
   'pack.stats.trips': "Výlety",
   'pack.stats.km': "Km",
   'pack.stats.highestPoint': "Najvyšší bod",
@@ -3465,6 +3466,11 @@ export const sk: Partial<Dict> = {
   'pack.pass.noteSave': "uložiť",
   'pack.pass.noteSaving': "ukladám…",
   'pack.pass.noteCancel': "zrušiť",
+  'pack.dog.trailsTitle': "Prejdené cesty",
+  'pack.dog.trailsTrips': "Výlety",
+  'pack.dog.trailsKm': "Kilometre",
+  'pack.dog.trailsEmpty': "S týmto psom zatiaľ nie je zapísaný žiadny výlet.",
+  'pack.dog.trailsNote': "Počíta sa z výletov, ktoré si s ním zapísal.",
   'pack.dog.idTitle': "DOG ID",
   // Dátum vstupu do DOGYPTU už nestojí pod nadpisom — je to tooltip nad pilulkou
   // s poradovým číslom (Matej 13.8.2026): číslo aj dátum hovoria to isté, „odkedy".

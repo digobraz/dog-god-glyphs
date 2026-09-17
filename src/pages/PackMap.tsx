@@ -107,7 +107,7 @@ import {
   type WalkedInput, type WalkReward, type Companion,
 } from '@/components/pack/packCommunityUI';
 import { PointsPill, POINTS_PILL_CSS } from '@/components/pack/PointsPill';
-import { deletePackTrip } from '@/lib/packStore';
+import { deletePackTrip, attributeDogTrips, setDogTripCrew, clearDogTrip } from '@/lib/packStore';
 import { placeholderFor } from '@/lib/tripPlaceholder';
 import { upsertMyTrip, removeMyTrip, ensureMyTrip } from '@/components/pack/triplist/triplist';
 import { supabase } from '@/integrations/supabase/client';
@@ -4396,6 +4396,9 @@ export default function PackMap() {
     if (walkedIds.has(tid)) {
       setWalkedIds((prev) => { const n = new Set(prev); n.delete(tid); return n; });
       setVotes((prev) => { const n = { ...prev }; delete n[tid]; return n; });
+      // PSIE KM (B20): zásluha zaniká aj psovi. To isté robí trigger nad `trip_walked`
+      // v DB — tu sa to píše preto, aby psí profil nečakal na ďalšiu hydratáciu.
+      clearDogTrip(tid);
       setWalkedReward(null);
       return;
     }
@@ -4408,6 +4411,13 @@ export default function PackMap() {
       : null;
     setWalkedReward(reward);
     setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
+    /**
+     * PSIE KM (B20, Matej 17. 9. 2026) — ✓ na karte nehovorí, KTORÝ pes išiel, takže
+     * sa výlet pripíše všetkým ŽIVÝM psom účtu. Je to ODHAD, nie tvrdenie: kto to chce
+     * povedať presne, zapíše výlet sprievodcom a vyberie posádku (`setDogTripCrew`).
+     * ⚠️ Pútnik sa tým NEDELÍ — `walkedIds` vyššie ostáva človeku a body sa rátajú z neho.
+     */
+    attributeDogTrips(tid, id.dogs.filter((d) => (d.life_status ?? 'alive') !== 'deceased').map((d) => d.id));
     // Ponuka hodnotenia ide VŽDY (tiché obdobie zrušené 2026-08-06, viď packCommunity.ts) —
     // hodnotenie je platené bodmi, takže je to príležitosť, nie otrava. Toast s odmenou tu
     // preto už netreba: to isté číslo aj prípadné objavenie ukáže popup, ktorý sa práve otvára.
@@ -4953,6 +4963,15 @@ export default function PackMap() {
     });
   };
 
+  /**
+   * PSIE KM (B20) — z posádky vyberie MOJE psy. `CompanionPicker` kľúčuje vlastného psa
+   * ako `dog-<id>` a pozvaného človeka ako `member-<meno>`; do `dog_trips` patria len tie prvé.
+   * (Kľúč sa zakladá v `crewSeededRef` v AddTripLog.tsx a v `toggleDog` pickera — ak sa zmení
+   * tam, musí sa zmeniť aj tu.)
+   */
+  const crewDogIds = (crew?: Companion[]): string[] =>
+    (crew ?? []).filter((c) => c.key.startsWith('dog-')).map((c) => c.key.slice(4));
+
   const submitAddTripDraft = (draft: AddTripDraft): boolean => {
     // ── DOPĹŇANIE KONCEPTU ──────────────────────────────────────────────────────────────
     // Existujúci záznam sa PREPÍŠE. Nový `HeroTrail` tu nevzniká, `walkedIds` sa nedotýkame
@@ -4994,6 +5013,9 @@ export default function PackMap() {
         return false;
       }
       setAddError('');
+      // POSÁDKA JE ROZHODNUTIE, NIE ODHAD (B20): dopísaný koncept smie psa aj ODOBRAŤ,
+      // preto `setDogTripCrew` (prepisuje), nie `attributeDogTrips` (dopĺňa).
+      setDogTripCrew(finishId, crewDogIds(draft.crew));
       setLocalTrails(readLocalTrails());
       // Hlas nesie náročnosť a ruch pre celý pack — dopísané hodnoty musia dôjsť aj sem,
       // inak by karta výletu tvrdila niečo iné než filtre nad tými istými dátami.
@@ -5158,6 +5180,9 @@ export default function PackMap() {
       setAddError(photosDropped ? t('pack.map.errorPhotosDropped') : '');
       setLocalTrails(next);
       setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
+      // PSIE KM (B20): sprievodca ako jediný vie, KTORÝ pes išiel — jeho slovo prebíja
+      // odhad triggeru nad `trip_walked`.
+      setDogTripCrew(tid, crewDogIds(draft.crew));
       /**
        * 🔴 ZAPÍSANÝ VÝLET MUSÍ BYŤ V TRIPLISTE (Matej 2026-08-26: „po zápise výlet nevidím
        * v tripliste").

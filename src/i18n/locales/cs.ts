@@ -2781,6 +2781,7 @@ export const cs: Partial<Dict> = {
   'pack.stats.rankAria': '{rank}, level {level} — {tier}',
   'pack.stats.rankLine': '{rank} · Level {level}',
   'pack.stats.total': 'Celkem',
+  'pack.stats.dogLine': '{trips} výletů · {km} km',
   'pack.stats.trips': 'Výlety',
   'pack.stats.walkedEmpty': 'Zapiš výlet a začni si odškrtávat místa.',
   'pack.stats.walkedTitle': 'Zdolané výlety',
@@ -2907,6 +2908,11 @@ export const cs: Partial<Dict> = {
   'pack.del.yes': 'Smazat',
 
   // ── pack.dog ──
+  'pack.dog.trailsTitle': 'Ušlé cesty',
+  'pack.dog.trailsTrips': 'Výlety',
+  'pack.dog.trailsKm': 'Kilometry',
+  'pack.dog.trailsEmpty': 'S tímto psem zatím není zapsaný žádný výlet.',
+  'pack.dog.trailsNote': 'Počítá se z výletů, které jsi s ním zapsal.',
   'pack.dog.idTitle': 'DOG ID',
   'pack.dog.inDogyptSince': 'V Dogyptu od {date}',
   'pack.dog.rowBorn': 'Narozen',

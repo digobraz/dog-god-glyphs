@@ -11,7 +11,9 @@ import { PackLayout } from '@/components/pack/PackLayout';
 import { PALE } from '@/components/pack/navGoldSkin';
 import { DogPassport, type FixedRow } from '@/components/pack/DogPassport';
 import { WillPanel } from '@/components/pack/WillPanel';
-import { PACK_THEME, PILL_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME, PILL_CSS, PACK_BOX, PACK_HEAD, PACK_TEXT, PACK_SPACE } from '@/components/pack/packTheme';
+import { dogTripStats, fmtDogKm } from '@/lib/dogTripStats';
+import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { CertificateCard } from '@/components/CertificateCard';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { MemorialControl } from '@/components/pack/MemorialControl';
@@ -1375,9 +1377,60 @@ export default function PackDogDetail() {
             Bonus dôvod: tlačidlo malo `color: T.ink` (papyrusová čierna) na TMAVOM
             pozadí stránky, takže bolo aj tak fakticky neviditeľné. */}
 
+        {/* ── PREJDENÉ CESTY (B20, Matej 17. 9. 2026) ────────────────────────
+             „jednotlive km bude mať pes v profile ako aj prejdený vylety a km."
+             Posledný blok stránky — rovnaké miesto, kam 6. 8. odišli ŠTATISTIKY.
+             🔒 Toto NIE JE pútnik. Pútnik (level, prstenec, body v hlavičke `/map`)
+             ostáva ČLOVEKU a ráta sa z `trip_walked`; tu je len to, čo prešiel PES.
+             Preto ani žiadny level, prstenec či body — dve čísla a nič viac. */}
+        <DogTrailsBlock dogId={dog.id} tx={tx} />
+
         <div style={{ height: 24 }} />
       </div>
     </PackLayout>
+  );
+}
+
+/**
+ * PSIE KM — dve čísla psa (B20). Vlastný komponent, nie kus JSX v stránke: číta cez
+ * `usePackStoreEpoch`, teda sa prekresľuje pri hydratácii `dog_trips` z DB.
+ *
+ * ⚠️ BLOK SA PRI NULE NESKRÝVA. Pes bez zapísaného výletu nie je chyba ani prázdno —
+ * je to pozvánka; skrytý blok by po prvom výlete „vyskočil" ako nová funkcia.
+ */
+function DogTrailsBlock({ dogId, tx }: { dogId: string; tx: (k: string, f: string) => string }) {
+  const epoch = usePackStoreEpoch();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- `epoch` JE tá závislosť:
+  // dáta ležia v localStorage, takže sa o ich zmene inak nedozvieme.
+  const stats = useMemo(() => dogTripStats(dogId), [dogId, epoch]);
+  const cell = (label: string, value: string) => (
+    <div style={{ ...PACK_BOX.subblock, padding: PACK_SPACE.lg, textAlign: 'center', flex: '1 1 0' }}>
+      <div style={{ ...PACK_HEAD.section, color: T.inkDim, marginBottom: PACK_SPACE.xs }}>{label}</div>
+      <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: PACK_TEXT.h1, color: T.ink, lineHeight: 1 }}>
+        {value}
+      </div>
+    </div>
+  );
+  return (
+    <section style={{ ...PACK_BOX.card, marginTop: PACK_SPACE.xl, padding: PACK_SPACE.xl }}>
+      <div style={{ ...PACK_HEAD.card, color: PALE.deep, textAlign: 'center', marginBottom: PACK_SPACE.lg }}>
+        {tx('pack.dog.trailsTitle', 'Trails walked')}
+      </div>
+      <div className="flex" style={{ gap: PACK_SPACE.md }}>
+        {cell(tx('pack.dog.trailsTrips', 'Trips'), String(stats.trips))}
+        {cell(tx('pack.dog.trailsKm', 'Kilometres'), fmtDogKm(stats.km))}
+      </div>
+      <div
+        style={{
+          fontFamily: "'Space Grotesk', sans-serif", fontSize: PACK_TEXT.label,
+          color: T.inkDim, textAlign: 'center', marginTop: PACK_SPACE.md,
+        }}
+      >
+        {stats.trips === 0
+          ? tx('pack.dog.trailsEmpty', 'No trip logged with this dog yet.')
+          : tx('pack.dog.trailsNote', 'Counted from the trips you logged with this dog.')}
+      </div>
+    </section>
   );
 }
 

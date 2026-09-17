@@ -11,6 +11,10 @@ export interface PackDog {
   id: string;
   dog_name: string | null;
   cloudinary_main_url: string | null;
+  // 17. 9. 2026 (B20 psie km): pribudlo kvôli pripisovaniu výletu psom — nový výlet
+  // sa nemá ako pripísať psovi, ktorý už odišiel. Chýbajúca hodnota = 'alive'
+  // (starý riadok, DEV mock), rovnako ako to číta zvyšok appky.
+  life_status?: string | null;
 }
 
 export interface PackIdentity {
@@ -127,7 +131,7 @@ export function usePackIdentity(): PackIdentity {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           let identityQuery = DEV_NOAUTH ? null : (supabase as any)
             .from('dogs')
-            .select('id, dog_name, cloudinary_main_url, created_at')
+            .select('id, dog_name, cloudinary_main_url, created_at, life_status')
             // paid only — link_my_dogs also links abandoned checkout drafts by
             // email, so without this the header switcher lists a dog once per
             // attempt (BELGA showed 3×: 1 paid + 2 drafts). Pack.tsx already
@@ -145,6 +149,7 @@ export function usePackIdentity(): PackIdentity {
             id: d.id,
             dog_name: d.dog_name ?? null,
             cloudinary_main_url: d.cloudinary_main_url ?? null,
+            life_status: d.life_status ?? null,
           })));
           // DEV bez prihlásenia: mock session existuje, ale v DEV projekte žiadny pes nie je,
           // takže každý povrch, ktorý svorku ukazuje (hlavička mapy, reveal po zápise výletu),

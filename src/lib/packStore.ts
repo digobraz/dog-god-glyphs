@@ -62,6 +62,10 @@ export const PACK_KEYS = {
   // Zbalenie sekcie OPEN TRIPS v tripliste (Matej 1. 9. 2026) — čisto lokálna preferencia
   // zobrazenia, nesynchronizuje sa s DB.
   openTripsCollapsed: 'trp-opentrips-collapsed',
+  // PSIE VÝLETY (17. 9. 2026, B20) — `{ '<dog_id>': ['slug', …] }`, zrkadlo tabuľky
+  // `dog_trips`. ⚠️ ODVODENÉ, nie druhý zdroj pravdy: kto prešiel, hovorí ďalej
+  // `walked` vyššie (= ČLOVEK, pútnik); toto hovorí len KTORÝ PES pri tom bol.
+  dogTrips: 'trp-dog-trips-v1',
 } as const;
 
 const QUEUE_KEY = 'trp-sync-queue-v1';
@@ -215,6 +219,72 @@ function persistSetDiff(key: string, tbl: string, next: Set<string>, extra: Reco
 
 export const persistWalked = (next: Set<string>) => persistSetDiff(PACK_KEYS.walked, 'trip_walked', next);
 export const persistFav = (next: Set<string>) => persistSetDiff(PACK_KEYS.fav, 'trip_fav', next);
+
+// ── write-through: PSIE VÝLETY (`dog_trips`, B20 — Matej 17. 9. 2026) ───────
+//
+// 🔒 PÚTNIK SA TÝMTO NEDELÍ. Body, level ani km v hlavičke `/map` sa odtiaľto
+// nečítajú — tie ostávajú človeku a ich zdroj je `trip_walked`. Tu sa drží
+// jediná vec navyše: KTORÝ pes pri tom bol.
+//
+// Prečo to appka píše, keď to vie odvodiť trigger v DB: trigger pripíše výlet
+// VŠETKÝM živým psom účtu (najlepší odhad), ale len sprievodca zápisu pozná
+// posádku. Preto dva vstupy — `attributeDogTrips` (odhad, dopĺňa) a
+// `setDogTripCrew` (rozhodnutie človeka, prepisuje).
+export const readDogTrips = (): Record<string, string[]> =>
+  readJson<Record<string, string[]>>(PACK_KEYS.dogTrips, {});
+
+const writeDogTrips = (m: Record<string, string[]>) => writeJson(PACK_KEYS.dogTrips, m);
+
+/** Lokálny zápis: `slug` pribudne psom v `dogIds`, ostatným sa odoberie (keď `exclusive`). */
+function applyDogTripsLocal(slug: string, dogIds: string[], exclusive: boolean): void {
+  const cur = readDogTrips();
+  const next: Record<string, string[]> = {};
+  for (const [dogId, slugs] of Object.entries(cur)) {
+    const keep = exclusive || !dogIds.includes(dogId) ? slugs.filter((s) => s !== slug) : slugs;
+    next[dogId] = keep;
+  }
+  for (const dogId of dogIds) next[dogId] = [...new Set([...(next[dogId] ?? []), slug])];
+  writeDogTrips(next);
+}
+
+/**
+ * ODHAD: výlet prešiel človek a nepovedal, s ktorým psom ⇒ pripíše sa všetkým
+ * zadaným (volajúci posiela ŽIVÉ psy účtu). Nič neodoberá — ručne vymenovaná
+ * posádka staršieho výletu ostáva, ako bola.
+ * ⚠️ Zrkadlí to, čo v DB spraví trigger `dog_trips_sync_walked`. Píše sa to aj
+ * odtiaľto, lebo bez toho by sa psí profil o výlete dozvedel až po ďalšej
+ * hydratácii — a offline (PWA na chodníku) vôbec.
+ */
+export function attributeDogTrips(slug: string, dogIds: string[]): void {
+  if (!dogIds.length) return;
+  applyDogTripsLocal(slug, dogIds, false);
+  enqueue(dogIds.map((dogId) => ({
+    kind: 'upsert' as const, tbl: 'dog_trips', onConflict: 'dog_id,trip_slug',
+    row: { dog_id: dogId, trip_slug: slug, source: 'auto' },
+  })));
+}
+
+/**
+ * ROZHODNUTIE: v sprievodcovi človek vymenoval posádku ⇒ pre tento výlet platí
+ * presne ona. Odhad triggeru sa prepíše — najprv mazanie, potom zápis (fronta je
+ * FIFO, takže poradie drží aj po výpadku siete).
+ */
+export function setDogTripCrew(slug: string, dogIds: string[]): void {
+  applyDogTripsLocal(slug, dogIds, true);
+  enqueue([
+    { kind: 'delete' as const, tbl: 'dog_trips', match: { trip_slug: slug } },
+    ...dogIds.map((dogId) => ({
+      kind: 'upsert' as const, tbl: 'dog_trips', onConflict: 'dog_id,trip_slug',
+      row: { dog_id: dogId, trip_slug: slug, source: 'crew' },
+    })),
+  ]);
+}
+
+/** Človek výlet odťukol ⇒ zásluha zaniká aj psovi (to isté robí trigger v DB). */
+export function clearDogTrip(slug: string): void {
+  applyDogTripsLocal(slug, [], true);
+  enqueue([{ kind: 'delete' as const, tbl: 'dog_trips', match: { trip_slug: slug } }]);
+}
 
 // ── write-through: hodnotenia ───────────────────────────────────────────────
 export function persistVotes(next: Record<string, VoteLike>): void {
@@ -528,7 +598,7 @@ export function hydratePackStore(): Promise<boolean> {
     // (2) pull — doménu s nevyslanou frontou nechávame na pokoji
     const blocked = pendingTables();
     try {
-      const [walked, fav, trips, votes, events, packTrips, heroEarned] = await Promise.all([
+      const [walked, fav, trips, votes, events, packTrips, heroEarned, dogTrips] = await Promise.all([
         (supabase as any).from('trip_walked').select('trip_slug'),
         (supabase as any).from('trip_fav').select('trip_slug'),
         (supabase as any).from('user_trips').select('trip_slug,trip_date,status,openness,added_at').eq('user_id', uid),
@@ -536,10 +606,20 @@ export function hydratePackStore(): Promise<boolean> {
         (supabase as any).from('trip_events').select('*').eq('host_id', uid),
         (supabase as any).from('pack_trips').select('slug,payload,status,author_id'),
         (supabase as any).from('hero_badges_earned').select('badge_id,earned_at'),
+        // PSIE VÝLETY (B20) — bez `.eq('user_id', uid)`: RLS pustí aj psa, pri ktorom
+        // som pawmate, a jeho výlety patria do psieho profilu rovnako ako moje.
+        (supabase as any).from('dog_trips').select('dog_id,trip_slug'),
       ]);
 
       if (!blocked.has('trip_walked') && !walked.error && walked.data) {
         writeStringSet(PACK_KEYS.walked, new Set(walked.data.map((r: any) => r.trip_slug)));
+      }
+      if (!blocked.has('dog_trips') && !dogTrips.error && dogTrips.data) {
+        // Celý obsah, nie zlúčenie: `dog_trips` je odvodená tabuľka, takže DB je tu
+        // jediný zdroj. Doména s nevyslanou frontou sa preskočí ako všetky ostatné.
+        const byDog: Record<string, string[]> = {};
+        for (const r of dogTrips.data as any[]) (byDog[r.dog_id] ??= []).push(r.trip_slug);
+        writeDogTrips(byDog);
       }
       if (!blocked.has('trip_fav') && !fav.error && fav.data) {
         writeStringSet(PACK_KEYS.fav, new Set(fav.data.map((r: any) => r.trip_slug)));
