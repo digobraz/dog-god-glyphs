@@ -165,7 +165,10 @@ const CSS = `
    z toho ostane čierny mrak — dostáva preto teplý tieň bez ringu, presne ako .trp-bigcard
    v bledom zozname mapy. */
 .tl-block{cursor:pointer;overflow:hidden;background:${T.cardGrad};border:1.5px solid ${T.cardEdge};border-radius:16px;box-shadow:0 2px 8px rgba(122,90,42,0.16),inset 0 1px 0 rgba(255,255,255,0.45);transition:border-color .15s,transform .15s,box-shadow .15s;}
-.tl-block:hover{border-color:${P.deep};transform:translateY(-2px);box-shadow:0 0 0 3px ${PACK_THEME.hairline},0 2px 8px rgba(122,90,42,0.16);}
+/* Zameranie klávesnicou musí byť VIDNO — inak sa dá po kartách chodiť, ale nevidieť kde.
+   Je to TEN ISTÝ selektor ako hover, nie druhé pravidlo: vlastný tieň by znamenal deviatu
+   výšku mimo PACK_SHADOW a stráž check:pack ho ráta ako nový tvar. */
+.tl-block:hover,.tl-block:focus-visible{outline:none;border-color:${P.deep};transform:translateY(-2px);box-shadow:0 0 0 3px ${PACK_THEME.hairline},0 2px 8px rgba(122,90,42,0.16);}
 /* PREJDENÉ v MY TRIPS = ZELENÝ RÁM (Matej 1. 9. 2026: „prejdené v mojich výletoch zelenou").
    T.growGreen je naprieč appkou (mimo mapy) SÉMANTIKA „SPLNENÉ" — comm-unit--done,
    comm-joinbtn.joined, DogCardFields, 100 % na DOG ID a nižšie .tl-closebar v TOMTO súbore.
@@ -854,7 +857,24 @@ export default function PackTriplist() {
                     {dleft !== null && dleft >= 0 && (
                       <span className={`tl-countdown${dleft <= 3 ? ' soon' : ''}`}>{countdownLabel(t, dleft)}</span>
                     )}
-                  <div className={`tl-block${done ? ' is-done' : ''}`} onClick={() => navigate(tripPath(trail))}>
+                  {/* 🔴 KARTA MUSÍ ÍSŤ AJ KLÁVESNICOU (audit `/map`, opravené 17. 9. 2026).
+                      Dovtedy bol celý zoznam `<div onClick>` — teda neexistoval pre tabulátor
+                      ani pre čítačku obrazovky. `<Link>` sa tu použiť NEDÁ: karta má vnútri
+                      vlastné tlačidlá (dátum, stav) a tlačidlo v odkaze je neplatné HTML.
+                      Preto `role="button"` + `tabIndex` + Enter/Medzera — tá istá trojica
+                      v oboch zoznamoch nižšie. */}
+                  <div
+                    className={`tl-block${done ? ' is-done' : ''}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navigate(tripPath(trail))}
+                    onKeyDown={(e) => {
+                      if (e.key !== 'Enter' && e.key !== ' ') return;
+                      // ⚠️ Medzera bez `preventDefault` odroluje stránku POD kartou.
+                      e.preventDefault();
+                      navigate(tripPath(trail));
+                    }}
+                  >
                     <div className={`tl-block-cover${cover ? '' : ' nophoto'}`} style={cover ? { backgroundImage: `url('${cover}')` } : undefined}>
                       <img className="tl-flag" src={flagUrl(trailCountry(trail))} alt="" loading="lazy" draggable={false} />
                       {/* Kým výlet čaká na schválenie, badge NIE JE prepínač viditeľnosti —
@@ -945,7 +965,14 @@ export default function PackTriplist() {
                   <div
                     key={c.key}
                     className="tl-block"
+                    role="button"
+                    tabIndex={0}
                     onClick={() => navigate(tripPath(c.trail))}
+                    onKeyDown={(e) => {
+                      if (e.key !== 'Enter' && e.key !== ' ') return;
+                      e.preventDefault();
+                      navigate(tripPath(c.trail));
+                    }}
                   >
                     <div className={`tl-block-cover${(c.trail.photos[0] ?? placeholderFor(c.trail.acts, c.trail.id)) ? '' : ' nophoto'}`} style={{ backgroundImage: `url('${c.trail.photos[0] ?? placeholderFor(c.trail.acts, c.trail.id)}')` }}>
                       {/* menovka organizátora NA FOTKE (nie modrý rám — mapová farba,

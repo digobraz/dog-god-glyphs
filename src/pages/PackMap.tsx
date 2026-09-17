@@ -1132,6 +1132,8 @@ const CSS = `
 .trp-mapsug{background:rgba(6,5,3,0.94);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid ${T.onDarkBorder};border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.5);max-height:260px;overflow-y:auto;}
 .trp-mapsug-item{padding:10px 15px;cursor:pointer;border-bottom:1px solid ${T.onDarkHair};transition:background .12s;}
 .trp-mapsug-item:last-child{border-bottom:0;}
+.trp-mapsug-none{cursor:default;font-family:${FONT_UI};font-size:12px;letter-spacing:.02em;color:${T.onDarkDim};}
+.trp-mapsug-none:hover{background:transparent;}
 .trp-mapsug-item:hover{background:rgba(201,154,63,0.18);}
 .trp-mapsug-name{font-size:13px;color:${T.onDark};font-weight:600;}
 .trp-mapsug-sub{font-size:11px;color:${T.onDarkDim};margin-top:1px;}
@@ -1380,6 +1382,14 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
    nad čiarou to, čo je práve vidno, pod ňou zvyšok. Typografia = dark-panel UI (Space Grotesk,
    nie Cinzel — nie je to nadpis ani identita), vlasová linka rovnaká ako .trp-tagdd-clear. */
 .trp-cards-sep{display:flex;align-items:center;gap:9px;margin:8px 0 0;font-family:${FONT_UI};font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:rgba(245,240,228,0.40);}
+/* Prázdny zoznam po filtroch — jedna veta a cesta von.
+   ⚠️ FARBA SA NEDEDÍ. Prvý pokus stavil na color:inherit a veta na papyruse vyšla takmer
+   biela: v bledom šate sa prefarbujú JEDNOTLIVÉ triedy (.trp-cards-sep a spol.), nie
+   spoločný predok — zdedená farba je teda ďalej tá tmavá. Preto dve pravidlá, presne
+   ako pri oddeľovači o kus vyššie. */
+.trp-listempty{padding:24px 16px;text-align:center;}
+.trp-listempty p{margin:0;font-family:${FONT_UI};font-size:14px;line-height:1.5;color:${T.onDarkDim};}
+.trp-listempty button{margin-top:12px;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:${T.accentGold};background:none;border:none;cursor:pointer;text-decoration:underline;}
 .trp-cards-sep::before,.trp-cards-sep::after{content:'';flex:1;height:1px;background:rgba(245,240,228,0.12);}
 .trp-cards-sep b{font-weight:600;color:rgba(245,240,228,0.28);letter-spacing:.06em;}
 .trp-bigcard{border-radius:14px;overflow:hidden;background:rgba(245,240,228,0.03);border:1px solid rgba(245,240,228,0.10);cursor:pointer;transition:all .15s;flex-shrink:0;}
@@ -2199,6 +2209,8 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-topbar .trp-tagdd-panel{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};box-shadow:${T.panelShadow};backdrop-filter:none;-webkit-backdrop-filter:none;}
   .trp-topbar .trp-mapsug-item{border-bottom:1px solid ${P_HAIR};}
   .trp-topbar .trp-mapsug-item:hover{background:${P_HOT};}
+  .trp-topbar .trp-mapsug-none{color:${T.inkDim};}
+  .trp-topbar .trp-mapsug-none:hover{background:transparent;}
   .trp-topbar .trp-mapsug-name{color:${P_INK};}
   .trp-topbar .trp-mapsug-sub{color:${P_DIM};}
   .trp-topbar .trp-tagdd-eyebrow{color:${T.cardEdge};}
@@ -2280,6 +2292,7 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
      Karta = úroveň 1 matrice ("PACK_BOX.card"). Na doske panela je karta SVETLEJŠIA než
      podklad, takže vystúpi bez toho, aby musela kričať rámom. */
   .trp-sidebar .trp-cards-sep{color:${P_DIM};}
+  .trp-sidebar .trp-listempty p{color:${P_DIM};}
   .trp-sidebar .trp-cards-sep::before,
   .trp-sidebar .trp-cards-sep::after{background:${P_HAIR};}
   .trp-sidebar .trp-cards-sep b{color:${P_FAINT};}
@@ -3614,6 +3627,14 @@ export default function PackMap() {
 
   const [placeQuery, setPlaceQuery] = useState('');
   const [placeSug, setPlaceSug] = useState<PlaceSug[]>([]);
+  /**
+   * 🔴 HĽADANIE MLČALO PRI NULE (audit `/map`, opravené 17. 9. 2026). Ponuka sa
+   * kreslila len pri `placeSug.length > 0`, takže dotaz bez výsledku vyzeral presne
+   * ako dotaz, ktorý sa ešte nenačítal — človek nevedel, či má čakať, alebo písať inak.
+   * ⚠️ `false` pri SIEŤOVEJ chybe: „nič sa nenašlo" by o nenájdenom mieste klamalo.
+   * Mlčanie pri výpadku je menšie zlo než nepravda.
+   */
+  const [placeEmpty, setPlaceEmpty] = useState(false);
   // naposledy vybraný návrh (viď guard v suggest efekte) + wrapper na klik-mimo
   const pickedPlaceRef = useRef('');
   const placeBoxRef = useRef<HTMLDivElement | null>(null);
@@ -4196,13 +4217,13 @@ export default function PackMap() {
   // vyhľadávanie miesta na mape (Mapy.com Suggest) — real API, no mock
   useEffect(() => {
     const q = placeQuery.trim();
-    if (q.length < 2) { setPlaceSug([]); return; }
+    if (q.length < 2) { setPlaceSug([]); setPlaceEmpty(false); return; }
     // BUG FIX (Matej 2026-07-27: „mapka ho pekne nacentruje ale dropdown zostáva a nejde
     // zavrieť"): klik na návrh zapisuje jeho meno do placeQuery → tento efekt sa spustil
     // znova, dofetchol tie isté návrhy a 250 ms po zatvorení ich vrátil späť. Donekonečna,
     // lebo každé ďalšie zatvorenie query nemení. Guard = pamätáme si naposledy VYBRANÝ
     // reťazec; kým sa nezmení (= kým používateľ nezačne písať niečo iné), neponúkame nič.
-    if (pickedPlaceRef.current === q) { setPlaceSug([]); return; }
+    if (pickedPlaceRef.current === q) { setPlaceSug([]); setPlaceEmpty(false); return; }
     const timer = setTimeout(async () => {
       try {
         // ⚠️ JAZYK PODĽA APPKY, nie natvrdo `en` (opravené 27. 8. 2026). Mapy.com vracia
@@ -4224,7 +4245,8 @@ export default function PackMap() {
           }))
           .filter((x: PlaceSug) => Number.isFinite(x.lat) && Number.isFinite(x.lon));
         setPlaceSug(items);
-      } catch { setPlaceSug([]); }
+        setPlaceEmpty(items.length === 0);
+      } catch { setPlaceSug([]); setPlaceEmpty(false); }
     }, 250);
     return () => clearTimeout(timer);
   }, [placeQuery, lang]);
@@ -4233,11 +4255,12 @@ export default function PackMap() {
   // alebo Escape. Backdrop element sa tu použiť NEDÁ (na rozdiel od Tags dropdownu): prekryl
   // by mapu, takže by sa nedalo pretiahnuť/zoomnúť, kým je ponuka otvorená.
   useEffect(() => {
-    if (placeSug.length === 0) return;
+    if (placeSug.length === 0 && !placeEmpty) return;
+    const close = () => { setPlaceSug([]); setPlaceEmpty(false); };
     const onDown = (e: MouseEvent | TouchEvent) => {
-      if (!placeBoxRef.current?.contains(e.target as Node)) setPlaceSug([]);
+      if (!placeBoxRef.current?.contains(e.target as Node)) close();
     };
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPlaceSug([]); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
     document.addEventListener('mousedown', onDown);
     document.addEventListener('touchstart', onDown);
     document.addEventListener('keydown', onKey);
@@ -4246,7 +4269,7 @@ export default function PackMap() {
       document.removeEventListener('touchstart', onDown);
       document.removeEventListener('keydown', onKey);
     };
-  }, [placeSug.length]);
+  }, [placeSug.length, placeEmpty]);
 
   // BODY + LEVEL (issue #33) — z prejdených trás, ich km/stúpania, pevných cien magistrál,
   // odškrtnutých geo jednotiek a daných hodnotení. Z `localTrails` sa +20 pripíše len za MOJE
@@ -5540,8 +5563,29 @@ export default function PackMap() {
 
   // zoznam kariet vrátane oddeľovača — zdieľaný desktopom (.trp-cards-scroll, withRef kvôli
   // hover→scrollIntoView) a mobilom (.trp-mlist, bez ref).
+  /**
+   * 🔴 NULA VÝSLEDKOV PO FILTROCH MLČALA (audit `/map`, opravené 17. 9. 2026).
+   * Od 17. 9. platia filtre aj na mapu, takže prísna kombinácia vyprázdni NARAZ zoznam
+   * aj mapu — a človek dostal prázdnu obrazovku bez jediného slova, na nerozoznanie od
+   * appky, ktorá sa nenačítala. Veta MUSÍ povedať aj cestu von: filtre sú v paneli nad
+   * zoznamom, ale keď je panel prázdny, nie je čoho sa chytiť.
+   */
+  // ⚠️ Vlastný súčet, nie `activeFilterCount` — ten ráta aj ZORADENIE, a to zoznam
+  // nikdy nevyprázdni. Ponúkať „zrušiť filtre" kvôli inému poradiu je falošná cesta von.
+  // Nulovanie robí existujúca `clearAllFilters()` (jedno miesto, jeden zoznam filtrov).
+  const emptyByFilters = heroDiff !== '' || heroCrowd !== '' || selectedCountry !== ''
+    || heroMacroRegion !== '' || heroAct !== '' || heroTags.size > 0;
+
   const renderTripList = (withRef: boolean) => (
     <>
+      {sortedVisibleHeroTrails.length === 0 && (
+        <div className="trp-listempty">
+          <p>{emptyByFilters ? t('pack.map.noneMatchFilters') : t('pack.map.noneHere')}</p>
+          {emptyByFilters && (
+            <button type="button" onClick={clearAllFilters}>{t('pack.map.clearFilters')}</button>
+          )}
+        </div>
+      )}
       {inViewTrails.map(({ tr }) => renderTripCard(tr, withRef))}
       {elsewhereTrails.length > 0 && (
         <div className="trp-cards-sep">
@@ -7031,6 +7075,16 @@ export default function PackMap() {
                       onChange={(e) => setPlaceQuery(e.target.value)}
                     />
                   </div>
+                  {/* NIČ SA NENAŠLO — tá istá doska ako ponuka, aby odpoveď prišla tam,
+                      kam sa človek pozerá. Nie je to chyba, preto tichý inkoust, žiadna
+                      červená a žiadna ikonka. */}
+                  {placeSug.length === 0 && placeEmpty && (
+                    <div className="trp-mapsug">
+                      <div className="trp-mapsug-item trp-mapsug-none">
+                        {t('pack.map.searchNoPlace')}
+                      </div>
+                    </div>
+                  )}
                   {placeSug.length > 0 && (
                     <div className="trp-mapsug">
                       {placeSug.map((s, i) => (
