@@ -62,6 +62,11 @@ export const PACK_KEYS = {
   // Zbalenie sekcie OPEN TRIPS v tripliste (Matej 1. 9. 2026) — čisto lokálna preferencia
   // zobrazenia, nesynchronizuje sa s DB.
   openTripsCollapsed: 'trp-opentrips-collapsed',
+  // Zbalenie archívu PREJDENÝCH v MOJICH VÝLETOCH (#43, 18. 9. 2026). Pás bol jeden
+  // rad, v ktorom sa nadchádzajúci výlet strácal medzi desiatkami prejdených; odteraz sú
+  // to dve sekcie a archív si smie človek zavrieť. Tá istá úvaha ako `openTripsCollapsed`:
+  // preferencia zobrazenia, nesynchronizuje sa s DB.
+  myWalkedCollapsed: 'trp-mywalked-collapsed',
   // PSIE VÝLETY (17. 9. 2026, B20) — `{ '<dog_id>': ['slug', …] }`, zrkadlo tabuľky
   // `dog_trips`. ⚠️ ODVODENÉ, nie druhý zdroj pravdy: kto prešiel, hovorí ďalej
   // `walked` vyššie (= ČLOVEK, pútnik); toto hovorí len KTORÝ PES pri tom bol.

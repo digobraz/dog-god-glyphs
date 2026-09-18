@@ -527,6 +527,16 @@ export default function PackTriplist() {
     () => sortMyTrips(realMyTrips, nowMs),
     [realMyTrips, nowMs],
   );
+
+  // ── #43: MOJE VÝLETY SÚ DVE SEKCIE, NIE JEDEN PÁS (18. 9. 2026) ─────────────
+  // Meranie z 16. 9.: 73 kariet v jednom rade, pás široký 11 818 px, z toho 72 prejdených.
+  // Jediný výlet, ktorý sa ešte len chystá, tak ležal na konci archívu — človek sa k nemu
+  // musel prehrabať cez celú svoju históriu. Delenie ide po `done`, nie po dátume: výlet
+  // bez dátumu je stále PLÁN (chystám sa), nie spomienka.
+  // ⚠️ Poradie vnútri oboch sekcií drží ďalej `sortMyTrips` — nadchádzajúce od najbližšieho,
+  // prejdené od najnovšieho. Nič sa neprepočítava dvakrát, len sa rad rozreže na dva.
+  const upcomingTrips = useMemo(() => myTrips.filter((r) => !r.done), [myTrips]);
+  const walkedTrips = useMemo(() => myTrips.filter((r) => r.done), [myTrips]);
   // #41 — ŽIADOSTI. `reqEpoch` je ručný refresh: prijatie/odmietnutie zmení riadok
   // v DB, ale RPC ani zoznamy o tom samy nevedia. `reqBusy` drží id práve
   // spracúvanej akcie (dvojklik na Accept by inak poslal dva updaty).
@@ -540,6 +550,16 @@ export default function PackTriplist() {
   // zobrazovať alebo nie"). Musí prežiť reload → localStorage, kľúč v PACK_KEYS (nie holý
   // reťazec priamo v komponente, tak to má zvyšok /pack).
   const [openCollapsed, setOpenCollapsed] = useState<boolean>(() => readJson(PACK_KEYS.openTripsCollapsed, false));
+  // Archív prejdených sa smie zavrieť a zapamätá si to. Predvolene OTVORENÝ — história je
+  // to, na čo je človek hrdý, a schovať ju bez opýtania by bola strata, nie upratanie.
+  const [walkedCollapsed, setWalkedCollapsed] = useState<boolean>(() => readJson(PACK_KEYS.myWalkedCollapsed, false));
+  const toggleWalkedCollapsed = () => {
+    setWalkedCollapsed((prev) => {
+      const next = !prev;
+      writeJson(PACK_KEYS.myWalkedCollapsed, next);
+      return next;
+    });
+  };
   const toggleOpenCollapsed = () => {
     setOpenCollapsed((prev) => {
       const next = !prev;
@@ -697,6 +717,91 @@ export default function PackTriplist() {
   }
   if (!id.session) return null;
 
+  // ── #43: JEDNA KARTA MOJICH VÝLETOV, DVE MIESTA (18. 9. 2026) ──────────────
+  // Kartu kreslia odteraz dve sekcie (nadchádzajúce + prejdené). Skopírovať tých osemdesiat
+  // riadkov JSX do druhej by znamenalo, že ďalšia oprava badge, dátumu alebo moderácie
+  // prejde len v jednej z nich — presne tak vznikajú dve obrazovky pre tú istú vec.
+  const renderMyCard = ({ entry, trail, done, placeholder }: MyTripRow) => {
+        const dleft = done ? null : daysFromNow(entry.date, nowMs);
+        // #42: badge je prepínač viditeľnosti. Nie na placeholder riadkoch — tie
+        // v DB neexistujú, nie je čo prepínať.
+        //
+        // ⚠️ PREJDENÉ výlety sem PATRIA. Prvá verzia ich vylúčila („čo už sa
+        // zverejňovať") a tým vyrobila slepú uličku: `walked` neprepína `openness`,
+        // takže prejdený výlet ostane visieť v OPEN TRIPS celému packu — aj s
+        // dátumom — a majiteľ ho nemá ako stiahnuť. Badge vtedy hlási „Done", nie
+        // „Looking", takže o tom ani nevie.
+        const canToggleVis = !placeholder;
+        /* ⚠️ ILUSTRAČNÁ FOTKA, NIE ŠEDÁ HORA (Matej 2026-08-25: „výlet sa pridal ale
+           nepridala sa fotka (ilustračná)"). Mapa ju kreslila, triplist nie — tá istá
+           trasa mala na dvoch obrazovkách dva rôzne obrázky, a na tej, kde plány
+           naozaj žijú, ten horší. `.nophoto` ostáva len pre PLACEHOLDER riadky
+           (výlet, ktorý ešte neexistuje) — tam naozaj niet čo ilustrovať. */
+        const cover = trail.photos[0] ?? (placeholder ? '' : placeholderFor(trail.acts, trail.id));
+        // stav v moderácii — len pre členom nahodené výlety, generovaný dataset ho nemá
+        const mod = trailMeta[entry.tripId]?.status;
+        return (
+        <div key={entry.tripId} className="tl-mycard">
+          {dleft !== null && dleft >= 0 && (
+            <span className={`tl-countdown${dleft <= 3 ? ' soon' : ''}`}>{countdownLabel(t, dleft)}</span>
+          )}
+        {/* 🔴 KARTA MUSÍ ÍSŤ AJ KLÁVESNICOU (audit `/map`, opravené 17. 9. 2026).
+            Dovtedy bol celý zoznam `<div onClick>` — teda neexistoval pre tabulátor
+            ani pre čítačku obrazovky. `<Link>` sa tu použiť NEDÁ: karta má vnútri
+            vlastné tlačidlá (dátum, stav) a tlačidlo v odkaze je neplatné HTML.
+            Preto `role="button"` + `tabIndex` + Enter/Medzera — tá istá trojica
+            v oboch zoznamoch nižšie. */}
+        <div
+          className={`tl-block${done ? ' is-done' : ''}`}
+          role="button"
+          tabIndex={0}
+          onClick={() => navigate(tripPath(trail))}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            // ⚠️ Medzera bez `preventDefault` odroluje stránku POD kartou.
+            e.preventDefault();
+            navigate(tripPath(trail));
+          }}
+        >
+          <div className={`tl-block-cover${cover ? '' : ' nophoto'}`} style={cover ? { backgroundImage: `url('${cover}')` } : undefined}>
+            <img className="tl-flag" src={flagUrl(trailCountry(trail))} alt="" loading="lazy" draggable={false} />
+            {/* Kým výlet čaká na schválenie, badge NIE JE prepínač viditeľnosti —
+                prepínať nie je čo, pack ho aj tak nevidí. */}
+            {canToggleVis && !mod ? (
+              <button
+                type="button"
+                className={`tl-block-badge tap ${statusClass(entry, done, parties[entry.tripId])}`}
+                title={t('pack.triplist.whoCanSee')}
+                onClick={(e) => { e.stopPropagation(); setVisTripId(entry.tripId); }}
+              >{statusLabel(t, entry, done, parties[entry.tripId])}</button>
+            ) : (
+              <span className={`tl-block-badge ${statusClass(entry, done, parties[entry.tripId], mod)}`}>{statusLabel(t, entry, done, parties[entry.tripId], mod)}</span>
+            )}
+          </div>
+          <div className="tl-block-info">
+            <div className="tl-block-name">{trail.name}</div>
+            {mod === 'pending' && <div className="tl-block-pendhint">{t('pack.triplist.pendingHint')}</div>}
+            <div className="tl-block-foot">
+              {entry.date ? (
+                <button type="button" className="tl-datebtn" onClick={(e) => { e.stopPropagation(); openAddDate(entry.tripId, entry.date); }}>
+                  {entry.date}
+                </button>
+              ) : (
+                /* Prejdený výlet bez dátumu: to isté tlačidlo, ale nie tá istá veta.
+                   „+ PRIDAŤ DÁTUM" na karte s odznakom HOTOVO vyzerá, akoby sa výlet
+                   ešte len chystal — a takých kariet je 72 zo 73. Mechanika ostáva
+                   (dátum ho posunie medzi nadchádzajúce), mení sa len to, čo sľubuje. */
+                <button type="button" className="tl-datebtn" onClick={(e) => { e.stopPropagation(); openAddDate(entry.tripId); }}>
+                  {t(done ? 'pack.triplist.goAgain' : 'pack.triplist.addDate')}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+        </div>
+        );
+  };
+
   return (
     <div className="pk-paper tl-root">
       <style>{PAPER_PAGE_CSS}</style>
@@ -815,107 +920,60 @@ export default function PackTriplist() {
             </>
           )}
 
-          {/* MY TRIPS — horizontálny slajd, status badge (farebný: done/with/looking/solo), vlajka */}
+          {/* ── MOJE VÝLETY = DVE SEKCIE (#43, 18. 9. 2026) ───────────────────────────
+              Hore to, čo ma ešte len čaká; pod tým archív, ktorý si smiem zavrieť. Dovtedy
+              to bol jeden rad zoradený „najbližší vpredu" — lenže pri 72 prejdených zo 73
+              to znamenalo, že jediná živá karta viedla dlhý sprievod spomienok.
+              ⚠️ Delí sa podľa `done`, NIE podľa dátumu: výlet bez dátumu je stále PLÁN. */}
           <div className="tl-section">
             <div className="tl-sechead">
-              <h3>{t('pack.triplist.myTrips')}</h3>
-              {myTrips.length > 0 && (
+              <h3>{t('pack.triplist.myTripsUpcoming')}</h3>
+              {upcomingTrips.length > 0 && (
                 <span className="tl-sechint">
-                  {t(`pack.triplist.myTripsCount${pluralKey(myTrips.length)}`, { n: myTrips.length })}
+                  {t(`pack.triplist.myTripsCount${pluralKey(upcomingTrips.length)}`, { n: upcomingTrips.length })}
                   <i>{` \u00b7 ${t('pack.triplist.myTripsOrderHint')}`}</i>
                 </span>
               )}
             </div>
-            {myTrips.length === 0 ? (
+            {upcomingTrips.length === 0 ? (
+              /* Prázdno má DVE znenia: kto nemá ani jeden výlet, ten začína („pridaj prvý"),
+                 kto má len prejdené, ten pokračuje („naplánuj ďalší"). Jedna veta pre oboje
+                 by členovi so 72 prejdenými tvrdila, že si nezapísal žiadny výlet. */
               <div className="tl-emptybox">
-                <span className="tl-empty">{t('pack.triplist.emptyMyTrips')}</span>
-                <button type="button" className="tl-emptybtn" onClick={() => navigate('/pack/add/trip')}>{t('pack.triplist.addFirstTrip')}</button>
+                <span className="tl-empty">{t(walkedTrips.length > 0 ? 'pack.triplist.emptyUpcoming' : 'pack.triplist.emptyMyTrips')}</span>
+                <button type="button" className="tl-emptybtn" onClick={() => navigate('/pack/add/trip')}>
+                  {t(walkedTrips.length > 0 ? 'pack.triplist.planNextTrip' : 'pack.triplist.addFirstTrip')}
+                </button>
               </div>
             ) : (
               <div className="tl-hscroll">
-                {myTrips.map(({ entry, trail, done, placeholder }) => {
-                  const dleft = done ? null : daysFromNow(entry.date, nowMs);
-                  // #42: badge je prepínač viditeľnosti. Nie na placeholder riadkoch — tie
-                  // v DB neexistujú, nie je čo prepínať.
-                  //
-                  // ⚠️ PREJDENÉ výlety sem PATRIA. Prvá verzia ich vylúčila („čo už sa
-                  // zverejňovať") a tým vyrobila slepú uličku: `walked` neprepína `openness`,
-                  // takže prejdený výlet ostane visieť v OPEN TRIPS celému packu — aj s
-                  // dátumom — a majiteľ ho nemá ako stiahnuť. Badge vtedy hlási „Done", nie
-                  // „Looking", takže o tom ani nevie.
-                  const canToggleVis = !placeholder;
-                  /* ⚠️ ILUSTRAČNÁ FOTKA, NIE ŠEDÁ HORA (Matej 2026-08-25: „výlet sa pridal ale
-                     nepridala sa fotka (ilustračná)"). Mapa ju kreslila, triplist nie — tá istá
-                     trasa mala na dvoch obrazovkách dva rôzne obrázky, a na tej, kde plány
-                     naozaj žijú, ten horší. `.nophoto` ostáva len pre PLACEHOLDER riadky
-                     (výlet, ktorý ešte neexistuje) — tam naozaj niet čo ilustrovať. */
-                  const cover = trail.photos[0] ?? (placeholder ? '' : placeholderFor(trail.acts, trail.id));
-                  // stav v moderácii — len pre členom nahodené výlety, generovaný dataset ho nemá
-                  const mod = trailMeta[entry.tripId]?.status;
-                  return (
-                  <div key={entry.tripId} className="tl-mycard">
-                    {dleft !== null && dleft >= 0 && (
-                      <span className={`tl-countdown${dleft <= 3 ? ' soon' : ''}`}>{countdownLabel(t, dleft)}</span>
-                    )}
-                  {/* 🔴 KARTA MUSÍ ÍSŤ AJ KLÁVESNICOU (audit `/map`, opravené 17. 9. 2026).
-                      Dovtedy bol celý zoznam `<div onClick>` — teda neexistoval pre tabulátor
-                      ani pre čítačku obrazovky. `<Link>` sa tu použiť NEDÁ: karta má vnútri
-                      vlastné tlačidlá (dátum, stav) a tlačidlo v odkaze je neplatné HTML.
-                      Preto `role="button"` + `tabIndex` + Enter/Medzera — tá istá trojica
-                      v oboch zoznamoch nižšie. */}
-                  <div
-                    className={`tl-block${done ? ' is-done' : ''}`}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => navigate(tripPath(trail))}
-                    onKeyDown={(e) => {
-                      if (e.key !== 'Enter' && e.key !== ' ') return;
-                      // ⚠️ Medzera bez `preventDefault` odroluje stránku POD kartou.
-                      e.preventDefault();
-                      navigate(tripPath(trail));
-                    }}
-                  >
-                    <div className={`tl-block-cover${cover ? '' : ' nophoto'}`} style={cover ? { backgroundImage: `url('${cover}')` } : undefined}>
-                      <img className="tl-flag" src={flagUrl(trailCountry(trail))} alt="" loading="lazy" draggable={false} />
-                      {/* Kým výlet čaká na schválenie, badge NIE JE prepínač viditeľnosti —
-                          prepínať nie je čo, pack ho aj tak nevidí. */}
-                      {canToggleVis && !mod ? (
-                        <button
-                          type="button"
-                          className={`tl-block-badge tap ${statusClass(entry, done, parties[entry.tripId])}`}
-                          title={t('pack.triplist.whoCanSee')}
-                          onClick={(e) => { e.stopPropagation(); setVisTripId(entry.tripId); }}
-                        >{statusLabel(t, entry, done, parties[entry.tripId])}</button>
-                      ) : (
-                        <span className={`tl-block-badge ${statusClass(entry, done, parties[entry.tripId], mod)}`}>{statusLabel(t, entry, done, parties[entry.tripId], mod)}</span>
-                      )}
-                    </div>
-                    <div className="tl-block-info">
-                      <div className="tl-block-name">{trail.name}</div>
-                      {mod === 'pending' && <div className="tl-block-pendhint">{t('pack.triplist.pendingHint')}</div>}
-                      <div className="tl-block-foot">
-                        {entry.date ? (
-                          <button type="button" className="tl-datebtn" onClick={(e) => { e.stopPropagation(); openAddDate(entry.tripId, entry.date); }}>
-                            {entry.date}
-                          </button>
-                        ) : (
-                          /* Prejdený výlet bez dátumu: to isté tlačidlo, ale nie tá istá veta.
-                             „+ PRIDAŤ DÁTUM" na karte s odznakom HOTOVO vyzerá, akoby sa výlet
-                             ešte len chystal — a takých kariet je 72 zo 73. Mechanika ostáva
-                             (dátum ho posunie medzi nadchádzajúce), mení sa len to, čo sľubuje. */
-                          <button type="button" className="tl-datebtn" onClick={(e) => { e.stopPropagation(); openAddDate(entry.tripId); }}>
-                            {t(done ? 'pack.triplist.goAgain' : 'pack.triplist.addDate')}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  </div>
-                  );
-                })}
+                {upcomingTrips.map(renderMyCard)}
               </div>
             )}
           </div>
+
+          {/* PREJDENÉ — archív. Nekreslí sa vôbec, kým niet čo archivovať: prázdna sekcia
+              s nadpisom je nábytok, nie informácia. */}
+          {walkedTrips.length > 0 && (
+            <div className="tl-section">
+              <div className="tl-sechead">
+                <h3>{t('pack.triplist.myTripsWalked')}</h3>
+                <span className="tl-sechint">
+                  {t(`pack.triplist.myTripsCount${pluralKey(walkedTrips.length)}`, { n: walkedTrips.length })}
+                </span>
+                <button type="button" className={`tl-seeall${walkedCollapsed ? ' on' : ''}`} onClick={toggleWalkedCollapsed}>
+                  {walkedCollapsed ? t('pack.triplist.showOpenTrips') : t('pack.triplist.hideOpenTrips')}
+                </button>
+              </div>
+              {walkedCollapsed ? (
+                <div className="tl-empty">{t('pack.triplist.walkedHiddenHint')}</div>
+              ) : (
+                <div className="tl-hscroll">
+                  {walkedTrips.map(renderMyCard)}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="tl-divider" />
 
