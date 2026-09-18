@@ -50,6 +50,15 @@ export const certPdfUrl = (publicId: string) =>
 export const gridTileUrl = (publicId: string, size = 800) =>
   `${BASE_URL}/c_fill,w_${size},h_${size},f_auto,q_auto/${publicId}`;
 
+// Heroglyf na WALL karte — surové PNG z heroflow má 2400 px na šírku a ~90 kB, pritom sa
+// kreslí do rámca ~330 CSS px (hover) resp. 48 % karty (otvorený prekryv). Merané na LIVE
+// 18. 9. 2026: 63 netransformovaných heroglyfov = 5,62 MB zo 7,14 MB celej homepage, teda
+// 79 % prenosu — to zložilo free kvótu Cloudinary. `c_fit` drží pomer strán (3,74:1),
+// `f_auto` dá webp/avif aj s alfou, `q_auto` je bezpečné, lebo CSS filter z obrázka aj tak
+// robí jednofarebnú zlatú siluetu.
+export const heroglyphTileUrl = (publicId: string, size = 720) =>
+  `${BASE_URL}/c_fit,w_${size},f_auto,q_auto/${publicId}`;
+
 export const lightboxUrl = (publicId: string) =>
   `${BASE_URL}/c_fill,w_1200,h_1200,f_auto,q_auto/${publicId}`;
 

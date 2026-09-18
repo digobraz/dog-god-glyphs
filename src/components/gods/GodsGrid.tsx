@@ -7,7 +7,7 @@ import { photoPositions, photos } from './godsData';
 import { EDGE_BASE } from '@/lib/env';
 import { flagUrl, countryISO2, iso2ToISO3, countryFlag } from '@/lib/countryGeo';
 import { track } from '@/lib/analytics';
-import { gridTileUrl } from '@/services/cloudinaryService';
+import { gridTileUrl, heroglyphTileUrl } from '@/services/cloudinaryService';
 import { Seo } from '@/components/Seo';
 import { useToast } from '@/hooks/use-toast';
 import { shareDog, downloadCard, facebookShare, whatsappShare, copyDogLink } from '@/lib/useShareCard';
@@ -128,6 +128,22 @@ function tileImageUrl(rawUrl: string | null): string {
   if (!url) return '';
   const publicId = cloudinaryPublicId(url);
   return publicId ? gridTileUrl(publicId, TILE_SIZE) : url;
+}
+
+// Heroglyf sa kreslí do `calc(100% - 32px)` karty (hover) a do 48 % šírky v otvorenom
+// prekryve — nikdy nie širší než karta (W). Surový asset má 2400 px, takže sa ťahalo
+// ~7x viac pixelov, než sa vykreslí. Rovnaká DPR logika ako TILE_SIZE, cap 2x.
+const HEROGLYPH_SIZE = Math.min(800, Math.max(320, Math.round(
+  W * Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1, 2)
+)));
+
+// Heroglyfová URL pre WALL kartu — sanitizovaná + Cloudinary transform. Vracia pôvodnú
+// URL pre neCloudinary assety (lokálne /images/... fillery), rovnako ako tileImageUrl.
+function heroglyphImageUrl(rawUrl: string | null): string {
+  const url = safeUrl(rawUrl || '');
+  if (!url) return '';
+  const publicId = cloudinaryPublicId(url);
+  return publicId ? heroglyphTileUrl(publicId, HEROGLYPH_SIZE) : url;
 }
 
 function getPos(filename: string): string {
@@ -602,14 +618,14 @@ export function GodsGrid() {
             <span class="card-open-rank">#1</span>
             <span class="card-open-name">HEKTHOR</span>
           </div>
-          <img class="card-open-heroglyph" src="/images/hekthor-heroglyph.webp" alt="HEKTHOR heroglyph" draggable="false">
+          <img class="card-open-heroglyph" src="/images/hekthor-heroglyph.webp" alt="HEKTHOR heroglyph" loading="lazy" draggable="false">
           <div class="card-open-msg">${tRef.current('wall.hektor.msg')}</div>
           <a class="card-open-dogpage-link" href="${dogPagePath('Hekthor', 1)}">${tRef.current('wall.dogPage')}</a>
         </div>
         <div class="card-rank-top">#1</div>
         <img class="card-flag" src="${flagUrl('sk')}" alt="Slovakia" title="Slovakia" loading="lazy" draggable="false">
         <div class="hektor-heroglyph-wrap">
-          <img class="hektor-heroglyph" src="/images/hekthor-heroglyph.webp" alt="Hekthor heroglyph" draggable="false">
+          <img class="hektor-heroglyph" src="/images/hekthor-heroglyph.webp" alt="Hekthor heroglyph" loading="lazy" draggable="false">
         </div>
         <div class="card-name-block">
           <div class="card-label hektor-label">HEKTHOR</div>
@@ -690,7 +706,7 @@ export function GodsGrid() {
       el.className = fill ? 'dog-card dog-card--fill' : 'dog-card';
       el.style.left = (col * GX) + 'px';
       el.style.top  = (row * GY) + 'px';
-      const overlayHeroSrc = dog.heroglyph_png_url ? esc(dog.heroglyph_png_url) : '';
+      const overlayHeroSrc = esc(heroglyphImageUrl(dog.heroglyph_png_url));
       const tileSrc = esc(tileImageUrl(dog.cloudinary_main_url));
       // Verejná stránka psa — len keď máme reálne dáta (pack_number + meno) z DB.
       // Fillery bez čísla (edge/transitional stav) tlačidlo nedostanú.
@@ -702,7 +718,7 @@ export function GodsGrid() {
         <div class="card-open-overlay">
           <div class="card-open-rank">#${packNum}</div>
           <div class="card-open-name">${safeName}</div>
-          ${overlayHeroSrc ? `<img class="card-open-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" draggable="false">` : ''}
+          ${overlayHeroSrc ? `<img class="card-open-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" loading="lazy" draggable="false">` : ''}
           ${dog.owner_message ? `<div class="card-open-msg">${esc(dog.owner_message)}</div>` : ''}
           ${dogPageHref ? `<a class="card-open-dogpage-link" href="${dogPageHref}">${tRef.current('wall.dogPage')}</a>` : ''}
         </div>
@@ -710,7 +726,7 @@ export function GodsGrid() {
         ${cc ? `<img class="card-flag" src="${flagUrl(cc)}" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">` : ''}
         ${overlayHeroSrc ? `
         <div class="dog-heroglyph-wrap">
-          <img class="dog-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" draggable="false">
+          <img class="dog-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" loading="lazy" draggable="false">
         </div>` : ''}
         <div class="card-name-block">
           <div class="card-label">${safeName}</div>
