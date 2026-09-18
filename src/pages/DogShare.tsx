@@ -10,6 +10,7 @@ import { countryISO2, flagUrl, iso2ToISO3 } from '@/lib/countryGeo';
 import { useT } from '@/i18n/LanguageContext';
 import legendIconUrl from '@/assets/legend-icon.svg';
 import angelIconUrl from '@/assets/angel-icon.svg';
+import { withTransform } from '@/services/cloudinaryService';
 
 /**
  * Public share landing — `/d/:pack` (legacy) and `/dog/:slug` (canonical,
@@ -289,6 +290,15 @@ export default function DogShare() {
 
   const dogName = dog?.dog_name || 'This dog';
   const ogImage = dog?.share_card_url || dog?.cloudinary_main_url || DEFAULT_OG;
+  // Share karta je surové PNG z generátora — pre psa #1 má 1,08 MB z 1,8 MB celej
+  // stránky (merané na LIVE 18. 9. 2026). Tá istá URL išla do dvoch úplne rôznych
+  // miest, a preto sa transformuje DVOMA rôznymi spôsobmi:
+  //   • `cardImg`  — náhľad na stránke, kreslí sa do 390 CSS px
+  //   • `cardOg`   — og:image pre crawlerov; Facebook chce ≥ 1200 px, ale nie surový PNG
+  // Pôvodnú veľkosť si ponecháva len stiahnutie karty (`downloadCard`), kde je celá
+  // pointa v tom, že je veľká.
+  const cardImg = withTransform(ogImage, 'c_fit,w_780,f_auto,q_auto');
+  const cardOg = withTransform(ogImage, 'c_fit,w_1200,f_auto,q_auto');
   const seoTitle = status === 'found' ? `${dogName} — DOGYPT` : 'DOGYPT';
   const seoDescription =
     status === 'found'
@@ -326,7 +336,7 @@ export default function DogShare() {
         description={seoDescription}
         path={status === 'found' && packNum !== null ? dogPagePath(dogName, packNum) : window.location.pathname}
         type="article"
-        ogImage={ogImage}
+        ogImage={cardOg}
       />
       <style>{`
         /* Matches WALL hero CTA (.join-btn in GodsGrid.tsx) 1:1 — gradient, border,
@@ -469,7 +479,7 @@ export default function DogShare() {
             <div className="flex flex-col items-center gap-4 w-full md:w-auto">
               {ogImage && (
                 <img
-                  src={ogImage}
+                  src={cardImg}
                   alt={`${dogName} — DOGYPT share card`}
                   className="dogshare-photo w-full max-w-[390px] md:w-[min(390px,calc(100dvh_-_380px))] md:max-w-none"
                 />

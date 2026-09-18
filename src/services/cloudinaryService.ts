@@ -59,6 +59,21 @@ export const gridTileUrl = (publicId: string, size = 800) =>
 export const heroglyphTileUrl = (publicId: string, size = 720) =>
   `${BASE_URL}/c_fit,w_${size},f_auto,q_auto/${publicId}`;
 
+// Transformácia pre URL, ktorú už máme hotovú v DB (`share_card_url`, `cloudinary_main_url`),
+// teda bez publicId po ruke. Vloží segment hneď za `/image/upload/`.
+//
+// ⚠️ Cudziu URL vracia NEZMENENÚ. Share karta padá na `DEFAULT_OG` hostovaný mimo
+// Cloudinary a slepý prepis by z neho vyrobil 404 — teda z plytvania poruchu.
+// ⚠️ Už transformovanú URL nechá tiež na pokoji: dva segmenty za sebou Cloudinary
+// prijme, ale výsledok je reťazená transformácia, nie tá žiadaná.
+export const withTransform = (url: string | null | undefined, transform: string): string => {
+  if (!url || !url.includes('/image/upload/')) return url ?? '';
+  const [pred, za] = url.split('/image/upload/');
+  const prvy = za.split('/')[0];
+  if (/(^|,)(c_|w_|h_|f_auto|q_auto|dpr_)/.test(prvy)) return url;
+  return `${pred}/image/upload/${transform}/${za}`;
+};
+
 export const lightboxUrl = (publicId: string) =>
   `${BASE_URL}/c_fill,w_1200,h_1200,f_auto,q_auto/${publicId}`;
 
