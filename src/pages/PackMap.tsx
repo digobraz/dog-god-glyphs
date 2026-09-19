@@ -1123,12 +1123,16 @@ const CSS = `
 
 /* place-search box — iterácia 9 (Matejov feedback bod 2): tmavá/glass karta
    (bola svetlý papyrus), ladí s ostatnými tmavými prvkami nad mapou. */
-.trp-mapsearch{display:flex;align-items:center;gap:9px;width:100%;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:12px;padding:10px 15px;box-shadow:0 6px 22px rgba(0,0,0,0.4);}
+/* Zvisly padding nesie INPUT, nie obal (2026-09-19). Namerane na 390 px: pilulka
+   285x40, input v nej 238x24 - klik na jej okraj nezafokusoval NIC, cize clovek tukol
+   na pole a appka mlcala. Padding sa len prestahoval dovnutra, takze vyska pilulky
+   ani vzhlad sa nemenia; menia sa hranice, ktore reaguju na prst. */
+.trp-mapsearch{display:flex;align-items:center;gap:9px;width:100%;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:12px;padding:0 15px;box-shadow:0 6px 22px rgba(0,0,0,0.4);}
 .trp-mapsearch img{width:15px;height:15px;filter:brightness(0) invert(1);opacity:0.6;flex-shrink:0;}
 /* ⚠️ 16 px — iOS Safari inak pri kliknutí do poľa priblíži celý dokument a ovládanie
    ukotvené k okrajom mapy vypadne mimo obrazovky (feedback_dogypt_form_input_recurring_bugs;
    presne toto zhodilo hľadanie miesta v kreslení 23. 8.). Platí na každý input nad mapou. */
-.trp-mapsearch input{background:transparent;border:0;outline:0;color:${T.onDark};font-size:16px;width:100%;font-family:inherit;}
+.trp-mapsearch input{background:transparent;border:0;outline:0;color:${T.onDark};font-size:16px;width:100%;font-family:inherit;padding:10px 0;align-self:stretch;box-sizing:border-box;}
 .trp-mapsearch input::placeholder{color:${T.onDarkDim};}
 .trp-mapsug{background:rgba(6,5,3,0.94);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid ${T.onDarkBorder};border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.5);max-height:260px;overflow-y:auto;}
 .trp-mapsug-item{padding:10px 15px;cursor:pointer;border-bottom:1px solid ${T.onDarkHair};transition:background .12s;}
@@ -1926,7 +1930,8 @@ ${TRAIL_LINE_CSS}
      Teraz: search + jedna „Filters · N" pilulka, ktorá otvára .trp-msheet so VŠETKÝMI
      filtrami (country, región, activity, difficulty, crowd, tagy, sort). */
   .trp-mheader-row2{display:flex;align-items:center;gap:8px;}
-  .trp-mheader .trp-mapsearch{flex:1 1 auto;min-width:0;padding:7px 12px;border-radius:999px;}
+  .trp-mheader .trp-mapsearch{flex:1 1 auto;min-width:0;padding:0 12px;border-radius:999px;}
+  .trp-mheader .trp-mapsearch input{padding:7px 0;}
   .trp-mheader .trp-mapsearch img{width:12px;height:12px;}
   /* NEZNIŽOVAŤ POD 16 px — viď pravidlo pri .trp-mapsearch input vyššie. */
   .trp-mfilterwrap{position:relative;flex:0 0 auto;}
@@ -6340,9 +6345,15 @@ export default function PackMap() {
         <div className="trp-mheader-row2">
           <div className="trp-mapsearch">
             <img src={ICON('globe')} alt="" />
+            {/* Pole hladania bolo UPLNE NEME: bez placeholdera aj bez aria-label, takze
+                v hlavicke stala prazdna pilulka s ikonkou zemegule a clovek nemal ako
+                vediet, ze sa v nej hlada miesto. CSS pre ::placeholder pritom existuje
+                na troch miestach - text jediny chybal. */}
             <input
               value={placeQuery}
               onChange={(e) => setPlaceQuery(e.target.value)}
+              placeholder={t('pack.map.searchPlace')}
+              aria-label={t('pack.map.searchPlace')}
             />
           </div>
           {/* Matej 2026-07-27: jedna „Filters · N" pilulka namiesto troch selectov — všetky
@@ -7135,6 +7146,8 @@ export default function PackMap() {
                     <input
                       value={placeQuery}
                       onChange={(e) => setPlaceQuery(e.target.value)}
+                      placeholder={t('pack.map.searchPlace')}
+                      aria-label={t('pack.map.searchPlace')}
                     />
                   </div>
                   {/* NIČ SA NENAŠLO — tá istá doska ako ponuka, aby odpoveď prišla tam,

@@ -3116,6 +3116,7 @@ export const en = {
   'pack.map.tagsAriaLabel': "Tags",
   'pack.map.tags': "Tags",
   'pack.map.tagsCount': "Tags · {n}",
+  'pack.map.searchPlace': "Search for a place",
   'pack.map.filterByTag': "Filter by tag",
   'pack.map.clear': "Clear",
   'pack.map.toastLinkCopied': "Link copied",

@@ -2836,6 +2836,7 @@ export const sk: Partial<Dict> = {
   'pack.map.tagsAriaLabel': "Tagy",
   'pack.map.tags': "Tagy",
   'pack.map.tagsCount': "Tagy · {n}",
+  'pack.map.searchPlace': "Hľadaj miesto",
   'pack.map.filterByTag': "Filtruj podľa tagu",
   'pack.map.clear': "Vymazať",
   'pack.map.toastLinkCopied': "Odkaz skopírovaný",
