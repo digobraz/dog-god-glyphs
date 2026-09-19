@@ -1590,6 +1590,7 @@ export const cs: Partial<Dict> = {
   'pack.map.errorPhotosDropped': 'Výlet je uložený, ale fotky se do úložiště zařízení nevešly. Otevři ho a přidej je znovu.',
   'pack.map.errorPhotosStorage': 'Nepodařilo se uložit — fotky jsou pro úložiště tohoto zařízení příliš velké. Pár jich uber a zkus to znovu.',
   'pack.map.expandToFullPage': 'Rozbalit na celou stránku',
+  'pack.map.searchPlace': 'Hledat místo',
   'pack.map.filterByTag': 'Filtruj podle tagu',
   'pack.map.filters': 'Filtry',
   'pack.map.filtersCount': 'Filtry · {n}',
