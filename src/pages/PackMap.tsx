@@ -1244,7 +1244,11 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
 .trp-mstats2{display:none;flex-direction:column;gap:1px;min-width:0;}
 .trp-mstats2 span{display:flex;align-items:baseline;gap:5px;white-space:nowrap;line-height:1.05;}
 .trp-mstats2 b{font-family:${FONT_UI};font-weight:600;font-size:17px;letter-spacing:0;color:rgba(245,240,228,0.94);font-variant-numeric:tabular-nums;}
-.trp-mstats2 i{font-family:${FONT_UI};font-style:normal;font-weight:500;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:${T.onDarkDim};}
+/* 9px -> 10px (2026-09-19): deviatka je MIMO brandovej stupnice, najmensia povolena
+   hodnota je PACK_TEXT.micro = 10. Zdvih je jeden pixel a riadok sa nerozbil
+   (overene fotkou na 390 aj 500 px), takze to nie je zmena dizajnu, ale navrat
+   k systemu. Struktura z locku - dva riadky km + vylety - ostava nedotknuta. */
+.trp-mstats2 i{font-family:${FONT_UI};font-style:normal;font-weight:500;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:${T.onDarkDim};}
 .trp-midentity:hover .trp-level-name{color:#fff;}
 .trp-level-name{font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:rgba(245,240,228,0.92);}
 .trp-level-num{display:inline-flex;align-items:baseline;gap:5px;font-family:${FONT_UI};line-height:1;background:linear-gradient(135deg,var(--tier-a,#F5C73D),var(--tier-b,#E69E1A));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 7px var(--tier-glow,rgba(245,199,61,0.35)));}

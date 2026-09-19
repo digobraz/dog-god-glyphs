@@ -791,7 +791,7 @@
   },
   "pages/PackMap.tsx": {
     "radius": 22,
-    "font": 73,
+    "font": 72,
     "zavoj": 71,
     "progres": 0,
     "ram": 28,
