@@ -1849,7 +1849,7 @@ ${TRAIL_LINE_CSS}
   /* 106 → 118 px spolu s padding-bottom hlavičky (10 → 22). Tieto dve čísla idú vždy
      spolu: ovládanie mapy visí PRÁVE POD hlavičkou a keby ostalo na 106, vliezlo by do
      hľadacieho riadku, ktorý sme práve odlepili od hrany. */
-  .trp-ctlstack{top:calc(env(safe-area-inset-top,0px) + 118px);right:12px;gap:7px;}
+  .trp-ctlstack{top:calc(env(safe-area-inset-top,0px) + 118px);right:12px;gap:12px;}
 
   .trp-stylebtn{width:34px;height:34px;}
   .trp-stylebtn img{width:16px;height:16px;}
@@ -1857,6 +1857,27 @@ ${TRAIL_LINE_CSS}
   .trp-zoomgroup button{width:34px;height:32px;font-size:15px;}
   .trp-locatebtn{width:34px;height:34px;}
   .trp-locatebtn img{width:16px;height:16px;}
+
+  /* 🖐️ DOTYKOVÉ CIELE OVLÁDAČOV MAPY (2026-09-19). Namerané sondou scripts/map-sonda.mjs
+     na 390 aj 500 px: vrstvy 34×34, poloha 34×34, zoom 34×32 — všetky POD 44 px, teda pod
+     hranicou, ktorú palec trafí spoľahlivo. Mobilná vetva ich zámerne zmenšuje z 38 px,
+     aby sa zmestili pod dvojriadkovú hlavičku — preto sa VZHĽAD NEMENÍ a rozširuje sa iba
+     klikateľná plocha neviditeľným ::after.
+     ⚠️ gap musel ísť 7 → 12 px: pri siedmich by sa rozšírené plochy dvoch susedov
+     prekryli o 3 px a spodný by hornému ukradol klik (prvý nájdený v hit-teste vyhráva) —
+     tá istá pasca ako pri spodnom páse. 12 je hodnota z PACK_SPACE, 7 ani 10 v nej nie sú.
+     ⚠️ Zoom sa rozširuje LEN DO STRÁN: jeho dve tlačidlá sú nad sebou bez medzery, takže
+     zvislý presah by kradol klik susedovi vnútri toho istého bloku. Ostáva 44×32.
+     ⚠️ Panel vrstiev musí byť NAD plochou, inak mu tlačidlo ukradne horný okraj. */
+  .trp-stylebtn, .trp-locatebtn, .trp-zoomgroup button{position:relative;}
+  .trp-stylebtn::after, .trp-locatebtn::after{content:'';position:absolute;inset:-5px;border-radius:inherit;z-index:0;}
+  /* Zoom potreboval navyše overflow: jeho rodic ma overflow:hidden kvoli zaobleniu rohov
+     a ten presah ::after ticho orezal - oprava merala 34x32 aj po nasadeni. Pozadie aj
+     blur nesie RODIC a tlacidla maju background:none, takze uvolnenim presahu sa vizual
+     nemeni; preteci len neviditelna plocha. */
+  .trp-zoomgroup{overflow:visible;}
+  .trp-zoomgroup button::after{content:'';position:absolute;top:0;bottom:0;left:-5px;right:-5px;z-index:0;}
+  .trp-layersdd-panel{z-index:2;}
 
   /* 2026-08-22: text mal white-space:nowrap a kontajner sa nezalamoval, takže na 430 px
      vytlačil tlačidlo HOTOVO za pravý okraj bubliny AJ za okraj obrazovky (merané: bublina
