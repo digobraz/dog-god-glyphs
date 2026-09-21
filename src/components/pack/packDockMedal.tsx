@@ -19,9 +19,10 @@
 //    „pridávam do MOZGU". Je to ten istý omyl, ktorý je zapísaný v `PackMap.tsx` (22. 8.):
 //    „dve tlačidlá vedľa seba robili DVE RÔZNE veci a vyzerali IDENTICKY."
 //
-// ⚠️ `+` JE ZNAK, NIE IKONKA (Matej 21. 9. 2026: „použi plus sign nie plus v krúžku").
-//    Kreslia ho DVA ťahy v CSS. `/icons/pack/plus.svg` z kitu tu držal miesto pol hodiny
-//    a bola to chyba: je to plus v KRUHU, takže v kotúči vznikli tri sústredné kruhy.
+// ⚠️ `+` JE KRESBA Z KITU — `/icons/pack/plus-sign.svg` (Matej 21. 9. 2026 poslal kartu
+//    z kitu: „tento plus sign!"). NIE `plus.svg`: ten je „plus v krúžku" a v kotúči z neho
+//    boli tri sústredné kruhy. A nie ani geometrický ťah v CSS, ktorý tu bol medzitým —
+//    kit má vlastnú ručnú kresbu a tá je brand.
 //
 // ⚠️ NÁZVY OSTÁVAJÚ `pk-medal*`, `DOCK_MEDAL_CSS`, `--pack-medal-x`, `--pack-medal-rise`.
 //    Odoberajú ich CUDZIE súbory (`AinubisWidget.css`, rad nad mapou v `PackMap.tsx`,
@@ -263,29 +264,27 @@ export const DOCK_MEDAL_CSS = `
     inset 0 -8px 14px -6px rgba(0,0,0,0.65),
     inset 0 0 0 1px rgba(0,0,0,0.4);
 }
-/* ── PLUS NA DISPLEJI — DVA ŤAHY, NIE IKONKA ────────────────────────────────────────
-   Matej 21. 9. 2026: „použi plus sign nie plus v krúžku." Do vtedy tu držal miesto
-   /icons/pack/plus.svg z kitu — lenže tá kresba je plus VNÚTRI kruhu, takže v kotúči
-   (ktorý je sám kruh a má ešte zlatú obruč) vznikli tri sústredné kruhy.
-   ⚠️ Plus sa preto kreslí DVOMA obdĺžnikmi, nie SVG súborom. Nie je to obchádzka brandu:
-      krížik nie je ikonka, je to znak — a kit ho v tejto podobe nemá. Stráž check:ikony
-      meria mená lucide, emoji a holé textové znaky (× ✓ ⤢); geometrický ťah v CSS
-      medzi ne nepatrí a nič nepribudne.
+/* ── PLUS NA DISPLEJI — KRESBA Z KITU, NIE ZNAK ────────────────────────────────────
+   Matej 21. 9. 2026 poslal kartu z kitu: „tento plus sign!" Je to
+   plus-hand-drawn-sign-svgrepo-com.svg z vstupy/vizualna-identita/Icons hand drawn/,
+   prekopírovaná sem ako /icons/pack/plus-sign.svg.
+   ⚠️ NIE plus.svg, ktorý už v kite je — to je „plus-sign-BUTTON: circle and cross",
+      teda plus v KRUHU. V kotúči (sám kruh + zlatá obruč) z neho boli tri sústredné kruhy
+      a Matej to vrátil dvakrát: najprv „použi plus sign nie plus v krúžku", potom obrázkom.
+   ⚠️ Medzikrok boli dva obdĺžniky v CSS. Vyzeralo to čisto, ale bol to GEOMETRICKÝ znak —
+      kit má vlastný, ručne kreslený ťah s nerovnými hranami a ten je brand.
+   ⚠️ KRESLÍ SA MASKOU, nie <img> s filtrom: filter farbu aproximuje, maska ju trafí presne.
+      Vzor je dlaždica chatu v PackAinubis.tsx.
    ⚠️ Rozmer drží ten istý kľúč, aký držal hlavu AINUBISA — DOCK.faceW je Matejovo číslo
-      z nákresu a nemení sa. Hrúbka 4 px je jediné nové číslo a je to hrúbka ťahu, nie
-      odsadenie, takže sa nemeria proti stupnici odsadení.
-   ⚠️ inset:0; margin:auto s JEDNÝM pevným rozmerom = ťah sa vycentruje a druhou osou
-      vyplní celý rámček. Pri left/top: 50% by sa pri zmene hrúbky rozišiel so stredom. */
+      z nákresu a nemení sa; koeficient len necháva okolo plusu toľko lapisu, koľko
+      nechávala hlava. */
 .pk-medal-plus{
-  position:relative;display:block;
-  width:${(DOCK.faceW * 0.46).toFixed(0)}%;height:${(DOCK.faceW * 0.46).toFixed(0)}%;
+  display:block;
+  width:${(DOCK.faceW * 0.58).toFixed(0)}%;height:${(DOCK.faceW * 0.58).toFixed(0)}%;
+  background:#F5F0E4;
+  -webkit-mask:url(/icons/pack/plus-sign.svg) center / contain no-repeat;
+  mask:url(/icons/pack/plus-sign.svg) center / contain no-repeat;
 }
-.pk-medal-plus::before,.pk-medal-plus::after{
-  content:'';position:absolute;inset:0;margin:auto;
-  background:#F5F0E4;border-radius:2px;
-}
-.pk-medal-plus::before{height:4px;}
-.pk-medal-plus::after{width:4px;}
 .pk-medal-gloss{
   position:absolute;inset:0;border-radius:50%;pointer-events:none;mix-blend-mode:screen;
   background:
