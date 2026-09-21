@@ -96,8 +96,11 @@ export const POI_EMOJI: Record<TrailPoiType, string> = {
   waterfall: '💦',
   cave: '🦇',
   tower: '🗼',
-  firepit: '🏕️',
-  cliff: '⛰️',
+  // 🔥 (Matej 21. 9. 2026): 🏕️ nieslo TRI významy — ohnisko z OSM, podujatie
+  // „tábor" a chip „Camping". Chip si stan nechal, ohnisko dostalo plameň.
+  firepit: '🔥',
+  // 🗻 (Matej 21. 9. 2026): ⛰️ ostalo riadku „Výlet" v kalendári psa.
+  cliff: '🗻',
 };
 
 /**
@@ -249,7 +252,9 @@ export const TRIP_TARGET_EMOJI = '📍';
  * · 🐕 spoločná prechádzka — celý pes; 🐶 (hlava) je v tejto sade obsadené
  *      komentárom svorky, ale ten stojí v ZELENOM kruhu, takže sa nepomýlia
  * · ❤️ charita — nie 🎗️ (stužka je v Európe čítaná ako konkrétna choroba)
- * · 🏕️ tábor — viacdňové; ⛺ je obsadené aktivitou „overnight" v chipoch mapy
+ * · 🔮 tábor — viacdňové. ⚠️ BOLO 🏕️ do 21. 9. 2026, kedy register značiek
+ *   ukázal, že ten istý stan nesie aj ohnisko z OSM aj chip „Camping" z výletov;
+ *   Matej vybral čarovnú guľu. ⛺ voľné nie je — drží ho kemp v `SLEEP_EMOJI`.
  * · 🎪 veľtrh — veľká hala plná stánkov
  */
 export const EVENT_EMOJI: Record<EventKind, string> = {
@@ -259,7 +264,7 @@ export const EVENT_EMOJI: Record<EventKind, string> = {
   lecture: '🎓',
   social_walk: '🐕',
   charity: '❤️',
-  camp: '🏕️',
+  camp: '🔮',
   expo: '🎪',
 };
 

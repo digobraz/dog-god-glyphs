@@ -113,7 +113,8 @@ const TRIP_BLOCKS: Array<{ state: TripState; emoji: string; titleKey: string; te
 
 // Druhá úroveň pre EVENT (§2.2 + Matejov feedback 2026-08-06) — rovnaký vzor ako TRIP_BLOCKS.
 const EVENT_BLOCKS: Array<{ origin: 'own' | 'tip'; emoji: string; titleKey: string; textKey: string }> = [
-  { origin: 'own', emoji: '📝', titleKey: 'pack.addTrip.entry.event.own.title', textKey: 'pack.addTrip.entry.event.own.text' },
+  // 🎃 (Matej 21. 9. 2026) — 📝 tu kolidovalo s denníkom v kalendári.
+  { origin: 'own', emoji: '🎃', titleKey: 'pack.addTrip.entry.event.own.title', textKey: 'pack.addTrip.entry.event.own.text' },
   { origin: 'tip', emoji: '🔗', titleKey: 'pack.addTrip.entry.event.tip.title', textKey: 'pack.addTrip.entry.event.tip.text' },
 ];
 

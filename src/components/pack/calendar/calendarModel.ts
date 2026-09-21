@@ -326,13 +326,18 @@ export interface LogType {
 }
 
 export const LOG_TYPES: Record<LogKind, LogType> = {
-  // ⛰️ zhodné s `POI_EMOJI.cliff` na mape.
+  // ⛰️ už NIE JE zhodné s `POI_EMOJI.cliff` — tá dostala 🗻 (Matej 21. 9. 2026),
+  // lebo bralo z OSM a výlet psa nie je tá istá vec. Výletu ⛰️ ostalo.
   trip: { emoji: '⛰️', group: 'log', nameSK: 'Výlet', i18n: 'pack.cal.type.trip' },
   // 💉 kryje odber, vakcínu aj odčervenie u lekára. 🩺 je Emoji 12.0 (2019) = mimo sady.
   vet: { emoji: '💉', group: 'vet', nameSK: 'Veterinár', i18n: 'pack.cal.type.vet' },
   deworm: { emoji: '💊', group: 'vet', nameSK: 'Odčervenie', i18n: 'pack.cal.type.deworm' },
-  // 📝 písanie, nie čítanie. 📖 je otvorená kniha — to je ústava, nie zápisník.
-  note: { emoji: '📝', group: 'log', nameSK: 'Denník', i18n: 'pack.cal.type.note' },
+  // 🗓️ (Matej 21. 9. 2026). Bolo 📝 („písanie, nie čítanie; 📖 je ústava"), lenže
+  // ten istý znak niesol aj „naše vlastné podujatie" v paneli `+`.
+  // ⚠️ DVOJIČKA: čip `DIARY_CHIPS.note` v `diary/diaryModel.ts` zapisuje PRÁVE
+  //    do tohto riadku. Keď sa mení jeden, musí sa meniť aj druhý — inak človek
+  //    klikne jedno emoji a v kalendári mu pribudne iné.
+  note: { emoji: '🗓️', group: 'log', nameSK: 'Denník', i18n: 'pack.cal.type.note' },
   alone: { emoji: '🏠', group: 'log', nameSK: 'Deň bez seba', i18n: 'pack.cal.type.alone' },
   // ⭐ MÍĽNIK (21. 9. 2026, KROK 5 — denník dostal pisateľa `components/pack/diary/`).
   // Prvé plávanie, gotcha day, prvý raz sám doma. Od poznámky sa líši váhou, nie obsahom:
