@@ -1184,6 +1184,17 @@ function AinubisWidgetInner() {
             </div>
           )}
 
+          {/* ŠTÍTOK „UČÍM SA" (21. 9. 2026, Matejovo rozhodnutie „pilulka áno, ale nie BETA").
+              ⚠️ NIE keď beží `takeoverActive` — vtedy odpovedá Matej, nie stroj, a veta
+              „over si, čo ti poviem" by spochybňovala človeka.
+              ⚠️ Je to jediná VIDITEĽNÁ hranica pri zdravotných radách; textový disclaimer
+              žije len v systémovom prompte, kam človek nevidí. Preto stojí v páse pod
+              hlavičkou (rovnaký vzor ako prúžok prevzatia), nie v intre — intro sa po
+              pár správach odroluje a s ním by zmizla aj výhrada. */}
+          {!takeoverActive && (
+            <div className="ainubis-panel__learning">{copy.learning}</div>
+          )}
+
           <div className="ainubis-panel__body" ref={bodyRef}>
             {/* Intro karta — len kým je konverzácia prázdna (rovnaká podmienka
                 ako návrhy pod ňou). Akonáhle človek napíše, odscrolluje sa

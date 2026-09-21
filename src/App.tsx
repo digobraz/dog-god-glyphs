@@ -97,6 +97,7 @@ const PackMap = lazy(() => import("./pages/PackMap.tsx"));
 const PackTripArticle = lazy(() => import("./pages/PackTripArticle.tsx")); // iterácia 12 bod 5 — ⤢ expand full-page article
 const PackTriplist = lazy(() => import("./pages/PackTriplist.tsx")); // TRIPLIST hub — Slice A (plany/zadanie-triplist-sliceA-2026-07-23.md)
 const PackDogs = lazy(() => import("./pages/PackDogs.tsx"));
+const PackAinubis = lazy(() => import("./pages/PackAinubis.tsx")); // kostra AINUBISA — `/pack/ainubis` (rozhodnutia 4A+5A, 21. 9. 2026)
 const PackDogQuiz = lazy(() => import("./pages/PackDogQuiz.tsx")); // fullscreen kvíz (zadanie-mypack-petpas-2026-08-06 §6)
 const PackNatureQuiz = lazy(() => import("./pages/PackNatureQuiz.tsx")); // osobnostný kvíz element+úloha (zadanie-osobnostny-kviz-2026-08-06)
 const Login = lazy(() => import("./pages/Login.tsx"));
@@ -310,6 +311,11 @@ const App = () => (
               {/* Osobnostný kvíz (element + úloha v svorke). Cesta je `/pack/nature` zámerne:
                   `/pack/dogs/quiz/nature` by zachytil `:key` vyššie a `/pack/dogs/nature` zjedol `:id`. */}
               <Route path="/pack/nature" element={DEV_FULL ? <PackNatureQuiz /> : <Navigate to="/pack" replace />} />
+              {/* KOSTRA AINUBISA — miesto chrbtice, kôš 1 „SOM DOMA" (lock architektura-pack §3).
+                  Za `DEV_FULL` z toho istého dôvodu ako `/pack/dogs`: obrazovka ide von
+                  s 1. vlnou, nie skôr. Chat sa z nej otvára cez `ainubisBus`, takže widget
+                  ostáva tam, kde je — root-level singleton mimo `/pack` stromu. */}
+              <Route path="/pack/ainubis" element={DEV_FULL ? <PackAinubis /> : <Navigate to="/pack" replace />} />
 
               <Route path="/cert-render/:id" element={<CertRender />} />
               <Route path="/invoice-render/:id" element={<InvoiceRender />} />

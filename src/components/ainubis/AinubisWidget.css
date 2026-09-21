@@ -381,6 +381,24 @@ body.has-pack-nav .ainubis-panel {
   color: rgba(245, 199, 61, 0.9);
 }
 
+/* ── ŠTÍTOK „UČÍM SA" (21. 9. 2026) ─────────────────────────────────────────
+   Dvojča prúžku prevzatia o riadok vyššie, len v CYAN namiesto zlatej: zlatá
+   znamená „hovorí človek", cyan „hovorí stroj". Zobrazuje sa vždy, keď slovo
+   NEPREVZAL Matej — je to trvalá výhrada, nie hláška.
+   ⚠️ Slovo „BETA" tu zámerne NIE JE (Matej 21. 9.): je to startup žargón a hlas
+   má byť ten istý ako banner v kostre `/pack/ainubis`. */
+.ainubis-panel__learning {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(var(--ainubis-cyan-rgb), 0.78);
+  background: rgba(var(--ainubis-cyan-rgb), 0.06);
+  border-bottom: 1px solid rgba(var(--ainubis-cyan-rgb), 0.16);
+  text-align: center;
+}
+
 .ainubis-panel__takeover i {
   width: 6px;
   height: 6px;

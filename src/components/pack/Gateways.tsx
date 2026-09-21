@@ -29,7 +29,7 @@
 import { PACK_THEME, FONT_TITLE, FONT_UI } from './packTheme';
 import { AINUBIS } from './ainubisSkin';
 import { markConstitutionOpened } from '@/lib/constitutionRead';
-import { openAinubis } from '@/lib/ainubisBus';
+import { Link } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import ainubisHead from '@/assets/ainubis-head.png';
 
@@ -185,7 +185,13 @@ const CSS = `
 }
 @media (min-width:721px){ .gw-ainubis .gw-art{ right:-28%; width:66%; } }
 
-/* ── Značka „plná verzia čoskoro" (Matej 9.8.: „daj preč ten ribbon COMING SOON a dajme
+/* ── Značka „plná verzia čoskoro" — 🅿️ PARKUJE OD 21. 9. 2026 ─────────────────
+   Čip zanikol rozhodnutím 4A: ten istý príbeh („chýba plná verzia") nesie banner
+   v kostre /pack/ainubis, a povedaný dvakrát je z neho ospravedlňovanie.
+   Pravidlá NEMAŽEM — sú tu rovnako ako QuickTiles/PackTree: keby sa čip niekedy
+   vrátil na inú dlaždicu, vráti sa aj s históriou, prečo vyzerá takto.
+   ⚠️ Kľúč pack.gateway.comingSoon z i18n preto tiež NEMAŽEM.
+   (Matej 9.8.: „daj preč ten ribbon COMING SOON a dajme
    to že full version alebo dashboard coming soon") ────────────────────────────
    Šikmá stužka cez roh tvrdila, že karta NEFUNGUJE — pritom klik otvára chat presne ako
    doteraz. Nahradil ju drobný čip NAD menom: hovorí, že chýba len plná verzia, a nesie
@@ -286,18 +292,22 @@ export function Gateways() {
         </a>
 
         {/* ── AINUBIS — text vľavo, obrázok VPRAVO (zrkadlo) ─────────────────── */}
-        <button className="gw gw-ainubis pack-card-hover" type="button" onClick={openAinubis}>
+        {/* ⚠️ KLIK VEDIE DO KOSTRY `/pack/ainubis`, UŽ NIE ROVNO DO CHATU (Matej 21. 9.,
+            rozhodnutie 4A). Dôvod: AINUBIS prestáva byť akcia a stáva sa MIESTOM —
+            sedem svetov, ktoré sa otvárajú jeden po druhom. Chat z toho miesta vedie
+            ďalej a je v ňom označený ako jediná živá vec.
+            ⚠️ Čip „plná verzia čoskoro" tým ZANIKOL: ten istý príbeh nesie banner
+            v kostre a povedaný dvakrát je z neho ospravedlňovanie (nákres 21. 9.:
+            „čip na dlaždici AINUBIS — nahradí ho banner v kostre"). */}
+        <Link className="gw gw-ainubis pack-card-hover" to="/pack/ainubis">
           <span className="gw-art"><img src={ainubisHead} alt="" aria-hidden /></span>
           <span className="gw-body">
-            {/* Čip hovorí, že chýba PLNÁ verzia — klik otvára chat úplne normálne, presne
-                ako doteraz. Preto tu už nie je stužka „COMING SOON" cez roh. */}
-            <span className="gw-flag">{t('pack.gateway.comingSoon')}</span>
             {/* Meno sa NEPREKLADÁ a delí sa na dve farby priamo v markupe — „AI" je stroj,
                 „NUBIS" strážca. Rovnaký span ako v hlavičke widgetu (`.ainubis-ai`). */}
             <span className="gw-title"><span className="gw-ai">AI</span>NUBIS</span>
             <span className="gw-lead">{t('pack.gateway.ainubis.lead')}</span>
           </span>
-        </button>
+        </Link>
       </div>
     </section>
   );

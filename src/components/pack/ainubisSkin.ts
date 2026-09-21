@@ -82,6 +82,12 @@ export const AINUBIS = {
   ctaA: CTA_A,
   ctaB: CTA_B,
   ctaRGB: '245,199,61',
+  /** Lem okolo jeho zlatej, keď NEJDE o tlačidlo (štítok, sľub, odznak). Existuje ako
+   *  token preto, že stráž `check:pack` meria rám DOSLOVNOU farbou: `rgba(245,199,61,…)`
+   *  napísané v komponente je odchýlka, `AINUBIS.ctaEdge` je matrica. */
+  ctaEdge: 'rgba(245,199,61,0.35)',
+  /** Tichá výplň pod tým istým štítkom — plnú plochu `ctaGrad` má len skutočné CTA. */
+  ctaTint: 'rgba(245,199,61,0.10)',
   ctaGradHover: 'linear-gradient(135deg,#FFD65A 0%,#F0A81E 100%)',
   ctaInk: '#2a1608',
   ctaShadow: '0 4px 14px -4px rgba(230,158,26,0.55), inset 0 1px 0 rgba(255,255,255,0.30)',

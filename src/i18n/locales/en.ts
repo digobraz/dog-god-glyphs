@@ -1487,6 +1487,23 @@ export const en = {
   'pack.gateway.dogma.lead': "Read the philosophy of the Dogyptians and learn the whole DNA of DOGYPT.",
   'pack.gateway.ainubis.lead': "A virtual member of your pack. An AI helper that knows your dogs and gives advice made for them.",
   'pack.gateway.comingSoon': "Full version coming soon",
+  // ââ KOSTRA AINUBISA â /pack/ainubis (rozhodnutia 4A+5A, 21. 9. 2026) ââââ
+  // Meno AINUBIS sa NEPREKLADÃ (tvar `<i>AI</i>NUBIS` nesie markup, nie preklad).
+  'pack.hub.ainubisEnter': "Enter",
+  'pack.ainubis.flag': "Under construction — in plain sight",
+  'pack.ainubis.lead': "AINUBIS is learning. Seven worlds of dog knowledge are being written right now, scroll by scroll. You’ll watch them open one by one.",
+  'pack.ainubis.opening': "Expected opening: November 2026",
+  'pack.ainubis.chat': "chat",
+  'pack.ainubis.ask': "Ask AINUBIS",
+  'pack.ainubis.state.building': "Building",
+  'pack.ainubis.state.live': "Live",
+  'pack.ainubis.world.dogsPath': "Dog’s path",
+  'pack.ainubis.world.understanding': "Understanding",
+  'pack.ainubis.world.anatomy': "Anatomy",
+  'pack.ainubis.world.nutrition': "Nutrition",
+  'pack.ainubis.world.prevention': "Prevention",
+  'pack.ainubis.world.training': "Training",
+  'pack.ainubis.world.problems': "Problems",
   // ── POZVÁNKA PAWMATA — /pack/join/:token (B4, 13. 9. 2026) ──────────────
   'pack.join.eyebrow': "Pack invitation",
   'pack.join.loading': "Opening the invitation…",

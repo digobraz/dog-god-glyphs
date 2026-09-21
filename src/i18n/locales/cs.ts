@@ -2964,6 +2964,23 @@ export const cs: Partial<Dict> = {
   // ── pack.gateway ──
   'pack.gateway.ainubis.lead': 'Virtuální člen tvojí smečky. AI pomocník, který zná tvoje psy a dává rady na míru.',
   'pack.gateway.comingSoon': 'Plná verze brzy',
+  'pack.hub.ainubisEnter': 'Vstoupit',
+  // ── KOSTRA AINUBISE — /pack/ainubis (rozhodnutí 4A+5A, 21. 9. 2026) ─────
+  // Jména světů drží registr `SVETY[]` z nákresu VAULTu v5 (Matej 20. 9.).
+  'pack.ainubis.flag': 'Staví se před tvýma očima',
+  'pack.ainubis.lead': 'AINUBIS se učí. Sedm světů psího poznání právě píšeme, svitek po svitku. Budeš sledovat, jak se otevírají jeden po druhém.',
+  'pack.ainubis.opening': 'Otevření: listopad 2026',
+  'pack.ainubis.chat': 'chat',
+  'pack.ainubis.ask': 'Zeptej se AINUBISE',
+  'pack.ainubis.state.building': 'Staví se',
+  'pack.ainubis.state.live': 'Žije',
+  'pack.ainubis.world.dogsPath': 'Cesta psa',
+  'pack.ainubis.world.understanding': 'Pochopení',
+  'pack.ainubis.world.anatomy': 'Anatomie',
+  'pack.ainubis.world.nutrition': 'Výživa',
+  'pack.ainubis.world.prevention': 'Prevence',
+  'pack.ainubis.world.training': 'Trénink',
+  'pack.ainubis.world.problems': 'Problémy',
   'pack.gateway.dogma.lead': 'Přečti si filozofii Dogypťanů a poznej celou DNA DOGYPTU.',
   'pack.gateway.dogma.title': 'Bible pro pejskaře',
 

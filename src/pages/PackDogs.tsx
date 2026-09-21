@@ -1491,9 +1491,11 @@ function MediaTile({ section, tx }: { section: QuizSection; tx: Tx }) {
 // zlatá = interakcia človeka, a tá tu žiadna nie je. Odznak je technický, cyan.
 function AinubisBlock({ tx }: { tx: Tx }) {
   return (
-    <div
+    <Link
+      to="/pack/ainubis"
       className="flex items-center gap-4 flex-wrap"
       style={{
+        textDecoration: 'none',
         // AI-PALUBA (katalóg `PACK_BLOCKS`): vlastná paleta, polomer KARTY.
         padding: '16px 24px', borderRadius: PACK_R.card,
         background: 'radial-gradient(circle at 22% 20%, #12233a 0%, #01050A 74%)',
@@ -1550,17 +1552,25 @@ function AinubisBlock({ tx }: { tx: Tx }) {
           )}
         </p>
       </div>
+      {/* ⚠️ BOL TU ODZNAK „SOON" A NIKAM SA NEKLIKALO (do 21. 9. 2026). Odkedy existuje
+          kostra `/pack/ainubis`, blok VEDIE DO NEJ (rozhodnutie 4A, nákres 21. 9.:
+          „blok AINUBIS na /pack/dogs — nahradí ho odkaz do kostry"). „Soon" by odteraz
+          klamalo: to, kam odkaz vedie, existuje — čo sa ešte len stavia, sú svety v ňom,
+          a to povie banner tam, nie odznak tu.
+          Zlaté CTA tu NIE JE ani teraz: zlatá v cyborg palete patrí ČLOVEKU a šípka
+          je smer, nie akcia. */}
       <span
         style={{
-          fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 10,
+          fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: PACK_TEXT.micro,
           letterSpacing: '0.22em', textTransform: 'uppercase', whiteSpace: 'nowrap',
-          color: '#5BE0F0', background: 'rgba(91,224,240,0.08)',
-          border: '1px solid rgba(91,224,240,0.35)', borderRadius: 999, padding: '8px 16px',
+          color: AINUBIS.cyan, background: `rgba(${AINUBIS.cyanRGB},0.08)`,
+          border: `1px solid rgba(${AINUBIS.cyanRGB},0.35)`,
+          borderRadius: PACK_R.pill, padding: '8px 16px',
         }}
       >
-        {tx('pack.hub.soon', 'Soon')}
+        {tx('pack.hub.ainubisEnter', 'Enter')}
       </span>
-    </div>
+    </Link>
   );
 }
 

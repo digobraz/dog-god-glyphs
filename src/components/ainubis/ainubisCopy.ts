@@ -13,6 +13,11 @@ export interface AinubisCopy {
    *  ikonky (bez mena, podtitulu a stavu ONLINE), takže toto je JEDINÉ miesto, kde sa
    *  prevzatie slova zobrazí — nemazať bez náhrady. */
   takeoverActive: string;
+  /** Štítok „učí sa" pod hlavičkou (21. 9. 2026). ⚠️ NIE „BETA" — to je startup žargón
+   *  a DOGYPT nie je startup; hlas je ten istý ako banner v kostre `/pack/ainubis`.
+   *  Je to zároveň JEDINÁ vec, ktorá dnes viditeľne stojí medzi chybnou radou o zdraví
+   *  psa a človekom — disclaimer v systémovom prompte človek nikdy neuvidí. */
+  learning: string;
   /** Intro karta = badge + meno + JEDEN riadok s dvoma rolami (Matej 2026-07-26:
    *  „tu mi chýba pod anubisom tie dve veci čo tam mal takle podnadpisy
    *  (strážca, AI podpora"). Dlhá tagline ostáva zrušená. */
@@ -78,6 +83,7 @@ const sk: AinubisCopy = {
   // Riadok pod menom v hlavičke sa renderuje mono uppercase ako technický
   // výpis — preto krátko, nie veta (dlhší text sa oreže tromi bodkami).
   takeoverActive: 'Pán prevzal slovo',
+  learning: 'Učím sa — over si, čo ti poviem',
   introRole: 'Strážca chrámu · AI podpora',
   micStart: 'Nahovoriť správu',
   micStop: 'Ukončiť nahrávanie',
@@ -123,6 +129,7 @@ const sk: AinubisCopy = {
 const en: AinubisCopy = {
   panelTitle: 'AINUBIS',
   takeoverActive: 'Master has the word',
+  learning: 'Still learning — double-check what I say',
   introRole: 'Guardian of the temple · AI support',
   micStart: 'Record a message',
   micStop: 'Stop recording',
