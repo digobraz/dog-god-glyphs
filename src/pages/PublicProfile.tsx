@@ -206,7 +206,7 @@ export default function PublicProfile() {
   const loadingDogs = isSelf && dogsLoading;
 
   return (
-    <PackLayout wide>
+    <PackLayout>
       <div className="flex flex-col gap-5">
         {/* `.pf-field`/`.pf-pill` (packTheme.ts) — DogGalleryAccordion tu renderuje
             tie isté chipy/polia ako PackProfile.tsx (editor), takže potrebujú tú

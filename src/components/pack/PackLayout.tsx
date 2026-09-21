@@ -1,7 +1,7 @@
 import { lazy, ReactNode, Suspense, useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { BonesCoin } from './BonesCoin';
-import { PACK_THEME, PACK_COL, usePaperRoute, PAPER_PAGE_CSS } from './packTheme';
+import { PACK_THEME, PACK_COL, PACK_COL_INNER, usePaperRoute, PAPER_PAGE_CSS } from './packTheme';
 import { devotionLevel } from '@/lib/devotion';
 import { DEV_FULL } from '@/lib/packFlags';
 import { usePackIdentity, type PackDog } from './usePackIdentity';
@@ -35,10 +35,9 @@ interface PackLayoutProps {
   children: ReactNode;
   title?: string;
   subtitle?: string;
-  wide?: boolean;
 }
 
-export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps) {
+export function PackLayout({ children, title, subtitle }: PackLayoutProps) {
   const t = useT();
   const navigate = useNavigate();
   const { session, loading, dogs, devotion, bones, avatarUrl, avatarInitial, packTotal, packToday } = usePackIdentity();
@@ -88,7 +87,6 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
           packTotal={packTotal}
           packToday={packToday}
           dogs={dogs}
-          wide={wide}
           onProfile={() => {
             // Profil je na LIVE od 2026-08-06 → avatar ide rovno tam, už neskroluje
             // na settings blok na homepage.
@@ -107,7 +105,8 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
         style={{
           // Šírka z PACK_COL, nie z Tailwind triedy — to isté číslo drží aj PackTriplist,
           // ktorý PackLayout nemountuje (vlastný tmavý root). Dve čísla by sa rozišli.
-          maxWidth: wide ? PACK_COL.wide : PACK_COL.narrow,
+          // Jedna šírka pre všetky centrované /pack obrazovky (21. 9. 2026, `narrow` zanikol).
+          maxWidth: PACK_COL.wide,
           paddingTop: DEV_FULL ? 'calc(env(safe-area-inset-top, 0px) + 28px)' : 'calc(env(safe-area-inset-top, 0px) + 106px)',
         }}
       >
@@ -668,7 +667,6 @@ interface DevotionHeaderProps {
   packTotal: number | null;
   packToday: number | null;
   dogs: PackDog[];
-  wide?: boolean;
   onProfile: () => void;
   onDog: (id: string) => void;
 }
@@ -677,7 +675,7 @@ function VDivider() {
   return <div aria-hidden style={{ width: 1, height: 20, background: T.onDarkBorder, flexShrink: 0 }} />;
 }
 
-export function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, packTotal, packToday, dogs, wide, onProfile, onDog }: DevotionHeaderProps) {
+export function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, packTotal, packToday, dogs, onProfile, onDog }: DevotionHeaderProps) {
   const t = useT();
   const glassPill: React.CSSProperties = {
     background: T.glass,
@@ -691,14 +689,16 @@ export function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, pack
     alignItems: 'center',
   };
   return (
+    // Okraj lišty = okraj OBSAHU stĺpca pod ňou (PACK_COL_INNER, od `sm` padding 24),
+    // nie rám stĺpca — dovtedy lišta na PC presahovala obsah o 24 px na každú stranu.
     <header
+      className="w-[calc(100%-32px)] sm:w-[calc(100%-48px)]"
       style={{
         position: 'fixed',
         left: '50%',
         transform: 'translateX(-50%)',
         top: 'calc(env(safe-area-inset-top, 0px) + 24px)',
-        width: 'calc(100% - 32px)',
-        maxWidth: wide ? 1024 : 672,
+        maxWidth: PACK_COL_INNER,
         zIndex: 40,
         display: 'flex',
         alignItems: 'stretch',

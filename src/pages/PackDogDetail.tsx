@@ -757,7 +757,7 @@ export default function PackDogDetail() {
   };
 
   return (
-    <PackLayout wide>
+    <PackLayout>
       {/* `PackDogWizard` (krok „Prayer of Presence") tu bol vypnutý od 3. 8. 2026 a
           24. 8. zanikol úplne — stál na starom číslovanom stave prehliadky (`dogypt_wz==='2'`)
           a sľuboval modlitby, ktoré z appky odišli 6. 8. Nový scenár (AInubis) má krok

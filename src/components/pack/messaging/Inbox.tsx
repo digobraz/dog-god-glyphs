@@ -23,7 +23,7 @@
 // `t()` na celý inbox — Slovák tak v slovenskom rozhraní čítal „No messages yet" a dátumy
 // „Aug 9" (natvrdo `en-US`). Thread.tsx je preložený od začiatku; Inbox dorovnaný 2026-08-12.
 import { useEffect, useState } from 'react';
-import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_COL_FIT, packColCSS } from '@/components/pack/packTheme';
 import { MSG_SKIN_CSS, useMsgSkin } from './msgTheme';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -57,10 +57,10 @@ export const INBOX_CSS = `
 /* ⚠️ LIŠTA JE PÁS CEZ CELÉ OKNO, OBSAH STOJÍ V STĹPCI. Do 15. 9. 2026 tu bol flex priamo
    na páse, takže názov a tlačidlá viseli na krajoch okna, kým doska pod nimi stála
    v strede v 640 px — na širokej obrazovke to bola hlavička od inej stránky.
-   Rovnica je ZHODNÁ s .msg-thread-headinner vo vlákne (max-width 640 + calc(100% - 32px)),
+   Rovnica je ZHODNÁ s .msg-thread-headinner vo vlákne (PACK_COL_FIT + packColCSS),
    aby sa krok späť zo správy nepohol o pixel. Vodorovný padding preto drží vnútro, nie pás. */
 .msg-inbox-head{position:sticky;top:0;z-index:3;padding:calc(env(safe-area-inset-top,0px) + 22px) 0 16px;background:var(--msg-bar);border-bottom:1px solid var(--msg-bar-edge);box-shadow:var(--msg-bar-shadow);flex-shrink:0;}
-.msg-inbox-headinner{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:640px;width:calc(100% - 32px);margin:0 auto;}
+.msg-inbox-headinner{display:flex;align-items:center;justify-content:space-between;gap:12px;${PACK_COL_FIT}margin:0 auto;}
 .msg-inbox-title{font-family:${FONT_TITLE};font-weight:700;font-size:20px;color:var(--msg-title);}
 .msg-inbox-acts{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .msg-x{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:var(--msg-btn);border:1px solid var(--msg-btn-edge);color:var(--msg-btn-ink);font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s,background .15s;}
@@ -70,7 +70,7 @@ export const INBOX_CSS = `
    ⚠️ Rám berie 6 px z každej strany, tak vodorovný padding klesol o toľko isto (16 -> 10).
       Odstup od spodného navu je MARGIN, nie padding — inak by tých 100 px bolo vnútri dosky.
    ⚠️ Vzduch od okrajov okna nesie width:calc(100% - 32px), nie 100% (precedens .pta-shell). */
-.msg-inbox-list{max-width:640px;width:calc(100% - 32px);margin:14px auto 100px;padding:14px 10px 16px;box-sizing:border-box;flex:0 0 auto;position:relative;z-index:2;}
+.msg-inbox-list{${PACK_COL_FIT}margin:14px auto 100px;padding:14px 10px 16px;box-sizing:border-box;flex:0 0 auto;position:relative;z-index:2;}
 /* ⚠️ Riadok je <div role="button">, NIE <button> — vnútri je vlastné tlačidlo (štítok výletu)
    a <button> v <button> je nevalidný HTML, ktorý prehliadač ticho rozbije. Preto tu musí
    ostať aj :focus-visible, klávesnica sa inak stratí.
@@ -121,6 +121,8 @@ export const INBOX_CSS = `
 .msg-emptybtn{font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:11px 20px;border-radius:8px;border:1px solid var(--msg-mine-edge);background:var(--msg-mine);color:var(--msg-mine-ink);box-shadow:var(--msg-mine-shadow);cursor:pointer;}
 .msg-emptybtn:hover{background:var(--msg-mine-hover);}
 
+/* Šírka stĺpca = domov /pack (PACK_COL, 21. 9. 2026) — od 640 px padding 24, nie 16. */
+${packColCSS('.msg-inbox-headinner,.msg-inbox-list')}
 `;
 
 // koľko % konverzácií, kde má "me" neprečítanú správu — rovnaká logika ako

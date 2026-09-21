@@ -598,11 +598,11 @@ export default function PackDogs() {
 
   // `wide` = rovnaká šírka stĺpca ako `/pack/profile` (max-w-5xl). Bez neho bol hub
   // v úzkom stĺpci (max-w-2xl) a vedľa profilu vyzeral ako iná stránka (Matej 6.8.).
-  if (dogs === null) return <PackLayout wide><HubSkeleton /></PackLayout>;
-  if (dogs.length === 0) return <PackLayout wide><style>{HUB_CSS}</style><EmptyState /></PackLayout>;
+  if (dogs === null) return <PackLayout><HubSkeleton /></PackLayout>;
+  if (dogs.length === 0) return <PackLayout><style>{HUB_CSS}</style><EmptyState /></PackLayout>;
 
   return (
-    <PackLayout wide>
+    <PackLayout>
       <style>{HUB_CSS}</style>
 
       {/* ── 1 · PSY — každý pes VLASTNÝ gradientový blok ──────────────────────

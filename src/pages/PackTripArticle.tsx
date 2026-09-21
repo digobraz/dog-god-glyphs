@@ -28,7 +28,7 @@ import { PackBottomNav, HieroglyphBg, MessagingOverlayHost } from '@/components/
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT, useLang } from '@/i18n/LanguageContext';
-import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL_FIT, packColCSS } from '@/components/pack/packTheme';
 import { BackButton } from '@/components/pack/BackButton';
 // Lapisové hlavné CTA + priesvitný tint stavu — jeden zdroj pre celý /pack (2026-08-26/28).
 import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
@@ -208,7 +208,7 @@ const CSS = `
    matrice PACK_BOX.card (cardGrad · 1.5px cardEdge · r16 · cardShadow). Zapísané ako CSS,
    nie style={{...PACK_BOX.card}}, lebo .pta-shell potrebuje ešte overflow, z-index
    a media query — hodnoty sú však TIE ISTÉ a menia sa v matrici, nie tu. */
-.pta-shell{max-width:800px;width:calc(100% - 32px);margin:22px auto 0;position:relative;z-index:2;overflow:hidden;
+.pta-shell{${PACK_COL_FIT}margin:22px auto 0;position:relative;z-index:2;overflow:hidden;
   background:${T.cardGrad};border:1.5px solid ${T.cardEdge};border-radius:16px;box-shadow:${T.cardShadow};}
 .pta-hero{position:relative;width:100%;height:34vh;min-height:230px;max-height:360px;overflow:hidden;background-size:cover;background-position:center;background-color:#111;}
 .pta-hero-grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.30) 0%,rgba(0,0,0,0) 34%,rgba(0,0,0,0.55) 100%);}
@@ -290,6 +290,8 @@ const CSS = `
 /* bod 1: bez negatívneho margin-top prekryvu (buttony teraz sedia na spodku hero fotky —
    prekryv by kolidoval s nimi); telo článku začína čisto pod fotkou. */
 .pta-body{max-width:760px;margin:0 auto;padding:20px 20px 0;position:relative;z-index:2;}
+/* Rám článku = stĺpec domova /pack (21. 9. 2026); užší ostáva len text (.pta-body 760). */
+${packColCSS('.pta-shell')}
 /* §16 (2026-07-23): obsahová časť článku do zdieľaného LIQUID GLASS panelu (.pk-glass z GLASS_CSS)
    — nemá plávať na plnej čiernej, rovnaká situácia ako triplist/walked. */
 .pta-panel{padding:22px 20px 26px;}

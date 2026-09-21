@@ -705,11 +705,22 @@ export function usePaperRoute(pathname: string): boolean {
 // Bolo to rozídené: `PackLayout` mal `max-w-5xl` (1024px), ale `PackTriplist` si drží
 // vlastný tmavý root a mal `max-width:860px` — pri prekliku z profilu sa stránka
 // viditeľne zúžila. Dve čísla na dvoch miestach sa rozídu vždy, preto sú tu.
-// `wide` = stránky s dvojstĺpcom (profil, homepage, psy, triplist), `narrow` = flow
-// obrazovky. Kto pridá novú /pack stránku, berie odtiaľto — nie z Tailwind triedy.
-export const PACK_COL = { wide: 1024, narrow: 672 } as const;
+// Kto pridá novú /pack stránku, berie odtiaľto — nie z Tailwind triedy.
+// 🔴 JEDNA šírka od 21. 9. 2026 (Matej: „tieto center strany v /pack by mali byť jednotné").
+// Dovtedy boli TRI: domov/psy/profil 976, AINUBIS 624 (`narrow`), správy 640 natvrdo —
+// pri prekliku sa stránka pod lištou zúžila. `narrow` zanikol; užší smie byť len TEXT
+// na čítanie vnútri stĺpca (bublina 82 %, odsek 62ch, telo článku 760), nie obrazovka.
+export const PACK_COL = { wide: 1024 } as const;
 /** Vodorovný padding stĺpca: mobil / od `sm`. Ten istý na všetkých /pack povrchoch. */
 export const PACK_COL_PAD = { mobile: 16, desktop: 24 } as const;
+/** Šírka OBSAHU stĺpca (rám mínus padding) = 976. Pre povrchy, ktoré si stĺpec kreslia
+ *  samy bez paddingu rodiča (správy, článok výletu) — okraj musí sedieť s domovom. */
+export const PACK_COL_INNER = PACK_COL.wide - 2 * PACK_COL_PAD.desktop;
+/** Rovnica vlastného stĺpca: mobil 100 % − 32, od 640 px 100 % − 48, strop 976.
+ *  Druhá polovica je `packColCSS(selektory)` — bez nej sa medzi 640 a 1024 px rozídu o 8 px. */
+export const PACK_COL_FIT = `max-width:${PACK_COL_INNER}px;width:calc(100% - ${2 * PACK_COL_PAD.mobile}px);`;
+export const packColCSS = (sel: string) =>
+  `@media (min-width:640px){${sel}{width:calc(100% - ${2 * PACK_COL_PAD.desktop}px);}}`;
 
 export const GLASS_CSS = `
 .pk-glass{

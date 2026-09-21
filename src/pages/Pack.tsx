@@ -262,7 +262,7 @@ export default function Pack() {
   }, null);
 
   return (
-    <PackLayout wide>
+    <PackLayout>
       <PackAnimations />
       {/* PREHLIADKA (AInubis) — prestavaná 24. 8. 2026 podľa `plany/wizard-ainubis.md`.
           Stále DEV-only: scenár vedie do svorky a na mapu, obe sú na LIVE za `DEV_FULL`,

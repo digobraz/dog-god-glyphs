@@ -23,7 +23,7 @@ import { trackPack } from '@/lib/packAnalytics';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, STAGE_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, STAGE_CSS, PACK_COL_FIT, packColCSS } from '@/components/pack/packTheme';
 import { MSG_SKIN_CSS, useMsgSkin } from './msgTheme';
 import { SkinToggle } from './Inbox';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
@@ -55,7 +55,7 @@ export const THREAD_CSS = `
 /* Pás nesie POZADIE cez celé okno, stĺpec vnútri nesie OBSAH — a jeho šírka je tá istá,
    akú má telo správ (.msg-thread-body) aj písací panel (.msg-thread-send). */
 .msg-thread-head{position:sticky;top:0;z-index:3;padding:calc(env(safe-area-inset-top,0px) + 22px) 0 16px;background:var(--msg-bar);border-bottom:1px solid var(--msg-bar-edge);box-shadow:var(--msg-bar-shadow);flex-shrink:0;}
-.msg-thread-headinner{display:flex;align-items:center;gap:12px;max-width:640px;width:calc(100% - 32px);margin:0 auto;}
+.msg-thread-headinner{display:flex;align-items:center;gap:12px;${PACK_COL_FIT}margin:0 auto;}
 .msg-back{flex-shrink:0;width:34px;height:34px;border-radius:50%;background:var(--msg-btn);border:1px solid var(--msg-btn-edge);color:var(--msg-btn-ink);font-size:17px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s,background .15s;}
 .msg-back:hover{border-color:${T.cardEdge};color:var(--msg-title);background:var(--msg-btn-hot);}
 /* flex:1 + min-width:0 — bez toho dlhý štítok výletu na mobile podlezie ovládania vpravo. */
@@ -76,7 +76,7 @@ export const THREAD_CSS = `
    ⚠️ Vzhľad nesie BLOK SKLENENÁ DOSKA (.pk-stage, STAGE_CSS v packTheme.ts), tu sú len
    rozmery. Farbu prepínajú premenné pk-stage v msgTheme.ts — v tmavom šate je to TMAVÉ
    sklo; svetlá doska by tam rozsvietila polovicu obrazovky. */
-.msg-thread-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:16px;max-width:640px;width:calc(100% - 32px);margin:12px auto;display:flex;flex-direction:column;position:relative;z-index:2;}
+.msg-thread-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:16px;${PACK_COL_FIT}margin:12px auto;display:flex;flex-direction:column;position:relative;z-index:2;}
 .msg-bubblewrap{display:flex;flex-direction:column;align-items:flex-start;margin-bottom:11px;max-width:82%;}
 .msg-bubblewrap.me{align-items:flex-end;align-self:flex-end;}
 /* FOTKA TOHO, KTO PÍŠE, VEDĽA BUBLINY (Matej 1. 9. 2026: „vedľa bublinky by mala byť
@@ -100,7 +100,7 @@ export const THREAD_CSS = `
 .msg-bubble{font-family:${FONT_UI};font-size:13px;line-height:1.5;padding:11px 15px;border-radius:16px;background:var(--msg-block);color:var(--msg-block-ink);border:1px solid var(--msg-block-edge);box-shadow:var(--msg-block-shadow);}
 .msg-bubble.me{background:var(--msg-mine);color:var(--msg-mine-ink);border-color:var(--msg-mine-edge);box-shadow:var(--msg-mine-shadow);}
 .msg-empty{text-align:center;padding:40px 16px;color:var(--msg-dim);font-size:12.5px;font-style:italic;}
-.msg-senderr{flex-shrink:0;max-width:640px;width:100%;margin:0 auto;padding:0 16px 8px;box-sizing:border-box;font-family:${FONT_UI};font-size:11.5px;color:var(--msg-err);}
+.msg-senderr{flex-shrink:0;${PACK_COL_FIT}margin:0 auto;padding:0 0 8px;box-sizing:border-box;font-family:${FONT_UI};font-size:11.5px;color:var(--msg-err);}
 /* ── PÍSANIE SPRÁVY = LEVITUJÚCI PANEL (Matej 15. 9. 2026) ───────────────────────────
    „dolný rámik je divný — urob panel s oblými rohmi a levitujúci ako pri spodnom nave,
    nemusí byť dblok ale nech to je pekne v priestore."
@@ -110,10 +110,10 @@ export const THREAD_CSS = `
    radius 16, tieň panela a odsadenie od spodnej hrany (safe-area sa PRIPOČÍTAVA k medzere,
    nie nahrádza). Tapeta pod ním presvitá — o to Matejovi šlo („pekne v priestore").
    ⚠️ Šírku drží width:calc(100% - 32px), nie padding na rodičovi — pás totiž sedí
-   v stĺpci s max-width 640px a bočné odsadenie musí platiť aj pod tou hranicou. */
+   v stĺpci so stropom PACK_COL_INNER a bočné odsadenie musí platiť aj pod tou hranicou. */
 .msg-thread-send{flex-shrink:0;display:flex;gap:10px;align-items:center;padding:12px;
   border:1px solid var(--msg-bar-edge);border-radius:16px;background:var(--msg-bar);
-  box-shadow:${PACK_SHADOW.panel};max-width:640px;width:calc(100% - 32px);
+  box-shadow:${PACK_SHADOW.panel};${PACK_COL_FIT}
   margin:0 auto calc(env(safe-area-inset-bottom,0px) + 14px);box-sizing:border-box;position:relative;z-index:2;}
 /* Písacie pole je v OBOCH šatoch plochá výplň bez gradientu; zaostrenie nesie farbu „mojej"
    strany, teda to isté, čo bublina a tlačidlo. */
@@ -137,7 +137,7 @@ export const THREAD_CSS = `
 /* Pridanie sa do svorky stojí na TOM ISTOM mieste ako písacie pole, takže nesie ten istý
    tvar — inak by sa spodok obrazovky menil podľa toho, či som členom. */
 .msg-thread-join{flex-shrink:0;padding:12px;border:1px solid var(--msg-bar-edge);border-radius:16px;
-  background:var(--msg-bar);box-shadow:${PACK_SHADOW.panel};max-width:640px;width:calc(100% - 32px);
+  background:var(--msg-bar);box-shadow:${PACK_SHADOW.panel};${PACK_COL_FIT}
   margin:0 auto calc(env(safe-area-inset-bottom,0px) + 14px);box-sizing:border-box;position:relative;z-index:2;}
 /* Geometria z .btn-gold (radius 8, NIE pilulka) — zmena farby nie je povolenie na iný tvar. */
 .msg-joinbtn{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:14px;border-radius:8px;background:var(--msg-mine);color:var(--msg-mine-ink);border:1px solid var(--msg-mine-edge);box-shadow:var(--msg-mine-shadow);cursor:pointer;}
@@ -162,11 +162,13 @@ export const THREAD_CSS = `
    panel na spodnej hrane okna — na mobile je to správny tvar (palec ho dosiahne),
    na PC je to odrezaný pás pri hrane. Rozhoduje CSS, render je jeden. */
 ${AINUBIS_SHEET_CSS}
-.msg-blocked{flex-shrink:0;max-width:640px;width:100%;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 16px);border-top:1px solid var(--msg-bar-edge);background:var(--msg-bar);box-sizing:border-box;text-align:center;position:relative;z-index:2;}
+.msg-blocked{flex-shrink:0;${PACK_COL_FIT}margin:0 auto;padding:16px 0 calc(env(safe-area-inset-bottom,0px) + 16px);border-top:1px solid var(--msg-bar-edge);background:var(--msg-bar);box-sizing:border-box;text-align:center;position:relative;z-index:2;}
 .msg-blockedtxt{font-family:${FONT_UI};font-size:12.5px;line-height:1.6;color:var(--msg-dim);}
 .msg-unblock{margin-top:10px;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:10px 20px;border-radius:8px;background:var(--msg-btn);border:1px solid var(--msg-btn-edge);color:var(--msg-btn-ink);cursor:pointer;transition:border-color .15s,color .15s,background .15s;}
 .msg-unblock:hover{border-color:${T.cardEdge};color:var(--msg-title);background:var(--msg-btn-hot);}
 
+/* Šírka stĺpca = domov /pack (PACK_COL, 21. 9. 2026) — od 640 px padding 24, nie 16. */
+${packColCSS('.msg-thread-headinner,.msg-thread-body,.msg-thread-send,.msg-thread-join,.msg-senderr,.msg-blocked')}
 `;
 
 // Dôvody nahlásenia — label sa berie cez t() v komponente, mapa drží len kľúč (i18n fáza A).

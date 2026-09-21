@@ -535,7 +535,7 @@ export default function PackProfile() {
   }, [session, fullName, myNotePoints]);
 
   return (
-    <PackLayout wide>
+    <PackLayout>
       <div className="flex flex-col gap-5">
         {/* ŠÍPKA ← SVORKA SA KRESLÍ LEN TAM, KDE NIE JE SPODNÝ NAV (Matej 2026-09-12:
             „tá šípka dozadu na SVORKA je zbytočná, daj to preč, veď ani pri /dogs nie je
