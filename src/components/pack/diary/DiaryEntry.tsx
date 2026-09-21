@@ -30,6 +30,7 @@
 //    a `tsc` to nechytí. Po zásahu `npm run check:css` z `vystupy/web/`.
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
 import {
   PACK_THEME, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, GOLD_BTN,
   FONT_TITLE, FONT_UI, PF_FIELD_CSS, PILL_CSS, PHOTO_CSS,
@@ -154,7 +155,13 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', onClose, onSaved,
     whiteSpace: 'nowrap',
   };
 
-  return (
+  // 🔴 `createPortal(…, document.body)` JE POVINNÝ, NIE KOZMETIKA. Obsahový stĺpec
+  //    `/pack` je v `PackLayout` `className="relative z-10"` — teda VLASTNÝ stacking
+  //    kontext. Spodný nav je jeho SÚRODENEC s `z-40`, takže čokoľvek vnútri stĺpca sa
+  //    kreslí pod navom, aj keby tu stálo 9999; porovnáva sa `10 < 40`, nie moje číslo.
+  //    Premerané 21. 9. 2026 s CUDZOU cookie lištou na obrazovke: bez portálu ležal nav
+  //    cez tlačidlo ZAPÍSAŤ. Tú istú pascu má appka zapísanú pre `.nav-top` na `/onepage`.
+  return createPortal((
     <div className="dia-bg" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <style>{PF_FIELD_CSS}{PILL_CSS}{PHOTO_CSS}{CSS}</style>
       <div className="dia-pop" role="dialog" aria-modal="true" aria-label={tx('pack.diary.title', 'To the diary')}>
@@ -320,7 +327,7 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', onClose, onSaved,
         </div>
       </div>
     </div>
-  );
+  ), document.body);
 }
 
 /** VÝBER JE PRIESVITNÝ TINT (lock 26. 8. 2026), nie plná lapisová plocha — tá patrí
@@ -337,7 +344,8 @@ const pickStyle: CSSProperties = {
  *  je bug, nie štýl, a zhodí `npm run check:pack`. */
 const CSS = `
 .dia-bg{position:fixed;inset:0;background:rgba(20,12,4,.55);display:flex;align-items:center;
-  justify-content:center;padding:${PACK_SPACE.lg}px;z-index:70;overflow-y:auto}
+  justify-content:center;padding:${PACK_SPACE.lg}px;z-index:70;overflow-y:auto;
+  padding-bottom:calc(${PACK_SPACE.lg}px + var(--consent-h, 0px))}
 .dia-pop{background:${PACK_BOX.panel.background};border:${PACK_BOX.panel.border};
   border-radius:${PACK_BOX.panel.borderRadius}px;box-shadow:${PACK_BOX.panel.boxShadow};
   padding:${PACK_SPACE.lg}px;max-width:420px;width:100%;max-height:calc(100vh - ${PACK_SPACE.xxl}px - var(--consent-h, 0px));
