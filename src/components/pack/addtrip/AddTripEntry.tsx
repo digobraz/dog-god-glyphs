@@ -7,6 +7,7 @@
 // úrovne, obe rovnako veľké a klikateľné, s tlačidlom späť.
 // Žije na tmavom povrchu Portalu → pk-glass primitív z packTheme.ts (NIE papyrus — ten je pre
 // bledé bloky podľa Entry.tsx locku, sem nepatrí).
+import { trackPack } from '@/lib/packAnalytics';
 import { useEffect, useState } from 'react';
 import { GLASS_CSS, PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { PLATE_TILE_R } from '@/components/pack/navGoldSkin';
@@ -195,7 +196,10 @@ export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
                   // „prešli ste to, alebo sa chystáte?", na ktorú odpoveď leží o pár polí
                   // nižšie — v dátume. Formulár je jeden a prepne sa podľa neho.
                   // `TRIP_BLOCKS` ostáva v súbore ako doklad, čo tu stálo; nerenderuje sa.
-                  if (k.kind === 'trip') onPick({ kind: 'trip', state: 'walked' });
+                  // Meranie (v1-posthog): tu sa začína zápis výletu. Pár k nemu je
+                  // `pack_trip_add_done` v `PackMap` — rozdiel medzi nimi je odpadnutie
+                  // vo formulári, čo je po flipe to najzaujímavejšie číslo z mapy.
+                  if (k.kind === 'trip') { trackPack('pack_trip_add_start'); onPick({ kind: 'trip', state: 'walked' }); }
                   if (k.kind === 'event') setStep('event');
                   if (k.kind === 'note') setStep('note');
                 }}

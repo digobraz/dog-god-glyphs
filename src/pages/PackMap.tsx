@@ -44,6 +44,7 @@
 // (6) `<DiffMark>` (CSS tvar namiesto emoji) zdieľaný cez
 // components/pack/tripShared.tsx; (7) mobile header kompaktnejší, filter
 // ikonka = sliders (nie graph).
+import { trackPack } from '@/lib/packAnalytics';
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Polyline, Polygon, Circle, Marker, ScaleControl, useMap, useMapEvent } from 'react-leaflet';
@@ -6687,7 +6688,15 @@ export default function PackMap() {
               authorName={firstName}
               myDogs={myDogsForAdd}
               onHasRoute={setAddHasRoute}
-              onSubmit={submitAddTripDraft}
+              /* Meranie (v1-posthog): `pack_trip_add_done` sa vystrelí len keď zápis naozaj
+                 prešiel. `submitAddTripDraft` má šesť návratových bodov a dva z nich sú
+                 odmietnutie — merať vnútri by znamenalo rátať aj neúspechy ako zapísané
+                 výlety. `finish` odlíši dopísaný koncept od úplne nového výletu. */
+              onSubmit={(d) => {
+                const ok = submitAddTripDraft(d);
+                if (ok) trackPack('pack_trip_add_done', { finish: Boolean((d as AddTripDraft & { finishTripId?: string }).finishTripId) });
+                return ok;
+              }}
               onClose={closeAdd}
               /* Šípka na výbere aktivity vracia do popupu „čo pridávam" — je to krok späť,
                  nie východ (viď `onBackToEntry` v AddTripLog). Pri dopĺňaní konceptu a pri

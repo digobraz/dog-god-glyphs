@@ -18,6 +18,7 @@ import { ConsentBanner } from "@/components/ConsentBanner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { captureRefFromSearch } from "@/lib/refCapture";
 import { trackPageview, setAnalyticsLang } from "@/lib/analytics";
+import { maskPath, trackPackRoute } from "@/lib/packAnalytics";
 import { captureAttribution } from "@/lib/attribution";
 
 // Route-level code-split (P0 2026-07 perf pass). GodsGrid (homepage/LCP) + NotFound
@@ -159,7 +160,10 @@ function RefCapture() {
     setAnalyticsLang(lang);
   }, [lang]);
   useEffect(() => {
-    trackPageview(location.pathname);
+    // Cesty pod /pack idú do PostHogu maskované (`/pack/map/:country/:slug`) — inak sa
+    // heatmapa rozdrobí na stovky jednorazových URL. Viď `lib/packAnalytics.ts`.
+    trackPageview(maskPath(location.pathname));
+    trackPackRoute(location.pathname);
   }, [location.pathname]);
   return null;
 }

@@ -3,6 +3,7 @@
 // localStorage kľúč 'dogypt.profile.v1', async-tvarované CRUD API kvôli
 // budúcemu drop-in swapu na Supabase (žiadne priame localStorage v
 // komponentoch — vždy cez toto API).
+import { trackPack } from '@/lib/packAnalytics';
 import { useCallback, useEffect, useState } from 'react';
 
 // ── typy (§2.1, presné znenie zo zadania) ──
@@ -846,6 +847,15 @@ export async function saveDogAttrs(dogId: string, patch: Partial<DogProfileAttrs
   const cur = readRaw();
   const existing = cur.dogs[dogId] ?? emptyDogAttrs(dogId);
   const merged: DogProfileAttrs = { ...existing, ...patch, dogId };
+  // Meranie (v1-posthog): `pack_dogid_field` povie, KTORÉ polia DOG ID ľudia vypĺňajú a ktoré
+  // preskočia — percento vyplnenia je na karte psa vidieť, ale dôvod nie.
+  // ⚠️ Do analytiky ide LEN MENO POĽA. Hodnota je údaj o psovi konkrétneho človeka a v PostHogu
+  // nemá čo robiť. `dogId` tiež nie — je to cudzí kľúč na živého psa.
+  for (const [field, val] of Object.entries(patch)) {
+    if (field === 'dogId') continue;
+    if (JSON.stringify((existing as unknown as Record<string, unknown>)[field]) === JSON.stringify(val)) continue;
+    trackPack('pack_dogid_field', { field });
+  }
   const next: CentralProfile = {
     ...cur,
     dogs: { ...cur.dogs, [dogId]: merged },

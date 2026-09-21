@@ -9,6 +9,7 @@
 //
 // Zbieranie devotion je zamknuté do 2027 (project_dogypt_devotion_ekonomika_stav_2026-08-06)
 // — táto komponenta sa preto nerozširuje, len sťahuje.
+import { trackPack } from '@/lib/packAnalytics';
 import React, { useState } from 'react';
 import { ChevronDown, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -191,12 +192,17 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
                 disabled={prayersSubmitted}
                 title={t('pack.dog.prayerOpenRitualTitle')}
                 hint={t('pack.dog.prayerOpenRitualHint')}
-                onRowClick={() =>
+                /* Meranie (v1-posthog): klik na ZAMKNUTÚ vec je jediné číslo, ktoré povie,
+                   po čom je dopyt skôr, než to postavíme. `lock` je vždy stabilný kľúč,
+                   nie preložený text — inak by sa udalosť rozpadla na 18 jazykov.
+                   🔴 Ďalšie zámky dostanú ten istý riadok pri upratovaní zámkov (úloha 4). */
+                onRowClick={() => {
+                  trackPack('pack_lock_click', { lock: 'prayer_open_ritual' });
                   toast({
                     title: t('pack.dog.comingSoon'),
                     description: t('pack.dog.prayerOpenRitualComingSoon'),
-                  })
-                }
+                  });
+                }}
                 right={
                   <span style={{ ...PTS_PILL, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
                     {t('pack.dog.prayerChoose')} <ChevronDown className="h-3.5 w-3.5" />

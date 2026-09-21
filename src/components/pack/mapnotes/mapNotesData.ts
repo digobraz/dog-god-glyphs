@@ -22,6 +22,7 @@
 //
 // Typy tabuliek/RPC nie sú v generovanom `types.ts` (migrácia čaká na aplikáciu)
 // — rovnaký dôvod pre `supabase as any` ako v `packMessaging.ts`.
+import { trackPack } from '@/lib/packAnalytics';
 import { supabase } from '@/integrations/supabase/client';
 import { DEV_NOAUTH, devAddNote, devLikeNote, devListNotes, devRemoveNote, devVoteNote } from './devMockNotes';
 
@@ -304,6 +305,9 @@ export async function addMapNote(n: NewMapNote): Promise<string> {
     p_pinned_slug: n.pinnedSlug ?? null,
   });
   if (error) throw error;
+  // Meranie: druh značky je to zaujímavé číslo — po flipe povie, či svorka hlási kliešte,
+  // vodu alebo voľne pustené psy. Telo zápisu do analytiky NEIDE, je to text od člena.
+  trackPack('pack_note_add', { kind: n.kind });
   return data as string;
 }
 

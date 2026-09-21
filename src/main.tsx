@@ -13,6 +13,11 @@ if (POSTHOG_KEY) {
     autocapture: true,
     capture_exceptions: true,           // error tracking zadarmo
     capture_pageview: false,            // pageviews riešime manuálne v App.tsx (SPA routy)
+    // Heatmapy (21. 9. 2026, v1-posthog): bez `enable_heatmaps` PostHog kliky na súradnice
+    // NEZBIERA vôbec a heatmapa v appke ostane prázdna, aj keď `autocapture` beží — sú to dve
+    // rôzne veci. Zapína sa globálne (verejný web z toho ťaží rovnako); dáta idú ako
+    // `$$heatmap_data` prilepené k pageview, teda bez ďalšieho volania navyše.
+    enable_heatmaps: true,
   });
 }
 

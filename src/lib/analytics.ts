@@ -28,6 +28,19 @@ export const identifyUser = (email: string) => {
   try { if (enabled() && e) posthog.identify(e, { email: e }); } catch { /* ignore */ }
 };
 
+// Identita ČLENA v /pack (21. 9. 2026, rozhodol Matej): distinct_id = UUID účtu, email sa
+// neposiela. Oddelené od `identifyUser` vyššie schválne — tá posiela email, lebo abandoned-cart
+// mail nemá komu ísť bez neho. Tu by email bol osobný údaj navyše, bez úžitku.
+export const identifyById = (userId: string) => {
+  try { if (enabled() && userId) posthog.identify(userId); } catch { /* ignore */ }
+};
+
+// Odhlásenie musí identitu PUSTIŤ — bez toho by ďalší človek na tom istom zariadení (Matejov
+// testovací telefón, zdieľaný notebook) pokračoval pod cudzím person profilom.
+export const resetIdentity = () => {
+  try { if (enabled()) posthog.reset(); } catch { /* ignore */ }
+};
+
 export const trackPageview = (path: string) => {
   try { if (enabled()) posthog.capture('$pageview', { path, lang: currentLang }); } catch { /* ignore */ }
   toDataLayer('spa_pageview', { path, lang: currentLang });

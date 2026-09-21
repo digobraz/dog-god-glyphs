@@ -13,6 +13,7 @@
 //
 // Vizuál: Matej 6.8. — „zmeníme neskôr vizuál toho kvízu na kompaktnejší". Mechanika
 // je podľa nákresu, vizuál NIE je finálny.
+import { trackPack } from '@/lib/packAnalytics';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -299,7 +300,13 @@ export default function PackDogQuiz() {
             type="button"
             className="qz-gold"
             disabled={busy}
-            onClick={() => { if (idx + 1 >= total) { void finish(); } else { void flush(); setIdx(idx + 1); } }}
+            /* Meranie (v1-posthog): „dokončený" je LEN posledný krok. `finish()` sa volá aj
+               pri zavretí krížikom a pri kroku späť z prvej otázky — merať priamo v ňom by
+               z odchodu po prvej otázke spravilo dokončený kvíz. */
+            onClick={() => {
+              if (idx + 1 >= total) { trackPack('pack_quiz_done', { quiz: key }); void finish(); }
+              else { void flush(); setIdx(idx + 1); }
+            }}
           >
             {idx + 1 >= total ? tx('pack.quiz.done', 'Done') : tx('pack.quiz.next', 'Next')}
             {idx + 1 >= total ? <HandCheck size={14} /> : <ChevronRight className="h-3.5 w-3.5" />}

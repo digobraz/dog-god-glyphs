@@ -34,6 +34,7 @@
    generovaný súbor proti DEV schéme (LIVE ju ešte nemá), takže `as any` držíme — ale VÝHRADNE
    tu, v jednom dátovom module, nie rozsypané po komponentoch. Regenerácia typov je samostatná
    úloha, keď bude migrácia aj na LIVE. */
+import { trackPack } from './packAnalytics';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadPackTripPhoto } from '@/services/cloudinaryService';
 import type { HeroTrail } from '@/data/heroTrails.generated';
@@ -217,8 +218,15 @@ function persistSetDiff(key: string, tbl: string, next: Set<string>, extra: Reco
   const prev = readStringSet(key);
   writeStringSet(key, next);
   const ops: SyncOp[] = [];
-  next.forEach((slug) => { if (!prev.has(slug)) ops.push({ kind: 'upsert', tbl, row: { trip_slug: slug, ...extra } }); });
+  const added: string[] = [];
+  next.forEach((slug) => { if (!prev.has(slug)) { added.push(slug); ops.push({ kind: 'upsert', tbl, row: { trip_slug: slug, ...extra } }); } });
   prev.forEach((slug) => { if (!next.has(slug)) ops.push({ kind: 'delete', tbl, match: { trip_slug: slug } }); });
+  // Meranie (v1-posthog): `pack_trip_walked` sa berie z PRÍRASTKU diffu, nie z kliku v UI —
+  // ✓ prejdené sa dá zapnúť z článku výletu aj z mapy a obe cesty končia tu.
+  // ⚠️ Hromadný zápis sa NEMERIA. Founder seed (`scheduleFounderSeed`) a hydratácia zapíšu
+  // desiatky slugov naraz; jeden človek by tak za sekundu vyrobil 40 „prešiel som to".
+  // Reálny klik je vždy jeden slug.
+  if (tbl === 'trip_walked' && added.length === 1) trackPack('pack_trip_walked', { slug: added[0] });
   enqueue(ops);
 }
 
@@ -306,6 +314,9 @@ export function persistVotes(next: Record<string, VoteLike>): void {
         when_ym: v.when ?? null, hazards: v.hazards ?? [], at: isoOf(v.at),
       },
     });
+    // Meranie: hodnotenie sa ráta len keď sa zmenil počet packiek. Dopísaný komentár alebo
+    // opravená obtiažnosť idú tým istým zápisom, ale „ohodnotil výlet" to nie je.
+    if (v.rating != null && prev[slug]?.rating !== v.rating) trackPack('pack_trip_rated', { slug, rating: v.rating });
   }
   for (const slug of Object.keys(prev)) if (!next[slug]) ops.push({ kind: 'delete', tbl: 'trip_votes', match: { trip_slug: slug } });
   enqueue(ops);
