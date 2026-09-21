@@ -296,7 +296,7 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
             kind: plan ? 'plan' : kind,
             y: day.y, m: day.m, d: day.d,
             title: v.text.split('\n')[0].slice(0, 80),
-            text: v.photo ? tx('pack.cal.withPhoto', '📷 s fotkou') : undefined,
+            text: v.photo ? tx('pack.cal.withPhoto', 's fotkou') : undefined,
             dogId: ev.dogId,
           });
         }
@@ -1668,7 +1668,7 @@ const CAL_CSS = `
 .cal-add{display:block;width:100%;margin-top:12px;padding:12px 16px;border-radius:8px;
   background:${LAPIS.grad};border:1px solid ${GOLD_BTN.edge};color:${LAPIS.ink};
   box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;
-  font-family:${FONT_TITLE};font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase}
+  font-family:${FONT_TITLE};font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase}
 .cal-add:hover{background:${LAPIS.gradHover}}
 
 /* ── LEGENDA ────────────────────────────────────────────────────────────── */

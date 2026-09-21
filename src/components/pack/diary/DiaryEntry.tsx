@@ -142,9 +142,11 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', onClose, onSaved,
 
   const btnBase: CSSProperties = {
     borderRadius: PACK_R.field,
-    padding: '12px 16px',
+    padding: `${PACK_SPACE.md}px ${PACK_SPACE.lg}px`,
     fontFamily: FONT_TITLE,
-    fontSize: 11,
+    // 🔴 12, NIE 11. Stupnica `PACK_TEXT` nemá 11 a stráž `check:pack` ju meria —
+    //    jedenástka v okolitých CTA je stará odchýlka zo základne, nie vzor.
+    fontSize: PACK_TEXT.label,
     fontWeight: 700,
     letterSpacing: '0.14em',
     textTransform: 'uppercase',
