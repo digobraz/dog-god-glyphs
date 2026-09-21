@@ -214,7 +214,13 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     labelFallback: 'SERVICE',
     hintKey: 'pack.addTrip.entry.kind.service.text',
     hintFallback: 'Someone who helps you and your dog',
-    icon: { kind: 'panel' },
+    // 🚩 KRESBA JE NÁVRH. `{ kind: 'panel' }` tu stálo do 21. 9. 2026 a bola to chyba: panel
+    //    kreslí ikonku len tým trom objektom, ktoré má v `KINDS` (výlet, podujatie, odkaz) —
+    //    `service` medzi nimi nie je (vypadol 6. 8. 2026), takže by mu ostal PRÁZDNY slot.
+    //    `house-heart.svg` je z kitu a je najbližšie k „miesto, kde vám so psom pomôžu";
+    //    emoji 🏠 z nákresu sem NEPATRÍ (výnimka pre emoji platí mape, `check:ikony` to meria).
+    //    Podľa locku §1.1 sa ikonka Matejovi ukazuje nákresom — dovtedy drží miesto.
+    icon: { kind: 'kit', src: '/icons/pack/house-heart.svg' },
     place: 'VON',
     needs: 'bod',
     target: { kind: 'handler', id: 'addEntry.service' },
@@ -264,18 +270,19 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     target: { kind: 'handler', id: 'diary.write' },
     back: 'origin',
     lands: 'dog_events → kalendár',
-    state: 'pripravene',
-    // Úložisko `dog_events` je na LIVE (0 riadkov) a pisateľ `appendDogEvents()` v
-    // `lib/dogEvents.ts:90` EXISTUJE. Chýba jedine obrazovka, ktorá ho zavolá — preto
-    // `pripravene`, nie `zamknute`. Kalendár (`calendar/PackCalendar.tsx`) je zámerne
-    // čítací: je to hotový čitateľ, ktorý čaká presne na tohto pisateľa.
+    // ✅ `live` OD 21. 9. 2026 (KROK 5, commity `0668a53`, `c927542`). Do vtedy tu stálo
+    //    `pripravene` s poznámkou „chýba jedine obrazovka, ktorá pisateľa zavolá" —
+    //    tá obrazovka je `diary/DiaryEntry.tsx` a má dva vchody: dlaždica DENNÍK na
+    //    `/pack/dogs` a popup dňa v kalendári. Tretí vchod je odteraz panel `+`.
+    // ⚠️ TOTO JE TEN JEDEN RIADOK, o ktorom hovorí `isReady`: preklopením `state` sa
+    //    položka objavila na svojom mieste (JA) aj na DOMOVE naraz, bez editácie panela.
+    state: 'live',
     panel: true,
-    // ⚠️ BEZ `soon` ZÁMERNE — denník je KROK 5 TOHTO bloku, nie novembrová vlna. Písať
-    //    „čoskoro november" nad vec, ktorú staviam tento týždeň, by bol vymyslený termín
-    //    a presne to `isSoon` zakazuje.
-    // 🔴 DÔSLEDOK PRE PORADIE PRÁCE: kým denník nie je hotový, má panel na JA jedinú
-    //    položku (fotka) — a jediná položka je zakázaná. KROK 5 preto musí byť vonku
-    //    skôr alebo naraz s prestavbou lišty (KROK 4), nie po nej.
+    // ⚠️ BEZ `soon` — termín sa MAŽE, keď obrazovka pribudne. Tu nikdy nebol (denník bol
+    //    KROK 5 tohto bloku, nie ohlásená vlna), takže niet čo mazať.
+    // 🔴 HISTORICKÁ POZNÁMKA K PORADIU PRÁCE: kým denník nebol hotový, mal panel na JA
+    //    jedinú položku (fotka) — a jediná položka je zakázaná. Preto išiel KROK 5 PRED
+    //    KROK 4. Dnes má JA dve vlastné položky a fallback na repertoár DOMOVA zhasol sám.
     note: 'Minulý dátum = zápis do denníka · budúci = plán a ukáže sa v kalendári. Rozhoduje dátum v toku, nie druhá dlaždica.',
   },
   {
@@ -288,7 +295,10 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     target: { kind: 'handler', id: 'diary.photo' },
     back: 'origin',
     lands: 'dog_events (príloha zápisu)',
-    state: 'pripravene',
+    // ✅ `live` OD 21. 9. 2026 spolu s denníkom — je to TEN ISTÝ formulár otvorený pri
+    //    fotke (`DiaryEntry` s `mode='photo'`, otvorí systémový výber hneď), nie druhá
+    //    obrazovka. Adresa ide do `dog_events.value.photo` a popup dňa ju kreslí.
+    state: 'live',
     panel: true,
     // 🔴 §2 NÁKRESU JEJ DALO „✅ hotové" A TO JE CHYBA V PODKLADE (premerané 21. 9. 2026,
     //    Matej: „fotka? to nemáme vyriešené ešte"). Fotka psa NEMÁ KAM PRISTÁŤ:
@@ -519,6 +529,55 @@ export function panelFor(place: CreatePlace): Array<{ group: CreatePlace | null;
     out.push({ group: p === 'DOMOV' ? null : p, items });
   }
   return out;
+}
+
+// ── REGISTER `ROUTA → MIESTO` ───────────────────────────────────────────────────────────────
+// 🔴 PANEL SA NESMIE PÝTAŤ STRÁNKY, NA KTOROM MIESTE STOJÍ. Lišta je jedna a mountujú si ju
+//    ŠTYRI povrchy (`PackLayout`, `PackMap`, `PackTriplist`, `PackTripArticle`) — keby si
+//    každý posielal vlastné `place`, piaty povrch by ho raz zabudol poslať a `+` by na ňom
+//    ticho ukázal repertoár DOMOVA. Rozhoduje preto CESTA, na jednom mieste.
+//
+// Je to ten istý vzor, akým už funguje šat stránky (`usePaperRoute` v `packTheme.ts`)
+// a zaradenie obrazovky do koša (lock §3): register, nie otázka na stránku.
+//
+// ⚠️ PORADIE ROZHODUJE — prvá zhoda vyhráva. `/pack/dogs` musí stáť PRED holým `/pack`,
+//    inak by ho prefix `/pack` zhltol a celá appka by bola DOMOV.
+// ⚠️ CUDZÍ PROFIL (`/pack/u/:id`) NIE JE JA. JA znamená „môj pes a moje veci"; na cudzom
+//    profile by `+` ponúkal zápis do denníka NIE TOMU psovi, na ktorého sa človek díva.
+//    Padá preto na DOMOV, kde je celý repertoár a človek si miesto vyberie sám.
+const PLACE_ROUTES: ReadonlyArray<[prefix: string, place: CreatePlace]> = [
+  // VON — mapa a všetko, čo z nej rastie. `/pack/add/trip` je TÁ ISTÁ stránka ako `/pack/map`
+  // (issue #35), takže by bolo zvláštne, keby na nej `+` ponúkal niečo iné.
+  ['/pack/map', 'VON'],
+  ['/pack/add', 'VON'],
+  ['/pack/assniff', 'VON'],   // rovina vo VON (lock §8.1) — routa vzniká, register ju čaká
+  // AINUBIS — jedna adresa, ktorá rastie (kostra → VAULT). V rovinách CHAT a NÁSTENKA
+  // lišta MIZNE, takže sa tam `+` nikoho nespýta; to rieši kôš obrazovky, nie tento riadok.
+  ['/pack/ainubis', 'AINUBIS'],
+  // JA — môj pes a moje veci.
+  ['/pack/dogs', 'JA'],
+  ['/pack/profile', 'JA'],
+  ['/pack/nature', 'JA'],
+  // DOMOV — hub a čokoľvek pod `/pack`, čo nemá vlastné miesto.
+  ['/pack', 'DOMOV'],
+];
+
+/** Na ktorom mieste chrbtice stojí táto cesta. Volá to lišta, nie stránka. */
+export function placeForRoute(pathname: string): CreatePlace {
+  for (const [prefix, place] of PLACE_ROUTES) {
+    if (pathname === prefix || pathname.startsWith(prefix + '/')) return place;
+  }
+  return 'DOMOV';
+}
+
+/**
+ * Potrebuje tento objekt mapu?
+ *
+ * Nie je to zoznam id — odvodzuje sa z `place`, lebo mapa JE miesto VON. Ručný zoznam by
+ * pri štvrtom mapovom objekte zostarol ticho.
+ */
+export function needsMap(o: CreateObject): boolean {
+  return o.place === 'VON';
 }
 
 // ── PRAVIDLO NÁVRATU ────────────────────────────────────────────────────────────────────────

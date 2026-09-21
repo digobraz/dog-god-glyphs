@@ -1,5 +1,36 @@
 // ════════════════════════════════════════════════════════════════════════════
-// AINUBIS V SPODNOM NAVE `/pack` — medailón (2026-09-04)
+// KOTÚČ V STREDE SPODNÉHO NAVU `/pack` — od 21. 9. 2026 `+`, nie AINUBIS
+// ────────────────────────────────────────────────────────────────────────────
+// 🔴 ČO SA 21. 9. 2026 ZMENILO A ČO NIE.
+//    ZMENILA SA VÝPLŇ: zlatá obruč ostáva, vnútro je LAPISOVÝ DISPLEJ s kresleným `+`.
+//    Hlava AINUBISA odišla do vlastnej položky lišty (štvrté miesto chrbtice, routa
+//    `/pack/ainubis`) aj s odznakom neprečítaných — bublina „máš odo mňa správu" patrí
+//    k tomu, kto ju posiela.
+//    NEZMENILA SA GEOMETRIA: `DOCK` (d 74 · lift 1 · slot 90 · ow 5 · medalX 0) je
+//    Matejov výber z nákresu zo 4. 9. a ostáva CELÝ. Zadanie: „Čísla DOCK needituj."
+//
+// 🔵 PREČO LAPIS. Hlavné CTA je lapis (brandový kánon 28. 8. 2026) a `+` je najväčšia
+//    akcia v appke. Deliaca čiara brandu: ZLATO = konštrukcia a poloha (obruč, lišta,
+//    aktívna pilulka) · LAPIS = moja voľba a akcia. Kotúč nesie oboje naraz — obruč je
+//    nábytok, displej je akcia. Medailón na `/onepage` má lapisové vnútro tiež.
+//
+// ⚠️ V APPKE SÚ DVE `+` A NIKDY NESMÚ VYZERAŤ ROVNAKO (lock `architektura-pack.md` §1.1.1):
+//    kotúč v lište = „pridávam do svojho ŽIVOTA" · `+` pri písacom poli AINUBISA =
+//    „pridávam do MOZGU". Je to ten istý omyl, ktorý je zapísaný v `PackMap.tsx` (22. 8.):
+//    „dve tlačidlá vedľa seba robili DVE RÔZNE veci a vyzerali IDENTICKY."
+//
+// ⚠️ KRESBA `+` JE ZÁSTUPNÁ. Zadanie §6 necháva ikonku `+` do kotúča MATEJOVI (hand-drawn
+//    set); dovtedy drží miesto `/icons/pack/plus.svg` z kitu — teda kresba z kitu, nie
+//    lucide a nie emoji.
+//
+// ⚠️ NÁZVY OSTÁVAJÚ `pk-medal*`, `DOCK_MEDAL_CSS`, `--pack-medal-x`, `--pack-medal-rise`.
+//    Odoberajú ich CUDZIE súbory (`AinubisWidget.css`, rad nad mapou v `PackMap.tsx`,
+//    rozbaľovačka avatara v `PackLayout.tsx`). Premenovanie kvôli kráse by bolo
+//    premenovanie identifikátora, ktorý už je nasadený — CLAUDE.md to rieši rovnako
+//    ako `/pack` v URL: text pre človeka sa mení, identifikátor nie.
+//
+// ────────────────────────────────────────────────────────────────────────────
+// PÔVODNÁ HLAVIČKA (2026-09-04) — platí všetko okrem toho, kto v kotúči sedí:
 // ────────────────────────────────────────────────────────────────────────────
 // Matej 4. 9. 2026: „skusme opraviť spodný panel v /pack … ainubisa dali do stredu
 // spodného navu = domov ainubis mapa profily … bude dolu tak ako máme logo dogyptu
@@ -11,10 +42,10 @@
 //    Meria pritom aj to, čo sa v kóde nevidí: koľko chýba do optického stredu lišty
 //    a akú vôľu má kotúč k susednej položke, zvlášť pre 390 px a pre PC.
 //
-// ⚠️ TVÁR JE V AINUBISOVOM BRANDE, OBRUČ V DOGYPTOVOM. Vnútro je jeho tmavomodrý
-//    displej + cyan dosvit (`ainubisSkin.ts`), obruč zlatá ako celý nav. Na `/onepage`
-//    je vnútro medailónu lapisové — tam je v ňom LOGO. Tu je v ňom ON, a keď hovorí
-//    on, nesie svoju paletu (CLAUDE.md: „AINUBIS je výnimka! Je to jeho brand").
+// ⛔ NEPLATÍ OD 21. 9. 2026 (bod vyššie): „TVÁR JE V AINUBISOVOM BRANDE, OBRUČ
+//    V DOGYPTOVOM. Vnútro je jeho tmavomodrý displej + cyan dosvit (`ainubisSkin.ts`)…"
+//    Pravidlo bolo správne, kým v kotúči sedel ON. Odkedy v ňom sedí `+`, je vnútro
+//    DOGYPTOVE (lapis) — a AINUBISOV brand si nesie jeho vlastná položka lišty.
 //
 // ⚠️ DVE PASCE GEOMETRIE, obe zdedené z `NavMedallion.tsx` (/onepage) — nezopakuj ich:
 //    1. `<svg>` je NAHRADENÝ prvok — z `position:absolute; inset:…` si rozmer NEVEZME,
@@ -22,18 +53,14 @@
 //    2. Plátno absolútneho potomka = PADDING-box rodiča. Obruč je `padding` (nie
 //       `border`), takže `100%` JE priemer aj s ňou a polomer 50 vo viewBoxe je jej hrana.
 // ════════════════════════════════════════════════════════════════════════════
-import { useEffect, useState } from 'react';
-import { NAV_GRAIN } from './navGoldSkin';
+import { NAV_GRAIN, LAPIS } from './navGoldSkin';
+// Jediné, čo z AINUBISOVHO brandu v tomto súbore ostalo: cyan jeho odznaku.
 import { AINUBIS } from './ainubisSkin';
-import { openAinubis, getAinubisUnread, onAinubisUnread } from '@/lib/ainubisBus';
-// ⚠️ `ainubis-head.png` (800 px, PRIEHĽADNÉ okolie), NIE `ainubis-badge.png`.
-//    Badge je odznak v tvare ŠTÍTU — čierna doska s modrým obrysom; rohy má síce
-//    priehľadné, ale jeho hranatá silueta sa na tmavomodrom displeji medailónu čítala
-//    ako tmavý štvorec v kruhu (Matej 11. 9. 2026: „fotka ainubisa v strede je na nej
-//    vidno tmavý štvorec - nie je to pekné"). Hlava je navyše 5× väčšia (800 vs 160 px),
-//    takže pri tej istej veľkosti na obrazovke stúpla ostrosť, neklesla.
-//    Ten istý zdroj používajú `Gateways.tsx` a `MapCoach.tsx`.
-import ainubisFace from '@/assets/ainubis-head.png';
+// ⚠️ `ainubis-head.png` sa odtiaľto 21. 9. 2026 ODSŤAHOVALA do položky lišty AINUBIS
+//    (`PackLayout.tsx`) spolu s odznakom neprečítaných. Poznámka o nej ostáva v histórii
+//    tohto súboru: bol to ten istý zdroj, aký používajú `Gateways.tsx` a `MapCoach.tsx`,
+//    a NIE `ainubis-badge.png` (hranatý štít sa na kruhovom displeji čítal ako tmavý
+//    štvorec — Matej 11. 9. 2026).
 
 type Ring = 'smooth' | 'alt' | 'engraved' | 'beads';
 
@@ -115,7 +142,7 @@ function Deco() {
         <path
           key={`alt${i}`}
           d={`M${p1} A${kOut} ${kOut} 0 0 1 ${p2} L${p3} A${rIn} ${rIn} 0 0 0 ${p4} Z`}
-          fill={AINUBIS.glow}
+          fill={gold}
           opacity={DOCK.deco}
         />,
       );
@@ -153,26 +180,29 @@ function Deco() {
 }
 
 /**
- * Medailón v strede spodného navu. Klik otvára ten istý panel ako plávajúca guľa —
- * cez `openAinubis()`, teda žiadny druhý chat a žiadny prop-drilling cez PackLayout.
+ * KOTÚČ `+` v strede spodného navu — stred chrbtice (lock §1.1: `DOMOV · VON · ⊕ ·
+ * AINUBIS · JA`).
+ *
+ * Nie je to routa a nikdy ňou nebude: `+` neodpovedá na „kde som", odpovedá na „pridávam".
+ * Preto `<button>`, nie `NavLink` — a preto nemá aktívny stav.
+ *
+ * ⚠️ Panel si otvára VOLAJÚCI (`PackBottomNav`), nie tento komponent. Kotúč je kresba
+ *    s klikacou plochou; čo sa v paneli ukáže, rozhoduje MIESTO, a to vie lišta.
  */
-export function DockMedallion({ label }: { label: string }) {
-  // Odznak neprečítaných. Guľa je v `/pack` skrytá, takže by inak zmizol s ňou.
-  const [unread, setUnread] = useState(getAinubisUnread);
-  useEffect(() => onAinubisUnread(setUnread), []);
-
+export function DockPlus({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <span className="pk-medal-slot">
-      <button type="button" className="pk-medal" aria-label={label} onClick={() => openAinubis()}>
+      <button type="button" className="pk-medal" aria-label={label} onClick={onClick}>
         <span className="pk-medal-rim">
           <span className="pk-medal-face">
-            <img src={ainubisFace} alt="" aria-hidden />
+            {/* Kresba z kitu MASKOU, nie `<img>` s filtrom: filter farbu aproximuje, maska
+                ju trafí presne. Zástupná, kým Matej nenakreslí vlastnú (zadanie §6). */}
+            <span className="pk-medal-plus" aria-hidden />
             <span className="pk-medal-grain" />
             <span className="pk-medal-gloss" />
           </span>
         </span>
         <Deco />
-        {unread > 0 && <span className="pk-medal-badge">{unread > 9 ? '9+' : unread}</span>}
       </button>
     </span>
   );
@@ -206,7 +236,12 @@ export const DOCK_MEDAL_CSS = `
   box-shadow:
     0 ${(6 + DOCK.shadow * 14).toFixed(0)}px ${(14 + DOCK.shadow * 30).toFixed(0)}px -6px rgba(0,0,0,${(DOCK.shadow * 0.95).toFixed(2)}),
     0 3px 0 -1px rgba(70,46,12,${(DOCK.shadow * 0.6).toFixed(2)}),
-    0 0 ${(12 + DOCK.halo * 34).toFixed(0)}px rgba(91,224,240,${(DOCK.halo * 0.9).toFixed(2)}),
+    /* ⚠️ DOSVIT BOL CYAN — to bola AINUBISOVA farba (ainubisSkin.glow) a odišla s ním.
+       Číslo DOCK.halo je Matejovo z nákresu a NEMENÍ SA; mení sa len to, čím svieti.
+       Zlato je materiál samotnej obruče, takže dosvit prestal byť cudzou farbou a stal
+       sa jej vlastným odleskom. Lapis do dosvitu NEPATRÍ: na čiernej stránke by tmavá
+       modrá nesvietila vôbec (rovnaká matematika ako „tmavý tint nad pieskom zošedne"). */
+    0 0 ${(12 + DOCK.halo * 34).toFixed(0)}px rgba(201,154,63,${(DOCK.halo * 0.9).toFixed(2)}),
     inset 0 1.5px 0 rgba(255,250,228,0.9),
     inset 0 -2px 3px rgba(84,56,14,0.55);
   border:0;cursor:pointer;display:block;
@@ -214,23 +249,34 @@ export const DOCK_MEDAL_CSS = `
 .pk-medal-rim{
   display:block;width:100%;height:100%;border-radius:50%;
   padding:${DOCK.iw}px;
-  background:linear-gradient(180deg,#12405C,#071019 45%,#02060B);
+  /* Do 21. 9. 2026 tu bol AINUBISOV tmavomodrý displej (#12405C → #02060B). Dnes je to
+     LAPIS — plná farebná plocha jediného hlavného CTA v lište. */
+  background:${LAPIS.grad};
   box-shadow:inset 0 0 0 1px rgba(0,0,0,0.35);
 }
 .pk-medal-face{
   position:relative;display:flex;align-items:center;justify-content:center;
   width:100%;height:100%;border-radius:50%;overflow:hidden;
-  background:${AINUBIS.surface};
+  background:${LAPIS.grad};
   box-shadow:
     inset 0 2px 4px rgba(255,250,228,0.45),
     inset 0 -8px 14px -6px rgba(0,0,0,0.65),
     inset 0 0 0 1px rgba(0,0,0,0.4);
 }
-.pk-medal-face img{display:block;width:auto;height:${DOCK.faceW}%;}
-/* ⚠️ Rozmer drží VÝŠKA, nie šírka: hlava je 800×940, teda vyššia než širšia —
-   pri width v percentách by pretiekla kruh zhora aj zdola a orezala sa jej
-   koruna aj brada. Kľúč faceW tak ostáva Matejovo číslo z nákresu, len meria druhú
-   os; odznak bol skoro štvorcový, takže pri ňom bol rozdiel neviditeľný. */
+/* KRESLENÝ PLUS NA DISPLEJI. Rozmer drží ten istý kľúč, aký držal hlavu — DOCK.faceW je
+   Matejovo číslo z nákresu a nemení sa. Pri hlave meral VÝŠKU (kresba 800×940 je vyššia
+   než širšia); plus je štvorcový, takže mu stačí jeden rozmer a percentá sa počítajú
+   z displeja rovnako.
+   ⚠️ 88 % z displeja by bol plus cez celý kruh — kresba v kite má okolo seba vlastnú
+   vôľu, ktorú mala aj hlava (koruna nemesu + brada). Tu je plus holý ťah, takže si ju
+   musí vziať sám: 0.62 × faceW nechá po stranách zhruba toľko lapisu, koľko nechávala
+   hlava. Je to ZÁSTUPNÉ číslo do Matejovej kresby, nie nový kľúč do nákresu. */
+.pk-medal-plus{
+  display:block;width:${(DOCK.faceW * 0.62).toFixed(0)}%;height:${(DOCK.faceW * 0.62).toFixed(0)}%;
+  background:#F5F0E4;
+  -webkit-mask:url(/icons/pack/plus.svg) center / contain no-repeat;
+  mask:url(/icons/pack/plus.svg) center / contain no-repeat;
+}
 .pk-medal-gloss{
   position:absolute;inset:0;border-radius:50%;pointer-events:none;mix-blend-mode:screen;
   background:
@@ -247,8 +293,14 @@ export const DOCK_MEDAL_CSS = `
   position:absolute;top:0;left:0;width:100%;height:100%;
   border-radius:50%;overflow:visible;pointer-events:none;z-index:3;
 }
-/* Odznak neprečítaných — tie isté farby, aké mal nad plávajúcou guľou. */
-.pk-medal-badge{
+/* ── ODZNAK NEPREČÍTANÝCH — od 21. 9. 2026 nad položkou AINUBIS, nie nad kotúčom ──────
+   Bublina „máš odo mňa správu" nad plusom by hovorila, že mám niečo PRIDAŤ; číslo patrí
+   k tomu, kto ho posiela. Kresba je prevzatá 1:1 z pôvodného .pk-medal-badge.
+   ⚠️ PREČO JE TO STÁLE V TOMTO SÚBORE: DOCK_MEDAL_CSS je stylesheet CELEJ LIŠTY (vkladá ho
+   PackBottomNav jedným style blokom), nie kotúča. Druhý stylesheet v PackLayout.tsx by bol
+   druhé miesto s tými istými farbami — a inline štýl na prvku by tie čísla presťahoval do
+   súboru, kde ich stráž check:pack meria proti inej základni. */
+.pk-ainu-badge{
   position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 4px;
   border-radius:999px;background:${AINUBIS.cyan};color:#03070C;
   font-family:${"'Space Grotesk',system-ui,sans-serif"};font-weight:600;font-size:11px;line-height:18px;

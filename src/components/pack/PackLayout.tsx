@@ -20,7 +20,12 @@ import {
   NAV_R, NAV_GOLD, NAV_GRAIN, NAV_MOTTLE,
   NAV_FRAME_SHADOW, NAV_PLATE_SHADOW, NAV_PILL_SHADOW,
 } from './navGoldSkin';
-import { DOCK, DOCK_MEDAL_CSS, DockMedallion } from './packDockMedal';
+import { DOCK, DOCK_MEDAL_CSS, DockPlus } from './packDockMedal';
+import { AddTripEntry, type AddChoice } from './addtrip/AddTripEntry';
+import { placeForRoute, withOrigin, type CreateObject } from './createRegistry';
+import { emitCreate, type CreateIntent } from '@/lib/createBus';
+import { openAinubis, getAinubisUnread, onAinubisUnread } from '@/lib/ainubisBus';
+import { DiaryEntry } from './diary/DiaryEntry';
 
 // Inbox/Thread lazy — statický import by ich (a s nimi packMessaging.ts: HERO_TRAILS 1,5 MB,
 // HERO_JOURNEYS) ťahal do PackLayout chunku vždy, aj keď overlay na LIVE
@@ -295,7 +300,59 @@ function NavGrain({ radius, opacity = 0.3, inset = 0 }: { radius: number | strin
 // in the avatar menu, Messages moved to the global PackTopRight hub.
 export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: string | null; avatarInitial?: string; dogs?: PackDog[] } = {}) {
   const t = useT();
+  const tx = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
+  const navigate = useNavigate();
   const navRef = useRef<HTMLElement>(null);
+
+  // ── PANEL `+` ŽIJE TU, LEBO LIŠTA VIE, KDE ČLOVEK STOJÍ ────────────────────────────
+  // Lock `architektura-pack.md` §1.1.1: `+` je jediný slot chrbtice s KONTEXTOVÝM obsahom.
+  // Miesto sa NEPÝTA stránky — rozhoduje cesta (`placeForRoute`), inak by ho piaty povrch,
+  // ktorý si lištu namountuje, raz zabudol poslať.
+  const { pathname } = useLocation();
+  const place = placeForRoute(pathname);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [diary, setDiary] = useState<{ mode: 'write' | 'photo' } | null>(null);
+
+  // Je pod nami namountovaný `PackMap`? Len tieto dve cesty ho mountujú — `/pack/map/triplist`
+  // a článok výletu sú iné komponenty, hoci ležia na tej istej vetve adries.
+  const onMapScreen = pathname === '/pack/map' || pathname.startsWith('/pack/add');
+
+  /**
+   * Mapový objekt (výlet · rýchly odkaz · podujatie). Vykonáva ho `PackMap`, nie lišta.
+   *
+   * 🔴 PRAVIDLO NÁVRATU (lock §1.1.1): keď tok začína inde než na mape, pripneme `?from=`
+   *    a `PackMap` sa naň po uložení či zrušení vráti. Parameter, nie pamäť komponentu —
+   *    tok výletu ide cez celú mapu a musí prežiť obnovenie stránky.
+   * ⚠️ PORADIE: najprv navigácia, potom voľba. `createBus` ju podrží, kým sa `PackMap`
+   *    nenamountuje a neprihlási — opačné poradie by ju odovzdalo nikomu.
+   */
+  const runPick = (choice: AddChoice) => {
+    setCreateOpen(false);
+    const intent: CreateIntent =
+      choice.kind === 'trip' ? { id: 'trip' }
+        : choice.kind === 'note' ? { id: 'note', group: choice.group }
+          : { id: 'event', origin: choice.origin };
+    if (!onMapScreen) navigate(withOrigin('/pack/map', pathname));
+    emitCreate(intent);
+  };
+
+  /**
+   * Objekt, ktorý mapa nevykonáva. Dnes sú to tri: denník, fotka (ten istý formulár
+   * otvorený pri fotke) a nový rozhovor s AINUBISOM.
+   *
+   * ⚠️ Ohlásené položky („čoskoro") sem NEPRÍDU — panel ich nedá kliknúť. Preto tu nie je
+   *    vetva pre `post`, `brain` ani `board`: keby tu bola, bola by to mŕtva vetva, ktorá
+   *    tvrdí, že tie obrazovky existujú.
+   * ⚠️ DENNÍK JE PREKRYVOVÁ VRSTVA, NIE ROUTA (lock §4.2: akcia nikdy neodnesie človeka
+   *    preč z miesta, kde je). Zapíše sa a človek stojí tam, kde stál.
+   */
+  const runCreate = (o: CreateObject) => {
+    setCreateOpen(false);
+    if (o.target.kind !== 'handler') return;
+    if (o.target.id === 'diary.write') { setDiary({ mode: 'write' }); return; }
+    if (o.target.id === 'diary.photo') { setDiary({ mode: 'photo' }); return; }
+    if (o.target.id === 'ainubis.chat') { openAinubis(); return; }
+  };
 
   // Nav publikuje svoju polovičnú šírku ako `--pack-nav-half` + značku
   // `has-pack-nav` na <body>. Odoberá to AinubisWidget, ktorý sa vďaka tomu
@@ -342,6 +399,7 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
        ⚠️ `navRef` MUSÍ ostať na bare, nie na páse: publikuje `--pack-nav-half`,
        z ktorej si AINUBIS panel počíta polohu (`AinubisWidget.css`). Na páse by to
        bola polovica okna. */
+    <>
     <div
       className="fixed z-40"
       style={{
@@ -419,14 +477,26 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
           }}
         />
         )}
-        {/* ── ZLOŽENIE: DOMOV │ AINUBIS │ MAPA · PROFIL (Matej 4. 9. 2026) ──────
-            „na lavej strane bude len HOME a na pravej bude map a profil (profil
-             a svorka) nie dalšie tlačítko svorka."
-            SVORKA teda vlastné tlačidlo NEMÁ — ostáva položkou v rozbaľovačke
-            avatara, kde bola aj doteraz.
-            ⚠️ Vľavo jedna položka, vpravo dve, takže medailón v toku sedí vľavo od
-            stredu lišty; naprávajú to `DOCK.slot` a `DOCK.medalX` (obe odmerané
-            v nákrese, viď `packDockMedal.tsx`). */}
+        {/* ── ZLOŽENIE: DOMOV · VON │ ⊕ │ AINUBIS · JA (chrbtica, LOCKED 21. 9. 2026) ──
+            Päť miest, ktoré NIKDY nerastú (lock `architektura-pack.md` §1.1). Delia sa
+            podľa ZÁMERU človeka, nie podľa funkcií: zámerov je konečný počet, funkcií nie.
+            Šieste miesto znamená, že niečo z pätice odchádza — a nemá čo.
+
+            🔴 ČO SA 21. 9. ZMENILO oproti zloženiu zo 4. 9. („DOMOV │ AINUBIS │ MAPA · PROFIL"):
+               · stred je `+`, nie AINUBIS — kotúč prestal byť spúšťačom chatu a stal sa
+                 pridávaním. Medailón už predtým NEODPOVEDAL na „kde som" (bol to spúšťač
+                 overlayu), takže argument „v strede má byť miesto" padol meraním, nie názorom.
+               · AINUBIS dostal VLASTNÚ POLOŽKU a routu `/pack/ainubis` (pristáva na rovine
+                 VAULT — v CHATE a na NÁSTENKE lišta mizne, takže pristátie na chate by viedlo
+                 do miesta, kde sa záložka sama skryje).
+               · MAPA sa volá VON. Je to jediné z piatich mien, ktoré hovorí ZÁMER („kam a s kým
+                 dnes"), nie obrazovku. `/pack/map` v URL ostáva — identifikátor nie je text
+                 pre človeka (ten istý precedens ako `/pack` proti slovu „svorka").
+
+            ⚠️ SVORKA vlastné tlačidlo NEMÁ (Matej 4. 9.) — ostáva položkou v rozbaľovačke
+               avatara, kde bola aj doteraz. Avatar JE miesto JA.
+            ⚠️ Krídla majú odteraz po DVE položky, takže nesymetria, kvôli ktorej kedysi
+               existoval `DOCK.medalX = +10`, je preč aj vecne, nielen cez `1fr auto 1fr`. */}
         <style>{DOCK_MEDAL_CSS}</style>
         {/* `1fr auto 1fr` = obe krídla dostanú ROVNAKÝ diel a v ňom sa obsah vycentruje.
             Vľavo je jedna položka a vpravo dve, takže bez toho sedel DOMOV nalepený na
@@ -440,23 +510,59 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
             gap: NAV_SKIN === 'gold' ? 10 : 4, padding: NAV_SKIN === 'gold' ? NAV_R.rim + 5 : 6,
           }}
         >
-          <span className="flex items-center justify-center" style={{ minWidth: 0 }}>
-            <FloatingNavLink to="/pack" label={t('pack.layout.navHome')} icon={iconHome} end />
-          </span>
-          <DockMedallion label={t('pack.layout.navAinubis')} />
           <span className="flex items-center justify-center" style={{ minWidth: 0, gap: NAV_SKIN === 'gold' ? 10 : 4 }}>
+            <FloatingNavLink to="/pack" label={t('pack.layout.navHome')} icon={iconHome} end />
             {/* `WIZ.navMap` — sem svieti krok prehliadky o mape (spotlight na IKONKU,
                 nie na blok stránky). Kotva sedí na obale, nie na `NavLink`: spotlight
-                pridáva `position:relative` + `z-index`, a to by prebilo štýl pillu. */}
+                pridáva `position:relative` + `z-index`, a to by prebilo štýl pillu.
+                ⚠️ IKONKA OSTÁVA PLANÉTKA. Matej 21. 9. 2026 k návrhu vymeniť ju za
+                   `walk.svg`: „počkaj, ja som neschválil vymeniť planétku" — a v tej istej
+                   dávke rozhodnutí o značkách potvrdil „VON ostáva planétka world-grid.svg".
+                   Výmena je NÁVRH na nákres, nie hotová vec. */}
             <span id={WIZ.navMap} style={{ display: 'inline-flex', borderRadius: 999 }}>
-              <FloatingNavLink to="/pack/map" label={t('pack.layout.navMap')} icon="/icons/pack/world-grid.svg" />
+              <FloatingNavLink to="/pack/map" label={tx('pack.layout.navOut', 'OUT')} icon="/icons/pack/world-grid.svg" />
             </span>
+          </span>
+          <DockPlus label={tx('pack.layout.navAdd', 'Add')} onClick={() => setCreateOpen(true)} />
+          <span className="flex items-center justify-center" style={{ minWidth: 0, gap: NAV_SKIN === 'gold' ? 10 : 4 }}>
+            <AinubisNavLink label={t('pack.layout.navAinubis')} />
             <AvatarNavButton avatarUrl={avatarUrl} avatarInitial={avatarInitial} dogs={dogs} />
           </span>
         </div>
       </div>
     </nav>
     </div>
+    {/* ── PANEL `+` JE SÚRODENEC PÁSU, NIE JEHO POTOMOK ─────────────────────────────────
+        🔴 DVA DÔVODY, OBA MERATEĽNÉ:
+        1. VRSTVENIE. Pás je `fixed z-40`, teda VLASTNÝ stacking kontext — čokoľvek v ňom
+           sa vrství len voči nemu a mapové ovládače (z-900) by prekryli aj `z-9999`.
+           Je to presne tá pasca, ktorá 21. 9. položila spodný nav CEZ tlačidlo ZAPÍSAŤ
+           v denníku (KROK 5) a riešila sa portálom.
+        2. ŠAT. Na mape musí panel ostať VNÚTRI `.trp-root` — bledú (papyrusovú) podobu
+           mu dáva `PALE_ADD_CSS` s predponou `.trp-root`. Portál do `document.body` by ho
+           z nej vyviedol a na mape by zrazu svietil tmavý sklenený popup vedľa bledého,
+           ktorý otvára ten istý tok z bočného panela.
+        Súrodenectvo rieši oboje naraz: panel sa vrství v kontexte STRÁNKY a šat zdedí. */}
+    {createOpen && (
+      <AddTripEntry
+        place={place}
+        onPick={runPick}
+        onCreate={runCreate}
+        onClose={() => setCreateOpen(false)}
+      />
+    )}
+    {/* DENNÍK — druhý a tretí vchod doň sú dlaždica na `/pack/dogs` a popup dňa v kalendári
+        (KROK 5). Toto je štvrtý: `+` na mieste JA. Ten istý komponent, žiadna druhá obrazovka
+        „pridať zápis" — lock §1.1.1: jeden panel, viac vchodov. */}
+    {diary && (dogs?.length ?? 0) > 0 && (
+      <DiaryEntry
+        dogs={(dogs ?? []).map((d) => ({ id: d.id, name: d.dog_name ?? '—' }))}
+        mode={diary.mode}
+        onClose={() => setDiary(null)}
+        tx={tx}
+      />
+    )}
+    </>
   );
 }
 
@@ -972,6 +1078,37 @@ function BrandIcon({ src, active }: { src: string; active: boolean }) {
         transition: 'opacity 0.15s',
       }}
     />
+  );
+}
+
+/**
+ * AINUBIS — štvrté miesto chrbtice (21. 9. 2026).
+ *
+ * Do 21. 9. sedel v KOTÚČI v strede lišty a klik otváral overlay chatu (`openAinubis()`).
+ * Odteraz je to MIESTO s vlastnou adresou `/pack/ainubis` a pristáva na rovine VAULT —
+ * nie na chate: v rovinách CHAT a NÁSTENKA spodná lišta MIZNE (kôš 3), takže by záložka
+ * viedla do miesta, kde sa tá istá záložka okamžite skryje.
+ *
+ * ⚠️ `ainubisBus` sa NERUŠÍ. `openAinubis()` volajú `Gateways.tsx`, `MapCoach.tsx`, dlaždica
+ *    chatu v kostre aj položka „nový rozhovor" v paneli `+` — záložka len naviguje.
+ * ⚠️ ODZNAK NEPREČÍTANÝCH SEM PRIŠIEL Z KOTÚČA. Plávajúca guľa je v `/pack` skrytá, takže
+ *    keby ho nenieslo nič, zmizol by s ňou; a nad `+` by tvrdil, že mám niečo PRIDAŤ.
+ *    Kresba ostáva v `DOCK_MEDAL_CSS` (`packDockMedal.tsx`) — to je stylesheet CELEJ
+ *    lišty, nie kotúča, a inline čísla by sa merali proti inej základni stráže.
+ *
+ * 🚩 IKONKA JE NÁVRH, NIE ROZHODNUTIE. `dogsphinx.svg` je z hand-drawn kitu a je to
+ *    jediná kresba, ktorá znamená „psí strážca"; `chat.svg` by pomenovala len jednu jeho
+ *    rovinu a `nose.svg` si drží ASSNIFF (lock §8.1). Podľa locku §1.1 sa ikonka Matejovi
+ *    UKAZUJE NÁKRESOM — dovtedy drží miesto.
+ */
+function AinubisNavLink({ label }: { label: string }) {
+  const [unread, setUnread] = useState(getAinubisUnread);
+  useEffect(() => onAinubisUnread(setUnread), []);
+  return (
+    <span style={{ position: 'relative', display: 'inline-flex' }}>
+      <FloatingNavLink to="/pack/ainubis" label={label} icon="/icons/pack/dogsphinx.svg" />
+      {unread > 0 && <span className="pk-ainu-badge" aria-hidden>{unread > 9 ? '9+' : unread}</span>}
+    </span>
   );
 }
 

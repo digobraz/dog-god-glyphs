@@ -127,6 +127,8 @@ import { TripProfileCard, partyMemberToProfileCardProps } from '@/components/pac
 // tohto súboru do vlastného adresára (§2 zadania). Portal len zapája vstupný popup + oba
 // formuláre a konvertuje AddTripDraft → HeroTrail zápis (§3 tam), formuláre samotné sa needitujú.
 import { AddTripEntry, type AddChoice } from '@/components/pack/addtrip/AddTripEntry';
+import { onCreate } from '@/lib/createBus';
+import { ORIGIN_PARAM, returnTo } from '@/components/pack/createRegistry';
 // ZÁPISY DO MAPY (2026-08-20) — parkovisko/výstraha/poznámka od členov + datasetové
 // body (`customPoi`), ktoré appka doteraz nikde nekreslila.
 // Zadanie: plany/zadanie-zapisy-do-mapy-2026-08-20.md
@@ -2008,10 +2010,17 @@ ${TRAIL_LINE_CSS}
        · .trp-mfab = CTA „pridaj výlet" → vzor .btn-gold (LOCK): radius 8 + zlatý dosvit.
        · .trp-mtoggle = prepínač pohľadu (LIST/MAP) → ostáva pilulka BEZ dosvitu; nie je to
          výzva k akcii, je to prepínač, a tvar aj halo ho teraz odlišujú na prvý pohľad.
-     Farbu prepínača zámerne NEMENÍM — to by bolo ďalšie rozhodnutie nad rámec zadania. */
-  .trp-mtoggle,.trp-mfab{display:flex;align-items:center;justify-content:center;gap:8px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:11px 24px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);cursor:pointer;white-space:nowrap;}
+     Farbu prepínača zámerne NEMENÍM — to by bolo ďalšie rozhodnutie nad rámec zadania.
+     🔴 21. 9. 2026: .trp-mfab ZANIKLO (vchod sa presťahoval do kotúča + v lište), takže
+     spor o dve identické tlačidlá zanikol s ním. Pravidlo ostáva zapísané — je to jediné
+     miesto, kde sa dá prečítať, PREČO je prepínač pilulka a CTA nie. */
+  .trp-mtoggle{display:flex;align-items:center;justify-content:center;gap:8px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:11px 24px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);cursor:pointer;white-space:nowrap;}
   .trp-mtoggle{border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,0.4);}
-  /* PRIDAŤ JE FIALOVÉ (Matej 2026-08-23: „tlačítko pridať by sme mohli dať fialovým výrazným").
+  /* 🔴 ZÁZNAM ZRUŠENÉHO PRVKU (.trp-mfab, 23. 8. – 21. 9. 2026). Kresba zanikla, dôvod nie:
+     je to jediné miesto, kde stojí, prečo sa PRIDAŤ a ZOZNAM museli odlíšiť. Kto by na mapu
+     vrátil druhé tlačidlo „pridať", nech si najprv prečíta lock §1.1.1 — jeden panel, viac
+     vchodov. Pôvodný text:
+     PRIDAŤ JE FIALOVÉ (Matej 2026-08-23: „tlačítko pridať by sme mohli dať fialovým výrazným").
      Fialová je v mape farba TRASY (svetelný meč) — tlačidlo, ktorým sa do mapy zapisuje, tak
      hovorí tým istým jazykom ako to, čo z neho vznikne. Zároveň to rozviazalo starý spor
      „ZOZNAM aj PRIDAŤ sú obe zlaté": prepínač pohľadu ostáva zlatá pilulka, akcia je fialová,
@@ -2020,11 +2029,7 @@ ${TRAIL_LINE_CSS}
      to vyzerá hrozne"). Svetlá fialová #B36BFF je farba ČIARY na mape — na ploche tlačidla
      z nej bola neónová škvrna vedľa zlatého prepínača. Tmavý koniec tej istej rodiny
      drží príbuznosť s trasou, ale správa sa ako povrch. */
-  .trp-mfab{border-radius:8px;background:linear-gradient(135deg,#4A1580,#2A0B4D);color:#EADCFF;border:1px solid rgba(179,107,255,0.45);box-shadow:0 10px 30px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.10);}
-  .trp-mfab:hover{border-color:rgba(179,107,255,0.75);}
-  .trp-mfab:active{transform:scale(0.98);}
   .trp-mtoggle img{width:15px;height:15px;flex:0 0 auto;filter:brightness(0);opacity:.82;}
-  .trp-mfab img{width:15px;height:15px;flex:0 0 auto;filter:brightness(0) invert(1);opacity:.85;}
 
   /* hlavička LIST pohľadu — sem sa presťahoval TRIPLIST z mapového headera. V zozname dáva
      zmysel (je to zoznamový povrch), v headeri mapy bol len ďalšia ikonka v rade. */
@@ -2483,9 +2488,10 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
      Jediné dvere k podujatiam na telefóne — dôvod aj rozhodnutie sú pri JSX nižšie.
      Tvar = MALÝ SEGMENT, predloha .pev-toggle v components/pack/events/EventsPanel.tsx
      (ten istý recept: pilulkový obal, dve tlačidlá vnútri, aktívne cez pickTintCSS).
-     ⚠️ NIE plný lapis. Plnú farebnú plochu má na tejto obrazovke PRIDAŤ (.trp-mfab) —
-     dve plné plochy vedľa seba a ani jedna nevedie (lock 26. 8.: výber je priesvitný tint,
-     plná výplň je rezervovaná pre JEDINÉ hlavné CTA na obrazovke).
+     ⚠️ NIE plný lapis. Plnú farebnú plochu drží na tejto obrazovke DISPLEJ KOTÚČA + v lište
+     (do 21. 9. 2026 to bolo PRIDAŤ, .trp-mfab) — dve plné plochy a ani jedna nevedie
+     (lock 26. 8.: výber je priesvitný tint, plná výplň je rezervovaná pre JEDINÉ hlavné
+     CTA na obrazovke).
      ⚠️ Riadok NEMÁ vlastné pozadie — dosku pod ním nesie hlavička (goldPlateCSS).
      ⚠️ Žiadne nové natvrdo písané číslo výšky: hlavička publikuje svoju SKUTOČNÚ výšku
      ako --trp-mheader-h (ResizeObserver, PackMap ~4180), takže ovládače mapy aj zoznam
@@ -2503,7 +2509,12 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
      --pack-nav-half (ResizeObserver v PackBottomNav, pôvodne pre AinubisWidget) — dvojica
      si ju berie odtiaľ, takže sa nerozíde, keď v nave pribudne alebo ubudne ikonka.
      Fallback 101px = stav pri troch položkách, aby dvojica nezmizla, keď nav nie je. */
-  .trp-mactions{width:calc(var(--pack-nav-half,101px) * 2 * 1.1);}
+  /* 🔴 ŠÍRKA RADU PADLA S PRIDAŤ (21. 9. 2026). Dovtedy tu stálo
+     width:calc(var(--pack-nav-half,101px) * 2 * 1.1) — dve tlačidlá si mali medzi sebou
+     rozdeliť šírku spodného navu (Matej 28. 8.: „tie dve tlačítka musia byť na šírku ako
+     spodnýnav blok"). Sama pilulka ZOZNAM tú šírku dostať nesmie: roztiahla by sa cez celú
+     lištu a prepínač pohľadu by vyzeral ako hlavné CTA — presne to, čo lock §1.3.1 zakazuje.
+     Rad sa teraz šíri podľa obsahu a centruje ho translateX(-50%) vyššie. */
   /* ── DVOJICA NAD SPODNÝM NAVOM — BRANDOVÉ PROPORCIE (Matej 2026-08-28, tretie kolo) ──
      „tlačítko zoznam je viditelne malé - ved ikonka sa takmer dotýka okraju… dbaj na brand
       aby to vyzeralo profi nie školácky tlačítka majú svoje pravidlá"
@@ -2514,20 +2525,17 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
      ikonka 14 px a písmo 11.5 px nechajú po stranách ~18 px, teda brandový pomer.
      ⚠️ OBE TLAČIDLÁ MAJÚ RADIUS 8, nie jedno pilulku. .btn-gold je hranaté a dve tlačidlá
      rovnakej šírky vedľa seba s rôznym polomerom čítajú ako dva nesúvisiace prvky. */
-  .trp-mtoggle,.trp-mfab{flex:1 1 0;min-width:0;padding:14px 12px;gap:7px;font-size:11.5px;letter-spacing:.12em;border-radius:8px;}
-  .trp-mtoggle img,.trp-mfab img{width:14px;height:14px;}
+  /* ⚠️ BEZ flex:1 1 0 — to číslo delilo šírku medzi DVE tlačidlá a pri jednom by ho
+     roztiahlo na celý rad. Polomer sa vracia na 999: dôvod pre osmičku bol „dve tlačidlá
+     rovnakej šírky vedľa seba s rôznym polomerom čítajú ako dva nesúvisiace prvky",
+     a ten druhý prvok už neexistuje. Pilulka BEZ dosvitu je tvar predpísaný lockom §1.3.1. */
+  .trp-mtoggle{min-width:0;padding:14px 24px;gap:7px;font-size:11.5px;letter-spacing:.12em;border-radius:999px;}
+  .trp-mtoggle img{width:14px;height:14px;}
 
-  /* ── PRIDAŤ = PLNÝ LAPIS, OBSAH BLEDÝ (Matej 2026-08-28) ────────────────────────────
-     „má byť plný lapis a + a text bledý"
-     ⚠️ Predošlé kolo prefarbilo CELÉ TLAČIDLO na bledé — to bolo zlé čítanie vety
-     „musí byť bledé lebo na lapise zaniká": zanikal OBSAH, nie tlačidlo. Farba patrila
-     inkoustu, nie ploche. Rovnaká zámena ako pri lapisovom leme chipu 27. 8.
-     ⚠️ Inkoust je PAPYRUSOVÝ, nie zlatý — navGoldSkin má pri LAPIS.ink poznámku, že zlaté
-     písmo drží egyptskú dvojicu, ale Matej si tu vypýtal bledý a na tlačidle nad mapou je
-     čitateľnejší. Platí to pre TENTO prvok, LAPIS.ink inde ostáva. */
-  .trp-mfab{background:${LAPIS.grad};color:#F5F0E4;border:1px solid ${LAPIS.edge};box-shadow:${LAPIS_BTN_SHADOW};}
-  .trp-mfab:hover{background:${LAPIS.gradHover};border-color:${LAPIS.edge};}
-  .trp-mfab img{filter:brightness(0) invert(1);opacity:.92;}
+  /* 🔴 ZÁZNAM: PRIDAŤ bolo od 28. 8. 2026 PLNÝ LAPIS s bledým obsahom (Matej: „má byť plný
+     lapis a + a text bledý"). Prvok 21. 9. zanikol — plná lapisová plocha sa presťahovala
+     do displeja kotúča + v lište, teda tá istá farba na tom istom význame („akcia"), len
+     na mieste, ktoré je rovnaké na každej obrazovke. */
   .trp-mtoggle{background:${NAV_GOLD.activeFill};color:${P_INK};border:1px solid ${P_BORDER};box-shadow:${NAV_PILL_SHADOW};}
   .trp-mtoggle img{filter:none;opacity:.85;}
 
@@ -2731,6 +2739,11 @@ const PALE_ADD_CSS = MAP_SKIN !== 'pale' ? '' : `
      len panel (mal .pk-glass navyše) a dlaždice ostali tmavé. Popup sa renderuje vnútri
      .trp-root, takže predpona je zadarmo a spor rozhodne. */
   .trp-root .att-entry-backdrop{background:rgba(24,14,4,0.55);}
+  /* ⚠️ VETA HORE A ŠTÍTOK SKUPINY SÚ V ENTRY_CSS BLEDÉ (panel je tam čierne sklo). Na papyruse
+     by boli takmer neviditeľné — biele písmo na piesku. Farbu prebíjame TU, rovnako ako
+     všetko ostatné v tejto sekcii; komponent ostáva jeden pre obe podoby. */
+  .trp-root .att-entry-st{color:${P_INK};}
+  .trp-root .att-entry-grplbl{color:${P_DIM};}
   /* TABUĽA S OKRAJMI, nie plochý panel (Matej 2026-08-26: „zväčši rámik kde sú teraz 3
      možnosti pridania, rámik bude tabuľa s okrajmi, vo vnútri 3 možnosti").
      Rám je goldFrameCSS — ten istý zdroj ako ľavý panel aj spodný nav, takže popup
@@ -2839,7 +2852,10 @@ const PALE_ADD_CSS = MAP_SKIN !== 'pale' ? '' : `
      bloku, len zjedený riadok na oboch stranách. To isté rozhodnutie ako pri mobilnej
      hlavičke, hostiteľovi formulára a doku.
      ⚠️ Východ von preberá návrat .att-entry-nav (viď AddTripEntry.tsx) — klik vedľa tu už nemá kam. */
-  .trp-root .att-entry-backdrop{padding:0;align-items:stretch;justify-content:stretch;${goldPlateCSS({ radius: 0 })}box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;}
+  /* ⚠️ SPODOK PATRÍ COOKIE LIŠTE. Celoobrazovková podoba panela prepisuje výplň podkladu
+     na nulu, takže si rezervu z ENTRY_CSS neprinesie — musí ju dostať tu, inak leží spodná
+     dlaždica pod lištou presne ako pred opravou 17. 9. na rade ZOZNAM/PRIDAŤ. */
+  .trp-root .att-entry-backdrop{padding:0 0 var(--consent-h, 0px);align-items:stretch;justify-content:stretch;${goldPlateCSS({ radius: 0 })}box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;}
   .trp-root .att-entry-panel.pk-glass{background:none;border:0;border-radius:0;box-shadow:none;max-width:none;width:100%;min-height:100%;display:flex;flex-direction:column;justify-content:safe center;
     padding:calc(env(safe-area-inset-top,0px) + 62px) 24px calc(env(safe-area-inset-bottom,0px) + 26px);
     overflow-y:auto;overscroll-behavior:contain;}
@@ -4383,6 +4399,24 @@ export default function PackMap() {
   // sa hýbe s veľkosťou písma, safe-area aj s tým, čo v nej práve stojí — natvrdo zapísaných
   // 118 px bolo presne to, prečo sa ovládače o ňu opreli. Vzor je --pack-nav-half
   // v PackBottomNav: kto potrebuje mieru cudzieho prvku, dostane ju od toho prvku.
+  // ── VOĽBA Z PANELA `+` V LIŠTE (21. 9. 2026) ──────────────────────────────────────────
+  // Panel `+` žije v SHELLI (spodná lišta), ale mapové objekty vykonáva táto stránka. Keď
+  // človek klikne VÝLET na DOMOVE, lišta najprv naviguje sem a voľbu podrží `createBus`,
+  // kým sa tento odberateľ neprihlási. Na mape sa voľba doručí rovno.
+  //
+  // ⚠️ Je to ZÁMERNE tá istá trojica stavov, akú nastavuje `pickAddFlow` nižšie — nie druhá
+  //    cesta k tomu istému. `pickAddFlow` beží ZA early returnom (`if (!id.session)`), takže
+  //    sa z hooku volať nedá; keby sa telo rozišlo, rozišli by sa dva vchody do jedného toku.
+  // ⚠️ STOJÍ TU, NAD podmieneným `if (id.loading) return` — hook za ním zhodí render.
+  useEffect(() => onCreate((intent) => {
+    setAddEntryOpen(false);
+    setInlineDetailId(null);
+    setAddMapPhase('off');
+    if (intent.id === 'event') { setAddEventFlow(intent.origin); return; }
+    if (intent.id === 'note') { setMobileView('map'); setNotePlacing(intent.group as NoteGroup); return; }
+    setAddFlow('walked');
+  }), []);
+
   // ⚠️ STOJÍ TU, NAD podmieneným if (id.loading) return — hook za ním zhodí render
   //    („Rendered more hooks than during the previous render") a stránka ostane prázdna.
   const mheaderRef = useRef<HTMLDivElement>(null);
@@ -4739,8 +4773,29 @@ export default function PackMap() {
   // <Route>, takže navigácia by PackMap odmountovala a zhodila zoom/filtre/výrez mapy. Routa je
   // vstupný bod (deep link z Triplistu, TripStats, uložený odkaz), nie interný toggle.
   const openAddEntry = () => setAddEntryOpen(true);
+  /**
+   * PRAVIDLO NÁVRATU — tok sa vracia tam, odkiaľ ho človek spustil (lock §1.1.1).
+   *
+   * `origin` cestuje v query parametri `?from=`, nie v pamäti komponentu: tok výletu ide cez
+   * celú mapu a človek ho vie prerušiť obnovením stránky. Overenie hodnoty robí register
+   * (`isSafeOrigin`) — parameter z URL je cudzí vstup a bez kontroly by `?from=https://…`
+   * spravil z návratu otvorené presmerovanie na prihlásenom povrchu.
+   *
+   * Vracia `true`, keď návrat naozaj odišiel inam — volajúci vtedy už nemá čo robiť.
+   * ⚠️ Keď sa `origin` rovná miestu, kde človek stojí, je návrat no-op: parameter sa len
+   *    zmaže, aby po F5 formulár nevyskočil znova.
+   */
+  const backToOrigin = (): boolean => {
+    const raw = searchParams.get(ORIGIN_PARAM);
+    if (!raw) return false;
+    const target = returnTo(raw);
+    if (target === '/pack/map' && !onAddRoute) { setSearchParams({}, { replace: true }); return false; }
+    navigate(target, { replace: true });
+    return true;
+  };
   const closeAddEntry = () => {
     setAddEntryOpen(false);
+    if (backToOrigin()) return;
     if (onAddRoute) navigate('/pack/map', { replace: true });
   };
   // §2/§9 zadania-eventy-2026-08-06: AddTripEntry teraz vracia AddChoice (kind: 'trip' | 'event').
@@ -4833,6 +4888,7 @@ export default function PackMap() {
     setAddError('');
     // issue #35: keď sme prišli na `/pack/add/trip`, zatvorenie formulára musí vrátiť aj URL —
     // inak by na mape visela adresa ADD flow a reload/back by formulár otvoril znova.
+    if (backToOrigin()) return;
     if (onAddRoute) navigate('/pack/map', { replace: true });
   };
   const closeAddEvent = () => {
@@ -4840,6 +4896,7 @@ export default function PackMap() {
     setAddMapPhase('off');
     setSeedPoint(null);
     setAddError('');
+    if (backToOrigin()) return;
     if (onAddRoute) navigate('/pack/map', { replace: true });
   };
   // AddEventDraft → zápis. Rovnaký vzor ako submitAddTripDraft (walked vetva): over zápis PRED
@@ -6374,8 +6431,9 @@ export default function PackMap() {
             Trophy pilulka (TRIPSTATS) zanikla — číslo žije ako podriadok pod menom, takže
             ubudol celý prvok a údaj ostal viditeľný bez ťuknutia. Klik na celý blok vedie tam,
             kam viedla pilulka (/pack/map/triplist?tab=stats).
-            ADD TRIP je na plávajúcom FAB nad mapou (.trp-mfab) — v hornom rohu bol horšie
-            dosiahnuteľný palcom. TRIPLIST bol vtedy odsunutý do LIST pohľadu, ale 28. 8. 2026
+            ADD TRIP bol do 21. 9. 2026 na plávajúcom FAB nad mapou (.trp-mfab) — v hornom
+            rohu bol horšie dosiahnuteľný palcom. Dnes je to kotúč + v strede lišty, teda
+            ešte nižšie a na každej obrazovke rovnako. TRIPLIST bol vtedy odsunutý do LIST pohľadu, ale 28. 8. 2026
             sa VRÁTIL sem: uvoľnilo sa miesto po slove PÚTNIK a po podriadku pod ním.
             Avatar sa sem VRACIA (Matej: „Hor pri PILGRIM z lavej strane musí byť FOTO/avatar
             užívateľa") — v D4 nav reworku 2026-07-24 bol odsťahovaný do PackBottomNav; tam
@@ -6640,9 +6698,21 @@ export default function PackMap() {
         </>
       )}
 
-      {/* LIST/MAP toggle (mobile only) — default view = map, bod 5.
-          Ikonka ukazuje CIEĽ prepnutia, rovnako ako text (v mape ponúka „List", v zozname
-          „Map") — nie aktuálny stav. */}
+      {/* ── NAD SPODNÝM NAVOM STOJÍ JEDNA PILULKA: PREPÍNAČ POHĽADU (21. 9. 2026) ──────
+          Ikonka ukazuje CIEĽ prepnutia, rovnako ako text (v mape ponúka „Zoznam", v zozname
+          „Mapa") — nie aktuálny stav.
+
+          🔴 FIALOVÉ PRIDAŤ (.trp-mfab) TU ZANIKLO. Otváralo TEN ISTÝ panel ako kotúč `+`
+             v lište a stálo od neho o centimeter vedľa — lock `architektura-pack.md` §1.1.1:
+             „jeden pridávací panel, viac vchodov, nikdy druhý panel". Vchod sa nestratil,
+             presťahoval sa do stredu lišty, kde je rovnaký na každej obrazovke.
+          ⚠️ ZOZNAM TÝM VYPADOL Z OSI, keby sa nič neprerátalo: dvojica bola centrovaná
+             ako CELOK a jej šírku držal nav (--pack-nav-half × 2 × 1,1). Sama pilulka si
+             tú šírku vziať nesmie — roztiahla by sa na celú lištu a čítala by sa ako CTA.
+             Preto v CSS padla šírka radu aj `flex:1 1 0` a vrátil sa polomer 999
+             (lock §1.3.1: prepínač pohľadu je pilulka BEZ dosvitu, nie tvar .btn-gold).
+          ⚠️ Rad ostáva aj v LIST pohľade — nesie `--trp-mactions-h`, z ktorej si atribúcia
+             OSM počíta, kam sa nesmie postaviť. */}
       <div className="trp-mactions" ref={mactionsRef}>
         <button
           type="button"
@@ -6651,13 +6721,6 @@ export default function PackMap() {
         >
           <img src={ICON(mobileView === 'map' ? 'menu' : 'map')} alt="" />
           {mobileView === 'map' ? t('pack.map.list') : t('pack.map.mapLabel')}
-        </button>
-        {/* ADD TRIP (mobile) — presunuté z .trp-mheader-status 2026-08-03. Zostáva viditeľné aj
-            v LIST pohľade: dvojica je centrovaná ako celok, takže skrytie ADD by LIST vystrelilo
-            z osi. */}
-        <button type="button" className="trp-mfab" onClick={openAddEntry}>
-          <img src={ICON('plus')} alt="" />
-          {t('pack.map.add')}
         </button>
       </div>
 
@@ -7335,8 +7398,13 @@ export default function PackMap() {
       {/* Ponuka MÁM ZÁUJEM (pes odišiel) — panel AINUBISA, memorialTrips.tsx. */}
       {memorialTrips.element}
       {/* ── KOMUNITNÉ modaly / dashboard (design plany/pack-community-features-design.md) ── */}
+      {/* ⚠️ `place="VON"` NIE JE natvrdo písaný kontext — mapa JE miesto VON a všetky štyri
+          objekty toho miesta vykonáva táto stránka, takže `onCreate` sem nepatrí (v registri
+          nemá VON ani jeden nemapový objekt). Vchodov do panela je viac (bočný panel na PC,
+          prázdny stav podujatí, „pridať ďalší" po zápise) a všetky otvárajú TEN ISTÝ panel —
+          lock §1.1.1: jeden pridávací panel, viac vchodov. */}
       {addEntryOpen && (
-        <AddTripEntry onPick={pickAddFlow} onClose={closeAddEntry} />
+        <AddTripEntry place="VON" onPick={pickAddFlow} onClose={closeAddEntry} />
       )}
 
       {/* ZÁPISY DO MAPY — panel žije MIMO <MapContainer> (formulár nie je vrstva mapy),
@@ -7480,7 +7548,10 @@ export default function PackMap() {
           // Sprievodca po zápise sa neotvorí tomu, kto si ho vypol (coachMuted) — inak by
           // „nabudúce nezobrazovať" nič neznamenalo. Kontrola je TU, nie v komponente: ten sa
           // má starať o to, ako vyzerá, nie o to, či má právo existovať.
-          onClose={() => { setReveal(null); setCoachOpen(!coachMuted()); }}
+          // Zatvorenie prúžku je POSLEDNÝ krok toku, takže práve tu platí pravidlo návratu:
+          // kto začal na DOMOVE, skončí na DOMOVE (lock §1.1.1). Uložený objekt sa NEOTVÁRA
+          // sám — prúžok ponúka ZOBRAZIŤ a klikne naň ten, kto tam ísť chce (§4.2).
+          onClose={() => { setReveal(null); if (backToOrigin()) return; setCoachOpen(!coachMuted()); }}
         />
       )}
       {/* PackMap je full-bleed a nemountuje <PackLayout> (vlastný header/nav vyššie), takže

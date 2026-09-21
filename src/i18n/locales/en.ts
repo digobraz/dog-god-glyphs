@@ -1466,6 +1466,13 @@ export const en = {
   'pack.layout.jumpToStatsAriaLabel': "Jump to community stats",
   'pack.layout.loading': "LOADING…",
   'pack.layout.navHome': "Home",
+  /* VON — štvrté… presnejšie DRUHÉ miesto chrbtice (21. 9. 2026). Do vtedy sa volalo MAPA.
+     Je to jediné z piatich mien, ktoré hovorí ZÁMER („kam a s kým dnes"), nie obrazovku —
+     preto sa nevracia ani vtedy, keď pod ním pribudne ASSNIFF alebo služby.
+     ⚠️ `/pack/map` v URL ostáva: identifikátor nie je text pre človeka. */
+  'pack.layout.navOut': "Out",
+  /* Kotúč `+` v strede lišty — len pre čítačku obrazovky, kresba nesie znak, nie text. */
+  'pack.layout.navAdd': "Add",
   "pack.layout.navMap": "Map",
   'pack.layout.navDogs': "Dogs",
   'pack.layout.navProfile': "Profile",
@@ -1474,6 +1481,31 @@ export const en = {
   'pack.layout.navAinubis': "AINUBIS — ask me",
   'pack.layout.profileAriaLabel': "Profile",
   'pack.layout.yourAvatarAlt': "Your avatar",
+  /* ── PANEL `+` (21. 9. 2026) ────────────────────────────────────────────────────────
+     Veta hore, hlavička skupiny na DOMOVE a štítok termínu. Zvyšok textov panela nesie
+     register `components/pack/createRegistry.ts`.
+     🚩 NÁZVY POLOŽIEK PANELA V EN SI VYHRADIL MATEJ (zadanie §6). To, čo je nižšie
+        pri `pack.create.<objekt>.*`, je DOČASNÉ znenie prepísané z registra — nie kánon.
+        Keď názvy prídu, menia sa TU aj `labelFallback` v registri (CLAUDE.md, názvoslovie). */
+  'pack.create.soon': "Soon",
+  'pack.create.title.DOMOV': "What are you adding?",
+  'pack.create.title.VON': "Add to the map",
+  'pack.create.title.JA': "Write it down for your dog",
+  'pack.create.title.AINUBIS': "Add to what you know",
+  'pack.create.place.DOMOV': "home",
+  'pack.create.place.VON': "out",
+  'pack.create.place.JA': "dog",
+  'pack.create.place.AINUBIS': "ainubis",
+  'pack.create.diary.title': "Diary entry",
+  'pack.create.diary.hint': "note · weight · health · milestone",
+  'pack.create.photo.title': "Photo",
+  'pack.create.post.title': "Post",
+  'pack.create.post.hint': "photo + text + tags",
+  'pack.create.chat.title': "New conversation",
+  'pack.create.brain.title': "Add to the brain",
+  'pack.create.brain.hint': "finding · link · book · video",
+  'pack.create.board.title': "Ask the pack",
+  'pack.create.article.title': "Trail article",
   // pack.tree
   'pack.tiles.ariaLabel': "Quick access",
   'pack.tiles.map.title': "Map",
@@ -2856,6 +2888,9 @@ export const en = {
   'pack.trip.go.app.mapy': "Mapy.com",
   'pack.trip.go.gpx': "Download route (GPX)",
   'pack.trip.go.gpxSub': "The whole route. Opens in Mapy.com, Locus and Garmin — works without signal.",
+  'pack.trip.go.more': "More route options",
+  'pack.trip.go.copyLink': "Copy route link",
+  'pack.trip.go.copied': "Link copied",
   'pack.trip.go.mapyTrail': "Open the area in Mapy.com",
   'pack.trip.go.mapyTrailSub': "Trail markings around the start. Our route is in the GPX above.",
   'pack.trip.edit.rating': "Your rating",

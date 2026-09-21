@@ -570,7 +570,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
             CSS `.ts-pills` / `.ts-pill` nižšie NEMAŽEM — čísla sa môžu vrátiť, keď sa karta
             bude rozhodovať znova; mŕtvy je len tento JSX blok. */}
 
-        <Link className="ts-globe-hit" to="/pack/map" aria-label={t('pack.layout.navMap')} />
+        <Link className="ts-globe-hit" to="/pack/map" aria-label={t('pack.layout.navOut')} />
 
         <Link className="ts-cta" to="/pack/add/trip">
           <span className="ts-cta-row">
