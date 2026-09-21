@@ -24,9 +24,10 @@
 // (signed out, unpaid, DEV_NOAUTH) the popup shows an error instead of pretending it saved — same
 // rule as `sendMessage()` in packMessaging.ts.
 import { useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_SHADOW, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
-import { LAPIS, LAPIS_BTN_SHADOW, PALE } from '@/components/pack/navGoldSkin';
+import { LAPIS, LAPIS_BTN_SHADOW, PALE, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
 import {
@@ -154,9 +155,10 @@ export const TRIP_COMMENTS_CSS = `
 .tcm-reportlink:hover{color:${GOLD};}
 .tcm-reportreason{width:100%;text-align:left;font-size:13px;padding:12px 14px;border-radius:10px;background:${T.tileBg};border:1px solid ${T.border};color:${T.inkStrong};cursor:pointer;margin-bottom:8px;}
 .tcm-reportreason:hover{border-color:${GOLD};}
-.tcm-reportreason.on{border-color:${GOLD};color:${GOLD};}
-.tcm-reportcancel{width:100%;margin-top:8px;background:none;border:0;color:${T.onDarkDim};font-family:inherit;font-size:12.5px;padding:9px;cursor:pointer;}
-.tcm-reportcancel:hover{color:${T.onDark};}
+/* Výber = lapisový TINT (brand: zlato = konštrukcia, lapis = moja voľba). */
+.tcm-reportreason.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}}
+.tcm-reportcancel{width:100%;margin-top:8px;background:none;border:0;color:${T.inkWarm};font-family:inherit;font-size:12.5px;padding:9px;cursor:pointer;}
+.tcm-reportcancel:hover{color:${GOLD};}
 `;
 
 /**
@@ -251,7 +253,8 @@ function ReviewPopup({ trailName, initial, canWrite, saving, error, onSubmit, on
 // needituje (pracujú na ňom iní agenti) a `REPORT_REASONS` v ňom nie je exportovaný.
 // ⚠️ `label` je i18n KĽÚČ, nie text — konštanta je modulová a `useT()` je hook, takže
 // prekladá až komponent (rovnaký vzor ako ACTIVITIES v AddTripPlan).
-const REPORT_REASONS: Array<{ id: ReportReason; label: string }> = [
+export type ReportReasonOption = { id: ReportReason; label: string };
+const REPORT_REASONS: ReportReasonOption[] = [
   { id: 'harassment', label: 'pack.trip.rp.reasonHarassment' },
   { id: 'spam', label: 'pack.trip.rp.reasonSpam' },
   { id: 'unsafe', label: 'pack.trip.rp.reasonUnsafe' },
@@ -262,17 +265,24 @@ const REPORT_REASONS: Array<{ id: ReportReason; label: string }> = [
 // ── nahlásenie cudzieho (reálneho, nie mock) komentára — issue #54. Vzor prevzatý z
 // Thread.tsx (msg-modsheet: dôvod → poznámka → odoslať → potvrdenie), znovupostavené lokálne
 // nad tcm-* triedami, lebo Thread.tsx sa needituje/neexportuje odtiaľ nič použiteľné. ──
-function ReportSheet({ onClose, onSend, busy, error, sent }: {
+// Od 21. 9. 2026 ho berie aj „Nahlásiť problém" v článku výletu (v1-nahlasit) s vlastnými
+// dôvodmi — jeden panel nahlásenia, nie druhý podobný vedľa neho.
+// `noteRequired` = dôvody, pri ktorých sa bez dopísaného textu nedá odoslať (výlet: „Iné").
+export function ReportSheet({ onClose, onSend, busy, error, sent, reasons = REPORT_REASONS, noteRequired = [], titleKey = 'pack.trip.rp.why', placeholderKey = 'pack.trip.rp.notePlaceholder' }: {
   onClose: () => void; onSend: (reason: ReportReason, note?: string) => void; busy: boolean; error: string | null; sent: boolean;
+  reasons?: ReportReasonOption[]; noteRequired?: ReportReason[]; titleKey?: string; placeholderKey?: string;
 }) {
   const t = useT();
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [note, setNote] = useState('');
-  return (
+  const needsNote = !!reason && noteRequired.includes(reason) && !note.trim();
+  // PORTÁL do <body>: v článku výletu sedí panel vnútri obalu s vlastným skladacím
+  // kontextom, takže ho prekrývala bočná lišta (`.pta-acts`, z-index 45) napriek 1200.
+  return createPortal((
     <div className="tcm-overlay" onClick={onClose}>
       <div className="tcm-modal" onClick={(e) => e.stopPropagation()}>
         <div className="tcm-modal-head">
-          <div className="tcm-modal-title">{sent ? t('pack.trip.rp.sent') : t('pack.trip.rp.why')}</div>
+          <div className="tcm-modal-title">{sent ? t('pack.trip.rp.sent') : t(titleKey)}</div>
           <button type="button" className="tcm-x" onClick={onClose} aria-label={t('pack.trip.cm.close')}>×</button>
         </div>
         {sent ? (
@@ -280,7 +290,7 @@ function ReportSheet({ onClose, onSend, busy, error, sent }: {
         ) : (
           <>
             <div className="tcm-field">
-              {REPORT_REASONS.map((r) => (
+              {reasons.map((r) => (
                 <button
                   key={r.id}
                   type="button"
@@ -290,10 +300,10 @@ function ReportSheet({ onClose, onSend, busy, error, sent }: {
               ))}
             </div>
             <div className="tcm-field">
-              <textarea className="tcm-textarea" value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('pack.trip.rp.notePlaceholder')} />
+              <textarea className="tcm-textarea" value={note} onChange={(e) => setNote(e.target.value)} placeholder={t(placeholderKey)} />
             </div>
             {error && <div className="tcm-gatehint" style={{ color: '#E0796D' }}>{error}</div>}
-            <button type="button" className="tcm-submit" disabled={!reason || busy} onClick={() => reason && onSend(reason, note.trim() || undefined)}>
+            <button type="button" className="tcm-submit" disabled={!reason || needsNote || busy} onClick={() => reason && onSend(reason, note.trim() || undefined)}>
               {busy ? 'Sending…' : t('pack.trip.rp.send')}
             </button>
             <button type="button" className="tcm-reportcancel" onClick={onClose}>{t('pack.trip.rp.cancel')}</button>
@@ -301,7 +311,7 @@ function ReportSheet({ onClose, onSend, busy, error, sent }: {
         )}
       </div>
     </div>
-  );
+  ), document.body);
 }
 
 /**

@@ -56,7 +56,20 @@ import {
   type WalkedInput, type WalkReward,
 } from '@/components/pack/packCommunityUI';
 import { PointsPill, POINTS_PILL_CSS } from '@/components/pack/PointsPill';
-import { TripComments } from '@/components/pack/trip/TripComments';
+import { TripComments, ReportSheet, type ReportReasonOption } from '@/components/pack/trip/TripComments';
+import { reportContent, type ReportReason } from '@/components/pack/messaging/packMessaging';
+
+// NAHLÁSIŤ PROBLÉM S VÝLETOM (v1-nahlasit, Matej 21. 9. 2026: „ak sa nezapíšu body, ak sa
+// nezapíše recenzia, ak je zlá trasa, neaktuálne info…"). Nie moderácia správania — to má
+// komentár. Tu človek hlási, že appka alebo údaj nesedí. Zadanie:
+// plany/zadanie-nahlasit-problem-vylet-2026-09-21.md
+const TRIP_PROBLEM_REASONS: ReportReasonOption[] = [
+  { id: 'points_missing', label: 'pack.trip.problem.pointsMissing' },
+  { id: 'review_missing', label: 'pack.trip.problem.reviewMissing' },
+  { id: 'wrong_route', label: 'pack.trip.problem.wrongRoute' },
+  { id: 'outdated_info', label: 'pack.trip.problem.outdated' },
+  { id: 'other', label: 'pack.trip.rp.reasonOther' },
+];
 import { TripEditPanel, type PlanEdit } from '@/components/pack/trip/TripEditPanel';
 // ZÁPISY DO MAPY (2026-08-20) — v článku sú ROZBALENÉ, v mape schované pod ikonkou.
 // Ktoré sem patria, rozhoduje geometria (notesForTrail), nie uložený kľúč.
@@ -449,6 +462,8 @@ body.pta-mapfull .pta-shell{z-index:1100;}
 .pta-host + .pta-host{margin-top:10px;}
 /* Nadpis sekcie na papyruse: zlatá je tmavšia ("#8a5a14"), nie brandová "${T.cardEdge}" —
    tá je na svetlom podklade len o niečo tmavšia než sám papyrus a stráca sa. */
+.pta-problem{display:block;margin:32px auto 0;background:none;border:0;padding:8px;font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:.02em;color:#8a5a14;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
+.pta-problem:hover{color:#5c3b0c;}
 .pta-section h3{font-family:${FONT_UI};font-weight:500;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:#8a5a14;margin-bottom:8px;}
 .pta-empty{font-size:12.5px;color:${T.inkWarm};font-style:italic;}
 /* .pta-actbtn — zdieľané medzi .pta-acts (iterácia 15; predtým .pta-hero-actions na fotke) */
@@ -946,6 +961,10 @@ export default function PackTripArticle() {
   };
 
   const [walkedPopupOpen, setWalkedPopupOpen] = useState(false);
+  const [problemOpen, setProblemOpen] = useState(false);
+  const [problemBusy, setProblemBusy] = useState(false);
+  const [problemError, setProblemError] = useState<string | null>(null);
+  const [problemSent, setProblemSent] = useState(false);
 
   // ── BRÁNA NA ZÁPIS ODKAZU: PREJDENÉ **A** OHODNOTENÉ (Matej 2026-08-21) ───
   // „musí to človek mať prejdené a ohodnotené aby mohol interagovať". Odkaz na
@@ -1842,8 +1861,39 @@ export default function PackTripArticle() {
           {/* KTO TADIAĽ PREŠIEL (Matej 21. 9. 2026) — mená a psy z `trip_walked` + `dog_trips`. */}
           <TripWalkers tripSlug={trail.id} reloadKey={agg.walkerCount} />
         </div>
+        {/* Tiché tlačidlo v päte, nie CTA — CTA pod výletom sú už tri. */}
+        <button
+          type="button"
+          className="pta-problem"
+          onClick={() => { setProblemOpen(true); setProblemSent(false); setProblemError(null); }}
+        >{t('pack.trip.problem.cta')}</button>
         </div>
       </div>
+
+      {problemOpen && (
+        <ReportSheet
+          reasons={TRIP_PROBLEM_REASONS}
+          noteRequired={['other']}
+          titleKey="pack.trip.problem.why"
+          placeholderKey="pack.trip.problem.notePlaceholder"
+          onClose={() => setProblemOpen(false)}
+          busy={problemBusy}
+          error={problemError}
+          sent={problemSent}
+          onSend={async (reason: ReportReason, note?: string) => {
+            setProblemBusy(true);
+            setProblemError(null);
+            try {
+              await reportContent('trip', trail.id, reason, note);
+              setProblemSent(true);
+            } catch {
+              setProblemError(t('pack.trip.problem.failed'));
+            } finally {
+              setProblemBusy(false);
+            }
+          }}
+        />
+      )}
 
       {/* bod 3 (iterácia 14): lightbox — fullscreen popup, tmavé pozadie, ✕ + prev/next */}
       {lightboxIdx !== null && (

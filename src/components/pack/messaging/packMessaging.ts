@@ -501,7 +501,10 @@ export async function getConversation(convId: string): Promise<Conversation | un
 // `list_my_conversations()` ho zámerne nevydáva. Protistranu si odvodí server
 // z vlákna, ktorého som členom (`conv_peer()`); klient posiela len `convId`.
 
-export type ReportReason = 'spam' | 'harassment' | 'unsafe' | 'not_dog_related' | 'other';
+export type ReportReason = 'spam' | 'harassment' | 'unsafe' | 'not_dog_related' | 'other'
+  // Technické dôvody pri VÝLETE (v1-nahlasit, 21. 9. 2026) — nie moderácia správania,
+  // ale „appka alebo údaj nesedí". Check v DB: 20260921_report_trip_problem.sql.
+  | 'points_missing' | 'review_missing' | 'wrong_route' | 'outdated_info';
 
 /** zablokuje / odblokuje protistranu DM; vracia stav PO operácii */
 export async function setPeerBlocked(convId: string, blocked: boolean): Promise<boolean> {
