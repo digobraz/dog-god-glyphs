@@ -143,6 +143,11 @@ export type CreateObject = {
    * nezačína z lišty. Dôvod je vždy v `note`.
    */
   panel: boolean;
+  /**
+   * Ohlásený termín vydania. Položka s termínom sa v paneli VYKRESLÍ so štítkom „čoskoro"
+   * a neklikne sa na ňu; položka bez termínu sa nevykreslí vôbec. Viď `PANEL_SOON` nižšie.
+   */
+  soon?: string;
   /** GitHub issue v `digobraz/dog-god-glyphs`, ak na ten objekt nejaký beží. */
   gh?: number;
   note?: string;
@@ -262,6 +267,12 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     // `pripravene`, nie `zamknute`. Kalendár (`calendar/PackCalendar.tsx`) je zámerne
     // čítací: je to hotový čitateľ, ktorý čaká presne na tohto pisateľa.
     panel: true,
+    // ⚠️ BEZ `soon` ZÁMERNE — denník je KROK 5 TOHTO bloku, nie novembrová vlna. Písať
+    //    „čoskoro november" nad vec, ktorú staviam tento týždeň, by bol vymyslený termín
+    //    a presne to `isSoon` zakazuje.
+    // 🔴 DÔSLEDOK PRE PORADIE PRÁCE: kým denník nie je hotový, má panel na JA jedinú
+    //    položku (fotka) — a jediná položka je zakázaná. KROK 5 preto musí byť vonku
+    //    skôr alebo naraz s prestavbou lišty (KROK 4), nie po nej.
     note: 'Minulý dátum = zápis do denníka · budúci = plán a ukáže sa v kalendári. Rozhoduje dátum v toku, nie druhá dlaždica.',
   },
   {
@@ -335,6 +346,7 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     back: 'origin',
     lands: 'mozog + pečať',
     state: 'pripravene',
+    soon: '2026-11',
     panel: true,
     // ⚠️ V APPKE SÚ DVE `+` A NIKDY NESMÚ VYZERAŤ ROVNAKO: kotúč v lište = „pridávam do
     //    svojho života" · `+` pri písacom poli AINUBISA = „pridávam do mozgu". Tento riadok
@@ -351,6 +363,7 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     back: 'origin',
     lands: 'nástenka svorky',
     state: 'pripravene',
+    soon: '2026-11',
     panel: true,
     note: 'Spýtaj sa svorky, nie AI — to je celý rozdiel voči `chat` a jediný dôvod, prečo sú to dva riadky.',
   },
@@ -414,17 +427,44 @@ export const MIMO_REGISTRA = ['novy-pes'] as const;
  *    registra a položka sa objaví všade naraz — na svojom mieste aj na DOMOVE. Keby sa
  *    zoznamy písali ručne, pribudla by na jednom mieste a na druhom by chýbala.
  *
- * ⚠️ A NEVRACAJ ROZROBENÉ AKO ZOŠEDENÚ DLAŽDICU. Presne tak tu stál `service` do 6. 8. 2026
- *    a Matej ho dal von: vizuálne najväčší prvok panela bol mŕtvy. Buď to má obrazovku,
- *    alebo sa to nevykresľuje.
+ * ⚠️ A NEVRACAJ ROZROBENÉ AKO ZOŠEDENÚ DLAŽDICU BEZ TERMÍNU. Presne tak tu stál `service`
+ *    do 6. 8. 2026 a Matej ho dal von: vizuálne najväčší prvok panela bol mŕtvy.
+ *    Rozdiel oproti „čoskoro" nižšie je v tom, či dlaždica niečo POVIE — `service` bola
+ *    zošedené tlačidlo bez vysvetlenia, „čoskoro NOVEMBER" je veta.
  */
 export function isReady(o: CreateObject): boolean {
   return o.panel && o.state === 'live';
 }
 
-/** Objekty jedného miesta, ktoré panel dnes ponúka. V poradí registra. */
+/**
+ * Ohlásené, ešte nehotové — dlaždica so štítkom „čoskoro", bez kliku.
+ *
+ * 🔴 PANEL NESMIE MAŤ JEDINÚ POLOŽKU (Matej 21. 9. 2026: „nesmie byť len jedna položka,
+ *    dáme tam čoskoro, lebo chat aj nástenka či znalosť príde v ďalšej aktualizácii —
+ *    november"). Menu s jednou dlaždicou je krok navyše pred akciou, ktorá sa mohla stať
+ *    rovno. AINUBIS mal dnes jednu (chat) a JA jednu (fotka) — obe sa dopĺňajú tým, čo je
+ *    ohlásené, nie tým, čo sa vymyslí.
+ *
+ * ⚠️ NIE JE TO ZRUŠENIE PRAVIDLA HOTOVOSTI, JE TO JEHO DRUHÁ POLOVICA. Matej povedal oboje
+ *    v ten istý deň a neodporuje si to: *„daj tam len tie, ktoré sú relevantné"* (21. 9.)
+ *    vyhadzuje z panela veci BEZ TERMÍNU · *„dáme tam čoskoro"* (21. 9., neskôr) vracia tie
+ *    S TERMÍNOM. Rozhoduje teda pole `soon`, nie odhad, čo je „blízko".
+ *
+ * ⚠️ TERMÍN SA NEVYMÝŠĽA. Keď obrazovka pribudne, prehodí sa `state` na `live` a `soon` sa
+ *    ZMAŽE — inak by v appke stálo „čoskoro" nad vecou, ktorá už funguje. Keď termín
+ *    padne, opraví sa tu, nie v paneli.
+ */
+export function isSoon(o: CreateObject): boolean {
+  return o.panel && o.state !== 'live' && !!o.soon;
+}
+
+/**
+ * Objekty jedného miesta, ktoré panel vykresľuje: hotové + ohlásené („čoskoro").
+ * V poradí registra — hotové a ohlásené sa NEPREHADZUJÚ do dvoch skupín, lebo poradie
+ * nesie význam miesta, nie stav práce. Štítok odlíši stav, poradie nie.
+ */
 export function createFor(place: CreatePlace): CreateObject[] {
-  return CREATE_OBJECTS.filter((o) => o.place === place && isReady(o));
+  return CREATE_OBJECTS.filter((o) => o.place === place && (isReady(o) || isSoon(o)));
 }
 
 /**
