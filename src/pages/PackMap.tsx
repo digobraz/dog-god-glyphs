@@ -2744,52 +2744,37 @@ const PALE_ADD_CSS = MAP_SKIN !== 'pale' ? '' : `
      všetko ostatné v tejto sekcii; komponent ostáva jeden pre obe podoby. */
   .trp-root .att-entry-st{color:${P_INK};}
   .trp-root .att-entry-grplbl{color:${P_DIM};}
-  /* TABUĽA S OKRAJMI, nie plochý panel (Matej 2026-08-26: „zväčši rámik kde sú teraz 3
-     možnosti pridania, rámik bude tabuľa s okrajmi, vo vnútri 3 možnosti").
-     Rám je goldFrameCSS — ten istý zdroj ako ľavý panel aj spodný nav, takže popup
-     prestáva byť samostatný materiál. Predtým tu bol panelGrad + 1.5px linka: to je
-     matrica úroveň 4 (PANEL), ktorá je správna pre plávajúci panel NAD stránkou, ale
-     tento popup je prvá obrazovka toku a má vážiť ako doska, nie ako lístok.
-     ⚠️ border-radius a border nesie goldFrameCSS — nepridávaj ich znova, prepísal
-     by si transparentný rám, na ktorom celý dvojpozaďový trik stojí. */
+  /* TABUĽA S OKRAJMI, nie plochý panel (Matej 2026-08-26). Rám je goldFrameCSS — ten istý
+     zdroj ako ľavý panel aj spodný nav, takže popup nie je samostatný materiál.
+     ⚠️ border-radius a border nesie goldFrameCSS — nepridávaj ich znova, prepísal by si
+     transparentný rám, na ktorom celý dvojpozaďový trik stojí. */
   .trp-root .att-entry-panel.pk-glass{${goldFrameCSS()}backdrop-filter:none;-webkit-backdrop-filter:none;}
-  /* Dlaždice dostali väčší vnútorný priestor spolu s tabuľou — pri 760 px šírky by pôvodné
-     odsadenie nechalo emoji plávať v prázdne.
-     ⚠️ ROZMERY SÚ PC-ONLY, farby nie. Na telefóne je 34 px výplne a 760 px šírky nezmysel —
-     mobilná dvojička stojí v bloku „PRISPÔSOBENIE VIEWPORTU" na konci súboru. */
-  @media (min-width:${PALE_PC_MIN}px){
-    .trp-root .att-entry-panel.pk-glass{max-width:760px;padding:66px 34px 34px;}
-    .trp-root .att-entry-blocks{gap:16px;}
-    .trp-root .att-entry-block{padding:28px 22px;}
-  }
   /* Návrat v toku — .att-entry-nav je jeden prvok pre obe úrovne (viď AddTripEntry.tsx).
-     Tu sa mení len TÓN: popup stojí na papyrusovej doske, takže tmavý základ by na nej
-     zmizol. Polohu drží základ v ENTRY_CSS, čísla tvaru BackButton.tsx. */
+     Tvar nesie BackButton.tsx (LOCKED 1. 9.), tu sa mení len tón na bledý. */
   .trp-root .att-entry-nav{${backCircleCSS('pale')}}
   .trp-root .att-entry-nav:hover{${backHoverCSS('pale')}}
-  /* ⚠️ SKRYTIE VÝCHODU SA MUSÍ ZOPAKOVAŤ TU (2026-09-13). backCircleCSS nesie aj display,
-     a toto pravidlo má špecificitu 0-2-0 proti 0-1-0 základu — bez tejto dvojičky by
-     prebilo .att-entry-nav--close{display:none} a na PC by hore svietila šípka na krok,
-     z ktorého sa naspäť nedá (odfotené). Celoobrazovkovú vetvu to neruší: jej pravidlo
-     má rovnakú špecificitu a stojí v súbore NIŽŠIE, takže vyhrá. */
+  /* ⚠️ Zopakované ZÁMERNE: mobilná vetva nižšie túto triedu zobrazuje a bez tohto riadku
+     by prebilo .att-entry-nav--close{display:none} a na PC by hore svietila šípka na krok,
+     ktorý nikam nevedie. */
   .trp-root .att-entry-nav--close{display:none;}
   .trp-root .att-entry-lead{color:${P_DIM};}
-  .trp-root .att-entry-block{background:${T.cardGrad};border:1px solid ${T.cardEdge};box-shadow:0 1px 3px rgba(122,90,42,0.10),inset 0 1px 0 rgba(255,255,255,0.40);}
-  .trp-root .att-entry-block:hover,.trp-root .att-entry-block:focus-visible{background:${T.cardGrad};border-color:#8A5F1E;box-shadow:0 0 0 3px rgba(201,154,63,0.28),0 6px 16px rgba(122,90,42,0.22);}
-  .trp-root .att-entry-block-disabled:hover,.trp-root .att-entry-block-disabled:focus-visible{border-color:${T.cardEdge};box-shadow:none;}
+  /* ── RIADOK PONUKY NA PAPYRUSE (21. 9. 2026) ───────────────────────────────────────
+     Do 21. 9. tu stála bledá podoba DLAŽDICE (veľký glyf, podnadpis, bežiaci rad chipov,
+     prvá dlaždica cez celú šírku). Matej ju v ten večer zrušil: „popup pri + musí byť
+     priamy, krátky, stručný, bez scrollu… emoji a vedľa text, žiadne vysvetlovačky."
+     Ostal jeden riadok, takže z celej sekcie stačia štyri deklarácie. */
+  .trp-root .att-entry-row{background:${T.cardGrad};border:1px solid ${T.cardEdge};box-shadow:0 1px 3px rgba(122,90,42,0.10),inset 0 1px 0 rgba(255,255,255,0.40);}
+  .trp-root .att-entry-row:hover,.trp-root .att-entry-row:focus-visible{background:${T.cardGrad};border-color:#8A5F1E;box-shadow:0 0 0 3px rgba(201,154,63,0.28),0 6px 16px rgba(122,90,42,0.22);}
+  .trp-root .att-entry-row--soon:hover,.trp-root .att-entry-row--soon:focus-visible{border-color:${T.cardEdge};box-shadow:none;}
   .trp-root .att-entry-title{color:${P_INK};}
-  .trp-root .att-entry-text{color:${P_DIM};}
   .trp-root .att-entry-soon{color:${P_FAINT};border-color:${P_HAIR};}
-  /* Chipy „čo sem patrí" — na papyruse. Sú POPIS, nie výber, takže nedostávajú farebný tint
-     z pickTintCSS (ten je vyhradený označeniu) ani lapis (ten nesie odmenu vyššie). Plocha
-     je preto len o odtieň svetlejšia než dlaždica a rám je vlasová linka. */
-  .trp-root .att-entry-chip{background:rgba(255,252,244,0.55);border-color:${P_HAIR};color:${P_DIM};}
-  .trp-root .att-entry-block:hover .att-entry-chip,.trp-root .att-entry-block:focus-visible .att-entry-chip{border-color:rgba(179,130,45,0.55);color:${P_INK};}
   /* BODY V LAPISOVEJ PILULKE (Matej 2026-08-26: „body budú v modrom pilse").
      Podľa pravidla lapisu je odmena „moje" — patrí k voľbe, nie ku konštrukcii. Zlatá
-     pilulka na zlatej dlaždici v zlatom ráme bola tretia zlatá vrstva na sebe a číslo
+     pilulka na zlatom riadku v zlatom ráme bola tretia zlatá vrstva na sebe a číslo
      v nej zaniklo. Písmo je zlaté, nie biele — to drží lapis v brande. */
   .trp-root .att-entry-pts{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};}
+  /* Úchyt šuplíka na papyruse — tá istá linka, len v tóne dosky. */
+  .trp-root .att-entry-grab::before{background:${P_HAIR};}
 
   /* ── 7b. VÝBER SPOLOČNÍKOV V TOKU PRIDÁVANIA ──────────────────────────────────────────
      Pilulky psov a „Pridaj ďalších" prichádzajú z COMMUNITY_CSS (packCommunityUI.tsx), ktoré
@@ -2842,154 +2827,29 @@ const PALE_ADD_CSS = MAP_SKIN !== 'pale' ? '' : `
    sa stará blok vyššie, ktorý media query nemá).
    ═════════════════════════════════════════════════════════════════════════════════════ */
 @media (max-width:${PALE_PC_MIN - 1}px){
-  /* ── CELÁ OBRAZOVKA, NIE BLOK NAD MAPOU (Matej 2026-08-28, druhé kolo) ────────────────
-     „možno by bolo lepšie na mobile to dať bez toho bloku resp bez okrajov = celá stránka
-      bude bledá ako keby menu na celú obrazovku a na nej 3 bloky, nebude vidno mapu vzadu"
-     ⚠️ Doska sa maľuje na PODKLAD, nie na panel. Podklad je jediný prvok, ktorý naozaj drží
-     celé okno; panel by pri krátkom obsahu nechal po stranách presvitať mapu a pri dlhom by
-     sa jeho doska rozišla s tou pod ňou. Panel je preto priehľadný a nesie už len výplň.
-     ⚠️ Zlatý rám (goldFrameCSS z bloku vyššie) sa RUŠÍ — lem okolo celej obrazovky nie je rám
-     bloku, len zjedený riadok na oboch stranách. To isté rozhodnutie ako pri mobilnej
-     hlavičke, hostiteľovi formulára a doku.
-     ⚠️ Východ von preberá návrat .att-entry-nav (viď AddTripEntry.tsx) — klik vedľa tu už nemá kam. */
-  /* ⚠️ SPODOK PATRÍ COOKIE LIŠTE. Celoobrazovková podoba panela prepisuje výplň podkladu
-     na nulu, takže si rezervu z ENTRY_CSS neprinesie — musí ju dostať tu, inak leží spodná
-     dlaždica pod lištou presne ako pred opravou 17. 9. na rade ZOZNAM/PRIDAŤ. */
-  .trp-root .att-entry-backdrop{padding:0 0 var(--consent-h, 0px);align-items:stretch;justify-content:stretch;${goldPlateCSS({ radius: 0 })}box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;}
-  .trp-root .att-entry-panel.pk-glass{background:none;border:0;border-radius:0;box-shadow:none;max-width:none;width:100%;min-height:100%;display:flex;flex-direction:column;justify-content:safe center;
-    padding:calc(env(safe-area-inset-top,0px) + 62px) 24px calc(env(safe-area-inset-bottom,0px) + 26px);
-    overflow-y:auto;overscroll-behavior:contain;}
-  /* Návrat vľavo hore — tvar aj poloha ako .atl-log-back o obrazovku ďalej, aby sa cesta späť
-     nesťahovala z rohu do rohu. Preto je aj horná výplň panela 62 px: pod šípku, nie pod ňu. */
-  /* ⚠️ ŠÍPKA JE V STREDE HORE, NIE VĽAVO (Matej 2026-08-28: „pri add daj tú šípku dozadu
-     do stredu tak ako bude aj pri aktivitách"). Výber aktivity ju tam má od 23. 8. — dve
-     obrazovky toku za sebou, na ktorých by návrat skákal z rohu do stredu, sú dva rôzne
-     jazyky pre tú istú cestu von. Rohová poloha (.atl-log-back v úzkej hlavičke) ostáva
-     krokom, kde nadpis drží riadok; tu je riadok prázdny a stred ho vyplní.
-     ⚠️ Od 13. 9. je to JEDEN prvok pre obe úrovne — dovtedy tu boli dve triedy na tej istej
-     polohe (.att-entry-x kruh von, .att-entry-back textový odkaz späť) a museli si navzájom
-     dokazovať, že nikdy nesvietia spolu. Tu sa prepisuje už len safe-area a viditeľnosť
-     východu; tvar aj stred nesie ENTRY_CSS v AddTripEntry.tsx. */
-  .trp-root .att-entry-nav{top:calc(env(safe-area-inset-top,0px) + 14px);}
-  /* Celá obrazovka zrušila „vedľa" a na telefóne nie je Escape ⇒ východ z prvej úrovne
-     musí byť vidieť. Toto je JEDINÉ miesto, kde sa zobrazuje. */
-  .trp-root .att-entry-nav--close{display:inline-flex;}
-  /* ── ROZŤAHOVANIE, NIE CENTROVANIE ───────────────────────────────────────────────────
-     Tri bloky s pevnou výškou nechali nad sebou ~150 px prázdna a dole sa dotýkali hrany —
-     stránka vyzerala, že sa nedoskrolovala. Voľnú výšku si preto rozdelia rovným dielom,
-     presne ako zoznam aktivít o obrazovku ďalej (.atl-tiles v AddTripLog, Matej 27. 8.:
-     „vyzerá to prázdne").
-     ⚠️ flex:1 0 auto, NIE 1 1 0 — základ je obsah a bloky smú len RÁSŤ. Pri zmrašťovaní by
-     sa na nízkom telefóne text v nich orezal namiesto toho, aby sa stránka dala posunúť. */
-  /* ⚠️ VZDUCH JE MEDZI TLAČIDLAMI, NIE V NICH (Matej 2026-08-28: „prevzdušni hlavne ten ADD
-     tie tri tlačítka"). Rozostup aj okraje stránky sú širšie, výplň vnútri bloku ostáva —
-     nafúknuté bloky nalepené na seba pôsobia ťažko, tie isté bloky s medzerou pôsobia ako
-     tlačidlá. To isté rozhodnutie ako pri výbere aktivity o obrazovku ďalej. */
-  /* ⚠️ ZMENA OPROTI RÁNU 28. 8. — BLOKY SA UŽ NENAŤAHUJÚ (Matej: „v budúcnosti tu ešte
-     niečo pribudne takže musíme to zmenšiť celé aby boli okraje vzdušné nie tesne pri
-     okraji… zmenši len bloky").
-     Ráno si tri bloky delili voľnú výšku rovným dielom, lebo inak nad nimi ostalo ~150 px
-     prázdna. Lenže tým sa vzduch presunul DOVNÚTRA blokov a von zmizol: rad siahal od hrany
-     po hranu a na štvrtú dlaždicu (chystá sa) by nezostalo miesto. Odteraz má rad výšku
-     svojho obsahu a voľná výška ide na okraje — panel ho centruje ("justify-content:safe
-     center" vyššie; slovo safe drží vrch dosiahnuteľný, keď sa obsah na nízky telefón
-     nezmestí). */
-  /* 🔴 STĹPEC — deklarácia flex-direction:column tu CHÝBALA (Matej 11. 9. 2026: "toto je zle
-     lebo nevidno dalšie možnosti su na horizontálny scrol čo je hluposť! responzivita je zla").
-     Komentáre nižšie o stĺpci hovoria a flex-wrap:nowrap naň spolieha — lenže základné
-     .att-entry-blocks je RIADOK, takže bez tejto deklarácie sa nowrap prejavil presne opačne:
-     tri dlaždice po ~830 px ostali vedľa seba v kontajneri širokom 840 px (scrollWidth
-     2530 px) a PODUJATIE aj ODKAZ vypadli mimo obrazovku. */
-  .trp-root .att-entry-blocks{gap:14px;flex:0 0 auto;flex-direction:column;}
-  /* ⚠️ :first-child MUSÍ BYŤ VYMENOVANÝ. Na PC má prvá dlaždica flex:1 1 100% (zaberá celý
-     prvý riadok) a v STĹPCI znamená tá istá deklarácia 100 % VÝŠKY — VÝLET tak vyrástol na
-     dvojnásobok susedov. Špecificita je zhodná, takže by rozhodlo poradie v DOM a to má
-     ENTRY_CSS komponentu, ktorý sa vkladá neskôr. Rovnaká pasca ako pri .trp-msheet-field. */
-  .trp-root .att-entry-blocks-kind .att-entry-block,
-  .trp-root .att-entry-blocks-kind .att-entry-block:first-child{flex:1 0 auto;}
-  /* ⚠️ ZALOMENIE SA NA TELEFÓNE RUŠÍ, INAK BLOK URČUJE ŠÍRKU POPUPU. Stĺpec s flex-wrap
-     dostane šírku riadku podľa NAJŠIRŠIEHO obsahu (max-content), a odkedy chipy nezalamujú,
-     je ich rad široký cez pol metra — dlaždice tak vytiekli mimo dosku a nadpisy sa odsunuli
-     doprava. Bez wrapu je stĺpec obyčajný stĺpec a položky sa naťahujú na šírku popupu.
-     Dvojica min-width:0 je tá istá poistka o úroveň nižšie: bez nej scrollovací kontajner
-     tlačí svoju max-content šírku do rodiča a preteká presne tak isto. */
-  .trp-root .att-entry-blocks-kind{flex-wrap:nowrap;align-items:stretch;}
-  .trp-root .att-entry-block{padding:14px 16px;min-width:0;max-width:100%;}
-
-  /* ── KAŽDÝ BLOK TAKÝ ISTÝ ────────────────────────────────────────────────────────────
-     Na PC je VÝLET zámerne väčší: leží v prvom riadku cez celú šírku a dva menšie sú pod
-     ním, takže hierarchiu nesie PLOCHA. Na telefóne stoja všetky tri POD SEBOU v rovnakej
-     šírke — tam by väčšie písmo bolo jediný rozdiel a čítalo by sa ako iný typ prvku, nie
-     ako dôležitejšia voľba. Poradie hierarchiu povie samo. */
-  .trp-root .att-entry-blocks-kind .att-entry-block:first-child .att-entry-title{font-size:23px;letter-spacing:.05em;margin-bottom:10px;}
-  /* ⚠️ Rezervu na dvojriadkový popis si prvá dlaždica na PC ruší (min-height:0) — tam stojí
-     sama v riadku, takže nemá s kým zarovnávať dno. V stĺpci má, a bez tejto rezervy je
-     o riadok nižšia než susedia, teda „taký istý" padá hneď na prvej z troch. */
-  .trp-root .att-entry-blocks-kind .att-entry-block:first-child .att-entry-text{font-size:12.5px;min-height:2.9em;}
-  .trp-root .att-entry-blocks-kind .att-entry-block:first-child .att-entry-chips{gap:6px;margin-top:10px;}
-  .trp-root .att-entry-blocks-kind .att-entry-block:first-child .att-entry-chip{font-size:10.5px;padding:3px 9px;gap:5px;}
-  .trp-root .att-entry-blocks-kind .att-entry-block:first-child .att-entry-chip-emoji{font-size:12px;}
-
-  /* ── BEZ VEĽKÉHO EMOJI, NÁZOV NESIE BLOK SÁM (Matej 2026-08-28) ───────────────────────
-     „Názvy blokov sú nevýrazné a na prvý pohľad nie sú vidno = treba ich poriadne zvýrazniť
-      a zväčšiť, ikonku dať na začiatok alebo to skúsiť aj bez nej… skúsme bez, veď sú tam
-      chipy, aby tam nebolo veľa ikoniek"
-     Glyf bol 32 px a nadpis 14 — na prvý pohľad teda blok pomenúvala labka, nie slovo VÝLET.
-     Chipy pod ním pritom nesú štyri až šesť ďalších emoji, takže z bloku bola zbierka
-     obrázkov s popisom. Odteraz nesie identitu NÁZOV a obrázky ostávajú tam, kde niečo
-     rozlišujú — na chipoch.
-     ⚠️ Emoji sa NEVYMAZALO Z RENDERU, len sa tu skrýva: na PC je súčasťou dlaždice a mimo
-     mapy ten istý popup neexistuje, takže odstránenie z komponentu by menilo aj PC. */
-  .trp-root .att-entry-emoji{display:none;}
-  /* Výplň zhora robí miesto pilulke s bodmi — tá stojí absolútne v rohu a bez rezervy by
-     ju veľký nadpis, ktorý je teraz prvý v poradí, podbehol. */
-  .trp-root .att-entry-block{padding-top:38px;}
-  /* ── NÁZOV JE PRVÁ VEC, KTORÚ VIDNO (Matej 2026-08-28: „nadpis zvýrazni lebo je to fádne
-        a človek v prvej sekunde nevie kam má kliknúť") ───────────────────────────────────
-     Zväčšiť sa dalo aj ráno a nepomohlo — bloky sú tri rovnaké papyrusové plochy a text v
-     nich mal presne jednu váhu, takže oko nemalo za čo zachytiť. Preto nie ďalšie pixely,
-     ale ODDELENIE: pod názvom je zlatá deliaca čiara "T.rule" — ten istý prvok, ktorý delí
-     obsah v každej bledej karte (lock „bledý blok", Entry.tsx). Názov tým prestáva byť
-     prvým riadkom odseku a stáva sa hlavičkou dlaždice.
-     ⚠️ Čiara sa kreslí na ::after, teda NEZABERÁ vlastný riadok textu — bloky si držia
-     rovnakú výšku, na ktorej stojí celý zvyšok tejto vetvy.
-     ⚠️ Farba ostáva "P_INK". Zlatý gradient v písme ("TITLE_GRAD") je pre nadpisy na
-     ČIERNOM; na papyruse má zlato na bledom strop ~2,7:1 a názov by sa zvýraznením stal
-     horšie čitateľným — presne naopak, než znie zadanie. */
-  .trp-root .att-entry-title{font-size:23px;letter-spacing:.05em;line-height:1.15;color:${P_INK};margin-bottom:10px;padding-bottom:9px;position:relative;}
-  .trp-root .att-entry-title::after{content:'';position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:52px;height:2px;border-radius:2px;background:${T.rule};}
-  /* Rezerva na dvojriadkový popis drží rovnaké dno aj v stĺpci — bez nej má dlaždica
-     s jednoriadkovou vetou o riadok nižší blok než susedia a „taký istý" padá. */
-  .trp-root .att-entry-text{min-height:2.9em;max-width:none;}
-
-  /* ── CHIPY: NEKONEČNÁ SLUČKA (Matej 2026-08-28: „chipy daj do infinity slučky") ───────
-     PODUJATIE má šesť chipov a na 390 px sa lámali do TROCH riadkov, kým VÝLET mal jeden —
-     tým bol jeden blok o 60 px vyšší než susedia a rad prestal byť radom. Zalomenie preto
-     padlo už ráno; ručný posuv prstom, ktorý ho nahradil, ale o skrytých chipoch mlčal —
-     človek videl štyri a nevedel, že existuje šiesty. Rad sa teraz posúva sám.
-     ⚠️ Ručný posuv sa RUŠÍ ("overflow:hidden", žiadny "touch-action:pan-x"): dva spôsoby
-     pohybu na tom istom rade si prekážajú a "pan-x" nad chipmi navyše zabíja ZVISLÝ skrol
-     stránky — prst na chipoch by popupom nepohol.
-     ⚠️ Výbled je teraz na OBOCH stranách: v slučke chipy zľava priebežne pribúdajú, takže
-     ľavá hrana potrebuje to isté, čo pravá — inak sa nový chip zjaví strihom.
-     ⚠️ Trvanie nesie "--att-loop" z komponentu (čas na jednu sadu) a posun je presne
-     "100 % / počet kópií" = šírka JEDNEJ sady, teda bezšvíkovo. Kópie a ich počet →
-     komentár pri renderi v AddTripEntry.tsx.
-     ⚠️ Odsadenie MEDZI sadami nesie "padding-right" sady, nie "gap" obalu — gap by sa do
-     posunu nezapočítal a slučka by po každom kole poskočila o 6 px.
-     ⚠️ flex:0 0 auto na chipe nie je ozdoba — bez neho ich flex stlačí na obsah a text sa
-     začne lámať vnútri pilulky namiesto toho, aby rad vytiekol. */
-  .trp-root .att-entry-chips{flex-wrap:nowrap;justify-content:flex-start;align-self:stretch;width:100%;min-width:0;overflow:hidden;padding-bottom:2px;
-    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%);
-    mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%);}
-  .trp-root .att-entry-chiploop{display:flex;flex:0 0 auto;width:max-content;will-change:transform;animation:att-chiploop var(--att-loop,12s) linear infinite;}
-  .trp-root .att-entry-chipset,.trp-root .att-entry-chipset-copy{display:flex;flex:0 0 auto;gap:6px;padding-right:6px;}
-  .trp-root .att-entry-chip{flex:0 0 auto;}
-  @keyframes att-chiploop{from{transform:translateX(0);}to{transform:translateX(-33.3333%);}}
-  /* Kto má vypnuté animácie, dostane rad stojaci na začiatku — nie prázdno. */
-  @media (prefers-reduced-motion:reduce){
-    .trp-root .att-entry-chiploop{animation:none;}
-  }
+  /* ── MOBIL: ŠUPLÍK ZDOLA, NIE CELÁ OBRAZOVKA (Matej 21. 9. 2026) ─────────────────────
+     „na mobiloch by to mohlo byť drop down ktorý by mal hore možnosť ho stiahnuť dolu ako
+      to býva v niektorých apkách."
+     ⛔ NEPLATÍ od 21. 9. to, čo tu stálo od 28. 8.: „možno by bolo lepšie na mobile to dať
+        bez toho bloku resp bez okrajov = celá stránka bude bledá ako keby menu na celú
+        obrazovku a na nej 3 bloky, nebude vidno mapu vzadu." Vtedy boli v popupe TRI veľké
+        dlaždice s chipmi a celá obrazovka bola jediný spôsob, ako sa vošli. Odkedy je
+        položka JEDEN RIADOK, zoznam je nízky a šuplík je presne to, čo si Matej pýta.
+     ⚠️ Tvar šuplíka (poloha, polomer, úchyt, ťahanie) nesie ENTRY_CSS v AddTripEntry.tsx —
+        je spoločný pre tmavú aj bledú podobu. TU je len ŠAT: papyrusová doska a jej lem.
+     ⚠️ Doska sa maľuje na PANEL, nie na podklad. Pri celoobrazovkovej podobe to bolo opačne
+        (podklad bol jediný prvok, ktorý držal celé okno) — šuplík ale okno nevypĺňa, takže
+        doska patrí jemu; inak by papyrus prekryl aj mapu nad ním.
+     ⚠️ Zlatý rám z bloku vyššie sa ruší len ZDOLA: hore šuplík lem má, dole dosadá na hranu
+        okna a lem by tam bol zjedený riadok.
+     ⚠️ Tieň je PACK_SHADOW.panel (T.panelShadow), nie vlastné číslo — šuplík PLÁVA nad
+        stránkou, a to je presne tá výška z matrice. Stráž check:pack meria doslovný zápis. */
+  .trp-root .att-entry-backdrop{background:rgba(24,14,4,0.45);}
+  .trp-root .att-entry-panel.pk-glass{${goldPlateCSS({ radius: 0 })}border-radius:16px 16px 0 0;border-bottom:0;box-shadow:${T.panelShadow};overscroll-behavior:contain;}
+  /* Návrat v šuplíku stojí v riadku pod úchytom (ENTRY_CSS), takže sa tu ruší len jeho
+     celoobrazovková poloha. Na prvej úrovni ostáva skrytý — von sa ide stiahnutím nadol. */
+  .trp-root .att-entry-nav{top:auto;}
+  .trp-root .att-entry-st{font-size:13px;margin-bottom:12px;}
 }
 `;
 

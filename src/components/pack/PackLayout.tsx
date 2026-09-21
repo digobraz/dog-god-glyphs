@@ -1056,6 +1056,10 @@ const pillStyle = (active: boolean): React.CSSProperties =>
   textDecoration: 'none',
   });
 
+/* ⚠️ NEPOUŽITÉ OD 21. 9. 2026 — menovky v spodnom nave zanikli (Matej: „len ikonky bez
+   vysvetľovania"). NEMAŽE SA: je to jediný zápis, ako menovka vyzerala — keby sa mal text
+   niekedy vrátiť, vráti sa V TOMTO tvare, nie v novom vymyslenom.
+   eslint-disable-next-line @typescript-eslint/no-unused-vars */
 const pillLabelStyle: React.CSSProperties = {
   fontFamily: "'Cinzel', serif",
   fontSize: 11,
@@ -1117,6 +1121,7 @@ function FloatingNavLink({ to, label, icon, end }: { to: string; label: string; 
     <NavLink
       to={to}
       end={end}
+      aria-label={label}
       className="group flex items-center gap-2 transition-all"
       style={({ isActive }) => pillStyle(isActive)}
     >
@@ -1124,7 +1129,12 @@ function FloatingNavLink({ to, label, icon, end }: { to: string; label: string; 
         <>
           {NAV_SKIN === 'gold' && isActive && <NavGrain radius={999} opacity={0.22} />}
           <BrandIcon src={icon} active={isActive} />
-          <span className="hidden sm:inline" style={{ ...pillLabelStyle, position: 'relative' }}>{label}</span>
+          {/* 🔴 MENOVKA ZANIKLA 21. 9. 2026 (Matej: „spodný nav nechajme len ikonky bez
+              vysvetľovania DOMOV VON a pod..."). Do vtedy sa nad 640 px vypisovala
+              (`hidden sm:inline`), takže lišta mala na PC iný jazyk než na telefóne —
+              a na telefóne, kde je appka doma, ju nikto nikdy nevidel.
+              ⚠️ `label` sa NEMAŽE: nesie ho `aria-label` nižšie, teda čítačka obrazovky.
+              Ikonka bez mena je pre ňu prázdny odkaz. */}
         </>
       )}
     </NavLink>

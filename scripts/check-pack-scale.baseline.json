@@ -391,13 +391,13 @@
   },
   "components/pack/addtrip/AddTripEntry.tsx": {
     "radius": 0,
-    "font": 9,
+    "font": 1,
     "zavoj": 2,
     "progres": 0,
     "ram": 1,
     "tien": 0,
-    "pismenka": 4,
-    "odsadenie": 11
+    "pismenka": 3,
+    "odsadenie": 3
   },
   "components/pack/addtrip/AddTripLog.tsx": {
     "radius": 20,
@@ -791,13 +791,13 @@
   },
   "pages/PackMap.tsx": {
     "radius": 22,
-    "font": 72,
-    "zavoj": 71,
+    "font": 69,
+    "zavoj": 69,
     "progres": 0,
     "ram": 27,
     "tien": 60,
-    "pismenka": 31,
-    "odsadenie": 113
+    "pismenka": 29,
+    "odsadenie": 101
   },
   "pages/PackNatureQuiz.tsx": {
     "radius": 6,

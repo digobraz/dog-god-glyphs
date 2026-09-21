@@ -8,7 +8,7 @@
 // Žije na tmavom povrchu Portalu → pk-glass primitív z packTheme.ts (NIE papyrus — ten je pre
 // bledé bloky podľa Entry.tsx locku, sem nepatrí).
 import { trackPack } from '@/lib/packAnalytics';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { GLASS_CSS, PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { PLATE_TILE_R } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
@@ -19,7 +19,7 @@ import { TRIP_CATEGORIES } from '@/components/pack/tripCategories';
 import { EVENT_KINDS, EVENT_KIND_LABEL_KEYS, type EventKind } from '@/components/pack/events/eventModel';
 import type { TripState } from './addTripModel';
 import {
-  panelFor, isReady, isSoon, type CreateObject, type CreatePlace,
+  panelFor, isReady, isSoon, type CreateId, type CreateObject, type CreatePlace,
 } from '@/components/pack/createRegistry';
 import { POINTS } from '@/lib/tripPoints';
 import { EVENTS_LIVE } from '@/lib/packFlags';
@@ -65,37 +65,18 @@ export type AddTripEntryProps = {
 
 type Kind = 'trip' | 'event' | 'note' | 'service';
 
-// ── CHIPY: ČO SA POD DLAŽDICOU SKRÝVA (Matej 2026-08-27) ────────────────────────────────────
-// „mohli by sme pridať chipy s emoji čo všetko človek môže pridať… aby bolo hneď jasné, čo
-// človek môže pridať."
-// Popup bol dovtedy tri vety v štýle „miesto na prechádzku so psom" — pravdivé, ale človek sa
-// dozvedel až o obrazovku ďalej, že sa sem dá zapísať aj kemp, preteky či kliešte.
+// ── CHIPY ZANIKLI 21. 9. 2026 (Matej: „žiadne vysvetlovačky") ───────────────────────────────
+// Do 21. 9. niesla každá dlaždica bežiaci rad chipov („🐾 Hike · 💪 Activity · 👀 Visit…"),
+// ktorý si Matej 27. 8. sám vypýtal: *„mohli by sme pridať chipy s emoji čo všetko človek
+// môže pridať… aby bolo hneď jasné, čo človek môže pridať."* Večer 21. 9. to prebil:
+// *„ten popup pri + musí byť priamy, krátky, stručný, bez scrollu, nerozťahuj to tak!
+// emoji a vedľa text, žiadne vysvetlovačky."*
 //
-// ⚠️ ŽIADNY VLASTNÝ ZOZNAM. Každá trojica sa ťahá zo zdroja pravdy tej vetvy — inak by tu
-// o mesiac stála taxonómia, ktorá už nikde inde neplatí (presne to sa stalo aktivitám, keď
-// ležali v kóde štyrikrát). Kategórie: `tripCategories.ts` · typy podujatí: `eventModel.ts`
-// + `markEmoji.ts` · skupiny odkazov: `mapNotesData.ts` + `GROUP_EMOJI`.
-//
-// ⚠️ Chip je POPIS, nie ovládací prvok. Celá dlaždica je jedno tlačidlo, chipy v nej sú
-// `<span>` — klikateľné chipy vnútri tlačidla by sľubovali skratku („chcem rovno preteky"),
-// ktorú druhá úroveň nevie splniť, a vnorené tlačidlo je aj neplatné HTML.
-type Chip = { emoji: string; labelKey: string };
-
-/** Typy podujatí, ktoré sa v ukážke NEZOBRAZUJÚ (vo formulári ostávajú). Viď `event` nižšie. */
-const EVENT_CHIP_SKIP: EventKind[] = ['camp', 'expo'];
-
-const KIND_CHIPS: Record<'trip' | 'event' | 'note', Chip[]> = {
-  trip: TRIP_CATEGORIES.map((c) => ({ emoji: c.emoji, labelKey: `pack.map.activityLabel.${c.id}` })),
-  // ⚠️ NIE VŠETKÝCH OSEM (Matej 2026-08-27: „pri eventoch dajme len 2 riadky bez camp a expo").
-  // Chip je ukážka, nie číselník — tri riadky robili z dlaždice zoznam a EVENT tým prerástol
-  // susedný odkaz o pol dlaždice. `camp` a `expo` z formulára NEMIZNÚ, len sa sem nevojdú:
-  // sú to dva najzriedkavejšie typy, ktoré človek hľadá až vtedy, keď už vie, čo zapisuje.
-  event: EVENT_KINDS.filter((k) => !EVENT_CHIP_SKIP.includes(k))
-    .map((k) => ({ emoji: EVENT_EMOJI[k], labelKey: EVENT_KIND_LABEL_KEYS[k] })),
-  // Skupiny, nie podtypy: „kliešte / vretenica / medveď" je rozpad JEDNEJ skupiny a v popupe
-  // by z troch chipov spravil trinásť. Rozcestníkové ⚠️ hovorí to isté jedným znakom.
-  note: NOTE_GROUPS.map((g) => ({ emoji: GROUP_EMOJI[g], labelKey: `pack.mapNotes.group.${g}` })),
-};
+// ⚠️ OBA POKYNY SÚ JEHO A NOVŠÍ PLATÍ — ale dôvod toho staršieho nezanikol: človek sa
+//    o kempe či kliešťoch dozvie až o obrazovku ďalej. Keby sa chipy mali vrátiť, patria
+//    na DRUHÚ úroveň (tam, kde sa aj tak vyberá typ), nie do rozcestníka.
+// ⚠️ Zdroje taxonómie (`tripCategories.ts`, `eventModel.ts`, `mapNotesData.ts`) sa tým
+//    NEMENIA — chipy si ich len ťahali.
 
 // Prvá úroveň — dve dlaždice (Matej 2026-08-06: SERVICE preč z renderu, viď hlavičkový
 // komentár). `Kind`/`disabled` tvar ostáva nezmenený pre vlnu 2 — SERVICE sa vtedy len pridá
@@ -123,6 +104,27 @@ const KINDS: KindDef[] = [
   { kind: 'event', emoji: '📣', titleKey: 'pack.addTrip.entry.kind.event.title', textKey: 'pack.addTrip.entry.kind.event.text', points: POINTS.event, right: 'social' },
   { kind: 'note', emoji: '💬', titleKey: 'pack.addTrip.entry.kind.note.title', textKey: 'pack.addTrip.entry.kind.note.text', points: POINTS.note, right: 'map.notes' },
 ];
+
+// ── EMOJI PANELA — JEDNO MIESTO ─────────────────────────────────────────────────────────────
+// 🔴 PANEL HOVORÍ EMOJI (Matej 21. 9. 2026: „namiesto emoji sú brand ikonky… emoji a vedľa
+//    text"). Register (`createRegistry.ts`) ich ZÁMERNE nenesie: leží mimo schválených emoji
+//    povrchov, takže by ich stráž `check:ikony` zarátala ako nový nález — a dve miesta na
+//    jednu ikonku sa raz rozídu. Tento priečinok v tom zozname JE.
+//
+// ⚠️ Výber je Matejov z registra značiek (21. 9.): 📝 PRÍSPEVOK · 🗣 ROZHOVOR ·
+//    💡 ZNALOSŤ DO MOZGU · 📌 OTÁZKA NA NÁSTENKU. Zvyšok je z nákresu
+//    `nakres-pack-plus-kontext-2026-09-21.html` §3.
+// ⚠️ 🛎️ MIESTO/SLUŽBA je MOJA náhrada za 🏠 z nákresu: 🏠 je v appke obsadené štyrikrát
+//    (kalendár „deň bez seba", mapová značka, profil), takže by to bola tvrdá kolízia —
+//    presne to, čo register značiek meria. Zvonček je voľný a je Emoji 1.0.
+// ⚠️ 📝 vie o druhej zrážke (čip „poznámka" v denníku) a Matej ju pri výbere videl.
+const EMOJI: Record<CreateId, string> = {
+  trip: '🐾', note: '💬', event: '📣', service: '🛎️', article: '📄',
+  diary: '📓', photo: '📷',
+  post: '📝',
+  chat: '🗣', brain: '💡', board: '📌',
+  dm: '✉️', group: '👥',
+};
 
 /** Dlaždica podľa id objektu v registri. Mapové objekty kreslí panel, zvyšok register. */
 const KIND_BY_ID: Partial<Record<string, KindDef>> = Object.fromEntries(KINDS.map((k) => [k.kind, k]));
@@ -187,8 +189,35 @@ export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryP
   const tx = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
   const [step, setStep] = useState<'kind' | 'trip' | 'event' | 'note'>('kind');
   const groups = useMemo(() => panelFor(place), [place]);
-  // Na DOMOVE je panel rozcestník cez ŠTYRI miesta — dôvod je pri `kindTile` nižšie.
-  const showChips = place !== 'DOMOV';
+
+  // ── ŠUPLÍK NA MOBILE: ÚCHYT HORE, ŤAHANÍM NADOL SA ZAVRIE (Matej 21. 9. 2026) ─────────
+  // „na mobiloch by to mohlo byť drop down ktorý by mal hore možnosť ho stiahnuť dolu
+  //  ako to býva v niektorých apkách."
+  // ⚠️ Panel sa počas ťahania posúva `transform`-om, nie zmenou výšky — výška by pri
+  //    každom prste prepočítala layout celého zoznamu.
+  // ⚠️ PRAH JE 96 px ALEBO RÝCHLY ŠVIH (nad 0,6 px/ms). Bez rýchlosti musí človek ťahať
+  //    cez pol obrazovky; bez prahu by ho zavrelo aj mimovoľné zachvenie prsta.
+  // ⚠️ `setPointerCapture` je nutnosť: prst odíde z úchytu skôr, než skončí ťah, a bez
+  //    zachytenia prestane šuplík dostávať `pointermove` uprostred gesta.
+  const [drag, setDrag] = useState(0);
+  const dragRef = useRef<{ y: number; t: number } | null>(null);
+  const onGrabDown = (e: React.PointerEvent) => {
+    dragRef.current = { y: e.clientY, t: e.timeStamp };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+  const onGrabMove = (e: React.PointerEvent) => {
+    if (!dragRef.current) return;
+    setDrag(Math.max(0, e.clientY - dragRef.current.y));
+  };
+  const onGrabUp = (e: React.PointerEvent) => {
+    const start = dragRef.current;
+    dragRef.current = null;
+    if (!start) return;
+    const dy = e.clientY - start.y;
+    const dt = Math.max(1, e.timeStamp - start.t);
+    if (dy > 96 || dy / dt > 0.6) { onClose(); return; }
+    setDrag(0);
+  };
 
   // Bez krížika je Escape jediná cesta von pre toho, kto neťuká myšou vedľa panela.
   // Poslucháč visí na dokumente, nie na paneli — ten nemá fókus, kým človek na niečo neklikne.
@@ -199,154 +228,71 @@ export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryP
   }, [onClose]);
 
   /**
-   * JEDNA DLAŽDICA MAPOVÉHO OBJEKTU — vyňaté z renderu 21. 9. 2026, text NEZMENENÝ.
+   * JEDEN RIADOK PONUKY — emoji vľavo, názov vedľa, nič ďalšie.
    *
-   * Dôvod výňatku: tú istú dlaždicu kreslia odteraz DVE vetvy — dnešný panel s tromi
-   * dlaždicami (vchody v mape) a panel kŕmený registrom (vchod z lišty). Dve kópie toho
-   * istého markupu by sa rozišli pri prvej úprave; presne to sa v tomto projekte stalo
-   * aktivitám, keď ležali v kóde štyrikrát.
+   * 🔴 TVAR JE MATEJOVO ZADANIE Z 21. 9. 2026 večer: *„ten popup pri + musí byť priamy,
+   *    krátky, stručný, bez scrollu, nerozťahuj to tak! emoji a vedľa text, žiadne
+   *    vysvetlovačky."* Prebíja to dlaždicovú podobu, ktorá tu stála od 26. 8. (veľký glyf,
+   *    podnadpis, bežiaci rad chipov) — tá bola tiež jeho, ale staršia.
    *
-   * ⚠️ `showChips` NIE JE vkus. Chipy sú UKÁŽKA TAXONÓMIE JEDNÉHO MIESTA („čo všetko sa
-   *    sem zmestí") a na mieste svoju prácu robia. Na DOMOVE je panel rozcestník cez ŠTYRI
-   *    miesta — desať radov bežiacich chipov pod sebou by z neho spravilo kolotočiareň
-   *    a človek by v nej hľadal dlaždicu. Nákres `nakres-pack-plus-kontext-2026-09-21.html`
-   *    §3 kreslí DOMOV bez chipov a miesta s nimi — toto je presne to.
+   * ⚠️ PODNADPIS SA NEVRACIA. Vysvetlenie („bol som · alebo plánujem") patrí do obrazovky,
+   *    ktorá sa po kliku otvorí, nie do rozcestníka. Rozcestník má byť prečítateľný jedným
+   *    pohľadom a vojsť sa bez scrollu — to je celý jeho účel.
+   * ⚠️ PILULKA BODOV OSTÁVA. Nie je to vysvetlivka, je to cena za kus a Matej si ju sám
+   *    vypýtal 24. 8. (*„pri kliknutí na pridať je tam +20… chýba BODOV"*). Drží sa vpravo,
+   *    takže riadok nepredlžuje.
    */
-  const kindTile = (k: KindDef, showChips: boolean) => (
-              /* Zápisy z tohto rázcestia patria MNE (`user_id`), nie psovi — km sú
-                 moje (R2). Preto gate bez `dogId`: stačí, že mi to právo dal
-                 aspoň jeden majiteľ. */
-              <RightGate key={k.kind} right={k.right ?? 'trips.log'}>
-              <button
-                type="button"
-                className={`att-entry-block${k.disabled ? ' att-entry-block-disabled' : ''}`}
-                disabled={k.disabled}
-                aria-disabled={k.disabled}
-                onClick={() => {
-                  if (k.disabled) return;
-                  // ⏳ DRUHÁ ÚROVEŇ PRE VÝLET ZANIKLA (Matej 22. 8.). Bola to otázka
-                  // „prešli ste to, alebo sa chystáte?", na ktorú odpoveď leží o pár polí
-                  // nižšie — v dátume. Formulár je jeden a prepne sa podľa neho.
-                  // `TRIP_BLOCKS` ostáva v súbore ako doklad, čo tu stálo; nerenderuje sa.
-                  // Meranie (v1-posthog): tu sa začína zápis výletu. Pár k nemu je
-                  // `pack_trip_add_done` v `PackMap` — rozdiel medzi nimi je odpadnutie
-                  // vo formulári, čo je po flipe to najzaujímavejšie číslo z mapy.
-                  if (k.kind === 'trip') { trackPack('pack_trip_add_start'); onPick({ kind: 'trip', state: 'walked' }); }
-                  if (k.kind === 'event') setStep('event');
-                  if (k.kind === 'note') setStep('note');
-                }}
-              >
-                {k.disabled && <span className="att-entry-soon">{t('pack.map.comingSoon')}</span>}
-                {/* JEDNOTKA MUSÍ BYŤ PRI ČÍSLE (Matej 24. 8. 2026: „pri kliknutí na pridať je tam
-                    +20… chýba BODOV"). Holé „+20" nepovie, či ide o body, kilometre alebo eurá —
-                    a dlaždica je prvé miesto, kde človek vidí, že sa zápis vôbec odmeňuje.
-                    ⚠️ SKLOŇUJE SA. Pevná jednotka („bodov") dala na odkaze „+3 BODOV" — slovenčina
-                    má tri tvary a dlaždice nesú 20 / 10 / 3, teda dva z nich naraz. Rovnaký
-                    trojtvarový vzor drží aj `pack.addTrip.geo.pointsSuffix` pre kotvy trasy;
-                    zámerne sa NEPOŽIČIAVA — tam sú to body na mape, tu odmena, a v angličtine
-                    sa tie dve slová raz rozídu. */}
-                {!!k.points && (
-                  <span className="att-entry-pts">
-                    +{t(`pack.points.unit.${k.points === 1 ? 'one' : k.points < 5 ? 'few' : 'many'}`, { n: k.points })}
-                  </span>
-                )}
-                <span className="att-entry-emoji" aria-hidden="true">{k.emoji}</span>
-                {/* ⚠️ OBAL JE `display:contents`, teda pre DNEŠNÝ layout NEEXISTUJE — názov aj
-                    popis ostávajú priamymi položkami dlaždice. Zapne sa až v radovej podobe
-                    na DOMOVE (`.att-entry-rows`), kde musí text stáť ako stĺpec vedľa ikonky.
-                    Ten istý trik už v tomto súbore drží slučka chipov. */}
-                <span className="att-entry-body">
-                  <span className="att-entry-title">{t(k.titleKey)}</span>
-                  <span className="att-entry-text">{t(k.textKey)}</span>
-                </span>
-                {showChips && !!KIND_CHIPS[k.kind as keyof typeof KIND_CHIPS] && (
-                  // ── NEKONEČNÁ SLUČKA CHIPOV (Matej 2026-08-28: „chipy daj do infinity slučky") ──
-                  // Rad sa posúva sám, takže človek uvidí VŠETKY možnosti bez toho, aby na chipy
-                  // musel ťahať prstom — presne to bola sťažnosť („v prvej sekunde nevie… aké sú
-                  // možnosti"). Ručný posuv (overflow-x + touch-action:pan-x) tým zanikol: na
-                  // 390 px sa nevošli ani štyri chipy a zvyšok o sebe nedal vedieť.
-                  //
-                  // ⚠️ TRI KÓPIE, NIE DVE. Posuv je bezšvíkový vždy (perióda = šírka jednej sady,
-                  // animácia posúva presne o ňu), ale DIERU na pravom okraji urobí každá sada,
-                  // ktorá je užšia než blok — a to je práve ODKAZ s tromi chipmi (~330 px na 390 px
-                  // širokej obrazovke). Tri kópie pokryjú aj ten prípad.
-                  // ⚠️ Kópie sú `aria-hidden` — čítačka má prečítať zoznam raz, nie trikrát.
-                  //
-                  // ⚠️ TRVANIE JE PODĽA POČTU CHIPOV, nie pevné. Pevná hodnota by rad troch chipov
-                  // hnala trikrát pomalšie než rad šiestich a tri bloky nad sebou by sa hýbali
-                  // každý inou rýchlosťou. `--att-loop` = čas na PREJDENIE JEDNEJ sady.
-                  //
-                  // ⚠️ Slučka je LEN mobilná vetva (PALE_ADD_CSS v PackMap.tsx). Na PC sa chipy
-                  // zalamujú do riadkov a všetky sú vidno naraz, takže obal aj sada tam majú
-                  // `display:contents` a kópie `display:none` — v DOM sú, v layoute nie.
-                  <span
-                    className="att-entry-chips"
-                    style={{ '--att-loop': `${(KIND_CHIPS[k.kind as keyof typeof KIND_CHIPS].length * 3.2).toFixed(1)}s` } as React.CSSProperties}
-                  >
-                    <span className="att-entry-chiploop">
-                      {[0, 1, 2].map((copy) => (
-                        <span
-                          key={copy}
-                          className={`att-entry-chipset${copy ? ' att-entry-chipset-copy' : ''}`}
-                          aria-hidden={copy ? true : undefined}
-                        >
-                          {KIND_CHIPS[k.kind as keyof typeof KIND_CHIPS].map((c) => (
-                            <span key={c.labelKey} className="att-entry-chip">
-                              <span className="att-entry-chip-emoji" aria-hidden="true">{c.emoji}</span>
-                              {t(c.labelKey)}
-                            </span>
-                          ))}
-                        </span>
-                      ))}
-                    </span>
-                  </span>
-                )}
-              </button>
-              </RightGate>
+  const kindTile = (k: KindDef) => (
+    /* Zápisy z tohto rázcestia patria MNE (`user_id`), nie psovi — km sú moje (R2).
+       Preto gate bez `dogId`: stačí, že mi to právo dal aspoň jeden majiteľ. */
+    <RightGate key={k.kind} right={k.right ?? 'trips.log'}>
+      <button
+        type="button"
+        className="att-entry-row"
+        onClick={() => {
+          // ⏳ DRUHÁ ÚROVEŇ PRE VÝLET ZANIKLA (Matej 22. 8.). Bola to otázka „prešli ste to,
+          // alebo sa chystáte?", na ktorú odpoveď leží o pár polí nižšie — v dátume.
+          // Meranie (v1-posthog): tu sa začína zápis výletu; pár k nemu je
+          // `pack_trip_add_done` v `PackMap`.
+          if (k.kind === 'trip') { trackPack('pack_trip_add_start'); onPick({ kind: 'trip', state: 'walked' }); }
+          if (k.kind === 'event') setStep('event');
+          if (k.kind === 'note') setStep('note');
+        }}
+      >
+        <span className="att-entry-emoji" aria-hidden="true">{EMOJI[k.kind as CreateId]}</span>
+        <span className="att-entry-title">{t(k.titleKey)}</span>
+        {/* JEDNOTKA MUSÍ BYŤ PRI ČÍSLE a SKLOŇUJE SA (Matej 24. 8.): dlaždice nesú 20 / 10 / 3,
+            teda dva slovenské tvary naraz. */}
+        {!!k.points && (
+          <span className="att-entry-pts">
+            +{t(`pack.points.unit.${k.points === 1 ? 'one' : k.points < 5 ? 'few' : 'many'}`, { n: k.points })}
+          </span>
+        )}
+      </button>
+    </RightGate>
   );
 
   /**
-   * DLAŽDICA OBJEKTU Z REGISTRA — denník, fotka, rozhovor, znalosť, nástenka, príspevok.
+   * Riadok objektu z registra — denník, fotka, rozhovor, znalosť, nástenka, príspevok.
+   * Ten istý tvar ako vyššie; líši sa len tým, že text aj stav berie z registra.
    *
-   * Je to TÁ ISTÁ dlaždica (`.att-entry-block`), len bez toho, čo o nej panel nevie:
-   * bez chipov (taxonómiu má len mapová vetva), bez bodov (sadzbu nesie `tripPoints.ts`
-   * a tie zápisy v nej nie sú) a bez práva (`pawmateRights` pokrýva zápisy do svorky).
-   *
-   * ⚠️ IKONKA JE KRESBA Z KITU, KRESLENÁ MASKOU. Filter farbu APROXIMUJE, maska ju trafí
-   *    presne — ten istý recept má dlaždica chatu v `PackAinubis.tsx`. Emoji sem NEPATRÍ:
-   *    brandová výnimka pre emoji platí MAPE (`markEmoji.ts`), nie tomuto povrchu,
-   *    a `npm run check:ikony` to meria.
-   * ⚠️ `{ kind: 'chyba' }` NECHÁVA SLOT PRÁZDNY A JE TO ZÁMER. V kite nie je nič, čo by
-   *    znamenalo „príspevok do feedu" — podľa brand locku je to dôvod vypýtať si kresbu
-   *    od Mateja (zadanie §6), nie dôvod siahnuť po lucide alebo po emoji. Prázdny slot
-   *    drží výšku riadku, takže dlaždice vedľa seba nesadnú inde.
+   * ⚠️ Ohlásené („čoskoro") sa vykreslí, ale neklikne — lock §1.1.1: panel nesmie mať
+   *    jedinú položku a dopĺňa sa OHLÁSENÝM, nie vymysleným.
    */
   const objectTile = (o: CreateObject) => {
     const ready = isReady(o);
-    const soon = isSoon(o);
     return (
       <button
         key={o.id}
         type="button"
-        className={`att-entry-block${ready ? '' : ' att-entry-block-disabled'}`}
+        className={`att-entry-row${ready ? '' : ' att-entry-row--soon'}`}
         disabled={!ready}
         aria-disabled={!ready}
         onClick={() => { if (ready) onCreate?.(o); }}
       >
-        {soon && <span className="att-entry-soon">{soonLabel(o.soon, tx)}</span>}
-        {o.icon.kind === 'kit' ? (
-          <span
-            className="att-entry-emoji att-entry-ic"
-            aria-hidden="true"
-            style={{ WebkitMaskImage: `url(${o.icon.src})`, maskImage: `url(${o.icon.src})` }}
-          />
-        ) : (
-          <span className="att-entry-emoji" aria-hidden="true" />
-        )}
-        <span className="att-entry-body">
-          <span className="att-entry-title">{tx(o.labelKey, o.labelFallback)}</span>
-          <span className="att-entry-text">{o.hintKey ? tx(o.hintKey, o.hintFallback ?? '') : ''}</span>
-        </span>
+        <span className="att-entry-emoji" aria-hidden="true">{EMOJI[o.id]}</span>
+        <span className="att-entry-title">{tx(o.labelKey, o.labelFallback)}</span>
+        {isSoon(o) && <span className="att-entry-soon">{soonLabel(o.soon, tx)}</span>}
       </button>
     );
   };
@@ -361,7 +307,23 @@ export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryP
     >
       <style>{GLASS_CSS}</style>
       <style>{ENTRY_CSS}</style>
-      <div className="att-entry-panel pk-glass" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="att-entry-panel pk-glass"
+        role="dialog"
+        aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
+        style={drag ? { transform: `translateY(${drag}px)`, transition: 'none' } : undefined}
+      >
+        {/* ÚCHYT — na mobile je to jediná vec nad zoznamom a dá sa ním šuplík stiahnuť dolu.
+            Na PC ho CSS skryje: tam je panel v strede okna a zatvára sa klikom vedľa. */}
+        <span
+          className="att-entry-grab"
+          aria-hidden
+          onPointerDown={onGrabDown}
+          onPointerMove={onGrabMove}
+          onPointerUp={onGrabUp}
+          onPointerCancel={onGrabUp}
+        />
         {/* ⚠️ KRÍŽIK ZANIKOL (Matej 2026-08-26: „odstráň krížik… stačí len klik vedľa").
             Zatvára sa klikom na podklad (`att-entry-backdrop` vyššie) a klávesou Escape —
             popup nemá žiadny nevratný účinok, takže východ nepotrebuje vlastný ovládací
@@ -396,7 +358,7 @@ export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryP
           <BackIcon />
         </button>
         {step === 'kind' && (
-          <div className={`att-entry-reg${place === 'DOMOV' ? ' att-entry-rows' : ''}`}>
+          <div className="att-entry-reg">
             {/* Veta hore hovorí, ČO sa tu pridáva. Na DOMOVE je OTÁZKOU, lebo doma niet
                 kontextu a odpoveď dávajú skupiny pod ňou; na mieste je pokynom. */}
             <p className="att-entry-st">{tx(`pack.create.title.${place}`, PLACE_TITLE[place])}</p>
@@ -407,7 +369,7 @@ export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryP
                 {g.group && (
                   <span className="att-entry-grplbl">{tx(`pack.create.place.${g.group}`, PLACE_GROUP[g.group])}</span>
                 )}
-                <div className="att-entry-blocks att-entry-blocks-kind">
+                <div className="att-entry-list">
                   {/* 🔒 Dlaždica PODUJATIE je za `EVENTS_LIVE` (15. 9. 2026): na LIVE pre podujatia
                       neexistuje ani schéma a formulár píše len do localStorage, takže by človek
                       zakladal podujatie, ktoré nikto nikdy neuvidí. Odôvodnenie v `lib/packFlags.ts`.
@@ -419,7 +381,7 @@ export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryP
                     // body za zápis, potrebné právo aj chipy taxonómie. Register mu to
                     // ZÁMERNE neopisuje (`icon: { kind: 'panel' }`) — dve miesta na jednu
                     // ikonku sa raz rozídu.
-                    return k ? kindTile(k, showChips) : objectTile(o);
+                    return k ? kindTile(k) : objectTile(o);
                   })}
                 </div>
               </div>
@@ -434,12 +396,13 @@ export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryP
           </div>
         )}
         {step === 'event' && (
-          <div className="att-entry-blocks">
+          /* Druhá úroveň má TEN ISTÝ tvar ako prvá — riadok emoji + názov. Podnadpis
+             („koná sa v termíne" / „z odkazu") odišiel spolu s ostatnými vysvetlivkami. */
+          <div className="att-entry-list">
             {EVENT_BLOCKS.map((b) => (
-              <button key={b.origin} type="button" className="att-entry-block" onClick={() => onPick({ kind: 'event', origin: b.origin })}>
+              <button key={b.origin} type="button" className="att-entry-row" onClick={() => onPick({ kind: 'event', origin: b.origin })}>
                 <span className="att-entry-emoji" aria-hidden="true">{b.emoji}</span>
                 <span className="att-entry-title">{t(b.titleKey)}</span>
-                <span className="att-entry-text">{t(b.textKey)}</span>
               </button>
             ))}
           </div>
@@ -451,137 +414,76 @@ export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryP
 
 const ENTRY_CSS = `
 /* ⚠️ SPODOK OKNA PATRÍ COOKIE LIŠTE, KÝM ČLOVEK NEKLIKOL (--consent-h, 2026-09-17).
-   Lišta je fixed a na mobile má 197 px, takže bez rezervy leží panel POD ŇOU a jeho spodné
-   dlaždice sa nedajú ani prečítať, ani kliknúť. Týka sa to KAŽDÉHO nového člena pri prvej
-   návšteve. Premennú publikuje ConsentBanner a po voľbe je 0px — po lište neostane diera.
-   Rezerva patrí PODKLADU, nie panelu: panel je v podklade centrovaný, takže zmenšenie jeho
-   výšky by ho len symetricky zúžilo a spodok by ostal pod lištou. Ten istý vzor rieši nav
-   v PackLayout.tsx, rad nad mapou aj denník (KROK 5).
+   Lišta je fixed a na mobile má 197 px. Rezerva patrí PODKLADU, nie panelu: panel je
+   v podklade zarovnaný a zmenšenie jeho výšky by spodok pod lištou nechalo.
    🔴 Z-INDEX 1300, NIE 200 (21. 9. 2026). Na mape má pilulka ZOZNAM z-index 900 a peek
-   bublina 1200 — pri 200 sa obe vykreslili CEZ otvorený panel a pilulka sedela presne
-   uprostred dlaždice PODUJATIE. Odkedy sa panel otvára aj z lišty (teda nad ktoroukoľvek
-   obrazovkou), nestačí to zariadiť skrytím radu: modál musí byť nad chrome stránky, nie
-   pod ním. Formulár kreslenia (.trp-addhost 950) je pod ním zámerne — otvára sa AŽ PO
-   voľbe v paneli, takže sa nikdy nestretnú. */
+   bublina 1200 — pri 200 sa kreslili CEZ otvorený panel. Formulár kreslenia
+   (.trp-addhost 950) je pod ním zámerne: otvára sa AŽ PO voľbe, takže sa nestretnú. */
 .att-entry-backdrop{position:fixed;inset:0;z-index:1300;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;padding-bottom:calc(20px + var(--consent-h, 0px));}
-/* ⚠️ HORNÁ VÝPLŇ JE REZERVA POD NÁVRAT, NIE OZDOBA (2026-09-13). .att-entry-nav je
-   absolútne umiestnený, takže si výšku sám nerezervuje — pri 32 px zhora ho dlaždice
-   prekryli (Matej zo screenshotu: „cta prekrývajú zadnú šípku"). Číslo je súčtom:
-   16 odsadenie + BACK.dia 36 + 14 medzera. Kto zmení top alebo priemer v BackButton.tsx,
-   mení aj toto — inak sa prekrytie vráti.
-   Historická poznámka: do 13. 9. tu bola rezerva 52 px pod TEXTOVÝ odkaz „‹ Späť na výber",
-   ktorý zanikol spolu s druhým jazykom návratu. */
-/* ⚠️ MAX-HEIGHT + SCROLL PRIBUDLI S PANELOM Z LIŠTY (21. 9. 2026). Na DOMOVE je v paneli
-   CELÝ repertoár — desať dlaždíc, na telefóne pod sebou. Bez stropu vyrástol panel nad
-   okno a spodné dlaždice sa nedali doscrollovať vôbec (backdrop je flex s centrovaním,
-   takže pretekal na OBE strany naraz).
-   100% je výška backdropu mínus jeho výplň, teda presne to miesto, ktoré panel má.
-   ⚠️ Návrat .att-entry-nav je absolútny voči panelu, takže pri scrolle odíde hore.
-   Je to prijateľné: východ z prvej úrovne je aj klik vedľa a Escape. */
-.att-entry-panel{position:relative;width:100%;max-width:640px;max-height:calc(100% - 48px);overflow-y:auto;padding:66px 32px 32px;}
-/* ── PANEL KŔMENÝ REGISTROM (21. 9. 2026) ────────────────────────────────────────────
-   Veta hore + skupiny. Skupina má hlavičku LEN na DOMOVE. */
-.att-entry-st{margin:0 0 16px;text-align:center;font-family:${FONT_TITLE};font-weight:700;font-size:16px;letter-spacing:.14em;text-transform:uppercase;color:${T.onDark};}
-.att-entry-grp + .att-entry-grp{margin-top:24px;}
-/* Štítok skupiny = tichý eyebrow z matrice (PACK_HEAD.eyebrow: Space Grotesk 500/10/.22em).
-   Nie je to nadpis karty — je to orientácia „toto je výrez miesta VON". */
-.att-entry-grplbl{display:block;margin-bottom:8px;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};}
-/* Kresba z kitu na mieste emoji — MASKA, nie filter (filter farbu aproximuje). Rozmer drží
-   ten istý riadok ako emoji, aby dlaždice vedľa seba mali nadpis v jednej výške. */
-/* ── DOMOV JE ZOZNAM, MIESTO JE DLAŽDICOVÝ PANEL (21. 9. 2026) ───────────────────────
-   Na DOMOVE nesie panel CELÝ repertoár — desať položiek naprieč štyrmi miestami. V dnešnom
-   tvare (dlaždica so štvordesiatkovým glyfom a dvojriadkovým popisom, na telefóne pod sebou)
-   to je pás vyše 1 400 px: človek scrolluje, aby našiel jednu z piatich vecí, ktoré vie
-   naozaj urobiť. Nákres nakreslil DOMOV ako ZOZNAM RIADKOV presne preto.
-   ⚠️ NIE JE TO DRUHÝ PANEL. Je to TÁ ISTÁ dlaždica (.att-entry-block: ten istý rám, polomer,
-      hover aj pilulka bodov), len otočená na šírku. Panel MIESTA (VON · JA · AINUBIS) ostáva
-      presne taký, aký ho Matej pozná — tam sú položky 2–4 a dlaždice sa oplatia.
-   ⚠️ Zväčšenie PRVEJ dlaždice sa tu ruší celé (0-4-0 selektory nižšie), inak by prvý riadok
-      každej skupiny dostal 48px glyf a rad by sa rozpadol. */
-.att-entry-body{display:contents;}
-.att-entry-rows .att-entry-blocks{gap:8px;}
-.att-entry-rows .att-entry-blocks-kind .att-entry-block,
-.att-entry-rows .att-entry-blocks-kind .att-entry-block:first-child{flex:1 1 100%;flex-direction:row;align-items:center;justify-content:flex-start;text-align:left;gap:16px;padding:12px 16px;}
-.att-entry-rows .att-entry-body{display:flex;flex-direction:column;min-width:0;}
-.att-entry-rows .att-entry-blocks-kind .att-entry-block .att-entry-emoji,
-.att-entry-rows .att-entry-blocks-kind .att-entry-block:first-child .att-entry-emoji{font-size:24px;height:32px;width:32px;flex:0 0 auto;margin-bottom:0;}
-.att-entry-rows .att-entry-blocks-kind .att-entry-block .att-entry-ic,
-.att-entry-rows .att-entry-blocks-kind .att-entry-block:first-child .att-entry-ic{width:32px;}
-.att-entry-rows .att-entry-blocks-kind .att-entry-block .att-entry-title,
-.att-entry-rows .att-entry-blocks-kind .att-entry-block:first-child .att-entry-title{font-size:12px;margin-bottom:4px;}
-.att-entry-rows .att-entry-blocks-kind .att-entry-block .att-entry-text,
-.att-entry-rows .att-entry-blocks-kind .att-entry-block:first-child .att-entry-text{display:block;min-height:0;max-width:none;font-size:12px;}
-/* Pilulka bodov a štítok termínu sú v rohu dlaždice — v riadku by narazili do popisu,
-   tak si ho ukrojí text sám odsadením sprava, nie posunom pilulky. */
-.att-entry-rows .att-entry-body{padding-right:48px;}
-.att-entry-ic{width:38px;background:${T.onDark};-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;}
-.att-entry-blocks-kind .att-entry-block:first-child .att-entry-ic{width:48px;}
-/* ── NÁVRAT: TVAR Z JEDNÉHO ZDROJA, POLOHA TU ────────────────────────────────────────
+.att-entry-panel{position:relative;width:100%;max-width:520px;max-height:calc(100% - 48px);overflow-y:auto;padding:48px 16px 16px;transition:transform .18s ease;}
+
+/* ── ÚCHYT ŠUPLÍKA ───────────────────────────────────────────────────────────────────
+   Na PC je panel v strede okna a úchyt nemá čo robiť — objaví sa až v mobilnej vetve. */
+.att-entry-grab{display:none;}
+
+/* ── VETA HORE A SKUPINY ─────────────────────────────────────────────────────────────
+   Jeden krátky riadok, čo sa tu pridáva. Štítok skupiny je LEN na DOMOVE (inde je
+   skupina jediná a nadpis nad ňou nehovorí nič). */
+.att-entry-st{margin:0 0 12px;text-align:center;font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:${T.onDark};}
+.att-entry-grp + .att-entry-grp{margin-top:12px;}
+.att-entry-grplbl{display:block;margin-bottom:4px;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};}
+
+/* ── RIADOK PONUKY: EMOJI + NÁZOV, NIČ VIAC (Matej 21. 9. 2026) ──────────────────────
+   „priamy, krátky, stručný, bez scrollu… emoji a vedľa text, žiadne vysvetlovačky."
+   Do 21. 9. to bola dlaždica so 48px glyfom, podnadpisom a bežiacim radom chipov —
+   desať takých na DOMOVE bol pás cez 1 400 px. */
+/* ⚠️ VÝŠKA RIADKU JE ROZPOČET, NIE VKUS. Na DOMOVE je v paneli DESAŤ položiek a tri
+   hlavičky skupín, a Matej si vypýtal, nech sa to vojde BEZ SCROLLU. Pri 12px výplni
+   a 8px medzere to na telefóne 390×800 pretieklo o zhruba stodvadsať pixelov; pri 8/4
+   sa vojde. Kto sem pridá pixel, vyhodí poslednú položku pod hranu okna. */
+.att-entry-list{display:flex;flex-direction:column;gap:4px;}
+.att-entry-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};border-radius:${PLATE_TILE_R}px;padding:8px 12px;cursor:pointer;transition:border-color .15s ease,background .15s ease;}
+.att-entry-row:hover,.att-entry-row:focus-visible{border-color:${GOLD};background:rgba(201,154,63,0.08);outline:none;}
+.att-entry-row--soon{opacity:.45;cursor:default;}
+.att-entry-row--soon:hover,.att-entry-row--soon:focus-visible{border-color:${T.onDarkBorder};background:rgba(245,240,228,0.04);}
+/* Emoji má vlastný font-family, inak naň sadne zdedený Cinzel a na Windows sa z 🅿️ stane
+   obdĺžnik. Pevná šírka drží názvy pod sebou v jednej zvislej osi. */
+.att-entry-emoji{flex:0 0 auto;width:28px;font-family:${FONT_EMOJI};font-size:22px;line-height:1;text-align:center;}
+.att-entry-title{flex:1 1 auto;min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.onDark};}
+/* Cena za kus a ohlásený termín — obe vpravo, obe krátke, riadok nepredlžujú. */
+.att-entry-pts{flex:0 0 auto;padding:3px 8px;border-radius:999px;background:rgba(201,154,63,0.16);border:1px solid rgba(201,154,63,0.55);font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:${GOLD};}
+.att-entry-soon{flex:0 0 auto;padding:3px 8px;border-radius:999px;border:1px solid ${T.onDarkBorder};font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:${T.onDarkDim};}
+
+/* ── NÁVRAT V TOKU ───────────────────────────────────────────────────────────────────
    backCircleCSS nesie priemer, lem aj farby (BackButton.tsx, LOCKED 2026-09-01);
-   position doň zámerne NEPATRÍ — tú drží volajúci. Stred hore je zhoda so susednou
-   obrazovkou toku (výber aktivity ho tam má od 23. 8., Matej 28. 8.: „pri add daj tú
-   šípku dozadu do stredu tak ako bude aj pri aktivitách").
-   Tón dark je základ pre pk-glass panel; .trp-root ho v mape prebíja na pale
-   (MAP_SKIN), lebo tam popup stojí na papyrusovej doske. */
-.att-entry-nav{position:absolute;top:16px;left:50%;transform:translateX(-50%);${backCircleCSS('dark')}}
+   position doň zámerne NEPATRÍ — tú drží volajúci.
+   ⚠️ Na PRVEJ úrovni je skrytý: von sa ide klikom vedľa alebo Escape (lock 26. 8.:
+   „odstráň krížik… stačí len klik vedľa"). Na druhej úrovni je vždy, lebo klik vedľa by
+   z nej neviedol o krok späť, ale zahodil celý popup. */
+.att-entry-nav{position:absolute;top:12px;left:50%;transform:translateX(-50%);${backCircleCSS('dark')}}
 .att-entry-nav:hover{${backHoverCSS('dark')}}
-/* Východ z PRVEJ úrovne je viditeľný len v celoobrazovkovej podobe — plávajúci blok sa
-   zatvára klikom vedľa (lock 26. 8.). Zobrazuje ho mobilná vetva v PALE_ADD_CSS (PackMap.tsx).
-   Návrat z druhej úrovne je bez modifikátora, teda viditeľný vždy. */
 .att-entry-nav--close{display:none;}
-.att-entry-blocks{display:flex;gap:18px;align-items:stretch;}
-.att-entry-lead{margin:0 0 14px;font-family:${FONT_UI};font-size:12.5px;line-height:1.5;color:${T.onDarkDim};}
-.att-entry-blocks-kind{flex-wrap:wrap;}
-/* ── DVA RIADKY: VÝLET HORE CEZ CELÚ ŠÍRKU, EVENT + ODKAZ POD NÍM (Matej 2026-08-26) ──────
-   „popup ADD urobme dvojriadkový — v prvom riadku bude veľký trip a dolu pod ním na jeho
-    šírku dva bloky event a odkaz."
-   ⚠️ MENÍ TO PRAVIDLO Z 20. 8. („základ MUSÍ byť tretina, nie polovica"). To pravidlo
-   riešilo tri ROVNOCENNÉ dlaždice, kde sa tretia zalomila a flex-grow ju roztiahol na celú
-   šírku — vtedy to bola chyba. Tu je zalomenie ZÁMER a hierarchia je zámer tiež: výlet je
-   dôvod, prečo sa tlačidlo otvára, event a odkaz sú vedľajšie.
-   Zalomenie drží prvá dlaždica na 100 % základni; zvyšné dve si delia riadok na polovice. */
-.att-entry-blocks-kind .att-entry-block{flex:1 1 calc(50% - 9px);min-width:150px;}
-.att-entry-blocks-kind .att-entry-block:first-child{flex:1 1 100%;}
-.att-entry-blocks-kind .att-entry-text{max-width:none;}
-/* Veľká dlaždica má aj väčší glyf — inak je z nej len široký pás s rovnakým obsahom.
-   Popis je v nej na jeden riadok, tak sa ruší aj rezerva na dvojriadkový text (min-height
-   drží rovnaké dno len tým dlaždiciam, ktoré stoja VEDĽA SEBA). */
-.att-entry-blocks-kind .att-entry-block:first-child .att-entry-emoji{font-size:48px;height:54px;}
-.att-entry-blocks-kind .att-entry-block:first-child .att-entry-title{font-size:19px;letter-spacing:.06em;margin-bottom:12px;}
-.att-entry-blocks-kind .att-entry-block:first-child .att-entry-text{min-height:0;font-size:14.5px;max-width:none;}
-.att-entry-block{position:relative;flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(245,240,228,0.04);border:1.5px solid ${T.onDarkBorder};border-radius:${PLATE_TILE_R}px;padding:24px 20px;cursor:pointer;transition:border-color .15s ease,background .15s ease,transform .15s ease;}
-.att-entry-block:hover,.att-entry-block:focus-visible{border-color:${GOLD};background:rgba(201,154,63,0.08);transform:translateY(-2px);outline:none;}
-/* Body za zápis — malá pilulka v rohu dlaždice, nie súčasť nadpisu. Je to odmena, nie názov. */
-.att-entry-pts{position:absolute;top:10px;right:10px;padding:3px 8px;border-radius:999px;background:rgba(201,154,63,0.16);border:1px solid rgba(201,154,63,0.55);font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:${GOLD};}
-.att-entry-block-disabled{opacity:.42;cursor:default;}
-.att-entry-block-disabled:hover,.att-entry-block-disabled:focus-visible{border-color:${T.onDarkBorder};background:rgba(245,240,228,0.04);transform:none;}
-.att-entry-soon{position:absolute;top:10px;right:10px;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:${T.onDarkDim};border:1px solid ${T.onDarkBorder};border-radius:999px;padding:3px 8px;}
-/* Pevná výška riadku s emoji: jednotlivé emoji majú rôzne metriky (📍 kreslí
-   menší glyf než 🥾) a bez nej by nadpisy susedných dlaždíc sedeli inde. */
-.att-entry-emoji{font-size:38px;line-height:1;height:44px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
-.att-entry-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.onDark};margin-bottom:10px;}
-.att-entry-text{font-family:${FONT_UI};font-weight:400;font-size:12.5px;line-height:1.45;color:${T.onDarkDim};max-width:210px;min-height:2.9em;display:flex;align-items:center;justify-content:center;}
-/* Chipy „čo sem patrí" — popis, nie ovládací prvok, tak sú tichšie než dlaždica: bez
-   zlatého rámu (ten drží hover celej dlaždice) a s krytím pod nadpisom. Emoji má vlastný
-   font-family, inak by naň sadol zdedený Cinzel a na Windows sa z 🅿️ stane obdĺžnik. */
-.att-entry-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px;}
-/* Obal slučky a jej kópie — mimo mobilnej mapy sa vôbec nepodieľajú na layoute: obal aj prvá
-   sada sú display:contents (chipy tak ostávajú priamymi položkami zalamovaného radu vyššie)
-   a dve kópie sú preč. Viď komentár pri ich renderi. */
-.att-entry-chiploop,.att-entry-chipset{display:contents;}
-.att-entry-chipset-copy{display:none;}
-.att-entry-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};font-family:${FONT_UI};font-weight:500;font-size:10.5px;letter-spacing:.02em;line-height:1.5;color:${T.onDarkDim};white-space:nowrap;}
-.att-entry-chip-emoji{font-family:${FONT_EMOJI};font-size:12px;line-height:1;}
-.att-entry-block:hover .att-entry-chip,.att-entry-block:focus-visible .att-entry-chip{border-color:${T.border};color:${T.onDark};}
-/* Veľká dlaždica má štyri chipy do jedného radu — smie byť voľnejšia (Matej 2026-08-27:
-   „pri tripe daj chipy väčšie aj nadpis a podnadpis… celkovo je to také prázdne veľké
-   tlačítko"). Šírku má na celý popup, takže rástol obsah, nie dlaždica. */
-.att-entry-blocks-kind .att-entry-block:first-child .att-entry-chips{gap:10px;margin-top:18px;}
-.att-entry-blocks-kind .att-entry-block:first-child .att-entry-chip{font-size:13px;padding:6px 15px;gap:7px;}
-.att-entry-blocks-kind .att-entry-block:first-child .att-entry-chip-emoji{font-size:16px;}
+
+.att-entry-note{padding-top:4px;}
+.att-entry-lead{margin:0 0 12px;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:${T.onDarkDim};}
+
+/* ── MOBIL = ŠUPLÍK ZDOLA (Matej 21. 9. 2026) ────────────────────────────────────────
+   „na mobiloch by to mohlo byť drop down ktorý by mal hore možnosť ho stiahnuť dolu."
+   Panel sa lepí na spodnú hranu, má zaoblený len horný okraj a nad zoznamom stojí úchyt.
+   ⚠️ Výška je STROP, nie pevná hodnota — šuplík má byť taký vysoký, aký je zoznam. 100 %
+      je výška PODKLADU, teda okno mínus cookie lišta; 32 px je pásik, za ktorý sa dá šuplík
+      zavrieť klikom. Percento z dvh by tú lištu nevidelo.
+   ⚠️ NA NAJMENŠOM TELEFÓNE (375×667) je DOMOV o 30 px vyšší než okno — s týmto stropom
+      dosadne na 635 px a vojde sa. Pri 88dvh scrolloval.
+   ⚠️ env(safe-area-inset-bottom) v spodnej výplni: bez neho posledný riadok leží pod
+      gestovou lištou iPhonu. */
 @media (max-width:640px){
-  .att-entry-blocks{flex-direction:column;}
-  .att-entry-blocks-kind .att-entry-block{flex:1 1 auto;}
-  .att-entry-block{padding:26px 18px;}
+  .att-entry-backdrop{align-items:flex-end;padding:0;padding-bottom:var(--consent-h, 0px);}
+  .att-entry-panel{max-width:none;max-height:calc(100% - 32px);border-radius:16px 16px 0 0;padding:4px 12px calc(16px + env(safe-area-inset-bottom, 0px));}
+  .att-entry-grab{display:block;width:100%;padding:8px 0 8px;background:none;border:0;cursor:grab;touch-action:none;}
+  .att-entry-grab::before{content:'';display:block;width:44px;height:4px;margin:0 auto;border-radius:999px;background:${T.onDarkBorder};}
+  .att-entry-grab:active{cursor:grabbing;}
+  /* Návrat sa v šuplíku nevznáša nad obsahom — stojí v riadku pod úchytom. */
+  .att-entry-nav{position:static;transform:none;margin:0 0 8px;}
 }
 `;

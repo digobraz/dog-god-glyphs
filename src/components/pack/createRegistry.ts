@@ -91,22 +91,21 @@ export type CreateHandler =
 export type CreateBack = 'origin';
 
 // ── IKONKA ─────────────────────────────────────────────────────────────────────────────────
-// 🔴 V REGISTRI NIE SÚ EMOJI A NESMÚ SEM PRIBUDNÚŤ. Brandová výnimka pre emoji platí MAPE
-//    (`markEmoji.ts`), nie tomuto povrchu — `npm run check:ikony` to meria a emoji literál
-//    v tomto súbore zhodí build. Nie je to formalita: emoji prepísané z nákresu by boli
-//    DRUHÁ kópia ikonografie, ktorú už vlastní `AddTripEntry` (a tá si ju ťahá zo zdrojov
-//    pravdy — `tripCategories.ts`, `markEmoji.ts`, `mapNotesData.ts`).
+// 🔴 PANEL HOVORÍ EMOJI — A JE TO MATEJOVO SLOVO, NIE ÚĽAVA (21. 9. 2026 večer:
+//    *„namiesto emoji sú brand ikonky… emoji a vedľa text"*). Prebíja to môj vlastný zápis
+//    z toho istého dňa, ktorý tu tvrdil opak („v registri nie sú emoji a nesmú sem pribudnúť“,
+//    odôvodnené tým, že brandová výnimka platí mape). Dôvod pre zmenu je jeho starší,
+//    zapísaný postoj: *„brand používame na systémové veci"* — panel `+` je ponuka obsahu,
+//    nie chrome. Stráž to znesie bez zmeny základne, lebo `components/pack/addtrip/` UŽ JE
+//    v schválených emoji povrchoch (`scripts/ikony-sken.mjs`, `MAPOVE`).
+//
+// ⚠️ EMOJI SÚ V PANELI, NIE TU. Tento súbor leží v `components/pack/`, ktorý v tom zozname
+//    NIE JE — emoji literál by v ňom stráž `check:ikony` zarátala ako nový nález. Druhý
+//    dôvod je vecný a starší: ikonku už kreslí panel a dve miesta na jednu ikonku sa raz
+//    rozídu. Mapa `id → emoji` žije v `AddTripEntry.tsx`.
 export type CreateIcon =
-  // Kresba z hand-drawn setu, `public/icons/pack/*.svg`. Vykresľuj ju MASKOU, nie filtrom
-  // (filter farbu aproximuje) — vzor je dlaždica chatu v `PackAinubis.tsx:214`.
-  | { kind: 'kit'; src: string }
-  // Ikonku už kreslí panel a register ju NEOPISUJE. Platí pre štyri objekty, ktoré
-  // `AddTripEntry` vykresľuje dnes; opísať ich sem by znamenalo dve miesta, kde sa mení
-  // jedna ikonka, a jedno z nich by sa raz zabudlo.
-  | { kind: 'panel' }
-  // Kresba neexistuje a nedá sa nahradiť ničím z kitu. Podľa brand locku je to dôvod
-  // vypýtať si ju od Mateja — nie dôvod siahnuť po lucide alebo emoji.
-  | { kind: 'chyba' };
+  // Ikonku kreslí PANEL a register ju NEOPISUJE — jediná hodnota, aká tu je.
+  | { kind: 'panel' };
 
 // ── OBJEKT ──────────────────────────────────────────────────────────────────────────────────
 export type CreateId =
@@ -214,13 +213,9 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     labelFallback: 'SERVICE',
     hintKey: 'pack.addTrip.entry.kind.service.text',
     hintFallback: 'Someone who helps you and your dog',
-    // 🚩 KRESBA JE NÁVRH. `{ kind: 'panel' }` tu stálo do 21. 9. 2026 a bola to chyba: panel
-    //    kreslí ikonku len tým trom objektom, ktoré má v `KINDS` (výlet, podujatie, odkaz) —
-    //    `service` medzi nimi nie je (vypadol 6. 8. 2026), takže by mu ostal PRÁZDNY slot.
-    //    `house-heart.svg` je z kitu a je najbližšie k „miesto, kde vám so psom pomôžu";
-    //    emoji 🏠 z nákresu sem NEPATRÍ (výnimka pre emoji platí mape, `check:ikony` to meria).
-    //    Podľa locku §1.1 sa ikonka Matejovi ukazuje nákresom — dovtedy drží miesto.
-    icon: { kind: 'kit', src: '/icons/pack/house-heart.svg' },
+    // ⚠️ Emoji vyberá panel. Nákres kreslil 🏠, ale to je v appke obsadené štyrikrát
+    //    (kalendár „deň bez seba", mapová značka, profil) — panel preto nesie 🛎️.
+    icon: { kind: 'panel' },
     place: 'VON',
     needs: 'bod',
     target: { kind: 'handler', id: 'addEntry.service' },
@@ -242,7 +237,7 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     id: 'article',
     labelKey: 'pack.create.article.title',
     labelFallback: 'Trail article',
-    icon: { kind: 'kit', src: '/icons/pack/document.svg' },
+    icon: { kind: 'panel' },
     place: 'VON',
     needs: 'trasa',
     target: { kind: 'handler', id: 'trip.article' },
@@ -264,7 +259,7 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     labelFallback: 'Diary entry',
     hintKey: 'pack.create.diary.hint',
     hintFallback: 'note · weight · health · milestone',
-    icon: { kind: 'kit', src: '/icons/pack/pencil.svg' },
+    icon: { kind: 'panel' },
     place: 'JA',
     needs: 'pes',
     target: { kind: 'handler', id: 'diary.write' },
@@ -289,7 +284,7 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     id: 'photo',
     labelKey: 'pack.create.photo.title',
     labelFallback: 'Photo',
-    icon: { kind: 'kit', src: '/icons/pack/frame.svg' },
+    icon: { kind: 'panel' },
     place: 'JA',
     needs: 'pes',
     target: { kind: 'handler', id: 'diary.photo' },
@@ -323,7 +318,7 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     labelFallback: 'Post',
     hintKey: 'pack.create.post.hint',
     hintFallback: 'photo + text + tags',
-    icon: { kind: 'chyba' },
+    icon: { kind: 'panel' },
     place: 'DOMOV',
     needs: 'nic',
     target: { kind: 'handler', id: 'feed.post' },
@@ -334,9 +329,8 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     panel: true,
     // ⚠️ PRÍSPEVOK NEMÁ TYP, MÁ ŠTÍTKY (lock: zbierka, inzerát, rada…). Nový feed = nový
     //    štítok, nie nová tabuľka a nie nový riadok v tomto registri.
-    // ⚠️ IKONKA CHÝBA: v kite nie je nič, čo by znamenalo „príspevok do feedu" (`people`
-    //    je svorka, `chat` je rozhovor, `document` je článok). Podľa brand locku je to
-    //    dôvod vypýtať si kresbu od Mateja — patrí do zoznamu §6 zadania k ikonke `+`.
+    // ⚠️ 📝 je Matejov výber z registra značiek (21. 9.) a vie o druhej zrážke — to isté
+    //    emoji nesie čip „poznámka" v denníku. PRÍSPEVOK je 12/2026, takže nehorí.
     note: 'Čaká na feed — dovtedy je to jediný objekt DOMOVA, takže panel na DOMOVE stojí na skupinách ostatných miest.',
   },
 
@@ -345,7 +339,7 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     id: 'chat',
     labelKey: 'pack.create.chat.title',
     labelFallback: 'New conversation',
-    icon: { kind: 'kit', src: '/icons/pack/chat.svg' },
+    icon: { kind: 'panel' },
     place: 'AINUBIS',
     needs: 'nic',
     target: { kind: 'handler', id: 'ainubis.chat' },
@@ -363,7 +357,7 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     labelFallback: 'Add to the brain',
     hintKey: 'pack.create.brain.hint',
     hintFallback: 'finding · link · book · video',
-    icon: { kind: 'kit', src: '/icons/pack/idea.svg' },
+    icon: { kind: 'panel' },
     place: 'AINUBIS',
     needs: 'nic',
     target: { kind: 'handler', id: 'ainubis.brain' },
@@ -380,7 +374,7 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     id: 'board',
     labelKey: 'pack.create.board.title',
     labelFallback: 'Ask the pack',
-    icon: { kind: 'kit', src: '/icons/pack/clipboard.svg' },
+    icon: { kind: 'panel' },
     place: 'AINUBIS',
     needs: 'nic',
     target: { kind: 'handler', id: 'ainubis.board' },
@@ -400,7 +394,7 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     id: 'dm',
     labelKey: 'pack.create.dm.title',
     labelFallback: 'Message',
-    icon: { kind: 'kit', src: '/icons/pack/envelope.svg' },
+    icon: { kind: 'panel' },
     place: 'GLOBAL',
     needs: 'clovek',
     target: { kind: 'handler', id: 'messaging.dm' },
@@ -414,7 +408,7 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     id: 'group',
     labelKey: 'pack.create.group.title',
     labelFallback: 'Group chat',
-    icon: { kind: 'kit', src: '/icons/pack/people.svg' },
+    icon: { kind: 'panel' },
     place: 'GLOBAL',
     needs: 'ludia',
     target: { kind: 'handler', id: 'messaging.group' },
