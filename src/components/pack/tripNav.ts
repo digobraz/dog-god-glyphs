@@ -88,7 +88,7 @@ export function navUrl(app: NavApp, t: NavTarget): string {
  * ina tam a ina naspat"). Cena: pri každom bode dva špendlíky na tom istom mieste.
  * Okruh (koniec pri štarte) sa nechá, ako je.
  */
-const RC_ABC = '0ABCD2EFGH4IJKLMN6OPQRSTU8VWXYZ-1abcd3efgh5ijklmn7opqrst9uvwxyz.';
+const RC_ABC = '0ABCD2EFGH4IJKLMN6OPQRST8UVWXYZ-1abcd3efgh5ijklmn7opqrst9uvwxyz.';
 const MAPY_POINTS = 8;
 
 function rcNum(delta: number, orig: number): string {
@@ -154,11 +154,13 @@ export function mapyRouteUrl(trail: Pick<HeroTrail, 'path' | 'km'>): string | nu
 /**
  * ⚠️ ODKAZ SA PONÚKA LEN VÝLETU, KTORÉMU MAPY.COM NAKRESLIA NAŠU TRASU.
  *
- * Plánovač vedie trasu len po chodníkoch, ktoré pozná. Kde naša stopa ide terénom mimo nich
- * (Sokolie v Malej Fatre, Sivý vrch, Tatry), obchádza body po cestách: namerané 21. 9. 2026
- * 7,3 km → 14,9 km, 23,1 → 34,9 km. Človeka so psom by tak poslal na dvojnásobnú trasu.
- * Viac bodov to nezlepší, skôr naopak (12 bodov = 54 zo 63 výletov v norme, 8 bodov = 56).
- * Takým výletom ostáva GPX, ktorý nesie presne našu stopu.
+ * Plánovač vedie trasu len po chodníkoch, ktoré pozná; kde sa jeho sieť rozíde s našou
+ * stopou, obchádza body inou cestou (Tlstá: štart → bod 2 = 6,7 km) alebo skracuje zákruty
+ * okruhu (Čachtice 0,79×). Takým výletom ostáva GPX, ktorý nesie presne našu stopu.
+ * ⚠️ 21. 9. večer tu stálo 6 horských výletov „mimo chodníkov" — omyl: v abecede boli
+ *    prehodené znaky 24/25 (`8`/`U`), šírky okolo 49,2° sa posunuli o 2^18 = 0,1758° na
+ *    sever (Bielovodská štartovala pri Nowom Targu). Po oprave prešli všetky päť. Znaky
+ *    abecedy sú od opravy overené proti Mapy.com každý jeden, nie odvodené zo vzoru.
  *
  * Zoznam NIE JE ručný: zapisuje ho `node scripts/mapy-trasy-over.mjs`, ktorý otvorí každý
  * výlet v Mapy.com a porovná ich km s našimi. Nový výlet, ktorý ešte nikto nezmeral, odkaz
