@@ -41,7 +41,7 @@ import { ToastAction } from '@/components/ui/toast';
 import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
 import {
   ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail, hasRouteMetrics, pluralKey,
-  readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, RENAMED_TRIP_IDS, tripPath,
+  readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, hasLiveDog, RENAMED_TRIP_IDS, tripPath,
   tripShareText, tripText, TRAIL_SABER_LAYERS, TRAIL_LINE, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing } from '@/components/pack/tripShared';
 import { TripGoPanel, TripGoButtons, type TripGoMode } from '@/components/pack/trip/TripGoPanel';
 import {
@@ -1095,6 +1095,11 @@ export default function PackTripArticle() {
     if (!dogRights.canAny('trips.log')) {
       const line = t('pack.gate.owner');
       toast({ title: line === 'pack.gate.owner' ? 'Only the owner can change this.' : line });
+      return;
+    }
+    // 🐕 Bez živého psa sa výlet nezapíše — dôvod pri toggleWalked v PackMap.tsx.
+    if (!walkedIds.has(tid) && !id.loading && id.session && !hasLiveDog(id.dogs)) {
+      toast({ title: t('pack.addTrip.step.needDogTitle'), description: t('pack.addTrip.step.needDog') });
       return;
     }
     if (walkedIds.has(tid)) {

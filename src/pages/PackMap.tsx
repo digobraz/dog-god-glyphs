@@ -89,7 +89,7 @@ import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import {
   ICON, authorOf, REGION_OF, diffMarkShape, DiffMark, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
   DIFF_COLOR, TRAIL_LINE, TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, hasRouteMetrics, tripShareText, pluralKey,
-  readLocalTrails, writeLocalTrails, updateLocalTrail, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
+  readLocalTrails, writeLocalTrails, updateLocalTrail, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, hasLiveDog,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
   tripPath, tripPathById, tripText, visibleLocalTrails, tripDraftMissing, memberTrailIds, isOdyssey } from '@/components/pack/tripShared';
 import {
@@ -4504,6 +4504,15 @@ export default function PackMap() {
     if (!dogRights.canAny('trips.log')) {
       const line = t('pack.gate.owner');
       toast({ title: line === 'pack.gate.owner' ? 'Only the owner can change this.' : line });
+      return;
+    }
+    // 🐕 BEZ ŽIVÉHO PSA SA VÝLET NEZAPÍŠE (t-bezpsa, 21. 9. 2026) — to isté pravidlo ako
+    // sprievodca zápisu, rovnaká bublina. DB to stráži aj sama (`trip_walked_need_dog`,
+    // chyba NEED_DOG), ale fronta zápisov odmietnutý riadok TICHO ZAHODÍ: bez tejto
+    // kontroly by ✓ zasvietilo a pri ďalšej hydratácii zhaslo bez slova.
+    // Počas načítania (`loading`) sa nepýta — prázdny zoznam vtedy neznamená „nemá psa".
+    if (!walkedIds.has(tid) && !id.loading && id.session && !hasLiveDog(id.dogs)) {
+      toast({ title: t('pack.addTrip.step.needDogTitle'), description: t('pack.addTrip.step.needDog') });
       return;
     }
     if (walkedIds.has(tid)) {

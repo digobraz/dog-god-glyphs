@@ -725,6 +725,15 @@ export const writeFavIds = (s: Set<string>) => persistFav(s);
 export const readWalkedIds = () => readStringSet(WALKED_IDS_KEY);
 export const writeWalkedIds = (s: Set<string>) => persistWalked(s);
 
+/**
+ * Má účet aspoň jedného ŽIVÉHO psa? Pravidlo t-bezpsa (21. 9. 2026): výlet sa zapisuje
+ * človeku aj psovi, takže bez živého psa sa ✓ nepustí. Zrkadlí DB stráž
+ * `trip_walked_need_dog` (zaplatený pes, `life_status` ≠ deceased) — `dogs` z
+ * `usePackIdentity` sú už len zaplatené.
+ */
+export const hasLiveDog = (dogs: ReadonlyArray<{ life_status?: string | null }>): boolean =>
+  dogs.some((d) => (d.life_status ?? 'alive') !== 'deceased');
+
 // Founder walked logika (Matej 2026-07-24, LOCKED): „čo nahodím, to som aj prešiel".
 // Každá nahodená (čierna, non-journey) trasa = walked. Z červených journeys sú reálne prejdené
 // len tieto dve. 2026-08-03 (Matej, explicitne): s Hektorom prešli LEN SNP + Poloniny —
