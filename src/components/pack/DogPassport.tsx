@@ -381,10 +381,10 @@ function ShareRow({
   // ZÁVET UŽ NIE JE MŔTVE TLAČIDLO (13.8.2026). Ostatné tri ciele stále čakajú na share
   // sheet, ale závet má odteraz vlastný panel priamo na doklade — takže jediné tlačidlo
   // v tomto rade, ktoré niečo robí, je ono.
+  // VET · SITTER · FRIEND ZMIZLI (nákres launchu 21. 9. 2026, §2 „zmizne"): share sheet
+  // neexistuje a tri vypnuté tlačidlá vedľa jedného živého pôsobili ako rozbitý rad.
+  // Vrátia sa sem, keď bude odkaz s výberom polí; kľúče `pack.pass.share.*` ostávajú.
   const targets = [
-    { key: 'vet', labelEN: 'Vet', i18n: 'pack.pass.share.vet', emoji: '🩺' },
-    { key: 'sitter', labelEN: 'Sitter', i18n: 'pack.pass.share.sitter', emoji: '🏠' },
-    { key: 'story', labelEN: 'Friend', i18n: 'pack.pass.share.friend', emoji: '✨' },
     { key: 'will', labelEN: 'Will', i18n: 'pack.pass.share.will', emoji: '🕊' },
   ];
   return (
@@ -415,14 +415,9 @@ function ShareRow({
           );
         })}
       </div>
-      {position === 'top' && (
-        <p
-          className="text-center"
-          style={{ fontFamily: FONT_UI, fontSize: 11, color: T.inkFaint, margin: '9px 0 14px' }}
-        >
-          {tx('pack.pass.shareNote', 'Each recipient sees only what they need — you pick when you create the link.')}
-        </p>
-      )}
+      {/* Veta „každý príjemca vidí len to, čo potrebuje" odišla s Vet/Sitter/Friend —
+          hovorila o odkaze pre príjemcov, ktorý závet nie je. */}
+      {position === 'top' && <div style={{ height: 14 }} />}
     </div>
   );
 }

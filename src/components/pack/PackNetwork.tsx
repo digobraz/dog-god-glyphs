@@ -172,8 +172,10 @@ type SpendKey = 'grow' | 'help';
 const SPEND: { icon: string; id: string; name: string; sub: string; key?: SpendKey }[] = [
   { icon: 'world-grid', id: 'grow', name: 'Grow DOGYPT', sub: 'fund the movement', key: 'grow' },
   { icon: 'heartpaw', id: 'help', name: 'Help a dog', sub: 'shelters & rescue', key: 'help' },
-  { icon: 'badge', id: 'merch', name: 'Merch', sub: 'wear the mark' },
-  { icon: 'cycle', id: 'payments', name: 'Payments', sub: 'pay other Dogyptians' },
+  // MERCH a PAYMENTS ZMIZLI (nákres launchu 21. 9. 2026, §2 „zmizne") — boli trvalé
+  // `SOON` bez termínu. Ústava IX.3 ich menuje, takže sa sem vrátia; i18n kľúče ostávajú.
+  // Grow/Help sa na LIVE neukážu tiež: peňaženka sa otvára len pri `walletReady`
+  // (probe na `transfer_bones`, ktorá na LIVE 21. 9. neexistuje).
 ];
 
 // i18n kľúče pre potvrdzovaciu obrazovku (`SendStep`) — preklad sa vyhodnocuje

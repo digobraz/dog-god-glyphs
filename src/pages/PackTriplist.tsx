@@ -998,13 +998,9 @@ export default function PackTriplist() {
                   {k === 'all' ? t('pack.triplist.allRegions') : WCE_LABEL[k]}
                 </button>
               ))}
-              <span className="tl-filter-sep" />
-              <select className="tl-filter-sel" defaultValue="SK">
-                <option value="SK">{t('pack.triplist.slovakiaOption')}</option>
-                <option value="CZ" disabled>{t('pack.triplist.czechiaSoon')}</option>
-                <option value="PL" disabled>{t('pack.triplist.polandSoon')}</option>
-                <option value="AT" disabled>{t('pack.triplist.austriaSoon')}</option>
-              </select>
+              {/* Výber krajiny (SK + vypnuté CZ · PL · AT „Soon") ZMIZOL — nákres launchu
+                  21. 9. 2026, §2. Select s jedinou živou voľbou nič nefiltroval. Kľúče
+                  `pack.triplist.*Soon` ostávajú pre návrat, keď pribudnú výlety mimo SK. */}
             </div>
             {openCards.length === 0 ? (
               <div className="tl-emptybox">

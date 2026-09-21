@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
 // Brandové hand-drawn ikonky namiesto lucide (audit 12.8., nasadené 13.8.). `X` ostáva
 // lucide zámerne — systémový ovládač zavretia, brand glyf by tam pridal len šum.
-import { HandHouseHeart, HandKey, HandLink, HandPaw, HandPencil, HandPlus } from './HandIcons';
+import { HandKey, HandLink, HandPaw, HandPencil, HandPlus } from './HandIcons';
 import { INVITE_ANCHOR_ID } from './FounderInvite';
 import { BrandIcon } from './BrandIcon';
 import { GOLD_BLOCK_CSS, LAPIS, LAPIS_BTN_SHADOW } from './navGoldSkin';
@@ -1256,17 +1256,10 @@ function AddPopup({ onClose, onPawmate }: {
             </div>
           )}
 
-          {/* DVERE PAWTNER — partner s VLASTNÝM psom, dve svorky sa spoja. Zamknuté: F2,
-              teda vlna B. `HandHouseHeart` = dve domácnosti dokopy, nie tretia labka. */}
-          <div style={DOOR_LOCKED} aria-disabled="true">
-            <DoorFace
-              icon={<HandHouseHeart size={18} />}
-              label={t('pack.add.pawtner')}
-              sub={t('pack.add.pawtnerSub')}
-              locked
-              soon={soon}
-            />
-          </div>
+          {/* DVERE PAWTNER ZMIZLI (nákres launchu 21. 9. 2026, §2 „zmizne"). Spojenie dvoch
+              svoriek je F2, teda vlna B — zámok bez príbehu by v 1. vlne pôsobil ako
+              nedorobok. Vrátia sa sem s ikonkou `HandHouseHeart` (dve domácnosti dokopy);
+              kľúče `pack.add.pawtner` / `pawtnerSub` preto v slovníku OSTÁVAJÚ. */}
         </div>
       </div>
     </div>

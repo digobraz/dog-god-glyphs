@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { X, Send, Paperclip, Mic, Square, Move, LayoutDashboard } from 'lucide-react';
+import { X, Send, Paperclip, Mic, Square, Move } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLang } from '@/i18n/LanguageContext';
 import { getAinubisCopy } from './ainubisCopy';
@@ -418,11 +418,6 @@ function AinubisWidgetInner() {
   const [blinking, setBlinking] = useState(false);
   const [typewriter, setTypewriter] = useState<{ id: string; shown: number } | null>(null);
 
-  /** Bublina „Dashboard — čoskoro". Na myši ju drží hover, na dotyku klik na 2,2 s —
-   *  mobil hover nemá, takže bez kliku by ikonka mlčala. */
-  const [dashHint, setDashHint] = useState(false);
-  const dashHintTimer = useRef<number | null>(null);
-
   const [panelPos, setPanelPos] = useState<PanelPos | null>(readStoredPanelPos);
   /** Beží ťahanie — len na prekreslenie kríža a panelu. Samotný odstup kurzora
    *  žije v refe, aby každý `pointermove` nespúšťal render navyše. */
@@ -523,16 +518,6 @@ function AinubisWidgetInner() {
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
   };
-
-  const pokeDashHint = () => {
-    setDashHint(true);
-    if (dashHintTimer.current) window.clearTimeout(dashHintTimer.current);
-    dashHintTimer.current = window.setTimeout(() => setDashHint(false), 2200);
-  };
-
-  useEffect(() => () => {
-    if (dashHintTimer.current) window.clearTimeout(dashHintTimer.current);
-  }, []);
 
   const resetPanelPos = () => {
     setPanelPos(null);
@@ -1119,23 +1104,11 @@ function AinubisWidgetInner() {
               vylučoval (podtitul „DIGITÁLNY STRÁŽCA" siahal za polovicu hlavičky) a identitu
               dnes nesie intro karta hore a portrét pri každej bubline AINUBISA. */}
           <div className="ainubis-panel__header">
-            {/* Dashboard = SĽUB, nie funkcia. ⚠️ NIE `disabled` — zakázané tlačidlo v prehliadači
-                nevydá `click` ani `mouseenter`, takže by sa bublina nikdy neukázala. */}
-            <button
-              type="button"
-              className={`ainubis-panel__dash${dashHint ? ' ainubis-panel__dash--hint' : ''}`}
-              aria-disabled="true"
-              aria-label={copy.dashboardHint}
-              onMouseEnter={() => setDashHint(true)}
-              onMouseLeave={() => setDashHint(false)}
-              onClick={(e) => {
-                e.stopPropagation();
-                pokeDashHint();
-              }}
-            >
-              <LayoutDashboard size={20} aria-hidden />
-              {dashHint && <span className="ainubis-panel__dashtip">{copy.dashboardHint}</span>}
-            </button>
+            {/* TLAČIDLO „DASHBOARD" ZMIZLO (nákres launchu 21. 9. 2026, §2 „zmizne") — bol to
+                sľub bez termínu, klik ukázal len bublinu „čoskoro". Prázdny zarážač drží
+                ĽAVÉ miesto: hlavička je `space-between`, bez neho by krížik zatvorenia
+                skočil doľava. Kľúč `dashboardHint` v ainubisCopy.ts ostáva. */}
+            <span className="ainubis-panel__dash" aria-hidden style={{ visibility: 'hidden' }} />
 
             {/* Kríž = ÚCHYT, nie prepínač (Matej: „bude sa to dať hned posúvať od prvého
                 momentu"). Stlač a ťahaj — žiadny režim, ktorý treba najprv zapnúť. Práve

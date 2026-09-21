@@ -19,7 +19,9 @@
 //
 // ⚠️ PANEL HLÁSENÍ NIE JE PAPYRUSOVÝ — je AINUBISOV (tmavá modrá, cyan, zlato-oranžové
 //    CTA). Bezpečnosť má na starosti on, nie appka. Tokeny v `ainubisSkin.ts`.
+import { trackPack } from '@/lib/packAnalytics';
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, STAGE_CSS } from '@/components/pack/packTheme';
 import { MSG_SKIN_CSS, useMsgSkin } from './msgTheme';
@@ -220,6 +222,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
   const [modErr, setModErr] = useState<string | null>(null);
   const me = getMe();
   const t = useT();
+  const navigate = useNavigate();
   const [skin, toggleSkin] = useMsgSkin();
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -288,9 +291,10 @@ export function Thread({ convId, onClose, onOpenTrip }: {
   const handleTagClick = () => {
     if (conv.tag?.kind === 'trip' && conv.tag.id) {
       if (onOpenTrip) onOpenTrip(conv.tag.id);
-      // TODO: bez onOpenTrip (napr. keď je Thread otvorený mimo /pack/map) zatiaľ len
-      // logujeme — skok na trip cez route/overlay príde s ďalším kolom (§4.3 zadania).
-      else console.log('[Thread] TODO: jump to trip', conv.tag.id);
+      // Bez `onOpenTrip` (vlákno otvorené mimo /pack/map) to do 21. 9. 2026 len logovalo —
+      // mŕtve tlačidlo z nákresu launchu. Route `/pack/map/:slug` matchuje podľa slugu,
+      // krajinu netreba. Vlákno sa zavrie, inak by článok ostal pod ním.
+      else { onClose(); navigate(`/pack/map/${conv.tag.id}`); }
     }
   };
 
@@ -302,6 +306,9 @@ export function Thread({ convId, onClose, onOpenTrip }: {
     try {
       const updated = await sendMessage(convId, trimmed);
       setConv(updated); // okamžitý refresh — nespoliehať sa len na emitter (ten dobehne o chvíľu tiež)
+      // Meranie až PO úspešnom zápise: odmietnutá správa (blok, offline) sa vracia do inputu,
+      // takže „odoslaná" by tu inak znamenalo „pokúsil sa".
+      trackPack('pack_message_sent');
     } catch {
       // DM ide od 2026-08-03 do DB a zápis môže byť odmietnutý (blok, offline,
       // vypadnutá session). Text vraciame do inputu — správa, ktorá neodišla,
