@@ -20,6 +20,7 @@ import type { HeroTrail } from '@/data/heroTrails.generated';
 import mapyMeranie from './mapyTrasy.meranie.json';
 
 const MAPY_OFF = new Set<string>(mapyMeranie.mimo.map((x: { id: string }) => x.id));
+const MAPY_BODY: Record<string, number> = (mapyMeranie as { body?: Record<string, number> }).body ?? {};
 
 export type NavApp = 'google' | 'apple' | 'waze' | 'mapy';
 
@@ -136,7 +137,7 @@ function pickAlong(path: Array<[number, number]>, n: number): Array<[number, num
   return out;
 }
 
-export function mapyRouteUrl(trail: Pick<HeroTrail, 'path' | 'km'>): string | null {
+export function mapyRouteUrl(trail: Pick<HeroTrail, 'path' | 'km'>, points = MAPY_POINTS): string | null {
   const path = (trail.path ?? []) as Array<[number, number]>;
   if (path.length < 2) return null;
   let len = 0;
@@ -144,7 +145,7 @@ export function mapyRouteUrl(trail: Pick<HeroTrail, 'path' | 'km'>): string | nu
   const gap = kmBetween(path[0], path[path.length - 1]);
   const km = parseFloat(String(trail.km).replace(',', '.'));
   const thereBack = gap > 0.3 && len > 0 && km / len > 1.6;
-  const pts = pickAlong(path, MAPY_POINTS);
+  const pts = pickAlong(path, points);
   if (thereBack) pts.push(...pts.slice(0, -1).reverse());
   const each = (p: string) => pts.map(() => p).join('&');
   return `https://mapy.com/turisticka?planovani-trasy&rc=${mapyRc(pts)}&${each('rs=coor')}&${each('ri=')}`
@@ -162,13 +163,19 @@ export function mapyRouteUrl(trail: Pick<HeroTrail, 'path' | 'km'>): string | nu
  *    sever (Bielovodská štartovala pri Nowom Targu). Po oprave prešli všetky päť. Znaky
  *    abecedy sú od opravy overené proti Mapy.com každý jeden, nie odvodené zo vzoru.
  *
+ * ⚠️ VIAC BODOV LEN TAM, KDE TREBA. Okruh Čachtice s 8 bodmi skracoval zákruty (9,1 km),
+ * s 20 bodmi 11,4 km = náš. Počet si pre výlet mimo pásma vyskúša a zapíše skript (`body`);
+ * ostatné ostávajú na 8, aby na mape nebolo zbytočne veľa špendlíkov.
+ * Tlstá (Veľká Fatra) nejde ani s 25 bodmi: Mapy.com majú na Ostrej „Náročný úsek" (reťaze)
+ * a turistický plánovač ho obchádza. Nie je to chyba našej stopy — GPX ide cez Ostrú.
+ *
  * Zoznam NIE JE ručný: zapisuje ho `node scripts/mapy-trasy-over.mjs`, ktorý otvorí každý
  * výlet v Mapy.com a porovná ich km s našimi. Nový výlet, ktorý ešte nikto nezmeral, odkaz
  * dostane. Po pridaní výletov preto skript spusti znova.
  */
 export function mapyTrailUrl(trail: Pick<HeroTrail, 'id' | 'path' | 'km'>): string | null {
   if (MAPY_OFF.has(trail.id)) return null;
-  return mapyRouteUrl(trail);
+  return mapyRouteUrl(trail, MAPY_BODY[trail.id] ?? MAPY_POINTS);
 }
 
 const esc = (s: string) => s.replace(/[<>&'"]/g, (c) =>

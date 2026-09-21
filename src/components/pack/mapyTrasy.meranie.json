@@ -6,14 +6,12 @@
   ],
   "mimo": [
     {
-      "id": "cachticky-hrad-plesivce-male-karpaty",
-      "nase": 11.5,
-      "mapy": 9.1
-    },
-    {
       "id": "tlsta-ostra-velka-fatra",
       "nase": 13.5,
       "mapy": 18.2
     }
-  ]
+  ],
+  "body": {
+    "cachticky-hrad-plesivce-male-karpaty": 12
+  }
 }
