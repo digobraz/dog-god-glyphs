@@ -1542,6 +1542,7 @@ export const cs: Partial<Dict> = {
   'pack.map.beFirstToWalk': 'Buď první, kdo to zdolá.',
   'pack.map.byAuthor': 'od {author}',
   'pack.map.catEvents': 'Akce',
+  'pack.map.eventsSoon': 'Akce chystáme. Nejdřív výlety.',
   'pack.map.catPlaces': 'Místa',
   'pack.map.catServices': 'Služby',
   'pack.map.catTrips': 'Výlety',

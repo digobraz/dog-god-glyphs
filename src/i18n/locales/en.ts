@@ -3214,6 +3214,7 @@ export const en = {
   'pack.mapLocked.alreadyMember': "Already one of us? Sign in",
   'pack.map.catTrips': "Trips",
   'pack.map.catEvents': "Events",
+  'pack.map.eventsSoon': "Dogyptian events are coming. Trips first.",
   'pack.map.catPlaces': "Places",
   'pack.map.catServices': "Services",
   'pack.map.comingSoon': "Coming soon",

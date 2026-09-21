@@ -2482,6 +2482,7 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
      pod ňou sa posunú samy. */
   .trp-mheader-cats{display:inline-flex;align-self:flex-start;gap:2px;padding:3px;border-radius:999px;background:${P_SOFT};border:1px solid ${P_BORDER};}
   .trp-mheader-cats button{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:999px;border:0;background:transparent;color:${P_DIM};cursor:pointer;transition:all .15s;}
+  .trp-mheader-cats button.is-locked{opacity:.6;}
   .trp-mheader-cats button.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}font-weight:600;}
 
   /* ── DVE TLAČIDLÁ NAD SPODNÝM NAVOM ────────────────────────────────────────────────
@@ -4141,6 +4142,14 @@ export default function PackMap() {
   // počiatočná hodnota vyhodnocuje cez flag, nie napevno.
   const [activeCat, setActiveCat] = useState<'trips' | 'events'>('trips');
   useEffect(() => { if (!EVENTS_LIVE && activeCat === 'events') setActiveCat('trips'); }, [activeCat]);
+  // PILULKA PODUJATIA = ZÁMOK S VETOU (rozhodnutie 1A, 21. 9. 2026). Do 21. 9. sa na mobile
+  // dala stlačiť a efekt vyššie ju ticho vrátil — človek nevedel, či je chyba v ňom, alebo
+  // v appke; na PC chýbala úplne. Teraz je viditeľná na oboch šírkach, vyzerá zamknuto
+  // a klik povie prečo. Kategória sa neprepne, formulár ani zoznam sa v 1. vlne neukážu.
+  const pickEvents = () => {
+    if (EVENTS_LIVE) { setActiveCat('events'); return; }
+    toast({ description: t('pack.map.eventsSoon') });
+  };
   // EVENT zoznam v paneli (krok 5, zadanie-eventy §9 krok 5) — rovnaký trojicový vzor ako trip
   // hoverId/inlineDetailId + heroCardRefs nižšie, len na vlastnom lokálnom localEvents stave.
   // `eventsView`: default = nadchádzajúce, 'archive' = filter na ends_at < now (§4.5, NIKDY delete).
@@ -6209,9 +6218,7 @@ export default function PackMap() {
                 takže založené podujatie žije len v localStorage jedného prehliadača. Doteraz to
                 nevadilo, lebo mapa je na LIVE za DEV_FULL — ale launch = flip DEV_FULL, a vtedy
                 by sa podujatia odomkli naraz s ňou. Odôvodnenie celé v `lib/packFlags.ts`. */}
-            {EVENTS_LIVE && (
-              <button type="button" className={`trp-catpill${activeCat === 'events' ? ' on' : ''}`} onClick={() => setActiveCat('events')}>{t('pack.map.catEvents')}</button>
-            )}
+            <button type="button" className={`trp-catpill${activeCat === 'events' ? ' on' : ''}${EVENTS_LIVE ? '' : ' soon'}`} aria-disabled={!EVENTS_LIVE} onClick={pickEvents}>{EVENTS_LIVE ? '' : '🔒 '}{t('pack.map.catEvents')}</button>
             {/* Matej 2026-08-06: MIESTA (Places) pill preč — PLACE ako filter kategória bola
                 zrušená (pláže/lúky/parky sú TRIP cez aktivitu `explore`, viď zadanie-eventy §A).
                 i18n kľúč `pack.map.catPlaces` ostáva v locale súboroch pre prípadné budúce použitie. */}
@@ -6411,7 +6418,7 @@ export default function PackMap() {
             zabrala tretinu šírky a nerobí nič. */}
         <div className="trp-mheader-cats" role="tablist">
           <button type="button" role="tab" aria-selected={activeCat === 'trips'} className={activeCat === 'trips' ? 'on' : ''} onClick={() => setActiveCat('trips')}>{t('pack.map.catTrips')}</button>
-          <button type="button" role="tab" aria-selected={activeCat === 'events'} className={activeCat === 'events' ? 'on' : ''} onClick={() => setActiveCat('events')}>{t('pack.map.catEvents')}</button>
+          <button type="button" role="tab" aria-selected={activeCat === 'events'} aria-disabled={!EVENTS_LIVE} className={activeCat === 'events' ? 'on' : EVENTS_LIVE ? '' : 'is-locked'} onClick={pickEvents}>{EVENTS_LIVE ? '' : '🔒 '}{t('pack.map.catEvents')}</button>
         </div>
       </div>
 

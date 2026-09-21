@@ -2919,6 +2919,7 @@ export const sk: Partial<Dict> = {
   // paleta značiek) — teda nedotiahnutý zvyšok, nie druhý pojem. Tá istá situácia ako
   // „Pack"/„svorka" 1. 9. EN „Events" sa nemení.
   'pack.map.catEvents': "Podujatia",
+  'pack.map.eventsSoon': "Podujatia chystáme. Najprv výlety.",
   'pack.map.catPlaces': "Miesta",
   'pack.map.catServices': "Služby",
   'pack.map.comingSoon': "Čoskoro",
