@@ -335,7 +335,7 @@ const CSS = `
   justify-content:center;padding:${PACK_SPACE.lg}px;z-index:70;overflow-y:auto}
 .dia-pop{background:${PACK_BOX.panel.background};border:${PACK_BOX.panel.border};
   border-radius:${PACK_BOX.panel.borderRadius}px;box-shadow:${PACK_BOX.panel.boxShadow};
-  padding:${PACK_SPACE.lg}px;max-width:420px;width:100%;max-height:calc(100vh - ${PACK_SPACE.xxl}px);
+  padding:${PACK_SPACE.lg}px;max-width:420px;width:100%;max-height:calc(100vh - ${PACK_SPACE.xxl}px - var(--consent-h, 0px));
   overflow-y:auto}
 .dia-pop h4{font-family:${FONT_TITLE};font-size:${PACK_HEAD.card.fontSize}px;font-weight:700;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;
