@@ -1195,7 +1195,7 @@ export const en = {
   // eyebrow + motto = brand → stay EN across locales (sk/cs fall back here by design)
   'legal.eyebrow': 'DOGYPT · Legal',
   'legal.motto': 'DOGYPT · In DOG We Trust',
-  'legal.updated': 'Last updated: 4 August 2026 · v1.1',
+  'legal.updated': 'Last updated: 21 September 2026 · v1.2',
   // legally binding version = EN; translations are convenience (rendered in all langs)
   'legal.langNote':
     'This document is provided in multiple languages for convenience. If the versions differ, the English version prevails.',

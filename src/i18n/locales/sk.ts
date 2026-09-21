@@ -955,7 +955,7 @@ export const sk: Partial<Dict> = {
 
   // ── /terms + /privacy — STROJOVÝ PREKLAD (právne texty), čaká review ──
   // legal.eyebrow + legal.motto = brand → EN fallback by design (nezapisovať sem)
-  'legal.updated': 'Posledná aktualizácia: 4. augusta 2026 · v1.1',
+  'legal.updated': 'Posledná aktualizácia: 21. septembra 2026 · v1.2',
   'legal.langNote':
     'Tento dokument poskytujeme vo viacerých jazykoch pre pohodlie. V prípade rozdielov medzi verziami má prednosť anglické znenie.',
 
