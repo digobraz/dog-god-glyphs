@@ -100,6 +100,7 @@ import {
   RATE_PROMPT_POINTS, discoveryBonusFor, bonusToastText, walkedCountries,
   type TripVote, type TripPlan, type PartnerEvent, type Hazard,
 } from '@/components/pack/packCommunity';
+import { useCrowdOthers } from '@/components/pack/crowdOthers';
 import { packStorage } from '@/lib/packStore';
 import {
   COMMUNITY_CSS, BigRating, PhotoMetaPills, HazardTags, WalkedPopup,
@@ -4078,6 +4079,9 @@ export default function PackMap() {
   // ľudia. `now` fixné pri mounte kvôli deterministickým mock dátumom (planners/events). ──
   const nowMs = useMemo(() => Date.now(), []);
   const [votes, setVotes] = useState<Record<string, TripVote>>(() => readVotes());
+  // Hlasy a prejdenia OSTATNÝCH členov (3A, 21. 9.) — `crowdAggregate()` ich číta z modulu,
+  // tento hook len prekreslí stránku, keď dorazia z RPC `trip_crowd()`.
+  useCrowdOthers();
   const [plans, setPlans] = useState<TripPlan[]>(() => readPlans());
   const [events, setEvents] = useState<PartnerEvent[]>(() => readEvents());
   useEffect(() => { writeVotes(votes); }, [votes]);

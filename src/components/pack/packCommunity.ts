@@ -13,6 +13,7 @@ import {
 import { PACK_KEYS, readJson, persistVotes, persistPlans, persistEvents, readLocalTrailMeta } from '@/lib/packStore';
 import { calculateProfilePoints, calculateTripPoints, JOURNEY_POINTS, POINTS, levelProgress, type LevelProgress, type PointsRow, type TripPointsResult } from '@/lib/tripPoints';
 import { authorOf, AUTHOR_FALLBACK } from '@/components/pack/tripShared';
+import { crowdOthersFor } from '@/components/pack/crowdOthers';
 import { countryName, trailCountry } from '@/lib/countryGeo';
 
 export type Difficulty = 'Easy' | 'Moderate' | 'Hard' | 'Odyssey';
@@ -248,10 +249,19 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
     diffs.push(userVote.difficulty); crowds.push(userVote.crowd); ratings.push(userVote.rating);
     hazards.push(userVote.hazards ?? []);
   }
+  // OSTATNÍ ČLENOVIA (rozhodnutie 3A, 21. 9. 2026) — súhrn z RPC `trip_crowd()`, bez
+  // zakladateľa a bez mňa (tých nesie seed a `userVote` vyššie). Pred 21. 9. tu nebolo nič:
+  // RLS púšťa len vlastné hlasy, takže karta po flipe nerástla, nech výlet prešiel ktokoľvek.
+  const others = crowdOthersFor(trail.id);
+  if (others) {
+    diffs.push(...others.difficulties); crowds.push(...others.crowds);
+    ratings.push(...others.ratings); hazards.push(...others.hazards);
+  }
   const walkedCount = ratings.length;           // POČET HODNOTENÍ (zátvorka pri labkách)
   // KOĽKÍ PREŠLI — vlastné číslo, nie dĺžka poľa hlasov. Zakladateľov sú dvaja aj pri jednom
   // hodnotení; môj hlas znamená, že som tadiaľ prešiel aj ja.
-  const walkerCount = founderWalkers(trail) + (userVote ? 1 : 0);
+  const baseWalkers = founderWalkers(trail) + (userVote ? 1 : 0);
+  const walkerCount = baseWalkers + (others?.walkers ?? 0);
   /**
    * DOGYPŤAN = ČLOVEK **AJ** PES (Matej 2026-08-25: „dogypťan je člen dogyptu, teda aj človek
    * aj pes… vždy minimálne dvaja dogypťania, ak označím hektora").
@@ -265,8 +275,13 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
    *  · každému ďalšiemu chodcovi sa počíta JEDEN pes — a nie je to výmysel: členstvo v DOGYPTe
    *    stojí na heroglyfe PSA, takže člen bez psa neexistuje. Je to spodná hranica, nie odhad.
    * Preto `max`, nie súčet: pri jednom chodcovi s dvomi psami dá 3, pri troch chodcoch aspoň 6.
+   *
+   * Ostatní členovia (21. 9.) majú psov ZMERANÝCH v `dog_trips` — `max(chodci, psy)` drží
+   * tú istú spodnú hranicu „aspoň jeden pes na človeka" aj pre nich.
    */
-  const dogyptianCount = walkerCount === 0 ? 0 : walkerCount + Math.max(walkerCount, trail.dogs ?? 0);
+  const baseDogyptians = baseWalkers === 0 ? 0 : baseWalkers + Math.max(baseWalkers, trail.dogs ?? 0);
+  const dogyptianCount = baseDogyptians
+    + (others && others.walkers > 0 ? others.walkers + Math.max(others.walkers, others.dogs) : 0);
   const sCrowd = seedCrowd(trail);
   if (walkedCount === 0) {
     // Poctivý prázdny agregát — žiadny hlas, nič na agregáciu (a delenie walkedCount by dalo
@@ -278,7 +293,8 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
     // ⚠️ Konzumenti MUSIA rating skryť pri `rating <= 0` (PackMap.tsx, PackTripArticle.tsx,
     // packCommunityUI.tsx) — inak sa vykreslí „0.0" a prázdne labky.
     return {
-      walkedCount: 0, walkerCount: 0, dogyptianCount: 0, belowThreshold: true,
+      // Chodci bez hodnotenia existujú (✓ bez labiek) — „Walked by N" ich ukáže aj bez ratingu.
+      walkedCount: 0, walkerCount, dogyptianCount, belowThreshold: true,
       rating: 0,
       // trail.diff je teraz voliteľný (vodná plocha ho nemá, viď isWaterTrail v tripShared.tsx) —
       // CrowdAgg.difficulty ostáva netknuté ako Difficulty (packCommunityUI.tsx ho tak číta),
