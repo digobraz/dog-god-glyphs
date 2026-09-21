@@ -221,14 +221,16 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     back: 'origin',
     lands: 'vrstva mapy',
     state: 'pripravene',
+    soon: '2026-12',
     panel: true,
     gh: 63,
     // ⚠️ `service` JE v `type Kind` (AddTripEntry.tsx:44) a MÁ i18n, ale NIE JE v `AddChoice`
     //    — panel ho teda dnes vie pomenovať a nevie vrátiť. To je celá práca issue #63.
     // ⚠️ A NEVRACAJ HO AKO `disabled` DLAŽDICU. Presne tak tu stál do 6. 8. 2026 a Matej ho
     //    dal von: pri troch dlaždiciach mu flex-wrap dal celú šírku, takže vizuálne najväčší
-    //    prvok panela bol mŕtvy. Buď má obrazovku, alebo sa nevykresľuje.
-    note: 'Do panela sa vracia až s obrazovkou (#63), nie ako zošedená dlaždica.',
+    //    prvok panela bol mŕtvy. Dnešný štítok „čoskoro · december 2026" NIE JE to isté —
+    //    zošedené tlačidlo mlčalo, štítok povie, kedy to príde (Matej 21. 9. 2026).
+    note: 'Vracia sa so štítkom termínu, nie ako nemá zošedená dlaždica.',
   },
   {
     id: 'article',
@@ -241,6 +243,7 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     back: 'origin',
     lands: 'článok výletu',
     state: 'pripravene',
+    soon: '2026-12',
     panel: false,
     gh: 61,
     // Nezačína sa z lišty: potrebuje UŽ EXISTUJÚCU trasu, takže vchod je článok tej trasy.
@@ -284,13 +287,23 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     needs: 'pes',
     target: { kind: 'handler', id: 'diary.photo' },
     back: 'origin',
-    lands: 'galéria (príloha zápisu)',
-    state: 'live',
+    lands: 'dog_events (príloha zápisu)',
+    state: 'pripravene',
     panel: true,
-    // ⚠️ FOTKA NIE JE SAMOSTATNÉ ÚLOŽISKO. Je to DRUHÝ VCHOD do toho istého zápisu do denníka
-    //    — človek pridáva udalosť, nie priečinok. Register ju vedie ako vlastný riadok (tak
-    //    stojí v §2 nákresu a tak je nakreslená v §3), ale `target` mieri na toho istého
-    //    pisateľa. To je pravidlo „jeden pridávací panel, viac vchodov", nie výnimka z neho.
+    // 🔴 §2 NÁKRESU JEJ DALO „✅ hotové" A TO JE CHYBA V PODKLADE (premerané 21. 9. 2026,
+    //    Matej: „fotka? to nemáme vyriešené ešte"). Fotka psa NEMÁ KAM PRISTÁŤ:
+    //      · tabuľka `dog_photos` ani `dog_gallery` v repe NEEXISTUJE
+    //      · `profile/DogGallery.tsx` nie je galéria fotiek — je to accordion psej KARTY
+    //        (BIO + tagy), meno klame
+    //      · upload fotky v `/pack` žije JEDINE vo výletoch (`AddTripLog.tsx`,
+    //        `TripEditPanel.tsx`), nie pri psovi
+    //    Dôsledok: JA nemá ani JEDNU hotovú položku — preto fallback v `panelFor`.
+    //
+    // ⚠️ FOTKA NIE JE SAMOSTATNÉ ÚLOŽISKO A NEZAKLADÁ SA JEJ ŽIADNE. Je to DRUHÝ VCHOD do
+    //    toho istého zápisu do denníka — človek pridáva udalosť, nie priečinok. URL ide do
+    //    `dog_events.value` (je to `jsonb`), takže nepribudne piate miesto na údaje o psovi
+    //    (CLAUDE.md, identita používateľa). Preto ju rieši KROK 5 spolu s denníkom a preto
+    //    nemá `soon`: je to práca tohto bloku, nie ohlásená vlna.
   },
 
   // ── DOMOV ─────────────────────────────────────────────────────────────────────────────────
@@ -307,6 +320,7 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     back: 'origin',
     lands: 'feed',
     state: 'zamknute',
+    soon: '2026-12',
     panel: true,
     // ⚠️ PRÍSPEVOK NEMÁ TYP, MÁ ŠTÍTKY (lock: zbierka, inzerát, rada…). Nový feed = nový
     //    štítok, nie nová tabuľka a nie nový riadok v tomto registri.
@@ -489,7 +503,14 @@ export function createAll(place: CreatePlace): CreateObject[] {
 export function panelFor(place: CreatePlace): Array<{ group: CreatePlace | null; items: CreateObject[] }> {
   if (place !== 'DOMOV') {
     const items = createFor(place);
-    return items.length ? [{ group: null, items }] : [];
+    // 🔴 MIESTO BEZ DVOCH VLASTNÝCH POLOŽIEK UKÁŽE REPERTOÁR DOMOVA (Matej 21. 9. 2026:
+    //    „alebo tam dať to, čo je na homepage (zatiaľ)"). Panel tak nikdy nie je prázdny
+    //    ani jednopoložkový a NIČ SA NEVYMÝŠĽA — človek dostane zoznam, ktorý v appke už
+    //    je. Keď miesto svoje dve položky dostane, fallback zhasne sám, bez zásahu sem.
+    // ⚠️ Prah je DVA, nie jeden: menu s jedinou dlaždicou je krok navyše pred akciou,
+    //    ktorá sa mohla stať rovno.
+    if (items.length >= 2) return [{ group: null, items }];
+    return panelFor('DOMOV');
   }
   const out: Array<{ group: CreatePlace | null; items: CreateObject[] }> = [];
   for (const p of PLACE_ORDER) {
