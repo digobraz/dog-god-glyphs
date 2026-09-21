@@ -169,6 +169,11 @@ export default function Admin() {
   useEffect(() => {
     if (ainubisDeepLinkId) setTab('ainubis');
   }, [ainubisDeepLinkId]);
+  // `/admin?tab=trips` — Telegram z `notify-trips` pri novom výlete (v1-moderacia).
+  const tabDeepLink = searchParams.get('tab');
+  useEffect(() => {
+    if (tabDeepLink === 'trips' || tabDeepLink === 'reports') setTab(tabDeepLink);
+  }, [tabDeepLink]);
 
   // login form
   const [loginEmail, setLoginEmail] = useState('');

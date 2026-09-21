@@ -3451,7 +3451,7 @@ export const en = {
   'pack.trip.markWalked': "Mark walked",
   'pack.trip.share': "Share",
   'pack.triplist.statusDone': "Done",
-  'pack.triplist.statusPendingReview': "Waiting for approval",
+  'pack.trip.pending': "Waiting for approval",
   'pack.triplist.statusRejected': "Not approved",
   'pack.triplist.pendingHint': "Until we approve this trip, only you can see it.",
   'pack.triplist.statusWithName': "With {name}",

@@ -2102,7 +2102,7 @@ export const cs: Partial<Dict> = {
   'pack.triplist.statusGoing': 'Jdeme',
   'pack.triplist.statusLookingAsked': 'Hledám · {n} se ptalo',
   'pack.triplist.statusLookingForPack': 'Hledám partu',
-  'pack.triplist.statusPendingReview': 'Čeká na schválení',
+  'pack.trip.pending': 'Čeká na schválení',
   'pack.triplist.statusRejected': 'Neschváleno',
   'pack.triplist.statusSolo': 'Sólo',
   'pack.triplist.statusWithCount': 'V {n}',

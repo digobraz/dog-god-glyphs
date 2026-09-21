@@ -101,7 +101,7 @@ import {
   type TripVote, type TripPlan, type PartnerEvent, type Hazard,
 } from '@/components/pack/packCommunity';
 import { useCrowdOthers, refreshCrowdOthers } from '@/components/pack/crowdOthers';
-import { packStorage } from '@/lib/packStore';
+import { packStorage, readLocalTrailMeta } from '@/lib/packStore';
 import {
   COMMUNITY_CSS, BigRating, PhotoMetaPills, HazardTags, WalkedPopup,
   EventsView,
@@ -4163,6 +4163,11 @@ export default function PackMap() {
   // Množina členských id — raz za zmenu zoznamu, nie pri každej karte (inak by sa
   // `trp-local-trails` parsovalo z úložiska raz na výlet).
   const memberIds = useMemo(() => memberTrailIds(), [localTrails]);
+  // Stav MÔJHO výletu v moderácii (`pack_trips.status`), v1-moderacia 21. 9. 2026. Koncept
+  // mal pilulku odjakživa; hotový výlet, ktorý čaká na schválenie, vyzeral ako zverejnený,
+  // hoci ho svorka nevidí. ⚠️ Prázdna mapa = ešte sa nehydratovalo, nie „nič nečaká" —
+  // pilulka sa kreslí LEN pri explicitnom `pending` (tá istá úvaha ako PackTriplist).
+  const trailMeta = useMemo(() => readLocalTrailMeta(), [localTrails, storeEpoch]);
   // vstup pre <TripMarkers> (zoomové vrstvy + zhlukovanie, zadanie 2.3/2.4) — jeden bod na trip:
   // hike = štart trasy, journey = stred (rovnaká logika ako pôvodný pillIcon Marker), vodná
   // plocha = ťažisko (waterPoint). Plánované tripy ('plan-') majú vlastný ružový pin, sem nepatria.
@@ -5689,6 +5694,8 @@ export default function PackMap() {
     // KONCEPT — chýbajú povinné polia, takže výlet nejde von. Odvodzuje sa zo záznamu
     // (tripShared.tsx), neukladá sa; dopísanie ho zhasne samo.
     const draftMissing = tripDraftMissing(tr, memberIds);
+    const awaitingApproval = draftMissing.length === 0
+      && trailMeta[tr.id]?.mine === true && trailMeta[tr.id]?.status === 'pending';
     /**
      * ── PREČO JE TENTO VÝLET V TOMTO FILTRI (Matej 2026-08-31) ────────────────────────
      *
@@ -5794,6 +5801,8 @@ export default function PackMap() {
               ? <span className="trp-plannedpill">🗓️ {t('pack.map.planned')}</span>
               : draftMissing.length > 0
               ? <span className="trp-draftpill">📝 {t('pack.map.draftPill')}</span>
+              : awaitingApproval
+              ? <span className="trp-draftpill">⏳ {t('pack.trip.pending')}</span>
               : isWaterTrail(tr) ? null
               : <PhotoMetaPills agg={agg} km={tr.km} ascentM={(tr as { ascentM?: number }).ascentM} hasRoute={hasRouteMetrics(tr)} />}
           </div>

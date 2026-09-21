@@ -325,7 +325,7 @@ const CSS = `
 function statusLabel(t: ReturnType<typeof useT>, entry: TriplistTrip, done?: boolean, party?: TripParty, mod?: string): string {
   // Moderácia prebíja VŠETKO ostatné: kým výlet nie je schválený, pack ho nevidí, takže
   // „Hľadám partiu" by bola nepravda — nikto ho nemá ako nájsť.
-  if (mod === 'pending') return t('pack.triplist.statusPendingReview');
+  if (mod === 'pending') return t('pack.trip.pending');
   if (mod === 'rejected') return t('pack.triplist.statusRejected');
   if (done) {
     // ⚠️ `walked` NEPREPÍNA `openness` (viď komentár pri MY TRIPS nižšie): prejdený výlet ostáva

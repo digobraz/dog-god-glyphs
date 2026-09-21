@@ -3173,7 +3173,7 @@ export const sk: Partial<Dict> = {
   'pack.trip.markWalked': "Označiť ako prejdené",
   'pack.trip.share': "Zdieľať",
   'pack.triplist.statusDone': "Hotovo",
-  'pack.triplist.statusPendingReview': "Čaká na schválenie",
+  'pack.trip.pending': "Čaká na schválenie",
   'pack.triplist.statusRejected': "Neschválené",
   'pack.triplist.pendingHint': "Kým výlet neschválime, vidíš ho len ty.",
   'pack.triplist.statusWithName': "S {name}",
