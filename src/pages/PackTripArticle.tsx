@@ -45,11 +45,12 @@ import {
   tripShareText, tripText, TRAIL_SABER_LAYERS, TRAIL_LINE, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing } from '@/components/pack/tripShared';
 import { TripGoPanel, TripGoButtons, type TripGoMode } from '@/components/pack/trip/TripGoPanel';
 import {
-  crowdAggregate, founderWalkers, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
+  crowdAggregate, founderWalkers, founderDogyptians, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
   walkPointsFor, walkRewardBase, RATE_PROMPT_POINTS, discoveryBonusFor, bonusToastText,
   type TripVote, type TripPlan, type PartnerEvent, type CrowdSlice,
 } from '@/components/pack/packCommunity';
-import { useCrowdOthers } from '@/components/pack/crowdOthers';
+import { TripWalkers } from '@/components/pack/trip/TripWalkers';
+import { useCrowdOthers, refreshCrowdOthers } from '@/components/pack/crowdOthers';
 import {
   COMMUNITY_CSS, WalkedPopup,
   type WalkedInput, type WalkReward,
@@ -838,6 +839,12 @@ export default function PackTripArticle() {
   // Hlasy a prejdenia OSTATNÝCH členov (3A, 21. 9.) — `crowdAggregate()` ich číta z modulu,
   // tento hook len prekreslí stránku, keď dorazia z RPC `trip_crowd()`.
   useCrowdOthers();
+  // Môj hlas/✓ sa zapisuje frontou do DB — súhrn sa obnoví až keď zápis dobehne, inak by
+  // RPC vrátilo počet ešte bezo mňa. Zámerný debounce: rýchle klikanie = jedno volanie.
+  useEffect(() => {
+    const h = setTimeout(() => { void refreshCrowdOthers(); }, 1500);
+    return () => clearTimeout(h);
+  }, [votes]);
   const [plans, setPlans] = useState<TripPlan[]>(() => readPlans());
   const [events, setEvents] = useState<PartnerEvent[]>(() => readEvents());
   useEffect(() => { writeVotes(votes); }, [votes]);
@@ -1242,7 +1249,8 @@ export default function PackTripArticle() {
   // (0 zakladateľov + 1 user vote by dalo 1-2=-1), alebo počítalo z nesprávneho základu.
   // 🔴 `walkerCount`, nie `walkedCount` (17. 9. 2026) — odvtedy je `walkedCount` počet
   // HODNOTENÍ (zakladateľské je jedno), takže by tu vyšlo 1 − 2 = −1.
-  const extraWalkers = agg.walkerCount - founderWalkers(trail);
+  // 21. 9. 2026: štítok hovorí „+N Dogypťanov", teda ľudia AJ psy nad zakladateľa — nie chodci.
+  const extraWalkers = agg.dogyptianCount - founderDogyptians(trail);
   // bod 2 (iterácia 14): rovnaká chip-skladačka ako inline detail v PackMap.tsx (acts + tags,
   // emoji prefix keď existuje mapovanie).
   // ⚠️ `label` je DÁTOVÁ hodnota z `heroTrails.generated.ts` (`acts` = 'hike', `tags` =
@@ -1831,6 +1839,8 @@ export default function PackTripArticle() {
           ) : (
             <h3>{t(`pack.trip.walkedBy.${pluralKey(agg.dogyptianCount).toLowerCase()}`, { n: agg.dogyptianCount })}</h3>
           )}
+          {/* KTO TADIAĽ PREŠIEL (Matej 21. 9. 2026) — mená a psy z `trip_walked` + `dog_trips`. */}
+          <TripWalkers tripSlug={trail.id} reloadKey={agg.walkerCount} />
         </div>
         </div>
       </div>

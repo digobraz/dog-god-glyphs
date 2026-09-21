@@ -35,12 +35,17 @@ export const HAZARDS: Hazard[] = ['Ticks', 'Vipers', 'Wildlife'];
 // odporovalo — tam kliešte niesol 🕷️ (pavúk). Teraz obe plochy hovoria to isté: `MARK_EMOJI.ticks`.
 export const HAZARD_EMOJI: Record<Hazard, string> = { Ticks: '🩸', Vipers: '🐍', Wildlife: '🦌' };
 
-// Zakladatelia — koľko Dogyptianov (Matej + Hekthor) je v hlase VŽDY dvaja, pre trasy z
-// `founderWalkers()` nižšie. Matej 2026-08-03: „začíname so všetkým do nuly" — toto číslo
-// je len konštanta na počítanie labelu („+X Dogyptians"), NIE záruka, že KAŽDÁ trasa má
-// aspoň toľkoto hlasov. Magistrály, ktoré zakladatelia neprešli, a ADD-flow tripy iných
-// členov majú `founderWalkers(trail) === 0` → `walkedCount` môže byť 0.
-export const FOUNDER_WALKERS = 2;
+// Zakladateľ na trase z `founderWalkers()`: JEDEN ČLOVEK (Matej) a JEDEN PES (Hekthor).
+// 🔴 Do 21. 9. 2026 tu stálo 2 „Matej + Hekthor" ako dvaja CHODCI — a výpočet Dogypťanov
+//    k chodcom pripočítal ešte aspoň jedného psa na chodca, takže Hekthor sa rátal dvakrát
+//    (karta hlásila 4). Matej 21. 9.: *„my dvaja s hektorom = 4? prečo?"* Chodec je človek,
+//    pes sa ráta zvlášť: 1 + 1 = 2 Dogypťania. Matej 2026-08-03: „začíname so všetkým do
+//    nuly" — magistrály, ktoré zakladateľ neprešiel, a výlety iných členov majú 0.
+export const FOUNDER_WALKERS = 1;
+export const FOUNDER_DOGS = 1;
+/** Koľko Dogypťanov (človek + pes) nesie na trase zakladateľský seed — 2 alebo 0. */
+export const founderDogyptians = (trail: HeroTrail): number =>
+  founderWalkers(trail) > 0 ? FOUNDER_WALKERS + FOUNDER_DOGS : 0;
 
 // LEVELY sú v `@/lib/tripPoints` (issue #33, 2026-07-30).
 // Zrušené: `PACK_LEVELS` so siedmimi menami (Stray → Hero of the Pack) + `packLevel(tripCount)`.
@@ -213,7 +218,7 @@ export function founderWalkers(trail: HeroTrail): number {
 function founderVotes(trail: HeroTrail): { diffs: Difficulty[]; crowds: Crowd[]; ratings: number[]; hazards: Hazard[][] } {
   /**
    * 🔴 JEDNO HODNOTENIE, HOCI PREŠLI DVAJA (Matej 17. 9. 2026).
-   * `founderWalkers()` vracia 2 — Matej a Hekthor — a to je pravda o CHODCOCH. Hodnotenie
+   * Zakladateľ na trase = Matej a Hekthor (`founderDogyptians()` = 2). Hodnotenie
    * výletu je ale jedno: `trail.stars` z nahadzovača, zapísané raz. Kým sa tu duplikovalo,
    * karta hlásila `5.0 (2)` a detail toho istého výletu `(1)`, lebo článok ráta reálne
    * hodnotenia (autor + členovia z `trip_reviews`). Dve čísla pod tým istým slovom.
@@ -249,8 +254,9 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
     diffs.push(userVote.difficulty); crowds.push(userVote.crowd); ratings.push(userVote.rating);
     hazards.push(userVote.hazards ?? []);
   }
-  // OSTATNÍ ČLENOVIA (rozhodnutie 3A, 21. 9. 2026) — súhrn z RPC `trip_crowd()`, bez
-  // zakladateľa a bez mňa (tých nesie seed a `userVote` vyššie). Pred 21. 9. tu nebolo nič:
+  // OSTATNÍ ČLENOVIA (rozhodnutie 3A, 21. 9. 2026) — súhrn z RPC `trip_crowd()`. Hlasy sú
+  // bez zakladateľa a bez mňa (tých nesie seed a `userVote` vyššie); počty ľudí a psov nižšie
+  // ma OBSAHUJÚ, lebo koľko psov som mal so sebou vie len `dog_trips`. Pred 21. 9. tu nebolo nič:
   // RLS púšťa len vlastné hlasy, takže karta po flipe nerástla, nech výlet prešiel ktokoľvek.
   const others = crowdOthersFor(trail.id);
   if (others) {
@@ -258,30 +264,24 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
     ratings.push(...others.ratings); hazards.push(...others.hazards);
   }
   const walkedCount = ratings.length;           // POČET HODNOTENÍ (zátvorka pri labkách)
-  // KOĽKÍ PREŠLI — vlastné číslo, nie dĺžka poľa hlasov. Zakladateľov sú dvaja aj pri jednom
-  // hodnotení; môj hlas znamená, že som tadiaľ prešiel aj ja.
-  const baseWalkers = founderWalkers(trail) + (userVote ? 1 : 0);
-  const walkerCount = baseWalkers + (others?.walkers ?? 0);
   /**
-   * DOGYPŤAN = ČLOVEK **AJ** PES (Matej 2026-08-25: „dogypťan je člen dogyptu, teda aj človek
-   * aj pes… vždy minimálne dvaja dogypťania, ak označím hektora").
+   * DOGYPŤAN = ČLOVEK + KAŽDÝ JEHO PES. Matej 2026-08-25: „dogypťan je člen dogyptu, teda aj
+   * človek aj pes… vždy minimálne dvaja dogypťania, ak označím hektora" · 21. 9.: „človek môže
+   * mať aj 2–5 psov, počíta sa vždy minimálne 1 človek, a ak neoznačí psa pri prejdenom výlete,
+   * ukáže mu chybu" (brána je v AddTripLog — výlet bez psa sa nezapíše).
    *
-   * Karta doteraz hlásila počet HLASOV, teda ľudí — a posádka sa do neho nepremietla vôbec.
-   * Teraz: každý chodec je jeden človek + jeho psy.
-   *
-   * ⚠️ Koľko psov mal KTORÝ chodec, appka nevie — hlas (`TripVote`) to nenesie a niesť nemôže,
-   * lebo hlasy sú staršie než toto pravidlo. Preto:
-   *  · `trail.dogs` (posádka autora) je JEDINÝ presný údaj, aký máme,
-   *  · každému ďalšiemu chodcovi sa počíta JEDEN pes — a nie je to výmysel: členstvo v DOGYPTe
-   *    stojí na heroglyfe PSA, takže člen bez psa neexistuje. Je to spodná hranica, nie odhad.
-   * Preto `max`, nie súčet: pri jednom chodcovi s dvomi psami dá 3, pri troch chodcoch aspoň 6.
-   *
-   * Ostatní členovia (21. 9.) majú psov ZMERANÝCH v `dog_trips` — `max(chodci, psy)` drží
-   * tú istú spodnú hranicu „aspoň jeden pes na človeka" aj pre nich.
+   * `walkerCount` = ĽUDIA, ktorí prešli. Psy sa rátajú zvlášť:
+   *  · zakladateľ: 1 človek + Hekthor (seed, `founderDogyptians`),
+   *  · ostatní VRÁTANE MŇA: RPC `trip_crowd()` — psy ZMERANÉ v `dog_trips`. `max(ľudia, psy)`
+   *    drží spodnú hranicu „aspoň jeden pes na človeka" pre staré zápisy spred tabuľky psov,
+   *  · kým RPC nedorazí (alebo zlyhá): ja = 1 človek + 1 pes podľa `userVote`, ako pred 21. 9.
    */
-  const baseDogyptians = baseWalkers === 0 ? 0 : baseWalkers + Math.max(baseWalkers, trail.dogs ?? 0);
-  const dogyptianCount = baseDogyptians
-    + (others && others.walkers > 0 ? others.walkers + Math.max(others.walkers, others.dogs) : 0);
+  const fH = founderWalkers(trail);
+  const fD = fH > 0 ? FOUNDER_DOGS : 0;
+  const oH = others ? others.walkers : (userVote ? 1 : 0);
+  const oD = others ? Math.max(others.walkers, others.dogs) : (userVote ? 1 : 0);
+  const walkerCount = fH + oH;
+  const dogyptianCount = fH + fD + oH + oD;
   const sCrowd = seedCrowd(trail);
   if (walkedCount === 0) {
     // Poctivý prázdny agregát — žiadny hlas, nič na agregáciu (a delenie walkedCount by dalo

@@ -93,14 +93,14 @@ import {
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
   tripPath, tripPathById, tripText, visibleLocalTrails, tripDraftMissing, memberTrailIds, isOdyssey } from '@/components/pack/tripShared';
 import {
-  crowdAggregate, FOUNDER_WALKERS, seedCrowd, HAZARDS, HAZARD_EMOJI, CROWD_EMOJI, CROWD_KEY_TO_CROWD,
+  crowdAggregate, founderDogyptians, seedCrowd, HAZARDS, HAZARD_EMOJI, CROWD_EMOJI, CROWD_KEY_TO_CROWD,
   readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
   profileLevelFor, addedByMeIds, isFounderEmail, computeCompletion,
   approvedAddedIds, ratedCountFor, walkPointsFor, walkRewardBase,
   RATE_PROMPT_POINTS, discoveryBonusFor, bonusToastText, walkedCountries,
   type TripVote, type TripPlan, type PartnerEvent, type Hazard,
 } from '@/components/pack/packCommunity';
-import { useCrowdOthers } from '@/components/pack/crowdOthers';
+import { useCrowdOthers, refreshCrowdOthers } from '@/components/pack/crowdOthers';
 import { packStorage } from '@/lib/packStore';
 import {
   COMMUNITY_CSS, BigRating, PhotoMetaPills, HazardTags, WalkedPopup,
@@ -4082,6 +4082,12 @@ export default function PackMap() {
   // Hlasy a prejdenia OSTATNÝCH členov (3A, 21. 9.) — `crowdAggregate()` ich číta z modulu,
   // tento hook len prekreslí stránku, keď dorazia z RPC `trip_crowd()`.
   useCrowdOthers();
+  // Môj hlas/✓ sa zapisuje frontou do DB — súhrn sa obnoví až keď zápis dobehne, inak by
+  // RPC vrátilo počet ešte bezo mňa. Zámerný debounce: rýchle klikanie = jedno volanie.
+  useEffect(() => {
+    const h = setTimeout(() => { void refreshCrowdOthers(); }, 1500);
+    return () => clearTimeout(h);
+  }, [votes]);
   const [plans, setPlans] = useState<TripPlan[]>(() => readPlans());
   const [events, setEvents] = useState<PartnerEvent[]>(() => readEvents());
   useEffect(() => { writeVotes(votes); }, [votes]);
@@ -5674,7 +5680,7 @@ export default function PackMap() {
     // trip bez vlastnej fotky → per-aktivita placeholder (paddleboard nedostane les), stabilný podľa id
     const photo = tr.photos[idx] ?? tr.photos[0] ?? placeholderFor(tr.acts, tr.id);
     const agg = crowdAggregate(tr, votes[tr.id]);
-    const others = Math.max(0, agg.walkerCount - FOUNDER_WALKERS); // Dogyptians nad zakladateľov
+    const others = Math.max(0, agg.dogyptianCount - founderDogyptians(tr)); // Dogypťania nad zakladateľa (človek + psy)
     // ⚠️ `walkerCount` = koľkí PREŠLI. `walkedCount` je od 17. 9. počet HODNOTENÍ a dal by tu nulu vždy.
     // PLÁN (nepрešiel sa) = ponuka: žiadna náročnosť/popularita/hazard/rating (výlet sa neodohral).
     // Walked vie dať LEN autor → tým sa prepne na odohraný trip (walked-popup vyžiada náročnosť+popularitu).
@@ -6014,7 +6020,7 @@ export default function PackMap() {
                         type="button"
                         className="trp-inldet-author trp-authorbtn"
                         onClick={(e) => { e.stopPropagation(); setCreatorTrail(dt); }}
-                      >{t('pack.map.byAuthor', { author: authorOf(dt) })}{dtAgg.walkerCount - FOUNDER_WALKERS > 0 ? ` · ${t('pack.map.plusDogyptians' + pluralKey(dtAgg.walkerCount - FOUNDER_WALKERS), { n: dtAgg.walkerCount - FOUNDER_WALKERS })}` : ''}</button>
+                      >{t('pack.map.byAuthor', { author: authorOf(dt) })}{dtAgg.dogyptianCount - founderDogyptians(dt) > 0 ? ` · ${t('pack.map.plusDogyptians' + pluralKey(dtAgg.dogyptianCount - founderDogyptians(dt)), { n: dtAgg.dogyptianCount - founderDogyptians(dt) })}` : ''}</button>
                     </div>
                   </div>
                   {/* Matej 2026-07-22: pravý stĺpec = LEN veľký rating (1 packa + X.Y). Náročnosť/

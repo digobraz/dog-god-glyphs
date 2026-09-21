@@ -1401,7 +1401,13 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
   const missing = missingFields(draft);
   // `missingFields` vracia i18n KĽÚČE (model nemá jazyk) — text vzniká až tu.
   const missingTx = (keys: string[]) => keys.map((k) => t(k)).join(', ');
-  const canSubmit = missing.toSubmit.length === 0 && !multiDayIssue;
+  // ── BEZ PSA SA PREJDENÝ VÝLET NEZAPÍŠE (Matej 21. 9. 2026) ──
+  // „počíta sa vždy minimálne 1 človek, a ak neoznačí psa pri prejdenom výlete, ukáže mu
+  // chybu… pridaj aspoň jedného psa zo svorky." Dogypťan = človek + pes, preto výlet má
+  // minimálne dvoch. Plán sa nepýta — posádka sa určuje až pri zápise po prejdení.
+  // Kľúč `dog-<id>` je ten istý, aký používa `CompanionPicker` (viď `crewSeededRef`).
+  const noDog = !isPlan && !crew.some((c) => c.key.startsWith('dog-'));
+  const canSubmit = missing.toSubmit.length === 0 && !multiDayIssue && !noDog;
   const finalApproval: ApprovalStatus = missing.toApprove.length === 0 ? 'pending' : 'draft';
 
   // §5.3 poistka — pýta sa, nezablokuje. `onPickExisting` (živí duchovia počas kreslenia) tu nie
@@ -3303,6 +3309,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                       názov údaja; človek v tej chvíli potrebuje otázku, na ktorú odpovie. */}
                   <label>{t('pack.addTrip.step.whoWasWithYou')}</label>
                   <CompanionAvatarsOnly myDogs={myDogs} selected={crew} onChange={setCrew} />
+                  {noDog && (
+                    <div className="atl-draftwarn" role="alert" style={{ marginTop: 8 }}>
+                      <b>{t('pack.addTrip.step.needDogTitle')}</b>
+                      <p>{t('pack.addTrip.step.needDog')}</p>
+                    </div>
+                  )}
                 </div>
 
                 {!isPlan && (
