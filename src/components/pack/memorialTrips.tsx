@@ -46,19 +46,25 @@ export function useMemorialTripsToast(): () => void {
   const { toast } = useToast();
   const t = useT();
   return () => {
+    // Text cez CELÚ šírku, tlačidlo POD ním (Matej 21. 9.: „texting by som dal cez celú
+    // šírku bloku a CTA pod to"). Preto tlačidlo nejde do `action` — shadcn ho kladie
+    // vedľa textu a dlhá veta sa zúžila na polovicu.
     toast({
-      description: t('pack.trip.memorial.body'),
-      action: (
-        <ToastAction
-          altText={t('pack.trip.memorial.cta')}
-          onClick={() => {
-            void voteMemorialTrips().then((ok) => {
-              toast({ description: ok ? t('pack.trip.memorial.thanks') : t('pack.trip.memorial.failed') });
-            });
-          }}
-        >
-          {t('pack.trip.memorial.cta')}
-        </ToastAction>
+      description: (
+        <div>
+          <p>{t('pack.trip.memorial.body')}</p>
+          <ToastAction
+            className="mt-3"
+            altText={t('pack.trip.memorial.cta')}
+            onClick={() => {
+              void voteMemorialTrips().then((ok) => {
+                toast({ description: ok ? t('pack.trip.memorial.thanks') : t('pack.trip.memorial.failed') });
+              });
+            }}
+          >
+            {t('pack.trip.memorial.cta')}
+          </ToastAction>
+        </div>
       ),
     });
   };

@@ -1346,7 +1346,11 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
    rovnakým dielom na celú šírku pri ľubovoľnom počte. Pôvodné repeat(4,1fr) tu nechalo
    po odobraní MIESTA prázdny štvrtý stĺpec (Matej 2026-08-06: „daj tak aby boli na celu
    šírku nech to je pekne zrovnané"). Platí ako pravidlo pre každý rad rovnocenných prvkov. */
-.trp-cat-pills{display:flex;gap:9px;}
+.trp-cat-pills{display:flex;gap:9px;position:relative;}
+/* Veta pod zamknutou pilulkou PODUJATIA (Matej 21. 9.: „popup by som dal pod to, nie na
+   vrch obrazovky, ale pod tie podujatia na vrch mapy"). Rovnaký šat ako bublina
+   .trp-catpill.soon::after — papyrus panelu, zlatý rám. */
+.trp-eventshint{position:absolute;top:calc(100% + 8px);right:0;z-index:30;max-width:280px;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};color:${INK};font-family:${FONT_UI};font-size:12px;line-height:1.45;padding:8px 12px;border-radius:12px;box-shadow:${T.panelShadow};}
 /* Kategórie (Trips/Events/Places/Services) sú nadpisy sekcií, nie dáta → FONT_TITLE. */
 .trp-catpill{flex:1 1 0;min-width:0;padding:12px 8px;border-radius:10px;border:1px solid rgba(245,240,228,0.22);background:rgba(245,240,228,0.07);font-family:${FONT_TITLE};font-weight:700;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:rgba(245,240,228,0.78);cursor:pointer;white-space:nowrap;transition:all .15s;text-align:center;}
 .trp-catpill.on{background:linear-gradient(135deg,#F5C73D,#E69E1A);border-color:rgba(250,244,236,0.3);color:#1c160c;box-shadow:0 4px 14px rgba(201,154,63,0.3);}
@@ -1354,6 +1358,9 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
 .trp-catpill.soon:hover{opacity:.8;}
 .trp-catpill.soon::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:${T.panelGrad};border:1.5px solid ${T.cardEdge};color:${INK};font-family:${FONT_UI};font-size:10px;font-weight:600;padding:5px 10px;border-radius:10px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;box-shadow:${T.panelShadow};z-index:5;}
 .trp-catpill.soon:hover::after{opacity:1;}
+/* PODUJATIA nemá data-tip — svoju vetu ukazuje pod pilulkami (.trp-eventshint); bez tohto
+   by hover vykreslil prázdnu bublinu nad pilulkou. */
+.trp-catpill.soon:not([data-tip])::after{display:none;}
 
 /* country select — flag + 3-letter code; native <select> so the dropdown escapes
    the panel's overflow:hidden cleanly (no popover-clip risk). Only SK enabled. */
@@ -2482,7 +2489,8 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
      ⚠️ Žiadne nové natvrdo písané číslo výšky: hlavička publikuje svoju SKUTOČNÚ výšku
      ako --trp-mheader-h (ResizeObserver, PackMap ~4180), takže ovládače mapy aj zoznam
      pod ňou sa posunú samy. */
-  .trp-mheader-cats{display:inline-flex;align-self:flex-start;gap:2px;padding:3px;border-radius:999px;background:${P_SOFT};border:1px solid ${P_BORDER};}
+  .trp-mheader-cats{position:relative;display:inline-flex;align-self:flex-start;gap:2px;padding:3px;border-radius:999px;background:${P_SOFT};border:1px solid ${P_BORDER};}
+  .trp-mheader-cats .trp-eventshint{left:0;right:auto;width:max-content;max-width:min(280px,calc(100vw - 32px));}
   .trp-mheader-cats button{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:999px;border:0;background:transparent;color:${P_DIM};cursor:pointer;transition:all .15s;}
   .trp-mheader-cats button.is-locked{opacity:.6;}
   .trp-mheader-cats button.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}font-weight:600;}
@@ -4149,9 +4157,15 @@ export default function PackMap() {
   // dala stlačiť a efekt vyššie ju ticho vrátil — človek nevedel, či je chyba v ňom, alebo
   // v appke; na PC chýbala úplne. Teraz je viditeľná na oboch šírkach, vyzerá zamknuto
   // a klik povie prečo. Kategória sa neprepne, formulár ani zoznam sa v 1. vlne neukážu.
+  const [eventsHint, setEventsHint] = useState(false);
+  const eventsHintTimer = useRef<number | null>(null);
+  useEffect(() => () => { if (eventsHintTimer.current) window.clearTimeout(eventsHintTimer.current); }, []);
   const pickEvents = () => {
     if (EVENTS_LIVE) { setActiveCat('events'); return; }
-    toast({ description: t('pack.map.eventsSoon') });
+    // Veta visí POD pilulkami (nie toast hore na obrazovke) — Matej 21. 9. 2026.
+    setEventsHint(true);
+    if (eventsHintTimer.current) window.clearTimeout(eventsHintTimer.current);
+    eventsHintTimer.current = window.setTimeout(() => setEventsHint(false), 4500);
   };
   // EVENT zoznam v paneli (krok 5, zadanie-eventy §9 krok 5) — rovnaký trojicový vzor ako trip
   // hoverId/inlineDetailId + heroCardRefs nižšie, len na vlastnom lokálnom localEvents stave.
@@ -6236,6 +6250,7 @@ export default function PackMap() {
                 nevadilo, lebo mapa je na LIVE za DEV_FULL — ale launch = flip DEV_FULL, a vtedy
                 by sa podujatia odomkli naraz s ňou. Odôvodnenie celé v `lib/packFlags.ts`. */}
             <button type="button" className={`trp-catpill${activeCat === 'events' ? ' on' : ''}${EVENTS_LIVE ? '' : ' soon'}`} aria-disabled={!EVENTS_LIVE} onClick={pickEvents}>{EVENTS_LIVE ? '' : '🔒 '}{t('pack.map.catEvents')}</button>
+            {eventsHint && <div className="trp-eventshint" role="status">{t('pack.map.eventsSoon')}</div>}
             {/* Matej 2026-08-06: MIESTA (Places) pill preč — PLACE ako filter kategória bola
                 zrušená (pláže/lúky/parky sú TRIP cez aktivitu `explore`, viď zadanie-eventy §A).
                 i18n kľúč `pack.map.catPlaces` ostáva v locale súboroch pre prípadné budúce použitie. */}
@@ -6435,6 +6450,7 @@ export default function PackMap() {
             zabrala tretinu šírky a nerobí nič. */}
         <div className="trp-mheader-cats" role="tablist">
           <button type="button" role="tab" aria-selected={activeCat === 'trips'} className={activeCat === 'trips' ? 'on' : ''} onClick={() => setActiveCat('trips')}>{t('pack.map.catTrips')}</button>
+          {eventsHint && <div className="trp-eventshint" role="status">{t('pack.map.eventsSoon')}</div>}
           <button type="button" role="tab" aria-selected={activeCat === 'events'} aria-disabled={!EVENTS_LIVE} className={activeCat === 'events' ? 'on' : EVENTS_LIVE ? '' : 'is-locked'} onClick={pickEvents}>{EVENTS_LIVE ? '' : '🔒 '}{t('pack.map.catEvents')}</button>
         </div>
       </div>

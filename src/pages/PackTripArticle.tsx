@@ -332,7 +332,12 @@ const CSS = `
    vykresľovania, nie ako „tento údaj tu nie je".
    "auto-fit" + "minmax" to rieši bez počítania v JS: jedna dlaždica dostane celý riadok,
    dve sa rozdelia na polovice, tri na tretiny. */
-.pta-statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px;margin-top:20px;}
+.pta-statrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:24px;}
+/* RIADOK 1 = trasa cez celú šírku, RIADOK 2 = náročnosť + ruch (Matej 21. 9. 2026:
+   „kilometre výškové a diaľka by som dal do jedného riadku do jedného bloku a náročnosť
+   a rušnosť do druhého riadku do dvoch… vadí mi to voľné miesto vedľa rušnosti").
+   Osamelý blok v riadku sa natiahne tiež — voľné miesto vedľa neho je presne to, čo vadilo. */
+.pta-stat--full{grid-column:1 / -1;}
 .pta-stat{padding:14px 8px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:5px;
   background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};
   transition:transform .2s ease;}
@@ -356,10 +361,8 @@ const CSS = `
    Na mobile ide route pod seba (km NAD prevýšením), aby stĺpec nepotreboval toľko šírky.
    ⚠️ Trieda .pta-ratingstack tu zanikla 25. 8. 2026 spolu so štvrtou dlaždicou — hodnotenie
    je dnes v riadku pod titulom (.pta-byrating), kde sa nelomí a stohovať sa nemá čo. */
-@media (max-width:560px){
-  .pta-route{flex-direction:column;gap:3px;}
-  .pta-route i{display:none;}
-}
+/* Na mobile trasa už NEJDE pod seba — od 21. 9. má celý riadok, takže sa km aj prevýšenie
+   zmestia vedľa seba (a pod seba poskladané by blok zbytočne zdvihli). */
 /* bod 2 (iterácia 14): tagy + aktivity s emoji, POD stat tabuľkou */
 .pta-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;}
 /* Chip = pilulka úrovne 5 matrice: radius 999, jeden zlatý rám (nie dva odtiene).
@@ -1225,6 +1228,8 @@ export default function PackTripArticle() {
   const cover = trail.photos[0] ?? placeholderFor(trail.acts, trail.id);
   // crowd agregát (design §A) — konzistentné s kartami v PackMap
   const agg = crowdAggregate(trail, votes[trail.id]);
+  // Náročnosť: voda nikdy, okruh bez čiary tiež (dôvody pri dlaždici nižšie).
+  const showDiffStat = !isWaterTrail(trail) && hasRouteMetrics(trail);
   /**
    * ── POČET HODNOTENÍ MÁ JEDEN ZDROJ (Matej 2026-08-25, Záruby 1: „pri hodnotení je zátvorka 2
    *    ale dolu je pri hodnotení 0 = tu treba správny údaj") ────────────────────────────────
@@ -1511,7 +1516,7 @@ export default function PackTripArticle() {
               takže podmienkou prešiel a článok kreslil riadok `↔️ 0.0 km`. Pýtame sa preto na
               GEOMETRIU (`hasRouteMetrics`) — bez nakreslenej čiary niet čo merať. */}
           {hasRouteMetrics(trail) && (trail.km?.trim() || (trail as { ascentM?: number }).ascentM != null) && (
-            <div className="pta-stat">
+            <div className="pta-stat pta-stat--full">
               {/* ⚠️ OBE ČÍSLA NESÚ EMOJI, NIE JEDNO (Matej 2026-08-25: „dvojšípka znázorňujúca
                   km je emoji = musí byť aj prevýšenie"). Do teraz tu stálo textové `↑` vedľa
                   emoji `↔️` — na telefóne to vyzerá ako dve rôzne abecedy v jednom riadku,
@@ -1534,9 +1539,9 @@ export default function PackTripArticle() {
               ⚠️ DVE PODMIENKY, NIE JEDNA. Okruh náročnosť nemá tiež (`needsDifficulty()` ju má
               od 31. 8. len pri HIKE), ale `hasRouteMetrics` sám by nestačil: paddleboard je
               voda SO stopou, teda by mu náročnosť prepustil. */}
-          {!isWaterTrail(trail) && hasRouteMetrics(trail) && (
+          {showDiffStat && (
             <div
-              className={agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}
+              className={`${agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}${agg.crowd ? '' : ' pta-stat--full'}`}
               data-tip={agg.belowThreshold ? undefined : voteTip(t, agg.difficultyBreakdown)}
             >
               <b><DiffMark diff={agg.difficulty} /> {t(`pack.map.diff.${agg.difficulty}`)}</b><span>{t('pack.trip.stat.difficulty')}</span>
@@ -1544,7 +1549,7 @@ export default function PackTripArticle() {
           )}
           {agg.crowd && (
             <div
-              className={agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}
+              className={`${agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}${showDiffStat ? '' : ' pta-stat--full'}`}
               data-tip={agg.belowThreshold ? undefined : voteTip(t, agg.crowdBreakdown)}
             >
               <b>{CROWD_EMOJI[agg.crowd]} {t(`pack.map.crowdKind.${agg.crowd}`)}</b><span>{t('pack.trip.stat.crowd')}</span>
