@@ -215,7 +215,7 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', onClose, onSaved,
         {/* ČO. Váha je číslo, zvyšok je text. */}
         {chip.input === 'number' ? (
           <>
-            <label className="dia-lbl" htmlFor="dia-kg">{tx(chip.hintKey, chip.hintFallback)}</label>
+            <label className="dia-lbl" htmlFor="dia-kg">{tx(chip.labelKey, chip.labelFallback)}</label>
             <input
               id="dia-kg"
               className="pf-field dia-inp"
@@ -223,18 +223,23 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', onClose, onSaved,
               inputMode="decimal"
               min="0"
               step="0.1"
-              placeholder="0.0"
+              placeholder={tx(chip.hintKey, chip.hintFallback)}
               value={kg}
               onChange={(e) => setKg(e.target.value)}
             />
           </>
         ) : (
           <>
-            <label className="dia-lbl" htmlFor="dia-text">{tx(chip.hintKey, chip.hintFallback)}</label>
+            {/* ⚠️ POPISOK JE MENO ČIPU, PRÍKLAD JE V POLI. Kým bol popiskom príklad,
+                stálo nad prázdnym poľom veľkými „FIRST SWIM, GOTCHA DAY, A WIN" —
+                eyebrow je krátke slovo, nie veta, a rozstrelené verzálky z príkladu
+                spravili krik. Placeholder na to matrica `.pf-field` už má. */}
+            <label className="dia-lbl" htmlFor="dia-text">{tx(chip.labelKey, chip.labelFallback)}</label>
             <textarea
               id="dia-text"
               className="pf-field dia-inp dia-area"
               rows={3}
+              placeholder={tx(chip.hintKey, chip.hintFallback)}
               value={text}
               onChange={(e) => setText(e.target.value)}
             />
