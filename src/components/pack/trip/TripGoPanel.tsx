@@ -7,7 +7,7 @@
 //  · nevyberá za človeka appku — výber navigácie je zvyk, nie rozhodnutie, ktoré vieme uhádnuť;
 //  · nepamätá si voľbu — jeden klik navyše je lacnejší než tichý presmerovaný odkaz;
 //  · nemá KRÍŽIK (lock CLAUDE.md: PACK_BOX.panel) — von sa ide klikom mimo alebo Esc.
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, MAPY, MAPY_BTN_SHADOW } from '@/components/pack/navGoldSkin';
@@ -82,9 +82,16 @@ const GO_CSS = `
 .tgo-cta--trail{background:${MAPY.grad};color:${MAPY.ink};border:1px solid ${MAPY.edge};box-shadow:${MAPY_BTN_SHADOW};}
 .tgo-cta--trail:hover{background:${MAPY.gradHover};}
 a.tgo-cta{text-decoration:none;}
-/* GPX = tichý odkaz pod dvojicou CTA, rovnaký tvar ako „Nahlásiť problém" v päte článku. */
-.tgo-gpx{display:block;margin:8px auto 0;background:none;border:0;padding:8px;font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:.02em;color:${T.inkWarm};text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
-.tgo-gpx:hover{color:${T.inkStrong};}
+/* DELENÉ TLAČIDLO: jeden zelený odliatok, rez tenkou tmavou čiarou. Tvar a výška z .tgo-cta,
+   šípka dostane vlastný kraj s rovnakým rádiusom. Menu je PACK_BOX.panel (plávajúci panel). */
+.tgo-split{position:relative;display:flex;}
+.tgo-split-main{flex:1;min-width:0;border-top-right-radius:0;border-bottom-right-radius:0;border-right:0;}
+.tgo-split-caret{display:flex;align-items:center;justify-content:center;width:48px;flex-shrink:0;padding:0;cursor:pointer;
+  border-radius:0 8px 8px 0;border-left:1px solid ${MAPY.edge};}
+.tgo-caret{width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .15s;}
+.tgo-split-caret[aria-expanded="true"] .tgo-caret{transform:translateY(2px) rotate(-135deg);}
+.tgo-menu{position:absolute;right:0;top:calc(100% + 8px);z-index:30;width:min(320px,100%);display:grid;gap:8px;padding:8px;
+  background:${PACK_BOX.panel.background};border:${PACK_BOX.panel.border};box-shadow:${PACK_BOX.panel.boxShadow};border-radius:12px;}
 `;
 
 /** Poradie = čo ľudia na Slovensku reálne otvárajú. Apple pribúda len na Apple zariadení. */
@@ -165,6 +172,24 @@ export function TripGoButtons({ trail, onDrive }: { trail: HeroTrail; onDrive: (
   // Návšteva (jeden bod) trasu nemá; výlet, ktorý Mapy.com nevedia nakresliť (mapyTrailUrl
   // vráti null), dostane namiesto odkazu náš GPX v tom istom zelenom tlačidle.
   const hasRoute = trail.path.length > 1;
+  const [menu, setMenu] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const splitRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menu) return;
+    const out = (e: PointerEvent) => { if (!splitRef.current?.contains(e.target as Node)) setMenu(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenu(false); };
+    window.addEventListener('pointerdown', out);
+    window.addEventListener('keydown', esc);
+    return () => { window.removeEventListener('pointerdown', out); window.removeEventListener('keydown', esc); };
+  }, [menu]);
+
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(mapy!); setCopied(true); setTimeout(() => { setCopied(false); setMenu(false); }, 1200); }
+    catch { setMenu(false); }
+  };
+
   return (
     <>
       <style>{GO_CSS}</style>
@@ -173,15 +198,40 @@ export function TripGoButtons({ trail, onDrive }: { trail: HeroTrail; onDrive: (
           <span className="tgo-ic">🅿️</span>
           {t('pack.trip.go.cta')}
         </button>
-        {/* ⚠️ ODKAZ, NIE PANEL (Matej 21. 9. 2026 podľa psievrcholy.sk: „jednoduchšie ako
-            otvoria trasu v mapach cz"). Do 21. 9. zelené tlačidlo otváralo panel so súborom
-            GPX a s odkazom, ktorý ukázal len okolie štartu. Teraz jedno ťuknutie = trasa
-            v appke Mapy.com; GPX ostáva pod tým pre Locus, Garmin a cestu bez signálu. */}
+        {/* ⚠️ DELENÉ TLAČIDLO (Matej 21. 9. 2026: „priamo v tlačítku by bola na kraji ikonka
+            dropdown a tam by bolo stiahnuť gpx a pod."). Hlavná plocha = trasa v Mapy.com
+            jedným ťuknutím (podľa psievrcholy.sk), šípka na kraji = ďalšie cesty k tej istej
+            trase. Do 21. 9. ráno tu bol panel so súborom a s odkazom len na okolie štartu.
+            Šípka je nakreslená v CSS, nie lucide — stráž ikoniek smie len klesať. */}
         {mapy ? (
-          <a className="tgo-cta tgo-cta--trail" href={mapy} target="_blank" rel="noopener noreferrer">
-            <span className="tgo-ic">🥾</span>
-            {t('pack.trip.go.ctaRoute')}
-          </a>
+          <div className="tgo-split" ref={splitRef}>
+            <a className="tgo-cta tgo-cta--trail tgo-split-main" href={mapy} target="_blank" rel="noopener noreferrer">
+              <span className="tgo-ic">🥾</span>
+              {t('pack.trip.go.ctaRoute')}
+            </a>
+            <button
+              type="button"
+              className="tgo-cta--trail tgo-split-caret"
+              aria-label={t('pack.trip.go.more')}
+              aria-expanded={menu}
+              onClick={() => setMenu((v) => !v)}
+            ><span className="tgo-caret" /></button>
+            {menu && (
+              <div className="tgo-menu" role="menu">
+                <button type="button" role="menuitem" className="tgo-item" onClick={() => { downloadGpx(trail); setMenu(false); }}>
+                  <span className="tgo-ic">📥</span>
+                  <span>
+                    {t('pack.trip.go.gpx')}
+                    <span className="tgo-sub">{t('pack.trip.go.gpxSub')}</span>
+                  </span>
+                </button>
+                <button type="button" role="menuitem" className="tgo-item" onClick={copy}>
+                  <span className="tgo-ic">🔗</span>
+                  {copied ? t('pack.trip.go.copied') : t('pack.trip.go.copyLink')}
+                </button>
+              </div>
+            )}
+          </div>
         ) : hasRoute && (
           <button type="button" className="tgo-cta tgo-cta--trail" onClick={() => downloadGpx(trail)}>
             <span className="tgo-ic">🥾</span>
@@ -189,11 +239,6 @@ export function TripGoButtons({ trail, onDrive }: { trail: HeroTrail; onDrive: (
           </button>
         )}
       </div>
-      {mapy && (
-        <button type="button" className="tgo-gpx" onClick={() => downloadGpx(trail)}>
-          {t('pack.trip.go.gpx')}
-        </button>
-      )}
     </>
   );
 }
