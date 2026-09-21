@@ -1,190 +1,186 @@
 // ════════════════════════════════════════════════════════════════════════════
-// KOSTRA AINUBISA — `/pack/ainubis` (2026-09-21)
+// AINUBIS — `/pack/ainubis` = VAULT podľa nákresu v5 (2026-09-21)
 // ────────────────────────────────────────────────────────────────────────────
-// Rozhodnutia 4A + 5A z `plany/nakres-launch-pack-2026-09-21.html` (Matej 21. 9.):
-// vlastná obrazovka, sedem svetov so zámkom, banner „stavba pred očami" a chat,
-// ktorý už dnes beží naostro. Vedie sem dlaždica na domove (`Gateways`) aj blok
-// na `/pack/dogs`.
+// Zadanie `plany/zadanie-ainubis-vault-pristatie-2026-09-21.md`. Nahrádza kostru
+// so siedmimi dlaždicami (commity `880f04d`, `33aa5e11`), na ktorú Matej nekývol:
+// *„na ničom takom sme sa nedohodli"*. Dohodnuté bolo „AINUBIS pristáva na VAULTE"
+// — a VAULT je nákres `plany/nakres-vault-fasada-v5-2026-09-20.html`, nie mriežka.
+// Mriežka by sa v novembri zbúrala a ľudia by sa ju medzitým naučili (lock §0).
 //
-// ⚠️ TOTO NIE JE VAULT. VAULT (maketa `plany/nakres-vault-fasada-v5-2026-09-20.html`)
-//    je zámerne MIMO kritickej cesty flipu — Matej 20. 9.: „AINUBIS nie je projekt,
-//    ktorý bude ready do launchu, je to len akýsi náhľad a základ, ktorý budeme svet
-//    po svete budovať." Kostra je okresané minimum pre 1. vlnu: žiadna nástenka,
-//    žiadny rozbalený chat v stĺpcoch, žiadne zvitky.
+// ČO TU JE — tri osi z locku `architektura-pack.md` §1.3.1:
+//   · HORE ROVINA   VAULT · CHAT · (NÁSTENKA čoskoro) — iný obsah
+//   · DOLE POHĽAD   MOZOG ⇄ DOGSCROLL — ten istý obsah, iný pohľad (len mobil;
+//                   na PC stoja vedľa seba 40 / 60 ako v nákrese a ako mapa + zoznam)
+//   · MOZOG         plátno `components/pack/vault/brainEngine.ts` (recept JADRO)
 //
-// ⚠️ KÔŠ 1 — „SOM DOMA" (lock `plany/locky/architektura-pack.md` §3). AINUBIS je
-//    miesto chrbtice, nie zanorená obrazovka: spodná lišta je VIDNO vždy a šípka
-//    späť tu NIE JE. Preto stránka stojí na `PackLayout` ako ostatné miesta a sama
-//    si nič na spodok okna nelepí (§4 locku aj pamäť o obsadenom spodnom páse).
-//
-// ⚠️ ŠAT JE JEHO, NIE PAPYRUS. Do `PAPER_ROUTES` táto routa NEPATRÍ — AINUBIS má
-//    vlastnú cyborg paletu (`ainubisSkin.ts`) a papyrus by z neho spravil ďalšiu
-//    kartu appky. Čísla farieb sa NEPÍŠU ručne, berú sa z `AINUBIS.*`.
-//
-// ⚠️ SVETY SÚ KÓPIA REGISTRA Z NÁKRESU, nie nový zoznam. Mená, poradie aj ikonky
-//    sedia s `SVETY[]` v nákrese VAULTu v5 (Matej ich vybral 20. 9.). EN mená sú
-//    z nákresu launchu; `v-mena` na nástenke ešte beží, takže pri dolaďovaní mien
-//    sa mení TENTO zoznam a nákres SPOLU.
-//
-// ⚠️ IKONKY SÚ MASKA, NIE FILTER. `BrandIcon` tónuje cez `filter:` a to je pre
-//    cyan `#5BE0F0` hádaná farba (pamäť `feedback_filter_aproximuje_masku_farbu_presne`).
-//    Tu ide o AINUBISOV token, takže `mask-image` + `background` = presný hex.
+// ⚠️ KÔŠ 1 — „SOM DOMA" (lock §3). AINUBIS je miesto chrbtice: lišta je vidno vždy,
+//    šípka späť tu NIE JE. CHAT je kôš 3 a otvára ho `ainubisBus` ako doteraz —
+//    na mobile je to celoobrazovkový panel, v ktorom lišta mizne.
+// ⚠️ OBRAZOVKA JE CELÁ PLOCHA, nie stĺpec. Preto nestojí na `PackLayout` (ten dáva
+//    stĺpec `PACK_COL`), ale skladá si shell sama — ten istý vzor ako `PackMap`:
+//    `PackBottomNav` + `MessagingOverlayHost` ako súrodenci plochy.
+// ⚠️ ŠAT JE AINUBISOV, NIE PAPYRUS. Do `PAPER_ROUTES` routa NEPATRÍ; farby sa
+//    NEPÍŠU ručne, berú sa z `AINUBIS.*` (AI-PALUBA v katalógu blokov).
+// ⚠️ SVETY SÚ ZAMKNUTÉ V MOZGU, NIE DLAŽDICE. Obsah zatiaľ neexistuje, takže mozog
+//    ukazuje tvar, klik na svet vedie na jeho upútavku v DOGSCROLLE a stred (hlava
+//    AINUBISA) otvára chat — jediné, čo dnes naozaj žije.
+// 🚩 NEROZHODNUTÉ (zadanie §3, rozhoduje Matej nad obrazovkou):
+//    · vzhľad zamknutého sveta — dva varianty, prepína ich `?zamok=lit|dim`
+//      (východisko `dim`); dve polohy toho istého plátna, nie dve obrazovky,
+//    · chat ako rovina hore + stred mozgu ako vstup (postavené podľa odporúčania),
+//    · pilulka DOGSCROLL do novembra s upútavkami (postavené podľa odporúčania).
 // ════════════════════════════════════════════════════════════════════════════
-import { PackLayout } from '@/components/pack/PackLayout';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { PackBottomNav, MessagingOverlayHost, PackTopRight } from '@/components/pack/PackLayout';
+import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import {
   PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI,
 } from '@/components/pack/packTheme';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { openAinubis } from '@/lib/ainubisBus';
 import { useT } from '@/i18n/LanguageContext';
+import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
+import { mountBrain, type BrainHandle, type LockedLook } from '@/components/pack/vault/brainEngine';
 import ainubisHead from '@/assets/ainubis-head.png';
 
-// Sedem svetov. `ic` = hand-drawn ikonka z `public/icons/pack/` — ani jedna nie je
-// kreslená pre túto obrazovku, všetky sú v kite (brand: ikonka mimo kitu = dôvod
-// vypýtať si kresbu, nie dôvod siahnuť po lucide).
-const WORLDS: readonly { key: string; ic: string; en: string }[] = [
-  { key: 'dogsPath', ic: 'dogsphinx', en: "Dog's path" },
-  { key: 'understanding', ic: 'idea', en: 'Understanding' },
-  { key: 'anatomy', ic: 'nose', en: 'Anatomy' },
-  { key: 'nutrition', ic: 'bow', en: 'Nutrition' },
-  { key: 'prevention', ic: 'vet', en: 'Prevention' },
-  { key: 'training', ic: 'bolt', en: 'Training' },
-  { key: 'problems', ic: 'alert', en: 'Problems' },
-];
-
-// Chat sedí ako ŠTVRTÁ dlaždica v rade (nákres 21. 9.), nie nad mriežkou ani pod
-// ňou. Dôvod je obsahový: jediná živá vec má stáť MEDZI zamknutými, inak vyzerá
-// obrazovka ako sedem zámkov s tlačidlom odloženým bokom.
-const CHAT_AT = 3;
+/* ⚠️ JEDNA HRANICA — tá istá ako na mape (`PackMap`: ≤1023 = mobilný pohľad
+   s pilulkou ZOZNAM). Dve čísla by znamenali šírku, kde má mapa pilulku a VAULT nie. */
+const PC_MIN = 1024;
+/* Rezerva pod mozgom: lišta + pilulka na mobile, len lišta na PC. Mozog sa centruje
+   do plochy nad ňou (nákres: `vol = H - 110`, tam bez lišty). */
+const BOTTOM_MOBILE = 168;
+const BOTTOM_PC = 112;
 
 const CSS = `
-.akb-hero{
-  position:relative; overflow:hidden;
-  border-radius:${PACK_R.card}px;
-  padding:${PACK_SPACE.xxl}px ${PACK_SPACE.xl}px;
-  background:${AINUBIS.surface};
-  border:1px solid ${AINUBIS.edge};
-  box-shadow:${AINUBIS.panelShadow};
-}
-/* Holografická mriežka — ten istý motív ako dlaždica na domove (.gw-ainubis::after).
-   Je to podsvietený displej, nie čierny obdĺžnik. */
-.akb-hero::after{
-  content:''; position:absolute; inset:0; pointer-events:none; opacity:0.30;
+.akv-root{position:fixed;inset:0;overflow:hidden;background:${AINUBIS.surfaceBase};color:${AINUBIS.ink};
+  font-family:${FONT_UI};--akv-panel:min(40vw,480px);}
+/* Podsvietený displej, nie čierny obdĺžnik — dve mriežky ako v nákrese (.bg .mesh / .mesh8). */
+.akv-bg{position:absolute;inset:0;pointer-events:none;
   background-image:
-    linear-gradient(rgba(${AINUBIS.cyanRGB},0.16) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(${AINUBIS.cyanRGB},0.16) 1px, transparent 1px);
-  background-size:34px 34px;
-  -webkit-mask-image:radial-gradient(120% 90% at 50% 0%, #000 0%, transparent 72%);
-  mask-image:radial-gradient(120% 90% at 50% 0%, #000 0%, transparent 72%);
+    linear-gradient(rgba(${AINUBIS.cyanRGB},0.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(${AINUBIS.cyanRGB},0.06) 1px,transparent 1px),
+    linear-gradient(rgba(${AINUBIS.cyanRGB},0.10) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(${AINUBIS.cyanRGB},0.10) 1px,transparent 1px);
+  background-size:24px 24px,24px 24px,192px 192px,192px 192px;}
+.akv-bg::after{content:'';position:absolute;inset:0;
+  background:radial-gradient(60vw 60vw at 85% 10%,rgba(${AINUBIS.cyanRGB},0.14),transparent 62%),
+             radial-gradient(55vw 55vw at 70% 105%,rgba(${AINUBIS.glowRGB},0.12),transparent 62%);}
+
+/* ── MOZOG ─────────────────────────────────────────────────────────────── */
+.akv-brain{position:absolute;inset:0;}
+.akv-brain canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;}
+.akv-tip{position:absolute;z-index:5;pointer-events:none;opacity:0;transition:opacity 120ms ease;
+  transform:translate(-50%,calc(-100% - ${PACK_SPACE.md}px));max-width:260px;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;
+  background:${AINUBIS.surface};border:1px solid ${AINUBIS.edgeStrong};box-shadow:${AINUBIS.panelShadow};
+  font-size:${PACK_TEXT.label}px;line-height:1.4;color:${AINUBIS.inkDim};}
+.akv-tip b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;
+  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.ink};}
+.akv-tip u{display:block;text-decoration:none;margin-top:${PACK_SPACE.xs}px;font-size:${PACK_TEXT.micro}px;
+  letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.ctaA};}
+
+/* ── HORNÝ PÁS — ROVINY (vzor .trp-topbar: pás nad DOSTUPNOU šírkou) ────── */
+.akv-top{position:absolute;z-index:6;top:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.md}px);
+  left:${PACK_SPACE.md}px;right:${PACK_SPACE.md}px;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;
+  pointer-events:none;}
+.akv-top > *{pointer-events:auto;}
+.akv-toprow{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;}
+.akv-planes{flex:1 1 auto;min-width:0;display:flex;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.xs}px;
+  border-radius:${PACK_R.pill}px;background:${AINUBIS.surface};border:1px solid ${AINUBIS.edge};
+  box-shadow:${AINUBIS.panelShadow};}
+.akv-plane{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.xs}px;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;border:1px solid transparent;
+  background:transparent;color:${AINUBIS.inkDim};cursor:pointer;white-space:nowrap;
+  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;
+  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;}
+/* Výber je PRIESVITNÝ TINT, nie plná plocha — AINUBIS vyberá cyanom (ainubisSkin). */
+.akv-plane[aria-current="page"]{color:${AINUBIS.ink};background:rgba(${AINUBIS.cyanRGB},0.16);
+  border-color:${AINUBIS.edgeStrong};}
+.akv-plane:disabled{cursor:default;color:${AINUBIS.inkFaint};}
+.akv-plane em{font-style:normal;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;
+  letter-spacing:${PACK_HEAD.section.letterSpacing};color:${AINUBIS.inkFaint};}
+.akv-grow{flex:1 1 auto;}
+.akv-when{flex:0 0 auto;white-space:nowrap;display:inline-flex;align-items:center;gap:${PACK_SPACE.sm}px;
+  padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
+  font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;letter-spacing:0.02em;
+  text-transform:uppercase;color:${AINUBIS.ctaA};background:${AINUBIS.surface};border:1px solid ${AINUBIS.ctaEdge};}
+/* ⚠️ .02em, nie .22em: je to PILULKA, nie nadpis (lock dizajn-systému — tesné sledovanie
+   patrí pilulkám). Pri .22em sa na 360 px vedľa správ nezmestila a zvonček vytiekol z okna. */
+
+/* ── DOGSCROLL ─────────────────────────────────────────────────────────── */
+.akv-scroll{position:absolute;inset:0;z-index:3;overflow-y:auto;overscroll-behavior:contain;
+  background:${AINUBIS.surfaceBase};
+  padding:var(--akv-top-h,112px) ${PACK_SPACE.lg}px ${BOTTOM_MOBILE + PACK_SPACE.xl}px;}
+.akv-col{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:${PACK_SPACE.lg}px;}
+.akv-head{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
+.akv-face{width:48px;height:48px;flex:0 0 auto;object-fit:cover;border-radius:${PACK_R.pill}px;
+  background:${AINUBIS.faceBg};box-shadow:${AINUBIS.faceRing};}
+.akv-flag{display:block;margin-bottom:${PACK_SPACE.xs}px;font-family:${FONT_UI};font-weight:500;
+  font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.label.letterSpacing};text-transform:uppercase;color:${AINUBIS.cyan};}
+.akv-title{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h1}px;line-height:1.1;
+  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.ink};}
+.akv-claim{margin:${PACK_SPACE.sm}px 0 0;font-size:${PACK_TEXT.body}px;color:${AINUBIS.inkDim};}
+.akv-lead{margin:${PACK_SPACE.md}px 0 0;font-size:${PACK_TEXT.body}px;line-height:1.55;color:${AINUBIS.inkDim};}
+/* UPÚTAVKA SVETA — tvar budúceho úvodu sveta (.wintro v nákrese), lock §4.1: jedna karta. */
+.akv-world{position:relative;text-align:center;scroll-margin-top:var(--akv-top-h,112px);
+  padding:${PACK_SPACE.xl}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.card}px;
+  background:${AINUBIS.raised}, ${AINUBIS.surface};border:1px solid ${AINUBIS.edge};box-shadow:${AINUBIS.panelShadow};
+  transition:border-color 300ms ease;}
+.akv-world.is-flash{border-color:${AINUBIS.cyan};}
+.akv-wlbl{font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.label.letterSpacing};text-transform:uppercase;color:${AINUBIS.cyan};}
+/* IKONKA cez MASKU, nie filter — filter farbu hádá (feedback_filter_aproximuje_masku). */
+.akv-wic{width:44px;height:44px;margin:${PACK_SPACE.md}px auto 0;background:${AINUBIS.ctaGrad};
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;
+  -webkit-mask-size:contain;mask-size:contain;}
+.akv-wname{margin:${PACK_SPACE.md}px 0 0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;line-height:1.2;
+  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.ink};overflow-wrap:anywhere;}
+.akv-wtease{margin:${PACK_SPACE.sm}px auto 0;max-width:40ch;font-size:${PACK_TEXT.body}px;line-height:1.55;color:${AINUBIS.inkDim};}
+.akv-wsoon{display:inline-block;margin-top:${PACK_SPACE.lg}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;
+  border-radius:${PACK_R.pill}px;font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.section.letterSpacing};
+  text-transform:uppercase;color:${AINUBIS.inkDim};border:1px solid ${AINUBIS.edge};}
+
+/* ── POHĽAD DOLE — pilulka nad lištou (lock §1.3.1, geometria .trp-mactions) ──
+   ⚠️ Číslo je OPÍSANÉ z PackMap.tsx, lebo register spodného pásu (nástenka r-pas)
+   ešte neexistuje. Keď vznikne, táto pilulka ide doň ako prvá — nie ako ďalší
+   nezávislý prilepený prvok.
+   ⚠️ ŽIADNE spätné apostrofy v komentároch — sú vnútri template literálu CSS. */
+.akv-mactions{position:absolute;z-index:7;left:50%;transform:translateX(-50%);
+  bottom:calc(env(safe-area-inset-bottom,0px) + 87px + var(--pack-medal-rise, 0px) + 4px + var(--consent-h, 0px));}
+/* Prepínač NIE JE výzva k akcii: pilulka 999 BEZ dosvitu (lock §1.3.1). */
+.akv-mtoggle{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;cursor:pointer;white-space:nowrap;
+  padding:${PACK_SPACE.md}px ${PACK_SPACE.xl}px;border-radius:${PACK_R.pill}px;
+  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:${PACK_HEAD.card.letterSpacing};
+  text-transform:uppercase;background:${AINUBIS.ctaGrad};color:${AINUBIS.ctaInk};border:1px solid ${AINUBIS.ctaEdge};}
+.akv-mtoggle i{width:16px;height:16px;flex:0 0 auto;background:${AINUBIS.ctaInk};
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;
+  -webkit-mask-size:contain;mask-size:contain;}
+
+/* Mobil: pohľady sa striedajú, DOGSCROLL prekrýva mozog. */
+.akv-root[data-view="brain"] .akv-scroll{display:none;}
+/* Nad pásom kariet dostane horný pás podklad — inak cez medzeru medzi jeho riadkami
+   presvitá text karty, ktorá pod ním odchádza (snímka 21. 9., 390 px). */
+@media (max-width:${PC_MIN - 1}px){
+  .akv-root[data-view="scroll"] .akv-top::before{content:'';position:absolute;z-index:-1;pointer-events:none;
+    left:-${PACK_SPACE.md}px;right:-${PACK_SPACE.md}px;bottom:-${PACK_SPACE.md}px;
+    top:calc(-1 * (env(safe-area-inset-top,0px) + ${PACK_SPACE.md}px));
+    background:linear-gradient(180deg,${AINUBIS.bg} 78%,transparent);}
 }
-.akb-head{
-  position:relative; z-index:1;
-  display:flex; align-items:center; gap:${PACK_SPACE.lg}px; flex-wrap:wrap;
-}
-.akb-face{
-  width:96px; height:96px; flex:0 0 auto; object-fit:contain;
-  border-radius:${PACK_R.pill}px;
-  background:${AINUBIS.faceBg}; box-shadow:${AINUBIS.faceRing};
-}
-.akb-name{
-  font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.h1}px; line-height:1;
-  letter-spacing:${PACK_HEAD.card.letterSpacing}; text-transform:uppercase;
-  color:${AINUBIS.ink}; margin:0;
-}
-.akb-name i{ font-style:normal; color:${AINUBIS.aiInk}; text-shadow:${AINUBIS.aiShadow}; }
-/* Štítok stavu — ŠIROKÝ rozstrelený tvar PACK_HEAD.label (.26em), nie tichý eyebrow
-   vnútri karty. Hovorí, že sa stavia pred očami, takže má byť vidieť skôr než text. */
-.akb-flag{
-  display:block; margin-bottom:${PACK_SPACE.sm}px;
-  font-family:${FONT_UI}; font-weight:500; font-size:${PACK_TEXT.micro}px;
-  letter-spacing:${PACK_HEAD.label.letterSpacing}; text-transform:uppercase;
-  color:${AINUBIS.cyan};
-}
-.akb-lead{
-  position:relative; z-index:1; margin:${PACK_SPACE.lg}px 0 0;
-  font-family:${FONT_UI}; font-size:${PACK_TEXT.lead}px; line-height:1.55;
-  color:${AINUBIS.inkDim}; max-width:62ch;
-}
-/* Dátum otvorenia je SĽUB, preto stojí samostatne a v jeho CTA farbe — nie utopený
-   vo vete. Nie je to tlačidlo, takže NEMÁ plnú plochu CTA gradientu (zlato = akcia). */
-.akb-when{
-  position:relative; z-index:1; display:inline-block; margin-top:${PACK_SPACE.lg}px;
-  padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px; border-radius:${PACK_R.pill}px;
-  font-family:${FONT_UI}; font-weight:600; font-size:${PACK_TEXT.label}px;
-  letter-spacing:0.02em; color:${AINUBIS.ctaA};
-  background:${AINUBIS.ctaTint};
-  border:1px solid ${AINUBIS.ctaEdge};
-}
-/* ⚠️ POČET STĹPCOV NIE JE PEVNÝ — rozhoduje ŠÍRKA DLAŽDICE (160 px). Pevné štyri
-   stĺpce na PC dali dlaždicu ~150 px a do nej sa „UNDERSTANDING" v Cinzeli s rozstupom
-   .14em nezmestí ani pri najmenšom písme z matrice; lámalo sa to na „UNDERSTAN-DING".
-   Takto mriežka sama padne na tri stĺpce tam, kde by štyri lámali slová. */
-.akb-grid{
-  display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-  gap:${PACK_SPACE.md}px; margin-top:${PACK_SPACE.xl}px;
-}
-.akb-tile{
-  position:relative; display:flex; flex-direction:column; align-items:flex-start;
-  gap:${PACK_SPACE.sm}px; text-align:left; width:100%;
-  padding:${PACK_SPACE.lg}px; border-radius:${PACK_R.tile}px;
-  /* ⚠️ DVE VRSTVY, NIE JEDNA. Samotný raised je gradient s krytím 0.07/0.03, takže
-     cez dlaždicu presvitala hieroglyfová tapeta PackLayout-u a svet vyzeral ako okno
-     do pozadia namiesto zhasnutého displeja (videné na fotke 21. 9., 500 aj 1440 px).
-     Preto raised NAD surface: raised ostáva tým, čím je — o stupeň vyššia plocha. */
-  background:${AINUBIS.raised}, ${AINUBIS.surface};
-  border:1px solid ${AINUBIS.edge};
-  box-shadow:${AINUBIS.panelShadow};
-}
-/* Zamknutý svet je TICHÝ. Nie je to chyba ani nálepka cez roh — je to sľúbený obsah,
-   ktorý sa píše. Preto stlmenie, nie prečiarknutie.
-   ⚠️ STLMUJE SA OBSAH, NIE DOSKA. opacity na celej dlaždici zprehľadní aj jej
-   podklad, takže cez svet presvitala hieroglyfová tapeta stránky (fotka 21. 9.) —
-   a displej, cez ktorý vidno stenu za ním, nie je zhasnutý displej, je to diera. */
-.akb-tile-locked > *{ opacity:0.72; }
-.akb-tile-live{
-  border-color:${AINUBIS.edgeStrong};
-  background:${AINUBIS.surface};
-  cursor:pointer;
-  transition:transform 140ms ease;
-}
-/* Hover nesie IBA transform — box-shadow je jedna vlastnosť a prepísal by celý
-   odliatok dlaždice (to isté pravidlo ako pri zlatom ráme v brand locku). */
-.akb-tile-live:hover, .akb-tile-live:focus-visible{ transform:translateY(-2px); }
-.akb-ic{
-  width:32px; height:32px; display:block;
-  background:${AINUBIS.cyan};
-  -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
-  -webkit-mask-position:center; mask-position:center;
-  -webkit-mask-size:contain; mask-size:contain;
-}
-.akb-ic-live{ background:${AINUBIS.ctaA}; }
-.akb-tile-name{
-  font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.label}px; line-height:1.35;
-  letter-spacing:${PACK_HEAD.card.letterSpacing}; text-transform:uppercase;
-  color:${AINUBIS.ink}; margin:0;
-  /* ⚠️ BEZ TOHTO PRETEČIE. Pri štyroch stĺpcoch je dlaždica ~150 px a „UNDERSTANDING"
-     v Cinzeli s rozstupom .14em je širšie — na fotke 21. 9. (1440 px) doslova naliehalo
-     na ANATOMY v susednej dlaždici. Jedno dlhé slovo sa nemá kde zalomiť, kým mu to
-     nedovolíš. Sledovanie sa NEZNIŽUJE: .14em je nadpisový tvar z matrice. */
-  overflow-wrap:anywhere;
-  min-width:0;
-}
-.akb-tile-name i{ font-style:normal; color:${AINUBIS.aiInk}; text-shadow:${AINUBIS.aiShadow}; }
-.akb-state{
-  font-family:${FONT_UI}; font-weight:500; font-size:${PACK_TEXT.micro}px;
-  letter-spacing:${PACK_HEAD.section.letterSpacing}; text-transform:uppercase;
-  color:${AINUBIS.inkFaint};
-}
-.akb-state-live{ color:${AINUBIS.ctaA}; }
-.akb-ask{
-  margin-top:${PACK_SPACE.xs}px; padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;
-  border-radius:${PACK_R.field}px; border:0;
-  font-family:${FONT_UI}; font-weight:700; font-size:${PACK_TEXT.label}px;
-  letter-spacing:0.02em; text-transform:uppercase;
-  background:${AINUBIS.ctaGrad}; color:${AINUBIS.ctaInk};
-  box-shadow:${AINUBIS.ctaShadow};
+
+/* ── PC: 40 / 60 vedľa seba, pás len nad pravou plochou (nákres, rozhodnutie 2) ── */
+@media (min-width:${PC_MIN}px){
+  .akv-scroll,.akv-root[data-view="brain"] .akv-scroll{display:block;right:auto;width:var(--akv-panel);
+    padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.xl}px) ${PACK_SPACE.xl}px ${BOTTOM_PC + PACK_SPACE.xl}px;
+    border-right:1px solid ${AINUBIS.edge};}
+  .akv-brain{left:var(--akv-panel);}
+  .akv-top{left:calc(var(--akv-panel) + ${PACK_SPACE.xl}px);right:${PACK_SPACE.xl}px;top:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.xl}px);}
+  .akv-planes{flex:0 1 480px;}
+  .akv-mactions{display:none;}
+  .akv-world{scroll-margin-top:${PACK_SPACE.xl}px;}
 }
 `;
+
+type View = 'brain' | 'scroll';
 
 export default function PackAinubis() {
   const t = useT();
@@ -192,82 +188,195 @@ export default function PackAinubis() {
     const v = t(key);
     return v === key ? fallback : v;
   };
+  const id = usePackIdentity();
+  const [params] = useSearchParams();
+  const look: LockedLook = params.get('zamok') === 'lit' ? 'lit' : 'dim';
+  const [view, setView] = useState<View>('brain');
+  const [flash, setFlash] = useState<string | null>(null);
 
-  const tiles = WORLDS.map((w) => (
-    <div className="akb-tile akb-tile-locked" key={w.key}>
-      <span
-        className="akb-ic"
-        aria-hidden
-        style={{
-          WebkitMaskImage: `url(/icons/pack/${w.ic}.svg)`,
-          maskImage: `url(/icons/pack/${w.ic}.svg)`,
-        }}
-      />
-      <h2 className="akb-tile-name">{tx(`pack.ainubis.world.${w.key}`, w.en)}</h2>
-      <span className="akb-state">{tx('pack.ainubis.state.building', 'Building')}</span>
-    </div>
-  ));
+  const rootRef = useRef<HTMLDivElement>(null);
+  const cvRef = useRef<HTMLCanvasElement>(null);
+  const tipRef = useRef<HTMLDivElement>(null);
+  const topRef = useRef<HTMLDivElement>(null);
+  const brain = useRef<BrainHandle | null>(null);
+  const ready = !id.loading && !!id.session;
 
-  tiles.splice(
-    CHAT_AT,
-    0,
-    <button className="akb-tile akb-tile-live" key="chat" type="button" onClick={openAinubis}>
-      <span
-        className="akb-ic akb-ic-live"
-        aria-hidden
-        style={{
-          WebkitMaskImage: 'url(/icons/pack/chat.svg)',
-          maskImage: 'url(/icons/pack/chat.svg)',
-        }}
-      />
-      {/* Meno sa NEPREKLADÁ a delí sa v MARKUPE — „AI" je stroj, „NUBIS" strážca. */}
-      <h2 className="akb-tile-name">
-        <i>AI</i>NUBIS {tx('pack.ainubis.chat', 'chat')}
-      </h2>
-      <span className="akb-state akb-state-live">{tx('pack.ainubis.state.live', 'Live')}</span>
-      <span className="akb-ask">{tx('pack.ainubis.ask', 'Ask AINUBIS')}</span>
-    </button>,
+  const names = useMemo(
+    () => VAULT_WORLDS.map((w) => tx(`pack.ainubis.world.${w.key}`, w.en)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [t],
   );
+  /* Plátno sa mountuje RAZ — jeho callbacky preto čítajú aktuálne mená a jazyk z refu. */
+  const live = useRef({ names, tx });
+  live.current = { names, tx };
+
+  const openWorld = (wi: number) => {
+    const key = VAULT_WORLDS[wi].key;
+    setView('scroll');
+    setFlash(key);
+    /* Až po vykreslení: na mobile je DOGSCROLL do tejto chvíle `display:none`. */
+    requestAnimationFrame(() => {
+      document.getElementById(`akv-w-${key}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    window.setTimeout(() => setFlash((f) => (f === key ? null : f)), 1400);
+  };
+  const openWorldRef = useRef(openWorld);
+  openWorldRef.current = openWorld;
+
+  // ── MOZOG — mount raz, keď je plátno v DOM ────────────────────────────────
+  useEffect(() => {
+    const cv = cvRef.current, tip = tipRef.current;
+    if (!ready || !cv || !tip) return;
+    const isPc = () => window.innerWidth >= PC_MIN;
+    brain.current = mountBrain({
+      canvas: cv,
+      tip,
+      worlds: VAULT_WORLDS,
+      head: ainubisHead,
+      look,
+      worldName: (wi) => live.current.names[wi],
+      insets: () => ({
+        top: (topRef.current?.getBoundingClientRect().bottom ?? 0) + PACK_SPACE.sm,
+        /* + cookie lišta, kým človek neklikol — spodok okna patrí jej (lock §1.1.1 bod 3) */
+        bottom: (isPc() ? BOTTOM_PC : BOTTOM_MOBILE)
+          + (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--consent-h')) || 0),
+      }),
+      describe: (role, wi) => {
+        const { names: n, tx: x } = live.current;
+        if (role === 'root') return { title: 'AINUBIS', hint: x('pack.ainubis.ask', 'Ask AINUBIS') };
+        return {
+          title: n[wi],
+          sub: role === 'o' ? x('pack.ainubis.tip.circle', 'A chapter being written')
+            : x('pack.ainubis.tip.scroll', 'A scroll being written'),
+          hint: x('pack.ainubis.opening', 'Expected opening: November 2026'),
+        };
+      },
+      onWorld: (wi) => openWorldRef.current(wi),
+      onRoot: openAinubis,
+    });
+    const ro = new ResizeObserver(() => brain.current?.resize());
+    ro.observe(cv);
+    /* Cookie lišta zmizne bez zmeny rozmerov plátna — mení len `--consent-h` na <html>.
+       Bez tohto by mozog ostal zmenšený pre lištu, ktorá už nie je. */
+    let consent = getComputedStyle(document.documentElement).getPropertyValue('--consent-h');
+    const mo = new MutationObserver(() => {
+      const now = getComputedStyle(document.documentElement).getPropertyValue('--consent-h');
+      if (now !== consent) { consent = now; brain.current?.resize(); }
+    });
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
+    return () => { ro.disconnect(); mo.disconnect(); brain.current?.destroy(); brain.current = null; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
+  useEffect(() => { brain.current?.setLook(look); }, [look]);
+
+  /* Výška horného pásu ide von ako premenná — DOGSCROLL na mobile začína pod ním,
+     nie pod odhadnutým číslom. */
+  useEffect(() => {
+    const top = topRef.current, root = rootRef.current;
+    if (!ready || !top || !root) return;
+    const pub = () => root.style.setProperty('--akv-top-h', `${Math.round(top.getBoundingClientRect().bottom) + PACK_SPACE.md}px`);
+    pub();
+    const ro = new ResizeObserver(pub);
+    ro.observe(top);
+    return () => ro.disconnect();
+  }, [ready]);
+
+  if (!ready) return <div className="akv-root" style={{ position: 'fixed', inset: 0, background: AINUBIS.surfaceBase }} />;
+
+  const plane = (key: 'vault' | 'chat' | 'wall', en: string) => tx(`pack.ainubis.plane.${key}`, en);
+  const mask = (ic: string) => ({ WebkitMaskImage: `url(/icons/pack/${ic}.svg)`, maskImage: `url(/icons/pack/${ic}.svg)` });
 
   return (
-    <PackLayout>
+    <div className="akv-root" ref={rootRef} data-view={view}>
       <style>{CSS}</style>
+      <div className="akv-bg" aria-hidden />
 
-      {/* ── BANNER — variant A „stavba pred očami" (rozhodnutie 5A, 21. 9.) ────── */}
-      <section className="akb-hero">
-        <div className="akb-head">
-          <img className="akb-face" src={ainubisHead} alt="" aria-hidden />
-          <div>
-            <span className="akb-flag">
-              {tx('pack.ainubis.flag', 'Under construction — in plain sight')}
-            </span>
-            <h1 className="akb-name"><i>AI</i>NUBIS</h1>
-          </div>
-        </div>
-
-        <p className="akb-lead">
-          {tx(
-            'pack.ainubis.lead',
-            'AINUBIS is learning. Seven worlds of dog knowledge are being written right now, '
-            + 'scroll by scroll. You’ll watch them open one by one.',
-          )}
-        </p>
-
-        <span className="akb-when">
-          {tx('pack.ainubis.opening', 'Expected opening: November 2026')}
-        </span>
+      {/* ── MOZOG ─────────────────────────────────────────────────────────── */}
+      <section className="akv-brain" aria-label={tx('pack.ainubis.view.brain', 'Brain')}>
+        <canvas ref={cvRef} />
+        <div className="akv-tip" ref={tipRef} role="status" />
+        {/* ⚠️ Tlačidlá + − ⤾ z nákresu tu NIE SÚ: kit má len plus, mínus ani „späť na
+            celok" nemá, a holý znak je brandový dlh (pole NOT IN THE BRAND). Priblíženie
+            ide kolieskom a dvoma prstami, oddialenie na východisko mozog samo vycentruje.
+            Kresby si treba vypýtať od Mateja. */}
       </section>
 
-      {/* ── SEDEM SVETOV + CHAT ───────────────────────────────────────────────── */}
-      <div className="akb-grid">{tiles}</div>
+      {/* ── DOGSCROLL — dnes upútavky svetov, v novembri pás zvitkov ────────── */}
+      <aside className="akv-scroll" aria-label={tx('pack.ainubis.view.dogscroll', 'Dogscroll')}>
+        <div className="akv-col">
+          {/* BANNER „stavba pred očami" + November 2026 — presunutý z kostry, nezanikol. */}
+          <header>
+            <div className="akv-head">
+              <img className="akv-face" src={ainubisHead} alt="" aria-hidden />
+              <div>
+                <span className="akv-flag">{tx('pack.ainubis.flag', 'Under construction — in plain sight')}</span>
+                <h1 className="akv-title">{tx('pack.ainubis.dogscroll.title', 'Dogscrolling')}</h1>
+              </div>
+            </div>
+            <p className="akv-claim">{tx('pack.ainubis.dogscroll.claim', 'Your dog will thank you for this scroll.')}</p>
+            <p className="akv-lead">
+              {tx(
+                'pack.ainubis.lead',
+                'AINUBIS is learning. Seven worlds of dog knowledge are being written right now, '
+                + 'scroll by scroll. You’ll watch them open one by one.',
+              )}
+            </p>
+          </header>
 
-      {/* ⚠️ SPODNÝ PÁS JE OBSADENÝ VIACKRÁT: plávajúci nav si berie výšku cookie lišty
-          (`--consent-h`, publikuje ju `PackLayout`), takže sa nad ňu posunie — a posledný
-          rad dlaždíc skončí POD ním. Premerané 21. 9.: pri 500×900 nav leží na poslednej
-          dlaždici, hoci `PackLayout` dáva `pb-40`. Preto si odsadenie berie tú istú
-          premennú, akú používa nav — nie pevné číslo, ktoré by sa s ním rozišlo.
-          (pamäť `feedback_spodny_pas_je_obsadeny_viackrat`) */}
-      <div style={{ height: `calc(var(--consent-h, 0px) + ${PACK_SPACE.xxxl}px)` }} />
-    </PackLayout>
+          {VAULT_WORLDS.map((w, i) => (
+            <section
+              key={w.key}
+              id={`akv-w-${w.key}`}
+              className={`akv-world${flash === w.key ? ' is-flash' : ''}`}
+            >
+              <div className="akv-wlbl">{tx('pack.ainubis.worldOf', 'World {n} of 7').replace('{n}', String(i + 1))}</div>
+              <div className="akv-wic" aria-hidden style={mask(w.ic)} />
+              <h2 className="akv-wname">{names[i]}</h2>
+              <p className="akv-wtease">{tx(`pack.ainubis.tease.${w.key}`, w.tease)}</p>
+              <span className="akv-wsoon">{tx('pack.ainubis.opening', 'Expected opening: November 2026')}</span>
+            </section>
+          ))}
+        </div>
+      </aside>
+
+      {/* ── HORE ROVINA ───────────────────────────────────────────────────── */}
+      <div className="akv-top" ref={topRef}>
+        <div className="akv-toprow">
+          <nav className="akv-planes" aria-label="AINUBIS">
+            <button type="button" className="akv-plane" aria-current="page">{plane('vault', 'Vault')}</button>
+            {/* CHAT = kôš 3. Otvára sa tým istým kanálom ako doteraz (`ainubisBus`),
+                takže beží presne ten chat, ktorý žije naostro. */}
+            <button type="button" className="akv-plane" onClick={openAinubis}>{plane('chat', 'Chat')}</button>
+            <button type="button" className="akv-plane" disabled>
+              {plane('wall', 'Board')}<em>{tx('pack.ainubis.soon', 'soon')}</em>
+            </button>
+          </nav>
+        </div>
+        {/* GLOBÁL (správy, upozornenia) ide do druhého riadku: vedľa troch rovín sa na
+            390 px nezmestil a roviny sa písali cez seba (snímka 21. 9.). */}
+        <div className="akv-toprow">
+          <span className="akv-when">{tx('pack.ainubis.opening', 'Expected opening: November 2026')}</span>
+          <span className="akv-grow" />
+          <PackTopRight last24h={id.packToday} total={id.packTotal} layout="inline" />
+        </div>
+      </div>
+
+      {/* ── DOLE POHĽAD (len mobil) — ikonka aj text ukazujú CIEĽ, nie stav ──── */}
+      <div className="akv-mactions">
+        <button
+          type="button"
+          className="akv-mtoggle"
+          onClick={() => setView((v) => (v === 'brain' ? 'scroll' : 'brain'))}
+        >
+          <i aria-hidden style={mask(view === 'brain' ? 'menu' : 'idea')} />
+          {view === 'brain'
+            ? tx('pack.ainubis.view.dogscroll', 'Dogscroll')
+            : tx('pack.ainubis.view.brain', 'Brain')}
+        </button>
+      </div>
+
+      <PackBottomNav avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial} dogs={id.dogs} />
+      <MessagingOverlayHost />
+    </div>
   );
 }
