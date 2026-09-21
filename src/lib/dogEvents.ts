@@ -228,3 +228,40 @@ export function hasValue(v: LatestValue | undefined): boolean {
   if (Array.isArray(x)) return x.length > 0;
   return true;
 }
+
+/**
+ * VŠETKY zápisy vymenovaných polí pre viac psov naraz — JEDEN dotaz.
+ *
+ * Čitateľ kalendára. `readSeries()` vyššie sa pýta na JEDNO pole JEDNÉHO psa, takže
+ * kalendár s tromi psami a štyrmi poľami by spravil dvanásť round-tripov na blok,
+ * ktorý je na konci stránky. Tvar výstupu je zhodný s `readSeries` (plné `DogEvent`
+ * zoradené podľa `recordedAt`), len sa nefoldne — denník potrebuje VŠETKY riadky,
+ * nie posledný.
+ *
+ * ⚠️ NEFOLDUJE. To je celý rozdiel oproti `readLatest*`: denník má v jeden deň
+ *    pokojne tri zápisy toho istého poľa a všetky tri sú pravda.
+ */
+export async function readEvents(dogIds: string[], fields: string[]): Promise<DogEvent[]> {
+  if (dogIds.length === 0 || fields.length === 0) return [];
+
+  const local = readLocal().filter((r) => dogIds.includes(r.dogId) && fields.includes(r.field));
+
+  const { data, error } = await sb
+    .from('dog_events')
+    .select('id, dog_id, field, value, recorded_at, created_at, source')
+    .in('dog_id', dogIds)
+    .in('field', fields)
+    .order('recorded_at', { ascending: true });
+
+  const remote: DogEvent[] = error || !data ? [] : data.map((r) => ({
+    id: r.id as string,
+    dogId: r.dog_id as string,
+    field: r.field as string,
+    value: r.value as unknown,
+    source: r.source as DogEventSource,
+    recordedAt: r.recorded_at as string,
+    createdAt: r.created_at as string,
+  }));
+
+  return [...local, ...remote].sort((a, b) => a.recordedAt.localeCompare(b.recordedAt));
+}

@@ -40,6 +40,15 @@ export const uploadExtraPhoto = (blob: Blob, sessionId: string, index: number) =
 export const uploadPackTripPhoto = (blob: Blob, slug: string, index: number) =>
   uploadBlob(blob, `pack-trips/${slug}`, String(index).padStart(2, '0'));
 
+// Fotka priložená k zápisu do denníka psa (KROK 5, `components/pack/diary/`).
+// ⚠️ Priečinok je `dog-diary/<dogId>`, NIE `dogs/<...>` — `dogs/` nesie profilové fotky
+//    z heroflow (`cloudinary_main_url`) a zhoda `public_id` by ich prepísala. Fotka denníka
+//    je príloha udalosti, nie nová profilovka; jej adresa žije v `dog_events.value.photo`.
+// ⚠️ `public_id` nesie ČAS zápisu, nie index: denník nemá „fotku č. 3", má fotku z konkrétnej
+//    sekundy, a dva zápisy v tom istom dni sa tak nemôžu prepísať.
+export const uploadDogDiaryPhoto = (blob: Blob, dogId: string, stamp: string) =>
+  uploadBlob(blob, `dog-diary/${dogId}`, stamp);
+
 // Delivery URLs (on-the-fly transformations)
 export const certPreviewUrl = (publicId: string) =>
   `${BASE_URL}/c_fill,w_400,h_400,r_max,f_auto,q_auto/${publicId}`;

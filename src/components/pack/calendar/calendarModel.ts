@@ -314,7 +314,7 @@ export function hexRGBA(hex: string, a: number): string {
 // padol rebrík 🪜: značka, ktorú vidno len na novom telefóne, nie je značka.
 // Kde to šlo, berie sa tá istá značka, akú už appka používa na mape
 // (`mapnotes/markEmoji.ts`), aby sa jeden pojem nekreslil dvoma spôsobmi.
-export type LogKind = 'trip' | 'vet' | 'deworm' | 'note' | 'alone' | 'weigh' | 'plan';
+export type LogKind = 'trip' | 'vet' | 'deworm' | 'note' | 'alone' | 'weigh' | 'milestone' | 'plan';
 export type LogGroup = 'log' | 'vet' | 'plan';
 
 export interface LogType {
@@ -334,6 +334,13 @@ export const LOG_TYPES: Record<LogKind, LogType> = {
   // 📝 písanie, nie čítanie. 📖 je otvorená kniha — to je ústava, nie zápisník.
   note: { emoji: '📝', group: 'log', nameSK: 'Denník', i18n: 'pack.cal.type.note' },
   alone: { emoji: '🏠', group: 'log', nameSK: 'Deň bez seba', i18n: 'pack.cal.type.alone' },
+  // ⭐ MÍĽNIK (21. 9. 2026, KROK 5 — denník dostal pisateľa `components/pack/diary/`).
+  // Prvé plávanie, gotcha day, prvý raz sám doma. Od poznámky sa líši váhou, nie obsahom:
+  // poznámka je deň, míľnik je vec, na ktorú sa o rok spomína.
+  // ⚠️ Emoji 1.0 a v appke voľné: 🏆 je výstava, 🎖️ tréning, 🎂 narodeniny, 🎈 ľudský rok.
+  // 🟡 PREDBEŽNÉ — Matej 21. 9.: „tie emoji chcem vedieť aj zmeniť… najprv to musím
+  //    vidieť v kontexte celej stránky."
+  milestone: { emoji: '⭐', group: 'log', nameSK: 'Míľnik', i18n: 'pack.cal.type.milestone' },
   weigh: { emoji: '⚖️', group: 'log', nameSK: 'Váženie', i18n: 'pack.cal.type.weigh' },
   // 📍 zhodné s `TRIP_TARGET_EMOJI` na mape — plánovaný výlet je tá istá vec.
   plan: { emoji: '📍', group: 'plan', nameSK: 'Plán', i18n: 'pack.cal.type.plan' },

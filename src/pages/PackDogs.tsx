@@ -51,9 +51,10 @@ import { PALE } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { FlagCircle } from '@/components/pack/FlagCircle';
 import { PackCalendar } from '@/components/pack/calendar/PackCalendar';
+import { DiaryEntry } from '@/components/pack/diary/DiaryEntry';
 import ainubisBadge from '@/assets/ainubis-badge.png';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
-import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK } from '@/components/pack/navGoldSkin';
 import {
   QUIZ_SECTIONS, PROGRESS_STEPS, STEP_BY_FIELD, type QuizSection,
 } from '@/components/pack/dogQuiz';
@@ -520,6 +521,11 @@ export default function PackDogs() {
   };
 
   const [dogs, setDogs] = useState<HubDog[] | null>(null);
+  // DENNÍK — jedno okno na celú stránku (KROK 5 bloku 2). Otvárajú ho DVA vchody:
+  // dlaždica DENNÍK (bez dňa = dnešok) a popup dňa v kalendári (s dňom, na ktorý sa
+  // človek práve díva). Držať si ho musí STRÁNKA, nie dlaždica ani kalendár — dve
+  // inštancie toho istého formulára = dva rôzne rozpísané texty.
+  const [diary, setDiary] = useState<{ day?: string; mode: 'write' | 'photo' } | null>(null);
   const [latest, setLatest] = useState<Latest>({});
   // Kým progres nie je načítaný, kvízový blok sa NEVYKRESLÍ ani v jednom stave —
   // inak by majiteľovi s hotovým kvízom najprv bliklo veľké hero a až potom by
@@ -664,9 +670,21 @@ export default function PackDogs() {
             proti `PACK_BOX.subblock` (gradient, plný zlatý rám) dlaždíc vyššie.
             ⚠️ Čierna je vyhradená pre `subblockDark` a siaha sa po nej za VÝZNAM
             (jediný prípad: ZÁVET na DOG ID), nie za „ešte to nejde". */}
+        {/* 🟢 DENNÍK OŽIL 21. 9. 2026 (KROK 5) — má pisateľa (`components/pack/diary/`),
+            takže mu odchádza štítok SOON a stáva sa z neho vchod.
+            ⚠️ GALÉRIA OSTÁVA SOON A JE TO ROZHODNUTIE, nie zabudnutie: fotka je
+            PRÍLOHA zápisu do denníka, nie priečinok (§4 zadania). Dlaždica menom
+            GALÉRIA, za ktorou by bol zápis do denníka, by zopakovala presne tú lož,
+            ktorú appka už raz má — `DogGallery.tsx` sa volá galéria a je to accordion
+            psej karty. Galéria sa otvorí, keď bude čo listovať. */}
         <div className="hub-media" style={{ marginTop: PACK_SPACE.md }}>
           {QUIZ_SECTIONS.filter((s) => s.kind === 'gallery' || s.kind === 'journal').map((s) => (
-            <MediaTile key={s.key} section={s} tx={tx} />
+            <MediaTile
+              key={s.key}
+              section={s}
+              tx={tx}
+              onOpen={s.kind === 'journal' ? () => setDiary({ mode: 'write' }) : undefined}
+            />
           ))}
         </div>
 
@@ -696,8 +714,27 @@ export default function PackDogs() {
            kreslil VYMYSLENÉ farby, takže sa nedal začať čítať ako pravda o psovi.
            Nákres: plany/nakres-kalendar-dogs-2026-09-12.html */}
       <div style={{ marginTop: PACK_SPACE.xl }}>
-        <PackCalendar dogs={dogs} latest={latest} tx={tx} />
+        <PackCalendar
+          dogs={dogs}
+          latest={latest}
+          tx={tx}
+          onAddToDay={(day) => setDiary({ day, mode: 'write' })}
+        />
       </div>
+
+      {/* DENNÍK — prekryvová vrstva, nie routa. Lock `architektura-pack.md` §4.2:
+          akcia nikdy neodnesie človeka preč z miesta, kde je.
+          Prekreslenie po zápise nesie `onDogEventsChange` (hub aj kalendár ho počúvajú),
+          preto tu `onSaved` nič neprepočítava — signál pošle sám pisateľ. */}
+      {diary && (
+        <DiaryEntry
+          dogs={dogs.map((d) => ({ id: d.id, name: d.dog_name ?? '—' }))}
+          day={diary.day}
+          mode={diary.mode}
+          onClose={() => setDiary(null)}
+          tx={tx}
+        />
+      )}
     </PackLayout>
   );
 }
@@ -1445,11 +1482,21 @@ function ActionTile({
 // prepína, takže mala dva šaty; odkedy sedí vnútri papyrusovej karty DOG ID, je pod ňou
 // papyrus v OBOCH polohách prepínača a tmavý variant by na piesku kreslil bledý text
 // na bledom. Rozhoduje podklad pod prvkom, nie poloha prepínača (CLAUDE.md 11. 9.).
-function MediaTile({ section, tx }: { section: QuizSection; tx: Tx }) {
+/** GALÉRIA a DENNÍK. `onOpen` = dlaždica má vchod, teda je to TLAČIDLO a štítok SOON
+ *  jej odchádza. Bez `onOpen` ostáva čo bola: oznam, že to raz bude.
+ *  ⚠️ Štítok a klikateľnosť sú JEDNO rozhodnutie. Klikateľná dlaždica so SOON hovorí
+ *     dve veci naraz a človek uverí tej horšej. */
+function MediaTile({ section, tx, onOpen }: { section: QuizSection; tx: Tx; onOpen?: () => void }) {
+  const Tag = onOpen ? 'button' : 'div';
   return (
-    <div
+    <Tag
       className="flex items-center gap-3"
-      style={{ ...PACK_BOX.row, padding: PACK_SPACE.lg }}
+      {...(onOpen ? { type: 'button' as const, onClick: onOpen } : {})}
+      style={{
+        ...PACK_BOX.row,
+        padding: PACK_SPACE.lg,
+        ...(onOpen ? { textAlign: 'left' as const, cursor: 'pointer', width: '100%' } : {}),
+      }}
     >
       <div style={{ fontSize: 24, lineHeight: 1, flex: '0 0 auto' }}>{section.emoji}</div>
       <div style={{ minWidth: 0 }}>
@@ -1468,15 +1515,15 @@ function MediaTile({ section, tx }: { section: QuizSection; tx: Tx }) {
           style={{
             display: 'inline-block', marginTop: PACK_SPACE.sm, fontFamily: FONT_UI, fontSize: PACK_TEXT.micro,
             letterSpacing: '0.14em', textTransform: 'uppercase', borderRadius: PACK_R.pill, padding: '4px 8px',
-            background: 'rgba(201,154,63,0.10)',
-            border: `1px solid ${T.border}`,
-            color: T.inkWarm,
+            background: onOpen ? LAPIS.fill : 'rgba(201,154,63,0.10)',
+            border: `1px solid ${onOpen ? LAPIS.edge : T.border}`,
+            color: onOpen ? PICK_INK.lapis : T.inkWarm,
           }}
         >
-          {tx('pack.hub.soon', 'Soon')}
+          {onOpen ? tx('pack.hub.write', 'Write') : tx('pack.hub.soon', 'Soon')}
         </span>
       </div>
-    </div>
+    </Tag>
   );
 }
 

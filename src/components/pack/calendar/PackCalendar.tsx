@@ -13,14 +13,18 @@
 //     pri hydratácii) + množina prejdených `PACK_KEYS.walked`
 //   • veterinár a odčervenie → DÁTUMOVÉ polia DOG ID (`health.vaxRabies`,
 //     `vaxCombo`, `deworm`) — už načítané v `PackDogs`, nulový dotaz navyše
-//   • váženia → `readSeries(dogId, 'health.weightKg')`, append-only s `recordedAt`
+//   • váženia a DENNÍK → `readEvents(dogIds, DIARY_FIELDS)` — JEDEN dotaz na všetky
+//     polia všetkých psov, append-only s `recordedAt` (pisateľ: `pack/diary/`)
 //   • narodeniny a ľudské roky → `selections.birthday*`, počítajú sa
 //   • sezóny, spln/nov, kliešte, okná protokolu → VÝPOČET, žiadne dáta
 //
-// ⚠️ ČO TU ZÁMERNE NIE JE: zápis. Denník, „bol som u vety" a „deň bez seba" sa
-// dnes nemajú kam uložiť v tvare, ktorý kalendár potrebuje, takže popup dňa je
-// ČÍTACÍ — žiadne mŕtve tlačidlo „pridať". Zápis je samostatný krok (§3 nákresu,
-// `dog_events` na LIVE existuje a je prázdna).
+// ⚠️ TOTO SA 21. 9. 2026 ZMENILO (KROK 5 bloku 2). Do vtedy tu stálo „zápis tu
+// zámerne nie je, lebo denník sa nemá kam uložiť" — a bola to pravda presne dovtedy,
+// kým nevznikol pisateľ `components/pack/diary/`. Popup dňa preto UŽ NIE JE čítací:
+// nesie „pridať k tomuto dňu" a posiela do `DiaryEntry` deň, na ktorý sa človek díva.
+// Tlačidlo, ktoré nič nerobí, je horšie než jeho absencia — ale to už neplatí.
+// ⚠️ „Deň bez seba" (`alone`) pisateľa ďalej NEMÁ a preto sa nedá zapísať. Je to
+// jediný druh zápisu, ktorý v kalendári vie prísť len zvonku.
 // ⚠️ A ČO CHÝBA VÝLETOM: `trip_walked` drží len `walked_at` (kedy si ťukol ✓),
 // nie deň, kedy si šiel. Preto sú tu len výlety, ktoré prešli cez PRIDAJ VÝLET
 // alebo plán s dátumom. Riadok „KEDY" v popupe po ✓ je ďalší krok.
@@ -28,9 +32,9 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  PACK_THEME, PACK_BOX, PACK_HEAD, PACK_R, PACK_SHADOW, FONT_TITLE, FONT_UI, PF_FIELD_CSS,
+  PACK_THEME, PACK_BOX, PACK_HEAD, PACK_R, PACK_SHADOW, GOLD_BTN, FONT_TITLE, FONT_UI, PF_FIELD_CSS,
 } from '@/components/pack/packTheme';
-import { LAPIS, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
+import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 // ⚠️ `ainubis-head.png` (800 px, PRIEHĽADNÉ okolie), NIE `ainubis-badge.png` — badge je
 //    odznak v tvare štítu a jeho hranatá silueta sa na tmavom displeji číta ako tmavý
@@ -38,7 +42,8 @@ import { AINUBIS } from '@/components/pack/ainubisSkin';
 //    `Gateways.tsx` aj `MapCoach.tsx`.
 import ainubisFace from '@/assets/ainubis-head.png';
 import { BrandIcon } from '@/components/pack/BrandIcon';
-import { readSeries, type LatestValue } from '@/lib/dogEvents';
+import { readEvents, onDogEventsChange, type LatestValue } from '@/lib/dogEvents';
+import { DIARY_FIELDS, DIARY_KIND_BY_FIELD, asDiaryValue, isPlanDay } from '@/components/pack/diary/diaryModel';
 import { readTriplist } from '@/components/pack/triplist/triplist';
 import { readLocalTrails } from '@/components/pack/tripShared';
 import { readStringSet, PACK_KEYS } from '@/lib/packStore';
@@ -145,7 +150,18 @@ const DOW_SK = ['Po', 'Ut', 'St', 'Št', 'Pi', 'So', 'Ne'];
  *  stĺpcoch na ~250 px sa dvojciferné čísla pri 10 px prekrývajú. */
 const DAY_TICKS = new Set([1, 5, 10, 15, 20, 25, 31]);
 
-export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; latest: Latest; tx: Tx }) {
+export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
+  dogs: CalendarDogRow[];
+  latest: Latest;
+  tx: Tx;
+  /**
+   * Otvor denník na konkrétnom dni (`YYYY-MM-DD`). Kalendár si prekryvovú vrstvu
+   * NEDRŽÍ SÁM a je to zámer: `/pack/dogs` ju otvára aj z dlaždice DENNÍK a dve
+   * inštancie toho istého formulára na jednej stránke znamenajú dva rôzne stavy
+   * rozpísaného textu. Kalendár preto len hlási DEŇ; okno vlastní stránka.
+   */
+  onAddToDay?: (dayKey: string) => void;
+}) {
   const year = new Date().getFullYear();
   const today = useMemo(() => { const n = new Date(); return { m: n.getMonth() + 1, d: n.getDate(), year: n.getFullYear() }; }, []);
 
@@ -192,7 +208,8 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
 
   // ── zápisy ────────────────────────────────────────────────────────────────
   const [tripEntries, setTripEntries] = useState<CalEntry[]>([]);
-  const [weighEntries, setWeighEntries] = useState<CalEntry[]>([]);
+  /** Denník + váženia — obe sú `dog_events`, teda jedna fronta a jeden dotaz. */
+  const [diaryEntries, setDiaryEntries] = useState<CalEntry[]>([]);
 
   // Výlety. Dataset trás (1,7 MB) sa ťahá DYNAMICKY — kvôli menám výletov by inak
   // sedel v chunku celej stránky, hoci ho potrebuje jediný blok na jej konci.
@@ -237,27 +254,62 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
     // nie jeden rok. Pohľad ROK si svoj rok filtruje až v `byDay`.
   }, []);
 
-  // Váženia — append-only séria, teda krivka, ktorú dnes nikto nekreslí.
+  // DENNÍK A VÁŽENIA — jedna append-only fronta, jeden dotaz.
+  //
+  // ⚠️ DO 21. 9. 2026 to boli N dotazov (`readSeries` na psa) a len váha. Denník by
+  //    to znásobil na psi × štyri polia, teda dvanásť round-tripov na blok, ktorý je
+  //    na konci stránky. `readEvents` sa pýta raz.
+  // ⚠️ VÁHA JE ČÍSLO, ZVYŠOK OBJEKT `{ text, photo }` — v tej istej tabuľke. Preto sa
+  //    tvar hodnoty ROZOZNÁVA (`asDiaryValue`), nikdy nepredpokladá.
+  // 🔴 DÁTUM ROZHODUJE: zápis s budúcim dňom je PLÁN, nie udalosť. Je to to isté
+  //    pravidlo, aké o kus vyššie platí pre výlety — a je tu naschvál druhýkrát
+  //    napísané, nie zdieľané: výlet o pláne rozhoduje podľa ✓, denník podľa dňa.
   useEffect(() => {
     let alive = true;
     const ids = dogs.map((d) => d.id);
-    if (ids.length === 0) { setWeighEntries([]); return; }
-    (async () => {
-      const all = await Promise.all(ids.map((id) => readSeries(id, 'health.weightKg').catch(() => [])));
-      if (!alive) return;
-      const out: CalEntry[] = [];
-      all.forEach((series, i) => {
-        for (const ev of series) {
+    if (ids.length === 0) { setDiaryEntries([]); return; }
+    const load = () => {
+      readEvents(ids, [...DIARY_FIELDS]).then((rows) => {
+        if (!alive) return;
+        const out: CalEntry[] = [];
+        for (const ev of rows) {
           const day = parseFullDay(ev.recordedAt);
           if (!day) continue;
-          const kg = typeof ev.value === 'number' ? ev.value : parseFloat(String(ev.value ?? ''));
-          if (!kg || Number.isNaN(kg)) continue;
-          out.push({ kind: 'weigh', y: day.y, m: day.m, d: day.d, title: `${kg} kg`, dogId: ids[i] });
+          const kind = DIARY_KIND_BY_FIELD[ev.field];
+          if (!kind) continue;
+          const plan = isPlanDay(`${day.y}-${String(day.m).padStart(2, '0')}-${String(day.d).padStart(2, '0')}`);
+
+          if (kind === 'weigh') {
+            // Váženie v budúcnosti nedáva zmysel a formulár ho ani neponúka — keby
+            // sa taký riadok predsa objavil (import, oprava), ostáva vážením.
+            const kg = typeof ev.value === 'number' ? ev.value : parseFloat(String(ev.value ?? ''));
+            if (!kg || Number.isNaN(kg)) continue;
+            out.push({ kind: 'weigh', y: day.y, m: day.m, d: day.d, title: `${kg} kg`, dogId: ev.dogId });
+            continue;
+          }
+
+          const v = asDiaryValue(ev.value);
+          if (!v) continue;
+          // Prázdny text je legitímny zápis, keď nesie fotku — názov vtedy dosadí
+          // render z názvu typu (`titleOf`), presne ako pri bezmennom výlete.
+          out.push({
+            kind: plan ? 'plan' : kind,
+            y: day.y, m: day.m, d: day.d,
+            title: v.text.split('\n')[0].slice(0, 80),
+            text: v.photo ? tx('pack.cal.withPhoto', '📷 s fotkou') : undefined,
+            dogId: ev.dogId,
+          });
         }
-      });
-      setWeighEntries(out);
-    })();
-    return () => { alive = false; };
+        setDiaryEntries(out);
+      }).catch(() => { if (alive) setDiaryEntries([]); });
+    };
+    load();
+    // Zápis z `DiaryEntry` posiela in-tab signál — kalendár sa prekreslí bez reloadu.
+    const off = onDogEventsChange(load);
+    return () => { alive = false; off(); };
+    // ⚠️ BEZ `tx` v závislostiach — `tx` je pri každom renderi NOVÁ funkcia a effect
+    //    by sa roztočil (tá istá pasca, akú má popísaný effect výletov vyššie).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dogs]);
 
   // Veterinár a odčervenie z DOG ID. Sú to dátumy udalostí, ktoré sa STALI —
@@ -283,7 +335,7 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
   // Jeden index na celý rok — mriežka sa pýta 372× „čo je v tento deň".
   const byDay = useMemo(() => {
     const map = new Map<string, CalEntry[]>();
-    for (const e of [...tripEntries, ...weighEntries, ...vetEntries]) {
+    for (const e of [...tripEntries, ...diaryEntries, ...vetEntries]) {
       if (e.y !== year) continue;                                  // pohľad ROK drží jeden rok
       if (e.dogId !== null && solo && e.dogId !== sel) continue;   // cudzieho psa skryjeme
       const k = dateKey(e.m, e.d);
@@ -291,12 +343,12 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
       if (arr) arr.push(e); else map.set(k, [e]);
     }
     return map;
-  }, [tripEntries, weighEntries, vetEntries, solo, sel, year]);
+  }, [tripEntries, diaryEntries, vetEntries, solo, sel, year]);
 
   /** CELÁ história pre životnú os — bez filtra roka, s filtrom psa. */
-  const allEntries = useMemo(() => [...tripEntries, ...weighEntries, ...vetEntries]
+  const allEntries = useMemo(() => [...tripEntries, ...diaryEntries, ...vetEntries]
     .filter((e) => !(e.dogId !== null && solo && e.dogId !== sel)),
-  [tripEntries, weighEntries, vetEntries, solo, sel]);
+  [tripEntries, diaryEntries, vetEntries, solo, sel]);
 
   const entriesOn = (m: number, d: number): CalEntry[] => (layers.log ? byDay.get(dateKey(m, d)) ?? [] : []);
   const moons = useMemo(() => moonDaysOfYear(year), [year]);
@@ -452,6 +504,13 @@ export function PackCalendar({ dogs, latest, tx }: { dogs: CalendarDogRow[]; lat
           seniorSelected={seniorSelected} layers={layers}
           entries={entriesOn(open.m, open.d)} moon={moonOn(open.m, open.d)}
           onClose={() => setOpen(null)}
+          onAdd={onAddToDay && dogs.length > 0
+            ? () => {
+                const p2 = (x: number) => String(x).padStart(2, '0');
+                onAddToDay(`${year}-${p2(open.m)}-${p2(open.d)}`);
+                setOpen(null);
+              }
+            : undefined}
           monthName={monthName} seasonName={seasonName} elementName={elementName}
           typeName={typeName} protName={protName} tx={tx}
         />
@@ -757,13 +816,15 @@ function Legend({
 // ⚠️ BEZ KRÍŽIKA (brand lock 2026-08-28): von sa ide klikom mimo alebo Esc.
 // ════════════════════════════════════════════════════════════════════════════
 function DayPopup({
-  year, day, dogs, solo, myElement, seniorSelected, layers, entries, moon, onClose,
+  year, day, dogs, solo, myElement, seniorSelected, layers, entries, moon, onClose, onAdd,
   monthName, seasonName, elementName, typeName, protName, tx,
 }: {
   year: number; day: { m: number; d: number }; dogs: CalDog[]; solo: boolean;
   myElement: ElementKey | null; seniorSelected: boolean;
   layers: { log: boolean; prot: boolean; nat: boolean };
   entries: CalEntry[]; moon: MoonPhase | null; onClose: () => void;
+  /** Otvorí denník na TOMTO dni. Prázdne = účet nemá psa, takže nie je čo zapísať. */
+  onAdd?: () => void;
   monthName: (m: number) => string; seasonName: (k: ElementKey) => string;
   elementName: (k: ElementKey) => string; typeName: (k: LogKind) => string;
   protName: (w: ProtWindow) => string; tx: Tx;
@@ -844,6 +905,18 @@ function DayPopup({
             </div>
           </div>
         ))}
+
+        {/* PRIDAŤ K TOMUTO DŇU (21. 9. 2026, KROK 5). Popup prestal byť čítací v tej
+            sekunde, ako denník dostal pisateľa. Deň sa POSIELA ĎALEJ — človek, ktorý
+            otvoril 3. september, nemá dátum ťukať druhýkrát.
+            ⚠️ Bez psa sa nekreslí: zápis do denníka potrebuje psa (`CreateNeed: 'pes'`),
+            a tlačidlo, ktoré by skončilo prázdnym výberom, je to mŕtve tlačidlo, ktoré
+            sem hlavička zakazuje. */}
+        {onAdd && (
+          <button type="button" className="cal-add" onClick={onAdd}>
+            {tx('pack.cal.addToDay', 'Add to this day')}
+          </button>
+        )}
 
         <p className="cal-note" style={{ marginTop: 12, textAlign: 'center' }}>
           {tx('pack.cal.closeHint', 'Klikni mimo bloku alebo Esc')}
@@ -1589,6 +1662,14 @@ const CAL_CSS = `
 .cal-ico{font-size:16px;line-height:1.1;flex:0 0 auto}
 .cal-entry b{font-family:${FONT_TITLE};font-size:12px;font-weight:700;letter-spacing:0.02em;display:block;margin-bottom:2px;color:${T.inkStrong}}
 .cal-entry p{font-family:${FONT_UI};font-size:12px;color:${T.inkWarm};margin:0;line-height:1.5}
+/* PRIDAŤ K TOMUTO DŇU — HLAVNÉ CTA popupu, teda LAPIS (brandový kánon 28. 8. 2026:
+   na bledom podklade lapis). Geometria je z locku .btn-gold: radius 8, NIE pilulka;
+   mení sa len výplň. Je to jediná plná farebná plocha v popupe, takže vedie. */
+.cal-add{display:block;width:100%;margin-top:12px;padding:12px 16px;border-radius:8px;
+  background:${LAPIS.grad};border:1px solid ${GOLD_BTN.edge};color:${LAPIS.ink};
+  box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;
+  font-family:${FONT_TITLE};font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase}
+.cal-add:hover{background:${LAPIS.gradHover}}
 
 /* ── LEGENDA ────────────────────────────────────────────────────────────── */
 .cal-lgroup{margin-top:16px}
