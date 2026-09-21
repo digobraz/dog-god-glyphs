@@ -340,6 +340,13 @@ ${packColCSS('.pta-shell')}
    a rušnosť do druhého riadku do dvoch… vadí mi to voľné miesto vedľa rušnosti").
    Osamelý blok v riadku sa natiahne tiež — voľné miesto vedľa neho je presne to, čo vadilo. */
 .pta-stat--full{grid-column:1 / -1;}
+/* ⚠️ Ten rozpis 1 + 2 je LEN MOBIL (Matej 21. 9. 2026 večer: „na PC majú byť tie bloky 3
+   vedľa seba, menili sme dnes len mobil"). Od 761 px (tá istá hranica ako isMobile vyššie)
+   stoja všetky dlaždice v JEDNOM riadku a delia sa rovnakým dielom — 1, 2 aj 3 bez diery. */
+@media (min-width:761px){
+  .pta-statrow{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:1fr;}
+  .pta-stat--full{grid-column:auto;}
+}
 .pta-stat{padding:14px 8px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:5px;
   background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};
   transition:transform .2s ease;}
