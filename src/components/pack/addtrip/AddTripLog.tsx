@@ -23,6 +23,7 @@
 // zaznač, až potom vyplň." Poradie krokov je jeho, doslova:
 //   1 TRASA · 2 ODKAZY NA TRASU · 3 ZÁKLAD · 4 O TRASE · 5 OSTATNÉ
 // Zadanie: `plany/zadanie-mapa-kroky-2026-08-23.md`
+import { voteMemorialTrips } from '@/components/pack/memorialTrips';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { MutableRefObject } from 'react';
@@ -102,6 +103,8 @@ export type AddTripLogProps = {
   /** firstName z usePackIdentity — zapisuje sa do draftu (`authorName`). */
   authorName: string;
   myDogs: { id: string; name: string; photo?: string | null }[];
+  /** Účet má len ZOSNULÝCH psov (t-bezpsa) — namiesto „pridaj psa" ponuka MÁM ZÁUJEM. */
+  memorialOnly?: boolean;
   /** false = zlyhal zápis (napr. plná kvóta) — formulár zostane otvorený, ukáže chybu. */
   onSubmit: (draft: AddTripDraft) => boolean;
   /**
@@ -422,7 +425,7 @@ function SoloCompanionAdd({ selected, onChange }: {
   );
 }
 
-export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, onBackToEntry, placeholderFor, mapRef, seedPoint, onMapPhase, onHasRoute, onPlaceNote, onRemoveNote, placedNotes, notePlacing, finishTrail, fromPlan }: AddTripLogProps) {
+export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubmit, onClose, onBackToEntry, placeholderFor, mapRef, seedPoint, onMapPhase, onHasRoute, onPlaceNote, onRemoveNote, placedNotes, notePlacing, finishTrail, fromPlan }: AddTripLogProps) {
   const paleChrome = useIsPaleChrome();
   // ⚠️ Tento súbor NEBOL preložený vôbec — `t` v ňom doteraz znamenalo lokálnu premennú
   // (text hrozby, položka tagu). Obe sú premenované, inak by prekladač zmizol pod nimi
@@ -1407,6 +1410,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
   // minimálne dvoch. Plán sa nepýta — posádka sa určuje až pri zápise po prejdení.
   // Kľúč `dog-<id>` je ten istý, aký používa `CompanionPicker` (viď `crewSeededRef`).
   const noDog = !isPlan && !crew.some((c) => c.key.startsWith('dog-'));
+  const [memorialVote, setMemorialVote] = useState<'idle' | 'busy' | 'done'>('idle');
   const canSubmit = missing.toSubmit.length === 0 && !multiDayIssue && !noDog;
   const finalApproval: ApprovalStatus = missing.toApprove.length === 0 ? 'pending' : 'draft';
 
@@ -3309,12 +3313,29 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, o
                       názov údaja; človek v tej chvíli potrebuje otázku, na ktorú odpovie. */}
                   <label>{t('pack.addTrip.step.whoWasWithYou')}</label>
                   <CompanionAvatarsOnly myDogs={myDogs} selected={crew} onChange={setCrew} />
-                  {noDog && (
+                  {noDog && (memorialOnly ? (
+                    <div className="atl-draftwarn" role="alert" style={{ marginTop: 8 }}>
+                      <p>{t('pack.trip.memorial.body')}</p>
+                      {memorialVote === 'done' ? (
+                        <p><b>{t('pack.trip.memorial.thanks')}</b></p>
+                      ) : (
+                        <button
+                          type="button"
+                          className="atl-journey-link"
+                          disabled={memorialVote === 'busy'}
+                          onClick={() => {
+                            setMemorialVote('busy');
+                            void voteMemorialTrips().then((ok) => setMemorialVote(ok ? 'done' : 'idle'));
+                          }}
+                        >{t('pack.trip.memorial.cta')}</button>
+                      )}
+                    </div>
+                  ) : (
                     <div className="atl-draftwarn" role="alert" style={{ marginTop: 8 }}>
                       <b>{t('pack.addTrip.step.needDogTitle')}</b>
                       <p>{t('pack.addTrip.step.needDog')}</p>
                     </div>
-                  )}
+                  ))}
                 </div>
 
                 {!isPlan && (

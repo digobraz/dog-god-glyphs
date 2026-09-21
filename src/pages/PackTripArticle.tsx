@@ -38,6 +38,7 @@ import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { TRAVEL_EMOJI } from '@/components/pack/addtrip/addTripModel';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
+import { hasOnlyDeceasedDogs, useMemorialTripsToast } from '@/components/pack/memorialTrips';
 import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
 import {
   ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail, hasRouteMetrics, pluralKey,
@@ -595,6 +596,7 @@ export default function PackTripArticle() {
   const navigate = useNavigate();
   const { slug, country } = useParams<{ slug: string; country?: string }>();
   const id = usePackIdentity();
+  const showMemorialTrips = useMemorialTripsToast();
   const { toast } = useToast();
 
   // bod 5 side-effect (viď súborový komentár hore): allTrails = statické HERO_TRAILS +
@@ -1099,7 +1101,9 @@ export default function PackTripArticle() {
     }
     // 🐕 Bez živého psa sa výlet nezapíše — dôvod pri toggleWalked v PackMap.tsx.
     if (!walkedIds.has(tid) && !id.loading && id.session && !hasLiveDog(id.dogs)) {
-      toast({ title: t('pack.addTrip.step.needDogTitle'), description: t('pack.addTrip.step.needDog') });
+      // Pes odišiel → nie „pridaj psa", ale ponuka MÁM ZÁUJEM o spätný zápis (memorialTrips.tsx).
+      if (hasOnlyDeceasedDogs(id.dogs)) showMemorialTrips();
+      else toast({ title: t('pack.addTrip.step.needDogTitle'), description: t('pack.addTrip.step.needDog') });
       return;
     }
     if (walkedIds.has(tid)) {

@@ -2897,6 +2897,10 @@ export const en = {
   'pack.trip.problem.outdated': "Outdated info (closed, dug up, parking…)",
   'pack.trip.problem.notePlaceholder': "Tell us what exactly happened (required for “Something else”)",
   'pack.trip.problem.failed': "The report wasn't sent. Check your connection and try again.",
+  'pack.trip.memorial.body': "For now, trips are logged for a human together with a living dog. Want to log the trips you walked together before? Let us know — we'll add it in a coming update.",
+  'pack.trip.memorial.cta': "I'm interested",
+  'pack.trip.memorial.thanks': "Thank you, noted.",
+  'pack.trip.memorial.failed': "Couldn't save that. Try again.",
 
   'pack.addTrip.step.back': "Back",
   'pack.addTrip.step.next': "Next",

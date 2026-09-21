@@ -2673,6 +2673,10 @@ export const sk: Partial<Dict> = {
   'pack.trip.problem.outdated': "Neaktuálne info (zatvorené, rozkopané, parkovisko…)",
   'pack.trip.problem.notePlaceholder': "Napíš, čo presne sa stalo (pri „Niečo iné“ povinné)",
   'pack.trip.problem.failed': "Hlásenie sa neodoslalo. Skontroluj pripojenie a skús znova.",
+  'pack.trip.memorial.body': "Výlety zatiaľ zapisujeme človeku spolu so živým psom. Chceš zapísať aj výlety, ktoré ste spolu prešli predtým? Daj vedieť — pridáme to v ďalšej aktualizácii.",
+  'pack.trip.memorial.cta': "Mám záujem",
+  'pack.trip.memorial.thanks': "Ďakujeme, zapísané.",
+  'pack.trip.memorial.failed': "Nepodarilo sa to zapísať. Skús znova.",
 
   'pack.addTrip.step.back': "Späť",
   'pack.addTrip.step.next': "Ďalej",

@@ -103,6 +103,7 @@ import {
 } from '@/components/pack/packCommunity';
 import { useCrowdOthers, refreshCrowdOthers } from '@/components/pack/crowdOthers';
 import { packStorage, readLocalTrailMeta } from '@/lib/packStore';
+import { hasOnlyDeceasedDogs, useMemorialTripsToast } from '@/components/pack/memorialTrips';
 import {
   COMMUNITY_CSS, BigRating, PhotoMetaPills, HazardTags, WalkedPopup,
   EventsView,
@@ -3528,6 +3529,7 @@ export default function PackMap() {
   // živou mapou, nie samostatná obrazovka. Pathname rozhoduje, či sa formulár otvorí pri mounte.
   const onAddRoute = useLocation().pathname.startsWith('/pack/add');
   const id = usePackIdentity();
+  const showMemorialTrips = useMemorialTripsToast();
   const [levelPanelOpen, setLevelPanelOpen] = useState(false);
 
   /**
@@ -4513,7 +4515,9 @@ export default function PackMap() {
     // kontroly by ✓ zasvietilo a pri ďalšej hydratácii zhaslo bez slova.
     // Počas načítania (`loading`) sa nepýta — prázdny zoznam vtedy neznamená „nemá psa".
     if (!walkedIds.has(tid) && !id.loading && id.session && !hasLiveDog(id.dogs)) {
-      toast({ title: t('pack.addTrip.step.needDogTitle'), description: t('pack.addTrip.step.needDog') });
+      // Pes odišiel → nie „pridaj psa", ale ponuka MÁM ZÁUJEM o spätný zápis (memorialTrips.tsx).
+      if (hasOnlyDeceasedDogs(id.dogs)) showMemorialTrips();
+      else toast({ title: t('pack.addTrip.step.needDogTitle'), description: t('pack.addTrip.step.needDog') });
       return;
     }
     if (walkedIds.has(tid)) {
@@ -4712,7 +4716,10 @@ export default function PackMap() {
   // CompanionPicker volanie v starom renderAddSetup. Plain expression, NIE useMemo — tento riadok
   // je ZA `if (id.loading)` / `if (!id.session) return null` vyššie (early return), takže hook by
   // tu porušil Rules of Hooks (biela stránka, tsc to nechytí — viď CLAUDE.md).
-  const myDogsForAdd = id.dogs.map((d) => ({ id: d.id, name: d.dog_name ?? t('pack.map.myDogFallback'), photo: d.cloudinary_main_url }));
+  // Posádka = len ŽIVÍ psi (t-bezpsa): zosnulý pes by prešiel formulárom a DB by zápis
+  // odmietla (`trip_walked_need_dog`) — fronta ho zahodí ticho. Kto má len zosnulých,
+  // dostane v sprievodcovi ponuku MÁM ZÁUJEM (`memorialOnly`).
+  const myDogsForAdd = id.dogs.filter((d) => d.life_status !== 'deceased').map((d) => ({ id: d.id, name: d.dog_name ?? t('pack.map.myDogFallback'), photo: d.cloudinary_main_url }));
   // Tlačidlo „+ Add trip" na mape NEnaviguje na `/pack/add/trip` zámerne — obe adresy sú iné
   // <Route>, takže navigácia by PackMap odmountovala a zhodila zoom/filtre/výrez mapy. Routa je
   // vstupný bod (deep link z Triplistu, TripStats, uložený odkaz), nie interný toggle.
@@ -6687,6 +6694,7 @@ export default function PackMap() {
               allTrails={allTrails}
               authorName={firstName}
               myDogs={myDogsForAdd}
+              memorialOnly={hasOnlyDeceasedDogs(id.dogs)}
               onHasRoute={setAddHasRoute}
               /* Meranie (v1-posthog): `pack_trip_add_done` sa vystrelí len keď zápis naozaj
                  prešiel. `submitAddTripDraft` má šesť návratových bodov a dva z nich sú
