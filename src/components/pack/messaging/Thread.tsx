@@ -27,7 +27,7 @@ import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, STAGE_CSS } fro
 import { MSG_SKIN_CSS, useMsgSkin } from './msgTheme';
 import { SkinToggle } from './Inbox';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
-import ainubisFace from '@/assets/ainubis-head.png';
+import { AINUBIS_SHEET_CSS, AinubisWho } from '@/components/pack/ainubisSheet';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { BackButton } from '@/components/pack/BackButton';
 import { tripNames, tripNameSync } from './tripLabel';
@@ -161,35 +161,7 @@ export const THREAD_CSS = `
    Dovtedy bol align-items:flex-end bez rozlíšenia, takže aj na 1900 px monitore visel
    panel na spodnej hrane okna — na mobile je to správny tvar (palec ho dosiahne),
    na PC je to odrezaný pás pri hrane. Rozhoduje CSS, render je jeden. */
-.msg-modsheet{position:fixed;inset:0;z-index:1400;background:rgba(2,6,11,0.74);display:flex;align-items:flex-end;justify-content:center;}
-.msg-modpanel{width:100%;max-width:460px;background:${A.surface};border:1px solid ${A.edgeStrong};border-bottom:0;border-radius:16px 16px 0 0;box-shadow:${A.panelShadow};padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 16px);box-sizing:border-box;}
-@media(min-width:600px){
-  .msg-modsheet{align-items:center;padding:24px;}
-  /* V strede okna panel stojí celý, teda má aj spodnú hranu a všetky štyri rohy oblé. */
-  .msg-modpanel{border-bottom:1px solid ${A.edgeStrong};border-radius:16px;padding:16px;max-height:calc(100dvh - 48px);overflow-y:auto;}
-}
-/* Hlava a meno hovoria, KTO to rieši — bez nich je to len tmavý panel bez majiteľa. */
-.msg-modwho{display:flex;align-items:center;gap:11px;margin-bottom:13px;}
-.msg-modface{flex:0 0 auto;width:38px;height:38px;object-fit:contain;border-radius:50%;background:${A.faceBg};box-shadow:${A.faceRing};}
-.msg-modwho b{font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:${A.ink};}
-.msg-modtitle{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${A.ink};}
-.msg-modsub{font-family:${FONT_UI};font-size:12px;line-height:1.55;color:${A.inkDim};margin-top:6px;}
-.msg-modrow{display:flex;flex-direction:column;gap:8px;margin-top:16px;}
-/* Voľba dôvodu: vybraný svieti CYAN, nie lapisom — na jeho povrchu je lapis neviditeľný
-   (tmavá modrá na tmavej modrej) a zároveň by to bol hlas appky v jeho paneli. */
-.msg-modbtn{width:100%;text-align:left;font-family:${FONT_UI};font-size:13px;padding:12px 14px;border-radius:10px;background:${A.raised};border:1px solid ${A.edge};color:${A.inkDim};cursor:pointer;transition:border-color .15s,background .15s,color .15s;}
-.msg-modbtn:hover{border-color:${A.edgeStrong};color:${A.ink};}
-.msg-modbtn.on{border-color:${A.cyan};color:${A.ink};background:rgba(91,224,240,0.14);box-shadow:inset 0 0 0 1px rgba(91,224,240,0.45);}
-.msg-modbtn--danger{color:${A.danger};}
-.msg-modbtn--danger:hover{border-color:${A.danger};color:${A.danger};background:rgba(255,138,122,0.10);}
-.msg-modnote{width:100%;box-sizing:border-box;margin-top:10px;min-height:74px;background:rgba(2,8,14,0.55);border:1px solid ${A.edge};border-radius:10px;padding:11px 13px;color:${A.ink};font-family:${FONT_UI};font-size:13px;outline:0;resize:vertical;}
-.msg-modnote::placeholder{color:${A.inkFaint};}
-.msg-modnote:focus{border-color:${A.cyan};box-shadow:0 0 0 3px rgba(91,224,240,0.20);}
-.msg-modsend{width:100%;margin-top:12px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:8px;background:${A.ctaGrad};color:${A.ctaInk};border:1px solid ${GOLD_BTN.edge};box-shadow:${A.ctaShadow};cursor:pointer;}
-.msg-modsend:hover:not(:disabled){background:${A.ctaGradHover};}
-.msg-modsend:disabled{background:rgba(91,224,240,0.10);color:${A.inkFaint};border-color:${A.edge};box-shadow:none;cursor:default;}
-.msg-modcancel{width:100%;margin-top:8px;background:none;border:0;color:${A.inkFaint};font-family:${FONT_UI};font-size:12.5px;padding:9px;cursor:pointer;}
-.msg-modcancel:hover{color:${A.ink};}
+${AINUBIS_SHEET_CSS}
 .msg-blocked{flex-shrink:0;max-width:640px;width:100%;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 16px);border-top:1px solid var(--msg-bar-edge);background:var(--msg-bar);box-sizing:border-box;text-align:center;position:relative;z-index:2;}
 .msg-blockedtxt{font-family:${FONT_UI};font-size:12.5px;line-height:1.6;color:var(--msg-dim);}
 .msg-unblock{margin-top:10px;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:10px 20px;border-radius:8px;background:var(--msg-btn);border:1px solid var(--msg-btn-edge);color:var(--msg-btn-ink);cursor:pointer;transition:border-color .15s,color .15s,background .15s;}
@@ -489,14 +461,8 @@ export function Thread({ convId, onClose, onOpenTrip }: {
         <div className="msg-modsheet" role="dialog" aria-modal="true" onClick={(e) => { if (e.target === e.currentTarget) closeMod(); }}>
           <div className="msg-modpanel">
             {/* Kto to rieši. Bez hlavy je to len tmavý panel bez majiteľa. */}
-            <div className="msg-modwho">
-              <img className="msg-modface" src={ainubisFace} alt="" aria-hidden="true" />
-              {/* Vlastné meno sa neprekladá (rovnako ako DOG ID), takže tu t() netreba.
-                  Rolu už nesie nadpis panela pod tým — druhý riadok by ju len zopakoval,
-                  a nový i18n kľúč by si vyžiadal en.ts, ktorý má rozrobený iná session. */}
-              {/* MENO MA TVAR - "AI" je cyan, token `AINUBIS.aiInk` v ainubisSkin.ts. */}
-              <b><span style={{ color: AINUBIS.aiInk, textShadow: AINUBIS.aiShadow }}>AI</span>NUBIS</b>
-            </div>
+            {/* Kto to rieši — hlava + meno z ainubisSheet.tsx (jeden zdroj). */}
+            <AinubisWho />
             {modView === 'menu' && (
               <>
                 <div className="msg-modtitle">{title}</div>

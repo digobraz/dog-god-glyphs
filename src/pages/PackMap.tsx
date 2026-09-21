@@ -103,7 +103,8 @@ import {
 } from '@/components/pack/packCommunity';
 import { useCrowdOthers, refreshCrowdOthers } from '@/components/pack/crowdOthers';
 import { packStorage, readLocalTrailMeta } from '@/lib/packStore';
-import { hasOnlyDeceasedDogs, useMemorialTripsToast } from '@/components/pack/memorialTrips';
+import { hasOnlyDeceasedDogs, useMemorialTrips } from '@/components/pack/memorialTrips';
+import { AinubisBubble } from '@/components/pack/ainubisSheet';
 import {
   COMMUNITY_CSS, BigRating, PhotoMetaPills, HazardTags, WalkedPopup,
   EventsView,
@@ -1348,9 +1349,9 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
    šírku nech to je pekne zrovnané"). Platí ako pravidlo pre každý rad rovnocenných prvkov. */
 .trp-cat-pills{display:flex;gap:9px;position:relative;}
 /* Veta pod zamknutou pilulkou PODUJATIA (Matej 21. 9.: „popup by som dal pod to, nie na
-   vrch obrazovky, ale pod tie podujatia na vrch mapy"). Rovnaký šat ako bublina
-   .trp-catpill.soon::after — papyrus panelu, zlatý rám. */
-.trp-eventshint{position:absolute;top:calc(100% + 8px);right:0;z-index:30;max-width:280px;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};color:${INK};font-family:${FONT_UI};font-size:12px;line-height:1.45;padding:8px 12px;border-radius:12px;box-shadow:${T.panelShadow};}
+   vrch obrazovky, ale pod tie podujatia na vrch mapy"). Hovorí AINUBIS — oznamy appky majú
+   jeho hlas a šat (ainubisSheet.tsx); tu je len poloha. */
+.trp-eventshint{position:absolute;top:calc(100% + 8px);right:0;z-index:30;max-width:300px;}
 /* Kategórie (Trips/Events/Places/Services) sú nadpisy sekcií, nie dáta → FONT_TITLE. */
 .trp-catpill{flex:1 1 0;min-width:0;padding:12px 8px;border-radius:10px;border:1px solid rgba(245,240,228,0.22);background:rgba(245,240,228,0.07);font-family:${FONT_TITLE};font-weight:700;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:rgba(245,240,228,0.78);cursor:pointer;white-space:nowrap;transition:all .15s;text-align:center;}
 .trp-catpill.on{background:linear-gradient(135deg,#F5C73D,#E69E1A);border-color:rgba(250,244,236,0.3);color:#1c160c;box-shadow:0 4px 14px rgba(201,154,63,0.3);}
@@ -3537,7 +3538,7 @@ export default function PackMap() {
   // živou mapou, nie samostatná obrazovka. Pathname rozhoduje, či sa formulár otvorí pri mounte.
   const onAddRoute = useLocation().pathname.startsWith('/pack/add');
   const id = usePackIdentity();
-  const showMemorialTrips = useMemorialTripsToast();
+  const memorialTrips = useMemorialTrips();
   const [levelPanelOpen, setLevelPanelOpen] = useState(false);
 
   /**
@@ -4530,7 +4531,7 @@ export default function PackMap() {
     // Počas načítania (`loading`) sa nepýta — prázdny zoznam vtedy neznamená „nemá psa".
     if (!walkedIds.has(tid) && !id.loading && id.session && !hasLiveDog(id.dogs)) {
       // Pes odišiel → nie „pridaj psa", ale ponuka MÁM ZÁUJEM o spätný zápis (memorialTrips.tsx).
-      if (hasOnlyDeceasedDogs(id.dogs)) showMemorialTrips();
+      if (hasOnlyDeceasedDogs(id.dogs)) memorialTrips.show();
       else toast({ title: t('pack.addTrip.step.needDogTitle'), description: t('pack.addTrip.step.needDog') });
       return;
     }
@@ -6250,7 +6251,7 @@ export default function PackMap() {
                 nevadilo, lebo mapa je na LIVE za DEV_FULL — ale launch = flip DEV_FULL, a vtedy
                 by sa podujatia odomkli naraz s ňou. Odôvodnenie celé v `lib/packFlags.ts`. */}
             <button type="button" className={`trp-catpill${activeCat === 'events' ? ' on' : ''}${EVENTS_LIVE ? '' : ' soon'}`} aria-disabled={!EVENTS_LIVE} onClick={pickEvents}>{EVENTS_LIVE ? '' : '🔒 '}{t('pack.map.catEvents')}</button>
-            {eventsHint && <div className="trp-eventshint" role="status">{t('pack.map.eventsSoon')}</div>}
+            {eventsHint && <AinubisBubble className="trp-eventshint" role="status">{t('pack.map.eventsSoon')}</AinubisBubble>}
             {/* Matej 2026-08-06: MIESTA (Places) pill preč — PLACE ako filter kategória bola
                 zrušená (pláže/lúky/parky sú TRIP cez aktivitu `explore`, viď zadanie-eventy §A).
                 i18n kľúč `pack.map.catPlaces` ostáva v locale súboroch pre prípadné budúce použitie. */}
@@ -6450,7 +6451,7 @@ export default function PackMap() {
             zabrala tretinu šírky a nerobí nič. */}
         <div className="trp-mheader-cats" role="tablist">
           <button type="button" role="tab" aria-selected={activeCat === 'trips'} className={activeCat === 'trips' ? 'on' : ''} onClick={() => setActiveCat('trips')}>{t('pack.map.catTrips')}</button>
-          {eventsHint && <div className="trp-eventshint" role="status">{t('pack.map.eventsSoon')}</div>}
+          {eventsHint && <AinubisBubble className="trp-eventshint" role="status">{t('pack.map.eventsSoon')}</AinubisBubble>}
           <button type="button" role="tab" aria-selected={activeCat === 'events'} aria-disabled={!EVENTS_LIVE} className={activeCat === 'events' ? 'on' : EVENTS_LIVE ? '' : 'is-locked'} onClick={pickEvents}>{EVENTS_LIVE ? '' : '🔒 '}{t('pack.map.catEvents')}</button>
         </div>
       </div>
@@ -7331,6 +7332,8 @@ export default function PackMap() {
           ⤢ expand teraz navigate('/pack/map/:slug') na SAMOSTATNÚ route
           (PackTripArticle.tsx cez App.tsx), tak tento súbor už nikdy nemountuje so slugom. */}
 
+      {/* Ponuka MÁM ZÁUJEM (pes odišiel) — panel AINUBISA, memorialTrips.tsx. */}
+      {memorialTrips.element}
       {/* ── KOMUNITNÉ modaly / dashboard (design plany/pack-community-features-design.md) ── */}
       {addEntryOpen && (
         <AddTripEntry onPick={pickAddFlow} onClose={closeAddEntry} />

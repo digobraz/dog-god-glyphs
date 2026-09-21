@@ -36,6 +36,7 @@ const LS_OK = new Set([0, 0.02, 0.14, 0.22, 0.26]);
 const SKIP = [
   'components/pack/ainubisSkin.ts',         // AINUBIS = vlastný brand (lock 1. 9. 2026)
   'components/pack/ainubis/',               //   …a jeho widget
+  'components/pack/ainubisSheet.tsx',       //   …a jeho panel hlásení + oznamov (21. 9. 2026)
   'components/pack/PackShareCard.tsx',      // share karta sa renderuje do OBRÁZKA —
   'components/pack/level/revealCss.ts',     //   z papyrusového locku vyňatá v CLAUDE.md
   'components/pack/mapnotes/circleMark.ts', // geometria značky na mape (28/2.5 px lock)

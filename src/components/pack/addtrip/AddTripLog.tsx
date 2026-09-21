@@ -24,6 +24,8 @@
 //   1 TRASA · 2 ODKAZY NA TRASU · 3 ZÁKLAD · 4 O TRASE · 5 OSTATNÉ
 // Zadanie: `plany/zadanie-mapa-kroky-2026-08-23.md`
 import { voteMemorialTrips } from '@/components/pack/memorialTrips';
+import { AinubisBubble } from '@/components/pack/ainubisSheet';
+import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { MutableRefObject } from 'react';
@@ -3314,21 +3316,24 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                   <label>{t('pack.addTrip.step.whoWasWithYou')}</label>
                   <CompanionAvatarsOnly myDogs={myDogs} selected={crew} onChange={setCrew} />
                   {noDog && (memorialOnly ? (
-                    <div className="atl-draftwarn" role="alert" style={{ marginTop: 8 }}>
-                      <p>{t('pack.trip.memorial.body')}</p>
-                      {memorialVote === 'done' ? (
-                        <p><b>{t('pack.trip.memorial.thanks')}</b></p>
-                      ) : (
-                        <button
-                          type="button"
-                          className="atl-journey-link"
-                          disabled={memorialVote === 'busy'}
-                          onClick={() => {
-                            setMemorialVote('busy');
-                            void voteMemorialTrips().then((ok) => setMemorialVote(ok ? 'done' : 'idle'));
-                          }}
-                        >{t('pack.trip.memorial.cta')}</button>
-                      )}
+                    // Oznam appky = hlas AINUBISA (Matej 21. 9. 2026), nie papyrusové varovanie.
+                    <div style={{ marginTop: 8 }}>
+                      <AinubisBubble role="alert">
+                        <div>{t('pack.trip.memorial.body')}</div>
+                        {memorialVote === 'done' ? (
+                          <div style={{ marginTop: 8, color: AINUBIS.ink }}>{t('pack.trip.memorial.thanks')}</div>
+                        ) : (
+                          <button
+                            type="button"
+                            className="ain-cta"
+                            disabled={memorialVote === 'busy'}
+                            onClick={() => {
+                              setMemorialVote('busy');
+                              void voteMemorialTrips().then((ok) => setMemorialVote(ok ? 'done' : 'idle'));
+                            }}
+                          >{t('pack.trip.memorial.cta')}</button>
+                        )}
+                      </AinubisBubble>
                     </div>
                   ) : (
                     <div className="atl-draftwarn" role="alert" style={{ marginTop: 8 }}>

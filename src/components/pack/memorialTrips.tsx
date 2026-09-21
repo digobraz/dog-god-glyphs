@@ -5,9 +5,9 @@
 // je navrhnutý (pamäť project_dogypt_vylet_bez_psa_zosnuly_2026-09-21), ale Matej ho
 // nechal na neskôr: *„a nemusime robiť niečo čo mmožno nikto nebude chcieť"*.
 // Namiesto neho bublina s tlačidlom MÁM ZÁUJEM → hlas `memorial_trips` vo `feature_votes`.
-// Nový blok to NIE JE — je to ten istý toast, aký mapa používa všade.
-import { useToast } from '@/hooks/use-toast';
-import { ToastAction } from '@/components/ui/toast';
+// Nový blok to NIE JE — je to panel AINUBISA z ainubisSheet.tsx (oznamy = jeho hlas).
+import { useState, type ReactNode } from 'react';
+import { AinubisSheet } from '@/components/pack/ainubisSheet';
 import { supabase } from '@/integrations/supabase/client';
 import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
 import { useT } from '@/i18n/LanguageContext';
@@ -41,31 +41,36 @@ export async function voteMemorialTrips(): Promise<boolean> {
   return !!second?.voted;
 }
 
-/** Bublina s tlačidlom MÁM ZÁUJEM — tá istá na mape, v článku výletu aj v sprievodcovi. */
-export function useMemorialTripsToast(): () => void {
-  const { toast } = useToast();
+/**
+ * Ponuka MÁM ZÁUJEM — panel AINUBISA (oznamy appky majú jeho hlas, Matej 21. 9. 2026).
+ * Do 21. 9. večer to bol systémový toast hore na obrazovke. Text ide cez celú šírku,
+ * tlačidlo pod ním (Matej: „texting cez celú šírku bloku a CTA pod to").
+ * Vracia `show` + `element`, ktorý volajúci vloží do svojho JSX.
+ */
+export function useMemorialTrips(): { show: () => void; element: ReactNode } {
   const t = useT();
-  return () => {
-    // Text cez CELÚ šírku, tlačidlo POD ním (Matej 21. 9.: „texting by som dal cez celú
-    // šírku bloku a CTA pod to"). Preto tlačidlo nejde do `action` — shadcn ho kladie
-    // vedľa textu a dlhá veta sa zúžila na polovicu.
-    toast({
-      description: (
-        <div>
-          <p>{t('pack.trip.memorial.body')}</p>
-          <ToastAction
-            className="mt-3"
-            altText={t('pack.trip.memorial.cta')}
-            onClick={() => {
-              void voteMemorialTrips().then((ok) => {
-                toast({ description: ok ? t('pack.trip.memorial.thanks') : t('pack.trip.memorial.failed') });
-              });
-            }}
-          >
-            {t('pack.trip.memorial.cta')}
-          </ToastAction>
-        </div>
-      ),
-    });
-  };
+  const [open, setOpen] = useState(false);
+  const [state, setState] = useState<'idle' | 'busy' | 'done' | 'failed'>('idle');
+  const show = () => { setState('idle'); setOpen(true); };
+  const element = open ? (
+    <AinubisSheet onClose={() => setOpen(false)}>
+      <div className="msg-modsub" style={{ marginTop: 0 }}>{t('pack.trip.memorial.body')}</div>
+      {state === 'done' ? (
+        <div className="msg-modtitle" style={{ marginTop: 16 }}>{t('pack.trip.memorial.thanks')}</div>
+      ) : (
+        <button
+          type="button"
+          className="msg-modsend"
+          disabled={state === 'busy'}
+          onClick={() => {
+            setState('busy');
+            void voteMemorialTrips().then((ok) => setState(ok ? 'done' : 'failed'));
+          }}
+        >{t('pack.trip.memorial.cta')}</button>
+      )}
+      {state === 'failed' && <div className="msg-modsub" role="alert">{t('pack.trip.memorial.failed')}</div>}
+      <button type="button" className="msg-modcancel" onClick={() => setOpen(false)}>{t('pack.trip.cm.close')}</button>
+    </AinubisSheet>
+  ) : null;
+  return { show, element };
 }

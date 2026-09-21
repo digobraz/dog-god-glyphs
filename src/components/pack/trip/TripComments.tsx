@@ -24,7 +24,6 @@
 // (signed out, unpaid, DEV_NOAUTH) the popup shows an error instead of pretending it saved — same
 // rule as `sendMessage()` in packMessaging.ts.
 import { useCallback, useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_SHADOW, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PALE, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
@@ -44,6 +43,8 @@ import {
 // Nahlásenie (issue #54) — infra (RPC `report_content` + `pack_reports`) žije v messaging module,
 // odtiaľ sa len importuje (needituje sa, iní agenti na ňom pracujú súbežne).
 import { reportContent, type ReportReason } from '@/components/pack/messaging/packMessaging';
+import { AinubisSheet } from '@/components/pack/ainubisSheet';
+import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { useMyDogRights } from '@/lib/dogRights';
 
 const T = PACK_THEME;
@@ -276,42 +277,39 @@ export function ReportSheet({ onClose, onSend, busy, error, sent, reasons = REPO
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [note, setNote] = useState('');
   const needsNote = !!reason && noteRequired.includes(reason) && !note.trim();
-  // PORTÁL do <body>: v článku výletu sedí panel vnútri obalu s vlastným skladacím
-  // kontextom, takže ho prekrývala bočná lišta (`.pta-acts`, z-index 45) napriek 1200.
-  return createPortal((
-    <div className="tcm-overlay" onClick={onClose}>
-      <div className="tcm-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="tcm-modal-head">
-          <div className="tcm-modal-title">{sent ? t('pack.trip.rp.sent') : t(titleKey)}</div>
-          <button type="button" className="tcm-x" onClick={onClose} aria-label={t('pack.trip.cm.close')}>×</button>
-        </div>
-        {sent ? (
-          <div className="tcm-modal-sub">{t('pack.trip.rp.matejReads')}</div>
-        ) : (
-          <>
-            <div className="tcm-field">
-              {reasons.map((r) => (
-                <button
-                  key={r.id}
-                  type="button"
-                  className={`tcm-reportreason${reason === r.id ? ' on' : ''}`}
-                  onClick={() => setReason(r.id)}
-                >{t(r.label)}</button>
-              ))}
-            </div>
-            <div className="tcm-field">
-              <textarea className="tcm-textarea" value={note} onChange={(e) => setNote(e.target.value)} placeholder={t(placeholderKey)} />
-            </div>
-            {error && <div className="tcm-gatehint" style={{ color: '#E0796D' }}>{error}</div>}
-            <button type="button" className="tcm-submit" disabled={!reason || needsNote || busy} onClick={() => reason && onSend(reason, note.trim() || undefined)}>
-              {busy ? 'Sending…' : t('pack.trip.rp.send')}
-            </button>
-            <button type="button" className="tcm-reportcancel" onClick={onClose}>{t('pack.trip.rp.cancel')}</button>
-          </>
-        )}
-      </div>
-    </div>
-  ), document.body);
+  // HLÁSENIE = AINUBIS (brand lock, Matej 1. 9. 2026). Do 21. 9. to bol papyrusový
+  // `tcm-modal` — v rozpore s lockom; odteraz ten istý panel ako hlásenie vo vlákne.
+  return (
+    <AinubisSheet onClose={onClose}>
+      {sent ? (
+        <>
+          <div className="msg-modtitle">{t('pack.trip.rp.sent')}</div>
+          <div className="msg-modsub">{t('pack.trip.rp.matejReads')}</div>
+          <button type="button" className="msg-modcancel" onClick={onClose}>{t('pack.trip.cm.close')}</button>
+        </>
+      ) : (
+        <>
+          <div className="msg-modtitle">{t(titleKey)}</div>
+          <div className="msg-modrow">
+            {reasons.map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                className={`msg-modbtn${reason === r.id ? ' on' : ''}`}
+                onClick={() => setReason(r.id)}
+              >{t(r.label)}</button>
+            ))}
+          </div>
+          <textarea className="msg-modnote" value={note} onChange={(e) => setNote(e.target.value)} placeholder={t(placeholderKey)} />
+          {error && <div className="msg-modsub" role="alert" style={{ color: AINUBIS.danger }}>{error}</div>}
+          <button type="button" className="msg-modsend" disabled={!reason || needsNote || busy} onClick={() => reason && onSend(reason, note.trim() || undefined)}>
+            {busy ? t('pack.msg.sending') : t('pack.trip.rp.send')}
+          </button>
+          <button type="button" className="msg-modcancel" onClick={onClose}>{t('pack.trip.rp.cancel')}</button>
+        </>
+      )}
+    </AinubisSheet>
+  );
 }
 
 /**

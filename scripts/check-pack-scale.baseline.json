@@ -61,7 +61,7 @@
   },
   "components/pack/DogPassport.tsx": {
     "radius": 0,
-    "font": 16,
+    "font": 15,
     "zavoj": 0,
     "progres": 1,
     "ram": 1,
@@ -600,14 +600,14 @@
     "odsadenie": 9
   },
   "components/pack/messaging/Thread.tsx": {
-    "radius": 2,
-    "font": 14,
+    "radius": 0,
+    "font": 11,
     "zavoj": 0,
     "progres": 0,
     "ram": 0,
-    "tien": 2,
-    "pismenka": 7,
-    "odsadenie": 15
+    "tien": 0,
+    "pismenka": 4,
+    "odsadenie": 10
   },
   "components/pack/messaging/msgTheme.ts": {
     "radius": 0,
