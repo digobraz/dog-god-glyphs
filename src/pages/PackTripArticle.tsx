@@ -44,7 +44,7 @@ import {
   ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail, hasRouteMetrics, pluralKey,
   readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, hasLiveDog, RENAMED_TRIP_IDS, tripPath,
   tripShareText, tripText, TRAIL_SABER_LAYERS, TRAIL_LINE, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing } from '@/components/pack/tripShared';
-import { TripGoPanel, TripGoButtons, type TripGoMode } from '@/components/pack/trip/TripGoPanel';
+import { TripGoPanel, TripGoButtons } from '@/components/pack/trip/TripGoPanel';
 import {
   crowdAggregate, founderWalkers, founderDogyptians, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
   walkPointsFor, walkRewardBase, RATE_PROMPT_POINTS, discoveryBonusFor, bonusToastText,
@@ -565,7 +565,7 @@ export default function PackTripArticle() {
   const dogRights = useMyDogRights();
   const { lang } = useLang();   // popisy výletov nesú DÁTA, nie i18n kľúče (viď tripText)
   // `null` = zavreté · 'drive' = autom na parkovisko · 'route' = stopa do mobilu (15. 9. 2026)
-  const [goOpen, setGoOpen] = useState<TripGoMode | null>(null);
+  const [goOpen, setGoOpen] = useState(false);
   const mapNotes = useMapNotes(true);
 
   // ── DOPĹŇANIE ODKAZOV PRIAMO Z ČLÁNKU (Matej 2026-08-21) ─────────────────
@@ -1626,13 +1626,9 @@ export default function PackTripArticle() {
             ⚠️ Bez `path[0]` sa nevykreslí: `navTarget()` vráti null a tlačidlo bez cieľa
             by len otvorilo prázdny panel. */}
         {trail.path.length > 0 && (
-          <TripGoButtons
-            hasRoute={trail.path.length > 1}
-            onDrive={() => setGoOpen('drive')}
-            onRoute={() => setGoOpen('route')}
-          />
+          <TripGoButtons trail={trail} onDrive={() => setGoOpen(true)} />
         )}
-        {goOpen && <TripGoPanel trail={trail} mode={goOpen} onClose={() => setGoOpen(null)} />}
+        {goOpen && <TripGoPanel trail={trail} onClose={() => setGoOpen(false)} />}
 
         {/* Zápisy členov (parkovisko, výstrahy, poznámky) — NAD diskusiou: je to
             informácia „než vyrazíš", nie rozhovor.

@@ -1,0 +1,39 @@
+{
+  "zmerane": "2026-09-21",
+  "pasmo": [
+    0.8,
+    1.25
+  ],
+  "mimo": [
+    {
+      "id": "bielovodska-dolina-vysoke-tatry",
+      "nase": 23.4,
+      "mapy": 33.2
+    },
+    {
+      "id": "cachticky-hrad-plesivce-male-karpaty",
+      "nase": 11.5,
+      "mapy": 9.1
+    },
+    {
+      "id": "maly-rozsutec-mala-fatra",
+      "nase": 8.8,
+      "mapy": 16.8
+    },
+    {
+      "id": "sivy-vrch-zapadne-tatry",
+      "nase": 8.5,
+      "mapy": 16.4
+    },
+    {
+      "id": "sokolie-mala-fatra",
+      "nase": 7.3,
+      "mapy": 14.9
+    },
+    {
+      "id": "zelene-pleso-vysoke-tatry",
+      "nase": 23.1,
+      "mapy": 34.9
+    }
+  ]
+}

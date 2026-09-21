@@ -6,7 +6,7 @@
 //
 // ── DVE RÔZNE VECI, PRETO DVE SEKCIE ────────────────────────────────────────────────────
 //   1. AUTOM NA ŠTART   — jeden cieľ, navigácia po ceste. Google · Apple · Waze · Mapy.com.
-//   2. TRASA DO MOBILU  — celá stopa, chôdza v teréne. GPX · Mapy.com turistická.
+//   2. TRASA DO MOBILU  — celá stopa, chôdza v teréne. Mapy.com (odkaz) · GPX (súbor).
 // Zliať ich do jedného radu by znamenalo, že „Google Mapy" a „GPX" vyzerajú ako alternatívy
 // toho istého — pritom prvé ťa dovezie na parkovisko a druhé ťa vedie po chodníku.
 //
@@ -17,6 +17,9 @@
 // vedieť, či ho vezie na overené parkovisko, alebo len k prvému bodu stopy.
 
 import type { HeroTrail } from '@/data/heroTrails.generated';
+import mapyMeranie from './mapyTrasy.meranie.json';
+
+const MAPY_OFF = new Set<string>(mapyMeranie.mimo.map((x: { id: string }) => x.id));
 
 export type NavApp = 'google' | 'apple' | 'waze' | 'mapy';
 
@@ -60,26 +63,107 @@ export function navUrl(app: NavApp, t: NavTarget): string {
 }
 
 /**
- * TURISTICKÁ MAPA NA ŠTARTE TRASY.
+ * TRASA V MAPY.COM — celá stopa v plánovači, režim Turistická.
  *
- * 🔴 TRASA SA DO URL MAPY.COM VLOŽIŤ NEDÁ (overené 13. 9. 2026, ZNOVA 15. 9. 2026 po Matejovej
- * reklamácii „otvoriť v mapach cz neukáže trasu"). Odskúšané tri tvary naživo v prehliadači:
- * `?planovani-trasy&rs=coor&ri=<lon>,<lat>&rs=coor&ri=…` a `?planovani-trasy&rc=<lon>,<lat>;…`
- * stránka pri načítaní ZAHODÍ a prehodí na východiskový výrez (Nemecko, z=7);
- * `?routeStart=…&routeEnd=…` si v adrese nechá, ale ignoruje ich. Preto sa odkaz 15. 9.
- * PREMENOVAL na „Otvoriť okolie v Mapy.com" — sľubovať trasu a ukázať výrez je horšie než
- * pomenovať, čo odkaz naozaj robí. NAŠU stopu nesie GPX o riadok vyššie.
+ * 13. a 15. 9. 2026 sme tu tvrdili, že trasa sa do URL vložiť nedá. Dá — len parameter `rc`
+ * NIE SÚ holé súradnice, ale Seznamovo kódovanie (SMap coordsToString). Holé `lon,lat` stránka
+ * zahodila, preto všetky tri pokusy padli. Kódovanie rozlúsknuté 21. 9. 2026 zo 14 vzoriek
+ * z ich plánovača (zhoda znak po znaku) a Matej overil, že odkaz otvorí trasu v APPKE
+ * na telefóne. Zdroj pokusu: `plany/mapy-rc-kodovac-2026-09-21.mjs`.
  *
- * Starý tvar mapy.cz
- * (`&rs=coor&ri=<lon>,<lat>`) nová stránka pri načítaní ZAHODÍ — presmeruje na prázdny
- * plánovač. Preto sa odtiaľto otvára turistická vrstva vycentrovaná na štart (človek má
- * KČT značenie a vie sa zorientovať) a NAŠA stopa ide do mobilu cez GPX nižšie.
- * Keby Seznam raz zverejnil tvar pre trasu, mení sa jediný riadok tu.
+ *   x = (lon+180)·2^28/360, y = (lat+90)·2^28/180 · prvý bod absolútne (5 znakov),
+ *   ďalšie ako delta: 2 znaky do ±1024, 3 znaky do ±32768, inak znova absolútne.
+ *   `mrp={"c":132}` = Turistická pešo (111 by bolo auto).
+ *
+ * ⚠️ BODOV JE 8, NIE CELÁ STOPA. Záruby 1 s 28 kotvami = 28 špendlíkov na mape; s 3 bodmi
+ * si Mapy.com vybrali iný chodník (5,0 km), s 5 bodmi 5,5 km, s 8 bodmi 5,6 km = náš GPX.
+ * Body sa berú rovnomerne PO DĹŽKE, nie po indexe — prichytená stopa má body nahusto
+ * v zákrutách a riedko na rovinke.
+ *
+ * ⚠️ TAM A SPÄŤ (Matej 21. 9.: „tam aj späť"). Stopa nesie jeden smer; keď sú naše km
+ * aspoň 1,6× dĺžka stopy a koniec je ďaleko od štartu, výlet je tam a späť a posledným
+ * bodom je znova štart — čísla v appke tak sedia s článkom a navigácia dovedie k autu.
+ * Okruh (koniec pri štarte) sa nechá, ako je.
  */
-export function mapyTrailUrl(trail: Pick<HeroTrail, 'path'>): string | null {
-  const s = trail.path?.[0];
-  if (!s) return null;
-  return `https://mapy.com/turisticka?x=${s[1]}&y=${s[0]}&z=14`;
+const RC_ABC = '0ABCD2EFGH4IJKLMN6OPQRSTU8VWXYZ-1abcd3efgh5ijklmn7opqrst9uvwxyz.';
+const MAPY_POINTS = 8;
+
+function rcNum(delta: number, orig: number): string {
+  const A = RC_ABC;
+  if (delta >= -1024 && delta < 1024) return A[(delta + 1024) >> 6] + A[(delta + 1024) & 63];
+  if (delta >= -32768 && delta < 32768) {
+    const v = 0x20000 | (delta + 32768);
+    return A[(v >> 12) & 63] + A[(v >> 6) & 63] + A[v & 63];
+  }
+  const v = 0x30000000 | (orig & 0xFFFFFFF);
+  return A[(v >> 24) & 63] + A[(v >> 18) & 63] + A[(v >> 12) & 63] + A[(v >> 6) & 63] + A[v & 63];
+}
+
+export function mapyRc(pts: Array<[number, number]>): string {
+  let ox = 0, oy = 0, s = '';
+  for (const [lat, lon] of pts) {
+    const x = Math.round((lon + 180) * 2 ** 28 / 360);
+    const y = Math.round((lat + 90) * 2 ** 28 / 180);
+    s += rcNum(x - ox, x) + rcNum(y - oy, y);
+    ox = x; oy = y;
+  }
+  return s;
+}
+
+function kmBetween(a: [number, number], b: [number, number]): number {
+  const r = Math.PI / 180;
+  const x = (b[1] - a[1]) * r * Math.cos(((a[0] + b[0]) / 2) * r);
+  const y = (b[0] - a[0]) * r;
+  return 6371 * Math.hypot(x, y);
+}
+
+/** `n` bodov rovnomerne po dĺžke stopy; prvý a posledný sú vždy štart a koniec. */
+function pickAlong(path: Array<[number, number]>, n: number): Array<[number, number]> {
+  if (path.length <= n) return path;
+  const cum = [0];
+  for (let i = 1; i < path.length; i++) cum.push(cum[i - 1] + kmBetween(path[i - 1], path[i]));
+  const total = cum[cum.length - 1];
+  const out: Array<[number, number]> = [];
+  let j = 0;
+  for (let k = 0; k < n; k++) {
+    const want = (total * k) / (n - 1);
+    while (j < path.length - 1 && cum[j] < want) j++;
+    out.push(path[j]);
+  }
+  return out;
+}
+
+export function mapyRouteUrl(trail: Pick<HeroTrail, 'path' | 'km'>): string | null {
+  const path = (trail.path ?? []) as Array<[number, number]>;
+  if (path.length < 2) return null;
+  let len = 0;
+  for (let i = 1; i < path.length; i++) len += kmBetween(path[i - 1], path[i]);
+  const gap = kmBetween(path[0], path[path.length - 1]);
+  const km = parseFloat(String(trail.km).replace(',', '.'));
+  const thereBack = gap > 0.3 && len > 0 && km / len > 1.6;
+  const pts = pickAlong(path, MAPY_POINTS);
+  if (thereBack) pts.push(path[0]);
+  const each = (p: string) => pts.map(() => p).join('&');
+  return `https://mapy.com/turisticka?planovani-trasy&rc=${mapyRc(pts)}&${each('rs=coor')}&${each('ri=')}`
+    + `&mrp=${encodeURIComponent('{"c":132}')}`;
+}
+
+/**
+ * ⚠️ ODKAZ SA PONÚKA LEN VÝLETU, KTORÉMU MAPY.COM NAKRESLIA NAŠU TRASU.
+ *
+ * Plánovač vedie trasu len po chodníkoch, ktoré pozná. Kde naša stopa ide terénom mimo nich
+ * (Sokolie v Malej Fatre, Sivý vrch, Tatry), obchádza body po cestách: namerané 21. 9. 2026
+ * 7,3 km → 14,9 km, 23,1 → 34,9 km. Človeka so psom by tak poslal na dvojnásobnú trasu.
+ * Viac bodov to nezlepší, skôr naopak (12 bodov = 54 zo 63 výletov v norme, 8 bodov = 56).
+ * Takým výletom ostáva GPX, ktorý nesie presne našu stopu.
+ *
+ * Zoznam NIE JE ručný: zapisuje ho `node scripts/mapy-trasy-over.mjs`, ktorý otvorí každý
+ * výlet v Mapy.com a porovná ich km s našimi. Nový výlet, ktorý ešte nikto nezmeral, odkaz
+ * dostane. Po pridaní výletov preto skript spusti znova.
+ */
+export function mapyTrailUrl(trail: Pick<HeroTrail, 'id' | 'path' | 'km'>): string | null {
+  if (MAPY_OFF.has(trail.id)) return null;
+  return mapyRouteUrl(trail);
 }
 
 const esc = (s: string) => s.replace(/[<>&'"]/g, (c) =>

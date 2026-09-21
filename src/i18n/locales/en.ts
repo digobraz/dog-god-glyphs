@@ -2842,7 +2842,7 @@ export const en = {
   // `go.fromStart` is DELIBERATELY cautious: a trail only has parking if someone marked it in
   // the audit — otherwise navigation aims at the first point of the track, and there may be
   // nowhere to park. Saying so is cheaper than a member blaming the app for it.
-  'pack.trip.go.ctaRoute': "Route to your phone",
+  'pack.trip.go.ctaRoute': "Route in Mapy.com",
   'pack.trip.go.routeHow': "Download the file and open it in the Mapy.com app (or Locus, Garmin, Organic Maps) — the route appears on the map with its elevation profile.",
   'pack.trip.go.cta': "Get there",
   'pack.trip.go.title': "Get there",

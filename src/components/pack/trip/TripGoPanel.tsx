@@ -81,6 +81,10 @@ const GO_CSS = `
 /* Zelená nesie ten istý odliatok ako lapis, aby tlačidlá čítali ako dvojica. */
 .tgo-cta--trail{background:${MAPY.grad};color:${MAPY.ink};border:1px solid ${MAPY.edge};box-shadow:${MAPY_BTN_SHADOW};}
 .tgo-cta--trail:hover{background:${MAPY.gradHover};}
+a.tgo-cta{text-decoration:none;}
+/* GPX = tichý odkaz pod dvojicou CTA, rovnaký tvar ako „Nahlásiť problém" v päte článku. */
+.tgo-gpx{display:block;margin:8px auto 0;background:none;border:0;padding:8px;font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:.02em;color:${T.inkWarm};text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
+.tgo-gpx:hover{color:${T.inkStrong};}
 `;
 
 /** Poradie = čo ľudia na Slovensku reálne otvárajú. Apple pribúda len na Apple zariadení. */
@@ -90,10 +94,8 @@ const APPS: Array<{ id: NavApp; emoji: string }> = [
   { id: 'mapy',   emoji: '🧭' },
 ];
 
-/** Ktorú z dvoch vecí panel rieši — `drive` = autom na parkovisko, `route` = stopa do mobilu. */
-export type TripGoMode = 'drive' | 'route';
-
-export function TripGoPanel({ trail, onClose, mode = 'drive' }: { trail: HeroTrail; onClose: () => void; mode?: TripGoMode }) {
+/** Panel rieši už len cestu autom na parkovisko — trasa ide priamo odkazom (TripGoButtons). */
+export function TripGoPanel({ trail, onClose }: { trail: HeroTrail; onClose: () => void }) {
   const t = useT();
   const target = navTarget(trail);
 
@@ -108,42 +110,11 @@ export function TripGoPanel({ trail, onClose, mode = 'drive' }: { trail: HeroTra
   // macOS/iOS sa kreslí ako prázdny obdĺžnik. Sada panela je Emoji 1.0 — tá istá podmienka,
   // kvôli ktorej padol 🪜 v mapových značkách.
   const apps = isAppleDevice() ? [APPS[0], { id: 'apple' as NavApp, emoji: '🍎' }, ...APPS.slice(1)] : APPS;
-  const mapy = mapyTrailUrl(trail);
-
   return (
     <>
       <style>{GO_CSS}</style>
       <div className="tgo-veil" onClick={onClose} role="presentation">
         <div className="tgo-panel" onClick={(e) => e.stopPropagation()}>
-          {/* ── TRASA DO MOBILU ────────────────────────────────────────────────────────
-              Vlastný panel od 15. 9. 2026. Návod je jedna veta a musí tu byť: súbor sa
-              najprv STIAHNE a až potom sa otvára v appke — kto to nevie, skončí na tom,
-              že sa mu „nič nestalo" (presne tak to dopadlo pri prvom teste). */}
-          {mode === 'route' ? (
-            <>
-              <div className="tgo-title">{t('pack.trip.go.onFoot')}</div>
-              <div className="tgo-where">{t('pack.trip.go.routeHow')}</div>
-              <div className="tgo-grid tgo-grid--top">
-                <button type="button" className="tgo-item tgo-item--wide" onClick={() => { downloadGpx(trail); onClose(); }}>
-                  <span className="tgo-ic">📥</span>
-                  <span>
-                    {t('pack.trip.go.gpx')}
-                    <span className="tgo-sub">{t('pack.trip.go.gpxSub')}</span>
-                  </span>
-                </button>
-                {mapy && (
-                  <a className="tgo-item tgo-item--wide" href={mapy} target="_blank" rel="noopener noreferrer" onClick={onClose}>
-                    <span className="tgo-ic">🧭</span>
-                    <span>
-                      {t('pack.trip.go.mapyTrail')}
-                      <span className="tgo-sub">{t('pack.trip.go.mapyTrailSub')}</span>
-                    </span>
-                  </a>
-                )}
-              </div>
-            </>
-          ) : (
-          <>
           <div className="tgo-title">{t('pack.trip.go.title')}</div>
           {/* ⚠️ ROZDIEL SA POMENÚVA, NEZAMLČÍ. Parkovisko je overené miesto, štart stopy je len
               prvý bod trasy — a tam sa nemusí dať zaparkovať. Kto to nevie, obviní z toho appku. */}
@@ -169,11 +140,9 @@ export function TripGoPanel({ trail, onClose, mode = 'drive' }: { trail: HeroTra
             ))}
           </div>
 
-          {/* ⚠️ TRASA DO MOBILU TU UŽ NIE JE — od 15. 9. 2026 má vlastné CTA aj vlastný panel
-              (`mode='route'`). Miešať „dovez ma autom" a „vezmi si stopu" do jedného panela
-              znamenalo, že druhá polovica sa našla len náhodou pri scrollovaní. */}
-          </>
-          )}
+          {/* ⚠️ TRASA DO MOBILU TU NIE JE — od 15. 9. 2026 má vlastné CTA, od 21. 9. je to
+              priamy odkaz do Mapy.com (TripGoButtons). Miešať „dovez ma autom" a „vezmi si
+              stopu" do jedného panela znamenalo, že druhá polovica sa našla len náhodou. */}
         </div>
       </div>
     </>
@@ -190,12 +159,12 @@ export function TripGoPanel({ trail, onClose, mode = 'drive' }: { trail: HeroTra
  * niesol jediný `trkpt` a v appke by sa neukázalo nič — vtedy ostáva samo parkovisko
  * a roztiahne sa cez celú šírku.
  */
-export function TripGoButtons({ hasRoute, onDrive, onRoute }: {
-  hasRoute: boolean;
-  onDrive: () => void;
-  onRoute: () => void;
-}) {
+export function TripGoButtons({ trail, onDrive }: { trail: HeroTrail; onDrive: () => void }) {
   const t = useT();
+  const mapy = mapyTrailUrl(trail);
+  // Návšteva (jeden bod) trasu nemá; výlet, ktorý Mapy.com nevedia nakresliť (mapyTrailUrl
+  // vráti null), dostane namiesto odkazu náš GPX v tom istom zelenom tlačidle.
+  const hasRoute = trail.path.length > 1;
   return (
     <>
       <style>{GO_CSS}</style>
@@ -204,13 +173,27 @@ export function TripGoButtons({ hasRoute, onDrive, onRoute }: {
           <span className="tgo-ic">🅿️</span>
           {t('pack.trip.go.cta')}
         </button>
-        {hasRoute && (
-          <button type="button" className="tgo-cta tgo-cta--trail" onClick={onRoute}>
+        {/* ⚠️ ODKAZ, NIE PANEL (Matej 21. 9. 2026 podľa psievrcholy.sk: „jednoduchšie ako
+            otvoria trasu v mapach cz"). Do 21. 9. zelené tlačidlo otváralo panel so súborom
+            GPX a s odkazom, ktorý ukázal len okolie štartu. Teraz jedno ťuknutie = trasa
+            v appke Mapy.com; GPX ostáva pod tým pre Locus, Garmin a cestu bez signálu. */}
+        {mapy ? (
+          <a className="tgo-cta tgo-cta--trail" href={mapy} target="_blank" rel="noopener noreferrer">
             <span className="tgo-ic">🥾</span>
             {t('pack.trip.go.ctaRoute')}
+          </a>
+        ) : hasRoute && (
+          <button type="button" className="tgo-cta tgo-cta--trail" onClick={() => downloadGpx(trail)}>
+            <span className="tgo-ic">🥾</span>
+            {t('pack.trip.go.gpx')}
           </button>
         )}
       </div>
+      {mapy && (
+        <button type="button" className="tgo-gpx" onClick={() => downloadGpx(trail)}>
+          {t('pack.trip.go.gpx')}
+        </button>
+      )}
     </>
   );
 }

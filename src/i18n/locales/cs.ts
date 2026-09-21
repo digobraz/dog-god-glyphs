@@ -2021,7 +2021,7 @@ export const cs: Partial<Dict> = {
   'pack.trip.go.app.waze': 'Waze',
   'pack.trip.go.byCar': 'Autem na místo',
   'pack.trip.go.cta': 'Vyrazit na místo',
-  'pack.trip.go.ctaRoute': 'Trasa do mobilu',
+  'pack.trip.go.ctaRoute': 'Trasa v Mapy.com',
   'pack.trip.go.fromStart': 'Parkoviště není zadané — navigace zamíří na začátek trasy.',
   'pack.trip.go.gpx': 'Stáhnout trasu (GPX)',
   'pack.trip.go.gpxSub': 'Celá trasa. Otevře se v Mapy.com, Locusu i Garminu — i bez signálu.',
