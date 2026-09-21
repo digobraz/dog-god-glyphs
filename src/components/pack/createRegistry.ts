@@ -401,9 +401,38 @@ export const MIMO_REGISTRA = ['novy-pes'] as const;
 // 🔴 ODVODZUJ, NEOPISUJ. Ručný zoznam „čo je na ktorom mieste" by zostarol ticho — pri
 //    pridanom objekte by sa nikde nezasvietilo načerveno, len by v paneli chýbal.
 
-/** Objekty jedného miesta, v poradí registra. Bez tých, ktoré panel neponúka. */
+/**
+ * Dá sa to dnes naozaj vytvoriť?
+ *
+ * 🔴 PANEL UKAZUJE LEN HOTOVÉ (Matej 21. 9. 2026: „je ich tam 10, ale viacero z nich nie je
+ *    ready, takže tam daj len tie, ktoré sú relevantné"). Register nesie všetkých trinásť —
+ *    to je jeho úloha, lebo je to zoznam toho, čo v appke VZNIKÁ, nie zoznam dlaždíc. Panel
+ *    z neho berie prienik s tým, čo má obrazovku.
+ *
+ * ⚠️ POLOŽKA SA DO PANELA DOSTÁVA PREKLOPENÍM `state` NA `live`, NIE EDITÁCIOU PANELA.
+ *    Keď dorobíš obrazovku (denník, #61, #63, feed, mozog, nástenka), zmeníš JEDEN riadok
+ *    registra a položka sa objaví všade naraz — na svojom mieste aj na DOMOVE. Keby sa
+ *    zoznamy písali ručne, pribudla by na jednom mieste a na druhom by chýbala.
+ *
+ * ⚠️ A NEVRACAJ ROZROBENÉ AKO ZOŠEDENÚ DLAŽDICU. Presne tak tu stál `service` do 6. 8. 2026
+ *    a Matej ho dal von: vizuálne najväčší prvok panela bol mŕtvy. Buď to má obrazovku,
+ *    alebo sa to nevykresľuje.
+ */
+export function isReady(o: CreateObject): boolean {
+  return o.panel && o.state === 'live';
+}
+
+/** Objekty jedného miesta, ktoré panel dnes ponúka. V poradí registra. */
 export function createFor(place: CreatePlace): CreateObject[] {
-  return CREATE_OBJECTS.filter((o) => o.panel && o.place === place);
+  return CREATE_OBJECTS.filter((o) => o.place === place && isReady(o));
+}
+
+/**
+ * Všetko, čo tomu miestu PATRÍ — aj nehotové. Na diagnostiku, nástenku behu a na otázku
+ * „čo tu raz pribudne". Panel sa pýta `createFor`, nie tohto.
+ */
+export function createAll(place: CreatePlace): CreateObject[] {
+  return CREATE_OBJECTS.filter((o) => o.place === place);
 }
 
 /**
@@ -413,9 +442,9 @@ export function createFor(place: CreatePlace): CreateObject[] {
  * „DOMOV má celý repertoár, ostatné miesta svoj výrez"). Vlastný objekt DOMOVA ide prvý
  * a bez hlavičky — hlavička nad jedinou skupinou, v ktorej človek práve stojí, nehovorí nič.
  *
- * ⚠️ §3 nákresu kreslí na DOMOVE päť dlaždíc. To je SKRATKA KRESBY, nie iný zoznam —
- *    ten istý odsek pod telefónom hovorí „celý repertoár". Rozhoduje §1, nie počet
- *    dlaždíc, ktoré sa zmestili do obrázka telefónu.
+ * ⚠️ „Celý repertoár" znamená VŠETKO HOTOVÉ, nie všetkých trinásť. §3 nákresu kreslí na
+ *    DOMOVE päť dlaždíc a vyšlo to nachystane: presne toľko ich dnes má obrazovku. Keď
+ *    pribudne denník a feed, panel narastie sám — bez zásahu sem.
  */
 export function panelFor(place: CreatePlace): Array<{ group: CreatePlace | null; items: CreateObject[] }> {
   if (place !== 'DOMOV') {
