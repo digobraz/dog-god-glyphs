@@ -81,8 +81,11 @@ export function navUrl(app: NavApp, t: NavTarget): string {
  * v zákrutách a riedko na rovinke.
  *
  * ⚠️ TAM A SPÄŤ (Matej 21. 9.: „tam aj späť"). Stopa nesie jeden smer; keď sú naše km
- * aspoň 1,6× dĺžka stopy a koniec je ďaleko od štartu, výlet je tam a späť a posledným
- * bodom je znova štart — čísla v appke tak sedia s článkom a navigácia dovedie k autu.
+ * aspoň 1,6× dĺžka stopy a koniec je ďaleko od štartu, výlet je tam a späť a späť sa ide
+ * PO TÝCH ISTÝCH BODOCH v opačnom poradí. Prvá verzia dala na koniec len štart — Mapy.com
+ * si potom z vrcholu vybrali vlastnú kratšiu cestu (Záruby 1: späť po modrej cez Havraniu
+ * skalu, 10,4 km namiesto 11,3; Matej: „my mame tu istu tam a spať a trasa na mapy cz je
+ * ina tam a ina naspat"). Cena: pri každom bode dva špendlíky na tom istom mieste.
  * Okruh (koniec pri štarte) sa nechá, ako je.
  */
 const RC_ABC = '0ABCD2EFGH4IJKLMN6OPQRSTU8VWXYZ-1abcd3efgh5ijklmn7opqrst9uvwxyz.';
@@ -142,7 +145,7 @@ export function mapyRouteUrl(trail: Pick<HeroTrail, 'path' | 'km'>): string | nu
   const km = parseFloat(String(trail.km).replace(',', '.'));
   const thereBack = gap > 0.3 && len > 0 && km / len > 1.6;
   const pts = pickAlong(path, MAPY_POINTS);
-  if (thereBack) pts.push(path[0]);
+  if (thereBack) pts.push(...pts.slice(0, -1).reverse());
   const each = (p: string) => pts.map(() => p).join('&');
   return `https://mapy.com/turisticka?planovani-trasy&rc=${mapyRc(pts)}&${each('rs=coor')}&${each('ri=')}`
     + `&mrp=${encodeURIComponent('{"c":132}')}`;
