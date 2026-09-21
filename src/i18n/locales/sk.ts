@@ -3399,7 +3399,6 @@ export const sk: Partial<Dict> = {
   'pack.diary.photoFailed': "Fotku sa nepodarilo nahrať. Zápis môžeš uložiť aj bez nej.",
   'pack.diary.saveFailed': "Zápis sa nepodarilo uložiť. Skús to znova.",
   'pack.cal.addToDay': "Pridať k tomuto dňu",
-  'pack.cal.withPhoto': "s fotkou",
   'pack.cal.type.milestone': "Míľnik",
   'pack.hub.notStarted': "Nezačaté",
   'pack.hub.done': "Hotovo",

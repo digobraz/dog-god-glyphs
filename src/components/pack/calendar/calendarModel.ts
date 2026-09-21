@@ -360,6 +360,13 @@ export interface CalEntry {
   dogId: string | null;
   /** Odkaz, keď zápis niekam vedie (výlet → článok). */
   href?: string;
+  /**
+   * Fotka priložená k zápisu denníka (`dog_events.value.photo`).
+   * ⚠️ Je tu preto, aby zápis mal ČITATEĽA. Bez nej sa fotka dá nahrať a už ju nikto
+   *    neuvidí — a to je presne ten polovičný tvar, pre ktorý bol kalendár rok čítací.
+   *    Kreslí ju POPUP DŇA, nie bunka: v mriežke 372 dní by z nej bol šum.
+   */
+  photo?: string;
 }
 
 /**

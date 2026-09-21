@@ -296,8 +296,8 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
             kind: plan ? 'plan' : kind,
             y: day.y, m: day.m, d: day.d,
             title: v.text.split('\n')[0].slice(0, 80),
-            text: v.photo ? tx('pack.cal.withPhoto', 's fotkou') : undefined,
             dogId: ev.dogId,
+            photo: v.photo,
           });
         }
         setDiaryEntries(out);
@@ -882,6 +882,9 @@ function DayPopup({
             <>
               <b>{title}</b>
               {e.text && <p>{e.text}</p>}
+              {/* Fotka zápisu denníka. `loading="lazy"` je zámer: popup sa otvára na
+                  dotyk a obrázok nesmie zdržať jeho vykreslenie. */}
+              {e.photo && <img className="cal-shot" src={e.photo} alt="" loading="lazy" />}
               <p style={{ color: col, marginTop: 4, fontWeight: 600 }}>
                 {typeName(e.kind)} · {nameOf(e.dogId)}
               </p>
@@ -1660,6 +1663,10 @@ const CAL_CSS = `
 .cal-when{font-family:${FONT_UI};font-size:12px;color:${T.inkWarm};margin-bottom:12px}
 .cal-entry{${boxCSS(PACK_BOX.row)};display:flex;gap:8px;align-items:flex-start;padding:8px 12px;margin-bottom:8px}
 .cal-ico{font-size:16px;line-height:1.1;flex:0 0 auto}
+/* Fotka zápisu — matrica FOTKA (.pk-photo): obdĺžnik, radius PACK_R.tile, zlatý vlas.
+   Nie je to medailón (ten patrí identite), preto štvorec nie je. */
+.cal-shot{display:block;width:100%;max-height:180px;object-fit:cover;margin:8px 0 0;
+  border-radius:${PACK_R.tile}px;border:1px solid ${T.border};background:${T.tileBg}}
 .cal-entry b{font-family:${FONT_TITLE};font-size:12px;font-weight:700;letter-spacing:0.02em;display:block;margin-bottom:2px;color:${T.inkStrong}}
 .cal-entry p{font-family:${FONT_UI};font-size:12px;color:${T.inkWarm};margin:0;line-height:1.5}
 /* PRIDAŤ K TOMUTO DŇU — HLAVNÉ CTA popupu, teda LAPIS (brandový kánon 28. 8. 2026:

@@ -3694,7 +3694,6 @@ export const en = {
   'pack.diary.photoFailed': "The photo could not be uploaded. You can save the entry without it.",
   'pack.diary.saveFailed': "The entry could not be saved. Try again.",
   'pack.cal.addToDay': "Add to this day",
-  'pack.cal.withPhoto': "with a photo",
   'pack.cal.type.milestone': "Milestone",
   'pack.hub.notStarted': "Not started",
   'pack.hub.done': "Done",
