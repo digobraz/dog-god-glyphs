@@ -63,7 +63,12 @@ export const DIARY_CHIPS: readonly DiaryChip[] = [
     kind: 'note',
     labelKey: 'pack.diary.chip.note', labelFallback: 'Note',
     hintKey: 'pack.diary.hint.note', hintFallback: 'What happened today',
-    emoji: '📝',
+    // 🗓️ (Matej 21. 9. 2026) — ZHODNE s `LOG_TYPES.note` v `calendar/calendarModel.ts`.
+    // ⚠️ Čip a riadok kalendára sú JEDEN zápis v dvoch momentoch: `kind` nižšie JE
+    //    kľúč do `LOG_TYPES`, takže čo sa tu klikne, tam sa vykreslí. Keď sa mení
+    //    jedno emoji, MUSÍ sa meniť aj druhé — inak človek klikne 📝 a v kalendári
+    //    mu pribudne 🗓️. Ostatné tri čipy (⚖️ 💉 ⭐) sú s kalendárom zhodné tiež.
+    emoji: '🗓️',
     input: 'text',
     photo: true,
   },

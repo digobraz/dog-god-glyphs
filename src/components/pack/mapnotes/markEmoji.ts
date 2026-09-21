@@ -252,9 +252,11 @@ export const TRIP_TARGET_EMOJI = '📍';
  * · 🐕 spoločná prechádzka — celý pes; 🐶 (hlava) je v tejto sade obsadené
  *      komentárom svorky, ale ten stojí v ZELENOM kruhu, takže sa nepomýlia
  * · ❤️ charita — nie 🎗️ (stužka je v Európe čítaná ako konkrétna choroba)
- * · 🔮 tábor — viacdňové. ⚠️ BOLO 🏕️ do 21. 9. 2026, kedy register značiek
- *   ukázal, že ten istý stan nesie aj ohnisko z OSM aj chip „Camping" z výletov;
- *   Matej vybral čarovnú guľu. ⛺ voľné nie je — drží ho kemp v `SLEEP_EMOJI`.
+ * · 🏫 tábor — viacdňové. ⚠️ BOLO 🏕️ do 21. 9. 2026, kedy register značiek ukázal,
+ *   že ten istý stan nesie aj ohnisko z OSM aj chip „Camping" z výletov. Matej najprv
+ *   vybral 🔮 (rozhodnutie z matrice 24. 8., ktoré roky ležalo nezapracované) a ešte
+ *   v ten večer ho prepísal na ŠKOLU: *„namiesto camp tej gule daj ikonku school 🏫."*
+ *   ⛺ voľné nie je — drží ho kemp v `SLEEP_EMOJI`.
  * · 🎪 veľtrh — veľká hala plná stánkov
  */
 export const EVENT_EMOJI: Record<EventKind, string> = {
@@ -264,7 +266,7 @@ export const EVENT_EMOJI: Record<EventKind, string> = {
   lecture: '🎓',
   social_walk: '🐕',
   charity: '❤️',
-  camp: '🔮',
+  camp: '🏫',
   expo: '🎪',
 };
 
