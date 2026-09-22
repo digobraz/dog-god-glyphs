@@ -72,7 +72,7 @@ export const STORY_VIEW_CSS = `
 .psv-first{ color:${T.cardEdge}; }
 /* NADPIS PRÍBEHU — nákres ho kreslí medzi dátum a riadok s tvárou („Posledný kopec").
    Tvar je NADPIS KARTY z katalógu (PACK_HEAD.card), nie vlastný stupeň: nákres má
-   15px/.06em, ale to je mierka kresby a .06em nie je žiadny z troch tvarov `PACK_HEAD`.
+   15px/.06em, ale to je mierka kresby a .06em nie je žiadny z troch tvarov PACK_HEAD.
    ⚠️ Prázdny nadpis sa NEVYKRESLÍ vôbec — štyri staršie príbehy ho nemajú. */
 .psv-title{
   font-family:${PACK_HEAD.card.fontFamily}; font-weight:${PACK_HEAD.card.fontWeight};
@@ -85,7 +85,7 @@ export const STORY_VIEW_CSS = `
 }
 /* 🔴 TVÁR JE ČLOVEK, KĽUDNE AJ SO PSOM (Matej 22. 9.). Dva medailóny s miernym
    prekryvom — ten istý čítaný tvar ako blok JA + SVORKA na domove, len v malom.
-   ⚠️ Fotka ČLOVEKA sedí v metadátach účtu, nie v `dogs`; vracia ju RPC. Keď ju
+   ⚠️ Fotka ČLOVEKA sedí v metadátach účtu, nie v dogs; vracia ju RPC. Keď ju
    človek nemá, ostane medailón s iniciálou — to nie je chyba, to je väčšina účtov. */
 .psv-faces{ flex:0 0 auto; display:flex; align-items:center; }
 .psv-faces > * + *{ margin-left:-${PACK_SPACE.sm}px; }

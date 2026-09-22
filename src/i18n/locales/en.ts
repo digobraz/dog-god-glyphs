@@ -2731,6 +2731,8 @@ export const en = {
   // ── PÍSANIE PRÍBEHU (KROK 4) ───────────────────────────────────────────────
   'pack.trip.stories.write.title': "Trail story",
   'pack.trip.stories.write.close': "Close",
+  'pack.trip.stories.write.name': "Title",
+  'pack.trip.stories.write.nameHint': "e.g. The last climb",
   'pack.trip.stories.write.body': "Your story",
   'pack.trip.stories.write.bodyHint': "What happened out there? Write it the way you'd tell it.",
   'pack.trip.stories.write.photos': "Photos",

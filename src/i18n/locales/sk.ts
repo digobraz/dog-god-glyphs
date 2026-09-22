@@ -2494,6 +2494,8 @@ export const sk: Partial<Dict> = {
   // ── PÍSANIE PRÍBEHU (KROK 4) ───────────────────────────────────────────────
   'pack.trip.stories.write.title': "Príbeh z cesty",
   'pack.trip.stories.write.close': "Zavrieť",
+  'pack.trip.stories.write.name': "Názov",
+  'pack.trip.stories.write.nameHint': "Napr. Posledný kopec",
   'pack.trip.stories.write.body': "Tvoj príbeh",
   'pack.trip.stories.write.bodyHint': "Čo sa tam stalo? Napíš to tak, ako by si to rozprával.",
   'pack.trip.stories.write.photos': "Fotky",

@@ -86,6 +86,15 @@ export const STORY_CARD_CSS = `
   margin:${PACK_SPACE.xs}px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .pst-dog{ font-family:${DOG_NAME_FONT}; font-weight:700; }
+/* Nadpis príbehu v karte. ⚠️ JEDEN RIADOK, orezaný — karta nesúťaží s otvoreným
+   príbehom o výraz; je to zoznam, nie náhľad. Keď nadpis nie je (staršie príbehy,
+   príspevky bez mena), riadok sa nevykreslí a úryvok si vezme jeho miesto. */
+.pst-title{
+  font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.body}px;
+  letter-spacing:0.02em; color:${T.inkStrong}; line-height:1.25;
+  margin-bottom:${PACK_SPACE.xs}px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
 /* Úryvok = PRESNE dva riadky, orezané. Dlhý text je až vnútri príbehu. */
 .pst-ex{
   font-size:${PACK_TEXT.label}px; line-height:1.4; color:${T.inkDim};
@@ -163,6 +172,10 @@ export function StoryCard({ story, locale, onOpen, onLike, onSave, onUse, onShar
       </div>
       <div className="pst-mid">
         <div className="pst-date">{when ? `${labels.walked} ${when}` : labels.walked}</div>
+        {/* ⚠️ NADPIS STOJÍ NAD MENOM — rovnako ako v otvorenom príbehu (dátum → nadpis
+            → tvár a meno). Je to JEDNA kresba na dvoch miestach (lock §4.1); keď si
+            poradie prehodí, človek po rozkliku hľadá to isté inde. */}
+        {story.title && <div className="pst-title">{story.title}</div>}
         <div className="pst-name">
           {story.ownerFirst || '—'}
           {dogs.length > 0 && <> &amp; <span className="pst-dog">{dogs.join(' · ')}</span></>}
