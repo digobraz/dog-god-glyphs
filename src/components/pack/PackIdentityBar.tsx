@@ -15,9 +15,13 @@
 // Level sa ráta cez `profileLevelFor` — TÚ ISTÚ funkciu ako mapa a TripSpotlight,
 // z tých istých zdrojov ako TripSpotlight. Vlastný výpočet by dal iné číslo.
 //
-// ⚠️ DNES HO NOSÍ LEN `/pack/ainubis`. `/map` má stále vlastný `renderIdentity()`
-//    (2 kópie geometrie). Kým sa mapa neprevedie SEM, `AV_*` nižšie a v `PackMap.tsx`
-//    sa musia meniť SPOLU — presne tak sa identita rozišla 5. 8. 2026.
+// ⚠️ DNES HO NOSÍ LEN `/pack/ainubis`. `/map` má stále vlastný `renderIdentity()` —
+//    NIE preto, že by sa nechcelo, ale preto, že nesie vlastnosti, ktoré tento bar
+//    nemá a lock `map-identita.md` ich vyžaduje: slovo PÚTNIK (nie meno) na desktope,
+//    klik NA ČÍSLO otvára panel pásiem (tento bar celý blok vedie len na triplist),
+//    a papyrusový PC skin popri tmavom mobilnom — ten istý render, dva skiny cez CSS.
+//    Geometria AVATARA (kruh + fotka + odznak) je od 22. 9. 2026 JEDNA — `AvatarRing`
+//    — a oba povrchy z nej čerpajú; to bola tá časť, čo sa reálne rozišla 5. 8. 2026.
 // ⚠️ Šat je AINUBISOV (tmavý displej). Papyrusovú polohu komponent zatiaľ nemá.
 // ⚠️ Panel pásiem (klik na číslo levelu na mape) tu NIE JE — žije vnútri PackMap.
 // ════════════════════════════════════════════════════════════════════════════
@@ -36,15 +40,7 @@ import { PackTopRight } from './PackLayout';
 import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI } from './packTheme';
 import { AINUBIS } from './ainubisSkin';
 import { useT } from '@/i18n/LanguageContext';
-
-/* Geometria = `AV_D` / `AV_RING` / `AV_GAP` z `PackMap.tsx` (lock map-identita). */
-const AV_D = 44;
-const AV_RING = 3;
-const AV_GAP = 2;
-const RING_SW = (AV_RING / AV_D) * 100;
-const RING_R = 50 - RING_SW / 2;
-const RING_C = 2 * Math.PI * RING_R;
-const PHOTO = AV_D - 2 * (AV_RING + AV_GAP);
+import { AvatarRing, AV_D, PHOTO } from './AvatarRing';
 
 /** Krstné meno — PORADIE AKO blok JA v `Pack.tsx` (`displayName`): účet (full_name
  *  z /pack/profile) → meno z objednávky psa (`dogs.owner_name`, kartuša) → e-mail.
@@ -136,20 +132,17 @@ export function PackIdentityBar({ id, middle, stats }: {
     <div className="pkid">
       <style>{CSS}</style>
       <button type="button" className="pkid-me" onClick={() => navigate('/pack/map/triplist?tab=stats')}>
-        <span className="pkid-av" style={tierVars(lv.level)}>
-          <svg viewBox="0 0 100 100" aria-hidden="true">
-            <circle cx="50" cy="50" r={RING_R} fill="none" strokeWidth={RING_SW}
-              stroke="var(--tier-b,#E69E1A)" strokeOpacity={0.2} />
-            <circle cx="50" cy="50" r={RING_R} fill="none" strokeWidth={RING_SW}
-              stroke="var(--tier-b,#E69E1A)" strokeLinecap="round"
-              strokeDasharray={`${(RING_C * lv.pct) / 100} ${RING_C}`}
-              transform="rotate(-90 50 50)" />
-          </svg>
-          {id.avatarUrl
-            ? <img className="pkid-photo" src={id.avatarUrl} alt="" />
-            : <span className="pkid-photo">{id.avatarInitial}</span>}
-          <span className="pkid-lvl" aria-label={t('pack.map.levelAriaLabel', { level: lv.level })}>{lv.level}</span>
-        </span>
+        <AvatarRing
+          pct={lv.pct}
+          avatarUrl={id.avatarUrl}
+          avatarInitial={id.avatarInitial}
+          wrapClassName="pkid-av"
+          wrapStyle={tierVars(lv.level)}
+          photoClassName="pkid-photo"
+          badgeClassName="pkid-lvl"
+          badgeAriaLabel={t('pack.map.levelAriaLabel', { level: lv.level })}
+          badgeContent={lv.level}
+        />
         <span className="pkid-txt">
           <span className="pkid-name">{name}</span>
           <span className="pkid-stats">

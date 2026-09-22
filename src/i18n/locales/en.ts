@@ -3593,6 +3593,9 @@ export const en = {
   'pack.triplist.joinAccepted': "✓ You're going",
   'pack.triplist.joinAskAgain': "Ask again",
   'pack.triplist.joinRequestToJoin': "Request to join",
+  // #70 — gate: join needs DOG ID at 100%. Button stays visible, just inactive.
+  'pack.triplist.joinLocked': "Finish DOG ID to join",
+  'pack.triplist.joinLockedHint': "Your DOG ID is {pct}% filled in — the organizer needs to know your dog before you join.",
   'pack.triplist.backToMap': "Back to map",
   'pack.triplist.tabTripstats': "Tripstats",
   'pack.triplist.tabTriplist': "Triplist",

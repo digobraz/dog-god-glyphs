@@ -3312,6 +3312,10 @@ export const sk: Partial<Dict> = {
   'pack.triplist.joinAccepted': "✓ Ideš",
   'pack.triplist.joinAskAgain': "Požiadať znova",
   'pack.triplist.joinRequestToJoin': "Požiadať o pridanie",
+  // #70 — gate: pridať sa na výlet ide až s DOG ID na 100 %. Tlačidlo ostáva
+  // viditeľné, len neaktívne.
+  'pack.triplist.joinLocked': "Najprv doplň DOG ID",
+  'pack.triplist.joinLockedHint': "Tvoj DOG ID je vyplnený na {pct} % — organizátor potrebuje vedieť viac o tvojom psovi, kým sa pridáš.",
   'pack.triplist.backToMap': "Späť na mapu",
   'pack.triplist.tabTripstats': "Štatistiky",
   'pack.triplist.tabTriplist': "Triplist",

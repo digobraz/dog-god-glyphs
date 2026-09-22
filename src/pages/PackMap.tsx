@@ -166,6 +166,7 @@ import {
 import { EventsPanel } from '@/components/pack/events/EventsPanel';
 import { EVENTS_LIVE } from '@/lib/packFlags';
 import { TRIP_CATEGORIES, ACT_TAG_EMOJI, ACT_TO_CATEGORY, CHIP_BY_ID, DATA_TAG_TO_UI, TAG_EMOJI, TAG_I18N, categoriesOf, chipsOf, isInCategory, primaryCategoryOf, type TripCategoryId } from '@/components/pack/tripCategories';
+import { AvatarRing, AV_D } from '@/components/pack/AvatarRing';
 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
@@ -173,16 +174,12 @@ const INK = '#1F1A0E';
 // ── PRSTENEC POSTUPU OKOLO AVATARA (Matej 2026-08-28, výber z nákresu ────────
 // `plany/nakres-map-putnik-2026-08-28.html`, variant `frame:'prog'` + `lvl:'notch'`)
 //
-// Geometria má JEDEN zdroj — tieto tri čísla. Priemer 44 = fotka 34 + 2×lem 3 + 2×medzera 2,
-// takže SAMOTNÁ FOTKA ostáva 34 px ako doteraz a nič okolo sa neprepočítava.
-// ⚠️ `stroke-width` a polomer sú v jednotkách viewBoxu (0–100), nie v px: prevod je
-// `px / AV_D * 100`. Zapísať sem px by dalo prstenec, ktorý sa pri zmene priemeru rozíde.
-const AV_D = 44;         // priemer celého bloku avatara
-const AV_RING = 3;       // hrúbka prstenca
-const AV_GAP = 2;        // medzera prstenec ↔ fotka
-const RING_SW = (AV_RING / AV_D) * 100;
-const RING_R = 50 - RING_SW / 2;
-const RING_C = 2 * Math.PI * RING_R;
+// Geometria (AV_D/priemer, prstenec, fotka 34px) sa od 22. 9. 2026 počíta na JEDNOM
+// mieste — `@/components/pack/AvatarRing` (dovtedy tu bola druhá kópia rovnakých čísel
+// popri `PackIdentityBar.tsx`; presne tak sa raz rozišla 5. 8. 2026). `AV_D` sa tu dováža
+// len na CSS šírku obalu (`.trp-avwrap`); samotný kruh+fotku+odznak kreslí `<AvatarRing>`
+// v `renderIdentity()` nižšie. Skin (farby, lem, klik na PÚTNIK/level panel) ostáva TU —
+// to je vlastnosť POVRCHU `/map`, nie geometrie.
 const T = PACK_THEME;
 
 // Typografický poriadok (FONT_TITLE = identita, FONT_UI = dáta/eyebrow/chipy) žije
@@ -5306,25 +5303,21 @@ export default function PackMap() {
     >
       {/* Avatar + prstenec postupu + číslo levelu na jeho okraji (Matej 2026-08-28).
           `tierVars` visí na obale, aby farbu pásma zdedil prstenec AJ číslo — dva prvky,
-          jedna farba, jeden zdroj (`@/lib/packTiers`). */}
-      <span className="trp-avwrap" style={tierVars(levelInfo.level)}>
-        <svg viewBox="0 0 100 100" aria-hidden="true">
-          <circle cx="50" cy="50" r={RING_R} fill="none" strokeWidth={RING_SW}
-            stroke="var(--tier-b,#E69E1A)" strokeOpacity={0.2} />
-          <circle cx="50" cy="50" r={RING_R} fill="none" strokeWidth={RING_SW}
-            stroke="var(--tier-b,#E69E1A)" strokeLinecap="round"
-            strokeDasharray={`${(RING_C * levelInfo.pct) / 100} ${RING_C}`}
-            transform="rotate(-90 50 50)" />
-        </svg>
-        {id.avatarUrl
-          ? <img className="trp-mavatar" src={id.avatarUrl} alt="" />
-          : <span className="trp-mavatar trp-mavatar--initial">{id.avatarInitial}</span>}
-        <span
-          className="trp-level-num trp-level-num--notch"
-          style={tierVars(levelInfo.level)}
-          aria-label={t('pack.map.levelAriaLabel', { level: levelInfo.level })}
-        ><em>{levelInfo.level}</em></span>
-      </span>
+          jedna farba, jeden zdroj (`@/lib/packTiers`). Geometria = `AvatarRing`
+          (jeden zdroj s `PackIdentityBar.tsx`, 22. 9. 2026); trieda `trp-level-num`
+          na odznaku ostáva — `onClick` vyššie ju hľadá cez `closest()`. */}
+      <AvatarRing
+        pct={levelInfo.pct}
+        avatarUrl={id.avatarUrl}
+        avatarInitial={id.avatarInitial}
+        wrapClassName="trp-avwrap"
+        wrapStyle={tierVars(levelInfo.level)}
+        photoClassName={id.avatarUrl ? 'trp-mavatar' : 'trp-mavatar trp-mavatar--initial'}
+        badgeClassName="trp-level-num trp-level-num--notch"
+        badgeStyle={tierVars(levelInfo.level)}
+        badgeAriaLabel={t('pack.map.levelAriaLabel', { level: levelInfo.level })}
+        badgeContent={<em>{levelInfo.level}</em>}
+      />
       <span className="trp-midentity-txt">
         <span className="trp-level">
           {/* 2026-08-09: rang ide cez i18n (`pack.map.rankPilgrim`), nie cez natvrdo anglické

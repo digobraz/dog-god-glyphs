@@ -220,7 +220,7 @@ export function StoryView({ story, next, locale, onClose, onNext, onLike, onSave
               pod menom ostava uz len PSIE CISLO, ktore hovori nieco ine. */}
           <div className="psv-when">
             {when ? `${t('pack.trip.stories.walked')} ${when}` : ''}
-            {' · '}
+            {when ? ' · ' : ''}
             <b className="psv-first">
               {story.rank === 1 ? t('pack.trip.stories.first') : t('pack.trip.stories.nth', { n: story.rank })}
             </b>

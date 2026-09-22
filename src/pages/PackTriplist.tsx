@@ -12,12 +12,17 @@
 // heroglyf pozadím — NEmixovať s plnou čiernou. Rovnaký primitív ide neskôr aj na článok + walked.
 // Bloky = štvorcové karty v 3-stĺpcovom gride (MY TRIPS + OPEN TRIPS zdieľajú .tl-grid/.tl-block).
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
+// #70 — 100 % DOG ID = podmienka pridať sa na cudzí výlet. TEN ISTÝ zdroj čísla
+// ako dlaždica v `/pack/dogs` (PackDogs.tsx) a samotný doklad (DogPassport.tsx):
+// `PROGRESS_STEPS` (bez `noProgress`/`optional`) + `hasValue()` nad `latest`.
+import { PROGRESS_STEPS } from '@/components/pack/dogQuiz';
+import { hasValue, readLatestForDogs, onDogEventsChange } from '@/lib/dogEvents';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL, PACK_COL_PAD, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
 // Bledý chrome: inkousty a plochy (PALE), lapisové CTA a priesvitný tint výberu.
@@ -298,6 +303,10 @@ const CSS = `
 /* prijatý = STAV, nie výzva ⇒ zelený tint bez tieňa CTA */
 .tl-join.done{${pickTintCSS(T.growGreen, PICK_INK.green, 0.18)}box-shadow:none;}
 .tl-join.pending{background:${P.soft};border-color:${P.border};color:${P.dim};box-shadow:none;}
+/* #70 — DOG ID pod 100 % = ČERVENÁ (lock 12. 9. 2026, T.alertRed = #B25640), tá istá farba,
+   akú nesie percento na dlaždici psa. Tlačidlo ostáva VIDITEĽNÉ, len neaktívne — vysvetlenie
+   stojí v .tl-joinerr pod ním (žiadna nová trieda, žiadna nová hodnota mimo matríc). */
+.tl-join.locked{${pickTintCSS(T.alertRed, PICK_INK.red, 0.18)}box-shadow:none;cursor:default;}
 .tl-joinerr{font-size:9px;color:${PICK_INK.red};margin-top:5px;line-height:1.35;}
 
 /* Add date popup — plávajúci PANEL (úroveň 4 matrice PACK_BOX.panel) nad tmavým závojom.
@@ -543,6 +552,32 @@ export default function PackTriplist() {
   const [reqEpoch, setReqEpoch] = useState(0);
   const [reqBusy, setReqBusy] = useState<string | null>(null);
   const [joinErr, setJoinErr] = useState<Record<string, string>>({});
+
+  // #70 — gate: pridať sa na cudzí výlet smie len s DOG ID na 100 %. Číslo sa
+  // ráta z PRVÉHO zaplateného psa (`id.dogs[0]`) — rovnaké poradie ako
+  // `get_trip_party()` v DB („jeden človek = jeho PRVÝ zaplatený pes,
+  // created_at asc"). `null` = ešte sa nenačítalo → tlačidlo zatiaľ neblokuje,
+  // toto je clona proti omylu, nie zámok (ten patrí RLS/RPC na serveri).
+  const primaryDogId = id.dogs[0]?.id ?? null;
+  const [myDogIdPct, setMyDogIdPct] = useState<number | null>(null);
+  useEffect(() => {
+    if (!primaryDogId) { setMyDogIdPct(0); return; }
+    let alive = true;
+    const load = () => {
+      readLatestForDogs([primaryDogId]).then((r) => {
+        if (!alive) return;
+        const latest = r[primaryDogId] ?? {};
+        const total = PROGRESS_STEPS.length;
+        const done = PROGRESS_STEPS.filter((s) => hasValue(latest[s.field])).length;
+        setMyDogIdPct(total ? Math.round((done / total) * 100) : 0);
+      });
+    };
+    load();
+    const off = onDogEventsChange(load);
+    return () => { alive = false; off(); };
+  }, [primaryDogId]);
+  const myDogIdReady = myDogIdPct === null || myDogIdPct >= 100;
+  const myDogIdLink = primaryDogId ? `/pack/dogs/${primaryDogId}` : '/pack/dogs';
   // #42 — prepínač viditeľnosti (badge na MY TRIPS karte) + ponuka zavrieť po prijatí
   const [visTripId, setVisTripId] = useState<string | null>(null);
 
@@ -1015,6 +1050,10 @@ export default function PackTriplist() {
                   const real = c.real;
                   const k = real ? requestKey(real.slug, real.organizerId) : '';
                   const st = real ? joinLabel(t, myRequests[k]) : null;
+                  // #70 — gate sa dotýka len tlačidla, ktoré by inak BOLO aktívne
+                  // (žiadosť/ask again); už rozhodnuté stavy (requested/accepted)
+                  // sú disabled aj tak a lock by im nič nepovedal.
+                  const locked = !!(real && st && !st.disabled && !myDogIdReady);
                   return (
                   <div
                     key={c.key}
@@ -1051,12 +1090,27 @@ export default function PackTriplist() {
                           <RightGate right="social">
                           <button
                             type="button"
-                            className={`tl-join${st.cls}`}
-                            disabled={st.disabled || reqBusy === k}
+                            className={`tl-join${locked ? ' locked' : st.cls}`}
+                            disabled={st.disabled || reqBusy === k || locked}
                             onClick={(e) => { e.stopPropagation(); void onRequestJoin(real); }}
-                          >{reqBusy === k ? '…' : st.label}</button>
+                          >{reqBusy === k ? '…' : locked ? t('pack.triplist.joinLocked') : st.label}</button>
                           </RightGate>
-                          {joinErr[k] && <div className="tl-joinerr">{joinErr[k]}</div>}
+                          {/* #70 — tlačidlo nie je mŕtve: keď je zamknuté, vysvetlenie
+                              povie koľko % chýba a odkaz vedie rovno na DOG ID
+                              (rovnaký vzor ako `.tl-joinerr` o riadok nižšie, žiadna
+                              nová trieda = žiadna nová hodnota mimo `/pack` matríc). */}
+                          {locked ? (
+                            <div className="tl-joinerr">
+                              {t('pack.triplist.joinLockedHint', { pct: myDogIdPct ?? 0 })}{' '}
+                              <Link
+                                to={myDogIdLink}
+                                onClick={(e) => e.stopPropagation()}
+                                style={{ color: 'inherit', textDecoration: 'underline' }}
+                              >
+                                {t('pack.hub.passProgress')} →
+                              </Link>
+                            </div>
+                          ) : (joinErr[k] && <div className="tl-joinerr">{joinErr[k]}</div>)}
                         </>
                       )}
                     </div>
