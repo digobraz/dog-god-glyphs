@@ -56,12 +56,21 @@ export async function requestToJoin(tripSlug: string, organizerId: string): Prom
     Promise<{ error: { code?: string; message: string } | null }>;
 
   let { error } = await insert();
+  // #70 — DOG ID neúplné (BEFORE INSERT trigger `trip_requests_check_dogid_trg`,
+  // 20260922_dogid_join_gate.sql) sa NESMIE liečiť ako 23505: keby sa stará
+  // história (`declined`/`left`) zmazala a REINSERT narazil na ten istý trigger
+  // znova, človek by prišiel o históriu AJ dostal chybu. Prefix `dogid_incomplete:`
+  // je stabilný (píše ho trigger) — UI ho mapuje na preložený text v `PackTriplist.tsx`.
+  if (error?.message?.startsWith('dogid_incomplete:')) return error.message;
   if (error?.code === '23505') {
     // už tu raz žiadosť bola (odišiel som / bol som odmietnutý) — pozri hlavičku súboru
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (supabase as any).from('trip_requests').delete()
       .match({ trip_slug: tripSlug, organizer_id: organizerId, from_user_id: uid });
     ({ error } = await insert());
+    // Druhý pokus môže padnúť na ten istý trigger (profil sa medzičasom nezmenil) —
+    // v tom prípade je riadok už zmazaný a nedá sa vrátiť; aspoň chyba je čitateľná.
+    if (error?.message?.startsWith('dogid_incomplete:')) return error.message;
   }
   return error ? error.message : null;
 }

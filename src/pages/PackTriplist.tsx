@@ -23,6 +23,7 @@ import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 // `PROGRESS_STEPS` (bez `noProgress`/`optional`) + `hasValue()` nad `latest`.
 import { PROGRESS_STEPS } from '@/components/pack/dogQuiz';
 import { hasValue, readLatestForDogs, onDogEventsChange } from '@/lib/dogEvents';
+import { useMyDogRights } from '@/lib/dogRights';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL, PACK_COL_PAD, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
 // Bledý chrome: inkousty a plochy (PALE), lapisové CTA a priesvitný tint výberu.
@@ -423,6 +424,19 @@ function joinLabel(t: ReturnType<typeof useT>, status?: TripRequestStatus): { la
   }
 }
 
+// #70 — DB trigger (`trip_requests_check_dogid_trg`, 20260922_dogid_join_gate.sql)
+// vracia anglickú hlášku so stabilným prefixom `dogid_incomplete:` a percentom
+// v texte (kontrola 22. 9. 2026: „Slovák uvidí anglické »DOG ID is 40 percent
+// complete«"). Bežný klik na disabled tlačidlo sem nedôjde — nastáva len v okne,
+// kým `myDogIdPct` ešte nie je známe, alebo pri race medzi zariadeniami/kartami.
+// Rozpozná percento a prekreslí ho cez TEN ISTÝ i18n kľúč ako klientská clona
+// (`pack.triplist.joinLockedHint`), aby človek videl jednu vetu, nie dve rôzne.
+// Neznáma chyba (iný prefix/žiadny) sa vráti nezmenená — nie je to tichá strata.
+function mapJoinError(t: ReturnType<typeof useT>, message: string): string {
+  const m = /^dogid_incomplete:.*?(\d+)\s*percent/i.exec(message);
+  return m ? t('pack.triplist.joinLockedHint', { pct: Number(m[1]) }) : message;
+}
+
 // Keď `get_trip_party()` k žiadosti meno nevydá (človek medzitým prestal byť platiaci
 // člen → vypadne z `member` v SQL), riadok sa aj tak MUSÍ dať vybaviť.
 const UNKNOWN_MEMBER: PartyMember = {
@@ -554,11 +568,21 @@ export default function PackTriplist() {
   const [joinErr, setJoinErr] = useState<Record<string, string>>({});
 
   // #70 — gate: pridať sa na cudzí výlet smie len s DOG ID na 100 %. Číslo sa
-  // ráta z PRVÉHO zaplateného psa (`id.dogs[0]`) — rovnaké poradie ako
-  // `get_trip_party()` v DB („jeden človek = jeho PRVÝ zaplatený pes,
-  // created_at asc"). `null` = ešte sa nenačítalo → tlačidlo zatiaľ neblokuje,
-  // toto je clona proti omylu, nie zámok (ten patrí RLS/RPC na serveri).
-  const primaryDogId = id.dogs[0]?.id ?? null;
+  // ráta z PRVÉHO VLASTNÉHO zaplateného psa — rovnaké pravidlo ako server
+  // (`my_dog_id_pct()` v `20260922_dogid_join_gate.sql`: `where d.user_id =
+  // auth.uid() order by created_at asc limit 1`).
+  // ⚠️ OPRAVENÉ (kontrola 22. 9. 2026): `id.dogs[0]` NESTAČÍ. `id.dogs`
+  // (`usePackIdentity.ts`) ide cez `getAccessibleDogIds()` → `my_dog_rights()`,
+  // čo vracia VLASTNÉ aj PAWMATE psy zoradené podľa `created_at` — teda `[0]`
+  // môže byť cudzí pes so starším dátumom. Server pozná len vlastných
+  // (`d.user_id = auth.uid()`), takže pawmate by dostal percento a odkaz na
+  // CUDZIE DOG ID a server by ho aj tak posudzoval podľa vlastného. Filter cez
+  // `useMyDogRights().isOwner()` drží oba zdroje na tom istom psovi.
+  const dogRights = useMyDogRights();
+  // Kým sa práva nenačítajú (`dogRights.rows === null`), `isOwner()` vracia
+  // `true` pre každého — rovnaká clona ako inde v appke (`useMyDogRights`
+  // dokumentuje: „kým sa nevie, platí smiem"), nie omyl.
+  const primaryDogId = id.dogs.find((d) => dogRights.isOwner(d.id))?.id ?? null;
   const [myDogIdPct, setMyDogIdPct] = useState<number | null>(null);
   useEffect(() => {
     if (!primaryDogId) { setMyDogIdPct(0); return; }
@@ -695,7 +719,7 @@ export default function PackTriplist() {
     setReqBusy(k);
     const err = await requestToJoin(real.slug, real.organizerId);
     setReqBusy(null);
-    setJoinErr((prev) => ({ ...prev, [k]: err ?? '' }));
+    setJoinErr((prev) => ({ ...prev, [k]: err ? mapJoinError(t, err) : '' }));
     if (!err) setReqEpoch((e) => e + 1);
   };
 
