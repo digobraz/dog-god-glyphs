@@ -24,24 +24,29 @@
 // ⚠️ SVETY SÚ ZAMKNUTÉ V MOZGU, NIE DLAŽDICE. Obsah zatiaľ neexistuje, takže mozog
 //    ukazuje tvar, klik na svet vedie na jeho upútavku v DOGSCROLLE a stred (hlava
 //    AINUBISA) otvára chat — jediné, čo dnes naozaj žije.
-// 🚩 NEROZHODNUTÉ (zadanie §3, rozhoduje Matej nad obrazovkou):
-//    · vzhľad zamknutého sveta — dva varianty, prepína ich `?zamok=lit|dim`
-//      (východisko `dim`); dve polohy toho istého plátna, nie dve obrazovky,
-//    · chat ako rovina hore + stred mozgu ako vstup (postavené podľa odporúčania),
-//    · pilulka DOGSCROLL do novembra s upútavkami (postavené podľa odporúčania).
+// ✅ ROZHODNUTÉ 22. 9. 2026 (Matej nad `plany/nakres-vault-zamok-2026-09-22.html`):
+//    · „dajme B svieti celý svet" — `?zamok` zanikol, mozog svieti vždy,
+//    · „správy a oznam by som dal úplne hore a pod to prepínač" + „riadok s ikonkou
+//      mena ako máme v /map" → prvý riadok = `PackIdentityBar` s oznamom v strede,
+//      druhý = roviny,
+//    · „nazvať to dogscroll namiesto vault (vault je celá sekcia)" → prvá ROVINA sa
+//      volá DOGSCROLL. Pilulka POHĽADU dole sa preto volá ZOZNAM (vzor mapy: MAPA ⇄
+//      ZOZNAM) — dve veci s tým istým menom na jednej obrazovke by si konkurovali.
+// 🚩 OTVORENÉ: chat ako rovina hore + stred mozgu ako vstup (postavené podľa odporúčania).
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { PackBottomNav, MessagingOverlayHost, PackTopRight } from '@/components/pack/PackLayout';
+import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
+import { PackIdentityBar } from '@/components/pack/PackIdentityBar';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import {
   PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI,
 } from '@/components/pack/packTheme';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { openAinubis } from '@/lib/ainubisBus';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
-import { mountBrain, type BrainHandle, type LockedLook } from '@/components/pack/vault/brainEngine';
+import { VAULT_CIRCLES } from '@/components/pack/vault/circles';
+import { mountBrain, type BrainHandle } from '@/components/pack/vault/brainEngine';
 import ainubisHead from '@/assets/ainubis-head.png';
 
 /* ⚠️ JEDNA HRANICA — tá istá ako na mape (`PackMap`: ≤1023 = mobilný pohľad
@@ -49,7 +54,7 @@ import ainubisHead from '@/assets/ainubis-head.png';
 const PC_MIN = 1024;
 /* Rezerva pod mozgom: lišta + pilulka na mobile, len lišta na PC. Mozog sa centruje
    do plochy nad ňou (nákres: `vol = H - 110`, tam bez lišty). */
-const BOTTOM_MOBILE = 168;
+const BOTTOM_MOBILE = 160;
 const BOTTOM_PC = 112;
 
 const CSS = `
@@ -100,13 +105,20 @@ const CSS = `
 .akv-plane:disabled{cursor:default;color:${AINUBIS.inkFaint};}
 .akv-plane em{font-style:normal;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;
   letter-spacing:${PACK_HEAD.section.letterSpacing};color:${AINUBIS.inkFaint};}
-.akv-grow{flex:1 1 auto;}
-.akv-when{flex:0 0 auto;white-space:nowrap;display:inline-flex;align-items:center;gap:${PACK_SPACE.sm}px;
+.akv-when{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;
   padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
   font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;letter-spacing:0.02em;
   text-transform:uppercase;color:${AINUBIS.ctaA};background:${AINUBIS.surface};border:1px solid ${AINUBIS.ctaEdge};}
 /* ⚠️ .02em, nie .22em: je to PILULKA, nie nadpis (lock dizajn-systému — tesné sledovanie
-   patrí pilulkám). Pri .22em sa na 360 px vedľa správ nezmestila a zvonček vytiekol z okna. */
+   patrí pilulkám). Pri .22em sa na 360 px vedľa správ nezmestila a zvonček vytiekol z okna.
+   Mobil nesie KRÁTKE znenie (.akv-when-s) — medzi avatarom a zvončekom je ~150 px. */
+.akv-when-s{display:none;}
+@media (max-width:${PC_MIN - 1}px){
+  .akv-when-l{display:none;} .akv-when-s{display:inline;}
+  /* Správy a zvonček na 32 px ako v mobilnej hlavičke mapy (PackNotifications má
+     rozmery v inline štýle, prebiť sa dá len !important — ten istý precedens). */
+  .akv-top .pkid-right button{width:32px!important;height:32px!important;}
+}
 
 /* ── DOGSCROLL ─────────────────────────────────────────────────────────── */
 .akv-scroll{position:absolute;inset:0;z-index:3;overflow-y:auto;overscroll-behavior:contain;
@@ -160,6 +172,12 @@ const CSS = `
 .akv-root[data-view="brain"] .akv-scroll{display:none;}
 /* Nad pásom kariet dostane horný pás podklad — inak cez medzeru medzi jeho riadkami
    presvitá text karty, ktorá pod ním odchádza (snímka 21. 9., 390 px). */
+/* Od 22. 9. je hlavička dvojriadková a mozog svieti celý — podklad dostáva VŽDY,
+   inak cez avatar a zvonček bežia vlákna a nápisy okruhov. */
+.akv-top::before{content:'';position:absolute;z-index:-1;pointer-events:none;
+  left:-${PACK_SPACE.xl}px;right:-${PACK_SPACE.xl}px;bottom:-${PACK_SPACE.lg}px;
+  top:calc(-1 * (env(safe-area-inset-top,0px) + ${PACK_SPACE.xl}px));
+  background:linear-gradient(180deg,${AINUBIS.bg} 72%,transparent);}
 @media (max-width:${PC_MIN - 1}px){
   .akv-root[data-view="scroll"] .akv-top::before{content:'';position:absolute;z-index:-1;pointer-events:none;
     left:-${PACK_SPACE.md}px;right:-${PACK_SPACE.md}px;bottom:-${PACK_SPACE.md}px;
@@ -189,8 +207,7 @@ export default function PackAinubis() {
     return v === key ? fallback : v;
   };
   const id = usePackIdentity();
-  const [params] = useSearchParams();
-  const look: LockedLook = params.get('zamok') === 'lit' ? 'lit' : 'dim';
+  const { lang } = useLang();
   const [view, setView] = useState<View>('brain');
   const [flash, setFlash] = useState<string | null>(null);
 
@@ -207,8 +224,13 @@ export default function PackAinubis() {
     [t],
   );
   /* Plátno sa mountuje RAZ — jeho callbacky preto čítajú aktuálne mená a jazyk z refu. */
-  const live = useRef({ names, tx });
-  live.current = { names, tx };
+  /* Mená okruhov: SK pre slovenčinu, inak EN (návrh) — `vault/circles.ts`. */
+  const circleName = (wi: number, oi: number) => {
+    const c = VAULT_CIRCLES[VAULT_WORLDS[wi].key]?.[oi];
+    return c ? (lang === 'sk' ? c.sk : c.en) : '';
+  };
+  const live = useRef({ names, tx, circleName });
+  live.current = { names, tx, circleName };
 
   const openWorld = (wi: number) => {
     const key = VAULT_WORLDS[wi].key;
@@ -233,20 +255,22 @@ export default function PackAinubis() {
       tip,
       worlds: VAULT_WORLDS,
       head: ainubisHead,
-      look,
+      isMobile: () => !isPc(),
       worldName: (wi) => live.current.names[wi],
+      circleName: (wi, oi) => live.current.circleName(wi, oi),
       insets: () => ({
         top: (topRef.current?.getBoundingClientRect().bottom ?? 0) + PACK_SPACE.sm,
         /* + cookie lišta, kým človek neklikol — spodok okna patrí jej (lock §1.1.1 bod 3) */
         bottom: (isPc() ? BOTTOM_PC : BOTTOM_MOBILE)
           + (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--consent-h')) || 0),
       }),
-      describe: (role, wi) => {
-        const { names: n, tx: x } = live.current;
+      describe: (role, wi, oi) => {
+        const { names: n, tx: x, circleName: cn } = live.current;
         if (role === 'root') return { title: 'AINUBIS', hint: x('pack.ainubis.ask', 'Ask AINUBIS') };
+        /* Okruh má vlastné meno; zvitok zatiaľ nie (Matej: „ďalej už nie"). */
         return {
-          title: n[wi],
-          sub: role === 'o' ? x('pack.ainubis.tip.circle', 'A chapter being written')
+          title: role === 'o' ? (cn(wi, oi) || n[wi]) : n[wi],
+          sub: role === 'o' ? `${n[wi]} · ${x('pack.ainubis.tip.circle', 'A chapter being written')}`
             : x('pack.ainubis.tip.scroll', 'A scroll being written'),
           hint: x('pack.ainubis.opening', 'Expected opening: November 2026'),
         };
@@ -267,7 +291,6 @@ export default function PackAinubis() {
     return () => { ro.disconnect(); mo.disconnect(); brain.current?.destroy(); brain.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready]);
-  useEffect(() => { brain.current?.setLook(look); }, [look]);
 
   /* Výška horného pásu ide von ako premenná — DOGSCROLL na mobile začína pod ním,
      nie pod odhadnutým číslom. */
@@ -283,7 +306,7 @@ export default function PackAinubis() {
 
   if (!ready) return <div className="akv-root" style={{ position: 'fixed', inset: 0, background: AINUBIS.surfaceBase }} />;
 
-  const plane = (key: 'vault' | 'chat' | 'wall', en: string) => tx(`pack.ainubis.plane.${key}`, en);
+  const plane = (key: 'dogscroll' | 'chat' | 'wall', en: string) => tx(`pack.ainubis.plane.${key}`, en);
   const mask = (ic: string) => ({ WebkitMaskImage: `url(/icons/pack/${ic}.svg)`, maskImage: `url(/icons/pack/${ic}.svg)` });
 
   return (
@@ -302,7 +325,7 @@ export default function PackAinubis() {
       </section>
 
       {/* ── DOGSCROLL — dnes upútavky svetov, v novembri pás zvitkov ────────── */}
-      <aside className="akv-scroll" aria-label={tx('pack.ainubis.view.dogscroll', 'Dogscroll')}>
+      <aside className="akv-scroll" aria-label={tx('pack.ainubis.view.list', 'List')}>
         <div className="akv-col">
           {/* BANNER „stavba pred očami" + November 2026 — presunutý z kostry, nezanikol. */}
           <header>
@@ -339,11 +362,20 @@ export default function PackAinubis() {
         </div>
       </aside>
 
-      {/* ── HORE ROVINA ───────────────────────────────────────────────────── */}
+      {/* ── HORE: IDENTITA + OZNAM, POD TÝM ROVINA (Matej 22. 9.) ─────────────── */}
       <div className="akv-top" ref={topRef}>
+        <PackIdentityBar
+          id={id}
+          middle={(
+            <span className="akv-when">
+              <span className="akv-when-l">{tx('pack.ainubis.opening', 'Expected opening: November 2026')}</span>
+              <span className="akv-when-s">{tx('pack.ainubis.openingShort', 'Opens Nov 2026')}</span>
+            </span>
+          )}
+        />
         <div className="akv-toprow">
           <nav className="akv-planes" aria-label="AINUBIS">
-            <button type="button" className="akv-plane" aria-current="page">{plane('vault', 'Vault')}</button>
+            <button type="button" className="akv-plane" aria-current="page">{plane('dogscroll', 'Dogscroll')}</button>
             {/* CHAT = kôš 3. Otvára sa tým istým kanálom ako doteraz (`ainubisBus`),
                 takže beží presne ten chat, ktorý žije naostro. */}
             <button type="button" className="akv-plane" onClick={openAinubis}>{plane('chat', 'Chat')}</button>
@@ -351,13 +383,6 @@ export default function PackAinubis() {
               {plane('wall', 'Board')}<em>{tx('pack.ainubis.soon', 'soon')}</em>
             </button>
           </nav>
-        </div>
-        {/* GLOBÁL (správy, upozornenia) ide do druhého riadku: vedľa troch rovín sa na
-            390 px nezmestil a roviny sa písali cez seba (snímka 21. 9.). */}
-        <div className="akv-toprow">
-          <span className="akv-when">{tx('pack.ainubis.opening', 'Expected opening: November 2026')}</span>
-          <span className="akv-grow" />
-          <PackTopRight last24h={id.packToday} total={id.packTotal} layout="inline" />
         </div>
       </div>
 
@@ -370,7 +395,7 @@ export default function PackAinubis() {
         >
           <i aria-hidden style={mask(view === 'brain' ? 'menu' : 'idea')} />
           {view === 'brain'
-            ? tx('pack.ainubis.view.dogscroll', 'Dogscroll')
+            ? tx('pack.ainubis.view.list', 'List')
             : tx('pack.ainubis.view.brain', 'Brain')}
         </button>
       </div>

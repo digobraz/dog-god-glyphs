@@ -507,10 +507,10 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
           className="relative items-center"
           style={{
             display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center',
-            gap: NAV_SKIN === 'gold' ? 10 : 4, padding: NAV_SKIN === 'gold' ? NAV_R.rim + 5 : 6,
+            gap: NAV_SKIN === 'gold' ? NAV_WING_GAP : 4, padding: NAV_SKIN === 'gold' ? NAV_R.rim + 5 : 6,
           }}
         >
-          <span className="flex items-center justify-center" style={{ minWidth: 0, gap: NAV_SKIN === 'gold' ? 10 : 4 }}>
+          <span className="flex items-center justify-center" style={{ minWidth: 0, gap: NAV_SKIN === 'gold' ? NAV_WING_GAP : 4 }}>
             <FloatingNavLink to="/pack" label={t('pack.layout.navHome')} icon={iconHome} end />
             {/* `WIZ.navMap` — sem svieti krok prehliadky o mape (spotlight na IKONKU,
                 nie na blok stránky). Kotva sedí na obale, nie na `NavLink`: spotlight
@@ -524,7 +524,7 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
             </span>
           </span>
           <DockPlus label={tx('pack.layout.navAdd', 'Add')} onClick={() => setCreateOpen(true)} />
-          <span className="flex items-center justify-center" style={{ minWidth: 0, gap: NAV_SKIN === 'gold' ? 10 : 4 }}>
+          <span className="flex items-center justify-center" style={{ minWidth: 0, gap: NAV_SKIN === 'gold' ? NAV_WING_GAP : 4 }}>
             <AinubisNavLink label={t('pack.layout.navAinubis')} />
             <AvatarNavButton avatarUrl={avatarUrl} avatarInitial={avatarInitial} dogs={dogs} />
           </span>
@@ -1029,9 +1029,16 @@ export function HieroglyphBg() {
 
 // ── Bottom pill nav ─────────────────────────────────────────────────────────
 
+/* 🔴 UŽŠIA LIŠTA (Matej 22. 9. 2026: „spodný nav musí byť užší, keďže nemáme texty").
+   Bočné odsadenie položky 16 → 12 a medzery v krídlach 10 → 4: vzduch po menovkách,
+   ktoré 21. 9. zanikli. Výška ani `DOCK` sa NEMENIA — lock blok1-nav: „keby mal dostať
+   bočný okraj, platí sa zmenšením krídel, nie zmenou DOCK". */
+const NAV_ITEM_PAD = '12px 12px';
+const NAV_WING_GAP = 4;
+
 const pillStyle = (active: boolean): React.CSSProperties =>
   NAV_SKIN === 'gold' ? {
-    padding: '12px 16px',
+    padding: NAV_ITEM_PAD,
     // PLNÁ pilulka — v predlohe sú MAP aj G celkom okrúhle. Hranatý bol len bar.
     borderRadius: 999,
     // Neaktívna položka NIE JE vyblednutá: v predlohe je HOME rovnako tmavé ako MAP,

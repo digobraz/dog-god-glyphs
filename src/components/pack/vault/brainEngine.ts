@@ -12,7 +12,12 @@
 //   · demo stavy „videné / prečítané" (nákres si ich nasypal sám). Farba uzla je
 //     STAV ČÍTANIA (modrá nedotknuté · žltá videné · zelená prečítané) a dnes nikto
 //     nič neprečítal, takže je všetko modré. Stav pribudne so zvitkami.
-//   · mená okruhov pri priblížení (sú neodsúhlasené, `worlds.ts`).
+//
+// 22. 9. 2026 (Matej nad `plany/nakres-vault-zamok-2026-09-22.html`):
+//   · „dajme B svieti celý svet" — poloha `dim` ZANIKLA, mozog svieti vždy naplno,
+//   · „všetky svety môžu mať názvy okruhov, ďalej už nie" — meno SVETA je pod
+//     bublinou stále, meno OKRUHU pri priblížení a na dotyk, zvitok ostáva bez nápisu,
+//   · „na mobile môže byť to jadro priblížené a ikony svetov väčšie" — `MOBIL`.
 //
 // Pribudlo navyše: PRIBLÍŽENIE DVOMA PRSTAMI. Nákres ho nemal (bežal na myši);
 // na mobile je to jediné koliesko, ktoré človek má.
@@ -29,12 +34,9 @@ interface Node {
   x: number; y: number; role: BrainRole; wi: number; sz: number;
   dx: number; dy: number; vx: number; vy: number; sx: number; sy: number;
   ex: number; ph: number; lw: number; nb: Node[];
+  /** poradie okruhu vo svete (len `o`, inak -1) */
+  oi: number;
 }
-
-/** Ako vyzerá svet, ktorý ešte nemá obsah — ROZHODUJE MATEJ (zadanie §3).
- *  `lit` = mozog svieti celý, zámok povie až dotyk.
- *  `dim` = telo mozgu je stlmené, naplno svieti len stred (AINUBIS), ktorý už žije. */
-export type LockedLook = 'lit' | 'dim';
 
 export interface BrainTip { title: string; sub?: string; hint?: string }
 
@@ -43,11 +45,14 @@ export interface BrainOptions {
   tip: HTMLDivElement;
   worlds: readonly VaultWorld[];
   worldName: (wi: number) => string;
+  /** Meno okruhu `oi` vo svete `wi` (poradie = O1, O2 … z rozpadu). */
+  circleName: (wi: number, oi: number) => string;
   head: string;
-  look: LockedLook;
+  /** Mobilný pohľad — priblížené jadro a väčšie bubliny svetov. */
+  isMobile: () => boolean;
   /** Rezerva hore a dole v px (horný pás; lišta + pilulka) — mozog sa centruje do zvyšku. */
   insets: () => { top: number; bottom: number };
-  describe: (role: BrainRole, wi: number) => BrainTip | null;
+  describe: (role: BrainRole, wi: number, oi: number) => BrainTip | null;
   onWorld: (wi: number) => void;
   onRoot: () => void;
 }
@@ -55,7 +60,6 @@ export interface BrainOptions {
 export interface BrainHandle {
   zoomBy: (k: number) => void;
   reset: () => void;
-  setLook: (l: LockedLook) => void;
   resize: () => void;
   destroy: () => void;
 }
@@ -68,8 +72,12 @@ const C = { w: 0.30, spread: 0.80, zr: 4.2, fit: 0.62 };
 const COL = { modra: '59,158,255', cyan: '91,224,240' };
 /* Uzol sa smie rozhrnúť, nie odniesť (nákres §15). */
 const MAX_TAH = 70;
-/* Stlmenie tela mozgu pri `dim` — stred sa nestlmuje. */
-const DIM = 0.42;
+/* MOBIL (Matej 22. 9.): jadro priblížené, bubliny svetov a stred väčšie. Okraj
+   mozgu vtedy pretečie mimo okna — ťah ho posunie, dva prsty oddialia na celok. */
+const MOBIL = { zoom: 1.6, bubble: 1.3, cap: 1.1 };
+/* Meno okruhu sa píše až od tohto násobku celkového pohľadu — pri celku by 62
+   nápisov bolo len šum. Na dotyk sa píše vždy. */
+const OKRUH_OD = 1.9;
 
 /** Zvyšok po delení sa rozdá prvým okruhom, nech súčet sedí do posledného kusa. */
 function split(total: number, parts: number) {
@@ -86,6 +94,22 @@ function drawFit(c: CanvasRenderingContext2D, im: HTMLImageElement, cx: number, 
   c.drawImage(im, cx - (iw * k) / 2, cy - (ih * k) / 2, iw * k, ih * k);
 }
 
+/** Nápis smeruje OD stredu (`ox,oy`) von — hore nad uzol, dole pod, do strán do strán.
+ *  Pod bublinou vždy by dve susedné bubliny hore napísali mená cez seba (snímka 22. 9.). */
+function labelAt(p: { sx: number; sy: number }, ox: number, oy: number, gap: number) {
+  const a = Math.atan2(p.sy - oy, p.sx - ox), c = Math.cos(a), si = Math.sin(a);
+  const align: CanvasTextAlign = c > 0.2 ? 'left' : c < -0.2 ? 'right' : 'center';
+  const base: CanvasTextBaseline = si > 0.35 ? 'top' : si < -0.35 ? 'bottom' : 'middle';
+  return { x: p.sx + c * gap, y: p.sy + si * gap, align, base };
+}
+type Box = { x0: number; y0: number; x1: number; y1: number };
+function boxOf(x: number, y: number, w: number, h: number, align: CanvasTextAlign, base: CanvasTextBaseline): Box {
+  const x0 = align === 'left' ? x : align === 'right' ? x - w : x - w / 2;
+  const y0 = base === 'top' ? y : base === 'bottom' ? y - h : y - h / 2;
+  return { x0, y0, x1: x0 + w, y1: y0 + h };
+}
+const hits = (a: Box, b: Box) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+
 function segDist(px: number, py: number, a: Node, b: Node) {
   const dx = b.sx - a.sx, dy = b.sy - a.sy, l2 = dx * dx + dy * dy;
   if (!l2) return Math.hypot(px - a.sx, py - a.sy);
@@ -96,21 +120,22 @@ function segDist(px: number, py: number, a: Node, b: Node) {
 export function mountBrain(o: BrainOptions): BrainHandle {
   const cv = o.canvas, tip = o.tip;
   const ctx = cv.getContext('2d')!;
-  let look = o.look;
   const N: Node[] = [];
   const E: [Node, Node][] = [];
   let W = 0, H = 0;
   let view = { x: 0, y: 0, k: 1 }, vt = { x: 0, y: 0, k: 1 };
   const ptr = { x: -1e5, y: -1e5 };
   let drag: Node | null = null, pan = false, moved = 0, last = { x: 0, y: 0 };
-  let HOLD: Node | null = null, down = false, baseK = 1, baseY = 0;
+  /* `baseK` = mierka, pri ktorej je vidno CELÝ mozog; `homeK` = kde sa začína
+     (na mobile priblížené). Posun je povolený nad `baseK`, teda aj na mobilnom štarte. */
+  let HOLD: Node | null = null, down = false, baseK = 1, baseY = 0, homeK = 1;
   let HOV: Node | null = null, HOVE: [Node, Node] | null = null;
   let raf = 0, alive = true;
   const touches = new Map<number, { x: number; y: number }>();
   let pinch0 = 0, pinchK = 1;
 
   const mk = (x: number, y: number, role: BrainRole, wi: number, sz: number): Node => ({
-    x, y, role, wi, sz, dx: 0, dy: 0, vx: 0, vy: 0, sx: 0, sy: 0, ex: 0, ph: 0, lw: 0, nb: [],
+    x, y, role, wi, sz, dx: 0, dy: 0, vx: 0, vy: 0, sx: 0, sy: 0, ex: 0, ph: 0, lw: 0, nb: [], oi: -1,
   });
 
   // ── ROZVRH — zhlukový (obsidian graph), nákres `layoutCluster` ─────────────
@@ -131,6 +156,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       const oa = a0 + span * (((oi * 0.6180339887) % 1) * 0.86 + 0.07);
       const ox = Math.cos(oa) * orad, oy = Math.sin(oa) * orad;
       const node = mk(ox, oy, 'o', wi, 6.5);
+      node.oi = oi;
       N.push(node); E.push([wn, node]);
       for (let z = 0; z < per[oi]; z++) {
         /* ⚠️ Zhluk začína až ZA uzlom okruhu (26 j.): pri ~.79 je to 20 px, teda viac
@@ -193,7 +219,10 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       }
     });
     ctx.clearRect(0, 0, W, H);
-    const dimA = look === 'dim' ? DIM : 1;
+    const bub = o.isMobile() ? MOBIL.bubble : 1;
+    /* Bublina rastie s mierkou len po strop — na mobile nižší, inak by pri priblížení
+       svet zabral pol okna (snímka 22. 9.: r 74 px na 390 px širokom okne). */
+    const kB = Math.min(o.isMobile() ? MOBIL.cap : 2.2, Math.max(0.5, view.k)) * bub;
 
     // 2 · VLÁKNA
     E.forEach((e) => {
@@ -204,7 +233,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       ctx.lineWidth = hi ? 2.4 : kost ? 1.4 : 0.75;
       /* ⚠️ Zvýraznená spojnica je NEÓNOVO MODRÁ, nie zlatá — zlatá znamená „videné". */
       ctx.strokeStyle = hi ? 'rgba(140,240,255,.95)'
-        : `rgba(${COL.cyan},${((kost ? 0.24 : 0.11) * dimA).toFixed(3)})`;
+        : `rgba(${COL.cyan},${kost ? 0.24 : 0.11})`;
       ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.lineTo(b.sx, b.sy); ctx.stroke();
     });
 
@@ -216,9 +245,8 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       const syn = !!(HOV && !near && HOV.nb.indexOf(p) >= 0);
       let al = p.role === 'z' ? 0.55 : 1;
       if (syn) al = Math.min(1, al + 0.35);
-      else if (!near) al *= dimA;
       const sz = p.sz * Math.min(2.2, Math.max(0.5, view.k)) * (near ? 1.7 : syn ? 1.25 : 1);
-      if (p.role !== 'z' || near || syn) { ctx.shadowBlur = near ? 26 : syn ? 20 : 14 * dimA; ctx.shadowColor = `rgba(${col},.9)`; }
+      if (p.role !== 'z' || near || syn) { ctx.shadowBlur = near ? 26 : syn ? 20 : 14; ctx.shadowColor = `rgba(${col},.9)`; }
       else ctx.shadowBlur = 0;
       ctx.fillStyle = `rgba(${col},${al.toFixed(3)})`;
       ctx.beginPath(); ctx.arc(p.sx, p.sy, Math.max(0.8, sz), 0, TAU); ctx.fill();
@@ -230,12 +258,58 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     });
     ctx.shadowBlur = 0;
 
+    // 4 · MENÁ — najprv sa ZMERAJÚ nápisy svetov (tie majú prednosť), potom okruhy.
+    //     Okruh, ktorého nápis by vliezol do iného nápisu, sa vynechá — pri priblížení
+    //     sa uvoľní miesto a objaví sa sám. Ten pod prstom sa píše vždy.
+    const zabrate: Box[] = [];
+    const wFs = Math.round(Math.min(16, Math.max(12, 11 * view.k * bub + 3)));
+    ctx.font = `700 ${wFs}px Cinzel, serif`;
+    const wLbl = new Map<Node, ReturnType<typeof labelAt> & { name: string }>();
+    N.forEach((p) => {
+      if (p.role !== 'w') return;
+      const r = p.sz * kB * (HOV === p ? 1.18 : 1);
+      const name = o.worldName(p.wi).toUpperCase();
+      const w = ctx.measureText(name).width + 6;
+      let L = { ...labelAt(p, root.sx, root.sy, r + 6), name };
+      let bx = boxOf(L.x, L.y, w, wFs + 6, L.align, L.base);
+      /* Nápis, ktorý by vyšiel z okna (mobil, bočné svety), ide POD bublinu. */
+      if (bx.x0 < 4 || bx.x1 > W - 4) {
+        L = { x: Math.max(4 + w / 2, Math.min(W - 4 - w / 2, p.sx)), y: p.sy + r + 6, align: 'center', base: 'top', name };
+        bx = boxOf(L.x, L.y, w, wFs + 6, L.align, L.base);
+      }
+      wLbl.set(p, L);
+      zabrate.push(bx);
+      zabrate.push({ x0: p.sx - r, y0: p.sy - r, x1: p.sx + r, y1: p.sy + r });
+    });
+    const vsetkyOkruhy = view.k >= baseK * OKRUH_OD;
+    const okruhy = N.filter((p) => p.role === 'o' && (vsetkyOkruhy || HOV === p))
+      .sort((a, b) => (a === HOV ? -1 : b === HOV ? 1 : 0));
+    okruhy.forEach((p) => {
+      const name = o.circleName(p.wi, p.oi);
+      if (!name) return;
+      const near = HOV === p;
+      const fs = near ? 14 : 12;
+      ctx.font = `${near ? 600 : 500} ${fs}px 'Space Grotesk', sans-serif`;
+      const wn = p.nb.find((q) => q.role === 'w') ?? root;
+      const L = labelAt(p, wn.sx, wn.sy, 10);
+      const b = boxOf(L.x, L.y, ctx.measureText(name).width + 4, fs + 4, L.align, L.base);
+      /* mimo plochy nad hlavičkou, pod lištou a za okrajom okna sa nepíše — orezané meno klame */
+      const ins = o.insets();
+      if (!near && (b.y0 < ins.top || b.y1 > H - ins.bottom * 0.6 || b.x0 < 2 || b.x1 > W - 2 || zabrate.some((z) => hits(z, b)))) return;
+      zabrate.push(b);
+      ctx.textAlign = L.align; ctx.textBaseline = L.base;
+      ctx.lineJoin = 'round'; ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(2,6,11,.9)';
+      ctx.strokeText(name, L.x, L.y);
+      ctx.fillStyle = near ? 'rgba(235,252,255,1)' : 'rgba(207,243,250,.86)';
+      ctx.fillText(name, L.x, L.y);
+    });
+
     // 5 · SVETY — neónová bublina s VYREZANOU ikonou · STRED = AINUBIS
     ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
     N.forEach((p) => {
       if (p.role === 'root') {
         /* Medailón, nie výrez: hlava má vlastné farby, vyrezaná by bola čierna škvrna. */
-        const rr = p.sz * Math.min(2.2, Math.max(0.5, view.k)) * (HOV === p ? 1.18 : 1);
+        const rr = p.sz * kB * (HOV === p ? 1.18 : 1);
         ctx.shadowBlur = HOV === p ? 36 : 24; ctx.shadowColor = 'rgba(91,224,240,.95)';
         ctx.fillStyle = 'rgba(91,224,240,1)';
         ctx.beginPath(); ctx.arc(p.sx, p.sy, rr, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
@@ -247,11 +321,9 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       }
       if (p.role !== 'w') return;
       const near = HOV === p;
-      const r = p.sz * Math.min(2.2, Math.max(0.5, view.k)) * (near ? 1.18 : 1);
-      /* Bublina sa stlmuje menej než zrná — ikonka sveta musí ostať čitateľná. */
-      const al = near || look === 'lit' ? 1 : 0.55;
-      ctx.shadowBlur = near ? 34 : 20 * dimA; ctx.shadowColor = `rgba(${COL.cyan},.95)`;
-      ctx.fillStyle = `rgba(${COL.cyan},${al})`;
+      const r = p.sz * kB * (near ? 1.18 : 1);
+      ctx.shadowBlur = near ? 34 : 20; ctx.shadowColor = `rgba(${COL.cyan},.95)`;
+      ctx.fillStyle = `rgba(${COL.cyan},1)`;
       ctx.beginPath(); ctx.arc(p.sx, p.sy, r, 0, TAU); ctx.fill();
       ctx.shadowBlur = 0;
       const im = ICONS[p.wi];
@@ -262,22 +334,20 @@ export function mountBrain(o: BrainOptions): BrainHandle {
         drawFit(ctx, im, p.sx, p.sy, r * 1.52, 'contain');
         ctx.globalCompositeOperation = 'source-over';
       }
-      /* MENO AŽ NA DOTYK — vedľa bubliny, svietiace, bez rámika a bez počtov */
-      if (p.ex > 0.03) {
-        const name = o.worldName(p.wi).toUpperCase();
-        ctx.font = `700 ${Math.min(22, 15 * Math.max(1, view.k)).toFixed(0)}px Cinzel, serif`;
-        const vpravo = p.sx < W * 0.72; /* pri pravom okraji meno doľava */
-        ctx.textAlign = vpravo ? 'left' : 'right';
-        const tx = p.sx + (vpravo ? r + 14 : -r - 14);
-        /* ⚠️ NAJPRV TMAVÉ HALO, POTOM TEXT — žiara pred svietiacim pozadím nechráni. */
-        ctx.lineJoin = 'round'; ctx.miterLimit = 2;
-        ctx.lineWidth = 6; ctx.strokeStyle = `rgba(2,6,11,${(0.92 * p.ex).toFixed(2)})`;
-        ctx.strokeText(name, tx, p.sy);
-        ctx.shadowBlur = 18; ctx.shadowColor = `rgba(140,240,255,${(0.85 * p.ex).toFixed(2)})`;
-        ctx.fillStyle = `rgba(235,252,255,${(0.99 * p.ex).toFixed(2)})`;
-        ctx.fillText(name, tx, p.sy);
-        ctx.shadowBlur = 0; ctx.textAlign = 'left';
-      }
+      /* MENO SVETA JE PRI BUBLINE STÁLE (Matej 22. 9.) — do vtedy len na dotyk.
+         Smer od stredu mozgu von (`labelAt`), poloha zmeraná v kroku 4. */
+      const L = wLbl.get(p);
+      if (!L) return;
+      ctx.font = `700 ${wFs}px Cinzel, serif`;
+      ctx.textAlign = L.align; ctx.textBaseline = L.base;
+      /* ⚠️ NAJPRV TMAVÉ HALO, POTOM TEXT — žiara pred svietiacim pozadím nechráni. */
+      ctx.lineJoin = 'round'; ctx.miterLimit = 2;
+      ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(2,6,11,.92)';
+      ctx.strokeText(L.name, L.x, L.y);
+      ctx.shadowBlur = 8 + 10 * p.ex; ctx.shadowColor = 'rgba(140,240,255,.85)';
+      ctx.fillStyle = `rgba(235,252,255,${(0.86 + 0.14 * p.ex).toFixed(2)})`;
+      ctx.fillText(L.name, L.x, L.y);
+      ctx.shadowBlur = 0; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
     });
     raf = requestAnimationFrame(frame);
   }
@@ -309,10 +379,10 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     HOV = hitNode(); HOVE = HOV ? null : hitEdge();
     if (HOV) {
       /* ⚠️ SVET NEMÁ BUBLINU S TEXTOM — meno si nesie sám, svietiace vedľa uzla. */
-      showTip(HOV.role === 'w' ? null : o.describe(HOV.role, HOV.wi), HOV.sx, HOV.sy);
+      showTip(HOV.role === 'w' ? null : o.describe(HOV.role, HOV.wi, HOV.oi), HOV.sx, HOV.sy);
       cv.style.cursor = 'pointer';
     } else if (HOVE) {
-      showTip(o.describe(HOVE[1].role, HOVE[1].wi), (HOVE[0].sx + HOVE[1].sx) / 2, (HOVE[0].sy + HOVE[1].sy) / 2);
+      showTip(o.describe(HOVE[1].role, HOVE[1].wi, HOVE[1].oi), (HOVE[0].sx + HOVE[1].sx) / 2, (HOVE[0].sy + HOVE[1].sy) / 2);
       cv.style.cursor = 'pointer';
     } else { showTip(null); cv.style.cursor = pan ? 'grabbing' : panMozne() ? 'grab' : 'default'; }
   }
@@ -340,9 +410,11 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     const ins = o.insets();
     const vol = Math.min(W, H - ins.top - ins.bottom);
     const k = Math.max(0.35, Math.min(2, (vol * C.fit) / Math.max(1, EXTENT)));
-    const y = (ins.top - ins.bottom) / 2 / k;
-    baseK = k; baseY = y;
-    vt = { x: 0, y, k }; view = { x: 0, y, k };
+    /* Mobil začína priblížený na jadro; stred priblíženia je stred plochy, nie okna. */
+    homeK = o.isMobile() ? k * MOBIL.zoom : k;
+    const y = (ins.top - ins.bottom) / 2 / homeK;
+    baseK = k; baseY = (ins.top - ins.bottom) / 2 / k;
+    vt = { x: 0, y, k: homeK }; view = { x: 0, y, k: homeK };
     N.forEach((p) => { p.dx = p.dy = p.vx = p.vy = 0; });
   }
   function pick(p: Node) {
@@ -413,7 +485,6 @@ export function mountBrain(o: BrainOptions): BrainHandle {
   return {
     zoomBy: (k) => zoomTo(vt.k * k),
     reset,
-    setLook: (l) => { look = l; },
     resize: () => { size(); reset(); },
     destroy: () => {
       alive = false; cancelAnimationFrame(raf);
