@@ -78,7 +78,8 @@ import { MapNotesSection, MAP_NOTES_SECTION_CSS } from '@/components/pack/mapnot
 // KRONIKA TRASY — príbehy ľudí, ktorí ju prešli (22. 9. 2026, issue #61).
 // Karta sa kreslí RAZ (`StoryCard`, lock §4.1) — v článku, neskôr vo feede aj v profile.
 import { TripStories, TRIP_STORIES_CSS } from '@/components/pack/trip/TripStories';
-import { useTripStories, type TripStory } from '@/components/pack/story/storyData';
+import { useTripStories, toggleMark, type TripStory } from '@/components/pack/story/storyData';
+import { StoryView, STORY_VIEW_CSS } from '@/components/pack/trip/StoryView';
 import {
   AddMapNotePin, NoteSpotPin, AddMapNotePanel, MapNotePlacing, NoteQuickPalette, MapNoteTooFar,
   ADD_NOTE_CSS, notePanelH,
@@ -610,7 +611,7 @@ export default function PackTripArticle() {
   }, [noteMap]);
   const dateLocale = intlLocale(lang);
   const navigate = useNavigate();
-  const { slug, country } = useParams<{ slug: string; country?: string }>();
+  const { slug, country, n: storyN } = useParams<{ slug: string; country?: string; n?: string }>();
   const id = usePackIdentity();
   const memorialTrips = useMemorialTrips();
   const { toast } = useToast();
@@ -1173,6 +1174,15 @@ export default function PackTripArticle() {
     upsertMyTrip(trail.id, { status: 'solo', openness: 'closed', date: '' });
   };
 
+  /* Znacka z vrstvy pribehu. Optimisticky, rovnako ako v kronike — akcia nesmie „cakat“. */
+  const markStory = (story: TripStory, kind: 'like' | 'save') => {
+    const on = kind === 'like' ? !story.liked : !story.saved;
+    setStories((prev) => prev.map((x) => (x.id !== story.id ? x : kind === 'like'
+      ? { ...x, liked: on, likes: Math.max(0, x.likes + (on ? 1 : -1)) }
+      : { ...x, saved: on })));
+    toggleMark(story.id, kind, on);
+  };
+
   /* ➕ „použiť" na príbehu = VEZMI SI TÚ TRASU (lock §4.2: ➕ ide do plánu).
      🔴 Nie toggle — akcia na cudzom príbehu nesmie človeku trasu ODOBRAŤ, keď ju už má.
      Ostáva na mieste, presne ako lock žiada: len toast, žiadna navigácia. */
@@ -1232,6 +1242,9 @@ export default function PackTripArticle() {
      Kľúč je `baseTrail?.id`, nie `trail?.id` — `trail` vzniká až z memo pod úpravami
      a pri prvom vykreslení by bol `undefined`, takže kronika by sa načítala dvakrát. */
   const { stories, setStories } = useTripStories(baseTrail?.id);
+  /* Otvoreny pribeh sa ODVODZUJE Z ADRESY, nikdy sa nedrzi v stave. Dva zdroje by
+     znamenali, ze sipka spat v prehliadaci zavrie vrstvu, ale stav o tom nevie. */
+  const openStory = storyN ? stories.find((x) => String(x.rank) === storyN) ?? null : null;
 
   if (id.loading) {
     return (
@@ -1470,6 +1483,7 @@ export default function PackTripArticle() {
       <style>{GLASS_CSS}</style>
       <style>{PARTY_CARD_CSS}</style>
       <style>{TRIP_STORIES_CSS}</style>
+      <style>{STORY_VIEW_CSS}</style>
       <style>{MAP_NOTES_SECTION_CSS}</style>
       <style>{MAP_NOTES_CSS}</style>
       {/* Kurzor v režime „ukáž miesto" (`.mn-placing` a spol.) — triedy sadajú na
@@ -2075,6 +2089,25 @@ export default function PackTripArticle() {
           partie zavolal start_dm (200, konverzácia vznikla), ale neotvorilo sa nič.
           Bolelo to najviac práve tu — kód označuje túto routu za primárnu MOBILNÚ cestu
           k partii výletu. Ten istý dôvod aj riešenie ako v PackMap.tsx. */}
+      {/* PRIBEH NA VLASTNEJ ADRESE (KROK 3). Vrstva sa otvara z URL, nie zo stavu —
+          preto prezije obnovenie stranky a odkaz funguje aj cudziemu cloveku.
+          `:n` je PORADIE v kronike (zlaty odznak), nie id: je to cislo, ktore clovek
+          na karte vidi, a URL sa tak da precitat okom.
+          Ked pribeh s tym cislom neexistuje (zmazany, este nezverejneny), vrstva sa
+          nevykresli a clovek ostane na clanku — nie na prazdnej obrazovke. */}
+      {openStory && (
+        <StoryView
+          story={openStory}
+          next={stories[stories.indexOf(openStory) + 1] ?? null}
+          locale={dateLocale}
+          onClose={() => navigate(tripPath(trail))}
+          onNext={(nx) => navigate(`${tripPath(trail)}/pribeh/${nx.rank}`)}
+          onLike={() => markStory(openStory, 'like')}
+          onSave={() => markStory(openStory, 'save')}
+          onUse={useTrailFromStory}
+          onShare={() => shareStory(openStory)}
+        />
+      )}
       <MessagingOverlayHost />
     </div>
   );

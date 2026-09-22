@@ -2484,6 +2484,13 @@ export const sk: Partial<Dict> = {
   'pack.trip.stories.act.save': "Uložiť",
   'pack.trip.stories.act.use': "Pridať trasu medzi moje výlety",
   'pack.trip.stories.act.share': "Poslať",
+  // ⚠️ „{n}. v kronike" namiesto radovej číslovky vetou — „3. kto prešiel" sa v SK
+  // nedá napísať bezrodovo a v dátach nie je, či to bol on alebo ona.
+  'pack.trip.stories.first': "ako prvý",
+  'pack.trip.stories.nth': "{n}. v kronike",
+  'pack.trip.stories.authorLink': "Vlastná tvorba autora",
+  'pack.trip.stories.video': "Video autora",
+  'pack.trip.stories.next': "Ďalší príbeh",
   'pack.addTrip.plan.when': "Kedy idete?",
   'pack.addTrip.plan.travel': "Ako sa tam dostanete?",
   'pack.addTrip.plan.who': "Ideš sám, alebo hľadáš niekoho?",

@@ -297,6 +297,12 @@ const App = () => (
                   ISO2 `sk` by sa v ceste čítalo ako jazyková mutácia. Stavať výhradne cez
                   tripPath() / tripPathById() z tripShared. */}
               <Route path="/pack/map/:country/:slug" element={<MapGate><PackTripArticle /></MapGate>} />
+              {/* PRIBEH Z CESTY = `modal-as-route` (architektura v0, 22. 9. 2026): vrstva nad
+                  clankom, ale s VLASTNOU adresou — da sa zdielat aj indexovat a prezije
+                  obnovenie stranky. NIE `#hash`. Mountuje sa TA ISTA stranka, ktora si
+                  z `:n` vyberie pribeh a vykresli ho ako vrstvu; keby to bola samostatna
+                  stranka, navrat spat by pristal na vrchu clanku a stratil by kontext. */}
+              <Route path="/pack/map/:country/:slug/pribeh/:n" element={<MapGate><PackTripArticle /></MapGate>} />
               {/* Starý tvar bez krajiny — drží staré odkazy nažive, PackTripArticle si sám
                   doplní krajinu a prepíše URL (replace). Statické segmenty vyššie vyhrávajú. */}
               <Route path="/pack/map/:slug" element={<MapGate><PackTripArticle /></MapGate>} />
