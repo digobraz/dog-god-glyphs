@@ -49,6 +49,15 @@ export const uploadPackTripPhoto = (blob: Blob, slug: string, index: number) =>
 export const uploadDogDiaryPhoto = (blob: Blob, dogId: string, stamp: string) =>
   uploadBlob(blob, `dog-diary/${dogId}`, stamp);
 
+// Fotka priložená k PRÍBEHU Z CESTY (kronika trasy, 22. 9. 2026).
+// ⚠️ Priečinok je `trip-stories/<slug>`, NIE `pack-trips/<slug>` — ten nesie fotky
+//    SAMOTNÉHO výletu (`payload.photos`) a zhoda `public_id` by ich prepísala.
+//    Príbeh je cudzí obsah k tej istej trase, nie jej ďalšia fotka.
+// ⚠️ `public_id` nesie ČAS, nie index — rovnaký dôvod ako v denníku psa: dvaja ľudia
+//    píšu k tej istej trase a „fotka č. 0" by bola pre oboch tá istá adresa.
+export const uploadTripStoryPhoto = (blob: Blob, slug: string, stamp: string) =>
+  uploadBlob(blob, `trip-stories/${slug}`, stamp);
+
 // Delivery URLs (on-the-fly transformations)
 export const certPreviewUrl = (publicId: string) =>
   `${BASE_URL}/c_fill,w_400,h_400,r_max,f_auto,q_auto/${publicId}`;

@@ -78,8 +78,9 @@ import { MapNotesSection, MAP_NOTES_SECTION_CSS } from '@/components/pack/mapnot
 // KRONIKA TRASY — príbehy ľudí, ktorí ju prešli (22. 9. 2026, issue #61).
 // Karta sa kreslí RAZ (`StoryCard`, lock §4.1) — v článku, neskôr vo feede aj v profile.
 import { TripStories, TRIP_STORIES_CSS } from '@/components/pack/trip/TripStories';
-import { useTripStories, toggleMark, type TripStory } from '@/components/pack/story/storyData';
+import { useTripStories, toggleMark, loadTripStories, type TripStory } from '@/components/pack/story/storyData';
 import { StoryView, STORY_VIEW_CSS } from '@/components/pack/trip/StoryView';
+import { StoryWrite, STORY_WRITE_CSS } from '@/components/pack/trip/StoryWrite';
 import {
   AddMapNotePin, NoteSpotPin, AddMapNotePanel, MapNotePlacing, NoteQuickPalette, MapNoteTooFar,
   ADD_NOTE_CSS, notePanelH,
@@ -1245,6 +1246,7 @@ export default function PackTripArticle() {
   /* Otvoreny pribeh sa ODVODZUJE Z ADRESY, nikdy sa nedrzi v stave. Dva zdroje by
      znamenali, ze sipka spat v prehliadaci zavrie vrstvu, ale stav o tom nevie. */
   const openStory = storyN ? stories.find((x) => String(x.rank) === storyN) ?? null : null;
+  const [writeOpen, setWriteOpen] = useState(false);
 
   if (id.loading) {
     return (
@@ -1409,6 +1411,19 @@ export default function PackTripArticle() {
               </button>
               {walkedMenuOpen && (
                 <div className="pta-actmenu" role="menu">
+                  {/* VCHOD DO PISANIA PRIBEHU (KROK 4, rozhodnutie 2): pribeh sa ponuka
+                      vo chvili, ked clovek UZ POVEDAL „presiel som" — nie v paneli `+`.
+                      Matej 22. 9.: „nie je to tak casta vec, clovek ju moze pridat priamo
+                      po prejdeni odysey". `panel: false` v registri preto ostava.
+                      Stoji PRVA: je to jediny dovod, preco toto menu otvara niekto,
+                      kto uz vylet ma zapisany. */}
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => { setWalkedMenuOpen(false); setWriteOpen(true); }}
+                  >
+                    {t('pack.trip.stories.write.entry')}
+                  </button>
                   <button
                     type="button"
                     role="menuitem"
@@ -1484,6 +1499,7 @@ export default function PackTripArticle() {
       <style>{PARTY_CARD_CSS}</style>
       <style>{TRIP_STORIES_CSS}</style>
       <style>{STORY_VIEW_CSS}</style>
+      <style>{STORY_WRITE_CSS}</style>
       <style>{MAP_NOTES_SECTION_CSS}</style>
       <style>{MAP_NOTES_CSS}</style>
       {/* Kurzor v režime „ukáž miesto" (`.mn-placing` a spol.) — triedy sadajú na
@@ -2095,6 +2111,19 @@ export default function PackTripArticle() {
           na karte vidi, a URL sa tak da precitat okom.
           Ked pribeh s tym cislom neexistuje (zmazany, este nezverejneny), vrstva sa
           nevykresli a clovek ostane na clanku — nie na prazdnej obrazovke. */}
+      {writeOpen && (
+        <StoryWrite
+          slug={trail.id}
+          onClose={() => setWriteOpen(false)}
+          onSaved={() => {
+            setWriteOpen(false);
+            toast({ description: t('pack.trip.stories.write.saved') });
+            // Kronika sa musi prekreslit hned — inak clovek zverejni pribeh
+            // a na stranke, z ktorej ho pisal, ho nevidi.
+            loadTripStories(trail.id).then(setStories);
+          }}
+        />
+      )}
       {openStory && (
         <StoryView
           story={openStory}

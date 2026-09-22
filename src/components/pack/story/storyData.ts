@@ -123,3 +123,56 @@ export function useTripStories(slug: string | undefined) {
 
   return { stories, loading, setStories };
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// PÍSANIE (KROK 4)
+// ════════════════════════════════════════════════════════════════════════════
+
+/** Rozpísaný alebo zverejnený príbeh prihláseného človeka k tejto trase. */
+export interface MyStory {
+  id: string;
+  body: string;
+  photos: string[];
+  link: string;
+  youtube: string;
+  isPublic: boolean;
+  happenedAt: string | null;
+}
+
+/** Formulár sa MUSÍ otvoriť s tým, čo už je napísané — inak by „druhý zápis
+ *  prepisuje prvý" znamenalo „druhý zápis maže prvý". */
+export async function loadMyStory(slug: string): Promise<MyStory | null> {
+  const { data, error } = await db.rpc('my_trip_story', { p_trip_slug: slug });
+  if (error || !Array.isArray(data) || data.length === 0) return null;
+  const r = data[0];
+  const attach: StoryAttach = (r.attach && typeof r.attach === 'object') ? r.attach : {};
+  return {
+    id: String(r.id),
+    body: r.body ?? '',
+    photos: asArray(r.photos),
+    link: attach.link ?? '',
+    youtube: attach.youtube ?? '',
+    isPublic: r.visibility === 'public',
+    happenedAt: r.happened_at ?? null,
+  };
+}
+
+/** 🔴 Zápis ide cez RPC, nie cez `upsert`. Pravidlo „jeden príbeh na človeka"
+ *  stráži čiastočný index NAD VÝRAZOM a PostgREST sa naň odkázať nevie —
+ *  `supabase.from('posts').upsert()` by pri druhom zápise vrátil „duplicate key".
+ *  RPC navyše overí, že človek trasu naozaj PREŠIEL (vchod je „prešiel som"). */
+export async function saveStory(slug: string, s: {
+  body: string; photos: string[]; link: string; youtube: string;
+  isPublic: boolean; happenedAt: string | null;
+}): Promise<{ ok: boolean; error?: string }> {
+  const { error } = await db.rpc('save_trip_story', {
+    p_trip_slug: slug,
+    p_body: s.body,
+    p_photos: s.photos,
+    p_link: s.link || null,
+    p_youtube: s.youtube || null,
+    p_public: s.isPublic,
+    p_happened_at: s.happenedAt,
+  });
+  return error ? { ok: false, error: error.message } : { ok: true };
+}
