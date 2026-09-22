@@ -49,7 +49,7 @@ import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 import { VAULT_CIRCLES } from '@/components/pack/vault/circles';
 import { mountBrain, type BrainHandle } from '@/components/pack/vault/brainEngine';
 import ainubisHead from '@/assets/ainubis-head.png';
-import { HandArrowLeft } from '@/components/pack/HandIcons';
+import { HandArrowLeft, HandSearch } from '@/components/pack/HandIcons';
 
 /* ⚠️ JEDNA HRANICA — tá istá ako na mape (`PackMap`: ≤1023 = mobilný pohľad
    s pilulkou ZOZNAM). Dve čísla by znamenali šírku, kde má mapa pilulku a VAULT nie. */
@@ -167,18 +167,65 @@ const CSS = `
 .akv-ddp button:hover{background:rgba(${AINUBIS.cyanRGB},0.10);color:${AINUBIS.cyan};}
 .akv-ddp button[aria-selected="true"]{color:${AINUBIS.cyan};}
 
-/* VRSTVY — čo mozog ukazuje (nákres v5 §11). Farebná bodka = farba vrstvy v mozgu. */
-.akv-layers{display:flex;align-items:center;gap:${PACK_SPACE.xs}px;overflow-x:auto;scrollbar-width:none;}
-.akv-layers::-webkit-scrollbar{display:none;}
-.akv-layers > b{flex:0 0 auto;padding-right:${PACK_SPACE.xs}px;font-weight:500;font-size:${PACK_TEXT.micro}px;
+/* HĽADANIE — vzor .trp-mapsearch. Písmo 16 px: pod ním iOS pri ťuknutí priblíži stránku. */
+.akv-search{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;min-width:0;
+  padding:0 ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;border:1px solid ${AINUBIS.edge};
+  background:${AINUBIS.surface};color:${AINUBIS.inkFaint};}
+.akv-search input{flex:1 1 auto;min-width:0;background:transparent;border:0;outline:0;
+  padding:${PACK_SPACE.sm}px 0;color:${AINUBIS.ink};font-family:${FONT_UI};font-size:${PACK_TEXT.lead}px;}
+.akv-search input::placeholder{color:${AINUBIS.inkFaint};}
+/* Natívny krížik prehliadača = holý znak mimo brandu (pole NOT IN THE BRAND). */
+.akv-search input::-webkit-search-cancel-button{-webkit-appearance:none;display:none;}
+.akv-empty{margin:0;text-align:center;font-size:${PACK_TEXT.body}px;color:${AINUBIS.inkFaint};}
+
+/* VRSTVY — PRAVÝ KRAJ nad mozgom, vzor /map (.trp-ctlstack + .trp-layersdd):
+   okrúhle tlačidlo, panel sa otvára DOĽAVA. Farebná bodka = farba vrstvy v mozgu. */
+.akv-ctl{position:absolute;z-index:6;right:${PACK_SPACE.md}px;top:var(--akv-top-h,112px);}
+.akv-ctlbtn{width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  border-radius:${PACK_R.pill}px;background:${AINUBIS.surface};border:1px solid ${AINUBIS.edge};box-shadow:${AINUBIS.panelShadow};}
+.akv-ctlbtn i{width:18px;height:18px;background:${AINUBIS.inkDim};
+  -webkit-mask:url(/icons/pack/layers.svg) center/contain no-repeat;mask:url(/icons/pack/layers.svg) center/contain no-repeat;}
+.akv-ctlbtn[aria-expanded="true"]{border-color:${AINUBIS.edgeStrong};background:rgba(${AINUBIS.cyanRGB},0.16);}
+.akv-ctlbtn[aria-expanded="true"] i{background:${AINUBIS.cyan};}
+.akv-lpanel{position:absolute;top:0;right:calc(100% + ${PACK_SPACE.sm}px);width:220px;display:flex;flex-direction:column;
+  gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;background:${AINUBIS.bg};
+  border:1px solid ${AINUBIS.edgeStrong};box-shadow:${AINUBIS.panelShadow};}
+.akv-lpanel > b{margin:0 0 ${PACK_SPACE.xs}px ${PACK_SPACE.xs}px;font-weight:500;font-size:${PACK_TEXT.micro}px;
   letter-spacing:${PACK_HEAD.label.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
-.akv-lyr{flex:0 0 auto;display:flex;align-items:center;gap:${PACK_SPACE.xs}px;white-space:nowrap;cursor:pointer;
-  padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;border:1px solid transparent;
-  background:transparent;color:${AINUBIS.inkDim};font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;}
-.akv-lyr u{width:8px;height:8px;border-radius:${PACK_R.pill}px;text-decoration:none;}
+.akv-lyr{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;width:100%;text-align:left;white-space:nowrap;cursor:pointer;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.field}px;border:1px solid transparent;
+  background:transparent;color:${AINUBIS.inkDim};font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.body}px;}
+.akv-lyr u{width:8px;height:8px;flex:0 0 auto;border-radius:${PACK_R.pill}px;text-decoration:none;}
+.akv-lyr em{margin-left:auto;font-style:normal;font-size:${PACK_TEXT.micro}px;color:${AINUBIS.inkFaint};}
 .akv-lyr[aria-pressed="true"]{color:${AINUBIS.cyan};background:rgba(${AINUBIS.cyanRGB},0.16);border-color:${AINUBIS.edgeStrong};}
 .akv-lyr:disabled{cursor:default;color:${AINUBIS.inkFaint};}
 .akv-lyr:disabled u{opacity:0.45;}
+
+/* MOBIL — riadok hľadanie + FILTRE (vzor .trp-mheader-row2) a šuplík filtrov (.trp-msheet). */
+.akv-mtools{display:none;}
+.akv-fbtn{flex:0 0 auto;display:flex;align-items:center;gap:${PACK_SPACE.xs}px;white-space:nowrap;cursor:pointer;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;border:1px solid ${AINUBIS.edge};
+  background:${AINUBIS.surface};color:${AINUBIS.inkDim};font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;}
+.akv-fbtn i{width:14px;height:14px;background:currentColor;
+  -webkit-mask:url(/icons/pack/sliders.svg) center/contain no-repeat;mask:url(/icons/pack/sliders.svg) center/contain no-repeat;}
+.akv-fbtn.is-set{color:${AINUBIS.cyan};border-color:${AINUBIS.edgeStrong};background:rgba(${AINUBIS.cyanRGB},0.14);}
+.akv-sback{position:fixed;inset:0;z-index:960;background:rgba(0,0,0,0.55);}
+.akv-sheet{position:fixed;left:0;right:0;bottom:0;z-index:961;max-height:86vh;overflow-y:auto;
+  display:flex;flex-direction:column;gap:${PACK_SPACE.lg}px;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px calc(env(safe-area-inset-bottom,0px) + ${PACK_SPACE.xl}px);
+  border-radius:${PACK_R.card}px ${PACK_R.card}px 0 0;background:${AINUBIS.bg};border-top:1px solid ${AINUBIS.edgeStrong};}
+.akv-grab{align-self:center;width:40px;height:4px;border:0;padding:0;cursor:pointer;border-radius:${PACK_R.pill}px;background:${AINUBIS.edge};}
+.akv-sttl{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:${PACK_HEAD.card.letterSpacing};
+  text-transform:uppercase;color:${AINUBIS.ink};}
+.akv-sgrp{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
+.akv-sgrp > b{font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.section.letterSpacing};
+  text-transform:uppercase;color:${AINUBIS.inkFaint};}
+.akv-sgrp > b em{font-style:normal;letter-spacing:0.02em;text-transform:none;}
+.akv-chips{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;}
+.akv-chip{padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;
+  border:1px solid ${AINUBIS.edge};background:transparent;color:${AINUBIS.inkDim};font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;}
+.akv-chip[aria-pressed="true"]{color:${AINUBIS.cyan};border-color:${AINUBIS.edgeStrong};background:rgba(${AINUBIS.cyanRGB},0.16);}
+.akv-chip:disabled{cursor:default;color:${AINUBIS.inkFaint};}
 /* UPÚTAVKA SVETA — tvar budúceho úvodu sveta (.wintro v nákrese), lock §4.1: jedna karta. */
 .akv-world{position:relative;text-align:center;scroll-margin-top:${PACK_SPACE.lg}px;
   padding:${PACK_SPACE.xl}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.card}px;
@@ -224,9 +271,12 @@ const CSS = `
   top:calc(-1 * (env(safe-area-inset-top,0px) + ${PACK_SPACE.xl}px));
   background:linear-gradient(180deg,${AINUBIS.bg} 72%,transparent);}
 @media (max-width:${PC_MIN - 1}px){
-  .akv-planes-l{display:none;}
-  /* Na 390 px sa štyri vrstvy so štítkom nezmestia — štítok ustúpi, vrstvy ostanú celé. */
-  .akv-layers > b{display:none;}
+  /* Mobil ako /map: ĽAVÁ HLAVIČKA NEEXISTUJE (bez nadpisu a podnadpisu), hľadanie
+     a filtre sú v hornom páse, zoznam začína hneď pod ním (Matej 22. 9.). */
+  .akv-lhead{display:none;}
+  .akv-mtools{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;}
+  .akv-mtools .akv-search{flex:1 1 auto;}
+  .akv-root[data-view="scroll"] .akv-ctl{display:none;}
   .akv-root[data-view="scroll"] .akv-top::before{content:'';position:absolute;z-index:-1;pointer-events:none;
     left:-${PACK_SPACE.md}px;right:-${PACK_SPACE.md}px;bottom:-${PACK_SPACE.md}px;
     top:calc(-1 * (env(safe-area-inset-top,0px) + ${PACK_SPACE.md}px));
@@ -242,6 +292,7 @@ const CSS = `
   .akv-list{padding:${PACK_SPACE.lg}px ${PACK_SPACE.xl}px ${BOTTOM_PC + PACK_SPACE.xl}px;}
   /* Roviny sa na PC presťahovali do ľavého bloku (Matej 22. 9.). */
   .akv-toprow{display:none;}
+  .akv-ctl{right:${PACK_SPACE.xl}px;}
   .akv-brain{left:var(--akv-panel);}
   .akv-top{left:calc(var(--akv-panel) + ${PACK_SPACE.xl}px);right:${PACK_SPACE.xl}px;top:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.xl}px);}
   .akv-mactions{display:none;}
@@ -276,6 +327,10 @@ export default function PackAinubis() {
   /* Filter SVET: -1 = všetky. Roletka otvorená: kľúč alebo null. */
   const [wf, setWf] = useState(-1);
   const [dd, setDd] = useState<string | null>(null);
+  /* Hľadanie nad menami a upútavkami svetov; vrstvy (panel pri pravom kraji); šuplík filtrov (mobil). */
+  const [q, setQ] = useState('');
+  const [lyrOpen, setLyrOpen] = useState(false);
+  const [sheet, setSheet] = useState(false);
   useEffect(() => {
     if (!dd) return;
     const close = () => setDd(null);
@@ -414,7 +469,29 @@ export default function PackAinubis() {
     </div>
   );
 
-  const shown = VAULT_WORLDS.map((w, i) => ({ w, i })).filter(({ i }) => wf < 0 || wf === i);
+  /* Hľadá bez ohľadu na diakritiku a veľkosť písmen — „vyziva" nájde VÝŽIVU. */
+  const norm = (v: string) => v.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const nq = norm(q.trim());
+  const shown = VAULT_WORLDS.map((w, i) => ({ w, i })).filter(({ w, i }) => (wf < 0 || wf === i)
+    && (!nq || norm(`${names[i]} ${tx(`pack.ainubis.tease.${w.key}`, w.tease)}`).includes(nq)));
+  const onSearch = (v: string) => {
+    setQ(v);
+    /* Výsledok hľadania je zoznam — na mobile sa naň prepne sám. */
+    if (v.trim()) setView('scroll');
+  };
+  const search = (
+    <label className="akv-search">
+      <HandSearch size={14} />
+      <input
+        type="search"
+        value={q}
+        onChange={(e) => onSearch(e.target.value)}
+        placeholder={tx('pack.ainubis.search', 'Search the Vault…')}
+        aria-label={tx('pack.ainubis.search', 'Search the Vault…')}
+      />
+    </label>
+  );
+  const filtersLabel = wf >= 0 ? t('pack.map.filtersCount', { n: 1 }) : t('pack.map.filters');
   /* Postup vo VAULTE — dnes nula, lebo žiadny svet ešte nie je otvorený. Keď pribudne
      čítanie, čísla prídu z neho; menovatele sú súčty z rozpadu svetov. */
   const read = { worlds: 0, circles: 0, scrolls: 0 };
@@ -441,6 +518,28 @@ export default function PackAinubis() {
             celok" nemá, a holý znak je brandový dlh (pole NOT IN THE BRAND). Priblíženie
             ide kolieskom a dvoma prstami, oddialenie na východisko mozog samo vycentruje.
             Kresby si treba vypýtať od Mateja. */}
+        <div className="akv-ctl">
+          <button type="button" className="akv-ctlbtn" aria-expanded={lyrOpen} aria-haspopup="true"
+            aria-label={tx('pack.ainubis.layers', 'Layers')} title={tx('pack.ainubis.layers', 'Layers')}
+            onClick={(e) => { e.stopPropagation(); setLyrOpen((v) => !v); }}>
+            <i aria-hidden />
+          </button>
+          {lyrOpen && (
+            <>
+              <span style={{ position: 'fixed', inset: 0, zIndex: -1 }} onClick={() => setLyrOpen(false)} aria-hidden />
+              <div className="akv-lpanel" role="group" aria-label={tx('pack.ainubis.layers', 'Layers')}>
+                <b>{tx('pack.ainubis.layers', 'Layers')}</b>
+                {LAYERS.map((l) => (
+                  <button key={l.k} type="button" className="akv-lyr" disabled={!l.live} aria-pressed={l.live}>
+                    <u style={{ background: `rgb(${l.rgb})` }} />
+                    {tx(`pack.ainubis.layer.${l.k}`, l.en)}
+                    {!l.live && <em>{soon}</em>}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </section>
 
       {/* ── DOGSCROLL — dnes upútavky svetov, v novembri pás zvitkov ────────── */}
@@ -454,25 +553,17 @@ export default function PackAinubis() {
             <p className="akv-claim">{tx('pack.ainubis.dogscroll.claim', 'Your dog will thank you for this scroll.')}</p>
           </div>
           {planes('akv-planes-l')}
+          {search}
           <div className="akv-filters">
             {worldDd}
             {lockedDd('type', 'Type')}
             {lockedDd('state', 'Status')}
           </div>
-          <div className="akv-layers" role="group" aria-label={tx('pack.ainubis.layers', 'Layers')}>
-            <b>{tx('pack.ainubis.layers', 'Layers')}</b>
-            {LAYERS.map((l) => (
-              <button key={l.k} type="button" className="akv-lyr" disabled={!l.live} aria-pressed={l.live}
-                title={l.live ? undefined : soon}>
-                <u style={{ background: `rgb(${l.rgb})` }} />
-                {tx(`pack.ainubis.layer.${l.k}`, l.en)}
-              </button>
-            ))}
-          </div>
         </header>
 
         <div className="akv-list">
         <div className="akv-col">
+          {shown.length === 0 && <p className="akv-empty">{tx('pack.ainubis.noMatch', 'Nothing found.')}</p>}
           {shown.map(({ w, i }) => (
             <section
               key={w.key}
@@ -503,7 +594,39 @@ export default function PackAinubis() {
           )}
         />
         <div className="akv-toprow">{planes('akv-planes-t')}</div>
+        <div className="akv-mtools">
+          {search}
+          <button type="button" className={`akv-fbtn${wf >= 0 ? ' is-set' : ''}`}
+            aria-expanded={sheet} onClick={() => setSheet(true)}>
+            <i aria-hidden />{filtersLabel}
+          </button>
+        </div>
       </div>
+
+      {/* ŠUPLÍK FILTROV (mobil) — vzor .trp-msheet: všetky filtre na jednom mieste. */}
+      {sheet && (
+        <>
+          <div className="akv-sback" onClick={() => setSheet(false)} aria-hidden />
+          <div className="akv-sheet" role="dialog" aria-label={t('pack.map.filters')}>
+            <button type="button" className="akv-grab" onClick={() => setSheet(false)} aria-label={t('pack.map.filters')} />
+            <div className="akv-sttl">{t('pack.map.filters')}</div>
+            <div className="akv-sgrp">
+              <b>{tx('pack.ainubis.filter.world', 'World')}</b>
+              <div className="akv-chips">
+                {worldOpts.map((o, i) => (
+                  <button key={o} type="button" className="akv-chip" aria-pressed={wf === i - 1}
+                    onClick={() => { setWf(i - 1); setSheet(false); setView('scroll'); }}>{o}</button>
+                ))}
+              </div>
+            </div>
+            {([['type', 'Type'], ['state', 'Status']] as const).map(([k, en]) => (
+              <div className="akv-sgrp" key={k}>
+                <b>{tx(`pack.ainubis.filter.${k}`, en)} · <em>{soon}</em></b>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       {/* ── DOLE POHĽAD (len mobil) — ikonka aj text ukazujú CIEĽ, nie stav ──── */}
       <div className="akv-mactions">

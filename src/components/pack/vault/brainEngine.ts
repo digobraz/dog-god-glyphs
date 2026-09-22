@@ -67,8 +67,8 @@ export interface BrainHandle {
 const TAU = 6.2832;
 const RBASE = 470; /* polomer kruhu v jednotkách plátna */
 /* recept `jadro` z nákresu — `fit` .62 = mapa o polovicu väčšia než pôvodných .48 */
-const C = { w: 0.30, spread: 0.80, zr: 4.2, fit: 0.62, fitPc: 0.8 };
-/* ⚠️ `fitPc` (Matej 22. 9.: „základná pozícia asi takáto — zväčši to"): PC štartuje
+const C = { w: 0.30, spread: 0.80, zr: 4.2, fit: 0.62, fitPc: 1.05 };
+/* ⚠️ `fitPc` (Matej 22. 9.: „základná pozícia asi takáto — zväčši to" + 16:27 „zväčši zoom na jadro"): PC štartuje
    väčší mozog; mobil má vlastné priblíženie cez `MOBIL.zoom` nad `fit`, preto ho
    táto zmena nesmie posunúť. */
 /* FARBA UZLA = STAV, NIE OZDOBA (nákres §12). Dnes existuje len „nedotknuté". */
