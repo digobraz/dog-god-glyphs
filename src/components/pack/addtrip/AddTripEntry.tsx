@@ -389,9 +389,24 @@ export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryP
                   {/* 🔒 Dlaždica PODUJATIE je za `EVENTS_LIVE` (15. 9. 2026): na LIVE pre podujatia
                       neexistuje ani schéma a formulár píše len do localStorage, takže by človek
                       zakladal podujatie, ktoré nikto nikdy neuvidí. Odôvodnenie v `lib/packFlags.ts`.
+                      Od 22. 9. sa neskrýva, ale kreslí ako „čoskoro" (nižšie).
                       Filtruje sa TU, nie v registri — register je zoznam toho, čo v appke VZNIKÁ,
                       a podujatia vzniknú; toto je príznak prostredia, nie stav objektu. */}
-                  {g.items.filter((o) => o.id !== 'event' || EVENTS_LIVE).map((o) => {
+                  {g.items.map((o) => {
+                    /* 🔒 → ČOSKORO (Matej 22. 9. 2026: „tu chýba podujatia, tu nie je, ale
+                       v ľavom paneli je na zámku = nedáva to zmysel"). Do vtedy sa dlaždica
+                       SKRÝVALA, kým záložka EVENTS v ľavom paneli mapy svietila so zámkom —
+                       jedna vec, dve odpovede. Teraz rovnaký riadok ako SLUŽBA: vidno ho,
+                       neklikne sa. Dôvod zámku ostáva v `lib/packFlags.ts`. */
+                    if (o.id === 'event' && !EVENTS_LIVE) {
+                      return (
+                        <button key={o.id} type="button" className="att-entry-row att-entry-row--soon" disabled aria-disabled>
+                          <span className="att-entry-emoji" aria-hidden="true">{EMOJI.event}</span>
+                          <span className="att-entry-title">{tx(o.labelKey, o.labelFallback)}</span>
+                          <span className="att-entry-soon">{soonLabel(undefined, tx)}</span>
+                        </button>
+                      );
+                    }
                     const k = KIND_BY_ID[o.id];
                     // Mapový objekt kreslí panel sám a vie o ňom viac než register: emoji,
                     // body za zápis, potrebné právo aj chipy taxonómie. Register mu to
