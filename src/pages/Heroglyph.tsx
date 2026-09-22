@@ -324,6 +324,10 @@ export default function Heroglyph() {
          takže po nej neostane diera. Fallback `0px` = stránka nezmenená, keby banner nebol
          mountnutý (render routy). Ten istý vzor ako `--op-nav-h` v locku `onepage-nav.md`:
          kto potrebuje miesto pod lištou, číta premennú, nie vlastné číslo. */
+      /* ✅ 22. 9. 2026 OSTÁVA, hoci inde cookie lišta obsah už len PREKRÝVA: tu nejde
+         o posunutie, ale o MIESTO NA KONCI SCROLLU. Bez neho na 320 px ostalo hlavné CTA
+         „Add my name" pod lištou aj po doscrollovaní na koniec (premerané) — platená
+         funnel sa nesmie dať zablokovať lištou. */
       style={{ paddingBottom: 'var(--consent-h, 0px)' }}
     >
       <Seo

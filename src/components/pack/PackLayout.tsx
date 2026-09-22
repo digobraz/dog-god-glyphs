@@ -403,17 +403,11 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
     <div
       className="fixed z-40"
       style={{
-        /* `var(--consent-h)` v odsadení — cookie lišta je `fixed; bottom: 0` a na mobile
-           má 197 px, takže spodný nav (medailón + DOMOV + MAPA) ležal CELÝ pod ňou:
-           `elementFromPoint` v strede medailónu vracal `consent-actions`, klik fyzicky
-           nešiel. Týka sa len toho, kto ešte neklikol súhlas — teda KAŽDÉHO nového člena
-           pri prvej návšteve; kto raz klikol, neuvidí to nikdy, a preto to prežilo do
-           17. 9. 2026. Premennú publikuje `ConsentBanner`, po voľbe je `0px`, takže po
-           lište neostane diera. Ten istý vzor ako `Heroglyph.tsx`/`Entry.tsx` (15. 9.) —
-           kto potrebuje miesto pod lištou, číta premennú, nie vlastné číslo.
-           ⚠️ Odsadenie 16px sa NEMENÍ — premenná sa PRIPOČÍTAVA, nie nahrádza. */
+        /* ⛔ `var(--consent-h)` tu bolo 17. 9.–22. 9. 2026 (lišta mala na mobile 197 px
+           a nav ležal celý pod ňou). ZRUŠENÉ: Cookie lišta od 22. 9. 2026 obsah PREKRÝVA, neposúva ho (Matej: „radšej keby zakryli obsah na mobile než ho vytlačiť“) — lišta má 112 px a zmizne na jedno ťuknutie.
+           Nav sa NEPOSÚVA; kým človek nevyberie, lišta ho zakryje. */
         left: 0, right: 0,
-        bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px + var(--consent-h, 0px))',
+        bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
         display: 'flex', justifyContent: 'center',
         // Pás je cez celé okno — bez tohto by prekryl obsah stránky po oboch stranách baru.
         pointerEvents: 'none',

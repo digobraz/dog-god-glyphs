@@ -158,7 +158,7 @@ const CSS = `
    nezávislý prilepený prvok.
    ⚠️ ŽIADNE spätné apostrofy v komentároch — sú vnútri template literálu CSS. */
 .akv-mactions{position:absolute;z-index:7;left:50%;transform:translateX(-50%);
-  bottom:calc(env(safe-area-inset-bottom,0px) + 87px + var(--pack-medal-rise, 0px) + 4px + var(--consent-h, 0px));}
+  bottom:calc(env(safe-area-inset-bottom,0px) + 87px + var(--pack-medal-rise, 0px) + 4px);}
 /* Prepínač NIE JE výzva k akcii: pilulka 999 BEZ dosvitu (lock §1.3.1). */
 .akv-mtoggle{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;cursor:pointer;white-space:nowrap;
   padding:${PACK_SPACE.md}px ${PACK_SPACE.xl}px;border-radius:${PACK_R.pill}px;
@@ -260,9 +260,8 @@ export default function PackAinubis() {
       circleName: (wi, oi) => live.current.circleName(wi, oi),
       insets: () => ({
         top: (topRef.current?.getBoundingClientRect().bottom ?? 0) + PACK_SPACE.sm,
-        /* + cookie lišta, kým človek neklikol — spodok okna patrí jej (lock §1.1.1 bod 3) */
-        bottom: (isPc() ? BOTTOM_PC : BOTTOM_MOBILE)
-          + (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--consent-h')) || 0),
+        /* Cookie lišta sa NEPRIPOČÍTAVA — od 22. 9. obsah prekrýva, neposúva. */
+        bottom: isPc() ? BOTTOM_PC : BOTTOM_MOBILE,
       }),
       describe: (role, wi, oi) => {
         const { names: n, tx: x, circleName: cn } = live.current;
@@ -280,15 +279,7 @@ export default function PackAinubis() {
     });
     const ro = new ResizeObserver(() => brain.current?.resize());
     ro.observe(cv);
-    /* Cookie lišta zmizne bez zmeny rozmerov plátna — mení len `--consent-h` na <html>.
-       Bez tohto by mozog ostal zmenšený pre lištu, ktorá už nie je. */
-    let consent = getComputedStyle(document.documentElement).getPropertyValue('--consent-h');
-    const mo = new MutationObserver(() => {
-      const now = getComputedStyle(document.documentElement).getPropertyValue('--consent-h');
-      if (now !== consent) { consent = now; brain.current?.resize(); }
-    });
-    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
-    return () => { ro.disconnect(); mo.disconnect(); brain.current?.destroy(); brain.current = null; };
+    return () => { ro.disconnect(); brain.current?.destroy(); brain.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready]);
 

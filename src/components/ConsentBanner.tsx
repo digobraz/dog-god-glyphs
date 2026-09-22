@@ -40,8 +40,12 @@ export function ConsentBanner() {
   // nešiel — na telefóne sa nedalo vstúpiť do platenej funnely. Na PC (lišta
   // 118 px) sa to nikdy neprejavilo, preto to prežilo do 15. 9. 2026.
   //
-  // Riešenie je ODSADENIE, nie nižšia lišta: výšku publikujeme na <html> a
-  // obrazovka si ju pripočíta k spodnému paddingu (`Entry.tsx`). Meriame
+  // ⛔ 22. 9. 2026 ZMENA: lišta klesla na 112 px a obsah stránok už NEPOSÚVA —
+  // prekrýva ho (Matej: „radšej keby zakryli obsah na mobile než ho vytlačiť").
+  // Premennú dnes čítajú LEN okná, ktoré si človek sám otvoril (panel `+`,
+  // denník) — ich tlačidlá by lišta zakryla. Stránka ani nav ju nečítajú.
+  // Pôvodné riešenie bolo ODSADENIE, nie nižšia lišta: výšku publikujeme na <html> a
+  // obrazovka si ju pripočítala k spodnému paddingu (`Entry.tsx`). Meriame
   // `ResizeObserver`-om, lebo výška sa mení jazykom, zalomením aj otvorením
   // Settings. Keď lišta zmizne, premenná ide na `0px` — inak by pod obsahom
   // ostala diera po nej.
@@ -153,6 +157,7 @@ export function ConsentBanner() {
           font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
           letter-spacing: 0.14em; text-transform: uppercase; color: #1a1206; margin-right: 4px;
         }
+        .consent-bone { display: inline-block; width: 20px; height: 20px; vertical-align: -4px; margin-right: 8px; }
         .consent-actions { display: flex; flex-direction: row; align-items: center; gap: 8px; flex-shrink: 0; }
         .consent-btn-primary, .consent-btn-secondary, .consent-split-main, .consent-split-arrow {
           font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
@@ -243,7 +248,12 @@ export function ConsentBanner() {
 
       <div className="consent-inner">
         <div>
-          <p className="consent-body"><b>{t('consent.title')}</b>{t('consent.body')}</p>
+          <p className="consent-body">
+            {/* Kosť z kitu — cookie, ktorá JE na jedenie, vedľa vety o tých, čo nie sú
+                (Matej 22. 9.). Veľkosť písma, aby riadok nenarástol. */}
+            <img className="consent-bone" src="/icons/pack/bone.svg" alt="" aria-hidden />
+            <b>{t('consent.title')}</b>{t('consent.body')}
+          </p>
 
           {settingsOpen && (
             <div className="consent-settings">

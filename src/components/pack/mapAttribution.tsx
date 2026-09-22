@@ -46,7 +46,7 @@ export const MAP_ATTR_CSS = `
  * ZDVIH NAD SPODNÝ NAV — len pre mapu cez celú obrazovku (`/pack/map`).
  *
  * ⚠️ ČÍSLO SA NEPÍŠE, PREBERÁ SA OD NAVU. Odsadenie je doslovná kópia rovnice z
- * `PackLayout.tsx` (`bottom: calc(env(safe-area-inset-bottom) + 16px + var(--consent-h))`)
+ * `PackLayout.tsx` (`bottom: calc(env(safe-area-inset-bottom) + 16px)`; cookie lišta od 22. 9. prekrýva, neposúva)
  * plus jeho nameraná výška `--pack-nav-h` (ResizeObserver v `PackBottomNav`) a 10 px medzery.
  * Natvrdo zapísaných „94 px" by prežilo presne do najbližšej zmeny pillu — to je tá istá
  * pasca, akú už raz vyriešil `--trp-mheader-h` pri ovládačoch vpravo hore.
@@ -71,7 +71,7 @@ export const MAP_ATTR_CSS = `
 export const mapAttrLiftCSS = (maxWidth: number) => `
 @media (max-width:${maxWidth}px){
   .trp-attrstack,.leaflet-control-scale{
-    bottom:calc(env(safe-area-inset-bottom, 0px) + 16px + var(--consent-h, 0px) + var(--pack-nav-h, 0px) + 10px);}
+    bottom:calc(env(safe-area-inset-bottom, 0px) + 16px + var(--pack-nav-h, 0px) + 10px);}
   body.has-map-actions .trp-attrstack,body.has-map-actions .leaflet-control-scale{
     bottom:calc(var(--trp-mactions-h, 149px) + 10px);}
   body.trp-draw-lock .trp-attrstack,body.trp-draw-lock .leaflet-control-scale{

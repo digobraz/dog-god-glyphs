@@ -179,6 +179,10 @@ export default function Entry() {
       /* `paddingBottom: var(--consent-h)` — rovnaký dôvod ako v `Heroglyph.tsx` (15. 9. 2026):
          cookie lišta je `fixed; bottom: 0` a táto obrazovka je `min-h-[100dvh]` bez scrollu,
          takže na mobile prekryla spodné CTA. Premennú publikuje `ConsentBanner`, po voľbe `0px`. */
+      /* ✅ 22. 9. 2026 OSTÁVA, hoci inde cookie lišta obsah už len PREKRÝVA: tu nejde
+         o posunutie, ale o MIESTO NA KONCI SCROLLU. Bez neho na 320 px ostalo hlavné CTA
+         „Add my name" pod lištou aj po doscrollovaní na koniec (premerané) — platená
+         funnel sa nesmie dať zablokovať lištou. */
       style={{ paddingBottom: 'var(--consent-h, 0px)' }}
     >
       <Seo

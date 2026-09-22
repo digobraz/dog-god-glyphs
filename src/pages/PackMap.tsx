@@ -1995,16 +1995,10 @@ ${TRAIL_LINE_CSS}
      Číslo sa nepíše natvrdo — --pack-medal-rise publikuje packDockMedal.tsx, takže
      zmena priemeru či zdvihu medailóna posunie tlačidlá sama. Bez tejto rezervy ostal
      medzi kotúčom a dvojicou 1 px (odmerané 4. 9. 2026) a vyzerali ako zlepené. */
-  /* ⚠️ A druhá rezerva: --consent-h = výška cookie lišty (2026-09-17). Lišta je
-     fixed a bottom 0, na mobile má 197 px, takže PRIDAŤ aj ZOZNAM ležali POD ňou —
-     elementFromPoint v strede tlačidla vracal consent-body, teda nový člen si NEMAL
-     AKO zapísať výlet. Ten istý bug sa 15. 9. opravoval na /heroglyph. Premennú publikuje
-     ConsentBanner a po voľbe je 0px, takže po lište neostane diera. Rovnaké odsadenie
-     dostal spodný nav v PackLayout.tsx — lišta prekrývala oboje naraz.
-     ⚠️ Poloha PRIDAŤ sa NEMENÍ (lock map-identita.md: PRIDAŤ na mobile ostáva dole) —
-     premenná sa PRIPOČÍTAVA a bez lišty je nula.
+  /* ⛔ Druhá rezerva --consent-h (17. 9. 2026) ZRUŠENÁ 22. 9. — cookie lišta obsah
+     PREKRÝVA, neposúva (Matej: radšej zakryť než vytlačiť). Má 112 px a zmizne na ťuk.
      ⚠️ ŽIADNE spätné apostrofy v tomto komentári — je vnútri template literálu CSS. */
-  .trp-mactions{display:flex;align-items:center;justify-content:center;gap:10px;position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 87px + var(--pack-medal-rise, 0px) + 4px + var(--consent-h, 0px));z-index:900;}
+  .trp-mactions{display:flex;align-items:center;justify-content:center;gap:10px;position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 87px + var(--pack-medal-rise, 0px) + 4px);z-index:900;}
   /* 2026-08-22: dve tlačidlá vedľa seba robili DVE RÔZNE veci a vyzerali IDENTICKY — obe zlatá
      pilulka 999px, rovnaká výplň, rovnaká veľkosť. Rozdelené podľa toho, čo sú zač:
        · .trp-mfab = CTA „pridaj výlet" → vzor .btn-gold (LOCK): radius 8 + zlatý dosvit.
