@@ -1,0 +1,6 @@
+# Hlavičky pre Cloudflare Worker „dogypt" (static assets čítajú tento súbor z dist/).
+# HTTPS presmerovanie, HSTS a nosniff nastavuje ZÓNA v Cloudflare dashboarde (22. 9. 2026),
+# nie tento súbor. ⚠️ Referrer-Policy sem NEPATRÍ prísnejšia než default prehliadača:
+# kľúč Mapy.com je zamknutý referrerom dogypt.com, `same-origin` by mapy vyprázdnil (403).
+/*
+  X-Frame-Options: SAMEORIGIN
