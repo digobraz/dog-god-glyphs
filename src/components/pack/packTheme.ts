@@ -710,13 +710,20 @@ export function usePaperRoute(pathname: string): boolean {
 // Dovtedy boli TRI: domov/psy/profil 976, AINUBIS 624 (`narrow`), správy 640 natvrdo —
 // pri prekliku sa stránka pod lištou zúžila. `narrow` zanikol; užší smie byť len TEXT
 // na čítanie vnútri stĺpca (bublina 82 %, odsek 62ch, telo článku 760), nie obrazovka.
-export const PACK_COL = { wide: 1024 } as const;
+//
+// 🔴 OBSAH = 832 px od 22. 9. 2026 (Matej nad porovnávačom 976/896/832/760:
+// „832 daj a zapečat’ ako pravidlo pri vytváraní stránok s centrovaným obsahom (na PC)").
+// ⚠️ Zjednotenie 21. 9. riešilo SKÁKANIE okraja pri prekliku, nie voľbu hodnoty — 976 vyhralo
+// len tým, že bolo väčšina. Na okne 1440 px bol taký stĺpec pre oko príliš široký.
+// ⚠️ `wide` je RÁM (obsah + 2× `PACK_COL_PAD.desktop`), preto 880, nie 832. Číslo, ktoré
+// vidí oko, je `PACK_COL_INNER`. Kto mení jedno, nech sa pozrie na druhé.
+export const PACK_COL = { wide: 880 } as const;
 /** Vodorovný padding stĺpca: mobil / od `sm`. Ten istý na všetkých /pack povrchoch. */
 export const PACK_COL_PAD = { mobile: 16, desktop: 24 } as const;
-/** Šírka OBSAHU stĺpca (rám mínus padding) = 976. Pre povrchy, ktoré si stĺpec kreslia
+/** Šírka OBSAHU stĺpca (rám mínus padding) = 832. Pre povrchy, ktoré si stĺpec kreslia
  *  samy bez paddingu rodiča (správy, článok výletu) — okraj musí sedieť s domovom. */
 export const PACK_COL_INNER = PACK_COL.wide - 2 * PACK_COL_PAD.desktop;
-/** Rovnica vlastného stĺpca: mobil 100 % − 32, od 640 px 100 % − 48, strop 976.
+/** Rovnica vlastného stĺpca: mobil 100 % − 32, od 640 px 100 % − 48, strop 832.
  *  Druhá polovica je `packColCSS(selektory)` — bez nej sa medzi 640 a 1024 px rozídu o 8 px. */
 export const PACK_COL_FIT = `max-width:${PACK_COL_INNER}px;width:calc(100% - ${2 * PACK_COL_PAD.mobile}px);`;
 export const packColCSS = (sel: string) =>
