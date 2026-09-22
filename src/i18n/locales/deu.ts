@@ -736,7 +736,7 @@ export const deu: Partial<Dict> = {
   // ── Consent banner (ConsentBanner.tsx + Footer „Cookie-Einstellungen") ──
   'consent.title': 'Menschliche Pflichten',
   'consent.body':
-    'Mit deiner Einwilligung können wir untersuchen und messen, wie die Seite genutzt wird — um zu reparieren, was nicht funktioniert, und unseren digitalen Tempel zu verbessern. Danke für deine Mitarbeit.',
+    'Die einzigen Cookies, die wir empfehlen, sind nicht zum Essen — sie helfen uns, die Website zu verbessern. Danke.',
   'consent.acceptAll': 'Alle zulassen',
   'consent.necessary': 'Nur das Nötigste',
   'consent.settings': 'Wählen',

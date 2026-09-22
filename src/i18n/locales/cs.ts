@@ -847,7 +847,7 @@ export const cs: Partial<Dict> = {
   // ── Consent banner (ConsentBanner.tsx + Footer „Nastavení cookies") ──
   'consent.title': 'Lidské povinnosti',
   'consent.body':
-    'S tvým souhlasem můžeme zkoumat a měřit, jak se web používá — abychom opravili, co nefunguje, a vylepšili náš digitální chrám. Děkujeme za spolupráci.',
+    'Jediné cookies, které doporučujeme, nejsou k jídlu — pomáhají nám vylepšovat web. Děkujeme.',
   'consent.acceptAll': 'Povolit vše',
   'consent.necessary': 'Jen nezbytné',
   'consent.settings': 'Vybrat si',

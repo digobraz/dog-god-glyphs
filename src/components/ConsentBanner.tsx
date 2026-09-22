@@ -6,7 +6,9 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { HandArrowLeft } from '@/components/pack/HandIcons';
 import { useT } from '@/i18n/LanguageContext';
+import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { getConsent, saveConsent, applyConsent, hasChoice } from '@/lib/consent';
 
 // Headless capture routes (generate-pdfs → Cloudflare Browser Rendering,
@@ -23,6 +25,8 @@ export function ConsentBanner() {
   const isRenderRoute = RENDER_ROUTES.some((r) => pathname.startsWith(r));
   const [visible, setVisible] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const splitRef = useRef<HTMLDivElement | null>(null);
   const [analyticsOn, setAnalyticsOn] = useState(false);
   const [marketingOn, setMarketingOn] = useState(false);
   const barRef = useRef<HTMLDivElement | null>(null);
@@ -79,6 +83,16 @@ export function ConsentBanner() {
     return () => window.removeEventListener('dogypt:open-consent', onOpen);
   }, []);
 
+  // Rozbaľovačka pri „Only necessary" sa zavrie klikom mimo (vzor PackNotifications).
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (splitRef.current && !splitRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [menuOpen]);
+
   if (isRenderRoute || !visible) return null;
 
   const handleAcceptAll = () => {
@@ -100,6 +114,7 @@ export function ConsentBanner() {
   };
 
   const handleOpenSettings = () => {
+    setMenuOpen(false);
     const c = getConsent();
     setAnalyticsOn(Boolean(c?.analytics));
     setMarketingOn(Boolean(c?.marketing));
@@ -108,74 +123,89 @@ export function ConsentBanner() {
 
   return (
     <div ref={barRef} className="consent-banner" role="dialog" aria-live="polite" aria-label={t('consent.title')}>
+      {/* ── LIŠTA 22. 9. 2026 (Matej: „cookies sa nedajú zmenšiť skrátiť a CTA musí byť
+          lapis - oprav to všade … a v only necessary dať dropdown s choose") ──────────
+          · CTA je LAPIS — lišta je bledá, na bledom je hlavné CTA lapis (brand lock).
+            Zlatý gradient sem patril len kým bol kánon zlatý. Tlačidlo Uložiť aj zapnutý
+            prepínač idú s ním: je to MOJA VOĽBA, teda lapis (deliaca čiara zlato/lapis).
+          · Nadpis nie je samostatný riadok, ale tučný začiatok vety — o riadok menej.
+          · „Choose" nie je tretí prvok, ale položka v rozbaľovačke pri „Only necessary".
+          ⚠️ „Only necessary" ostáva JEDNÝM KLIKOM (hlavná plocha deleného tlačidla),
+             šípka je len vedľa. Odmietnutie nesmie byť ťažšie než súhlas (GDPR/EDPB) —
+             keby celé tlačidlo len otváralo menu, bolo by.
+          ⚠️ V CSS nižšie nesmie byť spätný apostrof — celý blok je template literál. */}
       <style>{`
         .consent-banner {
           position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
           background: #F5EEDF; border-top: 1px solid rgba(201,154,63,0.55);
           box-shadow: 0 -6px 26px rgba(0,0,0,0.28);
-          padding: clamp(18px, 3vh, 26px) clamp(18px, 5vw, 48px);
+          padding: 12px 24px;
         }
         .consent-inner {
           max-width: 1100px; margin: 0 auto;
-          display: flex; flex-direction: column; gap: 16px;
-        }
-        @media (min-width: 760px) {
-          .consent-inner { flex-direction: row; align-items: center; justify-content: space-between; gap: 24px; }
-        }
-        .consent-title {
-          font-family: 'Cinzel', serif; font-weight: 700;
-          font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase;
-          color: #1a1206; margin: 0 0 6px;
+          display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 24px;
         }
         .consent-body {
-          font-family: 'Space Grotesk', sans-serif; font-size: 0.86rem; line-height: 1.6;
+          font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.45;
           color: #2a2013; margin: 0; max-width: 640px;
         }
-        .consent-actions {
-          display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;
+        .consent-body b {
+          font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
+          letter-spacing: 0.14em; text-transform: uppercase; color: #1a1206; margin-right: 4px;
         }
-        @media (min-width: 760px) {
-          .consent-actions { flex-direction: row; align-items: center; }
+        .consent-actions { display: flex; flex-direction: row; align-items: center; gap: 8px; flex-shrink: 0; }
+        .consent-btn-primary, .consent-btn-secondary, .consent-split-main, .consent-split-arrow {
+          font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+          font-size: 12px; cursor: pointer; white-space: nowrap;
         }
         .consent-btn-primary {
-          background: linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);
-          border: 1px solid rgba(26,18,6,0.28); border-radius: 8px;
-          color: #000; font-family: 'Cinzel', serif; font-weight: 700;
-          letter-spacing: 0.12em; text-transform: uppercase;
-          padding: 12px 26px; cursor: pointer; font-size: 0.78rem;
+          background: ${LAPIS.grad}; color: ${LAPIS.ink};
+          border: 1px solid ${LAPIS.deep}; border-radius: 8px; box-shadow: ${LAPIS_BTN_SHADOW};
+          padding: 12px 24px;
         }
+        .consent-btn-primary:hover { background: ${LAPIS.gradHover}; }
         .consent-btn-secondary {
           background: transparent; border: 1px solid rgba(26,18,6,0.35);
-          border-radius: 8px; color: #2a2013;
-          font-family: 'Cinzel', serif; font-weight: 700;
-          letter-spacing: 0.12em; text-transform: uppercase;
-          padding: 12px 26px; cursor: pointer; font-size: 0.78rem;
+          border-radius: 8px; color: #2a2013; padding: 12px 24px;
         }
         .consent-btn-secondary:hover { background: rgba(26,18,6,0.06); }
-        .consent-btn-link {
-          background: none; border: none; cursor: pointer; padding: 4px 0;
-          font-family: 'Space Grotesk', sans-serif; font-size: 0.82rem;
-          color: rgba(42,32,19,0.72); text-decoration: underline;
-          text-underline-offset: 3px; align-self: flex-start;
+        /* DELENÉ TLAČIDLO — hlavná plocha = len nevyhnutné, šípka = rozbaľovačka */
+        .consent-split { position: relative; display: flex; }
+        .consent-split-main {
+          background: transparent; color: #2a2013; padding: 12px 16px;
+          border: 1px solid rgba(26,18,6,0.35); border-right: none; border-radius: 8px 0 0 8px;
         }
-        .consent-btn-link:hover { color: #1a1206; }
-        @media (max-width: 759px) {
-          .consent-btn-primary, .consent-btn-secondary { width: 100%; }
+        .consent-split-arrow {
+          display: flex; align-items: center; justify-content: center; padding: 0 8px;
+          background: transparent; color: #2a2013;
+          border: 1px solid rgba(26,18,6,0.35); border-radius: 0 8px 8px 0;
         }
+        .consent-split-main:hover, .consent-split-arrow:hover { background: rgba(26,18,6,0.06); }
+        .consent-arrow-ic { display: flex; transform: rotate(-90deg); transition: transform .15s ease; }
+        .consent-split-arrow[aria-expanded="true"] .consent-arrow-ic { transform: rotate(90deg); }
+        .consent-menu {
+          position: absolute; right: 0; bottom: calc(100% + 8px); min-width: 100%;
+          background: #FFFDF7; border: 1px solid rgba(201,154,63,0.55); border-radius: 8px;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.22); padding: 4px; z-index: 1;
+        }
+        .consent-menu button {
+          display: block; width: 100%; text-align: left; background: none; border: none; cursor: pointer;
+          padding: 8px 12px; border-radius: 8px;
+          font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: #2a2013;
+        }
+        .consent-menu button:hover { background: ${LAPIS.fill}; }
         .consent-settings {
-          display: flex; flex-direction: column; gap: 14px;
-          margin-top: 4px; padding-top: 16px;
+          display: flex; flex-direction: column; gap: 12px;
+          margin-top: 12px; padding-top: 12px;
           border-top: 1px solid rgba(26,18,6,0.15);
         }
-        .consent-toggle-row {
-          display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
-        }
+        .consent-toggle-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
         .consent-toggle-label {
-          font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.78rem;
+          font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
           letter-spacing: 0.06em; color: #1a1206; margin: 0 0 4px;
         }
         .consent-toggle-desc {
-          font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; line-height: 1.5;
+          font-family: 'Space Grotesk', sans-serif; font-size: 12px; line-height: 1.5;
           color: rgba(42,32,19,0.72); margin: 0; max-width: 460px;
         }
         .consent-switch {
@@ -183,7 +213,7 @@ export function ConsentBanner() {
           border-radius: 999px; border: 1px solid rgba(26,18,6,0.30);
           background: rgba(26,18,6,0.12); cursor: pointer;
         }
-        .consent-switch[data-on="true"] { background: rgba(201,154,63,0.85); border-color: rgba(201,154,63,0.95); }
+        .consent-switch[data-on="true"] { background: ${LAPIS.edge}; border-color: ${LAPIS.deep}; }
         .consent-switch-knob {
           position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
           border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.35);
@@ -191,37 +221,29 @@ export function ConsentBanner() {
         }
         .consent-switch[data-on="true"] .consent-switch-knob { transform: translateX(20px); }
 
-        /* ── MOBIL: LIŠTA NESMIE ZOŽRAŤ TRETINU OBRAZOVKY (2026-09-15) ──────────
-           Pod 760 px stáli akcie v stĺpci, takže tri tlačidlá ležali pod sebou a lišta
-           merala 296 px pri 390x844 a 312 px pri 360x740 — to je 35 %, resp. 42 % okna.
-           Obrazovky vstupu sú min-h-100dvh, takže hlavné CTA skončilo pod lištou a na
-           telefóne sa NEDALO vstúpiť do platenej funnely. Samotné odsadenie cez
-           premennú --consent-h to nezachránilo: pod CTA je na /heroglyph ďalší obsah,
-           takže ani doscrollovanie na koniec ho nedostalo nad lištu.
-           Tu sa preto mení LEN ROZLOŽENIE — tlačidlá idú do riadku a smú zalomiť.
-           Farba, font, radius 8px ani znenie sa nedotkli (brand lock).
-           POZOR: v tomto komentári nesmie byť spätný apostrof — celý blok je template
-           literál a jeden apostrof ho ukončí (zhodí štýl aj build, tsc to nechytí). */
+        /* MOBIL: text nad tlačidlami, obe tlačidlá v JEDNOM riadku 50/50. */
         @media (max-width: 759px) {
-          .consent-banner { padding: 14px 16px; }
-          .consent-inner { gap: 10px; }
-          .consent-body { font-size: 0.8rem; line-height: 1.5; }
-          .consent-actions { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px; }
-          /* basis 50 % (nie auto) — s "auto" si každé tlačidlo vypýta šírku svojho textu,
-             dve uppercase Cinzel menovky sa vedľa seba nezmestia a grow ich roztiahne na
-             plnú šírku, takže riadok zostal jeden na tlačidlo. Zmerané: 3x 328px = 126px. */
-          .consent-btn-primary, .consent-btn-secondary {
-            flex: 1 1 calc(50% - 4px); min-width: 0; padding: 11px 8px;
-            font-size: 0.68rem; letter-spacing: 0.06em; white-space: nowrap;
-          }
-          .consent-btn-link { flex: 1 0 100%; text-align: center; }
+          .consent-banner { padding: 12px 16px; }
+          .consent-inner { flex-direction: column; align-items: stretch; gap: 8px; }
+          .consent-body { font-size: 12px; }
+          .consent-actions > * { flex: 1 1 0; min-width: 0; }
+          .consent-btn-primary, .consent-btn-secondary { padding: 12px 8px; letter-spacing: 0.06em; }
+          .consent-split-main { flex: 1 1 auto; min-width: 0; padding: 12px 8px; letter-spacing: 0.06em; }
+          .consent-split-arrow { flex: 0 0 auto; }
+          .consent-menu { left: 0; right: 0; }
+          .consent-split-main { overflow: hidden; text-overflow: ellipsis; }
+        }
+        /* Pod 380 px sa ONLY NECESSARY v 12 px vedľa šípky do polovice riadku nezmestí
+           a nowrap by roztiahol celú stránku do šírky (snímka 360 px, 22. 9.). */
+        @media (max-width: 379px) {
+          .consent-btn-primary, .consent-btn-secondary, .consent-split-main { font-size: 10px; letter-spacing: 0.04em; }
+          .consent-split-arrow { padding: 0 6px; }
         }
       `}</style>
 
       <div className="consent-inner">
         <div>
-          <p className="consent-title">{t('consent.title')}</p>
-          <p className="consent-body">{t('consent.body')}</p>
+          <p className="consent-body"><b>{t('consent.title')}</b>{t('consent.body')}</p>
 
           {settingsOpen && (
             <div className="consent-settings">
@@ -264,20 +286,41 @@ export function ConsentBanner() {
         </div>
 
         <div className="consent-actions">
-          {!settingsOpen && (
-            <button type="button" className="consent-btn-link" onClick={handleOpenSettings}>
-              {t('consent.settings')}
-            </button>
-          )}
           {settingsOpen ? (
-            <button type="button" className="consent-btn-primary" onClick={handleSave}>
-              {t('consent.save')}
-            </button>
-          ) : (
             <>
               <button type="button" className="consent-btn-secondary" onClick={handleNecessaryOnly}>
                 {t('consent.necessary')}
               </button>
+              <button type="button" className="consent-btn-primary" onClick={handleSave}>
+                {t('consent.save')}
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="consent-split" ref={splitRef}>
+                <button type="button" className="consent-split-main" onClick={handleNecessaryOnly}>
+                  {t('consent.necessary')}
+                </button>
+                <button
+                  type="button"
+                  className="consent-split-arrow"
+                  aria-haspopup="menu"
+                  aria-expanded={menuOpen}
+                  aria-label={t('consent.settings')}
+                  onClick={() => setMenuOpen((v) => !v)}
+                >
+                  {/* Šípka z KITU (ručná kresba), otočená nadol — lucide ChevronDown by bola nová
+                      generická ikonka a stráž check:ikony by ju zastavila. */}
+                  <span className="consent-arrow-ic" aria-hidden><HandArrowLeft size={16} /></span>
+                </button>
+                {menuOpen && (
+                  <div className="consent-menu" role="menu">
+                    <button type="button" role="menuitem" onClick={handleOpenSettings}>
+                      {t('consent.settings')}
+                    </button>
+                  </div>
+                )}
+              </div>
               <button type="button" className="consent-btn-primary" onClick={handleAcceptAll}>
                 {t('consent.acceptAll')}
               </button>

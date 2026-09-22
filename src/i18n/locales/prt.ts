@@ -739,7 +739,7 @@ export const prt: Partial<Dict> = {
   // ── Consent banner (ConsentBanner.tsx + Footer «Definições de cookies») ──
   'consent.title': 'Deveres humanos',
   'consent.body':
-    'Com o teu consentimento podemos estudar e medir como o site é usado — para corrigir o que não funciona e melhorar o nosso templo digital. Obrigado pela tua colaboração.',
+    'Os únicos cookies que recomendamos não são para comer — ajudam-nos a melhorar o site. Obrigado.',
   'consent.acceptAll': 'Permitir tudo',
   'consent.necessary': 'Só o necessário',
   'consent.settings': 'Escolher',

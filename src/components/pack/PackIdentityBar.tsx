@@ -7,8 +7,10 @@
 //
 // PRENOS `renderIdentity()` z `PackMap.tsx` (lock `plany/locky/map-identita.md`):
 //   · RANG NESIE AVATAR — prstenec postupu v leveli + číslo na jeho okraji,
-//   · MOBIL NIE JE ZMENŠENÉ PC — slovo PÚTNIK je na mobile skryté, jeho miesto berú
-//     dva riadky (km, výlety); render je JEDEN, rozhoduje CSS,
+//   · render je JEDEN pre obe šírky.
+// ⚠️ ODCHÝLKA OD MAPY (Matej 22. 9.: „daj tam meno, nie pútnik"): namiesto slova
+//    PÚTNIK nesie riadok MENO člena a pod ním jeden riadok „km · výlety" — na PC aj
+//    na mobile rovnako. Rang ostáva tam, kde ho lock mapy dal: na avatare.
 //   · klik vedie tam, kam na mape: `/pack/map/triplist?tab=stats`.
 // Level sa ráta cez `profileLevelFor` — TÚ ISTÚ funkciu ako mapa a TripSpotlight,
 // z tých istých zdrojov ako TripSpotlight. Vlastný výpočet by dal iné číslo.
@@ -43,8 +45,16 @@ const RING_R = 50 - RING_SW / 2;
 const RING_C = 2 * Math.PI * RING_R;
 const PHOTO = AV_D - 2 * (AV_RING + AV_GAP);
 
-/** Tá istá hranica ako mapa a VAULT: ≤1023 = mobilný pohľad. */
-const PC_MIN = 1024;
+/** Krstné meno: `user_metadata` (full_name/name), inak časť e-mailu pred @.
+ *  Ten istý postup ako `firstNameFrom()` v `Pack.tsx` — blok JA na homepage ukazuje
+ *  to isté meno, dve rôzne podoby by pôsobili ako dvaja ľudia. */
+function firstNameFrom(email: string, fullName?: string): string {
+  if (fullName && fullName.trim()) return fullName.trim().split(' ')[0];
+  if (!email) return 'Dogyptian';
+  const base = (email.split('@')[0] || '').split('+')[0].replace(/[._-]/g, ' ').replace(/\d+/g, '').trim();
+  if (!base) return 'Dogyptian';
+  return base.charAt(0).toUpperCase() + base.slice(1);
+}
 
 const CSS = `
 .pkid{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;min-width:0;}
@@ -61,19 +71,14 @@ const CSS = `
   background:linear-gradient(135deg,var(--tier-a,#F5C73D),var(--tier-b,#E69E1A));color:var(--tier-ink,#1c160c);
   box-shadow:0 0 0 2px ${AINUBIS.bg};}
 .pkid-txt{display:flex;flex-direction:column;gap:2px;min-width:0;}
-.pkid-rank{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:${PACK_HEAD.card.letterSpacing};
-  text-transform:uppercase;white-space:nowrap;color:${AINUBIS.ink};}
-.pkid-stats{display:none;flex-direction:column;gap:2px;}
-.pkid-stats span{display:flex;align-items:baseline;gap:${PACK_SPACE.xs}px;white-space:nowrap;line-height:1.05;}
-.pkid-stats b{font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.lead}px;color:${AINUBIS.ink};font-variant-numeric:tabular-nums;}
-.pkid-stats i{font-family:${FONT_UI};font-style:normal;font-weight:500;font-size:${PACK_TEXT.micro}px;
-  letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
+.pkid-name{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;letter-spacing:${PACK_HEAD.card.letterSpacing};
+  text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;color:${AINUBIS.ink};}
+.pkid-stats{display:flex;align-items:baseline;gap:${PACK_SPACE.xs}px;white-space:nowrap;line-height:1.05;
+  font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.section.letterSpacing};
+  text-transform:uppercase;color:${AINUBIS.inkFaint};}
+.pkid-stats b{font-weight:600;color:${AINUBIS.inkDim};font-variant-numeric:tabular-nums;}
 .pkid-mid{flex:1 1 auto;min-width:0;display:flex;justify-content:center;}
 .pkid-right{flex:0 0 auto;display:flex;align-items:center;}
-@media (max-width:${PC_MIN - 1}px){
-  .pkid-rank{display:none;}
-  .pkid-stats{display:flex;}
-}
 `;
 
 /** `id` podáva stránka — druhé volanie `usePackIdentity` by načítalo session a psov znova. */
@@ -85,6 +90,7 @@ export function PackIdentityBar({ id, middle }: { id: ReturnType<typeof usePackI
   const email = id.session?.user?.email ?? '';
   const meta = (id.session?.user?.user_metadata ?? {}) as Record<string, unknown>;
   const fullName = (meta.full_name || meta.name) as string | undefined;
+  const name = firstNameFrom(email, fullName);
 
   const view = useMemo(() => {
     const all: HeroTrail[] = [...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS];
@@ -97,7 +103,7 @@ export function PackIdentityBar({ id, middle }: { id: ReturnType<typeof usePackI
       localTrailIds: readLocalTrails().map((tr) => tr.id),
       votes: readVotes(),
       email,
-      ownerName: fullName?.trim() ? fullName.trim().split(' ')[0] : '',
+      ownerName: firstNameFrom(email, fullName),
       notePoints: myNotePoints,
     });
     return { level, count: walkedTrails.length, km: Math.round(km) };
@@ -123,10 +129,9 @@ export function PackIdentityBar({ id, middle }: { id: ReturnType<typeof usePackI
           <span className="pkid-lvl" aria-label={t('pack.map.levelAriaLabel', { level: lv.level })}>{lv.level}</span>
         </span>
         <span className="pkid-txt">
-          <span className="pkid-rank">{t('pack.map.rankPilgrim')}</span>
+          <span className="pkid-name">{name}</span>
           <span className="pkid-stats">
-            <span><b>{view.km}</b><i>{t('pack.map.statKm')}</i></span>
-            <span><b>{view.count}</b><i>{t('pack.map.statTrips' + pluralKey(view.count))}</i></span>
+            <b>{view.km}</b>{t('pack.map.statKm')} · <b>{view.count}</b>{t('pack.map.statTrips' + pluralKey(view.count))}
           </span>
         </span>
       </button>

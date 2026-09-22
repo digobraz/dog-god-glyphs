@@ -1294,7 +1294,7 @@ export const en = {
   // ── Consent banner (ConsentBanner.tsx + Footer „Cookie settings") ──
   'consent.title': 'Human duties',
   'consent.body':
-    'With your consent we can study and measure how the site is used — so we can fix what’s broken and improve our digital temple. Thank you for your cooperation.',
+    'The only cookies we recommend aren’t for eating — they help us improve our website. Thank you.',
   'consent.acceptAll': 'Allow all',
   'consent.necessary': 'Only necessary',
   'consent.settings': 'Choose',
