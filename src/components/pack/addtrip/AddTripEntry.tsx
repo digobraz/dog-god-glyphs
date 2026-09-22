@@ -111,19 +111,30 @@ const KINDS: KindDef[] = [
 //    povrchov, takže by ich stráž `check:ikony` zarátala ako nový nález — a dve miesta na
 //    jednu ikonku sa raz rozídu. Tento priečinok v tom zozname JE.
 //
-// ⚠️ Výber je Matejov z registra značiek (21. 9.): 📝 PRÍSPEVOK · 🗣 ROZHOVOR ·
-//    💡 ZNALOSŤ DO MOZGU · 📌 OTÁZKA NA NÁSTENKU. Zvyšok je z nákresu
-//    `nakres-pack-plus-kontext-2026-09-21.html` §3.
-// ⚠️ 🛎️ MIESTO/SLUŽBA je MOJA náhrada za 🏠 z nákresu: 🏠 je v appke obsadené štyrikrát
-//    (kalendár „deň bez seba", mapová značka, profil), takže by to bola tvrdá kolízia —
-//    presne to, čo register značiek meria. Zvonček je voľný a je Emoji 1.0.
-// ⚠️ 📝 vie o druhej zrážke (čip „poznámka" v denníku) a Matej ju pri výbere videl.
+// 🔴 SADU VYBRAL MATEJ 22. 9. 2026 V NÁKRESE `plany/nakres-emoji-vyber-2026-09-22.html`
+//    (celá ponuka 1 249 voľných emoji, hľadanie + skupiny Unicode; výber
+//    `plany/emoji-vyber.json`). Osem zmien z desiatich je zapracovaných:
+//      📝→🖼️ PRÍSPEVOK · 📄→📕 ČLÁNOK · 📓→✍️ DENNÍK · 🗣→🤖 ROZHOVOR ·
+//      💡→📥 MOZOG · 📌→❓ NÁSTENKA · ✉️→💌 SPRÁVA · 👥→👪 SKUPINA
+//    Všetky sú voľné a hlboko pod prahom (najvyššie 🤖 Emoji 1.0).
+// ⏳ DVE ZMENY ČAKAJÚ NA MATEJA, preto tu stoja staré hodnoty:
+//      · `service` 🛎️→💒 — 💒 sa v Unicode volá **wedding** a kreslí sa ako svadobná
+//        kaplnka so srdcom. Pri veterine, salóne a hoteli by to čítalo ako svadba.
+//      · `event` 📣→📅 — voľné ako kód, ale 🗓️ (spiral calendar) UŽ nesie „Denník"
+//        v kalendári a čip „note" v denníku. Register to nehlási (sú to dva rôzne
+//        kódy), oko ich na 20 px nerozlíši. Kolízia, ktorú meranie nevidí.
+// ⚠️ Register (`createRegistry.ts`) emoji ZÁMERNE nenesie: leží mimo schválených emoji
+//    povrchov, takže by ich stráž `check:ikony` zarátala ako nový nález — a dve miesta na
+//    jednu ikonku sa raz rozídu. Tento priečinok v tom zozname JE.
+// 🔴 TENTO SLOVNÍK MERIA STRÁŽ VEKU: `node scripts/gen-znacky-data.mjs --overit` (sada
+//    `panel3`). Do 22. 9. z panela videla len tri dlaždice mapy, ostatných desať nie.
+// ⚠️ 🖼️ PRÍSPEVOK uvoľnilo 📝, ktoré kolidovalo s čipom „poznámka" v denníku.
 const EMOJI: Record<CreateId, string> = {
-  trip: '🐾', note: '💬', event: '📣', service: '🛎️', article: '📄',
-  diary: '📓', photo: '📷',
-  post: '📝',
-  chat: '🗣', brain: '💡', board: '📌',
-  dm: '✉️', group: '👥',
+  trip: '🐾', note: '💬', event: '📣', service: '🛎️', article: '📕',
+  diary: '✍️', photo: '📷',
+  post: '🖼️',
+  chat: '🤖', brain: '📥', board: '❓',
+  dm: '💌', group: '👪',
 };
 
 /** Dlaždica podľa id objektu v registri. Mapové objekty kreslí panel, zvyšok register. */
