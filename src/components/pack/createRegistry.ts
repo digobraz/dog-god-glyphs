@@ -236,20 +236,29 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
   {
     id: 'article',
     labelKey: 'pack.create.article.title',
-    labelFallback: 'Trail article',
+    // 🔤 PRÍBEH, nie článok (Matej 22. 9. 2026). Meno je jeho vlastné slovo: *„ten kto ju
+    //    prejde ako prvý, JEHO PRÍBEH bude zapísaný ako prvý"*. Predtým tu stálo „Trail
+    //    article" / SK „Článok k výletu" — a to je redakčné slovo pre vec, ktorá je osobná
+    //    kronika chodca. Matej sa naň sám spýtal: *„čo znamená článok trasy? to je hlúposť
+    //    nie?"*. `id: 'article'` sa NEMENÍ — je to identifikátor, nie text.
+    labelFallback: 'Trail story',
     icon: { kind: 'panel' },
     place: 'VON',
     needs: 'trasa',
     target: { kind: 'handler', id: 'trip.article' },
     back: 'origin',
-    lands: 'článok výletu',
+    lands: 'príbeh cesty',
     state: 'pripravene',
     soon: '2026-12',
     panel: false,
     gh: 61,
-    // Nezačína sa z lišty: potrebuje UŽ EXISTUJÚCU trasu, takže vchod je článok tej trasy.
-    // Od výletu sa líši práve tým — výlet si trasu nakreslí, článok si ju vybrať nevie.
-    note: 'Vchod je povrch trasy, nie panel `+`. Preto `panel: false`, nie „ešte nie".',
+    // Nezačína sa z lišty: potrebuje UŽ PREJDENÚ trasu. Vchod je moment, keď človek označí
+    // „prešiel som" (`trip_walked`) — nie panel `+`. Matej 22. 9. 2026: *„nebude v + ponuke,
+    // nie je to tak častá vec, človek ju môže pridať priamo po prejdení odysey"*.
+    // ⚠️ POD ODYSEOU JE KRONIKA, NIE DENNÍK: po JEDNOM príbehu od každého, kto ju prešiel,
+    //    zoradené podľa toho, KTO PRVÝ (`walked_at`), a prvý ostáva prvý navždy.
+    //    Návrh: `plany/nakres-odysea-zapisy-2026-09-22.html`, zadanie tamže §5. Issue #61.
+    note: 'Vchod je „prešiel som", nie panel `+`. Preto `panel: false`, nie „ešte nie".',
   },
 
   // ── JA ────────────────────────────────────────────────────────────────────────────────────

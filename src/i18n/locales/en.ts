@@ -1505,7 +1505,7 @@ export const en = {
   'pack.create.brain.title': "Add to the brain",
   'pack.create.brain.hint': "finding · link · book · video",
   'pack.create.board.title': "Ask the pack",
-  'pack.create.article.title': "Trail article",
+  'pack.create.article.title': "Trail story",
   // pack.tree
   'pack.tiles.ariaLabel': "Quick access",
   'pack.tiles.map.title': "Map",

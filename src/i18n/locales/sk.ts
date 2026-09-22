@@ -1829,7 +1829,7 @@ export const sk: Partial<Dict> = {
   "pack.create.brain.title": "Znalosť do mozgu",
   "pack.create.brain.hint": "poznatok · odkaz · kniha · video",
   "pack.create.board.title": "Spýtaj sa svorky",
-  "pack.create.article.title": "Článok k výletu",
+  "pack.create.article.title": "Príbeh z cesty",
   // pack.survey
   "pack.survey.heading": "Formuj appku",
   "pack.survey.subheading": "Čo máme postaviť ako prvé?",
