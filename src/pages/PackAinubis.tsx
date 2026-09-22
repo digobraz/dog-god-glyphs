@@ -405,7 +405,7 @@ export default function PackAinubis() {
       }),
       describe: (role, wi, oi) => {
         const { names: n, tx: x, circleName: cn } = live.current;
-        if (role === 'root') return { title: 'AINUBIS', hint: x('pack.ainubis.ask', 'Ask AINUBIS') };
+        if (role === 'root') return { title: 'AINUBIS', hint: x('pack.ainubis.tip.home', 'Back to the whole brain') };
         /* Okruh má vlastné meno; zvitok zatiaľ nie (Matej: „ďalej už nie"). */
         return {
           title: role === 'o' ? (cn(wi, oi) || n[wi]) : n[wi],

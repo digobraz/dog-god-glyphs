@@ -1541,6 +1541,7 @@ export const en = {
   'pack.ainubis.plane.chat': "Chat",
   'pack.ainubis.plane.wall': "Board",
   'pack.ainubis.soon': "soon",
+  'pack.ainubis.tip.home': "Back to the whole brain",
   'pack.ainubis.search': "Search the Vault…",
   'pack.ainubis.noMatch': "Nothing found.",
   'pack.ainubis.filter.world': "World",

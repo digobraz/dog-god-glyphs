@@ -161,11 +161,6 @@ const PLACE_TITLE: Record<CreatePlace, string> = {
   GLOBAL: 'Add',
 };
 
-/** Hlavička skupiny na DOMOVE — malým písmom, je to orientácia, nie nadpis sekcie. */
-const PLACE_GROUP: Record<CreatePlace, string> = {
-  DOMOV: 'home', VON: 'out', JA: 'dog', AINUBIS: 'ainubis', GLOBAL: 'global',
-};
-
 /**
  * Štítok „čoskoro" S TERMÍNOM (lock §1.1.1: panel nesmie mať jedinú položku a dopĺňa sa
  * OHLÁSENÝM, nie vymysleným).
@@ -375,17 +370,14 @@ export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryP
           <BackIcon />
         </button>
         {step === 'kind' && (
-          <div className="att-entry-reg">
-            {/* Veta hore hovorí, ČO sa tu pridáva. Na DOMOVE je OTÁZKOU, lebo doma niet
-                kontextu a odpoveď dávajú skupiny pod ňou; na mieste je pokynom. */}
-            <p className="att-entry-st">{tx(`pack.create.title.${place}`, PLACE_TITLE[place])}</p>
+          <div className="att-entry-reg" role="group" aria-label={tx(`pack.create.title.${place}`, PLACE_TITLE[place])}>
+            {/* NADPIS ANI ŠTÍTKY SKUPÍN UŽ NIE SÚ (Matej 22. 9.: „nadpis daj preč, budú tam
+                len tlačidlá… nie pridať k vedomostiam a pod."). Veta hore žije ďalej ako
+                aria-label; skupiny na DOMOVE oddeľuje len medzera. */}
             {groups.map((g) => (
               <div className="att-entry-grp" key={g.group ?? '_'}>
                 {/* Hlavička skupiny je LEN na DOMOVE (inde je `group` null) — nadpis nad
                     jedinou skupinou, v ktorej človek práve stojí, nehovorí nič. */}
-                {g.group && (
-                  <span className="att-entry-grplbl">{tx(`pack.create.place.${g.group}`, PLACE_GROUP[g.group])}</span>
-                )}
                 <div className="att-entry-list">
                   {/* 🔒 Dlaždica PODUJATIE je za `EVENTS_LIVE` (15. 9. 2026): na LIVE pre podujatia
                       neexistuje ani schéma a formulár píše len do localStorage, takže by človek
@@ -473,11 +465,10 @@ const ENTRY_CSS = `
 /* ── ÚCHYT — len na mobile (ťahom nadol sa panel zavrie). */
 .att-entry-grab{display:none;}
 
-/* ── VETA HORE A SKUPINY ─────────────────────────────────────────────────────────────
+/* ── SKUPINY (bez nadpisu a štítkov od 22. 9.) ─────────────────────────────────────────────────────────────
    Jeden krátky riadok, čo sa tu pridáva. Štítok skupiny je LEN na DOMOVE. */
-.att-entry-st{margin:0 0 12px;text-align:center;font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
 .att-entry-grp + .att-entry-grp{margin-top:12px;}
-.att-entry-grplbl{display:block;margin-bottom:4px;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
+/* Na prvej úrovni nad tlačidlami nie je nič — úchyt (mobil) alebo rovno prvé tlačidlo. */
 
 /* ── RIADOK PONUKY: EMOJI + NÁZOV, NIČ VIAC (Matej 21. 9. 2026) ──────────────────────
    „priamy, krátky, stručný, bez scrollu… emoji a vedľa text, žiadne vysvetlovačky."
@@ -485,17 +476,24 @@ const ENTRY_CSS = `
    skupín a má sa to vojsť BEZ SCROLLU. Pri 8/4 sa vojde, pixel navyše vyhodí poslednú
    položku pod hranu. */
 .att-entry-list{display:flex;flex-direction:column;gap:4px;}
-.att-entry-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:${T.cardGrad};border:1px solid ${T.cardEdge};border-radius:${PLATE_TILE_R}px;padding:8px 12px;cursor:pointer;transition:border-color .15s ease,background .15s ease;}
+.att-entry-row{position:relative;display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:${T.cardGrad};border:1px solid ${T.cardEdge};border-radius:${PLATE_TILE_R}px;padding:8px 12px;cursor:pointer;transition:border-color .15s ease,background .15s ease;}
 .att-entry-row:hover,.att-entry-row:focus-visible{border-color:${T.inkWarm};outline:none;}
 .att-entry-row--soon{opacity:.45;cursor:default;}
 .att-entry-row--soon:hover,.att-entry-row--soon:focus-visible{border-color:${T.cardEdge};}
 /* Emoji má vlastný font-family, inak naň sadne zdedený Cinzel a na Windows sa z 🅿️ stane
    obdĺžnik. Pevná šírka drží názvy pod sebou v jednej zvislej osi. */
 .att-entry-emoji{flex:0 0 auto;width:28px;font-family:${FONT_EMOJI};font-size:22px;line-height:1;text-align:center;}
-.att-entry-title{flex:1 1 auto;min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.inkStrong};}
+.att-entry-title{flex:1 1 auto;min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.inkStrong};
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+/* ⚠️ NÁZOV JE VŽDY NA JEDEN RIADOK (Matej 22. 9.: „nezalamuj texty… musia byť vždy na jeden
+   riadok"). Panel má šírku lišty (~310 px na PC), preto termín „čoskoro" nestojí vedľa
+   názvu, ale ako ŠTÍTOK NA HORNEJ HRANE riadku — šírku názvu nezje. Tri tečky sú len
+   poistka pre budúci dlhší preklad, nie plán. */
 /* BODY V LAPISOVEJ PILULKE (Matej 26. 8.: „body budú v modrom pilse") — odmena je „moje". */
 .att-entry-pts{flex:0 0 auto;padding:3px 8px;border-radius:999px;background:${LAPIS.grad};border:1px solid ${LAPIS.deep};font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:${LAPIS.ink};}
-.att-entry-soon{flex:0 0 auto;padding:3px 8px;border-radius:999px;border:1px solid ${T.cardEdge};font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:${T.inkWarm};}
+.att-entry-soon{position:absolute;top:-7px;right:12px;padding:0 6px;border-radius:999px;border:1px solid ${T.cardEdge};background:#FBF5E6;font-family:${FONT_UI};font-weight:600;font-size:10px;line-height:14px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:${T.inkWarm};}
+/* Štítok presahuje hornú hranu — medzera nad riadkom so štítkom, aby nesadol na suseda. */
+.att-entry-row--soon{margin-top:4px;}
 
 /* ── NÁVRAT V TOKU ───────────────────────────────────────────────────────────────────
    backCircleCSS nesie priemer, lem aj farby (BackButton.tsx, LOCKED 2026-09-01).

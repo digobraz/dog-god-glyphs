@@ -447,8 +447,16 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     vt.x = -(p.x + p.dx);
     vt.y = -(p.y + p.dy) + (ins.top - ins.bottom) / 2 / vt.k;
   }
+  /* HLAVA AINUBISA = NÁVRAT NA ÚVODNÝ POHĽAD (Matej 22. 9.: „kliknutím na ainubisovu hlavu
+     v strede sa mind mapa centruje do pôvodnej pozície ako pri loade / neotvára sa chat").
+     Plynulo — mení sa len cieľ, pohľad k nemu dobehne sám. Chat má rovinu CHAT hore. */
+  function home() {
+    const ins = o.insets();
+    vt = { x: 0, y: (ins.top - ins.bottom) / 2 / homeK, k: homeK };
+    N.forEach((q) => { q.dx = q.dy = q.vx = q.vy = 0; });
+  }
   function pick(p: Node) {
-    if (p.role === 'root') { o.onRoot(); return; }
+    if (p.role === 'root') { home(); return; }
     focus(p);
     if (p.role === 'w') o.onWorld(p.wi);
   }

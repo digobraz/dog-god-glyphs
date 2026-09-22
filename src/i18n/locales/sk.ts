@@ -3249,6 +3249,7 @@ export const sk: Partial<Dict> = {
   'pack.ainubis.plane.chat': "Chat",
   'pack.ainubis.plane.wall': "Nástenka",
   'pack.ainubis.soon': "čoskoro",
+  'pack.ainubis.tip.home': "Späť na celý mozog",
   'pack.ainubis.search': "Hľadaj vo VAULTE…",
   'pack.ainubis.noMatch': "Nič sa nenašlo.",
   'pack.ainubis.filter.world': "Svet",
