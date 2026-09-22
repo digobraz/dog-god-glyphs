@@ -232,8 +232,8 @@ export function ConsentBanner() {
           .consent-inner { flex-direction: column; align-items: stretch; gap: 8px; }
           .consent-body { font-size: 12px; }
           .consent-actions > * { flex: 1 1 0; min-width: 0; }
-          .consent-btn-primary, .consent-btn-secondary { padding: 12px 8px; letter-spacing: 0.06em; }
-          .consent-split-main { flex: 1 1 auto; min-width: 0; padding: 12px 8px; letter-spacing: 0.06em; }
+          .consent-btn-primary, .consent-btn-secondary { padding: 12px 8px; letter-spacing: 0.02em; }
+          .consent-split-main { flex: 1 1 auto; min-width: 0; padding: 12px 8px; letter-spacing: 0.02em; }
           .consent-split-arrow { flex: 0 0 auto; }
           .consent-menu { left: 0; right: 0; }
           .consent-split-main { overflow: hidden; text-overflow: ellipsis; }
@@ -242,7 +242,8 @@ export function ConsentBanner() {
            a nowrap by roztiahol celú stránku do šírky (snímka 360 px, 22. 9.). */
         @media (max-width: 379px) {
           .consent-btn-primary, .consent-btn-secondary, .consent-split-main { font-size: 10px; letter-spacing: 0.04em; }
-          .consent-split-arrow { padding: 0 6px; }
+          .consent-split-arrow { padding: 0 4px; }
+          .consent-split-main { padding: 12px 4px; letter-spacing: 0; }
         }
       `}</style>
 
