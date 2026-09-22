@@ -117,12 +117,17 @@ const KINDS: KindDef[] = [
 //      📝→🖼️ PRÍSPEVOK · 📄→📕 ČLÁNOK · 📓→✍️ DENNÍK · 🗣→🤖 ROZHOVOR ·
 //      💡→📥 MOZOG · 📌→❓ NÁSTENKA · ✉️→💌 SPRÁVA · 👥→👪 SKUPINA
 //    Všetky sú voľné a hlboko pod prahom (najvyššie 🤖 Emoji 1.0).
-// ⏳ DVE ZMENY ČAKAJÚ NA MATEJA, preto tu stoja staré hodnoty:
-//      · `service` 🛎️→💒 — 💒 sa v Unicode volá **wedding** a kreslí sa ako svadobná
-//        kaplnka so srdcom. Pri veterine, salóne a hoteli by to čítalo ako svadba.
-//      · `event` 📣→📅 — voľné ako kód, ale 🗓️ (spiral calendar) UŽ nesie „Denník"
-//        v kalendári a čip „note" v denníku. Register to nehlási (sú to dva rôzne
-//        kódy), oko ich na 20 px nerozlíši. Kolízia, ktorú meranie nevidí.
+// 🔴 POSLEDNÉ DVE DORIEŠENÉ 22. 9. 2026 (druhé kolo):
+//      · `service` **🏥** — Matejov prvý výber 💒 sa v Unicode volá *wedding* a kreslí sa
+//        ako svadobná kaplnka so srdcom; pri veterine by to čítalo ako svadba. Po flagu:
+//        *„aha tak dajme nemocnicu 🏬"*. 🏬 je ale *department store* — obchodný dom, a 🏥
+//        v mojom zozname náhrad vôbec nebolo, takže si vzal najbližšiu budovu. **Platí
+//        SLOVO, nie znak** → 🏥 (*hospital*, Emoji 0.6, voľné).
+//      · `event` **ostáva 📣** — Matej dal na výber *„nechaj alebo daj 🎪"*, lenže 🎪 je
+//        OBSADENÉ: `MAPA · expo` = veľtrh, teda jeden z ôsmich TYPOV podujatia. Dlaždica
+//        so zhodným emoji ako jej vlastný podtyp je tvrdá kolízia. Ponúkol som ho omylom.
+//        Pôvodný výber 📅 padol skôr: 🗓️ (spiral calendar) už nesie „Denník" v kalendári
+//        a čip „note" v denníku — dva rôzne kódy, ktoré oko na 20 px nerozlíši.
 // ⚠️ Register (`createRegistry.ts`) emoji ZÁMERNE nenesie: leží mimo schválených emoji
 //    povrchov, takže by ich stráž `check:ikony` zarátala ako nový nález — a dve miesta na
 //    jednu ikonku sa raz rozídu. Tento priečinok v tom zozname JE.
@@ -130,7 +135,7 @@ const KINDS: KindDef[] = [
 //    `panel3`). Do 22. 9. z panela videla len tri dlaždice mapy, ostatných desať nie.
 // ⚠️ 🖼️ PRÍSPEVOK uvoľnilo 📝, ktoré kolidovalo s čipom „poznámka" v denníku.
 const EMOJI: Record<CreateId, string> = {
-  trip: '🐾', note: '💬', event: '📣', service: '🛎️', article: '📕',
+  trip: '🐾', note: '💬', event: '📣', service: '🏥', article: '📕',
   diary: '✍️', photo: '📷',
   post: '🖼️',
   chat: '🤖', brain: '📥', board: '❓',
