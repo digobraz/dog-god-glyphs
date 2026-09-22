@@ -21,7 +21,8 @@
 // ⚠️ Šat je AINUBISOV (tmavý displej). Papyrusovú polohu komponent zatiaľ nemá.
 // ⚠️ Panel pásiem (klik na číslo levelu na mape) tu NIE JE — žije vnútri PackMap.
 // ════════════════════════════════════════════════════════════════════════════
-import { useMemo, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
@@ -45,9 +46,10 @@ const RING_R = 50 - RING_SW / 2;
 const RING_C = 2 * Math.PI * RING_R;
 const PHOTO = AV_D - 2 * (AV_RING + AV_GAP);
 
-/** Krstné meno: `user_metadata` (full_name/name), inak časť e-mailu pred @.
- *  Ten istý postup ako `firstNameFrom()` v `Pack.tsx` — blok JA na homepage ukazuje
- *  to isté meno, dve rôzne podoby by pôsobili ako dvaja ľudia. */
+/** Krstné meno — PORADIE AKO blok JA v `Pack.tsx` (`displayName`): účet (full_name
+ *  z /pack/profile) → meno z objednávky psa (`dogs.owner_name`, kartuša) → e-mail.
+ *  ⚠️ 22. 9. náhľad na ostrých dátach ukázal „HEKTHORSK": prostredný krok chýbal
+ *  a účet bez full_name spadol rovno na e-mail. */
 function firstNameFrom(email: string, fullName?: string): string {
   if (fullName && fullName.trim()) return fullName.trim().split(' ')[0];
   if (!email) return 'Dogyptian';
@@ -90,7 +92,22 @@ export function PackIdentityBar({ id, middle }: { id: ReturnType<typeof usePackI
   const email = id.session?.user?.email ?? '';
   const meta = (id.session?.user?.user_metadata ?? {}) as Record<string, unknown>;
   const fullName = (meta.full_name || meta.name) as string | undefined;
-  const name = firstNameFrom(email, fullName);
+  /* Meno z objednávky: `usePackIdentity` je zamknutý (byte-identical) a `owner_name`
+     nečíta, preto jeden malý dotaz podľa ID psov, ktoré už máme. */
+  const [cartouche, setCartouche] = useState('');
+  const dogIds = (id.dogs ?? []).map((d) => d.id).join(',');
+  useEffect(() => {
+    if (!dogIds || fullName?.trim()) return;
+    let alive = true;
+    supabase.from('dogs').select('owner_name').in('id', dogIds.split(',')).then(({ data }) => {
+      const n = (data ?? []).map((d) => (d.owner_name ?? '').trim()).find(Boolean) ?? '';
+      if (alive) setCartouche(n);
+    });
+    return () => { alive = false; };
+  }, [dogIds, fullName]);
+  const name = fullName?.trim() ? firstNameFrom(email, fullName)
+    : cartouche ? firstNameFrom('', cartouche)
+      : firstNameFrom(email);
 
   const view = useMemo(() => {
     const all: HeroTrail[] = [...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS];

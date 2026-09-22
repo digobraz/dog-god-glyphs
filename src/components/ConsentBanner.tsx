@@ -235,6 +235,9 @@ export function ConsentBanner() {
           .consent-btn-primary, .consent-btn-secondary { padding: 12px 8px; letter-spacing: 0.02em; }
           .consent-split-main { flex: 1 1 auto; min-width: 0; padding: 12px 8px; letter-spacing: 0.02em; }
           .consent-split-arrow { flex: 0 0 auto; }
+          /* ONLY NECESSARY je o polovicu dlhšie než ALLOW ALL — na ostrom builde sa pri 50/50
+             orezalo na 390 px (náhľad 22. 9.), lokálne nie. Väčší diel riadku. */
+          .consent-split { flex: 1.5 1 0; }
           .consent-menu { left: 0; right: 0; }
           .consent-split-main { overflow: hidden; text-overflow: ellipsis; }
         }

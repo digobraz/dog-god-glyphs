@@ -116,6 +116,9 @@ const CSS = `
 .akv-when-s{display:none;}
 @media (max-width:${PC_MIN - 1}px){
   .akv-when-l{display:none;} .akv-when-s{display:inline;}
+  /* S ostrými číslami (1487 KM · 70 TRIPS) ostáva na 390 px pre oznam ~70 px — do jedného
+     riadku sa nezmestí. Radšej ZÁMERNE dva riadky než orezané „OPENS NO…" (náhľad 22. 9.). */
+  .akv-when{white-space:normal;text-align:center;line-height:1.15;border-radius:${PACK_R.tile}px;max-width:112px;}
   /* Správy a zvonček na 32 px ako v mobilnej hlavičke mapy (PackNotifications má
      rozmery v inline štýle, prebiť sa dá len !important — ten istý precedens). */
   .akv-top .pkid-right button{width:32px!important;height:32px!important;}
