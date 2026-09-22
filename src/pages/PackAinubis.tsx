@@ -29,9 +29,10 @@
 //    · „správy a oznam by som dal úplne hore a pod to prepínač" + „riadok s ikonkou
 //      mena ako máme v /map" → prvý riadok = `PackIdentityBar` s oznamom v strede,
 //      druhý = roviny,
-//    · „nazvať to dogscroll namiesto vault (vault je celá sekcia)" → prvá ROVINA sa
-//      volá DOGSCROLL. Pilulka POHĽADU dole sa preto volá ZOZNAM (vzor mapy: MAPA ⇄
-//      ZOZNAM) — dve veci s tým istým menom na jednej obrazovke by si konkurovali.
+//    · „nazvať to dogscroll namiesto vault (vault je celá sekcia)" → ráno premenované,
+//      o hodinu VRÁTENÉ (Matej: „mal si pravdu … hore bude prepínač - vault a dolu
+//      namiesto list bude dogscroll/brain"). HORE ROVINA = VAULT · CHAT · BOARD (iný
+//      obsah), DOLE POHĽAD = DOGSCROLL ⇄ BRAIN (ten istý obsah, iný pohľad).
 // 🚩 OTVORENÉ: chat ako rovina hore + stred mozgu ako vstup (postavené podľa odporúčania).
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -297,7 +298,7 @@ export default function PackAinubis() {
 
   if (!ready) return <div className="akv-root" style={{ position: 'fixed', inset: 0, background: AINUBIS.surfaceBase }} />;
 
-  const plane = (key: 'dogscroll' | 'chat' | 'wall', en: string) => tx(`pack.ainubis.plane.${key}`, en);
+  const plane = (key: 'vault' | 'chat' | 'wall', en: string) => tx(`pack.ainubis.plane.${key}`, en);
   const mask = (ic: string) => ({ WebkitMaskImage: `url(/icons/pack/${ic}.svg)`, maskImage: `url(/icons/pack/${ic}.svg)` });
 
   return (
@@ -316,7 +317,7 @@ export default function PackAinubis() {
       </section>
 
       {/* ── DOGSCROLL — dnes upútavky svetov, v novembri pás zvitkov ────────── */}
-      <aside className="akv-scroll" aria-label={tx('pack.ainubis.view.list', 'List')}>
+      <aside className="akv-scroll" aria-label={tx('pack.ainubis.view.dogscroll', 'Dogscroll')}>
         <div className="akv-col">
           {/* BANNER „stavba pred očami" + November 2026 — presunutý z kostry, nezanikol. */}
           <header>
@@ -366,7 +367,7 @@ export default function PackAinubis() {
         />
         <div className="akv-toprow">
           <nav className="akv-planes" aria-label="AINUBIS">
-            <button type="button" className="akv-plane" aria-current="page">{plane('dogscroll', 'Dogscroll')}</button>
+            <button type="button" className="akv-plane" aria-current="page">{plane('vault', 'Vault')}</button>
             {/* CHAT = kôš 3. Otvára sa tým istým kanálom ako doteraz (`ainubisBus`),
                 takže beží presne ten chat, ktorý žije naostro. */}
             <button type="button" className="akv-plane" onClick={openAinubis}>{plane('chat', 'Chat')}</button>
@@ -386,7 +387,7 @@ export default function PackAinubis() {
         >
           <i aria-hidden style={mask(view === 'brain' ? 'menu' : 'idea')} />
           {view === 'brain'
-            ? tx('pack.ainubis.view.list', 'List')
+            ? tx('pack.ainubis.view.dogscroll', 'Dogscroll')
             : tx('pack.ainubis.view.brain', 'Brain')}
         </button>
       </div>
