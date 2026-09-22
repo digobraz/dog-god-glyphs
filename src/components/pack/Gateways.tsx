@@ -45,6 +45,8 @@ const CSS = `
 
 .gw{
   position:relative; overflow:hidden; display:flex; align-items:center;
+  /* Mierka nadpisu je SIRKA TEJTO KARTY (cqw nizsie), nie okna - viac pri .gw-title. */
+  container-type:inline-size;
   min-height:172px; border-radius:16px; padding:16px 24px;
   background:${T.cardGrad}; border:1.5px solid ${T.cardEdge}; box-shadow:${T.cardShadow};
   text-decoration:none; cursor:pointer; font:inherit; color:inherit; text-align:left;
@@ -244,18 +246,22 @@ const CSS = `
   display:block; font-family:${FONT_TITLE}; font-weight:700; font-size:22px; line-height:1.08;
   letter-spacing:0.14em; text-transform:uppercase; color:${T.inkStrong};
 }
-/* ⚠️ Na PC je stupeň PLYNULÝ (clamp s vw), nie pevný. Karta má na 1440 px šírku ~478 px,
-   ale hneď za hranicou 721 px len ~326 px — pri pevných 23/38 px sa nadpis DOGMY zlomil na
+/* ⚠️ Na PC je stupeň PLYNULÝ, nie pevný — pri pevných 23/38 px sa nadpis DOGMY zlomil na
    tri riadky a podtitulok vypadol pod dolnú hranu karty, a jednoslovné AINUBIS (nemá kde
-   zalomiť) prebehlo pod hlavu psa. Horná medza clampu = stav pri 1440 px, dolná = stav,
-   ktorý sa ešte zmestí do najužšej dvojstĺpcovej karty. */
-@media (min-width:721px){ .gw-title{ font-size:clamp(19px, 2.5vw, 27px); letter-spacing:0.14em; } }
+   zalomiť) prebehlo pod hlavu psa.
+   🔴 MIERKA JE ŠÍRKA KARTY (cqw), NIE OKNA (vw) — 22. 9. 2026. Dovtedy to bolo vw a čísla
+   boli kalibrované na kartu 478 px pri okne 1440. Keď sa stĺpec zúžil na 832, karta klesla
+   na 406 px, ale okno ostalo 1440 — stupeň sa teda nezmenšil a PSÍČKAROV aj AINUBIS
+   prebehli cez telo karty. vw meria OKNO, karta v ňom môže byť akokoľvek široká; kto zmení
+   šírku stĺpca, nesmie byť nútený prepočítavať tieto čísla znova.
+   Horná medza = stav pri najširšej karte, dolná = najužšia dvojstĺpcová karta (~326 px). */
+@media (min-width:721px){ .gw-title{ font-size:clamp(17px, 5.6cqw, 27px); letter-spacing:0.14em; } }
 /* Meno AINUBIS je DOMINANTA karty (Matej 9.8.: „tento nadpis zvačši musí byť dominanta") —
    je to jedno slovo, unesie výrazne väčší stupeň než dvojriadkový nadpis DOGMY.
    Horná medza clampu je držaná ŠÍRKOU tela karty: „AINUBIS" je 7 znakov a pri 56 % šírky
    karty (~268 px na 1440 px) sa 44 px ešte zmestí na jeden riadok — viac už láme slovo. */
 .gw-ainubis .gw-title{ font-size:32px; }
-@media (min-width:721px){ .gw-ainubis .gw-title{ font-size:clamp(28px, 3.9vw, 44px); } }
+@media (min-width:721px){ .gw-ainubis .gw-title{ font-size:clamp(24px, 7.6cqw, 44px); } }
 
 .gw-lead{
   display:block; margin-top:9px; font-family:${FONT_UI}; font-weight:400; font-size:12.5px;

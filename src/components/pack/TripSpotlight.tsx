@@ -194,9 +194,18 @@ const CSS = `
    stats"). Tým padlo umiestnenie z 12. 8. („pútnika daj do pravého horného rohu") — dôvod
    preň bol trojriadkový nadpis pod ním, a ten z karty odišiel 11. 9. Absolútne ukotvenie
    ostáva: riadok leží nad náhľadom trasy, ktorý je pozadím karty. */
+/* ⚠️ RIADOK SA MUSÍ VEDIEŤ ZALOMIŤ (22. 9. 2026, po zúžení stĺpca na 832).
+   Odmerané pri obsahu 832: riadok potrebuje 277 px (meno 71 + gap 9 + pilulka 39 + gap 12
+   + čísla 146), karta mu dáva 264 — pilulka levelu preto podliezla pod „1955". Pri 976 sa
+   to ešte vošlo, takže to nie je chyba tejto karty, ale dôsledok šírky stĺpca.
+   flex-wrap necháva v tesnom pásme spadnúť ČÍSLA pod meno; slovo PÚTNIK sa NESKRÝVA —
+   to robí hlavička /map až na mobile a tam ho nahrádzajú dva riadky pod avatarom.
+   ⚠️ V TOMTO KOMENTÁRI NESMIE BYŤ SPÄTNÝ APOSTROF — je vnútri CSS v JS literáli
+   a ukončil by šablónu (zhodené 22. 9., presne tá pasca, na ktorú je npm run check:css). */
 .ts-rank{
   position:absolute; top:22px; left:22px; right:22px; z-index:3;
   display:flex; align-items:center; justify-content:space-between; gap:12px;
+  flex-wrap:wrap; row-gap:4px;
 }
 .ts-rank-me{ display:inline-flex; align-items:center; gap:9px; min-width:0; }
 /* Čísla vpravo v rade = ten istý údaj a to isté poradie ako hlavička /map
