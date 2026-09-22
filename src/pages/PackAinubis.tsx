@@ -49,6 +49,7 @@ import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 import { VAULT_CIRCLES } from '@/components/pack/vault/circles';
 import { mountBrain, type BrainHandle } from '@/components/pack/vault/brainEngine';
 import ainubisHead from '@/assets/ainubis-head.png';
+import { HandArrowLeft } from '@/components/pack/HandIcons';
 
 /* ⚠️ JEDNA HRANICA — tá istá ako na mape (`PackMap`: ≤1023 = mobilný pohľad
    s pilulkou ZOZNAM). Dve čísla by znamenali šírku, kde má mapa pilulku a VAULT nie. */
@@ -116,6 +117,8 @@ const CSS = `
 .akv-when-s{display:none;}
 @media (max-width:${PC_MIN - 1}px){
   .akv-when-l{display:none;} .akv-when-s{display:inline;}
+  /* Riadok pod menom má na mobile ~150 px — okruhy a zvitky ostávajú len na PC. */
+  .akv-top .akv-stat-x{display:none;}
   /* S ostrými číslami (1487 KM · 70 TRIPS) ostáva na 390 px pre oznam ~70 px — do jedného
      riadku sa nezmestí. Radšej ZÁMERNE dva riadky než orezané „OPENS NO…" (náhľad 22. 9.). */
   .akv-when{white-space:normal;text-align:center;line-height:1.15;border-radius:${PACK_R.tile}px;max-width:112px;}
@@ -124,22 +127,60 @@ const CSS = `
   .akv-top .pkid-right button{width:32px!important;height:32px!important;}
 }
 
-/* ── DOGSCROLL ─────────────────────────────────────────────────────────── */
-.akv-scroll{position:absolute;inset:0;z-index:3;overflow-y:auto;overscroll-behavior:contain;
-  background:${AINUBIS.surfaceBase};
-  padding:var(--akv-top-h,112px) ${PACK_SPACE.lg}px ${BOTTOM_MOBILE + PACK_SPACE.xl}px;}
+/* ── DOGSCROLL — vzor zoznamu na /map: HLAVIČKA STOJÍ, scrolluje len obsah ──
+   (Matej 22. 9.: „vrch zamknutý nadpis, prepínače, filtre a scrolling len obsahy"). */
+.akv-scroll{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;overflow:hidden;
+  background:${AINUBIS.surfaceBase};padding-top:var(--akv-top-h,112px);}
+.akv-lhead{flex:0 0 auto;width:100%;max-width:${520 + 2 * PACK_SPACE.lg}px;margin:0 auto;
+  display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;
+  padding:0 ${PACK_SPACE.lg}px ${PACK_SPACE.md}px;border-bottom:1px solid ${AINUBIS.edge};}
+.akv-list{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  padding:${PACK_SPACE.lg}px ${PACK_SPACE.lg}px ${BOTTOM_MOBILE + PACK_SPACE.xl}px;}
 .akv-col{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:${PACK_SPACE.lg}px;}
-.akv-head{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
-.akv-face{width:48px;height:48px;flex:0 0 auto;object-fit:cover;border-radius:${PACK_R.pill}px;
-  background:${AINUBIS.faceBg};box-shadow:${AINUBIS.faceRing};}
-.akv-flag{display:block;margin-bottom:${PACK_SPACE.xs}px;font-family:${FONT_UI};font-weight:500;
-  font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.label.letterSpacing};text-transform:uppercase;color:${AINUBIS.cyan};}
 .akv-title{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h1}px;line-height:1.1;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.ink};}
-.akv-claim{margin:${PACK_SPACE.sm}px 0 0;font-size:${PACK_TEXT.body}px;color:${AINUBIS.inkDim};}
-.akv-lead{margin:${PACK_SPACE.md}px 0 0;font-size:${PACK_TEXT.body}px;line-height:1.55;color:${AINUBIS.inkDim};}
+.akv-claim{margin:${PACK_SPACE.xs}px 0 0;font-size:${PACK_TEXT.body}px;color:${AINUBIS.inkDim};}
+/* Riadok pod menom je flex s medzerou — obal je len skupina na skrytie, nie ďalší prvok. */
+.akv-stat-x{display:contents;}
+
+/* FILTRE — tri roletky z nákresu v5 (SVET · TYP · STAV). */
+.akv-filters{display:flex;gap:${PACK_SPACE.sm}px;}
+.akv-dd{position:relative;flex:1 1 0;min-width:0;}
+/* SVET nesie najdlhší text („Všetky svety") — na 390 px by sa pri rovnakom podiele orezal. */
+.akv-dd:first-child{flex-grow:1.4;}
+.akv-ddb{width:100%;display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.xs}px;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;border:1px solid ${AINUBIS.edge};
+  background:transparent;color:${AINUBIS.inkDim};cursor:pointer;white-space:nowrap;
+  font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;}
+.akv-ddb > span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.akv-ddb:disabled .akv-chev{opacity:0.35;}
+.akv-ddb .akv-chev{flex:0 0 auto;display:inline-flex;transform:rotate(-90deg);opacity:0.8;}
+.akv-dd.is-set .akv-ddb,.akv-dd.is-open .akv-ddb{color:${AINUBIS.cyan};border-color:${AINUBIS.edgeStrong};
+  background:rgba(${AINUBIS.cyanRGB},0.14);}
+.akv-ddb:disabled{cursor:default;color:${AINUBIS.inkFaint};}
+.akv-ddp{position:absolute;z-index:9;top:calc(100% + ${PACK_SPACE.xs}px);left:0;min-width:100%;max-height:320px;overflow-y:auto;
+  padding:${PACK_SPACE.xs}px;border-radius:${PACK_R.tile}px;background:${AINUBIS.bg};
+  border:1px solid ${AINUBIS.edgeStrong};box-shadow:${AINUBIS.panelShadow};}
+.akv-ddp button{display:flex;width:100%;align-items:center;gap:${PACK_SPACE.sm}px;text-align:left;white-space:nowrap;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.field}px;border:1px solid transparent;
+  background:transparent;color:${AINUBIS.inkDim};cursor:pointer;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;}
+.akv-ddp button:hover{background:rgba(${AINUBIS.cyanRGB},0.10);color:${AINUBIS.cyan};}
+.akv-ddp button[aria-selected="true"]{color:${AINUBIS.cyan};}
+
+/* VRSTVY — čo mozog ukazuje (nákres v5 §11). Farebná bodka = farba vrstvy v mozgu. */
+.akv-layers{display:flex;align-items:center;gap:${PACK_SPACE.xs}px;overflow-x:auto;scrollbar-width:none;}
+.akv-layers::-webkit-scrollbar{display:none;}
+.akv-layers > b{flex:0 0 auto;padding-right:${PACK_SPACE.xs}px;font-weight:500;font-size:${PACK_TEXT.micro}px;
+  letter-spacing:${PACK_HEAD.label.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
+.akv-lyr{flex:0 0 auto;display:flex;align-items:center;gap:${PACK_SPACE.xs}px;white-space:nowrap;cursor:pointer;
+  padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;border:1px solid transparent;
+  background:transparent;color:${AINUBIS.inkDim};font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;}
+.akv-lyr u{width:8px;height:8px;border-radius:${PACK_R.pill}px;text-decoration:none;}
+.akv-lyr[aria-pressed="true"]{color:${AINUBIS.cyan};background:rgba(${AINUBIS.cyanRGB},0.16);border-color:${AINUBIS.edgeStrong};}
+.akv-lyr:disabled{cursor:default;color:${AINUBIS.inkFaint};}
+.akv-lyr:disabled u{opacity:0.45;}
 /* UPÚTAVKA SVETA — tvar budúceho úvodu sveta (.wintro v nákrese), lock §4.1: jedna karta. */
-.akv-world{position:relative;text-align:center;scroll-margin-top:var(--akv-top-h,112px);
+.akv-world{position:relative;text-align:center;scroll-margin-top:${PACK_SPACE.lg}px;
   padding:${PACK_SPACE.xl}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.card}px;
   background:${AINUBIS.raised}, ${AINUBIS.surface};border:1px solid ${AINUBIS.edge};box-shadow:${AINUBIS.panelShadow};
   transition:border-color 300ms ease;}
@@ -183,6 +224,9 @@ const CSS = `
   top:calc(-1 * (env(safe-area-inset-top,0px) + ${PACK_SPACE.xl}px));
   background:linear-gradient(180deg,${AINUBIS.bg} 72%,transparent);}
 @media (max-width:${PC_MIN - 1}px){
+  .akv-planes-l{display:none;}
+  /* Na 390 px sa štyri vrstvy so štítkom nezmestia — štítok ustúpi, vrstvy ostanú celé. */
+  .akv-layers > b{display:none;}
   .akv-root[data-view="scroll"] .akv-top::before{content:'';position:absolute;z-index:-1;pointer-events:none;
     left:-${PACK_SPACE.md}px;right:-${PACK_SPACE.md}px;bottom:-${PACK_SPACE.md}px;
     top:calc(-1 * (env(safe-area-inset-top,0px) + ${PACK_SPACE.md}px));
@@ -191,18 +235,33 @@ const CSS = `
 
 /* ── PC: 40 / 60 vedľa seba, pás len nad pravou plochou (nákres, rozhodnutie 2) ── */
 @media (min-width:${PC_MIN}px){
-  .akv-scroll,.akv-root[data-view="brain"] .akv-scroll{display:block;right:auto;width:var(--akv-panel);
-    padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.xl}px) ${PACK_SPACE.xl}px ${BOTTOM_PC + PACK_SPACE.xl}px;
+  .akv-scroll,.akv-root[data-view="brain"] .akv-scroll{display:flex;right:auto;width:var(--akv-panel);
+    padding-top:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.xl}px);
     border-right:1px solid ${AINUBIS.edge};}
+  .akv-lhead{max-width:none;padding:0 ${PACK_SPACE.xl}px ${PACK_SPACE.lg}px;gap:${PACK_SPACE.lg}px;}
+  .akv-list{padding:${PACK_SPACE.lg}px ${PACK_SPACE.xl}px ${BOTTOM_PC + PACK_SPACE.xl}px;}
+  /* Roviny sa na PC presťahovali do ľavého bloku (Matej 22. 9.). */
+  .akv-toprow{display:none;}
   .akv-brain{left:var(--akv-panel);}
   .akv-top{left:calc(var(--akv-panel) + ${PACK_SPACE.xl}px);right:${PACK_SPACE.xl}px;top:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.xl}px);}
-  .akv-planes{flex:0 1 480px;}
   .akv-mactions{display:none;}
-  .akv-world{scroll-margin-top:${PACK_SPACE.xl}px;}
 }
 `;
 
 type View = 'brain' | 'scroll';
+
+/* VRSTVY z nákresu v5 §11 — farba bodky = farba, ktorou vrstva kreslí mozog.
+   ⚠️ Žije len POSTUP. Ostatné tri potrebujú obsah (zvitky), DOG ID pravidlo a Zem —
+   kým ich nie je, sú viditeľné, ale zamknuté so „soon", nie tvária sa funkčne. */
+const LAYERS = [
+  { k: 'progress', en: 'Progress', rgb: '245,199,61', live: true },
+  { k: 'myDog', en: 'My dog', rgb: '178,86,64', live: false },
+  { k: 'origin', en: 'Origin', rgb: '91,224,240', live: false },
+  { k: 'pack', en: 'Pack', rgb: '59,158,255', live: false },
+] as const;
+/* Súčty z rozpadu svetov — mozog z nich berie hustotu, hlavička ich ukazuje ako menovateľ. */
+const TOTAL_CIRCLES = VAULT_WORLDS.reduce((s, w) => s + w.circles, 0);
+const TOTAL_SCROLLS = VAULT_WORLDS.reduce((s, w) => s + w.scrolls, 0);
 
 export default function PackAinubis() {
   const t = useT();
@@ -214,6 +273,15 @@ export default function PackAinubis() {
   const { lang } = useLang();
   const [view, setView] = useState<View>('brain');
   const [flash, setFlash] = useState<string | null>(null);
+  /* Filter SVET: -1 = všetky. Roletka otvorená: kľúč alebo null. */
+  const [wf, setWf] = useState(-1);
+  const [dd, setDd] = useState<string | null>(null);
+  useEffect(() => {
+    if (!dd) return;
+    const close = () => setDd(null);
+    window.addEventListener('click', close);
+    return () => window.removeEventListener('click', close);
+  }, [dd]);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const cvRef = useRef<HTMLCanvasElement>(null);
@@ -238,6 +306,8 @@ export default function PackAinubis() {
 
   const openWorld = (wi: number) => {
     const key = VAULT_WORLDS[wi].key;
+    /* Klik na svet v mozgu ukáže jeho kartu — filter iného sveta by ju skryl. */
+    setWf(-1);
     setView('scroll');
     setFlash(key);
     /* Až po vykreslení: na mobile je DOGSCROLL do tejto chvíle `display:none`. */
@@ -303,6 +373,60 @@ export default function PackAinubis() {
 
   const plane = (key: 'vault' | 'chat' | 'wall', en: string) => tx(`pack.ainubis.plane.${key}`, en);
   const mask = (ic: string) => ({ WebkitMaskImage: `url(/icons/pack/${ic}.svg)`, maskImage: `url(/icons/pack/${ic}.svg)` });
+  const soon = tx('pack.ainubis.soon', 'soon');
+
+  /* ROVINY — jeden render, dve miesta: mobil hore pod identitou, PC v ľavom bloku. */
+  const planes = (cls: string) => (
+    <nav className={`akv-planes ${cls}`} aria-label="AINUBIS">
+      <button type="button" className="akv-plane" aria-current="page">{plane('vault', 'Vault')}</button>
+      {/* CHAT = kôš 3. Otvára sa tým istým kanálom ako doteraz (`ainubisBus`),
+          takže beží presne ten chat, ktorý žije naostro. */}
+      <button type="button" className="akv-plane" onClick={openAinubis}>{plane('chat', 'Chat')}</button>
+      {/* „čoskoro" len v tooltipe — v SK „NÁSTENKA ČOSKORO" pretiekla z pilulky (390 px aj PC 40 %). */}
+      <button type="button" className="akv-plane" disabled title={soon}>{plane('wall', 'Board')}</button>
+    </nav>
+  );
+
+  /* ROLETKA — SVET žije (filtruje karty), TYP a STAV čakajú na zvitky. */
+  const chev = <span className="akv-chev" aria-hidden><HandArrowLeft size={12} /></span>;
+  const worldOpts = [tx('pack.ainubis.filter.allWorlds', 'All worlds'), ...names];
+  const worldDd = (
+    <div className={`akv-dd${wf >= 0 ? ' is-set' : ''}${dd === 'world' ? ' is-open' : ''}`}>
+      <button type="button" className="akv-ddb" aria-haspopup="listbox" aria-expanded={dd === 'world'}
+        onClick={(e) => { e.stopPropagation(); setDd((d) => (d === 'world' ? null : 'world')); }}>
+        <span>{worldOpts[wf + 1]}</span>{chev}
+      </button>
+      {dd === 'world' && (
+        <div className="akv-ddp" role="listbox">
+          {worldOpts.map((o, i) => (
+            <button key={o} type="button" role="option" aria-selected={wf === i - 1}
+              onClick={() => { setWf(i - 1); setDd(null); }}>{o}</button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+  const lockedDd = (key: string, en: string) => (
+    <div className="akv-dd">
+      <button type="button" className="akv-ddb" disabled title={soon}>
+        <span>{tx(`pack.ainubis.filter.${key}`, en)}</span>{chev}
+      </button>
+    </div>
+  );
+
+  const shown = VAULT_WORLDS.map((w, i) => ({ w, i })).filter(({ i }) => wf < 0 || wf === i);
+  /* Postup vo VAULTE — dnes nula, lebo žiadny svet ešte nie je otvorený. Keď pribudne
+     čítanie, čísla prídu z neho; menovatele sú súčty z rozpadu svetov. */
+  const read = { worlds: 0, circles: 0, scrolls: 0 };
+  const pct = Math.round((read.scrolls / Math.max(1, TOTAL_SCROLLS)) * 100);
+  const vaultStats = (
+    <>
+      <b>{read.worlds}/{VAULT_WORLDS.length}</b>{tx('pack.ainubis.stat.worlds', 'worlds')}
+      <span className="akv-stat-x">{' · '}<b>{read.circles}/{TOTAL_CIRCLES}</b>{tx('pack.ainubis.stat.circles', 'circles')}</span>
+      <span className="akv-stat-x">{' · '}<b>{read.scrolls}/{TOTAL_SCROLLS}</b>{tx('pack.ainubis.stat.scrolls', 'scrolls')}</span>
+      {' · '}<b>{pct} %</b>
+    </>
+  );
 
   return (
     <div className="akv-root" ref={rootRef} data-view={view}>
@@ -321,27 +445,35 @@ export default function PackAinubis() {
 
       {/* ── DOGSCROLL — dnes upútavky svetov, v novembri pás zvitkov ────────── */}
       <aside className="akv-scroll" aria-label={tx('pack.ainubis.view.dogscroll', 'Dogscroll')}>
-        <div className="akv-col">
-          {/* BANNER „stavba pred očami" + November 2026 — presunutý z kostry, nezanikol. */}
-          <header>
-            <div className="akv-head">
-              <img className="akv-face" src={ainubisHead} alt="" aria-hidden />
-              <div>
-                <span className="akv-flag">{tx('pack.ainubis.flag', 'Under construction — in plain sight')}</span>
-                <h1 className="akv-title">{tx('pack.ainubis.dogscroll.title', 'Dogscrolling')}</h1>
-              </div>
-            </div>
+        {/* ZAMKNUTÁ HLAVIČKA (Matej 22. 9.): nadpis · roviny · filtre · vrstvy.
+            Logo, eyebrow a trojriadkový úvod zanikli — „opäť je tam veľa textu".
+            „Stavba pred očami" nesie oznam hore a pilulka na každej karte. */}
+        <header className="akv-lhead">
+          <div>
+            <h1 className="akv-title">{tx('pack.ainubis.dogscroll.title', 'Dogscrolling')}</h1>
             <p className="akv-claim">{tx('pack.ainubis.dogscroll.claim', 'Your dog will thank you for this scroll.')}</p>
-            <p className="akv-lead">
-              {tx(
-                'pack.ainubis.lead',
-                'AINUBIS is learning. Seven worlds of dog knowledge are being written right now, '
-                + 'scroll by scroll. You’ll watch them open one by one.',
-              )}
-            </p>
-          </header>
+          </div>
+          {planes('akv-planes-l')}
+          <div className="akv-filters">
+            {worldDd}
+            {lockedDd('type', 'Type')}
+            {lockedDd('state', 'Status')}
+          </div>
+          <div className="akv-layers" role="group" aria-label={tx('pack.ainubis.layers', 'Layers')}>
+            <b>{tx('pack.ainubis.layers', 'Layers')}</b>
+            {LAYERS.map((l) => (
+              <button key={l.k} type="button" className="akv-lyr" disabled={!l.live} aria-pressed={l.live}
+                title={l.live ? undefined : soon}>
+                <u style={{ background: `rgb(${l.rgb})` }} />
+                {tx(`pack.ainubis.layer.${l.k}`, l.en)}
+              </button>
+            ))}
+          </div>
+        </header>
 
-          {VAULT_WORLDS.map((w, i) => (
+        <div className="akv-list">
+        <div className="akv-col">
+          {shown.map(({ w, i }) => (
             <section
               key={w.key}
               id={`akv-w-${w.key}`}
@@ -355,12 +487,14 @@ export default function PackAinubis() {
             </section>
           ))}
         </div>
+        </div>
       </aside>
 
       {/* ── HORE: IDENTITA + OZNAM, POD TÝM ROVINA (Matej 22. 9.) ─────────────── */}
       <div className="akv-top" ref={topRef}>
         <PackIdentityBar
           id={id}
+          stats={vaultStats}
           middle={(
             <span className="akv-when">
               <span className="akv-when-l">{tx('pack.ainubis.opening', 'Expected opening: November 2026')}</span>
@@ -368,17 +502,7 @@ export default function PackAinubis() {
             </span>
           )}
         />
-        <div className="akv-toprow">
-          <nav className="akv-planes" aria-label="AINUBIS">
-            <button type="button" className="akv-plane" aria-current="page">{plane('vault', 'Vault')}</button>
-            {/* CHAT = kôš 3. Otvára sa tým istým kanálom ako doteraz (`ainubisBus`),
-                takže beží presne ten chat, ktorý žije naostro. */}
-            <button type="button" className="akv-plane" onClick={openAinubis}>{plane('chat', 'Chat')}</button>
-            <button type="button" className="akv-plane" disabled>
-              {plane('wall', 'Board')}<em>{tx('pack.ainubis.soon', 'soon')}</em>
-            </button>
-          </nav>
-        </div>
+        <div className="akv-toprow">{planes('akv-planes-t')}</div>
       </div>
 
       {/* ── DOLE POHĽAD (len mobil) — ikonka aj text ukazujú CIEĽ, nie stav ──── */}

@@ -67,7 +67,10 @@ export interface BrainHandle {
 const TAU = 6.2832;
 const RBASE = 470; /* polomer kruhu v jednotkách plátna */
 /* recept `jadro` z nákresu — `fit` .62 = mapa o polovicu väčšia než pôvodných .48 */
-const C = { w: 0.30, spread: 0.80, zr: 4.2, fit: 0.62 };
+const C = { w: 0.30, spread: 0.80, zr: 4.2, fit: 0.62, fitPc: 0.8 };
+/* ⚠️ `fitPc` (Matej 22. 9.: „základná pozícia asi takáto — zväčši to"): PC štartuje
+   väčší mozog; mobil má vlastné priblíženie cez `MOBIL.zoom` nad `fit`, preto ho
+   táto zmena nesmie posunúť. */
 /* FARBA UZLA = STAV, NIE OZDOBA (nákres §12). Dnes existuje len „nedotknuté". */
 const COL = { modra: '59,158,255', cyan: '91,224,240' };
 /* Uzol sa smie rozhrnúť, nie odniesť (nákres §15). */
@@ -409,7 +412,8 @@ export function mountBrain(o: BrainOptions): BrainHandle {
        inak si sadne pod pás a horná štvrtina zmizne (nákres: `vol = H - 110`). */
     const ins = o.insets();
     const vol = Math.min(W, H - ins.top - ins.bottom);
-    const k = Math.max(0.35, Math.min(2, (vol * C.fit) / Math.max(1, EXTENT)));
+    const fit = o.isMobile() ? C.fit : C.fitPc;
+    const k = Math.max(0.35, Math.min(2, (vol * fit) / Math.max(1, EXTENT)));
     /* Mobil začína priblížený na jadro; stred priblíženia je stred plochy, nie okna. */
     homeK = o.isMobile() ? k * MOBIL.zoom : k;
     const y = (ins.top - ins.bottom) / 2 / homeK;

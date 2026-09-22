@@ -84,7 +84,12 @@ const CSS = `
 `;
 
 /** `id` podáva stránka — druhé volanie `usePackIdentity` by načítalo session a psov znova. */
-export function PackIdentityBar({ id, middle }: { id: ReturnType<typeof usePackIdentity>; middle?: ReactNode }) {
+/** `stats` nahradí riadok „km · výlety" — povrch, ktorý nie je o výletoch, nesie vlastné
+ *  počty (AINUBIS 22. 9.: „meno nebude mať počet tripov ani km, tu sa bude rátať počet
+ *  svetov / okruhov / zvitkov / celkové %"). */
+export function PackIdentityBar({ id, middle, stats }: {
+  id: ReturnType<typeof usePackIdentity>; middle?: ReactNode; stats?: ReactNode;
+}) {
   const t = useT();
   const navigate = useNavigate();
   const myNotePoints = useMyNotePoints();
@@ -148,7 +153,9 @@ export function PackIdentityBar({ id, middle }: { id: ReturnType<typeof usePackI
         <span className="pkid-txt">
           <span className="pkid-name">{name}</span>
           <span className="pkid-stats">
-            <b>{view.km}</b>{t('pack.map.statKm')} · <b>{view.count}</b>{t('pack.map.statTrips' + pluralKey(view.count))}
+            {stats ?? (
+              <><b>{view.km}</b>{t('pack.map.statKm')} · <b>{view.count}</b>{t('pack.map.statTrips' + pluralKey(view.count))}</>
+            )}
           </span>
         </span>
       </button>
