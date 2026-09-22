@@ -201,6 +201,10 @@ const CSS = `
 .akv-lyr:disabled{cursor:default;color:${AINUBIS.inkFaint};}
 .akv-lyr:disabled u{opacity:0.45;}
 
+/* PC — riadok hľadanie + roletky pod hlavičkou (vzor .trp-topsearchrow). */
+.akv-ptools{display:none;}
+.akv-lhead-row{display:flex;align-items:flex-start;justify-content:space-between;gap:${PACK_SPACE.md}px;}
+
 /* MOBIL — riadok hľadanie + FILTRE (vzor .trp-mheader-row2) a šuplík filtrov (.trp-msheet). */
 .akv-mtools{display:none;}
 .akv-fbtn{flex:0 0 auto;display:flex;align-items:center;gap:${PACK_SPACE.xs}px;white-space:nowrap;cursor:pointer;
@@ -293,6 +297,9 @@ const CSS = `
   /* Roviny sa na PC presťahovali do ľavého bloku (Matej 22. 9.). */
   .akv-toprow{display:none;}
   .akv-ctl{right:${PACK_SPACE.xl}px;}
+  .akv-ptools{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;}
+  .akv-ptools .akv-search{flex:1 1 320px;max-width:420px;}
+  .akv-ptools .akv-filters{flex:0 1 480px;}
   .akv-brain{left:var(--akv-panel);}
   .akv-top{left:calc(var(--akv-panel) + ${PACK_SPACE.xl}px);right:${PACK_SPACE.xl}px;top:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.xl}px);}
   .akv-mactions{display:none;}
@@ -548,17 +555,16 @@ export default function PackAinubis() {
             Logo, eyebrow a trojriadkový úvod zanikli — „opäť je tam veľa textu".
             „Stavba pred očami" nesie oznam hore a pilulka na každej karte. */}
         <header className="akv-lhead">
-          <div>
+          {/* Riadok nadpisu má PRAVÚ STRANU VOĽNÚ — Matej 22. 9.: „vedľa nadpisu sa žiada
+              niečo doplniť, asi časom filter, zoradenie". Pod nadpis už nič nepribúda,
+              ľavý blok má čo najviac miesta na scrolling. */}
+          <div className="akv-lhead-row">
+            <div>
             <h1 className="akv-title">{tx('pack.ainubis.dogscroll.title', 'Dogscrolling')}</h1>
             <p className="akv-claim">{tx('pack.ainubis.dogscroll.claim', 'Your dog will thank you for this scroll.')}</p>
+            </div>
           </div>
           {planes('akv-planes-l')}
-          {search}
-          <div className="akv-filters">
-            {worldDd}
-            {lockedDd('type', 'Type')}
-            {lockedDd('state', 'Status')}
-          </div>
         </header>
 
         <div className="akv-list">
@@ -594,6 +600,15 @@ export default function PackAinubis() {
           )}
         />
         <div className="akv-toprow">{planes('akv-planes-t')}</div>
+        {/* PC: hľadanie a filtre POD hlavičkou nad mozgom, ako na /map (Matej 22. 9.). */}
+        <div className="akv-ptools">
+          {search}
+          <div className="akv-filters">
+            {worldDd}
+            {lockedDd('type', 'Type')}
+            {lockedDd('state', 'Status')}
+          </div>
+        </div>
         <div className="akv-mtools">
           {search}
           <button type="button" className={`akv-fbtn${wf >= 0 ? ' is-set' : ''}`}
