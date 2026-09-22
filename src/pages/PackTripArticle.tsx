@@ -1239,10 +1239,22 @@ export default function PackTripArticle() {
   );
   const reviewsRef = useRef<HTMLDivElement | null>(null);
 
+  /* 🔴 PRÍBEHY SÚ LEN NA MAGISTRÁLACH (Matej 22. 9. 2026: „zatiaľ to dajme len na
+     magistrály nie na custom odyseu"). Písať príbeh s videom a odkazom na 15 km túru
+     zmysel nemá — kronika patrí k ceste, ktorá trvá dni.
+     ⚠️ `diff === 'Odyssey'` je KATALÓGOVÁ magistrála, NIE `isOdyssey()` — tá vracia true
+     aj pre každú členovu dvojdňovku (`tripDayCount >= 2`) a to je presne to, čo Matej
+     vyložene nechcel. Je to ten istý rozdiel, pre ktorý sa na `isOdyssey()` neprepísalo
+     ani autorovo hodnotenie o kus vyššie.
+     ⚠️ Vypne to TRI veci naraz: načítanie kroniky, sekciu v článku aj vchod do písania.
+     Staré príbehy pod nemagistrálou (na DEV sú ukážkové) tým z obrazovky zmiznú,
+     v DB ostanú — je to zúženie povrchu, nie mazávanie obsahu. */
+  const storiesOn = baseTrail?.diff === 'Odyssey';
+
   /* ⚠️ Rovnaký dôvod ako pri `ratingCount` vyššie: hook MUSÍ stáť nad `if (id.loading)`.
      Kľúč je `baseTrail?.id`, nie `trail?.id` — `trail` vzniká až z memo pod úpravami
      a pri prvom vykreslení by bol `undefined`, takže kronika by sa načítala dvakrát. */
-  const { stories, setStories } = useTripStories(baseTrail?.id);
+  const { stories, setStories } = useTripStories(storiesOn ? baseTrail?.id : undefined);
   /* Otvoreny pribeh sa ODVODZUJE Z ADRESY, nikdy sa nedrzi v stave. Dva zdroje by
      znamenali, ze sipka spat v prehliadaci zavrie vrstvu, ale stav o tom nevie. */
   const openStory = storyN ? stories.find((x) => String(x.rank) === storyN) ?? null : null;
@@ -1417,13 +1429,15 @@ export default function PackTripArticle() {
                       po prejdeni odysey". `panel: false` v registri preto ostava.
                       Stoji PRVA: je to jediny dovod, preco toto menu otvara niekto,
                       kto uz vylet ma zapisany. */}
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={() => { setWalkedMenuOpen(false); setWriteOpen(true); }}
-                  >
-                    {t('pack.trip.stories.write.entry')}
-                  </button>
+                  {storiesOn && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => { setWalkedMenuOpen(false); setWriteOpen(true); }}
+                    >
+                      {t('pack.trip.stories.write.entry')}
+                    </button>
+                  )}
                   <button
                     type="button"
                     role="menuitem"
@@ -1701,14 +1715,14 @@ export default function PackTripArticle() {
             ⚠️ Stojí POD popisom a POD „vyraziť na miesto", teda ešte pred praktickými
             zápismi svorky: je to „aké to je", nie „čo treba vedieť, než vyrazíš".
             ⚠️ Prázdna kronika sa nevykreslí vôbec — guard je vnútri komponentu. */}
-        <TripStories
+        {storiesOn && <TripStories
           stories={stories}
           setStories={setStories}
           locale={dateLocale}
           onOpen={(story) => navigate(`${tripPath(trail)}/pribeh/${story.rank}`)}
           onUse={useTrailFromStory}
           onShare={shareStory}
-        />
+        />}
 
         {/* Zápisy členov (parkovisko, výstrahy, poznámky) — NAD diskusiou: je to
             informácia „než vyrazíš", nie rozhovor.

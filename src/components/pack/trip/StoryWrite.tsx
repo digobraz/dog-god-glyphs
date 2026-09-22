@@ -117,6 +117,7 @@ export function StoryWrite({ slug, onClose, onSaved }: StoryWriteProps) {
   const [body, setBody] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
   const [link, setLink] = useState('');
+  const [title, setTitle] = useState('');
   const [youtube, setYoutube] = useState('');
   const [isPublic, setIsPublic] = useState(false);
   const [happenedAt, setHappenedAt] = useState<string | null>(null);
@@ -137,7 +138,7 @@ export function StoryWrite({ slug, onClose, onSaved }: StoryWriteProps) {
     let alive = true;
     loadMyStory(slug).then((mine) => {
       if (!alive || !mine) return;
-      setBody(mine.body); setPhotos(mine.photos); setLink(mine.link);
+      setTitle(mine.title); setBody(mine.body); setPhotos(mine.photos); setLink(mine.link);
       setYoutube(mine.youtube); setIsPublic(mine.isPublic); setHappenedAt(mine.happenedAt);
       setAlreadyIn(mine.isPublic);
     });
@@ -170,7 +171,7 @@ export function StoryWrite({ slug, onClose, onSaved }: StoryWriteProps) {
 
   const save = async () => {
     setBusy(true); setNote('');
-    const r = await saveStory(slug, { body: body.trim(), photos, link: link.trim(), youtube: youtube.trim(), isPublic, happenedAt });
+    const r = await saveStory(slug, { title: title.trim(), body: body.trim(), photos, link: link.trim(), youtube: youtube.trim(), isPublic, happenedAt });
     setBusy(false);
     if (!r.ok) { setNote(r.error ?? t('pack.trip.stories.write.failed')); return; }
     onSaved();
@@ -184,6 +185,16 @@ export function StoryWrite({ slug, onClose, onSaved }: StoryWriteProps) {
             <BackButton tone="pale" onClick={onClose} label={t('pack.trip.stories.write.close')} />
             <span className="psw-title">{t('pack.trip.stories.write.title')}</span>
           </div>
+
+          {/* 🔴 NADPIS (Matej 22. 9.: „nadpis by som nechal"). Nákres ho kreslil,
+              zadanie ho nemalo — rozsudok znie: má ho.
+              ⚠️ NIE JE POVINNÝ. Tlačidlo uloženia stráži stále TEXT, nie nadpis —
+              príbeh bez mena je príbeh, príbeh bez textu nie je nič. Prázdny nadpis
+              uloží RPC ako NULL, nie ako prázdny reťazec. */}
+          <label className="psw-lbl" htmlFor="psw-title">{t('pack.trip.stories.write.name')}</label>
+          <input id="psw-title" className="psw-in pf-field" value={title} maxLength={80}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder={t('pack.trip.stories.write.nameHint')} />
 
           <label className="psw-lbl" htmlFor="psw-body">{t('pack.trip.stories.write.body')}</label>
           <textarea id="psw-body" className="psw-ta pf-field" value={body}

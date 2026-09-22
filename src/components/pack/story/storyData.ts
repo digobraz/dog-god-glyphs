@@ -34,7 +34,16 @@ export interface TripStory {
   isMine: boolean;
   /** Krstné meno z `dogs.owner_name` — rovnaký rozsah identity ako `trip_walkers()`. */
   ownerFirst: string;
-  dogs: { name: string; n: number }[];
+  /** 🔴 TVÁR V HLAVIČKE JE ČLOVEK (Matej 22. 9.). Fotka nie je v `dogs` ani
+   *  v `pack_profiles` — sedí v metadátach účtu, takže ju vracia až RPC.
+   *  Prázdne = medailón s iniciálou, čo je platný stav, nie chyba. */
+  ownerPhoto: string;
+  /** `photo` = `dogs.cloudinary_main_url`, ten istý stĺpec, aký cudzím ľuďom ukáže
+   *  aj `get_trip_party()`. „Kľudne aj so psom" — pes stojí vedľa človeka. */
+  dogs: { name: string; n: number; photo?: string | null }[];
+  /** Nadpis príbehu. ⚠️ SMIE BYŤ PRÁZDNY — príspevok bez nadpisu je platný
+   *  príspevok a štyri staršie príbehy ho nemajú. Každý povrch s tým ráta. */
+  title: string;
   body: string;
   photos: string[];
   attach: StoryAttach;
@@ -60,7 +69,9 @@ const rowToStory = (r: any): TripStory => ({
   rank: Number(r.rank) || 0,
   isMine: !!r.is_mine,
   ownerFirst: r.owner_first ?? '',
+  ownerPhoto: r.owner_photo ?? '',
   dogs: Array.isArray(r.dogs) ? r.dogs : [],
+  title: r.title ?? '',
   body: r.body ?? '',
   photos: asArray(r.photos),
   attach: (r.attach && typeof r.attach === 'object') ? r.attach : {},
@@ -131,6 +142,7 @@ export function useTripStories(slug: string | undefined) {
 /** Rozpísaný alebo zverejnený príbeh prihláseného človeka k tejto trase. */
 export interface MyStory {
   id: string;
+  title: string;
   body: string;
   photos: string[];
   link: string;
@@ -148,6 +160,7 @@ export async function loadMyStory(slug: string): Promise<MyStory | null> {
   const attach: StoryAttach = (r.attach && typeof r.attach === 'object') ? r.attach : {};
   return {
     id: String(r.id),
+    title: r.title ?? '',
     body: r.body ?? '',
     photos: asArray(r.photos),
     link: attach.link ?? '',
@@ -162,11 +175,12 @@ export async function loadMyStory(slug: string): Promise<MyStory | null> {
  *  `supabase.from('posts').upsert()` by pri druhom zápise vrátil „duplicate key".
  *  RPC navyše overí, že človek trasu naozaj PREŠIEL (vchod je „prešiel som"). */
 export async function saveStory(slug: string, s: {
-  body: string; photos: string[]; link: string; youtube: string;
+  title: string; body: string; photos: string[]; link: string; youtube: string;
   isPublic: boolean; happenedAt: string | null;
 }): Promise<{ ok: boolean; error?: string }> {
   const { error } = await db.rpc('save_trip_story', {
     p_trip_slug: slug,
+    p_title: s.title || null,
     p_body: s.body,
     p_photos: s.photos,
     p_link: s.link || null,

@@ -15,12 +15,14 @@
 // schválenú výnimku — ibaže na papyruse ich kreslí operačný systém: `↗️` je MODRÝ
 // ŠTVOREC a `🔖` čmáranica, na každom zariadení iná. Matej po snímke vybral kit:
 // `HandPlus` · `HandForward` · `HandStar` · `HandLink` — jeden inkoust, farba textu.
-// 🔴 SRDCE V KITE NIE JE. `HeartTemp` nižšie je DOČASNÁ kresba a čaká na Matejovu;
-// keď príde, pregeneruj ju do `HandIcons.tsx` a tento komponent zmaž.
+// ✅ SRDCE JE Z KITU od 22. 9. 2026 — `HandHeart` (kit „HEART SYMBOL OUTLINE").
+// Dočasná kresba, ktorá tu stála jedno popoludnie, je zmazaná aj v `StoryView`.
+// ⚠️ Stav `on` nesie HRÚBKA ŤAHU, nie výplň: kresba je hotový obrys a `fill` ju
+// nevyplní. Farbu dvíha trieda `--on` (LAPIS) — voľba človeka, nie nábytok.
 // ============================================================================
 import { PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, PACK_SHADOW, PACK_THEME, FONT_TITLE, FONT_UI } from '../packTheme';
 import { LAPIS } from '../navGoldSkin';
-import { HandPlus, HandForward, HandStar, HandLink } from '../HandIcons';
+import { HandPlus, HandForward, HandStar, HandLink, HandHeart } from '../HandIcons';
 import type { TripStory } from '../story/storyData';
 
 const T = PACK_THEME;
@@ -113,20 +115,6 @@ export const STORY_CARD_CSS = `
 .pst-play{ display:block; }
 `;
 
-/** 🔴 DOČASNÉ SRDCE — v hand-drawn kite nie je a Matej si ho 22. 9. vypýtal na nakreslenie.
- *  Ťah je zámerne nesúmerný, aby sedel k ostatným kresbám; `on` ho vyplní.
- *  ⚠️ Nie je to brandová ikonka. Stráž `check:ikony` inline SVG NEVIDÍ, takže tento
- *  dlh nezasvieti sám — je zapísaný tu a v zadaní príbehov. */
-function HeartTemp({ on, size = 14 }: { on: boolean; size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true"
-      fill={on ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.7"
-      strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 20.4C10.3 19 3.8 14.6 3.4 9.6 3.1 6.3 5.6 4 8.3 4.2c1.7.1 3 1.1 3.7 2.4.6-1.4 2-2.4 3.7-2.5 2.7-.2 5.2 2 5 5.3-.3 5-6.8 9.5-8.7 11z" />
-    </svg>
-  );
-}
-
 /** Náhľadový trojuholník videa. Inline SVG, nie znak `▶` — holý textový znak je
  *  podľa brandu nález „mimo brandu" a stráž `check:ikony` ho meria všade. */
 function PlayMark() {
@@ -183,7 +171,7 @@ export function StoryCard({ story, locale, onOpen, onLike, onSave, onUse, onShar
         <div className="pst-acts">
           <button type="button" className={`pst-act${story.liked ? ' pst-act--on' : ''}`}
             onClick={act(onLike)} aria-label={labels.like}>
-            <HeartTemp on={story.liked} />{story.likes > 0 && <b>{story.likes}</b>}
+            <HandHeart size={14} on={story.liked} />{story.likes > 0 && <b>{story.likes}</b>}
           </button>
           <button type="button" className={`pst-act${story.saved ? ' pst-act--on' : ''}`}
             onClick={act(onSave)} aria-label={labels.save}><HandStar size={14} /></button>

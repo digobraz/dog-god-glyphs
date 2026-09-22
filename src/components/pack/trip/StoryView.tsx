@@ -22,7 +22,7 @@ import {
   PACK_THEME, FONT_TITLE, FONT_UI,
 } from '../packTheme';
 import { LAPIS } from '../navGoldSkin';
-import { HandPlus, HandForward, HandStar, HandLink } from '../HandIcons';
+import { HandPlus, HandForward, HandStar, HandLink, HandHeart } from '../HandIcons';
 import { BackButton } from '../BackButton';
 import type { TripStory } from '../story/storyData';
 import { getConsent } from '@/lib/consent';
@@ -70,16 +70,34 @@ export const STORY_VIEW_CSS = `
 }
 /* „ako prvý" je ZLATÉ — je to poloha v kronike, nie akcia (deliaca čiara brandu). */
 .psv-first{ color:${T.cardEdge}; }
+/* NADPIS PRÍBEHU — nákres ho kreslí medzi dátum a riadok s tvárou („Posledný kopec").
+   Tvar je NADPIS KARTY z katalógu (PACK_HEAD.card), nie vlastný stupeň: nákres má
+   15px/.06em, ale to je mierka kresby a .06em nie je žiadny z troch tvarov `PACK_HEAD`.
+   ⚠️ Prázdny nadpis sa NEVYKRESLÍ vôbec — štyri staršie príbehy ho nemajú. */
+.psv-title{
+  font-family:${PACK_HEAD.card.fontFamily}; font-weight:${PACK_HEAD.card.fontWeight};
+  font-size:${PACK_HEAD.card.fontSize}px; letter-spacing:${PACK_HEAD.card.letterSpacing};
+  line-height:1.2; color:${T.inkStrong}; margin:${PACK_SPACE.sm}px 0 0;
+}
 .psv-who{
   display:flex; align-items:center; gap:${PACK_SPACE.sm}px;
   margin:${PACK_SPACE.md}px 0 ${PACK_SPACE.lg}px;
 }
+/* 🔴 TVÁR JE ČLOVEK, KĽUDNE AJ SO PSOM (Matej 22. 9.). Dva medailóny s miernym
+   prekryvom — ten istý čítaný tvar ako blok JA + SVORKA na domove, len v malom.
+   ⚠️ Fotka ČLOVEKA sedí v metadátach účtu, nie v `dogs`; vracia ju RPC. Keď ju
+   človek nemá, ostane medailón s iniciálou — to nie je chyba, to je väčšina účtov. */
+.psv-faces{ flex:0 0 auto; display:flex; align-items:center; }
+.psv-faces > * + *{ margin-left:-${PACK_SPACE.sm}px; }
 .psv-face{
   flex:0 0 auto; width:36px; height:36px; border-radius:${PACK_R.pill}px;
-  display:flex; align-items:center; justify-content:center;
+  display:flex; align-items:center; justify-content:center; overflow:hidden;
   background:${T.tileBg}; border:1.5px solid ${T.border};
   font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.body}px; color:${T.inkWarm};
 }
+/* Pes je DRUHÝ a menší: príbeh píše človek. Zlatý lem ho odlíši v prekryve. */
+.psv-face--dog{ width:30px; height:30px; border-color:${T.cardEdge}; }
+.psv-face > img{ width:100%; height:100%; object-fit:cover; display:block; }
 .psv-name{ font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.lead}px; letter-spacing:0.02em; }
 .psv-dog{ font-family:${DOG_NAME_FONT}; font-weight:700; }
 .psv-sub{ font-size:${PACK_TEXT.label}px; color:${T.inkWarm}; }
@@ -208,8 +226,21 @@ export function StoryView({ story, next, locale, onClose, onNext, onLike, onSave
             </b>
           </div>
 
+          {story.title && <h1 className="psv-title">{story.title}</h1>}
+
           <div className="psv-who">
-            <span className="psv-face">{(story.ownerFirst || '?').slice(0, 1).toUpperCase()}</span>
+            <span className="psv-faces">
+              <span className="psv-face">
+                {story.ownerPhoto
+                  ? <img src={story.ownerPhoto} alt="" loading="lazy" />
+                  : (story.ownerFirst || '?').slice(0, 1).toUpperCase()}
+              </span>
+              {story.dogs[0]?.photo && (
+                <span className="psv-face psv-face--dog">
+                  <img src={story.dogs[0].photo} alt="" loading="lazy" />
+                </span>
+              )}
+            </span>
             <span>
               <span className="psv-name">
                 {story.ownerFirst || '—'}
@@ -269,7 +300,7 @@ export function StoryView({ story, next, locale, onClose, onNext, onLike, onSave
           <div className="psv-acts">
             <button type="button" className={`psv-act${story.liked ? ' psv-act--on' : ''}`}
               onClick={onLike} aria-label={t('pack.trip.stories.act.like')}>
-              <HeartMark on={story.liked} />{story.likes > 0 && <b>{story.likes}</b>}
+              <HandHeart size={15} on={story.liked} />{story.likes > 0 && <b>{story.likes}</b>}
             </button>
             <button type="button" className={`psv-act${story.saved ? ' psv-act--on' : ''}`}
               onClick={onSave} aria-label={t('pack.trip.stories.act.save')}><HandStar size={15} /></button>
@@ -288,17 +319,5 @@ export function StoryView({ story, next, locale, onClose, onNext, onLike, onSave
         </div>
       </div>
     </div>
-  );
-}
-
-/** 🔴 DOČASNÉ SRDCE — rovnaká kresba ako v `StoryCard`, kým Matej nepošle svoju.
- *  Keď príde, pregeneruj ju do `HandIcons.tsx` a obe kópie zmaž naraz. */
-function HeartMark({ on, size = 15 }: { on: boolean; size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true"
-      fill={on ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.7"
-      strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 20.4C10.3 19 3.8 14.6 3.4 9.6 3.1 6.3 5.6 4 8.3 4.2c1.7.1 3 1.1 3.7 2.4.6-1.4 2-2.4 3.7-2.5 2.7-.2 5.2 2 5 5.3-.3 5-6.8 9.5-8.7 11z" />
-    </svg>
   );
 }
