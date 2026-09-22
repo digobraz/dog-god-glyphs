@@ -392,12 +392,12 @@
   "components/pack/addtrip/AddTripEntry.tsx": {
     "radius": 0,
     "font": 1,
-    "zavoj": 2,
+    "zavoj": 0,
     "progres": 0,
-    "ram": 1,
+    "ram": 0,
     "tien": 0,
     "pismenka": 3,
-    "odsadenie": 3
+    "odsadenie": 2
   },
   "components/pack/addtrip/AddTripLog.tsx": {
     "radius": 20,
@@ -791,11 +791,11 @@
   },
   "pages/PackMap.tsx": {
     "radius": 22,
-    "font": 69,
-    "zavoj": 69,
+    "font": 68,
+    "zavoj": 67,
     "progres": 0,
     "ram": 27,
-    "tien": 60,
+    "tien": 58,
     "pismenka": 29,
     "odsadenie": 101
   },

@@ -77,7 +77,10 @@ const COL = { modra: '59,158,255', cyan: '91,224,240' };
 const MAX_TAH = 70;
 /* MOBIL (Matej 22. 9.): jadro priblížené, bubliny svetov a stred väčšie. Okraj
    mozgu vtedy pretečie mimo okna — ťah ho posunie, dva prsty oddialia na celok. */
-const MOBIL = { zoom: 1.6, bubble: 1.3, cap: 1.1 };
+const MOBIL = { zoom: 1.45, bubble: 1.3, cap: 1.1 };
+/* Úvodná mierka PC z jadra je o kúsok voľnejšia než „bubliny po okraj“ (Matej 22. 9.:
+   „pri načítaní trochu poľav zo zoomu, len trošku“). Mobil: 1,6 → 1,45 z toho istého dôvodu. */
+const CORE_EASE = 0.9;
 /* Meno okruhu sa píše až od tohto násobku celkového pohľadu — pri celku by 62
    nápisov bolo len šum. Na dotyk sa píše vždy. */
 const OKRUH_OD = 1.9;
@@ -184,6 +187,9 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     BB.y0 = Math.min(BB.y0, p.y); BB.y1 = Math.max(BB.y1, p.y);
   });
   E.forEach((e) => { e[0].nb.push(e[1]); e[1].nb.push(e[0]); });
+  /* DOSAH JADRA — najvzdialenejšia bublina sveta zvlášť vodorovne a zvislo. */
+  const CORE = { x: 0, y: 0 };
+  N.forEach((p) => { if (p.role === 'w') { CORE.x = Math.max(CORE.x, Math.abs(p.x)); CORE.y = Math.max(CORE.y, Math.abs(p.y)); } });
 
   const ICONS: HTMLImageElement[] = o.worlds.map((w) => { const im = new Image(); im.src = `/icons/pack/${w.ic}.svg`; return im; });
   const HEAD = new Image(); HEAD.src = o.head;
@@ -377,7 +383,9 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     if (t.hint) { const u = document.createElement('u'); u.textContent = t.hint; tip.appendChild(u); }
     tip.style.left = `${x}px`; tip.style.top = `${y}px`; tip.style.opacity = '1';
   }
-  const panMozne = () => vt.k > baseK * 1.05;
+  /* ŤAH PO PRÁZDNE POSÚVA MAPU OD PRVEJ CHVÍLE (Matej 22. 9.) — dovtedy len po priblížení.
+     Hranicu drží elipsa okolo rozvrhu (drzVSieti), takže mozog z plochy neodíde. */
+  const panMozne = () => true;
   function hover() {
     HOV = hitNode(); HOVE = HOV ? null : hitEdge();
     if (HOV) {
@@ -392,8 +400,8 @@ export function mountBrain(o: BrainOptions): BrainHandle {
 
   // ── OVLÁDANIE — MOZOG STOJÍ, UZLY SA DAJÚ ROZHRNÚŤ (nákres §15) ─────────────
   //   1. ťah za uzol ho rozhrne a pružina ho vráti — poloha je totožnosť,
-  //   2. ťah po prázdne pri východiskovom pohľade nerobí nič,
-  //   3. keď je priblížené, ťah posúva mapu — hranica je elipsa okolo rozvrhu.
+  //   2. ťah po prázdne posúva mapu vždy (od 22. 9.) — hranica je elipsa okolo rozvrhu,
+  //   3. klik na uzol ho priblíži a vycentruje (od 22. 9.).
   function drzVSieti() {
     /* ⚠️ HRANICA JE ELIPSA, NIE OBDĹŽNIK — v rohu boxu je pri kruhu prázdno. */
     const sx = (BB.x0 + BB.x1) / 2, sy = (BB.y0 + BB.y1) / 2;
@@ -413,7 +421,15 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     const ins = o.insets();
     const vol = Math.min(W, H - ins.top - ins.bottom);
     const fit = o.isMobile() ? C.fit : C.fitPc;
-    const k = Math.max(0.35, Math.min(2, (vol * fit) / Math.max(1, EXTENT)));
+    let k = Math.max(0.35, Math.min(2, (vol * fit) / Math.max(1, EXTENT)));
+    /* PC = MIERKA Z JADRA, NIE ZO SIETE (Matej 22. 9.: „zoomni jadro, aby nebolo vidno
+       priestor po posledných bublinkách"). Bubliny svetov aj s nápisom siahajú takmer
+       po okraj plochy; sieť za nimi pretečie von a dá sa k nej dostať ťahom / kolieskom.
+       Rezerva = polomer bubliny + nápis (vodorovne dlhší, zvislo len riadok). */
+    if (!o.isMobile() && CORE.x > 0 && CORE.y > 0) {
+      const hAvail = H - ins.top - ins.bottom;
+      k = Math.max(0.35, CORE_EASE * Math.min((W / 2 - 170) / CORE.x, (hAvail / 2 - 64) / CORE.y));
+    }
     /* Mobil začína priblížený na jadro; stred priblíženia je stred plochy, nie okna. */
     homeK = o.isMobile() ? k * MOBIL.zoom : k;
     const y = (ins.top - ins.bottom) / 2 / homeK;
@@ -421,9 +437,20 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     vt = { x: 0, y, k: homeK }; view = { x: 0, y, k: homeK };
     N.forEach((p) => { p.dx = p.dy = p.vx = p.vy = 0; });
   }
+  /* KLIK NA UZOL = PRIBLÍŽ A VYCENTRUJ (Matej 22. 9.: „kliknutím na uzol sa obrazovka
+     priblíži a vycentruje na konkrétnom uzle"). Stred = stred plochy medzi pásmi, nie okna.
+     Hĺbka podľa úrovne: svet ukáže svoje okruhy, okruh svoje zvitky. Nikdy neoddiali. */
+  function focus(p: Node) {
+    const ins = o.insets();
+    const want = homeK * (p.role === 'w' ? 2 : p.role === 'o' ? 3 : 3.6);
+    vt.k = Math.max(0.35, Math.min(4.5, Math.max(vt.k, want)));
+    vt.x = -(p.x + p.dx);
+    vt.y = -(p.y + p.dy) + (ins.top - ins.bottom) / 2 / vt.k;
+  }
   function pick(p: Node) {
     if (p.role === 'root') { o.onRoot(); return; }
-    o.onWorld(p.wi);
+    focus(p);
+    if (p.role === 'w') o.onWorld(p.wi);
   }
 
   const onMove = (e: PointerEvent) => {

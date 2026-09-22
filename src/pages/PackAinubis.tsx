@@ -370,6 +370,10 @@ export default function PackAinubis() {
     const key = VAULT_WORLDS[wi].key;
     /* Klik na svet v mozgu ukáže jeho kartu — filter iného sveta by ju skryl. */
     setWf(-1);
+    /* Od 22. 9. klik na uzol mozog PRIBLÍŽI a vycentruje (brainEngine focus). Na PC stojí
+       zoznam vedľa, takže karta sa len dorolovaním rozsvieti; na mobile by prepnutie na
+       zoznam priblíženie hneď schovalo — tam sa ku karte ide pilulkou DOGSCROLL. */
+    if (window.innerWidth < PC_MIN) { setFlash(key); window.setTimeout(() => setFlash((f) => (f === key ? null : f)), 1400); return; }
     setView('scroll');
     setFlash(key);
     /* Až po vykreslení: na mobile je DOGSCROLL do tejto chvíle `display:none`. */

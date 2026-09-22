@@ -2723,52 +2723,11 @@ const PALE_ADD_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-addhost .trp-draftpill{background:rgba(255,251,240,0.6);border-color:${P_HAIR};color:${P_DIM};}
   .trp-addhost .trp-draftmiss{color:${P_DIM};}
 
-  /* ── 9. VSTUPNÝ POPUP PRIDÁVANIA (VÝLET / PODUJATIE / ODKAZ) ──────────────────────────
-     Prvý krok toku pridávania. Komponent "AddTripEntry" má v hlavičke napísané, že žije na
-     tmavom povrchu Portalu a preto berie pk-glass — na PC to odteraz neplatí, tak sa prebíja
-     tu, a nie prepisom komponentu: ten istý popup obsluhuje aj mobil, ktorý ostáva tmavý.
-     Panel = úroveň 4 matrice (PANEL), dlaždice = úroveň 2 (PODBLOK).
-     ⚠️ PREDPONA .trp-root NIE JE OZDOBA. "AddTripEntry" si vkladá vlastný <style> a v DOM stojí
-     ZA týmto blokom, takže pri rovnakej špecificite (0-1-0) vyhráva ON — prvý pokus prefarbil
-     len panel (mal .pk-glass navyše) a dlaždice ostali tmavé. Popup sa renderuje vnútri
-     .trp-root, takže predpona je zadarmo a spor rozhodne. */
-  .trp-root .att-entry-backdrop{background:rgba(24,14,4,0.55);}
-  /* ⚠️ VETA HORE A ŠTÍTOK SKUPINY SÚ V ENTRY_CSS BLEDÉ (panel je tam čierne sklo). Na papyruse
-     by boli takmer neviditeľné — biele písmo na piesku. Farbu prebíjame TU, rovnako ako
-     všetko ostatné v tejto sekcii; komponent ostáva jeden pre obe podoby. */
-  .trp-root .att-entry-st{color:${P_INK};}
-  .trp-root .att-entry-grplbl{color:${P_DIM};}
-  /* TABUĽA S OKRAJMI, nie plochý panel (Matej 2026-08-26). Rám je goldFrameCSS — ten istý
-     zdroj ako ľavý panel aj spodný nav, takže popup nie je samostatný materiál.
-     ⚠️ border-radius a border nesie goldFrameCSS — nepridávaj ich znova, prepísal by si
-     transparentný rám, na ktorom celý dvojpozaďový trik stojí. */
-  .trp-root .att-entry-panel.pk-glass{${goldFrameCSS()}backdrop-filter:none;-webkit-backdrop-filter:none;}
-  /* Návrat v toku — .att-entry-nav je jeden prvok pre obe úrovne (viď AddTripEntry.tsx).
-     Tvar nesie BackButton.tsx (LOCKED 1. 9.), tu sa mení len tón na bledý. */
-  .trp-root .att-entry-nav{${backCircleCSS('pale')}}
-  .trp-root .att-entry-nav:hover{${backHoverCSS('pale')}}
-  /* ⚠️ Zopakované ZÁMERNE: mobilná vetva nižšie túto triedu zobrazuje a bez tohto riadku
-     by prebilo .att-entry-nav--close{display:none} a na PC by hore svietila šípka na krok,
-     ktorý nikam nevedie. */
-  .trp-root .att-entry-nav--close{display:none;}
-  .trp-root .att-entry-lead{color:${P_DIM};}
-  /* ── RIADOK PONUKY NA PAPYRUSE (21. 9. 2026) ───────────────────────────────────────
-     Do 21. 9. tu stála bledá podoba DLAŽDICE (veľký glyf, podnadpis, bežiaci rad chipov,
-     prvá dlaždica cez celú šírku). Matej ju v ten večer zrušil: „popup pri + musí byť
-     priamy, krátky, stručný, bez scrollu… emoji a vedľa text, žiadne vysvetlovačky."
-     Ostal jeden riadok, takže z celej sekcie stačia štyri deklarácie. */
-  .trp-root .att-entry-row{background:${T.cardGrad};border:1px solid ${T.cardEdge};box-shadow:0 1px 3px rgba(122,90,42,0.10),inset 0 1px 0 rgba(255,255,255,0.40);}
-  .trp-root .att-entry-row:hover,.trp-root .att-entry-row:focus-visible{background:${T.cardGrad};border-color:#8A5F1E;box-shadow:0 0 0 3px rgba(201,154,63,0.28),0 6px 16px rgba(122,90,42,0.22);}
-  .trp-root .att-entry-row--soon:hover,.trp-root .att-entry-row--soon:focus-visible{border-color:${T.cardEdge};box-shadow:none;}
-  .trp-root .att-entry-title{color:${P_INK};}
-  .trp-root .att-entry-soon{color:${P_FAINT};border-color:${P_HAIR};}
-  /* BODY V LAPISOVEJ PILULKE (Matej 2026-08-26: „body budú v modrom pilse").
-     Podľa pravidla lapisu je odmena „moje" — patrí k voľbe, nie ku konštrukcii. Zlatá
-     pilulka na zlatom riadku v zlatom ráme bola tretia zlatá vrstva na sebe a číslo
-     v nej zaniklo. Písmo je zlaté, nie biele — to drží lapis v brande. */
-  .trp-root .att-entry-pts{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};}
-  /* Úchyt šuplíka na papyruse — tá istá linka, len v tóne dosky. */
-  .trp-root .att-entry-grab::before{background:${P_HAIR};}
+  /* ── 9. VSTUPNÝ POPUP PRIDÁVANIA — ŠAT ODIŠIEL DO KOMPONENTU (22. 9. 2026) ────────────
+     Matej: „popup pri + na každej obrazovke musí byť bledý a musí sa vysunúť zo spodného
+     navu v jeho šírke". Bledý bol dovtedy LEN na mape (prebitím s predponou .trp-root),
+     inde svietil tmavý. Papyrus aj poloha sú odteraz v ENTRY_CSS (AddTripEntry.tsx) —
+     jeden zdroj pre všetky povrchy, žiadne prebíjanie tu. */
 
   /* ── 7b. VÝBER SPOLOČNÍKOV V TOKU PRIDÁVANIA ──────────────────────────────────────────
      Pilulky psov a „Pridaj ďalších" prichádzajú z COMMUNITY_CSS (packCommunityUI.tsx), ktoré
@@ -2813,38 +2772,7 @@ const PALE_ADD_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-addhost .trp-addsetup-body::-webkit-scrollbar-thumb{background:rgba(179,130,45,0.42);border-radius:999px;}
   .trp-addhost .trp-addsetup-body::-webkit-scrollbar-track{background:transparent;}
 
-/* ══ PRISPÔSOBENIE VIEWPORTU — VSTUPNÝ POPUP NA TELEFÓNE (Matej 2026-08-28) ═════════════
-   „natiahni dizajn aký je na PC iba ho prispôsob viewportu… tam kde je veľa chipov daj ich
-    do jedného riadku kde sa ininity pohybuju po horizontálnej osi… každý blok bude taký istý"
-
-   Mení sa VÝHRADNE geometria — materiál, farby aj hierarchia sú tie isté, čo na PC (o tie
-   sa stará blok vyššie, ktorý media query nemá).
-   ═════════════════════════════════════════════════════════════════════════════════════ */
-@media (max-width:${PALE_PC_MIN - 1}px){
-  /* ── MOBIL: ŠUPLÍK ZDOLA, NIE CELÁ OBRAZOVKA (Matej 21. 9. 2026) ─────────────────────
-     „na mobiloch by to mohlo byť drop down ktorý by mal hore možnosť ho stiahnuť dolu ako
-      to býva v niektorých apkách."
-     ⛔ NEPLATÍ od 21. 9. to, čo tu stálo od 28. 8.: „možno by bolo lepšie na mobile to dať
-        bez toho bloku resp bez okrajov = celá stránka bude bledá ako keby menu na celú
-        obrazovku a na nej 3 bloky, nebude vidno mapu vzadu." Vtedy boli v popupe TRI veľké
-        dlaždice s chipmi a celá obrazovka bola jediný spôsob, ako sa vošli. Odkedy je
-        položka JEDEN RIADOK, zoznam je nízky a šuplík je presne to, čo si Matej pýta.
-     ⚠️ Tvar šuplíka (poloha, polomer, úchyt, ťahanie) nesie ENTRY_CSS v AddTripEntry.tsx —
-        je spoločný pre tmavú aj bledú podobu. TU je len ŠAT: papyrusová doska a jej lem.
-     ⚠️ Doska sa maľuje na PANEL, nie na podklad. Pri celoobrazovkovej podobe to bolo opačne
-        (podklad bol jediný prvok, ktorý držal celé okno) — šuplík ale okno nevypĺňa, takže
-        doska patrí jemu; inak by papyrus prekryl aj mapu nad ním.
-     ⚠️ Zlatý rám z bloku vyššie sa ruší len ZDOLA: hore šuplík lem má, dole dosadá na hranu
-        okna a lem by tam bol zjedený riadok.
-     ⚠️ Tieň je PACK_SHADOW.panel (T.panelShadow), nie vlastné číslo — šuplík PLÁVA nad
-        stránkou, a to je presne tá výška z matrice. Stráž check:pack meria doslovný zápis. */
-  .trp-root .att-entry-backdrop{background:rgba(24,14,4,0.45);}
-  .trp-root .att-entry-panel.pk-glass{${goldPlateCSS({ radius: 0 })}border-radius:16px 16px 0 0;border-bottom:0;box-shadow:${T.panelShadow};overscroll-behavior:contain;}
-  /* Návrat v šuplíku stojí v riadku pod úchytom (ENTRY_CSS), takže sa tu ruší len jeho
-     celoobrazovková poloha. Na prvej úrovni ostáva skrytý — von sa ide stiahnutím nadol. */
-  .trp-root .att-entry-nav{top:auto;}
-  .trp-root .att-entry-st{font-size:13px;margin-bottom:12px;}
-}
+/* Mobilná podoba vstupného popupu žije v ENTRY_CSS (AddTripEntry.tsx), viď sekcia 9. */
 `;
 
 

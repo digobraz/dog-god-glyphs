@@ -372,16 +372,22 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
       // pillu. Bez nej by len stál na tej istej základni a pri väčšom priemere
       // by mu stred ušiel nahor.
       root.style.setProperty('--pack-nav-h', `${r.height}px`);
+      // Odstup baru od spodku okna — panel `+` sa vysúva tesne nad bar v jeho šírke
+      // (Matej 22. 9.: „musí sa vysunúť zo spodného navu v jeho šírke").
+      root.style.setProperty('--pack-nav-bottom', `${Math.max(0, window.innerHeight - r.bottom)}px`);
     };
     apply();
     const ro = new ResizeObserver(apply);
     ro.observe(el);
+    window.addEventListener('resize', apply);
     document.body.classList.add('has-pack-nav');
     return () => {
       ro.disconnect();
+      window.removeEventListener('resize', apply);
       document.body.classList.remove('has-pack-nav');
       root.style.removeProperty('--pack-nav-half');
       root.style.removeProperty('--pack-nav-h');
+      root.style.removeProperty('--pack-nav-bottom');
     };
   }, []);
 
@@ -1101,17 +1107,18 @@ function BrandIcon({ src, active }: { src: string; active: boolean }) {
  *    Kresba ostáva v `DOCK_MEDAL_CSS` (`packDockMedal.tsx`) — to je stylesheet CELEJ
  *    lišty, nie kotúča, a inline čísla by sa merali proti inej základni stráže.
  *
- * 🚩 IKONKA JE NÁVRH, NIE ROZHODNUTIE. `dogsphinx.svg` je z hand-drawn kitu a je to
- *    jediná kresba, ktorá znamená „psí strážca"; `chat.svg` by pomenovala len jednu jeho
- *    rovinu a `nose.svg` si drží ASSNIFF (lock §8.1). Podľa locku §1.1 sa ikonka Matejovi
- *    UKAZUJE NÁKRESOM — dovtedy drží miesto.
+ * ✅ IKONKA ROZHODNUTÁ 22. 9. 2026 — `idea.svg` (hlava so žiarovkou). Matej: „namiesto
+ *    ikony sfingy psa daj ikonku, ktorá je v ainubisovi ako pochopenie". Tá istá kresba
+ *    nesie vo VAULTE svet POCHOPENIE (`vault/worlds.ts`) — zámerne jedna značka pre
+ *    „miesto, kde sa učím". Predtým tu bola návrhom `dogsphinx.svg`, ktorú si ďalej drží
+ *    svet CESTA PSA.
  */
 function AinubisNavLink({ label }: { label: string }) {
   const [unread, setUnread] = useState(getAinubisUnread);
   useEffect(() => onAinubisUnread(setUnread), []);
   return (
     <span style={{ position: 'relative', display: 'inline-flex' }}>
-      <FloatingNavLink to="/pack/ainubis" label={label} icon="/icons/pack/dogsphinx.svg" />
+      <FloatingNavLink to="/pack/ainubis" label={label} icon="/icons/pack/idea.svg" />
       {unread > 0 && <span className="pk-ainu-badge" aria-hidden>{unread > 9 ? '9+' : unread}</span>}
     </span>
   );

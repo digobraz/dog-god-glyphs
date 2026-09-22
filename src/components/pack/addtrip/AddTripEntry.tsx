@@ -5,12 +5,13 @@
 // SERVICE sa vráti vo vlne 2, len sa nevykresľuje). 2) pre TRIP „WE'VE BEEN THERE" (log) vs
 // „WE'RE HEADING OUT" (plán); pre EVENT „OUR OWN EVENT" vs „FROM A LINK" — rovnaký vzor druhej
 // úrovne, obe rovnako veľké a klikateľné, s tlačidlom späť.
-// Žije na tmavom povrchu Portalu → pk-glass primitív z packTheme.ts (NIE papyrus — ten je pre
-// bledé bloky podľa Entry.tsx locku, sem nepatrí).
+// ŠAT (od 22. 9. 2026): PAPYRUS v zlatom odliatku, vysunutý nad spodnú lištu v jej šírke —
+// na každej obrazovke rovnako (Matej: „na každej obrazovke musí byť bledý štýl"). Do 22. 9.
+// tu stálo čierne pk-glass a bledým ho robilo len prebitie na mape.
 import { trackPack } from '@/lib/packAnalytics';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { GLASS_CSS, PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
-import { PLATE_TILE_R } from '@/components/pack/navGoldSkin';
+import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PLATE_TILE_R, goldFrameCSS, LAPIS } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 import { NotePalette, NOTE_PALETTE_CSS } from '@/components/pack/mapnotes/NotePalette';
 import { NOTE_GROUPS, type NoteGroup } from '@/components/pack/mapnotes/mapNotesData';
@@ -27,7 +28,6 @@ import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackBut
 import { RightGate } from '@/components/pack/RightGate';
 import type { PawmateRight } from '@/lib/pawmateRights';
 
-const GOLD = T.cardEdge; // §8: hover na aktívnej dlaždici = zlatý okraj, presne tento hex
 
 // §2: kontrakt komponentu rozšírený nad rámec TRIP-only. `kind: 'event'` teraz emituje reálnu
 // voľbu (druhá úroveň EVENT_BLOCKS) — volajúci (PackMap.tsx) ju napája na `AddEvent` formulár
@@ -177,7 +177,9 @@ function soonLabel(soon: string | undefined, tx: (k: string, f: string) => strin
   const word = tx('pack.create.soon', 'Soon');
   if (!soon) return word;
   const [y, m] = soon.split('-');
-  return `${word} · ${Number(m)}/${y}`;
+  /* Len termín — riadok je stlmený, „čoskoro" hovorí sám. Panel má od 22. 9. šírku
+     lišty (~310 px na PC) a „ČOSKORO · 11/2026" v ňom zalamoval názov do troch riadkov. */
+  return `${Number(m)}/${y}`;
 }
 
 // Druhá úroveň pre TRIP — texty prevzaté 1:1 z pôvodných BLOCKS (needituje sa, len sa
@@ -321,14 +323,13 @@ export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryP
       tabIndex={-1}
       aria-label={t('pack.addTrip.entry.closeAriaLabel')}
     >
-      <style>{GLASS_CSS}</style>
       <style>{ENTRY_CSS}</style>
       <div
-        className="att-entry-panel pk-glass"
+        className="att-entry-panel"
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
-        style={drag ? { transform: `translateY(${drag}px)`, transition: 'none' } : undefined}
+        style={drag ? { transform: `translate(-50%, ${drag}px)`, transition: 'none', animation: 'none' } : undefined}
       >
         {/* ÚCHYT — na mobile je to jediná vec nad zoznamom a dá sa ním šuplík stiahnuť dolu.
             Na PC ho CSS skryje: tam je panel v strede okna a zatvára sa klikom vedľa. */}
@@ -444,77 +445,80 @@ export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryP
 }
 
 const ENTRY_CSS = `
-/* ⚠️ SPODOK OKNA PATRÍ COOKIE LIŠTE, KÝM ČLOVEK NEKLIKOL (--consent-h, 2026-09-17).
-   Lišta je fixed a na mobile má 197 px. Rezerva patrí PODKLADU, nie panelu: panel je
-   v podklade zarovnaný a zmenšenie jeho výšky by spodok pod lištou nechalo.
-   🔴 Z-INDEX 1300, NIE 200 (21. 9. 2026). Na mape má pilulka ZOZNAM z-index 900 a peek
-   bublina 1200 — pri 200 sa kreslili CEZ otvorený panel. Formulár kreslenia
-   (.trp-addhost 950) je pod ním zámerne: otvára sa AŽ PO voľbe, takže sa nestretnú. */
-.att-entry-backdrop{position:fixed;inset:0;z-index:1300;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;padding-bottom:calc(20px + var(--consent-h, 0px));}
-.att-entry-panel{position:relative;width:100%;max-width:520px;max-height:calc(100% - 48px);overflow-y:auto;padding:48px 16px 16px;transition:transform .18s ease;}
+/* ══ PANEL + = PAPYRUS VYSUNUTÝ ZO SPODNEJ LIŠTY (Matej 22. 9. 2026) ════════════════════
+   „popup pri + na každej obrazovke musí byť bledý štýl a musí sa vysunúť zo spodného navu
+    v jeho šírke."
+   ⛔ Do 22. 9. bol panel v strede okna (PC) alebo šuplík cez celú šírku (mobil) a bledý
+      bol LEN na mape — PackMap ho prebíjal s predponou .trp-root, inde svietilo čierne sklo.
+      Šat aj poloha sú odteraz TU a nikde inde.
+   · ŠÍRKA = šírka baru lišty (--pack-nav-half × 2, publikuje PackLayout), PC aj mobil.
+   · POLOHA = tesne nad barom: odstup baru od spodku + jeho výška + výčnelok kotúča „+“
+     (--pack-medal-rise) + medzera. Vysúva sa zdola, akoby vyšiel z lišty.
+   · ŠAT = zlatý odliatok goldFrameCSS() — TEN ISTÝ zdroj ako bar lišty, takže panel
+     a lišta sú jeden materiál. Riadky = PODBLOK na papyruse (cardGrad + cardEdge).
+   🔴 Z-INDEX 1300: na mape má pilulka ZOZNAM 900 a peek bublina 1200 (21. 9. 2026). */
+.att-entry-backdrop{position:fixed;inset:0;z-index:1300;background:rgba(24,14,4,0.45);}
+/* ⚠️ goldFrameCSS() STOJÍ PRVÝ — nesie position:relative a za position:fixed by ho prebil. */
+.att-entry-panel{${goldFrameCSS()}
+  position:fixed;left:50%;transform:translateX(-50%);
+  --att-gap:calc(var(--pack-nav-bottom, 12px) + var(--pack-nav-h, 64px) + var(--pack-medal-rise, 0px) + 12px);
+  bottom:var(--att-gap);
+  width:min(calc(2 * var(--pack-nav-half, 260px)), calc(100vw - 16px));
+  max-height:calc(100% - var(--att-gap) - 16px);
+  overflow-y:auto;overscroll-behavior:contain;padding:48px 12px 12px;
+  animation:att-entry-rise .22s cubic-bezier(.2,.8,.2,1);transition:transform .18s ease;}
+@keyframes att-entry-rise{from{opacity:0;transform:translate(-50%,32px);}to{opacity:1;transform:translate(-50%,0);}}
+@media (prefers-reduced-motion:reduce){.att-entry-panel{animation:none;}}
 
-/* ── ÚCHYT ŠUPLÍKA ───────────────────────────────────────────────────────────────────
-   Na PC je panel v strede okna a úchyt nemá čo robiť — objaví sa až v mobilnej vetve. */
+/* ── ÚCHYT — len na mobile (ťahom nadol sa panel zavrie). */
 .att-entry-grab{display:none;}
 
 /* ── VETA HORE A SKUPINY ─────────────────────────────────────────────────────────────
-   Jeden krátky riadok, čo sa tu pridáva. Štítok skupiny je LEN na DOMOVE (inde je
-   skupina jediná a nadpis nad ňou nehovorí nič). */
-.att-entry-st{margin:0 0 12px;text-align:center;font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:${T.onDark};}
+   Jeden krátky riadok, čo sa tu pridáva. Štítok skupiny je LEN na DOMOVE. */
+.att-entry-st{margin:0 0 12px;text-align:center;font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
 .att-entry-grp + .att-entry-grp{margin-top:12px;}
-.att-entry-grplbl{display:block;margin-bottom:4px;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};}
+.att-entry-grplbl{display:block;margin-bottom:4px;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
 
 /* ── RIADOK PONUKY: EMOJI + NÁZOV, NIČ VIAC (Matej 21. 9. 2026) ──────────────────────
    „priamy, krátky, stručný, bez scrollu… emoji a vedľa text, žiadne vysvetlovačky."
-   Do 21. 9. to bola dlaždica so 48px glyfom, podnadpisom a bežiacim radom chipov —
-   desať takých na DOMOVE bol pás cez 1 400 px. */
-/* ⚠️ VÝŠKA RIADKU JE ROZPOČET, NIE VKUS. Na DOMOVE je v paneli DESAŤ položiek a tri
-   hlavičky skupín, a Matej si vypýtal, nech sa to vojde BEZ SCROLLU. Pri 12px výplni
-   a 8px medzere to na telefóne 390×800 pretieklo o zhruba stodvadsať pixelov; pri 8/4
-   sa vojde. Kto sem pridá pixel, vyhodí poslednú položku pod hranu okna. */
+   ⚠️ VÝŠKA RIADKU JE ROZPOČET, NIE VKUS: na DOMOVE je desať položiek a tri hlavičky
+   skupín a má sa to vojsť BEZ SCROLLU. Pri 8/4 sa vojde, pixel navyše vyhodí poslednú
+   položku pod hranu. */
 .att-entry-list{display:flex;flex-direction:column;gap:4px;}
-.att-entry-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};border-radius:${PLATE_TILE_R}px;padding:8px 12px;cursor:pointer;transition:border-color .15s ease,background .15s ease;}
-.att-entry-row:hover,.att-entry-row:focus-visible{border-color:${GOLD};background:rgba(201,154,63,0.08);outline:none;}
+.att-entry-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:${T.cardGrad};border:1px solid ${T.cardEdge};border-radius:${PLATE_TILE_R}px;padding:8px 12px;cursor:pointer;transition:border-color .15s ease,background .15s ease;}
+.att-entry-row:hover,.att-entry-row:focus-visible{border-color:${T.inkWarm};outline:none;}
 .att-entry-row--soon{opacity:.45;cursor:default;}
-.att-entry-row--soon:hover,.att-entry-row--soon:focus-visible{border-color:${T.onDarkBorder};background:rgba(245,240,228,0.04);}
+.att-entry-row--soon:hover,.att-entry-row--soon:focus-visible{border-color:${T.cardEdge};}
 /* Emoji má vlastný font-family, inak naň sadne zdedený Cinzel a na Windows sa z 🅿️ stane
    obdĺžnik. Pevná šírka drží názvy pod sebou v jednej zvislej osi. */
 .att-entry-emoji{flex:0 0 auto;width:28px;font-family:${FONT_EMOJI};font-size:22px;line-height:1;text-align:center;}
-.att-entry-title{flex:1 1 auto;min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.onDark};}
-/* Cena za kus a ohlásený termín — obe vpravo, obe krátke, riadok nepredlžujú. */
-.att-entry-pts{flex:0 0 auto;padding:3px 8px;border-radius:999px;background:rgba(201,154,63,0.16);border:1px solid rgba(201,154,63,0.55);font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:${GOLD};}
-.att-entry-soon{flex:0 0 auto;padding:3px 8px;border-radius:999px;border:1px solid ${T.onDarkBorder};font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:${T.onDarkDim};}
+.att-entry-title{flex:1 1 auto;min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.inkStrong};}
+/* BODY V LAPISOVEJ PILULKE (Matej 26. 8.: „body budú v modrom pilse") — odmena je „moje". */
+.att-entry-pts{flex:0 0 auto;padding:3px 8px;border-radius:999px;background:${LAPIS.grad};border:1px solid ${LAPIS.deep};font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:${LAPIS.ink};}
+.att-entry-soon{flex:0 0 auto;padding:3px 8px;border-radius:999px;border:1px solid ${T.cardEdge};font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:${T.inkWarm};}
 
 /* ── NÁVRAT V TOKU ───────────────────────────────────────────────────────────────────
-   backCircleCSS nesie priemer, lem aj farby (BackButton.tsx, LOCKED 2026-09-01);
-   position doň zámerne NEPATRÍ — tú drží volajúci.
-   ⚠️ Na PRVEJ úrovni je skrytý: von sa ide klikom vedľa alebo Escape (lock 26. 8.:
-   „odstráň krížik… stačí len klik vedľa"). Na druhej úrovni je vždy, lebo klik vedľa by
-   z nej neviedol o krok späť, ale zahodil celý popup. */
-.att-entry-nav{position:absolute;top:12px;left:50%;transform:translateX(-50%);${backCircleCSS('dark')}}
-.att-entry-nav:hover{${backHoverCSS('dark')}}
+   backCircleCSS nesie priemer, lem aj farby (BackButton.tsx, LOCKED 2026-09-01).
+   ⚠️ Na PRVEJ úrovni je skrytý: von sa ide klikom vedľa alebo Escape (lock 26. 8.). */
+.att-entry-nav{position:absolute;top:12px;left:50%;transform:translateX(-50%);${backCircleCSS('pale')}}
+.att-entry-nav:hover{${backHoverCSS('pale')}}
 .att-entry-nav--close{display:none;}
+/* Na prvej úrovni návrat nie je, horná výplň pre neho by bola prázdny pás. */
+.att-entry-panel:has(.att-entry-nav--close){padding-top:16px;}
 
 .att-entry-note{padding-top:4px;}
-.att-entry-lead{margin:0 0 12px;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:${T.onDarkDim};}
+.att-entry-lead{margin:0 0 12px;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:${T.inkWarm};}
 
-/* ── MOBIL = ŠUPLÍK ZDOLA (Matej 21. 9. 2026) ────────────────────────────────────────
-   „na mobiloch by to mohlo byť drop down ktorý by mal hore možnosť ho stiahnuť dolu."
-   Panel sa lepí na spodnú hranu, má zaoblený len horný okraj a nad zoznamom stojí úchyt.
-   ⚠️ Výška je STROP, nie pevná hodnota — šuplík má byť taký vysoký, aký je zoznam. 100 %
-      je výška PODKLADU, teda okno mínus cookie lišta; 32 px je pásik, za ktorý sa dá šuplík
-      zavrieť klikom. Percento z dvh by tú lištu nevidelo.
-   ⚠️ NA NAJMENŠOM TELEFÓNE (375×667) je DOMOV o 30 px vyšší než okno — s týmto stropom
-      dosadne na 635 px a vojde sa. Pri 88dvh scrolloval.
-   ⚠️ env(safe-area-inset-bottom) v spodnej výplni: bez neho posledný riadok leží pod
-      gestovou lištou iPhonu. */
+/* ── MOBIL: ÚCHYT NAD ZOZNAMOM (Matej 21. 9. 2026) ────────────────────────────────────
+   „drop down, ktorý by mal hore možnosť ho stiahnuť dolu". Poloha a šírka sú tie isté
+   ako na PC — bar lišty je na telefóne takmer cez celé okno, panel s ním.
+   ⚠️ env(safe-area-inset-bottom) tu netreba: panel stojí NAD lištou, nie na hrane okna. */
 @media (max-width:640px){
-  .att-entry-backdrop{align-items:flex-end;padding:0;padding-bottom:var(--consent-h, 0px);}
-  .att-entry-panel{max-width:none;max-height:calc(100% - 32px);border-radius:16px 16px 0 0;padding:4px 12px calc(16px + env(safe-area-inset-bottom, 0px));}
+  .att-entry-panel,.att-entry-panel:has(.att-entry-nav--close){padding:4px 12px 12px;}
   .att-entry-grab{display:block;width:100%;padding:8px 0 8px;background:none;border:0;cursor:grab;touch-action:none;}
-  .att-entry-grab::before{content:'';display:block;width:44px;height:4px;margin:0 auto;border-radius:999px;background:${T.onDarkBorder};}
+  .att-entry-grab::before{content:'';display:block;width:44px;height:4px;margin:0 auto;border-radius:999px;background:rgba(179,130,45,0.26);}
   .att-entry-grab:active{cursor:grabbing;}
-  /* Návrat sa v šuplíku nevznáša nad obsahom — stojí v riadku pod úchytom. */
+  /* Návrat sa na mobile nevznáša nad obsahom — stojí v riadku pod úchytom. */
   .att-entry-nav{position:static;transform:none;margin:0 0 8px;}
 }
 `;
