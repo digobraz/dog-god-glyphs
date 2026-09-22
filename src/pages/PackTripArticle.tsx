@@ -75,6 +75,10 @@ import { TripEditPanel, type PlanEdit } from '@/components/pack/trip/TripEditPan
 // ZÁPISY DO MAPY (2026-08-20) — v článku sú ROZBALENÉ, v mape schované pod ikonkou.
 // Ktoré sem patria, rozhoduje geometria (notesForTrail), nie uložený kľúč.
 import { MapNotesSection, MAP_NOTES_SECTION_CSS } from '@/components/pack/mapnotes/MapNotesSection';
+// KRONIKA TRASY — príbehy ľudí, ktorí ju prešli (22. 9. 2026, issue #61).
+// Karta sa kreslí RAZ (`StoryCard`, lock §4.1) — v článku, neskôr vo feede aj v profile.
+import { TripStories, TRIP_STORIES_CSS } from '@/components/pack/trip/TripStories';
+import { useTripStories, type TripStory } from '@/components/pack/story/storyData';
 import {
   AddMapNotePin, NoteSpotPin, AddMapNotePanel, MapNotePlacing, NoteQuickPalette, MapNoteTooFar,
   ADD_NOTE_CSS, notePanelH,
@@ -1169,6 +1173,32 @@ export default function PackTripArticle() {
     upsertMyTrip(trail.id, { status: 'solo', openness: 'closed', date: '' });
   };
 
+  /* ➕ „použiť" na príbehu = VEZMI SI TÚ TRASU (lock §4.2: ➕ ide do plánu).
+     🔴 Nie toggle — akcia na cudzom príbehu nesmie človeku trasu ODOBRAŤ, keď ju už má.
+     Ostáva na mieste, presne ako lock žiada: len toast, žiadna navigácia. */
+  const useTrailFromStory = () => {
+    if (!trail) return;
+    if (favIds.has(trail.id)) { toast({ description: t('pack.trip.inTriplist') }); return; }
+    toggleFav(trail.id);
+  };
+
+  /* ↗ „poslať" — zdieľa sa PRÍBEH na jeho vlastnej adrese, nie článok trasy.
+     Adresa je `modal-as-route`, takže odkaz prežije obnovenie aj cudzí prehliadač. */
+  const shareStory = async (story: TripStory) => {
+    if (!trail) return;
+    const url = `${window.location.origin}${tripPath(trail)}/pribeh/${story.rank}`;
+    const title = `${story.ownerFirst} — ${trail.name}`;
+    if (typeof navigator.share === 'function') {
+      try { await navigator.share({ title, text: story.body.slice(0, 160), url }); return; } catch { /* cancelled */ }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ description: t('pack.trip.toastLinkCopied') });
+    } catch {
+      toast({ description: url });
+    }
+  };
+
   const handleShare = async () => {
     if (!trail) return;
     const url = `${window.location.origin}${tripPath(trail)}`;
@@ -1197,6 +1227,11 @@ export default function PackTripArticle() {
     baseTrail && baseTrail.diff !== 'Odyssey' && (baseTrail.stars ?? 0) > 0 ? 1 : 0,
   );
   const reviewsRef = useRef<HTMLDivElement | null>(null);
+
+  /* ⚠️ Rovnaký dôvod ako pri `ratingCount` vyššie: hook MUSÍ stáť nad `if (id.loading)`.
+     Kľúč je `baseTrail?.id`, nie `trail?.id` — `trail` vzniká až z memo pod úpravami
+     a pri prvom vykreslení by bol `undefined`, takže kronika by sa načítala dvakrát. */
+  const { stories, setStories } = useTripStories(baseTrail?.id);
 
   if (id.loading) {
     return (
@@ -1434,6 +1469,7 @@ export default function PackTripArticle() {
           vo vlastnom kroku, nie tu. */}
       <style>{GLASS_CSS}</style>
       <style>{PARTY_CARD_CSS}</style>
+      <style>{TRIP_STORIES_CSS}</style>
       <style>{MAP_NOTES_SECTION_CSS}</style>
       <style>{MAP_NOTES_CSS}</style>
       {/* Kurzor v režime „ukáž miesto" (`.mn-placing` a spol.) — triedy sadajú na
@@ -1629,6 +1665,20 @@ export default function PackTripArticle() {
           <TripGoButtons trail={trail} onDrive={() => setGoOpen(true)} />
         )}
         {goOpen && <TripGoPanel trail={trail} onClose={() => setGoOpen(false)} />}
+
+        {/* KRONIKA TRASY (22. 9. 2026) — po jednom príbehu od každého, kto ju prešiel,
+            zoradené podľa toho, KTO PREŠIEL PRVÝ.
+            ⚠️ Stojí POD popisom a POD „vyraziť na miesto", teda ešte pred praktickými
+            zápismi svorky: je to „aké to je", nie „čo treba vedieť, než vyrazíš".
+            ⚠️ Prázdna kronika sa nevykreslí vôbec — guard je vnútri komponentu. */}
+        <TripStories
+          stories={stories}
+          setStories={setStories}
+          locale={dateLocale}
+          onOpen={(story) => navigate(`${tripPath(trail)}/pribeh/${story.rank}`)}
+          onUse={useTrailFromStory}
+          onShare={shareStory}
+        />
 
         {/* Zápisy členov (parkovisko, výstrahy, poznámky) — NAD diskusiou: je to
             informácia „než vyrazíš", nie rozhovor.

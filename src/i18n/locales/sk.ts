@@ -2473,6 +2473,17 @@ export const sk: Partial<Dict> = {
   'pack.trip.creator.message': "Napísať",
   'pack.trip.creator.going': "Idú",
   'pack.trip.creator.empty': "Na tento výlet sa zatiaľ nikto nepridal. Pridaj si ho medzi svoje výlety a vyber „Hľadám partiu“ — svorka ho uvidí.",
+  // ── PRÍBEHY Z CESTY (kronika trasy, 22. 9. 2026) ──────────────────────────
+  // ⚠️ „prejdené" je ZÁMERNE bezrodové — v dátach nie je, či trasu prešiel
+  // alebo prešla, a meno z dát sa v SK skloňovať nedá.
+  'pack.trip.stories.title': "Príbehy z cesty",
+  'pack.trip.stories.order': "od prvého, kto prešiel",
+  'pack.trip.stories.walked': "prejdené",
+  'pack.trip.stories.showAll': "Ukázať všetkých {n}",
+  'pack.trip.stories.act.like': "Páči sa mi",
+  'pack.trip.stories.act.save': "Uložiť",
+  'pack.trip.stories.act.use': "Pridať trasu medzi moje výlety",
+  'pack.trip.stories.act.share': "Poslať",
   'pack.addTrip.plan.when': "Kedy idete?",
   'pack.addTrip.plan.travel': "Ako sa tam dostanete?",
   'pack.addTrip.plan.who': "Ideš sám, alebo hľadáš niekoho?",

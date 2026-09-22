@@ -2699,6 +2699,16 @@ export const en = {
   'pack.trip.creator.message': "Message {name}",
   'pack.trip.creator.going': "Going",
   'pack.trip.creator.empty': "Nobody has joined this trip yet. Add it to your triplist and pick “Looking for pack” — the pack will see it.",
+  // ── PRÍBEHY Z CESTY (kronika trasy, 22. 9. 2026) ──────────────────────────
+  // Meno produktu je locknuté: EN „Trail story", SK „Príbeh z cesty".
+  'pack.trip.stories.title': "Trail stories",
+  'pack.trip.stories.order': "from the first to walk it",
+  'pack.trip.stories.walked': "walked",
+  'pack.trip.stories.showAll': "Show all {n}",
+  'pack.trip.stories.act.like': "Like",
+  'pack.trip.stories.act.save': "Save",
+  'pack.trip.stories.act.use': "Add the trail to my trips",
+  'pack.trip.stories.act.share': "Share",
   'pack.addTrip.plan.when': "When are you going?",
   'pack.addTrip.plan.when.exact': "A set day",
   'pack.addTrip.plan.when.week': "A week",
