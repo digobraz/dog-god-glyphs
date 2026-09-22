@@ -238,6 +238,33 @@ export function ConsentBanner() {
           .consent-menu { left: 0; right: 0; }
           .consent-split-main { overflow: hidden; text-overflow: ellipsis; }
         }
+        /* ── PC: KARTA VPRAVO DOLE, NIE PÁS (Matej 22. 9. 2026: „nebolo by lepšie dať tú
+           správu na PC iba na pravý bok od kraja po kraj spodného nav?") ─────────────
+           Spodok sedí so spodkom navu (16 px), šírka sa ráta z miesta VPRAVO OD NAVU:
+           nav stojí v strede okna a publikuje --pack-nav-half (PackLayout), takže jeho
+           pravý kraj je 50vw + polovica. Karta tam nikdy nezasiahne; bez navu (web,
+           heroflow) je premenná preč a karta má svojich 420 px. */
+        @media (min-width: 1024px) {
+          .consent-banner {
+            left: auto; right: 24px; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+            width: min(420px, calc(50vw - var(--pack-nav-half, 0px) - 48px));
+            padding: 16px; border: 1px solid rgba(201,154,63,0.55); border-radius: 16px;
+            box-shadow: 0 12px 36px -8px rgba(0,0,0,0.45);
+          }
+          .consent-inner { flex-direction: column; align-items: stretch; gap: 12px; }
+          .consent-actions > * { flex: 1 1 0; min-width: 0; }
+          .consent-btn-primary, .consent-btn-secondary { padding: 12px 8px; }
+          .consent-split-main { flex: 1 1 auto; min-width: 0; padding: 12px 8px; }
+          .consent-menu { left: 0; right: 0; }
+        }
+        /* Úzke PC (1024–1199): vpravo od navu ostáva ~310 px, ONLY NECESSARY v .12em sa orezalo. */
+        @media (min-width: 1024px) and (max-width: 1199px) {
+          .consent-btn-primary, .consent-btn-secondary, .consent-split-main { letter-spacing: 0.02em; }
+          .consent-split-main { padding: 12px 4px; }
+          .consent-split-arrow { padding: 0 4px; }
+          /* ONLY NECESSARY je o polovicu dlhšie než ALLOW ALL — dostane väčší diel riadku. */
+          .consent-split { flex: 1.7 1 0; }
+        }
         /* Pod 380 px sa ONLY NECESSARY v 12 px vedľa šípky do polovice riadku nezmestí
            a nowrap by roztiahol celú stránku do šírky (snímka 360 px, 22. 9.). */
         @media (max-width: 379px) {
