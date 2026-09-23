@@ -405,7 +405,21 @@ export function NameScreen() {
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       {/* Späť: v novom vstupe je za nami popup na stene, nie Intro (to je len
           redirect na fotku, takže by šípka skončila v kruhu). */}
-      <PageTopBar onBack={() => navigate(NEW_HEROFLOW ? '/' : '/heroglyph/intro')} />
+      {/* 🔴 POČAS PRÍCHODU NIE JE HORNÁ LIŠTA — ani logo, ani šípka, ani vlajka
+          (Matej 23. 9.: „pri uvodnom načítaní nebude logo šípka ani vlajka, až
+          keď dosadne animácia a načíta sa aj blok s odpoveďami"). Príchod je
+          obraz; ovládanie prichádza až s tým, čo treba ovládať.
+          ⚠️ Lišta sa NEODSTRAŇUJE, len sa nekreslí — v starom vstupe a po
+          príchode je presne tam, kde bola. */}
+      {phase === 'form' && (
+        <motion.div
+          initial={playIntro ? { opacity: 0 } : false}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.18 }}
+        >
+          <PageTopBar brandBack onBack={() => navigate(NEW_HEROFLOW ? '/' : '/heroglyph/intro')} />
+        </motion.div>
+      )}
 
       {/* Príchod kroku 2 — otočenie medailónu a vypisovanie otázky.
           ⚠️ Bez spätných apostrofov: CSS vnútri template literalu. */}

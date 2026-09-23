@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { HandArrowLeft } from '@/components/pack/HandIcons';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import dogyptLogoMobile from '@/assets/dogypt-logo-mobile.png';
 import { useT } from '@/i18n/LanguageContext';
@@ -17,6 +18,16 @@ interface PageTopBarProps {
   onBack?: () => void;
   /** Aria label for back button. */
   backAriaLabel?: string;
+  /**
+   * Šípka späť z hand-drawn setu namiesto lucide (Matej 23. 9. 2026:
+   * „šípku treba dať brandovú").
+   *
+   * ⚠️ PREČO PRÍZNAK A NIE VÝMENA VŠADE. `PageTopBar` je LOCKED komponent,
+   * ktorý nosí aj ostrý web — výmena ikonky by šla von pri najbližšom deployi
+   * a do FLIPu sa LIVE nedotýkame. Nový vstup si ju preto pýta, zvyšok ostáva.
+   * Po FLIPe sa príznak zruší a brandová šípka bude jediná.
+   */
+  brandBack?: boolean;
 }
 
 /**
@@ -29,6 +40,7 @@ export function PageTopBar({
   withNav = false,
   onBack,
   backAriaLabel,
+  brandBack = false,
 }: PageTopBarProps) {
   const t = useT();
   const backLabel = backAriaLabel ?? t('nav.aria.back');
@@ -70,7 +82,9 @@ export function PageTopBar({
           aria-label={backLabel}
           className="absolute left-4 top-[15px] p-2 text-foreground/60 hover:text-foreground transition-colors"
         >
-          <ArrowLeft className="h-5 w-5" />
+          {brandBack
+            ? <HandArrowLeft size={20} />
+            : <ArrowLeft className="h-5 w-5" />}
         </button>
       )}
       {logo}
