@@ -14,6 +14,7 @@ import { useBlockAutocorrect } from '@/hooks/useBlockAutocorrect';
 import { countryFlag } from '@/lib/countryGeo';
 import { NEW_HEROFLOW } from '@/lib/flowMode';
 import { hekthorFace } from '@/lib/hekthorFaces';
+import { FlowMedallion } from '@/components/screens/flowMedallion';
 
 // Android keyboards (Gboard/Samsung) ignore autoCorrect/autoComplete="off" and may
 // silently swap a typed word for a predicted one (e.g. BELGA → BELGICKO). We can't
@@ -345,11 +346,7 @@ export function NameScreen() {
                       nasledovať"). Kruh je v súbore orezaný na pixel, preto stačí
                       `rounded-full` — netreba `object-contain`. */}
                   {NEW_HEROFLOW ? (
-                    <img
-                      src={hekthorFace('name')}
-                      alt="HEKTHOR"
-                      className="hek-lg w-32 h-32 md:w-48 md:h-48 rounded-full object-cover"
-                    />
+                    <FlowMedallion src={hekthorFace('name')} size={148} className="hf-medal" />
                   ) : (
                     <img src={hekthorImg} alt="HEKTHOR" className="hek-lg w-36 h-36 md:w-56 md:h-56 object-contain" />
                   )}

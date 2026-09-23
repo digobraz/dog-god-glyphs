@@ -78,7 +78,14 @@ export const MEDAL: MedalSpec = {
   grain: 0.18,
 };
 
-const goldRing = (angle: number) =>
+/** ⚠️ EXPORTOVANÉ 23. 9. 2026 — obruč a ozdoba sa kreslia aj vo vstupe heroglyfu
+ *  (Matej: „okolo každej fotky dajme rámik aký je aj pri logu v /onepage").
+ *  Je to tá istá kresba, ktorá kolovala opačným smerom: medailón vznikol podľa
+ *  Hektora v hero flow („striedanie farieb po obvode", 27. 8.). Druhá KÓPIA by
+ *  sa pri prvej úprave rozišla, preto sa odtiaľto len ČÍTA.
+ *  🔒 Lock `onepage-nav.md`: vzhľad medailónu sa ladí v nákrese, nie v kóde —
+ *  tento export nemení ani jednu hodnotu `MEDAL` a nav ostáva, ako bol. */
+export const goldRing = (angle: number) =>
   `conic-gradient(from ${angle}deg,#FCF0C2,#EDCE7C 8%,#D8B052 22%,#AA8129 34%,#C09636 46%,#F7E4A8 58%,#D8B052 72%,#A97F27 86%,#FCF0C2 100%)`;
 
 const FACE_BG: Record<Face, string> = {
@@ -111,7 +118,7 @@ function shade(hex: string, amt: number): string {
 
 /** Ozdoby obruče. Kreslia sa do SVG, nie conic gradientom — rytiny a kamene
  *  potrebujú TVAR, conic vie len klin. */
-function Deco() {
+export function Deco() {
   const m = MEDAL;
   const kOut = 50;
   const owPct = (m.ow / m.d) * 100;

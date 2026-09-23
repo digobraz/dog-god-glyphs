@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { LAB } from '@/lib/labTheme';
 import { goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { PACK_THEME as T } from '@/components/pack/packTheme';
+import { FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
 
 // ════════════════════════════════════════════════════════════════════════════
 // PREZLEČENIE STARÝCH OBRAZOVIEK VSTUPU (31. 8. 2026)
@@ -123,10 +124,32 @@ export function useFlowSkin(): FlowSkin {
 const REDRESS_CSS = `
 /* ── STRÁNKA: čierna tabuľa → papyrus ──────────────────────────────────── */
 [data-flow-skin="pale"] .dark-bg { background-color: ${LAB.pageBg}; }
+/* 🧱 PAPYRUSOVÁ STENA, NIE PLOCHÁ BÉŽOVÁ (Matej 23. 9. 2026: „dajme pozadie
+   bledá papyrusová stena nie iba čisto biela").
+   Dovtedy tu stálo 'background-image: none' + 'LAB.pageBackdrop' — teda čistý
+   gradient bez kresby. Tmavý flow pritom tapetu VŽDY mal ('bg-dark.webp'),
+   takže prezlečením do bledého sa stena ticho stratila a ostala prázdna plocha.
+   'LAB.pageBackdrop' sa nemení: je zámerne bez textúry a berú si ho aj ostatné
+   LAB stránky — mení sa LEN vrstva flow.
+   Dve vrstvy ako v '.pk-paper': obrázok nesie glyfy, gradient nad ním ich
+   zjednotí do teplej plochy, inak by kresba prekrikovala obsah. */
 [data-flow-skin="pale"] .dark-bg::before {
-  background-image: none;
-  background: ${LAB.pageBackdrop};
-  filter: none;
+  background-image: url('/images/bg-light.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(4px);
+  opacity: 1;
+}
+[data-flow-skin="pale"] .dark-bg::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100lvh;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 52% 46%, rgba(243,228,196,0.72) 0%, rgba(243,228,196,0.52) 48%, rgba(252,247,236,0.30) 100%),
+    ${LAB.pageVeil};
 }
 /* Základ dával potomkom zlatý inkoust pre čierne pozadie — na papyruse svieti. */
 [data-flow-skin="pale"] .dark-bg > * { color: ${LAB.ink}; }
@@ -331,7 +354,7 @@ export function FlowRedress() {
   if (!onFlow) return null;
   return (
     <>
-      <style>{REDRESS_CSS}</style>
+      <style>{REDRESS_CSS + FLOW_MEDAL_CSS}</style>
       {skin === 'pale' && <FlowProgress pathname={pathname} />}
     </>
   );
