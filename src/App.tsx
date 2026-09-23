@@ -95,6 +95,18 @@ const CropScreen = lazy(() =>
 const FlowRedress = lazy(() =>
   import("@/components/screens/flowRedress").then((m) => ({ default: m.FlowRedress }))
 );
+// ── DIELŇA VSTUPU (23. 9. 2026) — `/lab/heroflow`. Zoznam povrchov, testovacie
+//    dáta a rám s obrazovkou na jednej obrazovke. DEV-only, ako celý nový vstup.
+//    ⚠️ Nie je to `/pack` ani jeho chrbtica — lock architektúry sa jej netýka.
+const HeroflowLab = lazy(() => import("@/pages/HeroflowLab"));
+const LabScene = lazy(() =>
+  import("@/pages/HeroflowLab").then((m) => ({ default: m.LabScene }))
+);
+// Vloží testovacie dáta do store v KAŽDOM dokumente appky — teda aj v ráme,
+// ktorý dielňa otvorí. Bez neho by guard rám odhodil na prvý krok.
+const DevSeedBoot = lazy(() =>
+  import("@/components/lab/DevSeedBoot").then((m) => ({ default: m.DevSeedBoot }))
+);
 const CheckoutScreen = lazy(() =>
   import("@/components/screens/CheckoutScreen").then((m) => ({ default: m.CheckoutScreen }))
 );
@@ -232,6 +244,13 @@ const App = () => (
             <FlowRedress />
           </Suspense>
         )}
+        {/* Testovacie dáta z dielne. Visí NAD routami, aby bežal aj v ráme,
+            ktorý dielňa otvorí — rám je vlastný dokument s prázdnym store. */}
+        {NEW_HEROFLOW && (
+          <Suspense fallback={null}>
+            <DevSeedBoot />
+          </Suspense>
+        )}
         <ErrorBoundary>
           <Suspense fallback={<RouteFallback />}>
             <Routes>
@@ -297,6 +316,10 @@ const App = () => (
                   <Route path="/heroglyph/why" element={<WhyScreen />} />
                   <Route path="/heroglyph/about" element={<Navigate to="/heroglyph/breed" replace />} />
                   <Route path="/heroglyph/crop" element={<CropScreen />} />
+                  {/* Dielňa vstupu — zoznam povrchov + rám. `/lab/scena` je
+                      ľahká tapeta pre popupy (stena ťahá psov z produkcie). */}
+                  <Route path="/lab/heroflow" element={<HeroflowLab />} />
+                  <Route path="/lab/scena" element={<LabScene />} />
                 </>
               ) : (
                 <>

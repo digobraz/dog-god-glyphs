@@ -3,6 +3,10 @@ import posthog from "posthog-js";
 import App from "./App.tsx";
 import "./index.css";
 import { POSTHOG_KEY, POSTHOG_HOST } from "./lib/env";
+// Testovacie dáta z dielne vstupu (`/lab/heroflow`) musia byť v store SKÔR, než
+// sa vykreslí prvá obrazovka — obrazovky flow si store kopírujú do lokálneho
+// stavu pri prvom renderi. Telo modulu je celé za `import.meta.env.DEV`.
+import "./lib/devSeedApply";
 
 if (POSTHOG_KEY) {
   posthog.init(POSTHOG_KEY, {

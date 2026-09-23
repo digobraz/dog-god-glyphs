@@ -208,6 +208,21 @@ export function HeroflowDevMenu() {
 
       {open && (
         <div className="hfd-panel">
+          {/* DIELŇA (23. 9. 2026). Toto menu vie iba PRESKAKOVAŤ — hodí Mateja na
+              inú stránku a testovacie dáta si musí naklikať. Dielňa drží zoznam,
+              dáta aj obrazovku na jednom mieste, preto stojí prvá. */}
+          <div className="hfd-head">Dielňa</div>
+          <button
+            type="button"
+            className={`hfd-row is-done${pathname === '/lab/heroflow' ? ' is-here' : ''}`}
+            onClick={() => { setOpen(false); navigate('/lab/heroflow'); }}
+          >
+            <span className="hfd-dot" />
+            <span>Všetko na jednom mieste</span>
+            <span className="tag">lab</span>
+          </button>
+          <div className="hfd-sep" />
+
           {/* Prezlečenie starých obrazoviek (31. 8. 2026). Stojí navrchu, lebo ako
               jediné mení CELÝ vstup naraz — ostatné riadky menia len, kde stojíš.
               Text hovorí, čo je ZAPNUTÉ; klik prepne na druhý. */}

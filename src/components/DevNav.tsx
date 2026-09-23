@@ -80,6 +80,10 @@ export function DevNav() {
   // dojem z návrhu a na mobile prekrýva spodnú lištu. Na ostatných dev cestách
   // menu zostáva — je to jediný spôsob, ako sa medzi nimi preklikať.
   if (pathname.startsWith("/onepage")) return null;
+  // Dielňa vstupu (`/lab/heroflow`, 23. 9. 2026) má vlastný zoznam povrchov a
+  // tento by jej ho v rohu zdvojoval — plus by sedel presne na spodku rámu,
+  // ktorý sa práve ladí. V RÁME (obrazovke vnútri) zostáva.
+  if (pathname.startsWith("/lab/")) return null;
 
   // Hide on production custom domain (dogypt.com). Show in dev + lovable.app preview/published.
   if (typeof window !== "undefined") {
