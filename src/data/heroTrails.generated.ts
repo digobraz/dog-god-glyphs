@@ -30141,7 +30141,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "region": "Malé Karpaty",
     "country": "sk",
     "diff": "Moderate",
-    "km": "6.8",
+    "km": "",
     "stars": 5,
     "path": [
       [

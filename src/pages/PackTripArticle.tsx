@@ -1259,6 +1259,10 @@ export default function PackTripArticle() {
      znamenali, ze sipka spat v prehliadaci zavrie vrstvu, ale stav o tom nevie. */
   const openStory = storyN ? stories.find((x) => String(x.rank) === storyN) ?? null : null;
   const [writeOpen, setWriteOpen] = useState(false);
+  // Rozlišuje DVA vchody do toho istého formulára: bežný (dátum má server
+  // z `trip_walked`) a spomienkový (dátum musí zadať človek). Jeden komponent,
+  // dva vchody — lock §1.1.1, nie druhá obrazovka „napíš spomienku".
+  const [memorialWrite, setMemorialWrite] = useState(false);
 
   if (id.loading) {
     return (
@@ -1405,6 +1409,26 @@ export default function PackTripArticle() {
             >
               <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${ICON('clipboard')})` } as React.CSSProperties} />
               <span className="pta-actbtn-label">{favIds.has(trail.id) ? t('pack.trip.inTriplist') : t('pack.trip.addToTriplist')}</span>
+            </button>
+          )}
+          {/* 🔴 SPOMIENKA — VCHOD PRE ČLOVEKA, KTORÉMU PES ZOMREL (2026-09-23).
+              Príbeh sa inak vchádza cez ✓ PREJDENÉ, a to `trip_walked_need_dog`
+              (21. 9.) bez živého psa nepustí — takže 6 účtov zo 56 (merané na LIVE)
+              nemalo prístup k jedinej funkcii, ktorá je o spomienke. Nikto to tak
+              nenavrhol; vypadlo to z násobku dvoch nezávislých pravidiel.
+              ⚠️ `✓ prejdené` im ostáva zamknuté ZÁMERNE (Matej 23. 9.) — prejdenie
+                 sa píše aj psovi. Toto je druhý vchod, nie obídenie zámku.
+              ⚠️ `requireDate` je POVINNÉ: bez riadku v `trip_walked` nemá server
+                 odkiaľ vziať dátum (`memorial_story_needs_date`). */}
+          {storiesOn && !walkedIds.has(trail.id) && !id.loading && hasOnlyDeceasedDogs(id.dogs) && (
+            <button
+              type="button"
+              className="pta-actbtn pta-actbtn--blue"
+              onClick={() => { setMemorialWrite(true); setWriteOpen(true); }}
+              aria-label={t('pack.trip.memorialStory')}
+            >
+              <span className="pta-actbtn-icon">🕊</span>
+              <span className="pta-actbtn-label">{t('pack.trip.memorialStory')}</span>
             </button>
           )}
           {walkedIds.has(trail.id) ? (
@@ -2128,9 +2152,11 @@ export default function PackTripArticle() {
       {writeOpen && (
         <StoryWrite
           slug={trail.id}
-          onClose={() => setWriteOpen(false)}
+          requireDate={memorialWrite}
+          onClose={() => { setWriteOpen(false); setMemorialWrite(false); }}
           onSaved={() => {
             setWriteOpen(false);
+            setMemorialWrite(false);
             toast({ description: t('pack.trip.stories.write.saved') });
             // Kronika sa musi prekreslit hned — inak clovek zverejni pribeh
             // a na stranke, z ktorej ho pisal, ho nevidi.

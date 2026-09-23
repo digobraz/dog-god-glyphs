@@ -2483,7 +2483,10 @@ export const sk: Partial<Dict> = {
   'pack.trip.stories.act.like': "Páči sa mi",
   'pack.trip.stories.act.save': "Uložiť",
   'pack.trip.stories.act.use': "Pridať trasu medzi moje výlety",
-  'pack.trip.stories.act.share': "Poslať",
+  'pack.trip.stories.act.share': "Zdieľať",
+  'pack.trip.stories.write.when': "Kedy ste tam boli",
+  'pack.trip.stories.write.dateRequired': "Vyber deň, kedy ste trasu prešli.",
+  'pack.trip.memorialStory': "Zapísať spomienku",
   // ⚠️ „{n}. v kronike" namiesto radovej číslovky vetou — „3. kto prešiel" sa v SK
   // nedá napísať bezrodovo a v dátach nie je, či to bol on alebo ona.
   'pack.trip.stories.first': "ako prvý",
@@ -3314,8 +3317,8 @@ export const sk: Partial<Dict> = {
   'pack.triplist.joinRequestToJoin': "Požiadať o pridanie",
   // #70 — gate: pridať sa na výlet ide až s DOG ID na 100 %. Tlačidlo ostáva
   // viditeľné, len neaktívne.
-  'pack.triplist.joinLocked': "Najprv doplň DOG ID",
-  'pack.triplist.joinLockedHint': "Tvoj DOG ID je vyplnený na {pct} % — organizátor potrebuje vedieť viac o tvojom psovi, kým sa pridáš.",
+  'pack.triplist.joinLocked': "Najprv doplň tri sekcie",
+  'pack.triplist.joinLockedHint': "Máš {pct} % z troch sekcií — ako pes funguje, s kým vychádza a akú má povahu. Na spoločný výlet to organizátor potrebuje vedieť.",
   'pack.triplist.backToMap': "Späť na mapu",
   'pack.triplist.tabTripstats': "Štatistiky",
   'pack.triplist.tabTriplist': "Triplist",

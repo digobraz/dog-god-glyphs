@@ -684,6 +684,35 @@ export const ALL_STEPS: QuizStep[] = QUIZ_SECTIONS.flatMap((s) => s.steps);
 // držať doklad pod 100 %, inak sa 100 % nikdy nedosiahne a číslo klame.
 export const PROGRESS_STEPS: QuizStep[] = ALL_STEPS.filter((s) => !s.noProgress && !s.optional);
 
+/**
+ * ═══ ZÁMOK NA PRIDANIE SA NA CUDZÍ VÝLET (issue #70) ═══════════════════════════
+ *
+ * NIE JE to `PROGRESS_STEPS`. Matej 23. 9. 2026 na otázku, čo má zámok merať:
+ *   *„dal by som ako funguje s kým vychádza a povaha — pre turistiku, nič viac"*
+ *
+ * TRI CELÉ SEKCIE, nie vyberanie po poliach. Dá sa to povedať jednou vetou —
+ * „na výlet treba vedieť, ako pes funguje, s kým vychádza a akú má povahu" — a to
+ * je rozdiel oproti percentu, ktoré človeku nepovie nič („máš 64 %, treba 100 %").
+ *
+ * 🔴 PREČO NIE 100 % Z `PROGRESS_STEPS`: premerané na LIVE 23. 9. 2026 — 56 účtov,
+ *    72 zaplatených psov, `dog_events` **0 riadkov**, DOG ID na 100 %: **0 účtov**.
+ *    `/pack/dogs` aj kvíz sú za `DEV_FULL`, takže DOG ID doteraz nikto NEMAL AKO
+ *    vyplniť. Zámok nad 37 poľami (vrátane ZÁVETU psa a čísla čipu) by v deň flipu
+ *    zablokoval VŠETKÝCH 56 členov — a prvý seed výlet je 3. 10.
+ *
+ * ⚠️ VON zámerne ostávajú: očkovania, čip, kontakty, jedlo, nature aj závet.
+ *    Sú v DOG ID a rátajú sa do percenta — len nebránia výletu.
+ * ⚠️ `howWorks.alone` („zvládne byť sám") sa turistiky netýka, ale ostáva DNU:
+ *    pravidlo je „celé sekcie", a výnimka na jedno pole by ho rozbila.
+ * ⚠️ SERVER MÁ KÓPIU tohto zoznamu (`dogid_join_fields` v migrácii) — generuje ju
+ *    `scripts/gen-dogid-progress-snapshot.mjs`. Keď tu pribudne/ubudne pole, MUSÍ
+ *    sa pustiť generátor a napísať NOVÚ migráciu, inak sa klient a server rozídu.
+ */
+export const JOIN_REQUIRED_SECTIONS = ['howWorks', 'social', 'temperament'] as const;
+
+export const JOIN_REQUIRED_STEPS: QuizStep[] = PROGRESS_STEPS.filter((s) =>
+  (JOIN_REQUIRED_SECTIONS as readonly string[]).includes(s.field.split('.')[0]));
+
 /** Sekcia, do ktorej krok patrí — pohon „✎" deep-linku z karty psa do kvízu. */
 export function sectionOfField(field: string): QuizSection | undefined {
   return QUIZ_SECTIONS.find((s) => s.steps.some((st) => st.field === field));

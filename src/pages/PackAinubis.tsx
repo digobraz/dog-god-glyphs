@@ -613,7 +613,6 @@ export default function PackAinubis() {
             </span>
           )}
         />
-        <div className="akv-toprow">{planes('akv-planes-t')}</div>
         {/* PC: hľadanie a filtre POD hlavičkou nad mozgom, ako na /map (Matej 22. 9.). */}
         <div className="akv-ptools">
           {search}
@@ -623,6 +622,14 @@ export default function PackAinubis() {
             {lockedDd('state', 'Status')}
           </div>
         </div>
+        {/* 🔴 PORADIE NA MOBILE = PORADIE NA `/map` (Matej 23. 9. 2026):
+            *„mobil zobrazenie na /map by sa mal zhodovať a mal by si podľa neho urobiť
+            aj ainubis"* — identita → HĽADANIE + FILTRE → prepínače. Do 23. 9. tu boli
+            prepínače NAD hľadaním, teda presne naopak než na mape.
+            ⚠️ Na PC sa tým NEMENÍ NIČ: `.akv-toprow` je tam `display:none` a roviny
+               žijú v ľavom bloku — to je vlastné rozhodnutie z toho istého rána
+               („OSTÁVA TAK, presun hore aj na PC zamietnutý"). Presúva sa poradie
+               v DOM, nie miesto rovín. */}
         <div className="akv-mtools">
           {search}
           <button type="button" className={`akv-fbtn${wf >= 0 ? ' is-set' : ''}`}
@@ -630,6 +637,7 @@ export default function PackAinubis() {
             <i aria-hidden />{filtersLabel}
           </button>
         </div>
+        <div className="akv-toprow">{planes('akv-planes-t')}</div>
       </div>
 
       {/* ŠUPLÍK FILTROV (mobil) — vzor .trp-msheet: všetky filtre na jednom mieste. */}

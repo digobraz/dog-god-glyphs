@@ -18,10 +18,11 @@ import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
-// #70 — 100 % DOG ID = podmienka pridať sa na cudzí výlet. TEN ISTÝ zdroj čísla
-// ako dlaždica v `/pack/dogs` (PackDogs.tsx) a samotný doklad (DogPassport.tsx):
-// `PROGRESS_STEPS` (bez `noProgress`/`optional`) + `hasValue()` nad `latest`.
-import { PROGRESS_STEPS } from '@/components/pack/dogQuiz';
+// #70 — podmienka pridať sa na cudzí výlet. ⚠️ NIE `PROGRESS_STEPS` (37 polí,
+// percento celého dokladu na `/pack/dogs` a `DogPassport.tsx`), ale
+// `JOIN_REQUIRED_STEPS` — tri sekcie, 12 polí, „pre turistiku, nič viac"
+// (Matej 23. 9. 2026). Sú to zámerne RÔZNE čísla; odôvodnenie v `dogQuiz.ts`.
+import { JOIN_REQUIRED_STEPS } from '@/components/pack/dogQuiz';
 import { hasValue, readLatestForDogs, onDogEventsChange } from '@/lib/dogEvents';
 import { useMyDogRights } from '@/lib/dogRights';
 import { useT } from '@/i18n/LanguageContext';
@@ -428,7 +429,7 @@ function joinLabel(t: ReturnType<typeof useT>, status?: TripRequestStatus): { la
 // vracia anglickú hlášku so stabilným prefixom `dogid_incomplete:` a percentom
 // v texte (kontrola 22. 9. 2026: „Slovák uvidí anglické »DOG ID is 40 percent
 // complete«"). Bežný klik na disabled tlačidlo sem nedôjde — nastáva len v okne,
-// kým `myDogIdPct` ešte nie je známe, alebo pri race medzi zariadeniami/kartami.
+// kým `joinPct` ešte nie je známe, alebo pri race medzi zariadeniami/kartami.
 // Rozpozná percento a prekreslí ho cez TEN ISTÝ i18n kľúč ako klientská clona
 // (`pack.triplist.joinLockedHint`), aby človek videl jednu vetu, nie dve rôzne.
 // Neznáma chyba (iný prefix/žiadny) sa vráti nezmenená — nie je to tichá strata.
@@ -567,41 +568,68 @@ export default function PackTriplist() {
   const [reqBusy, setReqBusy] = useState<string | null>(null);
   const [joinErr, setJoinErr] = useState<Record<string, string>>({});
 
-  // #70 — gate: pridať sa na cudzí výlet smie len s DOG ID na 100 %. Číslo sa
-  // ráta z PRVÉHO VLASTNÉHO zaplateného psa — rovnaké pravidlo ako server
-  // (`my_dog_id_pct()` v `20260922_dogid_join_gate.sql`: `where d.user_id =
-  // auth.uid() order by created_at asc limit 1`).
-  // ⚠️ OPRAVENÉ (kontrola 22. 9. 2026): `id.dogs[0]` NESTAČÍ. `id.dogs`
+  // #70 — gate: pridať sa na cudzí výlet smie len s vyplnenými TROMI SEKCIAMI
+  // DOG ID (`JOIN_REQUIRED_STEPS`: howWorks + social + temperament). NIE celé
+  // DOG ID — Matej 23. 9. 2026: *„ako funguje s kým vychádza a povaha — pre
+  // turistiku, nič viac"*. Dôvod, prečo nie 100 % z `PROGRESS_STEPS`, je
+  // v hlavičke `20260922_dogid_join_gate.sql` (na LIVE má 0 z 56 účtov 100 %).
+  //
+  // 🔴 MERIA SA NAJLEPŠÍ **ŽIVÝ** PES, nie prvý podľa `created_at` — presne ako
+  //    server (`my_best_live_dog_pct()`). Človek ide na výlet s JEDNÝM psom
+  //    a stačí, aby ten mal vyplnené; zosnulý sa nemeria nikdy.
+  // 🔴 KTO NEMÁ ŽIVÉHO PSA, TOHO ZÁMOK NEMERIA — preskočí sa, nezamietne
+  //    (Matej 23. 9.). Na LIVE je to 6 účtov zo 56. `✓ prejdené` im ostáva
+  //    zamknuté cez `trip_walked_need_dog`, ale pridať sa na výlet smú.
+  //
+  // ⚠️ `id.dogs[0]` NESTAČÍ (kontrola 22. 9. 2026): `id.dogs`
   // (`usePackIdentity.ts`) ide cez `getAccessibleDogIds()` → `my_dog_rights()`,
-  // čo vracia VLASTNÉ aj PAWMATE psy zoradené podľa `created_at` — teda `[0]`
-  // môže byť cudzí pes so starším dátumom. Server pozná len vlastných
-  // (`d.user_id = auth.uid()`), takže pawmate by dostal percento a odkaz na
-  // CUDZIE DOG ID a server by ho aj tak posudzoval podľa vlastného. Filter cez
+  // čo vracia VLASTNÉ aj PAWMATE psy — teda `[0]` môže byť cudzí pes so starším
+  // dátumom. Server pozná len vlastných (`d.user_id = auth.uid()`), takže pawmate
+  // by dostal percento a odkaz na CUDZIE DOG ID. Filter cez
   // `useMyDogRights().isOwner()` drží oba zdroje na tom istom psovi.
   const dogRights = useMyDogRights();
   // Kým sa práva nenačítajú (`dogRights.rows === null`), `isOwner()` vracia
   // `true` pre každého — rovnaká clona ako inde v appke (`useMyDogRights`
   // dokumentuje: „kým sa nevie, platí smiem"), nie omyl.
-  const primaryDogId = id.dogs.find((d) => dogRights.isOwner(d.id))?.id ?? null;
-  const [myDogIdPct, setMyDogIdPct] = useState<number | null>(null);
+  const myLiveDogs = useMemo(
+    () => id.dogs.filter((d) => dogRights.isOwner(d.id) && (d.life_status ?? 'alive') !== 'deceased'),
+    [id.dogs, dogRights],
+  );
+  const hasNoLiveDog = !id.loading && myLiveDogs.length === 0;
+  const [joinPct, setJoinPct] = useState<number | null>(null);
+  // `bestDogId` = pes s NAJVYŠŠÍM percentom; zapisuje ho `load()` nižšie, lebo
+  // poradie sa dá zistiť až po načítaní hodnôt. Odkaz „dokonči" musí viesť na
+  // TOHO psa, inak pošle človeka dopĺňať iného, než ktorým prejde.
+  const [bestDogId, setBestDogId] = useState<string | null>(null);
+  const liveIds = useMemo(() => myLiveDogs.map((d) => d.id).join(','), [myLiveDogs]);
   useEffect(() => {
-    if (!primaryDogId) { setMyDogIdPct(0); return; }
+    const ids = liveIds ? liveIds.split(',') : [];
+    if (ids.length === 0) { setJoinPct(null); setBestDogId(null); return; }
     let alive = true;
     const load = () => {
-      readLatestForDogs([primaryDogId]).then((r) => {
+      readLatestForDogs(ids).then((r) => {
         if (!alive) return;
-        const latest = r[primaryDogId] ?? {};
-        const total = PROGRESS_STEPS.length;
-        const done = PROGRESS_STEPS.filter((s) => hasValue(latest[s.field])).length;
-        setMyDogIdPct(total ? Math.round((done / total) * 100) : 0);
+        const total = JOIN_REQUIRED_STEPS.length;
+        let best = 0;
+        let bestId = ids[0];
+        for (const dogId of ids) {
+          const latest = r[dogId] ?? {};
+          const done = JOIN_REQUIRED_STEPS.filter((s) => hasValue(latest[s.field])).length;
+          const pct = total ? Math.round((done / total) * 100) : 0;
+          if (pct > best) { best = pct; bestId = dogId; }
+        }
+        setJoinPct(best);
+        setBestDogId(bestId);
       });
     };
     load();
     const off = onDogEventsChange(load);
     return () => { alive = false; off(); };
-  }, [primaryDogId]);
-  const myDogIdReady = myDogIdPct === null || myDogIdPct >= 100;
-  const myDogIdLink = primaryDogId ? `/pack/dogs/${primaryDogId}` : '/pack/dogs';
+  }, [liveIds]);
+  // `null` = ešte sa načítava ⇒ clona „kým sa nevie, platí smiem" (server má
+  // posledné slovo). `hasNoLiveDog` = výnimka, tá je tiež `true`.
+  const myDogIdReady = hasNoLiveDog || joinPct === null || joinPct >= 100;
+  const myDogIdLink = bestDogId ? `/pack/dogs/${bestDogId}` : '/pack/dogs';
   // #42 — prepínač viditeľnosti (badge na MY TRIPS karte) + ponuka zavrieť po prijatí
   const [visTripId, setVisTripId] = useState<string | null>(null);
 
@@ -1125,7 +1153,7 @@ export default function PackTriplist() {
                               nová trieda = žiadna nová hodnota mimo `/pack` matríc). */}
                           {locked ? (
                             <div className="tl-joinerr">
-                              {t('pack.triplist.joinLockedHint', { pct: myDogIdPct ?? 0 })}{' '}
+                              {t('pack.triplist.joinLockedHint', { pct: joinPct ?? 0 })}{' '}
                               <Link
                                 to={myDogIdLink}
                                 onClick={(e) => e.stopPropagation()}

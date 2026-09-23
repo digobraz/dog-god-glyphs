@@ -99,7 +99,19 @@ ${PF_FIELD_CSS}
 
 export interface StoryWriteProps {
   slug: string;
-  /** Dátum prejdenia z `trip_walked` — východisko, ktoré sa dá opraviť. */
+  /**
+   * 🔴 SPOMIENKA — človek, ktorému pes zomrel (2026-09-23).
+   *
+   * Bežný vchod do príbehu je PREJDENIE: dátum príde z `trip_walked` a formulár
+   * sa naň nepýta. Kto nemá živého psa, ale riadok v `trip_walked` NEMÁ AKO mať
+   * (`trip_walked_need_dog`, 21. 9.) — a `save_trip_story()` mu preto od
+   * 23. 9. dovolí písať aj bez neho, ale **dátum musí prísť z formulára**
+   * (`memorial_story_needs_date`). Toto pole ho vypýta.
+   *
+   * ⚠️ Bez neho by RPC zamietla zápis a človek by videl surovú anglickú hlášku —
+   *    teda presne tú stenu, kvôli ktorej sa to celé otvorilo.
+   */
+  requireDate?: boolean;
   onClose: () => void;
   onSaved: () => void;
 }
@@ -111,7 +123,7 @@ async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
   return r.blob();
 }
 
-export function StoryWrite({ slug, onClose, onSaved }: StoryWriteProps) {
+export function StoryWrite({ slug, requireDate = false, onClose, onSaved }: StoryWriteProps) {
   const t = useT();
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [body, setBody] = useState('');
@@ -170,6 +182,8 @@ export function StoryWrite({ slug, onClose, onSaved }: StoryWriteProps) {
   };
 
   const save = async () => {
+    // Dátum je povinný LEN pri spomienke — inak ho dodá `trip_walked` na serveri.
+    if (requireDate && !happenedAt) { setNote(t('pack.trip.stories.write.dateRequired')); return; }
     setBusy(true); setNote('');
     const r = await saveStory(slug, { title: title.trim(), body: body.trim(), photos, link: link.trim(), youtube: youtube.trim(), isPublic, happenedAt });
     setBusy(false);
@@ -195,6 +209,19 @@ export function StoryWrite({ slug, onClose, onSaved }: StoryWriteProps) {
           <input id="psw-title" className="psw-in pf-field" value={title} maxLength={80}
             onChange={(e) => setTitle(e.target.value)}
             placeholder={t('pack.trip.stories.write.nameHint')} />
+
+          {/* KEDY SI TAM BOL — len pri spomienke (viď `requireDate`). Pri bežnom
+              príbehu sa nepýta: dátum už povedal zápis prejdenia a druhá otázka
+              na to isté by bola práca navyše pre každého. */}
+          {requireDate && (
+            <>
+              <label className="psw-lbl" htmlFor="psw-when">{t('pack.trip.stories.write.when')}</label>
+              <input id="psw-when" className="psw-in pf-field" type="date"
+                value={happenedAt ?? ''}
+                max={new Date().toISOString().slice(0, 10)}
+                onChange={(e) => setHappenedAt(e.target.value || null)} />
+            </>
+          )}
 
           <label className="psw-lbl" htmlFor="psw-body">{t('pack.trip.stories.write.body')}</label>
           <textarea id="psw-body" className="psw-ta pf-field" value={body}
