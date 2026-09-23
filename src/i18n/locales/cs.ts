@@ -7,9 +7,10 @@ import type { Dict } from '../LanguageContext';
  *   onepage, religion hook, film, welcome, login, dogPage (158 kľúčov, 17. 9. 2026).
  *   /vision pridané 2026-06-10 (preklad zo SK draftu). Zostáva 3 863 z 3 872 kľúčov EN.
  *
- * ⚠️ NEDOPLNENÉ ZÁMERNE: `terms.s12–s14` a `privacy.s12–s13` (právne texty s. r. o.).
- *   Preklad podmienok do CS je právne rozhodnutie, nie jazykové — padajú na EN, kým to
- *   Matej neodklepne. Je to JEDINÝCH 10 kľúčov, ktoré CS nemá.
+ * ✅ ÚPLNÉ od 23. 9. 2026: diera oproti EN je 0. Posledných 10 kľúčov (`terms.s12–s14`,
+ *   `privacy.s12–s13`) bolo zámerne na EN ako PRÁVNE rozhodnutie; Matej ho 23. 9. odklepol.
+ *   Riziko kryje `legal.langNote` — v prípade rozdielov má prednosť anglické znenie, takže
+ *   CS právne texty majú rovnaký status ako SK: strojový draft pre pohodlie, nie kánon.
  *
  * SLOVNÍK POJMOV: `plany/cs-slovnik-pojmov.md`. Vynucuje ho `scripts/cs-zluc.mjs`.
  *
