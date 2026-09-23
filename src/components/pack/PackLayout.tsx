@@ -24,7 +24,7 @@ import { DOCK, DOCK_MEDAL_CSS, DockPlus } from './packDockMedal';
 import { AddTripEntry, type AddChoice } from './addtrip/AddTripEntry';
 import { placeForRoute, withOrigin, type CreateObject } from './createRegistry';
 import { emitCreate, type CreateIntent } from '@/lib/createBus';
-import { openAinubis, getAinubisUnread, onAinubisUnread } from '@/lib/ainubisBus';
+import { openAinubis } from '@/lib/ainubisBus';
 import { DiaryEntry } from './diary/DiaryEntry';
 
 // Inbox/Thread lazy — statický import by ich (a s nimi packMessaging.ts: HERO_TRAILS 1,5 MB,
@@ -1102,10 +1102,13 @@ function BrandIcon({ src, active }: { src: string; active: boolean }) {
  *
  * ⚠️ `ainubisBus` sa NERUŠÍ. `openAinubis()` volajú `Gateways.tsx`, `MapCoach.tsx`, dlaždica
  *    chatu v kostre aj položka „nový rozhovor" v paneli `+` — záložka len naviguje.
- * ⚠️ ODZNAK NEPREČÍTANÝCH SEM PRIŠIEL Z KOTÚČA. Plávajúca guľa je v `/pack` skrytá, takže
- *    keby ho nenieslo nič, zmizol by s ňou; a nad `+` by tvrdil, že mám niečo PRIDAŤ.
- *    Kresba ostáva v `DOCK_MEDAL_CSS` (`packDockMedal.tsx`) — to je stylesheet CELEJ
- *    lišty, nie kotúča, a inline čísla by sa merali proti inej základni stráže.
+ * ⚠️ ODZNAK NEPREČÍTANÝCH TU UŽ NIE JE (Matej 23. 9. 2026: „ano iba ikonka"). Prišiel sem
+ *    z kotúča 21. 9. preto, že plávajúca guľa bola v `/pack` skrytá a číslo by nenieslo nič.
+ *    23. 9. sa guľa vrátila nad lištu a nesie ho zase ona — číslo na dvoch miestach naraz
+ *    by bola tá istá správa dvakrát. A je to aj správnejšie miesto: **guľa chat OTVORÍ**,
+ *    kým táto záložka vedie na `/pack/ainubis` (rovina VAULT), kde tie správy nie sú.
+ *    Kresba odznaku ostáva v `DOCK_MEDAL_CSS` (`packDockMedal.tsx`) — keby sa lišta opäť
+ *    stala spúšťačom chatu, netreba ju písať nanovo.
  *
  * ✅ IKONKA ROZHODNUTÁ 22. 9. 2026 — `idea.svg` (hlava so žiarovkou). Matej: „namiesto
  *    ikony sfingy psa daj ikonku, ktorá je v ainubisovi ako pochopenie". Tá istá kresba
@@ -1114,14 +1117,7 @@ function BrandIcon({ src, active }: { src: string; active: boolean }) {
  *    svet CESTA PSA.
  */
 function AinubisNavLink({ label }: { label: string }) {
-  const [unread, setUnread] = useState(getAinubisUnread);
-  useEffect(() => onAinubisUnread(setUnread), []);
-  return (
-    <span style={{ position: 'relative', display: 'inline-flex' }}>
-      <FloatingNavLink to="/pack/ainubis" label={label} icon="/icons/pack/idea.svg" />
-      {unread > 0 && <span className="pk-ainu-badge" aria-hidden>{unread > 9 ? '9+' : unread}</span>}
-    </span>
-  );
+  return <FloatingNavLink to="/pack/ainubis" label={label} icon="/icons/pack/idea.svg" />;
 }
 
 function FloatingNavLink({ to, label, icon, end }: { to: string; label: string; icon: string; end?: boolean }) {
