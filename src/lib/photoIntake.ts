@@ -1,5 +1,5 @@
 import imageCompression from 'browser-image-compression';
-import { uploadMainPhoto } from '@/services/cloudinaryService';
+import { uploadMainPhoto, withTransform } from '@/services/cloudinaryService';
 import { useDogyptStore } from '@/store/dogyptStore';
 
 /**
@@ -87,4 +87,89 @@ export function intakePhoto(file: File): PhotoIntake {
     .catch(() => null);
 
   return { previewUrl, uploaded };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// VÝREZ Z POPUPU (23. 9. 2026)
+//
+// Popup (`photoConfirm.ts`) vráti pri CONTINUE buď obdĺžnik, alebo `null`.
+// `null` znamená „človek sa fotky nedotkol" — a to NIE JE to isté ako stredový
+// výrez. Vtedy orezáva Cloudinary gravitáciou `g_auto`, ktorá nájde psa;
+// dnešné `c_fill` je bez nej, takže ležatej fotke ukrojí hlavu.
+//
+// ⚠️ ORIGINÁL SA NEPREPISUJE. Nahráva sa druhý súbor a store dostane jeho
+//    adresu — pôvodná fotka ostáva na Cloudinary nedotknutá, takže sa dá
+//    k výrezu vrátiť (dnes to nikto nerobí, ale zahodiť originál je nevratné).
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** Štvorcový výrez v pixeloch pôvodného obrázka (zhodný s `PhotoCropRect`). */
+export type CropRect = { sx: number; sy: number; size: number };
+
+/** Hrana orezanej fotky. 1200 je tá istá hodnota, akou zmenšuje `compressFile`. */
+const CROP_SIDE = 1200;
+
+/**
+ * Dokonči voľbu fotky po zavretí popupu.
+ *
+ * `rect === null` → počká na nahranie originálu a nasadí automatický výrez.
+ * Inak oreže lokálne na štvorec a nahrá výsledok. Oboje beží na pozadí: človek
+ * medzitým píše meno psa a fotku znova uvidí až o niekoľko krokov ďalej.
+ */
+export async function finishPhotoChoice(
+  rect: CropRect | null,
+  uploaded?: Promise<string | null>,
+): Promise<void> {
+  const s = useDogyptStore.getState();
+
+  if (!rect) {
+    const url = (await uploaded) ?? null;
+    if (!url) return;
+    const st = useDogyptStore.getState();
+    if (st.dogPhotoUrl === url) st.setDogPhotoUrl(autoSquareUrl(url));
+    return;
+  }
+
+  try {
+    const blob = await cropToSquare(s.dogPhotoUrl, rect);
+    if (!blob) return;
+    const preview = URL.createObjectURL(blob);
+    const prev = useDogyptStore.getState().dogPhotoUrl;
+    useDogyptStore.getState().setDogPhotoUrl(preview);
+    if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
+
+    const { publicId, secureUrl } = await uploadMainPhoto(blob, s.sessionId);
+    const st = useDogyptStore.getState();
+    st.setCloudinaryPublicId(publicId);
+    if (st.dogPhotoUrl === preview) st.setDogPhotoUrl(secureUrl);
+  } catch (err) {
+    // Nepodarený výrez nesmie zastaviť vstup — pôvodná fotka je použiteľná.
+    console.error('[photo] výrez z popupu zlyhal, ostáva pôvodná fotka:', err);
+  }
+}
+
+/** Automatický štvorcový výrez, ktorý na rozdiel od `c_fill` pozná psa. */
+export const autoSquareUrl = (url: string): string =>
+  withTransform(url, `c_fill,g_auto,w_${CROP_SIDE},h_${CROP_SIDE},f_auto,q_auto`);
+
+/** Oreže obrázok na štvorec podľa obdĺžnika v pixeloch originálu. */
+export async function cropToSquare(src: string, rect: CropRect): Promise<Blob | null> {
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const el = new Image();
+    // Zdrojom je blob aj https (Cloudinary) — bez `crossOrigin` by bolo plátno
+    // znečistené a `toBlob` by ticho vrátil chybu. Tá istá poznámka je v
+    // `photoCrop.ts` a je to jediná pasca, na ktorej tu ide zlyhať všetko.
+    el.crossOrigin = 'anonymous';
+    el.onload = () => resolve(el);
+    el.onerror = reject;
+    el.src = src;
+  });
+
+  const side = Math.min(CROP_SIDE, Math.round(rect.size));
+  const cv = document.createElement('canvas');
+  cv.width = side;
+  cv.height = side;
+  const ctx = cv.getContext('2d');
+  if (!ctx) return null;
+  ctx.drawImage(img, rect.sx, rect.sy, rect.size, rect.size, 0, 0, side, side);
+  return new Promise((resolve) => cv.toBlob((b) => resolve(b), 'image/webp', 0.85));
 }

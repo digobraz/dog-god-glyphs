@@ -15,25 +15,47 @@ import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
  * `plany/ladenie-konverzie.md`). Popup PO ňom nestojí ani jeden klik navyše
  * a je to prvý okamih, keď má človek čo vidieť.
  *
- * 🔴 VÝREZ SEM NEPATRÍ. Predloha, ktorú Matej poslal (21st.dev avatar-uploader),
- * je pekná práve tou vecou, ktorú nechceme — kruhový výrez so zoom posuvníkom.
- * Fotka je diera **−49 %** a výrez sme 28. 8. presunuli až za povahu, tesne pred
- * odhalenie: na vstupe je to práca, ktorú človek robí skôr, než vie, či mu to za
- * to stojí; na konci ju robí niekto, kto má za sebou pätnásť krokov a ide si po
- * odmenu. Z predlohy sa berie TVAR (modál, náhľad, potvrdenie), nie tá funkcia.
+ * 🔴 VÝREZ JE TU — A JE TO OBRAT Z 23. 9. 2026. Do toho dňa tu stálo, že výrez
+ * sem nepatrí (fotka je diera −49 %, výrez je práca navyše presne tam, kde ich
+ * odbúravame) a robil sa až za povahou, tesne pred odhalením. Matej to otočil:
+ * *„čo ak človek pošle fotku na šírku a nebude ju vedieť posunúť? a odide
+ * radšej nach… tu tú možnosť má"* · *„a nie vyrez po zaplateni je blbosť"*.
+ *
+ * ⚠️ PADLA LEN POVINNOSŤ, NIE DÔVOD. Výrez je **ponuka**: kto naň nesiahne,
+ * dostane automatický (Cloudinary `g_auto`, ktorý pozná psa — dnešné `c_fill`
+ * je BEZ gravitácie, teda holý stred). Preto je posuvník pod fotkou tichý a
+ * karta nepýta ani jeden klik navyše.
+ *
+ * 🔴 ŤAHAŤ SA MUSÍ DAŤ AJ PRI 1× PRIBLÍŽENÍ. Stará mechanika (`photoCrop.tsx`,
+ * `CropArea`) drží posun v medziach `(zoom−1)×50`, takže pri 1× je fotka
+ * primrznutá — a to je PRESNE ten prípad, ktorého sa Matej pýtal: ležatá fotka
+ * vsadená do štvorca má presah po stranách, ale posunúť sa nedá. Príčina je
+ * v modeli: tam sa hýbe PRVKOM s `object-fit: cover`, takže časti obrazu mimo
+ * štvorca sú nedostupné za akéhokoľvek zoomu. Tu sa hýbe OBRAZOM v jeho
+ * prirodzenom pomere a medza sa ráta z jeho skutočných rozmerov.
  *
  * ⚠️ VANILLA DOM ZÁMERNE. Stena je vanilla (CLAUDE.md, pravidlo 12), guľa je
  * React — rovnaký dôvod, pre ktorý je vanilla aj `dogPortal.ts`. Dve kópie tej
  * istej karty by sa rozišli pri prvej úprave.
  */
 
+/** Štvorcový výrez v pixeloch pôvodného obrázka. */
+export type PhotoCropRect = { sx: number; sy: number; size: number };
+
 export type PhotoConfirmOptions = {
   /** Adresa náhľadu (blob alebo https). */
   photoUrl: string;
   /** Poradové číslo, ktoré človek dostane. `null` = zatiaľ ho nevieme. */
   packNumber?: number | null;
-  /** Klik na hlavné CTA. Zavretie si popup spraví sám. */
-  onContinue: () => void;
+  /**
+   * Klik na hlavné CTA. Zavretie si popup spraví sám.
+   *
+   * `crop` je `null`, keď sa človek fotky NEDOTKOL — vtedy platí automatický
+   * výrez a volajúci nemá čo orezávať. Inak je to obdĺžnik v pixeloch
+   * PÔVODNÉHO obrázka, pripravený pre `cropToSquare` aj pre Cloudinary
+   * `c_crop`.
+   */
+  onContinue: (crop: PhotoCropRect | null) => void;
   /** Klik na „vybrať inú" — otvor znova výber súboru. Popup sa zavrie. */
   onPickAnother: () => void;
   /**
@@ -67,6 +89,10 @@ export type PhotoConfirmCopy = {
   lead: string;
   cta: string;
   another: string;
+  /** Poznámka pod CTA. O platbe tu ani slovo (Matej 23. 9. 2026). */
+  later: string;
+  /** Popis posuvníka pre čítačku — na obrazovke nie je, výrez je tichá ponuka. */
+  zoom: string;
 };
 
 const DEFAULT_COPY: PhotoConfirmCopy = {
@@ -74,6 +100,8 @@ const DEFAULT_COPY: PhotoConfirmCopy = {
   lead: 'Three minutes and your dog is on the wall.',
   cta: 'Continue',
   another: 'Choose another photo',
+  later: 'You can change the photo later.',
+  zoom: 'Zoom',
 };
 
 const STYLE_ID = 'photo-confirm-css';
@@ -121,14 +149,63 @@ const CSS = `
    Kruh by sľuboval výrez do kruhu, ktorý tu zámerne nie je. Zaoblenie 24 %
    je tá istá hodnota ako --ph-r v dogPortal.ts. */
 .pfc-shot {
+  position: relative;
   width: min(58vw, 232px); aspect-ratio: 1 / 1;
   border-radius: 24%;
   overflow: hidden;
+  touch-action: none;
   border: 1.5px solid ${T.cardEdge};
   box-shadow: 0 6px 20px rgba(0,0,0,.28);
   background: #1a140c;
 }
-.pfc-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Obraz sa hýbe v SVOJOM pomere strán, nie ako štvorcový prvok s cover —
+   len tak sa dá pri 1× dostať k ľavému okraju ležatej fotky. Kratšia strana
+   sedí na ráme (to je cover pri 1×), dlhšia presahuje a presah sa dá ťahať. */
+.pfc-shot img {
+  position: absolute; left: 50%; top: 50%;
+  transform-origin: center;
+  display: block; max-width: none;
+  user-select: none; -webkit-user-drag: none;
+  cursor: grab;
+}
+.pfc-shot.is-drag img { cursor: grabbing; }
+.pfc-shot::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+}
+
+/* Posuvník je TICHÝ — výrez je ponuka, nie úkon. Preto žiadny nadpis nad ním
+   a farba len na úchyte, ktorý je „moja voľba" (lapis). */
+.pfc-zoom {
+  width: min(58vw, 232px);
+  display: flex; align-items: center; gap: 8px;
+  margin-top: -4px;
+}
+.pfc-zoom input {
+  flex: 1; height: 3px; -webkit-appearance: none; appearance: none;
+  background: ${T.cardEdge}; border-radius: 999px; outline: none; cursor: pointer;
+}
+.pfc-zoom input::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: ${LAPIS.grad}; border: 1px solid ${LAPIS.edge};
+  box-shadow: 0 1px 4px rgba(0,0,0,.35); cursor: pointer;
+}
+.pfc-zoom input::-moz-range-thumb {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: ${LAPIS.edge}; border: 1px solid ${LAPIS.edge}; cursor: pointer;
+}
+.pfc-zoom i {
+  font-style: normal; font-family: ${FONT_UI}; font-size: 11px;
+  color: ${T.inkWarm}; opacity: .7; flex: none;
+}
+
+/* Poznámka pod CTA (Matej 23. 9.): o platbe tu ani slovo. */
+.pfc-later {
+  font-family: ${FONT_UI}; font-size: 11px; color: ${T.inkWarm};
+  opacity: .75; margin: -6px 0 0; text-align: center;
+}
 
 .pfc-num { display: flex; flex-direction: column; align-items: center; gap: 1px; }
 /* Eyebrow presne podľa bledého locku: Space Grotesk 500, .26em, veľké písmená,
@@ -192,6 +269,113 @@ function ensureCss() {
   document.head.appendChild(s);
 }
 
+/**
+ * ŤAHANIE A PRIBLÍŽENIE NAD FOTKOU.
+ *
+ * Model: obraz má SVOJ pomer strán, kratšia strana sedí na ráme (pri 1× je to
+ * presne `cover`), stred obrazu je v strede rámu a posun je v pixeloch rámu.
+ * Medza posunu sa ráta zo skutočného presahu, takže ležatú fotku možno ťahať
+ * aj pri 1× — to je celý dôvod, prečo sa tu nepoužíva `CropArea`.
+ *
+ * Vracia `result()`: štvorec v pixeloch pôvodného obrázka, alebo `null`, keď sa
+ * človek fotky nedotkol (vtedy platí automatický výrez).
+ */
+function mountCrop(shot: HTMLElement, range: HTMLInputElement) {
+  const img = shot.querySelector('img')!;
+  let zoom = 1;
+  let x = 0;
+  let y = 0;
+  let touched = false;
+  /** Strana rámu v CSS pixeloch a rozmery obrazu pri zoome 1. */
+  let frame = 0;
+  let baseW = 0;
+  let baseH = 0;
+
+  const measure = () => {
+    frame = shot.getBoundingClientRect().width;
+    const nw = img.naturalWidth || 1;
+    const nh = img.naturalHeight || 1;
+    // Kratšia strana na rám: to je `cover` bez toho, aby sa orezal PRVOK.
+    const k = Math.max(frame / nw, frame / nh);
+    baseW = nw * k;
+    baseH = nh * k;
+    img.style.width = `${baseW}px`;
+    img.style.height = `${baseH}px`;
+    apply();
+  };
+
+  /** Posun sa nesmie odlepiť od okraja — medza je skutočný presah, nie vzorec. */
+  const limit = () => ({
+    mx: Math.max(0, (baseW * zoom - frame) / 2),
+    my: Math.max(0, (baseH * zoom - frame) / 2),
+  });
+
+  const apply = () => {
+    const { mx, my } = limit();
+    x = Math.min(mx, Math.max(-mx, x));
+    y = Math.min(my, Math.max(-my, y));
+    img.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${zoom})`;
+  };
+
+  if (img.complete && img.naturalWidth) measure();
+  img.addEventListener('load', measure);
+  // Rám je v `min(58vw, 232px)` — pri otočení telefónu sa jeho šírka mení a
+  // s ňou aj medze posunu. Bez premerania by fotka zostala odlepená od okraja.
+  const ro = new ResizeObserver(measure);
+  ro.observe(shot);
+
+  let id: number | null = null;
+  let sx = 0;
+  let sy = 0;
+  shot.addEventListener('pointerdown', (e) => {
+    id = e.pointerId;
+    sx = e.clientX - x;
+    sy = e.clientY - y;
+    shot.classList.add('is-drag');
+    shot.setPointerCapture(e.pointerId);
+  });
+  shot.addEventListener('pointermove', (e) => {
+    if (id !== e.pointerId) return;
+    x = e.clientX - sx;
+    y = e.clientY - sy;
+    // Za dotyk sa ráta až POHYB. Samotný klik do fotky nesmie zrušiť
+    // automatický výrez — inak by ho vypol aj ten, kto len mieril na CTA.
+    touched = true;
+    apply();
+  });
+  const end = (e: PointerEvent) => {
+    if (id !== e.pointerId) return;
+    id = null;
+    shot.classList.remove('is-drag');
+  };
+  shot.addEventListener('pointerup', end);
+  shot.addEventListener('pointercancel', end);
+
+  range.addEventListener('input', () => {
+    zoom = Number(range.value) / 100;
+    touched = true;
+    apply();
+  });
+
+  return {
+    destroy: () => ro.disconnect(),
+    result: (): PhotoCropRect | null => {
+      if (!touched) return null;
+      const nw = img.naturalWidth || 1;
+      const nh = img.naturalHeight || 1;
+      // Späť z CSS pixelov na pixely originálu. Mierka je pre obe osi rovnaká
+      // (obraz sa neskresľuje), takže stačí jedno číslo.
+      const px = 1 / ((baseW / nw) * zoom);
+      const size = frame * px;
+      return {
+        sx: Math.max(0, Math.min(nw - size, (nw - size) / 2 - x * px)),
+        sy: Math.max(0, Math.min(nh - size, (nh - size) / 2 - y * px)),
+        size: Math.max(1, Math.min(size, Math.min(nw, nh))),
+      };
+    },
+  };
+}
+
 export type PhotoConfirmHandle = { close: () => void };
 
 /** Otvor kartu potvrdenia. Vracia rúčku, ktorou sa dá zavrieť zvonku. */
@@ -216,17 +400,25 @@ export function openPhotoConfirm(opts: PhotoConfirmOptions): PhotoConfirmHandle 
 
   card.innerHTML = `
     <span class="pfc-shot"><img src="${opts.photoUrl}" alt=""></span>
+    <span class="pfc-zoom"><i>−</i><input type="range" min="100" max="300" value="100" aria-label="${copy.zoom}"><i>+</i></span>
     ${num}
     <p class="pfc-lead">${copy.lead}</p>
     <button type="button" class="pfc-go">${copy.cta}</button>
+    <p class="pfc-later">${copy.later}</p>
     <button type="button" class="pfc-alt">${copy.another}</button>
   `;
   back.appendChild(card);
+
+  const crop = mountCrop(
+    card.querySelector<HTMLElement>('.pfc-shot')!,
+    card.querySelector<HTMLInputElement>('.pfc-zoom input')!,
+  );
 
   let closed = false;
   const close = (fire = true) => {
     if (closed) return;
     closed = true;
+    crop.destroy();
     document.removeEventListener('keydown', onKey);
     back.classList.remove('is-in');
     // Karta sa odstraňuje až po dobehnutí prechodu — inak zmizne skokom.
@@ -245,7 +437,10 @@ export function openPhotoConfirm(opts: PhotoConfirmOptions): PhotoConfirmHandle 
   const go = card.querySelector<HTMLButtonElement>('.pfc-go');
   go?.addEventListener('click', () => {
     close(false);
-    opts.onContinue();
+    // Kto sa fotky nedotkol, dostane automatický výrez — volajúcemu to povie
+    // `null`, nie obdĺžnik celého obrázka. Rozdiel je podstatný: `g_auto`
+    // nájde psa, stredový výrez ho pri ležatej fotke odreže.
+    opts.onContinue(crop.result());
   });
   document.addEventListener('keydown', onKey);
 

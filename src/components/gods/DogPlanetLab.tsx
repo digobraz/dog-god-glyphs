@@ -37,7 +37,7 @@ import { LAB } from '@/lib/labTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { PORTAL_CSS, PORTAL_REDUCE_MOTION, buildPortal, createSparks } from './dogPortal';
 import { openPhotoConfirm } from './photoConfirm';
-import { intakePhoto } from '@/lib/photoIntake';
+import { intakePhoto, finishPhotoChoice } from '@/lib/photoIntake';
 import type { PortalHandle } from './dogPortal';
 
 /** Odliatok lapisovej pilulky: vrhnutý tieň + zlatá horná hrana, ako na hlavnom CTA. */
@@ -485,13 +485,20 @@ export function DogPlanetLab({
     fileRef.current?.click();
   };
 
+  // Nahrávanie originálu beží od výberu súboru. Popup ho potrebuje, keď sa
+  // človek výrezu nedotkne: automatický výrez (`g_auto`) sa dá nasadiť až na
+  // hotovú Cloudinary adresu.
+  const uploadingRef = useRef<Promise<string | null> | undefined>(undefined);
+
   const showConfirm = (url: string) => {
     track('planet_photo_confirm_shown');
     openPhotoConfirm({
       photoUrl: url,
       packNumber: dogs.reduce((m, d) => Math.max(m, d.n ?? 0), 1) + 1,
-      onContinue: () => {
+      onContinue: (crop) => {
         track('cta_become_dogyptian_click', { location: 'planet' });
+        void finishPhotoChoice(crop, uploadingRef.current);
+        if (crop) track('planet_photo_cropped');
         navigate('/heroglyph/name');
       },
       onPickAnother: () => { track('planet_photo_confirm_another'); openPicker(); },
@@ -506,7 +513,9 @@ export function DogPlanetLab({
     // `intakePhoto` zapíše adresu do storu a na pozadí spustí nahrávanie na
     // Cloudinary. Dovtedy sa fotka z gule niesla len ako `blob:` — kto odišiel
     // v polovici flow, nemal ju nikde, hoci ju už dal.
-    const { previewUrl } = intakePhoto(file);
+    const intake = intakePhoto(file);
+    const previewUrl = intake.previewUrl;
+    uploadingRef.current = intake.uploaded;
     setPhoto(previewUrl);
     showConfirm(previewUrl);
   };

@@ -32,7 +32,7 @@ import { Seo } from '@/components/Seo';
 import { DogPlanetLab, type PlanetDog } from './DogPlanetLab';
 import { PORTAL_CSS, PORTAL_REDUCE_MOTION, buildPortal, createSparks } from './dogPortal';
 import { openPhotoConfirm } from './photoConfirm';
-import { intakePhoto } from '@/lib/photoIntake';
+import { intakePhoto, finishPhotoChoice } from '@/lib/photoIntake';
 import { useToast } from '@/hooks/use-toast';
 import { shareDog, downloadCard, facebookShare, whatsappShare, copyDogLink } from '@/lib/useShareCard';
 import { dogPagePath } from '@/lib/dogSlug';
@@ -1200,14 +1200,21 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       // istú kartu — kto ju zavrel krížikom, by sa inak k tlačidlu POKRAČOVAŤ
       // nedostal a jediné, čo by mu ostalo, je vybrať fotku znova.
       let pickedUrl: string | null = null;
+      // Nahrávanie originálu beží od výberu súboru. Popup ho potrebuje, keď sa
+      // človek výrezu nedotkne: automatický výrez sa dá nasadiť až na hotovú
+      // Cloudinary adresu.
+      let uploading: Promise<string | null> | undefined;
       const openPicker = () => { file.value = ''; file.click(); };
       const showConfirm = (url: string) => {
         track('wall_photo_confirm_shown');
         openPhotoConfirm({
           photoUrl: url,
           packNumber: nextPackNo(),
-          onContinue: () => {
+          onContinue: (crop) => {
             track('cta_become_dogyptian_click', { location: 'wall_enroll_b' });
+            // Výrez dobieha na pozadí — flow ide ďalej hneď.
+            void finishPhotoChoice(crop, uploading);
+            if (crop) track('wall_photo_cropped');
             navigate('/heroglyph/name');
           },
           onPickAnother: () => { track('wall_photo_confirm_another'); openPicker(); },
@@ -1260,7 +1267,9 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
         // fotku nikde, hoci ju už dal.
         // ⚠️ Blob sa ZÁMERNE neuvoľňuje — tú istú adresu drží store pre ďalší krok
         // flow a revokeObjectURL by mu ju v tej istej sekunde zabil.
-        const { previewUrl } = intakePhoto(f);
+        const intake = intakePhoto(f);
+        const previewUrl = intake.previewUrl;
+        uploading = intake.uploaded;
         pickedUrl = previewUrl;
         portal.setPhoto(previewUrl);
         showConfirm(previewUrl);
