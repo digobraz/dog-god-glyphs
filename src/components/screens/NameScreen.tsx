@@ -28,6 +28,49 @@ const IS_ANDROID = typeof navigator !== 'undefined' && /Android/i.test(navigator
  *  aby sa blok, medailón a otázka hýbali ako jedna vec, nie ako tri. */
 const MORPH = { duration: 0.52, ease: [0.2, 0.8, 0.3, 1] } as const;
 
+// ── PRÍCHOD: OTOČENIE FOTKY A POSTUPNÁ OTÁZKA (23. 9. 2026) ────────────────
+// Matej: *„pridal by som animáciu aj tej fotky a písmen — fotka sa pootočí
+// a príde reveal a otázka sa animuje postupne"*.
+/** Koľko trvá odhalenie medailónu, kým sa pustí text. */
+const REVEAL_S = 0.72;
+/** Rozostup písmen. 22 ms je hranica, pod ktorou to splýva do obyčajného fadu. */
+const LETTER_S = 0.022;
+
+/**
+ * Text, ktorý sa vypisuje po PÍSMENÁCH.
+ *
+ * 🔴 ANIMUJE CSS, NIE FRAMER — a je to nález, nie vkus. Prvá verzia dala
+ *    písmenám `initial`/`animate`, jenže celá bublina visí v
+ *    `<AnimatePresence initial={false}>` a ten potláča vstupnú animáciu
+ *    VŠETKÝCH potomkov pri prvom renderi. Písmená aj otáčanie medailónu sa
+ *    preto nehrali vôbec: v 420 ms bolo všetko dokreslené. CSS animácia na
+ *    tom nezávisí — a je aj lacnejšia než sto motion komponentov na vetu.
+ *
+ * ⚠️ Každé písmeno je `inline-block` — bez toho by sa `transform` neuplatnil.
+ *    Medzery sú samostatné spany s pevnou šírkou: `inline-block` medzeru inak
+ *    zrazí na nulu a slová by sa zlepili.
+ * ⚠️ Zalomenie drží `whitespace-nowrap` na obale, nie na písmenách.
+ */
+function LetterReveal({ text, from, bold }: { text: string; from: number; bold?: boolean }) {
+  return (
+    <>
+      {Array.from(text).map((ch, i) =>
+        ch === ' ' ? (
+          <span key={i} style={{ display: 'inline-block', width: '0.3em' }} />
+        ) : (
+          <span
+            key={i}
+            className={`hf-letter${bold ? ' font-bold text-amber-300' : ''}`}
+            style={{ animationDelay: `${(from + i * LETTER_S).toFixed(3)}s` }}
+          >
+            {ch}
+          </span>
+        ),
+      )}
+    </>
+  );
+}
+
 // Countries list shared with CheckoutScreen (owner billing country).
 // Used here for dog's country of origin / home country.
 const COUNTRIES = [
@@ -267,11 +310,29 @@ export function NameScreen() {
     }
     return 'hero';
   });
+  /** Hrá sa príchod? Rozhodne sa RAZ, pri prvom renderi — aby sa písmená
+   *  nezačali vypisovať znova, keď sa fáza prepne na formulár. */
+  const playIntro = useRef(phase === 'hero').current;
+
+  // Koľko písmen má prvý riadok — druhý riadok naň nadväzuje, nie začína odznova.
+  const greetLen = (t('heroglyph.flow.name.greetingPrefix') + ' ').length;
+
+  // 🔴 ČAS PRÍCHODU SA RÁTA, NIE HÁDŽE. Otázka sa vypisuje po písmenách a text
+  //    má v 18 jazykoch rôznu dĺžku — pevné číslo by v jednom jazyku sedelo
+  //    a v druhom by formulár prišiel doprostred rozpísanej vety. Strop 3,2 s
+  //    drží aj najdlhší preklad v znesiteľnom čase.
+  const introMs = useMemo(() => {
+    if (phase !== 'hero') return 0;
+    const letters = greetLen + 8 + t('heroglyph.flow.name.greetingQuestion').length;
+    return Math.min(3200, Math.round((REVEAL_S + letters * LETTER_S + 0.45) * 1000));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (phase !== 'hero') return;
-    const id = window.setTimeout(() => setPhase('form'), 1150);
+    const id = window.setTimeout(() => setPhase('form'), introMs);
     return () => window.clearTimeout(id);
-  }, [phase]);
+  }, [phase, introMs]);
 
   // Ako veľmi sa medailón v príchodovej fáze nafúkne. Číslo NIE JE natvrdo:
   // ráta sa z okna, lebo „čo najväčšia fotka" znamená na telefóne inú veľkosť
@@ -345,30 +406,45 @@ export function NameScreen() {
           redirect na fotku, takže by šípka skončila v kruhu). */}
       <PageTopBar onBack={() => navigate(NEW_HEROFLOW ? '/' : '/heroglyph/intro')} />
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
-        {/* ⚠️ Bublina sa v príchodovej fáze roztiahne, len keď má DO ČOHO rásť —
-            `flex: 1` na nej samej nestačí, lebo tento stĺpec má obsahovú výšku.
-            Vo formulárovej fáze ostáva výška obsahová, teda ako dosiaľ. */}
-        <div
-          className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 min-h-0"
-          style={phase === 'hero' ? { flex: '1 1 auto' } : undefined}
-        >
+      {/* Príchod kroku 2 — otočenie medailónu a vypisovanie otázky.
+          ⚠️ Bez spätných apostrofov: CSS vnútri template literalu. */}
+      <style>{`
+        @keyframes hf-medin {
+          from { opacity: 0; transform: rotate(-190deg) scale(.55); }
+          to   { opacity: 1; transform: rotate(0deg) scale(1); }
+        }
+        .hf-medin { animation: hf-medin ${REVEAL_S}s cubic-bezier(.2,.8,.3,1.05) both; }
+        @keyframes hf-letter {
+          from { opacity: 0; transform: translateY(8px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .hf-letter {
+          display: inline-block;
+          animation: hf-letter .24s ease-out both;
+        }
+        /* Kto si vypol pohyb, dostane text a medailón rovno — nie prázdnu
+           obrazovku, kým dobehne animácia, ktorá sa nehrá. */
+        @media (prefers-reduced-motion: reduce) {
+          .hf-medin, .hf-letter { animation: none; opacity: 1; transform: none; }
+        }
+      `}</style>
 
-          {/* Speech bubble — v príchodovej fáze VYPĹŇA STRÁNKU a je na stred
-              (Matej 23. 9.: „modrý blok center na stred, čo najväčšia foto aj
-              text"), potom sa zvrkne do dnešnej podoby.
+      <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
+        {/* ⚠️ Bublina sa NEROZŤAHUJE na celú výšku (Matej 23. 9.: „nemusí byť cez
+            cely displaj, centruj ten blok na stred normalne"). Stĺpec má preto
+            obsahovú výšku v oboch fázach a na stred ho dáva `justify-center`
+            rodiča — blok v príchode vyrastie len o to, čo si vypýta veľká fotka. */}
+        <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 min-h-0">
+
+          {/* Speech bubble — v príchodovej fáze je len VYŠŠIA (veľká fotka),
+              nie roztiahnutá cez displej, a stojí v strede obrazovky.
               ⚠️ Prechod robí `layout`, nie animácia výšky: výška je `auto`
               a tú CSS animovať nevie — framer ju preloží na transform. */}
           <motion.div
             layout
             transition={MORPH}
             className="w-full rounded-2xl relative overflow-hidden flex-shrink"
-            style={{
-              background: 'var(--brand-gradient)',
-              ...(phase === 'hero'
-                ? { flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }
-                : null),
-            }}
+            style={{ background: 'var(--brand-gradient)' }}
           >
             {/* Info toggle button */}
             <button
@@ -409,7 +485,15 @@ export function NameScreen() {
                     //    nafúknutý medailón LEŽAL NA OTÁZKE pod sebou. Plynulosť
                     //    rieši `layout` (framer si zmenu rozmeru sám preloží na
                     //    transform), nie animácia škály.
-                    <motion.div layout transition={MORPH}>
+                    <motion.div
+                      layout
+                      transition={MORPH}
+                      // Príchod: medailón sa dotočí a vyrastie. Otáča sa CELÝ
+                      // odliatok aj so zlatým prstencom — to je na ňom to, čo
+                      // pri otáčaní vidno. Animáciu nesie CSS trieda, nie
+                      // `initial` — dôvod pri `LetterReveal`.
+                      className={playIntro ? 'hf-medin' : undefined}
+                    >
                       <FlowMedallion
                         src={hekthorFace('name')}
                         size={phase === 'hero' ? heroMedallion : 148}
@@ -427,8 +511,26 @@ export function NameScreen() {
                     }`}
                     style={{ fontFamily: "'Cinzel', serif" }}
                   >
-                    <span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingPrefix')} <span className="font-bold text-amber-300">HEKTHOR</span>.</span><br />
-                    <span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingQuestion')}</span>
+                    {playIntro ? (
+                      <>
+                        <span className="whitespace-nowrap">
+                          <LetterReveal text={`${t('heroglyph.flow.name.greetingPrefix')} `} from={REVEAL_S} />
+                          <LetterReveal text="HEKTHOR." from={REVEAL_S + greetLen * LETTER_S} bold />
+                        </span>
+                        <br />
+                        <span className="whitespace-nowrap">
+                          <LetterReveal
+                            text={t('heroglyph.flow.name.greetingQuestion')}
+                            from={REVEAL_S + (greetLen + 8) * LETTER_S}
+                          />
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingPrefix')} <span className="font-bold text-amber-300">HEKTHOR</span>.</span><br />
+                        <span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingQuestion')}</span>
+                      </>
+                    )}
                   </motion.p>
                 </motion.div>
               ) : (
