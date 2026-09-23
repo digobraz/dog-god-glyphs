@@ -16,6 +16,7 @@ import { countryFlag } from '@/lib/countryGeo';
 import { NEW_HEROFLOW } from '@/lib/flowMode';
 import { hekthorFace } from '@/lib/hekthorFaces';
 import { FlowMedallion } from '@/components/screens/flowMedallion';
+import { PACK_BOX } from '@/components/pack/packTheme';
 
 // Android keyboards (Gboard/Samsung) ignore autoCorrect/autoComplete="off" and may
 // silently swap a typed word for a predicted one (e.g. BELGA → BELGICKO). We can't
@@ -541,12 +542,17 @@ export function NameScreen() {
               ) : (
                 <motion.div
                   key="info"
-                  className="rounded-2xl"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.25 }}
-                  style={{ backgroundColor: 'hsl(var(--papyrus))' }}
+                  // Odvrátená strana bubliny (text o Hektorovi) je BLEDÝ BLOK ako
+                  // všetky ostatné v appke — Matej 23. 9.: „musí byť v našom brande,
+                  // teda vo farbe blokov aké máme naprieč /packom".
+                  // ⚠️ Matrica sa berie VYKONATEĽNE, hodnoty sa neopisujú (CLAUDE.md):
+                  //    dosiaľ tu bola plochá `hsl(var(--papyrus))` a `rounded-2xl`,
+                  //    teda plochá výplň bez gradientu, zlatého rámu a tieňa.
+                  style={{ ...PACK_BOX.card }}
                 >
                   {/* pt accounts for the X button */}
                   <div className="p-4 pt-11 pb-4 md:p-5 md:pt-14 md:pb-5">
