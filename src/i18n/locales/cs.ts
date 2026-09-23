@@ -2123,7 +2123,10 @@ export const cs: Partial<Dict> = {
   'pack.trip.stories.act.like': 'Líbí se mi',
   'pack.trip.stories.act.save': 'Uložit',
   'pack.trip.stories.act.use': 'Přidat trasu mezi moje výlety',
-  'pack.trip.stories.act.share': 'Poslat',
+  'pack.trip.stories.act.share': 'Sdílet',
+  'pack.trip.stories.write.when': 'Kdy jste tam byli',
+  'pack.trip.stories.write.dateRequired': 'Vyber den, kdy jste trasu prošli.',
+  'pack.trip.memorialStory': 'Zapsat vzpomínku',
   'pack.trip.stories.first': 'jako první',
   'pack.trip.stories.nth': '{n}. v kronice',
   'pack.trip.stories.authorLink': 'Vlastní tvorba autora',
@@ -2199,8 +2202,8 @@ export const cs: Partial<Dict> = {
   'pack.triplist.joinAskAgain': 'Požádat znovu',
   // #70 — gate: přidat se na výlet jde až s DOG ID na 100 %. Tlačítko zůstává
   // viditelné, jen neaktivní.
-  'pack.triplist.joinLocked': 'Nejdřív doplň DOG ID',
-  'pack.triplist.joinLockedHint': 'Tvůj DOG ID je vyplněný na {pct} % — organizátor potřebuje vědět víc o tvém psovi, než se přidáš.',
+  'pack.triplist.joinLocked': 'Nejdřív doplň tři sekce',
+  'pack.triplist.joinLockedHint': 'Máš {pct} % ze tří sekcí — jak pes funguje, s kým vychází a jakou má povahu. Na společný výlet to organizátor potřebuje vědět.',
   'pack.triplist.joinRequested': '✓ Požádáno',
   'pack.triplist.joinRequestToJoin': 'Požádat o přidání',
   'pack.triplist.keepLooking': 'Hledat dál',
