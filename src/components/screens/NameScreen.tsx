@@ -446,7 +446,11 @@ export function NameScreen() {
             className="w-full rounded-2xl relative overflow-hidden flex-shrink"
             style={{ background: 'var(--brand-gradient)' }}
           >
-            {/* Info toggle button */}
+            {/* Info toggle button — POČAS PRÍCHODU NIE JE (Matej 23. 9.: „pri
+                animácii nebude info ikonka hore vpravo v bloku"). Scéna príchodu
+                je obraz, nie ovládací panel: jediné, čo sa v nej hýbe, má byť
+                medailón a veta. Ikonka sa vráti aj s formulárom. */}
+            {phase === 'form' && (
             <button
               className="absolute top-3 right-3 z-20 flex items-center justify-center"
               style={{ width: 44, height: 44 }}
@@ -459,6 +463,7 @@ export function NameScreen() {
                   : <Info className="h-4 w-4 text-white/80" />}
               </span>
             </button>
+            )}
 
             {/* Front + info share one AnimatePresence (mode="wait") so the bubble
                 height fits whichever is shown — nothing gets clipped. */}
