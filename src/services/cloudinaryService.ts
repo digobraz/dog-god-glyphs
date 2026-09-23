@@ -24,6 +24,14 @@ async function uploadBlob(blob: Blob, folder: string, publicId: string): Promise
   return { publicId: json.public_id, secureUrl: json.secure_url };
 }
 
+// 🔴 `tmp/` KLAME — pre platiacich členov je to TRVALÉ ÚLOŽISKO. Fotka sa nahráva pred
+//    platbou (vtedy ešte niet `dogId`, len session id) a po platbe ju NIKTO nepresúva:
+//    premerané 23. 9. 2026 má **71 zo 72 platiacich psov** `cloudinary_main_url` v `tmp/`
+//    (zvyšných 78 riadkov z celkových 149 sú nedokončené koncepty). Všetky dnes vracajú 200.
+// 🔴 **NIKDY nenapíš „upratovanie" priečinka `tmp/`** — zmazalo by hlavné fotky platiacich
+//    členov na WALL, v DOG ID aj v share kartách. Kým sa platené fotky neodsťahujú
+//    (Cloudinary `rename` pri platbe + PATCH `cloudinary_main_url`), sú koncept a člen
+//    v jednom vreci a od seba sa podľa cesty rozoznať NEDAJÚ.
 export const uploadMainPhoto = (blob: Blob, sessionId: string) =>
   uploadBlob(blob, `tmp/${sessionId}`, 'main');
 
