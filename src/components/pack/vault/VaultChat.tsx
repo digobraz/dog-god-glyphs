@@ -126,7 +126,9 @@ export const VAULT_CHAT_CSS = `
 .akc-aihd{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;
   font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;line-height:1;
   letter-spacing:${PACK_HEAD.section.letterSpacing};color:${AINUBIS.inkFaint};}
-.akc-aihd i{font-style:normal;color:${AINUBIS.aiInk};}
+/* MENO JE VŽDY <AI>NUBIS — „AI" cyanom. Záporný margin vracia medzeru, ktorú
+   za písmenom I nechalo rozstrelenie: bez neho meno vyzerá ako AI NUBIS. */
+.akc-aihd i{font-style:normal;color:${AINUBIS.aiInk};margin-right:-0.22em;}
 .akc-body{padding:${PACK_SPACE.lg}px;border-radius:${PACK_R.card}px;border-top-left-radius:${PACK_R.field}px;
   font-size:${PACK_TEXT.body}px;color:${AINUBIS.inkDim};
   background:${AINUBIS.raised};border:1px solid ${AINUBIS.edge};}
@@ -219,12 +221,25 @@ export const VAULT_CHAT_CSS = `
 .akc-onote{margin-top:${PACK_SPACE.sm}px;font-size:${PACK_TEXT.micro}px;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
 
+/* MOBIL: čo patrí VAULTU, v chate nesvieti. Hľadanie vo vaulte, filtre svetov
+   a pilulka POHĽADU (DOGSCROLL ⇄ MOZOG) sa chatu netýkajú — pilulka navyše
+   sadala priamo na písacie pole. Identita a prepínač ROVÍN ostávajú: bez nich
+   niet cesty späť. */
+.akv-root[data-plane="chat"] .akv-mtools,
+.akv-root[data-plane="chat"] .akv-mactions,
+.akv-root[data-plane="chat"] .akv-ctl{display:none;}
+
 /* MOBIL: panel zdrojov sa NEKRESLÍ — mozog je pod vláknom neviditeľný, takže by
    panel visel nad chatom a tvrdil niečo o ploche, ktorú nevidno. Zdroje nesie
    riadok 'from' priamo pod odpoveďou. */
 @media (max-width:1023px){
   .akc-src{display:none;}
 }
+
+/* GUĽA AINUBISA SA V CHATE SKRÝVA. Je to spúšťač chatu a v chate už si — navyše
+   sadá presne na panel ODKIAĽ TO VIEM. Mimo tejto roviny ostáva. */
+.akv-root[data-plane="chat"] ~ .ainubis-launcher,
+body:has(.akv-root[data-plane="chat"]) .ainubis-launcher{visibility:hidden;pointer-events:none;}
 
 /* ── PC: PÁS · VLÁKNO · MOZOG ─────────────────────────────────────────────
    Tu sa rozloženie líši od VAULTU (40/60): mozog je v chate DÔKAZ, nie hlavná
