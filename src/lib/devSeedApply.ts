@@ -1,4 +1,4 @@
-import { useDogyptStore, type ExtraDog } from '@/store/dogyptStore';
+import { useDogyptStore, newExtraDog, type ExtraDog } from '@/store/dogyptStore';
 import { readDevSeed, type DevSeed } from './devSeed';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -34,16 +34,26 @@ export function applyDevSeedToStore(seed: DevSeed): void {
   s.setSelection('birthdayDay', '12');
   s.setSelection('birthdayMonth', '08');
   s.setSelection('birthdayYear', '2018');
-  s.setSelection('country', 'SK');
+  // ⚠️ ANGLICKÝ NÁZOV, nie kód krajiny. `CountryPick` aj 15. segment kódu
+  //    heroglyfu pracujú s anglickým menom; 'SK' sa v zozname nenašlo, takže
+  //    výber ostal prázdny, hoci pilulka v riadku už svietila vlajkou.
+  s.setSelection('country', 'Slovakia');
 
   // Ďalší psi: prvý má vyplnené (Matej 23. 9.: „pri multipsovi prvý pes svieti
   // na zeleno" — údaje má z obrazovky s menom), zvyšok je prázdny riadok.
+  // ⚠️ Fotku dostane LEN prvý z nich — od 23. 9. je fotka podmienkou hotového psa
+  // (Matej: „fotku pýtaj hneď"), takže seed musí vedieť ukázať OBE polohy: zelený
+  // riadok a riadok, ktorému fotka chýba. Berie tú istú testovaciu kresbu ako pes
+  // z kroku 2; v repe nie je ani jedna skutočná psia fotka.
   const extra: ExtraDog[] = Array.from({ length: seed.extraDogs }, (_, i) => ({
+    ...newExtraDog(),
     name: i === 0 ? 'ALBA' : '',
     lifeStatus: 'alive',
     deathDate: null,
     birthday: i === 0 ? '2019-06-04' : '',
     country: null,
+    photoUrl: i === 0 ? (seed.photoUrl || null) : null,
+    publicId: null,
   }));
   s.setExtraDogs(extra);
 }

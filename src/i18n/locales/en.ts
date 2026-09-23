@@ -250,6 +250,15 @@ export const en = {
   'heroglyph.flow.name.promise': "Your dog's name written into a design nobody else has.",
 
   // ── /heroglyph/dogs — krok 3: multi pes (LAB, 28. 8. 2026) ──
+  'heroglyph.flow.dogs.packTitle': 'Your pack',
+  'heroglyph.flow.dogs.orderLabel': 'Order in your life',
+  'heroglyph.flow.dogs.orderHint': 'drag ⋮⋮ · tap the number',
+  'heroglyph.flow.dogs.orderQ': 'Which dog in your life is {name}?',
+  'heroglyph.flow.dogs.orderNote': 'The rest move up behind them.',
+  'heroglyph.flow.dogs.orderAria': 'Set the order in your life',
+  'heroglyph.flow.dogs.photoAdd': 'Add a photo of this dog',
+  'heroglyph.flow.dogs.photoAnother': 'Choose another photo',
+  'heroglyph.flow.dogs.photoLater': 'You can change the photo later.',
   'heroglyph.flow.dogs.title': 'Do you have — or did you have — another dog?',
   'heroglyph.flow.dogs.sub': "Don't leave any of your dogs out — every one deserves a symbol of their own.",
   'heroglyph.flow.dogs.add': 'Add another dog',

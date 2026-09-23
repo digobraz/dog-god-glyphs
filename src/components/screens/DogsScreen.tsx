@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, Reorder, useDragControls } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useDogyptStore, type ExtraDog } from '@/store/dogyptStore';
+import { useDogyptStore, newExtraDog, type ExtraDog } from '@/store/dogyptStore';
 import { PageTopBar } from '@/components/PageTopBar';
 import { DateDropdowns } from '@/components/DateDropdowns';
 import { countryFlag, countryISO2 } from '@/lib/countryGeo';
@@ -12,30 +12,55 @@ import { useLang, useT } from '@/i18n/LanguageContext';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { track } from '@/lib/analytics';
 import { FLOW_PALE_CSS } from './flowPaleSkin';
-import hekthorImg from '@/assets/hekthor.png';
+import { FlowMedallion, FLOW_MEDAL_CSS } from './flowMedallion';
+import { hekthorFace } from '@/lib/hekthorFaces';
+import { intakePhoto, finishPhotoChoice, mainPhotoTarget, type PhotoTarget } from '@/lib/photoIntake';
+import { openPhotoConfirm } from '@/components/gods/photoConfirm';
+import { uploadPackDogPhoto } from '@/services/cloudinaryService';
 import legendIconUrl from '@/assets/legend-icon.svg';
 import angelIconUrl from '@/assets/angel-icon.svg';
 
-// ── /heroglyph/dogs — krok 3: „Máš, alebo si mal, aj ďalšieho psa?"
+// ── /heroglyph/dogs — krok 3: TVOJA SVORKA
 //
-// Predloha: `plany/lab-heroflow-2026-08-28.html`, obrazovka `dogs`.
-// Matej 28. 8.: *„v labe som už riešil aj meno aj multipsov… najdi to a postav to"*.
+// Predloha: `plany/nakres-heroflow-cely-2026-08-31.html`, obrazovka „Ďalší psi".
 //
-// Obrazovka drží VŠETKO NA JEDNEJ PLOCHE — riadok fotka·meno·ikonka stavu, klik na
-// ikonku otvorí panel (žijúca legenda / anjel, dátum narodenia, pri anjelovi aj dátum
-// odchodu, vlastná národnosť). Žiadne preklikávanie medzi obrazovkami.
+// Obrazovka drží VŠETKO NA JEDNEJ PLOCHE — riadok úchyt·číslo·fotka·meno·pilulky,
+// klik na riadok otvorí panel (žijúca legenda / anjel, dátumy, vlastná národnosť).
 //
-// 🔴 PAPIEROVAČKY (`/heroglyph/about`) TÝM STRÁCAJÚ OBSAH. Krajina aj dátum narodenia
-//    sa pýtajú tu a zapisujú sa do TÝCH ISTÝCH polí store (`selections.country`,
-//    `selections.birthday*`), aby kód heroglyfu mal 15. a 16. segment. Obrazovku
-//    papierovačiek som ale NEZRUŠIL — to je Matejovo rozhodnutie, nie moje.
+// ── ČO SA ZMENILO 23. 9. 2026 (Matej) ──────────────────────────────────────
+// 1. **Horná bublina je NA ŠÍRKU a menšia** — fotka vľavo, text vpravo.
+//    Veľký pozdrav je vec kroku 2; odtiaľto je Hektor sprievodca.
+// 2. **Psi sa dajú medzi sebou prehodiť** (úchyt ⋮⋮) a nesú PORADIE V ŽIVOTE.
+//    To poradie sa predvyplní do heroglyfu (`selections.ranking`) ⇒ obrazovka
+//    `RankingScreen` („je to tvoj prvý pes?") je v novom vstupe preskočená.
+//    Ťuknutie na číslo PRVÉHO psa posunie celú skupinu (kto mal psov aj predtým).
+// 3. **Fotku má každý pes**, nie len ten z kroku 2 — bez nej pes nie je hotový.
+// 4. **Celý blok psa zozelenie**, keď je vyplnený; POKRAČOVAŤ je súčet zelených.
+// 5. **Krajina sa pýta TU** (odišla z kroku 2) — jedna hodnota pre celú svorku.
 //
-// 🔴 ĎALŠÍ PSI SA ZATIAĽ IBA ZBIERAJÚ (`store.extraDogs`). Flow, platba aj certifikát
-//    bežia ďalej s prvým psom. Matej 28. 8.: každý pes prejde celým flow a platí sa
-//    €11 za každého ⇒ platba × N, N poradových čísel a N certifikátov je samostatná
-//    práca a BEZ NEJ TENTO KROK NESMIE ÍSŤ NA PRODUKCIU.
+// 🔴 ĎALŠÍ PSI SA ZATIAĽ IBA ZBIERAJÚ (`store.extraDogs`). Flow, platba aj
+//    certifikát bežia ďalej s prvým psom. Matej 28. 8.: každý pes prejde celým
+//    flow a platí sa €11 za každého ⇒ platba × N, N poradových čísel a N
+//    certifikátov je samostatná práca a BEZ NEJ TENTO KROK NESMIE ÍSŤ NA
+//    PRODUKCIU (preto celý nový vstup visí na `import.meta.env.DEV`).
 //
 // Back: /heroglyph/name  ·  Continue: /heroglyph/email
+
+/** Riadok zoznamu. `id: null` = pes z kroku 2 (žije v store poliach, nie v `extraDogs`). */
+type Row = {
+  key: string;
+  id: string | null;
+  name: string;
+  photo: string | null;
+  lifeStatus: 'alive' | 'deceased';
+  deathDate: string | null;
+  birthday: string;
+  /** `null` = berie spoločnú národnosť svorky. Pes z kroku 2 má vždy `null`. */
+  country: string | null;
+};
+
+const MAIN = 'main';
+
 export function DogsScreen() {
   const flowOk = useFlowGuard();
   const navigate = useNavigate();
@@ -52,6 +77,10 @@ export function DogsScreen() {
   const setSelection = useDogyptStore((s) => s.setSelection);
   const extraDogs = useDogyptStore((s) => s.extraDogs);
   const setExtraDogs = useDogyptStore((s) => s.setExtraDogs);
+  const mainDogPos = useDogyptStore((s) => s.mainDogPos);
+  const setMainDogPos = useDogyptStore((s) => s.setMainDogPos);
+  const dogOrderStart = useDogyptStore((s) => s.dogOrderStart);
+  const setDogOrderStart = useDogyptStore((s) => s.setDogOrderStart);
 
   // Národnosť je JEDNA hodnota pre celý vstup; pes sa z nej len vyviaže. Opačne
   // (každý pes vlastnú krajinu + odvodiť „spoločnú") by sa pri troch psoch nedalo
@@ -62,58 +91,74 @@ export function DogsScreen() {
   const [nat, setNat] = useState<string>(() => selections.country || guessCountryName(lang) || '');
   // „Platí pre všetkých" má zmysel až od DRUHÉHO psa — pri jednom je to políčko
   // bez obsahu a robí z jednoduchej obrazovky formulár (LAB).
-  // ⚠️ Toto políčko ROZHODUJE, či sa národnosť vôbec pýta v paneli psa. LAB má
-  // oba ovládače naraz (spoločné + vlastné pri každom psovi) a tie sa prekrývajú —
-  // vybral som jeden význam na jeden ovládač. 🚩 Ak to Matej chce ako v LABe, vrátim.
   const [natAll, setNatAll] = useState(() => extraDogs.every((d) => d.country === null));
-  // Index otvoreného panela; -1 = zavretý. 0 = pes z kroku 2, 1+ = `extraDogs`.
-  const [leg, setLeg] = useState(-1);
+  /** Kľúč otvoreného panela; `null` = zavretý. */
+  const [openKey, setOpenKey] = useState<string | null>(null);
+  /** Otvorené pole „koľký pes v živote je prvý riadok". */
+  const [ordEdit, setOrdEdit] = useState(false);
 
   const today = useMemo(() => new Date(), []);
   const currentYear = today.getFullYear();
-  const panelRef = useRef<HTMLDivElement>(null);
-
-  // Odchod z panela: klik mimo alebo Esc. Krížik nemá (lock 28. 8.).
-  useEffect(() => {
-    if (leg < 0) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closePanel(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [leg, extraDogs]);
+  const fileRef = useRef<HTMLInputElement>(null);
+  /** Pre ktorý riadok práve vyberáme fotku. */
+  const pickFor = useRef<string | null>(null);
 
   const displayName = dogName || t('heroglyph.flow.yourDogFallback');
 
-  // ── Pes #1 nie je v `extraDogs` — číta a zapisuje sa do polí, ktoré už existujú.
-  type Row = ExtraDog & { photo: string | null };
-  const first: Row = {
-    name: displayName,
-    photo: dogPhotoUrl || null,
-    lifeStatus,
-    deathDate,
-    birthday: selections.birthdayYear
-      ? `${selections.birthdayYear}-${selections.birthdayMonth || '01'}-${selections.birthdayDay || '01'}`
-      : '',
-    country: null as string | null,
-  };
-  // Ďalší psi fotku NEMAJÚ (LAB: „fotka ďalších psov = iniciála", Matej ju odložil),
-  // takže riadky idú na jeden tvar — inak by `all` bol únia dvoch typov.
-  const all: Row[] = [first, ...extraDogs.map((d) => ({ ...d, photo: null }))];
+  // ── ZOZNAM ─────────────────────────────────────────────────────────────────
+  // Pes #1 nie je v `extraDogs` — číta a zapisuje sa do polí, ktoré už existujú.
+  // Jeho MIESTO v zozname drží `mainDogPos`: ťahanie ho môže odsunúť za psa,
+  // ktorý bol v živote skôr.
+  const rows: Row[] = useMemo(() => {
+    const first: Row = {
+      key: MAIN,
+      id: null,
+      name: displayName,
+      photo: dogPhotoUrl || null,
+      lifeStatus,
+      deathDate,
+      birthday: selections.birthdayYear
+        ? `${selections.birthdayYear}-${selections.birthdayMonth || '01'}-${selections.birthdayDay || '01'}`
+        : '',
+      country: null,
+    };
+    const rest: Row[] = extraDogs.map((d) => ({
+      key: d.id,
+      id: d.id,
+      name: d.name,
+      photo: d.photoUrl,
+      lifeStatus: d.lifeStatus,
+      deathDate: d.deathDate,
+      birthday: d.birthday,
+      country: d.country,
+    }));
+    const pos = Math.max(0, Math.min(mainDogPos, rest.length));
+    return [...rest.slice(0, pos), first, ...rest.slice(pos)];
+  }, [displayName, dogPhotoUrl, lifeStatus, deathDate, selections, extraDogs, mainDogPos]);
 
-  const patchExtra = (i: number, patch: Partial<ExtraDog>) => {
-    setExtraDogs(extraDogs.map((d, k) => (k === i ? { ...d, ...patch } : d)));
+  const keys = useMemo(() => rows.map((r) => r.key), [rows]);
+
+  /** Nové poradie zo ťahania — z kľúčov späť na `mainDogPos` + `extraDogs`. */
+  const onReorder = (next: string[]) => {
+    const byId = new Map(extraDogs.map((d) => [d.id, d]));
+    setMainDogPos(Math.max(0, next.indexOf(MAIN)));
+    setExtraDogs(next.filter((k) => k !== MAIN).map((k) => byId.get(k)!).filter(Boolean));
   };
 
-  /** Zápis do psa na indexe `i` — pes #1 ide do store polí, ostatní do `extraDogs`. */
-  const patch = (i: number, patch: Partial<ExtraDog>) => {
-    if (i > 0) { patchExtra(i - 1, patch); return; }
-    if (patch.lifeStatus !== undefined) {
-      setLifeStatus(patch.lifeStatus);
-      if (patch.lifeStatus === 'alive') setDeathDate(null);
+  /** Zápis do psa — pes #1 ide do store polí, ostatní do svojho riadka podľa `id`. */
+  const patch = (row: Row, p: Partial<ExtraDog>) => {
+    if (row.id) {
+      const list = useDogyptStore.getState().extraDogs;
+      setExtraDogs(list.map((d) => (d.id === row.id ? { ...d, ...p } : d)));
+      return;
     }
-    if (patch.deathDate !== undefined) setDeathDate(patch.deathDate);
-    if (patch.birthday !== undefined && patch.birthday) {
-      const [y, m, d] = patch.birthday.split('-');
+    if (p.lifeStatus !== undefined) {
+      setLifeStatus(p.lifeStatus);
+      if (p.lifeStatus === 'alive') setDeathDate(null);
+    }
+    if (p.deathDate !== undefined) setDeathDate(p.deathDate);
+    if (p.birthday !== undefined && p.birthday) {
+      const [y, m, d] = p.birthday.split('-');
       setSelection('birthdayYear', y);
       setSelection('birthdayMonth', m);
       setSelection('birthdayDay', d);
@@ -122,11 +167,9 @@ export function DogsScreen() {
 
   const addDog = () => {
     track('flow_dogs_add');
-    setExtraDogs([
-      ...extraDogs,
-      { name: '', lifeStatus: 'alive', deathDate: null, birthday: '', country: null },
-    ]);
-    setLeg(all.length);
+    const dog = newExtraDog();
+    setExtraDogs([...extraDogs, dog]);
+    setOpenKey(dog.id);
   };
 
   // ── ZATVORENIE PANELA ────────────────────────────────────────────────────
@@ -135,60 +178,112 @@ export function DogsScreen() {
   // tlačidlo. Riadok teda zaniká vo chvíli, keď panel zavrieš bez mena, a je
   // jedno ktorou cestou (HOTOVO · Esc · klik mimo) — všetky tri idú tadeto.
   const closePanel = () => {
-    if (leg > 0) {
-      const d = extraDogs[leg - 1];
-      if (d && !d.name.trim()) setExtraDogs(extraDogs.filter((_, k) => k !== leg - 1));
-    }
-    setLeg(-1);
+    const list = useDogyptStore.getState().extraDogs;
+    const d = list.find((x) => x.id === openKey);
+    if (d && !d.name.trim()) setExtraDogs(list.filter((x) => x.id !== d.id));
+    setOpenKey(null);
   };
 
-  const removeDog = (i: number) => {
-    setExtraDogs(extraDogs.filter((_, k) => k !== i - 1));
-    setLeg(-1);
+  const removeDog = (row: Row) => {
+    if (!row.id) return;
+    setExtraDogs(extraDogs.filter((d) => d.id !== row.id));
+    setOpenKey(null);
+  };
+
+  // Odchod z panela: klik mimo alebo Esc. Krížik nemá (lock 28. 8.).
+  useEffect(() => {
+    if (!openKey) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closePanel(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openKey, extraDogs]);
+
+  // ── FOTKA KAŽDÉHO PSA (23. 9. 2026) ───────────────────────────────────────
+  // Matej: *„fotku pýtaj hneď"*. Cesta je TÁ ISTÁ ako na stene: vyber súbor →
+  // popup s výrezom → nahranie na pozadí. Líši sa jedine CIEĽ zápisu
+  // (`PhotoTarget`) — hlavný pes píše do store polí, ďalší do svojho riadka.
+  const targetFor = (row: Row): PhotoTarget => {
+    if (!row.id) return mainPhotoTarget();
+    const id = row.id;
+    const write = (p: Partial<ExtraDog>) => {
+      const st = useDogyptStore.getState();
+      st.setExtraDogs(st.extraDogs.map((d) => (d.id === id ? { ...d, ...p } : d)));
+    };
+    return {
+      read: () => useDogyptStore.getState().extraDogs.find((d) => d.id === id)?.photoUrl ?? null,
+      write: (url) => write({ photoUrl: url }),
+      writePublicId: (pid) => write({ publicId: pid }),
+      upload: (blob, sessionId) => uploadPackDogPhoto(blob, sessionId, id),
+    };
+  };
+
+  const askPhoto = (row: Row) => {
+    pickFor.current = row.key;
+    // ⚠️ Hodnota sa nuluje PRED otvorením — inak by výber tej istej fotky
+    //    druhýkrát nevyvolal `change` a nič by sa nestalo.
+    if (fileRef.current) fileRef.current.value = '';
+    fileRef.current?.click();
+  };
+
+  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    const key = pickFor.current;
+    if (!file || !key) return;
+    const row = rows.find((r) => r.key === key);
+    if (!row) return;
+    const target = targetFor(row);
+    const { previewUrl, uploaded } = intakePhoto(file, target);
+    track('flow_dogs_photo', { main: !row.id });
+    openPhotoConfirm({
+      photoUrl: previewUrl,
+      onContinue: (crop) => { void finishPhotoChoice(crop, uploaded, target); },
+      onPickAnother: () => askPhoto(row),
+      copy: {
+        lead: row.name || t('heroglyph.flow.dogs.unnamed'),
+        cta: t('heroglyph.flow.dogs.done'),
+        another: t('heroglyph.flow.dogs.photoAnother'),
+        later: t('heroglyph.flow.dogs.photoLater'),
+      },
+    });
   };
 
   // ── KEDY JE PES HOTOVÝ ────────────────────────────────────────────────────
-  // Matej 31. 8.: *„aktuálne môže človek kliknúť na pokračovať a nemať nič
-  // vyplnené! oprava = tlačidlo pokračovať bude aktívne len ak budú údaje
-  // kompletne vyplnené = buď jeden pes, alebo ak bude 2. začatý musí byť vždy
-  // kompletný"*.
+  // Matej 31. 8.: *„tlačidlo pokračovať bude aktívne len ak budú údaje kompletne
+  // vyplnené"* + 23. 9.: *„ďalej môžeš ísť len ak budú zvolení psi vyplnení na
+  // 100 %"*. Požadované údaje sú tie, ktoré nesie kód heroglyfu a dlaždica na
+  // stene: fotka · meno · stav · narodenie · (pri anjelovi odchod) · krajina.
   //
-  // Požadované údaje sú tie, ktoré nesie kód heroglyfu: meno · stav · dátum
-  // narodenia · (pri anjelovi dátum odchodu) · krajina. Stav hodnotu má vždy
-  // (predvolene „žijúca legenda"), ale ostáva v rade pilulek — inak by sa rad
-  // nikdy nezložil do jednej zelenej odpovede.
-  //
-  // ⚠️ Krajina psa #1 JE spoločná `nat` — pes #1 vlastnú nemá (pole `country`
-  // v `first` je natvrdo `null`). Ďalší pes ju má buď zdedenú (`null`), alebo
-  // vlastnú, a tá potom nesmie byť prázdna.
-  const dogFlags = (d: Row, i: number) => ({
+  // ⚠️ Krajina psa #1 JE spoločná `nat` — vlastnú nemá (`country` je `null`).
+  const dogFlags = (d: Row) => ({
+    photo: !!d.photo,
     name: !!d.name.trim(),
     born: !!d.birthday,
     gone: d.lifeStatus === 'alive' || !!d.deathDate,
-    country: i === 0 || d.country === null ? !!nat : !!d.country,
+    country: d.country === null ? !!nat : !!d.country,
   });
-  const dogDone = (d: Row, i: number) => Object.values(dogFlags(d, i)).every(Boolean);
-  const allDone = all.every(dogDone);
+  const dogDone = (d: Row) => Object.values(dogFlags(d)).every(Boolean);
+  const allDone = rows.every(dogDone);
 
   const handleContinue = () => {
     if (!allDone) return;
     if (nat) setSelection('country', nat);
-    track('flow_dogs_continue', { dogs: all.length });
+    // 🔑 PORADIE V ŽIVOTE → HEROGLYF. 12. segment kódu (`ranking`) sa doteraz
+    //    pýtal samostatnou obrazovkou; teraz je to poloha psa v zozname svorky.
+    const mine = rows.findIndex((r) => r.key === MAIN);
+    setSelection('ranking', String(dogOrderStart + Math.max(0, mine)));
+    track('flow_dogs_continue', { dogs: rows.length });
     navigate('/heroglyph/email');
   };
 
   if (!flowOk) return null;
 
-  const open = leg >= 0 ? all[leg] : null;
-  const openIsExtra = leg > 0;
+  const open = openKey ? rows.find((r) => r.key === openKey) ?? null : null;
+  const openIsExtra = !!open?.id;
 
   const parseBd = (bd: string) => {
     const [y, m, d] = (bd || '').split('-').map((n) => parseInt(n, 10));
-    return {
-      d: d || 1,
-      m: m || 1,
-      y: y || currentYear - 5,
-    };
+    return { d: d || 1, m: m || 1, y: y || currentYear - 5 };
   };
   const parseDd = (dd: string | null) => {
     const [y, m, d] = (dd || '').split('-').map((n) => parseInt(n, 10));
@@ -207,27 +302,38 @@ export function DogsScreen() {
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
         <PageTopBar onBack={() => navigate('/heroglyph/name')} />
       </div>
 
+      {/* Jeden skrytý výber súboru pre celý zoznam — pre ktorý riadok, drží `pickFor`. */}
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        onChange={onFile}
+        style={{ display: 'none' }}
+      />
+
       <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3 overflow-y-auto">
         <div className="w-full max-w-xl flex flex-col items-center">
 
+          {/* BUBLINA NA ŠÍRKU — fotka vľavo, text vpravo (Matej 23. 9.). */}
           <motion.div
-            className="hf-bubble"
+            className="hf-speak"
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
           >
-            {/* Matej 28. 8.: „otázku kladie Hektor, mal by tam mať avatara ako v prvom
-                kroku". Veľkosť drží `.hf-hek` z `flowPaleSkin.ts` — jedno číslo pre
-                celý vstup, nie tailwindová trieda na každej obrazovke zvlášť. */}
-            <img src={hekthorImg} alt="HEKTHOR" className="hf-hek" />
-            <h2>{t('heroglyph.flow.dogs.title')}</h2>
-            <p>{t('heroglyph.flow.dogs.sub')}</p>
+            {/* Medailón je ten istý odliatok ako na kroku 2, len menší — ksicht
+                si berie podľa KROKU (`hekthorFaces.ts`), nie podľa poradia. */}
+            <FlowMedallion src={hekthorFace('dogs')} size={72} className="hf-medal" />
+            <span className="say">
+              <h2>{t('heroglyph.flow.dogs.packTitle')}</h2>
+              <p>{t('heroglyph.flow.dogs.title')}</p>
+            </span>
           </motion.div>
 
           <motion.div
@@ -238,87 +344,62 @@ export function DogsScreen() {
           >
             <div className="hf-plate">
 
-              {all.map((d, i) => {
-                const named = !!d.name.trim();
-                const year = (d.birthday || '').slice(0, 4);
-                const fl = dogFlags(d, i);
-                const goneYear = (d.deathDate || '').slice(0, 4);
-                const dogISO = countryISO2((i === 0 || d.country === null ? nat : d.country) || '');
-                return (
-                  <button
-                    key={i}
-                    type="button"
-                    className={`hf-dogrow${named ? '' : ' is-empty'}`}
-                    onClick={() => setLeg(i)}
-                    aria-label={t('heroglyph.flow.dogs.editAria')}
-                  >
-                    <span className="pic">
-                      {d.photo
-                        ? <img src={d.photo} alt="" />
-                        : (d.name || '?').charAt(0).toUpperCase()}
-                    </span>
-                    {/* JEDEN RIADOK — meno vycentrované na fotku (Matej 31. 8.:
-                        *„druhý riadok pod menom zruš a meno zacentruj na fotku ako
-                        keby jeden riadok"*). Stav aj rok narodenia, ktoré ten riadok
-                        niesol, sú odteraz v pilulkách vpravo — hovoril to isté dvakrát. */}
-                    <span className="txt">
-                      <span className="nm">
-                        {d.name || t('heroglyph.flow.dogs.unnamed')}
-                      </span>
-                    </span>
-                    {/* ── STAV NA PRVÝ POHĽAD (Matej 31. 8.) ────────────────────
-                        Pilulka na každý údaj, ktorý pes musí mať. Zelená = máme ho,
-                        červená = chýba, a zámok tlačidla dole je presne súčet tohto
-                        radu.
-                        🔑 Poradie NARODENINY · NÁRODNOSŤ · STAV je Matejovo
-                        (31. 8.) — údaje, ktoré sa vypĺňajú, idú prvé; stav je
-                        vždy nastavený, takže uzatvára rad.
-                        🔑 Chýbajúca hodnota je \`???\` za tým istým znakom, aký
-                        nesie vyplnená (\`🎂\`, \`†\`) — pilulka tak nemení tvar ani
-                        význam, mení sa len to, či hodnotu poznáme. Slovná skratka
-                        („NAR.?") sa musela prekladať a v každom jazyku bola inak
-                        dlhá, takže rad pri anjelovi preskakoval do dvoch riadkov. */}
-                    <span className="hf-dogpills">
-                      <span className={`hf-dpill ${fl.born ? 'ok' : 'miss'}`}
-                            title={t('heroglyph.flow.dogs.born')}>
-                        <span className="em">🎂</span>{fl.born ? year : '???'}
-                      </span>
-                      {d.lifeStatus === 'deceased' && (
-                        <span className={`hf-dpill ${d.deathDate ? 'ok' : 'miss'}`}
-                              title={t('heroglyph.flow.dogs.died')}>
-                          †&nbsp;{d.deathDate ? goneYear : '???'}
-                        </span>
-                      )}
-                      <span className={`hf-dpill solo ${fl.country ? 'ok' : 'miss'}`}
-                            title={t('heroglyph.flow.dogs.nationality')}>
-                        <span className="em">{fl.country ? (countryFlag(dogISO || '') || '🏳') : '?'}</span>
-                      </span>
-                      <span
-                        className={`hf-dpill solo ${fl.gone ? 'ok' : 'miss'}`}
-                        title={t(d.lifeStatus === 'alive'
-                          ? 'heroglyph.flow.dogs.statusAlive'
-                          : 'heroglyph.flow.dogs.statusAngel')}
-                      >
-                        <img src={d.lifeStatus === 'alive' ? legendIconUrl : angelIconUrl} alt="" />
-                      </span>
-                    </span>
-                  </button>
-                );
-              })}
+              <p className="hf-qlabel">
+                {t('heroglyph.flow.dogs.orderLabel')}
+                <span className="hint">{t('heroglyph.flow.dogs.orderHint')}</span>
+              </p>
+
+              <Reorder.Group axis="y" as="ul" className="hf-doglist" values={keys} onReorder={onReorder}>
+                {rows.map((d, i) => (
+                  <DogRow
+                    key={d.key}
+                    row={d}
+                    order={dogOrderStart + i}
+                    first={i === 0}
+                    done={dogDone(d)}
+                    flags={dogFlags(d)}
+                    nat={nat}
+                    onOpen={() => setOpenKey(d.key)}
+                    onPhoto={() => askPhoto(d)}
+                    onOrder={() => setOrdEdit((p) => !p)}
+                    t={t}
+                  />
+                ))}
+              </Reorder.Group>
 
               <button type="button" className="hf-addrow" onClick={addDog}>
                 <b>+</b>{t('heroglyph.flow.dogs.add')}
               </button>
 
-              {/* ── NÁRODNOSŤ — jedna hodnota pre celý vstup, JEDEN riadok ─── */}
-              <div className="hf-natline">
-              <CountryPick value={nat} onChange={setNat} />
+              {/* ŤUKNUTIE NA ČÍSLO — jedna otázka pre celý zoznam.
+                  Ťahanie určuje vzájomné poradie, číslo určuje, kde tá skupina
+                  v živote ZAČÍNA. Kto mal psa jedného, sa toho ani nedotkne. */}
+              {ordEdit && (
+                <div className="hf-ordedit">
+                  <p>
+                    {t('heroglyph.flow.dogs.orderQ', { name: rows[0]?.name || t('heroglyph.flow.dogs.unnamed') })}
+                  </p>
+                  <input
+                    type="number"
+                    min={1}
+                    max={50}
+                    value={dogOrderStart}
+                    autoFocus
+                    onChange={(e) => {
+                      const n = parseInt(e.target.value, 10);
+                      setDogOrderStart(Number.isFinite(n) ? Math.max(1, Math.min(50, n)) : 1);
+                    }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') setOrdEdit(false); }}
+                  />
+                  <p className="hf-ordnote">{t('heroglyph.flow.dogs.orderNote')}</p>
+                </div>
+              )}
 
-              {/* Políčko stojí vedľa výberu VŽDY (Matej 28. 8.: „vedľa v riadku chýba
-                  checkmark aplikovať na každého psa"). Pri jednom psovi hovorí o tých,
-                  ktorých ešte pridá — a výber tak neostane roztiahnutý cez celú šírku,
-                  čo Matej označil za „divne zbytočne veľké". */}
-              {(
+              {/* ── NÁRODNOSŤ — jedna hodnota pre celý vstup, JEDEN riadok ───
+                  Od 23. 9. sa pýta LEN TU: z kroku 2 odišla, aby tá istá otázka
+                  neprišla dvakrát a dve odpovede si neprotirečili. */}
+              <div className="hf-natline">
+                <CountryPick value={nat} onChange={setNat} />
                 <button
                   type="button"
                   className={`hf-chk hf-chk--inline${natAll ? ' on' : ''}`}
@@ -331,15 +412,12 @@ export function DogsScreen() {
                   }}
                 >
                   {checkBox}
-                  <span className="lbl">
-                    {t('heroglyph.flow.dogs.allSameShort')}
-                  </span>
+                  <span className="lbl">{t('heroglyph.flow.dogs.allSameShort')}</span>
                 </button>
-              )}
               </div>
 
-              {/* Zámok vysvetľujú pilulky v riadkoch vyššie — veta pod tlačidlom by
-                  hovorila to isté tretíkrát. */}
+              {/* Zámok vysvetľujú pilulky a farba riadkov vyššie — veta pod
+                  tlačidlom by hovorila to isté tretíkrát. */}
               <button type="button" className="hf-cta" onClick={handleContinue} disabled={!allDone}>
                 {t('heroglyph.flow.name.continue')}
               </button>
@@ -353,7 +431,7 @@ export function DogsScreen() {
       {open && (
         <div className="hf-legwrap" role="dialog" aria-modal="true">
           <div className="hf-legveil" onClick={closePanel} />
-          <div className="hf-legpanel" ref={panelRef}>
+          <div className="hf-legpanel">
             <p className="who">{open.name || t('heroglyph.flow.dogs.unnamed')}</p>
 
             {/* Meno má tu len ďalší pes — prvý ho dostal na kroku 2. */}
@@ -361,7 +439,7 @@ export function DogsScreen() {
               <input
                 className="hf-field"
                 value={open.name}
-                onChange={(e) => patch(leg, { name: e.target.value.toUpperCase() })}
+                onChange={(e) => patch(open, { name: e.target.value.toUpperCase() })}
                 placeholder={t('heroglyph.flow.dogs.namePlaceholder')}
                 maxLength={30}
               />
@@ -371,7 +449,7 @@ export function DogsScreen() {
               <button
                 type="button"
                 className={`hf-pick${open.lifeStatus === 'alive' ? ' on' : ''}`}
-                onClick={() => patch(leg, { lifeStatus: 'alive' })}
+                onClick={() => patch(open, { lifeStatus: 'alive' })}
               >
                 <img src={legendIconUrl} alt="" />
                 <span>{t('heroglyph.flow.dogs.statusAlive')}</span>
@@ -379,7 +457,7 @@ export function DogsScreen() {
               <button
                 type="button"
                 className={`hf-pick${open.lifeStatus === 'deceased' ? ' on' : ''}`}
-                onClick={() => patch(leg, { lifeStatus: 'deceased' })}
+                onClick={() => patch(open, { lifeStatus: 'deceased' })}
               >
                 <img src={angelIconUrl} alt="" />
                 <span>{t('heroglyph.flow.dogs.statusAngel')}</span>
@@ -402,7 +480,7 @@ export function DogsScreen() {
               maxYear={currentYear}
               maxDate={today}
               skin="pale"
-              onChange={(d, m, y) => patch(leg, {
+              onChange={(d, m, y) => patch(open, {
                 birthday: `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
               })}
             />
@@ -423,7 +501,7 @@ export function DogsScreen() {
                   maxYear={currentYear}
                   maxDate={today}
                   skin="pale"
-                  onChange={(d, m, y) => patch(leg, {
+                  onChange={(d, m, y) => patch(open, {
                     deathDate: `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
                   })}
                 />
@@ -432,14 +510,10 @@ export function DogsScreen() {
 
             {/* ── NÁRODNOSŤ V DETAILE PSA ─────────────────────────────────────
                 Matej 28. 8.: „v detaile psa nie je národnosť ak je pes inej!"
-                Panel ju preto ukazuje VŽDY, nie len keď je spoločné políčko vypnuté —
-                inak sa pes, ktorý je z inej krajiny, nemal kde vyviazať.
-                Pes #1 nesie SPOLOČNÚ hodnotu (`nat`) — je to tá istá krajina, akú
-                ukazuje riadok pod zoznamom, len dostupná aj odtiaľto. */}
+                Panel ju preto ukazuje VŽDY, nie len keď je spoločné políčko vypnuté.
+                Pes #1 nesie SPOLOČNÚ hodnotu (`nat`). */}
             <p className="hf-qlabel">{t('heroglyph.flow.dogs.nationality')}</p>
-            {!openIsExtra && (
-              <CountryPick value={nat} onChange={setNat} />
-            )}
+            {!openIsExtra && <CountryPick value={nat} onChange={setNat} />}
             {openIsExtra && (
               <>
                 <button
@@ -450,7 +524,7 @@ export function DogsScreen() {
                     // Vyviazanie psa ruší aj spoločné políčko — inak by tvrdilo
                     // niečo, čo v dátach už neplatí.
                     if (own) setNatAll(false);
-                    patch(leg, { country: own ? (nat || '') : null });
+                    patch(open, { country: own ? (nat || '') : null });
                   }}
                 >
                   {checkBox}
@@ -466,14 +540,14 @@ export function DogsScreen() {
                 {open.country !== null && (
                   <CountryPick
                     value={open.country}
-                    onChange={(c) => patch(leg, { country: c })}
+                    onChange={(c) => patch(open, { country: c })}
                   />
                 )}
               </>
             )}
 
             {openIsExtra && (
-              <button type="button" className="hf-skip" onClick={() => removeDog(leg)}>
+              <button type="button" className="hf-skip" onClick={() => removeDog(open)}>
                 {t('heroglyph.flow.dogs.remove')}
               </button>
             )}
@@ -485,5 +559,93 @@ export function DogsScreen() {
         </div>
       )}
     </div>
+  );
+}
+
+// ── RIADOK PSA ──────────────────────────────────────────────────────────────
+// Vlastný komponent kvôli `useDragControls` — hook musí bežať na úrovni riadka,
+// nie v slučke rodiča.
+//
+// 🔴 ŤAHÁ SA LEN ZA ÚCHYT (`dragListener={false}`). Riadok je zároveň klikateľný
+//    (otvára panel) a fotka je tlačidlo; keby ťahal celý riadok, na dotykovom
+//    zariadení by sa klik nedal odlíšiť od začiatku ťahania.
+function DogRow({ row, order, first, done, flags, nat, onOpen, onPhoto, onOrder, t }: {
+  row: Row;
+  order: number;
+  first: boolean;
+  done: boolean;
+  flags: { photo: boolean; name: boolean; born: boolean; gone: boolean; country: boolean };
+  nat: string;
+  onOpen: () => void;
+  onPhoto: () => void;
+  onOrder: () => void;
+  t: (k: string, p?: Record<string, string | number>) => string;
+}) {
+  const controls = useDragControls();
+  const year = (row.birthday || '').slice(0, 4);
+  const goneYear = (row.deathDate || '').slice(0, 4);
+  const dogISO = countryISO2((row.country === null ? nat : row.country) || '');
+
+  return (
+    <Reorder.Item value={row.key} dragListener={false} dragControls={controls}>
+      <div className={`hf-dogrow as-row${done ? ' is-done' : ''}${row.name.trim() ? '' : ' is-empty'}`}>
+        <span
+          className="hf-grip"
+          aria-hidden
+          onPointerDown={(e) => controls.start(e)}
+        >⋮⋮</span>
+
+        {/* Číslo: prvý riadok ho MENÍ (celá skupina sa posunie), ostatné ho len nesú. */}
+        {first ? (
+          <button
+            type="button"
+            className="hf-ord set"
+            onClick={onOrder}
+            aria-label={t('heroglyph.flow.dogs.orderAria')}
+          >{order}</button>
+        ) : (
+          <span className="hf-ord derived">{order}</span>
+        )}
+
+        <button
+          type="button"
+          className={`hf-pic${row.photo ? '' : ' add'}`}
+          onClick={onPhoto}
+          aria-label={t('heroglyph.flow.dogs.photoAdd')}
+        >
+          {row.photo ? <img src={row.photo} alt="" /> : '+'}
+        </button>
+
+        <button type="button" className="hf-dogmid" onClick={onOpen} aria-label={t('heroglyph.flow.dogs.editAria')}>
+          <span className="nm">{row.name || t('heroglyph.flow.dogs.unnamed')}</span>
+          {/* ── STAV NA PRVÝ POHĽAD (31. 8.) ───────────────────────────────
+              Pilulka na každý údaj, ktorý pes musí mať. Zelená = máme ho,
+              červená = chýba. Fotka v rade NIE JE — tú nesie samotný kruh
+              vľavo (prerušovaný červený plus), inak by bol rad päťprvkový
+              a na 390 px by sa zalomil.
+              🔑 Chýbajúca hodnota je `???` za tým istým znakom, aký nesie
+              vyplnená — pilulka nemení tvar, mení sa len to, či hodnotu vieme. */}
+          <span className="hf-dogpills">
+            <span className={`hf-dpill ${flags.born ? 'ok' : 'miss'}`} title={t('heroglyph.flow.dogs.born')}>
+              <span className="em">🎂</span>{flags.born ? year : '???'}
+            </span>
+            {row.lifeStatus === 'deceased' && (
+              <span className={`hf-dpill ${row.deathDate ? 'ok' : 'miss'}`} title={t('heroglyph.flow.dogs.died')}>
+                †&nbsp;{row.deathDate ? goneYear : '???'}
+              </span>
+            )}
+            <span className={`hf-dpill solo ${flags.country ? 'ok' : 'miss'}`} title={t('heroglyph.flow.dogs.nationality')}>
+              <span className="em">{flags.country ? (countryFlag(dogISO || '') || '🏳') : '?'}</span>
+            </span>
+            <span
+              className={`hf-dpill solo ${flags.gone ? 'ok' : 'miss'}`}
+              title={t(row.lifeStatus === 'alive' ? 'heroglyph.flow.dogs.statusAlive' : 'heroglyph.flow.dogs.statusAngel')}
+            >
+              <img src={row.lifeStatus === 'alive' ? legendIconUrl : angelIconUrl} alt="" />
+            </span>
+          </span>
+        </button>
+      </div>
+    </Reorder.Item>
   );
 }

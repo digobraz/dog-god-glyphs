@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { NEW_HEROFLOW } from '@/lib/flowMode';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { Button } from '@/components/ui/button';
 import { PageTopBar } from '@/components/PageTopBar';
@@ -867,7 +868,11 @@ export function BreedPatronScreen() {
     }
     setPatronCategory2(''); // dormant — keep empty
     setPatronSvg2('');      // dormant — keep empty
-    navigate('/heroglyph/ranking');
+    // 🔴 V NOVOM VSTUPE SA NA PORADIE UŽ NEPÝTAME. Poradie psa v živote je
+    // vlastnosť ZOZNAMU SVORKY z kroku 3 (`/heroglyph/dogs`) a zapisuje sa
+    // odtiaľ do `selections.ranking`. Otázka „koľký je to tvoj pes?" by pri
+    // troch psoch prišla trikrát a odpovedala by na to, čo appka už vie.
+    navigate(NEW_HEROFLOW ? '/heroglyph/owner-info' : '/heroglyph/ranking');
   };
 
   // Render title with gold-highlighted dog name (same pattern as existing breed question)

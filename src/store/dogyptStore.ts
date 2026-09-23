@@ -3,6 +3,13 @@ import { persist } from 'zustand/middleware';
 
 /** Ďalší pes z kroku 3. `country: null` = berie spoločnú národnosť zo vstupu. */
 export interface ExtraDog {
+  /**
+   * Stále id riadka. Vzniká pri pridaní psa a NIKDY sa nemení.
+   * 🔴 Potrebné odkedy sa zoznam ťahá myšou (23. 9. 2026): poradie je index,
+   *    a index sa pri presune zmení. Podľa indexu by si dvaja psi, ktorí si
+   *    vymenia miesto, vymenili aj fotku na Cloudinary (`public_id` je adresa).
+   */
+  id: string;
   name: string;
   lifeStatus: 'alive' | 'deceased';
   /** yyyy-mm-dd, len pri `deceased`. */
@@ -10,7 +17,28 @@ export interface ExtraDog {
   /** yyyy-mm-dd; prázdne, kým sa nevyplní. */
   birthday: string;
   country: string | null;
+  /**
+   * Fotka psa — `blob:` hneď po výbere, https po nahratí na Cloudinary.
+   * 🔴 Matej 23. 9. 2026: *„fotku pýtaj hneď"* ⇒ pes bez fotky NIE JE hotový.
+   * Dovtedy mal každý ďalší pes namiesto tváre iniciálu a celá slučka s ňou
+   * pracovala ako s fotkou (`ExtraDog nemá fotku` bol blokátor multi-módu).
+   */
+  photoUrl: string | null;
+  /** `public_id` na Cloudinary — bez neho sa fotka nedostane na certifikát. */
+  publicId: string | null;
 }
+
+/** Prázdny riadok ďalšieho psa. Jedno miesto, kde vzniká `id`. */
+export const newExtraDog = (): ExtraDog => ({
+  id: crypto.randomUUID(),
+  name: '',
+  lifeStatus: 'alive',
+  deathDate: null,
+  birthday: '',
+  country: null,
+  photoUrl: null,
+  publicId: null,
+});
 
 export interface DogyptState {
   sessionId: string;
@@ -49,6 +77,23 @@ export interface DogyptState {
    * zaplatil raz a dostal jeden heroglyf.
    */
   extraDogs: ExtraDog[];
+  /**
+   * PORADIE V ŽIVOTE (23. 9. 2026) — dve čísla, nie jedno.
+   *
+   * `mainDogPos` = kde v zozname stojí pes z kroku 2 (ostatní sú `extraDogs`
+   * v ich vlastnom poradí). Ťahanie ⋮⋮ mení práve toto.
+   * `dogOrderStart` = koľký pes v živote je PRVÝ riadok zoznamu. Kto mal psov
+   * aj predtým, ťukne na číslo a celá skupina sa posunie za ním.
+   *
+   * 🔴 Matej 31. 8.: *„musíme uviesť na pravú mieru poradie v živote = všetkých
+   *    psov nie len aktuálnych"*. Poradie tohto zoznamu preto NIE JE poradie
+   *    medzi zadanými — je to poradie v živote a ide do heroglyfu
+   *    (`selections.ranking`, 12. segment kódu). Tým zaniká otázka
+   *    `RankingScreen` („je to tvoj prvý pes?"), ktorá by pri troch psoch prišla
+   *    trikrát a odpovedala na to, čo appka už vie zo zoznamu.
+   */
+  mainDogPos: number;
+  dogOrderStart: number;
   setDogName: (name: string) => void;
   setOwnerName: (name: string) => void;
   setStep: (step: number) => void;
@@ -73,6 +118,8 @@ export interface DogyptState {
   setLifeStatus: (v: 'alive' | 'deceased') => void;
   setDeathDate: (v: string | null) => void;
   setExtraDogs: (v: ExtraDog[]) => void;
+  setMainDogPos: (v: number) => void;
+  setDogOrderStart: (v: number) => void;
   reset: () => void;
 }
 
@@ -80,6 +127,8 @@ const freshState = () => ({
   sessionId: crypto.randomUUID(),
   dogName: '',
   extraDogs: [] as ExtraDog[],
+  mainDogPos: 0,
+  dogOrderStart: 1,
   ownerName: '',
   currentStep: 0,
   selections: {} as Record<string, string>,
@@ -132,6 +181,8 @@ export const useDogyptStore = create<DogyptState>()(
       setLifeStatus: (v) => set({ lifeStatus: v }),
       setDeathDate: (v) => set({ deathDate: v }),
       setExtraDogs: (v) => set({ extraDogs: v }),
+      setMainDogPos: (v) => set({ mainDogPos: v }),
+      setDogOrderStart: (v) => set({ dogOrderStart: v }),
       reset: () => set(freshState()),
     }),
     {

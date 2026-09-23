@@ -370,7 +370,15 @@ export function NameScreen() {
   const trimmed = input.trim();
   const nameValid = trimmed.length >= 1 && trimmed.length <= 30;
   const dateValid = touched;
-  const countryValid = dogCountry !== '';
+  // ── KRAJINA ODIŠLA NA KROK 3 (Matej 23. 9. 2026) ──────────────────────────
+  // *„pri 2 kroku dajme preč krajinu… bude tam len meno a datum a status,
+  // krajinu necháme až v 3 kroku"*. Nie je to úspora miesta: krajina je
+  // JEDNA hodnota pre celý vstup (`nat` v `DogsScreen`) a pes z kroku 2 ju
+  // nesie tiež — pýtať sa na ňu tu znamenalo pýtať sa dvakrát na to isté,
+  // a pri dvoch psoch si tie dve odpovede mohli protirečiť.
+  // ⚠️ V STAROM VSTUPE OSTÁVA. Tam za krokom 2 nič ako zoznam psov nie je,
+  //    takže by krajina vypadla z kódu heroglyfu (15. segment) úplne.
+  const countryValid = NEW_HEROFLOW ? true : dogCountry !== '';
   const canContinue = nameValid && dateValid && countryValid;
 
   const handleSend = () => {
@@ -381,7 +389,8 @@ export function NameScreen() {
     setSelection('birthdayYear', String(year));
     // Dog's country → heroglyph pos 15 + dogs.country + WALL flag.
     // Stored as English name (matches COUNTRY_TO_ISO3 map in heroglyphCode.ts).
-    setSelection('country', dogCountry);
+    // V novom vstupe sa krajina pýta až na kroku 3 (jedna pre celú svorku).
+    if (!NEW_HEROFLOW) setSelection('country', dogCountry);
     if (NEW_HEROFLOW) {
       // Stav zapisujeme VŽDY, aj keď človek nechal predvolené „žije" — inak by
       // pole ostalo tým, čím ho nechal predošlý priechod.
@@ -744,70 +753,73 @@ export function NameScreen() {
               `}</style>
             </div>
 
-            {/* Dog Country select — 30% of name row; placeholder = short "HOME" label.
-                Closed box shows ONLY the flag (full "flag + name" option text is kept for
-                the native dropdown list — full names help pick, but overflow the tiny
-                closed box). The select's own text is made transparent once a value is
-                chosen; a non-interactive flag overlay renders on top of it instead. */}
-            <div style={{ flex: '3 0 0', minWidth: 0, position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <select
-                value={dogCountry}
-                onChange={(e) => setDogCountry(e.target.value)}
-                aria-label={t('heroglyph.flow.name.dogCountry')}
-                style={{
-                  appearance: 'none',
-                  WebkitAppearance: 'none',
-                  width: '100%',
-                  height: 48,
-                  background: dogCountry ? 'hsl(var(--papyrus))' : 'hsl(var(--card))',
-                  border: dogCountry
-                    ? '2px solid hsl(var(--gold))'
-                    : '2px solid hsl(var(--gold) / 0.5)',
-                  borderRadius: 12,
-                  fontFamily: "'Cinzel', serif",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  textAlign: 'center',
-                  color: dogCountry ? 'transparent' : 'hsl(var(--muted-foreground) / 0.6)',
-                  paddingLeft: 4,
-                  paddingRight: 20,
-                  cursor: 'pointer',
-                  outline: 'none',
-                }}
-              >
-                <option value="">{t('heroglyph.flow.name.dogCountry')}</option>
-                {COUNTRIES.map((c) => (
-                  <option key={c} value={c}>{countryFlag(c) || '🏳'} {c}</option>
-                ))}
-              </select>
-              {dogCountry && (
+            {/* ⚠️ Krajina je v novom vstupe na kroku 3 — dôvod pri `countryValid`. */}
+            {!NEW_HEROFLOW && (<>
+              {/* Dog Country select — 30% of name row; placeholder = short "HOME" label.
+                  Closed box shows ONLY the flag (full "flag + name" option text is kept for
+                  the native dropdown list — full names help pick, but overflow the tiny
+                  closed box). The select's own text is made transparent once a value is
+                  chosen; a non-interactive flag overlay renders on top of it instead. */}
+              <div style={{ flex: '3 0 0', minWidth: 0, position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <select
+                  value={dogCountry}
+                  onChange={(e) => setDogCountry(e.target.value)}
+                  aria-label={t('heroglyph.flow.name.dogCountry')}
+                  style={{
+                    appearance: 'none',
+                    WebkitAppearance: 'none',
+                    width: '100%',
+                    height: 48,
+                    background: dogCountry ? 'hsl(var(--papyrus))' : 'hsl(var(--card))',
+                    border: dogCountry
+                      ? '2px solid hsl(var(--gold))'
+                      : '2px solid hsl(var(--gold) / 0.5)',
+                    borderRadius: 12,
+                    fontFamily: "'Cinzel', serif",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    textAlign: 'center',
+                    color: dogCountry ? 'transparent' : 'hsl(var(--muted-foreground) / 0.6)',
+                    paddingLeft: 4,
+                    paddingRight: 20,
+                    cursor: 'pointer',
+                    outline: 'none',
+                  }}
+                >
+                  <option value="">{t('heroglyph.flow.name.dogCountry')}</option>
+                  {COUNTRIES.map((c) => (
+                    <option key={c} value={c}>{countryFlag(c) || '🏳'} {c}</option>
+                  ))}
+                </select>
+                {dogCountry && (
+                  <span
+                    aria-hidden
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      right: 0,
+                      textAlign: 'center',
+                      pointerEvents: 'none',
+                      fontSize: 20,
+                      lineHeight: 1,
+                    }}
+                  >{countryFlag(dogCountry) || '🏳'}</span>
+                )}
                 <span
                   aria-hidden
                   style={{
                     position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    textAlign: 'center',
+                    right: 8,
                     pointerEvents: 'none',
-                    fontSize: 20,
+                    color: 'hsl(var(--gold))',
+                    fontSize: 12,
                     lineHeight: 1,
                   }}
-                >{countryFlag(dogCountry) || '🏳'}</span>
-              )}
-              <span
-                aria-hidden
-                style={{
-                  position: 'absolute',
-                  right: 8,
-                  pointerEvents: 'none',
-                  color: 'hsl(var(--gold))',
-                  fontSize: 12,
-                  lineHeight: 1,
-                }}
-              >▾</span>
-            </div>
+                >▾</span>
+              </div>
+            </>)}
 
             </div>{/* end name + country flex row */}
 

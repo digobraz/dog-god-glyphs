@@ -1,5 +1,5 @@
 import imageCompression from 'browser-image-compression';
-import { uploadMainPhoto, withTransform } from '@/services/cloudinaryService';
+import { uploadMainPhoto, withTransform, type CloudinaryResult } from '@/services/cloudinaryService';
 import { useDogyptStore } from '@/store/dogyptStore';
 
 /**
@@ -47,6 +47,32 @@ export type PhotoIntake = {
 };
 
 /**
+ * KAM FOTKA PATRÍ (23. 9. 2026).
+ *
+ * Od kroku 3 má fotku aj KAŽDÝ ĎALŠÍ PES svorky, nielen ten hlavný. Cieľ je
+ * preto parameter, nie natvrdo `dogPhotoUrl` — celý zvyšok (kompresia, poradie
+ * zápisov, kontrola „leží tam stále TÁTO fotka", výrez) ostáva JEDEN.
+ *
+ * 🔴 Dve kópie tejto postupnosti by sa rozišli pri prvej úprave — presne to je
+ *    dôvod, pre ktorý tento súbor vznikol (tri povrchy, dva z nich nenahrávali).
+ */
+export type PhotoTarget = {
+  /** Čo v cieli leží teraz. Číta sa ZO STORE, nie zo zachyteného stavu. */
+  read: () => string | null;
+  write: (url: string) => void;
+  writePublicId: (id: string) => void;
+  upload: (blob: Blob, sessionId: string) => Promise<CloudinaryResult>;
+};
+
+/** Cieľ „hlavný pes" — polia, ktoré niesli fotku odjakživa. */
+export const mainPhotoTarget = (): PhotoTarget => ({
+  read: () => useDogyptStore.getState().dogPhotoUrl || null,
+  write: (url) => useDogyptStore.getState().setDogPhotoUrl(url),
+  writePublicId: (id) => useDogyptStore.getState().setCloudinaryPublicId(id),
+  upload: uploadMainPhoto,
+});
+
+/**
  * Prijmi súbor: ukáž HNEĎ → zapíš do storu → skomprimuj a nahraj na pozadí.
  *
  * 🔴 NÁHĽAD JE PÔVODNÝ SÚBOR, NIE VÝSTUP KOMPRESIE — a je to zámer, nie lenivosť.
@@ -62,26 +88,25 @@ export type PhotoIntake = {
  * ⚠️ Uvoľňuje sa len blob PREDOŠLEJ fotky (výmena). Pri odchode z obrazovky nie:
  * odchod je práve to kliknutie na POKRAČOVAŤ a flow drží tú istú adresu.
  */
-export function intakePhoto(file: File): PhotoIntake {
-  const s = useDogyptStore.getState();
-  const prev = s.dogPhotoUrl;
+export function intakePhoto(file: File, target: PhotoTarget = mainPhotoTarget()): PhotoIntake {
+  const sessionId = useDogyptStore.getState().sessionId;
+  const prev = target.read();
 
   const previewUrl = URL.createObjectURL(file);
   if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
-  s.setDogPhotoUrl(previewUrl);
+  target.write(previewUrl);
 
   const uploaded = compressFile(file)
     .then(({ url, blob }) => {
       // Komprimovaný náhľad nikto nezobrazuje — potrebujeme z neho len dáta.
       URL.revokeObjectURL(url);
-      return uploadMainPhoto(blob, s.sessionId);
+      return target.upload(blob, sessionId);
     })
     .then(({ publicId, secureUrl }) => {
-      const st = useDogyptStore.getState();
-      st.setCloudinaryPublicId(publicId);
-      // ⚠️ Prepíš len vtedy, keď v store stále leží TÁTO fotka. Kto medzitým
+      target.writePublicId(publicId);
+      // ⚠️ Prepíš len vtedy, keď v cieli stále leží TÁTO fotka. Kto medzitým
       // vybral inú, nesmie dostať späť adresu tej starej.
-      if (st.dogPhotoUrl === previewUrl) st.setDogPhotoUrl(secureUrl);
+      if (target.read() === previewUrl) target.write(secureUrl);
       return secureUrl;
     })
     .catch(() => null);
@@ -118,29 +143,30 @@ const CROP_SIDE = 1200;
 export async function finishPhotoChoice(
   rect: CropRect | null,
   uploaded?: Promise<string | null>,
+  target: PhotoTarget = mainPhotoTarget(),
 ): Promise<void> {
-  const s = useDogyptStore.getState();
+  const sessionId = useDogyptStore.getState().sessionId;
 
   if (!rect) {
     const url = (await uploaded) ?? null;
     if (!url) return;
-    const st = useDogyptStore.getState();
-    if (st.dogPhotoUrl === url) st.setDogPhotoUrl(autoSquareUrl(url));
+    if (target.read() === url) target.write(autoSquareUrl(url));
     return;
   }
 
   try {
-    const blob = await cropToSquare(s.dogPhotoUrl, rect);
+    const src = target.read();
+    if (!src) return;
+    const blob = await cropToSquare(src, rect);
     if (!blob) return;
     const preview = URL.createObjectURL(blob);
-    const prev = useDogyptStore.getState().dogPhotoUrl;
-    useDogyptStore.getState().setDogPhotoUrl(preview);
+    const prev = target.read();
+    target.write(preview);
     if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
 
-    const { publicId, secureUrl } = await uploadMainPhoto(blob, s.sessionId);
-    const st = useDogyptStore.getState();
-    st.setCloudinaryPublicId(publicId);
-    if (st.dogPhotoUrl === preview) st.setDogPhotoUrl(secureUrl);
+    const { publicId, secureUrl } = await target.upload(blob, sessionId);
+    target.writePublicId(publicId);
+    if (target.read() === preview) target.write(secureUrl);
   } catch (err) {
     // Nepodarený výrez nesmie zastaviť vstup — pôvodná fotka je použiteľná.
     console.error('[photo] výrez z popupu zlyhal, ostáva pôvodná fotka:', err);

@@ -230,6 +230,13 @@ export const FLOW_PALE_CSS = `
   margin: 0; text-align: center; font-family: 'Cinzel', serif; font-weight: 700;
   text-transform: uppercase; letter-spacing: .08em; font-size: 11.5px; color: ${LAB.ink};
 }
+/* Návod k prvku (ťahaj ⋮⋮ · ťukni na číslo) je POZNÁMKA, nie druhý nadpis:
+   malé bezpätkové písmo bez rozstrelenia, na vlastnom riadku. */
+.hf-qlabel .hint {
+  display: block; margin-top: 2px; font-family: 'Space Grotesk', sans-serif;
+  font-weight: 400; font-size: 10.5px; letter-spacing: 0; text-transform: none;
+  color: ${LAB.inkSoft};
+}
 
 /* ── ZOZNAM PSOV (krok 3) ─────────────────────────────────────────────────
    Matej 28. 8.: *„tu tie bloky takmer neviditeľné ((psy) žiadne rozlíšenie…)"* —
@@ -323,6 +330,107 @@ export const FLOW_PALE_CSS = `
 }
 /* Pilulka bez textu (stav, vlajka) má byť KRUH, nie krátka kapsula. */
 .hf-dpill.solo { width: 26px; padding: 0; }
+
+/* ── BUBLINA NA ŠÍRKU — KROK 3 (23. 9. 2026) ──────────────────────────────
+   Matej: *„horný blok gradient bude menší — fotka bude naľavo a napravo bude
+   text"*. Zvislá bublina (.hf-bubble) je POZDRAV: veľká tvár, veta na stred.
+   Od kroku 3 je Hektor sprievodca, nie hostiteľ — text nesie hlavnú váhu a
+   zoznam psov pod ním musí ostať nad ohybom aj na 390 px.
+   ⚠️ Tvar sa nekopíruje z .hf-bubble — spoločné je len pozadie a polomer.
+      Zarovnanie je VĽAVO: na stred centrovaný text vedľa okrúhlej fotky sa
+      opticky rozpadne na dve nesúvisiace veci. */
+.hf-speak {
+  width: 100%; display: flex; align-items: center; gap: 14px;
+  padding: 12px 16px; border-radius: ${HF.bubble.radius}px;
+  background: var(--brand-gradient); text-align: left;
+}
+.hf-speak .say { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.hf-speak h2 {
+  margin: 0; font-family: 'Cinzel', serif; font-weight: 700;
+  font-size: ${HF.bubble.title}px; line-height: 1.25; color: #FAF4EC;
+}
+.hf-speak p {
+  margin: 0; font-family: 'Space Grotesk', sans-serif;
+  font-size: ${BUBBLE_SUB}px; line-height: 1.45; color: rgba(250, 244, 236, 0.72);
+}
+
+/* ── ZOZNAM SVORKY — ŤAHANIE A PORADIE (23. 9. 2026) ──────────────────────
+   Matej: *„psy sa budú dať medzi sebou prehodiť ako je v nákrese podľa poradia
+   (to poradie sa predvyplní už aj v heroglyfe)"*.
+   🔑 Poradie je vlastnosť ZOZNAMU (ťahanie), fotka je vlastnosť RIADKA. */
+.hf-doglist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.hf-doglist li { list-style: none; }
+/* Úchyt je jediné miesto, kde sa ťahá — riadok samotný sa klikom OTVÁRA.
+   touch-action:none je povinné: bez neho si prehliadač na dotykovom
+   zariadení zoberie gesto pre scroll a riadok sa nepohne. */
+.hf-grip {
+  flex: 0 0 auto; width: 16px; align-self: stretch; display: grid; place-items: center;
+  cursor: grab; touch-action: none; user-select: none;
+  color: ${LAB.goldInk}; font-size: 13px; line-height: 1;
+}
+.hf-grip:active { cursor: grabbing; }
+/* Číslo = poradie v ŽIVOTE. Pri PRVOM riadku je to tlačidlo (lapis = moja voľba),
+   pri ostatných tichá menovka — odvodené číslo sa nemá tváriť ako ponuka.
+   Lock: zlato = konštrukcia a poloha, lapis = akcia. */
+.hf-ord {
+  flex: 0 0 auto; width: 26px; height: 26px; border-radius: 999px;
+  display: grid; place-items: center; border: 1.5px solid;
+  font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 600; line-height: 1;
+}
+.hf-ord.set {
+  cursor: pointer; border-color: ${LAPIS.edge}; background: ${LAPIS.grad}; color: #F2F6FF;
+}
+.hf-ord.derived {
+  border-color: rgba(201,154,63,.45); background: rgba(255,255,255,.5); color: ${LAB.inkSoft};
+}
+/* Stred riadka: meno a pod ním rad pilulek.
+   ⚠️ 31. 8. stálo meno vycentrované na fotku v JEDNOM riadku — vtedy pred ním
+      neboli ani úchyt, ani číslo. Tie dva prvky vzali 48 px a na 390 px ostalo
+      menu 14 px. Pilulky preto idú pod meno; hovoria to isté, len v druhom rade. */
+.hf-dogmid { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 6px;
+             align-items: flex-start; text-align: left; background: none; border: 0; padding: 0;
+             cursor: pointer; }
+.hf-dogmid .hf-dogpills { justify-content: flex-start; max-width: none; }
+/* Fotka chýba = prerušovaný červený kruh s plusom. Je to ZÁROVEŇ tlačidlo
+   („daj mi fotku") aj chýbajúci údaj - samostatná pilulka na fotku by rad
+   predĺžila na päť a na telefóne zalomila. */
+.hf-pic {
+  width: 42px; height: 42px; border-radius: 50%; flex: 0 0 auto; overflow: hidden;
+  border: 2px solid ${LAB.goldSolid}; background: rgba(201,154,63,.14); padding: 0;
+  display: grid; place-items: center; cursor: pointer;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 17px; color: ${LAB.goldInk};
+}
+.hf-pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hf-pic.add { border-style: dashed; border-color: #B25640; background: rgba(178,86,64,.10); color: #B25640; }
+/* ZELENÝ BLOK = PES JE HOTOVÝ (Matej 23. 9.: „celý blok so psom bude na zeleno
+   ak bude celý vyplnený"). Doteraz to hovorili len pilulky — štyri malé značky
+   namiesto jednej odpovede. Zámok tlačidla POKRAČOVAŤ je presne súčet zelených
+   riadkov. Zelená je brandová #3D7A4E, kalibrovaná na papyrus. */
+.hf-dogrow.is-done {
+  border-color: #3D7A4E;
+  background: linear-gradient(135deg, #F3F8EE 0%, #E4EFD9 100%);
+  box-shadow: 0 1px 3px rgba(61,122,78,0.14), inset 0 1px 0 rgba(255,255,255,0.45);
+}
+.hf-dogrow.is-done:hover { border-color: #3D7A4E; box-shadow: 0 4px 10px rgba(61,122,78,0.22), inset 0 1px 0 rgba(255,255,255,0.55); }
+/* Riadok je odteraz OBAL, nie tlačidlo — nesie tri samostatné ovládače
+   (úchyt, číslo, fotka) a tlačidlo v tlačidle je neplatné HTML. */
+.hf-dogrow.as-row { cursor: default; }
+
+/* Ťuknutie na číslo prvého psa — jedna otázka, jedno pole.
+   ⚠️ Nesmie sa pýtať pri každom psovi zvlášť: odpovede by si protirečili.
+      Editovateľné je JEDNO číslo a zvyšok je odvodený. */
+.hf-ordedit { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+              padding-top: 10px; border-top: 1px dashed rgba(201,154,63,.45); }
+.hf-ordedit p { margin: 0; flex: 1 1 140px; min-width: 0;
+                font-family: 'Space Grotesk', sans-serif; font-size: 12px; line-height: 1.4; color: ${LAB.ink}; }
+.hf-ordedit p b { font-family: 'Cinzel', serif; letter-spacing: .04em; }
+.hf-ordedit input {
+  width: 68px; height: 36px; border-radius: 10px; text-align: center;
+  border: 2px solid ${LAPIS.edge}; background: #FFFDF7; color: ${LAB.ink};
+  font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600; outline: none;
+}
+.hf-ordnote { margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 11px;
+              line-height: 1.4; color: ${LAB.inkSoft}; flex: 1 1 100%; }
 
 .hf-addrow {
   display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;

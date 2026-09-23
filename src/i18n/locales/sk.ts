@@ -191,6 +191,15 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.name.promise': 'Meno psa zapísané v unikátnom dizajne.',
 
   // ── /heroglyph/dogs — krok 3: multi pes (LAB, 28. 8. 2026) ──
+  'heroglyph.flow.dogs.packTitle': 'Tvoja svorka',
+  'heroglyph.flow.dogs.orderLabel': 'Poradie v tvojom živote',
+  'heroglyph.flow.dogs.orderHint': 'ťahaj ⋮⋮ · ťukni na číslo',
+  'heroglyph.flow.dogs.orderQ': 'Koľký pes v tvojom živote je {name}?',
+  'heroglyph.flow.dogs.orderNote': 'Ostatní sa posunú za ním.',
+  'heroglyph.flow.dogs.orderAria': 'Nastav poradie v živote',
+  'heroglyph.flow.dogs.photoAdd': 'Pridaj fotku tohto psa',
+  'heroglyph.flow.dogs.photoAnother': 'Vybrať inú fotku',
+  'heroglyph.flow.dogs.photoLater': 'Fotku môžeš zmeniť neskôr.',
   'heroglyph.flow.dogs.title': 'Máš, alebo si mal, aj ďalšieho psa?',
   'heroglyph.flow.dogs.sub': 'Nezabudni na žiadneho svojho psíka — každý si zaslúži svoj vlastný symbol!',
   'heroglyph.flow.dogs.add': 'Pridať ďalšieho psa',

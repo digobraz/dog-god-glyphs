@@ -41,6 +41,15 @@ export const uploadCroppedPhoto = (blob: Blob, sessionId: string) =>
 export const uploadExtraPhoto = (blob: Blob, sessionId: string, index: number) =>
   uploadBlob(blob, `tmp/${sessionId}/extras`, String(index).padStart(2, '0'));
 
+// Fotka ĎALŠIEHO PSA zo svorky (krok 3 vstupu, 23. 9. 2026).
+// 🔴 VLASTNÝ PRIEČINOK A ID PSA V NÁZVE, nie poradové číslo. `extras/` už nesie
+//    galériu hlavného psa (`uploadExtraPhoto`, indexuje od 1) — to isté číslo by
+//    jednu z fotiek ticho prepísalo, lebo `public_id` je ADRESA, nie meno súboru.
+//    A poradie sa v zozname ťahá myšou: dvaja psi, ktorí si vymenia miesto, by si
+//    pri ďalšom nahratí vymenili aj fotky.
+export const uploadPackDogPhoto = (blob: Blob, sessionId: string, dogId: string) =>
+  uploadBlob(blob, `tmp/${sessionId}/pack`, dogId);
+
 // Member-submitted trip photos (issue #32 fáza F5, packStore.ts `pack_trips` write-through).
 // `payload.photos` v DB nesmie niesť base64 — sem idú predtým, než sa riadok upsertne.
 // Cesta zámerne `pack-trips/<slug>/...`, NIE `trails/<slug>/...` — ten priečinok už nesie fotky
