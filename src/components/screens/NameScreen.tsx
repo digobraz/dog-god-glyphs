@@ -9,6 +9,7 @@ import { PageTopBar } from '@/components/PageTopBar';
 import hekthorImg from '@/assets/hekthor.png';
 import { DateDropdowns } from '@/components/DateDropdowns';
 import { useT } from '@/i18n/LanguageContext';
+import { LifeStatusPick, DeathDateModal } from '@/components/screens/lifeStatusPick';
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 import { useBlockAutocorrect } from '@/hooks/useBlockAutocorrect';
 import { countryFlag } from '@/lib/countryGeo';
@@ -220,6 +221,7 @@ export function NameScreen() {
   const setLifeStatus = useDogyptStore((s) => s.setLifeStatus);
   const setDeathDate = useDogyptStore((s) => s.setDeathDate);
   const storedLifeStatus = useDogyptStore((s) => s.lifeStatus);
+  const storedDeathDate = useDogyptStore((s) => s.deathDate);
 
   const initialName = storedDogName || '';
   const today = new Date();
@@ -243,6 +245,29 @@ export function NameScreen() {
   // Default empty: user must consciously pick (LOCKED decision 2026-07-06).
   const [dogCountry, setDogCountry] = useState<string>(selections.country || '');
   const [alive, setAlive] = useState<boolean>(storedLifeStatus !== 'deceased');
+  const [deathModal, setDeathModal] = useState(false);
+
+  // ── PRÍCHOD NA OBRAZOVKU (23. 9. 2026) ────────────────────────────────────
+  // Matej: *„príchod fotky, zväčšená fota a otázka v ráme cez celú stránku /
+  // bez spodného bloku; blok s otázkou sa zvrkne a vysunie sa blok s otázkami"*.
+  // Dve fázy, nie tri: najprv len Hektor s otázkou, potom sa zmenší a zdola
+  // príde formulár.
+  //
+  // ⚠️ KTO SA VRACIA, ANIMÁCIU NEDOSTANE. Meno v store znamená návrat z ďalšieho
+  //    kroku — prehrať mu príchod znova by bolo zdržanie, nie privítanie.
+  // ⚠️ `prefers-reduced-motion` preskakuje rovno na formulár.
+  const [phase, setPhase] = useState<'hero' | 'form'>(() => {
+    if (!NEW_HEROFLOW || initialName) return 'form';
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return 'form';
+    }
+    return 'hero';
+  });
+  useEffect(() => {
+    if (phase !== 'hero') return;
+    const id = window.setTimeout(() => setPhase('form'), 1150);
+    return () => window.clearTimeout(id);
+  }, [phase]);
   const [showInfo, setShowInfo] = useState(false);
   const isMobile = useMemo(() => window.matchMedia('(pointer: coarse)').matches, []);
   const [nameModalOpen, setNameModalOpen] = useState(false);
@@ -346,7 +371,16 @@ export function NameScreen() {
                       nasledovať"). Kruh je v súbore orezaný na pixel, preto stačí
                       `rounded-full` — netreba `object-contain`. */}
                   {NEW_HEROFLOW ? (
-                    <FlowMedallion src={hekthorFace('name')} size={148} className="hf-medal" />
+                    // V príchodovej fáze je medailón väčší a potom sa zvrkne —
+                    // `motion` mu dá plynulý prechod, nie skok.
+                    <motion.div
+                      initial={false}
+                      animate={{ scale: phase === 'hero' ? 1.34 : 1 }}
+                      transition={{ duration: 0.5, ease: [0.2, 0.8, 0.3, 1] }}
+                      style={{ transformOrigin: 'center' }}
+                    >
+                      <FlowMedallion src={hekthorFace('name')} size={148} className="hf-medal" />
+                    </motion.div>
                   ) : (
                     <img src={hekthorImg} alt="HEKTHOR" className="hek-lg w-36 h-36 md:w-56 md:h-56 object-contain" />
                   )}
@@ -439,12 +473,18 @@ export function NameScreen() {
             </AnimatePresence>
           </div>
 
-          {/* Input */}
+          {/* Input — v príchodovej fáze ešte nie je na svete. Prichádza ZDOLA
+              (Matej 23. 9.: „vysunie sa blok s otázkami"), nie zboku ako dosiaľ:
+              zboku to vyzeralo ako výmena obrazovky, zdola to vyzerá ako ponuka,
+              ktorá sa podáva. V starom vstupe ostáva pôvodný príchod. */}
+          {phase === 'form' && (
           <motion.div
             className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-3 md:p-4 flex-shrink-0"
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.35, delay: 0.1 }}
+            initial={NEW_HEROFLOW ? { opacity: 0, y: 48 } : { opacity: 0, x: 40 }}
+            animate={NEW_HEROFLOW ? { opacity: 1, y: 0 } : { opacity: 1, x: 0 }}
+            transition={NEW_HEROFLOW
+              ? { duration: 0.46, ease: [0.2, 0.8, 0.3, 1] }
+              : { duration: 0.35, delay: 0.1 }}
           >
             <div className="flex flex-col gap-2 md:gap-3">
             {/* Name + Dog Country row — name 70 %, country select 30 % */}
@@ -609,40 +649,20 @@ export function NameScreen() {
               onChange={handleDateChange}
             />
 
-            {/* STAV — len v novom vstupe. Dve možnosti, predvolená „žije"; dátum
-                odchodu sa tu NEPÝTA (patrí k psovi do zoznamu), aby sa z prvej
-                obrazovky nestal formulár. */}
+            {/* STAV — len v novom vstupe. Tvar (ikonky + popup s dátumom) sa
+                23. 9. vrátil z `IntroScreen`, ktorý v tomto vstupe zaniká; tu
+                boli dovtedy holé textové tlačidlá. Dátum odchodu sa pýta PRÁVE
+                TU: bez neho je anjel nedokončená voľba. */}
             {NEW_HEROFLOW && (
-              <div className="w-full flex flex-col gap-2">
-                <p
-                  className="text-xs md:text-sm uppercase tracking-widest text-muted-foreground text-center"
-                  style={{ fontFamily: "'Cinzel', serif" }}
-                >
-                  {t('intro.question')}
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  {([true, false] as const).map((v) => (
-                    <button
-                      key={String(v)}
-                      type="button"
-                      onClick={() => setAlive(v)}
-                      className="h-10 md:h-11 rounded-xl text-[13px] md:text-sm tracking-wide transition-colors"
-                      style={{
-                        fontFamily: "'Cinzel', serif",
-                        background: alive === v ? 'hsl(var(--papyrus))' : 'hsl(var(--card))',
-                        border: alive === v
-                          ? '1px solid hsl(var(--gold))'
-                          : '1px solid hsl(var(--border))',
-                        color: alive === v ? 'hsl(var(--ink, 24 60% 10%))' : 'hsl(var(--muted-foreground))',
-                      }}
-                    >
-                      {v
-                        ? t('heroglyph.flow.dogs.statusAlive')
-                        : t('heroglyph.flow.dogs.statusAngel')}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <LifeStatusPick
+                value={alive ? 'alive' : 'deceased'}
+                onChange={(v) => {
+                  setAlive(v === 'alive');
+                  if (v === 'alive') setDeathDate(null);
+                }}
+                onWantDate={() => setDeathModal(true)}
+                deathDate={storedDeathDate}
+              />
             )}
 
             <Button
@@ -660,8 +680,19 @@ export function NameScreen() {
             </Button>
             </div>
           </motion.div>
+          )}
         </div>
       </div>
+
+      {/* Dátum odchodu — vysunie sa po kliku na „psí anjel". */}
+      {NEW_HEROFLOW && (
+        <DeathDateModal
+          open={deathModal}
+          deathDate={storedDeathDate}
+          onSave={(iso) => { setDeathDate(iso); setDeathModal(false); }}
+          onClose={() => setDeathModal(false)}
+        />
+      )}
 
       {/* Name entry modal — only on mobile (iOS keyboard-safe); desktop types inline. */}
       {isMobile && <NameModal
