@@ -806,6 +806,15 @@ export const cs: Partial<Dict> = {
   'terms.s11.title': '11. Kontakt',
   'terms.s11.body':
     'Obecné dotazy: info@dogypt.com · Soukromí a osobní údaje: privacy@dogypt.com · Refundace a podpora: support@dogypt.com · Pošta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko.',
+  'terms.s12.title': '12. Obsah, který zveřejňujete',
+  'terms.s12.body':
+    'Vedle svého HEROGLYPHu můžete ve smečce zveřejňovat obsah: fotografie z výletů, trasy a místa, popisy výletů, hodnocení, komentáře a dotazy a cokoli napíšete na svůj profil. Když označíte výlet jako ušlý, ostatní Členové uvidí vaše křestní jméno a psy, kteří jej ušli s vámi. Všechno, co zveřejníte, zůstává vaše. Zveřejněním udělujete společnosti DOGYPT s.r.o. celosvětovou, bezúplatnou, nevýhradní licenci tento obsah uchovávat, zobrazovat a upravovat pro účely provozu a propagace Služby — například zobrazit vaši fotografii z výletu na mapě, ve výpisu výletů nebo na sdílecí kartě. Licence trvá, dokud je obsah ve Službě; odstraněním obsahu nebo účtu zaniká, s výjimkou záloh, které vyprší ve svém běžném cyklu. Váš obsah neprodáváme a neposkytujeme na něj licenci nikomu jinému pro jeho vlastní použití. Zveřejňujte jen to, k čemu máte právo — včetně fotografií, které pořídil někdo jiný, a lidí, kteří jsou na nich rozpoznatelní.',
+  'terms.s13.title': '13. Zprávy mezi Členy',
+  'terms.s13.body':
+    'Členové si mohou psát přímo. Zprávy jsou soukromé mezi účastníky — běžně je nečteme a nikdy je nepoužíváme k reklamě. Ukládají se na našich serverech, aby tam konverzace byla i po vašem návratu, a přečíst si ji můžeme ve třech případech: když ji někdo nahlásí, když vyšetřujeme konkrétní zneužití nebo bezpečnostní incident, nebo když to vyžaduje zákon. Jiného Člena můžete kdykoli zablokovat; blokování je okamžité a platí oboustranně. Se zprávami zacházejte jako s jakoukoli online konverzací — neposílejte platební údaje, hesla ani dokumenty, o kterých nechcete, aby byly uložené.',
+  'terms.s14.title': '14. Nahlašování a moderování',
+  'terms.s14.body':
+    'Profily, výlety i konverzace lze nahlásit. Nahlášení přijde k nám a přečte je člověk — dnes je to zakladatel Matej Stacho. Naším cílem je podívat se na každé nahlášení do 7 dnů. Podle toho, co zjistíme, můžeme neudělat nic, obsah odstranit, Člena upozornit, omezit, co může zveřejňovat, nebo mu účet zrušit. Pokud zasáhneme do vašeho obsahu, důvod vám oznámíme e-mailem a můžete odpovědět a namítat. Obsah můžeme odstranit i z vlastní iniciativy, pokud porušuje článek 7. Úmyslné nebo opakované zneužití — obtěžování, spam, falešné výlety, obsah týkající se nezletilých — znamená zrušení účtu bez dalšího upozornění.',
 
   // ── /privacy ──
   'privacy.title': 'Zásady ochrany soukromí',
@@ -843,6 +852,12 @@ export const cs: Partial<Dict> = {
   'privacy.s11.title': '11. Kontakt',
   'privacy.s11.body':
     'Soukromí a osobní údaje: privacy@dogypt.com · Obecné dotazy: info@dogypt.com · Pošta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko.',
+  'privacy.s12.title': '12. Uvnitř smečky: co vidí ostatní Členové',
+  'privacy.s12.body':
+    'Článek 3 popisuje veřejný GodsGrid. Uvnitř smečky — v členské zóně — vidí ostatní přihlášení Členové více: vaše křestní jméno, vaše dogyptské pořadové číslo, jméno a fotografii vašeho psa, atributy, které jste o psovi vyplnili, výlety, které jste zaznamenali nebo ohlásili, vaše hodnocení a komentáře a cokoli jste napsali na svůj profil. Nevidí vaši e-mailovou adresu, poštovní adresu, platební údaje ani vaše zprávy s kýmkoli jiným. Když ohlásíte výlet jako otevřený, trasa, datum a váš pes se stanou viditelnými pro každého Člena, aby mohl požádat o přidání — to ohlášení znamená. Výlet, který si necháte soukromý, vidíte jen vy a lidé, kteří už jdou. Která z těch dvou možností to bude, si vybíráte vy a můžete to kdykoli změnit.',
+  'privacy.s13.title': '13. Zprávy a nahlášení',
+  'privacy.s13.body':
+    'Soukromé zprávy mezi Členy se ukládají v naší databázi (Supabase), aby konverzace přežily mezi relacemi. Právní základ: čl. 6 odst. 1 písm. b) GDPR — jsou součástí členství, které jste si zaplatili. Běžně je nečteme a nikdy je nepoužíváme k reklamě ani profilování. Konverzaci otevřeme jen tehdy, když je nahlášená, když vyšetřujeme konkrétní zneužití nebo bezpečnostní incident, nebo když to vyžaduje zákon. Nahlášení ukládá důvod, který jste vybrali, vaši nepovinnou poznámku a odkaz na to, co jste nahlásili — nikoli samostatnou kopii. Blokování se ukládá jako dvojice identifikátorů členů. Pokud si smažete účet, vaše zprávy odejdou s ním; kopie ve vlákně druhé osoby zůstává, zobrazená jako od odstraněného člena, protože ta konverzace je i jeho.',
 
   // ── Consent banner (ConsentBanner.tsx + Footer „Nastavení cookies") ──
   'consent.title': 'Lidské povinnosti',
