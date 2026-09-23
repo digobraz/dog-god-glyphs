@@ -445,7 +445,10 @@ export function NameScreen() {
             layout
             transition={MORPH}
             className="w-full rounded-2xl relative overflow-hidden flex-shrink"
-            style={{ background: 'var(--brand-gradient)' }}
+            // `containerType` robí z bubliny MERACÍ RÁM pre písmo otázky —
+            // stupeň sa viaže na šírku karty (cqw), nikdy na okno (vw).
+            // Brand lock: inak nadpis pri zmene šírky ticho pretečie.
+            style={{ background: 'var(--brand-gradient)', containerType: 'inline-size' }}
           >
             {/* Info toggle button — POČAS PRÍCHODU NIE JE (Matej 23. 9.: „pri
                 animácii nebude info ikonka hore vpravo v bloku"). Scéna príchodu
@@ -512,10 +515,17 @@ export function NameScreen() {
                   <motion.p
                     layout
                     transition={MORPH}
-                    className={`text-white text-center leading-snug drop-shadow-sm ${
-                      phase === 'hero' ? 'text-xl md:text-3xl' : 'text-[15px] md:text-2xl'
-                    }`}
-                    style={{ fontFamily: "'Cinzel', serif" }}
+                    className="text-white text-center leading-snug drop-shadow-sm"
+                    // Matej 23. 9.: *„dal by som väčšie písmo «ahoj ja som hektor»
+                    // aj v úvode aj po tom čo sa scvrkne — je to úvodná obrazovka"*.
+                    // Dolná hranica drží čitateľnosť na úzkom telefóne, horná
+                    // bráni tomu, aby veta na počítači zabrala celý blok.
+                    style={{
+                      fontFamily: "'Cinzel', serif",
+                      fontSize: phase === 'hero'
+                        ? 'clamp(20px, 7.4cqw, 42px)'
+                        : 'clamp(17px, 5.8cqw, 32px)',
+                    }}
                   >
                     {playIntro ? (
                       <>

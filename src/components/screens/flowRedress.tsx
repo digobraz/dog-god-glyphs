@@ -4,6 +4,8 @@ import { LAB } from '@/lib/labTheme';
 import { goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { PACK_THEME as T } from '@/components/pack/packTheme';
 import { FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
+// Stena je vymenovaná RAZ (viď tam) — oba šaty vstupu si ju berú odtiaľ.
+import { FLOW_WALL_IMAGE, FLOW_WALL_VEIL } from '@/components/screens/flowPaleSkin';
 
 // ════════════════════════════════════════════════════════════════════════════
 // PREZLEČENIE STARÝCH OBRAZOVIEK VSTUPU (31. 8. 2026)
@@ -134,12 +136,7 @@ const REDRESS_CSS = `
    Dve vrstvy ako v '.pk-paper': obrázok nesie glyfy, gradient nad ním ich
    zjednotí do teplej plochy, inak by kresba prekrikovala obsah. */
 [data-flow-skin="pale"] .dark-bg::before {
-  background-image: url('/images/bg-light.webp');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  filter: blur(4px);
-  opacity: 1;
+  ${FLOW_WALL_IMAGE}
 }
 [data-flow-skin="pale"] .dark-bg::after {
   content: '';
@@ -147,9 +144,7 @@ const REDRESS_CSS = `
   top: 0; left: 0; width: 100vw; height: 100lvh;
   pointer-events: none;
   z-index: 0;
-  background:
-    radial-gradient(ellipse at 52% 46%, rgba(243,228,196,0.72) 0%, rgba(243,228,196,0.52) 48%, rgba(252,247,236,0.30) 100%),
-    ${LAB.pageVeil};
+  ${FLOW_WALL_VEIL}
 }
 /* Základ dával potomkom zlatý inkoust pre čierne pozadie — na papyruse svieti. */
 [data-flow-skin="pale"] .dark-bg > * { color: ${LAB.ink}; }

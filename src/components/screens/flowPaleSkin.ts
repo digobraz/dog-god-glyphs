@@ -54,6 +54,37 @@ export const HF = {
 /** Podnadpis bubliny — LAB ho počíta z nadpisu, nie je to voľné číslo. */
 const BUBBLE_SUB = Math.max(11, Math.round(HF.bubble.title * 0.78));
 
+// ═══════════════════════════════════════════════════════════════════════
+// PAPYRUSOVÁ STENA — JEDEN ZDROJ PRE CELÝ VSTUP (23. 9. 2026)
+//
+// Matej: *„pozadie ake je tu daj na celý flow"*.
+//
+// 🔴 VSTUP MÁ DVA ŠATY A STENA SA MEDZI NIMI ROZIŠLA. Staré obrazovky nosia
+//    `.dark-bg` prezlečený `flowRedress.tsx`, tri nové (`dogs`, `email`, `why`)
+//    majú vlastný `.hf-pale` — a ten mal len `LAB.pageBackdrop`, teda gradient
+//    BEZ kresby. Premerané 23. 9.: z 16 krokov flow boli presne tieto tri bez
+//    tapety. Preto je odteraz stena vymenovaná RAZ a oba šaty si ju berú.
+// ⚠️ Dve vrstvy ako v `.pk-paper`: obrázok nesie glyfy, závoj nad ním ich
+//    zjednotí do teplej plochy — bez neho kresba prekrikuje obsah.
+// ═══════════════════════════════════════════════════════════════════════
+
+/** Spodná vrstva steny — kresba glyfov. */
+export const FLOW_WALL_IMAGE = `
+  background-image: url('/images/bg-light.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(4px);
+  opacity: 1;
+`;
+
+/** Vrchná vrstva — teplý závoj, ktorý kresbu stlmí pod obsah. */
+export const FLOW_WALL_VEIL = `
+  background:
+    radial-gradient(ellipse at 52% 46%, rgba(243,228,196,0.72) 0%, rgba(243,228,196,0.52) 48%, rgba(252,247,236,0.30) 100%),
+    ${LAB.pageVeil};
+`;
+
 export const FLOW_PALE_CSS = `
 .hf-pale {
   position: relative;
@@ -63,9 +94,17 @@ export const FLOW_PALE_CSS = `
   content: '';
   position: fixed;
   inset: 0;
-  background: ${LAB.pageBackdrop};
   z-index: 0;
   pointer-events: none;
+  ${FLOW_WALL_IMAGE}
+}
+.hf-pale::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  ${FLOW_WALL_VEIL}
 }
 .hf-pale > * { position: relative; z-index: 1; }
 
