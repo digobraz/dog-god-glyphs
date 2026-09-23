@@ -87,6 +87,14 @@ export const TestimonialsColumn = (props: {
                     height={40}
                     src={image}
                     alt={name}
+                    /* ⚠️ LAZY JE TU KVÔLI FILMU, NIE KVÔLI TEJTO SEKCII (2026-09-23).
+                       Pás recenzií je POSLEDNÝ obraz `/onepage` — človek k nemu dôjde
+                       po ~32 000 px scrollu. Bez `lazy` sa všetkých 44 portrétov
+                       z Wikimedia ťahalo hneď pri načítaní: na 4G to boli DVE
+                       najdlhšie položky celej stránky (5,1 s a 5,0 s) a súťažili
+                       o linku s tým, čo je naozaj vidieť. Merané na ostrom builde. */
+                    loading="lazy"
+                    decoding="async"
                     className="h-10 w-10 rounded-full object-cover"
                     style={{ border: skin.avatar }}
                   />

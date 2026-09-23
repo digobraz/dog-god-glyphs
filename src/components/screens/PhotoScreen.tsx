@@ -13,6 +13,7 @@ import { uploadMainPhoto, uploadCroppedPhoto, uploadExtraPhoto } from '@/service
 import { useT } from '@/i18n/LanguageContext';
 import { track } from '@/lib/analytics';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
+import { NEW_HEROFLOW } from '@/lib/flowMode';
 
 /* ───── helpers ───── */
 
@@ -319,7 +320,10 @@ type UploadState = 'idle' | 'uploading' | 'done' | 'error';
 export function PhotoScreen() {
   const navigate = useNavigate();
   const t = useT();
-  const flowOk = useFlowGuard();
+  // V novom vstupe je fotka PRVÝ krok — meno ešte neexistuje, takže guard musí
+  // spať. Inak by každý príchod skončil presmerovaním sám na seba a `return null`
+  // by vykreslil bielu stránku (`useFlowGuard.ts:10-13` to hovorí doslova).
+  const flowOk = useFlowGuard(!NEW_HEROFLOW);
   const dogName = useDogyptStore((s) => s.dogName);
   const sessionId = useDogyptStore((s) => s.sessionId);
   const setDogPhotoUrl = useDogyptStore((s) => s.setDogPhotoUrl);

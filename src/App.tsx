@@ -20,6 +20,7 @@ import { captureRefFromSearch } from "@/lib/refCapture";
 import { trackPageview, setAnalyticsLang } from "@/lib/analytics";
 import { maskPath, trackPackRoute } from "@/lib/packAnalytics";
 import { captureAttribution } from "@/lib/attribution";
+import { NEW_HEROFLOW } from "@/lib/flowMode";
 
 // Route-level code-split (P0 2026-07 perf pass). GodsGrid (homepage/LCP) + NotFound
 // stay eager; everything else behind /heroglyph, /pack, /admin, legacy /spiral, etc.
@@ -77,6 +78,22 @@ const HeroglyphRevealScreen = lazy(() =>
 );
 const MessageScreen = lazy(() =>
   import("@/components/screens/MessageScreen").then((m) => ({ default: m.MessageScreen }))
+);
+// ── NOVÝ VSTUP (28.–31. 8. 2026) — zavesený LEN v DEV, viď `NEW_HEROFLOW` nižšie ──
+const DogsScreen = lazy(() =>
+  import("@/components/screens/DogsScreen").then((m) => ({ default: m.DogsScreen }))
+);
+const EmailScreen = lazy(() =>
+  import("@/components/screens/EmailScreen").then((m) => ({ default: m.EmailScreen }))
+);
+const WhyScreen = lazy(() =>
+  import("@/components/screens/WhyScreen").then((m) => ({ default: m.WhyScreen }))
+);
+const CropScreen = lazy(() =>
+  import("@/components/screens/CropScreen").then((m) => ({ default: m.CropScreen }))
+);
+const FlowRedress = lazy(() =>
+  import("@/components/screens/flowRedress").then((m) => ({ default: m.FlowRedress }))
 );
 const CheckoutScreen = lazy(() =>
   import("@/components/screens/CheckoutScreen").then((m) => ({ default: m.CheckoutScreen }))
@@ -145,6 +162,30 @@ const RouteFallback = () => {
 
 const queryClient = new QueryClient();
 
+// ═══════════════════════════════════════════════════════════════════════════
+// NOVÝ HEROFLOW — PREPÍNAČ (23. 9. 2026)
+//
+// Matej 23. 9.: „nerobíme to na live! robíme to na dev, každý deň urobíme
+// 1-2 obrazovky nech to odsýpa."
+//
+// 🔴 PRETO `import.meta.env.DEV`, A NIE OBYČAJNÉ ZAVESENIE. `npm run go-live`
+//    vyváža CELÝ `main`, nie vybraný commit. Presne tak sa 1. 9. 2026 nový
+//    vstup neplánovane odviezol na ostrý web v cudzom deploy commite
+//    `24382ba` „Nasadenie /pack" a 15 dní tam stál nepreverený. Za touto
+//    bránou sa do produkčného buildu nedostane ani vtedy, keď niekto
+//    medzitým deployuje z inej session.
+//
+// 🔴 DO PRODUKCIE SA TO SMIE PUSTIŤ AŽ S MULTI-MÓDOM. `dogyptStore.ts` pri
+//    `extraDogs`: „krok 3 NESMIE ísť na produkciu bez [multi-módu] — inak si
+//    niekto naklikal troch psov, zaplatil raz a dostal jeden heroglyf."
+//    Dnes je cena natvrdo €11 na troch miestach (`dogyptStore.ts:88`,
+//    `CheckoutScreen.tsx:169`, `create-checkout/index.ts:122`) a Stripe
+//    dostáva `quantity: 1`.
+//
+// Prepínač má JEDEN zdroj — `src/lib/flowMode.ts`. Pýtajú sa ho aj obrazovky
+// (PhotoScreen kvôli guardu), takže tu sa iba importuje.
+// ═══════════════════════════════════════════════════════════════════════════
+
 // Capture ?ref=<code> on every navigation (first-touch wins). Must live inside
 // BrowserRouter to read the live location.
 function RefCapture() {
@@ -182,6 +223,15 @@ const App = () => (
           <AinubisWidget />
         </Suspense>
         <DevNav />
+        {/* Bledý šat + progresbar pre STARÉ obrazovky flow. Bez neho by nové
+            obrazovky (dogs, email, why) boli papyrusové a zvyšok čierny.
+            Vrstva je zapuzdrená v `[data-flow-skin="pale"]`, takže netečie
+            na Terms/Vision/Login. Prepnúť späť na tmavý: dev menu. */}
+        {NEW_HEROFLOW && (
+          <Suspense fallback={null}>
+            <FlowRedress />
+          </Suspense>
+        )}
         <ErrorBoundary>
           <Suspense fallback={<RouteFallback />}>
             <Routes>
@@ -232,9 +282,29 @@ const App = () => (
                   `FlowPhases`, `flowPaleSkin.ts`, `flowRedress.tsx` ležia ďalej v `screens/`.
                   Pri veľkom launchi sa vráti späť tento blok + `<FlowRedress />` v strome vyššie. */}
               <Route path="/heroglyph" element={<Heroglyph />} />
-              <Route path="/heroglyph/intro" element={<IntroScreen />} />
-              <Route path="/heroglyph/name" element={<NameScreen />} />
-              <Route path="/heroglyph/photo" element={<PhotoScreen />} />
+              {/* ── NOVÝ VSTUP (DEV) — poradie z `cdb9df2` (31. 8. 2026) ──
+                  fotka → meno → ĎALŠÍ PSI → e-mail → prečo heroglyf → plemeno → …
+                  → povaha → VÝREZ → odhalenie → odkaz.
+                  `intro` a `about` sú redirecty, nie mŕtve routy: staré odkazy
+                  a záložky musia niekam dôjsť. */}
+              {NEW_HEROFLOW ? (
+                <>
+                  <Route path="/heroglyph/intro" element={<Navigate to="/heroglyph/photo" replace />} />
+                  <Route path="/heroglyph/photo" element={<PhotoScreen />} />
+                  <Route path="/heroglyph/name" element={<NameScreen />} />
+                  <Route path="/heroglyph/dogs" element={<DogsScreen />} />
+                  <Route path="/heroglyph/email" element={<EmailScreen />} />
+                  <Route path="/heroglyph/why" element={<WhyScreen />} />
+                  <Route path="/heroglyph/about" element={<Navigate to="/heroglyph/breed" replace />} />
+                  <Route path="/heroglyph/crop" element={<CropScreen />} />
+                </>
+              ) : (
+                <>
+                  <Route path="/heroglyph/intro" element={<IntroScreen />} />
+                  <Route path="/heroglyph/name" element={<NameScreen />} />
+                  <Route path="/heroglyph/photo" element={<PhotoScreen />} />
+                </>
+              )}
               <Route path="/heroglyph/breed" element={<BreedPatronScreen />} />
               <Route path="/heroglyph/ranking" element={<RankingScreen />} />
               <Route path="/heroglyph/owner-info" element={<OwnerInfoScreen />} />
