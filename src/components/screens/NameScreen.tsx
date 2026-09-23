@@ -12,6 +12,8 @@ import { useT } from '@/i18n/LanguageContext';
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 import { useBlockAutocorrect } from '@/hooks/useBlockAutocorrect';
 import { countryFlag } from '@/lib/countryGeo';
+import { NEW_HEROFLOW } from '@/lib/flowMode';
+import { hekthorFace } from '@/lib/hekthorFaces';
 
 // Android keyboards (Gboard/Samsung) ignore autoCorrect/autoComplete="off" and may
 // silently swap a typed word for a predicted one (e.g. BELGA → BELGICKO). We can't
@@ -206,6 +208,17 @@ export function NameScreen() {
   const storedDogName = useDogyptStore((s) => s.dogName);
   const setSelection = useDogyptStore((s) => s.setSelection);
   const selections = useDogyptStore((s) => s.selections);
+  // ── NOVÝ VSTUP (23. 9. 2026): táto obrazovka pohltila otázku „žije?" ───────
+  // Matej ukázal obrazovku 2 z nákresu 31. 8.: meno + blok ZÁKLAD (stav ·
+  // narodenie · krajina). Dôvod nie je vzhľad:
+  // 🔴 v ceste ZO STENY sa dnes `lifeStatus` nespýta NIKDY — je len v Intro,
+  //    ktoré popup na stene preskočí (`GodsGridLab` ide rovno na `/heroglyph/name`),
+  //    takže zosnulý pes pristane na stene ako živý.
+  // Tým zároveň zaniká `AboutScreen` (papierovačky) — pýtal sa na tie isté polia
+  // druhýkrát a pri druhom priechode ich prepísal hodnotami prvého psa.
+  const setLifeStatus = useDogyptStore((s) => s.setLifeStatus);
+  const setDeathDate = useDogyptStore((s) => s.setDeathDate);
+  const storedLifeStatus = useDogyptStore((s) => s.lifeStatus);
 
   const initialName = storedDogName || '';
   const today = new Date();
@@ -228,6 +241,7 @@ export function NameScreen() {
   // Dog's country — restored from selections if user navigates back.
   // Default empty: user must consciously pick (LOCKED decision 2026-07-06).
   const [dogCountry, setDogCountry] = useState<string>(selections.country || '');
+  const [alive, setAlive] = useState<boolean>(storedLifeStatus !== 'deceased');
   const [showInfo, setShowInfo] = useState(false);
   const isMobile = useMemo(() => window.matchMedia('(pointer: coarse)').matches, []);
   const [nameModalOpen, setNameModalOpen] = useState(false);
@@ -265,6 +279,15 @@ export function NameScreen() {
     // Dog's country → heroglyph pos 15 + dogs.country + WALL flag.
     // Stored as English name (matches COUNTRY_TO_ISO3 map in heroglyphCode.ts).
     setSelection('country', dogCountry);
+    if (NEW_HEROFLOW) {
+      // Stav zapisujeme VŽDY, aj keď človek nechal predvolené „žije" — inak by
+      // pole ostalo tým, čím ho nechal predošlý priechod.
+      setLifeStatus(alive ? 'alive' : 'deceased');
+      if (alive) setDeathDate(null);
+      // Fotka je za nami (popup na stene), ďalej ide zoznam psov.
+      navigate('/heroglyph/dogs');
+      return;
+    }
     navigate('/heroglyph/photo');
   };
 
@@ -277,7 +300,9 @@ export function NameScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <PageTopBar onBack={() => navigate('/heroglyph/intro')} />
+      {/* Späť: v novom vstupe je za nami popup na stene, nie Intro (to je len
+          redirect na fotku, takže by šípka skončila v kruhu). */}
+      <PageTopBar onBack={() => navigate(NEW_HEROFLOW ? '/' : '/heroglyph/intro')} />
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
         <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 min-h-0">
@@ -315,7 +340,19 @@ export function NameScreen() {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.25 }}
                 >
-                  <img src={hekthorImg} alt="HEKTHOR" className="hek-lg w-36 h-36 md:w-56 md:h-56 object-contain" />
+                  {/* Nový vstup má na každom kroku iný Hektorov ksicht (Matej 23. 9.:
+                      „bolo by to zaujímavejšie a človek by chcel vidieť čo bude
+                      nasledovať"). Kruh je v súbore orezaný na pixel, preto stačí
+                      `rounded-full` — netreba `object-contain`. */}
+                  {NEW_HEROFLOW ? (
+                    <img
+                      src={hekthorFace('name')}
+                      alt="HEKTHOR"
+                      className="hek-lg w-32 h-32 md:w-48 md:h-48 rounded-full object-cover"
+                    />
+                  ) : (
+                    <img src={hekthorImg} alt="HEKTHOR" className="hek-lg w-36 h-36 md:w-56 md:h-56 object-contain" />
+                  )}
                   <p className="text-white text-center text-[15px] md:text-2xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
                     <span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingPrefix')} <span className="font-bold text-amber-300">HEKTHOR</span>.</span><br />
                     <span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingQuestion')}</span>
@@ -574,6 +611,42 @@ export function NameScreen() {
               maxDate={today}
               onChange={handleDateChange}
             />
+
+            {/* STAV — len v novom vstupe. Dve možnosti, predvolená „žije"; dátum
+                odchodu sa tu NEPÝTA (patrí k psovi do zoznamu), aby sa z prvej
+                obrazovky nestal formulár. */}
+            {NEW_HEROFLOW && (
+              <div className="w-full flex flex-col gap-2">
+                <p
+                  className="text-xs md:text-sm uppercase tracking-widest text-muted-foreground text-center"
+                  style={{ fontFamily: "'Cinzel', serif" }}
+                >
+                  {t('intro.question')}
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {([true, false] as const).map((v) => (
+                    <button
+                      key={String(v)}
+                      type="button"
+                      onClick={() => setAlive(v)}
+                      className="h-10 md:h-11 rounded-xl text-[13px] md:text-sm tracking-wide transition-colors"
+                      style={{
+                        fontFamily: "'Cinzel', serif",
+                        background: alive === v ? 'hsl(var(--papyrus))' : 'hsl(var(--card))',
+                        border: alive === v
+                          ? '1px solid hsl(var(--gold))'
+                          : '1px solid hsl(var(--border))',
+                        color: alive === v ? 'hsl(var(--ink, 24 60% 10%))' : 'hsl(var(--muted-foreground))',
+                      }}
+                    >
+                      {v
+                        ? t('heroglyph.flow.dogs.statusAlive')
+                        : t('heroglyph.flow.dogs.statusAngel')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <Button
               onClick={handleSend}
