@@ -34,8 +34,10 @@ import {
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { HandArrowLeft } from '@/components/pack/HandIcons';
 import {
-  DEMO_CHATS, DEMO_SCROLLS, DEMO_CONTEXT,
-  type DemoChat, type DemoMessage,
+  DEMO_CHATS, DEMO_SCROLLS, DEMO_CONTEXT, DEMO_FORMS, FORM_ORDER,
+  DEMO_PENDING, DEMO_REPLY, DEMO_STARTERS, demoVerdict,
+  type DemoAnswer, type DemoChat, type DemoMessage, type DemoPending,
+  type DemoVerdict, type FormKind,
 } from './vaultChatDemo';
 
 /** Šírka pásu histórie na PC. Užší by neuniesol názov rozhovoru na jeden riadok. */
@@ -104,16 +106,23 @@ export const VAULT_CHAT_CSS = `
 .akc-thread{position:absolute;z-index:3;inset:0;display:grid;
   grid-template-rows:auto minmax(0,1fr) auto;background:${AINUBIS.surfaceBase};
   padding-top:var(--akv-top-h,112px);}
-/* PÁS KONTEXTU — čo má AINUBIS pred sebou, keď odpovedá. Bez neho je to
-   všeobecný chatbot; s ním je vidieť, že pozná Hektora. */
+/* HLAVIČKA — krok späť, šuplík rozhovorov a JEDEN RIADOK kontextu.
+   🔴 KONTEXT JE RIADOK TEXTU, NIE RAD PILULEK (Matej 23. 9. 2026, variant A1 nad
+   nákresom plany/nakres-ainubis-chat-doladenie-2026-09-23.html). Tri pilulky
+   sa na 390 px lámali do troch riadkov a hlavička zaberala 129 px z 844 —
+   pätinu obrazovky na vetu, ktorá sa nedá stlačiť. Nie je to ovládač, je to
+   tvrdenie „poznám tvojho psa": nič v ňom nie je klikateľné a nič nefiltruje. */
+.akc-head{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;
+  border-bottom:1px solid ${AINUBIS.edge};
+  padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.md}px)
+    ${PACK_SPACE.lg}px ${PACK_SPACE.md}px;}
 .akc-ctx{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;flex-wrap:wrap;
-  padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;border-bottom:1px solid ${AINUBIS.edge};
   font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.card.letterSpacing};
   text-transform:uppercase;color:${AINUBIS.inkFaint};}
-.akc-ctx b{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;
-  padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
-  font-weight:500;letter-spacing:0.02em;text-transform:none;font-size:${PACK_TEXT.label}px;
-  color:${AINUBIS.ink};border:1px solid ${AINUBIS.edge};background:rgba(${AINUBIS.cyanRGB},0.08);}
+.akc-ctxline{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;line-height:1.35;
+  letter-spacing:0.02em;color:${AINUBIS.inkFaint};}
+/* Meno psa je jediné slovo, ktoré dokazuje, že pozná TOHTO psa — nesie jeho farbu. */
+.akc-ctxline i{font-style:normal;color:${AINUBIS.cyan};}
 .akc-back{width:32px;height:32px;flex:0 0 32px;display:flex;align-items:center;justify-content:center;
   border-radius:${PACK_R.pill}px;cursor:pointer;
   border:1px solid ${AINUBIS.edge};background:${AINUBIS.raised};color:${AINUBIS.cyan};}
@@ -158,6 +167,8 @@ export const VAULT_CHAT_CSS = `
   letter-spacing:0.02em;text-transform:none;
   border:1px solid ${AINUBIS.edge};background:${AINUBIS.raised};color:${AINUBIS.cyan};}
 .akc-srcrow button:hover{background:rgba(${AINUBIS.cyanRGB},0.12);}
+/* Priznanie, že maketa nehľadala. Kurzíva by z toho spravila citát. */
+.akc-srcrow em{font-style:normal;text-transform:none;letter-spacing:0.02em;}
 .akc-acts{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;}
 .akc-act{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;
   padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;
@@ -167,6 +178,97 @@ export const VAULT_CHAT_CSS = `
 /* HLAVNÁ AKCIA ODPOVEDE — jediná plná v bloku (protokol = DOG ID, lock). */
 .akc-act.is-main{border:0;background:${AINUBIS.ctaGrad};color:${AINUBIS.ctaInk};font-weight:600;}
 .akc-act.is-main:hover{background:${AINUBIS.ctaGradHover};color:${AINUBIS.ctaInk};}
+
+/* ── BLOK VO VLÁKNE: UVÍTANIE · FORMULÁR PRÍSPEVKU ──────────────────────
+   🔴 FORMULÁR JE SPRÁVA, NIE OKNO NAVRCHU. Lock §4.2: akcia nesmie odniesť
+   človeka preč z miesta, kde je — píše sa tam, kde sa pýta.
+   ⚠️ Nový názov bloku sa NEZAKLADÁ. Celý tento povrch je AI-PALUBA z katalógu
+   PACK_BLOCKS; .akc-* sú jej diely, nie sedemnásty blok. */
+.akc-nform{border-radius:${PACK_R.card}px;padding:${PACK_SPACE.lg}px;
+  border:1px solid ${AINUBIS.ctaEdge};background:${AINUBIS.ctaTint};}
+/* Uvítanie prázdneho rozhovoru je ten istý blok v TICHEJ polohe — zlatý lem
+   patrí príspevku do mozgu, nie privítaniu. */
+.akc-nform.is-quiet{border-color:${AINUBIS.edge};background:${AINUBIS.raised};}
+.akc-eb{font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;line-height:1;
+  letter-spacing:${PACK_HEAD.label.letterSpacing};text-transform:uppercase;color:${AINUBIS.ctaA};}
+.akc-nform.is-quiet .akc-eb{color:${AINUBIS.cyan};}
+.akc-nform h5{margin:${PACK_SPACE.sm}px 0 0;font-family:${FONT_TITLE};font-weight:700;
+  font-size:${PACK_TEXT.lead}px;line-height:1.25;letter-spacing:${PACK_HEAD.card.letterSpacing};
+  color:${AINUBIS.ink};}
+.akc-nfin{width:100%;margin-top:${PACK_SPACE.md}px;padding:${PACK_SPACE.md}px;
+  border-radius:${PACK_R.tile}px;border:1px solid ${AINUBIS.edge};background:${AINUBIS.bgDeep};
+  color:${AINUBIS.ink};font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;line-height:1.5;
+  outline:0;resize:vertical;}
+.akc-nfin::placeholder{color:${AINUBIS.inkFaint};}
+.akc-nfrow{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;margin-top:${PACK_SPACE.md}px;
+  align-items:center;}
+.akc-lb{font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;line-height:1.2;
+  letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
+/* PILULKA VOĽBY — výber je priesvitný TINT, plná plocha patrí jedinému CTA (brand). */
+.akc-pk{padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;
+  font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;line-height:1.35;
+  letter-spacing:0.02em;border:1px solid ${AINUBIS.edge};background:none;color:${AINUBIS.inkDim};}
+.akc-pk:hover{border-color:${AINUBIS.edgeStrong};}
+.akc-pk[aria-pressed="true"]{background:rgba(${AINUBIS.cyanRGB},0.14);
+  border-color:${AINUBIS.edgeStrong};color:${AINUBIS.cyan};}
+.akc-cta{border:0;border-radius:${PACK_R.field}px;cursor:pointer;
+  padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;
+  font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;line-height:1;
+  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;
+  background:${AINUBIS.ctaGrad};color:${AINUBIS.ctaInk};box-shadow:${AINUBIS.ctaShadow};}
+.akc-cta:hover{background:${AINUBIS.ctaGradHover};}
+.akc-gho{border-radius:${PACK_R.field}px;cursor:pointer;padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;
+  font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;line-height:1;
+  border:1px solid ${AINUBIS.edge};background:none;color:${AINUBIS.inkFaint};}
+.akc-gho:hover{border-color:${AINUBIS.edgeStrong};color:${AINUBIS.inkDim};}
+.akc-nfnote{margin-top:${PACK_SPACE.md}px;font-size:${PACK_TEXT.micro}px;line-height:1.5;
+  color:${AINUBIS.inkFaint};}
+.akc-nfnote b{color:${AINUBIS.ink};font-weight:500;}
+/* Tichý riadok bez odsadenia zhora — keď stojí hneď pod svojím nadpisom. */
+.akc-nfrow.is-tight,.akc-nfnote.is-tight{margin-top:0;}
+.akc-nfnote.is-tight{font-style:normal;}
+
+/* ── PRÍSPEVOK PO ODOSLANÍ — POSUDOK A STAV ─────────────────────────────
+   🔴 POSUDOK JE PODKLAD, NIE ROZSUDOK. AINUBIS predtriedi (relevancia, zdroj,
+   kam to patrí), do mozgu to pustí Matej — preto má posudok vlastný blok
+   v jeho modrom svite a končí vetou o tom, kto rozhoduje. */
+.akc-pend{border-radius:${PACK_R.card}px;padding:${PACK_SPACE.lg}px;
+  border:1px solid ${AINUBIS.edge};background:${AINUBIS.raised};}
+.akc-pq{font-size:${PACK_TEXT.body}px;line-height:1.4;color:${AINUBIS.inkDim};}
+.akc-pq b{color:${AINUBIS.ink};font-weight:500;}
+.akc-verdict{margin-top:${PACK_SPACE.md}px;padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;
+  font-size:${PACK_TEXT.label}px;line-height:1.5;color:${AINUBIS.inkDim};
+  border:1px solid ${AINUBIS.glowEdge};background:${AINUBIS.glowTint};}
+.akc-verdict b{color:${AINUBIS.cyan};font-weight:500;}
+.akc-kv{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;margin-top:${PACK_SPACE.sm}px;}
+.akc-kv span{padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;
+  font-size:${PACK_TEXT.micro}px;line-height:1.2;letter-spacing:${PACK_HEAD.card.letterSpacing};
+  text-transform:uppercase;border:1px solid ${AINUBIS.edge};color:${AINUBIS.inkFaint};}
+/* TRI STAVY — čaká (jeho zlatá) · v mozgu (zelená) · zamietnuté (červená).
+   Vždy tint + lem; plná plocha je vyhradená jedinému CTA. */
+.akc-pstat{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;
+  padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
+  font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;line-height:1.2;
+  letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;}
+.akc-pstat[data-st="wait"]{color:${AINUBIS.ctaA};border:1px solid ${AINUBIS.ctaEdge};
+  background:${AINUBIS.ctaTint};}
+.akc-pstat[data-st="ok"]{color:${AINUBIS.ok};border:1px solid ${AINUBIS.okEdge};
+  background:${AINUBIS.okTint};}
+.akc-pstat[data-st="no"]{color:${AINUBIS.danger};border:1px solid ${AINUBIS.dangerEdge};
+  background:${AINUBIS.dangerTint};}
+/* ZOZNAM MOJICH PRÍSPEVKOV — otvára sa VO VLÁKNE ako ďalší blok (Matej 23. 9.),
+   nie na štvrtej obrazovke: chat je JEDNA úloha. */
+.akc-mlist{display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;
+  margin-top:${PACK_SPACE.md}px;}
+.akc-mrow{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;
+  padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;
+  border:1px solid ${AINUBIS.edge};background:${AINUBIS.bgDeep};}
+/* Druh príspevku — tichý štítok, nie zlatý: zlatá tu patrí stavu „čaká". */
+.akc-pend > .akc-eb,.akc-mrow > .akc-eb{color:${AINUBIS.inkFaint};}
+.akc-mrow > b{font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;
+  line-height:1.35;color:${AINUBIS.ink};}
+.akc-mrow em{font-style:normal;font-size:${PACK_TEXT.micro}px;line-height:1.4;
+  color:${AINUBIS.inkFaint};}
 
 /* ── PÍSACIE POLE + „+" (prispievanie do mozgu) ───────────────────────── */
 /* 🔴 SPODNÁ LIŠTA V CHATE NIE JE (Matej 23. 9. 2026 + lock §3: kôš 3 = ÚLOHA).
@@ -228,10 +330,137 @@ body:has(.akv-root[data-plane="chat"]) .ainubis-launcher{visibility:hidden;point
   .akv-root[data-plane="chat"] .akc-thread{left:${RAIL_W}px;right:0;}
   /* Pás je na PC stále na obrazovke, tlačidlo šuplíka teda nemá čo otvárať. */
   .akv-root[data-plane="chat"] .akc-railbtn{display:none;}
+  /* ⚠️ HLAVIČKA SI ODSADENIE MUSÍ UROBIŤ SAMA. V chate zhasla lišta identity
+     (.akv-top) a s ňou premenná akv-top-h — bez tohto riadku sedí šípka späť na
+     0 px od horného okraja okna a vyzerá ako odseknutá. */
+  .akv-root[data-plane="chat"] .akc-head{padding-top:${PACK_SPACE.xl}px;}
 }
 `;
 
+/* Tvar správy — päť možností, teda päť stráží. `in` je jediné, čo TypeScript
+   nad zjednotením bez spoločného poľa unesie. */
 const isMe = (m: DemoMessage): m is { me: string } => 'me' in m;
+const isAi = (m: DemoMessage): m is { ai: DemoAnswer } => 'ai' in m;
+const isForm = (m: DemoMessage): m is { form: FormKind } => 'form' in m;
+const isPend = (m: DemoMessage): m is { pend: DemoPending & { verdict: DemoVerdict } } => 'pend' in m;
+
+/** Stav príspevku slovom. ⚠️ BEZ ZNAKU ⏳ ✓ ✕ — Matej 23. 9. 2026: emoji sú mimo
+ *  brandu (hovorí nimi len mapa) a holé znaky `×` `✓` sú v manuáli tá istá polica.
+ *  Stav nesie FARBA a SLOVO; kresba pribudne, keď bude v kite. */
+const STAT: Record<DemoPending['status'], string> = {
+  wait: 'waiting for approval',
+  ok: 'in the brain',
+  no: 'rejected',
+};
+
+/**
+ * FORMULÁR PRÍSPEVKU — vlastný stav písania, aby každý znak neprekresľoval
+ * celé vlákno. Maketa: „poslať" nič nikam neposiela, len vymení blok za posudok.
+ */
+function ContribForm({ kind, onSend, onDrop }: {
+  kind: FormKind;
+  onSend: (text: string) => void;
+  onDrop: () => void;
+}) {
+  const f = DEMO_FORMS[kind];
+  const [text, setText] = useState('');
+  const [mine, setMine] = useState(true);
+  const [circle, setCircle] = useState(true);
+  return (
+    <div className="akc-nform">
+      <div className="akc-eb">contribution to the brain</div>
+      <h5>{f.name}</h5>
+      <textarea className="akc-nfin" rows={3} value={text} placeholder={f.placeholder}
+        aria-label={f.name} onChange={(e) => setText(e.target.value)} />
+      {/* Kniha je jediný druh, ktorý má čo priložiť — ostatné by mali prázdne tlačidlá. */}
+      {kind === 'book' && (
+        <div className="akc-nfrow">
+          <button type="button" className="akc-pk">Photograph the pages</button>
+          <button type="button" className="akc-pk">Upload a PDF</button>
+        </div>
+      )}
+      <div className="akc-nfrow">
+        <span className="akc-lb">about</span>
+        <button type="button" className="akc-pk" aria-pressed={mine}
+          onClick={() => setMine(true)}>my dog</button>
+        <button type="button" className="akc-pk" aria-pressed={!mine}
+          onClick={() => setMine(false)}>dogs in general</button>
+      </div>
+      {/* Okruh NAVRHUJE stroj a človek ho smie prebiť — nie naopak. */}
+      <div className="akc-nfrow">
+        <span className="akc-lb">AINUBIS suggests</span>
+        <button type="button" className="akc-pk" aria-pressed={circle}
+          onClick={() => setCircle(true)}>{f.circle}</button>
+        <button type="button" className="akc-pk" aria-pressed={!circle}
+          onClick={() => setCircle(false)}>another circle…</button>
+      </div>
+      <div className="akc-nfrow">
+        <button type="button" className="akc-cta" onClick={() => onSend(text)}>send for approval</button>
+        <button type="button" className="akc-gho" onClick={onDrop}>discard</button>
+      </div>
+      <p className="akc-nfnote">{f.sub}</p>
+    </div>
+  );
+}
+
+/** PRÍSPEVOK PO ODOSLANÍ — posudok stroja a stav. Posudok je podklad, nie rozsudok. */
+function PendBlock({ p }: { p: DemoPending & { verdict?: DemoVerdict } }) {
+  return (
+    <div className="akc-pend">
+      {/* DRUH PRÍSPEVKU SLOVOM — bez neho sa odkaz od knihy nedá odlíšiť,
+          keď ikonky nemáme. */}
+      <div className="akc-eb">{DEMO_FORMS[p.kind].name}</div>
+      <div className="akc-pq"><b>{p.text}</b></div>
+      {p.verdict && (
+        <div className="akc-verdict">
+          <b>{p.verdict.lead}</b> {p.verdict.line}
+          <div className="akc-kv">{p.verdict.tags.map((t) => <span key={t}>{t}</span>)}</div>
+        </div>
+      )}
+      <div className="akc-nfrow">
+        <span className="akc-pstat" data-st={p.status}>{STAT[p.status]}</span>
+        {/* Kam sa to podelo — nie posudok, ten je vyššie. */}
+        <em className="akc-nfnote is-tight">you will find it under my contributions</em>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * MOJE PRÍSPEVKY — otvára sa VO VLÁKNE ako ďalší blok (Matej 23. 9. 2026), nie
+ * na štvrtej obrazovke: chat je JEDNA úloha a akcia nemá odniesť človeka preč.
+ * ⚠️ ZAMIETNUTÝ MUSÍ BYŤ VIDNO. Zoznam, kde všetko prejde, klame o tom jedinom,
+ *    čo prispievanie drží pri živote — že to niekto naozaj číta.
+ */
+function MineBlock({ items }: { items: DemoPending[] }) {
+  const n = (s: DemoPending['status']) => items.filter((i) => i.status === s).length;
+  return (
+    <div className="akc-nform is-quiet">
+      <div className="akc-eb">my contributions</div>
+      <h5>What I sent into the brain</h5>
+      <div className="akc-nfrow">
+        <span className="akc-pstat" data-st="wait">{n('wait')} waiting</span>
+        <span className="akc-pstat" data-st="ok">{n('ok')} in the brain</span>
+        <span className="akc-pstat" data-st="no">{n('no')} rejected</span>
+      </div>
+      <div className="akc-mlist">
+        {items.map((p, i) => (
+          <div className="akc-mrow" key={`${p.text}-${i}`}>
+            <div className="akc-eb">{DEMO_FORMS[p.kind].name}</div>
+            <b>{p.text}</b>
+            <div className="akc-nfrow is-tight">
+              <span className="akc-pstat" data-st={p.status}>{STAT[p.status]}</span>
+              <em>{p.when}</em>
+            </div>
+            <em>{p.note}</em>
+          </div>
+        ))}
+      </div>
+      <p className="akc-nfnote">Matej reads every one of them. A contribution reaches the brain
+        only when it holds up on its own.</p>
+    </div>
+  );
+}
 
 /**
  * CHAT — pás histórie + vlákno + písacie pole. CELÁ OBRAZOVKA bez spodnej lišty,
@@ -246,19 +475,54 @@ export function VaultChat({ onBack, onOpenScroll }: {
   const [cur, setCur] = useState(DEMO_CHATS[0].id);
   const [q, setQ] = useState('');
   const [add, setAdd] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [mine, setMine] = useState<DemoPending[]>(DEMO_PENDING);
   const msgsRef = useRef<HTMLDivElement>(null);
+  const askRef = useRef<HTMLDivElement>(null);
 
   const chat = chats.find((c) => c.id === cur) ?? chats[0];
 
-  /* Po prepnutí rozhovoru scrolluj na koniec vlákna. */
+  /* Koniec vlákna. `scrollHeight` sa číta až po prekreslení — inak sa skáče na
+     výšku, ktorú mal blok PRED pridaním správy. */
+  const toEnd = () => requestAnimationFrame(() => {
+    const el = msgsRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  });
+
+  /* Po prepnutí rozhovoru scrolluj na koniec vlákna. ⚠️ `toEnd` vracia číslo
+     z requestAnimationFrame — priamo ako efekt by ho React bral za upratovaciu
+     funkciu. */
+  useEffect(() => { toEnd(); }, [chat]);
+
+  /* ⚠️ PONUKA „+" SA MUSÍ DAŤ ZAVRIEŤ AJ INAK NEŽ TÝM ISTÝM TLAČIDLOM — klik
+     vedľa a Esc. Do 23. 9. 2026 sa zatvárala len opätovným klikom na `+`, takže
+     na mobile zakrývala pol vlákna a človek nemal kam klepnúť.
+     `pointerdown` chytí aj dotyk; tlačidlo `+` je vnútri `askRef`, takže ho tento
+     poslucháč minie a `onClick` prepne stav sám. */
   useEffect(() => {
-    msgsRef.current?.scrollTo({ top: msgsRef.current.scrollHeight });
-  }, [chat]);
+    if (!add) return undefined;
+    const away = (e: Event) => {
+      if (!askRef.current?.contains(e.target as Node)) setAdd(false);
+    };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setAdd(false); };
+    document.addEventListener('pointerdown', away);
+    document.addEventListener('keydown', esc);
+    return () => {
+      document.removeEventListener('pointerdown', away);
+      document.removeEventListener('keydown', esc);
+    };
+  }, [add]);
 
   const shown = useMemo(() => {
     const nq = q.trim().toLowerCase();
     return nq ? chats.filter((c) => c.title.toLowerCase().includes(nq)) : chats;
   }, [chats, q]);
+
+  /** Zmena správ AKTUÁLNEHO rozhovoru. Ostatné ostávajú, ako boli. */
+  const edit = (fn: (msgs: DemoMessage[]) => DemoMessage[], title?: (c: DemoChat) => string) =>
+    setChats((v) => v.map((c) => (c.id === cur
+      ? { ...c, msgs: fn(c.msgs), title: title ? title(c) : c.title }
+      : c)));
 
   const newChat = () => {
     const c: DemoChat = { id: Date.now(), day: 'today', title: 'New conversation', msgs: [] };
@@ -266,6 +530,45 @@ export function VaultChat({ onBack, onOpenScroll }: {
     setCur(c.id);
     document.querySelector<HTMLElement>('.akv-root')?.removeAttribute('data-rail');
   };
+
+  /* 🔴 ŽIADNY SERVER. Otázka sa pridá do miestneho stavu a odpoveď je napísaná
+     (`DEMO_REPLY`) — maketa ukazuje TVAR odpovede a priznáva, že je maketa.
+     Volanie `ainubis-chat` sem NEPATRÍ: živý chat je widget, ktorý beží naostro. */
+  const askQ = (text: string, sources: number[] = []) => {
+    const t = text.trim();
+    if (!t) return;
+    edit(
+      (m) => [...m, { me: t }, { ai: { ...DEMO_REPLY, sources } }],
+      (c) => (c.msgs.length === 0 ? t.slice(0, 44) : c.title),
+    );
+    setDraft('');
+    toEnd();
+  };
+
+  const openForm = (kind: FormKind) => { setAdd(false); edit((m) => [...m, { form: kind }]); toEnd(); };
+  const dropForm = (at: number) => edit((m) => m.filter((_, i) => i !== at));
+  const sendForm = (at: number, kind: FormKind, text: string) => {
+    const item = {
+      kind,
+      text: text.trim() || DEMO_FORMS[kind].name,
+      status: 'wait' as const,
+      note: `suggested for ${DEMO_FORMS[kind].circle}`,
+      when: 'just now',
+      verdict: demoVerdict(kind),
+    };
+    edit((m) => m.map((x, i) => (i === at ? { pend: item } : x)));
+    setMine((v) => [item, ...v]);
+    toEnd();
+  };
+
+  /** „my contributions" — zoznam sa vypíše vo vlákne, druhýkrát sa neopakuje. */
+  const openMine = () => {
+    document.querySelector<HTMLElement>('.akv-root')?.removeAttribute('data-rail');
+    edit((m) => (m.length && 'mine' in m[m.length - 1] ? m : [...m, { mine: true }]));
+    toEnd();
+  };
+
+  const waiting = mine.filter((p) => p.status === 'wait').length;
 
   return (
     <>
@@ -293,90 +596,127 @@ export function VaultChat({ onBack, onOpenScroll }: {
         </div>
         <div className="akc-foot">
           {/* Prispievanie do mozgu má svoj stav — čaká na Mateja, nie na server. */}
-          <button type="button" className="akc-mine">
-            <span>my contributions</span><b>2 pending</b>
+          <button type="button" className="akc-mine" onClick={openMine}>
+            <span>my contributions</span><b>{waiting} pending</b>
           </button>
           <div className="akc-me">DEVOTION 2 · 12 / 569 scrolls</div>
         </div>
       </aside>
 
       <section className="akc-thread" aria-label="Chat">
-        <div className="akc-ctx">
-          {/* 🔴 ŠÍPKA SPÄŤ VĽAVO HORE — CHAT je ÚLOHA (kôš 3), nie miesto: spodná
-              lišta v ňom mizne a von sa ide krokom späť. Matej 23. 9. 2026. */}
-          <button type="button" className="akc-back" onClick={onBack} aria-label="Back">
-            <HandArrowLeft size={16} />
-          </button>
-          <button type="button" className="akc-railbtn"
-            onClick={() => {
-              const r = document.querySelector<HTMLElement>('.akv-root');
-              if (r) r.dataset.rail = r.dataset.rail === 'open' ? '' : 'open';
-            }}>☰ conversations</button>
-          <span>knows about</span>
-          <b>{DEMO_CONTEXT.dog}</b>
-          <b>{DEMO_CONTEXT.dogId}</b>
-          <b>{DEMO_CONTEXT.scrolls}</b>
-        </div>
+        <header className="akc-head">
+          <div className="akc-ctx">
+            {/* 🔴 ŠÍPKA SPÄŤ VĽAVO HORE — CHAT je ÚLOHA (kôš 3), nie miesto: spodná
+                lišta v ňom mizne a von sa ide krokom späť. Matej 23. 9. 2026. */}
+            <button type="button" className="akc-back" onClick={onBack} aria-label="Back">
+              <HandArrowLeft size={16} />
+            </button>
+            <button type="button" className="akc-railbtn"
+              onClick={() => {
+                const r = document.querySelector<HTMLElement>('.akv-root');
+                if (r) r.dataset.rail = r.dataset.rail === 'open' ? '' : 'open';
+              }}>☰ conversations</button>
+          </div>
+          {/* Riadok, nie rad pilulek — dôvod je v CSS nad `.akc-head`. */}
+          <div className="akc-ctxline">
+            knows <i>{DEMO_CONTEXT.name}</i> · {DEMO_CONTEXT.rest}
+          </div>
+        </header>
 
         <div className="akc-msgs" ref={msgsRef}>
           <div className="akc-in">
-            {chat.msgs.map((m, i) => (isMe(m) ? (
-              <div className="akc-me-msg" key={i}>{m.me}</div>
-            ) : (
-              <div className="akc-ai" key={i}>
-                <div className="akc-aihd"><i>AI</i>NUBIS</div>
-                <div className="akc-body">
-                  {m.ai.paragraphs.map((p, j) => (
-                    // Odseky sú NAŠE demo texty, nie vstup od človeka — jediná
-                    // značka v nich je <b>. Keď sa maketa napojí na server,
-                    // musí sa to nahradiť sanitizáciou alebo štruktúrou.
-                    <p key={j} dangerouslySetInnerHTML={{ __html: p }} />
-                  ))}
-                  <div className="akc-advice"><b>do this</b>{m.ai.advice}</div>
-                  <div className="akc-srcrow">
-                    <span>from</span>
-                    {m.ai.sources.map((s) => (
-                      <button type="button" key={s} onClick={() => onOpenScroll?.(s)}>
-                        {DEMO_SCROLLS[s].title}
-                      </button>
+            {chat.msgs.map((m, i) => {
+              if (isMe(m)) return <div className="akc-me-msg" key={i}>{m.me}</div>;
+              if (isForm(m)) {
+                return (
+                  <ContribForm key={i} kind={m.form}
+                    onSend={(t) => sendForm(i, m.form, t)} onDrop={() => dropForm(i)} />
+                );
+              }
+              if (isPend(m)) return <PendBlock key={i} p={m.pend} />;
+              if (!isAi(m)) return <MineBlock key={i} items={mine} />;
+              return (
+                <div className="akc-ai" key={i}>
+                  <div className="akc-aihd"><i>AI</i>NUBIS</div>
+                  <div className="akc-body">
+                    {m.ai.paragraphs.map((p, j) => (
+                      // Odseky sú NAŠE demo texty, nie vstup od človeka — jediná
+                      // značka v nich je <b>. Keď sa maketa napojí na server,
+                      // musí sa to nahradiť sanitizáciou alebo štruktúrou.
+                      // eslint-disable-next-line react/no-danger
+                      <p key={j} dangerouslySetInnerHTML={{ __html: p }} />
                     ))}
+                    <div className="akc-advice"><b>do this</b>{m.ai.advice}</div>
+                    {/* 🔴 JEDINÝ PÔVOD ODPOVEDE. Panel ODKIAĽ TO VIEM zanikol s tretím
+                        stĺpcom (Matej 23. 9.) — tento riadok je odvtedy to JEDINÉ,
+                        čím sa chat líši od každého iného chatbota. Neupratuj ho. */}
+                    <div className="akc-srcrow">
+                      <span>from</span>
+                      {m.ai.sources.map((s) => (
+                        <button type="button" key={s} onClick={() => onOpenScroll?.(s)}>
+                          {DEMO_SCROLLS[s].title}
+                        </button>
+                      ))}
+                      {/* Riadok ostáva aj bez zvitkov — maketa nehľadá a povie to. */}
+                      {m.ai.sources.length === 0 && <em>the mock-up does not search the vault</em>}
+                    </div>
+                  </div>
+                  <div className="akc-acts">
+                    {/* JEDNA hlavná akcia — protokol = DOG ID (locknuté názvoslovie). */}
+                    <button type="button" className="akc-act is-main">Write into DOG ID</button>
+                    <button type="button" className="akc-act">Save</button>
+                    <button type="button" className="akc-act">Share</button>
                   </div>
                 </div>
-                <div className="akc-acts">
-                  {/* JEDNA hlavná akcia — protokol = DOG ID (locknuté názvoslovie). */}
-                  <button type="button" className="akc-act is-main">Write into DOG ID</button>
-                  <button type="button" className="akc-act"><u aria-hidden>🔖</u>Save</button>
-                  <button type="button" className="akc-act"><u aria-hidden>↗</u>Share</button>
-                </div>
-              </div>
-            )))}
+              );
+            })}
             {chat.msgs.length === 0 && (
-              <div className="akc-me" style={{ justifyContent: 'center', padding: PACK_SPACE.xxl }}>
-                Ask anything about your dog — the answer will show where it comes from.
+              /* UVÍTANIE PRÁZDNEHO ROZHOVORU — ten istý blok v tichej polohe.
+                 Do 23. 9. 2026 tu stála jedna veta uprostred prázdna a človek
+                 nemal sa čoho chytiť. */
+              <div className="akc-nform is-quiet">
+                <div className="akc-eb">new conversation</div>
+                <h5>What are you asking today?</h5>
+                <div className="akc-nfrow">
+                  {DEMO_STARTERS.map((s) => (
+                    <button type="button" className="akc-pk" key={s.q}
+                      onClick={() => askQ(s.q, s.sources)}>{s.q}</button>
+                  ))}
+                </div>
+                {/* ⚠️ Medzera pred pomlčkou musí byť zapísaná (`{' — '}`) — zalomenie
+                    riadku v JSX ju zožerie a text sa zliepne do „12 scrolls— and". */}
+                <p className="akc-nfnote">
+                  AINUBIS knows <b>{DEMO_CONTEXT.name}</b> · {DEMO_CONTEXT.rest}{' — '}
+                  and answers from the vault. Every answer says where it comes from.
+                </p>
               </div>
             )}
           </div>
         </div>
 
-        <div className="akc-ask" data-add={add ? 'open' : ''}>
+        <div className="akc-ask" data-add={add ? 'open' : ''} ref={askRef}>
           {/* PRISPIEVANIE DO MOZGU — `+` pri poli, nie schované v menu.
-              AINUBIS predtriedi, schvaľuje Matej (nákres v5, rozhodnutie 20. 9.). */}
+              AINUBIS predtriedi, schvaľuje Matej (nákres v5, rozhodnutie 20. 9.).
+              ⚠️ BEZ EMOJI (Matej 23. 9.) — meno druhu unesie význam samo. */}
           <div className="akc-addmenu">
             <div className="akc-amlb">add to the brain</div>
-            <button type="button" className="akc-ami"><u aria-hidden>📝</u>
-              <span><b>Insight or experience</b><em>“I gave my dog x and he felt better”</em></span></button>
-            <button type="button" className="akc-ami"><u aria-hidden>🔗</u>
-              <span><b>Link</b><em>article, study, thread — AINUBIS reads and judges it</em></span></button>
-            <button type="button" className="akc-ami"><u aria-hidden>📕</u>
-              <span><b>Book</b><em>photograph the pages or upload a PDF</em></span></button>
-            <button type="button" className="akc-ami"><u aria-hidden>🎥</u>
-              <span><b>Video</b><em>lecture, breakdown, training demo</em></span></button>
+            {FORM_ORDER.map((k) => (
+              <button type="button" className="akc-ami" key={k} onClick={() => openForm(k)}>
+                <span><b>{DEMO_FORMS[k].name}</b><em>{DEMO_FORMS[k].menuSub}</em></span>
+              </button>
+            ))}
           </div>
           <div className="akc-askin">
             <button type="button" className="akc-plus" aria-label="Add to the brain"
-              onClick={() => setAdd((v) => !v)}>+</button>
-            <textarea placeholder="Ask anything about your dog…" aria-label="Ask AINUBIS" />
-            <button type="button" className="akc-send" aria-label="Send">↑</button>
+              aria-expanded={add} onClick={() => setAdd((v) => !v)}>+</button>
+            <textarea placeholder="Ask anything about your dog…" aria-label="Ask AINUBIS"
+              value={draft} onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                /* Enter pošle, Shift+Enter zalomí — ako v každom chate. */
+                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askQ(draft); }
+              }} />
+            <button type="button" className="akc-send" aria-label="Send"
+              onClick={() => askQ(draft)}>↑</button>
           </div>
         </div>
       </section>

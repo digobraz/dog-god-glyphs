@@ -66,6 +66,12 @@ export const AINUBIS = {
   raised: `linear-gradient(180deg, rgba(${CYAN_RGB},0.07) 0%, rgba(${CYAN_RGB},0.03) 100%)`,
   edge: `rgba(${CYAN_RGB},0.30)`,
   edgeStrong: `rgba(${CYAN_RGB},0.55)`,
+  /** Lem a výplň bloku, ktorý hovorí SÁM STROJ o sebe (posudok príspevku) —
+   *  modrý svit displeja namiesto cyanu, aby sa odlíšil od bežnej plochy.
+   *  ⚠️ Token, nie literál: stráž `check:pack` meria rám DOSLOVNOU farbou, takže
+   *  `1px solid rgba(59,158,255,0.3)` napísané v komponente je odchýlka. */
+  glowEdge: `rgba(${GLOW_RGB},0.30)`,
+  glowTint: `rgba(${GLOW_RGB},0.08)`,
   /** Nadpis a silný inkoust. */
   ink: '#E6FAFF',
   /** Bežný text. */
@@ -74,6 +80,18 @@ export const AINUBIS = {
   inkFaint: 'rgba(207,243,250,0.55)',
   /** Červená, ktorá na jeho tmavom povrchu drží kontrast (blokovanie). */
   danger: '#FF8A7A',
+  // ── TRI STAVY PRÍSPEVKU DO MOZGU (23. 9. 2026) ────────────────────────────
+  // ⏳ čaká → jeho zlatá (`ctaA` + `ctaEdge`/`ctaTint`, tie už tu sú) ·
+  // ✓ v mozgu → `ok` · ✕ zamietnuté → `danger`.
+  // ⚠️ ZELENÁ NIE JE BRANDOVÁ #3D7A4E — tá je namiešaná NA PAPYRUS a na
+  //    svietiacom tmavom podklade zhasne. Toto je ten istý tón rozjasnený, nie
+  //    iná farba. [[feedback_brandova_farba_pre_papier_zanikne_na_svietiacom_bode]]
+  // ⚠️ Stav je TINT + LEM, nikdy plná plocha — tá patrí jedinému CTA (lock r. 113).
+  ok: '#7FD79A',
+  okEdge: 'rgba(127,215,154,0.45)',
+  okTint: 'rgba(127,215,154,0.14)',
+  dangerEdge: 'rgba(255,138,122,0.45)',
+  dangerTint: 'rgba(255,138,122,0.12)',
   panelShadow:
     `0 20px 60px rgba(0,0,0,0.70), 0 0 0 1px rgba(${CYAN_RGB},0.10), 0 0 40px rgba(${GLOW_RGB},0.14)`,
   /** Jeho CTA. Gradient nie je nový — je to ten, ktorý majú jeho tlačidlá. */

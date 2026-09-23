@@ -49,7 +49,18 @@ export interface DemoAnswer {
   sources: number[];
 }
 
-export type DemoMessage = { me: string } | { ai: DemoAnswer };
+/**
+ * Správa vo vlákne. Päť tvarov — otázka · odpoveď · rozpísaný formulár
+ * príspevku · odoslaný príspevok · zoznam mojich príspevkov.
+ * ⚠️ FORMULÁR A ZOZNAM SÚ SPRÁVY, NIE OKNO NAVRCHU. Matej 20. 9. nad nákresom
+ *    v5 a lock §4.2: akcia nesmie odniesť človeka preč z miesta, kde je.
+ */
+export type DemoMessage =
+  | { me: string }
+  | { ai: DemoAnswer }
+  | { form: FormKind }
+  | { pend: DemoPending & { verdict: DemoVerdict } }
+  | { mine: true };
 
 export interface DemoChat {
   id: number;
@@ -150,9 +161,182 @@ export const DEMO_CHATS: DemoChat[] = [
   },
 ];
 
-/** Čo má AINUBIS pred sebou, keď odpovedá. Bez toho je to všeobecný chatbot. */
+/** Čo má AINUBIS pred sebou, keď odpovedá. Bez toho je to všeobecný chatbot.
+ *  ⚠️ OD 23. 9. 2026 JE TO JEDEN RIADOK TEXTU, NIE RAD PILULEK. Tri pilulky sa
+ *     na 390 px lámali do troch riadkov a zabrali 129 px z 844 — pätinu
+ *     obrazovky na vetu, ktorá sa nedá stlačiť. Matej vybral A1 nad nákresom
+ *     `plany/nakres-ainubis-chat-doladenie-2026-09-23.html`. Meno psa ostáva
+ *     zvýraznené: je to jediné slovo, ktoré dokazuje, že AINUBIS pozná TOHTO psa. */
 export const DEMO_CONTEXT = {
-  dog: 'HEKTHOR · 9 y · mixed breed',
-  dogId: 'DOG ID 68 %',
-  scrolls: '12 scrolls',
+  name: 'HEKTHOR',
+  rest: '9 y · mixed breed · DOG ID 68 % · 12 scrolls',
 };
+
+// ════════════════════════════════════════════════════════════════════════════
+// PRISPIEVANIE DO MOZGU (23. 9. 2026) — formulár, posudok, stavy
+// ────────────────────────────────────────────────────────────────────────────
+// Prepis `FORMS`, `submitForm` a `PRISP` z nákresu v5 (r. 1750–1930), EN.
+// Matej 20. 9.: „možnosť pridať nový poznatok, naskenovať knihu, priložiť odkaz
+// do databázy — to by podliehalo schváleniu a následne by sa informácia
+// doplnila… ak by bola relevantná."
+//
+// 🔴 PORADIE JE ČLOVEK → AINUBIS → MATEJ. Stroj PREDTRIEDI (relevancia, zdroj,
+//    kam to patrí), pustí to Matej. Posudok je PODKLAD, NIE ROZSUDOK — preto má
+//    vlastný blok a nie je napísaný ako rozhodnutie.
+// ⚠️ IKONKY TU NIE SÚ. Matej 23. 9. nad nákresom doladenia: emoji sú mimo brandu
+//    (hovorí nimi len mapa) a kresby do kitu zatiaľ nie sú ⇒ maketa ide BEZ
+//    ikoniek, len slovom. Nedopĺňaj sem `ic: '📝'` z nákresu v5.
+// ════════════════════════════════════════════════════════════════════════════
+
+export type FormKind = 'insight' | 'link' | 'book' | 'video';
+
+export interface DemoForm {
+  /** Nadpis formulára. */
+  name: string;
+  /** Riadok v ponuke „+" pod menom. */
+  menuSub: string;
+  placeholder: string;
+  /** Čo sa s tým stane — pod tlačidlom, aby to človek vedel PRED odoslaním. */
+  sub: string;
+  /** Okruh, ktorý AINUBIS navrhne. V makete je napísaný, nie vyrátaný. */
+  circle: string;
+}
+
+export const DEMO_FORMS: Record<FormKind, DemoForm> = {
+  insight: {
+    name: 'Insight or experience',
+    menuSub: '“I gave my dog x and he felt better”',
+    placeholder: 'What did you find out? E.g. “After switching to twice-a-day feeding Hekthor stopped throwing up bile in the morning.”',
+    sub: 'An experience is not a study — it reaches the brain once more people confirm it, or once a source does.',
+    circle: 'NUTRITION › The bowl and the ration',
+  },
+  link: {
+    name: 'Link',
+    menuSub: 'article, study, thread — AINUBIS reads and judges it',
+    placeholder: 'Paste the address of an article, a study or a thread…',
+    sub: 'AINUBIS reads it, pulls out the claims and says which scrolls it confirms and which it contradicts.',
+    circle: 'PREVENTION › Food as prevention',
+  },
+  book: {
+    name: 'Book',
+    menuSub: 'photograph the pages or upload a PDF',
+    placeholder: 'Title and author. Photograph the pages or upload a PDF…',
+    sub: 'A book turns into scrolls, not into a quote. The content goes into the brain, the book stays as the source.',
+    circle: 'NUTRITION › How kibble is made',
+  },
+  video: {
+    name: 'Video',
+    menuSub: 'lecture, breakdown, training demo',
+    placeholder: 'Link to the video + what matters in it…',
+    sub: 'Saved with a timestamp, so you can jump straight to the part that matters.',
+    circle: 'UNDERSTANDING › The language a dog speaks',
+  },
+};
+
+/** Poradie položiek v ponuke „+". */
+export const FORM_ORDER: FormKind[] = ['insight', 'link', 'book', 'video'];
+
+export interface DemoPending {
+  kind: FormKind;
+  text: string;
+  /** ⏳ čaká na Mateja · ✓ v mozgu · ✕ zamietnuté. */
+  status: 'wait' | 'ok' | 'no';
+  /** Čo sa s tým stalo — jedna veta, bez posudku.
+   *  ⚠️ NEOPAKUJ V NEJ STAV. Pilulka vedľa už hovorí „in the brain"; veta
+   *  „accepted · split into 9 scrolls" tvrdila to isté dvakrát. */
+  note: string;
+  when: string;
+}
+
+/**
+ * Moje príspevky. Päť kusov z nákresu v5 — dva čakajú, dva prešli, jeden nie.
+ * ⚠️ ZAMIETNUTÝ TAM MUSÍ BYŤ. Zoznam, kde všetko prejde, klame o tom jedinom,
+ *    čo prispievanie drží pri živote: že to niekto naozaj číta.
+ */
+export const DEMO_PENDING: DemoPending[] = [
+  {
+    kind: 'link', status: 'wait', when: '2 days',
+    text: 'A study on omega-3 in arthritis (JAVMA 2021)',
+    note: 'relevant · source verified · suggested for PREVENTION › Food as prevention',
+  },
+  {
+    kind: 'insight', status: 'wait', when: '5 days',
+    text: 'After switching to a raised bowl Hekthor stopped coughing after meals',
+    note: 'experience without a source · 3 people confirmed it on the board · 10 needed',
+  },
+  {
+    kind: 'book', status: 'ok', when: '12 Sep',
+    text: 'Feeding Dogs (Conor Brady) — chapter 7',
+    note: 'split into 9 scrolls in NUTRITION',
+  },
+  {
+    kind: 'video', status: 'ok', when: '9 Sep',
+    text: 'A lecture on extrusion (YouTube, 41 min)',
+    note: 'background for the circle How kibble is made',
+  },
+  {
+    kind: 'link', status: 'no', when: '7 Sep',
+    text: 'Blog “curing epilepsy with herbs”',
+    note: 'claims without a source, contradicts the scroll on antiepileptics',
+  },
+];
+
+/**
+ * Odpoveď na otázku, ktorú človek napíše sám. Maketa NEGENERUJE a NEHĽADÁ —
+ * ukazuje TVAR odpovede a priznáva, že je to maketa.
+ *
+ * 🔴 PRÁZDNY ZOZNAM ZDROJOV JE ZÁMER, NIE NEDOROBOK. Riadok FROM je to jediné,
+ *    čím sa tento chat líši od každého iného chatbota; vypísať pod ľubovoľnú
+ *    otázku dva náhodné zvitky by klamalo práve o ňom. Maketa preto povie, že
+ *    nehľadala — a riadok ostáva na svojom mieste.
+ */
+export const DEMO_REPLY: DemoAnswer = {
+  paragraphs: [
+    '<b>Mock-up.</b> The answer from the vault belongs here. Its shape is always the same: what we know about it, what of that holds for your dog, and where it comes from.',
+  ],
+  advice: 'One concrete step for Hekthor — something you can do today and judge in two weeks.',
+  sources: [],
+};
+
+/**
+ * Otázky na jeden klik v prázdnom rozhovore.
+ * ⚠️ KAŽDÁ MUSÍ MAŤ V DEMO MOZGU SVOJ ZVITOK. Mozog má 12 zvitkov (miska, váha,
+ *    vek, parazity, zuby) — otázka o vôdzke by ukázala zdroj, ktorý o vôdzke nie
+ *    je, a maketa by klamala o tom jedinom, čo má dokázať.
+ */
+export const DEMO_STARTERS: { q: string; sources: number[] }[] = [
+  { q: 'How much should he eat', sources: [11, 9] },
+  { q: 'Is a tick an emergency', sources: [7] },
+  { q: 'Brown film on his teeth', sources: [8] },
+  { q: 'What ended up in the tin', sources: [5, 6] },
+];
+
+/**
+ * POSUDOK AINUBISA — čo si o príspevku myslí stroj, kým sa naň pozrie Matej.
+ * ⚠️ JE TO PODKLAD, NIE ROZSUDOK. Preto je napísaný ako pozorovanie („sedí do
+ *    okruhu, ktorý existuje") a poslednou vetou vždy priznáva, kto rozhoduje.
+ */
+export interface DemoVerdict {
+  /** Prvá veta — tá sa vysadí tučne, aby bolo vidieť, KTO hovorí. */
+  lead: string;
+  /** Čo stroj videl. Posledná veta vždy priznáva, kto rozhoduje. */
+  line: string;
+  /** Štítky: relevancia · kam to patrí · aký je to zdroj. */
+  tags: string[];
+}
+
+/** Posudok na čerstvo odoslaný príspevok. Maketa ho NERÁTA — má ho napísaný. */
+export function demoVerdict(kind: FormKind): DemoVerdict {
+  const f = DEMO_FORMS[kind];
+  return {
+    lead: 'AINUBIS read it in 4 s.',
+    line: kind === 'insight'
+      ? 'It fits a circle that already exists and contradicts no scroll. It needs more people to confirm it before it counts. Matej lets it into the brain.'
+      : 'The source checks out and it contradicts no scroll. Matej lets it into the brain.',
+    tags: [
+      'relevance high',
+      f.circle,
+      kind === 'insight' ? 'source: your experience' : `source: ${f.name.toLowerCase()}`,
+    ],
+  };
+}
