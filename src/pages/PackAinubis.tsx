@@ -43,7 +43,7 @@ import {
   PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI,
 } from '@/components/pack/packTheme';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
-import { VaultChat, VaultChatSources, VAULT_CHAT_CSS } from '@/components/pack/vault/VaultChat';
+import { VaultChat, VAULT_CHAT_CSS } from '@/components/pack/vault/VaultChat';
 import { openAinubis } from '@/lib/ainubisBus';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
@@ -353,7 +353,6 @@ export default function PackAinubis() {
      naďalej otvára živý panel `AinubisWidget`, ktorý beží naostro. Maketa je
      rozostavaná vec za zamknutými dverami, nie náhrada fungujúceho chatu. */
   const [plane2, setPlane2] = useState<'vault' | 'chat'>('vault');
-  const [chatSrc, setChatSrc] = useState<number[]>([]);
   const CHAT_MOCK = import.meta.env.DEV;
   const [flash, setFlash] = useState<string | null>(null);
   /* Filter SVET: -1 = všetky. Roletka otvorená: kľúč alebo null. */
@@ -588,19 +587,13 @@ export default function PackAinubis() {
           )}
         </div>
 
-        {/* ODKIAĽ TO VIEM — zvitky poslednej odpovede. Patrí k MOZGU, nie k
-            odpovedi: preto stojí tu, nad plátnom, a nie vo vlákne. */}
-        {CHAT_MOCK && plane2 === 'chat' && (
-          <VaultChatSources ids={chatSrc} onOpenScroll={() => setPlane2('vault')} />
-        )}
       </section>
 
       {/* ── ROVINA CHAT (maketa, len DEV) — pás histórie + vlákno ──────────────
           Stojí NAD mozgom ako DOGSCROLL, ale mozog v nej ostáva viditeľný: panel
           `ODKIAĽ TO VIEM` je jediné, čím sa tento chat líši od každého iného. */}
       {CHAT_MOCK && plane2 === 'chat' && (
-        <VaultChat planes={planes('akv-planes-l')} onSources={setChatSrc}
-          onOpenScroll={() => setPlane2('vault')} />
+        <VaultChat onBack={() => setPlane2('vault')} onOpenScroll={() => setPlane2('vault')} />
       )}
 
       {/* ── DOGSCROLL — dnes upútavky svetov, v novembri pás zvitkov ────────── */}
@@ -728,7 +721,13 @@ export default function PackAinubis() {
         </button>
       </div>
 
-      <PackBottomNav avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial} dogs={id.dogs} />
+      {/* 🔴 V ROVINE CHAT SA LIŠTA NEVYKRESĽUJE (Matej 23. 9. 2026, lock §3).
+          CHAT je ÚLOHA — celá obrazovka so šípkou späť, nie miesto chrbtice.
+          Nevykresliť, nie skryť: `navRef` v nej publikuje `--pack-nav-h` a skrytá
+          lišta by appke tvrdila, že pod obsahom je 68 px, ktoré tam nie sú. */}
+      {!(CHAT_MOCK && plane2 === 'chat') && (
+        <PackBottomNav avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial} dogs={id.dogs} />
+      )}
       <MessagingOverlayHost />
     </div>
   );

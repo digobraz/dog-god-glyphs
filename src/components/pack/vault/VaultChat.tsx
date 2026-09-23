@@ -28,20 +28,22 @@
 //    mikropopisok je v appke 10 (`PACK_TEXT.micro`) — stráž `check:pack` meria.
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type React from 'react';
 import {
   PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI,
 } from '@/components/pack/packTheme';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
+import { HandArrowLeft } from '@/components/pack/HandIcons';
 import {
   DEMO_CHATS, DEMO_SCROLLS, DEMO_CONTEXT,
-  type DemoChat, type DemoMessage, type DemoAnswer,
+  type DemoChat, type DemoMessage,
 } from './vaultChatDemo';
 
 /** Šírka pásu histórie na PC. Užší by neuniesol názov rozhovoru na jeden riadok. */
 const RAIL_W = 260;
-/** Šírka mozgu v rovine CHAT (nákres: 380). Mozog tu nie je hlavný, je dôkaz. */
-const BRAIN_W = 380;
+/* 🔴 MOZOG V CHATE NIE JE (Matej 23. 9. 2026: „budu len 2 stlpce nie 3, to jadro
+   pojde preč"). Nákres v5 ho mal ako tretí stĺpec s panelom ODKIAĽ TO VIEM;
+   maketa podľa neho vznikla a Matej ju nad ňou opravil. ⚠️ DÔSLEDOK: pôvod
+   odpovede nesie UŽ LEN riadok zdrojov pod ňou — a ten je preto povinný. */
 /** Meraná šírka vlákna — telo článku z locku, nie šírka obrazovky. */
 const THREAD_W = 760;
 
@@ -112,6 +114,10 @@ export const VAULT_CHAT_CSS = `
   padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
   font-weight:500;letter-spacing:0.02em;text-transform:none;font-size:${PACK_TEXT.label}px;
   color:${AINUBIS.ink};border:1px solid ${AINUBIS.edge};background:rgba(${AINUBIS.cyanRGB},0.08);}
+.akc-back{width:32px;height:32px;flex:0 0 32px;display:flex;align-items:center;justify-content:center;
+  border-radius:${PACK_R.pill}px;cursor:pointer;
+  border:1px solid ${AINUBIS.edge};background:${AINUBIS.raised};color:${AINUBIS.cyan};}
+.akc-back:hover{border-color:${AINUBIS.edgeStrong};}
 .akc-railbtn{padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;
   font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.card.letterSpacing};
   text-transform:uppercase;border:1px solid ${AINUBIS.edge};background:none;color:${AINUBIS.cyan};}
@@ -163,15 +169,12 @@ export const VAULT_CHAT_CSS = `
 .akc-act.is-main:hover{background:${AINUBIS.ctaGradHover};color:${AINUBIS.ctaInk};}
 
 /* ── PÍSACIE POLE + „+" (prispievanie do mozgu) ───────────────────────── */
-/* ⚠️ SPODNÁ LIŠTA TU OSTÁVA. Lock hovorí, že v rovine CHAT je to kôš 3 a lišta
-   mizne — lenže AINUBIS je MIESTO chrbtice a lišta je v ňom vidno vždy. Kým sa
-   to nerozhodne nad maketou, pole sa o lištu odsadí; inak si sadne pod ňu.
-   Výšku lišty NEOPISUJEM — publikuje ju nav ako --pack-nav-h.
-   (Spätné apostrofy v tomto komentári NIE SÚ: sme v template literáli a ukončili
-    by ho — presne to, čo stráž check:css hľadá.) */
+/* 🔴 SPODNÁ LIŠTA V CHATE NIE JE (Matej 23. 9. 2026 + lock §3: kôš 3 = ÚLOHA).
+   Pole preto sadá na spodok obrazovky a odsadzuje sa len o bezpečnú zónu.
+   Do 23. 9. tu stál výpočet cez --pack-nav-h — už netreba, lišta nesvieti. */
 .akc-ask{position:relative;border-top:1px solid ${AINUBIS.edge};
   padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px
-    calc(env(safe-area-inset-bottom,0px) + var(--pack-nav-h,64px) + ${PACK_SPACE.xl}px);}
+    calc(env(safe-area-inset-bottom,0px) + ${PACK_SPACE.md}px);}
 .akc-askin{max-width:${THREAD_W}px;margin:0 auto;display:flex;gap:${PACK_SPACE.sm}px;align-items:flex-end;}
 .akc-ask textarea{flex:1;min-width:0;resize:none;height:44px;padding:${PACK_SPACE.md}px;
   border-radius:${PACK_R.tile}px;border:1px solid ${AINUBIS.edge};background:${AINUBIS.raised};
@@ -200,27 +203,6 @@ export const VAULT_CHAT_CSS = `
   line-height:1.3;color:${AINUBIS.ink};}
 .akc-ami em{font-style:normal;font-size:${PACK_TEXT.micro}px;color:${AINUBIS.inkFaint};}
 
-/* ── ODKIAĽ TO VIEM — panel nad mozgom ───────────────────────────────────
-   Toto je dôvod, prečo mozog v chate ostáva na obrazovke: odpoveď má viditeľný
-   pôvod a klik na zdroj vedie do VAULTU, nie do prázdna. */
-.akc-src{position:absolute;z-index:5;left:${PACK_SPACE.md}px;right:${PACK_SPACE.md}px;
-  bottom:calc(env(safe-area-inset-bottom,0px) + ${PACK_SPACE.xxl}px);
-  padding:${PACK_SPACE.md}px;border-radius:${PACK_R.card}px;
-  border:1px solid ${AINUBIS.edge};background:${AINUBIS.bgDeep};box-shadow:${AINUBIS.panelShadow};}
-.akc-src-lb{font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;line-height:1;
-  letter-spacing:${PACK_HEAD.label.letterSpacing};text-transform:uppercase;color:${AINUBIS.cyan};}
-.akc-osrc{display:flex;gap:${PACK_SPACE.sm}px;align-items:flex-start;width:100%;text-align:left;cursor:pointer;
-  margin-top:${PACK_SPACE.sm}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;
-  border:1px solid ${AINUBIS.edge};background:${AINUBIS.raised};color:${AINUBIS.inkDim};}
-.akc-osrc:hover{border-color:${AINUBIS.edgeStrong};color:${AINUBIS.cyan};}
-.akc-osrc i{font-style:normal;color:${AINUBIS.ctaA};font-size:${PACK_TEXT.label}px;line-height:1.3;}
-.akc-osrc b{display:block;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;
-  line-height:1.3;color:${AINUBIS.ink};}
-.akc-osrc em{font-style:normal;font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.section.letterSpacing};
-  text-transform:uppercase;color:${AINUBIS.inkFaint};}
-.akc-onote{margin-top:${PACK_SPACE.sm}px;font-size:${PACK_TEXT.micro}px;
-  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
-
 /* MOBIL: čo patrí VAULTU, v chate nesvieti. Hľadanie vo vaulte, filtre svetov
    a pilulka POHĽADU (DOGSCROLL ⇄ MOZOG) sa chatu netýkajú — pilulka navyše
    sadala priamo na písacie pole. Identita a prepínač ROVÍN ostávajú: bez nich
@@ -229,45 +211,35 @@ export const VAULT_CHAT_CSS = `
 .akv-root[data-plane="chat"] .akv-mactions,
 .akv-root[data-plane="chat"] .akv-ctl{display:none;}
 
-/* MOBIL: panel zdrojov sa NEKRESLÍ — mozog je pod vláknom neviditeľný, takže by
-   panel visel nad chatom a tvrdil niečo o ploche, ktorú nevidno. Zdroje nesie
-   riadok 'from' priamo pod odpoveďou. */
-@media (max-width:1023px){
-  .akc-src{display:none;}
-}
-
 /* GUĽA AINUBISA SA V CHATE SKRÝVA. Je to spúšťač chatu a v chate už si — navyše
    sadá presne na panel ODKIAĽ TO VIEM. Mimo tejto roviny ostáva. */
 .akv-root[data-plane="chat"] ~ .ainubis-launcher,
 body:has(.akv-root[data-plane="chat"]) .ainubis-launcher{visibility:hidden;pointer-events:none;}
 
-/* ── PC: PÁS · VLÁKNO · MOZOG ─────────────────────────────────────────────
-   Tu sa rozloženie líši od VAULTU (40/60): mozog je v chate DÔKAZ, nie hlavná
-   plocha, tak sa zúži na ${BRAIN_W} px a miesto dostane vlákno. */
+/* 🔴 CHAT JE CELÁ OBRAZOVKA, NIE ROVINA NAD MOZGOM. Mozog, horný pás identity
+   ani ovládače vaultu v ňom nesvietia — je to ÚLOHA so šípkou späť. */
+.akv-root[data-plane="chat"] .akv-brain,
+.akv-root[data-plane="chat"] .akv-top{display:none;}
+.akv-root[data-plane="chat"] .akc-thread{padding-top:0;}
+
+/* ── PC: DVA STĹPCE — PÁS · VLÁKNO ───────────────────────────────────────── */
 @media (min-width:1024px){
   .akv-root[data-plane="chat"] .akc-rail{transform:none;}
-  .akv-root[data-plane="chat"] .akc-thread{left:${RAIL_W}px;right:${BRAIN_W}px;
-    padding-top:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.xl}px);}
-  .akv-root[data-plane="chat"] .akv-brain{left:auto;right:0;width:${BRAIN_W}px;
-    border-left:1px solid ${AINUBIS.edge};}
+  .akv-root[data-plane="chat"] .akc-thread{left:${RAIL_W}px;right:0;}
+  /* Pás je na PC stále na obrazovke, tlačidlo šuplíka teda nemá čo otvárať. */
   .akv-root[data-plane="chat"] .akc-railbtn{display:none;}
-  /* Horný pás patrí mozgu; v chate by nad 380 px stĺpcom nemal kam. */
-  .akv-root[data-plane="chat"] .akv-top{display:none;}
 }
 `;
 
 const isMe = (m: DemoMessage): m is { me: string } => 'me' in m;
 
 /**
- * Rovina CHAT — pás histórie + vlákno + písacie pole.
- * Zdroje poslednej odpovede hlási hore cez `onSources`, aby ich panel nad
- * mozgom mohol vykresliť `VaultChatSources`. Panel nie je vnútri vlákna
- * zámerne: patrí k mozgu, nie k odpovedi.
+ * CHAT — pás histórie + vlákno + písacie pole. CELÁ OBRAZOVKA bez spodnej lišty,
+ * von sa ide šípkou vľavo hore (kôš 3 = úloha, lock §3).
  */
-export function VaultChat({ planes, onSources, onOpenScroll }: {
-  /** Prepínač rovín z `PackAinubis` — v chate je ľavým blokom pás histórie. */
-  planes?: React.ReactNode;
-  onSources: (ids: number[]) => void;
+export function VaultChat({ onBack, onOpenScroll }: {
+  /** Krok späť z úlohy — vracia na rovinu VAULT. */
+  onBack: () => void;
   onOpenScroll?: (id: number) => void;
 }) {
   const [chats, setChats] = useState<DemoChat[]>(DEMO_CHATS);
@@ -278,13 +250,10 @@ export function VaultChat({ planes, onSources, onOpenScroll }: {
 
   const chat = chats.find((c) => c.id === cur) ?? chats[0];
 
-  /* Zdroje = zdroje POSLEDNEJ odpovede vo vlákne. Pri prázdnom (novom)
-     rozhovore sa panel nad mozgom schová sám — nemá čo svietiť. */
+  /* Po prepnutí rozhovoru scrolluj na koniec vlákna. */
   useEffect(() => {
-    const last = [...chat.msgs].reverse().find((m) => !isMe(m)) as { ai: DemoAnswer } | undefined;
-    onSources(last ? last.ai.sources : []);
     msgsRef.current?.scrollTo({ top: msgsRef.current.scrollHeight });
-  }, [chat, onSources]);
+  }, [chat]);
 
   const shown = useMemo(() => {
     const nq = q.trim().toLowerCase();
@@ -302,9 +271,6 @@ export function VaultChat({ planes, onSources, onOpenScroll }: {
     <>
       <aside className="akc-rail" aria-label="Conversations">
         <div className="akc-railhd">
-          {/* PREPÍNAČ ROVÍN. Na PC žije v ĽAVOM bloku (lock §1.3.1 je o mobile) —
-              a ľavý blok je v chate tento pás. Bez neho niet cesty späť do VAULTU. */}
-          {planes}
           <button type="button" className="akc-new" onClick={newChat}>+ New conversation</button>
         </div>
         <label className="akc-srch">
@@ -336,6 +302,11 @@ export function VaultChat({ planes, onSources, onOpenScroll }: {
 
       <section className="akc-thread" aria-label="Chat">
         <div className="akc-ctx">
+          {/* 🔴 ŠÍPKA SPÄŤ VĽAVO HORE — CHAT je ÚLOHA (kôš 3), nie miesto: spodná
+              lišta v ňom mizne a von sa ide krokom späť. Matej 23. 9. 2026. */}
+          <button type="button" className="akc-back" onClick={onBack} aria-label="Back">
+            <HandArrowLeft size={16} />
+          </button>
           <button type="button" className="akc-railbtn"
             onClick={() => {
               const r = document.querySelector<HTMLElement>('.akv-root');
@@ -413,25 +384,6 @@ export function VaultChat({ planes, onSources, onOpenScroll }: {
   );
 }
 
-/** ODKIAĽ TO VIEM — zoznam zvitkov nad mozgom. Prázdny zoznam = žiadny panel. */
-export function VaultChatSources({ ids, onOpenScroll }: {
-  ids: number[];
-  onOpenScroll?: (id: number) => void;
-}) {
-  if (!ids.length) return null;
-  return (
-    <div className="akc-src">
-      <div className="akc-src-lb">where this comes from</div>
-      {ids.map((id) => {
-        const s = DEMO_SCROLLS[id];
-        return (
-          <button type="button" className="akc-osrc" key={id} onClick={() => onOpenScroll?.(id)}>
-            <i aria-hidden>🗝</i>
-            <span><b>{s.title}</b><em>{s.circle}</em></span>
-          </button>
-        );
-      })}
-      <div className="akc-onote">the rest of the brain is dimmed</div>
-    </div>
-  );
-}
+/* 🔴 `VaultChatSources` (panel ODKIAĽ TO VIEM nad mozgom) tu BOL a 23. 9. 2026
+   ZANIKOL spolu s tretím stĺpcom. Nemazal sa bez náhrady: pôvod odpovede nesie
+   riadok zdrojov pod ňou (`.akc-srcrow`) — ten je odteraz jediný a povinný. */
