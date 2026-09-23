@@ -13518,7 +13518,11 @@ export const HERO_TRAILS: HeroTrail[] = [
       [
         "red"
       ]
-    ]
+    ],
+    "parking": {
+      "lat": 48.61867,
+      "lon": 17.58456
+    }
   },
   {
     "id": "celo-veterlin-male-karpaty",
@@ -28949,7 +28953,11 @@ export const HERO_TRAILS: HeroTrail[] = [
         "lon": 17.56671,
         "name": "Lúka"
       }
-    ]
+    ],
+    "parking": {
+      "lat": 48.61867,
+      "lon": 17.58456
+    }
   },
   {
     "id": "dechtice-male-karpaty",
@@ -41224,7 +41232,11 @@ export const HERO_TRAILS: HeroTrail[] = [
       [
         "green"
       ]
-    ]
+    ],
+    "parking": {
+      "lat": 48.61092,
+      "lon": 17.6734
+    }
   },
   {
     "id": "medvedie-udolie-limbach-male-karpaty",
