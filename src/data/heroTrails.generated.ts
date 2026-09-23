@@ -21340,7 +21340,11 @@ export const HERO_TRAILS: HeroTrail[] = [
       [
         "green"
       ]
-    ]
+    ],
+    "parking": {
+      "lat": 48.40049,
+      "lon": 17.3563
+    }
   },
   {
     "id": "majdan-klasicky-okruh-male-karpaty",
@@ -27175,7 +27179,11 @@ export const HERO_TRAILS: HeroTrail[] = [
       [
         "green"
       ]
-    ]
+    ],
+    "parking": {
+      "lat": 48.36876,
+      "lon": 17.40163
+    }
   },
   {
     "id": "dobra-voda-vyhlad-male-karpaty",
@@ -35154,7 +35162,11 @@ export const HERO_TRAILS: HeroTrail[] = [
         "lon": 17.63958,
         "name": "Lúka"
       }
-    ]
+    ],
+    "parking": {
+      "lat": 48.5946,
+      "lon": 17.65204
+    }
   },
   {
     "id": "cachticky-hrad-plesivce-male-karpaty",
@@ -40281,7 +40293,11 @@ export const HERO_TRAILS: HeroTrail[] = [
       [
         "green"
       ]
-    ]
+    ],
+    "parking": {
+      "lat": 48.71685,
+      "lon": 17.77029
+    }
   },
   {
     "id": "orlie-skaly-male-karpaty",
@@ -42928,7 +42944,11 @@ export const HERO_TRAILS: HeroTrail[] = [
       [
         "green"
       ]
-    ]
+    ],
+    "parking": {
+      "lat": 48.28403,
+      "lon": 17.21476
+    }
   },
   {
     "id": "bukova-priehrada-male-karpaty",
