@@ -15777,7 +15777,11 @@ export const HERO_TRAILS: HeroTrail[] = [
         "blue",
         "green"
       ]
-    ]
+    ],
+    "parking": {
+      "lat": 48.50905,
+      "lon": 17.43168
+    }
   },
   {
     "id": "amonova-luka-male-karpaty",
@@ -15789,8 +15793,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     "stars": 5,
     "path": [
       [
-        48.48376023315223,
-        17.25986480712891
+        48.48428,
+        17.26081
       ],
       [
         48.484278,
@@ -16506,7 +16510,11 @@ export const HERO_TRAILS: HeroTrail[] = [
       [
         "blue"
       ]
-    ]
+    ],
+    "parking": {
+      "lat": 48.48418,
+      "lon": 17.26078
+    }
   },
   {
     "id": "cierna-skala-male-karpaty",
@@ -19018,7 +19026,11 @@ export const HERO_TRAILS: HeroTrail[] = [
         "green",
         "yellow"
       ]
-    ]
+    ],
+    "parking": {
+      "lat": 48.49397,
+      "lon": 17.40239
+    }
   },
   {
     "id": "jelenec-a-keltek-male-karpaty",
@@ -23062,7 +23074,11 @@ export const HERO_TRAILS: HeroTrail[] = [
       [
         "green"
       ]
-    ]
+    ],
+    "parking": {
+      "lat": 48.47185,
+      "lon": 17.38129
+    }
   },
   {
     "id": "vysoka-na-steroidoch-tajne-skaly-male-karpaty",
@@ -24517,7 +24533,11 @@ export const HERO_TRAILS: HeroTrail[] = [
       [
         "blue"
       ]
-    ]
+    ],
+    "parking": {
+      "lat": 48.38136,
+      "lon": 17.2771
+    }
   },
   {
     "id": "casta-pila-male-karpaty",
@@ -25151,7 +25171,11 @@ export const HERO_TRAILS: HeroTrail[] = [
       385,
       389,
       384
-    ]
+    ],
+    "parking": {
+      "lat": 48.39703,
+      "lon": 17.31743
+    }
   },
   {
     "id": "egres-male-karpaty",
@@ -25163,8 +25187,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     "stars": 5,
     "path": [
       [
-        48.40278195806304,
-        17.35273361206055
+        48.40294,
+        17.35281
       ],
       [
         48.403033,
@@ -26094,7 +26118,11 @@ export const HERO_TRAILS: HeroTrail[] = [
       [
         "green"
       ]
-    ]
+    ],
+    "parking": {
+      "lat": 48.40305,
+      "lon": 17.35266
+    }
   },
   {
     "id": "budmerice-kastiel-park-male-karpaty",
@@ -28049,7 +28077,11 @@ export const HERO_TRAILS: HeroTrail[] = [
       467,
       464,
       469
-    ]
+    ],
+    "parking": {
+      "lat": 48.60319,
+      "lon": 17.53728
+    }
   },
   {
     "id": "chtelnica-rajska-zahrada-male-karpaty",
