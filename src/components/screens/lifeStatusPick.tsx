@@ -24,6 +24,13 @@ import { useT } from '@/i18n/LanguageContext';
 //    Výplň je priesvitný TINT, nie plná plocha: plná farba patrí jedinému
 //    hlavnému CTA na obrazovke, a tým je CONTINUE.
 //
+// ⚠️ NÁPIS JE DVE SLOVÁ (Matej 23. 9.: *„text pri tlačítkach len «živá legenda»
+//    a «psí anjel»"*). Kľúče `intro.alive` / `intro.deceased` nesú celú vetu
+//    („Yes, a living legend" · „Waiting for me, up there") — tá patrí do intra,
+//    kde bola otázka sama na obrazovke. Tu sedia `heroglyph.flow.dogs.status*`,
+//    ktoré tie dve slová už MAJÚ a používa ich zoznam psov, takže rovnaká vec
+//    sa volá rovnako na oboch miestach. Nové kľúče netreba.
+//
 // ⚠️ IKONKA SA FARBÍ MASKOU, NIE FILTROM. `filter: brightness(0)` vie urobiť
 //    len čiernu; inkoust voľby je lapisový (`PICK_INK.lapis`) a filter by ho
 //    iba približoval. → pamäť `feedback_filter_aproximuje_masku_farbu_presne`
@@ -93,7 +100,7 @@ export function LifeStatusPick({
             style={iconStyle(legendIconUrl, value === 'alive' ? PICK_INK.lapis : 'hsl(var(--muted-foreground))')}
           />
           <span className="text-[11px] md:text-xs font-bold uppercase tracking-wider leading-tight text-center">
-            {t('intro.alive')}
+            {t('heroglyph.flow.dogs.statusAlive')}
           </span>
         </button>
 
@@ -111,7 +118,7 @@ export function LifeStatusPick({
             style={iconStyle(angelIconUrl, value === 'deceased' ? PICK_INK.lapis : 'hsl(var(--muted-foreground))')}
           />
           <span className="text-[11px] md:text-xs font-bold uppercase tracking-wider leading-tight text-center">
-            {t('intro.deceased')}
+            {t('heroglyph.flow.dogs.statusAngel')}
           </span>
         </button>
       </div>

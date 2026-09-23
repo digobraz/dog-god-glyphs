@@ -24,6 +24,10 @@ import { FlowMedallion } from '@/components/screens/flowMedallion';
 // iOS/desktop respect the attributes, so they get nothing (no clutter).
 const IS_ANDROID = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
 
+/** Premena príchodovej fázy na formulárovú — jeden prechod pre všetky prvky,
+ *  aby sa blok, medailón a otázka hýbali ako jedna vec, nie ako tri. */
+const MORPH = { duration: 0.52, ease: [0.2, 0.8, 0.3, 1] } as const;
+
 // Countries list shared with CheckoutScreen (owner billing country).
 // Used here for dog's country of origin / home country.
 const COUNTRIES = [
@@ -268,6 +272,17 @@ export function NameScreen() {
     const id = window.setTimeout(() => setPhase('form'), 1150);
     return () => window.clearTimeout(id);
   }, [phase]);
+
+  // Ako veľmi sa medailón v príchodovej fáze nafúkne. Číslo NIE JE natvrdo:
+  // ráta sa z okna, lebo „čo najväčšia fotka" znamená na telefóne inú veľkosť
+  // než na stolnom počítači. Strop 2,1× drží kresbu ostrou — medailón je SVG
+  // + rastrový ksicht 260 px, nad tým by začal mäknúť.
+  const heroMedallion = useMemo(() => {
+    if (typeof window === 'undefined') return 240;
+    const byWidth = Math.min(window.innerWidth, 640) * 0.72;
+    const byHeight = window.innerHeight * 0.38;
+    return Math.round(Math.max(148, Math.min(310, Math.min(byWidth, byHeight))));
+  }, []);
   const [showInfo, setShowInfo] = useState(false);
   const isMobile = useMemo(() => window.matchMedia('(pointer: coarse)').matches, []);
   const [nameModalOpen, setNameModalOpen] = useState(false);
@@ -331,13 +346,28 @@ export function NameScreen() {
       <PageTopBar onBack={() => navigate(NEW_HEROFLOW ? '/' : '/heroglyph/intro')} />
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
-        <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 min-h-0">
+        {/* ⚠️ Bublina sa v príchodovej fáze roztiahne, len keď má DO ČOHO rásť —
+            `flex: 1` na nej samej nestačí, lebo tento stĺpec má obsahovú výšku.
+            Vo formulárovej fáze ostáva výška obsahová, teda ako dosiaľ. */}
+        <div
+          className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 min-h-0"
+          style={phase === 'hero' ? { flex: '1 1 auto' } : undefined}
+        >
 
-          {/* Speech bubble */}
-          <div
+          {/* Speech bubble — v príchodovej fáze VYPĹŇA STRÁNKU a je na stred
+              (Matej 23. 9.: „modrý blok center na stred, čo najväčšia foto aj
+              text"), potom sa zvrkne do dnešnej podoby.
+              ⚠️ Prechod robí `layout`, nie animácia výšky: výška je `auto`
+              a tú CSS animovať nevie — framer ju preloží na transform. */}
+          <motion.div
+            layout
+            transition={MORPH}
             className="w-full rounded-2xl relative overflow-hidden flex-shrink"
             style={{
               background: 'var(--brand-gradient)',
+              ...(phase === 'hero'
+                ? { flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }
+                : null),
             }}
           >
             {/* Info toggle button */}
@@ -360,7 +390,8 @@ export function NameScreen() {
               {!showInfo ? (
                 <motion.div
                   key="front"
-                  className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4"
+                  layout
+                  className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4 w-full"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -373,21 +404,32 @@ export function NameScreen() {
                   {NEW_HEROFLOW ? (
                     // V príchodovej fáze je medailón väčší a potom sa zvrkne —
                     // `motion` mu dá plynulý prechod, nie skok.
-                    <motion.div
-                      initial={false}
-                      animate={{ scale: phase === 'hero' ? 1.34 : 1 }}
-                      transition={{ duration: 0.5, ease: [0.2, 0.8, 0.3, 1] }}
-                      style={{ transformOrigin: 'center' }}
-                    >
-                      <FlowMedallion src={hekthorFace('name')} size={148} className="hf-medal" />
+                    // 🔴 VEĽKOSŤ SA MENÍ SKUTOČNE, NIE CEZ `scale`. Prvý pokus
+                    //    medailón iba škáloval — transform nemení tok, takže
+                    //    nafúknutý medailón LEŽAL NA OTÁZKE pod sebou. Plynulosť
+                    //    rieši `layout` (framer si zmenu rozmeru sám preloží na
+                    //    transform), nie animácia škály.
+                    <motion.div layout transition={MORPH}>
+                      <FlowMedallion
+                        src={hekthorFace('name')}
+                        size={phase === 'hero' ? heroMedallion : 148}
+                        className="hf-medal"
+                      />
                     </motion.div>
                   ) : (
                     <img src={hekthorImg} alt="HEKTHOR" className="hek-lg w-36 h-36 md:w-56 md:h-56 object-contain" />
                   )}
-                  <p className="text-white text-center text-[15px] md:text-2xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+                  <motion.p
+                    layout
+                    transition={MORPH}
+                    className={`text-white text-center leading-snug drop-shadow-sm ${
+                      phase === 'hero' ? 'text-xl md:text-3xl' : 'text-[15px] md:text-2xl'
+                    }`}
+                    style={{ fontFamily: "'Cinzel', serif" }}
+                  >
                     <span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingPrefix')} <span className="font-bold text-amber-300">HEKTHOR</span>.</span><br />
                     <span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingQuestion')}</span>
-                  </p>
+                  </motion.p>
                 </motion.div>
               ) : (
                 <motion.div
@@ -471,7 +513,7 @@ export function NameScreen() {
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
+          </motion.div>
 
           {/* Input — v príchodovej fáze ešte nie je na svete. Prichádza ZDOLA
               (Matej 23. 9.: „vysunie sa blok s otázkami"), nie zboku ako dosiaľ:
