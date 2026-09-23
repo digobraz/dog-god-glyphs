@@ -43,6 +43,7 @@ import {
   PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI,
 } from '@/components/pack/packTheme';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
+import { VaultChat, VaultChatSources, VAULT_CHAT_CSS } from '@/components/pack/vault/VaultChat';
 import { openAinubis } from '@/lib/ainubisBus';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
@@ -348,6 +349,12 @@ export default function PackAinubis() {
   const id = usePackIdentity();
   const { lang } = useLang();
   const [view, setView] = useState<View>('brain');
+  /* ROVINA — VAULT alebo CHAT (maketa). 🔴 LEN V DEVE: v produkčnom builde CHAT
+     naďalej otvára živý panel `AinubisWidget`, ktorý beží naostro. Maketa je
+     rozostavaná vec za zamknutými dverami, nie náhrada fungujúceho chatu. */
+  const [plane2, setPlane2] = useState<'vault' | 'chat'>('vault');
+  const [chatSrc, setChatSrc] = useState<number[]>([]);
+  const CHAT_MOCK = import.meta.env.DEV;
   const [flash, setFlash] = useState<string | null>(null);
   /* Filter SVET: -1 = všetky. Roletka otvorená: kľúč alebo null. */
   const [wf, setWf] = useState(-1);
@@ -462,10 +469,13 @@ export default function PackAinubis() {
   /* ROVINY — jeden render, dve miesta: mobil hore pod identitou, PC v ľavom bloku. */
   const planes = (cls: string) => (
     <nav className={`akv-planes ${cls}`} aria-label="AINUBIS">
-      <button type="button" className="akv-plane" aria-current="page">{plane('vault', 'Vault')}</button>
-      {/* CHAT = kôš 3. Otvára sa tým istým kanálom ako doteraz (`ainubisBus`),
-          takže beží presne ten chat, ktorý žije naostro. */}
-      <button type="button" className="akv-plane" onClick={openAinubis}>{plane('chat', 'Chat')}</button>
+      <button type="button" className="akv-plane" aria-current={plane2 === 'vault' ? 'page' : undefined}
+        onClick={() => setPlane2('vault')}>{plane('vault', 'Vault')}</button>
+      {/* CHAT = kôš 3. V PRODUKCII sa otvára tým istým kanálom ako doteraz
+          (`ainubisBus`), takže beží presne ten chat, ktorý žije naostro.
+          V DEVE sa prepne na MAKETU podľa nákresu v5 (`VaultChat`). */}
+      <button type="button" className="akv-plane" aria-current={plane2 === 'chat' ? 'page' : undefined}
+        onClick={() => (CHAT_MOCK ? setPlane2('chat') : openAinubis())}>{plane('chat', 'Chat')}</button>
       {/* „čoskoro" len v tooltipe — v SK „NÁSTENKA ČOSKORO" pretiekla z pilulky (390 px aj PC 40 %). */}
       <button type="button" className="akv-plane" disabled title={soon}>{plane('wall', 'Board')}</button>
     </nav>
@@ -542,8 +552,9 @@ export default function PackAinubis() {
   const vaultStats = (<><b>{pct} %</b></>);
 
   return (
-    <div className="akv-root" ref={rootRef} data-view={view}>
+    <div className="akv-root" ref={rootRef} data-view={view} data-plane={plane2}>
       <style>{CSS}</style>
+      {CHAT_MOCK && <style>{VAULT_CHAT_CSS}</style>}
       <div className="akv-bg" aria-hidden />
 
       {/* ── MOZOG ─────────────────────────────────────────────────────────── */}
@@ -576,9 +587,27 @@ export default function PackAinubis() {
             </>
           )}
         </div>
+
+        {/* ODKIAĽ TO VIEM — zvitky poslednej odpovede. Patrí k MOZGU, nie k
+            odpovedi: preto stojí tu, nad plátnom, a nie vo vlákne. */}
+        {CHAT_MOCK && plane2 === 'chat' && (
+          <VaultChatSources ids={chatSrc} onOpenScroll={() => setPlane2('vault')} />
+        )}
       </section>
 
+      {/* ── ROVINA CHAT (maketa, len DEV) — pás histórie + vlákno ──────────────
+          Stojí NAD mozgom ako DOGSCROLL, ale mozog v nej ostáva viditeľný: panel
+          `ODKIAĽ TO VIEM` je jediné, čím sa tento chat líši od každého iného. */}
+      {CHAT_MOCK && plane2 === 'chat' && (
+        <VaultChat planes={planes('akv-planes-l')} onSources={setChatSrc}
+          onOpenScroll={() => setPlane2('vault')} />
+      )}
+
       {/* ── DOGSCROLL — dnes upútavky svetov, v novembri pás zvitkov ────────── */}
+      {/* ⚠️ V chate sa NEVYKRESĽUJE VÔBEC. Atribút `hidden` nestačil — `.akv-scroll`
+          má v CSS `display:flex`, ktorý ho prebije, a panel svetov presvital pod
+          vláknom. Tá istá pasca čaká pri každom `hidden` nad flexom. */}
+      {!(CHAT_MOCK && plane2 === 'chat') && (
       <aside className="akv-scroll" aria-label={tx('pack.ainubis.view.dogscroll', 'Dogscroll')}>
         {/* ZAMKNUTÁ HLAVIČKA (Matej 22. 9.): nadpis · roviny · filtre · vrstvy.
             Logo, eyebrow a trojriadkový úvod zanikli — „opäť je tam veľa textu".
@@ -618,6 +647,7 @@ export default function PackAinubis() {
         </div>
         </div>
       </aside>
+      )}
 
       {/* ── HORE: IDENTITA + OZNAM, POD TÝM ROVINA (Matej 22. 9.) ─────────────── */}
       <div className="akv-top" ref={topRef}>
