@@ -65,7 +65,11 @@
   /* Vycentrovanie na vodorovnú os pillu: nav stojí na `safe+16`, my sme
      o polovicu rozdielu výšok nižšie/vyššie. Bez navu je `--pack-nav-h`
      rovné priemeru tlačidla, takže sa výraz vynuluje na `safe+16`. */
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px + (var(--pack-nav-h, 60px) - 60px) / 2);
+  /* KOTVA SPODKU. Mimo `/pack` je to holý roh; v `/pack` NAD lištou (jej skutočnú
+     výšku publikuje nav ako `--pack-nav-h`, +14 px vôle pre kotúč `+`, ktorý nad
+     lištu vystupuje a do výšky sa nepočíta). Panel z tej istej premennej ráta svoj
+     spodok, takže sa guľa a panel nemôžu rozísť. */
+  bottom: var(--ainubis-dock-b, calc(env(safe-area-inset-bottom, 0px) + 16px));
   z-index: 60;
   width: 60px;
   height: 60px;
@@ -100,9 +104,17 @@
    ⚠️ Odznak neprečítaných preberá medailón — widget svoje číslo publikuje cez
    `setAinubisUnread()` v `lib/ainubisBus.ts`. Bez toho by upozornenie „máš odo mňa
    správu" v `/pack` ticho zmizlo spolu s guľou. */
-body.has-pack-nav .ainubis-launcher {
-  visibility: hidden;
-  pointer-events: none;
+/* ── A 23. 9. 2026 SA VRÁTILA (Matej: „ainubis len v pack vpravo dolu nad navom,
+   ak je nav") ───────────────────────────────────────────────────────────────
+   Skrytie vyššie platilo, kým chat otváral MEDAILÓN v strede lišty. 21. 9. sa
+   lišta prerobila na päť slotov a AINUBIS je odvtedy MIESTO (`/pack/ainubis`,
+   pristáva na rovine VAULT) — záložka NAVIGUJE, chat neotvára. Tým v `/pack`
+   nezostal na chat ani jeden ťuk a guľa prestala byť druhým spúšťačom toho
+   istého; stala sa jediným.
+   ⚠️ Pravidlo sa NEMAŽE, len obracia: `has-pack-nav` teraz dvíha guľu NAD lištu
+   namiesto toho, aby ju skrývalo. Nech je na jednom mieste vidieť oba stavy. */
+body.has-pack-nav {
+  --ainubis-dock-b: calc(env(safe-area-inset-bottom, 0px) + 16px + var(--pack-nav-h, 64px) + 14px);
 }
 
 .ainubis-launcher:hover,
@@ -169,7 +181,8 @@ body.has-pack-nav .ainubis-launcher {
   left: auto;
   right: 16px;
   top: auto;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 84px);
+  /* 60 = priemer gule, 8 = medzera. Mimo `/pack` to dáva pôvodných 84 px. */
+  bottom: calc(var(--ainubis-dock-b, calc(env(safe-area-inset-bottom, 0px) + 16px)) + 68px);
   /* ⚠️ 380 → 420 px kvôli hlavičke (2026-08-09). Po pridaní dashboardu a presunu
      nesie hlavička šesť prvkov a pri 380 px sa meno orezalo na „AINUBI" —
      zmerané, nie odhadnuté. Alternatívy boli horšie: zahodiť „ONLINE" (Matej ho
@@ -207,22 +220,21 @@ body.has-pack-nav .ainubis-launcher {
   }
 }
 
-/* Spodná hranica panela nad lištou. ⚠️ Číslo sa NEPÍŠE NATVRDO: nav publikuje svoju
-   skutočnú výšku ako `--pack-nav-h` (ResizeObserver v PackBottomNav), takže panel
-   sa posunie sám, keď v lište pribudne alebo ubudne položka. 14 px navyše je vôľa
-   pre kotúč, ktorý nad lištu vystupuje — absolútne pozicovaný medailón výšku navu
-   NEZVÄČŠUJE, takže by ho panel inak preklopil. */
-body.has-pack-nav .ainubis-panel {
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px + var(--pack-nav-h, 64px) + 14px);
-}
+/* Spodná hranica panela nad lištou UŽ NEMÁ VLASTNÉ PRAVIDLO — ráta sa z tej istej
+   `--ainubis-dock-b` ako guľa (+68 px = guľa a medzera). Dovtedy tu stálo to isté
+   číslo druhýkrát a panel sedel v `/pack` PRESNE tam, kde guľa; kým bola guľa
+   skrytá, nevadilo to. ⚠️ Výška lišty je nameraná (`ResizeObserver` v nave), nie
+   natvrdo — panel aj guľa sa posunú samy, keď v lište pribudne položka. */
 
-/* Fullscreen sheet na mobile. Spodná medzera 76 je späť — tlačidlo je opäť
-   zakotvené dole a panel ho nesmie prekryť. */
+/* Fullscreen sheet na mobile. Spodná medzera je späť — tlačidlo je opäť
+   zakotvené dole a panel ho nesmie prekryť.
+   ⚠️ Tá istá kotva ako hore: natvrdo napísaných 84 px by v `/pack` posadilo sheet
+   NA LIŠTU aj na guľu, lebo o nave nevie nič. */
 @media (max-width: 767px) {
   .ainubis-panel {
     left: 8px;
     right: 8px;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 84px);
+    bottom: calc(var(--ainubis-dock-b, calc(env(safe-area-inset-bottom, 0px) + 16px)) + 68px);
     top: 8px;
     width: auto;
     height: auto;
