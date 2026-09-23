@@ -68,6 +68,16 @@ export interface DemoChat {
   day: string;
   title: string;
   msgs: DemoMessage[];
+  /** Pripnutý rozhovor stojí vo vlastnej skupine nad dňami (Matej 23. 9., C1). */
+  pinned?: boolean;
+  /**
+   * KOHO SA TENTO ROZHOVOR TÝKA — vyberá sa raz, v uvítacom bloku (voľba E1).
+   * 🔴 Vo vlákne sa NEZOBRAZUJE: riadok „knows HEKTHOR…" nad správami Matej
+   * 23. 9. 2026 zrušil práve preto, že pri človeku s viacerými psami klame.
+   * Zapisuje sa napriek tomu — keď maketa dostane server, toto je pole, ktoré
+   * mu povie, čie údaje má k otázke priložiť.
+   */
+  scope?: string;
 }
 
 export const DEMO_CHATS: DemoChat[] = [
@@ -171,6 +181,23 @@ export const DEMO_CONTEXT = {
   name: 'HEKTHOR',
   rest: '9 y · mixed breed · DOG ID 68 % · 12 scrolls',
 };
+
+/**
+ * PSI NA VÝBER pri novom rozhovore (Matej 23. 9. 2026: „skôr by som to aplikoval
+ * do nového chatu ako option pýtať sa na mojho psa — akého vyber, ten ten,
+ * všetky, všeobecne info").
+ * ⚠️ „all my dogs" má zmysel až od DVOCH psov — pri jednom je to tá istá voľba
+ * dvakrát. Maketa má preto dvoch, aby bolo vidno obe polohy.
+ */
+export const DEMO_DOGS = ['HEKTHOR', 'AISHA'];
+/** Posledná voľba je vždy „bez psa" — otázka o psoch vo všeobecnosti. */
+export const SCOPE_GENERAL = 'dogs in general';
+export const SCOPE_ALL = 'all my dogs';
+
+/** Ponuka rozsahu pre daný počet psov. Jeden pes ⇒ dve voľby, nie tri. */
+export const scopeChoices = (dogs: string[]): string[] => (
+  dogs.length > 1 ? [...dogs, SCOPE_ALL, SCOPE_GENERAL] : [...dogs, SCOPE_GENERAL]
+);
 
 // ════════════════════════════════════════════════════════════════════════════
 // PRISPIEVANIE DO MOZGU (23. 9. 2026) — formulár, posudok, stavy

@@ -27,21 +27,26 @@
 // ⚠️ ČÍSLA SÚ ZO STUPNÍC `PACK_*`. Nákres má 9px popisky a vlastné premenné;
 //    mikropopisok je v appke 10 (`PACK_TEXT.micro`) — stráž `check:pack` meria.
 // ════════════════════════════════════════════════════════════════════════════
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import {
   PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI,
 } from '@/components/pack/packTheme';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { HandArrowLeft } from '@/components/pack/HandIcons';
+/* Tvár AINUBISA — tá istá, ktorú nesie guľa widgetu. Ikonku si pýtať netreba. */
+import ainubisFace from '@/assets/ainubis-badge.png';
 import {
   DEMO_CHATS, DEMO_SCROLLS, DEMO_CONTEXT, DEMO_FORMS, FORM_ORDER,
-  DEMO_PENDING, DEMO_REPLY, DEMO_STARTERS, demoVerdict,
+  DEMO_PENDING, DEMO_REPLY, DEMO_STARTERS, DEMO_DOGS, SCOPE_GENERAL, scopeChoices, demoVerdict,
   type DemoAnswer, type DemoChat, type DemoMessage, type DemoPending,
   type DemoVerdict, type FormKind,
 } from './vaultChatDemo';
 
-/** Šírka pásu histórie na PC. Užší by neuniesol názov rozhovoru na jeden riadok. */
-const RAIL_W = 260;
+/** Šírka pásu histórie na PC (Matej 23. 9. 2026, voľba A3 nad nákresom
+ *  `plany/nakres-ainubis-chat-panel-2026-09-23.html`). Pri 260 px sa názov
+ *  rozhovoru odsekol už na treťom slove; pri 320 sa väčšina zmestí celá a na
+ *  13" notebooku ostane vláknu 960 px, teda stále nad meraným dnom 760. */
+const RAIL_W = 320;
 /* 🔴 MOZOG V CHATE NIE JE (Matej 23. 9. 2026: „budu len 2 stlpce nie 3, to jadro
    pojde preč"). Nákres v5 ho mal ako tretí stĺpec s panelom ODKIAĽ TO VIEM;
    maketa podľa neho vznikla a Matej ju nad ňou opravil. ⚠️ DÔSLEDOK: pôvod
@@ -54,18 +59,48 @@ export const VAULT_CHAT_CSS = `
    Z Claude si berieme pás vľavo, nový rozhovor jedným klikom, zoskupenie po
    dňoch a hľadanie v nich. Neberieme si prázdnu pravú plochu. */
 .akc-rail{position:absolute;z-index:4;left:0;top:0;bottom:0;width:min(84vw,${RAIL_W}px);
-  display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto;
+  display:grid;grid-template-rows:auto auto auto auto minmax(0,1fr) auto;
   background:${AINUBIS.surfaceBase};border-right:1px solid ${AINUBIS.edge};
   transform:translateX(-101%);transition:transform 180ms ease;}
 .akv-root[data-rail="open"] .akc-rail{transform:none;}
+/* 🔴 ŠUPLÍK SA MUSÍ DAŤ ZAVRIEŤ. Na mobile pás prekryje 84 vw a s nimi aj
+   tlačidlo CONVERSATIONS, ktorým sa otvoril — bez tejto plochy nemal
+   človek kam klepnúť a z histórie sa nedalo vrátiť (Matej 23. 9. 2026).
+   Rovnaká pasca ako ponuka „+" o pár hodín skôr: prepínač pod vlastnou
+   vrstvou. Plocha leží MEDZI vláknom (z3) a pásom (z4). */
+.akc-scrim{position:absolute;z-index:3;inset:0;display:none;border:0;padding:0;
+  background:rgba(0,0,0,0.55);cursor:pointer;}
+.akv-root[data-rail="open"] .akc-scrim{display:block;}
 /* HLAVA PÁSU — vzduch a meno, kým príde prvé tlačidlo (Matej 23. 9. 2026:
    „v ľavom paneli hore tiež miesto… podobne ako to má Claude"). Claude tam má
    logo a pod ním nový rozhovor; my tam máme jeho meno, lebo v chate zhasla
    lišta identity a AINUBIS by inak nebol na obrazovke pomenovaný nikde.
    ⚠️ Vzduch je ODSADENIE, nie prázdny prvok — inak ho prvý ďalší blok zožerie. */
+/* HLAVA PÁSU (Matej 23. 9. 2026, voľba „B2 ale do stredu"): šípka späť vľavo
+   hore samostatne, pod ňou tvár AINUBISA a meno — dvojica VYCENTROVANÁ.
+   Tvár je ainubis-badge.png, tá istá ako v guli widgetu: ikonku si
+   pýtať netreba, AINUBIS ju má. */
+/* Vzduch hore (Matej 23. 9.: v ľavom paneli hore tiež miesto) nesie IDENTITA —
+   a s ním bezpečnú zónu. Keď nad ňou na PC pribudne šípka, prevezme vzduch tá
+   a identita spadne na obyčajné odsadenie (pravidlo je v PC bloku nižšie). */
+.akc-railid{display:flex;align-items:center;justify-content:center;
+  gap:${PACK_SPACE.md}px;text-align:left;
+  padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.xl}px) ${PACK_SPACE.md}px 0;}
+/* ⚠️ Lem a dosvit tváre BER Z MATRICE (AINUBIS.faceRing), nie doslovnou farbou
+   z CSS gule — stráž check:pack meria rám a tieň presným zápisom. */
+.akc-face{width:48px;height:48px;flex:0 0 48px;border-radius:50%;overflow:hidden;
+  background:${AINUBIS.faceBg};box-shadow:${AINUBIS.faceRing};}
+.akc-face img{width:100%;height:100%;object-fit:cover;display:block;}
+/* Šípka späť v páse je PC poloha. Na mobile pás nie je na obrazovke, takže
+   cesta von ostáva v hlavičke vlákna (voľba F3) — inak by na dotyku viedli
+   z chatu dve rôzne šípky a jedna z nich len po otvorení šuplíka. */
+/* ⚠️ Obe šípky nesú .akc-back, ktorá má display:flex — preto sa pásová zhasína
+   PRES POTOMKA (.akc-rail >), inak by ju rovnako špecifická trieda prebila
+   a šípka by svietila v šuplíku aj na mobile. */
+.akc-rail > .akc-railback{display:none;
+  margin:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.lg}px) 0 0 ${PACK_SPACE.md}px;}
 .akc-railtop{display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;
-  padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.xxl}px)
-    ${PACK_SPACE.md}px ${PACK_SPACE.lg}px;}
+  padding:${PACK_SPACE.md}px ${PACK_SPACE.md}px ${PACK_SPACE.lg}px;text-align:left;}
 .akc-railname{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;line-height:1;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.ink};}
 /* Meno je vždy AI + NUBIS, „AI" v cyane s dosvitom (brand lock 12. 9. 2026). */
@@ -94,9 +129,43 @@ export const VAULT_CHAT_CSS = `
 .akc-day{padding:${PACK_SPACE.md}px ${PACK_SPACE.sm}px ${PACK_SPACE.xs}px;
   font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;line-height:1;
   letter-spacing:${PACK_HEAD.label.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
+/* RIADOK ROZHOVORU. Vpravo mu ostáva 28 px na tlačidlo akcií — bez toho by
+   dlhý názov liezol pod „⋯" (voľba C1, Matej 23. 9. 2026). */
 .akc-item{display:block;width:100%;text-align:left;cursor:pointer;
-  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.xl}px ${PACK_SPACE.sm}px ${PACK_SPACE.md}px;
+  border-radius:${PACK_R.tile}px;
   border:1px solid transparent;background:none;color:${AINUBIS.inkDim};}
+/* 🔴 AKCIE ROZHOVORU SÚ NA DOTYK, NIE NA HOVER (voľba C1). Na mobile hover
+   neexistuje, takže „ikonky pri prejdení myšou" by tam neboli NIKDY. Tlačidlo
+   je preto stále na obrazovke, len v tichej farbe. */
+.akc-row{position:relative;}
+.akc-dots{position:absolute;right:${PACK_SPACE.xs}px;top:${PACK_SPACE.xs}px;
+  width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  border-radius:${PACK_R.tile}px;border:1px solid transparent;background:none;
+  color:${AINUBIS.inkFaint};font-size:${PACK_TEXT.body}px;line-height:1;}
+.akc-dots:hover,.akc-row[data-menu="open"] .akc-dots{color:${AINUBIS.cyan};
+  border-color:${AINUBIS.edge};background:${AINUBIS.bgDeep};}
+/* Pripnutý rozhovor: značka vpravo, keď tlačidlo akcií nesvieti. Je to ÚDAJ,
+   nie akcia — preto sedí vedľa počtu správ, nie v ponuke. */
+.akc-item em u{text-decoration:none;color:${AINUBIS.ctaA};letter-spacing:0;}
+.akc-menu{position:absolute;right:${PACK_SPACE.xs}px;top:34px;z-index:6;width:168px;
+  display:none;flex-direction:column;gap:2px;padding:${PACK_SPACE.xs}px;
+  border-radius:${PACK_R.card}px;border:1px solid ${AINUBIS.edge};
+  background:${AINUBIS.bgDeep};box-shadow:${AINUBIS.panelShadow};}
+.akc-row[data-menu="open"] .akc-menu{display:flex;}
+.akc-mi{display:block;width:100%;text-align:left;cursor:pointer;border:0;background:none;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;
+  font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;line-height:1.3;color:${AINUBIS.inkDim};}
+.akc-mi:hover{background:rgba(${AINUBIS.cyanRGB},0.10);color:${AINUBIS.ink};}
+/* Mazanie je jediná nevratná položka, tak aj vyzerá — a stojí posledná. */
+.akc-mi.is-danger{color:${AINUBIS.danger};}
+.akc-mi.is-danger:hover{background:${AINUBIS.dangerTint};color:${AINUBIS.danger};}
+/* PREMENOVANIE sa deje V RIADKU. Systémový prompt() by bol dialóg, ktorý
+   zablokuje stránku, a na mobile vyzerá ako chyba prehliadača. */
+.akc-rename{width:100%;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;
+  border-radius:${PACK_R.tile}px;border:1px solid ${AINUBIS.edgeStrong};
+  background:${AINUBIS.bgDeep};color:${AINUBIS.ink};outline:0;
+  font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;line-height:1.35;}
 .akc-item b{display:block;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;
   line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .akc-item em{font-style:normal;font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.card.letterSpacing};
@@ -114,6 +183,27 @@ export const VAULT_CHAT_CSS = `
   font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;
   border:1px dashed ${AINUBIS.ctaEdge};background:${AINUBIS.ctaTint};color:${AINUBIS.inkDim};}
 .akc-mine b{margin-left:auto;color:${AINUBIS.ctaA};font-weight:600;}
+/* MAJITEĽ V PÄTE (Matej 23. 9. 2026, voľba „D3 ale daj obsah do tlačítka ako
+   D2"): tichý riadok — tvár, meno, pod ním čo sa za klikom skrýva — ale
+   OHRANIČENÝ, aby bolo vidno, že je to tlačidlo. Otvára nastavenia chatu
+   a kredity. */
+.akc-owner{display:flex;align-items:center;gap:${PACK_SPACE.md}px;width:100%;
+  text-align:left;cursor:pointer;margin-top:${PACK_SPACE.sm}px;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;
+  border:1px solid ${AINUBIS.edge};background:${AINUBIS.raised};color:${AINUBIS.inkDim};}
+.akc-owner:hover{border-color:${AINUBIS.edgeStrong};}
+.akc-av{width:30px;height:30px;flex:0 0 30px;border-radius:50%;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid ${AINUBIS.edge};background:${AINUBIS.faceBg};
+  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;line-height:1;
+  color:${AINUBIS.cyan};}
+.akc-av img{width:100%;height:100%;object-fit:cover;display:block;}
+.akc-owner b{font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;
+  line-height:1.3;color:${AINUBIS.ink};}
+.akc-owner em{display:block;font-style:normal;font-size:${PACK_TEXT.micro}px;line-height:1.3;
+  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
+.akc-owner u{margin-left:auto;text-decoration:none;color:${AINUBIS.inkFaint};
+  font-size:${PACK_TEXT.label}px;}
 .akc-me{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;
   font-size:${PACK_TEXT.micro}px;color:${AINUBIS.inkFaint};}
 
@@ -285,6 +375,27 @@ export const VAULT_CHAT_CSS = `
 .akc-mrow em{font-style:normal;font-size:${PACK_TEXT.micro}px;line-height:1.4;
   color:${AINUBIS.inkFaint};}
 
+/* ── NASTAVENIA CHATU A KREDITY ───────────────────────────────────────────
+   Otvára ich tvár majiteľa v päte pása (Matej 23. 9. 2026). Je to prekryv nad
+   celým chatom, nie štvrtá obrazovka: z nastavení sa človek vracia tam, kde
+   stál. Leží NAD pásom (z4), inak by ho pás na PC prekryl. */
+.akc-set{position:absolute;z-index:8;inset:0;display:none;
+  align-items:center;justify-content:center;padding:${PACK_SPACE.lg}px;
+  background:rgba(0,0,0,0.62);}
+.akv-root[data-set="open"] .akc-set{display:flex;}
+.akc-setbox{width:min(420px,100%);max-height:100%;overflow-y:auto;
+  padding:${PACK_SPACE.lg}px;border-radius:${PACK_R.card}px;
+  border:1px solid ${AINUBIS.edge};background:${AINUBIS.bgDeep};box-shadow:${AINUBIS.panelShadow};}
+.akc-seth{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
+.akc-seth h5{flex:1;margin:0;font-family:${FONT_TITLE};font-weight:700;
+  font-size:${PACK_TEXT.h2}px;line-height:1.2;letter-spacing:${PACK_HEAD.card.letterSpacing};
+  text-transform:uppercase;color:${AINUBIS.ink};}
+.akc-sec{margin-top:${PACK_SPACE.lg}px;}
+.akc-sec > .akc-eb{color:${AINUBIS.cyan};}
+.akc-sec p{margin:${PACK_SPACE.sm}px 0 0;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;
+  line-height:1.5;color:${AINUBIS.inkFaint};}
+.akc-sec p b{color:${AINUBIS.ink};font-weight:500;}
+
 /* ── PÍSACIE POLE + „+" (prispievanie do mozgu) ───────────────────────── */
 /* 🔴 SPODNÁ LIŠTA V CHATE NIE JE (Matej 23. 9. 2026 + lock §3: kôš 3 = ÚLOHA).
    Pole preto sadá na spodok obrazovky a odsadzuje sa len o bezpečnú zónu.
@@ -353,11 +464,24 @@ body:has(.akv-root[data-plane="chat"]) .ainubis-launcher{visibility:hidden;point
   .akv-root[data-plane="chat"] .akc-rail{transform:none;}
   .akv-root[data-plane="chat"] .akc-thread{left:${RAIL_W}px;right:0;}
   /* Pás je na PC stále na obrazovke, tlačidlo šuplíka teda nemá čo otvárať. */
-  .akv-root[data-plane="chat"] .akc-railbtn{display:none;}
-  /* ⚠️ HLAVIČKA SI ODSADENIE MUSÍ UROBIŤ SAMA. V chate zhasla lišta identity
-     (.akv-top) a s ňou premenná akv-top-h — bez tohto riadku sedí šípka späť na
-     0 px od horného okraja okna a vyzerá ako odseknutá. */
-  .akv-root[data-plane="chat"] .akc-head{padding-top:${PACK_SPACE.xl}px;}
+  .akv-root[data-plane="chat"] .akc-railbtn,
+  .akv-root[data-plane="chat"] .akc-scrim{display:none;}
+  /* 🔴 ŠÍPKA SPÄŤ MÁ NA KAŽDEJ ŠÍRKE PRÁVE JEDNU POLOHU (Matej 23. 9., B2+F3):
+     na PC v páse, na mobile v hlavičke vlákna. Dve naraz by znamenali, že na
+     dotyku vedie jedna z nich z chatu až po otvorení šuplíka. */
+  /* ⚠️ Obe šípky nesú triedu .akc-back, takže sa cieli PODĽA MIESTA, nie podľa
+     nej samej — pri rovnakej špecificite by neskoršie pravidlo zhaslo aj tú
+     v páse. Hlavičková je .akc-head .akc-back, pásová .akc-railback. */
+  .akv-root[data-plane="chat"] .akc-rail > .akc-railback{display:flex;}
+  .akv-root[data-plane="chat"] .akc-head .akc-back{display:none;}
+  .akv-root[data-plane="chat"] .akc-railid{padding-top:${PACK_SPACE.md}px;}
+  /* Hlavička vlákna na PC nenesie nič — šípka je v páse, šuplík netreba a
+     riadok „knows…" 23. 9. zanikol. Vlákno preto začína rovno správami. */
+  .akv-root[data-plane="chat"] .akc-head{display:none;}
+  /* ⚠️ Vlákno si odsadenie hore musí urobiť samo — v chate zhasla lišta
+     identity (.akv-top) a s ňou premenná akv-top-h. Do 23. 9. to riešil
+     padding hlavičky; hlavička na PC zhasla, takže ho prevzali správy. */
+  .akv-root[data-plane="chat"] .akc-msgs{padding-top:${PACK_SPACE.xl}px;}
 }
 `;
 
@@ -501,6 +625,12 @@ export function VaultChat({ onBack, onOpenScroll }: {
   const [add, setAdd] = useState(false);
   const [draft, setDraft] = useState('');
   const [mine, setMine] = useState<DemoPending[]>(DEMO_PENDING);
+  /** Otvorená ponuka „⋯" — vždy najviac jedna, preto id rozhovoru, nie boolean. */
+  const [menu, setMenu] = useState<number | null>(null);
+  /** Premenovávaný rozhovor a rozpísaný názov. Potvrdí Enter alebo odchod z poľa. */
+  const [ren, setRen] = useState<number | null>(null);
+  const [renText, setRenText] = useState('');
+  const listRef = useRef<HTMLDivElement>(null);
   const msgsRef = useRef<HTMLDivElement>(null);
   const askRef = useRef<HTMLDivElement>(null);
 
@@ -537,10 +667,86 @@ export function VaultChat({ onBack, onOpenScroll }: {
     };
   }, [add]);
 
+  /* ŠUPLÍK HISTÓRIE. Stav žije v atribúte `.akv-root`, nie v Reacte — CSS ho
+     číta aj pre veci mimo tohto komponentu. Preto jedno miesto na otvorenie
+     aj zavretie, nie štyri `querySelector` po súbore. */
+  const rail = (open: boolean) => {
+    const r = document.querySelector<HTMLElement>('.akv-root');
+    if (!r) return;
+    if (open) r.dataset.rail = 'open'; else r.removeAttribute('data-rail');
+  };
+
+  /** Nastavenia chatu — ten istý spôsob ako šuplík: stav nesie atribút koreňa,
+   *  aby ho CSS vedelo prekryť cez celú obrazovku bez druhého portálu. */
+  const setSet = (open: boolean) => {
+    const r = document.querySelector<HTMLElement>('.akv-root');
+    if (!r) return;
+    if (open) r.dataset.set = 'open'; else r.removeAttribute('data-set');
+  };
+
+  /* Esc zavrie šuplík — tretia cesta von popri klepnutí vedľa a výbere
+     rozhovoru. Bez nej ostávala na mobile klávesnica jediným východiskom. */
+  useEffect(() => {
+    const esc = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      rail(false);
+      setMenu(null);
+      setSet(false);
+    };
+    document.addEventListener('keydown', esc);
+    return () => document.removeEventListener('keydown', esc);
+  }, []);
+
+  /* ⚠️ TÁ ISTÁ PASCA AKO PRI ŠUPLÍKU A PRI „+": ponuka riadku sa musí dať
+     zavrieť aj inak než tým istým tlačidlom. Klepnutie kdekoľvek mimo zoznamu
+     ju zatvorí. */
+  useEffect(() => {
+    if (menu === null) return undefined;
+    const away = (e: Event) => {
+      if (!listRef.current?.contains(e.target as Node)) setMenu(null);
+    };
+    document.addEventListener('pointerdown', away);
+    return () => document.removeEventListener('pointerdown', away);
+  }, [menu]);
+
+  /* 🔴 PRIPNUTÉ IDÚ HORE A MAJÚ VLASTNÚ SKUPINU (voľba C1). Deň im neberieme —
+     rozhovor spred týždňa ostáva „12 sep", len stojí nad dneškom. Poradie vnútri
+     skupín sa nemení, inak by pripnutie vyzeralo ako nový rozhovor. */
   const shown = useMemo(() => {
     const nq = q.trim().toLowerCase();
-    return nq ? chats.filter((c) => c.title.toLowerCase().includes(nq)) : chats;
+    const found = nq ? chats.filter((c) => c.title.toLowerCase().includes(nq)) : chats;
+    return [...found.filter((c) => c.pinned), ...found.filter((c) => !c.pinned)];
   }, [chats, q]);
+
+  /** Skupina, do ktorej riadok patrí — pripnuté majú vlastnú, ostatné deň. */
+  const groupOf = (c: DemoChat) => (c.pinned ? 'pinned' : c.day);
+
+  const pinChat = (id: number) => {
+    setMenu(null);
+    setChats((v) => v.map((c) => (c.id === id ? { ...c, pinned: !c.pinned } : c)));
+  };
+
+  /* MAZANIE je jediná nevratná akcia v páse. Maketa sa nepýta druhýkrát —
+     keď to pôjde na server, potvrdenie sem patrí. */
+  const dropChat = (id: number) => {
+    setMenu(null);
+    setChats((v) => {
+      const rest = v.filter((c) => c.id !== id);
+      /* Zmazať rozhovor, v ktorom práve stojíš, nesmie nechať prázdnu obrazovku. */
+      if (id === cur) setCur(rest[0]?.id ?? 0);
+      return rest;
+    });
+  };
+
+  const startRen = (c: DemoChat) => { setMenu(null); setRen(c.id); setRenText(c.title); };
+  const endRen = () => {
+    const t = renText.trim();
+    if (ren !== null && t) setChats((v) => v.map((c) => (c.id === ren ? { ...c, title: t } : c)));
+    setRen(null);
+  };
+
+  /** Rozsah rozhovoru — zapíše sa na rozhovor, vo vlákne sa nezobrazuje (E1). */
+  const pickScope = (v: string) => setChats((x) => x.map((c) => (c.id === cur ? { ...c, scope: v } : c)));
 
   /** Zmena správ AKTUÁLNEHO rozhovoru. Ostatné ostávajú, ako boli. */
   const edit = (fn: (msgs: DemoMessage[]) => DemoMessage[], title?: (c: DemoChat) => string) =>
@@ -549,10 +755,14 @@ export function VaultChat({ onBack, onOpenScroll }: {
       : c)));
 
   const newChat = () => {
-    const c: DemoChat = { id: Date.now(), day: 'today', title: 'New conversation', msgs: [] };
+    const c: DemoChat = {
+      id: Date.now(), day: 'today', title: 'New conversation', msgs: [],
+      /* Predvolene prvý pes — človek to v uvítacom bloku prepne jedným klepnutím. */
+      scope: DEMO_DOGS[0],
+    };
     setChats((v) => [c, ...v]);
     setCur(c.id);
-    document.querySelector<HTMLElement>('.akv-root')?.removeAttribute('data-rail');
+    rail(false);
   };
 
   /* 🔴 ŽIADNY SERVER. Otázka sa pridá do miestneho stavu a odpoveď je napísaná
@@ -587,7 +797,7 @@ export function VaultChat({ onBack, onOpenScroll }: {
 
   /** „my contributions" — zoznam sa vypíše vo vlákne, druhýkrát sa neopakuje. */
   const openMine = () => {
-    document.querySelector<HTMLElement>('.akv-root')?.removeAttribute('data-rail');
+    rail(false);
     edit((m) => (m.length && 'mine' in m[m.length - 1] ? m : [...m, { mine: true }]));
     toEnd();
   };
@@ -597,9 +807,17 @@ export function VaultChat({ onBack, onOpenScroll }: {
   return (
     <>
       <aside className="akc-rail" aria-label="Conversations">
-        <div className="akc-railtop">
-          <div className="akc-railname"><i>AI</i>NUBIS</div>
-          <div className="akc-railsub">the vault · 569 scrolls</div>
+        {/* 🔴 ŠÍPKA SPÄŤ NA PC (Matej 23. 9. 2026, B2+F3). Na mobile ju CSS
+            nevykreslí — tam cesta von vedie z hlavičky vlákna. */}
+        <button type="button" className="akc-back akc-railback" onClick={onBack} aria-label="Back">
+          <HandArrowLeft size={16} />
+        </button>
+        <div className="akc-railid">
+          <span className="akc-face"><img src={ainubisFace} alt="" aria-hidden /></span>
+          <div className="akc-railtop">
+            <div className="akc-railname"><i>AI</i>NUBIS</div>
+            <div className="akc-railsub">the vault · 569 scrolls</div>
+          </div>
         </div>
         <div className="akc-railhd">
           <button type="button" className="akc-new" onClick={newChat}>+ New conversation</button>
@@ -609,16 +827,53 @@ export function VaultChat({ onBack, onOpenScroll }: {
           <input value={q} onChange={(e) => setQ(e.target.value)}
             placeholder="Search conversations…" aria-label="Search conversations" />
         </label>
-        <div className="akc-list">
+        <div className="akc-list" ref={listRef}>
           {shown.map((c, i) => (
-            <div key={c.id}>
-              {(i === 0 || shown[i - 1].day !== c.day) && <div className="akc-day">{c.day}</div>}
-              <button type="button" className="akc-item" aria-current={c.id === cur}
-                onClick={() => setCur(c.id)}>
-                <b>{c.title}</b>
-                <em>{c.msgs.length} messages</em>
-              </button>
-            </div>
+            /* ⚠️ Nadpis skupiny stojí VEDĽA riadku, nie v ňom: „⋯" sa kotví k hornej
+               hrane .akc-row a vnútri by sa postavilo vedľa slova TODAY. */
+            <Fragment key={c.id}>
+              {(i === 0 || groupOf(shown[i - 1]) !== groupOf(c)) && (
+                <div className="akc-day">{groupOf(c)}</div>
+              )}
+              <div className="akc-row" data-menu={menu === c.id ? 'open' : ''}>
+              {ren === c.id ? (
+                /* Premenovanie v riadku — Enter potvrdí, Esc zahodí, odchod z poľa
+                   potvrdí tiež. Systémový prompt() by zablokoval celú stránku. */
+                <input className="akc-rename" value={renText} autoFocus
+                  aria-label="Rename conversation"
+                  onChange={(e) => setRenText(e.target.value)}
+                  onBlur={endRen}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') { e.preventDefault(); endRen(); }
+                    if (e.key === 'Escape') { e.preventDefault(); setRen(null); }
+                  }} />
+              ) : (
+                <>
+                  {/* ⚠️ Výber rozhovoru MUSÍ zavrieť šuplík — inak na mobile vyberieš
+                      vlákno a ostaneš stáť v histórii, ktorá ho zakrýva. */}
+                  <button type="button" className="akc-item" aria-current={c.id === cur}
+                    onClick={() => { setCur(c.id); rail(false); }}>
+                    <b>{c.title}</b>
+                    <em>
+                      {c.msgs.length} messages
+                      {c.pinned && <> · <u>pinned</u></>}
+                    </em>
+                  </button>
+                  <button type="button" className="akc-dots" aria-label="Conversation actions"
+                    aria-expanded={menu === c.id}
+                    onClick={() => setMenu((v) => (v === c.id ? null : c.id))}>⋯</button>
+                  <div className="akc-menu" role="menu">
+                    <button type="button" className="akc-mi" onClick={() => pinChat(c.id)}>
+                      {c.pinned ? 'Unpin' : 'Pin to top'}
+                    </button>
+                    <button type="button" className="akc-mi" onClick={() => startRen(c)}>Rename</button>
+                    <button type="button" className="akc-mi is-danger"
+                      onClick={() => dropChat(c.id)}>Delete</button>
+                  </div>
+                </>
+              )}
+              </div>
+            </Fragment>
           ))}
           {shown.length === 0 && <div className="akc-day">nothing found</div>}
         </div>
@@ -627,27 +882,28 @@ export function VaultChat({ onBack, onOpenScroll }: {
           <button type="button" className="akc-mine" onClick={openMine}>
             <span>my contributions</span><b>{waiting} pending</b>
           </button>
-          <div className="akc-me">DEVOTION 2 · 12 / 569 scrolls</div>
+          {/* TVÁR MAJITEĽA — otvára nastavenia chatu a kredity (Matej 23. 9. 2026).
+              Riadok DEVOTION sa vsunul pod meno, takže päta nenarástla. */}
+          <button type="button" className="akc-owner" onClick={() => setSet(true)}>
+            <span className="akc-av">M</span>
+            <span><b>Matej</b><em>devotion 2 · 12 / 569</em></span>
+            <u aria-hidden>▸</u>
+          </button>
         </div>
       </aside>
 
       <section className="akc-thread" aria-label="Chat">
         <header className="akc-head">
           <div className="akc-ctx">
-            {/* 🔴 ŠÍPKA SPÄŤ VĽAVO HORE — CHAT je ÚLOHA (kôš 3), nie miesto: spodná
-                lišta v ňom mizne a von sa ide krokom späť. Matej 23. 9. 2026. */}
+            {/* 🔴 ŠÍPKA SPÄŤ — CHAT je ÚLOHA (kôš 3), nie miesto: spodná lišta v ňom
+                mizne a von sa ide krokom späť. Toto je MOBILNÁ poloha; na PC ju
+                CSS zhasne a šípku nesie pás (Matej 23. 9. 2026, B2+F3). */}
             <button type="button" className="akc-back" onClick={onBack} aria-label="Back">
               <HandArrowLeft size={16} />
             </button>
             <button type="button" className="akc-railbtn"
-              onClick={() => {
-                const r = document.querySelector<HTMLElement>('.akv-root');
-                if (r) r.dataset.rail = r.dataset.rail === 'open' ? '' : 'open';
-              }}>☰ conversations</button>
-          </div>
-          {/* Riadok, nie rad pilulek — dôvod je v CSS nad `.akc-head`. */}
-          <div className="akc-ctxline">
-            knows <i>{DEMO_CONTEXT.name}</i> · {DEMO_CONTEXT.rest}
+              onClick={() => rail(document.querySelector<HTMLElement>('.akv-root')?.dataset.rail !== 'open')}
+            >☰ conversations</button>
           </div>
         </header>
 
@@ -705,7 +961,23 @@ export function VaultChat({ onBack, onOpenScroll }: {
               <div className="akc-nform is-quiet">
                 <div className="akc-eb">new conversation</div>
                 <h5>What are you asking today?</h5>
+                {/* 🔴 KOHO SA PÝTAM. Nahradilo riadok „knows HEKTHOR…" nad vláknom —
+                    ten pri človeku s viacerými psami klamal (Matej 23. 9. 2026,
+                    voľba E1). Vyberá sa raz, tu; vo vlákne sa to už neopakuje.
+                    ⚠️ „all my dogs" sa pri jedinom psovi nezobrazí vôbec. */}
                 <div className="akc-nfrow">
+                  <span className="akc-lb">about</span>
+                  {scopeChoices(DEMO_DOGS).map((sc) => (
+                    <button type="button" className="akc-pk" key={sc}
+                      aria-pressed={(chat.scope ?? DEMO_DOGS[0]) === sc}
+                      onClick={() => pickScope(sc)}>{sc}</button>
+                  ))}
+                </div>
+                {/* ⚠️ Rozsah a štartovacie otázky nesú ten istý tvar pilulky, lenže
+                    jedno je VOĽBA a druhé AKCIA. Rozoznáva ich štítok riadku —
+                    bez neho oko vidí osem rovnakých pilulek pod sebou. */}
+                <div className="akc-nfrow">
+                  <span className="akc-lb">try</span>
                   {DEMO_STARTERS.map((s) => (
                     <button type="button" className="akc-pk" key={s.q}
                       onClick={() => askQ(s.q, s.sources)}>{s.q}</button>
@@ -714,8 +986,11 @@ export function VaultChat({ onBack, onOpenScroll }: {
                 {/* ⚠️ Medzera pred pomlčkou musí byť zapísaná (`{' — '}`) — zalomenie
                     riadku v JSX ju zožerie a text sa zliepne do „12 scrolls— and". */}
                 <p className="akc-nfnote">
-                  AINUBIS knows <b>{DEMO_CONTEXT.name}</b> · {DEMO_CONTEXT.rest}{' — '}
-                  and answers from the vault. Every answer says where it comes from.
+                  {(chat.scope ?? DEMO_DOGS[0]) === SCOPE_GENERAL
+                    ? <>AINUBIS answers from the vault, without your dogs{"'"} records.</>
+                    : <>AINUBIS knows <b>{DEMO_CONTEXT.name}</b> · {DEMO_CONTEXT.rest}{' — '}
+                      and answers from the vault.</>}
+                  {' '}Every answer says where it comes from.
                 </p>
               </div>
             )}
@@ -754,6 +1029,54 @@ export function VaultChat({ onBack, onOpenScroll }: {
           </p>
         </div>
       </section>
+
+      {/* NASTAVENIA CHATU A KREDITY — otvára ich tvár majiteľa v päte pása.
+          Prekryv, nie štvrtá obrazovka: zavretím stojíš tam, kde si stál. */}
+      <div className="akc-set" role="dialog" aria-label="Chat settings">
+        <div className="akc-setbox">
+          <div className="akc-seth">
+            <h5>Chat settings</h5>
+            <button type="button" className="akc-act" onClick={() => setSet(false)}>Close</button>
+          </div>
+
+          <div className="akc-sec">
+            <div className="akc-eb">who AINUBIS asks about by default</div>
+            <div className="akc-nfrow is-tight" style={{ marginTop: PACK_SPACE.md }}>
+              {scopeChoices(DEMO_DOGS).map((sc) => (
+                <button type="button" className="akc-pk" key={sc}
+                  aria-pressed={(chat.scope ?? DEMO_DOGS[0]) === sc}
+                  onClick={() => pickScope(sc)}>{sc}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* 🔴 KREDITY NEMAJÚ ZATIAĽ ŽIADNY PODKLAD. V celom webe niet pravidla,
+              čo kredit je, koľko ich člen dostane, za čo sa míňajú ani čo sa
+              stane pri nule — a maketa radšej prizná, že nepočíta, než aby
+              ukázala číslo, ktoré si vymyslela.
+              [[feedback_maketa_radsej_prizna_ze_nehlada]] */}
+          <div className="akc-sec">
+            <div className="akc-eb">credits</div>
+            <p>
+              <b>Not decided yet.</b> The mock-up does not count anything — how many
+              questions a member gets, and what happens at zero, is still open.
+            </p>
+          </div>
+
+          <div className="akc-sec">
+            <div className="akc-eb">conversations</div>
+            <p>{chats.length} kept · {mine.length} contributions to the brain</p>
+            <div className="akc-nfrow">
+              <button type="button" className="akc-gho">Delete all conversations</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ZATEMNENIE POD ŠUPLÍKOM — klepnutie vedľa zavrie históriu. Stojí až tu,
+          teda v DOM za vláknom: rovnaký z-index, ale neskorší prvok je vyššie. */}
+      <button type="button" className="akc-scrim" aria-label="Close conversations"
+        tabIndex={-1} onClick={() => rail(false)} />
     </>
   );
 }
