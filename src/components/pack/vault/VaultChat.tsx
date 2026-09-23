@@ -54,11 +54,26 @@ export const VAULT_CHAT_CSS = `
    Z Claude si berieme pás vľavo, nový rozhovor jedným klikom, zoskupenie po
    dňoch a hľadanie v nich. Neberieme si prázdnu pravú plochu. */
 .akc-rail{position:absolute;z-index:4;left:0;top:0;bottom:0;width:min(84vw,${RAIL_W}px);
-  display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;
+  display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto;
   background:${AINUBIS.surfaceBase};border-right:1px solid ${AINUBIS.edge};
   transform:translateX(-101%);transition:transform 180ms ease;}
 .akv-root[data-rail="open"] .akc-rail{transform:none;}
-.akc-railhd{padding:${PACK_SPACE.xl}px ${PACK_SPACE.md}px 0;
+/* HLAVA PÁSU — vzduch a meno, kým príde prvé tlačidlo (Matej 23. 9. 2026:
+   „v ľavom paneli hore tiež miesto… podobne ako to má Claude"). Claude tam má
+   logo a pod ním nový rozhovor; my tam máme jeho meno, lebo v chate zhasla
+   lišta identity a AINUBIS by inak nebol na obrazovke pomenovaný nikde.
+   ⚠️ Vzduch je ODSADENIE, nie prázdny prvok — inak ho prvý ďalší blok zožerie. */
+.akc-railtop{display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;
+  padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.xxl}px)
+    ${PACK_SPACE.md}px ${PACK_SPACE.lg}px;}
+.akc-railname{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;line-height:1;
+  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.ink};}
+/* Meno je vždy AI + NUBIS, „AI" v cyane s dosvitom (brand lock 12. 9. 2026). */
+.akc-railname i{font-style:normal;color:${AINUBIS.aiInk};text-shadow:${AINUBIS.aiShadow};
+  margin-right:-0.22em;}
+.akc-railsub{font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;line-height:1.3;
+  letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
+.akc-railhd{padding:0 ${PACK_SPACE.md}px;
   display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 /* NOVÝ ROZHOVOR je jediné plné CTA v páse — AINUBISOVA zlato-oranžová, nie
    lapis: toto je jeho povrch a on má vlastný brand. */
@@ -276,7 +291,16 @@ export const VAULT_CHAT_CSS = `
    Do 23. 9. tu stál výpočet cez --pack-nav-h — už netreba, lišta nesvieti. */
 .akc-ask{position:relative;border-top:1px solid ${AINUBIS.edge};
   padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px
-    calc(env(safe-area-inset-bottom,0px) + ${PACK_SPACE.md}px);}
+    calc(env(safe-area-inset-bottom,0px) + ${PACK_SPACE.lg}px);}
+/* MIESTO POD POĽOM (Matej 23. 9. 2026: „väčší priestor pod textareou dolu aj na
+   prípadné poznámky a slová"). Claude tu drží riadok o tom, že sa stroj mýli;
+   u nás tu stojí to, čím sa od neho líšime — odpoveď má pôvod a hranicu.
+   ⚠️ Je to MIESTO, nie jedna veta: riadok sa smie zalomiť aj na dva a pás pod
+   poľom ostane rovnaký. Preto min-height, nie pevná výška. */
+.akc-asknote{max-width:${THREAD_W}px;margin:${PACK_SPACE.md}px auto 0;min-height:${PACK_SPACE.xl}px;
+  text-align:center;font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;line-height:1.5;
+  letter-spacing:0.02em;color:${AINUBIS.inkFaint};}
+.akc-asknote b{color:${AINUBIS.inkDim};font-weight:500;}
 .akc-askin{max-width:${THREAD_W}px;margin:0 auto;display:flex;gap:${PACK_SPACE.sm}px;align-items:flex-end;}
 .akc-ask textarea{flex:1;min-width:0;resize:none;height:44px;padding:${PACK_SPACE.md}px;
   border-radius:${PACK_R.tile}px;border:1px solid ${AINUBIS.edge};background:${AINUBIS.raised};
@@ -573,6 +597,10 @@ export function VaultChat({ onBack, onOpenScroll }: {
   return (
     <>
       <aside className="akc-rail" aria-label="Conversations">
+        <div className="akc-railtop">
+          <div className="akc-railname"><i>AI</i>NUBIS</div>
+          <div className="akc-railsub">the vault · 569 scrolls</div>
+        </div>
         <div className="akc-railhd">
           <button type="button" className="akc-new" onClick={newChat}>+ New conversation</button>
         </div>
@@ -718,6 +746,12 @@ export function VaultChat({ onBack, onOpenScroll }: {
             <button type="button" className="akc-send" aria-label="Send"
               onClick={() => askQ(draft)}>↑</button>
           </div>
+          {/* Poznámka pod poľom — čím sa líšime a kde končíme. Nie je to
+              vyhrážka ani drobné písmo pre právnika: obe vety sú pravda. */}
+          <p className="akc-asknote">
+            Every answer names the scrolls it comes from. <b>AINUBIS is not a vet</b> —
+            when it is about health, take his answer to one.
+          </p>
         </div>
       </section>
     </>
