@@ -40,10 +40,21 @@ export function ConsentBanner() {
   // nešiel — na telefóne sa nedalo vstúpiť do platenej funnely. Na PC (lišta
   // 118 px) sa to nikdy neprejavilo, preto to prežilo do 15. 9. 2026.
   //
-  // ⛔ 22. 9. 2026 ZMENA: lišta klesla na 112 px a obsah stránok už NEPOSÚVA —
-  // prekrýva ho (Matej: „radšej keby zakryli obsah na mobile než ho vytlačiť").
-  // Premennú dnes čítajú LEN okná, ktoré si človek sám otvoril (panel `+`,
-  // denník) — ich tlačidlá by lišta zakryla. Stránka ani nav ju nečítajú.
+  // ⛔ 22. 9. 2026 ZMENA: lišta prestala obsah POSÚVAŤ — prekrýva ho
+  // (Matej: „radšej keby zakryli obsah na mobile než ho vytlačiť").
+  // Premennú dnes číta LEN denník a koniec scrollu `/heroglyph` + `/entry`.
+  // ⚠️ PANEL `+` JU NEČÍTA. Stálo tu, že áno — nebola to pravda ani v deň,
+  //    keď sa to písalo. `AddTripEntry` si polohu berie z `--pack-nav-bottom`
+  //    + `--pack-nav-h`, o cookie lište nevie nič. (Premerané 23. 9. 2026.)
+  // ⚠️ VÝŠKA NIE JE 112 px. Stálo tu to číslo, merané je 23. 9. 2026 na DEV:
+  //    390 px → 133 · 500 px → 116 · 1280 px → 152 (na PC je to karta vpravo).
+  //
+  // 🔴 ZNÁMY A VEDOME PONECHANÝ STAV (Matej 23. 9. 2026): na 390 aj 500 px leží
+  //    lišta cez CELÚ spodnú lištu `/pack` — všetkých päť slotov (DOMOV, VON, `+`,
+  //    AINUBIS, JA) vracia z `elementFromPoint` `consent-split-main`, teda klik
+  //    fyzicky nejde, kým človek nezvolí súhlas. Vidí to len nový člen pri prvom
+  //    vstupe; po voľbe je všetko klikateľné (overené). Matej to nechal tak:
+  //    „je to jeden ťuk". Kto to bude meniť, nech vie, že to nie je prehliadnutie.
   // Pôvodné riešenie bolo ODSADENIE, nie nižšia lišta: výšku publikujeme na <html> a
   // obrazovka si ju pripočítala k spodnému paddingu (`Entry.tsx`). Meriame
   // `ResizeObserver`-om, lebo výška sa mení jazykom, zalomením aj otvorením
