@@ -83,8 +83,16 @@ const CSS = `
 /** `stats` nahradí riadok „km · výlety" — povrch, ktorý nie je o výletoch, nesie vlastné
  *  počty (AINUBIS 22. 9.: „meno nebude mať počet tripov ani km, tu sa bude rátať počet
  *  svetov / okruhov / zvitkov / celkové %"). */
-export function PackIdentityBar({ id, middle, stats }: {
+export function PackIdentityBar({ id, middle, stats, primary }: {
   id: ReturnType<typeof usePackIdentity>; middle?: ReactNode; stats?: ReactNode;
+  /**
+   * Čo stojí v PRVOM riadku namiesto mena. Mapa tam má `1516,1 KM`, teda ČÍSLO —
+   * a Matej 23. 9. 2026 rozhodol, že AINUBIS sa má mape zhodovať: *„ainubis nebude
+   * mať pri fotka meno ale počet svetov"* → *„ok daj len svety a %"*.
+   * ⚠️ Keď `primary` nepríde, ostáva meno — bar je spoločný a ďalší povrch ho môže
+   *    chcieť. Meno sa NEODSTRAŇUJE z komponentu, len sa dá prekryť.
+   */
+  primary?: ReactNode;
 }) {
   const t = useT();
   const navigate = useNavigate();
@@ -144,7 +152,7 @@ export function PackIdentityBar({ id, middle, stats }: {
           badgeContent={lv.level}
         />
         <span className="pkid-txt">
-          <span className="pkid-name">{name}</span>
+          <span className="pkid-name">{primary ?? name}</span>
           <span className="pkid-stats">
             {stats ?? (
               <><b>{view.km}</b>{t('pack.map.statKm')} · <b>{view.count}</b>{t('pack.map.statTrips' + pluralKey(view.count))}</>

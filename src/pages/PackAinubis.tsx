@@ -93,13 +93,28 @@ const CSS = `
   pointer-events:none;}
 .akv-top > *{pointer-events:auto;}
 .akv-toprow{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;}
+/* ── VÝŠKA PREPÍNAČA = VÝŠKA PREPÍNAČA NA /map (Matej 23. 9. 2026) ────────────
+   Zadanie: „skúsme urobiť to aby bol header totožnej veľkosti — treba zmenšiť
+   prepínače v ainubisovi". Merané na 390 px: mapa 33 px, AINUBIS mal 46.
+   Dnes 35 (zvyšok je gap, ktorý mapa nemá).
+
+   Rovnica, nie meranie po vykreslení:
+     obal   4 + 4 padding + 1 + 1 border            = 10
+     pilulka 4 + 4 padding + 1 + 1 border + 15 riadok = 25
+                                                  spolu 35
+
+   🔴 KĽÚČOVÉ: výšku ubralo PÍSMO, nie odsadenia. Mapa má 10 px (PACK_TEXT.micro),
+   AINUBIS mal 12 — a riadok z 18 na 15 je 3 px z tých jedenástich. Preto sa zhoda
+   dá dosiahnuť BEZ čísel mimo stupnice, hoci mapa sama ich používa (3 px a 5 px).
+   Prvý pokus ich sem skopíroval; stráž check:pack ho zhodila a mala pravdu —
+   základňa sa smie len zmenšovať. Pozor pri ďalšom ladení: ber PACK_SPACE, nie mapu. */
 .akv-planes{flex:1 1 auto;min-width:0;display:flex;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.xs}px;
   border-radius:${PACK_R.pill}px;background:${AINUBIS.surface};border:1px solid ${AINUBIS.edge};
   box-shadow:${AINUBIS.panelShadow};}
 .akv-plane{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.xs}px;
-  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;border:1px solid transparent;
+  padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;border:1px solid transparent;
   background:transparent;color:${AINUBIS.inkDim};cursor:pointer;white-space:nowrap;
-  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;
+  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;line-height:15px;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;}
 /* Výber je PRIESVITNÝ TINT, nie plná plocha — AINUBIS vyberá cyanom (ainubisSkin). */
 .akv-plane[aria-current="page"]{color:${AINUBIS.ink};background:rgba(${AINUBIS.cyanRGB},0.16);
@@ -514,14 +529,17 @@ export default function PackAinubis() {
      orezanie PC na svety + %. Keď sa rozpad zmení, zmení sa číslo — to je v poriadku. */
   const read = { worlds: 0, circles: 0, scrolls: 0 };
   const pct = Math.round((read.scrolls / Math.max(1, TOTAL_SCROLLS)) * 100);
-  const vaultStats = (
-    <>
-      <b>{read.worlds}/{VAULT_WORLDS.length}</b>{tx('pack.ainubis.stat.worlds', 'worlds')}
-      <span className="akv-stat-x">{' · '}<b>{read.circles}/{TOTAL_CIRCLES}</b>{tx('pack.ainubis.stat.circles', 'circles')}</span>
-      <span className="akv-stat-x">{' · '}<b>{read.scrolls}/{TOTAL_SCROLLS}</b>{tx('pack.ainubis.stat.scrolls', 'scrolls')}</span>
-      {' · '}<b>{pct} %</b>
-    </>
+  /* 🔴 HLAVIČKA = SVETY A %, BEZ MENA (Matej 23. 9. 2026).
+     Prvé zadanie: *„ainubis nebude mať pri fotka meno ale počet svetov a okruhov"*,
+     spresnené o hodinu: *„ok daj len svety a %"*. Dva riadky s číslami — presne ako
+     mapa (`1516,1 KM` / `73 VÝLETOV`), ktorá je podľa toho istého zadania vzorom.
+     ⚠️ OKRUHY A ZVITKY TÝM NEZANIKAJÚ. Ráno 23. 9. bolo rozhodnuté, že ich
+        menovatele (62 / 569) ostávajú viditeľné — to platí o ZOZNAME a rozpade
+        svetov, nie o hlavičke. Hlavička je identita, nie prehľad. */
+  const vaultPrimary = (
+    <>{read.worlds}/{VAULT_WORLDS.length} {tx('pack.ainubis.stat.worlds', 'worlds')}</>
   );
+  const vaultStats = (<><b>{pct} %</b></>);
 
   return (
     <div className="akv-root" ref={rootRef} data-view={view}>
@@ -605,6 +623,7 @@ export default function PackAinubis() {
       <div className="akv-top" ref={topRef}>
         <PackIdentityBar
           id={id}
+          primary={vaultPrimary}
           stats={vaultStats}
           middle={(
             <span className="akv-when">
