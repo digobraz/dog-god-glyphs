@@ -294,7 +294,10 @@ const CSS = `
     border-right:1px solid ${AINUBIS.edge};}
   .akv-lhead{max-width:none;padding:0 ${PACK_SPACE.xl}px ${PACK_SPACE.lg}px;gap:${PACK_SPACE.lg}px;}
   .akv-list{padding:${PACK_SPACE.lg}px ${PACK_SPACE.xl}px ${BOTTOM_PC + PACK_SPACE.xl}px;}
-  /* Roviny sa na PC presťahovali do ľavého bloku (Matej 22. 9.). */
+  /* Roviny sa na PC presťahovali do ľavého bloku (Matej 22. 9.).
+     🔒 Matej 23. 9. 2026: OSTÁVA TAK, presun hore aj na PC zamietnutý. Rovina mení
+     obsah ĽAVÉHO bloku, tak stojí pri ňom; hore je na mobile len preto, že tam ľavý
+     stĺpec neexistuje. Pravidlo „hore prepínam ROVINU" (lock §1.3.1) je o mobile. */
   .akv-toprow{display:none;}
   .akv-ctl{right:${PACK_SPACE.xl}px;}
   .akv-ptools{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;}
@@ -504,7 +507,11 @@ export default function PackAinubis() {
   );
   const filtersLabel = wf >= 0 ? t('pack.map.filtersCount', { n: 1 }) : t('pack.map.filters');
   /* Postup vo VAULTE — dnes nula, lebo žiadny svet ešte nie je otvorený. Keď pribudne
-     čítanie, čísla prídu z neho; menovatele sú súčty z rozpadu svetov. */
+     čítanie, čísla prídu z neho; menovatele sú súčty z rozpadu svetov.
+     🔒 Matej 23. 9. 2026: menovatele 62 okruhov / 569 zvitkov OSTÁVAJÚ viditeľné aj
+     predtým, než je rozpad svetov odsúhlasený — sú to CIEĽOVÉ čísla, nie stav.
+     Zamietnuté boli obe úľavy: skrytie menovateľov („0 svetov · 0 okruhov") aj
+     orezanie PC na svety + %. Keď sa rozpad zmení, zmení sa číslo — to je v poriadku. */
   const read = { worlds: 0, circles: 0, scrolls: 0 };
   const pct = Math.round((read.scrolls / Math.max(1, TOTAL_SCROLLS)) * 100);
   const vaultStats = (
@@ -561,7 +568,10 @@ export default function PackAinubis() {
         <header className="akv-lhead">
           {/* Riadok nadpisu má PRAVÚ STRANU VOĽNÚ — Matej 22. 9.: „vedľa nadpisu sa žiada
               niečo doplniť, asi časom filter, zoradenie". Pod nadpis už nič nepribúda,
-              ľavý blok má čo najviac miesta na scrolling. */}
+              ľavý blok má čo najviac miesta na scrolling.
+              🔒 Matej 23. 9. 2026: OSTÁVA PRÁZDNA. Zoradenie ani prstenec postupu tam
+              nejdú — kým je v zozname 7 upútaviek svetov, ovládač je nábytok bez práce
+              (a postup už nesie riadok pod menom). Vracia sa to až so zvitkami. */}
           <div className="akv-lhead-row">
             <div>
             <h1 className="akv-title">{tx('pack.ainubis.dogscroll.title', 'Dogscrolling')}</h1>
