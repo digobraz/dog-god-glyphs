@@ -737,4 +737,17 @@ const PATRON_CSS = `
   .pt-sil { width: 70px; height: 70px; }
   .pt-sil img { width: 52px; height: 52px; }
 }
+
+/* ── 📱 VYSOKÝ TELEFÓN: VIAC VZDUCHU V BLOKOCH (25. 9. 2026) ──────────────────
+   Matej: *„patrón a povaha na tel kľudne daj na 85 = pridaj väčšie okraje 1.
+   alebo druhému bloku, aby si to viac vyplnil."* Na 390×844 mal patrón výplň
+   74 % — najprázdnejšia zostava z celého vstupu (merač HRANICA).
+   🔑 RASTIE VZDUCH V BLOKOCH, NIE OBSAH. Dlaždice, rám ani písmo sa nedotýkajú:
+      na telefóne sú už zväčšené a ďalší rast by ich priblížil k okrajom dosky.
+   ⚠️ LEN VYSOKÝ TELEFÓN (min-height 701). iPhone SE má 667 a tam je patrón na
+      91 % — pridať vzduch by ho poslalo cez hranicu. */
+@media (max-width: 559px) and (min-height: 701px) {
+  .pt-speak { padding: 16px; margin-bottom: 12px; }
+  .pt-stack .hf-plate { padding: 32px 22px; gap: 16px; }
+}
 `;

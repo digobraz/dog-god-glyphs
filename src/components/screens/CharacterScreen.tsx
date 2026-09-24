@@ -409,4 +409,14 @@ const CHARACTER_CSS = `
   .ch-trait img { width: 52px; height: 52px; }
   .ch-say { min-height: 60px; }
 }
+
+/* ── 📱 VYSOKÝ TELEFÓN: VIAC VZDUCHU V BLOKOCH (25. 9. 2026) ──────────────────
+   Ten istý zásah ako na PATRÓNOVI a z tej istej vety (Matej: *„patrón a povaha
+   na tel kľudne daj na 85 = pridaj väčšie okraje 1. alebo druhému bloku"*).
+   Povaha mala na 390×844 výplň 77 %.
+   ⚠️ LEN VYSOKÝ TELEFÓN (min-height 701) — na iPhone SE je povaha na 87 %. */
+@media (max-width: 559px) and (min-height: 701px) {
+  .ch-speak { padding: 16px; margin-bottom: 12px; }
+  .ch-stack .hf-plate { padding: 32px 22px; gap: 16px; }
+}
 `;

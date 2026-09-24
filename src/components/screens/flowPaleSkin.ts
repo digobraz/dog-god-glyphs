@@ -141,31 +141,6 @@ export const FLOW_STAGE_CSS = `
 }
 /* 🔴 TOTO nahrádza \`justify-content: center\` — viď pascu vyššie. */
 .hf-stage > * { margin-top: auto; margin-bottom: auto; }
-
-/* ── OBRAZOVKA, KTORÁ RASTIE DO HRANICE — \`.hf-fill\` (25. 9. 2026) ──────────
-   Matej: *„Tvoja svorka síce začína na malom, ale tam sa ráta s tým, že sa má
-   kam zväčšovať… kľudne to ale urob tak, že ju natiahni na max povolenú a len
-   zmenšuj obsah (chceme, aby každá obrazovka mobil aj PC mali tie isté zásady
-   a boli cca rovnaké, nepretekali a sedeli aj na mobile aj PC)."*
-
-   🔑 DVA DRUHY OBRAZOVIEK, JEDNA HRANICA. Väčšina krokov má pevný obsah a
-      stojí v strede (\`margin: auto\`). Krok, ktorého obsah RASTIE s dátami
-      (zoznam psov), dostane \`.hf-fill\`: zaberie presne miesto medzi hranicami
-      a to, čo sa doň nezmestí, sa zmenší alebo odroluje VNÚTRI — stránka sa
-      nehýbe.
-   🔴 A JE TO ZÁROVEŇ POISTKA PROTI PRETEČENIU: výška obrazovky prestáva závisieť
-      od počtu položiek. */
-.hf-stage > .hf-fill {
-  flex: 1 1 auto;
-  min-height: 0;
-  width: 100%;
-  margin-top: 0;
-  margin-bottom: 0;
-}
-/* Zlatý blok vnútri takej obrazovky rastie s ňou; doska v ňom je stĺpec, ktorého
-   jedno dieťa (zoznam) si berie zvyšok. */
-.hf-fill > .hf-block { flex: 1 1 auto; min-height: 0; display: flex; }
-.hf-fill > .hf-block > .hf-plate { flex: 1 1 auto; min-height: 0; }
 `;
 
 export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
@@ -438,33 +413,23 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
    Matej: *„psy sa budú dať medzi sebou prehodiť ako je v nákrese podľa poradia
    (to poradie sa predvyplní už aj v heroglyfe)"*.
    🔑 Poradie je vlastnosť ZOZNAMU (ťahanie), fotka je vlastnosť RIADKA. */
-/* 🔴 KEĎ SA RIADKY ZMESTIA, STOJA V STREDE PLOCHY — \`margin: auto 0\` na DIEŤATI
-   (25. 9. 2026). Plocha je od tohto dňa ZVYŠOK dosky (\`.hf-fill\`), takže pri
-   jednom-dvoch psoch je väčšia než zoznam a ten by inak visel pri hornej hrane
-   s dierou pod sebou.
-   ⚠️ NIE \`justify-content: center\` — to je pasca z locku \`PAGE_AIR\`: pri
-      pretečení sa prebytok rozdelí na obe strany a horná časť sa NEDÁ odrolovať.
-      \`margin: auto\` sa pri pretečení sám zruší a rolovanie začína zhora. */
-.hf-doglist { list-style: none; margin: auto 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.hf-doglist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .hf-doglist li { list-style: none; }
 
 /* ── MANTINEL PLOCHY (24. 9. 2026) ────────────────────────────────────────
    Matej: *„pri 6 psoch sa celá stránka roztiahne a je zle"* — šiesty pes
-   odsunul POKRAČOVAŤ pod ohyb.
-   🔴 OD 25. 9. 2026 PLOCHA NEMÁ STROP, ALE JE TO ZVYŠOK DOSKY (\`flex: 1\`).
-      Inline \`max-height\` z rovnice o podiele okna zanikol — bol to odhad, ktorý
-      o ostatných blokoch nevedel a obrazovka pri troch psoch pretekala. Režim
-      riadka (plný / úzky) sa odteraz rozhoduje podľa SKUTOČNEJ výšky tejto
-      plochy (\`ResizeObserver\` v \`DogsScreen.tsx\`).
+   odsunul POKRAČOVAŤ pod ohyb. Strop drží ROVNICA v \`DogsScreen.tsx\`
+   (\`LIST\`), sem chodí ako inline \`max-height\`; CSS ho neprepisuje, inak by
+   sa režim riadka a skutočná výška rozišli.
+   🔴 25. 9. 2026 TU BOL POKUS NATIAHNUŤ PLOCHU NA ZVYŠOK DOSKY (\`flex: 1\`) —
+      Matej ho nad snímkou VRÁTIL: *„tu svorku vráť ako bola, je to zle"*. Pri
+      jednom psovi vznikla v ploche diera cez pol obrazovky, lebo zoznam dostal
+      výšku, ktorú nemal čím naplniť. Strop z rovnice ostáva.
    ⚠️ Vodorovný scroll musí ostať viditeľný obsah — riadok pri ťahaní vystupuje
       z toku, takže \`overflow-x\` NIE JE hidden, len \`clip\` by ho orezal.
    Okraje plochy majú náznak, že text pokračuje: jemný tieň zhora aj zdola. */
 .hf-dogscroll {
   width: 100%; overflow-y: auto; overflow-x: visible;
-  /* Zvyšok dosky, nie strop z rovnice. \`min-height: 0\` je povinné — bez neho
-     flexový potomok nikdy neklesne pod výšku svojho obsahu a plocha by rástla
-     ďalej, presne ako predtým. */
-  flex: 1 1 auto; min-height: 0;
   /* Miesto pre lift riadka pri hoveri (\`translateY(-1px)\`) a pre jeho tieň. */
   padding: 2px 2px 3px;
   margin: -2px -2px -3px;
@@ -474,6 +439,23 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
 .hf-dogscroll::-webkit-scrollbar { width: 6px; }
 .hf-dogscroll::-webkit-scrollbar-thumb { background: rgba(201,154,63,.55); border-radius: 999px; }
 .hf-dogscroll::-webkit-scrollbar-track { background: transparent; }
+
+/* ── POISTKA PROTI PRETEČENIU — \`.hf-dogfit\` (25. 9. 2026) ─────────────────
+   🔴 NIE JE TO VRÁTENÝ POKUS O NATIAHNUTIE. Ten Matej zamietol nad snímkou
+      (*„tu svorku vráť ako bola, je to zle"*), lebo zoznam dostal výšku, ktorú
+      pri jednom psovi nemal čím naplniť — diera cez pol obrazovky.
+   🔑 ROZDIEL JE V JEDNOM SLOVE: \`flex: 0 1 auto\` = smie sa len ZMENŠIŤ, nikdy
+      nerastie. Pri jednom psovi je teda zoznam presne taký vysoký ako jeho
+      obsah (obrazovka vyzerá ako predtým), pri piatich sa zmenší a roluje
+      VNÚTRI — stránka sa nehýbe.
+   ⚠️ Inline \`max-height\` z rovnice (\`LIST\`) ostáva: on rozhoduje, kedy riadok
+      prejde do úzkeho režimu. Toto je len strop, cez ktorý sa už nedá pretiecť.
+   ⚠️ \`min-height: 0\` musí byť na CELEJ reťazi (stĺpec → blok → doska), inak
+      flexový potomok neklesne pod výšku obsahu a strop neplatí. */
+.hf-stage > .hf-dogfit { max-height: 100%; min-height: 0; }
+.hf-dogfit > .hf-block { min-height: 0; display: flex; }
+.hf-dogfit > .hf-block > .hf-plate { min-height: 0; width: 100%; }
+.hf-dogfit .hf-dogscroll { flex: 0 1 auto; min-height: 0; }
 
 /* ── ÚZKY RIADOK — číslo · meno · značka (24. 9. 2026) ────────────────────
    Matej: *„keď ich bude 4/5, riadok by sa mohol zmenšiť len na číslo, meno
