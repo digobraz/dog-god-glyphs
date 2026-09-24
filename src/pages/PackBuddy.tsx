@@ -21,7 +21,7 @@ import { AinubisBubble } from '@/components/pack/ainubisSheet';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PAGE_AIR,
-  PACK_SHADOW, PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS, MEDALLION_CSS, FONT_TITLE, FONT_UI,
+  PACK_SHADOW, PACK_AVATAR, PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS, MEDALLION_CSS, FONT_TITLE, FONT_UI,
 } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import {
@@ -53,7 +53,7 @@ const CSS = `
 .bd-root{min-height:100dvh;display:flex;flex-direction:column;}
 .bd-top{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;
   padding:${PAGE_AIR.min}px ${PAGE_AIR.side}px ${PACK_SPACE.sm}px;}
-.bd-top h1{margin:0;text-align:center;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;
+.bd-top h1{margin:0;display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.sm}px;text-align:center;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;
   letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
 .bd-gear{justify-self:end;width:40px;height:40px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};
   background:${T.cardSoft};display:flex;align-items:center;justify-content:center;cursor:pointer;}
@@ -367,7 +367,9 @@ export default function PackBuddy() {
       {view === 'intro' && (
         <>
           <div className="bd-card bd-center" style={{ ...PACK_BOX.card }}>
-            {pair}
+            {/* DOČASNÉ LOGO = nos z kitu (`nose.svg`). Logo na mieru (FF → psí nos) sa vyberá,
+                zadanie `plany/sniffer-logo-2026-09-24.md`. */}
+            <BrandIcon name="nose" size={PACK_AVATAR.lg} tint="gold" />
             <h2 className="bd-h2">{tx('pack.buddy.title', 'Buddies')}</h2>
             <p className="bd-lead">
               {tx('pack.buddy.intro', 'Buddies are people your dog goes out with. Until you switch this on, you see nobody — and nobody sees you.')}
@@ -570,7 +572,7 @@ function Shell({ title, onBack, backLabel, onGear, gearLabel, children }: {
       <style>{CSS}</style>
       <header className="bd-top">
         <BackButton tone="pale" onClick={onBack} label={backLabel} />
-        <h1>{title}</h1>
+        <h1><BrandIcon name="nose" size={PACK_SPACE.xl} tint="gold" className="bd-logo" />{title}</h1>
         {onGear ? (
           <button type="button" className="bd-gear" onClick={onGear} aria-label={gearLabel}>
             <BrandIcon name="sliders" size={PACK_SPACE.lg} tint="dark" />
