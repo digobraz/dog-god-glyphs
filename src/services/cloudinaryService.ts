@@ -75,6 +75,14 @@ export const uploadDogDiaryPhoto = (blob: Blob, dogId: string, stamp: string) =>
 export const uploadTripStoryPhoto = (blob: Blob, slug: string, stamp: string) =>
   uploadBlob(blob, `trip-stories/${slug}`, stamp);
 
+// Fotka PODUJATIA (vlna 2, 25. 9. 2026) — `pack-events/<edition_id>/<stamp>`.
+// ⚠️ id ročníka vzniká v prehliadači PRED zápisom (`crypto.randomUUID()`), lebo fotka sa
+//    nahráva skôr než riadok — inak by bol priečinok neznámy. Recap „uskutočnilo sa" ide
+//    do toho istého priečinka s predponou `recap-`, aby sa neprepísala úvodná fotka.
+// ⚠️ Unsigned cez preset ako výlety, NIE signovane — `check:tok` má na to lekciu.
+export const uploadEventPhoto = (blob: Blob, editionId: string, stamp: string) =>
+  uploadBlob(blob, `pack-events/${editionId}`, stamp);
+
 // Delivery URLs (on-the-fly transformations)
 export const certPreviewUrl = (publicId: string) =>
   `${BASE_URL}/c_fill,w_400,h_400,r_max,f_auto,q_auto/${publicId}`;

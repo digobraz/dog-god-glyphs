@@ -5,6 +5,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
+import { useMyEventCount } from '@/components/pack/events/eventStore';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI, PACK_SHADOW, GOLD_BTN } from '@/components/pack/packTheme';
 // Bledý chrome: inkousty a plochy (PALE), lapisové CTA a priesvitný tint výberu.
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy aj triplist.
@@ -1397,6 +1398,9 @@ function pointsLegend(t: TFn): Array<[string, string]> {
     // Odkaz do legendy pribudol s jeho zapojením do skóre (25. 8. 2026) — dovtedy tu chýbal,
     // hoci dlaždica ODKAZ pri pridávaní jeho cenu vypisovala.
     [t('pack.stats.legend.mapNote'), `+${POINTS.note}`],
+    // Podujatie dáva body až PO potvrdení „uskutočnilo sa" (Matej 24. 9. 2026) — veta to hovorí,
+    // aby nikto nečakal desiatku za samotné založenie.
+    [t('pack.stats.legend.eventHeld'), `+${POINTS.event}`],
     [t('pack.stats.legend.visitPlace'), `+${POINTS.visit}`],
     [t('pack.stats.legend.perKm'), `+${POINTS_PER_KM}`],
     [t('pack.stats.legend.per100m'), `+${POINTS_PER_100M}`],
@@ -1567,6 +1571,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
   // miestach a neplatila ani raz. Číslo chodí hotové (po stropoch) z jedného zdroja, nech sa
   // štyri povrchy s levelom nerozídu.
   const myNotePoints = useMyNotePoints();
+  const myEventCount = useMyEventCount();
   /**
    * PSIE ČÍSLA (B20). Zdroj je `dog_trips` cez `dogTripStats()` — ten istý modul,
    * z ktorého číta psí profil, aby dve obrazovky nehlásili o tom istom psovi iné km.
@@ -1583,7 +1588,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
       }))
       .filter((d) => d.trips > 0)
   ), [id.dogs, storeEpoch, t]);
-  const profilePoints = profilePointsFor(walkedTrails, { addedIds: addedByMe, ratings: myRatings, countries: countriesTraveled, notePoints: myNotePoints });
+  const profilePoints = profilePointsFor(walkedTrails, { addedIds: addedByMe, ratings: myRatings, countries: countriesTraveled, notePoints: myNotePoints, eventsHeld: myEventCount });
   const lvl = levelProgress(profilePoints.total);
 
   return (

@@ -404,7 +404,12 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                             fontSize: 12, lineHeight: 1.35, color: c.ink,
                           }}
                         >
-                          {al.kind === 'trip_request'
+                          {al.kind.startsWith('event_')
+                            // Podujatia: veta podľa druhu, pri „niekto sa pridal" s počtom.
+                            ? (al.kind === 'event_rsvp'
+                              ? t('pack.alerts.eventRsvp' + pluralKey(al.count), { count: al.count })
+                              : t('pack.alerts.' + ({ event_changed: 'eventChanged', event_cancelled: 'eventCancelled', event_reminder: 'eventReminder', event_held_ask: 'eventHeldAsk' } as Record<string, string>)[al.kind]))
+                            : al.kind === 'trip_request'
                             ? t('pack.alerts.request' + pluralKey(al.count), { count: al.count })
                             : al.kind === 'trip_walked'
                               // Pozvánka, nie hotový záznam — appka za človeka nič nezapisuje

@@ -1,10 +1,7 @@
-// ADD EVENT — dátový model (krok 3, plany/zadanie-eventy-2026-08-06.md §3, §4).
-// Tvar sedí na `event_series`/`event_editions` z `vystupy/supabase/migrations/20260806_events.sql`,
-// ale tá migrácia ešte NIE JE nasadená na žiadnu DB (§9 krok 2 je hotový, krok 3 = tento formulár) —
-// preto tu žiadny Supabase zápis, len localStorage. Write-through vzor + defenzívne try/catch
-// s fallbackom na sessionStorage je 1:1 skopírovaný z `readAddDraft`/`writeAddDraft` v
-// `../addtrip/addTripModel.ts` (rovnaká pasca: private mode / plná kvóta nesmie potichu stratiť
-// rozpísaný event).
+// ADD EVENT — dátový model formulára (krok 3, plany/zadanie-eventy-2026-08-06.md §3, §4).
+// Tvar sedí na `event_series`/`event_editions` (`20260806_events.sql` + `20260925_events_v2.sql`).
+// Zápis do DB robí `eventStore.ts` (vlna 2, 25. 9. 2026) — tento súbor je len tvar a pravidlá
+// formulára, o úložisku nevie.
 import type { LatLngTuple } from 'leaflet';
 
 // Poradie = poradie pillov vo formulári (zhluknuté podľa príbuznosti, nie abecedne).
@@ -17,9 +14,8 @@ import type { LatLngTuple } from 'leaflet';
 // zraz vs. spoločná prechádzka, adopčný deň vs. charita. Jedenásť pilulek vo formulári
 // bolo viac deliacich čiar než rozdielov — a typ, ktorý sa vyberá hodom mincou, dataset
 // neupratuje, ale špiní.
-// ⚠️ Migrácia `20260806_events.sql` NIE JE nasadená na žiadnej DB (eventy žijú
-// v localStorage), takže sa nič nemigruje. Starý uložený draft s týmto typom prežije:
-// `eventEmoji()` mu dá 🎪 a `EventCard` padne na `?? draft.kind`.
+// ⚠️ V čase zúženia migrácia nebola nasadená na žiadnej DB, takže sa nič nemigrovalo.
+// `eventEmoji()` má fallback 🎪 a `EventCard` padne na `?? item.kind`.
 export type EventKind = 'race' | 'show' | 'training' | 'lecture'
   | 'social_walk' | 'charity' | 'camp' | 'expo';
 export type EventOrigin = 'own' | 'tip';
@@ -46,7 +42,7 @@ export const EVENT_KIND_LABEL_KEYS: Record<EventKind, string> = {
 };
 
 // Jeden ročník (event_editions riadok) + denormalizovaný `title`/`kind`/`country` zo série —
-// vo vlne 1 nemá zmysel držať dve tabuľky v localStorage, kým DB neexistuje (§9 krok 2→3).
+// formulár pracuje s jedným objektom, na sériu a ročník ho rozloží až `save_event` v DB.
 export type AddEventDraft = {
   id: string;
   origin: EventOrigin;
@@ -108,47 +104,8 @@ export function normalizeSourceUrl(raw: string): string {
   return /^[a-z][a-z0-9+.-]*:/i.test(v) ? v : `https://${v}`;
 }
 
-// ── Uložené eventy (§ zadania „Úložisko") — kľúč `trp-events-own-v1`, rovnaký obranný vzor
-// ako addStore v addTripModel.ts: localStorage s probe, fallback sessionStorage pri zlyhaní
-// (private mode / quota). Nepridáva sa do PACK_KEYS (lib/packStore.ts) — DB sync príde až po
-// nasadení migrácie (§9 krok 2→ďalšie), tento súbor sa vtedy needituje, len sa vedľa napojí sync.
-const eventStore: Storage = (() => {
-  try { const k = '__trp_events_probe'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return localStorage; }
-  catch { return sessionStorage; }
-})();
-const EVENTS_KEY = 'trp-events-own-v1';
-
-export function readLocalEvents(): AddEventDraft[] {
-  try {
-    const raw = eventStore.getItem(EVENTS_KEY);
-    return raw ? (JSON.parse(raw) as AddEventDraft[]) : [];
-  } catch { return []; }
-}
-
-export function writeLocalEvents(events: AddEventDraft[]): boolean {
-  try { eventStore.setItem(EVENTS_KEY, JSON.stringify(events)); return true; }
-  catch { return false; /* private mode / quota — volajúci nech to ošetrí */ }
-}
-
-// ── Nadchádzajúce / archív (krok 5, plany/zadanie-eventy-2026-08-06.md §9 krok 5 + §4.5) —
-// ČISTÝ filter/zoradenie, nikdy delete (archív = "ends_at < now()", riadok ostáva). `nowMs` je
-// parameter (nie Date.now() tu vnútri) — volajúci (PackMap.tsx) zdieľa to isté "now" s ostatnými
-// komunitnými zoznamami na stránke (`nowMs`, fixné pri mounte, viď komentár tam). ─────────────
-const eventStartMs = (ev: AddEventDraft): number => {
-  const t = new Date(ev.startsAt).getTime();
-  return Number.isFinite(t) ? t : 0;
-};
-const eventEndMs = (ev: AddEventDraft): number => {
-  const t = new Date(ev.endsAt || ev.startsAt).getTime();
-  return Number.isFinite(t) ? t : eventStartMs(ev);
-};
-
-/** default zoznam — najbližší termín hore. */
-export function upcomingEvents(events: AddEventDraft[], nowMs: number): AddEventDraft[] {
-  return events.filter((ev) => eventEndMs(ev) >= nowMs).sort((a, b) => eventStartMs(a) - eventStartMs(b));
-}
-
-/** archív — naposledy konané hore. */
-export function archivedEvents(events: AddEventDraft[], nowMs: number): AddEventDraft[] {
-  return events.filter((ev) => eventEndMs(ev) < nowMs).sort((a, b) => eventStartMs(b) - eventStartMs(a));
-}
+// ── ÚLOŽISKO JE OD 25. 9. 2026 DATABÁZA ──────────────────────────────────────────────────────
+// Tu do 24. 9. žili `readLocalEvents`/`writeLocalEvents` (kľúč `trp-events-own-v1`) a filtre
+// nadchádzajúce/archív. Podujatie tak videl len ten, kto ho napísal. Čítanie aj zápis sú
+// odteraz v `eventStore.ts` nad RPC a archív filtruje DB (`list_event_editions(p_archive)`).
+// Starý kľúč `eventStore` pri prvom načítaní zmaže — koncepty sa nemigrujú (§5.1 zadania).

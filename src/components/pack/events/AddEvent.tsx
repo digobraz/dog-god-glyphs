@@ -8,9 +8,19 @@
 // (~1822) — samostatná ľahká kópia namiesto vytiahnutia zdieľanej komponenty (search box tam je
 // vnorený priamo v JSX PackMapu, nie samostatný export; extrakcia by bola refaktor mimo zadania).
 //
-// KROK 4 (mimo rozsahu tohto kroku): automatické predvyplnenie z `sourceUrl` (JSON-LD/OG čítanie
-// odkazu, kontrola duplicity, Anubis). Tu sa `sourceUrl` len ULOŽÍ — človek vyplní zvyšok ručne.
+// VLNA 2 (25. 9. 2026, plany/zadanie-podujatia-funkcne-2026-09-24.md §5.4):
+//   · zápis do DB cez `eventStore.saveEvent` (volá PackMap); pri chybe formulár OSTANE vyplnený
+//     a povie prečo
+//   · ÚPRAVA existujúceho podujatia (`initial`) — ten istý formulár, nie druhá obrazovka
+//   · FOTKA sa nahráva na Cloudinary (unsigned preset ako výlety) pod `pack-events/<id>/`;
+//     `id` vzniká tu v prehliadači, lebo fotka ide skôr než riadok
+//   · TIP: po vložení odkazu sa volá edge `event-link-preview` a predvyplní fakty (názov,
+//     termín, miesto, organizátor). Facebook dnu nepustí → človek doplní ručne.
+//   · tvrdá duplicita (`source_url` už máme) → „už ho máme" + ukázať existujúce
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { optimizePhoto } from '@/components/pack/addtrip/photoOptimize';
+import { uploadEventPhoto } from '@/services/cloudinaryService';
+import { previewLink, isoToLocalInput, type EventItem } from './eventStore';
 import type { MutableRefObject } from 'react';
 import L from 'leaflet';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
@@ -28,12 +38,19 @@ import {
 const GOLD = T.cardEdge;
 const GOLD_BRIGHT = '#F5C73D';
 
+/** Výsledok zápisu, ako ho formulár potrebuje: chyba nesie i18n kľúč, duplicita id pôvodného. */
+export type AddEventOutcome = { ok: true } | { ok: false; errorKey: string; duplicateId?: string };
+
 export type AddEventProps = {
   origin: EventOrigin;
   authorName: string;
-  /** false = zlyhal zápis (napr. plná kvóta) — formulár zostane otvorený, ukáže chybu. */
-  onSubmit: (draft: AddEventDraft) => boolean;
+  /** Zápis do DB robí volajúci. Pri chybe formulár zostane otvorený a ukáže prečo. */
+  onSubmit: (draft: AddEventDraft, existingId?: string) => Promise<AddEventOutcome>;
   onClose: () => void;
+  /** Úprava existujúceho podujatia — formulár sa predvyplní a zápis ide do toho istého riadku. */
+  initial?: EventItem;
+  /** „už ho máme" → ukáž pôvodné podujatie (volajúci zavrie formulár a otvorí kartu). */
+  onShowExisting?: (id: string) => void;
   /** Mapa žije v PackMap.tsx — tento komponent ju nevytvára, len dostane ref (rovnaký kontrakt
    *  ako GeometryPicker) a kreslí do nej pin imperatívne cez Leaflet API. */
   mapRef: MutableRefObject<LeafletMap | null>;
@@ -51,20 +68,38 @@ const FIELD_LABEL_KEYS: Record<string, string> = {
   sourceUrl: 'pack.addEvent.fieldLink',
 };
 
-export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddEventProps) {
+async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
+  const r = await fetch(dataUrl);
+  return r.blob();
+}
+
+export function AddEvent({ origin: originProp, authorName, onSubmit, onClose, mapRef, initial, onShowExisting }: AddEventProps) {
   const t = useT();
-  const [title, setTitle] = useState('');
-  const [kind, setKind] = useState<EventKind>('social_walk');
-  const [startsAt, setStartsAt] = useState('');
-  const [endsAt, setEndsAt] = useState('');
-  const [endsTouched, setEndsTouched] = useState(false);
-  const [venueName, setVenueName] = useState('');
-  const [center, setCenter] = useState<LatLngTuple | undefined>(undefined);
-  const [description, setDescription] = useState('');
-  const [photoUrl, setPhotoUrl] = useState('');
-  const [sourceUrl, setSourceUrl] = useState('');
-  const [organizerCredit, setOrganizerCredit] = useState('');
+  const origin: EventOrigin = initial?.origin ?? originProp;
+  // id ročníka vzniká TU — fotka sa nahráva pod `pack-events/<id>/` skôr, než existuje riadok.
+  const [eventId] = useState<string>(() => initial?.id ?? (typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : 'xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx'.replace(/x/g, () => Math.floor(Math.random() * 16).toString(16))));
+  const [title, setTitle] = useState(initial?.title ?? '');
+  const [kind, setKind] = useState<EventKind>(initial?.kind ?? 'social_walk');
+  const [startsAt, setStartsAt] = useState(initial?.startsAt ?? '');
+  const [endsAt, setEndsAt] = useState(initial?.endsAt ?? '');
+  const [endsTouched, setEndsTouched] = useState(!!initial);
+  const [venueName, setVenueName] = useState(initial?.venueName ?? '');
+  const [center, setCenter] = useState<LatLngTuple | undefined>(initial?.center);
+  const [description, setDescription] = useState(initial?.description ?? '');
+  const [photoUrl, setPhotoUrl] = useState(initial?.photoUrl ?? '');
+  const [sourceUrl, setSourceUrl] = useState(initial?.sourceUrl ?? '');
+  const [organizerCredit, setOrganizerCredit] = useState(initial?.organizerCredit ?? '');
   const [submitError, setSubmitError] = useState('');
+  const [duplicateId, setDuplicateId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const photoRef = useRef<HTMLInputElement | null>(null);
+  // Predvyplnenie z odkazu: stav + ktoré polia prišli z webu (tie sa zvýraznia „skontroluj").
+  const [linkState, setLinkState] = useState<'idle' | 'loading' | 'filled' | 'facebook' | 'manual'>('idle');
+  const [fromLink, setFromLink] = useState<Set<string>>(new Set());
+  const lastPreviewed = useRef('');
 
   // §4: „Ends default = starts" — kým človek endsAt sám neupraví, drží krok so startsAt.
   useEffect(() => {
@@ -76,7 +111,8 @@ export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddE
   // ── vyhľadávanie miesta (Mapy.com Suggest) — rovnaký endpoint ako PackMap.tsx, samostatná
   // ľahká kópia (debounce 250 ms, guard proti dofetchnutiu po výbere). ──────────────────────
   const [suggestions, setSuggestions] = useState<PlaceSug[]>([]);
-  const pickedRef = useRef('');
+  // Pri úprave je miesto už vybraté — bez toho by sa hneď po otvorení vysypal našeptávač.
+  const pickedRef = useRef(initial?.venueName ?? '');
   const venueBoxRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     const q = venueName.trim();
@@ -155,7 +191,7 @@ export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddE
   const draft = useMemo<AddEventDraft>(() => {
     const now = Date.now();
     return {
-      id: `event-${now}`,
+      id: eventId,
       origin,
       title: title.trim(),
       kind,
@@ -175,7 +211,7 @@ export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddE
       createdAt: now,
       updatedAt: now,
     };
-  }, [origin, title, kind, startsAt, endsAt, venueName, center, country, description, photoUrl, sourceUrl, organizerCredit, authorName]);
+  }, [eventId, origin, title, kind, startsAt, endsAt, venueName, center, country, description, photoUrl, sourceUrl, organizerCredit, authorName]);
 
   const missing = missingEventFields(draft);
   // Zle usporiadaný rozsah NIE JE chýbajúce pole — má vlastnú vetu, nie riadok v zozname
@@ -184,12 +220,68 @@ export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddE
   const canSubmit = missing.length === 0 && !dateBad;
   const missingLabel = missing.map((f) => t(FIELD_LABEL_KEYS[f] ?? f)).join(', ');
 
-  const handleSubmit = () => {
-    if (!canSubmit) return;
+  const handleSubmit = async () => {
+    if (!canSubmit || busy) return;
     setSubmitError('');
-    const ok = onSubmit(draft);
-    if (!ok) setSubmitError(t('pack.addEvent.submitError'));
+    setDuplicateId(null);
+    setBusy(true);
+    const r = await onSubmit(draft, initial?.id);
+    setBusy(false);
+    if (r.ok) return;
+    setSubmitError(t(r.errorKey));
+    if (r.duplicateId) setDuplicateId(r.duplicateId);
   };
+
+  // ── FOTKA — len vlastné podujatie (cudziu fotku nikdy, §4.3) ─────────────────────────────
+  const pickPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    e.target.value = '';
+    if (!f) return;
+    setPhotoBusy(true);
+    setSubmitError('');
+    try {
+      const small = await optimizePhoto(f);
+      if (!small) throw new Error('photo');
+      const up = await uploadEventPhoto(await dataUrlToBlob(small), eventId, `cover-${Date.now()}`);
+      setPhotoUrl(up.secureUrl);
+    } catch {
+      setSubmitError(t('pack.event.errorPhoto'));
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
+
+  // ── ODKAZ → FAKTY (edge `event-link-preview`) ────────────────────────────────────────────
+  // Volá sa pri opustení poľa, nie pri každom písmene. Vyplní LEN prázdne polia — čo človek
+  // napísal sám, sa neprepisuje.
+  const runPreview = async () => {
+    const url = normalizeSourceUrl(sourceUrl);
+    if (!url || url === lastPreviewed.current) return;
+    lastPreviewed.current = url;
+    setLinkState('loading');
+    const r = await previewLink(url);
+    if (!r.ok) {
+      setLinkState(r.reason === 'facebook' ? 'facebook' : 'manual');
+      return;
+    }
+    const got = new Set<string>();
+    if (r.title && !title.trim()) { setTitle(r.title); got.add('title'); }
+    if (r.startsAt && !startsAt) { setStartsAt(isoToLocalInput(r.startsAt)); got.add('startsAt'); }
+    if (r.endsAt && !endsTouched) { setEndsAt(isoToLocalInput(r.endsAt)); setEndsTouched(true); }
+    if (r.venueName && !venueName.trim()) {
+      setVenueName(r.venueName);
+      got.add('location');
+      if (Number.isFinite(r.lat) && Number.isFinite(r.lng)) {
+        pickedRef.current = r.venueName;
+        setCenter([r.lat as number, r.lng as number]);
+        mapRef.current?.flyTo([r.lat as number, r.lng as number], 14, { duration: 1.2 });
+      }
+    }
+    if (r.organizer && !organizerCredit.trim()) { setOrganizerCredit(r.organizer); got.add('organizer'); }
+    setFromLink(got);
+    setLinkState(got.size ? 'filled' : 'manual');
+  };
+  const filledCls = (f: string) => (fromLink.has(f) ? ' aev-filled' : '');
 
   return (
     <div className="aev-root">
@@ -197,13 +289,35 @@ export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddE
       <style>{PALE_AEV_CSS}</style>
       <div className="aev-head">
         <BackButton tone={MAP_SKIN === 'pale' ? 'pale' : 'dark'} onClick={onClose} label={t('pack.addEvent.backAriaLabel')} />
-        <div className="aev-title">{origin === 'own' ? t('pack.addEvent.title.own') : t('pack.addEvent.title.tip')}</div>
+        <div className="aev-title">{initial ? t('pack.event.editTitle') : origin === 'own' ? t('pack.addEvent.title.own') : t('pack.addEvent.title.tip')}</div>
       </div>
       <div className="aev-body">
+        {/* TIP začína ODKAZOM — z neho sa predvyplní zvyšok, takže patrí na začiatok. */}
+        {origin === 'tip' && (
+          <div className="aev-field">
+            <label>{t('pack.addEvent.sourceUrlLabel')}</label>
+            <input
+              className="aev-input"
+              value={sourceUrl}
+              inputMode="url"
+              onChange={(e) => setSourceUrl(e.target.value)}
+              onBlur={() => void runPreview()}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void runPreview(); } }}
+              placeholder={t('pack.addEvent.sourceUrlPlaceholder')}
+            />
+            <p className="aev-hint">
+              {linkState === 'loading' ? t('pack.event.linkLoading')
+                : linkState === 'filled' ? t('pack.event.linkFilled')
+                : linkState === 'facebook' ? t('pack.event.linkFacebook')
+                : linkState === 'manual' ? t('pack.event.linkManual')
+                : t('pack.addEvent.sourceUrlHint')}
+            </p>
+          </div>
+        )}
         <div className="aev-field">
           <label>{t('pack.addEvent.titleLabel')}</label>
           <input
-            className="aev-input"
+            className={`aev-input${filledCls('title')}`}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder={t('pack.addEvent.titlePlaceholder')}
@@ -229,7 +343,7 @@ export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddE
             <label>{t('pack.addEvent.startsLabel')}</label>
             <input
               type="datetime-local"
-              className="aev-input"
+              className={`aev-input${filledCls('startsAt')}`}
               value={startsAt}
               onChange={(e) => setStartsAt(e.target.value)}
             />
@@ -252,7 +366,7 @@ export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddE
           <label>{t('pack.addEvent.venueLabel')}</label>
           <div className="aev-venuebox" ref={venueBoxRef}>
             <input
-              className="aev-input"
+              className={`aev-input${filledCls('location')}`}
               value={venueName}
               onChange={(e) => { setVenueName(e.target.value); pickedRef.current = ''; }}
               placeholder={t('pack.addEvent.venuePlaceholder')}
@@ -289,31 +403,20 @@ export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddE
         {origin === 'own' && (
           <div className="aev-field">
             <label>{t('pack.addEvent.photoLabel')}</label>
-            <input
-              className="aev-input"
-              value={photoUrl}
-              onChange={(e) => setPhotoUrl(e.target.value)}
-              placeholder={t('pack.addEvent.photoPlaceholder')}
-            />
+            <input ref={photoRef} type="file" accept="image/*" hidden onChange={(e) => void pickPhoto(e)} />
+            {photoUrl && <div className="aev-photo"><img src={photoUrl} alt="" /></div>}
+            <button type="button" className="aev-pill" disabled={photoBusy} onClick={() => photoRef.current?.click()}>
+              {photoBusy ? t('pack.event.photoUploading') : photoUrl ? t('pack.event.photoChange') : t('pack.event.photoAdd')}
+            </button>
           </div>
         )}
 
         {origin === 'tip' && (
           <>
             <div className="aev-field">
-              <label>{t('pack.addEvent.sourceUrlLabel')}</label>
-              <input
-                className="aev-input"
-                value={sourceUrl}
-                onChange={(e) => setSourceUrl(e.target.value)}
-                placeholder={t('pack.addEvent.sourceUrlPlaceholder')}
-              />
-              <p className="aev-hint">{t('pack.addEvent.sourceUrlHint')}</p>
-            </div>
-            <div className="aev-field">
               <label>{t('pack.addEvent.organizerLabel')}</label>
               <input
-                className="aev-input"
+                className={`aev-input${filledCls('organizer')}`}
                 value={organizerCredit}
                 onChange={(e) => setOrganizerCredit(e.target.value)}
                 placeholder={t('pack.addEvent.organizerPlaceholder')}
@@ -323,8 +426,8 @@ export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddE
         )}
       </div>
       <div className="aev-foot">
-        <button type="button" className="btn-gold" disabled={!canSubmit} onClick={handleSubmit}>
-          {t('pack.addEvent.submit')}
+        <button type="button" className="btn-gold" disabled={!canSubmit || busy || photoBusy} onClick={() => void handleSubmit()}>
+          {busy ? t('pack.event.saving') : initial ? t('pack.event.saveChanges') : t('pack.addEvent.submit')}
         </button>
         {/* ⚠️ DVE RÔZNE PREKÁŽKY, DVE RÔZNE VETY. `missingHint` vypisuje zoznam chýbajúcich
             polí — pri zle usporiadanom rozsahu je ten zoznam PRÁZDNY, takže by pod
@@ -334,6 +437,9 @@ export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddE
           ? <p className="aev-hint aev-hint-center">{t('pack.addEvent.missingHint', { fields: missingLabel })}</p>
           : dateBad && <p className="aev-error">{t('pack.addEvent.datesHint')}</p>}
         {submitError && <p className="aev-error">{submitError}</p>}
+        {duplicateId && onShowExisting && (
+          <button type="button" className="aev-pill" onClick={() => onShowExisting(duplicateId)}>{t('pack.event.showExisting')}</button>
+        )}
       </div>
     </div>
   );
@@ -416,6 +522,10 @@ const PALE_AEV_CSS = MAP_SKIN !== 'pale' ? '' : `
 .aev-foot .btn-gold:hover:not(:disabled){background:${LAPIS.gradHover};box-shadow:${LAPIS_BTN_SHADOW};}
 .aev-foot .btn-gold:disabled{box-shadow:none;}
 .aev-error{color:#8E2A20;}
+/* Pole doplnené z odkazu — LAPIS (moja voľba: skontrolovať), nie chyba. */
+.aev-filled{border-color:${LAPIS.edge};}
+.aev-photo{height:120px;border-radius:12px;overflow:hidden;margin-bottom:8px;border:1px solid ${PALE.border};}
+.aev-photo img{width:100%;height:100%;object-fit:cover;display:block;}
 `;
 
 export default AddEvent;

@@ -38,7 +38,7 @@ export const POINTS = {
   rate: 3,        // hodnotenie (len kto trasu prešiel, bez stropu)
   collection: 50, // kompletná zbierka (9 NP / 11 pohorí / 14 CHKO)
   peak: 0,        // vrchol — kryje ho už prevýšenie
-  event: 10,      // pridanie podujatia
+  event: 10,      // podujatie, ktoré sa USKUTOČNILO (organizátor potvrdí príbehom a fotkou)
   note: 3,        // ODKAZ (značka na mape) — parkovisko, upozornenie, tip
 } as const;
 
@@ -262,6 +262,12 @@ export interface ProfilePointsInput {
    * dlaždica ODKAZ, sledovač v kroku 2 aj AInubisova pochvala. Sľub bez výplaty.
    */
   notePoints?: number;
+  /**
+   * Počet MOJICH podujatí, pri ktorých som potvrdil „uskutočnilo sa" (+`POINTS.event` za každé).
+   * Matej 24. 9. 2026: body až po potvrdení s príbehom a fotkou — založenie samo nedáva nič.
+   * Zdroj `useMyEventCount()` (events/eventStore.ts).
+   */
+  eventsHeld?: number;
 }
 
 /**
@@ -341,6 +347,9 @@ export function calculateProfilePoints(input: ProfilePointsInput): TripPointsRes
   // Už orezané stropmi v `noteScoreFor()` — tu sa len pripočíta.
   const notePoints = input.notePoints ?? 0;
   if (notePoints > 0) rows.push({ labelKey: 'pack.points.notes', points: notePoints });
+
+  const eventsHeld = input.eventsHeld ?? 0;
+  if (eventsHeld > 0) rows.push({ labelKey: 'pack.points.events', points: eventsHeld * POINTS.event });
 
   return { total: rows.reduce((s, r) => s + r.points, 0), rows };
 }

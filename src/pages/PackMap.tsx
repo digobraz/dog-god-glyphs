@@ -87,6 +87,7 @@ import { goldFrameCSS, goldPlateCSS, pickTintCSS, PICK_INK, SLAB, LAPIS, LAPIS_B
 import { estimateTripMinutes, formatTripTime } from '@/lib/tripTime';
 import ainubisFace from '@/assets/ainubis-head.png';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
+import { useMyEventCount } from '@/components/pack/events/eventStore';
 import {
   ICON, authorOf, REGION_OF, diffMarkShape, DiffMark, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
   DIFF_COLOR, TRAIL_LINE, TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, hasRouteMetrics, tripShareText, pluralKey,
@@ -4155,6 +4156,7 @@ export default function PackMap() {
   // Body za odkazy — hotové číslo z jedného zdroja (`useMyNotePoints`), aby level v hlavičke
   // mapy sedel s TRIPSTATS, homepage aj profilom.
   const myNotePoints = useMyNotePoints();
+  const myEventCount = useMyEventCount();
   const profile = useMemo(() => {
     const email = id.session?.user?.email ?? '';
     const meta = (id.session?.user?.user_metadata ?? {}) as Record<string, unknown>;
@@ -4165,10 +4167,11 @@ export default function PackMap() {
       email,
       ownerName: firstNameFrom(email, (meta.full_name || meta.name) as string | undefined),
       notePoints: myNotePoints,
+      eventsHeld: myEventCount,
     });
     // `storeEpoch` je v deps zámerne: `approvedAddedIds` číta statusy priamo z úložiska, takže
     // sa musí prepočítať v momente, keď hydratácia z DB dobehne.
-  }, [allTrails, walkedIds, localTrails, votes, storeEpoch, id.session, myNotePoints]);
+  }, [allTrails, walkedIds, localTrails, votes, storeEpoch, id.session, myNotePoints, myEventCount]);
   const profilePoints = profile.points;
   const levelInfo = profile.level;
 

@@ -31,6 +31,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { currentTripId, tripPathById } from '@/components/pack/tripShared';
 import type { HeroTrail } from '@/data/heroTrails.generated';
+import { EVENTS_LIVE } from '@/lib/packFlags';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- rovnaký dôvod ako v packStore.ts:
 // `types.ts` tabuľky /packu nepozná (migrácie sú novšie než generovaný súbor).
@@ -41,7 +42,13 @@ const SEEN_KEY = 'pack-alerts-seen';
  *  už aj tak nie je čo „znovu ukázať", a neorezaný zoznam by rástol donekonečna. */
 const SEEN_MAX = 200;
 
-export type AlertKind = 'trip_request' | 'trip_accepted' | 'trip_walked';
+// ── PODUJATIA (vlna 2, 25. 9. 2026) ──────────────────────────────────────────────────────
+// Päť druhov zo `get_event_alerts()` (20260925_events_v2.sql): organizátorovi „niekto sa
+// pridal" a „uskutočnilo sa?" (+10 bodov), účastníkom „zmenené", „zrušené" a pripomienka
+// deň vopred. Odkaz vedie na mapu s otvorenou kartou (`/pack/map?event=<id>`) — objekt má
+// jednu kartu a upozornenie neotvára novú obrazovku.
+export type EventAlertKind = 'event_rsvp' | 'event_changed' | 'event_cancelled' | 'event_reminder' | 'event_held_ask';
+export type AlertKind = 'trip_request' | 'trip_accepted' | 'trip_walked' | EventAlertKind;
 
 /**
  * Dataset trás — LAZY, rovnaký dôvod ako v `messaging/tripLabel.ts`: `heroTrails.generated.ts`
@@ -123,6 +130,15 @@ interface WalkedRow {
   at: string;
 }
 
+interface EventAlertRow {
+  kind: EventAlertKind;
+  edition_id: string;
+  title: string;
+  starts_at: string;
+  cnt: number;
+  at: string;
+}
+
 /**
  * Všetky upozornenia pre prihláseného člena, najnovšie prvé.
  *
@@ -137,7 +153,7 @@ export async function loadAlerts(): Promise<PackAlert[]> {
   const uid = sess.session?.user?.id;
   if (!uid) return []; // odhlásený / DEV_NOAUTH — RLS by aj tak nevydala nič
 
-  const [incoming, mine, walked] = await Promise.all([
+  const [incoming, mine, walked, events] = await Promise.all([
     db.from('trip_requests').select('trip_slug,created_at,decided_at')
       .eq('organizer_id', uid).eq('status', 'requested') as
       Promise<{ data: RequestRow[] | null }>,
@@ -148,6 +164,9 @@ export async function loadAlerts(): Promise<PackAlert[]> {
     // Chyba sa prehltne na prázdno: upozornenia sú chrome na každej stránke /packu a jedna
     // nedostupná funkcia (napr. migrácia ešte nenasadená na DEV) nesmie zhasnúť celý panel.
     db.rpc('get_walked_alerts') as Promise<{ data: WalkedRow[] | null }>,
+    // Podujatia len keď sú zapnuté — na LIVE do FLIPu funkcia neexistuje (404 v konzole
+    // na každej stránke by bol šum, nie informácia).
+    (EVENTS_LIVE ? db.rpc('get_event_alerts') : Promise.resolve({ data: [] })) as Promise<{ data: EventAlertRow[] | null }>,
   ]);
 
   const trails = await loadTrails();
@@ -181,6 +200,12 @@ export async function loadAlerts(): Promise<PackAlert[]> {
   // znova (rovnaký dôvod ako pri žiadostiach — inak by druhého už nikto nevidel).
   for (const w of walked.data ?? []) {
     out.push({ id: `walk|${w.trip_slug}|${w.at}`, kind: 'trip_walked', tripSlug: w.trip_slug, tripName: nameOf(w.trip_slug), tripPath: pathOf(w.trip_slug), count: w.walkers, at: w.at });
+  }
+
+  // PODUJATIA — `tripSlug` ostáva prázdny, názov a cesta sú z DB. Id nesie čas: druhá zmena
+  // termínu alebo ďalší prihlásený sa rozsvieti znova.
+  for (const e of events.data ?? []) {
+    out.push({ id: `${e.kind}|${e.edition_id}|${e.at}`, kind: e.kind, tripSlug: '', tripName: e.title, tripPath: `/pack/map?event=${e.edition_id}`, count: e.cnt, at: e.at });
   }
 
   return out.sort((a, b) => (a.at < b.at ? 1 : -1));

@@ -34,6 +34,7 @@ import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { readLocalTrails, readWalkedIds, visibleLocalTrails, pluralKey } from './tripShared';
 import { profileLevelFor, readVotes } from './packCommunity';
 import { useMyNotePoints } from './mapnotes/useMyNotePoints';
+import { useMyEventCount } from '@/components/pack/events/eventStore';
 import { tierVars } from '@/lib/packTiers';
 import type { usePackIdentity } from './usePackIdentity';
 import { PackTopRight } from './PackLayout';
@@ -97,6 +98,7 @@ export function PackIdentityBar({ id, middle, stats, primary }: {
   const t = useT();
   const navigate = useNavigate();
   const myNotePoints = useMyNotePoints();
+  const myEventCount = useMyEventCount();
 
   const email = id.session?.user?.email ?? '';
   const meta = (id.session?.user?.user_metadata ?? {}) as Record<string, unknown>;
@@ -131,9 +133,10 @@ export function PackIdentityBar({ id, middle, stats, primary }: {
       email,
       ownerName: firstNameFrom(email, fullName),
       notePoints: myNotePoints,
+      eventsHeld: myEventCount,
     });
     return { level, count: walkedTrails.length, km: Math.round(km) };
-  }, [email, fullName, myNotePoints]);
+  }, [email, fullName, myNotePoints, myEventCount]);
 
   const lv = view.level;
   return (
