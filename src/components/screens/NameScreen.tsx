@@ -453,7 +453,14 @@ export function NameScreen() {
         }
       `}</style>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
+      {/* 🔴 OBAL MUSÍ ROLOVAŤ (24. 9. 2026). Bez `overflow-y-auto` nemal nedostatok
+          výšky kam ujsť: bublina (jediná so `flex-shrink`) ho absorbovala celý —
+          pri okne 720 px zo 284 na 260, pri 640 na 180 — a keďže má
+          `overflow:hidden`, VETA SA ODREZALA V POLOVICI. Matej 24. 9.: *„na pc
+          hneď prvý krok písmo je moc veľké na PC!"*
+          ⚠️ Ostatné obrazovky nového vstupu (`dogs`, `email`) rolovací obal majú;
+             táto bola jediná bez neho. */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3 overflow-y-auto">
         {/* ⚠️ Bublina sa NEROZŤAHUJE na celú výšku (Matej 23. 9.: „nemusí byť cez
             cely displaj, centruj ten blok na stred normalne"). Stĺpec má preto
             obsahovú výšku v oboch fázach a na stred ho dáva `justify-center`
@@ -467,7 +474,10 @@ export function NameScreen() {
           <motion.div
             layout
             transition={MORPH}
-            className="w-full rounded-2xl relative overflow-hidden flex-shrink"
+            // ⚠️ `flex-shrink-0`: bublina sa NESMIE zmršťovať pod svoj obsah.
+            //    S `overflow:hidden` to nebolo zmenšenie, ale OREZANIE — chýbajúcu
+            //    výšku rieši odteraz rolovanie obalu, nie nôž.
+            className="w-full rounded-2xl relative overflow-hidden flex-shrink-0"
             // `containerType` robí z bubliny MERACÍ RÁM pre písmo otázky —
             // stupeň sa viaže na šírku karty (cqw), nikdy na okno (vw).
             // Brand lock: inak nadpis pri zmene šírky ticho pretečie.
@@ -541,13 +551,23 @@ export function NameScreen() {
                     className="text-white text-center leading-snug drop-shadow-sm"
                     // Matej 23. 9.: *„dal by som väčšie písmo «ahoj ja som hektor»
                     // aj v úvode aj po tom čo sa scvrkne — je to úvodná obrazovka"*.
-                    // Dolná hranica drží čitateľnosť na úzkom telefóne, horná
-                    // bráni tomu, aby veta na počítači zabrala celý blok.
+                    // Matej 24. 9. nad 1280 px oknom: *„na pc hneď prvý krok písmo
+                    // je moc veľké na PC!"* — a bol PRETEČENÝ, nie len veľký.
+                    //
+                    // 🔴 STUPEŇ MUSÍ VIDIEŤ OBE OSI. Predtým visel len na `cqw`, teda
+                    //    na ŠÍRKE karty: na širokom, ale NÍZKOM okne vyrástol na
+                    //    strop 32 px, hoci na výšku miesto nebolo. Bublina sa pritom
+                    //    zmršťuje (900 → 300 px, 720 → 260, 680 → 220) a má
+                    //    `overflow:hidden`, takže veta sa ticho ODREZALA v polovici.
+                    //    Premerané 24. 9.: pri okne 720 px preteklo 16 px, pri 680 až 56.
+                    // ⚠️ `min(cqw, dvh)` mení LEN počítač — na 390 px rozhoduje ďalej
+                    //    šírka (20,8 px, ako doteraz), takže Matejovo „väčšie písmo"
+                    //    z 23. 9. na telefóne platí nezmenené.
                     style={{
                       fontFamily: "'Cinzel', serif",
                       fontSize: phase === 'hero'
-                        ? 'clamp(20px, 7.4cqw, 42px)'
-                        : 'clamp(17px, 5.8cqw, 32px)',
+                        ? 'clamp(20px, min(7.4cqw, 4.6dvh), 34px)'
+                        : 'clamp(17px, min(5.8cqw, 3.4dvh), 26px)',
                     }}
                   >
                     {playIntro ? (
