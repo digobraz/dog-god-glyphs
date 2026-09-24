@@ -405,37 +405,95 @@ export function FlowRedress() {
 }
 
 /**
- * PROGRES VSTUPU — jeden pruh, bez popisov, na spodnej hrane.
+ * PROGRES VSTUPU — jeden pruh, bez popisov.
  *
  * Matej 31. 8. 2026: *„dal by som iba progresbar bez textingu… nerozdeloval by som to
  * na 5 časti… a dal by som to úplne dolu"*. Tým zaniká pomenovaný pás fáz
  * (`FlowPhases`, `PES · TY · SYMBOL · HOTOVO`) — súbor sa nemaže, len ho nikto nevolá.
+ * Pruh dostal aj 6 px (bolo 4) a zreteľnejší podklad (bolo 0.22) — Matej: „nevidím
+ * progresbar postupu". Ani to nestačilo.
  *
- * 🔑 Kreslí sa TU, nie v obrazovkách. Vrstva prezliekania už vie, kde človek stojí,
- *    takže pruh nestojí ani jednu zmenu v devätnástich komponentoch — a keď sa šat
- *    prepne na tmavý (dev prepínač), zmizne s ním, takže „pred" ostane naozaj „pred".
+ * 🔴 PRESUN NAHOR (24. 9. 2026) — Matej OTÁČA VLASTNÉ ROZHODNUTIE z 31. 8.:
+ *    *„btw progres bar by som dal hore pod logo, lebo dolu nie je vidno"*.
+ *    Dolu bol pruh pod palcom, pod klávesnicou na mobile alebo mimo záberu pri
+ *    krátkom okne — zdvih hrúbky na 6 px problém nevyriešil, len ho zjemnil.
+ *    Pod hornou lištou je vidno na každom kroku a nekonkuruje CTA.
+ *
+ * 🔑 Kreslí sa TU, nie v obrazovkách — a to je presne dôvod, prečo `top` NIE JE
+ *    hardkódované číslo pre mobil/desktop. `FlowRedress` beží ako sused v strome
+ *    `App.tsx`, mimo `flex` kolóny konkrétnej obrazovky, takže pruh sa nedá vložiť
+ *    DO TOKU pod `PageTopBar` bez zásahu do devätnástich komponentov (mimo tejto
+ *    úlohy). Namiesto hádania výšky lišty (63 px mobil / 81 px desktop, namerané
+ *    24. 9. — pt-15/25 + h-10/h-12 + pb-2) sa pruh drží PRIAMO z DOM: nájde
+ *    viditeľné logo (`img[alt="DOGYPT"]`, oba varianty `PageTopBaru` majú ten
+ *    istý `alt`) a berie `bottom` jeho obalu. Sedí to tak v oboch šatoch
+ *    (`.hf-pale` aj prezlečený `.dark-bg`) aj keď sa lišta zmení — bez druhej
+ *    kópie čísel, ktorá by sa pri úprave `PageTopBar` rozišla.
+ * ⚠️ Na `/heroglyph/name` lišta počas príchodovej animácie v DOM VÔBEC NIE JE
+ *    (`NameScreen`: „počas úvodného načítania nebude logo šípka ani vlajka").
+ *    Bez nájdenej lišty pruh padá na `top: 0` — rovnaké chovanie ako predtým
+ *    (pruh bol vždy vidno, nech je vo fáze čokoľvek), len na inej hrane.
+ * ⚠️ Meranie sa opakuje, nie raz pri mount-e — lišta sa vie objaviť AŽ po
+ *    príchodovej fáze a šírka okna sa vie zmeniť aj bez remountu tejto vrstvy.
+ *    Drží to `ResizeObserver` + `MutationObserver`, NIE časovač.
  *
  * ⚠️ `pointer-events: none` — pruh leží nad obsahom a bez toho by ukradol ťuknutie
  *    tlačidlu, ktoré býva presne pod ním.
- * ⚠️ Spodná rezerva je `env(safe-area-inset-bottom)`, nie nula: na iPhone by pruh
- *    inak ležal pod domovským indikátorom.
+ * ⚠️ `env(safe-area-inset-bottom)` PADOL — bol tu kvôli spodnej polohe (domovský
+ *    indikátor na iPhone). `top` sa dnes berie z REÁLNEJ hrany renderovanej
+ *    lišty (tá si vlastnú hornú rezervu už nesie vo `pt-[15px]`), takže druhá
+ *    bezpečná zóna navyše by pruh len zbytočne odsunula nižšie.
  */
 function FlowProgress({ pathname }: { pathname: string }) {
   const idx = FLOW_ORDER.indexOf(pathname);
+  const [top, setTop] = useState(0);
+
+  useEffect(() => {
+    if (idx < 0) return;
+    const measure = () => {
+      let bottom = 0;
+      document.querySelectorAll('img[alt="DOGYPT"]').forEach((img) => {
+        const logoRect = img.getBoundingClientRect();
+        if (logoRect.height <= 0) return; // druhý (skrytý) breakpointový variant
+        const bar = img.closest('div');
+        const barRect = bar ? bar.getBoundingClientRect() : logoRect;
+        bottom = Math.max(bottom, barRect.bottom);
+      });
+      setTop(Math.round(bottom)); // 0, keď lišta ešte nie je v DOM (príchod)
+    };
+    // 🔴 ŽIADNY ČASOVAČ. Prvá verzia merala každých 300 ms po celý čas, čo je
+    //    človek vo vstupe — teda navždy bežiaci `setInterval` na obrazovke
+    //    plnej animácií. Meranie je odteraz udalosťové: `ResizeObserver` na
+    //    samotnej lište (zmena výšky, zmena breakpointu) a `MutationObserver`
+    //    na tele (lišta na kroku mena vzniká AŽ po príchodovej animácii, takže
+    //    pri montáži tejto vrstvy ešte v DOM nie je).
+    let ro: ResizeObserver | null = null;
+    const attach = () => {
+      ro?.disconnect();
+      ro = new ResizeObserver(measure);
+      document.querySelectorAll('img[alt="DOGYPT"]').forEach((img) => {
+        const bar = img.closest('div');
+        if (bar) ro?.observe(bar);
+      });
+      measure();
+    };
+    attach();
+    const mo = new MutationObserver(attach);
+    mo.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('resize', measure);
+    return () => { mo.disconnect(); ro?.disconnect(); window.removeEventListener('resize', measure); };
+  }, [idx, pathname]);
+
   if (idx < 0) return null;
   const pct = Math.round(((idx + 1) / FLOW_ORDER.length) * 100);
   return (
     <div
       aria-hidden
       style={{
-        position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 60,
+        position: 'fixed', left: 0, right: 0, top, zIndex: 60,
         pointerEvents: 'none',
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
     >
-      {/* 6 px (bolo 4) + zreteľnejší podklad (bolo 0.22) — Matej: „nevidím
-          progresbar postupu". Výplň ostáva LAPIS (brandový kánon), mení sa
-          len hrúbka a podklad pod ňou. */}
       <div style={{ height: 6, background: 'rgba(201,154,63,0.38)' }}>
         <div
           style={{
