@@ -4704,6 +4704,8 @@ export default function PackMap() {
       const fail = r as { ok: false; error: string; id?: string };
       if (fail.error === 'duplicate') return { ok: false, errorKey: 'pack.event.errorDuplicate', duplicateId: fail.id };
       if (fail.error === 'event_started') return { ok: false, errorKey: 'pack.event.errorStarted' };
+      if (fail.error === 'past') return { ok: false, errorKey: 'pack.event.errorPast' };
+      if (fail.error === 'bad_url') return { ok: false, errorKey: 'pack.event.errorBadUrl' };
       return { ok: false, errorKey: 'pack.addEvent.submitError' };
     }
     closeAddEvent();

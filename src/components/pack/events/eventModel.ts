@@ -97,11 +97,14 @@ export function endsBeforeStarts(draft: AddEventDraft): boolean {
 // nové okno na `/pack/dogypt.com/podujatie`, teda vo vlastnej appke na neexistujúcej
 // route. Odznak pritom napísal „Z dogypt.com/podujatie", takže to vyzeralo funkčne.
 // Ľudia `https://` nepíšu, preto sa dopĺňa, nie vyžaduje.
-// ⚠️ Doplní sa len tam, kde schéma CHÝBA — `http://`, `mailto:` ani nič iné sa neprepisuje.
+// ⚠️ Doplní sa len tam, kde schéma CHÝBA. Iná schéma než http(s) sa ZAHODÍ (audit 24. 9.):
+// `javascript:` v odkaze by sa na karte spustil každému, kto naň ťukne. Server to odmieta
+// tiež (`save_event` → `bad_url`), toto je len prvá brána.
 export function normalizeSourceUrl(raw: string): string {
   const v = raw.trim();
   if (!v) return v;
-  return /^[a-z][a-z0-9+.-]*:/i.test(v) ? v : `https://${v}`;
+  if (/^https?:\/\//i.test(v)) return v;
+  return /^[a-z][a-z0-9+.-]*:/i.test(v) ? '' : `https://${v}`;
 }
 
 // ── ÚLOŽISKO JE OD 25. 9. 2026 DATABÁZA ──────────────────────────────────────────────────────
