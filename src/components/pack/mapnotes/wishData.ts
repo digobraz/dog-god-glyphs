@@ -106,8 +106,8 @@ function mockRead(): WishPin[] {
 function mockWrite(list: WishPin[]) {
   try { localStorage.setItem(MOCK_KEY, JSON.stringify(list)); } catch { /* súkromné okno */ }
 }
-/** Zrkadlo `wish_when_year()` z migrácie — len pre atrapu. */
-function mockYear(when: WishWhen): number | null {
+/** Zrkadlo `wish_when_year()` z migrácie — atrapa a veta „Posunuté: leto 2027". */
+export function wishYearFor(when: WishWhen): number | null {
   if (when === 'lifetime') return null;
   const now = new Date(); const y = now.getFullYear(); const m = now.getMonth() + 1;
   if (when === 'spring') return m > 5 ? y + 1 : y;
@@ -120,7 +120,7 @@ function mockAdd(n: NewWish): string {
   const id = `mock-${Date.now().toString(36)}`;
   mockWrite([{
     id, lat: n.lat, lon: n.lon, placeName: n.placeName, placeKind: n.placeKind, trailId: n.trailId ?? null,
-    tripKind: n.tripKind, when: n.when, whenYear: mockYear(n.when), seeking: n.seeking, note: n.note,
+    tripKind: n.tripKind, when: n.when, whenYear: wishYearFor(n.when), seeking: n.seeking, note: n.note,
     expiresAt: null, createdAt: new Date().toISOString(), isMine: true, ownerFirst: 'Matej',
     dogName: 'Hektor', dogDeceased: false, dogPhoto: null, packNumber: 1,
   }, ...mockRead()]);

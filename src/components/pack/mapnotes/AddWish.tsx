@@ -206,6 +206,7 @@ export const ADD_WISH_CSS = `
 .aw-ghost{flex:1 1 0;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:${AINUBIS.ink};background:${AINUBIS.surfaceBase};border:1px solid ${AINUBIS.edgeStrong};border-radius:8px;padding:12px 16px;cursor:pointer;}
 .aw-ghost:hover{border-color:${AINUBIS.cyan};color:${AINUBIS.cyan};}
 .aw-ghost:disabled{opacity:.6;cursor:default;}
-.aw-pts{align-self:flex-start;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.14em;color:${AINUBIS.ctaA};background:${AINUBIS.ctaTint};border:1px solid ${AINUBIS.ctaEdge};border-radius:999px;padding:4px 12px;}
-.aw-sub{font-family:${FONT_UI};font-size:12px;color:${AINUBIS.inkFaint};}
+/* Stoja nad voľnou mapou, nie na závoji — bez vlastného podkladu by sa text čítal na cestách. */
+.aw-pts{align-self:flex-start;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.14em;color:${AINUBIS.ctaA};background:${AINUBIS.surfaceBase};border:1px solid ${AINUBIS.ctaEdge};border-radius:999px;padding:4px 12px;}
+.aw-sub{font-family:${FONT_UI};font-size:12px;color:${AINUBIS.ink};background:${AINUBIS.surfaceBase};border:1px solid ${AINUBIS.edgeStrong};border-radius:12px;padding:8px 12px;}
 `;

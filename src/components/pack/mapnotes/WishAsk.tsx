@@ -27,10 +27,11 @@ import { AinubisGuide } from '@/components/pack/addtrip/AinubisGuide';
 import { emitOpenThread } from '@/components/pack/messaging/openBridge';
 import { startWishDM } from '@/components/pack/messaging/packMessaging';
 import { POINTS } from '@/lib/tripPoints';
+import { wishWhenLabel } from './WishLayer';
 import { ADD_WISH_CSS } from './AddWish';
 import {
   WISH_WHENS, cancelWishPin, dismissMissedWish, fetchMyWishes, fulfillWish, postponeWish,
-  wishEarnsPoints, wishLater, zoomForPlaceKind,
+  wishEarnsPoints, wishLater, wishYearFor, zoomForPlaceKind,
   type MyWish, type WishPin, type WishWhen,
 } from './wishData';
 
@@ -159,7 +160,7 @@ export function WishAsk({ req, wishes, map, dogName, onClose, onChanged, onLogTr
       case 'cancelled': return t('pack.wish.ask.cancelled');
       case 'missed': return t('pack.wish.ask.missed', { place });
       case 'nudge': return dogName ? t('pack.wish.ask.nudge', { place, dog: dogName }) : t('pack.wish.ask.nudgeNoDog', { place });
-      case 'postponed': return t('pack.wish.ask.postponed', { place, when: newWhen ? t(`pack.wish.when.${newWhen}`) : '' });
+      case 'postponed': return t('pack.wish.ask.postponed', { place, when: newWhen ? wishWhenLabel(t, { when: newWhen, whenYear: wishYearFor(newWhen) }) : '' });
       case 'match': return t('pack.wish.ask.match', { place });
       case 'done': return dogName ? t('pack.wish.ask.done', { dog: dogName }) : t('pack.wish.ask.doneNoDog');
       case 'noLog': return t('pack.wish.ask.noLog');

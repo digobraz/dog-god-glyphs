@@ -3347,7 +3347,7 @@ export const sk: Partial<Dict> = {
   'pack.wish.ask.end.year': "Rok",
   'pack.wish.ask.when': "Dobre, tak kedy?",
   'pack.wish.ask.cancelled': "Zrušené. Hory tam budú aj o rok.",
-  'pack.wish.ask.missed': "{place} ti ušlo. Oživiť prianie?",
+  'pack.wish.ask.missed': "Termín pre {place} prešiel. Oživiť prianie?",
   'pack.wish.ask.nudge': "{place} — odkladáš to už rok. {dog} nemládne. Neodkladaj to.",
   'pack.wish.ask.nudgeNoDog': "{place} — odkladáš to už rok. Nikto z nás nemládne. Neodkladaj to.",
   'pack.wish.ask.postponed': "Posunuté: {when}. {place} počká.",

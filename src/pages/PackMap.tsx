@@ -4444,6 +4444,7 @@ export default function PackMap() {
      * ⚠️ Pútnik sa tým NEDELÍ — `walkedIds` vyššie ostáva človeku a body sa rátajú z neho.
      */
     attributeDogTrips(tid, id.dogs.filter((d) => (d.life_status ?? 'alive') !== 'deceased').map((d) => d.id));
+    if (tr) queueWishMatch(tr);
     // Ponuka hodnotenia ide VŽDY (tiché obdobie zrušené 2026-08-06, viď packCommunity.ts) —
     // hodnotenie je platené bodmi, takže je to príležitosť, nie otrava. Toast s odmenou tu
     // preto už netreba: to isté číslo aj prípadné objavenie ukáže popup, ktorý sa práve otvára.
@@ -4788,6 +4789,21 @@ export default function PackMap() {
    *    rôzne funkcie nad tými istými cenami a takto to má byť — jedna hovorí „za toto", druhá
    *    „spolu"; keby rozpad počítal aj celok, po prvej zmene cien by sa rozišli.
    */
+  /**
+   * D1 — splnil práve zapísaný výlet niektoré moje prianie? (≤ 5 km, ten istý výlet, alebo
+   * štát). Dve cesty zápisu, jedna otázka: sprievodca (`openRevealFor`) aj ✓ na karte
+   * katalógu (`toggleWalked`). AINUBIS sa pýta až po zavretí odmeny či hodnotenia
+   * (render čaká na `!reveal && !walkedPopupId`) — dve oslavy naraz by sa prekrikovali.
+   */
+  const queueWishMatch = (trail: Pick<HeroTrail, 'id' | 'path' | 'country'>) => {
+    if (!WISHES_LIVE) return;
+    void fetchMyWishes()
+      .then((mine) => {
+        const w = wishMatchForTrail(mine, trail);
+        if (w) setWishMatch({ id: w.id, kind: 'match', tripId: trail.id });
+      })
+      .catch(() => { /* bez prianí sa výlet zapíše rovnako */ });
+  };
   const openRevealFor = (trail: HeroTrail, draft: AddTripDraft) => {
     const walkedBefore = allTrails.filter((tr) => walkedIds.has(tr.id));
     const before = computeCompletion(walkedBefore);
@@ -4844,16 +4860,7 @@ export default function PackMap() {
       draftMissing: missingOnTrail(trail),
     });
 
-    // D1 — splnil tento výlet niektoré moje prianie? (≤ 5 km, ten istý výlet, alebo štát).
-    // Pýta sa až po zavretí odmeny (render nižšie čaká na `!reveal`).
-    if (WISHES_LIVE) {
-      void fetchMyWishes()
-        .then((mine) => {
-          const w = wishMatchForTrail(mine, trail);
-          if (w) setWishMatch({ id: w.id, kind: 'match', tripId: trail.id });
-        })
-        .catch(() => { /* bez prianí sa výlet zapíše rovnako */ });
-    }
+    queueWishMatch(trail);
   };
 
   /**
@@ -7420,7 +7427,7 @@ export default function PackMap() {
 
       {/* ŽIVOT PRIANIA — AINUBIS sa pýta (B3 · C1–C5 · D1–D3). Nikdy nie cez iný tok:
           sprievodca výletu aj prania má vlastnú bublinu na tom istom mieste. */}
-      {WISHES_LIVE && !reveal && !wishFlow && !addFlow && !addEventFlow && (wishAsk ?? wishMatch) && (
+      {WISHES_LIVE && !reveal && !walkedPopupId && !wishFlow && !addFlow && !addEventFlow && (wishAsk ?? wishMatch) && (
         <WishAsk
           key={`${(wishAsk ?? wishMatch)!.kind}:${(wishAsk ?? wishMatch)!.id}`}
           req={(wishAsk ?? wishMatch)!}
