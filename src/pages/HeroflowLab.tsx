@@ -33,6 +33,12 @@ import {
 //    vlastným store, a `dogyptStore` nepersistuje (partialize). Dáta preto idú
 //    cez `localStorage` (`devSeed.ts`) a v ráme ich vloží `DevSeedBoot`.
 //
+// 🔴 ZOZNAM NESIE LEN NÁZOV A DVA CHIPY (Matej 25. 9. 2026: *„daj preč messy
+//    words nechaj len názov kroku bez vysvetlenia aj tak to nečítam len tam daj
+//    chipy či sedí telefon a pc velkostne overene"*). Pole `note` s popisom, čo
+//    je na kroku rozostavané, tým zaniklo — také veci patria do `KONTEXT.md`
+//    a na nástenku, nie do nástroja, v ktorom sa pozerá na obrazovky.
+//
 // ⚠️ ZOZNAM `STEPS` JE RUČNÝ A TO JE ZÁMER. Stav („hotové / rozostavané /
 //    staré") nevie zmerať skript — je to úsudok o tom, či povrch už zodpovedá
 //    rozhodnutiam z 23. 9. Pri každej hotovej obrazovke sa prepíše `state` tu.
@@ -48,8 +54,6 @@ type Step = {
   path: string;
   popup?: DevSeedPopup;
   state: StepState;
-  /** Čo na ňom ešte nesedí — vypíše sa pod riadkom. */
-  note?: string;
 };
 
 type Group = { label: string; steps: Step[] };
@@ -59,11 +63,10 @@ const GROUPS: Group[] = [
     label: 'Nový vstup',
     steps: [
       {
-        name: '1 · Popup fotky + výrez',
+        name: '1 · Fotka',
         path: '/lab/scena',
         popup: 'photo',
         state: 'done',
-        note: 'fotku ťahaj myšou, posuvník pod ňou približuje. Kto sa jej nedotkne, dostane automatický výrez (g_auto). Nad ozajstnou stenou je riadok nižšie.',
       },
       // 🔴 Krok „1b · To isté nad stenou" a „5 · Prečo heroglyf" ODSTRÁNENÉ
       // z tohto zoznamu (Matej 24. 9.: „toto vymaž ako aj 1b" — odpoveď na
@@ -72,41 +75,35 @@ const GROUPS: Group[] = [
       // ostáva cez `HeroflowDevMenu.tsx` a `DevNav.tsx`. Zvyšné kroky sú
       // preto prečíslované tak, aby šli po sebe (podstata je teraz 5, nie 6).
       {
-        name: '2 · Meno psa',
+        name: '2 · Meno',
         path: '/heroglyph/name',
         state: 'wip',
-        note: 'blok ZÁKLAD stojí (meno · narodenie · „žije?"). Krajina odišla na krok 3 (23. 9.). Otvorené: zamknuté CONTINUE nepovie prečo — dátum je predvyplnený, ale kým sa ho človek nedotkne, tlačidlo je mŕtve.',
       },
       {
-        name: '3 · Tvoja svorka',
+        name: '3 · Svorka',
         path: '/heroglyph/dogs',
         state: 'wip',
-        note: 'poradie v živote (ťahanie + ťuknutie na číslo) · fotka každého psa · zelený blok = hotový pes · krajina sa pýta tu. Otvorené: ďalší psi sa stále iba ZBIERAJÚ — platba, poradové čísla a certifikáty bežia za jedného.',
       },
       { name: '4 · E-mail', path: '/heroglyph/email', state: 'done' },
       {
-        name: '5 · Podstata (pohlavie · farba · pôvod · rodokmeň)',
+        name: '5 · Podstata',
         path: '/heroglyph/essence',
         state: 'done',
-        note: 'routa v App.tsx už existuje a obrazovka beží.',
       },
       {
-        name: '6 · Patrón (plemeno · kríženec · silueta)',
+        name: '6 · Patrón',
         path: '/heroglyph/breed',
         state: 'wip',
-        note: 'jedna obrazovka namiesto dvoch podkrokov. Plemeno je POMOCNÍK (predvyplní siluetu), CTA odomkýna patrón. Silueta sa zapisuje do heroglyfu hneď pri ťuknutí. 🔴 CHÝBA PREPÍNAČ PSOV — krok 5 ho má (dogEssence[idPsa]), odtiaľto sa všetko píše len PRVÉMU psovi. Otvorené: zlatá výplň dlaždíc z PODSTATY sem prenesená NIE JE (rad 6–11 siluet) — čaká na Mateja.',
       },
       {
-        name: '7 · Povaha (dve vlastnosti)',
+        name: '7 · Povaha',
         path: '/heroglyph/dog-character',
         state: 'wip',
-        note: 'prezlečená stará obrazovka: Hektor hovorí zhora, rám a rad ôsmich vlastností sú v jednej doske, voľba ide do heroglyfu hneď pri ťuknutí. Odklápacia slideshow zanikla — popis vybranej vlastnosti stojí pod radom. 🔴 CHÝBA PREPÍNAČ PSOV — to isté ako na kroku 6.',
       },
       {
-        name: '8 · Majiteľ (poradie · meno · pohlavie · horoskopy)',
+        name: '8 · Majiteľ',
         path: '/heroglyph/owner-info',
         state: 'wip',
-        note: 'zliate 25. 9. zo štyroch obrazoviek a stojí AŽ ZA psom (Matej: „najprv pes a potom pán“). Poradie je STAV z kroku 3 (+ ZMENIŤ späť naň), jeden dátum narodenia dopočíta obidva horoskopy. Prepínač psov sem NEPATRÍ — majiteľ je jeden človek pre celú svorku (CLAUDE.md: účet je majiteľov). Otvorené: pri viacerých psoch sa veta o poradí týka prvého psa.',
       },
     ],
   },
@@ -133,21 +130,32 @@ const GROUPS: Group[] = [
     label: 'Na porovnanie',
     steps: [
       {
-        name: 'Stará obrazovka fotky',
+        name: 'Fotka (staré)',
         path: '/heroglyph/photo',
         state: 'old',
-        note: 'v ceste zo steny sa nepoužije — je len pre príchod cez /entry',
       },
-      { name: 'Conviction gate /entry', path: '/entry', state: 'old' },
+      { name: '/entry', path: '/entry', state: 'old' },
     ],
   },
 ];
 
-/** Šírky rámu. 500 je Matejovo okno (merané), 390 iPhone, 1280 stolný počítač. */
+/**
+ * Rozmery rámu. 500 je Matejovo úzke okno (merané), 390 iPhone, 1280 počítač.
+ *
+ * 🔴 VÝŠKA POČÍTAČA JE 780, NIE 860 (opravené 25. 9. 2026). Matej poslal dva
+ *    screenshoty tej istej obrazovky — v dielni vyzerala dobre, v prehliadači
+ *    nie — a dôvod bol práve tu: rám dostával o ~90 px viac výšky, než má jeho
+ *    skutočné okno. Obrazovky vstupu sa podľa výšky okna zmenšujú (rám má
+ *    stupnicu vo FLOW_GLYPH_CSS), takže dielňa ukazovala inú polohu než realita
+ *    a merané percento výplne bolo optimistické.
+ * ⚠️ Dielňa musí merať to, čo človek naozaj vidí. Keď sa tieto čísla rozídu so
+ *    skutočným oknom, celý panel „výplň" klame — a to je horšie, než keby tam
+ *    nebol.
+ */
 const WIDTHS = [
   { id: 'phone', label: 'Telefón', w: 390, h: 844 },
   { id: 'small', label: 'Úzke okno', w: 500, h: 880 },
-  { id: 'desk', label: 'Počítač', w: 1280, h: 860 },
+  { id: 'desk', label: 'Počítač', w: 1280, h: 780 },
 ] as const;
 
 const NO_PHOTO = { id: 'none' as const, label: 'bez fotky' };
@@ -169,8 +177,13 @@ export default function HeroflowLab() {
   // podobné."* Čísla NEPÍŠE človek — hlási ich `FlowFillProbe` z bežiacej
   // obrazovky (`postMessage`), takže tabuľka nemôže zostarnúť.
   const [fills, setFills] = useState<Record<string, FlowFill>>({});
-  /** Fronta krokov, ktoré sa práve premeriavajú v skrytom ráme. */
-  const [queue, setQueue] = useState<string[]>([]);
+  /**
+   * Fronta meraní: cesta + ŠÍRKA, na ktorej sa má premerať.
+   * 🔑 Matej 25. 9.: *„daj tam chipy či sedí telefon a pc velkostne overene"* —
+   *    stav sa teda nedá vziať z práve nastaveného rámu, musia sa premerať OBE
+   *    veľkosti. Preto je vo fronte dvojica, nie len cesta.
+   */
+  const [queue, setQueue] = useState<{ path: string; w: number; h: number }[]>([]);
   const [hranica, setHranica] = useState(() => {
     try { return localStorage.getItem(HRANICA_KEY) === '1'; } catch { return false; }
   });
@@ -188,7 +201,7 @@ export default function HeroflowLab() {
       setFills((f) => ({ ...f, [`${fill.path}|${fill.sirka}`]: fill }));
       // Krok sa ozval ⇒ fronta ide ďalej. Meria sa po jednom: dva rámy naraz
       // by si na slabšom stroji navzájom skreslili čas prvého vykreslenia.
-      setQueue((q) => (q[0] === fill.path ? q.slice(1) : q));
+      setQueue((q) => (q[0]?.path === fill.path ? q.slice(1) : q));
     };
     window.addEventListener('message', onMsg);
     return () => window.removeEventListener('message', onMsg);
@@ -203,10 +216,19 @@ export default function HeroflowLab() {
     [],
   );
 
-  /** Premerať všetko na AKTUÁLNEJ šírke rámu. Fronta, nie paralelný beh. */
+  /**
+   * Premerať KAŽDÝ krok na telefóne AJ na počítači. Fronta, nie paralelný beh.
+   * ⚠️ Úzke okno (500) sa nemeria — chipy hovoria o dvoch krajoch, a keby bol
+   *    tretí, prestali by sa dať prečítať jedným pohľadom. Kto potrebuje 500,
+   *    prepne rám a pozrie sa naň.
+   */
+  const CHIP_SIZES = useMemo(
+    () => WIDTHS.filter((w) => w.id === 'phone' || w.id === 'desk'),
+    [],
+  );
   const zmeraj = () => {
     writeDevSeed({ ...seed, popup: null });
-    setQueue(merateľne.map((s) => s.path));
+    setQueue(merateľne.flatMap((st) => CHIP_SIZES.map((w) => ({ path: st.path, w: w.w, h: w.h }))));
   };
 
   // Keď fronta stojí dlhšie na tom istom kroku, nepočkáme navždy: krok, ktorý
@@ -310,18 +332,25 @@ export default function HeroflowLab() {
                 onClick={() => open(step)}
               >
                 <span className="dot" />
-                <span className="txt">
-                  {step.name}
-                  {step.note && <i>{step.note}</i>}
+                <span className="txt">{step.name}</span>
+                {/* Sedí to veľkostne na telefóne aj na počítači? Dva chipy,
+                    zelený = zmestí sa a nie je poloprázdny. Prázdno = ešte
+                    nemerané (alebo stará obrazovka bez javiska `.hf-stage`). */}
+                <span className="hfl-chips2">
+                  {CHIP_SIZES.map((w) => {
+                    const f = fills[`${step.path}|${w.w}`];
+                    const st = !f ? 'none' : f.pretecie > 0 ? 'over' : f.vyplnPct < FILL_BAND.min ? 'thin' : 'ok';
+                    return (
+                      <span
+                        key={w.id}
+                        className={`hfl-fill ${st}`}
+                        title={f ? `${w.label} ${w.w}×${w.h} — výplň ${f.vyplnPct} %${f.pretecie > 0 ? `, preteká o ${f.pretecie} px` : ''}` : `${w.label} — nemerané`}
+                      >
+                        {w.id === 'phone' ? 'TEL' : 'PC'}
+                      </span>
+                    );
+                  })}
                 </span>
-                {/* Výplň na PRÁVE NASTAVENEJ šírke rámu. Prázdno = nemerané
-                    (alebo stará obrazovka, ktorá javisko `.hf-stage` nemá). */}
-                {(() => {
-                  const f = fills[`${step.path}|${size.w}`];
-                  if (!f) return null;
-                  const st = f.pretecie > 0 ? 'over' : f.vyplnPct < FILL_BAND.min ? 'thin' : 'ok';
-                  return <span className={`hfl-fill ${st}`}>{f.vyplnPct}%</span>;
-                })()}
               </button>
             ))}
           </div>
@@ -530,10 +559,10 @@ export default function HeroflowLab() {
         {queue.length > 0 && (
           <iframe
             title="meranie"
-            key={queue[0]}
-            src={queue[0]}
+            key={`${queue[0].path}|${queue[0].w}`}
+            src={queue[0].path}
             className="hfl-probe"
-            style={{ width: size.w, height: size.h }}
+            style={{ width: queue[0].w, height: queue[0].h }}
           />
         )}
 
@@ -736,11 +765,21 @@ body:has(.hfl-root) .consent-banner { display: none !important; }
 .hfl-fillrow.is-thin .bar i { background: #C99A3F; }
 .hfl-fillrow.is-over .bar i { background: #B25640; }
 .hfl-fillrow.is-over .pc, .hfl-fillrow.is-over .nm { color: #E08A72; }
-/* Štítok pri kroku v zozname — to isté číslo pri mene obrazovky. */
+/* ── DVA CHIPY PRI KROKU: TELEFÓN a POČÍTAČ (25. 9. 2026) ────────────────────
+   Matej: *„daj preč messy words nechaj len názov kroku bez vysvetlenia aj tak
+   to nečítam len tam daj chipy či sedí telefon a pc velkostne overene"*.
+   Zoznam teda nehovorí, ČO je na kroku rozostavané (to patrí do KONTEXT.md),
+   ale jedinú vec, ktorú z neho vidno na prvý pohľad: zmestí sa to?
+   Zelený = zmestí sa a nie je poloprázdny · žltý = poloprázdny · červený =
+   preteká · sivý = ešte nemerané. Presné číslo je v tooltipe. */
+.hfl-chips2 { flex: none; display: flex; gap: 4px; margin-left: 6px; }
 .hfl-fill {
-  flex: none; margin-left: 6px; padding: 1px 5px; border-radius: 999px;
-  font-size: 9px; border: 1px solid rgba(250,244,236,.18); color: rgba(250,244,236,.55);
+  flex: none; padding: 1px 5px; border-radius: 999px;
+  font-size: 9px; letter-spacing: .06em;
+  border: 1px solid rgba(250,244,236,.18); color: rgba(250,244,236,.55);
 }
+/* Nemerané nesmie vyzerať ako v poriadku — je to otázka, nie odpoveď. */
+.hfl-fill.none { opacity: .45; }
 .hfl-fill.ok { border-color: rgba(61,122,78,.7); color: #7FBF95; }
 .hfl-fill.thin { border-color: rgba(201,154,63,.7); color: #E0BC72; }
 .hfl-fill.over { border-color: rgba(178,86,64,.8); color: #E08A72; }
