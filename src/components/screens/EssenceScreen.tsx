@@ -786,9 +786,9 @@ const ESSENCE_CSS = `
    ⚠️ NEODPORUJE TO Matejovmu *„nič sa tu nemení veľkosťou"* z 24. 9. Tam išlo
       o obrazovku, ktorá sa menila PRI ODPOVEDANÍ (výška rástla s počtom volieb).
       Toto je JEDNA pevná poloha pre nízke okno a v nej sa už nič nehýbe — ten
-      istý precedens, aký má PATRÓN (`@media (max-height: 700px)`).
-   🔑 USTUPUJE OBSAH, NIE REZERVA OD OKRAJA (lock `PAGE_AIR`): plocha odpovedí,
-      fotka psa, rám a rozstupy. Hektor sa nezmenšuje — `useSpeakMedal` mu na
+      istý precedens, aký má PATRÓN (media dotaz na max-height 700px).
+   🔑 USTUPUJE OBSAH, NIE REZERVA OD OKRAJA (lock PAGE_AIR): plocha odpovedí,
+      fotka psa, rám a rozstupy. Hektor sa nezmenšuje — useSpeakMedal mu na
       krátkom okne veľkú polohu nedá tak či tak. */
 @media (max-height: 700px) {
   .es-stack .hf-plate { gap: 8px; }

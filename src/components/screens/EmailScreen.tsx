@@ -117,10 +117,15 @@ export function EmailScreen() {
   // 🔴 Obruč berie 8 % priemeru na KAŽDEJ strane, takže samotná fotka je 84 %
   //    z tohto čísla — 260 znamená psa 218 px. Preto je strop vyšší než tých
   //    200/240, ktoré mala fotka bez rámu.
-  // Rovnica, nie pevné číslo: menšia z polovice šírky a tretiny výšky okna.
+  // Rovnica, nie pevné číslo: menšia z polovice šírky a podielu výšky okna.
   // Na 1280×900 vyjde strop 260, na 390×740 dvestoštrnásť, na nízkom okne klesne sama.
+  // ⚠️ PODIEL VÝŠKY JE 0,285, NIE 0,30 (25. 9. 2026). Pri tretine okna obrazovka
+  //    na iPhone SE (375×667) PRETIEKLA o 4 px — premerané meračom HRANICA.
+  //    Matej 25. 9.: *„chceme, aby každá obrazovka… nepretekali a sedeli aj na
+  //    mobile aj PC."* Ustupuje teda OBSAH (Hektor 200 → 190 px na SE), nie
+  //    rezerva od okraja; na väčších oknách sa nemení nič, tam drží strop 260.
   const medallion = useWinSize(
-    (w, h) => Math.round(Math.max(160, Math.min(260, Math.min(w * 0.55, h * 0.30)))),
+    (w, h) => Math.round(Math.max(160, Math.min(260, Math.min(w * 0.55, h * 0.285)))),
   );
 
   if (!flowOk) return null;

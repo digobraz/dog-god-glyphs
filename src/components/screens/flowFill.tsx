@@ -195,10 +195,19 @@ const HRANICA_CSS = `
 }
 `;
 
-/** Aké pásmo výplne je „rovnako vyplnená obrazovka". Merané 25. 9. 2026 na
- *  celom novom vstupe: e-mail 93 · patrón 92 · podstata 89 · svorka 107 (preteká)
- *  · povaha 82 na PC. Cieľ je preto **82–95 %** a nič, čo preteká. */
-export const FILL_BAND = { min: 82, max: 95 } as const;
+/**
+ * Aké pásmo výplne je „rovnako vyplnená obrazovka".
+ *
+ * Merané 25. 9. 2026 na celom novom vstupe PO zrovnaní: na PC 89–100 %, na
+ * iPhone SE 87–100 %, a **nikde nič nepreteká**. Ráno toho dňa pretekali štyri
+ * zostavy (svorka 107 % na PC a 111 % na SE, podstata 112 %, e-mail 101 %).
+ *
+ * 🔑 **100 % nie je chyba, je to cieľ** — obsah sedí presne na hranici. Chyba je
+ *    až `pretecie > 0`, teda keď sa krok vstupu roluje.
+ * ⚠️ Spodná hranica je úsudok, nie meranie: pod 85 % je obrazovka vedľa susedov
+ *    viditeľne poloprázdna. Presne to Matej 25. 9. na POVAHE (82 %) aj videl.
+ */
+export const FILL_BAND = { min: 85, max: 100 } as const;
 
 /** Vzduch od okraja — ten istý zdroj, aký drží javisko. Dielňa ho ukazuje ako
  *  HRANICU, takže ho nesmie mať opísaný. */
