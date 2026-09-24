@@ -60,6 +60,12 @@ export const HEKTHOR_GLYPH: Record<string, string> = {
   dogFate: 'rescued',
   /** Kríženec, nie chovateľský papier. */
   dogBloodline: 'mutt',
+  /**
+   * Silueta plemena. `08-06.svg` je Hektorov patrón — nie odhad: stojí v
+   * `plany/zadanie-heroglyf-hekthor-FRESH-SESSION.md` pri dátach zo servera
+   * (*„#1 · Hekthor · Matej · SVK · patron_svg 08-06.svg"*).
+   */
+  patronSvg: '08-06.svg',
   /** Majiteľ je Matej. */
   ownerGender: 'man',
   ownerInitial: 'M',

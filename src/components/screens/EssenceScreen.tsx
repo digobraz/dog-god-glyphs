@@ -269,7 +269,7 @@ export function EssenceScreen() {
           {/* JEDNA DOSKA: rám, pás tém a otázka. Rám je nad otázkou zámerne —
               odpoveď má pristáť tam, kam sa človek práve pozeral. */}
           <motion.div
-            className="hf-block hf-carved"
+            className="hf-block hf-carved es-stack"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
@@ -456,7 +456,7 @@ const ESSENCE_CSS = `
     rgba(255, 252, 240, 0.72) 1px 2px);
 }
 .es-dogphoto {
-  width: 72px; height: 72px; border-radius: 999px; object-fit: cover; flex: none;
+  width: 64px; height: 64px; border-radius: 999px; object-fit: cover; flex: none;
   display: grid; place-items: center;
   /* Vlások, nie obruč: fotka má byť FOTKA. Cloisonné rám ostáva Hektorovi, aby
      bolo na prvý pohľad jasné, kto sa pýta a kto je tvoj pes. */
@@ -491,7 +491,10 @@ const ESSENCE_CSS = `
    VLASTNEJ triede. \`SPEAK.title\` (24) je spoločná hodnota pre celý vstup a
    nesie ju aj krok 3 — zdvihnutím či znížením by sa ticho zmenil aj on.
    \`container-type\` dovolí viazať stupeň na ŠÍRKU BUBLINY (cqw), nie na okno. */
-.es-speak { container-type: inline-size; margin-bottom: 10px; }
+.es-speak { container-type: inline-size; margin-bottom: 8px; }
+/* Doska vstupu má spoločný rozstup 14 px; tu je päť medzier pod sebou, takže
+   dva pixely z každej sú na tejto obrazovke rozdiel jedného riadka. */
+.es-stack .hf-plate { gap: 10px; }
 /* ⚠️ ŽIADNE STUPŇOVANIE PODĽA VÝŠKY OKNA. Ráno tu stálo, že na nízkom okne
    ustúpi hlava aj Hektor (88/108/124/148 px). Matej to zamietol: *„nič sa tu
    nemení veľkosťou = je to súrodé bez zväčšovania alebo scvrkávania
@@ -526,7 +529,11 @@ const ESSENCE_CSS = `
 /* ── RÁM ───────────────────────────────────────────────────────────────────
    Farba je INKOUST papyrusu, nie \`--foreground\` z tmavého šatu: rám kreslí
    \`currentColor\`, takže na bledej doske by čierna pôsobila ako tlač, nie rytina. */
-.es-glyph { width: 100%; color: rgba(35, 22, 8, 0.88); }
+/* ⚠️ RÁM JE MENŠÍ, NIE PLNÁ ŠÍRKA (Matej 24. 9.: *„a heroglyf zmenšiť.. či?"* —
+   áno). Je to najväčší jediný kus výšky na obrazovke a od chvíle, čo má
+   podmalbu, sa dá čítať aj menší. 82 % šírky znamená ~18 % nižšiu výšku, lebo
+   pomer strán drží \`viewBox\`. Pod 70 % už symboly v malých slotoch splývajú. */
+.es-glyph { width: 78%; max-width: 100%; margin-inline: auto; display: block; color: rgba(35, 22, 8, 0.88); }
 
 /* 🔴 NA MOBILE 2×2, NIE RAD (Matej 24. 9.: *„na mobile dať 4 chipy 2 a 2 pod
    seba zarovnané"*). Rad štyroch sa na 390 px zalomil kde sa mu chcelo — raz
@@ -556,21 +563,30 @@ const ESSENCE_CSS = `
   font-size: 14px; line-height: 1.35; color: rgba(35, 22, 8, 0.90);
   text-shadow: 0 1px 0 rgba(255, 252, 240, 0.70);
 }
-/* 🔴 ODPOVEDE MAJÚ VŽDY PRESNE DVA RIADKY (Matej 24. 9., druhé kolo:
-   *„pri farbe budú len dva riadky — tmavý, bledý v jednom riadku, mix
-   samostatne v druhom"* + *„nič sa tu nemení veľkosťou"*).
-   Nie je to vkus, je to STRÁŽ VÝŠKY: dve voľby pod sebou a tri voľby pod sebou
-   sú dve rôzne výšky dosky, takže by sa blok pri každej otázke hýbal. Dva
-   riadky platia pre obe — pri dvoch voľbách riadok na každú, pri troch dve
-   vedľa seba a tretia cez celú šírku. */
-.es-picks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
-/* Dve voľby: každá cez celý riadok. */
-.es-picks .hf-pick { grid-column: span 2; }
-/* Tri voľby: prvé dve delia riadok, tretia ho dostane celý. */
-.es-picks.n3 .hf-pick:nth-child(1),
-.es-picks.n3 .hf-pick:nth-child(2) { grid-column: span 1; }
-.es-picks.n3 .hf-pick:nth-child(1) .tx,
-.es-picks.n3 .hf-pick:nth-child(2) .tx { font-size: 13px; }
+/* 🔴 ODPOVEDE SÚ VEDĽA SEBA A PLOCHA MÁ PEVNÚ VÝŠKU (Matej 24. 9., tretie kolo:
+   *„nesedí mi to výškovo na PC, môžeš dať odpovede vedľa seba, nie pod seba"*).
+   Pod sebou zaberali o jeden riadok viac, než na jeho okne (1477×724) bolo.
+   ⚠️ Pevná výška \`--es-picks-h\` je to, čo drží Matejovo staršie *„nič sa tu
+      nemení veľkosťou"*. Dve voľby v jednom rade a tri v dvoch radoch sú dve
+      rôzne výšky; plocha je preto rovnaká vždy a dlaždice sa v nej NAŤAHUJÚ
+      (\`stretch\`) — pri dvojici sú vyššie, pri trojici nižšie, ale doska stojí.
+   ⚠️ Poradie pri farbe je Matejovo: *„tmavý, bledý v jednom riadku, mix
+      samostatne v druhom"*. */
+.es-picks {
+  --es-picks-h: 116px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%;
+  min-height: var(--es-picks-h); align-items: stretch;
+}
+/* Tri voľby: dve delia prvý rad, tretia dostane celý druhý — a VOJDÚ SA DO TEJ
+   ISTEJ výšky, akú má dvojica. Bez toho mala farba 156 px proti 116 px zvyšku
+   a doska pri nej narástla o 40 px, teda presne to, čo sa nemá hýbať. Vojdú sa
+   menšou jamkou a nižším odsadením, nie menším písmom. */
+.es-picks.n3 { grid-template-rows: 54px 54px; }
+.es-picks.n3 .hf-pick:nth-child(3) { grid-column: span 2; }
+.es-picks.n3 .hf-pick { padding: 6px 12px; gap: 10px; }
+.es-picks.n3 .hf-pick .well { width: 36px; height: 36px; }
+.es-picks.n3 .hf-pick .well img { width: 24px; height: 24px; }
+.es-picks.n3 .hf-pick .tx { font-size: 13px; }
 /* Symbol podstaty je KRESBA, nie ikonka rozhrania — jamka je preto väčšia než
    pri voľbe stavu psa a obrázok v nej dýcha. Riadok je aj vyšší: obrazovka
    pôsobila „scvrknuto" (Matej 24. 9.) a práve toto je jej najväčšia plocha. */
