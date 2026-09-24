@@ -33,7 +33,7 @@ import { useFlowSkin, setFlowSkin } from '@/components/screens/flowRedress';
 
 type Row =
   | { kind: 'popup'; name: string; done?: boolean }
-  | { kind: 'route'; path: string; name: string; done?: boolean }
+  | { kind: 'route'; path: string; name: string; done?: boolean; note?: string }
   | { kind: 'todo'; name: string; note: string };
 
 type Group = { label: string; rows: Row[] };
@@ -48,7 +48,11 @@ const GROUPS: Group[] = [
       { kind: 'route', path: '/heroglyph/name', name: '2 · Meno psa', done: true },
       { kind: 'route', path: '/heroglyph/dogs', name: '3 · Multi pes', done: true },
       { kind: 'route', path: '/heroglyph/email', name: '4 · E-mail', done: true },
-      { kind: 'route', path: '/heroglyph/why', name: '5 · Prečo heroglyf', done: true },
+      // 🔴 ODVESENÉ Z PORADIA (Matej 24. 9.: „toto vymaž ako aj 1b" — odpoveď na
+      // otázku, ktorá zahŕňala 1b aj celý krok „PREČO HEROGLYF"). Obrazovka a
+      // routa sa NEMAZALI, len vypadli z reťaze `navigate()` — toto menu je
+      // jediná cesta, ako sa k nej dostať.
+      { kind: 'route', path: '/heroglyph/why', name: '5 · Prečo heroglyf', done: true, note: 'odvesené z poradia' },
       // Stavia sa v inej session (24. 9.) — `todo`, nie `route`, aby na ňu
       // nešlo kliknúť (App.tsx cestu ešte nemá, klik by vypadal ako pokazené menu).
       { kind: 'todo', name: '6 · Podstata', note: 'stavia sa' },
@@ -268,6 +272,7 @@ export function HeroflowDevMenu() {
                   >
                     <span className="hfd-dot" />
                     <span>{r.name}</span>
+                    {r.kind === 'route' && r.note && <span className="tag">{r.note}</span>}
                   </button>
                 );
               })}

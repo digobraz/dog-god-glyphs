@@ -6,6 +6,7 @@ import { PACK_THEME as T } from '@/components/pack/packTheme';
 import { FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
 // Stena je vymenovaná RAZ (viď tam) — oba šaty vstupu si ju berú odtiaľ.
 import { FLOW_WALL_IMAGE, FLOW_WALL_VEIL } from '@/components/screens/flowPaleSkin';
+import { NEW_HEROFLOW } from '@/lib/flowMode';
 
 // ════════════════════════════════════════════════════════════════════════════
 // PREZLEČENIE STARÝCH OBRAZOVIEK VSTUPU (31. 8. 2026)
@@ -66,8 +67,10 @@ const FLOW_PATHS = ['/heroglyph', '/checkout', '/payment', '/welcome'];
  * ⚠️ `/heroglyph/breed` je JEDNA routa s dvoma podkrokmi (plemeno → patrón). Pruh sa preto
  *    v nej nehýbe; deliť ho na polovice by si vyžiadalo stav z obrazovky a pruh by prestal
  *    byť vecou, ktorá o obrazovkách nič nevie.
+ *
+ * Toto je poradie STARÉHO vstupu (19 obrazoviek, prvý krok `/heroglyph/photo`).
  */
-const FLOW_ORDER = [
+const FLOW_ORDER_OLD = [
   '/heroglyph/photo',
   '/heroglyph/name',
   '/heroglyph/dogs',
@@ -87,6 +90,52 @@ const FLOW_ORDER = [
   '/heroglyph/reveal',
   '/heroglyph/message',
 ];
+
+/**
+ * PORADIE NOVÉHO VSTUPU (24. 9. 2026).
+ *
+ * Matej odmeral progresbar pri 500 px oknom: pruh sa plnil 11 %/17 %/22 %/28 %
+ * podľa `FLOW_ORDER_OLD`, hoci nový vstup má iné poradie krokov — a na
+ * `/heroglyph/essence` pruh nebol vôbec (chýbal v poli).
+ *
+ * Rovnako ako pri starom poradí — NEHÁDANÉ, vytiahnuté z `navigate()` cieľov:
+ *  · `NameScreen.tsx:422`   → `navigate('/heroglyph/dogs')`
+ *  · `DogsScreen.tsx:328`   → `navigate('/heroglyph/email')`
+ *  · `EmailScreen.tsx`      → `navigate('/heroglyph/essence')` (bod 1 tejto úlohy;
+ *                              dovtedy `/heroglyph/why`)
+ *  · `EssenceScreen.tsx:343`→ `navigate('/heroglyph/breed')`
+ *  ⚠️ `EssenceScreen.tsx:203` má AJ `navigate('/heroglyph/why')`, ale je to
+ *     CÚVANIE („späť" z prvej otázky), nie krok vpred — do poradia nejde.
+ *  · od `/heroglyph/breed` ďalej reťaz pokračuje STARÝM chvostom (ranking →
+ *    owner-info → … → message) — tie obrazovky sa 24. 9. nemenili.
+ *
+ * `/heroglyph/why` v tomto poradí NIE JE (bod 1 tejto úlohy — Matej: „toto
+ * vymaž ako aj 1b"). Obrazovka sa iba odvesila z reťaze, nezmazala.
+ * `/heroglyph/photo` tu tiež nie je — nový vstup na ňu nechodí, začína
+ * popupom nad stenou a prvým krokom s vlastnou routou je `name`.
+ */
+const FLOW_ORDER_NEW = [
+  '/heroglyph/name',
+  '/heroglyph/dogs',
+  '/heroglyph/email',
+  '/heroglyph/essence',
+  '/heroglyph/breed',
+  '/heroglyph/ranking',
+  '/heroglyph/owner-info',
+  '/heroglyph/owner-zodiac',
+  '/heroglyph/owner-final',
+  '/heroglyph/dog-gender',
+  '/heroglyph/dog-fate',
+  '/heroglyph/dog-colour',
+  '/heroglyph/dog-bloodline',
+  '/heroglyph/dog-character',
+  '/heroglyph/crop',
+  '/heroglyph/reveal',
+  '/heroglyph/message',
+];
+
+/** Vyberá poradie podľa toho, ktorý vstup naozaj beží (`@/lib/flowMode`). */
+const FLOW_ORDER = NEW_HEROFLOW ? FLOW_ORDER_NEW : FLOW_ORDER_OLD;
 
 const STORAGE_KEY = 'dogypt-flow-skin';
 export type FlowSkin = 'pale' | 'dark';
@@ -384,7 +433,10 @@ function FlowProgress({ pathname }: { pathname: string }) {
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
     >
-      <div style={{ height: 4, background: 'rgba(201,154,63,0.22)' }}>
+      {/* 6 px (bolo 4) + zreteľnejší podklad (bolo 0.22) — Matej: „nevidím
+          progresbar postupu". Výplň ostáva LAPIS (brandový kánon), mení sa
+          len hrúbka a podklad pod ňou. */}
+      <div style={{ height: 6, background: 'rgba(201,154,63,0.38)' }}>
         <div
           style={{
             height: '100%', width: `${pct}%`,

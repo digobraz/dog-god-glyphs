@@ -64,13 +64,12 @@ const GROUPS: Group[] = [
         state: 'done',
         note: 'fotku ťahaj myšou, posuvník pod ňou približuje. Kto sa jej nedotkne, dostane automatický výrez (g_auto). Nad ozajstnou stenou je riadok nižšie.',
       },
-      {
-        name: '1b · To isté nad stenou',
-        path: '/',
-        popup: 'photo',
-        state: 'done',
-        note: 'ozajstná stena, ťahá psov z produkcie (pomalšie)',
-      },
+      // 🔴 Krok „1b · To isté nad stenou" a „5 · Prečo heroglyf" ODSTRÁNENÉ
+      // z tohto zoznamu (Matej 24. 9.: „toto vymaž ako aj 1b" — odpoveď na
+      // otázku, ktorá zahŕňala 1b aj celý krok „PREČO HEROGLYF"). Obrazovka
+      // `/heroglyph/why` sa NEMAZALA, len odvesila z poradia — dostupná
+      // ostáva cez `HeroflowDevMenu.tsx` a `DevNav.tsx`. Zvyšné kroky sú
+      // preto prečíslované tak, aby šli po sebe (podstata je teraz 5, nie 6).
       {
         name: '2 · Meno psa',
         path: '/heroglyph/name',
@@ -84,12 +83,11 @@ const GROUPS: Group[] = [
         note: 'poradie v živote (ťahanie + ťuknutie na číslo) · fotka každého psa · zelený blok = hotový pes · krajina sa pýta tu. Otvorené: ďalší psi sa stále iba ZBIERAJÚ — platba, poradové čísla a certifikáty bežia za jedného.',
       },
       { name: '4 · E-mail', path: '/heroglyph/email', state: 'done' },
-      { name: '5 · Prečo heroglyf', path: '/heroglyph/why', state: 'done' },
       {
-        name: '6 · Podstata (pohlavie · farba · pôvod · rodokmeň)',
+        name: '5 · Podstata (pohlavie · farba · pôvod · rodokmeň)',
         path: '/heroglyph/essence',
-        state: 'wip',
-        note: 'stavia sa v inej session (24. 9.) — cesta tu je zámerne, rám ju ukáže, hneď ako pribudne do App.tsx.',
+        state: 'done',
+        note: 'routa v App.tsx už existuje a obrazovka beží.',
       },
     ],
   },

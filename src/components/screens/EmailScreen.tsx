@@ -75,10 +75,15 @@ export function EmailScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trimmed, valid]);
 
+  // ── KROK „PREČO HEROGLYF" JE VON Z PORADIA (Matej 24. 9. 2026: „toto vymaž
+  // ako aj 1b" — odpoveď na otázku, ktorá zahŕňala 1b aj celý krok
+  // „PREČO HEROGLYF"). `WhyScreen` a jeho routa `/heroglyph/why` sa NEMAZALI —
+  // len sa odvesili z reťaze, aby sa dali kedykoľvek vrátiť (dostupné z dev menu).
+  // Potvrdenie aj preskočenie mailu preto idú rovno na `/heroglyph/essence`.
   const go = (withEmail: boolean) => {
     if (withEmail && valid) setEmail(trimmed);
     if (!withEmail) track('flow_email_skipped');
-    navigate('/heroglyph/why');
+    navigate('/heroglyph/essence');
   };
 
   const displayName = dogName || t('heroglyph.flow.yourDogFallback');

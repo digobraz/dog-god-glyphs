@@ -38,7 +38,11 @@ const GROUPS: RouteGroup[] = [
       // sem dopĺňam len tie dve chýbajúce cesty bez prečíslovania zvyšku.
       { path: "/heroglyph/dogs", name: "Multi pes (svorka)" },
       { path: "/heroglyph/email", name: "3. E-mail" },
-      { path: "/heroglyph/why", name: "4. Prečo heroglyf" },
+      // Odvesené z poradia (Matej 24. 9.: „toto vymaž ako aj 1b" — odpoveď na
+      // otázku, ktorá zahŕňala 1b aj celý krok „PREČO HEROGLYF"). Routa a
+      // obrazovka sa NEMAZALI, len vypadli z reťaze `navigate()` — cesta tu
+      // ostáva, aby sa dalo k nej dostať.
+      { path: "/heroglyph/why", name: "4. Prečo heroglyf (odvesené z poradia)" },
       { path: "/heroglyph/essence", name: "Podstata (rozostavané)" },
       { path: "/heroglyph/about", name: "5. Papierovačky" },
       { path: "/heroglyph/breed", name: "6. Breed / Patron" },

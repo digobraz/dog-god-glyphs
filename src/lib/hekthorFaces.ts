@@ -27,10 +27,19 @@ const face = (i: number) => `/images/hekt-flow/${String(i).padStart(2, '0')}.web
 //    v origináli (`4OK.png`, 500×500 s okrajom 50 px), väčšie by sa už dopočítavalo.
 const BY_STEP: Record<string, number> = {
   name: 1,
-  dogs: 4,
+  // Matej 24. 9.: „pri tvoja svorka si nezmenil fotku... a tam byť profil
+  // hektora" — v sade sú dva kandidáti, `04` (čelný portrét) a `07` (jediný
+  // BOČNÝ PROFIL); obe som si otvoril a profil sedí ku „svorke" tematicky
+  // lepšie (rad psov z boku), takže krok `dogs` dostáva `07`.
+  dogs: 7,
   // Matejov výber z troch fotiek, ktoré označil príponou OK (2OK · 3OK · 4OK):
   // tá s vycerenými zubami = `4OK.png` = `02.webp`. Predtým tu stálo 7 (profil).
   email: 2,
+  // `essence` (24. 9.) v mape chýbal, takže padal na ksicht kroku 1 — ten istý,
+  // aký má krok `name`. `17` bola priradená starej routе `dog-gender`, ktorú
+  // podstata pohltila (pohlavie je teraz jedna z otázok podstaty) — je preto
+  // voľná a tematicky sedí.
+  essence: 17,
   why: 9,
   breed: 11,
   ranking: 13,
