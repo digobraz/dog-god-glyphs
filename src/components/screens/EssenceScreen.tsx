@@ -265,52 +265,6 @@ export function EssenceScreen() {
             </span>
           </motion.div>
 
-          {/* ── 2. RIADOK: FOTKA PSA A JEHO MENO ────────────────────────────
-              🔴 BEZ OBRUČE A MALÁ (Matej 24. 9., druhé kolo: *„pod tým bude
-                 foto psa, NIE v tom lemovanom okraji ako Hektor, a zmenši ju
-                 o 200 %"*). Ráno tu bol medailón 124–148 px s cloisonné
-                 obručou; tá teraz patrí len Hektorovi, aby bolo vidno, kto je
-                 sprievodca a kto je TVOJ pes. Priemer 72 px je tých „o 200 %".
-              ⚠️ Jedno číslo pre všetky okná. Matej: *„nič sa tu nemení
-                 veľkosťou = je to súrodé bez zväčšovania alebo scvrkávania"* —
-                 ranné stupňovanie podľa výšky okna (88/108/124/148) je preto
-                 zrušené. */}
-          <div className="es-head">
-            {dog?.photo
-              ? <img className="es-dogphoto" src={dog.photo} alt={dog?.name || ''} />
-              : (
-                /* Bez fotky stojí iniciála v tej istej kruhovej diere —
-                   rozbitý obrázok by vyzeral ako chyba appky. */
-                <span className="es-dogphoto es-dogphoto--empty">
-                  {(dog?.name || '?').slice(0, 1)}
-                </span>
-              )}
-            <span className="es-name">
-              {dog?.name || t('heroglyph.flow.yourDogFallback')}
-              {dogDone(dogId) && <i className="es-ok">✓</i>}
-            </span>
-            {dogs.length > 1 && (
-              <div className="es-switch">
-                <button
-                  type="button"
-                  className="es-arrow"
-                  // ⚠️ Vlastný kľúč si nezakladám — `whatNext.prev/next` je
-                  //    preložené v 18 jazykoch a znamená presne toto.
-                  aria-label={t('whatNext.prev')}
-                  onClick={() => goDog((cur - 1 + dogs.length) % dogs.length)}
-                >‹</button>
-                <em>{cur + 1}/{dogs.length}</em>
-                <button
-                  type="button"
-                  className="es-arrow"
-                  aria-label={t('whatNext.next')}
-                  onClick={() => goDog((cur + 1) % dogs.length)}
-                >›</button>
-              </div>
-            )}
-          </div>
-
-
           {/* JEDNA DOSKA: rám, pás tém a otázka. Rám je nad otázkou zámerne —
               odpoveď má pristáť tam, kam sa človek práve pozeral. */}
           <motion.div
@@ -321,6 +275,50 @@ export function EssenceScreen() {
           >
             <span className="hf-carved-rim" aria-hidden />
             <div className="hf-plate">
+              {/* ── KTO JE OPISOVANÝ ────────────────────────────────────
+                  🔴 FOTKA A MENO SÚ VEDĽA SEBA A VNÚTRI DOSKY, NAD RÁMOM
+                     (Matej 24. 9. 2026: *„fotku opisovaného psa s menom dajme
+                     vedľa seba a dajme ju do 2. bloku nad heroglyf, oddeľme
+                     rytinou"*). Dôvod nie je len miesto: pes, ktorého práve
+                     opisujem, patrí k RÁMU, ktorý sa plní — nie nad dosku ako
+                     samostatná hlava. Vedľa seba to navyše ušetrí riadok
+                     s menom, takže obrazovka klesla bez jediného zmenšovania.
+                  ⚠️ Rytina pod riadkom je tá istá drážka ako vlysy pri nadpise
+                     (`FLOW_CARVE_CSS`): tmavá hrana + svetlá pod ňou. */}
+              <div className="es-who">
+                {dog?.photo
+                  ? <img className="es-dogphoto" src={dog.photo} alt={dog?.name || ''} />
+                  : (
+                    <span className="es-dogphoto es-dogphoto--empty">
+                      {(dog?.name || '?').slice(0, 1)}
+                    </span>
+                  )}
+                <span className="es-name">
+                  {dog?.name || t('heroglyph.flow.yourDogFallback')}
+                  {dogDone(dogId) && <i className="es-ok">✓</i>}
+                </span>
+                {dogs.length > 1 && (
+                  <div className="es-switch">
+                    <button
+                      type="button"
+                      className="es-arrow"
+                      // ⚠️ Vlastný kľúč si nezakladám — `whatNext.prev/next` je
+                      //    preložené v 18 jazykoch a znamená presne toto.
+                      aria-label={t('whatNext.prev')}
+                      onClick={() => goDog((cur - 1 + dogs.length) % dogs.length)}
+                    >‹</button>
+                    <em>{cur + 1}/{dogs.length}</em>
+                    <button
+                      type="button"
+                      className="es-arrow"
+                      aria-label={t('whatNext.next')}
+                      onClick={() => goDog((cur + 1) % dogs.length)}
+                    >›</button>
+                  </div>
+                )}
+              </div>
+              <span className="es-rule" aria-hidden />
+
               <HeroglyphFrame
                 showOwner
                 dogValues={picks}
@@ -423,12 +421,26 @@ export function EssenceScreen() {
 /** Šat obrazovky. Rytiny, jamky a tint si berie z `FLOW_CARVE_CSS` — tu je len
  *  to, čo má iba táto obrazovka: prepínač psov, pás tém a rám. */
 const ESSENCE_CSS = `
-/* ── HLAVA: FOTKA PSA A JEHO MENO ──────────────────────────────────────────
-   Stojí NAD doskou, nie v nej: nie je to údaj v ráme, je to odpoveď na
-   „o koho tu ide". Matej 24. 9.: *„hore zväčšiť foto psa a pod to meno"*. */
-.es-head {
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-  width: 100%; margin-bottom: 10px;
+/* ── KTO JE OPISOVANÝ ──────────────────────────────────────────────────────
+   Riadok VNÚTRI dosky, nad rámom, oddelený rytinou. Ráno to bol stĺpec nad
+   doskou (fotka, pod ňou meno) — Matej to poobede prehodil na dvojicu vedľa
+   seba a presunul dnu, k rámu, ktorý sa plní. */
+.es-who {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+}
+/* Meno berie zvyšok riadka, prepínač sa drží pravého kraja. */
+.es-who .es-name { flex: 1 1 auto; min-width: 0; }
+/* Pri dlhom mene ustúpi PÍSMO, nie posledné písmená — ellipsis v mene psa je
+   to najhoršie, čo môže na tejto obrazovke stáť. */
+@media (max-width: 420px) { .es-who .es-name { font-size: 17px; } }
+.es-who .es-switch { flex: 0 0 auto; }
+/* Rytina = tá istá drážka ako vlysy pri nadpise: tmavá hrana a svetlá pod ňou.
+   Jedna šedá linka by bola čiara v tabuľke, nie zásah do plochy. */
+.es-rule {
+  display: block; width: 100%; height: 2px; border-radius: 1px; flex: none;
+  background: linear-gradient(180deg,
+    rgba(120, 86, 26, 0.34) 0 1px,
+    rgba(255, 252, 240, 0.72) 1px 2px);
 }
 .es-dogphoto {
   width: 72px; height: 72px; border-radius: 999px; object-fit: cover; flex: none;
@@ -447,7 +459,7 @@ const ESSENCE_CSS = `
   font-family: 'Cinzel Decorative', 'Cinzel', serif; font-weight: 700;
   font-size: 19px; letter-spacing: 0.04em; line-height: 1.1;
   color: rgba(35, 22, 8, 0.90); text-shadow: 0 1px 0 rgba(255, 252, 240, 0.70);
-  text-align: center;
+  text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
 /* ── PREPÍNAČ PSOV ─────────────────────────────────────────────────────────
@@ -480,22 +492,11 @@ const ESSENCE_CSS = `
   box-shadow: inset 0 1px 0 rgba(255, 252, 240, 0.85), 0 1px 2px rgba(60, 40, 10, 0.10);
   font-family: 'Cinzel', serif; font-size: 18px; line-height: 1; color: #8a5a14;
 }
-.es-who {
-  display: inline-flex; align-items: center; gap: 8px; min-width: 0;
-  padding: 5px 12px 5px 6px; border-radius: 999px;
-  background: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%);
-  border: 1.5px solid rgba(179, 130, 45, 0.55);
-  box-shadow: inset 0 1px 0 rgba(255, 252, 240, 0.85);
-}
-.es-who > b {
-  font-family: 'Cinzel Decorative', 'Cinzel', serif; font-weight: 700;
-  font-size: 14px; letter-spacing: 0.04em; color: rgba(35, 22, 8, 0.90);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.es-who > em {
-  font-family: 'Space Grotesk', sans-serif; font-style: normal; font-size: 11px;
-  letter-spacing: 0.08em; color: rgba(60, 40, 12, 0.52);
-}
+/* ⚠️ Tu stála DRUHÁ definícia \`.es-who\` — ranná pilulka (gradient, plný zlatý
+   rám, polomer 999) z prvej verzie prepínača. Po presune riadka do dosky
+   prebíjala nový riadok a fotka s menom sedeli v „tabletke" vnútri dosky, teda
+   rám v ráme. Dve definície tej istej triedy v jednom šate = ten istý rozchod,
+   ktorý si vyžiadal zrušenie druhého \`.hf-pick\`. */
 .es-ok { font-style: normal; font-size: 12px; color: #2E5C3B; }
 .es-face {
   flex: none; width: 28px; height: 28px; border-radius: 999px; object-fit: cover;
