@@ -303,6 +303,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.breed.needs': '{name} potrebuje patróna.',
   'heroglyph.flow.breed.legend': 'Patrón',
   'heroglyph.flow.breed.mix.second': 'Druhé plemeno',
+  'heroglyph.flow.breed.pickHint': 'Patróna vyber podľa siluety, ktorá tvojmu psovi sedí najviac.',
   'heroglyph.flow.breed.fallbackHero': 'tvojho hrdinu',
   'heroglyph.flow.breed.searchPlaceholder': 'Hľadať rasu (orientačne)',
   'heroglyph.flow.breed.enHint': 'Začni písať rasu po anglicky',

@@ -412,6 +412,8 @@ export const en = {
   //    Voliteľnosť navyše netreba hovoriť — v novom kroku nie je povinné
   //    ani jedno plemeno, CTA odomkýna patrón.
   'heroglyph.flow.breed.mix.second': 'Second breed',
+  // Tichý riadok POD výberom a NAD tlačidlom (Matej 24. 9.).
+  'heroglyph.flow.breed.pickHint': 'Pick the patron whose silhouette fits your dog best.',
   'heroglyph.flow.breed.searchPlaceholder': 'Search breed (optional guide)',
   'heroglyph.flow.breed.enHint': '',
   'heroglyph.flow.breed.continue': 'Continue',

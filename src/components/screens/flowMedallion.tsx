@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 // ════════════════════════════════════════════════════════════════════════════
 // HEKTHOR V MEDAILÓNE — vstup heroglyfu
 // ────────────────────────────────────────────────────────────────────────────
@@ -190,6 +192,38 @@ type Props = {
   alt?: string;
   className?: string;
 };
+
+/**
+ * Priemer medailónu v páse „Hektor sa pýta" (`.hf-speak`) — **na telefóne väčší**.
+ *
+ * Matej 24. 9. 2026 nad obrazovkou PATRÓN: *„na mobile môžme zväčšiť prvý blok aj
+ * foto aj písmo"*. Na PC stojí pás vedľa širokej dosky a 80 px v ňom sedí; na
+ * telefóne je pás cez celú šírku a tá istá tvár v ňom pôsobí ako ikonka.
+ *
+ * 🔴 **NIE JE TO STUPŇOVANIE PODĽA VÝŠKY OKNA** (to Matej 24. 9. ráno zamietol:
+ *    *„nič sa tu nemení veľkosťou"*). Sú to DVE polohy podľa ŠÍRKY — mobil a PC —
+ *    a obe sú pevné. 104 px je veľkosť z kroku SVORKA, ktorú si Matej vybral,
+ *    nie nové číslo.
+ * ⚠️ Berú si ho VŠETKY obrazovky s týmto pásom (podstata aj patrón). Dva susedné
+ *    kroky s rôzne veľkým Hektorom vyzerajú ako dva návrhy, nie ako jeden vstup.
+ * ⚠️ Rozmer je inline `style` na komponente, takže sa z hárku prepísať NEDÁ —
+ *    preto hook, a nie `@media`.
+ */
+export function useSpeakMedal(): number {
+  const [box, setBox] = useState(() => (typeof window === 'undefined'
+    ? { w: 1024, h: 768 }
+    : { w: window.innerWidth, h: window.innerHeight }));
+  useEffect(() => {
+    const on = () => setBox({ w: window.innerWidth, h: window.innerHeight });
+    window.addEventListener('resize', on);
+    return () => window.removeEventListener('resize', on);
+  }, []);
+  // ⚠️ VÝŠKA JE PODMIENKA, NIE STUPNICA. Sú stále len DVE polohy (104 a 80);
+  //    krátke okno (iPhone SE, 667) len nedostane tú väčšiu, lebo PODSTATA sa
+  //    doň už dnes nezmestí a zväčšený Hektor by jej pretečenie prehĺbil.
+  //    Premerané 24. 9.: PODSTATA na 375×667 preteká aj s 80 px medailónom.
+  return box.w < 560 && box.h >= 700 ? 104 : 80;
+}
 
 export function FlowMedallion({ src, size = 132, alt = 'HEKTHOR', className }: Props) {
   const rim = Math.max(4, Math.round((RING.ow / 100) * size));

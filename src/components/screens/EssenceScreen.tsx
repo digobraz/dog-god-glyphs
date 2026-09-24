@@ -7,7 +7,7 @@ import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { PageTopBar } from '@/components/PageTopBar';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
-import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
+import { FlowMedallion, FLOW_MEDAL_CSS, useSpeakMedal } from '@/components/screens/flowMedallion';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { BRAND_GOLD_BTN, PACK_R } from '@/components/pack/packTheme';
 import { hekthorFace } from '@/lib/hekthorFaces';
@@ -155,6 +155,10 @@ export function EssenceScreen() {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
+  /** Hektor je na telefóne väčší (104), na PC 80 — Matej 24. 9. na kroku PATRÓN.
+   *  Prenesené aj sem: dva susedné kroky s rôzne veľkým Hektorom vyzerajú ako
+   *  dva návrhy. Na PC sa nemení nič. */
+  const medal = useSpeakMedal();
   const dog = dogs[Math.min(cur, dogs.length - 1)];
   const dogId = dog?.id ?? MAIN_DOG_ID;
   const picks = dogEssence[dogId] || {};
@@ -261,7 +265,7 @@ export function EssenceScreen() {
                 CTA a pod."*). Ranné 104 bolo prevzaté z kroku SVORKA, kde je
                 Hektor hlavou obrazovky; tu stojí len ako ten, kto sa pýta, a
                 obrazovka potrebovala výšku inde. */}
-            <FlowMedallion src={hekthorFace('essence')} size={80} />
+            <FlowMedallion src={hekthorFace('essence')} size={medal} />
             <span className="say">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.h2
@@ -553,7 +557,11 @@ const ESSENCE_CSS = `
    nemení veľkosťou = je to súrodé bez zväčšovania alebo scvrkávania
    s minimálnymi okrajmi hore a dolu"*. Obrazovka má JEDNU veľkosť; keď sa
    nezmestí, roluje sa — rezervu od okraja drží \`PAGE_AIR\`. */
-.es-speak h2 { font-size: clamp(16px, 4.6cqw, 20px); }
+/* ⚠️ Spodná hranica 18 (bola 16) — na telefóne je clamp vždy na nej, takže je to
+   jediné číslo, ktoré tam platí. Matej 24. 9. na kroku PATRÓN: *„na mobile môžme
+   zväčšiť prvý blok aj foto aj písmo"*; prenesené sem, aby sa kroky nerozišli.
+   Na PC sa nemení nič — tam 4,6cqw drží strop 20. */
+.es-speak h2 { font-size: clamp(18px, 4.6cqw, 20px); }
 .es-arrow {
   flex: none; width: 34px; height: 34px; border-radius: 999px; cursor: pointer;
   background: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%);

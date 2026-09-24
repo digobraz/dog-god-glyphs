@@ -9,9 +9,9 @@ import { NEW_HEROFLOW } from '@/lib/flowMode';
 import { PageTopBar } from '@/components/PageTopBar';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
-import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
+import { FlowMedallion, FLOW_MEDAL_CSS, useSpeakMedal } from '@/components/screens/flowMedallion';
 import { LAPIS, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
-import { PACK_R, PACK_THEME as T } from '@/components/pack/packTheme';
+import { PACK_R, PACK_THEME as T, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
 import { LAB } from '@/lib/labTheme';
 import { hekthorFace } from '@/lib/hekthorFaces';
 import { HEKTHOR_GLYPH } from '@/lib/hektor';
@@ -362,6 +362,9 @@ export function PatronScreen() {
   const setSelection = useDogyptStore((s) => s.setSelection);
 
   const heroName = dogName?.trim() || t('heroglyph.flow.breed.fallbackHero');
+  /** Hektor je na telefóne väčší (104), na PC 80 — Matej 24. 9. Jedno miesto
+   *  pre obe obrazovky s týmto pásom, aby sa podstata a patrón nerozišli. */
+  const medal = useSpeakMedal();
 
   /** Otvorená kategória. Po návrate do kroku sa otvorí tá, z ktorej je vybraný
    *  patrón — nie prvá. Kto sa vráti, musí vidieť, čo si vybral. */
@@ -436,7 +439,7 @@ export function PatronScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.28 }}
           >
-            <FlowMedallion src={hekthorFace('breed')} size={80} />
+            <FlowMedallion src={hekthorFace('breed')} size={medal} />
             <span className="say">
               <h2>{t('heroglyph.flow.breed.needs', { name: heroName })}</h2>
               <p>{t('heroglyph.flow.breed.subtitle')}</p>
@@ -548,6 +551,14 @@ export function PatronScreen() {
                 ))}
               </Scroller>
 
+              {/* Veta NAD CTA a POD výberom (Matej 24. 9.: *„pridal by som text aj na
+                  mobile aj na PC pod výberom ikon a nad CTA… malým písmom"*).
+                  Stojí tu, lebo je to NÁVOD K VÝBERU, nie podnadpis obrazovky —
+                  v bubline hore by ju človek čítal skôr, než uvidí, z čoho vyberá.
+                  ⚠️ Trieda je `.hf-note` zo spoločného šatu, nie nová — je to ten
+                     istý tichý riadok, aký nesie poznámky inde vo vstupe. */}
+              <p className="hf-note pt-hintline">{t('heroglyph.flow.breed.pickHint')}</p>
+
               <button type="button" className="hf-cta" disabled={!canGo} onClick={go}>
                 {t('heroglyph.flow.breed.continue')}
               </button>
@@ -575,7 +586,11 @@ const PATRON_CSS = `
    nadpis pri zmene šírky ticho pretečie. Tá istá dvojica hodnôt ako PODSTATA,
    aby dva susedné kroky mali to isté písmo. */
 .pt-speak { container-type: inline-size; margin-bottom: 8px; }
-.pt-speak h2 { font-size: clamp(16px, 4.6cqw, 20px); }
+/* ⚠️ DOLNÁ HRANICA JE 18, NIE 16 (Matej 24. 9.: *„na mobile môžme zväčšiť prvý blok
+   aj foto aj písmo"*). Na telefóne má bublina ~302 px, takže 4,6cqw dá 13,9 a clamp
+   spadne na spodnú hranicu — tá je teda JEDINÉ číslo, ktoré na mobile platí.
+   Na PC sa nemení nič: 4,6cqw je tam nad 20 a clamp drží strop. */
+.pt-speak h2 { font-size: clamp(18px, 4.6cqw, 20px); }
 .pt-stack .hf-plate { gap: 10px; }
 
 /* ── PLEMENO ──────────────────────────────────────────────────────────────
@@ -685,30 +700,52 @@ const PATRON_CSS = `
   padding: 3px 2px; margin: -3px -2px;
 }
 .pt-row::-webkit-scrollbar { display: none; }
+/* 🟨 ŠÍPKA JE PLNÁ BRANDOVÁ ZLATÁ (Matej 24. 9.: *„šípky sú moc na kraji a možno by
+   som ich dal zlaté alebo inej farby, lebo splývajú"*). Papyrusová šípka na
+   papyrusovej doske je papyrus na papyruse — presne to splývanie.
+   🔑 A je to POLOHA V LOCKU, nie výnimka: brand lock hovorí *„ZLATO = konštrukcia
+      a poloha"* (rám, nav, aktívna pilulka) a *„LAPIS = moja voľba a akcia"*.
+      Posun radu je nábytok — nič si ním nevyberám, len sa presúvam. Zlatá je preto
+      jediná správna odpoveď a zároveň odlíši šípku od všetkého, čo sa NA rade vyberá.
+   ⚠️ Recept sa neopisuje: \`BRAND_GOLD_BTN\` (rampa #C99A3F→#A3782B, rám #8C6014,
+      TMAVÝ inkoust). Svetlá zlato-oranžová \`GOLD_BTN\` sem NEPATRÍ — je svetlejšia
+      než papyrus a patrí AINUBISOVI. */
 .pt-nav {
   position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
   width: 26px; height: 26px; border-radius: ${PACK_R.pill}px; cursor: pointer;
-  display: grid; place-items: center; color: ${LAB.goldInk};
-  background: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%);
-  border: 1.5px solid rgba(179, 130, 45, 0.55);
-  box-shadow: inset 0 1px 0 rgba(255, 252, 240, 0.85), 0 2px 5px rgba(60, 40, 10, 0.22);
+  display: grid; place-items: center; color: ${BRAND_GOLD_BTN.ink};
+  background: ${BRAND_GOLD_BTN.grad};
+  border: 1px solid ${BRAND_GOLD_BTN.edge};
+  box-shadow: ${BRAND_GOLD_BTN.glow};
 }
+.pt-nav:hover { background: ${BRAND_GOLD_BTN.gradHover}; box-shadow: ${BRAND_GOLD_BTN.glowHover}; }
 /* ⚠️ Šípka stojí vo VÝPLNI DOSKY, nie na rade. Pri -4 px prekrývala text
    posledného chipu („Schnozze▸") a vyzeralo to ako chyba vykreslenia; doska má
    po stranách 22 px, takže -18 nechá šípku celú vedľa radu a 4 px od rytej
    obruby. Fade pod šípkou by musel trafiť odtieň mramorovanej dosky — a tú
    žiadna plná farba netrafí (ten istý dôvod, prečo koliesko rokov dostalo masku
    namiesto prekryvu). */
-.pt-nav.l { left: -18px; }
-.pt-nav.r { right: -18px; }
+/* ⚠️ −8, NIE −18 (Matej 24. 9.: *„šípky sú moc na kraji"*). Pri −18 sedeli celé vo
+   výplni dosky, teda tesne pri rytej obrube, a čítali sa ako ozdoba rámu. Pri −8
+   stoja NAD radom ako ovládač, ktorý k nemu patrí — presah 18 px je cena za to a
+   padne vždy na okrajovú dlaždicu, ktorá je aj tak odrezaná scrollom. */
+.pt-nav.l { left: -8px; }
+.pt-nav.r { right: -8px; }
 /* 🔴 NA DOTYKOVOM ZARIADENÍ ŠÍPKY NIE SÚ. Existujú kvôli MYŠI (koliesko ide
    zvislo, vodorovný rad sa ňou posunúť nedá); prst rad odroluje sám a na 390 px
    by šípky sedeli na prvej a poslednej dlaždici. Že rad pokračuje, hovorí na
    telefóne polovičná dlaždica na okraji — to je jeho vlastná reč. */
 @media (pointer: coarse) { .pt-nav { display: none; } }
 
-/* Kategória = chip s NÁZVOM. Vybraný nesie lapisový tint — „toto je moja
-   voľba"; zlato by z neho urobilo nábytok (deliaca čiara brand locku). */
+/* ── KATEGÓRIA = ZLATÁ, SILUETA = LAPIS (Matej 24. 9.) ────────────────────
+   *„chipy by som nedával modré, ale možno nejak odlíšil farebne od spodných
+   blokov, nech to nie je jednotvárne"* — a to je presne to, čo predpisuje brand
+   lock: **ZLATO = konštrukcia a poloha** („kde som", menovite *aktívna pilulka*)
+   · **LAPIS = moja voľba a akcia** („čo urobím").
+   🔑 Kategória hovorí, ktorú POLICU mám otvorenú — nič si ňou nevyberám, patrón
+      sa ňou nemení. Silueta POD ňou je odpoveď, ktorá ide do heroglyfu. Dva rady
+      nad sebou tak prestali byť dvakrát to isté modré.
+   ⚠️ Pilulka KRÍŽENEC ostáva LAPISOVÁ zámerne — to je voľba, nie poloha. */
 .pt-chip {
   flex: 0 0 auto; height: 28px; padding: 0 11px; border-radius: ${PACK_R.pill}px;
   cursor: pointer; white-space: nowrap;
@@ -720,7 +757,17 @@ const PATRON_CSS = `
   transition: border-color .16s, background .16s, color .16s, box-shadow .16s;
 }
 .pt-chip:hover { border-color: rgba(179, 130, 45, 0.85); }
-.pt-chip.on { ${pickTintCSS(LAPIS.edge, PICK_INK.lapis)} }
+.pt-chip.on {
+  background: ${BRAND_GOLD_BTN.grad};
+  border-color: ${BRAND_GOLD_BTN.edge};
+  color: ${BRAND_GOLD_BTN.ink};
+  box-shadow: ${BRAND_GOLD_BTN.glow};
+  text-shadow: 0 1px 0 rgba(255, 252, 240, 0.28);
+}
+
+/* Návod k výberu — najtichší riadok obrazovky. Menší než popisky v doske a bez
+   rozstrelenia: je to poznámka pod čiarou, nie druhý nadpis. */
+.pt-hintline { font-size: 12px; margin-top: -2px; }
 
 /* ── SILUETA ──────────────────────────────────────────────────────────────
    🔴 DLAŽDICA JE \`.hf-pick\` — mení sa LEN GEOMETRIA. Materiál (papyrusový
@@ -752,6 +799,29 @@ const PATRON_CSS = `
   color: ${LAB.inkMuted};
   box-shadow: none;
   border: 1.5px solid ${LAB.hairline};
+}
+/* ── KRÁTKE OKNO: USTUPUJE OBSAH, NIE REZERVA ─────────────────────────────
+   Lock \`PAGE_AIR\`: *kto sa nezmestí, ZMENŠÍ OBSAH — nie vzduch od okraja.*
+   Po zväčšení prvého bloku (24. 9.) pretekala jediná zostava: **iPhone SE
+   (375×667) so zapnutým krížencom** — o 29 px. Ustupujú preto tri najmenej
+   dôležité miery naraz: rozstupy v doske, dlaždica siluety a výška polí.
+   ⚠️ Hektor sa NEZMENŠUJE — je to prvé, čo Matej na mobile zväčšoval.
+   ⚠️ Nie je to stupňovanie „podľa výšky okna" v zmysle, aký zamietol na
+      PODSTATE (tam sa obrazovka menila PRI ODPOVEDANÍ). Tu je to jedna pevná
+      poloha pre nízke okná a v nej sa už nič nehýbe. */
+@media (max-height: 700px) {
+  .pt-stack .hf-plate { gap: 8px; }
+  .pt-sil { width: 54px; height: 54px; }
+  .pt-sil img { width: 38px; height: 38px; }
+  .pt-field, .pt-mix { height: 36px; }
+  .pt-chip { height: 26px; }
+  .pt-row { padding: 2px; margin: -2px; }
+  /* Tlačidlo ustupuje ako POSLEDNÉ a len o 4 px — musí ostať zjavne tlačidlom.
+     Rám heroglyfu neustupuje vôbec: pod 78 % sa symboly v malých slotoch
+     zlievajú (premerané 24. 9. na 390 px), a to je celý zmysel tejto obrazovky. */
+  .pt-stack .hf-cta { height: 36px; }
+  /* Posledné 4 px: medzera medzi bublinou a doskou. Nula by ich zlepila. */
+  .pt-speak { margin-bottom: 4px; }
 }
 /* Kresby patrónov sú ČIERNE (kánon počas života psa, DOGMA 8.3) a na papyruse
    ostávajú čierne — žiadny filter. */
