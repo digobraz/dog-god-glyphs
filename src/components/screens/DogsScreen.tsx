@@ -381,13 +381,15 @@ export function DogsScreen() {
           >
             {/* Medailón je ten istý odliatok ako na kroku 2, len menší — ksicht
                 si berie podľa KROKU (`hekthorFaces.ts`), nie podľa poradia. */}
-            <FlowMedallion src={hekthorFace('dogs')} size={96} className="hf-medal" />
+            {/* 104 px: Matejova voľba „C" z hárku štyroch veľkostí (24. 9.).
+                Písmo bubliny drží `SPEAK` vo `flowPaleSkin.ts` — vlastné číslo,
+                nie `HF.bubble.title`, ktorý nesie aj pozdrav kroku 2. */}
+            <FlowMedallion src={hekthorFace('dogs')} size={104} className="hf-medal" />
             <span className="say">
               <h2>{t('heroglyph.flow.dogs.packTitle')}</h2>
+              {/* ⚠️ JEDNA VETA. Druhá („Nezabudni na žiadneho psa v tvojom
+                  živote!") tu ráno bola a Matej ju vzápätí vyhodil. */}
               <p>{t('heroglyph.flow.dogs.title')}</p>
-              {/* Druhý riadok podnadpisu je VÝZVA, nie opakovanie otázky (Matej
-                  24. 9.). Preto tlmenejší a menší — otázka nad ním má ostať prvá. */}
-              <p className="more">{t('heroglyph.flow.dogs.sub')}</p>
             </span>
           </motion.div>
 

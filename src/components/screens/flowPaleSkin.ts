@@ -54,6 +54,17 @@ export const HF = {
 /** Podnadpis bubliny — LAB ho počíta z nadpisu, nie je to voľné číslo. */
 const BUBBLE_SUB = Math.max(11, Math.round(HF.bubble.title * 0.78));
 
+// ── BUBLINA NA ŠÍRKU MÁ VLASTNÉ PÍSMO (24. 9. 2026) ─────────────────────────
+// Matej nad štyrmi veľkosťami vedľa seba: *„ok daj C"* — nadpis 24, podnadpis 14,
+// medailón 104 (veľkosť medailónu si berie `DogsScreen`).
+//
+// 🔴 PREČO VLASTNÉ ČÍSLA A NIE `HF.bubble.title`. To je JEDNA hodnota pre celý
+//    vstup a nesie ju aj ZVISLÁ bublina kroku 2 (`.hf-bubble h2`). Tam je nadpis
+//    vo veľkej ploche pod veľkou tvárou a 17 px sedí; tu stojí vedľa medailónu
+//    v nízkom páse a zaniká. Zdvihnutie spoločnej hodnoty by nepozorovane zväčšilo
+//    pozdrav na predchádzajúcej obrazovke.
+const SPEAK = { title: 24, sub: 14 } as const;
+
 // ═══════════════════════════════════════════════════════════════════════
 // PAPYRUSOVÁ STENA — JEDEN ZDROJ PRE CELÝ VSTUP (23. 9. 2026)
 //
@@ -347,15 +358,17 @@ export const FLOW_PALE_CSS = `
 .hf-speak .say { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .hf-speak h2 {
   margin: 0; font-family: 'Cinzel', serif; font-weight: 700;
-  font-size: ${HF.bubble.title}px; line-height: 1.25; color: #FAF4EC;
+  font-size: ${SPEAK.title}px; line-height: 1.25; color: #FAF4EC;
 }
+/* ⚠️ JEDNA VETA (Matej 24. 9.: *„do podnadpisu daj len prvú vetu… nie druhú"*).
+   Druhý riadok („Nezabudni na žiadneho psa…") tu ráno bol a odišiel: pri nadpise
+   24 px robil z pásu štvorriadkový odsek a otázka, na ktorú sa má odpovedať,
+   prestala byť prvá. Kľúč heroglyph.flow.dogs.sub ostáva nepoužitý — text má,
+   ale povrch preň dnes nie je. */
 .hf-speak p {
   margin: 0; font-family: 'Space Grotesk', sans-serif;
-  font-size: ${BUBBLE_SUB}px; line-height: 1.45; color: rgba(250, 244, 236, 0.72);
+  font-size: ${SPEAK.sub}px; line-height: 1.45; color: rgba(250, 244, 236, 0.72);
 }
-/* Druhý riadok podnadpisu (24. 9.): VÝZVA pod otázkou. Tlmenejšia a o stupeň
-   menšia — inak by dve vety v tej istej váhe súperili o prvé prečítanie. */
-.hf-speak p.more { font-size: ${BUBBLE_SUB - 1}px; color: rgba(250, 244, 236, 0.56); }
 
 /* ── ZOZNAM SVORKY — ŤAHANIE A PORADIE (23. 9. 2026) ──────────────────────
    Matej: *„psy sa budú dať medzi sebou prehodiť ako je v nákrese podľa poradia
