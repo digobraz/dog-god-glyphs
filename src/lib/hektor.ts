@@ -42,12 +42,17 @@ export function hekthorAgeYears(now: Date = new Date()): number {
 //    nevyplnil, a v krytí ~13 %. Keď vyberie svoju voľbu, podmalba pod ňou
 //    zmizne — takže rám nikdy neukazuje dve odpovede na tú istú otázku.
 //
-// 🔴 ČO TU NIE JE, TO NEVIEM — A NEVYMÝŠĽAM SI TO. Zapísané sú len hodnoty,
-//    ktoré o Hektorovi stoja v repe (čierny kríženec zo záchrany, samec,
-//    zakladateľ #1, majiteľ Matej). Silueta plemena, dva znaky povahy a oba
-//    horoskopy majiteľa v repe NIE SÚ; tie sloty preto ostávajú prerušovanou
-//    čiarou, kým ich Matej nepovie. Vyplniť ich „nejako" by bol výmysel, ktorý
-//    si ktokoľvek prečíta ako Hektorove dáta.
+// 🔴 CELÝ GLYF JE V REPE — LEN SOM HO ZLE HĽADAL (24. 9. 2026). Tvrdil som
+//    Matejovi, že silueta, dva znaky povahy a oba horoskopy nikde nie sú, a to
+//    bolo NEPRAVDA: stoja v komentári `DGX_SLOTS` v `components/lab/OnePage.tsx`
+//    („Hektorove hodnoty (`dogs`, pack #1): king · dark · rescued · mutt ·
+//    patrón 08-06 · rfo + waterlover · man · Rooster · Leo · M · 1") a patrón
+//    aj v `plany/zadanie-heroglyf-hekthor-FRESH-SESSION.md`.
+//    Matej: *„ako že nie sú? nesranduj! máme všetky symboly! Hektorov heroglyf
+//    musíš vedieť aj o polnoci, je napr. aj na /onepage"*. → hľadaj hodnoty aj
+//    v KOMENTÁROCH a v nákresoch, nie len v dátových súboroch.
+// ⚠️ Odteraz je to JEDINÝ zdroj — `/onepage` si tie isté hodnoty drží zatiaľ
+//    vo vlastnom komentári; keď sa ho niekto dotkne, má ich vziať odtiaľto.
 // ⚠️ Kľúče sú zhodné s `selections` (`dogyptStore`), aby ich rám vedel použiť
 //    bez prekladovej tabuľky.
 // ════════════════════════════════════════════════════════════════════════════
@@ -66,8 +71,14 @@ export const HEKTHOR_GLYPH: Record<string, string> = {
    * (*„#1 · Hekthor · Matej · SVK · patron_svg 08-06.svg"*).
    */
   patronSvg: '08-06.svg',
+  /** Dva znaky povahy (`/onepage`, `DGX_SLOTS`): RFO a vodomil. */
+  dogCharacter1: 'rfo',
+  dogCharacter2: 'waterlover',
   /** Majiteľ je Matej. */
   ownerGender: 'man',
+  /** Matejov čínsky a klasický horoskop — Kohút a Lev (`/onepage`). */
+  ownerChineseZodiac: 'Rooster',
+  ownerZodiac: 'Leo',
   ownerInitial: 'M',
   /** Zakladateľ — poradové číslo 1 (Hektorova karta na stene, col=0, row=-1). */
   ranking: '1',

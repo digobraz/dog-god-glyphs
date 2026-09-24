@@ -237,7 +237,19 @@ export function EssenceScreen() {
       </div>
 
       <div className="hf-stage">
-        <div className="w-full max-w-xl flex flex-col items-center">
+        {/* ── NA ŠIROKOM A NÍZKOM OKNE IDE BUBLINA VEDĽA DOSKY ─────────────
+            🔴 Matej 24. 9. 2026: *„nesedí mi to výškovo na PC… stále mi to
+               zobrazuje odseknuté"*. Odmerané na jeho okne (1477×724): obsah
+               690 px do výšky 643 px, teda 47 px pretoku — doska sa DÁ dorolovať
+               (CTA je po jednom šuchnutí vidno), ale odseknutá hrana vyzerá ako
+               chyba a nie ako pokračovanie.
+            🔑 Vedľa seba nie je „iný dizajn", je to TÁ ISTÁ stavba položená
+               naležato: otázka vľavo, doska vpravo. Ušetrí celú výšku bubliny
+               (128 px + medzera), takže sa zmestí bez jediného zmenšenia —
+               a Matejovo *„nič sa tu nemení veľkosťou"* ostáva nedotknuté.
+            ⚠️ Zapne sa LEN keď stojaté rozloženie nevojde: šírka ≥ 1000 a výška
+               ≤ 860. Na mobile a na vysokom okne sa nehýbe nič. */}
+        <div className="w-full max-w-xl flex flex-col items-center es-col">
 
           {/* ── 1. BLOK: HEKTHOR SA PÝTA (24. 9. 2026, druhé kolo) ──────────
               🔴 BUBLINA JE ÚPLNE HORE (Matej: *„Hektor bublina pôjde úplne
@@ -492,6 +504,28 @@ const ESSENCE_CSS = `
    nesie ju aj krok 3 — zdvihnutím či znížením by sa ticho zmenil aj on.
    \`container-type\` dovolí viazať stupeň na ŠÍRKU BUBLINY (cqw), nie na okno. */
 .es-speak { container-type: inline-size; margin-bottom: 8px; }
+
+/* ── ŠIROKÉ A NÍZKE OKNO: DVA STĹPCE ──────────────────────────────────────*/
+@media (min-width: 1000px) and (max-height: 860px) {
+  .es-col {
+    max-width: 980px;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 16px;
+  }
+  /* Bublina drží tretinu a je zvislo na stred vedľa dosky — otázka má byť
+     v očiach v tej istej výške ako odpovede, nie nad nimi. */
+  .es-col > .es-speak {
+    flex: 0 0 34%;
+    margin-bottom: 0;
+    align-self: center;
+  }
+  .es-col > .hf-block { flex: 1 1 auto; min-width: 0; margin-top: 0; }
+  /* Hektor v stĺpci stojí NAD otázkou, nie pri nej — na tretine šírky by vedľa
+     seba nechali otázke tri slová na riadok. */
+  .es-col > .es-speak { flex-direction: column; text-align: center; }
+  .es-col > .es-speak .say { align-items: center; }
+}
 /* Doska vstupu má spoločný rozstup 14 px; tu je päť medzier pod sebou, takže
    dva pixely z každej sú na tejto obrazovke rozdiel jedného riadka. */
 .es-stack .hf-plate { gap: 10px; }
