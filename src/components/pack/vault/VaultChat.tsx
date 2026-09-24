@@ -373,7 +373,13 @@ ${AI_BREATHE_CSS}
   font-size:${PACK_TEXT.body}px;${AI_BUBBLE}}
 .akc-ai{align-self:stretch;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .akc-body{position:relative;}
-.akc-aihd{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;
+/* 🔴 NIE FLEX. Do 24. 9. 2026 tu stálo display:flex s medzerou 8 px — a keďže
+   NUBIS je vo flexe ANONYMNÁ POLOŽKA vedľa i s textom AI, medzera ich rozdelila
+   a meno sa vykresľovalo ako AI NUBIS (merané v prehliadači: innerText mal medzi
+   nimi zalomenie). Záporný margin nižšie to nezachránil — ruší rozstrelenie
+   (~2 px), nie medzeru flexu (8 px). Nástenka tú istú pascu už raz zachytila
+   (ShelfName vo VaultWall.tsx), chat ostal. Meno je JEDNO SLOVO — brand. */
+.akc-aihd{display:block;
   font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;line-height:1;
   letter-spacing:${PACK_HEAD.section.letterSpacing};color:${AINUBIS.inkFaint};}
 /* MENO JE VŽDY <AI>NUBIS — „AI" cyanom. Záporný margin vracia medzeru, ktorú
