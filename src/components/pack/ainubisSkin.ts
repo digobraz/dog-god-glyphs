@@ -258,20 +258,39 @@ export const AI_BREATHE_CSS = `
 `;
 
 // ── FARBA SVETA — nesie ju DOSVIT, nie výplň ─────────────────────────────────
-// ⚠️ NIE JE TO NOVÁ PALETA APPKY. Sú to odtiene JEHO displeja a fungujú rovnako
-//    ako farba obrysu mapovej značky: nesú DRUH, nie ozdobu (CLAUDE.md, značka
-//    na mape sa nezjednocuje — je to ÚDAJ).
-// 🚩 NA MATEJA: štyri z nich sú jeho existujúce tokeny (danger · ctaA · ok ·
-//    glow), tri zvyšné sú dopočítané do rovnakej rodiny. Sedem odtieňov je
-//    brandové rozhodnutie — pozri si ich vedľa seba skôr, než to pôjde ďalej.
+// Farba tu nesie DRUH, nie ozdobu — rovnako ako farba obrysu mapovej značky
+// (CLAUDE.md: značka na mape sa nezjednocuje, je to ÚDAJ).
+//
+// 🔴 OD 24. 9. 2026 JE TO SAMOSTATNÁ PALETA, NIE VÝSEK Z AINUBISOVEJ.
+//    Dovtedy tu stálo, že štyri zo siedmich SÚ jeho tokeny (`danger` · `ctaA` ·
+//    `ok` · `glow`) a že vlastný odtieň by založil druhú paletu. Matej to nad
+//    miešačkou (`plany/nakres-ainubis-paleta-2026-09-24.html`) namiešal celé
+//    nanovo a všetkých sedem je odteraz vlastných. Dôvod nie je vkus: `anatomy`
+//    BOL doslova `CYAN_RGB`, čiže svet mal farbu, ktorou hovorí sám AINUBIS
+//    a ktorá zároveň znamená „žiadny svet" (`--ai-w` má cyan ako fallback).
+//    Svet sa tým nedal odlíšiť od stroja. Požičané tokeny tento spor niesli
+//    zabudovaný, preto sa požičiavanie skončilo.
+// ⚠️ NEVRACAJ SEM ODKAZ NA `CYAN_RGB`/`GLOW_RGB`/`CTA_RGB`. Vyzerá to ako
+//    úspora, ale je to práve tá pasca: zmena jeho displeja by ticho prefarbila
+//    svet a naopak.
+//
+// 📏 ZRÁŽKA FARIEB SA MERIA, NEODHADUJE — CIE76 ΔE v Lab, nie „vyzerá inak".
+//    Prah: <18 sa na obrazovke pletie · 18–28 tesné · >28 vlastná farba.
+//    Zmerané pri zápise (24. 9.):
+//      🔴 prevention × BRAIN_STATE.read = 11,4 — a sú na TOM ISTOM plátne
+//         (bublina sveta a zrno so stavom). Nahlásené Matejovi, čaká na jeho slovo.
+//      🟠 understanding × anatomy = 18,9 · problems × AINUBIS.danger = 19,3
+//      🟢 zvyšok. `understanding × brandBlueLite = 11,3` sa NERÁTA: brandBlueLite
+//         žije na mape a v DOG ID, s AINUBISOM sa na jednej obrazovke nestretne.
+//    ⚠️ Meraj vždy aj proti `BRAIN_STATE` — mozog kreslí OBE sady naraz.
 export const WORLD_TINT: Readonly<Record<string, string>> = {
-  problems: '255,138,122',      // = danger
-  training: '245,199,61',       // = ctaA
-  prevention: '127,215,154',    // = ok
-  understanding: GLOW_RGB,      // = glow
-  dogsPath: '198,164,255',      // dopočítané
-  anatomy: CYAN_RGB,            // = cyan
-  nutrition: '255,176,122',     // dopočítané
+  problems: '232,126,142',      // #E87E8E
+  training: '255,190,140',      // #FFBE8C
+  prevention: '61,184,98',      // #3DB862
+  understanding: '0,120,240',   // #0078F0
+  dogsPath: '193,104,253',      // #C168FD
+  anatomy: '134,148,255',       // #8694FF
+  nutrition: '186,224,116',     // #BAE074
 } as const;
 
 /** `style={aiWorld(key)}` na karte — nastaví `--ai-w`, inak ostane cyan. */

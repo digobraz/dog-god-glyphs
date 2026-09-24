@@ -642,16 +642,49 @@ const ESSENCE_CSS = `
   display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; width: 100%;
   min-height: var(--es-picks-h); align-items: stretch;
 }
-/* Tri voľby: dve delia prvý rad, tretia dostane celý druhý — a VOJDÚ SA DO TEJ
-   ISTEJ výšky, akú má dvojica. Bez toho mala farba 156 px proti 116 px zvyšku
-   a doska pri nej narástla o 40 px, teda presne to, čo sa nemá hýbať. Vojdú sa
-   menšou jamkou a nižším odsadením, nie menším písmom. */
-.es-picks.n3 { grid-template-rows: 36px 36px; }
-.es-picks.n3 .hf-pick:nth-child(3) { grid-column: span 2; }
-.es-picks.n3 .hf-pick { padding: 3px 12px; gap: 10px; }
-.es-picks.n3 .hf-pick .well { width: 28px; height: 28px; }
-.es-picks.n3 .hf-pick .well img { width: 22px; height: 22px; }
-.es-picks.n3 .hf-pick .tx { font-size: 13px; }
+/* ── TRI VOĽBY: JEDEN RAD TROCH (Matej 24. 9., šieste kolo) ───────────────
+   Rozhodnutie padlo nad tromi cestami: *„tri vedľa seba v jednom rade"*. Dôvod
+   je jeho vlastné zadanie o kolo skôr — *„ikonky zväčši tie sú podstatné"*.
+   Predtým tu boli dva rady (2+1) stlačené do výšky dvojice, takže ikonka pri
+   FARBE spadla na 22 px proti 40 px pri ostatných otázkach; rad bol viditeľne
+   slabší než zvyšok vstupu, hoci doska stála.
+   🔑 V jednom rade má trojica TÚ ISTÚ výšku aj ikonku ako dvojica — doska sa
+   ďalej nehýbe a *„nič sa tu nemení veľkosťou"* platí.
+   ⚠️ CENA, ktorú Matej odklepol: dlaždica je užšia (~165 px), takže TEXT IDE POD
+   IKONKU. Kriesi to výnimku „ikonka nad text", ktorá 24. 9. ráno zanikla — vtedy
+   ju rušil OPAČNÝ stav (voľby stáli vedľa seba a na text ostávalo 80 px).
+   Platí LEN pre trojicu; dvojica drží riadok, ikonka vedľa textu. */
+.es-picks.n3 { grid-template-columns: repeat(3, 1fr); }
+.es-picks.n3 .hf-pick {
+  flex-direction: column; justify-content: center; gap: 4px;
+  padding: 6px 10px; text-align: center;
+}
+.es-picks.n3 .hf-pick .tx { font-size: 13px; letter-spacing: 0.04em; }
+/* Jamka o kúsok menšia než pri dvojici — v stĺpci pod ňou stojí ešte text a do
+   80 px sa 52 + riadok nezmestí (odmerané: 102 px, doska by sa hýbala o 22 px). */
+.es-picks.n3 .hf-pick .well { width: 44px; height: 44px; }
+.es-picks.n3 .hf-pick .well img { width: 34px; height: 34px; }
+/* 🔴 PODNADPIS (Sun · Moon · Rainbow) V STĹPCI NEJDE — a nie je to strata:
+   je to DOSLOVA to, čo kreslí ikonka nad ním. V riadku (dvojica, mobil) bol
+   druhou informáciou vedľa mena; v stĺpci by bol treťou vrstvou pod obrázkom
+   toho istého a zobral by presne tú výšku, ktorú potrebuje ikonka. */
+.es-picks.n3 .hf-pick .tx em { display: none; }
+
+/* 📱 NA MOBILE OSTÁVA 2+1 (Matej: *„na mobile to môžeš nechať tak aby to bolo ok
+   s rozmermi (iné od PC)"*). Tri stĺpce by na 390 px mali po ~90 px a slovo
+   RAINBOW sa doň nezmestí ani na dva riadky. */
+@media (max-width: 559px) {
+  .es-picks.n3 { grid-template-columns: 1fr 1fr; grid-template-rows: 36px 36px; }
+  .es-picks.n3 .hf-pick:nth-child(3) { grid-column: span 2; }
+  .es-picks.n3 .hf-pick {
+    flex-direction: row; justify-content: flex-start; gap: 10px;
+    padding: 3px 12px; text-align: left;
+  }
+  .es-picks.n3 .hf-pick .well { width: 28px; height: 28px; }
+  .es-picks.n3 .hf-pick .well img { width: 22px; height: 22px; }
+  /* V riadku je podnadpis späť — vedľa mena má miesto. */
+  .es-picks.n3 .hf-pick .tx em { display: block; }
+}
 /* Symbol podstaty je KRESBA, nie ikonka rozhrania — jamka je preto väčšia než
    pri voľbe stavu psa a obrázok v nej dýcha. Riadok je aj vyšší: obrazovka
    pôsobila „scvrknuto" (Matej 24. 9.) a práve toto je jej najväčšia plocha. */
