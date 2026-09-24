@@ -507,6 +507,21 @@ export function NameScreen() {
             // `containerType` robí z bubliny MERACÍ RÁM pre písmo otázky —
             // stupeň sa viaže na šírku karty (cqw), nikdy na okno (vw).
             // Brand lock: inak nadpis pri zmene šírky ticho pretečie.
+            //
+            // 🔴 BLOK 1 SA PRI (i) NENAFÚKNE — A NIE JE TO ZARIADENÉ MERANÍM
+            //    (Matej 24. 9. 2026: *„pri kliku na (i) sa otvára zadná časť,
+            //    ktorá je vyššia ako pôvodný blok — oprav to, blok 1 sa
+            //    veľkostne nemení! zmenši písmo, fotku, krížik... čokoľvek, ale
+            //    nenaťahuj blok!"*).
+            //    Výšku bubliny drží PREDNÁ strana, ktorá ostáva v toku (len
+            //    zhasne), a zadná leží NA nej ako prekryv (`position:absolute`).
+            //    Blok tým nemá ako narásť — ani v jazyku s dlhším textom, ani
+            //    keď niekto text o Hektorovi predĺži.
+            // ⚠️ Prvý pokus meral výšku prednej strany `ResizeObserver`-om a
+            //    zapisoval ju bubline. Nefungoval z dvoch dôvodov naraz:
+            //    `ref` sa na `motion.div` nechytil (React 19 hlási „ref is not
+            //    a prop") a výšku bubliny si aj tak animuje framer sám
+            //    (`layout` píše inline `height`), takže by ju prepísal.
             style={{ background: 'var(--brand-gradient)', containerType: 'inline-size' }}
           >
             {/* Info toggle button — POČAS PRÍCHODU NIE JE (Matej 23. 9.: „pri
@@ -528,17 +543,20 @@ export function NameScreen() {
             </button>
             )}
 
-            {/* Front + info share one AnimatePresence (mode="wait") so the bubble
-                height fits whichever is shown — nothing gets clipped. */}
-            <AnimatePresence mode="wait" initial={false}>
-              {!showInfo ? (
+            {/* 🔴 PREDNÁ STRANA OSTÁVA V TOKU VŽDY — len zhasne. Ona drží výšku
+                bubliny, takže zadná (info) ju nemôže naťahovať. Dovtedy sa obe
+                strany vymieňali v `AnimatePresence mode="wait"` a bublina brala
+                výšku tej, ktorá bola práve na svete. */}
+            <>
+              {(
                 <motion.div
                   key="front"
                   layout
+                  aria-hidden={showInfo}
                   className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4 w-full"
                   initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
+                  animate={{ opacity: showInfo ? 0 : 1 }}
+                  style={{ pointerEvents: showInfo ? 'none' : undefined }}
                   transition={{ duration: 0.25 }}
                 >
                   {/* Nový vstup má na každom kroku iný Hektorov ksicht (Matej 23. 9.:
@@ -618,9 +636,14 @@ export function NameScreen() {
                     )}
                   </motion.p>
                 </motion.div>
-              ) : (
+              )}
+              <AnimatePresence initial={false}>
+              {showInfo && (
                 <motion.div
                   key="info"
+                  // Prekryv: leží NA prednej strane, takže do výšky bubliny
+                  // nehovorí. `inset: 0` + vlastné rolovanie vnútri.
+                  className="absolute inset-0 z-10"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -631,14 +654,20 @@ export function NameScreen() {
                   // ⚠️ Matrica sa berie VYKONATEĽNE, hodnoty sa neopisujú (CLAUDE.md):
                   //    dosiaľ tu bola plochá `hsl(var(--papyrus))` a `rounded-2xl`,
                   //    teda plochá výplň bez gradientu, zlatého rámu a tieňa.
-                  style={{ ...PACK_BOX.card }}
+                  // 🔴 `height: 100%` + `overflow: hidden` = zadná strana sa
+                  //    vpisuje do výšky prednej (`frontH` na bubline), nie
+                  //    naopak. Obsah sa preto SKRÁŠIL: video berie výšku, akú
+                  //    dostane (nie pomer 4:5, ktorý si výšku diktoval sám),
+                  //    a text je v rolovateľnom stĺpci — radšej pár riadkov
+                  //    dorolovať než naťahovať blok.
+                  style={{ ...PACK_BOX.card, height: '100%', overflow: 'hidden' }}
                 >
                   {/* pt accounts for the X button */}
-                  <div className="p-4 pt-11 pb-4 md:p-5 md:pt-14 md:pb-5">
+                  <div className="p-3 pt-10 pb-3 md:p-4 md:pt-12 md:pb-4 h-full min-h-0">
                     {/* Two-column layout */}
-                    <div className="flex gap-3 md:gap-4 items-start">
+                    <div className="flex gap-3 md:gap-4 items-stretch h-full min-h-0">
                       {/* Left column – video */}
-                      <div className="w-[40%] md:w-[34%] flex-shrink-0 rounded-2xl overflow-hidden aspect-[4/5]">
+                      <div className="w-[36%] md:w-[32%] flex-shrink-0 rounded-2xl overflow-hidden h-full min-h-0">
                         <video
                           src="/videos/WHO_IS_HEKTHOR.mp4"
                           autoPlay
@@ -650,16 +679,20 @@ export function NameScreen() {
                       </div>
 
                       {/* Right column */}
-                      <div className="flex-1 flex flex-col gap-1.5 md:gap-2.5 min-w-0">
+                      <div className="flex-1 flex flex-col gap-1 md:gap-2 min-w-0 min-h-0">
                         <h3
-                          className="text-sm md:text-xl font-bold leading-tight"
+                          className="text-sm md:text-lg font-bold leading-tight flex-shrink-0"
                           style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
                         >
                           {t('heroglyph.flow.name.whoTitle')} {t('heroglyph.flow.name.whoTitleName')}
                         </h3>
 
+                        {/* ⚠️ `line-clamp` tu už NIE JE: orezával text natvrdo po
+                            šiestich riadkoch bez ohľadu na to, koľko miesta
+                            naozaj je. Odteraz rozhoduje MIESTO — stĺpec roluje
+                            a na PC sa text zmestí celý. */}
                         <p
-                          className="text-foreground/80 text-[11px] md:text-[13px] leading-snug line-clamp-6 md:line-clamp-none"
+                          className="text-foreground/80 text-[11px] md:text-[12.5px] leading-snug flex-1 min-h-0 overflow-y-auto pr-1"
                           style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                         >
                           {t('heroglyph.flow.name.whoBody')}
@@ -704,7 +737,8 @@ export function NameScreen() {
                   </div>
                 </motion.div>
               )}
-            </AnimatePresence>
+              </AnimatePresence>
+            </>
           </motion.div>
 
           {/* Input — v príchodovej fáze ešte nie je na svete. Prichádza ZDOLA

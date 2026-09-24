@@ -34,8 +34,12 @@ const GROUPS: RouteGroup[] = [
     routes: [
       { path: "/heroglyph/photo", name: "1. Fotka" },
       { path: "/heroglyph/name", name: "2. Meno" },
+      // Chýbali v tomto zozname (24. 9.) — kánon poradia je v `HeroflowDevMenu.tsx`,
+      // sem dopĺňam len tie dve chýbajúce cesty bez prečíslovania zvyšku.
+      { path: "/heroglyph/dogs", name: "Multi pes (svorka)" },
       { path: "/heroglyph/email", name: "3. E-mail" },
       { path: "/heroglyph/why", name: "4. Prečo heroglyf" },
+      { path: "/heroglyph/essence", name: "Podstata (rozostavané)" },
       { path: "/heroglyph/about", name: "5. Papierovačky" },
       { path: "/heroglyph/breed", name: "6. Breed / Patron" },
       { path: "/heroglyph/ranking", name: "7. Ranking" },

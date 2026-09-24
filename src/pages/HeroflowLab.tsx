@@ -85,6 +85,12 @@ const GROUPS: Group[] = [
       },
       { name: '4 · E-mail', path: '/heroglyph/email', state: 'done' },
       { name: '5 · Prečo heroglyf', path: '/heroglyph/why', state: 'done' },
+      {
+        name: '6 · Podstata (pohlavie · farba · pôvod · rodokmeň)',
+        path: '/heroglyph/essence',
+        state: 'wip',
+        note: 'stavia sa v inej session (24. 9.) — cesta tu je zámerne, rám ju ukáže, hneď ako pribudne do App.tsx.',
+      },
     ],
   },
   {
@@ -226,109 +232,11 @@ export default function HeroflowLab() {
           <span>dielňa nového vstupu · {total.done}/{total.all} hotových</span>
         </div>
 
-        {/* ── TESTOVACIE DÁTA ──────────────────────────────────────────── */}
-        <div className="hfl-head">Fotka</div>
-        <div className="hfl-chips">
-          {TEST_PHOTO_SHAPES.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              className={`hfl-chip${photoPick === s.id ? ' on' : ''}`}
-              onClick={() => setPhotoPick(s.id)}
-            >
-              {s.label}
-            </button>
-          ))}
-          <button
-            type="button"
-            className={`hfl-chip${photoPick === 'none' ? ' on' : ''}`}
-            onClick={() => setPhotoPick('none')}
-          >
-            {NO_PHOTO.label}
-          </button>
-          <button type="button" className={`hfl-chip${photoPick === 'custom' ? ' on' : ''}`} onClick={() => fileRef.current?.click()}>
-            vlastná…
-          </button>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            hidden
-            onChange={(e) => onFile(e.target.files?.[0])}
-          />
-        </div>
-        {seed.photoUrl ? (
-          <div className="hfl-photo">
-            <img src={seed.photoUrl} alt="" />
-            <span>{seed.photoLabel}<br />pes je zámerne vľavo — stredový výrez ho odreže</span>
-          </div>
-        ) : (
-          <div className="hfl-note">Bez fotky — tak vyzerá človek, ktorý ju preskočil.</div>
-        )}
-
-        <div className="hfl-head">Pes a človek</div>
-        <label className="hfl-field">
-          <span>Meno psa</span>
-          <input value={seed.dogName} onChange={(e) => setSeed((s) => ({ ...s, dogName: e.target.value }))} />
-        </label>
-        <label className="hfl-field">
-          <span>E-mail</span>
-          <input value={seed.email} onChange={(e) => setSeed((s) => ({ ...s, email: e.target.value }))} />
-        </label>
-        <label className="hfl-field">
-          <span>Poradové číslo</span>
-          <input
-            type="number"
-            value={seed.packNumber}
-            onChange={(e) => setSeed((s) => ({ ...s, packNumber: Number(e.target.value) || 0 }))}
-          />
-        </label>
-
-        <div className="hfl-head">Stav psa</div>
-        <div className="hfl-chips">
-          <button
-            type="button"
-            className={`hfl-chip${seed.lifeStatus === 'alive' ? ' on' : ''}`}
-            onClick={() => setSeed((s) => ({ ...s, lifeStatus: 'alive' }))}
-          >
-            žije
-          </button>
-          <button
-            type="button"
-            className={`hfl-chip${seed.lifeStatus === 'deceased' ? ' on' : ''}`}
-            onClick={() => setSeed((s) => ({ ...s, lifeStatus: 'deceased' }))}
-          >
-            zosnulý
-          </button>
-        </div>
-
-        <div className="hfl-head">Cookie lišta v ráme</div>
-        <div className="hfl-chips">
-          <button type="button" className={`hfl-chip${!cookies ? ' on' : ''}`} onClick={() => setCookies(false)}>
-            skrytá
-          </button>
-          <button type="button" className={`hfl-chip${cookies ? ' on' : ''}`} onClick={() => setCookies(true)}>
-            vyskočí
-          </button>
-        </div>
-
-        <div className="hfl-head">Koľko psov</div>
-        <div className="hfl-chips">
-          {[0, 1, 3].map((n) => (
-            <button
-              key={n}
-              type="button"
-              className={`hfl-chip${seed.extraDogs === n ? ' on' : ''}`}
-              onClick={() => setSeed((s) => ({ ...s, extraDogs: n }))}
-            >
-              {n === 0 ? 'jeden' : `+${n} ďalší`}
-            </button>
-          ))}
-        </div>
-
-        <div className="hfl-sep" />
-
         {/* ── ZOZNAM POVRCHOV ──────────────────────────────────────────── */}
+        {/* Matej 24. 9.: „v labe chcem mať len responzivitu… nie cookie lišta
+            ani stav psa, resp. to schovaj a vypni za dropdown, nech mám ľavú
+            stranu prehľadnejšiu" — zoznam krokov je preto NAD ohybom, testovacie
+            dáta idú do zabaleného <details> nižšie. */}
         {GROUPS.map((g) => (
           <div key={g.label}>
             <div className="hfl-head">{g.label}</div>
@@ -349,15 +257,124 @@ export default function HeroflowLab() {
           </div>
         ))}
 
-        <div className="hfl-sep" />
-        <button type="button" className="hfl-ghost" onClick={() => { clearDevSeed(); setActive(null); }}>
-          Vyčistiť testovacie dáta
-        </button>
         <div className="hfl-legend">
           <span><i className="d done" /> hotové</span>
           <span><i className="d wip" /> rozostavané</span>
           <span><i className="d old" /> staré</span>
         </div>
+
+        <div className="hfl-sep" />
+
+        {/* ── TESTOVACIE DÁTA — zbalené, Matej ich potrebuje zriedka ──────
+            (fotka, meno/mail/číslo, žije/nežije, cookie lišta v ráme, koľko
+            psov). Nemažú sa, len sa neukazujú stále — preto <details>, nie
+            samostatná stránka. */}
+        <details className="hfl-testdata">
+          <summary>Testovacie dáta</summary>
+
+          <div className="hfl-head">Fotka</div>
+          <div className="hfl-chips">
+            {TEST_PHOTO_SHAPES.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                className={`hfl-chip${photoPick === s.id ? ' on' : ''}`}
+                onClick={() => setPhotoPick(s.id)}
+              >
+                {s.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              className={`hfl-chip${photoPick === 'none' ? ' on' : ''}`}
+              onClick={() => setPhotoPick('none')}
+            >
+              {NO_PHOTO.label}
+            </button>
+            <button type="button" className={`hfl-chip${photoPick === 'custom' ? ' on' : ''}`} onClick={() => fileRef.current?.click()}>
+              vlastná…
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(e) => onFile(e.target.files?.[0])}
+            />
+          </div>
+          {seed.photoUrl ? (
+            <div className="hfl-photo">
+              <img src={seed.photoUrl} alt="" />
+              <span>{seed.photoLabel}<br />pes je zámerne vľavo — stredový výrez ho odreže</span>
+            </div>
+          ) : (
+            <div className="hfl-note">Bez fotky — tak vyzerá človek, ktorý ju preskočil.</div>
+          )}
+
+          <div className="hfl-head">Pes a človek</div>
+          <label className="hfl-field">
+            <span>Meno psa</span>
+            <input value={seed.dogName} onChange={(e) => setSeed((s) => ({ ...s, dogName: e.target.value }))} />
+          </label>
+          <label className="hfl-field">
+            <span>E-mail</span>
+            <input value={seed.email} onChange={(e) => setSeed((s) => ({ ...s, email: e.target.value }))} />
+          </label>
+          <label className="hfl-field">
+            <span>Poradové číslo</span>
+            <input
+              type="number"
+              value={seed.packNumber}
+              onChange={(e) => setSeed((s) => ({ ...s, packNumber: Number(e.target.value) || 0 }))}
+            />
+          </label>
+
+          <div className="hfl-head">Stav psa</div>
+          <div className="hfl-chips">
+            <button
+              type="button"
+              className={`hfl-chip${seed.lifeStatus === 'alive' ? ' on' : ''}`}
+              onClick={() => setSeed((s) => ({ ...s, lifeStatus: 'alive' }))}
+            >
+              žije
+            </button>
+            <button
+              type="button"
+              className={`hfl-chip${seed.lifeStatus === 'deceased' ? ' on' : ''}`}
+              onClick={() => setSeed((s) => ({ ...s, lifeStatus: 'deceased' }))}
+            >
+              zosnulý
+            </button>
+          </div>
+
+          <div className="hfl-head">Cookie lišta v ráme</div>
+          <div className="hfl-chips">
+            <button type="button" className={`hfl-chip${!cookies ? ' on' : ''}`} onClick={() => setCookies(false)}>
+              skrytá
+            </button>
+            <button type="button" className={`hfl-chip${cookies ? ' on' : ''}`} onClick={() => setCookies(true)}>
+              vyskočí
+            </button>
+          </div>
+
+          <div className="hfl-head">Koľko psov</div>
+          <div className="hfl-chips">
+            {[0, 1, 3].map((n) => (
+              <button
+                key={n}
+                type="button"
+                className={`hfl-chip${seed.extraDogs === n ? ' on' : ''}`}
+                onClick={() => setSeed((s) => ({ ...s, extraDogs: n }))}
+              >
+                {n === 0 ? 'jeden' : `+${n} ďalší`}
+              </button>
+            ))}
+          </div>
+
+          <button type="button" className="hfl-ghost" onClick={() => { clearDevSeed(); setActive(null); }}>
+            Vyčistiť testovacie dáta
+          </button>
+        </details>
       </aside>
 
       <main className="hfl-stage">
@@ -573,6 +590,20 @@ body:has(.hfl-root) .consent-banner { display: none !important; }
 .hfl-legend .d.done { background: #C99A3F; border-color: #C99A3F; }
 .hfl-legend .d.wip { background: #B25640; border-color: #B25640; }
 .hfl-legend .d.old { border-style: dashed; border-color: rgba(250,244,236,.3); }
+/* Zbalený rozbaľovač testovacích dát (24. 9.) — rovnaké tóny a polomer, aké
+   už panel má (border rgba(201,154,63,.2) z .hfl-side, radius 8px z .hfl-ghost),
+   žiadny nový token. */
+.hfl-testdata {
+  margin-top: 10px; border: 1px solid rgba(201,154,63,.2); border-radius: 8px;
+  padding: 2px 6px 8px;
+}
+.hfl-testdata summary {
+  cursor: pointer; list-style: none; padding: 9px 4px;
+  font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
+  color: rgba(201,154,63,.75);
+}
+.hfl-testdata summary::-webkit-details-marker { display: none; }
+.hfl-testdata[open] summary { color: #FAF4EC; }
 
 .hfl-stage { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .hfl-bar {

@@ -49,6 +49,9 @@ const GROUPS: Group[] = [
       { kind: 'route', path: '/heroglyph/dogs', name: '3 · Multi pes', done: true },
       { kind: 'route', path: '/heroglyph/email', name: '4 · E-mail', done: true },
       { kind: 'route', path: '/heroglyph/why', name: '5 · Prečo heroglyf', done: true },
+      // Stavia sa v inej session (24. 9.) — `todo`, nie `route`, aby na ňu
+      // nešlo kliknúť (App.tsx cestu ešte nemá, klik by vypadal ako pokazené menu).
+      { kind: 'todo', name: '6 · Podstata', note: 'stavia sa' },
     ],
   },
   {
