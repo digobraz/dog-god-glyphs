@@ -822,8 +822,10 @@ const PATRON_CSS = `
       poloha pre nízke okná a v nej sa už nič nehýbe. */
 @media (max-height: 700px) {
   .pt-stack .hf-plate { gap: 8px; }
-  .pt-sil { width: 54px; height: 54px; }
-  .pt-sil img { width: 38px; height: 38px; }
+  /* ⚠️ SILUETA TU NIE JE, hoci tu do 24. 9. večera stála (54/38). Bolo to MŔTVE
+     pravidlo: mobilný blok nižšie má rovnakú špecificitu a stojí ZA týmto, takže
+     na iPhone SE (375×667 — spĺňa obe podmienky) vyhrával on. Zmenšenie siluety
+     na krátkom okne rieši až spoločná podmienka na konci hárku. */
   .pt-field, .pt-mix { height: 36px; }
   .pt-chip { height: 26px; }
   .pt-row { padding: 2px; margin: -2px; }
@@ -836,10 +838,32 @@ const PATRON_CSS = `
 }
 /* Kresby patrónov sú ČIERNE (kánon počas života psa, DOGMA 8.3) a na papyruse
    ostávajú čierne — žiadny filter. */
+/* ── 📱 NA TELEFÓNE SÚ SILUETY VÄČŠIE A JE ICH V ZÁBERE MENEJ ──────────────
+   Matej 24. 9. 2026: *„na mobile to má rezervy = zväčši siluety psov, kľudne
+   môžu byť len 5 viditeľných, nie ako teraz 6; hore aj dolu je dostatok
+   priestoru = využime ho"*.
+   🔑 ČÍSLO NIE JE ODHAD. Matej pozerá rám 500 px (dielňa aj jeho okno): doska
+      v ňom má 412 px, takže PÄŤ dlaždíc s rozstupom 8 vyjde na
+      (412 − 4×8) / 5 = **76 px**. Pri 62 ich tam bolo presne šesť — to, čo videl.
+   🔑 REZERVU MINIEME NA KRESBU, nie na vzduch: dlaždica rastie 62 → 76 a kresba
+      44 → 56, takže silueta psa je o štvrtinu väčšia. Rad tým vyrastie o 14 px;
+      na 390×844 ostáva vzduch okolo 110 px na každej strane.
+   ⚠️ Na 390 px je v zábere ~3,5 dlaždice. Je to Matejova voľba (*„kľudne môžu
+      byť len 5"*) a odrezaná dlaždica na okraji je zároveň to jediné, čo na
+      dotyku hovorí „rad pokračuje" — šípky sú tam skryté. */
 @media (max-width: 559px) {
-  /* Na telefóne je dlaždíc v zábere menej, tak sú o kúsok menšie — rad musí
-     ukázať aspoň štyri, inak nie je vidno, že sa dá posúvať. */
-  .pt-sil { width: 62px; height: 62px; }
-  .pt-sil img { width: 44px; height: 44px; }
+  .pt-sil { width: 80px; height: 80px; }
+  /* Kresba zaberá 75 % dlaždice (na PC 70 %) — Matej pýtal väčšie SILUETY, nie
+     väčšie rámčeky, a osem pixelov vzduchu okolo kresby na to stačí. */
+  .pt-sil img { width: 60px; height: 60px; }
+}
+/* 🔴 KRÁTKE OKNO + TELEFÓN NARAZ — a MUSÍ to stáť AŽ TU. Obe podmienky majú
+   rovnakú špecificitu, takže rozhoduje poradie; keď to pravidlo stálo vyššie,
+   iPhone SE si bral mobilnú veľkosť a zmenšenie sa ticho nedialo.
+   66 px je strop, ktorý sa na SE ešte zmestí aj so zapnutým krížencom
+   (premerané: vzduch ostáva nad 16 px, teda nad dnom \`PAGE_AIR\`). */
+@media (max-width: 559px) and (max-height: 700px) {
+  .pt-sil { width: 70px; height: 70px; }
+  .pt-sil img { width: 52px; height: 52px; }
 }
 `;
