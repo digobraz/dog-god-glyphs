@@ -7,7 +7,8 @@ import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { PageTopBar } from '@/components/PageTopBar';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
-import { FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
+import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
+import { hekthorFace } from '@/lib/hekthorFaces';
 
 // Symboly podstaty — tie isté súbory, aké kreslí `HeroglyphFrame`. Voľba a rám
 // tým ukazujú DOSLOVA to isté; dvojica obrázkov pre jednu vec sa raz rozíde.
@@ -135,6 +136,28 @@ export function EssenceScreen() {
     return [...rest.slice(0, at), main, ...rest.slice(at)];
   }, [extraDogs, dogName, dogPhotoUrl, mainDogPos]);
 
+  /**
+   * Priemer veľkej fotky psa. Matejovo „zväčšiť o 300 %" z 28 px pilulky je
+   * 112; beriem 124 na mobile a 148 od 768 px, aby fotka mala rovnakú váhu ako
+   * medailón na kroku 2 a pes bol naozaj rozpoznateľný.
+   * ⚠️ Prepočítava sa pri zmene okna — hodnota z prvého renderu by pri ťahaní
+   *    okna ostala visieť.
+   */
+  const [win, setWin] = useState(() => (typeof window === 'undefined'
+    ? { w: 390, h: 844 }
+    : { w: window.innerWidth, h: window.innerHeight }));
+  useEffect(() => {
+    const on = () => setWin({ w: window.innerWidth, h: window.innerHeight });
+    window.addEventListener('resize', on);
+    return () => window.removeEventListener('resize', on);
+  }, []);
+  /**
+   * 🔴 VÝŠKA MÁ SLOVO, NIE LEN ŠÍRKA. Lock `PAGE_AIR` hovorí: kto sa nezmestí,
+   *    zmenší OBSAH. Na nízkom okne (Matejovo PC má 724 px) je hlava najväčší
+   *    jediný kus výšky, takže ustupuje prvá — rovnako ako medailón na kroku 2.
+   */
+  const headMedallion = win.h < 700 ? 88 : win.h < 820 ? 108 : win.w >= 768 ? 148 : 124;
+
   const [cur, setCur] = useState(0);
   const [step, setStep] = useState(0);
   /** Na ktorých témach ktorý pes UŽ STÁL. Rozdiel medzi „ešte som tam nebol"
@@ -223,33 +246,76 @@ export function EssenceScreen() {
       <div className="hf-stage">
         <div className="w-full max-w-xl flex flex-col items-center">
 
-          {/* PREPÍNAČ PSOV — len keď je koho prepínať. Pri jednom psovi by to bol
-              ovládač s jednou polohou, teda nábytok bez funkcie. */}
-          {dogs.length > 1 && (
-            <div className="es-switch">
-              <button
-                type="button"
-                className="es-arrow"
-                // ⚠️ Vlastný kľúč si nezakladám — `whatNext.prev/next` je
-                //    preložené v 18 jazykoch a znamená presne toto.
-                aria-label={t('whatNext.prev')}
-                onClick={() => goDog((cur - 1 + dogs.length) % dogs.length)}
-              >‹</button>
-              <span className="es-who">
-                {dog?.photo
-                  ? <img className="es-face" src={dog.photo} alt="" />
-                  : <span className="es-face es-face--empty">{(dog?.name || '?').slice(0, 1)}</span>}
-                <b>{dog?.name || t('heroglyph.flow.yourDogFallback')}</b>
-                {dogDone(dogId) && <i className="es-ok">✓</i>}
+          {/* ── KTO JE NA RADE ───────────────────────────────────────────────
+              🔴 FOTKA PSA JE HLAVA OBRAZOVKY, NIE ODZNAK V PILULKE (Matej
+                 24. 9. 2026: *„hore zväčšiť foto psa a pod to meno — z fotky
+                 musí byť jasné, o akého psa ide, zväčšiť o 300 %"*). Z 28 px
+                 medailónu je 124 (mobil) / 148 (od 768), teda 4–5×.
+              ⚠️ Šípky a počítadlo sú POD menom a len pri viacerých psoch. Pri
+                 jednom psovi by to bol ovládač s jednou polohou — a fotka s
+                 menom je aj tak to, čo tam patrí: krok bez nej bol anonymný. */}
+          <div className="es-head">
+            {dog?.photo
+              ? <FlowMedallion src={dog.photo} size={headMedallion} alt={dog?.name || ''} />
+              : (
+                /* Bez fotky nemá medailón čo vsadiť, takže namiesto rozbitého
+                   obrázka stojí iniciála v tej istej kruhovej diere. */
+                <span className="es-bigface" style={{ width: headMedallion, height: headMedallion }}>
+                  {(dog?.name || '?').slice(0, 1)}
+                </span>
+              )}
+            <span className="es-name">
+              {dog?.name || t('heroglyph.flow.yourDogFallback')}
+              {dogDone(dogId) && <i className="es-ok">✓</i>}
+            </span>
+            {dogs.length > 1 && (
+              <div className="es-switch">
+                <button
+                  type="button"
+                  className="es-arrow"
+                  // ⚠️ Vlastný kľúč si nezakladám — `whatNext.prev/next` je
+                  //    preložené v 18 jazykoch a znamená presne toto.
+                  aria-label={t('whatNext.prev')}
+                  onClick={() => goDog((cur - 1 + dogs.length) % dogs.length)}
+                >‹</button>
                 <em>{cur + 1}/{dogs.length}</em>
+                <button
+                  type="button"
+                  className="es-arrow"
+                  aria-label={t('whatNext.next')}
+                  onClick={() => goDog((cur + 1) % dogs.length)}
+                >›</button>
+              </div>
+            )}
+          </div>
+
+          {/* ── HEKTHOR SA PÝTA ──────────────────────────────────────────────
+              Vodorovná bublina z kroku 3 (`.hf-speak`) — tá istá vec na tom
+              istom mieste toku, takže sa nezakladá tvar. Hektor je tu MALÝ
+              zámerne: veľká tvár na obrazovke je TVOJHO psa, Hektor je ten,
+              kto sa pýta. Dve veľké psie tváre by si konkurovali.
+              ⚠️ Krok mal dovtedy ksicht `01`, teda ten istý ako krok 2 — v mape
+                 `hekthorFaces` nebol vôbec a padal na prvý. */}
+          {handover === null && (
+            <motion.div className="hf-speak es-speak" layout transition={{ duration: 0.28 }}>
+              {/* ⚠️ Veľkosť ide PROPOM, nie CSS-kom: obruč je 8 % priemeru na
+                  každej strane, takže prepísanie šírky zvonku by lem nechalo
+                  v pomere k pôvodnému číslu a rám by opticky zhrubol. */}
+              <FlowMedallion src={hekthorFace('essence')} size={win.h < 820 ? 64 : 84} />
+              <span className="say">
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.h2
+                    key={topic?.key}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {topic?.ask}
+                  </motion.h2>
+                </AnimatePresence>
               </span>
-              <button
-                type="button"
-                className="es-arrow"
-                aria-label={t('whatNext.next')}
-                onClick={() => goDog((cur + 1) % dogs.length)}
-              >›</button>
-            </div>
+            </motion.div>
           )}
 
           {/* JEDNA DOSKA: rám, pás tém a otázka. Rám je nad otázkou zámerne —
@@ -311,9 +377,10 @@ export function EssenceScreen() {
                     exit={{ opacity: 0, y: -6 }}
                     transition={{ duration: 0.22 }}
                   >
-                    <p className="hf-legend">{topic?.label}</p>
-                    <p className="es-ask">{topic?.ask}</p>
-                    <div className={`es-picks n${topic?.opts.length ?? 2}`}>
+                    {/* ⚠️ Nadpis témy ani otázka tu UŽ NIE SÚ. Otázku hovorí
+                        Hektor v bubline nad doskou a názov témy nesie zelený
+                        chip — trojmo to isté slovo robilo z dosky zoznam. */}
+                    <div className="es-picks">
                       {topic?.opts.map((o) => (
                         <button
                           key={o.v}
@@ -363,12 +430,53 @@ export function EssenceScreen() {
 /** Šat obrazovky. Rytiny, jamky a tint si berie z `FLOW_CARVE_CSS` — tu je len
  *  to, čo má iba táto obrazovka: prepínač psov, pás tém a rám. */
 const ESSENCE_CSS = `
-/* ── PREPÍNAČ PSOV ─────────────────────────────────────────────────────────
-   Stojí NAD doskou, nie v nej: nie je to údaj o psovi, je to poloha v svorke. */
-.es-switch {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  width: 100%; margin-bottom: 8px;
+/* ── HLAVA: FOTKA PSA A JEHO MENO ──────────────────────────────────────────
+   Stojí NAD doskou, nie v nej: nie je to údaj v ráme, je to odpoveď na
+   „o koho tu ide". Matej 24. 9.: *„hore zväčšiť foto psa a pod to meno"*. */
+.es-head {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  width: 100%; margin-bottom: 10px;
 }
+.es-name {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'Cinzel Decorative', 'Cinzel', serif; font-weight: 700;
+  font-size: 22px; letter-spacing: 0.04em; line-height: 1.1;
+  color: rgba(35, 22, 8, 0.90); text-shadow: 0 1px 0 rgba(255, 252, 240, 0.70);
+  text-align: center;
+}
+/* Bez fotky: iniciála v tej istej kruhovej diere, nie rozbitý obrázok. */
+.es-bigface {
+  display: grid; place-items: center; border-radius: 999px; flex: none;
+  background: radial-gradient(circle at 50% 35%, #F7ECD2 0%, #E8D5AA 100%);
+  box-shadow: inset 0 2px 6px rgba(90, 62, 14, 0.35), 0 0 0 2px rgba(179, 130, 45, 0.75);
+  font-family: 'Cinzel', serif; font-size: 44px; color: #8a5a14;
+}
+
+/* ── PREPÍNAČ PSOV ─────────────────────────────────────────────────────────
+   Šípky a počítadlo POD menom. Meno nesie fotka nad nimi, takže v prepínači
+   už druhýkrát nie je — inak stojí to isté slovo dvakrát nad sebou. */
+.es-switch {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.es-switch em {
+  font-family: 'Space Grotesk', sans-serif; font-style: normal; font-size: 12px;
+  letter-spacing: 0.10em; color: rgba(60, 40, 12, 0.52);
+}
+
+/* ── BUBLINA S OTÁZKOU ─────────────────────────────────────────────────────
+   Recept je \`.hf-speak\` z kroku 3; tu sa mení len STUPEŇ písma, a to vo
+   VLASTNEJ triede. \`SPEAK.title\` (24) je spoločná hodnota pre celý vstup a
+   nesie ju aj krok 3 — zdvihnutím či znížením by sa ticho zmenil aj on.
+   \`container-type\` dovolí viazať stupeň na ŠÍRKU BUBLINY (cqw), nie na okno. */
+.es-speak { container-type: inline-size; margin-bottom: 10px; }
+/* Na nízkom okne ide dole aj Hektor a vzduch medzi blokmi — tá istá úspora ako
+   pri hlave, len v CSS, lebo bublina si veľkosť medailónu nesie v štýle. */
+@media (max-height: 820px) {
+  .es-head { gap: 4px; margin-bottom: 6px; }
+  .es-speak { margin-bottom: 6px; padding-top: 8px; padding-bottom: 8px; }
+  .es-name { font-size: 19px; }
+}
+.es-speak h2 { font-size: clamp(16px, 4.6cqw, 20px); }
 .es-arrow {
   flex: none; width: 34px; height: 34px; border-radius: 999px; cursor: pointer;
   background: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%);
@@ -410,7 +518,11 @@ const ESSENCE_CSS = `
    \`currentColor\`, takže na bledej doske by čierna pôsobila ako tlač, nie rytina. */
 .es-glyph { width: 100%; color: rgba(35, 22, 8, 0.88); }
 
-.es-chips { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; width: 100%; }
+/* 🔴 NA MOBILE 2×2, NIE RAD (Matej 24. 9.: *„na mobile dať 4 chipy 2 a 2 pod
+   seba zarovnané"*). Rad štyroch sa na 390 px zalomil kde sa mu chcelo — raz
+   3+1, raz 2+2 podľa dĺžky prekladu, takže pás nikdy nesedel. Mriežka to určí. */
+.es-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
+@media (min-width: 560px) { .es-chips { grid-template-columns: repeat(4, 1fr); } }
 .es-chip {
   flex: 1 1 auto; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
   padding: 5px 7px; border-radius: 999px; cursor: pointer;
@@ -434,25 +546,26 @@ const ESSENCE_CSS = `
   font-size: 14px; line-height: 1.35; color: rgba(35, 22, 8, 0.90);
   text-shadow: 0 1px 0 rgba(255, 252, 240, 0.70);
 }
-.es-picks { display: grid; gap: 8px; width: 100%; }
-.es-picks.n2 { grid-template-columns: 1fr 1fr; }
-.es-picks.n3 { grid-template-columns: 1fr 1fr 1fr; }
+/* 🔴 ODPOVEDE POD SEBOU V RIADKOCH (Matej 24. 9.: *„aj odpovede pod seba do
+   riadkov"*). Dve dlaždice vedľa seba stláčali text do dvoch riadkov a pri
+   troch farbách musela ikonka preskočiť nad text. Riadok je vždy jeden a je
+   v ňom miesto na väčšiu kresbu aj na podnázov. */
+.es-picks { display: grid; grid-template-columns: 1fr; gap: 8px; width: 100%; }
 /* Symbol podstaty je KRESBA, nie ikonka rozhrania — jamka je preto väčšia než
-   pri voľbe stavu psa a obrázok v nej dýcha. */
-.es-picks .hf-pick .well { width: 40px; height: 40px; }
-.es-picks .hf-pick .well img { width: 26px; height: 26px; object-fit: contain; }
+   pri voľbe stavu psa a obrázok v nej dýcha. Riadok je aj vyšší: obrazovka
+   pôsobila „scvrknuto" (Matej 24. 9.) a práve toto je jej najväčšia plocha. */
+.es-picks .hf-pick { padding: 12px 14px; gap: 14px; }
+.es-picks .hf-pick .well { width: 48px; height: 48px; }
+.es-picks .hf-pick .well img { width: 32px; height: 32px; object-fit: contain; }
+.es-picks .hf-pick .tx { font-size: 14px; letter-spacing: 0.05em; }
 .es-picks .hf-pick .tx em {
   display: block; font-style: normal; font-family: 'Space Grotesk', sans-serif;
   font-weight: 400; font-size: 10px; letter-spacing: 0.06em;
   color: rgba(60, 40, 12, 0.52); text-transform: none;
 }
-/* Pri troch voľbách na telefóne je na text 80 px — ikonka ide nad text, inak sa
-   dvojslovný popis láme na tri riadky. Je to výnimka z „ikonka vedľa textu",
-   a platí LEN pre trojicu na úzkom okne. */
-@media (max-width: 420px) {
-  .es-picks.n3 .hf-pick { flex-direction: column; gap: 4px; padding: 8px 4px; text-align: center; }
-  .es-picks.n3 .hf-pick .tx { font-size: 11px; }
-}
+/* ⚠️ Výnimka „pri troch voľbách ikonka nad text" ZANIKLA. Bola potrebná, kým
+   voľby stáli vedľa seba a na text zostalo 80 px; v riadkoch je miesta dosť,
+   takže ikonka je vedľa textu vždy — jedno pravidlo namiesto dvoch. */
 
 /* ── MEDZIKARTA MEDZI PSAMI ───────────────────────────────────────────────*/
 .es-hand {
