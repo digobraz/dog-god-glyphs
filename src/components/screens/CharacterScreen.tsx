@@ -147,11 +147,10 @@ export function CharacterScreen() {
       <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_SCROLL_CSS}{FLOW_DOG_CSS}{CHARACTER_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
-        {/* Späť vedie na MAJITEĽA — teda tam, odkiaľ sa sem po skrátení chvosta
-            (25. 9. 2026) naozaj príde. Štyri staré otázky o psovi medzi tým
-            (pohlavie · farba · pôvod · rodokmeň) sú z nového vstupu odvesené,
-            lebo ich pýta PODSTATA. */}
-        <PageTopBar onBack={() => navigate('/heroglyph/owner-info')} />
+        {/* Späť vedie na PATRÓNA. Štyri staré otázky o psovi, ktoré tu kedysi
+            stáli medzi nimi (pohlavie · farba · pôvod · rodokmeň), sú z nového
+            vstupu odvesené — pýta ich PODSTATA. */}
+        <PageTopBar onBack={() => navigate('/heroglyph/breed')} />
       </div>
 
       <div className="hf-stage">
@@ -302,7 +301,7 @@ export function CharacterScreen() {
                 type="button"
                 className="hf-cta"
                 disabled={!canGo}
-                onClick={() => { if (!canGo) return; if (handover) setCur(missing); else navigate('/heroglyph/reveal'); }}
+                onClick={() => { if (!canGo) return; if (handover) setCur(missing); else navigate('/heroglyph/owner-info'); }}
               >
                 {handover ? t('heroglyph.flow.multi.nextDog') : t('heroglyph.flow.breed.continue')}
               </button>

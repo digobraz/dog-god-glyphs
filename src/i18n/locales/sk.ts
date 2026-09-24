@@ -354,7 +354,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.owner.questionPrefix': 'Tak, a teraz ',
   'heroglyph.flow.owner.questionWord': 'ty',
   'heroglyph.flow.owner.questionSuffix': ', človeče.',
-  'heroglyph.flow.owner.sub': 'Tvoj rámik je vnútri toho psieho. Tak to má byť.',
+  'heroglyph.flow.owner.sub': 'Najprv pes, potom pán — tvoj rámik je vnútri toho psieho.',
   'heroglyph.flow.owner.orderLine': '{dogName} je tvoj {ord} pes',
   'heroglyph.flow.owner.orderMissing': 'Poradie psa zatiaľ nie je vybrané',
   'heroglyph.flow.owner.orderChange': 'Zmeniť',

@@ -376,7 +376,7 @@ export function PatronScreen() {
     // sa cez store nevliekla hodnota, ktorú nikto nekreslí.
     setPatronCategory2('');
     setPatronSvg2('');
-    navigate(NEW_HEROFLOW ? '/heroglyph/owner-info' : '/heroglyph/ranking');
+    navigate(NEW_HEROFLOW ? '/heroglyph/dog-character' : '/heroglyph/ranking');
   };
 
   if (!flowOk) return null;

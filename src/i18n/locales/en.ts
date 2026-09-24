@@ -466,7 +466,7 @@ export const en = {
   'heroglyph.flow.owner.questionPrefix': 'And now ',
   'heroglyph.flow.owner.questionWord': 'you',
   'heroglyph.flow.owner.questionSuffix': ', human.',
-  'heroglyph.flow.owner.sub': 'Your cartouche sits inside your dog\'s. That is how it should be.',
+  'heroglyph.flow.owner.sub': 'The dog first, then the human — your cartouche sits inside theirs.',
   'heroglyph.flow.owner.orderLine': '{dogName} is your {ord} dog',
   'heroglyph.flow.owner.orderMissing': 'No order picked yet',
   'heroglyph.flow.owner.orderChange': 'Change',

@@ -60,6 +60,12 @@ import { getChineseZodiac, getWesternZodiac } from '@/lib/zodiac';
 //       `ownerChineseZodiac` sú tie isté kľúče, aké písala stará obrazovka,
 //       takže kód heroglyfu, certifikát ani `/welcome` o zmene nevedia.
 //
+// 🔑 MAJITEĽ JE POSLEDNÁ OTÁZKA, AŽ ZA PSOM (Matej 25. 9. 2026: *„krok 8 bude
+//    majitel… najprv pes a potom pán"*). Reťaz je teda 6 PATRÓN → 7 POVAHA →
+//    8 MAJITEĽ → odhalenie. Nie je to poradie kvôli poradiu: v heroglyfe sedí
+//    malý rámik majiteľa VNÚTRI rámika psa, takže sa aj pýta v tom poradí —
+//    a veta v bubline to hovorí nahlas.
+//
 // 🔑 ZÁPIS DO RÁMU JE OKAMŽITÝ — rovnako ako na PODSTATE, PATRÓNOVI a POVAHE.
 //    Pohlavie, písmeno mena aj obe znamenia pristanú v malom kartuši v momente
 //    voľby, nie na CTA. Malý rámik je VNÚTRI rámika psa (DOGMA: pes je
@@ -163,7 +169,7 @@ export function OwnerScreen() {
       <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{OWNER_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
-        <PageTopBar onBack={() => navigate('/heroglyph/breed')} />
+        <PageTopBar onBack={() => navigate('/heroglyph/dog-character')} />
       </div>
 
       <div className="hf-stage">
@@ -322,7 +328,7 @@ export function OwnerScreen() {
                   : t('heroglyph.flow.owner.signsHint')}
               </p>
 
-              <button type="button" className="hf-cta" disabled={!canGo} onClick={() => canGo && navigate('/heroglyph/dog-character')}>
+              <button type="button" className="hf-cta" disabled={!canGo} onClick={() => canGo && navigate('/heroglyph/reveal')}>
                 {t('heroglyph.flow.breed.continue')}
               </button>
             </div>

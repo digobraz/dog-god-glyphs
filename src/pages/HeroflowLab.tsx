@@ -97,16 +97,16 @@ const GROUPS: Group[] = [
         note: 'jedna obrazovka namiesto dvoch podkrokov. Plemeno je POMOCNÍK (predvyplní siluetu), CTA odomkýna patrón. Silueta sa zapisuje do heroglyfu hneď pri ťuknutí. 🔴 CHÝBA PREPÍNAČ PSOV — krok 5 ho má (dogEssence[idPsa]), odtiaľto sa všetko píše len PRVÉMU psovi. Otvorené: zlatá výplň dlaždíc z PODSTATY sem prenesená NIE JE (rad 6–11 siluet) — čaká na Mateja.',
       },
       {
-        name: '7 · Majiteľ (poradie · meno · pohlavie · horoskopy)',
-        path: '/heroglyph/owner-info',
-        state: 'wip',
-        note: 'zliate 25. 9. zo štyroch obrazoviek. Poradie je STAV z kroku 3 (+ ZMENIŤ späť naň), jeden dátum narodenia dopočíta obidva horoskopy. Prepínač psov sem NEPATRÍ — majiteľ je jeden človek pre celú svorku (CLAUDE.md: účet je majiteľov). Otvorené: pri viacerých psoch sa veta o poradí týka prvého psa.',
-      },
-      {
-        name: '8 · Povaha (dve vlastnosti)',
+        name: '7 · Povaha (dve vlastnosti)',
         path: '/heroglyph/dog-character',
         state: 'wip',
         note: 'prezlečená stará obrazovka: Hektor hovorí zhora, rám a rad ôsmich vlastností sú v jednej doske, voľba ide do heroglyfu hneď pri ťuknutí. Odklápacia slideshow zanikla — popis vybranej vlastnosti stojí pod radom. 🔴 CHÝBA PREPÍNAČ PSOV — to isté ako na kroku 6.',
+      },
+      {
+        name: '8 · Majiteľ (poradie · meno · pohlavie · horoskopy)',
+        path: '/heroglyph/owner-info',
+        state: 'wip',
+        note: 'zliate 25. 9. zo štyroch obrazoviek a stojí AŽ ZA psom (Matej: „najprv pes a potom pán“). Poradie je STAV z kroku 3 (+ ZMENIŤ späť naň), jeden dátum narodenia dopočíta obidva horoskopy. Prepínač psov sem NEPATRÍ — majiteľ je jeden človek pre celú svorku (CLAUDE.md: účet je majiteľov). Otvorené: pri viacerých psoch sa veta o poradí týka prvého psa.',
       },
     ],
   },

@@ -134,9 +134,14 @@ const FLOW_ORDER_NEW = [
   '/heroglyph/email',
   '/heroglyph/essence',
   '/heroglyph/breed',
-  '/heroglyph/owner-info',
+  // 🔴 NAJPRV PES, POTOM PÁN (Matej 25. 9. 2026: *„krok 8 bude majitel…
+  //    najprv pes a potom pán"*). Povaha je posledná otázka O PSOVI, majiteľ
+  //    prichádza až za ňou — rovnako ako v heroglyfe sedí malý rámik majiteľa
+  //    VNÚTRI rámika psa.
   '/heroglyph/dog-character',
-  '/heroglyph/crop',
+  '/heroglyph/owner-info',
+  // ⚠️ `/heroglyph/crop` v poradí NIE JE: výrez je od 23. 9. v popupe fotky
+  //    (krok 1) a reťaz doň nevstupuje. Routa ostáva zavesená pre LIVE vstup.
   '/heroglyph/reveal',
   '/heroglyph/message',
 ];

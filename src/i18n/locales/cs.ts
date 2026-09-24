@@ -272,7 +272,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.owner.questionPrefix': 'Tak a teď ',
   'heroglyph.flow.owner.questionWord': 'ty',
   'heroglyph.flow.owner.questionSuffix': ', člověče.',
-  'heroglyph.flow.owner.sub': 'Tvůj rámeček je uvnitř toho psího. Tak to má být.',
+  'heroglyph.flow.owner.sub': 'Nejdřív pes, potom pán — tvůj rámeček je uvnitř toho psího.',
   'heroglyph.flow.owner.orderLine': '{dogName} je tvůj {ord} pes',
   'heroglyph.flow.owner.orderMissing': 'Pořadí psa zatím není vybrané',
   'heroglyph.flow.owner.orderChange': 'Změnit',
