@@ -51,7 +51,17 @@ import {
  *  rozhovoru odsekol už na treťom slove; pri 320 sa väčšina zmestí celá a na
  *  13" notebooku ostane vláknu 960 px, teda stále nad meraným dnom 760. */
 const RAIL_W = 320;
-/* Tretí stĺpec. Užší než pás histórie: nesie ZOZNAM okruhu, nie rozhovor. */
+/* Tretí stĺpec. Dnes nesie ZOZNAM okruhu, nie rozhovor — preto 340.
+   📏 ZMERANÉ 24. 9. 2026 (Playwright, `.akc-in`), a je to dôvod, prečo pás histórie
+      pri otvorení šuplíka ustupuje (nižšie):
+        okno 1280 → vlákno 588 (dno 760 prekročené o 172!)
+        okno 1440 → vlákno 748 (−12)
+        okno 1477 → vlákno 760 (rezerva PRESNE 0)   ← Matejovo okno
+      Súčet 320 (pás) + 760 (vlákno) + 340 (šuplík) + odsadenie je viac než 1440,
+      takže dno tela článku bolo prekročené UŽ DNES, aj keď je v šuplíku len zoznam.
+   📏 SO ZASUNUTÝM PÁSOM je strop pri 1477 asi **685 px** (pri 720 klesne vlákno na 725).
+      Keď do šuplíka pribudne telo zvitku s obrázkom, smie narásť na 480–560 a vlákno
+      ostane na 760 aj na 1440. Číslo sa mení TU, druhá konštanta sa nezakladá. */
 const SRC_W = 340;
 /* 🔴 MOZOG V CHATE NIE JE (Matej 23. 9. 2026: „budu len 2 stlpce nie 3, to jadro
    pojde preč"). Nákres v5 ho mal ako tretí stĺpec s panelom ODKIAĽ TO VIEM;
@@ -606,7 +616,19 @@ body:has(.akv-root[data-plane="chat"]) .ainubis-launcher{visibility:hidden;point
      zdroj vzťahuje, musí ostať na obrazovke — inak je to to isté vyhodenie,
      len bez zmeny adresy. */
   .akv-root[data-plane="chat"][data-src="open"] .akc-thread{right:${SRC_W}px;}
-  .akc-srcx > *{transform:rotate(180deg);}
+  /* 🔴 NA PC JE OTVORENÝ VŽDY LEN JEDEN ŠUPLÍK (Matej 24. 9. 2026, voľba A).
+     Pás histórie 320 + vlákno 760 + šuplík 340 sa do 1440 NEZMESTÍ — dno tela
+     článku bolo prekročené už dnes (merané čísla hore pri konštante SRC_W). Pás preto
+     pri otvorení zvitku odíde a vráti sa, len čo šuplík zavrieš.
+     ⚠️ TLAČIDLO „☰ CONVERSATIONS" SA NA PC NEZAPÍNA. Žije v .akc-head, ktorá je
+        na PC display:none (pravidlo nižšie) — zviditeľniť ho by znamenalo postaviť
+        na PC hlavičku vlákna, ktorá tam zámerne nie je. Históriu vracia šípka
+        v hlavičke samotného šuplíka; preto je tá šípka povinná.
+     ⚠️ Vzájomné vylúčenie drží aj JS (rail / openSrc), nie len toto pravidlo —
+        inak by data-rail="open" a data-src="open" mohli platiť naraz a stav by
+        klamal o tom, čo je na obrazovke. */
+  .akv-root[data-plane="chat"][data-src="open"] .akc-rail{transform:translateX(-101%);}
+  .akv-root[data-plane="chat"][data-src="open"] .akc-thread{left:0;}
   /* Pás je na PC stále na obrazovke, tlačidlo šuplíka teda nemá čo otvárať. */
   .akv-root[data-plane="chat"] .akc-railbtn,
   .akv-root[data-plane="chat"] .akc-scrim{display:none;}
@@ -818,10 +840,12 @@ export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
   /* ŠUPLÍK HISTÓRIE. Stav žije v atribúte `.akv-root`, nie v Reacte — CSS ho
      číta aj pre veci mimo tohto komponentu. Preto jedno miesto na otvorenie
      aj zavretie, nie štyri `querySelector` po súbore. */
+  /* 🔴 PÁS A TRETÍ STĹPEC SA VYLUČUJÚ. Nie je to vkus — traja vedľa seba sa na
+     1440 nezmestia a vlákno padne pod merané dno 760 (čísla pri `SRC_W`). */
   const rail = (open: boolean) => {
     const r = document.querySelector<HTMLElement>('.akv-root');
     if (!r) return;
-    if (open) r.dataset.rail = 'open'; else r.removeAttribute('data-rail');
+    if (open) { r.dataset.rail = 'open'; openSrc(null); } else r.removeAttribute('data-rail');
   };
 
   /* TRETÍ STĹPEC. Tá istá mechanika ako pás histórie: React drží OBSAH
@@ -832,7 +856,8 @@ export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
     setSrc(id);
     const r = document.querySelector<HTMLElement>('.akv-root');
     if (!r) return;
-    if (id != null) r.dataset.src = 'open'; else r.removeAttribute('data-src');
+    if (id != null) { r.dataset.src = 'open'; r.removeAttribute('data-rail'); }
+    else r.removeAttribute('data-src');
   };
 
   /** Nastavenia chatu — ten istý spôsob ako šuplík: stav nesie atribút koreňa,
