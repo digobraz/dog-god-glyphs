@@ -237,18 +237,11 @@ export function EssenceScreen() {
       </div>
 
       <div className="hf-stage">
-        {/* ── NA ŠIROKOM A NÍZKOM OKNE IDE BUBLINA VEDĽA DOSKY ─────────────
-            🔴 Matej 24. 9. 2026: *„nesedí mi to výškovo na PC… stále mi to
-               zobrazuje odseknuté"*. Odmerané na jeho okne (1477×724): obsah
-               690 px do výšky 643 px, teda 47 px pretoku — doska sa DÁ dorolovať
-               (CTA je po jednom šuchnutí vidno), ale odseknutá hrana vyzerá ako
-               chyba a nie ako pokračovanie.
-            🔑 Vedľa seba nie je „iný dizajn", je to TÁ ISTÁ stavba položená
-               naležato: otázka vľavo, doska vpravo. Ušetrí celú výšku bubliny
-               (128 px + medzera), takže sa zmestí bez jediného zmenšenia —
-               a Matejovo *„nič sa tu nemení veľkosťou"* ostáva nedotknuté.
-            ⚠️ Zapne sa LEN keď stojaté rozloženie nevojde: šírka ≥ 1000 a výška
-               ≤ 860. Na mobile a na vysokom okne sa nehýbe nič. */}
+        {/* ── BUBLINA JE NAD DOSKOU, VŽDY ─────────────────────────────────
+            Tretie kolo ju na širokom a nízkom okne odsúvalo VEDĽA dosky, aby sa
+            ušetrila výška. Matej to 24. 9. zamietol: *„majú byť pod sebou"*.
+            Stavba je preto jedna pre každé okno — odôvodnenie a namerané čísla
+            sú pri zrušenom pravidle v `ESSENCE_CSS`. */}
         <div className="w-full max-w-xl flex flex-col items-center es-col">
 
           {/* ── 1. BLOK: HEKTHOR SA PÝTA (24. 9. 2026, druhé kolo) ──────────
@@ -262,7 +255,11 @@ export function EssenceScreen() {
               ⚠️ Bublina sa NESKRÝVA ani počas medzikarty — jej zmiznutie menilo
                  výšku obrazovky, a tá sa meniť nemá. */}
           <motion.div className="hf-speak es-speak" layout transition={{ duration: 0.28 }}>
-            <FlowMedallion src={hekthorFace('essence')} size={104} />
+            {/* ⚠️ 104 → 80 (Matej 24. 9., štvrté kolo: *„zmenšiť foto hektora/psa,
+                CTA a pod."*). Ranné 104 bolo prevzaté z kroku SVORKA, kde je
+                Hektor hlavou obrazovky; tu stojí len ako ten, kto sa pýta, a
+                obrazovka potrebovala výšku inde. */}
+            <FlowMedallion src={hekthorFace('essence')} size={80} />
             <span className="say">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.h2
@@ -453,6 +450,15 @@ export function EssenceScreen() {
 /** Šat obrazovky. Rytiny, jamky a tint si berie z `FLOW_CARVE_CSS` — tu je len
  *  to, čo má iba táto obrazovka: prepínač psov, pás tém a rám. */
 const ESSENCE_CSS = `
+/* ── OBSAH STOJÍ HORE, NEPLÁVA NA STRED ───────────────────────────────────
+   🔴 Matej 24. 9. (štvrté kolo): *„treba to upratať tak aby sa to zmestilo
+   hore"*. \`FLOW_STAGE_CSS\` centruje každý krok cez \`margin: auto\` na dieťati
+   (a je to LOCK z toho istého dňa — pasca s \`justify-center\` + \`overflow\`).
+   Tu sa to ruší LEN pre túto obrazovku: doska je najvyšší kus vstupu a
+   centrovaná visela 233 px pod lištou, takže hore ostal prázdny papyrus.
+   ⚠️ Spodná \`margin-bottom: auto\` OSTÁVA — tým sa pri pretečení nestratí
+   horná hrana, čo je presne tá pasca, pred ktorou lock varuje. */
+.hf-stage > .es-col { margin-top: 0; }
 /* ── KTO JE OPISOVANÝ ──────────────────────────────────────────────────────
    Riadok VNÚTRI dosky, nad rámom, oddelený rytinou. Ráno to bol stĺpec nad
    doskou (fotka, pod ňou meno) — Matej to poobede prehodil na dvojicu vedľa
@@ -475,7 +481,7 @@ const ESSENCE_CSS = `
     rgba(255, 252, 240, 0.72) 1px 2px);
 }
 .es-dogphoto {
-  width: 64px; height: 64px; border-radius: 999px; object-fit: cover; flex: none;
+  width: 48px; height: 48px; border-radius: 999px; object-fit: cover; flex: none;
   display: grid; place-items: center;
   /* Vlások, nie obruč: fotka má byť FOTKA. Cloisonné rám ostáva Hektorovi, aby
      bolo na prvý pohľad jasné, kto sa pýta a kto je tvoj pes. */
@@ -484,7 +490,7 @@ const ESSENCE_CSS = `
 }
 .es-dogphoto--empty {
   background: radial-gradient(circle at 50% 35%, #F7ECD2 0%, #E8D5AA 100%);
-  font-family: 'Cinzel', serif; font-size: 28px; color: #8a5a14;
+  font-family: 'Cinzel', serif; font-size: 22px; color: #8a5a14;
 }
 .es-name {
   display: inline-flex; align-items: center; gap: 6px;
@@ -512,27 +518,16 @@ const ESSENCE_CSS = `
    \`container-type\` dovolí viazať stupeň na ŠÍRKU BUBLINY (cqw), nie na okno. */
 .es-speak { container-type: inline-size; margin-bottom: 8px; }
 
-/* ── ŠIROKÉ A NÍZKE OKNO: DVA STĹPCE ──────────────────────────────────────*/
-@media (min-width: 1000px) and (max-height: 860px) {
-  .es-col {
-    max-width: 980px;
-    flex-direction: row;
-    align-items: stretch;
-    gap: 16px;
-  }
-  /* Bublina drží tretinu a je zvislo na stred vedľa dosky — otázka má byť
-     v očiach v tej istej výške ako odpovede, nie nad nimi. */
-  .es-col > .es-speak {
-    flex: 0 0 34%;
-    margin-bottom: 0;
-    align-self: center;
-  }
-  .es-col > .hf-block { flex: 1 1 auto; min-width: 0; margin-top: 0; }
-  /* Hektor v stĺpci stojí NAD otázkou, nie pri nej — na tretine šírky by vedľa
-     seba nechali otázke tri slová na riadok. */
-  .es-col > .es-speak { flex-direction: column; text-align: center; }
-  .es-col > .es-speak .say { align-items: center; }
-}
+/* ── ⛔️ DVA STĹPCE ZRUŠENÉ (Matej 24. 9., štvrté kolo) ────────────────────
+   *„prečo ich dávaš vedľa seba keď majú byť pod sebou?"* — sem patrili od
+   tretieho kola: pri šírke ≥ 1000 a výške ≤ 860 išla bublina VEDĽA dosky.
+   Nebolo to rozhodnutie o vzhľade, bola to náhrada za výšku — stojatá stavba
+   vtedy na jeho okne (1477×724) pretekala o 47 px a hrana vyzerala odseknutá.
+   🔑 Dôvod zanikol tým, čo sa stalo o kolo neskôr: doska schudla 475 → 427 px
+   a prestala plávať na stred. Premerané po zmene, stojato: **543 px obsahu do
+   595 px miesta na jeho okne, rezerva 52 px** — a aj na 1280×700 ešte 28 px.
+   ⚠️ Keby sa doska niekedy zase natiahla, riešením NIE JE vrátiť dva stĺpce,
+   ale zmenšiť obsah — to je pravidlo \`PAGE_AIR\`. */
 /* Doska vstupu má spoločný rozstup 14 px; tu je päť medzier pod sebou, takže
    dva pixely z každej sú na tejto obrazovke rozdiel jedného riadka. */
 .es-stack .hf-plate { gap: 10px; }
@@ -622,7 +617,7 @@ const ESSENCE_CSS = `
    ⚠️ Poradie pri farbe je Matejovo: *„tmavý, bledý v jednom riadku, mix
       samostatne v druhom"*. */
 .es-picks {
-  --es-picks-h: 116px;
+  --es-picks-h: 92px;
   display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%;
   min-height: var(--es-picks-h); align-items: stretch;
 }
@@ -630,18 +625,18 @@ const ESSENCE_CSS = `
    ISTEJ výšky, akú má dvojica. Bez toho mala farba 156 px proti 116 px zvyšku
    a doska pri nej narástla o 40 px, teda presne to, čo sa nemá hýbať. Vojdú sa
    menšou jamkou a nižším odsadením, nie menším písmom. */
-.es-picks.n3 { grid-template-rows: 54px 54px; }
+.es-picks.n3 { grid-template-rows: 42px 42px; }
 .es-picks.n3 .hf-pick:nth-child(3) { grid-column: span 2; }
-.es-picks.n3 .hf-pick { padding: 6px 12px; gap: 10px; }
-.es-picks.n3 .hf-pick .well { width: 36px; height: 36px; }
-.es-picks.n3 .hf-pick .well img { width: 24px; height: 24px; }
+.es-picks.n3 .hf-pick { padding: 4px 12px; gap: 10px; }
+.es-picks.n3 .hf-pick .well { width: 30px; height: 30px; }
+.es-picks.n3 .hf-pick .well img { width: 20px; height: 20px; }
 .es-picks.n3 .hf-pick .tx { font-size: 13px; }
 /* Symbol podstaty je KRESBA, nie ikonka rozhrania — jamka je preto väčšia než
    pri voľbe stavu psa a obrázok v nej dýcha. Riadok je aj vyšší: obrazovka
    pôsobila „scvrknuto" (Matej 24. 9.) a práve toto je jej najväčšia plocha. */
-.es-picks .hf-pick { padding: 12px 14px; gap: 14px; }
-.es-picks .hf-pick .well { width: 48px; height: 48px; }
-.es-picks .hf-pick .well img { width: 32px; height: 32px; object-fit: contain; }
+.es-picks .hf-pick { padding: 8px 14px; gap: 12px; }
+.es-picks .hf-pick .well { width: 40px; height: 40px; }
+.es-picks .hf-pick .well img { width: 28px; height: 28px; object-fit: contain; }
 .es-picks .hf-pick .tx { font-size: 14px; letter-spacing: 0.05em; }
 .es-picks .hf-pick .tx em {
   display: block; font-style: normal; font-family: 'Space Grotesk', sans-serif;
@@ -667,7 +662,7 @@ const ESSENCE_CSS = `
 /* ── BRÁNA A CTA ──────────────────────────────────────────────────────────*/
 /* Rad akcie: výška je daná VŽDY (CTA 48 px), obsah sa v nej mení. */
 .es-act {
-  width: 100%; min-height: 48px; display: flex; align-items: center;
+  width: 100%; min-height: 40px; display: flex; align-items: center;
   justify-content: center;
 }
 .es-cta { width: 100%; }
