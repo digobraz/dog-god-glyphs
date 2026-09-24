@@ -18,10 +18,9 @@ import { PACK_R } from '@/components/pack/packTheme';
 //    nepotrebujeme — do heroglyfu ide IBA znamenie. Kto ho nechce dať, vyberie
 //    si znamenie sám a rok použije len na čínske zviera.
 //
-// 🔴 DÁTUM NEIDE DO DB ANI NA BEŽNEJ CESTE. `PaymentScreen` posiela celý objekt
-//    `selections` do `create-checkout`, takže dátum by sa v nej uložil — preto
-//    ho `OwnerScreen` drží v `sessionStorage` a do store zapisuje len znamenia.
-//    Táto cesta ho navyše po výbere zahodí úplne.
+// ⚠️ NA BEŽNEJ CESTE SA DÁTUM UKLADÁ (Matej: *„kto chce nam ho da je to dobre
+//    vedieť"*) a cez `selections` ide až do DB. Táto cesta je práve tá druhá:
+//    kto ho dať nechce, vyberie znamenie a `OwnerScreen` dátum zahodí.
 //
 // 🔑 NIE JE TO NOVÁ OBRAZOVKA, JE TO STARÁ. Rad dvanástich znamení aj koliesko
 //    rokov sú presne to, čo do 25. 9. stálo na `OwnerZodiacScreen` — tu sú len

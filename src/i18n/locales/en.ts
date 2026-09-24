@@ -474,7 +474,7 @@ export const en = {
   'heroglyph.flow.owner.whoLegend': 'Who you are',
   'heroglyph.flow.owner.bornLegend': 'You were born',
   'heroglyph.flow.owner.nameTitle': 'Your first name',
-  'heroglyph.flow.owner.signsHint': 'We use your date of birth to work out your signs. We do not store it.',
+  'heroglyph.flow.owner.signsHint': 'We use your date of birth to work out your signs — and to wish you well on the day.',
   'heroglyph.flow.owner.optOut': 'I would rather not say',
   'heroglyph.flow.owner.sheetTitle': 'Pick your sign',
   'heroglyph.flow.owner.sheetYear': 'Year of birth (Chinese sign)',

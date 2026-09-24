@@ -280,7 +280,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.owner.whoLegend': 'Kdo jsi',
   'heroglyph.flow.owner.bornLegend': 'Narodil ses',
   'heroglyph.flow.owner.nameTitle': 'Tvoje křestní jméno',
-  'heroglyph.flow.owner.signsHint': 'Datum narození použijeme k výpočtu tvých znamení. Neukládáme ho.',
+  'heroglyph.flow.owner.signsHint': 'Datum narození použijeme k výpočtu tvých znamení — a můžeme ti ten den popřát.',
   'heroglyph.flow.owner.optOut': 'Nechci uvádět',
   'heroglyph.flow.owner.sheetTitle': 'Vyber si své znamení',
   'heroglyph.flow.owner.sheetYear': 'Rok narození (čínské znamení)',
