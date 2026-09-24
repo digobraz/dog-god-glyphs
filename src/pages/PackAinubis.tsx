@@ -35,7 +35,7 @@
 //      obsah), DOLE POHĽAD = DOGSCROLL ⇄ BRAIN (ten istý obsah, iný pohľad).
 // 🚩 OTVORENÉ: chat ako rovina hore + stred mozgu ako vstup (postavené podľa odporúčania).
 // ════════════════════════════════════════════════════════════════════════════
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { PackIdentityBar } from '@/components/pack/PackIdentityBar';
@@ -44,7 +44,7 @@ import {
   PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS,
 } from '@/components/pack/packTheme';
 import {
-  AINUBIS, AI_GLASS, AI_BREATHE_CSS, AI_PANEL_SHADOW, AI_FOCUS, aiWorld,
+  AINUBIS, AI_GLASS, AI_BREATHE_CSS, AI_PANEL_SHADOW, AI_FOCUS, aiWorld, BRAIN_STATE,
 } from '@/components/pack/ainubisSkin';
 import { VaultChat, VAULT_CHAT_CSS } from '@/components/pack/vault/VaultChat';
 import { VaultWall, VAULT_WALL_CSS } from '@/components/pack/vault/VaultWall';
@@ -242,6 +242,13 @@ ${STAGE_CSS}
 .akv-lyr[aria-pressed="true"]{color:${AINUBIS.cyan};background:rgba(${AINUBIS.cyanRGB},0.16);border-color:${AINUBIS.edgeStrong};}
 .akv-lyr:disabled{cursor:default;color:${AINUBIS.inkFaint};}
 .akv-lyr:disabled u{opacity:0.45;}
+/* Legenda pod vrstvou. Odsadená o bodku + medzeru vyššie, aby bolo vidieť, že patrí
+   POD vrstvu a nie je to piata vrstva. Text je tichší o stupeň (micro, inkFaint). */
+.akv-leg{display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;
+  margin:0 0 ${PACK_SPACE.xs}px calc(${PACK_SPACE.md}px + 8px + ${PACK_SPACE.sm}px);}
+.akv-leg span{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;white-space:nowrap;
+  font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;color:${AINUBIS.inkFaint};}
+.akv-leg u{width:6px;height:6px;flex:0 0 auto;border-radius:${PACK_R.pill}px;text-decoration:none;}
 
 /* PC — riadok hľadanie + roletky pod hlavičkou (vzor .trp-topsearchrow). */
 .akv-ptools{display:none;}
@@ -383,14 +390,31 @@ ${STAGE_CSS}
 
 type View = 'brain' | 'scroll';
 
+/* ── ČO ZNAMENAJÚ FARBY ZŔN — LEGENDA (2026-09-24) ──────────────────────────
+   Matej: modrá nedotknuté · žltá videné · zelená prečítané (19. 9., potvrdené 24. 9.).
+   🔴 DOVTEDY TO NEBOLO NIKDE NAPÍSANÉ. Farba, ktorú sa človek nemá kde dočítať, nie je
+      legenda — je to ozdoba, a mozog vyzeral ako náhodne farebný.
+   🔴 LEGENDA PATRÍ POD VRSTVU, NIE VEDĽA MOZGU. Tie tri farby kreslí vrstva POSTUP;
+      keď ožije `myDog` alebo `pack`, prinesie si vlastné významy a rovnakým spôsobom
+      si ich pripne pod seba. Samostatný panel „legenda" by pri druhej vrstve klamal
+      a do katalógu blokov by pribudol sedemnásty tvar, ktorý netreba.
+   ⚠️ Farby sa NEPÍŠU RUČNE — čítajú sa z `BRAIN_STATE`, z toho istého zdroja, z ktorého
+      ich berie `brainEngine`. Napísané druhýkrát by sa pri prvej zmene odtieňa rozišli
+      (presne tak, ako sa rozišla fialová výletov). */
+const STATE_LEGEND = [
+  { k: 'untouched', en: 'not opened', rgb: BRAIN_STATE.untouched },
+  { k: 'seen', en: 'opened, unfinished', rgb: BRAIN_STATE.seen },
+  { k: 'read', en: 'read', rgb: BRAIN_STATE.read },
+] as const;
+
 /* VRSTVY z nákresu v5 §11 — farba bodky = farba, ktorou vrstva kreslí mozog.
    ⚠️ Žije len POSTUP. Ostatné tri potrebujú obsah (zvitky), DOG ID pravidlo a Zem —
    kým ich nie je, sú viditeľné, ale zamknuté so „soon", nie tvária sa funkčne. */
 const LAYERS = [
-  { k: 'progress', en: 'Progress', rgb: '245,199,61', live: true },
-  { k: 'myDog', en: 'My dog', rgb: '178,86,64', live: false },
-  { k: 'origin', en: 'Origin', rgb: '91,224,240', live: false },
-  { k: 'pack', en: 'Pack', rgb: '59,158,255', live: false },
+  { k: 'progress', en: 'Progress', rgb: '245,199,61', live: true, legend: STATE_LEGEND },
+  { k: 'myDog', en: 'My dog', rgb: '178,86,64', live: false, legend: null },
+  { k: 'origin', en: 'Origin', rgb: '91,224,240', live: false, legend: null },
+  { k: 'pack', en: 'Pack', rgb: '59,158,255', live: false, legend: null },
 ] as const;
 /* Súčty z rozpadu svetov — mozog z nich berie hustotu, hlavička ich ukazuje ako menovateľ. */
 const TOTAL_CIRCLES = VAULT_WORLDS.reduce((s, w) => s + w.circles, 0);
@@ -725,11 +749,25 @@ export default function PackAinubis() {
               <div className="akv-lpanel" role="group" aria-label={tx('pack.ainubis.layers', 'Layers')}>
                 <b>{tx('pack.ainubis.layers', 'Layers')}</b>
                 {LAYERS.map((l) => (
-                  <button key={l.k} type="button" className="akv-lyr" disabled={!l.live} aria-pressed={l.live}>
-                    <u style={{ background: `rgb(${l.rgb})` }} />
-                    {tx(`pack.ainubis.layer.${l.k}`, l.en)}
-                    {!l.live && <em>{soon}</em>}
-                  </button>
+                  <Fragment key={l.k}>
+                    <button type="button" className="akv-lyr" disabled={!l.live} aria-pressed={l.live}>
+                      <u style={{ background: `rgb(${l.rgb})` }} />
+                      {tx(`pack.ainubis.layer.${l.k}`, l.en)}
+                      {!l.live && <em>{soon}</em>}
+                    </button>
+                    {/* Legenda vrstvy. Nie je to tlačidlo — nedá sa zapnúť ani vypnúť,
+                        len hovorí, čo farba zrna znamená. */}
+                    {l.live && l.legend && (
+                      <div className="akv-leg">
+                        {l.legend.map((g) => (
+                          <span key={g.k}>
+                            <u style={{ background: `rgb(${g.rgb})` }} />
+                            {tx(`pack.ainubis.state.${g.k}`, g.en)}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </Fragment>
                 ))}
               </div>
             </>

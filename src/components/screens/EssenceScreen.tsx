@@ -633,20 +633,24 @@ const ESSENCE_CSS = `
       (\`stretch\`) — pri dvojici sú vyššie, pri trojici nižšie, ale doska stojí.
    ⚠️ Poradie pri farbe je Matejovo: *„tmavý, bledý v jednom riadku, mix
       samostatne v druhom"*. */
+/* ⚠️ ROZOSTUP MEDZI DLAŽDICAMI JE VÄČŠÍ NEŽ MEDZI RIADKAMI (Matej 24. 9.:
+   *„nemusia byť také veľké urob ich s väčšími rozostupmi"*) — \`gap: 8px 16px\`.
+   Stĺpce dýchajú, ale tri voľby sa musia zmestiť do TEJ ISTEJ výšky ako dve,
+   takže riadkový rozostup ostáva na 8. Obe čísla sú z \`PACK_SPACE\`. */
 .es-picks {
-  --es-picks-h: 92px;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%;
+  --es-picks-h: 80px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; width: 100%;
   min-height: var(--es-picks-h); align-items: stretch;
 }
 /* Tri voľby: dve delia prvý rad, tretia dostane celý druhý — a VOJDÚ SA DO TEJ
    ISTEJ výšky, akú má dvojica. Bez toho mala farba 156 px proti 116 px zvyšku
    a doska pri nej narástla o 40 px, teda presne to, čo sa nemá hýbať. Vojdú sa
    menšou jamkou a nižším odsadením, nie menším písmom. */
-.es-picks.n3 { grid-template-rows: 42px 42px; }
+.es-picks.n3 { grid-template-rows: 36px 36px; }
 .es-picks.n3 .hf-pick:nth-child(3) { grid-column: span 2; }
-.es-picks.n3 .hf-pick { padding: 4px 12px; gap: 10px; }
-.es-picks.n3 .hf-pick .well { width: 30px; height: 30px; }
-.es-picks.n3 .hf-pick .well img { width: 20px; height: 20px; }
+.es-picks.n3 .hf-pick { padding: 3px 12px; gap: 10px; }
+.es-picks.n3 .hf-pick .well { width: 28px; height: 28px; }
+.es-picks.n3 .hf-pick .well img { width: 22px; height: 22px; }
 .es-picks.n3 .hf-pick .tx { font-size: 13px; }
 /* Symbol podstaty je KRESBA, nie ikonka rozhrania — jamka je preto väčšia než
    pri voľbe stavu psa a obrázok v nej dýcha. Riadok je aj vyšší: obrazovka
@@ -670,10 +674,17 @@ const ESSENCE_CSS = `
    svieti ako lampa a patrí AINUBISOVI. */
 .es-picks .hf-pick {
   padding: 8px 14px; gap: 12px;
-  border-radius: ${PACK_R.field}px;
+  /* ⚠️ POLOMER 12, NIE 8. Osmičku predpisuje \`.btn-gold\`, ale CTA TOHOTO vstupu
+     (\`HF.cta\`, lapisové POKRAČOVAŤ pod dlaždicami) beží na 12 — a Matej porovnáva
+     práve s ním: *„mám pocit že iné CTA na stránke aj na živom webe vo flow máme
+     iné krajšie"*. Dve rôzne zaoblenia na jednej doske sú vidno; obe čísla sú
+     v \`PACK_R\`. */
+  border-radius: ${PACK_R.tile}px;
   background: ${BRAND_GOLD_BTN.grad};
   border: 1px solid ${BRAND_GOLD_BTN.edge};
-  box-shadow: ${BRAND_GOLD_BTN.glow};
+  /* ⚠️ Hlbší z dvoch tieňov už v POKOJI — dlaždica je plocha, nie malé tlačidlo,
+     a plytký odliatok sa na nej stratil. Je to existujúci token, nie nové číslo. */
+  box-shadow: ${BRAND_GOLD_BTN.glowHover};
 }
 .es-picks .hf-pick:hover {
   background: ${BRAND_GOLD_BTN.gradHover};
@@ -690,8 +701,13 @@ const ESSENCE_CSS = `
   border-color: ${LAPIS.edge};
   box-shadow: inset 0 0 0 2px ${LAPIS.edge}, ${BRAND_GOLD_BTN.glowHover};
 }
-.es-picks .hf-pick .well { width: 40px; height: 40px; }
-.es-picks .hf-pick .well img { width: 28px; height: 28px; object-fit: contain; }
+/* 🔴 IKONKA JE PODSTATA, NIE OZDOBA (Matej 24. 9.: *„ikonky zväčši tie sú
+   podstatné"*). Je to ten istý symbol, aký sa o dva riadky vyššie vkreslí do
+   rámu heroglyfu — čím väčší je tu, tým skôr si človek spojí voľbu s tým, čo mu
+   pribudne do glyfu. LIVE flow ho má 48–64 px (\`DogGenderScreen\`, ikonka NAD
+   textom); v riadku vedľa textu je strop daný výškou dlaždice. */
+.es-picks .hf-pick .well { width: 52px; height: 52px; }
+.es-picks .hf-pick .well img { width: 40px; height: 40px; object-fit: contain; }
 .es-picks .hf-pick .tx { font-size: 14px; letter-spacing: 0.05em; }
 .es-picks .hf-pick .tx em {
   display: block; font-style: normal; font-family: 'Space Grotesk', sans-serif;
