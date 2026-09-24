@@ -296,6 +296,17 @@ export const SOURCE_GROUPS: {
   { key: 'own', label: 'AINUBIS SEED', mark: true, empty: '' },
 ];
 
+// ── ČO JE POLICA A ČO JE DETAIL (Matej 24. 9. 2026) ─────────────────────────
+// AINUBIS SEED prestal byť policou so zoznamom — je to DETAIL, v ktorom sa
+// vysvetlí, ako AINUBIS pracuje a ako držíme knižnicu. Zoznam v lište preto
+// obsahuje len skupiny, ktoré naozaj nesú karty.
+// ⚠️ Skupina `own` sa NEMAŽE — zdroj s 88 zvitkami žije ďalej a vykreslí sa
+//    na konci detailu ako DÔKAZ. Zmazaním by sme zatajili tretí najväčší
+//    zdroj v mozgu.
+export const SEED_GROUP = SOURCE_GROUPS.find((g) => g.key === 'own')!;
+export const SHELF_GROUPS = SOURCE_GROUPS.filter((g) => g.key !== 'own');
+export const SEED_SOURCES = LIBRARY_SOURCES.filter((d) => d.group === 'own');
+
 /** Podiel konsenzu v jednom zdroji — hlavičkové číslo karty (viď `split`). */
 export const consensusPct = (d: VaultSource): number | null => {
   const all = d.split.consensus + d.split.traditional + d.split.author;
@@ -330,16 +341,27 @@ export interface SourceKind {
   key: string;
   label: string;
   hint: string;
+  /** Hand-drawn ikonka z `public/icons/pack/<ic>.svg`. */
+  ic: string;
   /** Sľúbená DEVOTION. `null` = číslo ešte nepadlo. */
   devotion: number | null;
 }
 
+// 🔴 ŠTYRI DRUHY, NIE PÄŤ (Matej 24. 9. 2026: *„add source daj len 4 pdf / text
+//    advice / video / link (blog, research)“*). **BOOK zanikol** — „názov a autor,
+//    nájdeme ju sami" nie je druh zdroja, je to želanie. Kto má knihu, pošle PDF;
+//    kto má len názov, pošle odkaz. Piaty riadok len rátal s tým, že niekto iný
+//    spísaný súbor zoženie — a to sa nikdy nestalo.
+// ⚠️ „Just text“ → „Text advice“: starý názov znel ako úľava („len text“),
+//    pritom je to rada, ktorú AINUBIS môže prijať do korpusu.
+// 🚩 IKONKA VIDEA je DOČASNÁ — kit kresbu prehrávania nemá a branč lock zakazuje
+//    siahnuť po lucide. `frame` je najbližšie (rám = obrazovka); Matej vyberie
+//    alebo nakreslí. Ostatné tri sú z kitu a sedia bez výhrad.
 export const SOURCE_KINDS: SourceKind[] = [
-  { key: 'pdf', label: 'PDF', hint: 'a scan or an e-book, 50+ pages', devotion: 100 },
-  { key: 'book', label: 'Book', hint: 'title and author — we find it ourselves', devotion: null },
-  { key: 'video', label: 'Video', hint: 'a lecture or a breakdown, with timestamps', devotion: 10 },
-  { key: 'link', label: 'Link', hint: 'an article, a study, an organisation', devotion: null },
-  { key: 'text', label: 'Just text', hint: 'what you know and where it comes from', devotion: null },
+  { key: 'pdf', label: 'PDF', ic: 'document', hint: 'a scan or an e-book, 50+ pages', devotion: 100 },
+  { key: 'text', label: 'Text advice', ic: 'pencil', hint: 'what you know and where it comes from', devotion: null },
+  { key: 'video', label: 'Video', ic: 'frame', hint: 'a lecture or a breakdown, with timestamps', devotion: 10 },
+  { key: 'link', label: 'Link', ic: 'link', hint: 'a blog, a study, an organisation', devotion: null },
 ];
 
 /**
