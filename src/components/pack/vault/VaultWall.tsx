@@ -26,7 +26,7 @@
 // ⚠️ DEVOTION SA TU LEN SĽUBUJE, NEPRIPISUJE. Rebríček a kalkulačka sú vlastná
 //    session (Matej 24. 9.: „rozoberieme"); `grant-devotion` sa nedotýka.
 // ════════════════════════════════════════════════════════════════════════════
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import {
   PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI,
 } from '@/components/pack/packTheme';
@@ -37,14 +37,24 @@ import { VAULT_WORLDS } from './worlds';
 import { DEMO_WALL, type WallPost, type SealKind } from './vaultWallDemo';
 import { DEMO_PENDING } from './vaultChatDemo';
 import {
-  VAULT_SOURCES, VAULT_SOURCE_TOTALS, SOURCE_KINDS, SOURCES_CLAUSE,
-  WEB_RESEARCH_EXISTS, consensusPct, type VaultSource,
+  LIBRARY_SOURCES, VAULT_SOURCE_TOTALS, SOURCE_KINDS, SOURCE_GROUPS,
+  SOURCES_CLAUSE, WEB_RESEARCH_EXISTS, consensusPct, hiddenNote, type VaultSource,
 } from './vaultSources';
 
 /* 🔴 STROP MRIEŽKY JE POVINNÝ (nákres v5, r. 707): bez neho vznikne na 27"
    piaty stĺpec s kartami po 300 px a z nástenky je tabuľka. */
 const GRID_MIN = 360;
-const GRID_MAX = 1560;
+/* 🔴 STROP JE NA TRI STĹPCE, NIE NA ŠÍRKU OKNA (Matej 24. 9.: „prečo si dal
+   4 stĺpce a nie 3?"). Predtým tu stálo 1560 podľa nákresu v5 — na 1440 z toho
+   vyšli tri, ale na širšom monitore štvrtý: 1560 / (360+16) = 4,1.
+   1240 = tri karty po ~403 px aj s medzerami, a štvrtá sa nezmestí ani na 27".
+   ⚠️ TO ISTÉ ČÍSLO drží aj hlavička — centruje sa na šírku troch stĺpcov. */
+const GRID_MAX = 1240;
+/* Zoznamy (knižnica, moje príspevky) držia TÚ ISTÚ os ako mriežka aj hlavička.
+   Prvý pokus ich mal na 900 a vyzeralo to rozladene: šípka späť stála na 100 px
+   a prvá karta na 270. Riadok je kompaktný (meno, jeden riadok popisu), takže
+   1240 sa nečíta ako tabuľka — a celá obrazovka stojí na jednej osi. */
+const LIST_MAX = GRID_MAX;
 
 /** Meno tretej záložky. Matej 24. 9.: „možno by sme mohli použiť mozog namiesto
  *  zdroje?" — MOZOG je obsadený (pohľad MOZOG ⇄ DOGSCROLL vo VAULTE, plátno
@@ -85,7 +95,10 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
    Riadok 1 = šípka + meno roviny. Riadok 2 = záložky, deliaca čiara a svety. */
 .akw-head{min-width:0;border-bottom:1px solid ${AINUBIS.edge};
   padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.md}px)
-    ${PACK_SPACE.lg}px ${PACK_SPACE.md}px;
+    ${PACK_SPACE.lg}px ${PACK_SPACE.md}px;}
+/* Hlavička stojí na tej istej osi ako karty pod ňou (Matej 24. 9.:
+   „header by som centroval na stred, na šírku 3 stĺpcov"). */
+.akw-hin{max-width:${GRID_MAX}px;margin:0 auto;min-width:0;
   display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .akw-htop{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
 .akw-back{width:32px;height:32px;flex:0 0 32px;display:flex;align-items:center;justify-content:center;
@@ -156,7 +169,8 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
 .akw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(${GRID_MIN}px,100%),1fr));
   gap:${PACK_SPACE.lg}px;align-items:start;}
 /* Zoznamy (moje príspevky, knižnica) sú stĺpec — sú to RIADKY, nie karty. */
-.akw-col{display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;max-width:900px;}
+.akw-col{display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;
+  max-width:${LIST_MAX}px;margin:0 auto;}
 
 /* PÍSANIE JE JEDINÉ CTA NA OBRAZOVKE — preto jediná plná plocha. */
 .akw-new{align-self:flex-start;display:flex;align-items:center;gap:${PACK_SPACE.sm}px;cursor:pointer;border:0;
@@ -310,6 +324,18 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
 .akw-clause{border-radius:${PACK_R.tile}px;border:1px solid ${AINUBIS.glowEdge};
   background:${AINUBIS.glowTint};padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;
   font-size:${PACK_TEXT.label}px;line-height:1.55;color:${AINUBIS.inkDim};}
+/* NADPIS SKUPINY — tichý eyebrow, nie druhá hlavička obrazovky. */
+.akw-grp{margin:${PACK_SPACE.lg}px 0 0;font-family:${FONT_UI};font-weight:500;
+  font-size:${PACK_TEXT.micro}px;line-height:1;letter-spacing:${PACK_HEAD.label.letterSpacing};
+  text-transform:uppercase;color:${AINUBIS.inkFaint};}
+.akw-grp:first-of-type{margin-top:0;}
+.akw-gempty{font-size:${PACK_TEXT.label}px;line-height:1.5;color:${AINUBIS.inkFaint};
+  padding:${PACK_SPACE.sm}px 0;}
+/* LEGENDA PRUHU — bez nej je trojfarebná čiara ozdoba. Stojí RAZ, nad zoznamom. */
+.akw-leg{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.lg}px;font-size:${PACK_TEXT.micro}px;
+  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
+.akw-leg span{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;}
+.akw-leg u{width:14px;height:4px;border-radius:${PACK_R.pill}px;text-decoration:none;}
 .akw-src{border-radius:${PACK_R.frame}px;border:1px solid ${AINUBIS.edge};
   background:rgba(3,7,12,0.35);padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;}
 /* Čerstvo pridaný zdroj je v zozname HNEĎ — ale bledo a so stavom. */
@@ -319,6 +345,23 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
   color:${AINUBIS.ink};}
 .akw-src.is-pending h2{color:${AINUBIS.inkFaint};}
 .akw-au{margin:${PACK_SPACE.xs}px 0 0;font-size:${PACK_TEXT.label}px;line-height:1.45;color:${AINUBIS.inkFaint};}
+/* O ČOM TO JE — jedna veta pod menom. Bez nej je zoznam kníh zoznam titulov. */
+.akw-about{margin:${PACK_SPACE.sm}px 0 0;font-size:${PACK_TEXT.body}px;line-height:1.5;
+  color:${AINUBIS.inkDim};}
+/* HÁČIK — až po rozkliknutí. Zlatý, lebo je to výhrada, nie fakt o knihe. */
+.akw-caveat{margin:${PACK_SPACE.md}px 0 0;padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;
+  border:1px solid ${AINUBIS.ctaEdge};background:${AINUBIS.ctaTint};
+  font-size:${PACK_TEXT.label}px;line-height:1.55;color:${AINUBIS.inkDim};}
+.akw-caveat b{display:block;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;
+  line-height:1;letter-spacing:${PACK_HEAD.label.letterSpacing};text-transform:uppercase;
+  color:${AINUBIS.ctaA};margin-bottom:${PACK_SPACE.sm}px;}
+.akw-open{display:flex;align-items:center;gap:${PACK_SPACE.xs}px;margin-top:${PACK_SPACE.sm}px;
+  padding:0;border:0;background:none;cursor:pointer;
+  font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;color:${AINUBIS.cyan};}
+.akw-open .akw-chev{display:inline-flex;transform:rotate(-90deg);}
+.akw-open[aria-expanded="true"] .akw-chev{transform:rotate(90deg);}
+/* Päta zoznamu — veta o zdroji, ktorý v ňom nie je. */
+.akw-foot-note{font-size:${PACK_TEXT.label}px;line-height:1.55;color:${AINUBIS.inkFaint};}
 /* ODKAZ NA ORIGINÁL — klauzula hovorí „autori urobili prácu, my na ňu ukazujeme",
    toto je to ukázanie. ⚠️ Affiliate ešte neexistuje (Matej: „doladíme, vyrobíme
    si affiliate"), takže tlačidlo je ZATIAĽ MŔTVE a povie to — mŕtvy odkaz, ktorý
@@ -479,20 +522,27 @@ function Post({ post, onLibrary }: { post: WallPost; onLibrary: () => void }) {
 }
 
 function SourceCard({ s }: { s: VaultSource }) {
+  const [open, setOpen] = useState(false);
   const pct = consensusPct(s);
   const all = s.split.consensus + s.split.traditional + s.split.author;
   const seg = (n: number) => (all > 0 ? `${(n / all) * 100}%` : '0%');
+  /* Riadok pod menom: autor · rok · STRANY · rozsah · druh. Strany sú tie
+     nášho dokumentu, nie tlačeného vydania — viď poznámku pri `pages`. */
+  const meta = [s.author, s.year, s.pages ? `${s.pages} pp` : null, s.extent, s.kind]
+    .filter(Boolean).join(' · ');
   return (
     <article className={`akw-src${s.pending ? ' is-pending' : ''}`}>
       <div className="akw-srchd">
         <div style={{ minWidth: 0 }}>
           <h2>{s.title}</h2>
-          <p className="akw-au">{[s.author, s.year, s.extent, s.kind].filter(Boolean).join(' · ')}</p>
+          <p className="akw-au">{meta}</p>
         </div>
         {/* Odkaz na originál patrí len tomu, čo sa dá kúpiť — vlastný text ani
             slovenské skriptá sa na Amazone nedajú objednať. */}
         {!s.pending && s.kind === 'book' && <span className="akw-buy">original · link soon</span>}
       </div>
+
+      <p className="akw-about">{s.about}</p>
 
       {s.pending ? (
         <div className="akw-mt" style={{ marginTop: PACK_SPACE.md }}>
@@ -508,11 +558,22 @@ function SourceCard({ s }: { s: VaultSource }) {
             <i className="a" style={{ width: seg(s.split.author) }} />
           </div>
           <div className="akw-mt">
-            {pct != null && <span><s>{pct} %</s> consensus</span>}
             <span><b>{s.scrolls}</b> scrolls</span>
+            {pct != null && <span><s>{pct} %</s> settled</span>}
             <span>{s.tags.join(' · ')}</span>
             {s.addedBy && <span>added by {s.addedBy}</span>}
           </div>
+          {/* 🔴 HÁČIK AŽ PO ROZKLIKNUTÍ. Na karte by z každého zdroja spravil
+              podozrivého; za klikom je to, čo si človek pred kúpou chce prečítať. */}
+          {s.caveat && (
+            <>
+              <button type="button" className="akw-open" aria-expanded={open}
+                onClick={() => setOpen((v) => !v)}>
+                {open ? 'Less' : 'What we take from it'}{chev}
+              </button>
+              {open && <div className="akw-caveat"><b>The catch</b>{s.caveat}</div>}
+            </>
+          )}
         </>
       )}
     </article>
@@ -533,6 +594,7 @@ export function VaultWall({ onBack, tab, onTab }: {
   return (
     <section className="akw-root" aria-label="Board">
       <header className="akw-head">
+        <div className="akw-hin">
         <div className="akw-htop">
           <button type="button" className="akw-back" onClick={onBack} aria-label="Back">
             <HandArrowLeft size={14} />
@@ -570,6 +632,7 @@ export function VaultWall({ onBack, tab, onTab }: {
               </div>
             </>
           )}
+        </div>
         </div>
       </header>
 
@@ -633,7 +696,26 @@ export function VaultWall({ onBack, tab, onTab }: {
                 </div>
               )}
 
-              {VAULT_SOURCES.map((s) => <SourceCard key={s.key} s={s} />)}
+              {/* LEGENDA PRUHU — Matej 24. 9.: „nechápem tú relevantnosť ako si
+                  myslel". Číslo nehovorí, aká je kniha DOBRÁ; hovorí, koľko
+                  z toho, čo sme z nej vzali, je zhoda odboru a koľko názor autora. */}
+              <div className="akw-leg">
+                <span><u style={{ background: AINUBIS.ok }} />settled — the field agrees</span>
+                <span><u style={{ background: AINUBIS.glow }} />tradition — true inside its own system</span>
+                <span><u style={{ background: AINUBIS.ctaA }} />author’s own view — carries a counterweight</span>
+              </div>
+
+              {SOURCE_GROUPS.map((g) => {
+                const inGroup = LIBRARY_SOURCES.filter((d) => d.group === g.key);
+                return (
+                  <Fragment key={g.key}>
+                    <div className="akw-grp">{g.label}</div>
+                    {inGroup.length === 0
+                      ? <p className="akw-gempty">{g.empty}</p>
+                      : inGroup.map((d) => <SourceCard key={d.key} s={d} />)}
+                  </Fragment>
+                );
+              })}
 
               {/* 🔴 NEEXISTUJÚCI ZDROJ SA NEPÍŠE AKO NULA. */}
               {!WEB_RESEARCH_EXISTS && (
@@ -643,8 +725,13 @@ export function VaultWall({ onBack, tab, onTab }: {
                 </div>
               )}
 
+              {/* 🔴 ZDROJ, KTORÝ ZOZNAM NEUVÁDZA, SA NEZAMLČÍ. Matej: „free guide
+                  nemusíme uvádzať" — nedostal kartu, ale jeho zvitky sú v mozgu,
+                  a mlčať o nich by bolo klamstvo práve na tejto obrazovke. */}
+              {hiddenNote() && <p className="akw-foot-note">{hiddenNote()}</p>}
+
               <p className="akw-mock">
-                <b>Mock-up.</b> The scroll counts and the consensus split are measured from the
+                <b>Mock-up.</b> The scroll counts and the settled/tradition/author split are measured from the
                 corpus as it stood on 24 September 2026 and written into the page. Before this
                 screen goes live it has to ask the corpus itself, or it will start lying about
                 the one thing it exists to prove.

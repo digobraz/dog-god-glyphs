@@ -38,8 +38,38 @@ export interface VaultSource {
   author?: string;
   /** Len keď ho vieme doložiť — viď poznámka v hlavičke. */
   year?: string;
-  /** Rozsah, ako ho eviduje `plany/ainubis/kb/00-SPEC.md` §2. */
+  /**
+   * Počet strán DOKUMENTU, KTORÝ DRŽÍME — premerané `pdfinfo` nad
+   * `vstupy/AINUBIS/` 24. 9. 2026 (Matej: „dal by som aj strany pri knihách").
+   * ⚠️ NIE JE TO ROZSAH TLAČENÉHO VYDANIA. *Feeding Dogs* je sken z iScanneru,
+   *    *The Herbal Dog* konverzia z calibre — 488 strán e-knihy nie je 488 strán
+   *    knihy. Preto karta píše „488 pp" a nie „strán v knihe": hovoríme o tom,
+   *    čo sme naozaj prečítali.
+   */
+  pages?: number;
+  /** Rozsah slovom, keď z dokumentu berieme len časť (kapitoly). */
   extent?: string;
+  /**
+   * 🔴 O ČOM TO JE — jedna veta, ktorú človek prečíta bez rozklikávania
+   * (Matej 24. 9.: „krátky popis o čom je kniha").
+   */
+  about: string;
+  /**
+   * HÁČIK — ukáže sa až po rozkliknutí (Matej: „prípadne rozklik by ukázal
+   * autora, knihu a pár slov"). 🔴 Tu konečne žije to, čo bolo doteraz len
+   * v `plany/ainubis/kb/00-SPEC.md` §2 a na obrazovke nikde: čo z toho zdroja
+   * NEBERIEME a prečo. Zdroj bez háčika ho nemá.
+   */
+  caveat?: string;
+  /** Kategória zoznamu (Matej 24. 9.: „knihy, iné publikácie, videá"). */
+  group: 'books' | 'other' | 'video' | 'own';
+  /**
+   * NEUVÁDZA SA V ZOZNAME (Matej 24. 9.: „free guide nemusíme uvádzať").
+   * ⚠️ Zvitky z neho sú v mozgu ďalej — preto o ňom zoznam povie jednou vetou
+   *    v päte. Ticho ho zamlčať by bolo klamstvo práve na tej obrazovke, ktorá
+   *    má dokazovať, že neklameme.
+   */
+  hidden?: boolean;
   /** Druh: book · guide · e-book · slides · in-house. */
   kind: string;
   /** Premerané počty chunkov (24. 9. 2026). */
@@ -80,61 +110,119 @@ export const VAULT_SOURCES: VaultSource[] = [
     key: 'fd', title: 'Feeding Dogs: Dry or Raw?', author: 'Dr. Conor Brady',
     kind: 'book', extent: '24 chapters', scrolls: 270,
     tags: ['nutrition', 'raw vs kibble'],
-    split: { consensus: 164, traditional: 1, author: 105 }
+    split: { consensus: 164, traditional: 1, author: 105 },
+    pages: 267,
+    group: 'books',
+    about:
+      'The industrial dog bowl taken apart: what kibble is made of, how it is made, and what the dog’s body does with it.',
+    caveat:
+      'Brady argues for raw and against the processed pet food industry. The chemistry and the physiology are standard; the conclusions are his own, and every scroll that carries one says so and brings a counterweight.',
   },
   {
     key: 'hd', title: 'The Herbal Dog', author: 'Rita Hogan',
     kind: 'book', extent: '8 chapters', scrolls: 184,
     tags: ['herbs', 'body systems'],
-    split: { consensus: 39, traditional: 135, author: 10 }
+    split: { consensus: 39, traditional: 135, author: 10 },
+    pages: 488,
+    group: 'books',
+    about:
+      'Herbs organ by organ: what a plant does in the body, and when it is the wrong idea.',
+    caveat:
+      'A herbalist’s book, not a clinical one — most of what we take from it is tradition rather than trial evidence, and the scrolls say which is which.',
   },
   {
     key: 'own', title: 'Written here, not taken from a book',
     kind: 'in-house', scrolls: 88,
     tags: ['safety', 'consensus'],
-    split: { consensus: 86, traditional: 1, author: 1 }
+    split: { consensus: 86, traditional: 1, author: 1 },
+    group: 'own',
+    about:
+      'The safety gate and everything the books do not answer: what is an emergency, what is poison, and where explaining stops and a vet begins.',
   },
   {
     key: '4pfd', title: 'Four Paws, Five Directions', author: 'Cheryl Schwartz, DVM',
-    year: '1996', kind: 'book', extent: 'ch. 1–7, 111 pp', scrolls: 54,
+    year: '1996', kind: 'book', scrolls: 54,
     tags: ['five elements', 'food energetics'],
-    split: { consensus: 1, traditional: 50, author: 3 }
+    split: { consensus: 1, traditional: 50, author: 3 },
+    pages: 111,
+    group: 'books',
+    about:
+      'Chinese medicine written for dogs and cats by a vet: the five elements, organ pairs, the eight principles, and how to read a dog by looking at it.',
+    caveat:
+      'Chapter 7 puts grains at the centre of the bowl and allows a vegetarian dog. We do not take that — Feeding Dogs has precedence — and the exclusion is written into the corpus as its own scrolls, not as a footnote. Supplement doses and brand formulas are not carried over either.',
   },
   {
     key: 'free', title: 'Free Homemade Dog Food Guide', author: '“the dog nutritionist”',
-    year: '2023', kind: 'guide', extent: '47 pp', scrolls: 23,
+    year: '2023', kind: 'guide', scrolls: 23,
     tags: ['home cooking', 'balancing meals'],
-    split: { consensus: 11, traditional: 0, author: 12 }
+    split: { consensus: 11, traditional: 0, author: 12 },
+    pages: 47,
+    group: 'other',
+    hidden: true,
+    about:
+      'A home-cooking guide: food groups, balancing a cooked meal, and how to switch.',
+    caveat:
+      'A funnel for a paid course, with uncited claims. We take only the cooked-feeding part, which the corpus otherwise lacks; its raw claims go in as the author’s position with a counterweight.',
   },
   {
     key: 'tcm', title: 'Konštitučná dietetika', author: 'Norbert Synčák',
     kind: 'slides', scrolls: 17,
     tags: ['thermal nature', 'food tables'],
-    split: { consensus: 0, traditional: 17, author: 0 }
+    split: { consensus: 0, traditional: 17, author: 0 },
+    pages: 116,
+    group: 'other',
+    about:
+      'A five-step thermal scale for food: what warms, what cools, and where each ingredient sits.',
+    caveat:
+      'A system for humans, not for dogs. Only the scale and the food tables are taken; the canine layer comes from The Herbal Dog, and anything toxic to dogs is overridden.',
   },
   {
     key: 'long', title: 'Pro více šťastných společných let', author: 'MVDr. Jiří Urbánek',
     kind: 'e-book', scrolls: 13,
     tags: ['longevity', 'cell biology'],
-    split: { consensus: 8, traditional: 1, author: 4 }
+    split: { consensus: 8, traditional: 1, author: 4 },
+    pages: 51,
+    group: 'other',
+    about:
+      'What the longevity idea actually claims — cells, oxidative stress, and how much of it holds for a dog.',
+    caveat:
+      'A marketing e-book for supplements. Not one product name comes out of it.',
   },
   {
     key: 'ft1', title: 'Flea, Tick & Heartworm Guide', author: 'Dr. Karen Becker, Dr. Judy Morgan',
-    kind: 'guide', extent: '13 pp', scrolls: 10,
+    kind: 'guide', scrolls: 10,
     tags: ['preventives', 'deterrents'],
-    split: { consensus: 3, traditional: 0, author: 7 }
+    split: { consensus: 3, traditional: 0, author: 7 },
+    pages: 13,
+    group: 'other',
+    about:
+      'Chemical preventives and natural deterrents against fleas, ticks and heartworm, side by side.',
+    caveat:
+      'Paid “Inside Scoop” content that mixes three things: chemical preventives, natural deterrents and detox protocols. The first two are substance; the third is ideology and is not taken.',
   },
   {
     key: 'keto', title: 'A Pet Parent’s Guide to the Ketogenic Diet', author: 'KetoPet Sanctuary',
-    year: '2019', kind: 'guide', extent: '15 pp', scrolls: 10,
+    year: '2019', kind: 'guide', scrolls: 10,
     tags: ['ketogenic diet', 'canine cancer'],
-    split: { consensus: 8, traditional: 0, author: 2 }
+    split: { consensus: 8, traditional: 0, author: 2 },
+    pages: 15,
+    group: 'other',
+    about:
+      'The ketogenic diet in canine cancer: the claim, the mechanism, and where the evidence actually stands.',
+    caveat:
+      'Several of its claims are contradicted on purpose — the counterweight scrolls are ours, not the book’s.',
   },
   {
     key: 'ft2', title: 'Flea & Tick Guide', author: 'Dr. Zac, Rachel Fusaro',
-    kind: 'guide', extent: '12 pp', scrolls: 6,
+    kind: 'guide', scrolls: 6,
     tags: ['preventives', 'fleas'],
-    split: { consensus: 5, traditional: 0, author: 1 }
+    split: { consensus: 5, traditional: 0, author: 1 },
+    pages: 12,
+    group: 'other',
+    about:
+      'A short owner’s guide to fleas and ticks.',
+    caveat:
+      'Affiliate links in the footer; no product is named in the corpus.',
   },
   /**
    * 🟡 ČERSTVO PRIDANÉ ČLOVEKOM — v zozname je HNEĎ, ale bledo a so stavom.
@@ -143,22 +231,56 @@ export const VAULT_SOURCES: VaultSource[] = [
    */
   {
     key: 'pending-1', title: 'Canine Nutrigenomics', author: 'W. Jean Dodds, DVM',
-    kind: 'book', extent: 'PDF, 380 pp', scrolls: 0,
+    kind: 'book', scrolls: 0,
     tags: ['nutrition', 'immunity'],
     split: { consensus: 0, traditional: 0, author: 0 },
+    pages: 380, group: 'books',
+    about: 'How food switches genes on and off — immunity, inflammation and the breeds that pay for it.',
     addedBy: 'Peter M.', pending: true, waiting: 2, devotion: 100,
   },
 ];
 
-/** Prijaté zdroje — z nich mozog naozaj žije. */
+/** Prijaté zdroje — z nich mozog naozaj žije (aj tie neuvedené). */
 export const ACCEPTED_SOURCES = VAULT_SOURCES.filter((d) => !d.pending);
+/** Čo sa v knižnici naozaj ukáže. */
+export const LISTED_SOURCES = ACCEPTED_SOURCES.filter((d) => !d.hidden);
 
+/**
+ * 🔴 HLAVIČKA RÁTA Z TOHO, ČO JE VIDNO. Keby brala všetko a zoznam ukazoval
+ * o jeden menej, čísla by na obrazovke nesedeli so zoznamom pod nimi — a to je
+ * presne ten druh tichého rozporu, ktorý má táto obrazovka vylučovať.
+ * Rozdiel nesie veta v päte (`HIDDEN_NOTE`), nie mlčanie.
+ */
 export const VAULT_SOURCE_TOTALS = {
-  scrolls: ACCEPTED_SOURCES.reduce((s, d) => s + d.scrolls, 0),
-  documents: ACCEPTED_SOURCES.length,
+  scrolls: LISTED_SOURCES.reduce((s, d) => s + d.scrolls, 0),
+  documents: LISTED_SOURCES.length,
   /** Písané nami — nie prepis knihy, ale bezpečnostná brána a konsenzus. */
   inHouse: 88,
 };
+
+/**
+ * Čo sa v knižnici vykresľuje, vrátane čakajúcich. Čakajúca kniha patrí medzi
+ * KNIHY — je to kniha aj kým čaká na posúdenie; osamotená pod zoznamom vyzerala
+ * ako iný druh objektu.
+ */
+export const LIBRARY_SOURCES = VAULT_SOURCES.filter((d) => !d.hidden);
+
+/** Zdroje v mozgu, ktoré zoznam neuvádza — do päty, jednou vetou. */
+export const HIDDEN_SOURCES = ACCEPTED_SOURCES.filter((d) => d.hidden);
+
+// ── SKUPINY (Matej 24. 9.: „knihy, iné publikácie, videá") ───────────────────
+// 🚩 ŠTVRTÁ SKUPINA JE MOJE ROZHODNUTIE, NIE TVOJE ZADANIE. Vlastný text nie je
+//    „iná publikácia" — nič sme nevydali, napísali sme to sem. Je to 88 zvitkov,
+//    tretí najväčší zdroj v mozgu, a v koši „iné" by klamal o tom, čo je.
+//    Keď to chceš do troch, zmaž skupinu 'own' a polož ju do 'other'.
+export const SOURCE_GROUPS: { key: VaultSource['group']; label: string; empty: string }[] = [
+  { key: 'books', label: 'Books', empty: 'No books yet.' },
+  { key: 'other', label: 'Other publications', empty: 'Nothing here yet.' },
+  // Videá zatiaľ v mozgu nie sú ANI JEDNO — skupina je vidno preto, že sa dá
+  // pridať (10 devotion), a prázdno to povie nahlas.
+  { key: 'video', label: 'Videos', empty: 'None yet. A lecture with timestamps is worth 10 devotion.' },
+  { key: 'own', label: 'Written here', empty: '' },
+];
 
 /** Podiel konsenzu v jednom zdroji — hlavičkové číslo karty (viď `split`). */
 export const consensusPct = (d: VaultSource): number | null => {
@@ -214,3 +336,11 @@ export const SOURCE_KINDS: SourceKind[] = [
  * nepoužil; toto je zdroj, ktorý neexistuje.
  */
 export const WEB_RESEARCH_EXISTS = false;
+
+/** Veta o neuvedených zdrojoch. Skladá sa z dát, aby nezostarla. */
+export const hiddenNote = (): string | null => {
+  if (HIDDEN_SOURCES.length === 0) return null;
+  const n = HIDDEN_SOURCES.reduce((s, d) => s + d.scrolls, 0);
+  return `${HIDDEN_SOURCES.length} more document (${n} scrolls) is in the brain but not listed here `
+    + '— a marketing guide we take one narrow thing from.';
+};

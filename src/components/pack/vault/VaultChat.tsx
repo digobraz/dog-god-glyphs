@@ -444,6 +444,12 @@ export const VAULT_CHAT_CSS = `
 .akc-plus,.akc-send{width:44px;height:44px;flex:0 0 44px;border-radius:${PACK_R.tile}px;cursor:pointer;
   border:1px solid ${AINUBIS.edge};background:${AINUBIS.raised};color:${AINUBIS.cyan};
   font-size:${PACK_TEXT.h2}px;line-height:1;}
+/* Brko z kitu. Farbu nesie maska + currentColor, nie filter — filter odtieň
+   len aproximuje. [[feedback_filter_aproximuje_masku_farbu_presne]] */
+.akc-send{display:flex;align-items:center;justify-content:center;}
+.akc-send i{width:20px;height:20px;background:currentColor;
+  -webkit-mask:url(/icons/pack/feather.svg) center/contain no-repeat;
+  mask:url(/icons/pack/feather.svg) center/contain no-repeat;}
 .akc-plus:hover,.akc-send:hover{background:rgba(${AINUBIS.cyanRGB},0.12);}
 .akc-ask[data-add="open"] .akc-plus{background:rgba(${AINUBIS.cyanRGB},0.18);border-color:${AINUBIS.edgeStrong};}
 /* PONUKA PRISPIEVANIA sa otvára NAHOR — dole je lišta a pod ňou nič nie je. */
@@ -1051,8 +1057,15 @@ export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
                 /* Enter pošle, Shift+Enter zalomí — ako v každom chate. */
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askQ(draft); }
               }} />
+            {/* 🔴 BRKO, NIE ŠÍPKA (Matej 24. 9.: „akú ikonku navrhuješ do chatu?").
+                Nevyberal som podľa vkusu: `feather` je UŽ tvoja voľba pre odoslanie
+                správy (`messaging/Thread.tsx`, 1. 9. 2026) s tým istým odôvodnením —
+                kit plachtičku ani šípku nemá a brko je jediné, čo o poslaní hovorí
+                a nehovorí pritom nič iné. Jedna kresba, jeden význam naprieč appkou.
+                Do 24. 9. tu bol holý znak `↑`, ktorý `check:ikony` hlásil ako dlh.
+                ⚠️ Farba ide MASKOU, nie `filter`-om: filter odtieň len približuje. */}
             <button type="button" className="akc-send" aria-label="Send"
-              onClick={() => askQ(draft)}>↑</button>
+              onClick={() => askQ(draft)}><i aria-hidden /></button>
           </div>
           {/* Poznámka pod poľom — čím sa líšime a kde končíme. Nie je to
               vyhrážka ani drobné písmo pre právnika: obe vety sú pravda. */}
