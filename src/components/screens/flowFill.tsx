@@ -101,18 +101,27 @@ export function FlowFillProbe() {
   }, []);
 
   useEffect(() => {
-    let raf = 0;
+    // 🔴 ČASOVAČ, NIE `requestAnimationFrame`. Dielňa meria kroky v SKRYTOM ráme
+    //    (mimo záberu) a prehliadač v takom ráme rAF netiká — premerané 25. 9.:
+    //    z šiestich krokov sa ozval JEDEN, zvyšok vypadol na časový limit fronty
+    //    a tabuľka ostala prázdna. Merač, ktorý sa nedá spustiť mimo obrazovky,
+    //    je na hromadné meranie nepoužiteľný.
+    let t: ReturnType<typeof setTimeout> | undefined;
+    const send = () => {
+      const m = measure(pathname);
+      setFill(m);
+      // Dielňa počúva aj vtedy, keď HRANICA nie je zapnutá — tabuľka výplne
+      // meria všetky kroky naraz a kresliť pri tom netreba.
+      if (m && window.parent !== window) window.parent.postMessage({ type: FILL_MSG, fill: m }, '*');
+    };
     const read = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const m = measure(pathname);
-        setFill(m);
-        // Dielňa počúva aj vtedy, keď HRANICA nie je zapnutá — tabuľka výplne
-        // meria všetky kroky naraz a kresliť pri tom netreba.
-        if (m && window.parent !== window) window.parent.postMessage({ type: FILL_MSG, fill: m }, '*');
-      });
+      clearTimeout(t);
+      t = setTimeout(send, 0);
     };
     read();
+    // Druhé meranie po dokreslení: písmo a obrázky dobehnú neskôr a obsah po
+    // nich narastie. Bez neho hlási krok s fotkou menej, než naozaj zaberá.
+    const late = setTimeout(send, 450);
     const st = document.querySelector<HTMLElement>('.hf-stage');
     const ro = new ResizeObserver(read);
     if (st) {
@@ -124,7 +133,8 @@ export function FlowFillProbe() {
     const mo = new MutationObserver(read);
     if (st) mo.observe(st, { childList: true, subtree: true });
     return () => {
-      cancelAnimationFrame(raf);
+      clearTimeout(t);
+      clearTimeout(late);
       ro.disconnect();
       mo.disconnect();
       window.removeEventListener('resize', read);
@@ -168,12 +178,14 @@ const HRANICA_CSS = `
   position: absolute; left: 0; right: 0; height: 0;
   border-top: 1px dashed rgba(178, 86, 64, 0.75);
 }
+/* ⚠️ VĽAVO DOLE, nie vpravo: vpravo dole sedí chip „Dev nav" a štítok sa pod
+   ním stratil (merané 25. 9. v dielni). */
 .hr-badge {
-  position: fixed; right: 8px; bottom: 8px; z-index: 3001; pointer-events: none;
+  position: fixed; left: 8px; bottom: 8px; z-index: 3001; pointer-events: none;
   display: flex; flex-direction: column; gap: 1px;
   padding: 5px 9px; border-radius: 8px;
   background: rgba(255, 253, 247, 0.94); border: 1.5px solid;
-  font-family: 'Space Grotesk', sans-serif; text-align: right;
+  font-family: 'Space Grotesk', sans-serif; text-align: left;
   box-shadow: 0 4px 12px rgba(60, 40, 10, 0.22);
 }
 .hr-badge b { font-size: 14px; font-weight: 700; line-height: 1; }

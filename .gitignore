@@ -41,3 +41,9 @@ dist-ssr
 .gstack/
 
 *.tsbuildinfo
+
+# Jednorazové meracie a snímkovacie skripty (25. 9. 2026). Musia ležať TU, a nie
+# v scratchpade, lebo `import { chromium } from 'playwright'` sa rozbaľuje proti
+# node_modules tohto priečinka — ale do repa nepatria. Auto-save hook ich inak
+# zoberie so sebou (stalo sa 24. 9.: päť `*.tmp.mjs` v commite).
+*.tmp.mjs
