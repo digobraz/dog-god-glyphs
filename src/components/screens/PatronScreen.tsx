@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useDogyptStore } from '@/store/dogyptStore';
+import { useDogyptStore, MAIN_DOG_ID } from '@/store/dogyptStore';
+import { useFlowDogs, FlowDogHeader, FLOW_DOG_CSS } from '@/components/screens/flowDogPicker';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { NEW_HEROFLOW } from '@/lib/flowMode';
@@ -274,10 +275,6 @@ export function PatronScreen() {
   const flowOk = useFlowGuard();
 
   const dogName = useDogyptStore((s) => s.dogName);
-  const patronSvg = useDogyptStore((s) => s.patronSvg);
-  const patronCategory = useDogyptStore((s) => s.patronCategory);
-  const isMixStore = useDogyptStore((s) => s.isMix);
-  const breedStore = useDogyptStore((s) => s.breed);
   const setPatronSvg = useDogyptStore((s) => s.setPatronSvg);
   const setPatronCategory = useDogyptStore((s) => s.setPatronCategory);
   const setPatronSvg2 = useDogyptStore((s) => s.setPatronSvg2);
@@ -285,6 +282,36 @@ export function PatronScreen() {
   const setBreed = useDogyptStore((s) => s.setBreed);
   const setIsMix = useDogyptStore((s) => s.setIsMix);
   const setSelection = useDogyptStore((s) => s.setSelection);
+  const dogEssence = useDogyptStore((s) => s.dogEssence);
+  const setDogEssence = useDogyptStore((s) => s.setDogEssence);
+
+  // ── KTORÉMU PSOVI VYBERÁM (25. 9. 2026) ───────────────────────────────────
+  // Matej: *„v hero labe od kroku 6 neriešime multipsov! musíme to opraviť!"*.
+  // Dovtedy sa patrón zapisoval do globálneho `patronSvg`, teda VŽDY prvému
+  // psovi — kto mal troch, vybral podstatu trikrát a patróna raz.
+  // 🔴 Pravda o psovi žije v `dogEssence[idPsa]`, rovnako ako podstata. Prvý pes
+  //    ide NAVYŠE do globálneho store, lebo heroglyf, certifikát a platba čítajú
+  //    ďalej odtiaľ (ten istý kompromis, aký má PODSTATA).
+  const dogs = useFlowDogs();
+  const [cur, setCur] = useState(0);
+  const dog = dogs[Math.min(cur, Math.max(0, dogs.length - 1))];
+  const dogId = dog?.id ?? MAIN_DOG_ID;
+  const ess = dogEssence[dogId] || {};
+
+  const patronSvg = ess.patronSvg || '';
+  const mix = ess.breedType === 'mix';
+  const breed1 = ess.breed === 'Mixed' ? (ess.mixBreed1 || '') : (ess.breed || '');
+  const breed2 = ess.mixBreed2 || '';
+
+  /** Zápis o psovi na rade. Prvému psovi sa to isté píše aj do globálneho store. */
+  const put = (key: string, value: string) => {
+    setDogEssence(dogId, key, value);
+    if (dogId !== MAIN_DOG_ID) return;
+    if (key === 'patronSvg') setPatronSvg(value);
+    if (key === 'patronCategory') setPatronCategory(value);
+    if (key === 'breed') { setBreed(value); setIsMix(value === 'Mixed'); }
+    setSelection(key, value);
+  };
 
   const heroName = dogName?.trim() || t('heroglyph.flow.breed.fallbackHero');
   /** Hektor je na telefóne väčší (104), na PC 80 — Matej 24. 9. Jedno miesto
@@ -293,41 +320,57 @@ export function PatronScreen() {
 
   /** Otvorená kategória. Po návrate do kroku sa otvorí tá, z ktorej je vybraný
    *  patrón — nie prvá. Kto sa vráti, musí vidieť, čo si vybral. */
-  const [cat, setCat] = useState(patronCategory || CAT_IDS[0]);
-  const [mix, setMix] = useState(isMixStore);
-  const [breed1, setBreed1] = useState(isMixStore ? '' : (breedStore === 'Mixed' ? '' : breedStore));
-  const [cat1, setCat1] = useState('');
-  const [breed2, setBreed2] = useState('');
+  // ⚠️ Otvorená kategória je jediný čisto ZOBRAZOVACÍ stav — drží sa PER PSA,
+  //    inak by prepnutie psa nechalo otvorený rad, z ktorého jeho patrón nie je.
+  const [catOpen, setCatOpen] = useState<Record<string, string>>({});
+  const cat = catOpen[dogId] || ess.patronCategory || CAT_IDS[0];
+  const setCat = (c: string) => setCatOpen((m) => ({ ...m, [dogId]: c }));
 
   /** Ťuknutie na siluetu = zápis do heroglyfu. Store, nie lokálny stav — rám
    *  číta veľký stredný slot z `patronSvg`. */
   const choose = (svg: string, inCat: string) => {
-    setPatronCategory(inCat);
-    setPatronSvg(svg);
+    put('patronCategory', inCat);
+    put('patronSvg', svg);
   };
 
   /** Plemeno predvyplní kanonickú siluetu a prepne kategóriu. Je to NÁVRH:
    *  človek ho môže hneď preklikať, a keď už siluetu vybral sám, návrh ju
    *  neprepíše — inak by hľadanie prebilo jeho rozhodnutie. */
   const pickBreed = (name: string, group: string) => {
-    setBreed1(name);
-    setCat1(group);
+    put(mix ? 'mixBreed1' : 'breed', name);
+    if (mix) put('breed', 'Mixed');
     const found = ALL_BREEDS.find((b) => b.name === name && b.cat === group);
     setCat(group);
     if (found && !patronSvg) choose(found.patron, group);
   };
 
   const canGo = !!patronSvg;
+  /** Prvý pes bez patróna. -1 = hotoví sú všetci. */
+  const missing = dogs.findIndex((d) => !(dogEssence[d.id] || {}).patronSvg);
+  /**
+   * 🔴 CTA MÁ DVE POLOHY, NIE AUTOMATICKÝ SKOK. Kým nemá patróna každý pes,
+   * tlačidlo znie ĎALŠÍ PES a prepne na prvého nehotového; keď majú všetci,
+   * je to POKRAČOVAŤ.
+   * ⚠️ Zámerne sa NEPREPÍNA samo po ťuknutí na siluetu (to robí PODSTATA, kde
+   *    je pes hotový až po ŠTYROCH odpovediach). Tu je voľba jediné ťuknutie a
+   *    človek si ju často hneď preklikne — samopohyb by mu ju vzal spod ruky.
+   */
+  const handover = canGo && missing >= 0;
 
   const go = () => {
     if (!canGo) return;
-    setIsMix(mix);
-    setBreed(mix ? 'Mixed' : (breed1 || ''));
-    setSelection('breed', mix ? 'Mixed' : (breed1 || ''));
-    setSelection('breedType', mix ? 'mix' : 'purebred');
-    if (mix) {
-      setSelection('mixBreed1', breed1 || '');
-      setSelection('mixBreed2', breed2 || '');
+    if (handover) { setCur(missing); return; }
+    // Do globálneho store ide PRVÝ pes — ostatní žijú v `dogEssence`, kým
+    // nebude platba za N psov (bez nej sa aj tak vystaví jeden heroglyf).
+    const mainEss = dogEssence[MAIN_DOG_ID] || {};
+    const mainMix = mainEss.breedType === 'mix';
+    setIsMix(mainMix);
+    setBreed(mainMix ? 'Mixed' : (mainEss.breed || ''));
+    setSelection('breed', mainMix ? 'Mixed' : (mainEss.breed || ''));
+    setSelection('breedType', mainMix ? 'mix' : 'purebred');
+    if (mainMix) {
+      setSelection('mixBreed1', mainEss.mixBreed1 || '');
+      setSelection('mixBreed2', mainEss.mixBreed2 || '');
     }
     // Druhý patrón je spiaci (heroglyf preň nemá slot) — drží sa prázdny, aby
     // sa cez store nevliekla hodnota, ktorú nikto nekreslí.
@@ -342,7 +385,7 @@ export function PatronScreen() {
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_SCROLL_CSS}{PATRON_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_SCROLL_CSS}{FLOW_DOG_CSS}{PATRON_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
         <PageTopBar onBack={() => navigate('/heroglyph/essence')} />
@@ -373,13 +416,29 @@ export function PatronScreen() {
 
           {/* ── 2. BLOK: PLEMENO → RÁM → PATRÓN ────────────────────────────*/}
           <motion.div
-            className="hf-block hf-carved pt-stack"
+            className={`hf-block hf-carved pt-stack${dogs.length > 1 ? ' is-multi' : ''}`}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
           >
             <span className="hf-carved-rim" aria-hidden />
             <div className="hf-plate">
+
+              {/* KOMU VYBERÁM — pri jedinom psovi len fotka a meno, pri viacerých
+                  aj šípky. Ten istý riadok ako na PODSTATE (`flowDogPicker.tsx`),
+                  aby prepínanie psov vyzeralo v celom vstupe rovnako. */}
+              {dogs.length > 1 && (
+                <>
+                  <FlowDogHeader
+                    className="pt-who"
+                    dogs={dogs}
+                    cur={cur}
+                    onGo={setCur}
+                    done={!!(dogEssence[dogId] || {}).patronSvg}
+                  />
+                  <span className="fdh-rule" aria-hidden />
+                </>
+              )}
 
               {/* Hľadanie a kríženec v JEDNOM riadku. Pri krížencovi pribudne
                   druhé pole — na šírke dosky sa zmestí do toho istého riadka
@@ -390,7 +449,7 @@ export function PatronScreen() {
                 <BreedField
                   value={breed1}
                   onPick={pickBreed}
-                  onClear={() => { setBreed1(''); setCat1(''); }}
+                  onClear={() => put(mix ? 'mixBreed1' : 'breed', '')}
                   placeholder={mix
                     ? t('heroglyph.flow.breed.mix.placeholder1')
                     : t('heroglyph.flow.breed.one.placeholder')}
@@ -410,8 +469,11 @@ export function PatronScreen() {
                   aria-pressed={mix}
                   onClick={() => {
                     const next = !mix;
-                    setMix(next);
-                    if (!next) setBreed2('');
+                    put('breedType', next ? 'mix' : 'purebred');
+                    // Pri prepnutí na kríženca sa doterajšie plemeno stáva prvou
+                    // polovicou; pri návrate späť sa vracia ako jediné plemeno.
+                    if (next) { put('mixBreed1', breed1); put('breed', 'Mixed'); }
+                    else { put('breed', breed1); put('mixBreed2', ''); }
                   }}
                 >
                   {t('heroglyph.flow.breed.type.mix')}
@@ -419,8 +481,8 @@ export function PatronScreen() {
                 {mix && (
                   <BreedField
                     value={breed2}
-                    onPick={(name) => setBreed2(name)}
-                    onClear={() => setBreed2('')}
+                    onPick={(name) => put('mixBreed2', name)}
+                    onClear={() => put('mixBreed2', '')}
                     placeholder={t('heroglyph.flow.breed.mix.second')}
                   />
                 )}
@@ -431,6 +493,9 @@ export function PatronScreen() {
                   Hektorovu podmalbu — rám teda nikdy nevyzerá prázdny. */}
               <HeroglyphFrame
                 showOwner
+                // Rám ukazuje psa NA RADE (podstata + patrón z `dogEssence`),
+                // nie vždy prvého.
+                dogValues={ess}
                 ghostValues={HEKTHOR_GLYPH}
                 pulseSlot={patronSvg ? undefined : 'dogShape'}
                 className="pt-glyph"
@@ -485,7 +550,7 @@ export function PatronScreen() {
               <p className="hf-note pt-hintline">{t('heroglyph.flow.breed.pickHint')}</p>
 
               <button type="button" className="hf-cta" disabled={!canGo} onClick={go}>
-                {t('heroglyph.flow.breed.continue')}
+                {handover ? t('heroglyph.flow.multi.nextDog') : t('heroglyph.flow.breed.continue')}
               </button>
             </div>
           </motion.div>
@@ -517,6 +582,12 @@ const PATRON_CSS = `
    Na PC sa nemení nič: 4,6cqw je tam nad 20 a clamp drží strop. */
 .pt-speak h2 { font-size: clamp(18px, 4.6cqw, 20px); }
 .pt-stack .hf-plate { gap: 10px; }
+/* ── 🐕 PREPÍNAČ PSOV STOJÍ VÝŠKU (25. 9. 2026) ──────────────────────────────
+   Riadok „komu vyberám" + rytina = 64 px. Na iPhone SE ostali po ňom 2 px
+   rezervy, čo je hranica, za ktorou stačí dlhšie meno psa a doska pretečie.
+   Ustupuje RÁM (lock PAGE_AIR), a len pri dvoch a viac psoch. */
+.pt-stack.is-multi .pt-glyph { --pt-glyph-w: 64%; }
+.pt-stack.is-multi .hf-plate { gap: 8px; }
 
 /* ── PLEMENO ──────────────────────────────────────────────────────────────
    Riadok sa zalamuje SÁM (\`flex-wrap\`): na doske širokej 520 px stoja dve polia

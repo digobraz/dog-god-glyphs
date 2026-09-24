@@ -94,33 +94,34 @@ const GROUPS: Group[] = [
         name: '6 · Patrón (plemeno · kríženec · silueta)',
         path: '/heroglyph/breed',
         state: 'wip',
-        note: 'jedna obrazovka namiesto dvoch podkrokov. Plemeno je POMOCNÍK (predvyplní siluetu), CTA odomkýna patrón. Silueta sa zapisuje do heroglyfu hneď pri ťuknutí. Otvorené: zlatá výplň dlaždíc z PODSTATY sem prenesená NIE JE (rad 6–11 siluet) — čaká na Mateja; patrón sa stále vyberá len pre PRVÉHO psa.',
+        note: 'jedna obrazovka namiesto dvoch podkrokov. Plemeno je POMOCNÍK (predvyplní siluetu), CTA odomkýna patrón. Silueta sa zapisuje do heroglyfu hneď pri ťuknutí. 🔴 CHÝBA PREPÍNAČ PSOV — krok 5 ho má (dogEssence[idPsa]), odtiaľto sa všetko píše len PRVÉMU psovi. Otvorené: zlatá výplň dlaždíc z PODSTATY sem prenesená NIE JE (rad 6–11 siluet) — čaká na Mateja.',
       },
       {
-        name: '7 · Povaha (dve vlastnosti)',
+        name: '7 · Majiteľ (poradie · meno · pohlavie · horoskopy)',
+        path: '/heroglyph/owner-info',
+        state: 'wip',
+        note: 'zliate 25. 9. zo štyroch obrazoviek. Poradie je STAV z kroku 3 (+ ZMENIŤ späť naň), jeden dátum narodenia dopočíta obidva horoskopy. Prepínač psov sem NEPATRÍ — majiteľ je jeden človek pre celú svorku (CLAUDE.md: účet je majiteľov). Otvorené: pri viacerých psoch sa veta o poradí týka prvého psa.',
+      },
+      {
+        name: '8 · Povaha (dve vlastnosti)',
         path: '/heroglyph/dog-character',
         state: 'wip',
-        note: 'prezlečená stará obrazovka: Hektor hovorí zhora, rám a rad ôsmich vlastností sú v jednej doske, voľba ide do heroglyfu hneď pri ťuknutí. Odklápacia slideshow zanikla — popis vybranej vlastnosti stojí pod radom. Otvorené: povaha sa zapisuje len PRVÉMU psovi (tá istá vec ako patrón a platba); medzi PATRÓNOM a POVAHOU beží v deve stále starý chvost (poradie · majiteľ · horoskopy · a znova pohlavie/farba/pôvod/rodokmeň, ktoré už PODSTATA pýtala).',
+        note: 'prezlečená stará obrazovka: Hektor hovorí zhora, rám a rad ôsmich vlastností sú v jednej doske, voľba ide do heroglyfu hneď pri ťuknutí. Odklápacia slideshow zanikla — popis vybranej vlastnosti stojí pod radom. 🔴 CHÝBA PREPÍNAČ PSOV — to isté ako na kroku 6.',
       },
     ],
   },
   {
-    label: 'Zvyšok flow — zatiaľ staré',
+    // 🔴 ZOSTALO LEN TO, ČÍM SA V NOVOM VSTUPE NAOZAJ PRECHÁDZA (Matej 25. 9.:
+    //    *„odstrán tie čo tam nemajú čo robiť staré a tie čo sme už zlúčili"*).
+    //    Von išlo deväť riadkov: `ranking` · `owner-info` (stará) · `owner-zodiac`
+    //    · `owner-final` — tie zliala obrazovka MAJITEĽ; `dog-gender` · `dog-fate`
+    //    · `dog-colour` · `dog-bloodline` — tie pýta od 24. 9. PODSTATA; a starý
+    //    `crop`, ktorý zanikol s výrezom v popupe fotky.
+    // ⚠️ Obrazovky sa NEMAZALI a routy ďalej stoja (LIVE vstup po nich chodí).
+    //    Kto ich potrebuje otvoriť, má ich v `DevNav.tsx` a `HeroflowDevMenu.tsx`
+    //    — tento zoznam je dielňa NOVÉHO vstupu, nie súpis všetkého, čo existuje.
+    label: 'Koniec flow — zatiaľ staré',
     steps: [
-      { name: 'Poradie', path: '/heroglyph/ranking', state: 'old' },
-      { name: 'Majiteľ', path: '/heroglyph/owner-info', state: 'old' },
-      { name: 'Horoskopy', path: '/heroglyph/owner-zodiac', state: 'old' },
-      { name: 'Medzikrok', path: '/heroglyph/owner-final', state: 'old' },
-      { name: 'Pohlavie', path: '/heroglyph/dog-gender', state: 'old' },
-      { name: 'Osud', path: '/heroglyph/dog-fate', state: 'old' },
-      { name: 'Farba', path: '/heroglyph/dog-colour', state: 'old' },
-      { name: 'Pôvod', path: '/heroglyph/dog-bloodline', state: 'old' },
-      {
-        name: 'Výrez (stará obrazovka)',
-        path: '/heroglyph/crop',
-        state: 'old',
-        note: 'zaniká — výrez je od 23. 9. v popupe fotky, teda v kroku 1',
-      },
       { name: 'Odhalenie', path: '/heroglyph/reveal', state: 'old' },
       { name: 'Odkaz', path: '/heroglyph/message', state: 'old' },
       { name: 'Checkout', path: '/checkout', state: 'old' },

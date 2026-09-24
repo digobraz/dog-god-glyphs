@@ -280,6 +280,8 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.owner.whoLegend': 'Kdo jsi',
   'heroglyph.flow.owner.bornLegend': 'Narodil ses',
   'heroglyph.flow.owner.nameTitle': 'Tvoje křestní jméno',
+  'heroglyph.flow.owner.signsHint': 'Znamení dopočítáme z data narození.',
+  'heroglyph.flow.multi.nextDog': 'Další pes',
 
   // ── /heroglyph flow — spoločné ──
   'heroglyph.flow.yourDogFallback': 'TVÉHO PSA',

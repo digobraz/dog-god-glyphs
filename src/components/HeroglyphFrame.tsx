@@ -249,7 +249,15 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot, p
   const dogFateSrc = dogFateMap[dog.dogFate];
   const dogColourSrc = dogColourMap[dog.dogColour];
   const dogBloodlineSrc = dogBloodlineMap[dog.dogBloodline];
-  const dogShapeSrc = patronSvg ? `/patrons/${patronSvg}` : undefined;
+  /**
+   * 🔴 PATRÓN PODĽA PSA NA RADE (25. 9. 2026). Dovtedy sa bral VÝHRADNE z
+   * globálneho `patronSvg`, takže pri prepnutí na druhého psa rám ďalej kreslil
+   * siluetu toho prvého. Keď volajúci pošle `dogValues` (prepínač psov), platí
+   * hodnota z nich — aj keď je prázdna, lebo „tento pes ešte patróna nemá" je
+   * odpoveď, nie chýbajúci údaj.
+   */
+  const shapeName = dogValues ? (dogValues.patronSvg || '') : patronSvg;
+  const dogShapeSrc = shapeName ? `/patrons/${shapeName}` : undefined;
   const dogChar1Src = dogCharacterMap[dog.dogCharacter1];
   const dogChar2Src = dogCharacterMap[dog.dogCharacter2];
 

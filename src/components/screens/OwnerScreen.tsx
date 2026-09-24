@@ -258,7 +258,11 @@ export function OwnerScreen() {
                   <button
                     key={g.v}
                     type="button"
-                    className={`hf-pick ow-gender${gender === g.v ? ' on' : ''}`}
+                    // `is-gold` = zlatá poloha dlaždice zo spoločného šatu (Matej
+                    // 25. 9.: *„tlačítka s ikonami — daj zlaté"*). Ten istý recept
+                    // ako PODSTATA a „žije tvoj pes?" na kroku 2 — dve voľby
+                    // s kresbou majú vyzerať rovnako naprieč vstupom.
+                    className={`hf-pick is-gold ow-gender${gender === g.v ? ' on' : ''}`}
                     aria-pressed={gender === g.v}
                     onClick={() => setSelection('ownerGender', g.v)}
                   >
@@ -302,12 +306,20 @@ export function OwnerScreen() {
                 </span>
               </div>
 
-              {/* Mená znamení pod radom — obrázok sám o sebe nepovie, čo vyšlo.
-                  Plocha má výšku VŽDY, aby doska pri výbere dátumu nepodskočila. */}
-              <p className="ow-said">
+              {/* ── ČO TIE DVE IKONKY SÚ ─────────────────────────────────────
+                  Matej 25. 9.: *„pri ikonky znamení musíme dať vysvetlenie —
+                  znamenia podľa dátumu narodenia"*. Kým dátum nie je zadaný,
+                  stojí pri mlčiacich značkách VETA, ktorá povie, odkiaľ sa
+                  vezmú — inak sú to dva otázniky, na ktoré sa nedá ťuknúť a
+                  človek hľadá, kde si znamenie vyberie (v starom vstupe si ho
+                  vyberal ručne z radu dvanástich).
+                  Po zadaní dátumu tú istú plochu obsadia mená znamení — obrázok
+                  sám o sebe nepovie, čo vyšlo.
+                  🔴 Plocha má výšku VŽDY, aby doska pri výbere nepodskočila. */}
+              <p className={`ow-said${western && chinese ? '' : ' dim'}`}>
                 {western && chinese
                   ? `${t(`heroglyph.flow.ownerZodiac.sign.${western.name}`)} · ${t(`heroglyph.flow.ownerZodiac.animal.${chinese.name}`)}`
-                  : ''}
+                  : t('heroglyph.flow.owner.signsHint')}
               </p>
 
               <button type="button" className="hf-cta" disabled={!canGo} onClick={() => canGo && navigate('/heroglyph/dog-character')}>
@@ -446,6 +458,12 @@ const OWNER_CSS = `
   font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
   letter-spacing: 0.14em; text-transform: uppercase; color: ${LAB.inkSoft};
 }
+/* Vysvetlenie NIE JE výsledok, takže nesmie vyzerať ako meno znamenia: bežné
+   písmo vstupu, malé, tlmené — presne ako popis pod radom na POVAHE. */
+.ow-said.dim {
+  font-family: 'Space Grotesk', sans-serif; font-weight: 400; font-size: 12px;
+  letter-spacing: normal; text-transform: none; color: ${LAB.inkMuted};
+}
 
 /* ── ZAMKNUTÉ CTA NESIE MATERIÁL, NIE PRIESVITNOSŤ ────────────────────────
    Ten istý recept ako na PATRÓNOVI a POVAHE: 40 % lapisu je na papyruse šedá
@@ -477,7 +495,19 @@ const OWNER_CSS = `
   .ow-gender { height: 46px; }
 }
 @media (max-width: 559px) and (max-height: 700px) {
-  .ow-glyph { --ow-glyph-w: 78%; }
+  /* ⚠️ 66 %, nie 78 (merané 25. 9. na 375×667: doska pretekala o 5 px). Pribudlo
+     VYSVETLENIE pod značkami — na 375 px sa zalomí na dva riadky, teda +16 px.
+     Ustupuje rám, nie rezerva od okraja (lock PAGE_AIR). */
+  .ow-glyph { --ow-glyph-w: 66%; }
+  /* Plocha vysvetlenia počíta s dvoma riadkami, aby doska pri zadaní dátumu
+     (keď ho vystrieda jednoriadkové meno znamenia) nepodskočila. */
+  .ow-said { min-height: 32px; }
+  /* Ešte 12 px z prvkov, nie z rámu: pod 66 % by symboly v malých slotoch
+     splynuli (tá istá hranica, akú má PATRÓN). So 4 px rezervy by obrazovku
+     pretiekol hocijaký dlhší preklad. */
+  .ow-order { min-height: 30px; }
+  .ow-mark { width: 36px; height: 36px; }
+  .ow-mark img { width: 24px; height: 24px; }
 }
 
 /* ── 📱 VYSOKÝ TELEFÓN: VIAC VZDUCHU V BLOKOCH ───────────────────────────────

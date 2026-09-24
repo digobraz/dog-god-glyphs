@@ -474,6 +474,8 @@ export const en = {
   'heroglyph.flow.owner.whoLegend': 'Who you are',
   'heroglyph.flow.owner.bornLegend': 'You were born',
   'heroglyph.flow.owner.nameTitle': 'Your first name',
+  'heroglyph.flow.owner.signsHint': 'Both signs are worked out from your date of birth.',
+  'heroglyph.flow.multi.nextDog': 'Next dog',
 
   // ── /heroglyph flow — shared ──
   'heroglyph.flow.yourDogFallback': 'YOUR DOG',

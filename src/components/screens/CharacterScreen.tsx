@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useDogyptStore } from '@/store/dogyptStore';
+import { useDogyptStore, MAIN_DOG_ID } from '@/store/dogyptStore';
+import { useFlowDogs, FlowDogHeader, FLOW_DOG_CSS } from '@/components/screens/flowDogPicker';
 import { useT } from '@/i18n/LanguageContext';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { PageTopBar } from '@/components/PageTopBar';
@@ -80,22 +81,37 @@ export function CharacterScreen() {
   const flowOk = useFlowGuard();
   const medal = useSpeakMedal();
 
-  const selections = useDogyptStore((s) => s.selections);
   const setSelection = useDogyptStore((s) => s.setSelection);
+  const dogEssence = useDogyptStore((s) => s.dogEssence);
+  const setDogEssence = useDogyptStore((s) => s.setDogEssence);
 
-  /**
-   * Vybrané vlastnosti v poradí ťuknutia. Počiatočný stav sa číta zo `store` —
-   * kto sa do kroku vráti, musí vidieť, čo si vybral (a rám nad výberom to
-   * ukazuje tak či tak).
-   */
-  const [sel, setSel] = useState<string[]>(() =>
-    [selections.dogCharacter1, selections.dogCharacter2].filter(Boolean) as string[]);
+  // ── KTORÉMU PSOVI VYBERÁM (25. 9. 2026) ───────────────────────────────────
+  // Matej: *„v hero labe od kroku 6 neriešime multipsov! musíme to opraviť!"*.
+  // Dovtedy sa povaha písala do `selections`, teda vždy prvému psovi — to isté,
+  // čo sa v ten deň opravilo na PATRÓNOVI. Pravda žije v `dogEssence[idPsa]`,
+  // prvý pes ide NAVYŠE do `selections` (heroglyf a certifikát čítajú odtiaľ).
+  const dogs = useFlowDogs();
+  const [cur, setCur] = useState(0);
+  const dog = dogs[Math.min(cur, Math.max(0, dogs.length - 1))];
+  const dogId = dog?.id ?? MAIN_DOG_ID;
+
+  /** Vlastnosti psa NA RADE. Čítajú sa zo store, nie z lokálneho stavu — inak
+   *  by prepnutie psa ukázalo voľby toho predošlého. */
+  const picksOf = (id: string) => {
+    const e = dogEssence[id] || {};
+    return [e.dogCharacter1, e.dogCharacter2].filter(Boolean) as string[];
+  };
+  const sel = picksOf(dogId);
 
   /** Ktorú vlastnosť práve vysvetľujeme pod radom. Posledná, na ktorú sa ťuklo. */
-  const [said, setSaid] = useState<string | null>(() => selections.dogCharacter1 || null);
+  const [saidBy, setSaidBy] = useState<Record<string, string>>({});
+  const said = saidBy[dogId] || sel[0] || null;
 
   /** Zápis do store = zápis do rámu. Prázdny reťazec slot vyprázdni. */
   const write = (next: string[]) => {
+    setDogEssence(dogId, 'dogCharacter1', next[0] || '');
+    setDogEssence(dogId, 'dogCharacter2', next[1] || '');
+    if (dogId !== MAIN_DOG_ID) return;
     setSelection('dogCharacter1', next[0] || '');
     setSelection('dogCharacter2', next[1] || '');
   };
@@ -106,26 +122,29 @@ export function CharacterScreen() {
    * nikdy nie je „nedá sa" — človek prepisuje, nie naráža do stropu.
    */
   const tap = (v: string) => {
-    // ⚠️ ZÁPIS DO STORE STOJÍ MIMO `setSel`. Vnútri updatera to bola zmena
-    //    cudzieho komponentu POČAS renderu tohto (React: „Cannot update a
-    //    component while rendering a different component" — `HeroglyphFrame`
-    //    číta ten istý store). Ťuknutie je udalosť, takže `sel` z uzáveru je
-    //    aktuálne a poradie krokov sa nikam nestráca.
+    // ⚠️ VOĽBA ŽIJE V STORE, NIE V LOKÁLNOM POLI (od 25. 9., s prepínačom psov).
+    //    Predtým to bol `useState` a zápis musel stáť MIMO updatera, inak React
+    //    hlásil „Cannot update a component while rendering a different
+    //    component" (`HeroglyphFrame` číta ten istý store). Teraz je zdroj
+    //    jeden, takže tá pasca zanikla — ťuknutie je udalosť a `sel` je čerstvé.
     const next = sel.includes(v)
       ? sel.filter((x) => x !== v)
       : (sel.length < PICK_N ? [...sel, v] : [...sel.slice(1), v]);
-    setSaid(v);
-    setSel(next);
+    setSaidBy((m) => ({ ...m, [dogId]: v }));
     write(next);
   };
 
   const canGo = sel.length === PICK_N;
+  /** Prvý pes bez dvoch vlastností. -1 = hotoví sú všetci. */
+  const missing = dogs.findIndex((d) => picksOf(d.id).length < PICK_N);
+  /** Tá istá dvojpoloha CTA ako na PATRÓNOVI: ĎALŠÍ PES → POKRAČOVAŤ. */
+  const handover = canGo && missing >= 0;
 
   if (!flowOk) return null;
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_SCROLL_CSS}{CHARACTER_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_SCROLL_CSS}{FLOW_DOG_CSS}{CHARACTER_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
         {/* Späť vedie na MAJITEĽA — teda tam, odkiaľ sa sem po skrátení chvosta
@@ -170,7 +189,7 @@ export function CharacterScreen() {
 
           {/* ── 2. BLOK: RÁM → VÝBER ───────────────────────────────────────*/}
           <motion.div
-            className="hf-block hf-carved ch-stack"
+            className={`hf-block hf-carved ch-stack${dogs.length > 1 ? ' is-multi' : ''}`}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
@@ -178,10 +197,26 @@ export function CharacterScreen() {
             <span className="hf-carved-rim" aria-hidden />
             <div className="hf-plate">
 
+              {/* KOMU VYBERÁM — rovnaký riadok ako na PODSTATE a PATRÓNOVI. */}
+              {dogs.length > 1 && (
+                <>
+                  <FlowDogHeader
+                    className="ch-who"
+                    dogs={dogs}
+                    cur={cur}
+                    onGo={setCur}
+                    done={sel.length === PICK_N}
+                  />
+                  <span className="fdh-rule" aria-hidden />
+                </>
+              )}
+
               {/* Kým sú sloty povahy prázdne, pulzujú a nesú Hektorovu podmalbu —
                   rám teda nikdy nevyzerá prázdny a je vidno, KAM voľba pristane. */}
               <HeroglyphFrame
                 showOwner
+                // Rám ukazuje psa NA RADE, nie prvého (`dogEssence[idPsa]`).
+                dogValues={dogEssence[dogId] || {}}
                 ghostValues={HEKTHOR_GLYPH}
                 pulseSlot={canGo ? undefined : 'dogCharacter'}
                 className="ch-glyph"
@@ -263,8 +298,13 @@ export function CharacterScreen() {
               {/* CTA namiesto samopohybu. Stará obrazovka po druhej voľbe sama
                   odskočila (600 ms) — kto sa pomýlil, opravoval to už na ďalšom
                   kroku. Tu je posledné slovo človeka, rovnako ako na PATRÓNOVI. */}
-              <button type="button" className="hf-cta" disabled={!canGo} onClick={() => canGo && navigate('/heroglyph/reveal')}>
-                {t('heroglyph.flow.breed.continue')}
+              <button
+                type="button"
+                className="hf-cta"
+                disabled={!canGo}
+                onClick={() => { if (!canGo) return; if (handover) setCur(missing); else navigate('/heroglyph/reveal'); }}
+              >
+                {handover ? t('heroglyph.flow.multi.nextDog') : t('heroglyph.flow.breed.continue')}
               </button>
             </div>
           </motion.div>
@@ -384,6 +424,16 @@ const CHARACTER_CSS = `
   box-shadow: none;
   border: 1.5px solid ${LAB.hairline};
 }
+
+/* ── 🐕 PREPÍNAČ PSOV STOJÍ VÝŠKU ────────────────────────────────────────────
+   Riadok „koho opisujem" + rytina pod ním sú 64 px, a tie na Matejovom okne
+   (1477×724) presiahli javisko o 9 px (merané 25. 9. s troma psami).
+   🔴 USTUPUJE OBSAH, NIE REZERVA OD OKRAJA (lock PAGE_AIR z 24. 9.): rám je
+      najväčší jediný kus obrazovky, takže ubúda z neho.
+   ⚠️ Platí LEN pri dvoch a viac psoch — pri jedinom sa riadok nekreslí vôbec
+      a obrazovka ostáva presne taká, akú ju Matej schválil. */
+.ch-stack.is-multi .ch-glyph { --ch-glyph-w: 68%; }
+.ch-stack.is-multi .hf-plate { gap: 8px; }
 
 /* ── 📱 NA TELEFÓNE JE DLAŽDICA VÄČŠIA ────────────────────────────────────
    Tá istá úvaha ako pri siluetách patróna (Matej 24. 9.: *„na mobile to má

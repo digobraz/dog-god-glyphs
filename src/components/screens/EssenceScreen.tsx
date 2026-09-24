@@ -2,6 +2,8 @@ import { useMemo, useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore, MAIN_DOG_ID } from '@/store/dogyptStore';
+// Riadok „koho opisujem" + zoznam psov sú od 25. 9. spoločné pre kroky 5–8.
+import { useFlowDogs, FlowDogHeader, FLOW_DOG_CSS } from '@/components/screens/flowDogPicker';
 import { useT } from '@/i18n/LanguageContext';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { PageTopBar } from '@/components/PageTopBar';
@@ -132,12 +134,7 @@ export function EssenceScreen() {
    * Poradie sa tu NERADÍ ZNOVA: pes na rade musí byť ten istý, ktorého človek
    * videl prvého v zozname.
    */
-  const dogs = useMemo(() => {
-    const rest = extraDogs.map((d) => ({ id: d.id, name: d.name, photo: d.photoUrl }));
-    const main = { id: MAIN_DOG_ID, name: dogName, photo: dogPhotoUrl || null };
-    const at = Math.max(0, Math.min(mainDogPos, rest.length));
-    return [...rest.slice(0, at), main, ...rest.slice(at)];
-  }, [extraDogs, dogName, dogPhotoUrl, mainDogPos]);
+  const dogs = useFlowDogs();
 
   /**
    * Priemer veľkej fotky psa. Matejovo „zväčšiť o 300 %" z 28 px pilulky je
@@ -236,7 +233,7 @@ export function EssenceScreen() {
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{ESSENCE_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_DOG_CSS}{ESSENCE_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
         <PageTopBar onBack={back} />
@@ -301,39 +298,14 @@ export function EssenceScreen() {
                      s menom, takže obrazovka klesla bez jediného zmenšovania.
                   ⚠️ Rytina pod riadkom je tá istá drážka ako vlysy pri nadpise
                      (`FLOW_CARVE_CSS`): tmavá hrana + svetlá pod ňou. */}
-              <div className="es-who">
-                {dog?.photo
-                  ? <img className="es-dogphoto" src={dog.photo} alt={dog?.name || ''} />
-                  : (
-                    <span className="es-dogphoto es-dogphoto--empty">
-                      {(dog?.name || '?').slice(0, 1)}
-                    </span>
-                  )}
-                <span className="es-name">
-                  {dog?.name || t('heroglyph.flow.yourDogFallback')}
-                  {dogDone(dogId) && <i className="es-ok">✓</i>}
-                </span>
-                {dogs.length > 1 && (
-                  <div className="es-switch">
-                    <button
-                      type="button"
-                      className="es-arrow"
-                      // ⚠️ Vlastný kľúč si nezakladám — `whatNext.prev/next` je
-                      //    preložené v 18 jazykoch a znamená presne toto.
-                      aria-label={t('whatNext.prev')}
-                      onClick={() => goDog((cur - 1 + dogs.length) % dogs.length)}
-                    >‹</button>
-                    <em>{cur + 1}/{dogs.length}</em>
-                    <button
-                      type="button"
-                      className="es-arrow"
-                      aria-label={t('whatNext.next')}
-                      onClick={() => goDog((cur + 1) % dogs.length)}
-                    >›</button>
-                  </div>
-                )}
-              </div>
-              <span className="es-rule" aria-hidden />
+              <FlowDogHeader
+                className="es-who"
+                dogs={dogs}
+                cur={cur}
+                onGo={goDog}
+                done={dogDone(dogId)}
+              />
+              <span className="fdh-rule" aria-hidden />
 
               <HeroglyphFrame
                 showOwner
@@ -470,71 +442,14 @@ const ESSENCE_CSS = `
    \`.hf-stage > * { margin: auto }\` z \`FLOW_STAGE_CSS\`. Keby tu znova pribudlo
    vlastné pravidlo, rozíde sa táto obrazovka so zvyškom flow. */
 /* ── KTO JE OPISOVANÝ ──────────────────────────────────────────────────────
-   Riadok VNÚTRI dosky, nad rámom, oddelený rytinou. Ráno to bol stĺpec nad
-   doskou (fotka, pod ňou meno) — Matej to poobede prehodil na dvojicu vedľa
-   seba a presunul dnu, k rámu, ktorý sa plní. */
-/* 🔴 FOTKA + MENO STOJA V STREDE BLOKU (Matej 24. 9., piate kolo: *„foto a meno
-   psa by som centroval do stredu bloku takto vedľa seba = posuň to doprava aby
-   obsah toho riadku bol na strede"*). Dovtedy boli zarovnané doľava a meno
-   naťahovalo zvyšok riadka.
-   🔑 Prečo MRIEŽKA a nie \`justify-content: center\`: prepínač psov sa musí držať
-   pravého kraja, a ten by dvojicu odtlačil doľava — stred by potom platil len
-   pri jedinom psovi. Dva prázdne \`1fr\` stĺpce po krajoch sú vždy rovnaké, takže
-   dvojica stojí na strede BLOKU, nie na strede zvyšku po prepínači.
-   ⚠️ Preto sa prepínač nesmie prepnúť na \`position: absolute\` — pri dlhom mene
-   by sa naň meno nasunulo. Mriežka mu miesto vyhradí. */
-.es-who {
-  display: grid; grid-template-columns: 1fr auto auto 1fr;
-  align-items: center; gap: 10px; width: 100%;
-}
-.es-who .es-dogphoto { grid-column: 2; }
-/* Meno nerastie ani nekrčí susedov — šírku si berie podľa textu a pri dlhom mene
-   ustúpi písmom (pravidlo nižšie), nie ellipsis. */
-.es-who .es-name { grid-column: 3; justify-self: start; min-width: 0; }
-.es-who .es-switch { grid-column: 4; justify-self: end; }
-/* Pri dlhom mene ustúpi PÍSMO, nie posledné písmená — ellipsis v mene psa je
-   to najhoršie, čo môže na tejto obrazovke stáť. */
-@media (max-width: 420px) { .es-who .es-name { font-size: 17px; } }
-.es-who .es-switch { flex: 0 0 auto; }
-/* Rytina = tá istá drážka ako vlysy pri nadpise: tmavá hrana a svetlá pod ňou.
-   Jedna šedá linka by bola čiara v tabuľke, nie zásah do plochy. */
-.es-rule {
-  display: block; width: 100%; height: 2px; border-radius: 1px; flex: none;
-  background: linear-gradient(180deg,
-    rgba(120, 86, 26, 0.34) 0 1px,
-    rgba(255, 252, 240, 0.72) 1px 2px);
-}
-.es-dogphoto {
-  width: 48px; height: 48px; border-radius: 999px; object-fit: cover; flex: none;
-  display: grid; place-items: center;
-  /* Vlások, nie obruč: fotka má byť FOTKA. Cloisonné rám ostáva Hektorovi, aby
-     bolo na prvý pohľad jasné, kto sa pýta a kto je tvoj pes. */
-  border: 1.5px solid rgba(179, 130, 45, 0.55);
-  box-shadow: 0 1px 3px rgba(60, 40, 10, 0.22);
-}
-.es-dogphoto--empty {
-  background: radial-gradient(circle at 50% 35%, #F7ECD2 0%, #E8D5AA 100%);
-  font-family: 'Cinzel', serif; font-size: 22px; color: #8a5a14;
-}
-.es-name {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-family: 'Cinzel Decorative', 'Cinzel', serif; font-weight: 700;
-  font-size: 19px; letter-spacing: 0.04em; line-height: 1.1;
-  color: rgba(35, 22, 8, 0.90); text-shadow: 0 1px 0 rgba(255, 252, 240, 0.70);
-  text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-
-/* ── PREPÍNAČ PSOV ─────────────────────────────────────────────────────────
-   Šípky a počítadlo POD menom. Meno nesie fotka nad nimi, takže v prepínači
-   už druhýkrát nie je — inak stojí to isté slovo dvakrát nad sebou. */
-.es-switch {
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-}
-.es-switch em {
-  font-family: 'Space Grotesk', sans-serif; font-style: normal; font-size: 12px;
-  letter-spacing: 0.10em; color: rgba(60, 40, 12, 0.52);
-}
-
+   🔴 RIADOK (fotka · meno · ✓ · šípky) SA 25. 9. 2026 PRESŤAHOVAL do
+      \`flowDogPicker.tsx\` — kroky 6 a 8 ho odvtedy majú tiež, a tri kópie
+      jedného ovládača sú tri rôzne polohy tej istej šípky. Text sa PRESUNUL,
+      nezmenil: \`.es-who\` → \`.fdh-row\`, \`.es-dogphoto\` → \`.fdh-photo\`,
+      \`.es-name\` → \`.fdh-name\`, \`.es-rule\` → \`.fdh-rule\`.
+   ⚠️ Odôvodnenia (mriežka namiesto centrovania, vlások okolo fotky, ustupujúce
+      písmo pri dlhom mene) sú tam, nie tu. Zostáva tu LEN geometria, ktorou sa
+      táto obrazovka od ostatných líši. */
 /* ── BUBLINA S OTÁZKOU ─────────────────────────────────────────────────────
    Recept je \`.hf-speak\` z kroku 3; tu sa mení len STUPEŇ písma, a to vo
    VLASTNEJ triede. \`SPEAK.title\` (24) je spoločná hodnota pre celý vstup a
@@ -565,19 +480,12 @@ const ESSENCE_CSS = `
    zväčšiť prvý blok aj foto aj písmo"*; prenesené sem, aby sa kroky nerozišli.
    Na PC sa nemení nič — tam 4,6cqw drží strop 20. */
 .es-speak h2 { font-size: clamp(18px, 4.6cqw, 20px); }
-.es-arrow {
-  flex: none; width: 34px; height: 34px; border-radius: 999px; cursor: pointer;
-  background: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%);
-  border: 1.5px solid rgba(179, 130, 45, 0.55);
-  box-shadow: inset 0 1px 0 rgba(255, 252, 240, 0.85), 0 1px 2px rgba(60, 40, 10, 0.10);
-  font-family: 'Cinzel', serif; font-size: 18px; line-height: 1; color: #8a5a14;
-}
+
 /* ⚠️ Tu stála DRUHÁ definícia \`.es-who\` — ranná pilulka (gradient, plný zlatý
    rám, polomer 999) z prvej verzie prepínača. Po presune riadka do dosky
    prebíjala nový riadok a fotka s menom sedeli v „tabletke" vnútri dosky, teda
    rám v ráme. Dve definície tej istej triedy v jednom šate = ten istý rozchod,
    ktorý si vyžiadal zrušenie druhého \`.hf-pick\`. */
-.es-ok { font-style: normal; font-size: 12px; color: #2E5C3B; }
 .es-face {
   flex: none; width: 28px; height: 28px; border-radius: 999px; object-fit: cover;
   box-shadow: 0 0 0 1.5px rgba(179, 130, 45, 0.75), inset 0 1px 2px rgba(0, 0, 0, 0.35);
@@ -793,8 +701,10 @@ const ESSENCE_CSS = `
 @media (max-height: 700px) {
   .es-stack .hf-plate { gap: 8px; }
   .es-picks { --es-picks-h: 150px; }
-  .es-dogphoto { width: 40px; height: 40px; }
-  .es-name { font-size: 17px; }
+  /* Premenované 25. 9. s presunom riadka; zmenšenie na krátkom okne ostáva
+     vecou TEJTO obrazovky — sem patrí jej rozpočet výšky. */
+  .es-who .fdh-photo { width: 40px; height: 40px; }
+  .es-who .fdh-name { font-size: 17px; }
   .es-glyph { --es-glyph-w: 88%; }
   .es-act { min-height: 36px; }
   .es-cta { height: 36px; }
