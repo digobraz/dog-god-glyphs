@@ -148,7 +148,7 @@ const PackMap = lazy(() => import("./pages/PackMap.tsx"));
 const PackTripArticle = lazy(() => import("./pages/PackTripArticle.tsx")); // iterácia 12 bod 5 — ⤢ expand full-page article
 const PackTriplist = lazy(() => import("./pages/PackTriplist.tsx")); // TRIPLIST hub — Slice A (plany/zadanie-triplist-sliceA-2026-07-23.md)
 const PackDogs = lazy(() => import("./pages/PackDogs.tsx"));
-const PackBuddy = lazy(() => import("./pages/PackBuddy.tsx")); // BUDDY / Parťáci — `/pack/buddy`, krok 3 (zadanie-assnif §10)
+const PackBuddy = lazy(() => import("./pages/PackBuddy.tsx")); // SNIFFER (interne BUDDY) — `/pack/sniffer`, krok 3 (zadanie-assnif §10)
 const PackAinubis = lazy(() => import("./pages/PackAinubis.tsx")); // kostra AINUBISA — `/pack/ainubis` (rozhodnutia 4A+5A, 21. 9. 2026)
 const PackDogQuiz = lazy(() => import("./pages/PackDogQuiz.tsx")); // fullscreen kvíz (zadanie-mypack-petpas-2026-08-06 §6)
 const PackNatureQuiz = lazy(() => import("./pages/PackNatureQuiz.tsx")); // osobnostný kvíz element+úloha (zadanie-osobnostny-kviz-2026-08-06)
@@ -493,8 +493,8 @@ const App = () => (
                   s 1. vlnou, nie skôr. Chat sa z nej otvára cez `ainubisBus`, takže widget
                   ostáva tam, kde je — root-level singleton mimo `/pack` stromu. */}
               <Route path="/pack/ainubis" element={DEV_FULL ? <PackAinubis /> : <Navigate to="/pack" replace />} />
-              {/* BUDDY = kôš 3 (bez spodnej lišty), rovina vo VON — lock architektura-pack §8/§8.1. */}
-              <Route path="/pack/buddy" element={DEV_FULL && BUDDY_LIVE ? <PackBuddy /> : <Navigate to="/pack/map" replace />} />
+              {/* SNIFFER (interne BUDDY; Matej 24. 9.: „premenujem to na SNIFFER") = kôš 3 (bez spodnej lišty), rovina vo VON — lock architektura-pack §8/§8.1. */}
+              <Route path="/pack/sniffer" element={DEV_FULL && BUDDY_LIVE ? <PackBuddy /> : <Navigate to="/pack/map" replace />} />
               {/* ODKIAĽ TO VIEM — od 24. 9. 2026 (Matej, voľba E1) to NIE JE vlastná
                   stránka, ale TRETIA ZÁLOŽKA NÁSTENKY (`?plane=wall&tab=lib`).
                   Ranná verzia mala vlastnú adresu (E2) a stránka `PackAinubisSources.tsx`

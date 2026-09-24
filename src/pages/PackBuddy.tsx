@@ -1,4 +1,5 @@
-// BUDDY (SK Parťáci, interne ASSNIF) — `/pack/buddy`. Krok 3: vstup, brána do 100 %, nastavenia.
+// SNIFFER (interne BUDDY / ASSNIF) — `/pack/sniffer`. Verejné meno od 24. 9. večer (Matej:
+// „premenujem to na SNIFFER — podobá sa trochu na tinder“), predtým BUDDY / Parťáci. Krok 3: vstup, brána do 100 %, nastavenia.
 // Zadanie: plany/zadanie-assnif-2026-09-24.md §3.1, §10 · nákres plany/nakres-buddy-urovne-2026-09-24.html
 //   0a prvý vstup · 0b brána = 100 % · 0c fotka ty + pes · 0d zapnuté · 5b nastavenia (⚙)
 // Balíček, HĽADAŤ a ZHODY sú krok 4 — tu sa na ne len pripravuje miesto.
@@ -20,7 +21,7 @@ import { AinubisBubble } from '@/components/pack/ainubisSheet';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PAGE_AIR,
-  PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS, FONT_TITLE, FONT_UI,
+  PACK_SHADOW, PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS, MEDALLION_CSS, FONT_TITLE, FONT_UI,
 } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import {
@@ -50,26 +51,48 @@ const STEP_EN: Record<BuddyStepKey, string> = {
 
 const CSS = `
 .bd-root{min-height:100dvh;display:flex;flex-direction:column;}
-.bd-top{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:48px 1fr 48px;align-items:center;
+.bd-top{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;
   padding:${PAGE_AIR.min}px ${PAGE_AIR.side}px ${PACK_SPACE.sm}px;}
 .bd-top h1{margin:0;text-align:center;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;
   letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
 .bd-gear{justify-self:end;width:40px;height:40px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};
-  background:${T.tileBg};display:flex;align-items:center;justify-content:center;cursor:pointer;}
-.bd-col{width:100%;max-width:640px;margin:0 auto;padding:0 ${PAGE_AIR.side}px ${PAGE_AIR.md}px;
-  display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
-.bd-group{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
-.bd-eyebrow{font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;
-  text-transform:uppercase;color:${T.inkWarm};}
-.bd-row{display:flex;align-items:center;gap:${PACK_SPACE.md}px;width:100%;padding:${PACK_SPACE.md}px;
-  background:transparent;border:0;cursor:pointer;text-align:left;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
-.bd-row b{font-weight:600;}
-.bd-row small{display:block;font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
-.bd-row > span:last-child{flex:1 1 auto;min-width:0;}
-.bd-mark{flex:0 0 auto;width:24px;height:24px;border-radius:${PACK_R.pill}px;display:flex;align-items:center;
-  justify-content:center;font-size:${PACK_TEXT.label}px;font-weight:600;border:1px solid ${T.border};color:${T.inkWarm};}
-.bd-mark.is-done{${pickTintCSS(TRAFFIC_COLORS.green, PICK_INK.green, 0.16)}}
-.bd-edit{padding:0 ${PACK_SPACE.md}px ${PACK_SPACE.md}px;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
+  background:${T.cardSoft};display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.bd-col{flex:1 1 auto;width:100%;max-width:640px;margin:0 auto;padding:${PACK_SPACE.sm}px ${PAGE_AIR.side}px ${PAGE_AIR.md}px;
+  display:flex;flex-direction:column;gap:${PACK_SPACE.lg}px;}
+.bd-card{padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
+.bd-card--list{padding:${PACK_SPACE.sm}px 0;gap:0;}
+.bd-card--list > .bd-eyebrow{padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;}
+.bd-eyebrow{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.sm}px;font-family:${FONT_UI};font-weight:500;
+  font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
+.bd-h2{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
+.bd-lead{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;line-height:1.55;color:${T.inkDim};}
+/* dvojica medailónov: človek + pes, pes mierne prekrýva (majiteľ je v ráme psa) */
+.bd-pair{display:flex;align-items:center;}
+.bd-pair .pk-medallion + .pk-medallion{margin-left:-${PACK_SPACE.md}px;}
+.bd-pair .pk-medallion{background:${T.cardSoft};font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;color:${T.inkWarm};}
+.bd-head{display:flex;align-items:center;gap:${PACK_SPACE.lg}px;}
+.bd-head > div:last-child{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
+.bd-count{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkWarm};}
+.bd-count b{font-weight:600;color:${T.inkStrong};}
+/* riadok brány — zoznam v karte, deliace čiary namiesto samostatných dlaždíc */
+.bd-item + .bd-item{border-top:1px solid ${T.hairline};}
+.bd-row{display:flex;align-items:center;gap:${PACK_SPACE.md}px;width:100%;padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;
+  background:transparent;border:0;cursor:pointer;text-align:left;font-family:${FONT_UI};color:${T.inkStrong};}
+.bd-row:hover{background:${T.tileBg};}
+.bd-row__txt{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;}
+.bd-row__txt b{font-weight:600;font-size:${PACK_TEXT.body}px;}
+.bd-row__txt small{font-size:${PACK_TEXT.label}px;color:${T.inkDim};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bd-mark{position:relative;flex:0 0 auto;width:24px;height:24px;border-radius:${PACK_R.pill}px;display:flex;align-items:center;
+  justify-content:center;font-size:${PACK_TEXT.label}px;font-weight:600;border:1px solid ${T.border};color:${T.inkWarm};background:${T.cardSoft};}
+.bd-mark.is-done{background:${TRAFFIC_COLORS.green};border-color:${TRAFFIC_COLORS.green};}
+/* fajka kreslená rámom, nie znakom fontu */
+.bd-mark.is-done::after{content:'';width:6px;height:11px;margin-top:-3px;border-right:2px solid ${T.card};border-bottom:2px solid ${T.card};transform:rotate(45deg);}
+.bd-todo{flex:0 0 auto;font-size:${PACK_TEXT.label}px;font-weight:600;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
+  border:1px solid ${LAPIS.edge};${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.1)}}
+.bd-chev{flex:0 0 auto;width:8px;height:8px;border-right:1.5px solid ${T.inkFaint};border-bottom:1.5px solid ${T.inkFaint};transform:rotate(-45deg);}
+.bd-item.is-open .bd-chev{transform:rotate(45deg);}
+.bd-edit{margin:0 ${PACK_SPACE.lg}px ${PACK_SPACE.lg}px;padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;background:${T.tileBg};
+  border:1px solid ${T.hairline};display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 .bd-pills{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;}
 .bd-pills .pk-pill{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;}
 .bd-pills .pk-pill.is-on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
@@ -86,13 +109,24 @@ const CSS = `
 .bd-cta:hover{background:${LAPIS.gradHover};}
 .bd-cta:disabled{opacity:.45;cursor:default;}
 .bd-cta--small{width:auto;align-self:flex-start;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;font-size:${PACK_TEXT.label}px;}
-.bd-hero{display:flex;flex-direction:column;align-items:center;gap:${PACK_SPACE.md}px;padding:${PACK_SPACE.xl}px ${PACK_SPACE.lg}px;text-align:center;}
-.bd-hero h2{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;letter-spacing:.14em;
-  text-transform:uppercase;color:${T.inkStrong};}
-.bd-sub{padding:${PACK_SPACE.md}px;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
+.bd-ghost{width:100%;border-radius:${PACK_R.field}px;padding:${PACK_SPACE.md}px;border:1px solid ${T.border};background:transparent;
+  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};cursor:pointer;}
+/* tlačidlo drží dole, zoznam pod ním beží — bez vlastného pásu, aby nekreslilo obdĺžnik cez tapetu */
+.bd-dock{position:sticky;bottom:${PAGE_AIR.min}px;z-index:4;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
+.bd-dock .bd-cta:disabled{opacity:1;background:${T.cardSoft};color:${T.inkWarm};border-color:${T.border};box-shadow:${PACK_SHADOW.panel};cursor:default;}
+/* tri kroky úvodu */
+.bd-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
+.bd-steps li{display:flex;gap:${PACK_SPACE.md}px;align-items:flex-start;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
+.bd-steps li small{display:block;font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
+.bd-center{align-items:center;text-align:center;}
+/* moja karta — náhľad, ako ma vidia */
+.bd-mine{padding:0;overflow:hidden;gap:0;}
+.bd-mine .pk-photo{border-radius:0;border:0;aspect-ratio:4/3;}
+.bd-mine__body{padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
+.bd-mine__name{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
 .bd-photo{width:100%;aspect-ratio:4/3;}
 .bd-photo--empty{display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
-.bd-tabs{display:flex;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.xs}px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};}
+.bd-tabs{display:flex;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.xs}px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};background:${T.cardSoft};}
 .bd-tabs span{flex:1 1 0;text-align:center;padding:${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;font-family:${FONT_UI};
   font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkFaint};}
 .bd-tabs span.is-on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
@@ -117,7 +151,7 @@ export default function PackBuddy() {
   const [dogPick, setDogPick] = useState<string | null>(null);
   const [nameDraft, setNameDraft] = useState<string | null>(null);
   const { profile } = useProfile();
-  const { dogs, loading: dogsLoading } = usePackUser(session?.user?.id ?? null);
+  const { dogs, avatarUrl, loading: dogsLoading } = usePackUser(session?.user?.id ?? null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -174,9 +208,7 @@ export default function PackBuddy() {
 
   const title = view === 'settings'
     ? tx('pack.buddy.settings', 'Settings')
-    : view === 'gate' && missing.length
-      ? tx('pack.buddy.gateTitle', '{n} of {total} missing', { n: missing.length, total: BUDDY_STEPS.length })
-      : tx('pack.buddy.title', 'Buddies');
+    : tx('pack.buddy.title', 'Buddies');
 
   const back = () => {
     if (view === 'settings') setView(s.enabled ? 'home' : 'gate');
@@ -292,6 +324,38 @@ export default function PackBuddy() {
     }
   };
 
+  // Dvojica medailónov: človek + pes. Fotka BUDDY má prednosť pred avatarom — je to tá,
+  // ktorú uvidia ostatní.
+  const humanPic = human?.buddyPhoto || avatarUrl || null;
+  const pair = (
+    <div className="bd-pair" aria-hidden>
+      <span className="pk-medallion pk-medallion--lg">
+        {humanPic ? <img src={humanPic} alt="" /> : (name[0] ?? '·').toUpperCase()}
+      </span>
+      <span className="pk-medallion pk-medallion--lg">
+        {dog?.cloudinary_main_url ? <img src={dog.cloudinary_main_url} alt="" /> : (dog?.dog_name?.[0] ?? '·').toUpperCase()}
+      </span>
+    </div>
+  );
+
+  const intentPills = (human?.intents ?? []).filter((i) => i !== 'community');
+  const myCard = (
+    <div className="bd-card bd-mine" style={{ ...PACK_BOX.card }}>
+      <div className={`pk-photo bd-photo${human?.buddyPhoto ? '' : ' bd-photo--empty'}`}>
+        {human?.buddyPhoto ? <img src={human.buddyPhoto} alt="" /> : tx('pack.buddy.photoEmpty', 'You and your dog in one photo')}
+      </div>
+      <div className="bd-mine__body">
+        <p className="bd-mine__name">{[name, human?.age].filter(Boolean).join(' · ')}</p>
+        <p className="bd-note">{[human?.region, dog?.dog_name].filter(Boolean).join(' · ')}</p>
+        {intentPills.length > 0 && (
+          <div className="bd-pills">
+            {intentPills.map((i) => <span key={i} className="pk-pill">{tx(`pack.buddy.intent.${i}`, i)}</span>)}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   if (!view || (dogsLoading && !dogs.length)) {
     return <Shell title={tx('pack.buddy.title', 'Buddies')} onBack={back} backLabel={tx('pack.buddy.back', 'Back')} />;
   }
@@ -302,53 +366,85 @@ export default function PackBuddy() {
       gearLabel={tx('pack.buddy.settings', 'Settings')}>
       {view === 'intro' && (
         <>
-          <AinubisBubble>
-            {tx('pack.buddy.intro', 'Buddies are people your dog goes out with. Until you switch it on, you see nobody — and nobody sees you.')}
-          </AinubisBubble>
-          <button type="button" className="bd-cta" onClick={() => setView('gate')}>
-            {tx('pack.buddy.introCta', 'I want buddies')}
-          </button>
-          <p className="bd-note bd-note--center">{tx('pack.buddy.introOff', 'Off by default')}</p>
+          <div className="bd-card bd-center" style={{ ...PACK_BOX.card }}>
+            {pair}
+            <h2 className="bd-h2">{tx('pack.buddy.title', 'Buddies')}</h2>
+            <p className="bd-lead">
+              {tx('pack.buddy.intro', 'Buddies are people your dog goes out with. Until you switch this on, you see nobody — and nobody sees you.')}
+            </p>
+          </div>
+          <div className="bd-card" style={{ ...PACK_BOX.card }}>
+            <span className="bd-eyebrow">{tx('pack.buddy.howTitle', 'How it works')}</span>
+            <ol className="bd-steps">
+              {(['1', '2', '3'] as const).map((n) => (
+                <li key={n}>
+                  <span className="bd-mark">{n}</span>
+                  <span>
+                    {tx(`pack.buddy.how${n}`, HOW_EN[n][0])}
+                    <small>{tx(`pack.buddy.how${n}Sub`, HOW_EN[n][1])}</small>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
+          <div className="bd-dock">
+            <button type="button" className="bd-cta" onClick={() => setView('gate')}>
+              {tx('pack.buddy.introCta', 'I want buddies')}
+            </button>
+            <p className="bd-note bd-note--center">{tx('pack.buddy.introOff', 'Off by default')}</p>
+          </div>
         </>
       )}
 
       {view === 'gate' && (
         <>
-          <div className="pk-progress" aria-hidden>
-            <div className={`pk-progress__fill${missing.length ? ' pk-progress__fill--low' : ' pk-progress__fill--done'}`}
-              style={{ width: gateFill }} />
+          <div className="bd-card" style={{ ...PACK_BOX.card }}>
+            <div className="bd-head">
+              {pair}
+              <div>
+                <h2 className="bd-h2">{tx('pack.buddy.gateHead', 'Your buddy card')}</h2>
+                <span className="bd-count">
+                  <b>{doneCount}</b> / {BUDDY_STEPS.length} {tx('pack.buddy.done', 'done')}
+                </span>
+                <div className="pk-progress" aria-hidden>
+                  <div className={`pk-progress__fill${missing.length ? ' pk-progress__fill--low' : ' pk-progress__fill--done'}`}
+                    style={{ width: gateFill }} />
+                </div>
+              </div>
+            </div>
+            <p className="bd-note">{tx('pack.buddy.gateNote', 'Whatever you fill in here goes to your profile and your dog’s DOG ID — nothing twice.')}</p>
           </div>
-          <p className="bd-note">{tx('pack.buddy.gateNote', 'Everything you fill in here goes to your profile and your dog’s DOG ID — nothing twice.')}</p>
 
           {(['human', 'dog', 'buddy'] as const).map((group) => (
-            <div key={group} className="bd-group">
+            <div key={group} className="bd-card bd-card--list" style={{ ...PACK_BOX.card }}>
               <span className="bd-eyebrow">
                 {group === 'dog'
                   ? (dog?.dog_name ?? tx('pack.buddy.dog', 'Dog'))
                   : tx(`pack.buddy.group.${group}`, group === 'human' ? 'You' : 'Buddies')}
               </span>
               {group === 'dog' && dogs.length > 1 && (
-                <Pills
-                  options={dogs.map((d) => ({ value: d.id, label: d.dog_name ?? '—' }))}
-                  selected={dog ? [dog.id] : []}
-                  onToggle={(v) => setDogPick(v)}
-                />
+                <div style={{ padding: `0 ${PACK_SPACE.lg}px ${PACK_SPACE.sm}px` }}>
+                  <Pills
+                    options={dogs.map((d) => ({ value: d.id, label: d.dog_name ?? '—' }))}
+                    selected={dog ? [dog.id] : []}
+                    onToggle={(v) => setDogPick(v)}
+                  />
+                </div>
               )}
               {BUDDY_STEPS.filter((st) => st.group === group).map((st) => {
                 const i = BUDDY_STEPS.findIndex((x) => x.key === st.key);
                 const done = !missing.includes(st.key);
                 const isOpen = open === st.key;
                 return (
-                  <div key={st.key} style={{ ...PACK_BOX.row }}>
+                  <div key={st.key} className={`bd-item${isOpen ? ' is-open' : ''}`}>
                     <button type="button" className="bd-row" aria-expanded={isOpen}
                       onClick={() => setOpen(isOpen ? null : st.key)}>
-                      <span className={`bd-mark${done ? ' is-done' : ''}`} aria-hidden>
-                        {done ? <BrandIcon name="paw-solid" size={PACK_SPACE.md} tint="good" /> : i + 1}
-                      </span>
-                      <span>
+                      <span className={`bd-mark${done ? ' is-done' : ''}`} aria-hidden>{done ? '' : i + 1}</span>
+                      <span className="bd-row__txt">
                         <b>{stepLabel(st.key)}</b>
-                        <small>{summary(st.key)}</small>
+                        {done && <small>{summary(st.key)}</small>}
                       </span>
+                      {done ? <span className="bd-chev" aria-hidden /> : <span className="bd-todo">{tx('pack.buddy.fill', 'Fill in')}</span>}
                     </button>
                     {isOpen && <div className="bd-edit">{editor(st.key)}</div>}
                   </div>
@@ -357,23 +453,33 @@ export default function PackBuddy() {
             </div>
           ))}
 
-          {serverMissing && serverMissing.length > 0 && (
-            <p className="bd-warn">
-              {tx('pack.buddy.serverMissing', 'Still missing: {list}', { list: serverMissing.map(stepLabel).join(', ') })}
-            </p>
-          )}
-          <button type="button" className="bd-cta" disabled={missing.length > 0 || busy} onClick={enable}>
-            {tx('pack.buddy.enable', 'Switch on')}
-          </button>
+          <div className="bd-dock">
+            {serverMissing && serverMissing.length > 0 && (
+              <p className="bd-warn">
+                {tx('pack.buddy.serverMissing', 'Still missing: {list}', { list: serverMissing.map(stepLabel).join(', ') })}
+              </p>
+            )}
+            <button type="button" className="bd-cta" disabled={missing.length > 0 || busy} onClick={enable}>
+              {missing.length > 0
+                ? tx('pack.buddy.left', '{n} more to fill in', { n: missing.length })
+                : tx('pack.buddy.enable', 'Switch on')}
+            </button>
+          </div>
         </>
       )}
 
       {view === 'done' && (
-        <div className="bd-hero" style={{ ...PACK_BOX.card }}>
-          <h2>{tx('pack.buddy.doneTitle', 'You’re in the buddy pack')}</h2>
-          <p className="bd-note">{tx('pack.buddy.doneNote', 'Your card shows only to people who meet your conditions — and you theirs.')}</p>
-          <button type="button" className="bd-cta" onClick={() => setView('home')}>{tx('pack.buddy.showMe', 'Show me them')}</button>
-        </div>
+        <>
+          <div className="bd-card bd-center" style={{ ...PACK_BOX.card }}>
+            <h2 className="bd-h2">{tx('pack.buddy.doneTitle', 'You’re in the buddy pack')}</h2>
+            <p className="bd-lead">{tx('pack.buddy.doneNote', 'Your card shows only to people who meet your conditions — and whose conditions you meet.')}</p>
+          </div>
+          <span className="bd-eyebrow">{tx('pack.buddy.seenAs', 'This is how they see you')}</span>
+          {myCard}
+          <div className="bd-dock">
+            <button type="button" className="bd-cta" onClick={() => setView('home')}>{tx('pack.buddy.showMe', 'Show me them')}</button>
+          </div>
+        </>
       )}
 
       {view === 'home' && (
@@ -384,21 +490,23 @@ export default function PackBuddy() {
             <span>{tx('pack.buddy.tab.matches', 'Matches')}</span>
           </div>
           <AinubisBubble>
-            {tx('pack.buddy.deckSoon', 'The deck is being built. You’re switched on, so the moment it opens, people who fit will see you.')}
+            {tx('pack.buddy.deckSoon', 'The deck is still being built. You’re switched on, so the moment it opens, the people who fit will see you.')}
           </AinubisBubble>
           {paused && (
-            <p className="bd-note">{tx('pack.buddy.pausedUntil', 'Paused until {d}', { d: new Date(s.paused_until!).toLocaleDateString() })}</p>
+            <p className="bd-note bd-note--center">{tx('pack.buddy.pausedUntil', 'Paused until {d}', { d: new Date(s.paused_until!).toLocaleDateString() })}</p>
           )}
+          <span className="bd-eyebrow">{tx('pack.buddy.seenAs', 'This is how they see you')}</span>
+          {myCard}
         </>
       )}
 
       {view === 'settings' && (
         <>
-          <section className="bd-sub" style={{ ...PACK_BOX.subblock }}>
+          <section className="bd-card" style={{ ...PACK_BOX.card }}>
             <span className="bd-eyebrow">{tx('pack.buddy.inBuddy', 'I’m in Buddies')}</span>
             {s.enabled ? (
               <>
-                <p className="bd-note">
+                <p className="bd-lead">
                   {paused
                     ? tx('pack.buddy.pausedUntil', 'Paused until {d}', { d: new Date(s.paused_until!).toLocaleDateString() })
                     : tx('pack.buddy.on', 'On')}
@@ -419,15 +527,15 @@ export default function PackBuddy() {
               </button>
             )}
           </section>
-          <section className="bd-sub" style={{ ...PACK_BOX.subblock }}>
+          <section className="bd-card" style={{ ...PACK_BOX.card }}>
             <span className="bd-eyebrow">{stepLabel('intents')}</span>
             <IntentsEditor selected={human?.intents ?? []} tx={tx} />
           </section>
-          <section className="bd-sub" style={{ ...PACK_BOX.subblock }}>
+          <section className="bd-card" style={{ ...PACK_BOX.card }}>
             <span className="bd-eyebrow">{stepLabel('audience')}</span>
             <AudienceEditor s={s} onPatch={patchSettings} tx={tx} />
           </section>
-          <section className="bd-sub" style={{ ...PACK_BOX.subblock }}>
+          <section className="bd-card" style={{ ...PACK_BOX.card }}>
             <span className="bd-eyebrow">{tx('pack.buddy.notify', 'Notifications')}</span>
             <label className="bd-switch">{tx('pack.buddy.notifyMatch', 'New match')}
               <input type="checkbox" checked={s.notify_match} onChange={(e) => void patchSettings({ notify_match: e.target.checked })} />
@@ -442,6 +550,12 @@ export default function PackBuddy() {
   );
 }
 
+const HOW_EN: Record<'1' | '2' | '3', [string, string]> = {
+  '1': ['Fill in your buddy card', 'You, your dog, what you’re looking for. Ten points, all from your profile.'],
+  '2': ['The dogs decide first', 'You only see people whose dogs get along with yours.'],
+  '3': ['You catch each other’s scent', 'A match is just a notice. Writing is up to you.'],
+};
+
 function Shell({ title, onBack, backLabel, onGear, gearLabel, children }: {
   title: string; onBack: () => void; backLabel: string; onGear?: () => void; gearLabel?: string; children?: ReactNode;
 }) {
@@ -452,6 +566,7 @@ function Shell({ title, onBack, backLabel, onGear, gearLabel, children }: {
       <style>{PF_FIELD_CSS}</style>
       <style>{PHOTO_CSS}</style>
       <style>{PROGRESS_CSS}</style>
+      <style>{MEDALLION_CSS}</style>
       <style>{CSS}</style>
       <header className="bd-top">
         <BackButton tone="pale" onClick={onBack} label={backLabel} />
