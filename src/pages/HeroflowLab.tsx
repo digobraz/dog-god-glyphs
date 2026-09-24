@@ -89,12 +89,17 @@ const GROUPS: Group[] = [
         state: 'done',
         note: 'routa v App.tsx už existuje a obrazovka beží.',
       },
+      {
+        name: '6 · Patrón (plemeno · kríženec · silueta)',
+        path: '/heroglyph/breed',
+        state: 'wip',
+        note: 'jedna obrazovka namiesto dvoch podkrokov. Plemeno je POMOCNÍK (predvyplní siluetu), CTA odomkýna patrón. Silueta sa zapisuje do heroglyfu hneď pri ťuknutí. Otvorené: zlatá výplň dlaždíc z PODSTATY sem prenesená NIE JE (rad 6–11 siluet) — čaká na Mateja; patrón sa stále vyberá len pre PRVÉHO psa.',
+      },
     ],
   },
   {
     label: 'Zvyšok flow — zatiaľ staré',
     steps: [
-      { name: 'Plemeno / patrón', path: '/heroglyph/breed', state: 'old' },
       { name: 'Poradie', path: '/heroglyph/ranking', state: 'old' },
       { name: 'Majiteľ', path: '/heroglyph/owner-info', state: 'old' },
       { name: 'Horoskopy', path: '/heroglyph/owner-zodiac', state: 'old' },

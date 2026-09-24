@@ -297,7 +297,12 @@ export const sk: Partial<Dict> = {
 
   // ── /heroglyph flow — krok 3: rasa ──
   'heroglyph.flow.breed.question': 'Vyber patróna pre {name}.',
-  'heroglyph.flow.breed.subtitle': 'Vyber siluetu, ktorá sedí tvojmu psovi. Rasa ti pomôže — ale rozhodnutie je na tebe.',
+  // ⚠️ Skrátené 24. 9. 2026 (viď en.ts) a zároveň opravené „Rasa" → „plemeno":
+  //    appka hovorí PLEMENO všade inde, vrátane placeholderov o dva riadky nižšie.
+  'heroglyph.flow.breed.subtitle': 'Vyhľadávanie podľa plemena ti pomôže — no výber je na tebe.',
+  'heroglyph.flow.breed.needs': '{name} potrebuje patróna.',
+  'heroglyph.flow.breed.legend': 'Patrón',
+  'heroglyph.flow.breed.mix.second': 'Druhé plemeno',
   'heroglyph.flow.breed.fallbackHero': 'tvojho hrdinu',
   'heroglyph.flow.breed.searchPlaceholder': 'Hľadať rasu (orientačne)',
   'heroglyph.flow.breed.enHint': 'Začni písať rasu po anglicky',

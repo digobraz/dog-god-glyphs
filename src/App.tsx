@@ -89,6 +89,11 @@ const EmailScreen = lazy(() =>
 const EssenceScreen = lazy(() =>
   import("@/components/screens/EssenceScreen").then((m) => ({ default: m.EssenceScreen }))
 );
+// PATRÓN (24. 9. 2026) — plemeno + kríženec + patrón na jednej obrazovke.
+// Nahrádza dva PODKROKY `BreedPatronScreen` a beží len v DEV (viď routu nižšie).
+const PatronScreen = lazy(() =>
+  import("@/components/screens/PatronScreen").then((m) => ({ default: m.PatronScreen }))
+);
 const CropScreen = lazy(() =>
   import("@/components/screens/CropScreen").then((m) => ({ default: m.CropScreen }))
 );
@@ -340,7 +345,20 @@ const App = () => (
                   <Route path="/heroglyph/photo" element={<PhotoScreen />} />
                 </>
               )}
-              <Route path="/heroglyph/breed" element={<BreedPatronScreen />} />
+              {/* 🔴 JEDNA ROUTA, DVE OBRAZOVKY podľa režimu vstupu (24. 9. 2026).
+                  Nový vstup dostáva zliatu obrazovku PATRÓN (plemeno + kríženec +
+                  patrón + zápis do heroglyfu naraz), LIVE ide ďalej cez pôvodnú
+                  `BreedPatronScreen` s dvoma podkrokmi.
+                  ⚠️ Cesta sa NEMENÍ zámerne: `EssenceScreen`, pruh postupu
+                     (`flowRedress.tsx`), ksichty (`hekthorFaces.ts`) aj dielňa na
+                     ňu už ukazujú, a druhá routa pre to isté miesto v reťazi by
+                     znamenala dve poradia vstupu.
+                  ⚠️ Vetvenie je TU, nie v komponente: obrazovka, ktorá si sama
+                     rozhoduje, či je stará alebo nová, sa nikdy nedá zmazať. */}
+              <Route
+                path="/heroglyph/breed"
+                element={NEW_HEROFLOW ? <PatronScreen /> : <BreedPatronScreen />}
+              />
               <Route path="/heroglyph/ranking" element={<RankingScreen />} />
               <Route path="/heroglyph/owner-info" element={<OwnerInfoScreen />} />
               <Route path="/heroglyph/owner-zodiac" element={<OwnerZodiacScreen />} />

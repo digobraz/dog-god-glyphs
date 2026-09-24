@@ -218,7 +218,11 @@ export const cs: Partial<Dict> = {
 
   // ── /heroglyph flow — krok 3: rasa ──
   'heroglyph.flow.breed.question': 'Vyber patrona pro {name}.',
-  'heroglyph.flow.breed.subtitle': 'Vyber siluetu, která sedí tvému psovi. Plemeno ti pomůže — ale rozhodnutí je na tobě.',
+  // ⚠️ Skrátené 24. 9. 2026 pre zliatu obrazovku PATRÓN (dôvod v en.ts).
+  'heroglyph.flow.breed.subtitle': 'Hledání podle plemene ti pomůže — ale výběr je na tobě.',
+  'heroglyph.flow.breed.needs': '{name} potřebuje patrona.',
+  'heroglyph.flow.breed.legend': 'Patron',
+  'heroglyph.flow.breed.mix.second': 'Druhé plemeno',
   'heroglyph.flow.breed.fallbackHero': 'tvého hrdinu',
   'heroglyph.flow.breed.searchPlaceholder': 'Hledat plemeno (orientačně)',
   'heroglyph.flow.breed.enHint': 'Zadej plemeno anglicky',

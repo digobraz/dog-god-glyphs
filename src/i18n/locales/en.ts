@@ -395,7 +395,23 @@ export const en = {
   // ── /heroglyph flow — step 3: breed ──
   'heroglyph.flow.breed.question': "Choose {name}'s patron.",
   'heroglyph.flow.breed.fallbackHero': 'your hero',
-  'heroglyph.flow.breed.subtitle': 'Pick the silhouette that matches your dog. Breed can guide you — but the choice is yours.',
+  // ⚠️ SKRÁTENÉ 24. 9. 2026 pre zliatu obrazovku PATRÓN: nadpis nad ňou už hovorí
+  //    „potrebuje patróna", takže pôvodná prvá veta („Pick the silhouette…") bola
+  //    to isté druhýkrát a v bubline zaberala riadok. Zmysel ostáva.
+  //    Ostatných 15 jazykov nesie dlhšiu verziu — je významovo tá istá.
+  'heroglyph.flow.breed.subtitle': 'Breed search can guide you — but the choice is yours.',
+  // Nadpis zliatej obrazovky PATRÓN (Matej 24. 9. 2026: „… potrebuje patróna").
+  // Nové kľúče sú v sk/en/cs, zvyšok padá na EN fallback — ten istý postup ako
+  // pri chipoch PODSTATY.
+  'heroglyph.flow.breed.needs': '{name} needs a patron.',
+  /** Vlys nad výberom patróna. */
+  'heroglyph.flow.breed.legend': 'Patron',
+  // ⚠️ VLASTNÝ kľúč, nie skrátený `mix.placeholder2`. Ten beží na LIVE
+  //    obrazovke a do FLIPu sa LIVE textov nedotýkame; tu je pole užšie
+  //    (na doske 520 px mu ostane 178) a „(optional)" sa doň nezmestí.
+  //    Voliteľnosť navyše netreba hovoriť — v novom kroku nie je povinné
+  //    ani jedno plemeno, CTA odomkýna patrón.
+  'heroglyph.flow.breed.mix.second': 'Second breed',
   'heroglyph.flow.breed.searchPlaceholder': 'Search breed (optional guide)',
   'heroglyph.flow.breed.enHint': '',
   'heroglyph.flow.breed.continue': 'Continue',
