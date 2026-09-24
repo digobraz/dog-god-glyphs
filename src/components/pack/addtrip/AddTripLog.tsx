@@ -2491,7 +2491,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
               <button
                 type="button"
                 className="atl-abort-cta"
-                onClick={() => { mirrorRef.current?.(); openRouteAskedRef.current = true; setOpenRouteAsk(false); }}
+                // ⚠️ PO ODPOVEDI IDE ROVNO ĎALEJ (Matej 24. 9. 2026: „po odpovedi išli sme
+                // tou istou naspäť by malo automaticky posunúť na ďalší krok — teraz vracia
+                // ako keby na dokreslenie a človek musí opäť stlačiť hotovo"). Novší pokyn
+                // prebíja 25. 8. („musí ju vidieť skôr, než potvrdí") — trasu vidí aj tak:
+                // picker ostáva v kroku 2 mountnutý a `mirrorBack` na ňu zarámuje mapu.
+                onClick={() => { mirrorRef.current?.(); openRouteAskedRef.current = true; setOpenRouteAsk(false); setStep(stepAfter(1)); }}
               >
                 {t('pack.addTrip.geo.openRouteMirror')}
               </button>

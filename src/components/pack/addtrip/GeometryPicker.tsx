@@ -1995,7 +1995,7 @@ const DRAW_BAR_CSS = `
 .trp-notice{font-family:${FONT_UI};font-size:12px;font-weight:600;line-height:1.4;color:#F3B0A0;}
 /* NÁVRAT — podčiarknutý text v strede pod panelom. Šípka v rohu brala mape výšku a palec
    na ňu nedosiahol; text zaberie riadok a povie aj KAM sa vracia. */
-.trp-dback{align-self:center;background:none;border:0;padding:4px 10px;color:${T.onDarkDim};font-family:${FONT_UI};font-size:12.5px;font-weight:500;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
+.trp-dback{align-self:center;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;background:none;border:0;padding:4px 10px;color:${T.onDarkDim};font-family:${FONT_UI};font-size:12.5px;font-weight:500;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
 .trp-dback:hover{color:${GOLD};}
 /* ZLATÝ, NIE FIALOVÝ (Matej 2026-08-24). Fialová je na tejto obrazovke jazyk POKYNOV
    („toto máš spraviť"), zlatá je jazyk POSTUPU a odmeny — a toto je jediný prúžok, ktorý
