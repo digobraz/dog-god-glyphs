@@ -394,6 +394,9 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
   padding: 12px 16px; border-radius: ${HF.bubble.radius}px;
   background: var(--brand-gradient); text-align: left;
 }
+/* Veľmi nízke okno: bublina ustúpi výplňou pre VŠETKY kroky naraz — je to úvod
+   k doske, nie odpoveď, takže sa zmenšuje pred obsahom, do ktorého sa ťuká. */
+@media (max-height: 640px) { .hf-speak { padding: 8px 12px; gap: 10px; } }
 .hf-speak .say { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .hf-speak h2 {
   margin: 0; font-family: 'Cinzel', serif; font-weight: 700;
@@ -975,8 +978,19 @@ export const FLOW_GLYPH_CSS = `
    dá zmenšiť bez straty funkcie — ostatné sú polia a tlačidlá, do ktorých sa
    ťuká. Pod ~190 px prestanú byť symboly v malých slotoch čitateľné, takže toto
    je dno; keby sa obsah ešte nafúkol, ustúpi on. */
+/* 🔴 TRI STUPNE PODĽA VÝŠKY OKNA, nie dva. Merané 25. 9.: pri 356 px mala
+   obrazovka na okne vysokom 724 px pod doskou len 13 px — teda MENEJ než
+   PAGE_AIR (24), takže si obsah bral rezervu od okraja. Matej to videl ako
+   rozdiel oproti dielni, ktorá rámu dáva 1280×860 a tam sa to nestane.
+   ⚠️ Je to stupnica podľa OKNA, nie podľa obrazovky — lock hovorí, že rám je
+      na všetkých krokoch TOTOŽNÝ, nie že je všade rovnako veľký ako na 4K. */
+@media (max-height: 820px) { .hf-glyph { --flow-glyph-w: min(300px, 100%); } }
 @media (max-height: 700px) { .hf-glyph { --flow-glyph-w: min(260px, 100%); } }
 @media (max-width: 559px) and (max-height: 700px) { .hf-glyph { --flow-glyph-w: min(230px, 100%); } }
+/* Posledný stupeň — veľmi nízke okno (malý notebook s viacerými lištami).
+   Pod ním sa už rám nezmenšuje: 200 px je hranica čitateľnosti malých slotov
+   a obsah pod ňou radšej roluje, než by sa heroglyf stal škvrnou. */
+@media (max-height: 640px) { .hf-glyph { --flow-glyph-w: min(200px, 100%); } }
 `;
 
 export const FLOW_CARVE_CSS = `

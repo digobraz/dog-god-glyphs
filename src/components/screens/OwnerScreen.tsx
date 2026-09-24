@@ -54,10 +54,10 @@ import { ZodiacSheet } from '@/components/screens/zodiacSheet';
 //    znamení a čínsky z kolieska rokov — dva vstupy pre vec, ktorú dátum
 //    narodenia určuje presne. Odteraz je to jeden dátum a obe znamenia sa
 //    dopočítajú (`getWesternZodiac`, `getChineseZodiac`) a hneď pristanú v ráme.
-//    ⚠️ Dátum sa DRŽÍ MIMO STORE (`sessionStorage`, viď `BD_KEY`) — do DB ide
-//       len znamenie. Bez jeho uloženia by sa pri návrate na krok nedal
-//       obnoviť: zo znamenia sa deň ani rok spätne odvodiť nedá (čínsky cyklus
-//       má 12 rokov, západné znamenie pokrýva ~30 dní).
+//    ⚠️ Dátum sa UKLADÁ (`selections.ownerBirthday`) a ide aj do DB — Matej
+//       25. 9.: *„kto chce nam ho da je to dobre vedieť"*. Bez uloženia by sa
+//       pri návrate na krok nedal obnoviť: zo znamenia sa deň ani rok spätne
+//       odvodiť nedá (čínsky cyklus má 12 rokov, znamenie pokrýva ~30 dní).
 //    ⚠️ Do heroglyfu ide ďalej LEN znamenie — `ownerZodiac` a
 //       `ownerChineseZodiac` sú tie isté kľúče, aké písala stará obrazovka,
 //       takže kód heroglyfu, certifikát ani `/welcome` o zmene nevedia.
@@ -78,21 +78,27 @@ import { ZodiacSheet } from '@/components/screens/zodiacSheet';
 const MIN_YEAR = 1930;
 
 /**
- * 🔴 DÁTUM NARODENIA ŽIJE MIMO `selections` — A JE TO BEZPEČNOSTNÉ ROZHODNUTIE.
+ * 🔴 DÁTUM NARODENIA SA UKLADÁ — A TEXT POD ZNAČKAMI TO NEPOPIERA.
  *
- * `PaymentScreen.tsx:133` posiela CELÝ objekt `selections` do `create-checkout`,
- * odkiaľ sa ukladá do DB. Čokoľvek, čo doň zapíšem, teda opustí prehliadač.
- * Dátum narodenia človeka pritom nepotrebujeme nikde: do heroglyfu ide IBA
- * znamenie (`ownerZodiac`, `ownerChineseZodiac`, pozície 10 a 11 kódu).
+ * Matej 25. 9. 2026: *„nepis ze ho neukladame, kto chce nam ho da je to dobre
+ * vedieť"* + *„vieme posielať vinše a darčeky"*. Dátum teda NIE JE odpad po
+ * výpočte znamenia — je to dôvod, prečo vieme človeku v jeho deň napísať.
+ * Kto ho dá, dá nám ho vedome; kto nechce, má odkaz „nechcem uviesť" a vyberie
+ * si rovno znamenie. Obe cesty sú v poriadku, len sa o nich nesmie klamať.
  *
- * Preto sa dátum drží v `sessionStorage` — obrazovka si ho pri návrate na krok
- * prečíta, ale do platby ani do DB sa nedostane. Vďaka tomu je veta pod
- * značkami („použijeme ho na výpočet, neukladáme ho") PRAVDIVÁ aj na bežnej
- * ceste, nielen pri odkaze „nechcem uviesť".
- * ⚠️ Kto sem dátum vráti do `selections`, musí zároveň prepísať tú vetu —
- *    inak appka o osobných údajoch klame.
+ * 🚩 V texte stojí IBA vinš, nie darček. Vinš vieme poslať hneď (dátum máme),
+ *    darček je sľub, ktorý zatiaľ nič nekryje — a sľubovať v appke to, čo nie
+ *    je postavené, je presne to, čo sa potom nedá dodržať. Keď darčeky vzniknú,
+ *    patrí to do tejto vety.
+ *
+ * ⚠️ `PaymentScreen.tsx:133` posiela CELÝ objekt `selections` do
+ *    `create-checkout`, odkiaľ ide do DB — dátum teda prehliadač OPÚŠŤA. Preto
+ *    v texte pod značkami nesmie stáť „neukladáme ho": jedna veta navyše by
+ *    z pravdivého vysvetlenia urobila nepravdivé tvrdenie o osobných údajoch.
+ *    (Napísal som ju tam a vrátil — overenie cesty dát ju vyvrátilo.)
+ * ⚠️ Do heroglyfu ide tak či tak IBA znamenie (pozície 10 a 11 kódu); dátum je
+ *    údaj navyše, nie podmienka.
  */
-const BD_KEY = 'dogypt-owner-bd';
 
 /** Dve voľby pohlavia. Kresby sú z tej istej sady, akú kreslí rám (`genderMap`). */
 const GENDERS = [{ v: 'man' }, { v: 'woman' }] as const;
@@ -113,9 +119,7 @@ export function OwnerScreen() {
 
   const [input, setInput] = useState(ownerName || '');
   const gender = selections.ownerGender || '';
-  const [birthday, setBirthday] = useState(() => {
-    try { return sessionStorage.getItem(BD_KEY) || ''; } catch { return ''; }
-  });
+  const birthday = selections.ownerBirthday || '';
 
   // Pole mena: na dotykovej obrazovke modal (iOS otvorí klávesnicu len na už
   // pripojenom vstupe), na myši priame písanie do poľa. Ten istý rozsudok ako
@@ -179,10 +183,7 @@ export function OwnerScreen() {
   const chinese = chinName ? { name: chinName } : null;
 
   const pickDate = (d: number, m: number, y: number) => {
-    const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    setBirthday(iso);
-    // Mimo store (viď `BD_KEY`): do DB ide znamenie, nie dátum.
-    try { sessionStorage.setItem(BD_KEY, iso); } catch { /* súkromné okno */ }
+    setSelection('ownerBirthday', `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`);
     // Obe znamenia sú ODVODENÉ, ale do store idú ako hodnota — heroglyf,
     // certifikát aj `/welcome` čítajú `ownerZodiac` / `ownerChineseZodiac`
     // a o dátume nevedia nič.
@@ -198,11 +199,10 @@ export function OwnerScreen() {
    * čínskeho zvieraťa a do store ide už len jeho výsledok.
    */
   const pickSigns = (sign: string, year: number) => {
-    // Kto znamenie vyberie ručne, dátum už nedal — a ten, ktorý prípadne zadal
-    // predtým, sa zahadzuje. Inak by v pamäti ostal údaj, o ktorom si človek
+    // Kto znamenie vyberie ručne, dátum nedal — a ten, ktorý prípadne zadal
+    // predtým, sa zahadzuje. Inak by v store ostal údaj, o ktorom si človek
     // myslí, že ho odvolal.
-    setBirthday('');
-    try { sessionStorage.removeItem(BD_KEY); } catch { /* súkromné okno */ }
+    setSelection('ownerBirthday', '');
     setSelection('ownerZodiac', sign);
     setSelection('ownerChineseZodiac', getChineseZodiac(year).name);
     setSheet(false);
@@ -572,30 +572,23 @@ const OWNER_CSS = `
 /* 🔴 KRÁTKE OKNO — a MUSÍ to stáť AŽ TU. Obe podmienky majú rovnakú
    špecificitu, takže rozhoduje poradie (tá istá pasca, čo 24. 9. zožrala
    zmenšenie siluet na PATRÓNOVI). */
+/* ── 🔴 NÍZKE OKNO — a je jedno, či je to telefón, alebo Matejov notebook ─────
+   Pravidlá tu stáli pôvodne len pre iPhone SE (max-width 559 AND max-height 700)
+   a nízke ŠIROKÉ okno tým vypadlo — pritom je na ňom MAJITEĽ rovnako tesný:
+   merané 25. 9. na 1477×660 mu pod doskou ostal 1 px. Rozhoduje VÝŠKA, nie šírka.
+   🔑 Ustupuje OBSAH, nie rezerva od okraja (lock PAGE_AIR): výplň dosky,
+      rozstupy, výška dlaždíc a náhľadov. Rám má vlastnú stupnicu vo
+      FLOW_GLYPH_CSS a tá je spoločná pre celý vstup. */
 @media (max-height: 700px) {
-  .ow-stack .hf-plate { gap: 6px; }
+  .ow-stack .hf-plate { padding: 14px 16px; gap: 5px; }
   .ow-stack .hf-cta { height: 36px; }
   .ow-speak { margin-bottom: 4px; }
-  .ow-gender { height: 46px; }
-}
-@media (max-width: 559px) and (max-height: 700px) {
-  /* ⚠️ 66 %, nie 78 (merané 25. 9. na 375×667: doska pretekala o 5 px). Pribudlo
-     VYSVETLENIE pod značkami — na 375 px sa zalomí na dva riadky, teda +16 px.
-     Ustupuje rám, nie rezerva od okraja (lock PAGE_AIR). */
   /* Plocha vysvetlenia počíta s dvoma riadkami, aby doska pri zadaní dátumu
      (keď ho vystrieda jednoriadkové meno znamenia) nepodskočila. */
   .ow-said { min-height: 32px; }
-  /* Ešte 12 px z prvkov, nie z rámu: pod 66 % by symboly v malých slotoch
-     splynuli (tá istá hranica, akú má PATRÓN). So 4 px rezervy by obrazovku
-     pretiekol hocijaký dlhší preklad. */
   .ow-order { min-height: 30px; }
   .ow-mark { width: 36px; height: 36px; }
   .ow-mark img { width: 24px; height: 24px; }
-  /* 🔒 RÁM SA UŽ NEZMENŠUJE (lock \`FLOW_GLYPH_CSS\`), takže na najkratšom okne
-     ustupuje všetko ostatné: výplň dosky, rozstupy a výška dlaždíc pohlavia.
-     MAJITEĽ je najplnšia obrazovka vstupu — nesie štyri odpovede — a práve on
-     to číslo pre celý vstup vymedzuje. */
-  .ow-stack .hf-plate { padding: 14px 16px; gap: 5px; }
   .ow-gender { height: 42px; }
   .ow-gender .well { width: 34px; height: 34px; }
   .ow-gender .well img { width: 28px; height: 28px; }

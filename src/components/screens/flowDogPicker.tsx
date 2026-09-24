@@ -129,10 +129,21 @@ export const FLOW_DOG_CSS = `
 .fdh-row .fdh-switch { grid-column: 4; justify-self: end; flex: 0 0 auto; }
 /* Pri dlhom mene ustúpi PÍSMO, nie posledné písmená — ellipsis v mene psa je
    to najhoršie, čo môže na tejto obrazovke stáť. */
-@media (max-width: 420px) { .fdh-row .fdh-name { font-size: 17px; } }
+@media (max-width: 420px) { .fdh-row .fdh-name { font-size: 15px; } }
+/* Nízke okno (Matejovo PC aj iPhone SE): riadok ustúpi ešte o kúsok — je to
+   hlavička, nie ovládací prvok, takže sa zmenšuje ako prvý. */
+@media (max-height: 820px) {
+  .fdh-photo { width: 36px; height: 36px; }
+  .fdh-row .fdh-name { font-size: 15px; }
+  .fdh-arrow { width: 30px; height: 30px; font-size: 16px; }
+}
 
+/* ⚠️ 40 px, nie 48 (Matej 25. 9.: *„kludne zmenši na pc foto konkretneho psa aj
+   meno je celkom velke može to pomoct"*). Riadok stojí na štyroch obrazovkách,
+   takže každý ušetrený pixel sa počíta štyrikrát — a práve výška bola dôvod,
+   prečo obsah na jeho okne nemal okraje. */
 .fdh-photo {
-  width: 48px; height: 48px; border-radius: 999px; object-fit: cover; flex: none;
+  width: 40px; height: 40px; border-radius: 999px; object-fit: cover; flex: none;
   display: grid; place-items: center;
   /* Vlások, nie obruč: fotka má byť FOTKA. Cloisonné rám ostáva Hektorovi, aby
      bolo na prvý pohľad jasné, kto sa pýta a kto je tvoj pes. */
@@ -147,7 +158,7 @@ export const FLOW_DOG_CSS = `
 .fdh-name {
   display: inline-flex; align-items: center; gap: 6px;
   font-family: 'Cinzel Decorative', 'Cinzel', serif; font-weight: 700;
-  font-size: 19px; letter-spacing: 0.04em; line-height: 1.1;
+  font-size: 17px; letter-spacing: 0.04em; line-height: 1.1;
   color: rgba(35, 22, 8, 0.90); text-shadow: 0 1px 0 rgba(255, 252, 240, 0.70);
   text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
