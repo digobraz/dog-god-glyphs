@@ -16,6 +16,7 @@ import { countryFlag } from '@/lib/countryGeo';
 import { NEW_HEROFLOW } from '@/lib/flowMode';
 import { hekthorFace } from '@/lib/hekthorFaces';
 import { FlowMedallion } from '@/components/screens/flowMedallion';
+import { FLOW_STAGE_CSS } from '@/components/screens/flowPaleSkin';
 import { PACK_BOX } from '@/components/pack/packTheme';
 
 // Android keyboards (Gboard/Samsung) ignore autoCorrect/autoComplete="off" and may
@@ -412,6 +413,10 @@ export function NameScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
+      {/* Javisko a jeho vzduch (`FLOW_AIR`) sú spoločné pre celý vstup. Táto
+          obrazovka je v TMAVOM šate, takže `FLOW_PALE_CSS` nevkladá — pravidlo
+          o rezerve nad a pod obsahom si preto donesie samostatne. */}
+      <style>{FLOW_STAGE_CSS}</style>
       {/* Späť: v novom vstupe je za nami popup na stene, nie Intro (to je len
           redirect na fotku, takže by šípka skončila v kruhu). */}
       {/* 🔴 POČAS PRÍCHODU NIE JE HORNÁ LIŠTA — ani logo, ani šípka, ani vlajka
@@ -460,7 +465,7 @@ export function NameScreen() {
           hneď prvý krok písmo je moc veľké na PC!"*
           ⚠️ Ostatné obrazovky nového vstupu (`dogs`, `email`) rolovací obal majú;
              táto bola jediná bez neho. */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3 overflow-y-auto">
+      <div className="hf-stage">
         {/* ⚠️ Bublina sa NEROZŤAHUJE na celú výšku (Matej 23. 9.: „nemusí byť cez
             cely displaj, centruj ten blok na stred normalne"). Stĺpec má preto
             obsahovú výšku v oboch fázach a na stred ho dáva `justify-center`

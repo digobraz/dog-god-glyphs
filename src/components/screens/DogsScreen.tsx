@@ -369,7 +369,7 @@ export function DogsScreen() {
         style={{ display: 'none' }}
       />
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3 overflow-y-auto">
+      <div className="hf-stage">
         <div className="w-full max-w-xl flex flex-col items-center">
 
           {/* BUBLINA NA ŠÍRKU — fotka vľavo, text vpravo (Matej 23. 9.). */}

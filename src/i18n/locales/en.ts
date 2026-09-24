@@ -233,10 +233,10 @@ export const en = {
   // ── /heroglyph flow — nové kroky z prestavby vstupu (28. 8. 2026) ──
   'heroglyph.flow.photo.skip': "I'll add a photo later",
   'heroglyph.flow.name.uniqueLine': 'Thousands of dogs share that name. None of them will share the symbol.',
-  'heroglyph.flow.email.title': 'Where should we send it?',
+  'heroglyph.flow.email.title': 'Where do we send it?',
   // Veta rastie s počtom psov (31. 8. 2026) — `{minutes}` je `počet psov + 2`.
-  'heroglyph.flow.email.reasonOne': "Building the heroglyph for {names} takes about {minutes} {minuteWord}. Leave your e-mail so the design doesn't get lost — we'll send you the finished one.",
-  'heroglyph.flow.email.reasonMany': "Building the heroglyphs for {names} takes about {minutes} {minuteWord}. Leave your e-mail so the designs don't get lost — we'll send you the finished ones.",
+  'heroglyph.flow.email.reasonOne': "Building the heroglyph for {names} takes about {minutes} {minuteWord}. Leave your e-mail so the design isn't lost if something interrupts you.",
+  'heroglyph.flow.email.reasonMany': "Building the heroglyphs for {names} takes about {minutes} {minuteWord}. Leave your e-mail so the designs aren't lost if something interrupts you.",
   'heroglyph.flow.email.minFew': 'minutes',
   'heroglyph.flow.email.minMany': 'minutes',
   'heroglyph.flow.email.and': 'and',

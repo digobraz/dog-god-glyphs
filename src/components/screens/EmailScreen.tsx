@@ -11,6 +11,7 @@ import { saveCheckoutDraft, EMAIL_RE } from '@/lib/checkoutDraft';
 import { track, identifyUser } from '@/lib/analytics';
 import { FLOW_PALE_CSS } from './flowPaleSkin';
 import { hekthorFace } from '@/lib/hekthorFaces';
+import { FlowMedallion, FLOW_MEDAL_CSS } from './flowMedallion';
 
 // ── /heroglyph/email — nepovinný e-mail hneď za menom.
 //
@@ -27,6 +28,19 @@ import { hekthorFace } from '@/lib/hekthorFaces';
 // ⚠️ ŠAT: prvá obrazovka vstupu v BLEDOM šate (Matej 28. 8., objekt `HF` z LABu).
 // Rozmery ani farby sa tu nepíšu — všetko je v `flowPaleSkin.ts`. Susedné kroky
 // sú zatiaľ čierne; preklápajú sa postupne, mail je prvý.
+/** Rozmer odvodený z OKNA (nie z vykresleného prvku) — prepočíta sa pri resize. */
+function useWinSize(f: (w: number, h: number) => number) {
+  const calc = () => (typeof window === 'undefined' ? f(1280, 900) : f(window.innerWidth, window.innerHeight));
+  const [v, setV] = useState(calc);
+  useEffect(() => {
+    const on = () => setV(calc());
+    window.addEventListener('resize', on);
+    return () => window.removeEventListener('resize', on);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return v;
+}
+
 export function EmailScreen() {
   useFlowKeyboardFix();
   // Bez mena psa je tento krok bezcenný: draft sa neuloží a texty ukazujú „tvojho psa“.
@@ -92,17 +106,29 @@ export function EmailScreen() {
   // SK: 3–4 „minúty", 5+ „minút". EN má jeden tvar, kľúče sú tam zhodné.
   const minuteWord = t(minutes >= 5 ? 'heroglyph.flow.email.minMany' : 'heroglyph.flow.email.minFew');
 
+  // ── PRIEMER MEDAILÓNU (24. 9. 2026) ────────────────────────────────────────
+  // Matej: *„tu musí byť čo najväčšie Hektorova fotka"* + *„pridaj obruč,
+  // veľkosť potom doladíme"*.
+  // 🔴 Obruč berie 8 % priemeru na KAŽDEJ strane, takže samotná fotka je 84 %
+  //    z tohto čísla — 260 znamená psa 218 px. Preto je strop vyšší než tých
+  //    200/240, ktoré mala fotka bez rámu.
+  // Rovnica, nie pevné číslo: menšia z polovice šírky a tretiny výšky okna.
+  // Na 1280×900 vyjde strop 260, na 390×740 dvestoštrnásť, na nízkom okne klesne sama.
+  const medallion = useWinSize(
+    (w, h) => Math.round(Math.max(160, Math.min(260, Math.min(w * 0.55, h * 0.30)))),
+  );
+
   if (!flowOk) return null;
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
         <PageTopBar onBack={() => navigate('/heroglyph/dogs')} />
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3 overflow-y-auto">
+      <div className="hf-stage">
         <div className="w-full max-w-xl flex flex-col items-center">
 
           <motion.div
@@ -114,8 +140,12 @@ export function EmailScreen() {
             {/* ⚠️ KSICHT PODĽA KROKU, nie jedna fotka pre celý vstup. Do 24. 9.
                 2026 tu bol import `assets/hekthor.png`, takže táto obrazovka ako
                 jediná obchádzala sadu `hekthorFaces` — a Matejov výber ksichtu
-                sa jej nemohol dotknúť. */}
-            <img src={hekthorFace('email')} alt="HEKTHOR" className="hf-hek" />
+                sa jej nemohol dotknúť.
+                🔁 A od 24. 9. má aj OBRUČ — ten istý odliatok ako kroky mena
+                a svorky (Matej: *„prečo nemá okolo fotky obruč ako na prvých
+                dvoch?"*). Bol to holý `<img class="hf-hek">`, jediný ksicht vo
+                vstupe bez rámu; veľkosť sa ešte bude ladiť. */}
+            <FlowMedallion src={hekthorFace('email')} size={medallion} className="hf-medal" />
             <h2>{t('heroglyph.flow.email.title')}</h2>
             <p>{t(manyDogs ? 'heroglyph.flow.email.reasonMany' : 'heroglyph.flow.email.reasonOne', {
               names: nameList,

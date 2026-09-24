@@ -37,17 +37,12 @@ import { goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/
 
 /** Rozmery z objektu `HF`. Ladí sa TU, nie v obrazovkách. */
 export const HF = {
-  // ⚠️ 144 bolo z LABu; Matej 28. 8.: „foto hektora je enormne veľká" ⇒ 96 na mobile,
-  //    112 od 768 px. Je to JEDNO číslo pre celý vstup — obrazovky si veľkosť nepíšu samy.
-  //
-  // 🔄 24. 9. 2026 SA TO OTOČILO: *„tu musí byť čo najväčšie Hektorova fotka"* (krok
-  //    e-mailu). Zvislú bublinu dnes nesie JEDINÁ obrazovka — `EmailScreen` — a tá má
-  //    pod bublinou len pole, CTA a preskočenie, teda najviac voľného miesta z celého
-  //    vstupu. 200 / 240 px je strop, pri ktorom ostane pod obsahom rezerva aj na
-  //    390×740 (premerané); nad ním začne fotka tlačiť CTA pod ohyb.
-  //    ⚠️ 240 px je zároveň strop OSTROSTI — kruh v origináli meria 400 px, takže na
-  //    retine (×2) už väčšie číslo len dopočítava pixely.
-  bubble: { hek: 200, hekMd: 240, radius: 16, pad: 20, title: 17 },
+  // ⚠️ `hek`/`hekMd` (96/112, potom 200/240) tu 24. 9. 2026 ZANIKLI aj s pravidlom
+  //    `.hf-hek`. Ksicht v bubline už nie je holý `<img>`, ale `FlowMedallion`
+  //    s obručou (Matej: *„prečo nemá okolo fotky obruč ako na prvých dvoch?"*)
+  //    a priemer si počíta `EmailScreen` z okna — obruč je súčasť čísla, takže
+  //    spoločný token by klamal o veľkosti samotnej fotky.
+  bubble: { radius: 16, pad: 20, title: 17 },
   // ⚠️ Matej 31. 8.: *„pri /name sú horizontálne veľké CTA a text area = malý priestor
   //    medzi okrajom bloku a obsahom, trošku to prevzdušnime"*. Doska mala 14 px na
   //    všetky strany a 10 px medzi prvkami — pole aj tlačidlo sa lepili na zlatý rám.
@@ -104,7 +99,45 @@ export const FLOW_WALL_VEIL = `
     ${LAB.pageVeil};
 `;
 
-export const FLOW_PALE_CSS = `
+// ════════════════════════════════════════════════════════════════════════════
+// VZDUCH NAD A POD OBSAHOM — LOCK (24. 9. 2026)
+// ────────────────────────────────────────────────────────────────────────────
+// Matej: *„teraz celý obsah klesol až pod úroveň okraja! stanov a lockni
+// minimálny priestor nad a pod obsahom na všetkých zariadeniach!"*
+//
+// 🔴 `justify-center` + `overflow-y-auto` JE PASCA, nie štýl. Kým sa obsah
+//    zmestí, centrovanie funguje; keď prerastie, prehliadač ROZDELÍ pretečenie
+//    na obe strany — a časť NAD hornou hranou sa **nedá odrolovať** (scroll
+//    nevie ísť do záporu). Vyzerá to, že obsah „klesol pod okraj".
+//    Riešenie je `margin: auto` na dieťati: centruje rovnako, ale pri
+//    nedostatku miesta sa zmenší na nulu a odsadenie obalu ostane celé.
+//
+// 🔒 JEDNO ČÍSLO PRE CELÝ VSTUP. `FLOW_AIR` nie je „padding tejto obrazovky" —
+//    je to minimálna rezerva, pod ktorú nesmie klesnúť ŽIADNY krok na žiadnej
+//    šírke. Kto potrebuje viac vzduchu, pridáva si ho DNU, nie znížením tohto.
+const FLOW_AIR = { min: 16, md: 24, side: 16 } as const;
+
+/** Javisko kroku: roluje, centruje bez odrezania, drží `FLOW_AIR`.
+ *  Vkladá ho každá obrazovka vstupu — aj tá v tmavom šate (`NameScreen`),
+ *  ktorá `FLOW_PALE_CSS` nemá. */
+export const FLOW_STAGE_CSS = `
+.hf-stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: ${FLOW_AIR.min}px ${FLOW_AIR.side}px;
+}
+@media (min-width: 768px) {
+  .hf-stage { padding-top: ${FLOW_AIR.md}px; padding-bottom: ${FLOW_AIR.md}px; }
+}
+/* 🔴 TOTO nahrádza \`justify-content: center\` — viď pascu vyššie. */
+.hf-stage > * { margin-top: auto; margin-bottom: auto; }
+`;
+
+export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
 .hf-pale {
   position: relative;
   background: ${LAB.pageBg};
@@ -196,20 +229,6 @@ export const FLOW_PALE_CSS = `
   font-size: ${BUBBLE_SUB}px;
   line-height: 1.5;
   color: rgba(250, 244, 236, 0.72);
-}
-/* 🔴 KRUH SA OREZÁVA CSS-kom, nie v súbore. Ksichty v sade sú ŠTVORCE s BIELYMI
-   rohmi (kruh je do nich presne vpísaný — 400 z 400 px). Kým bola fotka 96 px,
-   bolo to jedno; pri 200 px na tmavej bubline svietil okolo psa biely štvorec.
-   ⚠️ \`border-radius\` tu drží len preto, že kruh je v origináli presne vpísaný —
-      pri inom oreze by odrezal psa. Zdroj: \`vstupy/vizualna-identita/ksichty heky flow/\`. */
-.hf-hek {
-  width: ${HF.bubble.hek}px;
-  height: ${HF.bubble.hek}px;
-  object-fit: contain;
-  border-radius: 50%;
-}
-@media (min-width: 768px) {
-  .hf-hek { width: ${HF.bubble.hekMd}px; height: ${HF.bubble.hekMd}px; }
 }
 
 /* ── ZLATÝ BLOK ───────────────────────────────────────────────────────── */

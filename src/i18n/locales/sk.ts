@@ -175,9 +175,9 @@ export const sk: Partial<Dict> = {
   // ── /heroglyph flow — nové kroky z prestavby vstupu (28. 8. 2026) ──
   'heroglyph.flow.photo.skip': 'Fotku pridám neskôr',
   'heroglyph.flow.name.uniqueLine': 'To meno nosia tisíce psov. Symbol už žiadny z nich mať nebude.',
-  'heroglyph.flow.email.title': 'Kam ti to máme poslať?',
-  'heroglyph.flow.email.reasonOne': 'Tvorba heroglyfu pre psa {names} trvá zhruba {minutes} {minuteWord}. Zanechaj nám e-mail, nech sa ti dizajn nestratí — hotový ti ho pošleme.',
-  'heroglyph.flow.email.reasonMany': 'Tvorba heroglyfov pre psov {names} trvá zhruba {minutes} {minuteWord}. Zanechaj nám e-mail, nech sa ti dizajny nestratia — hotové ti ich pošleme.',
+  'heroglyph.flow.email.title': 'Kam ti to pošleme?',
+  'heroglyph.flow.email.reasonOne': 'Tvorba heroglyfu pre psa {names} trvá zhruba {minutes} {minuteWord}. Zanechaj nám e-mail, nech sa ti dizajn nestratí, ak by ťa niečo vyrušilo.',
+  'heroglyph.flow.email.reasonMany': 'Tvorba heroglyfov pre psov {names} trvá zhruba {minutes} {minuteWord}. Zanechaj nám e-mail, nech sa ti dizajny nestratia, ak by ťa niečo vyrušilo.',
   'heroglyph.flow.email.minFew': 'minúty',
   'heroglyph.flow.email.minMany': 'minút',
   'heroglyph.flow.email.and': 'a',
