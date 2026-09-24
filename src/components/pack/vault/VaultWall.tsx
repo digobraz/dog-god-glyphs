@@ -459,26 +459,42 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
 
 /* ── MOJE PRÍSPEVKY ────────────────────────────────────────────────────────
    Ten istý zoznam, aký nesie chat (DEMO_PENDING). Stav je TINT + LEM. */
-.akw-my{display:flex;gap:${PACK_SPACE.md}px;align-items:flex-start;padding:${PACK_SPACE.md}px;
-  border-radius:${PACK_R.frame}px;border:1px solid ${AINUBIS.edge};background:rgba(3,7,12,0.35);}
-.akw-kind{flex:0 0 auto;min-width:76px;text-align:center;
-  padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
-  border:1px solid ${AINUBIS.edge};color:${AINUBIS.inkFaint};
-  font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;line-height:1.4;
-  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;}
-.akw-mytx{min-width:0;flex:1 1 auto;}
-.akw-my b{display:block;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.body}px;line-height:1.35;
-  color:${AINUBIS.ink};}
-.akw-my em{font-style:normal;display:block;margin-top:${PACK_SPACE.xs}px;font-size:${PACK_TEXT.label}px;
-  line-height:1.45;color:${AINUBIS.inkFaint};}
-.akw-myst{flex:0 0 auto;text-align:right;}
-.akw-myst u{display:block;text-decoration:none;font-family:${FONT_UI};font-weight:600;
-  font-size:${PACK_TEXT.micro}px;line-height:1.6;letter-spacing:${PACK_HEAD.card.letterSpacing};
-  text-transform:uppercase;color:${AINUBIS.ctaA};}
-.akw-myst u.is-ok{color:${AINUBIS.ok};}
-.akw-myst u.is-no{color:${AINUBIS.danger};}
-.akw-myst i{font-style:normal;display:block;margin-top:${PACK_SPACE.xs}px;font-size:${PACK_TEXT.micro}px;
+/* ══ MOJE PRÍSPEVKY (prerobené 24. 9. 2026) ═══════════════════════════════
+   Matej: „mám pocit že my post si nijak nespracoval vizuálne". Mal pravdu —
+   ostal tu rad plochých riadkov a nad nimi vysvetlivka pre nás, teda presne to
+   dvoje, čo na nástenke aj v knižnici už zaniklo.
+   🔴 STAV NESIE FARBU CELEJ KARTY cez --ai-w: čaká = jeho zlatá · v mozgu =
+   zelená · zamietnuté = červená. Je to jediná vec, ktorú na tejto obrazovke
+   človek naozaj hľadá („čo sa s tým stalo?"), takže ju má niesť materiál,
+   nie drobné písmeno vpravo. */
+.akw-mine{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:${PACK_SPACE.md}px;}
+@media (max-width:720px){.akw-mine{grid-template-columns:minmax(0,1fr);}}
+/* Súčet hore — tri čísla namiesto odseku. */
+.akw-tally{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.xl}px;margin-bottom:${PACK_SPACE.lg}px;
+  font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;line-height:1.4;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
+.akw-tally s{text-decoration:none;display:inline-flex;align-items:baseline;gap:${PACK_SPACE.sm}px;}
+.akw-tally b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;line-height:1;
+  letter-spacing:0;color:${AINUBIS.ink};}
+.akw-my{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;
+  padding:${PACK_SPACE.lg}px;border-radius:${PACK_R.card}px;${AI_GLASS}}
+.akw-myhd{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;}
+.akw-kind{flex:0 0 auto;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
+  border:1px solid ${AINUBIS.edge};font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;
+  line-height:1.4;letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkDim};}
+/* Stav je TINT + LEM, nikdy plná plocha — tá patrí jedinému CTA. */
+.akw-myst{margin-left:auto;flex:0 0 auto;display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;
+  padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
+  font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;line-height:1.4;
+  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;
+  border:1px solid ${AINUBIS.ctaEdge};background:${AINUBIS.ctaTint};color:${AINUBIS.ctaA};}
+.akw-myst.is-ok{border-color:${AINUBIS.okEdge};background:${AINUBIS.okTint};color:${AINUBIS.ok};}
+.akw-myst.is-no{border-color:${AINUBIS.dangerEdge};background:${AINUBIS.dangerTint};color:${AINUBIS.danger};}
+.akw-my b{font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.body}px;line-height:1.4;color:${AINUBIS.ink};}
+.akw-my em{font-style:normal;font-size:${PACK_TEXT.label}px;line-height:1.5;color:${AINUBIS.inkFaint};}
+.akw-my i{font-style:normal;margin-top:auto;padding-top:${PACK_SPACE.sm}px;
+  font-size:${PACK_TEXT.micro}px;line-height:1.4;letter-spacing:${PACK_HEAD.card.letterSpacing};
+  text-transform:uppercase;color:${AINUBIS.inkFaint};}
 
 /* ── KNIŽNICA ──────────────────────────────────────────────────────────────
    Klauzula stojí HORE a nie je to drobné písmo v päte: je to prvá veta, ktorú
@@ -517,9 +533,16 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
 .akw-howsheet p b{color:${AINUBIS.cyan};font-weight:500;}
 .akw-howsheet .akw-leg{margin-top:${PACK_SPACE.md}px;padding-top:${PACK_SPACE.md}px;
   border-top:1px solid ${AINUBIS.edge};}
-/* Kniha má CHRBÁT — polica sa dá čítať okom skôr než názvom. */
-.akw-books{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));
-  gap:${PACK_SPACE.md}px;}
+/* 🔴 VŠETKY POLICE MAJÚ TEN ISTÝ TVAR — DVA STĹPCE (Matej 24. 9. 2026:
+   „všetky sekcie musia mať ten istý look = šírka ako je teraz books ale len
+   2 stlpce aj pri videách").
+   Predtým tu stálo auto-fill minmax(300px): počet stĺpcov si každá polica
+   vyrátala sama podľa toho, koľko kariet má — knihy vyšli na tri, publikácie
+   na dve a polica vyzerala ako tri rôzne obrazovky pod sebou.
+   Pevné DVA sú to, čo z nich robí jeden zoznam.
+   Kniha má CHRBÁT — polica sa dá čítať okom skôr než názvom. */
+.akw-books{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:${PACK_SPACE.md}px;}
+@media (max-width:720px){.akw-books{grid-template-columns:minmax(0,1fr);}}
 .akw-spine{width:34px;flex:0 0 34px;align-self:stretch;min-height:64px;border-radius:${PACK_R.tile}px;
   ${AI_SPINE}}
 .akw-src.is-pending .akw-spine{background:repeating-linear-gradient(135deg,
@@ -537,6 +560,8 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
   font-size:${PACK_TEXT.micro}px;line-height:1;letter-spacing:${PACK_HEAD.label.letterSpacing};
   text-transform:uppercase;color:${AINUBIS.inkFaint};}
 .akw-grp:first-of-type{margin-top:0;}
+/* Nadpis kroku nesie šípku späť — z pridávania sa musí dať vyjsť tam, odkiaľ prišiel. */
+.akw-grp--back{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
 .akw-gempty{font-size:${PACK_TEXT.label}px;line-height:1.5;color:${AINUBIS.inkFaint};
   padding:${PACK_SPACE.sm}px 0;}
 /* LEGENDA PRUHU — bez nej je trojfarebná čiara ozdoba. Stojí RAZ, nad zoznamom. */
@@ -611,8 +636,9 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
   color:${AINUBIS.inkFaint};}
 .akw-none p{margin:${PACK_SPACE.xs}px 0 0;font-size:${PACK_TEXT.label}px;line-height:1.45;}
 /* PONUKA DRUHOV ZDROJA — otvorí ju zlaté CTA. */
-.akw-kinds{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;margin-bottom:${PACK_SPACE.lg}px;}
-.akw-kbtn{display:flex;flex-direction:column;gap:2px;align-items:flex-start;cursor:pointer;
+.akw-kinds{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:${PACK_SPACE.md}px;}
+@media (max-width:720px){.akw-kinds{grid-template-columns:minmax(0,1fr);}}
+.akw-kbtn{display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;align-items:flex-start;cursor:pointer;
   padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;
   border:1px solid ${AINUBIS.edge};background:${AINUBIS.raised};color:${AINUBIS.inkDim};text-align:left;}
 .akw-kbtn:hover{border-color:${AINUBIS.edgeStrong};}
@@ -671,6 +697,17 @@ const clash = (p: WallPost) => p.replies.some((r) => r.seal === 'differs');
 const haystack = (p: WallPost) => [
   p.who, p.dog, p.text, p.short ?? '', p.tags.join(' '), worldOf(p.world)?.en ?? '',
 ].join(' ').toLowerCase();
+
+/** Stav príspevku nesie farbu CELEJ karty. Odtiene sú AINUBISOVE, nie nové:
+ *  čaká = jeho zlatá · v mozgu = ok · zamietnuté = danger. */
+const mineTint = (st: string): Record<string, string> => ({
+  ['--ai-w']: st === 'ok' ? '127,215,154' : st === 'no' ? '255,138,122' : AINUBIS.ctaRGB,
+});
+const MINE_N = {
+  wait: DEMO_PENDING.filter((p) => p.status === 'wait').length,
+  ok: DEMO_PENDING.filter((p) => p.status === 'ok').length,
+  no: DEMO_PENDING.filter((p) => p.status === 'no').length,
+};
 
 type SortKey = 'new' | 'talk' | 'clash' | 'paws';
 /** ⚠️ Poradie „najnovšie" = poradie v poli. Demo dáta nemajú dátum a vymyslený
@@ -1058,22 +1095,29 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
 
           {tab === 'mine' && (
             <div className="akw-col">
-              <p className="akw-mock">
-                <b>What I sent into the brain, and what happened to it.</b> The same list the
-                chat shows — one post, one card, wherever you look at it.
-              </p>
-              {DEMO_PENDING.map((p) => (
-                <div className="akw-my" key={p.text}>
-                  <span className="akw-kind">{p.kind}</span>
-                  <span className="akw-mytx"><b>{p.text}</b><em>{p.note}</em></span>
-                  <span className="akw-myst">
-                    <u className={p.status === 'ok' ? 'is-ok' : p.status === 'no' ? 'is-no' : ''}>
-                      {p.status === 'ok' ? 'in the brain' : p.status === 'no' ? 'turned down' : 'waiting'}
-                    </u>
+              {/* ⚠️ Vysvetlivka „What I sent into the brain…" ODSTRÁNENÁ — tá istá
+                  vec, ktorú Matej vyhodil z nástenky. Obrazovka, ktorá o sebe
+                  musí napísať odsek, nefunguje. Tri čísla to povedia lepšie. */}
+              <div className="akw-tally">
+                <s><b>{MINE_N.wait}</b> waiting</s>
+                <s><b>{MINE_N.ok}</b> in the brain</s>
+                <s><b>{MINE_N.no}</b> turned down</s>
+              </div>
+              <div className="akw-mine">
+                {DEMO_PENDING.map((p) => (
+                  <div className="akw-my" key={p.text} style={mineTint(p.status)}>
+                    <div className="akw-myhd">
+                      <span className="akw-kind">{p.kind}</span>
+                      <span className={`akw-myst${p.status === 'ok' ? ' is-ok' : p.status === 'no' ? ' is-no' : ''}`}>
+                        {p.status === 'ok' ? 'in the brain' : p.status === 'no' ? 'turned down' : 'waiting'}
+                      </span>
+                    </div>
+                    <b>{p.text}</b>
+                    <em>{p.note}</em>
                     <i>{p.when}</i>
-                  </span>
-                </div>
-              ))}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -1095,25 +1139,41 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
                     </button>
                   );
                 })}
+                {/* 🔴 OTVÁRA SA V OBSAHU, NIE POD TLAČIDLOM (Matej 24. 9. 2026:
+                    „ak dá človek toto otvorí sa to tam kde je teraz obsah....
+                    nie pod to"). Zoznam druhov sa rozbaľoval v ĽAVOM stĺpci pod
+                    tlačidlom, tlačil police nadol a na mobile vytlačil obsah
+                    z obrazovky. Je to KROK, nie roletka — patrí tam, kam sa
+                    človek pozerá. */}
                 <button type="button" className="akw-new" style={{ marginTop: PACK_SPACE.md }}
-                  onClick={() => setKinds((v) => !v)}>
+                  aria-expanded={kinds} onClick={() => setKinds((v) => !v)}>
                   <HandPlus size={14} />Add a source
                 </button>
-                {kinds && (
-                  <div className="akw-kinds">
-                    {SOURCE_KINDS.map((k) => (
-                      <button type="button" className="akw-kbtn" key={k.key}>
-                        <b>{k.label}</b><em>{k.hint}</em>
-                        {/* ⚠️ Číslo, ktoré ešte nepadlo, sa NEVYMÝŠĽA — povie sa to. */}
-                        <u>{k.devotion != null ? `+${k.devotion} devotion` : 'devotion tbd'}</u>
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
 
-              {/* ── VPRAVO: ČO TAM JE ────────────────────────────────────── */}
+              {/* ── VPRAVO: ČO TAM JE — alebo KROK PRIDÁVANIA ────────────── */}
               <div className="akw-col">
+                {kinds ? (
+                  <>
+                    <div className="akw-grp akw-grp--back">
+                      <button type="button" className="akw-back" onClick={() => setKinds(false)}
+                        aria-label="Back to the shelves">
+                        <HandArrowLeft size={15} />
+                      </button>
+                      What are you adding?
+                    </div>
+                    <div className="akw-kinds">
+                      {SOURCE_KINDS.map((k) => (
+                        <button type="button" className="akw-kbtn" key={k.key}>
+                          <b>{k.label}</b><em>{k.hint}</em>
+                          {/* ⚠️ Číslo, ktoré ešte nepadlo, sa NEVYMÝŠĽA — povie sa to. */}
+                          <u>{k.devotion != null ? `+${k.devotion} devotion` : 'devotion tbd'}</u>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                <>
                 {SOURCE_GROUPS.filter((g) => !shelf || g.key === shelf).map((g) => {
                   const inGroup = LIBRARY_SOURCES.filter((d) => d.group === g.key);
                   return (
@@ -1138,6 +1198,8 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
 
                 {/* 🔴 ZDROJ, KTORÝ ZOZNAM NEUVÁDZA, SA NEZAMLČÍ. */}
                 {hiddenNote() && !shelf && <p className="akw-foot-note">{hiddenNote()}</p>}
+                </>
+                )}
               </div>
             </div>
           )}
@@ -1175,7 +1237,12 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
       {open && (
         <div className="pk-veil pk-veil--modal akw-scrim" role="dialog" aria-modal="true"
           onClick={(e) => { if (e.target === e.currentTarget) onPost(null); }}>
-          <PostFull post={open} onLibrary={() => { onPost(null); onTab('lib'); }}
+          {/* 🔴 ZATVÁRAŤ A PREPÍNAŤ NARAZ SA NEDÁ. Do 24. 9. tu stálo
+              `onPost(null); onTab('lib')` — a nefungovalo to: zatvorenie ide cez
+              `history.back()`, ktoré je ASYNCHRÓNNE, takže návrat prepísal `?tab=lib`
+              hneď po tom, čo ho prepínač nastavil. Človek skončil späť na nástenke.
+              Záložku preto prepína JEDEN krok: `goWallTab` si `post` zmaže sám. */}
+          <PostFull post={open} onLibrary={() => onTab('lib')}
             onClose={() => onPost(null)} />
         </div>
       )}

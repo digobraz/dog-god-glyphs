@@ -447,8 +447,13 @@ export default function PackAinubis() {
     setPlane2(next);
     setQuery({ plane: next === 'vault' ? null : next, tab: null });
   };
+  const pushedPost = useRef(false);
   const goWallTab = (t: 'pack' | 'mine' | 'lib') => {
     setWallTab(t);
+    /* ⚠️ Zmaže aj otvorenú kartu — a NEvracia sa históriou. Záznam s `?post=`
+       sa tým prepíše, takže SPÄŤ vedie na nástenku pred otvorením, nie znova
+       do prekryvu. Preto sa musí zabudnúť aj príznak, že sme pushli. */
+    pushedPost.current = false;
     setQuery({ tab: t === 'pack' ? null : t, post: null });
   };
   /* 🔴 OTVORENÁ KARTA SA PUSHUJE, NEZAMIEŇA (voľba E1, 24. 9. 2026).
@@ -458,7 +463,6 @@ export default function PackAinubis() {
      ⚠️ Pri príchode ODKAZOM (`?post=w1` ako prvá adresa) sme nič nepushli —
         `history.back()` by človeka vyhodil z appky. Preto si pamätáme, či sme
         pushli my, a inak parameter len odoberieme. */
-  const pushedPost = useRef(false);
   const postParam = sp.get('post');
   const goPost = (id: string | null) => {
     if (id) {
