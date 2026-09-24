@@ -15,8 +15,12 @@ import { useBlockAutocorrect } from '@/hooks/useBlockAutocorrect';
 import { countryFlag } from '@/lib/countryGeo';
 import { NEW_HEROFLOW } from '@/lib/flowMode';
 import { hekthorFace } from '@/lib/hekthorFaces';
-import { FlowMedallion } from '@/components/screens/flowMedallion';
-import { FLOW_STAGE_CSS } from '@/components/screens/flowPaleSkin';
+// ⚠️ `FLOW_MEDAL_CSS` sa vkladá TU. Dosiaľ ho tejto obrazovke „požičiaval"
+//    `FlowRedress` — teda vrstva prezliekania, ktorú si môže Matej kedykoľvek
+//    prepnúť na starý šat. Medailón by tým prišiel o kresbu obruče a nikto by
+//    netušil prečo; obrazovka si svoj šat nosí sama.
+import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
+import { FLOW_STAGE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
 import { PACK_BOX } from '@/components/pack/packTheme';
 
 // Android keyboards (Gboard/Samsung) ignore autoCorrect/autoComplete="off" and may
@@ -346,6 +350,23 @@ export function NameScreen() {
     const byHeight = window.innerHeight * 0.38;
     return Math.round(Math.max(148, Math.min(310, Math.min(byWidth, byHeight))));
   }, []);
+  // ── MEDAILÓN VO FORMULÁROVEJ FÁZE SA MUSÍ ZMESTIŤ (24. 9. 2026) ───────────
+  // Matej: *„úvod máme zlý = lockni a nastav to konečne pre každú stránku, aby
+  // sme mali minimálne rozostupy od okrajov a nevzniklo toto"*. Na jeho okne
+  // (1477×724) končila doska 24 px POD spodnou hranou a POKRAČOVAŤ nebolo vidno.
+  //
+  // 🔴 Vzduch (`FLOW_AIR`) sa nekráti — kráti sa OBSAH. Medailón je najväčší
+  //    jediný kus výšky, ktorý obrazovka nesie, takže ustupuje ako prvý.
+  // ⚠️ Prepočítava sa pri zmene okna. Hodnota z prvého renderu by pri ťahaní
+  //    okna ostala visieť a obrazovka by sa správala „nejak divne".
+  const [winH, setWinH] = useState(() => (typeof window === 'undefined' ? 900 : window.innerHeight));
+  useEffect(() => {
+    const onResize = () => setWinH(window.innerHeight);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  const formMedallion = winH < 700 ? 96 : winH < 820 ? 118 : 148;
+
   const [showInfo, setShowInfo] = useState(false);
   const isMobile = useMemo(() => window.matchMedia('(pointer: coarse)').matches, []);
   const [nameModalOpen, setNameModalOpen] = useState(false);
@@ -416,7 +437,7 @@ export function NameScreen() {
       {/* Javisko a jeho vzduch (`FLOW_AIR`) sú spoločné pre celý vstup. Táto
           obrazovka je v TMAVOM šate, takže `FLOW_PALE_CSS` nevkladá — pravidlo
           o rezerve nad a pod obsahom si preto donesie samostatne. */}
-      <style>{FLOW_STAGE_CSS}</style>
+      <style>{FLOW_STAGE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}</style>
       {/* Späť: v novom vstupe je za nami popup na stene, nie Intro (to je len
           redirect na fotku, takže by šípka skončila v kruhu). */}
       {/* 🔴 POČAS PRÍCHODU NIE JE HORNÁ LIŠTA — ani logo, ani šípka, ani vlajka
@@ -543,7 +564,7 @@ export function NameScreen() {
                     >
                       <FlowMedallion
                         src={hekthorFace('name')}
-                        size={phase === 'hero' ? heroMedallion : 148}
+                        size={phase === 'hero' ? heroMedallion : formMedallion}
                         className="hf-medal"
                       />
                     </motion.div>
@@ -692,13 +713,17 @@ export function NameScreen() {
               ktorá sa podáva. V starom vstupe ostáva pôvodný príchod. */}
           {phase === 'form' && (
           <motion.div
-            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-3 md:p-4 flex-shrink-0"
+            // `hf-carved` + jej obruba = rytá linka tesne pod zlatým rámom
+            // (24. 9. 2026, recept vo `FLOW_CARVE_CSS`). Doska tým prestáva byť
+            // plochý obdĺžnik a dostane hĺbku bez druhého rámu.
+            className="hf-carved w-full rounded-2xl border-2 border-border/40 papyrus-bg p-3 md:p-4 flex-shrink-0"
             initial={NEW_HEROFLOW ? { opacity: 0, y: 48 } : { opacity: 0, x: 40 }}
             animate={NEW_HEROFLOW ? { opacity: 1, y: 0 } : { opacity: 1, x: 0 }}
             transition={NEW_HEROFLOW
               ? { duration: 0.46, ease: [0.2, 0.8, 0.3, 1] }
               : { duration: 0.35, delay: 0.1 }}
           >
+            <span className="hf-carved-rim" aria-hidden />
             <div className="flex flex-col gap-2 md:gap-3">
             {/* Name + Dog Country row — name 70 %, country select 30 % */}
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -848,13 +873,11 @@ export function NameScreen() {
 
             </div>{/* end name + country flex row */}
 
-            {/* Birthday — inline iOS-style 3-wheel picker */}
-            <p
-              className="text-xs md:text-sm uppercase tracking-widest text-muted-foreground text-center"
-              style={{ fontFamily: "'Cinzel', serif" }}
-            >
-              {t('heroglyph.flow.name.birthday')}
-            </p>
+            {/* Birthday — inline iOS-style 3-wheel picker.
+                Nadpis úseku je RYTÝ VLYS (`.hf-legend`): text medzi dvoma
+                drážkami, ktoré idú od kraja dosky ku kraju. Bez nich boli tri
+                otázky pod sebou jeden odstavec. */}
+            <p className="hf-legend">{t('heroglyph.flow.name.birthday')}</p>
             <DateDropdowns
               day={day}
               month={month}

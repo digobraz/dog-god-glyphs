@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { DateDropdowns } from '@/components/DateDropdowns';
 import legendIconUrl from '@/assets/legend-icon.svg';
 import angelIconUrl from '@/assets/angel-icon.svg';
-import { LAPIS, PICK_INK } from '@/components/pack/navGoldSkin';
+import { PICK_INK } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -39,12 +39,19 @@ import { useT } from '@/i18n/LanguageContext';
 /** Najstarší rok v ponuke dátumu odchodu — tá istá hodnota ako v IntroScreen. */
 const MIN_DEATH_YEAR = 1990;
 
+/** Inkoust nezvolenej ikonky. Doska je papyrus, takže tlmená hnedá z `LAB`,
+ *  nie `--muted-foreground` (tá je z tmavého šatu a na papyruse zmizne). */
+const LAB_MUTED = 'rgba(60,40,12,0.52)';
+
 export type LifeStatus = 'alive' | 'deceased';
 
 function iconStyle(url: string, color: string): React.CSSProperties {
   return {
-    width: 34,
-    height: 34,
+    // 24. 9. 2026: ikonka sedí VNÚTRI rytej jamky (`.hf-pick .well`, 34 px),
+    // takže samotná kresba je o dva stupne menšia — inak by sa dotýkala jej
+    // okraja a jamka by prestala byť jamkou.
+    width: 22,
+    height: 22,
     flex: 'none',
     background: color,
     WebkitMask: `url(${url}) center / contain no-repeat`,
@@ -66,24 +73,18 @@ export function LifeStatusPick({
 }) {
   const t = useT();
 
-  const card = (mine: LifeStatus) => {
-    const on = value === mine;
-    return {
-      // Tint = priesvitná výplň + plný okraj. Hodnoty sú tie isté, aké dáva
-      // `pickTintCSS`; tu ako objekt, lebo React chce štýl, nie CSS reťazec.
-      background: on ? 'rgba(38,97,156,0.14)' : 'hsl(var(--card))',
-      border: `1.5px solid ${on ? LAPIS.edge : 'hsl(var(--border))'}`,
-      boxShadow: on ? 'inset 0 0 0 1px rgba(38,97,156,0.40)' : 'none',
-      color: on ? PICK_INK.lapis : 'hsl(var(--muted-foreground))',
-    } as React.CSSProperties;
-  };
+  // ⚠️ ŠAT JE ODTERAZ V `FLOW_CARVE_CSS` (24. 9. 2026), nie v inline objekte.
+  //    Matej: *„vieš dať aj vedľa seba ikonku a text a nie nad seba"* — a to nie
+  //    je len otočenie smeru: ikonka nad textom si pýta štvorec a dve slová pod
+  //    ňou sa lámu, vedľa seba sa riadok číta ako jedna veta a doska sa upokojí.
+  //    Tint aj lapisový inkoust ostávajú (`.hf-pick.on`), len ich nesie trieda,
+  //    takže rovnakú voľbu inde v toku netreba opisovať druhýkrát.
+  const ink = (mine: LifeStatus) =>
+    value === mine ? PICK_INK.lapis : LAB_MUTED;
 
   return (
     <div className="w-full flex flex-col gap-2">
-      <p
-        className="text-xs md:text-sm uppercase tracking-widest text-muted-foreground text-center"
-        style={{ fontFamily: "'Cinzel', serif" }}
-      >
+      <p className="hf-legend" style={{ justifyContent: 'center' }}>
         {t('intro.question')}
       </p>
 
@@ -92,16 +93,12 @@ export function LifeStatusPick({
           type="button"
           onClick={() => onChange('alive')}
           aria-pressed={value === 'alive'}
-          className="flex flex-col items-center justify-center gap-1.5 rounded-xl px-2 py-3 transition-all"
-          style={{ ...card('alive'), fontFamily: "'Cinzel', serif" }}
+          className={`hf-pick${value === 'alive' ? ' on' : ''}`}
         >
-          <span
-            aria-hidden
-            style={iconStyle(legendIconUrl, value === 'alive' ? PICK_INK.lapis : 'hsl(var(--muted-foreground))')}
-          />
-          <span className="text-[11px] md:text-xs font-bold uppercase tracking-wider leading-tight text-center">
-            {t('heroglyph.flow.dogs.statusAlive')}
+          <span className="well">
+            <span aria-hidden style={iconStyle(legendIconUrl, ink('alive'))} />
           </span>
+          <span className="tx">{t('heroglyph.flow.dogs.statusAlive')}</span>
         </button>
 
         <button
@@ -110,16 +107,12 @@ export function LifeStatusPick({
           // políčko s dátumom. Druhý klik naň ho otvorí znova (oprava dátumu).
           onClick={() => { onChange('deceased'); onWantDate(); }}
           aria-pressed={value === 'deceased'}
-          className="flex flex-col items-center justify-center gap-1.5 rounded-xl px-2 py-3 transition-all"
-          style={{ ...card('deceased'), fontFamily: "'Cinzel', serif" }}
+          className={`hf-pick${value === 'deceased' ? ' on' : ''}`}
         >
-          <span
-            aria-hidden
-            style={iconStyle(angelIconUrl, value === 'deceased' ? PICK_INK.lapis : 'hsl(var(--muted-foreground))')}
-          />
-          <span className="text-[11px] md:text-xs font-bold uppercase tracking-wider leading-tight text-center">
-            {t('heroglyph.flow.dogs.statusAngel')}
+          <span className="well">
+            <span aria-hidden style={iconStyle(angelIconUrl, ink('deceased'))} />
           </span>
+          <span className="tx">{t('heroglyph.flow.dogs.statusAngel')}</span>
         </button>
       </div>
 

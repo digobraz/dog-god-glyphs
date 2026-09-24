@@ -49,7 +49,16 @@ const goldRing = (angle: number) =>
 const RING = {
   /** Šírka lemu v % priemeru. 8 z 100 je pomer z nava, aby obruč nebola opticky inak hrubá. */
   ow: 8,
-  /** Koľko kameňov (párne — striedajú sa so zlatými medzipoliami). */
+  /**
+   * Koľko kameňov (párne — striedajú sa so zlatými medzipoliami).
+   *
+   * 🔴 `segs / 2` MUSÍ BYŤ NEPÁRNE (22 ⇒ 11). Len vtedy vyjde dole v strede
+   *    ZLATÉ MEDZIPOLE, teda rytina kolmo na stred (Matej 24. 9. 2026: *„treba
+   *    tu obruč vycentrovať aby bola súmerná, na spodnom okraji by mala byť
+   *    rytina kolmo na stred a v strede"*). Pri 24 by dole sedel KAMEŇ a rytiny
+   *    by stáli po jeho stranách — obruč by bola súmerná, ale bez kolmej rytiny
+   *    v ose. Zmena počtu je preto skok o 4 (18 · 22 · 26), nie o 2.
+   */
   segs: 22,
   /** Hrúbka zlatej priehradky vo viewBox jednotkách. */
   wall: 0.9,
@@ -80,12 +89,24 @@ const lit = (a: number) => (Math.cos(((a - RING.light) * Math.PI) / 180) + 1) / 
 function Deco() {
   const { ow, segs, wall, dome, lapis, lapisHi, lapisLo } = RING;
   const kOut = 50, rIn = kOut - ow, step = 360 / segs;
+  /**
+   * 🔑 FÁZA — PREČO SA CELÝ PÁS TOČÍ O POL DIELU (24. 9. 2026).
+   *
+   * Dosiaľ začínal prvý kameň NA 12. hodine a jeho stred bol o pol dielu vedľa
+   * (8,2°). Celá obruč tým stála mimo osi: dole vyšla rytina 8° od stredu a pri
+   * pohľade to bolo „nakoso". `-step/2` posúva pás tak, že
+   *   · stred KAMEŇA sedí presne hore (0°),
+   *   · stred ZLATÉHO MEDZIPOLIA presne dole (11 × 16,36° = 180,0°),
+   * takže spodná rytina je kolmá a v ose, a obruč je zrkadlovo súmerná podľa
+   * svislej osi. (Lesk a iskra súmerné nie sú — svetlo má jeden smer, `LIGHT`.)
+   */
+  const phase = -step / 2;
   /** Kameň leží POD hranou lemov, inak by priehradka splynula s lemom. */
   const inset = 1.15;
   const nodes: JSX.Element[] = [];
 
   for (let i = 0; i < segs; i += 2) {
-    const a0 = i * step, a1 = a0 + step, mid = (a0 + a1) / 2;
+    const a0 = i * step + phase, a1 = a0 + step, mid = (a0 + a1) / 2;
     const L = lit(mid);
     const d = seg(a0 + wall / 2, a1 - wall / 2, kOut - inset, rIn + inset);
     const band = (ow - 2 * inset) * 0.42;
@@ -127,7 +148,7 @@ function Deco() {
 
   // Rytina v zlatých medzipoliach — dve čiary vedľa seba (tmavá rytina + jej lesklá hrana).
   for (let i = 1; i < segs; i += 2) {
-    const mid = i * step + step / 2;
+    const mid = i * step + step / 2 + phase;
     const p1 = P(mid, kOut - 1.8), p2 = P(mid, rIn + 1.8);
     nodes.push(
       <line key={`r${i}`} x1={p1[0]} y1={p1[1]} x2={p2[0]} y2={p2[1]}
@@ -179,7 +200,13 @@ export function FlowMedallion({ src, size = 132, alt = 'HEKTHOR', className }: P
       <span className="fm-bevel" />
       <span className="fm-gloss" />
       <span className="fm-face" style={{ inset: rim }}>
-        <img src={src} alt={alt} />
+        {/* ⚠️ `fm-img` NIE JE ozdoba — je to ŠTÍT. `index.css` od 26. 6. 2026
+            zmenšuje na nízkych oknách KAŽDÝ `img[alt="HEKTHOR"]` v `.dark-bg`
+            (`clamp(56px, 11vh, 100px)`) a to pravidlo je silnejšie než
+            `.fm-face img`: fotka v medailóne sa preto na okne vysokom 724 px
+            scvrkla na 80 px a v kruhu ostal ŠTVOREC na modrom podklade.
+            Pravidlo z júna teraz `fm-img` vynecháva. */}
+        <img className="fm-img" src={src} alt={alt} />
       </span>
       <span className="fm-well" style={{ inset: rim }} />
     </span>
@@ -223,7 +250,7 @@ export const FLOW_MEDAL_CSS = `
 .fm-face {
   position: absolute; border-radius: 50%; overflow: hidden; background: ${RING.lapis};
 }
-.fm-face img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fm-face img.fm-img { width: 100%; height: 100%; object-fit: cover; display: block; }
 /* Zapustenie — tieň, ktorý obruč hádže DO stredu. Bez neho fotka leží NA obruči. */
 .fm-well {
   position: absolute; border-radius: 50%; pointer-events: none;

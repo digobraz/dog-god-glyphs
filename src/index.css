@@ -177,8 +177,14 @@ body {
  */
 @media (max-height: 820px) and (min-width: 768px) {
   /* Hekthor guide avatar — biggest vertical chunk of the message block.
-     .dark-bg img[alt] (0,1,1) outranks Tailwind w-* (0,1,0), no !important. */
-  .dark-bg img[alt="HEKTHOR"] {
+     .dark-bg img[alt] (0,1,1) outranks Tailwind w-* (0,1,0), no !important.
+     🔴 `:not(.fm-img)` PRIBUDLO 24. 9. 2026 A NIE JE TO KOZMETIKA. Toto pravidlo
+        je silnejšie než `.fm-face img` z `flowMedallion.tsx`, takže od chvíle,
+        čo má nový vstup ksicht v MEDAILÓNE, mu na každom okne nižšom ako 820 px
+        prepísalo fotku na `clamp(56px, 11vh, 100px)` — v kruhu ostal ŠTVOREC
+        (na okne 1477×724 presne 80 px v diere širokej 124). Medailón si veľkosť
+        ráta sám z priemeru obruče; zvonku sa mu do nej nesiaha. */
+  .dark-bg img[alt="HEKTHOR"]:not(.fm-img) {
     width: clamp(56px, 11vh, 100px);
     height: clamp(56px, 11vh, 100px);
   }

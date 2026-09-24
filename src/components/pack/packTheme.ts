@@ -169,6 +169,34 @@ export const PACK_R = {
  *  Medzi 24 a 32 sa neotvára nič ďalšie: 26/28/30 patria na 24 alebo 32. */
 export const PACK_SPACE = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48 } as const;
 
+// ════════════════════════════════════════════════════════════════════════════
+// VZDUCH OD OKRAJA OBRAZOVKY — JEDNO ČÍSLO PRE CELÚ APPKU (LOCK 24. 9. 2026)
+// ────────────────────────────────────────────────────────────────────────────
+// Matej 24. 9. 2026 nad krokom 2 vstupu: *„úvod máme zlý = lockni a nastav to
+// konečne pre každú stránku, aby sme mali minimálne rozostupy od okrajov
+// a nevzniklo toto"* (deň predtým to isté o rezerve hore a dole).
+//
+// 🔒 `PAGE_AIR` NIE JE „padding tejto stránky". Je to DNO: rezerva, pod ktorú
+//    nesmie klesnúť žiadna obrazovka na žiadnej šírke ani výške. Kto chce viac
+//    vzduchu, pridá si ho DNU; kto sa nezmestí, ZMENŠÍ OBSAH — nie rezervu.
+//    (Na kroku 2 ustúpil ako prvý medailón: 148 → 118 → 96 px podľa výšky okna.)
+// 🔴 Pod tento lock spadá aj pasca `justify-center` + `overflow-y-auto`:
+//    pretečenie sa rozdelí na OBE strany a horná časť sa nedá odrolovať (scroll
+//    nevie ísť do záporu). Centruje sa preto `margin: auto` na dieťati — recept
+//    je vo `FLOW_STAGE_CSS` (`screens/flowPaleSkin.ts`), ktorý si toto číslo
+//    berie odtiaľto.
+// ⚠️ Hodnoty sú z `PACK_SPACE` (16 · 24), nie zvolené nanovo — vzduch od okraja
+//    je tá istá stupnica ako vzduch vnútri.
+// ════════════════════════════════════════════════════════════════════════════
+export const PAGE_AIR = {
+  /** Hore a dole do 767 px šírky. */
+  min: PACK_SPACE.lg,
+  /** Hore a dole od 768 px. */
+  md: PACK_SPACE.xl,
+  /** Po stranách vždy. */
+  side: PACK_SPACE.lg,
+} as const;
+
 /** Typografická stupnica — 6 veľkostí, ŽIADNE desatiny (výber `t6`).
  *  ⚠️ 9,5 / 10,5 / 12,5 sú od 13. 9. 2026 mimo sady. Mikropopisok je 10. */
 export const PACK_TEXT = {
@@ -1184,8 +1212,14 @@ export const PACK_VEIL = {
 
 export const VEIL_CSS = `
 .pk-veil{ position:fixed; inset:0; z-index:200; }
+/* ⚠️ FARBU SMIE PREBIŤ POVRCH, TMAVOSŤ NIE (doplnené 24. 9. 2026).
+   PACK_VEIL.modal je TEPLÁ hneď (rgba(24,14,4,…)) — namiešaná na papyrus.
+   Na AINUBISOVOM studenom displeji by to bol hnedý film cez modrý prístroj.
+   Preto ten istý recept, tá istá tmavosť aj rozmazanie, a povrch mení už len
+   ODTIEŇ cez `--pk-veil` — rovnako, ako SKLENENÁ DOSKA berie `--pk-stage`.
+   🔴 Nie je to povolenie zvoliť si vlastnú tmavosť: krytie 0,72 je v oboch. */
 .pk-veil--modal{
-  background:${PACK_VEIL.modal};
+  background:var(--pk-veil, ${PACK_VEIL.modal});
   -webkit-backdrop-filter:blur(${PACK_VEIL.blur});
   backdrop-filter:blur(${PACK_VEIL.blur});
   display:flex; align-items:center; justify-content:center; padding:20px;

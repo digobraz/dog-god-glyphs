@@ -1,5 +1,6 @@
 import { LAB } from '@/lib/labTheme';
 import { goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
+import { PAGE_AIR } from '@/components/pack/packTheme';
 
 // ════════════════════════════════════════════════════════════════════════════
 // BLEDÝ ŠAT VSTUPNÉHO FLOW — jediný zdroj (28. 8. 2026)
@@ -115,7 +116,12 @@ export const FLOW_WALL_VEIL = `
 // 🔒 JEDNO ČÍSLO PRE CELÝ VSTUP. `FLOW_AIR` nie je „padding tejto obrazovky" —
 //    je to minimálna rezerva, pod ktorú nesmie klesnúť ŽIADNY krok na žiadnej
 //    šírke. Kto potrebuje viac vzduchu, pridáva si ho DNU, nie znížením tohto.
-const FLOW_AIR = { min: 16, md: 24, side: 16 } as const;
+//
+// 🔴 OD 24. 9. 2026 UŽ NIE JE ČÍSLO TU — je v `PAGE_AIR` (`packTheme.ts`).
+//    Matej: *„lockni a nastav to konečne pre KAŽDÚ stránku"* ⇒ vstup nesmie mať
+//    vlastnú rezervu, inak sa pri prvej zmene rozíde so zvyškom appky. Tu ostáva
+//    len meno, pod ktorým ju vstup pozná.
+const FLOW_AIR = PAGE_AIR;
 
 /** Javisko kroku: roluje, centruje bez odrezania, drží `FLOW_AIR`.
  *  Vkladá ho každá obrazovka vstupu — aj tá v tmavom šate (`NameScreen`),
@@ -882,5 +888,136 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
   text-decoration: underline;
   text-decoration-style: dotted;
   cursor: pointer;
+}
+`;
+
+// ════════════════════════════════════════════════════════════════════════════
+// RYTINA — ako sa papyrusová doska prestane čítať ako plochý obdĺžnik
+// (24. 9. 2026)
+// ────────────────────────────────────────────────────────────────────────────
+// Matej: *„skús v blokoch urobiť rytiny, zvýraznenia, obrysy, ktoré vymodelujú
+// a oživia obrazovku — chceme krásny zážitok z vyplnenia"* + *„vieš dať aj
+// vedľa seba ikonku a text a nie nad seba"*.
+//
+// 🔑 RYTINA JE DVOJICA ČIAR, NIE JEDNA. Vyryté do kameňa vidíme tak, že horná
+//    hrana drážky je v tieni a dolná odráža svetlo. Preto má každý vlys tmavý
+//    1 px a pod ním svetlý 1 px — jedna šedá linka vyzerá ako čiara v tabulke,
+//    nie ako zásah do plochy. To isté robí text: tmavý inkoust + svetlý spodný
+//    okraj (text-shadow) = písmo vysekané DO papyrusu, nie položené NA ňom.
+//
+// 🔑 SVETLO IDE ZHORA. Všetky vrstvy nižšie ho držia: svetlý highlight na
+//    hornej hrane, tieň na spodnej. Kto to obráti, dostane vypuklinu namiesto
+//    priehlbiny — a plocha sa rozpadne na dva nezlučiteľné reliéfy.
+//
+// 🔒 TRI PRVKY, NIE TRIDSAŤ. `hf-carved` (doska), `hf-legend` (nadpis s vlysmi),
+//    `hf-pick` (voľba: ikonka VEDĽA textu, vsadená do pečatnej jamky). Nový
+//    tvar si vypýtaj — inak vznikne tretí spôsob, ako vyzerá to isté.
+// ⚠️ Vkladá sa SAMOSTATNE (`FLOW_CARVE_CSS`), aby si ho mohla vziať aj
+//    obrazovka v tmavom šate — krok 2 bledý šat nemá.
+// ════════════════════════════════════════════════════════════════════════════
+export const FLOW_CARVE_CSS = `
+/* Doska: obvodová rytá linka tesne pod zlatým rámom. Je to VNÚTORNÁ obruba,
+   nie druhý rám — preto leží 5 px vnútri a má polomer o ten istý kus menší. */
+.hf-carved { position: relative; }
+.hf-carved > .hf-carved-rim {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 11px;
+  pointer-events: none;
+  border: 1px solid rgba(120, 86, 26, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 252, 240, 0.70), 0 1px 0 rgba(255, 252, 240, 0.55);
+}
+
+/* Nadpis úseku = text medzi dvoma vlysmi. Vlysy nesú oko od kraja ku kraju
+   dosky, takže je vidno, že úsek má hranice — bez nich sú štyri otázky pod
+   sebou jeden odstavec. */
+.hf-legend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: ${LAB.goldInk};
+  text-shadow: 0 1px 0 rgba(255, 252, 240, 0.75);
+  white-space: nowrap;
+}
+.hf-legend::before,
+.hf-legend::after {
+  content: '';
+  flex: 1 1 auto;
+  min-width: 12px;
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(180deg,
+    rgba(120, 86, 26, 0.34) 0 1px,
+    rgba(255, 252, 240, 0.72) 1px 2px);
+}
+
+/* Voľba: ikonka VEDĽA textu (Matej 24. 9.), vsadená do pečatnej jamky.
+   Nezvolená je vypuklá doska, zvolená sa prepne na lapisový tint — plná plocha
+   patrí jedinému CTA obrazovky (brand lock), takže výber svieti okrajom a
+   inkoustom, nie výplňou. */
+.hf-pick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%);
+  border: 1.5px solid rgba(179, 130, 45, 0.55);
+  box-shadow: inset 0 1px 0 rgba(255, 252, 240, 0.85),
+              inset 0 -2px 4px rgba(120, 86, 26, 0.12),
+              0 1px 2px rgba(60, 40, 10, 0.10);
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.12s ease;
+}
+.hf-pick:hover { border-color: rgba(179, 130, 45, 0.85); }
+.hf-pick:active { transform: scale(0.985); }
+/* Jamka pod ikonkou — priehlbina v doske: tieň na hornej hrane, svetlo na
+   spodnej. Ikonka v nej leží ako vsadená pečať. */
+.hf-pick .well {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 35%, #F7ECD2 0%, #E8D5AA 100%);
+  box-shadow: inset 0 2px 3px rgba(90, 62, 14, 0.30),
+              inset 0 -1px 0 rgba(255, 252, 240, 0.80),
+              0 1px 0 rgba(255, 252, 240, 0.65);
+}
+.hf-pick .tx {
+  min-width: 0;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: ${LAB.inkSoft};
+  text-shadow: 0 1px 0 rgba(255, 252, 240, 0.70);
+}
+.hf-pick.on {
+  border-color: ${LAPIS.edge};
+  background: linear-gradient(135deg, rgba(38, 97, 156, 0.17) 0%, rgba(38, 97, 156, 0.07) 100%);
+  box-shadow: inset 0 0 0 1px rgba(38, 97, 156, 0.45),
+              inset 0 1px 0 rgba(255, 252, 240, 0.55),
+              0 2px 8px rgba(20, 50, 90, 0.18);
+}
+.hf-pick.on .tx { color: ${PICK_INK.lapis}; text-shadow: 0 1px 0 rgba(255, 252, 240, 0.55); }
+.hf-pick.on .well {
+  background: radial-gradient(circle at 50% 35%, #EAF1FA 0%, #CFDCEF 100%);
+  box-shadow: inset 0 2px 3px rgba(20, 50, 90, 0.28),
+              inset 0 -1px 0 rgba(255, 255, 255, 0.85),
+              0 1px 0 rgba(255, 252, 240, 0.65);
 }
 `;
