@@ -28,6 +28,13 @@ export interface ExtraDog {
   publicId: string | null;
 }
 
+/**
+ * Kľúč prvého psa v `dogEssence`. Pes z kroku 2 nie je v `extraDogs`, takže
+ * `id` nemá — a kľúč potreboval, inak by sa jeho odpovede miešali s ďalšími.
+ * Slovo, nie prázdny reťazec: v ladení je hneď vidno, o koho ide.
+ */
+export const MAIN_DOG_ID = 'main';
+
 /** Prázdny riadok ďalšieho psa. Jedno miesto, kde vzniká `id`. */
 export const newExtraDog = (): ExtraDog => ({
   id: crypto.randomUUID(),
@@ -94,6 +101,20 @@ export interface DogyptState {
    */
   mainDogPos: number;
   dogOrderStart: number;
+  /**
+   * PODSTATA PODĽA PSA (24. 9. 2026) — pohlavie · farba · pôvod · rodokmeň.
+   *
+   * 🔴 PREČO NOVÉ POLE A NIE `selections`. `selections` je JEDEN plochý záznam
+   *    pre JEDNÉHO psa; pri druhom psovi by druhá odpoveď prepísala prvú. Presne
+   *    to je dôvod, prečo tri nákresy z 31. 8. hovoria o prepínači psov a zároveň
+   *    ho volajú kulisou — nemal čo prepínať.
+   * ⚠️ Kľúč je `id` psa; prvý pes (z kroku 2) `id` nemá, berie `MAIN_DOG_ID`.
+   * ⚠️ Prvý pes sa ZÁROVEŇ píše do `selections` — heroglyf, certifikát aj zvyšok
+   *    vstupu čítajú ďalej odtiaľ. Kým multi-mód nie je hotový, toto pole je
+   *    pravda len pre obrazovku podstaty.
+   */
+  dogEssence: Record<string, Record<string, string>>;
+  setDogEssence: (dogId: string, key: string, value: string) => void;
   setDogName: (name: string) => void;
   setOwnerName: (name: string) => void;
   setStep: (step: number) => void;
@@ -129,6 +150,7 @@ const freshState = () => ({
   extraDogs: [] as ExtraDog[],
   mainDogPos: 0,
   dogOrderStart: 1,
+  dogEssence: {} as Record<string, Record<string, string>>,
   ownerName: '',
   currentStep: 0,
   selections: {} as Record<string, string>,
@@ -161,6 +183,9 @@ export const useDogyptStore = create<DogyptState>()(
       setOwnerName: (name) => set({ ownerName: name }),
       setStep: (step) => set({ currentStep: step }),
       setSelection: (key, value) => set((state) => ({ selections: { ...state.selections, [key]: value } })),
+      setDogEssence: (dogId, key, value) => set((state) => ({
+        dogEssence: { ...state.dogEssence, [dogId]: { ...(state.dogEssence[dogId] || {}), [key]: value } },
+      })),
       setSelectedTier: (tier) => set({ selectedTier: tier }),
       setEmail: (email) => set({ email }),
       setSelectedAmount: (amount) => set({ selectedAmount: amount }),

@@ -317,6 +317,15 @@ export const cs: Partial<Dict> = {
   // ── /heroglyph flow — krok 8: pohlavie psa ──
   'heroglyph.flow.dogGender.infoAria': 'Info o pohlaví psa',
   'heroglyph.flow.dogGender.title': 'Pohlaví Psa',
+
+  // ── /heroglyph flow — PODSTATA (24. 9. 2026): pás tém ──
+  // 🔴 Krátke tvary, nie nadpisy obrazoviek. Štyri chipy s „Dog gender / Dog
+  //    colour / The origin / Dog bloodline" sa na 390 px lámu do dvoch radov
+  //    a pás prestane byť pásom. Nadpis nad otázkou ostáva dlhý — tam je miesto.
+  'heroglyph.flow.essence.chipGender': 'POHLAVÍ',
+  'heroglyph.flow.essence.chipColour': 'BARVA',
+  'heroglyph.flow.essence.chipOrigin': 'PŮVOD',
+  'heroglyph.flow.essence.chipBloodline': 'RODOKMEN',
   'heroglyph.flow.dogGender.questionPrefix': 'Je tvůj pes',
   'heroglyph.flow.dogGender.questionKing': 'král',
   'heroglyph.flow.dogGender.questionOr': 'nebo',

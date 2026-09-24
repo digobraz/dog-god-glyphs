@@ -11,7 +11,7 @@ import { CountryPick } from './CountryPick';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { track } from '@/lib/analytics';
-import { FLOW_PALE_CSS } from './flowPaleSkin';
+import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from './flowPaleSkin';
 import { FlowMedallion, FLOW_MEDAL_CSS } from './flowMedallion';
 import { hekthorFace } from '@/lib/hekthorFaces';
 import { intakePhoto, finishPhotoChoice, mainPhotoTarget, type PhotoTarget } from '@/lib/photoIntake';
@@ -354,7 +354,7 @@ export function DogsScreen() {
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
         <PageTopBar onBack={() => navigate('/heroglyph/name')} />
@@ -394,13 +394,21 @@ export function DogsScreen() {
           </motion.div>
 
           <motion.div
-            className="hf-block"
+            // `hf-carved` + rytá obruba (recept z kroku 2, `FLOW_CARVE_CSS`) —
+            // Matej 24. 9.: „tie rytiny a štýl prenes z prvého kroku aj na ďalšie".
+            className="hf-block hf-carved"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.1 }}
           >
+            <span className="hf-carved-rim" aria-hidden />
             <div className="hf-plate">
 
+              {/* ⚠️ OSTÁVA `.hf-qlabel`, NIE `.hf-legend` — nesie vnorený `.hint`
+                  (druhý riadok pod nadpisom). `.hf-legend` je jednoriadková veta
+                  medzi dvoma vlysmi bez miesta pre druhý riadok; vecpať doň hint
+                  by ho pripravilo o vlastný štýl (`.hf-qlabel .hint`, cielený na
+                  presne túto triedu). */}
               <p className="hf-qlabel">
                 {t('heroglyph.flow.dogs.orderLabel')}
                 <span className="hint">{t('heroglyph.flow.dogs.orderHint')}</span>
@@ -527,26 +535,32 @@ export function DogsScreen() {
               />
             )}
 
+            {/* Ikonka vedľa textu, vsadená do jamky (`.hf-pick .well`/`.tx`,
+                FLOW_CARVE_CSS) — ten istý tvar, aký má tá istá otázka na kroku 2
+                (`LifeStatusPick`). Bez obalu `.well` by ikonka ostala holá na
+                zlatej doske bez priehlbiny. */}
             <div className="hf-picks">
               <button
                 type="button"
                 className={`hf-pick${open.lifeStatus === 'alive' ? ' on' : ''}`}
                 onClick={() => patch(open, { lifeStatus: 'alive' })}
               >
-                <img src={legendIconUrl} alt="" />
-                <span>{t('heroglyph.flow.dogs.statusAlive')}</span>
+                <span className="well"><img src={legendIconUrl} alt="" /></span>
+                <span className="tx">{t('heroglyph.flow.dogs.statusAlive')}</span>
               </button>
               <button
                 type="button"
                 className={`hf-pick${open.lifeStatus === 'deceased' ? ' on' : ''}`}
                 onClick={() => patch(open, { lifeStatus: 'deceased' })}
               >
-                <img src={angelIconUrl} alt="" />
-                <span>{t('heroglyph.flow.dogs.statusAngel')}</span>
+                <span className="well"><img src={angelIconUrl} alt="" /></span>
+                <span className="tx">{t('heroglyph.flow.dogs.statusAngel')}</span>
               </button>
             </div>
 
-            <p className="hf-qlabel">{t('heroglyph.flow.dogs.born')}</p>
+            {/* Holý nadpis úseku bez hintu -> rytý vlys (`.hf-legend`), presne
+                ako narodenie na kroku 2. */}
+            <p className="hf-legend">{t('heroglyph.flow.dogs.born')}</p>
             {/* `empty` = rolety mlčia, kým človek nevyberie. Bez neho by ukazovali
                 hotový dátum (1. 1. pred piatimi rokmi), ktorý nikto nezadal — a nad
                 nimi by svietila červená pilulka, že dátum chýba. */}
@@ -570,7 +584,7 @@ export function DogsScreen() {
             {/* Dátum odchodu sa PÝTA LEN PRI ANJELOVI — pri živom psovi je to otázka bez zmyslu. */}
             {open.lifeStatus === 'deceased' && (
               <>
-                <p className="hf-qlabel">{t('heroglyph.flow.dogs.died')}</p>
+                <p className="hf-legend">{t('heroglyph.flow.dogs.died')}</p>
                 <DateDropdowns
                   {...(() => { const b = parseDd(open.deathDate); return { day: b.d, month: b.m, year: b.y }; })()}
                   empty={!open.deathDate}
@@ -594,7 +608,7 @@ export function DogsScreen() {
                 Matej 28. 8.: „v detaile psa nie je národnosť ak je pes inej!"
                 Panel ju preto ukazuje VŽDY, nie len keď je spoločné políčko vypnuté.
                 Pes #1 nesie SPOLOČNÚ hodnotu (`nat`). */}
-            <p className="hf-qlabel">{t('heroglyph.flow.dogs.nationality')}</p>
+            <p className="hf-legend">{t('heroglyph.flow.dogs.nationality')}</p>
             {!openIsExtra && <CountryPick value={nat} onChange={setNat} />}
             {openIsExtra && (
               <>

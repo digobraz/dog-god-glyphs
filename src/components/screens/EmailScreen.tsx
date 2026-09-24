@@ -9,7 +9,7 @@ import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 import { suggestEmailFix } from '@/lib/emailTypo';
 import { saveCheckoutDraft, EMAIL_RE } from '@/lib/checkoutDraft';
 import { track, identifyUser } from '@/lib/analytics';
-import { FLOW_PALE_CSS } from './flowPaleSkin';
+import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from './flowPaleSkin';
 import { hekthorFace } from '@/lib/hekthorFaces';
 import { FlowMedallion, FLOW_MEDAL_CSS } from './flowMedallion';
 
@@ -122,7 +122,7 @@ export function EmailScreen() {
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
         <PageTopBar onBack={() => navigate('/heroglyph/dogs')} />
@@ -158,11 +158,14 @@ export function EmailScreen() {
           </motion.div>
 
           <motion.div
-            className="hf-block"
+            // `hf-carved` + rytá obruba (recept z kroku 2, `FLOW_CARVE_CSS`) —
+            // Matej 24. 9.: „tie rytiny a štýl prenes z prvého kroku aj na ďalšie".
+            className="hf-block hf-carved"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.1 }}
           >
+            <span className="hf-carved-rim" aria-hidden />
             <div className="hf-plate">
               <input
                 value={input}

@@ -615,20 +615,14 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
    preto NEJE stĺpec (ikona nad textom), ale riadok vysoký ako pole formulára —
    panel tým prestal byť dvoma plagátmi a zmestí sa doň aj národnosť. */
 .hf-picks { display: flex; gap: 8px; width: 100%; }
-.hf-pick {
-  flex: 1; min-width: 0; display: flex; flex-direction: row; align-items: center;
-  justify-content: center; gap: 7px; height: ${HF.field.h}px; padding: 0 8px;
-  border-radius: ${HF.field.radius}px; cursor: pointer;
-  border: 2px solid rgba(201,154,63,.4); background: transparent; transition: .15s;
-}
-.hf-pick img { height: 20px; width: 20px; flex: 0 0 auto; object-fit: contain; filter: brightness(0); }
-.hf-pick span {
-  font-family: 'Cinzel', serif; font-weight: 700; font-size: 9.5px;
-  letter-spacing: .04em; text-transform: uppercase; line-height: 1.15;
-  text-align: left; color: ${LAB.ink};
-}
-.hf-pick.on { ${pickTintCSS(LAPIS.edge, PICK_INK.lapis)} }
-.hf-pick.on span { color: ${PICK_INK.lapis}; }
+/* 🔴 SAMOTNÁ DLAŽDICA \`.hf-pick\` JE ODTERAZ LEN V \`FLOW_CARVE_CSS\` (24. 9. 2026).
+   Tu stála jej druhá definícia pod tým istým menom — dva rôzne vzhľady jednej
+   veci, presne ten rozchod, pred ktorým varuje CLAUDE.md. Rušila sa novšia,
+   nie staršia: rytá verzia má jamku pod ikonkou, papyrusový gradient a lift,
+   a tvar RIADKA (ikonka vedľa textu) si nechala — to bola Matejova voľba z
+   28. 8. (*„zmenši a daj do jedného riadku… nerozťahujme to"*) a platí ďalej.
+   ⚠️ Kto sem tú definíciu vráti, musí najprv zmazať tú druhú. Markup je
+      \`<span class="well"><img></span><span class="tx">…</span>\`. */
 
 /* ── PANEL LEGENDY — bez krížika (lock 28. 8.), von klikom mimo alebo Esc ── */
 /* ⚠️ ROLUJE OBAL, NIE PANEL. Ponuka krajín v paneli je absolútna (\`.hf-cpick-menu\`)

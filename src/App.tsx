@@ -86,6 +86,9 @@ const DogsScreen = lazy(() =>
 const EmailScreen = lazy(() =>
   import("@/components/screens/EmailScreen").then((m) => ({ default: m.EmailScreen }))
 );
+const EssenceScreen = lazy(() =>
+  import("@/components/screens/EssenceScreen").then((m) => ({ default: m.EssenceScreen }))
+);
 const WhyScreen = lazy(() =>
   import("@/components/screens/WhyScreen").then((m) => ({ default: m.WhyScreen }))
 );
@@ -314,6 +317,11 @@ const App = () => (
                   <Route path="/heroglyph/dogs" element={<DogsScreen />} />
                   <Route path="/heroglyph/email" element={<EmailScreen />} />
                   <Route path="/heroglyph/why" element={<WhyScreen />} />
+                  {/* PODSTATA (24. 9. 2026) — pohltila štyri routy `dog-gender`,
+                      `dog-fate`, `dog-colour`, `dog-bloodline`. Tie sa NEMAŽÚ:
+                      starý (LIVE) vstup ide ďalej cez ne, tento rez je zatiaľ
+                      len v DEV. */}
+                  <Route path="/heroglyph/essence" element={<EssenceScreen />} />
                   <Route path="/heroglyph/about" element={<Navigate to="/heroglyph/breed" replace />} />
                   <Route path="/heroglyph/crop" element={<CropScreen />} />
                   {/* Dielňa vstupu — zoznam povrchov + rám. `/lab/scena` je

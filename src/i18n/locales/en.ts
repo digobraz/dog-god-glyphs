@@ -496,6 +496,15 @@ export const en = {
   // ── /heroglyph flow — step 8: dog-gender ──
   'heroglyph.flow.dogGender.infoAria': 'Info about Dog Gender',
   'heroglyph.flow.dogGender.title': 'Dog Gender',
+
+  // ── /heroglyph flow — PODSTATA (24. 9. 2026): pás tém ──
+  // 🔴 Krátke tvary, nie nadpisy obrazoviek. Štyri chipy s „Dog gender / Dog
+  //    colour / The origin / Dog bloodline" sa na 390 px lámu do dvoch radov
+  //    a pás prestane byť pásom. Nadpis nad otázkou ostáva dlhý — tam je miesto.
+  'heroglyph.flow.essence.chipGender': 'GENDER',
+  'heroglyph.flow.essence.chipColour': 'COLOUR',
+  'heroglyph.flow.essence.chipOrigin': 'ORIGIN',
+  'heroglyph.flow.essence.chipBloodline': 'BLOODLINE',
   'heroglyph.flow.dogGender.questionPrefix': 'Is your dog a',
   'heroglyph.flow.dogGender.questionKing': 'king',
   'heroglyph.flow.dogGender.questionOr': 'or a',

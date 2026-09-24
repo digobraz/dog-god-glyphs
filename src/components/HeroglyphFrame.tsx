@@ -204,10 +204,20 @@ interface HeroglyphFrameProps {
   pulseSlot?: string;
   pulseAllEmpty?: boolean;
   style?: React.CSSProperties;
+  /**
+   * Odkiaľ brať PSIE sloty. Bez neho zo store (`selections`) — teda prvý pes.
+   *
+   * 🔴 Pribudlo 24. 9. 2026 s obrazovkou PODSTATY. `selections` je jeden plochý
+   *    záznam pre JEDNÉHO psa, takže pri druhom psovi by rám ukazoval odpovede
+   *    prvého. Sloty MAJITEĽA sa neprepisujú — majiteľ je jeden pre celý vstup.
+   */
+  dogValues?: Record<string, string>;
 }
 
-export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot, pulseAllEmpty = false, style }: HeroglyphFrameProps) {
+export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot, pulseAllEmpty = false, style, dogValues }: HeroglyphFrameProps) {
   const { selections, ownerName, patronSvg } = useDogyptStore();
+  /** Psie sloty: buď podstata vybraného psa, alebo (bez nej) store. */
+  const dog = dogValues ?? selections;
 
   const ownerGenderSrc = showOwner ? genderMap[selections.ownerGender] : undefined;
   const chineseZodiacSrc = showOwner ? chineseMap[selections.ownerChineseZodiac] : undefined;
@@ -220,13 +230,13 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot, p
     return Number.isFinite(n) && n >= 1;
   })();
 
-  const dogGenderSrc = dogGenderMap[selections.dogGender];
-  const dogFateSrc = dogFateMap[selections.dogFate];
-  const dogColourSrc = dogColourMap[selections.dogColour];
-  const dogBloodlineSrc = dogBloodlineMap[selections.dogBloodline];
+  const dogGenderSrc = dogGenderMap[dog.dogGender];
+  const dogFateSrc = dogFateMap[dog.dogFate];
+  const dogColourSrc = dogColourMap[dog.dogColour];
+  const dogBloodlineSrc = dogBloodlineMap[dog.dogBloodline];
   const dogShapeSrc = patronSvg ? `/patrons/${patronSvg}` : undefined;
-  const dogChar1Src = dogCharacterMap[selections.dogCharacter1];
-  const dogChar2Src = dogCharacterMap[selections.dogCharacter2];
+  const dogChar1Src = dogCharacterMap[dog.dogCharacter1];
+  const dogChar2Src = dogCharacterMap[dog.dogCharacter2];
 
   return (
     <svg

@@ -5,7 +5,7 @@ import { PageTopBar } from '@/components/PageTopBar';
 import { useT } from '@/i18n/LanguageContext';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { track } from '@/lib/analytics';
-import { FLOW_PALE_CSS } from './flowPaleSkin';
+import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from './flowPaleSkin';
 import cleopatraImg from '@/assets/cleopatra-cartouche.png';
 import alba43Foto from '@/assets/alba43-foto.jpg';
 import alba59Foto from '@/assets/alba59-foto.jpg';
@@ -61,14 +61,17 @@ export function WhyScreen() {
 
   const go = () => {
     track('flow_why_continue');
-    navigate('/heroglyph/breed');
+    // PODSTATA (24. 9. 2026) sa zaradila SEM, pred plemeno: štyri symboly psa
+    // stoja v ráme vľavo od siluety, takže poradie otázok kopíruje poradie
+    // slotov. Predtým odtiaľto viedla cesta rovno na plemeno.
+    navigate('/heroglyph/essence');
   };
 
   if (!flowOk) return null;
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_CARVE_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
         <PageTopBar onBack={() => navigate('/heroglyph/email')} />
@@ -80,11 +83,14 @@ export function WhyScreen() {
           {/* Prvá fáza — človek je stále pri psovi (fotka, meno, ďalší psi). */}
 
           <motion.div
-            className="hf-block"
+            // `hf-carved` + rytá obruba (recept z kroku 2, `FLOW_CARVE_CSS`) —
+            // Matej 24. 9.: „tie rytiny a štýl prenes z prvého kroku aj na ďalšie".
+            className="hf-block hf-carved"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
           >
+            <span className="hf-carved-rim" aria-hidden />
             <div className="hf-plate">
 
               {/* Druhá veta je ZLATÁ — je to tá polovica, ktorú tri stĺpce pod
