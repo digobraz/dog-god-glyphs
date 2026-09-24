@@ -673,17 +673,48 @@ const ESSENCE_CSS = `
 /* 📱 NA MOBILE OSTÁVA 2+1 (Matej: *„na mobile to môžeš nechať tak aby to bolo ok
    s rozmermi (iné od PC)"*). Tri stĺpce by na 390 px mali po ~90 px a slovo
    RAINBOW sa doň nezmestí ani na dva riadky. */
+/* ── 📱 MOBIL: VOĽBY SÚ POD SEBOU, JEDNA NA RIADOK (Matej 24. 9., siedme kolo) ─
+   *„na pc je to ok ale na mobile to dajme predsa len do riadkov… aj pohlavie aj
+   tam kde sú 3 možnosti na mobile máme rezervu a môžme zväčšiť výšku"*.
+   Dovtedy mal mobil dva stĺpce ako PC (a pri troch voľbách 2+1), takže na 302 px
+   dosky pripadlo na dlaždicu ~145 px — ikonka aj meno sa tlačili do polovice
+   šírky, hoci POD nimi ostávalo 220 px nevyužitej výšky.
+   🔑 PLOCHA JE PEVNÁ AJ TU (190 px) a rady sa naťahujú (\`grid-auto-rows: 1fr\`).
+   Dve voľby ⇒ dva rady po 91, tri ⇒ tri po 58. Keby plocha rástla s počtom
+   volieb, doska by medzi otázkami poskakovala — a to je to jediné, čo sa na
+   tejto obrazovke nesmie hýbať.
+   ⚠️ Toto je JEDINÉ miesto, kde sa mobil zámerne líši od PC (Matej: *„iné od
+   PC"*) — na PC ostávajú dva stĺpce a trojica v jednom rade. */
 @media (max-width: 559px) {
-  .es-picks.n3 { grid-template-columns: 1fr 1fr; grid-template-rows: 36px 36px; }
-  .es-picks.n3 .hf-pick:nth-child(3) { grid-column: span 2; }
-  .es-picks.n3 .hf-pick {
-    flex-direction: row; justify-content: flex-start; gap: 10px;
-    padding: 3px 12px; text-align: left;
+  .es-picks {
+    /* 190 = tri rady po 58 + dve medzery po 8. Nie je to odhad: 58 px je
+       najmenšia výška, do ktorej sa vojde meno s podnadpisom vedľa jamky —
+       pri 184 dala trojica 190 aj tak a doska medzi otázkami poskočila o 6 px. */
+    --es-picks-h: 190px;
+    grid-template-columns: 1fr;
+    grid-auto-rows: 1fr;
   }
-  .es-picks.n3 .hf-pick .well { width: 28px; height: 28px; }
-  .es-picks.n3 .hf-pick .well img { width: 22px; height: 22px; }
-  /* V riadku je podnadpis späť — vedľa mena má miesto. */
+  /* Ikonka vedľa textu a podnadpis späť — v celej šírke riadka majú miesto. */
+  .es-picks .hf-pick {
+    flex-direction: row; justify-content: flex-start; gap: 12px;
+    padding: 8px 14px; text-align: left;
+  }
+  .es-picks .hf-pick .tx em { display: block; }
+  /* Trojica má rad o 32 px nižší než dvojica, takže jamka ustúpi — ale ostáva
+     väčšia, než bola pri dvoch stĺpcoch (28 px). */
+  .es-picks.n3 { grid-template-columns: 1fr; }
+  .es-picks.n3 .hf-pick:nth-child(3) { grid-column: auto; }
+  /* ⚠️ MUSÍ TU STÁŤ ZNOVA, hoci to isté hovorí pravidlo o riadok vyššie:
+     \`.es-picks.n3 .hf-pick\` (tri triedy) prebíja \`.es-picks .hf-pick\` (dve),
+     takže trojica ostávala v stĺpci aj na mobile — dlaždica mala 74 px namiesto
+     56 a plocha narástla na 237 px. Špecificita, nie poradie. */
+  .es-picks.n3 .hf-pick {
+    flex-direction: row; justify-content: flex-start; gap: 12px;
+    padding: 8px 14px; text-align: left;
+  }
   .es-picks.n3 .hf-pick .tx em { display: block; }
+  .es-picks.n3 .hf-pick .well { width: 40px; height: 40px; }
+  .es-picks.n3 .hf-pick .well img { width: 30px; height: 30px; }
 }
 /* Symbol podstaty je KRESBA, nie ikonka rozhrania — jamka je preto väčšia než
    pri voľbe stavu psa a obrázok v nej dýcha. Riadok je aj vyšší: obrazovka
