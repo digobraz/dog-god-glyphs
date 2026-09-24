@@ -12,6 +12,7 @@
 // heroglyf pozadím — NEmixovať s plnou čiernou. Rovnaký primitív ide neskôr aj na článok + walked.
 // Bloky = štvorcové karty v 3-stĺpcovom gride (MY TRIPS + OPEN TRIPS zdieľajú .tl-grid/.tl-block).
 import { useEffect, useMemo, useState } from 'react';
+import { PLANNING_LIVE } from '@/lib/packFlags';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
@@ -818,7 +819,10 @@ export default function PackTriplist() {
         // takže prejdený výlet ostane visieť v OPEN TRIPS celému packu — aj s
         // dátumom — a majiteľ ho nemá ako stiahnuť. Badge vtedy hlási „Done", nie
         // „Looking", takže o tom ani nevie.
-        const canToggleVis = !placeholder;
+        // PLÁNOVANIE V SKLADE (24. 9. 2026, `PLANNING_LIVE`): karta je len „chcem ísť" —
+        // bez odpočtu, dátumu a prepínača viditeľnosti. Badge ostáva len tam, kde niečo
+        // hovorí (prejdené, moderácia); „Sólo" pri neprejdenom by bola reč o pláne.
+        const canToggleVis = !placeholder && PLANNING_LIVE;
         /* ⚠️ ILUSTRAČNÁ FOTKA, NIE ŠEDÁ HORA (Matej 2026-08-25: „výlet sa pridal ale
            nepridala sa fotka (ilustračná)"). Mapa ju kreslila, triplist nie — tá istá
            trasa mala na dvoch obrazovkách dva rôzne obrázky, a na tej, kde plány
@@ -827,9 +831,10 @@ export default function PackTriplist() {
         const cover = trail.photos[0] ?? (placeholder ? '' : placeholderFor(trail.acts, trail.id));
         // stav v moderácii — len pre členom nahodené výlety, generovaný dataset ho nemá
         const mod = trailMeta[entry.tripId]?.status;
+        const showBadge = PLANNING_LIVE || done || !!mod;
         return (
         <div key={entry.tripId} className="tl-mycard">
-          {dleft !== null && dleft >= 0 && (
+          {PLANNING_LIVE && dleft !== null && dleft >= 0 && (
             <span className={`tl-countdown${dleft <= 3 ? ' soon' : ''}`}>{countdownLabel(t, dleft)}</span>
           )}
         {/* 🔴 KARTA MUSÍ ÍSŤ AJ KLÁVESNICOU (audit `/map`, opravené 17. 9. 2026).
@@ -861,14 +866,14 @@ export default function PackTriplist() {
                 title={t('pack.triplist.whoCanSee')}
                 onClick={(e) => { e.stopPropagation(); setVisTripId(entry.tripId); }}
               >{statusLabel(t, entry, done, parties[entry.tripId])}</button>
-            ) : (
+            ) : showBadge ? (
               <span className={`tl-block-badge ${statusClass(entry, done, parties[entry.tripId], mod)}`}>{statusLabel(t, entry, done, parties[entry.tripId], mod)}</span>
-            )}
+            ) : null}
           </div>
           <div className="tl-block-info">
             <div className="tl-block-name">{trail.name}</div>
             {mod === 'pending' && <div className="tl-block-pendhint">{t('pack.triplist.pendingHint')}</div>}
-            <div className="tl-block-foot">
+            {PLANNING_LIVE && <div className="tl-block-foot">
               {entry.date ? (
                 <button type="button" className="tl-datebtn" onClick={(e) => { e.stopPropagation(); openAddDate(entry.tripId, entry.date); }}>
                   {entry.date}
@@ -882,7 +887,7 @@ export default function PackTriplist() {
                   {t(done ? 'pack.triplist.goAgain' : 'pack.triplist.addDate')}
                 </button>
               )}
-            </div>
+            </div>}
           </div>
         </div>
         </div>
@@ -932,7 +937,7 @@ export default function PackTriplist() {
           {/* REQUESTS TO JOIN (#41) — schránka organizátora. Ukáže sa LEN keď niekto čaká;
               prijatie/odmietnutie píše do `trip_requests` (status prepína výhradne organizátor,
               policy trip_requests_decide). Meno k riadku dáva get_trip_party, id dáva tabuľka. */}
-          {incoming.count > 0 && (
+          {PLANNING_LIVE && incoming.count > 0 && (
             <>
               <div className="tl-section">
                 <div className="tl-sechead">
@@ -988,7 +993,7 @@ export default function PackTriplist() {
           )}
 
           {/* #42 — po prijatí: stiahnuť inzerát, alebo hľadať ďalej. Ponuka, nie automat. */}
-          {closeOffer && (
+          {PLANNING_LIVE && closeOffer && (
             <>
               <div className="tl-closebar">
                 <span className="tl-closebar-t">
@@ -1014,7 +1019,7 @@ export default function PackTriplist() {
               ⚠️ Delí sa podľa `done`, NIE podľa dátumu: výlet bez dátumu je stále PLÁN. */}
           <div className="tl-section">
             <div className="tl-sechead">
-              <h3>{t('pack.triplist.myTripsUpcoming')}</h3>
+              <h3>{PLANNING_LIVE ? t('pack.triplist.myTripsUpcoming') : t('pack.triplist.myTripsWant')}</h3>
               {upcomingTrips.length > 0 && (
                 <span className="tl-sechint">
                   {t(`pack.triplist.myTripsCount${pluralKey(upcomingTrips.length)}`, { n: upcomingTrips.length })}
@@ -1027,10 +1032,21 @@ export default function PackTriplist() {
                  kto má len prejdené, ten pokračuje („naplánuj ďalší"). Jedna veta pre oboje
                  by členovi so 72 prejdenými tvrdila, že si nezapísal žiadny výlet. */
               <div className="tl-emptybox">
-                <span className="tl-empty">{t(walkedTrips.length > 0 ? 'pack.triplist.emptyUpcoming' : 'pack.triplist.emptyMyTrips')}</span>
-                <button type="button" className="tl-emptybtn" onClick={() => navigate('/pack/add/trip')}>
-                  {t(walkedTrips.length > 0 ? 'pack.triplist.planNextTrip' : 'pack.triplist.addFirstTrip')}
-                </button>
+                {PLANNING_LIVE ? (
+                  <>
+                    <span className="tl-empty">{t(walkedTrips.length > 0 ? 'pack.triplist.emptyUpcoming' : 'pack.triplist.emptyMyTrips')}</span>
+                    <button type="button" className="tl-emptybtn" onClick={() => navigate('/pack/add/trip')}>
+                      {t(walkedTrips.length > 0 ? 'pack.triplist.planNextTrip' : 'pack.triplist.addFirstTrip')}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span className="tl-empty">{t('pack.triplist.emptyWant')}</span>
+                    <button type="button" className="tl-emptybtn" onClick={() => navigate('/pack/map')}>
+                      {t('pack.triplist.browseTrips')}
+                    </button>
+                  </>
+                )}
               </div>
             ) : (
               <div className="tl-hscroll">
@@ -1062,6 +1078,8 @@ export default function PackTriplist() {
             </div>
           )}
 
+          {/* PLÁNOVANIE V SKLADE (24. 9. 2026, `PLANNING_LIVE`) — OPEN TRIPS sa nekreslí. */}
+          {PLANNING_LIVE && (<>
           <div className="tl-divider" />
 
           {/* OPEN TRIPS — filter (region WCE + krajina), grid, pohorie+lokalita, meno+pes, dátum v rámiku, správa */}
@@ -1182,6 +1200,7 @@ export default function PackTriplist() {
             </>
             )}
           </div>
+          </>)}
         </div>
         )}
       </div>

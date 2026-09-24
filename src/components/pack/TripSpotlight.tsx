@@ -17,6 +17,7 @@
 // odpočet na neexistujúci výlet je klamstvo (to je presne to, čo riešila issue #44).
 import { useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { PLANNING_LIVE } from '@/lib/packFlags';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
@@ -369,7 +370,9 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
     // Triplist má prednosť — tam sa dátum priamo edituje.
     const planRows = [...readPlans(), ...Object.values(triplist)]
       .reduce((acc, e) => { acc.set(e.tripId, e); return acc; }, new Map<string, { tripId: string; date?: string; joiners?: { memberId: string; acceptedAt: number }[] }>());
-    const planned = [...planRows.values()]
+    // PLÁNOVANIE V SKLADE (24. 9. 2026, `PLANNING_LIVE`) — plagát plánu sa neukazuje,
+    // karta padá rovno na čerstvý výlet alebo tip dňa.
+    const planned = !PLANNING_LIVE ? null : [...planRows.values()]
       .filter((e) => e.date && !walked.has(e.tripId) && planPhase(e.date, nowMs) === 'upcoming')
       .map((e) => ({ entry: e, trail: allTrails.find((tr) => tr.id === e.tripId) ?? null }))
       .filter((x): x is { entry: typeof x.entry; trail: HeroTrail } => !!x.trail)

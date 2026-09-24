@@ -61,6 +61,7 @@ import { GROUP_KINDS, groupOf, type NoteGroup, type NoteKind } from '@/component
 import ainubisFace from '@/assets/ainubis-head.png';
 import { GROUP_TINT, HAZARD_RED } from '@/components/pack/mapnotes/NotePalette';
 import { KindGrid } from '@/components/pack/mapnotes/KindGrid';
+import { PLANNING_LIVE } from '@/lib/packFlags';
 import {
   missingFields, needsDifficulty,
   type AddTripDraft, type TripGeometry, type ApprovalStatus, type TripNoteRef, type TripState,
@@ -2725,7 +2726,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
              * ideme" ostáva turistike a aktivite; stretnutie svorky na jednom mieste už nesie
              * PODUJATIE v ADD, takže plánovaná návšteva bola tretia cesta k tomu istému.
              */
-            const noFork = a.id === 'visit';
+            // PLÁNOVANIE V SKLADE (24. 9. 2026, `PLANNING_LIVE`) — bez neho vidlica nemá
+            // druhú vetvu, takže každá dlaždica vedie rovno do zápisu ako návšteva.
+            const noFork = a.id === 'visit' || !PLANNING_LIVE;
             return (
               /* ⚠️ OBAL, NIE HOLÉ TLAČIDLO. Rozbaľovač nesie dve ďalšie tlačidlá a tlačidlo
                  vnorené v tlačidle je neplatné HTML — prehliadač ho vytrhne von z rodiča a

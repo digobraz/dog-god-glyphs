@@ -10,6 +10,7 @@
 // tej istej browser session (žiadna Supabase perzistencia, tá je mimo rozsahu).
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { PLANNING_LIVE } from '@/lib/packFlags';
 import { useNavigate, useParams } from 'react-router-dom';
 import L from 'leaflet';
 import { MapContainer, TileLayer, Polyline, Circle, Marker, useMap } from 'react-leaflet';
@@ -682,7 +683,9 @@ export default function PackTripArticle() {
   const storeEpoch = usePackStoreEpoch();
 
   const hostsHere = useMemo(
-    () => openTrips.filter((o) => o.slug === slug),
+    // PLÁNOVANIE V SKLADE (24. 9. 2026, `PLANNING_LIVE`) — sekcia „otvorený výlet zo
+    // svorky" sa nekreslí; partiu nahradí BUDDY.
+    () => (PLANNING_LIVE ? openTrips.filter((o) => o.slug === slug) : []),
     [openTrips, slug],
   );
   const hostParties = useTripParties(hostsHere.map((o) => ({ slug: o.slug, organizerId: o.organizerId })));

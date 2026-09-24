@@ -124,3 +124,19 @@ export const PAWMATE_LIVE =
 // Odomknutie natrvalo = až keď (1) migrácia beží na LIVE a (2) frontend naozaj
 // zapisuje do DB a druhá strana to vidí. Dovtedy false.
 export const EVENTS_LIVE = import.meta.env.VITE_EVENTS === 'true';
+
+// ── PLÁNOVANIE VÝLETOV — V SKLADE (Matej 24. 9. 2026) ───────────────────────
+// „funkcia plánovania aktivít aj tripov je fajn ALE je to pre začínajúcu apku až moc
+//  konkrétne — odložme to ako hotové riešenie do budúcna, teraz by som nechal iba LOG"
+//
+// Zadanie: `plany/zadanie-assnif-2026-09-24.md` §1. Namiesto plánu prídu PRIANIA na mape
+// a BUDDY (interne ASSNIF). Podujatia sa NETÝKA — tie žijú ďalej.
+//
+// Čo tento prepínač skrýva: vidlicu „prešli sme to / ideme" pri pridaní výletu, výzvu
+// k plánu a kartu plánovaného výletu na DOMOVE, pilulku „plánované" a partiu na mape,
+// panel „idem" a partiu v článku výletu, žiadosti a OPEN TRIPS v tripliste.
+//
+// ⚠️ SKLAD, NIE ZMAZANIE. Kód, typy, i18n kľúče aj tabuľky (`user_trips`, `trip_requests`)
+//    ostávajú — rovnaký precedens ako SERVICE dlaždica v `AddTripEntry.tsx`. Návrat = true.
+// ⚠️ Už zapísané plány sa NEMAŽÚ ani neprepisujú; len sa prestanú ukazovať.
+export const PLANNING_LIVE = false;

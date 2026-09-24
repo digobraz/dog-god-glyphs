@@ -15,7 +15,7 @@ import { TripSpotlight } from '@/components/pack/TripSpotlight';
 import { PlanAskCard } from '@/components/pack/PlanAskCard';
 import { Gateways } from '@/components/pack/Gateways';
 import { useProfile } from '@/components/pack/profile/packProfile';
-import { DEV_FULL } from '@/lib/packFlags';
+import { DEV_FULL, PLANNING_LIVE } from '@/lib/packFlags';
 import { DEV_NOAUTH, DEV_MOCK_DOGS, DEV_MOCK_USER } from '@/lib/devMockDogs';
 import { getAccessibleDogIds } from '@/lib/dogRights';
 import { EDGE_BASE } from '@/lib/env';
@@ -325,7 +325,7 @@ export default function Pack() {
             plagát tak ostane plagátom a otázka zmizne v momente odpovede.
             ⚠️ Za `DEV_FULL` z toho istého dôvodu ako `TripSpotlight` nižšie — všetky tri
             odpovede vedú do `/pack/map`, ktorá zatiaľ nie je pre členov živá. */}
-        {DEV_FULL && <PlanAskCard />}
+        {DEV_FULL && PLANNING_LIVE && <PlanAskCard />}
 
         {DEV_FULL && <TripSpotlight email={user?.email} ownerName={user?.name} />}
 

@@ -164,7 +164,7 @@ import { useEvents, saveEvent, type EventItem } from '@/components/pack/events/e
 // krok 5) — dovtedy sa event po uložení nikde nezobrazoval (formulár aj store boli hotové,
 // panel ostal viazaný len na TRIP vetvu).
 import { EventsPanel } from '@/components/pack/events/EventsPanel';
-import { EVENTS_LIVE } from '@/lib/packFlags';
+import { EVENTS_LIVE, PLANNING_LIVE } from '@/lib/packFlags';
 import { TRIP_CATEGORIES, ACT_TAG_EMOJI, ACT_TO_CATEGORY, CHIP_BY_ID, DATA_TAG_TO_UI, TAG_EMOJI, TAG_I18N, categoriesOf, chipsOf, isInCategory, primaryCategoryOf, type TripCategoryId } from '@/components/pack/tripCategories';
 import { AvatarRing, AV_D } from '@/components/pack/AvatarRing';
 
@@ -4067,6 +4067,9 @@ export default function PackMap() {
     // (`startTripDM` adresuje `trip_requests.organizer_id`) a karty by tu ostali bez
     // tlačidla Message — na článku výletu (PackTripArticle.tsx) pritom funguje.
     const m = new Map<string, { key: string; organizerId: string; date: string | null; organizer: PartyMember; joiners: PartyMember[] }[]>();
+    // PLÁNOVANIE V SKLADE (24. 9. 2026, `PLANNING_LIVE`) — cudzie otvorené výlety sa
+    // neukazujú, partiu nahradí BUDDY (`plany/zadanie-assnif-2026-09-24.md`).
+    if (!PLANNING_LIVE) return m;
     for (const o of openTrips) {
       const party = openTripParties[partyKey(o.slug, o.organizerId)];
       if (!party?.organizer) continue;
