@@ -25,10 +25,10 @@ export const BUDDY_STEPS = [
   { key: 'age', group: 'human' },
   { key: 'gender', group: 'human' },
   { key: 'region', group: 'human' },
+  { key: 'photo', group: 'human' },
   { key: 'temperament', group: 'dog' },
   { key: 'fitness', group: 'dog' },
   { key: 'compat', group: 'dog' },
-  { key: 'photo', group: 'human' },
   { key: 'intents', group: 'buddy' },
   { key: 'audience', group: 'buddy' },
 ] as const;
