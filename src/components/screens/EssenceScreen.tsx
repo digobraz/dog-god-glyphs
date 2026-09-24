@@ -340,6 +340,13 @@ export function EssenceScreen() {
                 ghostValues={HEKTHOR_GLYPH}
                 pulseSlot={handover === null ? topic?.key : undefined}
                 className="es-glyph"
+                // 🔴 ŠÍRKA IDE CEZ `style`, NIE CEZ TRIEDU. `HeroglyphFrame` si
+                // píše `style={{ width: '100%' }}` inline a inline zápis prebije
+                // akékoľvek pravidlo v hárku — `.es-glyph { width: 78% }` tu
+                // preto 24. 9. celý deň VISELO MŔTVE a rám stál na plnej šírke
+                // (merané: 575 px namiesto 448). Prop `style` sa v komponente
+                // rozbaľuje AŽ ZA `width: '100%'`, takže tadiaľ sa presadí.
+                style={{ width: 'var(--es-glyph-w)' }}
               />
 
               <div className="es-chips">
@@ -566,8 +573,16 @@ const ESSENCE_CSS = `
 /* ⚠️ RÁM JE MENŠÍ, NIE PLNÁ ŠÍRKA (Matej 24. 9.: *„a heroglyf zmenšiť.. či?"* —
    áno). Je to najväčší jediný kus výšky na obrazovke a od chvíle, čo má
    podmalbu, sa dá čítať aj menší. 82 % šírky znamená ~18 % nižšiu výšku, lebo
-   pomer strán drží \`viewBox\`. Pod 70 % už symboly v malých slotoch splývajú. */
-.es-glyph { width: 78%; max-width: 100%; margin-inline: auto; display: block; color: rgba(35, 22, 8, 0.88); }
+   pomer strán drží \`viewBox\`. Pod 70 % už symboly v malých slotoch splývajú.
+   🔴 **78 % PLATÍ LEN NA ŠIROKOM OKNE.** Na telefóne je doska sama úzka a
+   sťahovanie na 78 % dalo rámu 63 px výšky proti 80 px na ostrom webe — symboly
+   v malých slotoch zmizli. Do 560 px preto berie rám celú dosku, rovnako ako
+   LIVE. Merané 24. 9. (šírka rámu × výška): 1280 → 448×120 (LIVE 516×138) ·
+   1477×724 → 448×120 (LIVE 464×124) · 390 → 302×81 (LIVE 298×80).
+   ⚠️ Číslo sa podáva ako premenná, lebo šírku zapisuje INLINE \`style\` na
+   komponente — pravidlo z hárku by prehralo. */
+.es-glyph { --es-glyph-w: 78%; max-width: 100%; margin-inline: auto; display: block; color: rgba(35, 22, 8, 0.88); }
+@media (max-width: 559px) { .es-glyph { --es-glyph-w: 100%; } }
 
 /* 🔴 NA MOBILE 2×2, NIE RAD (Matej 24. 9.: *„na mobile dať 4 chipy 2 a 2 pod
    seba zarovnané"*). Rad štyroch sa na 390 px zalomil kde sa mu chcelo — raz

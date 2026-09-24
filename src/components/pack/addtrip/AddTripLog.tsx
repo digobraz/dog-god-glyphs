@@ -354,7 +354,7 @@ function CompanionAvatarsOnly(props: {
     return (
       <div className="atl-companions">
         <style>{COMPANION_CSS}</style>
-        <SoloCompanionAdd selected={selected} onChange={onChange} />
+        <SoloCompanionAdd dog={myDogs[0]} selected={selected} onChange={onChange} />
       </div>
     );
   }
@@ -370,7 +370,8 @@ function CompanionAvatarsOnly(props: {
 // `CompanionPicker`, ktorý needitujeme, viď komentár vyššie) + jeden riadok na napísanie mena.
 // Vlastný pes v `selected` (kľúč `dog-…`) sa tu nezobrazuje ani neponúka na odobratie — pri
 // jednom psovi nie je čo prepínať.
-function SoloCompanionAdd({ selected, onChange }: {
+function SoloCompanionAdd({ dog, selected, onChange }: {
+  dog: { id: string; name: string; photo?: string | null };
   selected: Companion[];
   onChange: (next: Companion[]) => void;
 }) {
@@ -384,6 +385,16 @@ function SoloCompanionAdd({ selected, onChange }: {
     setQ('');
   };
   const remove = (key: string) => onChange(selected.filter((c) => c.key !== key));
+  // ⚠️ PES JE VIDNO AJ PRI JEDNOM (Matej 24. 9. 2026: „minimálne ikonku tam chcem toho psa
+  // a nech je označený… riadok nepotrebuje byť taký široký = vie tam svietiť hneď").
+  // Prebíja 1. 9. („jeden pes = žiadny rad na výber"): výber sa stále nepýta — pes je
+  // predvyplnený (`crewSeededRef`) a svieti OZNAČENÝ v tom istom riadku ako pole na človeka.
+  // Ťuknutím sa dá odznačiť (šiel si bez neho) — tá istá pilulka ako v `CompanionPicker`.
+  const dogKey = `dog-${dog.id}`;
+  const dogOn = selected.some((c) => c.key === dogKey);
+  const toggleDog = () => (dogOn
+    ? remove(dogKey)
+    : onChange([...selected, { key: dogKey, name: dog.name || 'My dog', sub: 'your pack', photo: dog.photo }]));
   return (
     <>
       {named.length > 0 && (
@@ -402,6 +413,20 @@ function SoloCompanionAdd({ selected, onChange }: {
           ))}
         </div>
       )}
+      <div className="atl-solo-row">
+        <button
+          type="button"
+          className={`comm-comp-dog${dogOn ? ' on' : ''}`}
+          onClick={toggleDog}
+          aria-pressed={dogOn}
+          aria-label={dog.name || t('pack.companions.myDog')}
+        >
+          <span className={`comm-comp-dog-av${dog.photo ? '' : ' ph'}`} style={dog.photo ? { backgroundImage: `url('${dog.photo}')` } : undefined}>
+            {dog.photo ? '' : (dog.name || 'D').charAt(0).toUpperCase()}
+          </span>
+          <span>{dog.name || t('pack.companions.myDog')}</span>
+          {!dogOn && <span className="plus">+</span>}
+        </button>
       <div className="comm-comp-searchwrap">
         <div className="comm-comp-searchrow">
           <input
@@ -422,6 +447,7 @@ function SoloCompanionAdd({ selected, onChange }: {
             +
           </button>
         </div>
+      </div>
       </div>
     </>
   );
@@ -3974,6 +4000,9 @@ const ROUTE_HERO_CSS = `
 
 const COMPANION_CSS = `
 .atl-companions .comm-comp-selected{gap:8px;}
+/* Jeden pes: avatar a pole na človeka v JEDNOM riadku (24. 9. 2026). */
+.atl-companions .atl-solo-row{display:flex;align-items:center;gap:8px;}
+.atl-companions .atl-solo-row .comm-comp-searchwrap{flex:1;min-width:0;}
 .atl-companions .comm-comp-chip{padding:3px;gap:4px;position:relative;}
 .atl-companions .comm-comp-chip b{
   position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);
