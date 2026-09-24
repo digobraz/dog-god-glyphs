@@ -32,7 +32,7 @@ import {
   PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI,
 } from '@/components/pack/packTheme';
 import {
-  AINUBIS, AI_GLASS, AI_RAIL_BEFORE, AI_BREATHE_CSS,
+  AINUBIS, AI_GLASS, AI_BUBBLE, AI_RAIL_BEFORE, AI_BREATHE_CSS,
 } from '@/components/pack/ainubisSkin';
 import { HandArrowLeft } from '@/components/pack/HandIcons';
 /* Tvár AINUBISA — tá istá, ktorú nesie guľa widgetu. Ikonku si pýtať netreba. */
@@ -282,10 +282,16 @@ ${AI_BREATHE_CSS}
 @media (prefers-reduced-motion:reduce){.akc-echo{display:none;}}
 /* ⚠️ VLÁKNO MÁ MERANÚ ŠÍRKU — stĺpec rastie s oknom, riadok odpovede nie. */
 .akc-in{max-width:${THREAD_W}px;margin:0 auto;display:flex;flex-direction:column;gap:${PACK_SPACE.xl}px;}
+/* 🔴 OTÁZKA JE PLNÁ BUBLINA, ODPOVEĎ JE SKLO (Matej 24. 9. 2026: „pri chate je
+   otázka v plnom fille bubliny a odpoveď v inom... ako to byva všade").
+   Do 24. 9. mali obe to isté: priesvitný cyan a tenký lem, takže na prvý pohľad
+   nebolo vidno, kto hovorí. Teraz sa líšia MATERIÁLOM, nie odtieňom:
+   človek = plná plocha jeho cyanu s tmavým inkoustom · stroj = AI-SKLO s railom.
+   ⚠️ Toto je jediné miesto v jeho brande, kde má plnú plochu niečo iné než CTA:
+      bublina je REPLIKA, nie tlačidlo, a plná plocha tu nesie autorstvo. */
 .akc-me-msg{align-self:flex-end;max-width:82%;padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;
   border-radius:${PACK_R.card}px;border-bottom-right-radius:${PACK_R.field}px;
-  font-size:${PACK_TEXT.body}px;color:${AINUBIS.ink};
-  background:rgba(${AINUBIS.cyanRGB},0.14);border:1px solid ${AINUBIS.edge};}
+  font-size:${PACK_TEXT.body}px;${AI_BUBBLE}}
 .akc-ai{align-self:stretch;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .akc-body{position:relative;}
 .akc-aihd{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;

@@ -175,6 +175,38 @@ export const AI_GLASS = `
     0 0 50px -18px rgba(var(--ai-w,${CYAN_RGB}),0.55);
 `;
 
+/** REPLIKA ČLOVEKA v chate — plná plocha jeho cyanu s tmavým inkoustom
+ *  (Matej 24. 9. 2026: „otázka v plnom fille bubliny a odpoveď v inom").
+ *  ⚠️ Odlíšenie nesie MATERIÁL, nie odtieň: človek plná plocha, stroj sklo.
+ *  ⚠️ Patrí sem, a nie do komponentu, lebo stráž check:pack meria tieň proti
+ *     PACK_SHADOW a tento svit je AINUBISOV — skin je jediné miesto, kde smie
+ *     mať vlastný (rovnako ako AI_GLASS). */
+export const AI_BUBBLE = `
+  border:0;color:#04121A;font-weight:500;
+  background:linear-gradient(135deg,${CYAN} 0%,${GLOW} 140%);
+  box-shadow:0 10px 26px -14px rgba(${CYAN_RGB},0.65), inset 0 1px 0 rgba(255,255,255,0.35);
+`;
+
+/** Tieň police nad plátnom — vodorovný, lebo panel stojí VEDĽA mozgu, nie nad ním.
+ *  V skine preto, že stráž check:pack meria tieň proti PACK_SHADOW (tri zvislé
+ *  výšky) a toto je štvrtý smer, nie štvrtá výška. */
+export const AI_PANEL_SHADOW = `box-shadow:24px 0 60px -40px rgba(0,0,0,0.90);`;
+
+/** Zaostrenie na poli — svetlo zvnútra, nie hrubší lem. */
+export const AI_FOCUS = `
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.10),
+    0 0 0 1px rgba(${CYAN_RGB},0.35), 0 0 28px -10px rgba(${CYAN_RGB},0.55);
+`;
+
+/** CHRBÁT KNIHY v knižnici — polica sa dá čítať okom skôr než názvom.
+ *  Dve vnútorné hrany robia z obdĺžnika objekt: svetlá vpravo, tmavá vľavo.
+ *  ⚠️ V skine z toho istého dôvodu ako AI_BUBBLE — stráž meria tieň proti
+ *     PACK_SHADOW a toto je vnútorná hrana, nie výška nad plochou. */
+export const AI_SPINE = `
+  background:linear-gradient(160deg,rgba(${CYAN_RGB},0.30),rgba(${GLOW_RGB},0.10));
+  box-shadow:inset -1px 0 0 rgba(255,255,255,0.10), inset 1px 0 0 rgba(0,0,0,0.35);
+`;
+
 /** Hlas stroja v karte — svetelný rail namiesto boxu v boxe (voľba C1).
  *  ⚠️ Rámik navyše je najlacnejší spôsob, ako z centrály urobiť úradný formulár.
  *  Dvojpixelová svietiaca čiara povie „toto hovorí stroj" rovnako jasne

@@ -41,9 +41,11 @@ import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayou
 import { PackIdentityBar } from '@/components/pack/PackIdentityBar';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import {
-  PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI,
+  PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS,
 } from '@/components/pack/packTheme';
-import { AINUBIS } from '@/components/pack/ainubisSkin';
+import {
+  AINUBIS, AI_GLASS, AI_BREATHE_CSS, AI_PANEL_SHADOW, AI_FOCUS, aiWorld,
+} from '@/components/pack/ainubisSkin';
 import { VaultChat, VAULT_CHAT_CSS } from '@/components/pack/vault/VaultChat';
 import { VaultWall, VAULT_WALL_CSS } from '@/components/pack/vault/VaultWall';
 import { VAULT_SOURCE_TOTALS } from '@/components/pack/vault/vaultSources';
@@ -64,6 +66,8 @@ const BOTTOM_MOBILE = 160;
 const BOTTOM_PC = 112;
 
 const CSS = `
+${AI_BREATHE_CSS}
+${STAGE_CSS}
 .akv-root{position:fixed;inset:0;overflow:hidden;background:${AINUBIS.surfaceBase};color:${AINUBIS.ink};
   font-family:${FONT_UI};--akv-panel:min(40vw,480px);}
 /* Podsvietený displej, nie čierny obdĺžnik — dve mriežky ako v nákrese (.bg .mesh / .mesh8). */
@@ -148,8 +152,26 @@ const CSS = `
 
 /* ── DOGSCROLL — vzor zoznamu na /map: HLAVIČKA STOJÍ, scrolluje len obsah ──
    (Matej 22. 9.: „vrch zamknutý nadpis, prepínače, filtre a scrolling len obsahy"). */
+/* ── POLICA JE SKLENENÝ PANEL NAD PLÁTNOM (24. 9. 2026) ────────────────────
+   Do 24. 9. to bol PLOCHÝ tmavý stĺpec: mozog vedľa neho svietil, polica nie,
+   a hrana medzi nimi bola obyčajný predel. Teraz panel stojí NAD plátnom —
+   presvitá cezeň a nesie na svojej hrane svetlo, takže obe polovice sú z toho
+   istého prístroja. To je ten „punc" — nie viac farby, ale jedna hĺbka.
+   🔴 ROZMAZANIE SI POLICA NEKRESLÍ — je to SKLENENÁ DOSKA z katalógu (.pk-stage,
+      "podklad OBSAHU nad tapetou: tapetu rozmaže, ale nezakryje"). Prvý pokus mal
+      vlastný backdrop-filter, stráž check:pack ho zhodila a mala pravdu.
+      Farbu nesie povrch cez --pk-stage / --pk-stage-edge, presne ako to recept
+      predpisuje; tu je AINUBISOVA, nie papyrusová.
+   ⚠️ Doska je na PANELI, nie na kartách — rozmazanie na každej karte zvlášť je
+      na mobile drahé a viditeľne seká rolovanie. */
 .akv-scroll{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;overflow:hidden;
-  background:${AINUBIS.surfaceBase};padding-top:var(--akv-top-h,112px);}
+  padding-top:var(--akv-top-h,112px);border-radius:0;border-width:0 1px 0 0;
+  --pk-stage:linear-gradient(180deg,rgba(7,16,25,0.92) 0%,rgba(3,7,12,0.97) 100%);
+  --pk-stage-edge:rgba(${AINUBIS.cyanRGB},0.16);
+  ${AI_PANEL_SHADOW}}
+/* Svetelná niť na pravej hrane police — zhora jasná, dole zhasnutá. */
+.akv-scroll::after{content:'';position:absolute;top:0;bottom:0;right:0;width:1px;pointer-events:none;
+  background:linear-gradient(180deg,rgba(${AINUBIS.cyanRGB},0.55) 0%,rgba(${AINUBIS.cyanRGB},0.06) 55%,transparent 100%);}
 .akv-lhead{flex:0 0 auto;width:100%;max-width:${520 + 2 * PACK_SPACE.lg}px;margin:0 auto;
   display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;
   padding:0 ${PACK_SPACE.lg}px ${PACK_SPACE.md}px;border-bottom:1px solid ${AINUBIS.edge};}
@@ -188,8 +210,9 @@ const CSS = `
 
 /* HĽADANIE — vzor .trp-mapsearch. Písmo 16 px: pod ním iOS pri ťuknutí priblíži stránku. */
 .akv-search{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;min-width:0;
-  padding:0 ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;border:1px solid ${AINUBIS.edge};
-  background:${AINUBIS.surface};color:${AINUBIS.inkFaint};}
+  padding:0 ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;color:${AINUBIS.inkFaint};
+  ${AI_GLASS}}
+.akv-search:focus-within{${AI_FOCUS}}
 .akv-search input{flex:1 1 auto;min-width:0;background:transparent;border:0;outline:0;
   padding:${PACK_SPACE.sm}px 0;color:${AINUBIS.ink};font-family:${FONT_UI};font-size:${PACK_TEXT.lead}px;}
 .akv-search input::placeholder{color:${AINUBIS.inkFaint};}
@@ -263,13 +286,30 @@ const CSS = `
 .akv-entry b .akv-chev{display:inline-flex;transform:rotate(180deg);}
 
 /* UPÚTAVKA SVETA — tvar budúceho úvodu sveta (.wintro v nákrese), lock §4.1: jedna karta. */
+/* ── KARTA SVETA — AI-SKLO (Matej 24. 9. 2026) ─────────────────────────────
+   *„postaraj sa o rebrand aj vaultu zvýrazni to urob hlbku tieň, punc
+   futurickosti … je rok 2050"*. Karta mala plochý lem a jeden tieň, čo je presne
+   to, čo na nástenke prestalo platiť — VAULT je predloha a nesmie byť posledný,
+   kto nosí starý materiál. Ten istý odliatok, ten istý dosvit sveta.
+   ⚠️ --ai-w nesie karta zo zoznamu svetov, takže polica dostane sedem odtieňov
+      a dá sa čítať farbou pri rolovaní. */
 .akv-world{position:relative;text-align:center;scroll-margin-top:${PACK_SPACE.lg}px;
   padding:${PACK_SPACE.xl}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.card}px;
-  background:${AINUBIS.raised}, ${AINUBIS.surface};border:1px solid ${AINUBIS.edge};box-shadow:${AINUBIS.panelShadow};
-  transition:border-color 300ms ease;}
-.akv-world.is-flash{border-color:${AINUBIS.cyan};}
+  transition:transform 200ms ease;${AI_GLASS}}
+/* Vnútorný svit pod ikonkou — karta nie je doska, je to OKNO do sveta.
+   Radiálu kreslí pseudoprvok, aby neprepísal vrstvy odliatku. */
+.akv-world::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(60% 40% at 50% 22%,rgba(var(--ai-w,${AINUBIS.cyanRGB}),0.10),transparent 70%);}
+.akv-world > *{position:relative;z-index:1;}
+.akv-world:hover{transform:translateY(-2px);}
+/* ⚠️ Zvýraznenie po skoku z mozgu NEMÔŽE byť border-color — lem je gradient
+   cez border-box a jedna farba by ho zmazala aj s dosvitom. Nesie ho prstenec. */
+.akv-world.is-flash{outline:1px solid ${AINUBIS.cyan};outline-offset:-1px;}
 .akv-wlbl{font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.label.letterSpacing};text-transform:uppercase;color:${AINUBIS.cyan};}
 /* IKONKA cez MASKU, nie filter — filter farbu hádá (feedback_filter_aproximuje_masku). */
+/* ⚠️ Ikonka ostáva ZLATÁ. Skúšal som ju prefarbiť na farbu sveta a polica sa
+   rozpadla na sedem rôznych značiek — zlatá je to, čo z nich robí JEDEN zoznam.
+   Farbu sveta nesie dosvit karty, nie kresba v nej. */
 .akv-wic{width:44px;height:44px;margin:${PACK_SPACE.md}px auto 0;background:${AINUBIS.ctaGrad};
   -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;
   -webkit-mask-size:contain;mask-size:contain;}
@@ -697,7 +737,7 @@ export default function PackAinubis() {
           má v CSS `display:flex`, ktorý ho prebije, a panel svetov presvital pod
           vláknom. Tá istá pasca čaká pri každom `hidden` nad flexom. */}
       {plane2 === 'vault' && (
-      <aside className="akv-scroll" aria-label={tx('pack.ainubis.view.dogscroll', 'Dogscroll')}>
+      <aside className="pk-stage akv-scroll" aria-label={tx('pack.ainubis.view.dogscroll', 'Dogscroll')}>
         {/* ZAMKNUTÁ HLAVIČKA (Matej 22. 9.): nadpis · roviny · filtre · vrstvy.
             Logo, eyebrow a trojriadkový úvod zanikli — „opäť je tam veľa textu".
             „Stavba pred očami" nesie oznam hore a pilulka na každej karte. */}
@@ -725,6 +765,7 @@ export default function PackAinubis() {
               key={w.key}
               id={`akv-w-${w.key}`}
               className={`akv-world${flash === w.key ? ' is-flash' : ''}`}
+              style={aiWorld(w.key)}
             >
               <div className="akv-wlbl">{tx('pack.ainubis.worldOf', 'World {n} of 7').replace('{n}', String(i + 1))}</div>
               <div className="akv-wic" aria-hidden style={mask(w.ic)} />

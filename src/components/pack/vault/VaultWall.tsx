@@ -31,12 +31,12 @@ import {
   PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, VEIL_CSS,
 } from '@/components/pack/packTheme';
 import {
-  AINUBIS, AI_GLASS, AI_RAIL, AI_RAIL_BEFORE, AI_RAIL_BLANK, AI_BREATHE_CSS, aiWorld,
+  AINUBIS, AI_GLASS, AI_RAIL, AI_RAIL_BEFORE, AI_RAIL_BLANK, AI_SPINE, AI_BREATHE_CSS, aiWorld,
 } from '@/components/pack/ainubisSkin';
 import { HandPaw, HandStar, HandForward, HandPlus, HandArrowLeft } from '@/components/pack/HandIcons';
 import ainubisFace from '@/assets/ainubis-badge.png';
 import { VAULT_WORLDS } from './worlds';
-import { DEMO_WALL, verdictParts, type WallPost, type SealKind } from './vaultWallDemo';
+import { DEMO_WALL, shortOf, verdictParts, type WallPost, type SealKind } from './vaultWallDemo';
 import { DEMO_PENDING } from './vaultChatDemo';
 import {
   LIBRARY_SOURCES, VAULT_SOURCE_TOTALS, SOURCE_KINDS, SOURCE_GROUPS,
@@ -57,6 +57,10 @@ const GRID_MAX = 1240;
    a prvá karta na 270. Riadok je kompaktný (meno, jeden riadok popisu), takže
    1240 sa nečíta ako tabuľka — a celá obrazovka stojí na jednej osi. */
 const LIST_MAX = GRID_MAX;
+/* Deväť na stranu = tri riadky po troch na PC (a deväť za sebou na mobile).
+   Nekonečné rolovanie sa nekladie: nástenka nie je feed, človek sa na ňu vracia
+   na to isté miesto a strana je jediné, čo sa dá zapamätať. */
+const PER_PAGE = 9;
 
 /** Meno tretej záložky. Matej 24. 9.: „možno by sme mohli použiť mozog namiesto
  *  zdroje?" — MOZOG je obsadený (pohľad MOZOG ⇄ DOGSCROLL vo VAULTE, plátno
@@ -145,6 +149,55 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
 /* Deliaca čiara medzi „čo pozerám" a „podľa čoho filtrujem" — len na PC,
    kde stoja v jednom rade (Matej 24. 9.: „vedľa za deliacu čiaru (na PC)"). */
 .akw-div{display:none;flex:0 0 auto;width:1px;align-self:stretch;background:${AINUBIS.edge};}
+/* ── SVETY = ROZBAĽOVAČ S VIACNÁSOBNÝM VÝBEROM (Matej 24. 9. 2026) ─────────
+   Predtým rad siedmich pilulek cez celú šírku: na mobile sa rolovali do strany,
+   na PC zabrali celý druhý pás a vybrať sa dal VŽDY LEN JEDEN svet. Sedem je
+   strop (svet už nepribudne), takže zoznam sa zmestí do jedného panelu — a
+   viacnásobný výber je to, čo človek naozaj chce („výživa AJ prevencia").
+   ⚠️ Zvolené svety nesie POČÍTADLO na tlačidle, nie sedem pilulek vedľa seba.  */
+.akw-wsel{position:relative;flex:0 0 auto;}
+.akw-wbtn{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;cursor:pointer;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.pill}px;
+  border:1px solid ${AINUBIS.edge};background:transparent;color:${AINUBIS.inkDim};
+  font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;line-height:1.3;white-space:nowrap;}
+.akw-wbtn:hover{border-color:${AINUBIS.edgeStrong};}
+.akw-wbtn[aria-expanded="true"]{border-color:${AINUBIS.edgeStrong};color:${AINUBIS.cyan};}
+.akw-wbtn u{text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
+  min-width:18px;height:18px;padding:0 ${PACK_SPACE.xs}px;border-radius:${PACK_R.pill}px;
+  background:rgba(${AINUBIS.cyanRGB},0.16);color:${AINUBIS.cyan};
+  font-size:${PACK_TEXT.micro}px;font-weight:600;}
+.akw-wpanel{position:absolute;z-index:6;top:calc(100% + ${PACK_SPACE.sm}px);left:0;min-width:240px;
+  border-radius:${PACK_R.card}px;padding:${PACK_SPACE.sm}px;${AI_GLASS}}
+.akw-wrow{display:flex;align-items:center;gap:${PACK_SPACE.md}px;width:100%;cursor:pointer;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;border:1px solid transparent;
+  background:transparent;color:${AINUBIS.inkDim};text-align:left;
+  font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;line-height:1.3;}
+.akw-wrow:hover{background:rgba(${AINUBIS.cyanRGB},0.08);}
+.akw-wrow i{width:16px;height:16px;flex:0 0 16px;background:currentColor;}
+.akw-wrow em{font-style:normal;margin-left:auto;font-size:${PACK_TEXT.micro}px;color:${AINUBIS.inkFaint};}
+/* Zaškrtnutie = TINT a lem, nie plná plocha (plnú má jediné CTA). */
+.akw-wrow[aria-checked="true"]{color:${AINUBIS.cyan};border-color:${AINUBIS.edgeStrong};
+  background:rgba(${AINUBIS.cyanRGB},0.14);}
+.akw-wclear{width:100%;margin-top:${PACK_SPACE.xs}px;padding:${PACK_SPACE.sm}px;cursor:pointer;
+  border:0;border-top:1px solid ${AINUBIS.edge};background:transparent;color:${AINUBIS.inkFaint};
+  font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.section.letterSpacing};
+  text-transform:uppercase;}
+.akw-wclear:hover{color:${AINUBIS.cyan};}
+
+/* ── STRÁNKY ──────────────────────────────────────────────────────────────
+   Matej 24. 9.: „kde budu nejake stranky". Deväť na stranu = tri riadky po
+   troch na PC; nekonečné rolovanie sa nekladie, lebo nástenka nie je feed
+   a človek sa na ňu vracia na to isté miesto. */
+.akw-pages{display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.sm}px;
+  margin-top:${PACK_SPACE.xl}px;}
+.akw-pg{min-width:34px;height:34px;padding:0 ${PACK_SPACE.sm}px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;border-radius:${PACK_R.pill}px;
+  border:1px solid ${AINUBIS.edge};background:transparent;color:${AINUBIS.inkDim};
+  font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;}
+.akw-pg:hover{border-color:${AINUBIS.edgeStrong};color:${AINUBIS.cyan};}
+.akw-pg[aria-current="page"]{color:${AINUBIS.cyan};border-color:${AINUBIS.edgeStrong};
+  background:rgba(${AINUBIS.cyanRGB},0.14);}
+.akw-pg:disabled{opacity:0.35;cursor:default;}
 .akw-worlds{display:flex;flex-wrap:nowrap;gap:${PACK_SPACE.sm}px;min-width:0;
   overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;
   margin:0 -${PACK_SPACE.lg}px;padding:0 ${PACK_SPACE.lg}px;}
@@ -215,6 +268,17 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
    vždy, aj keď je v nich text len na jeden. */
 .akw-clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
   min-height:3em;}
+/* 🔴 ODPOVEĎ NA NÁSTENKE NIE JE (Matej 24. 9. 2026: „odpoveď ainubisa až na
+   rozklik... nie hneď"). Karta povie len TO, ŽE odpovedal a z čoho — samotná
+   veta sa otvorí spolu s príspevkom. Vstup má mať čo najmenej textu.
+   ⚠️ Prúžok sa NERUŠÍ. Keby zmizol, karta by zatajila jedinú vec, ktorou sa
+      nástenka líši od diskusného fóra: že na to niekto odpovedal zo zdrojov. */
+.akw-said{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;
+  font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;line-height:1.4;
+  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
+.akw-said b{color:${AINUBIS.cyan};font-weight:600;letter-spacing:0.02em;text-transform:none;
+  font-size:${PACK_TEXT.label}px;}
+.akw-ai.is-blank .akw-said b{color:${AINUBIS.ctaA};}
 .akw-vd{margin:0;font-size:${PACK_TEXT.body}px;line-height:1.5;color:${AINUBIS.ink};}
 .akw-vd b{color:${AINUBIS.cyan};font-weight:600;}
 .akw-ai.is-blank .akw-vd b{color:${AINUBIS.ctaA};}
@@ -392,6 +456,52 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
 /* ── KNIŽNICA ──────────────────────────────────────────────────────────────
    Klauzula stojí HORE a nie je to drobné písmo v päte: je to prvá veta, ktorú
    človek na tejto obrazovke prečíta (Matej 24. 9.). */
+/* ══ KNIŽNICA — FASÁDA (Matej 24. 9. 2026) ════════════════════════════════
+   *„library si zaslúži urobiť krajšiu fasádu možno rozdeliť obrazovku na dve
+   časti dať menej textu pridať knihy a hore cez ikonku hand writen dať
+   vysvetlenie ako fungujeme"*.
+   🔴 ZÁMER JE MENEJ TEXTU NA VSTUPE, VIAC AŽ PO KLIKU. Preto klauzula, legenda
+   pruhu aj celé „ako fungujeme" zmizli z plochy a sedia za jednou ikonkou.
+   Vstup je POLICA: vľavo kam idem, vpravo čo tam je. */
+.akw-lib{display:grid;grid-template-columns:240px minmax(0,1fr);gap:${PACK_SPACE.xl}px;
+  align-items:start;}
+.akw-shelf{position:sticky;top:0;display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;}
+.akw-sh{display:flex;align-items:center;gap:${PACK_SPACE.md}px;width:100%;cursor:pointer;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;
+  border:1px solid transparent;background:transparent;color:${AINUBIS.inkDim};text-align:left;
+  font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;line-height:1.3;}
+.akw-sh:hover{background:rgba(${AINUBIS.cyanRGB},0.08);}
+.akw-sh em{font-style:normal;margin-left:auto;font-size:${PACK_TEXT.micro}px;color:${AINUBIS.inkFaint};}
+.akw-sh[aria-current="true"]{color:${AINUBIS.cyan};border-color:${AINUBIS.edgeStrong};
+  background:rgba(${AINUBIS.cyanRGB},0.14);}
+/* Ikonka „ako to funguje" — jediné miesto, kde na vstupe ostal text, a je to
+   jedna veta. Zvyšok je za ňou. */
+.akw-howbtn{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;width:100%;cursor:pointer;
+  margin-bottom:${PACK_SPACE.md}px;padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;
+  border:1px solid ${AINUBIS.glowEdge};background:${AINUBIS.glowTint};color:${AINUBIS.inkDim};
+  font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;line-height:1.35;text-align:left;}
+.akw-howbtn:hover{border-color:${AINUBIS.edgeStrong};color:${AINUBIS.ink};}
+.akw-howbtn i{width:22px;height:22px;flex:0 0 22px;background:currentColor;color:${AINUBIS.cyan};}
+.akw-howsheet{width:100%;max-width:640px;margin:auto;border-radius:${PACK_R.card}px;
+  padding:${PACK_SPACE.xl}px;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;position:relative;}
+.akw-howsheet h2{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;
+  line-height:1.2;letter-spacing:${PACK_HEAD.card.letterSpacing};color:${AINUBIS.ink};}
+.akw-howsheet p{margin:0;font-size:${PACK_TEXT.body}px;line-height:1.6;color:${AINUBIS.inkDim};}
+.akw-howsheet p b{color:${AINUBIS.cyan};font-weight:500;}
+.akw-howsheet .akw-leg{margin-top:${PACK_SPACE.md}px;padding-top:${PACK_SPACE.md}px;
+  border-top:1px solid ${AINUBIS.edge};}
+/* Kniha má CHRBÁT — polica sa dá čítať okom skôr než názvom. */
+.akw-books{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));
+  gap:${PACK_SPACE.md}px;}
+.akw-spine{width:34px;flex:0 0 34px;align-self:stretch;min-height:64px;border-radius:${PACK_R.tile}px;
+  ${AI_SPINE}}
+.akw-src.is-pending .akw-spine{background:repeating-linear-gradient(135deg,
+  rgba(${AINUBIS.cyanRGB},0.10) 0 6px,transparent 6px 12px);}
+@media (max-width:860px){
+  .akw-lib{grid-template-columns:minmax(0,1fr);}
+  .akw-shelf{position:static;flex-direction:row;flex-wrap:wrap;}
+  .akw-sh{width:auto;}
+}
 .akw-clause{border-radius:${PACK_R.tile}px;border:1px solid ${AINUBIS.glowEdge};
   background:${AINUBIS.glowTint};padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;
   font-size:${PACK_TEXT.label}px;line-height:1.55;color:${AINUBIS.inkDim};}
@@ -407,11 +517,18 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
 .akw-leg span{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;}
 .akw-leg u{width:14px;height:4px;border-radius:${PACK_R.pill}px;text-decoration:none;}
-.akw-src{border-radius:${PACK_R.frame}px;border:1px solid ${AINUBIS.edge};
-  background:rgba(3,7,12,0.35);padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;}
-/* Čerstvo pridaný zdroj je v zozname HNEĎ — ale bledo a so stavom. */
-.akw-src.is-pending{border-style:dashed;background:transparent;}
-.akw-srchd{display:flex;align-items:flex-start;gap:${PACK_SPACE.md}px;}
+.akw-src{border-radius:${PACK_R.frame}px;padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;${AI_GLASS}}
+/* ⚠️ Čerstvo pridaný zdroj bol do 24. 9. odlíšený PRERUŠOVANÝM LEMOM. S AI-SKLOM
+   to nejde: lem je gradient cez border-box a border-style:dashed by ho rozsekal
+   na čiarky aj s dosvitom. Rozdiel preto nesie PRIESVITNOSŤ — zdroj, ktorý ešte
+   neprešiel, je na polici bledší a jeho chrbát je šrafovaný. */
+.akw-src.is-pending{opacity:0.62;}
+/* ⚠️ Hlavička karty zdroja MUSÍ vedieť zalomiť. Prvý pokus mal chrbát, text
+   a odznak „original" v jednom neprelamovateľnom rade a názov sa lámal po
+   jednom slove na riadok („Feeding / Dogs: Dry / or Raw?"). Odznak ide na
+   vlastný riadok skôr, než sa rozseká meno knihy. */
+.akw-srchd{display:flex;align-items:flex-start;gap:${PACK_SPACE.md}px;flex-wrap:wrap;}
+.akw-srchd > div{flex:1 1 180px;min-width:0;}
 .akw-src h2{margin:0;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.body}px;line-height:1.35;
   color:${AINUBIS.ink};}
 .akw-src.is-pending h2{color:${AINUBIS.inkFaint};}
@@ -437,7 +554,7 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
    toto je to ukázanie. ⚠️ Affiliate ešte neexistuje (Matej: „doladíme, vyrobíme
    si affiliate"), takže tlačidlo je ZATIAĽ MŔTVE a povie to — mŕtvy odkaz, ktorý
    vyzerá živo, je horší než žiadny. */
-.akw-buy{flex:0 0 auto;margin-left:auto;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
+.akw-buy{flex:0 0 auto;margin-left:auto;order:3;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
   border:1px dashed ${AINUBIS.edge};background:transparent;color:${AINUBIS.inkFaint};cursor:default;
   font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;line-height:1.4;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;white-space:nowrap;}
@@ -529,17 +646,14 @@ function Post({ post, onOpen }: { post: WallPost; onOpen: () => void }) {
   return (
     <button type="button" className="akw-post" style={aiWorld(post.world)} onClick={onOpen}>
       <PostHead post={post} />
-      <p className="akw-ptxt akw-clamp">{post.text}</p>
+      <p className="akw-ptxt akw-clamp">{shortOf(post)}</p>
       <div className={`akw-ai${post.ai.blank ? ' is-blank' : ''}`}>
-        <div className="akw-aihd">
+        <div className="akw-said">
           <img className="akw-aiface ai-breathe-face" src={ainubisFace} alt="" aria-hidden />
-          <span><i>AI</i>NUBIS</span>
+          {post.ai.blank
+            ? <span><b>AINUBIS</b> · nothing written here yet</span>
+            : <span><b>AINUBIS</b> answered · from {post.ai.scrolls} scrolls</span>}
         </div>
-        <p className="akw-vd akw-clamp">
-          {verdictParts(post.ai.verdict).map((x, i) => (
-            x.hi ? <b key={i}>{x.t}</b> : <Fragment key={i}>{x.t}</Fragment>
-          ))}
-        </p>
       </div>
       <div className="akw-met">
         <s><HandPaw size={13} /><b>{post.paws}</b></s>
@@ -547,8 +661,6 @@ function Post({ post, onOpen }: { post: WallPost; onOpen: () => void }) {
             si kresbu od Mateja, nie siahnuť po lucide alebo emoji. Kým nie je,
             stojí tu holé slovo. 🚩 NA MATEJA. */}
         <s><b>{post.replies.length + post.moreReplies}</b> replies</s>
-        {!post.ai.blank && <s><b>{post.ai.scrolls}</b> scrolls</s>}
-        {post.ai.blank && <s style={{ color: AINUBIS.ctaA }}>empty world</s>}
         <u>open{chev}</u>
       </div>
     </button>
@@ -649,6 +761,10 @@ function SourceCard({ s }: { s: VaultSource }) {
   return (
     <article className={`akw-src${s.pending ? ' is-pending' : ''}`}>
       <div className="akw-srchd">
+        {/* CHRBÁT — kniha má na polici tvar, nie len riadok textu. Pri zdroji,
+            ktorý ešte čaká na posúdenie, je šrafovaný: miesto na polici, ale
+            zatiaľ prázdne. */}
+        <span className="akw-spine" aria-hidden />
         <div style={{ minWidth: 0 }}>
           <h2>{s.title}</h2>
           <p className="akw-au">{meta}</p>
@@ -708,9 +824,34 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
   onPost: (id: string | null) => void;
 }) {
   /** Filter je VRSTVA nad tým istým obsahom, nie ďalšia záložka (lock §1.3). */
-  const [world, setWorld] = useState<string | null>(null);
+  /* Filter je VRSTVA nad tým istým obsahom (lock §1.3) — a od 24. 9. 2026 znesie
+     VIAC svetov naraz. Prázdna množina = všetko, nie „nič". */
+  const [worlds, setWorlds] = useState<Set<string>>(new Set());
+  const [wopen, setWopen] = useState(false);
   const [kinds, setKinds] = useState(false);
-  const posts = world ? DEMO_WALL.filter((p) => p.world === world) : DEMO_WALL;
+  /* Polica: null = všetky. Vľavo sa ňou len preskakuje, obsah je ten istý. */
+  const [shelf, setShelf] = useState<string | null>(null);
+  const [how, setHow] = useState(false);
+  const [page, setPage] = useState(0);
+  const posts = worlds.size ? DEMO_WALL.filter((p) => worlds.has(p.world)) : DEMO_WALL;
+  const pages = Math.max(1, Math.ceil(posts.length / PER_PAGE));
+  /* ⚠️ Strana sa musí vrátiť na prvú, keď sa zmení filter — inak človek pristane
+     na strane 3 zoznamu, ktorý má odteraz jednu. */
+  const pageSafe = Math.min(page, pages - 1);
+  const shown = posts.slice(pageSafe * PER_PAGE, pageSafe * PER_PAGE + PER_PAGE);
+  const toggleWorld = (k: string) => {
+    setWorlds((v) => { const n = new Set(v); if (n.has(k)) n.delete(k); else n.add(k); return n; });
+    setPage(0);
+  };
+  /* Zavrieť roletku klikom mimo nej — inak ostane visieť nad obsahom. */
+  useEffect(() => {
+    if (!wopen) return undefined;
+    const away = (e: PointerEvent) => {
+      if (!(e.target as HTMLElement).closest('.akw-wsel')) setWopen(false);
+    };
+    document.addEventListener('pointerdown', away);
+    return () => document.removeEventListener('pointerdown', away);
+  }, [wopen]);
 
   /* ⚠️ Zavrieť sa musí dať aj klávesnicou — prekryv, z ktorého sa nedá vyjsť
      Escapom, je pasca pre každého, kto nemá myš. */
@@ -751,15 +892,26 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
           {tab === 'pack' && (
             <>
               <span className="akw-div" aria-hidden />
-              <div className="akw-worlds">
-                <button type="button" className="akw-wchip" aria-pressed={world === null}
-                  onClick={() => setWorld(null)}>everything</button>
-                {VAULT_WORLDS.map((w) => (
-                  <button key={w.key} type="button" className="akw-wchip" aria-pressed={world === w.key}
-                    onClick={() => setWorld((v) => (v === w.key ? null : w.key))}>
-                    <i aria-hidden style={mask(w.ic)} />{w.en}
-                  </button>
-                ))}
+              <div className="akw-wsel">
+                <button type="button" className="akw-wbtn" aria-expanded={wopen}
+                  onClick={() => setWopen((v) => !v)}>
+                  {worlds.size ? 'Worlds' : 'All worlds'}
+                  {worlds.size > 0 && <u>{worlds.size}</u>}
+                  {chev}
+                </button>
+                {wopen && (
+                  <div className="akw-wpanel" role="group" aria-label="Worlds">
+                    {VAULT_WORLDS.map((w) => (
+                      <button key={w.key} type="button" className="akw-wrow" role="checkbox"
+                        aria-checked={worlds.has(w.key)} onClick={() => toggleWorld(w.key)}>
+                        <i aria-hidden style={mask(w.ic)} />{w.en}
+                        <em>{DEMO_WALL.filter((p) => p.world === w.key).length}</em>
+                      </button>
+                    ))}
+                    <button type="button" className="akw-wclear"
+                      onClick={() => { setWorlds(new Set()); setPage(0); }}>show everything</button>
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -771,17 +923,33 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
         <div className="akw-in">
           {tab === 'pack' && (
             <>
-              <p className="akw-mock">
-                <b>Mock-up.</b> Four posts, written by hand. What is real here is the shape:
-                every post carries the world it belongs to, AINUBIS answers first and names the
-                scrolls he answers from — and when the vault has nothing on the subject, he says
-                so instead of inventing a source.
-              </p>
+              {/* ⚠️ Vysvetlivka „Mock-up. Four posts, written by hand…" ODSTRÁNENÁ
+                  24. 9. 2026. Matej: „toto je čo? relevantne pre zakaznika? asi nie".
+                  Bola to poznámka pre nás o tom, že obsah je ručný — člen ju číta
+                  ako priznanie, že appka je atrapa. Čo je maketa, patrí do kódu
+                  a do nákresu, nie na obrazovku. */}
               <button type="button" className="akw-new"><HandPlus size={14} />Share an experience or a problem</button>
               <div className="akw-grid">
-                {posts.map((p) => <Post key={p.id} post={p} onOpen={() => onPost(p.id)} />)}
+                {shown.map((p) => <Post key={p.id} post={p} onOpen={() => onPost(p.id)} />)}
               </div>
-              {posts.length === 0 && <p className="akw-mock">Nothing in this world yet.</p>}
+              {posts.length === 0 && <p className="akw-gempty">Nothing in these worlds yet.</p>}
+              {pages > 1 && (
+                <nav className="akw-pages" aria-label="Pages">
+                  <button type="button" className="akw-pg" disabled={pageSafe === 0}
+                    onClick={() => setPage(pageSafe - 1)} aria-label="Previous">{chev}</button>
+                  {Array.from({ length: pages }, (_, i) => (
+                    <button type="button" className="akw-pg" key={i}
+                      aria-current={i === pageSafe ? 'page' : undefined}
+                      onClick={() => setPage(i)}>{i + 1}</button>
+                  ))}
+                  <button type="button" className="akw-pg" disabled={pageSafe === pages - 1}
+                    onClick={() => setPage(pageSafe + 1)} aria-label="Next">
+                    <span className="akw-chev" aria-hidden style={{ transform: 'rotate(180deg)' }}>
+                      <HandArrowLeft size={12} />
+                    </span>
+                  </button>
+                </nav>
+              )}
             </>
           )}
 
@@ -807,70 +975,100 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
           )}
 
           {tab === 'lib' && (
-            <div className="akw-col">
-              {/* 🔴 KLAUZULA HORE (Matej 24. 9.) — a je to popis toho, čo sa naozaj
-                  deje, nie právnická veta na okrasu. */}
-              <p className="akw-clause">{SOURCES_CLAUSE}</p>
-
-              <button type="button" className="akw-new" onClick={() => setKinds((v) => !v)}>
-                <HandPlus size={14} />Add a source
-              </button>
-              {kinds && (
-                <div className="akw-kinds">
-                  {SOURCE_KINDS.map((k) => (
-                    <button type="button" className="akw-kbtn" key={k.key}>
-                      <b>{k.label}</b><em>{k.hint}</em>
-                      {/* ⚠️ Číslo, ktoré ešte nepadlo, sa NEVYMÝŠĽA — povie sa to. */}
-                      <u>{k.devotion != null ? `+${k.devotion} devotion` : 'devotion tbd'}</u>
+            <div className="akw-lib">
+              {/* ── VĽAVO: KAM IDEM ──────────────────────────────────────── */}
+              <div className="akw-shelf">
+                <button type="button" className="akw-howbtn" onClick={() => setHow(true)}>
+                  <i aria-hidden style={mask('idea')} />
+                  How this library works
+                </button>
+                {SOURCE_GROUPS.map((g) => {
+                  const n = LIBRARY_SOURCES.filter((d) => d.group === g.key).length;
+                  return (
+                    <button type="button" className="akw-sh" key={g.key}
+                      aria-current={shelf === g.key ? 'true' : undefined}
+                      onClick={() => setShelf(shelf === g.key ? null : g.key)}>
+                      {g.label}<em>{n}</em>
                     </button>
-                  ))}
-                </div>
-              )}
-
-              {/* LEGENDA PRUHU — Matej 24. 9.: „nechápem tú relevantnosť ako si
-                  myslel". Číslo nehovorí, aká je kniha DOBRÁ; hovorí, koľko
-                  z toho, čo sme z nej vzali, je zhoda odboru a koľko názor autora. */}
-              <div className="akw-leg">
-                <span><u style={{ background: AINUBIS.ok }} />settled — the field agrees</span>
-                <span><u style={{ background: AINUBIS.glow }} />tradition — true inside its own system</span>
-                <span><u style={{ background: AINUBIS.ctaA }} />author’s own view — carries a counterweight</span>
+                  );
+                })}
+                <button type="button" className="akw-new" style={{ marginTop: PACK_SPACE.md }}
+                  onClick={() => setKinds((v) => !v)}>
+                  <HandPlus size={14} />Add a source
+                </button>
+                {kinds && (
+                  <div className="akw-kinds">
+                    {SOURCE_KINDS.map((k) => (
+                      <button type="button" className="akw-kbtn" key={k.key}>
+                        <b>{k.label}</b><em>{k.hint}</em>
+                        {/* ⚠️ Číslo, ktoré ešte nepadlo, sa NEVYMÝŠĽA — povie sa to. */}
+                        <u>{k.devotion != null ? `+${k.devotion} devotion` : 'devotion tbd'}</u>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {SOURCE_GROUPS.map((g) => {
-                const inGroup = LIBRARY_SOURCES.filter((d) => d.group === g.key);
-                return (
-                  <Fragment key={g.key}>
-                    <div className="akw-grp">{g.label}</div>
-                    {inGroup.length === 0
-                      ? <p className="akw-gempty">{g.empty}</p>
-                      : inGroup.map((d) => <SourceCard key={d.key} s={d} />)}
-                  </Fragment>
-                );
-              })}
+              {/* ── VPRAVO: ČO TAM JE ────────────────────────────────────── */}
+              <div className="akw-col">
+                {SOURCE_GROUPS.filter((g) => !shelf || g.key === shelf).map((g) => {
+                  const inGroup = LIBRARY_SOURCES.filter((d) => d.group === g.key);
+                  return (
+                    <Fragment key={g.key}>
+                      <div className="akw-grp">{g.label}</div>
+                      {inGroup.length === 0
+                        ? <p className="akw-gempty">{g.empty}</p>
+                        : <div className="akw-books">
+                          {inGroup.map((d) => <SourceCard key={d.key} s={d} />)}
+                        </div>}
+                    </Fragment>
+                  );
+                })}
 
-              {/* 🔴 NEEXISTUJÚCI ZDROJ SA NEPÍŠE AKO NULA. */}
-              {!WEB_RESEARCH_EXISTS && (
-                <div className="akw-none">
-                  <h2>Web research</h2>
-                  <p>None. AINUBIS cannot search the internet — everything above came in as a document.</p>
-                </div>
-              )}
+                {/* 🔴 NEEXISTUJÚCI ZDROJ SA NEPÍŠE AKO NULA. */}
+                {!WEB_RESEARCH_EXISTS && !shelf && (
+                  <div className="akw-none">
+                    <h2>Web research</h2>
+                    <p>None. AINUBIS cannot search the internet — everything above came in as a document.</p>
+                  </div>
+                )}
 
-              {/* 🔴 ZDROJ, KTORÝ ZOZNAM NEUVÁDZA, SA NEZAMLČÍ. Matej: „free guide
-                  nemusíme uvádzať" — nedostal kartu, ale jeho zvitky sú v mozgu,
-                  a mlčať o nich by bolo klamstvo práve na tejto obrazovke. */}
-              {hiddenNote() && <p className="akw-foot-note">{hiddenNote()}</p>}
-
-              <p className="akw-mock">
-                <b>Mock-up.</b> The scroll counts and the settled/tradition/author split are measured from the
-                corpus as it stood on 24 September 2026 and written into the page. Before this
-                screen goes live it has to ask the corpus itself, or it will start lying about
-                the one thing it exists to prove.
-              </p>
+                {/* 🔴 ZDROJ, KTORÝ ZOZNAM NEUVÁDZA, SA NEZAMLČÍ. */}
+                {hiddenNote() && !shelf && <p className="akw-foot-note">{hiddenNote()}</p>}
+              </div>
             </div>
           )}
         </div>
       </div>
+      {how && (
+        <div className="pk-veil pk-veil--modal akw-scrim" role="dialog" aria-modal="true"
+          onClick={(e) => { if (e.target === e.currentTarget) setHow(false); }}>
+          <article className="akw-post akw-howsheet">
+            <button type="button" className="akw-x" aria-label="Close" onClick={() => setHow(false)}>
+              <HandArrowLeft size={15} />
+            </button>
+            {/* 🔴 CELÝ TEXT JE AŽ TU (Matej 24. 9.: „zámer je dať čo najmenej textu
+                na vstupe a viac ukázať len po kliku"). Na polici stojí jedna veta
+                na tlačidle; toto sa otvorí, keď o to človek požiada. */}
+            <h2>How this library works</h2>
+            <p>This is a place that collects what is known about dogs. <b>AINUBIS weighs the
+              sources against each other</b> and shows where they agree and where they do not.
+              Together we build knowledge that serves the dog — without human ego.</p>
+            <p>We give precedence to relevant sources and to scientific work. We also hold that
+              <b> a dog reads energy</b> and absorbs our moods and our stress — something many
+              scientists will never accept. That one is yours to settle: your own heart, or the
+              people who have not found the proof yet.</p>
+            <p>{SOURCES_CLAUSE}</p>
+            {/* LEGENDA PRUHU — číslo nehovorí, aká je kniha DOBRÁ; hovorí, koľko
+                z toho, čo sme z nej vzali, je zhoda odboru a koľko názor autora. */}
+            <div className="akw-leg">
+              <span><u style={{ background: AINUBIS.ok }} />settled — the field agrees</span>
+              <span><u style={{ background: AINUBIS.glow }} />tradition — true inside its own system</span>
+              <span><u style={{ background: AINUBIS.ctaA }} />author’s own view — carries a counterweight</span>
+            </div>
+          </article>
+        </div>
+      )}
       {open && (
         <div className="pk-veil pk-veil--modal akw-scrim" role="dialog" aria-modal="true"
           onClick={(e) => { if (e.target === e.currentTarget) onPost(null); }}>
