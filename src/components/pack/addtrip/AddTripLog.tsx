@@ -47,7 +47,8 @@ import { pluralKey } from '@/components/pack/tripShared';
 import { DiffMark, DIFF_MARK_CSS } from '@/components/pack/tripShared';
 import { dockFitPadding, dockPadX } from '@/components/pack/mapDockShape';
 import { notePanelH } from '@/components/pack/mapnotes/AddMapNote';
-import { GeometryPicker, defaultKindFor, findDuplicate, TRIP_HOLD_MIN_ZOOM, AREA_DEFAULT_M } from './GeometryPicker';
+import { GeometryPicker, defaultKindFor, findDuplicate, TRIP_HOLD_MIN_ZOOM, AREA_DEFAULT_M, AREA_MIN_M, AREA_MAX_M } from './GeometryPicker';
+import { builtUpShare, lineLengthM, areaAround, HIKE_MIN_KM, BUILT_UP_MAX } from './builtUpCheck';
 import { MAX_PHOTOS, optimizePhoto } from './photoOptimize';
 import { SPACING, interp, calibratedAscent } from './addTripGeo';
 import { buildPlanDate, parsePlanDate, type PlanPrecision } from './planDate';
@@ -2264,6 +2265,15 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
   const tq = (key: string) => t(isPlan ? `${key}.plan` : key);
 
   const [openRouteAsk, setOpenRouteAsk] = useState(false);
+  /**
+   * ── TÚRA V PRÍRODE (Matej 24. 9. 2026) ─────────────────────────────────────────────────
+   * Jednodňová túra musí mať ≥ `HIKE_MIN_KM` DOKOPY a najviac `BUILT_UP_MAX` dĺžky
+   * v zástavbe; inak sa zápis ponúkne prepnúť na NÁVŠTEVU. Platí aj pre PLÁN.
+   * Výnimky: viacdňové putovanie a magistrály/existujúce trasy (`existingTripId`) — SNP
+   * vedie cez mestá. Meranie a jeho zdroj → `builtUpCheck.ts`.
+   */
+  const [natureAsk, setNatureAsk] = useState<null | { km: number; share: number | null; line: LatLngTuple[] }>(null);
+  const [natureChecking, setNatureChecking] = useState(false);
   // Zrkadlenie vie spraviť len picker (legs + snapPath + prevýšenie sú jeho vnútro),
   // tak si sem podá spúšťač. Viď `mirrorRef` v GeometryPicker.
   const mirrorRef = useRef<(() => void) | null>(null);
@@ -2341,6 +2351,33 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
     </div>
   ) : null;
 
+  const routeLine = (): LatLngTuple[] =>
+    geometry.kind === 'route' ? (geometry.snapPath?.length ? geometry.snapPath : geometry.path) : [];
+  /** Odchod z kroku 1 cez stráž „túra v prírode" — viď `natureAsk`. */
+  const leaveRouteStep = async (line: LatLngTuple[]) => {
+    const guarded = activity === 'hike' && !multiDay && !existingTripId && geometry.kind === 'route' && line.length >= 2;
+    if (!guarded) { setStep(stepAfter(1)); return; }
+    const km = lineLengthM(line) / 1000;
+    if (km < HIKE_MIN_KM) { setNatureAsk({ km, share: null, line }); return; }
+    setNatureChecking(true);
+    const share = await builtUpShare(line);
+    setNatureChecking(false);
+    // `null` = nezmerané (výpadok dlaždíc) ⇒ pustiť ďalej, nie zaseknúť človeka na mape.
+    if (share != null && share > BUILT_UP_MAX) { setNatureAsk({ km, share, line }); return; }
+    setStep(stepAfter(1));
+  };
+  /** Prepnutie na NÁVŠTEVU: okruh okolo nakreslenej trasy, ide sa na krok „Čo to bolo". */
+  const switchToVisit = (line: LatLngTuple[]) => {
+    const { center, radiusM } = areaAround(line, AREA_MIN_M, AREA_MAX_M);
+    setNatureAsk(null);
+    setMultiDay(false);
+    setDiff('');
+    setActivity('visit');
+    setGeometry({ kind: 'area', center, radiusM });
+    openRouteAskedRef.current = false;
+    setStep(7);
+  };
+
   const drawBar = {
     active: drawingStep || (notesInBar && !notePlacing),
     /**
@@ -2356,7 +2393,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
     ) : undefined,
     onDone: () => {
       if (routeIsOpen && !openRouteAskedRef.current) { setOpenRouteAsk(true); return; }
-      setStep(stepAfter(1));
+      void leaveRouteStep(routeLine());
     },
     // ⚠️ V KROKU 1 JE TO ODCHOD, NIE NÁVRAT O KROK (Matej 24. 8. 2026: „dole späť na aktivitu
     // môžme dať skôr späť na mapy - odísť"). Pod bublinou AInubisa je len × na zahodenie;
@@ -2371,7 +2408,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
     },
     backLabel: notesInBar ? (isPlaceTrip ? 'pack.addTrip.step.backToPlace' : 'pack.addTrip.step.backToRoute') : 'pack.addTrip.geo.leaveToMap',
     doneLabel: t('pack.addTrip.step.doneRoute'),
-    doneDisabled: nextBlocked,
+    doneDisabled: nextBlocked || natureChecking,
     // Mimo kroku 1 picker ostáva MOUNTNUTÝ (aby trasa na mape nezmizla, veď sa na ňu
     // v kroku 2 pichajú značky), ale nesmie brať kliky — inak by pri zapichovaní
     // parkoviska pribudla kotva trasy.
@@ -2493,6 +2530,34 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
         </div>,
         document.body,
       )}
+      {natureAsk && createPortal(
+        <div className="atl-abort-scrim" role="dialog" aria-modal="true" onClick={() => setNatureAsk(null)}>
+          {/* Hovorí AINUBIS — ten istý šat ako „Nešiel si naspäť?" o pár riadkov nižšie. */}
+          <div className="atl-abort atl-abort--ainubis" onClick={(e) => e.stopPropagation()}>
+            <img className="atl-abort-face" src={ainubisFace} alt="" aria-hidden="true" />
+            <h2>{t('pack.addTrip.nature.title')}</h2>
+            <p>
+              {natureAsk.share == null
+                ? t('pack.addTrip.nature.short', { km: natureAsk.km.toFixed(1), min: HIKE_MIN_KM })
+                : t('pack.addTrip.nature.urban', { pct: Math.round(natureAsk.share * 100) })}
+            </p>
+            {/* ⚠️ PLÁN NEMÁ NÁVŠTEVU (Matej 1. 9. 2026: návšteva = iba zápis), takže pri pláne
+                ostáva len úprava trasy. */}
+            <p>{t(isPlan ? 'pack.addTrip.nature.planHint' : 'pack.addTrip.nature.visitHint')}</p>
+            <div className="atl-abort-btns">
+              {!isPlan && (
+                <button type="button" className="atl-abort-cta" onClick={() => switchToVisit(natureAsk.line)}>
+                  {t('pack.addTrip.nature.toVisit')}
+                </button>
+              )}
+              <button type="button" className={isPlan ? 'atl-abort-cta' : 'atl-abort-ghost'} onClick={() => setNatureAsk(null)}>
+                {t('pack.addTrip.nature.editRoute')}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )}
       {openRouteAsk && createPortal(
         <div className="atl-abort-scrim" role="dialog" aria-modal="true" onClick={() => setOpenRouteAsk(false)}>
           {/* ⚠️ AINUBISOV VARIANT, NIE OBYČAJNÝ DIALÓG (Matej 25. 8. 2026: „daj všetky
@@ -2522,7 +2587,15 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                 // ako keby na dokreslenie a človek musí opäť stlačiť hotovo"). Novší pokyn
                 // prebíja 25. 8. („musí ju vidieť skôr, než potvrdí") — trasu vidí aj tak:
                 // picker ostáva v kroku 2 mountnutý a `mirrorBack` na ňu zarámuje mapu.
-                onClick={() => { mirrorRef.current?.(); openRouteAskedRef.current = true; setOpenRouteAsk(false); setStep(stepAfter(1)); }}
+                onClick={() => {
+                  const line = routeLine();
+                  mirrorRef.current?.();
+                  openRouteAskedRef.current = true;
+                  setOpenRouteAsk(false);
+                  // Zdvojená trasa sa v `geometry` objaví až po vykreslení — meria sa preto
+                  // z tej istej čiary tam aj späť (5 km sa ráta DOKOPY, Matej 24. 9.).
+                  void leaveRouteStep([...line, ...line.slice(0, -1).reverse()]);
+                }}
               >
                 {t('pack.addTrip.geo.openRouteMirror')}
               </button>
@@ -2536,7 +2609,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
               <button
                 type="button"
                 className="atl-abort-ghost"
-                onClick={() => { openRouteAskedRef.current = true; setOpenRouteAsk(false); setStep(stepAfter(1)); }}
+                onClick={() => { openRouteAskedRef.current = true; setOpenRouteAsk(false); void leaveRouteStep(routeLine()); }}
               >
                 {tq('pack.addTrip.geo.openRouteKeep')}
               </button>
