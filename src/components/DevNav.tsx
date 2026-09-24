@@ -42,7 +42,6 @@ const GROUPS: RouteGroup[] = [
       // otázku, ktorá zahŕňala 1b aj celý krok „PREČO HEROGLYF"). Routa a
       // obrazovka sa NEMAZALI, len vypadli z reťaze `navigate()` — cesta tu
       // ostáva, aby sa dalo k nej dostať.
-      { path: "/heroglyph/why", name: "4. Prečo heroglyf (odvesené z poradia)" },
       { path: "/heroglyph/essence", name: "Podstata (rozostavané)" },
       { path: "/heroglyph/about", name: "5. Papierovačky" },
       { path: "/heroglyph/breed", name: "6. Breed / Patron" },

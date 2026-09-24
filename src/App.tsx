@@ -89,9 +89,6 @@ const EmailScreen = lazy(() =>
 const EssenceScreen = lazy(() =>
   import("@/components/screens/EssenceScreen").then((m) => ({ default: m.EssenceScreen }))
 );
-const WhyScreen = lazy(() =>
-  import("@/components/screens/WhyScreen").then((m) => ({ default: m.WhyScreen }))
-);
 const CropScreen = lazy(() =>
   import("@/components/screens/CropScreen").then((m) => ({ default: m.CropScreen }))
 );
@@ -316,7 +313,14 @@ const App = () => (
                   <Route path="/heroglyph/name" element={<NameScreen />} />
                   <Route path="/heroglyph/dogs" element={<DogsScreen />} />
                   <Route path="/heroglyph/email" element={<EmailScreen />} />
-                  <Route path="/heroglyph/why" element={<WhyScreen />} />
+                  {/* 🔴 PREČO HEROGLYF JE ODVESENÉ (Matej 24. 9. 2026: *„zmaž to,
+                      to je neaktuálna obrazovka"*). Nie je to mŕtva routa, ale
+                      REDIRECT — rovnako ako `intro` a `about`: staré odkazy,
+                      záložky a šípka späť musia niekam dôjsť, a to niekam je
+                      krok, ktorý ho v reťazi nahradil.
+                      ⚠️ Komponent `WhyScreen.tsx` sa NEMAŽE, len ho nikto nevolá;
+                         vrátiť ho je jeden riadok. */}
+                  <Route path="/heroglyph/why" element={<Navigate to="/heroglyph/essence" replace />} />
                   {/* PODSTATA (24. 9. 2026) — pohltila štyri routy `dog-gender`,
                       `dog-fate`, `dog-colour`, `dog-bloodline`. Tie sa NEMAŽÚ:
                       starý (LIVE) vstup ide ďalej cez ne, tento rez je zatiaľ

@@ -52,7 +52,6 @@ const GROUPS: Group[] = [
       // otázku, ktorá zahŕňala 1b aj celý krok „PREČO HEROGLYF"). Obrazovka a
       // routa sa NEMAZALI, len vypadli z reťaze `navigate()` — toto menu je
       // jediná cesta, ako sa k nej dostať.
-      { kind: 'route', path: '/heroglyph/why', name: '5 · Prečo heroglyf', done: true, note: 'odvesené z poradia' },
       // Stavia sa v inej session (24. 9.) — `todo`, nie `route`, aby na ňu
       // nešlo kliknúť (App.tsx cestu ešte nemá, klik by vypadal ako pokazené menu).
       { kind: 'todo', name: '6 · Podstata', note: 'stavia sa' },
