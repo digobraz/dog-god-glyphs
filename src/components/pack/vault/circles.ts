@@ -1,13 +1,19 @@
 // ════════════════════════════════════════════════════════════════════════════
-// MENÁ OKRUHOV VAULTU — mozog ich píše pri uzloch (2026-09-22)
+// MENÁ OKRUHOV VAULTU — mozog ich píše pri uzloch (2026-09-22, preskladané 2026-09-24)
 // ────────────────────────────────────────────────────────────────────────────
 // Matej 22. 9.: *„všetky svety môžu mať názvy okruhov, ďalej už nie"* — v mozgu
 // sa píše meno SVETA a OKRUHU, zvitok ostáva bodom bez nápisu.
 //
-// SK = nadpisy `### On · …` z `plany/znalosti/svety/*.md` (rozpad 17. 9., zdroj pravdy
-// mien). EN = NÁVRH (DRAFT) z 22. 9., nikto ho neodsúhlasil.
+// 🔴 PRESKLADANÉ 24. 9. 2026 (Matej odsúhlasil): 62 → 46 okruhov. Okruh má TEST,
+//    nie názov, a je to NÁDOBA, nie kapitola — dopĺňa sa navždy. Dôvod zlúčení a
+//    testy sú v `plany/znalosti/svety/*.md` (ČASŤ 2) a v hárku
+//    `plany/nakres-vault-okruhy-2026-09-24.html`.
+//
+// SK = nadpisy `### On · …` z `plany/znalosti/svety/*.md` (zdroj pravdy mien).
+// EN = NÁVRH (DRAFT), nikto ho neodsúhlasil.
 // ⚠️ Mená idú cez Matejovu tabuľku `plany/vault-nazvy-2026-09-22.html` — keď ich
 //    prepíše, mení sa TENTO súbor a `.md` SPOLU, inak mozog a rozpad povedia dve veci.
+//    Stráž `npm run check:vault` to meria.
 // ⚠️ Nie je to i18n, lebo je to ZOZNAM ÚDAJOV s pevným poradím (poradie = uzol
 //    v mozgu), nie veta rozhrania. Ostatné jazyky padajú na EN.
 // ════════════════════════════════════════════════════════════════════════════
@@ -17,78 +23,62 @@ export interface CircleName { sk: string; en: string }
 export const VAULT_CIRCLES: Record<string, readonly CircleName[]> = {
   dogsPath: [
     { sk: 'Odkiaľ pes prišiel', en: 'Where the dog came from' },
-    { sk: 'Prečo chcem psa', en: 'Why I want a dog' },
-    { sk: 'Zvládnem to plemeno?', en: 'Can I handle this breed?' },
+    { sk: 'Rozhodnutie pred psom', en: 'The decision before the dog' },
     { sk: 'Odkiaľ ho vziať', en: 'Where to get one' },
-    { sk: 'Než príde domov', en: 'Before it comes home' },
-    { sk: 'Prvý rok', en: 'The first year' },
-    { sk: 'Spokojný človek, spokojný pes', en: 'Calm human, calm dog' },
-    { sk: 'Dospelý pes', en: 'The adult dog' },
-    { sk: 'Starší pes', en: 'The older dog' },
+    { sk: 'Príchod a prvý rok', en: 'Arrival and the first year' },
+    { sk: 'Vzťah človek–pes', en: 'Human and dog' },
+    { sk: 'Reprodukcia a kastrácia', en: 'Breeding and neutering' },
+    { sk: 'Dospelosť a staroba', en: 'Adulthood and old age' },
     { sk: 'Odchod', en: 'Saying goodbye' },
   ],
   understanding: [
-    { sk: 'Štyridsaťtisíc rokov po boku', en: 'Forty thousand years side by side' },
-    { sk: 'Kedysi pracoval. Dnes leží.', en: 'Once he worked. Now he lies down.' },
-    { sk: 'O psovi vieme menej', en: 'We know less about the dog' },
-    { sk: 'Chyba pred psom', en: 'The mistake before the dog' },
-    { sk: 'Krása, ktorá bolí', en: 'Beauty that hurts' },
-    { sk: 'Pes zvládne všetko', en: 'A dog can take anything' },
-    { sk: 'Granule vymyslel elektrikár', en: 'Kibble was invented by an electrician' },
-    { sk: 'Vie operovať srdce', en: 'Can operate on a heart' },
-    { sk: 'Nepotrebuješ šesť rokov', en: 'You don’t need six years' },
+    { sk: 'Kto je pes a čo z neho máme', en: 'Who the dog is and what we take from him' },
+    { sk: 'Vzhľad, ktorý rozhoduje', en: 'Looks that decide' },
+    { sk: 'Pes, ktorý nemá čo robiť', en: 'A dog with nothing to do' },
+    { sk: 'Čo sa o psovi nevie', en: 'What we no longer know about dogs' },
+    { sk: 'Kto na psovi zarába', en: 'Who profits from the dog' },
+    { sk: 'Zvládneš to sám', en: 'You can do this yourself' },
   ],
   anatomy: [
-    { sk: 'Zuby a papuľa', en: 'Teeth and mouth' },
-    { sk: 'Žalúdok', en: 'Stomach' },
-    { sk: 'Trávenie', en: 'Digestion' },
-    { sk: 'Koža/srsť', en: 'Skin and coat' },
+    { sk: 'Zuby a papuľa', en: 'Teeth and jaws' },
+    { sk: 'Žalúdok a trávenie', en: 'Stomach and digestion' },
+    { sk: 'Koža, srsť a zápach', en: 'Skin, coat and smell' },
     { sk: 'Hormóny', en: 'Hormones' },
     { sk: 'Pohyb a kostra', en: 'Movement and skeleton' },
     { sk: 'Zmysly', en: 'Senses' },
     { sk: 'Odpočinok', en: 'Rest' },
   ],
   nutrition: [
-    { sk: 'Ako vzniká granula', en: 'How kibble is made' },
-    { sk: 'Sacharidy', en: 'Carbohydrates' },
-    { sk: 'Bielkovina', en: 'Protein' },
-    { sk: 'Tuky', en: 'Fats' },
-    { sk: 'Vitamíny a minerály', en: 'Vitamins and minerals' },
-    { sk: 'Baktérie a chémia', en: 'Bacteria and chemistry' },
-    { sk: 'Kto zarába', en: 'Who profits' },
-    { sk: 'Surové či varené', en: 'Raw or cooked' },
-    { sk: 'Dávka a miska', en: 'Portion and bowl' },
-    { sk: 'Domáca kuchyňa', en: 'Home cooking' },
-    { sk: 'Maškrty', en: 'Treats' },
-    { sk: 'Lekáreň', en: 'Pharmacy' },
-    { sk: 'Záhrada', en: 'Garden' },
+    { sk: 'Prirodzená strava, koľko čoho a kedy', en: 'Natural food: how much of what, and when' },
+    { sk: 'Živiny', en: 'Nutrients' },
+    { sk: 'Surové, varené, domáce', en: 'Raw, cooked, homemade' },
+    { sk: 'Granule sú pre ľudí', en: 'Kibble is for humans' },
+    { sk: 'Bezpečnosť jedla', en: 'Food safety' },
+    { sk: 'Bylinky a záhrada', en: 'Herbs and the garden' },
+    { sk: 'Doplnky', en: 'Supplements' },
   ],
   prevention: [
     { sk: 'Parazity', en: 'Parasites' },
-    { sk: 'Očkovanie', en: 'Vaccination' },
-    { sk: 'Domácnosť', en: 'Household' },
-    { sk: 'Diagnostika', en: 'Diagnostics' },
-    { sk: 'Alternatívne liečenie', en: 'Alternative healing' },
-    { sk: 'Strava ako prevencia', en: 'Food as prevention' },
+    { sk: 'Očkovanie a titre', en: 'Vaccination and titres' },
+    { sk: 'Jedy v domácnosti', en: 'Poisons at home' },
+    { sk: 'Všímať si včas', en: 'Catching it early' },
+    { sk: 'Alternatívne liečenie', en: 'Alternative treatment' },
   ],
   training: [
     { sk: 'Ako sa pes učí', en: 'How a dog learns' },
-    { sk: 'Školy a štýly', en: 'Schools and styles' },
     { sk: 'Reč, ktorou pes hovorí', en: 'The language a dog speaks' },
-    { sk: 'Základ, ktorý drží celý život', en: 'Basics that last a lifetime' },
-    { sk: 'Práca namiesto kilometrov', en: 'Work instead of miles' },
-    { sk: 'Šport', en: 'Sport' },
-    { sk: 'Nos', en: 'Nose' },
-    { sk: 'Služobný a pracovný výcvik', en: 'Service and working training' },
-    { sk: 'Keď tréning nestačí', en: 'When training isn’t enough' },
+    { sk: 'Základ, ktorý drží celý život', en: 'The basics that last a lifetime' },
+    { sk: 'Záťaž každý deň', en: 'Work for every day' },
+    { sk: 'Disciplíny', en: 'Disciplines' },
+    { sk: 'Tréneri a hranice tréningu', en: 'Trainers and the limits of training' },
   ],
   problems: [
+    { sk: 'Núdza — minúty rozhodujú', en: 'Emergency: minutes decide' },
     { sk: 'Pohyb a bolesť', en: 'Movement and pain' },
-    { sk: 'Rakovina', en: 'Cancer' },
-    { sk: 'Prvá pomoc', en: 'First aid' },
-    { sk: 'Psychika/strachy', en: 'Mind and fears' },
+    { sk: 'Koža, uši, alergie', en: 'Skin, ears, allergies' },
     { sk: 'Tráviace problémy', en: 'Digestive problems' },
-    { sk: 'Alergie', en: 'Allergies' },
-    { sk: 'Epilepsia', en: 'Epilepsy' },
+    { sk: 'Neurológia a epilepsia', en: 'Neurology and epilepsy' },
+    { sk: 'Psychika', en: 'Mind and behaviour' },
+    { sk: 'Rakovina', en: 'Cancer' },
   ],
 };

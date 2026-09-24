@@ -8,13 +8,13 @@
 
 /** Okruhy a zvitky na svet — spočítané z rozpadu, nie odhadnuté. */
 export const VAULT_COUNTS: Record<string, { circles: number; scrolls: number }> = {
-  dogsPath: { circles: 10, scrolls: 124 },
-  understanding: { circles: 9, scrolls: 61 },
-  anatomy: { circles: 8, scrolls: 67 },
-  nutrition: { circles: 13, scrolls: 111 },
-  prevention: { circles: 6, scrolls: 49 },
-  training: { circles: 9, scrolls: 92 },
-  problems: { circles: 7, scrolls: 65 },
+  dogsPath: { circles: 8, scrolls: 127 },
+  understanding: { circles: 6, scrolls: 68 },
+  anatomy: { circles: 7, scrolls: 67 },
+  nutrition: { circles: 7, scrolls: 101 },
+  prevention: { circles: 5, scrolls: 47 },
+  training: { circles: 6, scrolls: 92 },
+  problems: { circles: 7, scrolls: 64 },
 };
 
 /** Chunkov korpusu, ktoré má AINUBIS naozaj k dispozícii (`ainubis_kb_bodies`). */
