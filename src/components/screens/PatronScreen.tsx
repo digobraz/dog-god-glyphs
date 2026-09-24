@@ -328,12 +328,12 @@ function Scroller({
     <div className="pt-scroll">
       {canL && (
         <button type="button" className="pt-nav l" aria-label={t('whatNext.prev')} onClick={() => by(-190)}>
-          <HandArrowLeft size={13} />
+          <HandArrowLeft size={14} solid />
         </button>
       )}
       {canR && (
         <button type="button" className="pt-nav r" aria-label={t('whatNext.next')} onClick={() => by(190)}>
-          <HandArrowLeft size={13} style={{ transform: 'rotate(180deg)' }} />
+          <HandArrowLeft size={14} solid style={{ transform: 'rotate(180deg)' }} />
         </button>
       )}
       <div ref={ref} className={`pt-row ${rowClass}`}>{children}</div>
@@ -713,12 +713,23 @@ const PATRON_CSS = `
 .pt-nav {
   position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
   width: 26px; height: 26px; border-radius: ${PACK_R.pill}px; cursor: pointer;
-  display: grid; place-items: center; color: ${BRAND_GOLD_BTN.ink};
+  display: grid; place-items: center;
+  /* 🔴 ŠÍPKA JE BLEDÁ A PLNÁ, KRUH OSTÁVA ZLATÝ (Matej 24. 9. 2026: *„tie šípky daj
+     bledé a kruh nechaj zlatý, najlepšie ak by si ich vyplnil bledou farbou, nie len
+     obrys ako sú teraz"*). Kresba z kitu je OBRYS — plnú siluetu robí poloha
+     \`solid\` na \`HandArrowLeft\`, nie iná kresba.
+     ⚠️ Brand lock píše, že KRÉMOVÝ inkoust na brandovej zlatej padá pod 3:1 (jas
+        zlatej ~0,36). Platí to a Matej to rozhodol s tým vedome — plná silueta je
+        však oveľa čitateľnejšia než obrys a kontrast dvíha tmavá spodná hrana
+        (\`drop-shadow\`), tá istá rytina „svetlo zhora", akú nesie celý vstup. */
+  color: #FDF7E7;
   background: ${BRAND_GOLD_BTN.grad};
   border: 1px solid ${BRAND_GOLD_BTN.edge};
   box-shadow: ${BRAND_GOLD_BTN.glow};
 }
 .pt-nav:hover { background: ${BRAND_GOLD_BTN.gradHover}; box-shadow: ${BRAND_GOLD_BTN.glowHover}; }
+/* Tmavá hrana pod bledou šípkou — nie ozdoba, ale to, čo ju na zlate udrží čitateľnú. */
+.pt-nav svg { filter: drop-shadow(0 1px 0 rgba(72, 44, 4, 0.55)); }
 /* ⚠️ Šípka stojí vo VÝPLNI DOSKY, nie na rade. Pri -4 px prekrývala text
    posledného chipu („Schnozze▸") a vyzeralo to ako chyba vykreslenia; doska má
    po stranách 22 px, takže -18 nechá šípku celú vedľa radu a 4 px od rytej
