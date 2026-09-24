@@ -26,14 +26,17 @@
 // ⚠️ DEVOTION SA TU LEN SĽUBUJE, NEPRIPISUJE. Rebríček a kalkulačka sú vlastná
 //    session (Matej 24. 9.: „rozoberieme"); `grant-devotion` sa nedotýka.
 // ════════════════════════════════════════════════════════════════════════════
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import {
   PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, VEIL_CSS,
 } from '@/components/pack/packTheme';
 import {
-  AINUBIS, AI_GLASS, AI_RAIL, AI_RAIL_BEFORE, AI_RAIL_BLANK, AI_SPINE, AI_BREATHE_CSS, aiWorld,
+  AINUBIS, AI_GLASS, AI_FOCUS, AI_RAIL, AI_RAIL_BEFORE, AI_RAIL_BLANK, AI_SPINE,
+  AI_BREATHE_CSS, aiWorld,
 } from '@/components/pack/ainubisSkin';
-import { HandPaw, HandStar, HandForward, HandPlus, HandArrowLeft } from '@/components/pack/HandIcons';
+import {
+  HandPaw, HandStar, HandForward, HandPlus, HandArrowLeft, HandSearch, HandAlert,
+} from '@/components/pack/HandIcons';
 import ainubisFace from '@/assets/ainubis-badge.png';
 import { VAULT_WORLDS } from './worlds';
 import { DEMO_WALL, shortOf, verdictParts, type WallPost, type SealKind } from './vaultWallDemo';
@@ -149,6 +152,30 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
 /* Deliaca čiara medzi „čo pozerám" a „podľa čoho filtrujem" — len na PC,
    kde stoja v jednom rade (Matej 24. 9.: „vedľa za deliacu čiaru (na PC)"). */
 .akw-div{display:none;flex:0 0 auto;width:1px;align-self:stretch;background:${AINUBIS.edge};}
+/* ── HĽADANIE NA NÁSTENKE (Matej 24. 9. 2026) ──────────────────────────────
+   *„pri boarde dajme vyhľadávanie, podla názvu čo človek napíše"*.
+   ⚠️ Písmo 16 px (PACK_TEXT.lead): pod ním iOS pri ťuknutí priblíži celú stránku.
+      Tú istú poznámku nesie hľadanie vo VAULTE — je to tá istá pasca. */
+/* 🔴 flex:1 1 220px SA NESMIE DAŤ PRIAMO DO STĹPCOVÉHO RADU. Trieda .akw-bar je na
+   mobile flex-direction:column, takže základ 220 px platí pre VÝŠKU — pole
+   narástlo na 450 px a vyzeralo ako chyba vykreslenia (premerané 390 px).
+   Preto sú nástroje vo vlastnom riadku .akw-tools, ktorý je VŽDY row
+   a zalamuje sa; v ňom už základ znamená šírku. */
+.akw-tools{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;flex-wrap:wrap;min-width:0;
+  flex:0 0 auto;width:100%;}
+.akw-find{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;flex:1 1 200px;min-width:0;
+  padding:0 ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;color:${AINUBIS.inkFaint};${AI_GLASS}}
+.akw-find:focus-within{${AI_FOCUS}}
+.akw-find input{flex:1 1 auto;min-width:0;background:transparent;border:0;outline:0;
+  padding:${PACK_SPACE.sm}px 0;color:${AINUBIS.ink};font-family:${FONT_UI};font-size:${PACK_TEXT.lead}px;}
+.akw-find input::placeholder{color:${AINUBIS.inkFaint};}
+/* Natívny krížik prehliadača = holý znak mimo brandu (pole NOT IN THE BRAND). */
+.akw-find input::-webkit-search-cancel-button{-webkit-appearance:none;display:none;}
+
+/* Značka sporu — jediná vec, ktorá „kontroverzné" robí VIDITEĽNÝM aj bez
+   triedenia. Bez nej by bola voľba v roletke tvrdením, ktoré sa nedá overiť. */
+.akw-clash{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;color:${AINUBIS.ctaA};}
+
 /* ── SVETY = ROZBAĽOVAČ S VIACNÁSOBNÝM VÝBEROM (Matej 24. 9. 2026) ─────────
    Predtým rad siedmich pilulek cez celú šírku: na mobile sa rolovali do strany,
    na PC zabrali celý druhý pás a vybrať sa dal VŽDY LEN JEDEN svet. Sedem je
@@ -607,6 +634,9 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
   .akw-list{padding:${PACK_SPACE.xl}px ${PACK_SPACE.xxl}px ${PACK_SPACE.xxl}px;}
   /* Záložky a svety stoja v JEDNOM rade, oddelené čiarou (Matej 24. 9.). */
   .akw-bar{flex-direction:row;align-items:center;}
+  /* Až TU smie mať riadok nástrojov pružný základ — v rade je to šírka.
+     Nad tým istým pravidlom v stĺpci by to bola výška (viď .akw-find). */
+  .akw-tools{flex:1 1 240px;width:auto;}
   .akw-tabs,.akw-worlds{margin:0;padding:0;overflow:visible;}
   .akw-worlds{overflow-x:auto;}
   .akw-div{display:block;}
@@ -627,6 +657,33 @@ const mask = (ic: string) => ({
   WebkitMaskPosition: 'center', maskPosition: 'center',
 });
 const worldOf = (key: string) => VAULT_WORLDS.find((w) => w.key === key);
+
+/** Koľko hlasov je pod príspevkom — vypísané aj na karte. */
+const talk = (p: WallPost) => p.replies.length + p.moreReplies;
+/**
+ * 🔴 „KONTROVERZNÉ" NIE JE NÁLADA, JE TO MERANÝ SPOR: aspoň jedna odpoveď svorky,
+ * pri ktorej vault hovorí NIEČO INÉ (`seal === 'differs'`). Nevymýšľam skóre
+ * z packiek ani z počtu odpovedí — tie merajú záujem, nie nezhodu.
+ */
+const clash = (p: WallPost) => p.replies.some((r) => r.seal === 'differs');
+
+/** Čo sa prehľadáva. Kto · pes · otázka (plná aj skrátená) · štítky · svet. */
+const haystack = (p: WallPost) => [
+  p.who, p.dog, p.text, p.short ?? '', p.tags.join(' '), worldOf(p.world)?.en ?? '',
+].join(' ').toLowerCase();
+
+type SortKey = 'new' | 'talk' | 'clash' | 'paws';
+/** ⚠️ Poradie „najnovšie" = poradie v poli. Demo dáta nemajú dátum a vymyslený
+ *  by bol horší než žiadny — naostro sem príde `created_at`. */
+const SORTS: Record<SortKey, { label: string; hint: string; cmp: (a: WallPost, b: WallPost) => number }> = {
+  new: { label: 'Newest', hint: 'as they came in', cmp: () => 0 },
+  talk: { label: 'Most discussed', hint: 'by replies', cmp: (a, b) => talk(b) - talk(a) },
+  clash: {
+    label: 'Controversial', hint: 'the vault says otherwise',
+    cmp: (a, b) => Number(clash(b)) - Number(clash(a)) || talk(b) - talk(a),
+  },
+  paws: { label: 'Most paws', hint: 'by paws', cmp: (a, b) => b.paws - a.paws },
+};
 
 /** Hlavička karty — tá istá v plagáte aj v prekryve (lock §4.1: objekt má
  *  jednu kartu, nech je kdekoľvek). */
@@ -660,7 +717,12 @@ function Post({ post, onOpen }: { post: WallPost; onOpen: () => void }) {
         {/* ⚠️ IKONKA ODPOVEDE V KITE NIE JE — podľa brand locku je to dôvod vypýtať
             si kresbu od Mateja, nie siahnuť po lucide alebo emoji. Kým nie je,
             stojí tu holé slovo. 🚩 NA MATEJA. */}
-        <s><b>{post.replies.length + post.moreReplies}</b> replies</s>
+        <s><b>{talk(post)}</b> replies</s>
+        {clash(post) && (
+          <s className="akw-clash" title="The vault says otherwise">
+            <HandAlert size={13} />disputed
+          </s>
+        )}
         <u>open{chev}</u>
       </div>
     </button>
@@ -833,7 +895,17 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
   const [shelf, setShelf] = useState<string | null>(null);
   const [how, setHow] = useState(false);
   const [page, setPage] = useState(0);
-  const posts = worlds.size ? DEMO_WALL.filter((p) => worlds.has(p.world)) : DEMO_WALL;
+  const [find, setFind] = useState('');
+  const [sort, setSort] = useState<SortKey>('new');
+  const [sopen, setSopen] = useState(false);
+  const q = find.trim().toLowerCase();
+  const posts = useMemo(() => {
+    let out = worlds.size ? DEMO_WALL.filter((p) => worlds.has(p.world)) : DEMO_WALL.slice();
+    if (q) out = out.filter((p) => haystack(p).includes(q));
+    /* ⚠️ Triedi sa KÓPIA. `DEMO_WALL.sort()` by prehádzal samotné pole a poradie
+       „najnovšie" (= poradie vloženia) by sa po prvom triedení už nikdy nevrátilo. */
+    return [...out].sort(SORTS[sort].cmp);
+  }, [worlds, q, sort]);
   const pages = Math.max(1, Math.ceil(posts.length / PER_PAGE));
   /* ⚠️ Strana sa musí vrátiť na prvú, keď sa zmení filter — inak človek pristane
      na strane 3 zoznamu, ktorý má odteraz jednu. */
@@ -845,13 +917,13 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
   };
   /* Zavrieť roletku klikom mimo nej — inak ostane visieť nad obsahom. */
   useEffect(() => {
-    if (!wopen) return undefined;
+    if (!wopen && !sopen) return undefined;
     const away = (e: PointerEvent) => {
-      if (!(e.target as HTMLElement).closest('.akw-wsel')) setWopen(false);
+      if (!(e.target as HTMLElement).closest('.akw-wsel')) { setWopen(false); setSopen(false); }
     };
     document.addEventListener('pointerdown', away);
     return () => document.removeEventListener('pointerdown', away);
-  }, [wopen]);
+  }, [wopen, sopen]);
 
   /* ⚠️ Zavrieť sa musí dať aj klávesnicou — prekryv, z ktorého sa nedá vyjsť
      Escapom, je pasca pre každého, kto nemá myš. */
@@ -892,6 +964,32 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
           {tab === 'pack' && (
             <>
               <span className="akw-div" aria-hidden />
+              <div className="akw-tools">
+              <label className="akw-find">
+                <HandSearch size={15} />
+                <input type="search" value={find} placeholder="Search the board…"
+                  aria-label="Search the board"
+                  onChange={(e) => { setFind(e.target.value); setPage(0); }} />
+              </label>
+              {/* TRIEDENIE — jedna voľba, nie viac; preto tie isté triedy ako
+                  svety, ale `role="radio"`. */}
+              <div className="akw-wsel">
+                <button type="button" className="akw-wbtn" aria-expanded={sopen}
+                  onClick={() => setSopen((v) => !v)}>
+                  {SORTS[sort].label}{chev}
+                </button>
+                {sopen && (
+                  <div className="akw-wpanel" role="radiogroup" aria-label="Sort">
+                    {(Object.keys(SORTS) as SortKey[]).map((k) => (
+                      <button key={k} type="button" className="akw-wrow" role="radio"
+                        aria-checked={sort === k}
+                        onClick={() => { setSort(k); setPage(0); setSopen(false); }}>
+                        {SORTS[k].label}<em>{SORTS[k].hint}</em>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <div className="akw-wsel">
                 <button type="button" className="akw-wbtn" aria-expanded={wopen}
                   onClick={() => setWopen((v) => !v)}>
@@ -913,6 +1011,7 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
                   </div>
                 )}
               </div>
+              </div>
             </>
           )}
         </div>
@@ -932,7 +1031,11 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
               <div className="akw-grid">
                 {shown.map((p) => <Post key={p.id} post={p} onOpen={() => onPost(p.id)} />)}
               </div>
-              {posts.length === 0 && <p className="akw-gempty">Nothing in these worlds yet.</p>}
+              {posts.length === 0 && (
+                <p className="akw-gempty">
+                  {q ? `Nothing matches “${find.trim()}”.` : 'Nothing in these worlds yet.'}
+                </p>
+              )}
               {pages > 1 && (
                 <nav className="akw-pages" aria-label="Pages">
                   <button type="button" className="akw-pg" disabled={pageSafe === 0}
