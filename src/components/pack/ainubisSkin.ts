@@ -41,6 +41,7 @@ const BG = '#071019';
 const BG_DEEP = '#03070C';
 const CTA_A = '#F5C73D';
 const CTA_B = '#E69E1A';
+const CTA_B_RGB = '230,158,26';
 const CTA_RGB = '245,199,61';
 
 export const AINUBIS = {
@@ -302,21 +303,38 @@ export const aiWorld = (key?: string): Record<string, string> =>
 // *„svety by som dal modrou… a žltá a zelená má svoj zmysel — videné/prečítané.
 //  Modrá je nedotknutá, resp. štandardná."* Potvrdené 24. 9.
 //
-// 🔴 DVE FARBY, DVA OBJEKTY — a práve preto sa nebijú:
-//    ZRNO (zvitok) nesie STAV  → `BRAIN_STATE` nižšie,
-//    BUBLINA SVETA nesie DRUH  → `WORLD_TINT` vyššie (tá istá farba ako karta
-//                                 na nástenke, takže mozog a nástenka hovoria
-//                                 jedným jazykom),
-//    KARTUŠA, RÁM, NAV nesú KONŠTRUKCIU → zlato (brand lock).
-// ⚠️ Zlatá tým na uzle PRESTÁVA byť voľná: znamená „videné", nikde inde na uzle
-//    sa použiť nesmie.
+// 🔴 PREPÍSANÉ 24. 9. 2026 — DVE FARBY SÚ ODTERAZ DVA POHĽADY, NIE DVA OBJEKTY.
+//    Do tohto dňa tu stálo: *zrno nesie STAV, bublina sveta nesie DRUH* — teda obe
+//    sady naraz na jednom plátne. Matej to zrušil vetou *„všetky uzle a priamky pod
+//    jedným svetom nech sú tej istej farby = to bude základný pohľad; postup sa dá
+//    do neutrálnej ainubisovej farby a oranžovou alebo zelenou sa zvýrazní postup"*.
+//
+//    ZÁKLADNÝ POHĽAD (vrstva POSTUP vypnutá) → farba = DRUH. Svet, jeho okruhy,
+//      jeho zvitky aj priamky medzi nimi nesú `WORLD_TINT` toho sveta. Priamka
+//      MEDZI svetmi ostáva tichá neutrálna — most nie je členstvo.
+//    VRSTVA POSTUP (zapnutá) → farba = STAV. Celý mozog zhasne do neutrálnej
+//      AINUBISOVEJ (`untouched` / `untouchedHi`) vrátane bublín svetov a svieti
+//      len `seen` (oranžová) a `read` (zelená).
+//
+// ✅ TÝM ZANIKOL SPOR, KTORÝ SME MERALI. `WORLD_TINT.prevention` (61,184,98) a
+//    `BRAIN_STATE.read` (92,190,120) majú ΔE 11,4 — pod prahom, pri ktorom sa dve
+//    farby na obrazovke pletú. Nevadí to preto, že sa na jednom plátne UŽ NIKDY
+//    nestretnú: v základnom pohľade stav nesvieti, vo vrstve POSTUP nesvieti druh.
+//    ⚠️ Kto tie dve sady vráti na jedno plátno, vráti aj tento spor — premeraj to.
+//
+//    KARTUŠA, RÁM, NAV nesú KONŠTRUKCIU → zlato (brand lock), v oboch pohľadoch.
 export const BRAIN_STATE = {
   /** Nedotknutý zvitok. */
   untouched: GLOW_RGB,
   /** Nedotknutý svet / okruh / stred — vyššia úroveň má vyšší jas. */
   untouchedHi: CYAN_RGB,
-  /** VIDENÉ — otvoril si to a nedočítal. Jeho zlatá, `ctaA`. */
-  seen: CTA_RGB,
+  /** VIDENÉ — otvoril si to a nedočítal. Jeho ORANŽOVÁ `ctaB`, nie zlatá `ctaA`.
+   *  ⚠️ Do 24. 9. 2026 tu stála `ctaA` (245,199,61) a čítala sa ako ŽLTÁ. Matej
+   *     vtedy zadal pohľad POSTUP slovami *„oranžovou alebo zelenou sa zvýrazní
+   *     postup"* — oranžová a zelená sú dva konce jednej cesty, žltá a zelená
+   *     vyzerali ako dve nesúvisiace značky. Ten istý koniec jeho CTA gradientu,
+   *     takže nová farba do palety nepribudla. */
+  seen: CTA_B_RGB,
   /** PREČÍTANÉ. ⚠️ NIE brandová `#3D7A4E` (61,122,78) — tá je namiešaná NA PAPIER
    *  a svietiaci 3px bod v nej na čiernom zanikol; prečítané zvitky vyzerali ako
    *  diery. Ten istý tón, o dva stupne svetlejší.

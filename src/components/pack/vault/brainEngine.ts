@@ -31,6 +31,15 @@ import { BRAIN_STATE, WORLD_TINT } from '../ainubisSkin';
 
 export type BrainRole = 'root' | 'w' | 'o' | 'z';
 
+/** ČO PRÁVE ZNAMENÁ FARBA V MOZGU (Matej 24. 9. 2026).
+ *  `worlds`   — ZÁKLADNÝ POHĽAD: svet, jeho okruhy, jeho zvitky a priamky medzi
+ *               nimi nesú jednu farbu (`WORLD_TINT`). Sedem chumáčov, nie modrý pavúk.
+ *  `progress` — VRSTVA POSTUP: celý mozog zhasne do neutrálnej AINUBISOVEJ a svieti
+ *               len to, kde si bol — oranžová videné, zelená prečítané.
+ *  🔴 NIKDY OBE NARAZ. Dve sady farieb na jednom plátne boli pôvodný stav a práve
+ *     preto sa `prevention` a `read` (ΔE 11,4) na sebe bili. */
+export type BrainLayer = 'worlds' | 'progress';
+
 interface Node {
   x: number; y: number; role: BrainRole; wi: number; sz: number;
   dx: number; dy: number; vx: number; vy: number; sx: number; sy: number;
@@ -64,6 +73,9 @@ export interface BrainOptions {
    *     vidieť, že je to atrapa. Keď stav vznikne naozaj, vymení sa TÁTO funkcia
    *     a v engine sa nemení nič. */
   progress?: (zi: number) => 0 | 1 | 2;
+  /** Ktorý pohľad sa kreslí. Číta sa KAŽDÝ RÁMEC (rovnako ako `isMobile`), takže
+   *  prepnutie vrstvy sa prejaví bez premontovania plátna a bez straty polohy. */
+  layer?: () => BrainLayer;
   onWorld: (wi: number) => void;
   onRoot: () => void;
 }
@@ -83,15 +95,21 @@ const C = { w: 0.30, spread: 0.80, zr: 4.2, fit: 0.62, fitPc: 1.05 };
    väčší mozog; mobil má vlastné priblíženie cez `MOBIL.zoom` nad `fit`, preto ho
    táto zmena nesmie posunúť. */
 /* FARBA UZLA = STAV, NIE OZDOBA (nákres §12). Dnes existuje len „nedotknuté". */
-// ── FARBA UZLA = STAV, NIE OZDOBA (Matej 19. 9. 2026, potvrdené 24. 9.) ──────
-// Legenda: MODRÁ nedotknutý zvitok · CYAN nedotknutý svet/okruh/stred ·
-//          ŽLTÁ videné · ZELENÁ prečítané.
+// ── FARBA UZLA ZÁVISÍ OD POHĽADU (Matej 24. 9. 2026) ────────────────────────
+// ZÁKLADNÝ POHĽAD: farba = DRUH, teda svet (`WORLD_TINT`) — na uzloch, na zrnách
+//   aj na priamkach vnútri sveta. Neutrálna ostáva len priamka MEDZI svetmi.
+// VRSTVA POSTUP: farba = STAV. Všetko neutrálne AINUBISOVÉ, svieti oranžová
+//   (videné) a zelená (prečítané).
 // Zdroj farieb je `ainubisSkin.ts` — napísané tu druhýkrát by sa to pri prvej
 // zmene odtieňa rozišlo (to isté, čo sa stalo fialovej výletov).
 const COL = {
+  /** Neutrálna AINUBISOVA — nedotknuté zrno aj celý mozog vo vrstve POSTUP. */
   modra: BRAIN_STATE.untouched,
+  /** Neutrálna AINUBISOVA, vyššia úroveň — okruh, svet, stred. */
   cyan: BRAIN_STATE.untouchedHi,
-  zlta: BRAIN_STATE.seen,
+  /** VIDENÉ — oranžová. */
+  oranzova: BRAIN_STATE.seen,
+  /** PREČÍTANÉ — zelená. */
   zelena: BRAIN_STATE.read,
 };
 
@@ -237,6 +255,9 @@ export function mountBrain(o: BrainOptions): BrainHandle {
 
   function frame() {
     if (!alive) return;
+    /* Pohľad sa číta KAŽDÝ RÁMEC, nie pri montáži — prepnutie vrstvy sa tým
+       prejaví okamžite a mozog si drží priblíženie aj polohu. */
+    const layerNow: BrainLayer = o.layer ? o.layer() : 'worlds';
     const TL = performance.now() * 0.001;
     view.x += (vt.x - view.x) * 0.18; view.y += (vt.y - view.y) * 0.18; view.k += (vt.k - view.k) * 0.18;
     N.forEach((p) => {
@@ -270,28 +291,42 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       if (!kost && view.k < 0.42 && a !== HOV && b !== HOV) return;
       const hi = (HOVE && HOVE[0] === a && HOVE[1] === b) || (HOV && (a === HOV || b === HOV));
       ctx.lineWidth = hi ? 2.4 : kost ? 1.4 : 0.75;
-      /* ⚠️ Zvýraznená spojnica je NEÓNOVO MODRÁ, nie zlatá — zlatá znamená „videné". */
-      ctx.strokeStyle = hi ? 'rgba(140,240,255,.95)'
-        : `rgba(${COL.cyan},${kost ? 0.24 : 0.11})`;
+      /* 🔴 PRIAMKA VNÚTRI SVETA NESIE JEHO FARBU, MEDZI SVETMI OSTÁVA TICHÁ.
+         Most nie je členstvo (Matej 24. 9., voľba „tichá neutrálna"). Vlákno
+         zo stredu do sveta má `a.role === 'root'`, teda tiež neutrálne — stred
+         patrí všetkým. Farebné vlákno dostáva vyššie krytie, lebo svetové
+         odtiene sú tmavšie než cyan a pri 0,11 by chumáč vôbec nebolo vidieť. */
+      const vSvete = layerNow === 'worlds' && a.role !== 'root' && b.role !== 'root' && a.wi === b.wi;
+      const ec = vSvete ? worldRGB(o.worlds[a.wi]) : COL.cyan;
+      const ea = vSvete ? (kost ? 0.42 : 0.20) : (kost ? 0.24 : 0.11);
+      /* ⚠️ Zvýraznená spojnica je NEÓNOVO MODRÁ, nie oranžová — oranžová znamená „videné". */
+      ctx.strokeStyle = hi ? 'rgba(140,240,255,.95)' : `rgba(${ec},${ea})`;
       ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.lineTo(b.sx, b.sy); ctx.stroke();
     });
 
     // 3 · UZLY — okruhy a zvitky
     N.forEach((p) => {
       if (p.role === 'w' || p.role === 'root') return; /* majú vlastnú bublinu nižšie */
-      /* ⚠️ FARBA ZRNA JE LEGENDA: prečítané zelená · videné žltá · inak modrá.
-         Okruh ostáva cyan — stav má zvitok, nie priečinok nad ním. */
-      const col = p.role !== 'z' ? COL.cyan
-        : p.st === 2 ? COL.zelena : p.st === 1 ? COL.zlta : COL.modra;
+      /* 🔴 ZÁKLADNÝ POHĽAD: okruh aj zrno nesú farbu SVOJHO SVETA — to je celé
+         zadanie („všetky uzle a priamky pod jedným svetom tej istej farby").
+         VRSTVA POSTUP: neutrálne AINUBISOVE, svieti oranžová a zelená. */
+      const col = layerNow === 'worlds'
+        ? worldRGB(o.worlds[p.wi])
+        : p.role !== 'z' ? COL.cyan
+          : p.st === 2 ? COL.zelena : p.st === 1 ? COL.oranzova : COL.modra;
       const near = HOV === p;
       /* sused na druhom konci synapsy sa rozsvieti tiež — dotyk ukáže SPOJENIE */
       const syn = !!(HOV && !near && HOV.nb.indexOf(p) >= 0);
       /* ⚠️ Dotknuté zrno je aj JASNEJŠIE, nie iba inofarebné. Pri 0.55 sa žltá
          od modrej na čiernom v hustom zhluku takmer nelíši (nákres §14). */
-      let al = p.role !== 'z' ? 1 : p.st ? 0.95 : 0.55;
+      /* ⚠️ V ZÁKLADNOM POHĽADE NEMÁ ZRNO STAV, takže nemá čím byť jasnejšie —
+         všetky dostanú jedno krytie. Pri 0,55 (krytie „nedotknutého") by sa
+         chumáč stratil, pri 0,95 by prehlušil bublinu sveta nad sebou. */
+      let al = p.role !== 'z' ? 1 : layerNow === 'worlds' ? 0.74 : p.st ? 0.95 : 0.55;
       if (syn) al = Math.min(1, al + 0.35);
       const sz = p.sz * Math.min(2.2, Math.max(0.5, view.k)) * (near ? 1.7 : syn ? 1.25 : 1);
-      if (p.role !== 'z' || near || syn || p.st) { ctx.shadowBlur = near ? 26 : syn ? 20 : p.st ? 12 : 14; ctx.shadowColor = `rgba(${col},.9)`; }
+      const svieti = p.role !== 'z' || near || syn || (layerNow === 'worlds' ? true : !!p.st);
+      if (svieti) { ctx.shadowBlur = near ? 26 : syn ? 20 : p.st ? 12 : 14; ctx.shadowColor = `rgba(${col},.9)`; }
       else ctx.shadowBlur = 0;
       ctx.fillStyle = `rgba(${col},${al.toFixed(3)})`;
       ctx.beginPath(); ctx.arc(p.sx, p.sy, Math.max(0.8, sz), 0, TAU); ctx.fill();
@@ -367,10 +402,14 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       if (p.role !== 'w') return;
       const near = HOV === p;
       const r = p.sz * kB * (near ? 1.18 : 1);
-      /* ⚠️ BUBLINA NESIE DRUH, NIE STAV — tá istá farba, ktorou svieti karta toho
-         sveta na nástenke. Ikona sa z bubliny VYREZÁVA (nižšie), takže odtieň je
-         voľný a zlatý kit sa prekresľovať nemusí. */
-      const wc = worldRGB(o.worlds[p.wi]);
+      /* ⚠️ BUBLINA NESIE DRUH — tá istá farba, ktorou svieti karta toho sveta na
+         nástenke. Ikona sa z bubliny VYREZÁVA (nižšie), takže odtieň je voľný
+         a zlatý kit sa prekresľovať nemusí.
+         🔴 VO VRSTVE POSTUP ZHASÍNA AJ ONA. Matej: *„postup sa dá do neutrálnej
+            ainubisovej farby"* — keby sedem bublín ostalo farebných, oranžová
+            a zelená by na nich neboli vidieť a pohľad by hovoril obe veci naraz.
+            Orientáciu nesie IKONA a MENO, nie odtieň, takže sa nestratí. */
+      const wc = layerNow === 'worlds' ? worldRGB(o.worlds[p.wi]) : COL.cyan;
       ctx.shadowBlur = near ? 34 : 20; ctx.shadowColor = `rgba(${wc},.95)`;
       ctx.fillStyle = `rgba(${wc},1)`;
       ctx.beginPath(); ctx.arc(p.sx, p.sy, r, 0, TAU); ctx.fill();

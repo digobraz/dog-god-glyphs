@@ -53,7 +53,7 @@ import { openAinubis } from '@/lib/ainubisBus';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 import { VAULT_CIRCLES } from '@/components/pack/vault/circles';
-import { mountBrain, type BrainHandle } from '@/components/pack/vault/brainEngine';
+import { mountBrain, type BrainHandle, type BrainLayer } from '@/components/pack/vault/brainEngine';
 import ainubisHead from '@/assets/ainubis-head.png';
 import { HandArrowLeft, HandSearch } from '@/components/pack/HandIcons';
 
@@ -530,6 +530,14 @@ export default function PackAinubis() {
   /* Hľadanie nad menami a upútavkami svetov; vrstvy (panel pri pravom kraji); šuplík filtrov (mobil). */
   const [q, setQ] = useState('');
   const [lyrOpen, setLyrOpen] = useState(false);
+
+  /* 🔴 KTORÝ POHĽAD MOZOG KRESLÍ (Matej 24. 9. 2026). Základ = farby svetov;
+     vrstva POSTUP zhasne mozog do neutrálnej a svieti len prejdené.
+     ⚠️ Drží sa v REFE aj v stave: engine si ho číta každý rámec (ref), React
+        podľa neho prekresľuje panel (stav). Samotný stav by engine nevidel —
+        mountBrain beží mimo Reactu a uzavrel by si prvú hodnotu navždy. */
+  const [layer, setLayer] = useState<BrainLayer>('worlds');
+  const layerRef = useRef<BrainLayer>('worlds');
   const [sheet, setSheet] = useState(false);
   useEffect(() => {
     if (!dd) return;
@@ -584,6 +592,7 @@ export default function PackAinubis() {
     if (!ready || !cv || !tip) return;
     const isPc = () => window.innerWidth >= PC_MIN;
     brain.current = mountBrain({
+      layer: () => layerRef.current,
       canvas: cv,
       tip,
       worlds: VAULT_WORLDS,
@@ -750,14 +759,21 @@ export default function PackAinubis() {
                 <b>{tx('pack.ainubis.layers', 'Layers')}</b>
                 {LAYERS.map((l) => (
                   <Fragment key={l.k}>
-                    <button type="button" className="akv-lyr" disabled={!l.live} aria-pressed={l.live}>
+                    <button type="button" className="akv-lyr" disabled={!l.live}
+                      aria-pressed={l.live && layer === 'progress'}
+                      onClick={l.live ? () => {
+                        const next: BrainLayer = layerRef.current === 'progress' ? 'worlds' : 'progress';
+                        layerRef.current = next; setLayer(next);
+                      } : undefined}>
                       <u style={{ background: `rgb(${l.rgb})` }} />
                       {tx(`pack.ainubis.layer.${l.k}`, l.en)}
                       {!l.live && <em>{soon}</em>}
                     </button>
                     {/* Legenda vrstvy. Nie je to tlačidlo — nedá sa zapnúť ani vypnúť,
-                        len hovorí, čo farba zrna znamená. */}
-                    {l.live && l.legend && (
+                        len hovorí, čo farba zrna znamená.
+                        ⚠️ Vidno ju LEN KEĎ VRSTVA SVIETI. Pri vypnutej by vysvetľovala
+                           farby, ktoré na plátne nie sú — základný pohľad hovorí o svetoch. */}
+                    {l.live && l.legend && layer === 'progress' && (
                       <div className="akv-leg">
                         {l.legend.map((g) => (
                           <span key={g.k}>
