@@ -95,6 +95,12 @@ const GROUPS: Group[] = [
         state: 'wip',
         note: 'jedna obrazovka namiesto dvoch podkrokov. Plemeno je POMOCNÍK (predvyplní siluetu), CTA odomkýna patrón. Silueta sa zapisuje do heroglyfu hneď pri ťuknutí. Otvorené: zlatá výplň dlaždíc z PODSTATY sem prenesená NIE JE (rad 6–11 siluet) — čaká na Mateja; patrón sa stále vyberá len pre PRVÉHO psa.',
       },
+      {
+        name: '7 · Povaha (dve vlastnosti)',
+        path: '/heroglyph/dog-character',
+        state: 'wip',
+        note: 'prezlečená stará obrazovka: Hektor hovorí zhora, rám a rad ôsmich vlastností sú v jednej doske, voľba ide do heroglyfu hneď pri ťuknutí. Odklápacia slideshow zanikla — popis vybranej vlastnosti stojí pod radom. Otvorené: povaha sa zapisuje len PRVÉMU psovi (tá istá vec ako patrón a platba); medzi PATRÓNOM a POVAHOU beží v deve stále starý chvost (poradie · majiteľ · horoskopy · a znova pohlavie/farba/pôvod/rodokmeň, ktoré už PODSTATA pýtala).',
+      },
     ],
   },
   {
@@ -108,7 +114,6 @@ const GROUPS: Group[] = [
       { name: 'Osud', path: '/heroglyph/dog-fate', state: 'old' },
       { name: 'Farba', path: '/heroglyph/dog-colour', state: 'old' },
       { name: 'Pôvod', path: '/heroglyph/dog-bloodline', state: 'old' },
-      { name: 'Povaha', path: '/heroglyph/dog-character', state: 'old' },
       {
         name: 'Výrez (stará obrazovka)',
         path: '/heroglyph/crop',

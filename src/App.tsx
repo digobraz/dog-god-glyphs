@@ -94,6 +94,11 @@ const EssenceScreen = lazy(() =>
 const PatronScreen = lazy(() =>
   import("@/components/screens/PatronScreen").then((m) => ({ default: m.PatronScreen }))
 );
+// POVAHA (25. 9. 2026) — Hektorova otázka hore, výber dvoch vlastností v doske.
+// Prezlečená `DogCharacterScreen` (tá beží ďalej na LIVE), len v DEV — viď routu nižšie.
+const CharacterScreen = lazy(() =>
+  import("@/components/screens/CharacterScreen").then((m) => ({ default: m.CharacterScreen }))
+);
 const CropScreen = lazy(() =>
   import("@/components/screens/CropScreen").then((m) => ({ default: m.CropScreen }))
 );
@@ -367,7 +372,17 @@ const App = () => (
               <Route path="/heroglyph/dog-fate" element={<DogFateScreen />} />
               <Route path="/heroglyph/dog-colour" element={<DogColourScreen />} />
               <Route path="/heroglyph/dog-bloodline" element={<DogBloodlineScreen />} />
-              <Route path="/heroglyph/dog-character" element={<DogCharacterScreen />} />
+              {/* 🔴 JEDNA ROUTA, DVE OBRAZOVKY podľa režimu vstupu (25. 9. 2026) —
+                  ten istý recept ako `/heroglyph/breed`. Nový vstup dostáva POVAHU
+                  (Hektor hore, rám a výber v jednej doske), LIVE ide ďalej cez
+                  pôvodnú `DogCharacterScreen`.
+                  ⚠️ Cesta sa NEMENÍ zámerne: pruh postupu (`flowRedress.tsx`),
+                     ksichty (`hekthorFaces.ts`), `CropScreen` aj dielňa na ňu už
+                     ukazujú. */}
+              <Route
+                path="/heroglyph/dog-character"
+                element={NEW_HEROFLOW ? <CharacterScreen /> : <DogCharacterScreen />}
+              />
               <Route path="/heroglyph/reveal" element={<HeroglyphRevealScreen />} />
               <Route path="/heroglyph/message" element={<MessageScreen />} />
 

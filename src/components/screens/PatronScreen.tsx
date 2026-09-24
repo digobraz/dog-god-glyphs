@@ -10,13 +10,14 @@ import { PageTopBar } from '@/components/PageTopBar';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
 import { FlowMedallion, FLOW_MEDAL_CSS, useSpeakMedal } from '@/components/screens/flowMedallion';
+import { Scroller, FLOW_SCROLL_CSS } from '@/components/screens/flowScroller';
 import { LAPIS, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { PACK_R, PACK_THEME as T, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
 import { LAB } from '@/lib/labTheme';
 import { hekthorFace } from '@/lib/hekthorFaces';
 import { HEKTHOR_GLYPH } from '@/lib/hektor';
 import { localizeBreed } from '@/lib/breedDisplay';
-import { HandSearch, HandCheck, HandArrowLeft } from '@/components/pack/HandIcons';
+import { HandSearch, HandCheck } from '@/components/pack/HandIcons';
 import breedsData from '@/data/breeds.json';
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -265,82 +266,6 @@ function BreedField({
   );
 }
 
-// ── VODOROVNÝ RAD SO ŠÍPKAMI ────────────────────────────────────────────────
-/**
- * Rad, ktorý sa nezmestí. Šípky sú tu preto, že **myš vodorovný rad neodroluje**
- * — koliesko ide zvislo a na trackpade to vie len časť ľudí. Zjavia sa len na tej
- * strane, kde obsah naozaj pokračuje, takže zároveň hovoria „je tam ešte niečo".
- *
- * ⚠️ Šípka je brandová KRESBA (`HandArrowLeft`), pravá je tá istá otočená o 180°.
- *    Znaky `‹ ›` ani lucide `Chevron*` sem nesmú — stráž `check:ikony` ich počíta
- *    ako ikonku mimo brandu a základňa smie len klesať.
- * ⚠️ Meranie je udalostné (`scroll` + `ResizeObserver`) a navyše sa opakuje pri
- *    zmene `measureKey`: prepnutie kategórie zmení `scrollWidth`, ale nie rozmer
- *    samotného radu, takže `ResizeObserver` by o tom nevedel.
- */
-function Scroller({
-  children, rowClass, measureKey, centerSel,
-}: {
-  children: React.ReactNode;
-  rowClass: string;
-  measureKey: string;
-  /** CSS selektor prvku, ktorý sa má vycentrovať (vybraná kategória / silueta). */
-  centerSel: string;
-}) {
-  const t = useT();
-  const ref = useRef<HTMLDivElement>(null);
-  const [canL, setCanL] = useState(false);
-  const [canR, setCanR] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const measure = () => {
-      setCanL(el.scrollLeft > 2);
-      setCanR(el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
-    };
-    measure();
-    el.addEventListener('scroll', measure, { passive: true });
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => { el.removeEventListener('scroll', measure); ro.disconnect(); };
-  }, []);
-
-  // Vybraný prvok na stred — inak po predvyplnení plemenom sedí silueta mimo
-  // záberu a vyzerá to, že sa nevybralo nič.
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const id = requestAnimationFrame(() => {
-      setCanL(el.scrollLeft > 2);
-      setCanR(el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
-      const on = el.querySelector<HTMLElement>(centerSel);
-      if (!on) return;
-      const target = on.offsetLeft - el.clientWidth / 2 + on.clientWidth / 2;
-      el.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
-    });
-    return () => cancelAnimationFrame(id);
-  }, [measureKey, centerSel]);
-
-  const by = (d: number) => ref.current?.scrollBy({ left: d, behavior: 'smooth' });
-
-  return (
-    <div className="pt-scroll">
-      {canL && (
-        <button type="button" className="pt-nav l" aria-label={t('whatNext.prev')} onClick={() => by(-190)}>
-          <HandArrowLeft size={14} solid />
-        </button>
-      )}
-      {canR && (
-        <button type="button" className="pt-nav r" aria-label={t('whatNext.next')} onClick={() => by(190)}>
-          <HandArrowLeft size={14} solid style={{ transform: 'rotate(180deg)' }} />
-        </button>
-      )}
-      <div ref={ref} className={`pt-row ${rowClass}`}>{children}</div>
-    </div>
-  );
-}
-
 // ── OBRAZOVKA ───────────────────────────────────────────────────────────────
 
 export function PatronScreen() {
@@ -417,7 +342,7 @@ export function PatronScreen() {
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{PATRON_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_SCROLL_CSS}{PATRON_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
         <PageTopBar onBack={() => navigate('/heroglyph/essence')} />
@@ -689,64 +614,11 @@ const PATRON_CSS = `
 @media (max-width: 559px) { .pt-glyph { --pt-glyph-w: 100%; } }
 
 /* ── VODOROVNÉ RADY ───────────────────────────────────────────────────────
-   Rad roluje, šípky visia nad ním. Vodorovná lišta rolovania je skrytá zámerne:
-   na papyrusovej doske je to šedý pás cez celú šírku a rad pod ním prestane byť
-   rad — „pokračuje to" hovoria šípky. */
-.pt-scroll { position: relative; width: 100%; }
-.pt-row {
-  display: flex; align-items: center; gap: 8px; width: 100%;
-  overflow-x: auto; scrollbar-width: none;
-  /* Miesto na tieň dlaždice a na jej stlačenie pri ťuknutí. */
-  padding: 3px 2px; margin: -3px -2px;
-}
-.pt-row::-webkit-scrollbar { display: none; }
-/* 🟨 ŠÍPKA JE PLNÁ BRANDOVÁ ZLATÁ (Matej 24. 9.: *„šípky sú moc na kraji a možno by
-   som ich dal zlaté alebo inej farby, lebo splývajú"*). Papyrusová šípka na
-   papyrusovej doske je papyrus na papyruse — presne to splývanie.
-   🔑 A je to POLOHA V LOCKU, nie výnimka: brand lock hovorí *„ZLATO = konštrukcia
-      a poloha"* (rám, nav, aktívna pilulka) a *„LAPIS = moja voľba a akcia"*.
-      Posun radu je nábytok — nič si ním nevyberám, len sa presúvam. Zlatá je preto
-      jediná správna odpoveď a zároveň odlíši šípku od všetkého, čo sa NA rade vyberá.
-   ⚠️ Recept sa neopisuje: \`BRAND_GOLD_BTN\` (rampa #C99A3F→#A3782B, rám #8C6014,
-      TMAVÝ inkoust). Svetlá zlato-oranžová \`GOLD_BTN\` sem NEPATRÍ — je svetlejšia
-      než papyrus a patrí AINUBISOVI. */
-.pt-nav {
-  position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
-  width: 26px; height: 26px; border-radius: ${PACK_R.pill}px; cursor: pointer;
-  display: grid; place-items: center;
-  /* 🔴 ŠÍPKA JE BLEDÁ A PLNÁ, KRUH OSTÁVA ZLATÝ (Matej 24. 9. 2026: *„tie šípky daj
-     bledé a kruh nechaj zlatý, najlepšie ak by si ich vyplnil bledou farbou, nie len
-     obrys ako sú teraz"*). Kresba z kitu je OBRYS — plnú siluetu robí poloha
-     \`solid\` na \`HandArrowLeft\`, nie iná kresba.
-     ⚠️ Brand lock píše, že KRÉMOVÝ inkoust na brandovej zlatej padá pod 3:1 (jas
-        zlatej ~0,36). Platí to a Matej to rozhodol s tým vedome — plná silueta je
-        však oveľa čitateľnejšia než obrys a kontrast dvíha tmavá spodná hrana
-        (\`drop-shadow\`), tá istá rytina „svetlo zhora", akú nesie celý vstup. */
-  color: #FDF7E7;
-  background: ${BRAND_GOLD_BTN.grad};
-  border: 1px solid ${BRAND_GOLD_BTN.edge};
-  box-shadow: ${BRAND_GOLD_BTN.glow};
-}
-.pt-nav:hover { background: ${BRAND_GOLD_BTN.gradHover}; box-shadow: ${BRAND_GOLD_BTN.glowHover}; }
-/* Tmavá hrana pod bledou šípkou — nie ozdoba, ale to, čo ju na zlate udrží čitateľnú. */
-.pt-nav svg { filter: drop-shadow(0 1px 0 rgba(72, 44, 4, 0.55)); }
-/* ⚠️ Šípka stojí vo VÝPLNI DOSKY, nie na rade. Pri -4 px prekrývala text
-   posledného chipu („Schnozze▸") a vyzeralo to ako chyba vykreslenia; doska má
-   po stranách 22 px, takže -18 nechá šípku celú vedľa radu a 4 px od rytej
-   obruby. Fade pod šípkou by musel trafiť odtieň mramorovanej dosky — a tú
-   žiadna plná farba netrafí (ten istý dôvod, prečo koliesko rokov dostalo masku
-   namiesto prekryvu). */
-/* ⚠️ −8, NIE −18 (Matej 24. 9.: *„šípky sú moc na kraji"*). Pri −18 sedeli celé vo
-   výplni dosky, teda tesne pri rytej obrube, a čítali sa ako ozdoba rámu. Pri −8
-   stoja NAD radom ako ovládač, ktorý k nemu patrí — presah 18 px je cena za to a
-   padne vždy na okrajovú dlaždicu, ktorá je aj tak odrezaná scrollom. */
-.pt-nav.l { left: -8px; }
-.pt-nav.r { right: -8px; }
-/* 🔴 NA DOTYKOVOM ZARIADENÍ ŠÍPKY NIE SÚ. Existujú kvôli MYŠI (koliesko ide
-   zvislo, vodorovný rad sa ňou posunúť nedá); prst rad odroluje sám a na 390 px
-   by šípky sedeli na prvej a poslednej dlaždici. Že rad pokračuje, hovorí na
-   telefóne polovičná dlaždica na okraji — to je jeho vlastná reč. */
-@media (pointer: coarse) { .pt-nav { display: none; } }
+   🔑 PRESUNUTÉ 25. 9. 2026 DO \`flowScroller.tsx\` (\`.hf-scroll\` / \`.hf-srow\` /
+      \`.hf-snav\`) — ten istý rad dostala aj POVAHA a dve kópie merania a šípok by
+      sa raz rozišli. Text pravidiel je nezmenený, len sa presťahoval.
+   ⚠️ Geometria dlaždíc (\`.pt-cats\`, \`.pt-sils\`) ostáva TU: to je vec obsahu
+      tejto obrazovky, nie ovládača. */
 
 /* ── KATEGÓRIA = ZLATÁ, SILUETA = LAPIS (Matej 24. 9.) ────────────────────
    *„chipy by som nedával modré, ale možno nejak odlíšil farebne od spodných
@@ -828,7 +700,6 @@ const PATRON_CSS = `
      na krátkom okne rieši až spoločná podmienka na konci hárku. */
   .pt-field, .pt-mix { height: 36px; }
   .pt-chip { height: 26px; }
-  .pt-row { padding: 2px; margin: -2px; }
   /* Tlačidlo ustupuje ako POSLEDNÉ a len o 4 px — musí ostať zjavne tlačidlom.
      Rám heroglyfu neustupuje vôbec: pod 78 % sa symboly v malých slotoch
      zlievajú (premerané 24. 9. na 390 px), a to je celý zmysel tejto obrazovky. */
