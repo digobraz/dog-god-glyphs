@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import hekthorImg from '@/assets/hekthor.png';
 import { hasChoice, saveConsent } from '@/lib/consent';
+import { FILL_MSG, FILL_BAND, HRANICA_KEY, type FlowFill } from '@/components/screens/flowFill';
 import {
   DEV_SEED_DEFAULT,
   TEST_PHOTO_SHAPES,
@@ -161,7 +162,59 @@ export default function HeroflowLab() {
   const [cookies, setCookies] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // ── HRANICA: koľko z obrazovky obsah zaberá (25. 9. 2026) ────────────────
+  // Matej: *„mali by sme mať každú obrazovku cca rovnako vyplnenú… do labu by
+  // sme mohli mať aj tento údaj, aby sme to vedeli namodelovať a stránky boli
+  // podobné."* Čísla NEPÍŠE človek — hlási ich `FlowFillProbe` z bežiacej
+  // obrazovky (`postMessage`), takže tabuľka nemôže zostarnúť.
+  const [fills, setFills] = useState<Record<string, FlowFill>>({});
+  /** Fronta krokov, ktoré sa práve premeriavajú v skrytom ráme. */
+  const [queue, setQueue] = useState<string[]>([]);
+  const [hranica, setHranica] = useState(() => {
+    try { return localStorage.getItem(HRANICA_KEY) === '1'; } catch { return false; }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem(HRANICA_KEY, hranica ? '1' : '0'); } catch { /* prázdne úložisko */ }
+    // `storage` udalosť do VLASTNÉHO dokumentu nechodí, len do ostatných — a
+    // presne tie (rám) ju potrebujú. Dielňa si stav drží v `useState`.
+  }, [hranica]);
+
+  useEffect(() => {
+    const onMsg = (e: MessageEvent) => {
+      if (e.data?.type !== FILL_MSG || !e.data.fill) return;
+      const fill = e.data.fill as FlowFill;
+      setFills((f) => ({ ...f, [`${fill.path}|${fill.sirka}`]: fill }));
+      // Krok sa ozval ⇒ fronta ide ďalej. Meria sa po jednom: dva rámy naraz
+      // by si na slabšom stroji navzájom skreslili čas prvého vykreslenia.
+      setQueue((q) => (q[0] === fill.path ? q.slice(1) : q));
+    };
+    window.addEventListener('message', onMsg);
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
   const size = WIDTHS.find((w) => w.id === width) ?? WIDTHS[1];
+
+  /** Kroky, ktoré sa dajú merať — nové (bledé) obrazovky vstupu. Staré javisko
+   *  `.hf-stage` nemajú, takže by sa neozvali a fronta by na nich čakala. */
+  const merateľne = useMemo(
+    () => GROUPS[0].steps.filter((s) => s.path.startsWith('/heroglyph/')),
+    [],
+  );
+
+  /** Premerať všetko na AKTUÁLNEJ šírke rámu. Fronta, nie paralelný beh. */
+  const zmeraj = () => {
+    writeDevSeed({ ...seed, popup: null });
+    setQueue(merateľne.map((s) => s.path));
+  };
+
+  // Keď fronta stojí dlhšie na tom istom kroku, nepočkáme navždy: krok, ktorý
+  // sa do 6 s neozve, sa preskočí (stará obrazovka, chyba v ráme).
+  useEffect(() => {
+    if (queue.length === 0) return;
+    const id = setTimeout(() => setQueue((q) => q.slice(1)), 6000);
+    return () => clearTimeout(id);
+  }, [queue]);
 
   // ── COOKIE LIŠTA (23. 9. 2026) ────────────────────────────────────────────
   // Bez tohto sa kreslí DVAKRÁT — raz v dielni, raz v ráme — a v ráme si berie
@@ -260,6 +313,14 @@ export default function HeroflowLab() {
                   {step.name}
                   {step.note && <i>{step.note}</i>}
                 </span>
+                {/* Výplň na PRÁVE NASTAVENEJ šírke rámu. Prázdno = nemerané
+                    (alebo stará obrazovka, ktorá javisko `.hf-stage` nemá). */}
+                {(() => {
+                  const f = fills[`${step.path}|${size.w}`];
+                  if (!f) return null;
+                  const st = f.pretecie > 0 ? 'over' : f.vyplnPct < FILL_BAND.min ? 'thin' : 'ok';
+                  return <span className={`hfl-fill ${st}`}>{f.vyplnPct}%</span>;
+                })()}
               </button>
             ))}
           </div>
@@ -269,6 +330,35 @@ export default function HeroflowLab() {
           <span><i className="d done" /> hotové</span>
           <span><i className="d wip" /> rozostavané</span>
           <span><i className="d old" /> staré</span>
+        </div>
+
+        {/* ── VÝPLŇ OBRAZOVIEK ────────────────────────────────────────────
+            Matej 25. 9.: *„mali by sme mať každú obrazovku cca rovnako
+            vyplnenú… aby sme to vedeli namodelovať a stránky boli podobné."*
+            🔑 Výplň = obsah / MIESTO MEDZI HRANICAMI (javisko mínus vzduch
+               `PAGE_AIR`), nie z celého okna — inak by číslo hovorilo o okne,
+               nie o obrazovke.
+            🔴 Čísla sa NEPÍŠU: hlási ich bežiaca obrazovka. Tabuľka preto nemá
+               ako zostarnúť — na rozdiel od rozpočtov výšky v hlavičkách
+               obrazoviek, ktoré sú ručné súčty. */}
+        <div className="hfl-head">Výplň · {size.label} {size.w}×{size.h}</div>
+        <div className="hfl-fills">
+          {merateľne.map((st) => {
+            const f = fills[`${st.path}|${size.w}`];
+            const pct = f?.vyplnPct ?? 0;
+            const stav = !f ? 'none' : f.pretecie > 0 ? 'over' : pct < FILL_BAND.min ? 'thin' : 'ok';
+            return (
+              <div key={st.path} className={`hfl-fillrow is-${stav}`}>
+                <span className="nm">{st.name}</span>
+                <span className="bar"><i style={{ width: `${Math.min(100, pct)}%` }} /></span>
+                <span className="pc">{f ? `${pct}%` : '—'}</span>
+              </div>
+            );
+          })}
+          <div className="hfl-note">
+            Pásmo {FILL_BAND.min}–{FILL_BAND.max} %. Nad 100 % sa obrazovka roluje,
+            pod {FILL_BAND.min} % je poloprázdna vedľa susedov.
+          </div>
         </div>
 
         <div className="hfl-sep" />
@@ -401,6 +491,20 @@ export default function HeroflowLab() {
           </div>
           <div className="hfl-barright">
             {busy && <span className="hfl-busy">kreslím fotku…</span>}
+            {/* HRANICA = dno vzduchu (`PAGE_AIR`) nakreslené do rámu + štítok
+                s výplňou. Prepínač píše do `localStorage`, rám si ho vypočuje
+                cez `storage` — ten istý kanál ako cookie lišta. */}
+            <button
+              type="button"
+              className={`hfl-chip${hranica ? ' on' : ''}`}
+              onClick={() => setHranica((h) => !h)}
+              title="Nakreslí hranicu vzduchu a výplň priamo do rámu"
+            >
+              HRANICA
+            </button>
+            <button type="button" className="hfl-chip" onClick={zmeraj} disabled={queue.length > 0}>
+              {queue.length > 0 ? `meriam… ${merateľne.length - queue.length + 1}/${merateľne.length}` : 'Zmerať výplň'}
+            </button>
             {active && (
               <>
                 <code>{active.path}</code>
@@ -418,6 +522,19 @@ export default function HeroflowLab() {
             )}
           </div>
         </div>
+
+        {/* Skrytý rám fronty. Meria sa v ňom jeden krok po druhom; je NAOZAJ
+            vykreslený (mimo záberu), lebo `display:none` by mu dalo nulovú
+            výšku a výplň by vyšla nezmyselne. */}
+        {queue.length > 0 && (
+          <iframe
+            title="meranie"
+            key={queue[0]}
+            src={queue[0]}
+            className="hfl-probe"
+            style={{ width: size.w, height: size.h }}
+          />
+        )}
 
         <div className="hfl-frame-wrap">
           {active ? (
@@ -598,6 +715,37 @@ body:has(.hfl-root) .consent-banner { display: none !important; }
 .hfl-legend .d.done { background: #C99A3F; border-color: #C99A3F; }
 .hfl-legend .d.wip { background: #B25640; border-color: #B25640; }
 .hfl-legend .d.old { border-style: dashed; border-color: rgba(250,244,236,.3); }
+
+/* ── VÝPLŇ OBRAZOVIEK (25. 9. 2026) ───────────────────────────────────────
+   Tri stavy a každý má DÔVOD, nie len farbu: zelená = v pásme · jantárová =
+   poloprázdna (pridaj) · červená = preteká (uber). Šedá = nemerané. */
+.hfl-fills { display: flex; flex-direction: column; gap: 4px; padding: 2px 4px 0; }
+.hfl-fillrow { display: flex; align-items: center; gap: 7px; font-size: 10px; }
+.hfl-fillrow .nm {
+  flex: 0 0 74px; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; color: rgba(250,244,236,.62);
+}
+.hfl-fillrow .bar {
+  flex: 1 1 auto; height: 6px; border-radius: 999px; overflow: hidden;
+  background: rgba(250,244,236,.10);
+}
+.hfl-fillrow .bar i { display: block; height: 100%; background: rgba(250,244,236,.3); }
+.hfl-fillrow .pc { flex: 0 0 30px; text-align: right; color: rgba(250,244,236,.62); }
+.hfl-fillrow.is-ok .bar i { background: #3D7A4E; }
+.hfl-fillrow.is-thin .bar i { background: #C99A3F; }
+.hfl-fillrow.is-over .bar i { background: #B25640; }
+.hfl-fillrow.is-over .pc, .hfl-fillrow.is-over .nm { color: #E08A72; }
+/* Štítok pri kroku v zozname — to isté číslo pri mene obrazovky. */
+.hfl-fill {
+  flex: none; margin-left: 6px; padding: 1px 5px; border-radius: 999px;
+  font-size: 9px; border: 1px solid rgba(250,244,236,.18); color: rgba(250,244,236,.55);
+}
+.hfl-fill.ok { border-color: rgba(61,122,78,.7); color: #7FBF95; }
+.hfl-fill.thin { border-color: rgba(201,154,63,.7); color: #E0BC72; }
+.hfl-fill.over { border-color: rgba(178,86,64,.8); color: #E08A72; }
+/* Rám fronty stojí mimo záberu, ale VYKRESLENÝ — display:none by mu dalo
+   nulovú výšku a merač by hlásil nezmysel. */
+.hfl-probe { position: fixed; left: -10000px; top: 0; border: 0; visibility: hidden; }
 /* Zbalený rozbaľovač testovacích dát (24. 9.) — rovnaké tóny a polomer, aké
    už panel má (border rgba(201,154,63,.2) z .hfl-side, radius 8px z .hfl-ghost),
    žiadny nový token. */

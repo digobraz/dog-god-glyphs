@@ -1,0 +1,12 @@
+import { chromium } from 'playwright';
+const b = await chromium.launch();
+const ctx = await b.newContext({ viewport: { width: 1400, height: 900 } });
+const p = await ctx.newPage();
+await p.goto('http://localhost:8080/lab/heroflow', { waitUntil: 'domcontentloaded' });
+await p.waitForSelector('.hfl-fills');
+await p.evaluate(() => { window.__m = []; window.addEventListener('message', (e) => { if (e.data?.type === 'dogypt-flow-fill') window.__m.push(e.data.fill); }); });
+await p.click('text=Zmerať výplň');
+await p.waitForTimeout(40000);
+console.log('prišlo:', await p.evaluate(() => window.__m.map((f) => `${f.path}|${f.sirka} = ${f.vyplnPct}%`)));
+console.log('tabuľka:', await p.$$eval('.hfl-fillrow', (r) => r.map((x) => x.textContent)));
+await b.close();

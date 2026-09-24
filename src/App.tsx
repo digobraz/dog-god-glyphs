@@ -105,6 +105,11 @@ const CropScreen = lazy(() =>
 const FlowRedress = lazy(() =>
   import("@/components/screens/flowRedress").then((m) => ({ default: m.FlowRedress }))
 );
+// HRANICA (25. 9. 2026) — merač výplne obrazovky. Hlási dielni, koľko z miesta
+// medzi hranicami obsah zaberá, a na požiadanie tú hranicu aj nakreslí.
+const FlowFillProbe = lazy(() =>
+  import("@/components/screens/flowFill").then((m) => ({ default: m.FlowFillProbe }))
+);
 // ── DIELŇA VSTUPU (23. 9. 2026) — `/lab/heroflow`. Zoznam povrchov, testovacie
 //    dáta a rám s obrazovkou na jednej obrazovke. DEV-only, ako celý nový vstup.
 //    ⚠️ Nie je to `/pack` ani jeho chrbtica — lock architektúry sa jej netýka.
@@ -252,6 +257,11 @@ const App = () => (
         {NEW_HEROFLOW && (
           <Suspense fallback={null}>
             <FlowRedress />
+          </Suspense>
+        )}
+        {NEW_HEROFLOW && (
+          <Suspense fallback={null}>
+            <FlowFillProbe />
           </Suspense>
         )}
         {/* Testovacie dáta z dielne. Visí NAD routami, aby bežal aj v ráme,

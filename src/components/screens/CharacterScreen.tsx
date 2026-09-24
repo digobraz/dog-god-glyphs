@@ -148,7 +148,16 @@ export function CharacterScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.28 }}
           >
-            <FlowMedallion src={hekthorFace('dog-character')} size={medal} />
+            {/* 🔴 HEKTHOR JE TU O 24 px VÄČŠÍ NEŽ NA SUSEDNÝCH KROKOCH — a je to
+                MERANÉ, nie vkus. Matej 25. 9. 2026: *„máme veľké rezervy na
+                priestor = môžme zväčšiť bloky, fotku hektora… mali by sme mať
+                každú obrazovku cca rovnako vyplnenú"*. POVAHA bola z celého
+                vstupu najprázdnejšia (82 / 68 / 79 % proti pásmu 82–95 %).
+                ⚠️ Spoločný `useSpeakMedal` sa NEZDVIHOL zámerne: PODSTATA na
+                   iPhone SE preteká o 67 px a SVORKA o 64, takže by ich väčší
+                   Hektor potopil ešte hlbšie. Keď sa tie dve zoštíhlia, patrí
+                   toto číslo do `useSpeakMedal` a tento riadok zmizne. */}
+            <FlowMedallion src={hekthorFace('dog-character')} size={medal + 24} />
             <span className="say">
               <h2>
                 {t('heroglyph.flow.dogCharacter.questionPrefix')}
@@ -286,7 +295,9 @@ const CHARACTER_CSS = `
 /* Zlaté slovo v otázke je zvýraznenie vnútri vety, nie druhá farba textu —
    ten istý zvyk, aký mala otázka v starom šate (\`text-amber-300\`). */
 .ch-speak h2 b { color: ${LAB.goldInk}; font-weight: 700; }
-.ch-stack .hf-plate { gap: 10px; }
+/* ⚠️ ROZSTUP 12, NIE 10 (25. 9.). Desiatku si vzali PODSTATA a PATRÓN preto,
+   že sa im obsah nezmestil — táto obrazovka ten problém nemá, takže sa dýcha. */
+.ch-stack .hf-plate { gap: 12px; }
 
 /* ── RÁM ──────────────────────────────────────────────────────────────────
    Tá istá šírka ako na PODSTATE a PATRÓNOVI: 78 % od 560 px, 100 % pod tým. Na
@@ -294,7 +305,10 @@ const CHARACTER_CSS = `
    slotoch na nečitateľné.
    ⚠️ Číslo je premenná, lebo šírku zapisuje INLINE \`style\` na komponente. */
 .ch-glyph {
-  --ch-glyph-w: 78%;
+  /* ⚠️ 84 %, NIE 78 ako na susedoch — rám je najväčší jediný kus obrazovky a
+     práve on má z rezervy najviac úžitku (merané 25. 9.: +8 px výšky, symboly
+     v malých slotoch o kúsok čitateľnejšie). Pod 70 % splývajú. */
+  --ch-glyph-w: 84%;
   max-width: 100%; margin-inline: auto; display: block;
   /* Inkoust papyrusu, nie \`--foreground\` z tmavého šatu: rám kreslí
      \`currentColor\` a čierna by na bledej doske pôsobila ako tlač, nie rytina. */
@@ -313,11 +327,11 @@ const CHARACTER_CSS = `
       🚩 a tá istá otvorená otázka na Mateja (do 3 volieb zlato, od 4 tint). */
 .ch-trait {
   position: relative;
-  flex: 0 0 auto; width: 86px; padding: 8px 4px;
+  flex: 0 0 auto; width: 104px; padding: 10px 4px;
   flex-direction: column; justify-content: center; gap: 4px;
   text-align: center; border-radius: ${PACK_R.tile}px;
 }
-.ch-trait img { width: 44px; height: 44px; object-fit: contain; }
+.ch-trait img { width: 56px; height: 56px; object-fit: contain; }
 /* Meno je POPISOK, nie nadpis: najmenší stupeň zo stupnice a tesné sledovanie,
    aby sa aj „Hyperaktív" zmestilo do dlaždice bez zalomenia. */
 .ch-trait .lb {
@@ -341,11 +355,13 @@ const CHARACTER_CSS = `
 /* ── POPIS VYBRANEJ VLASTNOSTI ────────────────────────────────────────────
    Výška je daná VŽDY (dva riadky na PC), obsah sa v nej mení. */
 .ch-say {
-  position: relative; width: 100%; min-height: 36px;
+  position: relative; width: 100%; min-height: 44px;
   display: flex; align-items: flex-start;
 }
+/* ⚠️ 14 px, nie 12 (25. 9.) — je to jediný súvislý text obrazovky a mal
+   najmenší stupeň zo stupnice, hoci miesto bolo. Obe čísla sú z PACK_TEXT. */
 .ch-say p {
-  margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 12px;
+  margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 14px;
   line-height: 1.4; color: ${LAB.inkSoft};
 }
 .ch-say p.dim { color: ${LAB.inkMuted}; }
@@ -375,9 +391,9 @@ const CHARACTER_CSS = `
    ŠTYRI dlaždice s rozstupom 8 vyjdú na (412 − 3×8) / 4 = **97 px**.
    Popis pod radom potrebuje na 302 px tri riadky, nie dva. */
 @media (max-width: 559px) {
-  .ch-trait { width: 96px; }
-  .ch-trait img { width: 52px; height: 52px; }
-  .ch-say { min-height: 52px; }
+  .ch-trait { width: 116px; }
+  .ch-trait img { width: 68px; height: 68px; }
+  .ch-say { min-height: 66px; }
 }
 /* 🔴 KRÁTKE OKNO + TELEFÓN NARAZ — a MUSÍ to stáť AŽ TU. Obe podmienky majú
    rovnakú špecificitu, takže rozhoduje poradie; keď pravidlo stálo vyššie,
@@ -389,7 +405,8 @@ const CHARACTER_CSS = `
   .ch-speak { margin-bottom: 4px; }
 }
 @media (max-width: 559px) and (max-height: 700px) {
-  .ch-trait { width: 86px; padding: 6px 4px; }
-  .ch-trait img { width: 44px; height: 44px; }
+  .ch-trait { width: 96px; padding: 8px 4px; }
+  .ch-trait img { width: 52px; height: 52px; }
+  .ch-say { min-height: 60px; }
 }
 `;
