@@ -36,6 +36,7 @@
 // 🚩 OTVORENÉ: chat ako rovina hore + stred mozgu ako vstup (postavené podľa odporúčania).
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { PackIdentityBar } from '@/components/pack/PackIdentityBar';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
@@ -44,6 +45,8 @@ import {
 } from '@/components/pack/packTheme';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { VaultChat, VAULT_CHAT_CSS } from '@/components/pack/vault/VaultChat';
+import { VaultWall, VAULT_WALL_CSS } from '@/components/pack/vault/VaultWall';
+import { VAULT_SOURCE_TOTALS } from '@/components/pack/vault/vaultSources';
 import { openAinubis } from '@/lib/ainubisBus';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
@@ -246,6 +249,19 @@ const CSS = `
   border:1px solid ${AINUBIS.edge};background:transparent;color:${AINUBIS.inkDim};font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;}
 .akv-chip[aria-pressed="true"]{color:${AINUBIS.cyan};border-color:${AINUBIS.edgeStrong};background:rgba(${AINUBIS.cyanRGB},0.16);}
 .akv-chip:disabled{cursor:default;color:${AINUBIS.inkFaint};}
+/* VCHOD DO ZDROJOV — TRETÍ Z TROCH (voľba E2, Matej 24. 9. 2026). Stojí v päte
+   DOGSCROLLU zámerne: vidí ho aj ten, kto nikdy neprispeje ani sa nič nespýta,
+   a to je jediné, čím sa AINUBIS líši od chatbota. Sám o sebe to NIE JE miesto
+   (to je /pack/ainubis/sources), je to dvere. */
+.akv-entry{display:flex;align-items:center;gap:${PACK_SPACE.md}px;width:100%;text-align:left;cursor:pointer;
+  padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.tile}px;
+  border:1px dashed ${AINUBIS.edge};background:rgba(3,7,12,0.30);color:${AINUBIS.inkDim};
+  font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;line-height:1.4;}
+.akv-entry:hover{border-color:${AINUBIS.edgeStrong};}
+.akv-entry b{margin-left:auto;display:flex;align-items:center;gap:${PACK_SPACE.xs}px;
+  font-weight:500;color:${AINUBIS.cyan};white-space:nowrap;}
+.akv-entry b .akv-chev{display:inline-flex;transform:rotate(180deg);}
+
 /* UPÚTAVKA SVETA — tvar budúceho úvodu sveta (.wintro v nákrese), lock §4.1: jedna karta. */
 .akv-world{position:relative;text-align:center;scroll-margin-top:${PACK_SPACE.lg}px;
   padding:${PACK_SPACE.xl}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.card}px;
@@ -352,8 +368,16 @@ export default function PackAinubis() {
   /* ROVINA — VAULT alebo CHAT (maketa). 🔴 LEN V DEVE: v produkčnom builde CHAT
      naďalej otvára živý panel `AinubisWidget`, ktorý beží naostro. Maketa je
      rozostavaná vec za zamknutými dverami, nie náhrada fungujúceho chatu. */
-  const [plane2, setPlane2] = useState<'vault' | 'chat'>('vault');
+  const [plane2, setPlane2] = useState<'vault' | 'chat' | 'wall'>('vault');
   const CHAT_MOCK = import.meta.env.DEV;
+  /* NÁSTENKA = rovina 3, maketa z 24. 9. 2026 (voľby A1 · B2 · C2 · D2 · E2 · F1).
+     Naostro ostáva pilulka zamknutá so „soon" — rozostavaná vec stojí za
+     zamknutými dverami, rovnako ako chat. */
+  const WALL_MOCK = import.meta.env.DEV;
+  /* Zoznam zdrojov (`/pack/ainubis/sources`) je súčasť tej istej makety — jeho
+     tri vchody sa preto zapínajú spolu s ňou, nie zvlášť. */
+  const SOURCES_MOCK = import.meta.env.DEV;
+  const navigate = useNavigate();
   const [flash, setFlash] = useState<string | null>(null);
   /* Filter SVET: -1 = všetky. Roletka otvorená: kľúč alebo null. */
   const [wf, setWf] = useState(-1);
@@ -476,7 +500,9 @@ export default function PackAinubis() {
       <button type="button" className="akv-plane" aria-current={plane2 === 'chat' ? 'page' : undefined}
         onClick={() => (CHAT_MOCK ? setPlane2('chat') : openAinubis())}>{plane('chat', 'Chat')}</button>
       {/* „čoskoro" len v tooltipe — v SK „NÁSTENKA ČOSKORO" pretiekla z pilulky (390 px aj PC 40 %). */}
-      <button type="button" className="akv-plane" disabled title={soon}>{plane('wall', 'Board')}</button>
+      <button type="button" className="akv-plane" aria-current={plane2 === 'wall' ? 'page' : undefined}
+        disabled={!WALL_MOCK} title={WALL_MOCK ? undefined : soon}
+        onClick={() => setPlane2('wall')}>{plane('wall', 'Board')}</button>
     </nav>
   );
 
@@ -554,6 +580,7 @@ export default function PackAinubis() {
     <div className="akv-root" ref={rootRef} data-view={view} data-plane={plane2}>
       <style>{CSS}</style>
       {CHAT_MOCK && <style>{VAULT_CHAT_CSS}</style>}
+      {WALL_MOCK && <style>{VAULT_WALL_CSS}</style>}
       <div className="akv-bg" aria-hidden />
 
       {/* ── MOZOG ─────────────────────────────────────────────────────────── */}
@@ -593,14 +620,23 @@ export default function PackAinubis() {
           Stojí NAD mozgom ako DOGSCROLL, ale mozog v nej ostáva viditeľný: panel
           `ODKIAĽ TO VIEM` je jediné, čím sa tento chat líši od každého iného. */}
       {CHAT_MOCK && plane2 === 'chat' && (
-        <VaultChat onBack={() => setPlane2('vault')} onOpenScroll={() => setPlane2('vault')} />
+        <VaultChat onBack={() => setPlane2('vault')} onOpenScroll={() => setPlane2('vault')}
+          onOpenSources={() => navigate('/pack/ainubis/sources')} />
+      )}
+
+      {/* ── ROVINA NÁSTENKA (maketa, len DEV) ────────────────────────────────
+          🔴 NA ROZDIEL OD CHATU TU LIŠTA OSTÁVA (voľba A1). Nástenka je ČÍTANIE
+          (kôš 2), nie úloha: pilulka „nástenka" musí ostať viditeľná, inak by
+          záložka viedla tam, kde sama zmizne. */}
+      {WALL_MOCK && plane2 === 'wall' && (
+        <VaultWall onSources={() => navigate('/pack/ainubis/sources')} />
       )}
 
       {/* ── DOGSCROLL — dnes upútavky svetov, v novembri pás zvitkov ────────── */}
       {/* ⚠️ V chate sa NEVYKRESĽUJE VÔBEC. Atribút `hidden` nestačil — `.akv-scroll`
           má v CSS `display:flex`, ktorý ho prebije, a panel svetov presvital pod
           vláknom. Tá istá pasca čaká pri každom `hidden` nad flexom. */}
-      {!(CHAT_MOCK && plane2 === 'chat') && (
+      {plane2 === 'vault' && (
       <aside className="akv-scroll" aria-label={tx('pack.ainubis.view.dogscroll', 'Dogscroll')}>
         {/* ZAMKNUTÁ HLAVIČKA (Matej 22. 9.): nadpis · roviny · filtre · vrstvy.
             Logo, eyebrow a trojriadkový úvod zanikli — „opäť je tam veľa textu".
@@ -637,6 +673,12 @@ export default function PackAinubis() {
               <span className="akv-wsoon">{tx('pack.ainubis.opening', 'Expected opening: November 2026')}</span>
             </section>
           ))}
+          {SOURCES_MOCK && (
+            <button type="button" className="akv-entry" onClick={() => navigate('/pack/ainubis/sources')}>
+              {tx('pack.ainubis.sources.entry', 'What this brain stands on')}
+              <b>{VAULT_SOURCE_TOTALS.documents} {tx('pack.ainubis.sources.entryN', 'documents')}{chev}</b>
+            </button>
+          )}
         </div>
         </div>
       </aside>

@@ -1097,8 +1097,11 @@ function BrandIcon({ src, active }: { src: string; active: boolean }) {
  *
  * Do 21. 9. sedel v KOTÚČI v strede lišty a klik otváral overlay chatu (`openAinubis()`).
  * Odteraz je to MIESTO s vlastnou adresou `/pack/ainubis` a pristáva na rovine VAULT —
- * nie na chate: v rovinách CHAT a NÁSTENKA spodná lišta MIZNE (kôš 3), takže by záložka
- * viedla do miesta, kde sa tá istá záložka okamžite skryje.
+ * nie na chate: v rovine CHAT spodná lišta MIZNE (kôš 3), takže by záložka viedla do
+ * miesta, kde sa tá istá záložka okamžite skryje.
+ * ⚠️ NÁSTENKA TO NIE JE (Matej 24. 9. 2026, voľba A1). Do 24. 9. tu stálo, že lišta
+ *    mizne aj v nej — nemizne: nástenka je ČÍTANIE (kôš 2), lišta aj pilulky rovín
+ *    v nej ostávajú. Rozhodnuté nad `plany/nakres-nastenka-zdroje-2026-09-24.html`.
  *
  * ⚠️ `ainubisBus` sa NERUŠÍ. `openAinubis()` volajú `Gateways.tsx`, `MapCoach.tsx`, dlaždica
  *    chatu v kostre aj položka „nový rozhovor" v paneli `+` — záložka len naviguje.

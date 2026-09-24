@@ -274,6 +274,13 @@ export const VAULT_CHAT_CSS = `
 .akc-srcrow button:hover{background:rgba(${AINUBIS.cyanRGB},0.12);}
 /* Priznanie, že maketa nehľadala. Kurzíva by z toho spravila citát. */
 .akc-srcrow em{font-style:normal;text-transform:none;letter-spacing:0.02em;}
+/* Vchod do celého regála zdrojov — stojí na KONCI riadku a nesie tichý lem,
+   aby sa nepomiešal s tlačidlami jednotlivých zvitkov vedľa. */
+/* ⚠️ CIEĽ JE .akc-srcrow button.akc-allsrc, nie holé .akc-allsrc — to má
+   nižšiu špecificitu než .akc-srcrow button nad ním a tichý lem by sa nikdy
+   neprejavil. Tá istá pasca ako dve šípky s rovnakou triedou (23. 9. 2026). */
+.akc-srcrow button.akc-allsrc{margin-left:auto;background:transparent;color:${AINUBIS.inkFaint};}
+.akc-srcrow button.akc-allsrc:hover{background:transparent;color:${AINUBIS.cyan};}
 .akc-acts{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;}
 .akc-act{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;
   padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;
@@ -614,10 +621,14 @@ function MineBlock({ items }: { items: DemoPending[] }) {
  * CHAT — pás histórie + vlákno + písacie pole. CELÁ OBRAZOVKA bez spodnej lišty,
  * von sa ide šípkou vľavo hore (kôš 3 = úloha, lock §3).
  */
-export function VaultChat({ onBack, onOpenScroll }: {
+export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
   /** Krok späť z úlohy — vracia na rovinu VAULT. */
   onBack: () => void;
   onOpenScroll?: (id: number) => void;
+  /** PRVÝ Z TROCH VCHODOV do zoznamu zdrojov (voľba E2, Matej 24. 9. 2026):
+   *  riadok „from" pod odpoveďou. Odtiaľ sa ide na `/pack/ainubis/sources` —
+   *  tlačidlá vedľa otvárajú JEDEN zvitok, toto celý regál. */
+  onOpenSources?: () => void;
 }) {
   const [chats, setChats] = useState<DemoChat[]>(DEMO_CHATS);
   const [cur, setCur] = useState(DEMO_CHATS[0].id);
@@ -943,6 +954,11 @@ export function VaultChat({ onBack, onOpenScroll }: {
                       ))}
                       {/* Riadok ostáva aj bez zvitkov — maketa nehľadá a povie to. */}
                       {m.ai.sources.length === 0 && <em>the mock-up does not search the vault</em>}
+                      {onOpenSources && (
+                        <button type="button" className="akc-allsrc" onClick={onOpenSources}>
+                          where this comes from
+                        </button>
+                      )}
                     </div>
                   </div>
                   <div className="akc-acts">

@@ -39,7 +39,15 @@ import { goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/
 export const HF = {
   // ⚠️ 144 bolo z LABu; Matej 28. 8.: „foto hektora je enormne veľká" ⇒ 96 na mobile,
   //    112 od 768 px. Je to JEDNO číslo pre celý vstup — obrazovky si veľkosť nepíšu samy.
-  bubble: { hek: 96, hekMd: 112, radius: 16, pad: 20, title: 17 },
+  //
+  // 🔄 24. 9. 2026 SA TO OTOČILO: *„tu musí byť čo najväčšie Hektorova fotka"* (krok
+  //    e-mailu). Zvislú bublinu dnes nesie JEDINÁ obrazovka — `EmailScreen` — a tá má
+  //    pod bublinou len pole, CTA a preskočenie, teda najviac voľného miesta z celého
+  //    vstupu. 200 / 240 px je strop, pri ktorom ostane pod obsahom rezerva aj na
+  //    390×740 (premerané); nad ním začne fotka tlačiť CTA pod ohyb.
+  //    ⚠️ 240 px je zároveň strop OSTROSTI — kruh v origináli meria 400 px, takže na
+  //    retine (×2) už väčšie číslo len dopočítava pixely.
+  bubble: { hek: 200, hekMd: 240, radius: 16, pad: 20, title: 17 },
   // ⚠️ Matej 31. 8.: *„pri /name sú horizontálne veľké CTA a text area = malý priestor
   //    medzi okrajom bloku a obsahom, trošku to prevzdušnime"*. Doska mala 14 px na
   //    všetky strany a 10 px medzi prvkami — pole aj tlačidlo sa lepili na zlatý rám.
@@ -189,10 +197,16 @@ export const FLOW_PALE_CSS = `
   line-height: 1.5;
   color: rgba(250, 244, 236, 0.72);
 }
+/* 🔴 KRUH SA OREZÁVA CSS-kom, nie v súbore. Ksichty v sade sú ŠTVORCE s BIELYMI
+   rohmi (kruh je do nich presne vpísaný — 400 z 400 px). Kým bola fotka 96 px,
+   bolo to jedno; pri 200 px na tmavej bubline svietil okolo psa biely štvorec.
+   ⚠️ \`border-radius\` tu drží len preto, že kruh je v origináli presne vpísaný —
+      pri inom oreze by odrezal psa. Zdroj: \`vstupy/vizualna-identita/ksichty heky flow/\`. */
 .hf-hek {
   width: ${HF.bubble.hek}px;
   height: ${HF.bubble.hek}px;
   object-fit: contain;
+  border-radius: 50%;
 }
 @media (min-width: 768px) {
   .hf-hek { width: ${HF.bubble.hekMd}px; height: ${HF.bubble.hekMd}px; }

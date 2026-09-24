@@ -554,8 +554,12 @@ const PLACE_ROUTES: ReadonlyArray<[prefix: string, place: CreatePlace]> = [
   ['/pack/map', 'VON'],
   ['/pack/add', 'VON'],
   ['/pack/assniff', 'VON'],   // rovina vo VON (lock §8.1) — routa vzniká, register ju čaká
-  // AINUBIS — jedna adresa, ktorá rastie (kostra → VAULT). V rovinách CHAT a NÁSTENKA
-  // lišta MIZNE, takže sa tam `+` nikoho nespýta; to rieši kôš obrazovky, nie tento riadok.
+  // AINUBIS — jedna adresa, ktorá rastie (kostra → VAULT → nástenka → zdroje).
+  // V rovine CHAT lišta MIZNE (kôš 3), takže sa tam `+` nikoho nespýta.
+  // 🚩 V ROVINE NÁSTENKA LIŠTA OSTÁVA (Matej 24. 9. 2026, voľba A1) a `+` sa teda
+  //    spýta — dnes ponukou miesta AINUBIS („nový rozhovor"). Nástenka má vlastné
+  //    zlaté CTA „napíš skúsenosť alebo problém", takže sú na obrazovke DVA plusy
+  //    s rôznym významom. Čaká na Mateja: má `+` na nástenke ponúkať príspevok?
   ['/pack/ainubis', 'AINUBIS'],
   // JA — môj pes a moje veci.
   ['/pack/dogs', 'JA'],

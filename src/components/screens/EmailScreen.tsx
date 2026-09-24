@@ -10,7 +10,7 @@ import { suggestEmailFix } from '@/lib/emailTypo';
 import { saveCheckoutDraft, EMAIL_RE } from '@/lib/checkoutDraft';
 import { track, identifyUser } from '@/lib/analytics';
 import { FLOW_PALE_CSS } from './flowPaleSkin';
-import hekthorImg from '@/assets/hekthor.png';
+import { hekthorFace } from '@/lib/hekthorFaces';
 
 // ── /heroglyph/email — nepovinný e-mail hneď za menom.
 //
@@ -111,7 +111,11 @@ export function EmailScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
           >
-            <img src={hekthorImg} alt="HEKTHOR" className="hf-hek" />
+            {/* ⚠️ KSICHT PODĽA KROKU, nie jedna fotka pre celý vstup. Do 24. 9.
+                2026 tu bol import `assets/hekthor.png`, takže táto obrazovka ako
+                jediná obchádzala sadu `hekthorFaces` — a Matejov výber ksichtu
+                sa jej nemohol dotknúť. */}
+            <img src={hekthorFace('email')} alt="HEKTHOR" className="hf-hek" />
             <h2>{t('heroglyph.flow.email.title')}</h2>
             <p>{t(manyDogs ? 'heroglyph.flow.email.reasonMany' : 'heroglyph.flow.email.reasonOne', {
               names: nameList,
