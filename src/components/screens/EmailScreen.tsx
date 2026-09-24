@@ -146,7 +146,10 @@ export function EmailScreen() {
                 dvoch?"*). Bol to holý `<img class="hf-hek">`, jediný ksicht vo
                 vstupe bez rámu; veľkosť sa ešte bude ladiť. */}
             <FlowMedallion src={hekthorFace('email')} size={medallion} className="hf-medal" />
-            <h2>{t('heroglyph.flow.email.title')}</h2>
+            {/* ⚠️ Nadpis nesie ČÍSLO (Matej 24. 9.: *„Rezervuj si 3 minúty!"*), a to
+                číslo sa ráta z počtu psov — pri troch psoch je to 5. Preto tie isté
+                parametre ako v odseku pod ním; bez nich by v nadpise ostalo `{minutes}`. */}
+            <h2>{t('heroglyph.flow.email.title', { minutes: String(minutes), minuteWord })}</h2>
             <p>{t(manyDogs ? 'heroglyph.flow.email.reasonMany' : 'heroglyph.flow.email.reasonOne', {
               names: nameList,
               minutes: String(minutes),

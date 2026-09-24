@@ -4280,9 +4280,9 @@ export const cs: Partial<Dict> = {
   // ⚠️ `terms.s12–s14` a `privacy.s12–s13` tu ZÁMERNE NIE SÚ — viď hlavičku súboru.
   'heroglyph.flow.photo.skip': 'Fotku přidám později',
   'heroglyph.flow.name.uniqueLine': 'To jméno nosí tisíce psů. Symbol už žádný z nich mít nebude.',
-  'heroglyph.flow.email.title': 'Kam ti to pošleme?',
-  'heroglyph.flow.email.reasonOne': 'Tvorba heroglyfu pro psa {names} trvá zhruba {minutes} {minuteWord}. Nech nám e-mail, ať se ti návrh neztratí, kdyby tě něco vyrušilo.',
-  'heroglyph.flow.email.reasonMany': 'Tvorba heroglyfů pro psy {names} trvá zhruba {minutes} {minuteWord}. Nech nám e-mail, ať se ti návrhy neztratí, kdyby tě něco vyrušilo.',
+  'heroglyph.flow.email.title': 'Rezervuj si {minutes} {minuteWord}!',
+  'heroglyph.flow.email.reasonOne': 'V DOGYPTU má každý pes svůj unikátní symbol — HEROGLYF. Vytvořit ho trvá pár minut tvé pozornosti. Nech nám e-mail, ať se ti návrh neztratí, kdyby tě něco vyrušilo.',
+  'heroglyph.flow.email.reasonMany': 'V DOGYPTU má každý pes svůj unikátní symbol — HEROGLYF. Vytvořit je pro {names} trvá pár minut tvé pozornosti. Nech nám e-mail, ať se ti návrhy neztratí, kdyby tě něco vyrušilo.',
   'heroglyph.flow.email.minFew': 'minuty',
   'heroglyph.flow.email.minMany': 'minut',
   'heroglyph.flow.email.and': 'a',
