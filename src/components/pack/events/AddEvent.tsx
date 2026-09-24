@@ -228,8 +228,10 @@ export function AddEvent({ origin: originProp, authorName, onSubmit, onClose, ma
     const r = await onSubmit(draft, initial?.id);
     setBusy(false);
     if (r.ok) return;
-    setSubmitError(t(r.errorKey));
-    if (r.duplicateId) setDuplicateId(r.duplicateId);
+    // projekt nemá strictNullChecks, takže zúženie únie cez `ok` nefunguje — pretypovanie
+    const fail = r as { ok: false; errorKey: string; duplicateId?: string };
+    setSubmitError(t(fail.errorKey));
+    if (fail.duplicateId) setDuplicateId(fail.duplicateId);
   };
 
   // ── FOTKA — len vlastné podujatie (cudziu fotku nikdy, §4.3) ─────────────────────────────

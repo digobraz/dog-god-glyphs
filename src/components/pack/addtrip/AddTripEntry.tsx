@@ -276,9 +276,13 @@ export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryP
         <span className="att-entry-title">{t(k.titleKey)}</span>
         {/* JEDNOTKA MUSÍ BYŤ PRI ČÍSLE a SKLOŇUJE SA (Matej 24. 8.): dlaždice nesú 20 / 10 / 3,
             teda dva slovenské tvary naraz. */}
+        {/* PODUJATIE dáva body až PO USKUTOČNENÍ (Matej 24. 9. 2026) — „+10 bodov" pri
+            založení by sľubovalo niečo, čo za založenie nepríde. */}
         {!!k.points && (
           <span className="att-entry-pts">
-            +{t(`pack.points.unit.${k.points === 1 ? 'one' : k.points < 5 ? 'few' : 'many'}`, { n: k.points })}
+            {k.kind === 'event'
+              ? t('pack.addTrip.entry.eventPts', { n: k.points })
+              : <>+{t(`pack.points.unit.${k.points === 1 ? 'one' : k.points < 5 ? 'few' : 'many'}`, { n: k.points })}</>}
           </span>
         )}
       </button>

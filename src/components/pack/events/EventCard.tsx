@@ -92,7 +92,9 @@ export function EventCard({ item, highlighted, expanded, onToggle, onChanged, on
   const started = new Date(item.startsAt).getTime() <= now;
   const ended = new Date(item.endsAt || item.startsAt).getTime() < now;
   const cancelled = item.status === 'cancelled';
-  const canRsvp = !cancelled && !ended;
+  // Organizátor sa na vlastné podujatie neprihlasuje — ide tam tak či tak a jeho IDEM by
+  // len nafúklo počet.
+  const canRsvp = !cancelled && !ended && !item.isMine;
 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');

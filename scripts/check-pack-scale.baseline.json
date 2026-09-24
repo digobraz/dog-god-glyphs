@@ -459,26 +459,6 @@
     "pismenka": 3,
     "odsadenie": 8
   },
-  "components/pack/events/EventCard.tsx": {
-    "radius": 0,
-    "font": 6,
-    "zavoj": 0,
-    "progres": 0,
-    "ram": 0,
-    "tien": 2,
-    "pismenka": 3,
-    "odsadenie": 4
-  },
-  "components/pack/events/EventsPanel.tsx": {
-    "radius": 0,
-    "font": 2,
-    "zavoj": 0,
-    "progres": 0,
-    "ram": 0,
-    "tien": 0,
-    "pismenka": 2,
-    "odsadenie": 5
-  },
   "components/pack/level/LevelPanel.tsx": {
     "radius": 0,
     "font": 4,

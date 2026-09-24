@@ -155,12 +155,11 @@ import { clearTripNotes, readTripNotesForSession, writeTripNotes, missingOnTrail
 import { savedGeometry } from '@/components/pack/addtrip/addTripModel';
 import { devSyncLocalTrips } from '@/lib/devTripSync';
 // EVENT formulár (krok 3, plany/zadanie-eventy-2026-08-06.md §4) — vedľa ADD TRIP, vlastný
-// adresár. Storage je zatiaľ len localStorage (migrácia z kroku 2 nie je nasadená, §9 zadania).
-import { AddEvent } from '@/components/pack/events/AddEvent';
-import {
-  readLocalEvents, writeLocalEvents, upcomingEvents, archivedEvents,
-  type AddEventDraft, type EventKind,
-} from '@/components/pack/events/eventModel';
+// adresár. Od 25. 9. 2026 (vlna 2) číta aj píše DB cez `eventStore.ts` — dovtedy localStorage,
+// takže podujatie videl len autor.
+import { AddEvent, type AddEventOutcome } from '@/components/pack/events/AddEvent';
+import type { AddEventDraft, EventKind } from '@/components/pack/events/eventModel';
+import { useEvents, saveEvent, type EventItem } from '@/components/pack/events/eventStore';
 // zoznam eventov v ľavom paneli + piny na mape (krok 5, plany/zadanie-eventy-2026-08-06.md §9
 // krok 5) — dovtedy sa event po uložení nikde nezobrazoval (formulár aj store boli hotové,
 // panel ostal viazaný len na TRIP vetvu).
@@ -3802,10 +3801,11 @@ export default function PackMap() {
   // inak ostanú uväznené v localStorage toho zariadenia. V prod builde neexistuje.
   useEffect(() => { devSyncLocalTrips(localTrails); }, [localTrails]);
 
-  // EVENTY pridané v tejto session (krok 3 zadania-eventy) — rovnaký lokálny mirror vzor ako
-  // localTrails vyššie; DB zápis príde až po nasadení migrácie (§9 zadania krok 2→ďalšie).
-  const [localEvents, setLocalEvents] = useState<AddEventDraft[]>(() => readLocalEvents());
-  useEffect(() => { writeLocalEvents(localEvents); }, [localEvents]);
+  // PODUJATIA z DB (vlna 2, 25. 9. 2026). Nadchádzajúce aj archív naraz; `reload` po každom
+  // zápise na karte. Za príznakom `EVENTS_LIVE` — na LIVE do FLIPu tabuľky neexistujú.
+  const evStore = useEvents(EVENTS_LIVE);
+  /** podujatie otvorené vo formulári na úpravu (null = zakladá sa nové) */
+  const [editingEvent, setEditingEvent] = useState<EventItem | null>(null);
 
   // TRIPSTATS Slice A (bod 3, Matej 2026-07-23) — add-trip z pohoria: TripStatsPanel „+ Add a
   // trip here" navigate-uje sem s ?add=<region>. Raz na mount: otvor ADD flow (log formulár —
@@ -3974,14 +3974,31 @@ export default function PackMap() {
   // origin:'own' karta rozbalená (ukazuje popis) — origin:'tip' klik namiesto toho otvára sourceUrl.
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
   const eventCardRefs = useRef<Record<string, HTMLElement | null>>({});
-  const visibleEvents = useMemo(
-    () => (eventsView === 'upcoming' ? upcomingEvents(localEvents, nowMs) : archivedEvents(localEvents, nowMs)),
-    [localEvents, eventsView, nowMs],
-  );
-  const handleEventCardClick = (draft: AddEventDraft) => {
-    setSelectedEventId(draft.id);
-    if (draft.origin === 'own') setExpandedEventId((cur) => (cur === draft.id ? null : draft.id));
+  // Delenie na nadchádzajúce/archív robí DB (`ends_at` proti `now()`), klient len vyberá.
+  const visibleEvents = eventsView === 'upcoming' ? evStore.upcoming : evStore.archive;
+  // Klik na hlavičku karty ju rozbalí/zbalí — vlastné aj tipy (tip už nie je odkaz von).
+  const handleEventCardClick = (item: EventItem) => {
+    setSelectedEventId(item.id);
+    setExpandedEventId((cur) => (cur === item.id ? null : item.id));
   };
+  /** Otvor kartu podujatia — z pinu, z upozornenia (`?event=`) aj z „už ho máme". */
+  const openEventCard = (eid: string) => {
+    setActiveCat('events');
+    setEventsView(evStore.archive.some((e) => e.id === eid) ? 'archive' : 'upcoming');
+    setSelectedEventId(eid);
+    setExpandedEventId(eid);
+    // Na mobile je zoznam samostatný pohľad — karta by bola pod mapou neviditeľná.
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 760px)').matches) setMobileView('list');
+  };
+  // `?event=<id>` — odkaz z NOS a z mailu. Čaká na prvé načítanie zoznamu, aby vedel, či je
+  // podujatie v nadchádzajúcich alebo v archíve.
+  useEffect(() => {
+    const eid = searchParams.get('event');
+    if (!eid || !evStore.loaded) return;
+    setSearchParams({}, { replace: true });
+    openEventCard(eid);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [evStore.loaded, searchParams]);
   const allTrails = useMemo(() => [...visibleLocalTrails(localTrails), ...HERO_JOURNEYS, ...HERO_TRAILS], [localTrails]);
   // Množina členských id — raz za zmenu zoznamu, nie pri každej karte (inak by sa
   // `trp-local-trails` parsovalo z úložiska raz na výlet).
@@ -4428,12 +4445,8 @@ export default function PackMap() {
   // v `localTrails`, o ktorom tá funkcia nevedela. Matej to našiel ako podujatie na
   // Oravskej priehrade, ktoré sa nedalo odstrániť.
 
-  /** PODUJATIE (AddEventDraft). Nikto sa naň nemôže „prihlásiť", takže niet komu to oznámiť. */
-  const deleteLocalEvent = (eid: string) => {
-    setLocalEvents((prev) => prev.filter((e) => e.id !== eid));
-    setSelectedEventId((cur) => (cur === eid ? null : cur));
-    setExpandedEventId((cur) => (cur === eid ? null : cur));
-  };
+  // PODUJATIE sa od 25. 9. 2026 maže, ruší aj upravuje na samotnej karte (`EventCard`) — cez
+  // DB, lebo sa naň už dá prihlásiť a zmazať ho smie autor len kým sa nikto nepridal.
 
   /** INZERÁT „hľadám partiu" (PartnerEvent). Výlet v triplistе OSTÁVA — ruší sa pozvánka,
    *  nie plán. Riadok v `trip_events` zmaže sám sync: `packStore.ts` porovnáva predošlý
@@ -4675,24 +4688,28 @@ export default function PackMap() {
   };
   const closeAddEvent = () => {
     setAddEventFlow(null);
+    setEditingEvent(null);
     setAddMapPhase('off');
     setSeedPoint(null);
     setAddError('');
     if (backToOrigin()) return;
     if (onAddRoute) navigate('/pack/map', { replace: true });
   };
-  // AddEventDraft → zápis. Rovnaký vzor ako submitAddTripDraft (walked vetva): over zápis PRED
-  // pridaním do state, nech sa neobjaví trip/event ktorý po reloade zmizne (plná localStorage).
-  const submitAddEventDraft = (draft: AddEventDraft): boolean => {
-    const next = [draft, ...localEvents];
-    if (!writeLocalEvents(next)) {
-      setAddError(t('pack.map.errorPhotosStorage'));
-      return false;
+  // AddEventDraft → DB (`save_event`). Formulár zostane otvorený pri chybe a povie prečo;
+  // pri úspechu sa zoznam načíta znova a nové podujatie sa rovno otvorí v paneli.
+  const submitAddEventDraft = async (draft: AddEventDraft, existingId?: string): Promise<AddEventOutcome> => {
+    const r = await saveEvent(draft, existingId);
+    if (!r.ok) {
+      // bez strictNullChecks sa únia cez `ok` nezúži — pretypovanie
+      const fail = r as { ok: false; error: string; id?: string };
+      if (fail.error === 'duplicate') return { ok: false, errorKey: 'pack.event.errorDuplicate', duplicateId: fail.id };
+      if (fail.error === 'event_started') return { ok: false, errorKey: 'pack.event.errorStarted' };
+      return { ok: false, errorKey: 'pack.addEvent.submitError' };
     }
-    setAddError('');
-    setLocalEvents(next);
     closeAddEvent();
-    return true;
+    await evStore.reload();
+    openEventCard((r as { id: string }).id);
+    return { ok: true };
   };
 
   // AddTripDraft → zápis. `walked` drží PRESNE to isté poradie ako pôvodný submitAdd (#1: over
@@ -6167,7 +6184,9 @@ export default function PackMap() {
                     onAddEvent={openAddEntry}
                     withRef
                     cardRefs={eventCardRefs}
-                    onDelete={deleteLocalEvent}
+                    onChanged={() => void evStore.reload()}
+                    onEdit={(it) => { setEditingEvent(it); setAddEventFlow(it.origin); }}
+                    error={evStore.error}
                   />
                   {/* 🔴 EVENTRIPY (looking-for-pack) LEN v „upcoming" (Matej 2026-08-06:
                       „v archive nebudu predsa tripy tie sa loguju len do tripov"). Naplánovaný
@@ -6517,7 +6536,9 @@ export default function PackMap() {
                   expandedId={expandedEventId}
                   onCardClick={handleEventCardClick}
                   onAddEvent={openAddEntry}
-                  onDelete={deleteLocalEvent}
+                  onChanged={() => void evStore.reload()}
+                  onEdit={(it) => { setEditingEvent(it); setAddEventFlow(it.origin); }}
+                  error={evStore.error}
                 />
                 {/* 🔴 to isté gatovanie ako na desktope (~2882): eventripy do archívu NEPATRIA. */}
                 {/* to isté ako na desktope: jeden prázdny stav, nie dva (13. 9. 2026) */}
@@ -6586,7 +6607,16 @@ export default function PackMap() {
               notePlacing={notePlaceReady || !!noteDraft}
             />
           ) : addEventFlow ? (
-            <AddEvent origin={addEventFlow} authorName={firstName} onSubmit={submitAddEventDraft} onClose={closeAddEvent} mapRef={leafletMapRef} />
+            <AddEvent
+              key={editingEvent?.id ?? addEventFlow}
+              origin={addEventFlow}
+              authorName={firstName}
+              initial={editingEvent ?? undefined}
+              onSubmit={submitAddEventDraft}
+              onClose={closeAddEvent}
+              onShowExisting={(eid) => { closeAddEvent(); openEventCard(eid); }}
+              mapRef={leafletMapRef}
+            />
           ) : null}
         </div>
       )}
@@ -6861,12 +6891,14 @@ export default function PackMap() {
                   pin existuje len pre event, ktorý je práve vidieť v zozname (nadchádzajúce/archív). */}
               {/* `!mapDrawing` z rovnakého dôvodu ako pri trip markeroch vyššie: kým sa kreslí
                   trasa, žiadny pin nesmie zjesť ťuknutie a otvoriť namiesto kotvy udalosť. */}
-              {!isCleanMode && !mapDrawing && activeCat === 'events' && visibleEvents.filter((ev) => ev.center).map((ev) => (
+              {/* Vlna 2: piny len NADCHÁDZAJÚCICH a nezrušených podujatí (archív žije v zozname,
+                  §5.3 zadania). Ťuk otvorí TÚ ISTÚ kartu v paneli, nie novú obrazovku. */}
+              {!isCleanMode && !mapDrawing && activeCat === 'events' && evStore.upcoming.filter((ev) => ev.center && ev.status === 'published').map((ev) => (
                 <Marker
                   key={ev.id}
                   position={ev.center as LatLngTuple}
                   icon={EVENT_PIN(ev.kind, selectedEventId === ev.id)}
-                  eventHandlers={{ click: () => setSelectedEventId(ev.id) }}
+                  eventHandlers={{ click: () => openEventCard(ev.id) }}
                 />
               ))}
               {/* ZÁPISY DO MAPY — nad trip markermi (sú to konkrétne miesta, nie súhrn).
