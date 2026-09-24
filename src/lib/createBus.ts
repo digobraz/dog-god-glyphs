@@ -25,6 +25,7 @@ import type { CreateId } from '@/components/pack/createRegistry';
 /** Voľba z panela, prepísaná do tvaru, ktorému rozumie `PackMap`. */
 export type CreateIntent =
   | { id: Extract<CreateId, 'trip'> }
+  | { id: Extract<CreateId, 'wish'> }
   | { id: Extract<CreateId, 'note'>; group: string }
   | { id: Extract<CreateId, 'event'>; origin: 'own' | 'tip' };
 

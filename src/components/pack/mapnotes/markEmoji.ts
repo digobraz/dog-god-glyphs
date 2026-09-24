@@ -275,3 +275,12 @@ export const EVENT_EMOJI: Record<EventKind, string> = {
 export function eventEmoji(kind: EventKind): string {
   return EVENT_EMOJI[kind] ?? EVENT_EMOJI.expo;
 }
+
+// ── PRIANIE (BUDDY krok 2, 24. 9. 2026) ─────────────────────────────────────────────────────
+// Matej 24. 9.: *„pin dajme zatiaľ emoji (broskyňa), zmeníme neskôr"*. Emoji 1.0, voľné —
+// v tomto súbore ani v paneli `+` ho nič iné nenesie.
+// Lem = `EVENT_RIM` (mapová modrá). Lock `brand.md` r. 50: lem nesie KTO, farby svorky sú
+// štyri a modrá z nich znamená STRETNUTIE / „ideš s niekým" — pin s „hľadám parťáka" je
+// presne to. Emoji ho od podujatí odlíši. 🚩 Na odsúhlasenie Matejom (nová značka na mape).
+export const WISH_EMOJI = '🍑';
+export const WISH_RIM = EVENT_RIM;

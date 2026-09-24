@@ -19,7 +19,9 @@ import { MAP_SKIN, PALE } from '@/components/pack/navGoldSkin';
 import { dockPadX } from '@/components/pack/mapDockShape';
 import { useT, useLang } from '@/i18n/LanguageContext';
 
-export type PlaceSug = { name: string; sub: string; lat: number; lon: number };
+// `type` = druh výsledku z Mapy.com (`poi`, `regional.municipality`, `regional.region`,
+// `regional.country`…). Doplnené 24. 9. 2026 pre PRIANIA: štát sa pripína inak než bod.
+export type PlaceSug = { name: string; sub: string; lat: number; lon: number; type?: string };
 
 export type PlaceSearchProps = {
   mapRef: React.MutableRefObject<LeafletMap | null>;
@@ -110,8 +112,9 @@ export function PlaceSearch({ mapRef, zoom = 14, placeholder, onPicked }: PlaceS
         const res = await fetch(url);
         const data = await res.json();
         const next: PlaceSug[] = (data.items || [])
-          .map((it: { name?: string; label?: string; location?: string; position?: { lat?: number; lon?: number } }) => ({
+          .map((it: { name?: string; label?: string; location?: string; type?: string; position?: { lat?: number; lon?: number } }) => ({
             name: it.name || '',
+            type: it.type,
             sub: [it.label, it.location].filter(Boolean).join(' · '),
             lat: it.position?.lat as number,
             lon: it.position?.lon as number,

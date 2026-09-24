@@ -134,6 +134,10 @@ import { ORIGIN_PARAM, returnTo } from '@/components/pack/createRegistry';
 // body (`customPoi`), ktoré appka doteraz nikde nekreslila.
 // Zadanie: plany/zadanie-zapisy-do-mapy-2026-08-20.md
 import { MapNotesLayer, MAP_NOTES_CSS } from '@/components/pack/mapnotes/MapNotesLayer';
+import { WishLayer } from '@/components/pack/mapnotes/WishLayer';
+import { AddWish, type WishDraftPoint } from '@/components/pack/mapnotes/AddWish';
+import { fetchWishPins, type WishPin } from '@/components/pack/mapnotes/wishData';
+import { WISH_EMOJI, WISH_RIM } from '@/components/pack/mapnotes/markEmoji';
 import { dockFitPadding } from '@/components/pack/mapDockShape';
 import { MapAttribution, MAP_ATTR_CSS, mapAttrLiftCSS } from '@/components/pack/mapAttribution';
 import { AddMapNotePin, NoteSpotPin, AddMapNotePanel, MapNotePlacing, NoteQuickPalette, MapNoteHint, MapNoteTooFar, ADD_NOTE_CSS, notePanelH, hintSeen, markHintSeen } from '@/components/pack/mapnotes/AddMapNote';
@@ -406,6 +410,12 @@ const TARGET_PIN = L.divIcon({
 const EVENT_PIN = (kind: EventKind, hot: boolean) => L.divIcon({
   className: 'mk-wrap',
   html: circleMarkHtml(eventEmoji(kind), EVENT_RIM, hot ? ' mk-circle--hot' : ''),
+});
+/** Rozpracované PRIANIE — ten istý kruh ako hotový pin, vybraný (`--hot`), kým ho človek
+ *  nepripne. Hotové priania kreslí `WishLayer`. */
+const WISH_DRAFT_ICON = L.divIcon({
+  className: 'mk-wrap',
+  html: circleMarkHtml(WISH_EMOJI, WISH_RIM, ' mk-circle--hot'),
 });
 // `DATA_TAG_TO_UI` sa presťahovalo do `tripCategories.ts` — odvodzujú sa z neho aliasy
 // `TAG_EMOJI`/`TAG_I18N` pre surové dátové kľúče, takže musí stáť pri nich.
@@ -2779,7 +2789,7 @@ const PALE_ADD_CSS = MAP_SKIN !== 'pale' ? '' : `
 // JSX. PODKLAD (base) je vždy PRÁVE JEDEN aktívny (radio); OVERLAY (overlay) sa dá zapnúť viac
 // naraz (checkbox).
 type MapBaseId = 'outdoor' | 'aerial' | 'dogypt';
-type MapOverlayId = 'names' | 'vipers' | 'threats' | 'sleep';
+type MapOverlayId = 'names' | 'vipers' | 'threats' | 'sleep' | 'wish';
 
 /** Kontext, ktorý layer potrebuje na vyhodnotenie `disabledReason` — fog stav (prázdny/loading,
  *  spec §4 bod 4) + `isCleanMode` (Matej 2026-08-04: „pri DOGYPT zobrazení bude vidno iba hmla
@@ -2868,6 +2878,14 @@ const MAP_LAYERS: MapLayerDef[] = [
     labelKey: 'pack.map.layer.sleep',
     disabledReason: (ctx) => (ctx.isCleanMode ? 'pack.map.overlayDogyptDisabled' : null),
   },
+  {
+    // PRIANIA (BUDDY krok 2, 24. 9. 2026) — 🍑 kam chcú ľudia ísť. Zapnuté od začiatku:
+    // je to vrstva, kvôli ktorej sa plánovanie presunulo sem (zadanie-assnif §2).
+    id: 'wish',
+    type: 'overlay',
+    labelKey: 'pack.map.layer.wish',
+    disabledReason: (ctx) => (ctx.isCleanMode ? 'pack.map.overlayDogyptDisabled' : null),
+  },
 ];
 
 /** Prah priblíženia pre spacie miesta na CELKOVEJ mape. Vyššie než `POI_MIN_ZOOM` (13)
@@ -2912,7 +2930,7 @@ const placeZoom = (type?: string): number => {
 // `threats: true` — upozornenia svorky sú dôvod, prečo vrstva zápisov existuje;
 // vypínač je tu na to, aby si ich človek vedel odpratať, nie aby si ich musel
 // hľadať.
-const OVERLAY_DEFAULTS: Record<MapOverlayId, boolean> = { names: false, vipers: true, threats: true, sleep: true };
+const OVERLAY_DEFAULTS: Record<MapOverlayId, boolean> = { names: false, vipers: true, threats: true, sleep: true, wish: true };
 
 // Satelit (aerial) má dlaždice len do z19 na SK / z13 vo svete (overené v Mapy.com API
 // dokumentácii, spec-hmla.md bod 5 zadania) — nad tým dlaždica NEEXISTUJE a mapa sa vysype na
@@ -3535,6 +3553,12 @@ export default function PackMap() {
   const dateLocale = intlLocale(lang);
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
   const mapNotes = useMapNotes(true);
+  // PRIANIA (BUDDY krok 2) — načítané raz, po každom zápise znova (vzor useMapNotes).
+  const [wishes, setWishes] = useState<WishPin[]>([]);
+  const reloadWishes = useCallback(() => { fetchWishPins().then(setWishes).catch(() => { /* bez prianí mapa žije ďalej */ }); }, []);
+  useEffect(() => { reloadWishes(); }, [reloadWishes]);
+  const [wishFlow, setWishFlow] = useState(false);
+  const [wishDraft, setWishDraft] = useState<WishDraftPoint>(null);
   // `kind` aj `radiusM` sú v drafte (nie vnútri panela) zámerne: obe sa kreslia
   // na MAPE — emoji v trojuholníku a kruh polomeru — a mapa žije v inom strome
   // než formulár. Kým bola skupina upozornení jednou kresbou bez kruhu, stačilo
@@ -4216,6 +4240,7 @@ export default function PackMap() {
     setAddMapPhase('off');
     if (intent.id === 'event') { setAddEventFlow(intent.origin); return; }
     if (intent.id === 'note') { setMobileView('map'); setNotePlacing(intent.group as NoteGroup); return; }
+    if (intent.id === 'wish') { setMobileView('map'); setWishFlow(true); return; }
     setAddFlow('walked');
   }), []);
 
@@ -4612,6 +4637,12 @@ export default function PackMap() {
     if (choice.kind === 'note') {
       setMobileView('map');
       setNotePlacing(choice.group);
+      return;
+    }
+    // PRIANIE: panel sa zavrie, mapa ostane celá a hovorí AINUBIS (AddWish.tsx).
+    if (choice.kind === 'wish') {
+      setMobileView('map');
+      setWishFlow(true);
       return;
     }
     setAddFlow(choice.state);
@@ -6944,6 +6975,11 @@ export default function PackMap() {
                   interactive={!mapDrawing}
                 />
               )}
+              {/* PRIANIA 🍑 — nad odkazmi, vidno na každom priblížení (WishLayer.tsx). */}
+              {!isCleanMode && overlayOn.wish && (
+                <WishLayer wishes={wishes} onChanged={reloadWishes} interactive={!mapDrawing && !wishFlow} />
+              )}
+              {wishDraft && <Marker position={[wishDraft.lat, wishDraft.lon]} icon={WISH_DRAFT_ICON} interactive={false} />}
               {/* bod z dlhého podržania, kým sa vyberá typ */}
               {noteSpot && !noteDraft && <NoteSpotPin lat={noteSpot.lat} lon={noteSpot.lon} />}
               {noteDraft && (
@@ -7262,6 +7298,16 @@ export default function PackMap() {
                placeNote označovanie vypína samo, takže tu nezostáva nič. */
           }}
           onCancel={() => setNoteDraft(null)}
+        />
+      )}
+      {/* + PRIDAŤ PRIANIE — AINUBIS vedie nad voľnou mapou (BUDDY krok 2). */}
+      {wishFlow && (
+        <AddWish
+          map={mapInstance}
+          onDraft={setWishDraft}
+          onSaved={() => { reloadWishes(); setOverlayOn((prev) => ({ ...prev, wish: true })); }}
+          onCancel={() => { setWishFlow(false); setWishDraft(null); }}
+          edgeLeft={!!addFlow}
         />
       )}
       {/* Medzikrok pomalej cesty: typ vybraný, mapa voľná, čaká sa na klik. */}

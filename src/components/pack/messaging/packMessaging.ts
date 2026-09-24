@@ -455,6 +455,21 @@ export async function startTripDM(opts: {
   return data;
 }
 
+/**
+ * NAPÍSAŤ z pinu prania (BUDDY krok 2, 24. 9. 2026). Dvojička `startTripDM`: klient pošle
+ * len id prania, majiteľa si nájde server (`start_wish_dm`, migrácia 20260925_wish_pins.sql).
+ * Spoločný výlet netreba — stačí, že adresát má živý pin s „hľadám parťáka".
+ */
+export async function startWishDM(wishId: string): Promise<string | null> {
+  const me = await ensureMe();
+  if (me.id === 'me') return null;
+  const { data, error } = await db.rpc('start_wish_dm', { p_wish: wishId }) as { data: string | null; error: unknown };
+  if (error || !data) return null;
+  await refreshDMs();
+  startRealtime();
+  return data;
+}
+
 // ── CRUD ──
 // Accessory vracajú vždy NOVÚ referenciu (shallow clone), nie objekt z cache.
 // Inak by React `setConv(sameRef)` zahodil cez Object.is → Thread by sa neprekreslil

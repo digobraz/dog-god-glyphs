@@ -1,6 +1,6 @@
 import { LAB } from '@/lib/labTheme';
 import { goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
-import { PAGE_AIR } from '@/components/pack/packTheme';
+import { PAGE_AIR, BRAND_GOLD_BTN, PACK_R } from '@/components/pack/packTheme';
 
 // ════════════════════════════════════════════════════════════════════════════
 // BLEDÝ ŠAT VSTUPNÉHO FLOW — jediný zdroj (28. 8. 2026)
@@ -141,6 +141,31 @@ export const FLOW_STAGE_CSS = `
 }
 /* 🔴 TOTO nahrádza \`justify-content: center\` — viď pascu vyššie. */
 .hf-stage > * { margin-top: auto; margin-bottom: auto; }
+
+/* ── OBRAZOVKA, KTORÁ RASTIE DO HRANICE — \`.hf-fill\` (25. 9. 2026) ──────────
+   Matej: *„Tvoja svorka síce začína na malom, ale tam sa ráta s tým, že sa má
+   kam zväčšovať… kľudne to ale urob tak, že ju natiahni na max povolenú a len
+   zmenšuj obsah (chceme, aby každá obrazovka mobil aj PC mali tie isté zásady
+   a boli cca rovnaké, nepretekali a sedeli aj na mobile aj PC)."*
+
+   🔑 DVA DRUHY OBRAZOVIEK, JEDNA HRANICA. Väčšina krokov má pevný obsah a
+      stojí v strede (\`margin: auto\`). Krok, ktorého obsah RASTIE s dátami
+      (zoznam psov), dostane \`.hf-fill\`: zaberie presne miesto medzi hranicami
+      a to, čo sa doň nezmestí, sa zmenší alebo odroluje VNÚTRI — stránka sa
+      nehýbe.
+   🔴 A JE TO ZÁROVEŇ POISTKA PROTI PRETEČENIU: výška obrazovky prestáva závisieť
+      od počtu položiek. */
+.hf-stage > .hf-fill {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+/* Zlatý blok vnútri takej obrazovky rastie s ňou; doska v ňom je stĺpec, ktorého
+   jedno dieťa (zoznam) si berie zvyšok. */
+.hf-fill > .hf-block { flex: 1 1 auto; min-height: 0; display: flex; }
+.hf-fill > .hf-block > .hf-plate { flex: 1 1 auto; min-height: 0; }
 `;
 
 export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
@@ -413,19 +438,33 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
    Matej: *„psy sa budú dať medzi sebou prehodiť ako je v nákrese podľa poradia
    (to poradie sa predvyplní už aj v heroglyfe)"*.
    🔑 Poradie je vlastnosť ZOZNAMU (ťahanie), fotka je vlastnosť RIADKA. */
-.hf-doglist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+/* 🔴 KEĎ SA RIADKY ZMESTIA, STOJA V STREDE PLOCHY — \`margin: auto 0\` na DIEŤATI
+   (25. 9. 2026). Plocha je od tohto dňa ZVYŠOK dosky (\`.hf-fill\`), takže pri
+   jednom-dvoch psoch je väčšia než zoznam a ten by inak visel pri hornej hrane
+   s dierou pod sebou.
+   ⚠️ NIE \`justify-content: center\` — to je pasca z locku \`PAGE_AIR\`: pri
+      pretečení sa prebytok rozdelí na obe strany a horná časť sa NEDÁ odrolovať.
+      \`margin: auto\` sa pri pretečení sám zruší a rolovanie začína zhora. */
+.hf-doglist { list-style: none; margin: auto 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .hf-doglist li { list-style: none; }
 
 /* ── MANTINEL PLOCHY (24. 9. 2026) ────────────────────────────────────────
    Matej: *„pri 6 psoch sa celá stránka roztiahne a je zle"* — šiesty pes
-   odsunul POKRAČOVAŤ pod ohyb. Strop drží ROVNICA v \`DogsScreen.tsx\`
-   (\`LIST\`), sem chodí ako inline \`max-height\`; CSS ho neprepisuje, inak by
-   sa režim riadka a skutočná výška rozišli.
+   odsunul POKRAČOVAŤ pod ohyb.
+   🔴 OD 25. 9. 2026 PLOCHA NEMÁ STROP, ALE JE TO ZVYŠOK DOSKY (\`flex: 1\`).
+      Inline \`max-height\` z rovnice o podiele okna zanikol — bol to odhad, ktorý
+      o ostatných blokoch nevedel a obrazovka pri troch psoch pretekala. Režim
+      riadka (plný / úzky) sa odteraz rozhoduje podľa SKUTOČNEJ výšky tejto
+      plochy (\`ResizeObserver\` v \`DogsScreen.tsx\`).
    ⚠️ Vodorovný scroll musí ostať viditeľný obsah — riadok pri ťahaní vystupuje
       z toku, takže \`overflow-x\` NIE JE hidden, len \`clip\` by ho orezal.
    Okraje plochy majú náznak, že text pokračuje: jemný tieň zhora aj zdola. */
 .hf-dogscroll {
   width: 100%; overflow-y: auto; overflow-x: visible;
+  /* Zvyšok dosky, nie strop z rovnice. \`min-height: 0\` je povinné — bez neho
+     flexový potomok nikdy neklesne pod výšku svojho obsahu a plocha by rástla
+     ďalej, presne ako predtým. */
+  flex: 1 1 auto; min-height: 0;
   /* Miesto pre lift riadka pri hoveri (\`translateY(-1px)\`) a pre jeho tieň. */
   padding: 2px 2px 3px;
   margin: -2px -2px -3px;
@@ -1013,5 +1052,63 @@ export const FLOW_CARVE_CSS = `
   box-shadow: inset 0 2px 3px rgba(20, 50, 90, 0.28),
               inset 0 -1px 0 rgba(255, 255, 255, 0.85),
               0 1px 0 rgba(255, 252, 240, 0.65);
+}
+
+/* ── 🟨 ZLATÁ POLOHA DLAŽDICE — \`.hf-pick.is-gold\` (25. 9. 2026) ───────────
+   🔑 PRESUNUTÉ Z \`ESSENCE_CSS\`, nie napísané znovu. Recept vznikol 24. 9. na
+      PODSTATE a 25. 9. si ho Matej vypýtal aj pre otázku „žije tvoj pes?"
+      (*„v mene psa by som dal status či žije do zlatých tlačítok ako pri
+      podstate"*). Druhá kópia tej istej dlaždice = dva vzhľady tej istej veci.
+
+   Pôvodné odôvodnenie (Matej 24. 9., piate kolo): *„tie CTA tlačítka skúsme
+   upgradovať na gold… lebo teraz sú aj chipy aj výber tlačítok rovnaké — fádne
+   a ten istý štýl obrysový"*, a po ukážke odliatku (zlatý RÁM, papyrusová
+   doska): *„nepáči sa mi to daj tlačítka zlaté fillom nie toto"*. Odliatok teda
+   padol, platí PLNÁ výplň.
+
+   🔴 **JE TO VEDOMÁ ODCHÝLKA OD BRAND LOCKU, nie prehliadnutie.** Lock hovorí
+   dve veci, ktoré to porušuje: *„ZLATO = konštrukcia a poloha, LAPIS = moja
+   voľba a akcia"* a *„hlavná akcia na bledom je stále LAPIS"*. Matej to rozhodol
+   s oboma vetami pred sebou — dostal na výber štyri cesty vrátane tej, ktorá
+   lock neohýba.
+   ⚠️ Kým to niekto neprenesie do \`plany/locky/brand.md\`, je toto jediné miesto,
+   kde je tá výnimka zapísaná — a bez nej to pri revízii vyzerá ako chyba.
+   ⚠️ Recept sa NEOPISUJE: \`BRAND_GOLD_BTN\` (rampa #C99A3F→#A3782B, rám #8C6014,
+   TMAVÝ inkoust). Svetlá zlato-oranžová \`GOLD_BTN\` sem NEPATRÍ — je svetlejšia
+   než papyrus, svieti ako lampa a patrí AINUBISOVI.
+   ⚠️ MUSÍ STÁŤ ZA pravidlami \`.hf-pick.on\` — inkoust a jamka sa inak prebijú
+   poradím, nie zámerom. */
+.hf-pick.is-gold {
+  border-radius: ${PACK_R.tile}px;
+  background: ${BRAND_GOLD_BTN.grad};
+  border: 1px solid ${BRAND_GOLD_BTN.edge};
+  /* Hlbší z dvoch tieňov už v POKOJI — dlaždica je plocha, nie malé tlačidlo,
+     a plytký odliatok sa na nej stratil. */
+  box-shadow: ${BRAND_GOLD_BTN.glowHover};
+}
+.hf-pick.is-gold:hover {
+  background: ${BRAND_GOLD_BTN.gradHover};
+  box-shadow: ${BRAND_GOLD_BTN.glowHover};
+}
+/* Inkoust je TMAVÝ (lock): krémové písmo má na brandovej zlatej kontrast pod 3:1. */
+.hf-pick.is-gold .tx,
+.hf-pick.is-gold.on .tx {
+  color: ${BRAND_GOLD_BTN.ink};
+  text-shadow: 0 1px 0 rgba(255, 252, 240, 0.28);
+}
+/* Jamka pod ikonkou ostáva PAPYRUSOVÁ — na zlate je z nej pečať, a je to jediné
+   miesto, kde sa symbol číta rovnako ako v ráme heroglyfu nad ním. */
+.hf-pick.is-gold .well,
+.hf-pick.is-gold.on .well {
+  background: radial-gradient(circle at 50% 35%, #FBF5E6 0%, #EBD9AE 100%);
+  box-shadow: inset 0 2px 3px rgba(90, 62, 14, 0.30),
+              inset 0 -1px 0 rgba(255, 252, 240, 0.80),
+              0 1px 0 rgba(255, 252, 240, 0.65);
+}
+/* VYBRANÁ: zlato ostáva, voľbu nesie LAPISOVÝ LEM — plná lapisová výplň by na
+   jednej obrazovke postavila dve plné plochy proti sebe a otázka by sa stratila. */
+.hf-pick.is-gold.on {
+  border-color: ${LAPIS.edge};
+  box-shadow: inset 0 0 0 2px ${LAPIS.edge}, ${BRAND_GOLD_BTN.glowHover};
 }
 `;

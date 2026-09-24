@@ -402,7 +402,10 @@ export function EssenceScreen() {
                         <button
                           key={o.v}
                           type="button"
-                          className={`hf-pick${picks[topic.key] === o.v ? ' on' : ''}`}
+                          // `is-gold` = zlatá poloha dlaždice zo spoločného šatu
+                          // (`FLOW_CARVE_CSS`). Od 25. 9. ju nesie aj otázka
+                          // „žije tvoj pes?" na kroku MENO — jeden recept, dve miesta.
+                          className={`hf-pick is-gold${picks[topic.key] === o.v ? ' on' : ''}`}
                           onClick={() => handlePick(o.v)}
                         >
                           <span className="well"><img src={o.icon} alt="" /></span>
@@ -727,52 +730,12 @@ const ESSENCE_CSS = `
 /* Symbol podstaty je KRESBA, nie ikonka rozhrania — jamka je preto väčšia než
    pri voľbe stavu psa a obrázok v nej dýcha. Riadok je aj vyšší: obrazovka
    pôsobila „scvrknuto" (Matej 24. 9.) a práve toto je jej najväčšia plocha. */
-/* ── 🟨 DLAŽDICA VOĽBY = PLNÁ BRANDOVÁ ZLATÁ (Matej 24. 9., piate kolo) ────
-   *„tie CTA tlačítka skúsme upgradovať na gold… lebo teraz sú aj chipy aj výber
-   tlačítok rovnaké — fádne a ten istý štýl obrysový"*, a po ukážke odliatku
-   (zlatý RÁM, papyrusová doska): *„nepáči sa mi to daj tlačítka zlaté fillom
-   nie toto"*. Odliatok teda padol, platí PLNÁ výplň.
-   🔴 **JE TO VEDOMÁ ODCHÝLKA OD BRAND LOCKU, nie prehliadnutie.** Lock hovorí
-   dve veci, ktoré to porušuje: *„ZLATO = konštrukcia a poloha, LAPIS = moja
-   voľba a akcia"* a *„hlavná akcia na bledom je stále LAPIS, brandová zlatá je
-   druhá alebo tretia akcia"*. Matej to rozhodol s oboma vetami pred sebou —
-   dostal na výber štyri cesty vrátane tej, ktorá lock neohýba.
-   ⚠️ Kým to niekto neprenesie do \`plany/locky/brand.md\`, je toto jediné miesto,
-   kde je tá výnimka zapísaná — a bez nej to pri najbližšej revízii vyzerá ako
-   chyba na opravu.
-   ⚠️ Recept sa NEOPISUJE: \`BRAND_GOLD_BTN\` z \`packTheme.ts\` (rampa
-   #C99A3F→#A3782B, rám #8C6014, TMAVÝ inkoust, radius 8 z \`.btn-gold\`).
-   Svetlá zlato-oranžová \`GOLD_BTN\` sem NEPATRÍ — je svetlejšia než papyrus,
-   svieti ako lampa a patrí AINUBISOVI. */
-.es-picks .hf-pick {
-  padding: 8px 14px; gap: 12px;
-  /* ⚠️ POLOMER 12, NIE 8. Osmičku predpisuje \`.btn-gold\`, ale CTA TOHOTO vstupu
-     (\`HF.cta\`, lapisové POKRAČOVAŤ pod dlaždicami) beží na 12 — a Matej porovnáva
-     práve s ním: *„mám pocit že iné CTA na stránke aj na živom webe vo flow máme
-     iné krajšie"*. Dve rôzne zaoblenia na jednej doske sú vidno; obe čísla sú
-     v \`PACK_R\`. */
-  border-radius: ${PACK_R.tile}px;
-  background: ${BRAND_GOLD_BTN.grad};
-  border: 1px solid ${BRAND_GOLD_BTN.edge};
-  /* ⚠️ Hlbší z dvoch tieňov už v POKOJI — dlaždica je plocha, nie malé tlačidlo,
-     a plytký odliatok sa na nej stratil. Je to existujúci token, nie nové číslo. */
-  box-shadow: ${BRAND_GOLD_BTN.glowHover};
-}
-.es-picks .hf-pick:hover {
-  background: ${BRAND_GOLD_BTN.gradHover};
-  box-shadow: ${BRAND_GOLD_BTN.glowHover};
-}
-/* Inkoust je TMAVÝ (lock): krémové písmo má na brandovej zlatej kontrast pod 3:1. */
-.es-picks .hf-pick .tx { color: ${BRAND_GOLD_BTN.ink}; text-shadow: 0 1px 0 rgba(255, 252, 240, 0.28); }
-/* Jamka pod ikonkou ostáva papyrusová — na zlate je z nej pečať, a je to jediné
-   miesto, kde sa symbol podstaty číta rovnako ako v ráme heroglyfu nad ním. */
-.es-picks .hf-pick .well { background: radial-gradient(circle at 50% 35%, #FBF5E6 0%, #EBD9AE 100%); }
-/* VYBRANÁ: zlato ostáva, voľbu nesie LAPISOVÝ LEM — plná lapisová výplň by na
-   jednej obrazovke postavila dve plné plochy proti sebe a otázka by sa stratila. */
-.es-picks .hf-pick.on {
-  border-color: ${LAPIS.edge};
-  box-shadow: inset 0 0 0 2px ${LAPIS.edge}, ${BRAND_GOLD_BTN.glowHover};
-}
+/* ── 🟨 ZLATÁ DLAŽDICA JE ODTERAZ SPOLOČNÁ — .hf-pick.is-gold (25. 9. 2026) ───
+   Recept (plná brandová zlatá, tmavý inkoust, papyrusová jamka, lapisový lem pri
+   výbere) aj s celým Matejovým odôvodnením sa PRESUNUL do FLOW_CARVE_CSS,
+   lebo tú istú dlaždicu dostala aj otázka „žije tvoj pes?" na kroku MENO.
+   Text je nezmenený, len sa presťahoval. Tu ostáva LEN geometria PODSTATY. */
+.es-picks .hf-pick { padding: 8px 14px; gap: 12px; }
 /* 🔴 IKONKA JE PODSTATA, NIE OZDOBA (Matej 24. 9.: *„ikonky zväčši tie sú
    podstatné"*). Je to ten istý symbol, aký sa o dva riadky vyššie vkreslí do
    rámu heroglyfu — čím väčší je tu, tým skôr si človek spojí voľbu s tým, čo mu
@@ -813,5 +776,27 @@ const ESSENCE_CSS = `
   width: 100%; background: none; border: none; cursor: pointer;
   font-family: 'Space Grotesk', sans-serif; font-size: 12px; line-height: 1.4;
   color: #8E3F2C; text-decoration: underline; text-decoration-style: dotted;
+}
+
+/* ── 🔴 KRÁTKE OKNO: JEDNA PEVNÁ POLOHA, NIE STUPŇOVANIE (25. 9. 2026) ───────
+   Matej 25. 9.: *„chceme, aby každá obrazovka mobil aj PC mali tie isté zásady
+   a boli cca rovnaké, nepretekali a sedeli aj na mobile aj PC."* PODSTATA
+   pretekala na iPhone SE (375×667) o 67 px — premerané meračom HRANICA.
+
+   ⚠️ NEODPORUJE TO Matejovmu *„nič sa tu nemení veľkosťou"* z 24. 9. Tam išlo
+      o obrazovku, ktorá sa menila PRI ODPOVEDANÍ (výška rástla s počtom volieb).
+      Toto je JEDNA pevná poloha pre nízke okno a v nej sa už nič nehýbe — ten
+      istý precedens, aký má PATRÓN (`@media (max-height: 700px)`).
+   🔑 USTUPUJE OBSAH, NIE REZERVA OD OKRAJA (lock `PAGE_AIR`): plocha odpovedí,
+      fotka psa, rám a rozstupy. Hektor sa nezmenšuje — `useSpeakMedal` mu na
+      krátkom okne veľkú polohu nedá tak či tak. */
+@media (max-height: 700px) {
+  .es-stack .hf-plate { gap: 8px; }
+  .es-picks { --es-picks-h: 150px; }
+  .es-dogphoto { width: 40px; height: 40px; }
+  .es-name { font-size: 17px; }
+  .es-glyph { --es-glyph-w: 88%; }
+  .es-act { min-height: 36px; }
+  .es-cta { height: 36px; }
 }
 `;

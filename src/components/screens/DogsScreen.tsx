@@ -72,11 +72,15 @@ const MAIN = 'main';
 //    Meranie po vykreslení je kruh: výška zoznamu závisí od režimu a režim od
 //    výšky. Ladí sa TU, nie v CSS.
 //
-//   strop = clamp(160, 38 % okna, 330)
-//   zmestí sa  ⇔  n · (ROW_FULL + GAP) − GAP ≤ strop
+//   zmestí sa  ⇔  n · (ROW_FULL + GAP) − GAP ≤ VÝŠKA PLOCHY
 //
-// Pri okne 900 px (PC) sú to 4 plné riadky, pri 700 px (telefón) 3 — presne to
-// Matejovo „4/5". Čo sa nezmestí, ide do ÚZKEHO režimu: úchyt · číslo · meno ·
+// 🔴 25. 9. 2026: VÝŠKA PLOCHY UŽ NIE JE PODIEL OKNA ("clamp(160, 38 % okna, 330)").
+//    Bol to odhad, ktorý o ostatných blokoch obrazovky nevedel nič — pri troch
+//    psoch preto obrazovka PRETIEKLA (107 % miesta na PC, 111 % na iPhone SE).
+//    Plocha je odteraz ZVYŠOK dosky (`.hf-fill`): obrazovka sa natiahne na
+//    hranicu a zmenšuje sa OBSAH, nie rezerva od okraja. Matejovo „4/5" tým
+//    nezaniklo — na PC sa do zvyšku zmestia štyri plné riadky, na telefóne tri,
+//    len to teraz hovorí skutočné miesto a nie percento z okna. Čo sa nezmestí, ide do ÚZKEHO režimu: úchyt · číslo · meno ·
 // značka stavu. Fotka a pilulky odtiaľ zmiznú, ale nezanikajú — otvárajú sa
 // panelom psa (preto doň 24. 9. pribudla fotka).
 const LIST = {
@@ -86,22 +90,7 @@ const LIST = {
   /** Úzky riadok — 40 px odmerané: meno (22) + odsadenie (12) + rám (2) + lift. */
   rowSlim: 40,
   gap: 8,
-  maxPx: 330,
-  minPx: 160,
-  /** Podiel okna, ktorý zoznam smie zabrať. Zvyšok patrí bubline, krajine a CTA. */
-  share: 0.38,
 };
-
-/** Výška okna. Resize sa počúva, ale hodnota sa berie z OKNA — nie z prvku. */
-function useWindowH() {
-  const [h, setH] = useState(() => (typeof window === 'undefined' ? 800 : window.innerHeight));
-  useEffect(() => {
-    const on = () => setH(window.innerHeight);
-    window.addEventListener('resize', on);
-    return () => window.removeEventListener('resize', on);
-  }, []);
-  return h;
-}
 
 export function DogsScreen() {
   const flowOk = useFlowGuard();
@@ -183,12 +172,28 @@ export function DogsScreen() {
   // ── KOĽKO SA ICH ZMESTÍ (24. 9. 2026) ──────────────────────────────────────
   // Strop plochy + režim riadka. Obe z tej istej rovnice (`LIST` hore), aby
   // sa nemohlo stať, že zoznam je „plný" a pritom pretečie.
-  const winH = useWindowH();
-  const listMax = Math.round(
-    Math.max(LIST.minPx, Math.min(LIST.maxPx, winH * LIST.share)),
-  );
+  // 🔴 OD 25. 9. 2026 SA PLOCHA NEPOČÍTA Z OKNA, ALE JE TO ZVYŠOK MIESTA.
+  //    Podiel okna (38 %) bol odhad, ktorý o ostatných blokoch nevedel nič —
+  //    a preto obrazovka pri troch psoch pretiekla (107 % na PC, 111 % na SE).
+  //    Zoznam si teraz berie presne to, čo po bubline, nadpise, krajine a CTA
+  //    ostane (`.hf-fill`), takže výška obrazovky prestala závisieť od počtu psov.
+  // ⚠️ NIE JE TO ZAKÁZANÉ „meranie po vykreslení". Zakázaný kruh bol: výška
+  //    plochy závisí od režimu riadka a režim od výšky. Tu je výška plochy daná
+  //    ZVONKU (zvyšok dosky) a nezávisí od toho, čo je v nej — mení sa len to,
+  //    či sa riadky zmestia. Spätná väzba neexistuje.
+  const listRef = useRef<HTMLDivElement>(null);
+  const [listH, setListH] = useState(0);
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setListH(el.clientHeight));
+    ro.observe(el);
+    setListH(el.clientHeight);
+    return () => ro.disconnect();
+  }, []);
   const fullH = rows.length * (LIST.rowFull + LIST.gap) - LIST.gap;
-  const slim = fullH > listMax;
+  /** Kým plocha nie je odmeraná, drž PLNÝ riadok — úzky by na chvíľu preblikol. */
+  const slim = listH > 0 && fullH > listH;
 
   /** Nové poradie zo ťahania — z kľúčov späť na `mainDogPos` + `extraDogs`. */
   const onReorder = (next: string[]) => {
@@ -370,7 +375,12 @@ export function DogsScreen() {
       />
 
       <div className="hf-stage">
-        <div className="w-full max-w-xl flex flex-col items-center">
+        {/* 🔴 `.hf-fill` = obrazovka rastie do HRANICE (25. 9. 2026, spoločné
+            pravidlo vo `FLOW_STAGE_CSS`). Matej: *„natiahni ju na max povolenú
+            a len zmenšuj obsah… nepretekali a sedeli aj na mobile aj PC"*.
+            Dovtedy stála v strede a rástla s počtom psov — pri troch pretekala
+            (merané 25. 9.: 107 % na PC, 111 % na iPhone SE). */}
+        <div className="w-full max-w-xl flex flex-col items-center hf-fill">
 
           {/* BUBLINA NA ŠÍRKU — fotka vľavo, text vpravo (Matej 23. 9.). */}
           <motion.div
@@ -419,9 +429,9 @@ export function DogsScreen() {
                   ⚠️ `layoutScroll` je pri ťahaní povinné: bez neho počíta framer
                      polohy riadkov voči oknu a v odscrolovanej ploche skáču. */}
               <motion.div
+                ref={listRef}
                 layoutScroll
                 className={`hf-dogscroll${slim ? ' is-slim' : ''}`}
-                style={{ maxHeight: listMax }}
               >
                 <Reorder.Group axis="y" as="ul" className="hf-doglist" values={keys} onReorder={onReorder}>
                   {rows.map((d, i) => (

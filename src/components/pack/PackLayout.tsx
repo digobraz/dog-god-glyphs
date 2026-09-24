@@ -330,6 +330,7 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
     setCreateOpen(false);
     const intent: CreateIntent =
       choice.kind === 'trip' ? { id: 'trip' }
+        : choice.kind === 'wish' ? { id: 'wish' }
         : choice.kind === 'note' ? { id: 'note', group: choice.group }
           : { id: 'event', origin: choice.origin };
     if (!onMapScreen) navigate(withOrigin('/pack/map', pathname));

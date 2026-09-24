@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { DateDropdowns } from '@/components/DateDropdowns';
 import legendIconUrl from '@/assets/legend-icon.svg';
 import angelIconUrl from '@/assets/angel-icon.svg';
-import { PICK_INK } from '@/components/pack/navGoldSkin';
+import { BRAND_GOLD_BTN } from '@/components/pack/packTheme';
 import { useT } from '@/i18n/LanguageContext';
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -79,8 +79,13 @@ export function LifeStatusPick({
   //    ňou sa lámu, vedľa seba sa riadok číta ako jedna veta a doska sa upokojí.
   //    Tint aj lapisový inkoust ostávajú (`.hf-pick.on`), len ich nesie trieda,
   //    takže rovnakú voľbu inde v toku netreba opisovať druhýkrát.
+  // ⚠️ IKONKA MÁ INKOUST DLAŽDICE, NIE VLASTNÝ. Od 25. 9. je dlaždica ZLATÁ
+  //    (`.hf-pick.is-gold`, Matej: *„status či žije do zlatých tlačítok ako pri
+  //    podstate"*) a kresba sedí v PAPYRUSOVEJ jamke — tlmená hnedá v nej zmizla
+  //    a lapisová pri výbere hovorila inú farbu než lem. Obe polohy preto berú
+  //    tmavý brandový inkoust; vybranú hovorí LEM dlaždice, nie odtieň kresby.
   const ink = (mine: LifeStatus) =>
-    value === mine ? PICK_INK.lapis : LAB_MUTED;
+    value === mine ? BRAND_GOLD_BTN.ink : LAB_MUTED;
 
   return (
     <div className="w-full flex flex-col gap-2">
@@ -93,7 +98,7 @@ export function LifeStatusPick({
           type="button"
           onClick={() => onChange('alive')}
           aria-pressed={value === 'alive'}
-          className={`hf-pick${value === 'alive' ? ' on' : ''}`}
+          className={`hf-pick is-gold${value === 'alive' ? ' on' : ''}`}
         >
           <span className="well">
             <span aria-hidden style={iconStyle(legendIconUrl, ink('alive'))} />
@@ -107,7 +112,7 @@ export function LifeStatusPick({
           // políčko s dátumom. Druhý klik naň ho otvorí znova (oprava dátumu).
           onClick={() => { onChange('deceased'); onWantDate(); }}
           aria-pressed={value === 'deceased'}
-          className={`hf-pick${value === 'deceased' ? ' on' : ''}`}
+          className={`hf-pick is-gold${value === 'deceased' ? ' on' : ''}`}
         >
           <span className="well">
             <span aria-hidden style={iconStyle(angelIconUrl, ink('deceased'))} />

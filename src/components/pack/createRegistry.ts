@@ -58,6 +58,7 @@ export type CreateTarget =
 
 export type CreateHandler =
   | 'addEntry.trip'     // AddTripEntry → AddChoice { kind: 'trip' }
+  | 'addEntry.wish'     // AddTripEntry → AddChoice { kind: 'wish' }
   | 'addEntry.note'     // AddTripEntry → AddChoice { kind: 'note' }
   | 'addEntry.event'    // AddTripEntry → AddChoice { kind: 'event' }
   | 'addEntry.service'  // AddChoice tvar ešte NEEXISTUJE — viď `service` nižšie (#63)
@@ -109,7 +110,7 @@ export type CreateIcon =
 
 // ── OBJEKT ──────────────────────────────────────────────────────────────────────────────────
 export type CreateId =
-  | 'trip' | 'note' | 'event' | 'service' | 'article'
+  | 'trip' | 'wish' | 'note' | 'event' | 'service' | 'article'
   | 'diary' | 'photo'
   | 'post'
   | 'chat' | 'brain' | 'board'
@@ -173,6 +174,24 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     panel: true,
     // 🥾 → 🐾 (matrica 24. 8. 2026): dlaždica zastrešuje aj korčule, paddleboard a hrad.
     note: 'Trasu si tok nakreslí sám (GeometryPicker) — „potrebuje trasu" neznamená, že ju človek musí mať vopred.',
+  },
+  {
+    // MAPA PRIANÍ (Matej 24. 9. 2026): „pri + bude na mape PRIDAŤ PRIANIE (zatiaľ)".
+    // Zadanie `plany/zadanie-assnif-2026-09-24.md` §2. Nahrádza plán výletu, ktorý je v sklade.
+    id: 'wish',
+    labelKey: 'pack.addTrip.entry.kind.wish.title',
+    labelFallback: 'Add a wish',
+    hintKey: 'pack.addTrip.entry.kind.wish.text',
+    hintFallback: 'A place you want to go',
+    icon: { kind: 'panel' },
+    place: 'VON',
+    needs: 'bod',
+    target: { kind: 'handler', id: 'addEntry.wish' },
+    back: 'origin',
+    lands: 'wish_pins · mapa',
+    state: 'live',
+    panel: true,
+    note: 'AINUBIS vedie: miesto → druh → kedy → popis → PRIPNÚŤ. Chcem tiež = kópia, nie väzba.',
   },
   {
     id: 'note',

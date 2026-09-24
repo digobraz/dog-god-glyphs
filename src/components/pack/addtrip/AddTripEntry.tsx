@@ -35,6 +35,8 @@ import type { PawmateRight } from '@/lib/pawmateRights';
 export type AddChoice =
   | { kind: 'trip'; state: TripState }
   | { kind: 'event'; origin: 'own' | 'tip' }
+  // PRIANIE (24. 9. 2026) — panel sa zavrie a na odkrytej mape vedie AINUBIS (§2 zadania).
+  | { kind: 'wish' }
   // ODKAZ (2026-08-20) — tretia dlaždica. Nevracia hotový zápis, ale ZVOLENÚ SKUPINU:
   // po nej sa popup zavrie a človek ukazuje miesto na odkrytej mape. Poradie
   // „najprv čo, potom kde" je zámer — človek prichádza s úmyslom, nie s bodom.
@@ -63,7 +65,7 @@ export type AddTripEntryProps = {
   onCreate?: (o: CreateObject) => void;
 };
 
-type Kind = 'trip' | 'event' | 'note' | 'service';
+type Kind = 'trip' | 'wish' | 'event' | 'note' | 'service';
 
 // ── CHIPY ZANIKLI 21. 9. 2026 (Matej: „žiadne vysvetlovačky") ───────────────────────────────
 // Do 21. 9. niesla každá dlaždica bežiaci rad chipov („🐾 Hike · 💪 Activity · 👀 Visit…"),
@@ -101,6 +103,10 @@ const KINDS: KindDef[] = [
   // 🥾 → 🐾 (matrica 24. 8. 2026): topánka je AKTIVITA „Hiking" o obrazovku ďalej. Dlaždica
   // VÝLET zastrešuje aj korčule, paddleboard a hrad — labka je jediné, čo platí na všetky.
   { kind: 'trip', emoji: '🐾', titleKey: 'pack.addTrip.entry.kind.trip.title', textKey: 'pack.addTrip.entry.kind.trip.text', points: POINTS.add, right: ['trips.log', 'trips.draw'] },
+  // PRIANIE (24. 9. 2026) — bez bodov na dlaždici: body (+10 PÚTNIK) prídu až za SPLNENÉ
+  // prianie s LOGom (§2.1 zadania), nie za pripnutie. Právo `social`: pin s „hľadám parťáka"
+  // hovorí navonok, rovnako ako podujatie.
+  { kind: 'wish', emoji: '🍑', titleKey: 'pack.addTrip.entry.kind.wish.title', textKey: 'pack.addTrip.entry.kind.wish.text', right: 'social' },
   { kind: 'event', emoji: '📣', titleKey: 'pack.addTrip.entry.kind.event.title', textKey: 'pack.addTrip.entry.kind.event.text', points: POINTS.event, right: 'social' },
   { kind: 'note', emoji: '💬', titleKey: 'pack.addTrip.entry.kind.note.title', textKey: 'pack.addTrip.entry.kind.note.text', points: POINTS.note, right: 'map.notes' },
 ];
@@ -135,7 +141,7 @@ const KINDS: KindDef[] = [
 //    `panel3`). Do 22. 9. z panela videla len tri dlaždice mapy, ostatných desať nie.
 // ⚠️ 🖼️ PRÍSPEVOK uvoľnilo 📝, ktoré kolidovalo s čipom „poznámka" v denníku.
 const EMOJI: Record<CreateId, string> = {
-  trip: '🐾', note: '💬', event: '📣', service: '🏥', article: '📕',
+  trip: '🐾', wish: '🍑', note: '💬', event: '📣', service: '🏥', article: '📕',
   diary: '✍️', photo: '📷',
   post: '🖼️',
   chat: '🤖', brain: '📥', board: '❓',
@@ -268,6 +274,7 @@ export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryP
           // Meranie (v1-posthog): tu sa začína zápis výletu; pár k nemu je
           // `pack_trip_add_done` v `PackMap`.
           if (k.kind === 'trip') { trackPack('pack_trip_add_start'); onPick({ kind: 'trip', state: 'walked' }); }
+          if (k.kind === 'wish') onPick({ kind: 'wish' });
           if (k.kind === 'event') setStep('event');
           if (k.kind === 'note') setStep('note');
         }}

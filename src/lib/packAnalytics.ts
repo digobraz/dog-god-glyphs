@@ -29,6 +29,8 @@ export type PackEvent =
   | 'pack_trip_add_start'  // začal zapisovať výlet
   | 'pack_trip_add_done'   // výlet zapísaný
   | 'pack_note_add'        // značka na mape
+  | 'pack_wish_add'        // prianie na mape (BUDDY)
+  | 'pack_wish_metoo'      // chcem tiež = kópia prania
   | 'pack_message_sent'    // odoslaná správa
   | 'pack_ainubis_open'    // otvorený AINUBIS
   | 'pack_lock_click';     // klik na zamknutú vec (prop: lock)
