@@ -36,7 +36,7 @@
 // 🚩 OTVORENÉ: chat ako rovina hore + stred mozgu ako vstup (postavené podľa odporúčania).
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { PackIdentityBar } from '@/components/pack/PackIdentityBar';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
@@ -384,6 +384,7 @@ export default function PackAinubis() {
      ⚠️ Parameter sa pridáva DO EXISTUJÚCICH, nie namiesto nich — `setSearchParams({…})`
         by zmazal všetko ostatné, čo na adrese je. */
   const [sp, setSp] = useSearchParams();
+  const navigate = useNavigate();
   const planeParam = sp.get('plane');
   const [plane2, setPlane2] = useState<'vault' | 'chat' | 'wall'>(
     planeParam === 'wall' && WALL_MOCK ? 'wall'
@@ -408,7 +409,27 @@ export default function PackAinubis() {
   };
   const goWallTab = (t: 'pack' | 'mine' | 'lib') => {
     setWallTab(t);
-    setQuery({ tab: t === 'pack' ? null : t });
+    setQuery({ tab: t === 'pack' ? null : t, post: null });
+  };
+  /* 🔴 OTVORENÁ KARTA SA PUSHUJE, NEZAMIEŇA (voľba E1, 24. 9. 2026).
+     Rovina a záložka idú cez `replace` zámerne — prepínanie pohľadu nemá
+     zaplniť históriu. Otvorenie karty je OPAK: prekryv sa musí dať zavrieť
+     tlačidlom SPÄŤ v prehliadači, a to vie len zápis do histórie.
+     ⚠️ Pri príchode ODKAZOM (`?post=w1` ako prvá adresa) sme nič nepushli —
+        `history.back()` by človeka vyhodil z appky. Preto si pamätáme, či sme
+        pushli my, a inak parameter len odoberieme. */
+  const pushedPost = useRef(false);
+  const postParam = sp.get('post');
+  const goPost = (id: string | null) => {
+    if (id) {
+      const q = new URLSearchParams(sp);
+      q.set('post', id);
+      setSp(q);                       // push — späť prekryv zavrie
+      pushedPost.current = true;
+      return;
+    }
+    if (pushedPost.current) { pushedPost.current = false; navigate(-1); return; }
+    setQuery({ post: null });
   };
   /** Vchod do KNIŽNICE z chatu aj z päty VAULTU — jedno miesto, tri dvere. */
   const openLibrary = () => {
@@ -667,7 +688,8 @@ export default function PackAinubis() {
           (kôš 2), nie úloha: pilulka „nástenka" musí ostať viditeľná, inak by
           záložka viedla tam, kde sama zmizne. */}
       {WALL_MOCK && plane2 === 'wall' && (
-        <VaultWall onBack={() => goPlane('vault')} tab={wallTab} onTab={goWallTab} />
+        <VaultWall onBack={() => goPlane('vault')} tab={wallTab} onTab={goWallTab}
+          post={postParam} onPost={goPost} />
       )}
 
       {/* ── DOGSCROLL — dnes upútavky svetov, v novembri pás zvitkov ────────── */}

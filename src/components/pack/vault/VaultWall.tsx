@@ -26,15 +26,17 @@
 // ⚠️ DEVOTION SA TU LEN SĽUBUJE, NEPRIPISUJE. Rebríček a kalkulačka sú vlastná
 //    session (Matej 24. 9.: „rozoberieme"); `grant-devotion` sa nedotýka.
 // ════════════════════════════════════════════════════════════════════════════
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import {
-  PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI,
+  PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, VEIL_CSS,
 } from '@/components/pack/packTheme';
-import { AINUBIS } from '@/components/pack/ainubisSkin';
+import {
+  AINUBIS, AI_GLASS, AI_RAIL, AI_RAIL_BEFORE, AI_RAIL_BLANK, AI_BREATHE_CSS, aiWorld,
+} from '@/components/pack/ainubisSkin';
 import { HandPaw, HandStar, HandForward, HandPlus, HandArrowLeft } from '@/components/pack/HandIcons';
 import ainubisFace from '@/assets/ainubis-badge.png';
 import { VAULT_WORLDS } from './worlds';
-import { DEMO_WALL, type WallPost, type SealKind } from './vaultWallDemo';
+import { DEMO_WALL, verdictParts, type WallPost, type SealKind } from './vaultWallDemo';
 import { DEMO_PENDING } from './vaultChatDemo';
 import {
   LIBRARY_SOURCES, VAULT_SOURCE_TOTALS, SOURCE_KINDS, SOURCE_GROUPS,
@@ -64,6 +66,8 @@ const LIST_MAX = GRID_MAX;
 const LIBRARY = 'Library';
 
 export const VAULT_WALL_CSS = `
+${AI_BREATHE_CSS}
+${VEIL_CSS}
 /* ── ČO Z VAULTU V TEJTO ROVINE NIE JE ─────────────────────────────────────
    🔴 A2: mizne CELÝ horný pás aj mozog — nástenka má vlastnú hlavičku so
    šípkou. Spodnú lištu nevykresľuje PackAinubis (nie skrýva: navRef v nej
@@ -183,11 +187,73 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
 
 /* ── KARTA PRÍSPEVKU ───────────────────────────────────────────────────────
    Jedna kresba pre nástenku, feed aj profil (lock §4.1). KARTA (r16). */
-.akw-post{border-radius:${PACK_R.card}px;border:1px solid ${AINUBIS.edge};
-  background:rgba(3,7,12,0.35);overflow:hidden;
-  display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;
+.akw-post{border-radius:${PACK_R.card}px;${AI_GLASS}
+  overflow:hidden;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;
   padding:${PACK_SPACE.lg}px;}
 .akw-phead{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
+
+/* ── PLAGÁT (voľba B1, 24. 9. 2026) ────────────────────────────────────────
+   🔴 KARTA NIE JE ČLÁNOK, JE POZVÁNKA NAŇ. Premerané pred zmenou: 592–1037
+   znakov, 534–844 px, 7 tlačidiel ⇒ na obrazovku 1,2 karty. Matej: „board je
+   bez nápadu len text a vela textu.. to zabíja potrebujeme to zjadnodušiť aby
+   človek nebol paralyzovaný toľkým textom."
+   Na nástenke ostáva len to, čo rozhodne, či kartu otvoríš: kto · čo sa deje ·
+   verdikt jednou vetou · aká je odozva. Zvyšok žije v prekryve.
+   🔴 CELÁ KARTA JE JEDINÉ TLAČIDLO — preto v plagáte NESMIE byť vnorené
+   tlačidlo (button v buttone je neplatný HTML a klik by sa bil s kartou).
+   Štvorica ❤🔖➕↗ je preto vnútri prekryvu, nie tu. */
+.akw-post{text-align:left;font:inherit;color:inherit;cursor:pointer;
+  transition:transform 140ms ease;}
+/* ⚠️ Hover nesie IBA transform — box-shadow je jedna vlastnosť a prepísal by
+   celý odliatok AI-SKLA aj s dosvitom sveta (tá istá pasca ako pri D-BLOKU). */
+.akw-post:hover{transform:translateY(-2px);}
+.akw-post:focus-visible{outline:2px solid ${AINUBIS.edgeStrong};outline-offset:2px;}
+/* DVA RIADKY A DOSŤ — bez stropu sa karty rozídu do rôznych výšok a z mriežky
+   je murivo. Rovnaká výška JE ten „uhladený" pocit, nie farba. */
+/* Strop AJ dno: bez min-height je karta s jednoriadkovým verdiktom o 21 px
+   nižšia (premerané 24. 9.: 202 vs. 223 px) a mriežka sa rozladí. Dva riadky
+   vždy, aj keď je v nich text len na jeden. */
+.akw-clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  min-height:3em;}
+.akw-vd{margin:0;font-size:${PACK_TEXT.body}px;line-height:1.5;color:${AINUBIS.ink};}
+.akw-vd b{color:${AINUBIS.cyan};font-weight:600;}
+.akw-ai.is-blank .akw-vd b{color:${AINUBIS.ctaA};}
+/* Jeden riadok čísel namiesto troch radov tlačidiel. Je to ÚDAJ, nie akcia —
+   akcie sú v prekryve, kde je na ne miesto. */
+.akw-met{display:flex;align-items:center;gap:${PACK_SPACE.lg}px;margin-top:auto;
+  font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;line-height:1.4;color:${AINUBIS.inkFaint};}
+.akw-met s{text-decoration:none;display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;}
+.akw-met s b{color:${AINUBIS.inkDim};font-weight:500;}
+.akw-met s,.akw-met u{white-space:nowrap;}
+.akw-met u{margin-left:auto;text-decoration:none;font-weight:600;color:${AINUBIS.cyan};
+  display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;
+  letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;}
+
+/* ── PREKRYV KARTY (voľba E1) ──────────────────────────────────────────────
+   Lock architektura-pack.md §4.2: akcia nikdy neodnesie človeka preč z miesta,
+   kde je. Preto vrstva NAD nástenkou a nie vlastná stránka — mriežka ostáva za
+   ňou a po zavretí si človek stojí presne tam, kde stál.
+   Adresu nesie ?post=<id> (vlastná stránka by bola druhá kresba toho istého
+   objektu, čo §4.1 zakazuje). */
+/* 🔴 ZÁVOJ SI KOMPONENT NEKRESLÍ — je to ZÁVOJ z katalógu (.pk-veil--modal).
+   Prvý pokus mal vlastné rgba(...) a rozmazanie; stráž check:pack ho zhodila
+   a mala pravdu (216 miest so sklom a tromi rôznymi tmavosťami bol presne ten
+   dôvod, prečo recept vznikol). Odtieň je AINUBISOV cez --pk-veil, tmavosť
+   a rozmazanie sú z receptu. */
+.akw-scrim{--pk-veil:rgba(3,7,12,0.72);
+  align-items:flex-start;overflow-y:auto;overscroll-behavior:contain;}
+.akw-sheet{position:relative;width:100%;max-width:720px;margin:auto;border-radius:${PACK_R.card}px;
+  padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
+/* ⚠️ Zatváracie tlačidlo patrí DO karty, nie vedľa nej. Prvý pokus ho mal ako
+   súrodenca v závoji a flex ho odsunul mimo — na 1440 px skončilo v pravom
+   dolnom rohu okna. Vnútri karty má pevný roh bez ohľadu na šírku. */
+.akw-x{position:absolute;top:${PACK_SPACE.md}px;right:${PACK_SPACE.md}px;
+  width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+  border-radius:${PACK_R.pill}px;border:1px solid ${AINUBIS.edge};background:${AINUBIS.raised};
+  color:${AINUBIS.cyan};cursor:pointer;z-index:1;}
+.akw-x:hover{border-color:${AINUBIS.edgeStrong};}
+/* Nálepka sveta by pod tlačidlom skončila — v prekryve jej urob miesto. */
+.akw-sheet .akw-world{margin-right:${PACK_SPACE.xl}px;}
 .akw-av{width:34px;height:34px;flex:0 0 34px;border-radius:${PACK_R.pill}px;
   display:flex;align-items:center;justify-content:center;
   border:1px solid ${AINUBIS.edge};background:${AINUBIS.faceBg};
@@ -216,12 +282,17 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
   border:1px solid ${AINUBIS.edge};color:${AINUBIS.inkFaint};}
 .akw-tag.is-kind{border-color:${AINUBIS.ctaEdge};background:${AINUBIS.ctaTint};color:${AINUBIS.ctaA};}
 
-/* ODPOVEĎ AINUBISA — jeho vlastný šat vnútri karty človeka. */
-.akw-ai{padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;
-  border:1px solid ${AINUBIS.ctaEdge};background:${AINUBIS.ctaTint};}
-/* Keď mozog o téme nič nemá, blok stratí zlato — nie je to odpoveď, je to
-   priznanie. Zlatý lem by mu dal váhu, ktorú nemá. */
-.akw-ai.is-blank{border-color:${AINUBIS.edge};background:${AINUBIS.raised};}
+/* ODPOVEĎ AINUBISA — SVETELNÝ RAIL, nie box v boxe (voľba C1, 24. 9. 2026).
+   Predtým tu bol orámovaný blok vnútri karty a v ňom ďalší blok DO THIS: tri
+   lemy na sebe, ktoré oko číta ako tri úradné dokumenty. Premerané na boarde:
+   3 úrovne vnorenia. Rail povie „toto hovorí stroj" rovnako jasne a NEPRIDÁ
+   úroveň — a ten istý rail nesie jeho hlas aj v chate, takže obe roviny konečne
+   vyzerajú ako jeden prístroj. */
+.akw-ai{${AI_RAIL}}
+.akw-ai::before{${AI_RAIL_BEFORE}}
+/* Keď mozog o téme nič nemá, rail zhasne do jeho zlatej — nie je to odpoveď,
+   je to priznanie. Cyan by mu dal váhu znalosti, ktorú nemá. */
+.akw-ai.is-blank::before{${AI_RAIL_BLANK}}
 .akw-aihd{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;
   font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;line-height:1;
   letter-spacing:${PACK_HEAD.section.letterSpacing};color:${AINUBIS.inkFaint};}
@@ -238,10 +309,10 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
 /* RIADOK „FROM" — jediné, čím sa toto líši od diskusného fóra, a zároveň
    vchod do knižnice. */
 .akw-from{display:flex;align-items:center;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;
-  margin-top:${PACK_SPACE.md}px;padding-top:${PACK_SPACE.md}px;border-top:1px solid ${AINUBIS.ctaEdge};
+  margin-top:${PACK_SPACE.md}px;padding-top:${PACK_SPACE.md}px;border-top:1px solid ${AINUBIS.edge};
   font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;line-height:1.4;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
-.akw-ai.is-blank .akw-from{border-top-color:${AINUBIS.edge};}
+
 .akw-from b{font-weight:500;letter-spacing:0.02em;text-transform:none;font-size:${PACK_TEXT.label}px;
   color:${AINUBIS.cyan};}
 .akw-from button{margin-left:auto;display:flex;align-items:center;gap:${PACK_SPACE.xs}px;cursor:pointer;
@@ -440,18 +511,63 @@ const mask = (ic: string) => ({
 });
 const worldOf = (key: string) => VAULT_WORLDS.find((w) => w.key === key);
 
-function Post({ post, onLibrary }: { post: WallPost; onLibrary: () => void }) {
+/** Hlavička karty — tá istá v plagáte aj v prekryve (lock §4.1: objekt má
+ *  jednu kartu, nech je kdekoľvek). */
+function PostHead({ post }: { post: WallPost }) {
+  const w = worldOf(post.world);
+  return (
+    <div className="akw-phead">
+      <span className="akw-av" aria-hidden>{post.initial}</span>
+      <span className="akw-who"><b>{post.who}</b><em>{post.dog}</em></span>
+      {w && <span className="akw-world"><i aria-hidden style={mask(w.ic)} />{w.en}</span>}
+    </div>
+  );
+}
+
+/** PLAGÁT — čo je na nástenke. Celá karta je jedno tlačidlo. */
+function Post({ post, onOpen }: { post: WallPost; onOpen: () => void }) {
+  return (
+    <button type="button" className="akw-post" style={aiWorld(post.world)} onClick={onOpen}>
+      <PostHead post={post} />
+      <p className="akw-ptxt akw-clamp">{post.text}</p>
+      <div className={`akw-ai${post.ai.blank ? ' is-blank' : ''}`}>
+        <div className="akw-aihd">
+          <img className="akw-aiface ai-breathe-face" src={ainubisFace} alt="" aria-hidden />
+          <span><i>AI</i>NUBIS</span>
+        </div>
+        <p className="akw-vd akw-clamp">
+          {verdictParts(post.ai.verdict).map((x, i) => (
+            x.hi ? <b key={i}>{x.t}</b> : <Fragment key={i}>{x.t}</Fragment>
+          ))}
+        </p>
+      </div>
+      <div className="akw-met">
+        <s><HandPaw size={13} /><b>{post.paws}</b></s>
+        {/* ⚠️ IKONKA ODPOVEDE V KITE NIE JE — podľa brand locku je to dôvod vypýtať
+            si kresbu od Mateja, nie siahnuť po lucide alebo emoji. Kým nie je,
+            stojí tu holé slovo. 🚩 NA MATEJA. */}
+        <s><b>{post.replies.length + post.moreReplies}</b> replies</s>
+        {!post.ai.blank && <s><b>{post.ai.scrolls}</b> scrolls</s>}
+        {post.ai.blank && <s style={{ color: AINUBIS.ctaA }}>empty world</s>}
+        <u>open{chev}</u>
+      </div>
+    </button>
+  );
+}
+
+/** PREKRYV — celý príspevok. To, čo tu je, na nástenke ZÁMERNE nie je. */
+function PostFull({ post, onLibrary, onClose }: {
+  post: WallPost; onLibrary: () => void; onClose: () => void;
+}) {
   const [paw, setPaw] = useState(false);
   const [saved, setSaved] = useState(false);
   const [why, setWhy] = useState<number | null>(null);
-  const w = worldOf(post.world);
   return (
-    <article className="akw-post">
-      <div className="akw-phead">
-        <span className="akw-av" aria-hidden>{post.initial}</span>
-        <span className="akw-who"><b>{post.who}</b><em>{post.dog}</em></span>
-        {w && <span className="akw-world"><i aria-hidden style={mask(w.ic)} />{w.en}</span>}
-      </div>
+    <article className="akw-post akw-sheet" style={aiWorld(post.world)}>
+      <button type="button" className="akw-x" aria-label="Close" onClick={onClose}>
+        <HandArrowLeft size={15} />
+      </button>
+      <PostHead post={post} />
       <p className="akw-ptxt">{post.text}</p>
       <div className="akw-tags">
         {post.tags.map((tag, i) => (
@@ -461,7 +577,7 @@ function Post({ post, onLibrary }: { post: WallPost; onLibrary: () => void }) {
 
       <div className={`akw-ai${post.ai.blank ? ' is-blank' : ''}`}>
         <div className="akw-aihd">
-          <img className="akw-aiface" src={ainubisFace} alt="" aria-hidden />
+          <img className="akw-aiface ai-breathe-face" src={ainubisFace} alt="" aria-hidden />
           <span><i>AI</i>NUBIS answered first</span>
         </div>
         <p className="akw-aibody">{post.ai.body}</p>
@@ -580,16 +696,31 @@ function SourceCard({ s }: { s: VaultSource }) {
   );
 }
 
-export function VaultWall({ onBack, tab, onTab }: {
+export function VaultWall({ onBack, tab, onTab, post, onPost }: {
   /** Jedno gesto von (A2) — vracia na rovinu VAULT, tak ako šípka v chate. */
   onBack: () => void;
   tab: 'pack' | 'mine' | 'lib';
   onTab: (t: 'pack' | 'mine' | 'lib') => void;
+  /** 🔴 OTVORENÁ KARTA ŽIJE V ADRESE (`?post=<id>`), rovnako ako rovina a
+   *  záložka. Vlastní ju `PackAinubis`, aby bolo jedno miesto, ktoré rozhoduje
+   *  o adrese — a aby sa dal odkaz poslať. */
+  post: string | null;
+  onPost: (id: string | null) => void;
 }) {
   /** Filter je VRSTVA nad tým istým obsahom, nie ďalšia záložka (lock §1.3). */
   const [world, setWorld] = useState<string | null>(null);
   const [kinds, setKinds] = useState(false);
   const posts = world ? DEMO_WALL.filter((p) => p.world === world) : DEMO_WALL;
+
+  /* ⚠️ Zavrieť sa musí dať aj klávesnicou — prekryv, z ktorého sa nedá vyjsť
+     Escapom, je pasca pre každého, kto nemá myš. */
+  const open = post ? DEMO_WALL.find((p) => p.id === post) ?? null : null;
+  useEffect(() => {
+    if (!open) return undefined;
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') onPost(null); };
+    window.addEventListener('keydown', esc);
+    return () => window.removeEventListener('keydown', esc);
+  }, [open, onPost]);
 
   return (
     <section className="akw-root" aria-label="Board">
@@ -648,7 +779,7 @@ export function VaultWall({ onBack, tab, onTab }: {
               </p>
               <button type="button" className="akw-new"><HandPlus size={14} />Share an experience or a problem</button>
               <div className="akw-grid">
-                {posts.map((p) => <Post key={p.id} post={p} onLibrary={() => onTab('lib')} />)}
+                {posts.map((p) => <Post key={p.id} post={p} onOpen={() => onPost(p.id)} />)}
               </div>
               {posts.length === 0 && <p className="akw-mock">Nothing in this world yet.</p>}
             </>
@@ -740,6 +871,13 @@ export function VaultWall({ onBack, tab, onTab }: {
           )}
         </div>
       </div>
+      {open && (
+        <div className="pk-veil pk-veil--modal akw-scrim" role="dialog" aria-modal="true"
+          onClick={(e) => { if (e.target === e.currentTarget) onPost(null); }}>
+          <PostFull post={open} onLibrary={() => { onPost(null); onTab('lib'); }}
+            onClose={() => onPost(null)} />
+        </div>
+      )}
     </section>
   );
 }

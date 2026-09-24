@@ -31,10 +31,14 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import {
   PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI,
 } from '@/components/pack/packTheme';
-import { AINUBIS } from '@/components/pack/ainubisSkin';
+import {
+  AINUBIS, AI_GLASS, AI_RAIL_BEFORE, AI_BREATHE_CSS,
+} from '@/components/pack/ainubisSkin';
 import { HandArrowLeft } from '@/components/pack/HandIcons';
 /* Tvár AINUBISA — tá istá, ktorú nesie guľa widgetu. Ikonku si pýtať netreba. */
 import ainubisFace from '@/assets/ainubis-badge.png';
+import { mountBrain } from './brainEngine';
+import { VAULT_WORLDS } from './worlds';
 import {
   DEMO_CHATS, DEMO_SCROLLS, DEMO_CONTEXT, DEMO_FORMS, FORM_ORDER,
   DEMO_PENDING, DEMO_REPLY, DEMO_STARTERS, DEMO_DOGS, SCOPE_GENERAL, scopeChoices, demoVerdict,
@@ -55,6 +59,7 @@ const RAIL_W = 320;
 const THREAD_W = 760;
 
 export const VAULT_CHAT_CSS = `
+${AI_BREATHE_CSS}
 /* ── PÁS HISTÓRIE ──────────────────────────────────────────────────────────
    Z Claude si berieme pás vľavo, nový rozhovor jedným klikom, zoskupenie po
    dňoch a hľadanie v nich. Neberieme si prázdnu pravú plochu. */
@@ -252,7 +257,29 @@ export const VAULT_CHAT_CSS = `
 .akc-head{grid-row:1;}
 .akc-msgs{grid-row:2;}
 .akc-ask{grid-row:3;}
-.akc-msgs{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:${PACK_SPACE.lg}px;}
+/* 🔴 OZVENA MOZGU ZA VLÁKNOM (voľba D1, 24. 9. 2026).
+   Matej: „chat je už o čosi horší" — a merateľný dôvod bol, že pod krátkou
+   odpoveďou ostalo 600 px mŕtvej čiernej. Čierna plocha nehovorí nič; pôsobí
+   ako chyba načítania, nie ako pokoj.
+   🔴 NIE JE TO TAPETA — je to TO ISTÉ PLÁTNO ako vo VAULTE (brainEngine),
+   stlmené. Chat sa tým stane pohľadom do toho istého mozgu, nie druhou appkou.
+   ⚠️ NEINTERAKTÍVNE: pointer-events:none. Keby sa dalo chytiť, človek by
+      ťahal mozgom pri písaní otázky. */
+.akc-msgs{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:${PACK_SPACE.lg}px;
+  position:relative;}
+.akc-echo{position:absolute;inset:0;width:100%;height:100%;display:block;
+  pointer-events:none;opacity:0.06;z-index:0;}
+/* ⚠️ Na 0,10 sa dali ČÍTAŤ mená svetov a ozvena súperila s odpoveďou. Má sa
+   cítiť, nie čítať — 0,06 je hranica, za ktorou plátno prestane byť obsahom. */
+.akc-in{position:relative;z-index:1;}
+/* ⚠️ D2 „štyri otázky v prázdnom rozhovore" SA NESTAVALO — už tu je.
+   24. 9. 2026 som ho postavil a na obrazovke stáli DVA rady návrhov nad sebou:
+   môj a NewChatIntro (ABOUT · TRY), ktorý je navyše lepší — pozná meno psa.
+   Nákres ho nemal, lebo som kreslil chat s vyplneným vláknom.
+   🔴 Ponechané to, čo tu bolo. Nový povrch sa nepridáva k tomu, čo už tú prácu robí.
+   [[feedback_navrh_pred_zmeranim_hotoveho_povrchu]] */
+}
+@media (prefers-reduced-motion:reduce){.akc-echo{display:none;}}
 /* ⚠️ VLÁKNO MÁ MERANÚ ŠÍRKU — stĺpec rastie s oknom, riadok odpovede nie. */
 .akc-in{max-width:${THREAD_W}px;margin:0 auto;display:flex;flex-direction:column;gap:${PACK_SPACE.xl}px;}
 .akc-me-msg{align-self:flex-end;max-width:82%;padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;
@@ -260,15 +287,22 @@ export const VAULT_CHAT_CSS = `
   font-size:${PACK_TEXT.body}px;color:${AINUBIS.ink};
   background:rgba(${AINUBIS.cyanRGB},0.14);border:1px solid ${AINUBIS.edge};}
 .akc-ai{align-self:stretch;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
+.akc-body{position:relative;}
 .akc-aihd{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;
   font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;line-height:1;
   letter-spacing:${PACK_HEAD.section.letterSpacing};color:${AINUBIS.inkFaint};}
 /* MENO JE VŽDY <AI>NUBIS — „AI" cyanom. Záporný margin vracia medzeru, ktorú
    za písmenom I nechalo rozstrelenie: bez neho meno vyzerá ako AI NUBIS. */
 .akc-aihd i{font-style:normal;color:${AINUBIS.aiInk};margin-right:-0.22em;}
-.akc-body{padding:${PACK_SPACE.lg}px;border-radius:${PACK_R.card}px;border-top-left-radius:${PACK_R.field}px;
-  font-size:${PACK_TEXT.body}px;color:${AINUBIS.inkDim};
-  background:${AINUBIS.raised};border:1px solid ${AINUBIS.edge};}
+/* TELO ODPOVEDE — AI-SKLO + SVETELNÝ RAIL (24. 9. 2026, voľby A3 + C1).
+   Predtým to bol plochý blok s jedným lemom a na čiernom podklade splýval
+   s pozadím: hore aj dole mal tú istú hodnotu. Rail je ten istý, aký má
+   AINUBIS na nástenke — to je jediné, čím sa obe roviny tvária ako jeden
+   prístroj, a nie ako dve appky vedľa seba. */
+.akc-body{padding:${PACK_SPACE.lg}px;padding-left:${PACK_SPACE.xl}px;
+  border-radius:${PACK_R.card}px;border-top-left-radius:${PACK_R.field}px;
+  font-size:${PACK_TEXT.body}px;color:${AINUBIS.inkDim};${AI_GLASS}}
+.akc-body::before{${AI_RAIL_BEFORE}left:${PACK_SPACE.lg}px;top:${PACK_SPACE.lg}px;bottom:${PACK_SPACE.lg}px;}
 .akc-body p{margin:0 0 ${PACK_SPACE.md}px;}
 .akc-body p:last-of-type{margin:0;}
 .akc-body b{color:${AINUBIS.ink};font-weight:500;}
@@ -838,6 +872,33 @@ export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
 
   const waiting = mine.filter((p) => p.status === 'wait').length;
 
+  /* ── OZVENA MOZGU ─────────────────────────────────────────────────────────
+     Ten istý engine ako vo VAULTE, nie druhý renderer: keby to bola vlastná
+     kresba hviezd, rozišla by sa s mozgom pri prvej zmene tvaru a chat by
+     ukazoval mozog, ktorý neexistuje.
+     ⚠️ Všetky vstupy sú no-op — plátno nikto nechytí (pointer-events:none),
+        takže `describe`/`onWorld` sa nemajú ako spustiť; sú tu preto, že ich
+        rozhranie vyžaduje. */
+  const echoRef = useRef<HTMLCanvasElement>(null);
+  const echoTipRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const cv = echoRef.current, tip = echoTipRef.current;
+    if (!cv || !tip) return undefined;
+    const h = mountBrain({
+      canvas: cv, tip, worlds: VAULT_WORLDS, head: ainubisFace,
+      isMobile: () => window.innerWidth < 1024,
+      worldName: (wi) => VAULT_WORLDS[wi].en,
+      circleName: () => '',
+      insets: () => ({ top: 0, bottom: 0 }),
+      describe: () => null,
+      onWorld: () => {},
+      onRoot: () => {},
+    });
+    const ro = new ResizeObserver(() => h.resize());
+    ro.observe(cv);
+    return () => { ro.disconnect(); h.destroy(); };
+  }, []);
+
   return (
     <>
       <aside className="akc-rail" aria-label="Conversations">
@@ -847,7 +908,7 @@ export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
           <HandArrowLeft size={16} />
         </button>
         <div className="akc-railid">
-          <span className="akc-face"><img src={ainubisFace} alt="" aria-hidden /></span>
+          <span className="akc-face ai-breathe-face"><img src={ainubisFace} alt="" aria-hidden /></span>
           <div className="akc-railtop">
             <div className="akc-railname"><i>AI</i>NUBIS</div>
             <div className="akc-railsub">the vault · 569 scrolls</div>
@@ -942,6 +1003,8 @@ export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
         </header>
 
         <div className="akc-msgs" ref={msgsRef}>
+          <canvas className="akc-echo" ref={echoRef} aria-hidden />
+          <div className="akc-echotip" ref={echoTipRef} aria-hidden />
           <div className="akc-in">
             {chat.msgs.map((m, i) => {
               if (isMe(m)) return <div className="akc-me-msg" key={i}>{m.me}</div>;

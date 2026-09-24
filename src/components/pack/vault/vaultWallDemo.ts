@@ -32,6 +32,15 @@ export interface WallReply {
 
 /** Odpoveď AINUBISA pod príspevkom. */
 export interface WallAnswer {
+  /**
+   * 🔴 VERDIKT = JEDNA VETA (voľba B1, 24. 9. 2026). Toto je to JEDINÉ, čo
+   * z odpovede vidno na nástenke; `body` sa otvorí až v karte.
+   * Premerané pred zmenou: karta mala 592–1037 znakov a 534–844 px, na obrazovku
+   * sa zmestila 1,2 karty. Nie je to skratka odpovede — je to jej pointa.
+   * ⚠️ Hviezdičky `*takto*` zvýraznia kúsok vety (`verdictParts`). Je to jediná
+   *    značka, ktorú veta pozná; markdown sa sem nevláči.
+   */
+  verdict: string;
   body: string;
   /** Jedna vec, ktorú má človek urobiť. Zlatá, lebo je to výzva, nie fakt. */
   advice?: string;
@@ -80,6 +89,7 @@ export const DEMO_WALL: WallPost[] = [
     text: 'After a longer hike she limps on a hind leg. By morning it is gone. Should I be dealing with this, or is it normal tiredness?',
     tags: ['problem', 'movement', 'looking for advice'],
     ai: {
+      verdict: 'Limping that clears overnight is a *distance limit*, not the joint.',
       body: 'Limping that disappears overnight usually comes from overloaded soft tissue, not from the joint itself. What matters is the pattern: if it returns after every hike beyond a certain distance, that distance is not tiredness — it is her limit. A limp that lasts into a second day, or that shows up after rest rather than after effort, is a different animal and belongs to a vet.',
       advice: 'Write down the distance and the day after, three hikes in a row. The number is what the vet will ask for first.',
       scrolls: 3, world: 'Problems', circle: 'Movement and pain',
@@ -100,6 +110,7 @@ export const DEMO_WALL: WallPost[] = [
     text: 'I stopped using his name when telling him off and his recall got better within a week.',
     tags: ['experience', 'training'],
     ai: {
+      verdict: 'The vault has *no scroll on training* yet — I will not dress an opinion up as knowledge.',
       body: 'The vault has nothing on this yet. Training is one of the seven worlds and not a single scroll of it is written — the brain today knows feeding, the body, herbs and parasites. I am not going to dress an opinion up as knowledge.',
       scrolls: 0, world: 'Training', circle: '', blank: true,
     },
@@ -115,6 +126,7 @@ export const DEMO_WALL: WallPost[] = [
     text: 'I pulled a tick off her head this morning and the spot is red. How long do I watch it?',
     tags: ['problem', 'prevention', 'parasites'],
     ai: {
+      verdict: 'A red ring right after removal is a *reaction to the bite*, not an infection.',
       body: 'A red ring at the site right after removal is usually a reaction to the bite itself and settles within a day or two. What you are watching for is the opposite of fast: a spreading ring days later, a dog that is flat, off food, warm, or stiff in the joints. Those are weeks-later signs, not hours-later ones.',
       advice: 'Mark today in the calendar. If she changes in the next six weeks, the vet needs this date more than the tick.',
       scrolls: 4, world: 'Prevention', circle: 'Fleas, ticks and heartworm',
@@ -131,6 +143,7 @@ export const DEMO_WALL: WallPost[] = [
     text: 'He throws up yellow bile in the morning before his first meal. Is that a stomach problem?',
     tags: ['problem', 'nutrition', 'looking for advice'],
     ai: {
+      verdict: 'Morning bile is usually the *night gap*, not the food.',
       body: 'An empty stomach for long hours is the common explanation — bile collects and irritates it. The usual answer is not a different food but a different clock: the same daily ration split so the night gap is shorter. If it keeps happening after that, or if there is weight loss behind it, the vomiting stops being about the gap.',
       advice: 'Move part of his dinner to late evening for two weeks and watch the mornings.',
       scrolls: 6, world: 'Nutrition', circle: 'Practical feeding',
@@ -158,3 +171,7 @@ export const DEMO_WALL: WallPost[] = [
  *    a zvitky môžu"* — sedem je teda strop a rad filtrov sa nemá kam rozrásť.
  *    Presne preto je to dobrá os na filtrovanie a štítky ňou neboli.
  */
+
+/** Rozdelí vetu verdiktu na kúsky; `*takto*` je zvýraznené. Jediná značka. */
+export const verdictParts = (v: string): { t: string; hi: boolean }[] =>
+  v.split(/\*([^*]+)\*/g).map((t, i) => ({ t, hi: i % 2 === 1 })).filter((x) => x.t !== '');

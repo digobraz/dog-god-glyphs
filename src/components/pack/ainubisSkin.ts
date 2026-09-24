@@ -41,6 +41,7 @@ const BG = '#071019';
 const BG_DEEP = '#03070C';
 const CTA_A = '#F5C73D';
 const CTA_B = '#E69E1A';
+const CTA_RGB = '245,199,61';
 
 export const AINUBIS = {
   /** Cyborg cyan — jeho určujúca farba. Vedomá odchýlka od brand v3.2. */
@@ -99,7 +100,7 @@ export const AINUBIS = {
   /** Zastávky CTA gradientu samostatne (plná plocha čipu, tint `rgba(${ctaRGB},a)`). */
   ctaA: CTA_A,
   ctaB: CTA_B,
-  ctaRGB: '245,199,61',
+  ctaRGB: CTA_RGB,
   /** Lem okolo jeho zlatej, keď NEJDE o tlačidlo (štítok, sľub, odznak). Existuje ako
    *  token preto, že stráž `check:pack` meria rám DOSLOVNOU farbou: `rgba(245,199,61,…)`
    *  napísané v komponente je odchýlka, `AINUBIS.ctaEdge` je matrica. */
@@ -126,3 +127,114 @@ export const AINUBIS = {
   faceBg: 'radial-gradient(circle at 35% 28%, #12233a 0%, #01050A 74%)',
   faceRing: `0 0 0 1.5px rgba(${CYAN_RGB},0.45), 0 0 16px rgba(${GLOW_RGB},0.38)`,
 } as const;
+
+// ════════════════════════════════════════════════════════════════════════════
+// AI-SKLO — MATERIÁL JEHO KARIET (2026-09-24)
+// ────────────────────────────────────────────────────────────────────────────
+// Matej 24. 9.: „potrebujeme zatraktívniť všetky karty pridať tomu hĺbku, odlesk
+// … ako maybach medzi trabantami … profesionálne minimalistické a uhladené."
+// Nákres `plany/nakres-ainubis-material-2026-09-24.html`, voľba A3.
+//
+// NIE JE TO NOVÝ BLOK DO KATALÓGU. Je to MATERIÁL existujúcej AI-PALUBY — to,
+// z čoho je karta, nie ďalšie meno vedľa KARTY a PODBLOKU.
+//
+// Hĺbku nerobí tieň, robia ju TRI VRSTVY:
+//   1. odlesk `inset 0 1px 0` — horná hrana chytá svetlo, karta prestane byť
+//      obdĺžnikom a stane sa doskou,
+//   2. lem, ktorý smerom DOLE zhasína — karta stojí vo svetle zhora,
+//   3. dosvit vo farbe sveta — nástenka sa dá čítať farbou skôr než slovom.
+//
+// 🔴 VÝPLŇ MUSÍ BYŤ NEPRIESVITNÁ. Gradientový lem sa kreslí cez `border-box`,
+//    teda pod CELOU kartou — nie iba pod tým jedným pixelom rámu. Cez priesvitnú
+//    výplň presvitá a zafarbí celú plochu (v nákrese z toho bol ružový obdĺžnik).
+//    Preto je medzi tintom a lemom `GLASS_FILL`, a je krycí.
+//    [[feedback_gradientovy_lem_presvita_cez_vypln]]
+//
+// 🔴 VOLÁ SA BEZ PARAMETROV, ako `goldFrameCSS()` na papyruse. Farbu sveta nesie
+//    premenná `--ai-w` (RGB trojica) nastavená na prvku; bez nej je to cyan.
+//    Parameter by znamenal toľko kópií odliatku, koľko je svetov.
+// ⚠️ `check:pack` preskakuje `ainubisSkin.ts`, NIE komponenty. Preto sem patrí
+//    celý odliatok a v komponente stojí len `${AI_GLASS}` — literál farby
+//    napísaný vo `VaultWall.tsx` by stráž (právom) zhodil.
+// ════════════════════════════════════════════════════════════════════════════
+
+/** Krycia výplň skla. Bez nej presvitá lem cez celú kartu (viď hlavičku). */
+const GLASS_FILL = `linear-gradient(180deg,#0A1622 0%,#04080E 100%)`;
+
+/** Materiál karty. Vkladá sa DO pravidla: `.karta{${AI_GLASS}}`. */
+export const AI_GLASS = `
+  border:1px solid transparent;
+  background:
+    radial-gradient(85% 34% at 50% -4%,rgba(var(--ai-w,${CYAN_RGB}),0.16) 0%,transparent 72%) padding-box,
+    linear-gradient(180deg,rgba(${CYAN_RGB},0.06) 0%,rgba(${CYAN_RGB},0.02) 55%,rgba(${CYAN_RGB},0) 100%) padding-box,
+    ${GLASS_FILL} padding-box,
+    linear-gradient(180deg,rgba(var(--ai-w,${CYAN_RGB}),0.55) 0%,rgba(${CYAN_RGB},0.14) 42%,rgba(${CYAN_RGB},0.05) 100%) border-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.10),
+    0 18px 40px -22px rgba(0,0,0,0.90),
+    0 0 50px -18px rgba(var(--ai-w,${CYAN_RGB}),0.55);
+`;
+
+/** Hlas stroja v karte — svetelný rail namiesto boxu v boxe (voľba C1).
+ *  ⚠️ Rámik navyše je najlacnejší spôsob, ako z centrály urobiť úradný formulár.
+ *  Dvojpixelová svietiaca čiara povie „toto hovorí stroj" rovnako jasne
+ *  a NEPRIDÁ úroveň vnorenia. Ten istý rail nesie jeho hlas aj v chate. */
+export const AI_RAIL = `
+  position:relative;padding-left:16px;border:0;background:transparent;
+`;
+export const AI_RAIL_BEFORE = `
+  content:'';position:absolute;left:0;top:2px;bottom:2px;width:2px;border-radius:999px;
+  background:linear-gradient(180deg,${CYAN},rgba(${CYAN_RGB},0.05));
+  box-shadow:0 0 12px rgba(${CYAN_RGB},0.60);
+`;
+/** Keď mozog na tému nič nemá: rail zhasne do jeho zlatej, nie do cyanu. */
+export const AI_RAIL_BLANK = `
+  background:linear-gradient(180deg,${CTA_A},rgba(${CTA_RGB},0.05));
+  box-shadow:0 0 12px rgba(${CTA_RGB},0.45);
+`;
+
+/** DÝCHANIE — 6 s, a dýcha LEN to, čo hovorí stroj (jeho tvár, jeho karta).
+ *  🔴 Obsah človeka NIKDY. Inak je z centrály vianočný stromček.
+ *  Vloží sa raz do CSS povrchu, prvok ho berie triedou `.ai-breathe`. */
+export const AI_BREATHE_CSS = `
+@keyframes aiBreathe{
+  0%,100%{box-shadow:inset 0 1px 0 rgba(255,255,255,0.10),0 18px 40px -22px rgba(0,0,0,0.90),
+    0 0 44px -20px rgba(var(--ai-w,${CYAN_RGB}),0.38);}
+  50%{box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 18px 40px -22px rgba(0,0,0,0.90),
+    0 0 58px -12px rgba(var(--ai-w,${CYAN_RGB}),0.62);}
+}
+.ai-breathe{animation:aiBreathe 6s ease-in-out infinite;}
+@media (prefers-reduced-motion:reduce){.ai-breathe{animation:none;}}
+
+/* Tá istá vec na jeho TVÁRI — tam, kde karta patrí človeku a dýchať nemá čo.
+   Prstenec okolo hlavy, nie kus obsahu. Toto je „centrála, ktorá dýcha": jeden
+   bod na obrazovke, ktorý sa hýbe, a nič iné. */
+@keyframes aiBreatheFace{
+  0%,100%{box-shadow:0 0 0 1.5px rgba(${CYAN_RGB},0.40), 0 0 12px rgba(${GLOW_RGB},0.28);}
+  50%{box-shadow:0 0 0 1.5px rgba(${CYAN_RGB},0.60), 0 0 20px rgba(${GLOW_RGB},0.50);}
+}
+.ai-breathe-face{animation:aiBreatheFace 6s ease-in-out infinite;}
+@media (prefers-reduced-motion:reduce){.ai-breathe-face{animation:none;}}
+`;
+
+// ── FARBA SVETA — nesie ju DOSVIT, nie výplň ─────────────────────────────────
+// ⚠️ NIE JE TO NOVÁ PALETA APPKY. Sú to odtiene JEHO displeja a fungujú rovnako
+//    ako farba obrysu mapovej značky: nesú DRUH, nie ozdobu (CLAUDE.md, značka
+//    na mape sa nezjednocuje — je to ÚDAJ).
+// 🚩 NA MATEJA: štyri z nich sú jeho existujúce tokeny (danger · ctaA · ok ·
+//    glow), tri zvyšné sú dopočítané do rovnakej rodiny. Sedem odtieňov je
+//    brandové rozhodnutie — pozri si ich vedľa seba skôr, než to pôjde ďalej.
+export const WORLD_TINT: Readonly<Record<string, string>> = {
+  problems: '255,138,122',      // = danger
+  training: '245,199,61',       // = ctaA
+  prevention: '127,215,154',    // = ok
+  understanding: GLOW_RGB,      // = glow
+  dogsPath: '198,164,255',      // dopočítané
+  anatomy: CYAN_RGB,            // = cyan
+  nutrition: '255,176,122',     // dopočítané
+} as const;
+
+/** `style={aiWorld(key)}` na karte — nastaví `--ai-w`, inak ostane cyan. */
+export const aiWorld = (key?: string): Record<string, string> =>
+  (key && WORLD_TINT[key] ? { ['--ai-w']: WORLD_TINT[key] } : {});
+

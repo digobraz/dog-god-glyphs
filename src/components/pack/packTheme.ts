@@ -1216,7 +1216,7 @@ export const VEIL_CSS = `
    PACK_VEIL.modal je TEPLÁ hneď (rgba(24,14,4,…)) — namiešaná na papyrus.
    Na AINUBISOVOM studenom displeji by to bol hnedý film cez modrý prístroj.
    Preto ten istý recept, tá istá tmavosť aj rozmazanie, a povrch mení už len
-   ODTIEŇ cez `--pk-veil` — rovnako, ako SKLENENÁ DOSKA berie `--pk-stage`.
+   ODTIEŇ cez --pk-veil — rovnako, ako SKLENENÁ DOSKA berie --pk-stage.
    🔴 Nie je to povolenie zvoliť si vlastnú tmavosť: krytie 0,72 je v oboch. */
 .pk-veil--modal{
   background:var(--pk-veil, ${PACK_VEIL.modal});
