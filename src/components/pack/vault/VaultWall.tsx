@@ -1,34 +1,30 @@
 // ════════════════════════════════════════════════════════════════════════════
-// AINUBIS · ROVINA NÁSTENKA — MAKETA (24. 9. 2026)
+// AINUBIS · ROVINA NÁSTENKA — MAKETA v2 (24. 9. 2026)
 // ────────────────────────────────────────────────────────────────────────────
-// Nákres `plany/nakres-nastenka-zdroje-2026-09-24.html`. Matej nad ním vybral
-// **A1 · B2 · C2 · D2 · E2 · F1**:
+// Prvá podoba (ráno 24. 9.) sa Matejovi nepáčila a vrátil ju. Nákres
+// `plany/nakres-nastenka-v2-2026-09-24.html`, nad ním vybral
+// **A2 · B1 · C1 · D1 · E1 · F2 · G2**:
 //
-//   A1  spodná lišta OSTÁVA a pilulka NÁSTENKA ostáva viditeľná. Nástenka je
-//       ČÍTANIE (kôš 2), nie úloha — inak by záložka viedla tam, kde sama zmizne.
-//       🔴 Preto sa tento povrch NECHOVÁ ako chat: `.akv-top` a `PackBottomNav`
-//          ostávajú vykreslené; skrýva sa len nábytok VAULTU (mozog, jeho
-//          hľadanie a filtre, prepínač DOGSCROLL/BRAIN).
-//   B2  príspevok NEMÁ pilulku typu — druh je PRVÝ ŠTÍTOK v rade (lock §4.3).
-//   C2  na karte je packa + štvorica z locku (🐾 uložiť · poslať) a ODPOVEDAŤ.
-//       ➕ „použiť" je LEN na odpovedi AINUBISA (zápis do DOG ID), nie na cudzom
-//       texte — nemá zmysel zapisovať si do DOG ID vetu suseda.
-//   D2  rada od človeka nesie PEČAŤ. Bez percent: „na 64 % overené" predstiera
-//       presnosť, ktorú nemáme. Tri polohy — sedí · vault to nepozná · vault
-//       hovorí inak (a prečo, po kliknutí).
-//   E2  zoznam zdrojov má vlastnú adresu `/pack/ainubis/sources`; odtiaľto naň
-//       vedú DVA z troch vchodov (riadok „from" pod odpoveďou a riadok pod
-//       mojimi príspevkami). Tretí je päta VAULTu.
+//   A2  🔴 SPODNÁ LIŠTA TU NIE JE, JE TU ŠÍPKA SPÄŤ. Koreň je MIESTO, nie
+//       rovina: `/pack/ainubis` je piaty slot chrbtice, ale pristáva na VAULTE.
+//       CHAT aj NÁSTENKA sú o krok hlbšie ⇒ jedno gesto von (lock §3).
+//       Ruší to ranné A1 („lišta ostáva") — a s ním aj spor dvoch plusov.
+//   B1  🔴 MRIEŽKA, NIE ČITATEĽSKÝ STĹPEC. Ráno som z nástenky spravil stĺpec
+//       760 px (šírka článku) a zmizli tým tri karty vedľa seba, ktoré mal
+//       nákres v5. Nástenka je NÁSTENKA: auto-fill minmax(360px) so STROPOM.
+//   C1  nálepka sveta vpravo hore, kde bola zrušená pilulka typu.
+//   D1  filtre = sedem svetov, tie isté ako v mozgu.
+//   E1  tretia záložka KNIŽNICA — zoznam zdrojov + pridávanie za DEVOTION.
+//   F2/G2 sú v `VaultChat.tsx`.
 //
-// 🔴 LEN V DEVE (`import.meta.env.DEV`), rovnako ako maketa chatu. Naostro
-//    ostáva pilulka NÁSTENKA zamknutá so „soon".
+// 🔴 LEN V DEVE (`import.meta.env.DEV`). Naostro ostáva pilulka zamknutá.
 //    [[feedback_rozostavanu_vec_stavaj_za_zamknute_dvere]]
 //
-// ⚠️ ŠTVORICA HOVORÍ KITOM, NIE EMOJI. Presne ako `StoryCard.tsx` (Matej
-//    22. 9.): `HandPaw` · `HandStar` · `HandForward` · `HandPlus`. Emoji kreslí
-//    operačný systém a na každom zariadení inak; výnimku má len mapa.
 // ⚠️ MOJE PRÍSPEVKY = TEN ISTÝ ZOZNAM, AKÝ MÁ CHAT (`DEMO_PENDING`). Lock §4.1:
-//    objekt má jednu kartu, nech je kdekoľvek. Druhá kópia by sa rozišla.
+//    objekt má jednu kartu, nech je kdekoľvek.
+// ⚠️ ŠTVORICA HOVORÍ KITOM, NIE EMOJI — ako `StoryCard.tsx` (Matej 22. 9.).
+// ⚠️ DEVOTION SA TU LEN SĽUBUJE, NEPRIPISUJE. Rebríček a kalkulačka sú vlastná
+//    session (Matej 24. 9.: „rozoberieme"); `grant-devotion` sa nedotýka.
 // ════════════════════════════════════════════════════════════════════════════
 import { useState } from 'react';
 import {
@@ -37,66 +33,134 @@ import {
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { HandPaw, HandStar, HandForward, HandPlus, HandArrowLeft } from '@/components/pack/HandIcons';
 import ainubisFace from '@/assets/ainubis-badge.png';
-import { DEMO_WALL, WALL_FILTERS, type WallPost, type SealKind } from './vaultWallDemo';
+import { VAULT_WORLDS } from './worlds';
+import { DEMO_WALL, type WallPost, type SealKind } from './vaultWallDemo';
 import { DEMO_PENDING } from './vaultChatDemo';
-import { VAULT_SOURCE_TOTALS } from './vaultSources';
+import {
+  VAULT_SOURCES, VAULT_SOURCE_TOTALS, SOURCE_KINDS, SOURCES_CLAUSE,
+  WEB_RESEARCH_EXISTS, consensusPct, type VaultSource,
+} from './vaultSources';
 
-/** Meraná šírka stĺpca príspevkov. Tá istá ako vlákno chatu (telo článku
- *  z locku `pack-dizajn-system.md`), nie 832 px obrazovky: nástenka je text,
- *  a príspevok roztiahnutý na 27" sa číta ako tabuľka. */
-const WALL_W = 760;
+/* 🔴 STROP MRIEŽKY JE POVINNÝ (nákres v5, r. 707): bez neho vznikne na 27"
+   piaty stĺpec s kartami po 300 px a z nástenky je tabuľka. */
+const GRID_MIN = 360;
+const GRID_MAX = 1560;
+
+/** Meno tretej záložky. Matej 24. 9.: „možno by sme mohli použiť mozog namiesto
+ *  zdroje?" — MOZOG je obsadený (pohľad MOZOG ⇄ DOGSCROLL vo VAULTE, plátno
+ *  brainEngine.ts), takže by sa tak volali dve rôzne veci. KNIŽNICA hovorí,
+ *  čo to je, a znesie aj 500 položiek. Je to jedna konštanta — prepnúť sa dá
+ *  za sekundu. */
+const LIBRARY = 'Library';
 
 export const VAULT_WALL_CSS = `
 /* ── ČO Z VAULTU V TEJTO ROVINE NIE JE ─────────────────────────────────────
-   🔴 A1: lišta a roviny OSTÁVAJÚ (na rozdiel od chatu). Mizne len nábytok
-   VAULTU — hľadanie v svetoch, jeho filtre a prepínač MOZOG/DOGSCROLL nemajú
-   nad nástenkou čo robiť. Mozog sa NEVYKRESĽUJE: plocha ho aj tak celý kryje
-   a plátno pod ňou by len prekresľovalo. */
+   🔴 A2: mizne CELÝ horný pás aj mozog — nástenka má vlastnú hlavičku so
+   šípkou. Spodnú lištu nevykresľuje PackAinubis (nie skrýva: navRef v nej
+   publikuje --pack-nav-h a skrytá by appke tvrdila, že pod obsahom je 68 px). */
 .akv-root[data-plane="wall"] .akv-brain,
+.akv-root[data-plane="wall"] .akv-top,
 .akv-root[data-plane="wall"] .akv-ctl,
-.akv-root[data-plane="wall"] .akv-ptools,
-.akv-root[data-plane="wall"] .akv-mtools,
 .akv-root[data-plane="wall"] .akv-mactions{display:none;}
 /* Guľa chatu nad lištou by na nástenke prekryla akcie karty. */
 body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;pointer-events:none;}
 
-.akw-root{position:absolute;z-index:3;inset:0;display:flex;flex-direction:column;overflow:hidden;
-  background:${AINUBIS.surfaceBase};padding-top:var(--akv-top-h,112px);}
+/* 🔴 STĹPEC MRIEŽKY SA MUSÍ POMENOVAŤ, INAK SA ROZTIAHNE NA MIN-CONTENT.
+   Implicitný auto track má minimum min-content — a to je pri rolujúcich
+   pásoch so zápornými okrajmi 886 px. Premerané 24. 9. na 390 px: .akw-list
+   mala clientWidth 886 v 390 px okne, mriežka kariet si z toho vzala DVA
+   stĺpce po 419 px a nástenka sa dala rolovať do strany.
+   minmax(0,1fr) drží stĺpec na šírke okna a preteká až obsah, ktorý na to
+   má vlastné overflow. */
+.akw-root{position:absolute;z-index:3;inset:0;display:grid;
+  grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);
+  overflow:hidden;background:${AINUBIS.surfaceBase};}
+/* ⚠️ Riadky mriežky priraďujem MENOM, nie poradím — presne tá pasca, ktorá
+   v chate odviazala písacie pole od spodku (prvok s display:none z mriežky
+   vypadne a zvyšné si posunú riadky). */
+.akw-head{grid-row:1;}
+.akw-list{grid-row:2;}
 
-/* ── HLAVA — ZÁLOŽKY A FILTRE ──────────────────────────────────────────────
-   Záložka mení OBSAH (svorka / moje príspevky), filter je vrstva nad tým istým
-   obsahom (lock §1.3). Preto sú to dva rady, nie jeden. */
-.akw-head{flex:0 0 auto;width:100%;max-width:${WALL_W + 2 * PACK_SPACE.lg}px;margin:0 auto;
-  display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;
-  padding:0 ${PACK_SPACE.lg}px ${PACK_SPACE.md}px;border-bottom:1px solid ${AINUBIS.edge};}
-.akw-tabs{display:flex;gap:${PACK_SPACE.sm}px;}
+/* ── HLAVA ─────────────────────────────────────────────────────────────────
+   Riadok 1 = šípka + meno roviny. Riadok 2 = záložky, deliaca čiara a svety. */
+.akw-head{min-width:0;border-bottom:1px solid ${AINUBIS.edge};
+  padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.md}px)
+    ${PACK_SPACE.lg}px ${PACK_SPACE.md}px;
+  display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
+.akw-htop{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
+.akw-back{width:32px;height:32px;flex:0 0 32px;display:flex;align-items:center;justify-content:center;
+  border-radius:${PACK_R.pill}px;cursor:pointer;
+  border:1px solid ${AINUBIS.edge};background:${AINUBIS.raised};color:${AINUBIS.cyan};}
+.akw-back:hover{border-color:${AINUBIS.edgeStrong};}
+.akw-htop h1{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;line-height:1.1;
+  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.ink};}
+.akw-count{margin-left:auto;font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;
+  letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
+
+/* ── ZÁLOŽKY — TRI FARBY (Matej 24. 9.: „mali by sme rozlíšiť farebne") ─────
+   Farba nie je ozdoba, hovorí ČÍ je ten obsah:
+     SVORKA   cyan  — hlas appky, sem píšu ľudia
+     MOJE     zlatá — moje veci a ich stav (čaká / v mozgu / zamietnuté je už zlaté)
+     KNIŽNICA modrá — svit vaultu, tá istá farba ako nálepka sveta na karte
+   ⚠️ Výber je TINT + LEM, nikdy plná plocha — tá patrí jedinému CTA (brand). */
+/* 🔴 NA MOBILE SÚ TO DVA RIADKY. Tri záložky majú spolu ~360 px, čo je na 390 px
+   celá šírka — v jednom rade so svetmi pretiekol pás z okna, potiahol so sebou
+   celý koreň a mriežka kariet si z toho vzala TRI stĺpce mimo obrazovky.
+   Deliaca čiara a jeden rad sú PC vec (Matej 24. 9.: „vedľa za deliacu čiaru
+   (na PC)"), tak sú aj v kóde len tam. */
+.akw-bar{display:flex;flex-direction:column;align-items:stretch;gap:${PACK_SPACE.md}px;min-width:0;}
+/* Aj samotné záložky na 390 px rolujú — inak sa tretia oreže. */
+.akw-tabs{display:flex;gap:${PACK_SPACE.sm}px;flex:0 0 auto;min-width:0;
+  overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;
+  margin:0 -${PACK_SPACE.lg}px;padding:0 ${PACK_SPACE.lg}px;}
+.akw-tabs::-webkit-scrollbar{display:none;}
+.akw-tab{flex:0 0 auto;}
 .akw-tab{padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.pill}px;cursor:pointer;
   border:1px solid ${AINUBIS.edge};background:transparent;color:${AINUBIS.inkDim};white-space:nowrap;
   font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;line-height:15px;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;}
-/* Výber je priesvitný TINT — plná plocha patrí jedinému CTA (brand). */
-.akw-tab[aria-current="page"]{color:${AINUBIS.ink};background:rgba(${AINUBIS.cyanRGB},0.16);
-  border-color:${AINUBIS.edgeStrong};}
-/* 🔴 FILTRE SA NEZALAMUJÚ, ROLUJÚ. Na 390 px sa päť štítkov zalomilo do dvoch
-   radov a hlavička zjedla 690 z 844 px — prvý príspevok začínal pod ohybom.
-   Vodorovné rolovanie je tá istá voľba, akú má rad chipov na /map. */
-.akw-filters{display:flex;flex-wrap:nowrap;gap:${PACK_SPACE.sm}px;
+.akw-tab[data-t="pack"][aria-current="page"]{color:${AINUBIS.cyan};
+  border-color:${AINUBIS.edgeStrong};background:rgba(${AINUBIS.cyanRGB},0.16);}
+.akw-tab[data-t="mine"][aria-current="page"]{color:${AINUBIS.ctaA};
+  border-color:${AINUBIS.ctaEdge};background:${AINUBIS.ctaTint};}
+.akw-tab[data-t="lib"][aria-current="page"]{color:${AINUBIS.glow};
+  border-color:${AINUBIS.glowEdge};background:${AINUBIS.glowTint};}
+/* Deliaca čiara medzi „čo pozerám" a „podľa čoho filtrujem" — len na PC,
+   kde stoja v jednom rade (Matej 24. 9.: „vedľa za deliacu čiaru (na PC)"). */
+.akw-div{display:none;flex:0 0 auto;width:1px;align-self:stretch;background:${AINUBIS.edge};}
+.akw-worlds{display:flex;flex-wrap:nowrap;gap:${PACK_SPACE.sm}px;min-width:0;
   overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;
   margin:0 -${PACK_SPACE.lg}px;padding:0 ${PACK_SPACE.lg}px;}
-.akw-filters::-webkit-scrollbar{display:none;}
-.akw-fchip{flex:0 0 auto;}
-.akw-fchip{padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;
+.akw-worlds::-webkit-scrollbar{display:none;}
+/* 🔴 FILTRE SA NEZALAMUJÚ, ROLUJÚ. Osem chipov (všetko + 7 svetov) sa na 390 px
+   zalomí do troch radov a hlavička zožerie polovicu obrazovky. */
+.akw-wchip{flex:0 0 auto;display:flex;align-items:center;gap:${PACK_SPACE.xs}px;
+  padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;
   border:1px solid ${AINUBIS.edge};background:transparent;color:${AINUBIS.inkDim};
   font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;line-height:1.35;letter-spacing:0.02em;}
-.akw-fchip[aria-pressed="true"]{color:${AINUBIS.cyan};border-color:${AINUBIS.edgeStrong};
-  background:rgba(${AINUBIS.cyanRGB},0.16);}
+.akw-wchip i{width:14px;height:14px;flex:0 0 14px;background:currentColor;}
+.akw-wchip[aria-pressed="true"]{color:${AINUBIS.glow};border-color:${AINUBIS.glowEdge};
+  background:${AINUBIS.glowTint};}
 
-.akw-list{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
-  padding:${PACK_SPACE.lg}px ${PACK_SPACE.lg}px calc(var(--pack-nav-h,68px) + ${PACK_SPACE.xxl}px);}
-.akw-in{max-width:${WALL_W}px;margin:0 auto;display:flex;flex-direction:column;gap:${PACK_SPACE.lg}px;}
+.akw-list{min-height:0;min-width:0;overflow-y:auto;overscroll-behavior:contain;
+  padding:${PACK_SPACE.lg}px ${PACK_SPACE.lg}px ${PACK_SPACE.xxl}px;}
+.akw-in{max-width:${GRID_MAX}px;margin:0 auto;}
+
+/* ── MRIEŽKA (B1) ──────────────────────────────────────────────────────────
+   Presne to, čo mal nákres v5: karty vedľa seba, nie čitateľský stĺpec.
+   Na 1440 px tri, na 27" štyri, na mobile jedna — počet je vec šírky, nie
+   pevného čísla. align-items:start drží karty rôznej výšky pri hornej hrane. */
+/* ⚠️ min(360px,100%), NIE holých 360 px. Na 390 px má stĺpec k dispozícii 358 —
+   pevné dno 360 by kartu vytlačilo z okna a celá obrazovka by sa dala rolovať
+   do strany (premerané 24. 9.: mriežka si vzala tri stĺpce mimo obrazovky). */
+.akw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(${GRID_MIN}px,100%),1fr));
+  gap:${PACK_SPACE.lg}px;align-items:start;}
+/* Zoznamy (moje príspevky, knižnica) sú stĺpec — sú to RIADKY, nie karty. */
+.akw-col{display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;max-width:900px;}
 
 /* PÍSANIE JE JEDINÉ CTA NA OBRAZOVKE — preto jediná plná plocha. */
 .akw-new{align-self:flex-start;display:flex;align-items:center;gap:${PACK_SPACE.sm}px;cursor:pointer;border:0;
+  margin-bottom:${PACK_SPACE.lg}px;
   padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.field}px;
   font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;line-height:1;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;
@@ -104,46 +168,53 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
 .akw-new:hover{background:${AINUBIS.ctaGradHover};}
 
 /* ── KARTA PRÍSPEVKU ───────────────────────────────────────────────────────
-   Jedna kresba pre nástenku, feed aj profil (lock §4.1). Je to KARTA (r16)
-   z katalógu blokov, nie nový tvar. */
+   Jedna kresba pre nástenku, feed aj profil (lock §4.1). KARTA (r16). */
 .akw-post{border-radius:${PACK_R.card}px;border:1px solid ${AINUBIS.edge};
-  background:rgba(3,7,12,0.35);overflow:hidden;}
-.akw-phead{display:flex;align-items:center;gap:${PACK_SPACE.md}px;padding:${PACK_SPACE.lg}px ${PACK_SPACE.lg}px 0;}
+  background:rgba(3,7,12,0.35);overflow:hidden;
+  display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;
+  padding:${PACK_SPACE.lg}px;}
+.akw-phead{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
 .akw-av{width:34px;height:34px;flex:0 0 34px;border-radius:${PACK_R.pill}px;
   display:flex;align-items:center;justify-content:center;
   border:1px solid ${AINUBIS.edge};background:${AINUBIS.faceBg};
   font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;line-height:1;color:${AINUBIS.cyan};}
-/* 🔴 HLAVIČKA JE MENO A PES, NIC INE (B2). Pilulka typu, ktorú mal nákres v5
-   vpravo hore, zanikla — druh nesie prvý štítok dole. */
+.akw-who{min-width:0;}
 .akw-who b{display:block;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.body}px;
-  line-height:1.3;color:${AINUBIS.ink};}
-.akw-who em{font-style:normal;font-size:${PACK_TEXT.micro}px;line-height:1.4;
-  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
-.akw-ptxt{margin:${PACK_SPACE.md}px ${PACK_SPACE.lg}px 0;font-size:${PACK_TEXT.body}px;line-height:1.55;
-  color:${AINUBIS.inkDim};}
-.akw-tags{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;margin:${PACK_SPACE.md}px ${PACK_SPACE.lg}px 0;}
+  line-height:1.3;color:${AINUBIS.ink};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.akw-who em{display:block;font-style:normal;font-size:${PACK_TEXT.micro}px;line-height:1.4;
+  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* 🔴 NÁLEPKA SVETA (C1) — vpravo hore, kde bola zrušená pilulka typu.
+   MODRÁ je farba vaultu: nálepka hovorí „tento príspevok patrí do sveta X",
+   a tá istá modrá svieti na záložke KNIŽNICA a na vybranom filtri. Druh
+   (problém · skúsenosť) je ZLATÝ štítok dole — dve osi, dve farby. */
+.akw-world{margin-left:auto;flex:0 0 auto;display:flex;align-items:center;gap:${PACK_SPACE.xs}px;
+  padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
+  border:1px solid ${AINUBIS.glowEdge};background:${AINUBIS.glowTint};color:${AINUBIS.glow};
+  font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;line-height:1.4;
+  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;white-space:nowrap;}
+.akw-world i{width:13px;height:13px;flex:0 0 13px;background:currentColor;}
+.akw-ptxt{margin:0;font-size:${PACK_TEXT.body}px;line-height:1.55;color:${AINUBIS.inkDim};}
+.akw-tags{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;}
 .akw-tag{padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
   font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;line-height:1.4;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;
   border:1px solid ${AINUBIS.edge};color:${AINUBIS.inkFaint};}
-/* PRVÝ ŠTÍTOK NESIE DRUH. Odlišuje ho FARBA, nie iný tvar ani iné miesto —
-   keby mal vlastný tvar, bol by z neho zase typ (B1) pod iným menom. */
 .akw-tag.is-kind{border-color:${AINUBIS.ctaEdge};background:${AINUBIS.ctaTint};color:${AINUBIS.ctaA};}
 
 /* ODPOVEĎ AINUBISA — jeho vlastný šat vnútri karty človeka. */
-.akw-ai{margin:${PACK_SPACE.md}px ${PACK_SPACE.lg}px 0;padding:${PACK_SPACE.md}px;
-  border-radius:${PACK_R.tile}px;border:1px solid ${AINUBIS.ctaEdge};background:${AINUBIS.ctaTint};}
+.akw-ai{padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;
+  border:1px solid ${AINUBIS.ctaEdge};background:${AINUBIS.ctaTint};}
 /* Keď mozog o téme nič nemá, blok stratí zlato — nie je to odpoveď, je to
    priznanie. Zlatý lem by mu dal váhu, ktorú nemá. */
 .akw-ai.is-blank{border-color:${AINUBIS.edge};background:${AINUBIS.raised};}
 .akw-aihd{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;
   font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;line-height:1;
   letter-spacing:${PACK_HEAD.section.letterSpacing};color:${AINUBIS.inkFaint};}
-/* MENO JE VŽDY <AI>NUBIS — záporný margin vracia medzeru zjedenú rozstrelením. */
+/* MENO JE VŽDY AI + NUBIS — záporný margin vracia medzeru zjedenú rozstrelením. */
 .akw-aihd i{font-style:normal;color:${AINUBIS.aiInk};text-shadow:${AINUBIS.aiShadow};margin-right:-0.22em;}
 .akw-aiface{width:20px;height:20px;flex:0 0 20px;border-radius:${PACK_R.pill}px;object-fit:cover;}
 .akw-aibody{margin:${PACK_SPACE.sm}px 0 0;font-size:${PACK_TEXT.body}px;line-height:1.55;color:${AINUBIS.inkDim};}
-/* RADA — jedna vec, ktorú má človek urobiť. Zhodná s .akc-advice v chate. */
 .akw-advice{margin-top:${PACK_SPACE.md}px;padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;
   border:1px solid ${AINUBIS.ctaEdge};background:${AINUBIS.ctaTint};
   font-size:${PACK_TEXT.body}px;line-height:1.5;color:${AINUBIS.ink};}
@@ -151,7 +222,7 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
   letter-spacing:${PACK_HEAD.label.letterSpacing};text-transform:uppercase;color:${AINUBIS.ctaA};
   margin-bottom:${PACK_SPACE.sm}px;}
 /* RIADOK „FROM" — jediné, čím sa toto líši od diskusného fóra, a zároveň
-   PRVÝ Z TROCH VCHODOV do zoznamu zdrojov (voľba E2). */
+   vchod do knižnice. */
 .akw-from{display:flex;align-items:center;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;
   margin-top:${PACK_SPACE.md}px;padding-top:${PACK_SPACE.md}px;border-top:1px solid ${AINUBIS.ctaEdge};
   font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;line-height:1.4;
@@ -165,21 +236,22 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
   font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;line-height:1.2;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;}
 .akw-from button:hover{border-color:${AINUBIS.edgeStrong};}
+/* Kresba v kite je šípka DOĽAVA — vpravo za textom musí ukázať dopredu. */
 .akw-from button .akw-chev{display:inline-flex;transform:rotate(180deg);}
-/* ➕ POUŽIŤ — jediná akcia, ktorá na nástenke patrí LEN AINUBISOVI (C2). */
+/* ➕ POUŽIŤ — jediná akcia, ktorá na nástenke patrí LEN AINUBISOVI. */
 .akw-use{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;margin-top:${PACK_SPACE.md}px;cursor:pointer;
   padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
   border:1px solid ${AINUBIS.edge};background:${AINUBIS.raised};color:${AINUBIS.inkDim};
   font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;line-height:1.35;}
 .akw-use:hover{border-color:${AINUBIS.edgeStrong};color:${AINUBIS.cyan};}
 
-/* ── RADY OD ĽUDÍ + PEČAŤ (D2) ─────────────────────────────────────────────
+/* ── RADY OD ĽUDÍ + PEČAŤ ──────────────────────────────────────────────────
    🔴 BEZ PERCENT. Tri polohy, každá z tokenov ainubisSkin:
      sedí        → ok (zelená rozjasnená na tmavý podklad)
      nepozná     → tichý cyanový lem, žiadna farba stavu
      hovorí inak → jeho ZLATÁ, nie červená: červená v tomto šate znamená
                    BLOKOVANIE, a rozpor s vaultom nie je zákaz. */
-.akw-reps{display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;margin:${PACK_SPACE.md}px ${PACK_SPACE.lg}px 0;}
+.akw-reps{display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .akw-rep{font-size:${PACK_TEXT.body}px;line-height:1.5;color:${AINUBIS.inkDim};}
 .akw-rep b{color:${AINUBIS.ink};font-weight:500;}
 .akw-seal{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;margin-left:${PACK_SPACE.sm}px;
@@ -194,14 +266,13 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
   border-radius:${PACK_R.tile}px;border:1px solid ${AINUBIS.ctaEdge};background:${AINUBIS.ctaTint};
   font-size:${PACK_TEXT.label}px;line-height:1.5;color:${AINUBIS.inkDim};}
 .akw-more{display:flex;align-items:center;gap:${PACK_SPACE.xs}px;align-self:flex-start;
-  margin-top:${PACK_SPACE.md}px;padding:0;border:0;background:none;cursor:pointer;
+  padding:0;border:0;background:none;cursor:pointer;
   font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;color:${AINUBIS.cyan};}
 .akw-more .akw-chev{display:inline-flex;transform:rotate(180deg);}
 
-/* ── ŠTVORICA + ODPOVEDAŤ (C2) ─────────────────────────────────────────────
+/* ── ŠTVORICA + ODPOVEDAŤ ──────────────────────────────────────────────────
    🔴 Žiadna z nich neodnesie človeka preč z nástenky (lock §4.2). */
-.akw-foot{display:flex;align-items:center;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;
-  padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px ${PACK_SPACE.lg}px;}
+.akw-foot{display:flex;align-items:center;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;margin-top:auto;}
 .akw-act{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;cursor:pointer;
   padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
   border:1px solid ${AINUBIS.edge};background:${AINUBIS.raised};color:${AINUBIS.inkDim};
@@ -211,18 +282,15 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
 .akw-reply{margin-left:auto;}
 
 /* ── MOJE PRÍSPEVKY ────────────────────────────────────────────────────────
-   Ten istý zoznam, aký nesie chat (DEMO_PENDING) — a pod ním DRUHÝ VCHOD
-   do zdrojov. Stav je TINT + LEM, nikdy plná plocha. */
+   Ten istý zoznam, aký nesie chat (DEMO_PENDING). Stav je TINT + LEM. */
 .akw-my{display:flex;gap:${PACK_SPACE.md}px;align-items:flex-start;padding:${PACK_SPACE.md}px;
   border-radius:${PACK_R.frame}px;border:1px solid ${AINUBIS.edge};background:rgba(3,7,12,0.35);}
-/* Rovnaká šírka pre všetky štyri druhy — inak si nadpisy pod sebou poskakujú
-   podľa toho, či je to LINK alebo INSIGHT. */
 .akw-kind{flex:0 0 auto;min-width:76px;text-align:center;
   padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
   border:1px solid ${AINUBIS.edge};color:${AINUBIS.inkFaint};
   font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;line-height:1.4;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;}
-.akw-my .akw-mytx{min-width:0;flex:1 1 auto;}
+.akw-mytx{min-width:0;flex:1 1 auto;}
 .akw-my b{display:block;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.body}px;line-height:1.35;
   color:${AINUBIS.ink};}
 .akw-my em{font-style:normal;display:block;margin-top:${PACK_SPACE.xs}px;font-size:${PACK_TEXT.label}px;
@@ -235,35 +303,82 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
 .akw-myst u.is-no{color:${AINUBIS.danger};}
 .akw-myst i{font-style:normal;display:block;margin-top:${PACK_SPACE.xs}px;font-size:${PACK_TEXT.micro}px;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
-/* VCHOD DO ZDROJOV — tu si o zdroje pýta ten, kto práve niečo posiela. */
-.akw-entry{display:flex;align-items:center;gap:${PACK_SPACE.md}px;width:100%;text-align:left;cursor:pointer;
-  padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.tile}px;
-  border:1px dashed ${AINUBIS.edge};background:rgba(3,7,12,0.30);color:${AINUBIS.inkDim};
-  font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;line-height:1.4;}
-.akw-entry:hover{border-color:${AINUBIS.edgeStrong};}
-.akw-entry b{margin-left:auto;display:flex;align-items:center;gap:${PACK_SPACE.xs}px;
-  font-weight:500;color:${AINUBIS.cyan};white-space:nowrap;}
-.akw-entry b .akw-chev{display:inline-flex;transform:rotate(180deg);}
+
+/* ── KNIŽNICA ──────────────────────────────────────────────────────────────
+   Klauzula stojí HORE a nie je to drobné písmo v päte: je to prvá veta, ktorú
+   človek na tejto obrazovke prečíta (Matej 24. 9.). */
+.akw-clause{border-radius:${PACK_R.tile}px;border:1px solid ${AINUBIS.glowEdge};
+  background:${AINUBIS.glowTint};padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;
+  font-size:${PACK_TEXT.label}px;line-height:1.55;color:${AINUBIS.inkDim};}
+.akw-src{border-radius:${PACK_R.frame}px;border:1px solid ${AINUBIS.edge};
+  background:rgba(3,7,12,0.35);padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;}
+/* Čerstvo pridaný zdroj je v zozname HNEĎ — ale bledo a so stavom. */
+.akw-src.is-pending{border-style:dashed;background:transparent;}
+.akw-srchd{display:flex;align-items:flex-start;gap:${PACK_SPACE.md}px;}
+.akw-src h2{margin:0;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.body}px;line-height:1.35;
+  color:${AINUBIS.ink};}
+.akw-src.is-pending h2{color:${AINUBIS.inkFaint};}
+.akw-au{margin:${PACK_SPACE.xs}px 0 0;font-size:${PACK_TEXT.label}px;line-height:1.45;color:${AINUBIS.inkFaint};}
+/* ODKAZ NA ORIGINÁL — klauzula hovorí „autori urobili prácu, my na ňu ukazujeme",
+   toto je to ukázanie. ⚠️ Affiliate ešte neexistuje (Matej: „doladíme, vyrobíme
+   si affiliate"), takže tlačidlo je ZATIAĽ MŔTVE a povie to — mŕtvy odkaz, ktorý
+   vyzerá živo, je horší než žiadny. */
+.akw-buy{flex:0 0 auto;margin-left:auto;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
+  border:1px dashed ${AINUBIS.edge};background:transparent;color:${AINUBIS.inkFaint};cursor:default;
+  font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;line-height:1.4;
+  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;white-space:nowrap;}
+/* 🔴 PRUH ROZSUDKU — konsenzus · tradícia · autorský postoj. Merané z korpusu
+   (pole status na každom zvitku), nie vymyslené skóre. Je to ÚDAJ, takže
+   nesie tri farby, nie jednu: zelená = zhoda odboru, modrá = tradícia,
+   zlatá = autor si to myslí a nesie k tomu protiváhu. */
+.akw-split{display:flex;height:4px;border-radius:${PACK_R.pill}px;overflow:hidden;
+  margin:${PACK_SPACE.md}px 0 ${PACK_SPACE.sm}px;background:rgba(${AINUBIS.cyanRGB},0.12);}
+.akw-split i{display:block;height:100%;}
+.akw-split i.c{background:${AINUBIS.ok};}
+.akw-split i.t{background:${AINUBIS.glow};}
+.akw-split i.a{background:${AINUBIS.ctaA};}
+.akw-mt{display:flex;flex-wrap:wrap;align-items:center;gap:${PACK_SPACE.md}px;font-size:${PACK_TEXT.micro}px;
+  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
+.akw-mt b{color:${AINUBIS.cyan};font-weight:500;}
+.akw-mt s{text-decoration:none;color:${AINUBIS.ok};}
+.akw-devo{margin-left:auto;display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;
+  padding:2px ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;
+  border:1px solid ${AINUBIS.ctaEdge};background:${AINUBIS.ctaTint};color:${AINUBIS.ctaA};
+  font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;line-height:1.5;
+  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;}
+/* PRÁZDNY RIADOK — zdroj, ktorý NEEXISTUJE. Nie nula medzi číslami. */
+.akw-none{border-radius:${PACK_R.frame}px;border:1px dashed ${AINUBIS.edge};background:transparent;
+  padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;color:${AINUBIS.inkFaint};}
+.akw-none h2{margin:0;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.body}px;line-height:1.35;
+  color:${AINUBIS.inkFaint};}
+.akw-none p{margin:${PACK_SPACE.xs}px 0 0;font-size:${PACK_TEXT.label}px;line-height:1.45;}
+/* PONUKA DRUHOV ZDROJA — otvorí ju zlaté CTA. */
+.akw-kinds{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;margin-bottom:${PACK_SPACE.lg}px;}
+.akw-kbtn{display:flex;flex-direction:column;gap:2px;align-items:flex-start;cursor:pointer;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;
+  border:1px solid ${AINUBIS.edge};background:${AINUBIS.raised};color:${AINUBIS.inkDim};text-align:left;}
+.akw-kbtn:hover{border-color:${AINUBIS.edgeStrong};}
+.akw-kbtn b{font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;line-height:1.3;
+  color:${AINUBIS.ink};}
+.akw-kbtn em{font-style:normal;font-size:${PACK_TEXT.micro}px;line-height:1.4;color:${AINUBIS.inkFaint};}
+.akw-kbtn u{text-decoration:none;margin-top:2px;font-size:${PACK_TEXT.micro}px;
+  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.ctaA};}
 
 /* Priznanie, že je to maketa. Stojí hneď hore — nie v päte, kam sa nescrolluje. */
 .akw-mock{border-radius:${PACK_R.tile}px;border:1px dashed ${AINUBIS.edge};background:${AINUBIS.raised};
   padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;font-size:${PACK_TEXT.label}px;line-height:1.5;
-  color:${AINUBIS.inkFaint};}
+  color:${AINUBIS.inkFaint};margin-bottom:${PACK_SPACE.lg}px;}
 .akw-mock b{color:${AINUBIS.cyan};font-weight:600;}
 
 @media (min-width:1024px){
-  /* NÁSTENKA JE CELÁ PLOCHA, nie pravý stĺpec vedľa mozgu — mozog v nej nie je.
-     Horný pás sa preto musí vrátiť nad celé okno (vo VAULTE začína za panelom)
-     a pilulky rovín, ktoré na PC žijú v ľavom bloku VAULTU, sa vracajú hore:
-     bez nich by sa z nástenky nedalo prepnúť späť (A1). */
-  .akv-root[data-plane="wall"] .akv-top{left:${PACK_SPACE.xl}px;right:${PACK_SPACE.xl}px;}
-  /* Pilulky rovín sa zarovnávajú so STĹPCOM obsahu, nie s krajom okna — inak
-     visí prepínač o 300 px vľavo od záložiek, ktoré sú pod ním. */
-  .akv-root[data-plane="wall"] .akv-toprow{display:flex;width:100%;
-    max-width:${WALL_W + 2 * PACK_SPACE.xxl}px;margin:0 auto;}
-  .akv-root[data-plane="wall"] .akv-planes{flex:0 1 420px;}
-  .akw-head{max-width:${WALL_W + 2 * PACK_SPACE.xxl}px;padding:0 ${PACK_SPACE.xxl}px ${PACK_SPACE.lg}px;}
-  .akw-list{padding:${PACK_SPACE.xl}px ${PACK_SPACE.xxl}px calc(var(--pack-nav-h,68px) + ${PACK_SPACE.xxl}px);}
+  .akw-head{padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.xl}px)
+    ${PACK_SPACE.xxl}px ${PACK_SPACE.md}px;}
+  .akw-list{padding:${PACK_SPACE.xl}px ${PACK_SPACE.xxl}px ${PACK_SPACE.xxl}px;}
+  /* Záložky a svety stoja v JEDNOM rade, oddelené čiarou (Matej 24. 9.). */
+  .akw-bar{flex-direction:row;align-items:center;}
+  .akw-tabs,.akw-worlds{margin:0;padding:0;overflow:visible;}
+  .akw-worlds{overflow-x:auto;}
+  .akw-div{display:block;}
 }
 `;
 
@@ -274,16 +389,25 @@ const SEAL_TEXT: Record<SealKind, string> = {
 };
 
 const chev = <span className="akw-chev" aria-hidden><HandArrowLeft size={12} /></span>;
+const mask = (ic: string) => ({
+  WebkitMaskImage: `url(/icons/pack/${ic}.svg)`, maskImage: `url(/icons/pack/${ic}.svg)`,
+  WebkitMaskSize: 'contain', maskSize: 'contain',
+  WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat',
+  WebkitMaskPosition: 'center', maskPosition: 'center',
+});
+const worldOf = (key: string) => VAULT_WORLDS.find((w) => w.key === key);
 
-function Post({ post, onSources }: { post: WallPost; onSources: () => void }) {
+function Post({ post, onLibrary }: { post: WallPost; onLibrary: () => void }) {
   const [paw, setPaw] = useState(false);
   const [saved, setSaved] = useState(false);
   const [why, setWhy] = useState<number | null>(null);
+  const w = worldOf(post.world);
   return (
     <article className="akw-post">
       <div className="akw-phead">
         <span className="akw-av" aria-hidden>{post.initial}</span>
         <span className="akw-who"><b>{post.who}</b><em>{post.dog}</em></span>
+        {w && <span className="akw-world"><i aria-hidden style={mask(w.ic)} />{w.en}</span>}
       </div>
       <p className="akw-ptxt">{post.text}</p>
       <div className="akw-tags">
@@ -308,7 +432,7 @@ function Post({ post, onSources }: { post: WallPost; onSources: () => void }) {
               <b>{post.ai.scrolls} scrolls · {post.ai.world} › {post.ai.circle}</b>
             </>
           )}
-          <button type="button" onClick={onSources}>where this comes from{chev}</button>
+          <button type="button" onClick={onLibrary}>where this comes from{chev}</button>
         </div>
         {!post.ai.blank && (
           <button type="button" className="akw-use">
@@ -325,15 +449,17 @@ function Post({ post, onSources }: { post: WallPost; onSources: () => void }) {
               className={`akw-seal is-${r.seal}`}
               role={r.why ? 'button' : undefined}
               tabIndex={r.why ? 0 : undefined}
-              onClick={r.why ? () => setWhy((w) => (w === i ? null : i)) : undefined}
-              onKeyDown={r.why ? (e) => { if (e.key === 'Enter' || e.key === ' ') setWhy((w) => (w === i ? null : i)); } : undefined}
+              onClick={r.why ? () => setWhy((v) => (v === i ? null : i)) : undefined}
+              onKeyDown={r.why ? (e) => { if (e.key === 'Enter' || e.key === ' ') setWhy((v) => (v === i ? null : i)); } : undefined}
             >
               {SEAL_TEXT[r.seal]}
             </span>
             {r.why && why === i && <div className="akw-why">{r.why}</div>}
           </div>
         ))}
-        <button type="button" className="akw-more">{post.moreReplies} more replies from the pack{chev}</button>
+        <button type="button" className="akw-more">
+          {post.moreReplies} more replies from the pack{chev}
+        </button>
       </div>
 
       {/* ŠTVORICA — packa nahrádza srdce (v DOGYPTe sa hodnotí packami),
@@ -352,48 +478,121 @@ function Post({ post, onSources }: { post: WallPost; onSources: () => void }) {
   );
 }
 
-export function VaultWall({ onSources }: { onSources: () => void }) {
-  const [tab, setTab] = useState<'pack' | 'mine'>('pack');
+function SourceCard({ s }: { s: VaultSource }) {
+  const pct = consensusPct(s);
+  const all = s.split.consensus + s.split.traditional + s.split.author;
+  const seg = (n: number) => (all > 0 ? `${(n / all) * 100}%` : '0%');
+  return (
+    <article className={`akw-src${s.pending ? ' is-pending' : ''}`}>
+      <div className="akw-srchd">
+        <div style={{ minWidth: 0 }}>
+          <h2>{s.title}</h2>
+          <p className="akw-au">{[s.author, s.year, s.extent, s.kind].filter(Boolean).join(' · ')}</p>
+        </div>
+        {/* Odkaz na originál patrí len tomu, čo sa dá kúpiť — vlastný text ani
+            slovenské skriptá sa na Amazone nedajú objednať. */}
+        {!s.pending && s.kind === 'book' && <span className="akw-buy">original · link soon</span>}
+      </div>
+
+      {s.pending ? (
+        <div className="akw-mt" style={{ marginTop: PACK_SPACE.md }}>
+          <span>added by {s.addedBy}</span>
+          <span>waiting {s.waiting} days</span>
+          {s.devotion != null && <span className="akw-devo">+{s.devotion} devotion when it passes</span>}
+        </div>
+      ) : (
+        <>
+          <div className="akw-split" aria-hidden>
+            <i className="c" style={{ width: seg(s.split.consensus) }} />
+            <i className="t" style={{ width: seg(s.split.traditional) }} />
+            <i className="a" style={{ width: seg(s.split.author) }} />
+          </div>
+          <div className="akw-mt">
+            {pct != null && <span><s>{pct} %</s> consensus</span>}
+            <span><b>{s.scrolls}</b> scrolls</span>
+            <span>{s.tags.join(' · ')}</span>
+            {s.addedBy && <span>added by {s.addedBy}</span>}
+          </div>
+        </>
+      )}
+    </article>
+  );
+}
+
+export function VaultWall({ onBack, tab, onTab }: {
+  /** Jedno gesto von (A2) — vracia na rovinu VAULT, tak ako šípka v chate. */
+  onBack: () => void;
+  tab: 'pack' | 'mine' | 'lib';
+  onTab: (t: 'pack' | 'mine' | 'lib') => void;
+}) {
   /** Filter je VRSTVA nad tým istým obsahom, nie ďalšia záložka (lock §1.3). */
-  const [tag, setTag] = useState<string | null>(null);
-  const posts = tag ? DEMO_WALL.filter((p) => p.tags.includes(tag)) : DEMO_WALL;
+  const [world, setWorld] = useState<string | null>(null);
+  const [kinds, setKinds] = useState(false);
+  const posts = world ? DEMO_WALL.filter((p) => p.world === world) : DEMO_WALL;
 
   return (
     <section className="akw-root" aria-label="Board">
       <header className="akw-head">
-        <div className="akw-tabs">
-          <button type="button" className="akw-tab" aria-current={tab === 'pack' ? 'page' : undefined}
-            onClick={() => setTab('pack')}>The pack</button>
-          <button type="button" className="akw-tab" aria-current={tab === 'mine' ? 'page' : undefined}
-            onClick={() => setTab('mine')}>My posts</button>
+        <div className="akw-htop">
+          <button type="button" className="akw-back" onClick={onBack} aria-label="Back">
+            <HandArrowLeft size={14} />
+          </button>
+          <h1>Board</h1>
+          {tab === 'lib' && (
+            <span className="akw-count">
+              {VAULT_SOURCE_TOTALS.documents} documents · {VAULT_SOURCE_TOTALS.scrolls} scrolls
+            </span>
+          )}
         </div>
-        {tab === 'pack' && (
-          <div className="akw-filters">
-            <button type="button" className="akw-fchip" aria-pressed={tag === null}
-              onClick={() => setTag(null)}>everything</button>
-            {WALL_FILTERS.map((f) => (
-              <button key={f} type="button" className="akw-fchip" aria-pressed={tag === f}
-                onClick={() => setTag((v) => (v === f ? null : f))}>{f}</button>
-            ))}
+        <div className="akw-bar">
+          <div className="akw-tabs">
+            <button type="button" className="akw-tab" data-t="pack" aria-current={tab === 'pack' ? 'page' : undefined}
+              onClick={() => onTab('pack')}>The pack</button>
+            <button type="button" className="akw-tab" data-t="mine" aria-current={tab === 'mine' ? 'page' : undefined}
+              onClick={() => onTab('mine')}>My posts</button>
+            <button type="button" className="akw-tab" data-t="lib" aria-current={tab === 'lib' ? 'page' : undefined}
+              onClick={() => onTab('lib')}>{LIBRARY}</button>
           </div>
-        )}
+          {/* Svety filtrujú len nástenku svorky — v mojich príspevkoch a v knižnici
+              by filtrovali zoznam, ktorý svety nemá. */}
+          {tab === 'pack' && (
+            <>
+              <span className="akw-div" aria-hidden />
+              <div className="akw-worlds">
+                <button type="button" className="akw-wchip" aria-pressed={world === null}
+                  onClick={() => setWorld(null)}>everything</button>
+                {VAULT_WORLDS.map((w) => (
+                  <button key={w.key} type="button" className="akw-wchip" aria-pressed={world === w.key}
+                    onClick={() => setWorld((v) => (v === w.key ? null : w.key))}>
+                    <i aria-hidden style={mask(w.ic)} />{w.en}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </header>
 
       <div className="akw-list">
         <div className="akw-in">
-          {tab === 'pack' ? (
+          {tab === 'pack' && (
             <>
               <p className="akw-mock">
                 <b>Mock-up.</b> Four posts, written by hand. What is real here is the shape:
-                AINUBIS answers first and names the scrolls he answers from — and when the
-                vault has nothing on the subject, he says so instead of inventing a source.
+                every post carries the world it belongs to, AINUBIS answers first and names the
+                scrolls he answers from — and when the vault has nothing on the subject, he says
+                so instead of inventing a source.
               </p>
               <button type="button" className="akw-new"><HandPlus size={14} />Share an experience or a problem</button>
-              {posts.map((p) => <Post key={p.id} post={p} onSources={onSources} />)}
-              {posts.length === 0 && <p className="akw-mock">Nothing under this tag yet.</p>}
+              <div className="akw-grid">
+                {posts.map((p) => <Post key={p.id} post={p} onLibrary={() => onTab('lib')} />)}
+              </div>
+              {posts.length === 0 && <p className="akw-mock">Nothing in this world yet.</p>}
             </>
-          ) : (
-            <>
+          )}
+
+          {tab === 'mine' && (
+            <div className="akw-col">
               <p className="akw-mock">
                 <b>What I sent into the brain, and what happened to it.</b> The same list the
                 chat shows — one post, one card, wherever you look at it.
@@ -410,12 +609,47 @@ export function VaultWall({ onSources }: { onSources: () => void }) {
                   </span>
                 </div>
               ))}
-              {/* DRUHÝ VCHOD DO ZDROJOV (E2). */}
-              <button type="button" className="akw-entry" onClick={onSources}>
-                The sources this brain stands on
-                <b>{VAULT_SOURCE_TOTALS.documents} documents{chev}</b>
+            </div>
+          )}
+
+          {tab === 'lib' && (
+            <div className="akw-col">
+              {/* 🔴 KLAUZULA HORE (Matej 24. 9.) — a je to popis toho, čo sa naozaj
+                  deje, nie právnická veta na okrasu. */}
+              <p className="akw-clause">{SOURCES_CLAUSE}</p>
+
+              <button type="button" className="akw-new" onClick={() => setKinds((v) => !v)}>
+                <HandPlus size={14} />Add a source
               </button>
-            </>
+              {kinds && (
+                <div className="akw-kinds">
+                  {SOURCE_KINDS.map((k) => (
+                    <button type="button" className="akw-kbtn" key={k.key}>
+                      <b>{k.label}</b><em>{k.hint}</em>
+                      {/* ⚠️ Číslo, ktoré ešte nepadlo, sa NEVYMÝŠĽA — povie sa to. */}
+                      <u>{k.devotion != null ? `+${k.devotion} devotion` : 'devotion tbd'}</u>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {VAULT_SOURCES.map((s) => <SourceCard key={s.key} s={s} />)}
+
+              {/* 🔴 NEEXISTUJÚCI ZDROJ SA NEPÍŠE AKO NULA. */}
+              {!WEB_RESEARCH_EXISTS && (
+                <div className="akw-none">
+                  <h2>Web research</h2>
+                  <p>None. AINUBIS cannot search the internet — everything above came in as a document.</p>
+                </div>
+              )}
+
+              <p className="akw-mock">
+                <b>Mock-up.</b> The scroll counts and the consensus split are measured from the
+                corpus as it stood on 24 September 2026 and written into the page. Before this
+                screen goes live it has to ask the corpus itself, or it will start lying about
+                the one thing it exists to prove.
+              </p>
+            </div>
           )}
         </div>
       </div>

@@ -36,7 +36,7 @@
 // 🚩 OTVORENÉ: chat ako rovina hore + stred mozgu ako vstup (postavené podľa odporúčania).
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { PackIdentityBar } from '@/components/pack/PackIdentityBar';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
@@ -376,7 +376,6 @@ export default function PackAinubis() {
   /* Zoznam zdrojov (`/pack/ainubis/sources`) je súčasť tej istej makety — jeho
      tri vchody sa preto zapínajú spolu s ňou, nie zvlášť. */
   const SOURCES_MOCK = import.meta.env.DEV;
-  const navigate = useNavigate();
   /* 🔴 ROVINA ŽIJE V ADRESE (`?plane=wall`), nie len v stave komponentu.
      Premerané 24. 9. 2026: zo zdrojov (`/pack/ainubis/sources`) sa človek šípkou
      vracal na `/pack/ainubis` — a pristál vo VAULTE, hoci odišiel z NÁSTENKY.
@@ -391,11 +390,31 @@ export default function PackAinubis() {
       : planeParam === 'chat' && CHAT_MOCK ? 'chat'
         : 'vault',
   );
+  /* Záložka nástenky žije v adrese z toho istého dôvodu ako rovina: riadok
+     „odkiaľ to viem" pod odpoveďou a vchod z VAULTU vedú rovno do KNIŽNICE,
+     a keby to bol len stav komponentu, F5 by človeka hodilo na svorku. */
+  const tabParam = sp.get('tab');
+  const [wallTab, setWallTab] = useState<'pack' | 'mine' | 'lib'>(
+    tabParam === 'mine' || tabParam === 'lib' ? tabParam : 'pack',
+  );
+  const setQuery = (patch: Record<string, string | null>) => {
+    const q = new URLSearchParams(sp);
+    for (const [k, v] of Object.entries(patch)) { if (v === null) q.delete(k); else q.set(k, v); }
+    setSp(q, { replace: true });
+  };
   const goPlane = (next: 'vault' | 'chat' | 'wall') => {
     setPlane2(next);
-    const q = new URLSearchParams(sp);
-    if (next === 'vault') q.delete('plane'); else q.set('plane', next);
-    setSp(q, { replace: true });
+    setQuery({ plane: next === 'vault' ? null : next, tab: null });
+  };
+  const goWallTab = (t: 'pack' | 'mine' | 'lib') => {
+    setWallTab(t);
+    setQuery({ tab: t === 'pack' ? null : t });
+  };
+  /** Vchod do KNIŽNICE z chatu aj z päty VAULTU — jedno miesto, tri dvere. */
+  const openLibrary = () => {
+    setPlane2('wall');
+    setWallTab('lib');
+    setQuery({ plane: 'wall', tab: 'lib' });
   };
   const [flash, setFlash] = useState<string | null>(null);
   /* Filter SVET: -1 = všetky. Roletka otvorená: kľúč alebo null. */
@@ -640,7 +659,7 @@ export default function PackAinubis() {
           `ODKIAĽ TO VIEM` je jediné, čím sa tento chat líši od každého iného. */}
       {CHAT_MOCK && plane2 === 'chat' && (
         <VaultChat onBack={() => goPlane('vault')} onOpenScroll={() => goPlane('vault')}
-          onOpenSources={() => navigate('/pack/ainubis/sources')} />
+          onOpenSources={openLibrary} />
       )}
 
       {/* ── ROVINA NÁSTENKA (maketa, len DEV) ────────────────────────────────
@@ -648,7 +667,7 @@ export default function PackAinubis() {
           (kôš 2), nie úloha: pilulka „nástenka" musí ostať viditeľná, inak by
           záložka viedla tam, kde sama zmizne. */}
       {WALL_MOCK && plane2 === 'wall' && (
-        <VaultWall onSources={() => navigate('/pack/ainubis/sources')} />
+        <VaultWall onBack={() => goPlane('vault')} tab={wallTab} onTab={goWallTab} />
       )}
 
       {/* ── DOGSCROLL — dnes upútavky svetov, v novembri pás zvitkov ────────── */}
@@ -693,7 +712,7 @@ export default function PackAinubis() {
             </section>
           ))}
           {SOURCES_MOCK && (
-            <button type="button" className="akv-entry" onClick={() => navigate('/pack/ainubis/sources')}>
+            <button type="button" className="akv-entry" onClick={openLibrary}>
               {tx('pack.ainubis.sources.entry', 'What this brain stands on')}
               <b>{VAULT_SOURCE_TOTALS.documents} {tx('pack.ainubis.sources.entryN', 'documents')}{chev}</b>
             </button>
@@ -782,11 +801,17 @@ export default function PackAinubis() {
         </button>
       </div>
 
-      {/* 🔴 V ROVINE CHAT SA LIŠTA NEVYKRESĽUJE (Matej 23. 9. 2026, lock §3).
-          CHAT je ÚLOHA — celá obrazovka so šípkou späť, nie miesto chrbtice.
-          Nevykresliť, nie skryť: `navRef` v nej publikuje `--pack-nav-h` a skrytá
-          lišta by appke tvrdila, že pod obsahom je 68 px, ktoré tam nie sú. */}
-      {!(CHAT_MOCK && plane2 === 'chat') && (
+      {/* 🔴 LIŠTA SA VYKRESĽUJE LEN VO VAULTE (Matej 23. a 24. 9. 2026, lock §3).
+          Koreň je MIESTO, nie rovina: `/pack/ainubis` je piaty slot chrbtice, ale
+          pristáva na VAULTE. CHAT aj NÁSTENKA sú o krok hlbšie, takže z oboch
+          vedie JEDNO gesto von — šípka späť.
+          ⚠️ 24. 9. ráno tu ešte platilo A1 („na nástenke lišta ostáva"). Matej to
+             po videní vrátil: *„nástenka tiež nemusí mať spodný nav ale šípku
+             spať, nie sú to koreňové obrazovky nie?"* — a mal pravdu.
+          ⚠️ NEVYKRESLIŤ, NIE SKRYŤ: `navRef` v lište publikuje `--pack-nav-h`
+             a skrytá lišta by appke tvrdila, že pod obsahom je 68 px, ktoré tam
+             nie sú. */}
+      {plane2 === 'vault' && (
         <PackBottomNav avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial} dogs={id.dogs} />
       )}
       <MessagingOverlayHost />

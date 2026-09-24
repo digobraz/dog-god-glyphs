@@ -97,8 +97,13 @@ export const VAULT_CHAT_CSS = `
 /* ⚠️ Obe šípky nesú .akc-back, ktorá má display:flex — preto sa pásová zhasína
    PRES POTOMKA (.akc-rail >), inak by ju rovnako špecifická trieda prebila
    a šípka by svietila v šuplíku aj na mobile. */
+/* 🔴 ŠÍPKA STOJÍ NA OSI PANELA (Matej 24. 9. 2026, voľba F2: „šípka vzad bude
+   v strede panela"). Do 24. 9. visela v ľavom rohu — bola to jediná vec v hlave
+   pásu, ktorá nerešpektovala os, na ktorej stojí tvár aj meno.
+   ⚠️ Tvár a meno ostávajú VEDĽA SEBA v jednom riadku (.akc-railid je flex row) —
+      Matej to k F2 dodal výslovne. Mení sa poloha šípky, nie hlava pásu. */
 .akc-rail > .akc-railback{display:none;
-  margin:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.lg}px) 0 0 ${PACK_SPACE.md}px;}
+  margin:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.lg}px) auto 0;}
 .akc-railtop{display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;
   padding:${PACK_SPACE.md}px ${PACK_SPACE.md}px ${PACK_SPACE.lg}px;text-align:left;}
 .akc-railname{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;line-height:1;
@@ -235,6 +240,18 @@ export const VAULT_CHAT_CSS = `
 .akc-railbtn{padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;
   font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.card.letterSpacing};
   text-transform:uppercase;border:1px solid ${AINUBIS.edge};background:none;color:${AINUBIS.cyan};}
+/* 🔴 RIADKY MRIEŽKY SA PRIRAĎUJÚ MENOM, NIE PORADÍM (24. 9. 2026).
+   Prvok s display:none z mriežky VYPADNE — a na PC je .akc-head práve taký.
+   Zvyšné dva prvky si tým posunuli riadky: správy dostali auto a POLE
+   dostalo 1fr, teda sa roztiahlo do zvyšku výšky a pole sadlo na jeho
+   HORNÚ hranu. Premerané 1440×900: vrch .akc-ask bol v plnom rozhovore
+   435 px, v prázdnom 250 px — pole „plávalo" o 185 px podľa dĺžky rozhovoru.
+   Matej 24. 9.: „text area stále na tom istom fixnutom mieste dolu ako to má
+   aj claude, priestor bude medzi odpoveďou a text areou."
+   ⚠️ Nestačí margin-top:auto na poli — msgs by ostali auto a nerolovali by. */
+.akc-head{grid-row:1;}
+.akc-msgs{grid-row:2;}
+.akc-ask{grid-row:3;}
 .akc-msgs{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:${PACK_SPACE.lg}px;}
 /* ⚠️ VLÁKNO MÁ MERANÚ ŠÍRKU — stĺpec rastie s oknom, riadok odpovede nie. */
 .akc-in{max-width:${THREAD_W}px;margin:0 auto;display:flex;flex-direction:column;gap:${PACK_SPACE.xl}px;}

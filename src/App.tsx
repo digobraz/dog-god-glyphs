@@ -128,7 +128,6 @@ const PackTripArticle = lazy(() => import("./pages/PackTripArticle.tsx")); // it
 const PackTriplist = lazy(() => import("./pages/PackTriplist.tsx")); // TRIPLIST hub — Slice A (plany/zadanie-triplist-sliceA-2026-07-23.md)
 const PackDogs = lazy(() => import("./pages/PackDogs.tsx"));
 const PackAinubis = lazy(() => import("./pages/PackAinubis.tsx")); // kostra AINUBISA — `/pack/ainubis` (rozhodnutia 4A+5A, 21. 9. 2026)
-const PackAinubisSources = lazy(() => import("./pages/PackAinubisSources.tsx")); // ODKIAĽ TO VIEM — `/pack/ainubis/sources` (voľba E2, 24. 9. 2026)
 const PackDogQuiz = lazy(() => import("./pages/PackDogQuiz.tsx")); // fullscreen kvíz (zadanie-mypack-petpas-2026-08-06 §6)
 const PackNatureQuiz = lazy(() => import("./pages/PackNatureQuiz.tsx")); // osobnostný kvíz element+úloha (zadanie-osobnostny-kviz-2026-08-06)
 const Login = lazy(() => import("./pages/Login.tsx"));
@@ -420,14 +419,13 @@ const App = () => (
                   s 1. vlnou, nie skôr. Chat sa z nej otvára cez `ainubisBus`, takže widget
                   ostáva tam, kde je — root-level singleton mimo `/pack` stromu. */}
               <Route path="/pack/ainubis" element={DEV_FULL ? <PackAinubis /> : <Navigate to="/pack" replace />} />
-              {/* ODKIAĽ TO VIEM — zoznam zdrojov mozgu, kôš 2 „POZERÁM SA" (lock §3):
-                  dole lišta, hore šípka späť. Voľba E2 (Matej 24. 9. 2026): vlastná
-                  adresa, nie tretia záložka nástenky — kniha je objekt a má jednu kartu.
-                  🔴 `import.meta.env.DEV` NAVYŠE k `DEV_FULL`: je to MAKETA (čísla sú
-                     odpísané z korpusu, nie merané), a `DEV_FULL` je na produkcii pravda
-                     pre founderské účty. Rovnaký zámok ako maketa chatu a nástenky. */}
+              {/* ODKIAĽ TO VIEM — od 24. 9. 2026 (Matej, voľba E1) to NIE JE vlastná
+                  stránka, ale TRETIA ZÁLOŽKA NÁSTENKY (`?plane=wall&tab=lib`).
+                  Ranná verzia mala vlastnú adresu (E2) a stránka `PackAinubisSources.tsx`
+                  je preto zmazaná. Adresa ostáva ako presmerovanie — odkaz na ňu mohol
+                  medzitým niekam odísť a tichý 404 je horší než skok na to isté miesto. */}
               <Route path="/pack/ainubis/sources"
-                element={DEV_FULL && import.meta.env.DEV ? <PackAinubisSources /> : <Navigate to="/pack/ainubis" replace />} />
+                element={<Navigate to="/pack/ainubis?plane=wall&tab=lib" replace />} />
 
               <Route path="/cert-render/:id" element={<CertRender />} />
               <Route path="/invoice-render/:id" element={<InvoiceRender />} />

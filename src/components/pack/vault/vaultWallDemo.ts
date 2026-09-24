@@ -45,6 +45,16 @@ export interface WallAnswer {
 
 export interface WallPost {
   id: string;
+  /**
+   * 🔴 NÁLEPKA SVETA (Matej 24. 9. 2026, voľba C1): *„problém alebo otázky by
+   * mali mať nálepku SVETA ktorého sa to týka"*. Kľúč zo `vault/worlds.ts` —
+   * nie vlastný zoznam. Svet hovorí KAM TO PATRÍ a je to spojka na vault:
+   * AINUBIS z toho sveta odpovedá a filtre nástenky sú tie isté svety.
+   * ⚠️ Svet NENAHRÁDZA druh. Druh (problém · skúsenosť) je prvý štítok dole
+   *    a hovorí ČO TO JE. Dve osi, dve farby — svet je MODRÝ (svit vaultu),
+   *    druh je zlatý.
+   */
+  world: string;
   who: string;
   initial: string;
   /** Pes pod menom — „Ajka · 7 y · German shepherd". Jeden riadok, nie pilulky. */
@@ -65,7 +75,7 @@ export interface WallPost {
  */
 export const DEMO_WALL: WallPost[] = [
   {
-    id: 'w1',
+    id: 'w1', world: 'problems',
     who: 'Tomáš B.', initial: 'T', dog: 'Ajka · 7 y · German shepherd',
     text: 'After a longer hike she limps on a hind leg. By morning it is gone. Should I be dealing with this, or is it normal tiredness?',
     tags: ['problem', 'movement', 'looking for advice'],
@@ -85,7 +95,7 @@ export const DEMO_WALL: WallPost[] = [
     paws: 31,
   },
   {
-    id: 'w2',
+    id: 'w2', world: 'training',
     who: 'Martina D.', initial: 'M', dog: 'Bodo · 2 y · Border collie',
     text: 'I stopped using his name when telling him off and his recall got better within a week.',
     tags: ['experience', 'training'],
@@ -100,7 +110,7 @@ export const DEMO_WALL: WallPost[] = [
     paws: 58,
   },
   {
-    id: 'w3',
+    id: 'w3', world: 'prevention',
     who: 'Lukáš H.', initial: 'L', dog: 'Cyra · 4 y · Mixed breed',
     text: 'I pulled a tick off her head this morning and the spot is red. How long do I watch it?',
     tags: ['problem', 'prevention', 'parasites'],
@@ -116,7 +126,7 @@ export const DEMO_WALL: WallPost[] = [
     paws: 24,
   },
   {
-    id: 'w4',
+    id: 'w4', world: 'nutrition',
     who: 'Zuzana R.', initial: 'Z', dog: 'Bary · 9 y · Labrador',
     text: 'He throws up yellow bile in the morning before his first meal. Is that a stomach problem?',
     tags: ['problem', 'nutrition', 'looking for advice'],
@@ -138,7 +148,13 @@ export const DEMO_WALL: WallPost[] = [
 ];
 
 /**
- * Filtre nad nástenkou. 🔴 JE TO FILTER NAD ŠTÍTKAMI, nie zoznam rubrík —
- * preto je hodnota holý štítok a pribudnutie feedu je jeden riadok.
+ * 🔴 FILTRE = SEDEM SVETOV (Matej 24. 9. 2026, voľba D1) — nie ad-hoc štítky.
+ *
+ * Zoznam sa preto NEPÍŠE TU: berie sa z `vault/worlds.ts`, aby sa nástenka
+ * a mozog nemohli rozísť. Keby tu stál vlastný rad slov, pri prvom premenovaní
+ * sveta by nástenka filtrovala podľa mena, ktoré vo vaulte už neexistuje.
+ *
+ * ⚠️ Matej 24. 9.: *„musíme počítať s tým že svet už asi nepribudne, ale okruhy
+ *    a zvitky môžu"* — sedem je teda strop a rad filtrov sa nemá kam rozrásť.
+ *    Presne preto je to dobrá os na filtrovanie a štítky ňou neboli.
  */
-export const WALL_FILTERS = ['nutrition', 'problem', 'training', 'prevention'];
