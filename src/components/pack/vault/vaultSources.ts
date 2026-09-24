@@ -354,13 +354,17 @@ export interface SourceKind {
 //    spísaný súbor zoženie — a to sa nikdy nestalo.
 // ⚠️ „Just text“ → „Text advice“: starý názov znel ako úľava („len text“),
 //    pritom je to rada, ktorú AINUBIS môže prijať do korpusu.
-// 🚩 IKONKA VIDEA je DOČASNÁ — kit kresbu prehrávania nemá a branč lock zakazuje
-//    siahnuť po lucide. `frame` je najbližšie (rám = obrazovka); Matej vyberie
-//    alebo nakreslí. Ostatné tri sú z kitu a sedia bez výhrad.
+// 🔴 IKONKA VIDEA = `play.svg` (Matej 24. 9. 2026). Pôvodná poznámka tvrdila, že
+//    „kit kresbu prehrávania nemá" — NEBOLA TO PRAVDA a stálo to jedno kolo návrhov:
+//    `public/icons/pack/` je len VÝSEK kitu. Celý hand-drawn kit (138 kresieb) žije
+//    v `vystupy/dashboard/embeds/brand/icons-handdrawn/` a trojuholník v ňom bol
+//    (`arrow-point-hand-drawn-outline-pointing-to-right-direction-svgrepo-com.svg`).
+//    ⚠️ KEĎ CHÝBA IKONKA, HĽADAJ NAJPRV TAM — a až potom hovor, že v kite nie je.
+//    Všetky štyri druhy sú tým pádom z jedného kitu a sedia bez výhrad.
 export const SOURCE_KINDS: SourceKind[] = [
   { key: 'pdf', label: 'PDF', ic: 'document', hint: 'a scan or an e-book, 50+ pages', devotion: 100 },
   { key: 'text', label: 'Text advice', ic: 'pencil', hint: 'what you know and where it comes from', devotion: null },
-  { key: 'video', label: 'Video', ic: 'frame', hint: 'a lecture or a breakdown, with timestamps', devotion: 10 },
+  { key: 'video', label: 'Video', ic: 'play', hint: 'a lecture or a breakdown, with timestamps', devotion: 10 },
   { key: 'link', label: 'Link', ic: 'link', hint: 'a blog, a study, an organisation', devotion: null },
 ];
 

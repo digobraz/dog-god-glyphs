@@ -8,6 +8,8 @@ import { PageTopBar } from '@/components/PageTopBar';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
 import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
+import { LAPIS } from '@/components/pack/navGoldSkin';
+import { BRAND_GOLD_BTN, PACK_R } from '@/components/pack/packTheme';
 import { hekthorFace } from '@/lib/hekthorFaces';
 import { HEKTHOR_GLYPH } from '@/lib/hektor';
 
@@ -450,24 +452,39 @@ export function EssenceScreen() {
 /** Šat obrazovky. Rytiny, jamky a tint si berie z `FLOW_CARVE_CSS` — tu je len
  *  to, čo má iba táto obrazovka: prepínač psov, pás tém a rám. */
 const ESSENCE_CSS = `
-/* ── OBSAH STOJÍ HORE, NEPLÁVA NA STRED ───────────────────────────────────
-   🔴 Matej 24. 9. (štvrté kolo): *„treba to upratať tak aby sa to zmestilo
-   hore"*. \`FLOW_STAGE_CSS\` centruje každý krok cez \`margin: auto\` na dieťati
-   (a je to LOCK z toho istého dňa — pasca s \`justify-center\` + \`overflow\`).
-   Tu sa to ruší LEN pre túto obrazovku: doska je najvyšší kus vstupu a
-   centrovaná visela 233 px pod lištou, takže hore ostal prázdny papyrus.
-   ⚠️ Spodná \`margin-bottom: auto\` OSTÁVA — tým sa pri pretečení nestratí
-   horná hrana, čo je presne tá pasca, pred ktorou lock varuje. */
-.hf-stage > .es-col { margin-top: 0; }
+/* ── VZDUCH NAD OBSAHOM = VZDUCH POD NÍM ──────────────────────────────────
+   🔴 Matej 24. 9. (piate kolo): *„vycentroval obsah blokov tak aby bola medzera
+   od progres baru po blok a od spodného okraja po blok totožná aby to vyzeralo
+   súmerne (na každej obrazovke)"*. Medzitým tu stálo \`margin-top: 0\` (obsah
+   ukotvený hore) — bola to odpoveď na *„aby sa to zmestilo hore"*, keď doska
+   ešte merala 475 px a visela v strede. Po zoštíhlení na 427 px je súmerné
+   rozloženie to isté ako „hore" a navyše to platí pre celý vstup.
+   ⚠️ Nič sa tu preto NEPRETLÁČA — súmernosť robí spoločné
+   \`.hf-stage > * { margin: auto }\` z \`FLOW_STAGE_CSS\`. Keby tu znova pribudlo
+   vlastné pravidlo, rozíde sa táto obrazovka so zvyškom flow. */
 /* ── KTO JE OPISOVANÝ ──────────────────────────────────────────────────────
    Riadok VNÚTRI dosky, nad rámom, oddelený rytinou. Ráno to bol stĺpec nad
    doskou (fotka, pod ňou meno) — Matej to poobede prehodil na dvojicu vedľa
    seba a presunul dnu, k rámu, ktorý sa plní. */
+/* 🔴 FOTKA + MENO STOJA V STREDE BLOKU (Matej 24. 9., piate kolo: *„foto a meno
+   psa by som centroval do stredu bloku takto vedľa seba = posuň to doprava aby
+   obsah toho riadku bol na strede"*). Dovtedy boli zarovnané doľava a meno
+   naťahovalo zvyšok riadka.
+   🔑 Prečo MRIEŽKA a nie \`justify-content: center\`: prepínač psov sa musí držať
+   pravého kraja, a ten by dvojicu odtlačil doľava — stred by potom platil len
+   pri jedinom psovi. Dva prázdne \`1fr\` stĺpce po krajoch sú vždy rovnaké, takže
+   dvojica stojí na strede BLOKU, nie na strede zvyšku po prepínači.
+   ⚠️ Preto sa prepínač nesmie prepnúť na \`position: absolute\` — pri dlhom mene
+   by sa naň meno nasunulo. Mriežka mu miesto vyhradí. */
 .es-who {
-  display: flex; align-items: center; gap: 10px; width: 100%;
+  display: grid; grid-template-columns: 1fr auto auto 1fr;
+  align-items: center; gap: 10px; width: 100%;
 }
-/* Meno berie zvyšok riadka, prepínač sa drží pravého kraja. */
-.es-who .es-name { flex: 1 1 auto; min-width: 0; }
+.es-who .es-dogphoto { grid-column: 2; }
+/* Meno nerastie ani nekrčí susedov — šírku si berie podľa textu a pri dlhom mene
+   ustúpi písmom (pravidlo nižšie), nie ellipsis. */
+.es-who .es-name { grid-column: 3; justify-self: start; min-width: 0; }
+.es-who .es-switch { grid-column: 4; justify-self: end; }
 /* Pri dlhom mene ustúpi PÍSMO, nie posledné písmená — ellipsis v mene psa je
    to najhoršie, čo môže na tejto obrazovke stáť. */
 @media (max-width: 420px) { .es-who .es-name { font-size: 17px; } }
@@ -634,7 +651,45 @@ const ESSENCE_CSS = `
 /* Symbol podstaty je KRESBA, nie ikonka rozhrania — jamka je preto väčšia než
    pri voľbe stavu psa a obrázok v nej dýcha. Riadok je aj vyšší: obrazovka
    pôsobila „scvrknuto" (Matej 24. 9.) a práve toto je jej najväčšia plocha. */
-.es-picks .hf-pick { padding: 8px 14px; gap: 12px; }
+/* ── 🟨 DLAŽDICA VOĽBY = PLNÁ BRANDOVÁ ZLATÁ (Matej 24. 9., piate kolo) ────
+   *„tie CTA tlačítka skúsme upgradovať na gold… lebo teraz sú aj chipy aj výber
+   tlačítok rovnaké — fádne a ten istý štýl obrysový"*, a po ukážke odliatku
+   (zlatý RÁM, papyrusová doska): *„nepáči sa mi to daj tlačítka zlaté fillom
+   nie toto"*. Odliatok teda padol, platí PLNÁ výplň.
+   🔴 **JE TO VEDOMÁ ODCHÝLKA OD BRAND LOCKU, nie prehliadnutie.** Lock hovorí
+   dve veci, ktoré to porušuje: *„ZLATO = konštrukcia a poloha, LAPIS = moja
+   voľba a akcia"* a *„hlavná akcia na bledom je stále LAPIS, brandová zlatá je
+   druhá alebo tretia akcia"*. Matej to rozhodol s oboma vetami pred sebou —
+   dostal na výber štyri cesty vrátane tej, ktorá lock neohýba.
+   ⚠️ Kým to niekto neprenesie do \`plany/locky/brand.md\`, je toto jediné miesto,
+   kde je tá výnimka zapísaná — a bez nej to pri najbližšej revízii vyzerá ako
+   chyba na opravu.
+   ⚠️ Recept sa NEOPISUJE: \`BRAND_GOLD_BTN\` z \`packTheme.ts\` (rampa
+   #C99A3F→#A3782B, rám #8C6014, TMAVÝ inkoust, radius 8 z \`.btn-gold\`).
+   Svetlá zlato-oranžová \`GOLD_BTN\` sem NEPATRÍ — je svetlejšia než papyrus,
+   svieti ako lampa a patrí AINUBISOVI. */
+.es-picks .hf-pick {
+  padding: 8px 14px; gap: 12px;
+  border-radius: ${PACK_R.field}px;
+  background: ${BRAND_GOLD_BTN.grad};
+  border: 1px solid ${BRAND_GOLD_BTN.edge};
+  box-shadow: ${BRAND_GOLD_BTN.glow};
+}
+.es-picks .hf-pick:hover {
+  background: ${BRAND_GOLD_BTN.gradHover};
+  box-shadow: ${BRAND_GOLD_BTN.glowHover};
+}
+/* Inkoust je TMAVÝ (lock): krémové písmo má na brandovej zlatej kontrast pod 3:1. */
+.es-picks .hf-pick .tx { color: ${BRAND_GOLD_BTN.ink}; text-shadow: 0 1px 0 rgba(255, 252, 240, 0.28); }
+/* Jamka pod ikonkou ostáva papyrusová — na zlate je z nej pečať, a je to jediné
+   miesto, kde sa symbol podstaty číta rovnako ako v ráme heroglyfu nad ním. */
+.es-picks .hf-pick .well { background: radial-gradient(circle at 50% 35%, #FBF5E6 0%, #EBD9AE 100%); }
+/* VYBRANÁ: zlato ostáva, voľbu nesie LAPISOVÝ LEM — plná lapisová výplň by na
+   jednej obrazovke postavila dve plné plochy proti sebe a otázka by sa stratila. */
+.es-picks .hf-pick.on {
+  border-color: ${LAPIS.edge};
+  box-shadow: inset 0 0 0 2px ${LAPIS.edge}, ${BRAND_GOLD_BTN.glowHover};
+}
 .es-picks .hf-pick .well { width: 40px; height: 40px; }
 .es-picks .hf-pick .well img { width: 28px; height: 28px; object-fit: contain; }
 .es-picks .hf-pick .tx { font-size: 14px; letter-spacing: 0.05em; }
