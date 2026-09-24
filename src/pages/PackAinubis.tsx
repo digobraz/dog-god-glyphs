@@ -396,6 +396,24 @@ const LAYERS = [
 const TOTAL_CIRCLES = VAULT_WORLDS.reduce((s, w) => s + w.circles, 0);
 const TOTAL_SCROLLS = VAULT_WORLDS.reduce((s, w) => s + w.scrolls, 0);
 
+// ── STAV UČENIA V MOZGU JE DNES ATRAPA ───────────────────────────────────────
+// Farby (modrá nedotknuté · žltá videné · zelená prečítané) sú Matejovo rozhodnutie
+// z 19. 9. 2026, potvrdené 24. 9. Legenda je postavená, ÚDAJ POD ŇOU NIE JE:
+// `/pack` nikde neukladá, ktorý zvitok kto prečítal, a zvitky sa ešte len píšu
+// (otvorenie: november 2026).
+//
+// 🔴 PRETO JE ATRAPA TU, A NIE V ENGINE. V `brainEngine.ts` by sa tvárila ako
+//    mechanika a ticho prežila aj deň, keď stav vznikne naozaj. Tu je vidieť, že
+//    je to jedna funkcia na výmenu: keď pribudne tabuľka prečítaných, nahradí sa
+//    TOTO a v engine sa nemení nič.
+// ⚠️ Krok je PEVNÝ, nie náhodný. Pri `Math.random()` by mozog pri každom otvorení
+//    vyzeral inak a nedalo by sa povedať, či sa zmenil stav, alebo len seed.
+//    [[feedback_seed_pri_otvoreni_meni_meranu_hodnotu]]
+// ⚠️ Podiel drží nákres z 20. 9.: každé 7. zrno prečítané, každé 13. videné —
+//    teda ~14 % a ~8 %. Mozog má vyzerať ROZČÍTANE, nie zelene.
+const demoProgress = (zi: number): 0 | 1 | 2 =>
+  (zi % 7 === 0 ? 2 : zi % 13 === 5 ? 1 : 0);
+
 export default function PackAinubis() {
   const t = useT();
   const tx = (key: string, fallback: string) => {
@@ -567,6 +585,7 @@ export default function PackAinubis() {
       },
       onWorld: (wi) => openWorldRef.current(wi),
       onRoot: openAinubis,
+      progress: demoProgress,
     });
     const ro = new ResizeObserver(() => brain.current?.resize());
     ro.observe(cv);

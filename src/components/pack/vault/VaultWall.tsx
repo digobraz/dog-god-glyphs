@@ -315,6 +315,12 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
   font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;line-height:1.4;color:${AINUBIS.inkFaint};}
 .akw-met s{text-decoration:none;display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;}
 .akw-met s b{color:${AINUBIS.inkDim};font-weight:500;}
+/* Ikonka odpovedí — beré farbu riadku, rovnako ako packa vedľa nej. */
+.akw-rep{width:13px;height:13px;flex:0 0 13px;background:currentColor;}
+/* Slovo ostáva pre čítačku, z karty zmizlo — číslo s ikonkou povie to isté
+   a karta sa drží na 181 px aj pri troch údajoch v riadku. */
+.akw-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip-path:inset(50%);white-space:nowrap;border:0;}
 .akw-met s,.akw-met u{white-space:nowrap;}
 .akw-met u{margin-left:auto;text-decoration:none;font-weight:600;color:${AINUBIS.cyan};
   display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;
@@ -560,6 +566,17 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
   font-size:${PACK_TEXT.micro}px;line-height:1;letter-spacing:${PACK_HEAD.label.letterSpacing};
   text-transform:uppercase;color:${AINUBIS.inkFaint};}
 .akw-grp:first-of-type{margin-top:0;}
+/* MENO AINUBISA V MENE POLICE — prvé dve písmená jeho cyanom s dosvitom.
+   Bez dosvitu je to len iná farba, nie podsvietený displej (brand lock).
+   🔴 TRIEDA .akw-ai JE ZABRATÁ — nesie RAIL hlasu stroja (r. 382) aj s 2px
+      svietiacim prúžkom v ::before. Meno v nej dostalo ten prúžok pred seba;
+      zmerané 24. 9. v prehliadači. Značka mena je preto <i>, rovnako ako
+      v .akw-aihd i — appka na to už vzor má, nemá zmysel zakladať druhý.
+   ⚠️ Žiadny spätný apostrof v CSS komentári — ukončí template literál. */
+/* ⚠️ BEZ záporného marginu, na rozdiel od .akw-aihd i. Tam vracia medzeru
+   zjedenú rozstrelením .22em; lišta políc rozstrelenie nemá, takže -0.22em
+   nemá čo vracať a prekryje písmeno I — z mena bolo ANUBIS SEED (24. 9.). */
+.akw-shnm i{font-style:normal;color:${AINUBIS.aiInk};text-shadow:${AINUBIS.aiShadow};}
 /* Nadpis kroku nesie šípku späť — z pridávania sa musí dať vyjsť tam, odkiaľ prišiel. */
 .akw-grp--back{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
 .akw-gempty{font-size:${PACK_TEXT.label}px;line-height:1.5;color:${AINUBIS.inkFaint};
@@ -751,10 +768,14 @@ function Post({ post, onOpen }: { post: WallPost; onOpen: () => void }) {
       </div>
       <div className="akw-met">
         <s><HandPaw size={13} /><b>{post.paws}</b></s>
-        {/* ⚠️ IKONKA ODPOVEDE V KITE NIE JE — podľa brand locku je to dôvod vypýtať
-            si kresbu od Mateja, nie siahnuť po lucide alebo emoji. Kým nie je,
-            stojí tu holé slovo. 🚩 NA MATEJA. */}
-        <s><b>{talk(post)}</b> replies</s>
+        {/* ODPOVEDE — Matej 24. 9. 2026 vybral z kitu `chat` nad skutočnou kartou
+            (`ik-chat.png`). Do vtedy tu stálo holé slovo „replies“, lebo kresba
+            neexistovala a brand lock zakazuje siahnuť po lucide.
+            ⚠️ `chat` nesmie byť zamenené za `people`: ráta sa SPOLU s odpoveďou
+               AINUBISA vyššie, nie iba ľudské hlasy.
+            ⚠️ Popis ostáva slovom pre čítačku — ikonka je `aria-hidden`. */}
+        <s><i className="akw-rep" aria-hidden style={mask('chat')} /><b>{talk(post)}</b>
+          <span className="akw-sr">replies</span></s>
         {clash(post) && (
           <s className="akw-clash" title="The vault says otherwise">
             <HandAlert size={13} />disputed
@@ -765,6 +786,19 @@ function Post({ post, onOpen }: { post: WallPost; onOpen: () => void }) {
     </button>
   );
 }
+
+/** Meno police, ktoré nesie AINUBISA — `AI` sa vykreslí jeho cyanom.
+ *  ⚠️ Nie `dangerouslySetInnerHTML` a nie `replace` nad prekladom: meno je NÁZOV,
+ *     delí sa na dva uzly a i18n ho nemá prečo vidieť rozpolené. */
+const ShelfName = ({ g }: { g: { label: string; mark?: boolean } }) => (
+  /* ⚠️ JEDEN uzol, nie fragment s dvoma. `.akw-sh` je flex s medzerou, takže
+     dve deti by meno roztrhli na „AI  NUBIS SEED“ — zmerané 24. 9. v prehliadači. */
+  <span className="akw-shnm">
+    {g.mark && g.label.startsWith('AI')
+      ? <><i>AI</i>{g.label.slice(2)}</>
+      : g.label}
+  </span>
+);
 
 /** PREKRYV — celý príspevok. To, čo tu je, na nástenke ZÁMERNE nie je. */
 function PostFull({ post, onLibrary, onClose }: {
@@ -1135,7 +1169,7 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
                     <button type="button" className="akw-sh" key={g.key}
                       aria-current={shelf === g.key ? 'true' : undefined}
                       onClick={() => setShelf(shelf === g.key ? null : g.key)}>
-                      {g.label}<em>{n}</em>
+                      <ShelfName g={g} /><em>{n}</em>
                     </button>
                   );
                 })}
@@ -1178,7 +1212,7 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
                   const inGroup = LIBRARY_SOURCES.filter((d) => d.group === g.key);
                   return (
                     <Fragment key={g.key}>
-                      <div className="akw-grp">{g.label}</div>
+                      <div className="akw-grp"><ShelfName g={g} /></div>
                       {inGroup.length === 0
                         ? <p className="akw-gempty">{g.empty}</p>
                         : <div className="akw-books">

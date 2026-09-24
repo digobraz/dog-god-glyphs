@@ -131,7 +131,7 @@ export const VAULT_SOURCES: VaultSource[] = [
       'A herbalist’s book, not a clinical one — most of what we take from it is tradition rather than trial evidence, and the scrolls say which is which.',
   },
   {
-    key: 'own', title: 'Written here, not taken from a book',
+    key: 'own', title: 'AINUBIS SEED — written here, not taken from a book',
     kind: 'in-house', scrolls: 88,
     tags: ['safety', 'consensus'],
     split: { consensus: 86, traditional: 1, author: 1 },
@@ -273,13 +273,27 @@ export const HIDDEN_SOURCES = ACCEPTED_SOURCES.filter((d) => d.hidden);
 //    „iná publikácia" — nič sme nevydali, napísali sme to sem. Je to 88 zvitkov,
 //    tretí najväčší zdroj v mozgu, a v koši „iné" by klamal o tom, čo je.
 //    Keď to chceš do troch, zmaž skupinu 'own' a polož ju do 'other'.
-export const SOURCE_GROUPS: { key: VaultSource['group']; label: string; empty: string }[] = [
+// 🏷️ „Written here" MENO STRATILO — Matej 24. 9. 2026: *„stále to nechápem čo to
+//    je"*, potom *„AINUBIS SEED alebo niečo podobné"*. Staré meno hovorilo KDE to
+//    vzniklo, nie ČO to je, a v knižnici plnej kníh to znelo ako poznámka.
+//    SEED = korpus, s ktorým sa narodil: bezpečnostná brána, hranica vet/rada
+//    a rozsúdené spory medzi knihami.
+// ⚠️ NEHOVORÍ, ŽE TO PÍSAL ON. Napísali sme to my; veta v `about` pod policou to
+//    drží na mieste a pri zmene mena sa nesmie stratiť.
+export const SOURCE_GROUPS: {
+  key: VaultSource['group']; label: string; empty: string;
+  /** Meno obsahuje AINUBISA ⇒ prvé dve písmená sa vykresľujú jeho cyanom. */
+  mark?: boolean;
+}[] = [
   { key: 'books', label: 'Books', empty: 'No books yet.' },
   { key: 'other', label: 'Other publications', empty: 'Nothing here yet.' },
   // Videá zatiaľ v mozgu nie sú ANI JEDNO — skupina je vidno preto, že sa dá
   // pridať (10 devotion), a prázdno to povie nahlas.
   { key: 'video', label: 'Videos', empty: 'None yet. A lecture with timestamps is worth 10 devotion.' },
-  { key: 'own', label: 'Written here', empty: '' },
+  /* ⚠️ MENO NESIE JEHO TVAR — `AI` sa píše zvlášť, lebo farbu vie uniesť len
+     markup, nie holý reťazec (brand lock, meno vždy `<span>AI</span>NUBIS`).
+     Preto `mark`, a nie `label: 'AINUBIS SEED'` napísané jedným kusom. */
+  { key: 'own', label: 'AINUBIS SEED', mark: true, empty: '' },
 ];
 
 /** Podiel konsenzu v jednom zdroji — hlavičkové číslo karty (viď `split`). */

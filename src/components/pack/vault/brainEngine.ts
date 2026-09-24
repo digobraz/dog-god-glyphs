@@ -27,6 +27,7 @@
 //    celý strom.
 // ════════════════════════════════════════════════════════════════════════════
 import type { VaultWorld } from './worlds';
+import { BRAIN_STATE, WORLD_TINT } from '../ainubisSkin';
 
 export type BrainRole = 'root' | 'w' | 'o' | 'z';
 
@@ -36,6 +37,10 @@ interface Node {
   ex: number; ph: number; lw: number; nb: Node[];
   /** poradie okruhu vo svete (len `o`, inak -1) */
   oi: number;
+  /** poradie ZRNA v celom mozgu (len `z`, inak -1) — kľúč do `o.progress`. */
+  zi: number;
+  /** 0 nedotknuté · 1 videné · 2 prečítané (len `z`). */
+  st: 0 | 1 | 2;
 }
 
 export interface BrainTip { title: string; sub?: string; hint?: string }
@@ -53,6 +58,12 @@ export interface BrainOptions {
   /** Rezerva hore a dole v px (horný pás; lišta + pilulka) — mozog sa centruje do zvyšku. */
   insets: () => { top: number; bottom: number };
   describe: (role: BrainRole, wi: number, oi: number) => BrainTip | null;
+  /** STAV UČENIA zrna `zi`: 0 nedotknuté · 1 videné · 2 prečítané.
+   *  🔴 Engine si ho NEVYMÝŠĽA. Kto ktorý zvitok prečítal, dnes nikde neležé —
+   *     `/pack` to neukladá — takže atrapu podáva volajúci a je na jednom mieste
+   *     vidieť, že je to atrapa. Keď stav vznikne naozaj, vymení sa TÁTO funkcia
+   *     a v engine sa nemení nič. */
+  progress?: (zi: number) => 0 | 1 | 2;
   onWorld: (wi: number) => void;
   onRoot: () => void;
 }
@@ -72,7 +83,21 @@ const C = { w: 0.30, spread: 0.80, zr: 4.2, fit: 0.62, fitPc: 1.05 };
    väčší mozog; mobil má vlastné priblíženie cez `MOBIL.zoom` nad `fit`, preto ho
    táto zmena nesmie posunúť. */
 /* FARBA UZLA = STAV, NIE OZDOBA (nákres §12). Dnes existuje len „nedotknuté". */
-const COL = { modra: '59,158,255', cyan: '91,224,240' };
+// ── FARBA UZLA = STAV, NIE OZDOBA (Matej 19. 9. 2026, potvrdené 24. 9.) ──────
+// Legenda: MODRÁ nedotknutý zvitok · CYAN nedotknutý svet/okruh/stred ·
+//          ŽLTÁ videné · ZELENÁ prečítané.
+// Zdroj farieb je `ainubisSkin.ts` — napísané tu druhýkrát by sa to pri prvej
+// zmene odtieňa rozišlo (to isté, čo sa stalo fialovej výletov).
+const COL = {
+  modra: BRAIN_STATE.untouched,
+  cyan: BRAIN_STATE.untouchedHi,
+  zlta: BRAIN_STATE.seen,
+  zelena: BRAIN_STATE.read,
+};
+
+/** Farba BUBLINY SVETA — tá istá, ktorou svieti karta na nástenke.
+ *  Bez nej je sedem svetov sedemkrát cyan a mozog sa okom prečítať nedá. */
+const worldRGB = (w: VaultWorld): string => WORLD_TINT[w.key] ?? COL.cyan;
 /* Uzol sa smie rozhrnúť, nie odniesť (nákres §15). */
 const MAX_TAH = 70;
 /* MOBIL (Matej 22. 9.): jadro priblížené, bubliny svetov a stred väčšie. Okraj
@@ -142,6 +167,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
 
   const mk = (x: number, y: number, role: BrainRole, wi: number, sz: number): Node => ({
     x, y, role, wi, sz, dx: 0, dy: 0, vx: 0, vy: 0, sx: 0, sy: 0, ex: 0, ph: 0, lw: 0, nb: [], oi: -1,
+    zi: -1, st: 0,
   });
 
   // ── ROZVRH — zhlukový (obsidian graph), nákres `layoutCluster` ─────────────
@@ -151,6 +177,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
   const root = mk(0, 0, 'root', -1, 30);
   N.push(root);
   let a0 = -Math.PI / 2; /* prvý svet začína hore, nie vpravo */
+  let zc = 0;             /* počítadlo zŕn naprieč svetmi (viď `zi` v Node) */
   o.worlds.forEach((w, wi) => {
     const span = (w.scrolls / total) * TAU, ac = a0 + span / 2;
     const wn = mk(Math.cos(ac) * RBASE * C.w, Math.sin(ac) * RBASE * C.w, 'w', wi, 26);
@@ -165,10 +192,13 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       node.oi = oi;
       N.push(node); E.push([wn, node]);
       for (let z = 0; z < per[oi]; z++) {
+        /* ⚠️ `zi` je poradie zrna v CELOM mozgu, nie v okruhu — stav sa páruje
+           cez jeden kľúč, inak by ho bolo treba hľadať trojicou (svet, okruh, z). */
         /* ⚠️ Zhluk začína až ZA uzlom okruhu (26 j.): pri ~.79 je to 20 px, teda viac
            než 18px prah okruhu — pri 20 j. sa prvé zrno nedalo trafiť (nákres §12). */
         const ang = z * 2.39996 + oi, r = 26 + Math.sqrt(z) * C.zr;
         const zn = mk(ox + Math.cos(ang) * r, oy + Math.sin(ang) * r, 'z', wi, 2.9);
+        zn.zi = zc; zn.st = o.progress ? o.progress(zc) : 0; zc++;
         N.push(zn); E.push([node, zn]);
       }
     }
@@ -249,13 +279,19 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     // 3 · UZLY — okruhy a zvitky
     N.forEach((p) => {
       if (p.role === 'w' || p.role === 'root') return; /* majú vlastnú bublinu nižšie */
-      const col = p.role === 'z' ? COL.modra : COL.cyan, near = HOV === p;
+      /* ⚠️ FARBA ZRNA JE LEGENDA: prečítané zelená · videné žltá · inak modrá.
+         Okruh ostáva cyan — stav má zvitok, nie priečinok nad ním. */
+      const col = p.role !== 'z' ? COL.cyan
+        : p.st === 2 ? COL.zelena : p.st === 1 ? COL.zlta : COL.modra;
+      const near = HOV === p;
       /* sused na druhom konci synapsy sa rozsvieti tiež — dotyk ukáže SPOJENIE */
       const syn = !!(HOV && !near && HOV.nb.indexOf(p) >= 0);
-      let al = p.role === 'z' ? 0.55 : 1;
+      /* ⚠️ Dotknuté zrno je aj JASNEJŠIE, nie iba inofarebné. Pri 0.55 sa žltá
+         od modrej na čiernom v hustom zhluku takmer nelíši (nákres §14). */
+      let al = p.role !== 'z' ? 1 : p.st ? 0.95 : 0.55;
       if (syn) al = Math.min(1, al + 0.35);
       const sz = p.sz * Math.min(2.2, Math.max(0.5, view.k)) * (near ? 1.7 : syn ? 1.25 : 1);
-      if (p.role !== 'z' || near || syn) { ctx.shadowBlur = near ? 26 : syn ? 20 : 14; ctx.shadowColor = `rgba(${col},.9)`; }
+      if (p.role !== 'z' || near || syn || p.st) { ctx.shadowBlur = near ? 26 : syn ? 20 : p.st ? 12 : 14; ctx.shadowColor = `rgba(${col},.9)`; }
       else ctx.shadowBlur = 0;
       ctx.fillStyle = `rgba(${col},${al.toFixed(3)})`;
       ctx.beginPath(); ctx.arc(p.sx, p.sy, Math.max(0.8, sz), 0, TAU); ctx.fill();
@@ -331,8 +367,12 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       if (p.role !== 'w') return;
       const near = HOV === p;
       const r = p.sz * kB * (near ? 1.18 : 1);
-      ctx.shadowBlur = near ? 34 : 20; ctx.shadowColor = `rgba(${COL.cyan},.95)`;
-      ctx.fillStyle = `rgba(${COL.cyan},1)`;
+      /* ⚠️ BUBLINA NESIE DRUH, NIE STAV — tá istá farba, ktorou svieti karta toho
+         sveta na nástenke. Ikona sa z bubliny VYREZÁVA (nižšie), takže odtieň je
+         voľný a zlatý kit sa prekresľovať nemusí. */
+      const wc = worldRGB(o.worlds[p.wi]);
+      ctx.shadowBlur = near ? 34 : 20; ctx.shadowColor = `rgba(${wc},.95)`;
+      ctx.fillStyle = `rgba(${wc},1)`;
       ctx.beginPath(); ctx.arc(p.sx, p.sy, r, 0, TAU); ctx.fill();
       ctx.shadowBlur = 0;
       const im = ICONS[p.wi];

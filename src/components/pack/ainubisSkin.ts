@@ -161,18 +161,26 @@ export const AINUBIS = {
 /** Krycia výplň skla. Bez nej presvitá lem cez celú kartu (viď hlavičku). */
 const GLASS_FILL = `linear-gradient(180deg,#0A1622 0%,#04080E 100%)`;
 
+// 🔵 SÝTOSŤ FARBY SVETA — Matej 24. 9. 2026, voľba A z `plany/nakres-ainubis-
+//    farby-svetov-2026-09-24.html`: *„páči sa mi rozdelenie, dal by som sýtejšie
+//    farby"*. Dvíha sa KRYTIE (0.16→0.30 radiála · 0.55→0.85 lem a dosvit), NIE
+//    odtieň — štyri zo siedmich farieb sú jeho tokeny (`danger` · `ctaA` · `ok` ·
+//    `glow`) a iný odtieň by vedľa jeho palety založil druhú. Presne to zakazuje
+//    brand lock po prípade fialovej výletov.
+//    ⚠️ Krytie dýchania ide s tým — inak by karta pri nádychu zosvetlela MENEJ
+//       než stojí v pokoji a dýchanie by sa opticky obrátilo.
 /** Materiál karty. Vkladá sa DO pravidla: `.karta{${AI_GLASS}}`. */
 export const AI_GLASS = `
   border:1px solid transparent;
   background:
-    radial-gradient(85% 34% at 50% -4%,rgba(var(--ai-w,${CYAN_RGB}),0.16) 0%,transparent 72%) padding-box,
+    radial-gradient(85% 34% at 50% -4%,rgba(var(--ai-w,${CYAN_RGB}),0.30) 0%,transparent 72%) padding-box,
     linear-gradient(180deg,rgba(${CYAN_RGB},0.06) 0%,rgba(${CYAN_RGB},0.02) 55%,rgba(${CYAN_RGB},0) 100%) padding-box,
     ${GLASS_FILL} padding-box,
-    linear-gradient(180deg,rgba(var(--ai-w,${CYAN_RGB}),0.55) 0%,rgba(${CYAN_RGB},0.14) 42%,rgba(${CYAN_RGB},0.05) 100%) border-box;
+    linear-gradient(180deg,rgba(var(--ai-w,${CYAN_RGB}),0.85) 0%,rgba(${CYAN_RGB},0.14) 42%,rgba(${CYAN_RGB},0.05) 100%) border-box;
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,0.10),
     0 18px 40px -22px rgba(0,0,0,0.90),
-    0 0 50px -18px rgba(var(--ai-w,${CYAN_RGB}),0.55);
+    0 0 50px -18px rgba(var(--ai-w,${CYAN_RGB}),0.85);
 `;
 
 /** REPLIKA ČLOVEKA v chate — plná plocha jeho cyanu s tmavým inkoustom
@@ -231,9 +239,9 @@ export const AI_RAIL_BLANK = `
 export const AI_BREATHE_CSS = `
 @keyframes aiBreathe{
   0%,100%{box-shadow:inset 0 1px 0 rgba(255,255,255,0.10),0 18px 40px -22px rgba(0,0,0,0.90),
-    0 0 44px -20px rgba(var(--ai-w,${CYAN_RGB}),0.38);}
+    0 0 44px -20px rgba(var(--ai-w,${CYAN_RGB}),0.58);}
   50%{box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 18px 40px -22px rgba(0,0,0,0.90),
-    0 0 58px -12px rgba(var(--ai-w,${CYAN_RGB}),0.62);}
+    0 0 58px -12px rgba(var(--ai-w,${CYAN_RGB}),0.92);}
 }
 .ai-breathe{animation:aiBreathe 6s ease-in-out infinite;}
 @media (prefers-reduced-motion:reduce){.ai-breathe{animation:none;}}
@@ -270,3 +278,29 @@ export const WORLD_TINT: Readonly<Record<string, string>> = {
 export const aiWorld = (key?: string): Record<string, string> =>
   (key && WORLD_TINT[key] ? { ['--ai-w']: WORLD_TINT[key] } : {});
 
+// ── STAV UČENIA V MOZGU — farba uzla je LEGENDA, nie ozdoba ──────────────────
+// Matej 19. 9. 2026 (nákres `plany/nakres-vault-fasada-v5-2026-09-20.html`, r. 2597):
+// *„svety by som dal modrou… a žltá a zelená má svoj zmysel — videné/prečítané.
+//  Modrá je nedotknutá, resp. štandardná."* Potvrdené 24. 9.
+//
+// 🔴 DVE FARBY, DVA OBJEKTY — a práve preto sa nebijú:
+//    ZRNO (zvitok) nesie STAV  → `BRAIN_STATE` nižšie,
+//    BUBLINA SVETA nesie DRUH  → `WORLD_TINT` vyššie (tá istá farba ako karta
+//                                 na nástenke, takže mozog a nástenka hovoria
+//                                 jedným jazykom),
+//    KARTUŠA, RÁM, NAV nesú KONŠTRUKCIU → zlato (brand lock).
+// ⚠️ Zlatá tým na uzle PRESTÁVA byť voľná: znamená „videné", nikde inde na uzle
+//    sa použiť nesmie.
+export const BRAIN_STATE = {
+  /** Nedotknutý zvitok. */
+  untouched: GLOW_RGB,
+  /** Nedotknutý svet / okruh / stred — vyššia úroveň má vyšší jas. */
+  untouchedHi: CYAN_RGB,
+  /** VIDENÉ — otvoril si to a nedočítal. Jeho zlatá, `ctaA`. */
+  seen: CTA_RGB,
+  /** PREČÍTANÉ. ⚠️ NIE brandová `#3D7A4E` (61,122,78) — tá je namiešaná NA PAPIER
+   *  a svietiaci 3px bod v nej na čiernom zanikol; prečítané zvitky vyzerali ako
+   *  diery. Ten istý tón, o dva stupne svetlejší.
+   *  [[feedback_brandova_farba_pre_papier_zanikne_na_svietiacom_bode]] */
+  read: '92,190,120',
+} as const;
