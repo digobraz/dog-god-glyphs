@@ -31,3 +31,38 @@ export function hekthorAgeYears(now: Date = new Date()): number {
   if (m < b.month || (m === b.month && now.getDate() < b.day)) age -= 1;
   return age;
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// HEKTHOROV HEROGLYF AKO PODMALBA (24. 9. 2026)
+// ────────────────────────────────────────────────────────────────────────────
+// Matej: *„do heroglyfu by som dal Hektorove symboly úplne, nech sú slabo vidno,
+// priesvitné, nech to nepôsobí prázdne"*.
+//
+// 🔑 JE TO PODMALBA, NIE ÚDAJ. Kreslí sa len do slotov, ktoré človek ešte
+//    nevyplnil, a v krytí ~13 %. Keď vyberie svoju voľbu, podmalba pod ňou
+//    zmizne — takže rám nikdy neukazuje dve odpovede na tú istú otázku.
+//
+// 🔴 ČO TU NIE JE, TO NEVIEM — A NEVYMÝŠĽAM SI TO. Zapísané sú len hodnoty,
+//    ktoré o Hektorovi stoja v repe (čierny kríženec zo záchrany, samec,
+//    zakladateľ #1, majiteľ Matej). Silueta plemena, dva znaky povahy a oba
+//    horoskopy majiteľa v repe NIE SÚ; tie sloty preto ostávajú prerušovanou
+//    čiarou, kým ich Matej nepovie. Vyplniť ich „nejako" by bol výmysel, ktorý
+//    si ktokoľvek prečíta ako Hektorove dáta.
+// ⚠️ Kľúče sú zhodné s `selections` (`dogyptStore`), aby ich rám vedel použiť
+//    bez prekladovej tabuľky.
+// ════════════════════════════════════════════════════════════════════════════
+export const HEKTHOR_GLYPH: Record<string, string> = {
+  /** Samec. */
+  dogGender: 'king',
+  /** Čierny kožuch → Mesiac. */
+  dogColour: 'dark',
+  /** *„Rescued from the streets and adopted from a shelter"* (text kroku 2). */
+  dogFate: 'rescued',
+  /** Kríženec, nie chovateľský papier. */
+  dogBloodline: 'mutt',
+  /** Majiteľ je Matej. */
+  ownerGender: 'man',
+  ownerInitial: 'M',
+  /** Zakladateľ — poradové číslo 1 (Hektorova karta na stene, col=0, row=-1). */
+  ranking: '1',
+};

@@ -212,9 +212,19 @@ interface HeroglyphFrameProps {
    *    prvého. Sloty MAJITEĽA sa neprepisujú — majiteľ je jeden pre celý vstup.
    */
   dogValues?: Record<string, string>;
+  /**
+   * PODMALBA — symboly, ktoré sa slabo prekreslia do PRÁZDNYCH slotov, aby rám
+   * nepôsobil prázdno (Matej 24. 9. 2026). Dnes to je Hektorov glyf
+   * (`HEKTHOR_GLYPH` v `lib/hektor.ts`).
+   *
+   * ⚠️ Kreslí sa LEN tam, kde človek ešte nič nevybral — inak by v ráme stáli
+   *    dve odpovede na tú istú otázku. Slot, ktorý podmalbu nemá, si ďalej
+   *    drží prerušovanú čiaru.
+   */
+  ghostValues?: Record<string, string>;
 }
 
-export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot, pulseAllEmpty = false, style, dogValues }: HeroglyphFrameProps) {
+export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot, pulseAllEmpty = false, style, dogValues, ghostValues }: HeroglyphFrameProps) {
   const { selections, ownerName, patronSvg } = useDogyptStore();
   /** Psie sloty: buď podstata vybraného psa, alebo (bez nej) store. */
   const dog = dogValues ?? selections;
@@ -237,6 +247,25 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot, p
   const dogShapeSrc = patronSvg ? `/patrons/${patronSvg}` : undefined;
   const dogChar1Src = dogCharacterMap[dog.dogCharacter1];
   const dogChar2Src = dogCharacterMap[dog.dogCharacter2];
+
+  /** Krytie podmalby. 13 % je „slabo vidno" — nad 20 % začne súperiť s voľbou. */
+  const GHOST_OP = 0.13;
+  /** Adresy symbolov podmalby. Prázdna, keď `ghostValues` neprišlo. */
+  const gh = ghostValues ?? {};
+  const ghost: Record<string, string | undefined> = {
+    dogGender: dogGenderMap[gh.dogGender],
+    dogColour: dogColourMap[gh.dogColour],
+    dogFate: dogFateMap[gh.dogFate],
+    dogBloodline: dogBloodlineMap[gh.dogBloodline],
+    dogShape: gh.patronSvg ? `/patrons/${gh.patronSvg}` : undefined,
+    dogCharacter1: dogCharacterMap[gh.dogCharacter1],
+    dogCharacter2: dogCharacterMap[gh.dogCharacter2],
+    ownerGender: showOwner ? genderMap[gh.ownerGender] : undefined,
+    chinese: showOwner ? chineseMap[gh.ownerChineseZodiac] : undefined,
+    western: showOwner ? zodiacMap[gh.ownerZodiac] : undefined,
+    ownerInitial: showOwner && gh.ownerInitial ? letterMap[gh.ownerInitial] : undefined,
+    ranking: showOwner ? gh.ranking : undefined,
+  };
 
   return (
     <svg
@@ -261,46 +290,70 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot, p
       {/* Empty slot indicators (dashed borders for unfilled dog slots) */}
       {/* Top-left slot - Dog Gender */}
       <SlotImage x={1282} y={1620} w={1348} h={935} src={dogGenderSrc} />
-      {!dogGenderSrc && <rect x="1282" y="1620" width="1348" height="935" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
+      {!dogGenderSrc && (ghost.dogGender
+        ? <g opacity={GHOST_OP}><SlotImage x={1282} y={1620} w={1348} h={935} src={ghost.dogGender} /></g>
+        : <rect x="1282" y="1620" width="1348" height="935" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />)}
       {/* Top-middle slot - Dog Colour */}
       <SlotImage x={3034} y={1620} w={933} h={935} src={dogColourSrc} />
-      {!dogColourSrc && <rect x="3034" y="1620" width="933" height="935" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
+      {!dogColourSrc && (ghost.dogColour
+        ? <g opacity={GHOST_OP}><SlotImage x={3034} y={1620} w={933} h={935} src={ghost.dogColour} /></g>
+        : <rect x="3034" y="1620" width="933" height="935" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />)}
       {/* Big center slot (patron/dog shape) */}
       <SlotImage x={4375} y={1621} w={3134} h={2453} src={dogShapeSrc} />
-      {!dogShapeSrc && <rect x="4375" y="1621" width="3134" height="2453" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
+      {!dogShapeSrc && (ghost.dogShape
+        ? <g opacity={GHOST_OP}><SlotImage x={4375} y={1621} w={3134} h={2453} src={ghost.dogShape} /></g>
+        : <rect x="4375" y="1621" width="3134" height="2453" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />)}
       {/* Bottom-left - Dog Fate */}
       <SlotImage x={1282} y={2764} w={1348} h={1309} src={dogFateSrc} />
-      {!dogFateSrc && <rect x="1282" y="2764" width="1348" height="1309" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
+      {!dogFateSrc && (ghost.dogFate
+        ? <g opacity={GHOST_OP}><SlotImage x={1282} y={2764} w={1348} h={1309} src={ghost.dogFate} /></g>
+        : <rect x="1282" y="2764" width="1348" height="1309" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />)}
       {/* Bottom-middle - Dog Bloodline */}
       <SlotImage x={2849} y={2764} w={1307} h={1309} src={dogBloodlineSrc} />
-      {!dogBloodlineSrc && <rect x="2849" y="2764" width="1307" height="1309" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
+      {!dogBloodlineSrc && (ghost.dogBloodline
+        ? <g opacity={GHOST_OP}><SlotImage x={2849} y={2764} w={1307} h={1309} src={ghost.dogBloodline} /></g>
+        : <rect x="2849" y="2764" width="1307" height="1309" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />)}
       {/* Far right top - Character 1 */}
       <SlotImage x={11236} y={1620} w={2172} h={1117} src={dogChar1Src} />
-      {!dogChar1Src && <rect x="11236" y="1620" width="2172" height="1117" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
+      {!dogChar1Src && (ghost.dogCharacter1
+        ? <g opacity={GHOST_OP}><SlotImage x={11236} y={1620} w={2172} h={1117} src={ghost.dogCharacter1} /></g>
+        : <rect x="11236" y="1620" width="2172" height="1117" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />)}
       {/* Far right bottom - Character 2 */}
       <SlotImage x={11236} y={2957} w={2172} h={1116} src={dogChar2Src} />
-      {!dogChar2Src && <rect x="11236" y="2957" width="2172" height="1116" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
+      {!dogChar2Src && (ghost.dogCharacter2
+        ? <g opacity={GHOST_OP}><SlotImage x={11236} y={2957} w={2172} h={1116} src={ghost.dogCharacter2} /></g>
+        : <rect x="11236" y="2957" width="2172" height="1116" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />)}
 
       {/* Owner slots - filled when showOwner is true */}
       {/* Owner gender (tall left in inner frame) */}
       <SlotImage x={7974} y={1863} w={905} h={1968} src={ownerGenderSrc} />
-      {!ownerGenderSrc && <rect x="7974" y="1863" width="905" height="1968" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
+      {!ownerGenderSrc && (ghost.ownerGender
+        ? <g opacity={GHOST_OP}><SlotImage x={7974} y={1863} w={905} h={1968} src={ghost.ownerGender} /></g>
+        : <rect x="7974" y="1863" width="905" height="1968" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />)}
 
       {/* Chinese zodiac (top middle in inner frame) */}
       <SlotImage x={8978} y={1866} w={971} h={931} src={chineseZodiacSrc} />
-      {!chineseZodiacSrc && <rect x="8978" y="1866" width="971" height="931" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
+      {!chineseZodiacSrc && (ghost.chinese
+        ? <g opacity={GHOST_OP}><SlotImage x={8978} y={1866} w={971} h={931} src={ghost.chinese} /></g>
+        : <rect x="8978" y="1866" width="971" height="931" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />)}
 
       {/* Western zodiac (top right in inner frame) */}
       <SlotImage x={10049} y={1866} w={723} h={931} src={westernZodiacSrc} />
-      {!westernZodiacSrc && <rect x="10049" y="1866" width="723" height="931" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
+      {!westernZodiacSrc && (ghost.western
+        ? <g opacity={GHOST_OP}><SlotImage x={10049} y={1866} w={723} h={931} src={ghost.western} /></g>
+        : <rect x="10049" y="1866" width="723" height="931" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />)}
 
       {/* Owner initial (bottom middle in inner frame) - rotated 90° */}
       <SlotImage x={8977} y={2895} w={975} h={936} src={ownerInitialSrc} />
-      {!ownerInitialSrc && <rect x="8977" y="2895" width="975" height="936" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
+      {!ownerInitialSrc && (ghost.ownerInitial
+        ? <g opacity={GHOST_OP}><SlotImage x={8977} y={2895} w={975} h={936} src={ghost.ownerInitial} rotate /></g>
+        : <rect x="8977" y="2895" width="975" height="936" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />)}
 
       {/* Ranking (bottom right in inner frame) */}
       <RankingSlot x={10049} y={2898} w={723} h={933} value={rankingValue} />
-      {!hasRanking && <rect x="10049" y="2898" width="723" height="933" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
+      {!hasRanking && (ghost.ranking
+        ? <g opacity={GHOST_OP}><RankingSlot x={10049} y={2898} w={723} h={933} value={ghost.ranking} /></g>
+        : <rect x="10049" y="2898" width="723" height="933" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />)}
 
       {/* Pulsing slot indicators - only show when slot not filled */}
       {(pulseSlot === 'dogGender' || pulseAllEmpty) && !dogGenderSrc && (

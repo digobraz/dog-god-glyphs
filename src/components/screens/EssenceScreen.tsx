@@ -9,6 +9,7 @@ import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
 import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
 import { hekthorFace } from '@/lib/hekthorFaces';
+import { HEKTHOR_GLYPH } from '@/lib/hektor';
 
 // Symboly podstaty — tie isté súbory, aké kreslí `HeroglyphFrame`. Voľba a rám
 // tým ukazujú DOSLOVA to isté; dvojica obrázkov pre jednu vec sa raz rozíde.
@@ -322,6 +323,9 @@ export function EssenceScreen() {
               <HeroglyphFrame
                 showOwner
                 dogValues={picks}
+                // Podmalba: Hektorov glyf slabo v prázdnych slotoch, aby rám
+                // nepôsobil prázdno (Matej 24. 9.). Pod vybranou voľbou zmizne.
+                ghostValues={HEKTHOR_GLYPH}
                 pulseSlot={handover === null ? topic?.key : undefined}
                 className="es-glyph"
               />
@@ -391,9 +395,17 @@ export function EssenceScreen() {
                 )}
               </AnimatePresence>
 
-              {/* BRÁNA namiesto šedého tlačidla: kým niekto chýba, tlačidlo tu
-                  nie je vôbec a namiesto neho stojí veta, ktorá psa POMENUJE
-                  a dá sa na ňu ťuknúť. Šedé „Pokračovať" nepovie, čo chýba. */}
+              {/* ── RAD AKCIE — PEVNÁ VÝŠKA ─────────────────────────────────
+                  🔴 Matej 24. 9. 2026: *„keď prepnem na druhého psa, dolu pod
+                     tlačítkami sa objaví text a zväčší celý 2. blok? prečo? je
+                     to nevyhnutné? oprav to"*. Nie je to nevyhnutné — bola to
+                     moja chyba. Brána (odkaz na chýbajúceho psa) aj CTA pribúdali
+                     DO TOKU, takže doska narástla presne v momente prepnutia psa.
+                     Rad má odteraz výšku VŽDY, aj keď je prázdny: obsah sa
+                     v ňom mení, rozmer nie.
+                  ⚠️ Výška je výška CTA (`--es-act`), nie odhad — inak by sa
+                     blok pri objavení tlačidla zväčšil znova. */}
+              <div className="es-act">
               {allDone ? (
                 /* CTA je LAPISOVÉ (`.hf-cta`), nie zlaté: doska je bledá a
                    brandový kánon od 28. 8. 2026 hovorí lapis na bledom podklade,
@@ -410,6 +422,7 @@ export function EssenceScreen() {
                   {missing.name || t('heroglyph.flow.yourDogFallback')} ↗
                 </button>
               ) : null}
+              </div>
             </div>
           </motion.div>
         </div>
@@ -587,6 +600,11 @@ const ESSENCE_CSS = `
 .es-next b { font-family: 'Cinzel Decorative', 'Cinzel', serif; font-size: 15px; color: rgba(35, 22, 8, 0.90); }
 
 /* ── BRÁNA A CTA ──────────────────────────────────────────────────────────*/
+/* Rad akcie: výška je daná VŽDY (CTA 48 px), obsah sa v nej mení. */
+.es-act {
+  width: 100%; min-height: 48px; display: flex; align-items: center;
+  justify-content: center;
+}
 .es-cta { width: 100%; }
 .es-gate {
   width: 100%; background: none; border: none; cursor: pointer;
