@@ -77,7 +77,14 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
 /* Výber je priesvitný TINT — plná plocha patrí jedinému CTA (brand). */
 .akw-tab[aria-current="page"]{color:${AINUBIS.ink};background:rgba(${AINUBIS.cyanRGB},0.16);
   border-color:${AINUBIS.edgeStrong};}
-.akw-filters{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;}
+/* 🔴 FILTRE SA NEZALAMUJÚ, ROLUJÚ. Na 390 px sa päť štítkov zalomilo do dvoch
+   radov a hlavička zjedla 690 z 844 px — prvý príspevok začínal pod ohybom.
+   Vodorovné rolovanie je tá istá voľba, akú má rad chipov na /map. */
+.akw-filters{display:flex;flex-wrap:nowrap;gap:${PACK_SPACE.sm}px;
+  overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;
+  margin:0 -${PACK_SPACE.lg}px;padding:0 ${PACK_SPACE.lg}px;}
+.akw-filters::-webkit-scrollbar{display:none;}
+.akw-fchip{flex:0 0 auto;}
 .akw-fchip{padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;
   border:1px solid ${AINUBIS.edge};background:transparent;color:${AINUBIS.inkDim};
   font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;line-height:1.35;letter-spacing:0.02em;}
@@ -208,7 +215,10 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
    do zdrojov. Stav je TINT + LEM, nikdy plná plocha. */
 .akw-my{display:flex;gap:${PACK_SPACE.md}px;align-items:flex-start;padding:${PACK_SPACE.md}px;
   border-radius:${PACK_R.frame}px;border:1px solid ${AINUBIS.edge};background:rgba(3,7,12,0.35);}
-.akw-kind{flex:0 0 auto;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
+/* Rovnaká šírka pre všetky štyri druhy — inak si nadpisy pod sebou poskakujú
+   podľa toho, či je to LINK alebo INSIGHT. */
+.akw-kind{flex:0 0 auto;min-width:76px;text-align:center;
+  padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
   border:1px solid ${AINUBIS.edge};color:${AINUBIS.inkFaint};
   font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;line-height:1.4;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;}
@@ -247,7 +257,10 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
      a pilulky rovín, ktoré na PC žijú v ľavom bloku VAULTU, sa vracajú hore:
      bez nich by sa z nástenky nedalo prepnúť späť (A1). */
   .akv-root[data-plane="wall"] .akv-top{left:${PACK_SPACE.xl}px;right:${PACK_SPACE.xl}px;}
-  .akv-root[data-plane="wall"] .akv-toprow{display:flex;}
+  /* Pilulky rovín sa zarovnávajú so STĹPCOM obsahu, nie s krajom okna — inak
+     visí prepínač o 300 px vľavo od záložiek, ktoré sú pod ním. */
+  .akv-root[data-plane="wall"] .akv-toprow{display:flex;width:100%;
+    max-width:${WALL_W + 2 * PACK_SPACE.xxl}px;margin:0 auto;}
   .akv-root[data-plane="wall"] .akv-planes{flex:0 1 420px;}
   .akw-head{max-width:${WALL_W + 2 * PACK_SPACE.xxl}px;padding:0 ${PACK_SPACE.xxl}px ${PACK_SPACE.lg}px;}
   .akw-list{padding:${PACK_SPACE.xl}px ${PACK_SPACE.xxl}px calc(var(--pack-nav-h,68px) + ${PACK_SPACE.xxl}px);}

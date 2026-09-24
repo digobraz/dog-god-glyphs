@@ -36,7 +36,7 @@
 // 🚩 OTVORENÉ: chat ako rovina hore + stred mozgu ako vstup (postavené podľa odporúčania).
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { PackIdentityBar } from '@/components/pack/PackIdentityBar';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
@@ -368,7 +368,6 @@ export default function PackAinubis() {
   /* ROVINA — VAULT alebo CHAT (maketa). 🔴 LEN V DEVE: v produkčnom builde CHAT
      naďalej otvára živý panel `AinubisWidget`, ktorý beží naostro. Maketa je
      rozostavaná vec za zamknutými dverami, nie náhrada fungujúceho chatu. */
-  const [plane2, setPlane2] = useState<'vault' | 'chat' | 'wall'>('vault');
   const CHAT_MOCK = import.meta.env.DEV;
   /* NÁSTENKA = rovina 3, maketa z 24. 9. 2026 (voľby A1 · B2 · C2 · D2 · E2 · F1).
      Naostro ostáva pilulka zamknutá so „soon" — rozostavaná vec stojí za
@@ -378,6 +377,26 @@ export default function PackAinubis() {
      tri vchody sa preto zapínajú spolu s ňou, nie zvlášť. */
   const SOURCES_MOCK = import.meta.env.DEV;
   const navigate = useNavigate();
+  /* 🔴 ROVINA ŽIJE V ADRESE (`?plane=wall`), nie len v stave komponentu.
+     Premerané 24. 9. 2026: zo zdrojov (`/pack/ainubis/sources`) sa človek šípkou
+     vracal na `/pack/ainubis` — a pristál vo VAULTE, hoci odišiel z NÁSTENKY.
+     Stav komponentu prechod cez inú adresu neprežije. Query parameter ho prežije,
+     a navyše sa dá rovina poslať odkazom a prežije obnovenie stránky.
+     ⚠️ Parameter sa pridáva DO EXISTUJÚCICH, nie namiesto nich — `setSearchParams({…})`
+        by zmazal všetko ostatné, čo na adrese je. */
+  const [sp, setSp] = useSearchParams();
+  const planeParam = sp.get('plane');
+  const [plane2, setPlane2] = useState<'vault' | 'chat' | 'wall'>(
+    planeParam === 'wall' && WALL_MOCK ? 'wall'
+      : planeParam === 'chat' && CHAT_MOCK ? 'chat'
+        : 'vault',
+  );
+  const goPlane = (next: 'vault' | 'chat' | 'wall') => {
+    setPlane2(next);
+    const q = new URLSearchParams(sp);
+    if (next === 'vault') q.delete('plane'); else q.set('plane', next);
+    setSp(q, { replace: true });
+  };
   const [flash, setFlash] = useState<string | null>(null);
   /* Filter SVET: -1 = všetky. Roletka otvorená: kľúč alebo null. */
   const [wf, setWf] = useState(-1);
@@ -493,16 +512,16 @@ export default function PackAinubis() {
   const planes = (cls: string) => (
     <nav className={`akv-planes ${cls}`} aria-label="AINUBIS">
       <button type="button" className="akv-plane" aria-current={plane2 === 'vault' ? 'page' : undefined}
-        onClick={() => setPlane2('vault')}>{plane('vault', 'Vault')}</button>
+        onClick={() => goPlane('vault')}>{plane('vault', 'Vault')}</button>
       {/* CHAT = kôš 3. V PRODUKCII sa otvára tým istým kanálom ako doteraz
           (`ainubisBus`), takže beží presne ten chat, ktorý žije naostro.
           V DEVE sa prepne na MAKETU podľa nákresu v5 (`VaultChat`). */}
       <button type="button" className="akv-plane" aria-current={plane2 === 'chat' ? 'page' : undefined}
-        onClick={() => (CHAT_MOCK ? setPlane2('chat') : openAinubis())}>{plane('chat', 'Chat')}</button>
+        onClick={() => (CHAT_MOCK ? goPlane('chat') : openAinubis())}>{plane('chat', 'Chat')}</button>
       {/* „čoskoro" len v tooltipe — v SK „NÁSTENKA ČOSKORO" pretiekla z pilulky (390 px aj PC 40 %). */}
       <button type="button" className="akv-plane" aria-current={plane2 === 'wall' ? 'page' : undefined}
         disabled={!WALL_MOCK} title={WALL_MOCK ? undefined : soon}
-        onClick={() => setPlane2('wall')}>{plane('wall', 'Board')}</button>
+        onClick={() => goPlane('wall')}>{plane('wall', 'Board')}</button>
     </nav>
   );
 
@@ -620,7 +639,7 @@ export default function PackAinubis() {
           Stojí NAD mozgom ako DOGSCROLL, ale mozog v nej ostáva viditeľný: panel
           `ODKIAĽ TO VIEM` je jediné, čím sa tento chat líši od každého iného. */}
       {CHAT_MOCK && plane2 === 'chat' && (
-        <VaultChat onBack={() => setPlane2('vault')} onOpenScroll={() => setPlane2('vault')}
+        <VaultChat onBack={() => goPlane('vault')} onOpenScroll={() => goPlane('vault')}
           onOpenSources={() => navigate('/pack/ainubis/sources')} />
       )}
 
