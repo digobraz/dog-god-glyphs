@@ -667,6 +667,8 @@ export const PAPER_ROUTES_LOCKED: readonly RegExp[] = [
   // Tok pridávania — `/pack/add` (redirect) aj `/pack/add/trip`. Obe routy renderujú
   // `PackMap`, teda ten istý papyrusový povrch, len s otvoreným dokom pridávania.
   /^\/pack\/add(\/|$)/,
+  // BUDDY `/pack/buddy` (24. 9. 2026) — rovina VON, teda šat mapy; tmavú verziu nikdy nemal.
+  /^\/pack\/buddy(\/|$)/,
 ];
 
 // `PAPER_ROUTES_PAGES` = povrchy prezlečené 8. 9. 2026, ktoré tmavú vetvu MAJÚ

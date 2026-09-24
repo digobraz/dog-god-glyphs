@@ -147,3 +147,8 @@ export const PLANNING_LIVE = false;
 // Dev server ich má vždy (`.env.development` je mimo gitu — druhý PC by ich inak nevidel);
 // produkčný build len s `VITE_WISHES=true`. Odomknutie = až s FLIPom.
 export const WISHES_LIVE = import.meta.env.DEV || import.meta.env.VITE_WISHES === 'true';
+
+// BUDDY / Parťáci (krok 3, 24. 9. 2026) — `/pack/buddy`, brána do 100 % a nastavenia.
+// Migrácia `20260927_buddy_settings.sql` beží len na DEV; ten istý dôvod ako pri prianiach.
+// Produkčný build len s `VITE_BUDDY=true`. Odomknutie = až s FLIPom.
+export const BUDDY_LIVE = import.meta.env.DEV || import.meta.env.VITE_BUDDY === 'true';

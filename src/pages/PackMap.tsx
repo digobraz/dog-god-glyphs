@@ -169,7 +169,7 @@ import { useEvents, saveEvent, type EventItem } from '@/components/pack/events/e
 // krok 5) — dovtedy sa event po uložení nikde nezobrazoval (formulár aj store boli hotové,
 // panel ostal viazaný len na TRIP vetvu).
 import { EventsPanel } from '@/components/pack/events/EventsPanel';
-import { EVENTS_LIVE, PLANNING_LIVE, WISHES_LIVE } from '@/lib/packFlags';
+import { BUDDY_LIVE, EVENTS_LIVE, PLANNING_LIVE, WISHES_LIVE } from '@/lib/packFlags';
 import { TRIP_CATEGORIES, ACT_TAG_EMOJI, ACT_TO_CATEGORY, CHIP_BY_ID, DATA_TAG_TO_UI, TAG_EMOJI, TAG_I18N, categoriesOf, chipsOf, isInCategory, primaryCategoryOf, type TripCategoryId } from '@/components/pack/tripCategories';
 import { AvatarRing, AV_D } from '@/components/pack/AvatarRing';
 
@@ -6188,6 +6188,12 @@ export default function PackMap() {
                 by sa podujatia odomkli naraz s ňou. Odôvodnenie celé v `lib/packFlags.ts`. */}
             <button type="button" className={`trp-catpill${activeCat === 'events' ? ' on' : ''}${EVENTS_LIVE ? '' : ' soon'}`} aria-disabled={!EVENTS_LIVE} onClick={pickEvents}>{EVENTS_LIVE ? '' : '🔒 '}{t('pack.map.catEvents')}</button>
             {eventsHint && <AinubisBubble className="trp-eventshint" role="status">{t('pack.map.eventsSoon')}</AinubisBubble>}
+            {/* PARŤÁCI (BUDDY krok 3, 24. 9. 2026) — vstup do roviny `/pack/buddy` (lock §8.1:
+                iný obsah sa prepína HORE). Dočasne v rade kategórií, kým VON nedostane horný
+                pás MAPA · PARŤÁCI — tvar toho pásu čaká na Mateja nad nákresom. */}
+            {BUDDY_LIVE && (
+              <button type="button" className="trp-catpill" onClick={() => navigate('/pack/buddy')}>{t('pack.map.catBuddy')}</button>
+            )}
             {/* Matej 2026-08-06: MIESTA (Places) pill preč — PLACE ako filter kategória bola
                 zrušená (pláže/lúky/parky sú TRIP cez aktivitu `explore`, viď zadanie-eventy §A).
                 i18n kľúč `pack.map.catPlaces` ostáva v locale súboroch pre prípadné budúce použitie. */}
@@ -6392,6 +6398,10 @@ export default function PackMap() {
           <button type="button" role="tab" aria-selected={activeCat === 'trips'} className={activeCat === 'trips' ? 'on' : ''} onClick={() => setActiveCat('trips')}>{t('pack.map.catTrips')}</button>
           {eventsHint && <AinubisBubble className="trp-eventshint" role="status">{t('pack.map.eventsSoon')}</AinubisBubble>}
           <button type="button" role="tab" aria-selected={activeCat === 'events'} aria-disabled={!EVENTS_LIVE} className={activeCat === 'events' ? 'on' : EVENTS_LIVE ? '' : 'is-locked'} onClick={pickEvents}>{EVENTS_LIVE ? '' : '🔒 '}{t('pack.map.catEvents')}</button>
+          {/* PARŤÁCI — mobilná dvojička vstupu z `.trp-cat-pills` (komentár tam). */}
+          {BUDDY_LIVE && (
+            <button type="button" onClick={() => navigate('/pack/buddy')}>{t('pack.map.catBuddy')}</button>
+          )}
         </div>
       </div>
 

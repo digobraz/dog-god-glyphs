@@ -572,7 +572,7 @@ const PLACE_ROUTES: ReadonlyArray<[prefix: string, place: CreatePlace]> = [
   // (issue #35), takže by bolo zvláštne, keby na nej `+` ponúkal niečo iné.
   ['/pack/map', 'VON'],
   ['/pack/add', 'VON'],
-  ['/pack/assniff', 'VON'],   // rovina vo VON (lock §8.1) — routa vzniká, register ju čaká
+  ['/pack/buddy', 'VON'],     // BUDDY — rovina vo VON (lock §8.1; adresa `/pack/buddy`, nie `/assniff`, Matej 24. 9.)
   // AINUBIS — jedna adresa, ktorá rastie (kostra → VAULT → nástenka → zdroje).
   // V rovine CHAT lišta MIZNE (kôš 3), takže sa tam `+` nikoho nespýta.
   // 🚩 V ROVINE NÁSTENKA LIŠTA OSTÁVA (Matej 24. 9. 2026, voľba A1) a `+` sa teda
