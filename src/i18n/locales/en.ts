@@ -235,8 +235,8 @@ export const en = {
   'heroglyph.flow.name.uniqueLine': 'Thousands of dogs share that name. None of them will share the symbol.',
   'heroglyph.flow.email.title': 'Set aside {minutes} {minuteWord}!',
   // Veta rastie s počtom psov (31. 8. 2026) — `{minutes}` je `počet psov + 2`.
-  'heroglyph.flow.email.reasonOne': "In DOGYPT every dog has a symbol of their own — a HEROGLYPH. Building it takes a few minutes of your attention. Leave your e-mail so the design isn't lost if something interrupts you.",
-  'heroglyph.flow.email.reasonMany': "In DOGYPT every dog has a symbol of their own — a HEROGLYPH. Building them for {names} takes a few minutes of your attention. Leave your e-mail so the designs aren't lost if something interrupts you.",
+  'heroglyph.flow.email.reasonOne': "In DOGYPT every dog has a symbol of their own — a HEROGLYPH. Putting it together takes a moment of your attention. Leave your e-mail so the design isn't lost if something interrupts you.",
+  'heroglyph.flow.email.reasonMany': "In DOGYPT every dog has a symbol of their own — a HEROGLYPH. Putting them together takes a moment of your attention. Leave your e-mail so the designs aren't lost if something interrupts you.",
   'heroglyph.flow.email.minFew': 'minutes',
   'heroglyph.flow.email.minMany': 'minutes',
   'heroglyph.flow.email.and': 'and',
