@@ -353,6 +353,9 @@ export const FLOW_PALE_CSS = `
   margin: 0; font-family: 'Space Grotesk', sans-serif;
   font-size: ${BUBBLE_SUB}px; line-height: 1.45; color: rgba(250, 244, 236, 0.72);
 }
+/* Druhý riadok podnadpisu (24. 9.): VÝZVA pod otázkou. Tlmenejšia a o stupeň
+   menšia — inak by dve vety v tej istej váhe súperili o prvé prečítanie. */
+.hf-speak p.more { font-size: ${BUBBLE_SUB - 1}px; color: rgba(250, 244, 236, 0.56); }
 
 /* ── ZOZNAM SVORKY — ŤAHANIE A PORADIE (23. 9. 2026) ──────────────────────
    Matej: *„psy sa budú dať medzi sebou prehodiť ako je v nákrese podľa poradia
@@ -360,6 +363,46 @@ export const FLOW_PALE_CSS = `
    🔑 Poradie je vlastnosť ZOZNAMU (ťahanie), fotka je vlastnosť RIADKA. */
 .hf-doglist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .hf-doglist li { list-style: none; }
+
+/* ── MANTINEL PLOCHY (24. 9. 2026) ────────────────────────────────────────
+   Matej: *„pri 6 psoch sa celá stránka roztiahne a je zle"* — šiesty pes
+   odsunul POKRAČOVAŤ pod ohyb. Strop drží ROVNICA v \`DogsScreen.tsx\`
+   (\`LIST\`), sem chodí ako inline \`max-height\`; CSS ho neprepisuje, inak by
+   sa režim riadka a skutočná výška rozišli.
+   ⚠️ Vodorovný scroll musí ostať viditeľný obsah — riadok pri ťahaní vystupuje
+      z toku, takže \`overflow-x\` NIE JE hidden, len \`clip\` by ho orezal.
+   Okraje plochy majú náznak, že text pokračuje: jemný tieň zhora aj zdola. */
+.hf-dogscroll {
+  width: 100%; overflow-y: auto; overflow-x: visible;
+  /* Miesto pre lift riadka pri hoveri (\`translateY(-1px)\`) a pre jeho tieň. */
+  padding: 2px 2px 3px;
+  margin: -2px -2px -3px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201,154,63,.55) transparent;
+}
+.hf-dogscroll::-webkit-scrollbar { width: 6px; }
+.hf-dogscroll::-webkit-scrollbar-thumb { background: rgba(201,154,63,.55); border-radius: 999px; }
+.hf-dogscroll::-webkit-scrollbar-track { background: transparent; }
+
+/* ── ÚZKY RIADOK — číslo · meno · značka (24. 9. 2026) ────────────────────
+   Matej: *„keď ich bude 4/5, riadok by sa mohol zmenšiť len na číslo, meno
+   a checkmark a plocha kde sú psy bude scrolovateľná"*.
+   🔑 Nie je to iný komponent, je to TEN ISTÝ riadok bez dvoch prvkov (fotka,
+      pilulky). Druhý komponent by sa pri prvej úprave rozišiel s plným.
+   ⚠️ Zelená/červená ostáva na celom bloku — úzky riadok teda hovorí dvakrát
+      (rám aj značka) a to je zámer: pri siedmich riadkoch sa farba číta ako
+      pás, značka ako odpoveď na konkrétneho psa. */
+.hf-dogrow.is-slim { padding: 6px 10px; gap: 10px; }
+.hf-dogrow.is-slim .hf-dogmid { flex-direction: row; align-items: center; gap: 8px; }
+.hf-dogrow.is-slim .nm { font-size: 13.5px; }
+.hf-dogmark {
+  flex: 0 0 auto; width: 22px; height: 22px; border-radius: 999px;
+  display: grid; place-items: center; border: 1.5px solid;
+  font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; line-height: 1;
+}
+.hf-dogmark svg { width: 13px; height: 13px; }
+.hf-dogmark.ok   { border-color: #3D7A4E; background: rgba(61,122,78,.14);  color: #2E5C3B; }
+.hf-dogmark.miss { border-color: #B25640; background: rgba(178,86,64,.14);  color: #8E3F2C; }
 /* Úchyt je jediné miesto, kde sa ťahá — riadok samotný sa klikom OTVÁRA.
    touch-action:none je povinné: bez neho si prehliadač na dotykovom
    zariadení zoberie gesto pre scroll a riadok sa nepohne. */
@@ -559,6 +602,10 @@ export const FLOW_PALE_CSS = `
   margin: 0; text-align: center; font-family: 'Cinzel', serif; font-weight: 700;
   font-size: 15px; letter-spacing: .06em; color: ${LAB.ink};
 }
+/* Hlavička panela (24. 9.): fotka nad menom. V úzkom režime je to JEDINÉ miesto,
+   kde sa fotka dá pridať — v riadku vtedy nie je. */
+.hf-legtop { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.hf-pic.lg { width: 72px; height: 72px; font-size: 26px; }
 
 /* ── DÔKAZ: NADPIS, DVA PÁSY, POPISKY (31. 8. 2026) ───────────────────────
    Obrazovka netvrdí, že je pes unikát — ukazuje to. Traja SKUTOČNÍ psi menom

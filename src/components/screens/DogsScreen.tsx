@@ -61,6 +61,48 @@ type Row = {
 
 const MAIN = 'main';
 
+// ── MANTINELY ZOZNAMU (24. 9. 2026) ─────────────────────────────────────────
+// Matej: *„ak je teraz 6 psov, celá stránka sa roztiahne a je zle — musíme si
+// určiť mantinely a pri dosiahnutí limitu zvoliť iný pohľad"* + *„keď ich bude
+// 4/5, riadok sa zmenší len na číslo, meno a checkmark a plocha bude
+// scrollovateľná"*.
+//
+// 🔴 ROVNICA, NIE MERANIE VYKRESLENÉHO. Koľko psov sa zmestí, sa počíta z
+//    konštánt nižšie a z VÝŠKY OKNA (`window.innerHeight` — okno, nie prvok).
+//    Meranie po vykreslení je kruh: výška zoznamu závisí od režimu a režim od
+//    výšky. Ladí sa TU, nie v CSS.
+//
+//   strop = clamp(160, 38 % okna, 330)
+//   zmestí sa  ⇔  n · (ROW_FULL + GAP) − GAP ≤ strop
+//
+// Pri okne 900 px (PC) sú to 4 plné riadky, pri 700 px (telefón) 3 — presne to
+// Matejovo „4/5". Čo sa nezmestí, ide do ÚZKEHO režimu: úchyt · číslo · meno ·
+// značka stavu. Fotka a pilulky odtiaľ zmiznú, ale nezanikajú — otvárajú sa
+// panelom psa (preto doň 24. 9. pribudla fotka).
+const LIST = {
+  /** Plný riadok — 74 px odmerané v prehliadači: fotka (42) < meno (18) + medzera
+   *  (6) + pilulky (26) = 50, plus odsadenie (18) a rám (2), plus 4 px na lift. */
+  rowFull: 74,
+  /** Úzky riadok — 40 px odmerané: meno (22) + odsadenie (12) + rám (2) + lift. */
+  rowSlim: 40,
+  gap: 8,
+  maxPx: 330,
+  minPx: 160,
+  /** Podiel okna, ktorý zoznam smie zabrať. Zvyšok patrí bubline, krajine a CTA. */
+  share: 0.38,
+};
+
+/** Výška okna. Resize sa počúva, ale hodnota sa berie z OKNA — nie z prvku. */
+function useWindowH() {
+  const [h, setH] = useState(() => (typeof window === 'undefined' ? 800 : window.innerHeight));
+  useEffect(() => {
+    const on = () => setH(window.innerHeight);
+    window.addEventListener('resize', on);
+    return () => window.removeEventListener('resize', on);
+  }, []);
+  return h;
+}
+
 export function DogsScreen() {
   const flowOk = useFlowGuard();
   const navigate = useNavigate();
@@ -137,6 +179,16 @@ export function DogsScreen() {
   }, [displayName, dogPhotoUrl, lifeStatus, deathDate, selections, extraDogs, mainDogPos]);
 
   const keys = useMemo(() => rows.map((r) => r.key), [rows]);
+
+  // ── KOĽKO SA ICH ZMESTÍ (24. 9. 2026) ──────────────────────────────────────
+  // Strop plochy + režim riadka. Obe z tej istej rovnice (`LIST` hore), aby
+  // sa nemohlo stať, že zoznam je „plný" a pritom pretečie.
+  const winH = useWindowH();
+  const listMax = Math.round(
+    Math.max(LIST.minPx, Math.min(LIST.maxPx, winH * LIST.share)),
+  );
+  const fullH = rows.length * (LIST.rowFull + LIST.gap) - LIST.gap;
+  const slim = fullH > listMax;
 
   /** Nové poradie zo ťahania — z kľúčov späť na `mainDogPos` + `extraDogs`. */
   const onReorder = (next: string[]) => {
@@ -329,10 +381,13 @@ export function DogsScreen() {
           >
             {/* Medailón je ten istý odliatok ako na kroku 2, len menší — ksicht
                 si berie podľa KROKU (`hekthorFaces.ts`), nie podľa poradia. */}
-            <FlowMedallion src={hekthorFace('dogs')} size={72} className="hf-medal" />
+            <FlowMedallion src={hekthorFace('dogs')} size={96} className="hf-medal" />
             <span className="say">
               <h2>{t('heroglyph.flow.dogs.packTitle')}</h2>
               <p>{t('heroglyph.flow.dogs.title')}</p>
+              {/* Druhý riadok podnadpisu je VÝZVA, nie opakovanie otázky (Matej
+                  24. 9.). Preto tlmenejší a menší — otázka nad ním má ostať prvá. */}
+              <p className="more">{t('heroglyph.flow.dogs.sub')}</p>
             </span>
           </motion.div>
 
@@ -349,23 +404,34 @@ export function DogsScreen() {
                 <span className="hint">{t('heroglyph.flow.dogs.orderHint')}</span>
               </p>
 
-              <Reorder.Group axis="y" as="ul" className="hf-doglist" values={keys} onReorder={onReorder}>
-                {rows.map((d, i) => (
-                  <DogRow
-                    key={d.key}
-                    row={d}
-                    order={dogOrderStart + i}
-                    first={i === 0}
-                    done={dogDone(d)}
-                    flags={dogFlags(d)}
-                    nat={nat}
-                    onOpen={() => setOpenKey(d.key)}
-                    onPhoto={() => askPhoto(d)}
-                    onOrder={() => setOrdEdit((p) => !p)}
-                    t={t}
-                  />
-                ))}
-              </Reorder.Group>
+              {/* Plocha psov má STROP a scrolluje — bez neho šiesty pes odsunul
+                  tlačidlo POKRAČOVAŤ pod ohyb (Matej 24. 9.).
+                  ⚠️ `layoutScroll` je pri ťahaní povinné: bez neho počíta framer
+                     polohy riadkov voči oknu a v odscrolovanej ploche skáču. */}
+              <motion.div
+                layoutScroll
+                className={`hf-dogscroll${slim ? ' is-slim' : ''}`}
+                style={{ maxHeight: listMax }}
+              >
+                <Reorder.Group axis="y" as="ul" className="hf-doglist" values={keys} onReorder={onReorder}>
+                  {rows.map((d, i) => (
+                    <DogRow
+                      key={d.key}
+                      row={d}
+                      order={dogOrderStart + i}
+                      first={i === 0}
+                      slim={slim}
+                      done={dogDone(d)}
+                      flags={dogFlags(d)}
+                      nat={nat}
+                      onOpen={() => setOpenKey(d.key)}
+                      onPhoto={() => askPhoto(d)}
+                      onOrder={() => setOrdEdit((p) => !p)}
+                      t={t}
+                    />
+                  ))}
+                </Reorder.Group>
+              </motion.div>
 
               <button type="button" className="hf-addrow" onClick={addDog}>
                 <b>+</b>{t('heroglyph.flow.dogs.add')}
@@ -432,7 +498,21 @@ export function DogsScreen() {
         <div className="hf-legwrap" role="dialog" aria-modal="true">
           <div className="hf-legveil" onClick={closePanel} />
           <div className="hf-legpanel">
-            <p className="who">{open.name || t('heroglyph.flow.dogs.unnamed')}</p>
+            {/* ── HLAVIČKA PANELA: FOTKA + MENO (24. 9. 2026) ────────────────
+                Fotka tu pribudla kvôli ÚZKEMU REŽIMU — z riadka pri veľkej
+                svorke mizne a bez nej by pes nešiel dokončiť. Je to tá istá
+                cesta (`askPhoto`), nie druhá implementácia príjmu. */}
+            <div className="hf-legtop">
+              <button
+                type="button"
+                className={`hf-pic lg${open.photo ? '' : ' add'}`}
+                onClick={() => askPhoto(open)}
+                aria-label={t('heroglyph.flow.dogs.photoAdd')}
+              >
+                {open.photo ? <img src={open.photo} alt={t('heroglyph.flow.dogs.photoOf')} /> : '+'}
+              </button>
+              <p className="who">{open.name || t('heroglyph.flow.dogs.unnamed')}</p>
+            </div>
 
             {/* Meno má tu len ďalší pes — prvý ho dostal na kroku 2. */}
             {openIsExtra && (
@@ -569,10 +649,12 @@ export function DogsScreen() {
 // 🔴 ŤAHÁ SA LEN ZA ÚCHYT (`dragListener={false}`). Riadok je zároveň klikateľný
 //    (otvára panel) a fotka je tlačidlo; keby ťahal celý riadok, na dotykovom
 //    zariadení by sa klik nedal odlíšiť od začiatku ťahania.
-function DogRow({ row, order, first, done, flags, nat, onOpen, onPhoto, onOrder, t }: {
+function DogRow({ row, order, first, slim, done, flags, nat, onOpen, onPhoto, onOrder, t }: {
   row: Row;
   order: number;
   first: boolean;
+  /** Úzky režim — viac psov, než sa zmestí v plnej podobe (`LIST` hore). */
+  slim: boolean;
   done: boolean;
   flags: { photo: boolean; name: boolean; born: boolean; gone: boolean; country: boolean };
   nat: string;
@@ -588,7 +670,7 @@ function DogRow({ row, order, first, done, flags, nat, onOpen, onPhoto, onOrder,
 
   return (
     <Reorder.Item value={row.key} dragListener={false} dragControls={controls}>
-      <div className={`hf-dogrow as-row${done ? ' is-done' : ''}${row.name.trim() ? '' : ' is-empty'}`}>
+      <div className={`hf-dogrow as-row${slim ? ' is-slim' : ''}${done ? ' is-done' : ''}${row.name.trim() ? '' : ' is-empty'}`}>
         <span
           className="hf-grip"
           aria-hidden
@@ -607,14 +689,19 @@ function DogRow({ row, order, first, done, flags, nat, onOpen, onPhoto, onOrder,
           <span className="hf-ord derived">{order}</span>
         )}
 
-        <button
-          type="button"
-          className={`hf-pic${row.photo ? '' : ' add'}`}
-          onClick={onPhoto}
-          aria-label={t('heroglyph.flow.dogs.photoAdd')}
-        >
-          {row.photo ? <img src={row.photo} alt="" /> : '+'}
-        </button>
+        {/* ⚠️ V úzkom režime fotka z riadka MIZNE, nezaniká — pýta si ju panel
+            psa. Keby zmizla úplne, pes by sa nedal dokončiť a tlačidlo
+            POKRAČOVAŤ by ostalo zamknuté bez cesty von. */}
+        {!slim && (
+          <button
+            type="button"
+            className={`hf-pic${row.photo ? '' : ' add'}`}
+            onClick={onPhoto}
+            aria-label={t('heroglyph.flow.dogs.photoAdd')}
+          >
+            {row.photo ? <img src={row.photo} alt="" /> : '+'}
+          </button>
+        )}
 
         <button type="button" className="hf-dogmid" onClick={onOpen} aria-label={t('heroglyph.flow.dogs.editAria')}>
           <span className="nm">{row.name || t('heroglyph.flow.dogs.unnamed')}</span>
@@ -625,26 +712,49 @@ function DogRow({ row, order, first, done, flags, nat, onOpen, onPhoto, onOrder,
               a na 390 px by sa zalomil.
               🔑 Chýbajúca hodnota je `???` za tým istým znakom, aký nesie
               vyplnená — pilulka nemení tvar, mení sa len to, či hodnotu vieme. */}
-          <span className="hf-dogpills">
-            <span className={`hf-dpill ${flags.born ? 'ok' : 'miss'}`} title={t('heroglyph.flow.dogs.born')}>
-              <span className="em">🎂</span>{flags.born ? year : '???'}
-            </span>
-            {row.lifeStatus === 'deceased' && (
-              <span className={`hf-dpill ${row.deathDate ? 'ok' : 'miss'}`} title={t('heroglyph.flow.dogs.died')}>
-                †&nbsp;{row.deathDate ? goneYear : '???'}
+          {!slim && (
+            <span className="hf-dogpills">
+              <span className={`hf-dpill ${flags.born ? 'ok' : 'miss'}`} title={t('heroglyph.flow.dogs.born')}>
+                <span className="em">🎂</span>{flags.born ? year : '???'}
               </span>
-            )}
-            <span className={`hf-dpill solo ${flags.country ? 'ok' : 'miss'}`} title={t('heroglyph.flow.dogs.nationality')}>
-              <span className="em">{flags.country ? (countryFlag(dogISO || '') || '🏳') : '?'}</span>
+              {row.lifeStatus === 'deceased' && (
+                <span className={`hf-dpill ${row.deathDate ? 'ok' : 'miss'}`} title={t('heroglyph.flow.dogs.died')}>
+                  †&nbsp;{row.deathDate ? goneYear : '???'}
+                </span>
+              )}
+              <span className={`hf-dpill solo ${flags.country ? 'ok' : 'miss'}`} title={t('heroglyph.flow.dogs.nationality')}>
+                <span className="em">{flags.country ? (countryFlag(dogISO || '') || '🏳') : '?'}</span>
+              </span>
+              <span
+                className={`hf-dpill solo ${flags.gone ? 'ok' : 'miss'}`}
+                title={t(row.lifeStatus === 'alive' ? 'heroglyph.flow.dogs.statusAlive' : 'heroglyph.flow.dogs.statusAngel')}
+              >
+                <img src={row.lifeStatus === 'alive' ? legendIconUrl : angelIconUrl} alt="" />
+              </span>
             </span>
-            <span
-              className={`hf-dpill solo ${flags.gone ? 'ok' : 'miss'}`}
-              title={t(row.lifeStatus === 'alive' ? 'heroglyph.flow.dogs.statusAlive' : 'heroglyph.flow.dogs.statusAngel')}
-            >
-              <img src={row.lifeStatus === 'alive' ? legendIconUrl : angelIconUrl} alt="" />
-            </span>
-          </span>
+          )}
         </button>
+
+        {/* ── ÚZKY REŽIM: JEDNA ODPOVEĎ MIESTO ŠTYROCH ────────────────────────
+            Matej 24. 9.: *„riadok sa zmenší len na číslo, meno a checkmark"*.
+            Štyri pilulky hovoria, ČO chýba; keď sa nezmestia, ostáva otázka,
+            na ktorej visí tlačidlo POKRAČOVAŤ: je tento pes hotový?
+            Farby sú tie isté brandové tokeny ako pilulky — zelená #3D7A4E,
+            červená #B25640. Podrobnosti si vypýtaš klikom (panel). */}
+        {slim && (
+          <span
+            className={`hf-dogmark ${done ? 'ok' : 'miss'}`}
+            title={t(done ? 'heroglyph.flow.dogs.ready' : 'heroglyph.flow.dogs.missing')}
+            aria-hidden
+          >
+            {done ? (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2"
+                strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 12.5 L9.5 18 L20 6" />
+              </svg>
+            ) : '!'}
+          </span>
+        )}
       </div>
     </Reorder.Item>
   );
