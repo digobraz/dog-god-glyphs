@@ -113,6 +113,20 @@ const FLOW_ORDER_OLD = [
  * vymaž ako aj 1b"). Obrazovka sa iba odvesila z reťaze, nezmazala.
  * `/heroglyph/photo` tu tiež nie je — nový vstup na ňu nechodí, začína
  * popupom nad stenou a prvým krokom s vlastnou routou je `name`.
+ *
+ * ── 🔴 CHVOST SA SKRÁTIL O SEDEM KROKOV (25. 9. 2026) ────────────────────────
+ * Matej: *„ideme zliať majiteľa do jednej obrazovky"*. Za patrónom stálo deväť
+ * obrazoviek, z ktorých SEDEM sa pýtalo na to, na čo človek v tom istom
+ * priechode už odpovedal:
+ *  · `ranking` — poradie psa píše krok 2 (`DogsScreen` → `selections.ranking`),
+ *    a `PatronScreen` ho preto preskakoval už od 24. 9.
+ *  · `owner-zodiac` + `owner-final` — pohltila ich obrazovka MAJITEĽ
+ *    (`OwnerScreen`), ktorá visí na routе `owner-info`.
+ *  · `dog-gender` · `dog-fate` · `dog-colour` · `dog-bloodline` — tie pýta od
+ *    24. 9. PODSTATA (`EssenceScreen`), takže to bola druhá odpoveď na tú istú
+ *    otázku o dvanásť krokov neskôr.
+ * ⚠️ Routy ostávajú zavesené v `App.tsx` a komponenty sa nemažú — LIVE vstup
+ *    po nich chodí ďalej (`FLOW_ORDER_OLD` je nedotknuté).
  */
 const FLOW_ORDER_NEW = [
   '/heroglyph/name',
@@ -120,14 +134,7 @@ const FLOW_ORDER_NEW = [
   '/heroglyph/email',
   '/heroglyph/essence',
   '/heroglyph/breed',
-  '/heroglyph/ranking',
   '/heroglyph/owner-info',
-  '/heroglyph/owner-zodiac',
-  '/heroglyph/owner-final',
-  '/heroglyph/dog-gender',
-  '/heroglyph/dog-fate',
-  '/heroglyph/dog-colour',
-  '/heroglyph/dog-bloodline',
   '/heroglyph/dog-character',
   '/heroglyph/crop',
   '/heroglyph/reveal',

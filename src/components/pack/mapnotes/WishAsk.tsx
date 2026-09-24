@@ -7,8 +7,8 @@
 //   · zapísaný výlet blízko môjho prania → D1 (`wishMatchForTrail`, po zatvorení odmeny)
 //
 // ── NIE JE TO NOVÁ OBRAZOVKA ────────────────────────────────────────────────
-// Tá istá bublina ako pri pridávaní prania (`AinubisGuide` + triedy `ADD_WISH_CSS`),
-// pod ňou vždy len tlačidlá odpovede. Upozornenie len zavolá; odpovedá sa nad mapou,
+// Ten istý blok ako pri pridávaní prania (`WishSheet` + triedy `ADD_WISH_CSS`): AINUBISova
+// otázka hore, tlačidlá odpovede v bledom bloku pod ňou. Upozornenie len zavolá; odpovedá sa nad mapou,
 // kde pin stojí. Šat je AINUBISOV (lock brand.md: oznamy appky hovorí on).
 //
 // ── MENO MIESTA STOJÍ V PRVOM PÁDE ──────────────────────────────────────────
@@ -23,7 +23,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Map as LeafletMap } from 'leaflet';
 import { useT } from '@/i18n/LanguageContext';
-import { AinubisGuide } from '@/components/pack/addtrip/AinubisGuide';
+import { WishSheet } from './WishSheet';
 import { emitOpenThread } from '@/components/pack/messaging/openBridge';
 import { startWishDM } from '@/components/pack/messaging/packMessaging';
 import { POINTS } from '@/lib/tripPoints';
@@ -55,7 +55,7 @@ const startStep = (k: WishAskKind): Step =>
   k === 'wish_me_too' ? 'metoo' : k === 'wish_ask' ? 'ask' : k === 'wish_missed' ? 'missed'
     : k === 'wish_nudge' ? 'nudge' : 'match';
 
-export function WishAsk({ req, wishes, map, dogName, onClose, onChanged, onLogTrip, edgeLeft }: {
+export function WishAsk({ req, wishes, map, dogName, onClose, onChanged, onLogTrip }: {
   req: WishAskReq;
   /** živé priania na mape — B3 si z nich berie kópiu toho, kto chce tiež */
   wishes: WishPin[];
@@ -66,7 +66,6 @@ export function WishAsk({ req, wishes, map, dogName, onClose, onChanged, onLogTr
   onChanged: () => void;
   /** D3 ZAPÍSAŤ VÝLET — LOG predvyplnený miestom prania */
   onLogTrip: (lat: number, lon: number) => void;
-  edgeLeft?: boolean;
 }) {
   const t = useT();
   const [step, setStep] = useState<Step>(req.kind === 'wish_me_too' ? 'metoo' : 'loading');
@@ -173,7 +172,7 @@ export function WishAsk({ req, wishes, map, dogName, onClose, onChanged, onLogTr
   const closeRow = <div className="aw-row">{btn(t('pack.wish.close'), onClose, true)}</div>;
 
   const below = (
-    <div className="aw-below">
+    <>
       <style>{ADD_WISH_CSS}</style>
       {(step === 'gone' || step === 'cancelled' || step === 'postponed') && closeRow}
       {step === 'metoo' && (copy
@@ -238,17 +237,9 @@ export function WishAsk({ req, wishes, map, dogName, onClose, onChanged, onLogTr
         </div>
       )}
       {err && <div className="aw-err">{err}</div>}
-    </div>
+    </>
   );
 
   if (step === 'loading') return null;
-  return (
-    <AinubisGuide
-      text={text}
-      onAbort={onClose}
-      abortLabel={t('pack.wish.close')}
-      edgeLeft={edgeLeft}
-      below={below}
-    />
-  );
+  return <WishSheet text={text} onClose={onClose} closeLabel={t('pack.wish.close')}>{below}</WishSheet>;
 }

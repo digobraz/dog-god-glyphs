@@ -99,6 +99,12 @@ const PatronScreen = lazy(() =>
 const CharacterScreen = lazy(() =>
   import("@/components/screens/CharacterScreen").then((m) => ({ default: m.CharacterScreen }))
 );
+// MAJITEĽ (25. 9. 2026) — poradie, meno, pohlavie a obidva horoskopy na jednej
+// obrazovke. Zliala `OwnerInfoScreen` + `OwnerZodiacScreen` + `OwnerFinalScreen`
+// (tie bežia ďalej na LIVE), len v DEV — viď routu nižšie.
+const OwnerScreen = lazy(() =>
+  import("@/components/screens/OwnerScreen").then((m) => ({ default: m.OwnerScreen }))
+);
 const CropScreen = lazy(() =>
   import("@/components/screens/CropScreen").then((m) => ({ default: m.CropScreen }))
 );
@@ -375,7 +381,19 @@ const App = () => (
                 element={NEW_HEROFLOW ? <PatronScreen /> : <BreedPatronScreen />}
               />
               <Route path="/heroglyph/ranking" element={<RankingScreen />} />
-              <Route path="/heroglyph/owner-info" element={<OwnerInfoScreen />} />
+              {/* 🔴 JEDNA ROUTA, DVE OBRAZOVKY podľa režimu vstupu (25. 9. 2026) —
+                  ten istý recept ako `/heroglyph/breed` a `/heroglyph/dog-character`.
+                  Nový vstup dostáva MAJITEĽA (poradie z kroku 2 + meno + pohlavie +
+                  jeden dátum, z ktorého sa dopočítajú obidva horoskopy), LIVE ide
+                  ďalej cez pôvodnú trojicu `owner-info` → `owner-zodiac` →
+                  `owner-final`.
+                  ⚠️ Tie tri routy sa NEMAŽÚ a ostávajú zavesené — LIVE vstup po nich
+                     chodí. Z reťaze NOVÉHO vstupu sú odvesené (`flowRedress.tsx`),
+                     takže sa do nich ťuknutím nedá dostať; priamy odkaz áno. */}
+              <Route
+                path="/heroglyph/owner-info"
+                element={NEW_HEROFLOW ? <OwnerScreen /> : <OwnerInfoScreen />}
+              />
               <Route path="/heroglyph/owner-zodiac" element={<OwnerZodiacScreen />} />
               <Route path="/heroglyph/owner-final" element={<OwnerFinalScreen />} />
               <Route path="/heroglyph/dog-gender" element={<DogGenderScreen />} />

@@ -460,6 +460,21 @@ export const en = {
   'heroglyph.flow.ownerInfo.continue': 'Continue',
   'heroglyph.flow.ownerInfo.back': 'Back',
 
+  // ── /heroglyph flow — OWNER (merged 25 Sep 2026) ──
+  // One screen instead of `ownerInfo` + `ownerZodiac` + `ownerFinal`. Those keys
+  // stay — the old screens still run on LIVE.
+  'heroglyph.flow.owner.questionPrefix': 'And now ',
+  'heroglyph.flow.owner.questionWord': 'you',
+  'heroglyph.flow.owner.questionSuffix': ', human.',
+  'heroglyph.flow.owner.sub': 'Your cartouche sits inside your dog\'s. That is how it should be.',
+  'heroglyph.flow.owner.orderLine': '{dogName} is your {ord} dog',
+  'heroglyph.flow.owner.orderMissing': 'No order picked yet',
+  'heroglyph.flow.owner.orderChange': 'Change',
+  'heroglyph.flow.owner.orderPick': 'Pick',
+  'heroglyph.flow.owner.whoLegend': 'Who you are',
+  'heroglyph.flow.owner.bornLegend': 'You were born',
+  'heroglyph.flow.owner.nameTitle': 'Your first name',
+
   // ── /heroglyph flow — shared ──
   'heroglyph.flow.yourDogFallback': 'YOUR DOG',
   'heroglyph.flow.dogHeroglyphTitle': "{dogName}'S HEROGLYPH",

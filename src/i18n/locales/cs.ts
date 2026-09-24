@@ -268,6 +268,19 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.ownerInfo.continue': 'Pokračovat',
   'heroglyph.flow.ownerInfo.back': 'Zpět',
 
+  // ── /heroglyph flow — MAJITEL (sloučeno 25. 9. 2026) ──
+  'heroglyph.flow.owner.questionPrefix': 'Tak a teď ',
+  'heroglyph.flow.owner.questionWord': 'ty',
+  'heroglyph.flow.owner.questionSuffix': ', člověče.',
+  'heroglyph.flow.owner.sub': 'Tvůj rámeček je uvnitř toho psího. Tak to má být.',
+  'heroglyph.flow.owner.orderLine': '{dogName} je tvůj {ord} pes',
+  'heroglyph.flow.owner.orderMissing': 'Pořadí psa zatím není vybrané',
+  'heroglyph.flow.owner.orderChange': 'Změnit',
+  'heroglyph.flow.owner.orderPick': 'Vybrat',
+  'heroglyph.flow.owner.whoLegend': 'Kdo jsi',
+  'heroglyph.flow.owner.bornLegend': 'Narodil ses',
+  'heroglyph.flow.owner.nameTitle': 'Tvoje křestní jméno',
+
   // ── /heroglyph flow — spoločné ──
   'heroglyph.flow.yourDogFallback': 'TVÉHO PSA',
   'heroglyph.flow.dogHeroglyphTitle': 'HEROGLYPH PSA {dogName}',

@@ -348,6 +348,21 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.ownerInfo.continue': 'Pokračovať',
   'heroglyph.flow.ownerInfo.back': 'Späť',
 
+  // ── /heroglyph flow — MAJITEĽ (zliate 25. 9. 2026) ──
+  // Jedna obrazovka namiesto trojice `ownerInfo` + `ownerZodiac` + `ownerFinal`.
+  // Kľúče tých troch sa NEMAŽÚ — staré obrazovky bežia ďalej na LIVE.
+  'heroglyph.flow.owner.questionPrefix': 'Tak, a teraz ',
+  'heroglyph.flow.owner.questionWord': 'ty',
+  'heroglyph.flow.owner.questionSuffix': ', človeče.',
+  'heroglyph.flow.owner.sub': 'Tvoj rámik je vnútri toho psieho. Tak to má byť.',
+  'heroglyph.flow.owner.orderLine': '{dogName} je tvoj {ord} pes',
+  'heroglyph.flow.owner.orderMissing': 'Poradie psa zatiaľ nie je vybrané',
+  'heroglyph.flow.owner.orderChange': 'Zmeniť',
+  'heroglyph.flow.owner.orderPick': 'Vybrať',
+  'heroglyph.flow.owner.whoLegend': 'Kto si',
+  'heroglyph.flow.owner.bornLegend': 'Narodil si sa',
+  'heroglyph.flow.owner.nameTitle': 'Tvoje krstné meno',
+
   // ── /heroglyph flow — spoločné ──
   'heroglyph.flow.yourDogFallback': 'TVOJHO PSA',
   'heroglyph.flow.dogHeroglyphTitle': 'HEROGLYPH PSA {dogName}',

@@ -407,8 +407,11 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
        z ktorej si AINUBIS panel počíta polohu (`AinubisWidget.css`). Na páse by to
        bola polovica okna. */
     <>
+    {/* `pk-dock-band` = háčik pre zámok obrazovky na mape (`body.trp-draw-lock` v PackMap):
+        pri zápise výletu aj prania lišta zmizne. Bez triedy ju zámok netrafil — jeho pravidlo
+        mieri na starý `.trp-root > nav.fixed` spred prestavby lišty 21. 9. 2026. */}
     <div
-      className="fixed z-40"
+      className="fixed z-40 pk-dock-band"
       style={{
         /* ⛔ `var(--consent-h)` tu bolo 17. 9.–22. 9. 2026 (lišta mala na mobile 197 px
            a nav ležal celý pod ňou). ZRUŠENÉ: Cookie lišta od 22. 9. 2026 obsah PREKRÝVA, neposúva ho (Matej: „radšej keby zakryli obsah na mobile než ho vytlačiť“) — lišta má 112 px a zmizne na jedno ťuknutie.

@@ -128,11 +128,11 @@ export function CharacterScreen() {
       <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_SCROLL_CSS}{CHARACTER_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
-        {/* ⚠️ Späť vedie na RODOKMEŇ, teda tam, odkiaľ sa sem dnes naozaj príde.
-            Keď sa štyri staré otázky (pohlavie · farba · pôvod · rodokmeň)
-            odvesia z nového vstupu — PODSTATA ich už pýta — presunie sa aj toto
-            na `/heroglyph/owner-final`. → poznámka v KONTEXT.md. */}
-        <PageTopBar onBack={() => navigate('/heroglyph/dog-bloodline')} />
+        {/* Späť vedie na MAJITEĽA — teda tam, odkiaľ sa sem po skrátení chvosta
+            (25. 9. 2026) naozaj príde. Štyri staré otázky o psovi medzi tým
+            (pohlavie · farba · pôvod · rodokmeň) sú z nového vstupu odvesené,
+            lebo ich pýta PODSTATA. */}
+        <PageTopBar onBack={() => navigate('/heroglyph/owner-info')} />
       </div>
 
       <div className="hf-stage">

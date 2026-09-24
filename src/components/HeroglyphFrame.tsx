@@ -81,7 +81,7 @@ import letterZ from '@/assets/letters/NAME-Z.svg';
 // Number assets
 import { RankingSlot } from '@/components/RankingSlot';
 
-const genderMap: Record<string, string> = { man: manSvg, woman: womanSvg };
+export const genderMap: Record<string, string> = { man: manSvg, woman: womanSvg };
 const dogGenderMap: Record<string, string> = { king: dogKingSvg, queen: dogQueenSvg };
 const dogFateMap: Record<string, string> = { raised: fateRaisedSvg, rescued: fateRescuedSvg };
 const dogColourMap: Record<string, string> = { bright: colourBrightSvg, dark: colourDarkSvg, mix: colourMixSvg };
@@ -139,20 +139,25 @@ for (const [path, src] of Object.entries(characterModules)) {
   dogCharacterMap[key] = src as string;
 }
 
-const zodiacMap: Record<string, string> = {
+// ── SADY SYMBOLOV SÚ ODTERAZ VEREJNÉ (25. 9. 2026) ──────────────────────────
+// Obrazovka MAJITEĽ ukazuje vedľa poľa ten istý symbol, ktorý práve pristál do
+// slotu rámu (písmeno mena, znamenie, zviera, pohlavie). Keby si ich vymenovala
+// sama, boli by to DVE sady toho istého: doplnené písmeno by sa objavilo v ráme
+// a v náhľade nie. Zdroj pravdy je rám, preto sa berú odtiaľto.
+export const zodiacMap: Record<string, string> = {
   Aries: ariesSvg, Taurus: taurusSvg, Gemini: geminiSvg, Cancer: cancerSvg,
   Leo: leoSvg, Virgo: virgoSvg, Libra: libraSvg, Scorpio: scorpioSvg,
   Sagittarius: sagittariusSvg, Capricorn: capricornSvg, Aquarius: aquariusSvg, Pisces: piscesSvg,
 };
 
-const chineseMap: Record<string, string> = {
+export const chineseMap: Record<string, string> = {
   Monkey: chineseApeSvg, Rooster: chineseRoasterSvg, Dog: chineseDogSvg,
   Pig: chinesePigSvg, Rat: chineseRatSvg, Ox: chineseHornSvg,
   Tiger: chineseTigerSvg, Rabbit: chineseRabbitSvg, Dragon: chineseDragonSvg,
   Snake: chineseSnakeSvg, Horse: chineseHorseSvg, Goat: chineseGoatSvg,
 };
 
-const letterMap: Record<string, string> = {
+export const letterMap: Record<string, string> = {
   A: letterA, B: letterB, C: letterC, D: letterD, E: letterE,
   F: letterF, G: letterG, H: letterH, I: letterI, J: letterJ,
   K: letterK, L: letterL, M: letterM, N: letterN, O: letterO,

@@ -1309,6 +1309,9 @@ body.trp-sheet-open .ainubis-launcher{display:none;}
    ho NEPREBIJE. Overené v prehliadači: mapa ostávala display:none. */
 body.trp-draw-lock .ainubis-launcher{display:none;}
 body.trp-draw-lock .trp-root > nav.fixed{display:none;}
+/* Nová lišta (21. 9. 2026) žije v PackLayout mimo .trp-root — Matej 24. 9.: pri zápise „zmizne aj horný nav aj bočný okraj“. */
+/* !important: pás má display:flex INLINE (PackLayout) a inline štýl triedu prebije. */
+body.trp-draw-lock .pk-dock-band{display:none !important;}
 body.trp-draw-lock .trp-mheader{display:none;}
 /* Desktopová dvojička .trp-mheader — tá istá hlavička s hľadaním, filtrami a druhým CTA
    PRIDAŤ. Bez tohto riadku zámok na PC ničí len navigáciu a hlavičku nechá stáť. */
@@ -3666,7 +3669,11 @@ export default function PackMap() {
   // pridávania čohokoľvek, nie až otvorený formulár.
   // Celý účinok je v CSS pri `body.trp-draw-lock` (jedna trieda, jedno miesto). Únik nesie
   // každý panel sám (× / Zrušiť) — režim bez východu je pasca, nie sústredenie.
-  const drawLock = noteBusy || notePlacing !== null;
+  // PRIANIE (Matej 24. 9. 2026 večer: „možno pri tom zmizne z obrazovky všetko ako pri
+  // klasickom písaní tripu? zmizne aj horný nav aj bočný okraj") — ten istý zámok, nie závoj.
+  // Otázky AINUBISA o prianí (WishAsk) rovnako; D1 až po zavretí odmeny.
+  const wishLock = wishFlow || !!wishAsk || (!!wishMatch && !reveal);
+  const drawLock = noteBusy || notePlacing !== null || wishLock;
   useEffect(() => {
     if (!drawLock) return;
     document.body.classList.add('trp-draw-lock');
@@ -7348,7 +7355,6 @@ export default function PackMap() {
           onDraft={setWishDraft}
           onSaved={() => { reloadWishes(); setOverlayOn((prev) => ({ ...prev, wish: true })); }}
           onCancel={() => { setWishFlow(false); setWishDraft(null); }}
-          edgeLeft={!!addFlow}
         />
       )}
       {/* Medzikrok pomalej cesty: typ vybraný, mapa voľná, čaká sa na klik. */}
