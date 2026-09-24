@@ -32,7 +32,7 @@ import {
   PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI,
 } from '@/components/pack/packTheme';
 import {
-  AINUBIS, AI_GLASS, AI_BUBBLE, AI_RAIL_BEFORE, AI_BREATHE_CSS,
+  AINUBIS, AI_GLASS, AI_BUBBLE, AI_RAIL_BEFORE, AI_BREATHE_CSS, aiWorld,
 } from '@/components/pack/ainubisSkin';
 import { HandArrowLeft } from '@/components/pack/HandIcons';
 /* Tvár AINUBISA — tá istá, ktorú nesie guľa widgetu. Ikonku si pýtať netreba. */
@@ -51,6 +51,8 @@ import {
  *  rozhovoru odsekol už na treťom slove; pri 320 sa väčšina zmestí celá a na
  *  13" notebooku ostane vláknu 960 px, teda stále nad meraným dnom 760. */
 const RAIL_W = 320;
+/* Tretí stĺpec. Užší než pás histórie: nesie ZOZNAM okruhu, nie rozhovor. */
+const SRC_W = 340;
 /* 🔴 MOZOG V CHATE NIE JE (Matej 23. 9. 2026: „budu len 2 stlpce nie 3, to jadro
    pojde preč"). Nákres v5 ho mal ako tretí stĺpec s panelom ODKIAĽ TO VIEM;
    maketa podľa neho vznikla a Matej ju nad ňou opravil. ⚠️ DÔSLEDOK: pôvod
@@ -75,7 +77,74 @@ ${AI_BREATHE_CSS}
    vrstvou. Plocha leží MEDZI vláknom (z3) a pásom (z4). */
 .akc-scrim{position:absolute;z-index:3;inset:0;display:none;border:0;padding:0;
   background:rgba(0,0,0,0.55);cursor:pointer;}
-.akv-root[data-rail="open"] .akc-scrim{display:block;}
+.akv-root[data-rail="open"] .akc-scrim,
+.akv-root[data-src="open"] .akc-scrim{display:block;}
+
+/* ── TRETÍ STĹPEC — ODKIAĽ TO VIE ─────────────────────────────────────────
+   Matej 24. 9. 2026: „po kliku človeka vyhodí z obrazovky = tu by sa mohol
+   otvoriť 3 stlpec kde by bol vedla ten okruh/zvitok aj s detilami = clovek
+   by zostal na mieste len by sa mu otvoril tab v ktorom by mohol citat dalej".
+   🔴 NIE JE TO NÁVRAT PANELA, KTORÝ ZANIKOL 23. 9. Vtedy padol TRVALÝ nábytok
+      (mozog + panel ODKIAĽ TO VIEM, oba na obrazovke stále). Toto je VRSTVA
+      v mieste: otvorí sa na klik, zavrie sa a je preč. Matej to 24. 9. potvrdil
+      („šuplík je iná vec, stavaj").
+   🔴 NA PC SA VLÁKNO ZÚŽI, nepríkryje sa. Príkrytie by znamenalo to isté, čo
+      dnešné vyhodenie — odpoveď, ku ktorej sa zdroj vzťahuje, musí ostať vidieť.
+   ⚠️ Mechanika je tá istá ako pri páse histórie (absolútna poloha + transform +
+      atribút na koreni), zámerne: tretia mechanika pre tretí šuplík by znamenala
+      tri rôzne správania v jednom súbore. */
+.akc-src{position:absolute;z-index:4;right:0;top:0;bottom:0;width:min(88vw,${SRC_W}px);
+  display:grid;grid-template-rows:auto auto minmax(0,1fr);
+  background:${AINUBIS.surfaceBase};border-left:1px solid ${AINUBIS.edge};
+  transform:translateX(101%);transition:transform 180ms ease;}
+.akv-root[data-src="open"] .akc-src{transform:none;}
+.akc-srchd{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;
+  padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.lg}px) ${PACK_SPACE.md}px ${PACK_SPACE.md}px;
+  border-bottom:1px solid ${AINUBIS.edge};}
+.akc-srchd b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;line-height:1.25;
+  letter-spacing:${PACK_HEAD.card.letterSpacing};color:${AINUBIS.ink};}
+.akc-srchd .akc-srcx{margin-left:auto;}
+/* ⚠️ ŠÍPKA UKAZUJE TAM, KAM SA PANEL ODSUNIE — nie doľava ako šípka späť.
+   Na mobile je to šuplík zdola, teda DOLE; na PC odchádza doprava.
+   Kit má jedinú kresbu šípky (HandArrowLeft), takže smer nesie otočenie.
+   Rotuje sa POTOMOK, nie tlačidlo: tlačidlo je kruh a otočenie by sa na
+   ňom neprejavilo, zato by strhlo aj jeho lem. */
+.akc-srcx > *{transform:rotate(-90deg);}
+/* Svet, do ktorého okruh patrí — farbu nesie premenná sveta, tá istá ako
+   bublina v mozgu a karta na nástenke. Bez nej je to len ďalší popisok. */
+.akc-srcworld{padding:${PACK_SPACE.md}px ${PACK_SPACE.md}px 0;
+  font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;line-height:1;
+  letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;
+  color:rgb(var(--ai-w,${AINUBIS.cyanRGB}));}
+.akc-srclist{overflow-y:auto;padding:${PACK_SPACE.md}px;display:flex;flex-direction:column;
+  gap:${PACK_SPACE.xs}px;}
+.akc-srcitem{display:block;width:100%;text-align:left;cursor:pointer;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;
+  border:1px solid transparent;background:transparent;color:${AINUBIS.inkDim};
+  font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;line-height:1.4;}
+.akc-srcitem:hover{background:rgba(${AINUBIS.cyanRGB},0.08);}
+/* Z KTORÉHO ZVITKU ODPOVEĎ ČERPALA — toto je celý zmysel šuplíka. */
+.akc-srcitem[aria-current="true"]{color:${AINUBIS.cyan};border-color:${AINUBIS.edgeStrong};
+  background:rgba(${AINUBIS.cyanRGB},0.14);}
+.akc-srcfoot{padding:${PACK_SPACE.md}px;border-top:1px solid ${AINUBIS.edge};
+  font-size:${PACK_TEXT.micro}px;line-height:1.5;color:${AINUBIS.inkFaint};}
+.akc-srcfoot button{display:inline;cursor:pointer;border:0;background:transparent;padding:0;
+  font:inherit;color:${AINUBIS.cyan};text-decoration:underline;}
+/* MOBIL: šuplík zdola s úchytom (Matej 24. 9.) — tri stĺpce sa na 390 px
+   nezmestia a bočný by príkryl celé vlákno. */
+@media (max-width:1023px){
+  .akc-src{left:0;right:0;top:auto;bottom:0;width:auto;height:min(72vh,520px);
+    border-left:0;border-top:1px solid ${AINUBIS.edge};
+    border-top-left-radius:${PACK_R.card}px;border-top-right-radius:${PACK_R.card}px;
+    grid-template-rows:auto auto auto minmax(0,1fr);
+    transform:translateY(101%);}
+  .akc-srchd{padding-top:${PACK_SPACE.md}px;}
+  /* ÚCHYT — bez neho šuplík zdola nevyzerá ako niečo, čo sa dá zavrieť. */
+  .akc-srcgrip{justify-self:center;width:36px;height:4px;margin-top:${PACK_SPACE.sm}px;
+    border-radius:${PACK_R.pill}px;background:${AINUBIS.edgeStrong};}
+}
+.akc-srcgrip{display:none;}
+@media (max-width:1023px){.akc-srcgrip{display:block;}}
 /* HLAVA PÁSU — vzduch a meno, kým príde prvé tlačidlo (Matej 23. 9. 2026:
    „v ľavom paneli hore tiež miesto… podobne ako to má Claude"). Claude tam má
    logo a pod ním nový rozhovor; my tam máme jeho meno, lebo v chate zhasla
@@ -533,6 +602,11 @@ body:has(.akv-root[data-plane="chat"]) .ainubis-launcher{visibility:hidden;point
 @media (min-width:1024px){
   .akv-root[data-plane="chat"] .akc-rail{transform:none;}
   .akv-root[data-plane="chat"] .akc-thread{left:${RAIL_W}px;right:0;}
+  /* 🔴 TRETÍ STĹPEC UBERIE VLÁKNU ŠÍRKU, NEPRÍKRYJE HO. Odpoveď, ku ktorej sa
+     zdroj vzťahuje, musí ostať na obrazovke — inak je to to isté vyhodenie,
+     len bez zmeny adresy. */
+  .akv-root[data-plane="chat"][data-src="open"] .akc-thread{right:${SRC_W}px;}
+  .akc-srcx > *{transform:rotate(180deg);}
   /* Pás je na PC stále na obrazovke, tlačidlo šuplíka teda nemá čo otvárať. */
   .akv-root[data-plane="chat"] .akc-railbtn,
   .akv-root[data-plane="chat"] .akc-scrim{display:none;}
@@ -748,6 +822,17 @@ export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
     const r = document.querySelector<HTMLElement>('.akv-root');
     if (!r) return;
     if (open) r.dataset.rail = 'open'; else r.removeAttribute('data-rail');
+  };
+
+  /* TRETÍ STĹPEC. Tá istá mechanika ako pás histórie: React drží OBSAH
+     (ktorý zvitok), atribút koreňa drží POLOHU (otvorené / zavreté). Dve
+     miesta preto, že CSS musí vedieť zúžiť vlákno, a to je mimo tohto uzla. */
+  const [src, setSrc] = useState<number | null>(null);
+  const openSrc = (id: number | null) => {
+    setSrc(id);
+    const r = document.querySelector<HTMLElement>('.akv-root');
+    if (!r) return;
+    if (id != null) r.dataset.src = 'open'; else r.removeAttribute('data-src');
   };
 
   /** Nastavenia chatu — ten istý spôsob ako šuplík: stav nesie atribút koreňa,
@@ -1039,8 +1124,13 @@ export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
                         čím sa chat líši od každého iného chatbota. Neupratuj ho. */}
                     <div className="akc-srcrow">
                       <span>from</span>
+                      {/* 🔴 KLIK OTVORÍ TRETÍ STĹPEC, NEODVEDIE PREČ (Matej 24. 9. 2026).
+                          Do vtedy volal `onOpenScroll`, ktorý v PackAinubis.tsx robil
+                          `goPlane('vault')` — človek stratil rozhovor A zvitok aj tak
+                          nevidel. Odchod na rovinu VAULT ostáva, ale v pätke šuplíka
+                          ako VOĽBA. [[architektura-pack §4.2: akcia neodnesie preč]] */}
                       {m.ai.sources.map((s) => (
-                        <button type="button" key={s} onClick={() => onOpenScroll?.(s)}>
+                        <button type="button" key={s} onClick={() => openSrc(s)}>
                           {DEMO_SCROLLS[s].title}
                         </button>
                       ))}
@@ -1190,8 +1280,50 @@ export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
 
       {/* ZATEMNENIE POD ŠUPLÍKOM — klepnutie vedľa zavrie históriu. Stojí až tu,
           teda v DOM za vláknom: rovnaký z-index, ale neskorší prvok je vyššie. */}
-      <button type="button" className="akc-scrim" aria-label="Close conversations"
-        tabIndex={-1} onClick={() => rail(false)} />
+      {/* ── TRETÍ STĹPEC — ODKIAĽ TO VIE ──────────────────────────────────
+          Telo zvitku ZATIAĽ NEEXISTUJE (`DEMO_SCROLLS` má id, svet, okruh
+          a názov — nič viac; zvitky sa píšu, otvorenie november 2026).
+          Preto tu stojí OKRUH a jeho zoznam, nie čítacia plocha: to je obsah,
+          ktorý naozaj máme, a zároveň to, o čo Matej žiadal („vedľa ten
+          okruh/zvitok aj s detailami… vault zoznam"). Prázdne sklo s vetou
+          „pripravuje sa" by sľubovalo čítanie, ktoré nepríde. */}
+      <aside className="akc-src" aria-label="Where this comes from"
+        aria-hidden={src == null}
+        style={src != null ? aiWorld(VAULT_WORLDS[DEMO_SCROLLS[src].world]?.key) : undefined}>
+        <div className="akc-srcgrip" aria-hidden />
+        <div className="akc-srchd">
+          <b>{src != null ? DEMO_SCROLLS[src].circle : ''}</b>
+          <button type="button" className="akc-back akc-srcx" aria-label="Close"
+            onClick={() => openSrc(null)}>
+            <HandArrowLeft size={14} />
+          </button>
+        </div>
+        {src != null && (
+          <div className="akc-srcworld">{VAULT_WORLDS[DEMO_SCROLLS[src].world]?.en}</div>
+        )}
+        <div className="akc-srclist">
+          {src != null && DEMO_SCROLLS
+            .filter((d) => d.circle === DEMO_SCROLLS[src].circle)
+            .map((d) => (
+              <button type="button" key={d.id} className="akc-srcitem"
+                aria-current={d.id === src ? 'true' : undefined}
+                onClick={() => setSrc(d.id)}>
+                {d.title}
+              </button>
+            ))}
+          {/* Odchod na rovinu VAULT je VOĽBA v pätke, nie dôsledok kliku hore. */}
+          {src != null && onOpenScroll && (
+            <p className="akc-srcfoot">
+              The scrolls themselves are still being written.{' '}
+              <button type="button" onClick={() => { openSrc(null); onOpenScroll(src); }}>
+                See this circle in the brain
+              </button>
+            </p>
+          )}
+        </div>
+      </aside>
+      <button type="button" className="akc-scrim" aria-label="Close panels"
+        tabIndex={-1} onClick={() => { rail(false); openSrc(null); }} />
     </>
   );
 }
