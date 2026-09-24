@@ -9,7 +9,7 @@ import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { NEW_HEROFLOW } from '@/lib/flowMode';
 import { PageTopBar } from '@/components/PageTopBar';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
-import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
+import { FLOW_PALE_CSS, FLOW_CARVE_CSS, FLOW_GLYPH_CSS } from '@/components/screens/flowPaleSkin';
 import { FlowMedallion, FLOW_MEDAL_CSS, useSpeakMedal } from '@/components/screens/flowMedallion';
 import { Scroller, FLOW_SCROLL_CSS } from '@/components/screens/flowScroller';
 import { LAPIS, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
@@ -385,7 +385,7 @@ export function PatronScreen() {
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_SCROLL_CSS}{FLOW_DOG_CSS}{PATRON_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{FLOW_SCROLL_CSS}{FLOW_DOG_CSS}{PATRON_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
         <PageTopBar onBack={() => navigate('/heroglyph/essence')} />
@@ -416,7 +416,7 @@ export function PatronScreen() {
 
           {/* ── 2. BLOK: PLEMENO → RÁM → PATRÓN ────────────────────────────*/}
           <motion.div
-            className={`hf-block hf-carved pt-stack${dogs.length > 1 ? ' is-multi' : ''}`}
+            className="hf-block hf-carved pt-stack"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
@@ -424,21 +424,21 @@ export function PatronScreen() {
             <span className="hf-carved-rim" aria-hidden />
             <div className="hf-plate">
 
-              {/* KOMU VYBERÁM — pri jedinom psovi len fotka a meno, pri viacerých
-                  aj šípky. Ten istý riadok ako na PODSTATE (`flowDogPicker.tsx`),
-                  aby prepínanie psov vyzeralo v celom vstupe rovnako. */}
-              {dogs.length > 1 && (
-                <>
-                  <FlowDogHeader
-                    className="pt-who"
-                    dogs={dogs}
-                    cur={cur}
-                    onGo={setCur}
-                    done={!!(dogEssence[dogId] || {}).patronSvg}
-                  />
-                  <span className="fdh-rule" aria-hidden />
-                </>
-              )}
+              {/* KOMU VYBERÁM — fotka a meno stoja VŽDY, aj pri jedinom psovi
+                  (Matej 25. 9.: *„patron povaha a podstata všetky dajme že
+                  v základe budu mať foto psa aj keby bol len jeden (priprava na
+                  multipsa)"*). Šípky pribudnú až pri druhom psovi — ovládač,
+                  ktorý nemá čo prepínať, vyzerá pokazene.
+                  🔑 Riadok tak nie je prekvapenie, ktoré sa objaví až s druhým
+                     psom a posunie celú dosku; obrazovka má JEDNU stavbu. */}
+              <FlowDogHeader
+                className="pt-who"
+                dogs={dogs}
+                cur={cur}
+                onGo={setCur}
+                done={!!(dogEssence[dogId] || {}).patronSvg}
+              />
+              <span className="fdh-rule" aria-hidden />
 
               {/* Hľadanie a kríženec v JEDNOM riadku. Pri krížencovi pribudne
                   druhé pole — na šírke dosky sa zmestí do toho istého riadka
@@ -498,11 +498,11 @@ export function PatronScreen() {
                 dogValues={ess}
                 ghostValues={HEKTHOR_GLYPH}
                 pulseSlot={patronSvg ? undefined : 'dogShape'}
-                className="pt-glyph"
+                className="hf-glyph pt-glyph"
                 // 🔴 Šírka ide cez `style`, nie cez triedu — `HeroglyphFrame` si
                 // píše `width: '100%'` INLINE a pravidlo z hárku by prehralo
                 // (tá istá pasca stála 24. 9. celý deň na PODSTATE).
-                style={{ width: 'var(--pt-glyph-w)' }}
+                style={{ width: 'var(--flow-glyph-w)' }}
               />
 
               <p className="hf-legend">{t('heroglyph.flow.breed.legend')}</p>
@@ -582,12 +582,6 @@ const PATRON_CSS = `
    Na PC sa nemení nič: 4,6cqw je tam nad 20 a clamp drží strop. */
 .pt-speak h2 { font-size: clamp(18px, 4.6cqw, 20px); }
 .pt-stack .hf-plate { gap: 10px; }
-/* ── 🐕 PREPÍNAČ PSOV STOJÍ VÝŠKU (25. 9. 2026) ──────────────────────────────
-   Riadok „komu vyberám" + rytina = 64 px. Na iPhone SE ostali po ňom 2 px
-   rezervy, čo je hranica, za ktorou stačí dlhšie meno psa a doska pretečie.
-   Ustupuje RÁM (lock PAGE_AIR), a len pri dvoch a viac psoch. */
-.pt-stack.is-multi .pt-glyph { --pt-glyph-w: 64%; }
-.pt-stack.is-multi .hf-plate { gap: 8px; }
 
 /* ── PLEMENO ──────────────────────────────────────────────────────────────
    Riadok sa zalamuje SÁM (\`flex-wrap\`): na doske širokej 520 px stoja dve polia
@@ -675,14 +669,9 @@ const PATRON_CSS = `
    doska sama úzka a sťahovanie na 78 % zrazilo symboly v malých slotoch na
    nečitateľné (merané 24. 9.: 63 px výšky proti 80 px na LIVE).
    ⚠️ Číslo je premenná, lebo šírku zapisuje INLINE \`style\` na komponente. */
-.pt-glyph {
-  --pt-glyph-w: 78%;
-  max-width: 100%; margin-inline: auto; display: block;
-  /* Inkoust papyrusu, nie \`--foreground\` z tmavého šatu: rám kreslí
-     \`currentColor\` a čierna by na bledej doske pôsobila ako tlač, nie rytina. */
-  color: rgba(35, 22, 8, 0.88);
-}
-@media (max-width: 559px) { .pt-glyph { --pt-glyph-w: 100%; } }
+/* 🔒 Šírku rámu určuje LOCK \`FLOW_GLYPH_CSS\` (\`--flow-glyph-w\`), nie táto
+   obrazovka — na každom kroku musí byť heroglyf rovnako veľký (Matej 25. 9.).
+   Vlastné percento sa sem NEVRACIA; keď sa obsah nezmestí, ustúpi obsah. */
 
 /* ── VODOROVNÉ RADY ───────────────────────────────────────────────────────
    🔑 PRESUNUTÉ 25. 9. 2026 DO \`flowScroller.tsx\` (\`.hf-scroll\` / \`.hf-srow\` /

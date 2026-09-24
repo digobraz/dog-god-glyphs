@@ -8,7 +8,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { PageTopBar } from '@/components/PageTopBar';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
-import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
+import { FLOW_PALE_CSS, FLOW_CARVE_CSS, FLOW_GLYPH_CSS } from '@/components/screens/flowPaleSkin';
 import { FlowMedallion, FLOW_MEDAL_CSS, useSpeakMedal } from '@/components/screens/flowMedallion';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { BRAND_GOLD_BTN, PACK_R } from '@/components/pack/packTheme';
@@ -233,7 +233,7 @@ export function EssenceScreen() {
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_DOG_CSS}{ESSENCE_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{FLOW_DOG_CSS}{ESSENCE_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
         <PageTopBar onBack={back} />
@@ -314,14 +314,14 @@ export function EssenceScreen() {
                 // nepôsobil prázdno (Matej 24. 9.). Pod vybranou voľbou zmizne.
                 ghostValues={HEKTHOR_GLYPH}
                 pulseSlot={handover === null ? topic?.key : undefined}
-                className="es-glyph"
+                className="hf-glyph es-glyph"
                 // 🔴 ŠÍRKA IDE CEZ `style`, NIE CEZ TRIEDU. `HeroglyphFrame` si
                 // píše `style={{ width: '100%' }}` inline a inline zápis prebije
                 // akékoľvek pravidlo v hárku — `.es-glyph { width: 78% }` tu
                 // preto 24. 9. celý deň VISELO MŔTVE a rám stál na plnej šírke
                 // (merané: 575 px namiesto 448). Prop `style` sa v komponente
                 // rozbaľuje AŽ ZA `width: '100%'`, takže tadiaľ sa presadí.
-                style={{ width: 'var(--es-glyph-w)' }}
+                style={{ width: 'var(--flow-glyph-w)' }}
               />
 
               <div className="es-chips">
@@ -512,8 +512,9 @@ const ESSENCE_CSS = `
    1477×724 → 448×120 (LIVE 464×124) · 390 → 302×81 (LIVE 298×80).
    ⚠️ Číslo sa podáva ako premenná, lebo šírku zapisuje INLINE \`style\` na
    komponente — pravidlo z hárku by prehralo. */
-.es-glyph { --es-glyph-w: 78%; max-width: 100%; margin-inline: auto; display: block; color: rgba(35, 22, 8, 0.88); }
-@media (max-width: 559px) { .es-glyph { --es-glyph-w: 100%; } }
+/* 🔒 Šírku rámu určuje LOCK \`FLOW_GLYPH_CSS\` (\`--flow-glyph-w\`), nie táto
+   obrazovka — na každom kroku musí byť heroglyf rovnako veľký (Matej 25. 9.).
+   Vlastné percento sa sem NEVRACIA; keď sa obsah nezmestí, ustúpi obsah. */
 
 /* 🔴 NA MOBILE 2×2, NIE RAD (Matej 24. 9.: *„na mobile dať 4 chipy 2 a 2 pod
    seba zarovnané"*). Rad štyroch sa na 390 px zalomil kde sa mu chcelo — raz
@@ -705,7 +706,6 @@ const ESSENCE_CSS = `
      vecou TEJTO obrazovky — sem patrí jej rozpočet výšky. */
   .es-who .fdh-photo { width: 40px; height: 40px; }
   .es-who .fdh-name { font-size: 17px; }
-  .es-glyph { --es-glyph-w: 88%; }
   .es-act { min-height: 36px; }
   .es-cta { height: 36px; }
 }

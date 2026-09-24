@@ -7,7 +7,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { PageTopBar } from '@/components/PageTopBar';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
-import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
+import { FLOW_PALE_CSS, FLOW_CARVE_CSS, FLOW_GLYPH_CSS } from '@/components/screens/flowPaleSkin';
 import { FlowMedallion, FLOW_MEDAL_CSS, useSpeakMedal } from '@/components/screens/flowMedallion';
 import { Scroller, FLOW_SCROLL_CSS } from '@/components/screens/flowScroller';
 import { LAPIS } from '@/components/pack/navGoldSkin';
@@ -144,7 +144,7 @@ export function CharacterScreen() {
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_SCROLL_CSS}{FLOW_DOG_CSS}{CHARACTER_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{FLOW_SCROLL_CSS}{FLOW_DOG_CSS}{CHARACTER_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
         {/* Späť vedie na PATRÓNA. Štyri staré otázky o psovi, ktoré tu kedysi
@@ -188,7 +188,7 @@ export function CharacterScreen() {
 
           {/* ── 2. BLOK: RÁM → VÝBER ───────────────────────────────────────*/}
           <motion.div
-            className={`hf-block hf-carved ch-stack${dogs.length > 1 ? ' is-multi' : ''}`}
+            className="hf-block hf-carved ch-stack"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
@@ -196,19 +196,16 @@ export function CharacterScreen() {
             <span className="hf-carved-rim" aria-hidden />
             <div className="hf-plate">
 
-              {/* KOMU VYBERÁM — rovnaký riadok ako na PODSTATE a PATRÓNOVI. */}
-              {dogs.length > 1 && (
-                <>
-                  <FlowDogHeader
-                    className="ch-who"
-                    dogs={dogs}
-                    cur={cur}
-                    onGo={setCur}
-                    done={sel.length === PICK_N}
-                  />
-                  <span className="fdh-rule" aria-hidden />
-                </>
-              )}
+              {/* KOMU VYBERÁM — fotka a meno VŽDY, šípky až od druhého psa.
+                  Rovnaký riadok ako na PODSTATE a PATRÓNOVI. */}
+              <FlowDogHeader
+                className="ch-who"
+                dogs={dogs}
+                cur={cur}
+                onGo={setCur}
+                done={sel.length === PICK_N}
+              />
+              <span className="fdh-rule" aria-hidden />
 
               {/* Kým sú sloty povahy prázdne, pulzujú a nesú Hektorovu podmalbu —
                   rám teda nikdy nevyzerá prázdny a je vidno, KAM voľba pristane. */}
@@ -218,11 +215,11 @@ export function CharacterScreen() {
                 dogValues={dogEssence[dogId] || {}}
                 ghostValues={HEKTHOR_GLYPH}
                 pulseSlot={canGo ? undefined : 'dogCharacter'}
-                className="ch-glyph"
+                className="hf-glyph ch-glyph"
                 // 🔴 Šírka ide cez `style`, nie cez triedu — `HeroglyphFrame` si
                 // píše `width: '100%'` INLINE a pravidlo z hárku by prehralo
                 // (tá istá pasca stála 24. 9. celý deň na PODSTATE).
-                style={{ width: 'var(--ch-glyph-w)' }}
+                style={{ width: 'var(--flow-glyph-w)' }}
               />
 
               <p className="hf-legend">{t('heroglyph.flow.dogCharacter.title')}</p>
@@ -343,17 +340,9 @@ const CHARACTER_CSS = `
    telefóne je doska sama úzka a sťahovanie na 78 % zrazilo symboly v malých
    slotoch na nečitateľné.
    ⚠️ Číslo je premenná, lebo šírku zapisuje INLINE \`style\` na komponente. */
-.ch-glyph {
-  /* ⚠️ 84 %, NIE 78 ako na susedoch — rám je najväčší jediný kus obrazovky a
-     práve on má z rezervy najviac úžitku (merané 25. 9.: +8 px výšky, symboly
-     v malých slotoch o kúsok čitateľnejšie). Pod 70 % splývajú. */
-  --ch-glyph-w: 84%;
-  max-width: 100%; margin-inline: auto; display: block;
-  /* Inkoust papyrusu, nie \`--foreground\` z tmavého šatu: rám kreslí
-     \`currentColor\` a čierna by na bledej doske pôsobila ako tlač, nie rytina. */
-  color: rgba(35, 22, 8, 0.88);
-}
-@media (max-width: 559px) { .ch-glyph { --ch-glyph-w: 100%; } }
+/* 🔒 Šírku rámu určuje LOCK \`FLOW_GLYPH_CSS\` (\`--flow-glyph-w\`), nie táto
+   obrazovka — na každom kroku musí byť heroglyf rovnako veľký (Matej 25. 9.).
+   Vlastné percento sa sem NEVRACIA; keď sa obsah nezmestí, ustúpi obsah. */
 
 /* ── DLAŽDICA VLASTNOSTI ──────────────────────────────────────────────────
    🔴 MATERIÁL JE \`.hf-pick\`, mení sa LEN GEOMETRIA: stĺpec (kresba, pod ňou
@@ -424,15 +413,6 @@ const CHARACTER_CSS = `
   border: 1.5px solid ${LAB.hairline};
 }
 
-/* ── 🐕 PREPÍNAČ PSOV STOJÍ VÝŠKU ────────────────────────────────────────────
-   Riadok „koho opisujem" + rytina pod ním sú 64 px, a tie na Matejovom okne
-   (1477×724) presiahli javisko o 9 px (merané 25. 9. s troma psami).
-   🔴 USTUPUJE OBSAH, NIE REZERVA OD OKRAJA (lock PAGE_AIR z 24. 9.): rám je
-      najväčší jediný kus obrazovky, takže ubúda z neho.
-   ⚠️ Platí LEN pri dvoch a viac psoch — pri jedinom sa riadok nekreslí vôbec
-      a obrazovka ostáva presne taká, akú ju Matej schválil. */
-.ch-stack.is-multi .ch-glyph { --ch-glyph-w: 68%; }
-.ch-stack.is-multi .hf-plate { gap: 8px; }
 
 /* ── 📱 NA TELEFÓNE JE DLAŽDICA VÄČŠIA ────────────────────────────────────
    Tá istá úvaha ako pri siluetách patróna (Matej 24. 9.: *„na mobile to má

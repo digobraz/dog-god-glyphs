@@ -930,6 +930,55 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
 // ⚠️ Vkladá sa SAMOSTATNE (`FLOW_CARVE_CSS`), aby si ho mohla vziať aj
 //    obrazovka v tmavom šate — krok 2 bledý šat nemá.
 // ════════════════════════════════════════════════════════════════════════════
+/**
+ * 🔒 RÁM HEROGLYFU MÁ JEDNU VEĽKOSŤ PRE CELÝ VSTUP — LOCK 25. 9. 2026
+ * ────────────────────────────────────────────────────────────────────────────
+ * Matej: *„pozor na každej obrazovke kde je heroglyf ktorý tvoríme musí byť
+ * totožný, nesmie sa meniť velkost je locknuta a uvedie sa tak aby to sedelo
+ * všade"*.
+ *
+ * 🔴 ČO BOLO ZLE. Každá obrazovka si šírku rámu určovala sama a všetky štyri sa
+ *    rozišli — merané 25. 9. na 1477×724: PODSTATA 406 px · PATRÓN 406 ·
+ *    POVAHA 437 · MAJITEĽ 374, a na iPhone SE dokonca 253 / 287 / 287 / 189.
+ *    Rám pritom nesie tú istú vec: heroglyf, ktorý sa práve tvorí. Pri prechode
+ *    krokmi teda rástol a zmenšoval sa pod rukami.
+ *
+ * 🔑 AKO SA TO ČÍSLO URČILO. Dosky sú na všetkých krokoch rovnako široké
+ *    (564 / 346 / 331 px), takže stačí JEDNA hodnota — a musí sa zmestiť na
+ *    NAJPLNŠIU obrazovku, nie na najprázdnejšiu. Kto sa po jej zavedení
+ *    nezmestí, zmenšuje OSTATNÝ obsah, nie rám (lock `PAGE_AIR`).
+ *
+ * ⚠️ Šírka sa vešia INLINE (\`style={{ width: 'var(--flow-glyph-w)' }}\`), lebo
+ *    \`HeroglyphFrame\` si píše \`width: 100%\` inline a pravidlo z hárku by
+ *    prehralo. Preto je to CSS premenná, nie trieda so šírkou.
+ * ⚠️ Nová obrazovka s rámom berie \`.hf-glyph\` a TÚTO premennú. Vlastné percento
+ *    sa nezakladá — presne tým vznikli štyri rôzne veľkosti.
+ */
+export const FLOW_GLYPH_CSS = `
+.hf-glyph {
+  /* 🔴 \`min()\`, NIE holé číslo. Pri 500 px okne (Matejova šírka) je doska
+     širšia než rám na PC, takže samotné \`100%\` v mobilnom pravidle dalo rám
+     412 px — teda VÄČŠÍ než na počítači. Lock hovorí „nesmie sa meniť", nie
+     „nesmie byť menší": 356 je strop a pod ním sa rám zmestí do dosky.
+   🔑 PREČO PRÁVE 356. Je to najväčšie číslo, pri ktorom má na Matejovom okne
+      (1477×724) rezervu aj NAJPLNŠIA obrazovka — MAJITEĽ so štyrmi odpoveďami.
+      Pri 380 mu ostávali 2 px, teda hodnota, ktorú zhodí jeden dlhší preklad. */
+  --flow-glyph-w: min(356px, 100%);
+  max-width: 100%; margin-inline: auto; display: block;
+  /* Inkoust papyrusu, nie \`--foreground\` z tmavého šatu: rám kreslí
+     \`currentColor\` a čierna by na bledej doske pôsobila ako tlač, nie rytina. */
+  color: rgba(35, 22, 8, 0.88);
+}
+/* Na telefóne je doska užšia než strop, takže rám berie celú jej šírku —
+   sťahovanie na percento by zrazilo symboly v malých slotoch na nečitateľné. */
+/* Krátke okno (iPhone SE aj nízke PC): rám ustupuje ako JEDINÝ prvok, ktorý sa
+   dá zmenšiť bez straty funkcie — ostatné sú polia a tlačidlá, do ktorých sa
+   ťuká. Pod ~190 px prestanú byť symboly v malých slotoch čitateľné, takže toto
+   je dno; keby sa obsah ešte nafúkol, ustúpi on. */
+@media (max-height: 700px) { .hf-glyph { --flow-glyph-w: min(260px, 100%); } }
+@media (max-width: 559px) and (max-height: 700px) { .hf-glyph { --flow-glyph-w: min(230px, 100%); } }
+`;
+
 export const FLOW_CARVE_CSS = `
 /* Doska: obvodová rytá linka tesne pod zlatým rámom. Je to VNÚTORNÁ obruba,
    nie druhý rám — preto leží 5 px vnútri a má polomer o ten istý kus menší. */

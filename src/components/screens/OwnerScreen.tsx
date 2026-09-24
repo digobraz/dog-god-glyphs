@@ -11,7 +11,7 @@ import { PageTopBar } from '@/components/PageTopBar';
 //    vedľa poľa a slot v ráme boli dve rôzne sady toho istého.
 import { HeroglyphFrame, letterMap, zodiacMap, chineseMap, genderMap } from '@/components/HeroglyphFrame';
 import { DateDropdowns } from '@/components/DateDropdowns';
-import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
+import { FLOW_PALE_CSS, FLOW_CARVE_CSS, FLOW_GLYPH_CSS } from '@/components/screens/flowPaleSkin';
 import { FlowMedallion, FLOW_MEDAL_CSS, useSpeakMedal } from '@/components/screens/flowMedallion';
 import { FlowTextModal } from '@/components/screens/flowTextModal';
 import { LAPIS } from '@/components/pack/navGoldSkin';
@@ -21,6 +21,7 @@ import { hekthorFace } from '@/lib/hekthorFaces';
 import { HEKTHOR_GLYPH } from '@/lib/hektor';
 import { initialLetter } from '@/lib/initialLetter';
 import { getChineseZodiac, getWesternZodiac } from '@/lib/zodiac';
+import { ZodiacSheet } from '@/components/screens/zodiacSheet';
 
 // ════════════════════════════════════════════════════════════════════════════
 // MAJITEĽ — poradie, meno, pohlavie a obidva horoskopy na JEDNEJ obrazovke
@@ -53,9 +54,10 @@ import { getChineseZodiac, getWesternZodiac } from '@/lib/zodiac';
 //    znamení a čínsky z kolieska rokov — dva vstupy pre vec, ktorú dátum
 //    narodenia určuje presne. Odteraz je to jeden dátum a obe znamenia sa
 //    dopočítajú (`getWesternZodiac`, `getChineseZodiac`) a hneď pristanú v ráme.
-//    ⚠️ Dátum sa UKLADÁ (`selections.ownerBirthday`). Bez neho by sa pri návrate
-//       na krok nedal obnoviť: zo znamenia sa deň ani rok spätne odvodiť nedá
-//       (čínsky cyklus má 12 rokov, západné znamenie pokrýva ~30 dní).
+//    ⚠️ Dátum sa DRŽÍ MIMO STORE (`sessionStorage`, viď `BD_KEY`) — do DB ide
+//       len znamenie. Bez jeho uloženia by sa pri návrate na krok nedal
+//       obnoviť: zo znamenia sa deň ani rok spätne odvodiť nedá (čínsky cyklus
+//       má 12 rokov, západné znamenie pokrýva ~30 dní).
 //    ⚠️ Do heroglyfu ide ďalej LEN znamenie — `ownerZodiac` a
 //       `ownerChineseZodiac` sú tie isté kľúče, aké písala stará obrazovka,
 //       takže kód heroglyfu, certifikát ani `/welcome` o zmene nevedia.
@@ -74,6 +76,23 @@ import { getChineseZodiac, getWesternZodiac } from '@/lib/zodiac';
 
 /** Prvý rok, ktorý koliesko dátumu ponúkne. Zhodné so starou obrazovkou. */
 const MIN_YEAR = 1930;
+
+/**
+ * 🔴 DÁTUM NARODENIA ŽIJE MIMO `selections` — A JE TO BEZPEČNOSTNÉ ROZHODNUTIE.
+ *
+ * `PaymentScreen.tsx:133` posiela CELÝ objekt `selections` do `create-checkout`,
+ * odkiaľ sa ukladá do DB. Čokoľvek, čo doň zapíšem, teda opustí prehliadač.
+ * Dátum narodenia človeka pritom nepotrebujeme nikde: do heroglyfu ide IBA
+ * znamenie (`ownerZodiac`, `ownerChineseZodiac`, pozície 10 a 11 kódu).
+ *
+ * Preto sa dátum drží v `sessionStorage` — obrazovka si ho pri návrate na krok
+ * prečíta, ale do platby ani do DB sa nedostane. Vďaka tomu je veta pod
+ * značkami („použijeme ho na výpočet, neukladáme ho") PRAVDIVÁ aj na bežnej
+ * ceste, nielen pri odkaze „nechcem uviesť".
+ * ⚠️ Kto sem dátum vráti do `selections`, musí zároveň prepísať tú vetu —
+ *    inak appka o osobných údajoch klame.
+ */
+const BD_KEY = 'dogypt-owner-bd';
 
 /** Dve voľby pohlavia. Kresby sú z tej istej sady, akú kreslí rám (`genderMap`). */
 const GENDERS = [{ v: 'man' }, { v: 'woman' }] as const;
@@ -94,7 +113,9 @@ export function OwnerScreen() {
 
   const [input, setInput] = useState(ownerName || '');
   const gender = selections.ownerGender || '';
-  const birthday = selections.ownerBirthday || '';
+  const [birthday, setBirthday] = useState(() => {
+    try { return sessionStorage.getItem(BD_KEY) || ''; } catch { return ''; }
+  });
 
   // Pole mena: na dotykovej obrazovke modal (iOS otvorí klávesnicu len na už
   // pripojenom vstupe), na myši priame písanie do poľa. Ten istý rozsudok ako
@@ -147,11 +168,21 @@ export function OwnerScreen() {
     if (!m) return null;
     return { y: +m[1], m: +m[2], d: +m[3] };
   })();
-  const western = bd ? getWesternZodiac(bd.m, bd.d) : null;
-  const chinese = bd ? getChineseZodiac(bd.y) : null;
+  /**
+   * Znamenia sa čítajú ZO STORE, nie z dátumu — dostať sa tam dajú dvoma
+   * cestami: z dátumu narodenia (bežná) alebo ručným výberom v popupe
+   * („nechcem uviesť"). Obrazovka o tom, ktorá to bola, nemusí vedieť nič.
+   */
+  const westName = selections.ownerZodiac || '';
+  const chinName = selections.ownerChineseZodiac || '';
+  const western = westName ? { name: westName } : null;
+  const chinese = chinName ? { name: chinName } : null;
 
   const pickDate = (d: number, m: number, y: number) => {
-    setSelection('ownerBirthday', `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`);
+    const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    setBirthday(iso);
+    // Mimo store (viď `BD_KEY`): do DB ide znamenie, nie dátum.
+    try { sessionStorage.setItem(BD_KEY, iso); } catch { /* súkromné okno */ }
     // Obe znamenia sú ODVODENÉ, ale do store idú ako hodnota — heroglyf,
     // certifikát aj `/welcome` čítajú `ownerZodiac` / `ownerChineseZodiac`
     // a o dátume nevedia nič.
@@ -159,14 +190,32 @@ export function OwnerScreen() {
     setSelection('ownerChineseZodiac', getChineseZodiac(y).name);
   };
 
+  /** Otvorený popup „nechcem uviesť". */
+  const [sheet, setSheet] = useState(false);
+  /**
+   * Znamenia BEZ dátumu. `ownerBirthday` sa zámerne NEZAPISUJE — celý zmysel
+   * tejto cesty je, že citlivý údaj nikde nevznikne. Rok slúži len na výpočet
+   * čínskeho zvieraťa a do store ide už len jeho výsledok.
+   */
+  const pickSigns = (sign: string, year: number) => {
+    // Kto znamenie vyberie ručne, dátum už nedal — a ten, ktorý prípadne zadal
+    // predtým, sa zahadzuje. Inak by v pamäti ostal údaj, o ktorom si človek
+    // myslí, že ho odvolal.
+    setBirthday('');
+    try { sessionStorage.removeItem(BD_KEY); } catch { /* súkromné okno */ }
+    setSelection('ownerZodiac', sign);
+    setSelection('ownerChineseZodiac', getChineseZodiac(year).name);
+    setSheet(false);
+  };
+
   const today = useMemo(() => new Date(), []);
-  const canGo = trimmed.length >= 1 && !!gender && !!bd;
+  const canGo = trimmed.length >= 1 && !!gender && !!western && !!chinese;
 
   if (!flowOk) return null;
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{OWNER_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{OWNER_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
         <PageTopBar onBack={() => navigate('/heroglyph/dog-character')} />
@@ -206,10 +255,10 @@ export function OwnerScreen() {
               <HeroglyphFrame
                 showOwner
                 ghostValues={HEKTHOR_GLYPH}
-                className="ow-glyph"
+                className="hf-glyph ow-glyph"
                 // 🔴 Šírka cez `style`, nie cez triedu — `HeroglyphFrame` si píše
                 // `width: '100%'` INLINE a pravidlo z hárku by prehralo.
-                style={{ width: 'var(--ow-glyph-w)' }}
+                style={{ width: 'var(--flow-glyph-w)' }}
               />
 
               {/* ── PORADIE (len stav + odkaz na krok 2) ───────────────────── */}
@@ -278,55 +327,64 @@ export function OwnerScreen() {
                 ))}
               </div>
 
-              {/* ── NARODENIE: jeden dátum, dve znamenia ───────────────────── */}
-              <p className="hf-legend">{t('heroglyph.flow.owner.bornLegend')}</p>
+              {/* ── ČO O TEBE HOVORIA HVIEZDY ────────────────────────────────
+                  🔴 VLYS NEHOVORÍ „NARODIL SI SA" (Matej 25. 9.: *„a nie narodil
+                     si sa ale: čo o tebe hovoria hviezdy"*). Dátum nie je to, čo
+                     od človeka chceme — chceme znamenia. Dátum je len cesta
+                     k nim, a preto to hneď pod ním aj stojí.
+                  ⚠️ Kľúč `ownerZodiac.question` existuje v 18 jazykoch a znamená
+                     presne túto vetu; nový sa nezakladá. */}
+              <p className="hf-legend">{t('heroglyph.flow.ownerZodiac.question')}</p>
 
-              <div className="ow-born">
-                <div className="ow-date">
-                  <DateDropdowns
-                    day={bd?.d ?? 1}
-                    month={bd?.m ?? 1}
-                    year={bd?.y ?? 1990}
-                    empty={!bd}
-                    emptyLabels={{
-                      day: t('heroglyph.flow.dogs.phDay'),
-                      month: t('heroglyph.flow.dogs.phMonth'),
-                      year: t('heroglyph.flow.dogs.phYear'),
-                    }}
-                    minYear={MIN_YEAR}
-                    maxYear={today.getFullYear()}
-                    maxDate={today}
-                    skin="pale"
-                    onChange={pickDate}
-                  />
-                </div>
-
-                {/* Dve značky vedľa dátumu — nie sú to voľby, sú to VÝSLEDKY,
-                    preto nemajú tvar dlaždice `.hf-pick`, ale náhľadu ako
-                    písmeno mena. Kým dátum nie je celý, mlčia. */}
-                <span className={`ow-mark${western ? ' on' : ''}`} title={western ? t(`heroglyph.flow.ownerZodiac.sign.${western.name}`) : ''}>
-                  {western ? <img src={zodiacMap[western.name]} alt={t(`heroglyph.flow.ownerZodiac.sign.${western.name}`)} /> : <i>?</i>}
-                </span>
-                <span className={`ow-mark${chinese ? ' on' : ''}`} title={chinese ? t(`heroglyph.flow.ownerZodiac.animal.${chinese.name}`) : ''}>
-                  {chinese ? <img src={chineseMap[chinese.name]} alt={t(`heroglyph.flow.ownerZodiac.animal.${chinese.name}`)} /> : <i>?</i>}
-                </span>
+              <div className="ow-date">
+                <DateDropdowns
+                  day={bd?.d ?? 1}
+                  month={bd?.m ?? 1}
+                  year={bd?.y ?? 1990}
+                  empty={!bd}
+                  emptyLabels={{
+                    day: t('heroglyph.flow.dogs.phDay'),
+                    month: t('heroglyph.flow.dogs.phMonth'),
+                    year: t('heroglyph.flow.dogs.phYear'),
+                  }}
+                  minYear={MIN_YEAR}
+                  maxYear={today.getFullYear()}
+                  maxDate={today}
+                  skin="pale"
+                  onChange={pickDate}
+                />
               </div>
 
-              {/* ── ČO TIE DVE IKONKY SÚ ─────────────────────────────────────
-                  Matej 25. 9.: *„pri ikonky znamení musíme dať vysvetlenie —
-                  znamenia podľa dátumu narodenia"*. Kým dátum nie je zadaný,
-                  stojí pri mlčiacich značkách VETA, ktorá povie, odkiaľ sa
-                  vezmú — inak sú to dva otázniky, na ktoré sa nedá ťuknúť a
-                  človek hľadá, kde si znamenie vyberie (v starom vstupe si ho
-                  vyberal ručne z radu dvanástich).
-                  Po zadaní dátumu tú istú plochu obsadia mená znamení — obrázok
-                  sám o sebe nepovie, čo vyšlo.
-                  🔴 Plocha má výšku VŽDY, aby doska pri výbere nepodskočila. */}
-              <p className={`ow-said${western && chinese ? '' : ' dim'}`}>
-                {western && chinese
-                  ? `${t(`heroglyph.flow.ownerZodiac.sign.${western.name}`)} · ${t(`heroglyph.flow.ownerZodiac.animal.${chinese.name}`)}`
-                  : t('heroglyph.flow.owner.signsHint')}
-              </p>
+              {/* 🔴 TEXT STOJÍ VEDĽA ZNAČIEK, NIE POD NIMI (Matej 25. 9.: *„dolu
+                  tu info daj vedla blokov so znameniami aby sme nepredlžovali
+                  výšku bloku = najprv text a vedľa dva bloky a vedľa názvy
+                  znamení"*). Tri veci v jednom riadku namiesto dvoch riadkov pod
+                  sebou — a `MAJITEĽ` je najplnšia obrazovka vstupu, takže každý
+                  ušetrený riadok je ten, o ktorý sa nemusí zmenšovať rám.
+                  🔑 Vysvetlenie je zároveň jediné miesto, kde sa človek dozvie,
+                     že dátum nikam neukladáme — preto v ňom rovno stojí aj
+                     odkaz „nechcem uviesť". */}
+              <div className="ow-stars">
+                <p className="tx">
+                  {t('heroglyph.flow.owner.signsHint')}{' '}
+                  <button type="button" className="ow-optout" onClick={() => setSheet(true)}>
+                    {t('heroglyph.flow.owner.optOut')}
+                  </button>
+                </p>
+                <span className={`ow-mark${western ? ' on' : ''}`}>
+                  {western ? <img src={zodiacMap[western.name]} alt="" /> : <i>?</i>}
+                </span>
+                <span className={`ow-mark${chinese ? ' on' : ''}`}>
+                  {chinese ? <img src={chineseMap[chinese.name]} alt="" /> : <i>?</i>}
+                </span>
+                {/* Názvy znamení — kým ich nepoznáme, miesto drží pomlčka, aby
+                    riadok pri vyplnení dátumu nepodskočil. */}
+                <span className="ow-said">
+                  {western && chinese
+                    ? `${t(`heroglyph.flow.ownerZodiac.sign.${western.name}`)} · ${t(`heroglyph.flow.ownerZodiac.animal.${chinese.name}`)}`
+                    : '—'}
+                </span>
+              </div>
 
               <button type="button" className="hf-cta" disabled={!canGo} onClick={() => canGo && navigate('/heroglyph/reveal')}>
                 {t('heroglyph.flow.breed.continue')}
@@ -335,6 +393,14 @@ export function OwnerScreen() {
           </motion.div>
         </div>
       </div>
+
+      <ZodiacSheet
+        open={sheet}
+        sign={westName || undefined}
+        year={bd?.y}
+        onClose={() => setSheet(false)}
+        onDone={pickSigns}
+      />
 
       {isMobile && <FlowTextModal
         open={nameModalOpen}
@@ -381,18 +447,15 @@ const OWNER_CSS = `
    ⚠️ 72 %, nie 84 ako na POVAHE: pod rámom stoja štyri úseky namiesto jedného
    radu, takže rám je jediný prvok, z ktorého sa dá ubrať bez toho, aby prestal
    byť čitateľný. Pod 70 % splývajú symboly v malých slotoch. */
-.ow-glyph {
-  --ow-glyph-w: 72%;
-  max-width: 100%; margin-inline: auto; display: block;
-  color: rgba(35, 22, 8, 0.88);
-}
-@media (max-width: 559px) { .ow-glyph { --ow-glyph-w: 94%; } }
+/* 🔒 Šírku rámu určuje LOCK \`FLOW_GLYPH_CSS\` (\`--flow-glyph-w\`), nie táto
+   obrazovka — na každom kroku musí byť heroglyf rovnako veľký (Matej 25. 9.).
+   Vlastné percento sa sem NEVRACIA; keď sa obsah nezmestí, ustúpi obsah. */
 
 /* ── PORADIE ─────────────────────────────────────────────────────────────
    Nie je to otázka, je to STAV — preto riadok, nie dlaždica. Papyrusová jamka
    ako pole, aby bolo vidieť, že údaj prišiel odinakiaľ a dá sa s ním hýbať. */
 .ow-order {
-  width: 100%; min-height: 34px; display: flex; align-items: center; gap: 8px;
+  width: 100%; min-height: 30px; display: flex; align-items: center; gap: 8px;
   padding: 4px 8px 4px 12px; border-radius: ${PACK_R.tile}px;
   background: linear-gradient(135deg, rgba(255, 253, 247, 0.55), rgba(242, 226, 189, 0.45));
   border: 1px solid ${LAB.hairline};
@@ -430,13 +493,16 @@ const OWNER_CSS = `
    Jeden tvar pre všetky tri: sú to VÝSLEDKY, nie voľby. Prázdny je tichá jamka
    s otáznikom, plný dostane lapisový lem — tá istá reč ako \`.hf-field.is-valid\`. */
 .ow-mark {
-  flex: 0 0 auto; width: 40px; height: 40px; display: grid; place-items: center;
+  /* ⚠️ 36, nie 40 (25. 9.): riadok hviezd pribudol k dátumu a obrazovka na
+     Matejovom okne pretiekla o 2 px. Rám je zamknutý, takže ustupujú náhľady —
+     sú to značky, nie plochy, do ktorých sa ťuká. */
+  flex: 0 0 auto; width: 36px; height: 36px; display: grid; place-items: center;
   border-radius: ${PACK_R.tile}px; overflow: hidden;
   border: 1.5px solid ${LAB.hairline};
   background: linear-gradient(135deg, rgba(255, 253, 247, 0.65), rgba(242, 226, 189, 0.5));
 }
 .ow-mark.on { border-color: ${LAPIS.edge}; }
-.ow-mark img { width: 28px; height: 28px; object-fit: contain; }
+.ow-mark img { width: 26px; height: 26px; object-fit: contain; }
 .ow-mark i {
   font-style: normal; font-family: 'Cinzel', serif; font-weight: 700; font-size: 16px;
   color: ${LAB.inkMuted};
@@ -454,21 +520,32 @@ const OWNER_CSS = `
 .ow-gender .well { width: 40px; height: 40px; }
 .ow-gender .well img { width: 34px; height: 34px; object-fit: contain; }
 
-/* ── NARODENIE ──────────────────────────────────────────────────────────── */
-.ow-born { width: 100%; display: flex; align-items: center; gap: 8px; }
-/* Tri rolety dostanú celý zvyšok riadka; dve značky vedľa nich majú pevných 40. */
-.ow-date { flex: 1 1 auto; min-width: 0; }
-/* Mená znamení — plocha má výšku vždy, aj keď mlčí (inak doska poskočí). */
-.ow-said {
-  width: 100%; min-height: 18px; margin: 0; text-align: center;
-  font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
-  letter-spacing: 0.14em; text-transform: uppercase; color: ${LAB.inkSoft};
+/* ── ČO O TEBE HOVORIA HVIEZDY ───────────────────────────────────────────
+   Dátum je celý riadok sám; pod ním JEDEN riadok, v ktorom stoja vedľa seba
+   vysvetlenie, dve značky a názvy znamení (Matej 25. 9.: *„aby sme
+   nepredlžovali výšku bloku"*). Predtým to boli dva riadky pod sebou. */
+.ow-date { width: 100%; }
+.ow-stars { width: 100%; display: flex; align-items: center; gap: 8px; }
+/* Text si berie zvyšok riadka a smie sa zalomiť — je to jediný prvok, ktorý to
+   znesie. Značky a názvy majú pevnú šírku, takže riadok nikdy nepreskočí. */
+.ow-stars .tx {
+  flex: 1 1 auto; min-width: 0; margin: 0;
+  font-family: 'Space Grotesk', sans-serif; font-size: 11px; line-height: 1.3;
+  color: ${LAB.inkMuted};
 }
-/* Vysvetlenie NIE JE výsledok, takže nesmie vyzerať ako meno znamenia: bežné
-   písmo vstupu, malé, tlmené — presne ako popis pod radom na POVAHE. */
-.ow-said.dim {
-  font-family: 'Space Grotesk', sans-serif; font-weight: 400; font-size: 12px;
-  letter-spacing: normal; text-transform: none; color: ${LAB.inkMuted};
+/* 🔵 „NECHCEM UVIESŤ" JE AKCIA, teda lapis — ale vnútri vety, takže podčiarknutý
+   text, nie tlačidlo. Plná plocha patrí jedinému CTA na doske. */
+.ow-optout {
+  display: inline; padding: 0; border: none; background: none; cursor: pointer;
+  font: inherit; color: ${LAPIS.edge}; text-decoration: underline;
+  text-underline-offset: 2px;
+}
+/* Mená znamení — pevná šírka, aby sa riadok pri vyplnení dátumu nepohol. */
+.ow-said {
+  flex: 0 0 auto; max-width: 132px; margin: 0; text-align: right;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px;
+  letter-spacing: 0.06em; text-transform: uppercase; color: ${LAB.inkSoft};
+  overflow: hidden; text-overflow: ellipsis;
 }
 
 /* ── ZAMKNUTÉ CTA NESIE MATERIÁL, NIE PRIESVITNOSŤ ────────────────────────
@@ -486,9 +563,11 @@ const OWNER_CSS = `
    Dátum a dve značky sa do 360 px v jednom riadku nezmestia — rolety pod 96 px
    prestanú ukazovať názov mesiaca. Riadok sa preto zalomí a značky idú pod
    dátum, doprostred. */
+/* 📱 Na telefóne sa do riadka nezmestí text aj mená — mená idú preč a ostávajú
+   len značky (kresba znamenia je zrozumiteľnejšia než jej názov v 9 px). */
 @media (max-width: 559px) {
-  .ow-born { flex-wrap: wrap; justify-content: center; }
-  .ow-date { flex: 1 1 100%; }
+  .ow-said { display: none; }
+  .ow-stars .tx { font-size: 10px; }
 }
 /* 🔴 KRÁTKE OKNO — a MUSÍ to stáť AŽ TU. Obe podmienky majú rovnakú
    špecificitu, takže rozhoduje poradie (tá istá pasca, čo 24. 9. zožrala
@@ -497,14 +576,12 @@ const OWNER_CSS = `
   .ow-stack .hf-plate { gap: 6px; }
   .ow-stack .hf-cta { height: 36px; }
   .ow-speak { margin-bottom: 4px; }
-  .ow-glyph { --ow-glyph-w: 60%; }
   .ow-gender { height: 46px; }
 }
 @media (max-width: 559px) and (max-height: 700px) {
   /* ⚠️ 66 %, nie 78 (merané 25. 9. na 375×667: doska pretekala o 5 px). Pribudlo
      VYSVETLENIE pod značkami — na 375 px sa zalomí na dva riadky, teda +16 px.
      Ustupuje rám, nie rezerva od okraja (lock PAGE_AIR). */
-  .ow-glyph { --ow-glyph-w: 66%; }
   /* Plocha vysvetlenia počíta s dvoma riadkami, aby doska pri zadaní dátumu
      (keď ho vystrieda jednoriadkové meno znamenia) nepodskočila. */
   .ow-said { min-height: 32px; }
@@ -514,6 +591,14 @@ const OWNER_CSS = `
   .ow-order { min-height: 30px; }
   .ow-mark { width: 36px; height: 36px; }
   .ow-mark img { width: 24px; height: 24px; }
+  /* 🔒 RÁM SA UŽ NEZMENŠUJE (lock \`FLOW_GLYPH_CSS\`), takže na najkratšom okne
+     ustupuje všetko ostatné: výplň dosky, rozstupy a výška dlaždíc pohlavia.
+     MAJITEĽ je najplnšia obrazovka vstupu — nesie štyri odpovede — a práve on
+     to číslo pre celý vstup vymedzuje. */
+  .ow-stack .hf-plate { padding: 14px 16px; gap: 5px; }
+  .ow-gender { height: 42px; }
+  .ow-gender .well { width: 34px; height: 34px; }
+  .ow-gender .well img { width: 28px; height: 28px; }
 }
 
 /* ── 📱 VYSOKÝ TELEFÓN: VIAC VZDUCHU V BLOKOCH ───────────────────────────────
@@ -525,6 +610,9 @@ const OWNER_CSS = `
       95 % a ďalšia výplň by ju potopila. */
 @media (max-width: 559px) and (min-height: 701px) {
   .ow-speak { padding: 16px; margin-bottom: 12px; }
-  .ow-stack .hf-plate { padding: 26px 20px; gap: 12px; }
+  /* ⚠️ BOČNÝ PADDING 22 JE ZHODNÝ SO SUSEDMI, hoci zvislý je menší. Rám berie
+     na telefóne 100 % vnútra dosky, takže 20 vs. 22 znamenalo rám 306 px tu a
+     302 px na patrónovi — teda presne to, čo lock zakazuje. */
+  .ow-stack .hf-plate { padding: 26px 22px; gap: 12px; }
 }
 `;
