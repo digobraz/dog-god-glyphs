@@ -31,6 +31,7 @@ export type PackEvent =
   | 'pack_note_add'        // značka na mape
   | 'pack_wish_add'        // prianie na mape (BUDDY)
   | 'pack_wish_metoo'      // chcem tiež = kópia prania
+  | 'pack_wish_done'       // splnené prianie (D1 s LOGom / D3 bez)
   | 'pack_message_sent'    // odoslaná správa
   | 'pack_ainubis_open'    // otvorený AINUBIS
   | 'pack_lock_click';     // klik na zamknutú vec (prop: lock)

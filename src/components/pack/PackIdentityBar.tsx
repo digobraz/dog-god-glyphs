@@ -35,6 +35,7 @@ import { readLocalTrails, readWalkedIds, visibleLocalTrails, pluralKey } from '.
 import { profileLevelFor, readVotes } from './packCommunity';
 import { useMyNotePoints } from './mapnotes/useMyNotePoints';
 import { useMyEventCount } from '@/components/pack/events/eventStore';
+import { useMyWishCount } from '@/components/pack/mapnotes/wishData';
 import { tierVars } from '@/lib/packTiers';
 import type { usePackIdentity } from './usePackIdentity';
 import { PackTopRight } from './PackLayout';
@@ -99,6 +100,7 @@ export function PackIdentityBar({ id, middle, stats, primary }: {
   const navigate = useNavigate();
   const myNotePoints = useMyNotePoints();
   const myEventCount = useMyEventCount();
+  const myWishCount = useMyWishCount();
 
   const email = id.session?.user?.email ?? '';
   const meta = (id.session?.user?.user_metadata ?? {}) as Record<string, unknown>;
@@ -134,9 +136,10 @@ export function PackIdentityBar({ id, middle, stats, primary }: {
       ownerName: firstNameFrom(email, fullName),
       notePoints: myNotePoints,
       eventsHeld: myEventCount,
+      wishesDone: myWishCount,
     });
     return { level, count: walkedTrails.length, km: Math.round(km) };
-  }, [email, fullName, myNotePoints, myEventCount]);
+  }, [email, fullName, myNotePoints, myEventCount, myWishCount]);
 
   const lv = view.level;
   return (

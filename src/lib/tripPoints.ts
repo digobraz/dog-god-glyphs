@@ -6,6 +6,11 @@
 // Ceny, krivka levelu aj pevné ceny magistrál sú prepísané odtiaľ 1:1. Keď sa mení jedno,
 // musí sa zmeniť druhé — inak appka ukazuje iné číslo než dokument, ktorý ho sľubuje.
 //
+// ⚠️ PREMERANÉ 26. 9. 2026: kalkulačka už v `embeds/mapa/` NIE JE — 16. 9. odišla do
+// `vystupy/dashboard-archiv/mapa/index.html` a 22. 9. ju menu dashboardu vyradilo. Jej `const P`
+// nemá `note` (24. 8.), `event` ani `wish` (24. 9.). Fakticky je zdrojom pravdy táto tabuľka;
+// či sa kalkulačka vráti a dorovná, alebo sa zdroj pravdy prepíše sem, rozhoduje Matej.
+//
 // Schválené 25. 7. 2026, revízia 29. 7. 2026 (miesto 10 · krajina 30 · žiadny strop nikde ·
 // deben zrušený · BONES = mena za ŠÍRENIE, body za chodenie do nej neústia).
 //
@@ -40,6 +45,7 @@ export const POINTS = {
   peak: 0,        // vrchol — kryje ho už prevýšenie
   event: 10,      // podujatie, ktoré sa USKUTOČNILO (organizátor potvrdí príbehom a fotkou)
   note: 3,        // ODKAZ (značka na mape) — parkovisko, upozornenie, tip
+  wish: 10,       // SPLNENÉ PRIANIE 🍑 — len s LOGom a za prianie staršie ako 7 dní (Matej 24. 9. 2026)
 } as const;
 
 // ── ODKAZY: JEDNA CENA, DVA STROPY (Matej 2026-08-24) ───────────────────────
@@ -268,6 +274,12 @@ export interface ProfilePointsInput {
    * Zdroj `useMyEventCount()` (events/eventStore.ts).
    */
   eventsHeld?: number;
+  /**
+   * Počet splnených PRIANÍ, ktoré platia (+`POINTS.wish` za každé). Matej 24. 9. 2026: „len ak
+   * bude nasledovať LOG, inak nie (boli by to zadarmo body)" + pin starší ako 7 dní. Oboje
+   * stráži server (`my_wish_points()`), zdroj `useMyWishCount()` (mapnotes/wishData.ts).
+   */
+  wishesDone?: number;
 }
 
 /**
@@ -350,6 +362,9 @@ export function calculateProfilePoints(input: ProfilePointsInput): TripPointsRes
 
   const eventsHeld = input.eventsHeld ?? 0;
   if (eventsHeld > 0) rows.push({ labelKey: 'pack.points.events', points: eventsHeld * POINTS.event });
+
+  const wishesDone = input.wishesDone ?? 0;
+  if (wishesDone > 0) rows.push({ labelKey: 'pack.points.wishes', points: wishesDone * POINTS.wish });
 
   return { total: rows.reduce((s, r) => s + r.points, 0), rows };
 }

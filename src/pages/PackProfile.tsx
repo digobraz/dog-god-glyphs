@@ -23,6 +23,7 @@ import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { readLocalTrails, readWalkedIds, pluralKey, visibleLocalTrails } from '@/components/pack/tripShared';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import { useMyEventCount } from '@/components/pack/events/eventStore';
+import { useMyWishCount } from '@/components/pack/mapnotes/wishData';
 import { profileLevelFor, readVotes } from '@/components/pack/packCommunity';
 import {
   useProfile,
@@ -508,6 +509,7 @@ export default function PackProfile() {
   // Body za odkazy — spoločný zdroj so zvyškom povrchov, ktoré ukazujú level.
   const myNotePoints = useMyNotePoints();
   const myEventCount = useMyEventCount();
+  const myWishCount = useMyWishCount();
   const pilgrim = useMemo(() => {
     if (!DEV_FULL) return null;
     // Jedno čítanie localStorage, nie dve — `readLocalTrails()` parsuje JSON pri každom volaní.
@@ -526,6 +528,7 @@ export default function PackProfile() {
       votes: readVotes(),
       notePoints: myNotePoints,
       eventsHeld: myEventCount,
+      wishesDone: myWishCount,
       email: session?.user?.email ?? '',
       // ⚠️ MUSÍ to byť `firstNameFrom`, nie `fullName.split(' ')[0]`. Pri prázdnom
       // `full_name` (bežný stav — user_metadata býva prázdne) by holý split vrátil `''`,
@@ -535,7 +538,7 @@ export default function PackProfile() {
       ownerName: firstNameFrom(session?.user?.email ?? '', fullName),
     });
     return { level: level.level, count: walkedTrails.length, km: Math.round(walkedKm) };
-  }, [session, fullName, myNotePoints, myEventCount]);
+  }, [session, fullName, myNotePoints, myEventCount, myWishCount]);
 
   return (
     <PackLayout>

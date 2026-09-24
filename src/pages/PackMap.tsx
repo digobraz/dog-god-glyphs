@@ -136,7 +136,8 @@ import { ORIGIN_PARAM, returnTo } from '@/components/pack/createRegistry';
 import { MapNotesLayer, MAP_NOTES_CSS } from '@/components/pack/mapnotes/MapNotesLayer';
 import { WishLayer } from '@/components/pack/mapnotes/WishLayer';
 import { AddWish, type WishDraftPoint } from '@/components/pack/mapnotes/AddWish';
-import { fetchWishPins, type WishPin } from '@/components/pack/mapnotes/wishData';
+import { fetchMyWishes, fetchWishPins, useMyWishCount, wishMatchForTrail, type WishPin } from '@/components/pack/mapnotes/wishData';
+import { WishAsk, type WishAskKind, type WishAskReq } from '@/components/pack/mapnotes/WishAsk';
 import { WISH_EMOJI, WISH_RIM } from '@/components/pack/mapnotes/markEmoji';
 import { dockFitPadding } from '@/components/pack/mapDockShape';
 import { MapAttribution, MAP_ATTR_CSS, mapAttrLiftCSS } from '@/components/pack/mapAttribution';
@@ -168,7 +169,7 @@ import { useEvents, saveEvent, type EventItem } from '@/components/pack/events/e
 // krok 5) — dovtedy sa event po uložení nikde nezobrazoval (formulár aj store boli hotové,
 // panel ostal viazaný len na TRIP vetvu).
 import { EventsPanel } from '@/components/pack/events/EventsPanel';
-import { EVENTS_LIVE, PLANNING_LIVE } from '@/lib/packFlags';
+import { EVENTS_LIVE, PLANNING_LIVE, WISHES_LIVE } from '@/lib/packFlags';
 import { TRIP_CATEGORIES, ACT_TAG_EMOJI, ACT_TO_CATEGORY, CHIP_BY_ID, DATA_TAG_TO_UI, TAG_EMOJI, TAG_I18N, categoriesOf, chipsOf, isInCategory, primaryCategoryOf, type TripCategoryId } from '@/components/pack/tripCategories';
 import { AvatarRing, AV_D } from '@/components/pack/AvatarRing';
 
@@ -2878,14 +2879,15 @@ const MAP_LAYERS: MapLayerDef[] = [
     labelKey: 'pack.map.layer.sleep',
     disabledReason: (ctx) => (ctx.isCleanMode ? 'pack.map.overlayDogyptDisabled' : null),
   },
-  {
-    // PRIANIA (BUDDY krok 2, 24. 9. 2026) — 🍑 kam chcú ľudia ísť. Zapnuté od začiatku:
-    // je to vrstva, kvôli ktorej sa plánovanie presunulo sem (zadanie-assnif §2).
-    id: 'wish',
-    type: 'overlay',
+  // PRIANIA (BUDDY krok 2, 24. 9. 2026) — 🍑 kam chcú ľudia ísť. Zapnuté od začiatku:
+  // je to vrstva, kvôli ktorej sa plánovanie presunulo sem (zadanie-assnif §2).
+  // Za `WISHES_LIVE` (26. 9.): na LIVE do FLIPu by prepínač zapínal prázdnu vrstvu.
+  ...(WISHES_LIVE ? [{
+    id: 'wish' as const,
+    type: 'overlay' as const,
     labelKey: 'pack.map.layer.wish',
-    disabledReason: (ctx) => (ctx.isCleanMode ? 'pack.map.overlayDogyptDisabled' : null),
-  },
+    disabledReason: (ctx: MapLayerCtx) => (ctx.isCleanMode ? 'pack.map.overlayDogyptDisabled' : null),
+  }] : []),
 ];
 
 /** Prah priblíženia pre spacie miesta na CELKOVEJ mape. Vyššie než `POI_MIN_ZOOM` (13)
@@ -3555,9 +3557,18 @@ export default function PackMap() {
   const mapNotes = useMapNotes(true);
   // PRIANIA (BUDDY krok 2) — načítané raz, po každom zápise znova (vzor useMapNotes).
   const [wishes, setWishes] = useState<WishPin[]>([]);
-  const reloadWishes = useCallback(() => { fetchWishPins().then(setWishes).catch(() => { /* bez prianí mapa žije ďalej */ }); }, []);
+  const reloadWishes = useCallback(() => {
+    // Na LIVE do FLIPu tabuľky nie sú — bez prepínača 404 pri každom otvorení mapy.
+    if (!WISHES_LIVE) return;
+    fetchWishPins().then(setWishes).catch(() => { /* bez prianí mapa žije ďalej */ });
+  }, []);
   useEffect(() => { reloadWishes(); }, [reloadWishes]);
   const [wishFlow, setWishFlow] = useState(false);
+  // ŽIVOT PRIANIA (26. 9. 2026) — otázka AINUBISA nad mapou (`WishAsk.tsx`). Dva zdroje:
+  // upozornenie z NOS (`?wish=&ask=`) a zapísaný výlet blízko môjho prania (D1). D1 čaká,
+  // kým sa zavrie odmena výletu — dve oslavy naraz by sa prekrikovali.
+  const [wishAsk, setWishAsk] = useState<WishAskReq | null>(null);
+  const [wishMatch, setWishMatch] = useState<WishAskReq | null>(null);
   const [wishDraft, setWishDraft] = useState<WishDraftPoint>(null);
   // `kind` aj `radiusM` sú v drafte (nie vnútri panela) zámerne: obe sa kreslia
   // na MAPE — emoji v trojuholníku a kruh polomeru — a mapa žije v inom strome
@@ -4023,6 +4034,16 @@ export default function PackMap() {
     openEventCard(eid);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [evStore.loaded, searchParams]);
+  // `?wish=<id>&ask=<druh>` — odkaz z NOS (B3, C1, C4, C5). Otázku kladie AINUBIS nad mapou.
+  useEffect(() => {
+    const wid = searchParams.get('wish');
+    if (!wid || !WISHES_LIVE) return;
+    const ask = (searchParams.get('ask') ?? 'wish_ask') as WishAskKind;
+    setSearchParams({}, { replace: true });
+    setMobileView('map');
+    setWishAsk({ id: wid, kind: ask });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
   const allTrails = useMemo(() => [...visibleLocalTrails(localTrails), ...HERO_JOURNEYS, ...HERO_TRAILS], [localTrails]);
   // Množina členských id — raz za zmenu zoznamu, nie pri každej karte (inak by sa
   // `trp-local-trails` parsovalo z úložiska raz na výlet).
@@ -4201,6 +4222,7 @@ export default function PackMap() {
   // mapy sedel s TRIPSTATS, homepage aj profilom.
   const myNotePoints = useMyNotePoints();
   const myEventCount = useMyEventCount();
+  const myWishCount = useMyWishCount();
   const profile = useMemo(() => {
     const email = id.session?.user?.email ?? '';
     const meta = (id.session?.user?.user_metadata ?? {}) as Record<string, unknown>;
@@ -4212,10 +4234,11 @@ export default function PackMap() {
       ownerName: firstNameFrom(email, (meta.full_name || meta.name) as string | undefined),
       notePoints: myNotePoints,
       eventsHeld: myEventCount,
+      wishesDone: myWishCount,
     });
     // `storeEpoch` je v deps zámerne: `approvedAddedIds` číta statusy priamo z úložiska, takže
     // sa musí prepočítať v momente, keď hydratácia z DB dobehne.
-  }, [allTrails, walkedIds, localTrails, votes, storeEpoch, id.session, myNotePoints, myEventCount]);
+  }, [allTrails, walkedIds, localTrails, votes, storeEpoch, id.session, myNotePoints, myEventCount, myWishCount]);
   const profilePoints = profile.points;
   const levelInfo = profile.level;
 
@@ -4820,6 +4843,17 @@ export default function PackMap() {
       // sa do zápisu nedostalo.
       draftMissing: missingOnTrail(trail),
     });
+
+    // D1 — splnil tento výlet niektoré moje prianie? (≤ 5 km, ten istý výlet, alebo štát).
+    // Pýta sa až po zavretí odmeny (render nižšie čaká na `!reveal`).
+    if (WISHES_LIVE) {
+      void fetchMyWishes()
+        .then((mine) => {
+          const w = wishMatchForTrail(mine, trail);
+          if (w) setWishMatch({ id: w.id, kind: 'match', tripId: trail.id });
+        })
+        .catch(() => { /* bez prianí sa výlet zapíše rovnako */ });
+    }
   };
 
   /**
@@ -7382,6 +7416,21 @@ export default function PackMap() {
           cestu (pilulka levelu). */}
       {coachOpen && addMapPhase === 'off' && !addFlow && (
         <MapCoach targetSel=".trp-triplist-btn" onDone={() => setCoachOpen(false)} />
+      )}
+
+      {/* ŽIVOT PRIANIA — AINUBIS sa pýta (B3 · C1–C5 · D1–D3). Nikdy nie cez iný tok:
+          sprievodca výletu aj prania má vlastnú bublinu na tom istom mieste. */}
+      {WISHES_LIVE && !reveal && !wishFlow && !addFlow && !addEventFlow && (wishAsk ?? wishMatch) && (
+        <WishAsk
+          key={`${(wishAsk ?? wishMatch)!.kind}:${(wishAsk ?? wishMatch)!.id}`}
+          req={(wishAsk ?? wishMatch)!}
+          wishes={wishes}
+          map={mapInstance}
+          dogName={id.dogs.find((d) => (d.life_status ?? 'alive') !== 'deceased' && d.dog_name)?.dog_name ?? null}
+          onClose={() => { if (wishAsk) setWishAsk(null); else setWishMatch(null); }}
+          onChanged={reloadWishes}
+          onLogTrip={(lat, lon) => startFromPoint('trip', lat, lon)}
+        />
       )}
 
       {/* REVEAL — `levelAfter` je AKTUÁLNY levelInfo, teda už prepočítaný po zápise.

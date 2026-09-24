@@ -404,7 +404,10 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                             fontSize: 12, lineHeight: 1.35, color: c.ink,
                           }}
                         >
-                          {al.kind.startsWith('event_')
+                          {al.kind.startsWith('wish_')
+                            // Priania: miesto stojí v riadku pod vetou (zlaté), veta ho neopakuje.
+                            ? t('pack.alerts.' + ({ wish_me_too: 'wishMeToo', wish_ask: 'wishAsk', wish_missed: 'wishMissed', wish_nudge: 'wishNudge' } as Record<string, string>)[al.kind], { who: al.who || t('pack.triplist.fallbackDogyptian') })
+                            : al.kind.startsWith('event_')
                             // Podujatia: veta podľa druhu, pri „niekto sa pridal" s počtom.
                             ? (al.kind === 'event_rsvp'
                               ? t('pack.alerts.eventRsvp' + pluralKey(al.count), { count: al.count })

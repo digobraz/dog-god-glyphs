@@ -48,7 +48,7 @@ export function AddWish({ map, onDraft, onSaved, onCancel, edgeLeft }: {
   mapRef.current = map;
 
   const [step, setStep] = useState<Step>('place');
-  const [place, setPlace] = useState<{ name: string; lat: number; lon: number; kind: WishPlaceKind } | null>(null);
+  const [place, setPlace] = useState<{ name: string; lat: number; lon: number; kind: WishPlaceKind; country: string | null } | null>(null);
   const [kind, setKind] = useState<WishTripKind | null>(null);
   const [when, setWhen] = useState<WishWhen | null>(null);
   const [note, setNote] = useState('');
@@ -61,7 +61,7 @@ export function AddWish({ map, onDraft, onSaved, onCancel, edgeLeft }: {
 
   const pickPlace = (s: PlaceSug) => {
     const k = placeKindFromMapy(s.type);
-    setPlace({ name: s.name, lat: s.lat, lon: s.lon, kind: k });
+    setPlace({ name: s.name, lat: s.lat, lon: s.lon, kind: k, country: s.country ?? null });
     onDraft({ lat: s.lat, lon: s.lon });
     // PlaceSearch priletí na z14; štát a kraj treba vidieť celý.
     mapRef.current?.setView([s.lat, s.lon], zoomForPlaceKind(k));
@@ -81,7 +81,7 @@ export function AddWish({ map, onDraft, onSaved, onCancel, edgeLeft }: {
     setBusy(true); setErr(null);
     try {
       await addWishPin({
-        lat: place.lat, lon: place.lon, placeName: place.name, placeKind: place.kind,
+        lat: place.lat, lon: place.lon, placeName: place.name, placeKind: place.kind, countryCode: place.country,
         tripKind: kind, when, seeking, note: note.trim() ? note.trim().slice(0, NOTE_MAX) : null,
       });
       setStep('done');
@@ -184,7 +184,8 @@ export function AddWish({ map, onDraft, onSaved, onCancel, edgeLeft }: {
 }
 
 // ⚠️ JS template literal — spätný apostrof v komentári by ho ukončil (check:css).
-const ADD_WISH_CSS = `
+// Zdieľa ho aj `WishAsk.tsx` (otázky života prania) — tá istá bublina, tie isté tlačidlá.
+export const ADD_WISH_CSS = `
 .aw-below{display:flex;flex-direction:column;gap:8px;}
 .aw-row{display:flex;align-items:center;gap:8px;}
 .aw-col{display:flex;flex-direction:column;gap:8px;}
@@ -202,4 +203,9 @@ const ADD_WISH_CSS = `
 .aw-cta:hover{background:${AINUBIS.ctaGradHover};}
 .aw-cta:disabled{opacity:.6;cursor:default;}
 .aw-err{font-family:${FONT_UI};font-size:12px;color:${AINUBIS.danger};}
+.aw-ghost{flex:1 1 0;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:${AINUBIS.ink};background:${AINUBIS.surfaceBase};border:1px solid ${AINUBIS.edgeStrong};border-radius:8px;padding:12px 16px;cursor:pointer;}
+.aw-ghost:hover{border-color:${AINUBIS.cyan};color:${AINUBIS.cyan};}
+.aw-ghost:disabled{opacity:.6;cursor:default;}
+.aw-pts{align-self:flex-start;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.14em;color:${AINUBIS.ctaA};background:${AINUBIS.ctaTint};border:1px solid ${AINUBIS.ctaEdge};border-radius:999px;padding:4px 12px;}
+.aw-sub{font-family:${FONT_UI};font-size:12px;color:${AINUBIS.inkFaint};}
 `;

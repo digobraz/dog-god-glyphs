@@ -23,7 +23,7 @@ import {
   panelFor, isReady, isSoon, type CreateId, type CreateObject, type CreatePlace,
 } from '@/components/pack/createRegistry';
 import { POINTS } from '@/lib/tripPoints';
-import { EVENTS_LIVE } from '@/lib/packFlags';
+import { EVENTS_LIVE, WISHES_LIVE } from '@/lib/packFlags';
 import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { RightGate } from '@/components/pack/RightGate';
 import type { PawmateRight } from '@/lib/pawmateRights';
@@ -402,10 +402,11 @@ export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryP
                        SKRÝVALA, kým záložka EVENTS v ľavom paneli mapy svietila so zámkom —
                        jedna vec, dve odpovede. Teraz rovnaký riadok ako SLUŽBA: vidno ho,
                        neklikne sa. Dôvod zámku ostáva v `lib/packFlags.ts`. */
-                    if (o.id === 'event' && !EVENTS_LIVE) {
+                    // PRIANIE rovnako (26. 9. 2026): migrácie bežia len na DEV.
+                    if ((o.id === 'event' && !EVENTS_LIVE) || (o.id === 'wish' && !WISHES_LIVE)) {
                       return (
                         <button key={o.id} type="button" className="att-entry-row att-entry-row--soon" disabled aria-disabled>
-                          <span className="att-entry-emoji" aria-hidden="true">{EMOJI.event}</span>
+                          <span className="att-entry-emoji" aria-hidden="true">{o.id === 'wish' ? EMOJI.wish : EMOJI.event}</span>
                           <span className="att-entry-title">{tx(o.labelKey, o.labelFallback)}</span>
                           <span className="att-entry-soon">{soonLabel(undefined, tx)}</span>
                         </button>

@@ -33,6 +33,7 @@ import { trailCountry } from '@/lib/countryGeo';
 import { placeholderFor } from '@/lib/tripPlaceholder';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import { useMyEventCount } from '@/components/pack/events/eventStore';
+import { useMyWishCount } from '@/components/pack/mapnotes/wishData';
 import { profileLevelFor, readVotes, readPlans } from './packCommunity';
 import { useT } from '@/i18n/LanguageContext';
 
@@ -346,6 +347,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
   // Body za odkazy — to isté číslo, aké má hlavička mapy aj TRIPSTATS.
   const myNotePoints = useMyNotePoints();
   const myEventCount = useMyEventCount();
+  const myWishCount = useMyWishCount();
   const view = useMemo(() => {
     const nowMs = Date.now();
     const allTrails: HeroTrail[] = [...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS];
@@ -422,6 +424,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
       ownerName,
       notePoints: myNotePoints,
       eventsHeld: myEventCount,
+      wishesDone: myWishCount,
     });
 
     return {
@@ -439,7 +442,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
       countryCount: countries.size,
       level: level.level,
     };
-  }, [email, ownerName, myNotePoints, myEventCount]);
+  }, [email, ownerName, myNotePoints, myEventCount, myWishCount]);
 
   // Bez jediného výletu s fotkou nemá plagát čo ukázať — radšej nič než prázdny rám.
   if (!view.trail) return null;

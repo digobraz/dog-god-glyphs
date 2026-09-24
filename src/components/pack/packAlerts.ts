@@ -31,7 +31,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { currentTripId, tripPathById } from '@/components/pack/tripShared';
 import type { HeroTrail } from '@/data/heroTrails.generated';
-import { EVENTS_LIVE } from '@/lib/packFlags';
+import { EVENTS_LIVE, WISHES_LIVE } from '@/lib/packFlags';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- rovnaký dôvod ako v packStore.ts:
 // `types.ts` tabuľky /packu nepozná (migrácie sú novšie než generovaný súbor).
@@ -48,7 +48,12 @@ const SEEN_MAX = 200;
 // deň vopred. Odkaz vedie na mapu s otvorenou kartou (`/pack/map?event=<id>`) — objekt má
 // jednu kartu a upozornenie neotvára novú obrazovku.
 export type EventAlertKind = 'event_rsvp' | 'event_changed' | 'event_cancelled' | 'event_reminder' | 'event_held_ask';
-export type AlertKind = 'trip_request' | 'trip_accepted' | 'trip_walked' | EventAlertKind;
+// ── PRIANIA 🍑 (26. 9. 2026) ─────────────────────────────────────────────────────────────
+// Štyri druhy z `get_wish_alerts()` (20260926_wish_life.sql): B3 „niekto chce tiež" · C1
+// „ešte platí?" · C4 „ušlo ti" · C5 „neodkladaj to". Odkaz vedie na mapu, kde otázku položí
+// AINUBIS (`WishAsk.tsx`) — upozornenie len zavolá, odpovedá sa tam, kde je pin.
+export type WishAlertKind = 'wish_me_too' | 'wish_ask' | 'wish_missed' | 'wish_nudge';
+export type AlertKind = 'trip_request' | 'trip_accepted' | 'trip_walked' | EventAlertKind | WishAlertKind;
 
 /**
  * Dataset trás — LAZY, rovnaký dôvod ako v `messaging/tripLabel.ts`: `heroTrails.generated.ts`
@@ -88,6 +93,8 @@ export interface PackAlert {
   count: number;
   /** ISO čas najnovšej udalosti v tomto upozornení */
   at: string;
+  /** B3: kto chce tiež — krstné meno + pes (ako na pine). Pri ostatných druhoch prázdne. */
+  who?: string;
 }
 
 // ── prečítanosť ────────────────────────────────────────────────────────────────────────────
@@ -130,6 +137,15 @@ interface WalkedRow {
   at: string;
 }
 
+interface WishAlertRow {
+  kind: WishAlertKind;
+  wish_id: string;
+  place: string;
+  who_first: string | null;
+  who_dog: string | null;
+  at: string;
+}
+
 interface EventAlertRow {
   kind: EventAlertKind;
   edition_id: string;
@@ -153,7 +169,7 @@ export async function loadAlerts(): Promise<PackAlert[]> {
   const uid = sess.session?.user?.id;
   if (!uid) return []; // odhlásený / DEV_NOAUTH — RLS by aj tak nevydala nič
 
-  const [incoming, mine, walked, events] = await Promise.all([
+  const [incoming, mine, walked, events, wishes] = await Promise.all([
     db.from('trip_requests').select('trip_slug,created_at,decided_at')
       .eq('organizer_id', uid).eq('status', 'requested') as
       Promise<{ data: RequestRow[] | null }>,
@@ -167,6 +183,8 @@ export async function loadAlerts(): Promise<PackAlert[]> {
     // Podujatia len keď sú zapnuté — na LIVE do FLIPu funkcia neexistuje (404 v konzole
     // na každej stránke by bol šum, nie informácia).
     (EVENTS_LIVE ? db.rpc('get_event_alerts') : Promise.resolve({ data: [] })) as Promise<{ data: EventAlertRow[] | null }>,
+    // Priania rovnako — na LIVE do FLIPu funkcia neexistuje.
+    (WISHES_LIVE ? db.rpc('get_wish_alerts') : Promise.resolve({ data: [] })) as Promise<{ data: WishAlertRow[] | null }>,
   ]);
 
   const trails = await loadTrails();
@@ -206,6 +224,13 @@ export async function loadAlerts(): Promise<PackAlert[]> {
   // termínu alebo ďalší prihlásený sa rozsvieti znova.
   for (const e of events.data ?? []) {
     out.push({ id: `${e.kind}|${e.edition_id}|${e.at}`, kind: e.kind, tripSlug: '', tripName: e.title, tripPath: `/pack/map?event=${e.edition_id}`, count: e.cnt, at: e.at });
+  }
+
+  // PRIANIA — `tripName` nesie miesto („Nórsko"). Id nesie čas: C5 sa o rok rozsvieti znova,
+  // posunutý termín dá novú otázku C1.
+  for (const w of wishes.data ?? []) {
+    const who = [w.who_first, w.who_dog].filter(Boolean).join(' + ');
+    out.push({ id: `${w.kind}|${w.wish_id}|${w.at}`, kind: w.kind, tripSlug: '', tripName: w.place, tripPath: `/pack/map?wish=${w.wish_id}&ask=${w.kind}`, count: 1, at: w.at, who });
   }
 
   return out.sort((a, b) => (a.at < b.at ? 1 : -1));
