@@ -24,7 +24,7 @@ import { AinubisBubble } from '@/components/pack/ainubisSheet';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { usePilgrimStats } from '@/components/pack/usePilgrimStats';
 import { FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
-import { SnifferLogo } from '@/components/pack/buddy/SnifferLogo';
+import { SnifferLogo, SNIFFER_LOGO_END_MS } from '@/components/pack/buddy/SnifferLogo';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PAGE_AIR,
   PACK_SHADOW, PACK_AVATAR, PACK_COL_INNER, PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS, MEDALLION_CSS, FONT_TITLE, FONT_UI,
@@ -42,7 +42,7 @@ import {
   type BuddySettings, type BuddyStepKey,
 } from '@/components/pack/buddy/buddyGate';
 
-type View = 'intro' | 'gate' | 'done' | 'settings' | 'home';
+type View = 'splash' | 'intro' | 'gate' | 'done' | 'settings' | 'home';
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
 
 /** Vzdialenosť „komu sa ukážem" — nákres 2b/5b. `null` = bez obmedzenia. */
@@ -145,6 +145,11 @@ const CSS = `
 .bd-hero{padding:${PACK_SPACE.xl}px ${PACK_SPACE.lg}px;}
 .bd-hero .bd-h2{font-size:${PACK_TEXT.h1}px;}
 .bd-wordmark{margin:0;line-height:0;}
+.bd-tagline{margin:0 auto;max-width:30ch;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.lead}px;line-height:1.45;color:${T.inkStrong};}
+.bd-reveal{opacity:0;transform:translateY(${PACK_SPACE.sm}px);transition:opacity .6s ease, transform .6s ease;}
+.is-done .bd-reveal{opacity:1;transform:none;}
+.is-done .bd-tagline{transition-delay:.35s;}
+@media (prefers-reduced-motion: reduce){.bd-reveal{opacity:1;transform:none;transition:none;}}
 .bd-wordmark img{height:${PACK_SPACE.xxl + PACK_SPACE.md}px;width:auto;}
 .bd-hero .bd-lead{font-family:${FONT_TITLE};font-size:${PACK_TEXT.lead}px;line-height:1.45;color:${T.inkStrong};max-width:28ch;margin:0 auto;}
 .bd-hero .bd-lead--ui{font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkDim};}
@@ -203,7 +208,8 @@ export default function PackBuddy() {
   const [session, setSession] = useState<Session | null>(null);
   const [settings, setSettings] = useState<BuddySettings | null>(null);
   const [view, setView] = useState<View | null>(null);
-  const [introStep, setIntroStep] = useState(0);
+  const [introStep, setIntroStep] = useState(1);
+  const [logoDone, setLogoDone] = useState(false);
   const [open, setOpen] = useState<BuddyStepKey | null>(null);
   const [serverMissing, setServerMissing] = useState<BuddyStepKey[] | null>(null);
   const [busy, setBusy] = useState(false);
@@ -224,7 +230,10 @@ export default function PackBuddy() {
 
   // Prvé otvorenie: zapnutý ide rovno dnu, ostatní cez úvod (0a).
   useEffect(() => {
-    if (settings && view === null) setView(settings.enabled ? 'home' : introSeen() ? 'gate' : 'intro');
+    // LOGO PRI KAŽDOM OTVORENÍ (Matej 25. 9.: „táto obrazovka bude vždy pri otvorení sniffera,
+    // akurát prvý krát je vypĺňanie profilu, ale potom už len nabehne logo a po logu sa zobrazia
+    // ľudia na swajpe").
+    if (settings && view === null) setView('splash');
   }, [settings, view]);
 
   const meta = (session?.user.user_metadata ?? {}) as Record<string, string | undefined>;
@@ -281,10 +290,19 @@ export default function PackBuddy() {
     ? tx('pack.buddy.settings', 'Settings')
     : tx('pack.buddy.title', 'Buddies');
 
+  const afterSplash = () => setView(s.enabled ? 'home' : introSeen() ? 'gate' : 'intro');
+  // Kto je v SNIFFERi, ide po logu sám rovno na swipe; nový človek pokračuje tlačidlom.
+  useEffect(() => {
+    if (view !== 'splash' || !s.enabled) return;
+    const id = window.setTimeout(afterSplash, SNIFFER_LOGO_END_MS);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- časovač beží od otvorenia, nie od prekreslenia
+  }, [view, s.enabled]);
+
   const back = () => {
     if (view === 'settings') setView(s.enabled ? 'home' : 'gate');
     else if (view === 'gate' && !introSeen()) { setIntroStep(3); setView('intro'); }
-    else if (view === 'intro' && introStep > 0) setIntroStep(introStep - 1);
+    else if (view === 'intro' && introStep > 1) setIntroStep(introStep - 1);
     else navigate('/pack/map');
   };
 
@@ -452,6 +470,28 @@ export default function PackBuddy() {
     <Shell title={title} onBack={back} backLabel={tx('pack.buddy.back', 'Back')}
       onGear={view !== 'settings' ? () => setView('settings') : undefined}
       gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'done' || view === 'home'}>
+      {view === 'splash' && (
+        <div className="bd-stage" onClick={() => { if (s.enabled) afterSplash(); }}>
+          <div className="bd-stage__body">
+            <div className={`bd-card bd-center bd-hero hf-carved${logoDone ? ' is-done' : ''}`} style={{ ...PACK_BOX.card }}>
+              <span className="hf-carved-rim" aria-hidden />
+              <SnifferLogo size={PACK_AVATAR.lg * 3 + PACK_SPACE.xl} onDone={() => setLogoDone(true)} />
+              {/* Nápis a veta až KEĎ STOJÍ SRDCE (Matej 25. 9.: „až po tom, čo nabehne srdce, až
+                  vtedy príde text, a tagline bude groteskom"). Miesto im je držané od začiatku,
+                  aby logo pri ich príchode neposkočilo. */}
+              <h2 className="bd-wordmark bd-reveal">
+                <img src="/icons/sniffer/sniffer-napis.svg" alt={tx('pack.buddy.title', 'SNIFFER')} />
+              </h2>
+              <p className="bd-tagline bd-reveal">{tx('pack.buddy.intro', 'Find buddies to sniff out the world with.')}</p>
+            </div>
+          </div>
+          <div className="bd-dock" style={{ visibility: s.enabled || !logoDone ? 'hidden' : 'visible' }}>
+            <button type="button" className="bd-cta" onClick={afterSplash}>{tx('pack.buddy.next', 'Next')}</button>
+            <p className="bd-note bd-note--center">{tx('pack.buddy.introOff', 'Off by default')}</p>
+          </div>
+        </div>
+      )}
+
       {view === 'intro' && (
         /* ONBOARDING (Matej 25. 9.): „najskôr len jeden blok LOGO a tagline, až po kliknutí
            ďalej by sa zobrazil postup… kroky v kartách, aby nebol potrebný scrolling".
@@ -459,18 +499,7 @@ export default function PackBuddy() {
            Len PRVÝ raz — potom sa ide rovno do brány (`INTRO_SEEN`). */
         <div className="bd-stage">
           <div className="bd-stage__body">
-            {introStep === 0 ? (
-              <div className="bd-card bd-center bd-hero hf-carved" style={{ ...PACK_BOX.card }}>
-                <span className="hf-carved-rim" aria-hidden />
-                <SnifferLogo size={PACK_AVATAR.lg * 3 + PACK_SPACE.xl} />
-                {/* NÁPIS = Alkatra 700, malé písmená, „ff" ako spojený znak (Matej 25. 9.: „ok poď na
-                    to"). Krivky, nie font — `public/icons/sniffer/sniffer-napis.svg`, lock brand.md. */}
-                <h2 className="bd-wordmark">
-                  <img src="/icons/sniffer/sniffer-napis.svg" alt={tx('pack.buddy.title', 'SNIFFER')} />
-                </h2>
-                <p className="bd-lead">{tx('pack.buddy.intro', 'Find buddies to sniff out the world with.')}</p>
-              </div>
-            ) : (() => {
+            {(() => {
               const n = String(introStep) as '1' | '2' | '3';
               return (
                 <div key={n} className="bd-card bd-center bd-hero bd-howcard hf-carved" style={{ ...PACK_BOX.card }}>
@@ -486,7 +515,7 @@ export default function PackBuddy() {
             })()}
           </div>
           <div className="bd-dots" aria-hidden>
-            {[0, 1, 2, 3].map((i) => <span key={i} className={i === introStep ? 'is-on' : ''} />)}
+            {[1, 2, 3].map((i) => <span key={i} className={i === introStep ? 'is-on' : ''} />)}
           </div>
           <div className="bd-dock">
             {introStep < 3 ? (
