@@ -25,6 +25,8 @@ import { BrandIcon } from '@/components/pack/BrandIcon';
 import { usePilgrimStats } from '@/components/pack/usePilgrimStats';
 import { FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
 import { SnifferLogo, SNIFFER_LOGO_END_MS } from '@/components/pack/buddy/SnifferLogo';
+import { SnifferHome } from '@/components/pack/buddy/SnifferHome';
+import { MessagingOverlayHost } from '@/components/pack/PackLayout';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PAGE_AIR,
   PACK_SHADOW, PACK_AVATAR, PACK_COL_INNER, PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS, MEDALLION_CSS, FONT_TITLE, FONT_UI,
@@ -62,6 +64,8 @@ const CSS = `
   background:${T.cardSoft};display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .bd-col{flex:1 1 auto;width:100%;max-width:640px;min-height:100dvh;margin:0 auto;padding:${PAGE_AIR.min}px ${PAGE_AIR.side}px ${PAGE_AIR.md}px;
   display:flex;flex-direction:column;gap:${PACK_SPACE.lg}px;}
+/* SNIFFUJ = jedna obrazovka bez scrollu: stĺpec presne na výšku okna, balíček berie zvyšok. */
+.bd-col--fit{height:100dvh;min-height:0;}
 .bd-card{padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .bd-card--list{padding:${PACK_SPACE.sm}px 0;gap:0;}
 .bd-card--list > .bd-eyebrow{padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;}
@@ -193,10 +197,6 @@ const CSS = `
 .bd-mine__name{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
 .bd-photo{width:100%;aspect-ratio:4/3;}
 .bd-photo--empty{display:flex;align-items:center;justify-content:center;text-align:center;padding:${PACK_SPACE.sm}px;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
-.bd-tabs{display:flex;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.xs}px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};background:${T.cardSoft};}
-.bd-tabs span{flex:1 1 0;text-align:center;padding:${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;font-family:${FONT_UI};
-  font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkFaint};}
-.bd-tabs span.is-on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
 .bd-switch{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.md}px;font-family:${FONT_UI};
   font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
 `;
@@ -473,7 +473,7 @@ export default function PackBuddy() {
   return (
     <Shell title={title} onBack={back} backLabel={tx('pack.buddy.back', 'Back')}
       onGear={view !== 'settings' ? () => setView('settings') : undefined}
-      gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'done' || view === 'home'}>
+      gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'done'} fit={view === 'home'}>
       {view === 'splash' && (
         <div className="bd-stage" onClick={() => { if (s.enabled) afterSplash(); }}>
           <div className="bd-stage__body">
@@ -629,19 +629,12 @@ export default function PackBuddy() {
 
       {view === 'home' && (
         <>
-          <div className="bd-tabs" role="tablist">
-            <span className="is-on">{tx('pack.buddy.tab.deck', 'Deck')}</span>
-            <span>{tx('pack.buddy.tab.search', 'Search')}</span>
-            <span>{tx('pack.buddy.tab.matches', 'Matches')}</span>
-          </div>
-          <AinubisBubble>
-            {tx('pack.buddy.deckSoon', 'The deck is still being built. You’re switched on, so the moment it opens, the people who fit will see you.')}
-          </AinubisBubble>
           {paused && (
             <p className="bd-note bd-note--center">{tx('pack.buddy.pausedUntil', 'Paused until {d}', { d: new Date(s.paused_until!).toLocaleDateString() })}</p>
           )}
-          <span className="bd-eyebrow">{tx('pack.buddy.seenAs', 'This is how they see you')}</span>
-          {myCard}
+          {/* SNIFFUJ · HĽADAŤ · ZHODY (zadanie-sniffer-stavba §2.1). „Takto ťa vidia" sa
+              presunulo do nastavení a za zapnutie (§2.3) — domov je balíček. */}
+          <SnifferHome tx={tx} me={{ photo: human?.buddyPhoto ?? avatarUrl ?? null, name, dogName: dog?.dog_name ?? null }} />
         </>
       )}
 
@@ -717,8 +710,8 @@ const HOW_EN: Record<'1' | '2' | '3', [string, string]> = {
   '3': ['You catch each other’s scent', 'A match is just a notice. Writing is up to you.'],
 };
 
-function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, children }: {
-  title: string; onBack: () => void; backLabel: string; onGear?: () => void; gearLabel?: string; wide?: boolean; children?: ReactNode;
+function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, fit, children }: {
+  title: string; onBack: () => void; backLabel: string; onGear?: () => void; gearLabel?: string; wide?: boolean; fit?: boolean; children?: ReactNode;
 }) {
   return (
     <div className="pk-paper bd-root">
@@ -733,7 +726,7 @@ function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, children }: 
       {/* HLAVIČKA BEZ NADPISU (Matej 25. 9.: „bez horného headru, šípku a nastavenia na
           okraje obsahu panela, nie úplne na kraj obrazovky"). Lišta preto stojí VNÚTRI
           stĺpca a jej kraje sú kraje kariet. Meno obrazovky nesie karta pod ňou. */}
-      <main className={`bd-col${wide ? ' bd-col--wide' : ''}`} aria-label={title}>
+      <main className={`bd-col${wide ? ' bd-col--wide' : ''}${fit ? ' bd-col--fit' : ''}`} aria-label={title}>
         <div className="bd-bar">
           <BackButton tone="pale" onClick={onBack} label={backLabel} />
           {onGear && (
@@ -744,6 +737,8 @@ function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, children }: 
         </div>
         {children}
       </main>
+      {/* Vlákno po zhode — stránka nemountuje PackLayout (kôš 3), tak si hostiteľa správ nesie sama. */}
+      <MessagingOverlayHost />
     </div>
   );
 }
