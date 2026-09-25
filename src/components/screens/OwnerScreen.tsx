@@ -309,30 +309,18 @@ export function OwnerScreen() {
                 style={{ width: 'var(--flow-glyph-w)' }}
               />
 
-              {/* ── PORADIE (len stav + odkaz na krok 2) ───────────────────── */}
-              <div className="ow-order">
-                <span className="tx">
-                  {hasRank
-                    ? t('heroglyph.flow.owner.orderLine', {
-                        dogName: dog?.name || t('heroglyph.flow.yourDogFallback'),
-                        ord: ordinal(rankNum),
-                      })
-                    : t('heroglyph.flow.owner.orderMissing')}
-                </span>
-                <button type="button" className="ow-change" onClick={() => navigate('/heroglyph/dogs')}>
-                  {hasRank ? t('heroglyph.flow.owner.orderChange') : t('heroglyph.flow.owner.orderPick')}
-                </button>
-              </div>
-
-              {/* ── KTO SI: pohlavie · meno · písmeno v JEDNOM riadku ────────
-                  Matej 25. 9.: *„krstné meno a pohlavie môže byť v jednom riadku
-                  = zväčšíme to na výšku, najprv pôjdu dve tlačidlá vedľa seba
-                  pohlavie, potom text area a ukážka iniciály, nebude to pôsobiť
-                  tak natesno"*. Pohlavie je dlaždica s kresbou a drobným nápisom
-                  POD ňou (Matej: *„vieme tam nejak dať muž/žena?"*). */}
+              {/* ── KTO SI: mriežka 30 / 70 (Matej 25. 9. 2026) ──────────────
+                  *„zmenšiť text žena muž alebo zväčšiť tie tlačidlá hore cez
+                  riadok a to poradie psa sa zarovná so začiatkom textarey
+                  s krstným menom… blok sa rozdelí na 30/70, na 30 časti budú
+                  veľké tlačidlá cez dva riadky a vedľa dva riadky"*.
+                  Vľavo dve dlaždice pohlavia na výšku OBOCH riadkov, vpravo
+                  poradie psa a pod ním meno + písmeno — oba riadky začínajú
+                  na tej istej zvislici. */}
               <p className="hf-legend">{t('heroglyph.flow.owner.whoLegend')}</p>
 
               <div className="ow-who">
+                <div className="ow-genders">
                 {GENDERS.map((g) => (
                   <button
                     key={g.v}
@@ -349,34 +337,54 @@ export function OwnerScreen() {
                     <span className="tx">{t(`heroglyph.flow.ownerInfo.${g.v}`)}</span>
                   </button>
                 ))}
-                {isMobile ? (
-                  <button
-                    type="button"
-                    className={`hf-field ow-name${trimmed ? ' is-valid' : ''}`}
-                    onClick={openNameModal}
-                  >
-                    {/* Krátky tvar — v riadku s pohlavím a písmenom ostane poľu
-                        na telefóne ~120 px a dlhý placeholder by sa odsekol. */}
-                    {trimmed || t('heroglyph.checkout.firstName')}
-                  </button>
-                ) : (
-                  <input
-                    ref={deskInputRef}
-                    className={`hf-field ow-name${trimmed ? ' is-valid' : ''}`}
-                    value={input}
-                    onChange={(e) => typeName(e.target.value.toUpperCase().slice(0, 30))}
-                    placeholder={t('heroglyph.flow.ownerInfo.placeholder')}
-                    maxLength={30}
-                    name="ownerName"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    spellCheck={false}
-                  />
-                )}
-                {/* Náhľad písmena = presne ten symbol, ktorý práve pristál v ráme. */}
-                <span className={`ow-mark${letterSvg ? ' on' : ''}`}>
-                  {letterSvg ? <img src={letterSvg} alt={letter} /> : <i>?</i>}
-                </span>
+                </div>
+
+                <div className="ow-right">
+                  <div className="ow-order">
+                    <span className="tx">
+                      {hasRank
+                        ? t('heroglyph.flow.owner.orderLine', {
+                            dogName: dog?.name || t('heroglyph.flow.yourDogFallback'),
+                            ord: ordinal(rankNum),
+                          })
+                        : t('heroglyph.flow.owner.orderMissing')}
+                    </span>
+                    <button type="button" className="ow-change" onClick={() => navigate('/heroglyph/dogs')}>
+                      {hasRank ? t('heroglyph.flow.owner.orderChange') : t('heroglyph.flow.owner.orderPick')}
+                    </button>
+                  </div>
+
+                  <div className="ow-namerow">
+                    {isMobile ? (
+                      <button
+                        type="button"
+                        className={`hf-field ow-name${trimmed ? ' is-valid' : ''}`}
+                        onClick={openNameModal}
+                      >
+                        {/* Krátky tvar — v riadku s pohlavím a písmenom ostane poľu
+                            na telefóne ~120 px a dlhý placeholder by sa odsekol. */}
+                        {trimmed || t('heroglyph.checkout.firstName')}
+                      </button>
+                    ) : (
+                      <input
+                        ref={deskInputRef}
+                        className={`hf-field ow-name${trimmed ? ' is-valid' : ''}`}
+                        value={input}
+                        onChange={(e) => typeName(e.target.value.toUpperCase().slice(0, 30))}
+                        placeholder={t('heroglyph.flow.ownerInfo.placeholder')}
+                        maxLength={30}
+                        name="ownerName"
+                        autoComplete="off"
+                        autoCorrect="off"
+                        spellCheck={false}
+                      />
+                    )}
+                    {/* Náhľad písmena = presne ten symbol, ktorý práve pristál v ráme. */}
+                    <span className={`ow-mark${letterSvg ? ' on' : ''}`}>
+                      {letterSvg ? <img src={letterSvg} alt={letter} /> : <i>?</i>}
+                    </span>
+                  </div>
+                </div>
               </div>
 
               {/* ── ČO O TEBE HOVORIA HVIEZDY — len VÝSLEDOK ─────────────────
@@ -445,8 +453,8 @@ export function OwnerScreen() {
  *
  * 📏 ROZPOČET VÝŠKY (mantinel `PAGE_AIR`, Matejovo okno 1477×724):
  *    javisko 724 − lišta 81 − vzduch 2×24 = **595 px**.
- *    bublina 104 + medzera 8 + doska (rám 104 · poradie 34 · vlys 16 ·
- *    KTO SI 52 · vlys 16 · dátum 40 · mená 18 · CTA 40 + 7 medzier po 8 +
+ *    bublina 104 + medzera 8 + doska (rám 104 · vlys 16 ·
+ *    KTO SI 96 (dva riadky 44 + 8, poradie je v nich) · vlys 16 · dátum 40 · mená 18 · CTA 40 + 7 medzier po 8 +
  *    2×18 výplň) = **~416 px**, teda rezerva ~75 px (25. 9.: pohlavie a meno
  *    zliate do jedného riadka).
  * 🔴 JE TO NAJPLNŠIA OBRAZOVKA VSTUPU — nesie štyri odpovede proti jednej až
@@ -475,7 +483,7 @@ const OWNER_CSS = `
    Nie je to otázka, je to STAV — preto riadok, nie dlaždica. Papyrusová jamka
    ako pole, aby bolo vidieť, že údaj prišiel odinakiaľ a dá sa s ním hýbať. */
 .ow-order {
-  width: 100%; min-height: 30px; display: flex; align-items: center; gap: 8px;
+  width: 100%; min-height: 44px; display: flex; align-items: center; gap: 8px;
   padding: 4px 8px 4px 12px; border-radius: ${PACK_R.tile}px;
   background: linear-gradient(135deg, rgba(255, 253, 247, 0.55), rgba(242, 226, 189, 0.45));
   border: 1px solid ${LAB.hairline};
@@ -498,11 +506,19 @@ const OWNER_CSS = `
 }
 .ow-change:hover { background: ${LAPIS.edge}; color: #FDF7E7; }
 
-/* ── KTO SI: pohlavie · meno · písmeno v JEDNOM riadku ─────────────────────
-   Od 25. 9. je to jeden VYŠŠÍ riadok (52 px) namiesto dvoch (pole 40 + pohlavie
-   52 + medzera). Doska tým zhodila ~48 px, preto vzduch, nie ďalší prvok.
-   Všetky štyri prvky majú tú istú výšku — riadok číta oko ako jednu vetu. */
-.ow-who { width: 100%; height: 52px; display: flex; align-items: stretch; gap: 8px; }
+/* ── KTO SI: mriežka 30 / 70 (25. 9. 2026, druhá podoba v ten istý deň) ─────
+   Vľavo dve dlaždice pohlavia na výšku OBOCH riadkov, vpravo poradie psa
+   a pod ním meno + písmeno. Poradie a meno tak začínajú na TEJ ISTEJ zvislici
+   (Matej: *„poradie psa sa zarovná so začiatkom textarey s krstným menom"*).
+   ⚠️ Ľavý stĺpec je \`minmax(min-content, 3fr)\`, nie holé 3fr: na telefóne je
+      30 % ~90 px a EN „WOMAN" / RU „ЖЕНЩИНА" by v dlaždici pretiekli. Keď
+      nápis nevojde, stĺpec narastie a ustúpi pravá strana, nie text. */
+.ow-who {
+  width: 100%; display: grid; gap: 8px;
+  grid-template-columns: minmax(min-content, 3fr) minmax(0, 7fr);
+}
+.ow-right { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.ow-namerow { height: 44px; display: flex; align-items: stretch; gap: 8px; }
 /* Pole si berie materiál \`.hf-field\`; mobilná podoba je tlačidlo, takže
    potrebuje zarovnanie textu doľava a výšku poľa. */
 .ow-name {
@@ -536,27 +552,26 @@ button.ow-name:not(.is-valid) { text-transform: none; letter-spacing: normal; }
   color: ${LAB.inkMuted};
 }
 
-/* Písmeno v riadku KTO SI je štvorec vo výške riadka — menšie \`.ow-mark\`
+/* Písmeno v riadku mena je štvorec vo výške riadka — menšie \`.ow-mark\`
    (36) ostáva pri hviezdach. */
-.ow-who .ow-mark { width: 52px; height: auto; }
-.ow-who .ow-mark img { width: 32px; height: 32px; }
+.ow-namerow .ow-mark { width: 44px; height: auto; }
+.ow-namerow .ow-mark img { width: 30px; height: 30px; }
 
 /* ── POHLAVIE ────────────────────────────────────────────────────────────
-   Dve dlaždice \`.hf-pick\` na začiatku riadka KTO SI — kresba a pod ňou drobný
-   nápis MUŽ / ŽENA. Materiál sa nepíše znovu.
-   ⚠️ Šírka je \`auto\` s dnom 52, nie pevných 52: RU „ЖЕНЩИНА" má 7 znakov
-   a v pevnom štvorci by vytiekla. Ustúpi pole mena, nie nápis. */
+   Dve VEĽKÉ dlaždice cez oba riadky — kresba hore, nápis MUŽ / ŽENA pod ňou.
+   Materiál je spoločný \`.hf-pick\`; mení sa len smer a rozmer. */
+.ow-genders { display: flex; gap: 8px; }
 .ow-gender {
-  flex: 0 0 auto; width: auto; min-width: 52px; padding: 2px 6px;
-  flex-direction: column; justify-content: center; gap: 2px;
+  flex: 1 1 0; width: auto; min-width: 0; padding: 8px 6px;
+  flex-direction: column; justify-content: center; gap: 6px;
 }
-.ow-gender .tx { font-size: 10px; line-height: 1; letter-spacing: 0.06em; white-space: nowrap; }
+.ow-gender .tx { font-size: 12px; line-height: 1; letter-spacing: 0.06em; white-space: nowrap; }
 /* 🔴 KRESBA V JAMKE MUSÍ MAŤ ROZMER. Bez neho si SVG vezme svoju natívnu výšku
    a silueta vytečie z dlaždice von (merané 25. 9.: nohy muža aj ženy viseli
    30 px pod okrajom). Tá istá pasca a to isté riešenie ako na PODSTATE
    (\`.es-picks .hf-pick .well img\`). */
-.ow-gender .well { width: 32px; height: 32px; }
-.ow-gender .well img { width: 26px; height: 26px; object-fit: contain; }
+.ow-gender .well { width: 48px; height: 48px; }
+.ow-gender .well img { width: 40px; height: 40px; object-fit: contain; }
 
 /* ── ČO O TEBE HOVORIA HVIEZDY — riadok VÝSLEDKU ─────────────────────────
    Od 25. 9. večer je to jeden ťukací riadok: dve značky · mená · VYBRAŤ /
@@ -598,6 +613,17 @@ button.ow-name:not(.is-valid) { text-transform: none; letter-spacing: normal; }
    len značky (kresba znamenia je zrozumiteľnejšia než jej názov v 9 px). */
 @media (max-width: 559px) {
   .ow-said { font-size: 10px; }
+  /* 📱 V pravých 70 % ostáva na telefóne ~180 px a ZMENIŤ si z nich berie 76 —
+     veta o poradí by sa skrátila na „HEKT…" (merané 25. 9. na 390 px). Zalomí
+     sa preto na dva riadky menším písmom; výška riadka (44) sa nemení. */
+  .ow-order .tx {
+    white-space: normal; font-size: 12px; line-height: 1.2;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  }
+  .ow-gender { padding: 6px 4px; }
+  .ow-gender .tx { font-size: 10px; }
+  .ow-gender .well { width: 40px; height: 40px; }
+  .ow-gender .well img { width: 34px; height: 34px; }
 }
 /* 🔴 KRÁTKE OKNO — a MUSÍ to stáť AŽ TU. Obe podmienky majú rovnakú
    špecificitu, takže rozhoduje poradie (tá istá pasca, čo 24. 9. zožrala
@@ -616,12 +642,13 @@ button.ow-name:not(.is-valid) { text-transform: none; letter-spacing: normal; }
   .ow-order { min-height: 30px; }
   .ow-mark { width: 36px; height: 36px; }
   .ow-mark img { width: 24px; height: 24px; }
-  .ow-who { height: 44px; }
-  .ow-who .ow-mark { width: 44px; flex-basis: 44px; }
-  .ow-gender { min-width: 44px; }
-  .ow-who .ow-mark img { width: 28px; height: 28px; }
-  .ow-gender .well { width: 26px; height: 26px; }
-  .ow-gender .well img { width: 22px; height: 22px; }
+  .ow-namerow { height: 38px; }
+  .ow-order { min-height: 38px; }
+  .ow-namerow .ow-mark { width: 38px; }
+  .ow-namerow .ow-mark img { width: 26px; height: 26px; }
+  .ow-gender { padding: 6px 4px; gap: 4px; }
+  .ow-gender .well { width: 38px; height: 38px; }
+  .ow-gender .well img { width: 32px; height: 32px; }
 }
 
 /* ── 📱 VYSOKÝ TELEFÓN: VIAC VZDUCHU V BLOKOCH ───────────────────────────────
