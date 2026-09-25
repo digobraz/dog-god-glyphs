@@ -162,7 +162,6 @@ export function FlowCheckoutScreen() {
       icon: GET_ICON[k],
       title: t(`heroglyph.flow.checkoutNew.get.${k}`),
       desc: t(`heroglyph.flow.checkoutNew.getD.${k}`),
-      soon: k === 'sniffer',
     };
   }
   const moneyGroups: PanelGroup[] = [{
@@ -380,7 +379,7 @@ export function FlowCheckoutScreen() {
               <div className="co-getrow">
                 <ul className="co-chips">
                   {GET_KEYS.map((k) => (
-                    <li key={k} className={`co-chip${k === 'sniffer' ? ' soon' : ''}`}>
+                    <li key={k} className="co-chip">
                       {t(`heroglyph.flow.checkoutNew.get.${k}`)}
                     </li>
                   ))}
@@ -429,6 +428,19 @@ export function FlowCheckoutScreen() {
                     {promoState === 'checking'
                       ? <Loader2 className="h-3 w-3 animate-spin" />
                       : promoState === 'ok' ? t('payment.promo.applied') : t('payment.promo.apply')}
+                  </button>
+                  {/* Cesta späť (Matej 25. 9. 2026: *„pri kliku na promokód chýba krok
+                      vrátiť sa… späť pod tlačidlo použiť"*). Neplatný kód sa zahodí,
+                      uplatnený ostáva. */}
+                  <button
+                    type="button"
+                    className="hf-hint co-promo-back"
+                    onClick={() => {
+                      setPromoOpen(false);
+                      if (promoState !== 'ok') { setPromoCode(''); setPromoState('idle'); setDiscount(null); }
+                    }}
+                  >
+                    {t('heroglyph.flow.checkoutNew.promoBack')}
                   </button>
                 </div>
               ) : (
@@ -580,7 +592,8 @@ const CHECKOUT_CSS = `
   .co-stack--many { --seal: 12dvh; }
 }
 
-/* Štítky „čo dostaneš" — zlatý obrys (informácia), SNIFFER tlmene (čoskoro). */
+/* Štítky „čo dostaneš" — zlatý obrys (informácia). SNIFFER už nie je „čoskoro"
+   (Matej 25. 9. 2026). */
 .co-getlegend { font-size: 10px; }
 .co-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto; min-width: 0; }
 .co-chip {
@@ -588,11 +601,14 @@ const CHECKOUT_CSS = `
   font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: .02em;
   color: ${LAB.ink}; background: rgba(255, 252, 240, 0.55); white-space: nowrap;
 }
-.co-chip.soon { opacity: .6; }
 
-/* Čo dostaneš — riadok s tlačidlom; rozpis je v paneli. */
-.co-getrow { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: -4px; }
-.co-getrow .co-mini { flex: 0 0 auto; }
+/* Čo dostaneš — štítky a VIAC INFO v JEDNOM zalomení, tlačidlo dobieha na koniec
+   posledného riadku. Dovtedy stálo vedľa zoznamu ako samostatný stĺpec a štítky
+   sa na 390 px lámali na tri riadky (Matej 25. 9. 2026: *„na dva"*) — ušetrený
+   riadok vracia miesto pečati. */
+.co-getrow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: -4px; }
+.co-getrow .co-chips { display: contents; }
+.co-getrow .co-mini { flex: 0 0 auto; margin-left: auto; }
 
 /* ZAPLATIŤ + NECHCEM PLATIŤ vedľa seba — plné a obrysové, rovnaký tvar. */
 .co-actions { display: grid; grid-template-columns: 3fr 7fr; gap: 8px; }
@@ -608,7 +624,8 @@ const CHECKOUT_CSS = `
 .co-decline:disabled { opacity: .4; cursor: default; }
 
 .co-links { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.co-promo { display: flex; gap: 8px; align-items: center; }
+.co-promo { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; }
+.co-promo-back { grid-column: 2; justify-self: center; }
 .co-promo-f { height: 40px; text-transform: uppercase; }
 
 .co-total {
