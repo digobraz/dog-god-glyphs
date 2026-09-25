@@ -19,7 +19,8 @@ export type RelationshipStatus = 'single' | 'taken' | 'complicated' | 'just_dogs
 export type PersonType = 'sporty' | 'active' | 'homebody';
 export type Smoking = 'non_smoker' | 'socially' | 'smoker' | 'vaper';
 export type Diet = 'omnivore' | 'vegetarian' | 'vegan' | 'healthy' | 'gourmet';
-export type Intent = 'trip_buddies' | 'roadtrip' | 'dog_playdates' | 'friendship' | 'dating' | 'community';
+export type Intent = 'trip_buddies' | 'roadtrip' | 'camping' | 'dog_playdates' | 'friendship' | 'dating' | 'community';
+// `camping` pribudol 25. 9. 2026 (Matej pri kontrole SNIFFERu: „stanovanie/prespávačky").
 // `roadtrip` pribudol 24. 9. 2026 s BUDDY (zadanie-assnif §3.2, nákres úrovní 5b). Zámery
 // Matej ešte upraví (§9 bod 4) — BUDDY ich preto číta odtiaľto, nie natvrdo.
 // ZRUŠENÉ 2026-07-26: `Alcohol` + `ALCOHOL_OPTIONS` + pole `alcohol` (Matej:
@@ -511,6 +512,7 @@ export const DOG_QUIRK_SUGGESTIONS = [
 export const INTENT_OPTIONS: TaxonomyOption<Intent>[] = [
   { value: 'trip_buddies', labelEN: 'Trip buddies', icon: 'walk', emoji: '🥾' },
   { value: 'roadtrip', labelEN: 'Roadtrip / abroad', icon: 'globe' },
+  { value: 'camping', labelEN: 'Camping / sleepovers', icon: 'hut' },
   { value: 'dog_playdates', labelEN: 'Dog playdates', icon: 'paw', emoji: '🐕' },
   { value: 'friendship', labelEN: 'Friendship', icon: 'people', emoji: '🤝' },
   { value: 'dating', labelEN: 'Dating', icon: 'heart', emoji: '💘' },

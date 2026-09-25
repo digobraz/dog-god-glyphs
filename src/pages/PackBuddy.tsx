@@ -19,6 +19,7 @@ import { uploadExtraPhoto } from '@/services/cloudinaryService';
 import { BackButton } from '@/components/pack/BackButton';
 import { AinubisBubble } from '@/components/pack/ainubisSheet';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { usePilgrimStats } from '@/components/pack/usePilgrimStats';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PAGE_AIR,
   PACK_SHADOW, PACK_AVATAR, PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS, MEDALLION_CSS, FONT_TITLE, FONT_UI,
@@ -51,13 +52,10 @@ const STEP_EN: Record<BuddyStepKey, string> = {
 
 const CSS = `
 .bd-root{min-height:100dvh;display:flex;flex-direction:column;}
-.bd-top{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;
-  padding:${PAGE_AIR.min}px ${PAGE_AIR.side}px ${PACK_SPACE.sm}px;}
-.bd-top h1{margin:0;display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.sm}px;text-align:center;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;
-  letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
+.bd-bar{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.sm}px;}
 .bd-gear{justify-self:end;width:40px;height:40px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};
   background:${T.cardSoft};display:flex;align-items:center;justify-content:center;cursor:pointer;}
-.bd-col{flex:1 1 auto;width:100%;max-width:640px;margin:0 auto;padding:${PACK_SPACE.sm}px ${PAGE_AIR.side}px ${PAGE_AIR.md}px;
+.bd-col{flex:1 1 auto;width:100%;max-width:640px;margin:0 auto;padding:${PAGE_AIR.min}px ${PAGE_AIR.side}px ${PAGE_AIR.md}px;
   display:flex;flex-direction:column;gap:${PACK_SPACE.lg}px;}
 .bd-card{padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .bd-card--list{padding:${PACK_SPACE.sm}px 0;gap:0;}
@@ -118,6 +116,36 @@ const CSS = `
 .bd-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .bd-steps li{display:flex;gap:${PACK_SPACE.md}px;align-items:flex-start;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
 .bd-steps li small{display:block;font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
+.bd-steps li > span:last-child{padding-top:${PACK_SPACE.xs}px;}
+.bd-steps b{font-weight:600;}
+/* kotúč kroku — tri farby, tri významy: zlato = ty (konštrukcia), lapis = psy rozhodujú
+   (voľba), zelená = zhoda (splnené). Farby sú brandové tokeny, nie nové odtiene. */
+.bd-disc{position:relative;flex:0 0 auto;width:${PACK_AVATAR.md}px;height:${PACK_AVATAR.md}px;border-radius:${PACK_R.pill}px;
+  display:flex;align-items:center;justify-content:center;box-shadow:${PACK_SHADOW.card};}
+.bd-disc i{position:absolute;top:-${PACK_SPACE.xs}px;right:-${PACK_SPACE.xs}px;width:20px;height:20px;border-radius:${PACK_R.pill}px;
+  display:flex;align-items:center;justify-content:center;font-style:normal;font-family:${FONT_UI};font-weight:600;
+  font-size:${PACK_TEXT.micro}px;background:${T.card};color:${T.inkStrong};border:1px solid ${T.border};}
+/* rajón veku — dva jazdce na jednej koľajnici */
+.bd-range{position:relative;height:${PACK_SPACE.xl}px;}
+.bd-range__rail,.bd-range__fill{position:absolute;top:50%;height:4px;margin-top:-2px;border-radius:${PACK_R.pill}px;}
+.bd-range__rail{left:0;right:0;background:${T.hairline};}
+.bd-range__fill{background:${LAPIS.edge};}
+.bd-range input{position:absolute;inset:0;width:100%;margin:0;background:none;pointer-events:none;-webkit-appearance:none;appearance:none;}
+.bd-range input::-webkit-slider-thumb{pointer-events:auto;-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:${PACK_R.pill}px;
+  background:${LAPIS.grad};border:2px solid ${T.card};box-shadow:${PACK_SHADOW.card};cursor:grab;}
+.bd-range input::-moz-range-thumb{pointer-events:auto;width:24px;height:24px;border-radius:${PACK_R.pill}px;
+  background:${LAPIS.grad};border:2px solid ${T.card};box-shadow:${PACK_SHADOW.card};cursor:grab;}
+.bd-range__val{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;letter-spacing:.14em;color:${T.inkStrong};}
+/* moja karta — štyri čísla PÚTNIKA v mriežke 2×2 */
+.bd-stats{display:grid;grid-template-columns:1fr 1fr;gap:${PACK_SPACE.sm}px;}
+.bd-stat{padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;}
+.bd-stat b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;color:${T.inkStrong};line-height:1;}
+.bd-stat span{font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
+.bd-bio{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;line-height:1.55;color:${T.inkStrong};}
+/* nahratie fotky — malý náhľad vedľa tlačidla, nie fotka cez celú šírku */
+.bd-upl{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
+.bd-upl .pk-photo{flex:0 0 auto;width:${PACK_AVATAR.lg + PACK_SPACE.xl}px;aspect-ratio:1;}
+.bd-upl > div:last-child{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 .bd-center{align-items:center;text-align:center;}
 /* moja karta — náhľad, ako ma vidia */
 .bd-mine{padding:0;overflow:hidden;gap:0;}
@@ -125,7 +153,7 @@ const CSS = `
 .bd-mine__body{padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 .bd-mine__name{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
 .bd-photo{width:100%;aspect-ratio:4/3;}
-.bd-photo--empty{display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
+.bd-photo--empty{display:flex;align-items:center;justify-content:center;text-align:center;padding:${PACK_SPACE.sm}px;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
 .bd-tabs{display:flex;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.xs}px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};background:${T.cardSoft};}
 .bd-tabs span{flex:1 1 0;text-align:center;padding:${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;font-family:${FONT_UI};
   font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkFaint};}
@@ -151,7 +179,12 @@ export default function PackBuddy() {
   const [dogPick, setDogPick] = useState<string | null>(null);
   const [nameDraft, setNameDraft] = useState<string | null>(null);
   const { profile } = useProfile();
-  const { dogs, avatarUrl, loading: dogsLoading } = usePackUser(session?.user?.id ?? null);
+  const { dogs, avatarUrl, ownerGender, loading: dogsLoading } = usePackUser(session?.user?.id ?? null);
+  // POHLAVIE JE Z HEROGLYFU (Matej 25. 9.: „pohlavie je predsa z heroglyfu"). Malý rámik
+  // majiteľa ho nesie od platby, takže sa na neho SNIFFER nepýta druhýkrát — zapíše ho do
+  // `human.gender`, odkiaľ ho číta brána na serveri. Kto heroglyf bez pohlavia nemá,
+  // krok uvidí ako doteraz.
+  const heroGender: Gender | null = HERO_GENDER[(ownerGender ?? '').toLowerCase()] ?? null;
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -174,11 +207,18 @@ export default function PackBuddy() {
   }, [dogs, dogPick, profile]);
   const dogAttrs: DogProfileAttrs | undefined = dog ? (profile?.dogs[dog.id] ?? emptyDogAttrs(dog.id)) : undefined;
 
+  useEffect(() => {
+    if (heroGender && profile && !profile.human.gender) void saveHuman({ gender: heroGender });
+  }, [heroGender, profile]);
+
   const s = settings ?? DEFAULT_BUDDY_SETTINGS;
-  const missing = buddyGateMissing({ name, human, dogAttrs, hasDog: !!dog, settings: s });
-  const doneCount = BUDDY_STEPS.length - missing.length;
+  const steps = BUDDY_STEPS.filter((st) => st.key !== 'gender' || !heroGender);
+  const missing = buddyGateMissing({ name, human, dogAttrs, hasDog: !!dog, settings: s })
+    .filter((k) => steps.some((st) => st.key === k));
+  const doneCount = steps.length - missing.length;
   // Šírka výplne receptu `.pk-progress` (PROGRESS_CSS) — pruh nekreslíme, len mu dávame číslo.
-  const gateFill = `${Math.round((doneCount / BUDDY_STEPS.length) * 100)}%`;
+  const gateFill = `${Math.round((doneCount / steps.length) * 100)}%`;
+  const pilgrim = usePilgrimStats(session?.user.email ?? '', name);
   const paused = !!s.paused_until && new Date(s.paused_until) > new Date();
 
   const patchSettings = async (patch: Partial<BuddySettings>) => {
@@ -347,6 +387,22 @@ export default function PackBuddy() {
       <div className="bd-mine__body">
         <p className="bd-mine__name">{[name, human?.age].filter(Boolean).join(' · ')}</p>
         <p className="bd-note">{[human?.region, dog?.dog_name].filter(Boolean).join(' · ')}</p>
+        {human?.bio?.trim() && <p className="bd-bio">{human.bio.trim()}</p>}
+        {/* Štyri čísla PÚTNIKA (Matej 25. 9.: „level a počet km/krajín, tieto údaje daj do
+            mriežky 2×2"). Zdroj je ten istý ako hlavička mapy — `usePilgrimStats`. */}
+        <div className="bd-stats">
+          {([
+            ['level', pilgrim.level.level, 'Level'],
+            ['km', pilgrim.km, 'km'],
+            ['countries', pilgrim.countries, 'Countries'],
+            ['trips', pilgrim.count, 'Trips'],
+          ] as const).map(([k, v, en]) => (
+            <div key={k} className="bd-stat" style={{ ...PACK_BOX.subblock }}>
+              <b>{v}</b>
+              <span>{tx(`pack.buddy.stat.${k}`, en)}</span>
+            </div>
+          ))}
+        </div>
         {intentPills.length > 0 && (
           <div className="bd-pills">
             {intentPills.map((i) => <span key={i} className="pk-pill">{tx(`pack.buddy.intent.${i}`, i)}</span>)}
@@ -380,9 +436,12 @@ export default function PackBuddy() {
             <ol className="bd-steps">
               {(['1', '2', '3'] as const).map((n) => (
                 <li key={n}>
-                  <span className="bd-mark">{n}</span>
+                  <span className="bd-disc" style={{ background: HOW_STYLE[n].bg }} aria-hidden>
+                    <BrandIcon name={HOW_STYLE[n].icon} size={PACK_SPACE.lg + PACK_SPACE.xs} tint="white" />
+                    <i>{n}</i>
+                  </span>
                   <span>
-                    {tx(`pack.buddy.how${n}`, HOW_EN[n][0])}
+                    <b>{tx(`pack.buddy.how${n}`, HOW_EN[n][0])}</b>
                     <small>{tx(`pack.buddy.how${n}Sub`, HOW_EN[n][1])}</small>
                   </span>
                 </li>
@@ -406,7 +465,7 @@ export default function PackBuddy() {
               <div>
                 <h2 className="bd-h2">{tx('pack.buddy.gateHead', 'Your buddy card')}</h2>
                 <span className="bd-count">
-                  <b>{doneCount}</b> / {BUDDY_STEPS.length} {tx('pack.buddy.done', 'done')}
+                  <b>{doneCount}</b> / {steps.length} {tx('pack.buddy.done', 'done')}
                 </span>
                 <div className="pk-progress" aria-hidden>
                   <div className={`pk-progress__fill${missing.length ? ' pk-progress__fill--low' : ' pk-progress__fill--done'}`}
@@ -433,8 +492,8 @@ export default function PackBuddy() {
                   />
                 </div>
               )}
-              {BUDDY_STEPS.filter((st) => st.group === group).map((st) => {
-                const i = BUDDY_STEPS.findIndex((x) => x.key === st.key);
+              {steps.filter((st) => st.group === group).map((st) => {
+                const i = steps.findIndex((x) => x.key === st.key);
                 const done = !missing.includes(st.key);
                 const isOpen = open === st.key;
                 return (
@@ -552,8 +611,18 @@ export default function PackBuddy() {
   );
 }
 
+/** Farba a kresba troch krokov úvodu (Matej 25. 9.: „zatraktívniť kroky farebne"). */
+const HOW_STYLE: Record<'1' | '2' | '3', { bg: string; icon: string }> = {
+  '1': { bg: T.accentGold, icon: 'badge' },
+  '2': { bg: LAPIS.edge, icon: 'paw' },
+  '3': { bg: T.growGreen, icon: 'nose' },
+};
+
+/** Heroglyf píše pohlavie majiteľa ako `man`/`woman` (starší zápis `male`/`female`). */
+const HERO_GENDER: Record<string, Gender> = { man: 'male', male: 'male', woman: 'female', female: 'female' };
+
 const HOW_EN: Record<'1' | '2' | '3', [string, string]> = {
-  '1': ['Fill in your buddy card', 'You, your dog, what you’re looking for. Ten points, all from your profile.'],
+  '1': ['Fill in your buddy card', 'You, your dog, what you’re looking for. All from your profile.'],
   '2': ['The dogs decide first', 'You only see people whose dogs get along with yours.'],
   '3': ['You catch each other’s scent', 'A match is just a notice. Writing is up to you.'],
 };
@@ -570,16 +639,20 @@ function Shell({ title, onBack, backLabel, onGear, gearLabel, children }: {
       <style>{PROGRESS_CSS}</style>
       <style>{MEDALLION_CSS}</style>
       <style>{CSS}</style>
-      <header className="bd-top">
-        <BackButton tone="pale" onClick={onBack} label={backLabel} />
-        <h1><BrandIcon name="nose" size={PACK_SPACE.xl} tint="gold" className="bd-logo" />{title}</h1>
-        {onGear ? (
-          <button type="button" className="bd-gear" onClick={onGear} aria-label={gearLabel}>
-            <BrandIcon name="sliders" size={PACK_SPACE.lg} tint="dark" />
-          </button>
-        ) : <span />}
-      </header>
-      <main className="bd-col">{children}</main>
+      {/* HLAVIČKA BEZ NADPISU (Matej 25. 9.: „bez horného headru, šípku a nastavenia na
+          okraje obsahu panela, nie úplne na kraj obrazovky"). Lišta preto stojí VNÚTRI
+          stĺpca a jej kraje sú kraje kariet. Meno obrazovky nesie karta pod ňou. */}
+      <main className="bd-col" aria-label={title}>
+        <div className="bd-bar">
+          <BackButton tone="pale" onClick={onBack} label={backLabel} />
+          {onGear && (
+            <button type="button" className="bd-gear" onClick={onGear} aria-label={gearLabel}>
+              <BrandIcon name="sliders" size={PACK_SPACE.lg} tint="dark" />
+            </button>
+          )}
+        </div>
+        {children}
+      </main>
     </div>
   );
 }
@@ -618,19 +691,14 @@ function AudienceEditor({ s, onPatch, tx }: {
   return (
     <>
       <Pills
-        options={GENDER_OPTIONS.filter((o) => o.value !== 'undisclosed')
+        // Len muži a ženy (Matej 25. 9.: „komu sa ukážem iba mužom/ženám, ostatným nie").
+        options={GENDER_OPTIONS.filter((o) => o.value === 'male' || o.value === 'female')
           .map((o) => ({ value: o.value, label: tx(`pack.buddy.showTo.${o.value}`, o.labelEN) }))}
         selected={g}
         onToggle={(v) => void onPatch({ show_to_genders: g.includes(v as Gender) ? g.filter((x) => x !== v) : [...g, v as Gender] })}
       />
-      <div className="bd-inline">
-        <span className="bd-note">{tx('pack.buddy.age', 'Age')}</span>
-        <input className="pf-field bd-field" type="number" min={18} max={99} defaultValue={s.age_min}
-          onBlur={(e) => void onPatch({ age_min: Math.max(18, Math.min(Number(e.target.value) || 18, s.age_max)) })} />
-        <span className="bd-note">–</span>
-        <input className="pf-field bd-field" type="number" min={18} max={99} defaultValue={s.age_max}
-          onBlur={(e) => void onPatch({ age_max: Math.min(99, Math.max(Number(e.target.value) || 99, s.age_min)) })} />
-      </div>
+      <AgeRange min={s.age_min} max={s.age_max} label={tx('pack.buddy.age', 'Age')}
+        onCommit={(age_min, age_max) => void onPatch({ age_min, age_max })} />
       <Pills
         options={RADIUS_STEPS.map((r) => ({
           value: String(r),
@@ -646,16 +714,48 @@ function AudienceEditor({ s, onPatch, tx }: {
   );
 }
 
+/** Vek na posuvníku (Matej 25. 9.: „vek bude na slider"). Dva jazdce na jednej koľajnici;
+ *  zapisuje sa až po pustení, nie pri každom pixeli ťahu. */
+function AgeRange({ min, max, label, onCommit }: {
+  min: number; max: number; label: string; onCommit: (min: number, max: number) => void;
+}) {
+  const LO = 18;
+  const HI = 99;
+  const [lo, setLo] = useState(min);
+  const [hi, setHi] = useState(max);
+  useEffect(() => { setLo(min); setHi(max); }, [min, max]);
+  const pct = (v: number) => `${((v - LO) / (HI - LO)) * 100}%`;
+  const commit = () => { if (lo !== min || hi !== max) onCommit(lo, hi); };
+  return (
+    <>
+      <div className="bd-switch">
+        <span>{label}</span>
+        <span className="bd-range__val">{lo}–{hi}</span>
+      </div>
+      <div className="bd-range" onPointerUp={commit} onKeyUp={commit} onTouchEnd={commit}>
+        <span className="bd-range__rail" />
+        <span className="bd-range__fill" style={{ left: pct(lo), right: `calc(100% - ${pct(hi)})` }} />
+        <input type="range" min={LO} max={HI} value={lo} aria-label={`${label} min`}
+          onChange={(e) => setLo(Math.min(Number(e.target.value), hi))} />
+        <input type="range" min={LO} max={HI} value={hi} aria-label={`${label} max`}
+          onChange={(e) => setHi(Math.max(Number(e.target.value), lo))} />
+      </div>
+    </>
+  );
+}
+
 /** 0c — fotka človeka A psa. Kontrola AINUBISOM („vidím človeka aj psa") je krok 5 zadania. */
 function PhotoEditor({ url, uid, tx }: { url?: string; uid: string | null; tx: Tx }) {
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   return (
-    <>
-      <div className={`pk-photo bd-photo${url ? '' : ' bd-photo--empty'}`}>
-        {url ? <img src={url} alt="" /> : tx('pack.buddy.photoEmpty', 'You and your dog in one photo')}
+    <div className="bd-upl">
+      {/* Malý štvorcový náhľad (Matej 25. 9.: „nahratie foto musí byť menšie, nie obrovské"). */}
+      <div className={`pk-photo${url ? '' : ' bd-photo--empty'}`}>
+        {url ? <img src={url} alt="" /> : '+'}
       </div>
+      <div>
       <p className="bd-note">{tx('pack.buddy.photoNote', 'Both of you have to be in it.')}</p>
       <input ref={input} type="file" accept="image/*" hidden onChange={async (e) => {
         const f = e.target.files?.[0];
@@ -677,6 +777,7 @@ function PhotoEditor({ url, uid, tx }: { url?: string; uid: string | null; tx: T
         {busy ? '…' : url ? tx('pack.buddy.photoChange', 'Change photo') : tx('pack.buddy.photoPick', 'Choose photo')}
       </button>
       {err && <p className="bd-warn">{err}</p>}
-    </>
+      </div>
+    </div>
   );
 }
