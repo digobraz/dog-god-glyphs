@@ -9,6 +9,7 @@ import { PageTopBar } from '@/components/PageTopBar';
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
 import hekthorImg from '@/assets/hekthor.png';
+import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 
 const MAX_CHARS = 150;
 /** Limit odkazu — zdieľa ho aj nová obrazovka ODHALENIE + ODKAZ (`FlowRevealScreen`). */
@@ -30,6 +31,9 @@ interface MessageModalProps {
   onClose: () => void;
   /** Nepovinný náhľad NAD poľom (nový vstup: video steny). LIVE ho neposiela. */
   preview?: React.ReactNode;
+  /** Šat tlačidla HOTOVO. Nový vstup (papyrus) = `lapis` — hlavné CTA na bledom
+   *  (Matej 25. 9. 2026: „tu bude lapis"). LIVE ho neposiela a ostáva zlatý. */
+  doneTone?: 'gold' | 'lapis';
 }
 
 // Exportovaný pre `FlowRevealScreen` (nový vstup, 25. 9. 2026) — popup sa
@@ -45,6 +49,7 @@ export function MessageModal({
   onDone,
   onClose,
   preview,
+  doneTone = 'gold',
 }: MessageModalProps) {
   // Auto-focus: keyboard is already open (hidden input grabbed it), transfer immediately
   const handleMount = useCallback((node: HTMLTextAreaElement | null) => {
@@ -92,7 +97,7 @@ export function MessageModal({
         {/* Done button */}
         <button
           type="button"
-          className="msg-modal-done"
+          className={doneTone === 'lapis' ? 'msg-modal-done msg-modal-done--lapis' : 'msg-modal-done'}
           onClick={onDone}
           disabled={isOverLimit}
         >
@@ -177,6 +182,14 @@ export function MessageModal({
           box-shadow: none;
         }
         .msg-modal-done:not(:disabled):active { transform: scale(0.97); }
+        /* Lapis = hlavné CTA na papyruse (nový vstup). Tvar .btn-gold: radius 8. */
+        .msg-modal-done--lapis {
+          border-radius: 8px;
+          color: ${LAPIS.ink};
+          background: ${LAPIS.grad};
+          box-shadow: ${LAPIS_BTN_SHADOW};
+        }
+        .msg-modal-done--lapis:not(:disabled):hover { background: ${LAPIS.gradHover}; }
         @keyframes msgScrimIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes msgCardIn {
           from { opacity: 0; transform: translateY(-10px) scale(0.96); }

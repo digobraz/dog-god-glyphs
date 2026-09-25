@@ -308,6 +308,7 @@ export function FlowRevealScreen() {
           onChange={setDraft}
           onDone={saveMsg}
           onClose={saveMsg}
+          doneTone="lapis"
           preview={<WallPreview label={t('heroglyph.flow.revealNew.previewTag')} />}
         />
       )}
