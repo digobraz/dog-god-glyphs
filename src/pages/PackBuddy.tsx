@@ -413,7 +413,7 @@ export default function PackBuddy() {
   return (
     <Shell title={title} onBack={back} backLabel={tx('pack.buddy.back', 'Back')}
       onGear={view !== 'settings' ? () => setView('settings') : undefined}
-      gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'gate' || view === 'settings'} fit={view === 'home' || view === 'done'}>
+      gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'gate' || view === 'settings'} fit={view === 'home' || view === 'done' || view === 'gate'}>
       {view === 'splash' && (
         <div className="bd-stage" onClick={() => { if (s.enabled) afterSplash(); }}>
           <div className="bd-stage__body">
@@ -490,15 +490,17 @@ export default function PackBuddy() {
           {/* VÁŠ PROFIL (zadanie-sniffer-stavba §2.2, nákres A) — ty a pes v kartách do strán.
               Zapisuje sa do tých istých polí ako profil a DOG ID; definícia 100 % → buddyGate.ts. */}
           <div className="bd-center" style={{ display: 'flex', flexDirection: 'column', gap: PACK_SPACE.xs }}>
-            <h2 className="bd-h2">{tx('pack.sniffer.profile.title', 'Your profile')}</h2>
-            <p className="bd-note">{tx('pack.sniffer.profile.sub', 'you and your dog · swipe sideways')}</p>
-            <span className="bd-count"><b>{doneCount}</b> / {steps.length} {tx('pack.buddy.done', 'done')}</span>
+            {/* Obrazovka BEZ SCROLLU (Matej 25. 9.: „musí to byť ako heroflow pravidlo, že obsah na PC
+                musí sedieť"). Hlavička je preto jeden nadpis + počet v jednom riadku. */}
+            <h2 className="bd-h2">{tx('pack.sniffer.profile.title', 'Your profile')}
+              {' '}<span className="bd-count"><b>{doneCount}</b> / {steps.length} {tx('pack.buddy.done', 'done')}</span></h2>
             <div className="pk-progress" aria-hidden>
               <div className={`pk-progress__fill${missing.length ? ' pk-progress__fill--low' : ' pk-progress__fill--done'}`}
                 style={{ width: gateFill }} />
             </div>
           </div>
           <SnifferProfile
+            fit
             tx={tx}
             uid={session?.user.id ?? null}
             name={name}

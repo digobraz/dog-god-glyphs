@@ -52,6 +52,17 @@ const CSS = `
 .sp-arrow{width:${PACK_SPACE.xl + PACK_SPACE.xs}px;height:${PACK_SPACE.xl + PACK_SPACE.xs}px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;cursor:pointer;
   color:${T.cardSoft};border:1px solid ${BRAND_GOLD_BTN.edge};background:${BRAND_GOLD_BTN.grad};}
 .sp-arrow:disabled{opacity:.3;cursor:default;}
+/* ── BEZ SCROLLU (brána) — heroflow pravidlo: obsah sa zmestí do okna, zmenší sa OBSAH, nie
+   vzduch od okraja (PAGE_AIR). Karta berie zvyšok výšky; vlastný posun dostane len vtedy,
+   keď je otvorený editor riadku (prechodný stav), nikdy v pokoji. */
+.sp-pager--fit{flex:1 1 auto;min-height:0;}
+.sp-pager--fit > .sp-card{flex:1 1 auto;min-height:0;overflow-y:auto;}
+.sp-pager--fit .sp-slots > .sp-slot{height:clamp(${PACK_SPACE.xxxl + PACK_SPACE.lg}px, 22dvh, ${PACK_SPACE.xxxl * 4}px);}
+.sp-slots{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;}
+.sp-slots > .sp-slot{height:${PACK_SPACE.xxxl * 3}px;width:auto;}
+@media (min-width:768px){ .sp-rows2{display:grid;grid-template-columns:1fr 1fr;column-gap:${PACK_SPACE.xl}px;} }
+@media (max-height:800px){ .sp-kv > button,.sp-static{padding:${PACK_SPACE.xs}px 0;} }
+@media (max-height:700px){ .sp-pager--fit .sp-dogh img{width:${PACK_SPACE.xxl}px;height:${PACK_SPACE.xxl}px;} .sp-pager--fit .sp-kv > button,.sp-pager--fit .sp-static{padding:0;min-height:${PACK_SPACE.xl}px;} }
 .sp-dots{display:flex;justify-content:center;gap:${PACK_SPACE.xs}px;}
 .sp-dots button{width:${PACK_SPACE.sm}px;height:${PACK_SPACE.sm}px;padding:0;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};background:transparent;cursor:pointer;}
 .sp-dots button.is-on{background:${T.accentGold};}
@@ -71,7 +82,6 @@ const CSS = `
 .sp-static{display:flex;justify-content:space-between;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.sm}px 0;border-top:1px solid ${T.hairline};
   font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkDim};}
 .sp-static b{font-weight:600;color:${T.inkStrong};}
-.sp-slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,128px));gap:${PACK_SPACE.sm}px;}
 .sp-slot{position:relative;aspect-ratio:3/4;border-radius:${PACK_R.tile}px;overflow:hidden;border:1px dashed ${T.border};background:${T.tileBg};
   display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:${FONT_UI};font-size:${PACK_TEXT.h2}px;color:${T.inkWarm};padding:0;}
 .sp-slot img{width:100%;height:100%;object-fit:cover;display:block;}
@@ -105,7 +115,7 @@ function Pills({ options, selected, onToggle }: {
 const toggle = <V extends string>(arr: readonly V[], v: V) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 
 export function SnifferProfile({
-  tx, uid, name, human, dogs, dogAttrsOf, heroGender, missing, gateEditor, gateSummary, onAddDog,
+  tx, uid, name, human, dogs, dogAttrsOf, heroGender, missing, gateEditor, gateSummary, onAddDog, fit = false,
 }: {
   tx: Tx;
   uid: string | null;
@@ -120,6 +130,8 @@ export function SnifferProfile({
   gateEditor: (k: BuddyStepKey) => ReactNode;
   gateSummary: (k: BuddyStepKey) => string;
   onAddDog?: () => void;
+  /** Obrazovka bez scrollu (brána): karta berie zvyšok výšky okna a obsah sa zmenší, nie stránka. */
+  fit?: boolean;
 }) {
   const [open, setOpen] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -156,7 +168,7 @@ export function SnifferProfile({
       {/* JEDEN BLOK NA OBRAZOVKU, poradie ako CELÝ PROFIL (Matej 25. 9.: „jeden blok na obraze
           a vidno 1/5… vždy jedna sekcia na view… v postupnosti ako profil, ktorý je viditeľný =
           základ/bio/rajón atď."). Listuje sa šípkami, bodkami aj ťahom do strany. */}
-      <Pager tx={tx} slides={[
+      <Pager tx={tx} fit={fit} slides={[
         <section key="basics" className="sp-card" style={{ ...PACK_BOX.card }}>
           <span className="sp-eb">{tx('pack.sniffer.profile.basics', 'Basics')} {badge(['name', 'age', 'gender', 'region', 'photo'])}</span>
           {gateRow('name', tx('pack.buddy.step.name', 'Name'))}
@@ -235,6 +247,7 @@ export function SnifferProfile({
                 {d.heroglyph_png_url && <img className="sp-hg" src={withTransform(d.heroglyph_png_url, 'c_limit,w_200,f_auto,q_auto')} alt="" />}
                 <b>{d.dog_name}</b>
               </div>
+              <div className="sp-rows2">
               {row(`${d.id}-t`, tx('pack.buddy.step.temperament', 'Temperament'), temper.map((v) => tx(`pack.dogTag.${v}`, v)).join(', '), (
                 <>
                   <Pills
@@ -298,6 +311,7 @@ export function SnifferProfile({
                   onToggle={(v) => setCard({ recall: v as DogProfileAttrs['card']['recall'] })}
                 />
               ))}
+              </div>
               {n === dogs.length - 1 && (
                 <button type="button" className="bd-cta bd-cta--small" style={{ alignSelf: 'center', marginTop: PACK_SPACE.sm }}
                   onClick={() => (onAddDog ? onAddDog() : navigate('/heroglyph'))}>
@@ -314,14 +328,14 @@ export function SnifferProfile({
 
 /** Listovanie po jednej karte. Ťah do strany (≥ 56 px, viac vodorovne než zvislo) = ďalšia/
  *  predošlá; zvislý ťah ostáva rolovaniu stránky. */
-function Pager({ tx, slides }: { tx: Tx; slides: ReactNode[] }) {
+function Pager({ tx, slides, fit }: { tx: Tx; slides: ReactNode[]; fit?: boolean }) {
   const [page, setPage] = useState(0);
   const n = slides.length;
   useEffect(() => { if (page > n - 1) setPage(Math.max(0, n - 1)); }, [n, page]);
   const start = useRef<{ x: number; y: number } | null>(null);
   const go = (d: number) => setPage((p) => Math.min(n - 1, Math.max(0, p + d)));
   return (
-    <div className="sp-pager"
+    <div className={`sp-pager${fit ? ' sp-pager--fit' : ''}`}
       onPointerDown={(e) => { start.current = { x: e.clientX, y: e.clientY }; }}
       onPointerUp={(e) => {
         const s0 = start.current; start.current = null;
