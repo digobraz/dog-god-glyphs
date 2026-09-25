@@ -481,6 +481,7 @@ export const en = {
   'heroglyph.flow.revealNew.msgLegend': 'Message for the wall',
   'heroglyph.flow.revealNew.msgEmpty': 'A few words the whole wall will see.',
   'heroglyph.flow.revealNew.msgAdd': 'Write',
+  'heroglyph.flow.revealNew.previewTag': 'Your message goes here',
   'heroglyph.flow.owner.bornLegend': 'You were born',
   'heroglyph.flow.owner.nameTitle': 'Your first name',
   'heroglyph.flow.owner.signsHint': 'We use your date of birth to work out your signs — and to wish you well on the day.',

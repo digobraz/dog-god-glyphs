@@ -308,8 +308,51 @@ export function FlowRevealScreen() {
           onChange={setDraft}
           onDone={saveMsg}
           onClose={saveMsg}
+          preview={<WallPreview label={t('heroglyph.flow.revealNew.previewTag')} />}
         />
       )}
+    </div>
+  );
+}
+
+/**
+ * NÁHĽAD V POPUPE ODKAZU — kde odkaz uvidia (Matej 25. 9. 2026: *„pri popupe
+ * by sme mohli dať screenshot alebo video: klik na web, otvorenie steny, klik
+ * na psa a zobrazenie textu… loopa, pod tým to, čo už máme, tam človek píše"*
+ * + *„text nemusí byť vidno, len sa tam ukáže so šípkou, že to je ono"*).
+ *
+ * Video je nahraté z ostrej steny (dogypt.com, Hektorova karta, 25. 9.):
+ * potiahnutie steny → ťuk → karta sa otočí na odkaz (~4,3 s). Šípka s nápisom
+ * sa ukáže AŽ po otočení — dovtedy by ukazovala na fotku psa.
+ * ⚠️ Keď sa zmení vzhľad otvorenej karty na stene, video treba nahrať znova
+ *    (recept v pamäti `project_dogypt_chvost_flowu_planb_2026-09-25`).
+ */
+const WALL_FLIP_S = 4.4;
+function WallPreview({ label }: { label: string }) {
+  const [on, setOn] = useState(false);
+  return (
+    <div className="rv-prev">
+      <video
+        poster="/images/wall-odkaz-poster.jpg"
+        autoPlay
+        muted
+        loop
+        playsInline
+        aria-hidden="true"
+        onTimeUpdate={(e) => setOn(e.currentTarget.currentTime >= WALL_FLIP_S)}
+      >
+        {/* WebM pre Chrome/Android, MP4 (H.264) pre Safari/iOS. */}
+        <source src="/videos/wall-odkaz.webm" type="video/webm" />
+        <source src="/videos/wall-odkaz.mp4" type="video/mp4" />
+      </video>
+      <span className={`rv-prev-tag${on ? ' on' : ''}`}>
+        {/* Šípka je kresba (SVG ťah), nie znak z písma — brand stráž ikoniek. */}
+        <svg viewBox="0 0 40 24" width="40" height="24" aria-hidden="true">
+          <path d="M38 20 C 26 22, 14 16, 6 6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M4 14 L 5 5 L 13 6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        {label}
+      </span>
     </div>
   );
 }
@@ -409,6 +452,25 @@ const REVEAL_CSS = `
   transition: background 150ms ease, color 150ms ease;
 }
 .rv-msg:hover .rv-msg-act { background: ${LAPIS.edge}; color: #FDF7E7; }
+
+/* ── NÁHĽAD STENY V POPUPE ──────────────────────────────────────────────────
+   Výška je PEVNÁ (150): popup sedí nad klávesnicou a pod videom musí ostať
+   pole aj HOTOVO. Video sa orezáva na stred (\`cover\`), kde leží odkaz. */
+.rv-prev {
+  position: relative; width: 100%; height: 150px; overflow: hidden;
+  border-radius: ${PACK_R.tile}px; border: 1.5px solid ${LAB.hairline}; background: #000;
+}
+.rv-prev video { width: 100%; height: 100%; object-fit: cover; object-position: 50% 58%; display: block; }
+.rv-prev-tag {
+  position: absolute; right: 8px; bottom: 8px; display: inline-flex; align-items: flex-end; gap: 4px;
+  padding: 4px 12px 4px 4px; border-radius: ${PACK_R.pill}px;
+  background: ${LAPIS.grad}; color: ${LAPIS.ink};
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 10px;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  opacity: 0; transform: translateY(6px); transition: opacity 250ms ease, transform 250ms ease;
+}
+.rv-prev-tag.on { opacity: 1; transform: none; }
+.rv-prev-tag svg { margin-bottom: 2px; }
 
 @media (max-height: 700px) {
   .rv-stack .hf-plate { padding: 14px 16px; gap: 5px; }

@@ -28,6 +28,8 @@ interface MessageModalProps {
   onChange: (v: string) => void;
   onDone: () => void;
   onClose: () => void;
+  /** Nepovinný náhľad NAD poľom (nový vstup: video steny). LIVE ho neposiela. */
+  preview?: React.ReactNode;
 }
 
 // Exportovaný pre `FlowRevealScreen` (nový vstup, 25. 9. 2026) — popup sa
@@ -42,6 +44,7 @@ export function MessageModal({
   onChange,
   onDone,
   onClose,
+  preview,
 }: MessageModalProps) {
   // Auto-focus: keyboard is already open (hidden input grabbed it), transfer immediately
   const handleMount = useCallback((node: HTMLTextAreaElement | null) => {
@@ -55,6 +58,7 @@ export function MessageModal({
 
       {/* Card */}
       <div className="msg-modal-card">
+        {preview}
         {/* Textarea */}
         <div className="relative mt-1">
           <textarea

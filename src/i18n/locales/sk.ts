@@ -369,6 +369,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.revealNew.msgLegend': 'Odkaz na stenu',
   'heroglyph.flow.revealNew.msgEmpty': 'Pár slov, ktoré uvidí celá stena.',
   'heroglyph.flow.revealNew.msgAdd': 'Napísať',
+  'heroglyph.flow.revealNew.previewTag': 'Tu bude tvoj odkaz',
   'heroglyph.flow.owner.bornLegend': 'Narodil si sa',
   'heroglyph.flow.owner.nameTitle': 'Tvoje krstné meno',
   'heroglyph.flow.owner.signsHint': 'Dátum narodenia použijeme na výpočet tvojich znamení — a vieme ti v ten deň popriať.',

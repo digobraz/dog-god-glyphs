@@ -287,6 +287,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.revealNew.msgLegend': 'Vzkaz na zeď',
   'heroglyph.flow.revealNew.msgEmpty': 'Pár slov, která uvidí celá zeď.',
   'heroglyph.flow.revealNew.msgAdd': 'Napsat',
+  'heroglyph.flow.revealNew.previewTag': 'Tady bude tvůj vzkaz',
   'heroglyph.flow.owner.bornLegend': 'Narodil ses',
   'heroglyph.flow.owner.nameTitle': 'Tvoje křestní jméno',
   'heroglyph.flow.owner.signsHint': 'Datum narození použijeme k výpočtu tvých znamení — a můžeme ti ten den popřát.',
