@@ -64,6 +64,13 @@ export async function loadMatches(): Promise<SnifferMatch[]> {
     .map((r) => ({ card: r.card, matchedAt: r.matched_at, conv: r.conv }));
 }
 
+/** Moja karta presne tak, ako ju dostanú ostatní (`assnif_my_card` = tá istá `sniffer_card`). */
+export async function loadMyCard(): Promise<SnifferCardData | null> {
+  const { data, error } = await db.rpc('assnif_my_card');
+  if (error) throw error;
+  return (data ?? null) as SnifferCardData | null;
+}
+
 export async function unmatch(member: number): Promise<void> {
   const { error } = await db.rpc('assnif_unmatch', { p_member: member });
   if (error) throw error;

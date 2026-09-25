@@ -22,11 +22,11 @@ const photoUrl = (u?: string | null) => withTransform(u, 'c_limit,w_1200,f_auto,
 import { BackButton } from '@/components/pack/BackButton';
 import { AinubisBubble } from '@/components/pack/ainubisSheet';
 import { BrandIcon } from '@/components/pack/BrandIcon';
-import { usePilgrimStats } from '@/components/pack/usePilgrimStats';
 import { FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
 import { SnifferLogo, SNIFFER_LOGO_END_MS } from '@/components/pack/buddy/SnifferLogo';
 import { SnifferHome } from '@/components/pack/buddy/SnifferHome';
 import { SnifferProfile } from '@/components/pack/buddy/SnifferProfile';
+import { SnifferMyCard, SNIFFER_CARD_CSS } from '@/components/pack/buddy/SnifferCard';
 import { MessagingOverlayHost } from '@/components/pack/PackLayout';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PAGE_AIR,
@@ -168,31 +168,13 @@ const CSS = `
 .bd-dots{display:flex;justify-content:center;gap:${PACK_SPACE.sm}px;}
 .bd-dots span{width:8px;height:8px;border-radius:${PACK_R.pill}px;background:${T.hairline};}
 .bd-dots span.is-on{background:${T.accentGold};}
-/* moja karta — štyri čísla PÚTNIKA v mriežke 2×2 */
-.bd-stats{display:grid;grid-template-columns:1fr 1fr;gap:${PACK_SPACE.sm}px;}
-.bd-stat{padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;}
-.bd-stat b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;color:${T.inkStrong};line-height:1;}
-.bd-stat span{font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
-.bd-bio{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;line-height:1.55;color:${T.inkStrong};}
 /* nahratie fotky — malý náhľad vedľa tlačidla, nie fotka cez celú šírku */
 .bd-upl{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
 .bd-upl .pk-photo{flex:0 0 auto;width:${PACK_AVATAR.lg + PACK_SPACE.xl}px;aspect-ratio:1;}
 .bd-upl > div:last-child{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 .bd-center{align-items:center;text-align:center;}
-/* moja karta — náhľad, ako ma vidia */
-.bd-mine{padding:0;overflow:hidden;gap:0;}
-/* „Takto ťa vidia ostatní" na PC = jedna obrazovka: fotka vľavo, údaje v blokoch vpravo
-   (Matej 25. 9.). Na mobile pod sebou a so scrollom. */
-@media (min-width:768px){
-  .bd-col--wide{max-width:${PACK_COL_INNER + 2 * PAGE_AIR.side}px;}
-  .bd-mine{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);}
-  .bd-mine .pk-photo{aspect-ratio:auto;height:100%;min-height:${PACK_AVATAR.lg * 6}px;max-height:calc(100dvh - ${PACK_SPACE.xxxl * 4}px);}
-  .bd-mine__body{justify-content:center;}
-}
-.bd-mine .pk-photo{border-radius:0;border:0;aspect-ratio:4/3;}
-.bd-mine__body{padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
-.bd-mine__name{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
-.bd-photo{width:100%;aspect-ratio:4/3;}
+/* Na PC široký stĺpec (832 px) — Váš profil tam ukáže viac kariet vedľa seba. */
+@media (min-width:768px){ .bd-col--wide{max-width:${PACK_COL_INNER + 2 * PAGE_AIR.side}px;} }
 .bd-photo--empty{display:flex;align-items:center;justify-content:center;text-align:center;padding:${PACK_SPACE.sm}px;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
 .bd-switch{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.md}px;font-family:${FONT_UI};
   font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
@@ -254,7 +236,6 @@ export default function PackBuddy() {
   const doneCount = steps.length - missing.length;
   // Šírka výplne receptu `.pk-progress` (PROGRESS_CSS) — pruh nekreslíme, len mu dávame číslo.
   const gateFill = `${Math.round((doneCount / steps.length) * 100)}%`;
-  const pilgrim = usePilgrimStats(session?.user.email ?? '', name);
   const paused = !!s.paused_until && new Date(s.paused_until) > new Date();
 
   const patchSettings = async (patch: Partial<BuddySettings>) => {
@@ -410,40 +391,6 @@ export default function PackBuddy() {
     }
   };
 
-  const intentPills = (human?.intents ?? []).filter((i) => i !== 'community');
-  const myCard = (
-    <div className="bd-card bd-mine" style={{ ...PACK_BOX.card }}>
-      <div className={`pk-photo bd-photo${human?.buddyPhoto ? '' : ' bd-photo--empty'}`}>
-        {human?.buddyPhoto ? <img src={photoUrl(human.buddyPhoto)} alt="" /> : tx('pack.buddy.photoEmpty', 'You and your dog in one photo')}
-      </div>
-      <div className="bd-mine__body">
-        <p className="bd-mine__name">{[name, human?.age].filter(Boolean).join(' · ')}</p>
-        <p className="bd-note">{[human?.region, dog?.dog_name].filter(Boolean).join(' · ')}</p>
-        {human?.bio?.trim() && <p className="bd-bio">{human.bio.trim()}</p>}
-        {/* Štyri čísla PÚTNIKA (Matej 25. 9.: „level a počet km/krajín, tieto údaje daj do
-            mriežky 2×2"). Zdroj je ten istý ako hlavička mapy — `usePilgrimStats`. */}
-        <div className="bd-stats">
-          {([
-            ['level', pilgrim.level.level, 'Level'],
-            ['km', pilgrim.km, 'km'],
-            ['countries', pilgrim.countries, 'Countries'],
-            ['trips', pilgrim.count, 'Trips'],
-          ] as const).map(([k, v, en]) => (
-            <div key={k} className="bd-stat" style={{ ...PACK_BOX.subblock }}>
-              <b>{v}</b>
-              <span>{tx(`pack.buddy.stat.${k}`, en)}</span>
-            </div>
-          ))}
-        </div>
-        {intentPills.length > 0 && (
-          <div className="bd-pills">
-            {intentPills.map((i) => <span key={i} className="pk-pill">{tx(`pack.buddy.intent.${i}`, i)}</span>)}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
   if (!view || (dogsLoading && !dogs.length)) {
     return <Shell title={tx('pack.buddy.title', 'Buddies')} onBack={back} backLabel={tx('pack.buddy.back', 'Back')} />;
   }
@@ -451,7 +398,7 @@ export default function PackBuddy() {
   return (
     <Shell title={title} onBack={back} backLabel={tx('pack.buddy.back', 'Back')}
       onGear={view !== 'settings' ? () => setView('settings') : undefined}
-      gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'done' || view === 'gate'} fit={view === 'home'}>
+      gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'gate'} fit={view === 'home' || view === 'done'}>
       {view === 'splash' && (
         <div className="bd-stage" onClick={() => { if (s.enabled) afterSplash(); }}>
           <div className="bd-stage__body">
@@ -561,12 +508,13 @@ export default function PackBuddy() {
 
       {view === 'done' && (
         <>
-          {/* Jedna obrazovka (Matej 25. 9.) — nadpis a veta bez vlastnej karty, karta je hlavná. */}
+          {/* TAKTO ŤA VIDIA (§2.3, nákres B) — jedna obrazovka: nadpis, karta, tlačidlo. */}
           <div className="bd-center" style={{ display: 'flex', flexDirection: 'column', gap: PACK_SPACE.xs }}>
             <h2 className="bd-h2">{tx('pack.buddy.doneTitle', 'You’re in the buddy pack')}</h2>
-            <p className="bd-note">{tx('pack.buddy.doneNote', 'Your card shows only to people who meet your conditions — and whose conditions you meet.')}</p>
+            <p className="bd-note">{tx('pack.sniffer.seenHint', 'This is how others see you · tap right = next photo')}</p>
           </div>
-          {myCard}
+          <style>{SNIFFER_CARD_CSS}</style>
+          <SnifferMyCard tx={tx} reloadKey={profile?.updatedAt} />
           <div className="bd-dock">
             <button type="button" className="bd-cta" onClick={() => setView('home')}>{tx('pack.buddy.showMe', 'Show me them')}</button>
           </div>

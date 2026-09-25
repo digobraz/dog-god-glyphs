@@ -7,14 +7,14 @@
 //    Heroglyf je HOTOVÝ obrázok zo steny (`dogs.heroglyph_png_url`) a nesie ten istý zlatý
 //    filter ako hover na WALLE (`.dog-heroglyph`, GodsGrid.tsx). Poradové číslo NIE.
 // Ťuk vľavo/vpravo v hornej polovici = predošlá/ďalšia fotka (pásiky hore).
-import { useState, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { withTransform } from '@/services/cloudinaryService';
 import {
   PACK_THEME as T, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, FONT_UI,
 } from '@/components/pack/packTheme';
 import { ACTIVITY_OPTIONS } from '@/components/pack/profile/packProfile';
 import type { SnifferCardData } from './snifferDeck';
-import { pilgrimFromTrips } from './snifferDeck';
+import { loadMyCard, pilgrimFromTrips } from './snifferDeck';
 
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
 
@@ -58,6 +58,7 @@ export const SNIFFER_CARD_CSS = `
 .sn-dog.pk-pill{gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px ${PACK_SPACE.xs}px ${PACK_SPACE.xs}px;
   font-family:${DOG_NAME_FONT};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.02em;}
 .sn-dog img{width:${PACK_SPACE.xl}px;height:${PACK_SPACE.xl}px;border-radius:${PACK_R.pill}px;object-fit:cover;}
+.sn-stage{position:relative;flex:1 1 auto;min-height:360px;width:100%;max-width:440px;margin:0 auto;}
 .sn-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:${PACK_SPACE.xl}px;text-align:center;
   font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.onDark};}
 `;
@@ -147,6 +148,18 @@ export function SnifferCard({ card, tx, back = false, className = '', style }: {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/** „TAKTO ŤA VIDIA" (§2.3, nákres B) — tá istá karta ako v balíčku, dáta zo servera
+ *  (`assnif_my_card`), nie poskladané v prehliadači. Čo tu vidíš, uvidia ostatní. */
+export function SnifferMyCard({ tx, reloadKey }: { tx: Tx; reloadKey?: string }) {
+  const [card, setCard] = useState<SnifferCardData | null>(null);
+  useEffect(() => { loadMyCard().then(setCard).catch(() => setCard(null)); }, [reloadKey]);
+  return (
+    <div className="sn-stage">
+      {card && <SnifferCard key={JSON.stringify(card.photos)} card={card} tx={tx} />}
     </div>
   );
 }

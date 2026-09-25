@@ -3236,6 +3236,7 @@ export const sk: Partial<Dict> = {
   'pack.sniffer.youAnd': "Ty a {name}",
   'pack.sniffer.and': " a ",
   'pack.sniffer.keepSniffing': "Sniffovať ďalej",
+  'pack.sniffer.seenHint': "Takto ťa vidia ostatní · ťukni vpravo = ďalšia fotka",
   'pack.sniffer.profile.title': "Váš profil",
   'pack.sniffer.profile.sub': "ty a pes · posúvaj do strán",
   'pack.sniffer.profile.enable': "Zapnúť SNIFFER",

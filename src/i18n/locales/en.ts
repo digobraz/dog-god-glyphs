@@ -3577,6 +3577,7 @@ export const en = {
   'pack.sniffer.youAnd': "You and {name}",
   'pack.sniffer.and': " and ",
   'pack.sniffer.keepSniffing': "Keep sniffing",
+  'pack.sniffer.seenHint': "This is how others see you · tap right = next photo",
   'pack.sniffer.profile.title': "Your profile",
   'pack.sniffer.profile.sub': "you and your dog · swipe sideways",
   'pack.sniffer.profile.enable': "Switch SNIFFER on",
