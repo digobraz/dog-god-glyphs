@@ -328,8 +328,8 @@ export function OwnerScreen() {
                   Matej 25. 9.: *„krstné meno a pohlavie môže byť v jednom riadku
                   = zväčšíme to na výšku, najprv pôjdu dve tlačidlá vedľa seba
                   pohlavie, potom text area a ukážka iniciály, nebude to pôsobiť
-                  tak natesno"*. Pohlavie ostáva dlaždicou s kresbou, len bez
-                  nápisu — slovo nesie `aria-label` a `title`. */}
+                  tak natesno"*. Pohlavie je dlaždica s kresbou a drobným nápisom
+                  POD ňou (Matej: *„vieme tam nejak dať muž/žena?"*). */}
               <p className="hf-legend">{t('heroglyph.flow.owner.whoLegend')}</p>
 
               <div className="ow-who">
@@ -343,11 +343,10 @@ export function OwnerScreen() {
                     // s kresbou majú vyzerať rovnako naprieč vstupom.
                     className={`hf-pick is-gold ow-gender${gender === g.v ? ' on' : ''}`}
                     aria-pressed={gender === g.v}
-                    aria-label={t(`heroglyph.flow.ownerInfo.${g.v}`)}
-                    title={t(`heroglyph.flow.ownerInfo.${g.v}`)}
                     onClick={() => setSelection('ownerGender', g.v)}
                   >
                     <span className="well"><img src={genderMap[g.v]} alt="" /></span>
+                    <span className="tx">{t(`heroglyph.flow.ownerInfo.${g.v}`)}</span>
                   </button>
                 ))}
                 {isMobile ? (
@@ -543,15 +542,21 @@ button.ow-name:not(.is-valid) { text-transform: none; letter-spacing: normal; }
 .ow-who .ow-mark img { width: 32px; height: 32px; }
 
 /* ── POHLAVIE ────────────────────────────────────────────────────────────
-   Dve ŠTVORCOVÉ dlaždice \`.hf-pick\` na začiatku riadka KTO SI — len kresba,
-   bez nápisu. Materiál sa nepíše znovu. */
-.ow-gender { flex: 0 0 52px; width: 52px; min-width: 0; padding: 0; justify-content: center; }
+   Dve dlaždice \`.hf-pick\` na začiatku riadka KTO SI — kresba a pod ňou drobný
+   nápis MUŽ / ŽENA. Materiál sa nepíše znovu.
+   ⚠️ Šírka je \`auto\` s dnom 52, nie pevných 52: RU „ЖЕНЩИНА" má 7 znakov
+   a v pevnom štvorci by vytiekla. Ustúpi pole mena, nie nápis. */
+.ow-gender {
+  flex: 0 0 auto; width: auto; min-width: 52px; padding: 2px 6px;
+  flex-direction: column; justify-content: center; gap: 2px;
+}
+.ow-gender .tx { font-size: 10px; line-height: 1; letter-spacing: 0.06em; white-space: nowrap; }
 /* 🔴 KRESBA V JAMKE MUSÍ MAŤ ROZMER. Bez neho si SVG vezme svoju natívnu výšku
    a silueta vytečie z dlaždice von (merané 25. 9.: nohy muža aj ženy viseli
    30 px pod okrajom). Tá istá pasca a to isté riešenie ako na PODSTATE
    (\`.es-picks .hf-pick .well img\`). */
-.ow-gender .well { width: 40px; height: 40px; }
-.ow-gender .well img { width: 34px; height: 34px; object-fit: contain; }
+.ow-gender .well { width: 32px; height: 32px; }
+.ow-gender .well img { width: 26px; height: 26px; object-fit: contain; }
 
 /* ── ČO O TEBE HOVORIA HVIEZDY — riadok VÝSLEDKU ─────────────────────────
    Od 25. 9. večer je to jeden ťukací riadok: dve značky · mená · VYBRAŤ /
@@ -612,10 +617,11 @@ button.ow-name:not(.is-valid) { text-transform: none; letter-spacing: normal; }
   .ow-mark { width: 36px; height: 36px; }
   .ow-mark img { width: 24px; height: 24px; }
   .ow-who { height: 44px; }
-  .ow-who .ow-mark, .ow-gender { width: 44px; flex-basis: 44px; }
+  .ow-who .ow-mark { width: 44px; flex-basis: 44px; }
+  .ow-gender { min-width: 44px; }
   .ow-who .ow-mark img { width: 28px; height: 28px; }
-  .ow-gender .well { width: 34px; height: 34px; }
-  .ow-gender .well img { width: 28px; height: 28px; }
+  .ow-gender .well { width: 26px; height: 26px; }
+  .ow-gender .well img { width: 22px; height: 22px; }
 }
 
 /* ── 📱 VYSOKÝ TELEFÓN: VIAC VZDUCHU V BLOKOCH ───────────────────────────────
