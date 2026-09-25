@@ -193,12 +193,16 @@ const CSS = `
 .bd-col .pk-progress__fill--low{background:${LAPIS.grad};}
 .bd-bar--center{justify-content:center;}
 .bd-dock--card{width:100%;max-width:440px;margin:0 auto;}
-/* ZAPNUTIE v karte Základ (nastavenia) */
-.bd-onbox{margin-left:auto;align-self:flex-end;display:flex;flex-direction:column;align-items:flex-end;gap:${PACK_SPACE.sm}px;
-  padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.hairline};background:${T.tileBg};}
-.bd-onbox__row{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
-.bd-onbox__row img{height:${PACK_SPACE.xl + PACK_SPACE.sm}px;width:auto;}
+/* ZAPNUTIE v karte Základ (nastavenia). Matej 25. 9.: „ten lapis tam nie je ok a ani ten celý blok…
+   daj tlačidlo do obrysu a zväčši to, nech je to súmerné, na výšku tej fotky". Výška = výška fotky
+   (tá istá clamp ako .sp-slot v režime bez scrollu), obsah na stred, tlačidlo len obrys. */
+.bd-onbox{margin-left:auto;align-self:flex-end;height:clamp(${PACK_SPACE.xxxl + PACK_SPACE.lg}px, 20dvh, ${PACK_SPACE.xxxl * 4}px);
+  min-width:min(100%, ${PACK_SPACE.xxxl * 6}px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${PACK_SPACE.md}px;
+  padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.border};background:${T.tileBg};}
+.bd-onbox__row{display:flex;align-items:center;gap:${PACK_SPACE.lg}px;}
+.bd-onbox__row img{height:${PACK_SPACE.xxl + PACK_SPACE.sm}px;width:auto;}
 .bd-onbox small{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
+.bd-onbox .bd-ghost{width:100%;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;}
 .bd-switch{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.md}px;font-family:${FONT_UI};
   font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
 `;
@@ -636,7 +640,7 @@ export default function PackBuddy() {
                 </div>
                 <small>{s.enabled && !paused ? tx('pack.buddy.on', 'On') : tx('pack.buddy.offNote', 'Off — nobody sees you')}</small>
                 {s.enabled && !paused && (
-                  <button type="button" className="bd-cta bd-cta--small" onClick={() => { setDoneFrom('settings'); setView('done'); }}>
+                  <button type="button" className="bd-ghost" onClick={() => { setDoneFrom('settings'); setView('done'); }}>
                     {tx('pack.sniffer.howSeen', 'How others see me')}
                   </button>
                 )}
