@@ -23,6 +23,9 @@ import { buildHeroglyphCode, countryISO3 } from '@/lib/heroglyphCode';
 
 export const PRICE_MEMBER = 11;
 export const PRICE_ANGEL = 1;
+/** €3 = príspevok ZA PSA (Matej 25. 9. 2026), nie za nákup. Server ho drží sám. */
+export const PRICE_SUPPORT = 3;
+const PHOTO_TIMEOUT_MS = 12_000;
 
 export interface SvorkaDog {
   /** Id v obchode (`MAIN_DOG_ID` alebo `ExtraDog.id`) — nie id riadka v DB. */
@@ -92,4 +95,15 @@ export function svorkaDogPayload(d: SvorkaDog, ownerName: string, amount: number
     deathDate: d.deathDate,
     amount,
   };
+}
+
+/** Fotky sa na Cloudinary nahrávajú na pozadí; `blob:` v DB je mŕtvy obrázok na stene. */
+export async function waitForStablePhotos(): Promise<SvorkaDog[]> {
+  const start = Date.now();
+  while (Date.now() - start < PHOTO_TIMEOUT_MS) {
+    const dogs = readSvorka();
+    if (!dogs.some((d) => d.photo?.startsWith('blob:'))) return dogs;
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  return readSvorka();
 }

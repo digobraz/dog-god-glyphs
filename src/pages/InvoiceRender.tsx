@@ -42,6 +42,7 @@ const LABELS: Record<string, Record<string, string>> = {
     paidNote: 'Faktúra bola uhradená online kartou cez Stripe — neslúži ako výzva na úhradu.',
     footer: 'In Dog We Trust',
     heroglyph: 'Heroglyph — unikátny posvätný symbol',
+    contribution: 'Príspevok — pes na stene DOGYPT',
     icoLabel: 'IČO',
     dphLabel: 'DPH',
     dphVal: 'Neplatiteľ DPH',
@@ -76,6 +77,7 @@ const LABELS: Record<string, Record<string, string>> = {
     paidNote: 'Faktura byla uhrazena online kartou přes Stripe — neslouží jako výzva k úhradě.',
     footer: 'In Dog We Trust',
     heroglyph: 'Heroglyph — unikátní posvátný symbol',
+    contribution: 'Příspěvek — pes na zdi DOGYPT',
     icoLabel: 'IČO',
     dphLabel: 'DPH',
     dphVal: 'Neplátce DPH',
@@ -110,6 +112,7 @@ const LABELS: Record<string, Record<string, string>> = {
     paidNote: 'This invoice was paid online by card via Stripe — not a demand for payment.',
     footer: 'In Dog We Trust',
     heroglyph: 'Heroglyph — unique sacred symbol',
+    contribution: 'Contribution — dog on the DOGYPT WALL',
     icoLabel: 'Reg. No.',
     dphLabel: 'VAT',
     dphVal: 'Not a VAT payer',
@@ -144,6 +147,7 @@ const LABELS: Record<string, Record<string, string>> = {
     paidNote: 'Цей рахунок оплачено онлайн карткою через Stripe — не є вимогою до оплати.',
     footer: 'In Dog We Trust',
     heroglyph: 'Heroglyph — унікальний священний символ',
+    contribution: 'Внесок — пес на стіні DOGYPT',
     icoLabel: 'Рег. номер',
     dphLabel: 'ПДВ',
     dphVal: 'Не платник ПДВ',
@@ -197,6 +201,8 @@ interface InvoiceDog {
   pack_number?: number | null;
   invoice_number?: string | null;
   invoice_issued_at?: string | null;
+  /** Všetci psi nákupu s tým istým číslom faktúry (get-render-data, 25. 9. 2026). */
+  items?: { dog_name: string | null; amount: number | null; payment_status?: string | null }[];
 }
 
 export default function InvoiceRender() {
@@ -263,9 +269,16 @@ export default function InvoiceRender() {
   const lang = detectLang(dog.country, langParam);
   const L = LABELS[lang] || LABELS.en;
 
-  const dogName = dog.dog_name || 'Unnamed';
   const ownerName = dog.owner_name || '';
-  const amount = dog.amount ?? 11;
+  // JEDNA FAKTÚRA NA NÁKUP (Matej 25. 9. 2026): psi jednej platby sú položky
+  // tohto dokladu. Starý nákup `items` nemá ⇒ jediná položka = tento pes.
+  const lines = (dog.items?.length ? dog.items : [{ dog_name: dog.dog_name, amount: dog.amount, payment_status: null }])
+    .map((it) => ({
+      name: it.dog_name || 'Unnamed',
+      amount: it.amount ?? 11,
+      title: it.payment_status === 'supporter' ? L.contribution : L.heroglyph,
+    }));
+  const amount = lines.reduce((sum, l) => sum + l.amount, 0);
   const amountStr = fmtAmount(amount);
 
   // Invoice number — use real invoice_number; fallback '—' (never DGP-BETA)
@@ -397,6 +410,10 @@ export default function InvoiceRender() {
       filter: sepia(.4) saturate(1.2) hue-rotate(-6deg) opacity(.92);
       mix-blend-mode: multiply;
     }
+    /* Viac psov v nákupe: riadky tesnejšie a pečať v toku pod súčtom — pri
+       absolútnej polohe by od troch položiek prekryla právnu poznámku. */
+    .multi table.items td { padding: 3mm 4mm 3mm 0; }
+    .multi .seal { position: relative; left: auto; bottom: auto; margin: 4mm auto 0; transform: rotate(-5deg); }
     .note { margin: 0; font-size: 9px; line-height: 1.7; color: var(--ink-faint); flex: 0 1 92mm; }
     .note b { color: var(--ink-soft); font-weight: 600; }
     .foot {
@@ -411,10 +428,16 @@ export default function InvoiceRender() {
     @page { size: A4 portrait; margin: 0; }
   `;
 
+  const seal = (
+    <div className="seal">
+      <img src="https://dogypt.com/images/peciat-dogypt.png" alt="DOGYPT seal" />
+    </div>
+  );
+
   return (
     <>
       <style>{css}</style>
-      <div id="invoice-page">
+      <div id="invoice-page" className={lines.length > 1 ? 'multi' : undefined}>
         <div className="frame" />
 
         <div className="pad">
@@ -507,16 +530,18 @@ export default function InvoiceRender() {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>
-                  <div className="it-title">{L.heroglyph}</div>
-                  <div className="it-sub">{dogName}</div>
-                </td>
-                <td className="c">1</td>
-                <td className="c">{L.unitVal}</td>
-                <td className="r">{amountStr}</td>
-                <td className="r">{amountStr}</td>
-              </tr>
+              {lines.map((l, i) => (
+                <tr key={i}>
+                  <td>
+                    <div className="it-title">{l.title}</div>
+                    <div className="it-sub">{l.name}</div>
+                  </td>
+                  <td className="c">1</td>
+                  <td className="c">{L.unitVal}</td>
+                  <td className="r">{fmtAmount(l.amount)}</td>
+                  <td className="r">{fmtAmount(l.amount)}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
 
@@ -551,12 +576,11 @@ export default function InvoiceRender() {
             </div>
           </div>
 
+          {lines.length > 1 && seal}
         </div>
 
         {/* pečať — stred dole, nad motto */}
-        <div className="seal">
-          <img src="https://dogypt.com/images/peciat-dogypt.png" alt="DOGYPT seal" />
-        </div>
+        {lines.length === 1 && seal}
 
         <div className="foot">{L.footer}</div>
       </div>

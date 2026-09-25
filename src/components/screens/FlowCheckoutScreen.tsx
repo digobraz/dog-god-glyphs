@@ -21,7 +21,7 @@ import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 import { FlowPanel, FLOW_PANEL_CSS, type PanelGroup } from '@/components/screens/flowPanel';
 import ainubisIcon from '@/assets/ainubis-head.png';
 import {
-  readSvorka, svorkaDogPayload, PRICE_MEMBER, PRICE_ANGEL, type SvorkaDog,
+  readSvorka, svorkaDogPayload, waitForStablePhotos, PRICE_MEMBER, PRICE_ANGEL, type SvorkaDog,
 } from '@/lib/flowSvorka';
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -49,18 +49,6 @@ import {
 
 const CREATE_CHECKOUT_URL = `${EDGE_BASE}/create-checkout`;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHOTO_TIMEOUT_MS = 12_000;
-
-/** Fotky sa na Cloudinary nahrávajú na pozadí; `blob:` v DB je mŕtvy obrázok na stene. */
-async function waitForStablePhotos(): Promise<SvorkaDog[]> {
-  const start = Date.now();
-  while (Date.now() - start < PHOTO_TIMEOUT_MS) {
-    const dogs = readSvorka();
-    if (!dogs.some((d) => d.photo?.startsWith('blob:'))) return dogs;
-    await new Promise((r) => setTimeout(r, 200));
-  }
-  return readSvorka();
-}
 
 /** Kresby pre panel ČO DOSTANEŠ — poradie a skupiny podľa Matejovej predlohy z Canvy. */
 const GET_ICON: Record<string, string> = {
