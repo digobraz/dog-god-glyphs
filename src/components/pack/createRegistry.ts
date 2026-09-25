@@ -180,7 +180,7 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     // Zadanie `plany/zadanie-assnif-2026-09-24.md` §2. Nahrádza plán výletu, ktorý je v sklade.
     id: 'wish',
     labelKey: 'pack.addTrip.entry.kind.wish.title',
-    labelFallback: 'Add a wish',
+    labelFallback: 'Add a TRIPWISH',
     hintKey: 'pack.addTrip.entry.kind.wish.text',
     hintFallback: 'A place you want to go',
     icon: { kind: 'panel' },

@@ -3829,7 +3829,7 @@ export const en = {
   // dekorácia ani tooltip: bez nej sa druh `wild` nesmie vykresliť.
   'pack.sleep.wildWarning': "This is not an official campsite. Wild camping is banned in national parks — the responsibility is yours.",
   'pack.map.layer.sleep': "Sleeping spots",
-  'pack.addTrip.entry.kind.wish.title': "Add a wish",
+  'pack.addTrip.entry.kind.wish.title': "Add a TRIPWISH",
   'pack.addTrip.entry.kind.sniffer.title': "Open SNIFFER",
   'pack.addTrip.entry.kind.wish.text': "Where it pulls you",
   'pack.map.layer.wish': "Wishes",

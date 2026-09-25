@@ -1769,7 +1769,7 @@ export const cs: Partial<Dict> = {
   'pack.map.hostAndYourDog': '{name} a tvůj pes',
   'pack.map.inTriplist': 'V triplistu',
   'pack.map.layer.sleep': 'Místa na spaní',
-  'pack.addTrip.entry.kind.wish.title': 'Přidat přání',
+  'pack.addTrip.entry.kind.wish.title': 'Přidat TRIPWISH',
   'pack.addTrip.entry.kind.sniffer.title': "Otevřít SNIFFER",
   'pack.addTrip.entry.kind.wish.text': 'Kam tě to táhne',
   'pack.map.layer.wish': 'Přání',

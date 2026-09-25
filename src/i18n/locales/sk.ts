@@ -3477,7 +3477,7 @@ export const sk: Partial<Dict> = {
   // dekorácia ani tooltip: bez nej sa druh `wild` nesmie vykresliť.
   'pack.sleep.wildWarning': "Nie je to oficiálne táborisko. V národnom parku je voľné táborenie zakázané — zodpovednosť je na tebe.",
   'pack.map.layer.sleep': "Spacie miesta",
-  'pack.addTrip.entry.kind.wish.title': "Pridať prianie",
+  'pack.addTrip.entry.kind.wish.title': "Pridať TRIPWISH",
   'pack.addTrip.entry.kind.sniffer.title': "Otvoriť SNIFFER",
   'pack.addTrip.entry.kind.wish.text': "Kam ťa to ťahá",
   'pack.map.layer.wish': "Priania",
