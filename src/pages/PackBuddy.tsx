@@ -528,6 +528,7 @@ export default function PackBuddy() {
             gateSummary={summary}
             zodiac={zodiac}
             homeCountry={homeCountry}
+            audienceEditor={(part) => <AudienceEditor s={s} onPatch={patchSettings} tx={tx} part={part} />}
             settings={s}
             onPatch={patchSettings}
             // Zapnutie je CTA POSLEDNEJ karty; kým niečo chýba, ťuk skočí na kartu s tým bodom.
@@ -629,6 +630,7 @@ export default function PackBuddy() {
             gateSummary={summary}
             zodiac={zodiac}
             homeCountry={homeCountry}
+            audienceEditor={(part) => <AudienceEditor s={s} onPatch={patchSettings} tx={tx} part={part} />}
             settings={s}
             onPatch={patchSettings}
           />
@@ -723,11 +725,22 @@ function IntentsEditor({ selected, tx }: { selected: Intent[]; tx: Tx }) {
   );
 }
 
-function AudienceEditor({ s, onPatch, tx }: {
-  s: BuddySettings; onPatch: (p: Partial<BuddySettings>) => Promise<unknown>; tx: Tx;
+/** `part`: 'who' = komu + vek (ľavý stĺpec karty Hľadáme), 'dogs' = psí filter (pravý), bez neho oboje. */
+function AudienceEditor({ s, onPatch, tx, part }: {
+  s: BuddySettings; onPatch: (p: Partial<BuddySettings>) => Promise<unknown>; tx: Tx; part?: 'who' | 'dogs';
 }) {
   const g = s.show_to_genders;
   const PACKS = 'packs';
+  const dogSwitch = (
+    // Prepínač ako v poslednej karte, nie holý checkbox (Matej 25. 9.: „urob krajšie ako je v 6/6").
+    <label className="bd-switch" style={{ cursor: 'pointer' }}>
+      <span>{tx('pack.buddy.dogCompatOnly', 'Only show profiles with dogs that suit ours')}</span>
+      <button type="button" role="switch" aria-checked={s.dog_compat_only}
+        className={`bd-sw${s.dog_compat_only ? ' is-on' : ''}`}
+        onClick={(e) => { e.preventDefault(); void onPatch({ dog_compat_only: !s.dog_compat_only }); }}><i /></button>
+    </label>
+  );
+  if (part === 'dogs') return dogSwitch;
   return (
     <>
       <Pills
@@ -746,13 +759,7 @@ function AudienceEditor({ s, onPatch, tx }: {
       <AgeRange min={s.age_min} max={s.age_max} label={tx('pack.buddy.age', 'Age')}
         onCommit={(age_min, age_max) => void onPatch({ age_min, age_max })} />
       {/* Vzdialenosť sa od kola 3 nastavuje TERČOM na mape v karte rajónu (`radius_km`). */}
-      {/* Prepínač ako v poslednej karte, nie holý checkbox (Matej 25. 9.: „urob krajšie ako je v 6/6"). */}
-      <label className="bd-switch" style={{ cursor: 'pointer' }}>
-        <span>{tx('pack.buddy.dogCompatOnly', 'Only dogs that get along with mine')}</span>
-        <button type="button" role="switch" aria-checked={s.dog_compat_only}
-          className={`bd-sw${s.dog_compat_only ? ' is-on' : ''}`}
-          onClick={(e) => { e.preventDefault(); void onPatch({ dog_compat_only: !s.dog_compat_only }); }}><i /></button>
-      </label>
+      {part !== 'who' && dogSwitch}
     </>
   );
 }

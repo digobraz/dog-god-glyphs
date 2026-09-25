@@ -160,7 +160,7 @@ const CSS = `
 @media (min-width:768px){ .sp-cols{display:grid;grid-template-columns:1fr 1fr;column-gap:${PACK_SPACE.xl}px;align-items:start;} }
 .sp-cols > div{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 /* Nízke okno: šípky nad kartou sú navyše (listuje sa ťahom, bodkami aj CTA s „2 / 6") — ustúpia prvé. */
-@media (max-width:767px){ .sp-card{gap:${PACK_SPACE.sm}px;} }
+@media (max-width:767px){ .sp-card{gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.md}px;} }
 @media (max-height:700px){ .sp-nav{display:none;} }
 @media (max-width:767px){ .sp-cols .bd-pills{gap:${PACK_SPACE.xs}px;} .sp-cols .sp-sec{margin-top:${PACK_SPACE.xs}px;} }
 .sp-pawtner{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.md}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;
@@ -217,7 +217,7 @@ const toggle = <V extends string>(arr: readonly V[], v: V) => (arr.includes(v) ?
 interface Slide { key: string; title: string; sub?: string; right?: ReactNode; body: ReactNode }
 
 export function SnifferProfile({
-  tx, uid, name, human, dogs, dogAttrsOf, heroGender, zodiac, homeCountry, missing, gateEditor, gateSummary,
+  tx, uid, name, human, dogs, dogAttrsOf, heroGender, zodiac, homeCountry, audienceEditor, missing, gateEditor, gateSummary,
   settings, onPatch, finish, fit = false,
 }: {
   tx: Tx;
@@ -232,6 +232,8 @@ export function SnifferProfile({
   zodiac?: { western?: string | null; chinese?: string | null };
   /** Krajina z heroflow (2. krok) — predvolí krajinu rajónu. */
   homeCountry?: string | null;
+  /** Komu sa ukážem po častiach — karta Hľadáme ich delí do dvoch stĺpcov. */
+  audienceEditor?: (part: 'who' | 'dogs') => ReactNode;
   missing: BuddyStepKey[];
   /** Editory bodov brány, ktoré žijú v `PackBuddy` (meno, vek, pohlavie, bydlisko, zámery, komu). */
   gateEditor: (k: BuddyStepKey) => ReactNode;
@@ -419,6 +421,7 @@ export function SnifferProfile({
       title: tx('pack.sniffer.profile.seekTitle2', 'We’re looking for'),
       right: badge(['intents', 'audience']),
       body: (
+        // ROZLOŽENIE (Matej 25. 9.): vľavo KOHO · KOMU · VEK, vpravo NA ČO a psí filter.
         <div className="sp-cols">
           <div>
             <span className="sp-sec">{tx('pack.sniffer.profile.seekWho', 'Who')}</span>
@@ -438,12 +441,13 @@ export function SnifferProfile({
                 <span className="sp-chip is-empty">{tx('pack.sniffer.soon', 'coming soon')}</span>
               )}
             </div>
-            <span className="sp-sec">{tx('pack.sniffer.profile.seekWhat', 'What for')}</span>
-            {gateEditor('intents')}
+            <span className="sp-sec">{tx('pack.sniffer.profile.seekShow', 'Who sees us')}</span>
+            {audienceEditor ? audienceEditor('who') : gateEditor('audience')}
           </div>
           <div>
-            <span className="sp-sec">{tx('pack.sniffer.profile.seekShow', 'Who sees us')}</span>
-            {gateEditor('audience')}
+            <span className="sp-sec">{tx('pack.sniffer.profile.seekWhat', 'What for')}</span>
+            {gateEditor('intents')}
+            {audienceEditor?.('dogs')}
           </div>
         </div>
       ),
@@ -577,7 +581,7 @@ export function SnifferProfile({
           {/* Nová zhoda sa ukáže v notifikácii vždy — prepínač preč (Matej 25. 9.), ostáva len mail. */}
           <label className="sp-sw">
             <span><b>{tx('pack.sniffer.ghost.toggle', 'Ghost mode')}</b>
-              <small>{tx('pack.sniffer.ghost.hint', 'Nobody sees me, I see everyone · I only show up to those I give a NOSE')}</small></span>
+              <small>{tx('pack.sniffer.ghost.hint', 'Nobody sees me, I see everyone · I only show up to those I SNIFF')}</small></span>
             <Switch on={settings.ghost} onChange={(v) => void onPatch({ ghost: v })} label={tx('pack.sniffer.ghost.toggle', 'Ghost mode')} />
           </label>
           <label className="sp-sw">

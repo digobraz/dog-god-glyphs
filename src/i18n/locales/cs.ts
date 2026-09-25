@@ -1755,7 +1755,7 @@ export const cs: Partial<Dict> = {
   'pack.sniffer.nextPhoto': "Další fotka",
   'pack.sniffer.no': "Ne",
   'pack.sniffer.write': "Napsat",
-  'pack.sniffer.yes': "Ano",
+  'pack.sniffer.yes': "SNIFF",
   'pack.sniffer.empty': "Teď tu nikdo nový není. Jakmile SNIFFER zapne někdo, kdo k tobě sedí, najdeš ho tady.",
   'pack.sniffer.refresh': "Zkusit znovu",
   'pack.sniffer.matchedWhen': "Zavětřili jste se · {when}",
