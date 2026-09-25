@@ -105,6 +105,12 @@ const GROUPS: Group[] = [
         path: '/heroglyph/owner-info',
         state: 'wip',
       },
+      // Chvost flowu (25. 9. 2026, nákres `plany/nakres-chvost-flowu-2026-09-25.html`):
+      // ODHALENIE a ODKAZ sú jedna obrazovka, CHECKOUT + PLATBA jedna POKLADŇA,
+      // „Nechcem platiť" vedie na ZADRŽANIE.
+      { name: '9 · Odhalenie + odkaz', path: '/heroglyph/reveal', state: 'wip' },
+      { name: '10 · Pokladňa', path: '/checkout', state: 'wip' },
+      { name: '11 · Zadržanie', path: '/heroglyph/stay', state: 'wip' },
     ],
   },
   {
@@ -119,10 +125,8 @@ const GROUPS: Group[] = [
     //    — tento zoznam je dielňa NOVÉHO vstupu, nie súpis všetkého, čo existuje.
     label: 'Koniec flow — zatiaľ staré',
     steps: [
-      { name: 'Odhalenie', path: '/heroglyph/reveal', state: 'old' },
-      { name: 'Odkaz', path: '/heroglyph/message', state: 'old' },
-      { name: 'Checkout', path: '/checkout', state: 'old' },
-      { name: 'Platba', path: '/payment', state: 'old' },
+      // Odhalenie · Odkaz · Checkout · Platba odišli 25. 9. do nového vstupu (9–11)
+      // — v novom vstupe sa po nich už nechodí. Ostal len Welcome.
       { name: 'Welcome', path: '/welcome', state: 'old' },
     ],
   },
