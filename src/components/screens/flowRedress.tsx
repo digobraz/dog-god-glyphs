@@ -143,7 +143,8 @@ const FLOW_ORDER_NEW = [
   // ⚠️ `/heroglyph/crop` v poradí NIE JE: výrez je od 23. 9. v popupe fotky
   //    (krok 1) a reťaz doň nevstupuje. Routa ostáva zavesená pre LIVE vstup.
   '/heroglyph/reveal',
-  '/heroglyph/message',
+  // ⚠️ `/heroglyph/message` v poradí NIE JE od 25. 9. 2026: odkaz sa píše
+  //    v popupe obrazovky ODHALENIE (`FlowRevealScreen`), ďalej ide pokladňa.
 ];
 
 /** Vyberá poradie podľa toho, ktorý vstup naozaj beží (`@/lib/flowMode`). */

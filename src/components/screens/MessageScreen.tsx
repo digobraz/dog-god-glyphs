@@ -11,6 +11,8 @@ import { useFlowGuard } from '@/hooks/useFlowGuard';
 import hekthorImg from '@/assets/hekthor.png';
 
 const MAX_CHARS = 150;
+/** Limit odkazu — zdieľa ho aj nová obrazovka ODHALENIE + ODKAZ (`FlowRevealScreen`). */
+export const MESSAGE_MAX_CHARS = MAX_CHARS;
 
 // ── Message Compose Modal ────────────────────────────────────────────────────
 // Portaled to document.body so the underlying screen never reflows when the
@@ -28,7 +30,9 @@ interface MessageModalProps {
   onClose: () => void;
 }
 
-function MessageModal({
+// Exportovaný pre `FlowRevealScreen` (nový vstup, 25. 9. 2026) — popup sa
+// nekopíruje, iOS trik s klávesnicou má ostať na jednom mieste.
+export function MessageModal({
   value,
   placeholder,
   doneLabel,

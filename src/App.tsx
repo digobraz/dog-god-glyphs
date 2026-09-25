@@ -79,6 +79,9 @@ const HeroglyphRevealScreen = lazy(() =>
 const MessageScreen = lazy(() =>
   import("@/components/screens/MessageScreen").then((m) => ({ default: m.MessageScreen }))
 );
+const FlowRevealScreen = lazy(() =>
+  import("@/components/screens/FlowRevealScreen").then((m) => ({ default: m.FlowRevealScreen }))
+);
 // ── NOVÝ VSTUP (28.–31. 8. 2026) — zavesený LEN v DEV, viď `NEW_HEROFLOW` nižšie ──
 const DogsScreen = lazy(() =>
   import("@/components/screens/DogsScreen").then((m) => ({ default: m.DogsScreen }))
@@ -412,7 +415,13 @@ const App = () => (
                 path="/heroglyph/dog-character"
                 element={NEW_HEROFLOW ? <CharacterScreen /> : <DogCharacterScreen />}
               />
-              <Route path="/heroglyph/reveal" element={<HeroglyphRevealScreen />} />
+              {/* Nový vstup: ODHALENIE + ODKAZ na jednej obrazovke (25. 9. 2026,
+                  nákres `plany/nakres-chvost-flowu-2026-09-25.html`). LIVE ide
+                  ďalej cez `HeroglyphRevealScreen` → `/heroglyph/message`. */}
+              <Route
+                path="/heroglyph/reveal"
+                element={NEW_HEROFLOW ? <FlowRevealScreen /> : <HeroglyphRevealScreen />}
+              />
               <Route path="/heroglyph/message" element={<MessageScreen />} />
 
               {/* Checkout — Stripe (flat, success_url je /welcome) */}

@@ -1,3 +1,4 @@
+import { NEW_HEROFLOW } from '@/lib/flowMode';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -380,7 +381,7 @@ export function CheckoutScreen() {
 
           {/* Back link outside card */}
           <button
-            onClick={() => navigate('/heroglyph/message')}
+            onClick={() => navigate(NEW_HEROFLOW ? '/heroglyph/reveal' : '/heroglyph/message')}
             className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors py-2"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
