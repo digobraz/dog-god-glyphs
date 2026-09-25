@@ -18,7 +18,7 @@
 //    Kresby sú Matejom vybrané kusy z kitu, kópie v `public/icons/sniffer/`, farbí ich CSS maska.
 import { useEffect, useState } from 'react';
 
-const ICONS: Array<{ file: string; color: string }> = [
+export const ICONS: Array<{ file: string; color: string }> = [
   { file: 'smile', color: '#E86FB0' },
   { file: 'trees', color: '#3E8E5A' },
   { file: 'sun', color: '#F08A3C' },

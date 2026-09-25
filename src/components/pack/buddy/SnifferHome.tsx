@@ -6,8 +6,7 @@
 // · Tlačidlá: ✕ nie · 💬 napísať · NOS áno (Matej 25. 9.: nos, nie fajka; šípka hore ZRUŠENÁ).
 // · 💬 = áno + pripnutá správa, ktorá odíde AŽ PRI ZHODE (Matej 25. 9.). Bez zhody nič.
 // · Swipe gestom aj tlačidlami. Prázdny balíček hovorí AINUBIS.
-// · Oznam zhody je tu zatiaľ STATICKÝ — animovaný reveal (dve fotky, nosy, kresby, srdce)
-//   je §2.6 D a stavia sa ako posledný.
+// · Zhoda = animované odhalenie `SnifferMatchReveal` (§2.6 D), nie to isté logo ako úvod.
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AinubisBubble } from '@/components/pack/ainubisSheet';
@@ -20,6 +19,7 @@ import {
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { SnifferCard, SNIFFER_CARD_CSS } from './SnifferCard';
 import { SnifferSearch } from './SnifferSearch';
+import { SnifferMatchReveal } from './SnifferMatchReveal';
 import { loadDeck, loadMatches, swipe, unmatch, type SnifferCardData, type SnifferMatch } from './snifferDeck';
 
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
@@ -68,14 +68,7 @@ const CSS = `
 .sh-note{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
 .sh-area{width:100%;min-height:96px;resize:vertical;border-radius:${PACK_R.field}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;
   font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
-/* oznam zhody — tmavý závoj, dve fotky, zlaté slovo */
-.sh-match{display:flex;flex-direction:column;align-items:center;gap:${PACK_SPACE.md}px;text-align:center;width:100%;max-width:360px;}
-.sh-duo{display:flex;align-items:center;}
-.sh-duo img{width:${PACK_AVATAR.lg * 2}px;height:${PACK_AVATAR.lg * 2}px;border-radius:${PACK_R.pill}px;object-fit:cover;border:2px solid ${T.accentGold};box-shadow:${PACK_SHADOW.panel};}
-.sh-duo img + img{margin-left:-${PACK_SPACE.lg}px;}
-.sh-match h2{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h1}px;letter-spacing:.14em;text-transform:uppercase;color:${LAPIS.ink};}
-.sh-match p{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.onDark};}
-.sh-match .sh-ghost{background:transparent;color:${LAPIS.ink};}
+.sh-ghost--dark{background:transparent;color:${LAPIS.ink};}
 /* ZHODY — riadky */
 .sh-list{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 .sh-row{display:flex;align-items:center;gap:${PACK_SPACE.md}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;}
@@ -347,24 +340,26 @@ export function SnifferHome({ tx, me }: {
       )}
 
       {/* ZHODA — oznam (animovaný reveal príde v §2.6 D) */}
+      {/* ZHODA — animované odhalenie (§2.6 D) */}
       {match && (
         <div className="pk-veil pk-veil--modal" onClick={() => setMatch(null)}>
-          <div className="sh-match" onClick={(e) => e.stopPropagation()}>
-            <div className="sh-duo">
-              {me.photo && <img src={pic(me.photo)} alt="" />}
-              <img src={pic(match.card.photos[0] ?? match.card.dogs[0]?.photo)} alt="" />
-            </div>
-            <h2>{tx('pack.sniffer.matchTitle', 'You caught each other’s scent!')}</h2>
-            <p>{[
-              tx('pack.sniffer.youAnd', 'You and {name}', { name: match.card.name }),
-              [me.dogName, match.card.dogs[0]?.name].filter(Boolean).join(tx('pack.sniffer.and', ' and ')),
-            ].filter(Boolean).join(' · ')}</p>
-            {match.conv && (
-              <button type="button" className="sh-cta" onClick={() => { const c = match.conv!; setMatch(null); emitOpenThread(c); }}>
-                {tx('pack.sniffer.writeTo', 'Write to {name}', { name: match.card.name })}
-              </button>
-            )}
-            <button type="button" className="sh-ghost" onClick={() => setMatch(null)}>{tx('pack.sniffer.keepSniffing', 'Keep sniffing')}</button>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <SnifferMatchReveal
+              me={me.photo}
+              them={match.card.photos[0] ?? match.card.dogs[0]?.photo ?? null}
+              title={tx('pack.sniffer.matchTitle', 'You caught each other’s scent!')}
+              names={[
+                tx('pack.sniffer.youAnd', 'You and {name}', { name: match.card.name }),
+                [me.dogName, match.card.dogs[0]?.name].filter(Boolean).join(tx('pack.sniffer.and', ' and ')),
+              ].filter(Boolean).join(' · ')}
+            >
+              {match.conv && (
+                <button type="button" className="sh-cta" onClick={() => { const c = match.conv!; setMatch(null); emitOpenThread(c); }}>
+                  {tx('pack.sniffer.writeTo', 'Write to {name}', { name: match.card.name })}
+                </button>
+              )}
+              <button type="button" className="sh-ghost sh-ghost--dark" onClick={() => setMatch(null)}>{tx('pack.sniffer.keepSniffing', 'Keep sniffing')}</button>
+            </SnifferMatchReveal>
           </div>
         </div>
       )}
