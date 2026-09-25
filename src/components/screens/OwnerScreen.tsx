@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useDogyptStore } from '@/store/dogyptStore';
+import { useDogyptStore, MAIN_DOG_ID } from '@/store/dogyptStore';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
@@ -10,7 +10,6 @@ import { PageTopBar } from '@/components/PageTopBar';
 // ⚠️ Sady symbolov sa berú Z RÁMU, nevymenúvajú sa tu znovu — inak by náhľad
 //    vedľa poľa a slot v ráme boli dve rôzne sady toho istého.
 import { HeroglyphFrame, letterMap, zodiacMap, chineseMap, genderMap } from '@/components/HeroglyphFrame';
-import { DateDropdowns } from '@/components/DateDropdowns';
 import { FLOW_PALE_CSS, FLOW_CARVE_CSS, FLOW_GLYPH_CSS } from '@/components/screens/flowPaleSkin';
 import { FlowMedallion, FLOW_MEDAL_CSS, useSpeakMedal } from '@/components/screens/flowMedallion';
 import { FlowTextModal } from '@/components/screens/flowTextModal';
@@ -22,6 +21,7 @@ import { HEKTHOR_GLYPH } from '@/lib/hektor';
 import { initialLetter } from '@/lib/initialLetter';
 import { getChineseZodiac, getWesternZodiac } from '@/lib/zodiac';
 import { ZodiacSheet } from '@/components/screens/zodiacSheet';
+import { useFlowDogs, FlowDogHeader, FLOW_DOG_CSS } from '@/components/screens/flowDogPicker';
 
 // ════════════════════════════════════════════════════════════════════════════
 // MAJITEĽ — poradie, meno, pohlavie a obidva horoskopy na JEDNEJ obrazovke
@@ -72,10 +72,25 @@ import { ZodiacSheet } from '@/components/screens/zodiacSheet';
 //    Pohlavie, písmeno mena aj obe znamenia pristanú v malom kartuši v momente
 //    voľby, nie na CTA. Malý rámik je VNÚTRI rámika psa (DOGMA: pes je
 //    nadradený), takže je na jednej obrazovke vidieť aj to, čím sa človek stáva.
+//
+// 🐕 MULTIPSI (25. 9. 2026 večer). Matej: *„pri majiteľovi musíme vymyslieť
+//    tiež multi psov... je to síce len raz vyplnený ale u každého psa bude mať
+//    iný heroglyf"*. Malý rámik je u všetkých psov TEN ISTÝ človek — líši sa
+//    len poradové číslo psa. Preto:
+//    · prepínač psov je tu LEN NA PREZERANIE — nič sa pri ňom nevypĺňa znova,
+//      CTA je jedno (POKRAČOVAŤ), žiadne ĎALŠÍ PES;
+//    · rám dostáva `dogValues` psa na rade (jeho podstata, patrón, povaha)
+//      + jeho `ranking`;
+//    · poradie sa ODVODZUJE zo zoznamu kroku 3 (`dogOrderStart + poloha`),
+//      presne ako ho tam ráta `DogsScreen` pre prvého psa. Na CTA sa zapíše
+//      každému psovi do `dogEssence[idPsa].ranking`.
+//
+// ♈ ZNAMENIA SÚ CELÉ V POPUPE (Matej 25. 9. večer: *„kludne mozme znamenie dať
+//    celé do popuu kde bude aj info aj výber podla datumu alebo ručne a na
+//    hlavný obraz bude uť len výsledok"*). Na obrazovke ostal jeden riadok
+//    s výsledkom a tlačidlom VYBRAŤ / ZMENIŤ; dátum, vysvetlenie o vinši aj
+//    ručný výber sú v `zodiacSheet.tsx`.
 // ════════════════════════════════════════════════════════════════════════════
-
-/** Prvý rok, ktorý koliesko dátumu ponúkne. Zhodné so starou obrazovkou. */
-const MIN_YEAR = 1930;
 
 /**
  * 🔴 DÁTUM NARODENIA SA UKLADÁ — A TEXT POD ZNAČKAMI TO NEPOPIERA.
@@ -111,11 +126,21 @@ export function OwnerScreen() {
   const flowOk = useFlowGuard();
   const medal = useSpeakMedal();
 
-  const dogName = useDogyptStore((s) => s.dogName);
   const ownerName = useDogyptStore((s) => s.ownerName);
   const setOwnerName = useDogyptStore((s) => s.setOwnerName);
   const selections = useDogyptStore((s) => s.selections);
   const setSelection = useDogyptStore((s) => s.setSelection);
+  const dogEssence = useDogyptStore((s) => s.dogEssence);
+  const setDogEssence = useDogyptStore((s) => s.setDogEssence);
+  const dogOrderStart = useDogyptStore((s) => s.dogOrderStart);
+
+  // ── KTORÉHO PSA PRÁVE UKAZUJEM (len náhľad) ───────────────────────────────
+  const dogs = useFlowDogs();
+  const [cur, setCur] = useState(0);
+  const dog = dogs[Math.min(cur, Math.max(0, dogs.length - 1))];
+  const dogId = dog?.id ?? MAIN_DOG_ID;
+  /** Koľký pes v živote je pes na indexe `i` — ten istý výpočet ako krok 3. */
+  const rankOf = (i: number) => (dogOrderStart || 1) + i;
 
   const [input, setInput] = useState(ownerName || '');
   const gender = selections.ownerGender || '';
@@ -155,9 +180,9 @@ export function OwnerScreen() {
   const letter = initialLetter(trimmed) ?? '';
   const letterSvg = letterMap[letter] || null;
 
-  // ── PORADIE Z KROKU 2 ──────────────────────────────────────────────────────
-  const rankNum = parseInt(selections.ranking || '', 10);
-  const hasRank = Number.isFinite(rankNum) && rankNum > 0;
+  // ── PORADIE PSA NA RADE (odvodené zo zoznamu kroku 3) ───────────────────────
+  const rankNum = rankOf(Math.min(cur, Math.max(0, dogs.length - 1)));
+  const hasRank = rankNum > 0;
   /** `1st` v angličtine, `1.` inde — tá istá pomôcka, akú mala obrazovka poradia. */
   const ordinal = (n: number) => {
     if (lang !== 'en') return `${n}.`;
@@ -182,6 +207,9 @@ export function OwnerScreen() {
   const western = westName ? { name: westName } : null;
   const chinese = chinName ? { name: chinName } : null;
 
+  /** Otvorený popup znamení. */
+  const [sheet, setSheet] = useState(false);
+
   const pickDate = (d: number, m: number, y: number) => {
     setSelection('ownerBirthday', `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`);
     // Obe znamenia sú ODVODENÉ, ale do store idú ako hodnota — heroglyf,
@@ -189,10 +217,9 @@ export function OwnerScreen() {
     // a o dátume nevedia nič.
     setSelection('ownerZodiac', getWesternZodiac(m, d).name);
     setSelection('ownerChineseZodiac', getChineseZodiac(y).name);
+    setSheet(false);
   };
 
-  /** Otvorený popup „nechcem uviesť". */
-  const [sheet, setSheet] = useState(false);
   /**
    * Znamenia BEZ dátumu. `ownerBirthday` sa zámerne NEZAPISUJE — celý zmysel
    * tejto cesty je, že citlivý údaj nikde nevznikne. Rok slúži len na výpočet
@@ -208,14 +235,27 @@ export function OwnerScreen() {
     setSheet(false);
   };
 
-  const today = useMemo(() => new Date(), []);
   const canGo = trimmed.length >= 1 && !!gender && !!western && !!chinese;
+
+  /**
+   * POKRAČOVAŤ. Majiteľ je jeden, ale poradie je psie — každý pes dostane
+   * svoje číslo do `dogEssence`, prvý pes ho má navyše v `selections`
+   * (heroglyf, certifikát a platba čítajú odtiaľ).
+   */
+  const goOn = () => {
+    if (!canGo) return;
+    dogs.forEach((d, i) => {
+      setDogEssence(d.id, 'ranking', String(rankOf(i)));
+      if (d.id === MAIN_DOG_ID) setSelection('ranking', String(rankOf(i)));
+    });
+    navigate('/heroglyph/reveal');
+  };
 
   if (!flowOk) return null;
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{OWNER_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{FLOW_DOG_CSS}{OWNER_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
         <PageTopBar onBack={() => navigate('/heroglyph/dog-character')} />
@@ -252,8 +292,16 @@ export function OwnerScreen() {
             <span className="hf-carved-rim" aria-hidden />
             <div className="hf-plate">
 
+              {/* KOHO HEROGLYF PRÁVE VIDÍM — rovnaký riadok ako na PODSTATE,
+                  PATRÓNOVI a POVAHE, ale LEN NA PREZERANIE: majiteľ sa vypĺňa
+                  raz, psy sa líšia len číslom a psou časťou rámu. */}
+              <FlowDogHeader dogs={dogs} cur={cur} onGo={setCur} />
+              <span className="fdh-rule" aria-hidden />
+
               <HeroglyphFrame
                 showOwner
+                // Pes NA RADE: jeho podstata, patrón, povaha + jeho poradie.
+                dogValues={{ ...(dogEssence[dogId] || {}), ranking: String(rankNum) }}
                 ghostValues={HEKTHOR_GLYPH}
                 className="hf-glyph ow-glyph"
                 // 🔴 Šírka cez `style`, nie cez triedu — `HeroglyphFrame` si píše
@@ -266,7 +314,7 @@ export function OwnerScreen() {
                 <span className="tx">
                   {hasRank
                     ? t('heroglyph.flow.owner.orderLine', {
-                        dogName: dogName || t('heroglyph.flow.yourDogFallback'),
+                        dogName: dog?.name || t('heroglyph.flow.yourDogFallback'),
                         ord: ordinal(rankNum),
                       })
                     : t('heroglyph.flow.owner.orderMissing')}
@@ -327,66 +375,31 @@ export function OwnerScreen() {
                 ))}
               </div>
 
-              {/* ── ČO O TEBE HOVORIA HVIEZDY ────────────────────────────────
-                  🔴 VLYS NEHOVORÍ „NARODIL SI SA" (Matej 25. 9.: *„a nie narodil
-                     si sa ale: čo o tebe hovoria hviezdy"*). Dátum nie je to, čo
-                     od človeka chceme — chceme znamenia. Dátum je len cesta
-                     k nim, a preto to hneď pod ním aj stojí.
-                  ⚠️ Kľúč `ownerZodiac.question` existuje v 18 jazykoch a znamená
-                     presne túto vetu; nový sa nezakladá. */}
+              {/* ── ČO O TEBE HOVORIA HVIEZDY — len VÝSLEDOK ─────────────────
+                  Dátum, vysvetlenie o vinši a ručný výber sú v popupe
+                  (`zodiacSheet.tsx`). Tu stojí vlys, dve značky, mená znamení
+                  a jedno tlačidlo. Celý riadok je ťukací — kto ťukne na
+                  otáznik, chce presne to, čo tlačidlo. */}
               <p className="hf-legend">{t('heroglyph.flow.ownerZodiac.question')}</p>
 
-              <div className="ow-date">
-                <DateDropdowns
-                  day={bd?.d ?? 1}
-                  month={bd?.m ?? 1}
-                  year={bd?.y ?? 1990}
-                  empty={!bd}
-                  emptyLabels={{
-                    day: t('heroglyph.flow.dogs.phDay'),
-                    month: t('heroglyph.flow.dogs.phMonth'),
-                    year: t('heroglyph.flow.dogs.phYear'),
-                  }}
-                  minYear={MIN_YEAR}
-                  maxYear={today.getFullYear()}
-                  maxDate={today}
-                  skin="pale"
-                  onChange={pickDate}
-                />
-              </div>
-
-              {/* 🔴 TEXT STOJÍ VEDĽA ZNAČIEK, NIE POD NIMI (Matej 25. 9.: *„dolu
-                  tu info daj vedla blokov so znameniami aby sme nepredlžovali
-                  výšku bloku = najprv text a vedľa dva bloky a vedľa názvy
-                  znamení"*). Tri veci v jednom riadku namiesto dvoch riadkov pod
-                  sebou — a `MAJITEĽ` je najplnšia obrazovka vstupu, takže každý
-                  ušetrený riadok je ten, o ktorý sa nemusí zmenšovať rám.
-                  🔑 Vysvetlenie je zároveň jediné miesto, kde sa človek dozvie,
-                     že dátum nikam neukladáme — preto v ňom rovno stojí aj
-                     odkaz „nechcem uviesť". */}
-              <div className="ow-stars">
-                <p className="tx">
-                  {t('heroglyph.flow.owner.signsHint')}{' '}
-                  <button type="button" className="ow-optout" onClick={() => setSheet(true)}>
-                    {t('heroglyph.flow.owner.optOut')}
-                  </button>
-                </p>
+              <button type="button" className="ow-stars" onClick={() => setSheet(true)}>
                 <span className={`ow-mark${western ? ' on' : ''}`}>
                   {western ? <img src={zodiacMap[western.name]} alt="" /> : <i>?</i>}
                 </span>
                 <span className={`ow-mark${chinese ? ' on' : ''}`}>
                   {chinese ? <img src={chineseMap[chinese.name]} alt="" /> : <i>?</i>}
                 </span>
-                {/* Názvy znamení — kým ich nepoznáme, miesto drží pomlčka, aby
-                    riadok pri vyplnení dátumu nepodskočil. */}
                 <span className="ow-said">
                   {western && chinese
                     ? `${t(`heroglyph.flow.ownerZodiac.sign.${western.name}`)} · ${t(`heroglyph.flow.ownerZodiac.animal.${chinese.name}`)}`
-                    : '—'}
+                    : t('heroglyph.flow.owner.signsEmpty')}
                 </span>
-              </div>
+                <span className="ow-change">
+                  {western && chinese ? t('heroglyph.flow.owner.orderChange') : t('heroglyph.flow.owner.orderPick')}
+                </span>
+              </button>
 
-              <button type="button" className="hf-cta" disabled={!canGo} onClick={() => canGo && navigate('/heroglyph/reveal')}>
+              <button type="button" className="hf-cta" disabled={!canGo} onClick={goOn}>
                 {t('heroglyph.flow.breed.continue')}
               </button>
             </div>
@@ -396,10 +409,12 @@ export function OwnerScreen() {
 
       <ZodiacSheet
         open={sheet}
+        birthday={bd}
         sign={westName || undefined}
         year={bd?.y}
         onClose={() => setSheet(false)}
-        onDone={pickSigns}
+        onDate={pickDate}
+        onManual={pickSigns}
       />
 
       {isMobile && <FlowTextModal
@@ -520,33 +535,26 @@ const OWNER_CSS = `
 .ow-gender .well { width: 40px; height: 40px; }
 .ow-gender .well img { width: 34px; height: 34px; object-fit: contain; }
 
-/* ── ČO O TEBE HOVORIA HVIEZDY ───────────────────────────────────────────
-   Dátum je celý riadok sám; pod ním JEDEN riadok, v ktorom stoja vedľa seba
-   vysvetlenie, dve značky a názvy znamení (Matej 25. 9.: *„aby sme
-   nepredlžovali výšku bloku"*). Predtým to boli dva riadky pod sebou. */
-.ow-date { width: 100%; }
-.ow-stars { width: 100%; display: flex; align-items: center; gap: 8px; }
-/* Text si berie zvyšok riadka a smie sa zalomiť — je to jediný prvok, ktorý to
-   znesie. Značky a názvy majú pevnú šírku, takže riadok nikdy nepreskočí. */
-.ow-stars .tx {
-  flex: 1 1 auto; min-width: 0; margin: 0;
-  font-family: 'Space Grotesk', sans-serif; font-size: 11px; line-height: 1.3;
-  color: ${LAB.inkMuted};
+/* ── ČO O TEBE HOVORIA HVIEZDY — riadok VÝSLEDKU ─────────────────────────
+   Od 25. 9. večer je to jeden ťukací riadok: dve značky · mená · VYBRAŤ /
+   ZMENIŤ. Dátum a ručný výber sú v popupe. Materiál je jamka poradia
+   (\`.ow-order\`) — obe sú STAV s tlačidlom, nie voľba. */
+.ow-stars {
+  width: 100%; display: flex; align-items: center; gap: 8px; cursor: pointer;
+  padding: 4px 8px 4px 4px; border-radius: ${PACK_R.tile}px; text-align: left;
+  background: linear-gradient(135deg, rgba(255, 253, 247, 0.55), rgba(242, 226, 189, 0.45));
+  border: 1px solid ${LAB.hairline};
 }
-/* 🔵 „NECHCEM UVIESŤ" JE AKCIA, teda lapis — ale vnútri vety, takže podčiarknutý
-   text, nie tlačidlo. Plná plocha patrí jedinému CTA na doske. */
-.ow-optout {
-  display: inline; padding: 0; border: none; background: none; cursor: pointer;
-  font: inherit; color: ${LAPIS.edge}; text-decoration: underline;
-  text-underline-offset: 2px;
-}
-/* Mená znamení — pevná šírka, aby sa riadok pri vyplnení dátumu nepohol. */
 .ow-said {
-  flex: 0 0 auto; max-width: 132px; margin: 0; text-align: right;
-  font-family: 'Cinzel', serif; font-weight: 700; font-size: 11px;
+  flex: 1 1 auto; min-width: 0; margin: 0;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
   letter-spacing: 0.06em; text-transform: uppercase; color: ${LAB.inkSoft};
-  overflow: hidden; text-overflow: ellipsis;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+/* V riadku je ZMENIŤ \`span\`, nie tlačidlo (celý riadok je tlačidlo) — text
+   preto centruje flex, nie výška riadka tlačidla. */
+.ow-stars .ow-change { display: inline-flex; align-items: center; }
+.ow-stars:hover .ow-change { background: ${LAPIS.edge}; color: #FDF7E7; }
 
 /* ── ZAMKNUTÉ CTA NESIE MATERIÁL, NIE PRIESVITNOSŤ ────────────────────────
    Ten istý recept ako na PATRÓNOVI a POVAHE: 40 % lapisu je na papyruse šedá
@@ -566,8 +574,7 @@ const OWNER_CSS = `
 /* 📱 Na telefóne sa do riadka nezmestí text aj mená — mená idú preč a ostávajú
    len značky (kresba znamenia je zrozumiteľnejšia než jej názov v 9 px). */
 @media (max-width: 559px) {
-  .ow-said { display: none; }
-  .ow-stars .tx { font-size: 10px; }
+  .ow-said { font-size: 10px; }
 }
 /* 🔴 KRÁTKE OKNO — a MUSÍ to stáť AŽ TU. Obe podmienky majú rovnakú
    špecificitu, takže rozhoduje poradie (tá istá pasca, čo 24. 9. zožrala
@@ -583,9 +590,6 @@ const OWNER_CSS = `
   .ow-stack .hf-plate { padding: 14px 16px; gap: 5px; }
   .ow-stack .hf-cta { height: 36px; }
   .ow-speak { margin-bottom: 4px; }
-  /* Plocha vysvetlenia počíta s dvoma riadkami, aby doska pri zadaní dátumu
-     (keď ho vystrieda jednoriadkové meno znamenia) nepodskočila. */
-  .ow-said { min-height: 32px; }
   .ow-order { min-height: 30px; }
   .ow-mark { width: 36px; height: 36px; }
   .ow-mark img { width: 24px; height: 24px; }

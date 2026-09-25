@@ -366,6 +366,8 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.owner.optOut': 'Nechcem uviesť',
   'heroglyph.flow.owner.sheetTitle': 'Vyber si svoje znamenie',
   'heroglyph.flow.owner.sheetYear': 'Rok narodenia (čínske znamenie)',
+  'heroglyph.flow.owner.signsEmpty': 'Zatiaľ nevybraté',
+  'heroglyph.flow.owner.byDate': 'Podľa dátumu narodenia',
   'heroglyph.flow.multi.nextDog': 'Ďalší pes',
 
   // ── /heroglyph flow — spoločné ──

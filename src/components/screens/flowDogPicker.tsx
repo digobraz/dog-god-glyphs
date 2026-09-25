@@ -19,9 +19,11 @@ import { useT } from '@/i18n/LanguageContext';
 //    `EssenceScreen` PRESUNUL, neprepísal sa — triedy `.es-*` sa premenovali na
 //    `.fdh-*`, hodnoty sú tie isté.
 //
-// ⚠️ MAJITEĽ (krok 7) prepínač NEDOSTÁVA a nie je to opomenutie: účet je
-//    majiteľov a jeden človek nesie celú svorku (CLAUDE.md, „Identita
-//    používateľa"). Prepínať by sa tam dalo len meno toho istého človeka.
+// ⚠️ MAJITEĽ (krok 8) prepínač MÁ, ale LEN NA PREZERANIE (25. 9. večer).
+//    Účet je majiteľov a jeden človek nesie celú svorku, takže sa nič
+//    nevypĺňa znova — prepína sa, ČÍ heroglyf vidím (psia časť + poradie).
+//    Dovtedy tu stálo „prepínač NEDOSTÁVA"; Matej: *„u každého psa bude mať
+//    iný heroglyf"*.
 // ════════════════════════════════════════════════════════════════════════════
 
 export type FlowDog = { id: string; name: string; photo: string | null };

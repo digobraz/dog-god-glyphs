@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { WheelYearPicker } from '@/components/WheelDatePicker';
-import { getChineseZodiac } from '@/lib/zodiac';
+import { DateDropdowns } from '@/components/DateDropdowns';
+import { getChineseZodiac, getWesternZodiac } from '@/lib/zodiac';
 import { zodiacMap, chineseMap } from '@/components/HeroglyphFrame';
 import { LAB } from '@/lib/labTheme';
 import { PACK_R } from '@/components/pack/packTheme';
@@ -28,6 +29,13 @@ import { PACK_R } from '@/components/pack/packTheme';
 //    z rámu (`zodiacMap`, `chineseMap`), takže náhľad a slot v heroglyfe sú
 //    zaručene tá istá sada.
 //
+// 🔑 OD 25. 9. 2026 (večer) JE TO CELÉ ZNAMENIE, NIE LEN ÚNIKOVÁ CESTA.
+//    Matej: *„kludne mozme znamenie dať celé do popupu kde bude aj info aj výber
+//    podla datumu alebo ručne a na hlavný obraz bude uť len výsledok"*. Popup má
+//    preto dve polohy: DÁTUM (bežná, s vysvetlením o vinši) a RUČNE (znamenie +
+//    rok, pôvodný obsah tohto súboru). MAJITEĽ ukazuje už len výsledok, takže
+//    z najplnšej obrazovky vstupu odišli dva riadky.
+//
 // ⚠️ Rok sám o sebe osobný údaj JE, ale hrubší: z „1990" sa nedá odvodiť deň
 //    narodenia. Čínske znamenie sa bez neho spočítať nedá, takže je to minimum,
 //    ktoré musíme vypýtať — a keby aj to bolo veľa, človek vyberie rok, ktorý
@@ -42,26 +50,39 @@ const DEFAULT_YEAR = 1990;
 
 export interface ZodiacSheetProps {
   open: boolean;
-  /** Predvyplnené znamenie a rok, keď sa človek do výberu vracia. */
+  /** Uložený dátum narodenia — keď ho človek dal, popup sa otvorí na ňom. */
+  birthday?: { d: number; m: number; y: number } | null;
+  /** Predvyplnené znamenie a rok, keď sa človek do ručného výberu vracia. */
   sign?: string;
   year?: number;
   onClose: () => void;
-  /** Potvrdenie: znamenie (enum po anglicky) + rok pre čínske zviera. */
-  onDone: (sign: string, year: number) => void;
+  /** Potvrdenie dátumom — obe znamenia z neho dopočíta volajúci. */
+  onDate: (d: number, m: number, y: number) => void;
+  /** Potvrdenie ručne: znamenie (enum po anglicky) + rok pre čínske zviera. */
+  onManual: (sign: string, year: number) => void;
 }
 
-export function ZodiacSheet({ open, sign, year, onClose, onDone }: ZodiacSheetProps) {
+export function ZodiacSheet({ open, birthday, sign, year, onClose, onDate, onManual }: ZodiacSheetProps) {
   const t = useT();
+  /**
+   * Poloha popupu. Kto znamenie už má BEZ dátumu, vybral ho ručne — a má sa
+   * vrátiť tam, kde ho vybral. Inak sa začína dátumom (bežná cesta).
+   */
+  const [mode, setMode] = useState<'date' | 'manual'>('date');
   const [pick, setPick] = useState<string | null>(sign || null);
   const [yr, setYr] = useState<number>(year || DEFAULT_YEAR);
+  const [bd, setBd] = useState<{ d: number; m: number; y: number } | null>(birthday || null);
 
   // Otvorenie je ŠTART, nie stav: kto popup zavrie a otvorí znova, má vidieť
   // to, čo je uložené — nie to, čo naklikal a zahodil.
   useEffect(() => {
     if (!open) return;
+    setMode(!birthday && sign ? 'manual' : 'date');
     setPick(sign || null);
     setYr(year || DEFAULT_YEAR);
-  }, [open, sign, year]);
+    setBd(birthday || null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   /**
    * Zviera sa ukazuje VŽDY, aj kým človek kolesom nepohol — pod kolesom stojí
@@ -71,7 +92,17 @@ export function ZodiacSheet({ open, sign, year, onClose, onDone }: ZodiacSheetPr
    *    nepovie prečo.
    */
   const chinese = getChineseZodiac(yr);
-  const canDone = !!pick;
+  /** Náhľad z dátumu — tie isté dve značky, aké potom pristanú v ráme. */
+  const fromDate = bd
+    ? { west: getWesternZodiac(bd.m, bd.d).name, chin: getChineseZodiac(bd.y).name }
+    : null;
+  const canDone = mode === 'date' ? !!bd : !!pick;
+  const done = () => {
+    if (!canDone) return;
+    if (mode === 'date') onDate(bd!.d, bd!.m, bd!.y);
+    else onManual(pick!, yr);
+  };
+  const today = new Date();
 
   if (!open) return null;
 
@@ -80,38 +111,87 @@ export function ZodiacSheet({ open, sign, year, onClose, onDone }: ZodiacSheetPr
       <div className="zs-backdrop" onClick={onClose} />
       <div className="zs-card">
         <button type="button" className="zs-close" aria-label={t('nav.aria.close')} onClick={onClose}>✕</button>
-        <p className="zs-title">{t('heroglyph.flow.owner.sheetTitle')}</p>
-
-        {/* Rad dvanástich — mriežka, nie posuvný pás: dvanásť je málo na to,
-            aby sa muselo rolovať, a v mriežke je vidieť všetky naraz. */}
-        <div className="zs-grid">
-          {SIGNS.map((s) => (
-            <button
-              key={s}
-              type="button"
-              className={`zs-sign${pick === s ? ' on' : ''}`}
-              aria-pressed={pick === s}
-              onClick={() => setPick(s)}
-            >
-              <img src={zodiacMap[s]} alt="" />
-              <span>{t(`heroglyph.flow.ownerZodiac.sign.${s}`)}</span>
+        {mode === 'date' ? (
+          <>
+            {/* ── DÁTUM (bežná cesta) ─────────────────────────────────────
+                Vlys = tá istá veta, akú mala obrazovka (Matej 25. 9.: *„čo
+                o tebe hovoria hviezdy"*), pod ním vysvetlenie o vinši. */}
+            <p className="zs-title">{t('heroglyph.flow.ownerZodiac.question')}</p>
+            <p className="zs-hint">{t('heroglyph.flow.owner.signsHint')}</p>
+            <DateDropdowns
+              day={bd?.d ?? 1}
+              month={bd?.m ?? 1}
+              year={bd?.y ?? DEFAULT_YEAR}
+              empty={!bd}
+              emptyLabels={{
+                day: t('heroglyph.flow.dogs.phDay'),
+                month: t('heroglyph.flow.dogs.phMonth'),
+                year: t('heroglyph.flow.dogs.phYear'),
+              }}
+              minYear={MIN_YEAR}
+              maxYear={today.getFullYear()}
+              maxDate={today}
+              skin="pale"
+              onChange={(d, m, y) => setBd({ d, m, y })}
+            />
+            {/* Výsledok hneď pod dátumom — dve značky a ich mená. Kým dátum
+                nie je celý, stoja prázdne jamky, aby karta pri výbere
+                nepodskočila. */}
+            <div className="zs-result">
+              <span className={`zs-mark sm${fromDate ? ' on' : ''}`}>
+                {fromDate ? <img src={zodiacMap[fromDate.west]} alt="" /> : <i>?</i>}
+              </span>
+              <span className={`zs-mark sm${fromDate ? ' on' : ''}`}>
+                {fromDate ? <img src={chineseMap[fromDate.chin]} alt="" /> : <i>?</i>}
+              </span>
+              <span className="zs-said">
+                {fromDate
+                  ? `${t(`heroglyph.flow.ownerZodiac.sign.${fromDate.west}`)} · ${t(`heroglyph.flow.ownerZodiac.animal.${fromDate.chin}`)}`
+                  : '—'}
+              </span>
+            </div>
+            <button type="button" className="zs-switch" onClick={() => setMode('manual')}>
+              {t('heroglyph.flow.owner.optOut')}
             </button>
-          ))}
-        </div>
+          </>
+        ) : (
+          <>
+            <p className="zs-title">{t('heroglyph.flow.owner.sheetTitle')}</p>
 
-        <p className="zs-legend">{t('heroglyph.flow.owner.sheetYear')}</p>
-        <div className="zs-year">
-          <div className="zs-wheel">
-            <WheelYearPicker year={yr} minYear={MIN_YEAR} maxYear={new Date().getFullYear()}
-              onChange={setYr} />
-          </div>
-          <span className="zs-mark on">
-            <img src={chineseMap[chinese.name]} alt={t(`heroglyph.flow.ownerZodiac.animal.${chinese.name}`)} />
-          </span>
-        </div>
+            {/* Rad dvanástich — mriežka, nie posuvný pás: dvanásť je málo na to,
+                aby sa muselo rolovať, a v mriežke je vidieť všetky naraz. */}
+            <div className="zs-grid">
+              {SIGNS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className={`zs-sign${pick === s ? ' on' : ''}`}
+                  aria-pressed={pick === s}
+                  onClick={() => setPick(s)}
+                >
+                  <img src={zodiacMap[s]} alt="" />
+                  <span>{t(`heroglyph.flow.ownerZodiac.sign.${s}`)}</span>
+                </button>
+              ))}
+            </div>
 
-        <button type="button" className="zs-done" disabled={!canDone}
-          onClick={() => canDone && onDone(pick!, yr)}>
+            <p className="zs-legend">{t('heroglyph.flow.owner.sheetYear')}</p>
+            <div className="zs-year">
+              <div className="zs-wheel">
+                <WheelYearPicker year={yr} minYear={MIN_YEAR} maxYear={today.getFullYear()}
+                  onChange={setYr} />
+              </div>
+              <span className="zs-mark on">
+                <img src={chineseMap[chinese.name]} alt={t(`heroglyph.flow.ownerZodiac.animal.${chinese.name}`)} />
+              </span>
+            </div>
+            <button type="button" className="zs-switch" onClick={() => setMode('date')}>
+              {t('heroglyph.flow.owner.byDate')}
+            </button>
+          </>
+        )}
+
+        <button type="button" className="zs-done" disabled={!canDone} onClick={done}>
           {t('heroglyph.flow.message.done')}
         </button>
       </div>
@@ -182,6 +262,27 @@ const ZODIAC_SHEET_CSS = `
 .zs-mark.on { border-color: #2F6BFF; }
 .zs-mark img { width: 38px; height: 38px; object-fit: contain; }
 .zs-mark i { font-style: normal; font-family: 'Cinzel', serif; font-size: 20px; color: ${LAB.inkMuted}; }
+
+.zs-hint {
+  margin: -4px 0 0; text-align: center;
+  font-family: 'Space Grotesk', sans-serif; font-size: 12px; line-height: 1.4;
+  color: ${LAB.inkSoft};
+}
+.zs-result { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.zs-mark.sm { width: 40px; height: 40px; }
+.zs-mark.sm img { width: 28px; height: 28px; }
+.zs-said {
+  margin-left: 4px;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
+  letter-spacing: 0.06em; text-transform: uppercase; color: ${LAB.inkSoft};
+}
+/* 🔵 Prepnutie polohy je AKCIA vnútri karty — lapisový podčiarknutý text,
+   nie druhé tlačidlo. Plná plocha patrí len HOTOVO. */
+.zs-switch {
+  align-self: center; padding: 4px; border: none; background: none; cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif; font-size: 12px;
+  color: #2F6BFF; text-decoration: underline; text-underline-offset: 2px;
+}
 
 .zs-done {
   width: 100%; height: 44px; border: none; border-radius: ${PACK_R.field}px; cursor: pointer;

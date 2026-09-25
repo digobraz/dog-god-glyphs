@@ -284,6 +284,8 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.owner.optOut': 'Nechci uvádět',
   'heroglyph.flow.owner.sheetTitle': 'Vyber si své znamení',
   'heroglyph.flow.owner.sheetYear': 'Rok narození (čínské znamení)',
+  'heroglyph.flow.owner.signsEmpty': 'Zatím nevybráno',
+  'heroglyph.flow.owner.byDate': 'Podle data narození',
   'heroglyph.flow.multi.nextDog': 'Další pes',
 
   // ── /heroglyph flow — spoločné ──

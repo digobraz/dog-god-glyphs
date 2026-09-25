@@ -239,7 +239,10 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot, p
   const westernZodiacSrc = showOwner ? zodiacMap[selections.ownerZodiac] : undefined;
   const ownerInitial = initialLetter(ownerName);
   const ownerInitialSrc = showOwner && ownerInitial ? letterMap[ownerInitial] : undefined;
-  const rankingValue = showOwner ? selections.ranking : undefined;
+  // 🔑 PORADIE JE PSIE, NIE MAJITEĽOVO (25. 9. 2026). Malý rámik je u všetkých
+  //    psov ten istý človek — líši sa LEN číslom „koľký pes v živote". Preto ho
+  //    nesie `dogValues` psa na rade; bez neho platí `selections` (prvý pes).
+  const rankingValue = showOwner ? (dogValues?.ranking || selections.ranking) : undefined;
   const hasRanking = (() => {
     const n = parseInt(rankingValue ?? '', 10);
     return Number.isFinite(n) && n >= 1;

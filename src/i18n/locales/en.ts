@@ -478,6 +478,8 @@ export const en = {
   'heroglyph.flow.owner.optOut': 'I would rather not say',
   'heroglyph.flow.owner.sheetTitle': 'Pick your sign',
   'heroglyph.flow.owner.sheetYear': 'Year of birth (Chinese sign)',
+  'heroglyph.flow.owner.signsEmpty': 'Not picked yet',
+  'heroglyph.flow.owner.byDate': 'Use my date of birth',
   'heroglyph.flow.multi.nextDog': 'Next dog',
 
   // ── /heroglyph flow — shared ──
