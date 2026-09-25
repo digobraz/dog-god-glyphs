@@ -324,17 +324,41 @@ export function OwnerScreen() {
                 </button>
               </div>
 
-              {/* ── KTO SI: meno + písmeno, pod tým pohlavie ───────────────── */}
+              {/* ── KTO SI: pohlavie · meno · písmeno v JEDNOM riadku ────────
+                  Matej 25. 9.: *„krstné meno a pohlavie môže byť v jednom riadku
+                  = zväčšíme to na výšku, najprv pôjdu dve tlačidlá vedľa seba
+                  pohlavie, potom text area a ukážka iniciály, nebude to pôsobiť
+                  tak natesno"*. Pohlavie ostáva dlaždicou s kresbou, len bez
+                  nápisu — slovo nesie `aria-label` a `title`. */}
               <p className="hf-legend">{t('heroglyph.flow.owner.whoLegend')}</p>
 
               <div className="ow-who">
+                {GENDERS.map((g) => (
+                  <button
+                    key={g.v}
+                    type="button"
+                    // `is-gold` = zlatá poloha dlaždice zo spoločného šatu (Matej
+                    // 25. 9.: *„tlačítka s ikonami — daj zlaté"*). Ten istý recept
+                    // ako PODSTATA a „žije tvoj pes?" na kroku 2 — dve voľby
+                    // s kresbou majú vyzerať rovnako naprieč vstupom.
+                    className={`hf-pick is-gold ow-gender${gender === g.v ? ' on' : ''}`}
+                    aria-pressed={gender === g.v}
+                    aria-label={t(`heroglyph.flow.ownerInfo.${g.v}`)}
+                    title={t(`heroglyph.flow.ownerInfo.${g.v}`)}
+                    onClick={() => setSelection('ownerGender', g.v)}
+                  >
+                    <span className="well"><img src={genderMap[g.v]} alt="" /></span>
+                  </button>
+                ))}
                 {isMobile ? (
                   <button
                     type="button"
                     className={`hf-field ow-name${trimmed ? ' is-valid' : ''}`}
                     onClick={openNameModal}
                   >
-                    {trimmed || t('heroglyph.flow.ownerInfo.placeholder')}
+                    {/* Krátky tvar — v riadku s pohlavím a písmenom ostane poľu
+                        na telefóne ~120 px a dlhý placeholder by sa odsekol. */}
+                    {trimmed || t('heroglyph.checkout.firstName')}
                   </button>
                 ) : (
                   <input
@@ -354,25 +378,6 @@ export function OwnerScreen() {
                 <span className={`ow-mark${letterSvg ? ' on' : ''}`}>
                   {letterSvg ? <img src={letterSvg} alt={letter} /> : <i>?</i>}
                 </span>
-              </div>
-
-              <div className="ow-genders">
-                {GENDERS.map((g) => (
-                  <button
-                    key={g.v}
-                    type="button"
-                    // `is-gold` = zlatá poloha dlaždice zo spoločného šatu (Matej
-                    // 25. 9.: *„tlačítka s ikonami — daj zlaté"*). Ten istý recept
-                    // ako PODSTATA a „žije tvoj pes?" na kroku 2 — dve voľby
-                    // s kresbou majú vyzerať rovnako naprieč vstupom.
-                    className={`hf-pick is-gold ow-gender${gender === g.v ? ' on' : ''}`}
-                    aria-pressed={gender === g.v}
-                    onClick={() => setSelection('ownerGender', g.v)}
-                  >
-                    <span className="well"><img src={genderMap[g.v]} alt="" /></span>
-                    <span className="tx">{t(`heroglyph.flow.ownerInfo.${g.v}`)}</span>
-                  </button>
-                ))}
               </div>
 
               {/* ── ČO O TEBE HOVORIA HVIEZDY — len VÝSLEDOK ─────────────────
@@ -441,9 +446,10 @@ export function OwnerScreen() {
  *
  * 📏 ROZPOČET VÝŠKY (mantinel `PAGE_AIR`, Matejovo okno 1477×724):
  *    javisko 724 − lišta 81 − vzduch 2×24 = **595 px**.
- *    bublina 104 + medzera 8 + doska (rám 104 · poradie 34 · vlys 16 · pole 40 ·
- *    pohlavie 52 · vlys 16 · dátum 40 · mená 18 · CTA 40 + 8 medzier po 8 +
- *    2×18 výplň) = **464 px**, teda rezerva 27 px.
+ *    bublina 104 + medzera 8 + doska (rám 104 · poradie 34 · vlys 16 ·
+ *    KTO SI 52 · vlys 16 · dátum 40 · mená 18 · CTA 40 + 7 medzier po 8 +
+ *    2×18 výplň) = **~416 px**, teda rezerva ~75 px (25. 9.: pohlavie a meno
+ *    zliate do jedného riadka).
  * 🔴 JE TO NAJPLNŠIA OBRAZOVKA VSTUPU — nesie štyri odpovede proti jednej až
  *    dvom inde. Kto sem pridá prvok, MUSÍ iný zmenšiť (lock 24. 9.: zmenšuje sa
  *    OBSAH, nie rezerva od okraja).
@@ -493,16 +499,24 @@ const OWNER_CSS = `
 }
 .ow-change:hover { background: ${LAPIS.edge}; color: #FDF7E7; }
 
-/* ── KTO SI ──────────────────────────────────────────────────────────────── */
-.ow-who { width: 100%; display: flex; align-items: center; gap: 8px; }
+/* ── KTO SI: pohlavie · meno · písmeno v JEDNOM riadku ─────────────────────
+   Od 25. 9. je to jeden VYŠŠÍ riadok (52 px) namiesto dvoch (pole 40 + pohlavie
+   52 + medzera). Doska tým zhodila ~48 px, preto vzduch, nie ďalší prvok.
+   Všetky štyri prvky majú tú istú výšku — riadok číta oko ako jednu vetu. */
+.ow-who { width: 100%; height: 52px; display: flex; align-items: stretch; gap: 8px; }
 /* Pole si berie materiál \`.hf-field\`; mobilná podoba je tlačidlo, takže
    potrebuje zarovnanie textu doľava a výšku poľa. */
 .ow-name {
-  flex: 1 1 auto; min-width: 0; height: 40px; text-align: left;
+  flex: 1 1 auto; min-width: 0; height: auto; text-align: left;
   text-transform: uppercase; letter-spacing: 0.05em;
 }
 /* Prázdne pole nesmie kričať veľkými písmenami cez placeholder. */
 .ow-name:placeholder-shown { text-transform: none; letter-spacing: normal; }
+/* 📱 Na telefóne je pole TLAČIDLO (otvára popup), takže \`:placeholder-shown\`
+   nezaberie a dlhý text by sa zalomil na tri riadky cez vlys pod ním (merané
+   25. 9. na 390 px). Jeden riadok, tri bodky; prázdne tlačidlo bez verzálok. */
+button.ow-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+button.ow-name:not(.is-valid) { text-transform: none; letter-spacing: normal; }
 
 /* ── NÁHĽAD SYMBOLU (písmeno · znamenie · zviera) ─────────────────────────
    Jeden tvar pre všetky tri: sú to VÝSLEDKY, nie voľby. Prázdny je tichá jamka
@@ -523,11 +537,15 @@ const OWNER_CSS = `
   color: ${LAB.inkMuted};
 }
 
+/* Písmeno v riadku KTO SI je štvorec vo výške riadka — menšie \`.ow-mark\`
+   (36) ostáva pri hviezdach. */
+.ow-who .ow-mark { width: 52px; height: auto; }
+.ow-who .ow-mark img { width: 32px; height: 32px; }
+
 /* ── POHLAVIE ────────────────────────────────────────────────────────────
-   Dve dlaždice \`.hf-pick\` na celú šírku. Materiál sa nepíše znovu — mení sa
-   len to, že si delia riadok. */
-.ow-genders { width: 100%; display: flex; gap: 8px; }
-.ow-gender { flex: 1 1 0; min-width: 0; height: 52px; padding: 6px 10px; }
+   Dve ŠTVORCOVÉ dlaždice \`.hf-pick\` na začiatku riadka KTO SI — len kresba,
+   bez nápisu. Materiál sa nepíše znovu. */
+.ow-gender { flex: 0 0 52px; width: 52px; min-width: 0; padding: 0; justify-content: center; }
 /* 🔴 KRESBA V JAMKE MUSÍ MAŤ ROZMER. Bez neho si SVG vezme svoju natívnu výšku
    a silueta vytečie z dlaždice von (merané 25. 9.: nohy muža aj ženy viseli
    30 px pod okrajom). Tá istá pasca a to isté riešenie ako na PODSTATE
@@ -593,7 +611,9 @@ const OWNER_CSS = `
   .ow-order { min-height: 30px; }
   .ow-mark { width: 36px; height: 36px; }
   .ow-mark img { width: 24px; height: 24px; }
-  .ow-gender { height: 42px; }
+  .ow-who { height: 44px; }
+  .ow-who .ow-mark, .ow-gender { width: 44px; flex-basis: 44px; }
+  .ow-who .ow-mark img { width: 28px; height: 28px; }
   .ow-gender .well { width: 34px; height: 34px; }
   .ow-gender .well img { width: 28px; height: 28px; }
 }
