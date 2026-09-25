@@ -14,7 +14,9 @@ import {
 } from '@/components/pack/packTheme';
 import {
   ACTIVITY_OPTIONS, GENDER_OPTIONS, SMOKE_OPTIONS, DIET_OPTIONS, WORK_OPTIONS, ORIENTATION_OPTIONS,
+  PERSONALITY_OPTIONS,
 } from '@/components/pack/profile/packProfile';
+import { zodiacMap, chineseMap } from '@/components/HeroglyphFrame';
 import { countryName } from '@/lib/countryGeo';
 import {
   SnifferCard, SnifferLevels, SnifferStatsChip, SNIFFER_CARD_CSS, snifferPlace,
@@ -46,6 +48,8 @@ const CSS = `
 .sfp-kv b{font-weight:600;color:${T.inkStrong};text-align:right;}
 .sfp-pills{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.xs}px;}
 .sfp-pills .pk-pill{font-size:${PACK_TEXT.label}px;}
+.sfp-sign{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;}
+.sfp-sign img{height:${PACK_TEXT.body}px;width:auto;display:block;}
 .sfp-place{margin:0;font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
 .sfp-two{display:grid;grid-template-columns:1fr 1fr;gap:${PACK_SPACE.sm}px;}
 .sfp-list{padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;min-width:0;}
@@ -123,6 +127,32 @@ export function SnifferFullProfile({ card, tx, actions }: { card: SnifferCardDat
           <span className="sfp-eb">{tx('pack.sniffer.full.bio', 'Bio & info')}</span>
           {card.bio?.trim() && <p className="sfp-bio">{card.bio.trim()}</p>}
           {rows.map(([k, v]) => <div key={k} className="sfp-kv"><span>{k}</span><b>{v}</b></div>)}
+          {/* ZNAMENIE — tá istá kresba ako malý rámik heroglyfu (nie emoji, `check:ikony`). */}
+          {(card.zodiac?.western || card.zodiac?.chinese) && (
+            <div className="sfp-pills">
+              {card.zodiac?.western && (
+                <span className="pk-pill sfp-sign">
+                  {zodiacMap[card.zodiac.western] && <img src={zodiacMap[card.zodiac.western]} alt="" />}
+                  {tx(`heroglyph.flow.ownerZodiac.sign.${card.zodiac.western}`, card.zodiac.western)}
+                </span>
+              )}
+              {card.zodiac?.chinese && (
+                <span className="pk-pill sfp-sign">
+                  {chineseMap[card.zodiac.chinese] && <img src={chineseMap[card.zodiac.chinese]} alt="" />}
+                  {tx(`heroglyph.flow.ownerZodiac.animal.${card.zodiac.chinese}`, card.zodiac.chinese)}
+                </span>
+              )}
+            </div>
+          )}
+          {/* AKÝ SI — to, čo človek vybral v „Váš profil" 2/6. */}
+          {((card.personality?.length ?? 0) > 0 || card.customPersonality) && (
+            <div className="sfp-pills">
+              {PERSONALITY_OPTIONS.filter((o) => card.personality?.includes(o.value)).map((o) => (
+                <span key={o.value} className="pk-pill">{tx(`pack.profileTag.${o.value}`, o.labelEN)}</span>
+              ))}
+              {card.customPersonality && <span className="pk-pill">{card.customPersonality}</span>}
+            </div>
+          )}
           {card.interests.length > 0 && (
             <div className="sfp-pills">{card.interests.map((v) => <span key={v} className="pk-pill">{interest(v)}</span>)}</div>
           )}

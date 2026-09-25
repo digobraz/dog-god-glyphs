@@ -57,8 +57,14 @@ export interface SnifferCardData {
   areas?: Array<'W' | 'C' | 'E'>;
   /** Passport — kam sa chystá. */
   heading?: SnifferHeading | null;
+  /** BIO psím hlasom (`dogVoiceBio`), staré `bio` len ako záloha — rozhoduje server. */
   bio: string | null;
   interests: string[];
+  /** AKÝ SI — vybrané chipy z `/pack/profile` (+ vlastná vec). Server kolo 6 (`20261001`). */
+  personality?: string[];
+  customPersonality?: string | null;
+  /** Znamenie majiteľa z heroglyfu (malý rámik). */
+  zodiac?: { western?: string; chinese?: string };
   intents: string[];
   photos: string[];
   dogs: SnifferDog[];

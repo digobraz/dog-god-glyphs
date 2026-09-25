@@ -46,6 +46,8 @@ const CSS = `
 .sh-pane{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .sh-pane--scroll{overflow-y:auto;margin:0 -${PACK_SPACE.xs}px;padding:0 ${PACK_SPACE.xs}px;}
 .sh-deck{position:relative;flex:1 1 auto;min-height:360px;width:100%;max-width:440px;margin:0 auto;}
+.sh-mover{position:absolute;inset:0;}
+.sh-mover.is-anim{transition:transform .32s ease, opacity .32s ease;}
 .sh-acts{display:flex;justify-content:center;align-items:flex-start;gap:${PACK_SPACE.xl}px;}
 /* Plávajúci AINUBIS sedí vpravo dole — na úzkom mobile by rad pri medzere 24 px zasiahol
    pod neho popisok ÁNO. Rad sa preto zúži, AINUBIS sa neposúva. */
@@ -253,13 +255,17 @@ export function SnifferHome({ tx, me }: {
                 {deck[1] && <SnifferCard key={deck[1].member} card={deck[1]} tx={tx} back />}
                 <div key={top.member} className="sn-card-wrap" style={{ position: 'absolute', inset: 0 }}
                   onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
-                  <SnifferCard card={top} tx={tx} className={drag?.anim ? 'is-anim' : ''} style={dragStyle} onOpenFull={() => setPeek(top)} />
-                  {drag && Math.abs(drag.dx) > 12 && (
-                    <span className={`sh-stamp sh-stamp--${drag.dx > 0 ? 'yes' : 'no'}`}
-                      style={{ opacity: Math.min(1, Math.abs(drag.dx) / SWIPE_PX), transform: `translateX(${Math.max(-60, Math.min(60, drag.dx / 6))}px) rotate(${drag.dx > 0 ? -14 : 14}deg)` }}>
-                      {drag.dx > 0 ? tx('pack.sniffer.yes', 'SNIFF') : tx('pack.sniffer.no', 'No')}
-                    </span>
-                  )}
+                  {/* Pečiatka jazdí S KARTOU (25. 9. kolo 6): dovtedy bola súrodencom pohyblivej karty
+                      a ostávala na mieste, takže pri ťahu sedela na ZADNEJ karte. Posúva sa celá vrstva. */}
+                  <div className={`sh-mover${drag?.anim ? ' is-anim' : ''}`} style={dragStyle}>
+                    <SnifferCard card={top} tx={tx} onOpenFull={() => setPeek(top)} />
+                    {drag && Math.abs(drag.dx) > 12 && (
+                      <span className={`sh-stamp sh-stamp--${drag.dx > 0 ? 'yes' : 'no'}`}
+                        style={{ opacity: Math.min(1, Math.abs(drag.dx) / SWIPE_PX) }}>
+                        {drag.dx > 0 ? tx('pack.sniffer.yes', 'SNIFF') : tx('pack.sniffer.no', 'No')}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="sh-acts">

@@ -180,6 +180,18 @@ const CSS = `
   font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkStrong};cursor:pointer;}
 .sp-sw > span{display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;}
 .sp-sw small{font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
+/* iPhone SE a nižšie (kolo 6) — NA KONCI, aby prebil základné pravidlá vyššie: Základ pretiekol o 61 px, Hľadáme o 104 px. Zmenšuje sa OBSAH
+   (PAGE_AIR lock) — nadpis o stupeň, fotky, pilulky volieb a pás pawtnera; vzduch ostáva. */
+@media (max-height:700px){
+  .sp-title{font-size:${PACK_TEXT.h2}px;}
+  .sp-pager--fit .sp-slots > .sp-slot{height:13dvh;}
+  .sp-cols .bd-pills .pk-pill{padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;font-size:${PACK_TEXT.label}px;line-height:1.2;}
+  .sp-pawtner{padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;}
+  .sp-body{gap:${PACK_SPACE.xs}px;}
+  .sp-tile{padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;}
+  .sp-cols .sp-sec{margin-top:0;}
+  .sp-pawtner{font-size:${PACK_TEXT.label}px;}
+}
 `;
 
 function Pills({ options, selected, onToggle, disabled }: {
