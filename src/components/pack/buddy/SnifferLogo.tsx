@@ -5,10 +5,10 @@
 //
 // ⏱ ČASOVANIE (Matej 25. 9. po prvej verzii: „moc rýchla, spomaľ ju, najprv bude vidno len
 //    nos, potom spomaľ tie ikonky okolo — musia byť vidno 1–2 sekundy, až potom sa stiahnu"):
-//    0,0 s nos sa objaví · 0,8 s dvakrát začuchá · 2,0 s kresby nabiehajú jedna po druhej
-//    a pomaly sa točia · ~3,4–5,2 s sú všetky vidno · 5,2 s sa stiahnu do nosa ·
-//    6,0 s narastie srdce a nos si sadne do jeho polohy v logu · 6,8 s srdce zavrtí ·
-//    7,8 s nos zavonia ešte raz. `SNIFFER_LOGO_DONE_MS` = keď je znak hotový (text za ním).
+//    0,2 s nos sa objaví · 0,9 s dvakrát začuchá · 2,0 s kresby sa jedna po druhej rozložia
+//    po obvode · ~4,0–5,0 s STOJA NEHYBNE (Matej: „treba tam sekundu podržať nehybne") ·
+//    5,0 s sa stiahnu do nosa · 5,8 s narastie srdce a nos si sadne do polohy v logu ·
+//    6,6 s srdce zavrtí · 7,6 s nos zavonia ešte raz. `SNIFFER_LOGO_DONE_MS` = keď je znak hotový (text za ním).
 //
 // 📐 KONEČNÁ POLOHA NOSA = GEOMETRIA ZNAKU („v závere ten nos nie je dobre v srdci, treba to dať
 //    podľa horného nákresu"). Srdce leží v štvorci 92 % so stredom v strede; v jeho súradniciach
@@ -32,36 +32,39 @@ const ICONS: Array<{ file: string; color: string }> = [
 /** Srdce loga — koralová z Matejovho návrhu. */
 export const SNIFFER_HEART = '#E8493F';
 /** Znak je hotový (srdce stojí, nos sedí) — odtiaľ smie nabehnúť nápis a veta. */
-export const SNIFFER_LOGO_DONE_MS = 6700;
+export const SNIFFER_LOGO_DONE_MS = 6600;
 /** Celá animácia vrátane posledného začuchania. */
-export const SNIFFER_LOGO_END_MS = 8800;
+export const SNIFFER_LOGO_END_MS = 8700;
 const INK = '#1F1A0E';
 
 const CSS = `
 @property --snl-r { syntax:'<length>'; inherits:false; initial-value:0px; }
+@property --snl-t { syntax:'<angle>'; inherits:false; initial-value:0deg; }
 .snl{position:relative;width:var(--snl-size);height:var(--snl-size);margin:0 auto;cursor:pointer;
   -webkit-tap-highlight-color:transparent;}
 .snl > *{position:absolute;left:50%;top:50%;}
 .snl-mask{display:block;-webkit-mask:var(--snl-src) center/contain no-repeat;mask:var(--snl-src) center/contain no-repeat;}
 .snl-heart{width:92%;height:92%;margin:-46% 0 0 -46%;transform:scale(0) rotate(0deg);transform-origin:50% 60%;
-  animation:snl-heart .8s cubic-bezier(.3,1.5,.5,1) 5.9s forwards, snl-wag 1s ease-in-out 6.8s 1 forwards;}
+  animation:snl-heart .8s cubic-bezier(.3,1.5,.5,1) 5.8s forwards, snl-wag 1s ease-in-out 6.6s 1 forwards;}
 .snl-heart svg{width:100%;height:100%;display:block;}
-.snl-ring{width:0;height:0;animation:snl-spin 3.6s cubic-bezier(.4,0,.6,1) 2s forwards;}
+.snl-ring{width:0;height:0;}
+/* Kresby stoja VŽDY ROVNO (Matej: „ikonky okolo nosa sú naopak… musia dávať zmysel"). Uhol na
+   obvode (--snl-a + --snl-t) sa otáča, kresba sa rovnakým uhlom vracia späť — preto nepadá hlavou dole. */
 .snl-ico{position:absolute;left:0;top:0;width:calc(var(--snl-size) * .15);height:calc(var(--snl-size) * .15);background:var(--snl-c);opacity:0;
-  --snl-r:calc(var(--snl-size) * .3);
-  transform:translate(-50%,-50%) rotate(var(--snl-a)) translateY(calc(-1 * var(--snl-r))) rotate(calc(-1 * var(--snl-a)));
-  animation:snl-ico-in .7s ease-out calc(2s + var(--snl-i) * .18s) forwards, snl-merge .8s cubic-bezier(.6,0,.9,.4) 5.2s forwards;}
+  --snl-r:calc(var(--snl-size) * .2);--snl-t:-90deg;
+  transform:translate(-50%,-50%) rotate(calc(var(--snl-a) + var(--snl-t))) translateY(calc(-1 * var(--snl-r))) rotate(calc(-1 * (var(--snl-a) + var(--snl-t))));
+  animation:snl-ico-in .9s cubic-bezier(.2,.7,.3,1) calc(2s + var(--snl-i) * .15s) forwards, snl-merge .8s cubic-bezier(.6,0,.9,.4) 5s forwards;}
 /* Nos: začína 44 % v strede, končí v polohe znaku (47,8 % × 44,2 %, stred na 51,8 %). */
 .snl-nose{width:44%;height:44%;margin:-22% 0 0 -22%;background:${INK};transform:scale(0);
   animation:snl-nose-in .6s cubic-bezier(.3,1.5,.5,1) .2s forwards, snl-sniff .55s ease-in-out .9s 2,
-    snl-nose-sit .8s ease-in-out 5.9s forwards, snl-sniff2 .55s ease-in-out 7.8s 2;}
+    snl-nose-sit .8s ease-in-out 5.8s forwards, snl-sniff2 .55s ease-in-out 7.6s 2;}
 @keyframes snl-nose-in{from{transform:scale(0);}to{transform:scale(1);}}
 @keyframes snl-sniff{50%{transform:scale(1.08,.94);}}
 @keyframes snl-nose-sit{from{transform:scale(1);}to{transform:translateY(4.2%) scale(1.086,1.004);}}
 @keyframes snl-sniff2{0%,100%{transform:translateY(4.2%) scale(1.086,1.004);}50%{transform:translateY(4.2%) scale(1.14,.95);}}
-@keyframes snl-ico-in{from{opacity:0;--snl-r:calc(var(--snl-size) * .2);}to{opacity:1;--snl-r:calc(var(--snl-size) * .4);}}
-@keyframes snl-spin{to{transform:rotate(240deg);}}
-@keyframes snl-merge{from{opacity:1;--snl-r:calc(var(--snl-size) * .4);}to{opacity:0;--snl-r:0px;}}
+/* rozložia sa po obvode (točia sa, rastie polomer) → ~1 s STOJA NEHYBNE → stiahnu sa do nosa */
+@keyframes snl-ico-in{from{opacity:0;--snl-r:calc(var(--snl-size) * .2);--snl-t:-90deg;}to{opacity:1;--snl-r:calc(var(--snl-size) * .4);--snl-t:0deg;}}
+@keyframes snl-merge{from{opacity:1;--snl-r:calc(var(--snl-size) * .4);--snl-t:0deg;}to{opacity:0;--snl-r:0px;--snl-t:0deg;}}
 @keyframes snl-heart{to{transform:scale(1);}}
 @keyframes snl-wag{0%,100%{transform:scale(1) rotate(0deg);}25%{transform:scale(1) rotate(-7deg);}75%{transform:scale(1) rotate(7deg);}}
 @media (prefers-reduced-motion: reduce){

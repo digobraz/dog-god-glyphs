@@ -148,8 +148,12 @@ const CSS = `
 .bd-tagline{margin:0 auto;max-width:30ch;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.lead}px;line-height:1.45;color:${T.inkStrong};}
 .bd-reveal{opacity:0;transform:translateY(${PACK_SPACE.sm}px);transition:opacity .6s ease, transform .6s ease;}
 .is-done .bd-reveal{opacity:1;transform:none;}
-.is-done .bd-tagline{transition-delay:.35s;}
-@media (prefers-reduced-motion: reduce){.bd-reveal{opacity:1;transform:none;transition:none;}}
+.is-done .bd-tagline{transition-delay:.55s;}
+.bd-grow{width:100%;display:grid;grid-template-rows:0fr;transition:grid-template-rows .6s ease;}
+.bd-grow > div{overflow:hidden;display:flex;flex-direction:column;align-items:center;text-align:center;gap:${PACK_SPACE.md}px;}
+.is-done .bd-grow{grid-template-rows:1fr;}
+.is-done .bd-wordmark{transition-delay:.25s;}
+@media (prefers-reduced-motion: reduce){.bd-reveal{opacity:1;transform:none;transition:none;}.bd-grow{grid-template-rows:1fr;transition:none;}}
 .bd-wordmark img{height:${PACK_SPACE.xxl + PACK_SPACE.md}px;width:auto;}
 .bd-hero .bd-lead{font-family:${FONT_TITLE};font-size:${PACK_TEXT.lead}px;line-height:1.45;color:${T.inkStrong};max-width:28ch;margin:0 auto;}
 .bd-hero .bd-lead--ui{font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkDim};}
@@ -477,12 +481,17 @@ export default function PackBuddy() {
               <span className="hf-carved-rim" aria-hidden />
               <SnifferLogo size={PACK_AVATAR.lg * 3 + PACK_SPACE.xl} onDone={() => setLogoDone(true)} />
               {/* Nápis a veta až KEĎ STOJÍ SRDCE (Matej 25. 9.: „až po tom, čo nabehne srdce, až
-                  vtedy príde text, a tagline bude groteskom"). Miesto im je držané od začiatku,
-                  aby logo pri ich príchode neposkočilo. */}
-              <h2 className="bd-wordmark bd-reveal">
-                <img src="/icons/sniffer/sniffer-napis.svg" alt={tx('pack.buddy.title', 'SNIFFER')} />
-              </h2>
-              <p className="bd-tagline bd-reveal">{tx('pack.buddy.intro', 'Find buddies to sniff out the world with.')}</p>
+                  vtedy príde text, a tagline bude groteskom"). Počas animácie je logo v STREDE
+                  a text ho až potom plynulo vytlačí nahor („logo centruj na stred pri animácii
+                  a potom ho hore vytlačí text") — `.bd-grow` rastie z nulovej výšky. */}
+              <div className="bd-grow">
+                <div>
+                  <h2 className="bd-wordmark bd-reveal">
+                    <img src="/icons/sniffer/sniffer-napis.svg" alt={tx('pack.buddy.title', 'SNIFFER')} />
+                  </h2>
+                  <p className="bd-tagline bd-reveal">{tx('pack.buddy.intro', 'Find buddies to sniff out the world with.')}</p>
+                </div>
+              </div>
             </div>
           </div>
           <div className="bd-dock" style={{ visibility: s.enabled || !logoDone ? 'hidden' : 'visible' }}>
