@@ -26,6 +26,7 @@ import { usePilgrimStats } from '@/components/pack/usePilgrimStats';
 import { FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
 import { SnifferLogo, SNIFFER_LOGO_END_MS } from '@/components/pack/buddy/SnifferLogo';
 import { SnifferHome } from '@/components/pack/buddy/SnifferHome';
+import { SnifferProfile } from '@/components/pack/buddy/SnifferProfile';
 import { MessagingOverlayHost } from '@/components/pack/PackLayout';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PAGE_AIR,
@@ -73,10 +74,6 @@ const CSS = `
   font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
 .bd-h2{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
 .bd-lead{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;line-height:1.55;color:${T.inkDim};}
-/* dvojica medailónov: človek + pes, pes mierne prekrýva (majiteľ je v ráme psa) */
-.bd-pair{display:flex;align-items:center;}
-.bd-pair .pk-medallion + .pk-medallion{margin-left:-${PACK_SPACE.md}px;}
-.bd-pair .pk-medallion{background:${T.cardSoft};font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;color:${T.inkWarm};}
 .bd-head{display:flex;align-items:center;gap:${PACK_SPACE.lg}px;}
 .bd-head > div:last-child{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 .bd-count{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkWarm};}
@@ -214,10 +211,8 @@ export default function PackBuddy() {
   const [view, setView] = useState<View | null>(null);
   const [introStep, setIntroStep] = useState(1);
   const [logoDone, setLogoDone] = useState(false);
-  const [open, setOpen] = useState<BuddyStepKey | null>(null);
   const [serverMissing, setServerMissing] = useState<BuddyStepKey[] | null>(null);
   const [busy, setBusy] = useState(false);
-  const [dogPick, setDogPick] = useState<string | null>(null);
   const [nameDraft, setNameDraft] = useState<string | null>(null);
   const { profile } = useProfile();
   const { dogs, avatarUrl, ownerGender, loading: dogsLoading } = usePackUser(session?.user?.id ?? null);
@@ -245,10 +240,7 @@ export default function PackBuddy() {
   const name = (meta.full_name ?? '').trim() || orderName;
 
   const human = profile?.human;
-  const dog = useMemo(() => {
-    const chosen = dogPick ? dogs.find((d) => d.id === dogPick) : null;
-    return chosen ?? pickBuddyDog(dogs, (id) => profile?.dogs[id]);
-  }, [dogs, dogPick, profile]);
+  const dog = useMemo(() => pickBuddyDog(dogs, (id) => profile?.dogs[id]), [dogs, profile]);
   const dogAttrs: DogProfileAttrs | undefined = dog ? (profile?.dogs[dog.id] ?? emptyDogAttrs(dog.id)) : undefined;
 
   useEffect(() => {
@@ -418,20 +410,6 @@ export default function PackBuddy() {
     }
   };
 
-  // Dvojica medailónov: človek + pes. Fotka BUDDY má prednosť pred avatarom — je to tá,
-  // ktorú uvidia ostatní.
-  const humanPic = photoUrl(human?.buddyPhoto) || avatarUrl || null;
-  const pair = (
-    <div className="bd-pair" aria-hidden>
-      <span className="pk-medallion pk-medallion--lg">
-        {humanPic ? <img src={humanPic} alt="" /> : (name[0] ?? '·').toUpperCase()}
-      </span>
-      <span className="pk-medallion pk-medallion--lg">
-        {dog?.cloudinary_main_url ? <img src={dog.cloudinary_main_url} alt="" /> : (dog?.dog_name?.[0] ?? '·').toUpperCase()}
-      </span>
-    </div>
-  );
-
   const intentPills = (human?.intents ?? []).filter((i) => i !== 'community');
   const myCard = (
     <div className="bd-card bd-mine" style={{ ...PACK_BOX.card }}>
@@ -473,7 +451,7 @@ export default function PackBuddy() {
   return (
     <Shell title={title} onBack={back} backLabel={tx('pack.buddy.back', 'Back')}
       onGear={view !== 'settings' ? () => setView('settings') : undefined}
-      gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'done'} fit={view === 'home'}>
+      gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'done' || view === 'gate'} fit={view === 'home'}>
       {view === 'splash' && (
         <div className="bd-stage" onClick={() => { if (s.enabled) afterSplash(); }}>
           <div className="bd-stage__body">
@@ -543,61 +521,29 @@ export default function PackBuddy() {
 
       {view === 'gate' && (
         <>
-          <div className="bd-card" style={{ ...PACK_BOX.card }}>
-            <div className="bd-head">
-              {pair}
-              <div>
-                <h2 className="bd-h2">{tx('pack.buddy.gateHead', 'Your buddy card')}</h2>
-                <span className="bd-count">
-                  <b>{doneCount}</b> / {steps.length} {tx('pack.buddy.done', 'done')}
-                </span>
-                <div className="pk-progress" aria-hidden>
-                  <div className={`pk-progress__fill${missing.length ? ' pk-progress__fill--low' : ' pk-progress__fill--done'}`}
-                    style={{ width: gateFill }} />
-                </div>
-              </div>
+          {/* VÁŠ PROFIL (zadanie-sniffer-stavba §2.2, nákres A) — ty a pes v kartách do strán.
+              Zapisuje sa do tých istých polí ako profil a DOG ID; definícia 100 % → buddyGate.ts. */}
+          <div className="bd-center" style={{ display: 'flex', flexDirection: 'column', gap: PACK_SPACE.xs }}>
+            <h2 className="bd-h2">{tx('pack.sniffer.profile.title', 'Your profile')}</h2>
+            <p className="bd-note">{tx('pack.sniffer.profile.sub', 'you and your dog · swipe sideways')}</p>
+            <span className="bd-count"><b>{doneCount}</b> / {steps.length} {tx('pack.buddy.done', 'done')}</span>
+            <div className="pk-progress" aria-hidden>
+              <div className={`pk-progress__fill${missing.length ? ' pk-progress__fill--low' : ' pk-progress__fill--done'}`}
+                style={{ width: gateFill }} />
             </div>
-            <p className="bd-note">{tx('pack.buddy.gateNote', 'Whatever you fill in here goes to your profile and your dog’s DOG ID — nothing twice.')}</p>
           </div>
-
-          {(['human', 'dog', 'buddy'] as const).map((group) => (
-            <div key={group} className="bd-card bd-card--list" style={{ ...PACK_BOX.card }}>
-              <span className="bd-eyebrow">
-                {group === 'dog'
-                  ? (dog?.dog_name ?? tx('pack.buddy.dog', 'Dog'))
-                  : tx(`pack.buddy.group.${group}`, group === 'human' ? 'You' : 'Buddies')}
-              </span>
-              {group === 'dog' && dogs.length > 1 && (
-                <div style={{ padding: `0 ${PACK_SPACE.lg}px ${PACK_SPACE.sm}px` }}>
-                  <Pills
-                    options={dogs.map((d) => ({ value: d.id, label: d.dog_name ?? '—' }))}
-                    selected={dog ? [dog.id] : []}
-                    onToggle={(v) => setDogPick(v)}
-                  />
-                </div>
-              )}
-              {steps.filter((st) => st.group === group).map((st) => {
-                const i = steps.findIndex((x) => x.key === st.key);
-                const done = !missing.includes(st.key);
-                const isOpen = open === st.key;
-                return (
-                  <div key={st.key} className={`bd-item${isOpen ? ' is-open' : ''}`}>
-                    <button type="button" className="bd-row" aria-expanded={isOpen}
-                      onClick={() => setOpen(isOpen ? null : st.key)}>
-                      <span className={`bd-mark${done ? ' is-done' : ''}`} aria-hidden>{done ? '' : i + 1}</span>
-                      <span className="bd-row__txt">
-                        <b>{stepLabel(st.key)}</b>
-                        {done && <small>{summary(st.key)}</small>}
-                      </span>
-                      {done ? <span className="bd-chev" aria-hidden /> : <span className="bd-todo">{tx('pack.buddy.fill', 'Fill in')}</span>}
-                    </button>
-                    {isOpen && <div className="bd-edit">{editor(st.key)}</div>}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
-
+          <SnifferProfile
+            tx={tx}
+            uid={session?.user.id ?? null}
+            name={name}
+            human={human}
+            dogs={dogs}
+            dogAttrsOf={(id) => profile?.dogs[id]}
+            heroGender={heroGender}
+            missing={missing}
+            gateEditor={editor}
+            gateSummary={summary}
+          />
           <div className="bd-dock">
             {serverMissing && serverMissing.length > 0 && (
               <p className="bd-warn">
@@ -607,7 +553,7 @@ export default function PackBuddy() {
             <button type="button" className="bd-cta" disabled={missing.length > 0 || busy} onClick={enable}>
               {missing.length > 0
                 ? tx('pack.buddy.left', '{n} more to fill in', { n: missing.length })
-                : tx('pack.buddy.enable', 'Switch on')}
+                : tx('pack.sniffer.profile.enable', 'Switch SNIFFER on')}
             </button>
           </div>
         </>

@@ -94,6 +94,9 @@ export interface HumanProfile {
   /** Fotka ČLOVEKA A PSA spolu — podmienka BUDDY (zadanie-assnif §3.1, nákres 0c).
    *  Nie avatar: avatar je len človek. Cloudinary URL. */
   buddyPhoto?: string;
+  /** Všetky fotky SNIFFER karty v poradí (Váš profil, 25. 9. 2026). `buddyPhoto` ostáva
+   *  tá JEDNA, na ktorej ste spolu — z nich je a brána ju chce. Prázdne = len `buddyPhoto`. */
+  buddyPhotos?: string[];
   visibility: Partial<Record<ProfileFieldKey, VisTier>>; // override defaultov, default {}
 }
 
