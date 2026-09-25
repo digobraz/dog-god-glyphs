@@ -412,7 +412,8 @@ export default function PackBuddy() {
 
   return (
     <Shell title={title} onBack={back} backLabel={tx('pack.buddy.back', 'Back')}
-      onGear={view !== 'settings' ? () => setView('settings') : undefined}
+      // Pri logu hore len šípka späť, nastavenia nie (Matej 25. 9.).
+      onGear={view !== 'settings' && view !== 'splash' ? () => setView('settings') : undefined}
       gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'gate' || view === 'settings'} fit={view === 'home' || view === 'done' || view === 'gate'}>
       {view === 'splash' && (
         <div className="bd-stage" onClick={() => { if (s.enabled) afterSplash(); }}>
