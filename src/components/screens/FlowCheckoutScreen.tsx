@@ -247,20 +247,23 @@ export function FlowCheckoutScreen() {
               ) : (
                 <div className="co-who">
                   <div className="co-who-row">
-                    <span className="co-who-k">{t('heroglyph.flow.checkoutNew.name')}</span>
-                    <span className="co-who-v">{ownerName || '—'}</span>
+                    <span className="co-who-kv">
+                      <span className="co-who-k">{t('heroglyph.flow.checkoutNew.name')}</span>
+                      <span className="co-who-v">{ownerName || '—'}</span>
+                    </span>
                     <button type="button" className="co-mini" onClick={() => openEdit('name')}>
                       {t('heroglyph.flow.owner.orderChange')}
                     </button>
                   </div>
                   <div className="co-who-row">
-                    <span className="co-who-k">{t('heroglyph.flow.checkoutNew.email')}</span>
-                    <span className="co-who-v co-who-mail">{email}</span>
+                    <span className="co-who-kv">
+                      <span className="co-who-k">{t('heroglyph.flow.checkoutNew.email')} · {t('payment.emailNotice')}</span>
+                      <span className="co-who-v co-who-mail">{email}</span>
+                    </span>
                     <button type="button" className="co-mini" onClick={() => openEdit('email')}>
                       {t('heroglyph.flow.owner.orderChange')}
                     </button>
                   </div>
-                  <p className="co-who-note">{t('payment.emailNotice')}</p>
                 </div>
               )}
 
@@ -339,12 +342,32 @@ export function FlowCheckoutScreen() {
                   </button>
                 </div>
               ) : (
-                <button type="button" className="hf-hint co-center" onClick={() => setPromoOpen(true)}>
-                  {t('heroglyph.flow.checkoutNew.promoAsk')}
-                </button>
+                <div className="co-links">
+                  <button type="button" className="hf-hint" onClick={() => setPromoOpen(true)}>
+                    {t('heroglyph.flow.checkoutNew.promoAsk')}
+                  </button>
+                  <button type="button" className="hf-hint" onClick={() => setMoneyOpen((v) => !v)}>
+                    {t('payment.transparency.eyebrow')}
+                  </button>
+                </div>
               )}
               {promoState === 'bad' && <p className="co-err">{t('payment.promo.invalid')}</p>}
 
+              <AnimatePresence initial={false}>
+                {moneyOpen && (
+                  <motion.ul
+                    className="co-money"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {TRANSPARENCY_SPLIT.map((s) => (
+                      <li key={s.labelKey}><span>{t(s.labelKey)}</span><b>€{s.share}</b></li>
+                    ))}
+                  </motion.ul>
+                )}
+              </AnimatePresence>
               {/* ── SPOLU + ZAPLATIŤ ──────────────────────────────────────── */}
               <div className="co-total">
                 <span>{t('heroglyph.flow.checkoutNew.total')}</span>
@@ -361,25 +384,7 @@ export function FlowCheckoutScreen() {
               {payError && <p role="alert" className="co-err">{payError}</p>}
               <p className="co-secure">{t('payment.secured')}</p>
 
-              {/* ── KAM IDÚ PENIAZE — zbalený rozpis ──────────────────────── */}
-              <button type="button" className="hf-hint co-center" onClick={() => setMoneyOpen((v) => !v)}>
-                {t('payment.transparency.eyebrow')}
-              </button>
-              <AnimatePresence initial={false}>
-                {moneyOpen && (
-                  <motion.ul
-                    className="co-money"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    {TRANSPARENCY_SPLIT.map((s) => (
-                      <li key={s.labelKey}><span>{t(s.labelKey)}</span><b>€{s.share}</b></li>
-                    ))}
-                  </motion.ul>
-                )}
-              </AnimatePresence>
+              {/* ── KAM IDÚ PENIAZE — zbalený rozpis (odkaz je v riadku nad SPOLU) ── */}
             </div>
           </motion.div>
 
@@ -405,25 +410,24 @@ const CHECKOUT_CSS = `
   font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px;
   letter-spacing: 0.14em; text-transform: uppercase; color: ${LAB.inkSoft};
 }
-.co-stack .hf-plate { gap: 12px; }
+.co-stack .hf-plate { gap: 12px; container-type: inline-size; }
 .co-center { align-self: center; }
 
 /* Kto platí — zhrnutie, nie formulár. */
-.co-who { display: flex; flex-direction: column; gap: 4px; }
-.co-who-row { display: flex; align-items: center; gap: 8px; min-height: 32px; }
+.co-who { display: flex; flex-direction: column; gap: 8px; }
+.co-who-row { display: flex; align-items: center; gap: 8px; }
+.co-who-kv { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 0; }
 .co-who-k {
-  flex: 0 0 56px; font-family: 'Space Grotesk', sans-serif; font-weight: 500;
+  font-family: 'Space Grotesk', sans-serif; font-weight: 500;
   font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: ${LAB.inkMuted};
 }
 .co-who-v {
-  flex: 1 1 auto; min-width: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 600;
+  font-family: 'Space Grotesk', sans-serif; font-weight: 600;
   font-size: 14px; color: ${LAB.ink}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-/* E-mail sa NESKRACUJE — preklep musí byť vidno celý (člen #60). */
-.co-who-mail { white-space: normal; word-break: break-all; }
-.co-who-note {
-  margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: ${LAB.inkSoft};
-}
+/* E-mail sa NESKRACUJE — preklep musí byť vidno celý (člen #60). Láme sa
+   len keď naozaj nevojde, nie uprostred domény. */
+.co-who-mail { white-space: normal; overflow-wrap: anywhere; }
 .co-mini {
   flex: 0 0 auto; height: 26px; padding: 0 12px; display: inline-flex; align-items: center; gap: 4px;
   border-radius: ${PACK_R.pill}px; border: 1.5px solid ${LAPIS.edge}; color: ${LAPIS.edge};
@@ -439,21 +443,21 @@ const CHECKOUT_CSS = `
 
 /* Svorka — riadok na psa. */
 .co-dogs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px;
-  max-height: 176px; overflow-y: auto; }
+  max-height: 188px; overflow-y: auto; }
 .co-dog {
-  display: flex; align-items: center; gap: 12px; padding: 8px;
+  display: flex; align-items: center; gap: 12px; padding: 4px 12px 4px 4px;
   border-radius: ${PACK_R.tile}px; border: 1.5px solid ${LAB.hairline};
   background: linear-gradient(135deg, rgba(255, 253, 247, 0.55), rgba(242, 226, 189, 0.45));
 }
 .co-dog-ph {
-  flex: 0 0 auto; width: 40px; height: 40px; border-radius: ${PACK_R.tile}px;
+  flex: 0 0 auto; width: 36px; height: 36px; border-radius: 8px;
   object-fit: cover; border: 1.5px solid ${LAB.hairline};
 }
 .co-dog-ph--empty {
   display: grid; place-items: center; font-family: 'Cinzel', serif; font-weight: 700;
   font-size: 16px; color: ${LAB.inkMuted};
 }
-.co-dog-mid { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.co-dog-mid { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 0; }
 .co-dog-name {
   font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px; letter-spacing: 0.14em;
   text-transform: uppercase; color: ${LAB.ink}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -486,9 +490,11 @@ const CHECKOUT_CSS = `
 .co-get li::before {
   content: ''; flex: none; width: 6px; height: 6px; border-radius: ${PACK_R.pill}px; background: ${LAB.goldInk};
 }
+@container (min-width: 480px) { .co-get { grid-template-columns: 1fr 1fr 1fr; } }
 .co-get li.soon { color: ${LAB.inkMuted}; }
 .co-get li.soon::before { background: ${LAB.hairline}; }
 
+.co-links { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .co-promo { display: flex; gap: 8px; align-items: center; }
 .co-promo-f { height: 40px; text-transform: uppercase; }
 
@@ -514,6 +520,13 @@ const CHECKOUT_CSS = `
 .co-money b { color: ${LAB.ink}; }
 .co-notnow { margin-top: 16px; font-size: 12px; }
 
+/* Nízke okno (Matejovo PC 1477×724): pod doskou musí ostať „Teraz nie" aj dno
+   PAGE_AIR. Ustupuje najprv nadpis nad doskou (kontext, nie obsah), potom medzery. */
+@media (max-height: 780px) {
+  .co-kicker { display: none; }
+  .co-stack .hf-plate { gap: 10px; }
+  .co-notnow { margin-top: 12px; }
+}
 @media (max-height: 700px) {
   .co-stack .hf-plate { padding: 14px 16px; gap: 8px; }
   .co-kicker { margin-bottom: 8px; font-size: 12px; }
