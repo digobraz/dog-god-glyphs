@@ -27,6 +27,7 @@ import { SnifferLogo, SNIFFER_LOGO_END_MS } from '@/components/pack/buddy/Sniffe
 import { SnifferHome } from '@/components/pack/buddy/SnifferHome';
 import { SnifferProfile } from '@/components/pack/buddy/SnifferProfile';
 import { SnifferMyCard, SNIFFER_CARD_CSS } from '@/components/pack/buddy/SnifferCard';
+import { SnifferAreas } from '@/components/pack/buddy/SnifferAreas';
 import { MessagingOverlayHost } from '@/components/pack/PackLayout';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PAGE_AIR,
@@ -175,6 +176,17 @@ const CSS = `
 .bd-center{align-items:center;text-align:center;}
 /* Na PC široký stĺpec (832 px) — Váš profil tam ukáže viac kariet vedľa seba. */
 @media (min-width:768px){ .bd-col--wide{max-width:${PACK_COL_INNER + 2 * PAGE_AIR.side}px;} }
+/* NASTAVENIA — logo a veľký prepínač v jednej doske (nákres E). Zapnuté = LAPIS: je to moja voľba. */
+.bd-sethead{flex-direction:row;align-items:center;justify-content:space-between;}
+.bd-sethead__logo{height:${PACK_SPACE.xxxl}px;width:auto;}
+.bd-sw{position:relative;flex:0 0 auto;width:${PACK_SPACE.xxxl + PACK_SPACE.xs}px;height:${PACK_SPACE.xl + PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;
+  border:1px solid ${T.border};background:${T.hairline};cursor:pointer;padding:0;transition:background .2s ease;}
+.bd-sw i{position:absolute;top:${PACK_SPACE.xs}px;left:${PACK_SPACE.xs}px;width:${PACK_SPACE.xl}px;height:${PACK_SPACE.xl}px;border-radius:${PACK_R.pill}px;
+  background:${T.card};box-shadow:${PACK_SHADOW.card};transition:left .2s ease;}
+.bd-sw.is-on{background:${LAPIS.grad};border-color:${LAPIS.deep};}
+.bd-sw.is-on i{left:calc(100% - ${PACK_SPACE.xl + PACK_SPACE.xs}px);}
+.bd-link{border:0;background:none;padding:0;cursor:pointer;font:inherit;color:${LAPIS.edge};text-decoration:underline;}
+.bd-areas{max-width:440px;width:100%;}
 .bd-photo--empty{display:flex;align-items:center;justify-content:center;text-align:center;padding:${PACK_SPACE.sm}px;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
 .bd-switch{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.md}px;font-family:${FONT_UI};
   font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
@@ -398,7 +410,7 @@ export default function PackBuddy() {
   return (
     <Shell title={title} onBack={back} backLabel={tx('pack.buddy.back', 'Back')}
       onGear={view !== 'settings' ? () => setView('settings') : undefined}
-      gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'gate'} fit={view === 'home' || view === 'done'}>
+      gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'gate' || view === 'settings'} fit={view === 'home' || view === 'done'}>
       {view === 'splash' && (
         <div className="bd-stage" onClick={() => { if (s.enabled) afterSplash(); }}>
           <div className="bd-stage__body">
@@ -534,39 +546,57 @@ export default function PackBuddy() {
 
       {view === 'settings' && (
         <>
-          <section className="bd-card" style={{ ...PACK_BOX.card }}>
-            <span className="bd-eyebrow">{tx('pack.buddy.inBuddy', 'I’m in Buddies')}</span>
-            {s.enabled ? (
+          {/* NASTAVENIA (zadanie-sniffer-stavba §2.4, nákres E): hore logo + veľký prepínač,
+              pod ním Váš profil v tých istých kartách ako brána, Môj rajón a upozornenia.
+              Zámery a „komu sa ukážem" sú v karte 4 Vášho profilu — druhýkrát na tej istej
+              obrazovke nie sú. */}
+          <section className="bd-card bd-sethead" style={{ ...PACK_BOX.card }}>
+            <img className="bd-sethead__logo" src="/icons/sniffer/sniffer-logo.svg" alt="SNIFFER" />
+            <button type="button" role="switch" aria-checked={s.enabled && !paused} disabled={busy}
+              aria-label={tx('pack.buddy.inBuddy', 'I’m in SNIFFER')}
+              className={`bd-sw${s.enabled && !paused ? ' is-on' : ''}`}
+              onClick={async () => {
+                if (s.enabled) { await patchSettings({ enabled: false, paused_until: null }); return; }
+                if (missing.length > 0) { setView('gate'); return; }
+                await enable();
+              }}><i /></button>
+          </section>
+          <p className="bd-note bd-note--center">
+            {!s.enabled
+              ? tx('pack.buddy.offNote', 'Off — nobody sees you')
+              : paused
+                ? tx('pack.buddy.pausedUntil', 'Paused until {d}', { d: new Date(s.paused_until!).toLocaleDateString() })
+                : tx('pack.buddy.on', 'On')}
+            {s.enabled && (
               <>
-                <p className="bd-lead">
-                  {paused
-                    ? tx('pack.buddy.pausedUntil', 'Paused until {d}', { d: new Date(s.paused_until!).toLocaleDateString() })
-                    : tx('pack.buddy.on', 'On')}
-                </p>
-                <div className="bd-pills">
-                  <button type="button" className="pk-pill pk-pill--tap" onClick={() => void patchSettings({
-                    paused_until: paused ? null : new Date(Date.now() + PAUSE_DAYS * 864e5).toISOString(),
-                  })}>{paused ? tx('pack.buddy.unpause', 'End pause') : tx('pack.buddy.pause', 'Pause {n} days', { n: PAUSE_DAYS })}</button>
-                  <button type="button" className="pk-pill pk-pill--tap" onClick={async () => {
-                    await patchSettings({ enabled: false, paused_until: null });
-                    setView('intro');
-                  }}>{tx('pack.buddy.off', 'Switch off')}</button>
-                </div>
+                {' · '}
+                <button type="button" className="bd-link" onClick={() => void patchSettings({
+                  paused_until: paused ? null : new Date(Date.now() + PAUSE_DAYS * 864e5).toISOString(),
+                })}>{paused ? tx('pack.buddy.unpause', 'End pause') : tx('pack.buddy.pause', 'Pause {n} days', { n: PAUSE_DAYS })}</button>
               </>
-            ) : (
-              <button type="button" className="bd-cta bd-cta--small" onClick={() => setView('gate')}>
-                {tx('pack.buddy.gateGo', 'Fill in and switch on')}
-              </button>
             )}
+          </p>
+
+          <span className="bd-eyebrow">{tx('pack.sniffer.profile.title', 'Your profile')}</span>
+          <SnifferProfile
+            tx={tx}
+            uid={session?.user.id ?? null}
+            name={name}
+            human={human}
+            dogs={dogs}
+            dogAttrsOf={(id) => profile?.dogs[id]}
+            heroGender={heroGender}
+            missing={missing}
+            gateEditor={editor}
+            gateSummary={summary}
+          />
+
+          <span className="bd-eyebrow">{tx('pack.sniffer.areasHead', 'My patch · where we go often')}</span>
+          <section className="bd-card bd-areas" style={{ ...PACK_BOX.card }}>
+            <SnifferAreas tx={tx} selected={human?.areas ?? []} />
+            <p className="bd-note">{tx('pack.sniffer.areasNote', 'Tap a part · others see it on your profile too')}</p>
           </section>
-          <section className="bd-card" style={{ ...PACK_BOX.card }}>
-            <span className="bd-eyebrow">{stepLabel('intents')}</span>
-            <IntentsEditor selected={human?.intents ?? []} tx={tx} />
-          </section>
-          <section className="bd-card" style={{ ...PACK_BOX.card }}>
-            <span className="bd-eyebrow">{stepLabel('audience')}</span>
-            <AudienceEditor s={s} onPatch={patchSettings} tx={tx} />
-          </section>
+
           <section className="bd-card" style={{ ...PACK_BOX.card }}>
             <span className="bd-eyebrow">{tx('pack.buddy.notify', 'Notifications')}</span>
             <label className="bd-switch">{tx('pack.buddy.notifyMatch', 'New match')}

@@ -42,6 +42,9 @@ const MAX_PHOTOS = 6;
 const thumb = (u?: string | null) => withTransform(u, 'c_fill,g_auto,w_300,h_400,f_auto,q_auto');
 
 const CSS = `
+/* Rad roluje do strán, takže orezáva — bez rezervy by tieň kariet skončil ostrou hranou
+   (svetlý obdĺžnik okolo radu). Rezerva dnu, záporný okraj von: rozloženie sa nepohne. */
+.hf-srow.sp-hs{padding:${PACK_SPACE.xl}px ${PACK_SPACE.xs}px;margin:-${PACK_SPACE.xl}px -${PACK_SPACE.xs}px;}
 .sp-hs{align-items:flex-start;gap:${PACK_SPACE.md}px;scroll-snap-type:x mandatory;}
 .sp-card{flex:0 0 min(86%, 360px);scroll-snap-align:center;padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;}
 .sp-eb{min-height:${PACK_SPACE.xl}px;display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.sm}px;font-family:${FONT_UI};font-weight:500;

@@ -30,6 +30,8 @@ export interface SnifferCardData {
   name: string;
   age: number | null;
   region: string | null;
+  /** Môj rajón — `W` Západ · `C` Stred · `E` Východ. */
+  areas?: Array<'W' | 'C' | 'E'>;
   bio: string | null;
   interests: string[];
   intents: string[];

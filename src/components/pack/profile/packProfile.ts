@@ -97,6 +97,9 @@ export interface HumanProfile {
   /** Všetky fotky SNIFFER karty v poradí (Váš profil, 25. 9. 2026). `buddyPhoto` ostáva
    *  tá JEDNA, na ktorej ste spolu — z nich je a brána ju chce. Prázdne = len `buddyPhoto`. */
   buddyPhotos?: string[];
+  /** MÔJ RAJÓN — kde chodím často: Západ / Stred / Východ podľa krajov (SNIFFER, 25. 9. 2026).
+   *  Údaj o človeku, nie nastavenie zobrazenia — preto tu a nie v `assnif_settings`. */
+  areas?: Array<'W' | 'C' | 'E'>;
   visibility: Partial<Record<ProfileFieldKey, VisTier>>; // override defaultov, default {}
 }
 

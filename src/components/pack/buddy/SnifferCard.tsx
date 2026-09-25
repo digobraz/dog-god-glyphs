@@ -15,6 +15,7 @@ import {
 import { ACTIVITY_OPTIONS } from '@/components/pack/profile/packProfile';
 import type { SnifferCardData } from './snifferDeck';
 import { loadMyCard, pilgrimFromTrips } from './snifferDeck';
+import { areaLabel } from './SnifferAreas';
 
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
 
@@ -127,7 +128,12 @@ export function SnifferCard({ card, tx, back = false, className = '', style }: {
 
       <div className="sn-ov">
         <p className="sn-nm">{card.name}{card.age ? <>, <span>{card.age}</span></> : null}</p>
-        {card.region && <p className="sn-meta">{card.region}</p>}
+        {(card.region || card.areas?.length) && (
+          <p className="sn-meta">{[
+            card.region,
+            card.areas?.length ? tx('pack.sniffer.patch', 'patch: {list}', { list: card.areas.map((a) => areaLabel(tx, a)).join(', ') }) : '',
+          ].filter(Boolean).join(' · ')}</p>
+        )}
         {/* PÚTNIK — JEDEN malý riadok (Matej 25. 9.: „nie také výrazné bloky"). */}
         {pilgrim && <p className="sn-pil">{pilgrim}</p>}
         {card.bio?.trim() && <p className="sn-bio">{card.bio.trim()}</p>}
