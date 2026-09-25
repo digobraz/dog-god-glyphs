@@ -58,6 +58,8 @@ const CSS = `
 .sfp-wall{position:relative;grid-row:span 3;border-radius:${PACK_R.tile}px;overflow:hidden;border:1px solid ${T.accentGold};background:${T.pageBg};}
 .sfp-wall.is-solo{grid-column:1 / -1;grid-row:span 4;}
 .sfp-acts{display:flex;justify-content:center;gap:${PACK_SPACE.xl}px;padding-bottom:${PACK_SPACE.sm}px;}
+/* Plávajúci AINUBIS sedí vpravo dole — na úzkom mobile sa rad zúži (ten istý vzor ako balíček). */
+@media (max-width:419px){.sfp-acts{gap:${PACK_SPACE.lg}px;}}
 `;
 
 const opt = (list: Array<{ value: string; labelEN: string; emoji?: string }>, v?: string) => list.find((o) => o.value === v);

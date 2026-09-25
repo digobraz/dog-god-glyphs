@@ -12,6 +12,7 @@ import { saveHuman, type HumanProfile } from '@/components/pack/profile/packProf
 import { PACK_THEME as T, PACK_R, PACK_SPACE, PACK_TEXT, FONT_UI } from '@/components/pack/packTheme';
 import { LAPIS, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { countryName, flagUrl } from '@/lib/countryGeo';
+import { useLang } from '@/i18n/LanguageContext';
 
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
 type Pin = NonNullable<HumanProfile['pin']>;
@@ -68,6 +69,12 @@ export function SnifferPinEditor({ tx, pin, fallbackCountry }: { tx: Tx; pin?: P
   useEffect(() => { if (pin?.country) setIso(known(pin.country)); }, [pin?.country]);
   const { H, xy, back, d } = useProjection(iso);
   const countries = useMemo(() => Object.keys(COUNTRY_BORDERS).sort((a, b) => (a === 'sk' ? -1 : b === 'sk' ? 1 : a.localeCompare(b))), []);
+  const { lang } = useLang();
+  // Meno krajiny v jazyku appky (`countryName` vracia EN) — ten istý postup ako HĽADAŤ.
+  const ctryName = useMemo(() => {
+    try { const dn = new Intl.DisplayNames([lang], { type: 'region' }); return (c: string) => dn.of(c.toUpperCase()) ?? countryName(c); }
+    catch { return countryName; }
+  }, [lang]);
 
   const place = (e: MouseEvent<SVGSVGElement>) => {
     const svg = e.currentTarget;
@@ -89,7 +96,7 @@ export function SnifferPinEditor({ tx, pin, fallbackCountry }: { tx: Tx; pin?: P
         {countries.map((c) => (
           <button key={c} type="button" aria-pressed={c === iso} className={`pk-pill pk-pill--tap${c === iso ? ' is-on' : ''}`}
             onClick={() => setIso(c)}>
-            <img src={flagUrl(c)} alt="" />{countryName(c)}
+            <img src={flagUrl(c)} alt="" />{ctryName(c)}
           </button>
         ))}
       </div>
