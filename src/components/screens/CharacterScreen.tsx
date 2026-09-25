@@ -330,7 +330,7 @@ const CHARACTER_CSS = `
 .ch-speak h2 { font-size: clamp(18px, 4.6cqw, 20px); }
 /* Zlaté slovo v otázke je zvýraznenie vnútri vety, nie druhá farba textu —
    ten istý zvyk, aký mala otázka v starom šate (\`text-amber-300\`). */
-.ch-speak h2 b { color: ${LAB.goldInk}; font-weight: 700; }
+/* Farbu slova drží \`.hf-speak b\` (HF_HIGHLIGHT) — tu sa neprepisuje. */
 /* ⚠️ ROZSTUP 12, NIE 10 (25. 9.). Desiatku si vzali PODSTATA a PATRÓN preto,
    že sa im obsah nezmestil — táto obrazovka ten problém nemá, takže sa dýcha. */
 .ch-stack .hf-plate { gap: 12px; }

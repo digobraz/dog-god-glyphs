@@ -55,6 +55,10 @@ export const HF = {
   field: { h: 48, radius: 12 },
 } as const;
 
+/** Zvýraznené slovo v bubline Hektora — tá istá žltá ako „HEKTHOR" na kroku 2
+ *  (`LetterReveal bold` = Tailwind amber-300). Jeden zdroj pre všetky bubliny. */
+export const HF_HIGHLIGHT = '#FCD34D';
+
 /** Podnadpis bubliny — LAB ho počíta z nadpisu, nie je to voľné číslo. */
 const BUBBLE_SUB = Math.max(11, Math.round(HF.bubble.title * 0.78));
 
@@ -402,6 +406,12 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
   margin: 0; font-family: 'Cinzel', serif; font-weight: 700;
   font-size: ${SPEAK.title}px; line-height: 1.25; color: #FAF4EC;
 }
+/* 🔆 ZVÝRAZNENÉ SLOVO V BUBLINE = ŽLTÁ \`HF_HIGHLIGHT\` — pravidlo pre KAŽDÚ
+   bublinu vstupu (Matej 25. 9. 2026: *„je ty takmer neviditeľné… treba dať
+   v každom tomto bloku pravidlo, že zvýraznený text bude žltej farby"* — vzor
+   je „HEKTHOR" na kroku 2). Obrazovky si farbu slova NEPREPISUJÚ: zlatý inkoust
+   papyrusu (\`LAB.goldInk\`) na lapisovo-zlatom gradiente zanikol. */
+.hf-speak b, .hf-speak strong { color: ${HF_HIGHLIGHT}; font-weight: 700; }
 /* ⚠️ JEDNA VETA (Matej 24. 9.: *„do podnadpisu daj len prvú vetu… nie druhú"*).
    Druhý riadok („Nezabudni na žiadneho psa…") tu ráno bol a odišiel: pri nadpise
    24 px robil z pásu štvorriadkový odsek a otázka, na ktorú sa má odpovedať,

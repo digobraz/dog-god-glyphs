@@ -7,6 +7,7 @@ import { getChineseZodiac, getWesternZodiac } from '@/lib/zodiac';
 import { zodiacMap, chineseMap } from '@/components/HeroglyphFrame';
 import { LAB } from '@/lib/labTheme';
 import { PACK_R } from '@/components/pack/packTheme';
+import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 
 // ════════════════════════════════════════════════════════════════════════════
 // „NECHCEM UVIESŤ" — výber znamenia bez dátumu narodenia (25. 9. 2026)
@@ -244,8 +245,10 @@ const ZODIAC_SHEET_CSS = `
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
 }
 /* Vybrané svieti lapisom — tá istá reč ako voľba v celom vstupe. */
-.zs-sign.on { border-color: #2F6BFF; background: rgba(47, 107, 255, 0.10); }
-.zs-sign.on span { color: #16307A; }
+/* 🔴 Bola tu cudzia modrá #2F6BFF (Matej 25. 9. 2026: *„úplne iné farby než brand!"*) —
+   odteraz tokeny \`LAPIS\`, tá istá voľba ako v celom vstupe. */
+.zs-sign.on { border-color: ${LAPIS.edge}; background: ${LAPIS.fill}; }
+.zs-sign.on span { color: ${LAPIS.edge}; }
 
 .zs-legend {
   margin: 4px 0 0; text-align: center;
@@ -259,7 +262,7 @@ const ZODIAC_SHEET_CSS = `
   border-radius: ${PACK_R.tile}px; border: 1.5px solid rgba(179, 130, 45, 0.55);
   background: linear-gradient(135deg, rgba(255, 253, 247, 0.65), rgba(242, 226, 189, 0.5));
 }
-.zs-mark.on { border-color: #2F6BFF; }
+.zs-mark.on { border-color: ${LAPIS.edge}; }
 .zs-mark img { width: 38px; height: 38px; object-fit: contain; }
 .zs-mark i { font-style: normal; font-family: 'Cinzel', serif; font-size: 20px; color: ${LAB.inkMuted}; }
 
@@ -281,16 +284,17 @@ const ZODIAC_SHEET_CSS = `
 .zs-switch {
   align-self: center; padding: 4px; border: none; background: none; cursor: pointer;
   font-family: 'Space Grotesk', sans-serif; font-size: 12px;
-  color: #2F6BFF; text-decoration: underline; text-underline-offset: 2px;
+  color: ${LAPIS.edge}; text-decoration: underline; text-underline-offset: 2px;
 }
 
 .zs-done {
   width: 100%; height: 44px; border: none; border-radius: ${PACK_R.field}px; cursor: pointer;
   font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px;
-  letter-spacing: 0.12em; text-transform: uppercase; color: #FDF7E7;
-  background: linear-gradient(135deg, #2F6BFF 0%, #1B3FA8 100%);
-  box-shadow: 0 4px 14px rgba(20, 50, 90, 0.35);
+  letter-spacing: 0.12em; text-transform: uppercase; color: ${LAPIS.ink};
+  background: ${LAPIS.grad};
+  box-shadow: ${LAPIS_BTN_SHADOW};
 }
+.zs-done:hover:not(:disabled) { background: ${LAPIS.gradHover}; }
 .zs-done:disabled {
   cursor: default; color: ${LAB.inkMuted}; box-shadow: none;
   background: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%);

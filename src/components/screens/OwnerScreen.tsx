@@ -466,7 +466,7 @@ const OWNER_CSS = `
    dvojica hodnôt ako PODSTATA, PATRÓN a POVAHA. */
 .ow-speak { container-type: inline-size; margin-bottom: 8px; }
 .ow-speak h2 { font-size: clamp(18px, 4.6cqw, 20px); }
-.ow-speak h2 b { color: ${LAB.goldInk}; font-weight: 700; }
+/* Farbu slova drží \`.hf-speak b\` (HF_HIGHLIGHT) — tu sa neprepisuje. */
 /* Osem prvkov pod sebou — rozstup je 8, nie 12 ako na POVAHE. Tá nesie jednu
    otázku, táto štyri. */
 .ow-stack .hf-plate { gap: 8px; }
