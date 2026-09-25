@@ -2325,6 +2325,12 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
      zlatej doske v zlatom ráme bola tretia zlatá vrstva na sebe — z troch pilulek sa nedalo
      na prvý pohľad povedať, ktorá je zapnutá. */
   .trp-sidebar .trp-catpill.on{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};}
+  /* SNIFFER (Matej 25. 9. 2026: „dajme čierne", nákres plany/nakres-sniffer-tlacidlo-2026-09-25.html,
+     variant A) — nie je to filter mapy, ale vstup do inej roviny, preto nesie LOGO na tmavom
+     namiesto slova v šate pilulky. Svetlá verzia loga (-light) je kreslená práve pre tmavý podklad. */
+  .trp-sidebar .trp-catpill.trp-sniffer{display:flex;align-items:center;justify-content:center;background:${T.ink};border-color:${T.cardEdge};}
+  .trp-sidebar .trp-catpill.trp-sniffer:hover{background:${T.ink};border-color:${T.cardEdge};transform:translateY(-1px);}
+  .trp-catpill.trp-sniffer img{height:16px;width:auto;display:block;}
   .trp-sidebar .trp-catpill.soon{border-color:${P_HAIR};color:${P_FAINT};opacity:1;}
 
   /* ⚠️ MENŠIE PÍSMO (Matej 2026-08-26: „tie 3 dropdowny… moc veľké písmo ktoré sa nevojde").
@@ -2507,6 +2513,9 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-mheader-cats button{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:999px;border:0;background:transparent;color:${P_DIM};cursor:pointer;transition:all .15s;}
   .trp-mheader-cats button.is-locked{opacity:.6;}
   .trp-mheader-cats button.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}font-weight:600;}
+  /* SNIFFER — mobilná dvojička tmavého tlačidla z panelu (komentár pri .trp-sniffer vyššie). */
+  .trp-mheader-cats button.trp-sniffer{display:inline-flex;align-items:center;background:${T.ink};}
+  .trp-mheader-cats button.trp-sniffer img{height:12px;width:auto;display:block;}
 
   /* ── DVE TLAČIDLÁ NAD SPODNÝM NAVOM ────────────────────────────────────────────────
      Matej: „zmeň farbu aj dolným tlačítkam - pridať lapis zoznam bude gold a oprav šírky
@@ -6195,7 +6204,7 @@ export default function PackMap() {
                 iný obsah sa prepína HORE). Dočasne v rade kategórií, kým VON nedostane horný
                 pás MAPA · PARŤÁCI — tvar toho pásu čaká na Mateja nad nákresom. */}
             {BUDDY_LIVE && (
-              <button type="button" className="trp-catpill" onClick={() => navigate('/pack/sniffer')}>{t('pack.map.catBuddy')}</button>
+              <button type="button" className="trp-catpill trp-sniffer" aria-label={t('pack.map.catBuddy')} onClick={() => navigate('/pack/sniffer')}><img src="/icons/sniffer/sniffer-logo-light.svg" alt="" /></button>
             )}
             {/* Matej 2026-08-06: MIESTA (Places) pill preč — PLACE ako filter kategória bola
                 zrušená (pláže/lúky/parky sú TRIP cez aktivitu `explore`, viď zadanie-eventy §A).
@@ -6403,7 +6412,7 @@ export default function PackMap() {
           <button type="button" role="tab" aria-selected={activeCat === 'events'} aria-disabled={!EVENTS_LIVE} className={activeCat === 'events' ? 'on' : EVENTS_LIVE ? '' : 'is-locked'} onClick={pickEvents}>{EVENTS_LIVE ? '' : '🔒 '}{t('pack.map.catEvents')}</button>
           {/* PARŤÁCI — mobilná dvojička vstupu z `.trp-cat-pills` (komentár tam). */}
           {BUDDY_LIVE && (
-            <button type="button" onClick={() => navigate('/pack/sniffer')}>{t('pack.map.catBuddy')}</button>
+            <button type="button" className="trp-sniffer" aria-label={t('pack.map.catBuddy')} onClick={() => navigate('/pack/sniffer')}><img src="/icons/sniffer/sniffer-logo-light.svg" alt="" /></button>
           )}
         </div>
       </div>
