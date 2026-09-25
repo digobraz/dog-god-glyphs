@@ -114,6 +114,9 @@ export interface HumanProfile {
    *  `orientationPublic` je true (predvolene skrytá). */
   orientation?: Orientation;
   orientationPublic?: boolean;
+  /** KOHO HĽADÁME v SNIFFERi (kolo 3, Matej 25. 9.: „parťáka / pár, svorku / skupinu").
+   *  Údaj o človeku (čo hľadá), preto v `human`, nie v `assnif_settings`. */
+  seekKinds?: SeekKind[];
   visibility: Partial<Record<ProfileFieldKey, VisTier>>; // override defaultov, default {}
 }
 
@@ -402,6 +405,14 @@ export const PERSONALITY_GROUPS: { group: PersonalityGroup; label: string }[] = 
   { group: 'dog', label: 'Dogs' },
 ];
 
+export type SeekKind = 'buddy' | 'pair' | 'pack' | 'group';
+export const SEEK_KIND_OPTIONS: TaxonomyOption<SeekKind>[] = [
+  { value: 'buddy', labelEN: 'A buddy', emoji: '🧑' },
+  { value: 'pair', labelEN: 'A couple', emoji: '👫' },
+  { value: 'pack', labelEN: 'A pack', emoji: '🐾' },
+  { value: 'group', labelEN: 'A group', emoji: '👥' },
+];
+
 export type Orientation = 'straight' | 'gay' | 'bi' | 'other' | 'undisclosed';
 export const ORIENTATION_OPTIONS: TaxonomyOption<Orientation>[] = [
   { value: 'straight', labelEN: 'Straight' },
@@ -540,8 +551,8 @@ export const DOG_QUIRK_SUGGESTIONS = [
 
 export const INTENT_OPTIONS: TaxonomyOption<Intent>[] = [
   { value: 'trip_buddies', labelEN: 'Trip buddies', icon: 'walk', emoji: '🥾' },
-  { value: 'roadtrip', labelEN: 'Roadtrip / abroad', icon: 'globe' },
-  { value: 'camping', labelEN: 'Camping / sleepovers', icon: 'hut' },
+  { value: 'roadtrip', labelEN: 'Roadtrip / abroad', icon: 'globe', emoji: '🚐' },
+  { value: 'camping', labelEN: 'Camping / sleepovers', icon: 'hut', emoji: '⛺' },
   { value: 'dog_playdates', labelEN: 'Dog playdates', icon: 'paw', emoji: '🐕' },
   { value: 'friendship', labelEN: 'Friendship', icon: 'people', emoji: '🤝' },
   { value: 'dating', labelEN: 'Dating', icon: 'heart', emoji: '💘' },

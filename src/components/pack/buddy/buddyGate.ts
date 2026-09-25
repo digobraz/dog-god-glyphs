@@ -51,6 +51,11 @@ export interface BuddySettings {
   notify_mail: boolean;
   /** Ukazujem sa v Ľudia v okolí (kolo 2) — východisko NIE (Matej 25. 9.). */
   show_nearby: boolean;
+  /** REŽIM GHOST (kolo 3, Matej 25. 9.: „nikto ma nevidí, ja vidím všetkých") — ukážem sa len
+   *  tomu, komu dám NOS. Jediná definícia `sniffer_visible` (20260930_sniffer_kolo3.sql). */
+  ghost: boolean;
+  /** Ukážem sa aj SVORKÁM (páru/skupine). Uložené; porovnávať sa začne, až bude pár ako karta. */
+  show_to_packs: boolean;
 }
 
 export const DEFAULT_BUDDY_SETTINGS: BuddySettings = {
@@ -64,6 +69,8 @@ export const DEFAULT_BUDDY_SETTINGS: BuddySettings = {
   notify_match: true,
   notify_mail: false,
   show_nearby: false,
+  ghost: false,
+  show_to_packs: false,
 };
 
 /** Tri psie body. Rovnaká podmienka ako v SQL. */

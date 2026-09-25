@@ -30,8 +30,9 @@ type Rings = [number, number][][];
 const W = 300;
 /** Farba terča — tá istá červená ako srdce v logu SNIFFERa (nákres kola 2). */
 const TARGET = '#E8493F';
-/** Zastávky posuvníka plochy terča. `null` = celá krajina (bez obmedzenia). */
-export const RADIUS_STOPS: Array<number | null> = [5, 10, 20, 30, 50, 75, 100, 150, 250, null];
+/** Zastávky posuvníka plochy terča — OD 50 DO 100 km (Matej 25. 9.: „nesmie ísť menej než xy km,
+ *  teraz ide aj na 5 km, síce sa veľkosť nemení, ale vyzerá to blbo = začína sa od 50 km do 100 km"). */
+export const RADIUS_STOPS: Array<number | null> = [50, 60, 70, 80, 90, 100];
 
 const CSS = `
 .spn-map{width:100%;height:auto;display:block;border-radius:${PACK_R.tile}px;background:${T.tileBg};}
@@ -111,11 +112,13 @@ function project(rings: Rings) {
   return { H, xy, back, d, pxKm };
 }
 
-/** Východisková krajina: pin → národnosť → jazyk prehliadača (sk-SK) → jazyk appky → SK.
+/** Východisková krajina: pin → krajina z heroflow (2. krok, `dogs.country`) → národnosť →
+ *  jazyk prehliadača (sk-SK) → jazyk appky → SK.
  *  ⚠️ IP sa zatiaľ nepýtame — appka na to nemá koncový bod (Cloudflare `cf.country` by ho dal). */
-export function defaultCountry(pin?: Pin, nationality?: string, lang?: string): string {
+export function defaultCountry(pin?: Pin, nationality?: string, lang?: string, heroCountry?: string | null): string {
   const norm = (c?: string | null) => { const v = (c ?? '').toLowerCase(); return v === 'uk' ? 'gb' : v; };
   if (pin?.country) return norm(pin.country);
+  if (heroCountry) return norm(heroCountry);
   if (nationality && nationality !== 'OTHER') return norm(nationality);
   const nav = typeof navigator !== 'undefined' ? navigator.language.split('-')[1] : undefined;
   if (nav) return norm(nav);
@@ -174,7 +177,7 @@ export function SnifferPinEditor({ tx, pin, iso, radiusKm, onRadius }: {
   const g = useMemo(() => (rings ? project(rings) : null), [rings]);
   const [miss, setMiss] = useState(false);
   const stopOf = (km: number | null) => {
-    if (km === null) return RADIUS_STOPS.length - 1;
+    if (km === null || km > 100) return RADIUS_STOPS.length - 1;
     let best = 0;
     RADIUS_STOPS.forEach((r, n) => { if (r !== null && Math.abs(r - km) < Math.abs((RADIUS_STOPS[best] as number) - km)) best = n; });
     return best;

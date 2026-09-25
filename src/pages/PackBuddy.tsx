@@ -23,6 +23,7 @@ import { BackButton } from '@/components/pack/BackButton';
 import { AinubisBubble } from '@/components/pack/ainubisSheet';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
+import { countryISO2 } from '@/lib/countryGeo';
 import { SnifferLogo, SNIFFER_LOGO_END_MS } from '@/components/pack/buddy/SnifferLogo';
 import { SnifferHome } from '@/components/pack/buddy/SnifferHome';
 import { SnifferProfile } from '@/components/pack/buddy/SnifferProfile';
@@ -221,6 +222,9 @@ export default function PackBuddy() {
   // krok uvidí ako doteraz.
   const heroGender: Gender | null = HERO_GENDER[(ownerGender ?? '').toLowerCase()] ?? null;
   // ZNAMENIE je tiež z heroglyfu (malý rámik majiteľa) — Matej 25. 9.: „chýba nám tu znamenie".
+  // KRAJINA je z heroflow, 2. krok (Matej 25. 9.: „krajinu vypĺňaš v heroflow v 2 kroku!") —
+  // `dogs.country`; rajón z nej predvolí krajinu, kým človek nepoloží pin.
+  const homeCountry = dogs.map((d) => countryISO2(d.country)).find(Boolean) ?? null;
   const zodiac = {
     western: dogs.map((d) => d.selections?.ownerZodiac).find(Boolean) ?? null,
     chinese: dogs.map((d) => d.selections?.ownerChineseZodiac).find(Boolean) ?? null,
@@ -523,6 +527,7 @@ export default function PackBuddy() {
             gateEditor={editor}
             gateSummary={summary}
             zodiac={zodiac}
+            homeCountry={homeCountry}
             settings={s}
             onPatch={patchSettings}
             // Zapnutie je CTA POSLEDNEJ karty; kým niečo chýba, ťuk skočí na kartu s tým bodom.
@@ -623,6 +628,7 @@ export default function PackBuddy() {
             gateEditor={editor}
             gateSummary={summary}
             zodiac={zodiac}
+            homeCountry={homeCountry}
             settings={s}
             onPatch={patchSettings}
           />
@@ -706,7 +712,8 @@ function Pills({ options, selected, onToggle }: {
 function IntentsEditor({ selected, tx }: { selected: Intent[]; tx: Tx }) {
   return (
     <Pills
-      options={BUDDY_INTENTS.map((o) => ({ value: o.value, label: tx(`pack.buddy.intent.${o.value}`, o.labelEN) }))}
+      // Emoji oživujú chipy (Matej 25. 9.: „chipom daj emoji nech to oživíme").
+      options={BUDDY_INTENTS.map((o) => ({ value: o.value, label: `${o.emoji ? `${o.emoji} ` : ''}${tx(`pack.buddy.intent.${o.value}`, o.labelEN)}` }))}
       selected={selected}
       onToggle={(v) => {
         const next = selected.includes(v as Intent) ? selected.filter((x) => x !== v) : [...selected, v as Intent];
@@ -720,20 +727,31 @@ function AudienceEditor({ s, onPatch, tx }: {
   s: BuddySettings; onPatch: (p: Partial<BuddySettings>) => Promise<unknown>; tx: Tx;
 }) {
   const g = s.show_to_genders;
+  const PACKS = 'packs';
   return (
     <>
       <Pills
-        // Len muži a ženy (Matej 25. 9.: „komu sa ukážem iba mužom/ženám, ostatným nie").
-        options={GENDER_OPTIONS.filter((o) => o.value === 'male' || o.value === 'female')
-          .map((o) => ({ value: o.value, label: tx(`pack.buddy.showTo.${o.value}`, o.labelEN) }))}
-        selected={g}
-        onToggle={(v) => void onPatch({ show_to_genders: g.includes(v as Gender) ? g.filter((x) => x !== v) : [...g, v as Gender] })}
+        // Mužom · ženám (Matej 25. 9.: „komu sa ukážem iba mužom/ženám, ostatným nie") a od kola 3
+        // aj SVORKÁM (páru/skupine) — tá sa ukladá do `show_to_packs`, nie medzi pohlavia.
+        options={[
+          ...GENDER_OPTIONS.filter((o) => o.value === 'male' || o.value === 'female')
+            .map((o) => ({ value: o.value, label: `${o.value === 'male' ? '👨' : '👩'} ${tx(`pack.buddy.showTo.${o.value}`, o.labelEN)}` })),
+          { value: PACKS, label: `🐾 ${tx('pack.buddy.showTo.packs', 'Packs')}` },
+        ]}
+        selected={[...g, ...(s.show_to_packs ? [PACKS] : [])]}
+        onToggle={(v) => void (v === PACKS
+          ? onPatch({ show_to_packs: !s.show_to_packs })
+          : onPatch({ show_to_genders: g.includes(v as Gender) ? g.filter((x) => x !== v) : [...g, v as Gender] }))}
       />
       <AgeRange min={s.age_min} max={s.age_max} label={tx('pack.buddy.age', 'Age')}
         onCommit={(age_min, age_max) => void onPatch({ age_min, age_max })} />
-      {/* Vzdialenosť sa od kola 3 nastavuje TERČOM na mape v karte Môj rajón (`radius_km`). */}
-      <label className="bd-switch">{tx('pack.buddy.dogCompatOnly', 'Only dogs that get along with mine')}
-        <input type="checkbox" checked={s.dog_compat_only} onChange={(e) => void onPatch({ dog_compat_only: e.target.checked })} />
+      {/* Vzdialenosť sa od kola 3 nastavuje TERČOM na mape v karte rajónu (`radius_km`). */}
+      {/* Prepínač ako v poslednej karte, nie holý checkbox (Matej 25. 9.: „urob krajšie ako je v 6/6"). */}
+      <label className="bd-switch" style={{ cursor: 'pointer' }}>
+        <span>{tx('pack.buddy.dogCompatOnly', 'Only dogs that get along with mine')}</span>
+        <button type="button" role="switch" aria-checked={s.dog_compat_only}
+          className={`bd-sw${s.dog_compat_only ? ' is-on' : ''}`}
+          onClick={(e) => { e.preventDefault(); void onPatch({ dog_compat_only: !s.dog_compat_only }); }}><i /></button>
       </label>
     </>
   );
