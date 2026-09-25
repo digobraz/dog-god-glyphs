@@ -15,15 +15,19 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useT } from '@/i18n/LanguageContext';
 import { usePackUser } from '@/hooks/usePackUser';
-import { uploadExtraPhoto } from '@/services/cloudinaryService';
+import { uploadExtraPhoto, withTransform } from '@/services/cloudinaryService';
+
+/** Fotka z iPhonu prichádza ako HEIC a Chrome ju nevykreslí — `f_auto` ju Cloudinary prevedie. */
+const photoUrl = (u?: string | null) => withTransform(u, 'c_limit,w_1200,f_auto,q_auto');
 import { BackButton } from '@/components/pack/BackButton';
 import { AinubisBubble } from '@/components/pack/ainubisSheet';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { usePilgrimStats } from '@/components/pack/usePilgrimStats';
 import { FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
+import { SnifferLogo } from '@/components/pack/buddy/SnifferLogo';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PAGE_AIR,
-  PACK_SHADOW, PACK_AVATAR, PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS, MEDALLION_CSS, FONT_TITLE, FONT_UI,
+  PACK_SHADOW, PACK_AVATAR, PACK_COL_INNER, PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS, MEDALLION_CSS, FONT_TITLE, FONT_UI,
 } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import {
@@ -56,7 +60,7 @@ const CSS = `
 .bd-bar{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.sm}px;}
 .bd-gear{justify-self:end;width:40px;height:40px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};
   background:${T.cardSoft};display:flex;align-items:center;justify-content:center;cursor:pointer;}
-.bd-col{flex:1 1 auto;width:100%;max-width:640px;margin:0 auto;padding:${PAGE_AIR.min}px ${PAGE_AIR.side}px ${PAGE_AIR.md}px;
+.bd-col{flex:1 1 auto;width:100%;max-width:640px;min-height:100dvh;margin:0 auto;padding:${PAGE_AIR.min}px ${PAGE_AIR.side}px ${PAGE_AIR.md}px;
   display:flex;flex-direction:column;gap:${PACK_SPACE.lg}px;}
 .bd-card{padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .bd-card--list{padding:${PACK_SPACE.sm}px 0;gap:0;}
@@ -137,20 +141,21 @@ const CSS = `
 .bd-range input::-moz-range-thumb{pointer-events:auto;width:24px;height:24px;border-radius:${PACK_R.pill}px;
   background:${LAPIS.grad};border:2px solid ${T.card};box-shadow:${PACK_SHADOW.card};cursor:grab;}
 .bd-range__val{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;letter-spacing:.14em;color:${T.inkStrong};}
-/* ÚVOD — erb: nos v strede, okolo neho svet, ktorý spolu očucháte (Matej 25. 9.: „vetu
-   oživiť, rytina, vizuál, grafika"; návrh 5 z jeho hárku). Kresby sú z kitu, nie nové.
-   Prstenec sa pomaly točí — predobraz animácie loga, ktorá príde na záver. */
+/* ÚVOD — erb s animovaným logom (SnifferLogo) a jedna veta. */
 .bd-hero{padding:${PACK_SPACE.xl}px ${PACK_SPACE.lg}px;}
-.bd-crest{position:relative;width:${PACK_AVATAR.lg * 3}px;height:${PACK_AVATAR.lg * 3}px;margin:0 auto;}
-.bd-crest__nose{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
-.bd-crest__ring{position:absolute;inset:0;animation:bd-orbit 60s linear infinite;}
-.bd-crest__ring span{position:absolute;left:50%;top:50%;width:${PACK_SPACE.xl}px;height:${PACK_SPACE.xl}px;margin:-${PACK_SPACE.md}px 0 0 -${PACK_SPACE.md}px;
-  display:flex;align-items:center;justify-content:center;opacity:.8;}
-.bd-crest__ring span > *{animation:bd-orbit 60s linear infinite reverse;}
-@keyframes bd-orbit{to{transform:rotate(360deg);}}
-@media (prefers-reduced-motion: reduce){.bd-crest__ring,.bd-crest__ring span > *{animation:none;}}
 .bd-hero .bd-h2{font-size:${PACK_TEXT.h1}px;}
 .bd-hero .bd-lead{font-family:${FONT_TITLE};font-size:${PACK_TEXT.lead}px;line-height:1.45;color:${T.inkStrong};max-width:28ch;margin:0 auto;}
+.bd-hero .bd-lead--ui{font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkDim};}
+/* JEDNA OBRAZOVKA BEZ SCROLLU — obsah sa centruje margin:auto na dieťati, NIE
+   justify-content:center (pretečenie by sa rozdelilo na obe strany, lock PAGE_AIR). */
+.bd-stage{flex:1 1 auto;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;min-height:0;}
+.bd-stage__body{flex:1 1 auto;display:flex;flex-direction:column;}
+.bd-stage__body > .bd-card{margin:auto 0;}
+.bd-howcard{gap:${PACK_SPACE.lg}px;}
+.bd-disc--xl{width:${PACK_AVATAR.lg + PACK_SPACE.xl}px;height:${PACK_AVATAR.lg + PACK_SPACE.xl}px;}
+.bd-dots{display:flex;justify-content:center;gap:${PACK_SPACE.sm}px;}
+.bd-dots span{width:8px;height:8px;border-radius:${PACK_R.pill}px;background:${T.hairline};}
+.bd-dots span.is-on{background:${T.accentGold};}
 /* moja karta — štyri čísla PÚTNIKA v mriežke 2×2 */
 .bd-stats{display:grid;grid-template-columns:1fr 1fr;gap:${PACK_SPACE.sm}px;}
 .bd-stat{padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;}
@@ -164,6 +169,14 @@ const CSS = `
 .bd-center{align-items:center;text-align:center;}
 /* moja karta — náhľad, ako ma vidia */
 .bd-mine{padding:0;overflow:hidden;gap:0;}
+/* „Takto ťa vidia ostatní" na PC = jedna obrazovka: fotka vľavo, údaje v blokoch vpravo
+   (Matej 25. 9.). Na mobile pod sebou a so scrollom. */
+@media (min-width:768px){
+  .bd-col--wide{max-width:${PACK_COL_INNER + 2 * PAGE_AIR.side}px;}
+  .bd-mine{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);}
+  .bd-mine .pk-photo{aspect-ratio:auto;height:100%;min-height:${PACK_AVATAR.lg * 6}px;max-height:calc(100dvh - ${PACK_SPACE.xxxl * 4}px);}
+  .bd-mine__body{justify-content:center;}
+}
 .bd-mine .pk-photo{border-radius:0;border:0;aspect-ratio:4/3;}
 .bd-mine__body{padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 .bd-mine__name{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
@@ -188,6 +201,7 @@ export default function PackBuddy() {
   const [session, setSession] = useState<Session | null>(null);
   const [settings, setSettings] = useState<BuddySettings | null>(null);
   const [view, setView] = useState<View | null>(null);
+  const [introStep, setIntroStep] = useState(0);
   const [open, setOpen] = useState<BuddyStepKey | null>(null);
   const [serverMissing, setServerMissing] = useState<BuddyStepKey[] | null>(null);
   const [busy, setBusy] = useState(false);
@@ -208,7 +222,7 @@ export default function PackBuddy() {
 
   // Prvé otvorenie: zapnutý ide rovno dnu, ostatní cez úvod (0a).
   useEffect(() => {
-    if (settings && view === null) setView(settings.enabled ? 'home' : 'intro');
+    if (settings && view === null) setView(settings.enabled ? 'home' : introSeen() ? 'gate' : 'intro');
   }, [settings, view]);
 
   const meta = (session?.user.user_metadata ?? {}) as Record<string, string | undefined>;
@@ -267,7 +281,8 @@ export default function PackBuddy() {
 
   const back = () => {
     if (view === 'settings') setView(s.enabled ? 'home' : 'gate');
-    else if (view === 'gate') setView('intro');
+    else if (view === 'gate' && !introSeen()) { setIntroStep(3); setView('intro'); }
+    else if (view === 'intro' && introStep > 0) setIntroStep(introStep - 1);
     else navigate('/pack/map');
   };
 
@@ -381,7 +396,7 @@ export default function PackBuddy() {
 
   // Dvojica medailónov: človek + pes. Fotka BUDDY má prednosť pred avatarom — je to tá,
   // ktorú uvidia ostatní.
-  const humanPic = human?.buddyPhoto || avatarUrl || null;
+  const humanPic = photoUrl(human?.buddyPhoto) || avatarUrl || null;
   const pair = (
     <div className="bd-pair" aria-hidden>
       <span className="pk-medallion pk-medallion--lg">
@@ -397,7 +412,7 @@ export default function PackBuddy() {
   const myCard = (
     <div className="bd-card bd-mine" style={{ ...PACK_BOX.card }}>
       <div className={`pk-photo bd-photo${human?.buddyPhoto ? '' : ' bd-photo--empty'}`}>
-        {human?.buddyPhoto ? <img src={human.buddyPhoto} alt="" /> : tx('pack.buddy.photoEmpty', 'You and your dog in one photo')}
+        {human?.buddyPhoto ? <img src={photoUrl(human.buddyPhoto)} alt="" /> : tx('pack.buddy.photoEmpty', 'You and your dog in one photo')}
       </div>
       <div className="bd-mine__body">
         <p className="bd-mine__name">{[name, human?.age].filter(Boolean).join(' · ')}</p>
@@ -434,58 +449,52 @@ export default function PackBuddy() {
   return (
     <Shell title={title} onBack={back} backLabel={tx('pack.buddy.back', 'Back')}
       onGear={view !== 'settings' ? () => setView('settings') : undefined}
-      gearLabel={tx('pack.buddy.settings', 'Settings')}>
+      gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'done' || view === 'home'}>
       {view === 'intro' && (
-        <>
-          <div className="bd-card bd-center bd-hero hf-carved" style={{ ...PACK_BOX.card }}>
-            <span className="hf-carved-rim" aria-hidden />
-            {/* DOČASNÉ LOGO = nos z kitu (`nose.svg`). Logo na mieru sa rieši na záver
-                (Matej 25. 9.), hárok jeho návrhov v Canve. */}
-            <div className="bd-crest" aria-hidden>
-              <div className="bd-crest__ring">
-                {CREST_ICONS.map((name, i) => {
-                  const a = (i / CREST_ICONS.length) * 2 * Math.PI - Math.PI / 2;
-                  const r = PACK_AVATAR.lg + PACK_SPACE.md;
-                  return (
-                    <span key={name} style={{ transform: `translate(${Math.cos(a) * r}px, ${Math.sin(a) * r}px)` }}>
-                      <BrandIcon name={name} size={PACK_SPACE.lg + PACK_SPACE.xs} tint="gold" />
-                    </span>
-                  );
-                })}
+        /* ONBOARDING (Matej 25. 9.): „najskôr len jeden blok LOGO a tagline, až po kliknutí
+           ďalej by sa zobrazil postup… kroky v kartách, aby nebol potrebný scrolling".
+           Štyri obrazovky, každá sa zmestí bez scrollu: 0 logo · 1–3 jeden krok na kartu.
+           Len PRVÝ raz — potom sa ide rovno do brány (`INTRO_SEEN`). */
+        <div className="bd-stage">
+          <div className="bd-stage__body">
+            {introStep === 0 ? (
+              <div className="bd-card bd-center bd-hero hf-carved" style={{ ...PACK_BOX.card }}>
+                <span className="hf-carved-rim" aria-hidden />
+                <SnifferLogo size={PACK_AVATAR.lg * 3 + PACK_SPACE.xl} />
+                <h2 className="bd-h2">{tx('pack.buddy.title', 'Buddies')}</h2>
+                <p className="bd-lead">{tx('pack.buddy.intro', 'Find buddies to sniff out the world with.')}</p>
               </div>
-              <div className="bd-crest__nose">
-                <BrandIcon name="nose" size={PACK_AVATAR.lg + PACK_SPACE.md} tint="gold" />
-              </div>
-            </div>
-            <h2 className="bd-h2">{tx('pack.buddy.title', 'Buddies')}</h2>
-            <p className="bd-lead">
-              {tx('pack.buddy.intro', 'Find buddies to sniff out the world with.')}
-            </p>
+            ) : (() => {
+              const n = String(introStep) as '1' | '2' | '3';
+              return (
+                <div key={n} className="bd-card bd-center bd-hero bd-howcard hf-carved" style={{ ...PACK_BOX.card }}>
+                  <span className="hf-carved-rim" aria-hidden />
+                  <span className="bd-eyebrow">{tx('pack.buddy.howTitle', 'How it works')} · {n}/3</span>
+                  <span className="bd-disc bd-disc--xl" style={{ background: HOW_STYLE[n].bg }} aria-hidden>
+                    <BrandIcon name={HOW_STYLE[n].icon} size={PACK_AVATAR.md} tint="white" />
+                  </span>
+                  <h2 className="bd-h2">{tx(`pack.buddy.how${n}`, HOW_EN[n][0])}</h2>
+                  <p className="bd-lead bd-lead--ui">{tx(`pack.buddy.how${n}Sub`, HOW_EN[n][1])}</p>
+                </div>
+              );
+            })()}
           </div>
-          <div className="bd-card" style={{ ...PACK_BOX.card }}>
-            <span className="bd-eyebrow">{tx('pack.buddy.howTitle', 'How it works')}</span>
-            <ol className="bd-steps">
-              {(['1', '2', '3'] as const).map((n) => (
-                <li key={n}>
-                  <span className="bd-disc" style={{ background: HOW_STYLE[n].bg }} aria-hidden>
-                    <BrandIcon name={HOW_STYLE[n].icon} size={PACK_SPACE.lg + PACK_SPACE.xs} tint="white" />
-                    <i>{n}</i>
-                  </span>
-                  <span>
-                    <b>{tx(`pack.buddy.how${n}`, HOW_EN[n][0])}</b>
-                    <small>{tx(`pack.buddy.how${n}Sub`, HOW_EN[n][1])}</small>
-                  </span>
-                </li>
-              ))}
-            </ol>
+          <div className="bd-dots" aria-hidden>
+            {[0, 1, 2, 3].map((i) => <span key={i} className={i === introStep ? 'is-on' : ''} />)}
           </div>
           <div className="bd-dock">
-            <button type="button" className="bd-cta" onClick={() => setView('gate')}>
-              {tx('pack.buddy.introCta', 'I want buddies')}
-            </button>
+            {introStep < 3 ? (
+              <button type="button" className="bd-cta" onClick={() => setIntroStep(introStep + 1)}>
+                {tx('pack.buddy.next', 'Next')}
+              </button>
+            ) : (
+              <button type="button" className="bd-cta" onClick={() => { markIntroSeen(); setView('gate'); }}>
+                {tx('pack.buddy.introCta', 'I want buddies')}
+              </button>
+            )}
             <p className="bd-note bd-note--center">{tx('pack.buddy.introOff', 'Off by default')}</p>
           </div>
-        </>
+        </div>
       )}
 
       {view === 'gate' && (
@@ -562,11 +571,11 @@ export default function PackBuddy() {
 
       {view === 'done' && (
         <>
-          <div className="bd-card bd-center" style={{ ...PACK_BOX.card }}>
+          {/* Jedna obrazovka (Matej 25. 9.) — nadpis a veta bez vlastnej karty, karta je hlavná. */}
+          <div className="bd-center" style={{ display: 'flex', flexDirection: 'column', gap: PACK_SPACE.xs }}>
             <h2 className="bd-h2">{tx('pack.buddy.doneTitle', 'You’re in the buddy pack')}</h2>
-            <p className="bd-lead">{tx('pack.buddy.doneNote', 'Your card shows only to people who meet your conditions — and whose conditions you meet.')}</p>
+            <p className="bd-note">{tx('pack.buddy.doneNote', 'Your card shows only to people who meet your conditions — and whose conditions you meet.')}</p>
           </div>
-          <span className="bd-eyebrow">{tx('pack.buddy.seenAs', 'This is how they see you')}</span>
           {myCard}
           <div className="bd-dock">
             <button type="button" className="bd-cta" onClick={() => setView('home')}>{tx('pack.buddy.showMe', 'Show me them')}</button>
@@ -642,8 +651,11 @@ export default function PackBuddy() {
   );
 }
 
-/** Svet okolo nosa — mapa, vrch, les, voda, slnko, kosť, srdce, kaviareň. Všetko z kitu. */
-const CREST_ICONS = ['map', 'mountain', 'sun', 'forest', 'water-waves', 'bone', 'heart', 'cafe'];
+/** Onboarding len prvý raz (Matej 25. 9.: „toto by bolo asi len prvý krát"). Pohodlie
+ *  jedného prehliadača — keď sa stratí, človek uvidí úvod znova a nič sa nerozbije. */
+const INTRO_SEEN = 'dogypt_sniffer_intro';
+function introSeen(): boolean { try { return localStorage.getItem(INTRO_SEEN) === '1'; } catch { return false; } }
+function markIntroSeen() { try { localStorage.setItem(INTRO_SEEN, '1'); } catch { /* bez úložiska ostane úvod */ } }
 
 /** Farba a kresba troch krokov úvodu (Matej 25. 9.: „zatraktívniť kroky farebne"). */
 const HOW_STYLE: Record<'1' | '2' | '3', { bg: string; icon: string }> = {
@@ -661,8 +673,8 @@ const HOW_EN: Record<'1' | '2' | '3', [string, string]> = {
   '3': ['You catch each other’s scent', 'A match is just a notice. Writing is up to you.'],
 };
 
-function Shell({ title, onBack, backLabel, onGear, gearLabel, children }: {
-  title: string; onBack: () => void; backLabel: string; onGear?: () => void; gearLabel?: string; children?: ReactNode;
+function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, children }: {
+  title: string; onBack: () => void; backLabel: string; onGear?: () => void; gearLabel?: string; wide?: boolean; children?: ReactNode;
 }) {
   return (
     <div className="pk-paper bd-root">
@@ -677,7 +689,7 @@ function Shell({ title, onBack, backLabel, onGear, gearLabel, children }: {
       {/* HLAVIČKA BEZ NADPISU (Matej 25. 9.: „bez horného headru, šípku a nastavenia na
           okraje obsahu panela, nie úplne na kraj obrazovky"). Lišta preto stojí VNÚTRI
           stĺpca a jej kraje sú kraje kariet. Meno obrazovky nesie karta pod ňou. */}
-      <main className="bd-col" aria-label={title}>
+      <main className={`bd-col${wide ? ' bd-col--wide' : ''}`} aria-label={title}>
         <div className="bd-bar">
           <BackButton tone="pale" onClick={onBack} label={backLabel} />
           {onGear && (
@@ -788,7 +800,7 @@ function PhotoEditor({ url, uid, tx }: { url?: string; uid: string | null; tx: T
     <div className="bd-upl">
       {/* Malý štvorcový náhľad (Matej 25. 9.: „nahratie foto musí byť menšie, nie obrovské"). */}
       <div className={`pk-photo${url ? '' : ' bd-photo--empty'}`}>
-        {url ? <img src={url} alt="" /> : '+'}
+        {url ? <img src={photoUrl(url)} alt="" /> : '+'}
       </div>
       <div>
       <p className="bd-note">{tx('pack.buddy.photoNote', 'Both of you have to be in it.')}</p>

@@ -3143,6 +3143,7 @@ export const sk: Partial<Dict> = {
   'pack.buddy.gateTitle': "Chýba {n} z {total}",
   'pack.buddy.intro': "Nájdi parťákov, s ktorými môžete čuchať svet spoločne.",
   'pack.buddy.introCta': "Chcem parťákov",
+  'pack.buddy.next': "Ďalej",
   'pack.buddy.introOff': "Predvolene vypnuté",
   'pack.buddy.gateNote': "Čo tu doplníš, zapíše sa do tvojho profilu a do DOG ID psa — nič dvakrát.",
   'pack.buddy.group.human': "Ty",

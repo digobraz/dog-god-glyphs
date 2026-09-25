@@ -3487,6 +3487,7 @@ export const en = {
   'pack.buddy.gateTitle': "{n} of {total} missing",
   'pack.buddy.intro': "Find buddies to sniff out the world with.",
   'pack.buddy.introCta': "I want buddies",
+  'pack.buddy.next': "Next",
   'pack.buddy.introOff': "Off by default",
   'pack.buddy.gateNote': "Whatever you fill in here goes to your profile and your dog’s DOG ID — nothing twice.",
   'pack.buddy.group.human': "You",

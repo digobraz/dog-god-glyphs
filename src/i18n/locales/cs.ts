@@ -1624,6 +1624,7 @@ export const cs: Partial<Dict> = {
   'pack.buddy.gateTitle': "Chybí {n} z {total}",
   'pack.buddy.intro': "Najdi parťáky, se kterými můžete čichat svět společně.",
   'pack.buddy.introCta': "Chci parťáky",
+  'pack.buddy.next': "Dál",
   'pack.buddy.introOff': "Ve výchozím stavu vypnuto",
   'pack.buddy.gateNote': "Co tu doplníš, zapíše se do tvého profilu a do DOG ID psa — nic dvakrát.",
   'pack.buddy.group.human': "Ty",
