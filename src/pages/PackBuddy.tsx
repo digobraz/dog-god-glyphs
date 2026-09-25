@@ -20,6 +20,7 @@ import { BackButton } from '@/components/pack/BackButton';
 import { AinubisBubble } from '@/components/pack/ainubisSheet';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { usePilgrimStats } from '@/components/pack/usePilgrimStats';
+import { FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PAGE_AIR,
   PACK_SHADOW, PACK_AVATAR, PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS, MEDALLION_CSS, FONT_TITLE, FONT_UI,
@@ -136,6 +137,20 @@ const CSS = `
 .bd-range input::-moz-range-thumb{pointer-events:auto;width:24px;height:24px;border-radius:${PACK_R.pill}px;
   background:${LAPIS.grad};border:2px solid ${T.card};box-shadow:${PACK_SHADOW.card};cursor:grab;}
 .bd-range__val{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;letter-spacing:.14em;color:${T.inkStrong};}
+/* ÚVOD — erb: nos v strede, okolo neho svet, ktorý spolu očucháte (Matej 25. 9.: „vetu
+   oživiť, rytina, vizuál, grafika"; návrh 5 z jeho hárku). Kresby sú z kitu, nie nové.
+   Prstenec sa pomaly točí — predobraz animácie loga, ktorá príde na záver. */
+.bd-hero{padding:${PACK_SPACE.xl}px ${PACK_SPACE.lg}px;}
+.bd-crest{position:relative;width:${PACK_AVATAR.lg * 3}px;height:${PACK_AVATAR.lg * 3}px;margin:0 auto;}
+.bd-crest__nose{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+.bd-crest__ring{position:absolute;inset:0;animation:bd-orbit 60s linear infinite;}
+.bd-crest__ring span{position:absolute;left:50%;top:50%;width:${PACK_SPACE.xl}px;height:${PACK_SPACE.xl}px;margin:-${PACK_SPACE.md}px 0 0 -${PACK_SPACE.md}px;
+  display:flex;align-items:center;justify-content:center;opacity:.8;}
+.bd-crest__ring span > *{animation:bd-orbit 60s linear infinite reverse;}
+@keyframes bd-orbit{to{transform:rotate(360deg);}}
+@media (prefers-reduced-motion: reduce){.bd-crest__ring,.bd-crest__ring span > *{animation:none;}}
+.bd-hero .bd-h2{font-size:${PACK_TEXT.h1}px;}
+.bd-hero .bd-lead{font-family:${FONT_TITLE};font-size:${PACK_TEXT.lead}px;line-height:1.45;color:${T.inkStrong};max-width:28ch;margin:0 auto;}
 /* moja karta — štyri čísla PÚTNIKA v mriežke 2×2 */
 .bd-stats{display:grid;grid-template-columns:1fr 1fr;gap:${PACK_SPACE.sm}px;}
 .bd-stat{padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;}
@@ -422,13 +437,29 @@ export default function PackBuddy() {
       gearLabel={tx('pack.buddy.settings', 'Settings')}>
       {view === 'intro' && (
         <>
-          <div className="bd-card bd-center" style={{ ...PACK_BOX.card }}>
-            {/* DOČASNÉ LOGO = nos z kitu (`nose.svg`). Logo na mieru (FF → psí nos) sa vyberá,
-                zadanie `plany/sniffer-logo-2026-09-24.md`. */}
-            <BrandIcon name="nose" size={PACK_AVATAR.lg} tint="gold" />
+          <div className="bd-card bd-center bd-hero hf-carved" style={{ ...PACK_BOX.card }}>
+            <span className="hf-carved-rim" aria-hidden />
+            {/* DOČASNÉ LOGO = nos z kitu (`nose.svg`). Logo na mieru sa rieši na záver
+                (Matej 25. 9.), hárok jeho návrhov v Canve. */}
+            <div className="bd-crest" aria-hidden>
+              <div className="bd-crest__ring">
+                {CREST_ICONS.map((name, i) => {
+                  const a = (i / CREST_ICONS.length) * 2 * Math.PI - Math.PI / 2;
+                  const r = PACK_AVATAR.lg + PACK_SPACE.md;
+                  return (
+                    <span key={name} style={{ transform: `translate(${Math.cos(a) * r}px, ${Math.sin(a) * r}px)` }}>
+                      <BrandIcon name={name} size={PACK_SPACE.lg + PACK_SPACE.xs} tint="gold" />
+                    </span>
+                  );
+                })}
+              </div>
+              <div className="bd-crest__nose">
+                <BrandIcon name="nose" size={PACK_AVATAR.lg + PACK_SPACE.md} tint="gold" />
+              </div>
+            </div>
             <h2 className="bd-h2">{tx('pack.buddy.title', 'Buddies')}</h2>
             <p className="bd-lead">
-              {tx('pack.buddy.intro', 'Buddies are people your dog goes out with. Until you switch this on, you see nobody — and nobody sees you.')}
+              {tx('pack.buddy.intro', 'Find buddies to sniff out the world with.')}
             </p>
           </div>
           <div className="bd-card" style={{ ...PACK_BOX.card }}>
@@ -611,6 +642,9 @@ export default function PackBuddy() {
   );
 }
 
+/** Svet okolo nosa — mapa, vrch, les, voda, slnko, kosť, srdce, kaviareň. Všetko z kitu. */
+const CREST_ICONS = ['map', 'mountain', 'sun', 'forest', 'water-waves', 'bone', 'heart', 'cafe'];
+
 /** Farba a kresba troch krokov úvodu (Matej 25. 9.: „zatraktívniť kroky farebne"). */
 const HOW_STYLE: Record<'1' | '2' | '3', { bg: string; icon: string }> = {
   '1': { bg: T.accentGold, icon: 'badge' },
@@ -638,6 +672,7 @@ function Shell({ title, onBack, backLabel, onGear, gearLabel, children }: {
       <style>{PHOTO_CSS}</style>
       <style>{PROGRESS_CSS}</style>
       <style>{MEDALLION_CSS}</style>
+      <style>{FLOW_CARVE_CSS}</style>
       <style>{CSS}</style>
       {/* HLAVIČKA BEZ NADPISU (Matej 25. 9.: „bez horného headru, šípku a nastavenia na
           okraje obsahu panela, nie úplne na kraj obrazovky"). Lišta preto stojí VNÚTRI

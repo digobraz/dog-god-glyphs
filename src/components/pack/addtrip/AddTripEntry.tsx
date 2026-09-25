@@ -23,7 +23,8 @@ import {
   panelFor, isReady, isSoon, type CreateId, type CreateObject, type CreatePlace,
 } from '@/components/pack/createRegistry';
 import { POINTS } from '@/lib/tripPoints';
-import { EVENTS_LIVE, WISHES_LIVE } from '@/lib/packFlags';
+import { BUDDY_LIVE, EVENTS_LIVE, WISHES_LIVE } from '@/lib/packFlags';
+import { useNavigate } from 'react-router-dom';
 import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { RightGate } from '@/components/pack/RightGate';
 import type { PawmateRight } from '@/lib/pawmateRights';
@@ -141,7 +142,7 @@ const KINDS: KindDef[] = [
 //    `panel3`). Do 22. 9. z panela videla len tri dlaždice mapy, ostatných desať nie.
 // ⚠️ 🖼️ PRÍSPEVOK uvoľnilo 📝, ktoré kolidovalo s čipom „poznámka" v denníku.
 const EMOJI: Record<CreateId, string> = {
-  trip: '🐾', wish: '🍑', note: '💬', event: '📣', service: '🏥', article: '📕',
+  trip: '🐾', wish: '🍑', sniffer: '👃', note: '💬', event: '📣', service: '🏥', article: '📕',
   diary: '✍️', photo: '📷',
   post: '🖼️',
   chat: '🤖', brain: '📥', board: '❓',
@@ -202,6 +203,7 @@ const EVENT_BLOCKS: Array<{ origin: 'own' | 'tip'; emoji: string; titleKey: stri
 
 export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryProps) {
   const t = useT();
+  const navigate = useNavigate();
   // Názvy položiek panela sú v zadaní §6 ponechané MATEJOVI, takže register nesie kľúč
   // AJ dočasný text. `tx` je ten istý zvyk ako v `RightGate`/`DogPassport`: chýbajúci
   // preklad nesmie vyhodiť na obrazovku holý kľúč (CLAUDE.md, názvoslovie).
@@ -304,6 +306,8 @@ export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryP
    *    jedinú položku a dopĺňa sa OHLÁSENÝM, nie vymysleným.
    */
   const objectTile = (o: CreateObject) => {
+    // SNIFFER je za `BUDDY_LIVE` (migrácie len na DEV) — na LIVE sa dlaždica neukáže vôbec.
+    if (o.id === 'sniffer' && !BUDDY_LIVE) return null;
     const ready = isReady(o);
     return (
       <button
@@ -312,7 +316,12 @@ export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryP
         className={`att-entry-row${ready ? '' : ' att-entry-row--soon'}`}
         disabled={!ready}
         aria-disabled={!ready}
-        onClick={() => { if (ready) onCreate?.(o); }}
+        onClick={() => {
+          if (!ready) return;
+          // Routa (SNIFFER) sa otvára rovno — handler ju nepozná a na mape `onCreate` nie je.
+          if (o.target.kind === 'route') { onClose(); navigate(o.target.path); return; }
+          onCreate?.(o);
+        }}
       >
         <span className="att-entry-emoji" aria-hidden="true">{EMOJI[o.id]}</span>
         <span className="att-entry-title">{tx(o.labelKey, o.labelFallback)}</span>

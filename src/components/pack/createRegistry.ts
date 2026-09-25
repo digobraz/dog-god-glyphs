@@ -110,7 +110,7 @@ export type CreateIcon =
 
 // ── OBJEKT ──────────────────────────────────────────────────────────────────────────────────
 export type CreateId =
-  | 'trip' | 'wish' | 'note' | 'event' | 'service' | 'article'
+  | 'trip' | 'wish' | 'sniffer' | 'note' | 'event' | 'service' | 'article'
   | 'diary' | 'photo'
   | 'post'
   | 'chat' | 'brain' | 'board'
@@ -192,6 +192,23 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     state: 'live',
     panel: true,
     note: 'AINUBIS vedie: miesto → druh → kedy → popis → PRIPNÚŤ. Chcem tiež = kópia, nie väzba.',
+  },
+  {
+    // SNIFFER (Matej 25. 9. 2026: „v + môže byť ‚otvoriť sniffer' a otvorí swajp").
+    // 🔴 VÝNIMKA z lock §8.1 („do registra `+` nepribúda NIČ") — Matej ju dal s tým lockom
+    //    pred sebou, lock je doplnený. Nevzniká objekt, len vchod: routa, nie handler.
+    id: 'sniffer',
+    labelKey: 'pack.addTrip.entry.kind.sniffer.title',
+    labelFallback: 'Open SNIFFER',
+    icon: { kind: 'panel' },
+    place: 'VON',
+    needs: 'pes',
+    target: { kind: 'route', path: '/pack/sniffer' },
+    back: 'origin',
+    lands: '/pack/sniffer · swipe',
+    state: 'live',
+    panel: true,
+    note: 'Vchod, nie objekt — zhoda sa nevytvára, vzniká z dvoch swipov. Za BUDDY_LIVE.',
   },
   {
     id: 'note',
