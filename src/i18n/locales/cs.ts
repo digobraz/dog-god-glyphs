@@ -305,6 +305,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.checkoutNew.get.ainubis': 'AINUBIS',
   'heroglyph.flow.checkoutNew.get.sniffer': 'SNIFFER',
   'heroglyph.flow.checkoutNew.promoBack': 'Zpět',
+  'heroglyph.flow.checkoutNew.secureShort': 'Bezpečná platba · Stripe',
   'heroglyph.flow.checkoutNew.promoAsk': 'Mám promo kód',
   'heroglyph.flow.checkoutNew.total': 'Celkem',
   'heroglyph.flow.checkoutNew.pay': 'Zaplatit {sum}',

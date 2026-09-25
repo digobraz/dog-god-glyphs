@@ -499,6 +499,7 @@ export const en = {
   'heroglyph.flow.checkoutNew.get.ainubis': 'AINUBIS',
   'heroglyph.flow.checkoutNew.get.sniffer': 'SNIFFER',
   'heroglyph.flow.checkoutNew.promoBack': 'Back',
+  'heroglyph.flow.checkoutNew.secureShort': 'Secure payment · Stripe',
   'heroglyph.flow.checkoutNew.promoAsk': 'I have a promo code',
   'heroglyph.flow.checkoutNew.total': 'Total',
   'heroglyph.flow.checkoutNew.pay': 'Pay {sum}',

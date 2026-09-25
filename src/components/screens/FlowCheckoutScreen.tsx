@@ -377,12 +377,7 @@ export function FlowCheckoutScreen() {
               {/* Menším písmom a oddelené RYTINOU (Matej 25. 9. 2026) — ten istý
                   vlys ako „Tvoj pes", nie ďalší nadpis. */}
               <p className="hf-legend co-getlegend">{t('heroglyph.flow.checkoutNew.getTitle')}</p>
-              {/* VIAC INFO ako zelený čip na stred hneď pod rytinou, štítky pod ním
-                  vycentrované (Matej 25. 9. 2026). */}
               <div className="co-getrow">
-                <button type="button" className="co-more" onClick={() => setPanel('get')}>
-                  {t('heroglyph.flow.checkoutNew.getMore')}
-                </button>
                 <ul className="co-chips">
                   {GET_KEYS.map((k) => (
                     <li key={k} className="co-chip">
@@ -390,6 +385,16 @@ export function FlowCheckoutScreen() {
                     </li>
                   ))}
                 </ul>
+                {/* Najprv ČO dostaneš (štítky), potom VIAC INFO a KAM IDÚ PENIAZE vedľa seba
+                    na stred (Matej 25. 9. 2026). */}
+                <div className="co-getbtns">
+                  <button type="button" className="co-more" onClick={() => setPanel('get')}>
+                    {t('heroglyph.flow.checkoutNew.getMore')}
+                  </button>
+                  <button type="button" className="hf-hint" onClick={() => setPanel('money')}>
+                    {t('payment.transparency.eyebrow')}
+                  </button>
+                </div>
               </div>
 
               {/* ── ZAPLATIŤ / NECHCEM PLATIŤ — vedľa seba. Plná plocha patrí
@@ -398,6 +403,9 @@ export function FlowCheckoutScreen() {
                   na stene (Matej 25. 9.). ── */}
               {/* ZAPLATIŤ VPRAVO, bližšie k palcu, 70 % · NECHCEM PLATIŤ vľavo 30 %
                   (Matej 25. 9. 2026: *„pozitívne napravo, bližšie k palcu"*). */}
+              {/* Rytina nad CTA (Matej 25. 9. 2026) — ten istý vlys ako pri „Čo
+                  dostaneš", len bez nápisu. */}
+              <p className="hf-legend co-rule" aria-hidden />
               <div className="co-actions">
                 <button type="button" className="co-decline" onClick={() => navigate('/heroglyph/stay')} disabled={loading}>
                   {t('heroglyph.flow.checkoutNew.decline')}
@@ -407,12 +415,21 @@ export function FlowCheckoutScreen() {
                     ? <span className="co-cta-in"><Loader2 className="h-4 w-4 animate-spin" />{waitingPhoto ? t('payment.sealing') : t('payment.preparing')}</span>
                     : t('heroglyph.flow.checkoutNew.pay', { sum: `€${totalShown}` })}
                 </button>
+                {/* Pod každým tlačidlom jeho drobnosť (Matej 25. 9. 2026): promo kód
+                    pod NECHCEM PLATIŤ, zabezpečená platba pod CTA. */}
+                <span className="co-under">
+                  {!promoOpen && (
+                    <button type="button" className="hf-hint" onClick={() => setPromoOpen(true)}>
+                      {t('heroglyph.flow.checkoutNew.promoAsk')}
+                    </button>
+                  )}
+                </span>
+                <p className="co-secure co-under">{t('heroglyph.flow.checkoutNew.secureShort')}</p>
               </div>
               {payError && <p role="alert" className="co-err">{payError}</p>}
-              <p className="co-secure">{t('payment.secured')}</p>
 
-              {/* ── PROMO + KAM IDÚ PENIAZE — zbalené, väčšina ľudí ich nepotrebuje ── */}
-              {promoOpen ? (
+              {/* ── PROMO — otvorený kód ide na celú šírku pod tlačidlá ── */}
+              {promoOpen && (
                 <div className="co-promo">
                   <input
                     className={`hf-field co-promo-f${promoState === 'ok' ? ' is-valid' : ''}`}
@@ -444,15 +461,6 @@ export function FlowCheckoutScreen() {
                     }}
                   >
                     {t('heroglyph.flow.checkoutNew.promoBack')}
-                  </button>
-                </div>
-              ) : (
-                <div className="co-links">
-                  <button type="button" className="hf-hint" onClick={() => setPromoOpen(true)}>
-                    {t('heroglyph.flow.checkoutNew.promoAsk')}
-                  </button>
-                  <button type="button" className="hf-hint" onClick={() => setPanel('money')}>
-                    {t('payment.transparency.eyebrow')}
                   </button>
                 </div>
               )}
@@ -660,7 +668,13 @@ const CHECKOUT_CSS = `
 .co-decline:hover:not(:disabled) { background: ${LAPIS.fill}; }
 .co-decline:disabled { opacity: .4; cursor: default; }
 
-.co-links { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.co-rule { gap: 0; margin: 0; }
+.co-getbtns { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; }
+.co-actions { row-gap: 4px; }
+.co-under { justify-self: center; text-align: center; }
+/* Stĺpec pod NECHCEM PLATIŤ má na 390 px ~92 px ⇒ odkaz na jeden riadok, smie
+   presahovať stĺpec (je centrovaný, vedľa je len drobný text). */
+.co-under .hf-hint, .co-under.co-secure { white-space: nowrap; font-size: 10px; }
 .co-promo { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; }
 .co-promo-back { grid-column: 2; justify-self: center; }
 .co-promo-f { height: 40px; text-transform: uppercase; }

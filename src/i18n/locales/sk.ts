@@ -387,6 +387,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.checkoutNew.get.ainubis': 'AINUBIS',
   'heroglyph.flow.checkoutNew.get.sniffer': 'SNIFFER',
   'heroglyph.flow.checkoutNew.promoBack': 'Späť',
+  'heroglyph.flow.checkoutNew.secureShort': 'Bezpečná platba · Stripe',
   'heroglyph.flow.checkoutNew.promoAsk': 'Mám promo kód',
   'heroglyph.flow.checkoutNew.total': 'Spolu',
   'heroglyph.flow.checkoutNew.pay': 'Zaplatiť {sum}',
