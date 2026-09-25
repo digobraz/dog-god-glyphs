@@ -140,10 +140,26 @@ export function FlowRevealScreen() {
     if (v.length > MESSAGE_MAX_CHARS) return;
     setDogEssence(dogId, 'dogMessage', v);
     if (isMain) setSelection('dogMessage', v);
+    if (v) setMissing(false);
     setModalOpen(false);
   };
 
   const dogName = dog?.name || t('heroglyph.flow.yourDogFallback');
+
+  // ── ODKAZ JE POVINNÝ (Matej 25. 9. 2026: *„odkaz na stenu by som dal
+  //    povinný"*) — pre KAŽDÉHO psa, lebo každý má na stene vlastnú kartu.
+  //    Tlačidlo ostáva aktívne (vzor z pokladne 11. 7.: sivé tlačidlo vyzerá
+  //    rozbito); klik bez odkazu prepne na prvého psa, ktorému chýba, a
+  //    rozsvieti jeho riadok.
+  const msgOf = (id: string) =>
+    ((id === MAIN_DOG_ID ? (dogEssence[id]?.dogMessage ?? selections.dogMessage) : dogEssence[id]?.dogMessage) || '').trim();
+  const [missing, setMissing] = useState(false);
+  const goOn = () => {
+    const i = dogs.findIndex((d) => !msgOf(d.id));
+    if (i < 0) { navigate('/checkout'); return; }
+    setCur(i);
+    setMissing(true);
+  };
 
   if (!flowOk) return null;
 
@@ -272,7 +288,7 @@ export function FlowRevealScreen() {
 
               {/* ODKAZ NA STENU — riadok, ktorý vyzerá ako kúsok karty na stene:
                   fotka psa + odkaz (alebo výzva). Ťuk = popup. */}
-              <button type="button" className={`rv-msg${storedMsg ? ' has' : ''}`} onClick={openModal}>
+              <button type="button" className={`rv-msg${storedMsg ? ' has' : ''}${missing && !storedMsg ? ' need' : ''}`} onClick={openModal}>
                 {dog?.photo
                   ? <img className="rv-msg-photo" src={dog.photo} alt="" />
                   : <span className="rv-msg-photo rv-msg-photo--empty">{dogName.slice(0, 1)}</span>}
@@ -286,7 +302,10 @@ export function FlowRevealScreen() {
                 </span>
               </button>
 
-              <button type="button" className="hf-cta" onClick={() => navigate('/checkout')}>
+              {missing && !storedMsg && (
+                <p role="alert" className="hf-alert">{t('heroglyph.flow.revealNew.msgRequired', { dogName })}</p>
+              )}
+              <button type="button" className="hf-cta" onClick={goOn}>
                 {t('heroglyph.flow.breed.continue')}
               </button>
             </div>
@@ -431,6 +450,8 @@ const REVEAL_CSS = `
   background: linear-gradient(135deg, rgba(255, 253, 247, 0.55), rgba(242, 226, 189, 0.45));
 }
 .rv-msg.has { border-style: solid; }
+/* Povinný odkaz chýba — ten istý červený tón ako \`.hf-alert\`. */
+.rv-msg.need { border-color: #B25640; border-style: solid; }
 .rv-msg-photo {
   flex: 0 0 auto; width: 40px; height: 40px; border-radius: ${PACK_R.tile}px;
   object-fit: cover; border: 1.5px solid ${LAB.hairline};

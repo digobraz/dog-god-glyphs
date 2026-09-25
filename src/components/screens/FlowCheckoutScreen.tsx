@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
@@ -7,7 +8,7 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 import { PageTopBar } from '@/components/PageTopBar';
-import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
+import { FLOW_PALE_CSS, FLOW_CARVE_CSS, HF } from '@/components/screens/flowPaleSkin';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { PACK_R } from '@/components/pack/packTheme';
 import { LAB } from '@/lib/labTheme';
@@ -143,6 +144,7 @@ export function FlowCheckoutScreen() {
 
   // ── KAM IDÚ PENIAZE (zbalené) ─────────────────────────────────────────────
   const [moneyOpen, setMoneyOpen] = useState(false);
+  const [getOpen, setGetOpen] = useState(false);
 
   // ── PLATBA ────────────────────────────────────────────────────────────────
   const [loading, setLoading] = useState(false);
@@ -267,11 +269,16 @@ export function FlowCheckoutScreen() {
                 </div>
               )}
 
-              {/* ── SVORKA — pes = riadok s cenou ─────────────────────────── */}
+              {/* ── SVORKA — psi ako KARTY vedľa seba (Matej 25. 9.: *„multipsy budú
+                  v 2/3 stĺpcoch vedľa seba, nie pod sebou"*). Stĺpcov je najviac
+                  toľko, koľko je psov — jeden pes nestojí v tretine dosky. ── */}
               <p className="hf-legend">
                 {t(dogs.length > 1 ? 'heroglyph.flow.checkoutNew.dogsMany' : 'heroglyph.flow.checkoutNew.dogsOne')}
               </p>
-              <ul className="co-dogs">
+              <ul
+                className="co-dogs"
+                style={{ '--co-n': Math.min(dogs.length, 3) } as React.CSSProperties}
+              >
                 {dogs.map((d) => {
                   const angel = d.lifeStatus === 'deceased';
                   return (
@@ -279,10 +286,8 @@ export function FlowCheckoutScreen() {
                       {d.photo
                         ? <img className="co-dog-ph" src={d.photo} alt="" />
                         : <span className="co-dog-ph co-dog-ph--empty">{(d.dogName || '?').slice(0, 1)}</span>}
-                      <span className="co-dog-mid">
-                        <span className="co-dog-name">{d.dogName}</span>
-                        {angel && <span className="co-dog-tag">{t('heroglyph.flow.checkoutNew.angel')}</span>}
-                      </span>
+                      <span className="co-dog-name">{d.dogName}</span>
+                      {angel && <span className="co-dog-tag">{t('heroglyph.flow.checkoutNew.angel')}</span>}
                       {angel ? (
                         <span className="co-seg" role="radiogroup" aria-label={t('heroglyph.flow.checkoutNew.angel')}>
                           {[PRICE_MEMBER, PRICE_ANGEL].map((p) => {
@@ -309,17 +314,41 @@ export function FlowCheckoutScreen() {
                 })}
               </ul>
 
-              {/* ── ČO DOSTANEŠ ───────────────────────────────────────────── */}
-              <p className="hf-legend">{t('heroglyph.flow.checkoutNew.getTitle')}</p>
-              <ul className="co-get">
-                {GET_KEYS.map((k) => (
-                  <li key={k} className={k === 'sniffer' ? 'soon' : ''}>
-                    {t(`heroglyph.flow.checkoutNew.get.${k}`)}
-                  </li>
-                ))}
-              </ul>
+              {/* ── SPOLU ─────────────────────────────────────────────────── */}
+              <div className="co-total">
+                <span>{t('heroglyph.flow.checkoutNew.total')}</span>
+                <b>
+                  {totalShown < base && <s>€{base}</s>}
+                  €{totalShown}
+                </b>
+              </div>
 
-              {/* ── PROMO — zbalený, väčšina ľudí kód nemá ────────────────── */}
+              {/* ── ČO DOSTANEŠ — riadok, rozpis je v popupe ──────────────── */}
+              <div className="co-getrow">
+                <span>{t('heroglyph.flow.checkoutNew.getTitle')}</span>
+                <button type="button" className="co-mini" onClick={() => setGetOpen(true)}>
+                  {t('heroglyph.flow.checkoutNew.getMore')}
+                </button>
+              </div>
+
+              {/* ── ZAPLATIŤ / NECHCEM PLATIŤ — vedľa seba. Plná plocha patrí
+                  jedinému CTA (brand lock), odmietnutie je obrysové. Vedie na
+                  ZADRŽANIE (obrazovka C): kto vstúpil, odchádza aspoň so psom
+                  na stene (Matej 25. 9.). ── */}
+              <div className="co-actions">
+                <button type="button" className="hf-cta" onClick={pay} disabled={loading || !!edit}>
+                  {loading
+                    ? <span className="co-cta-in"><Loader2 className="h-4 w-4 animate-spin" />{waitingPhoto ? t('payment.sealing') : t('payment.preparing')}</span>
+                    : t('heroglyph.flow.checkoutNew.pay', { sum: `€${totalShown}` })}
+                </button>
+                <button type="button" className="co-decline" onClick={() => navigate('/heroglyph/stay')} disabled={loading}>
+                  {t('heroglyph.flow.checkoutNew.decline')}
+                </button>
+              </div>
+              {payError && <p role="alert" className="co-err">{payError}</p>}
+              <p className="co-secure">{t('payment.secured')}</p>
+
+              {/* ── PROMO + KAM IDÚ PENIAZE — zbalené, väčšina ľudí ich nepotrebuje ── */}
               {promoOpen ? (
                 <div className="co-promo">
                   <input
@@ -352,7 +381,6 @@ export function FlowCheckoutScreen() {
                 </div>
               )}
               {promoState === 'bad' && <p className="co-err">{t('payment.promo.invalid')}</p>}
-
               <AnimatePresence initial={false}>
                 {moneyOpen && (
                   <motion.ul
@@ -368,33 +396,31 @@ export function FlowCheckoutScreen() {
                   </motion.ul>
                 )}
               </AnimatePresence>
-              {/* ── SPOLU + ZAPLATIŤ ──────────────────────────────────────── */}
-              <div className="co-total">
-                <span>{t('heroglyph.flow.checkoutNew.total')}</span>
-                <b>
-                  {totalShown < base && <s>€{base}</s>}
-                  €{totalShown}
-                </b>
-              </div>
-              <button type="button" className="hf-cta" onClick={pay} disabled={loading || !!edit}>
-                {loading
-                  ? <span className="co-cta-in"><Loader2 className="h-4 w-4 animate-spin" />{waitingPhoto ? t('payment.sealing') : t('payment.preparing')}</span>
-                  : t('heroglyph.flow.checkoutNew.pay', { sum: `€${totalShown}` })}
-              </button>
-              {payError && <p role="alert" className="co-err">{payError}</p>}
-              <p className="co-secure">{t('payment.secured')}</p>
-
-              {/* ── KAM IDÚ PENIAZE — zbalený rozpis (odkaz je v riadku nad SPOLU) ── */}
             </div>
           </motion.div>
 
-          {/* „Teraz nie" vedie na ZADRŽANIE (obrazovka C) — kto vstúpil, odchádza
-              aspoň so psom na stene (Matej 25. 9.). */}
-          <button type="button" className="hf-skip co-notnow" onClick={() => navigate('/heroglyph/stay')}>
-            {t('heroglyph.flow.checkoutNew.notNow')}
-          </button>
         </div>
       </div>
+      {getOpen && createPortal(
+        <div className="co-sheet" role="dialog" aria-modal="true">
+          <div className="co-sheet-veil" onClick={() => setGetOpen(false)} />
+          <div className="co-sheet-card">
+            <p className="hf-legend">{t('heroglyph.flow.checkoutNew.getTitle')}</p>
+            <ul className="co-getlist">
+              {GET_KEYS.map((k) => (
+                <li key={k} className={k === 'sniffer' ? 'soon' : ''}>
+                  <b>{t(`heroglyph.flow.checkoutNew.get.${k}`)}</b>
+                  <span>{t(`heroglyph.flow.checkoutNew.getD.${k}`)}</span>
+                </li>
+              ))}
+            </ul>
+            <button type="button" className="hf-cta" onClick={() => setGetOpen(false)}>
+              {t('heroglyph.flow.checkoutNew.getClose')}
+            </button>
+          </div>
+        </div>,
+        document.body,
+      )}
     </div>
   );
 }
@@ -441,32 +467,38 @@ const CHECKOUT_CSS = `
 .co-edit { display: flex; flex-direction: column; gap: 8px; }
 .co-edit-row { display: flex; justify-content: space-between; align-items: center; }
 
-/* Svorka — riadok na psa. */
-.co-dogs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px;
-  max-height: 188px; overflow-y: auto; }
+/* Svorka — karta na psa, 2 stĺpce na mobile, 3 na širokej doske. */
+.co-dogs { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px;
+  grid-template-columns: repeat(var(--co-n, 3), minmax(0, 1fr));
+  max-height: 300px; overflow-y: auto; }
+/* Úzka doska (mobil): tri karty v rade majú ~95 px — prepínač anjela sa zmenší,
+   aby sa oba stupne zmestili vedľa seba. */
+@container (max-width: 479px) {
+  .co-dogs .co-seg-b { min-width: 34px; height: 26px; padding: 0 4px; font-size: 10px; }
+  .co-dogs .co-dog-name { font-size: 12px; letter-spacing: 0.02em; }
+}
 .co-dog {
-  display: flex; align-items: center; gap: 12px; padding: 4px 12px 4px 4px;
-  border-radius: ${PACK_R.tile}px; border: 1.5px solid ${LAB.hairline};
+  display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px;
+  border-radius: ${PACK_R.tile}px; border: 1.5px solid ${LAB.hairline}; text-align: center;
   background: linear-gradient(135deg, rgba(255, 253, 247, 0.55), rgba(242, 226, 189, 0.45));
 }
 .co-dog-ph {
-  flex: 0 0 auto; width: 36px; height: 36px; border-radius: 8px;
+  flex: 0 0 auto; width: 48px; height: 48px; border-radius: ${PACK_R.tile}px;
   object-fit: cover; border: 1.5px solid ${LAB.hairline};
 }
 .co-dog-ph--empty {
   display: grid; place-items: center; font-family: 'Cinzel', serif; font-weight: 700;
-  font-size: 16px; color: ${LAB.inkMuted};
+  font-size: 20px; color: ${LAB.inkMuted};
 }
-.co-dog-mid { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 0; }
 .co-dog-name {
-  font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px; letter-spacing: 0.14em;
+  max-width: 100%; font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px; letter-spacing: 0.14em;
   text-transform: uppercase; color: ${LAB.ink}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .co-dog-tag {
   font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 10px;
   letter-spacing: 0.22em; text-transform: uppercase; color: ${LAB.goldInk};
 }
-.co-dog-price { font-family: 'Cinzel', serif; font-weight: 700; font-size: 16px; color: ${LAB.ink}; }
+.co-dog-price { font-family: 'Cinzel', serif; font-weight: 700; font-size: 16px; color: ${LAB.ink}; line-height: 30px; }
 .co-seg { display: inline-flex; gap: 4px; }
 .co-seg-b {
   height: 30px; min-width: 44px; padding: 0 8px; cursor: pointer;
@@ -478,21 +510,50 @@ const CHECKOUT_CSS = `
 .co-seg-b:hover { border-color: ${LAPIS.edge}; }
 .co-seg-b.on { border-color: ${LAPIS.edge}; background: ${LAPIS.fill}; color: ${LAPIS.edge}; }
 
-/* Čo dostaneš — dva stĺpce, zlatá bodka namiesto ikonky. */
-.co-get {
-  list-style: none; margin: 0; padding: 0;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px;
+/* Čo dostaneš — riadok s tlačidlom; rozpis je v popupe. */
+.co-getrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.co-getrow > span {
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
+  letter-spacing: 0.14em; text-transform: uppercase; color: ${LAB.inkSoft};
 }
-.co-get li {
-  display: flex; align-items: center; gap: 8px;
-  font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 12px; color: ${LAB.inkBody};
+
+/* ZAPLATIŤ + NECHCEM PLATIŤ vedľa seba — plné a obrysové, rovnaký tvar. */
+.co-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+@container (min-width: 480px) { .co-actions { grid-template-columns: 3fr 2fr; } }
+.co-actions .hf-cta { width: 100%; }
+.co-decline {
+  height: ${HF.cta.h}px; border-radius: ${HF.cta.radius}px; cursor: pointer;
+  border: 1.5px solid ${LAPIS.edge}; background: transparent; color: ${LAPIS.edge};
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
+  letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; padding: 0 8px;
+  transition: background .18s, color .18s;
 }
-.co-get li::before {
-  content: ''; flex: none; width: 6px; height: 6px; border-radius: ${PACK_R.pill}px; background: ${LAB.goldInk};
+.co-decline:hover:not(:disabled) { background: ${LAPIS.fill}; }
+.co-decline:disabled { opacity: .4; cursor: default; }
+
+/* Popup ČO DOSTANEŠ — papyrusová karta nad závojom (ten istý šat ako popup odkazu). */
+.co-sheet { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px; }
+.co-sheet-veil { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.72); }
+.co-sheet-card {
+  position: relative; width: 100%; max-width: 480px; max-height: calc(100dvh - 32px); overflow-y: auto;
+  display: flex; flex-direction: column; gap: 16px; padding: 24px 16px 16px;
+  border-radius: ${PACK_R.card}px; border: 1.5px solid rgba(201, 154, 63, 0.55);
+  background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+  box-shadow: 0 20px 64px rgba(0, 0, 0, 0.65);
 }
-@container (min-width: 480px) { .co-get { grid-template-columns: 1fr 1fr 1fr; } }
-.co-get li.soon { color: ${LAB.inkMuted}; }
-.co-get li.soon::before { background: ${LAB.hairline}; }
+.co-getlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.co-getlist li { display: flex; flex-direction: column; gap: 4px; padding-left: 16px; position: relative; }
+.co-getlist li::before {
+  content: ''; position: absolute; left: 0; top: 6px; width: 8px; height: 8px;
+  border-radius: ${PACK_R.pill}px; background: ${LAB.goldInk};
+}
+.co-getlist b {
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: ${LAB.ink};
+}
+.co-getlist span { font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.4; color: ${LAB.inkBody}; }
+.co-getlist li.soon b, .co-getlist li.soon span { color: ${LAB.inkMuted}; }
+.co-getlist li.soon::before { background: ${LAB.hairline}; }
 
 .co-links { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .co-promo { display: flex; gap: 8px; align-items: center; }
@@ -518,18 +579,18 @@ const CHECKOUT_CSS = `
   font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: ${LAB.inkBody};
 }
 .co-money b { color: ${LAB.ink}; }
-.co-notnow { margin-top: 16px; font-size: 12px; }
 
 /* Nízke okno (Matejovo PC 1477×724): pod doskou musí ostať „Teraz nie" aj dno
    PAGE_AIR. Ustupuje najprv nadpis nad doskou (kontext, nie obsah), potom medzery. */
 @media (max-height: 780px) {
   .co-kicker { display: none; }
   .co-stack .hf-plate { gap: 10px; }
-  .co-notnow { margin-top: 12px; }
 }
 @media (max-height: 700px) {
   .co-stack .hf-plate { padding: 14px 16px; gap: 8px; }
   .co-kicker { margin-bottom: 8px; font-size: 12px; }
-  .co-dogs { max-height: 104px; }
+  .co-dogs { max-height: 220px; }
+  .co-dog-ph { width: 36px; height: 36px; }
+  .co-dog-name { font-size: 12px; }
 }
 `;
