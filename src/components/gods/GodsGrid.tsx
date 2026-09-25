@@ -15,7 +15,11 @@ import { dogPagePath } from '@/lib/dogSlug';
 import { BrandIcon } from '../pack/BrandIcon';
 import './WhatNextPopup.css';
 
-const GRID_DOGS_URL = `${EDGE_BASE}/get-grid-dogs`;
+// `?tiers=all` = aj podporovatelia (€3) a hostia (€0) — REBRÍK, Matej 25. 9. 2026.
+// Funkcia bez tejto schopnosti parameter ignoruje a vráti len členov (bez `wall_tier`).
+const GRID_DOGS_URL = `${EDGE_BASE}/get-grid-dogs?tiers=all`;
+/** Hlášky PSA na mieste odkazu pri €0 — všetkých päť sa strieda (Matej 25. 9.: „daj všetky rotácie"). */
+const GUEST_LINES = 5;
 
 interface RealDog {
   id: string;
@@ -27,6 +31,10 @@ interface RealDog {
   share_card_url?: string | null;
   country: string | null;
   owner_message: string | null;
+  /** Len keď feed pozná rebrík. Chýba = člen (starý feed). */
+  wall_tier?: 'member' | 'supporter' | 'guest';
+  /** AINUBIS fotku ešte neposúdil — pes na stene JE, ale stmavnutý a rozmazaný. */
+  wall_pending?: boolean;
 }
 
 // Hekthor (0,-1) + hero/CTA karta (0,0) tvoria spolu 1×2 "core" blok. Špirála
@@ -284,6 +292,17 @@ export function GodsGrid() {
               map.set(`${positions[idx].col},${positions[idx].row}`, dog);
             }
           }
+          // €3/€0 nemajú číslo ⇒ miesto v špirále HNEĎ ZA posledným členom, v poradí
+          // príchodu (feed ich tak radí). Duplikátmi stenu nevypĺňajú — výplň
+          // ostáva psom s číslom, lebo kontrola susedov stojí na `pack_number`.
+          const wallRest = dogs.filter(d => d.wall_tier === 'supporter' || d.wall_tier === 'guest');
+          // #n sedí na positions[n-2] ⇒ prvé voľné miesto za členmi je index maxN-1.
+          const restBase = Math.max(0, maxN - 1);
+          const restPositions = generatePackPositions(restBase + wallRest.length);
+          wallRest.forEach((dog, i) => {
+            const pos = restPositions[restBase + i];
+            if (pos) map.set(`${pos.col},${pos.row}`, dog);
+          });
           realDogMapRef.current = map;
           // Filler set = Hektor + všetci zákazníci (#2+); každý sa rozmnožuje v stene.
           fillerDogsRef.current = [HEKTHOR_FILL, ...dogs.filter(d => (d.pack_number ?? 0) >= 2)];
@@ -701,9 +720,24 @@ export function GodsGrid() {
       const flagName = FLAG_NAMES[cc] || cc;
       const safeName = esc((dog.dog_name || 'DOGYPTIAN').toUpperCase());
       const packNum = dog.pack_number ?? '?';
+      // REBRÍK NA STENE (Matej 25. 9. 2026). Riadok pod odkazom hovorí, kde človek
+      // stojí: člen · prispel · ešte nie. Pri €0 je na mieste odkazu hláška PSA
+      // (pes je nadradený) — päť sa strieda. Starý feed `wall_tier` nemá ⇒ bez riadku.
+      const tier = dog.wall_tier;
+      const member = !tier || tier === 'member';
+      const pending = !!dog.wall_pending;
+      const guestLine = tier === 'guest'
+        ? tRef.current(`wall.guestLine.${1 + Math.floor(Math.random() * GUEST_LINES)}`)
+        : '';
+      const openMsg = pending ? '' : (guestLine || dog.owner_message || '');
+      const status = !tier ? ''
+        : pending ? tRef.current('wall.status.pending')
+        : tier === 'member' ? tRef.current('wall.status.member').replace('{n}', String(packNum))
+        : tRef.current(`wall.status.${tier}`);
 
       const el = document.createElement('article');
-      el.className = fill ? 'dog-card dog-card--fill' : 'dog-card';
+      el.className = (fill ? 'dog-card dog-card--fill' : 'dog-card')
+        + (member ? '' : ' dog-card--nomember') + (pending ? ' dog-card--pending' : '');
       el.style.left = (col * GX) + 'px';
       el.style.top  = (row * GY) + 'px';
       const overlayHeroSrc = esc(heroglyphImageUrl(dog.heroglyph_png_url));
@@ -716,13 +750,14 @@ export function GodsGrid() {
       el.innerHTML = `
         <div class="card-img" style="background-image:url('${tileSrc}');background-position:50% 30%"></div>
         <div class="card-open-overlay">
-          <div class="card-open-rank">#${packNum}</div>
+          ${member ? `<div class="card-open-rank">#${packNum}</div>` : ''}
           <div class="card-open-name">${safeName}</div>
           ${overlayHeroSrc ? `<img class="card-open-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" loading="lazy" draggable="false">` : ''}
-          ${dog.owner_message ? `<div class="card-open-msg">${esc(dog.owner_message)}</div>` : ''}
-          ${dogPageHref ? `<a class="card-open-dogpage-link" href="${dogPageHref}">${tRef.current('wall.dogPage')}</a>` : ''}
+          ${openMsg ? `<div class="card-open-msg">${esc(openMsg)}</div>` : ''}
+          ${status ? `<div class="card-open-status">${esc(status)}</div>` : ''}
+          ${member && dogPageHref ? `<a class="card-open-dogpage-link" href="${dogPageHref}">${tRef.current('wall.dogPage')}</a>` : ''}
         </div>
-        <div class="card-rank-top">#${packNum}</div>
+        ${member ? `<div class="card-rank-top">#${packNum}</div>` : ''}
         ${cc ? `<img class="card-flag" src="${flagUrl(cc)}" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">` : ''}
         ${overlayHeroSrc ? `
         <div class="dog-heroglyph-wrap">
@@ -1441,6 +1476,15 @@ export function GodsGrid() {
           font-style: italic;
           margin-top: 2px;
         }
+        .card-open-status {
+          margin-top: 6px; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
+          color: rgba(201,154,63,0.85); text-align: center;
+        }
+        /* Čaká na AINUBISA: pes na stene JE, ale stmavnutý a rozmazaný (Matej 25. 9. 2026). */
+        .dog-card--pending .card-img,
+        .dog-card--pending .dog-heroglyph,
+        .dog-card--pending .card-open-heroglyph { filter: blur(6px) brightness(0.45); }
+        .dog-card--pending .card-label { opacity: .55; }
         .card-open-heroglyph {
           width: 48%;
           height: auto;

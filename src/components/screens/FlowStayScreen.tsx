@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
@@ -248,7 +247,7 @@ export function FlowStayScreen() {
 
               {error && <p role="alert" className="hf-alert">{error}</p>}
               <button type="button" className="hf-cta" onClick={confirm} disabled={!tier || busy}>
-                {busy ? <Loader2 className="w-5 h-5 animate-spin" aria-hidden /> : t('heroglyph.flow.stay.confirm')}
+                {busy ? t('payment.preparing') : t('heroglyph.flow.stay.confirm')}
               </button>
             </div>
           </motion.div>

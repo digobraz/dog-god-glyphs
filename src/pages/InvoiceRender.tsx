@@ -272,13 +272,22 @@ export default function InvoiceRender() {
   const ownerName = dog.owner_name || '';
   // JEDNA FAKTÚRA NA NÁKUP (Matej 25. 9. 2026): psi jednej platby sú položky
   // tohto dokladu. Starý nákup `items` nemá ⇒ jediná položka = tento pes.
-  const lines = (dog.items?.length ? dog.items : [{ dog_name: dog.dog_name, amount: dog.amount, payment_status: null }])
+  // Faktúra sa MUSÍ zmestiť na jednu A4 (Matej 25. 9. 2026: *„môže byť jeden
+  // riadok, kde budú vymenovaní psi"*) ⇒ psi s rovnakou položkou a cenou sú
+  // JEDEN riadok (množstvo × cena, mená pod názvom). Viac riadkov vznikne len pri
+  // rôznej cene (psí anjel €1 vedľa €11), teda najviac dva.
+  const raw = (dog.items?.length ? dog.items : [{ dog_name: dog.dog_name, amount: dog.amount, payment_status: null }])
     .map((it) => ({
       name: it.dog_name || 'Unnamed',
       amount: it.amount ?? 11,
       title: it.payment_status === 'supporter' ? L.contribution : L.heroglyph,
     }));
-  const amount = lines.reduce((sum, l) => sum + l.amount, 0);
+  const lines: { title: string; unit: number; qty: number; names: string[] }[] = [];
+  for (const r of raw) {
+    const g = lines.find((l) => l.title === r.title && l.unit === r.amount);
+    if (g) { g.qty += 1; g.names.push(r.name); } else lines.push({ title: r.title, unit: r.amount, qty: 1, names: [r.name] });
+  }
+  const amount = raw.reduce((sum, l) => sum + l.amount, 0);
   const amountStr = fmtAmount(amount);
 
   // Invoice number — use real invoice_number; fallback '—' (never DGP-BETA)
@@ -437,7 +446,7 @@ export default function InvoiceRender() {
   return (
     <>
       <style>{css}</style>
-      <div id="invoice-page" className={lines.length > 1 ? 'multi' : undefined}>
+      <div id="invoice-page" className={raw.length > 1 ? 'multi' : undefined}>
         <div className="frame" />
 
         <div className="pad">
@@ -534,12 +543,12 @@ export default function InvoiceRender() {
                 <tr key={i}>
                   <td>
                     <div className="it-title">{l.title}</div>
-                    <div className="it-sub">{l.name}</div>
+                    <div className="it-sub">{l.names.join(' · ')}</div>
                   </td>
-                  <td className="c">1</td>
+                  <td className="c">{l.qty}</td>
                   <td className="c">{L.unitVal}</td>
-                  <td className="r">{fmtAmount(l.amount)}</td>
-                  <td className="r">{fmtAmount(l.amount)}</td>
+                  <td className="r">{fmtAmount(l.unit)}</td>
+                  <td className="r">{fmtAmount(l.unit * l.qty)}</td>
                 </tr>
               ))}
             </tbody>
@@ -576,11 +585,11 @@ export default function InvoiceRender() {
             </div>
           </div>
 
-          {lines.length > 1 && seal}
+          {raw.length > 1 && seal}
         </div>
 
         {/* pečať — stred dole, nad motto */}
-        {lines.length === 1 && seal}
+        {raw.length === 1 && seal}
 
         <div className="foot">{L.footer}</div>
       </div>

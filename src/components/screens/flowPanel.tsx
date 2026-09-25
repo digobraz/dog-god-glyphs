@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { PACK_R } from '@/components/pack/packTheme';
@@ -45,8 +45,26 @@ export function FlowPanel({
   onClose: () => void;
 }) {
   const [open, setOpen] = useState<string | null>(null);
+  // Zatvorí sa aj ťukom VEDĽA panela a klávesom Esc (Matej 25. 9. 2026: *„pri
+  // otvorení popupov sa bude dať zrušiť aj kliknutím vedľa"*). Panel prekrýva
+  // celú dosku, takže „vedľa" = mimo dosky. `pointerdown` a nie `click`: ťuk,
+  // ktorý panel otvoril, už dobehol a nezavrie ho hneď späť.
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const down = (e: PointerEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    };
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('pointerdown', down);
+    document.addEventListener('keydown', key);
+    return () => {
+      document.removeEventListener('pointerdown', down);
+      document.removeEventListener('keydown', key);
+    };
+  }, [onClose]);
   return (
     <motion.div
+      ref={ref}
       className="fp-panel"
       role="dialog"
       aria-label={title}

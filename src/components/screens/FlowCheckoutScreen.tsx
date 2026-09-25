@@ -6,7 +6,7 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
-import { PageTopBar } from '@/components/PageTopBar';
+import { HandArrowLeft } from '@/components/pack/HandIcons';
 import { FLOW_PALE_CSS, FLOW_CARVE_CSS, HF } from '@/components/screens/flowPaleSkin';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { PACK_R } from '@/components/pack/packTheme';
@@ -58,6 +58,8 @@ const GET_ICON: Record<string, string> = {
   map: '/icons/pack/world-grid.svg',
   sniffer: '/icons/sniffer/sniffer-znak.svg',
 };
+/** Čo dostaneš — poradie podľa Matejovej predlohy z Canvy; štítky aj panel. */
+const GET_KEYS = ['glyph', 'dogid', 'ainubis', 'map', 'sniffer'];
 /** Kresby pre panel KAM IDÚ PENIAZE — v poradí `TRANSPARENCY_SPLIT`. */
 const MONEY_ICON = ['/icons/pack/layers.svg', '/icons/pack/link.svg', '/icons/mission/doghome.svg', '/icons/pack/food.svg'];
 
@@ -152,7 +154,7 @@ export function FlowCheckoutScreen() {
   const [panel, setPanel] = useState<'get' | 'money' | null>(null);
   const getGroups: PanelGroup[] = [
     { heading: t('heroglyph.flow.checkoutNew.grpDesign'), items: ['glyph'].map(getItem) },
-    { heading: t('heroglyph.flow.checkoutNew.grpAccess'), items: ['dogid', 'ainubis', 'map', 'sniffer'].map(getItem) },
+    { heading: t('heroglyph.flow.checkoutNew.grpAccess'), items: GET_KEYS.slice(1).map(getItem) },
   ];
   function getItem(k: string) {
     return {
@@ -230,8 +232,18 @@ export function FlowCheckoutScreen() {
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
       <style>{FLOW_PALE_CSS}{FLOW_CARVE_CSS}{FLOW_PANEL_CSS}{CHECKOUT_CSS}</style>
 
-      <div className="hf-topbar flex-shrink-0">
-        <PageTopBar onBack={() => navigate('/heroglyph/reveal')} />
+      {/* Hlavička BEZ loga a jazyka (Matej 25. 9. 2026: *„blok je malý — daj
+          preč horné logo, jazyk, šípku dozadu do stredu"*). Punc nesie pečať
+          na doske, nie logo nad ňou. */}
+      <div className="hf-topbar flex-shrink-0 co-top">
+        <button
+          type="button"
+          className="co-back"
+          onClick={() => navigate('/heroglyph/reveal')}
+          aria-label={t('nav.aria.back')}
+        >
+          <HandArrowLeft size={20} />
+        </button>
       </div>
 
       <div className="hf-stage">
@@ -245,6 +257,9 @@ export function FlowCheckoutScreen() {
             transition={{ duration: 0.35 }}
           >
             <span className="hf-carved-rim" aria-hidden />
+            {/* Zlatá pečať DOGYPTU na hornej hrane dosky — „správny punc na záver"
+                (Matej 25. 9. 2026). Tá istá pečať ako na faktúre a certifikáte. */}
+            <img className="co-seal" src="/images/peciat-dogypt.png" alt="" aria-hidden />
             <div className="hf-plate">
 
               {/* ── KTO PLATÍ ─────────────────────────────────────────────── */}
@@ -355,13 +370,22 @@ export function FlowCheckoutScreen() {
                 </b>
               </div>
 
-              {/* ── ČO DOSTANEŠ — riadok, rozpis je v popupe ──────────────── */}
+              {/* ── ČO DOSTANEŠ — obsah hneď v štítkoch, rozpis v paneli (Matej
+                  25. 9. 2026: *„do chipov to, čo človek dostane, a tlačidlo VIAC
+                  INFO"*). Štítok = informácia, nie voľba ⇒ zlatý obrys, nie lapis. ── */}
               <div className="co-getrow">
                 <span>{t('heroglyph.flow.checkoutNew.getTitle')}</span>
                 <button type="button" className="co-mini" onClick={() => setPanel('get')}>
                   {t('heroglyph.flow.checkoutNew.getMore')}
                 </button>
               </div>
+              <ul className="co-chips">
+                {GET_KEYS.map((k) => (
+                  <li key={k} className={`co-chip${k === 'sniffer' ? ' soon' : ''}`}>
+                    {t(`heroglyph.flow.checkoutNew.get.${k}`)}
+                  </li>
+                ))}
+              </ul>
 
               {/* ── ZAPLATIŤ / NECHCEM PLATIŤ — vedľa seba. Plná plocha patrí
                   jedinému CTA (brand lock), odmietnutie je obrysové. Vedie na
@@ -525,7 +549,33 @@ const CHECKOUT_CSS = `
 .co-seg-b:hover { border-color: ${LAPIS.edge}; }
 .co-seg-b.on { border-color: ${LAPIS.edge}; background: ${LAPIS.fill}; color: ${LAPIS.edge}; }
 
-/* Čo dostaneš — riadok s tlačidlom; rozpis je v popupe. */
+/* Hlavička: len šípka späť, v strede. */
+.co-top { display: flex; justify-content: center; padding: 12px 0 4px; }
+.co-back {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 999px; border: 0; background: transparent; cursor: pointer;
+}
+.co-back:hover { background: rgba(201, 154, 63, 0.14); }
+
+/* Pečať na hornej hrane dosky — polovicou nad rámom, polovicou na ňom. */
+.co-stack { margin-top: 40px; }
+.co-seal {
+  position: absolute; z-index: 3; left: 50%; top: 0; width: 80px; height: 80px;
+  transform: translate(-50%, -52%) rotate(-5deg); pointer-events: none;
+  filter: drop-shadow(0 4px 8px rgba(60, 40, 10, 0.35));
+}
+.co-stack .hf-plate { padding-top: 40px; }
+
+/* Štítky „čo dostaneš" — zlatý obrys (informácia), SNIFFER tlmene (čoskoro). */
+.co-chips { list-style: none; margin: -4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.co-chip {
+  padding: 4px 8px; border-radius: 999px; border: 1px solid rgba(154, 115, 37, 0.45);
+  font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: .02em;
+  color: ${LAB.ink}; background: rgba(255, 252, 240, 0.55); white-space: nowrap;
+}
+.co-chip.soon { opacity: .6; }
+
+/* Čo dostaneš — riadok s tlačidlom; rozpis je v paneli. */
 .co-getrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .co-getrow > span {
   font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
@@ -569,13 +619,20 @@ const CHECKOUT_CSS = `
    PAGE_AIR. Ustupuje najprv nadpis nad doskou (kontext, nie obsah), potom medzery. */
 @media (max-height: 780px) {
   .co-kicker { display: none; }
-  .co-stack .hf-plate { gap: 10px; }
+  .co-stack .hf-plate { gap: 10px; padding-top: 32px; }
+  .co-stack { margin-top: 32px; }
+  .co-seal { width: 64px; height: 64px; }
+  /* Karty psov ustúpia ako prvé z obsahu: pri 2×2 berú dva riadky dosky. */
+  .co-dog-ph { width: 32px; height: 32px; }
+  .co-dog-price { line-height: 20px; }
 }
 @media (max-height: 700px) {
-  .co-stack .hf-plate { padding: 14px 16px; gap: 8px; }
+  .co-stack .hf-plate { padding: 32px 16px 14px; gap: 8px; }
+  .co-seal { width: 64px; height: 64px; }
+  .co-stack { margin-top: 32px; }
   .co-kicker { margin-bottom: 8px; font-size: 12px; }
   .co-dogs { max-height: 220px; }
-  .co-dog-ph { width: 36px; height: 36px; }
+  .co-dog-ph { width: 28px; height: 28px; }
   .co-dog-name { font-size: 12px; }
 }
 `;
