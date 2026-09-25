@@ -27,7 +27,7 @@ import { FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
 import { SnifferLogo } from '@/components/pack/buddy/SnifferLogo';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PAGE_AIR,
-  PACK_SHADOW, PACK_AVATAR, PACK_COL_INNER, PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS, MEDALLION_CSS, FONT_TITLE, FONT_UI,
+  PACK_SHADOW, PACK_AVATAR, PACK_COL_INNER, PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS, MEDALLION_CSS,
 } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import {
@@ -41,6 +41,10 @@ import {
   buddyGateMissing, pickBuddyDog, loadBuddySettings, saveBuddySettings,
   type BuddySettings, type BuddyStepKey,
 } from '@/components/pack/buddy/buddyGate';
+
+/** Písmo SNIFFERu — to isté, čím je napísané logo (lock brand.md, 25. 9. 2026). */
+const FONT_SNIFF = "'Alkatra', 'Space Grotesk', system-ui, sans-serif";
+const ALKATRA_HREF = 'https://fonts.googleapis.com/css2?family=Alkatra:wght@400..700&display=swap';
 
 type View = 'intro' | 'gate' | 'done' | 'settings' | 'home';
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
@@ -56,7 +60,10 @@ const STEP_EN: Record<BuddyStepKey, string> = {
 };
 
 const CSS = `
-.bd-root{min-height:100dvh;display:flex;flex-direction:column;}
+/* ALKATRA NA CELOM SNIFFERI (Matej 25. 9.: „alkatru font aj na swajp aj všade… nech to oživí").
+   Kapitálky a rozostup Cinzelu tu nie sú — Alkatra je ťah štetcom, píše sa normálne. */
+.bd-root{min-height:100dvh;display:flex;flex-direction:column;font-family:${FONT_SNIFF};}
+.bd-root .pk-pill,.bd-root button,.bd-root .pf-field{font-family:${FONT_SNIFF};}
 .bd-bar{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.sm}px;}
 .bd-gear{justify-self:end;width:40px;height:40px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};
   background:${T.cardSoft};display:flex;align-items:center;justify-content:center;cursor:pointer;}
@@ -65,22 +72,22 @@ const CSS = `
 .bd-card{padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .bd-card--list{padding:${PACK_SPACE.sm}px 0;gap:0;}
 .bd-card--list > .bd-eyebrow{padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;}
-.bd-eyebrow{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.sm}px;font-family:${FONT_UI};font-weight:500;
+.bd-eyebrow{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.sm}px;font-family:${FONT_SNIFF};font-weight:500;
   font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
-.bd-h2{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
-.bd-lead{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;line-height:1.55;color:${T.inkDim};}
+.bd-h2{margin:0;font-family:${FONT_SNIFF};font-weight:700;font-size:${PACK_TEXT.h1}px;line-height:1.15;letter-spacing:0;color:${T.inkStrong};}
+.bd-lead{margin:0;font-family:${FONT_SNIFF};font-size:${PACK_TEXT.body}px;line-height:1.55;color:${T.inkDim};}
 /* dvojica medailónov: človek + pes, pes mierne prekrýva (majiteľ je v ráme psa) */
 .bd-pair{display:flex;align-items:center;}
 .bd-pair .pk-medallion + .pk-medallion{margin-left:-${PACK_SPACE.md}px;}
-.bd-pair .pk-medallion{background:${T.cardSoft};font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;color:${T.inkWarm};}
+.bd-pair .pk-medallion{background:${T.cardSoft};font-family:${FONT_SNIFF};font-weight:700;font-size:${PACK_TEXT.lead}px;color:${T.inkWarm};}
 .bd-head{display:flex;align-items:center;gap:${PACK_SPACE.lg}px;}
 .bd-head > div:last-child{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
-.bd-count{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkWarm};}
+.bd-count{font-family:${FONT_SNIFF};font-size:${PACK_TEXT.label}px;color:${T.inkWarm};}
 .bd-count b{font-weight:600;color:${T.inkStrong};}
 /* riadok brány — zoznam v karte, deliace čiary namiesto samostatných dlaždíc */
 .bd-item + .bd-item{border-top:1px solid ${T.hairline};}
 .bd-row{display:flex;align-items:center;gap:${PACK_SPACE.md}px;width:100%;padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;
-  background:transparent;border:0;cursor:pointer;text-align:left;font-family:${FONT_UI};color:${T.inkStrong};}
+  background:transparent;border:0;cursor:pointer;text-align:left;font-family:${FONT_SNIFF};color:${T.inkStrong};}
 .bd-row:hover{background:${T.tileBg};}
 .bd-row__txt{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;}
 .bd-row__txt b{font-weight:600;font-size:${PACK_TEXT.body}px;}
@@ -97,29 +104,29 @@ const CSS = `
 .bd-edit{margin:0 ${PACK_SPACE.lg}px ${PACK_SPACE.lg}px;padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;background:${T.tileBg};
   border:1px solid ${T.hairline};display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 .bd-pills{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;}
-.bd-pills .pk-pill{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;}
+.bd-pills .pk-pill{font-family:${FONT_SNIFF};font-size:${PACK_TEXT.label}px;}
 .bd-pills .pk-pill.is-on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
 .bd-field{width:100%;border-radius:${PACK_R.field}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;
-  font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
+  font-family:${FONT_SNIFF};font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
 .bd-inline{display:flex;gap:${PACK_SPACE.sm}px;align-items:center;}
 .bd-inline .bd-field{flex:1 1 auto;min-width:0;}
-.bd-note{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
+.bd-note{margin:0;font-family:${FONT_SNIFF};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
 .bd-note--center{text-align:center;}
-.bd-warn{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${PICK_INK.red};}
+.bd-warn{margin:0;font-family:${FONT_SNIFF};font-size:${PACK_TEXT.label}px;color:${PICK_INK.red};}
 .bd-cta{width:100%;border-radius:${PACK_R.field}px;padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;border:1px solid ${LAPIS.deep};
-  background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};font-family:${FONT_TITLE};font-weight:700;
-  font-size:${PACK_TEXT.body}px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;}
+  background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};font-family:${FONT_SNIFF};font-weight:700;
+  font-size:${PACK_TEXT.lead}px;letter-spacing:0;cursor:pointer;}
 .bd-cta:hover{background:${LAPIS.gradHover};}
 .bd-cta:disabled{opacity:.45;cursor:default;}
 .bd-cta--small{width:auto;align-self:flex-start;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;font-size:${PACK_TEXT.label}px;}
 .bd-ghost{width:100%;border-radius:${PACK_R.field}px;padding:${PACK_SPACE.md}px;border:1px solid ${T.border};background:transparent;
-  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};cursor:pointer;}
+  font-family:${FONT_SNIFF};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:0;color:${T.inkWarm};cursor:pointer;}
 /* tlačidlo drží dole, zoznam pod ním beží — bez vlastného pásu, aby nekreslilo obdĺžnik cez tapetu */
 .bd-dock{position:sticky;bottom:${PAGE_AIR.min}px;z-index:4;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 .bd-dock .bd-cta:disabled{opacity:1;background:${T.cardSoft};color:${T.inkWarm};border-color:${T.border};box-shadow:${PACK_SHADOW.panel};cursor:default;}
 /* tri kroky úvodu */
 .bd-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
-.bd-steps li{display:flex;gap:${PACK_SPACE.md}px;align-items:flex-start;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
+.bd-steps li{display:flex;gap:${PACK_SPACE.md}px;align-items:flex-start;font-family:${FONT_SNIFF};font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
 .bd-steps li small{display:block;font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
 .bd-steps li > span:last-child{padding-top:${PACK_SPACE.xs}px;}
 .bd-steps b{font-weight:600;}
@@ -128,7 +135,7 @@ const CSS = `
 .bd-disc{position:relative;flex:0 0 auto;width:${PACK_AVATAR.md}px;height:${PACK_AVATAR.md}px;border-radius:${PACK_R.pill}px;
   display:flex;align-items:center;justify-content:center;box-shadow:${PACK_SHADOW.card};}
 .bd-disc i{position:absolute;top:-${PACK_SPACE.xs}px;right:-${PACK_SPACE.xs}px;width:20px;height:20px;border-radius:${PACK_R.pill}px;
-  display:flex;align-items:center;justify-content:center;font-style:normal;font-family:${FONT_UI};font-weight:600;
+  display:flex;align-items:center;justify-content:center;font-style:normal;font-family:${FONT_SNIFF};font-weight:600;
   font-size:${PACK_TEXT.micro}px;background:${T.card};color:${T.inkStrong};border:1px solid ${T.border};}
 /* rajón veku — dva jazdce na jednej koľajnici */
 .bd-range{position:relative;height:${PACK_SPACE.xl}px;}
@@ -140,14 +147,14 @@ const CSS = `
   background:${LAPIS.grad};border:2px solid ${T.card};box-shadow:${PACK_SHADOW.card};cursor:grab;}
 .bd-range input::-moz-range-thumb{pointer-events:auto;width:24px;height:24px;border-radius:${PACK_R.pill}px;
   background:${LAPIS.grad};border:2px solid ${T.card};box-shadow:${PACK_SHADOW.card};cursor:grab;}
-.bd-range__val{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;letter-spacing:.14em;color:${T.inkStrong};}
+.bd-range__val{font-family:${FONT_SNIFF};font-weight:700;font-size:${PACK_TEXT.body}px;letter-spacing:.14em;color:${T.inkStrong};}
 /* ÚVOD — erb s animovaným logom (SnifferLogo) a jedna veta. */
 .bd-hero{padding:${PACK_SPACE.xl}px ${PACK_SPACE.lg}px;}
 .bd-hero .bd-h2{font-size:${PACK_TEXT.h1}px;}
 .bd-wordmark{margin:0;line-height:0;}
 .bd-wordmark img{height:${PACK_SPACE.xxl + PACK_SPACE.md}px;width:auto;}
-.bd-hero .bd-lead{font-family:${FONT_TITLE};font-size:${PACK_TEXT.lead}px;line-height:1.45;color:${T.inkStrong};max-width:28ch;margin:0 auto;}
-.bd-hero .bd-lead--ui{font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkDim};}
+.bd-hero .bd-lead{font-family:${FONT_SNIFF};font-size:${PACK_TEXT.lead}px;line-height:1.45;color:${T.inkStrong};max-width:28ch;margin:0 auto;}
+.bd-hero .bd-lead--ui{font-family:${FONT_SNIFF};font-size:${PACK_TEXT.body}px;color:${T.inkDim};}
 /* JEDNA OBRAZOVKA BEZ SCROLLU — obsah sa centruje margin:auto na dieťati, NIE
    justify-content:center (pretečenie by sa rozdelilo na obe strany, lock PAGE_AIR). */
 .bd-stage{flex:1 1 auto;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;min-height:0;}
@@ -161,9 +168,9 @@ const CSS = `
 /* moja karta — štyri čísla PÚTNIKA v mriežke 2×2 */
 .bd-stats{display:grid;grid-template-columns:1fr 1fr;gap:${PACK_SPACE.sm}px;}
 .bd-stat{padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;}
-.bd-stat b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;color:${T.inkStrong};line-height:1;}
-.bd-stat span{font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
-.bd-bio{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;line-height:1.55;color:${T.inkStrong};}
+.bd-stat b{font-family:${FONT_SNIFF};font-weight:700;font-size:${PACK_TEXT.h2}px;color:${T.inkStrong};line-height:1;}
+.bd-stat span{font-family:${FONT_SNIFF};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
+.bd-bio{margin:0;font-family:${FONT_SNIFF};font-size:${PACK_TEXT.body}px;line-height:1.55;color:${T.inkStrong};}
 /* nahratie fotky — malý náhľad vedľa tlačidla, nie fotka cez celú šírku */
 .bd-upl{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
 .bd-upl .pk-photo{flex:0 0 auto;width:${PACK_AVATAR.lg + PACK_SPACE.xl}px;aspect-ratio:1;}
@@ -181,14 +188,14 @@ const CSS = `
 }
 .bd-mine .pk-photo{border-radius:0;border:0;aspect-ratio:4/3;}
 .bd-mine__body{padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
-.bd-mine__name{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
+.bd-mine__name{margin:0;font-family:${FONT_SNIFF};font-weight:700;font-size:${PACK_TEXT.h1}px;letter-spacing:0;color:${T.inkStrong};}
 .bd-photo{width:100%;aspect-ratio:4/3;}
-.bd-photo--empty{display:flex;align-items:center;justify-content:center;text-align:center;padding:${PACK_SPACE.sm}px;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
+.bd-photo--empty{display:flex;align-items:center;justify-content:center;text-align:center;padding:${PACK_SPACE.sm}px;font-family:${FONT_SNIFF};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
 .bd-tabs{display:flex;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.xs}px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};background:${T.cardSoft};}
-.bd-tabs span{flex:1 1 0;text-align:center;padding:${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;font-family:${FONT_UI};
+.bd-tabs span{flex:1 1 0;text-align:center;padding:${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;font-family:${FONT_SNIFF};
   font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkFaint};}
 .bd-tabs span.is-on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
-.bd-switch{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.md}px;font-family:${FONT_UI};
+.bd-switch{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.md}px;font-family:${FONT_SNIFF};
   font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
 `;
 
@@ -682,6 +689,14 @@ const HOW_EN: Record<'1' | '2' | '3', [string, string]> = {
 function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, children }: {
   title: string; onBack: () => void; backLabel: string; onGear?: () => void; gearLabel?: string; wide?: boolean; children?: ReactNode;
 }) {
+  // Alkatru načíta len SNIFFER — zvyšok appky ju nepotrebuje, preto nie je v index.html.
+  useEffect(() => {
+    if (document.querySelector(`link[href="${ALKATRA_HREF}"]`)) return;
+    const l = document.createElement('link');
+    l.rel = 'stylesheet';
+    l.href = ALKATRA_HREF;
+    document.head.appendChild(l);
+  }, []);
   return (
     <div className="pk-paper bd-root">
       <style>{PAPER_PAGE_CSS}</style>
