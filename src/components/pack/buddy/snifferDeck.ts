@@ -10,6 +10,7 @@ import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { walkedCountries } from '@/components/pack/packCommunity';
+import type { HumanProfile } from '@/components/pack/profile/packProfile';
 
 // RPC SNIFFERa nie sú v generovanom `types.ts` — rovnaký únik ako `buddyGate.ts`.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -25,6 +26,8 @@ export interface SnifferDog {
   compat: string | null;
 }
 
+export type SnifferHeading = NonNullable<HumanProfile['heading']>;
+
 export interface SnifferCardData {
   member: number;
   name: string;
@@ -32,6 +35,8 @@ export interface SnifferCardData {
   region: string | null;
   /** Môj rajón — `W` Západ · `C` Stred · `E` Východ. */
   areas?: Array<'W' | 'C' | 'E'>;
+  /** Passport — kam sa chystá. */
+  heading?: SnifferHeading | null;
   bio: string | null;
   interests: string[];
   intents: string[];
@@ -64,6 +69,13 @@ export async function loadMatches(): Promise<SnifferMatch[]> {
   if (error) throw error;
   return ((data ?? []) as Array<{ card: SnifferCardData; matched_at: string; conv: string | null }>)
     .map((r) => ({ card: r.card, matchedAt: r.matched_at, conv: r.conv }));
+}
+
+/** HĽADAŤ — mriežka nad tou istou podmienkou ako balíček (`assnif_search`). */
+export async function searchPeople(country: string, areas: string[], intent: string | null): Promise<SnifferCardData[]> {
+  const { data, error } = await db.rpc('assnif_search', { p_country: country, p_areas: areas, p_intent: intent });
+  if (error) throw error;
+  return (data ?? []) as SnifferCardData[];
 }
 
 /** Moja karta presne tak, ako ju dostanú ostatní (`assnif_my_card` = tá istá `sniffer_card`). */

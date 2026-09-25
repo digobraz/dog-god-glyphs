@@ -100,6 +100,8 @@ export interface HumanProfile {
   /** MÔJ RAJÓN — kde chodím často: Západ / Stred / Východ podľa krajov (SNIFFER, 25. 9. 2026).
    *  Údaj o človeku, nie nastavenie zobrazenia — preto tu a nie v `assnif_settings`. */
   areas?: Array<'W' | 'C' | 'E'>;
+  /** PASSPORT — kam sa chystám (SNIFFER HĽADAŤ, 25. 9. 2026). `country` = ISO2 malými. */
+  heading?: { country: string; when: 'now' | 'week' | 'summer' | 'date'; date?: string };
   visibility: Partial<Record<ProfileFieldKey, VisTier>>; // override defaultov, default {}
 }
 

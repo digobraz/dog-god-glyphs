@@ -19,6 +19,7 @@ import {
 } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { SnifferCard, SNIFFER_CARD_CSS } from './SnifferCard';
+import { SnifferSearch } from './SnifferSearch';
 import { loadDeck, loadMatches, swipe, unmatch, type SnifferCardData, type SnifferMatch } from './snifferDeck';
 
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
@@ -39,6 +40,8 @@ const CSS = `
   font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkFaint};}
 .sh-tabs button.is-on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
 .sh-pane{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
+.sh-pane--scroll{overflow-y:auto;margin:0 -${PACK_SPACE.xs}px;padding:0 ${PACK_SPACE.xs}px;}
+.sh-peek{width:100%;max-width:440px;height:min(680px, 100%);display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .sh-deck{position:relative;flex:1 1 auto;min-height:360px;width:100%;max-width:440px;margin:0 auto;}
 .sh-acts{display:flex;justify-content:center;align-items:flex-start;gap:${PACK_SPACE.xl}px;}
 /* Plávajúci AINUBIS sedí vpravo dole — na úzkom mobile by rad pri medzere 24 px zasiahol
@@ -106,7 +109,9 @@ export function SnifferHome({ tx, me }: {
   const [deck, setDeck] = useState<SnifferCardData[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [drag, setDrag] = useState<{ dx: number; dy: number; anim: boolean } | null>(null);
-  const [composer, setComposer] = useState<SnifferCardData | null>(null);
+  const [composer, setComposer] = useState<{ card: SnifferCardData; send: (msg: string) => void } | null>(null);
+  /** Karta otvorená z HĽADAŤ — tie isté tri tlačidlá ako v balíčku. */
+  const [peek, setPeek] = useState<SnifferCardData | null>(null);
   const [draft, setDraft] = useState('');
   const [match, setMatch] = useState<{ card: SnifferCardData; conv: string | null } | null>(null);
   const busy = useRef(false);
@@ -147,6 +152,18 @@ export function SnifferHome({ tx, me }: {
       if (r.match) setMatch({ card: top, conv: r.conv });
       if ((deck?.length ?? 0) - 1 <= REFILL_AT) void fetchDeck();
     }, OUT_MS);
+  };
+
+  /** Rozhodnutie mimo balíčka (karta z HĽADAŤ) — bez odletu karty, ten istý server. */
+  const act = async (card: SnifferCardData, verdict: 'like' | 'pass', message?: string) => {
+    setPeek(null);
+    try {
+      const r = await swipe(card.member, verdict, message);
+      setDeck((cur) => (cur ?? []).filter((c) => c.member !== card.member));
+      if (r.match) setMatch({ card, conv: r.conv });
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    }
   };
 
   const onDown = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -222,7 +239,7 @@ export function SnifferHome({ tx, me }: {
                 </div>
                 <div className="sh-act">
                   <button type="button" className="sh-btn sh-btn--msg" aria-label={tx('pack.sniffer.write', 'Write')}
-                    onClick={() => { setDraft(''); setComposer(top); }}>
+                    onClick={() => { setDraft(''); setComposer({ card: top, send: (m) => void decide('like', m) }); }}>
                     <MaskIcon src="/icons/pack/chat.svg" size={22} color={LAPIS.edge} />
                   </button>
                   {tx('pack.sniffer.write', 'Write')}
@@ -248,10 +265,8 @@ export function SnifferHome({ tx, me }: {
       )}
 
       {tab === 'search' && (
-        <div className="sh-pane">
-          <AinubisBubble>
-            {tx('pack.sniffer.searchSoon', 'Search by where you’re heading is being built. For now, sniff through the deck.')}
-          </AinubisBubble>
+        <div className="sh-pane sh-pane--scroll">
+          <SnifferSearch tx={tx} onOpen={setPeek} />
         </div>
       )}
 
@@ -286,18 +301,46 @@ export function SnifferHome({ tx, me }: {
         </div>
       )}
 
+      {/* Karta z HĽADAŤ — nad závojom, s tými istými tlačidlami ako balíček */}
+      {peek && (
+        <div className="pk-veil pk-veil--modal" onClick={() => setPeek(null)}>
+          <div className="sh-peek" onClick={(e) => e.stopPropagation()}>
+            <div className="sh-deck"><SnifferCard card={peek} tx={tx} /></div>
+            <div className="sh-acts">
+              <div className="sh-act">
+                <button type="button" className="sh-btn" aria-label={tx('pack.sniffer.no', 'No')} onClick={() => void act(peek, 'pass')}>
+                  <MaskIcon src="/icons/pack/cross.svg" size={26} color={T.alertRed} />
+                </button>
+              </div>
+              <div className="sh-act">
+                <button type="button" className="sh-btn sh-btn--msg" aria-label={tx('pack.sniffer.write', 'Write')}
+                  onClick={() => { const c = peek; setDraft(''); setPeek(null); setComposer({ card: c, send: (m) => void act(c, 'like', m) }); }}>
+                  <MaskIcon src="/icons/pack/chat.svg" size={22} color={LAPIS.edge} />
+                </button>
+              </div>
+              <div className="sh-act">
+                <button type="button" className="sh-btn sh-btn--yes" aria-label={tx('pack.sniffer.yes', 'Yes')} onClick={() => void act(peek, 'like')}>
+                  <MaskIcon src="/icons/pack/nose.svg" size={30} color={LAPIS.ink} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 💬 — áno s pripnutou správou */}
       {composer && (
         <div className="pk-veil pk-veil--modal" onClick={() => setComposer(null)}>
           <div className="sh-sheet" style={{ ...PACK_BOX.panel }} onClick={(e) => e.stopPropagation()}>
-            <h3>{tx('pack.sniffer.writeTo', 'Write to {name}', { name: composer.name })}</h3>
+            <h3>{tx('pack.sniffer.writeTo', 'Write to {name}', { name: composer.card.name })}</h3>
             <textarea className="pf-field sh-area" autoFocus maxLength={1000} value={draft} onChange={(e) => setDraft(e.target.value)}
               placeholder={tx('pack.sniffer.writePh', 'Hi! …')} />
             <p className="sh-note">{tx('pack.sniffer.writeNote', 'It counts as a yes. The message is delivered only when you catch each other’s scent.')}</p>
             <button type="button" className="sh-cta" disabled={!draft.trim()} onClick={() => {
               const msg = draft.trim();
+              const send = composer.send;
               setComposer(null);
-              void decide('like', msg);
+              send(msg);
             }}>{tx('pack.sniffer.sendYes', 'Yes + message')}</button>
           </div>
         </div>
