@@ -50,8 +50,6 @@ import {
 type View = 'splash' | 'intro' | 'gate' | 'done' | 'settings' | 'home';
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
 
-/** Vzdialenosť „komu sa ukážem" — nákres 2b/5b. `null` = bez obmedzenia. */
-const RADIUS_STEPS: Array<number | null> = [10, 50, 150, null];
 const PAUSE_DAYS = 7;
 
 const STEP_EN: Record<BuddyStepKey, string> = {
@@ -190,6 +188,10 @@ const CSS = `
 .bd-link{border:0;background:none;padding:0;cursor:pointer;font:inherit;color:${LAPIS.edge};text-decoration:underline;}
 .bd-areas{max-width:440px;width:100%;}
 .bd-photo--empty{display:flex;align-items:center;justify-content:center;text-align:center;padding:${PACK_SPACE.sm}px;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
+/* PRUH „Váš profil" sa vypĺňa LAPISOM, nie červenou (Matej 25. 9.: „váš profil sa vypĺňa modrou
+   nie červenou") — je to moja akcia, nie chyba. Hotový ostáva zelený (splnené). */
+.bd-col .pk-progress__fill--low{background:${LAPIS.grad};}
+.bd-bar--center{justify-content:center;}
 .bd-switch{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.md}px;font-family:${FONT_UI};
   font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
 `;
@@ -218,6 +220,11 @@ export default function PackBuddy() {
   // `human.gender`, odkiaľ ho číta brána na serveri. Kto heroglyf bez pohlavia nemá,
   // krok uvidí ako doteraz.
   const heroGender: Gender | null = HERO_GENDER[(ownerGender ?? '').toLowerCase()] ?? null;
+  // ZNAMENIE je tiež z heroglyfu (malý rámik majiteľa) — Matej 25. 9.: „chýba nám tu znamenie".
+  const zodiac = {
+    western: dogs.map((d) => d.selections?.ownerZodiac).find(Boolean) ?? null,
+    chinese: dogs.map((d) => d.selections?.ownerChineseZodiac).find(Boolean) ?? null,
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -412,8 +419,11 @@ export default function PackBuddy() {
 
   return (
     <Shell title={title} onBack={back} backLabel={tx('pack.buddy.back', 'Back')}
-      // Pri logu hore len šípka späť, nastavenia nie (Matej 25. 9.).
-      onGear={view !== 'settings' && view !== 'splash' ? () => setView('settings') : undefined}
+      // Pri logu hore len šípka späť, nastavenia nie (Matej 25. 9.). V úvode a v bráne tiež nie —
+      // otvorili by to isté, čo človek práve vypĺňa (Matej 25. 9.: „otvorí to isté").
+      onGear={view === 'home' || view === 'done' ? () => setView('settings') : undefined}
+      // Úvod: šípka sama v strede (Matej 25. 9.: „šípku daj do stredu").
+      centerBack={view === 'splash' || view === 'intro'}
       gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'gate' || view === 'settings'} fit={view === 'home' || view === 'done' || view === 'gate'}>
       {view === 'splash' && (
         <div className="bd-stage" onClick={() => { if (s.enabled) afterSplash(); }}>
@@ -512,19 +522,23 @@ export default function PackBuddy() {
             missing={missing}
             gateEditor={editor}
             gateSummary={summary}
-          />
-          <div className="bd-dock">
-            {serverMissing && serverMissing.length > 0 && (
-              <p className="bd-warn">
-                {tx('pack.buddy.serverMissing', 'Still missing: {list}', { list: serverMissing.map(stepLabel).join(', ') })}
-              </p>
-            )}
-            <button type="button" className="bd-cta" disabled={missing.length > 0 || busy} onClick={enable}>
-              {missing.length > 0
+            zodiac={zodiac}
+            settings={s}
+            onPatch={patchSettings}
+            // Zapnutie je CTA POSLEDNEJ karty; kým niečo chýba, ťuk skočí na kartu s tým bodom.
+            finish={{
+              label: missing.length > 0
                 ? tx('pack.buddy.left', '{n} more to fill in', { n: missing.length })
-                : tx('pack.sniffer.profile.enable', 'Switch SNIFFER on')}
-            </button>
-          </div>
+                : tx('pack.sniffer.profile.enable', 'Switch SNIFFER on'),
+              onClick: () => void enable(),
+              busy,
+              note: serverMissing && serverMissing.length > 0 ? (
+                <p className="bd-warn">
+                  {tx('pack.buddy.serverMissing', 'Still missing: {list}', { list: serverMissing.map(stepLabel).join(', ') })}
+                </p>
+              ) : undefined,
+            }}
+          />
         </>
       )}
 
@@ -608,29 +622,12 @@ export default function PackBuddy() {
             missing={missing}
             gateEditor={editor}
             gateSummary={summary}
+            zodiac={zodiac}
+            settings={s}
+            onPatch={patchSettings}
           />
-
-          {/* MÔJ RAJÓN (pin) je od kola 2 karta 3 vo Vašom profile vyššie, poradie ako celý profil. */}
-          {/* ĽUDIA V OKOLÍ — východisko NIE (Matej 25. 9.). */}
-          <section className="bd-card bd-areas" style={{ ...PACK_BOX.card }}>
-            <label className="bd-switch">
-              <span style={{ display: 'flex', flexDirection: 'column', gap: PACK_SPACE.xs }}>
-                <b>{tx('pack.sniffer.nearby.toggle', 'Show me in People nearby')}</b>
-                <small className="bd-note">{tx('pack.sniffer.nearby.hint', 'Everyone with SNIFFER around your pin can see you')}</small>
-              </span>
-              <input type="checkbox" checked={s.show_nearby} onChange={(e) => void patchSettings({ show_nearby: e.target.checked })} />
-            </label>
-          </section>
-
-          <section className="bd-card" style={{ ...PACK_BOX.card }}>
-            <span className="bd-eyebrow">{tx('pack.buddy.notify', 'Notifications')}</span>
-            <label className="bd-switch">{tx('pack.buddy.notifyMatch', 'New match')}
-              <input type="checkbox" checked={s.notify_match} onChange={(e) => void patchSettings({ notify_match: e.target.checked })} />
-            </label>
-            <label className="bd-switch">{tx('pack.buddy.notifyMail', 'Also by e-mail')}
-              <input type="checkbox" checked={s.notify_mail} onChange={(e) => void patchSettings({ notify_mail: e.target.checked })} />
-            </label>
-          </section>
+          {/* MÔJ RAJÓN, KOHO HĽADÁM, ĽUDIA V OKOLÍ a UPOZORNENIA sú od kola 3 karty Vášho profilu
+              (posledná = viditeľnosť a upozornenia) — druhýkrát pod ním nie sú. */}
         </>
       )}
     </Shell>
@@ -659,8 +656,8 @@ const HOW_EN: Record<'1' | '2' | '3', [string, string]> = {
   '3': ['You catch each other’s scent', 'A match is just a notice. Writing is up to you.'],
 };
 
-function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, fit, children }: {
-  title: string; onBack: () => void; backLabel: string; onGear?: () => void; gearLabel?: string; wide?: boolean; fit?: boolean; children?: ReactNode;
+function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, fit, centerBack, children }: {
+  title: string; onBack: () => void; backLabel: string; onGear?: () => void; gearLabel?: string; wide?: boolean; fit?: boolean; centerBack?: boolean; children?: ReactNode;
 }) {
   return (
     <div className="pk-paper bd-root">
@@ -676,7 +673,7 @@ function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, fit, childre
           okraje obsahu panela, nie úplne na kraj obrazovky"). Lišta preto stojí VNÚTRI
           stĺpca a jej kraje sú kraje kariet. Meno obrazovky nesie karta pod ňou. */}
       <main className={`bd-col${wide ? ' bd-col--wide' : ''}${fit ? ' bd-col--fit' : ''}`} aria-label={title}>
-        <div className="bd-bar">
+        <div className={`bd-bar${centerBack && !onGear ? ' bd-bar--center' : ''}`}>
           <BackButton tone="pale" onClick={onBack} label={backLabel} />
           {onGear && (
             <button type="button" className="bd-gear" onClick={onGear} aria-label={gearLabel}>
@@ -734,14 +731,7 @@ function AudienceEditor({ s, onPatch, tx }: {
       />
       <AgeRange min={s.age_min} max={s.age_max} label={tx('pack.buddy.age', 'Age')}
         onCommit={(age_min, age_max) => void onPatch({ age_min, age_max })} />
-      <Pills
-        options={RADIUS_STEPS.map((r) => ({
-          value: String(r),
-          label: r === null ? tx('pack.buddy.anywhere', 'Anywhere') : tx('pack.buddy.km', 'up to {n} km', { n: r }),
-        }))}
-        selected={[String(s.radius_km)]}
-        onToggle={(v) => void onPatch({ radius_km: v === 'null' ? null : Number(v) })}
-      />
+      {/* Vzdialenosť sa od kola 3 nastavuje TERČOM na mape v karte Môj rajón (`radius_km`). */}
       <label className="bd-switch">{tx('pack.buddy.dogCompatOnly', 'Only dogs that get along with mine')}
         <input type="checkbox" checked={s.dog_compat_only} onChange={(e) => void onPatch({ dog_compat_only: e.target.checked })} />
       </label>

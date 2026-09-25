@@ -17,6 +17,9 @@ export interface PackDogFull {
     dogGender?: string | null;
     dogColour?: string | null;
     dogBloodline?: string | null;
+    /** Znamenie majiteľa z malého rámika heroglyfu (`Leo`, `Rooster`) — SNIFFER ho ukazuje v BIO. */
+    ownerZodiac?: string | null;
+    ownerChineseZodiac?: string | null;
   } | null;
   created_at: string;
   pack_number: number | null;
