@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -251,7 +252,7 @@ export function FlowCheckoutScreen() {
               by pod ňou zmizol (Matej 25. 9. 2026). Kľúč ostáva v i18n. */}
 
           <motion.div
-            className={`hf-block hf-carved co-stack${dogs.length > 2 ? ' co-stack--many' : ''}`}
+            className={`hf-block hf-carved co-stack${dogs.length > 2 ? ' co-stack--many' : ''}${panel ? ' is-veiled' : ''}`}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
@@ -376,7 +377,12 @@ export function FlowCheckoutScreen() {
               {/* Menším písmom a oddelené RYTINOU (Matej 25. 9. 2026) — ten istý
                   vlys ako „Tvoj pes", nie ďalší nadpis. */}
               <p className="hf-legend co-getlegend">{t('heroglyph.flow.checkoutNew.getTitle')}</p>
+              {/* VIAC INFO ako zelený čip na stred hneď pod rytinou, štítky pod ním
+                  vycentrované (Matej 25. 9. 2026). */}
               <div className="co-getrow">
+                <button type="button" className="co-more" onClick={() => setPanel('get')}>
+                  {t('heroglyph.flow.checkoutNew.getMore')}
+                </button>
                 <ul className="co-chips">
                   {GET_KEYS.map((k) => (
                     <li key={k} className="co-chip">
@@ -384,9 +390,6 @@ export function FlowCheckoutScreen() {
                     </li>
                   ))}
                 </ul>
-                <button type="button" className="co-mini" onClick={() => setPanel('get')}>
-                  {t('heroglyph.flow.checkoutNew.getMore')}
-                </button>
               </div>
 
               {/* ── ZAPLATIŤ / NECHCEM PLATIŤ — vedľa seba. Plná plocha patrí
@@ -454,6 +457,22 @@ export function FlowCheckoutScreen() {
                 </div>
               )}
               {promoState === 'bad' && <p className="co-err">{t('payment.promo.invalid')}</p>}
+              {createPortal(
+                <AnimatePresence>
+                  {panel && (
+                    <motion.div
+                      key="veil"
+                      className="co-veil"
+                      aria-hidden
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    />
+                  )}
+                </AnimatePresence>,
+                document.body,
+              )}
               <AnimatePresence>
                 {panel && (
                   <FlowPanel
@@ -578,7 +597,7 @@ const CHECKOUT_CSS = `
    veľkú, zväčši aspoň o 200 %"* ⇒ 80 → 240 px). Veľkosť drží výška okna, nie
    pevné číslo: na nízkom okne sa scvrkne a doska sa zmestí bez scrollu. Polovica
    pečate visí nad rámom, druhá polovica zaberá hornú časť dosky. */
-.co-stack { --seal: clamp(120px, 26dvh, 240px); margin-top: calc(var(--seal) * 0.42); }
+.co-stack { --seal: clamp(120px, 24dvh, 240px); margin-top: calc(var(--seal) * 0.42); }
 .co-seal {
   position: absolute; z-index: 3; left: 50%; top: 0; width: var(--seal); height: var(--seal);
   transform: translate(-50%, -58%) rotate(-5deg); pointer-events: none;
@@ -602,13 +621,31 @@ const CHECKOUT_CSS = `
   color: ${LAB.ink}; background: rgba(255, 252, 240, 0.55); white-space: nowrap;
 }
 
-/* Čo dostaneš — štítky a VIAC INFO v JEDNOM zalomení, tlačidlo dobieha na koniec
-   posledného riadku. Dovtedy stálo vedľa zoznamu ako samostatný stĺpec a štítky
-   sa na 390 px lámali na tri riadky (Matej 25. 9. 2026: *„na dva"*) — ušetrený
-   riadok vracia miesto pečati. */
-.co-getrow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: -4px; }
-.co-getrow .co-chips { display: contents; }
-.co-getrow .co-mini { flex: 0 0 auto; margin-left: auto; }
+/* Čo dostaneš — zelený VIAC INFO na stred, pod ním štítky na stred (Matej
+   25. 9. 2026). Štítky sa zmestia na DVA riadky aj na 390 px. */
+.co-getrow { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: -4px; }
+.co-getrow .co-chips { justify-content: center; }
+/* ⚠️ ZELENÁ je tu Matejova výslovná voľba. Inde v appke zelená znamená TIP
+   alebo SPLNENÉ; tón je ten istý ako 100 % DOG ID (#3D7A4E), nie nový. */
+.co-more {
+  height: 28px; padding: 0 16px; border-radius: 999px; border: 0; cursor: pointer;
+  background: #3D7A4E; color: #FDF7E7;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(30, 60, 38, 0.25);
+}
+.co-more:hover { background: #336A43; }
+.co-more:focus-visible { outline: 2px solid #3D7A4E; outline-offset: 2px; }
+/* ZÁVOJ pri otvorenom paneli (Matej 25. 9. 2026: *„zatmaví sa celé pozadie aj
+   logo aj šípka… aby pečať nebola vidno pri popupoch"*). Vrstva cez CELÉ okno
+   v portáli do <body> — tieň z bloku orezal \`.hf-stage\` a lišta s logom ostala
+   svetlá. Blok ide nad závoj, pečať zmizne. Ťuk do závoja zatvára panel
+   (\`FlowPanel\` počúva ťuk mimo seba). */
+.co-veil { position: fixed; inset: 0; z-index: 60; background: rgba(8, 6, 4, 0.62); }
+/* \`.hf-stage\` je vlastná vrstva (z 1) ⇒ z-index bloku sa nad závoj nedostane;
+   zdvihne sa celé javisko. Tapeta aj lišta s logom sú mimo neho, ostanú pod závojom. */
+.hf-stage:has(.co-stack.is-veiled) { z-index: 61; }
+.co-seal { transition: opacity 200ms ease; }
+.co-stack.is-veiled .co-seal { opacity: 0; }
 
 /* ZAPLATIŤ + NECHCEM PLATIŤ vedľa seba — plné a obrysové, rovnaký tvar. */
 .co-actions { display: grid; grid-template-columns: 3fr 7fr; gap: 8px; }
