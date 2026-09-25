@@ -321,15 +321,15 @@ export function FlowRevealScreen() {
  * na psa a zobrazenie textu… loopa, pod tým to, čo už máme, tam človek píše"*
  * + *„text nemusí byť vidno, len sa tam ukáže so šípkou, že to je ono"*).
  *
- * Video je BLEDÁ stena z \`/onepage\` (Matej: *„použi bledú wall z /onepage,
- * ten priezor daj väčší a daj zoom out, nech je vidno viacero fotiek"*),
- * nahraté 25. 9. s ostrými psami: web (guľa) → ťuk na STENA → stena ~4×7 psov
- * → ťuk na HARRYHO (pravý stĺpec) → karta sa otočí na odkaz (~6 s). Šípka
- * s nápisom sa ukáže AŽ po otočení a mieri hore doprava na jeho kartu.
- * ⚠️ Keď sa zmení vzhľad otvorenej karty na stene, video treba nahrať znova
- *    (recept v pamäti `project_dogypt_chvost_flowu_planb_2026-09-25`).
+ * Video je BLEDÁ stena z \`/onepage\` s ostrými psami, nahraté 25. 9.:
+ * guľa → ťuk na STENA → výrez sa presunie na HEKTHOROVU kartu v strede → ťuk →
+ * okolie prekryje bledý závoj a karta sa otočí na odkaz (~2,2 s), koniec stojí.
+ * Matej: *„zrýchli to a centruj pohľad na to okno a stmav okolie alebo daj ho
+ * do bledej, nech je to jasné… nie je vidno tú šípku"*.
+ * Šípka je preto SAMOSTATNÁ a veľká, mieri zdola na stred priezoru, kde karta
+ * vždy stojí (priezor má pomer strán videa, takže sa karta nikdy neoreže).
  */
-const WALL_FLIP_S = 6.1;
+const WALL_FLIP_S = 2.3;
 function WallPreview({ label }: { label: string }) {
   const [on, setOn] = useState(false);
   return (
@@ -347,15 +347,12 @@ function WallPreview({ label }: { label: string }) {
         <source src="/videos/wall-odkaz.webm" type="video/webm" />
         <source src="/videos/wall-odkaz.mp4" type="video/mp4" />
       </video>
-      <span className={`rv-prev-tag${on ? ' on' : ''}`}>
-        {label}
-        {/* Šípka je kresba (SVG ťah), nie znak z písma — brand stráž ikoniek.
-            Mieri hore doprava: Harryho karta je vo videu v pravom stĺpci. */}
-        <svg viewBox="0 0 40 28" width="40" height="28" aria-hidden="true">
-          <path d="M2 24 C 16 24, 28 18, 34 6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-          <path d="M26 7 L 35 4 L 37 13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </span>
+      {/* Šípka je kresba (SVG ťah), nie znak z písma — brand stráž ikoniek. */}
+      <svg className={`rv-prev-arrow${on ? ' on' : ''}`} viewBox="0 0 24 34" aria-hidden="true">
+        <path d="M12 32 C 10 22, 14 14, 12 4" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M4 12 L 12 3 L 20 12" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <span className={`rv-prev-tag${on ? ' on' : ''}`}>{label}</span>
     </div>
   );
 }
@@ -457,23 +454,33 @@ const REVEAL_CSS = `
 .rv-msg:hover .rv-msg-act { background: ${LAPIS.edge}; color: #FDF7E7; }
 
 /* ── NÁHĽAD STENY V POPUPE ──────────────────────────────────────────────────
-   Výška je PEVNÁ (240 — Matej chcel priezor väčší). Video je na výšku (720×1300),
-   \`cover\` z neho ukáže pás riadkov okolo Harryho karty (\`object-position\` 42 %). */
+   Pomer strán = video (480×336), takže karta v strede sa nikdy neoreže — na
+   telefóne 343×240, na PC ~490×340 (Matej chcel priezor väčší). */
 .rv-prev {
-  position: relative; width: 100%; height: 240px; overflow: hidden;
-  border-radius: ${PACK_R.tile}px; border: 1.5px solid ${LAB.hairline}; background: #000;
+  position: relative; width: 100%; aspect-ratio: 480 / 336; overflow: hidden;
+  border-radius: ${PACK_R.tile}px; border: 1.5px solid ${LAB.hairline}; background: #F3E4C4;
 }
-.rv-prev video { width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; display: block; }
+.rv-prev video { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Šípka stojí nad nápisom a mieri hore na spodnú hranu karty. Pod kartou je
+   27,8 % výšky priezoru (karta 174 z 392 px výrezu) — na telefóne 67 px,
+   z toho 34 berie nápis. Preto 24 px a kmitanie len o 3. */
+.rv-prev-arrow {
+  position: absolute; left: 50%; bottom: 38px; width: 18px; height: 24px; margin-left: -9px;
+  color: ${LAPIS.edge}; filter: drop-shadow(0 0 2px #FFFDF7) drop-shadow(0 0 4px #FFFDF7);
+  opacity: 0; transform: translateY(8px); transition: opacity 250ms ease, transform 250ms ease;
+}
 .rv-prev-tag {
-  position: absolute; left: 50%; bottom: 8px; translate: -50% 0; display: inline-flex; align-items: flex-start; gap: 4px;
-  padding: 4px 4px 4px 12px; white-space: nowrap; border-radius: ${PACK_R.pill}px;
+  position: absolute; left: 50%; bottom: 8px; translate: -50% 0; white-space: nowrap;
+  padding: 6px 12px; border-radius: ${PACK_R.pill}px;
   background: ${LAPIS.grad}; color: ${LAPIS.ink};
   font-family: 'Cinzel', serif; font-weight: 700; font-size: 10px;
   letter-spacing: 0.14em; text-transform: uppercase;
   opacity: 0; transform: translateY(6px); transition: opacity 250ms ease, transform 250ms ease;
 }
-.rv-prev-tag.on { opacity: 1; transform: none; }
-.rv-prev-tag svg { margin-top: -10px; }
+.rv-prev-arrow.on, .rv-prev-tag.on { opacity: 1; transform: none; }
+.rv-prev-arrow.on { animation: rv-bob 1.1s ease-in-out infinite; }
+@keyframes rv-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { .rv-prev-arrow.on { animation: none; } }
 
 @media (max-height: 700px) {
   .rv-stack .hf-plate { padding: 14px 16px; gap: 5px; }
