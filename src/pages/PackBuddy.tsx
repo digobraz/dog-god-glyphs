@@ -144,6 +144,8 @@ const CSS = `
 /* ÚVOD — erb s animovaným logom (SnifferLogo) a jedna veta. */
 .bd-hero{padding:${PACK_SPACE.xl}px ${PACK_SPACE.lg}px;}
 .bd-hero .bd-h2{font-size:${PACK_TEXT.h1}px;}
+.bd-wordmark{margin:0;line-height:0;}
+.bd-wordmark img{height:${PACK_SPACE.xxl + PACK_SPACE.md}px;width:auto;}
 .bd-hero .bd-lead{font-family:${FONT_TITLE};font-size:${PACK_TEXT.lead}px;line-height:1.45;color:${T.inkStrong};max-width:28ch;margin:0 auto;}
 .bd-hero .bd-lead--ui{font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkDim};}
 /* JEDNA OBRAZOVKA BEZ SCROLLU — obsah sa centruje margin:auto na dieťati, NIE
@@ -461,7 +463,11 @@ export default function PackBuddy() {
               <div className="bd-card bd-center bd-hero hf-carved" style={{ ...PACK_BOX.card }}>
                 <span className="hf-carved-rim" aria-hidden />
                 <SnifferLogo size={PACK_AVATAR.lg * 3 + PACK_SPACE.xl} />
-                <h2 className="bd-h2">{tx('pack.buddy.title', 'Buddies')}</h2>
+                {/* NÁPIS = Alkatra 700, malé písmená, „ff" ako spojený znak (Matej 25. 9.: „ok poď na
+                    to"). Krivky, nie font — `public/icons/sniffer/sniffer-napis.svg`, lock brand.md. */}
+                <h2 className="bd-wordmark">
+                  <img src="/icons/sniffer/sniffer-napis.svg" alt={tx('pack.buddy.title', 'SNIFFER')} />
+                </h2>
                 <p className="bd-lead">{tx('pack.buddy.intro', 'Find buddies to sniff out the world with.')}</p>
               </div>
             ) : (() => {
