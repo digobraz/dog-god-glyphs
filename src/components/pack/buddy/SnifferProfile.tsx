@@ -1,8 +1,10 @@
 // SNIFFER — „VÁŠ PROFIL" (ty a pes). Nahrádza zoznam „Tvoja karta" v bráne.
 // Zadanie: plany/zadanie-sniffer-stavba-2026-09-26.md §2.2 · nákres obrazovka A (a E ho znovupoužije).
 //
-// Karty vo VODOROVNOM rade (spoločný `Scroller` vstupu, nie druhý rad):
-//   1 Základ · 2 Bio a záľuby · 3 Pes (jedna karta na každého psa) · 4 Čo hľadám · + ďalší pes
+// JEDNA KARTA NA OBRAZOVKU s počítadlom „1 / 5" (kolo 2, Matej 25. 9.: „jeden blok na obraze
+// a vidno 1/5… vždy jedna sekcia na view"). Poradie = poradie CELÉHO PROFILU, ktorý vidia
+// ostatní (`SnifferFullProfile`): Základ · Bio a info · Môj rajón (pin + hľadám + komu sa
+// ukážem) · Psy (karta na každého psa, „+ pes" na poslednej).
 // 🔴 ŽIADNE NOVÉ MIESTO NA ÚDAJE (CLAUDE.md „Identita"): človek píše do `pack_profiles.human`
 //    (`saveHuman`), pes do `dog_profiles.attrs` (`saveDogAttrs`) — tie isté polia ako profil
 //    a DOG ID. Čo doplníš tu, uvidíš tam.
@@ -10,14 +12,15 @@
 //    ste SPOLU (zelený rám). Brána na serveri chce `buddyPhoto`, takže sa nemení.
 // ⚠️ „Povely" z nákresu nemajú v profile pole — karta ukazuje Poslušnosť a Privolanie,
 //    ktoré DOG ID už má. Nové pole nezakladám bez Mateja.
-// ⚠️ Karta 4 (zámery + komu sa ukážem) v nákrese A nie je, ale bez nej sa SNIFFER nedá
-//    zapnúť — brána ju chce. V nastaveniach (E) ostáva aj naďalej.
-import { useRef, useState, type ReactNode } from 'react';
+// ⚠️ „Komu sa ukážem" v celom profile nie je (je súkromné), ale bez neho sa SNIFFER nedá
+//    zapnúť — brána ho chce. Preto stojí v karte rajónu pri „hľadám".
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { uploadExtraPhoto, withTransform } from '@/services/cloudinaryService';
-import { Scroller, FLOW_SCROLL_CSS } from '@/components/screens/flowScroller';
+import { HandArrowLeft } from '@/components/pack/HandIcons';
+import { SnifferPinEditor } from './SnifferPin';
 import {
-  PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_AVATAR, FONT_TITLE, FONT_UI,
+  PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_AVATAR, FONT_UI, BRAND_GOLD_BTN,
 } from '@/components/pack/packTheme';
 import { LAPIS, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import {
@@ -42,11 +45,16 @@ const MAX_PHOTOS = 6;
 const thumb = (u?: string | null) => withTransform(u, 'c_fill,g_auto,w_300,h_400,f_auto,q_auto');
 
 const CSS = `
-/* Rad roluje do strán, takže orezáva — bez rezervy by tieň kariet skončil ostrou hranou
-   (svetlý obdĺžnik okolo radu). Rezerva dnu, záporný okraj von: rozloženie sa nepohne. */
-.hf-srow.sp-hs{padding:${PACK_SPACE.xl}px ${PACK_SPACE.xs}px;margin:-${PACK_SPACE.xl}px -${PACK_SPACE.xs}px;}
-.sp-hs{align-items:flex-start;gap:${PACK_SPACE.md}px;scroll-snap-type:x mandatory;}
-.sp-card{flex:0 0 min(86%, 360px);scroll-snap-align:center;padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;}
+.sp-card{width:100%;padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;}
+.sp-pager{width:100%;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;touch-action:pan-y;}
+.sp-nav{display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.md}px;}
+.sp-count{min-width:${PACK_SPACE.xxxl}px;text-align:center;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;color:${T.inkWarm};}
+.sp-arrow{width:${PACK_SPACE.xl + PACK_SPACE.xs}px;height:${PACK_SPACE.xl + PACK_SPACE.xs}px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;cursor:pointer;
+  color:${T.cardSoft};border:1px solid ${BRAND_GOLD_BTN.edge};background:${BRAND_GOLD_BTN.grad};}
+.sp-arrow:disabled{opacity:.3;cursor:default;}
+.sp-dots{display:flex;justify-content:center;gap:${PACK_SPACE.xs}px;}
+.sp-dots button{width:${PACK_SPACE.sm}px;height:${PACK_SPACE.sm}px;padding:0;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};background:transparent;cursor:pointer;}
+.sp-dots button.is-on{background:${T.accentGold};}
 .sp-eb{min-height:${PACK_SPACE.xl}px;display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.sm}px;font-family:${FONT_UI};font-weight:500;
   font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
 .sp-miss{font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;color:${T.card};background:${T.alertRed};
@@ -63,7 +71,7 @@ const CSS = `
 .sp-static{display:flex;justify-content:space-between;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.sm}px 0;border-top:1px solid ${T.hairline};
   font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkDim};}
 .sp-static b{font-weight:600;color:${T.inkStrong};}
-.sp-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:${PACK_SPACE.sm}px;}
+.sp-slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,128px));gap:${PACK_SPACE.sm}px;}
 .sp-slot{position:relative;aspect-ratio:3/4;border-radius:${PACK_R.tile}px;overflow:hidden;border:1px dashed ${T.border};background:${T.tileBg};
   display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:${FONT_UI};font-size:${PACK_TEXT.h2}px;color:${T.inkWarm};padding:0;}
 .sp-slot img{width:100%;height:100%;object-fit:cover;display:block;}
@@ -77,8 +85,6 @@ const CSS = `
 .sp-dogh b{font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;font-size:${PACK_TEXT.lead}px;color:${T.inkStrong};}
 .sp-area{width:100%;min-height:96px;resize:vertical;border-radius:${PACK_R.field}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;
   font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
-.sp-add{justify-content:center;align-items:center;text-align:center;}
-.sp-add h3{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
 .sp-pills .pk-pill.is-on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
 `;
 
@@ -146,12 +152,13 @@ export function SnifferProfile({
 
   return (
     <>
-      <style>{FLOW_SCROLL_CSS}</style>
       <style>{CSS}</style>
-      <Scroller rowClass="sp-hs" measureKey={String(dogs.length)} centerSel=".sp-card--none">
-        {/* 1 · ZÁKLAD */}
-        <section className="sp-card" style={{ ...PACK_BOX.card }}>
-          <span className="sp-eb">1 · {tx('pack.sniffer.profile.basics', 'Basics')} {badge(['name', 'age', 'gender', 'region', 'photo'])}</span>
+      {/* JEDEN BLOK NA OBRAZOVKU, poradie ako CELÝ PROFIL (Matej 25. 9.: „jeden blok na obraze
+          a vidno 1/5… vždy jedna sekcia na view… v postupnosti ako profil, ktorý je viditeľný =
+          základ/bio/rajón atď."). Listuje sa šípkami, bodkami aj ťahom do strany. */}
+      <Pager tx={tx} slides={[
+        <section key="basics" className="sp-card" style={{ ...PACK_BOX.card }}>
+          <span className="sp-eb">{tx('pack.sniffer.profile.basics', 'Basics')} {badge(['name', 'age', 'gender', 'region', 'photo'])}</span>
           {gateRow('name', tx('pack.buddy.step.name', 'Name'))}
           {gateRow('age', tx('pack.buddy.step.age', 'Age'))}
           {heroGender
@@ -159,11 +166,9 @@ export function SnifferProfile({
             : gateRow('gender', tx('pack.buddy.step.gender', 'Gender'))}
           {gateRow('region', tx('pack.buddy.step.region', 'Where you live'))}
           <PhotoSlots uid={uid} photos={photos} together={human?.buddyPhoto ?? null} tx={tx} />
-        </section>
-
-        {/* 2 · BIO A ZÁĽUBY */}
-        <section className="sp-card" style={{ ...PACK_BOX.card }}>
-          <span className="sp-eb">2 · {tx('pack.sniffer.profile.bio', 'Bio & interests')}</span>
+        </section>,
+        <section key="bio" className="sp-card" style={{ ...PACK_BOX.card }}>
+          <span className="sp-eb">{tx('pack.sniffer.full.bio', 'Bio & info')}</span>
           {row('bio', tx('pack.sniffer.profile.aboutMe', 'About me'), human?.bio?.trim() ?? '', (
             <textarea className="pf-field sp-area" defaultValue={human?.bio ?? ''} maxLength={900}
               placeholder={tx('pack.sniffer.profile.bioPh', 'A couple of lines about you and your dog')}
@@ -205,17 +210,22 @@ export function SnifferProfile({
               </label>
             </>
           ))}
-        </section>
-
-        {/* 3 · PES — jedna karta na každého psa */}
-        {dogs.map((d, n) => {
+        </section>,
+        <section key="patch" className="sp-card" style={{ ...PACK_BOX.card }}>
+          <span className="sp-eb">{tx('pack.sniffer.full.patch', 'My patch')} {badge(['intents', 'audience'])}</span>
+          <SnifferPinEditor tx={tx} pin={human?.pin} fallbackCountry={human?.nationality?.toLowerCase()} />
+          <p className="bd-note">{tx('pack.sniffer.pin.note', 'Pick a country · tap to drop your pin · others only see how far you are')}</p>
+          {gateRow('intents', tx('pack.sniffer.full.seeking', 'Looking for'))}
+          {gateRow('audience', tx('pack.buddy.step.audience', 'Who sees me'))}
+        </section>,
+        ...dogs.map((d, n) => {
           const a = dogAttrsOf(d.id) ?? emptyDogAttrs(d.id);
           const setCard = (patch: Partial<DogProfileAttrs['card']>) => void saveDogAttrs(d.id, { card: { ...a.card, ...patch } });
           const temper = a.tags.temperament ?? [];
           const dogDone = temper.length > 0 && !!a.card.fitness && !!a.card.compat?.dogs_overall;
           return (
             <section key={d.id} className="sp-card" style={{ ...PACK_BOX.card }}>
-              <span className="sp-eb">{3 + n} · {tx('pack.buddy.dog', 'Dog')}
+              <span className="sp-eb">{tx('pack.buddy.dog', 'Dog')}
                 {dogDone
                   ? <span className="sp-ok">{tx('pack.sniffer.profile.done', 'Done')}</span>
                   : <span className="sp-miss">{tx('pack.sniffer.profile.dogTodo', 'Fill in 3')}</span>}
@@ -288,28 +298,51 @@ export function SnifferProfile({
                   onToggle={(v) => setCard({ recall: v as DogProfileAttrs['card']['recall'] })}
                 />
               ))}
+              {n === dogs.length - 1 && (
+                <button type="button" className="bd-cta bd-cta--small" style={{ alignSelf: 'center', marginTop: PACK_SPACE.sm }}
+                  onClick={() => (onAddDog ? onAddDog() : navigate('/heroglyph'))}>
+                  + {tx('pack.sniffer.profile.addDogCta', 'Add a dog')}
+                </button>
+              )}
             </section>
           );
-        })}
-
-        {/* 4 · ČO HĽADÁM — bez nej sa SNIFFER nezapne (brána) */}
-        <section className="sp-card" style={{ ...PACK_BOX.card }}>
-          <span className="sp-eb">{3 + dogs.length} · {tx('pack.sniffer.profile.looking', 'What I’m looking for')} {badge(['intents', 'audience'])}</span>
-          {gateRow('intents', tx('pack.buddy.step.intents', 'What I’m looking for'))}
-          {gateRow('audience', tx('pack.buddy.step.audience', 'Who sees me'))}
-        </section>
-
-        {/* + ĎALŠÍ PES — pes do svorky vstupuje heroglyfom */}
-        <section className="sp-card sp-add" style={{ ...PACK_BOX.card }}>
-          <h3>+ {tx('pack.sniffer.profile.addDog', 'Another dog')}</h3>
-          <p className="bd-note">{tx('pack.sniffer.profile.addDogNote', 'Every dog enters the pack with its own heroglyph.')}</p>
-          <button type="button" className="bd-cta bd-cta--small" style={{ alignSelf: 'center' }}
-            onClick={() => (onAddDog ? onAddDog() : navigate('/heroglyph'))}>
-            {tx('pack.sniffer.profile.addDogCta', 'Add a dog')}
-          </button>
-        </section>
-      </Scroller>
+        }),
+      ]} />
     </>
+  );
+}
+
+/** Listovanie po jednej karte. Ťah do strany (≥ 56 px, viac vodorovne než zvislo) = ďalšia/
+ *  predošlá; zvislý ťah ostáva rolovaniu stránky. */
+function Pager({ tx, slides }: { tx: Tx; slides: ReactNode[] }) {
+  const [page, setPage] = useState(0);
+  const n = slides.length;
+  useEffect(() => { if (page > n - 1) setPage(Math.max(0, n - 1)); }, [n, page]);
+  const start = useRef<{ x: number; y: number } | null>(null);
+  const go = (d: number) => setPage((p) => Math.min(n - 1, Math.max(0, p + d)));
+  return (
+    <div className="sp-pager"
+      onPointerDown={(e) => { start.current = { x: e.clientX, y: e.clientY }; }}
+      onPointerUp={(e) => {
+        const s0 = start.current; start.current = null;
+        if (!s0) return;
+        const dx = e.clientX - s0.x; const dy = e.clientY - s0.y;
+        if (Math.abs(dx) >= 56 && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx < 0 ? 1 : -1);
+      }}>
+      <div className="sp-nav">
+        <button type="button" className="sp-arrow" disabled={page === 0} aria-label={tx('pack.sniffer.prev', 'Previous')} onClick={() => go(-1)}>
+          <HandArrowLeft size={14} solid />
+        </button>
+        <span className="sp-count" aria-live="polite">{page + 1} / {n}</span>
+        <button type="button" className="sp-arrow" disabled={page >= n - 1} aria-label={tx('pack.sniffer.next', 'Next')} onClick={() => go(1)}>
+          <HandArrowLeft size={14} solid style={{ transform: 'rotate(180deg)' }} />
+        </button>
+      </div>
+      {slides[Math.min(page, n - 1)]}
+      <div className="sp-dots" aria-hidden>
+        {slides.map((_, i) => <button key={i} type="button" tabIndex={-1} className={i === page ? 'is-on' : ''} onClick={() => setPage(i)} />)}
+      </div>
+    </div>
   );
 }
 

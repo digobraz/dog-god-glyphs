@@ -27,7 +27,6 @@ import { SnifferLogo, SNIFFER_LOGO_END_MS } from '@/components/pack/buddy/Sniffe
 import { SnifferHome } from '@/components/pack/buddy/SnifferHome';
 import { SnifferProfile } from '@/components/pack/buddy/SnifferProfile';
 import { SnifferMyCard, SNIFFER_CARD_CSS } from '@/components/pack/buddy/SnifferCard';
-import { SnifferPinEditor } from '@/components/pack/buddy/SnifferPin';
 import { SnifferFullProfile } from '@/components/pack/buddy/SnifferFullProfile';
 import type { SnifferCardData } from '@/components/pack/buddy/snifferDeck';
 import { MessagingOverlayHost } from '@/components/pack/PackLayout';
@@ -608,14 +607,7 @@ export default function PackBuddy() {
             gateSummary={summary}
           />
 
-          {/* MÔJ RAJÓN = krajina + PIN (kolo 2, skica Mateja 25. 9.). Pin je súkromný — ostatní
-              vidia len vzdialenosť. Kraje (`SnifferAreas`) nahradené. */}
-          <span className="bd-eyebrow">{tx('pack.sniffer.areasHead', 'My patch')}</span>
-          <section className="bd-card bd-areas" style={{ ...PACK_BOX.card }}>
-            <SnifferPinEditor tx={tx} pin={human?.pin} fallbackCountry={human?.nationality?.toLowerCase()} />
-            <p className="bd-note">{tx('pack.sniffer.pin.note', 'Pick a country · tap to drop your pin · others only see how far you are')}</p>
-          </section>
-
+          {/* MÔJ RAJÓN (pin) je od kola 2 karta 3 vo Vašom profile vyššie, poradie ako celý profil. */}
           {/* ĽUDIA V OKOLÍ — východisko NIE (Matej 25. 9.). */}
           <section className="bd-card bd-areas" style={{ ...PACK_BOX.card }}>
             <label className="bd-switch">
