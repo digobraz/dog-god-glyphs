@@ -54,6 +54,8 @@ const BY_STEP: Record<string, number> = {
   crop: 23,
   reveal: 25,
   message: 26,
+  // C · ZADRŽANIE (25. 9. 2026) — voľný ksicht, žiadny iný krok ho nemá.
+  stay: 24,
 };
 
 /**

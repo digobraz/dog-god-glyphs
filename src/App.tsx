@@ -85,6 +85,9 @@ const FlowRevealScreen = lazy(() =>
 const FlowCheckoutScreen = lazy(() =>
   import("@/components/screens/FlowCheckoutScreen").then((m) => ({ default: m.FlowCheckoutScreen }))
 );
+const FlowStayScreen = lazy(() =>
+  import("@/components/screens/FlowStayScreen").then((m) => ({ default: m.FlowStayScreen }))
+);
 // ── NOVÝ VSTUP (28.–31. 8. 2026) — zavesený LEN v DEV, viď `NEW_HEROFLOW` nižšie ──
 const DogsScreen = lazy(() =>
   import("@/components/screens/DogsScreen").then((m) => ({ default: m.DogsScreen }))
@@ -432,6 +435,8 @@ const App = () => (
                   platí celú svorku (25. 9. 2026). LIVE ide ďalej dvojicou
                   `CheckoutScreen` → `PaymentScreen`. */}
               <Route path="/checkout" element={NEW_HEROFLOW ? <FlowCheckoutScreen /> : <CheckoutScreen />} />
+              {/* C · ZADRŽANIE — „Nechcem platiť" z pokladne (len nový vstup). */}
+              {NEW_HEROFLOW && <Route path="/heroglyph/stay" element={<FlowStayScreen />} />}
               <Route path="/payment" element={<PaymentScreen />} />
               <Route path="/welcome" element={<WelcomeScreen />} />
               <Route path="/vision" element={<Vision />} />
