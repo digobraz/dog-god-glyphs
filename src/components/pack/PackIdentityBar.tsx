@@ -25,17 +25,11 @@
 // ⚠️ Šat je AINUBISOV (tmavý displej). Papyrusovú polohu komponent zatiaľ nemá.
 // ⚠️ Panel pásiem (klik na číslo levelu na mape) tu NIE JE — žije vnútri PackMap.
 // ════════════════════════════════════════════════════════════════════════════
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import type { HeroTrail } from '@/data/heroTrails.generated';
-import { HERO_TRAILS } from '@/data/heroTrails.generated';
-import { HERO_JOURNEYS } from '@/data/heroJourneys';
-import { readLocalTrails, readWalkedIds, visibleLocalTrails, pluralKey } from './tripShared';
-import { profileLevelFor, readVotes } from './packCommunity';
-import { useMyNotePoints } from './mapnotes/useMyNotePoints';
-import { useMyEventCount } from '@/components/pack/events/eventStore';
-import { useMyWishCount } from '@/components/pack/mapnotes/wishData';
+import { pluralKey } from './tripShared';
+import { usePilgrimStats } from './usePilgrimStats';
 import { tierVars } from '@/lib/packTiers';
 import type { usePackIdentity } from './usePackIdentity';
 import { PackTopRight } from './PackLayout';
@@ -98,9 +92,6 @@ export function PackIdentityBar({ id, middle, stats, primary }: {
 }) {
   const t = useT();
   const navigate = useNavigate();
-  const myNotePoints = useMyNotePoints();
-  const myEventCount = useMyEventCount();
-  const myWishCount = useMyWishCount();
 
   const email = id.session?.user?.email ?? '';
   const meta = (id.session?.user?.user_metadata ?? {}) as Record<string, unknown>;
@@ -122,24 +113,8 @@ export function PackIdentityBar({ id, middle, stats, primary }: {
     : cartouche ? firstNameFrom('', cartouche)
       : firstNameFrom(email);
 
-  const view = useMemo(() => {
-    const all: HeroTrail[] = [...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS];
-    const walked = readWalkedIds();
-    /* ⚠️ Počet aj km z JEDNEJ množiny (mapa, UX audit 14. 9. 2026). */
-    const walkedTrails = all.filter((tr) => walked.has(tr.id));
-    const km = walkedTrails.reduce((s, tr) => s + (parseFloat(String(tr.km ?? '').replace(',', '.')) || 0), 0);
-    const { level } = profileLevelFor({
-      walkedTrails,
-      localTrailIds: readLocalTrails().map((tr) => tr.id),
-      votes: readVotes(),
-      email,
-      ownerName: firstNameFrom(email, fullName),
-      notePoints: myNotePoints,
-      eventsHeld: myEventCount,
-      wishesDone: myWishCount,
-    });
-    return { level, count: walkedTrails.length, km: Math.round(km) };
-  }, [email, fullName, myNotePoints, myEventCount, myWishCount]);
+  /* Výpočet žije v `usePilgrimStats` — to isté číslo číta aj karta SNIFFERu. */
+  const view = usePilgrimStats(email, firstNameFrom(email, fullName));
 
   const lv = view.level;
   return (
