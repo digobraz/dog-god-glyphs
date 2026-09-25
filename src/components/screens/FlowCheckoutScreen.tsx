@@ -248,10 +248,11 @@ export function FlowCheckoutScreen() {
 
       <div className="hf-stage">
         <div className="w-full max-w-xl flex flex-col items-center">
-          <p className="co-kicker">{t('heroglyph.flow.checkoutNew.kicker')}</p>
+          {/* Nadpis „Posledný krok" zanikol: punc záveru nesie veľká pečať a nadpis
+              by pod ňou zmizol (Matej 25. 9. 2026). Kľúč ostáva v i18n. */}
 
           <motion.div
-            className="hf-block hf-carved co-stack"
+            className={`hf-block hf-carved co-stack${dogs.length > 2 ? ' co-stack--many' : ''}`}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
@@ -373,32 +374,36 @@ export function FlowCheckoutScreen() {
               {/* ── ČO DOSTANEŠ — obsah hneď v štítkoch, rozpis v paneli (Matej
                   25. 9. 2026: *„do chipov to, čo človek dostane, a tlačidlo VIAC
                   INFO"*). Štítok = informácia, nie voľba ⇒ zlatý obrys, nie lapis. ── */}
+              {/* Menším písmom a oddelené RYTINOU (Matej 25. 9. 2026) — ten istý
+                  vlys ako „Tvoj pes", nie ďalší nadpis. */}
+              <p className="hf-legend co-getlegend">{t('heroglyph.flow.checkoutNew.getTitle')}</p>
               <div className="co-getrow">
-                <span>{t('heroglyph.flow.checkoutNew.getTitle')}</span>
+                <ul className="co-chips">
+                  {GET_KEYS.map((k) => (
+                    <li key={k} className={`co-chip${k === 'sniffer' ? ' soon' : ''}`}>
+                      {t(`heroglyph.flow.checkoutNew.get.${k}`)}
+                    </li>
+                  ))}
+                </ul>
                 <button type="button" className="co-mini" onClick={() => setPanel('get')}>
                   {t('heroglyph.flow.checkoutNew.getMore')}
                 </button>
               </div>
-              <ul className="co-chips">
-                {GET_KEYS.map((k) => (
-                  <li key={k} className={`co-chip${k === 'sniffer' ? ' soon' : ''}`}>
-                    {t(`heroglyph.flow.checkoutNew.get.${k}`)}
-                  </li>
-                ))}
-              </ul>
 
               {/* ── ZAPLATIŤ / NECHCEM PLATIŤ — vedľa seba. Plná plocha patrí
                   jedinému CTA (brand lock), odmietnutie je obrysové. Vedie na
                   ZADRŽANIE (obrazovka C): kto vstúpil, odchádza aspoň so psom
                   na stene (Matej 25. 9.). ── */}
+              {/* ZAPLATIŤ VPRAVO, bližšie k palcu, 70 % · NECHCEM PLATIŤ vľavo 30 %
+                  (Matej 25. 9. 2026: *„pozitívne napravo, bližšie k palcu"*). */}
               <div className="co-actions">
+                <button type="button" className="co-decline" onClick={() => navigate('/heroglyph/stay')} disabled={loading}>
+                  {t('heroglyph.flow.checkoutNew.decline')}
+                </button>
                 <button type="button" className="hf-cta" onClick={pay} disabled={loading || !!edit}>
                   {loading
                     ? <span className="co-cta-in"><Loader2 className="h-4 w-4 animate-spin" />{waitingPhoto ? t('payment.sealing') : t('payment.preparing')}</span>
                     : t('heroglyph.flow.checkoutNew.pay', { sum: `€${totalShown}` })}
-                </button>
-                <button type="button" className="co-decline" onClick={() => navigate('/heroglyph/stay')} disabled={loading}>
-                  {t('heroglyph.flow.checkoutNew.decline')}
                 </button>
               </div>
               {payError && <p role="alert" className="co-err">{payError}</p>}
@@ -557,17 +562,27 @@ const CHECKOUT_CSS = `
 }
 .co-back:hover { background: rgba(201, 154, 63, 0.14); }
 
-/* Pečať na hornej hrane dosky — polovicou nad rámom, polovicou na ňom. */
-.co-stack { margin-top: 40px; }
+/* Pečať na hornej hrane dosky — VEĽKÁ (Matej 25. 9. 2026: *„chcel som ju
+   veľkú, zväčši aspoň o 200 %"* ⇒ 80 → 240 px). Veľkosť drží výška okna, nie
+   pevné číslo: na nízkom okne sa scvrkne a doska sa zmestí bez scrollu. Polovica
+   pečate visí nad rámom, druhá polovica zaberá hornú časť dosky. */
+.co-stack { --seal: clamp(120px, 26dvh, 240px); margin-top: calc(var(--seal) * 0.42); }
 .co-seal {
-  position: absolute; z-index: 3; left: 50%; top: 0; width: 80px; height: 80px;
-  transform: translate(-50%, -52%) rotate(-5deg); pointer-events: none;
-  filter: drop-shadow(0 4px 8px rgba(60, 40, 10, 0.35));
+  position: absolute; z-index: 3; left: 50%; top: 0; width: var(--seal); height: var(--seal);
+  transform: translate(-50%, -58%) rotate(-5deg); pointer-events: none;
+  filter: drop-shadow(0 6px 12px rgba(60, 40, 10, 0.35));
 }
-.co-stack .hf-plate { padding-top: 40px; }
+.co-stack .hf-plate { padding-top: calc(var(--seal) * 0.42 + 8px); }
+/* Viac psov = viac riadkov kariet ⇒ pečať sa scvrkne (Matej 25. 9. 2026). */
+.co-stack--many { --seal: clamp(88px, 13dvh, 160px); }
+@media (max-height: 700px) {
+  .co-stack { --seal: 18dvh; }
+  .co-stack--many { --seal: 12dvh; }
+}
 
 /* Štítky „čo dostaneš" — zlatý obrys (informácia), SNIFFER tlmene (čoskoro). */
-.co-chips { list-style: none; margin: -4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.co-getlegend { font-size: 10px; }
+.co-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto; min-width: 0; }
 .co-chip {
   padding: 4px 8px; border-radius: 999px; border: 1px solid rgba(154, 115, 37, 0.45);
   font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: .02em;
@@ -576,21 +591,17 @@ const CHECKOUT_CSS = `
 .co-chip.soon { opacity: .6; }
 
 /* Čo dostaneš — riadok s tlačidlom; rozpis je v paneli. */
-.co-getrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.co-getrow > span {
-  font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
-  letter-spacing: 0.14em; text-transform: uppercase; color: ${LAB.inkSoft};
-}
+.co-getrow { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: -4px; }
+.co-getrow .co-mini { flex: 0 0 auto; }
 
 /* ZAPLATIŤ + NECHCEM PLATIŤ vedľa seba — plné a obrysové, rovnaký tvar. */
-.co-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-@container (min-width: 480px) { .co-actions { grid-template-columns: 3fr 2fr; } }
+.co-actions { display: grid; grid-template-columns: 3fr 7fr; gap: 8px; }
 .co-actions .hf-cta { width: 100%; }
 .co-decline {
   height: ${HF.cta.h}px; border-radius: ${HF.cta.radius}px; cursor: pointer;
   border: 1.5px solid ${LAPIS.edge}; background: transparent; color: ${LAPIS.edge};
-  font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
-  letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; padding: 0 8px;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 10px;
+  letter-spacing: .04em; text-transform: uppercase; white-space: normal; line-height: 1.15; padding: 0 4px;
   transition: background .18s, color .18s;
 }
 .co-decline:hover:not(:disabled) { background: ${LAPIS.fill}; }
@@ -619,19 +630,16 @@ const CHECKOUT_CSS = `
    PAGE_AIR. Ustupuje najprv nadpis nad doskou (kontext, nie obsah), potom medzery. */
 @media (max-height: 780px) {
   .co-kicker { display: none; }
-  .co-stack .hf-plate { gap: 10px; padding-top: 32px; }
-  .co-stack { margin-top: 32px; }
-  .co-seal { width: 64px; height: 64px; }
+  .co-stack .hf-plate { gap: 10px; }
   /* Karty psov ustúpia ako prvé z obsahu: pri 2×2 berú dva riadky dosky. */
   .co-dog-ph { width: 32px; height: 32px; }
   .co-dog-price { line-height: 20px; }
 }
 @media (max-height: 700px) {
-  .co-stack .hf-plate { padding: 32px 16px 14px; gap: 8px; }
-  .co-seal { width: 64px; height: 64px; }
-  .co-stack { margin-top: 32px; }
+  .co-stack .hf-plate { padding-left: 16px; padding-right: 16px; padding-bottom: 14px; gap: 8px; }
   .co-kicker { margin-bottom: 8px; font-size: 12px; }
-  .co-dogs { max-height: 220px; }
+  .co-dogs { max-height: 150px; }
+  .co-secure { display: none; }
   .co-dog-ph { width: 28px; height: 28px; }
   .co-dog-name { font-size: 12px; }
 }

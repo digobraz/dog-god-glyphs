@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { HandArrowLeft } from '@/components/pack/HandIcons';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
@@ -6,6 +6,19 @@ import dogyptLogoMobile from '@/assets/dogypt-logo-mobile.png';
 import { useT } from '@/i18n/LanguageContext';
 import { PageNav } from './PageNav';
 import LanguagePicker from './LanguagePicker';
+import { NEW_HEROFLOW } from '@/lib/flowMode';
+
+/**
+ * JAZYK LEN NA ZAČIATKU NOVÉHO FLOWU (Matej 25. 9. 2026: *„jazyk by som dal preč
+ * po 2. kroku"* → *„jazyk ok"*). Jazyk sa vyberá na fotke a mene; ďalej ho človek
+ * mení len omylom a hlavička bez vlajky je pokojnejšia. Starý (LIVE) flow nemení.
+ */
+const LANG_STEPS = ['/heroglyph/photo', '/heroglyph/name'];
+function langHiddenAt(path: string): boolean {
+  if (!NEW_HEROFLOW) return false;
+  const inFlow = path.startsWith('/heroglyph/') || path === '/checkout';
+  return inFlow && !LANG_STEPS.includes(path);
+}
 
 interface PageTopBarProps {
   /**
@@ -43,6 +56,7 @@ export function PageTopBar({
   brandBack = false,
 }: PageTopBarProps) {
   const t = useT();
+  const hideLang = langHiddenAt(useLocation().pathname);
   const backLabel = backAriaLabel ?? t('nav.aria.back');
   const logo = (
     <>
@@ -91,9 +105,11 @@ export function PageTopBar({
 
       {/* Language picker — top-right (mirrors the back-arrow), off the edge. Whole flow
           inherits it (every flow screen uses this plain PageTopBar). */}
-      <div className="absolute right-5 top-[12px] md:top-[20px]">
-        <LanguagePicker variant="flow" />
-      </div>
+      {!hideLang && (
+        <div className="absolute right-5 top-[12px] md:top-[20px]">
+          <LanguagePicker variant="flow" />
+        </div>
+      )}
     </div>
   );
 }
