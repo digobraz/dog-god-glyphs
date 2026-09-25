@@ -20,6 +20,7 @@ import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pac
 import { SnifferCard, SNIFFER_CARD_CSS } from './SnifferCard';
 import { SnifferSearch } from './SnifferSearch';
 import { SnifferMatchReveal } from './SnifferMatchReveal';
+import { SnifferFullProfile } from './SnifferFullProfile';
 import { loadDeck, loadMatches, swipe, unmatch, type SnifferCardData, type SnifferMatch } from './snifferDeck';
 
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
@@ -41,7 +42,6 @@ const CSS = `
 .sh-tabs button.is-on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
 .sh-pane{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .sh-pane--scroll{overflow-y:auto;margin:0 -${PACK_SPACE.xs}px;padding:0 ${PACK_SPACE.xs}px;}
-.sh-peek{width:100%;max-width:440px;height:min(680px, 100%);display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .sh-deck{position:relative;flex:1 1 auto;min-height:360px;width:100%;max-width:440px;margin:0 auto;}
 .sh-acts{display:flex;justify-content:center;align-items:flex-start;gap:${PACK_SPACE.xl}px;}
 /* Plávajúci AINUBIS sedí vpravo dole — na úzkom mobile by rad pri medzere 24 px zasiahol
@@ -103,7 +103,7 @@ export function SnifferHome({ tx, me }: {
   const [err, setErr] = useState<string | null>(null);
   const [drag, setDrag] = useState<{ dx: number; dy: number; anim: boolean } | null>(null);
   const [composer, setComposer] = useState<{ card: SnifferCardData; send: (msg: string) => void } | null>(null);
-  /** Karta otvorená z HĽADAŤ — tie isté tri tlačidlá ako v balíčku. */
+  /** CELÝ PROFIL (kolo 2 §6.2) — z karty v balíčku aj z HĽADAŤ, tie isté tri tlačidlá. */
   const [peek, setPeek] = useState<SnifferCardData | null>(null);
   const [draft, setDraft] = useState('');
   const [match, setMatch] = useState<{ card: SnifferCardData; conv: string | null } | null>(null);
@@ -147,7 +147,7 @@ export function SnifferHome({ tx, me }: {
     }, OUT_MS);
   };
 
-  /** Rozhodnutie mimo balíčka (karta z HĽADAŤ) — bez odletu karty, ten istý server. */
+  /** Rozhodnutie z CELÉHO PROFILU — bez odletu karty, ten istý server. */
   const act = async (card: SnifferCardData, verdict: 'like' | 'pass', message?: string) => {
     setPeek(null);
     try {
@@ -220,7 +220,7 @@ export function SnifferHome({ tx, me }: {
                 {deck[1] && <SnifferCard key={deck[1].member} card={deck[1]} tx={tx} back />}
                 <div key={top.member} className="sn-card-wrap" style={{ position: 'absolute', inset: 0 }}
                   onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
-                  <SnifferCard card={top} tx={tx} className={drag?.anim ? 'is-anim' : ''} style={dragStyle} />
+                  <SnifferCard card={top} tx={tx} className={drag?.anim ? 'is-anim' : ''} style={dragStyle} onOpenFull={() => setPeek(top)} />
                 </div>
               </div>
               <div className="sh-acts">
@@ -294,29 +294,24 @@ export function SnifferHome({ tx, me }: {
         </div>
       )}
 
-      {/* Karta z HĽADAŤ — nad závojom, s tými istými tlačidlami ako balíček */}
+      {/* CELÝ PROFIL — nad závojom, s tými istými tlačidlami ako balíček */}
       {peek && (
         <div className="pk-veil pk-veil--modal" onClick={() => setPeek(null)}>
-          <div className="sh-peek" onClick={(e) => e.stopPropagation()}>
-            <div className="sh-deck"><SnifferCard card={peek} tx={tx} /></div>
-            <div className="sh-acts">
-              <div className="sh-act">
+          <div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+            <SnifferFullProfile card={peek} tx={tx} actions={(
+              <>
                 <button type="button" className="sh-btn" aria-label={tx('pack.sniffer.no', 'No')} onClick={() => void act(peek, 'pass')}>
                   <MaskIcon src="/icons/pack/cross.svg" size={26} color={T.alertRed} />
                 </button>
-              </div>
-              <div className="sh-act">
                 <button type="button" className="sh-btn sh-btn--msg" aria-label={tx('pack.sniffer.write', 'Write')}
                   onClick={() => { const c = peek; setDraft(''); setPeek(null); setComposer({ card: c, send: (m) => void act(c, 'like', m) }); }}>
                   <MaskIcon src="/icons/pack/chat.svg" size={22} color={LAPIS.edge} />
                 </button>
-              </div>
-              <div className="sh-act">
                 <button type="button" className="sh-btn sh-btn--yes" aria-label={tx('pack.sniffer.yes', 'Yes')} onClick={() => void act(peek, 'like')}>
                   <MaskIcon src="/icons/pack/nose.svg" size={30} color={LAPIS.ink} />
                 </button>
-              </div>
-            </div>
+              </>
+            )} />
           </div>
         </div>
       )}

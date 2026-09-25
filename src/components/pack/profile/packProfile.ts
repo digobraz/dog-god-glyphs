@@ -101,7 +101,19 @@ export interface HumanProfile {
    *  Údaj o človeku, nie nastavenie zobrazenia — preto tu a nie v `assnif_settings`. */
   areas?: Array<'W' | 'C' | 'E'>;
   /** PASSPORT — kam sa chystám (SNIFFER HĽADAŤ, 25. 9. 2026). `country` = ISO2 malými. */
-  heading?: { country: string; when: 'now' | 'week' | 'summer' | 'date'; date?: string };
+  heading?: { country: string; when: 'now' | 'week' | 'summer' | 'date'; date?: string; note?: string };
+  /** PIN — kde bývam/chodím (SNIFFER kolo 2, 25. 9. 2026: „vybrať obrys krajiny, a umiestniť pin").
+   *  Ukladá sa ZAOKRÚHLENÝ na 2 desatinné miesta (~1 km). 🔴 Von nejde nikdy — server z neho
+   *  ráta len `distance_km` voči divákovi (`sniffer_km`, 20260929_sniffer_kolo2.sql). */
+  pin?: { country: string; lat: number; lng: number };
+  /** PÚTNIK level, ako ho vidí hlavička mapy — zapisuje `usePublishPilgrimLevel`, aby ho
+   *  videli ostatní (Matej 25. 9.: „level putnika musi vidieť každý každému"). Druhá
+   *  definícia levelu na serveri NEVZNIKÁ. */
+  pilgrim?: { level: number; at: string };
+  /** Orientácia — osobitná kategória údajov (GDPR čl. 9). Nepovinná; von ide LEN keď
+   *  `orientationPublic` je true (predvolene skrytá). */
+  orientation?: Orientation;
+  orientationPublic?: boolean;
   visibility: Partial<Record<ProfileFieldKey, VisTier>>; // override defaultov, default {}
 }
 
@@ -388,6 +400,15 @@ export const PERSONALITY_GROUPS: { group: PersonalityGroup; label: string }[] = 
   { group: 'creative', label: 'Creative' },
   { group: 'taste', label: 'Taste' },
   { group: 'dog', label: 'Dogs' },
+];
+
+export type Orientation = 'straight' | 'gay' | 'bi' | 'other' | 'undisclosed';
+export const ORIENTATION_OPTIONS: TaxonomyOption<Orientation>[] = [
+  { value: 'straight', labelEN: 'Straight' },
+  { value: 'gay', labelEN: 'Gay / lesbian' },
+  { value: 'bi', labelEN: 'Bisexual' },
+  { value: 'other', labelEN: 'Other' },
+  { value: 'undisclosed', labelEN: 'Prefer not to say' },
 ];
 
 export const SMOKE_OPTIONS: TaxonomyOption<Smoke>[] = [

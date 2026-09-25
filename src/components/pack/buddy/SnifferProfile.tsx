@@ -22,9 +22,9 @@ import {
 import { LAPIS, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import {
   saveHuman, saveDogAttrs, emptyDogAttrs,
-  ACTIVITY_OPTIONS, SMOKE_OPTIONS, DOG_TEMPERAMENT_TAGS, DOG_FITNESS_OPTIONS, DOG_COMPAT_OPTIONS,
+  ACTIVITY_OPTIONS, SMOKE_OPTIONS, ORIENTATION_OPTIONS, DOG_TEMPERAMENT_TAGS, DOG_FITNESS_OPTIONS, DOG_COMPAT_OPTIONS,
   DOG_ALONE_OPTIONS, DOG_SKILL_OPTIONS, DOG_JOY_SUGGESTIONS, DOG_DISLIKED_TYPE_SUGGESTIONS,
-  type DogProfileAttrs, type HumanProfile, type ActivityTag, type Smoke,
+  type DogProfileAttrs, type HumanProfile, type ActivityTag, type Smoke, type Orientation,
 } from '@/components/pack/profile/packProfile';
 import { MAX_DOG_TEMPERAMENT } from '@/components/pack/profile/DogGallery';
 import type { BuddyStepKey } from './buddyGate';
@@ -184,6 +184,26 @@ export function SnifferProfile({
               selected={human?.smoke ? [human.smoke] : []}
               onToggle={(v) => void saveHuman({ smoke: v as Smoke })}
             />
+          ))}
+          {/* ORIENTÁCIA (kolo 2, Matej 25. 9.) — osobitná kategória údajov (GDPR čl. 9):
+              nepovinná, „neuvádzam" je voľba, a von ide LEN s vlastným prepínačom (predvolene NIE). */}
+          {row('orientation', tx('pack.sniffer.info.orientation', 'Orientation'),
+            human?.orientation
+              ? `${tx(`pack.sniffer.info.orientation.${human.orientation}`, ORIENTATION_OPTIONS.find((o) => o.value === human.orientation)?.labelEN ?? '')}`
+                + (human.orientationPublic ? '' : ` · ${tx('pack.sniffer.profile.hidden', 'hidden')}`)
+              : '', (
+            <>
+              <Pills
+                options={ORIENTATION_OPTIONS.map((o) => ({ value: o.value, label: tx(`pack.sniffer.info.orientation.${o.value}`, o.labelEN) }))}
+                selected={human?.orientation ? [human.orientation] : []}
+                onToggle={(v) => void saveHuman({ orientation: human?.orientation === v ? undefined : v as Orientation })}
+              />
+              <label className="sp-static" style={{ cursor: 'pointer' }}>
+                <span>{tx('pack.sniffer.profile.orientationPublic', 'Show on my profile')}</span>
+                <input type="checkbox" checked={!!human?.orientationPublic}
+                  onChange={(e) => void saveHuman({ orientationPublic: e.target.checked })} />
+              </label>
+            </>
           ))}
         </section>
 

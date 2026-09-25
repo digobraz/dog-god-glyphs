@@ -29,7 +29,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { pluralKey } from './tripShared';
-import { usePilgrimStats } from './usePilgrimStats';
+import { usePilgrimStats, usePublishPilgrimLevel } from './usePilgrimStats';
 import { tierVars } from '@/lib/packTiers';
 import type { usePackIdentity } from './usePackIdentity';
 import { PackTopRight } from './PackLayout';
@@ -115,6 +115,7 @@ export function PackIdentityBar({ id, middle, stats, primary }: {
 
   /* Výpočet žije v `usePilgrimStats` — to isté číslo číta aj karta SNIFFERu. */
   const view = usePilgrimStats(email, firstNameFrom(email, fullName));
+  usePublishPilgrimLevel(view.level.level);
 
   const lv = view.level;
   return (

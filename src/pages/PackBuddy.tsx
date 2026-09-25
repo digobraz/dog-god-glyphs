@@ -27,11 +27,13 @@ import { SnifferLogo, SNIFFER_LOGO_END_MS } from '@/components/pack/buddy/Sniffe
 import { SnifferHome } from '@/components/pack/buddy/SnifferHome';
 import { SnifferProfile } from '@/components/pack/buddy/SnifferProfile';
 import { SnifferMyCard, SNIFFER_CARD_CSS } from '@/components/pack/buddy/SnifferCard';
-import { SnifferAreas } from '@/components/pack/buddy/SnifferAreas';
+import { SnifferPinEditor } from '@/components/pack/buddy/SnifferPin';
+import { SnifferFullProfile } from '@/components/pack/buddy/SnifferFullProfile';
+import type { SnifferCardData } from '@/components/pack/buddy/snifferDeck';
 import { MessagingOverlayHost } from '@/components/pack/PackLayout';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PAGE_AIR,
-  PACK_SHADOW, PACK_AVATAR, PACK_COL_INNER, PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS, MEDALLION_CSS, FONT_TITLE, FONT_UI,
+  PACK_SHADOW, PACK_AVATAR, PACK_COL_INNER, PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS, MEDALLION_CSS, VEIL_CSS, FONT_TITLE, FONT_UI,
 } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import {
@@ -117,6 +119,7 @@ const CSS = `
 .bd-ghost{width:100%;border-radius:${PACK_R.field}px;padding:${PACK_SPACE.md}px;border:1px solid ${T.border};background:transparent;
   font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};cursor:pointer;}
 /* tlačidlo drží dole, zoznam pod ním beží — bez vlastného pásu, aby nekreslilo obdĺžnik cez tapetu */
+.bd-incta{width:100%;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;margin-top:${PACK_SPACE.md}px;}
 .bd-dock{position:sticky;bottom:${PAGE_AIR.min}px;z-index:4;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 .bd-dock .bd-cta:disabled{opacity:1;background:${T.cardSoft};color:${T.inkWarm};border-color:${T.border};box-shadow:${PACK_SHADOW.panel};cursor:default;}
 /* tri kroky úvodu */
@@ -203,6 +206,7 @@ export default function PackBuddy() {
   const [session, setSession] = useState<Session | null>(null);
   const [settings, setSettings] = useState<BuddySettings | null>(null);
   const [view, setView] = useState<View | null>(null);
+  const [myFull, setMyFull] = useState<SnifferCardData | null>(null);
   const [introStep, setIntroStep] = useState(1);
   const [logoDone, setLogoDone] = useState(false);
   const [serverMissing, setServerMissing] = useState<BuddyStepKey[] | null>(null);
@@ -427,13 +431,16 @@ export default function PackBuddy() {
                     <img src="/icons/sniffer/sniffer-napis.svg" alt={tx('pack.buddy.title', 'SNIFFER')} />
                   </h2>
                   <p className="bd-tagline bd-reveal">{tx('pack.buddy.intro', 'Find buddies to sniff out the world with.')}</p>
+                  {/* CTA V BLOKU pod textom, nie mimo (Matej 25. 9.: „to CTA daj do bloku pod text"). */}
+                  {!s.enabled && (
+                    <div className="bd-incta bd-reveal">
+                      <button type="button" className="bd-cta" onClick={afterSplash}>{tx('pack.buddy.next', 'Next')}</button>
+                      <p className="bd-note bd-note--center">{tx('pack.buddy.introOff', 'Off by default')}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
-          <div className="bd-dock" style={{ visibility: s.enabled || !logoDone ? 'hidden' : 'visible' }}>
-            <button type="button" className="bd-cta" onClick={afterSplash}>{tx('pack.buddy.next', 'Next')}</button>
-            <p className="bd-note bd-note--center">{tx('pack.buddy.introOff', 'Off by default')}</p>
           </div>
         </div>
       )}
@@ -456,24 +463,25 @@ export default function PackBuddy() {
                   </span>
                   <h2 className="bd-h2">{tx(`pack.buddy.how${n}`, HOW_EN[n][0])}</h2>
                   <p className="bd-lead bd-lead--ui">{tx(`pack.buddy.how${n}Sub`, HOW_EN[n][1])}</p>
+                  {/* CTA v bloku pod textom — ten istý vzor ako úvod s logom. */}
+                  <div className="bd-incta">
+                    {n !== '3' ? (
+                      <button type="button" className="bd-cta" onClick={() => setIntroStep(introStep + 1)}>
+                        {tx('pack.buddy.next', 'Next')}
+                      </button>
+                    ) : (
+                      <button type="button" className="bd-cta" onClick={() => { markIntroSeen(); setView('gate'); }}>
+                        {tx('pack.buddy.introCta', 'I want buddies')}
+                      </button>
+                    )}
+                    <p className="bd-note bd-note--center">{tx('pack.buddy.introOff', 'Off by default')}</p>
+                  </div>
                 </div>
               );
             })()}
           </div>
           <div className="bd-dots" aria-hidden>
             {[1, 2, 3].map((i) => <span key={i} className={i === introStep ? 'is-on' : ''} />)}
-          </div>
-          <div className="bd-dock">
-            {introStep < 3 ? (
-              <button type="button" className="bd-cta" onClick={() => setIntroStep(introStep + 1)}>
-                {tx('pack.buddy.next', 'Next')}
-              </button>
-            ) : (
-              <button type="button" className="bd-cta" onClick={() => { markIntroSeen(); setView('gate'); }}>
-                {tx('pack.buddy.introCta', 'I want buddies')}
-              </button>
-            )}
-            <p className="bd-note bd-note--center">{tx('pack.buddy.introOff', 'Off by default')}</p>
           </div>
         </div>
       )}
@@ -526,7 +534,16 @@ export default function PackBuddy() {
             <p className="bd-note">{tx('pack.sniffer.seenHint', 'This is how others see you · tap right = next photo')}</p>
           </div>
           <style>{SNIFFER_CARD_CSS}</style>
-          <SnifferMyCard tx={tx} reloadKey={profile?.updatedAt} />
+          <SnifferMyCard tx={tx} reloadKey={profile?.updatedAt} onOpenFull={setMyFull} />
+          {/* Celý profil — presne ten, ktorý uvidia ostatní (kolo 2 §6.2). */}
+          {myFull && (
+            <div className="pk-veil pk-veil--modal" onClick={() => setMyFull(null)}>
+              <style>{VEIL_CSS}</style>
+              <div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+                <SnifferFullProfile card={myFull} tx={tx} />
+              </div>
+            </div>
+          )}
           <div className="bd-dock">
             <button type="button" className="bd-cta" onClick={() => setView('home')}>{tx('pack.buddy.showMe', 'Show me them')}</button>
           </div>
@@ -591,10 +608,23 @@ export default function PackBuddy() {
             gateSummary={summary}
           />
 
-          <span className="bd-eyebrow">{tx('pack.sniffer.areasHead', 'My patch · where we go often')}</span>
+          {/* MÔJ RAJÓN = krajina + PIN (kolo 2, skica Mateja 25. 9.). Pin je súkromný — ostatní
+              vidia len vzdialenosť. Kraje (`SnifferAreas`) nahradené. */}
+          <span className="bd-eyebrow">{tx('pack.sniffer.areasHead', 'My patch')}</span>
           <section className="bd-card bd-areas" style={{ ...PACK_BOX.card }}>
-            <SnifferAreas tx={tx} selected={human?.areas ?? []} />
-            <p className="bd-note">{tx('pack.sniffer.areasNote', 'Tap a part · others see it on your profile too')}</p>
+            <SnifferPinEditor tx={tx} pin={human?.pin} fallbackCountry={human?.nationality?.toLowerCase()} />
+            <p className="bd-note">{tx('pack.sniffer.pin.note', 'Pick a country · tap to drop your pin · others only see how far you are')}</p>
+          </section>
+
+          {/* ĽUDIA V OKOLÍ — východisko NIE (Matej 25. 9.). */}
+          <section className="bd-card bd-areas" style={{ ...PACK_BOX.card }}>
+            <label className="bd-switch">
+              <span style={{ display: 'flex', flexDirection: 'column', gap: PACK_SPACE.xs }}>
+                <b>{tx('pack.sniffer.nearby.toggle', 'Show me in People nearby')}</b>
+                <small className="bd-note">{tx('pack.sniffer.nearby.hint', 'Everyone with SNIFFER around your pin can see you')}</small>
+              </span>
+              <input type="checkbox" checked={s.show_nearby} onChange={(e) => void patchSettings({ show_nearby: e.target.checked })} />
+            </label>
           </section>
 
           <section className="bd-card" style={{ ...PACK_BOX.card }}>

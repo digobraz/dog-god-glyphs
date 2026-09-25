@@ -49,6 +49,8 @@ export interface BuddySettings {
   paused_until: string | null;
   notify_match: boolean;
   notify_mail: boolean;
+  /** Ukazujem sa v Ľudia v okolí (kolo 2) — východisko NIE (Matej 25. 9.). */
+  show_nearby: boolean;
 }
 
 export const DEFAULT_BUDDY_SETTINGS: BuddySettings = {
@@ -61,6 +63,7 @@ export const DEFAULT_BUDDY_SETTINGS: BuddySettings = {
   paused_until: null,
   notify_match: true,
   notify_mail: false,
+  show_nearby: false,
 };
 
 /** Tri psie body. Rovnaká podmienka ako v SQL. */

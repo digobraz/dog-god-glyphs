@@ -21,9 +21,19 @@ export interface SnifferDog {
   photo: string | null;
   /** Hotový heroglyf zo steny (`dogs.heroglyph_png_url`) — nie render zo `selections`. */
   heroglyph: string | null;
+  /** Bio psa (`dog_profiles.attrs.bio`). */
+  bio?: string | null;
+  /** Fotky psa z denníka (`dog_events.value.photo`) — samostatné úložisko fotiek psa nie je. */
+  album?: string[];
   temperament: string[];
   fitness: string | null;
   compat: string | null;
+}
+
+/** Info o človeku v celom profile. Orientácia príde len so súhlasom (`orientationPublic`). */
+export interface SnifferInfo {
+  gender?: string; nationality?: string; languages?: string[]; smoke?: string;
+  diet?: string; work?: string; relationship?: string; orientation?: string;
 }
 
 export type SnifferHeading = NonNullable<HumanProfile['heading']>;
@@ -33,6 +43,16 @@ export interface SnifferCardData {
   name: string;
   age: number | null;
   region: string | null;
+  /** Krajina (pin, inak národnosť), ISO2 malými. */
+  country?: string;
+  /** Vzdialenosť od diváka v km — pin sám von nejde nikdy. */
+  distance_km?: number | null;
+  info?: SnifferInfo;
+  /** PÚTNIK level (zapisuje ho majiteľov klient) · DEVOTION body (100 + ledger). */
+  pilgrimLevel?: number | null;
+  devotion?: number | null;
+  /** TRIPWISH — živé priania (`wish_pins.place_name`). */
+  wishes?: string[];
   /** Môj rajón — `W` Západ · `C` Stred · `E` Východ. */
   areas?: Array<'W' | 'C' | 'E'>;
   /** Passport — kam sa chystá. */
@@ -78,6 +98,13 @@ export async function searchPeople(country: string, areas: string[], intent: str
   return (data ?? []) as SnifferCardData[];
 }
 
+/** ĽUDIA V OKOLÍ — „všetkých vidíme" (`assnif_nearby` / `sniffer_nearby_ok`). */
+export async function loadNearby(intent: string | null): Promise<SnifferCardData[]> {
+  const { data, error } = await db.rpc('assnif_nearby', { p_intent: intent });
+  if (error) throw error;
+  return (data ?? []) as SnifferCardData[];
+}
+
 /** Moja karta presne tak, ako ju dostanú ostatní (`assnif_my_card` = tá istá `sniffer_card`). */
 export async function loadMyCard(): Promise<SnifferCardData | null> {
   const { data, error } = await db.rpc('assnif_my_card');
@@ -93,8 +120,8 @@ export async function unmatch(member: number): Promise<void> {
 /** PÚTNIK cudzieho človeka z jeho prejdených výletov. Tá istá množina a to isté pravidlo
  *  pre km a krajiny ako `usePilgrimStats` — len bez lokálnych (neschválených) výletov,
  *  ktoré žijú v prehliadači toho druhého.
- *  ⚠️ LEVEL tu NIE JE: ráta sa aj z bodov za odkazy, podujatia a hodnotenia, ktoré server
- *  o cudzom človeku nevydáva. Level z polovice vstupov by sa rozišiel s jeho hlavičkou mapy. */
+ *  LEVEL tu NIE JE — nesie ho karta (`pilgrimLevel`), zapísaný majiteľovým klientom
+ *  z tej istej `profileLevelFor` ako jeho hlavička mapy (kolo 2). */
 let trailIndex: Map<string, HeroTrail> | null = null;
 export function pilgrimFromTrips(slugs: string[]): { count: number; km: number; countries: number } {
   if (!trailIndex) trailIndex = new Map([...HERO_JOURNEYS, ...HERO_TRAILS].map((tr) => [tr.id, tr]));
@@ -102,4 +129,11 @@ export function pilgrimFromTrips(slugs: string[]): { count: number; km: number; 
   const walked = slugs.map((s) => idx.get(s)).filter((tr): tr is HeroTrail => !!tr);
   const km = walked.reduce((s, tr) => s + (parseFloat(String(tr.km ?? '').replace(',', '.')) || 0), 0);
   return { count: walked.length, km: Math.round(km), countries: walkedCountries(walked) };
+}
+
+/** TRIPLIST v celom profile — mená prejdených výletov z katalógu, v poradí zo servera. */
+export function tripNames(slugs: string[]): string[] {
+  if (!trailIndex) trailIndex = new Map([...HERO_JOURNEYS, ...HERO_TRAILS].map((tr) => [tr.id, tr]));
+  const idx = trailIndex;
+  return slugs.map((s) => idx.get(s)?.name).filter((n): n is string => !!n);
 }

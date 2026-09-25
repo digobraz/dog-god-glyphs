@@ -10,6 +10,8 @@
   "emoji@components/pack/PackTrailSketch.tsx": 4,
   "emoji@components/pack/PackTree.tsx": 1,
   "emoji@components/pack/Ranking.tsx": 1,
+  "emoji@components/pack/buddy/SnifferCard.tsx": 1,
+  "emoji@components/pack/buddy/SnifferFullProfile.tsx": 1,
   "emoji@components/pack/calendar/PackCalendar.tsx": 7,
   "emoji@components/pack/calendar/calendarModel.ts": 15,
   "emoji@components/pack/diary/diaryModel.ts": 3,

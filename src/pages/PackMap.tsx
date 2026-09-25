@@ -44,6 +44,7 @@
 // (6) `<DiffMark>` (CSS tvar namiesto emoji) zdieľaný cez
 // components/pack/tripShared.tsx; (7) mobile header kompaktnejší, filter
 // ikonka = sliders (nie graph).
+import { usePublishPilgrimLevel } from '@/components/pack/usePilgrimStats';
 import { trackPack } from '@/lib/packAnalytics';
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
@@ -4248,6 +4249,8 @@ export default function PackMap() {
   }, [allTrails, walkedIds, localTrails, votes, storeEpoch, id.session, myNotePoints, myEventCount, myWishCount]);
   const profilePoints = profile.points;
   const levelInfo = profile.level;
+  // Zverejní level ostatným (SNIFFER kolo 2) — to isté číslo, aké ukazuje táto hlavička.
+  usePublishPilgrimLevel(levelInfo.level);
 
   // ── VÝŠKA MOBILNEJ HLAVIČKY IDE VON AKO --trp-mheader-h (2026-08-28) ──────────────────
   // Matej: „panely na pravej strane (vrstvy +- …) … posunúť nižšie lebo su v dotyku s hornym

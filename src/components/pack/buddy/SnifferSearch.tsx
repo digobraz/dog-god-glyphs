@@ -1,11 +1,13 @@
-// SNIFFER — HĽADAŤ ako Passport (zadanie-sniffer-stavba §2.5, nákres C/HĽADAŤ).
-// „Kam sa chystáš?" krajina + kedy → pod tým filter rajón + zámer → mriežka ľudí.
-// · Krajina SVIETI, keď má 40+ výletov so sprievodcom PÚTNIKA (dnes len SK). Počty sa rátajú
-//   z katalógu trás (`trailCountry`), nie natvrdo.
-// · Voľba sa ukladá do `human.heading` { country, when, date }, aby ju appka pamätala.
-//   Server ju na kartu vydáva (`sniffer_card.heading`), ale karta ju ZATIAĽ NEUKAZUJE —
-//   ⚠️ či majú ostatní vidieť „chystá sa do Slovinska v lete", nepadlo (otázka na Mateja).
-// · Mriežka = server (`assnif_search`) nad TOU ISTOU podmienkou ako balíček: len obojstranne.
+// SNIFFER — HĽADAŤ (kolo 2 §6.3, nákres plany/nakres-sniffer-kolo2-2026-09-25.html C1/C2).
+// Hore LEN hlavička: tlačidlo filtra + prepínač **V okolí | FAR SNIFF ▾**.
+//
+// · V OKOLÍ — „všetkých vidíme" (Matej 25. 9., odpoveď 2): každý, kto má zapnuté „Ukazujem sa
+//   v Ľudia v okolí", v okruhu môjho `radius_km` od môjho PINU. Pohlavie/vek/zámer sa
+//   neuplatnia; blok, psie veto a brána áno. Server: `assnif_nearby` / `sniffer_nearby_ok`.
+// · FAR SNIFF (Tinder „Passport", názov Matej 25. 9.) — schovaný pod rozbaľovačom: krajina,
+//   text „kam sa chystáš", kedy. Mriežka = `assnif_search`, OBOJSTRANNE (`sniffer_pair_ok`).
+//   Voľba sa pamätá v `human.heading` { country, when, date, note }.
+// · Krajina SVIETI, keď má 40+ výletov so sprievodcom PÚTNIKA. Počty z katalógu (`trailCountry`).
 import { useEffect, useMemo, useState } from 'react';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { trailCountry, countryName, flagUrl } from '@/lib/countryGeo';
@@ -17,22 +19,33 @@ import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, FONT_UI,
 } from '@/components/pack/packTheme';
 import { LAPIS, PICK_INK, pickTintCSS, tintRGBA } from '@/components/pack/navGoldSkin';
-import { searchPeople, type SnifferCardData, type SnifferHeading } from './snifferDeck';
-import { areaLabel } from './SnifferAreas';
+import { BrandIcon } from '@/components/pack/BrandIcon';
+import { loadNearby, searchPeople, type SnifferCardData, type SnifferHeading } from './snifferDeck';
 
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
+type Mode = 'near' | 'far';
 
 /** Prah „svieti" — sprievodca PÚTNIKA má zmysel od 40 výletov (Matej 25. 9., nákres). */
 const GLOW_AT = 40;
 /** Susedia, ktorí sa ukážu aj s nulou — cesta tam je bežná, sprievodca ešte nie. */
 const ALWAYS = ['sk', 'cz', 'at', 'pl', 'hu', 'si', 'hr', 'ch'];
 const WHEN: Array<[SnifferHeading['when'], string]> = [['now', 'Now'], ['week', 'In a week'], ['summer', 'In summer'], ['date', 'Pick a date']];
+const MODE_KEY = 'dogypt_sniffer_search_mode';
 
 const pic = (u?: string | null) => withTransform(u, 'c_fill,g_auto,w_300,h_400,f_auto,q_auto');
+const readMode = (): Mode => { try { return localStorage.getItem(MODE_KEY) === 'far' ? 'far' : 'near'; } catch { return 'near'; } };
+const writeMode = (m: Mode) => { try { localStorage.setItem(MODE_KEY, m); } catch { /* pohodlie, nič viac */ } };
 
 const CSS = `
-.ss-pass{padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
-.ss-eb{font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
+.ss-head{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;}
+.ss-flt{flex:0 0 auto;width:${PACK_SPACE.xxl + PACK_SPACE.sm}px;height:${PACK_SPACE.xxl + PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;
+  border:1px solid ${T.border};background:${T.cardSoft};display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.ss-flt.is-on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
+.ss-segs{flex:1 1 auto;display:flex;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.xs}px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};background:${T.cardSoft};}
+.ss-seg{flex:1 1 0;padding:${PACK_SPACE.sm}px;border:0;border-radius:${PACK_R.pill}px;background:transparent;cursor:pointer;
+  font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkWarm};white-space:nowrap;}
+.ss-seg.is-on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)};font-weight:600;}
+.ss-drop{padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .ss-world{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;}
 .ss-ctry{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px ${PACK_SPACE.xs}px ${PACK_SPACE.xs}px;
   border-radius:${PACK_R.tile}px;border:1px solid ${T.border};background:${T.tileBg};cursor:pointer;opacity:.6;font-family:${FONT_UI};text-align:left;}
@@ -42,6 +55,8 @@ const CSS = `
 .ss-ctry.is-glow{opacity:1;box-shadow:0 0 0 1px ${T.accentGold}, 0 0 ${PACK_SPACE.md}px ${tintRGBA(T.accentGold, 0.55)};}
 .ss-ctry.is-on{opacity:1;${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
 .ss-note{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
+.ss-area{width:100%;min-height:${PACK_SPACE.xxxl + PACK_SPACE.md}px;resize:vertical;border-radius:${PACK_R.field}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;
+  font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
 .ss-pills{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;}
 .ss-pills .pk-pill{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;}
 .ss-pills .pk-pill.is-on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
@@ -65,11 +80,20 @@ export function SnifferSearch({ tx, onOpen }: { tx: Tx; onOpen: (card: SnifferCa
   const human = profile?.human;
   const heading = human?.heading;
   const country = heading?.country ?? 'sk';
-  const [areas, setAreas] = useState<Array<'W' | 'C' | 'E'>>([]);
+  const [mode, setModeRaw] = useState<Mode>(readMode);
+  const [dropOpen, setDropOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
   const [intent, setIntent] = useState<string | null>(null);
   const [people, setPeople] = useState<SnifferCardData[] | null>(null);
+  const [note, setNote] = useState(heading?.note ?? '');
+  useEffect(() => { setNote(heading?.note ?? ''); }, [heading?.note]);
 
-  // Počet výletov podľa krajiny — z katalógu, tým istým pravidlom ako Pútnik (`trailCountry`).
+  const setMode = (m: Mode) => {
+    if (m === 'far') setDropOpen(mode === 'far' ? !dropOpen : true);
+    else setDropOpen(false);
+    setModeRaw(m); writeMode(m);
+  };
+
   const countries = useMemo(() => {
     const n = new Map<string, number>();
     for (const tr of HERO_TRAILS) { const c = trailCountry(tr); n.set(c, (n.get(c) ?? 0) + 1); }
@@ -83,47 +107,35 @@ export function SnifferSearch({ tx, onOpen }: { tx: Tx; onOpen: (card: SnifferCa
   useEffect(() => {
     let live = true;
     setPeople(null);
-    searchPeople(country, areas, intent).then((r) => { if (live) setPeople(r); }).catch(() => { if (live) setPeople([]); });
+    const q = mode === 'near' ? loadNearby(intent) : searchPeople(country, [], intent);
+    q.then((r) => { if (live) setPeople(r); }).catch(() => { if (live) setPeople([]); });
     return () => { live = false; };
-  }, [country, areas, intent]);
+  }, [mode, country, intent]);
 
   const myIntents: string[] = (human?.intents ?? []).filter((i) => i !== 'community');
+  const hasPin = !!human?.pin;
+  const km = (p: SnifferCardData) => (p.distance_km != null ? tx('pack.sniffer.kmAway', '{n} km away', { n: Math.max(1, Math.round(Number(p.distance_km))) }) : '');
 
   return (
     <>
       <style>{CSS}</style>
-      <section className="ss-pass" style={{ ...PACK_BOX.card }}>
-        <span className="ss-eb">{tx('pack.sniffer.search.where', 'Where are you heading?')}</span>
-        <div className="ss-world">
-          {countries.map((c) => (
-            <button key={c.iso} type="button" aria-pressed={c.iso === country}
-              className={`ss-ctry${c.trips >= GLOW_AT ? ' is-glow' : ''}${c.iso === country ? ' is-on' : ''}`}
-              onClick={() => setHeading({ country: c.iso })}>
-              <img src={flagUrl(c.iso)} alt="" />
-              <span>{ctryName(c.iso)}<small>{tx(`pack.sniffer.trips.${c.trips === 1 ? 'one' : c.trips >= 2 && c.trips <= 4 ? 'few' : 'other'}`, '{n} trips', { n: c.trips })}</small></span>
-            </button>
-          ))}
+      <div className="ss-head">
+        <button type="button" className={`ss-flt${filterOpen || intent ? ' is-on' : ''}`} aria-pressed={filterOpen}
+          aria-label={tx('pack.sniffer.search.filter', 'Filter')} onClick={() => setFilterOpen((v) => !v)}>
+          <BrandIcon name="sliders" size={PACK_SPACE.lg} tint="dark" />
+        </button>
+        <div className="ss-segs" role="tablist">
+          <button type="button" role="tab" aria-selected={mode === 'near'} className={`ss-seg${mode === 'near' ? ' is-on' : ''}`}
+            onClick={() => setMode('near')}>{tx('pack.sniffer.search.near', 'Nearby')}</button>
+          <button type="button" role="tab" aria-selected={mode === 'far'} aria-expanded={dropOpen} className={`ss-seg${mode === 'far' ? ' is-on' : ''}`}
+            onClick={() => setMode('far')}>
+            <img src={flagUrl(country)} alt="" style={{ width: PACK_SPACE.lg, height: PACK_SPACE.md, objectFit: 'cover', verticalAlign: 'middle', marginRight: PACK_SPACE.xs }} />
+            FAR SNIFF {dropOpen ? '▴' : '▾'}
+          </button>
         </div>
-        <p className="ss-note">{tx('pack.sniffer.search.glowNote', 'Lit up = {n}+ trips with the PILGRIM guide · find a buddy there before you go', { n: GLOW_AT })}</p>
-        <div className="ss-pills">
-          {WHEN.map(([w, en]) => (
-            <button key={w} type="button" aria-pressed={heading?.when === w}
-              className={`pk-pill pk-pill--tap${heading?.when === w ? ' is-on' : ''}`}
-              onClick={() => setHeading({ when: w })}>{tx(`pack.sniffer.search.when.${w}`, en)}</button>
-          ))}
-          {heading?.when === 'date' && (
-            <input type="date" className="pf-field ss-date" value={heading.date ?? ''} onChange={(e) => setHeading({ date: e.target.value })} />
-          )}
-        </div>
-      </section>
-
-      <div className="ss-pills">
-        {(['W', 'C', 'E'] as const).map((a) => (
-          <button key={a} type="button" aria-pressed={areas.includes(a)} className={`pk-pill pk-pill--tap${areas.includes(a) ? ' is-on' : ''}`}
-            onClick={() => setAreas((cur) => (cur.includes(a) ? cur.filter((x) => x !== a) : [...cur, a]))}>{areaLabel(tx, a)}</button>
-        ))}
       </div>
-      {myIntents.length > 1 && (
+
+      {filterOpen && myIntents.length > 0 && (
         <div className="ss-pills">
           {INTENT_OPTIONS.filter((o) => myIntents.includes(o.value)).map((o) => (
             <button key={o.value} type="button" aria-pressed={intent === o.value}
@@ -133,21 +145,62 @@ export function SnifferSearch({ tx, onOpen }: { tx: Tx; onOpen: (card: SnifferCa
         </div>
       )}
 
+      {mode === 'far' && dropOpen && (
+        <section className="ss-drop" style={{ ...PACK_BOX.card }}>
+          <div className="ss-world">
+            {countries.map((c) => (
+              <button key={c.iso} type="button" aria-pressed={c.iso === country}
+                className={`ss-ctry${c.trips >= GLOW_AT ? ' is-glow' : ''}${c.iso === country ? ' is-on' : ''}`}
+                onClick={() => setHeading({ country: c.iso })}>
+                <img src={flagUrl(c.iso)} alt="" />
+                <span>{ctryName(c.iso)}<small>{tx(`pack.sniffer.trips.${c.trips === 1 ? 'one' : c.trips >= 2 && c.trips <= 4 ? 'few' : 'other'}`, '{n} trips', { n: c.trips })}</small></span>
+              </button>
+            ))}
+          </div>
+          <textarea className="pf-field ss-area" maxLength={140} value={note} onChange={(e) => setNote(e.target.value)}
+            onBlur={() => { if ((heading?.note ?? '') !== note.trim()) setHeading({ note: note.trim() || undefined }); }}
+            placeholder={tx('pack.sniffer.search.notePh', 'Where are you heading? Find a buddy before you go…')} />
+          <div className="ss-pills">
+            {WHEN.map(([w, en]) => (
+              <button key={w} type="button" aria-pressed={heading?.when === w}
+                className={`pk-pill pk-pill--tap${heading?.when === w ? ' is-on' : ''}`}
+                onClick={() => setHeading({ when: w })}>{tx(`pack.sniffer.search.when.${w}`, en)}</button>
+            ))}
+            {heading?.when === 'date' && (
+              <input type="date" className="pf-field ss-date" value={heading.date ?? ''} onChange={(e) => setHeading({ date: e.target.value })} />
+            )}
+          </div>
+          <p className="ss-note">{tx('pack.sniffer.search.glowNote', 'Lit up = {n}+ trips with the PILGRIM guide · find a buddy there before you go', { n: GLOW_AT })}</p>
+        </section>
+      )}
+
+      {mode === 'near' && (
+        <p className="ss-note" style={{ textAlign: 'center' }}>
+          {hasPin
+            ? tx('pack.sniffer.search.nearNote', 'Everyone around your pin who shows up here')
+            : tx('pack.sniffer.search.noPin', 'Drop your pin in settings (My patch) to see who’s around.')}
+        </p>
+      )}
+
       {people && people.length > 0 && (
         <div className="ss-grid">
           {people.map((p) => (
             <button key={p.member} type="button" className="ss-mini" style={{ ...PACK_BOX.row }} onClick={() => onOpen(p)}>
               <img src={pic(p.photos[0] ?? p.dogs[0]?.photo)} alt="" />
               <b>{p.name}{p.age ? `, ${p.age}` : ''}</b>
-              <span>{[p.dogs[0]?.name, p.areas?.map((a) => areaLabel(tx, a)).join(', ')].filter(Boolean).join(' · ')}</span>
+              <span>{[p.pilgrimLevel ? tx('pack.sniffer.pilgrimLv', 'Pilgrim {n}', { n: p.pilgrimLevel }) : '', km(p) || p.region].filter(Boolean).join(' · ')}</span>
             </button>
           ))}
         </div>
       )}
-      {people && people.length === 0 && (
-        <AinubisBubble>{tx('pack.sniffer.search.empty', 'Nobody here yet who fits you both ways. Try another patch or intent.')}</AinubisBubble>
+      {people && people.length === 0 && (mode === 'far' || hasPin) && (
+        <AinubisBubble>{mode === 'near'
+          ? tx('pack.sniffer.search.emptyNear', 'Nobody around you is showing up here yet.')
+          : tx('pack.sniffer.search.empty', 'Nobody here yet who fits you both ways. Try another patch or intent.')}</AinubisBubble>
       )}
-      <p className="ss-note" style={{ textAlign: 'center' }}>{tx('pack.sniffer.search.mutual', 'You only see people you’re also shown to.')}</p>
+      {mode === 'far' && (
+        <p className="ss-note" style={{ textAlign: 'center' }}>{tx('pack.sniffer.search.mutual', 'You only see people you’re also shown to.')}</p>
+      )}
     </>
   );
 }
