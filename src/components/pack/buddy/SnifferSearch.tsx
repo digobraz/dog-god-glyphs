@@ -45,6 +45,9 @@ const CSS = `
 .ss-seg{flex:1 1 0;padding:${PACK_SPACE.sm}px;border:0;border-radius:${PACK_R.pill}px;background:transparent;cursor:pointer;
   font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkWarm};white-space:nowrap;}
 .ss-seg.is-on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)};font-weight:600;}
+.ss-flag{flex:0 0 auto;height:${PACK_SPACE.xxl + PACK_SPACE.sm}px;padding:0 ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;border:1px solid ${LAPIS.edge};
+  background:${T.cardSoft};display:flex;align-items:center;cursor:pointer;}
+.ss-flag img{width:${PACK_SPACE.xl}px;height:${PACK_SPACE.lg}px;object-fit:cover;}
 .ss-drop{padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .ss-world{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;}
 .ss-ctry{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px ${PACK_SPACE.xs}px ${PACK_SPACE.xs}px;
@@ -129,10 +132,16 @@ export function SnifferSearch({ tx, onOpen }: { tx: Tx; onOpen: (card: SnifferCa
             onClick={() => setMode('near')}>{tx('pack.sniffer.search.near', 'Nearby')}</button>
           <button type="button" role="tab" aria-selected={mode === 'far'} aria-expanded={dropOpen} className={`ss-seg${mode === 'far' ? ' is-on' : ''}`}
             onClick={() => setMode('far')}>
-            <img src={flagUrl(country)} alt="" style={{ width: PACK_SPACE.lg, height: PACK_SPACE.md, objectFit: 'cover', verticalAlign: 'middle', marginRight: PACK_SPACE.xs }} />
             FAR SNIFF {dropOpen ? '▴' : '▾'}
           </button>
         </div>
+        {/* Vybraná krajina je VLASTNÝ chip, nie súčasť tlačidla FAR SNIFF (Matej 25. 9.). */}
+        {mode === 'far' && (
+          <button type="button" className="ss-flag" aria-expanded={dropOpen} onClick={() => setDropOpen((v) => !v)}
+            aria-label={tx('pack.sniffer.pin.country', 'Country')}>
+            <img src={flagUrl(country)} alt="" />
+          </button>
+        )}
       </div>
 
       {filterOpen && myIntents.length > 0 && (

@@ -17,6 +17,9 @@ import { ACTIVITY_OPTIONS } from '@/components/pack/profile/packProfile';
 import type { SnifferCardData } from './snifferDeck';
 import { loadMyCard, pilgrimFromTrips } from './snifferDeck';
 import { devotionLevel } from '@/lib/devotion';
+import { tierOfLevel, tierGradient } from '@/lib/packTiers';
+import { LAPIS } from '@/components/pack/navGoldSkin';
+import { BrandIcon } from '@/components/pack/BrandIcon';
 
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
 
@@ -45,18 +48,30 @@ export const SNIFFER_CARD_CSS = `
 .sn-bars i.is-on{background:${T.onDark};}
 .sn-tap{position:absolute;top:0;bottom:45%;width:50%;z-index:3;background:none;border:0;padding:0;cursor:pointer;}
 .sn-tap--l{left:0;} .sn-tap--r{right:0;}
-.sn-ov{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:${PACK_SPACE.xxxl}px ${PACK_SPACE.lg}px ${PACK_SPACE.lg}px;
-  background:linear-gradient(180deg, rgba(24,14,4,0) 0%, rgba(24,14,4,.55) 22%, rgba(24,14,4,.92) 100%);
+.sn-ov{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:${PACK_SPACE.xxxl * 2}px ${PACK_SPACE.lg}px ${PACK_SPACE.lg}px;
+  /* Fotka viac v prechode, dole ÚPLNE čierna (Matej 25. 9.) — text nesmie stáť na farbe fotky. */
+  background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.5) 28%, rgba(0,0,0,.86) 62%, #000 100%);
   color:${T.onDark};display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;font-family:${FONT_UI};}
 .sn-nm{margin:0;font-weight:600;font-size:${PACK_TEXT.h1}px;line-height:1.1;}
 .sn-nm span{font-weight:400;}
 .sn-meta{margin:0;font-size:${PACK_TEXT.label}px;opacity:.85;}
 .sn-head{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
 .sn-lv{display:flex;flex-direction:column;align-items:flex-start;gap:${PACK_SPACE.xs}px;}
-.sn-lv span{display:inline-flex;align-items:center;padding:0 ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;
-  font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;line-height:${PACK_SPACE.lg}px;letter-spacing:.14em;text-transform:uppercase;color:#fff;white-space:nowrap;}
-.sn-lv .is-pilgrim{background:${T.tripPurple};}
-.sn-lv .is-devotion{background:${BRAND_GOLD_BTN.grad};}
+/* LEVELY — odznak, nie štítok (Matej 25. 9.: „vo farbe a v luxusnejšom chipe… lapis alebo zlato").
+   PÚTNIK nesie farbu SVOJHO pásma (tierOfLevel, tá istá ako prstenec na mape), DEVOTION je
+   lapis so zlatým písmom. Číslo v kotúči vľavo, zlatý lem, jemný lesk. */
+.sn-lv > span{display:inline-flex;align-items:center;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px ${PACK_SPACE.xs}px ${PACK_SPACE.xs}px;
+  border-radius:${PACK_R.pill}px;border:1px solid ${BRAND_GOLD_BTN.edge};white-space:nowrap;box-shadow:${PACK_SHADOW.panel};
+  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;text-transform:uppercase;}
+.sn-lv > span > b{display:inline-grid;place-items:center;min-width:${PACK_SPACE.lg + PACK_SPACE.xs}px;height:${PACK_SPACE.lg + PACK_SPACE.xs}px;padding:0 ${PACK_SPACE.xs}px;
+  border-radius:${PACK_R.pill}px;font-family:${FONT_UI};font-weight:700;font-size:${PACK_TEXT.micro}px;letter-spacing:0;}
+.sn-lv .is-pilgrim > b{background:rgba(0,0,0,.28);color:#fff;}
+.sn-lv .is-devotion{background:${LAPIS.grad};color:#F5C73D;}
+.sn-lv .is-devotion > b{background:${BRAND_GOLD_BTN.grad};color:#241a06;}
+/* PSY pred zámerom: „1 pes · HEKTOR · Hľadám: Priateľstvo" */
+.sn-dogs{margin:0;display:flex;align-items:center;gap:${PACK_SPACE.sm}px;font-size:${PACK_TEXT.label}px;}
+.sn-dogs em{font-style:normal;font-family:${DOG_NAME_FONT};font-weight:700;font-size:${PACK_TEXT.body}px;letter-spacing:.02em;}
+.sn-lbl{align-self:center;font-size:${PACK_TEXT.label}px;opacity:.75;margin-right:${PACK_SPACE.xs}px;}
 .sn-chip{align-self:flex-start;display:inline-flex;align-items:center;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;
   font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;white-space:nowrap;}
 .sn-chip b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;}
@@ -82,8 +97,15 @@ export function SnifferLevels({ card, tx }: { card: SnifferCardData; tx: Tx }) {
   if (!card.pilgrimLevel && !dev) return null;
   return (
     <span className="sn-lv">
-      {card.pilgrimLevel ? <span className="is-pilgrim">{tx('pack.sniffer.pilgrimLv', 'Pilgrim {n}', { n: card.pilgrimLevel })}</span> : null}
-      {dev && <span className="is-devotion">{tx(`pack.ladder.${dev.key}`, dev.name)}</span>}
+      {card.pilgrimLevel ? (() => {
+        const t = tierOfLevel(card.pilgrimLevel);
+        return (
+          <span className="is-pilgrim" style={{ background: tierGradient(t), color: t.ink }}>
+            <b>{card.pilgrimLevel}</b>{tx('pack.sniffer.pilgrim', 'Pilgrim')}
+          </span>
+        );
+      })() : null}
+      {dev && <span className="is-devotion"><b>{dev.index}</b>{tx(`pack.ladder.${dev.key}`, dev.name)}</span>}
     </span>
   );
 }
@@ -151,8 +173,17 @@ export function SnifferCard({ card, tx, back = false, className = '', style, onO
         <SnifferStatsChip card={card} tx={tx} />
         {place && <p className="sn-meta">📍 {place}</p>}
         {!lean && card.bio?.trim() && <p className="sn-bio">{card.bio.trim()}</p>}
+        {!lean && card.dogs.length > 0 && (
+          <p className="sn-dogs">
+            <BrandIcon name="paw" size={PACK_SPACE.lg} tint="white" />
+            <span><b>{card.dogs.length}</b> {tx(`pack.sniffer.dogsWord.${plural(card.dogs.length)}`, card.dogs.length === 1 ? 'dog' : 'dogs')}</span>
+            <i style={{ fontStyle: 'normal', opacity: 0.5 }}>·</i>
+            <em>{card.dogs.map((d) => d.name).filter(Boolean).join(', ')}</em>
+          </p>
+        )}
         {!lean && (card.intents.length > 0 || card.interests.length > 0) && (
           <div className="sn-pills">
+            {card.intents.length > 0 && <span className="sn-lbl">{tx('pack.sniffer.seeking', 'Looking for:')}</span>}
             {card.intents.map((i) => <span key={`i-${i}`} className="pk-pill pk-pill--dark">{tx(`pack.buddy.intent.${i}`, i)}</span>)}
             {card.interests.slice(0, 4).map((v) => <span key={`a-${v}`} className="pk-pill pk-pill--dark">{interest(v)}</span>)}
           </div>

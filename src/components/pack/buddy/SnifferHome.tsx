@@ -3,7 +3,8 @@
 //
 // · Záložky sú KLIKATEĽNÉ (Matej 25. 9.: „neviem prepnúť chipy hore") a žijú v ADRESE
 //   (`?tab=`), aby späť v prehliadači vrátilo záložku a nie celú stránku.
-// · Tlačidlá: ✕ nie · 💬 napísať · NOS áno (Matej 25. 9.: nos, nie fajka; šípka hore ZRUŠENÁ).
+// · Tlačidlá: ✕ nie · 💬 napísať · SNIFF áno (Matej 25. 9.: nos, nie fajka; šípka hore ZRUŠENÁ;
+//   neskôr: „nie NOS ale SNIFF" a kotúč ZELENÝ ako krok 3 úvodu, nie lapis).
 // · 💬 = áno + pripnutá správa, ktorá odíde AŽ PRI ZHODE (Matej 25. 9.). Bez zhody nič.
 // · Swipe gestom aj tlačidlami. Prázdny balíček hovorí AINUBIS.
 // · Zhoda = animované odhalenie `SnifferMatchReveal` (§2.6 D), nie to isté logo ako úvod.
@@ -36,10 +37,12 @@ const REFILL_AT = 2;
 const pic = (u?: string | null) => withTransform(u, 'c_fill,g_auto,w_240,h_240,f_auto,q_auto');
 
 const CSS = `
-.sh-tabs{display:flex;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.xs}px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};background:${T.cardSoft};}
-.sh-tabs button{flex:1 1 0;padding:${PACK_SPACE.sm}px;border:0;border-radius:${PACK_R.pill}px;background:transparent;cursor:pointer;
-  font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkFaint};}
-.sh-tabs button.is-on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
+/* Horný prepínač výraznejší, aktívna záložka v PLNOM lapise (Matej 25. 9.). */
+.sh-tabs{display:flex;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.xs}px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};background:${T.cardSoft};box-shadow:${PACK_SHADOW.card};}
+.sh-tabs button{flex:1 1 0;padding:${PACK_SPACE.md}px ${PACK_SPACE.sm}px;border:1px solid transparent;border-radius:${PACK_R.pill}px;background:transparent;cursor:pointer;
+  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};transition:background .2s ease,color .2s ease;}
+.sh-tabs button:hover{color:${LAPIS.edge};}
+.sh-tabs button.is-on{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};}
 .sh-pane{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .sh-pane--scroll{overflow-y:auto;margin:0 -${PACK_SPACE.xs}px;padding:0 ${PACK_SPACE.xs}px;}
 .sh-deck{position:relative;flex:1 1 auto;min-height:360px;width:100%;max-width:440px;margin:0 auto;}
@@ -54,7 +57,29 @@ const CSS = `
 .sh-btn:active{transform:scale(.94);}
 .sh-btn:disabled{opacity:.45;cursor:default;}
 .sh-btn--msg{width:${PACK_AVATAR.md}px;height:${PACK_AVATAR.md}px;margin-top:${PACK_SPACE.sm}px;}
-.sh-btn--yes{border-color:${LAPIS.deep};background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};}
+.sh-btn--yes{border-color:${T.growGreen};background:linear-gradient(135deg, #4E9A63, ${T.growGreen});box-shadow:${PACK_SHADOW.panel};}
+/* ODPOVEĎ NA ŤUK — tlačidlo pruží a karta nesie pečiatku SNIFF / NIE (Matej 25. 9.: „animácie pri
+   ok a no… aj na mobile aj PC"). Pečiatka rastie s ťahom, pri ťuku je hneď celá. */
+.sh-btn.is-hit{animation:sh-hit .36s ease;}
+@keyframes sh-hit{0%{transform:scale(1);}35%{transform:scale(1.22);}100%{transform:scale(1);}}
+.sh-stamp{position:absolute;top:${PACK_SPACE.xxxl}px;z-index:4;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border:3px solid currentColor;border-radius:${PACK_R.field}px;
+  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h1}px;letter-spacing:.14em;text-transform:uppercase;pointer-events:none;background:rgba(0,0,0,.25);}
+.sh-stamp--yes{left:${PACK_SPACE.lg}px;color:#7BD88F;transform:rotate(-14deg);}
+.sh-stamp--no{right:${PACK_SPACE.lg}px;color:#FF7A6B;transform:rotate(14deg);}
+/* Celý profil odletí tým istým smerom ako karta. */
+.sh-peek{width:100%;height:100%;display:flex;justify-content:center;align-items:center;transition:transform .36s ease, opacity .36s ease;}
+.sh-peek.is-like{transform:translateX(110vw) rotate(10deg);opacity:0;}
+.sh-peek.is-pass{transform:translateX(-110vw) rotate(-10deg);opacity:0;}
+/* PRÁZDNY BALÍČEK — blok vo veľkosti karty, obrázok + AINUBIS dole v prechode (Matej 25. 9.) */
+.sh-nobody{position:relative;flex:1 1 auto;min-height:360px;width:100%;max-width:440px;margin:0 auto;border-radius:${PACK_R.card}px;overflow:hidden;box-shadow:${PACK_SHADOW.panel};}
+.sh-nobody > img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.sh-nobody__txt{position:absolute;left:0;right:0;bottom:0;padding:${PACK_SPACE.xxxl * 2}px ${PACK_SPACE.lg}px ${PACK_SPACE.lg}px;
+  background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.75) 45%, #000 100%);color:${T.onDark};font-family:${FONT_UI};
+  display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
+.sh-nobody__txt b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;}
+.sh-nobody__txt b span{color:#4FD1E8;}
+.sh-nobody__txt strong{font-weight:600;font-size:${PACK_TEXT.lead}px;line-height:1.3;}
+.sh-nobody__txt p{margin:0;font-size:${PACK_TEXT.label}px;line-height:1.45;opacity:.85;}
 .sh-ico{display:block;background:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat;}
 .sh-empty{margin:auto 0;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .sh-ghost{align-self:center;border-radius:${PACK_R.field}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;border:1px solid ${T.border};background:${T.cardSoft};
@@ -107,6 +132,9 @@ export function SnifferHome({ tx, me }: {
   const [peek, setPeek] = useState<SnifferCardData | null>(null);
   const [draft, setDraft] = useState('');
   const [match, setMatch] = useState<{ card: SnifferCardData; conv: string | null } | null>(null);
+  const [hit, setHit] = useState<'like' | 'pass' | null>(null);
+  const [leaving, setLeaving] = useState<'like' | 'pass' | null>(null);
+  const pulse = (v: 'like' | 'pass') => { setHit(v); window.setTimeout(() => setHit(null), 380); };
   const busy = useRef(false);
   const start = useRef<{ x: number; y: number; id: number } | null>(null);
 
@@ -131,6 +159,7 @@ export function SnifferHome({ tx, me }: {
   const decide = async (verdict: 'like' | 'pass', message?: string) => {
     if (!top || busy.current) return;
     busy.current = true;
+    pulse(verdict);
     const dir = verdict === 'like' ? 1 : -1;
     setDrag({ dx: dir * window.innerWidth, dy: 0, anim: true });
     const req = swipe(top.member, verdict, message).catch((e) => {
@@ -149,6 +178,10 @@ export function SnifferHome({ tx, me }: {
 
   /** Rozhodnutie z CELÉHO PROFILU — bez odletu karty, ten istý server. */
   const act = async (card: SnifferCardData, verdict: 'like' | 'pass', message?: string) => {
+    // Celý profil najprv odletí (tým istým smerom ako karta), až potom sa zavrie.
+    setLeaving(verdict);
+    await new Promise((r) => window.setTimeout(r, 360));
+    setLeaving(null);
     setPeek(null);
     try {
       const r = await swipe(card.member, verdict, message);
@@ -221,11 +254,17 @@ export function SnifferHome({ tx, me }: {
                 <div key={top.member} className="sn-card-wrap" style={{ position: 'absolute', inset: 0 }}
                   onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
                   <SnifferCard card={top} tx={tx} className={drag?.anim ? 'is-anim' : ''} style={dragStyle} onOpenFull={() => setPeek(top)} />
+                  {drag && Math.abs(drag.dx) > 12 && (
+                    <span className={`sh-stamp sh-stamp--${drag.dx > 0 ? 'yes' : 'no'}`}
+                      style={{ opacity: Math.min(1, Math.abs(drag.dx) / SWIPE_PX), transform: `translateX(${Math.max(-60, Math.min(60, drag.dx / 6))}px) rotate(${drag.dx > 0 ? -14 : 14}deg)` }}>
+                      {drag.dx > 0 ? tx('pack.sniffer.yes', 'SNIFF') : tx('pack.sniffer.no', 'No')}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="sh-acts">
                 <div className="sh-act">
-                  <button type="button" className="sh-btn" aria-label={tx('pack.sniffer.no', 'No')} onClick={() => void decide('pass')}>
+                  <button type="button" className={`sh-btn${hit === 'pass' ? ' is-hit' : ''}`} aria-label={tx('pack.sniffer.no', 'No')} onClick={() => void decide('pass')}>
                     <MaskIcon src="/icons/pack/cross.svg" size={26} color={T.alertRed} />
                   </button>
                   {tx('pack.sniffer.no', 'No')}
@@ -238,19 +277,22 @@ export function SnifferHome({ tx, me }: {
                   {tx('pack.sniffer.write', 'Write')}
                 </div>
                 <div className="sh-act">
-                  <button type="button" className="sh-btn sh-btn--yes" aria-label={tx('pack.sniffer.yes', 'Yes')} onClick={() => void decide('like')}>
-                    <MaskIcon src="/icons/pack/nose.svg" size={30} color={LAPIS.ink} />
+                  <button type="button" className={`sh-btn sh-btn--yes${hit === 'like' ? ' is-hit' : ''}`} aria-label={tx('pack.sniffer.yes', 'SNIFF')} onClick={() => void decide('like')}>
+                    <MaskIcon src="/icons/pack/nose.svg" size={30} color="#fff" />
                   </button>
                   {tx('pack.sniffer.yes', 'Yes')}
                 </div>
               </div>
             </>
           ) : (
-            <div className="sh-empty">
-              <AinubisBubble>
-                {tx('pack.sniffer.empty', 'Nobody new around right now. As soon as someone who fits switches SNIFFER on, you’ll find them here.')}
-              </AinubisBubble>
-              <button type="button" className="sh-ghost" onClick={() => void fetchDeck()}>{tx('pack.sniffer.refresh', 'Try again')}</button>
+            // Blok vo veľkosti karty so smiešnym obrázkom (Kie, bez textu) — „Skúsiť znova" zrušené.
+            <div className="sh-nobody">
+              <img src="/images/sniffer/empty-deck.jpg" alt="" />
+              <div className="sh-nobody__txt">
+                <b><span>AI</span>NUBIS</b>
+                <strong>{tx('pack.sniffer.empty2', 'Nobody matches your search.')}</strong>
+                <p>{tx('pack.sniffer.empty2Sub', 'DOGYPT is filling up with members — help us and bring your friends here.')}</p>
+              </div>
             </div>
           )}
           {err && <p className="sh-note" style={{ color: PICK_INK.red, textAlign: 'center' }}>{err}</p>}
@@ -296,8 +338,11 @@ export function SnifferHome({ tx, me }: {
 
       {/* CELÝ PROFIL — nad závojom, s tými istými tlačidlami ako balíček */}
       {peek && (
+        // Klik VEDĽA zavrie náhľad (Matej 25. 9.: „kliknutie vedľa nezruší náhľad"). Obal zaberá celú
+        // plochu, takže sa zatvára podľa cieľa kliku: čokoľvek mimo kariet a tlačidiel.
         <div className="pk-veil pk-veil--modal" onClick={() => setPeek(null)}>
-          <div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+          <div className={`sh-peek${leaving ? ` is-${leaving}` : ''}`}
+            onClick={(e) => { if ((e.target as HTMLElement).closest('.sfp-photo, .sfp-card, button, a, input, textarea')) e.stopPropagation(); }}>
             <SnifferFullProfile card={peek} tx={tx} actions={(
               <>
                 <button type="button" className="sh-btn" aria-label={tx('pack.sniffer.no', 'No')} onClick={() => void act(peek, 'pass')}>
@@ -307,8 +352,8 @@ export function SnifferHome({ tx, me }: {
                   onClick={() => { const c = peek; setDraft(''); setPeek(null); setComposer({ card: c, send: (m) => void act(c, 'like', m) }); }}>
                   <MaskIcon src="/icons/pack/chat.svg" size={22} color={LAPIS.edge} />
                 </button>
-                <button type="button" className="sh-btn sh-btn--yes" aria-label={tx('pack.sniffer.yes', 'Yes')} onClick={() => void act(peek, 'like')}>
-                  <MaskIcon src="/icons/pack/nose.svg" size={30} color={LAPIS.ink} />
+                <button type="button" className="sh-btn sh-btn--yes" aria-label={tx('pack.sniffer.yes', 'SNIFF')} onClick={() => void act(peek, 'like')}>
+                  <MaskIcon src="/icons/pack/nose.svg" size={30} color="#fff" />
                 </button>
               </>
             )} />

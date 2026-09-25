@@ -74,6 +74,8 @@ const CSS = `
 .sp-pager--fit > .sp-card{flex:1 1 auto;min-height:0;}
 .sp-pager--fit .sp-body{flex:1 1 auto;min-height:0;overflow-y:auto;}
 .sp-pager--fit .sp-slots > .sp-slot{height:clamp(${PACK_SPACE.xxxl + PACK_SPACE.lg}px, 20dvh, ${PACK_SPACE.xxxl * 4}px);}
+.sp-photorow{display:flex;flex-wrap:wrap;align-items:flex-end;gap:${PACK_SPACE.md}px;border-top:1px solid ${T.hairline};}
+.sp-photorow > .sp-kv{flex:1 1 auto;border-top:0;}
 .sp-slots{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;}
 .sp-slots > .sp-slot{height:${PACK_SPACE.xxxl * 3}px;width:auto;}
 @media (min-width:768px){ .sp-rows2{display:grid;grid-template-columns:1fr 1fr;column-gap:${PACK_SPACE.xl}px;} }
@@ -218,7 +220,7 @@ interface Slide { key: string; title: string; sub?: string; right?: ReactNode; b
 
 export function SnifferProfile({
   tx, uid, name, human, dogs, dogAttrsOf, heroGender, zodiac, homeCountry, audienceEditor, missing, gateEditor, gateSummary,
-  settings, onPatch, finish, fit = false,
+  settings, onPatch, finish, fit = false, basicsAside,
 }: {
   tx: Tx;
   uid: string | null;
@@ -244,6 +246,8 @@ export function SnifferProfile({
   finish?: { label: string; onClick: () => void; busy?: boolean; note?: ReactNode };
   /** Obrazovka bez scrollu (brána): karta berie zvyšok výšky okna a obsah sa zmenší, nie stránka. */
   fit?: boolean;
+  /** Vpravo dole v karte Základ, vedľa fotiek — v nastaveniach tam sedí zapnutie SNIFFERa. */
+  basicsAside?: ReactNode;
 }) {
   const [open, setOpen] = useState<string | null>(null);
   const [allTraits, setAllTraits] = useState(false);
@@ -313,7 +317,10 @@ export function SnifferProfile({
             {tile('region', tx('pack.buddy.step.region', 'Where you live'))}
           </div>
           {open && (BASIC_KEYS as string[]).includes(open) && <div className="sp-editor">{gateEditor(open as BuddyStepKey)}</div>}
-          <PhotoSlots uid={uid} photos={photos} together={human?.buddyPhoto ?? null} tx={tx} />
+          <div className="sp-photorow">
+            <PhotoSlots uid={uid} photos={photos} together={human?.buddyPhoto ?? null} tx={tx} />
+            {basicsAside}
+          </div>
         </>
       ),
     },

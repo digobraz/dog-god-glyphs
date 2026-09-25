@@ -51,7 +51,6 @@ import {
 type View = 'splash' | 'intro' | 'gate' | 'done' | 'settings' | 'home';
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
 
-const PAUSE_DAYS = 7;
 
 const STEP_EN: Record<BuddyStepKey, string> = {
   name: 'Name', age: 'Age', gender: 'Gender', region: 'Where you live',
@@ -193,6 +192,13 @@ const CSS = `
    nie červenou") — je to moja akcia, nie chyba. Hotový ostáva zelený (splnené). */
 .bd-col .pk-progress__fill--low{background:${LAPIS.grad};}
 .bd-bar--center{justify-content:center;}
+.bd-dock--card{width:100%;max-width:440px;margin:0 auto;}
+/* ZAPNUTIE v karte Základ (nastavenia) */
+.bd-onbox{margin-left:auto;align-self:flex-end;display:flex;flex-direction:column;align-items:flex-end;gap:${PACK_SPACE.sm}px;
+  padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;border:1px solid ${T.hairline};background:${T.tileBg};}
+.bd-onbox__row{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
+.bd-onbox__row img{height:${PACK_SPACE.xl + PACK_SPACE.sm}px;width:auto;}
+.bd-onbox small{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
 .bd-switch{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.md}px;font-family:${FONT_UI};
   font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
 `;
@@ -214,6 +220,8 @@ export default function PackBuddy() {
   const [serverMissing, setServerMissing] = useState<BuddyStepKey[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [nameDraft, setNameDraft] = useState<string | null>(null);
+  /** Odkiaľ sa prišlo na „Takto ťa vidia" — z nastavení sa späť vracia do nastavení. */
+  const [doneFrom, setDoneFrom] = useState<'enable' | 'settings'>('enable');
   const { profile } = useProfile();
   const { dogs, avatarUrl, ownerGender, loading: dogsLoading } = usePackUser(session?.user?.id ?? null);
   // POHLAVIE JE Z HEROGLYFU (Matej 25. 9.: „pohlavie je predsa z heroglyfu"). Malý rámik
@@ -304,6 +312,7 @@ export default function PackBuddy() {
 
   const back = () => {
     if (view === 'settings') setView(s.enabled ? 'home' : 'gate');
+    else if (view === 'done' && doneFrom === 'settings') setView('settings');
     else if (view === 'gate' && !introSeen()) { setIntroStep(3); setView('intro'); }
     else if (view === 'intro' && introStep > 1) setIntroStep(introStep - 1);
     else navigate('/pack/map');
@@ -428,7 +437,7 @@ export default function PackBuddy() {
       onGear={view === 'home' || view === 'done' ? () => setView('settings') : undefined}
       // Úvod: šípka sama v strede (Matej 25. 9.: „šípku daj do stredu").
       centerBack={view === 'splash' || view === 'intro'}
-      gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'gate' || view === 'settings'} fit={view === 'home' || view === 'done' || view === 'gate'}>
+      gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'gate' || view === 'settings'} fit={view === 'home' || view === 'done' || view === 'gate' || view === 'settings'}>
       {view === 'splash' && (
         <div className="bd-stage" onClick={() => { if (s.enabled) afterSplash(); }}>
           <div className="bd-stage__body">
@@ -561,13 +570,16 @@ export default function PackBuddy() {
           {myFull && (
             <div className="pk-veil pk-veil--modal" onClick={() => setMyFull(null)}>
               <style>{VEIL_CSS}</style>
-              <div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+              {/* klik vedľa kariet zavrie (obal zaberá celú plochu) */}
+              <div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                onClick={(e) => { if ((e.target as HTMLElement).closest('.sfp-photo, .sfp-card, button, a')) e.stopPropagation(); }}>
                 <SnifferFullProfile card={myFull} tx={tx} />
               </div>
             </div>
           )}
-          <div className="bd-dock">
-            <button type="button" className="bd-cta" onClick={() => setView('home')}>{tx('pack.buddy.showMe', 'Show me them')}</button>
+          {/* CTA presne na šírku karty, „Idem sniffovať" (Matej 25. 9.: „ukáž mi ich je hlúposť"). */}
+          <div className="bd-dock bd-dock--card">
+            <button type="button" className="bd-cta" onClick={() => setView('home')}>{tx('pack.sniffer.goSniff', 'Let’s go sniffing')}</button>
           </div>
         </>
       )}
@@ -589,34 +601,6 @@ export default function PackBuddy() {
               pod ním Váš profil v tých istých kartách ako brána, Môj rajón a upozornenia.
               Zámery a „komu sa ukážem" sú v karte 4 Vášho profilu — druhýkrát na tej istej
               obrazovke nie sú. */}
-          <section className="bd-card bd-sethead" style={{ ...PACK_BOX.card }}>
-            <img className="bd-sethead__logo" src="/icons/sniffer/sniffer-logo.svg" alt="SNIFFER" />
-            <button type="button" role="switch" aria-checked={s.enabled && !paused} disabled={busy}
-              aria-label={tx('pack.buddy.inBuddy', 'I’m in SNIFFER')}
-              className={`bd-sw${s.enabled && !paused ? ' is-on' : ''}`}
-              onClick={async () => {
-                if (s.enabled) { await patchSettings({ enabled: false, paused_until: null }); return; }
-                if (missing.length > 0) { setView('gate'); return; }
-                await enable();
-              }}><i /></button>
-          </section>
-          <p className="bd-note bd-note--center">
-            {!s.enabled
-              ? tx('pack.buddy.offNote', 'Off — nobody sees you')
-              : paused
-                ? tx('pack.buddy.pausedUntil', 'Paused until {d}', { d: new Date(s.paused_until!).toLocaleDateString() })
-                : tx('pack.buddy.on', 'On')}
-            {s.enabled && (
-              <>
-                {' · '}
-                <button type="button" className="bd-link" onClick={() => void patchSettings({
-                  paused_until: paused ? null : new Date(Date.now() + PAUSE_DAYS * 864e5).toISOString(),
-                })}>{paused ? tx('pack.buddy.unpause', 'End pause') : tx('pack.buddy.pause', 'Pause {n} days', { n: PAUSE_DAYS })}</button>
-              </>
-            )}
-          </p>
-
-          <span className="bd-eyebrow">{tx('pack.sniffer.profile.title', 'Your profile')}</span>
           <SnifferProfile
             tx={tx}
             uid={session?.user.id ?? null}
@@ -633,6 +617,31 @@ export default function PackBuddy() {
             audienceEditor={(part) => <AudienceEditor s={s} onPatch={patchSettings} tx={tx} part={part} />}
             settings={s}
             onPatch={patchSettings}
+            fit
+            // ZAPNUTIE sedí v karte Základ vpravo dole, vedľa fotiek (Matej 25. 9.: „tú info o zapnutí
+            // daj do toho bloku základ, asi napravo dolu, aby sa to zmestilo celé na viewport ako pri
+            // onboardingu"). Pauza zrušená („je tam zbytočná"). Pod prepínačom „Ako ma vidia ostatní".
+            basicsAside={(
+              <div className="bd-onbox">
+                <div className="bd-onbox__row">
+                  <img src="/icons/sniffer/sniffer-logo.svg" alt="SNIFFER" />
+                  <button type="button" role="switch" aria-checked={s.enabled && !paused} disabled={busy}
+                    aria-label={tx('pack.buddy.inBuddy', 'I’m in SNIFFER')}
+                    className={`bd-sw${s.enabled && !paused ? ' is-on' : ''}`}
+                    onClick={async () => {
+                      if (s.enabled) { await patchSettings({ enabled: false, paused_until: null }); return; }
+                      if (missing.length > 0) { setView('gate'); return; }
+                      await enable();
+                    }}><i /></button>
+                </div>
+                <small>{s.enabled && !paused ? tx('pack.buddy.on', 'On') : tx('pack.buddy.offNote', 'Off — nobody sees you')}</small>
+                {s.enabled && !paused && (
+                  <button type="button" className="bd-cta bd-cta--small" onClick={() => { setDoneFrom('settings'); setView('done'); }}>
+                    {tx('pack.sniffer.howSeen', 'How others see me')}
+                  </button>
+                )}
+              </div>
+            )}
           />
           {/* MÔJ RAJÓN, KOHO HĽADÁM, ĽUDIA V OKOLÍ a UPOZORNENIA sú od kola 3 karty Vášho profilu
               (posledná = viditeľnosť a upozornenia) — druhýkrát pod ním nie sú. */}
