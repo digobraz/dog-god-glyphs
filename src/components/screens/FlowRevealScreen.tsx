@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore, MAIN_DOG_ID } from '@/store/dogyptStore';
@@ -9,7 +9,8 @@ import { PageTopBar } from '@/components/PageTopBar';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
 import { FLOW_PALE_CSS, FLOW_CARVE_CSS, FLOW_GLYPH_CSS } from '@/components/screens/flowPaleSkin';
-import { FlowMedallion, FLOW_MEDAL_CSS, useSpeakMedal } from '@/components/screens/flowMedallion';
+import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
+import { LetterReveal, REVEAL_S, LETTER_S, FLOW_INTRO_CSS } from '@/components/screens/flowIntro';
 import { useFlowDogs, FlowDogHeader, FLOW_DOG_CSS } from '@/components/screens/flowDogPicker';
 import { MessageModal, MESSAGE_MAX_CHARS } from '@/components/screens/MessageScreen';
 import { LAPIS } from '@/components/pack/navGoldSkin';
@@ -41,6 +42,15 @@ import { hekthorFace } from '@/lib/hekthorFaces';
 //       otázka (pamäť `project_dogypt_chvost_flowu_planb_2026-09-25`). Na psa
 //       je to preto, že sa to dá zlúčiť bez straty; opačne nie.
 //
+// 🎬 PRÍCHOD (Matej 25. 9. 2026, druhá podoba v ten istý deň): *„dal by som
+//    animáciu ako v úvode — veľký blok a hektor s nadpisom a animáciou, blok
+//    zmizne a zostane tam len nadpis bez hektora, malým písmom nad blokom —
+//    bude tu len jeden blok na celú stranu"*. Dve fázy ako krok 2 (`NameScreen`)
+//    a ten istý kód (`flowIntro.tsx`): `hero` = veľká bublina, medailón sa
+//    dotočí a veta sa vypíše po písmenách · `plate` = bublina odíde, ostane
+//    malý nadpis a doska. Ťuk na bublinu príchod preskočí.
+//    ⚠️ Kto má vypnutý pohyb, ide rovno na dosku.
+//
 // ↕ DVA DIZAJNY. Vodorovný má šírku z locku rámu (`--flow-glyph-w`). Zvislý
 //    je vysoký (2480×3504), takže sa neviaže na šírku, ale na VÝŠKU — inak by
 //    na PC zabral dvojnásobok dosky a obrazovka by sa rolovala.
@@ -53,7 +63,6 @@ export function FlowRevealScreen() {
   const navigate = useNavigate();
   const t = useT();
   const flowOk = useFlowGuard();
-  const medal = useSpeakMedal();
 
   const selections = useDogyptStore((s) => s.selections);
   const setSelection = useDogyptStore((s) => s.setSelection);
@@ -70,6 +79,35 @@ export function FlowRevealScreen() {
   const isMain = dogId === MAIN_DOG_ID;
 
   const [design, setDesign] = useState<Design>('h');
+
+  // ── PRÍCHOD ───────────────────────────────────────────────────────────────
+  const [phase, setPhase] = useState<'hero' | 'plate'>(() =>
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ? 'plate'
+      : 'hero',
+  );
+  const titleA = t('heroglyph.flow.revealNew.titlePrefix');
+  const titleB = t('heroglyph.flow.revealNew.titleWord');
+  const titleC = t('heroglyph.flow.revealNew.titleSuffix');
+  /** Čas príchodu sa RÁTA z dĺžky vety (18 jazykov) + chvíľa na prečítanie
+   *  podnadpisu — ten istý princíp ako krok 2, strop 4 s. */
+  const introMs = useMemo(() => {
+    const letters = (titleA + titleB + titleC).length;
+    return Math.min(4000, Math.round((REVEAL_S + letters * LETTER_S + 1.4) * 1000));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (phase !== 'hero') return;
+    const id = window.setTimeout(() => setPhase('plate'), introMs);
+    return () => window.clearTimeout(id);
+  }, [phase, introMs]);
+  /** Medailón v príchode — z okna, ten istý výpočet ako krok 2. */
+  const heroMedallion = useMemo(() => {
+    if (typeof window === 'undefined') return 240;
+    const byWidth = Math.min(window.innerWidth, 640) * 0.72;
+    const byHeight = window.innerHeight * 0.38;
+    return Math.round(Math.max(148, Math.min(310, Math.min(byWidth, byHeight))));
+  }, []);
 
   // ── ÚDAJE PSA NA RADE ─────────────────────────────────────────────────────
   // Prvý pes má svoje odpovede v `selections`, ostatní v `dogEssence`. Zvislý
@@ -111,7 +149,7 @@ export function FlowRevealScreen() {
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{FLOW_DOG_CSS}{REVEAL_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_INTRO_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{FLOW_DOG_CSS}{REVEAL_CSS}</style>
       <input
         ref={hiddenInputRef}
         type="text"
@@ -128,23 +166,44 @@ export function FlowRevealScreen() {
       <div className="hf-stage">
         <div className="w-full max-w-xl flex flex-col items-center">
 
-          {/* ── 1. BLOK: HEKTHOR ODOVZDÁVA KĽÚČ ──────────────────────────── */}
+          <AnimatePresence mode="wait">
+          {phase === 'hero' ? (
+            /* ── PRÍCHOD: HEKTHOR ODOVZDÁVA KĽÚČ ─────────────────────────── */
+            <motion.button
+              key="hero"
+              type="button"
+              className="rv-hero"
+              onClick={() => setPhase('plate')}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: -16 }}
+              transition={{ duration: 0.4 }}
+            >
+              <span className="hf-medin">
+                <FlowMedallion src={hekthorFace('reveal')} size={heroMedallion} className="hf-medal" />
+              </span>
+              <span className="rv-hero-h">
+                <LetterReveal text={titleA} from={REVEAL_S} />
+                <LetterReveal text={titleB} from={REVEAL_S + titleA.length * LETTER_S} bold />
+                <LetterReveal text={titleC} from={REVEAL_S + (titleA.length + titleB.length) * LETTER_S} />
+              </span>
+              <span
+                className="rv-hero-sub"
+                style={{ animationDelay: `${(REVEAL_S + (titleA + titleB + titleC).length * LETTER_S).toFixed(2)}s` }}
+              >
+                {t('heroglyph.flow.revealNew.sub')}
+              </span>
+            </motion.button>
+          ) : (
           <motion.div
-            className="hf-speak rv-speak"
-            initial={{ opacity: 0, y: -8 }}
+            key="plate"
+            className="w-full flex flex-col items-center"
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28 }}
+            transition={{ duration: 0.4 }}
           >
-            <FlowMedallion src={hekthorFace('reveal')} size={medal} />
-            <span className="say">
-              <h2>
-                {t('heroglyph.flow.revealNew.titlePrefix')}
-                <b>{t('heroglyph.flow.revealNew.titleWord')}</b>
-                {t('heroglyph.flow.revealNew.titleSuffix')}
-              </h2>
-              <p>{t('heroglyph.flow.revealNew.sub')}</p>
-            </span>
-          </motion.div>
+          {/* Nadpis ostáva MALÝM písmom nad doskou, bez Hektora. */}
+          <p className="rv-kicker">{titleA}<b>{titleB}</b>{titleC}</p>
 
           {/* ── 2. BLOK: PES → DIZAJN → ODKAZ → ĎALEJ ─────────────────────── */}
           <motion.div
@@ -232,6 +291,9 @@ export function FlowRevealScreen() {
               </button>
             </div>
           </motion.div>
+          </motion.div>
+          )}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -257,22 +319,44 @@ export function FlowRevealScreen() {
  * `FLOW_PALE_CSS` — tu je len to, čo má iba odhalenie.
  *
  * 📏 ROZPOČET VÝŠKY (Matejovo okno 1477×724, mantinel `PAGE_AIR`): 595 px.
- *    bublina 104 + 8 + doska (pes 40 · jamka rámu 160 · prepínač 30 · vlys 16 ·
- *    odkaz 56 · CTA 40 + 6 medzier po 8 + 2×18) = ~538.
- *    ⚠️ Jamka je viazaná na VÝŠKU okna (`min(160px, 22dvh)`), nie na šírku —
+ *    nadpis 20 + 12 + doska (pes 40 · jamka rámu 200 · prepínač 30 · vlys 16 ·
+ *    odkaz 56 · CTA 40 + 6 medzier po 8 + 2×18) = ~526. (Bublina s Hektorom je od 25. 9. len v príchode, takže rám dostal jej miesto.)
+ *    ⚠️ Jamka je viazaná na VÝŠKU okna (`min(200px, 28dvh)`), nie na šírku —
  *       zvislý dizajn je vysoký a na šírke by na PC zabral dvojnásobok dosky.
  */
 const REVEAL_CSS = `
-.rv-speak { container-type: inline-size; margin-bottom: 8px; }
-.rv-speak h2 { font-size: clamp(18px, 4.6cqw, 20px); }
-.rv-speak h2 b { color: ${LAB.goldInk}; font-weight: 700; }
+/* ── PRÍCHOD — veľká bublina (ten istý gradient ako \`.hf-speak\`) ─────────── */
+.rv-hero {
+  width: 100%; container-type: inline-size; cursor: pointer; border: none;
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  padding: 32px 16px; border-radius: 16px; text-align: center;
+  background: var(--brand-gradient); color: #FAF4EC;
+}
+.rv-hero-h {
+  font-family: 'Cinzel', serif; font-weight: 700; line-height: 1.25;
+  font-size: clamp(20px, min(7cqw, 4.4dvh), 32px);
+}
+.rv-hero-sub {
+  font-family: 'Space Grotesk', sans-serif; font-size: 16px; line-height: 1.4;
+  color: rgba(250, 244, 236, 0.78);
+  animation: hf-letter .5s ease-out both;
+}
+@media (prefers-reduced-motion: reduce) { .rv-hero-sub { animation: none; } }
+
+/* ── NADPIS NAD DOSKOU — po príchode ostane len veta, malým písmom ────────── */
+.rv-kicker {
+  margin: 0 0 12px; text-align: center;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px;
+  letter-spacing: 0.14em; text-transform: uppercase; color: ${LAB.inkSoft};
+}
+.rv-kicker b { color: ${LAB.goldInk}; }
 .rv-stack .hf-plate { gap: 8px; }
 
 /* 🔴 JAMKA RÁMU MÁ PEVNÚ VÝŠKU PRE OBA DIZAJNY. Doska je centrovaná, takže
    keď sa pri prepnutí zmenila výška rámu (104 → 217), poskočila CELÁ obrazovka
    (merané 25. 9. na 1477×724: aj bublina hore o 73 px) a doska pretiekla o 5.
    Výšku určuje zvislý dizajn; vodorovný stojí v jej strede. */
-.rv-glyph { --rv-h: min(160px, 22dvh); width: 100%; height: var(--rv-h); display: grid; place-items: center; }
+.rv-glyph { --rv-h: min(200px, 28dvh); width: 100%; height: var(--rv-h); display: grid; place-items: center; }
 .rv-glyph-h { width: 100%; display: grid; place-items: center; }
 /* ⚠️ ŠÍRKA SA POČÍTA Z VÝŠKY, nie cez \`aspect-ratio\`: \`VerticalHeroglyphFrame\`
    si píše INLINE \`width:100%; height:auto\`, takže výšku SVG určuje šírka
@@ -329,12 +413,11 @@ const REVEAL_CSS = `
 @media (max-height: 700px) {
   .rv-stack .hf-plate { padding: 14px 16px; gap: 5px; }
   .rv-stack .hf-cta { height: 36px; }
-  .rv-speak { margin-bottom: 4px; }
+  .rv-kicker { margin-bottom: 8px; font-size: 12px; }
   .rv-msg { min-height: 48px; }
   .rv-msg-photo { width: 32px; height: 32px; }
 }
 @media (max-width: 559px) and (min-height: 701px) {
-  .rv-speak { padding: 16px; margin-bottom: 12px; }
   .rv-stack .hf-plate { padding: 26px 22px; gap: 12px; }
 }
 `;

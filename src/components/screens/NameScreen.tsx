@@ -15,6 +15,7 @@ import { FlowTextModal } from '@/components/screens/flowTextModal';
 import { countryFlag } from '@/lib/countryGeo';
 import { NEW_HEROFLOW } from '@/lib/flowMode';
 import { hekthorFace } from '@/lib/hekthorFaces';
+import { LetterReveal, REVEAL_S, LETTER_S, FLOW_INTRO_CSS } from '@/components/screens/flowIntro';
 // ⚠️ `FLOW_MEDAL_CSS` sa vkladá TU. Dosiaľ ho tejto obrazovke „požičiaval"
 //    `FlowRedress` — teda vrstva prezliekania, ktorú si môže Matej kedykoľvek
 //    prepnúť na starý šat. Medailón by tým prišiel o kresbu obruče a nikto by
@@ -27,48 +28,8 @@ import { PACK_BOX } from '@/components/pack/packTheme';
  *  aby sa blok, medailón a otázka hýbali ako jedna vec, nie ako tri. */
 const MORPH = { duration: 0.52, ease: [0.2, 0.8, 0.3, 1] } as const;
 
-// ── PRÍCHOD: OTOČENIE FOTKY A POSTUPNÁ OTÁZKA (23. 9. 2026) ────────────────
-// Matej: *„pridal by som animáciu aj tej fotky a písmen — fotka sa pootočí
-// a príde reveal a otázka sa animuje postupne"*.
-/** Koľko trvá odhalenie medailónu, kým sa pustí text. */
-const REVEAL_S = 0.72;
-/** Rozostup písmen. 22 ms je hranica, pod ktorou to splýva do obyčajného fadu. */
-const LETTER_S = 0.022;
-
-/**
- * Text, ktorý sa vypisuje po PÍSMENÁCH.
- *
- * 🔴 ANIMUJE CSS, NIE FRAMER — a je to nález, nie vkus. Prvá verzia dala
- *    písmenám `initial`/`animate`, jenže celá bublina visí v
- *    `<AnimatePresence initial={false}>` a ten potláča vstupnú animáciu
- *    VŠETKÝCH potomkov pri prvom renderi. Písmená aj otáčanie medailónu sa
- *    preto nehrali vôbec: v 420 ms bolo všetko dokreslené. CSS animácia na
- *    tom nezávisí — a je aj lacnejšia než sto motion komponentov na vetu.
- *
- * ⚠️ Každé písmeno je `inline-block` — bez toho by sa `transform` neuplatnil.
- *    Medzery sú samostatné spany s pevnou šírkou: `inline-block` medzeru inak
- *    zrazí na nulu a slová by sa zlepili.
- * ⚠️ Zalomenie drží `whitespace-nowrap` na obale, nie na písmenách.
- */
-function LetterReveal({ text, from, bold }: { text: string; from: number; bold?: boolean }) {
-  return (
-    <>
-      {Array.from(text).map((ch, i) =>
-        ch === ' ' ? (
-          <span key={i} style={{ display: 'inline-block', width: '0.3em' }} />
-        ) : (
-          <span
-            key={i}
-            className={`hf-letter${bold ? ' font-bold text-amber-300' : ''}`}
-            style={{ animationDelay: `${(from + i * LETTER_S).toFixed(3)}s` }}
-          >
-            {ch}
-          </span>
-        ),
-      )}
-    </>
-  );
-}
+// Príchod (otočenie medailónu + písmená) žije od 25. 9. 2026 v `flowIntro.tsx`
+// — zdieľa ho aj ODHALENIE (`FlowRevealScreen`).
 
 // Countries list shared with CheckoutScreen (owner billing country).
 // Used here for dog's country of origin / home country.
@@ -299,26 +260,7 @@ export function NameScreen() {
 
       {/* Príchod kroku 2 — otočenie medailónu a vypisovanie otázky.
           ⚠️ Bez spätných apostrofov: CSS vnútri template literalu. */}
-      <style>{`
-        @keyframes hf-medin {
-          from { opacity: 0; transform: rotate(-190deg) scale(.55); }
-          to   { opacity: 1; transform: rotate(0deg) scale(1); }
-        }
-        .hf-medin { animation: hf-medin ${REVEAL_S}s cubic-bezier(.2,.8,.3,1.05) both; }
-        @keyframes hf-letter {
-          from { opacity: 0; transform: translateY(8px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        .hf-letter {
-          display: inline-block;
-          animation: hf-letter .24s ease-out both;
-        }
-        /* Kto si vypol pohyb, dostane text a medailón rovno — nie prázdnu
-           obrazovku, kým dobehne animácia, ktorá sa nehrá. */
-        @media (prefers-reduced-motion: reduce) {
-          .hf-medin, .hf-letter { animation: none; opacity: 1; transform: none; }
-        }
-      `}</style>
+      <style>{FLOW_INTRO_CSS}</style>
 
       {/* 🔴 OBAL MUSÍ ROLOVAŤ (24. 9. 2026). Bez `overflow-y-auto` nemal nedostatok
           výšky kam ujsť: bublina (jediná so `flex-shrink`) ho absorbovala celý —
