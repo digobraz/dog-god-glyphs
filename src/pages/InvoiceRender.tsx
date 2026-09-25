@@ -13,6 +13,53 @@ import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
  * are decoded — Cloudflare waits for that selector before printing.
  */
 
+// Suma slovom (25. 9. 2026). Dovtedy faktúra poznala len 11 € a pri dvoch psoch
+// písala „22 EUR“. Nákup má celé eurá (€0 · €1 · €3 · €11 × psy) ⇒ stačí 1–999;
+// iná suma a jazyk bez prevodu (uk) padne na číslo.
+const W: Record<string, { u: string[]; t: string[]; h: (n: number) => string; join: string; cur: (n: number) => string; pre: string }> = {
+  sk: {
+    u: ['', 'jeden', 'dva', 'tri', 'štyri', 'päť', 'šesť', 'sedem', 'osem', 'deväť', 'desať', 'jedenásť', 'dvanásť', 'trinásť', 'štrnásť', 'pätnásť', 'šestnásť', 'sedemnásť', 'osemnásť', 'devätnásť'],
+    t: ['', '', 'dvadsať', 'tridsať', 'štyridsať', 'päťdesiat', 'šesťdesiat', 'sedemdesiat', 'osemdesiat', 'deväťdesiat'],
+    h: (n) => (n === 1 ? 'sto' : n === 2 ? 'dvesto' : `${['', '', '', 'tri', 'štyri', 'päť', 'šesť', 'sedem', 'osem', 'deväť'][n]}sto`),
+    join: '',
+    cur: (n) => (n === 1 ? 'jedno euro' : n === 2 ? 'dve eurá' : n === 3 || n === 4 ? `${['', '', '', 'tri', 'štyri'][n]} eurá` : ''),
+    pre: 'slovom: ',
+  },
+  cs: {
+    u: ['', 'jedna', 'dva', 'tři', 'čtyři', 'pět', 'šest', 'sedm', 'osm', 'devět', 'deset', 'jedenáct', 'dvanáct', 'třináct', 'čtrnáct', 'patnáct', 'šestnáct', 'sedmnáct', 'osmnáct', 'devatenáct'],
+    t: ['', '', 'dvacet', 'třicet', 'čtyřicet', 'padesát', 'šedesát', 'sedmdesát', 'osmdesát', 'devadesát'],
+    h: (n) => (n === 1 ? 'sto' : n === 2 ? 'dvě stě' : n < 5 ? `${['', '', '', 'tři', 'čtyři'][n]} sta` : `${['', '', '', '', '', 'pět', 'šest', 'sedm', 'osm', 'devět'][n]} set`),
+    join: ' ',
+    cur: (n) => (n === 1 ? 'jedno euro' : n === 2 ? 'dvě eura' : n === 3 || n === 4 ? `${['', '', '', 'tři', 'čtyři'][n]} eura` : ''),
+    pre: 'slovy: ',
+  },
+  en: {
+    u: ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'],
+    t: ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'],
+    h: (n) => `${['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'][n]} hundred`,
+    join: ' ',
+    cur: () => '',
+    pre: 'in words: ',
+  },
+};
+function amountInWords(amount: number, lang: string): string {
+  const w = W[lang];
+  if (!w || !Number.isInteger(amount) || amount < 1 || amount > 999) return `${amount} EUR`;
+  const special = w.cur(amount);
+  if (special) return w.pre + special;
+  const below100 = (n: number) => {
+    if (n < 20) return w.u[n];
+    const t = w.t[Math.floor(n / 10)];
+    const u = w.u[n % 10];
+    if (!u) return t;
+    return lang === 'en' ? `${t}-${u}` : `${t}${w.join}${u}`;
+  };
+  const hund = Math.floor(amount / 100);
+  const rest = amount % 100;
+  const parts = [hund ? w.h(hund) : '', rest ? below100(rest) : ''].filter(Boolean);
+  return `${w.pre}${parts.join(w.join)} ${lang === 'en' ? 'euro' : 'eur'}`;
+}
+
 // i18n labels — sk / cs / uk / en complete, no missing keys
 const LABELS: Record<string, Record<string, string>> = {
   sk: {
@@ -253,6 +300,26 @@ export default function InvoiceRender() {
         await fontWait;
       } catch { /* ignore */ }
       await new Promise((res) => setTimeout(res, 400));
+      // Narazil by obsah do pečate? Prekryv obdĺžnikov, nie len výška — pečať je
+      // v strede a poznámka vľavo aj pečiatka vpravo ju môžu obísť bokom.
+      const page = document.getElementById('invoice-page');
+      const sealEl = page?.querySelector('.seal');
+      if (page && sealEl) {
+        // Vosk je kruh vpísaný do štvorca ⇒ rohy štvorca sú prázdne; meria sa
+        // o 10 % menší štvorec. Text sa meria po RIADKOCH (Range), nie celým
+        // odsekom — posledný riadok právnej poznámky je krátky a pečať obíde.
+        const b = sealEl.getBoundingClientRect();
+        const k = b.width * 0.1;
+        const sr = { left: b.left + k, right: b.right - k, top: b.top + k, bottom: b.bottom - k };
+        const rects: DOMRect[] = [];
+        page.querySelectorAll('.note, .paid-stamp, .words, .trow, .lx-c, .lx-row').forEach((el) => {
+          const range = document.createRange();
+          range.selectNodeContents(el);
+          rects.push(...Array.from(range.getClientRects()));
+        });
+        const hit = rects.some((r) => r.right > sr.left && r.left < sr.right && r.bottom > sr.top && r.top < sr.bottom);
+        if (hit) page.classList.add('tight');
+      }
       if (!cancelled) document.documentElement.setAttribute('data-render-ready', '1');
     };
     markReady();
@@ -297,12 +364,15 @@ export default function InvoiceRender() {
   const issuedRaw = dog.invoice_issued_at || dog.created_at;
   const issuedDate = fmtDate(issuedRaw);
 
-  // inWords: known for 11, else numeric fallback
-  const inWords = amount === 11 ? L.inWords11 : `${amount} EUR`;
+  const inWords = !W[lang] && amount === 11 ? L.inWords11 : amountInWords(amount, lang);
+  // Matej 25. 9. 2026 nad nákresom `plany/nakres-faktura-psi-2026-09-25/` vybral
+  // C: pri 1–2 psoch (95 % nákupov) je položkou PES — meno, popis, suma. Od troch
+  // psov by riadky pretiekli A4 ⇒ psi s rovnakou cenou sú jeden riadok s pilulkami.
+  const perDog = raw.length <= 2;
 
   // CSS vars as inline style on sheet
   const css = `
-    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cinzel+Decorative:wght@700&family=Space+Grotesk:wght@300;400;500;600&display=swap');
     :root {
       --ink: #1a1310;
       --ink-soft: #5a4b3a;
@@ -377,17 +447,25 @@ export default function InvoiceRender() {
     .meta .cell + .cell { padding-left: 6mm; border-left: 1px solid var(--line-soft); }
     .meta .mlabel { font-size: 8.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); }
     .meta .mval { font-size: 12px; margin-top: 4px; color: var(--ink); font-weight: 500; }
-    table.items { width: 100%; border-collapse: collapse; margin-top: 2mm; font-size: 11px; }
-    table.items th {
+    .lx { margin-top: 2mm; font-size: 11px; }
+    .lx-head {
+      display: flex; justify-content: space-between;
       font-family: 'Cinzel', serif; font-size: 8.5px; letter-spacing: .18em;
       text-transform: uppercase; color: var(--gold-deep); font-weight: 600;
-      text-align: left; padding: 0 4mm 4mm 0; border-bottom: 1px solid var(--line);
+      padding-bottom: 4mm; border-bottom: 1px solid var(--line);
     }
-    table.items th.r, table.items td.r { text-align: right; padding-right: 0; }
-    table.items th.c, table.items td.c { text-align: center; }
-    table.items td { padding: 5mm 4mm 5mm 0; vertical-align: top; border-bottom: 1px solid var(--line-soft); }
-    .it-title { font-weight: 600; }
-    .it-sub { color: var(--ink-faint); font-size: 10px; font-family: 'Cinzel', serif; letter-spacing: .05em; margin-top: 2px; }
+    .lx-c { display: flex; align-items: baseline; gap: 5mm; padding: 4mm 0; border-bottom: 1px solid var(--line-soft); }
+    .lx-name { font-family: 'Cinzel Decorative', serif; font-weight: 700; font-size: 14px; letter-spacing: .04em; min-width: 34mm; }
+    .lx-sub { flex: 1; font-size: 10px; color: var(--ink-faint); }
+    .lx-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8mm; padding: 5mm 0; border-bottom: 1px solid var(--line-soft); }
+    .lx-title { font-weight: 600; }
+    .lx-dogs { margin-top: 2.5mm; display: flex; flex-wrap: wrap; gap: 2mm; }
+    .lx-dog {
+      font-family: 'Cinzel Decorative', serif; font-weight: 700; font-size: 10px; letter-spacing: .06em;
+      color: var(--ink-soft); border: 1px solid var(--line); border-radius: 999px; padding: 1mm 3mm;
+    }
+    .lx-amt { text-align: right; white-space: nowrap; }
+    .lx-amt small { display: block; color: var(--ink-faint); font-size: 9.5px; margin-bottom: 1mm; }
     .totals { display: flex; justify-content: space-between; align-items: flex-end; gap: 12mm; margin-top: 8mm; }
     .tbox { min-width: 78mm; }
     .trow { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-soft); padding: 2.5mm 0; }
@@ -419,10 +497,10 @@ export default function InvoiceRender() {
       filter: sepia(.4) saturate(1.2) hue-rotate(-6deg) opacity(.92);
       mix-blend-mode: multiply;
     }
-    /* Viac psov v nákupe: riadky tesnejšie a pečať v toku pod súčtom — pri
-       absolútnej polohe by od troch položiek prekryla právnu poznámku. */
-    .multi table.items td { padding: 3mm 4mm 3mm 0; }
-    .multi .seal { position: relative; left: auto; bottom: auto; margin: 4mm auto 0; transform: rotate(-5deg); }
+    /* Pečať sa zmenší LEN keď by do nej narazil obsah (Matej 25. 9. 2026:
+       *„nevidím dôvod prečo pri 4 psoch je menšia pečať“*). Triedu dáva meranie
+       pred data-render-ready, nie počet psov. */
+    #invoice-page.tight .seal { width: 22mm; height: 22mm; bottom: 22mm; }
     .note { margin: 0; font-size: 9px; line-height: 1.7; color: var(--ink-faint); flex: 0 1 92mm; }
     .note b { color: var(--ink-soft); font-weight: 600; }
     .foot {
@@ -446,7 +524,7 @@ export default function InvoiceRender() {
   return (
     <>
       <style>{css}</style>
-      <div id="invoice-page" className={raw.length > 1 ? 'multi' : undefined}>
+      <div id="invoice-page">
         <div className="frame" />
 
         <div className="pad">
@@ -528,31 +606,29 @@ export default function InvoiceRender() {
           </div>
 
           {/* items */}
-          <table className="items">
-            <thead>
-              <tr>
-                <th>{L.description}</th>
-                <th className="c" style={{ width: '16mm' }}>{L.qty}</th>
-                <th className="c" style={{ width: '14mm' }}>{L.unit}</th>
-                <th className="r" style={{ width: '28mm' }}>{L.price}</th>
-                <th className="r" style={{ width: '28mm' }}>{L.subtotal}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lines.map((l, i) => (
-                <tr key={i}>
-                  <td>
-                    <div className="it-title">{l.title}</div>
-                    <div className="it-sub">{l.names.join(' · ')}</div>
-                  </td>
-                  <td className="c">{l.qty}</td>
-                  <td className="c">{L.unitVal}</td>
-                  <td className="r">{fmtAmount(l.unit)}</td>
-                  <td className="r">{fmtAmount(l.unit * l.qty)}</td>
-                </tr>
+          <div className="lx">
+            <div className="lx-head"><span>{L.description}</span><span>{L.subtotal}</span></div>
+            {perDog
+              ? raw.map((r, i) => (
+                <div key={i} className="lx-c">
+                  <span className="lx-name">{r.name}</span>
+                  <span className="lx-sub">{r.title} · 1 {L.unitVal}</span>
+                  <span className="lx-amt">{fmtAmount(r.amount)}</span>
+                </div>
+              ))
+              : lines.map((l, i) => (
+                <div key={i} className="lx-row">
+                  <div>
+                    <div className="lx-title">{l.title}</div>
+                    <div className="lx-dogs">{l.names.map((n, j) => <span key={j} className="lx-dog">{n}</span>)}</div>
+                  </div>
+                  <div className="lx-amt">
+                    <small>{l.qty} {L.unitVal} × {fmtAmount(l.unit)}</small>
+                    {fmtAmount(l.unit * l.qty)}
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+          </div>
 
           {/* totals + legal note */}
           <div className="totals">
@@ -585,11 +661,10 @@ export default function InvoiceRender() {
             </div>
           </div>
 
-          {raw.length > 1 && seal}
         </div>
 
-        {/* pečať — stred dole, nad motto */}
-        {raw.length === 1 && seal}
+        {/* pečať — stred dole, nad motto; pri dlhom zozname psov sa zmenší (meranie vyššie) */}
+        {seal}
 
         <div className="foot">{L.footer}</div>
       </div>
