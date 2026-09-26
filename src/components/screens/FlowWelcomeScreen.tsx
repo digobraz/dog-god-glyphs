@@ -175,6 +175,16 @@ export function FlowWelcomeScreen() {
   // dosky a stojí pri spodku (nový pes ≈ stred obrazovky); predošlých sa načíta
   // 12 a čo sa nezmestí, odreže horný okraj pod zošednutím.
   const prev = usePrevDogs(firstN, 12);
+  // Koľko predošlých ukázať: poradie zaberie ~42 % výšky okna, nový pes (psi)
+  // v ňom stojí dole ⇒ ≈ stred obrazovky. Zvyšok výšky dostane spodok, nie
+  // prázdne miesto nad riadkami (Matej 26. 9.: *„hore je veľa miesta… nájdi v tom logiku"*).
+  const prevVisible = useMemo(() => {
+    if (typeof window === 'undefined') return 4;
+    const mobile = window.innerWidth <= 600;
+    const step = mobile ? 56 : 64;
+    const fresh = (mobile ? 64 : 72) * dogs.length;
+    return Math.max(2, Math.min(8, Math.floor((window.innerHeight * 0.42 - fresh) / step)));
+  }, [dogs.length]);
   const [rolled, setRolled] = useState(false); // predošlí vyrolovali a rozmazali sa
   const [joined, setJoined] = useState(false); // nový pes sa zaradil
   useEffect(() => {
@@ -247,7 +257,9 @@ export function FlowWelcomeScreen() {
     if (!first) return navigate('/');
     const q = new URLSearchParams({ reveal: 'true', dogName: first.name, packNumber: String(first.n ?? 0) });
     if (first.photo) q.set('photoUrl', first.photo);
-    const g = first.glyph || glyphUrl;
+    // V dielni (bez platby) heroglyf nevznikne a stena by spálila len logo —
+    // na test poslúži Hektorov (Matej 26. 9.: *„nevidím zápis animáciu na wall"*).
+    const g = first.glyph || glyphUrl || (import.meta.env.DEV && !sessionId ? '/images/hekthor-heroglyph.webp' : '');
     if (g) q.set('heroglyphUrl', g);
     // Viac psov: stena ich zapečatí postupne (GodsGrid číta `queue`).
     if (rest.length) q.set('queue', JSON.stringify(rest.map((d) => ({ n: d.n ?? 0, name: d.name, photo: d.photo, glyph: d.glyph }))));
@@ -300,7 +312,7 @@ export function FlowWelcomeScreen() {
                         stojí mimo neho, inak mu orez odstrihol zväčšenie aj žiaru
                         (Matej 26. 9.: *„blok so zaplateným psom je orezaný"*). */}
                     <div className="wl-prev">
-                    {(prev ?? []).map((d, i) => (
+                    {(prev ?? []).slice(-prevVisible).map((d, i) => (
                       <motion.div
                         key={`p${d.n}`}
                         className={`wl-row is-prev${rolled ? ' is-blur' : ''}`}
@@ -334,6 +346,7 @@ export function FlowWelcomeScreen() {
                   <div className="wl-foot">
                     {/* VETY PO JEDNEJ, groteskom (Matej 26. 9.: *„tie oznamy dajme groteskom"*).
                         Na konci ostane len poďakovanie — *„hláška HOTOVO tam byť nemusí"*. */}
+                    <div className="wl-foot-top">
                     <div className="wl-lines" aria-live="polite">
                       {line >= 1 && line < 3 && (
                         <motion.p className="wl-line" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
@@ -363,6 +376,11 @@ export function FlowWelcomeScreen() {
                       </div>
                       <span className="wl-goal-t">{t('heroglyph.flow.welcomeNew.goal', { n: totalN.toLocaleString('sk-SK') })}</span>
                     </motion.div>
+
+                    </div>
+
+                    {/* RYTINA oddelí poďakovanie a progres od motta (Matej 26. 9.). */}
+                    <motion.p className="hf-legend wl-rule" aria-hidden initial={false} animate={{ opacity: line >= 4 ? 1 : 0 }} transition={{ delay: 0.9, duration: 0.5 }} />
 
                     {/* Len motto, bez pečate (Matej 26. 9.: *„daj to bez pečate… nechaj iba motto"*). */}
                     <motion.p className="wl-motto" initial={false} animate={{ opacity: line >= 4 ? 1 : 0 }} transition={{ delay: 1.1, duration: 0.5 }}>
@@ -444,17 +462,19 @@ const WELCOME_CSS = `
 .wl-stack { width: 100%; display: flex; flex-direction: column; min-height: min(calc(100dvh - 160px), 820px); }
 .wl-stack .hf-plate { gap: 16px; flex: 1; min-height: 0; }
 .wl-rank {
-  flex: 1 1 0; min-height: 132px;
+  flex: none;
   display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; padding: 0 4px 12px;
 }
 .wl-prev {
-  flex: 1 1 0; min-height: 0; overflow: hidden;
+  overflow: hidden;
   display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; padding-top: 8px;
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 56px);
           mask-image: linear-gradient(to bottom, transparent 0, #000 56px);
 }
 .wl-row { flex: none; }
-.wl-foot { flex: none; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.wl-foot { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 16px; }
+.wl-foot-top { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.wl-rule { gap: 0; }
 .wl-motto { margin: 0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 16px; letter-spacing: .14em; text-transform: uppercase; color: ${LAB.goldInk}; }
 .wl-row {
   display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 12px;
