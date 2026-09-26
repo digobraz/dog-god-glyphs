@@ -18,7 +18,9 @@ const pic = (u?: string | null) => withTransform(u, 'c_fill,g_auto,w_240,h_240,f
 
 const CSS = `
 .mr{display:flex;flex-direction:column;align-items:center;gap:${PACK_SPACE.md}px;text-align:center;width:100%;max-width:360px;}
-.mr-duo{position:relative;width:220px;height:170px;cursor:pointer;outline:none;}
+.mr-duo{position:relative;width:220px;height:170px;cursor:pointer;outline:none;-webkit-user-select:none;user-select:none;}
+/* Ťah prstom/myšou po dvojici nesmie fotky OZNAČIŤ (modrý výber, nájdené 26. 9. pri nahrávke swipu). */
+.mr-duo img{-webkit-user-drag:none;pointer-events:none;}
 
 .mr-duo .pL,.mr-duo .pR{position:absolute;top:35px;width:96px;height:96px;border-radius:${PACK_R.pill}px;border:3px solid ${LAPIS.ink};
   object-fit:cover;display:block;box-shadow:${PACK_SHADOW.panel};background:${T.pageBg};}
