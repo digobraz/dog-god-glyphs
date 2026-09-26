@@ -47,11 +47,6 @@ const capBtn = (active: boolean): React.CSSProperties => ({
   color: T.cardEdge,
   cursor: 'pointer',
 });
-const BADGE: React.CSSProperties = {
-  position: 'absolute', top: 0, right: 0, minWidth: 16, height: 16, padding: '0 4px',
-  borderRadius: 999, color: T.ink, fontFamily: "'Space Grotesk', sans-serif", fontSize: 10,
-  fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
-};
 
 type PackMessagingModule = typeof import('./messaging/packMessaging');
 type PackAlertsModule = typeof import('./packAlerts');
@@ -637,7 +632,9 @@ export function HubAinubis() {
           style={{ width: 44, height: 44, borderRadius: 999, border: `1.5px solid ${AINUBIS.edgeStrong}`, objectFit: 'cover', background: T.pageBg }}
         />
         {unread > 0 && (
-          <span style={{ ...BADGE, background: SNIFFER_HEART, color: '#fff', border: `1.5px solid ${T.pageBg}` }}>
+          // Odznak AINUBISA ostáva jeho vlastný (tyrkysový, `.ainubis-badge` z AinubisWidget.css) —
+          // červená zo SNIFFERu patrí len obálke a nosu (Matej 26. 9.: „tomu nechaj ako bola").
+          <span className="ainubis-badge">
             {unread > 9 ? '9+' : unread}
           </span>
         )}
