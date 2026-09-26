@@ -36,11 +36,11 @@ import {
 } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
-// ⚠️ `ainubis-head.png` (800 px, PRIEHĽADNÉ okolie), NIE `ainubis-badge.png` — badge je
+// ⚠️ `ainubis-head.webp` (800 px, PRIEHĽADNÉ okolie), NIE `ainubis-badge.webp` — badge je
 //    odznak v tvare štítu a jeho hranatá silueta sa na tmavom displeji číta ako tmavý
 //    štvorec v kruhu (lock 11. 9. 2026). Ten istý zdroj má medailón spodného navu,
 //    `Gateways.tsx` aj `MapCoach.tsx`.
-import ainubisFace from '@/assets/ainubis-head.png';
+import ainubisFace from '@/assets/ainubis-head.webp';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { readEvents, onDogEventsChange, type LatestValue } from '@/lib/dogEvents';
 import { DIARY_FIELDS, DIARY_KIND_BY_FIELD, asDiaryValue, isPlanDay } from '@/components/pack/diary/diaryModel';

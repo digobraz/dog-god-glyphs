@@ -76,8 +76,18 @@
          stránka, homepage je GodsGrid a nepoužíva tieto assety. -->
     <!-- GodsGrid LCP candidates (PageSpeed 2026-07-08: "nepriame vyhľadávanie žiadostí LCP" —
          obe sa vykresľujú do canvasu až po JS mounte, prehliadač ich objaví neskoro bez preloadu). -->
-    <link rel="preload" as="image" href="/images/dogypt-gold-logo.webp" fetchpriority="high" />
-    <link rel="preload" as="image" href="/images/hektor-grid.webp" fetchpriority="high" />
+    <!-- LEN NA `/` (audit /pack 26. 9. 2026): index.html je spoločný pre celú SPA, takže
+         statický preload ťahal ~100 KB s najvyššou prioritou aj v /pack, kde sa ani jeden
+         obrázok nezobrazí — a predbiehal tak skutočný obsah stránky. -->
+    <script>
+      if (location.pathname === '/') {
+        ['/images/dogypt-gold-logo.webp', '/images/hektor-grid.webp'].forEach(function (h) {
+          var l = document.createElement('link');
+          l.rel = 'preload'; l.as = 'image'; l.href = h; l.setAttribute('fetchpriority', 'high');
+          document.head.appendChild(l);
+        });
+      }
+    </script>
   <meta property="og:site_name" content="DOGYPT" />
   <meta property="og:locale" content="en_US" />
   <script type="application/ld+json">

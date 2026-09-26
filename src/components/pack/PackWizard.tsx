@@ -5,7 +5,7 @@ import { openAinubis } from '@/lib/ainubisBus';
 import { getConsent } from '@/lib/consent';
 import { supabase } from '@/integrations/supabase/client';
 import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
-import ainubisFace from '@/assets/ainubis-badge.png';
+import ainubisFace from '@/assets/ainubis-badge.webp';
 import { WIZ, WIZ_ROUND, anchorExists, type WizAnchor } from './wizAnchors';
 
 // PREHLIADKA — AInubis prevedie člena po `/pack`. Scenár je SKRIPTOVANÝ, nie AI
@@ -145,7 +145,7 @@ const GHOST_BTN: React.CSSProperties = {
   fontFamily: "'Space Grotesk',sans-serif",
 };
 
-/** Tvár = `assets/ainubis-badge.png`, kopíruje sa TENTO súbor (nekresliť variantu).
+/** Tvár = `assets/ainubis-badge.webp`, kopíruje sa TENTO súbor (nekresliť variantu).
  *  Prstenec a aura sú z `.ainubis-intro__badge`, aby sfinx vyzeral rovnako ako
  *  v chate — je to tá istá postava, nie druhá ikonka.
  *

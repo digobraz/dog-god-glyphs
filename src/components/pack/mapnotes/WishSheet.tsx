@@ -26,7 +26,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import ainubisFace from '@/assets/ainubis-head.png';
+import ainubisFace from '@/assets/ainubis-head.webp';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, FONT_UI,
 } from '@/components/pack/packTheme';

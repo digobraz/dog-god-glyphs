@@ -37,7 +37,7 @@ import {
 import {
   HandPaw, HandStar, HandForward, HandPlus, HandArrowLeft, HandSearch, HandAlert,
 } from '@/components/pack/HandIcons';
-import ainubisFace from '@/assets/ainubis-badge.png';
+import ainubisFace from '@/assets/ainubis-badge.webp';
 import { VAULT_WORLDS } from './worlds';
 import { DEMO_WALL, shortOf, verdictParts, type WallPost, type SealKind } from './vaultWallDemo';
 import { DEMO_PENDING } from './vaultChatDemo';

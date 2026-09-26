@@ -21,7 +21,7 @@ import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { markConstitutionOpened } from '@/lib/constitutionRead';
 import { openAinubis } from '@/lib/ainubisBus';
 import { useT } from '@/i18n/LanguageContext';
-import ainubisBadge from '@/assets/ainubis-badge.png';
+import ainubisBadge from '@/assets/ainubis-badge.webp';
 
 const T = PACK_THEME;
 

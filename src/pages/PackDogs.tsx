@@ -52,7 +52,7 @@ import { BrandIcon } from '@/components/pack/BrandIcon';
 import { FlagCircle } from '@/components/pack/FlagCircle';
 import { PackCalendar } from '@/components/pack/calendar/PackCalendar';
 import { DiaryEntry } from '@/components/pack/diary/DiaryEntry';
-import ainubisBadge from '@/assets/ainubis-badge.png';
+import ainubisBadge from '@/assets/ainubis-badge.webp';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK } from '@/components/pack/navGoldSkin';
 import {

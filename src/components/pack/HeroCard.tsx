@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { sizedUrl } from '@/services/cloudinaryService';
 import type { CSSProperties, FormEvent, ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
@@ -585,7 +586,7 @@ function OwnerSlot({
               }}
             >
               {hasAvatar ? (
-                <img src={avatarUrl!} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={sizedUrl(avatarUrl, 320)} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : placeholderSrc ? (
                 <span className="flex items-center justify-center h-full w-full" style={{ padding: Math.round(size * 0.15) }}>
                   <img src={placeholderSrc} alt={name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
@@ -659,7 +660,7 @@ function DogSlot({ dog, size, boxH, gap }: { dog: HeroDog; size: number; boxH: n
           >
             {dog.cloudinary_main_url ? (
               <img
-                src={dog.cloudinary_main_url}
+                src={sizedUrl(dog.cloudinary_main_url, 320)}
                 alt={name}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />

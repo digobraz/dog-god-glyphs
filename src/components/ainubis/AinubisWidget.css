@@ -523,7 +523,7 @@ body.has-pack-nav {
 }
 
 /* Rovnaký recept ako portrét v hlavičke: `contain` + tmavé kruhové pozadie.
-   ⚠️ `ainubis-badge.png` je ČIERNA PLATŇA, nie priehľadné PNG — orezanie do kruhu
+   ⚠️ `ainubis-badge.webp` je ČIERNA PLATŇA, nie priehľadné PNG — orezanie do kruhu
    bez tohto pozadia odsekne čelenku. */
 .ainubis-row__avatar {
   width: 22px;

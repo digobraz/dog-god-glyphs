@@ -1,4 +1,5 @@
 import { lazy, ReactNode, Suspense, useEffect, useRef, useState } from 'react';
+import { sizedUrl } from '@/services/cloudinaryService';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { BonesCoin } from './BonesCoin';
 import { PACK_THEME, PACK_COL, PACK_COL_INNER, usePaperRoute, PAPER_PAGE_CSS } from './packTheme';
@@ -637,7 +638,7 @@ function AvatarNavButton({ avatarUrl, avatarInitial, dogs = [] }: { avatarUrl?: 
       >
         {avatarUrl ? (
           <img
-            src={avatarUrl}
+            src={sizedUrl(avatarUrl, 160)}
             alt=""
             style={{
               width: DOCK.avPhoto, height: DOCK.avPhoto, borderRadius: '50%', objectFit: 'cover', display: 'block',
@@ -710,7 +711,7 @@ function AvatarNavButton({ avatarUrl, avatarInitial, dogs = [] }: { avatarUrl?: 
 function MiniAvatar({ avatarUrl, avatarInitial }: { avatarUrl?: string | null; avatarInitial?: string }) {
   return avatarUrl ? (
     <img
-      src={avatarUrl}
+      src={sizedUrl(avatarUrl, 160)}
       alt=""
       style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover', display: 'block', border: '1px solid rgba(201,154,63,0.45)', flexShrink: 0 }}
     />
@@ -756,7 +757,7 @@ function MiniDogStack({ dogs }: { dogs: PackDog[] }) {
           }}
         >
           {dog.cloudinary_main_url ? (
-            <img src={dog.cloudinary_main_url} alt={dog.dog_name || ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            <img src={sizedUrl(dog.cloudinary_main_url, 160)} alt={dog.dog_name || ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           ) : '🐕'}
         </div>
       ))}
@@ -841,7 +842,7 @@ export function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, pack
         <button type="button" onClick={onProfile} style={{ flexShrink: 0, lineHeight: 0 }} aria-label={t('pack.layout.profileAriaLabel')}>
           {avatarUrl ? (
             <img
-              src={avatarUrl}
+              src={sizedUrl(avatarUrl, 160)}
               alt={t('pack.layout.yourAvatarAlt')}
               style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(201,154,63,0.45)', display: 'block' }}
             />
@@ -1006,7 +1007,7 @@ function DogSvorka({ dogs, onDog }: { dogs: PackDog[]; onDog: (id: string) => vo
         >
           {dog.cloudinary_main_url ? (
             <img
-              src={dog.cloudinary_main_url}
+              src={sizedUrl(dog.cloudinary_main_url, 160)}
               alt={dog.dog_name || ''}
               style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', border: `1.5px solid ${PACK_THEME.border}`, display: 'block' }}
             />

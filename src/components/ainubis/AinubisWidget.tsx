@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useLang } from '@/i18n/LanguageContext';
 import { getAinubisCopy } from './ainubisCopy';
 import { AINUBIS_OPEN_EVENT, setAinubisUnread } from '@/lib/ainubisBus';
-import ainubisFace from '@/assets/ainubis-badge.png';
+import ainubisFace from '@/assets/ainubis-badge.webp';
 import './AinubisWidget.css';
 
 // ── Konštanty ────────────────────────────────────────────────────────────
@@ -332,7 +332,7 @@ function useOptionalMemberEmail(): string | null {
 }
 
 // AVATAR — finálny badge (KIE render `b6-trojstvrt`, zlatá verzia), orezaný na
-// obsah a zmenšený na 160 px (`assets/ainubis-badge.png`). Nahradil dočasné SVG
+// obsah a zmenšený na 160 px (`assets/ainubis-badge.webp`). Nahradil dočasné SVG
 // oko. Blink trieda na wrapperi tlačidla zostáva, len sa na rastri neprejaví.
 function AinubisEyePlaceholder() {
   return <img src={ainubisFace} className="ainubis-eye" alt="" aria-hidden="true" />;

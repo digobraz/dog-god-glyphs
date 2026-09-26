@@ -17,7 +17,7 @@
 // presne vo chvíli, keď človek drží prst nad mapou a čaká.
 import { useEffect, useRef, useState } from 'react';
 import type React from 'react';
-import ainubisFace from '@/assets/ainubis-head.png';
+import ainubisFace from '@/assets/ainubis-head.webp';
 import { PACK_THEME as T, FONT_UI } from '@/components/pack/packTheme';
 import { HandExit } from '@/components/pack/HandIcons';
 

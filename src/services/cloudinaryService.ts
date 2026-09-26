@@ -117,6 +117,25 @@ export const withTransform = (url: string | null | undefined, transform: string)
   return `${pred}/image/upload/${transform}/${za}`;
 };
 
+/**
+ * ZOBRAZOVACIA VEĽKOSŤ (audit /pack 26. 9. 2026). Fotky psov sa ukladajú ako výrez
+ * 1200×1200 (`photoIntake.ts`, CROP_SIDE), no medailón ich ukazuje v 72–96 px — prehliadač
+ * tak ťahal ~10× viac dát, než vykreslí. Zmenšenie sa pridá ako POSLEDNÁ fáza reťazca,
+ * nie prvá: uložený výrez (`c_crop,x_…`) počíta v pixeloch originálu a zmenšenie pred ním
+ * by ho posunulo. `c_limit` nezväčšuje ani nereže — len strop. Iné URL (Google avatar,
+ * lokálny súbor) vráti bez zmeny. `px` = najväčšia zobrazená strana × 3 (DPR mobilu).
+ */
+export const sizedUrl = (url: string | null | undefined, px: number): string => {
+  if (!url || !url.includes('/image/upload/')) return url ?? '';
+  const [pred, za] = url.split('/image/upload/');
+  const casti = za.split('/');
+  let i = 0;
+  // Fázy transformácie idú pred verziou (`v123`) a pred public_id; spoznáme ich podľa `x_`.
+  while (i < casti.length - 1 && !/^v\d+$/.test(casti[i]) && /(^|,)[a-z]{1,3}_/.test(casti[i])) i++;
+  casti.splice(i, 0, `c_limit,w_${px},h_${px},f_auto,q_auto`);
+  return `${pred}/image/upload/${casti.join('/')}`;
+};
+
 export const lightboxUrl = (publicId: string) =>
   `${BASE_URL}/c_fill,w_1200,h_1200,f_auto,q_auto/${publicId}`;
 

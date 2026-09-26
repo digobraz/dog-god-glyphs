@@ -9,7 +9,7 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { openAinubis, getAinubisUnread, onAinubisUnread } from '@/lib/ainubisBus';
 import { AINUBIS } from './ainubisSkin';
-import ainubisFace from '@/assets/ainubis-badge.png';
+import ainubisFace from '@/assets/ainubis-badge.webp';
 // Odznak v kapsule = ČERVENÁ zo SNIFFERu s bielym číslom (Matej 26. 9.: „červené upozornenia
 // s bielym textom… červená zo sniffer“). Jedna červená v appke, nie nový odtieň.
 import { SNIFFER_HEART } from './buddy/SnifferLogo';

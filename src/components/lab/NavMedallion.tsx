@@ -18,7 +18,7 @@
 //       je hrana obruče. Záporný inset „aby vrstva pokryla lem" ozdoby vyhodí von.
 // ════════════════════════════════════════════════════════════════════════════
 import { NAV_GRAIN } from '@/components/pack/navGoldSkin';
-import logoSilhouette from '@/assets/dogypt-logo-mobile.png';
+import logoSilhouette from '@/assets/dogypt-logo-mobile.webp';
 
 /** Celé logo (silueta + kartuša DOGYPT) leží v `public`, netreba import. */
 const LOGO_FULL_BLACK = '/images/dogypt-logo-black-i.png';

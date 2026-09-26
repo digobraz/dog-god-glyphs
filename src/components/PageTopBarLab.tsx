@@ -10,7 +10,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
-import dogyptLogoMobile from '@/assets/dogypt-logo-mobile.png';
+import dogyptLogoMobile from '@/assets/dogypt-logo-mobile.webp';
 import { useT } from '@/i18n/LanguageContext';
 import { PageNavLab } from './PageNavLab';
 import LanguagePicker from './LanguagePicker';
@@ -31,7 +31,7 @@ interface PageTopBarLabProps {
 /**
  * DOGYPT canonical top-bar.
  * Mobile pt = 15px (LOCKED 2026-05-26). Mobile logo = silueta h-10
- * (dogypt-logo-mobile.png, bez DOG YPT cartouche); desktop = full logo h-12.
+ * (dogypt-logo-mobile.webp, bez DOG YPT cartouche); desktop = full logo h-12.
  * Every new page that needs a top logo MUST use this component.
  */
 export function PageTopBarLab({

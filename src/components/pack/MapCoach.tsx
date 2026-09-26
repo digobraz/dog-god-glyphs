@@ -18,7 +18,7 @@
 // niečo ukazuje AInubis, hovorí jeho paletou (viď AinubisWidget.css / AinubisGuide).
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import ainubisFace from '@/assets/ainubis-head.png';
+import ainubisFace from '@/assets/ainubis-head.webp';
 import { FONT_TITLE, FONT_UI, GOLD_BTN, PACK_THEME } from '@/components/pack/packTheme';
 import { PALE } from '@/components/pack/navGoldSkin';
 import { AINUBIS } from '@/components/pack/ainubisSkin';

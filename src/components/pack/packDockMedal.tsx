@@ -57,10 +57,10 @@
 import { NAV_GRAIN, LAPIS } from './navGoldSkin';
 // Jediné, čo z AINUBISOVHO brandu v tomto súbore ostalo: cyan jeho odznaku.
 import { AINUBIS } from './ainubisSkin';
-// ⚠️ `ainubis-head.png` sa odtiaľto 21. 9. 2026 ODSŤAHOVALA do položky lišty AINUBIS
+// ⚠️ `ainubis-head.webp` sa odtiaľto 21. 9. 2026 ODSŤAHOVALA do položky lišty AINUBIS
 //    (`PackLayout.tsx`) spolu s odznakom neprečítaných. Poznámka o nej ostáva v histórii
 //    tohto súboru: bol to ten istý zdroj, aký používajú `Gateways.tsx` a `MapCoach.tsx`,
-//    a NIE `ainubis-badge.png` (hranatý štít sa na kruhovom displeji čítal ako tmavý
+//    a NIE `ainubis-badge.webp` (hranatý štít sa na kruhovom displeji čítal ako tmavý
 //    štvorec — Matej 11. 9. 2026).
 
 type Ring = 'smooth' | 'alt' | 'engraved' | 'beads';

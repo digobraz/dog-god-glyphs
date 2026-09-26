@@ -58,7 +58,7 @@ import { CROWDS, CROWD_EMOJI, type Crowd } from '@/components/pack/packCommunity
 import { MARK_EMOJI, FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { POINTS, NOTE_POINTS_TRIP_CAP } from '@/lib/tripPoints';
 import { GROUP_KINDS, groupOf, type NoteGroup, type NoteKind } from '@/components/pack/mapnotes/mapNotesData';
-import ainubisFace from '@/assets/ainubis-head.png';
+import ainubisFace from '@/assets/ainubis-head.webp';
 import { GROUP_TINT, HAZARD_RED } from '@/components/pack/mapnotes/NotePalette';
 import { KindGrid } from '@/components/pack/mapnotes/KindGrid';
 import { PLANNING_LIVE } from '@/lib/packFlags';

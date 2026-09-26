@@ -36,7 +36,7 @@ import {
 } from '@/components/pack/natureQuiz';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { appendDogEvents, readLatestForDogs, type DogEventInput } from '@/lib/dogEvents';
-import ainubisBadge from '@/assets/ainubis-badge.png';
+import ainubisBadge from '@/assets/ainubis-badge.webp';
 import { supabase } from '@/integrations/supabase/client';
 import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
 import { getAccessibleDogIds } from '@/lib/dogRights';

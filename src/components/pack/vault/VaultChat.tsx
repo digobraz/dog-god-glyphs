@@ -36,7 +36,7 @@ import {
 } from '@/components/pack/ainubisSkin';
 import { HandArrowLeft } from '@/components/pack/HandIcons';
 /* Tvár AINUBISA — tá istá, ktorú nesie guľa widgetu. Ikonku si pýtať netreba. */
-import ainubisFace from '@/assets/ainubis-badge.png';
+import ainubisFace from '@/assets/ainubis-badge.webp';
 import { mountBrain } from './brainEngine';
 import { VAULT_WORLDS } from './worlds';
 import {
@@ -162,7 +162,7 @@ ${AI_BREATHE_CSS}
    ⚠️ Vzduch je ODSADENIE, nie prázdny prvok — inak ho prvý ďalší blok zožerie. */
 /* HLAVA PÁSU (Matej 23. 9. 2026, voľba „B2 ale do stredu"): šípka späť vľavo
    hore samostatne, pod ňou tvár AINUBISA a meno — dvojica VYCENTROVANÁ.
-   Tvár je ainubis-badge.png, tá istá ako v guli widgetu: ikonku si
+   Tvár je ainubis-badge.webp, tá istá ako v guli widgetu: ikonku si
    pýtať netreba, AINUBIS ju má. */
 /* Vzduch hore (Matej 23. 9.: v ľavom paneli hore tiež miesto) nesie IDENTITA —
    a s ním bezpečnú zónu. Keď nad ňou na PC pribudne šípka, prevezme vzduch tá

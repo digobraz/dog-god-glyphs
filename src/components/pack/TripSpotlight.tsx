@@ -15,6 +15,7 @@
 // Zdroj pravdy pre výlety je ten istý ako v mape: `readLocalTrails()` + HERO_JOURNEYS +
 // HERO_TRAILS. Nikdy nie placeholdery, ktoré si PackTriplist seeduje do vlastného stavu —
 // odpočet na neexistujúci výlet je klamstvo (to je presne to, čo riešila issue #44).
+import { sizedUrl } from '@/services/cloudinaryService';
 import { useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { PLANNING_LIVE } from '@/lib/packFlags';
@@ -475,7 +476,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
 
       {/* ── 70 % · plagát výletu ─────────────────────────────────────────── */}
       <Link className="ts-hero" to={tripPath(trail)}>
-        {photo && <img className="ts-art" src={photo} alt="" aria-hidden />}
+        {photo && <img className="ts-art" src={sizedUrl(photo, 1080)} alt="" aria-hidden />}
 
         {/* Pri pláne ZÁMERNE bez stuhy — odpočet už hovorí „toto máš naplánované".
             Dve značky na jednej karte si konkurujú. */}

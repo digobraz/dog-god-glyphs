@@ -54,7 +54,7 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 import { VAULT_CIRCLES } from '@/components/pack/vault/circles';
 import { mountBrain, type BrainHandle, type BrainLayer } from '@/components/pack/vault/brainEngine';
-import ainubisHead from '@/assets/ainubis-head.png';
+import ainubisHead from '@/assets/ainubis-head.webp';
 import { HandArrowLeft, HandSearch } from '@/components/pack/HandIcons';
 
 /* ⚠️ JEDNA HRANICA — tá istá ako na mape (`PackMap`: ≤1023 = mobilný pohľad

@@ -14,7 +14,7 @@ import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
-import ainubisFace from '@/assets/ainubis-head.png';
+import ainubisFace from '@/assets/ainubis-head.webp';
 
 const A = AINUBIS;
 

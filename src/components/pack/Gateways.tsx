@@ -31,7 +31,7 @@ import { AINUBIS } from './ainubisSkin';
 import { markConstitutionOpened } from '@/lib/constitutionRead';
 import { Link } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
-import ainubisHead from '@/assets/ainubis-head.png';
+import ainubisHead from '@/assets/ainubis-head.webp';
 
 const T = PACK_THEME;
 
@@ -173,7 +173,7 @@ const CSS = `
 }
 /* Hlava je VEĽKÁ a orezaná hranou karty — vidno z nej asi polovicu (Matej: „väčšia ikonka,
    viditeľná len polovica hlavy AI(NUBIS)").
-   ⚠️ Zdroj je ainubis-head.png (800 px, PRIEHĽADNÉ okolie) — NIE starý ainubis-badge.png.
+   ⚠️ Zdroj je ainubis-head.webp (800 px, PRIEHĽADNÉ okolie) — NIE starý ainubis-badge.webp.
    Ten mal 160 px a bol to ČIERNY OBDĹŽNIK, nie výrez: na karte sa škáloval ~3× (rozmazaný)
    a jeho hranu bolo treba skrývať maskou, cez ktorú potom presvitala mriežka
    (Matej 9.8.: „ikonka je rozmazaná… okraje presvitajú… mriežka zasahuje do obrázka").

@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { sizedUrl } from '@/services/cloudinaryService';
 import { Link } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { PACK_THEME, GOLD_BTN } from './packTheme';
@@ -277,7 +278,7 @@ function PrimaryDog({ dog }: { dog: DogNode }) {
         >
           {dog.cloudinary_main_url ? (
             <img
-              src={dog.cloudinary_main_url}
+              src={sizedUrl(dog.cloudinary_main_url, 320)}
               alt={name}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
@@ -430,7 +431,7 @@ function DogGridCard({ dog }: { dog: DogNode }) {
         }}
       >
         {dog.cloudinary_main_url ? (
-          <img src={dog.cloudinary_main_url} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src={sizedUrl(dog.cloudinary_main_url, 320)} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
           <div className="flex items-center justify-center h-full" style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 7, letterSpacing: '0.14em' }}>
             {t('pack.tree.noPhoto')}
@@ -493,7 +494,7 @@ function DogAvatar({ dog }: { dog: DogNode }) {
       }}
     >
       {dog.cloudinary_main_url ? (
-        <img src={dog.cloudinary_main_url} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <img src={sizedUrl(dog.cloudinary_main_url, 320)} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       ) : (
         <div className="flex items-center justify-center h-full" style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 6, letterSpacing: '0.1em' }}>
           {t('pack.tree.noPhoto')}
@@ -538,7 +539,7 @@ function DogRow({ dog }: { dog: DogNode }) {
       >
         {dog.cloudinary_main_url ? (
           <img
-            src={dog.cloudinary_main_url}
+            src={sizedUrl(dog.cloudinary_main_url, 320)}
             alt={name}
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
@@ -734,7 +735,7 @@ function OwnerNode({ avatarUrl, initial }: { avatarUrl: string | null; initial: 
       }}
     >
       {hasAvatar ? (
-        <img src={avatarUrl!} alt={t('pack.tree.ownerAvatarAlt')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <img src={sizedUrl(avatarUrl, 320)} alt={t('pack.tree.ownerAvatarAlt')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       ) : (
         <span
           style={{
