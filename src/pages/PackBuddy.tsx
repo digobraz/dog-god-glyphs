@@ -100,6 +100,9 @@ const CSS = `
 .bd-pills{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;}
 .bd-pills .pk-pill{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;}
 .bd-pills .pk-pill.is-on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
+/* ZAPARKOVANÉ voľby (páry/svorky od 12/2026) — vidno ich, zvoliť nejdú. */
+.bd-pills .pk-pill:disabled{opacity:.45;cursor:default;}
+.bd-pills .pk-pill small{font-size:${PACK_TEXT.micro}px;opacity:.8;}
 .bd-field{width:100%;border-radius:${PACK_R.field}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;
   font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
 .bd-inline{display:flex;gap:${PACK_SPACE.sm}px;align-items:center;}
@@ -710,13 +713,13 @@ function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, fit, centerB
   );
 }
 
-function Pills({ options, selected, onToggle }: {
-  options: Array<{ value: string; label: string }>; selected: readonly string[]; onToggle: (v: string) => void;
+function Pills({ options, selected, onToggle, disabled }: {
+  options: Array<{ value: string; label: string }>; selected: readonly string[]; onToggle: (v: string) => void; disabled?: (v: string) => boolean;
 }) {
   return (
     <div className="bd-pills">
       {options.map((o) => (
-        <button key={o.value} type="button" aria-pressed={selected.includes(o.value)}
+        <button key={o.value} type="button" aria-pressed={selected.includes(o.value)} disabled={disabled?.(o.value)}
           className={`pk-pill pk-pill--tap${selected.includes(o.value) ? ' is-on' : ''}`}
           onClick={() => onToggle(o.value)}>{o.label}</button>
       ))}
@@ -762,9 +765,11 @@ function AudienceEditor({ s, onPatch, tx, part }: {
         options={[
           ...GENDER_OPTIONS.filter((o) => o.value === 'male' || o.value === 'female')
             .map((o) => ({ value: o.value, label: `${o.value === 'male' ? '👨' : '👩'} ${tx(`pack.buddy.showTo.${o.value}`, o.labelEN)}` })),
-          { value: PACKS, label: `🐾 ${tx('pack.buddy.showTo.packs', 'Packs')}` },
+          // SVORKY ZAPARKOVANÉ (Matej 26. 9.: „zatiaľ to bude fungovať ako zoznamka 1:1") — vidno, zvoliť nejde.
+          { value: PACKS, label: `🐾 ${tx('pack.buddy.showTo.packs', 'Packs')} · ${tx('pack.sniffer.fromDec', 'from 12/2026')}` },
         ]}
-        selected={[...g, ...(s.show_to_packs ? [PACKS] : [])]}
+        disabled={(v) => v === PACKS}
+        selected={g}
         onToggle={(v) => void (v === PACKS
           ? onPatch({ show_to_packs: !s.show_to_packs })
           : onPatch({ show_to_genders: g.includes(v as Gender) ? g.filter((x) => x !== v) : [...g, v as Gender] }))}

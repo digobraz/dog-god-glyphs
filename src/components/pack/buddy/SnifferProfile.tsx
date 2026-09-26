@@ -143,7 +143,9 @@ const CSS = `
   object-fit:contain;background:${T.card};border:1px solid ${T.border};box-shadow:${PACK_SHADOW.card};}
 .sp-dogh__txt{min-width:0;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 .sp-dogh__txt b{font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;font-size:${PACK_TEXT.h1}px;line-height:1.1;color:${T.inkStrong};}
-@media (max-height:700px){ .sp-dogh__ph{width:${PACK_AVATAR.lg}px;height:${PACK_AVATAR.lg}px;} .sp-dogh__txt b{font-size:${PACK_TEXT.h2}px;} }
+@media (max-height:700px){
+  /* Veta „zatiaľ 1:1" ustúpi — pilulky samy nesú „od 12/2026" (SE by pretiekol o 29 px). */
+  .sp-onetoone{display:none;} .sp-dogh__ph{width:${PACK_AVATAR.lg}px;height:${PACK_AVATAR.lg}px;} .sp-dogh__txt b{font-size:${PACK_TEXT.h2}px;} }
 /* 1/6 ZÁKLAD — štyri polia v mriežke 2×2 (Matej 25. 9.: „obsah sa v bloku scroluje, čo je
    hlúposť! daj tie info kľudne do 2×2 mriežky"). Dlaždica = popis nad hodnotou, editor pod mriežkou. */
 .sp-grid{display:grid;grid-template-columns:1fr 1fr;gap:${PACK_SPACE.sm}px;}
@@ -444,11 +446,19 @@ export function SnifferProfile({
         <div className="sp-cols">
           <div>
             <span className="sp-sec">{tx('pack.sniffer.profile.seekWho', 'Who')}</span>
+            {/* PÁRY · SVORKY · SKUPINY ZAPARKOVANÉ do 12/2026 (Matej 26. 9.: „nechajme to tam ale dajme tam
+                info že k dispozícii od 12/2026 — zatiaľ to bude fungovať ako zoznamka 1:1"). Server ich
+                aj tak neporovnáva, kým nie je pawtner. Parťák je jediná živá voľba. */}
             <Pills
-              options={SEEK_KIND_OPTIONS.map((o) => ({ value: o.value, label: `${o.emoji} ${tx(`pack.sniffer.seek.${o.value}`, o.labelEN)}` }))}
-              selected={human?.seekKinds ?? []}
+              options={SEEK_KIND_OPTIONS.map((o) => ({
+                value: o.value,
+                label: `${o.emoji} ${tx(`pack.sniffer.seek.${o.value}`, o.labelEN)}${o.value === 'buddy' ? '' : ` · ${tx('pack.sniffer.fromDec', 'from 12/2026')}`}`,
+              }))}
+              selected={(human?.seekKinds ?? []).filter((k) => k === 'buddy')}
+              disabled={(v) => v !== 'buddy'}
               onToggle={(v) => void saveHuman({ seekKinds: toggle(human?.seekKinds ?? [], v as SeekKind) })}
             />
+            <p className="bd-note sp-onetoone">{tx('pack.sniffer.oneToOne', 'For now SNIFFER matches one to one. Couples, packs and groups arrive in 12/2026.')}</p>
             {/* PAWTNER — pawmate je dnes za zamknutými dverami (`PAWMATE_LIVE`), preto pilulka ČOSKORO. */}
             <div className="sp-pawtner">
               <span>{tx('pack.sniffer.profile.pawtnerNote', 'We go on trips together with a pawtner')}</span>
