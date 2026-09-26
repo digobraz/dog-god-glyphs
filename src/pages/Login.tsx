@@ -3,7 +3,56 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { DEV_FULL, isFullPackEmail } from "@/lib/packFlags";
 import { useT, useLang } from "@/i18n/LanguageContext";
-import dogyptLogo from "@/assets/dogypt-logo-gold.png";
+import { PageTopBar } from "@/components/PageTopBar";
+import { FLOW_PALE_CSS } from "@/components/screens/flowPaleSkin";
+import { LAPIS } from "@/components/pack/navGoldSkin";
+import { PACK_HEAD, PACK_SPACE, PACK_TEXT } from "@/components/pack/packTheme";
+import { LAB } from "@/lib/labTheme";
+
+// ── ŠAT: D-BLOK + LAPIS (Matej 26. 9. 2026: „prihlasovaciu stránku musíme prerobiť
+// na brand v dbloku + lapis") ─────────────────────────────────────────────────
+// Stavia sa z hotových receptov heroflowu (`FLOW_PALE_CSS`): bledá stena, zlatý
+// odliatok `goldFrameCSS()` ako `.hf-block`, biele pole `.hf-field`, lapisové CTA
+// `.hf-cta`. Na bledom je hlavná akcia LAPIS (brand lock); zlato = konštrukcia.
+// Tu je len to, čo login má navyše: štítok, nadpis karty, oko pri hesle, brána.
+const LOGIN_CSS = `
+.lg-col { max-width: 420px; }
+.lg-login .hf-plate { gap: ${PACK_SPACE.md}px; text-align: center; }
+.lg-eyebrow {
+  margin: 0; font-family: ${PACK_HEAD.label.fontFamily}; font-weight: ${PACK_HEAD.label.fontWeight};
+  font-size: ${PACK_HEAD.label.fontSize}px; letter-spacing: ${PACK_HEAD.label.letterSpacing};
+  text-transform: uppercase; color: ${LAB.goldInk};
+}
+.lg-title {
+  margin: 0; font-family: ${PACK_HEAD.card.fontFamily}; font-weight: 700;
+  font-size: ${PACK_TEXT.h2}px; letter-spacing: ${PACK_HEAD.card.letterSpacing};
+  text-transform: uppercase; line-height: 1.2; color: ${LAB.ink}; text-wrap: balance;
+}
+.lg-body { margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: ${PACK_TEXT.body}px; line-height: 1.5; color: ${LAB.inkSoft}; text-wrap: pretty; }
+.lg-stack { display: flex; flex-direction: column; gap: ${PACK_SPACE.sm}px; width: 100%; }
+.lg-login form.lg-stack .hf-cta { margin-top: ${PACK_SPACE.xs}px; }
+.lg-pw { position: relative; width: 100%; }
+.lg-pw .hf-field { padding: 0 44px; }
+.lg-eye {
+  position: absolute; right: ${PACK_SPACE.sm}px; top: 50%; transform: translateY(-50%);
+  display: flex; padding: ${PACK_SPACE.xs}px; background: none; border: none; cursor: pointer;
+  color: ${LAB.goldInk}; opacity: .75;
+}
+.lg-eye:hover { opacity: 1; }
+.lg-links { display: flex; justify-content: center; align-items: center; gap: ${PACK_SPACE.sm}px; flex-wrap: wrap; color: ${LAB.inkMuted}; }
+.lg-links .hf-skip, .lg-stack > .hf-skip { font-size: ${PACK_TEXT.label}px; }
+.lg-done { margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: ${PACK_TEXT.body}px; line-height: 1.5; color: ${LAPIS.edge}; font-weight: 500; }
+.lg-err { margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: ${PACK_TEXT.micro}px; letter-spacing: .08em; text-transform: uppercase; color: ${LAB.inkMuted}; word-break: break-word; }
+.lg-pulse { display: flex; justify-content: center; padding: ${PACK_SPACE.xs}px 0; }
+.lg-pulse span { width: 12px; height: 12px; border-radius: 999px; background: ${LAPIS.edge}; animation: lgPulse 1.2s ease-in-out infinite; }
+@keyframes lgPulse { 0%,100% { opacity: .35; transform: scale(.85); } 50% { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .lg-pulse span { animation: none; } }
+.lg-gate {
+  margin: ${PACK_SPACE.md}px 0 0; text-align: center; font-family: 'Space Grotesk', sans-serif;
+  font-size: ${PACK_TEXT.label}px; line-height: 1.5; color: ${LAB.inkSoft};
+}
+.lg-gate a { color: ${LAPIS.edge}; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+`;
 
 type Status = "verifying" | "success" | "expired" | "invalid" | "network" | "missing" | "recovery";
 
@@ -265,335 +314,226 @@ export default function Login() {
     body: t(`login.${status}.body`),
   };
   const dogIdPresent = !!params.get("dogId");
+  const forgotView = status === "missing" && !dogIdPresent && showForgot;
   const showResend =
     status === "expired" ||
     status === "invalid" ||
     status === "network" ||
     (status === "missing" && dogIdPresent);
 
+  const eye = (shown: boolean) => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+      {!shown && <line x1="3" y1="3" x2="21" y2="21" />}
+    </svg>
+  );
+
   return (
-    <div className="dark-bg min-h-screen flex flex-col items-center justify-center px-4 py-10">
-      <Link to="/" className="mb-8 md:mb-10" aria-label={t('login.homeAria')}>
-        <img src={dogyptLogo} alt="DOGYPT" className="h-9 md:h-12 object-contain" />
-      </Link>
+    <div className="hf-pale lg-login flex flex-col h-[100dvh] overflow-hidden">
+      <style>{FLOW_PALE_CSS}{LOGIN_CSS}</style>
 
-      <article
-        className="w-full max-w-md rounded-[20px] papyrus-bg border border-border/40 p-7 md:p-10 shadow-sm text-center"
-        style={{ color: "#0E0E0E" }}
-        aria-live="polite"
-      >
-        <p
-          className="text-[10px] tracking-[0.4em] uppercase mb-3"
-          style={{ fontFamily: "'JetBrains Mono', monospace", color: "#A07423" }}
-        >
-          {t('login.eyebrow')}
-        </p>
+      <div className="hf-topbar flex-shrink-0">
+        <PageTopBar brandBack onBack={() => navigate("/")} backAriaLabel={t('login.homeAria')} />
+      </div>
 
-        <h1
-          className="text-2xl md:text-3xl font-bold uppercase mb-3 leading-tight text-balance"
-          style={{ fontFamily: "'Cinzel', serif", letterSpacing: "0.04em" }}
-        >
-          {copy.title}
-        </h1>
+      <div className="hf-stage">
+        <div className="w-full lg-col flex flex-col items-center">
+          <article className="hf-block" style={{ marginTop: 0 }} aria-live="polite">
+            <div className="hf-plate">
+              <p className="lg-eyebrow">{t('login.eyebrow')}</p>
+              {/* Zabudnuté heslo je podstav `missing` — bez prepnutia nadpisu by karta
+                  hovorila PRIHLÁSENIE nad formulárom na reset. */}
+              {forgotView ? (
+                <>
+                  <h1 className="lg-title">{t('login.password.forgotPassword')}</h1>
+                  <p className="lg-body">{t('login.forgot.prompt')}</p>
+                </>
+              ) : (
+                <>
+                  <h1 className="lg-title">{copy.title}</h1>
+                  <p className="lg-body">{copy.body}</p>
+                </>
+              )}
 
-        <p
-          className="text-sm md:text-base leading-relaxed text-pretty"
-          style={{ fontFamily: "'Space Grotesk', sans-serif", color: "rgba(14,14,14,0.75)" }}
-        >
-          {copy.body}
-        </p>
+              {status === "verifying" && (
+                <div className="lg-pulse" aria-hidden="true"><span /></div>
+              )}
 
-        {status === "verifying" && (
-          <div className="mt-7 flex justify-center" aria-hidden="true">
-            <span
-              className="inline-block h-3 w-3 rounded-full animate-pulse"
-              style={{ background: "#A07423" }}
-            />
-          </div>
-        )}
-
-        {status === "missing" && !dogIdPresent && (
-          <div className="mt-7">
-            {showForgot ? (
-              /* ── Forgot password sub-form ── */
-              <div className="flex flex-col gap-3">
-                <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, color: "rgba(14,14,14,0.7)", textAlign: "center" }}>
-                  {t('login.forgot.prompt')}
-                </p>
-                {forgotSent ? (
-                  <p style={{ fontFamily: "'Space Grotesk', sans-serif", color: "#A07423", fontSize: 14, textAlign: "center" }}>
-                    {t('login.forgot.sent')}
-                  </p>
+              {status === "missing" && !dogIdPresent && (
+                showForgot ? (
+                  /* ── Zabudnuté heslo ── */
+                  <div className="lg-stack">
+                    {forgotSent ? (
+                      <p className="lg-done">{t('login.forgot.sent')}</p>
+                    ) : (
+                      <form onSubmit={handleForgotPassword} className="lg-stack">
+                        <input
+                          type="email"
+                          value={forgotEmail}
+                          onChange={e => setForgotEmail(e.target.value)}
+                          placeholder={t('login.forgot.placeholder')}
+                          required
+                          autoComplete="email"
+                          className="hf-field"
+                        />
+                        <button type="submit" disabled={forgotSending} className="hf-cta">
+                          {forgotSending ? t('login.forgot.submitting') : t('login.forgot.submit')}
+                        </button>
+                      </form>
+                    )}
+                    <button type="button" onClick={() => setShowForgot(false)} className="hf-skip">
+                      {t('login.forgot.back')}
+                    </button>
+                  </div>
+                ) : emailSent ? (
+                  <p className="lg-done">{t('login.magicLink.sent')}</p>
                 ) : (
-                  <form onSubmit={handleForgotPassword} className="flex flex-col gap-3">
+                  /* ── Hlavné: e-mail + heslo ── */
+                  <form onSubmit={handlePasswordLogin} className="lg-stack">
                     <input
+                      id="login-email"
                       type="email"
-                      value={forgotEmail}
-                      onChange={e => setForgotEmail(e.target.value)}
-                      placeholder={t('login.forgot.placeholder')}
+                      value={emailInput}
+                      onChange={e => { setEmailInput(e.target.value); setPasswordError(""); }}
+                      placeholder={t('login.magicLink.placeholder')}
                       required
-                      className="w-full px-4 py-3 rounded-[8px] text-sm border outline-none"
-                      style={{
-                        fontFamily: "'Space Grotesk', sans-serif",
-                        color: "#0E0E0E",
-                        background: "rgba(255,255,255,0.6)",
-                        borderColor: "rgba(160,116,35,0.4)",
-                      }}
+                      autoComplete="email"
+                      className="hf-field"
                     />
-                    <button
-                      type="submit"
-                      disabled={forgotSending}
-                      className="px-6 py-3 rounded-[8px] uppercase text-xs tracking-[0.22em] font-bold disabled:opacity-50"
-                      style={{
-                        fontFamily: "'Cinzel', serif",
-                        background: "linear-gradient(180deg,#E5C16E 0%,#C99A3F 48%,#A07423 100%)",
-                        color: "#0E0E0E",
-                        boxShadow: "0 6px 18px rgba(160,116,35,0.4)",
-                      }}
-                    >
-                      {forgotSending ? t('login.forgot.submitting') : t('login.forgot.submit')}
+                    <div className="lg-pw">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={passwordInput}
+                        onChange={e => { setPasswordInput(e.target.value); setPasswordError(""); }}
+                        placeholder={t('login.password.placeholder')}
+                        required
+                        autoComplete="current-password"
+                        className="hf-field"
+                      />
+                      <button
+                        type="button"
+                        className="lg-eye"
+                        onClick={() => setShowPassword(v => !v)}
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {eye(showPassword)}
+                      </button>
+                    </div>
+                    {passwordError && <p className="hf-alert">{passwordError}</p>}
+                    <button type="submit" disabled={passwordSending} className="hf-cta">
+                      {passwordSending ? t('login.password.submitting') : t('login.password.submit')}
+                    </button>
+
+                    <div className="lg-links">
+                      <button type="button" onClick={() => setShowForgot(true)} className="hf-skip">
+                        {t('login.password.forgotPassword')}
+                      </button>
+                      <span aria-hidden>·</span>
+                      <button
+                        type="button"
+                        className="hf-skip"
+                        onClick={() => {
+                          // ⚠️ Prázdne pole NESMIE skončiť tichým `return`. Presne to sa stalo
+                          //    Matejovi 15. 9. 2026 na ostrom /login: klikol a nestalo sa NIČ —
+                          //    žiadna hláška, žiadne zvýraznenie. Tlačidlo, ktoré mlčí, je pre
+                          //    človeka rozbité tlačidlo, aj keď kód „funguje správne".
+                          if (!emailInput.trim()) {
+                            setPasswordError(t('login.magicLink.needEmail'));
+                            document.getElementById('login-email')?.focus();
+                            return;
+                          }
+                          setEmailSending(true);
+                          setPasswordError("");
+                          // `shouldCreateUser: false` (Matej 2026-08-20: „nepustit dnu") — bez
+                          // neho Supabase pri neznamom e-maile UCET VYTVORI, takze sa do /pack
+                          // dostal ktokolvek: route je len auth-gated, kupu heroglyfu nekontroluje.
+                          // Platiacich to nerozbije — ucet im zaklada uz `stripe-webhook`
+                          // (`generateLink`), pripadne `set-pack-password`. Prvy login teda vzdy
+                          // trafi existujuceho pouzivatela.
+                          supabase.auth.signInWithOtp({
+                            email: emailInput.trim(),
+                            options: {
+                              emailRedirectTo: `${window.location.origin}/login`,
+                              shouldCreateUser: false,
+                            },
+                          }).then(({ error }) => {
+                            // ⚠️ Chyba tu znamená „takú adresu nepoznáme" — a presne to
+                            //    sa NESMIE zobraziť. Do 16. 9. 2026 tu stálo
+                            //    `t('login.magicLink.noAccount')`, čím prihlasovacie pole
+                            //    komukoľvek prezradilo, kto vo svorke je. Obrazovka teraz
+                            //    hovorí v oboch prípadoch to isté; pravdu povie len mail,
+                            //    ktorý pristane v tej schránke.
+                            if (error) oznamZiadneKonto(emailInput.trim());
+                            setEmailSent(true);
+                          }).finally(() => setEmailSending(false));
+                        }}
+                      >
+                        {emailSending ? t('login.magicLink.submitting') : t('login.password.magicLinkAlt')}
+                      </button>
+                    </div>
+                  </form>
+                )
+              )}
+
+              {status === "recovery" && (
+                recoverySuccess ? (
+                  <p className="lg-done">{t('login.recovery.success')}</p>
+                ) : (
+                  <form onSubmit={handleRecoverySubmit} className="lg-stack">
+                    <div className="lg-pw">
+                      <input
+                        type={showRecoveryPassword ? "text" : "password"}
+                        value={recoveryPassword}
+                        onChange={e => setRecoveryPassword(e.target.value)}
+                        placeholder={t('login.recovery.newPasswordPlaceholder')}
+                        required
+                        minLength={8}
+                        autoComplete="new-password"
+                        className="hf-field"
+                      />
+                      <button
+                        type="button"
+                        className="lg-eye"
+                        onClick={() => setShowRecoveryPassword(v => !v)}
+                        aria-label={showRecoveryPassword ? "Hide password" : "Show password"}
+                      >
+                        {eye(showRecoveryPassword)}
+                      </button>
+                    </div>
+                    <button type="submit" disabled={recoverySending || recoveryPassword.length < 8} className="hf-cta">
+                      {recoverySending ? t('login.recovery.submitting') : t('login.recovery.submit')}
                     </button>
                   </form>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setShowForgot(false)}
-                  className="text-xs uppercase tracking-[0.22em] underline-offset-4 hover:underline"
-                  style={{ fontFamily: "'Cinzel', serif", color: "#A07423", background: "none", border: "none", cursor: "pointer" }}
-                >
-                  {t('login.forgot.back')}
-                </button>
-              </div>
-            ) : emailSent ? (
-              <p style={{ fontFamily: "'Space Grotesk', sans-serif", color: "#A07423", fontSize: 14, textAlign: "center" }}>
-                {t('login.magicLink.sent')}
-              </p>
-            ) : (
-              /* ── Primary: email + password form ── */
-              <form onSubmit={handlePasswordLogin} className="flex flex-col gap-3">
-                <input
-                  id="login-email"
-                  type="email"
-                  value={emailInput}
-                  onChange={e => { setEmailInput(e.target.value); setPasswordError(""); }}
-                  placeholder="your@email.com"
-                  required
-                  autoComplete="email"
-                  className="w-full px-4 py-3 rounded-[8px] text-sm border outline-none"
-                  style={{
-                    fontFamily: "'Space Grotesk', sans-serif",
-                    color: "#0E0E0E",
-                    background: "rgba(255,255,255,0.6)",
-                    borderColor: "rgba(160,116,35,0.4)",
-                  }}
-                />
-                <div style={{ position: "relative" }}>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={passwordInput}
-                    onChange={e => { setPasswordInput(e.target.value); setPasswordError(""); }}
-                    placeholder={t('login.password.placeholder')}
-                    required
-                    autoComplete="current-password"
-                    className="w-full px-4 py-3 pr-11 rounded-[8px] text-sm border outline-none"
-                    style={{
-                      fontFamily: "'Space Grotesk', sans-serif",
-                      color: "#0E0E0E",
-                      background: "rgba(255,255,255,0.6)",
-                      borderColor: "rgba(160,116,35,0.4)",
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(v => !v)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                    style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", opacity: 0.62 }}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6a2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                      {!showPassword && <line x1="3" y1="3" x2="21" y2="21" />}
-                    </svg>
+                )
+              )}
+
+              {showResend && (
+                <div className="lg-stack">
+                  <button type="button" onClick={handleResend} disabled={resending || resendSent} className="hf-cta">
+                    {resendSent ? t('login.resend.sent') : resending ? t('login.resend.sending') : t('login.resend.idle')}
                   </button>
+                  <Link to="/" className="hf-skip">{t('login.backHome')}</Link>
                 </div>
-                {passwordError && (
-                  <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: "#b91c1c", textAlign: "center" }}>
-                    {passwordError}
-                  </p>
-                )}
-                <button
-                  type="submit"
-                  disabled={passwordSending}
-                  className="px-6 py-3 rounded-[8px] uppercase text-xs tracking-[0.22em] font-bold disabled:opacity-50"
-                  style={{
-                    fontFamily: "'Cinzel', serif",
-                    background: "linear-gradient(180deg,#E5C16E 0%,#C99A3F 48%,#A07423 100%)",
-                    color: "#0E0E0E",
-                    boxShadow: "0 6px 18px rgba(160,116,35,0.4)",
-                  }}
-                >
-                  {passwordSending ? t('login.password.submitting') : t('login.password.submit')}
-                </button>
+              )}
 
-                {/* Secondary links */}
-                <div className="flex flex-col items-center gap-2 mt-1">
-                  <button
-                    type="button"
-                    onClick={() => setShowForgot(true)}
-                    className="text-xs uppercase tracking-[0.22em] underline-offset-4 hover:underline"
-                    style={{ fontFamily: "'Cinzel', serif", color: "#A07423", background: "none", border: "none", cursor: "pointer" }}
-                  >
-                    {t('login.password.forgotPassword')}
-                  </button>
-                  <button
-                    type="button"
-                    className="text-xs uppercase tracking-[0.22em] underline-offset-4 hover:underline"
-                    style={{ fontFamily: "'Cinzel', serif", color: "rgba(14,14,14,0.45)", background: "none", border: "none", cursor: "pointer" }}
-                    onClick={() => {
-                      // ⚠️ Prázdne pole NESMIE skončiť tichým `return`. Presne to sa stalo
-                      //    Matejovi 15. 9. 2026 na ostrom /login: klikol a nestalo sa NIČ —
-                      //    žiadna hláška, žiadne zvýraznenie. Tlačidlo, ktoré mlčí, je pre
-                      //    človeka rozbité tlačidlo, aj keď kód „funguje správne".
-                      if (!emailInput.trim()) {
-                        setPasswordError(t('login.magicLink.needEmail'));
-                        document.getElementById('login-email')?.focus();
-                        return;
-                      }
-                      setEmailSending(true);
-                      setPasswordError("");
-                      // `shouldCreateUser: false` (Matej 2026-08-20: „nepustit dnu") — bez
-                      // neho Supabase pri neznamom e-maile UCET VYTVORI, takze sa do /pack
-                      // dostal ktokolvek: route je len auth-gated, kupu heroglyfu nekontroluje.
-                      // Platiacich to nerozbije — ucet im zaklada uz `stripe-webhook`
-                      // (`generateLink`), pripadne `set-pack-password`. Prvy login teda vzdy
-                      // trafi existujuceho pouzivatela.
-                      supabase.auth.signInWithOtp({
-                        email: emailInput.trim(),
-                        options: {
-                          emailRedirectTo: `${window.location.origin}/login`,
-                          shouldCreateUser: false,
-                        },
-                      }).then(({ error }) => {
-                        // ⚠️ Chyba tu znamená „takú adresu nepoznáme" — a presne to
-                        //    sa NESMIE zobraziť. Do 16. 9. 2026 tu stálo
-                        //    `t('login.magicLink.noAccount')`, čím prihlasovacie pole
-                        //    komukoľvek prezradilo, kto vo svorke je. Obrazovka teraz
-                        //    hovorí v oboch prípadoch to isté; pravdu povie len mail,
-                        //    ktorý pristane v tej schránke.
-                        if (error) oznamZiadneKonto(emailInput.trim());
-                        setEmailSent(true);
-                      }).finally(() => setEmailSending(false));
-                    }}
-                  >
-                    {emailSending ? t('login.magicLink.submitting') : t('login.password.magicLinkAlt')}
-                  </button>
-                </div>
-              </form>
-            )}
-            <Link
-              to="/"
-              className="block mt-4 text-xs uppercase tracking-[0.22em] underline-offset-4 hover:underline"
-              style={{ fontFamily: "'Cinzel', serif", color: "#A07423" }}
-            >
-              {t('login.backHome')}
-            </Link>
-          </div>
-        )}
+              {errorDetail && status !== "verifying" && status !== "success" && (
+                <p className="lg-err">{errorDetail}</p>
+              )}
+            </div>
+          </article>
 
-        {status === "recovery" && (
-          <div className="mt-7">
-            {recoverySuccess ? (
-              <p style={{ fontFamily: "'Space Grotesk', sans-serif", color: "#A07423", fontSize: 14, textAlign: "center" }}>
-                {t('login.recovery.success')}
-              </p>
-            ) : (
-              <form onSubmit={handleRecoverySubmit} className="flex flex-col gap-3">
-                <div style={{ position: "relative" }}>
-                  <input
-                    type={showRecoveryPassword ? "text" : "password"}
-                    value={recoveryPassword}
-                    onChange={e => setRecoveryPassword(e.target.value)}
-                    placeholder={t('login.recovery.newPasswordPlaceholder')}
-                    required
-                    minLength={8}
-                    autoComplete="new-password"
-                    className="w-full px-4 py-3 pr-11 rounded-[8px] text-sm border outline-none"
-                    style={{
-                      fontFamily: "'Space Grotesk', sans-serif",
-                      color: "#0E0E0E",
-                      background: "rgba(255,255,255,0.6)",
-                      borderColor: "rgba(160,116,35,0.4)",
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowRecoveryPassword(v => !v)}
-                    aria-label={showRecoveryPassword ? "Hide password" : "Show password"}
-                    style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", opacity: 0.62 }}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6a2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                      {!showRecoveryPassword && <line x1="3" y1="3" x2="21" y2="21" />}
-                    </svg>
-                  </button>
-                </div>
-                <button
-                  type="submit"
-                  disabled={recoverySending || recoveryPassword.length < 8}
-                  className="px-6 py-3 rounded-[8px] uppercase text-xs tracking-[0.22em] font-bold disabled:opacity-50"
-                  style={{
-                    fontFamily: "'Cinzel', serif",
-                    background: "linear-gradient(180deg,#E5C16E 0%,#C99A3F 48%,#A07423 100%)",
-                    color: "#0E0E0E",
-                    boxShadow: "0 6px 18px rgba(160,116,35,0.4)",
-                  }}
-                >
-                  {recoverySending ? t('login.recovery.submitting') : t('login.recovery.submit')}
-                </button>
-              </form>
-            )}
-          </div>
-        )}
-
-        {showResend && (
-          <div className="mt-7 flex flex-col items-center gap-3">
-            <button
-              type="button"
-              onClick={handleResend}
-              disabled={resending || resendSent}
-              className="px-6 py-3 rounded-[8px] uppercase text-xs tracking-[0.22em] font-bold transition disabled:opacity-50"
-              style={{
-                fontFamily: "'Cinzel', serif",
-                background: "linear-gradient(180deg,#E5C16E 0%,#C99A3F 48%,#A07423 100%)",
-                color: "#0E0E0E",
-                boxShadow: "0 6px 18px rgba(160,116,35,0.4)",
-              }}
-            >
-              {resendSent ? t('login.resend.sent') : resending ? t('login.resend.sending') : t('login.resend.idle')}
-            </button>
-            <Link
-              to="/"
-              className="text-xs uppercase tracking-[0.22em] underline-offset-4 hover:underline"
-              style={{ fontFamily: "'Cinzel', serif", color: "#A07423" }}
-            >
-              {t('login.backHome')}
-            </Link>
-          </div>
-        )}
-
-        {errorDetail && status !== "verifying" && status !== "success" && (
-          <p
-            className="mt-6 text-[11px] tracking-[0.18em] uppercase"
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              color: "rgba(14,14,14,0.45)",
-            }}
-          >
-            {errorDetail}
-          </p>
-        )}
-      </article>
+          {/* Brána pre každého, kto sem príde bez heroglyfu (26. 9. 2026). Rovnaká
+              pre všetkých — obrazovka nesmie prezradiť, či adresa u nás je; DOGS
+              dostanú rozdiel mailom (`auth-no-account`, karta `no-account-dogs`). */}
+          {status === "missing" && !dogIdPresent && (
+            <p className="lg-gate">
+              {t('login.gate.line')}{' '}
+              <Link to="/heroglyph">{t('login.gate.cta')}</Link>
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
