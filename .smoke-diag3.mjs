@@ -1,0 +1,11 @@
+import { chromium } from 'playwright';
+const SC = "/private/tmp/claude-501/-Users-stachoman-AI-DOGYPT/cf39f21d-16f8-4b7b-8207-9457cc71aa11/scratchpad/smoke";
+const browser = await chromium.launch({ headless: true });
+const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, storageState: `${SC}/_mobil_state.json` });
+const page = await ctx.newPage();
+await page.goto('http://localhost:8080/heroglyph/owner-info', { waitUntil: 'networkidle' });
+await page.waitForTimeout(1200);
+await page.screenshot({ path: `${SC}/diag-owner.png` });
+const btns = await page.evaluate(() => Array.from(document.querySelectorAll('button')).map(b => ({ t: (b.textContent||'').trim().slice(0,30), cls: b.className.slice(0,50) })));
+console.log(JSON.stringify(btns, null, 2));
+await browser.close();
