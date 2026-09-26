@@ -16,7 +16,7 @@ import { DateDropdowns } from '@/components/DateDropdowns';
 import { FlowMedallion, FLOW_MEDAL_CSS, useSpeakMedal } from '@/components/screens/flowMedallion';
 import { FlowTextModal } from '@/components/screens/flowTextModal';
 import { LAPIS } from '@/components/pack/navGoldSkin';
-import { PACK_R, PACK_THEME } from '@/components/pack/packTheme';
+import { PACK_R, PACK_THEME, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
 import { LAB } from '@/lib/labTheme';
 import { hekthorFace } from '@/lib/hekthorFaces';
 import { HEKTHOR_GLYPH } from '@/lib/hektor';
@@ -808,8 +808,9 @@ button.ow-name:not(.is-valid) { text-transform: none; letter-spacing: normal; }
 .ow-signs { display: flex; align-items: center; gap: 8px; width: 100%; }
 .ow-next {
   flex: 0 0 auto; height: 32px; padding: 0 14px; cursor: pointer; align-self: center;
-  border-radius: ${PACK_R.pill}px; border: 1.5px solid ${LAPIS.edge};
-  background: ${LAPIS.edge}; color: #FDF7E7;
+  /* ZLATÉ, nie lapis — lapis je len jediné hlavné CTA (Matej 26. 9. na MENE). */
+  border-radius: ${PACK_R.pill}px; border: 1px solid ${BRAND_GOLD_BTN.edge};
+  background: ${BRAND_GOLD_BTN.grad}; color: ${BRAND_GOLD_BTN.ink}; box-shadow: ${BRAND_GOLD_BTN.glow};
   font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
   letter-spacing: 0.14em; text-transform: uppercase;
 }
@@ -817,7 +818,7 @@ button.ow-name:not(.is-valid) { text-transform: none; letter-spacing: normal; }
 /* 26. 9. 2026 ~16:15 Matej na HVIEZDACH: *„keď je vybraté, bude svietiť na zeleno
    HOTOVO, nie ĎALEJ"* — znamenia sú potvrdený stav, nie krok vpred. Zelená =
    SPLNENÉ (\`PACK_THEME.growGreen\`, tá istá ako 100 % DOG ID). */
-.ow-next.is-done { background: ${PACK_THEME.growGreen}; border-color: ${PACK_THEME.growGreen}; }
+.ow-next.is-done { background: ${PACK_THEME.growGreen}; border-color: ${PACK_THEME.growGreen}; color: #FDF7E7; }
 .ow-cta.is-off { opacity: 0.4; cursor: default; }
 .ow-cta.is-off:hover { transform: none; }
 @media (max-height: 700px) {
