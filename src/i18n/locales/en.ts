@@ -918,6 +918,8 @@ export const en = {
   'login.resend.sending': 'Sending…',
   'login.resend.sent': 'Magic link sent',
   'login.backHome': 'Back home',
+  'login.gate.line': "Only dogs with a heroglyph get in. Don't have one yet?",
+  'login.gate.cta': 'Create it →',
   'login.homeAria': 'DOGYPT home',
   // password login form
   'login.password.placeholder': 'Password',
@@ -1994,6 +1996,7 @@ export const en = {
   'pack.hero.popPawtner1': "Pawtner is your standing in the pack — you are the companion of a dog you made a HEROGLYPH for. No heroglyph, no Dogyptian.",
   'pack.hero.rolePack': "Pack",
   'pack.hero.roleDog': "Dog",
+  'pack.hero.rolePawmate': "pack member (partner, family)",
   'pack.hero.roleRule': "Only a Pawtner can create a Pawmate.",
   'pack.hero.popLevelEyebrow': "Level",
   'pack.hero.popLevelTitle': "{name} · level {index} of 22",

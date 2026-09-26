@@ -767,6 +767,8 @@ export const sk: Partial<Dict> = {
   'login.resend.sending': 'Odosielam…',
   'login.resend.sent': 'Magic link odoslaný',
   'login.backHome': 'Späť domov',
+  'login.gate.line': 'Dnu sa dostane len pes s heroglyfom. Nemáš ho?',
+  'login.gate.cta': 'Vytvor ho →',
   'login.homeAria': 'DOGYPT domov',
   // password login form
   'login.password.placeholder': 'Heslo',
@@ -1747,6 +1749,7 @@ export const sk: Partial<Dict> = {
   "pack.hero.popPawtner1": "Pawtner je tvoje postavenie v svorke — si spoločník psa, ktorému si vytvoril HEROGLYF. Bez heroglyfu nie si Dogypťan.",
   "pack.hero.rolePack": "Svorka",
   "pack.hero.roleDog": "Pes",
+  "pack.hero.rolePawmate": "člen svorky (partner, rodina)",
   "pack.hero.roleRule": "Pawmate môže vytvoriť iba Pawtner.",
   "pack.hero.popLevelEyebrow": "Úroveň",
   "pack.hero.popLevelTitle": "{name} · úroveň {index} z 22",

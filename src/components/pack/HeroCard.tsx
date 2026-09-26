@@ -1115,7 +1115,7 @@ function HeroPopup({
 // Pod menami nič — popisky Matej vyhodil; prekladá sa len DOG, PAWTNER/PAWMATE nie.
 function PackRoles() {
   const t = useT();
-  const role = (icon: string, title: string, lit: boolean) => (
+  const role = (icon: string, title: string, lit: boolean, sub?: string) => (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, minWidth: 0 }}>
       <div
         style={{
@@ -1132,6 +1132,12 @@ function PackRoles() {
       <span style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 'clamp(10px, 3.2cqw, 12px)', letterSpacing: '0.14em', color: T.inkStrong, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
         {title}
       </span>
+      {/* Vysvetlivku má LEN PAWMATE (Matej 26. 9.) — pes a pawtner sa vysvetľujú sami. */}
+      {sub && (
+        <span style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.4, color: T.inkWarm }}>
+          {sub}
+        </span>
+      )}
     </div>
   );
   return (
@@ -1139,16 +1145,19 @@ function PackRoles() {
       <div style={{ ...PACK_HEAD.label, color: T.cardEdge, marginBottom: 12 }}>
         {t('pack.hero.rolePack')}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) auto minmax(0, 1fr)', alignItems: 'center', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) auto minmax(0, 1fr)', alignItems: 'start', gap: 8 }}>
         <div style={{ ...PACK_BOX.subblock, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', gap: 4, padding: '12px 8px', alignItems: 'start' }}>
           {role('dogsphinx', t('pack.hero.roleDog'), true)}
           {/* Plus sedí v strede kruhov (56 / 2 = 28), nie v strede stĺpca s menom. */}
           <HandPlus size={16} style={{ color: T.cardEdge, marginTop: 20 }} />
           {role('person', 'PAWTNER', true)}
         </div>
-        {/* Stĺpce sú centrované; `marginBottom: 24` zdvihne šípku o polovicu mena+medzery na os kruhov. */}
-        <HandForward size={16} style={{ color: T.cardEdge, marginBottom: 24 }} />
-        {role('add-user', 'PAWMATE', false)}
+        {/* Stĺpce sú zarovnané na vrch. Šípka a PAWMATE dostanú ten istý odstup ako obsah
+            vnútorného bloku (rám 1 + padding 12), takže sedia na osi kruhov bez merania. */}
+        <div style={{ borderTop: '1px solid transparent', paddingTop: 12, height: 56 + 12 + 1, display: 'flex', alignItems: 'center' }}>
+          <HandForward size={16} style={{ color: T.cardEdge }} />
+        </div>
+        <div style={{ borderTop: '1px solid transparent', paddingTop: 12 }}>{role('add-user', 'PAWMATE', false, t('pack.hero.rolePawmate'))}</div>
       </div>
       <p style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.4, color: T.inkWarm, margin: '12px 0 0' }}>
         {t('pack.hero.roleRule')}
