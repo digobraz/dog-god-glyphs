@@ -300,7 +300,7 @@ export const sk: Partial<Dict> = {
   // ⚠️ Skrátené 24. 9. 2026 (viď en.ts) a zároveň opravené „Rasa" → „plemeno":
   //    appka hovorí PLEMENO všade inde, vrátane placeholderov o dva riadky nižšie.
   'heroglyph.flow.breed.subtitle': 'Vyhľadávanie podľa plemena ti pomôže — no výber je na tebe.',
-  'heroglyph.flow.breed.needs': '{name} potrebuje patróna.',
+  'heroglyph.flow.breed.needs': 'Tvoj pes potrebuje patróna.', // bez mena — pri svorke sa pýta raz za všetkých (Matej 26. 9. 2026)
   'heroglyph.flow.breed.legend': 'Patrón',
   'heroglyph.flow.breed.mix.second': 'Druhé plemeno',
   'heroglyph.flow.breed.pickHint': 'Patróna vyber podľa siluety, ktorá tvojmu psovi sedí najviac.',

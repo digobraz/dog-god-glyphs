@@ -403,7 +403,7 @@ export const en = {
   // Nadpis zliatej obrazovky PATRÓN (Matej 24. 9. 2026: „… potrebuje patróna").
   // Nové kľúče sú v sk/en/cs, zvyšok padá na EN fallback — ten istý postup ako
   // pri chipoch PODSTATY.
-  'heroglyph.flow.breed.needs': '{name} needs a patron.',
+  'heroglyph.flow.breed.needs': 'Your dog needs a patron.',
   /** Vlys nad výberom patróna. */
   'heroglyph.flow.breed.legend': 'Patron',
   // ⚠️ VLASTNÝ kľúč, nie skrátený `mix.placeholder2`. Ten beží na LIVE

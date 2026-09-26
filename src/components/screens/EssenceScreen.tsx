@@ -688,8 +688,6 @@ const ESSENCE_CSS = `
   .es-picks .hf-pick .well img { width: 34px; height: 34px; }
   /* Premenované 25. 9. s presunom riadka; zmenšenie na krátkom okne ostáva
      vecou TEJTO obrazovky — sem patrí jej rozpočet výšky. */
-  .es-who .fdh-photo { width: 40px; height: 40px; }
-  .es-who .fdh-name { font-size: 17px; }
   .es-act { min-height: 36px; }
   .es-cta { height: 36px; }
 }

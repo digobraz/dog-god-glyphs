@@ -131,21 +131,23 @@ export const FLOW_DOG_CSS = `
 .fdh-row .fdh-switch { grid-column: 4; justify-self: end; flex: 0 0 auto; }
 /* Pri dlhom mene ustúpi PÍSMO, nie posledné písmená — ellipsis v mene psa je
    to najhoršie, čo môže na tejto obrazovke stáť. */
-@media (max-width: 420px) { .fdh-row .fdh-name { font-size: 15px; } }
 /* Nízke okno (Matejovo PC aj iPhone SE): riadok ustúpi ešte o kúsok — je to
    hlavička, nie ovládací prvok, takže sa zmenšuje ako prvý. */
 @media (max-height: 820px) {
-  .fdh-photo { width: 36px; height: 36px; }
-  .fdh-row .fdh-name { font-size: 15px; }
-  .fdh-arrow { width: 30px; height: 30px; font-size: 16px; }
+  .fdh-photo { width: 28px; height: 28px; }
+  .fdh-arrow { width: 26px; height: 26px; font-size: 14px; }
 }
 
-/* ⚠️ 40 px, nie 48 (Matej 25. 9.: *„kludne zmenši na pc foto konkretneho psa aj
+/* 🔴 26. 9. 2026 ZMENŠENÉ ZNOVA: 32 px / meno 14 px (Matej: *„môžeš zmenšiť
+   foto ako aj priestor, kde je meno psa — prvý údaj v bloku — a zosúladiť to
+   v každom kroku, je to zbytočne veľké"*). Jedna hodnota pre všetky kroky;
+   obrazovky ju už neprepisujú.
+   ⚠️ 40 px, nie 48 (Matej 25. 9.: *„kludne zmenši na pc foto konkretneho psa aj
    meno je celkom velke može to pomoct"*). Riadok stojí na štyroch obrazovkách,
    takže každý ušetrený pixel sa počíta štyrikrát — a práve výška bola dôvod,
    prečo obsah na jeho okne nemal okraje. */
 .fdh-photo {
-  width: 40px; height: 40px; border-radius: 999px; object-fit: cover; flex: none;
+  width: 32px; height: 32px; border-radius: 999px; object-fit: cover; flex: none;
   display: grid; place-items: center;
   /* Vlások, nie obruč: fotka má byť FOTKA. Cloisonné rám ostáva Hektorovi, aby
      bolo na prvý pohľad jasné, kto sa pýta a kto je tvoj pes. */
@@ -154,13 +156,13 @@ export const FLOW_DOG_CSS = `
 }
 .fdh-photo--empty {
   background: radial-gradient(circle at 50% 35%, #F7ECD2 0%, #E8D5AA 100%);
-  font-family: 'Cinzel', serif; font-size: 22px; color: #8a5a14;
+  font-family: 'Cinzel', serif; font-size: 16px; color: #8a5a14;
 }
 /* Meno psa = Cinzel Decorative (brand lock: mená psov na oficiálnych povrchoch). */
 .fdh-name {
   display: inline-flex; align-items: center; gap: 6px;
   font-family: 'Cinzel Decorative', 'Cinzel', serif; font-weight: 700;
-  font-size: 17px; letter-spacing: 0.04em; line-height: 1.1;
+  font-size: 14px; letter-spacing: 0.04em; line-height: 1.1;
   color: rgba(35, 22, 8, 0.90); text-shadow: 0 1px 0 rgba(255, 252, 240, 0.70);
   text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
@@ -175,11 +177,11 @@ export const FLOW_DOG_CSS = `
   letter-spacing: 0.10em; color: rgba(60, 40, 12, 0.52);
 }
 .fdh-arrow {
-  flex: none; width: 34px; height: 34px; border-radius: 999px; cursor: pointer;
+  flex: none; width: 28px; height: 28px; border-radius: 999px; cursor: pointer;
   background: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%);
   border: 1.5px solid rgba(179, 130, 45, 0.55);
   box-shadow: inset 0 1px 0 rgba(255, 252, 240, 0.85), 0 1px 2px rgba(60, 40, 10, 0.10);
-  font-family: 'Cinzel', serif; font-size: 18px; line-height: 1; color: #8a5a14;
+  font-family: 'Cinzel', serif; font-size: 16px; line-height: 1; color: #8a5a14;
 }
 
 /* Rytina pod riadkom = tá istá drážka ako vlysy pri nadpise: tmavá hrana a
