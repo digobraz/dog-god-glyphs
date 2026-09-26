@@ -33,7 +33,7 @@ type Tx = (key: string, fallback: string, vars?: Record<string, string | number>
 export function SnifferEmpty({ tx }: { tx: Tx }) {
   return (
     <div className="se-box">
-      <img src="/images/sniffer/empty-deck.jpg" alt="" />
+      <img src="/images/sniffer/empty-deck.webp" alt="" />
       <div className="se-txt">
         <b className="se-oops" style={{ ...PACK_HEAD.card }}>{tx('pack.sniffer.emptyOops', 'Oops…')}</b>
         <strong>{tx('pack.sniffer.emptyTitle', 'Nobody here matches your preferences.')}</strong>

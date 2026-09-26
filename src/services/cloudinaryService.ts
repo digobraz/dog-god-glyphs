@@ -139,6 +139,43 @@ export const sizedUrl = (url: string | null | undefined, px: number): string => 
 export const lightboxUrl = (publicId: string) =>
   `${BASE_URL}/c_fill,w_1200,h_1200,f_auto,q_auto/${publicId}`;
 
+/**
+ * DPR STROP (audit SNIFFER C1, 26. 9. 2026) — koľkokrát znásobiť ZOBRAZENÚ veľkosť, aby fotka
+ * bola ostrá na retina displeji. Strop 3× — viac by len naťahovalo prenos bez viditeľného rozdielu.
+ */
+export const dprClamp = (cap = 3): number =>
+  (typeof window !== 'undefined' && window.devicePixelRatio ? Math.min(window.devicePixelRatio, cap) : 1);
+
+/**
+ * FOTKA NA PRESNÚ PLOCHU — `c_fill,g_auto` VLOŽENÉ DO REŤAZE (audit SNIFFER C1/C2, 26. 9. 2026),
+ * rovnaká vsuvka ako `sizedUrl` vyššie, len s NEZÁVISLOU šírkou a výškou: fotka psa s uloženým
+ * výrezom (`c_crop,…`) sa tak zmenší AŽ ZA orezom, nie namiesto neho (`withTransform` by
+ * takú URL preskočila celú — už má `c_`). `w`/`h` sú CIEĽOVÉ PIXELY, nie CSS veľkosť.
+ */
+export const fillUrl = (url: string | null | undefined, w: number, h: number): string => {
+  if (!url || !url.includes('/image/upload/')) return url ?? '';
+  const [pred, za] = url.split('/image/upload/');
+  const casti = za.split('/');
+  let i = 0;
+  while (i < casti.length - 1 && !/^v\d+$/.test(casti[i]) && /(^|,)[a-z]{1,3}_/.test(casti[i])) i++;
+  casti.splice(i, 0, `c_fill,g_auto,w_${Math.max(1, Math.round(w))},h_${Math.max(1, Math.round(h))},f_auto,q_auto`);
+  return `${pred}/image/upload/${casti.join('/')}`;
+};
+
+/**
+ * JEDEN POMOCNÍK NA VEĽKOSŤ OBRÁZKA (audit SNIFFER C1, 26. 9. 2026: „ideálne jeden pomocník
+ * namiesto piatich"). `w`/`h` sú CSS pixely (zobrazená plocha) — funkcia si dopočíta DPR
+ * (strop 3×) a strop na dlhšej strane (`cap`, default 1080 px), aby ani na malom telefóne
+ * ani na veľkom paneli nešiel prenos zbytočne vysoko.
+ */
+export const bgImg = (url: string | null | undefined, w: number, h: number, cap = 1080): string => {
+  const dpr = dprClamp();
+  let tw = w * dpr; let th = h * dpr;
+  const over = Math.max(tw, th) / cap;
+  if (over > 1) { tw /= over; th /= over; }
+  return fillUrl(url, tw, th);
+};
+
 // PDF storage moved to Supabase Storage (Cloudinary free tier blocks PDF delivery, returns 401).
 const PDF_BUCKET = 'pdfs';
 

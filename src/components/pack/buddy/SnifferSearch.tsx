@@ -10,16 +10,18 @@
 // · Krajina SVIETI, keď má 40+ výletov so sprievodcom PÚTNIKA. Počty z katalógu (`trailCountry`).
 import { useEffect, useMemo, useState } from 'react';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
-import { trailCountry, countryName, flagUrl } from '@/lib/countryGeo';
+import { trailCountry, flagUrl } from '@/lib/countryGeo';
 import { useLang } from '@/i18n/LanguageContext';
-import { withTransform } from '@/services/cloudinaryService';
+import { bgImg } from '@/services/cloudinaryService';
 import { saveHuman, useProfile, INTENT_OPTIONS } from '@/components/pack/profile/packProfile';
 import {
-  PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, FONT_UI,
+  PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, FONT_UI, FONT_TITLE,
 } from '@/components/pack/packTheme';
 import { LAPIS, PICK_INK, pickTintCSS, tintRGBA } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { SnifferEmpty, SNIFFER_EMPTY_CSS } from './SnifferEmpty';
+import { defaultCountry, useCountryName } from './SnifferPin';
+import { distanceLabel } from './SnifferCard';
 import { loadNearby, searchPeople, type SnifferCardData, type SnifferHeading } from './snifferDeck';
 
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
@@ -32,7 +34,8 @@ const ALWAYS = ['sk', 'cz', 'at', 'pl', 'hu', 'si', 'hr', 'ch'];
 const WHEN: Array<[SnifferHeading['when'], string]> = [['now', 'Now'], ['week', 'In a week'], ['summer', 'In summer'], ['date', 'Pick a date']];
 const MODE_KEY = 'dogypt_sniffer_search_mode';
 
-const pic = (u?: string | null) => withTransform(u, 'c_fill,g_auto,w_300,h_400,f_auto,q_auto');
+/** C1 — mriežka na 3× displeji ťahala len 300×400 na zobrazenú plochu ~520×690 (audit 26. 9.). */
+const pic = (u?: string | null) => bgImg(u, 180, 240);
 const readMode = (): Mode => { try { return localStorage.getItem(MODE_KEY) === 'far' ? 'far' : 'near'; } catch { return 'near'; } };
 const writeMode = (m: Mode) => { try { localStorage.setItem(MODE_KEY, m); } catch { /* pohodlie, nič viac */ } };
 
@@ -42,9 +45,15 @@ const CSS = `
   border:1px solid ${T.border};background:${T.cardSoft};display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .ss-flt.is-on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}}
 .ss-segs{flex:1 1 auto;display:flex;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.xs}px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};background:${T.cardSoft};}
-.ss-seg{flex:1 1 0;padding:${PACK_SPACE.sm}px;border:0;border-radius:${PACK_R.pill}px;background:transparent;cursor:pointer;
+/* C5 — vizuálne ostáva rovnaké, ale ťukacia plocha ≥40 px cez neviditeľný ::after (vzor HIT_CSS). */
+.ss-seg{position:relative;flex:1 1 0;padding:${PACK_SPACE.sm}px;border:0;border-radius:${PACK_R.pill}px;background:transparent;cursor:pointer;
   font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkWarm};white-space:nowrap;}
+.ss-seg::after{content:'';position:absolute;inset:-6px;}
 .ss-seg.is-on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)};font-weight:600;}
+/* C9 — `▾`/`▴` boli holé znaky, teraz kreslený chevron (vzor `.spn-ctry i` v SnifferPin.tsx). */
+.ss-seg i{display:inline-block;width:6px;height:6px;margin-left:${PACK_SPACE.xs}px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;}
+.ss-seg i.is-up{transform:translateY(2px) rotate(-135deg);}
+.ss-seg i.is-down{transform:translateY(-2px) rotate(45deg);}
 .ss-flag{flex:0 0 auto;height:${PACK_SPACE.xxl + PACK_SPACE.sm}px;padding:0 ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;border:1px solid ${LAPIS.edge};
   background:${T.cardSoft};display:flex;align-items:center;cursor:pointer;}
 .ss-flag img{width:${PACK_SPACE.xl}px;height:${PACK_SPACE.lg}px;object-fit:cover;}
@@ -67,7 +76,8 @@ const CSS = `
 .ss-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:${PACK_SPACE.md}px;}
 .ss-mini{display:flex;flex-direction:column;overflow:hidden;padding:0;cursor:pointer;text-align:left;font-family:${FONT_UI};}
 .ss-mini img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block;}
-.ss-mini b{padding:${PACK_SPACE.sm}px ${PACK_SPACE.sm}px 0;font-weight:600;font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
+/* C7 — meno človeka v mriežke HĽADAŤ = Cinzel 700 (brand lock), nie zdedený Space Grotesk. */
+.ss-mini b{padding:${PACK_SPACE.sm}px ${PACK_SPACE.sm}px 0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
 .ss-mini span{padding:0 ${PACK_SPACE.sm}px ${PACK_SPACE.sm}px;font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
 .ss-mini:hover{box-shadow:${PACK_SHADOW.panel};}
 `;
@@ -75,14 +85,12 @@ const CSS = `
 export function SnifferSearch({ tx, onOpen }: { tx: Tx; onOpen: (card: SnifferCardData) => void }) {
   const { profile } = useProfile();
   const { lang } = useLang();
-  // Meno krajiny v jazyku appky (`countryName` vracia EN). Prehliadač bez Intl → EN.
-  const ctryName = useMemo(() => {
-    try { const dn = new Intl.DisplayNames([lang], { type: 'region' }); return (iso: string) => dn.of(iso.toUpperCase()) ?? countryName(iso); }
-    catch { return countryName; }
-  }, [lang]);
+  // Meno krajiny v jazyku appky — bola duplicita s `SnifferPin.tsx` (audit „Duplicity"), jeden zdroj.
+  const ctryName = useCountryName();
   const human = profile?.human;
   const heading = human?.heading;
-  const country = heading?.country ?? 'sk';
+  // D bez čísla — FAR SNIFF predvolene 'sk' nedávalo zmysel nikomu mimo SK; berie pin/národnosť/jazyk.
+  const country = heading?.country ?? defaultCountry(human?.pin, human?.nationality, lang);
   const [mode, setModeRaw] = useState<Mode>(readMode);
   const [dropOpen, setDropOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -117,14 +125,15 @@ export function SnifferSearch({ tx, onOpen }: { tx: Tx; onOpen: (card: SnifferCa
 
   const myIntents: string[] = (human?.intents ?? []).filter((i) => i !== 'community');
   const hasPin = !!human?.pin;
-  const km = (p: SnifferCardData) => (p.distance_km != null ? tx('pack.sniffer.kmAway', '{n} km away', { n: Math.max(1, Math.round(Number(p.distance_km))) }) : '');
+  const km = (p: SnifferCardData) => distanceLabel(p, tx);
 
   return (
     <>
       <style>{CSS}</style>
       <style>{SNIFFER_EMPTY_CSS}</style>
       <div className="ss-head">
-        <button type="button" className={`ss-flt${filterOpen || intent ? ' is-on' : ''}`} aria-pressed={filterOpen}
+        {/* is-on nesie VÝBER (zámer), nie stav panelu — otvorený prázdny filter sa nerozsvieti (audit). */}
+        <button type="button" className={`ss-flt${intent ? ' is-on' : ''}`} aria-pressed={filterOpen}
           aria-label={tx('pack.sniffer.search.filter', 'Filter')} onClick={() => setFilterOpen((v) => !v)}>
           <BrandIcon name="sliders" size={PACK_SPACE.lg} tint="dark" />
         </button>
@@ -133,14 +142,14 @@ export function SnifferSearch({ tx, onOpen }: { tx: Tx; onOpen: (card: SnifferCa
             onClick={() => setMode('near')}>{tx('pack.sniffer.search.near', 'Nearby')}</button>
           <button type="button" role="tab" aria-selected={mode === 'far'} aria-expanded={dropOpen} className={`ss-seg${mode === 'far' ? ' is-on' : ''}`}
             onClick={() => setMode('far')}>
-            FAR SNIFF {dropOpen ? '▴' : '▾'}
+            FAR SNIFF <i className={dropOpen ? 'is-up' : 'is-down'} aria-hidden />
           </button>
         </div>
         {/* Vybraná krajina je VLASTNÝ chip, nie súčasť tlačidla FAR SNIFF (Matej 25. 9.). */}
         {mode === 'far' && (
           <button type="button" className="ss-flag" aria-expanded={dropOpen} onClick={() => setDropOpen((v) => !v)}
             aria-label={tx('pack.sniffer.pin.country', 'Country')}>
-            <img src={flagUrl(country)} alt="" />
+            <img src={flagUrl(country, 80)} alt="" />
           </button>
         )}
       </div>
@@ -162,7 +171,7 @@ export function SnifferSearch({ tx, onOpen }: { tx: Tx; onOpen: (card: SnifferCa
               <button key={c.iso} type="button" aria-pressed={c.iso === country}
                 className={`ss-ctry${c.trips >= GLOW_AT ? ' is-glow' : ''}${c.iso === country ? ' is-on' : ''}`}
                 onClick={() => setHeading({ country: c.iso })}>
-                <img src={flagUrl(c.iso)} alt="" />
+                <img src={flagUrl(c.iso, 80)} alt="" />
                 <span>{ctryName(c.iso)}<small>{tx(`pack.sniffer.trips.${c.trips === 1 ? 'one' : c.trips >= 2 && c.trips <= 4 ? 'few' : 'other'}`, '{n} trips', { n: c.trips })}</small></span>
               </button>
             ))}
@@ -188,7 +197,8 @@ export function SnifferSearch({ tx, onOpen }: { tx: Tx; onOpen: (card: SnifferCa
         <p className="ss-note" style={{ textAlign: 'center' }}>
           {hasPin
             ? tx('pack.sniffer.search.nearNote', 'Everyone around your pin who shows up here')
-            : tx('pack.sniffer.search.noPin', 'Drop your pin in settings (My patch) to see who’s around.')}
+            // Presné miesto (audit: pin je v karte 3/6 Vášho profilu, nie v „nastaveniach").
+            : tx('pack.sniffer.search.noPin', 'Set your pin in Your profile (step 3/6 · My patch) to see who’s around.')}
         </p>
       )}
 

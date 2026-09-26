@@ -13,14 +13,13 @@ import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, FONT_UI,
 } from '@/components/pack/packTheme';
 import {
-  ACTIVITY_OPTIONS, GENDER_OPTIONS, SMOKE_OPTIONS, DIET_OPTIONS, WORK_OPTIONS, ORIENTATION_OPTIONS,
+  GENDER_OPTIONS, SMOKE_OPTIONS, DIET_OPTIONS, WORK_OPTIONS, ORIENTATION_OPTIONS,
   PERSONALITY_OPTIONS,
 } from '@/components/pack/profile/packProfile';
-import { zodiacMap, chineseMap } from '@/components/HeroglyphFrame';
 import { countryName } from '@/lib/countryGeo';
 import {
   SnifferCard, SnifferLevels, SnifferStatsChip, SNIFFER_CARD_CSS, snifferPlace,
-  HEROGLYPH_GLOW, DOG_NAME_FONT, img,
+  HEROGLYPH_GLOW, DOG_NAME_FONT, img, bgImg, interestLabel, zodiacIcon, zodiacLabel,
 } from './SnifferCard';
 import { SnifferCountryOutline } from './SnifferPin';
 import { tripNames, type SnifferCardData, type SnifferDog } from './snifferDeck';
@@ -34,7 +33,7 @@ const CARD_W = 300;
 const CSS = `
 .sfp{width:100%;max-width:${CARD_W * 4 + PACK_SPACE.lg * 3 + PACK_SPACE.xl * 2}px;max-height:100%;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .sfp-row{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;overflow-y:auto;padding:0 ${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;}
-.sfp-photo{position:relative;flex:0 0 auto;height:min(520px, 72vh);}
+.sfp-photo{position:relative;flex:0 0 auto;height:min(520px, 72dvh);}
 .sfp-card{flex:0 0 auto;padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;font-family:${FONT_UI};}
 @media (min-width:${ROW_AT}px){
   .sfp-row{flex-direction:row;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;padding:0 ${PACK_SPACE.xl}px ${PACK_SPACE.md}px;}
@@ -53,7 +52,9 @@ const CSS = `
 .sfp-place{margin:0;font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
 .sfp-two{display:grid;grid-template-columns:1fr 1fr;gap:${PACK_SPACE.sm}px;}
 .sfp-list{padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;min-width:0;}
-.sfp-list span{font-size:${PACK_TEXT.label}px;color:${T.inkStrong};padding-top:${PACK_SPACE.xs}px;border-top:1px solid ${T.hairline};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* C6 — dlhý názov výletu sa NEOREZÁVA na jeden riadok, zalomí sa na dva (audit: „Záruby 1…"). */
+.sfp-list span{font-size:${PACK_TEXT.label}px;color:${T.inkStrong};padding-top:${PACK_SPACE.xs}px;border-top:1px solid ${T.hairline};
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
 .sfp-list small{font-size:${PACK_TEXT.label}px;color:${T.inkFaint};}
 .sfp-dog{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
 .sfp-dog + .sfp-dog{padding-top:${PACK_SPACE.md}px;border-top:1px solid ${T.hairline};}
@@ -75,13 +76,14 @@ function DogAlbum({ dog, tx }: { dog: SnifferDog; tx: Tx }) {
       <div className="sfp-alb">
         {/* 1. fotka = pes ako na WALLE: fotka, zlatý heroglyf, meno. Poradové číslo NIE. */}
         <div className={`sfp-wall sn-slide${rest.length ? '' : ' is-solo'}`}>
-          {dog.photo && <img className="sn-bg" src={img(dog.photo, 600)} alt="" style={{ objectPosition: '50% 30%' }} />}
+          {/* C2 — fotka psa má uložený výrez (c_crop): bgImg REŤAZÍ zmenšenie ZA ním, nie namiesto. */}
+          {dog.photo && <img className="sn-bg" src={bgImg(dog.photo, 220, 240)} alt="" style={{ objectPosition: '50% 30%' }} />}
           <div className="sn-crest">
             {dog.heroglyph && <img className="sn-hg" src={img(dog.heroglyph, 400)} alt="" style={{ filter: HEROGLYPH_GLOW }} />}
             {dog.name && <span className="sn-dogname pk-veil--plate" style={{ fontFamily: DOG_NAME_FONT }}>{dog.name}</span>}
           </div>
         </div>
-        {rest.map((u) => <img key={u} src={img(u, 300)} alt="" loading="lazy" />)}
+        {rest.map((u) => <img key={u} src={bgImg(u, 100, 64)} alt="" loading="lazy" />)}
       </div>
       {dog.bio?.trim() && <p className="sfp-bio">{dog.bio.trim()}</p>}
       {dog.temperament.length > 0 && (
@@ -112,7 +114,7 @@ export function SnifferFullProfile({ card, tx, actions }: { card: SnifferCardDat
   const walked = tripNames(card.trips ?? []);
   const wishes = card.wishes ?? [];
   const place = snifferPlace(card, tx);
-  const interest = (v: string) => tx(`pack.map.activityLabel.${v}`, ACTIVITY_OPTIONS.find((a) => a.value === v)?.labelEN ?? v);
+  const interest = (v: string) => interestLabel(v, tx);
 
   return (
     <div className="sfp">
@@ -132,14 +134,14 @@ export function SnifferFullProfile({ card, tx, actions }: { card: SnifferCardDat
             <div className="sfp-pills">
               {card.zodiac?.western && (
                 <span className="pk-pill sfp-sign">
-                  {zodiacMap[card.zodiac.western] && <img src={zodiacMap[card.zodiac.western]} alt="" />}
-                  {tx(`heroglyph.flow.ownerZodiac.sign.${card.zodiac.western}`, card.zodiac.western)}
+                  {zodiacIcon('western', card.zodiac.western) && <img src={zodiacIcon('western', card.zodiac.western)} alt="" />}
+                  {zodiacLabel('western', card.zodiac.western, tx)}
                 </span>
               )}
               {card.zodiac?.chinese && (
                 <span className="pk-pill sfp-sign">
-                  {chineseMap[card.zodiac.chinese] && <img src={chineseMap[card.zodiac.chinese]} alt="" />}
-                  {tx(`heroglyph.flow.ownerZodiac.animal.${card.zodiac.chinese}`, card.zodiac.chinese)}
+                  {zodiacIcon('chinese', card.zodiac.chinese) && <img src={zodiacIcon('chinese', card.zodiac.chinese)} alt="" />}
+                  {zodiacLabel('chinese', card.zodiac.chinese, tx)}
                 </span>
               )}
             </div>

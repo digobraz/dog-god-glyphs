@@ -52,10 +52,14 @@ export interface BuddySettings {
   /** Ukazujem sa v Ľudia v okolí (kolo 2) — východisko NIE (Matej 25. 9.). */
   show_nearby: boolean;
   /** REŽIM GHOST (kolo 3, Matej 25. 9.: „nikto ma nevidí, ja vidím všetkých") — ukážem sa len
-   *  tomu, komu dám NOS. Jediná definícia `sniffer_visible` (20260930_sniffer_kolo3.sql). */
+   *  tomu, komu dám SNIFF. Jediná definícia `sniffer_visible` (20260930_sniffer_kolo3.sql). */
   ghost: boolean;
   /** Ukážem sa aj SVORKÁM (páru/skupine). Uložené; porovnávať sa začne, až bude pár ako karta. */
   show_to_packs: boolean;
+  /** D3 (audit 26. 9., Matej: „nech si to človek vyberie v nastaveniach") — predvolene VYPNUTÉ:
+   *  kým si ho človek sám nezapne, ľudia, ktorým dal NIE, sa nevracajú ani vo FAR SNIFF, ani
+   *  v hľadaní. Stĺpec `assnif_settings.show_passed` pridáva server (audit-sniffer-2026-09-26). */
+  show_passed: boolean;
 }
 
 export const DEFAULT_BUDDY_SETTINGS: BuddySettings = {
@@ -71,6 +75,7 @@ export const DEFAULT_BUDDY_SETTINGS: BuddySettings = {
   show_nearby: false,
   ghost: false,
   show_to_packs: false,
+  show_passed: false,
 };
 
 /** Tri psie body. Rovnaká podmienka ako v SQL. */

@@ -45,8 +45,12 @@ export interface SnifferCardData {
   region: string | null;
   /** Krajina (pin, inak národnosť), ISO2 malými. */
   country?: string;
-  /** Vzdialenosť od diváka v km — pin sám von nejde nikdy. */
+  /** Vzdialenosť od diváka v km — STARŠÍ TVAR (A3, audit-sniffer-2026-09-26: opakovaný presun
+   *  pinu = trilaterácia bydliska). Server ho nahrádza pásmom nižšie; optional zostáva, kým
+   *  vizuálny agent neprejde na `distanceBand` (SnifferCard.tsx, SnifferSearch.tsx ho ešte čítajú). */
   distance_km?: number | null;
+  /** Vzdialenosť v PÁSME namiesto presných km (A3, Matej 26. 9.: „ok"). `null` = pin nemá. */
+  distanceBand?: SnifferDistanceBand | null;
   info?: SnifferInfo;
   /** PÚTNIK level (zapisuje ho majiteľov klient) · DEVOTION body (100 + ledger). */
   pilgrimLevel?: number | null;
@@ -78,10 +82,28 @@ export interface SnifferMatch {
   conv: string | null;
 }
 
+/** A3 (audit-sniffer-2026-09-26): server posiela vzdialenosť v pásme. */
+export type SnifferDistanceBand = '0-5' | '5-10' | '10-25' | '25-50' | '50+';
+
+/** Surový riadok z RPC pred mapovaním — server posiela hadí zápis `distance_band`. */
+type RawSnifferCard = Omit<SnifferCardData, 'distanceBand'> & { distance_band?: SnifferDistanceBand | null };
+
+/** Jedno miesto, ktoré premení hadí zápis servera na tvar karty. Zvyšné polia idú cez —
+ *  RPC ich už posiela v tvare, ktorý `SnifferCardData` očakáva. */
+function mapCard(raw: RawSnifferCard): SnifferCardData {
+  const { distance_band, ...rest } = raw;
+  return { ...(rest as SnifferCardData), distanceBand: distance_band ?? null };
+}
+
+/** Výsledok HĽADAŤ nesie kurzor na ďalšiu stránku (ak ho server vráti) — pole zostáva poľom
+ *  (`Array.isArray`, `.map`, priradenie do `SnifferCardData[]`), kurzor je len navyše vlastnosť,
+ *  aby existujúci volajúci (`SnifferSearch.tsx`) nemusel meniť tvar skôr, než na to prejde. */
+export type SnifferCardPage = SnifferCardData[] & { cursor?: string | null };
+
 export async function loadDeck(limit = 20): Promise<SnifferCardData[]> {
   const { data, error } = await db.rpc('assnif_deck', { p_limit: limit });
   if (error) throw error;
-  return (data ?? []) as SnifferCardData[];
+  return ((data ?? []) as RawSnifferCard[]).map(mapCard);
 }
 
 export async function swipe(member: number, verdict: 'like' | 'pass', message?: string): Promise<{ match: boolean; conv: string | null }> {
@@ -93,29 +115,38 @@ export async function swipe(member: number, verdict: 'like' | 'pass', message?: 
 export async function loadMatches(): Promise<SnifferMatch[]> {
   const { data, error } = await db.rpc('assnif_matches');
   if (error) throw error;
-  return ((data ?? []) as Array<{ card: SnifferCardData; matched_at: string; conv: string | null }>)
-    .map((r) => ({ card: r.card, matchedAt: r.matched_at, conv: r.conv }));
+  return ((data ?? []) as Array<{ card: RawSnifferCard; matched_at: string; conv: string | null }>)
+    .map((r) => ({ card: mapCard(r.card), matchedAt: r.matched_at, conv: r.conv }));
 }
 
-/** HĽADAŤ — mriežka nad tou istou podmienkou ako balíček (`assnif_search`). */
-export async function searchPeople(country: string, areas: string[], intent: string | null): Promise<SnifferCardData[]> {
-  const { data, error } = await db.rpc('assnif_search', { p_country: country, p_areas: areas, p_intent: intent });
+/** HĽADAŤ — mriežka nad tou istou podmienkou ako balíček (`assnif_search`). `after` = kurzor
+ *  z predošlej stránky (audit-sniffer-2026-09-26, E2: hľadanie dnes nestránkuje). Server môže
+ *  ešte vždy vrátiť holé pole (bez kurzora) — obe podoby sú ošetrené. */
+export async function searchPeople(
+  country: string, areas: string[], intent: string | null, after?: string | null,
+): Promise<SnifferCardPage> {
+  const { data, error } = await db.rpc('assnif_search', { p_country: country, p_areas: areas, p_intent: intent, p_after: after ?? null });
   if (error) throw error;
-  return (data ?? []) as SnifferCardData[];
+  const isArr = Array.isArray(data);
+  const rawItems = (isArr ? data : (data as { items?: RawSnifferCard[] } | null)?.items) as RawSnifferCard[] | undefined;
+  const cursor = isArr ? null : ((data as { cursor?: string | null } | null)?.cursor ?? null);
+  const page = (rawItems ?? []).map(mapCard) as SnifferCardPage;
+  page.cursor = cursor;
+  return page;
 }
 
 /** ĽUDIA V OKOLÍ — „všetkých vidíme" (`assnif_nearby` / `sniffer_nearby_ok`). */
 export async function loadNearby(intent: string | null): Promise<SnifferCardData[]> {
   const { data, error } = await db.rpc('assnif_nearby', { p_intent: intent });
   if (error) throw error;
-  return (data ?? []) as SnifferCardData[];
+  return ((data ?? []) as RawSnifferCard[]).map(mapCard);
 }
 
 /** Moja karta presne tak, ako ju dostanú ostatní (`assnif_my_card` = tá istá `sniffer_card`). */
 export async function loadMyCard(): Promise<SnifferCardData | null> {
   const { data, error } = await db.rpc('assnif_my_card');
   if (error) throw error;
-  return (data ?? null) as SnifferCardData | null;
+  return data ? mapCard(data as RawSnifferCard) : null;
 }
 
 export async function unmatch(member: number): Promise<void> {

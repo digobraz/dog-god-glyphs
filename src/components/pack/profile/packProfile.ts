@@ -877,7 +877,13 @@ export async function getProfile(): Promise<CentralProfile> {
 // servera pri každom chipe by sa prejavilo ako sekanie.
 // Keď zápis do DB zlyhá, zmena ostane lokálne a `MIGRATED_KEY` sa NEnastaví,
 // takže ju najbližšie načítanie s prázdnym serverom presype.
-export async function saveHuman(patch: Partial<HumanProfile>): Promise<CentralProfile> {
+//
+// 🔴 `throwOnError` je OPT-IN (audit-sniffer-2026-09-26, B4): pôvodné správanie (chyba upsertu
+//    sa prehltne, funkcia „uspeje" aj keď server nič neuložil) OSTÁVA pre volajúcich mimo
+//    SNIFFERu (HeroCard, SnifferPin, SnifferSearch, usePilgrimStats, PackProfile) — zmena by im
+//    pridala nezachytenú výnimku, ktorú dnes nečakajú. SNIFFER (`PackBuddy.tsx`) si chybu
+//    vypýta explicitne a ukáže ju človeku.
+export async function saveHuman(patch: Partial<HumanProfile>, opts?: { throwOnError?: boolean }): Promise<CentralProfile> {
   const cur = readRaw();
   const next: CentralProfile = { ...cur, human: { ...cur.human, ...patch }, updatedAt: new Date().toISOString() };
   writeRaw(next);
@@ -885,13 +891,16 @@ export async function saveHuman(patch: Partial<HumanProfile>): Promise<CentralPr
 
   const uid = await currentUserId();
   if (uid) {
-    await db.from('pack_profiles')
+    const { error } = await db.from('pack_profiles')
       .upsert({ user_id: uid, human: next.human as unknown as Record<string, unknown> }, { onConflict: 'user_id' });
+    if (error && opts?.throwOnError) throw error;
   }
   return next;
 }
 
-export async function saveDogAttrs(dogId: string, patch: Partial<DogProfileAttrs>): Promise<CentralProfile> {
+export async function saveDogAttrs(
+  dogId: string, patch: Partial<DogProfileAttrs>, opts?: { throwOnError?: boolean },
+): Promise<CentralProfile> {
   const cur = readRaw();
   const existing = cur.dogs[dogId] ?? emptyDogAttrs(dogId);
   const merged: DogProfileAttrs = { ...existing, ...patch, dogId };
@@ -914,8 +923,9 @@ export async function saveDogAttrs(dogId: string, patch: Partial<DogProfileAttrs
 
   const uid = await currentUserId();
   if (uid) {
-    await db.from('dog_profiles')
+    const { error } = await db.from('dog_profiles')
       .upsert({ dog_id: dogId, user_id: uid, attrs: merged as unknown as Record<string, unknown> }, { onConflict: 'dog_id' });
+    if (error && opts?.throwOnError) throw error;
   }
   return next;
 }

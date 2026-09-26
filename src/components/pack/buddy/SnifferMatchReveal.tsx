@@ -47,7 +47,11 @@ const CSS = `
 .mr h2{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h1}px;letter-spacing:.14em;text-transform:uppercase;color:${LAPIS.ink};
   opacity:0;animation:mrPop .5s cubic-bezier(.3,1.6,.5,1) 4.3s forwards;}
 .mr p{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.onDark};opacity:0;animation:mrRv .5s ease 4.6s forwards;}
-.mr-acts{width:100%;display:flex;flex-direction:column;align-items:center;gap:${PACK_SPACE.sm}px;opacity:0;animation:mrRv .5s ease 4.9s forwards;}
+/* B11 (audit-sniffer-2026-09-26): tlačidlá boli takmer 5 s neviditeľné, ale klikateľné.
+   `pointer-events` je nespojitá vlastnosť — dva tesné kroky tesne pred koncom animácie
+   spôsobia, že sa prepne až vtedy, keď je blok naozaj vidno, nie skôr. */
+.mr-acts{width:100%;display:flex;flex-direction:column;align-items:center;gap:${PACK_SPACE.sm}px;opacity:0;pointer-events:none;
+  animation:mrActs .5s ease 4.9s forwards;}
 
 @keyframes mrScene{0%{opacity:0}6%{opacity:1}88%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.05)}}
 @keyframes mrDogL{from{transform:translateX(-34%)}to{transform:none}}
@@ -62,9 +66,11 @@ const CSS = `
 @keyframes mrPulse{0%{transform:scale(1)}45%{transform:scale(1.1)}100%{transform:scale(1)}}
 @keyframes mrPop{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
 @keyframes mrRv{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes mrActs{from{opacity:0;transform:translateY(8px)}99%{pointer-events:none}100%{opacity:1;transform:none;pointer-events:auto}}
 @media (prefers-reduced-motion: reduce){
   .mr *,.mr-duo *{animation:none !important;}
   .mr h2,.mr p,.mr-acts,.mr-pair .pL,.mr-pair .pR{opacity:1;}
+  .mr-acts{pointer-events:auto;}
   .mr-pair .pL{transform:translateX(-34px);}
   .mr-pair .pR{transform:translateX(34px);}
 }

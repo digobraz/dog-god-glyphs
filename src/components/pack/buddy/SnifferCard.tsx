@@ -9,11 +9,12 @@
 //    📍 pri bydlisku (Matej 25. 9. k nákresu kola 2).
 // Ťuk vľavo/vpravo v hornej polovici = predošlá/ďalšia fotka (pásiky hore).
 import { useEffect, useState, type CSSProperties } from 'react';
-import { withTransform } from '@/services/cloudinaryService';
+import { withTransform, bgImg as bgImgSized } from '@/services/cloudinaryService';
 import {
   PACK_THEME as T, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, FONT_UI, FONT_TITLE, BRAND_GOLD_BTN,
 } from '@/components/pack/packTheme';
 import { ACTIVITY_OPTIONS } from '@/components/pack/profile/packProfile';
+import { zodiacMap, chineseMap } from '@/components/HeroglyphFrame';
 import type { SnifferCardData } from './snifferDeck';
 import { loadMyCard, pilgrimFromTrips } from './snifferDeck';
 import { devotionLevel } from '@/lib/devotion';
@@ -29,7 +30,43 @@ export const DOG_NAME_FONT = "'Cinzel Decorative','Cinzel',serif";
 export const HEROGLYPH_GLOW = 'brightness(0) invert(1) sepia(1) saturate(8) hue-rotate(-12deg) brightness(1.3) '
   + 'drop-shadow(0 0 14px rgba(201,154,63,0.95)) drop-shadow(0 0 32px rgba(201,154,63,0.55))';
 
+/** FIT (nezoreže, len ohraničí) — heroglyf a iné assety s vlastným pomerom strán, nie fotky na oreznutie. */
 export const img = (u: string | null | undefined, w = 900) => withTransform(u, `c_limit,w_${w},f_auto,q_auto`);
+
+/** FOTKA NA PLOCHU — audit SNIFFER C1/C2 (26. 9. 2026): `c_fill,g_auto` PODĽA DPR displeja,
+ *  reťazené ZA prípadný uložený výrez (`sizedUrl`/`fillUrl` v `cloudinaryService.ts`), nie
+ *  namiesto neho — jeden pomocník pre kartu, album aj mriežku HĽADAŤ (`SnifferSearch.tsx`). */
+export const bgImg = (u: string | null | undefined, w: number, h: number) => bgImgSized(u, w, h);
+
+/** Znamenie: kresba + text — bola duplicita (`SnifferProfile` vs. `SnifferFullProfile`, audit
+ *  „Duplicity", 26. 9. 2026), teraz jeden zdroj. */
+export const zodiacIcon = (kind: 'western' | 'chinese', v: string): string | undefined =>
+  (kind === 'western' ? zodiacMap[v] : chineseMap[v]);
+export const zodiacLabel = (kind: 'western' | 'chinese', v: string, tx: Tx): string =>
+  (kind === 'western' ? tx(`heroglyph.flow.ownerZodiac.sign.${v}`, v) : tx(`heroglyph.flow.ownerZodiac.animal.${v}`, v));
+
+/** Záľuba/aktivita — bola duplicita (`SnifferCard` vs. `SnifferFullProfile`), teraz jeden zdroj. */
+export const interestLabel = (v: string, tx: Tx): string =>
+  tx(`pack.map.activityLabel.${v}`, ACTIVITY_OPTIONS.find((o) => o.value === v)?.labelEN ?? v);
+
+/** Vzdialenosť V PÁSMACH (A3, Matej 26. 9.: „4. ok" — nie presné km, aby sa z opakovanej zmeny
+ *  pinu nedala trilaterovať poloha bydliska). Server posiela `distanceBand`, kým sa tam nezapíše
+ *  (kolo servera/logiky) je pole nepovinné navyše k `SnifferCardData`. */
+export type DistanceBand = '0-5' | '5-10' | '10-25' | '25-50' | '50+';
+type WithDistance = SnifferCardData & { distanceBand?: DistanceBand | null };
+const DIST_LABEL: Record<DistanceBand, [string, string]> = {
+  '0-5': ['pack.sniffer.dist.b0_5', 'within 5 km'],
+  '5-10': ['pack.sniffer.dist.b5_10', '5–10 km away'],
+  '10-25': ['pack.sniffer.dist.b10_25', '10–25 km'],
+  '25-50': ['pack.sniffer.dist.b25_50', '25–50 km'],
+  '50+': ['pack.sniffer.dist.b50p', 'more than 50 km away'],
+};
+export function distanceLabel(card: WithDistance, tx: Tx): string {
+  const b = card.distanceBand;
+  if (!b || !DIST_LABEL[b]) return '';
+  const [k, f] = DIST_LABEL[b];
+  return tx(k, f);
+}
 
 export const SNIFFER_CARD_CSS = `
 .sn-card{position:absolute;inset:0;border-radius:${PACK_R.card}px;overflow:hidden;background:${T.pageBg};
@@ -52,10 +89,13 @@ export const SNIFFER_CARD_CSS = `
   /* Fotka viac v prechode, dole ÚPLNE čierna (Matej 25. 9.) — text nesmie stáť na farbe fotky. */
   background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.5) 28%, rgba(0,0,0,.86) 62%, #000 100%);
   color:${T.onDark};display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;font-family:${FONT_UI};}
-.sn-nm{margin:0;font-weight:600;font-size:${PACK_TEXT.h1}px;line-height:1.1;}
+/* C7 — meno ČLOVEKA je identita: Cinzel 700 (brand lock), nie Space Grotesk zdedený z .sn-ov. */
+.sn-nm{margin:0;min-width:0;flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h1}px;line-height:1.1;}
 .sn-nm span{font-weight:400;}
 .sn-meta{margin:0;font-size:${PACK_TEXT.label}px;opacity:.85;}
-.sn-head{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
+/* flex-wrap — dlhé meno + dva odznaky levelov sa na 360 px inak pobijú (audit C7). */
+.sn-head{display:flex;align-items:center;flex-wrap:wrap;gap:${PACK_SPACE.md}px;row-gap:${PACK_SPACE.xs}px;}
 .sn-lv{display:flex;flex-direction:column;align-items:flex-start;gap:${PACK_SPACE.xs}px;}
 /* LEVELY — odznak, nie štítok (Matej 25. 9.: „vo farbe a v luxusnejšom chipe… lapis alebo zlato").
    PÚTNIK nesie farbu SVOJHO pásma (tierOfLevel, tá istá ako prstenec na mape), DEVOTION je
@@ -66,18 +106,24 @@ export const SNIFFER_CARD_CSS = `
 .sn-lv > span > b{display:inline-grid;place-items:center;min-width:${PACK_SPACE.lg + PACK_SPACE.xs}px;height:${PACK_SPACE.lg + PACK_SPACE.xs}px;padding:0 ${PACK_SPACE.xs}px;
   border-radius:${PACK_R.pill}px;font-family:${FONT_UI};font-weight:700;font-size:${PACK_TEXT.micro}px;letter-spacing:0;}
 .sn-lv .is-pilgrim > b{background:rgba(0,0,0,.28);color:#fff;}
-.sn-lv .is-devotion{background:${LAPIS.grad};color:#F5C73D;}
-.sn-lv .is-devotion > b{background:${BRAND_GOLD_BTN.grad};color:#241a06;}
+.sn-lv .is-devotion{background:${LAPIS.grad};color:${LAPIS.ink};}
+.sn-lv .is-devotion > b{background:${BRAND_GOLD_BTN.grad};color:${BRAND_GOLD_BTN.ink};}
 /* PSY pred zámerom: „1 pes · HEKTOR · Hľadám: Priateľstvo" */
 .sn-dogs{margin:0;display:flex;align-items:center;gap:${PACK_SPACE.sm}px;font-size:${PACK_TEXT.label}px;}
-.sn-dogs em{font-style:normal;font-family:${DOG_NAME_FONT};font-weight:700;font-size:${PACK_TEXT.body}px;letter-spacing:.02em;}
+/* C7 — karta nie je OFICIÁLNY povrch (DOG ID/certifikát/share/WALL/PackTree) → meno psa
+   stačí plain Cinzel, nie Decorative (brand lock, výnimka zúžená 2026-08-14). */
+.sn-dogs em{font-style:normal;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;letter-spacing:.02em;}
 .sn-lbl{align-self:center;font-size:${PACK_TEXT.label}px;opacity:.75;margin-right:${PACK_SPACE.xs}px;}
 .sn-chip{align-self:flex-start;display:inline-flex;align-items:center;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;
   font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;white-space:nowrap;}
 .sn-chip b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;}
 .sn-chip i{font-style:normal;opacity:.5;}
-.sn-full{align-self:center;display:inline-flex;align-items:center;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.lg}px;cursor:pointer;
+/* C5 — vizuálne 28 px vysoký, ale ťukacia plocha ≥40 px cez neviditeľný ::after (vzor HIT_CSS). */
+.sn-full{position:relative;align-self:center;display:inline-flex;align-items:center;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.lg}px;cursor:pointer;
   font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;text-transform:uppercase;}
+.sn-full::after{content:'';position:absolute;inset:-6px;}
+/* C9 — šípka je KRESLENÁ (chevron z okraja), nie holý znak `↑`. */
+.sn-full i{display:inline-block;width:6px;height:6px;margin-top:2px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-135deg);}
 .sn-bio{margin:0;font-size:${PACK_TEXT.label}px;line-height:1.45;opacity:.92;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .sn-pills{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.xs}px;}
 .sn-pills .pk-pill{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;}
@@ -123,10 +169,9 @@ export function SnifferStatsChip({ card, tx }: { card: SnifferCardData; tx: Tx }
   );
 }
 
-/** 📍 bydlisko + vzdialenosť od diváka (pin sám von nejde). */
+/** 📍 bydlisko + vzdialenosť od diváka (pin sám von nejde, vzdialenosť ide v PÁSME — A3). */
 export function snifferPlace(card: SnifferCardData, tx: Tx): string {
-  const km = card.distance_km != null ? tx('pack.sniffer.kmAway', '{n} km away', { n: Math.max(1, Math.round(Number(card.distance_km))) }) : '';
-  return [card.region, km].filter(Boolean).join(' · ');
+  return [card.region, distanceLabel(card, tx)].filter(Boolean).join(' · ');
 }
 
 export function SnifferCard({ card, tx, back = false, className = '', style, onOpenFull, lean = false }: {
@@ -145,12 +190,12 @@ export function SnifferCard({ card, tx, back = false, className = '', style, onO
   const cur = slides[Math.min(k, slides.length - 1)];
   const go = (d: number) => setK((x) => (x + d + slides.length) % Math.max(1, slides.length));
   const place = snifferPlace(card, tx);
-  const interest = (v: string) => tx(`pack.map.activityLabel.${v}`, ACTIVITY_OPTIONS.find((o) => o.value === v)?.labelEN ?? v);
+  const interest = (v: string) => interestLabel(v, tx);
 
   return (
     <div className={`sn-card${back ? ' is-back' : ''} ${className}`} style={style}>
       {cur
-        ? <div className="sn-slide"><img className="sn-bg" src={img(cur)} alt="" draggable={false} /></div>
+        ? <div className="sn-slide"><img className="sn-bg" src={bgImg(cur, 400, 640)} alt="" draggable={false} /></div>
         : <div className="sn-empty">{tx('pack.sniffer.noPhoto', 'No photo yet')}</div>}
 
       {slides.length > 1 && (
@@ -191,7 +236,7 @@ export function SnifferCard({ card, tx, back = false, className = '', style, onO
         {onOpenFull && (
           <button type="button" className="sn-full pk-pill pk-pill--dark" onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onOpenFull(); }}>
-            {tx('pack.sniffer.fullProfile', 'Full profile')} ↑
+            {tx('pack.sniffer.fullProfile', 'Full profile')} <i aria-hidden />
           </button>
         )}
       </div>

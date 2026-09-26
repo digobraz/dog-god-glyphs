@@ -424,7 +424,8 @@ export function SnifferProfile({
     {
       // RAJÓN (Matej: „nadpis naľavo a chip napravo a možnosť vybrať iný").
       key: 'patch',
-      title: tx('pack.sniffer.profile.patchTitle', 'Our patch'),
+      // Zjednotené s `full.patch` (audit: „Náš rajón" vs „Môj rajón" — pin je vždy MÔJ, nie SPOLOČNÝ).
+      title: tx('pack.sniffer.profile.patchTitle', 'My patch'),
       sub: tx('pack.sniffer.profile.patchSub', 'Where we spend most of our time'),
       right: <SnifferCountryChip iso={iso} onPick={setIso} tx={tx} />,
       body: (
