@@ -16,7 +16,7 @@ import { DateDropdowns } from '@/components/DateDropdowns';
 import { FlowMedallion, FLOW_MEDAL_CSS, useSpeakMedal } from '@/components/screens/flowMedallion';
 import { FlowTextModal } from '@/components/screens/flowTextModal';
 import { LAPIS } from '@/components/pack/navGoldSkin';
-import { PACK_R } from '@/components/pack/packTheme';
+import { PACK_R, PACK_THEME } from '@/components/pack/packTheme';
 import { LAB } from '@/lib/labTheme';
 import { hekthorFace } from '@/lib/hekthorFaces';
 import { HEKTHOR_GLYPH } from '@/lib/hektor';
@@ -493,8 +493,8 @@ export function OwnerScreen() {
                               : t('heroglyph.flow.owner.signsEmpty')}
                           </span>
                           {western && chinese ? (
-                            <button type="button" className="ow-next" onClick={() => advance('stars')}>
-                              {t('heroglyph.flow.owner.next')}
+                            <button type="button" className="ow-next is-done" onClick={() => advance('stars')}>
+                              {t('heroglyph.flow.message.done')}
                             </button>
                           ) : (
                             <button type="button" className="ow-change" onClick={() => setSheet(true)}>
@@ -810,6 +810,10 @@ button.ow-name:not(.is-valid) { text-transform: none; letter-spacing: normal; }
   letter-spacing: 0.14em; text-transform: uppercase;
 }
 .ow-next:disabled { opacity: 0.35; cursor: default; }
+/* 26. 9. 2026 ~16:15 Matej na HVIEZDACH: *„keď je vybraté, bude svietiť na zeleno
+   HOTOVO, nie ĎALEJ"* — znamenia sú potvrdený stav, nie krok vpred. Zelená =
+   SPLNENÉ (\`PACK_THEME.growGreen\`, tá istá ako 100 % DOG ID). */
+.ow-next.is-done { background: ${PACK_THEME.growGreen}; border-color: ${PACK_THEME.growGreen}; }
 .ow-cta.is-off { opacity: 0.4; cursor: default; }
 .ow-cta.is-off:hover { transform: none; }
 @media (max-height: 700px) {
