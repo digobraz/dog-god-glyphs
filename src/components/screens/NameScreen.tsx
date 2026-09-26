@@ -22,8 +22,7 @@ import { LetterReveal, REVEAL_S, LETTER_S, FLOW_INTRO_CSS } from '@/components/s
 //    netušil prečo; obrazovka si svoj šat nosí sama.
 import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
 import { FLOW_STAGE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
-import { PACK_BOX, PACK_R, PACK_THEME } from '@/components/pack/packTheme';
-import { LAPIS } from '@/components/pack/navGoldSkin';
+import { PACK_BOX, PACK_R, PACK_THEME, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
 import { TopicChips, FLOW_TOPIC_CSS, type TopicState } from '@/components/screens/flowTopicChips';
 
 /** Premena príchodovej fázy na formulárovú — jeden prechod pre všetky prvky,
@@ -173,7 +172,11 @@ export function NameScreen() {
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
-  const formMedallion = winH < 700 ? 96 : winH < 820 ? 118 : 148;
+  // Matej 26. 9.: *„treba zväčšiť fotku Hektora"* — spodná doska po podkrokoch
+  // schudla (jedna otázka namiesto troch), takže medailón môže narásť.
+  const formMedallion = NEW_HEROFLOW
+    ? (winH < 700 ? 124 : winH < 820 ? 160 : 196)
+    : (winH < 700 ? 96 : winH < 820 ? 118 : 148);
 
   const [showInfo, setShowInfo] = useState(false);
   const isMobile = useMemo(() => window.matchMedia('(pointer: coarse)').matches, []);
@@ -238,6 +241,19 @@ export function NameScreen() {
     if (i === step) return 'todo';
     return seen[k] ? 'miss' : 'todo';
   };
+  /** Pomocné ĎALEJ v podkroku — ZLATÉ, nie lapis (Matej 26. 9.: *„lapis môže byť
+   *  vždy len jedno hlavné CTA"*). Po vyplnení všetkých troch chipov zelené HOTOVO. */
+  const allDone = TOPICS.every(doneOf);
+  const helper = (ok: boolean, k: NameTopic) => (
+    <button
+      type="button"
+      className={`nm-next${allDone ? ' is-done' : ''}`}
+      disabled={!ok}
+      onClick={() => advance(k)}
+    >
+      {allDone ? t('heroglyph.flow.message.done') : t('heroglyph.flow.owner.next')}
+    </button>
+  );
   const chipLabels: Record<NameTopic, string> = {
     name: t('heroglyph.flow.name.chipName'),
     born: t('heroglyph.flow.name.chipBorn'),
@@ -273,6 +289,10 @@ export function NameScreen() {
 
   // Pole mena je JEDNO pre oba vstupy — nový ho ukazuje v podkroku MENO, starý
   // v riadku s krajinou. Modal na mobile, priame písanie na PC.
+  // Matej 26. 9.: *„napísané meno by malo žiariť, teraz je ako keby stmavnuté"* —
+  // 10 % modrej na papyruse vyšla ako sivá. V novom vstupe je vyplnené pole
+  // svetlé a žiari lemom (`.nm-plate .is-filled`); starý vstup ostáva.
+  const filledBg = NEW_HEROFLOW ? '#FFFCF4' : 'hsl(224 60% 45% / 0.10)';
   const nameField = (
     <div className={`name-preview-wrap${trimmed.length > 0 ? ' is-filled' : ''}`} style={{ flex: '7 0 0', minWidth: 0 }}>
       {isMobile ? (
@@ -286,7 +306,7 @@ export function NameScreen() {
             textAlign: 'center',
             textTransform: trimmed.length > 0 ? 'uppercase' : 'none',
             letterSpacing: trimmed.length > 0 ? '0.05em' : 'normal',
-            background: trimmed.length > 0 ? 'hsl(224 60% 45% / 0.10)' : 'hsl(var(--card))',
+            background: trimmed.length > 0 ? filledBg : 'hsl(var(--card))',
             borderColor: trimmed.length > 0 ? 'hsl(224 60% 45%)' : 'rgba(47, 107, 255, 0.30)',
             color: trimmed.length > 0 ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground) / 0.5)',
             cursor: 'text',
@@ -315,7 +335,7 @@ export function NameScreen() {
             textAlign: 'center',
             textTransform: trimmed.length > 0 ? 'uppercase' : 'none',
             letterSpacing: trimmed.length > 0 ? '0.05em' : 'normal',
-            background: trimmed.length > 0 ? 'hsl(224 60% 45% / 0.10)' : 'hsl(var(--card))',
+            background: trimmed.length > 0 ? filledBg : 'hsl(var(--card))',
             borderColor: trimmed.length > 0 ? 'hsl(224 60% 45%)' : 'rgba(47, 107, 255, 0.30)',
             color: trimmed.length > 0 ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground) / 0.5)',
             outline: 'none',
@@ -537,7 +557,11 @@ export function NameScreen() {
                       </>
                     ) : (
                       <>
-                        <span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingPrefix')} <span className="font-bold text-amber-300">HEKTHOR</span>.</span><br />
+                        {/* Matej 26. 9.: *„2. a 3. krok už nebude Ahoj, ja som Hektor,
+                            ale iba otázka"* — predstaví sa raz, pri mene. */}
+                        {(!NEW_HEROFLOW || topic === 'name') && (
+                          <><span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingPrefix')} <span className="font-bold text-amber-300">HEKTHOR</span>.</span><br /></>
+                        )}
                         {NEW_HEROFLOW ? (
                           // Otázka podkroku — Hektor sa pýta, doska odpovedá (ako MAJITEĽ).
                           <AnimatePresence mode="wait" initial={false}>
@@ -704,9 +728,7 @@ export function NameScreen() {
                     {topic === 'name' && (
                       <div className="nm-row">
                         {nameField}
-                        <button type="button" className="nm-next" disabled={!nameValid} onClick={() => advance('name')}>
-                          {t('heroglyph.flow.owner.next')}
-                        </button>
+                        {helper(nameValid, 'name')}
                       </div>
                     )}
 
@@ -728,9 +750,7 @@ export function NameScreen() {
                           skin="pale"
                           onChange={handleDateChange}
                         />
-                        <button type="button" className="nm-next" disabled={!dateValid} onClick={() => advance('born')}>
-                          {t('heroglyph.flow.owner.next')}
-                        </button>
+                        {helper(dateValid, 'born')}
                       </div>
                     )}
 
@@ -928,20 +948,22 @@ export function NameScreen() {
 // Plocha jednej otázky má výšku najvyššieho podkroku (dlaždice stavu), aby sa
 // doska medzi MENOM, NARODENÍM a STAVOM nehýbala — to isté pravidlo ako MAJITEĽ.
 const NAME_TOPIC_CSS = `
-.nm-plate { display: flex; flex-direction: column; gap: 12px; }
+.nm-plate { display: flex; flex-direction: column; gap: 8px; }
 .nm-plate .ftc-row { grid-template-columns: repeat(3, 1fr); }
-.nm-q { width: 100%; min-height: 112px; display: flex; align-items: center; }
+.nm-q { width: 100%; min-height: 64px; display: flex; align-items: center; }
 .nm-qin { width: 100%; }
 .nm-row { display: flex; align-items: center; gap: 8px; }
-.nm-born { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
-.nm-born > div:first-child { width: 100%; }
+/* NARODENIE na JEDEN riadok — rolety a vedľa nich ĎALEJ (Matej 26. 9.). */
+.nm-born { display: flex; align-items: center; gap: 8px; width: 100%; }
+.nm-born > div:first-child { flex: 1; min-width: 0; }
+.nm-plate .name-preview-wrap.is-filled { box-shadow: 0 0 0 2px rgba(22,48,122,.6), 0 0 18px rgba(80,130,255,.55); }
 .nm-next {
   flex: 0 0 auto; height: 32px; padding: 0 14px; cursor: pointer; align-self: center;
-  border-radius: ${PACK_R.pill}px; border: 1.5px solid ${LAPIS.edge};
-  background: ${LAPIS.edge}; color: #FDF7E7;
+  border-radius: ${PACK_R.pill}px; border: 1px solid ${BRAND_GOLD_BTN.edge};
+  background: ${BRAND_GOLD_BTN.grad}; color: ${BRAND_GOLD_BTN.ink}; box-shadow: ${BRAND_GOLD_BTN.glow};
   font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
   letter-spacing: 0.14em; text-transform: uppercase;
 }
 .nm-next:disabled { opacity: 0.35; cursor: default; }
-.nm-next.is-done { background: ${PACK_THEME.growGreen}; border-color: ${PACK_THEME.growGreen}; }
+.nm-next.is-done { background: ${PACK_THEME.growGreen}; border-color: ${PACK_THEME.growGreen}; color: #FDF7E7; }
 `;
