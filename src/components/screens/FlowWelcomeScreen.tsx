@@ -42,7 +42,7 @@ import { usePostPaymentPipeline } from '@/hooks/usePostPaymentPipeline';
 //    pipeline sa nespúšťa.
 // ════════════════════════════════════════════════════════════════════════════
 
-type NewDog = { id: string; name: string; photo: string; n: number | null; glyph: string };
+type NewDog = { id: string; name: string; photo: string; n: number | null; glyph: string; selections?: Record<string, string>; patronSvg?: string };
 type PrevDog = { n: number; name: string; photo: string };
 
 /** Minimálny čas, kým sa ukáže ďalšia veta (ms). */
@@ -68,6 +68,8 @@ function useWelcomeData(sessionId: string | null) {
   const [owner, setOwner] = useState(store.ownerName || '');
   const [email, setEmail] = useState(store.email || '');
   const [session, setSession] = useState<Record<string, unknown> | null>(null);
+  /** Pokusy o čísla sa minuli — obrazovka ide ďalej s tým, čo má (nezasekne sa). */
+  const [settled, setSettled] = useState(false);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -87,24 +89,27 @@ function useWelcomeData(sessionId: string | null) {
           ? d.dogs.map((x: Record<string, unknown>) => ({
             id: String(x.id), name: String(x.dogName || ''), photo: String(x.dogPhotoUrl || ''),
             n: typeof x.packNumber === 'number' ? x.packNumber : null, glyph: String(x.heroglyphPngUrl || ''),
+            selections: (x.selections as Record<string, string>) || undefined, patronSvg: String(x.patronSvg || ''),
           }))
           : [{ id: 'main', name: d.dogName, photo: d.dogPhotoUrl || '', n: typeof d.packNumber === 'number' ? d.packNumber : null, glyph: '' }];
         setDogs(list);
         // Číslo ešte nie je (webhook aj seal zaostali) ⇒ skús znova.
         if (list.some((x) => x.n == null) && k < delays.length) {
           setTimeout(() => { if (alive) void attempt(k + 1); }, delays[k]);
+        } else {
+          setSettled(true);
         }
       } catch (e) {
         if (!alive) return;
         if (k < delays.length) setTimeout(() => { if (alive) void attempt(k + 1); }, delays[k]);
-        else console.error('[flow-welcome] get-session-data failed:', e);
+        else { console.error('[flow-welcome] get-session-data failed:', e); setSettled(true); }
       }
     };
     void attempt(0);
     return () => { alive = false; };
   }, [sessionId]);
 
-  return { dogs, owner, email, session };
+  return { dogs, owner, email, session, settled };
 }
 
 /** Predošlí psi v poradí (verejná stena). Koľko: aby nový pes stál v strede. */
@@ -159,7 +164,7 @@ export function FlowWelcomeScreen() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const sessionId = params.get('session_id');
-  const { dogs, owner, email, session } = useWelcomeData(sessionId);
+  const { dogs, owner, email, session, settled } = useWelcomeData(sessionId);
 
   // ── FÁZA 1: HEKTOR ─────────────────────────────────────────────────────
   const reduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -233,15 +238,15 @@ export function FlowWelcomeScreen() {
     return () => { window.clearTimeout(a); window.clearTimeout(b); };
   }, [phase, prev]);
 
-  // ── PIPELINE (len skutočná platba) ────────────────────────────────────
-  const [glyphUrl, setGlyphUrl] = useState('');
-  const [glyphTimedOut, setGlyphTimedOut] = useState(false);
-  const certRef = useRef<HTMLDivElement>(null);
-  const verticalRef = useRef<HTMLDivElement>(null);
-  const horizontalRef = useRef<HTMLDivElement>(null);
-  const shareRef = useRef<HTMLDivElement>(null);
+  // ── CERTIFIKÁT PRE KAŽDÉHO PSA (Matej 26. 9.: *„certifikát musí mať každý pes!"*) ──
+  // Pipeline (PDF + heroglyf + share karta) beží pre psov PO SEBE — každý má
+  // vlastný skrytý rám (`DogCertJob`, kľúč = pes), aby sa kresby nemiešali.
+  // Na ďalšieho psa sa ide, keď sú PDF uložené, alebo po 25 s (zvyšok dorobí
+  // DOG ID v /pack na požiadanie, ako doteraz).
+  const [glyphs, setGlyphs] = useState<Record<string, string>>({});
+  const [job, setJob] = useState(0);
   const sel = (session?.selections as Record<string, string>) || {};
-  // Skryté rámy čítajú store — po platbe na inom zariadení by bol prázdny.
+  // Skryté rámy majiteľa čítajú store — po platbe na inom zariadení by bol prázdny.
   useEffect(() => {
     if (!session) return;
     const s = useDogyptStore.getState();
@@ -253,28 +258,28 @@ export function FlowWelcomeScreen() {
     Object.entries(sel).forEach(([k, v]) => { if (typeof v === 'string') s.setSelection(k, v); });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
-  const main = dogs[0];
-  const certNumber = firstN != null ? `#${firstN}` : '';
-  usePostPaymentPipeline({
-    email: sessionId ? email : '',
-    dogName: main?.name || '',
-    ownerName: owner,
-    dogPhotoUrl: main?.photo || '',
-    sessionId,
-    packNumber: sessionId ? firstN : null,
-    certRef, verticalRef, horizontalRef, shareRef,
-    onHeroglyphReady: setGlyphUrl,
-  });
+  // 🔴 Test platbou na DEV 26. 9.: pes bez čísla (rozbité počítadlo) zasekol
+  //    obrazovku navždy na „generuje sa certifikát". Po vyčerpaní pokusov
+  //    (`settled`) sa ide ďalej a pes bez čísla sa preskočí — certifikát mu
+  //    dorobí DOG ID v /pack, keď číslo dostane.
+  const runJobs = !!sessionId && ((!!session && dogs.every((d) => d.n != null)) || settled);
+  const jobDog = runJobs ? dogs[job] : undefined;
   useEffect(() => {
-    if (!sessionId || glyphUrl || firstN == null) return;
-    const id = window.setTimeout(() => setGlyphTimedOut(true), 8000);
+    if (jobDog && jobDog.n == null) setJob((j) => j + 1);
+  }, [jobDog]);
+  useEffect(() => {
+    if (!jobDog) return;
+    const dogId = jobDog.id;
+    const id = window.setTimeout(() => setJob((j) => (dogs[j]?.id === dogId ? j + 1 : j)), 25000);
     return () => window.clearTimeout(id);
-  }, [sessionId, glyphUrl, firstN]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobDog]);
+  const glyphUrl = dogs[0] ? glyphs[dogs[0].id] || '' : '';
 
   // ── VETY PO JEDNEJ ────────────────────────────────────────────────────
   // 1 profil (kým nepríde číslo) · 2 certifikát (kým nie je heroglyf) · 3 HOTOVO · 4 1M + progres + CTA.
-  const profileDone = firstN != null;
-  const certDone = !sessionId || !!glyphUrl || glyphTimedOut;
+  const profileDone = firstN != null || settled;
+  const certDone = !sessionId || (runJobs && job >= dogs.length);
   const [line, setLine] = useState(0);
   useEffect(() => {
     if (!joined) return;
@@ -298,10 +303,10 @@ export function FlowWelcomeScreen() {
     if (first.photo) q.set('photoUrl', first.photo);
     // V dielni (bez platby) heroglyf nevznikne a stena by spálila len logo —
     // na test poslúži Hektorov (Matej 26. 9.: *„nevidím zápis animáciu na wall"*).
-    const g = first.glyph || glyphUrl || (import.meta.env.DEV && !sessionId ? '/images/hekthor-heroglyph.webp' : '');
+    const g = glyphs[first.id] || first.glyph || (import.meta.env.DEV && !sessionId ? '/images/hekthor-heroglyph.webp' : '');
     if (g) q.set('heroglyphUrl', g);
     // Viac psov: stena ich zapečatí postupne (GodsGrid číta `queue`).
-    if (rest.length) q.set('queue', JSON.stringify(rest.map((d) => ({ n: d.n ?? 0, name: d.name, photo: d.photo, glyph: d.glyph }))));
+    if (rest.length) q.set('queue', JSON.stringify(rest.map((d) => ({ n: d.n ?? 0, name: d.name, photo: d.photo, glyph: glyphs[d.id] || d.glyph }))));
     navigate(`/?${q.toString()}`);
   };
 
@@ -395,7 +400,7 @@ export function FlowWelcomeScreen() {
                       )}
                       {line === 2 && (
                         <motion.p className="wl-line" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
-                          {t('heroglyph.flow.welcomeNew.l2')}
+                          {t('heroglyph.flow.welcomeNew.l2')}{dogs.length > 1 && runJobs ? ` ${Math.min(job + 1, dogs.length)}/${dogs.length}` : ''}
                         </motion.p>
                       )}
                       {line === 3 && (
@@ -450,41 +455,92 @@ export function FlowWelcomeScreen() {
         </div>
       </div>
 
-      {/* Skryté rámy pre PDF/heroglyf — len pri skutočnej platbe. translate="no"
-          je NOSNÉ (auto-preklad by prepísal meno psa pred snímkou, #42 16. 7.). */}
-      {sessionId && main && (
-        <div aria-hidden="true" translate="no" className="notranslate" style={{ position: 'fixed', left: -10000, top: 0, pointerEvents: 'none', opacity: 1 }}>
-          <div ref={certRef}>
-            <CertificateCard
-              dogName={main.name}
-              ownerName={owner}
-              photoUrl={main.photo}
-              heroglyphCode={buildHeroglyphCode({
-                dogName: main.name,
-                ownerName: owner,
-                patronSvg: String(session?.patronSvg || ''),
-                breed: sel.breed,
-                patronCategory: sel.patronCategory,
-                country: sel.country || sel.ownerCountry,
-                selections: sel,
-              })}
-              certNumber={certNumber}
-              issuedDate={new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-            />
-          </div>
-          <div ref={verticalRef} style={{ width: 800, height: 1131, background: 'transparent', color: '#000' }}>
-            <VerticalHeroglyphFrame />
-          </div>
-          <div ref={horizontalRef} style={{ width: 1200, height: 321, background: 'transparent', color: '#000' }}>
-            <HeroglyphFrame showOwner />
-          </div>
-          <div ref={shareRef}>
-            {glyphUrl && firstN != null && (
-              <ShareCard packNumber={firstN} dogName={main.name} photoUrl={main.photo} heroglyphUrl={glyphUrl} />
-            )}
-          </div>
-        </div>
+      {jobDog && jobDog.n != null && (
+        <DogCertJob
+          key={jobDog.id}
+          dog={jobDog}
+          sessionId={sessionId as string}
+          email={email}
+          owner={owner}
+          fallbackSelections={sel}
+          fallbackPatron={String(session?.patronSvg || '')}
+          onGlyph={(url) => setGlyphs((g) => ({ ...g, [jobDog.id]: url }))}
+          // Posun len vtedy, ak je tento pes ešte na rade — pipeline, ktorá dobehne
+          // po 25 s limite, nesmie preskočiť ďalšieho psa.
+          onDone={() => { const id = jobDog.id; setJob((j) => (dogs[j]?.id === id ? j + 1 : j)); }}
+        />
       )}
+    </div>
+  );
+}
+
+/**
+ * Skrytý rám a pipeline JEDNÉHO psa. Rámy dostanú údaje psa priamo (`data`,
+ * `dogValues`), nie zo storu — store drží len prvého psa. `dogId` zúži zápis
+ * v `send-certificate` na tohto psa (svorka má spoločné `stripe_session_id`).
+ * translate="no" je NOSNÉ (auto-preklad by prepísal meno psa pred snímkou, #42 16. 7.).
+ */
+function DogCertJob({ dog, sessionId, email, owner, fallbackSelections, fallbackPatron, onGlyph, onDone }: {
+  dog: NewDog;
+  sessionId: string;
+  email: string;
+  owner: string;
+  fallbackSelections: Record<string, string>;
+  fallbackPatron: string;
+  onGlyph: (url: string) => void;
+  onDone: () => void;
+}) {
+  const certRef = useRef<HTMLDivElement>(null);
+  const verticalRef = useRef<HTMLDivElement>(null);
+  const horizontalRef = useRef<HTMLDivElement>(null);
+  const shareRef = useRef<HTMLDivElement>(null);
+  const [glyph, setGlyph] = useState('');
+  const sel = dog.selections && Object.keys(dog.selections).length ? dog.selections : fallbackSelections;
+  const patron = dog.patronSvg || fallbackPatron;
+  const realId = /^[0-9a-f-]{36}$/i.test(dog.id) ? dog.id : undefined;
+  usePostPaymentPipeline({
+    email,
+    dogName: dog.name,
+    ownerName: owner,
+    dogPhotoUrl: dog.photo,
+    sessionId,
+    packNumber: dog.n,
+    certRef, verticalRef, horizontalRef, shareRef,
+    dogId: realId,
+    onHeroglyphReady: (url) => { setGlyph(url); onGlyph(url); },
+    onDone: () => onDone(),
+  });
+  return (
+    <div aria-hidden="true" translate="no" className="notranslate" style={{ position: 'fixed', left: -10000, top: 0, pointerEvents: 'none', opacity: 1 }}>
+      <div ref={certRef}>
+        <CertificateCard
+          dogName={dog.name}
+          ownerName={owner}
+          photoUrl={dog.photo}
+          heroglyphCode={buildHeroglyphCode({
+            dogName: dog.name,
+            ownerName: owner,
+            patronSvg: patron,
+            breed: sel.breed,
+            patronCategory: sel.patronCategory,
+            country: sel.country || sel.ownerCountry,
+            selections: sel,
+          })}
+          certNumber={dog.n != null ? `#${dog.n}` : ''}
+          issuedDate={new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+        />
+      </div>
+      <div ref={verticalRef} style={{ width: 800, height: 1131, background: 'transparent', color: '#000' }}>
+        <VerticalHeroglyphFrame data={{ selections: sel, ownerName: owner, patronSvg: patron }} />
+      </div>
+      <div ref={horizontalRef} style={{ width: 1200, height: 321, background: 'transparent', color: '#000' }}>
+        <HeroglyphFrame showOwner dogValues={{ ...sel, patronSvg: patron }} />
+      </div>
+      <div ref={shareRef}>
+        {glyph && dog.n != null && (
+          <ShareCard packNumber={dog.n} dogName={dog.name} photoUrl={dog.photo} heroglyphUrl={glyph} />
+        )}
+      </div>
     </div>
   );
 }

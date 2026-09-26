@@ -38,7 +38,7 @@ async function waitForShareCardRoot(shareRef: RefObject<HTMLDivElement>): Promis
 // — it's already full-size, no upscale needed) and PATCHes dogs.share_card_url.
 // Not awaited by the caller so a share-card failure can never delay/break the
 // PDF + heroglyph pipeline above.
-async function captureShareCard(sid: string, shareRef: RefObject<HTMLDivElement>) {
+async function captureShareCard(sid: string, shareRef: RefObject<HTMLDivElement>, dogId?: string, key?: string) {
   try {
     const root = await waitForShareCardRoot(shareRef);
     if (!root) {
@@ -84,11 +84,11 @@ async function captureShareCard(sid: string, shareRef: RefObject<HTMLDivElement>
       console.warn(`[postPayment] share card suspiciously small (${pngBlob.size}B) — skipping upload`);
       return;
     }
-    const pngResult = await uploadShareCardPng(pngBlob, sid);
+    const pngResult = await uploadShareCardPng(pngBlob, key || sid);
     fetch(`${EDGE_BASE}/send-certificate`, {
       method: 'POST',
       headers: EDGE_HEADERS,
-      body: JSON.stringify({ sessionId: sid, shareCardUrl: pngResult.secureUrl }),
+      body: JSON.stringify({ sessionId: sid, dogId, shareCardUrl: pngResult.secureUrl }),
     }).catch(() => {});
   } catch (e) {
     console.warn('[postPayment] share card capture failed:', e);
@@ -107,10 +107,19 @@ interface PipelineArgs {
   horizontalRef: RefObject<HTMLDivElement>;
   shareRef: RefObject<HTMLDivElement>;
   onHeroglyphReady?: (url: string) => void;
+  /**
+   * 🐕 SVORKA (26. 9. 2026): ktorému psovi z platby zápis patrí. Bez neho
+   * `send-certificate` zapíše všetkým psom tej istej session (majú spoločné
+   * `stripe_session_id`). Pri svorke sa súbory v úložisku pomenujú aj podľa psa,
+   * inak by druhý pes prepísal certifikát prvého.
+   */
+  dogId?: string;
+  /** Koniec behu (PDF uložené, alebo posledný pokus zlyhal) — pre postupnosť psov. */
+  onDone?: (ok: boolean) => void;
 }
 
 export function usePostPaymentPipeline(args: PipelineArgs) {
-  const { email, dogName, ownerName, dogPhotoUrl, sessionId, packNumber, certRef, verticalRef, horizontalRef, shareRef, onHeroglyphReady } = args;
+  const { email, dogName, ownerName, dogPhotoUrl, sessionId, packNumber, certRef, verticalRef, horizontalRef, shareRef, onHeroglyphReady, dogId, onDone } = args;
   const fired = useRef(false);
 
   useEffect(() => {
@@ -126,6 +135,8 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
 
     fired.current = true;
     const sid = sessionId || `local-${Date.now()}`;
+    /** Kľúč súborov v úložisku: session, pri svorke + pes (inak by sa prepísali). */
+    const key = dogId ? `${sid}_${dogId.slice(0, 8)}` : sid;
 
     // One retry after 8s — the pipeline used to be strictly fire-once: a single
     // transient failure (Cloudinary upload, font fetch) meant empty pdf_*_url
@@ -201,7 +212,7 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
           const dataUrl = await toPng(svgEl, { cacheBust: true, pixelRatio: 2, backgroundColor: undefined });
           const pngRes = await fetch(dataUrl);
           const pngBlob = await pngRes.blob();
-          const pngResult = await uploadHeroglyphPng(pngBlob, sid);
+          const pngResult = await uploadHeroglyphPng(pngBlob, key);
           return pngResult.secureUrl;
         };
         let heroglyphPngUrl = '';
@@ -222,7 +233,7 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
           fetch(`${EDGE_BASE}/send-certificate`, {
             method: 'POST',
             headers: EDGE_HEADERS,
-            body: JSON.stringify({ sessionId: sid, heroglyphPngUrl }),
+            body: JSON.stringify({ sessionId: sid, dogId, heroglyphPngUrl }),
           }).catch(() => {});
 
           // SHARE CARD — onHeroglyphReady above sets WelcomeScreen's
@@ -230,7 +241,7 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
           // with that URL as its source. Kicked off in parallel with the PDF
           // pipeline below (not awaited) — see captureShareCard for the
           // ShareCard-readiness wait.
-          void captureShareCard(sid, shareRef);
+          void captureShareCard(sid, shareRef, dogId, key);
         }
 
         const [certBlob, vBlob, hBlob] = await renderPdfsSequential([
@@ -242,9 +253,9 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
         revokes.forEach((u) => { try { URL.revokeObjectURL(u); } catch { /* ignore */ } });
 
         const [c, v, h] = await Promise.all([
-          uploadCertPdf(certBlob, sid),
-          uploadVerticalPdf(vBlob, sid),
-          uploadHorizontalPdf(hBlob, sid),
+          uploadCertPdf(certBlob, key),
+          uploadVerticalPdf(vBlob, key),
+          uploadHorizontalPdf(hBlob, key),
         ]);
 
         // Silent PATCH: persist PDF URLs to dogs.pdf_*_url. No email — stripe-webhook
@@ -255,14 +266,18 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
           headers: EDGE_HEADERS,
           body: JSON.stringify({
             sessionId: sid,
+            dogId,
             pdfUrls: { cert: c.secureUrl, vertical: v.secureUrl, horizontal: h.secureUrl },
           }),
         });
+        onDone?.(true);
       } catch (err) {
         const e = err as Error;
         console.error(`[postPayment] pipeline failed (attempt ${attempt}/${MAX_ATTEMPTS}):`, e?.message || e, e?.stack || err);
         if (attempt < MAX_ATTEMPTS) {
           setTimeout(() => { void runPipeline(attempt + 1); }, 8000);
+        } else {
+          onDone?.(false);
         }
       }
     };
