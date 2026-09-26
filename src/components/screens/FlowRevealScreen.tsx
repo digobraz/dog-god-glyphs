@@ -89,10 +89,14 @@ export function FlowRevealScreen() {
   const titleA = t('heroglyph.flow.revealNew.titlePrefix');
   const titleB = t('heroglyph.flow.revealNew.titleWord');
   const titleC = t('heroglyph.flow.revealNew.titleSuffix');
+  /** Koniec vety ide VŽDY na nový riadok (Matej 26. 9. 2026: *„je hotový pôjde
+   *  dolu do riadku"*) — inak sa veta lámala podľa šírky okna a „hotový"
+   *  zostalo samo. Samostatný kľúč, lebo miesto zlomu je v každom jazyku inde. */
+  const titleD = t('heroglyph.flow.revealNew.titleEnd');
   /** Čas príchodu sa RÁTA z dĺžky vety (18 jazykov) + chvíľa na prečítanie
    *  podnadpisu — ten istý princíp ako krok 2, strop 4 s. */
   const introMs = useMemo(() => {
-    const letters = (titleA + titleB + titleC).length;
+    const letters = (titleA + titleB + titleC + titleD).length;
     return Math.min(4000, Math.round((REVEAL_S + letters * LETTER_S + 1.4) * 1000));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -202,10 +206,12 @@ export function FlowRevealScreen() {
                 <LetterReveal text={titleA} from={REVEAL_S} />
                 <LetterReveal text={titleB} from={REVEAL_S + titleA.length * LETTER_S} bold />
                 <LetterReveal text={titleC} from={REVEAL_S + (titleA.length + titleB.length) * LETTER_S} />
+                <span className="rv-br" aria-hidden />
+                <LetterReveal text={titleD} from={REVEAL_S + (titleA.length + titleB.length + titleC.length) * LETTER_S} />
               </span>
               <span
                 className="rv-hero-sub"
-                style={{ animationDelay: `${(REVEAL_S + (titleA + titleB + titleC).length * LETTER_S).toFixed(2)}s` }}
+                style={{ animationDelay: `${(REVEAL_S + (titleA + titleB + titleC + titleD).length * LETTER_S).toFixed(2)}s` }}
               >
                 {t('heroglyph.flow.revealNew.sub')}
               </span>
@@ -219,7 +225,7 @@ export function FlowRevealScreen() {
             transition={{ duration: 0.4 }}
           >
           {/* Nadpis ostáva MALÝM písmom nad doskou, bez Hektora. */}
-          <p className="rv-kicker">{titleA}<b>{titleB}</b>{titleC}</p>
+          <p className="rv-kicker">{titleA}<b>{titleB}</b>{titleC} {titleD}</p>
 
           {/* ── 2. BLOK: PES → DIZAJN → ODKAZ → ĎALEJ ─────────────────────── */}
           <motion.div
@@ -399,6 +405,7 @@ const REVEAL_CSS = `
   font-family: 'Cinzel', serif; font-weight: 700; line-height: 1.25;
   font-size: clamp(20px, min(7cqw, 4.4dvh), 32px);
 }
+.rv-br { display: block; height: 0; }
 .rv-hero-sub {
   font-family: 'Space Grotesk', sans-serif; font-size: 16px; line-height: 1.4;
   color: rgba(250, 244, 236, 0.78);
