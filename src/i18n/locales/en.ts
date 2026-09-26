@@ -563,7 +563,7 @@ export const en = {
   'heroglyph.flow.stay.f.packHead': 'Members’ section',
   'heroglyph.flow.stay.have': 'Heroglyph + photo + message on the web',
   'heroglyph.flow.stay.haveNote': '(in dog vision)',
-  'heroglyph.flow.stay.miss2': 'Profile in the members’ section',
+  'heroglyph.flow.stay.miss2': "Membership",
   'heroglyph.flow.stay.member': 'Full access',
   'heroglyph.flow.stay.confirm': 'Confirm',
   'heroglyph.flow.stay.news': 'Email me when there’s something new in DOGYPT',

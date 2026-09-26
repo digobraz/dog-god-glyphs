@@ -451,7 +451,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.stay.f.packHead': 'Členská sekcia',
   'heroglyph.flow.stay.have': 'Heroglyf + fotka + odkaz na webe',
   'heroglyph.flow.stay.haveNote': '(v psej optike)',
-  'heroglyph.flow.stay.miss2': 'Profil v členskej sekcii',
+  'heroglyph.flow.stay.miss2': "Členstvo",
   'heroglyph.flow.stay.member': 'Plný prístup',
   'heroglyph.flow.stay.confirm': 'Potvrdiť',
   'heroglyph.flow.stay.news': 'Pošlite mi e-mail, keď bude v DOGYPTE niečo nové',

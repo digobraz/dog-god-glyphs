@@ -604,9 +604,11 @@ const CHECKOUT_CSS = `
 .co-buy { margin-bottom: -4px; }
 .co-bill {
   display: flex; flex-direction: column; gap: 8px; padding: 12px 16px;
-  border-radius: ${PACK_R.tile}px; border: 1px solid rgba(179, 130, 45, 0.45);
-  background: linear-gradient(180deg, #FFFDF8 0%, #FBF4E4 100%);
-  box-shadow: 0 1px 3px rgba(122, 90, 42, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.70);
+  /* Bledý PAPYRUS, nie biela (Matej 26. 9.: *„daj len bledší v brande, lebo to bije
+     do očí“*) — o tón svetlejší než doska, rám vlások. */
+  border-radius: ${PACK_R.tile}px; border: 1px solid rgba(179, 130, 45, 0.30);
+  background: linear-gradient(180deg, rgba(255, 252, 242, 0.55) 0%, rgba(250, 240, 214, 0.45) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 1px 2px rgba(122, 90, 42, 0.08);
 }
 .co-item-k {
   font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 10px;

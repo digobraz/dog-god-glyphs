@@ -164,16 +164,20 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
               type="button"
               role="radio"
               aria-checked={on}
-              className={`hf-pick st-opt${on ? ' on' : ''}`}
+              className={`hf-pick is-pale st-opt${on ? ' on' : ''}`}
               onClick={() => { setTier(x.id); setError(null); }}
             >
               <span className="well"><img src={x.icon} alt="" /></span>
               <span className="st-opt-name">
                 <span className="st-price">€{x.each * n}</span>
-                <span className="st-opt-sub">
-                  {t(`heroglyph.flow.stay.${x.id}.t`)}
-                  {n > 1 && x.each > 0 && ` · ${n} × €${x.each}`}
-                </span>
+                {/* €0 BEZ TEXTU (Matej 26. 9. 2026: *„pri 0€ bez textu“*) — nula
+                    hovorí sama za seba, popis nesie len príspevok. */}
+                {x.each > 0 && (
+                  <span className="st-opt-sub">
+                    {t(`heroglyph.flow.stay.${x.id}.t`)}
+                    {n > 1 && ` · ${n} × €${x.each}`}
+                  </span>
+                )}
               </span>
             </button>
           );
@@ -287,6 +291,8 @@ const STAY_CSS = `
 .st-opt-name { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; }
 .st-price { font-family: 'Cinzel', serif; font-weight: 700; font-size: 32px; line-height: 1.05; color: ${LAB.ink}; }
 .st-opt-sub { font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: ${LAB.inkBody}; }
+/* Výber = spoločné lapisové podsvietenie vstupu (\`.is-pale\` + FLOW_PICK_ON), ako
+   na podstate — Matej 26. 9.: *„výber farebne nie je totožný ako inde“*. */
 .st-opt.on .st-price, .st-opt.on .st-opt-sub { color: ${LAPIS.edge}; }
 /* POD SEBOU (Matej 26. 9. 2026: *„plný prístup a potvrdiť by som dal pod seba"*): plný hore, priesvitný pod ním. */
 .st-actions { display: flex; flex-direction: column; gap: 8px; }
