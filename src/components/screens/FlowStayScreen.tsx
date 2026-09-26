@@ -197,7 +197,7 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
       {error && <p role="alert" className="hf-alert">{error}</p>}
       <div className="st-actions">
         {/* Výplň prehodená (Matej 26. 9. 2026): PLNÝ PRÍSTUP = plné lapis,
-            POTVRDIŤ = priesvitné. Poloha ostáva — vľavo člen, vpravo potvrdenie. */}
+            POTVRDIŤ = priesvitné. Pod sebou: člen hore, potvrdenie dole. */}
         <button type="button" className="hf-cta" onClick={() => { track('stay_tier_chosen', { tier: 'member', dogs: dogs.length }); onMember(); }} disabled={busy}>
           {t('heroglyph.flow.stay.member')}
         </button>
@@ -273,21 +273,24 @@ const STAY_CSS = `
 .st-rows { list-style: none; margin: 0; padding: 0; align-self: center; display: flex; flex-direction: column; gap: 8px; }
 .st-row { display: flex; align-items: center; gap: 8px; font-family: 'Space Grotesk', sans-serif; font-size: 16px; line-height: 1.3; color: ${LAB.ink}; }
 .st-row b { font-weight: 500; }
-.st-row small { font-size: 14px; color: ${LAB.inkBody}; }
+.st-row small { font-size: 14px; color: ${LAB.inkBody}; white-space: nowrap; }
 .st-row.no { color: ${LAB.inkBody}; }
 .st-profile { background: none; border: 0; padding: 0; cursor: pointer; text-align: left; font-family: 'Cinzel', serif; font-weight: 700; font-size: 16px; letter-spacing: .04em; text-transform: uppercase; color: ${LAB.ink}; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1.5px; }
 .st-profile:hover { color: ${LAPIS.edge}; }
 .st-mark { flex: none; width: 20px; height: 20px; stroke: #B25640; }
 .st-row.yes .st-mark { stroke: #3D7A4E; }
-.st-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.st-opt.hf-pick { justify-content: center; padding: 8px 12px; }
-.st-opt .well img { width: 22px; height: 22px; object-fit: contain; }
+.st-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+/* Voľby väčšie (Matej 26. 9. 2026: *„tie možnosti zväčši"*). */
+.st-opt.hf-pick { justify-content: center; padding: 16px 12px; gap: 12px; }
+.st-opt .well { width: 48px; height: 48px; }
+.st-opt .well img { width: 28px; height: 28px; object-fit: contain; }
 .st-opt-name { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; }
-.st-price { font-family: 'Cinzel', serif; font-weight: 700; font-size: 24px; line-height: 1.05; color: ${LAB.ink}; }
-.st-opt-sub { font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: ${LAB.inkBody}; }
+.st-price { font-family: 'Cinzel', serif; font-weight: 700; font-size: 32px; line-height: 1.05; color: ${LAB.ink}; }
+.st-opt-sub { font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: ${LAB.inkBody}; }
 .st-opt.on .st-price, .st-opt.on .st-opt-sub { color: ${LAPIS.edge}; }
-/* Rovnaký rad ako pokladňa: obrysové vľavo, plné CTA vpravo bližšie k palcu. */
-.st-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+/* POD SEBOU (Matej 26. 9. 2026: *„plný prístup a potvrdiť by som dal pod seba"*): plný hore, priesvitný pod ním. */
+.st-actions { display: flex; flex-direction: column; gap: 8px; }
+.st-actions > button { width: 100%; }
 .st-actions .hf-cta { width: 100%; }
 .st-confirm {
   height: ${HF.cta.h}px; border-radius: ${HF.cta.radius}px; cursor: pointer;
