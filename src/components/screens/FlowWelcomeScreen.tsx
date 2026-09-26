@@ -296,6 +296,10 @@ export function FlowWelcomeScreen() {
                 <div className="hf-plate">
                   {/* PORADIE — predošlí hore rozmazaní, nový pes (psi) pod nimi. */}
                   <div className="wl-rank">
+                    {/* Predošlí majú VLASTNÝ orezový obal so zošednutím zhora; nový pes
+                        stojí mimo neho, inak mu orez odstrihol zväčšenie aj žiaru
+                        (Matej 26. 9.: *„blok so zaplateným psom je orezaný"*). */}
+                    <div className="wl-prev">
                     {(prev ?? []).map((d, i) => (
                       <motion.div
                         key={`p${d.n}`}
@@ -309,6 +313,7 @@ export function FlowWelcomeScreen() {
                         <span className="wl-num">#{d.n}</span>
                       </motion.div>
                     ))}
+                    </div>
                     {rolled && dogs.map((d, i) => (
                       <motion.div
                         key={`n${d.id}`}
@@ -359,11 +364,10 @@ export function FlowWelcomeScreen() {
                       <span className="wl-goal-t">{t('heroglyph.flow.welcomeNew.goal', { n: totalN.toLocaleString('sk-SK') })}</span>
                     </motion.div>
 
-                    {/* Pečať DOGYPTU + motto pod progresom (Matej 26. 9.). */}
-                    <motion.div className="wl-seal" initial={false} animate={{ opacity: line >= 4 ? 1 : 0, scale: line >= 4 ? 1 : 0.9 }} transition={{ delay: 1.1, duration: 0.5 }}>
-                      <img src="/images/peciat-dogypt.png" alt="" aria-hidden />
-                      <span>{t('religion.book.trust')}</span>
-                    </motion.div>
+                    {/* Len motto, bez pečate (Matej 26. 9.: *„daj to bez pečate… nechaj iba motto"*). */}
+                    <motion.p className="wl-motto" initial={false} animate={{ opacity: line >= 4 ? 1 : 0 }} transition={{ delay: 1.1, duration: 0.5 }}>
+                      {t('religion.book.trust')}
+                    </motion.p>
 
                     <motion.button
                       type="button"
@@ -440,16 +444,18 @@ const WELCOME_CSS = `
 .wl-stack { width: 100%; display: flex; flex-direction: column; min-height: min(calc(100dvh - 160px), 820px); }
 .wl-stack .hf-plate { gap: 16px; flex: 1; min-height: 0; }
 .wl-rank {
-  flex: 1 1 0; min-height: 132px; overflow: hidden;
-  display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; padding: 8px 4px 4px;
+  flex: 1 1 0; min-height: 132px;
+  display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; padding: 0 4px 12px;
+}
+.wl-prev {
+  flex: 1 1 0; min-height: 0; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; padding-top: 8px;
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 56px);
           mask-image: linear-gradient(to bottom, transparent 0, #000 56px);
 }
 .wl-row { flex: none; }
 .wl-foot { flex: none; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-.wl-seal { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.wl-seal img { width: 88px; height: 88px; object-fit: contain; transform: rotate(-5deg); filter: drop-shadow(0 4px 8px rgba(60, 40, 10, 0.3)); }
-.wl-seal span { font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: ${LAB.goldInk}; }
+.wl-motto { margin: 0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 16px; letter-spacing: .14em; text-transform: uppercase; color: ${LAB.goldInk}; }
 .wl-row {
   display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 12px;
   height: 56px; padding: 0 16px 0 8px; border-radius: ${PACK_R.pill}px;
@@ -462,33 +468,48 @@ const WELCOME_CSS = `
 .wl-ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .wl-name { font-size: 16px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wl-num { font-family: 'Cinzel', serif; font-weight: 700; font-size: 16px; letter-spacing: .04em; }
-/* NOVÝ PES: zažiari, zapulzuje, zaradí sa — a svieti ďalej. */
+/* NOVÝ PES: zažiari, zapulzuje, zaradí sa — a ŽIARI ĎALEJ, kým sa neťukne na CTA
+   (Matej 26. 9.: *„musí mať krajšiu a výraznejšiu animáciu… aj v kľudnom stave"*).
+   Tri vrstvy: pulzujúca zlatá žiara (box-shadow) · lesk, ktorý prebehne blokom ·
+   rám, ktorý dýcha medzi brandovou zlatou a svetlou. */
 .wl-row.is-new {
+  position: relative; overflow: hidden;
   height: 64px; grid-template-columns: 48px 1fr auto;
   background: #FFFBF1; border: 2px solid #C99A3F;
-  animation: wl-pulse 1.1s ease-in-out infinite;
+  animation: wl-pulse 1s ease-in-out infinite;
 }
-.wl-row.is-new .wl-ph { width: 48px; height: 48px; }
+.wl-row.is-new::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 244, 205, 0.95) 50%, transparent 62%);
+  background-size: 260% 100%; background-position: 130% 0;
+  animation: wl-sheen 2.6s ease-in-out infinite;
+}
+.wl-row.is-new > * { position: relative; z-index: 1; }
+.wl-row.is-new .wl-ph { width: 48px; height: 48px; box-shadow: 0 0 0 2px #C99A3F; }
 .wl-row.is-new .wl-name { font-family: 'Cinzel Decorative', 'Cinzel', serif; font-weight: 700; font-size: 20px; }
 .wl-row.is-new .wl-num { font-size: 20px; color: ${LAB.goldInk}; }
-.wl-row.is-new.is-joined { animation: wl-glow 2.4s ease-in-out infinite; }
+.wl-row.is-new.is-joined { animation: wl-glow 2.2s ease-in-out infinite; }
 @keyframes wl-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 154, 63, 0.0), 0 0 24px 4px rgba(255, 214, 120, 0.55); }
-  50% { box-shadow: 0 0 0 8px rgba(201, 154, 63, 0.18), 0 0 48px 12px rgba(255, 214, 120, 0.85); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 154, 63, 0.35), 0 0 24px 6px rgba(255, 206, 100, 0.6); }
+  50% { box-shadow: 0 0 0 10px rgba(201, 154, 63, 0), 0 0 56px 18px rgba(255, 206, 100, 0.95); }
 }
 @keyframes wl-glow {
-  0%, 100% { box-shadow: 0 0 16px 2px rgba(255, 214, 120, 0.45); }
-  50% { box-shadow: 0 0 32px 8px rgba(255, 214, 120, 0.7); }
+  0%, 100% { border-color: #C99A3F; box-shadow: 0 0 0 0 rgba(201, 154, 63, 0.45), 0 0 20px 4px rgba(255, 206, 100, 0.55); }
+  50% { border-color: #F2CF7A; box-shadow: 0 0 0 6px rgba(201, 154, 63, 0), 0 0 44px 14px rgba(255, 206, 100, 0.9); }
 }
-@media (prefers-reduced-motion: reduce) { .wl-row.is-new, .wl-row.is-new.is-joined { animation: none; box-shadow: 0 0 24px 4px rgba(255, 214, 120, 0.55); } }
+@keyframes wl-sheen { 0% { background-position: 130% 0; } 55%, 100% { background-position: -30% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .wl-row.is-new, .wl-row.is-new.is-joined { animation: none; box-shadow: 0 0 28px 6px rgba(255, 206, 100, 0.7); }
+  .wl-row.is-new::after { animation: none; opacity: 0; }
+}
 
 /* ── VETY — groteskom (Matej 26. 9.) ── */
 .wl-lines { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 60px; }
 .wl-line { margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 16px; line-height: 1.35; color: ${LAB.inkBody}; text-align: center; }
 .wl-line.is-done { color: #3D7A4E; font-weight: 600; font-size: 20px; }
-.wl-thanks { margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 20px; line-height: 1.3; color: ${LAB.ink}; text-align: center; text-wrap: balance; }
-.wl-goal { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.wl-bar { width: min(100%, 320px); height: 12px; border-radius: ${PACK_R.pill}px; background: rgba(22, 48, 122, 0.16); overflow: hidden; }
+.wl-thanks { margin: 0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 20px; line-height: 1.3; letter-spacing: .04em; color: ${LAB.ink}; text-align: center; text-wrap: balance; }
+.wl-goal { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.wl-bar { width: 100%; height: 12px; border-radius: ${PACK_R.pill}px; background: rgba(22, 48, 122, 0.16); overflow: hidden; }
 .wl-bar > span { display: block; height: 100%; border-radius: inherit; background: ${LAPIS.grad}; }
 .wl-goal-t { font-family: 'Space Grotesk', sans-serif; font-size: 12px; letter-spacing: .08em; color: ${LAB.inkBody}; }
 .wl-cta { width: 100%; }
@@ -496,11 +517,10 @@ const WELCOME_CSS = `
   .wl-row { height: 48px; } .wl-row.is-new { height: 56px; }
   .wl-name { font-size: 14px; } .wl-row.is-new .wl-name, .wl-row.is-new .wl-num { font-size: 16px; }
   .wl-line { font-size: 14px; } .wl-line.is-done, .wl-thanks { font-size: 16px; }
-  .wl-seal img { width: 72px; height: 72px; }
 }
 @media (max-height: 700px) {
   .wl-rank { gap: 6px; } .wl-row { height: 44px; } .wl-row.is-new { height: 52px; }
   .wl-stack .hf-plate { gap: 12px; }
-  .wl-foot { gap: 8px; } .wl-seal img { width: 56px; height: 56px; } .wl-lines { min-height: 48px; }
+  .wl-foot { gap: 8px; } .wl-lines { min-height: 48px; }
 }
 `;
