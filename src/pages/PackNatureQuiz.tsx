@@ -383,33 +383,33 @@ const NQ_CSS = `
    šírku — text bez obrazu, nič, na čo by oko skočilo.
    Geometria je z matrice PACK_BOX.subblock: papyrusový gradient + PLNÝ zlatý rám
    + r12, nie plochý tileBg so slabým okrajom. */
-.nq-axes{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.nq-axes{ display:grid; grid-template-columns:1fr; grid-auto-rows:1fr; gap:8px; }
+/* TRI RIADKY POD SEBOU, nie tri stĺpce (Matej 26. 9. 2026: „daj tie bloky pod seba
+   aby to vyšlo krajšie teraz je to moc úzke… rozmer zachovaj len zmeň štruktúru").
+   V troch stĺpcoch mala dlaždica ~180 px a SK popis sa lámal na sedem riadkov po
+   dvoch slovách. Riadok = medailón vľavo, nadpis a popis vpravo; celková výška
+   ostáva tá istá, zmenila sa len skladba. grid-auto-rows 1fr drží tri rovnaké riadky.
+   ⚠️ Tento blok je JS template literal — spätný apostrof ho zhodí a tsc to
+   nechytí. Do komentárov v CSS ich nepíš. */
 .nq-axis{
-  /* ŽIADNY pomer strán. Pri dvoch dlaždiciach bol štvorec pekný, pri troch má
-     dlaždica ~225 px a text „what everyone gets wrong about it" sa doň nezmestí —
-     orezal by sa. Rovnakú výšku drží stretch mriežky, teda najvyšší súrodenec. */
-  min-height:186px;
-  /* ⚠️ flex-start, NIE center (22. 8. 2026). Pri centrovaní visí zvislá poloha
-     ikony na dĺžke textu POD ňou, takže tri dlaždice majú tri rôzne výšky ikon —
-     v EN to bolo náhodou v poriadku (všetky popisy vyšli na štyri riadky), v SK
-     hneď vidno rozhádzaný rad. Zhodnú výšku dlaždíc drží stretch mriežky, nie
-     zarovnanie obsahu; mobilná vetva nižšie mala flex-start odjakživa.
-     ⚠️ Tento blok je JS template literal — spätný apostrof ho zhodí a tsc to
-     nechytí. Do komentárov v CSS ich nepíš. */
-  display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
-  text-align:center; gap:11px; padding:16px 16px;
+  display:grid; grid-template-columns:auto 1fr; grid-template-rows:auto auto;
+  column-gap:16px; row-gap:4px; align-content:center; align-items:center;
+  text-align:left; padding:8px 16px;
   background:linear-gradient(135deg,${T.card} 0%,#F2E2BD 100%);
   border:1.5px solid ${T.cardEdge}; border-radius:14px;
   box-shadow:0 8px 28px -18px rgba(0,0,0,0.75), 0 0 0 3px rgba(201,154,63,0.13),
              inset 0 1px 0 rgba(255,255,255,0.6);
   transition:transform .25s ease, box-shadow .25s ease;
 }
+.nq-axis .nq-axisicon{ grid-row:1 / span 2; }
+.nq-axis .nq-axistitle{ align-self:end; }
+.nq-axis .nq-axissub{ align-self:start; }
 .nq-axis:hover{ transform:translateY(-3px); }
 .nq-axis:hover .nq-axisicon{ transform:scale(1.08); }
 /* Ikonka je z hand-drawn kitu (BrandIcon), NIE lucide a nie emoji — medailón okolo
    nej je zlaté halo, aby dlaždica mala ohnisko aj bez farby. */
 .nq-axisicon{
-  width:70px; height:70px; border-radius:999px; display:grid; place-items:center;
+  width:56px; height:56px; border-radius:999px; display:grid; place-items:center;
   flex:0 0 auto;
   background:radial-gradient(circle at 34% 28%, rgba(245,199,61,0.34), rgba(201,154,63,0.08) 72%);
   border:1px solid rgba(201,154,63,0.55);
@@ -557,23 +557,12 @@ const NQ_CSS = `
     background:linear-gradient(to bottom, rgba(251,245,230,0) 52%, rgba(251,245,230,0.95) 100%);
   }
   .nq-introbody{ padding:16px 16px 24px; }
-  /* Pod 760 px dlaždice pustia pomer strán a stlačia sa — výška, ktorú ušetria,
-     je presne tá, ktorú dostal obraz nad nimi.
-     ⚠️ justify-content:flex-start je POVINNÉ: bez štvorca má každá dlaždica inak
-     vysoký text (ROLE IN THE PACK sa láme na dva riadky) a pri centrovaní by
-     medailóny sedeli v schodíku. */
-  .nq-axis{
-    aspect-ratio:auto; padding:12px 12px 16px; gap:7px; justify-content:flex-start;
-    border-radius:12px;
-  }
+  /* Pod 760 px riadky len zúžia odsadenie a medailón — skladba je tá istá ako na PC. */
+  .nq-axis{ padding:12px; column-gap:12px; border-radius:12px; }
   .nq-axisicon{ width:46px; height:46px; }
   .nq-axisicon img{ width:26px; height:26px; }
   .nq-axistitle{ font-size:11.5px; letter-spacing:0.14em; }
   .nq-axissub{ font-size:11px; line-height:1.42; }
-  /* Pod 760 px idú POD SEBA. Tri stĺpce by na telefóne dali ~110 px na dlaždicu —
-     nadpis „ROLE IN THE PACK" by sa lámal na tri riadky. */
-  .nq-axes{ grid-template-columns:1fr; gap:10px; }
-  .nq-axis{ min-height:0; }
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
@@ -933,7 +922,7 @@ function Attribution({ tx }: { tx: (k: string, f: string) => string }) {
 function AxisTile({ icon, title, sub }: { icon: string; title: string; sub: string }) {
   return (
     <div className="nq-axis">
-      <span className="nq-axisicon"><BrandIcon name={icon} size={36} /></span>
+      <span className="nq-axisicon"><BrandIcon name={icon} size={30} /></span>
       {/* Typografia podľa `.qt-title` z QuickTiles — Cinzel 700, .14em, uppercase.
           Je to ten istý druh dlaždice, len väčšia; dve rôzne miery by sa bili.
           Veľkosti sú v CSS, nie inline — mobil ich zmenšuje media query. */}
