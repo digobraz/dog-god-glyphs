@@ -231,7 +231,7 @@
   },
   "components/pack/PackNotifications.tsx": {
     "radius": 1,
-    "font": 12,
+    "font": 10,
     "zavoj": 3,
     "progres": 0,
     "ram": 0,

@@ -5,7 +5,7 @@ import { PACK_THEME, PACK_COL, PACK_COL_INNER, usePaperRoute, PAPER_PAGE_CSS } f
 import { devotionLevel } from '@/lib/devotion';
 import { DEV_FULL } from '@/lib/packFlags';
 import { usePackIdentity, type PackDog } from './usePackIdentity';
-import { PackNotifications } from './PackNotifications';
+import { PackNotifications, HubAinubis } from './PackNotifications';
 import { WIZ } from './wizAnchors';
 import iconHome from '@/assets/icons/nav-home.svg';
 import statBadge from '@/assets/icons/stat-badge.svg';
@@ -131,10 +131,15 @@ export function PackLayout({ children, title, subtitle }: PackLayoutProps) {
             (z-index above the z-10 column). */}
         {DEV_FULL && (
           <div
-            className="mb-5"
-            style={{ position: 'sticky', top: 'calc(env(safe-area-inset-top, 0px) + 12px)', zIndex: 30 }}
+            className="mb-5 flex items-center justify-between"
+            // Rad je cez celý stĺpec, ale klikateľné sú len jeho deti — prázdny stred
+            // nesmie pri scrollovaní zjesť ťuk na obsah pod sebou.
+            style={{ position: 'sticky', top: 'calc(env(safe-area-inset-top, 0px) + 12px)', zIndex: 30, pointerEvents: 'none' }}
           >
-            <PackTopRight last24h={packToday} total={packTotal} layout="inline" />
+            <span style={{ pointerEvents: 'auto' }}><HubAinubis /></span>
+            <span className="ml-auto" style={{ pointerEvents: 'auto' }}>
+              <PackTopRight last24h={packToday} total={packTotal} layout="inline" />
+            </span>
           </div>
         )}
         {(title || subtitle) && (

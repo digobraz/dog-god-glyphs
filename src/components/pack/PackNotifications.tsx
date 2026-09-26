@@ -10,6 +10,9 @@ import { intlLocale } from '@/i18n/bcp47';
 import { openAinubis, getAinubisUnread, onAinubisUnread } from '@/lib/ainubisBus';
 import { AINUBIS } from './ainubisSkin';
 import ainubisFace from '@/assets/ainubis-badge.png';
+// Odznak v kapsule = ČERVENÁ zo SNIFFERu s bielym číslom (Matej 26. 9.: „červené upozornenia
+// s bielym textom… červená zo sniffer“). Jedna červená v appke, nie nový odtieň.
+import { SNIFFER_HEART } from './buddy/SnifferLogo';
 import { DEV_FULL } from '@/lib/packFlags';
 // `import type` (nie runtime import) — packMessaging.ts ťahá pri module-load
 // HERO_TRAILS (1,5 MB) a HERO_JOURNEYS; esbuild/Vite `import type` úplne vytrasí (isolatedModules),
@@ -84,38 +87,18 @@ interface PackNotificationsProps {
    * wraps it in the same max-w column as everything else). */
   layout?: 'overlay' | 'inline';
   /** KAPSULA (Matej 26. 9. 2026, audit homepage, variant B3): obálka + nos (+ na mobile
-   *  oko AINUBISA) v JEDNOM tmavom ovále so zlatým lemom. Dôvod: dve samostatné kolieska
+   *  od 26. 9. poobede BEZ oka AINUBISA — to má vlastné koliesko vľavo, `HubAinubis`) v JEDNOM tmavom ovále so zlatým lemom. Dôvod: dve samostatné kolieska
    *  38 px zanikali pri scrollovaní — papyrusové na papyruse, sklenené na tmavej karte.
    *  Čierna kapsula so zlatým lemom je jediná, ktorá je vidieť na oboch podkladoch.
    *  Zapína ju len `PackTopRight` (stĺpcové stránky /pack); hlavička mapy má vlastný rad. */
   capsule?: boolean;
 }
 
-// ── AINUBIS V KAPSULE — len mobil (< 768 px) ─────────────────────────────────
-// Matej 26. 9.: plávajúci AINUBIS musí byť všade, ale na mobile nesmie prekrývať obsah.
-// Guľa vpravo dole nad lištou sedela vždy na niečom; kapsula hore je aj tak sticky vrstva,
-// takže oko v nej nič nové nezakryje. Na PC ostáva guľa dole — tam je miesto.
-// Zlom 768 = `MOVE_MIN_WIDTH` v AinubisWidget (pod ním je panel fullscreen sheet).
-// Značka `has-hub-ainubis` na <body> skryje guľu LEN kým je kapsula namountovaná —
-// na mape (bez kapsuly) guľa ostáva. `visibility`, nie `display` — viď AinubisWidget.css.
-const HUB_AINUBIS_CSS = `
-@media (min-width: 768px) { .pk-hub-ainubis { display: none !important; } }
-@media (max-width: 767px) {
-  body.has-hub-ainubis .ainubis-launcher { visibility: hidden; }
-  body.has-hub-ainubis .ainubis-panel { bottom: var(--ainubis-dock-b, calc(env(safe-area-inset-bottom, 0px) + 16px)); }
-}`;
 
 export function PackNotifications({ last24h, last30d, total, dark = false, className, layout = 'overlay', capsule = false }: PackNotificationsProps) {
   const inline = layout === 'inline';
   const t = useT();
   const { lang } = useLang();
-  const [aiUnread, setAiUnread] = useState(getAinubisUnread);
-  useEffect(() => {
-    if (!capsule) return;
-    document.body.classList.add('has-hub-ainubis');
-    const off = onAinubisUnread(setAiUnread);
-    return () => { off(); document.body.classList.remove('has-hub-ainubis'); };
-  }, [capsule]);
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   // Dropdown is portaled to <body> (fixed, viewport-anchored) — ancestors like
@@ -254,7 +237,6 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
       className={`${capsule ? 'relative ml-auto' : inline ? 'relative w-full justify-end' : dark ? 'fixed' : 'absolute'} flex items-center${capsule ? '' : ' gap-1.5'}${className ? ` ${className}` : ''}`}
       style={capsule ? CAPSULE : inline ? { zIndex: 12 } : { top: 16, right: 16, zIndex: dark ? 45 : 12 }}
     >
-      {capsule && <style>{HUB_AINUBIS_CSS}</style>}
       {/* Messages — LIVE za DEV_FULL (opens Inbox overlay); LIVE build (bez DEV_FULL) ostáva
           presne ako predtým, "coming soon" disabled (§8.4 zadania — bez regresie). */}
       {DEV_FULL ? (
@@ -291,10 +273,10 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                 height: 16,
                 padding: '0 4px',
                 borderRadius: 999,
-                background: T.accentGold,
-                color: T.ink,
+                background: capsule ? SNIFFER_HEART : T.accentGold,
+                color: capsule ? '#fff' : T.ink,
                 fontFamily: "'Space Grotesk', sans-serif",
-                fontSize: 9,
+                fontSize: capsule ? 10 : 9,
                 fontWeight: 600,
                 display: 'flex',
                 alignItems: 'center',
@@ -393,10 +375,10 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
               height: 16,
               padding: '0 4px',
               borderRadius: 999,
-              background: T.accentGold,
-              color: T.ink,
+              background: capsule ? SNIFFER_HEART : T.accentGold,
+              color: capsule ? '#fff' : T.ink,
               fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 9,
+              fontSize: capsule ? 10 : 9,
               fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
@@ -409,31 +391,6 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           </span>
         )}
       </button>
-
-      {capsule && (
-        <span className="pk-hub-ainubis flex items-center">
-          <span aria-hidden style={CAP_DIVIDER} />
-          <button
-            type="button"
-            onClick={() => openAinubis()}
-            aria-label="AINUBIS"
-            className="relative inline-flex items-center justify-center"
-            style={capBtn(false)}
-          >
-            <img
-              src={ainubisFace}
-              alt=""
-              aria-hidden
-              style={{ width: 36, height: 36, borderRadius: 999, border: `1.5px solid ${AINUBIS.edgeStrong}`, objectFit: 'cover', background: T.pageBg }}
-            />
-            {aiUnread > 0 && (
-              <span style={{ ...BADGE, background: AINUBIS.cyan, border: `1.5px solid ${T.pageBg}` }}>
-                {aiUnread > 9 ? '9+' : aiUnread}
-              </span>
-            )}
-          </button>
-        </span>
-      )}
 
       {/* Dropdown — portaled to <body>, fixed + viewport-anchored (see panelPos effect
           above). Do NOT go back to position:absolute inside wrapRef: any ancestor here
@@ -638,5 +595,53 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
         document.body,
       )}
     </div>
+  );
+}
+
+// ── AINUBIS VĽAVO HORE, SÁM — len mobil (< 768 px) ──────────────────────────
+// Matej 26. 9.: plávajúci AINUBIS musí byť všade, ale na mobile nesmie prekrývať obsah;
+// poobede: „Ainubisa presuň na ľavú stranu hore nech tam je sám“. Guľa vpravo dole nad
+// lištou sedela vždy na niečom; horný rad je aj tak sticky vrstva, takže koliesko v ňom
+// nič nové nezakryje. Na PC ostáva guľa dole — tam je miesto.
+// Zlom 768 = `MOVE_MIN_WIDTH` v AinubisWidget (pod ním je panel fullscreen sheet).
+// Značka `has-hub-ainubis` na <body> skryje guľu LEN kým je koliesko namountované —
+// na mape (bez neho) guľa ostáva. `visibility`, nie `display` — viď AinubisWidget.css.
+const HUB_AINUBIS_CSS = `
+@media (min-width: 768px) { .pk-hub-ainubis { display: none !important; } }
+@media (max-width: 767px) {
+  body.has-hub-ainubis .ainubis-launcher { visibility: hidden; }
+  body.has-hub-ainubis .ainubis-panel { bottom: var(--ainubis-dock-b, calc(env(safe-area-inset-bottom, 0px) + 16px)); }
+}`;
+
+export function HubAinubis() {
+  const [unread, setUnread] = useState(getAinubisUnread);
+  useEffect(() => {
+    document.body.classList.add('has-hub-ainubis');
+    const off = onAinubisUnread(setUnread);
+    return () => { off(); document.body.classList.remove('has-hub-ainubis'); };
+  }, []);
+  return (
+    <>
+      <style>{HUB_AINUBIS_CSS}</style>
+      <button
+        type="button"
+        onClick={() => openAinubis()}
+        aria-label="AINUBIS"
+        className="pk-hub-ainubis relative inline-flex items-center justify-center"
+        style={{ ...CAPSULE, width: 54, height: 54, padding: 0, cursor: 'pointer' }}
+      >
+        <img
+          src={ainubisFace}
+          alt=""
+          aria-hidden
+          style={{ width: 44, height: 44, borderRadius: 999, border: `1.5px solid ${AINUBIS.edgeStrong}`, objectFit: 'cover', background: T.pageBg }}
+        />
+        {unread > 0 && (
+          <span style={{ ...BADGE, background: SNIFFER_HEART, color: '#fff', border: `1.5px solid ${T.pageBg}` }}>
+            {unread > 9 ? '9+' : unread}
+          </span>
+        )}
+      </button>
+    </>
   );
 }
