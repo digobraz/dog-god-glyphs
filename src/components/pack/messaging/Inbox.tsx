@@ -22,6 +22,7 @@
 // ⚠️ TEXTY IDÚ CEZ `t()`. Pôvodná hlavička tu tvrdila „web texty = EN" a súbor mal 5 volaní
 // `t()` na celý inbox — Slovák tak v slovenskom rozhraní čítal „No messages yet" a dátumy
 // „Aug 9" (natvrdo `en-US`). Thread.tsx je preložený od začiatku; Inbox dorovnaný 2026-08-12.
+import { BUDDY_LIVE } from '@/lib/packFlags';
 import { useEffect, useState } from 'react';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_COL_FIT, packColCSS } from '@/components/pack/packTheme';
 import { MSG_SKIN_CSS, useMsgSkin } from './msgTheme';
@@ -174,11 +175,11 @@ export function SkinToggle({ skin, onToggle }: { skin: 'light' | 'dark'; onToggl
   );
 }
 
-export function Inbox({ onOpenThread, onClose, onBrowseTrips, onOpenTrip }: {
+export function Inbox({ onOpenThread, onClose, onOpenSniffer, onOpenTrip }: {
   onOpenThread: (convId: string) => void;
   onClose: () => void;
   /** #55 — prázdny inbox potrebuje jednu akciu: rozhovor začína na tripe, nie tu. */
-  onBrowseTrips?: () => void;
+  onOpenSniffer?: () => void;
   /** klik na štítok výletu nad konverzáciou; bez neho ostáva štítok needitovateľný popis */
   onOpenTrip?: (tripId: string) => void;
 }) {
@@ -226,8 +227,11 @@ export function Inbox({ onOpenThread, onClose, onBrowseTrips, onOpenTrip }: {
       <div className="msg-inbox-list msg-plate">
         {convs.length === 0 ? (
           <div className="msg-emptybox">
-            <p>{t('pack.msg.inboxEmpty')}</p>
-            {onBrowseTrips && <button type="button" className="msg-emptybtn" onClick={onBrowseTrips}>{t('pack.msg.findTrip')}</button>}
+            {/* Rozhovor sa dnes nezačína len na výlete (Matej 26. 9.: „nájsť výlet je hlúposť už").
+                Tlačidlo vedie do SNIFFERu — ale len kde SNIFFER beží (BUDDY_LIVE); inde by
+                `/pack/sniffer` presmeroval na mapu, takže tam ostane len text bez SNIFFERu. */}
+            <p>{t(BUDDY_LIVE ? 'pack.msg.inboxEmpty' : 'pack.msg.inboxEmptyNoSniffer')}</p>
+            {BUDDY_LIVE && onOpenSniffer && <button type="button" className="msg-emptybtn" onClick={onOpenSniffer}>{t('pack.msg.openSniffer')}</button>}
           </div>
         ) : (
           convs.map((conv) => {

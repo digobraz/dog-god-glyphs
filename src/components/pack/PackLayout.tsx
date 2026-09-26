@@ -240,7 +240,7 @@ export function MessagingOverlayHost() {
         <Inbox
           onOpenThread={(convId) => setOverlay({ mode: 'thread', convId })}
           onClose={() => setOverlay({ mode: 'closed' })}
-          onBrowseTrips={() => { setOverlay({ mode: 'closed' }); navigate('/pack/map'); }}
+          onOpenSniffer={() => { setOverlay({ mode: 'closed' }); navigate('/pack/sniffer'); }}
           onOpenTrip={(tripId) => void openTrip(tripId)}
         />
       </Suspense>
