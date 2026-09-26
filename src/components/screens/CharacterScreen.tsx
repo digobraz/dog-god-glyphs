@@ -375,7 +375,9 @@ const CHARACTER_CSS = `
 /* Poradové číslo = ktorý slot rámu vlastnosť obsadila. Plná lapisová plocha je tu
    v poriadku: je to ZNAČKA veľkosti 18 px, nie plocha, ktorá by konkurovala CTA. */
 .ch-trait .ord {
-  position: absolute; top: -6px; right: -6px; z-index: 1;
+  /* VNÚTRI dlaždice, nie cez jej hranu — rad roluje (overflow), takže
+     čokoľvek nad hranou orezal (Matej 26. 9.: „modré čísielka orezané"). */
+  position: absolute; top: 4px; right: 4px; z-index: 1;
   width: 18px; height: 18px; border-radius: ${PACK_R.pill}px;
   display: grid; place-items: center; font-style: normal;
   font-family: 'Cinzel', serif; font-weight: 700; font-size: 10px; line-height: 1;

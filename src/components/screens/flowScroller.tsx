@@ -105,8 +105,9 @@ export const FLOW_SCROLL_CSS = `
 .hf-srow {
   display: flex; align-items: center; gap: 8px; width: 100%;
   overflow-x: auto; scrollbar-width: none;
-  /* Miesto na tieň dlaždice a na jej stlačenie pri ťuknutí. */
-  padding: 3px 2px; margin: -3px -2px;
+  /* Miesto na tieň dlaždice, lem výberu a na jej stlačenie pri ťuknutí.
+     3 px nestačilo — POVAHE sa orezal lem vybranej dlaždice (Matej 26. 9.). */
+  padding: 6px 4px; margin: -6px -4px;
 }
 .hf-srow::-webkit-scrollbar { display: none; }
 /* 🟨 ŠÍPKA JE PLNÁ BRANDOVÁ ZLATÁ (Matej 24. 9.: *„šípky sú moc na kraji a možno by
