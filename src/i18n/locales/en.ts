@@ -566,6 +566,7 @@ export const en = {
   'heroglyph.flow.stay.miss2': "Membership",
   'heroglyph.flow.stay.member': 'Full access',
   'heroglyph.flow.stay.confirm': 'Confirm',
+  'heroglyph.flow.stay.free': 'Continue for free',
   'heroglyph.flow.stay.news': 'Email me when there’s something new in DOGYPT',
   'heroglyph.flow.stay.notReady': 'We’re still finishing this option. For now, full membership works.',
   'heroglyph.flow.stay.done.t': 'Done.',

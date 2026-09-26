@@ -11,7 +11,7 @@ import { PACK_R } from '@/components/pack/packTheme';
 import { LAB } from '@/lib/labTheme';
 import { hekthorFace } from '@/lib/hekthorFaces';
 import {
-  readSvorka, svorkaDogPayload, waitForStablePhotos, PRICE_SUPPORT,
+  readSvorka, svorkaDogPayload, waitForStablePhotos,
 } from '@/lib/flowSvorka';
 import { EDGE_BASE } from '@/lib/env';
 import { track } from '@/lib/analytics';
@@ -52,11 +52,12 @@ import { getAttribution } from '@/lib/attribution';
 //    Kresba je len pri voľbe (bankovka €3, krížik €0), položky sú len text.
 // ════════════════════════════════════════════════════════════════════════════
 
-type Tier = 'support' | 'guest';
-const OPTS: { id: Tier; icon: string; each: number }[] = [
-  { id: 'guest', icon: '/icons/pack/cross.svg', each: 0 },
-  { id: 'support', icon: '/icons/pack/money.svg', each: PRICE_SUPPORT },
-];
+// 🔑 €3 ZANIKLO (Matej 26. 9. 2026 večer: *„nakoniec dáme len možnosť neplatiť
+//    a 0€, nie 3€, to daj preč"*). Ostáva jediná cesta mimo členstva = hosť €0,
+//    takže voľba medzi dvoma dlaždicami stratila zmysel: POKRAČOVAŤ ZADARMO je
+//    samo tlačidlo. Backend `tier:'support'` (create-checkout, webhook,
+//    `send-support-thanks`) ostáva nedotknutý — len ho už nič nevolá.
+const TIER = 'guest' as const;
 
 /** Obsah popupu ZADRŽANIE — v pokladni v `FlowModal`. */
 export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onMore: () => void }) {
@@ -67,15 +68,13 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
   const email = useDogyptStore((s) => s.email);
   const ownerName = useDogyptStore((s) => s.ownerName);
   const extraPhotos = useDogyptStore((s) => s.extraPhotos);
-  const [tier, setTier] = useState<Tier | null>(null);
   const [news, setNews] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const n = Math.max(1, dogs.length);
 
   const confirm = async () => {
-    if (!tier || busy) return;
-    track('stay_tier_chosen', { tier, dogs: dogs.length, news });
+    if (busy) return;
+    track('stay_tier_chosen', { tier: TIER, dogs: dogs.length, news });
     setBusy(true);
     setError(null);
     try {
@@ -89,11 +88,11 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tier,
+          tier: TIER,
           newsConsent: news,
           email,
           ownerName,
-          dogs: stable.map((d) => svorkaDogPayload(d, ownerName, tier === 'support' ? PRICE_SUPPORT : 0)),
+          dogs: stable.map((d) => svorkaDogPayload(d, ownerName, 0)),
           cloudinaryExtras: extraPhotos.filter((u) => u && !u.startsWith('blob:')),
           refCode: getStoredRef(),
           language: lang,
@@ -101,12 +100,7 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
         }),
       });
       const data = res.ok ? await res.json() : null;
-      if (tier === 'support' && data?.url) {
-        window.open(data.url, '_top');
-        setTimeout(() => setBusy(false), 2000);
-        return;
-      }
-      if (tier === 'guest' && data?.tier === 'guest') {
+      if (data?.tier === 'guest') {
         track('stay_guest_joined', { dogs: stable.length, news });
         navigate('/heroglyph/stay?done=guest');
         return;
@@ -155,48 +149,17 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
         </li>
       </ul>
 
-      <div className="st-opts" role="radiogroup">
-        {OPTS.map((x) => {
-          const on = tier === x.id;
-          return (
-            <button
-              key={x.id}
-              type="button"
-              role="radio"
-              aria-checked={on}
-              className={`hf-pick is-pale st-opt${on ? ' on' : ''}`}
-              onClick={() => { setTier(x.id); setError(null); }}
-            >
-              <span className="well"><img src={x.icon} alt="" /></span>
-              <span className="st-opt-name">
-                <span className="st-price">€{x.each * n}</span>
-                {/* €0 BEZ TEXTU (Matej 26. 9. 2026: *„pri 0€ bez textu“*) — nula
-                    hovorí sama za seba, popis nesie len príspevok. */}
-                {x.each > 0 && (
-                  <span className="st-opt-sub">
-                    {t(`heroglyph.flow.stay.${x.id}.t`)}
-                    {n > 1 && ` · ${n} × €${x.each}`}
-                  </span>
-                )}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
       {/* Novinky sú marketing ⇒ výslovný súhlas (krok 4 sľúbil e-mail len
           na „nech sa ti dizajn nestratí"). */}
-      {tier && (
-        <button type="button" className={`hf-chk${news ? ' on' : ''}`} onClick={() => setNews((v) => !v)}>
-          <span className="box">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#16307A" strokeWidth="3.4"
-              strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M4 12.5 L9.5 18 L20 6" />
-            </svg>
-          </span>
-          <span className="lbl">{t('heroglyph.flow.stay.news')}</span>
-        </button>
-      )}
+      <button type="button" className={`hf-chk${news ? ' on' : ''}`} onClick={() => setNews((v) => !v)}>
+        <span className="box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#16307A" strokeWidth="3.4"
+            strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M4 12.5 L9.5 18 L20 6" />
+          </svg>
+        </span>
+        <span className="lbl">{t('heroglyph.flow.stay.news')}</span>
+      </button>
 
       {error && <p role="alert" className="hf-alert">{error}</p>}
       <div className="st-actions">
@@ -205,8 +168,8 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
         <button type="button" className="hf-cta" onClick={() => { track('stay_tier_chosen', { tier: 'member', dogs: dogs.length }); onMember(); }} disabled={busy}>
           {t('heroglyph.flow.stay.member')}
         </button>
-        <button type="button" className="st-confirm" onClick={confirm} disabled={!tier || busy}>
-          {busy ? t('payment.preparing') : t('heroglyph.flow.stay.confirm')}
+        <button type="button" className="st-confirm" onClick={confirm} disabled={busy}>
+          {busy ? t('payment.preparing') : t('heroglyph.flow.stay.free')}
         </button>
       </div>
     </div>
@@ -283,17 +246,6 @@ const STAY_CSS = `
 .st-profile:hover { color: ${LAPIS.edge}; }
 .st-mark { flex: none; width: 20px; height: 20px; stroke: #B25640; }
 .st-row.yes .st-mark { stroke: #3D7A4E; }
-.st-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-/* Voľby väčšie (Matej 26. 9. 2026: *„tie možnosti zväčši"*). */
-.st-opt.hf-pick { justify-content: center; padding: 16px 12px; gap: 12px; }
-.st-opt .well { width: 48px; height: 48px; }
-.st-opt .well img { width: 28px; height: 28px; object-fit: contain; }
-.st-opt-name { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; }
-.st-price { font-family: 'Cinzel', serif; font-weight: 700; font-size: 32px; line-height: 1.05; color: ${LAB.ink}; }
-.st-opt-sub { font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: ${LAB.inkBody}; }
-/* Výber = spoločné lapisové podsvietenie vstupu (\`.is-pale\` + FLOW_PICK_ON), ako
-   na podstate — Matej 26. 9.: *„výber farebne nie je totožný ako inde“*. */
-.st-opt.on .st-price, .st-opt.on .st-opt-sub { color: ${LAPIS.edge}; }
 /* POD SEBOU (Matej 26. 9. 2026: *„plný prístup a potvrdiť by som dal pod seba"*): plný hore, priesvitný pod ním. */
 .st-actions { display: flex; flex-direction: column; gap: 8px; }
 .st-actions > button { width: 100%; }

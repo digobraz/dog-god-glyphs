@@ -372,6 +372,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.stay.miss2': "Členství",
   'heroglyph.flow.stay.member': 'Plný přístup',
   'heroglyph.flow.stay.confirm': 'Potvrdit',
+  'heroglyph.flow.stay.free': 'Pokračovat zdarma',
   'heroglyph.flow.stay.news': 'Pošlete mi e-mail, až bude v DOGYPTU něco nového',
   'heroglyph.flow.stay.notReady': 'Tuto možnost ještě dokončujeme. Zatím funguje plné členství.',
   'heroglyph.flow.stay.done.t': 'Hotovo.',
