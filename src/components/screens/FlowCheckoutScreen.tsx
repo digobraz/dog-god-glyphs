@@ -18,8 +18,7 @@ import { getStoredRef } from '@/lib/refCapture';
 import { getAttribution } from '@/lib/attribution';
 import { suggestEmailFix } from '@/lib/emailTypo';
 import { saveCheckoutDraft } from '@/lib/checkoutDraft';
-import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
-import { FlowPanel, FlowPanelShell, FLOW_PANEL_CSS, type PanelGroup } from '@/components/screens/flowPanel';
+import { FlowPanelShell, FLOW_PANEL_CSS } from '@/components/screens/flowPanel';
 import { FlowStayChoice } from '@/components/screens/FlowStayScreen';
 import { FlowMoreInfo } from '@/components/screens/flowMoreInfo';
 import {
@@ -51,11 +50,6 @@ import {
 
 const CREATE_CHECKOUT_URL = `${EDGE_BASE}/create-checkout`;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-/** Čo dostaneš — poradie podľa Matejovej predlohy z Canvy; štítky aj panel. */
-const GET_KEYS = ['glyph', 'dogid', 'ainubis', 'map', 'sniffer'];
-/** Kresby pre panel KAM IDÚ PENIAZE — v poradí `TRANSPARENCY_SPLIT`. */
-const MONEY_ICON = ['/icons/pack/layers.svg', '/icons/pack/link.svg', '/icons/mission/doghome.svg', '/icons/pack/food.svg'];
 
 /**
  * STĹPCE MRIEŽKY PSOV — vždy plná mriežka (Matej 25. 9. 2026: *„logika je, aby
@@ -145,19 +139,10 @@ export function FlowCheckoutScreen() {
 
   // ── KAM IDÚ PENIAZE (zbalené) ─────────────────────────────────────────────
   /** Panel nad doskou: ČO DOSTANEŠ alebo KAM IDÚ PENIAZE. */
-  const [panel, setPanel] = useState<'get' | 'money' | null>(null);
+  const [panel, setPanel] = useState<'get' | null>(null);
   /** ZADRŽANIE ako popup (Matej 26. 9. 2026). `?stay=1` ho otvorí hneď —
    *  tam presmeruje stará adresa `/heroglyph/stay`. */
   const [stay, setStay] = useState(() => new URLSearchParams(window.location.search).get('stay') === '1');
-  const moneyGroups: PanelGroup[] = [{
-    items: TRANSPARENCY_SPLIT.map((s, i) => ({
-      key: s.labelKey,
-      icon: MONEY_ICON[i],
-      title: t(s.labelKey),
-      desc: t(s.noteKey),
-      aside: `€${s.share}`,
-    })),
-  }];
 
   // ── PLATBA ────────────────────────────────────────────────────────────────
   const [loading, setLoading] = useState(false);
@@ -304,9 +289,9 @@ export function FlowCheckoutScreen() {
               {/* ── SVORKA — psi ako KARTY vedľa seba (Matej 25. 9.: *„multipsy budú
                   v 2/3 stĺpcoch vedľa seba, nie pod sebou"*). Stĺpcov je najviac
                   toľko, koľko je psov — jeden pes nestojí v tretine dosky. ── */}
-              <p className="hf-legend">
-                {t(dogs.length > 1 ? 'heroglyph.flow.checkoutNew.dogsMany' : 'heroglyph.flow.checkoutNew.dogsOne')}
-              </p>
+              {/* Čo kupuješ, jednou vetou nad psami (Matej 26. 9. 2026: *„lepší texting
+                  v kolónke cena: Členstvo v hnutí (vlastné konto) + HEROGLYPH pre:"*). */}
+              <p className="hf-legend co-for">{t('heroglyph.flow.checkoutNew.forDogs')}</p>
               <ul
                 className="co-dogs"
                 style={{ '--co-n': gridCols(dogs.length) } as React.CSSProperties}
@@ -346,7 +331,8 @@ export function FlowCheckoutScreen() {
                 })}
               </ul>
 
-              {/* ── SPOLU ─────────────────────────────────────────────────── */}
+              {/* ── SPOLU + PROMO ─────────────────────────────────────────
+                  Promo kód stojí pri SPOLU — mení práve túto sumu (Matej 26. 9. 2026). */}
               <div className="co-total">
                 <span>{t('heroglyph.flow.checkoutNew.total')}</span>
                 <b>
@@ -354,65 +340,11 @@ export function FlowCheckoutScreen() {
                   €{totalShown}
                 </b>
               </div>
-
-              {/* ── ČO DOSTANEŠ — obsah hneď v štítkoch, rozpis v paneli (Matej
-                  25. 9. 2026: *„do chipov to, čo človek dostane, a tlačidlo VIAC
-                  INFO"*). Štítok = informácia, nie voľba ⇒ zlatý obrys, nie lapis. ── */}
-              {/* Menším písmom a oddelené RYTINOU (Matej 25. 9. 2026) — ten istý
-                  vlys ako „Tvoj pes", nie ďalší nadpis. */}
-              <p className="hf-legend co-getlegend">{t('heroglyph.flow.checkoutNew.getTitle')}</p>
-              <div className="co-getrow">
-                <ul className="co-chips">
-                  {GET_KEYS.map((k) => (
-                    <li key={k} className="co-chip">
-                      {t(`heroglyph.flow.checkoutNew.get.${k}`)}
-                    </li>
-                  ))}
-                </ul>
-                {/* Najprv ČO dostaneš (štítky), potom VIAC INFO a KAM IDÚ PENIAZE vedľa seba
-                    na stred (Matej 25. 9. 2026). */}
-                <div className="co-getbtns">
-                  <button type="button" className="co-more" onClick={() => setPanel('get')}>
-                    {t('heroglyph.flow.checkoutNew.getMore')}
-                  </button>
-                  <button type="button" className="hf-hint" onClick={() => setPanel('money')}>
-                    {t('payment.transparency.eyebrow')}
-                  </button>
-                </div>
-              </div>
-
-              {/* ── ZAPLATIŤ / NECHCEM PLATIŤ — vedľa seba. Plná plocha patrí
-                  jedinému CTA (brand lock), odmietnutie je obrysové. Vedie na
-                  ZADRŽANIE (obrazovka C): kto vstúpil, odchádza aspoň so psom
-                  na stene (Matej 25. 9.). ── */}
-              {/* ZAPLATIŤ VPRAVO, bližšie k palcu, 70 % · NECHCEM PLATIŤ vľavo 30 %
-                  (Matej 25. 9. 2026: *„pozitívne napravo, bližšie k palcu"*). */}
-              {/* Rytina nad CTA (Matej 25. 9. 2026) — ten istý vlys ako pri „Čo
-                  dostaneš", len bez nápisu. */}
-              <p className="hf-legend co-rule" aria-hidden />
-              <div className="co-actions">
-                <button type="button" className="co-decline" onClick={() => setStay(true)} disabled={loading}>
-                  {t('heroglyph.flow.checkoutNew.decline')}
+              {!promoOpen && (
+                <button type="button" className="hf-hint co-promo-ask" onClick={() => setPromoOpen(true)}>
+                  {t('heroglyph.flow.checkoutNew.promoAsk')}
                 </button>
-                <button type="button" className="hf-cta" onClick={pay} disabled={loading || !!edit}>
-                  {loading
-                    ? <span className="co-cta-in"><Loader2 className="h-4 w-4 animate-spin" />{waitingPhoto ? t('payment.sealing') : t('payment.preparing')}</span>
-                    : t('heroglyph.flow.checkoutNew.pay', { sum: `€${totalShown}` })}
-                </button>
-                {/* Pod každým tlačidlom jeho drobnosť (Matej 25. 9. 2026): promo kód
-                    pod NECHCEM PLATIŤ, zabezpečená platba pod CTA. */}
-                <span className="co-under">
-                  {!promoOpen && (
-                    <button type="button" className="hf-hint" onClick={() => setPromoOpen(true)}>
-                      {t('heroglyph.flow.checkoutNew.promoAsk')}
-                    </button>
-                  )}
-                </span>
-                <p className="co-secure co-under">{t('heroglyph.flow.checkoutNew.secureShort')}</p>
-              </div>
-              {payError && <p role="alert" className="co-err">{payError}</p>}
-
-              {/* ── PROMO — otvorený kód ide na celú šírku pod tlačidlá ── */}
+              )}
               {promoOpen && (
                 <div className="co-promo">
                   <input
@@ -433,9 +365,7 @@ export function FlowCheckoutScreen() {
                       ? <Loader2 className="h-3 w-3 animate-spin" />
                       : promoState === 'ok' ? t('payment.promo.applied') : t('payment.promo.apply')}
                   </button>
-                  {/* Cesta späť (Matej 25. 9. 2026: *„pri kliku na promokód chýba krok
-                      vrátiť sa… späť pod tlačidlo použiť"*). Neplatný kód sa zahodí,
-                      uplatnený ostáva. */}
+                  {/* Cesta späť (Matej 25. 9. 2026). Neplatný kód sa zahodí, uplatnený ostáva. */}
                   <button
                     type="button"
                     className="hf-hint co-promo-back"
@@ -449,6 +379,37 @@ export function FlowCheckoutScreen() {
                 </div>
               )}
               {promoState === 'bad' && <p className="co-err">{t('payment.promo.invalid')}</p>}
+
+              {/* ── ČO ZAHŔŇA ČLENSTVO — nič viac (Matej 26. 9. 2026). Štítky aj
+                  „Kam idú peniaze" zanikli: peniaze sú poslednou snímkou VIAC INFO. ── */}
+              <button type="button" className="co-more co-member" onClick={() => setPanel('get')}>
+                {t('heroglyph.flow.checkoutNew.whatMember')}
+              </button>
+
+              {/* ── ZAPLATIŤ / NECHCEM PLATIŤ — vedľa seba. Plná plocha patrí
+                  jedinému CTA (brand lock), odmietnutie je obrysové. Vedie na
+                  ZADRŽANIE (obrazovka C): kto vstúpil, odchádza aspoň so psom
+                  na stene (Matej 25. 9.). ── */}
+              {/* ZAPLATIŤ VPRAVO, bližšie k palcu, 70 % · NECHCEM PLATIŤ vľavo 30 %
+                  (Matej 25. 9. 2026: *„pozitívne napravo, bližšie k palcu"*). */}
+              {/* Rytina nad CTA (Matej 25. 9. 2026) — ten istý vlys ako pri „Čo
+                  dostaneš", len bez nápisu. */}
+              <p className="hf-legend co-rule" aria-hidden />
+              {/* POD SEBOU (Matej 26. 9. 2026: *„obidve CTA môžu byť pod sebou"*):
+                  ZAPLATIŤ plné hore, NECHCEM PLATIŤ obrysové pod ním. */}
+              <div className="co-actions">
+                <button type="button" className="hf-cta" onClick={pay} disabled={loading || !!edit}>
+                  {loading
+                    ? <span className="co-cta-in"><Loader2 className="h-4 w-4 animate-spin" />{waitingPhoto ? t('payment.sealing') : t('payment.preparing')}</span>
+                    : t('heroglyph.flow.checkoutNew.pay', { sum: `€${totalShown}` })}
+                </button>
+                <button type="button" className="co-decline" onClick={() => setStay(true)} disabled={loading}>
+                  {t('heroglyph.flow.checkoutNew.decline')}
+                </button>
+                <p className="co-secure">{t('heroglyph.flow.checkoutNew.secureShort')}</p>
+              </div>
+              {payError && <p role="alert" className="co-err">{payError}</p>}
+
               {createPortal(
                 <AnimatePresence>
                   {(panel || stay) && (
@@ -470,15 +431,6 @@ export function FlowCheckoutScreen() {
                   <FlowPanelShell key="get" className="co-more-info" label={t('heroglyph.flow.more.eyebrow')} onClose={() => setPanel(null)}>
                     <FlowMoreInfo onClose={() => setPanel(null)} />
                   </FlowPanelShell>
-                )}
-                {panel === 'money' && (
-                  <FlowPanel
-                    key={panel}
-                    title={t('payment.transparency.eyebrow')}
-                    groups={moneyGroups}
-                    closeLabel={t('heroglyph.flow.checkoutNew.getClose')}
-                    onClose={() => setPanel(null)}
-                  />
                 )}
                 {stay && panel !== 'get' && (
                   <FlowPanelShell key="stay" className="co-stay" label={t('heroglyph.flow.checkoutNew.decline')} onClose={() => setStay(false)}>
@@ -612,20 +564,6 @@ const CHECKOUT_CSS = `
   .co-stack--many { --seal: 12dvh; }
 }
 
-/* Štítky „čo dostaneš" — zlatý obrys (informácia). SNIFFER už nie je „čoskoro"
-   (Matej 25. 9. 2026). */
-.co-getlegend { font-size: 10px; }
-.co-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto; min-width: 0; }
-.co-chip {
-  padding: 4px 8px; border-radius: 999px; border: 1px solid rgba(154, 115, 37, 0.45);
-  font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: .02em;
-  color: ${LAB.ink}; background: rgba(255, 252, 240, 0.55); white-space: nowrap;
-}
-
-/* Čo dostaneš — zelený VIAC INFO na stred, pod ním štítky na stred (Matej
-   25. 9. 2026). Štítky sa zmestia na DVA riadky aj na 390 px. */
-.co-getrow { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: -4px; }
-.co-getrow .co-chips { justify-content: center; }
 /* ⚠️ ZELENÁ je tu Matejova výslovná voľba. Inde v appke zelená znamená TIP
    alebo SPLNENÉ; tón je ten istý ako 100 % DOG ID (#3D7A4E), nie nový. */
 .co-more {
@@ -653,25 +591,24 @@ const CHECKOUT_CSS = `
 .co-stack.is-veiled .co-seal { opacity: 0; }
 
 /* ZAPLATIŤ + NECHCEM PLATIŤ vedľa seba — plné a obrysové, rovnaký tvar. */
-.co-actions { display: grid; grid-template-columns: 3fr 7fr; gap: 8px; }
-.co-actions .hf-cta { width: 100%; }
+.co-actions { display: flex; flex-direction: column; gap: 8px; }
+.co-actions > button { width: 100%; }
+.co-for { text-align: center; white-space: normal; line-height: 1.5; letter-spacing: .12em; }
+.co-for::before, .co-for::after { align-self: center; }
+@media (max-width: 600px) { .co-for { font-size: 10px; } .co-for::before, .co-for::after { min-width: 8px; } }
+.co-promo-ask { align-self: flex-end; margin-top: -8px; font-size: 12px; }
+.co-member { align-self: center; }
 .co-decline {
   height: ${HF.cta.h}px; border-radius: ${HF.cta.radius}px; cursor: pointer;
   border: 1.5px solid ${LAPIS.edge}; background: transparent; color: ${LAPIS.edge};
-  font-family: 'Cinzel', serif; font-weight: 700; font-size: 10px;
-  letter-spacing: .04em; text-transform: uppercase; white-space: normal; line-height: 1.15; padding: 0 4px;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: ${HF.cta.size}px;
+  letter-spacing: .08em; text-transform: uppercase; white-space: normal; line-height: 1.15; padding: 0 8px;
   transition: background .18s, color .18s;
 }
 .co-decline:hover:not(:disabled) { background: ${LAPIS.fill}; }
 .co-decline:disabled { opacity: .4; cursor: default; }
 
 .co-rule { gap: 0; margin: 0; }
-.co-getbtns { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; }
-.co-actions { row-gap: 4px; }
-.co-under { justify-self: center; text-align: center; }
-/* Stĺpec pod NECHCEM PLATIŤ má na 390 px ~92 px ⇒ odkaz na jeden riadok, smie
-   presahovať stĺpec (je centrovaný, vedľa je len drobný text). */
-.co-under .hf-hint, .co-under.co-secure { white-space: nowrap; font-size: 10px; }
 .co-promo { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; }
 .co-promo-back { grid-column: 2; justify-self: center; }
 .co-promo-f { height: 40px; text-transform: uppercase; }

@@ -608,7 +608,7 @@ const ESSENCE_CSS = `
    tejto obrazovke nesmie hýbať.
    ⚠️ Toto je JEDINÉ miesto, kde sa mobil zámerne líši od PC (Matej: *„iné od
    PC"*) — na PC ostávajú dva stĺpce a trojica v jednom rade. */
-/* ── 🔴 26. 9. 2026: VOĽBY VEDĽA SEBA NA MOBILE AJ PC, IKONKA HORE, NÁPIS DOLE ──
+/* ── 26. 9. 2026: VOĽBY VEDĽA SEBA NA MOBILE AJ PC, IKONKA HORE, NÁPIS DOLE ──
    Matej: *„tlačítka sú moc pri sebe, malé medzery, je treba ich dať vedľa seba aj
    na mobile aj PC, centrovať na stred, hore ikona dolu nápis"*. Prebíja riadky
    na mobile z 24. 9. (siedme kolo) — novší pokyn. Plocha je ďalej PEVNÁ, len

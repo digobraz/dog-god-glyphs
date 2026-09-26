@@ -6,6 +6,7 @@ import { HandArrowLeft } from '@/components/pack/HandIcons';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { LAB } from '@/lib/labTheme';
 import { readSvorka } from '@/lib/flowSvorka';
+import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 
 // ════════════════════════════════════════════════════════════════════════════
 // VIAC INFO — karusel „Čo dostaneš" v doske pokladne (26. 9. 2026)
@@ -28,7 +29,7 @@ import { readSvorka } from '@/lib/flowSvorka';
 
 type Pos = { z: number; x: number; y: number };
 type Slide = {
-  key: 'glyph' | 'pack' | 'dogid' | 'ainubis' | 'dogtrip' | 'sniffer' | 'cause';
+  key: 'glyph' | 'pack' | 'dogid' | 'ainubis' | 'dogtrip' | 'sniffer' | 'cause' | 'money';
   src?: string;
   video?: boolean;
   bg: string;
@@ -44,7 +45,14 @@ const SLIDES: Slide[] = [
   { key: 'dogtrip', src: `${IMG}/dogtrip.jpg`, bg: '#0c0a08', pos: { pc: { z: 1.49, x: 24.1, y: 23.9 }, ph: { z: 1.71, x: 35.1, y: 34 } } },
   { key: 'sniffer', bg: '#FBF5E6', pos: { pc: { z: 1, x: 0, y: 0 }, ph: { z: 1, x: 0, y: 0 } } },
   { key: 'cause', src: `${IMG}/cause-touch.jpg`, bg: '#EDEDED', pos: { pc: { z: 1.01, x: -0.4, y: -0.4 }, ph: { z: 1.05, x: 0, y: 0 } } },
+  // KAM IDÚ PENIAZE = posledná snímka, hneď po VYŠŠOM CIELI (Matej 26. 9. 2026:
+  // *„posledná stránka v popupe, po vyššom princípe, obrazovka kam idú peniaze
+  // (zlúč to)"*). Samostatný panel v pokladni tým zanikol.
+  { key: 'money', bg: '#FBF5E6', pos: { pc: { z: 1, x: 0, y: 0 }, ph: { z: 1, x: 0, y: 0 } } },
 ];
+
+/** Kresby štyroch podielov — v poradí `TRANSPARENCY_SPLIT`. */
+const MONEY_ICON = ['/icons/pack/layers.svg', '/icons/pack/link.svg', '/icons/mission/doghome.svg', '/icons/pack/food.svg'];
 
 const posCss = (p: Pos) => `translate(calc(-50% + ${p.x}%), calc(-50% + ${p.y}%)) scale(${p.z})`;
 
@@ -111,6 +119,17 @@ export function FlowMoreInfo({ onClose }: { onClose: () => void }) {
                     ? <HeroglyphFrame showOwner dogValues={dog} className="mi-glyph" />
                     : <img className="mi-glyph" src="/heroglyph/hektor-horizontal.svg" alt="" draggable={false} />}
                 </div>
+              )}
+              {s.key === 'money' && (
+                <ul className="mi-money">
+                  {TRANSPARENCY_SPLIT.map((m, k) => (
+                    <li key={m.labelKey} style={{ borderColor: m.color }}>
+                      <img src={MONEY_ICON[k]} alt="" />
+                      <b>€{m.share}</b>
+                      <span>{t(m.labelKey)}</span>
+                    </li>
+                  ))}
+                </ul>
               )}
               {s.key === 'sniffer' && (
                 <div className="mi-sniff">
@@ -182,6 +201,11 @@ const MORE_INFO_CSS = `
 .mi-sniff { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 16px 24px; text-align: center; }
 .mi-sniff img { width: min(70%, 320px); height: auto; }
 .mi-sniff p { margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.4; color: ${LAB.ink}; max-width: 320px; }
+.mi-money { position: absolute; inset: 0; margin: 0; padding: 12px; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mi-money li { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-radius: 12px; border: 2px solid; background: rgba(255, 252, 240, .7); }
+.mi-money img { width: 32px; height: 32px; object-fit: contain; }
+.mi-money b { font-family: 'Cinzel', serif; font-weight: 700; font-size: 24px; line-height: 1; color: ${LAB.ink}; }
+.mi-money span { font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: .06em; color: ${LAB.inkBody}; }
 .mi-ar { position: absolute; top: calc(50% - 18px); width: 36px; height: 36px; border-radius: 999px; border: 1px solid #C99A3F; background: #FBF5E6; color: #9A7325; display: grid; place-items: center; cursor: pointer; z-index: 2; }
 .mi-ar.l { left: -12px; }
 .mi-ar.r { right: -12px; }
@@ -205,5 +229,9 @@ const MORE_INFO_CSS = `
   .mi-text h3 { font-size: 16px; }
   .mi-text p { font-size: 12px; }
   .mi-ar { width: 32px; height: 32px; top: calc(50% - 16px); }
+  .mi-money { padding: 8px 16px; gap: 4px 8px; }
+  .mi-money img { width: 20px; height: 20px; }
+  .mi-money b { font-size: 16px; }
+  .mi-money span { font-size: 10px; }
 }
 `;
