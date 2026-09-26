@@ -1,5 +1,6 @@
-// /pack/map — TRIPS surface (Portal). Full-bleed Mapy.cz map + the 28
-// real done trips from the photo nahadzovač (HERO_TRAILS). Detail = inline panel
+// /pack/map — TRIPS surface (Portal). Full-bleed Mapy.cz map + výlety z nahadzovača
+// (HERO_TRAILS, generované) a diaľkové cesty (HERO_JOURNEYS, ručné) — pôvodne 28 výletov,
+// počet dnes nesú dáta, nie tento komentár. Detail = inline panel
 // state (bod 5, iterácia 12); the full-page article lives at the SAME URL
 // (/pack/map/:slug) but is now a SEPARATE route component
 // (PackTripArticle.tsx, see App.tsx) — this file only ever mounts at the
@@ -31,6 +32,8 @@
 // liquid-glass header; (6) ADD TRIP flow recyklovaný z AddTrailFlow.tsx
 // (haversine, click-to-draw, undo/clear) — pridáva do LOKÁLNEHO session
 // state (useState), NIE do Supabase (DB zápis mimo rozsahu, flag nižšie).
+// ⚠️ PREKONANÉ: ADD flow žije od kroku 9 v `components/pack/addtrip/` a výlet sa ukladá
+// do DB (`pack_trips` cez packStore.ts) — viď `submitAddTripDraft` a `deletePackTrip`.
 //
 // Iterácia 12 (2026-07-22, AllTrails ladenie #2) — 7 zmien: (1) FitBounds
 // offset padding na VŠETKY strany + maxZoom, nech trasa nelezie za
@@ -94,11 +97,11 @@ import {
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
   tripPath, tripPathById, tripText, visibleLocalTrails, tripDraftMissing, memberTrailIds, isOdyssey } from '@/components/pack/tripShared';
 import {
-  crowdAggregate, founderDogyptians, seedCrowd, HAZARDS, HAZARD_EMOJI, CROWD_EMOJI, CROWD_KEY_TO_CROWD,
+  crowdAggregate, founderDogyptians, seedCrowd, CROWD_EMOJI, CROWD_KEY_TO_CROWD,
   readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
-  profileLevelFor, addedByMeIds, isFounderEmail, computeCompletion,
-  approvedAddedIds, ratedCountFor, walkPointsFor, walkRewardBase,
-  RATE_PROMPT_POINTS, discoveryBonusFor, bonusToastText, walkedCountries,
+  profileLevelFor, computeCompletion,
+  walkPointsFor, walkRewardBase,
+  RATE_PROMPT_POINTS, discoveryBonusFor,
   type TripVote, type TripPlan, type PartnerEvent, type Hazard,
 } from '@/components/pack/packCommunity';
 import { useCrowdOthers, refreshCrowdOthers } from '@/components/pack/crowdOthers';
@@ -206,8 +209,6 @@ const T = PACK_THEME;
 
 // Typografický poriadok (FONT_TITLE = identita, FONT_UI = dáta/eyebrow/chipy) žije
 // v packTheme.ts vedľa farebných tokenov — pravidlá a dôvody sú tam.
-// Papyrus lock (2026-07-26): žiadny hardcoded bledý hex — plná bledá farba ide cez token.
-const CARD = PACK_THEME.card;
 const PANEL_W = 440; // .trp-sidebar width — used to offset the inline-detail fitBounds
 // Matej 2026-07-27 („pozri ako sa pri zúžení obrazovky správa mapa"): desktop layout
 // (floating panel 440px + topbar NA mape) potrebuje reálne ~1024px+. Pod tým ostával
@@ -227,8 +228,10 @@ const DEFAULT_WALKED_IDS: string[] = [
   ...HERO_TRAILS.map((t) => t.id),
   ...FOUNDER_WALKED_JOURNEY_IDS.filter((id) => ALL_TRIPS_STATIC.some((t) => t.id === id)),
 ];
-const ALL_BOUNDS: LatLngTuple[] = ALL_TRIPS_STATIC.flatMap((t) => t.path);
-const CENTER: LatLngTuple = ALL_BOUNDS[Math.floor(ALL_BOUNDS.length / 2)] ?? [48.7, 19.5];
+// Stred Slovenska — štart mapy pred prvým rámovaním (FitBounds ho hneď prepíše) a zemepisná
+// šírka pre hrúbku pásu územia. Do 26. 9. 2026 sa počítal ako prostredný bod ZO VŠETKÝCH trás
+// (~40 000 bodov sploštených pri každom načítaní) a vychádzal náhodne na Malé Karpaty.
+const CENTER: LatLngTuple = [48.7, 19.5];
 // TRIPSTATS Slice A (bod 3, Matej 2026-07-23) — add-trip z pohoria: stred pohoria = stred path
 // prvého tripu v ňom čo má nakreslenú trasu (guard proti path=[] tripom, viď bod 6 vyššie).
 // Fallback = stred SR, keď región nemá žiadny trip s trasou (nemalo by nastať, ale ?add= je
@@ -395,8 +398,13 @@ const TAG_VOCAB = [
 // ďalej cez `heroTags`, takže sa nemení ani logika filtra, ani dáta — mení sa len OVLÁDAČ:
 // tri chipy zo spodnej mriežky sa presťahovali do rozbaľovačky vedľa aktivity.
 // ⚠️ Zdroj je `SURFACE_TAG_MAP` (dátové kľúče → UI názvy), nie druhý ručný zoznam; keby pribudol
-// štvrtý povrch, objaví sa v rozbaľovačke sám.
-const SURFACE_TAGS = ['Forest path', 'Asphalt', 'Rocky'] as const;
+// štvrtý povrch, objaví sa v rozbaľovačke sám. (Do 26. 9. 2026 to tvrdil komentár, no stál tu
+// ručný zoznam — odteraz sa naozaj odvodzuje.)
+// tr.surface[] → chip. Všetky tri hodnoty z SURFACE_VOCAB (nahadzovač) majú teraz svoj chip,
+// aby sa dalo filtrovať podľa toho, čo sa dá zadať (F1 2026-07-24). `forest` už NEsplýva so
+// scenérickým tagom `Forest` — sú to dve rôzne veci (les okolo vs. lesná cesta pod nohami).
+const SURFACE_TAG_MAP: Record<string, string> = { forest: 'Forest path', asphalt: 'Asphalt', rocky: 'Rocky' };
+const SURFACE_TAGS: string[] = Object.values(SURFACE_TAG_MAP);
 const IS_SURFACE = new Set<string>(SURFACE_TAGS);
 // ⚠️ `TAG_EMOJI` a `TAG_I18N` sa presťahovali do `tripCategories.ts` (2026-09-02). Stáli tu
 // aj v `PackTripArticle.tsx` a rozišli sa: tunajšia kópia nepoznala dátový tag `Lake`, takže
@@ -437,10 +445,7 @@ const WISH_DRAFT_ICON = L.divIcon({
 });
 // `DATA_TAG_TO_UI` sa presťahovalo do `tripCategories.ts` — odvodzujú sa z neho aliasy
 // `TAG_EMOJI`/`TAG_I18N` pre surové dátové kľúče, takže musí stáť pri nich.
-// tr.surface[] → chip. Všetky tri hodnoty z SURFACE_VOCAB (nahadzovač) majú teraz svoj chip,
-// aby sa dalo filtrovať podľa toho, čo sa dá zadať (F1 2026-07-24). `forest` už NEsplýva so
-// scenérickým tagom `Forest` — sú to dve rôzne veci (les okolo vs. lesná cesta pod nohami).
-const SURFACE_TAG_MAP: Record<string, string> = { forest: 'Forest path', asphalt: 'Asphalt', rocky: 'Rocky' };
+// (`SURFACE_TAG_MAP` stojí vyššie pri `SURFACE_TAGS`, ktoré sa z neho odvodzujú.)
 
 /** `type` = druh miesta z Mapy.com suggest (`poi` · `regional.address` · `regional.municipality`
  *  · `regional.region` · `regional.country`). Nesie sa až k príletu, lebo podľa neho sa určuje
@@ -641,9 +646,33 @@ function FlyTo({ target }: { target: FlyTarget | null }) {
   return null;
 }
 
-function FitBounds({ path, offset, dock, hold }: { path: LatLngTuple[] | null; offset?: boolean; dock?: boolean; hold?: boolean }) {
+type MapView = { c: LatLngTuple; z: number };
+/* Mobil otvára výlet ako samostatný článok, takže mapa sa pri návrate mountuje nanovo a stav
+   v pamäti komponentu neprežije. Výrez preto čaká v sessionStorage — prečíta sa RAZ a zmaže,
+   aby obyčajné otvorenie mapy začínalo na celom Slovensku ako doteraz. */
+const RETURN_VIEW_KEY = 'trp-map-return-view';
+const saveReturnView = (map: L.Map | null) => {
+  if (!map) return;
+  const c = map.getCenter();
+  try { sessionStorage.setItem(RETURN_VIEW_KEY, JSON.stringify({ c: [c.lat, c.lng], z: map.getZoom() })); } catch { /* bez úložiska sa mapa vráti na celé SR */ }
+};
+const takeReturnView = (): MapView | null => {
+  try {
+    const raw = sessionStorage.getItem(RETURN_VIEW_KEY);
+    if (!raw) return null;
+    sessionStorage.removeItem(RETURN_VIEW_KEY);
+    const v = JSON.parse(raw) as MapView;
+    return Array.isArray(v?.c) && Number.isFinite(v.z) ? v : null;
+  } catch { return null; }
+};
+
+function FitBounds({ path, offset, dock, hold, view }: { path: LatLngTuple[] | null; offset?: boolean; dock?: boolean; hold?: boolean; view?: MapView | null }) {
   const map = useMap();
   useEffect(() => {
+    // NÁVRAT Z DETAILU (audit /pack/map, 26. 9. 2026). Kto si priblížil Tatry, otvoril výlet
+    // a dal späť, skončil na celom Slovensku a Tatry hľadal znova. Uložený výrez má prednosť
+    // pred rámovaním — ale nie počas pridávania výletu (dok), tam výrez patrí sprievodcovi.
+    if (view && !offset && !dock) { map.setView(view.c, view.z, { animate: false }); return; }
     // ⚠️ KÝM EXISTUJE NAKRESLENÁ TRASA, VÝREZ PATRÍ JEJ (Matej 2026-08-25). Rámovanie krajiny
     // je správne len na PRÁZDNEJ mape; kto už trasu nakreslil, ju pri každom prechode medzi
     // krokmi znovu hľadal. Nie je to vypnutie funkcie — je to určenie vlastníka.
@@ -718,16 +747,7 @@ function FitBounds({ path, offset, dock, hold }: { path: LatLngTuple[] | null; o
     // posúvali priblíženie po CELOM kroku, nie po zlomkoch. Obnovuje sa až tu, za
     // `setZoomAround`/`panBy`, ktoré ešte s medzihodnotou pracujú.
     map.options.zoomSnap = snapBefore ?? 1;
-  }, [path, offset, dock, hold, map]);
-  return null;
-}
-
-// captures map clicks while the ADD TRIP draw flow is active (bod 6) — same
-// click-to-draw pattern as AddTrailFlow.tsx's handleMapClick, ported to a
-// react-leaflet hook here because this map lives inside the Portal's own
-// <MapContainer>, not <TrailsMap>.
-function DrawClickCatcher({ active, onPoint }: { active: boolean; onPoint: (lat: number, lng: number) => void }) {
-  useMapEvent('click', (e) => { if (active) onPoint(e.latlng.lat, e.latlng.lng); });
+  }, [path, offset, dock, hold, view, map]);
   return null;
 }
 
@@ -3501,6 +3521,10 @@ export default function PackMap() {
   // Matej 2026-07-23: mapa sa má pri načítaní ukázať tak, aby bolo vidno CELÉ Slovensko (nie len
   // nahustené výlety na západe) → východiskový fit = SVK_BORDER. Výber tripu prepne na jeho trasu.
   const [heroBounds, setHeroBounds] = useState<LatLngTuple[]>(SVK_BORDER);
+  // Výrez, na ktorý sa mapa vracia zo zatvoreného detailu (FitBounds `view`). Na PC ho drží ref
+  // pri otvorení detailu, na mobile príde zo sessionStorage po návrate z článku.
+  const [restoreView, setRestoreView] = useState<MapView | null>(takeReturnView);
+  const viewBeforeDetailRef = useRef<MapView | null>(null);
   const [photoIdx, setPhotoIdx] = useState<Record<string, number>>({});
   const heroCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -4422,14 +4446,26 @@ export default function PackMap() {
   // priama navigácia rovno na článok (jediné miesto, kde sa klik na kartu líši podľa šírky).
   const selectTrail = (tr: HeroTrail) => {
     if (typeof window !== 'undefined' && window.innerWidth <= MOBILE_BP) {
+      saveReturnView(leafletMapRef.current);
       navigate(tripPath(tr));
       return;
     }
+    // Výrez sa pamätá len pri PRVOM otvorení — preklik z výletu na výlet by si inak zapamätal
+    // rámovanie predošlého výletu, nie mapu, z ktorej človek prišiel.
+    const m = leafletMapRef.current;
+    if (!inlineDetailId && m) { const c = m.getCenter(); viewBeforeDetailRef.current = { c: [c.lat, c.lng], z: m.getZoom() }; }
+    setRestoreView(null);
     setAddFlow(null);
     setInlineDetailId(tr.id);
     setHeroBounds(tr.path);
   };
-  const expandDetail = (tid: string) => navigate(tripPathById(tid, allTrails));
+  const expandDetail = (tid: string) => {
+    // Článok sa otvára z detailu — návrat má skončiť na mape spred detailu, nie na výlete.
+    const v = viewBeforeDetailRef.current;
+    if (v) { try { sessionStorage.setItem(RETURN_VIEW_KEY, JSON.stringify(v)); } catch { /* nič */ } }
+    else saveReturnView(leafletMapRef.current);
+    navigate(tripPathById(tid, allTrails));
+  };
   // #55 — prázdna partia pod vlastným inzerátom potrebuje akciu. Odkaz na výlet je jediná vec,
   // ktorú s tým člen môže spraviť sám (rovnaký postup ako zdieľanie v článku výletu).
   const shareTripLink = async (tid: string) => {
@@ -4648,6 +4684,14 @@ export default function PackMap() {
     setEvents((prev) => prev.filter((e) => e.tripId !== tid));
     setInlineDetailId((cur) => (cur === tid ? null : cur));
   };
+  // Späť z detailu = mapa, z ktorej človek prišiel. Bez uloženého výrezu (napr. detail otvorený
+  // z adresy) ostáva pôvodné správanie — celé Slovensko.
+  const closeInlineDetail = () => {
+    setInlineDetailId(null);
+    const v = viewBeforeDetailRef.current;
+    viewBeforeDetailRef.current = null;
+    if (v) setRestoreView(v); else setHeroBounds(SVK_BORDER);
+  };
   const toggleTag = (tag: string) => setHeroTags((prev) => {
     const n = new Set(prev); if (n.has(tag)) n.delete(tag); else n.add(tag); return n;
   });
@@ -4660,6 +4704,7 @@ export default function PackMap() {
     // SK-špecifický región filter (West/Center/East) platí len pre SK
     if (c !== '' && c !== 'sk') setHeroMacroRegion('');
     // prefokus mapy na trasy vybranej krajiny (union ich path bodov); '' → celé SR
+    setRestoreView(null);
     if (c === '') { setHeroBounds(SVK_BORDER); }
     else {
       const pts = allTrails.filter((t) => trailCountry(t) === c).flatMap((t) => t.path);
@@ -5668,7 +5713,7 @@ export default function PackMap() {
   // Ruch berieme z AGREGÁTU (seed z nahadzovača + hlasy chodcov), nie z holého `tr.crowd` —
   // to je hodnota, ktorú karta reálne ukazuje. Počíta sa RAZ do mapy, nie v komparátore:
   // sortTrips beží 2–3× za render a komparátor by crowdAggregate() volal ~n·log n krát.
-  // ⚠️ ŽIADNY useMemo — sme POD early returnom `if (!id.session) return null` (~r. 2314),
+  // ⚠️ ŽIADNY useMemo — sme POD early returnom `if (!id.session) return null` (hľadaj `if (!id.session) return null`),
   // takže hook by sa pri neprihlásenom nezavolal a React by spadol na zmene počtu hookov.
   // Mapa sa preto stavia len keď je zoradenie reálne podľa ruchu.
   const crowdRankById = new Map<string, number>();
@@ -6014,7 +6059,7 @@ export default function PackMap() {
           return (
             <div className="trp-inldet">
               <div className="trp-inldet-head">
-                <button type="button" className="trp-panelnav-btn" onClick={() => { setInlineDetailId(null); setHeroBounds(SVK_BORDER); }} aria-label={t('pack.map.backToList')}><BackIcon /></button>
+                <button type="button" className="trp-panelnav-btn" onClick={closeInlineDetail} aria-label={t('pack.map.backToList')}><BackIcon /></button>
                 <button type="button" className="trp-panelnav-btn" onClick={() => expandDetail(dt.id)} aria-label={t('pack.map.expandToFullPage')}><ExpandIcon /></button>
               </div>
               <div className="trp-inldet-body">
@@ -6878,7 +6923,7 @@ export default function PackMap() {
               {/* mierka nesie čísla ("5 km") — v DOGYPT čistom vizuáli patrí medzi vysvetlivky. */}
               {!isCleanMode && <ScaleControl position="bottomleft" imperial={false} />}
               <FlyTo target={mapTarget} />
-              <FitBounds path={heroBounds} offset={!!inlineDetailId} dock={addMapPhase !== 'off'} hold={addHasRoute} />
+              <FitBounds path={heroBounds} offset={!!inlineDetailId} dock={addMapPhase !== 'off'} hold={addHasRoute} view={restoreView} />
               {/* ľavý zoznam podľa výrezu mapy (Matej 2026-07-27) — hlási bounds na moveend/zoomend */}
               <ViewportWatcher onChange={handleViewport} />
               <SaberScaleWatcher onChange={setSaberScale} />
@@ -6887,11 +6932,10 @@ export default function PackMap() {
                 setMapInstance(map);
                 if (pendingFlyRef.current) { map.flyTo(pendingFlyRef.current, 11, { duration: 1.2 }); pendingFlyRef.current = null; }
               }} />
-              {/* krok 9 (zadanie §2 kontraktu GeometryPicker): DrawClickCatcher tu už netreba pre
-                  ADD flow — GeometryPicker si berie map.on('click') sám cez mapRef a kreslí si
-                  vlastné vrstvy imperatívne (kotvy, snapnutá stopa, duchovia), nezávisle od tejto
-                  <MapContainer> React stromu. Komponent samotný ostáva (viď jeho definícia) —
-                  nepoužíva ho už nikto iný v tomto súbore. */}
+              {/* krok 9 (zadanie §2 kontraktu GeometryPicker): ADD flow nemá vlastný lapač klikov —
+                  GeometryPicker si berie map.on('click') sám cez mapRef a kreslí si vlastné vrstvy
+                  imperatívne (kotvy, snapnutá stopa, duchovia), nezávisle od tejto <MapContainer>
+                  React stromu. (Nepoužívaný `DrawClickCatcher` zmazaný 26. 9. 2026.) */}
               {/* guard: pár done tripov v nahadzovači ešte nemá nakreslenú trasu (path=[]) —
                   bez guardu Leaflet spadne na undefined position (Marker/Polyline). Bod 3 (iterácia
                   12): default trasa ČIERNA, weight 3. Bod 1 (iterácia 17): hover/inline-selected

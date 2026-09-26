@@ -1,5 +1,6 @@
 // ⚙️ RUČNE KURÁTOROVANÉ — NIE generované (na rozdiel od heroTrails.generated.ts).
-// „Journey" = viacdňová turistika (multi-day). Prvá a zatiaľ jediná = Cesta hrdinov SNP.
+// „Journey" = viacdňová turistika (multi-day). Prvá bola Cesta hrdinov SNP; pribudli okruhy
+// a magistrály (počet nesie zoznam nižšie, nie tento komentár).
 //
 // Trasa `path` = REÁLNA značená Cesta hrdinov SNP z OpenStreetMap (relácia 7700604,
 // route=hiking, network=nwn, colour=red, Devín → Dukliansky priesmyk). Stiahnuté cez

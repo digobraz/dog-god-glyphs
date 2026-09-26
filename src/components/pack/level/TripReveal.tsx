@@ -36,6 +36,8 @@ import type { LevelProgress, TripPointsResult } from '@/lib/tripPoints';
 import { tierOfLevel, tierVars, crossedTier } from '@/lib/packTiers';
 import { PointsBreakdown } from './PointsBreakdown';
 import { REVEAL_CSS } from './revealCss';
+// Fotky sa kreslia v 66–112 px — originál z Cloudinary (často 3–4 MB) sa sem nesťahuje.
+import { sizedUrl } from '@/services/cloudinaryService';
 
 /** Jeden údaj o výlete v chipe. `unit` prázdna = menovka miesta (pohorie, oblasť). */
 export interface TripStat {
@@ -391,7 +393,7 @@ export function TripReveal({
                 : <span className="rv-av">{ownerInitial}</span>}
               {dogs.slice(0, 3).map((d) => (
                 d.photo
-                  ? <img key={d.id} className="rv-av rv-av--dog" src={d.photo} alt="" />
+                  ? <img key={d.id} className="rv-av rv-av--dog" src={sizedUrl(d.photo, 160)} alt="" />
                   : <span key={d.id} className="rv-av rv-av--dog">{d.name.slice(0, 1).toUpperCase()}</span>
               ))}
             </div>
@@ -424,7 +426,7 @@ export function TripReveal({
          <div className="rv-blok">
           <div className="rv-core">
             {tripPhoto
-              ? <img className="rv-thumb" src={tripPhoto} alt="" />
+              ? <img className="rv-thumb" src={sizedUrl(tripPhoto, 240)} alt="" />
               : <div className="rv-thumb">🏞️</div>}
             {isPlan && <div className="rv-eyebrow">{t('pack.reveal.plan.eyebrow')}</div>}
             <div className="rv-name">{tripName}</div>
@@ -533,7 +535,7 @@ export function TripReveal({
                 }}
               >
                 {d.photo
-                  ? <img className="rv-ph" src={d.photo} alt=""
+                  ? <img className="rv-ph" src={sizedUrl(d.photo, 160)} alt=""
                          style={{ width: DOG_SIZE, height: DOG_SIZE, animationDelay: `${(0.5 + i * 0.14).toFixed(2)}s` }} />
                   : <span className="rv-ph"
                           style={{ width: DOG_SIZE, height: DOG_SIZE, fontSize: Math.round(DOG_SIZE * 0.4),
