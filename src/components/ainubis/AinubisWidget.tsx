@@ -395,12 +395,13 @@ function AinubisWidgetInner() {
    * nevybral" musí zastaviť odoslanie, nie ho ticho zdražiť.
    */
   const [branch, setBranchState] = useState<Branch | null>(() => {
-    const v = safeLocalStorageGet(LS_BRANCH);
     // 🔴 BEZ VÝBERU SA ŠTARTUJE V PODPORE (Matej 26. 9. 2026: „Podpora a personalizácia
     //    tie tlačítka daj preč"). Dvere aj prepínač zanikli, takže `null` by zamkol písanie
-    //    navždy (`branchGate`). Kto má vetvu uloženú alebo mu ju vráti server, ostáva v nej.
-    // 🚩 PERSONALIZÁCIA (VIP) TÝM STRATILA VCHOD — čaká na Matejovo rozhodnutie, odkiaľ sa otvorí.
-    return toBranch(v) ?? 'support';
+    //    navždy (`branchGate`).
+    // 🔴 PERSONALIZÁCIA VYPUSTENÁ (Matej 26. 9. 2026: „personalizáciu zatiaľ vypustíme — bude
+    //    slúžiť len na technickú podporu"). Uložená `personal` z minulosti sa IGNORUJE, inak by
+    //    VIP človek ostal v vetve, do ktorej sa už nedá dostať ani z nej odísť.
+    return 'support';
   });
 
   const setBranch = useCallback((b: Branch) => {
@@ -875,7 +876,8 @@ function AinubisWidgetInner() {
       // len vlastný stav, farba a pilulka by ukazovali vetvu, ktorú serverové
       // vlákno nemá.
       const served = toBranch(res.branch);
-      if (served) setBranch(served);
+      // Len podpora (26. 9. 2026) — `personal` od servera (staré VIP vlákno) sa neprenáša do UI.
+      if (served === 'support') setBranch(served);
       setConversationId(res.conversation_id);
       setSessionToken(res.session_token);
       safeLocalStorageSet(LS_CONV, res.conversation_id);
