@@ -1958,7 +1958,11 @@ ${TRAIL_LINE_CSS}
      mobile NEZOBRAZOVALI VÔBEC (žijú v .trp-sidebar / .trp-topbar, oboje display:none).
      Teraz: search + jedna „Filters · N" pilulka, ktorá otvára .trp-msheet so VŠETKÝMI
      filtrami (country, región, activity, difficulty, crowd, tagy, sort). */
-  .trp-mheader-row2{display:flex;align-items:center;gap:8px;}
+  .trp-mheader-row2{display:flex;align-items:center;gap:8px;position:relative;}
+  /* Ponuka miest na mobile: pod celým riadkom (pole + Filtre). mask-image hlavičky orezáva
+     všetko, čo z nej vytŕča — kým je ponuka otvorená, rozplynutie sa vypína (.has-sug). */
+  .trp-mheader-row2 .trp-mapsug{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:5;}
+  .trp-mheader.has-sug{mask-image:none;-webkit-mask-image:none;}
   .trp-mheader .trp-mapsearch{flex:1 1 auto;min-width:0;padding:0 12px;border-radius:999px;}
   .trp-mheader .trp-mapsearch input{padding:7px 0;}
   .trp-mheader .trp-mapsearch img{width:12px;height:12px;}
@@ -2466,6 +2470,12 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
    ═══════════════════════════════════════════════════════════════════════════════════════ */
 const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
 @media (max-width:${PALE_PC_MIN - 1}px){
+  .trp-mheader .trp-mapsug{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};box-shadow:${T.panelShadow};}
+  .trp-mheader .trp-mapsug-item{border-bottom:1px solid ${P_HAIR};}
+  .trp-mheader .trp-mapsug-item:hover{background:${P_HOT};}
+  .trp-mheader .trp-mapsug-none{color:${T.inkDim};}
+  .trp-mheader .trp-mapsug-name{color:${P_INK};}
+  .trp-mheader .trp-mapsug-sub{color:${P_DIM};}
   .trp-mheader{${goldPlateCSS({ radius: 0 })}box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;mask-image:none;-webkit-mask-image:none;padding-bottom:16px;}
   .trp-mheader::after{content:'';position:absolute;left:0;right:0;bottom:0;height:${NAV_R.rim}px;background:linear-gradient(180deg,#BC9231,${'#AA8129'});box-shadow:0 1px 0 ${NAV_GOLD.edge},inset 0 1px 0 rgba(255,248,214,0.35);}
 
@@ -3513,6 +3523,8 @@ export default function PackMap() {
   // naposledy vybraný návrh (viď guard v suggest efekte) + wrapper na klik-mimo
   const pickedPlaceRef = useRef('');
   const placeBoxRef = useRef<HTMLDivElement | null>(null);
+  /** Box hľadania v MOBILNEJ hlavičke — klik doň nesmie ponuku zavrieť ako „klik mimo". */
+  const mPlaceBoxRef = useRef<HTMLDivElement | null>(null);
   const [mapTarget, setMapTarget] = useState<FlyTarget | null>(null);
   // Vrstvy mapy (integračná vlna, spec-hmla.md) — PODKLAD je vždy práve jeden (`mapBase`),
   // OVERLAYE sa dajú kombinovať (`overlayOn`). Panel, ktorý toto ovláda, sa generuje z
@@ -4183,7 +4195,11 @@ export default function PackMap() {
         // v `label` TYP miesta a s `lang=en` z toho slovenský člen dostal „Shelter" namiesto
         // „Útulňa, bivak" — teda presne to slovo, podľa ktorého miesto hľadá. Overené naživo
         // na dotaze „Kolibka".
-        const url = `${MAPY_BASE}/v1/suggest?query=${encodeURIComponent(q)}&lang=${encodeURIComponent(lang)}&limit=6&apikey=${MAPY_API_KEY}`;
+        // 🇸🇰 PREDNOSŤ MÁ SLOVENSKO (26. 9. 2026): bez `preferNear` bola pri „Košice" prvá
+        // česká dedina (okres Tábor) a mesto až druhé. `preferNear` zahraničie NEVYLUČUJE
+        // (člen ide aj do Tatier na poľskú stranu) — len zoradí bližšie vyššie. Stred SR,
+        // presnosť 200 km. `locality=sk` by zahraničie zahodil úplne, preto nie.
+        const url = `${MAPY_BASE}/v1/suggest?query=${encodeURIComponent(q)}&lang=${encodeURIComponent(lang)}&limit=6&preferNear=19.5,48.7&preferNearPrecision=200000&apikey=${MAPY_API_KEY}`;
         const res = await fetch(url);
         const data = await res.json();
         const items: PlaceSug[] = (data.items || [])
@@ -4211,7 +4227,8 @@ export default function PackMap() {
     if (placeSug.length === 0 && !placeEmpty) return;
     const close = () => { setPlaceSug([]); setPlaceEmpty(false); };
     const onDown = (e: MouseEvent | TouchEvent) => {
-      if (!placeBoxRef.current?.contains(e.target as Node)) close();
+      const node = e.target as Node;
+      if (!placeBoxRef.current?.contains(node) && !mPlaceBoxRef.current?.contains(node)) close();
     };
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
     document.addEventListener('mousedown', onDown);
@@ -5498,6 +5515,40 @@ export default function PackMap() {
   // `dark` je PARAMETER, nie konštanta (2026-08-26): tú istú funkciu volá tmavá mobilná
   // hlavička aj bledá PC hlavička. Zvonček má farby v INLINE štýloch, takže CSS skinu ich
   // neprebije bez `!important` na piatich miestach — lacnejšie je povedať komponentu pravdu.
+  // PONUKA MIEST — JEDNA pre obe hlavičky (26. 9. 2026). Do dnes žila len v PC hlavičke
+  // (`.trp-topbar`), ktorá je pod 1024 px skrytá: na mobile Mapy.com návrhy vrátilo, ale
+  // nebolo ich kam nakresliť — pole hľadania vyzeralo mŕtve (audit /pack/map, bod A1).
+  const renderPlaceSug = () => (
+    <>
+      {placeSug.length === 0 && placeEmpty && (
+        <div className="trp-mapsug">
+          <div className="trp-mapsug-item trp-mapsug-none">
+            {t('pack.map.searchNoPlace')}
+          </div>
+        </div>
+      )}
+      {placeSug.length > 0 && (
+        <div className="trp-mapsug">
+          {placeSug.map((s, i) => (
+            <div
+              key={i}
+              className="trp-mapsug-item"
+              onClick={() => {
+                pickedPlaceRef.current = s.name.trim();
+                setMapTarget({ ll: [s.lat, s.lon], zoom: placeZoom(s.type) });
+                setPlaceQuery(s.name);
+                setPlaceSug([]);
+              }}
+            >
+              <div className="trp-mapsug-name">{s.name}</div>
+              {s.sub && <div className="trp-mapsug-sub">{s.sub}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+
   const renderHeaderRight = (dark = true) => (
     <div className="trp-headright">
       <PackNotifications dark={dark} layout="inline" className="trp-header-notif" last24h={id.packToday} total={id.packTotal} />
@@ -6320,7 +6371,7 @@ export default function PackMap() {
           .trp-status-row" logika, i15 bod 1 — km/✓/★/ADD TRIP), (2) search +
           Activity/Difficulty/Crowd + FILTER (sort) icon. Replaces the floating .trp-topbar on
           ≤760px. Visible in BOTH mobile map/list views. */}
-      <div className="trp-mheader" ref={mheaderRef}>
+      <div className={`trp-mheader${placeSug.length > 0 || placeEmpty ? ' has-sug' : ''}`} ref={mheaderRef}>
         {/* 2026-08-03 (Matej: „na mobil je toho veľa... potrebujem to vylepšiť tak aby to viac
             dýchalo"): mobilný status riadok UŽ NIE JE zdieľaný trojdielny split z desktopu.
             Desktop (.trp-topbar) ostáva 1:1 ako bol („na PC je to v skutku fajn"), mobil dostal
@@ -6362,7 +6413,7 @@ export default function PackMap() {
               mu povedať pravda, presne ako na PC vetve nižšie. */}
           {renderHeaderRight(MAP_SKIN !== 'pale')}
         </div>
-        <div className="trp-mheader-row2">
+        <div className="trp-mheader-row2" ref={mPlaceBoxRef}>
           <div className="trp-mapsearch">
             <img src={ICON('globe')} alt="" />
             {/* Pole hladania bolo UPLNE NEME: bez placeholdera aj bez aria-label, takze
@@ -6376,6 +6427,7 @@ export default function PackMap() {
               aria-label={t('pack.map.searchPlace')}
             />
           </div>
+          {renderPlaceSug()}
           {/* Matej 2026-07-27: jedna „Filters · N" pilulka namiesto troch selectov — všetky
               filtre (včetane country/region/tagov, ktoré na mobile chýbali ÚPLNE) žijú v sheete. */}
           <div className="trp-mfilterwrap">
@@ -7210,32 +7262,7 @@ export default function PackMap() {
                   {/* NIČ SA NENAŠLO — tá istá doska ako ponuka, aby odpoveď prišla tam,
                       kam sa človek pozerá. Nie je to chyba, preto tichý inkoust, žiadna
                       červená a žiadna ikonka. */}
-                  {placeSug.length === 0 && placeEmpty && (
-                    <div className="trp-mapsug">
-                      <div className="trp-mapsug-item trp-mapsug-none">
-                        {t('pack.map.searchNoPlace')}
-                      </div>
-                    </div>
-                  )}
-                  {placeSug.length > 0 && (
-                    <div className="trp-mapsug">
-                      {placeSug.map((s, i) => (
-                        <div
-                          key={i}
-                          className="trp-mapsug-item"
-                          onClick={() => {
-                            pickedPlaceRef.current = s.name.trim();
-                            setMapTarget({ ll: [s.lat, s.lon], zoom: placeZoom(s.type) });
-                            setPlaceQuery(s.name);
-                            setPlaceSug([]);
-                          }}
-                        >
-                          <div className="trp-mapsug-name">{s.name}</div>
-                          {s.sub && <div className="trp-mapsug-sub">{s.sub}</div>}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  {renderPlaceSug()}
                 </div>
 
                 {/* bod 3 (iterácia 11): Difficulty/Popularity — samostatné, totožné borderless
