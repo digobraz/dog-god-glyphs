@@ -266,7 +266,7 @@ export const DOCK_MEDAL_CSS = `
 }
 /* ── HEKTOROVA PACKA NA DISPLEJI (Matej 26. 9. 2026) ──────────────────────────────
    „vymeniť ikonku na strede namiesto + daj Hektorovu packu". Kresba z kitu
-   Hekypaw full.svg = /icons/pack/paw-full.svg. Trieda sa volá ďalej .pk-medal-plus,
+   Hekypaw.svg = /icons/pack/paw.svg — OBRYSOVÁ (Matej 26. 9.: „packu daj obrysovú nie plnú"). Trieda sa volá ďalej .pk-medal-plus,
    lebo je to identifikátor, nie text — kotúč stále znamená „pridávam".
    Nižšie je história plusu; platí pre ňu to isté: kresba z kitu, maskou, nie znak.
    ── (do 26. 9.) PLUS NA DISPLEJI — KRESBA Z KITU, NIE ZNAK ──────────────────────── */
@@ -288,8 +288,8 @@ export const DOCK_MEDAL_CSS = `
   display:block;
   width:${(DOCK.faceW * 0.58).toFixed(0)}%;height:${(DOCK.faceW * 0.58).toFixed(0)}%;
   background:#F5F0E4;
-  -webkit-mask:url(/icons/pack/paw-full.svg) center / contain no-repeat;
-  mask:url(/icons/pack/paw-full.svg) center / contain no-repeat;
+  -webkit-mask:url(/icons/pack/paw.svg) center / contain no-repeat;
+  mask:url(/icons/pack/paw.svg) center / contain no-repeat;
 }
 .pk-medal-gloss{
   position:absolute;inset:0;border-radius:50%;pointer-events:none;mix-blend-mode:screen;
