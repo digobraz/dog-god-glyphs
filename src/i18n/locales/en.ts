@@ -936,7 +936,7 @@ export const en = {
   // ⚠️ Deliberately vague — the same line goes out when the address has no
   //    account, so the sign-in box cannot be used to enumerate pack members.
   'login.magicLink.sent': 'If we know that address, the link is on its way. Check your inbox and spam.',
-  'login.magicLink.needEmail': 'Fill in your e-mail first — where should we send the link?',
+  'login.magicLink.needEmail': "Fill in your email first — where should I send the key?",
   'login.magicLink.noAccount': 'No pack member with this e-mail. A heroglyph comes first — that is the key to the pack.',
   // forgot password
   'login.forgot.title': 'It happens',

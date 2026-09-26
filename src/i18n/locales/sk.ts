@@ -786,7 +786,7 @@ export const sk: Partial<Dict> = {
   //    nemá — inak by prihlasovacie pole prezradilo, kto vo svorke je. Pravdu
   //    povie mail `auth-no-account`, ktorý pristane v tej schránke.
   'login.magicLink.sent': 'Ak tú adresu poznáme, odkaz je na ceste. Pozri schránku aj spam.',
-  'login.magicLink.needEmail': 'Najprv vyplň e-mail — kam ti ten odkaz máme poslať?',
+  'login.magicLink.needEmail': "Najprv vyplň e-mail — kam ti mám ten kľúč poslať?",
   // NEPOUŽÍVA SA od 16. 9. 2026 — bola to enumerácia členov. Kľúč ostáva,
   // aby sa pri prípadnom návrate neobjavil anglický fallback.
   'login.magicLink.noAccount': 'S týmto e-mailom tu nikto nie je. Najprv heroglyf — ten je kľúč do svorky.',

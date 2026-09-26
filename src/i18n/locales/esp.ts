@@ -432,6 +432,7 @@ export const esp: Partial<Dict> = {
 
   // ── /login — magic-link callback (Login.tsx) ──
   'login.eyebrow': 'Guardián de la puerta',
+  'login.magicLink.needEmail': "Primero escribe tu correo — ¿adónde te envío la llave?",
   'login.gate.cta': 'Créalo →',
   'login.gate.line': 'Solo cruza la puerta un perro con heroglifo — y su humano. ¿No lo tienes?',
   'login.forgot.prompt': 'Hasta Hekthor olvidó una vez dónde enterró su hueso. Escribe tu correo y te enviaré una llave nueva.',
@@ -945,7 +946,7 @@ export const esp: Partial<Dict> = {
   "login.magicLink.submitting": "Enviando…",
   "login.magicLink.sent": "Enlace mágico enviado — revisa tu bandeja de entrada.",
   "login.forgot.placeholder": "tu@correo.com",
-  "login.forgot.submit": "Enviar enlace de restablecimiento",
+  "login.forgot.submit": "Envíame una llave nueva",
   "login.forgot.submitting": "Enviando…",
   "login.forgot.sent": "Revisa tu bandeja de entrada para restablecer.",
   "login.forgot.back": "Volver al inicio de sesión",

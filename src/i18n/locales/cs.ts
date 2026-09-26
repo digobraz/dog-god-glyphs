@@ -4978,7 +4978,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.about.sub': 'Obě odpovědi jdou rovnou do symbolu — země a rok narození jsou dvě z jeho dvanácti částí.',
   'welcome.photoMissing.title': 'Tvář ještě chybí',
   'welcome.photoMissing.sub': 'Fotku doplníš v DOG ID — certifikát i sdílecí kartu ti podle ní vyrobíme znovu.',
-  'login.magicLink.needEmail': 'Nejdřív vyplň e-mail — kam ti ten odkaz máme poslat?',
+  'login.magicLink.needEmail': "Nejdřív vyplň e-mail — kam ti mám ten klíč poslat?",
   'login.magicLink.noAccount': 'S tímhle e-mailem tu nikdo není. Nejdřív heroglyf — ten je klíč do smečky.',
   'religion.hook.homes': '30 %',
   'religion.hook.homesOf': 'DOMÁCNOSTÍ NA SVĚTĚ',

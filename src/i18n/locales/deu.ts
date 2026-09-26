@@ -432,6 +432,7 @@ export const deu: Partial<Dict> = {
 
   // ── /login — magic-link callback (Login.tsx) ──
   'login.eyebrow': 'Torwächter',
+  'login.magicLink.needEmail': "Gib zuerst deine E-Mail ein — wohin soll ich den Schlüssel schicken?",
   'login.gate.cta': 'Erstelle sie →',
   'login.gate.line': 'Durchs Tor kommt nur ein Hund mit Heroglyphe — und sein Mensch. Hast du keine?',
   'login.forgot.prompt': 'Selbst Hekthor hat einmal vergessen, wo er seinen Knochen vergraben hat. Gib deine E-Mail ein, und ich schicke dir einen neuen Schlüssel.',
@@ -945,7 +946,7 @@ export const deu: Partial<Dict> = {
   "login.magicLink.submitting": "Wird gesendet…",
   "login.magicLink.sent": "Magic-Link gesendet — schau in dein Postfach.",
   "login.forgot.placeholder": "deine@email.com",
-  "login.forgot.submit": "Reset-Link senden",
+  "login.forgot.submit": "Schick mir einen neuen Schlüssel",
   "login.forgot.submitting": "Wird gesendet…",
   "login.forgot.sent": "Schau in dein Postfach, um fortzufahren.",
   "login.forgot.back": "Zurück zur Anmeldung",
