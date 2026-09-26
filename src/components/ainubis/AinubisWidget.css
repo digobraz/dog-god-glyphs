@@ -1001,3 +1001,48 @@ body.has-pack-nav {
   border-color: rgba(164, 107, 245, 0.55);
   color: #C6A2FA;
 }
+
+/* ── SNIFFER: GUĽA HORE V STREDE LIŠTY (Matej 26. 9. 2026) ─────────────────
+   „je to jednoznačné daj ho do stredu" — nad nákresom
+   `plany/nakres-sniffer-ainubis-2026-09-26.html` (variant B: ‹ · AINUBIS · ⚙).
+   Dôvod: v rohu dole prekrýval SNIFF, „Ďalej 2/6", fotky v HĽADAŤ a odoslanie
+   správy. SNIFFER je kôš 3 bez spodnej lišty, stred jeho hornej lišty je prázdny.
+   AINUBIS má ostať na každej obrazovke („v prípade potreby na pomoc") — preto
+   sa PRESÚVA, neskrýva.
+   Značka = stĺpec SNIFFERu `.bd-col` (PackBuddy), nie routa — CSS routu nevidí.
+   Geometria: lišta stojí na PAGE_AIR.min = 16 px, jej tlačidlá majú 40 px ⇒ os
+   lišty je na 36 px; guľa zmenšená na 44 px (scale) ⇒ top 14 px.
+   ⚠️ `translate`/`scale` ako samostatné vlastnosti, nie `transform` — hover
+   píše `transform: scale(1.04)` a prepísal by centrovanie. */
+body:has(.bd-col) .ainubis-launcher {
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  bottom: auto;
+  left: 50%;
+  right: auto;
+  translate: -50% 0;
+  scale: 0.7333;
+  transform-origin: top center;
+}
+/* Úvod a kroky: šípka späť sama stojí v strede (`.bd-bar--center`) ⇒ guľa ide
+   na pravý kraj lišty, kde inde býva ⚙. */
+body:has(.bd-bar--center) .ainubis-launcher {
+  left: auto;
+  right: max(16px, calc(50% - 320px + 16px));
+  translate: none;
+  transform-origin: top right;
+}
+/* Panel vyrastá POD guľou, nie nad rohom, kde už nie je. */
+body:has(.bd-col) .ainubis-panel {
+  top: calc(env(safe-area-inset-top, 0px) + 66px);
+  bottom: auto;
+}
+@media (min-width: 768px) {
+  body:has(.bd-col) .ainubis-panel {
+    left: calc(50% - 210px);
+    right: auto;
+    height: min(560px, calc(100dvh - 90px));
+  }
+}
+@media (max-width: 767px) {
+  body:has(.bd-col) .ainubis-panel { bottom: 8px; }
+}
