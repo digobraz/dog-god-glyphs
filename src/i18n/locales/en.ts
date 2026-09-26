@@ -3974,9 +3974,9 @@ export const en = {
   'pack.map.mstatsMany': "{n} trips · {km} km",
   // Dva riadky v mobilnej hlavičke mapy (2026-08-28) — samotné slovo, číslo je vedľa v <b>.
   'pack.map.statKm': "km",
-  'pack.map.statTripsOne': "trip",
-  'pack.map.statTripsFew': "trips",
-  'pack.map.statTripsMany': "trips",
+  'pack.map.statTripsOne': "walked",
+  'pack.map.statTripsFew': "walked",
+  'pack.map.statTripsMany': "walked",
   'pack.map.searchAPlace': "Search a place…",
   'pack.map.filters': "Filters",
   'pack.map.filtersCount': "Filters · {n}",
