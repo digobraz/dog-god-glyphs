@@ -32,7 +32,10 @@ const LOGIN_CSS = `
 .lg-stack { display: flex; flex-direction: column; gap: ${PACK_SPACE.sm}px; width: 100%; }
 .lg-login form.lg-stack .hf-cta { margin-top: ${PACK_SPACE.xs}px; }
 .lg-pw { position: relative; width: 100%; }
-.lg-pw .hf-field { padding: 0 44px; }
+.lg-pw .hf-field { padding: 0 40px; }
+/* Pole ostáva 16 px (pod 16 iPhone pri ťuknutí priblíži celú stránku); zmenšuje sa
+   len placeholder, inak „Nové heslo (min. 8 znakov)" medzi okrajmi pre oko odsekne. */
+.lg-pw .hf-field::placeholder { font-size: ${PACK_TEXT.label}px; }
 .lg-eye {
   position: absolute; right: ${PACK_SPACE.sm}px; top: 50%; transform: translateY(-50%);
   display: flex; padding: ${PACK_SPACE.xs}px; background: none; border: none; cursor: pointer;
