@@ -52,7 +52,7 @@ import {
 //    `HeroflowDevMenu.tsx` — keď sa vstup zmení, meň všetky tri.
 // ════════════════════════════════════════════════════════════════════════════
 
-type StepState = 'done' | 'wip' | 'todo' | 'old';
+type StepState = 'done' | 'wip' | 'todo';
 
 type Step = {
   name: string;
@@ -135,33 +135,11 @@ const GROUPS: Group[] = [
       { name: '11 · Vitaj → Poradie → NA STENU', path: '/heroglyph/welcome', state: 'done' },
     ],
   },
-  {
-    // 🔴 ZOSTALO LEN TO, ČÍM SA V NOVOM VSTUPE NAOZAJ PRECHÁDZA (Matej 25. 9.:
-    //    *„odstrán tie čo tam nemajú čo robiť staré a tie čo sme už zlúčili"*).
-    //    Von išlo deväť riadkov: `ranking` · `owner-info` (stará) · `owner-zodiac`
-    //    · `owner-final` — tie zliala obrazovka MAJITEĽ; `dog-gender` · `dog-fate`
-    //    · `dog-colour` · `dog-bloodline` — tie pýta od 24. 9. PODSTATA; a starý
-    //    `crop`, ktorý zanikol s výrezom v popupe fotky.
-    // ⚠️ Obrazovky sa NEMAZALI a routy ďalej stoja (LIVE vstup po nich chodí).
-    //    Kto ich potrebuje otvoriť, má ich v `DevNav.tsx` a `HeroflowDevMenu.tsx`
-    //    — tento zoznam je dielňa NOVÉHO vstupu, nie súpis všetkého, čo existuje.
-    label: 'Koniec flow — zatiaľ staré',
-    steps: [
-      // Odhalenie · Odkaz · Checkout · Platba odišli 25. 9. do nového vstupu (9–11).
-      { name: 'Welcome (dnešný)', path: '/welcome', state: 'old' },
-    ],
-  },
-  {
-    label: 'Na porovnanie',
-    steps: [
-      {
-        name: 'Fotka (staré)',
-        path: '/heroglyph/photo',
-        state: 'old',
-      },
-      { name: '/entry', path: '/entry', state: 'old' },
-    ],
-  },
+  // 🔴 SKUPINY „Koniec flow — zatiaľ staré" (/welcome) a „Na porovnanie"
+  //    (/heroglyph/photo, /entry) ZMAZANÉ 26. 9. 2026 (Matej: *„v heroflowlabe
+  //    odstráň staré stránky… vyšiť balast, nepotrebujeme tam staré náhľady"*).
+  //    Nový vstup je celý hore (1–11). Routy sa NEMAZALI — kto ich potrebuje,
+  //    má ich v `DevNav.tsx` a `HeroflowDevMenu.tsx`.
 ];
 
 /**
@@ -442,7 +420,6 @@ export default function HeroflowLab() {
         <div className="hfl-legend">
           <span><i className="d done" /> hotové</span>
           <span><i className="d wip" /> rozostavané</span>
-          <span><i className="d old" /> staré</span>
         </div>
 
         {/* ── VÝPLŇ OBRAZOVIEK ────────────────────────────────────────────
@@ -863,7 +840,6 @@ body:has(.hfl-root) .consent-banner { display: none !important; }
 .hfl-step.is-done .dot { background: #C99A3F; border-color: #C99A3F; }
 .hfl-step.is-wip .dot { background: #B25640; border-color: #B25640; }
 .hfl-step.is-todo .dot { background: transparent; border-color: #B25640; }
-.hfl-step.is-old .dot { border-style: dashed; border-color: rgba(250,244,236,.3); }
 .hfl-ghost {
   width: 100%; margin-top: 10px; border: 1px solid rgba(201,154,63,.25);
   border-radius: 8px; background: transparent; color: rgba(250,244,236,.6);
@@ -880,7 +856,6 @@ body:has(.hfl-root) .consent-banner { display: none !important; }
 }
 .hfl-legend .d.done { background: #C99A3F; border-color: #C99A3F; }
 .hfl-legend .d.wip { background: #B25640; border-color: #B25640; }
-.hfl-legend .d.old { border-style: dashed; border-color: rgba(250,244,236,.3); }
 
 /* ── VÝPLŇ OBRAZOVIEK (25. 9. 2026) ───────────────────────────────────────
    Tri stavy a každý má DÔVOD, nie len farbu: zelená = v pásme · jantárová =
