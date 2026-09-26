@@ -415,6 +415,9 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
 .hf-speak h2 {
   margin: 0; font-family: 'Cinzel', serif; font-weight: 700;
   font-size: ${SPEAK.title}px; line-height: 1.25; color: #FAF4EC;
+  /* Dva riadky = rovnomerne (Matej 26. 9.: *„ak je to na 2 riadky, nech sa to
+     rozdelí rovnomerne, nie aby v hornom bolo o mnoho viac textu"*). */
+  text-wrap: balance;
 }
 /* 🔆 ZVÝRAZNENÉ SLOVO V BUBLINE = ŽLTÁ \`HF_HIGHLIGHT\` — pravidlo pre KAŽDÚ
    bublinu vstupu (Matej 25. 9. 2026: *„je ty takmer neviditeľné… treba dať
@@ -430,6 +433,7 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
 .hf-speak p {
   margin: 0; font-family: 'Space Grotesk', sans-serif;
   font-size: ${SPEAK.sub}px; line-height: 1.45; color: rgba(250, 244, 236, 0.72);
+  text-wrap: balance;
 }
 
 /* ── ZOZNAM SVORKY — ŤAHANIE A PORADIE (23. 9. 2026) ──────────────────────

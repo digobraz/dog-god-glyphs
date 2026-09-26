@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -73,6 +73,40 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // ── MEDAILÓN VYPĹŇA BUBLINU ─────────────────────────────────────────────
+  // Bublina je v popupe natiahnutá (`flex: 1`); jej výška je daná rozložením,
+  // nie medailónom. Zmeriame ju a medailónu dáme, čo zostane po texte.
+  // Strop 260 (ksicht je rastrový), dno 88; ± 2 px tolerancia proti kmitaniu.
+  const speakRef = useRef<HTMLDivElement>(null);
+  const sayRef = useRef<HTMLSpanElement>(null);
+  const [medal, setMedal] = useState(120);
+  useLayoutEffect(() => {
+    const el = speakRef.current;
+    const say = sayRef.current;
+    if (!el || !say) return;
+    const fit = () => {
+      const cs = getComputedStyle(el);
+      const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+      const gap = parseFloat(cs.rowGap || cs.gap || '0') || 0;
+      const room = Math.min(el.clientHeight - padY - say.offsetHeight - gap, el.clientWidth - 32);
+      // Nízke okno: keď spodok popupu (tlačidlá) vyjde z okna, medailón ustúpi
+      // presne o presah — obsah sa zmenšuje, rezerva od okraja (16) nie.
+      const wrap = el.closest('.st-wrap') as HTMLElement | null;
+      const bottom = wrap ? wrap.getBoundingClientRect().bottom : 0;
+      const over = bottom - (window.innerHeight - 16);
+      setMedal((m) => {
+        const want = over > 1 ? m - over : room;
+        const next = Math.max(72, Math.min(260, Math.floor(want)));
+        return Math.abs(next - m) > 2 ? next : m;
+      });
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    window.addEventListener('resize', fit);
+    return () => { ro.disconnect(); window.removeEventListener('resize', fit); };
+  }, []);
+
   const confirm = async () => {
     if (busy) return;
     track('stay_tier_chosen', { tier: TIER, dogs: dogs.length, news });
@@ -119,11 +153,14 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
   return (
     <div className="st-wrap">
       <style>{FLOW_MEDAL_CSS}{STAY_CSS}</style>
-      <div className="hf-speak st-speak">
+      <div className="hf-speak st-speak" ref={speakRef}>
         {/* Hektor V STREDE a text pod ním, čo najväčší (Matej 26. 9.: *„tento popup
-            musí byť čo najväčší — Hektor bude v strede a pod ním text"*). */}
-        <FlowMedallion src={hekthorFace('stay')} size={typeof window === 'undefined' ? 120 : window.innerHeight < 700 ? 96 : window.innerHeight < 820 ? 144 : window.innerHeight < 960 ? 184 : 216} />
-        <span className="say">
+            musí byť čo najväčší — Hektor bude v strede a pod ním text"* a o kolo
+            neskôr *„zväčši Hektorovu fotku, blok je zbytočne veľký, veľké medzery
+            hore aj dole"*). Veľkosť sa preto MERIA: medailón dostane celé voľné
+            miesto bubliny (výška − text − odsadenia), nie číslo podľa okna. */}
+        <FlowMedallion src={hekthorFace('stay')} size={medal} />
+        <span className="say" ref={sayRef}>
           <h2>
             {t('heroglyph.flow.stay.titlePrefix')}
             <b>{t('heroglyph.flow.stay.titleWord')}</b>
@@ -281,7 +318,7 @@ function GuestThanks() {
               <div className="gt-tags">{tags.map((x) => <span key={x}>{x}</span>)}</div>
               <div className="gt-ctas">
                 <button type="button" className="st-confirm" onClick={() => navigate('/')}>
-                  {t('heroglyph.flow.stay.done.cta')}
+                  {t('heroglyph.flow.stay.thanks.wall')}
                 </button>
                 <button type="button" className="hf-cta" onClick={() => navigate('/checkout')}>
                   {t('heroglyph.flow.stay.thanks.join')}
