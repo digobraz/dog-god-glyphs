@@ -116,13 +116,13 @@ const GROUPS: Group[] = [
       // „Nechcem platiť" vedie na ZADRŽANIE.
       { name: '9 · Odhalenie + odkaz', path: '/heroglyph/reveal', state: 'done' },
       { name: '10 · Pokladňa', path: '/checkout', state: 'done' },
-      // 26. 9. 2026: zadržanie je POPUP v pokladni, `/heroglyph/stay` bez
+      // 26. 9. 2026: zadržanie je POPUP v pokladni (preto 10a, nie 11 — Matej: „nie je to nová obrazovka“), `/heroglyph/stay` bez
       // parametra len presmeruje sem.
-      { name: '11 · Zadržanie', path: '/checkout?stay=1', state: 'done' },
+      { name: '10a · Zadržanie (popup)', path: '/checkout?stay=1', state: 'done' },
       // FINÁLE (Matej 26. 9. 2026: *„musíme pridať nový reveal aj welcome
       // screen"*). Ešte nepostavené — rám zatiaľ ukáže dnešný `/welcome`.
-      { name: '12 · Reveal po platbe', path: '/welcome', state: 'todo' },
-      { name: '13 · Welcome', path: '/welcome', state: 'todo' },
+      { name: '11 · Reveal po platbe', path: '/welcome', state: 'todo' },
+      { name: '12 · Welcome', path: '/welcome', state: 'todo' },
     ],
   },
   {
