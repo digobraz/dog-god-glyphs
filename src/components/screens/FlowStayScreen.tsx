@@ -80,11 +80,27 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
   const speakRef = useRef<HTMLDivElement>(null);
   const sayRef = useRef<HTMLSpanElement>(null);
   const [medal, setMedal] = useState(120);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const [titleSize, setTitleSize] = useState(24);
   useLayoutEffect(() => {
     const el = speakRef.current;
     const say = sayRef.current;
     if (!el || !say) return;
     const fit = () => {
+      // 1) Nadpis: najväčší stupeň (16–44), pri ktorom sa oba riadky zmestia.
+      const h2 = titleRef.current;
+      if (h2) {
+        // Šírka BUBLINY bez odsadení — stĺpec textu (`say`) sa nerozťahuje
+        // nowrap riadkom a na mobile by nadpis pretiekol cez okraj.
+        const ecs = getComputedStyle(el);
+        const avail = el.clientWidth - parseFloat(ecs.paddingLeft) - parseFloat(ecs.paddingRight) - 4;
+        let f = 44;
+        h2.style.fontSize = `${f}px`;
+        const widest = () => Math.max(...Array.from(h2.children).map((c) => (c as HTMLElement).getBoundingClientRect().width));
+        while (f > 16 && widest() > avail) { f -= 1; h2.style.fontSize = `${f}px`; }
+        setTitleSize((p) => (p === f ? p : f));
+      }
+      // 2) Medailón: zvyšok výšky, o pätinu skromnejší (Matej: *„trochu zmenši foto"*).
       const cs = getComputedStyle(el);
       const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
       const gap = parseFloat(cs.rowGap || cs.gap || '0') || 0;
@@ -95,12 +111,15 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
       const bottom = wrap ? wrap.getBoundingClientRect().bottom : 0;
       const over = bottom - (window.innerHeight - 16);
       setMedal((m) => {
-        const want = over > 1 ? m - over : room;
-        const next = Math.max(72, Math.min(260, Math.floor(want)));
+        const want = over > 1 ? m - over : room * 0.9;
+        const next = Math.max(72, Math.min(220, Math.floor(want)));
         return Math.abs(next - m) > 2 ? next : m;
       });
     };
     fit();
+    // Cinzel sa načíta neskôr než prvé meranie; náhradné písmo je užšie, takže
+    // stupeň nameraný nad ním by po načítaní pretiekol bublinu.
+    document.fonts?.ready.then(fit);
     const ro = new ResizeObserver(fit);
     ro.observe(el);
     window.addEventListener('resize', fit);
@@ -161,10 +180,13 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
             miesto bubliny (výška − text − odsadenia), nie číslo podľa okna. */}
         <FlowMedallion src={hekthorFace('stay')} size={medal} />
         <span className="say" ref={sayRef}>
-          <h2>
-            {t('heroglyph.flow.stay.titlePrefix')}
-            <b>{t('heroglyph.flow.stay.titleWord')}</b>
-            {t('heroglyph.flow.stay.titleSuffix')}
+          {/* NADPIS NA DVA RIADKY, ČO NAJVÄČŠÍ (Matej 26. 9.: *„zväčši nadpis na
+              telefóne — dva riadky, čo najväčšie písmo, a čo najviac aj na PC,
+              a podľa toho uprav foto"*). Stupeň sa dopočíta tak, aby dlhší
+              riadok presne vyplnil šírku bubliny; medailón dostane zvyšok výšky. */}
+          <h2 ref={titleRef} className="st-title" style={{ fontSize: titleSize }}>
+            <span>{t('heroglyph.flow.stay.titlePrefix').trim()}</span>
+            <span><b>{t('heroglyph.flow.stay.titleWord')}</b>{t('heroglyph.flow.stay.titleSuffix')}</span>
           </h2>
           <p>{t('heroglyph.flow.stay.sub')}</p>
         </span>
@@ -354,7 +376,9 @@ const STAY_CSS = `
 .st-wrap { display: flex; flex-direction: column; gap: 12px; }
 /* Hektor v strede, text pod ním — bublina je stĺpec (26. 9. večer). */
 .st-wrap .st-speak.hf-speak { flex-direction: column; text-align: center; padding: 20px 16px; gap: 12px; }
-.st-wrap .st-speak .say { align-items: center; text-align: center; }
+.st-wrap .st-speak .say { align-items: center; text-align: center; align-self: stretch; }
+.st-title { display: flex; flex-direction: column; align-items: center; line-height: 1.12; }
+.st-title > span { white-space: nowrap; }
 .st-speak h2 { font-size: 20px; }
 .st-speak p { font-size: 14px; line-height: 1.45; }
 @media (min-width: 601px) {
