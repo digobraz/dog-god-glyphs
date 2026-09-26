@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -17,6 +17,7 @@ import { EDGE_BASE } from '@/lib/env';
 import { track } from '@/lib/analytics';
 import { getStoredRef } from '@/lib/refCapture';
 import { getAttribution } from '@/lib/attribution';
+import { ensureDogVisionFilter } from '@/lib/dogVision';
 
 // ════════════════════════════════════════════════════════════════════════════
 // C · ZADRŽANIE — kam vedie „Nechcem platiť" z pokladne (25. 9. 2026)
@@ -53,19 +54,13 @@ import { getAttribution } from '@/lib/attribution';
 // ════════════════════════════════════════════════════════════════════════════
 
 type Tier = 'support' | 'guest';
-type Feat = 'wall' | 'msg' | 'num' | 'dogid' | 'ainubis' | 'dogtrip' | 'sniffer' | 'design';
-/** JEDEN zoznam pre €0 aj €3 — líšia sa len príspevkom (Matej 26. 9. 2026:
- *  *„tí dvaja sa nelíšia ničím, iba symbolickým príspevkom"*). Členská sekcia
- *  je vymenovaná po položkách. */
-const FEATS: [Feat, boolean][] = [['wall', true], ['msg', true], ['num', false], ['design', false]];
-const PACK_FEATS: Feat[] = ['dogid', 'ainubis', 'dogtrip', 'sniffer'];
 const OPTS: { id: Tier; icon: string; each: number }[] = [
   { id: 'guest', icon: '/icons/pack/cross.svg', each: 0 },
   { id: 'support', icon: '/icons/pack/money.svg', each: PRICE_SUPPORT },
 ];
 
 /** Obsah popupu ZADRŽANIE — v pokladni v `FlowModal`. */
-export function FlowStayChoice({ onMember }: { onMember: () => void }) {
+export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onMore: () => void }) {
   const navigate = useNavigate();
   const t = useT();
   const { lang } = useLang();
@@ -78,6 +73,7 @@ export function FlowStayChoice({ onMember }: { onMember: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const n = Math.max(1, dogs.length);
+  useEffect(() => { ensureDogVisionFilter(); }, []);
 
   const confirm = async () => {
     if (!tier || busy) return;
@@ -142,16 +138,37 @@ export function FlowStayChoice({ onMember }: { onMember: () => void }) {
         </span>
       </div>
 
-      {/* Jeden zoznam na stred: čo pes na stene dostane a čo nie. */}
-      <div className="st-list">
-        <ul className="st-feats">
-          {FEATS.map(([k, yes]) => <Feat key={k} k={k} yes={yes} t={t} />)}
-        </ul>
-        <p className="st-pack-h"><Mark yes={false} />{t('heroglyph.flow.stay.f.packHead')}</p>
-        <ul className="st-pack">
-          {PACK_FEATS.map((k) => <li key={k}>{t(`heroglyph.flow.stay.f.${k}`)}</li>)}
-        </ul>
-        <p className="st-same">{t('heroglyph.flow.stay.same')}</p>
+      {/* 26. 9. 2026 — Matej: *„hektorov heroglyf a fotka na stene. tie možnosti
+          čo máš a čo nie musíme zväčšiť… su miniatúrne"*. Vľavo karta Hektora
+          tak, ako na stene vyzerá pes bez člena (psia optika + zlatý heroglyf),
+          vpravo DVA veľké riadky: čo máš · o čo prídeš. „O čo prídeš" otvorí
+          ten istý popup ako VIAC INFO v pokladni. Veta „obe možnosti dajú to
+          isté" vypadla (Matej: „daj preč"). */}
+      <div className="st-show">
+        <figure className="st-card" aria-hidden>
+          <span className="st-card-img" />
+          <img className="st-card-glyph" src="/images/hekthor-heroglyph.webp" alt="" draggable={false} />
+          <span className="st-card-name">HEKTHOR</span>
+        </figure>
+        <div className="st-rows">
+          <div className="st-row yes">
+            <Mark yes />
+            <span className="st-row-txt">
+              <b>{t('heroglyph.flow.stay.have')}</b>
+              <small>{t('heroglyph.flow.stay.haveNote')}</small>
+            </span>
+          </div>
+          <div className="st-row no">
+            <Mark yes={false} />
+            <span className="st-row-txt">
+              <b>{t('heroglyph.flow.stay.miss')}</b>
+              <b>{t('heroglyph.flow.stay.miss2')}</b>
+              <button type="button" className="co-more st-more" onClick={onMore}>
+                {t('heroglyph.flow.stay.missCta')}
+              </button>
+            </span>
+          </div>
+        </div>
       </div>
 
       <div className="st-opts" role="radiogroup">
@@ -195,23 +212,16 @@ export function FlowStayChoice({ onMember }: { onMember: () => void }) {
 
       {error && <p role="alert" className="hf-alert">{error}</p>}
       <div className="st-actions">
-        <button type="button" className="st-member" onClick={() => { track('stay_tier_chosen', { tier: 'member', dogs: dogs.length }); onMember(); }} disabled={busy}>
+        {/* Výplň prehodená (Matej 26. 9. 2026): PLNÝ PRÍSTUP = plné lapis,
+            POTVRDIŤ = priesvitné. Poloha ostáva — vľavo člen, vpravo potvrdenie. */}
+        <button type="button" className="hf-cta" onClick={() => { track('stay_tier_chosen', { tier: 'member', dogs: dogs.length }); onMember(); }} disabled={busy}>
           {t('heroglyph.flow.stay.member')}
         </button>
-        <button type="button" className="hf-cta" onClick={confirm} disabled={!tier || busy}>
+        <button type="button" className="st-confirm" onClick={confirm} disabled={!tier || busy}>
           {busy ? t('payment.preparing') : t('heroglyph.flow.stay.confirm')}
         </button>
       </div>
     </div>
-  );
-}
-
-function Feat({ k, yes, t }: { k: Feat; yes: boolean; t: (key: string) => string }) {
-  return (
-    <li className={yes ? 'yes' : 'no'}>
-      <Mark yes={yes} />
-      <span>{t(`heroglyph.flow.stay.f.${k}`)}</span>
-    </li>
   );
 }
 
@@ -273,17 +283,24 @@ const STAY_CSS = `
   .st-speak h2 { font-size: 24px; }
   .st-speak p { font-size: 16px; }
 }
-.st-list { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
-.st-feats { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
-.st-feats li, .st-pack-h { display: flex; align-items: center; gap: 8px; margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.3; color: ${LAB.ink}; }
-.st-feats li.no, .st-pack-h { color: ${LAB.inkBody}; }
-.st-pack-h { align-self: center; margin-top: 4px; }
-.st-pack { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
-.st-pack li { font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: .02em; color: ${LAB.inkBody}; padding: 2px 8px; border: 1px solid rgba(178, 86, 64, .45); border-radius: 999px; }
-.st-same { margin: 8px 0 0; font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: ${LAB.inkBody}; }
-.st-mark { flex: none; width: 14px; height: 14px; stroke: #B25640; }
-.st-feats li.yes .st-mark { stroke: #3D7A4E; }
-.st-feats { align-self: center; }
+/* KARTA ZO STENY + DVA RIADKY (26. 9. 2026). Písmo 16/14, nie 12 — Matej:
+   *„su miniatúrne"*. Karta = mini .dog-card psa bez člena: fotka v psej
+   optike, dolu stmavnutie so zlatým heroglyfom, meno v pilulke. */
+.st-show { display: grid; grid-template-columns: 136px 1fr; gap: 16px; align-items: center; }
+.st-card { position: relative; margin: 0; width: 136px; aspect-ratio: 1; border-radius: ${PACK_R.tile}px; overflow: hidden; background: #1a1a1a; box-shadow: 0 4px 12px rgba(58, 42, 20, .25); }
+.st-card-img { position: absolute; inset: 0; background: url('/images/hektor-grid.webp') 50% 35% / cover; filter: url(#dogypt-dog-vision); }
+.st-card::after { content: ''; position: absolute; inset: 45% 0 0; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,.78)); }
+.st-card-glyph { position: absolute; left: 8px; right: 8px; bottom: 36px; width: calc(100% - 16px); height: auto; z-index: 1; }
+.st-card-name { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); z-index: 1; padding: 4px 8px; border-radius: 999px; background: rgba(30,30,30,.45); color: #fff; font-family: 'Cinzel Decorative', 'Cinzel', serif; font-weight: 700; font-size: 10px; letter-spacing: .06em; }
+.st-rows { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.st-row { display: flex; align-items: flex-start; gap: 8px; }
+.st-row-txt { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+.st-row-txt b { font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 16px; line-height: 1.3; color: ${LAB.ink}; }
+.st-row.no .st-row-txt b { color: ${LAB.inkBody}; }
+.st-row-txt small { font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.3; color: ${LAB.inkBody}; }
+.st-row-txt .st-more { margin-top: 4px; }
+.st-mark { flex: none; width: 20px; height: 20px; margin-top: 2px; stroke: #B25640; }
+.st-row.yes .st-mark { stroke: #3D7A4E; }
 .st-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .st-opt.hf-pick { justify-content: center; padding: 8px 12px; }
 .st-opt .well img { width: 22px; height: 22px; object-fit: contain; }
@@ -294,15 +311,15 @@ const STAY_CSS = `
 /* Rovnaký rad ako pokladňa: obrysové vľavo, plné CTA vpravo bližšie k palcu. */
 .st-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .st-actions .hf-cta { width: 100%; }
-.st-member {
+.st-confirm {
   height: ${HF.cta.h}px; border-radius: ${HF.cta.radius}px; cursor: pointer;
   border: 1.5px solid ${LAPIS.edge}; background: transparent; color: ${LAPIS.edge};
-  font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
-  letter-spacing: .04em; text-transform: uppercase; line-height: 1.15; padding: 0 8px;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: ${HF.cta.size}px;
+  letter-spacing: .08em; text-transform: uppercase; line-height: 1.15; padding: 0 8px;
   transition: background .18s;
 }
-.st-member:hover:not(:disabled) { background: ${LAPIS.fill}; }
-.st-member:disabled { opacity: .4; cursor: default; }
+.st-confirm:hover:not(:disabled) { background: ${LAPIS.fill}; }
+.st-confirm:disabled { opacity: .4; cursor: default; }
 .st-done-cta { margin-top: 16px; max-width: 320px; }
 .st-wrap .hf-chk { border-radius: ${PACK_R.tile}px; }
 @media (max-width: 600px) {
@@ -310,16 +327,16 @@ const STAY_CSS = `
   .st-speak.hf-speak { padding: 8px 12px; gap: 12px; }
   .st-speak h2 { font-size: 16px; }
   .st-speak p { font-size: 12px; line-height: 1.4; }
-  .st-feats li, .st-pack-h { font-size: 12px; }
+  .st-show { grid-template-columns: 104px 1fr; gap: 12px; }
+  .st-card { width: 104px; }
+  .st-card-glyph { bottom: 30px; }
+  .st-row-txt b { font-size: 14px; }
+  .st-row-txt small { font-size: 12px; }
+  .st-mark { width: 18px; height: 18px; margin-top: 1px; }
 }
 @media (max-width: 600px) and (max-height: 700px) {
   .st-wrap { gap: 6px; }
   .st-speak h2 { font-size: 14px; }
-  .st-same { margin-top: 4px; }
   .st-wrap .hf-chk { padding-top: 6px; padding-bottom: 6px; }
-}
-/* PC: zoznam do riadku, nech sa väčší Hektor zmestí do dosky (Matejovo okno 1477×724). */
-@media (min-width: 601px) {
-  .st-list .st-feats { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 4px 16px; }
 }
 `;

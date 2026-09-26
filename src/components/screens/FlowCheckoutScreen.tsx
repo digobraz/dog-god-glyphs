@@ -480,9 +480,9 @@ export function FlowCheckoutScreen() {
                     onClose={() => setPanel(null)}
                   />
                 )}
-                {stay && (
+                {stay && panel !== 'get' && (
                   <FlowPanelShell key="stay" className="co-stay" label={t('heroglyph.flow.checkoutNew.decline')} onClose={() => setStay(false)}>
-                    <FlowStayChoice onMember={() => setStay(false)} />
+                    <FlowStayChoice onMember={() => setStay(false)} onMore={() => setPanel('get')} />
                   </FlowPanelShell>
                 )}
               </AnimatePresence>
