@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, Reorder, useDragControls } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDogyptStore, newExtraDog, type ExtraDog } from '@/store/dogyptStore';
 import { PageTopBar } from '@/components/PageTopBar';
 import { DateDropdowns } from '@/components/DateDropdowns';
@@ -317,6 +317,9 @@ export function DogsScreen() {
   const dogDone = (d: Row) => Object.values(dogFlags(d)).every(Boolean);
   const allDone = rows.every(dogDone);
 
+  const [params] = useSearchParams();
+  const backToOwner = params.get('back') === 'owner';
+
   const handleContinue = () => {
     if (!allDone) return;
     if (nat) setSelection('country', nat);
@@ -325,7 +328,9 @@ export function DogsScreen() {
     const mine = rows.findIndex((r) => r.key === MAIN);
     setSelection('ranking', String(dogOrderStart + Math.max(0, mine)));
     track('flow_dogs_continue', { dogs: rows.length });
-    navigate('/heroglyph/email');
+    // Návrat z MAJITEĽA (PORADIE → ZMENIŤ) ide späť na poradie, nie ďalej na
+    // e-mail — Matej 26. 9.: *„musí ho hodiť naspäť na poradie, nie na 3. krok"*.
+    navigate(backToOwner ? '/heroglyph/owner-info?topic=order' : '/heroglyph/email');
   };
 
   if (!flowOk) return null;
@@ -357,7 +362,7 @@ export function DogsScreen() {
       <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
-        <PageTopBar onBack={() => navigate('/heroglyph/name')} />
+        <PageTopBar onBack={() => navigate(backToOwner ? '/heroglyph/owner-info?topic=order' : '/heroglyph/name')} />
       </div>
 
       {/* Jeden skrytý výber súboru pre celý zoznam — pre ktorý riadok, drží `pickFor`. */}

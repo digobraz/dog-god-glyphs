@@ -261,7 +261,11 @@ export function OwnerScreen() {
   const doneOf = (k: OwnerTopic) =>
     k === 'who' ? !!gender : k === 'name' ? trimmed.length >= 1 : k === 'stars' ? !!western && !!chinese : hasRank;
   const firstOpenTopic = () => OWNER_TOPICS.findIndex((k) => !doneOf(k));
-  const [step, setStep] = useState(() => Math.max(0, firstOpenTopic()));
+  // `?topic=order` = návrat zo svorky po ZMENIŤ poradie — otvor rovno PORADIE.
+  const [step, setStep] = useState(() =>
+    new URLSearchParams(window.location.search).get('topic') === 'order'
+      ? OWNER_TOPICS.indexOf('order')
+      : Math.max(0, firstOpenTopic()));
   const [seen, setSeen] = useState<Partial<Record<OwnerTopic, true>>>({});
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
@@ -515,7 +519,7 @@ export function OwnerScreen() {
                               })
                             : t('heroglyph.flow.owner.orderMissing')}
                         </span>
-                        <button type="button" className="ow-change" onClick={() => navigate('/heroglyph/dogs')}>
+                        <button type="button" className="ow-change" onClick={() => navigate('/heroglyph/dogs?back=owner')}>
                           {hasRank ? t('heroglyph.flow.owner.orderChange') : t('heroglyph.flow.owner.orderPick')}
                         </button>
                       </div>
