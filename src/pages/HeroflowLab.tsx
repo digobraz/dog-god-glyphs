@@ -123,11 +123,13 @@ const GROUPS: Group[] = [
       // nezaplatený, aby som tam vedel zmeniť fotku"*). Vlastný kľúč fotky
       // `stay-done`, nie `stay` — popup a ďakovačka sa menia nezávisle.
       // Od 26. 9. večer je to STAV zadržania (vymení sa dolná doska), nie stránka.
-      { name: '10b · Hotovo (nezaplatený)', path: '/checkout?stay=done', state: 'done' },
-      // FINÁLE (Matej 26. 9. 2026: *„musíme pridať nový reveal aj welcome
-      // screen"*). Ešte nepostavené — rám zatiaľ ukáže dnešný `/welcome`.
-      { name: '11 · Reveal po platbe', path: '/welcome', state: 'todo' },
-      { name: '12 · Welcome', path: '/welcome', state: 'todo' },
+      { name: '10b · Hotovo nezaplatený (stav zadržania)', path: '/checkout?stay=done', state: 'done' },
+      // FINÁLE PO PLATBE (Matej 26. 9. 2026 večer, zadanie
+      // `plany/zadanie-heroflow-po-platbe-2026-09-26/`): jedna obrazovka s dvoma
+      // fázami ako krok 9 — Hektor víta (majiteľ + psi), potom poradie, štyri
+      // vety, progres k 1M a NA STENU (stena zapečatí psov postupne). Ťuk na
+      // Hektora preskočí na poradie. V dielni bez platby: psi zo storu, čísla zo seedu.
+      { name: '11 · Vitaj → Poradie → NA STENU', path: '/heroglyph/welcome', state: 'done' },
     ],
   },
   {
