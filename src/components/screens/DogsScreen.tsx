@@ -362,7 +362,7 @@ export function DogsScreen() {
       <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
-        <PageTopBar onBack={() => navigate(backToOwner ? '/heroglyph/owner-info?topic=order' : '/heroglyph/name')} />
+        <PageTopBar brandBack onBack={() => navigate(backToOwner ? '/heroglyph/owner-info?topic=order' : '/heroglyph/name')} />
       </div>
 
       {/* Jeden skrytý výber súboru pre celý zoznam — pre ktorý riadok, drží `pickFor`. */}

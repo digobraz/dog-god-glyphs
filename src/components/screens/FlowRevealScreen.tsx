@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore, MAIN_DOG_ID } from '@/store/dogyptStore';
@@ -78,7 +79,17 @@ export function FlowRevealScreen() {
   const dogId = dog?.id ?? MAIN_DOG_ID;
   const isMain = dogId === MAIN_DOG_ID;
 
-  const [design, setDesign] = useState<Design>('h');
+  // ZVISLÝ sa otvára v POPUPE v plnej veľkosti (Matej 26. 9.: *„pri kliknutí na
+  // zvislý otvor popup, nech je vidno normálne veľký, nie v tom istom bloku —
+  // nech nás to nelimituje"*). Na doske stojí vždy vodorovný.
+  const design: Design = 'h';
+  const [vOpen, setVOpen] = useState(false);
+  useEffect(() => {
+    if (!vOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setVOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [vOpen]);
 
   // ── PRÍCHOD ───────────────────────────────────────────────────────────────
   const [phase, setPhase] = useState<'hero' | 'plate'>(() =>
@@ -180,7 +191,7 @@ export function FlowRevealScreen() {
       />
 
       <div className="hf-topbar flex-shrink-0">
-        <PageTopBar onBack={() => navigate('/heroglyph/owner-info')} />
+        <PageTopBar brandBack onBack={() => navigate('/heroglyph/owner-info')} />
       </div>
 
       <div className="hf-stage">
@@ -239,6 +250,21 @@ export function FlowRevealScreen() {
               <FlowDogHeader dogs={dogs} cur={idx} onGo={setCur} done={!!storedMsg} />
               <span className="fdh-rule" aria-hidden />
 
+              {/* OZDOBNÝ RYTÝ RÁM okolo heroglyfu (Matej 26. 9.: *„heroglyf tu môže
+                  byť väčší, okolo môžu byť ozdobné rytiny"*). Dve ryté linky +
+                  štyri rohové ornamenty + kosoštvorce na osi — kreslené, nie znaky. */}
+              <div className="rv-orn">
+                <span className="rv-orn-line" aria-hidden />
+                {(['tl', 'tr', 'bl', 'br'] as const).map((c) => (
+                  <svg key={c} className={`rv-corner ${c}`} viewBox="0 0 40 40" aria-hidden>
+                    <path d="M2 38 V14 Q2 2 14 2 H38" fill="none" stroke="currentColor" strokeWidth="1.6" />
+                    <path d="M8 38 V17 Q8 8 17 8 H38" fill="none" stroke="currentColor" strokeWidth="0.9" opacity=".7" />
+                    <circle cx="14" cy="14" r="2.6" fill="currentColor" />
+                    <path d="M20 14 h6 M14 20 v6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                  </svg>
+                ))}
+                <svg className="rv-diamond t" viewBox="0 0 24 12" aria-hidden><path d="M12 1 L22 6 L12 11 L2 6 Z" fill="currentColor" /></svg>
+                <svg className="rv-diamond b" viewBox="0 0 24 12" aria-hidden><path d="M12 1 L22 6 L12 11 L2 6 Z" fill="currentColor" /></svg>
               <div className="rv-glyph">
                 <AnimatePresence mode="wait" initial={false}>
                   {design === 'h' ? (
@@ -255,7 +281,9 @@ export function FlowRevealScreen() {
                         dogValues={dogValues}
                         className="hf-glyph"
                         // 🔴 Šírka cez `style` — rám si píše `width:100%` inline.
-                        style={{ width: 'var(--flow-glyph-w)' }}
+                        // Na ODHALENÍ VÄČŠÍ než jednotný rám kroku (356) — je to
+                        // chvíľa odovzdania, nie pracovná doska (Matej 26. 9.).
+                        style={{ width: 'var(--rv-glyph-w)' }}
                       />
                     </motion.div>
                   ) : (
@@ -272,6 +300,7 @@ export function FlowRevealScreen() {
                   )}
                 </AnimatePresence>
               </div>
+              </div>
 
               {/* Prepínač DIZAJNU — voľba, teda lapisový tint (lock: ZLATO =
                   poloha, LAPIS = moja voľba). */}
@@ -281,9 +310,9 @@ export function FlowRevealScreen() {
                     key={d}
                     type="button"
                     role="tab"
-                    aria-selected={design === d}
-                    className={`rv-seg-b${design === d ? ' on' : ''}`}
-                    onClick={() => setDesign(d)}
+                    aria-selected={d === 'h'}
+                    className={`rv-seg-b${d === 'h' ? ' on' : ''}`}
+                    onClick={() => { if (d === 'v') setVOpen(true); }}
                   >
                     {t(d === 'h' ? 'heroglyph.flow.revealNew.horizontal' : 'heroglyph.flow.revealNew.vertical')}
                   </button>
@@ -321,6 +350,19 @@ export function FlowRevealScreen() {
           </AnimatePresence>
         </div>
       </div>
+
+      {vOpen && createPortal(
+        <div className="rv-vmodal" role="dialog" aria-modal="true" onClick={() => setVOpen(false)}>
+          <div className="rv-vcard" onClick={(e) => e.stopPropagation()}>
+            {/* Rám si píše INLINE width:100% — šírku preto nesie obal, výšku z nej SVG. */}
+            <div className="rv-vwrap"><VerticalHeroglyphFrame data={verticalData} className="rv-vsvg" /></div>
+            <button type="button" className="rv-vclose" onClick={() => setVOpen(false)}>
+              {t('heroglyph.flow.revealNew.horizontal')}
+            </button>
+          </div>
+        </div>,
+        document.body,
+      )}
 
       {modalOpen && (
         <MessageModal
@@ -426,7 +468,31 @@ const REVEAL_CSS = `
    keď sa pri prepnutí zmenila výška rámu (104 → 217), poskočila CELÁ obrazovka
    (merané 25. 9. na 1477×724: aj bublina hore o 73 px) a doska pretiekla o 5.
    Výšku určuje zvislý dizajn; vodorovný stojí v jej strede. */
-.rv-glyph { --rv-h: min(200px, 28dvh); width: 100%; height: var(--rv-h); display: grid; place-items: center; }
+.rv-glyph { width: 100%; display: grid; place-items: center; }
+/* Väčší rám len na ODHALENÍ; na nízkom okne ustúpi, rezerva od okraja nie. */
+.rv-orn { --rv-glyph-w: min(460px, 100%); position: relative; width: 100%; padding: 24px 28px; color: #9A7430; }
+@media (max-height: 820px) { .rv-orn { --rv-glyph-w: min(400px, 100%); padding: 20px 24px; } }
+@media (max-height: 700px) { .rv-orn { --rv-glyph-w: min(330px, 100%); padding: 16px 20px; } }
+@media (max-width: 559px) { .rv-orn { padding: 18px 14px; } }
+.rv-orn-line { position: absolute; inset: 6px; border: 1px solid rgba(120, 86, 26, 0.38); border-radius: ${PACK_R.tile}px;
+  box-shadow: inset 0 0 0 3px rgba(255, 252, 240, 0.35), inset 0 0 0 4px rgba(120, 86, 26, 0.22); pointer-events: none; }
+.rv-corner { position: absolute; width: 28px; height: 28px; }
+.rv-corner.tl { top: 0; left: 0; }
+.rv-corner.tr { top: 0; right: 0; transform: scaleX(-1); }
+.rv-corner.bl { bottom: 0; left: 0; transform: scaleY(-1); }
+.rv-corner.br { bottom: 0; right: 0; transform: scale(-1, -1); }
+.rv-diamond { position: absolute; left: 50%; width: 20px; height: 10px; translate: -50% 0; }
+.rv-diamond.t { top: 1px; } .rv-diamond.b { bottom: 1px; }
+/* ZVISLÝ v popupe — veľký, cez celé okno (portál do body, nad všetkým). */
+.rv-vmodal { position: fixed; inset: 0; z-index: 80; background: rgba(8, 6, 4, 0.66); display: grid; place-items: center; padding: 16px; }
+.rv-vcard { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 16px;
+  border-radius: 16px; background: linear-gradient(180deg, #FBF3DF, #EEDDB4); border: 2px solid #C99A3F;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45); }
+.rv-vwrap { width: min(calc(min(76dvh, 720px) * 2480 / 3504), calc(100vw - 64px)); }
+.rv-vcard .rv-vsvg { width: 100%; height: auto; color: ${LAB.inkSoft}; }
+.rv-vclose { height: 32px; padding: 0 16px; border-radius: ${PACK_R.pill}px; cursor: pointer;
+  border: 1.5px solid ${LAPIS.edge}; background: transparent; color: ${LAPIS.edge};
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; }
 .rv-glyph-h { width: 100%; display: grid; place-items: center; }
 /* ⚠️ ŠÍRKA SA POČÍTA Z VÝŠKY, nie cez \`aspect-ratio\`: \`VerticalHeroglyphFrame\`
    si píše INLINE \`width:100%; height:auto\`, takže výšku SVG určuje šírka

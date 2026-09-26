@@ -333,7 +333,7 @@ export function OwnerScreen() {
       <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{FLOW_DOG_CSS}{FLOW_TOPIC_CSS}{OWNER_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
-        <PageTopBar onBack={() => navigate('/heroglyph/dog-character')} />
+        <PageTopBar brandBack onBack={() => navigate('/heroglyph/dog-character')} />
       </div>
 
       <div className="hf-stage">

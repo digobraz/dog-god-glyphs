@@ -388,7 +388,7 @@ export function PatronScreen() {
       <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{FLOW_SCROLL_CSS}{FLOW_DOG_CSS}{PATRON_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
-        <PageTopBar onBack={() => navigate('/heroglyph/essence')} />
+        <PageTopBar brandBack onBack={() => navigate('/heroglyph/essence')} />
       </div>
 
       <div className="hf-stage">

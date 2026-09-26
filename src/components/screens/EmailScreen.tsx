@@ -137,7 +137,7 @@ export function EmailScreen() {
       <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
-        <PageTopBar onBack={() => navigate('/heroglyph/dogs')} />
+        <PageTopBar brandBack onBack={() => navigate('/heroglyph/dogs')} />
       </div>
 
       <div className="hf-stage">

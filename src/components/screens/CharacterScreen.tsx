@@ -150,7 +150,7 @@ export function CharacterScreen() {
         {/* Späť vedie na PATRÓNA. Štyri staré otázky o psovi, ktoré tu kedysi
             stáli medzi nimi (pohlavie · farba · pôvod · rodokmeň), sú z nového
             vstupu odvesené — pýta ich PODSTATA. */}
-        <PageTopBar onBack={() => navigate('/heroglyph/breed')} />
+        <PageTopBar brandBack onBack={() => navigate('/heroglyph/breed')} />
       </div>
 
       <div className="hf-stage">

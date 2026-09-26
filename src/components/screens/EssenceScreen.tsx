@@ -240,7 +240,7 @@ export function EssenceScreen() {
       <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{FLOW_DOG_CSS}{FLOW_TOPIC_CSS}{ESSENCE_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
-        <PageTopBar onBack={back} />
+        <PageTopBar brandBack onBack={back} />
       </div>
 
       <div className="hf-stage">

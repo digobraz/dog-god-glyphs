@@ -525,7 +525,9 @@ const CHECKOUT_CSS = `
 .co-top { display: flex; justify-content: center; padding: 12px 0 4px; }
 .co-back {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 40px; height: 40px; border-radius: 999px; border: 0; background: transparent; cursor: pointer;
+  width: 40px; height: 40px; border-radius: 999px; background: transparent; cursor: pointer;
+  /* Obrys v krúžku — tá istá šípka ako na krokoch pred pokladňou (PageTopBar brandBack). */
+  border: 1.5px solid rgba(120, 86, 26, 0.55); color: #3C2A0E;
 }
 .co-back:hover { background: rgba(201, 154, 63, 0.14); }
 

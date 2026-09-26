@@ -94,7 +94,13 @@ export function PageTopBar({
           type="button"
           onClick={onBack}
           aria-label={backLabel}
-          className="absolute left-4 top-[15px] p-2 text-foreground/60 hover:text-foreground transition-colors"
+          className={brandBack
+            ? 'absolute left-4 top-[12px] md:top-[20px] flex items-center justify-center w-10 h-10 rounded-full transition-colors hover:bg-[rgba(201,154,63,0.14)]'
+            : 'absolute left-4 top-[15px] p-2 text-foreground/60 hover:text-foreground transition-colors'}
+          // Brandová šípka má OBRYS V KRÚŽKU (Matej 26. 9.: *„šípka dozadu nemá
+          // lemovanie — dorob obrys v krúžku a tieto isté šípky daj aj do
+          // obrazoviek pred touto"*). Ten istý krúžok nosí pokladňa (`.co-back`).
+          style={brandBack ? { border: '1.5px solid rgba(120, 86, 26, 0.55)', color: '#3C2A0E' } : undefined}
         >
           {brandBack
             ? <HandArrowLeft size={20} />
