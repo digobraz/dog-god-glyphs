@@ -2,6 +2,7 @@
 // editorom (PackProfile.tsx §2, editable) a read-profilom (PublicProfile.tsx §3, read-only) —
 // zadanie-profil-read-dog-2026-07-25. Chevron = lucide (rovnaký precedent ako existujúci
 // open/close chevron v PackDogDetail.tsx — hand-drawn sada nemá chevron/arrow-down variant).
+import { sizedUrl } from '@/services/cloudinaryService';
 import { useEffect, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import heroglyphFrame from '@/assets/heroglyph-frame.svg';
@@ -245,7 +246,7 @@ function DogGalleryRow({
           style={{ width: S.avatar, height: S.avatar, borderRadius: '50%', background: T.bg, border: `2px solid ${T.accentGold}` }}
         >
           {dog.photoUrl ? (
-            <img src={dog.photoUrl} alt={dog.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={sizedUrl(dog.photoUrl, 480)} alt={dog.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
             <span style={{ fontFamily: "'Cinzel', serif", fontSize: S.initial, fontWeight: 700, color: T.inkDim }}>
               {(dog.name?.[0] || '?').toUpperCase()}
@@ -353,7 +354,7 @@ function DogOpenCard({
           }}
         >
           {dog.photoUrl ? (
-            <img src={dog.photoUrl} alt={dog.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={sizedUrl(dog.photoUrl, 480)} alt={dog.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
             <span className="text-xl lg:text-3xl" style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, color: 'rgba(31,26,14,0.26)', lineHeight: 1 }}>
               {(dog.name?.[0] || '?').toUpperCase()}

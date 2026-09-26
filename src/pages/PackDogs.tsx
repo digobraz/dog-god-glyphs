@@ -41,6 +41,7 @@
 //    „ID" a „#1" si opticky konkurujú — vybral to s tým flagom pred sebou.
 //  • AINUBIS má meno ako nadpis + tagline; ostáva „Čoskoro" a NIKAM nevedie —
 //    plán sa nestavia. (Chat AINUBISA beží zvlášť ako plávajúci widget.)
+import { sizedUrl } from '@/services/cloudinaryService';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PackLayout } from '@/components/pack/PackLayout';
@@ -1097,7 +1098,7 @@ function DogBlock({
         {/* Stĺpec 1 — fotka s poradovým číslom na kruhu. */}
         <div className="dogblk-left">
           {dog.cloudinary_main_url ? (
-            <img className="dogblk-photo" src={dog.cloudinary_main_url} alt="" />
+            <img className="dogblk-photo" src={sizedUrl(dog.cloudinary_main_url, 320)} alt="" />
           ) : (
             <div
               className="dogblk-photo"

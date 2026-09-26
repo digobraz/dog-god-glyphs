@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import createGlobe from 'cobe';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { PACK_THEME, FONT_TITLE, FONT_UI } from './packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, HIT_CSS } from './packTheme';
 import { GOLD_BLOCK_CSS } from './navGoldSkin';
 import { Ranking, RankingBoardsModal } from './Ranking';
 import { TransparentStats } from './TransparentStats';
@@ -313,6 +313,7 @@ function MilestoneSwiper({
           <button
             key={i}
             type="button"
+            className="pk-hit-y"
             aria-label={t('pack.globe.ariaMilestone', { n: i + 1 })}
             onClick={() => onGo(i)}
             style={{
@@ -365,7 +366,7 @@ function MilestoneSwiper({
             aria-label={t('pack.globe.ariaPrev')}
             onClick={() => onGo(idx - 1)}
             disabled={idx === 0}
-            className="inline-flex items-center justify-center shrink-0"
+            className="pk-hit inline-flex items-center justify-center shrink-0"
             style={{ ...chevStyle, opacity: idx === 0 ? 0.3 : 1, cursor: idx === 0 ? 'default' : 'pointer' }}
           >
             <ChevronLeft className="h-4 w-4" />
@@ -436,7 +437,7 @@ function MilestoneSwiper({
             aria-label={t('pack.globe.ariaNext')}
             onClick={() => onGo(idx + 1)}
             disabled={idx === last}
-            className="inline-flex items-center justify-center shrink-0"
+            className="pk-hit inline-flex items-center justify-center shrink-0"
             style={{ ...chevStyle, opacity: idx === last ? 0.3 : 1, cursor: idx === last ? 'default' : 'pointer' }}
           >
             <ChevronRight className="h-4 w-4" />
@@ -511,7 +512,7 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
         overflow: 'hidden',
       }}
     >
-      <style>{GOLD_BLOCK_CSS}</style>
+      <style>{GOLD_BLOCK_CSS}{HIT_CSS}</style>
       <div
         aria-hidden
         style={{

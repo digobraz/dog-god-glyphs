@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-import { PACK_THEME, FONT_UI } from './packTheme';
+import { PACK_THEME, FONT_UI, HIT_CSS } from './packTheme';
 import { countryFlag } from '@/lib/countryGeo';
 import { useT } from '@/i18n/LanguageContext';
 
@@ -78,6 +78,7 @@ export function Ranking({
           <button
             type="button"
             onClick={() => (onViewAll ? onViewAll() : setOpen(true))}
+            className="pk-hit"
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: 11,
@@ -449,6 +450,7 @@ export function RankingBoardsModal({
           ))}
         </div>
       </div>
+      <style>{HIT_CSS}</style>
       <style>{`
         .rank-boards{ display:grid; grid-template-columns:1fr; gap:16px; }
         @media (min-width:721px){ .rank-boards{ grid-template-columns:1fr 1fr; align-items:start; } }

@@ -14,6 +14,7 @@
 //    `stroke-width` a polomer sú v JEDNOTKÁCH VIEWBOXU (px / AV_D * 100), nie v px —
 //    inak sa prstenec pri zmene priemeru rozíde (viď PackMap.tsx pôvodný komentár).
 // ════════════════════════════════════════════════════════════════════════════
+import { sizedUrl } from '@/services/cloudinaryService';
 import type { CSSProperties, ReactNode } from 'react';
 
 export const AV_D = 44;         // priemer celého bloku avatara
@@ -55,7 +56,7 @@ export function AvatarRing({
           transform="rotate(-90 50 50)" />
       </svg>
       {avatarUrl
-        ? <img className={photoClassName} src={avatarUrl} alt={avatarAlt} />
+        ? <img className={photoClassName} src={sizedUrl(avatarUrl, 360)} alt={avatarAlt} />
         : <span className={photoClassName}>{avatarInitial}</span>}
       <span className={badgeClassName} style={badgeStyle} aria-label={badgeAriaLabel}>{badgeContent}</span>
     </span>

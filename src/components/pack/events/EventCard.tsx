@@ -21,7 +21,7 @@ import { DeleteButton } from '@/components/pack/DeleteButton';
 import { AinubisSheet } from '@/components/pack/ainubisSheet';
 import { eventEmoji, FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { optimizePhoto } from '@/components/pack/addtrip/photoOptimize';
-import { uploadEventPhoto } from '@/services/cloudinaryService';
+import { uploadEventPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { pluralKey } from '@/lib/plural';
 import { EVENT_KIND_LABEL_KEYS } from './eventModel';
 import {
@@ -246,7 +246,7 @@ export function EventCard({ item, highlighted, expanded, onToggle, onChanged, on
       {expanded && (
         <div className="pev-body" onClick={stop}>
           {item.origin === 'own' && item.photoUrl && (
-            <div className="pk-photo pev-photo"><img src={item.photoUrl} alt="" loading="lazy" /></div>
+            <div className="pk-photo pev-photo"><img src={sizedUrl(item.photoUrl, 1080)} alt="" loading="lazy" /></div>
           )}
           {item.description && <div className="pev-desc">{item.description}</div>}
           {item.origin === 'tip' && item.sourceUrl && (

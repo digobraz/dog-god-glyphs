@@ -18,7 +18,7 @@ import { CertificateCard } from '@/components/CertificateCard';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { MemorialControl } from '@/components/pack/MemorialControl';
 import { useToast } from '@/hooks/use-toast';
-import { uploadExtraPhoto } from '@/services/cloudinaryService';
+import { uploadExtraPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { flagUrl, countryISO2, flagEmojiFromISO2 } from '@/lib/countryGeo';
 import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
@@ -852,7 +852,7 @@ export default function PackDogDetail() {
               style={{ cursor: uploadingMain ? 'progress' : 'pointer' }}
             >
               {dog.cloudinary_main_url ? (
-                <img src={dog.cloudinary_main_url} alt={dogName} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                <img src={sizedUrl(dog.cloudinary_main_url, 480)} alt={dogName} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
               ) : (
                 /* Prázdny kruh musí POZÝVAŤ, nie konštatovať. Od 28. 8. 2026 sa dá fotka
                    vo flow preskočiť, takže psi bez tváre vznikajú bežne — a jediné, čo

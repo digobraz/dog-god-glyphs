@@ -11,7 +11,7 @@ import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
 import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, FONT_TITLE, FONT_UI, usePaperRoute } from '@/components/pack/packTheme';
 import { GOLD_BLOCK_CSS } from '@/components/pack/navGoldSkin';
 import { tierVars } from '@/lib/packTiers';
-import { uploadExtraPhoto } from '@/services/cloudinaryService';
+import { uploadExtraPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { countryOptions, normalizeCountryValue, COUNTRY_OTHER } from '@/lib/countryOptions';
@@ -633,7 +633,7 @@ export default function PackProfile() {
             >
               {hasAvatar ? (
                 <img
-                  src={avatarUrl!}
+                  src={sizedUrl(avatarUrl, 360)}
                   alt={tx('pack.profile.avatarAlt', 'Avatar')}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />

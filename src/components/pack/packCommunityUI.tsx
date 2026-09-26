@@ -2,6 +2,7 @@
 // popupy/dashboard/events na jednom mieste, aby PackMap.tsx nerástol o ďalších 800 riadkov.
 // Brand: tmavé glass pozadie + papyrusové karty + zlaté CTA (Cinzel), rovnaké tokeny ako Portal.
 // Fáza UI-first: žiadna perzistencia, všetko dostáva dáta/handlery cez props z PackMap.
+import { sizedUrl } from '@/services/cloudinaryService';
 import { useEffect, useMemo, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
@@ -1611,12 +1612,12 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
         {/* Poradie fotiek = poradie mien (Matej 2026-08-05): človek prvý, psy za ním. */}
         <div className="comm-vhead-pack">
           <span className="comm-vavatar comm-vavatar--owner">
-            {id.avatarUrl ? <img src={id.avatarUrl} alt="" /> : id.avatarInitial}
+            {id.avatarUrl ? <img src={sizedUrl(id.avatarUrl, 160)} alt="" /> : id.avatarInitial}
           </span>
           {id.dogs.map((dog) => (
             <span key={dog.id} className="comm-vavatar comm-vavatar--dog">
               {dog.cloudinary_main_url ? (
-                <img src={dog.cloudinary_main_url} alt={dog.dog_name || ''} />
+                <img src={sizedUrl(dog.cloudinary_main_url, 160)} alt={dog.dog_name || ''} />
               ) : (
                 <img className="comm-vavatar-fallback" src={ICON('paw')} alt="" />
               )}

@@ -19,6 +19,7 @@
 // ⚠️ Bublina požičiava triedy `.mn-popup` / `.mn-bubble-*` z `MAP_NOTES_CSS` — tá istá
 //    karta ako pri odkaze, nie druhý dizajn. Vlastné sú len riadky ľudí a akcie.
 // ============================================================================
+import { sizedUrl } from '@/services/cloudinaryService';
 import { useCallback, useMemo, useState } from 'react';
 import L from 'leaflet';
 import { Marker, Popup, useMap, useMapEvent } from 'react-leaflet';
@@ -108,7 +109,7 @@ function PersonRow({ w, onChanged }: { w: WishPin; onChanged: () => void }) {
     <div className="wl-person">
       <div className="mn-bubble-meta">
         {w.dogPhoto
-          ? <img className="mn-bubble-face" src={w.dogPhoto} alt="" loading="lazy" />
+          ? <img className="mn-bubble-face" src={sizedUrl(w.dogPhoto, 120)} alt="" loading="lazy" />
           : <span className="mn-bubble-face mn-bubble-face--empty">{(w.dogName ?? w.ownerFirst ?? '?').slice(0, 1)}</span>}
         <span className="mn-bubble-who">
           <span className="mn-bubble-author">{w.isMine ? t('pack.wish.you') : who}</span>

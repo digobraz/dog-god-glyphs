@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { verseForDay } from '@/data/dailyQuotes';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
-import { FONT_TITLE, FONT_UI, PACK_THEME, usePaperRoute } from './packTheme';
+import { FONT_TITLE, FONT_UI, HIT_CSS, PACK_THEME, usePaperRoute } from './packTheme';
 import { useLocation } from 'react-router-dom';
 
 const GOLD = PACK_THEME.cardEdge;
@@ -73,6 +73,7 @@ export function VerseOfTheDay() {
       className="relative flex flex-col items-center text-center"
       style={{ padding: 'clamp(8px, 1.8vw, 16px) 16px' }}
     >
+      <style>{HIT_CSS}</style>
       {/* eyebrow */}
       <span
         style={{
@@ -157,6 +158,7 @@ export function VerseOfTheDay() {
           <button
             type="button"
             onClick={report}
+            className="pk-hit"
             disabled={reportState === 'sending' || reportState === 'sent'}
             style={{
               marginTop: 4,

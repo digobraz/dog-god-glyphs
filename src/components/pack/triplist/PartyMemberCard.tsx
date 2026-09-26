@@ -9,6 +9,7 @@
 //
 // Brand: meno psa = Cinzel Decorative (CLAUDE.md, „mená psov sú cinzel dekoratívne"),
 // meno človeka = Cinzel, číslo/rola = Space Grotesk.
+import { sizedUrl } from '@/services/cloudinaryService';
 import { useState } from 'react';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { useT } from '@/i18n/LanguageContext';
@@ -170,7 +171,7 @@ export function PartyMemberCard({ member, roleLabel, dm, onOpenProfile, pale }: 
   const initial = (dog || owner || '?').charAt(0).toUpperCase();
 
   const avatar = member.dogPhoto
-    ? <img src={member.dogPhoto} alt={dog ?? 'Dog'} loading="lazy" draggable={false} />
+    ? <img src={sizedUrl(member.dogPhoto, 200)} alt={dog ?? 'Dog'} loading="lazy" draggable={false} />
     : initial;
 
   return (

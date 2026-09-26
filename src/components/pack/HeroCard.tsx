@@ -750,7 +750,7 @@ function AddSlot({ boxH, onAdd }: { boxH: number; onAdd: () => void }) {
         onClick={onAdd}
         aria-label={t('pack.tree.addDog')}
         title={t('pack.tree.addDog')}
-        className="flex items-center justify-center shrink-0"
+        className="pk-hit flex items-center justify-center shrink-0"
         style={{
           width: PLUS_SIZE,
           height: PLUS_SIZE,
@@ -898,7 +898,7 @@ function PackNameRow({ label, fallback }: { label: string; fallback: string }) {
               onClick={openEdit}
               aria-label={t('pack.pack.rename')}
               title={t('pack.pack.rename')}
-              className="flex items-center justify-center shrink-0"
+              className="pk-hit flex items-center justify-center shrink-0"
               style={{
                 width: 22, height: 22, borderRadius: '50%',
                 border: 0, background: 'none', color: T.inkWarm,

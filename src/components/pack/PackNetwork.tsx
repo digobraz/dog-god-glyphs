@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { sizedUrl } from '@/services/cloudinaryService';
 import { createPortal } from 'react-dom';
 import { Loader2, Copy, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -1826,7 +1827,7 @@ function Node({
   return (
     <span className={me ? 'pknet-me' : undefined} style={base} title={member?.dog_name ?? undefined}>
       {me && avatarUrl ? (
-        <img src={avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <img src={sizedUrl(avatarUrl, 320)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       ) : member?.avatar ? (
         // Uzol s fotkou psa. Dnes ju má len ukážková línia — `get_my_network()`
         // fotku nevracia, takže na reálnych členoch padá na iniciálu nižšie.

@@ -13,6 +13,7 @@
 //
 // Vizuál: Matej 6.8. — „zmeníme neskôr vizuál toho kvízu na kompaktnejší". Mechanika
 // je podľa nákresu, vizuál NIE je finálny.
+import { sizedUrl } from '@/services/cloudinaryService';
 import { trackPack } from '@/lib/packAnalytics';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -261,7 +262,7 @@ export default function PackDogQuiz() {
               <div className="flex items-center gap-2" style={{ minWidth: 132 }}>
                 {d.cloudinary_main_url ? (
                   <img
-                    src={d.cloudinary_main_url} alt=""
+                    src={sizedUrl(d.cloudinary_main_url, 200)} alt=""
                     style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: `2px solid ${T.cardEdge}` }}
                   />
                 ) : (

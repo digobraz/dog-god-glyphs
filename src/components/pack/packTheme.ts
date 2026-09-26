@@ -807,7 +807,17 @@ export const GLASS_CSS = `
 //    obsah, aby sa typografický lock nerozdvojil.
 // ⚠️ Toto je pilulka NA PAPYRUSE. Na fotke/tmavom paneli (plagát výletu, `pk-glass`)
 //    platí tmavá vrstva — nemixovať, papyrusová pilulka by na fotke zmizla.
-export const PILL_CSS = `
+// ── VÄČŠÍ CIEĽ PRE PRST, TEN ISTÝ VZHĽAD (audit /pack 26. 9. 2026) ─────────────
+// 13 cieľov na homepage malo pod 32 px (ceruzka svorky 22×22). Kresba sa nemení —
+// oblasť ťuknutia rozšíri neviditeľný `::after`. `.pk-hit` do všetkých strán (8 px),
+// `.pk-hit-y` len zvislo (míľniky stoja 6 px od seba a bočné rozšírenie by si kradli).
+export const HIT_CSS = `
+.pk-hit,.pk-hit-y,.pk-pill--tap{position:relative;}
+.pk-hit::after,.pk-pill--tap::after{content:'';position:absolute;inset:-8px;}
+.pk-hit-y::after{content:'';position:absolute;inset:-8px 0;}
+`;
+
+export const PILL_CSS = `${HIT_CSS}
 .pk-pill{
   display:inline-flex; align-items:center; justify-content:center; gap:6px;
   padding:7px 12px; border-radius:999px; white-space:nowrap;
