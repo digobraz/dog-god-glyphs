@@ -340,6 +340,9 @@ export function EssenceScreen() {
                   );
                 })}
               </div>
+              {/* Rytina medzi chipmi a voľbami (Matej 26. 9. 2026: *„na vzniknutom
+                  mieste vytvoriť rytinu, oddeliť opticky chipy a tlačidlá"*). */}
+              <span className="fdh-rule" aria-hidden />
 
               <AnimatePresence mode="wait" initial={false}>
                 {handover !== null ? (
@@ -558,8 +561,8 @@ const ESSENCE_CSS = `
    Stĺpce dýchajú, ale tri voľby sa musia zmestiť do TEJ ISTEJ výšky ako dve,
    takže riadkový rozostup ostáva na 8. Obe čísla sú z \`PACK_SPACE\`. */
 .es-picks {
-  --es-picks-h: 80px;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; width: 100%;
+  --es-picks-h: 124px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%;
   min-height: var(--es-picks-h); align-items: stretch;
 }
 /* ── TRI VOĽBY: JEDEN RAD TROCH (Matej 24. 9., šieste kolo) ───────────────
@@ -605,36 +608,14 @@ const ESSENCE_CSS = `
    tejto obrazovke nesmie hýbať.
    ⚠️ Toto je JEDINÉ miesto, kde sa mobil zámerne líši od PC (Matej: *„iné od
    PC"*) — na PC ostávajú dva stĺpce a trojica v jednom rade. */
+/* ── 🔴 26. 9. 2026: VOĽBY VEDĽA SEBA NA MOBILE AJ PC, IKONKA HORE, NÁPIS DOLE ──
+   Matej: *„tlačítka sú moc pri sebe, malé medzery, je treba ich dať vedľa seba aj
+   na mobile aj PC, centrovať na stred, hore ikona dolu nápis"*. Prebíja riadky
+   na mobile z 24. 9. (siedme kolo) — novší pokyn. Plocha je ďalej PEVNÁ, len
+   nižšia: voľné miesto dostala rytina medzi chipmi a voľbami. */
 @media (max-width: 559px) {
-  .es-picks {
-    /* 190 = tri rady po 58 + dve medzery po 8. Nie je to odhad: 58 px je
-       najmenšia výška, do ktorej sa vojde meno s podnadpisom vedľa jamky —
-       pri 184 dala trojica 190 aj tak a doska medzi otázkami poskočila o 6 px. */
-    --es-picks-h: 190px;
-    grid-template-columns: 1fr;
-    grid-auto-rows: 1fr;
-  }
-  /* Ikonka vedľa textu a podnadpis späť — v celej šírke riadka majú miesto. */
-  .es-picks .hf-pick {
-    flex-direction: row; justify-content: flex-start; gap: 12px;
-    padding: 8px 14px; text-align: left;
-  }
-  .es-picks .hf-pick .tx em { display: block; }
-  /* Trojica má rad o 32 px nižší než dvojica, takže jamka ustúpi — ale ostáva
-     väčšia, než bola pri dvoch stĺpcoch (28 px). */
-  .es-picks.n3 { grid-template-columns: 1fr; }
-  .es-picks.n3 .hf-pick:nth-child(3) { grid-column: auto; }
-  /* ⚠️ MUSÍ TU STÁŤ ZNOVA, hoci to isté hovorí pravidlo o riadok vyššie:
-     \`.es-picks.n3 .hf-pick\` (tri triedy) prebíja \`.es-picks .hf-pick\` (dve),
-     takže trojica ostávala v stĺpci aj na mobile — dlaždica mala 74 px namiesto
-     56 a plocha narástla na 237 px. Špecificita, nie poradie. */
-  .es-picks.n3 .hf-pick {
-    flex-direction: row; justify-content: flex-start; gap: 12px;
-    padding: 8px 14px; text-align: left;
-  }
-  .es-picks.n3 .hf-pick .tx em { display: block; }
-  .es-picks.n3 .hf-pick .well { width: 40px; height: 40px; }
-  .es-picks.n3 .hf-pick .well img { width: 30px; height: 30px; }
+  .es-picks { --es-picks-h: 124px; gap: 12px; }
+  .es-picks.n3 .hf-pick .tx { font-size: 12px; }
 }
 /* Symbol podstaty je KRESBA, nie ikonka rozhrania — jamka je preto väčšia než
    pri voľbe stavu psa a obrázok v nej dýcha. Riadok je aj vyšší: obrazovka
@@ -644,7 +625,7 @@ const ESSENCE_CSS = `
    výbere) aj s celým Matejovým odôvodnením sa PRESUNUL do FLOW_CARVE_CSS,
    lebo tú istú dlaždicu dostala aj otázka „žije tvoj pes?" na kroku MENO.
    Text je nezmenený, len sa presťahoval. Tu ostáva LEN geometria PODSTATY. */
-.es-picks .hf-pick { padding: 8px 14px; gap: 12px; }
+.es-picks .hf-pick { flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 12px; gap: 8px; }
 /* 🔴 IKONKA JE PODSTATA, NIE OZDOBA (Matej 24. 9.: *„ikonky zväčši tie sú
    podstatné"*). Je to ten istý symbol, aký sa o dva riadky vyššie vkreslí do
    rámu heroglyfu — čím väčší je tu, tým skôr si človek spojí voľbu s tým, čo mu
@@ -701,7 +682,10 @@ const ESSENCE_CSS = `
       krátkom okne veľkú polohu nedá tak či tak. */
 @media (max-height: 700px) {
   .es-stack .hf-plate { gap: 8px; }
-  .es-picks { --es-picks-h: 150px; }
+  .es-picks { --es-picks-h: 112px; }
+  .es-picks .hf-pick { padding: 8px; gap: 4px; }
+  .es-picks .hf-pick .well { width: 44px; height: 44px; }
+  .es-picks .hf-pick .well img { width: 34px; height: 34px; }
   /* Premenované 25. 9. s presunom riadka; zmenšenie na krátkom okne ostáva
      vecou TEJTO obrazovky — sem patrí jej rozpočet výšky. */
   .es-who .fdh-photo { width: 40px; height: 40px; }
