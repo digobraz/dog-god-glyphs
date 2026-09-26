@@ -12,7 +12,8 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPoi
 import { useSearchParams } from 'react-router-dom';
 import { AinubisBubble } from '@/components/pack/ainubisSheet';
 import { emitOpenThread } from '@/components/pack/messaging/openBridge';
-import { withTransform } from '@/services/cloudinaryService';
+import { bgImg } from '@/services/cloudinaryService';
+import { useLang } from '@/i18n/LanguageContext';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, PACK_AVATAR,
   VEIL_CSS, FONT_TITLE, FONT_UI,
@@ -34,8 +35,13 @@ const SWIPE_PX = 96;
 const OUT_MS = 320;
 /** Keď v balíčku ostanú dve karty, dotiahne sa ďalšia dávka. */
 const REFILL_AT = 2;
+/** B9 (audit-sniffer-2026-09-26): kým sa ťah nestane skutočným ťahom, karta si NECHÁVA pointer
+ *  nezachytený — inak by natívny tap na fotke (`.sn-tap` v `SnifferCard.tsx`) nikdy nedostal
+ *  svoj vlastný `pointerup` (capture by ho presmeroval na tento obal skôr, než sa vôbec pohol). */
+const DRAG_CATCH_PX = 6;
 
-const pic = (u?: string | null) => withTransform(u, 'c_fill,g_auto,w_240,h_240,f_auto,q_auto');
+// Zmenšenie ZA uložený výrez (withTransform výrez preskočí a pošle plné rozlíšenie) — audit 26. 9.
+const pic = (u?: string | null) => bgImg(u, PACK_AVATAR.md, PACK_AVATAR.md);
 
 const CSS = `
 /* Horný prepínač výraznejší, aktívna záložka v PLNOM lapise (Matej 25. 9.). */
@@ -78,10 +84,9 @@ const CSS = `
 .sh-empty{margin:auto 0;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .sh-ghost{align-self:center;border-radius:${PACK_R.field}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;border:1px solid ${T.border};background:${T.cardSoft};
   font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};cursor:pointer;}
-.sh-cta{width:100%;border-radius:${PACK_R.field}px;padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;border:1px solid ${LAPIS.deep};
-  background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};font-family:${FONT_TITLE};font-weight:700;
-  font-size:${PACK_TEXT.body}px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;}
-.sh-cta:disabled{opacity:.45;cursor:default;}
+/* E3 (audit-sniffer-2026-09-26, „Duplicity"): .sh-cta bolo doslovné dvojča .bd-cta
+   z PackBuddy.tsx — tá istá karta Shell ho vždy vykreslí spolu s týmto panelom, takže
+   trieda je vždy po ruke. Tlačidlá nižšie preto berú .bd-cta, druhá definícia zbytočná. */
 .sh-sheet{width:100%;max-width:420px;padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .sh-sheet h3{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkStrong};}
 .sh-note{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
@@ -98,6 +103,19 @@ const CSS = `
 .sh-new{font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;letter-spacing:.14em;color:${T.card};background:${T.growGreen};
   border-radius:${PACK_R.pill}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;}
 .sh-mini{border:0;background:none;cursor:pointer;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkWarm};text-decoration:underline;}
+/* B2/B3 (audit-sniffer-2026-09-26): jeden pás NAD záložkami — vidno ho z HĽADAŤ aj ZHÔD,
+   nielen z balíčka, a zostáva, kým fetchDeck v pozadí nezmaže presne TÚTO chybu. */
+.sh-errbar{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.md}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;
+  border-radius:${PACK_R.tile}px;border:1px solid ${PICK_INK.red};color:${PICK_INK.red};font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;}
+.sh-errbar button{flex:0 0 auto;border:0;background:none;cursor:pointer;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;
+  color:inherit;text-decoration:underline;}
+/* Kostra namiesto prázdnej plochy, kým sa balíček/zhody prvýkrát načítavajú. */
+.sh-skel-card{position:absolute;inset:0;border-radius:${PACK_R.card}px;background:${T.tileBg};overflow:hidden;}
+.sh-skel-row{height:${PACK_AVATAR.md}px;border-radius:${PACK_R.tile}px;background:${T.tileBg};position:relative;overflow:hidden;}
+.sh-skel-card::after,.sh-skel-row::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(100deg, transparent 20%, rgba(255,255,255,.16) 50%, transparent 80%);animation:sh-shimmer 1.4s ease-in-out infinite;}
+@keyframes sh-shimmer{from{transform:translateX(-100%);}to{transform:translateX(100%);}}
+@media (prefers-reduced-motion: reduce){.sh-skel-card::after,.sh-skel-row::after{animation:none;}}
 `;
 
 function MaskIcon({ src, size, color }: { src: string; size: number; color: string }) {
@@ -109,17 +127,27 @@ const SEEN_KEY = 'dogypt_sniffer_matches_seen';
 const readSeen = (): number => { try { return Number(localStorage.getItem(SEEN_KEY)) || 0; } catch { return 0; } };
 const writeSeen = (t: number) => { try { localStorage.setItem(SEEN_KEY, String(t)); } catch { /* bez úložiska nič */ } };
 
+/** B2/B3 (audit-sniffer-2026-09-26): tri zdroje chyby, JEDEN pás nad záložkami. `swipe` sa
+ *  vypisuje len raz — kým sa neprekryje ďalšou (nová chyba, ručné „Skúsiť znova"). */
+type SnErrKind = 'deck' | 'swipe' | 'matches';
+const ERR_FALLBACK: Record<SnErrKind, string> = {
+  deck: 'Couldn’t load the pack. Try again.',
+  swipe: 'Couldn’t save your answer — the card is back on top. Try again.',
+  matches: 'Couldn’t load matches. Try again.',
+};
+
 export function SnifferHome({ tx, me }: {
   tx: Tx;
   me: { photo: string | null; name: string; dogName: string | null };
 }) {
   const [params, setParams] = useSearchParams();
+  const { lang } = useLang();
   const tab: Tab = (['deck', 'search', 'matches'] as const).find((t) => t === params.get('tab')) ?? 'deck';
   const setTab = (t: Tab) => setParams((p) => { const n = new URLSearchParams(p); if (t === 'deck') n.delete('tab'); else n.set('tab', t); return n; });
 
   // ── balíček ────────────────────────────────────────────────────────────────
   const [deck, setDeck] = useState<SnifferCardData[] | null>(null);
-  const [err, setErr] = useState<string | null>(null);
+  const [errKind, setErrKind] = useState<SnErrKind | null>(null);
   const [drag, setDrag] = useState<{ dx: number; dy: number; anim: boolean } | null>(null);
   const [composer, setComposer] = useState<{ card: SnifferCardData; send: (msg: string) => void } | null>(null);
   /** CELÝ PROFIL (kolo 2 §6.2) — z karty v balíčku aj z HĽADAŤ, tie isté tri tlačidlá. */
@@ -128,21 +156,54 @@ export function SnifferHome({ tx, me }: {
   const [match, setMatch] = useState<{ card: SnifferCardData; conv: string | null } | null>(null);
   const [hit, setHit] = useState<'like' | 'pass' | null>(null);
   const [leaving, setLeaving] = useState<'like' | 'pass' | null>(null);
-  const pulse = (v: 'like' | 'pass') => { setHit(v); window.setTimeout(() => setHit(null), 380); };
+  /** B8 (Matej 26. 9.: „áno" — zrušenie zavrie aj vlákno) — potvrdenie v PANELI, nie `window.confirm`. */
+  const [confirmUnmatch, setConfirmUnmatch] = useState<SnifferMatch | null>(null);
+  const [unmatching, setUnmatching] = useState(false);
   const busy = useRef(false);
   const start = useRef<{ x: number; y: number; id: number } | null>(null);
+  /** B9: capture sa nasadí AŽ pri skutočnom ťahu (`onMove`), nie hneď pri stlačení — inak by
+   *  natívny tap na `.sn-tap` (SnifferCard.tsx) nikdy nedostal svoj vlastný `pointerup`. */
+  const dragCaptured = useRef(false);
+  /** B6: čo raz odišlo na server, sa do balíčka nevráti — ani z pomalšej/súbežnej dávky. */
+  const sentRef = useRef<Set<number>>(new Set());
+  /** E3: fetchDeck len jeden beh naraz (rýchle swipy pri REFILL_AT vedeli spustiť viac naraz). */
+  const fetchInFlight = useRef(false);
+  /** E3: časovače v refe + upratanie v cleanupe; `liveRef` zastaví oneskorený `setState`
+   *  po odchode z obrazovky (async pokračovanie `decide`/`act`/`fetchDeck`). */
+  const hitTimer = useRef<number | null>(null);
+  const outTimer = useRef<number | null>(null);
+  const liveRef = useRef(true);
+  useEffect(() => () => {
+    liveRef.current = false;
+    if (hitTimer.current) window.clearTimeout(hitTimer.current);
+    if (outTimer.current) window.clearTimeout(outTimer.current);
+  }, []);
+
+  const pulse = (v: 'like' | 'pass') => {
+    setHit(v);
+    if (hitTimer.current) window.clearTimeout(hitTimer.current);
+    hitTimer.current = window.setTimeout(() => { if (liveRef.current) setHit(null); }, 380);
+  };
 
   const fetchDeck = useCallback(async () => {
-    setErr(null);
+    if (fetchInFlight.current) return;
+    fetchInFlight.current = true;
     try {
       const fresh = await loadDeck(20);
+      if (!liveRef.current) return;
+      // Úspech maže LEN vlastnú chybu balíčka — nesmie prekryť zrozumiteľnú hlášku
+      // o zlyhanom SNIFFe/NIE, ktorú si človek ešte neprečítal (B2).
+      setErrKind((k) => (k === 'deck' ? null : k));
       setDeck((cur) => {
         const have = new Set((cur ?? []).map((c) => c.member));
-        return [...(cur ?? []), ...fresh.filter((c) => !have.has(c.member))];
+        return [...(cur ?? []), ...fresh.filter((c) => !have.has(c.member) && !sentRef.current.has(c.member))];
       });
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e));
+    } catch {
+      if (!liveRef.current) return;
+      setErrKind('deck');
       setDeck((cur) => cur ?? []);
+    } finally {
+      fetchInFlight.current = false;
     }
   }, []);
 
@@ -154,50 +215,77 @@ export function SnifferHome({ tx, me }: {
     if (!top || busy.current) return;
     busy.current = true;
     pulse(verdict);
+    const card = top;
+    sentRef.current.add(card.member);
     const dir = verdict === 'like' ? 1 : -1;
     setDrag({ dx: dir * window.innerWidth, dy: 0, anim: true });
-    const req = swipe(top.member, verdict, message).catch((e) => {
-      setErr(e instanceof Error ? e.message : String(e));
-      return { match: false, conv: null };
-    });
-    window.setTimeout(async () => {
+    const req = swipe(card.member, verdict, message);
+    if (outTimer.current) window.clearTimeout(outTimer.current);
+    outTimer.current = window.setTimeout(async () => {
+      if (!liveRef.current) return;
       setDeck((cur) => (cur ?? []).slice(1));
       setDrag(null);
       busy.current = false;
-      const r = await req;
-      if (r.match) setMatch({ card: top, conv: r.conv });
-      if ((deck?.length ?? 0) - 1 <= REFILL_AT) void fetchDeck();
+      try {
+        const r = await req;
+        if (!liveRef.current) return;
+        setErrKind((k) => (k === 'swipe' ? null : k));
+        if (r.match) setMatch({ card, conv: r.conv });
+      } catch {
+        // B2 (audit-sniffer-2026-09-26): zlyhaný SNIFF/NIE sa už NETVÁRI ako uložený — karta
+        // sa vráti na vrch balíčka a chyba ostane vidno, kým ju človek sám nezavrie/neskúsi znova.
+        if (!liveRef.current) return;
+        sentRef.current.delete(card.member);
+        setErrKind('swipe');
+        setDeck((cur) => [card, ...(cur ?? [])]);
+      }
     }, OUT_MS);
   };
 
-  /** Rozhodnutie z CELÉHO PROFILU — bez odletu karty, ten istý server. */
+  /** Rozhodnutie z CELÉHO PROFILU — bez odletu karty, ten istý server + ten istý `busy`
+   *  ref ako `decide` (dvojklik). */
   const act = async (card: SnifferCardData, verdict: 'like' | 'pass', message?: string) => {
+    if (busy.current) return;
+    busy.current = true;
+    sentRef.current.add(card.member);
     // Celý profil najprv odletí (tým istým smerom ako karta), až potom sa zavrie.
     setLeaving(verdict);
     await new Promise((r) => window.setTimeout(r, 360));
+    if (!liveRef.current) return;
     setLeaving(null);
     setPeek(null);
     try {
       const r = await swipe(card.member, verdict, message);
+      if (!liveRef.current) return;
+      setErrKind((k) => (k === 'swipe' ? null : k));
       setDeck((cur) => (cur ?? []).filter((c) => c.member !== card.member));
       if (r.match) setMatch({ card, conv: r.conv });
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e));
+    } catch {
+      if (!liveRef.current) return;
+      sentRef.current.delete(card.member);
+      setErrKind('swipe');
+    } finally {
+      busy.current = false;
     }
   };
 
   const onDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (busy.current || (e.target as HTMLElement).closest('.sn-tap')) return;
+    if (busy.current) return;
     start.current = { x: e.clientX, y: e.clientY, id: e.pointerId };
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    dragCaptured.current = false;
   };
   const onMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (!start.current || start.current.id !== e.pointerId) return;
+    if (!dragCaptured.current && Math.abs(e.clientX - start.current.x) > DRAG_CATCH_PX) {
+      dragCaptured.current = true;
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    }
     setDrag({ dx: e.clientX - start.current.x, dy: (e.clientY - start.current.y) * 0.3, anim: false });
   };
   const onUp = () => {
     if (!start.current) return;
     start.current = null;
+    dragCaptured.current = false;
     const dx = drag?.dx ?? 0;
     if (dx > SWIPE_PX) void decide('like');
     else if (dx < -SWIPE_PX) void decide('pass');
@@ -207,17 +295,75 @@ export function SnifferHome({ tx, me }: {
   // ── zhody ──────────────────────────────────────────────────────────────────
   const [matches, setMatches] = useState<SnifferMatch[] | null>(null);
   const [seenAt] = useState(readSeen);
+  const fetchMatches = useCallback(async () => {
+    try {
+      const m = await loadMatches();
+      if (!liveRef.current) return;
+      setMatches(m);
+      writeSeen(Date.now());
+      setErrKind((k) => (k === 'matches' ? null : k));
+    } catch {
+      if (!liveRef.current) return;
+      setErrKind('matches');
+    }
+  }, []);
   useEffect(() => {
     if (tab !== 'matches') return;
-    loadMatches().then((m) => { setMatches(m); writeSeen(Date.now()); }).catch((e) => setErr(String(e?.message ?? e)));
-  }, [tab, match]);
+    void fetchMatches();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `match` je zámerný spúšťač (nová zhoda dobehne zoznam)
+  }, [tab, match, fetchMatches]);
+
+  const doUnmatch = async (m: SnifferMatch) => {
+    if (unmatching) return;
+    setUnmatching(true);
+    try {
+      await unmatch(m.card.member);
+      if (!liveRef.current) return;
+      setMatches((cur) => (cur ?? []).filter((x) => x.card.member !== m.card.member));
+      setConfirmUnmatch(null);
+      setErrKind((k) => (k === 'matches' ? null : k));
+    } catch {
+      if (!liveRef.current) return;
+      setErrKind('matches');
+    } finally {
+      if (liveRef.current) setUnmatching(false);
+    }
+  };
+
+  const retry = () => {
+    if (errKind === 'deck') { setErrKind(null); void fetchDeck(); }
+    else if (errKind === 'matches') { setErrKind(null); void fetchMatches(); }
+    else setErrKind(null);
+  };
+
+  // B10 (lock brand.md §147): Esc zatvára panely od najvrchnejšieho; ←/→ swipuje balíček,
+  // len keď nie je otvorený žiadny panel a fokus nie je vo formulárovom poli.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (confirmUnmatch) { setConfirmUnmatch(null); return; }
+        if (composer) { setComposer(null); return; }
+        if (match) { setMatch(null); return; }
+        if (peek) { setPeek(null); return; }
+        return;
+      }
+      if (confirmUnmatch || composer || match || peek || tab !== 'deck') return;
+      const el = document.activeElement as HTMLElement | null;
+      if (el && ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName)) return;
+      if (e.key === 'ArrowRight') void decide('like');
+      else if (e.key === 'ArrowLeft') void decide('pass');
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `decide` sa prerába každý render, netreba reštart efektu kvôli nej
+  }, [confirmUnmatch, composer, match, peek, tab]);
 
   const ago = (iso: string) => {
     const h = Math.round((Date.now() - new Date(iso).getTime()) / 36e5);
     if (h < 1) return tx('pack.sniffer.justNow', 'just now');
     if (h < 24) return tx('pack.sniffer.hoursAgo', '{n} h ago', { n: h });
     const d = Math.round(h / 24);
-    return d === 1 ? tx('pack.sniffer.yesterday', 'yesterday') : new Date(iso).toLocaleDateString();
+    return d === 1 ? tx('pack.sniffer.yesterday', 'yesterday') : new Date(iso).toLocaleDateString(lang);
   };
 
   const dragStyle = drag
@@ -233,6 +379,13 @@ export function SnifferHome({ tx, me }: {
       <style>{VEIL_CSS}</style>
       <style>{SNIFFER_EMPTY_CSS}</style>
       <style>{CSS}</style>
+      {/* B2/B3: nad záložkami — viditeľné z HĽADAŤ aj ZHÔD, nielen z balíčka. */}
+      {errKind && (
+        <div className="sh-errbar" role="alert">
+          <span>{tx(`pack.sniffer.err.${errKind}`, ERR_FALLBACK[errKind])}</span>
+          <button type="button" onClick={retry}>{tx('pack.sniffer.err.retry', 'Try again')}</button>
+        </div>
+      )}
       <div className="sh-tabs" role="tablist">
         {TABS.map(([k, en]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} className={tab === k ? 'is-on' : ''}
@@ -242,7 +395,9 @@ export function SnifferHome({ tx, me }: {
 
       {tab === 'deck' && (
         <div className="sh-pane">
-          {deck === null ? null : top ? (
+          {deck === null ? (
+            <div className="sh-deck" aria-hidden><div className="sh-skel-card" /></div>
+          ) : top ? (
             <>
               <div className="sh-deck">
                 {deck[1] && <SnifferCard key={deck[1].member} card={deck[1]} tx={tx} back />}
@@ -286,7 +441,6 @@ export function SnifferHome({ tx, me }: {
           ) : (
             <SnifferEmpty tx={tx} />
           )}
-          {err && <p className="sh-note" style={{ color: PICK_INK.red, textAlign: 'center' }}>{err}</p>}
         </div>
       )}
 
@@ -298,7 +452,11 @@ export function SnifferHome({ tx, me }: {
 
       {tab === 'matches' && (
         <div className="sh-pane">
-          {matches && matches.length > 0 ? (
+          {matches === null ? (
+            <div className="sh-list" aria-hidden>
+              {[0, 1, 2].map((i) => <div key={i} className="sh-skel-row" />)}
+            </div>
+          ) : matches.length > 0 ? (
             <div className="sh-list">
               {matches.map((m) => {
                 const isNew = new Date(m.matchedAt).getTime() > seenAt;
@@ -313,17 +471,34 @@ export function SnifferHome({ tx, me }: {
                     {m.conv && (
                       <button type="button" className="sh-mini" onClick={() => emitOpenThread(m.conv!)}>{tx('pack.sniffer.write', 'Write')}</button>
                     )}
-                    <button type="button" className="sh-mini" onClick={async () => {
-                      await unmatch(m.card.member);
-                      setMatches((cur) => (cur ?? []).filter((x) => x.card.member !== m.card.member));
-                    }}>{tx('pack.sniffer.unmatch', 'Cancel')}</button>
+                    <button type="button" className="sh-mini" onClick={() => setConfirmUnmatch(m)}>{tx('pack.sniffer.unmatch', 'Cancel')}</button>
                   </div>
                 );
               })}
             </div>
-          ) : matches ? (
+          ) : (
             <AinubisBubble>{tx('pack.sniffer.noMatches', 'No matches yet. A match is just a notice — whether you write is up to you.')}</AinubisBubble>
-          ) : null}
+          )}
+        </div>
+      )}
+
+      {/* B8: potvrdenie zrušenia zhody v PANELI (nie `window.confirm`) — zavrie aj vlákno (server). */}
+      {confirmUnmatch && (
+        <div className="pk-veil pk-veil--modal" onClick={() => setConfirmUnmatch(null)}>
+          <div className="sh-sheet" style={{ ...PACK_BOX.panel }} role="dialog" aria-modal="true"
+            aria-label={tx('pack.sniffer.unmatchConfirmTitle', 'Cancel this match?')} onClick={(e) => e.stopPropagation()}>
+            <h3>{tx('pack.sniffer.unmatchConfirmTitle', 'Cancel this match?')}</h3>
+            <p className="sh-note">{tx('pack.sniffer.unmatchConfirmNote', 'The thread closes for both of you and can’t be undone.')}</p>
+            {errKind === 'matches' && (
+              <p className="sh-note" style={{ color: PICK_INK.red }}>{tx('pack.sniffer.err.matches', ERR_FALLBACK.matches)}</p>
+            )}
+            <button type="button" className="bd-cta" disabled={unmatching} onClick={() => void doUnmatch(confirmUnmatch)}>
+              {unmatching ? '…' : tx('pack.sniffer.unmatchConfirm', 'Yes, cancel')}
+            </button>
+            <button type="button" className="sh-ghost" onClick={() => setConfirmUnmatch(null)}>
+              {tx('pack.sniffer.unmatchKeep', 'Keep it')}
+            </button>
+          </div>
         </div>
       )}
 
@@ -332,7 +507,7 @@ export function SnifferHome({ tx, me }: {
         // Klik VEDĽA zavrie náhľad (Matej 25. 9.: „kliknutie vedľa nezruší náhľad"). Obal zaberá celú
         // plochu, takže sa zatvára podľa cieľa kliku: čokoľvek mimo kariet a tlačidiel.
         <div className="pk-veil pk-veil--modal" onClick={() => setPeek(null)}>
-          <div className={`sh-peek${leaving ? ` is-${leaving}` : ''}`}
+          <div className={`sh-peek${leaving ? ` is-${leaving}` : ''}`} role="dialog" aria-modal="true" aria-label={peek.name}
             onClick={(e) => { if ((e.target as HTMLElement).closest('.sfp-photo, .sfp-card, button, a, input, textarea')) e.stopPropagation(); }}>
             <SnifferFullProfile card={peek} tx={tx} actions={(
               <>
@@ -355,12 +530,13 @@ export function SnifferHome({ tx, me }: {
       {/* 💬 — áno s pripnutou správou */}
       {composer && (
         <div className="pk-veil pk-veil--modal" onClick={() => setComposer(null)}>
-          <div className="sh-sheet" style={{ ...PACK_BOX.panel }} onClick={(e) => e.stopPropagation()}>
+          <div className="sh-sheet" style={{ ...PACK_BOX.panel }} role="dialog" aria-modal="true"
+            aria-label={tx('pack.sniffer.writeTo', 'Write to {name}', { name: composer.card.name })} onClick={(e) => e.stopPropagation()}>
             <h3>{tx('pack.sniffer.writeTo', 'Write to {name}', { name: composer.card.name })}</h3>
             <textarea className="pf-field sh-area" autoFocus maxLength={1000} value={draft} onChange={(e) => setDraft(e.target.value)}
               placeholder={tx('pack.sniffer.writePh', 'Hi! …')} />
             <p className="sh-note">{tx('pack.sniffer.writeNote', 'It counts as a yes. The message is delivered only when you catch each other’s scent.')}</p>
-            <button type="button" className="sh-cta" disabled={!draft.trim()} onClick={() => {
+            <button type="button" className="bd-cta" disabled={!draft.trim()} onClick={() => {
               const msg = draft.trim();
               const send = composer.send;
               setComposer(null);
@@ -374,7 +550,8 @@ export function SnifferHome({ tx, me }: {
       {/* ZHODA — animované odhalenie (§2.6 D) */}
       {match && (
         <div className="pk-veil pk-veil--modal" onClick={() => setMatch(null)}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+          <div role="dialog" aria-modal="true" aria-label={tx('pack.sniffer.matchTitle', 'You caught each other’s scent!')}
+            onClick={(e) => e.stopPropagation()} style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
             <SnifferMatchReveal
               me={me.photo}
               them={match.card.photos[0] ?? match.card.dogs[0]?.photo ?? null}
@@ -385,7 +562,7 @@ export function SnifferHome({ tx, me }: {
               ].filter(Boolean).join(' · ')}
             >
               {match.conv && (
-                <button type="button" className="sh-cta" onClick={() => { const c = match.conv!; setMatch(null); emitOpenThread(c); }}>
+                <button type="button" className="bd-cta" onClick={() => { const c = match.conv!; setMatch(null); emitOpenThread(c); }}>
                   {tx('pack.sniffer.writeTo', 'Write to {name}', { name: match.card.name })}
                 </button>
               )}

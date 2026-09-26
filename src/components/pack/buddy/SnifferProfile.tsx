@@ -17,7 +17,7 @@
 // 📸 FOTKY: `human.buddyPhotos` = všetky v poradí karty; `human.buddyPhoto` = tá, na ktorej
 //    ste SPOLU (zelený rám). Brána na serveri chce `buddyPhoto`, takže sa nemení.
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { uploadExtraPhoto, withTransform } from '@/services/cloudinaryService';
+import { uploadExtraPhoto, withTransform, bgImg } from '@/services/cloudinaryService';
 import { HandArrowLeft } from '@/components/pack/HandIcons';
 import { SnifferPinEditor, SnifferCountryChip, defaultCountry } from './SnifferPin';
 import {
@@ -34,7 +34,7 @@ import {
 } from '@/components/pack/profile/packProfile';
 import { MAX_DOG_TEMPERAMENT } from '@/components/pack/profile/DogGallery';
 import { useLang } from '@/i18n/LanguageContext';
-import { zodiacMap, chineseMap } from '@/components/HeroglyphFrame';
+import { zodiacIcon, zodiacLabel } from './SnifferCard';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { PAWMATE_LIVE } from '@/lib/packFlags';
 import { useNavigate } from 'react-router-dom';
@@ -50,16 +50,22 @@ export interface SnifferProfileDog {
 }
 
 const MAX_PHOTOS = 6;
-const thumb = (u?: string | null) => withTransform(u, 'c_fill,g_auto,w_300,h_400,f_auto,q_auto');
+/** C2 (audit 26. 9. 2026) — fotka psa nesie uložený výrez (`c_crop,…`); `withTransform` takú
+ *  URL preskočí celú (má už `c_`) a ide v plnom rozlíšení aj do 24 px avataru. `bgImg` REŤAZÍ
+ *  zmenšenie ZA výrez namiesto toho — jeden pomocník, veľkosť podľa reálneho zobrazenia. */
+const thumb = (u?: string | null, w = 300, h = 400) => bgImg(u, w, h);
 
-/** Znamenie kreslí TÁ ISTÁ kresba ako malý rámik heroglyfu (`zodiacMap`/`chineseMap`) —
+/** Znamenie kreslí TÁ ISTÁ kresba ako malý rámik heroglyfu (`zodiacIcon`/`zodiacLabel`, jeden
+ *  zdroj so `SnifferFullProfile` — bola duplicita, audit 26. 9. 2026) —
  *  emoji mimo mapy brand nepúšťa (`check:ikony`) a vlastná kresba znamenia už existuje. */
 const CSS = `
 .sp-pager{width:100%;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;touch-action:pan-y;}
 .sp-nav{display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.md}px;}
 .sp-count{min-width:${PACK_SPACE.xxxl}px;text-align:center;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;color:${T.inkWarm};}
-.sp-arrow{width:${PACK_SPACE.xl + PACK_SPACE.xs}px;height:${PACK_SPACE.xl + PACK_SPACE.xs}px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;cursor:pointer;
+/* C5 — vizuálne 28×28, ťukacia plocha ≥40 px cez neviditeľný ::after (vzor HIT_CSS). */
+.sp-arrow{position:relative;width:${PACK_SPACE.xl + PACK_SPACE.xs}px;height:${PACK_SPACE.xl + PACK_SPACE.xs}px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;cursor:pointer;
   color:${T.cardSoft};border:1px solid ${BRAND_GOLD_BTN.edge};background:${BRAND_GOLD_BTN.grad};}
+.sp-arrow::after{content:'';position:absolute;inset:-6px;}
 .sp-arrow:disabled{opacity:.3;cursor:default;}
 /* KARTA = hlavička · telo (jediné, čo sa smie posúvať) · CTA dole v karte */
 .sp-card{width:100%;padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;
@@ -81,8 +87,10 @@ const CSS = `
 @media (min-width:768px){ .sp-rows2{display:grid;grid-template-columns:1fr 1fr;column-gap:${PACK_SPACE.xl}px;} }
 @media (max-height:800px){ .sp-kv > button,.sp-static{padding:${PACK_SPACE.xs}px 0;} }
 .sp-dots{display:flex;justify-content:center;gap:${PACK_SPACE.sm}px;}
-.sp-dots button{width:${PACK_SPACE.sm}px;height:${PACK_SPACE.sm}px;padding:0;border-radius:${PACK_R.pill}px;border:1px solid ${LAPIS.edge};background:transparent;cursor:pointer;
+/* C5 — bodky ostávajú 8×8 vizuálne, ťukacia plocha ≥40 px cez neviditeľný ::after. */
+.sp-dots button{position:relative;width:${PACK_SPACE.sm}px;height:${PACK_SPACE.sm}px;padding:0;border-radius:${PACK_R.pill}px;border:1px solid ${LAPIS.edge};background:transparent;cursor:pointer;
   transition:width .2s ease, background .2s ease;}
+.sp-dots button::after{content:'';position:absolute;inset:-16px;}
 .sp-dots button.is-on{width:${PACK_SPACE.lg}px;background:${LAPIS.edge};}
 /* VEĽKÝ NADPIS karty = PACK_HEAD karta (Cinzel 700 / 24 / .14em) */
 .sp-head{display:flex;align-items:flex-start;justify-content:space-between;gap:${PACK_SPACE.md}px;}
@@ -127,7 +135,8 @@ const CSS = `
   font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
 .sp-chips{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;}
 .sp-chip{position:relative;display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;border-radius:${PACK_R.pill}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;
-  font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;font-weight:600;color:${T.inkStrong};border:1px solid ${T.border};background:${T.cardSoft};white-space:nowrap;}
+  font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;font-weight:600;color:${T.inkStrong};border:1px solid ${T.border};background:${T.cardSoft};
+  max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .sp-chip.is-empty{font-weight:500;color:${T.inkFaint};border-style:dashed;cursor:pointer;}
 .sp-chip.is-set{border-color:${LAPIS.edge};${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.12)}}
 .sp-chip select{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;}
@@ -347,7 +356,9 @@ export function SnifferProfile({
       body: (
         <>
           <label className="sp-quote">
-            <textarea className="pf-field sp-area" defaultValue={human?.dogVoiceBio ?? ''} maxLength={900}
+            {/* D7 — `key` sa mení až KEĎ profil dôjde (`human` z undefined na objekt), takže
+                pomalé načítanie neprepíše uložené bio prázdnym `defaultValue` (audit). */}
+            <textarea key={human ? 'loaded' : 'pending'} className="pf-field sp-area" defaultValue={human?.dogVoiceBio ?? ''} maxLength={900}
               aria-label={tx('pack.sniffer.profile.bioTitle', 'Bio')}
               placeholder={tx('pack.sniffer.profile.bioPh2', 'What would my dog probably say about me…')}
               onBlur={(e) => { const v = e.target.value.trim(); if (v !== (human?.dogVoiceBio ?? '')) void saveHuman({ dogVoiceBio: v || undefined }); }} />
@@ -357,20 +368,21 @@ export function SnifferProfile({
           <div className="sp-chips">
             {zodiac?.western && (
               <span className="sp-chip is-ro" title={tx('heroglyph.flow.ownerZodiac.westernLabel', 'Zodiac sign')}>
-                {zodiacMap[zodiac.western] && <img src={zodiacMap[zodiac.western]} alt="" />}
-                {tx(`heroglyph.flow.ownerZodiac.sign.${zodiac.western}`, zodiac.western)}
+                {zodiacIcon('western', zodiac.western) && <img src={zodiacIcon('western', zodiac.western)} alt="" />}
+                {zodiacLabel('western', zodiac.western, tx)}
               </span>
             )}
             {zodiac?.chinese && (
               <span className="sp-chip is-ro" title={tx('heroglyph.flow.ownerZodiac.chineseLabel', 'Chinese zodiac')}>
-                {chineseMap[zodiac.chinese] && <img src={chineseMap[zodiac.chinese]} alt="" />}
-                {tx(`heroglyph.flow.ownerZodiac.animal.${zodiac.chinese}`, zodiac.chinese)}
+                {zodiacIcon('chinese', zodiac.chinese) && <img src={zodiacIcon('chinese', zodiac.chinese)} alt="" />}
+                {zodiacLabel('chinese', zodiac.chinese, tx)}
               </span>
             )}
             <span className="sp-chip is-ro"><BrandIcon name="paw" size={PACK_SPACE.lg} tint="dark" />
               {dogs.length} {dogs.length === 1 ? tx('pack.profile.dogOne', 'dog') : tx('pack.profile.dogMany', 'dogs')}</span>
+            {/* D7 — bez uloženej hodnoty NESMIE svietiť ako SK (audit); prázdny = čiarkovaný chip. */}
             <ChipSelect placeholder={tx('pack.profile.nationality', 'Nationality')} options={NATIONALITY_OPTIONS}
-              value={human?.nationality ?? 'SK'} label={(o) => o.abbr ?? o.labelEN}
+              value={human?.nationality} label={(o) => o.abbr ?? o.labelEN}
               onChange={(v) => void saveHuman({ nationality: v })} />
             <ChipSelect placeholder={tx('pack.sniffer.info.orientation', 'Orientation')}
               options={ORIENTATION_OPTIONS} value={human?.orientation}
@@ -506,7 +518,7 @@ export function SnifferProfile({
                   return (
                     <button key={x.id} type="button" role="tab" aria-selected={i === dogIdx} className={i === dogIdx ? 'is-on' : ''}
                       onClick={() => { setDogIdx(i); setOpen(null); }}>
-                      {x.cloudinary_main_url && <img src={thumb(x.cloudinary_main_url)} alt="" />}
+                      {x.cloudinary_main_url && <img src={thumb(x.cloudinary_main_url, 80, 80)} alt="" />}
                       {x.dog_name}<i className={ok ? '' : 'is-todo'} aria-hidden />
                     </button>
                   );
@@ -515,7 +527,7 @@ export function SnifferProfile({
             )}
             <div className="sp-dogh">
               <span className="sp-dogh__ph">
-                {d.cloudinary_main_url && <img src={thumb(d.cloudinary_main_url)} alt="" />}
+                {d.cloudinary_main_url && <img src={thumb(d.cloudinary_main_url, 100, 100)} alt="" />}
                 {d.heroglyph_png_url && <img className="sp-dogh__hg" src={withTransform(d.heroglyph_png_url, 'c_limit,w_200,f_auto,q_auto')} alt="" />}
               </span>
               <span className="sp-dogh__txt">
@@ -613,6 +625,11 @@ export function SnifferProfile({
             <span><b>{tx('pack.sniffer.ghost.toggle', 'Ghost mode')}</b>
               <small>{tx('pack.sniffer.ghost.hint', 'Nobody sees me, I see everyone · I only show up to those I SNIFF')}</small></span>
             <Switch on={settings.ghost} onChange={(v) => void onPatch({ ghost: v })} label={tx('pack.sniffer.ghost.toggle', 'Ghost mode')} />
+          </label>
+          {/* D3 (audit 26. 9., Matej: „nech si to človek vyberie v nastaveniach") — predvolene VYPNUTÉ. */}
+          <label className="sp-sw">
+            <span><b>{tx('pack.sniffer.set.showPassed', 'Show people I passed again (in FAR SNIFF and search)')}</b></span>
+            <Switch on={settings.show_passed} onChange={(v) => void onPatch({ show_passed: v })} label={tx('pack.sniffer.set.showPassed', 'Show people I passed again (in FAR SNIFF and search)')} />
           </label>
           <label className="sp-sw">
             <span><b>{tx('pack.buddy.notifyMail', 'Also by e-mail')}</b></span>

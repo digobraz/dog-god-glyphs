@@ -17,6 +17,7 @@ import {
   PERSONALITY_OPTIONS,
 } from '@/components/pack/profile/packProfile';
 import { countryName } from '@/lib/countryGeo';
+import { BrandIcon } from '@/components/pack/BrandIcon';
 import {
   SnifferCard, SnifferLevels, SnifferStatsChip, SNIFFER_CARD_CSS, snifferPlace,
   HEROGLYPH_GLOW, DOG_NAME_FONT, img, bgImg, interestLabel, zodiacIcon, zodiacLabel,
@@ -41,7 +42,7 @@ const CSS = `
   .sfp-photo{height:auto;min-height:480px;}
 }
 .sfp-eb{font-weight:500;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};}
-.sfp-bio{margin:0;font-size:${PACK_TEXT.body}px;line-height:1.5;color:${T.inkStrong};white-space:pre-line;}
+.sfp-bio{margin:0;font-size:${PACK_TEXT.body}px;line-height:1.5;color:${T.inkStrong};white-space:pre-line;overflow-wrap:anywhere;}
 .sfp-kv{display:flex;justify-content:space-between;gap:${PACK_SPACE.md}px;padding:${PACK_SPACE.sm}px 0;border-top:1px solid ${T.hairline};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
 .sfp-kv:first-of-type{border-top:0;}
 .sfp-kv b{font-weight:600;color:${T.inkStrong};text-align:right;}
@@ -62,6 +63,7 @@ const CSS = `
 .sfp-alb > img{width:100%;height:100%;object-fit:cover;border-radius:${PACK_R.field}px;}
 .sfp-wall{position:relative;grid-row:span 3;border-radius:${PACK_R.tile}px;overflow:hidden;border:1px solid ${T.accentGold};background:${T.pageBg};}
 .sfp-wall.is-solo{grid-column:1 / -1;grid-row:span 4;}
+.sfp-wall__empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.35;}
 .sfp-acts{display:flex;justify-content:center;gap:${PACK_SPACE.xl}px;padding-bottom:${PACK_SPACE.sm}px;}
 /* Plávajúci AINUBIS sedí vpravo dole — na úzkom mobile sa rad zúži (ten istý vzor ako balíček). */
 @media (max-width:419px){.sfp-acts{gap:${PACK_SPACE.lg}px;}}
@@ -78,6 +80,10 @@ function DogAlbum({ dog, tx }: { dog: SnifferDog; tx: Tx }) {
         <div className={`sfp-wall sn-slide${rest.length ? '' : ' is-solo'}`}>
           {/* C2 — fotka psa má uložený výrez (c_crop): bgImg REŤAZÍ zmenšenie ZA ním, nie namiesto. */}
           {dog.photo && <img className="sn-bg" src={bgImg(dog.photo, 220, 240)} alt="" style={{ objectPosition: '50% 30%' }} />}
+          {/* Pes bez fotky ANI heroglyfu — dlaždica nesmie ostať čierna prázdna (audit). */}
+          {!dog.photo && !dog.heroglyph && (
+            <div className="sfp-wall__empty"><BrandIcon name="paw" size={PACK_SPACE.xxl} tint="white" /></div>
+          )}
           <div className="sn-crest">
             {dog.heroglyph && <img className="sn-hg" src={img(dog.heroglyph, 400)} alt="" style={{ filter: HEROGLYPH_GLOW }} />}
             {dog.name && <span className="sn-dogname pk-veil--plate" style={{ fontFamily: DOG_NAME_FONT }}>{dog.name}</span>}
@@ -186,7 +192,9 @@ export function SnifferFullProfile({ card, tx, actions }: { card: SnifferCardDat
         {/* 4 · PSY — pri každom album, bio a povaha */}
         <section className="sfp-card" style={{ ...PACK_BOX.card }}>
           <span className="sfp-eb">{tx('pack.sniffer.full.dogs', 'Dogs')}</span>
-          {card.dogs.map((d, n) => <DogAlbum key={n} dog={d} tx={tx} />)}
+          {card.dogs.length
+            ? card.dogs.map((d, n) => <DogAlbum key={n} dog={d} tx={tx} />)
+            : <p className="sfp-bio">{tx('pack.sniffer.full.none', 'Nothing yet')}</p>}
         </section>
       </div>
       {actions && <div className="sfp-acts">{actions}</div>}

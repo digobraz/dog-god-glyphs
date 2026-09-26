@@ -22,6 +22,7 @@ import { BrandIcon } from '@/components/pack/BrandIcon';
 import { SnifferEmpty, SNIFFER_EMPTY_CSS } from './SnifferEmpty';
 import { defaultCountry, useCountryName } from './SnifferPin';
 import { distanceLabel } from './SnifferCard';
+import { pilgrimLevelOf } from './pilgrimOf';
 import { loadNearby, searchPeople, type SnifferCardData, type SnifferHeading } from './snifferDeck';
 
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
@@ -50,7 +51,7 @@ const CSS = `
   font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkWarm};white-space:nowrap;}
 .ss-seg::after{content:'';position:absolute;inset:-6px;}
 .ss-seg.is-on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)};font-weight:600;}
-/* C9 — `▾`/`▴` boli holé znaky, teraz kreslený chevron (vzor `.spn-ctry i` v SnifferPin.tsx). */
+/* C9 — ▾/▴ boli holé znaky, teraz kreslený chevron (vzor .spn-ctry i v SnifferPin.tsx). */
 .ss-seg i{display:inline-block;width:6px;height:6px;margin-left:${PACK_SPACE.xs}px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;}
 .ss-seg i.is-up{transform:translateY(2px) rotate(-135deg);}
 .ss-seg i.is-down{transform:translateY(-2px) rotate(45deg);}
@@ -96,6 +97,10 @@ export function SnifferSearch({ tx, onOpen }: { tx: Tx; onOpen: (card: SnifferCa
   const [filterOpen, setFilterOpen] = useState(false);
   const [intent, setIntent] = useState<string | null>(null);
   const [people, setPeople] = useState<SnifferCardData[] | null>(null);
+  // E2 — `searchPeople` vracia stránku s `.cursor` na poli (SnifferCardPage, snifferDeck.ts).
+  // `null`/chýba = posledná strana. „V okolí" (`loadNearby`) stránkovanie nemá.
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [moreBusy, setMoreBusy] = useState(false);
   const [note, setNote] = useState(heading?.note ?? '');
   useEffect(() => { setNote(heading?.note ?? ''); }, [heading?.note]);
 
@@ -118,10 +123,26 @@ export function SnifferSearch({ tx, onOpen }: { tx: Tx; onOpen: (card: SnifferCa
   useEffect(() => {
     let live = true;
     setPeople(null);
-    const q = mode === 'near' ? loadNearby(intent) : searchPeople(country, [], intent);
-    q.then((r) => { if (live) setPeople(r); }).catch(() => { if (live) setPeople([]); });
+    setCursor(null);
+    if (mode === 'near') {
+      loadNearby(intent).then((r) => { if (live) setPeople(r); }).catch(() => { if (live) setPeople([]); });
+    } else {
+      searchPeople(country, [], intent).then((r) => { if (live) { setPeople(r); setCursor(r.cursor ?? null); } })
+        .catch(() => { if (live) setPeople([]); });
+    }
     return () => { live = false; };
   }, [mode, country, intent]);
+
+  // E2 (audit-sniffer-2026-09-26) — `assnif_search` nesie stránku (strop 40/80, za ním sa
+  // nikto nikdy neukázal); `searchPeople` vracia `.cursor`, ďalšia strana posiela ho ako `after`.
+  const loadMore = () => {
+    if (!cursor || moreBusy) return;
+    setMoreBusy(true);
+    searchPeople(country, [], intent, cursor)
+      .then((r) => { setPeople((prev) => [...(prev ?? []), ...r]); setCursor(r.cursor ?? null); })
+      .catch(() => {})
+      .finally(() => setMoreBusy(false));
+  };
 
   const myIntents: string[] = (human?.intents ?? []).filter((i) => i !== 'community');
   const hasPin = !!human?.pin;
@@ -204,14 +225,23 @@ export function SnifferSearch({ tx, onOpen }: { tx: Tx; onOpen: (card: SnifferCa
 
       {people && people.length > 0 && (
         <div className="ss-grid">
-          {people.map((p) => (
-            <button key={p.member} type="button" className="ss-mini" style={{ ...PACK_BOX.row }} onClick={() => onOpen(p)}>
-              <img src={pic(p.photos[0] ?? p.dogs[0]?.photo)} alt="" />
-              <b>{p.name}{p.age ? `, ${p.age}` : ''}</b>
-              <span>{[p.pilgrimLevel ? tx('pack.sniffer.pilgrimLv', 'Pilgrim {n}', { n: p.pilgrimLevel }) : '', km(p) || p.region].filter(Boolean).join(' · ')}</span>
-            </button>
-          ))}
+          {people.map((p) => {
+            // Server posiela `pilgrimLevel` vždy null (A8) — dopočíta sa z výletov (kontrakt 26. 9.).
+            const lvl = p.pilgrimLevel ?? pilgrimLevelOf(p.trips ?? []);
+            return (
+              <button key={p.member} type="button" className="ss-mini" style={{ ...PACK_BOX.row }} onClick={() => onOpen(p)}>
+                <img src={pic(p.photos[0] ?? p.dogs[0]?.photo)} alt="" />
+                <b>{p.name}{p.age ? `, ${p.age}` : ''}</b>
+                <span>{[lvl ? tx('pack.sniffer.pilgrimLv', 'Pilgrim {n}', { n: lvl }) : '', km(p) || p.region].filter(Boolean).join(' · ')}</span>
+              </button>
+            );
+          })}
         </div>
+      )}
+      {mode === 'far' && cursor && (
+        <button type="button" className="pk-pill pk-pill--tap" style={{ display: 'block', margin: '0 auto' }} disabled={moreBusy} onClick={loadMore}>
+          {moreBusy ? '…' : tx('pack.sniffer.ui.loadMore', 'Load more')}
+        </button>
       )}
       {people && people.length === 0 && (mode === 'far' || hasPin) && (
         <SnifferEmpty tx={tx} />

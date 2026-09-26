@@ -277,8 +277,12 @@ function fireAndForget(builder: { then: (ok: () => void, err: () => void) => unk
 
 /** protistrana DM — meno psa je to, čo človek v packu pozná (D1: účet, pes = zobrazenie) */
 function otherFromRow(row: ConvRow): Participant {
-  const dog = row.other_dog?.trim();
-  const name = dog || row.other_first?.trim() || 'Dogyptian';
+  // SNIFFER je zoznamka ĽUDÍ — vlákno zo zhody nesie meno človeka, nie psa
+  // (audit 26. 9. 2026: vlákno s Katkou sa volalo „KYLIE"). Značka = `tag_label`,
+  // ktorú zapisuje `assnif_swipe` pri zhode. Ostatné DM ostávajú po psovi (D1).
+  const human = row.tag_label === 'SNIFFER' ? row.other_first?.trim() : undefined;
+  const dog = human ? undefined : row.other_dog?.trim();
+  const name = human || dog || row.other_first?.trim() || 'Dogyptian';
   return {
     isDogName: !!dog,
     // cudzí `user_id` appka nedostáva (get_trip_party ani list_my_conversations ho

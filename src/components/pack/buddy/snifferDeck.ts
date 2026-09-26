@@ -45,11 +45,9 @@ export interface SnifferCardData {
   region: string | null;
   /** Krajina (pin, inak národnosť), ISO2 malými. */
   country?: string;
-  /** Vzdialenosť od diváka v km — STARŠÍ TVAR (A3, audit-sniffer-2026-09-26: opakovaný presun
-   *  pinu = trilaterácia bydliska). Server ho nahrádza pásmom nižšie; optional zostáva, kým
-   *  vizuálny agent neprejde na `distanceBand` (SnifferCard.tsx, SnifferSearch.tsx ho ešte čítajú). */
-  distance_km?: number | null;
-  /** Vzdialenosť v PÁSME namiesto presných km (A3, Matej 26. 9.: „ok"). `null` = pin nemá. */
+  /** Vzdialenosť v PÁSME, nie na km (A3, audit-sniffer-2026-09-26, Matej: „ok" — opakovaný
+   *  presun pinu už netrilateruje bydlisko na km). `distance_km` zo staršieho tvaru je preč —
+   *  grepnuté 26. 9.: `SnifferCard.tsx`/`SnifferSearch.tsx` naň už neukazujú. `null` = pin nemá. */
   distanceBand?: SnifferDistanceBand | null;
   info?: SnifferInfo;
   /** PÚTNIK level (zapisuje ho majiteľov klient) · DEVOTION body (100 + ledger). */
@@ -95,9 +93,9 @@ function mapCard(raw: RawSnifferCard): SnifferCardData {
   return { ...(rest as SnifferCardData), distanceBand: distance_band ?? null };
 }
 
-/** Výsledok HĽADAŤ nesie kurzor na ďalšiu stránku (ak ho server vráti) — pole zostáva poľom
- *  (`Array.isArray`, `.map`, priradenie do `SnifferCardData[]`), kurzor je len navyše vlastnosť,
- *  aby existujúci volajúci (`SnifferSearch.tsx`) nemusel meniť tvar skôr, než na to prejde. */
+/** Výsledok HĽADAŤ nesie kurzor na ďalšiu stránku — pole zostáva poľom (`Array.isArray`, `.map`,
+ *  priradenie do `SnifferCardData[]` prejde bez zmeny), kurzor je len navyše vlastnosť, aby
+ *  existujúci volajúci (`SnifferSearch.tsx`) nemusel meniť tvar skôr, než na stránkovanie prejde. */
 export type SnifferCardPage = SnifferCardData[] & { cursor?: string | null };
 
 export async function loadDeck(limit = 20): Promise<SnifferCardData[]> {
@@ -119,19 +117,22 @@ export async function loadMatches(): Promise<SnifferMatch[]> {
     .map((r) => ({ card: mapCard(r.card), matchedAt: r.matched_at, conv: r.conv }));
 }
 
-/** HĽADAŤ — mriežka nad tou istou podmienkou ako balíček (`assnif_search`). `after` = kurzor
- *  z predošlej stránky (audit-sniffer-2026-09-26, E2: hľadanie dnes nestránkuje). Server môže
- *  ešte vždy vrátiť holé pole (bez kurzora) — obe podoby sú ošetrené. */
+/** E2 (audit-sniffer-2026-09-26): predvolený strop stránky — nahradzuje starý pevný 40/80. */
+const SEARCH_PAGE = 40;
+
+/** HĽADAŤ — mriežka nad tou istou podmienkou ako balíček (`assnif_search`). Server (kontrakt
+ *  potvrdený 26. 9. 2026, migrácia `20261002_sniffer_audit.sql`): KAŽDÝ riadok nesie vlastný
+ *  `_cursor`; ďalšia strana posiela `after` = `_cursor` POSLEDNÉHO riadku predošlej strany. */
 export async function searchPeople(
-  country: string, areas: string[], intent: string | null, after?: string | null,
+  country: string, areas: string[], intent: string | null, after?: string | null, limit = SEARCH_PAGE,
 ): Promise<SnifferCardPage> {
-  const { data, error } = await db.rpc('assnif_search', { p_country: country, p_areas: areas, p_intent: intent, p_after: after ?? null });
+  const { data, error } = await db.rpc('assnif_search', {
+    p_country: country, p_areas: areas, p_intent: intent, p_limit: limit, p_after: after ?? null,
+  });
   if (error) throw error;
-  const isArr = Array.isArray(data);
-  const rawItems = (isArr ? data : (data as { items?: RawSnifferCard[] } | null)?.items) as RawSnifferCard[] | undefined;
-  const cursor = isArr ? null : ((data as { cursor?: string | null } | null)?.cursor ?? null);
-  const page = (rawItems ?? []).map(mapCard) as SnifferCardPage;
-  page.cursor = cursor;
+  const rows = (data ?? []) as Array<RawSnifferCard & { _cursor?: string | null }>;
+  const page = rows.map(({ _cursor, ...raw }) => mapCard(raw as RawSnifferCard)) as SnifferCardPage;
+  page.cursor = rows.length ? (rows[rows.length - 1]._cursor ?? null) : null;
   return page;
 }
 

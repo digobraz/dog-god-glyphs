@@ -283,12 +283,15 @@ export function Thread({ convId, onClose, onOpenTrip }: {
       // Meranie až PO úspešnom zápise: odmietnutá správa (blok, offline) sa vracia do inputu,
       // takže „odoslaná" by tu inak znamenalo „pokúsil sa".
       trackPack('pack_message_sent');
-    } catch {
+    } catch (e) {
       // DM ide od 2026-08-03 do DB a zápis môže byť odmietnutý (blok, offline,
       // vypadnutá session). Text vraciame do inputu — správa, ktorá neodišla,
       // sa nesmie stratiť ani tváriť ako odoslaná.
       setText(trimmed);
-      setSendErr(t('pack.msg.sendFailed'));
+      // Zrušená zhoda SNIFFERu zavrie vlákno (`closed_at`, RLS odmietne zápis) —
+      // „skontroluj pripojenie" by tu klamalo (audit 26. 9. 2026).
+      const closed = conv?.tag?.label === 'SNIFFER' && /row-level security/i.test(e instanceof Error ? e.message : '');
+      setSendErr(t(closed ? 'pack.msg.matchClosed' : 'pack.msg.sendFailed'));
     }
   };
 

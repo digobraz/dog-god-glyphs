@@ -48,7 +48,7 @@ const CSS = `
   opacity:0;animation:mrPop .5s cubic-bezier(.3,1.6,.5,1) 4.3s forwards;}
 .mr p{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.onDark};opacity:0;animation:mrRv .5s ease 4.6s forwards;}
 /* B11 (audit-sniffer-2026-09-26): tlačidlá boli takmer 5 s neviditeľné, ale klikateľné.
-   `pointer-events` je nespojitá vlastnosť — dva tesné kroky tesne pred koncom animácie
+   pointer-events je nespojitá vlastnosť — dva tesné kroky tesne pred koncom animácie
    spôsobia, že sa prepne až vtedy, keď je blok naozaj vidno, nie skôr. */
 .mr-acts{width:100%;display:flex;flex-direction:column;align-items:center;gap:${PACK_SPACE.sm}px;opacity:0;pointer-events:none;
   animation:mrActs .5s ease 4.9s forwards;}

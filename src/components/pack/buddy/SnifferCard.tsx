@@ -15,8 +15,9 @@ import {
 } from '@/components/pack/packTheme';
 import { ACTIVITY_OPTIONS } from '@/components/pack/profile/packProfile';
 import { zodiacMap, chineseMap } from '@/components/HeroglyphFrame';
-import type { SnifferCardData } from './snifferDeck';
+import type { SnifferCardData, SnifferDistanceBand } from './snifferDeck';
 import { loadMyCard, pilgrimFromTrips } from './snifferDeck';
+import { pilgrimLevelOf } from './pilgrimOf';
 import { devotionLevel } from '@/lib/devotion';
 import { tierOfLevel, tierGradient } from '@/lib/packTiers';
 import { LAPIS } from '@/components/pack/navGoldSkin';
@@ -50,18 +51,16 @@ export const interestLabel = (v: string, tx: Tx): string =>
   tx(`pack.map.activityLabel.${v}`, ACTIVITY_OPTIONS.find((o) => o.value === v)?.labelEN ?? v);
 
 /** Vzdialenosť V PÁSMACH (A3, Matej 26. 9.: „4. ok" — nie presné km, aby sa z opakovanej zmeny
- *  pinu nedala trilaterovať poloha bydliska). Server posiela `distanceBand`, kým sa tam nezapíše
- *  (kolo servera/logiky) je pole nepovinné navyše k `SnifferCardData`. */
-export type DistanceBand = '0-5' | '5-10' | '10-25' | '25-50' | '50+';
-type WithDistance = SnifferCardData & { distanceBand?: DistanceBand | null };
-const DIST_LABEL: Record<DistanceBand, [string, string]> = {
+ *  pinu nedala trilaterovať poloha bydliska). Server posiela hadí `distance_band`, ale
+ *  `snifferDeck.ts` (`mapCard`) ho premení na `card.distanceBand` — TO je tvar, ktorý čítame. */
+const DIST_LABEL: Record<SnifferDistanceBand, [string, string]> = {
   '0-5': ['pack.sniffer.dist.b0_5', 'within 5 km'],
   '5-10': ['pack.sniffer.dist.b5_10', '5–10 km away'],
   '10-25': ['pack.sniffer.dist.b10_25', '10–25 km'],
   '25-50': ['pack.sniffer.dist.b25_50', '25–50 km'],
   '50+': ['pack.sniffer.dist.b50p', 'more than 50 km away'],
 };
-export function distanceLabel(card: WithDistance, tx: Tx): string {
+export function distanceLabel(card: SnifferCardData, tx: Tx): string {
   const b = card.distanceBand;
   if (!b || !DIST_LABEL[b]) return '';
   const [k, f] = DIST_LABEL[b];
@@ -83,6 +82,10 @@ export const SNIFFER_CARD_CSS = `
 .sn-bars{position:absolute;top:${PACK_SPACE.sm}px;left:${PACK_SPACE.md}px;right:${PACK_SPACE.md}px;display:flex;gap:${PACK_SPACE.xs}px;z-index:2;}
 .sn-bars i{flex:1 1 0;height:3px;border-radius:${PACK_R.pill}px;background:rgba(255,255,255,.35);}
 .sn-bars i.is-on{background:${T.onDark};}
+/* B9 (audit-sniffer-2026-09-26): predtým onClick — pri viacerých fotkách zjedol gesto
+   ťahu karty vo vrchnej polovici (nadradený SnifferHome pri stlačení nad zónou vôbec
+   nezačal sledovať ťah). Ťuk vs. ťah sa teraz rozhoduje AŽ PRI PUSTENÍ (nižšie, JS),
+   zóna len drží miesto pod prstom a nebráni bublaniu pointer udalostí nahor ku karte. */
 .sn-tap{position:absolute;top:0;bottom:45%;width:50%;z-index:3;background:none;border:0;padding:0;cursor:pointer;}
 .sn-tap--l{left:0;} .sn-tap--r{right:0;}
 .sn-ov{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:${PACK_SPACE.xxxl * 2}px ${PACK_SPACE.lg}px ${PACK_SPACE.lg}px;
@@ -122,7 +125,7 @@ export const SNIFFER_CARD_CSS = `
 .sn-full{position:relative;align-self:center;display:inline-flex;align-items:center;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.lg}px;cursor:pointer;
   font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;text-transform:uppercase;}
 .sn-full::after{content:'';position:absolute;inset:-6px;}
-/* C9 — šípka je KRESLENÁ (chevron z okraja), nie holý znak `↑`. */
+/* C9 — šípka je KRESLENÁ (chevron z okraja), nie holý znak ↑. */
 .sn-full i{display:inline-block;width:6px;height:6px;margin-top:2px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-135deg);}
 .sn-bio{margin:0;font-size:${PACK_TEXT.label}px;line-height:1.45;opacity:.92;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .sn-pills{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.xs}px;}
@@ -135,19 +138,23 @@ export const SNIFFER_CARD_CSS = `
 /** Tvar čísla pre SK/CS: 1 · 2–4 · 5+ (EN berie len `one` a `other`, `few` padne na fallback). */
 export const plural = (n: number) => (n === 1 ? 'one' : n >= 2 && n <= 4 ? 'few' : 'other');
 
-/** Levely pri mene — PÚTNIK (zapisuje majiteľov klient) a DEVOTION (server, 100 + ledger).
- *  Chýbajúci PÚTNIK = človek ešte neotvoril mapu po zverejnení levelov; neukazuje sa nič,
- *  nie vymyslená jednotka. */
+/** Levely pri mene — PÚTNIK a DEVOTION (server, 100 + ledger).
+ *  🔴 PÚTNIK server posiela VŽDY `null` (A8: majiteľov klient si ho zapisoval sám, „level 999
+ *  za 1 dotaz") — Matej ho ale chce verejne viditeľného, preto sa POČÍTA V PREHLIADAČI z
+ *  prejdených výletov (`pilgrimLevelOf`, tá istá funkcia ako vlastný level, len bez toho, čo
+ *  o cudzom človeku nevieme — kontrakt koordinátora 26. 9. večer).
+ *  Chýbajúci PÚTNIK = 0 prejdených výletov; neukazuje sa nič, nie vymyslená jednotka. */
 export function SnifferLevels({ card, tx }: { card: SnifferCardData; tx: Tx }) {
   const dev = card.devotion != null ? devotionLevel(Number(card.devotion)) : null;
-  if (!card.pilgrimLevel && !dev) return null;
+  const pilgrimLevel = card.pilgrimLevel ?? pilgrimLevelOf(card.trips ?? []);
+  if (!pilgrimLevel && !dev) return null;
   return (
     <span className="sn-lv">
-      {card.pilgrimLevel ? (() => {
-        const t = tierOfLevel(card.pilgrimLevel);
+      {pilgrimLevel ? (() => {
+        const t = tierOfLevel(pilgrimLevel);
         return (
           <span className="is-pilgrim" style={{ background: tierGradient(t), color: t.ink }}>
-            <b>{card.pilgrimLevel}</b>{tx('pack.sniffer.pilgrim', 'Pilgrim')}
+            <b>{pilgrimLevel}</b>{tx('pack.sniffer.pilgrim', 'Pilgrim')}
           </span>
         );
       })() : null}
@@ -203,10 +210,22 @@ export function SnifferCard({ card, tx, back = false, className = '', style, onO
           <div className="sn-bars" aria-hidden>
             {slides.map((_, n) => <i key={n} className={n === k ? 'is-on' : ''} />)}
           </div>
+          {/* B9: pointerdown/up namiesto `onClick` — nesmie stopPropagation() na pointerdown/move,
+              inak by `SnifferHome` nad kartou nikdy nezačal sledovať ťah spustený odtiaľto.
+              Baseline (x/y/t) žije v `dataset` zóny, nie v Reacte — je to lokálny, jednorazový
+              zápis medzi stlačením a pustením toho istého prvku. */}
           <button type="button" className="sn-tap sn-tap--l" aria-label={tx('pack.sniffer.prevPhoto', 'Previous photo')}
-            onClick={(e) => { e.stopPropagation(); go(-1); }} />
+            onPointerDown={(e) => { const d = e.currentTarget.dataset; d.x = String(e.clientX); d.y = String(e.clientY); d.t = String(Date.now()); }}
+            onPointerUp={(e) => {
+              const d = e.currentTarget.dataset;
+              if (d.x !== undefined && Math.abs(e.clientX - Number(d.x)) < 8 && Math.abs(e.clientY - Number(d.y)) < 8 && Date.now() - Number(d.t) < 300) go(-1);
+            }} />
           <button type="button" className="sn-tap sn-tap--r" aria-label={tx('pack.sniffer.nextPhoto', 'Next photo')}
-            onClick={(e) => { e.stopPropagation(); go(1); }} />
+            onPointerDown={(e) => { const d = e.currentTarget.dataset; d.x = String(e.clientX); d.y = String(e.clientY); d.t = String(Date.now()); }}
+            onPointerUp={(e) => {
+              const d = e.currentTarget.dataset;
+              if (d.x !== undefined && Math.abs(e.clientX - Number(d.x)) < 8 && Math.abs(e.clientY - Number(d.y)) < 8 && Date.now() - Number(d.t) < 300) go(1);
+            }} />
         </>
       )}
 

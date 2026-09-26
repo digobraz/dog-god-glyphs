@@ -9,18 +9,13 @@
 //    doplnený. Preto stránka NEMOUNTUJE `PackLayout` (ten by priniesol spodnú lištu).
 // 🔴 BRÁNA SA DOPĹŇA TU, NIE ODKAZOM DO PROFILU (nákres 0b), ale zapisuje sa do TÝCH ISTÝCH
 //    polí ako profil (`saveHuman` / `saveDogAttrs`). Definícia 100 % → `buddy/buddyGate.ts`.
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useT } from '@/i18n/LanguageContext';
 import { usePackUser } from '@/hooks/usePackUser';
-import { uploadExtraPhoto, withTransform } from '@/services/cloudinaryService';
-
-/** Fotka z iPhonu prichádza ako HEIC a Chrome ju nevykreslí — `f_auto` ju Cloudinary prevedie. */
-const photoUrl = (u?: string | null) => withTransform(u, 'c_limit,w_1200,f_auto,q_auto');
 import { BackButton } from '@/components/pack/BackButton';
-import { AinubisBubble } from '@/components/pack/ainubisSheet';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
 import { countryISO2 } from '@/lib/countryGeo';
@@ -38,10 +33,9 @@ import {
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import {
   useProfile, saveHuman, saveDogAttrs, saveDisplayName, emptyDogAttrs,
-  DOG_TEMPERAMENT_TAGS, DOG_FITNESS_OPTIONS, DOG_COMPAT_OPTIONS, GENDER_OPTIONS, TRAFFIC_COLORS,
-  type DogProfileAttrs, type Gender, type Intent, type TrafficLight,
+  GENDER_OPTIONS, TRAFFIC_COLORS,
+  type DogProfileAttrs, type Gender, type Intent, type HumanProfile,
 } from '@/components/pack/profile/packProfile';
-import { MAX_DOG_TEMPERAMENT } from '@/components/pack/profile/DogGallery';
 import {
   BUDDY_STEPS, BUDDY_INTENTS, BUDDY_MIN_AGE, DEFAULT_BUDDY_SETTINGS,
   buddyGateMissing, pickBuddyDog, loadBuddySettings, saveBuddySettings,
@@ -206,6 +200,13 @@ const CSS = `
 .bd-onbox__row img{height:${PACK_SPACE.xxl + PACK_SPACE.sm}px;width:auto;}
 .bd-onbox small{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
 .bd-onbox .bd-ghost{width:100%;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;}
+/* B12 (audit-sniffer-2026-09-26, 360 px): tento blok prerastal cez pager „Ďalej n/m" karty
+   (vnútorný scroll pretiekol o ~39 px) — menší OBSAH bloku, nie vzduch PAGE_AIR (lock). */
+@media (max-width:374px){
+  .bd-onbox{gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;
+    height:clamp(${PACK_SPACE.xxxl + PACK_SPACE.sm}px, 18dvh, ${PACK_SPACE.xxxl * 4}px);}
+  .bd-onbox__row img{height:${PACK_SPACE.xl}px;}
+}
 .bd-switch{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.md}px;font-family:${FONT_UI};
   font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
 `;
@@ -224,9 +225,16 @@ export default function PackBuddy() {
   const [myFull, setMyFull] = useState<SnifferCardData | null>(null);
   const [introStep, setIntroStep] = useState(1);
   const [logoDone, setLogoDone] = useState(false);
+  // `SnifferLogo` má `onDone` v deps svojho efektu — inline funkcia by časovač reštartovala
+  // pri KAŽDOM re-renderi (napr. `dogsLoading` sa mení počas úvodu). Stabilná identita.
+  const onLogoDone = useCallback(() => setLogoDone(true), []);
   const [serverMissing, setServerMissing] = useState<BuddyStepKey[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [nameDraft, setNameDraft] = useState<string | null>(null);
+  const [nameSaving, setNameSaving] = useState(false);
+  /** B4 (audit-sniffer-2026-09-26): jeden pás pre zápis poľa (meno/pohlavie/bydlisko/pes…)
+   *  aj pre nastavenie (ghost/okolie/zámery) — pri chybe zápisu ostane vidno „Skúsiť znova". */
+  const [fieldErr, setFieldErr] = useState<string | null>(null);
   /** Odkiaľ sa prišlo na „Takto ťa vidia" — z nastavení sa späť vracia do nastavení. */
   const [doneFrom, setDoneFrom] = useState<'enable' | 'settings'>('enable');
   const { profile } = useProfile();
@@ -249,6 +257,14 @@ export default function PackBuddy() {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     loadBuddySettings().then(setSettings);
   }, []);
+
+  // B10 (lock brand.md §147): Esc zatvára „Takto ťa vidia" (PackBuddy:578).
+  useEffect(() => {
+    if (!myFull) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMyFull(null); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [myFull]);
 
   // Prvé otvorenie: zapnutý ide rovno dnu, ostatní cez úvod (0a).
   useEffect(() => {
@@ -277,20 +293,44 @@ export default function PackBuddy() {
   const doneCount = steps.length - missing.length;
   // Šírka výplne receptu `.pk-progress` (PROGRESS_CSS) — pruh nekreslíme, len mu dávame číslo.
   const gateFill = `${Math.round((doneCount / steps.length) * 100)}%`;
-  const paused = !!s.paused_until && new Date(s.paused_until) > new Date();
 
+  // B4 (audit-sniffer-2026-09-26): pri zlyhaní zápisu sa nastavenie vráti na predošlú hodnotu
+  // a ukáže sa `bd-warn` — inak GHOST/okolie/zámery môžu svietiť opačne než na serveri.
   const patchSettings = async (patch: Partial<BuddySettings>) => {
-    setSettings((cur) => ({ ...(cur ?? DEFAULT_BUDDY_SETTINGS), ...patch }));
+    const prev = settings ?? DEFAULT_BUDDY_SETTINGS;
+    setSettings({ ...prev, ...patch });
     const r = await saveBuddySettings(patch);
-    if ('missing' in r && r.missing.length) setServerMissing(r.missing);
+    if (!r.ok) {
+      setSettings(prev);
+      setServerMissing('missing' in r ? r.missing : null);
+      setFieldErr(tx('pack.sniffer.err.settings', 'Couldn’t save the setting — reverted.'));
+    } else {
+      setFieldErr(null);
+    }
     return r;
   };
 
-  const saveDog = (patch: Partial<DogProfileAttrs>) => {
-    if (dog) void saveDogAttrs(dog.id, patch);
+  // B4: saveHuman/saveDogAttrs mlčky prehltli chybu zápisu (packProfile.ts) — SNIFFER si
+  // teraz chybu vypýta (`throwOnError`) a ukáže ju človeku namiesto tichého „uložené".
+  const saveHumanSafe = async (patch: Partial<HumanProfile>) => {
+    try {
+      await saveHuman(patch, { throwOnError: true });
+      setFieldErr(null);
+    } catch {
+      setFieldErr(tx('pack.sniffer.err.save', 'Couldn’t save. Try again.'));
+    }
+  };
+  const saveDog = async (patch: Partial<DogProfileAttrs>) => {
+    if (!dog) return;
+    try {
+      await saveDogAttrs(dog.id, patch, { throwOnError: true });
+      setFieldErr(null);
+    } catch {
+      setFieldErr(tx('pack.sniffer.err.save', 'Couldn’t save. Try again.'));
+    }
   };
   const setCard = (patch: Partial<DogProfileAttrs['card']>) => {
-    if (dogAttrs) saveDog({ card: { ...dogAttrs.card, ...patch } });
+    if (dogAttrs) void saveDog({ card: { ...dogAttrs.card, ...patch } });
   };
 
   const enable = async () => {
@@ -306,7 +346,7 @@ export default function PackBuddy() {
 
   const title = view === 'settings'
     ? tx('pack.buddy.settings', 'Settings')
-    : tx('pack.buddy.title', 'Buddies');
+    : tx('pack.buddy.title', 'SNIFFER');
 
   const afterSplash = () => setView(s.enabled ? 'home' : introSeen() ? 'gate' : 'intro');
   // Kto je v SNIFFERi, ide po logu sám rovno na swipe; nový človek pokračuje tlačidlom.
@@ -326,6 +366,10 @@ export default function PackBuddy() {
   };
 
   // ── editory jedného bodu — tie isté polia ako profil ──────────────────────
+  // E3 (audit-sniffer-2026-09-26, „mŕtvy kód"): `temperament`/`fitness`/`compat`/`photo`
+  // sem už nedôjdu — `SnifferProfile.tsx` ich edituje VLASTNÝMI riadkami (psia karta,
+  // `PhotoSlots`), `gateEditor(k)` volá len pre `BASIC_KEYS` (name/age/gender/region) +
+  // `audience`/`intents`. Štyri vetvy nižšie boli mŕtve od chvíle, čo tá karta vznikla.
   const editor = (k: BuddyStepKey): ReactNode => {
     switch (k) {
       case 'name':
@@ -334,24 +378,35 @@ export default function PackBuddy() {
             <input className="pf-field bd-field" value={nameDraft ?? name}
               placeholder={tx('pack.buddy.namePh', 'First name')}
               onChange={(e) => setNameDraft(e.target.value)} />
-            <button type="button" className="bd-cta bd-cta--small" disabled={!(nameDraft ?? '').trim()}
+            <button type="button" className="bd-cta bd-cta--small" disabled={!(nameDraft ?? '').trim() || nameSaving}
               onClick={async () => {
-                // Tá istá dvojica zápisov ako `/pack/profile` (`handleSaveName`).
-                const v = (nameDraft ?? '').trim();
-                await supabase.auth.updateUser({ data: { full_name: v } });
-                await saveDisplayName(v);
-                const { data } = await supabase.auth.getSession();
-                setSession(data.session);
-                setNameDraft(null);
-              }}>{tx('pack.buddy.save', 'Save')}</button>
+                if (nameSaving) return;
+                setNameSaving(true);
+                setFieldErr(null);
+                try {
+                  // Tá istá dvojica zápisov ako `/pack/profile` (`handleSaveName`).
+                  const v = (nameDraft ?? '').trim();
+                  await supabase.auth.updateUser({ data: { full_name: v } });
+                  await saveDisplayName(v);
+                  const { data } = await supabase.auth.getSession();
+                  setSession(data.session);
+                  setNameDraft(null);
+                } catch {
+                  setFieldErr(tx('pack.sniffer.err.name', 'Couldn’t save the name. Try again.'));
+                } finally {
+                  setNameSaving(false);
+                }
+              }}>{nameSaving ? '…' : tx('pack.buddy.save', 'Save')}</button>
           </div>
         );
       case 'age':
         return (
           <>
-            <input className="pf-field bd-field" type="number" inputMode="numeric" min={1} max={120}
+            {/* D7 (audit-sniffer-2026-09-26): neriadené pole s `key` podľa načítaného profilu —
+                kým `profile` nedobehne, `defaultValue` sa nezapíše naspäť ako prázdna hodnota. */}
+            <input key={profile ? 'p' : 'l'} className="pf-field bd-field" type="number" inputMode="numeric" min={1} max={120}
               defaultValue={human?.age ?? ''} placeholder={tx('pack.profile.agePlaceholder', 'Age')}
-              onBlur={(e) => void saveHuman({ age: e.target.value === '' ? undefined : Number(e.target.value) })} />
+              onBlur={(e) => { if (!profile) return; void saveHumanSafe({ age: e.target.value === '' ? undefined : Number(e.target.value) }); }} />
             {typeof human?.age === 'number' && human.age < BUDDY_MIN_AGE && (
               <p className="bd-warn">{tx('pack.buddy.under18', 'Buddies is for people aged {n} and over.', { n: BUDDY_MIN_AGE })}</p>
             )}
@@ -362,79 +417,43 @@ export default function PackBuddy() {
           <Pills
             options={GENDER_OPTIONS.map((o) => ({ value: o.value, label: tx(`pack.buddy.gender.${o.value}`, o.labelEN) }))}
             selected={human?.gender ? [human.gender] : []}
-            onToggle={(v) => void saveHuman({ gender: v as Gender })}
+            onToggle={(v) => void saveHumanSafe({ gender: v as Gender })}
           />
         );
       case 'region':
         return (
-          <input className="pf-field bd-field" defaultValue={human?.region ?? ''}
+          <input key={profile ? 'p' : 'l'} className="pf-field bd-field" defaultValue={human?.region ?? ''}
             placeholder={tx('pack.profile.cityPlaceholder', 'City')}
-            onBlur={(e) => void saveHuman({ region: e.target.value.trim() || undefined })} />
+            onBlur={(e) => { if (!profile) return; void saveHumanSafe({ region: e.target.value.trim() || undefined }); }} />
         );
-      case 'temperament': {
-        const sel = dogAttrs?.tags.temperament ?? [];
-        return (
-          <>
-            <Pills
-              options={DOG_TEMPERAMENT_TAGS.map((v) => ({ value: v, label: tx(`pack.dogTag.${v}`, v) }))}
-              selected={sel}
-              onToggle={(v) => {
-                if (!dogAttrs) return;
-                const next = sel.includes(v as never) ? sel.filter((x) => x !== v) : [...sel, v];
-                if (next.length > MAX_DOG_TEMPERAMENT) return;
-                saveDog({ tags: { ...dogAttrs.tags, temperament: next as DogProfileAttrs['tags']['temperament'] } });
-              }}
-            />
-            <p className="bd-note">{tx('pack.buddy.maxTags', 'Up to {n}.', { n: MAX_DOG_TEMPERAMENT })}</p>
-          </>
-        );
-      }
-      case 'fitness':
-        return (
-          <Pills
-            options={DOG_FITNESS_OPTIONS.map((o) => ({ value: o.value, label: tx(`pack.dogCard.opt.${o.value}`, o.labelEN) }))}
-            selected={dogAttrs?.card.fitness ? [dogAttrs.card.fitness] : []}
-            onToggle={(v) => setCard({ fitness: v as DogProfileAttrs['card']['fitness'] })}
-          />
-        );
-      case 'compat':
-        return (
-          <Pills
-            options={DOG_COMPAT_OPTIONS.map((o) => ({ value: o.value, label: tx(`pack.dogCard.opt.${o.value}`, o.labelEN) }))}
-            selected={dogAttrs?.card.compat.dogs_overall ? [dogAttrs.card.compat.dogs_overall] : []}
-            onToggle={(v) => setCard({ compat: { ...dogAttrs?.card.compat, dogs_overall: v as TrafficLight } })}
-          />
-        );
-      case 'photo':
-        return <PhotoEditor url={human?.buddyPhoto} uid={session?.user.id ?? null} tx={tx} />;
       case 'intents':
-        return <IntentsEditor selected={human?.intents ?? []} tx={tx} />;
+        return <IntentsEditor selected={human?.intents ?? []} tx={tx} onErr={() => setFieldErr(tx('pack.sniffer.err.save', 'Couldn’t save. Try again.'))} />;
       case 'audience':
         return <AudienceEditor s={s} onPatch={patchSettings} tx={tx} />;
+      default:
+        return null;
     }
   };
 
+  // E3: rovnaká príčina ako v `editor()` — `temperament`/`fitness`/`compat`/`photo` sem
+  // nedôjdu, `SnifferProfile.tsx` si ich zhrnutie počíta sám (psia karta, `PhotoSlots`).
   const summary = (k: BuddyStepKey): string => {
-    const opt = (v?: string) => (v ? tx(`pack.dogCard.opt.${v}`, v) : '—');
     switch (k) {
       case 'name': return name || '—';
       case 'age': return human?.age ? String(human.age) : '—';
       case 'gender': return human?.gender ? tx(`pack.buddy.gender.${human.gender}`, human.gender) : '—';
       case 'region': return human?.region || '—';
-      case 'temperament': return (dogAttrs?.tags.temperament ?? []).map((v) => tx(`pack.dogTag.${v}`, v)).join(', ') || '—';
-      case 'fitness': return opt(dogAttrs?.card.fitness);
-      case 'compat': return opt(dogAttrs?.card.compat.dogs_overall);
-      case 'photo': return human?.buddyPhoto ? tx('pack.buddy.photoOk', 'Uploaded') : '—';
       case 'intents': return (human?.intents ?? []).filter((i) => i !== 'community')
         .map((i) => tx(`pack.buddy.intent.${i}`, i)).join(', ') || '—';
       case 'audience': return s.show_to_genders.length
         ? `${s.show_to_genders.map((g) => tx(`pack.buddy.showTo.${g}`, g)).join(', ')} · ${s.age_min}–${s.age_max}`
         : '—';
+      default: return '—';
     }
   };
 
   if (!view || (dogsLoading && !dogs.length)) {
-    return <Shell title={tx('pack.buddy.title', 'Buddies')} onBack={back} backLabel={tx('pack.buddy.back', 'Back')} />;
+    return <Shell title={tx('pack.buddy.title', 'SNIFFER')} onBack={back} backLabel={tx('pack.buddy.back', 'Back')} />;
   }
 
   return (
@@ -450,7 +469,7 @@ export default function PackBuddy() {
           <div className="bd-stage__body">
             <div className={`bd-card bd-center bd-hero hf-carved${logoDone ? ' is-done' : ''}`} style={{ ...PACK_BOX.card }}>
               <span className="hf-carved-rim" aria-hidden />
-              <SnifferLogo size={PACK_AVATAR.lg * 3 + PACK_SPACE.xl} onDone={() => setLogoDone(true)} />
+              <SnifferLogo size={PACK_AVATAR.lg * 3 + PACK_SPACE.xl} onDone={onLogoDone} />
               {/* Nápis a veta až KEĎ STOJÍ SRDCE (Matej 25. 9.: „až po tom, čo nabehne srdce, až
                   vtedy príde text, a tagline bude groteskom"). Počas animácie je logo v STREDE
                   a text ho až potom plynulo vytlačí nahor („logo centruj na stred pri animácii
@@ -529,6 +548,7 @@ export default function PackBuddy() {
               <div className={`pk-progress__fill${missing.length ? ' pk-progress__fill--low' : ' pk-progress__fill--done'}`}
                 style={{ width: gateFill }} />
             </div>
+            {fieldErr && <p className="bd-warn">{fieldErr}</p>}
           </div>
           <SnifferProfile
             fit
@@ -578,7 +598,8 @@ export default function PackBuddy() {
             <div className="pk-veil pk-veil--modal" onClick={() => setMyFull(null)}>
               <style>{VEIL_CSS}</style>
               {/* klik vedľa kariet zavrie (obal zaberá celú plochu) */}
-              <div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+              <div role="dialog" aria-modal="true" aria-label={tx('pack.sniffer.seenHint', 'This is how others see you · tap right = next photo')}
+                style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
                 onClick={(e) => { if ((e.target as HTMLElement).closest('.sfp-photo, .sfp-card, button, a')) e.stopPropagation(); }}>
                 <SnifferFullProfile card={myFull} tx={tx} />
               </div>
@@ -593,9 +614,6 @@ export default function PackBuddy() {
 
       {view === 'home' && (
         <>
-          {paused && (
-            <p className="bd-note bd-note--center">{tx('pack.buddy.pausedUntil', 'Paused until {d}', { d: new Date(s.paused_until!).toLocaleDateString() })}</p>
-          )}
           {/* SNIFFUJ · HĽADAŤ · ZHODY (zadanie-sniffer-stavba §2.1). „Takto ťa vidia" sa
               presunulo do nastavení a za zapnutie (§2.3) — domov je balíček. */}
           <SnifferHome tx={tx} me={{ photo: human?.buddyPhoto ?? avatarUrl ?? null, name, dogName: dog?.dog_name ?? null }} />
@@ -608,6 +626,7 @@ export default function PackBuddy() {
               pod ním Váš profil v tých istých kartách ako brána, Môj rajón a upozornenia.
               Zámery a „komu sa ukážem" sú v karte 4 Vášho profilu — druhýkrát na tej istej
               obrazovke nie sú. */}
+          {fieldErr && <p className="bd-warn">{fieldErr}</p>}
           <SnifferProfile
             tx={tx}
             uid={session?.user.id ?? null}
@@ -632,17 +651,17 @@ export default function PackBuddy() {
               <div className="bd-onbox">
                 <div className="bd-onbox__row">
                   <img src="/icons/sniffer/sniffer-logo.svg" alt="SNIFFER" />
-                  <button type="button" role="switch" aria-checked={s.enabled && !paused} disabled={busy}
+                  <button type="button" role="switch" aria-checked={s.enabled} disabled={busy}
                     aria-label={tx('pack.buddy.inBuddy', 'I’m in SNIFFER')}
-                    className={`bd-sw${s.enabled && !paused ? ' is-on' : ''}`}
+                    className={`bd-sw${s.enabled ? ' is-on' : ''}`}
                     onClick={async () => {
-                      if (s.enabled) { await patchSettings({ enabled: false, paused_until: null }); return; }
+                      if (s.enabled) { await patchSettings({ enabled: false }); return; }
                       if (missing.length > 0) { setView('gate'); return; }
                       await enable();
                     }}><i /></button>
                 </div>
-                <small>{s.enabled && !paused ? tx('pack.buddy.on', 'On') : tx('pack.buddy.offNote', 'Off — nobody sees you')}</small>
-                {s.enabled && !paused && (
+                <small>{s.enabled ? tx('pack.buddy.on', 'On') : tx('pack.buddy.offNote', 'Off — nobody sees you')}</small>
+                {s.enabled && (
                   <button type="button" className="bd-ghost" onClick={() => { setDoneFrom('settings'); setView('done'); }}>
                     {tx('pack.sniffer.howSeen', 'How others see me')}
                   </button>
@@ -727,7 +746,7 @@ function Pills({ options, selected, onToggle, disabled }: {
   );
 }
 
-function IntentsEditor({ selected, tx }: { selected: Intent[]; tx: Tx }) {
+function IntentsEditor({ selected, tx, onErr }: { selected: Intent[]; tx: Tx; onErr: () => void }) {
   return (
     <Pills
       // Emoji oživujú chipy (Matej 25. 9.: „chipom daj emoji nech to oživíme").
@@ -735,7 +754,8 @@ function IntentsEditor({ selected, tx }: { selected: Intent[]; tx: Tx }) {
       selected={selected}
       onToggle={(v) => {
         const next = selected.includes(v as Intent) ? selected.filter((x) => x !== v) : [...selected, v as Intent];
-        void saveHuman({ intents: next });
+        // B4: zápis vieme volať aj tu bez zvláštneho stavu — chyba ide do zdieľaného `fieldErr` v rodičovi.
+        saveHuman({ intents: next }, { throwOnError: true }).catch(onErr);
       }}
     />
   );
@@ -746,6 +766,9 @@ function AudienceEditor({ s, onPatch, tx, part }: {
   s: BuddySettings; onPatch: (p: Partial<BuddySettings>) => Promise<unknown>; tx: Tx; part?: 'who' | 'dogs';
 }) {
   const g = s.show_to_genders;
+  // SVORKY ZAPARKOVANÉ (Matej 26. 9.: „zatiaľ to bude fungovať ako zoznamka 1:1") — pilulka
+  // je vidno, ale `disabled` jej berie klik skôr, než by `onToggle` vôbec dostal jej hodnotu
+  // (E3: vetva `PACKS` v `onToggle` bola preto mŕtva — nešlo ju nikdy spustiť).
   const PACKS = 'packs';
   const dogSwitch = (
     // Prepínač ako v poslednej karte, nie holý checkbox (Matej 25. 9.: „urob krajšie ako je v 6/6").
@@ -770,9 +793,7 @@ function AudienceEditor({ s, onPatch, tx, part }: {
         ]}
         disabled={(v) => v === PACKS}
         selected={g}
-        onToggle={(v) => void (v === PACKS
-          ? onPatch({ show_to_packs: !s.show_to_packs })
-          : onPatch({ show_to_genders: g.includes(v as Gender) ? g.filter((x) => x !== v) : [...g, v as Gender] }))}
+        onToggle={(v) => void onPatch({ show_to_genders: g.includes(v as Gender) ? g.filter((x) => x !== v) : [...g, v as Gender] })}
       />
       <AgeRange min={s.age_min} max={s.age_max} label={tx('pack.buddy.age', 'Age')}
         onCommit={(age_min, age_max) => void onPatch({ age_min, age_max })} />
@@ -800,10 +821,14 @@ function AgeRange({ min, max, label, onCommit }: {
         <span>{label}</span>
         <span className="bd-range__val">{lo}–{hi}</span>
       </div>
-      <div className="bd-range" onPointerUp={commit} onKeyUp={commit} onTouchEnd={commit}>
+      {/* `onTouchEnd` odstránený (audit-sniffer-2026-09-26): spolu s `onPointerUp` volal
+          `commit` dvakrát pre to isté pustenie — pointer + klávesnica stačia. Keď oba jazdce
+          stoja na 99, dolný (`lo`) musí ísť chytiť aj tak — preto dostane vyšší z-index. */}
+      <div className="bd-range" onPointerUp={commit} onKeyUp={commit}>
         <span className="bd-range__rail" />
         <span className="bd-range__fill" style={{ left: pct(lo), right: `calc(100% - ${pct(hi)})` }} />
         <input type="range" min={LO} max={HI} value={lo} aria-label={`${label} min`}
+          style={lo >= hi ? { zIndex: 2 } : undefined}
           onChange={(e) => setLo(Math.min(Number(e.target.value), hi))} />
         <input type="range" min={LO} max={HI} value={hi} aria-label={`${label} max`}
           onChange={(e) => setHi(Math.max(Number(e.target.value), lo))} />
@@ -812,40 +837,6 @@ function AgeRange({ min, max, label, onCommit }: {
   );
 }
 
-/** 0c — fotka človeka A psa. Kontrola AINUBISOM („vidím človeka aj psa") je krok 5 zadania. */
-function PhotoEditor({ url, uid, tx }: { url?: string; uid: string | null; tx: Tx }) {
-  const input = useRef<HTMLInputElement>(null);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  return (
-    <div className="bd-upl">
-      {/* Malý štvorcový náhľad (Matej 25. 9.: „nahratie foto musí byť menšie, nie obrovské"). */}
-      <div className={`pk-photo${url ? '' : ' bd-photo--empty'}`}>
-        {url ? <img src={photoUrl(url)} alt="" /> : '+'}
-      </div>
-      <div>
-      <p className="bd-note">{tx('pack.buddy.photoNote', 'Both of you have to be in it.')}</p>
-      <input ref={input} type="file" accept="image/*" hidden onChange={async (e) => {
-        const f = e.target.files?.[0];
-        if (!f || !uid) return;
-        setBusy(true);
-        setErr(null);
-        try {
-          // Ten istý tvar cesty ako avatar v `/pack/profile` (`avatars/<uid>`).
-          const r = await uploadExtraPhoto(f, `buddy/${uid}`, 1);
-          await saveHuman({ buddyPhoto: r.secureUrl });
-        } catch (x) {
-          setErr(x instanceof Error ? x.message : String(x));
-        } finally {
-          setBusy(false);
-          e.target.value = '';
-        }
-      }} />
-      <button type="button" className="bd-cta bd-cta--small" disabled={busy || !uid} onClick={() => input.current?.click()}>
-        {busy ? '…' : url ? tx('pack.buddy.photoChange', 'Change photo') : tx('pack.buddy.photoPick', 'Choose photo')}
-      </button>
-      {err && <p className="bd-warn">{err}</p>}
-      </div>
-    </div>
-  );
-}
+// E3 (audit-sniffer-2026-09-26): `PhotoEditor` bola mŕtva — `editor('photo')` ju od karty
+// „Základ" v `SnifferProfile.tsx` (`PhotoSlots`) nikdy nevolá. Zmazaná spolu s jej
+// jedinými spotrebiteľmi (`uploadExtraPhoto`, `photoUrl`) nižšie v importoch.

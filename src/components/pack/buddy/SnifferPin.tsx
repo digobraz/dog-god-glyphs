@@ -19,17 +19,18 @@ import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 import { COUNTRY_BORDERS } from '@/data/countryBorders';
 import { saveHuman, type HumanProfile } from '@/components/pack/profile/packProfile';
 import { PACK_THEME as T, PACK_R, PACK_SPACE, PACK_TEXT, FONT_UI } from '@/components/pack/packTheme';
-import { LAPIS } from '@/components/pack/navGoldSkin';
+import { LAPIS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { countryName, flagUrl } from '@/lib/countryGeo';
 import { useLang } from '@/i18n/LanguageContext';
+import { SNIFFER_HEART } from './SnifferLogo';
 
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
 type Pin = NonNullable<HumanProfile['pin']>;
 type Rings = [number, number][][];
 
 const W = 300;
-/** Farba terča — tá istá červená ako srdce v logu SNIFFERa (nákres kola 2). */
-const TARGET = '#E8493F';
+/** Farba terča — tá istá červená ako srdce v logu SNIFFERa (nákres kola 2, token C9 26. 9.). */
+const TARGET = SNIFFER_HEART;
 /** Zastávky posuvníka plochy terča — OD 50 DO 100 km (Matej 25. 9.: „nesmie ísť menej než xy km,
  *  teraz ide aj na 5 km, síce sa veľkosť nemení, ale vyzerá to blbo = začína sa od 50 km do 100 km"). */
 export const RADIUS_STOPS: Array<number | null> = [50, 60, 70, 80, 90, 100];
@@ -48,7 +49,8 @@ const CSS = `
 .spn-reachrow{display:flex;align-items:center;gap:${PACK_SPACE.md}px;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${T.inkDim};}
 .spn-reachrow b{flex:0 0 auto;min-width:${PACK_SPACE.xxxl + PACK_SPACE.lg}px;text-align:right;font-weight:600;color:${T.inkStrong};}
 .spn-reachrow input{flex:1 1 auto;accent-color:${LAPIS.edge};}
-.spn-warn{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${TARGET};}
+/* C9 — varovanie ide farbou VAROVANIA (PICK_INK.red), nie koralovou logom (tá je SNIFFER, nie chyba). */
+.spn-warn{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;color:${PICK_INK.red};}
 `;
 
 // ── obrysy ────────────────────────────────────────────────────────────────
@@ -76,7 +78,9 @@ function useRings(iso: string): Rings | null {
   useEffect(() => { if (!detail && !world) void loadWorld().then(() => bump((n) => n + 1)); }, [detail]);
   if (detail) return detail;
   const w = world?.[iso];
-  return w ? mainland(w) : world ? (COUNTRY_BORDERS.sk as Rings) : null;
+  // D8 (audit 26. 9. 2026) — krajina bez obrysu sa NESMIE nakresliť ako Slovensko (zlé
+  // súradnice pri uložení pinu). `null` necháva volajúceho zobraziť prázdny/nabíjajúci stav.
+  return w ? mainland(w) : null;
 }
 
 /** Zoznam VŠETKÝCH krajín, ktoré vieme nakresliť. */
@@ -126,7 +130,7 @@ export function defaultCountry(pin?: Pin, nationality?: string, lang?: string, h
 }
 
 /** Meno krajiny v jazyku appky (`countryName` vracia EN). */
-function useCountryName() {
+export function useCountryName() {
   const { lang } = useLang();
   return useMemo(() => {
     try { const dn = new Intl.DisplayNames([lang], { type: 'region' }); return (c: string) => dn.of(c.toUpperCase()) ?? countryName(c); }
@@ -143,7 +147,7 @@ export function SnifferCountryChip({ iso, onPick, tx }: { iso: string; onPick: (
     <>
       <style>{CSS}</style>
       <label className="spn-ctry">
-        <img src={flagUrl(iso)} alt="" />{name(iso)}<i aria-hidden />
+        <img src={flagUrl(iso, 80)} alt="" />{name(iso)}<i aria-hidden />
         <select value={iso} aria-label={tx('pack.sniffer.pin.country', 'Country')} onChange={(e) => onPick(e.target.value)}>
           {sorted.map(([c, n]) => <option key={c} value={c}>{n}</option>)}
         </select>
