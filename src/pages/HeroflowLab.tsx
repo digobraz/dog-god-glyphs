@@ -46,7 +46,7 @@ import {
 //    `HeroflowDevMenu.tsx` — keď sa vstup zmení, meň všetky tri.
 // ════════════════════════════════════════════════════════════════════════════
 
-type StepState = 'done' | 'wip' | 'old';
+type StepState = 'done' | 'wip' | 'todo' | 'old';
 
 type Step = {
   name: string;
@@ -77,12 +77,12 @@ const GROUPS: Group[] = [
       {
         name: '2 · Meno',
         path: '/heroglyph/name',
-        state: 'wip',
+        state: 'done',
       },
       {
         name: '3 · Svorka',
         path: '/heroglyph/dogs',
-        state: 'wip',
+        state: 'done',
       },
       { name: '4 · E-mail', path: '/heroglyph/email', state: 'done' },
       {
@@ -93,24 +93,30 @@ const GROUPS: Group[] = [
       {
         name: '6 · Patrón',
         path: '/heroglyph/breed',
-        state: 'wip',
+        state: 'done',
       },
       {
         name: '7 · Povaha',
         path: '/heroglyph/dog-character',
-        state: 'wip',
+        state: 'done',
       },
       {
         name: '8 · Majiteľ',
         path: '/heroglyph/owner-info',
-        state: 'wip',
+        state: 'done',
       },
       // Chvost flowu (25. 9. 2026, nákres `plany/nakres-chvost-flowu-2026-09-25.html`):
       // ODHALENIE a ODKAZ sú jedna obrazovka, CHECKOUT + PLATBA jedna POKLADŇA,
       // „Nechcem platiť" vedie na ZADRŽANIE.
-      { name: '9 · Odhalenie + odkaz', path: '/heroglyph/reveal', state: 'wip' },
-      { name: '10 · Pokladňa', path: '/checkout', state: 'wip' },
-      { name: '11 · Zadržanie', path: '/heroglyph/stay', state: 'wip' },
+      { name: '9 · Odhalenie + odkaz', path: '/heroglyph/reveal', state: 'done' },
+      { name: '10 · Pokladňa', path: '/checkout', state: 'done' },
+      // 26. 9. 2026: zadržanie je POPUP v pokladni, `/heroglyph/stay` bez
+      // parametra len presmeruje sem.
+      { name: '11 · Zadržanie', path: '/checkout?stay=1', state: 'done' },
+      // FINÁLE (Matej 26. 9. 2026: *„musíme pridať nový reveal aj welcome
+      // screen"*). Ešte nepostavené — rám zatiaľ ukáže dnešný `/welcome`.
+      { name: '12 · Reveal po platbe', path: '/welcome', state: 'todo' },
+      { name: '13 · Welcome', path: '/welcome', state: 'todo' },
     ],
   },
   {
@@ -125,9 +131,8 @@ const GROUPS: Group[] = [
     //    — tento zoznam je dielňa NOVÉHO vstupu, nie súpis všetkého, čo existuje.
     label: 'Koniec flow — zatiaľ staré',
     steps: [
-      // Odhalenie · Odkaz · Checkout · Platba odišli 25. 9. do nového vstupu (9–11)
-      // — v novom vstupe sa po nich už nechodí. Ostal len Welcome.
-      { name: 'Welcome', path: '/welcome', state: 'old' },
+      // Odhalenie · Odkaz · Checkout · Platba odišli 25. 9. do nového vstupu (9–11).
+      { name: 'Welcome (dnešný)', path: '/welcome', state: 'old' },
     ],
   },
   {
@@ -216,7 +221,7 @@ export default function HeroflowLab() {
   /** Kroky, ktoré sa dajú merať — nové (bledé) obrazovky vstupu. Staré javisko
    *  `.hf-stage` nemajú, takže by sa neozvali a fronta by na nich čakala. */
   const merateľne = useMemo(
-    () => GROUPS[0].steps.filter((s) => s.path.startsWith('/heroglyph/')),
+    () => GROUPS[0].steps.filter((s) => (s.path.startsWith('/heroglyph/') || s.path === '/checkout')),
     [],
   );
 
@@ -731,6 +736,7 @@ body:has(.hfl-root) .consent-banner { display: none !important; }
 }
 .hfl-step.is-done .dot { background: #C99A3F; border-color: #C99A3F; }
 .hfl-step.is-wip .dot { background: #B25640; border-color: #B25640; }
+.hfl-step.is-todo .dot { background: transparent; border-color: #B25640; }
 .hfl-step.is-old .dot { border-style: dashed; border-color: rgba(250,244,236,.3); }
 .hfl-ghost {
   width: 100%; margin-top: 10px; border: 1px solid rgba(201,154,63,.25);
