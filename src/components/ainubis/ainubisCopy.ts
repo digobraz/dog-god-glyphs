@@ -76,6 +76,12 @@ export interface AinubisCopy {
   /** Kríž v hlavičke = úchyt okna: stlač a ťahaj, dvojklik vráti do rohu.
    *  Žiadny režim na zapnutie ⇒ žiadne `moveStop`/`moveHint`/`moveReset`. */
   moveStart: string;
+  /** TARGET — snímka obrazovky do chatu (26. 9. 2026). */
+  targetStart: string;
+  targetHint: string;
+  targetWhole: string;
+  targetCancel: string;
+  targetFail: string;
 }
 
 const sk: AinubisCopy = {
@@ -83,15 +89,16 @@ const sk: AinubisCopy = {
   // Riadok pod menom v hlavičke sa renderuje mono uppercase ako technický
   // výpis — preto krátko, nie veta (dlhší text sa oreže tromi bodkami).
   takeoverActive: 'Pán prevzal slovo',
-  learning: 'Učím sa — over si, čo ti poviem',
+  // Matej 26. 9. 2026 (nákres úvodu podpory) — prebíja „nie BETA" z 21. 9.; žltým.
+  learning: 'Beta verzia: over si, čo poviem. Tu ti slúžim najmä ako technická podpora. Práve sa učím a nasávam info o životospráve — bude k dispozícii už čoskoro. Ďakujem za pochopenie.',
   introRole: 'Strážca chrámu · AI podpora',
   micStart: 'Nahovoriť správu',
   micStop: 'Ukončiť nahrávanie',
   micListening: 'Počúvam… klikni znova, keď dopovieš.',
   micDenied: 'K mikrofónu sa neviem dostať — povoľ ho v prehliadači, alebo mi to napíš.',
+  // JEDNA bublina (Matej 26. 9. 2026: „daj len jeden text … a nič iné").
   welcome: [
-    'Ahoj, ja som AInubis — digitálny strážca DOGYPTU.',
-    'Náš virtuálny chrám je stále vo výstavbe. Tvoje oči sú tu veľmi vzácne: ak niečo nefunguje alebo nájdeš nejaký preklep či chybu, napíš mi (pokojne so screenshotom). Pozriem sa na to a odovzdám pánovi na posúdenie a opravu.',
+    'Ahoj, som AInubis, tvoj osobný sprievodca v DOGYPTE. Keďže sa na stránke stále maká, práve tu mi môžeš nahlásiť svoj postreh — chyby, nápady, čokoľvek. Posuniem to ďalej a vyriešime to rýchlejšie, než si myslíš!',
   ],
   suggestions: {
     problem: 'Mám problém',
@@ -124,20 +131,24 @@ const sk: AinubisCopy = {
   closeAria: 'Zavrieť chat',
   dashboardHint: 'Dashboard — čoskoro',
   moveStart: 'Chyť a ťahaj — dvojklik vráti okno do rohu',
+  targetStart: 'Odfotiť obrazovku a označiť problém',
+  targetHint: 'Ťukni na miesto, kde je problém',
+  targetWhole: 'Celá obrazovka',
+  targetCancel: 'Zrušiť',
+  targetFail: 'Obrazovku sa nepodarilo odfotiť. Prilož ju ako obrázok cez spinku.',
 };
 
 const en: AinubisCopy = {
   panelTitle: 'AINUBIS',
   takeoverActive: 'Master has the word',
-  learning: 'Still learning — double-check what I say',
+  learning: 'Beta version: double-check what I say. Here I serve mainly as tech support. I am still learning about dog nutrition and lifestyle — coming very soon. Thanks for understanding.',
   introRole: 'Guardian of the temple · AI support',
   micStart: 'Record a message',
   micStop: 'Stop recording',
   micListening: 'Listening… click again when you are done.',
   micDenied: "I can't reach the microphone — allow it in your browser, or just type it.",
   welcome: [
-    "Hi, I'm AInubis — digital guardian of DOGYPT.",
-    "Our virtual temple is still under construction. Your eyes are precious here: if something does not work, or you find a typo or a bug, tell me (a screenshot is welcome). I will look into it and pass it on to my master to judge and fix.",
+    "Hi, I'm AInubis, your personal guide in DOGYPT. The site is still being built, so this is the place to report anything you notice — bugs, ideas, whatever. I'll pass it on and it gets fixed faster than you think!",
   ],
   suggestions: {
     problem: 'I have a problem',
@@ -170,6 +181,11 @@ const en: AinubisCopy = {
   closeAria: 'Close chat',
   dashboardHint: 'Dashboard — coming soon',
   moveStart: 'Grab and drag — double-click returns it to the corner',
+  targetStart: 'Capture the screen and mark the problem',
+  targetHint: 'Tap the spot where the problem is',
+  targetWhole: 'Whole screen',
+  targetCancel: 'Cancel',
+  targetFail: 'Could not capture the screen. Attach it as an image with the paperclip.',
 };
 
 /** SK pre `sk`, inak EN default — rovnaký fallback princíp ako `LanguageContext`. */

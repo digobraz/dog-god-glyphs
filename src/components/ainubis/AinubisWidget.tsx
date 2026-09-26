@@ -7,6 +7,14 @@ import { getAinubisCopy } from './ainubisCopy';
 import { AINUBIS_OPEN_EVENT, setAinubisUnread } from '@/lib/ainubisBus';
 import ainubisFace from '@/assets/ainubis-badge.webp';
 import './AinubisWidget.css';
+import { captureViewport, targetContext, type TargetMark } from './ainubisTarget';
+
+/**
+ * Dvere Podpora/Personalizácia, prepínač vetiev a návrhy tém. VYPNUTÉ od 26. 9. 2026
+ * (Matej: „Podpora a personalizácia tie tlačítka daj preč"). Kód ostáva — vetvy na
+ * serveri žijú ďalej, chat len štartuje v podpore.
+ */
+const SHOW_BRANCH_UI = false;
 
 // ── Konštanty ────────────────────────────────────────────────────────────
 const LS_CONV = 'ainubis.conv';
@@ -388,7 +396,11 @@ function AinubisWidgetInner() {
    */
   const [branch, setBranchState] = useState<Branch | null>(() => {
     const v = safeLocalStorageGet(LS_BRANCH);
-    return toBranch(v) ?? null;
+    // 🔴 BEZ VÝBERU SA ŠTARTUJE V PODPORE (Matej 26. 9. 2026: „Podpora a personalizácia
+    //    tie tlačítka daj preč"). Dvere aj prepínač zanikli, takže `null` by zamkol písanie
+    //    navždy (`branchGate`). Kto má vetvu uloženú alebo mu ju vráti server, ostáva v nej.
+    // 🚩 PERSONALIZÁCIA (VIP) TÝM STRATILA VCHOD — čaká na Matejovo rozhodnutie, odkiaľ sa otvorí.
+    return toBranch(v) ?? 'support';
   });
 
   const setBranch = useCallback((b: Branch) => {
@@ -412,6 +424,8 @@ function AinubisWidgetInner() {
   const [takeoverActive, setTakeoverActive] = useState(false);
   const [input, setInput] = useState('');
   const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
+  /** TARGET (26. 9. 2026): `aim` = závoj s mieridlom, `shoot` = práve sa fotí (všetko skryté). */
+  const [target, setTarget] = useState<'off' | 'aim' | 'shoot'>('off');
   const [sending, setSending] = useState(false);
   const [waitingReply, setWaitingReply] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -1008,6 +1022,37 @@ function AinubisWidgetInner() {
     if (file) void processImageFile(file);
   }
 
+  // ── TARGET: snímka obrazovky do chatu ──────────────────────────────────────────────
+  // Klik na terč → chat zmizne, ukáže sa závoj „ťukni na miesto s problémom" → ťuk =
+  // snímka viditeľného okna so zlatým krúžkom na tom mieste → príloha v poli + riadok
+  // s adresou a zariadením. Esc alebo ZRUŠIŤ vráti chat bez snímky.
+  async function shootTarget(mark: TargetMark) {
+    setTarget('shoot');
+    // Dva snímky vykreslenia: závoj a panel musia z obrazovky naozaj zmiznúť.
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    try {
+      const file = await captureViewport(mark);
+      await processImageFile(file);
+      const ctxLine = targetContext();
+      setInput((prev) => (prev.trim() ? `${prev.trimEnd()}\n${ctxLine}` : `\n${ctxLine}`));
+    } catch {
+      pushSystemMessage(copy.targetFail);
+    } finally {
+      setTarget('off');
+      window.setTimeout(() => {
+        const ta = textareaRef.current;
+        if (ta) { ta.focus(); ta.setSelectionRange(0, 0); }
+      }, 50);
+    }
+  }
+
+  useEffect(() => {
+    if (target !== 'aim') return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setTarget('off'); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [target]);
+
   function handleFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (file) void processImageFile(file);
@@ -1052,7 +1097,9 @@ function AinubisWidgetInner() {
    */
   const branchGate = !branch && !conversationId;
   /** Návrhy tém dávajú zmysel až keď je vetva vybraná — inak sú to dve výzvy naraz. */
-  const showSuggestions = introReady && !!branch;
+  // Návrhy tém (Mám problém / nápad / otázku) zanikli spolu s dverami (Matej 26. 9. 2026:
+  // úvod = jedna bublina „a nič iné"). Render ostáva — vráti sa preklopením tohto riadku.
+  const showSuggestions = SHOW_BRANCH_UI && introReady && !!branch;
 
   return (
     <>
@@ -1076,7 +1123,7 @@ function AinubisWidgetInner() {
       {open && (
         <div
           ref={panelRef}
-          className={`ainubis-panel${dragging ? ' ainubis-panel--dragging' : ''}${
+          className={`ainubis-panel${target !== 'off' ? ' ainubis-panel--away' : ''}${dragging ? ' ainubis-panel--dragging' : ''}${
             branch === 'personal' ? ' ainubis-panel--personal' : ''
           }`}
           /* ⚠️ Inline `left/top` MUSÍ vypnúť aj `right/bottom` — základné pravidlo
@@ -1180,7 +1227,8 @@ function AinubisWidgetInner() {
                 <p className="ainubis-intro__name">
                   <span className="ainubis-ai">AI</span>NUBIS
                 </p>
-                <p className="ainubis-intro__role">{copy.introRole}</p>
+                {/* Riadok „Strážca chrámu · AI podpora" zanikol (Matej 26. 9. 2026, nákres
+                    `plany/nakres-ainubis-podpora-uvod-2026-09-26/`) — rolu povie bublina. */}
                 <div className="ainubis-intro__rule" />
               </div>
             )}
@@ -1268,7 +1316,7 @@ function AinubisWidgetInner() {
             )}
           </div>
 
-          {branch && (
+          {SHOW_BRANCH_UI && branch && (
             <div className="ainubis-switch" role="group" aria-label={copy.branches.switchLabel}>
               {(['support', 'personal'] as const).map((b) => (
                 <button
@@ -1334,6 +1382,16 @@ function AinubisWidgetInner() {
               >
                 <Paperclip size={16} />
               </button>
+              <button
+                type="button"
+                className="ainubis-composer__icon-btn"
+                onClick={() => setTarget('aim')}
+                aria-label={copy.targetStart}
+                title={copy.targetStart}
+              >
+                {/* Terč z kitu (`target-hand-drawn-circle`) maskou — farbu berie z tlačidla. */}
+                <span className="ainubis-target-ico" aria-hidden />
+              </button>
               {speechCtor && (
                 <button
                   type="button"
@@ -1370,6 +1428,18 @@ function AinubisWidgetInner() {
                 <Send size={16} />
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {target === 'aim' && (
+        <div
+          className="ainubis-target-veil"
+          onClick={(e) => void shootTarget({ x: e.clientX, y: e.clientY })}
+        >
+          <div className="ainubis-target-bar" onClick={(e) => e.stopPropagation()}>
+            <span>{copy.targetHint}</span>
+            <button type="button" onClick={() => void shootTarget(null)}>{copy.targetWhole}</button>
+            <button type="button" onClick={() => setTarget('off')}>{copy.targetCancel}</button>
           </div>
         </div>
       )}

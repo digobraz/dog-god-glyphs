@@ -405,9 +405,11 @@ body.has-pack-nav {
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(var(--ainubis-cyan-rgb), 0.78);
-  background: rgba(var(--ainubis-cyan-rgb), 0.06);
-  border-bottom: 1px solid rgba(var(--ainubis-cyan-rgb), 0.16);
+  /* ŽLTÝ (Matej 26. 9. 2026: „ten horný text daj žltým") — AINUBISOVA zlatá CTA_A
+     (ainubisSkin.ts, rgba 245,199,61), nie nová farba. */
+  color: var(--ainubis-cta-a);
+  background: rgba(245, 199, 61, 0.08);
+  border-bottom: 1px solid rgba(245, 199, 61, 0.28);
   text-align: center;
 }
 
@@ -1051,3 +1053,68 @@ body:has(.bd-col) .ainubis-panel {
    guľou (z 60) a guľa sedela na fotke celého profilu. Kým je okno otvorené, guľa
    ustúpi; po zatvorení je späť. `visibility`, nie `display` — pozri vyššie. */
 body:has(.bd-col .pk-veil) .ainubis-launcher { visibility: hidden; }
+
+/* ── TARGET — snímka obrazovky do chatu (Matej 26. 9. 2026) ─────────────────────────
+   Počas mierenia a fotenia chat NEZATVÁRAME (stratil by rozpísaný text), len ho skryjeme.
+   Guľa ide preč tiež — na snímke by zakrývala roh obrazovky. */
+.ainubis-panel--away { visibility: hidden !important; }
+body:has(.ainubis-target-veil) .ainubis-launcher,
+body:has(.ainubis-panel--away) .ainubis-launcher { visibility: hidden; }
+
+.ainubis-target-ico {
+  display: block;
+  width: 18px;
+  height: 18px;
+  background: currentColor;
+  -webkit-mask: url(/icons/pack/target.svg) center / contain no-repeat;
+  mask: url(/icons/pack/target.svg) center / contain no-repeat;
+}
+
+.ainubis-target-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  cursor: crosshair;
+  background: rgba(0, 0, 0, 0.12);
+  box-shadow: inset 0 0 0 3px rgba(245, 199, 61, 0.85);
+}
+.ainubis-target-bar {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 16px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100vw - 32px);
+  padding: 8px 8px 8px 16px;
+  border-radius: 999px;
+  background: rgba(4, 12, 18, 0.92);
+  border: 1px solid rgba(245, 199, 61, 0.55);
+  color: var(--ainubis-cta-a);
+  font: 500 12px/1.3 'Space Grotesk', sans-serif;
+  cursor: default;
+}
+.ainubis-target-bar span { flex: 1 1 auto; }
+/* Na úzkom mobile sa pokyn nezmestí vedľa dvoch tlačidiel — ide na vlastný riadok. */
+@media (max-width: 520px) {
+  .ainubis-target-bar {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: calc(100vw - 32px);
+    border-radius: 16px;
+    padding: 12px;
+    text-align: center;
+  }
+  .ainubis-target-bar span { flex-basis: 100%; }
+}
+.ainubis-target-bar button {
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 199, 61, 0.45);
+  background: transparent;
+  color: #F5F0E4;
+  font: inherit;
+  padding: 4px 12px;
+  cursor: pointer;
+}
