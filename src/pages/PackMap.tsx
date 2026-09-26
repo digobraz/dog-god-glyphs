@@ -3588,9 +3588,14 @@ export default function PackMap() {
   // zmazaný ako mŕtvy — archív: tag `archiv/addtripplan-2026-09-16`.
   const [addEntryOpen, setAddEntryOpen] = useState(false);
   const [addFlow, setAddFlow] = useState<TripState | null>(null);
-  // Kým človek v paneli vyberá, čo pridáva, sprievodca (najťažší kus mapy) sa už sťahuje —
-  // po ťuku na voľbu tak nečaká na sieť. Druhé volanie import() je z cache prehliadača.
-  useEffect(() => { if (addEntryOpen || addFlow) void loadAddTripLog(); }, [addEntryOpen, addFlow]);
+  // Sprievodcu (najťažší kus mapy) dotiahni potichu, až keď je mapa vykreslená a prehliadač
+  // nemá čo robiť — prvé ťuknutie na VÝLET potom nečaká na sieť. Panel „+" žije v lište
+  // (PackLayout), takže jeho otvorenie sa tu nedá zachytiť; rovnaký vzor ako `loadAddTripEntry`.
+  useEffect(() => {
+    const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
+    const id = w.requestIdleCallback ? w.requestIdleCallback(() => { void loadAddTripLog(); }, { timeout: 6000 }) : window.setTimeout(() => { void loadAddTripLog(); }, 3000);
+    return () => { if (w.cancelIdleCallback) w.cancelIdleCallback(id); else window.clearTimeout(id); };
+  }, []);
   // EVENT flow (krok 3 zadania-eventy) — rovnaký vzor ako addFlow, drží len origin ('own'/'tip');
   // formulár samotný (AddEvent) si drží vlastný interný state.
   const [addEventFlow, setAddEventFlow] = useState<'own' | 'tip' | null>(null);
