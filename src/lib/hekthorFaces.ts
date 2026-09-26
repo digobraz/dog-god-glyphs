@@ -15,9 +15,11 @@
 // a človek, ktorý sa vráti späť, musí vidieť ten istý obrázok, aký tam bol.
 // ═══════════════════════════════════════════════════════════════════════════
 
-const N = 26;
+export const N = 26;
 
-const face = (i: number) => `/images/hekt-flow/${String(i).padStart(2, '0')}.webp`;
+/** Adresa i-teho ksichtu (1–26). Exportované pre `/lab/heroflow` — mriežka
+ *  náhľadov potrebuje adresu KAŽDÉHO ksichtu, nie len toho pre aktuálny krok. */
+export const face = (i: number) => `/images/hekt-flow/${String(i).padStart(2, '0')}.webp`;
 
 /** Krok flow → ksicht. Kľúč je časť cesty za `/heroglyph/`. */
 // ⚠️ KSICHT 02 JE VÄČŠÍ NEŽ ZVYŠOK SADY — 400×400 (46 kB) proti 260×260 (12 kB).
@@ -25,7 +27,7 @@ const face = (i: number) => `/images/hekt-flow/${String(i).padStart(2, '0')}.web
 //    musí byť čo najväčšie Hektorova fotka, najlepšie tá kde má vycerené zuby"*),
 //    a 260 px by na retine bolo rozmazané. 400 je strop: presne toľko meria kruh
 //    v origináli (`4OK.png`, 500×500 s okrajom 50 px), väčšie by sa už dopočítavalo.
-const BY_STEP: Record<string, number> = {
+export const BY_STEP: Record<string, number> = {
   name: 1,
   // Matej 24. 9.: „pri tvoja svorka si nezmenil fotku... a tam byť profil
   // hektora" — v sade sú dva kandidáti, `04` (čelný portrét) a `07` (jediný
@@ -58,12 +60,40 @@ const BY_STEP: Record<string, number> = {
   stay: 24,
 };
 
+// ─────────────────────────────────────────────────────────────────────────
+// DEV NÁHĽAD FOTIEK V DIELNI (26. 9. 2026)
+//
+// Matej: „pridaj do labu možnosť kde budem môcť naklikať fotky aj si pozrieť
+// náhľad" — `/lab/heroflow` má vlastný rám (iframe na tom istom origin), takže
+// override ide cez `localStorage` presne ako `devSeed.ts`: dielňa zapíše,
+// nová stránka v ráme si to pri štarte znova prečíta.
+//
+// 🔴 CELÉ JE TO DEV-ONLY, rovnako ako `devSeed.ts`. `import.meta.env.DEV` je
+//    prvá podmienka skôr, než sa čo i len skúsi čítať localStorage — produkčný
+//    build tento kód nevykoná ani keď mu niekto kľúč podstrčí.
+// ─────────────────────────────────────────────────────────────────────────
+
+export const DEV_FACES_KEY = 'dogypt-dev-faces';
+
+function devFaceOverride(step: string): number | undefined {
+  if (!import.meta.env.DEV) return undefined;
+  try {
+    const raw = localStorage.getItem(DEV_FACES_KEY);
+    if (!raw) return undefined;
+    const map = JSON.parse(raw) as Record<string, number>;
+    const n = map[step];
+    return n && n >= 1 && n <= N ? n : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Ksicht pre daný krok. Neznámy krok dostane prvý — nikdy nie prázdno,
  * lebo bublina bez obrázka spadne do seba.
  */
 export function hekthorFace(step: string): string {
-  const n = BY_STEP[step];
+  const n = devFaceOverride(step) ?? BY_STEP[step];
   return face(n && n >= 1 && n <= N ? n : 1);
 }
 

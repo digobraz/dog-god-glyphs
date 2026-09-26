@@ -3,6 +3,12 @@ import hekthorImg from '@/assets/hekthor.png';
 import { hasChoice, saveConsent } from '@/lib/consent';
 import { FILL_MSG, FILL_BAND, HRANICA_KEY, type FlowFill } from '@/components/screens/flowFill';
 import {
+  BY_STEP as FACE_BY_STEP,
+  DEV_FACES_KEY,
+  N as FACE_N,
+  face as faceUrl,
+} from '@/lib/hekthorFaces';
+import {
   DEV_SEED_DEFAULT,
   TEST_PHOTO_SHAPES,
   clearDevSeed,
@@ -247,6 +253,63 @@ export default function HeroflowLab() {
     const id = setTimeout(() => setQueue((q) => q.slice(1)), 6000);
     return () => clearTimeout(id);
   }, [queue]);
+
+  // ── FOTKY HEKTORA (26. 9. 2026) ───────────────────────────────────────────
+  // Matej: *„pridaj do labu možnosť kde budem môcť naklikať fotky aj si
+  // pozrieť náhľad"*. Override ide presne ako `devSeed.ts` — cez
+  // `localStorage` (`DEV_FACES_KEY` z `hekthorFaces.ts`), lebo rám je iný
+  // dokument než dielňa a treba mu dáta odovzdať cez kanál, ktorý prežije
+  // nové načítanie stránky.
+  const [faceOverrides, setFaceOverrides] = useState<Record<string, number>>(() => {
+    try {
+      const raw = localStorage.getItem(DEV_FACES_KEY);
+      return raw ? (JSON.parse(raw) as Record<string, number>) : {};
+    } catch { return {}; }
+  });
+
+  const writeFaces = (next: Record<string, number>) => {
+    setFaceOverrides(next);
+    try { localStorage.setItem(DEV_FACES_KEY, JSON.stringify(next)); } catch { /* prázdne úložisko */ }
+  };
+
+  /**
+   * Kľúč ksichtu pre otvorený krok. Obrazovky ho volajú NAPRIAMO literálom
+   * (`hekthorFace('stay')` v `FlowStayScreen.tsx`), nie odvodene z cesty —
+   * táto funkcia teda len napodobňuje, čo si ktorá obrazovka pýta. `null` =
+   * na kroku fotka Hektora nie je (napr. samotná pokladňa bez zadržania).
+   */
+  const faceKeyForPath = (path: string): string | null => {
+    const m = path.match(/^\/heroglyph\/([^/?#]+)/);
+    if (m) return m[1];
+    if (path.startsWith('/checkout') && path.includes('stay=1')) return 'stay';
+    return null;
+  };
+
+  const activeFaceKey = active ? faceKeyForPath(active.path) : null;
+  const activeFaceDefault = activeFaceKey ? FACE_BY_STEP[activeFaceKey] ?? 1 : 1;
+  const activeFaceNow = activeFaceKey ? faceOverrides[activeFaceKey] ?? activeFaceDefault : activeFaceDefault;
+
+  /** Klik na náhľad = zapíš override a hneď prenačítaj rám, nech je vidno. */
+  const pickFace = (n: number) => {
+    if (!activeFaceKey) return;
+    writeFaces({ ...faceOverrides, [activeFaceKey]: n });
+    setFrameKey((k) => k + 1);
+  };
+
+  const resetFace = () => {
+    if (!activeFaceKey) return;
+    const next = { ...faceOverrides };
+    delete next[activeFaceKey];
+    writeFaces(next);
+    setFrameKey((k) => k + 1);
+  };
+
+  /** Matej vloží výstup do chatu a Claude ním prepíše `BY_STEP`. */
+  const copyFacesForClaude = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(faceOverrides, null, 2));
+    } catch { /* schránka odmietla — zoznam nižšie je vidno aj bez nej */ }
+  };
 
   // ── COOKIE LIŠTA (23. 9. 2026) ────────────────────────────────────────────
   // Bez tohto sa kreslí DVAKRÁT — raz v dielni, raz v ráme — a v ráme si berie
@@ -511,6 +574,54 @@ export default function HeroflowLab() {
           <button type="button" className="hfl-ghost" onClick={() => { clearDevSeed(); setActive(null); }}>
             Vyčistiť testovacie dáta
           </button>
+        </details>
+
+        {/* ── FOTKY HEKTORA — panel s náhľadom (26. 9. 2026) ─────────────── */}
+        <details className="hfl-testdata" open>
+          <summary>Fotky Hektora</summary>
+
+          {!active ? (
+            <div className="hfl-note">Najprv vyber vľavo krok.</div>
+          ) : !activeFaceKey ? (
+            <div className="hfl-note">Na kroku „{active.name}" fotka Hektora nie je.</div>
+          ) : (
+            <>
+              <div className="hfl-note">
+                krok „{active.name}" (kľúč „{activeFaceKey}") · predvolená #{String(activeFaceDefault).padStart(2, '0')}
+              </div>
+              <div className="hfl-faces">
+                {Array.from({ length: FACE_N }, (_, i) => i + 1).map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    className={`hfl-faceit${n === activeFaceNow ? ' on' : ''}`}
+                    onClick={() => pickFace(n)}
+                    title={`#${String(n).padStart(2, '0')}${n === activeFaceDefault ? ' · predvolená' : ''}`}
+                  >
+                    <img src={faceUrl(n)} alt={`ksicht #${n}`} />
+                    {n === activeFaceDefault && <i className="df">P</i>}
+                  </button>
+                ))}
+              </div>
+              <button type="button" className="hfl-ghost" onClick={resetFace}>
+                Späť na predvolenú
+              </button>
+            </>
+          )}
+
+          {Object.keys(faceOverrides).length > 0 && (
+            <>
+              <div className="hfl-head">Zmeny oproti predvolenej mape</div>
+              <ul className="hfl-facelist">
+                {Object.entries(faceOverrides).map(([k, n]) => (
+                  <li key={k}>{k} → #{String(n).padStart(2, '0')}</li>
+                ))}
+              </ul>
+              <button type="button" className="hfl-ghost" onClick={copyFacesForClaude}>
+                KOPÍROVAŤ PRE CLAUDA
+              </button>
+            </>
+          )}
         </details>
       </aside>
 
@@ -810,6 +921,32 @@ body:has(.hfl-root) .consent-banner { display: none !important; }
 }
 .hfl-testdata summary::-webkit-details-marker { display: none; }
 .hfl-testdata[open] summary { color: #FAF4EC; }
+/* ── FOTKY HEKTORA — mriežka náhľadov (26. 9. 2026) ──────────────────────
+   48 px kruhy, presne toľko, aby sa 26 kusov zmestilo do 292 px bočnej lišty
+   v šiestich riadkoch. „P" = predvolená z BY_STEP, zlatý rám = aktuálna
+   voľba (override alebo predvolená, keď override nie je). */
+.hfl-faces {
+  display: grid; grid-template-columns: repeat(auto-fill, 48px);
+  gap: 6px; padding: 8px 2px 2px;
+}
+.hfl-faceit {
+  position: relative; width: 48px; height: 48px; padding: 0;
+  border-radius: 50%; border: 2px solid rgba(201,154,63,.25);
+  background: transparent; cursor: pointer; overflow: hidden;
+}
+.hfl-faceit img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hfl-faceit:hover { border-color: rgba(201,154,63,.6); }
+.hfl-faceit.on { border-color: #C99A3F; box-shadow: 0 0 0 2px rgba(201,154,63,.35); }
+.hfl-faceit .df {
+  position: absolute; right: -1px; bottom: -1px; width: 14px; height: 14px;
+  border-radius: 50%; background: #26619C; color: #FAF4EC; font-size: 8px;
+  font-style: normal; font-weight: 600; display: flex; align-items: center;
+  justify-content: center; border: 1px solid rgba(250,244,236,.4);
+}
+.hfl-facelist {
+  list-style: none; margin: 0; padding: 4px 4px 0; font-size: 10px;
+  color: rgba(250,244,236,.6); display: flex; flex-direction: column; gap: 2px;
+}
 
 .hfl-stage { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .hfl-bar {
