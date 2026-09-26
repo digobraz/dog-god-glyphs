@@ -9,6 +9,7 @@ import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { PageTopBar } from '@/components/PageTopBar';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { FLOW_PALE_CSS, FLOW_CARVE_CSS, FLOW_GLYPH_CSS } from '@/components/screens/flowPaleSkin';
+import { TopicChips, FLOW_TOPIC_CSS } from '@/components/screens/flowTopicChips';
 import { FlowMedallion, FLOW_MEDAL_CSS, useSpeakMedal } from '@/components/screens/flowMedallion';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { BRAND_GOLD_BTN, PACK_R } from '@/components/pack/packTheme';
@@ -233,7 +234,7 @@ export function EssenceScreen() {
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{FLOW_DOG_CSS}{ESSENCE_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{FLOW_DOG_CSS}{FLOW_TOPIC_CSS}{ESSENCE_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
         <PageTopBar onBack={back} />
@@ -324,22 +325,11 @@ export function EssenceScreen() {
                 style={{ width: 'var(--flow-glyph-w)' }}
               />
 
-              <div className="es-chips">
-                {topics.map((q, i) => {
-                  const st = chipState(i);
-                  return (
-                    <button
-                      key={q.key}
-                      type="button"
-                      className={`es-chip ${st}${i === step && handover === null ? ' on' : ''}`}
-                      onClick={() => handover === null && setStep(i)}
-                    >
-                      <span className="st">{st === 'done' ? '✓' : st === 'miss' ? '!' : ''}</span>
-                      <span className="lb">{q.chip}</span>
-                    </button>
-                  );
-                })}
-              </div>
+              <TopicChips
+                items={topics.map((q, i) => ({ key: q.key, label: q.chip, state: chipState(i) }))}
+                current={handover === null ? step : null}
+                onGo={(i) => handover === null && setStep(i)}
+              />
               {/* Rytina medzi chipmi a voľbami (Matej 26. 9. 2026: *„na vzniknutom
                   mieste vytvoriť rytinu, oddeliť opticky chipy a tlačidlá"*). */}
               <span className="fdh-rule" aria-hidden />
@@ -377,10 +367,10 @@ export function EssenceScreen() {
                         <button
                           key={o.v}
                           type="button"
-                          // `is-gold` = zlatá poloha dlaždice zo spoločného šatu
-                          // (`FLOW_CARVE_CSS`). Od 25. 9. ju nesie aj otázka
-                          // „žije tvoj pes?" na kroku MENO — jeden recept, dve miesta.
-                          className={`hf-pick is-gold${picks[topic.key] === o.v ? ' on' : ''}`}
+                          // `is-pale` = bledá poloha so spoločným lapisovým výberom
+                          // (Matej 26. 9.: *„hlavné možnosti budú bledou, ale tieňom…
+                          // výber podsvietený modrou"*). `is-gold` ostáva kroku MENO.
+                          className={`hf-pick is-pale${picks[topic.key] === o.v ? ' on' : ''}`}
                           onClick={() => handlePick(o.v)}
                         >
                           <span className="well"><img src={o.icon} alt="" /></span>
@@ -406,22 +396,27 @@ export function EssenceScreen() {
                   ⚠️ Výška je výška CTA (`--es-act`), nie odhad — inak by sa
                      blok pri objavení tlačidla zväčšil znova. */}
               <div className="es-act">
-              {allDone ? (
-                /* CTA je LAPISOVÉ (`.hf-cta`), nie zlaté: doska je bledá a
-                   brandový kánon od 28. 8. 2026 hovorí lapis na bledom podklade,
-                   zlato na naozaj tmavom. Zlaté tu vyzeralo ako nábytok. */
-                <button type="button" className="hf-cta es-cta" onClick={() => navigate('/heroglyph/breed')}>
-                  {t('heroglyph.flow.name.continue')}
-                </button>
-              ) : handover === null && missing && missing.id !== dogId ? (
+                {/* 🔴 CTA JE PRIZNANÉ OD ZAČIATKU, VYBLEDNUTÉ (Matej 26. 9. 2026:
+                    *„rozloženie sa zdá od prvého kroku chybné skrz veľký priestor
+                    pod tlačidlami, až potom tam príde hlavné CTA = od prvého
+                    momentu tam to tlačidlo priznaj, ale bude vyblednuté"*).
+                    Nie je `disabled`: ťuknutie pred koncom zavedie na prvú
+                    nezodpovedanú tému (aj iného psa) — tým zanikla samostatná
+                    „brána" s menom chýbajúceho psa, ktorá tu stála do 26. 9. */}
                 <button
                   type="button"
-                  className="es-gate"
-                  onClick={() => goDog(dogs.findIndex((d) => d.id === missing.id))}
+                  className={`hf-cta es-cta${allDone ? '' : ' is-off'}`}
+                  aria-disabled={!allDone}
+                  onClick={() => {
+                    if (allDone) { navigate('/heroglyph/breed'); return; }
+                    if (handover !== null || !missing) return;
+                    if (missing.id !== dogId) { goDog(dogs.findIndex((d) => d.id === missing.id)); return; }
+                    const open = firstOpen(dogId);
+                    if (open >= 0) setStep(open);
+                  }}
                 >
-                  {missing.name || t('heroglyph.flow.yourDogFallback')} ↗
+                  {t('heroglyph.flow.name.continue')}
                 </button>
-              ) : null}
               </div>
             </div>
           </motion.div>
@@ -522,23 +517,9 @@ const ESSENCE_CSS = `
 /* 🔴 NA MOBILE 2×2, NIE RAD (Matej 24. 9.: *„na mobile dať 4 chipy 2 a 2 pod
    seba zarovnané"*). Rad štyroch sa na 390 px zalomil kde sa mu chcelo — raz
    3+1, raz 2+2 podľa dĺžky prekladu, takže pás nikdy nesedel. Mriežka to určí. */
-.es-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
-@media (min-width: 560px) { .es-chips { grid-template-columns: repeat(4, 1fr); } }
-.es-chip {
-  flex: 1 1 auto; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
-  padding: 5px 7px; border-radius: 999px; cursor: pointer;
-  font-family: 'Space Grotesk', sans-serif; font-weight: 500;
-  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
-  border: 1.5px solid rgba(179, 130, 45, 0.55);
-  background: rgba(255, 253, 247, 0.55); color: rgba(60, 40, 12, 0.62);
-}
-/* Posledný znak nesie rozstrelenie aj za sebou — bez orezania to je ~1 px na chip. */
-.es-chip .lb { margin-right: -0.08em; white-space: nowrap; }
-.es-chip .st { flex: 0 0 9px; width: 9px; text-align: center; font-size: 9.5px; line-height: 1; }
-.es-chip.done { border-color: #3D7A4E; background: rgba(61, 122, 78, 0.12); color: #2E5C3B; }
-.es-chip.miss { border-color: #B25640; background: rgba(178, 86, 64, 0.12); color: #8E3F2C; }
-/* Kde stojím, hovorí PRSTENEC — nie farba. Farba už nesie „hotové / obídené". */
-.es-chip.on { box-shadow: 0 0 0 2px rgba(22, 48, 122, 0.55); }
+/* Chipy tém sa 26. 9. 2026 presťahovali do \`flowTopicChips.tsx\` (FLOW_TOPIC_CSS)
+   — majiteľ má ten istý pás. Tu predtým stáli obrysové chipy so zelenou/červenou
+   výplňou a znakmi; nový šat je plná zlatá so zeleným krúžkom. */
 
 /* ── OTÁZKA ────────────────────────────────────────────────────────────────*/
 .es-q { display: flex; flex-direction: column; gap: 8px; width: 100%; }
@@ -662,11 +643,8 @@ const ESSENCE_CSS = `
   justify-content: center;
 }
 .es-cta { width: 100%; }
-.es-gate {
-  width: 100%; background: none; border: none; cursor: pointer;
-  font-family: 'Space Grotesk', sans-serif; font-size: 12px; line-height: 1.4;
-  color: #8E3F2C; text-decoration: underline; text-decoration-style: dotted;
-}
+.es-cta.is-off { opacity: 0.4; cursor: default; }
+.es-cta.is-off:hover { transform: none; }
 
 /* ── 🔴 KRÁTKE OKNO: JEDNA PEVNÁ POLOHA, NIE STUPŇOVANIE (25. 9. 2026) ───────
    Matej 25. 9.: *„chceme, aby každá obrazovka mobil aj PC mali tie isté zásady

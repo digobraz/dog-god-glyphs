@@ -9,7 +9,7 @@ import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { NEW_HEROFLOW } from '@/lib/flowMode';
 import { PageTopBar } from '@/components/PageTopBar';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
-import { FLOW_PALE_CSS, FLOW_CARVE_CSS, FLOW_GLYPH_CSS } from '@/components/screens/flowPaleSkin';
+import { FLOW_PALE_CSS, FLOW_CARVE_CSS, FLOW_GLYPH_CSS, FLOW_PICK_ON } from '@/components/screens/flowPaleSkin';
 import { FlowMedallion, FLOW_MEDAL_CSS, useSpeakMedal } from '@/components/screens/flowMedallion';
 import { Scroller, FLOW_SCROLL_CSS } from '@/components/screens/flowScroller';
 import { LAPIS, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
@@ -440,6 +440,27 @@ export function PatronScreen() {
               />
               <span className="fdh-rule" aria-hidden />
 
+              {/* RÁM NAD VÝBEROM: odpoveď má pristáť tam, kam sa človek práve
+                  pozerá. Kým patrón nie je, veľký stredný slot pulzuje a nesie
+                  Hektorovu podmalbu — rám teda nikdy nevyzerá prázdny. */}
+              <HeroglyphFrame
+                showOwner
+                // Rám ukazuje psa NA RADE (podstata + patrón z `dogEssence`),
+                // nie vždy prvého.
+                dogValues={ess}
+                ghostValues={HEKTHOR_GLYPH}
+                pulseSlot={patronSvg ? undefined : 'dogShape'}
+                className="hf-glyph pt-glyph"
+                // 🔴 Šírka ide cez `style`, nie cez triedu — `HeroglyphFrame` si
+                // píše `width: '100%'` INLINE a pravidlo z hárku by prehralo
+                // (tá istá pasca stála 24. 9. celý deň na PODSTATE).
+                style={{ width: 'var(--flow-glyph-w)' }}
+              />
+
+              {/* 🔴 HĽADANIE JE POD HEROGLYFOM (Matej 26. 9. 2026: *„vyhľadávanie
+                  plemena daj pod heroglyf (lebo všetky obrazovky s plniacim sa
+                  heroglyfom začínajú hneď pod menom)"*). Rám stojí na každom
+                  kroku na tom istom mieste pod riadkom psa. */}
               {/* Hľadanie a kríženec v JEDNOM riadku. Pri krížencovi pribudne
                   druhé pole — na šírke dosky sa zmestí do toho istého riadka
                   (`flex-wrap`), na telefóne sa zalomí pod prvé. Zámok CTA sa
@@ -488,23 +509,6 @@ export function PatronScreen() {
                 )}
               </div>
 
-              {/* RÁM NAD VÝBEROM: odpoveď má pristáť tam, kam sa človek práve
-                  pozerá. Kým patrón nie je, veľký stredný slot pulzuje a nesie
-                  Hektorovu podmalbu — rám teda nikdy nevyzerá prázdny. */}
-              <HeroglyphFrame
-                showOwner
-                // Rám ukazuje psa NA RADE (podstata + patrón z `dogEssence`),
-                // nie vždy prvého.
-                dogValues={ess}
-                ghostValues={HEKTHOR_GLYPH}
-                pulseSlot={patronSvg ? undefined : 'dogShape'}
-                className="hf-glyph pt-glyph"
-                // 🔴 Šírka ide cez `style`, nie cez triedu — `HeroglyphFrame` si
-                // píše `width: '100%'` INLINE a pravidlo z hárku by prehralo
-                // (tá istá pasca stála 24. 9. celý deň na PODSTATE).
-                style={{ width: 'var(--flow-glyph-w)' }}
-              />
-
               <p className="hf-legend">{t('heroglyph.flow.breed.legend')}</p>
 
               {/* Kategórie. Bez poradového čísla — „01 Furballs" je náš
@@ -532,7 +536,7 @@ export function PatronScreen() {
                   <button
                     key={svg}
                     type="button"
-                    className={`hf-pick pt-sil${svg === patronSvg ? ' on' : ''}`}
+                    className={`hf-pick is-pale pt-sil${svg === patronSvg ? ' on' : ''}`}
                     aria-pressed={svg === patronSvg}
                     onClick={() => choose(svg, cat)}
                   >
@@ -700,13 +704,10 @@ const PATRON_CSS = `
   transition: border-color .16s, background .16s, color .16s, box-shadow .16s;
 }
 .pt-chip:hover { border-color: rgba(179, 130, 45, 0.85); }
-.pt-chip.on {
-  background: ${BRAND_GOLD_BTN.grad};
-  border-color: ${BRAND_GOLD_BTN.edge};
-  color: ${BRAND_GOLD_BTN.ink};
-  box-shadow: ${BRAND_GOLD_BTN.glow};
-  text-shadow: 0 1px 0 rgba(255, 252, 240, 0.28);
-}
+/* 26. 9. 2026: vybraná kategória = spoločné lapisové podsvietenie vstupu
+   (Matej: *„výber patróna nezabudni zosúladiť to podsvietenie s celým flow,
+   kľudne môžeš trochu pridať na intenzite"*). Predtým plná zlatá. */
+.pt-chip.on { ${FLOW_PICK_ON} }
 
 /* Návod k výberu — najtichší riadok obrazovky. Menší než popisky v doske a bez
    rozstrelenia: je to poznámka pod čiarou, nie druhý nadpis. */
@@ -728,6 +729,9 @@ const PATRON_CSS = `
   justify-content: center; border-radius: ${PACK_R.tile}px;
 }
 .pt-sil img { width: 48px; height: 48px; object-fit: contain; }
+/* 26. 9. 2026: silueta nesie bledú polohu \`.is-pale\` a výber \`FLOW_PICK_ON\` —
+   tá istá dlaždica ako na podstate (Matej: *„zosúladiť to podsvietenie s celým
+   flow"*). Tým padá 🚩 vyššie: podstata už zlatá nie je. */
 /* ── ZAMKNUTÉ CTA NESIE MATERIÁL, NIE PRIESVITNOSŤ ────────────────────────
    🔴 \`.hf-cta:disabled\` má \`opacity: .4\` — a 40 % lapisu je na papyruse ŠEDÁ
       PLOCHA cez celú šírku dosky. Presne to Matej zamietol 31. 8. 2026 na

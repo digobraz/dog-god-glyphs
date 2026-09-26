@@ -250,6 +250,7 @@ export function NameScreen() {
           príchode je presne tam, kde bola. */}
       {phase === 'form' && (
         <motion.div
+          className="hf-topbar"
           initial={playIntro ? { opacity: 0 } : false}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.18 }}

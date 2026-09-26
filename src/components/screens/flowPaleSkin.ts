@@ -145,6 +145,16 @@ export const FLOW_STAGE_CSS = `
 }
 /* 🔴 TOTO nahrádza \`justify-content: center\` — viď pascu vyššie. */
 .hf-stage > * { margin-top: auto; margin-bottom: auto; }
+
+/* ── ŠÍPKA SPÄŤ = ĽAVÝ KRAJ STĹPCA OBSAHU, NIE OKNA (26. 9. 2026) ──────────
+   Matej 26. 9.: *„daj ju na horný kraj obsahu pod ním, nie na kraj stránky,
+   vyzerá to divne… obsah dávame na stred aj čo sa týka headra!"*
+   Stĺpec obsahu je \`max-w-xl\` (576 px) v strede okna; šípka má \`p-2\` (8 px),
+   takže kresba sedí presne na hrane stĺpca. Na mobile je hrana stĺpca odsadenie
+   javiska (16 px) — tam to vychádza na \`max(8px, …)\`.
+   ⚠️ Háčik je obal \`.hf-topbar\`, ktorý nesie každý krok vstupu. \`PageTopBar\`
+   je LOCKED a nosí ho aj ostrý web, preto zásah zvonku, nie v komponente. */
+.hf-topbar > div > button.absolute { left: max(8px, calc(50% - 296px)); }
 `;
 
 export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
@@ -1003,6 +1013,17 @@ export const FLOW_GLYPH_CSS = `
 @media (max-height: 640px) { .hf-glyph { --flow-glyph-w: min(200px, 100%); } }
 `;
 
+/**
+ * VÝBER V CELOM VSTUPE = LAPISOVÉ PODSVIETENIE (26. 9. 2026).
+ * Matej 26. 9.: *„výber musí byť podsvietený modrou"* (podstata) a *„výber patróna
+ * nezabudni zosúladiť to podsvietenie s celým flow, kľudne môžeš trochu pridať na
+ * intenzite"*. Jeden recept pre dlaždice podstaty a majiteľa, pilulky kategórií
+ * a siluety patróna — tri kópie by sa rozišli pri prvej úprave.
+ * Je to TINT s ožiarením, nie plná plocha: plná lapisová patrí jedinému CTA.
+ */
+export const FLOW_PICK_ON = `background:linear-gradient(180deg,#F4F8FE 0%,#D8E5F6 100%);border-color:${LAPIS.edge};color:${PICK_INK.lapis};`
+  + `box-shadow:inset 0 0 0 1px rgba(22,48,122,0.45),0 0 0 3px rgba(38,97,156,0.22),0 0 18px rgba(38,97,156,0.40);`;
+
 export const FLOW_CARVE_CSS = `
 /* Doska: obvodová rytá linka tesne pod zlatým rámom. Je to VNÚTORNÁ obruba,
    nie druhý rám — preto leží 5 px vnútri a má polomer o ten istý kus menší. */
@@ -1166,4 +1187,22 @@ export const FLOW_CARVE_CSS = `
   border-color: ${LAPIS.edge};
   box-shadow: inset 0 0 0 2px ${LAPIS.edge}, ${BRAND_GOLD_BTN.glowHover};
 }
+
+/* ── BLEDÁ POLOHA DLAŽDICE — \`.hf-pick.is-pale\` (26. 9. 2026) ─────────────
+   Matej 26. 9. ~15:00 na podstate: *„hlavné možnosti budú bledou, ale tieňom,
+   aby boli dostatočne viditeľné a pekné, ich výber musí byť podsvietený modrou"*
+   — a zlatú plnú farbu dostali CHIPY tém. Novší pokyn prebíja ranné *„voľby sú
+   zlaté, lebo hlavné CTA je modré"* (24.–25. 9., viď \`.is-gold\` vyššie).
+   ⚠️ \`.is-gold\` sa NEMAŽE — nesie ho krok MENO („žije tvoj pes?"), ktorý Matej
+   schválil. Bledú polohu majú podstata a majiteľ. */
+.hf-pick.is-pale {
+  border-radius: ${PACK_R.tile}px;
+  background: linear-gradient(180deg, #FFFDF7 0%, #F5E9CC 100%);
+  border: 1px solid rgba(179, 130, 45, 0.38);
+  box-shadow: 0 6px 16px -6px rgba(90, 62, 16, 0.38),
+              0 1px 2px rgba(60, 40, 10, 0.12),
+              inset 0 1px 0 rgba(255, 255, 255, 0.90);
+}
+.hf-pick.is-pale:hover { border-color: rgba(179, 130, 45, 0.70); }
+.hf-pick.is-pale.on { ${FLOW_PICK_ON} }
 `;
