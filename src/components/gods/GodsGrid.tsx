@@ -716,6 +716,7 @@ export function GodsGrid() {
     // ako originál (vrátane #čísla + správy) — slúži len nato aby WALL nebola prázdna.
     // Nových psov pribúda od stredu (špirála) a postupne tieto duplikáty prepisujú.
     function makeRealDogCard(dog: RealDog, col: number, row: number, fill = false) {
+      ensureDogVisionFilter();
       const cc = countryToISO2(dog.country);
       const flagName = FLAG_NAMES[cc] || cc;
       const safeName = esc((dog.dog_name || 'DOGYPTIAN').toUpperCase());
@@ -1483,6 +1484,10 @@ export function GodsGrid() {
           color: rgba(201,154,63,0.85); text-align: center;
         }
         /* Čaká na AINUBISA: pes na stene JE, ale stmavnutý a rozmazaný (Matej 25. 9. 2026). */
+        /* PSIE VIDENIE (Matej 26. 9. 2026): pes bez člena (€0/€3) je na stene v
+           spektre, ako ho vidia psy — modro-žlto, nie plnofarebne. Platí, kým
+           človek nezaplatí €11. Filter definuje ensureDogVisionFilter(). */
+        .dog-card--nomember:not(.dog-card--pending) .card-img { filter: url(#dogypt-dog-vision); }
         .dog-card--pending .card-img,
         .dog-card--pending .dog-heroglyph,
         .dog-card--pending .card-open-heroglyph { filter: blur(6px) brightness(0.45); }
@@ -2473,4 +2478,23 @@ export function GodsGrid() {
       </div>
     </>
   );
+}
+
+/**
+ * Filter „ako vidí pes" — psy sú dichromati (modrá + žltá, červenú a zelenú
+ * nerozlíšia). Matica = Machado 2009, deuteranopia (červená/zelená → žltohnedá, modrá ostáva). SVG sa vloží do
+ * dokumentu raz; CSS naň odkazuje cez `url(#dogypt-dog-vision)`.
+ */
+function ensureDogVisionFilter() {
+  if (typeof document === 'undefined' || document.getElementById('dogypt-dog-vision')) return;
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('width', '0');
+  svg.setAttribute('height', '0');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.style.position = 'absolute';
+  svg.innerHTML = '<filter id="dogypt-dog-vision" color-interpolation-filters="linearRGB">'
+    + '<feColorMatrix type="matrix" values="0.367 0.861 -0.228 0 0  0.280 0.673 0.047 0 0  -0.012 0.043 0.969 0 0  0 0 0 1 0"/>'
+    + '</filter>';
+  document.body.appendChild(svg);
 }
