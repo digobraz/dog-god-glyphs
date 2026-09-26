@@ -42,6 +42,14 @@ export function usePackIdentity(): PackIdentity {
   const location = useLocation();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  /**
+   * PRIHLÁSENIE JE ZNÁME (26. 9. 2026, audit /pack/map B4). `loading` padá až po štyroch
+   * volaniach za sebou (session → link_my_dogs → my_dog_rights → dogs); mapa k vykresleniu
+   * potrebuje len prvé. Kto chce kresliť skôr, pýta sa tohto — `loading` sa NEMENÍ, lebo
+   * povrchy ako „nemáš živého psa" (`!loading && !hasLiveDog`) čítajú prázdny zoznam psov
+   * ako odpoveď a skorší pád by ich oklamal.
+   */
+  const [sessionReady, setSessionReady] = useState(false);
   const [dogs, setDogs] = useState<PackDog[]>([]);
   const [devotion, setDevotion] = useState(100);
   const [bones, setBones] = useState(0);
@@ -106,6 +114,8 @@ export function usePackIdentity(): PackIdentity {
     ensureSession().then(async (s) => {
       if (!mounted) return;
       if (s) {
+        setSession(s);
+        setSessionReady(true);
         // ⚠️ Pri DEV_NOAUTH sa Supabase NEVOLÁ. Mock session nemá token, takže tieto
         // volania aj tak nič nevrátia — ale nie sú zadarmo: `rpc()` si pýta prístupový
         // token, a ten sa berie cez zámok prehliadača (`navigator.locks`). Keď ten zámok
@@ -208,5 +218,5 @@ export function usePackIdentity(): PackIdentity {
 
   const avatarInitial = (session?.user?.email?.[0] ?? 'D').toUpperCase();
 
-  return { session, loading, dogs, devotion, bones, avatarUrl, avatarInitial, packTotal, packToday };
+  return { session, loading, sessionReady, dogs, devotion, bones, avatarUrl, avatarInitial, packTotal, packToday };
 }

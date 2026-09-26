@@ -44,6 +44,7 @@
 // (6) `<DiffMark>` (CSS tvar namiesto emoji) zdieľaný cez
 // components/pack/tripShared.tsx; (7) mobile header kompaktnejší, filter
 // ikonka = sliders (nie graph).
+import { sizedUrl } from '@/services/cloudinaryService';
 import { usePublishPilgrimLevel } from '@/components/pack/usePilgrimStats';
 import { trackPack } from '@/lib/packAnalytics';
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -4322,7 +4323,8 @@ export default function PackMap() {
     // ⚠️ ZÁVISLOSŤ NA id.loading NIE JE NAVYŠE. Pri prvom renderi vracia komponent načítavaciu
     // obrazovku, takže hlavička v DOM ešte NIE JE — efekt s prázdnym poľom by našiel null,
     // vrátil sa a observer by sa nikdy nezaložil. Ovládače by potom navždy stáli na fallbacku.
-  }, [id.loading]);
+    // `sessionReady` od 26. 9.: hlavička sa mountne už pri ňom, nie až pri `loading`.
+  }, [id.loading, id.sessionReady]);
 
   // ── POLOHA RADU ZOZNAM/PRIDAŤ IDE VON AKO --trp-mactions-h (2026-09-17) ───────────────
   // Atribúcia máp (licenčná podmienka) sedela na telefóne POD spodným navom. Keď sa zdvihla
@@ -4355,10 +4357,11 @@ export default function PackMap() {
       root.style.removeProperty('--trp-mactions-h');
       document.body.classList.remove('has-map-actions');
     };
-  }, [id.loading, mobileView]);
+  }, [id.loading, id.sessionReady, mobileView]);
 
 
-  if (id.loading) {
+  // Mapa sa kreslí hneď, keď je známe prihlásenie — psy dobehnú (audit B4, `sessionReady`).
+  if (id.loading && !id.sessionReady) {
     return (
       <div className="min-h-[100dvh] flex items-center justify-center relative" style={{ backgroundColor: T.pageBg }}>
         <HieroglyphBg />
@@ -5727,7 +5730,10 @@ export default function PackMap() {
   const renderTripCard = (tr: HeroTrail, withRef: boolean) => {
     const idx = photoIdx[tr.id] ?? 0;
     // trip bez vlastnej fotky → per-aktivita placeholder (paddleboard nedostane les), stabilný podľa id
-    const photo = tr.photos[idx] ?? tr.photos[0] ?? placeholderFor(tr.acts, tr.id);
+    // 📉 ZMENŠENÁ (audit /pack/map B3, 26. 9. 2026): všetkých 544 fotiek výletov má v dátach
+    // holú Cloudinary adresu bez transformácie — karta ťahala ORIGINÁL (aj 4000 px .jpg).
+    // Karta je najviac ~360 px široká ⇒ strop 1080 px na dlhšej strane = ostrá na retine.
+    const photo = sizedUrl(tr.photos[idx] ?? tr.photos[0], 1080) || placeholderFor(tr.acts, tr.id);
     const agg = crowdAggregate(tr, votes[tr.id]);
     const others = Math.max(0, agg.dogyptianCount - founderDogyptians(tr)); // Dogypťania nad zakladateľa (človek + psy)
     // ⚠️ `walkerCount` = koľkí PREŠLI. `walkedCount` je od 17. 9. počet HODNOTENÍ a dal by tu nulu vždy.
@@ -5940,7 +5946,8 @@ export default function PackMap() {
           const dt = allTrails.find((x) => x.id === inlineDetailId);
           if (!dt) return null;
           const idx = photoIdx[dt.id] ?? 0;
-          const photo = dt.photos[idx] ?? dt.photos[0] ?? placeholderFor(dt.acts, dt.id);
+          // Detail je širší než karta (na PC až ~800 px) ⇒ vyšší strop, stále nie originál.
+          const photo = sizedUrl(dt.photos[idx] ?? dt.photos[0], 1600) || placeholderFor(dt.acts, dt.id);
           // bod 4 (i12): tagy/aktivity s emoji (rovnaký vocabulary ako filter chipy nižšie).
           // ⚠️ KATEGÓRIE, NIE SUROVÉ `acts` (2026-08-27) — piknik aj nocľah sú CHILL a chip
           // by inak stál dvakrát. Zároveň je to ten istý zoznam, podľa ktorého výlet nachádza
@@ -6361,7 +6368,7 @@ export default function PackMap() {
                       komponent je napísaný, aby vedel stáť sám, a tu ho len nevoláme
                       nazmar. SK preklad kľúčov doplnený v tom istom behu. */}
                   {eventsView === 'upcoming' && events.length > 0 && (
-                    <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => { setActiveCat('trips'); selectTrail(trailsById(tid) ?? HERO_TRAILS[0]); }} onBrowseTrips={() => setActiveCat('trips')} myId={id.session?.user?.id ?? null} onShareTrip={shareTripLink} onDelete={deleteListing} />
+                    <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => sizedUrl(tr.photos[0], 1080) || placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => { setActiveCat('trips'); selectTrail(trailsById(tid) ?? HERO_TRAILS[0]); }} onBrowseTrips={() => setActiveCat('trips')} myId={id.session?.user?.id ?? null} onShareTrip={shareTripLink} onDelete={deleteListing} />
                   )}
                 </>)}
           </div>
@@ -6705,7 +6712,7 @@ export default function PackMap() {
                 {/* 🔴 to isté gatovanie ako na desktope (~2882): eventripy do archívu NEPATRIA. */}
                 {/* to isté ako na desktope: jeden prázdny stav, nie dva (13. 9. 2026) */}
                 {eventsView === 'upcoming' && events.length > 0 && (
-                  <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => navigate(tripPathById(tid, allTrails))} onBrowseTrips={() => setActiveCat('trips')} myId={id.session?.user?.id ?? null} onShareTrip={shareTripLink} onDelete={deleteListing} />
+                  <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => sizedUrl(tr.photos[0], 1080) || placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => navigate(tripPathById(tid, allTrails))} onBrowseTrips={() => setActiveCat('trips')} myId={id.session?.user?.id ?? null} onShareTrip={shareTripLink} onDelete={deleteListing} />
                 )}
               </>)}
         </div>
