@@ -726,10 +726,12 @@ export function GodsGrid() {
       const tier = dog.wall_tier;
       const member = !tier || tier === 'member';
       const pending = !!dog.wall_pending;
-      const guestLine = tier === 'guest'
+      // Od 26. 9. 2026 má odkaz aj hosť — hláška psa ostáva len ako výplň,
+      // keď odkaz chýba (starší zápis bez neho).
+      const guestLine = tier === 'guest' && !dog.owner_message
         ? tRef.current(`wall.guestLine.${1 + Math.floor(Math.random() * GUEST_LINES)}`)
         : '';
-      const openMsg = pending ? '' : (guestLine || dog.owner_message || '');
+      const openMsg = pending ? '' : (dog.owner_message || guestLine || '');
       const status = !tier ? ''
         : pending ? tRef.current('wall.status.pending')
         : tier === 'member' ? tRef.current('wall.status.member').replace('{n}', String(packNum))
