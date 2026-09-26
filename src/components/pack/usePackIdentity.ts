@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { EDGE_BASE } from '@/lib/env';
+import { getMyAffiliate, getPackStats } from '@/lib/sharedFetch';
 import { hydratePackStore } from '@/lib/packStore';
 import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
 import { getAccessibleDogIds } from '@/lib/dogRights';
@@ -29,7 +29,6 @@ export interface PackIdentity {
   packToday: number | null;
 }
 
-const STATS_EDGE = `${EDGE_BASE}/get-pack-stats`;
 
 // Shared identity hook for every /pack surface — session load + auth redirect
 // (/login) + dogs (payment_status='paid') + devotion + bones (affiliate
@@ -53,8 +52,7 @@ export function usePackIdentity(): PackIdentity {
   // Empire stats — identical header on every tab so the member always sees live state.
   useEffect(() => {
     let alive = true;
-    fetch(STATS_EDGE)
-      .then((r) => r.json())
+    getPackStats<{ total?: number; last24h?: number }>()
       .then((j) => {
         if (!alive) return;
         setPackTotal(typeof j?.total === 'number' ? j.total : null);
@@ -171,12 +169,15 @@ export function usePackIdentity(): PackIdentity {
         }
         // BONES = affiliate currency (affiliates.points). Single source of truth
         // for the header chip — NOT user_metadata.bones (legacy, always 0).
+        // ⚠️ Od 26. 9. 2026 BEZ `await`: BONES čaká len čip v hlavičke, nie celá stránka.
+        //    Dovtedy bolo toto piate volanie v rade pred `setLoading(false)` a celý `/pack`
+        //    kvôli nemu ukazoval „NAČÍTAVAM…" o jedno kolo dlhšie. Volanie sa zdieľa
+        //    s Pack.tsx a FounderInvite (`sharedFetch`), takže ide na sieť raz.
         if (!DEV_NOAUTH) {
-          try {
-            const { data: aff } = await supabase.rpc('get_or_create_my_affiliate');
-            const row = (aff as { points?: number }[] | null)?.[0];
+          void getMyAffiliate<{ points?: number }>().then(({ data: aff }) => {
+            const row = aff?.[0];
             if (mounted && row) setBones(Number(row.points) || 0);
-          } catch { /* non-blocking */ }
+          });
         }
       }
       setSession(s);

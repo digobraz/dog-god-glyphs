@@ -1,3 +1,4 @@
+import { getMyAffiliate } from '@/lib/sharedFetch';
 import { useEffect, useState } from 'react';
 ;
 // `Check` ostáva lucide — systémové potvrdenie, nie brandový prvok.
@@ -127,8 +128,7 @@ export function FounderInvite({ dogName, packNumber, shareCardUrl }: FounderInvi
 
   useEffect(() => {
     let mounted = true;
-    supabase
-      .rpc('get_or_create_my_affiliate')
+    getMyAffiliate()
       .then(({ data, error }) => {
         if (!mounted) return;
         if (error) {

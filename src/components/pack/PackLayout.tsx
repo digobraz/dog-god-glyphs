@@ -21,16 +21,22 @@ import {
   NAV_FRAME_SHADOW, NAV_PLATE_SHADOW, NAV_PILL_SHADOW,
 } from './navGoldSkin';
 import { DOCK, DOCK_MEDAL_CSS, DockPlus } from './packDockMedal';
-import { AddTripEntry, type AddChoice } from './addtrip/AddTripEntry';
+import type { AddChoice } from './addtrip/AddTripEntry';
 import { placeForRoute, withOrigin, type CreateObject } from './createRegistry';
 import { emitCreate, type CreateIntent } from '@/lib/createBus';
 import { openAinubis } from '@/lib/ainubisBus';
-import { DiaryEntry } from './diary/DiaryEntry';
 
 // Inbox/Thread lazy — statický import by ich (a s nimi packMessaging.ts: HERO_TRAILS 1,5 MB,
 // HERO_JOURNEYS) ťahal do PackLayout chunku vždy, aj keď overlay na LIVE
 // nikdy nevykreslí nič (DEV_FULL je runtime konštanta, Rollup ju nevytrasí). Lazy = stiahne sa
 // až pri reálnom otvorení overlaya (teda na LIVE nikdy).
+// Panel „+" a denník sa otvárajú až klikom (audit 26. 9. 2026). Denník ťahá kompresiu
+// obrázkov, panel „+" celý register vchodov — ani jedno nepatrí do prvého načítania.
+// Panel „+" je hlavná akcia, preto sa po načítaní stránky potichu dotiahne (nižšie),
+// aby prvé ťuknutie nečakalo na sieť.
+const loadAddTripEntry = () => import('./addtrip/AddTripEntry');
+const AddTripEntry = lazy(() => loadAddTripEntry().then((m) => ({ default: m.AddTripEntry })));
+const DiaryEntry = lazy(() => import('./diary/DiaryEntry').then((m) => ({ default: m.DiaryEntry })));
 const Inbox = lazy(() => import('./messaging/Inbox').then((m) => ({ default: m.Inbox })));
 const Thread = lazy(() => import('./messaging/Thread').then((m) => ({ default: m.Thread })));
 
@@ -312,6 +318,12 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
   const place = placeForRoute(pathname);
   const [createOpen, setCreateOpen] = useState(false);
   const [diary, setDiary] = useState<{ mode: 'write' | 'photo' } | null>(null);
+  // Panel „+" potichu dotiahni, keď prehliadač nemá čo robiť — prvé ťuknutie potom nečaká.
+  useEffect(() => {
+    const w = window as Window & { requestIdleCallback?: (cb: () => void) => number };
+    const id = w.requestIdleCallback ? w.requestIdleCallback(() => { loadAddTripEntry(); }) : window.setTimeout(() => { loadAddTripEntry(); }, 2000);
+    return () => { if (!w.requestIdleCallback) window.clearTimeout(id); };
+  }, []);
 
   // Je pod nami namountovaný `PackMap`? Len tieto dve cesty ho mountujú — `/pack/map/triplist`
   // a článok výletu sú iné komponenty, hoci ležia na tej istej vetve adries.
@@ -548,23 +560,27 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
            ktorý otvára ten istý tok z bočného panela.
         Súrodenectvo rieši oboje naraz: panel sa vrství v kontexte STRÁNKY a šat zdedí. */}
     {createOpen && (
-      <AddTripEntry
-        place={place}
-        onPick={runPick}
-        onCreate={runCreate}
-        onClose={() => setCreateOpen(false)}
-      />
+      <Suspense fallback={null}>
+        <AddTripEntry
+          place={place}
+          onPick={runPick}
+          onCreate={runCreate}
+          onClose={() => setCreateOpen(false)}
+        />
+      </Suspense>
     )}
     {/* DENNÍK — druhý a tretí vchod doň sú dlaždica na `/pack/dogs` a popup dňa v kalendári
         (KROK 5). Toto je štvrtý: `+` na mieste JA. Ten istý komponent, žiadna druhá obrazovka
         „pridať zápis" — lock §1.1.1: jeden panel, viac vchodov. */}
     {diary && (dogs?.length ?? 0) > 0 && (
-      <DiaryEntry
-        dogs={(dogs ?? []).map((d) => ({ id: d.id, name: d.dog_name ?? '—' }))}
-        mode={diary.mode}
-        onClose={() => setDiary(null)}
-        tx={tx}
-      />
+      <Suspense fallback={null}>
+        <DiaryEntry
+          dogs={(dogs ?? []).map((d) => ({ id: d.id, name: d.dog_name ?? '—' }))}
+          mode={diary.mode}
+          onClose={() => setDiary(null)}
+          tx={tx}
+        />
+      </Suspense>
     )}
     </>
   );

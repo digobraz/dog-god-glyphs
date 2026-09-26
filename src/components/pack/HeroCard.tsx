@@ -8,7 +8,6 @@ import { HandHouseHeart, HandKey, HandLink, HandPaw, HandPencil, HandPlus } from
 import { INVITE_ANCHOR_ID } from './FounderInvite';
 import { BrandIcon } from './BrandIcon';
 import { GOLD_BLOCK_CSS, LAPIS, LAPIS_BTN_SHADOW } from './navGoldSkin';
-import { BonesCoin } from './BonesCoin';
 import { PACK_BOX, PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, PILL_CSS, GOLD_BTN } from './packTheme';
 import { saveHuman } from './profile/packProfile';
 import { PackNotifications } from './PackNotifications';
@@ -851,6 +850,20 @@ function PackNameRow({ label, fallback }: { label: string; fallback: string }) {
             }}
           >
             {t('pack.add.packSave')}
+          </button>
+          {/* Zrušiť (audit 26. 9. 2026): Esc fungoval, ale na dotyku ho niet — formulár
+              sa dal zavrieť len reloadom. Tiché tlačidlo, nie druhé CTA. */}
+          <button
+            type="button"
+            onClick={() => setEditing(false)}
+            style={{
+              flexShrink: 0, padding: '8px 8px', borderRadius: 8, cursor: 'pointer',
+              background: 'transparent', border: 'none', color: T.inkWarm,
+              fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 10,
+              letterSpacing: '0.14em', textTransform: 'uppercase',
+            }}
+          >
+            {t('pack.pack.renameCancel')}
           </button>
         </form>
       ) : (

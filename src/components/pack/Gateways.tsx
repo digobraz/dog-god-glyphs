@@ -288,7 +288,8 @@ export function Gateways() {
           {/* Slabá doska z ústavy v pozadí + tá istá obálka ako veľká ConstitutionCard —
               knihu si člen spojí s DOGMOU. */}
           <span className="gw-plate" aria-hidden />
-          <span className="gw-art"><img src="/images/dogma-cover.png" alt="" aria-hidden /></span>
+          {/* 400 px WebP (62 KB) namiesto 570 px PNG (862 KB) — obálka sa tu kreslí ~180 px široká. Originál PNG ostáva pre knihu DOGMY (maska v ConstitutionBook). */}
+          <span className="gw-art"><img src="/images/dogma-cover-400.webp" alt="" aria-hidden width={400} height={533} decoding="async" /></span>
           <span className="gw-body">
             {/* ⚠️ Nadpis NESMIE byť „DOGMA" (Matej 9.8.: „v nadpise už neopakuj slovo dogma") —
                 to slovo svieti na obálke knihy vedľa. Nadpis preto hovorí, ČO to je. */}

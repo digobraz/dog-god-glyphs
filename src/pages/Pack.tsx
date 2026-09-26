@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
@@ -7,22 +7,25 @@ import { HeroCard } from '@/components/pack/HeroCard';
 import { PackSettings } from '@/components/pack/PackSettings';
 import { GlobePulse } from '@/components/pack/GlobePulse';
 import { FounderInvite } from '@/components/pack/FounderInvite';
-import { VerseOfTheDay } from '@/components/pack/VerseOfTheDay';
 import { PackWizard } from '@/components/pack/PackWizard';
 import { WIZ } from '@/components/pack/wizAnchors';
 // NextTripCard parkuje (nahradený TripSpotlightom 9.8.2026) — pozri komentár pri bloku nižšie.
-import { TripSpotlight } from '@/components/pack/TripSpotlight';
-import { PlanAskCard } from '@/components/pack/PlanAskCard';
+// LAZY (audit 26. 9. 2026): obe karty sú za `DEV_FULL`, ale statický import ťahal do
+// homepage celú databázu výletov (`heroTrails.generated`, ~280 KB gzip) — aj členovi na LIVE,
+// ktorý ich nikdy neuvidí. Teraz sa stiahnu, až keď sa karta naozaj vykreslí.
+const TripSpotlight = lazy(() => import('@/components/pack/TripSpotlight').then((m) => ({ default: m.TripSpotlight })));
+// Verš nesie 365 citátov v EN aj SK (~100 KB zdroja) a stojí pod ohybom — stačí ho doniesť neskôr.
+const VerseOfTheDay = lazy(() => import('@/components/pack/VerseOfTheDay').then((m) => ({ default: m.VerseOfTheDay })));
+const PlanAskCard = lazy(() => import('@/components/pack/PlanAskCard').then((m) => ({ default: m.PlanAskCard })));
 import { Gateways } from '@/components/pack/Gateways';
 import { useProfile } from '@/components/pack/profile/packProfile';
 import { DEV_FULL, PLANNING_LIVE } from '@/lib/packFlags';
 import { DEV_NOAUTH, DEV_MOCK_DOGS, DEV_MOCK_USER } from '@/lib/devMockDogs';
 import { getAccessibleDogIds } from '@/lib/dogRights';
-import { EDGE_BASE } from '@/lib/env';
+import { getMyAffiliate, getPackStats } from '@/lib/sharedFetch';
 
 const T = PACK_THEME;
 
-const STATS_EDGE = `${EDGE_BASE}/get-pack-stats`;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HOMEPAGE /pack — prestavba 2026-08-05 (Matej: „juicy ale nie preplnený…
@@ -45,29 +48,18 @@ const STATS_EDGE = `${EDGE_BASE}/get-pack-stats`;
 //     deep-link `/pack?welcome=1`, ktorý tu otvára modál na nastavenie hesla.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Len stĺpce, ktoré homepage naozaj číta (audit 26. 9. 2026 — predtým 20, z toho 11 nepoužitých).
+// `owner_gender` je jedno pole z JSONu `selections` (PostgREST `->>`), nie celý výber heroglyfu.
 interface DogRow {
   id: string;
-  user_id: string | null;
   dog_name: string | null;
   owner_name: string | null;
   cloudinary_main_url: string | null;
-  cloudinary_extras: string[] | null;
-  heroglyph_code: string | null;
-  heroglyph_png_url: string | null;
   share_card_url: string | null;
-  breed: string | null;
   country: string | null;
-  grid_message: string | null;
-  stripe_session_id: string | null;
   created_at: string;
   pack_number?: number | null;
-  selections?: { ownerGender?: string | null } | null;
-  // Svorka na homepage (blok 2) ukazuje dni nažive + health status — bez týchto
-  // polí by sa oboje muselo dopočítať až na profile psa.
-  birth_year?: number | null;
-  life_status?: string | null;   // 'alive' | 'deceased'
-  death_date?: string | null;
-  health_status?: string | null;
+  owner_gender?: string | null;
 }
 
 interface PackStats {
@@ -76,8 +68,6 @@ interface PackStats {
   last30d: number;
   topCountries: { country: string; count: number }[];
   topBreeds: { breed: string; count: number }[];
-  appVotes: number;
-  featureVotes: Record<string, number>;
 }
 
 interface UserMeta {
@@ -121,30 +111,22 @@ export default function Pack() {
         setUser({ ...DEV_MOCK_USER });
         setDogs(DEV_MOCK_DOGS.map((d) => ({
           id: d.id,
-          user_id: 'dev-mock-user',
           dog_name: d.dog_name,
           owner_name: DEV_MOCK_USER.fullName,
           cloudinary_main_url: d.cloudinary_main_url,
-          cloudinary_extras: null,
-          heroglyph_code: null,
-          heroglyph_png_url: d.heroglyph_png_url,
           share_card_url: null,
-          breed: null,
           country: d.country,
-          grid_message: null,
-          stripe_session_id: null,
           created_at: new Date().toISOString(),
           pack_number: d.pack_number,
-          selections: d.selections as DogRow['selections'],
-          birth_year: d.birth_year,
-          life_status: d.life_status,
-          death_date: d.death_date,
-          health_status: null,
+          owner_gender: (d.selections as { ownerGender?: string } | null)?.ownerGender ?? null,
         })));
         return;
       }
 
-      const { data: { user: u } } = await supabase.auth.getUser();
+      // `getSession()` číta session z prehliadača; `getUser()` bol sieťový dotaz navyše
+      // len kvôli menu a e-mailu, ktoré session nesie tiež (audit 26. 9. 2026).
+      const { data: { session: sess } } = await supabase.auth.getSession();
+      const u = sess?.user;
       if (!u) return;
 
       const meta = (u.user_metadata ?? {}) as Record<string, unknown>;
@@ -158,8 +140,7 @@ export default function Pack() {
 
       // BONES balance (affiliates.points) — zdroj čísla v HeroCard. Referral count
       // sa tu už nečíta: živil len „Invite a dog lover" krok vo First Steps.
-      supabase
-        .rpc('get_or_create_my_affiliate')
+      getMyAffiliate()
         .then(({ data }) => {
           const row = (data as { points?: number }[] | null)?.[0];
           if (!mounted) return;
@@ -182,7 +163,7 @@ export default function Pack() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let dogsQuery = (supabase as any)
         .from('dogs')
-        .select('id, user_id, dog_name, owner_name, cloudinary_main_url, cloudinary_extras, heroglyph_code, heroglyph_png_url, share_card_url, breed, country, grid_message, stripe_session_id, pack_number, created_at, selections, birth_year, life_status, death_date, health_status')
+        .select('id, dog_name, owner_name, cloudinary_main_url, share_card_url, country, pack_number, created_at, owner_gender:selections->>ownerGender')
         .eq('payment_status', 'paid');
       dogsQuery = accessIds ? dogsQuery.in('id', accessIds) : dogsQuery.eq('user_id', u.id);
       const { data } = await dogsQuery
@@ -196,8 +177,7 @@ export default function Pack() {
 
     async function loadStats() {
       try {
-        const res = await fetch(STATS_EDGE);
-        const j = (await res.json()) as PackStats;
+        const j = await getPackStats<PackStats>();
         if (!mounted) return;
         setStats(j);
       } catch {
@@ -216,16 +196,7 @@ export default function Pack() {
     id: d.id,
     dog_name: d.dog_name,
     cloudinary_main_url: d.cloudinary_main_url,
-    heroglyph_code: d.heroglyph_code,
-    heroglyph_png_url: d.heroglyph_png_url,
-    breed: d.breed,
     pack_number: d.pack_number ?? null,
-    country: d.country,
-    selections: (d.selections ?? null) as Record<string, string> | null,
-    birth_year: d.birth_year ?? null,
-    life_status: d.life_status ?? null,
-    death_date: d.death_date ?? null,
-    health_status: d.health_status ?? null,
   }));
 
   // Meno majiteľa — ZDROJ PRAVDY = `full_name` z účtu (mení sa v /pack/profile).
@@ -247,7 +218,7 @@ export default function Pack() {
 
   // Faraón placeholder podľa pohlavia majiteľa (z heroglyph selections), keď chýba reálna fotka
   const ownerGender = (dogs ?? [])
-    .map((d) => d.selections?.ownerGender)
+    .map((d) => d.owner_gender)
     .find((g): g is 'man' | 'woman' => g === 'man' || g === 'woman') ?? null;
 
   // Krajina majiteľa = country z prvého psa s vyplnenou krajinou → pin na globe.
@@ -325,9 +296,9 @@ export default function Pack() {
             plagát tak ostane plagátom a otázka zmizne v momente odpovede.
             ⚠️ Za `DEV_FULL` z toho istého dôvodu ako `TripSpotlight` nižšie — všetky tri
             odpovede vedú do `/pack/map`, ktorá zatiaľ nie je pre členov živá. */}
-        {DEV_FULL && PLANNING_LIVE && <PlanAskCard />}
+        {DEV_FULL && PLANNING_LIVE && <Suspense fallback={null}><PlanAskCard /></Suspense>}
 
-        {DEV_FULL && <TripSpotlight email={user?.email} ownerName={user?.name} />}
+        {DEV_FULL && <Suspense fallback={null}><TripSpotlight email={user?.email} ownerName={user?.name} /></Suspense>}
 
         {/* ── KAM IDEM — dva zrkadlové bloky: DOGMA · AINUBIS (Matej 9.8.) ──
             Obrázky sedia na vonkajších okrajoch riadku, texty vnútri; na mobile bloky
@@ -340,7 +311,7 @@ export default function Pack() {
         </div>
 
         {/* Sacred interlude — verš dňa z ústavy (rotuje denne) */}
-        <VerseOfTheDay />
+        <Suspense fallback={null}><VerseOfTheDay /></Suspense>
 
         {/* ── KTO SME — planéta + míľniky + TOP krajiny + POKLADNICA ── */}
         <div id={WIZ.globe}>
@@ -374,6 +345,8 @@ export default function Pack() {
   );
 }
 
+// Bez `filter: blur` (audit 26. 9. 2026): radiálny gradient do priehľadna je mäkký sám,
+// rozostrenie nad ním len nútilo prehliadač prekresľovať 2 veľké vrstvy v nekonečnej animácii.
 function AmbientOrbs() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden" style={{ zIndex: 0 }}>
@@ -386,7 +359,6 @@ function AmbientOrbs() {
           height: 320,
           borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(201, 154, 63, 0.16) 0%, transparent 70%)',
-          filter: 'blur(8px)',
           animation: 'pack-drift-a 22s ease-in-out infinite',
         }}
       />
@@ -399,7 +371,6 @@ function AmbientOrbs() {
           height: 380,
           borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(201, 154, 63, 0.10) 0%, transparent 70%)',
-          filter: 'blur(10px)',
           animation: 'pack-drift-b 28s ease-in-out infinite',
         }}
       />
@@ -413,23 +384,6 @@ function PackAnimations() {
       @keyframes pack-breathe {
         0%, 100% { transform: scale(1); opacity: 0.85; }
         50% { transform: scale(1.06); opacity: 1; }
-      }
-      @keyframes pack-shimmer {
-        0% { transform: translateX(-120%); }
-        100% { transform: translateX(120%); }
-      }
-      @keyframes pack-live-pulse {
-        0% { transform: scale(1); opacity: 0.6; }
-        80% { transform: scale(2.4); opacity: 0; }
-        100% { transform: scale(2.4); opacity: 0; }
-      }
-      @keyframes pack-bond-pulse {
-        0%, 100% { transform: translate(-50%, 0) scale(1); box-shadow: 0 6px 18px -6px ${PACK_THEME.border}, 0 0 0 0 rgba(201, 154, 63, 0.4); }
-        50% { transform: translate(-50%, 0) scale(1.08); box-shadow: 0 6px 22px -4px rgba(201, 154, 63, 0.55), 0 0 0 8px rgba(201, 154, 63, 0); }
-      }
-      @keyframes pack-bond-flow {
-        0% { background-position: 0 0; }
-        100% { background-position: 18px 0; }
       }
       @keyframes pack-drift-a {
         0%, 100% { transform: translate(0, 0); }

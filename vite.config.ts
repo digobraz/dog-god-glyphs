@@ -48,6 +48,20 @@ export default defineConfig(({ mode }) => ({
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime"],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // DÁTA VÝLETOV MAJÚ VLASTNÝ BALÍK (audit homepage 26. 9. 2026). Bez toho ich Rollup
+        // zlepil do jedného kusu s malými zdieľanými modulmi (ainubisSkin, PackNotifications,
+        // markEmoji…) — a kto chcel skin AINUBISA, stiahol aj 1,7 MB `heroTrails.generated`.
+        // Tak si ich ťahala každá stránka pod `PackLayout`, hoci ten ich načítava lazy.
+        manualChunks(id: string) {
+          if (id.includes("/src/data/heroTrails.generated")) return "data-trails";
+          if (id.includes("/src/data/heroJourneys")) return "data-journeys";
+        },
+      },
+    },
+  },
 }));
 
 /**

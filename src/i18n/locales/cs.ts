@@ -577,7 +577,7 @@ export const cs: Partial<Dict> = {
   'welcome.password.altLink': 'Radši odkaz? Najdeš ho v e-mailu.',
 
   // ── Share card ──
-  'sharecard.shareTitle': 'Sdílej {name} se smečkou',
+  'sharecard.shareTitle': 'Sdílej kartu psa {name}',
   'sharecard.shareButton': 'Sdílet',
   'sharecard.download': 'Stáhnout',
   'sharecard.shareText': '{name} je jeden z prvních 1 000 000 psů DOGYPT. Najdi toho svého na dogypt.com',
@@ -3923,6 +3923,7 @@ export const cs: Partial<Dict> = {
   // ── pack.pack ──
   'pack.pack.defaultName': '{owner} smečka',
   'pack.pack.rename': 'Přejmenovat smečku',
+  'pack.pack.renameCancel': 'Zrušit',
 
   // ── pack.party ──
   'pack.party.message': 'Napsat',

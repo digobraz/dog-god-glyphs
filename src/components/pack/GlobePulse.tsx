@@ -5,8 +5,9 @@ import { PACK_THEME, FONT_TITLE, FONT_UI } from './packTheme';
 import { GOLD_BLOCK_CSS } from './navGoldSkin';
 import { Ranking, RankingBoardsModal } from './Ranking';
 import { TransparentStats } from './TransparentStats';
-import { countryCentroid, countryISO2 } from '@/lib/countryGeo';
+import { countryCentroid, countryISO2, iso2ToISO3 } from '@/lib/countryGeo';
 import dogSilhouette from '@/assets/dogypt-logo-mobile.png';
+import { intlLocale } from '@/i18n/bcp47';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { localizeBreed } from '@/lib/breedDisplay';
 import { HandCheck } from '@/components/pack/HandIcons';
@@ -131,6 +132,10 @@ function PackGlobe({
     if (!canvas) return;
     let globe: ReturnType<typeof createGlobe> | null = null;
     let raf = 0;
+    // Mimo obrazovky sa nekreslí (audit 26. 9. 2026): WebGL slučka bežala stále, aj keď
+    // bol glóbus 2 000 px pod ohybom — na mobile to je batéria za nič.
+    let visible = true;
+    let io: IntersectionObserver | null = null;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     function init() {
@@ -169,9 +174,14 @@ function PackGlobe({
             ownerMarker.size = OWNER_BASE + 0.045 * (0.5 + 0.5 * Math.sin(t * 0.07));
           }
           globe!.update({ phi: phiRef.current + dragPhi.current, theta: THETA, markers });
-          raf = requestAnimationFrame(render);
+          raf = visible ? requestAnimationFrame(render) : 0;
         };
         raf = requestAnimationFrame(render);
+        io = new IntersectionObserver(([e]) => {
+          visible = e.isIntersecting;
+          if (visible && !raf) raf = requestAnimationFrame(render);
+        });
+        io.observe(canvas);
       }
 
       requestAnimationFrame(() => {
@@ -192,6 +202,7 @@ function PackGlobe({
     }
     return () => {
       if (raf) cancelAnimationFrame(raf);
+      io?.disconnect();
       if (globe) globe.destroy();
       globeRef.current = null;
     };
@@ -234,6 +245,7 @@ function MilestoneSwiper({
   onGo: (i: number) => void;
 }) {
   const t = useT();
+  const { lang } = useLang();
   const startX = useRef<number | null>(null);
   const wheelLock = useRef(0);
   const m = MILESTONES[idx];
@@ -400,7 +412,7 @@ function MilestoneSwiper({
                     textShadow: '0 2px 12px rgba(16,52,166,0.5)',
                   }}
                 >
-                  {pct < 0.1 ? pct.toFixed(2) : pct.toFixed(1)}%
+                  {new Intl.NumberFormat(intlLocale(lang), { style: 'percent', minimumFractionDigits: pct < 0.1 ? 2 : 1, maximumFractionDigits: pct < 0.1 ? 2 : 1 }).format(pct / 100)}
                 </div>
               )}
               <div
@@ -414,7 +426,7 @@ function MilestoneSwiper({
                   marginTop: 4,
                 }}
               >
-                {total.toLocaleString('en-US')} / {m.target.toLocaleString('en-US')}
+                {total.toLocaleString(intlLocale(lang))} / {m.target.toLocaleString(intlLocale(lang))}
               </div>
             </div>
           </div>
@@ -442,14 +454,32 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
 
   // Modál s OBOMA rebríčkami — otvárajú ho obe tlačidlá „Zobraziť všetko".
   const [boardsOpen, setBoardsOpen] = useState(false);
+  // ZLÚČENIE ZÁPISOV TEJ ISTEJ VECI (audit 26. 9. 2026). `dogs.country` nesie raz ISO2
+  // („SK"), raz ISO3 („SVK") a `get-pack-stats` sčítava surový text — Slovensko tak stálo
+  // v rebríčku dvakrát (6 + 4). Plemená rovnako: „Mixed Breed" a „Kríženec" sú po preklade
+  // jedno. Zlučuje sa tu, podľa toho istého prevodu, akým krajinu číta glóbus
+  // (`countryISO2`), takže piny a rebríček nemôžu ukazovať iné číslo.
+  const mergedCountries = useMemo(() => {
+    const by = new Map<string, number>();
+    for (const r of topCountries) {
+      const iso = countryISO2(r.country);
+      const k = iso ? iso2ToISO3(iso) : r.country.trim().toUpperCase();
+      by.set(k, (by.get(k) ?? 0) + r.count);
+    }
+    return [...by.entries()].map(([country, count]) => ({ country, count })).sort((a, b) => b.count - a.count);
+  }, [topCountries]);
   const countryRows = useMemo(
-    () => topCountries.map((r) => ({ label: r.country, count: r.count })),
-    [topCountries],
+    () => mergedCountries.map((r) => ({ label: r.country, count: r.count })),
+    [mergedCountries],
   );
-  const breedRows = useMemo(
-    () => topBreeds.map((r) => ({ label: localizeBreed(r.breed, lang), count: r.count })),
-    [topBreeds, lang],
-  );
+  const breedRows = useMemo(() => {
+    const by = new Map<string, number>();
+    for (const r of topBreeds) {
+      const label = localizeBreed(r.breed, lang);
+      by.set(label, (by.get(label) ?? 0) + r.count);
+    }
+    return [...by.entries()].map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count);
+  }, [topBreeds, lang]);
 
   // Swajpovateľný míľnik — default = prvý nesplnený. Sync-uje prstenec aj % dole.
   const activeIdx = (() => {
@@ -534,7 +564,7 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
           >
             {/* globe — zmenšený dovnútra, aby progress prstenec sedel okolo neho */}
             <div style={{ position: 'absolute', inset: '8%' }}>
-              <PackGlobe topCountries={topCountries} ownerCountry={ownerCountry} />
+              <PackGlobe topCountries={mergedCountries} ownerCountry={ownerCountry} />
             </div>
 
             {/* Progress prstenec — modro-zlatý (`--brand-gradient`), 270° gauge s medzerou dole */}
@@ -642,7 +672,7 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
                       '0 2px 16px rgba(252,245,226,0.98), 0 0 3px rgba(252,245,226,0.95)',
                   }}
                 >
-                  {animated.toLocaleString('en-US')}
+                  {animated.toLocaleString(intlLocale(lang))}
                 </div>
               </div>
             </div>

@@ -1749,6 +1749,7 @@ export const en = {
   // meno. Jazyk, ktorý potrebuje inú väzbu, si ju zapíše do svojho reťazca.
   'pack.pack.defaultName': "{owner}'s pack",
   'pack.pack.rename': "Rename pack",
+  'pack.pack.renameCancel': 'Cancel',
   // Rázcestie po kliku na „+" v bloku 1 (components/pack/HeroCard.tsx → AddPopup).
   // PAWMATE a PAWTNER sú zamknuté dvere (`soon`) — Matejov pokyn 12. 9. 2026; pustia sa
   // s R4 + F1, resp. F2. `pack.add.pack`/`packSub` osireli premiestnením premenovania

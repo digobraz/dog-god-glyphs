@@ -5,12 +5,12 @@ import { X } from 'lucide-react';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from './packTheme';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 import { EDGE_BASE } from '@/lib/env';
+import { intlLocale } from '@/i18n/bcp47';
 import { useT, useLang } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
 
 // Currency — €11 for launch (Europe first). One-line switch back to '$' for the US.
-const CUR = '€';
 const PRICE = '€11';
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -43,8 +43,10 @@ const ALLOC = FIELDS.map((f, i) => ({
 type Treasuries = { dev: number; affiliate: number; help: number; hektor: number };
 type Stats = { dogyptians: number; revenue_total: number; treasuries: Treasuries };
 
-function money(n: number): string {
-  return `${CUR}${(n ?? 0).toLocaleString('en-US')}`;
+// Formát podľa JAZYKA, nie natvrdo en-US (audit 26. 9. 2026: SK rozhranie ukazovalo
+// „€6,603", kde čiarka v slovenčine znamená desatinné miesto). SK „6 603 €", EN „€6,603".
+function money(n: number, lang: string): string {
+  return new Intl.NumberFormat(intlLocale(lang), { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n ?? 0);
 }
 
 export function TransparentStats() {
@@ -126,7 +128,7 @@ export function TransparentStats() {
             color: T.ink,
           }}
         >
-          {heroglyphs.toLocaleString('en-US')}
+          {heroglyphs.toLocaleString(intlLocale(lang))}
         </span>
         <span
           style={{
@@ -242,7 +244,7 @@ export function TransparentStats() {
                 color: T.inkStrong,
               }}
             >
-              {money(treasuries[a.field])}
+              {money(treasuries[a.field], lang)}
             </div>
           </button>
         ))}
@@ -292,7 +294,7 @@ export function TransparentStats() {
             color: T.inkDim,
           }}
         >
-          {t('pack.stats.raised', { amount: money(revenue) })}
+          {t('pack.stats.raised', { amount: money(revenue, lang) })}
         </span>
       </div>
 

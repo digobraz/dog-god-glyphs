@@ -661,7 +661,7 @@ export const sk: Partial<Dict> = {
   'welcome.password.altLink': 'Radšej link? Je v tvojom e-maile.',
 
   // ── Share card ──
-  'sharecard.shareTitle': 'Zdieľaj {name} s Packom',
+  'sharecard.shareTitle': 'Zdieľaj kartu psa {name}',
   'sharecard.shareButton': 'Zdieľať',
   'sharecard.download': 'Stiahnuť',
   'sharecard.shareText': '{name} je jeden z prvých 1 000 000 psov DOGYPT. Nájdi toho svojho na dogypt.com',
@@ -1828,6 +1828,7 @@ export const sk: Partial<Dict> = {
   "pack.tree.addDog": "Pridať",
   "pack.pack.defaultName": "{owner} svorka",
   "pack.pack.rename": "Premenovať svorku",
+  "pack.pack.renameCancel": "Zrušiť",
   "pack.add.title": "Pridať",
   "pack.add.dog": "Pes",
   "pack.add.dogSub": "Heroglyf pre ďalšieho psa",
