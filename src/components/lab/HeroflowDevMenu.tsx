@@ -52,9 +52,10 @@ const GROUPS: Group[] = [
       // otázku, ktorá zahŕňala 1b aj celý krok „PREČO HEROGLYF"). Obrazovka a
       // routa sa NEMAZALI, len vypadli z reťaze `navigate()` — toto menu je
       // jediná cesta, ako sa k nej dostať.
-      // Stavia sa v inej session (24. 9.) — `todo`, nie `route`, aby na ňu
-      // nešlo kliknúť (App.tsx cestu ešte nemá, klik by vypadal ako pokazené menu).
-      { kind: 'todo', name: '6 · Podstata', note: 'stavia sa' },
+      // Podstata je od 24. 9. postavená a App.tsx cestu má (26. 9. doplnené podľa
+      // sondy `scripts/done-povrchy.mjs` — menu zaostalo za dielňou HeroflowLab).
+      { kind: 'route', path: '/heroglyph/essence', name: '6 · Podstata', done: true },
+      { kind: 'route', path: '/heroglyph/welcome', name: '11 · Vitaj → Poradie → NA STENU', done: true },
     ],
   },
   {
