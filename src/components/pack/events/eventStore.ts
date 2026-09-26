@@ -9,7 +9,7 @@
 // testy. Kľúč sa pri prvom načítaní zmaže.
 //
 // Klient cez `supabase as any` ako `packAlerts.ts` — `types.ts` tieto RPC nepozná.
-// `VITE_SUPABASE_*` sa tu nečíta (tech-stack lock) — klient si ho berie sám cez `@/lib/env`.
+// Supabase premenné prostredia sa tu nečítajú (tech-stack lock) — klient si ich berie sám cez `@/lib/env`.
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { EVENTS_LIVE } from '@/lib/packFlags';
