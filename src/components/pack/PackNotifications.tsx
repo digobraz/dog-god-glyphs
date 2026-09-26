@@ -593,18 +593,30 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
   );
 }
 
-// ── AINUBIS VĽAVO HORE, SÁM — len mobil (< 768 px) ──────────────────────────
+// ── AINUBIS VĽAVO HORE, SÁM — na každej šírke ─────────────────────────────────
 // Matej 26. 9.: plávajúci AINUBIS musí byť všade, ale na mobile nesmie prekrývať obsah;
-// poobede: „Ainubisa presuň na ľavú stranu hore nech tam je sám“. Guľa vpravo dole nad
-// lištou sedela vždy na niečom; horný rad je aj tak sticky vrstva, takže koliesko v ňom
-// nič nové nezakryje. Na PC ostáva guľa dole — tam je miesto.
-// Zlom 768 = `MOVE_MIN_WIDTH` v AinubisWidget (pod ním je panel fullscreen sheet).
+// poobede: „Ainubisa presuň na ľavú stranu hore nech tam je sám" (najprv len mobil),
+// o hodinu: „pri homepage by som asi ainubisa dal hore vľavo aj na pc" — jedno miesto na
+// každej šírke. Horný rad je sticky vrstva, takže koliesko v ňom nič nové nezakryje.
 // Značka `has-hub-ainubis` na <body> skryje guľu LEN kým je koliesko namountované —
-// na mape (bez neho) guľa ostáva. `visibility`, nie `display` — viď AinubisWidget.css.
+// na mape (bez horného radu) guľa ostáva vpravo dole. `visibility`, nie `display` —
+// viď AinubisWidget.css.
+// PANEL rastie zo spúšťača: na PC pod kolieskom, zarovnaný s ľavým okrajom stĺpca
+// (PACK_COL.wide 880 / 2 − 24 px odsadenie = 416). Zvýšená špecificita (`.has-pack-nav`)
+// prebíja pravidlo widgetu, ktoré panel centruje nad lištu. Ručne presunutý panel
+// (inline `left/top` z ťahania) má prednosť — to je voľba človeka.
 const HUB_AINUBIS_CSS = `
-@media (min-width: 768px) { .pk-hub-ainubis { display: none !important; } }
+body.has-hub-ainubis .ainubis-launcher { visibility: hidden; }
+@media (min-width: 768px) {
+  body.has-hub-ainubis.has-pack-nav .ainubis-panel {
+    top: calc(env(safe-area-inset-top, 0px) + 78px);
+    bottom: auto;
+    left: max(16px, calc(50% - 416px));
+    right: auto;
+    height: min(560px, calc(100vh - 190px)); /* 78 hore + lišta ~96 + vôľa */
+  }
+}
 @media (max-width: 767px) {
-  body.has-hub-ainubis .ainubis-launcher { visibility: hidden; }
   body.has-hub-ainubis .ainubis-panel { bottom: var(--ainubis-dock-b, calc(env(safe-area-inset-bottom, 0px) + 16px)); }
 }`;
 
