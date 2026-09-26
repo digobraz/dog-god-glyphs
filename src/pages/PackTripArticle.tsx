@@ -1216,7 +1216,7 @@ export default function PackTripArticle() {
   const handleShare = async () => {
     if (!trail) return;
     const url = `${window.location.origin}${tripPath(trail)}`;
-    const shareData = { title: trail.name, text: tripShareText(trail), url };
+    const shareData = { title: trail.name, text: tripShareText(trail, lang), url };
     if (typeof navigator.share === 'function') {
       try { await navigator.share(shareData); return; } catch { /* cancelled */ }
     }

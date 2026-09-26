@@ -3624,7 +3624,11 @@ export default function PackMap() {
   // EVENT flow (krok 3 zadania-eventy) — rovnaký vzor ako addFlow, drží len origin ('own'/'tip');
   // formulár samotný (AddEvent) si drží vlastný interný state.
   const [addEventFlow, setAddEventFlow] = useState<'own' | 'tip' | null>(null);
-  const [addError, setAddError] = useState('');           // chyba pri ukladaní (napr. plný localStorage)
+  // CHYBA PRI UKLADANÍ (plné úložisko zariadenia pri fotkách). Do 26. 9. 2026 tu bol stav,
+  // ktorý sa nastavoval, ale NIKDE sa nevykreslil — výlet bez fotiek alebo neuložený výlet
+  // prešiel ticho. Hláška ide odteraz rovno do toastu, ten je vidno nad sprievodcom aj po
+  // jeho zatvorení.
+  const reportAddError = (msg: string) => { if (msg) toast({ description: msg }); };
 
   // ── ZÁPISY DO MAPY (2026-08-20) ────────────────────────────────────────────
   // `mapInstance` je STATE, nie ref: `useLongPressPoint` musí prihlásiť listenery
@@ -4472,7 +4476,7 @@ export default function PackMap() {
     const tr = trailsById(tid);
     if (!tr) return;
     const url = `${window.location.origin}${tripPath(tr)}`;
-    const shareData = { title: tr.name, text: tripShareText(tr), url };
+    const shareData = { title: tr.name, text: tripShareText(tr, lang), url };
     if (typeof navigator.share === 'function') {
       try { await navigator.share(shareData); return; } catch { /* cancelled */ }
     }
@@ -4858,7 +4862,6 @@ export default function PackMap() {
     setTripNotesState([]);
     clearTripNotes();
     setSeedPoint(null);
-    setAddError('');
     // issue #35: keď sme prišli na `/pack/add/trip`, zatvorenie formulára musí vrátiť aj URL —
     // inak by na mape visela adresa ADD flow a reload/back by formulár otvoril znova.
     if (backToOrigin()) return;
@@ -4869,7 +4872,6 @@ export default function PackMap() {
     setEditingEvent(null);
     setAddMapPhase('off');
     setSeedPoint(null);
-    setAddError('');
     if (backToOrigin()) return;
     if (onAddRoute) navigate('/pack/map', { replace: true });
   };
@@ -5207,11 +5209,10 @@ export default function PackMap() {
           : {}),
       };
       if (!updateLocalTrail(finishId, patch)) {
-        setAddError(t('pack.map.errorPhotosStorage'));
+        reportAddError(t('pack.map.errorPhotosStorage'));
         return false;
       }
-      setAddError('');
-      // POSÁDKA JE ROZHODNUTIE, NIE ODHAD (B20): dopísaný koncept smie psa aj ODOBRAŤ,
+        // POSÁDKA JE ROZHODNUTIE, NIE ODHAD (B20): dopísaný koncept smie psa aj ODOBRAŤ,
       // preto `setDogTripCrew` (prepisuje), nie `attributeDogTrips` (dopĺňa).
       setDogTripCrew(finishId, crewDogIds(draft.crew));
       setLocalTrails(readLocalTrails());
@@ -5372,10 +5373,10 @@ export default function PackMap() {
         photosDropped = saved;
       }
       if (!saved) {
-        setAddError(t('pack.map.errorPhotosStorage'));
+        reportAddError(t('pack.map.errorPhotosStorage'));
         return false;
       }
-      setAddError(photosDropped ? t('pack.map.errorPhotosDropped') : '');
+      reportAddError(photosDropped ? t('pack.map.errorPhotosDropped') : '');
       setLocalTrails(next);
       setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
       // PSIE KM (B20): sprievodca ako jediný vie, KTORÝ pes išiel — jeho slovo prebíja

@@ -171,9 +171,10 @@ export const diffMarkShape = (diff: string): 'circle' | 'square' | 'triangle' =>
 // PackTripArticle (predtým dve identické kópie `${tr.name} — ${tr.km} km, ${tr.diff}`).
 // Vodná plocha nemá km ani diff (viď isWaterTrail vyššie) — chýbajúce časti sa vynechajú, nie
 // fabrikuje sa „undefined" ani holé „ km".
-export function tripShareText(tr: { name: string; km: string; diff?: string }): string {
+// `lang` (26. 9. 2026): km v jazyku rozhrania, rovnako ako na mape („11,3 km" v SK).
+export function tripShareText(tr: { name: string; km: string; diff?: string }, lang = 'en'): string {
   const parts: string[] = [];
-  if (tr.km && tr.km.trim()) parts.push(`${tr.km} km`);
+  if (tr.km && tr.km.trim()) parts.push(`${fmtNum(tr.km, lang)} km`);
   if (tr.diff) parts.push(tr.diff);
   return parts.length ? `${tr.name} — ${parts.join(', ')}` : tr.name;
 }

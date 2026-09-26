@@ -36,7 +36,8 @@ import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import { useMyEventCount } from '@/components/pack/events/eventStore';
 import { useMyWishCount } from '@/components/pack/mapnotes/wishData';
 import { profileLevelFor, readVotes, readPlans } from './packCommunity';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
+import { fmtNum } from '@/i18n/bcp47';
 
 const T = PACK_THEME;
 const DAY_MS = 86400000;
@@ -344,6 +345,7 @@ interface TripSpotlightProps {
 
 export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps) {
   const t = useT();
+  const { lang } = useLang();
 
   // Body za odkazy — to isté číslo, aké má hlavička mapy aj TRIPSTATS.
   const myNotePoints = useMyNotePoints();
@@ -510,7 +512,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
 
           <div className="flex flex-wrap gap-2" style={{ marginTop: 12 }}>
             {trail.region && <span className="ts-chip">{trail.region}</span>}
-            {trail.km && <span className="ts-chip">{trail.km} km</span>}
+            {trail.km && <span className="ts-chip">{fmtNum(trail.km, lang)} km</span>}
             {trail.diff && <span className="ts-chip">{t('pack.map.diff.' + trail.diff)}</span>}
             {/* HODNOTENIE = PACKY, NIE HVIEZDIČKY (Matej 12. 9. 2026: „v 2. bloku sú
                 hviezdičky ale my používame packy“). Rovnaký widget ako karty a inline detail
