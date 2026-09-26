@@ -24,7 +24,6 @@ import { pilgrimLevelOf } from './pilgrimOf';
 import { devotionLevel } from '@/lib/devotion';
 import { tierOfLevel, tierGradient } from '@/lib/packTiers';
 import { LAPIS } from '@/components/pack/navGoldSkin';
-import { BrandIcon } from '@/components/pack/BrandIcon';
 
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
 
@@ -121,7 +120,9 @@ export const SNIFFER_CARD_CSS = `
 .sn-lv .is-devotion{background:${LAPIS.grad};color:${LAPIS.ink};}
 .sn-lv .is-devotion > b{background:${BRAND_GOLD_BTN.grad};color:${BRAND_GOLD_BTN.ink};}
 /* PSY pred zámerom: „1 pes · HEKTOR · Hľadám: Priateľstvo" */
-.sn-dogs{margin:0;display:flex;align-items:center;gap:${PACK_SPACE.sm}px;font-size:${PACK_TEXT.body}px;min-width:0;}
+/* Pes TESNE pod menom, bez ikonky labky (Matej 26. 9.: „daj preč ikonku toho psa a daj to meno
+   psa blízko mena človeka") — záporný okraj zruší polovicu medzery stĺpca .sn-ov. */
+.sn-dogs{margin:-${PACK_SPACE.md + PACK_SPACE.xs}px 0 0;display:flex;align-items:center;gap:${PACK_SPACE.xs}px;font-size:${PACK_TEXT.body}px;min-width:0;}
 .sn-dogs > b{font-weight:400;opacity:.75;}
 .sn-dogs em{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 /* C7 — karta nie je OFICIÁLNY povrch (DOG ID/certifikát/share/WALL/PackTree) → meno psa
@@ -259,7 +260,6 @@ export function SnifferCard({ card, tx, back = false, className = '', style, onO
         {card.dogs.length > 0 && (
           <p className="sn-dogs">
             <b>+</b>
-            <BrandIcon name="paw" size={PACK_SPACE.lg} tint="white" />
             <em>{card.dogs.map((d) => d.name).filter(Boolean).join(', ')}</em>
           </p>
         )}
