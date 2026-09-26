@@ -10,8 +10,6 @@ import { LAPIS } from '@/components/pack/navGoldSkin';
 import { PACK_R } from '@/components/pack/packTheme';
 import { LAB } from '@/lib/labTheme';
 import { hekthorFace } from '@/lib/hekthorFaces';
-import { HeroglyphFrame } from '@/components/HeroglyphFrame';
-import { ensureDogVisionFilter } from '@/lib/dogVision';
 import { BRAND_GOLD_BTN } from '@/components/pack/packTheme';
 import {
   readSvorka, svorkaDogPayload, waitForStablePhotos,
@@ -124,7 +122,7 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
       <div className="hf-speak st-speak">
         {/* Hektor V STREDE a text pod ním, čo najväčší (Matej 26. 9.: *„tento popup
             musí byť čo najväčší — Hektor bude v strede a pod ním text"*). */}
-        <FlowMedallion src={hekthorFace('stay')} size={typeof window === 'undefined' ? 120 : window.innerHeight < 700 ? 88 : window.innerHeight < 820 ? (window.innerWidth > 600 ? 132 : 112) : window.innerWidth > 600 ? 176 : 136} />
+        <FlowMedallion src={hekthorFace('stay')} size={typeof window === 'undefined' ? 120 : window.innerHeight < 700 ? 96 : window.innerHeight < 820 ? 144 : window.innerHeight < 960 ? 184 : 216} />
         <span className="say">
           <h2>
             {t('heroglyph.flow.stay.titlePrefix')}
@@ -247,10 +245,10 @@ function GuestThanks() {
   const navigate = useNavigate();
   const t = useT();
   const dogs = useMemo(() => readSvorka(), []);
-  useMemo(() => ensureDogVisionFilter(), []);
-  const first = dogs[0];
-  const names = dogs.map((d) => d.dogName).filter(Boolean).join(', ') || 'HEKTHOR';
-  const [pre, post] = t('heroglyph.flow.stay.thanks.t', { dogName: '\u0000' }).split('\u0000');
+  // Matej 26. 9.: *„HOTOVO. TVOJ PES/PSY sú v DOGYPTE!"* — bez mena, bez
+  // podnadpisu o AINUBISovi a bez fotky. Zvýraznené slovo je medzi hviezdičkami.
+  const title = t(dogs.length > 1 ? 'heroglyph.flow.stay.thanks.tMany' : 'heroglyph.flow.stay.thanks.tOne');
+  const [pre, hi, post] = title.split('*');
   const medal = typeof window === 'undefined' ? 96 : window.innerHeight < 700 ? 72 : window.innerWidth > 600 ? 120 : 96;
   const tags = [t('heroglyph.flow.stay.thanks.tagNum'), 'DOG ID', 'AINUBIS', 'DOGTRIP', 'SNIFFER'];
   const Ok = () => (
@@ -267,30 +265,18 @@ function GuestThanks() {
           <motion.div className="hf-speak gt-speak" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
             <FlowMedallion src={hekthorFace('stay')} size={medal} />
             <span className="say">
-              <h2>{pre}<b>{names}</b>{post}</h2>
-              <p>{t('heroglyph.flow.stay.thanks.sub')}</p>
+              <h2>{pre}<b>{hi}</b>{post}</h2>
             </span>
           </motion.div>
 
           <motion.div className="hf-block hf-carved gt-stack" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
             <span className="hf-carved-rim" aria-hidden />
             <div className="hf-plate">
-              <div className="gt-row">
-                <div className="gt-card">
-                  {first?.photo
-                    ? <img className="gt-photo" src={first.photo} alt="" />
-                    : <img className="gt-photo" src="/images/hektor-grid.webp" alt="" />}
-                  <span className="gt-name">{first?.dogName || 'HEKTHOR'}</span>
-                  <div className="gt-glyph">
-                    <HeroglyphFrame dogValues={first?.selections} className="gt-frame" />
-                  </div>
-                </div>
-                <ul className="gt-lines">
-                  <li><Ok />{t('heroglyph.flow.stay.thanks.l1')}</li>
-                  <li><Ok />{t('heroglyph.flow.stay.thanks.l2')}</li>
-                  <li><Ok />{t('heroglyph.flow.stay.thanks.l3')}</li>
-                </ul>
-              </div>
+              <ul className="gt-lines">
+                <li><Ok />{t('heroglyph.flow.stay.thanks.l1')}</li>
+                <li><Ok />{t('heroglyph.flow.stay.thanks.l2')}</li>
+                <li><Ok />{t('heroglyph.flow.stay.thanks.l3')}</li>
+              </ul>
               <p className="hf-legend">{t('heroglyph.flow.stay.thanks.rule')}</p>
               <div className="gt-tags">{tags.map((x) => <span key={x}>{x}</span>)}</div>
               <div className="gt-ctas">
@@ -315,15 +301,7 @@ const STAY_CSS = `
 @media (min-width: 601px) { .gt-speak h2 { font-size: 24px; } .gt-speak p { font-size: 16px; } }
 .gt-stack { width: 100%; }
 .gt-stack .hf-plate { gap: 12px; }
-.gt-row { display: flex; align-items: center; gap: 16px; }
-.gt-card { position: relative; flex: none; width: 132px; aspect-ratio: 174 / 232; border-radius: 12px; overflow: hidden;
-  box-shadow: 0 4px 12px rgba(40, 24, 4, 0.35); background: #2a2016; }
-.gt-photo { width: 100%; height: 100%; object-fit: cover; filter: url(#dogypt-dog-vision); display: block; }
-.gt-name { position: absolute; top: 8px; left: 50%; translate: -50% 0; white-space: nowrap; padding: 2px 10px; border-radius: ${PACK_R.pill}px;
-  background: rgba(0, 0, 0, 0.5); color: #FAF4EC; font-family: 'Cinzel Decorative', serif; font-weight: 700; font-size: 10px; }
-.gt-glyph { position: absolute; left: 0; right: 0; bottom: 0; padding: 20px 6px 6px; background: linear-gradient(transparent, rgba(0, 0, 0, 0.78)); }
-.gt-glyph .gt-frame { width: 100%; filter: invert(72%) sepia(52%) saturate(560%) hue-rotate(2deg) brightness(95%); }
-.gt-lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px;
+.gt-lines { list-style: none; margin: 0 auto; padding: 0; display: flex; flex-direction: column; gap: 8px;
   font-family: 'Space Grotesk', sans-serif; font-size: 16px; line-height: 1.3; color: ${LAB.ink}; }
 .gt-lines li { display: flex; align-items: center; gap: 8px; }
 .gt-ok { flex: none; width: 20px; height: 20px; stroke: #3D7A4E; }
@@ -333,7 +311,6 @@ const STAY_CSS = `
 .gt-ctas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 @media (max-width: 600px) {
   .gt-speak h2 { font-size: 16px; } .gt-speak p { font-size: 12px; }
-  .gt-row { gap: 12px; } .gt-card { width: 104px; }
   .gt-lines { font-size: 14px; gap: 6px; } .gt-ok { width: 18px; height: 18px; }
   .gt-ctas { grid-template-columns: 1fr; } .gt-ctas .hf-cta { order: -1; }
 }

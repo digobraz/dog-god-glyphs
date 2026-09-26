@@ -575,8 +575,14 @@ const CHECKOUT_CSS = `
    obsah pokladne pod závojom zmizne a panel stojí V TOKU — doska má jeho výšku,
    nie opačne. */
 .co-stack.is-staying > .hf-plate { padding: 0; }
-/* ZADRŽANIE čo najväčšie (Matej 26. 9.): doska sa v tomto stave rozšíri nad max-w-xl. */
-.hf-stage:has(.co-stack.is-staying) > .max-w-xl { max-width: 760px; }
+/* ZADRŽANIE: ŠÍRKA ako ostatné obrazovky, VÝŠKA cez celé okno (Matej 26. 9.
+   večer: *„zúž ju tak ako ostatné, ale na výšku môže byť vyššia, nech je obsah
+   cez celú výšku — tak ako je najväčší obsah vo flow"*). Rezerva od okraja
+   (PAGE_AIR) ostáva: odrátaná je lišta so šípkou (~56) a vzduch hore aj dole. */
+.co-stack.is-staying { margin-top: 0; } /* pečať je skrytá — jej miesto hore sa vracia popupu */
+.co-stack.is-staying .co-stay.fp-panel { min-height: min(calc(100dvh - 136px), 820px); display: flex; }
+.co-stack.is-staying .co-stay > .st-wrap { flex: 1; margin: 0; justify-content: space-between; gap: 16px; }
+.co-stack.is-staying .st-wrap .st-speak.hf-speak { flex: 1; justify-content: center; }
 .co-stack.is-staying > .hf-plate > *:not(.co-stay) { display: none; }
 .co-stack.is-staying .co-stay.fp-panel { position: relative; inset: auto; overflow: visible; }
 .co-veil { position: fixed; inset: 0; z-index: 60; background: rgba(8, 6, 4, 0.62); }
