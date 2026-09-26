@@ -15,9 +15,10 @@ import { EDGE_BASE } from '@/lib/env';
 const TTL_MS = 5_000;
 const cache = new Map<string, { at: number; p: Promise<unknown> }>();
 
-function shared<T>(key: string, run: () => Promise<T>): Promise<T> {
+/** Zdieľaný sľub pod kľúčom. `ttl` kratší než 5 s = len „dvaja naraz", nie pamäť. */
+export function shared<T>(key: string, run: () => Promise<T>, ttl = TTL_MS): Promise<T> {
   const hit = cache.get(key);
-  if (hit && Date.now() - hit.at < TTL_MS) return hit.p as Promise<T>;
+  if (hit && Date.now() - hit.at < ttl) return hit.p as Promise<T>;
   const p = run();
   cache.set(key, { at: Date.now(), p });
   p.catch(() => { if (cache.get(key)?.p === p) cache.delete(key); });

@@ -34,7 +34,8 @@ export function invalidateMyNotePoints(): void {
   inflight = null;
 }
 
-async function loadNotes(): Promise<MapNote[]> {
+/** Zdieľané načítanie vrstvy — to isté volá aj `useMapNotes` pri PRVOM načítaní (audit B6). */
+export async function loadNotes(): Promise<MapNote[]> {
   if (cache) return cache;
   if (!inflight) {
     inflight = fetchMapNotes()

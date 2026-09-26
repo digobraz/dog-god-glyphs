@@ -3962,7 +3962,13 @@ export default function PackMap() {
   useCrowdOthers();
   // Môj hlas/✓ sa zapisuje frontou do DB — súhrn sa obnoví až keď zápis dobehne, inak by
   // RPC vrátilo počet ešte bezo mňa. Zámerný debounce: rýchle klikanie = jedno volanie.
+  // ⚠️ LEN PO MOJOM HLASE (audit /pack/map B6, 26. 9. 2026): efekt bežal aj pri mounte
+  //    a po hydratácii zo store (`setVotes(readVotes())`), takže `trip_crowd` išlo pri
+  //    otvorení mapy 2–3× — prvé volanie robí už `useCrowdOthers` samo. Zmena, ktorá prišla
+  //    zo store, nastaví príznak a efekt ju preskočí.
+  const votesFromStoreRef = useRef(true);
   useEffect(() => {
+    if (votesFromStoreRef.current) { votesFromStoreRef.current = false; return; }
     const h = setTimeout(() => { void refreshCrowdOthers(); }, 1500);
     return () => clearTimeout(h);
   }, [votes]);
@@ -3979,6 +3985,7 @@ export default function PackMap() {
     if (!storeEpoch) return;
     setFavIds(readFavIds());
     setWalkedIds(readWalkedIds());
+    votesFromStoreRef.current = true;
     setVotes(readVotes());
     setPlans(readPlans());
     setEvents((prev) => { const stored = readEvents(); return stored.length ? stored : prev; });
@@ -4139,7 +4146,8 @@ export default function PackMap() {
   // #41 — CUDZIE OTVORENÉ VÝLETY na tejto trase. Kľúčované slugom do zoznamu, nie na
   // jednu položku: tú istú trasu môže mať vypísanú viac ľudí a každý je iná partia.
   // Bez organizátora z RPC (zavretý medzičasom, nezaplatený) sa karta nekreslí — nie je koho.
-  const { trips: openTrips } = useOpenTrips();
+  // Plánovanie je v sklade (PLANNING_LIVE) ⇒ bez dopytu; prázdny zoznam = ani RPC za výlet.
+  const { trips: openTrips } = useOpenTrips(0, PLANNING_LIVE);
   const openTripParties = useTripParties(openTrips.map((o) => ({ slug: o.slug, organizerId: o.organizerId })));
   const openHostsBySlug = useMemo(() => {
     // `organizerId` sa nesie ďalej zámerne: bez neho sa členovi partie nedá napísať

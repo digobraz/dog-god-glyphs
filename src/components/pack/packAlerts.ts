@@ -28,6 +28,7 @@
 // ── ID UPOZORNENIA NESIE ČAS ─────────────────────────────────────────────────────────────
 // `req|<slug>|<čas najnovšej žiadosti>`. Keby id bolo len `req|<slug>`, druhá žiadosť na ten
 // istý výlet by sa už nikdy nerozsvietila — človek ju označil za prečítanú pri prvej.
+import { shared } from '@/lib/sharedFetch';
 import { supabase } from '@/integrations/supabase/client';
 import { currentTripId, tripPathById } from '@/components/pack/tripShared';
 import type { HeroTrail } from '@/data/heroTrails.generated';
@@ -164,7 +165,17 @@ interface EventAlertRow {
  * „dvaja ľudia žiadajú o Rokoš", nie mená; mená uvidí organizátor v zozname výletov, kam ho
  * upozornenie pošle. Menej dotazov aj menej cudzej identity rozsypanej po appke.
  */
-export async function loadAlerts(): Promise<PackAlert[]> {
+/**
+ * Upozornenia — JEDNO volanie pre všetkých, ktorí sa pýtajú naraz (audit /pack/map B6,
+ * 26. 9. 2026). Mapa má hlavičku dvakrát (mobilná + PC, jedna skrytá cez CSS) a každá
+ * si pýtala 5 dotazov sama. Okno 1,5 s pokryje súbežný mount; po akcii (prijatie žiadosti)
+ * ide ďalšie volanie už na sieť.
+ */
+export function loadAlerts(): Promise<PackAlert[]> {
+  return shared('pack-alerts', loadAlertsNow, 1500);
+}
+
+async function loadAlertsNow(): Promise<PackAlert[]> {
   const { data: sess } = await supabase.auth.getSession();
   const uid = sess.session?.user?.id;
   if (!uid) return []; // odhlásený / DEV_NOAUTH — RLS by aj tak nevydala nič

@@ -20,6 +20,8 @@ export interface PackDog {
 export interface PackIdentity {
   session: Session | null;
   loading: boolean;
+  /** Prihlásenie je známe (psy sa ešte môžu načítavať). Viď `sessionReady` nižšie. */
+  sessionReady: boolean;
   dogs: PackDog[];
   devotion: number;
   bones: number;

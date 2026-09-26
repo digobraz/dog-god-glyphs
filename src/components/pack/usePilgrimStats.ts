@@ -43,8 +43,15 @@ export function usePilgrimStats(email: string, ownerName: string) {
 export function usePublishPilgrimLevel(level: number | null | undefined) {
   const { profile } = useProfile();
   const published = profile?.human?.pilgrim?.level;
+  // ⏳ ZÁPIS AŽ KEĎ SA ÚROVEŇ USTÁLI (audit /pack/map B6, 26. 9. 2026). Mapa ráta úroveň
+  // najprv s nulovými bodmi za odkazy, podujatia a priania (ešte sa načítavajú) a hneď ju
+  // zapísala — iní členovia tak na chvíľu videli nižšiu úroveň a o sekundu išiel druhý zápis.
+  // Čaká sa 4 s bez zmeny; každá nová hodnota odpočet reštartuje.
   useEffect(() => {
     if (!profile || level == null || level === published) return;
-    void saveHuman({ pilgrim: { level, at: new Date().toISOString() } });
+    const h = setTimeout(() => {
+      void saveHuman({ pilgrim: { level, at: new Date().toISOString() } });
+    }, 4000);
+    return () => clearTimeout(h);
   }, [profile, level, published]);
 }

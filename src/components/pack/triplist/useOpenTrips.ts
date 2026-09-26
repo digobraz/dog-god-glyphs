@@ -28,11 +28,17 @@ interface OpenTripRow {
   added_at: string | null;
 }
 
-export function useOpenTrips(epoch = 0): { trips: OpenTrip[]; loading: boolean } {
+/**
+ * `enabled = false` = nestrieľa nič (audit /pack/map B5, 26. 9. 2026): mapa volala dopyt
+ * aj pri `PLANNING_LIVE = false` a výsledok zahodila — a za ním `useTripParties` jedno RPC
+ * na KAŽDÝ otvorený výlet.
+ */
+export function useOpenTrips(epoch = 0, enabled = true): { trips: OpenTrip[]; loading: boolean } {
   const [trips, setTrips] = useState<OpenTrip[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
+    if (!enabled) { setTrips([]); setLoading(false); return; }
     const { data: sess } = await supabase.auth.getSession();
     const uid = sess.session?.user?.id ?? null;
     if (!uid) {
@@ -60,7 +66,7 @@ export function useOpenTrips(epoch = 0): { trips: OpenTrip[]; loading: boolean }
       slug: r.trip_slug, organizerId: r.user_id, date: r.trip_date, addedAt: r.added_at,
     })));
     setLoading(false);
-  }, []);
+  }, [enabled]);
 
   useEffect(() => { void load(); }, [load, epoch]);
 

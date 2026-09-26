@@ -6,7 +6,7 @@
 //
 // Datasetové body (`customPoi` z `heroTrails.generated.ts`) sa primiešavajú tu —
 // v UI je to jedna vrstva a komponenty nemajú riešiť, odkiaľ ktorý bod prišiel.
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import {
   fetchMapNotes,
@@ -18,16 +18,22 @@ import {
   type NewMapNote,
 } from './mapNotesData';
 import { datasetNotes } from './mapNotesGeo';
-import { invalidateMyNotePoints } from './useMyNotePoints';
+import { invalidateMyNotePoints, loadNotes } from './useMyNotePoints';
 
 export function useMapNotes(enabled = true) {
   const [notes, setNotes] = useState<MapNote[]>([]);
   const [loading, setLoading] = useState(enabled);
 
+  // PRVÉ načítanie ide cez zdieľanú kópiu z `useMyNotePoints` (audit /pack/map B6, 26. 9. 2026):
+  // mapa volala `list_map_notes` dvakrát — raz pre vrstvu, raz pre body do levelu. Po zápise,
+  // hlase či lajku sa berie čerstvá vrstva priamo zo servera.
+  const firstLoadRef = useRef(true);
   const reload = useCallback(async () => {
     if (!enabled) return;
     try {
-      setNotes(await fetchMapNotes());
+      const fresh = !firstLoadRef.current;
+      firstLoadRef.current = false;
+      setNotes(await (fresh ? fetchMapNotes() : loadNotes()));
     } catch {
       // Zlyhané načítanie = prázdna vrstva, nie rozbitá mapa. Zápisy sú doplnok
       // k mape, nie jej podmienka — pád RPC (odhlásený, neplatiaci) nesmie
