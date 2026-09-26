@@ -546,6 +546,13 @@ export const sk: Partial<Dict> = {
   //    colour / The origin / Dog bloodline" sa na 390 px lámu do dvoch radov
   //    a pás prestane byť pásom. Nadpis nad otázkou ostáva dlhý — tam je miesto.
   'heroglyph.flow.essence.chipGender': 'POHLAVIE',
+  'heroglyph.flow.essence.askOrigin': 'Je tvoj pes vychovaný, alebo zachránený?',
+  'heroglyph.flow.essence.subKing': 'pes',
+  'heroglyph.flow.essence.subQueen': 'sučka',
+  'heroglyph.flow.essence.subRaised': 'doma od šteňaťa',
+  'heroglyph.flow.essence.subRescued': 'z útulku či z ulice',
+  'heroglyph.flow.essence.subAristocrat': 'čistokrvný',
+  'heroglyph.flow.essence.subMutt': 'kríženec',
   'heroglyph.flow.essence.chipColour': 'FARBA',
   'heroglyph.flow.essence.chipOrigin': 'PÔVOD',
   'heroglyph.flow.essence.chipBloodline': 'RODOKMEŇ',

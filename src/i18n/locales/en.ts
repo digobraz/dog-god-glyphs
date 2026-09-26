@@ -658,6 +658,13 @@ export const en = {
   //    colour / The origin / Dog bloodline" sa na 390 px lámu do dvoch radov
   //    a pás prestane byť pásom. Nadpis nad otázkou ostáva dlhý — tam je miesto.
   'heroglyph.flow.essence.chipGender': 'GENDER',
+  'heroglyph.flow.essence.askOrigin': 'Was your dog raised or rescued?',
+  'heroglyph.flow.essence.subKing': 'male',
+  'heroglyph.flow.essence.subQueen': 'female',
+  'heroglyph.flow.essence.subRaised': 'home since puppyhood',
+  'heroglyph.flow.essence.subRescued': 'from a shelter or the street',
+  'heroglyph.flow.essence.subAristocrat': 'purebred',
+  'heroglyph.flow.essence.subMutt': 'mixed breed',
   'heroglyph.flow.essence.chipColour': 'COLOUR',
   'heroglyph.flow.essence.chipOrigin': 'ORIGIN',
   'heroglyph.flow.essence.chipBloodline': 'BLOODLINE',

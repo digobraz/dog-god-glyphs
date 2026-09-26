@@ -77,8 +77,8 @@ function useTopics(): Topic[] {
       chip: t('heroglyph.flow.essence.chipGender'),
       ask: `${t('heroglyph.flow.dogGender.questionPrefix')} ${t('heroglyph.flow.dogGender.questionKing')} ${t('heroglyph.flow.dogGender.questionOr')} ${t('heroglyph.flow.dogGender.questionQueen')}${t('heroglyph.flow.dogGender.questionSuffix')}`,
       opts: [
-        { v: 'king', icon: kingSvg, label: t('heroglyph.flow.dogGender.king') },
-        { v: 'queen', icon: queenSvg, label: t('heroglyph.flow.dogGender.queen') },
+        { v: 'king', icon: kingSvg, label: t('heroglyph.flow.dogGender.king'), sub: t('heroglyph.flow.essence.subKing') },
+        { v: 'queen', icon: queenSvg, label: t('heroglyph.flow.dogGender.queen'), sub: t('heroglyph.flow.essence.subQueen') },
       ],
     },
     {
@@ -96,10 +96,13 @@ function useTopics(): Topic[] {
       key: 'dogFate',
       label: t('heroglyph.flow.dogFate.title'),
       chip: t('heroglyph.flow.essence.chipOrigin'),
-      ask: `${t('heroglyph.flow.dogFate.questionPrefix')} ${t('heroglyph.flow.dogFate.questionSafe')} ${t('heroglyph.flow.dogFate.questionOr')} ${t('heroglyph.flow.dogFate.questionSecond')}${t('heroglyph.flow.dogFate.questionSuffix')}`,
+      // Kratšia otázka (Matej 26. 9.: *„otázka na pôvod môže byť kratšia, ale aby
+      // bola pochopiteľná"*) — menuje obe voľby, takže netreba vysvetľovať.
+      // Starý dlhý text ostáva v LIVE `DogFateScreen`.
+      ask: t('heroglyph.flow.essence.askOrigin'),
       opts: [
-        { v: 'raised', icon: raisedSvg, label: t('heroglyph.flow.dogFate.raised') },
-        { v: 'rescued', icon: rescuedSvg, label: t('heroglyph.flow.dogFate.rescued') },
+        { v: 'raised', icon: raisedSvg, label: t('heroglyph.flow.dogFate.raised'), sub: t('heroglyph.flow.essence.subRaised') },
+        { v: 'rescued', icon: rescuedSvg, label: t('heroglyph.flow.dogFate.rescued'), sub: t('heroglyph.flow.essence.subRescued') },
       ],
     },
     {
@@ -108,8 +111,8 @@ function useTopics(): Topic[] {
       chip: t('heroglyph.flow.essence.chipBloodline'),
       ask: `${t('heroglyph.flow.dogBloodline.questionPrefix')}${t('heroglyph.flow.dogBloodline.questionPure')}${t('heroglyph.flow.dogBloodline.questionOr')}${t('heroglyph.flow.dogBloodline.questionWild')}${t('heroglyph.flow.dogBloodline.questionSuffix')}`,
       opts: [
-        { v: 'aristocrat', icon: aristocratSvg, label: t('heroglyph.flow.dogBloodline.aristocrat') },
-        { v: 'mutt', icon: muttSvg, label: t('heroglyph.flow.dogBloodline.mutt') },
+        { v: 'aristocrat', icon: aristocratSvg, label: t('heroglyph.flow.dogBloodline.aristocrat'), sub: t('heroglyph.flow.essence.subAristocrat') },
+        { v: 'mutt', icon: muttSvg, label: t('heroglyph.flow.dogBloodline.mutt'), sub: t('heroglyph.flow.essence.subMutt') },
       ],
     },
   ], [t]);
@@ -263,7 +266,7 @@ export function EssenceScreen() {
                 CTA a pod."*). Ranné 104 bolo prevzaté z kroku SVORKA, kde je
                 Hektor hlavou obrazovky; tu stojí len ako ten, kto sa pýta, a
                 obrazovka potrebovala výšku inde. */}
-            <FlowMedallion src={hekthorFace('essence')} size={medal} />
+            <FlowMedallion src={hekthorFace('essence')} size={medal + 24} />
             <span className="say">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.h2
@@ -477,7 +480,7 @@ const ESSENCE_CSS = `
    jediné číslo, ktoré tam platí. Matej 24. 9. na kroku PATRÓN: *„na mobile môžme
    zväčšiť prvý blok aj foto aj písmo"*; prenesené sem, aby sa kroky nerozišli.
    Na PC sa nemení nič — tam 4,6cqw drží strop 20. */
-.es-speak h2 { font-size: clamp(18px, 4.6cqw, 20px); }
+.es-speak h2 { font-size: clamp(16px, 4cqw, 18px); } /* Matej 26. 9.: otázka menším písmom, fotka väčšia */
 
 /* ⚠️ Tu stála DRUHÁ definícia \`.es-who\` — ranná pilulka (gradient, plný zlatý
    rám, polomer 999) z prvej verzie prepínača. Po presune riadka do dosky
@@ -542,7 +545,7 @@ const ESSENCE_CSS = `
    Stĺpce dýchajú, ale tri voľby sa musia zmestiť do TEJ ISTEJ výšky ako dve,
    takže riadkový rozostup ostáva na 8. Obe čísla sú z \`PACK_SPACE\`. */
 .es-picks {
-  --es-picks-h: 124px;
+  --es-picks-h: 104px; /* 124 → 104 (Matej 26. 9.: „jemne zmenšiť výšku výberových tlačidiel") */
   display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%;
   min-height: var(--es-picks-h); align-items: stretch;
 }
@@ -572,7 +575,9 @@ const ESSENCE_CSS = `
    je to DOSLOVA to, čo kreslí ikonka nad ním. V riadku (dvojica, mobil) bol
    druhou informáciou vedľa mena; v stĺpci by bol treťou vrstvou pod obrázkom
    toho istého a zobral by presne tú výšku, ktorú potrebuje ikonka. */
-.es-picks.n3 .hf-pick .tx em { display: none; }
+/* 26. 9. večer Matej: *„chýba mi vysvetlenie symbolov miniatúrne pod názvy"* —
+   podnadpis sa vracia aj do trojice; výška na neho je (104 px, jamka 44). */
+.es-picks.n3 .hf-pick .tx em { display: block; }
 
 /* 📱 NA MOBILE OSTÁVA 2+1 (Matej: *„na mobile to môžeš nechať tak aby to bolo ok
    s rozmermi (iné od PC)"*). Tri stĺpce by na 390 px mali po ~90 px a slovo
@@ -595,7 +600,7 @@ const ESSENCE_CSS = `
    na mobile z 24. 9. (siedme kolo) — novší pokyn. Plocha je ďalej PEVNÁ, len
    nižšia: voľné miesto dostala rytina medzi chipmi a voľbami. */
 @media (max-width: 559px) {
-  .es-picks { --es-picks-h: 124px; gap: 12px; }
+  .es-picks { --es-picks-h: 104px; gap: 12px; }
   .es-picks.n3 .hf-pick .tx { font-size: 12px; }
 }
 /* Symbol podstaty je KRESBA, nie ikonka rozhrania — jamka je preto väčšia než
@@ -606,7 +611,7 @@ const ESSENCE_CSS = `
    výbere) aj s celým Matejovým odôvodnením sa PRESUNUL do FLOW_CARVE_CSS,
    lebo tú istú dlaždicu dostala aj otázka „žije tvoj pes?" na kroku MENO.
    Text je nezmenený, len sa presťahoval. Tu ostáva LEN geometria PODSTATY. */
-.es-picks .hf-pick { flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 12px; gap: 8px; }
+.es-picks .hf-pick { flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 8px; gap: 4px; }
 /* 🔴 IKONKA JE PODSTATA, NIE OZDOBA (Matej 24. 9.: *„ikonky zväčši tie sú
    podstatné"*). Je to ten istý symbol, aký sa o dva riadky vyššie vkreslí do
    rámu heroglyfu — čím väčší je tu, tým skôr si človek spojí voľbu s tým, čo mu
@@ -660,7 +665,7 @@ const ESSENCE_CSS = `
       krátkom okne veľkú polohu nedá tak či tak. */
 @media (max-height: 700px) {
   .es-stack .hf-plate { gap: 8px; }
-  .es-picks { --es-picks-h: 112px; }
+  .es-picks { --es-picks-h: 96px; }
   .es-picks .hf-pick { padding: 8px; gap: 4px; }
   .es-picks .hf-pick .well { width: 44px; height: 44px; }
   .es-picks .hf-pick .well img { width: 34px; height: 34px; }
