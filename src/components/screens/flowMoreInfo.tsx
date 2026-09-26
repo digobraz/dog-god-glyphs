@@ -103,9 +103,13 @@ export function FlowMoreInfo({ onClose }: { onClose: () => void }) {
               exit={{ x: `${-dir * 40}%`, opacity: 0 }}
               transition={{ duration: 0.28, ease: 'easeOut' }}
             >
-              {s.key === 'glyph' && dog && (
+              {s.key === 'glyph' && (
                 <div className="mi-fit" style={{ transform: posCss(pos) }}>
-                  <HeroglyphFrame showOwner dogValues={dog} className="mi-glyph" />
+                  {/* Pes bez vyplnených slotov (dielňa, výpadok store) ⇒ Hektorov
+                      heroglyf ako vzor, nie prázdny rám. */}
+                  {dog?.dogGender && dog?.dogColour
+                    ? <HeroglyphFrame showOwner dogValues={dog} className="mi-glyph" />
+                    : <img className="mi-glyph" src="/heroglyph/hektor-horizontal.svg" alt="" draggable={false} />}
                 </div>
               )}
               {s.key === 'sniffer' && (
@@ -193,6 +197,11 @@ const MORE_INFO_CSS = `
 .mi-close { align-self: center; border: 1.5px solid ${LAPIS.edge}; color: ${LAPIS.edge}; background: transparent; border-radius: 8px; padding: 8px 24px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
 .mi-close:hover { background: ${LAPIS.fill}; }
 @media (max-width: 600px) {
+  /* Na mobile je rám obmedzený ŠÍRKOU — javisko nesmie brať zvyšnú výšku,
+     inak medzi obrázkom a textom ostane diera. Obsah sa centruje v doske. */
+  .mi { justify-content: center; }
+  .mi-stage { flex: 0 0 auto; container-type: inline-size; min-height: 0; }
+  .mi-frame { width: 100cqw; }
   .mi-text h3 { font-size: 16px; }
   .mi-text p { font-size: 12px; }
   .mi-ar { width: 32px; height: 32px; top: calc(50% - 16px); }
