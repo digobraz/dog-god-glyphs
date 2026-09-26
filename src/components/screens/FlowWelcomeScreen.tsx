@@ -121,6 +121,8 @@ function usePrevDogs(firstN: number | null, count: number) {
           .sort((a, b) => (a.pack_number as number) - (b.pack_number as number))
           .slice(-count)
           .map((r) => ({ n: r.pack_number as number, name: r.dog_name || '', photo: r.cloudinary_main_url || '' }));
+        // #1 = Hektor, zakladateľ — stena ho má natvrdo, z DB nepríde.
+        if (list.length < count && !list.some((d) => d.n === 1)) list.unshift({ n: 1, name: 'HEKTHOR', photo: '/images/hektor-grid.webp' });
         setPrev(list);
       })
       .catch(() => { if (alive) setPrev([]); });
@@ -168,10 +170,11 @@ export function FlowWelcomeScreen() {
 
   // ── FÁZA 2: PORADIE ─────────────────────────────────────────────────────
   const firstN = dogs[0]?.n ?? null;
-  // Matej 26. 9.: *„záleží, koľko psov človek pridáva… top je, ak budú psy čo
-  // najviac na strede obrazovky… 3–5"*. Jeden pes ⇒ 5 nad ním, každý ďalší ubere.
-  const prevCount = Math.max(3, 6 - dogs.length);
-  const prev = usePrevDogs(firstN, prevCount);
+  // Matej 26. 9.: *„obsah je malý = musíme to roztiahnuť… ak je sám pes a jeden
+  // riadok, logicky musíme pridať viac psov"*. Poradie berie VŠETKU voľnú výšku
+  // dosky a stojí pri spodku (nový pes ≈ stred obrazovky); predošlých sa načíta
+  // 12 a čo sa nezmestí, odreže horný okraj pod zošednutím.
+  const prev = usePrevDogs(firstN, 12);
   const [rolled, setRolled] = useState(false); // predošlí vyrolovali a rozmazali sa
   const [joined, setJoined] = useState(false); // nový pes sa zaradil
   useEffect(() => {
@@ -321,51 +324,60 @@ export function FlowWelcomeScreen() {
                     ))}
                   </div>
 
-                  {/* VETY PO JEDNEJ (Matej: *„dolu pod tým sa zobrazuje text po jednom"*). */}
-                  <div className="wl-lines" aria-live="polite">
-                    {line >= 1 && line < 3 && (
-                      <motion.p className="wl-line" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
-                        {t('heroglyph.flow.welcomeNew.l1')}
-                      </motion.p>
-                    )}
-                    {line === 2 && (
-                      <motion.p className="wl-line" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
-                        {t('heroglyph.flow.welcomeNew.l2')}
-                      </motion.p>
-                    )}
-                    {line >= 3 && (
-                      <motion.p className="wl-line is-done" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
-                        {t('heroglyph.flow.welcomeNew.l3')}
-                      </motion.p>
-                    )}
-                    {line >= 4 && (
-                      <motion.p className="wl-thanks" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                        {t('heroglyph.flow.welcomeNew.l4')}
-                      </motion.p>
-                    )}
-                  </div>
+                  {/* SPODOK MÁ MIESTO VYHRADENÉ OD ZAČIATKU — vety, progres, pečať aj CTA
+                      sú v toku stále a len sa zjavia, takže poradie nad nimi neposkočí. */}
+                  <div className="wl-foot">
+                    {/* VETY PO JEDNEJ, groteskom (Matej 26. 9.: *„tie oznamy dajme groteskom"*).
+                        Na konci ostane len poďakovanie — *„hláška HOTOVO tam byť nemusí"*. */}
+                    <div className="wl-lines" aria-live="polite">
+                      {line >= 1 && line < 3 && (
+                        <motion.p className="wl-line" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
+                          {t('heroglyph.flow.welcomeNew.l1')}
+                        </motion.p>
+                      )}
+                      {line === 2 && (
+                        <motion.p className="wl-line" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
+                          {t('heroglyph.flow.welcomeNew.l2')}
+                        </motion.p>
+                      )}
+                      {line === 3 && (
+                        <motion.p className="wl-line is-done" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
+                          {t('heroglyph.flow.welcomeNew.l3')}
+                        </motion.p>
+                      )}
+                      {line >= 4 && (
+                        <motion.p className="wl-thanks" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                          {t('heroglyph.flow.welcomeNew.l4')}
+                        </motion.p>
+                      )}
+                    </div>
 
-                  {line >= 4 && (
-                    <motion.div className="wl-goal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+                    <motion.div className="wl-goal" initial={false} animate={{ opacity: line >= 4 ? 1 : 0 }} transition={{ delay: 0.4 }}>
                       <div className="wl-bar" role="progressbar" aria-valuemin={0} aria-valuemax={1000000} aria-valuenow={totalN}>
-                        <motion.span initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ delay: 0.6, duration: 1.2, ease: 'easeOut' }} />
+                        <motion.span initial={{ width: 0 }} animate={{ width: line >= 4 ? `${pct}%` : 0 }} transition={{ delay: 0.6, duration: 1.2, ease: 'easeOut' }} />
                       </div>
                       <span className="wl-goal-t">{t('heroglyph.flow.welcomeNew.goal', { n: totalN.toLocaleString('sk-SK') })}</span>
                     </motion.div>
-                  )}
 
-                  {line >= 4 && (
+                    {/* Pečať DOGYPTU + motto pod progresom (Matej 26. 9.). */}
+                    <motion.div className="wl-seal" initial={false} animate={{ opacity: line >= 4 ? 1 : 0, scale: line >= 4 ? 1 : 0.9 }} transition={{ delay: 1.1, duration: 0.5 }}>
+                      <img src="/images/peciat-dogypt.png" alt="" aria-hidden />
+                      <span>{t('religion.book.trust')}</span>
+                    </motion.div>
+
                     <motion.button
                       type="button"
                       className="hf-cta wl-cta"
                       onClick={toWall}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 1.6, duration: 0.4 }}
+                      disabled={line < 4}
+                      initial={false}
+                      animate={{ opacity: line >= 4 ? 1 : 0, y: line >= 4 ? 0 : 8 }}
+                      transition={{ delay: line >= 4 ? 1.6 : 0, duration: 0.4 }}
+                      style={{ visibility: line >= 4 ? 'visible' : 'hidden' }}
                     >
                       {t('heroglyph.flow.welcomeNew.cta')}
                     </motion.button>
-                  )}
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -424,10 +436,20 @@ const WELCOME_CSS = `
 .wl-hero-h { font-family: 'Cinzel', serif; font-weight: 700; line-height: 1.25; font-size: clamp(20px, min(7cqw, 4.4dvh), 32px); }
 .wl-br { display: block; height: 0; }
 
-/* ── PORADIE ── */
-.wl-stack { width: 100%; }
-.wl-stack .hf-plate { gap: 16px; }
-.wl-rank { display: flex; flex-direction: column; gap: 8px; padding: 8px 4px 4px; }
+/* ── PORADIE — doska na celú výšku, poradie berie zvyšok ── */
+.wl-stack { width: 100%; display: flex; flex-direction: column; min-height: min(calc(100dvh - 160px), 820px); }
+.wl-stack .hf-plate { gap: 16px; flex: 1; min-height: 0; }
+.wl-rank {
+  flex: 1 1 0; min-height: 132px; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; padding: 8px 4px 4px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 56px);
+          mask-image: linear-gradient(to bottom, transparent 0, #000 56px);
+}
+.wl-row { flex: none; }
+.wl-foot { flex: none; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.wl-seal { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.wl-seal img { width: 88px; height: 88px; object-fit: contain; transform: rotate(-5deg); filter: drop-shadow(0 4px 8px rgba(60, 40, 10, 0.3)); }
+.wl-seal span { font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: ${LAB.goldInk}; }
 .wl-row {
   display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 12px;
   height: 56px; padding: 0 16px 0 8px; border-radius: ${PACK_R.pill}px;
@@ -460,11 +482,11 @@ const WELCOME_CSS = `
 }
 @media (prefers-reduced-motion: reduce) { .wl-row.is-new, .wl-row.is-new.is-joined { animation: none; box-shadow: 0 0 24px 4px rgba(255, 214, 120, 0.55); } }
 
-/* ── VETY ── */
-.wl-lines { display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 56px; }
-.wl-line { margin: 0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 16px; letter-spacing: .08em; text-transform: uppercase; color: ${LAB.inkBody}; text-align: center; }
-.wl-line.is-done { color: #3D7A4E; font-size: 20px; }
-.wl-thanks { margin: 8px 0 0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 20px; line-height: 1.3; letter-spacing: .04em; text-transform: uppercase; color: ${LAB.ink}; text-align: center; text-wrap: balance; }
+/* ── VETY — groteskom (Matej 26. 9.) ── */
+.wl-lines { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 60px; }
+.wl-line { margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 16px; line-height: 1.35; color: ${LAB.inkBody}; text-align: center; }
+.wl-line.is-done { color: #3D7A4E; font-weight: 600; font-size: 20px; }
+.wl-thanks { margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 20px; line-height: 1.3; color: ${LAB.ink}; text-align: center; text-wrap: balance; }
 .wl-goal { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .wl-bar { width: min(100%, 320px); height: 12px; border-radius: ${PACK_R.pill}px; background: rgba(22, 48, 122, 0.16); overflow: hidden; }
 .wl-bar > span { display: block; height: 100%; border-radius: inherit; background: ${LAPIS.grad}; }
@@ -474,9 +496,11 @@ const WELCOME_CSS = `
   .wl-row { height: 48px; } .wl-row.is-new { height: 56px; }
   .wl-name { font-size: 14px; } .wl-row.is-new .wl-name, .wl-row.is-new .wl-num { font-size: 16px; }
   .wl-line { font-size: 14px; } .wl-line.is-done, .wl-thanks { font-size: 16px; }
+  .wl-seal img { width: 72px; height: 72px; }
 }
 @media (max-height: 700px) {
   .wl-rank { gap: 6px; } .wl-row { height: 44px; } .wl-row.is-new { height: 52px; }
   .wl-stack .hf-plate { gap: 12px; }
+  .wl-foot { gap: 8px; } .wl-seal img { width: 56px; height: 56px; } .wl-lines { min-height: 48px; }
 }
 `;

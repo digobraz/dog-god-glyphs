@@ -2377,10 +2377,12 @@ function GodsGridInner() {
           <div ref={canvasRef} id="gods-canvas" />
         </div>
 
-        {revealData.active && revealStep > 0 && revealStep < 4 && (
+        {/* Krok 0 = čierna už od prvého renderu, kým sa načíta stena (bez nej
+            medzi psami svorky 1–2 s blikla holá stena — Matej 26. 9.: „vyhlaď to"). */}
+        {revealData.active && revealStep < 4 && (
           <div className={`rev-overlay step-${revealStep}`}>
             <div className="rev-spotlight" />
-            <img className="rev-big-symbol" src={revealSymbol} alt={revealData.dogName} />
+            {revealStep > 0 && <img className="rev-big-symbol" src={revealSymbol} alt={revealData.dogName} />}
           </div>
         )}
 
