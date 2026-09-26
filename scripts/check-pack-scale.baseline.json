@@ -369,16 +369,6 @@
     "pismenka": 0,
     "odsadenie": 0
   },
-  "components/pack/VerseOfTheDay.tsx": {
-    "radius": 0,
-    "font": 1,
-    "zavoj": 0,
-    "progres": 0,
-    "ram": 0,
-    "tien": 0,
-    "pismenka": 0,
-    "odsadenie": 0
-  },
   "components/pack/WillPanel.tsx": {
     "radius": 1,
     "font": 6,

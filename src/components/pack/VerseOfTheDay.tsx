@@ -24,10 +24,10 @@ const T = PACK_THEME;
 // vtip žije, v preklade zomrie. Audit navyše ukázal 54 % chybovosť SK dávky, takže preklad
 // nie je text, za ktorý by sme sa mali stavať ako za kánon.
 //
-// Odkrytie: HOVER na myši, ŤUKNUTIE na dotyku (Matej: „na mobile klik a na ps prejdenie myšou").
-// Rozlišuje sa SCHOPNOSŤOU ukazovateľa, nie šírkou okna — šírka o myši nehovorí nič a breakpoint
-// by sa musel držať zhodný v CSS aj v JS. Jeden zdroj pravdy: tento matchMedia.
-const HOVER_QUERY = '(hover: hover) and (pointer: fine)';
+// PREKLAD NATRVALO (Matej 2026-09-26, audit homepage: „verš po anglicky a malý preklad k tomu
+// nie na dotyk myšou ale nastálo"). Odkrývanie (hover na myši / ťuk na dotyku z 13. 8.) zaniklo:
+// na mobile ho nikto nenašiel a na PC blikal pod myšou. Originál ostáva hlavný, preklad je
+// malý a tichý pod autorom — hierarchiu drží veľkosť, nie schovávanie.
 
 export function VerseOfTheDay() {
   const paper = usePaperRoute(useLocation().pathname);
@@ -36,25 +36,14 @@ export function VerseOfTheDay() {
   // 365-day curated calendar — same quote all day, rotates at midnight, holiday-anchored.
   const verse = verseForDay(new Date(), lang);
 
-  const [canHover, setCanHover] = useState(true);
-  const [shown, setShown] = useState(false);
   const [reportState, setReportState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle');
   const dayRef = useRef(verse.key);
-
-  useEffect(() => {
-    const mq = window.matchMedia(HOVER_QUERY);
-    const sync = () => setCanHover(mq.matches);
-    sync();
-    mq.addEventListener('change', sync);
-    return () => mq.removeEventListener('change', sync);
-  }, []);
 
   // Prekročenie polnoci vymení citát pod rukami — nahlásenie sa musí dať poslať znovu,
   // inak by „odoslané" z včerajšieho verša zamklo dnešný.
   useEffect(() => {
     if (dayRef.current !== verse.key) {
       dayRef.current = verse.key;
-      setShown(false);
       setReportState('idle');
     }
   }, [verse.key]);
@@ -78,17 +67,11 @@ export function VerseOfTheDay() {
 
   if (!verse.original) return null;
 
-  const toggle = () => setShown((p) => !p);
-
   return (
     <section
       aria-label={t('pack.verse.ariaLabel')}
       className="relative flex flex-col items-center text-center"
       style={{ padding: 'clamp(8px, 1.8vw, 16px) 16px' }}
-      // Hover drží CELÚ sekciu, nielen text — inak by cesta myšou na odkaz „nesedí preklad?"
-      // opustila hover oblasť a preklad by zmizol skôr, než sa naň dá kliknúť.
-      onMouseEnter={canHover && hasTranslation ? () => setShown(true) : undefined}
-      onMouseLeave={canHover && hasTranslation ? () => setShown(false) : undefined}
     >
       {/* eyebrow */}
       <span
@@ -154,81 +137,48 @@ export function VerseOfTheDay() {
         <span aria-hidden style={{ width: 28, height: 1, background: GOLD, opacity: 0.55 }} />
       </div>
 
-      {/* Preklad — len ak vôbec existuje. Pri EN a ďalších 15 jazykoch tu nie je NIČ:
-          žiadny mŕtvy prepínač, ktorý by nemal čo ukázať. */}
+      {/* Preklad — len ak vôbec existuje. Pri EN a ďalších 15 jazykoch tu nie je NIČ. */}
       {hasTranslation && (
-        <div style={{ marginTop: 14, maxWidth: 640, width: '100%' }}>
-          {/* Skutočné tlačidlo, nie div s onClick — nesie prepínanie pre dotyk aj pre
-              klávesnicu. Na myši je len nápoveda, samotné odkrytie robí hover na sekcii. */}
+        <div style={{ marginTop: 12, maxWidth: 560, width: '100%' }}>
+          <p
+            lang={lang}
+            style={{
+              margin: 0,
+              fontFamily: FONT_UI,
+              fontSize: 14,
+              fontWeight: 400,
+              lineHeight: 1.5,
+              color: paper ? T.inkWarm : 'rgba(250,244,236,0.72)',
+            }}
+          >
+            {verse.translation}
+          </p>
+
           <button
             type="button"
-            onClick={toggle}
-            aria-expanded={shown}
+            onClick={report}
+            disabled={reportState === 'sending' || reportState === 'sent'}
             style={{
+              marginTop: 4,
               fontFamily: FONT_UI,
               fontSize: 10,
               fontWeight: 500,
-              letterSpacing: '0.26em',
-              textTransform: 'uppercase',
-              color: GOLD,
-              opacity: shown ? 0.55 : 0.75,
+              color: reportState === 'sent' ? GOLD : (paper ? T.inkWarm : 'rgba(250,244,236,0.45)'),
+              opacity: reportState === 'sent' ? 1 : 0.8,
               background: 'none',
               border: 'none',
-              padding: '4px 8px',
-              cursor: 'pointer',
-              transition: 'opacity .18s ease',
+              padding: 4,
+              textDecoration: reportState === 'sent' ? 'none' : 'underline',
+              textUnderlineOffset: 3,
+              cursor: reportState === 'sent' ? 'default' : 'pointer',
             }}
           >
-            {shown
-              ? t('pack.verse.translationLabel')
-              : canHover
-                ? t('pack.verse.hoverForTranslation')
-                : t('pack.verse.tapForTranslation')}
+            {reportState === 'sent'
+              ? t('pack.verse.reportSent')
+              : reportState === 'failed'
+                ? t('pack.verse.reportFailed')
+                : t('pack.verse.reportBad')}
           </button>
-
-          {/* Rezervovaná výška sa ZÁMERNE nerobí: na myši je odkrytie prchavé a prázdne
-              miesto pod veršom by tam svietilo stále. Posun obsahu je tu menšie zlo. */}
-          {shown && (
-            <>
-              <p
-                style={{
-                  margin: '6px 0 0',
-                  fontFamily: FONT_UI,
-                  fontSize: 'clamp(13px, 1.6vw, 15px)',
-                  fontWeight: 400,
-                  lineHeight: 1.55,
-                  color: paper ? T.inkWarm : 'rgba(250,244,236,0.72)',
-                }}
-              >
-                {verse.translation}
-              </p>
-
-              <button
-                type="button"
-                onClick={report}
-                disabled={reportState === 'sending' || reportState === 'sent'}
-                style={{
-                  marginTop: 8,
-                  fontFamily: FONT_UI,
-                  fontSize: 11,
-                  fontWeight: 500,
-                  color: reportState === 'sent' ? GOLD : (paper ? T.inkWarm : 'rgba(250,244,236,0.45)'),
-                  background: 'none',
-                  border: 'none',
-                  padding: '4px 4px',
-                  textDecoration: reportState === 'sent' ? 'none' : 'underline',
-                  textUnderlineOffset: 3,
-                  cursor: reportState === 'sent' ? 'default' : 'pointer',
-                }}
-              >
-                {reportState === 'sent'
-                  ? t('pack.verse.reportSent')
-                  : reportState === 'failed'
-                    ? t('pack.verse.reportFailed')
-                    : t('pack.verse.reportBad')}
-              </button>
-            </>
-          )}
         </div>
       )}
     </section>
