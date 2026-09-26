@@ -781,11 +781,11 @@
   },
   "pages/PackNatureQuiz.tsx": {
     "radius": 6,
-    "font": 64,
+    "font": 58,
     "zavoj": 2,
     "progres": 1,
     "ram": 15,
-    "tien": 15,
+    "tien": 14,
     "pismenka": 0,
     "odsadenie": 0
   },

@@ -25,7 +25,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { X, ChevronLeft } from 'lucide-react';
-import { PACK_THEME, PACK_BOX, PACK_COL, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, PAPER_PAGE_CSS, usePaperRoute } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, PACK_COL, PACK_HEAD, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, PAPER_PAGE_CSS, usePaperRoute } from '@/components/pack/packTheme';
 import {
   ELEMENT_QUESTIONS, ROLE_QUESTIONS, BALANCE_ITEMS, BALANCE_VET_NOTE,
   NATURE_ELEMENTS, NATURE_ROLES, NATURE_SPECIALS,
@@ -41,7 +41,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
 import { getAccessibleDogIds } from '@/lib/dogRights';
 import { useT } from '@/i18n/LanguageContext';
-import { PALE } from '@/components/pack/navGoldSkin';
+import { PALE, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { HandCheck, HandCycle } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
@@ -93,17 +93,17 @@ const NQ_CSS = `
 .nq-gold{
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
   padding:12px 24px;
-  background:var(--cta-gradient);
-  border:none; border-radius:8px; color:#000;
+  background:${LAPIS.grad};
+  border:1px solid ${LAPIS.edge}; border-radius:8px; color:${LAPIS.ink};
   font-family:'Cinzel',serif; font-size:11px; font-weight:700;
   letter-spacing:0.14em; text-transform:uppercase; cursor:pointer; white-space:nowrap;
-  box-shadow:var(--cta-shadow-grounded);
+  box-shadow:${LAPIS_BTN_SHADOW};
   transition: transform .2s, box-shadow .22s;
 }
-.nq-gold:hover{ transform:scale(1.04); }
+.nq-gold:hover{ transform:scale(1.04); background:${LAPIS.gradHover}; }
 .nq-gold:disabled{ opacity:.45; cursor:default; transform:none; box-shadow:none; }
 .nq-gold.is-ondark{
-  background:var(--cta-gradient-dark);
+  background:var(--cta-gradient-dark); color:#000;
   border:1px solid ${GOLD_BTN.edge};
   box-shadow:var(--cta-shadow-glow);
 }
@@ -119,7 +119,7 @@ const NQ_CSS = `
    nesmie byť menšie než dlaždice nad ním (Matej 14.8.: „urob vačšie širšie").
    ⚠️ Gradient, radius 8 a papyrusový rám sa NEMENIA — CTA je LOCKED. */
 .nq-gold.is-big{
-  width:100%; padding:16px 24px; font-size:13px; letter-spacing:0.22em;
+  width:100%; padding:16px 24px; font-size:12px; letter-spacing:0.22em;
   border-radius:8px;
 }
 .nq-ghost{
@@ -395,21 +395,28 @@ const NQ_CSS = `
   display:grid; grid-template-columns:auto 1fr; grid-template-rows:auto auto;
   column-gap:16px; row-gap:4px; align-content:center; align-items:center;
   text-align:left; padding:8px 16px;
-  background:linear-gradient(135deg,${T.card} 0%,#F2E2BD 100%);
-  border:1.5px solid ${T.cardEdge}; border-radius:14px;
-  box-shadow:0 8px 28px -18px rgba(0,0,0,0.75), 0 0 0 3px rgba(201,154,63,0.13),
-             inset 0 1px 0 rgba(255,255,255,0.6);
-  transition:transform .25s ease, box-shadow .25s ease;
+  background:${PACK_BOX.subblock.background};
+  border:${PACK_BOX.subblock.border}; border-radius:${PACK_BOX.subblock.borderRadius}px;
+  box-shadow:${PACK_BOX.subblock.boxShadow};
 }
 .nq-axis .nq-axisicon{ grid-row:1 / span 2; }
+/* ÚVOD SA NA PC ZMESTÍ BEZ SCROLLU (Matej 26. 9. 2026: „urob to tak aby na PC nebol
+   scrolling"). Pri 724 px výšky (Matejovo okno 1477x724) vyjde stránka presne na okno.
+   Na nižšom okne sa podľa PAGE_AIR zmenšuje OBSAH, nie vzduch: medailóny, odsadenie
+   dlaždíc a čiara. Rezerva nad a pod kartou ostáva. */
+@media (min-width:761px) and (max-height:760px){
+  .nq-introbody{ padding:16px 24px; }
+  .nq-introrule{ margin:8px 0 !important; }
+  .nq-axes{ gap:4px; }
+  .nq-axis{ padding:4px 16px; }
+  .nq-axisicon{ width:40px; height:40px; }
+}
 .nq-axis .nq-axistitle{ align-self:end; }
 .nq-axis .nq-axissub{ align-self:start; }
-.nq-axis:hover{ transform:translateY(-3px); }
-.nq-axis:hover .nq-axisicon{ transform:scale(1.08); }
 /* Ikonka je z hand-drawn kitu (BrandIcon), NIE lucide a nie emoji — medailón okolo
    nej je zlaté halo, aby dlaždica mala ohnisko aj bez farby. */
 .nq-axisicon{
-  width:56px; height:56px; border-radius:999px; display:grid; place-items:center;
+  width:48px; height:48px; border-radius:999px; display:grid; place-items:center;
   flex:0 0 auto;
   background:radial-gradient(circle at 34% 28%, rgba(245,199,61,0.34), rgba(201,154,63,0.08) 72%);
   border:1px solid rgba(201,154,63,0.55);
@@ -421,7 +428,7 @@ const NQ_CSS = `
   font-size:14px; letter-spacing:.14em; line-height:1.2; color:${T.inkStrong};
 }
 .nq-axissub{
-  font-family:'Space Grotesk',sans-serif; font-size:12.5px; line-height:1.5; color:${T.inkWarm};
+  font-family:'Space Grotesk',sans-serif; font-size:12px; line-height:1.45; color:${T.inkWarm};
 }
 
 /* ── POTVRDENIE PRI ODCHODE ──────────────────────────────────────────────────
@@ -880,8 +887,8 @@ function Card({ children, style, className }: {
   );
 }
 
-function Rule() {
-  return <div style={{ height: 2, background: T.rule, margin: '16px 0', border: 0 }} />;
+function Rule({ className }: { className?: string }) {
+  return <div className={className} style={{ height: 2, background: T.rule, margin: '16px 0', border: 0 }} />;
 }
 
 function Tile({ children }: { children: React.ReactNode }) {
@@ -896,11 +903,15 @@ function Tile({ children }: { children: React.ReactNode }) {
 // je tmavý ink pre papyrus — na tmavom je nečitateľný. Odhalil to screenshot, nie tsc:
 // typová kontrola prejde, text je len neviditeľný. Na tmavých vrstvách sa berú
 // `onDark*` tokeny, nie `ink*`.
+// ⚠️ Pri bledom šate (pk-paper) je pod pätičkou papyrusová tapeta, nie čierna — krémový
+// ink tam zanikol. Tón sa berie z PODKLADU, rovnako ako krížik v Shell.
 function Attribution({ tx }: { tx: (k: string, f: string) => string }) {
+  const paper = usePaperRoute(useLocation().pathname);
   return (
     <p style={{
-      fontFamily: FONT_UI, fontSize: 10.5, lineHeight: 1.55, color: 'rgba(245,240,228,0.55)',
-      marginTop: 18, textAlign: 'center',
+      fontFamily: FONT_UI, fontSize: 10, lineHeight: 1.55,
+      color: paper ? T.inkWarm : 'rgba(245,240,228,0.55)',
+      marginTop: 12, textAlign: 'center',
     }}>
       {tx(NATURE_ATTRIBUTION.i18n, NATURE_ATTRIBUTION.textEN)}
       {NATURE_ATTRIBUTION.url ? (
@@ -922,7 +933,7 @@ function Attribution({ tx }: { tx: (k: string, f: string) => string }) {
 function AxisTile({ icon, title, sub }: { icon: string; title: string; sub: string }) {
   return (
     <div className="nq-axis">
-      <span className="nq-axisicon"><BrandIcon name={icon} size={30} /></span>
+      <span className="nq-axisicon"><BrandIcon name={icon} size={28} /></span>
       {/* Typografia podľa `.qt-title` z QuickTiles — Cinzel 700, .14em, uppercase.
           Je to ten istý druh dlaždice, len väčšia; dve rôzne miery by sa bili.
           Veľkosti sú v CSS, nie inline — mobil ich zmenšuje media query. */}
@@ -947,8 +958,8 @@ function AxisTile({ icon, title, sub }: { icon: string; title: string; sub: stri
 function DogIdNote({ tx }: { tx: (k: string, f: string) => string }) {
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: 14, marginTop: 14,
-      padding: '16px 16px', borderRadius: 14,
+      display: 'flex', alignItems: 'center', gap: 16, marginTop: 12,
+      padding: '12px 16px', borderRadius: 12,
       background: 'radial-gradient(circle at 22% 20%, #12233a 0%, #01050A 74%)',
       border: '1px solid rgba(91,224,240,0.28)',
       boxShadow: '0 0 0 4px rgba(59,158,255,0.05), 0 18px 44px -22px rgba(59,158,255,0.45)',
@@ -958,7 +969,7 @@ function DogIdNote({ tx }: { tx: (k: string, f: string) => string }) {
         alt=""
         aria-hidden
         style={{
-          width: 48, height: 48, objectFit: 'contain', borderRadius: '50%', flex: '0 0 auto',
+          width: 44, height: 44, objectFit: 'contain', borderRadius: '50%', flex: '0 0 auto',
           background: 'radial-gradient(circle at 35% 28%, #12233a 0%, #01050A 74%)',
           border: '1px solid rgba(91,224,240,0.35)',
           boxShadow: '0 0 0 4px rgba(59,158,255,0.06), 0 0 20px rgba(59,158,255,0.34)',
@@ -975,13 +986,13 @@ function DogIdNote({ tx }: { tx: (k: string, f: string) => string }) {
       <div style={{ minWidth: 0 }}>
         <div style={{
           fontFamily: FONT_TITLE, fontWeight: 700, textTransform: 'uppercase',
-          fontSize: 12.5, letterSpacing: '0.02em', color: '#5BE0F0', marginBottom: 5,
+          fontSize: 12, letterSpacing: '0.14em', color: '#5BE0F0', marginBottom: 4,
         }}>{tx('pack.nature.intro.dogid', 'It goes into the DOG ID')}</div>
         <div style={{
-          fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.55, color: T.onDarkDim,
+          fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.5, color: T.onDarkDim,
         }}>
           {tx('pack.nature.intro.dogidSub',
-            'Your answers are written onto your dog’s DOG ID and stay there. From there they shape the advice you get later — food, daily routine, training — so it fits this dog, not dogs in general.')}
+            'Your answers go into the DOG ID, so advice on food, routine and training fits this dog.')}
         </div>
       </div>
     </div>
@@ -2183,39 +2194,35 @@ export default function PackNatureQuiz() {
 
           <div className="nq-introbody">
             <Eyebrow>{tx('pack.nature.intro.eyebrow', 'Three short quizzes, one document')}</Eyebrow>
-            <h1 style={{
-              fontFamily: FONT_TITLE, fontWeight: 700, textTransform: 'uppercase',
-              fontSize: 'clamp(1.35rem, 4.2vw, 2.05rem)', lineHeight: 1.15, color: T.inkStrong,
-              margin: 0,
-            }}>{tx('pack.nature.intro.title', 'Who is your dog?')}</h1>
-            <p style={{ fontFamily: FONT_UI, fontSize: 13.5, lineHeight: 1.6, color: T.inkStrong, marginTop: 12 }}>
+            <h1 style={{ ...PACK_HEAD.card, lineHeight: 1.2, color: T.inkStrong, margin: 0 }}>{tx('pack.nature.intro.title', 'Who is your dog?')}</h1>
+            <p style={{ fontFamily: FONT_UI, fontSize: 14, lineHeight: 1.55, color: T.inkStrong, margin: '8px 0 0' }}>
               {tx('pack.nature.intro.body',
-                'Twenty-two questions and one checklist. You come out with three things: what your dog is made of, where their balance is leaning right now, and what job they do for your family. Nobody taught them that job — they were born into it.')}
+                'Twenty-two questions and one checklist. You learn what your dog is made of, what job they do for your family and where their balance leans right now.')}
             </p>
-            <Rule />
+            <Rule className="nq-introrule" />
             <div className="nq-axes">
               <AxisTile
                 icon="yinyang"
                 title={tx('pack.nature.intro.axis1', 'Constitution')}
-                sub={tx('pack.nature.intro.axis1sub', 'Body, temperament, what to keep an eye on — and what to feed.')}
+                sub={tx('pack.nature.intro.axis1sub', 'Body, temperament and what to feed.')}
               />
               <AxisTile
                 icon="house-heart"
                 title={tx('pack.nature.intro.axis2', 'Role in the pack')}
-                sub={tx('pack.nature.intro.axis2sub', 'What your dog is trying to do for your family — and what everyone gets wrong about it.')}
+                sub={tx('pack.nature.intro.axis2sub', 'Their job in the family — and what everyone gets wrong.')}
               />
               {/* Tretia dlaždica pribudla s kvízom 2 (22. 8.). Bez nej by sa na výsledku
                   zjavila celá sekcia, ktorú úvod nikdy nesľúbil. */}
               <AxisTile
                 icon="sliders"
                 title={tx('pack.nature.intro.axis3', 'Balance right now')}
-                sub={tx('pack.nature.intro.axis3sub', 'Constitution is set for life; balance is not. Tick what is going on and see which way it leans.')}
+                sub={tx('pack.nature.intro.axis3sub', 'Constitution is for life. Balance shifts.')}
               />
             </div>
 
             <DogIdNote tx={tx} />
 
-            <div style={{ marginTop: 18 }}>
+            <div style={{ marginTop: 12 }}>
               <button type="button" className="nq-gold is-big" onClick={() => setPhase('element')}>
                 {tx('pack.nature.intro.cta', 'Start')}
               </button>
