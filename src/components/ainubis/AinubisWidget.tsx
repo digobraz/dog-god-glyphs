@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { X, Send, Paperclip, Mic, Square, Move } from 'lucide-react';
+import { X, Move } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLang } from '@/i18n/LanguageContext';
 import { getAinubisCopy } from './ainubisCopy';
@@ -1250,6 +1250,19 @@ function AinubisWidgetInner() {
                   {m.imagePreviewUrl && (
                     <img className="ainubis-msg__image" src={m.imagePreviewUrl} alt={copy.imagePreviewAlt} />
                   )}
+                  {/* DRUHÁ UVÍTACIA BUBLINA NESIE TERČ (Matej 26. 9. 2026: „druhý text daj ikonku
+                      terča a napíš — stlač toto a urob mi snímku obrazovky priamo do chatu :)").
+                      Ikonka je to isté tlačidlo ako v riadku dole, nie obrázok. */}
+                  {m.id === 'welcome-1' && (
+                    <button
+                      type="button"
+                      className="ainubis-msg__target"
+                      onClick={() => setTarget('aim')}
+                      aria-label={copy.targetStart}
+                    >
+                      <span className="ainubis-target-ico" aria-hidden />
+                    </button>
+                  )}
                   {shownContent}
                   {/* Pozor na `&&` s číslom: pri devotion === 0 vracia `0`, a React
                       nulu vykreslí — na konci odpovede potom visela holá „0".
@@ -1369,21 +1382,9 @@ function AinubisWidgetInner() {
               </div>
             )}
             <div className="ainubis-composer__row">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                style={{ display: 'none' }}
-                onChange={handleFileInputChange}
-              />
-              <button
-                type="button"
-                className="ainubis-composer__icon-btn"
-                onClick={() => fileInputRef.current?.click()}
-                aria-label={copy.attachImage}
-              >
-                <Paperclip size={16} />
-              </button>
+              {/* SPINKA A MIKROFÓN ZANIKLI (Matej 26. 9. 2026: „vymaž prílohu… a nahrávanie hlasu
+                  tiež daj preč"). AINUBIS je len technická podpora a obrázok do neho ide TERČOM.
+                  Vložiť obrázok (Ctrl+V) a pustiť ho myšou na panel ide ďalej — nič to nestojí. */}
               <button
                 type="button"
                 className="ainubis-composer__icon-btn"
@@ -1394,17 +1395,7 @@ function AinubisWidgetInner() {
                 {/* Terč z kitu (`target-hand-drawn-circle`) maskou — farbu berie z tlačidla. */}
                 <span className="ainubis-target-ico" aria-hidden />
               </button>
-              {speechCtor && (
-                <button
-                  type="button"
-                  className={`ainubis-composer__icon-btn ainubis-composer__mic${listening ? ' ainubis-composer__mic--live' : ''}`}
-                  onClick={() => (listening ? stopDictation() : startDictation())}
-                  aria-label={listening ? copy.micStop : copy.micStart}
-                  aria-pressed={listening}
-                >
-                  {listening ? <Square size={13} /> : <Mic size={16} />}
-                </button>
-              )}
+
               <textarea
                 ref={textareaRef}
                 className="ainubis-composer__textarea"
@@ -1427,7 +1418,8 @@ function AinubisWidgetInner() {
                 disabled={branchGate || sending || (!input.trim() && !pendingImage)}
                 aria-label={copy.send}
               >
-                <Send size={16} />
+                {/* Papierové lietadlo z kitu (Matej 26. 9. 2026: ikonka odoslania nebola brand). */}
+                <span className="ainubis-send-ico" aria-hidden />
               </button>
             </div>
           </div>

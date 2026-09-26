@@ -99,6 +99,7 @@ const sk: AinubisCopy = {
   // JEDNA bublina (Matej 26. 9. 2026: „daj len jeden text … a nič iné").
   welcome: [
     'Ahoj, som AInubis, tvoj osobný sprievodca v DOGYPTE. Keďže sa na stránke stále maká, práve tu mi môžeš nahlásiť svoj postreh — chyby, nápady, čokoľvek. Posuniem to ďalej a vyriešime to rýchlejšie, než si myslíš!',
+    'Stlač toto a urob mi snímku obrazovky priamo do chatu :)',
   ],
   suggestions: {
     problem: 'Mám problém',
@@ -149,6 +150,7 @@ const en: AinubisCopy = {
   micDenied: "I can't reach the microphone — allow it in your browser, or just type it.",
   welcome: [
     "Hi, I'm AInubis, your personal guide in DOGYPT. The site is still being built, so this is the place to report anything you notice — bugs, ideas, whatever. I'll pass it on and it gets fixed faster than you think!",
+    'Press this and send me a screenshot straight into the chat :)',
   ],
   suggestions: {
     problem: 'I have a problem',

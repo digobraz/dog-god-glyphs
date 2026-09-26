@@ -1118,3 +1118,31 @@ body:has(.ainubis-panel--away) .ainubis-launcher { visibility: hidden; }
   padding: 4px 12px;
   cursor: pointer;
 }
+
+/* Terč v druhej uvítacej bubline — vľavo od textu, zlatý, klikateľný. */
+.ainubis-msg__target {
+  float: left;
+  width: 32px;
+  height: 32px;
+  margin: 0 8px 0 0;
+  border-radius: 8px;
+  border: 1px solid rgba(245, 199, 61, 0.55);
+  background: rgba(245, 199, 61, 0.10);
+  color: var(--ainubis-cta-a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.ainubis-msg__target:hover { background: rgba(245, 199, 61, 0.2); }
+
+/* Odoslanie — papierové lietadlo z kitu maskou, farbu berie z tlačidla (tmavý inkoust na zlatej). */
+.ainubis-send-ico {
+  display: block;
+  /* Kresba je tenká a široká — pri 18 px sa v zlatom štvorci strácala. */
+  width: 24px;
+  height: 24px;
+  background: currentColor;
+  -webkit-mask: url(/icons/pack/send.svg) center / contain no-repeat;
+  mask: url(/icons/pack/send.svg) center / contain no-repeat;
+}
