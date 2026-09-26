@@ -108,7 +108,7 @@ function useWelcomeData(sessionId: string | null) {
 }
 
 /** Predošlí psi v poradí (verejná stena). Koľko: aby nový pes stál v strede. */
-function usePrevDogs(firstN: number | null, count: number) {
+function usePrevDogs(firstN: number | null, count: number, demoFill = false) {
   const [prev, setPrev] = useState<PrevDog[] | null>(null);
   useEffect(() => {
     if (firstN == null) return;
@@ -124,11 +124,25 @@ function usePrevDogs(firstN: number | null, count: number) {
           .map((r) => ({ n: r.pack_number as number, name: r.dog_name || '', photo: r.cloudinary_main_url || '' }));
         // #1 = Hektor, zakladateľ — stena ho má natvrdo, z DB nepríde.
         if (list.length < count && !list.some((d) => d.n === 1)) list.unshift({ n: 1, name: 'HEKTHOR', photo: '/images/hektor-grid.webp' });
+        // DIELŇA: DEV databáza má troch psov, LIVE ~70. Bez platby (lab) sa
+        // poradie doplní ukážkovými riadkami s číslami tesne pod novým psom,
+        // aby sa obrazovka ladila na tom, čo uvidí skutočný kupec.
+        if (demoFill && list.length < count) {
+          const DEMO = ['BRUNO', 'LUNA', 'MAX', 'BELLA', 'ROCKY', 'NELA', 'ARGO', 'KIRA', 'BOBO', 'DAISY', 'RÉX', 'MIA'];
+          const have = new Set(list.map((d) => d.n));
+          const fill: PrevDog[] = [];
+          for (let n = firstN - 1; n > 1 && fill.length + list.length < count; n--) {
+            if (!have.has(n)) fill.unshift({ n, name: DEMO[n % DEMO.length], photo: '' });
+          }
+          const merged = [...list, ...fill].sort((a, b) => a.n - b.n).slice(-count);
+          setPrev(merged);
+          return;
+        }
         setPrev(list);
       })
       .catch(() => { if (alive) setPrev([]); });
     return () => { alive = false; };
-  }, [firstN, count]);
+  }, [firstN, count, demoFill]);
   return prev;
 }
 
@@ -175,8 +189,8 @@ export function FlowWelcomeScreen() {
   // riadok, logicky musíme pridať viac psov"*. Poradie berie VŠETKU voľnú výšku
   // dosky a stojí pri spodku (nový pes ≈ stred obrazovky); predošlých sa načíta
   // 12 a čo sa nezmestí, odreže horný okraj pod zošednutím.
-  const prev = usePrevDogs(firstN, 12);
-  // Koľko predošlých ukázať: poradie zaberie ~42 % výšky okna, nový pes (psi)
+  const prev = usePrevDogs(firstN, 12, import.meta.env.DEV && !sessionId);
+  // Koľko predošlých ukázať: poradie zaberie ~50 % výšky okna (pri pretečení ho ústup nižšie stiahne), nový pes (psi)
   // v ňom stojí dole ⇒ ≈ stred obrazovky. Zvyšok výšky dostane spodok, nie
   // prázdne miesto nad riadkami (Matej 26. 9.: *„hore je veľa miesta… nájdi v tom logiku"*).
   const prevVisible = useMemo(() => {
@@ -184,7 +198,7 @@ export function FlowWelcomeScreen() {
     const mobile = window.innerWidth <= 600;
     const step = mobile ? 56 : 64;
     const fresh = (dogs.length >= 4 ? (mobile ? 56 : 60) : (mobile ? 64 : 72)) * dogs.length;
-    return Math.max(1, Math.min(8, Math.floor((window.innerHeight * 0.42 - fresh) / step)));
+    return Math.max(1, Math.min(10, Math.floor((window.innerHeight * 0.5 - fresh) / step)));
   }, [dogs.length]);
   // ── ZMESTIŤ SA BEZ SCROLLU (Matej 26. 9.: *„nasimulovať 2-3-4-5-6 psov"*) ──
   // Merané: pri 4–6 psoch na nízkom okne (1477×724, 375×667) doska pretiekla
@@ -506,7 +520,7 @@ const WELCOME_CSS = `
 .wl-foot-top { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .wl-rule { gap: 0; }
 .wl-seal { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.wl-seal img { width: clamp(64px, 13dvh, 128px); height: auto; aspect-ratio: 1; object-fit: contain; transform: rotate(-5deg); filter: drop-shadow(0 6px 12px rgba(60, 40, 10, 0.35)); }
+.wl-seal img { width: clamp(72px, 18dvh, 160px); height: auto; aspect-ratio: 1; object-fit: contain; transform: rotate(-5deg); filter: drop-shadow(0 6px 12px rgba(60, 40, 10, 0.35)); }
 .wl-motto { margin: 0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 16px; letter-spacing: .14em; text-transform: uppercase; color: ${LAB.goldInk}; }
 .wl-row {
   display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 12px;
