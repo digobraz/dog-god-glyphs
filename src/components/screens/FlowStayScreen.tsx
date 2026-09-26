@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -17,7 +17,6 @@ import { EDGE_BASE } from '@/lib/env';
 import { track } from '@/lib/analytics';
 import { getStoredRef } from '@/lib/refCapture';
 import { getAttribution } from '@/lib/attribution';
-import { ensureDogVisionFilter } from '@/lib/dogVision';
 
 // ════════════════════════════════════════════════════════════════════════════
 // C · ZADRŽANIE — kam vedie „Nechcem platiť" z pokladne (25. 9. 2026)
@@ -73,7 +72,6 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const n = Math.max(1, dogs.length);
-  useEffect(() => { ensureDogVisionFilter(); }, []);
 
   const confirm = async () => {
     if (!tier || busy) return;
@@ -138,38 +136,24 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
         </span>
       </div>
 
-      {/* 26. 9. 2026 — Matej: *„hektorov heroglyf a fotka na stene. tie možnosti
-          čo máš a čo nie musíme zväčšiť… su miniatúrne"*. Vľavo karta Hektora
-          tak, ako na stene vyzerá pes bez člena (psia optika + zlatý heroglyf),
-          vpravo DVA veľké riadky: čo máš · o čo prídeš. „O čo prídeš" otvorí
-          ten istý popup ako VIAC INFO v pokladni. Veta „obe možnosti dajú to
-          isté" vypadla (Matej: „daj preč"). */}
-      <div className="st-show">
-        <figure className="st-card" aria-hidden>
-          <span className="st-card-img" />
-          <img className="st-card-glyph" src="/images/hekthor-heroglyph.webp" alt="" draggable={false} />
-          <span className="st-card-name">HEKTHOR</span>
-        </figure>
-        <div className="st-rows">
-          <div className="st-row yes">
-            <Mark yes />
-            <span className="st-row-txt">
-              <b>{t('heroglyph.flow.stay.have')}</b>
-              <small>{t('heroglyph.flow.stay.haveNote')}</small>
-            </span>
-          </div>
-          <div className="st-row no">
-            <Mark yes={false} />
-            <span className="st-row-txt">
-              <b>{t('heroglyph.flow.stay.miss')}</b>
-              <b>{t('heroglyph.flow.stay.miss2')}</b>
-              <button type="button" className="co-more st-more" onClick={onMore}>
-                {t('heroglyph.flow.stay.missCta')}
-              </button>
-            </span>
-          </div>
-        </div>
-      </div>
+      {/* 26. 9. 2026 — Matej: *„zadržanie daj bez ukážky… bez toho na stene,
+          iba (v psej optike); poradové číslo a profil je jedno x a druhé
+          veľkým a podčiarknutým PROFIL V ČLENSKEJ SEKCII"*. Profil je odkaz —
+          otvorí ten istý popup ako VIAC INFO v pokladni. */}
+      <ul className="st-rows">
+        <li className="st-row yes">
+          <Mark yes />
+          <span><b>{t('heroglyph.flow.stay.have')}</b> <small>{t('heroglyph.flow.stay.haveNote')}</small></span>
+        </li>
+        <li className="st-row no">
+          <Mark yes={false} />
+          <b>{t('heroglyph.flow.stay.f.num')}</b>
+        </li>
+        <li className="st-row no">
+          <Mark yes={false} />
+          <button type="button" className="st-profile" onClick={onMore}>{t('heroglyph.flow.stay.miss2')}</button>
+        </li>
+      </ul>
 
       <div className="st-opts" role="radiogroup">
         {OPTS.map((x) => {
@@ -286,20 +270,14 @@ const STAY_CSS = `
 /* KARTA ZO STENY + DVA RIADKY (26. 9. 2026). Písmo 16/14, nie 12 — Matej:
    *„su miniatúrne"*. Karta = mini .dog-card psa bez člena: fotka v psej
    optike, dolu stmavnutie so zlatým heroglyfom, meno v pilulke. */
-.st-show { display: grid; grid-template-columns: 136px 1fr; gap: 16px; align-items: center; }
-.st-card { position: relative; margin: 0; width: 136px; aspect-ratio: 1; border-radius: ${PACK_R.tile}px; overflow: hidden; background: #1a1a1a; box-shadow: 0 4px 12px rgba(58, 42, 20, .25); }
-.st-card-img { position: absolute; inset: 0; background: url('/images/hektor-grid.webp') 50% 35% / cover; filter: url(#dogypt-dog-vision); }
-.st-card::after { content: ''; position: absolute; inset: 45% 0 0; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,.78)); }
-.st-card-glyph { position: absolute; left: 8px; right: 8px; bottom: 36px; width: calc(100% - 16px); height: auto; z-index: 1; }
-.st-card-name { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); z-index: 1; padding: 4px 8px; border-radius: 999px; background: rgba(30,30,30,.45); color: #fff; font-family: 'Cinzel Decorative', 'Cinzel', serif; font-weight: 700; font-size: 10px; letter-spacing: .06em; }
-.st-rows { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.st-row { display: flex; align-items: flex-start; gap: 8px; }
-.st-row-txt { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
-.st-row-txt b { font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 16px; line-height: 1.3; color: ${LAB.ink}; }
-.st-row.no .st-row-txt b { color: ${LAB.inkBody}; }
-.st-row-txt small { font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.3; color: ${LAB.inkBody}; }
-.st-row-txt .st-more { margin-top: 4px; }
-.st-mark { flex: none; width: 20px; height: 20px; margin-top: 2px; stroke: #B25640; }
+.st-rows { list-style: none; margin: 0; padding: 0; align-self: center; display: flex; flex-direction: column; gap: 8px; }
+.st-row { display: flex; align-items: center; gap: 8px; font-family: 'Space Grotesk', sans-serif; font-size: 16px; line-height: 1.3; color: ${LAB.ink}; }
+.st-row b { font-weight: 500; }
+.st-row small { font-size: 14px; color: ${LAB.inkBody}; }
+.st-row.no { color: ${LAB.inkBody}; }
+.st-profile { background: none; border: 0; padding: 0; cursor: pointer; text-align: left; font-family: 'Cinzel', serif; font-weight: 700; font-size: 16px; letter-spacing: .04em; text-transform: uppercase; color: ${LAB.ink}; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1.5px; }
+.st-profile:hover { color: ${LAPIS.edge}; }
+.st-mark { flex: none; width: 20px; height: 20px; stroke: #B25640; }
 .st-row.yes .st-mark { stroke: #3D7A4E; }
 .st-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .st-opt.hf-pick { justify-content: center; padding: 8px 12px; }
@@ -327,12 +305,9 @@ const STAY_CSS = `
   .st-speak.hf-speak { padding: 8px 12px; gap: 12px; }
   .st-speak h2 { font-size: 16px; }
   .st-speak p { font-size: 12px; line-height: 1.4; }
-  .st-show { grid-template-columns: 104px 1fr; gap: 12px; }
-  .st-card { width: 104px; }
-  .st-card-glyph { bottom: 30px; }
-  .st-row-txt b { font-size: 14px; }
-  .st-row-txt small { font-size: 12px; }
-  .st-mark { width: 18px; height: 18px; margin-top: 1px; }
+  .st-row, .st-profile { font-size: 14px; }
+  .st-row small { font-size: 12px; }
+  .st-mark { width: 18px; height: 18px; }
 }
 @media (max-width: 600px) and (max-height: 700px) {
   .st-wrap { gap: 6px; }
