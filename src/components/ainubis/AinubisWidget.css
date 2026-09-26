@@ -1046,3 +1046,8 @@ body:has(.bd-col) .ainubis-panel {
 @media (max-width: 767px) {
   body:has(.bd-col) .ainubis-panel { bottom: 8px; }
 }
+/* Otvorené okno SNIFFERu (celý profil, správa, zhoda, potvrdenie) = závoj `.pk-veil`.
+   Stĺpec `.bd-col` robí vlastný stohovací kontext, takže závoj (z 200) skončí POD
+   guľou (z 60) a guľa sedela na fotke celého profilu. Kým je okno otvorené, guľa
+   ustúpi; po zatvorení je späť. `visibility`, nie `display` — pozri vyššie. */
+body:has(.bd-col .pk-veil) .ainubis-launcher { visibility: hidden; }
