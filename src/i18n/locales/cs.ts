@@ -313,7 +313,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.stay.titlePrefix': 'Tvůj pes postupuje, ',
   'heroglyph.flow.stay.titleWord': 'ty zatím ne',
   'heroglyph.flow.stay.titleSuffix': '!',
-  'heroglyph.flow.stay.sub': 'V DOGYPTU je každý pes svatý a i ten tvůj má u nás své místo. Bohužel, z lidí může dál jen ten, kdo myšlenku podpoří symbolickým darem, aby celý projekt mohl fungovat.',
+  'heroglyph.flow.stay.sub': 'Každý pes je u nás svatý. Člověk jde dál jen se symbolickým darem, ze kterého DOGYPT žije.',
   'heroglyph.flow.stay.support.t': 'Všimné',
   'heroglyph.flow.stay.support.sub': 'malá částka za snahu',
   'heroglyph.flow.stay.guest.t': 'Ani ťuk',

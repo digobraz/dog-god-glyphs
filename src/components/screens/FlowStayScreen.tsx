@@ -47,25 +47,17 @@ import { getAttribution } from '@/lib/attribution';
 //    ako je aj viac info"*). Voľba `FlowStayChoice` žije v `FlowModal` nad
 //    pokladňou; routa `/heroglyph/stay` ostáva len na poďakovanie (€0 zapísané,
 //    návrat zo Stripe po €3). Bez parametra presmeruje späť do pokladne.
-//    Na mobile sú voľby POD SEBOU, na PC vedľa seba; každá vlastnosť má
-//    kresbu z kitu (Matej: *„všade pridaj aj ikonky z brandu"*).
+//    Leží V DOSKE pokladne ako ostatné panely (`FlowPanelShell`, Matej 26. 9.:
+//    *„na to isté miesto ako je celý blok"*). Na mobile sú voľby POD SEBOU.
+//    Kresba je len pri voľbe (bankovka €3, krížik €0), položky sú len text.
 // ════════════════════════════════════════════════════════════════════════════
 
 type Tier = 'support' | 'guest';
 type Feat = 'wall' | 'msg' | 'noMsg' | 'num' | 'pack' | 'design';
-/** Kresby z kitu pre každú vlastnosť. */
-const FEAT_ICON: Record<Feat, string> = {
-  wall: '/icons/heroglyph-page/wall-grid-gold.svg',
-  msg: '/icons/pack/feather.svg',
-  noMsg: '/icons/pack/feather.svg',
-  num: '/icons/pack/badge.svg',
-  pack: '/icons/pack/dogsphinx.svg',
-  design: '/icons/pack/frame.svg',
-};
 /** Čo voľba dá (✓) a čo nie (✗) — Matej 26. 9. 2026 doslova. */
 const OPTS: { id: Tier; icon: string; each: number; feats: [Feat, boolean][] }[] = [
-  { id: 'support', icon: '/icons/mission/heartpaw.svg', each: PRICE_SUPPORT, feats: [['wall', true], ['msg', true], ['num', false], ['pack', false], ['design', false]] },
-  { id: 'guest', icon: '/icons/pack/paw.svg', each: 0, feats: [['wall', true], ['noMsg', false], ['num', false], ['pack', false], ['design', false]] },
+  { id: 'support', icon: '/icons/pack/money.svg', each: PRICE_SUPPORT, feats: [['wall', true], ['msg', true], ['num', false], ['pack', false], ['design', false]] },
+  { id: 'guest', icon: '/icons/pack/cross.svg', each: 0, feats: [['wall', true], ['noMsg', false], ['num', false], ['pack', false], ['design', false]] },
 ];
 
 /** Obsah popupu ZADRŽANIE — v pokladni v `FlowModal`. */
@@ -135,7 +127,7 @@ export function FlowStayChoice({ onMember }: { onMember: () => void }) {
     <div className="st-wrap">
       <style>{FLOW_MEDAL_CSS}{STAY_CSS}</style>
       <div className="hf-speak st-speak">
-        <FlowMedallion src={hekthorFace('stay')} size={56} />
+        <FlowMedallion src={hekthorFace('stay')} size={typeof window !== 'undefined' && window.innerHeight < 700 ? 64 : 88} />
         <span className="say">
           <h2>
             {t('heroglyph.flow.stay.titlePrefix')}
@@ -173,7 +165,6 @@ export function FlowStayChoice({ onMember }: { onMember: () => void }) {
               <ul className="st-feats">
                 {x.feats.map(([k, yes]) => (
                   <li key={k} className={yes ? 'yes' : 'no'}>
-                    <img className="st-fi" src={FEAT_ICON[k]} alt="" />
                     <span className="st-ft">{t(`heroglyph.flow.stay.f.${k}`)}</span>
                     <Mark yes={yes} />
                   </li>
@@ -277,8 +268,6 @@ const STAY_CSS = `
 .st-feats { list-style: none; margin: 0; padding: 8px 0 0; border-top: 1px solid rgba(179, 130, 45, .35); display: flex; flex-direction: column; gap: 4px; }
 .st-feats li { display: flex; align-items: center; gap: 8px; font-family: 'Space Grotesk', sans-serif; font-size: 12px; line-height: 1.25; color: ${LAB.ink}; text-align: left; }
 .st-feats li.no { color: ${LAB.inkBody}; }
-.st-feats li.no .st-fi { opacity: .45; }
-.st-fi { flex: none; width: 16px; height: 16px; object-fit: contain; }
 .st-ft { flex: 1 1 auto; min-width: 0; }
 .st-mark { flex: none; width: 14px; height: 14px; }
 .st-feats li.yes .st-mark { stroke: #3D7A4E; }
@@ -308,5 +297,17 @@ const STAY_CSS = `
   .st-opt.hf-pick { padding: 8px 12px; gap: 6px; }
   .st-feats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; padding-top: 6px; }
   .st-feats li { gap: 4px; font-size: 12px; }
+}
+/* Nízky mobil (SE) — doska pokladne má ~490 px, obsah sa musí zmestiť do nej. */
+@media (max-width: 600px) and (max-height: 700px) {
+  .st-wrap { gap: 6px; }
+  .st-speak h2 { font-size: 14px; }
+  .st-speak p { font-size: 12px; line-height: 1.3; }
+  .st-opt.hf-pick { padding: 6px 10px; gap: 4px; }
+  .st-opt-head .well { width: 28px; height: 28px; }
+  .st-opt-t { font-size: 14px; }
+  .st-price { font-size: 20px; }
+  .st-feats { gap: 2px 8px; padding-top: 4px; }
+  .st-wrap .hf-chk { padding-top: 6px; padding-bottom: 6px; }
 }
 `;

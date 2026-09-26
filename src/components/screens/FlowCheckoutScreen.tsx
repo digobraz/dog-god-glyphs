@@ -19,8 +19,7 @@ import { getAttribution } from '@/lib/attribution';
 import { suggestEmailFix } from '@/lib/emailTypo';
 import { saveCheckoutDraft } from '@/lib/checkoutDraft';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
-import { FlowPanel, FLOW_PANEL_CSS, type PanelGroup } from '@/components/screens/flowPanel';
-import { FlowModal, FLOW_MODAL_CSS } from '@/components/screens/flowModal';
+import { FlowPanel, FlowPanelShell, FLOW_PANEL_CSS, type PanelGroup } from '@/components/screens/flowPanel';
 import { FlowStayChoice } from '@/components/screens/FlowStayScreen';
 import ainubisIcon from '@/assets/ainubis-head.png';
 import {
@@ -235,10 +234,7 @@ export function FlowCheckoutScreen() {
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_CARVE_CSS}{FLOW_PANEL_CSS}{FLOW_MODAL_CSS}{CHECKOUT_CSS}</style>
-      <FlowModal open={stay} onClose={() => setStay(false)} label={t('heroglyph.flow.checkoutNew.decline')}>
-        <FlowStayChoice onMember={() => setStay(false)} />
-      </FlowModal>
+      <style>{FLOW_PALE_CSS}{FLOW_CARVE_CSS}{FLOW_PANEL_CSS}{CHECKOUT_CSS}</style>
 
       {/* Hlavička BEZ loga a jazyka (Matej 25. 9. 2026: *„blok je malý — daj
           preč horné logo, jazyk, šípku dozadu do stredu"*). Punc nesie pečať
@@ -260,7 +256,7 @@ export function FlowCheckoutScreen() {
               by pod ňou zmizol (Matej 25. 9. 2026). Kľúč ostáva v i18n. */}
 
           <motion.div
-            className={`hf-block hf-carved co-stack${dogs.length > 2 ? ' co-stack--many' : ''}${panel ? ' is-veiled' : ''}`}
+            className={`hf-block hf-carved co-stack${dogs.length > 2 ? ' co-stack--many' : ''}${panel || stay ? ' is-veiled' : ''}`}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
@@ -475,7 +471,7 @@ export function FlowCheckoutScreen() {
               {promoState === 'bad' && <p className="co-err">{t('payment.promo.invalid')}</p>}
               {createPortal(
                 <AnimatePresence>
-                  {panel && (
+                  {(panel || stay) && (
                     <motion.div
                       key="veil"
                       className="co-veil"
@@ -499,6 +495,11 @@ export function FlowCheckoutScreen() {
                     closeLabel={t('heroglyph.flow.checkoutNew.getClose')}
                     onClose={() => setPanel(null)}
                   />
+                )}
+                {stay && (
+                  <FlowPanelShell key="stay" className="co-stay" label={t('heroglyph.flow.checkoutNew.decline')} onClose={() => setStay(false)}>
+                    <FlowStayChoice onMember={() => setStay(false)} />
+                  </FlowPanelShell>
                 )}
               </AnimatePresence>
             </div>
@@ -656,6 +657,9 @@ const CHECKOUT_CSS = `
    v portáli do <body> — tieň z bloku orezal \`.hf-stage\` a lišta s logom ostala
    svetlá. Blok ide nad závoj, pečať zmizne. Ťuk do závoja zatvára panel
    (\`FlowPanel\` počúva ťuk mimo seba). */
+.co-stay.fp-panel { overflow-y: auto; overscroll-behavior: contain; padding: 16px; }
+/* Centrovať margin:auto na dieťati, nie justify-center (pretečenie by sa nedalo odrolovať hore). */
+.co-stay > .st-wrap { margin: auto 0; }
 .co-veil { position: fixed; inset: 0; z-index: 60; background: rgba(8, 6, 4, 0.62); }
 /* \`.hf-stage\` je vlastná vrstva (z 1) ⇒ z-index bloku sa nad závoj nedostane;
    zdvihne sa celé javisko. Tapeta aj lišta s logom sú mimo neho, ostanú pod závojom. */

@@ -507,7 +507,7 @@ export const en = {
   'heroglyph.flow.stay.titlePrefix': 'Your dog moves on, ',
   'heroglyph.flow.stay.titleWord': 'you don’t yet',
   'heroglyph.flow.stay.titleSuffix': '!',
-  'heroglyph.flow.stay.sub': 'In DOGYPT every dog is sacred, and yours has its place here too. Sadly, of the humans only those who back the idea with a small offering can go further. That is what keeps the whole project alive.',
+  'heroglyph.flow.stay.sub': 'Every dog is sacred here. Humans go further only with a small offering, the one DOGYPT lives on.',
   'heroglyph.flow.stay.support.t': 'Tip jar',
   'heroglyph.flow.stay.support.sub': 'a small sum for the effort',
   'heroglyph.flow.stay.guest.t': 'Not a penny',

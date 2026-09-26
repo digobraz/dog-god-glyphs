@@ -35,20 +35,39 @@ export interface PanelItem {
 }
 export interface PanelGroup { heading?: string; items: PanelItem[] }
 
-export function FlowPanel({
-  title, groups, footer, closeLabel, onClose,
+/**
+ * Holý rám panelu v doske — to isté miesto, závoj a zatváranie ako `FlowPanel`,
+ * obsah si dodá volajúci (ZADRŽANIE, Matej 26. 9. 2026: *„daj ten popup na to
+ * isté miesto ako je celý blok… ako sú aj druhé popupy"*).
+ */
+export function FlowPanelShell({
+  label, onClose, className = '', children,
 }: {
-  title: string;
-  groups: PanelGroup[];
-  footer?: string;
-  closeLabel: string;
+  label: string;
   onClose: () => void;
+  className?: string;
+  children: ReactNode;
 }) {
-  const [open, setOpen] = useState<string | null>(null);
-  // Zatvorí sa aj ťukom VEDĽA panela a klávesom Esc (Matej 25. 9. 2026: *„pri
-  // otvorení popupov sa bude dať zrušiť aj kliknutím vedľa"*). Panel prekrýva
-  // celú dosku, takže „vedľa" = mimo dosky. `pointerdown` a nie `click`: ťuk,
-  // ktorý panel otvoril, už dobehol a nezavrie ho hneď späť.
+  const ref = useOutsideClose(onClose);
+  return (
+    <motion.div
+      ref={ref}
+      className={`fp-panel ${className}`}
+      role="dialog"
+      aria-label={label}
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ duration: 0.2 }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/** Ťuk VEDĽA panela a Esc ho zavrú. `pointerdown`, nie `click`: ťuk, ktorý
+ *  panel otvoril, už dobehol a nezavrie ho hneď späť. */
+function useOutsideClose(onClose: () => void) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const down = (e: PointerEvent) => {
@@ -62,6 +81,20 @@ export function FlowPanel({
       document.removeEventListener('keydown', key);
     };
   }, [onClose]);
+  return ref;
+}
+
+export function FlowPanel({
+  title, groups, footer, closeLabel, onClose,
+}: {
+  title: string;
+  groups: PanelGroup[];
+  footer?: string;
+  closeLabel: string;
+  onClose: () => void;
+}) {
+  const [open, setOpen] = useState<string | null>(null);
+  const ref = useOutsideClose(onClose);
   return (
     <motion.div
       ref={ref}
