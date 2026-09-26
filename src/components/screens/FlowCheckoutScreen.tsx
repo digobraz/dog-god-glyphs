@@ -51,12 +51,8 @@ import {
 const CREATE_CHECKOUT_URL = `${EDGE_BASE}/create-checkout`;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/**
- * STĹPCE MRIEŽKY PSOV — vždy plná mriežka (Matej 25. 9. 2026: *„logika je, aby
- * bola vždy mriežka! ak sú 4, tak 2×2, nie 3 a 1"*). 1–3 psi v jednom rade,
- * 4 = 2×2, od 5 po troch (5 a 7 nechajú jedno miesto, inak to nejde).
- */
-const gridCols = (n: number) => (n <= 3 ? Math.max(1, n) : n === 4 ? 2 : 3);
+/* Mriežka kariet psov (25. 9. 2026) zanikla 26. 9. — psi sú v pokladni v RADE
+   ako riadok položky, nie ako karty (Matej: *„mená psov kľudne vedľa seba v rade"*). */
 
 export function FlowCheckoutScreen() {
   useFlowKeyboardFix();
@@ -221,7 +217,7 @@ export function FlowCheckoutScreen() {
               by pod ňou zmizol (Matej 25. 9. 2026). Kľúč ostáva v i18n. */}
 
           <motion.div
-            className={`hf-block hf-carved co-stack${dogs.length > 2 ? ' co-stack--many' : ''}${panel || stay ? ' is-veiled' : ''}`}
+            className={`hf-block hf-carved co-stack${dogs.length > 2 ? ' co-stack--many' : ''}${panel || stay ? ' is-veiled' : ''}${stay ? ' is-staying' : ''}`}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
@@ -286,50 +282,54 @@ export function FlowCheckoutScreen() {
                 </div>
               )}
 
-              {/* ── SVORKA — psi ako KARTY vedľa seba (Matej 25. 9.: *„multipsy budú
-                  v 2/3 stĺpcoch vedľa seba, nie pod sebou"*). Stĺpcov je najviac
-                  toľko, koľko je psov — jeden pes nestojí v tretine dosky. ── */}
-              {/* Čo kupuješ, jednou vetou nad psami (Matej 26. 9. 2026: *„lepší texting
-                  v kolónke cena: Členstvo v hnutí (vlastné konto) + HEROGLYPH pre:"*). */}
-              <p className="hf-legend co-for">{t('heroglyph.flow.checkoutNew.forDogs')}</p>
-              <ul
-                className="co-dogs"
-                style={{ '--co-n': gridCols(dogs.length) } as React.CSSProperties}
-              >
-                {dogs.map((d) => {
-                  const angel = d.lifeStatus === 'deceased';
-                  return (
-                    <li key={d.flowId} className="co-dog">
-                      {d.photo
-                        ? <img className="co-dog-ph" src={d.photo} alt="" />
-                        : <span className="co-dog-ph co-dog-ph--empty">{(d.dogName || '?').slice(0, 1)}</span>}
-                      <span className="co-dog-name">{d.dogName}</span>
-                      {angel && <span className="co-dog-tag">{t('heroglyph.flow.checkoutNew.angel')}</span>}
-                      {angel ? (
-                        <span className="co-seg" role="radiogroup" aria-label={t('heroglyph.flow.checkoutNew.angel')}>
-                          {[PRICE_MEMBER, PRICE_ANGEL].map((p) => {
-                            const on = priceOf(d) === p;
-                            return (
-                              <button
-                                key={p}
-                                type="button"
-                                role="radio"
-                                aria-checked={on}
-                                className={`co-seg-b${on ? ' on' : ''}`}
-                                onClick={() => setAngelLow((s) => ({ ...s, [d.flowId]: p === PRICE_ANGEL }))}
-                              >
-                                €{p}
-                              </button>
-                            );
-                          })}
-                        </span>
-                      ) : (
-                        <span className="co-dog-price">€{PRICE_MEMBER}</span>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
+              {/* ── POLOŽKA V KOŠÍKU (Matej 26. 9. 2026 ~15:00) ─────────────────
+                  *„to ‚členstvo v hnutí…' nie je poriadne vidno, zapadlo… musí to mať
+                  náležitosť a vyzerať ako produkt v košíku… slovo Položka:, pod tým
+                  členstvo, a pod tým len slovne… mená psov vedľa seba v rade
+                  s miniatúrou fotky. To členstvo bude veľkým a klikateľné = odpadá
+                  tlačidlo čo zahŕňa členstvo"*. Karty psov a zelené tlačidlo
+                  ČO ZAHŔŇA ČLENSTVO tým zanikli; VIAC INFO otvára názov položky. */}
+              <div className="co-item">
+                <span className="co-item-k">{t('heroglyph.flow.checkoutNew.itemLabel')}</span>
+                <button type="button" className="co-item-t" onClick={() => setPanel('get')}>
+                  {t('heroglyph.flow.checkoutNew.itemTitle')}
+                </button>
+                <span className="co-item-sub">{t('heroglyph.flow.checkoutNew.itemSub')}</span>
+                <ul className="co-dogs">
+                  {dogs.map((d) => {
+                    const angel = d.lifeStatus === 'deceased';
+                    return (
+                      <li key={d.flowId} className="co-dog">
+                        {d.photo
+                          ? <img className="co-dog-ph" src={d.photo} alt="" />
+                          : <span className="co-dog-ph co-dog-ph--empty">{(d.dogName || '?').slice(0, 1)}</span>}
+                        <span className="co-dog-name">{d.dogName}</span>
+                        {angel ? (
+                          <span className="co-seg" role="radiogroup" aria-label={t('heroglyph.flow.checkoutNew.angel')}>
+                            {[PRICE_MEMBER, PRICE_ANGEL].map((p) => {
+                              const on = priceOf(d) === p;
+                              return (
+                                <button
+                                  key={p}
+                                  type="button"
+                                  role="radio"
+                                  aria-checked={on}
+                                  className={`co-seg-b${on ? ' on' : ''}`}
+                                  onClick={() => setAngelLow((s) => ({ ...s, [d.flowId]: p === PRICE_ANGEL }))}
+                                >
+                                  €{p}
+                                </button>
+                              );
+                            })}
+                          </span>
+                        ) : (
+                          <span className="co-dog-price">€{PRICE_MEMBER}</span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
 
               {/* ── SPOLU + PROMO ─────────────────────────────────────────
                   Promo kód stojí pri SPOLU — mení práve túto sumu (Matej 26. 9. 2026). */}
@@ -379,12 +379,6 @@ export function FlowCheckoutScreen() {
                 </div>
               )}
               {promoState === 'bad' && <p className="co-err">{t('payment.promo.invalid')}</p>}
-
-              {/* ── ČO ZAHŔŇA ČLENSTVO — nič viac (Matej 26. 9. 2026). Štítky aj
-                  „Kam idú peniaze" zanikli: peniaze sú poslednou snímkou VIAC INFO. ── */}
-              <button type="button" className="co-more co-member" onClick={() => setPanel('get')}>
-                {t('heroglyph.flow.checkoutNew.whatMember')}
-              </button>
 
               {/* ── ZAPLATIŤ / NECHCEM PLATIŤ — vedľa seba. Plná plocha patrí
                   jedinému CTA (brand lock), odmietnutie je obrysové. Vedie na
@@ -495,41 +489,29 @@ const CHECKOUT_CSS = `
 .co-edit { display: flex; flex-direction: column; gap: 8px; }
 .co-edit-row { display: flex; justify-content: space-between; align-items: center; }
 
-/* Svorka — karta na psa, 2 stĺpce na mobile, 3 na širokej doske. */
-.co-dogs { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px;
-  grid-template-columns: repeat(var(--co-n, 3), minmax(0, 1fr));
-  max-height: 300px; overflow-y: auto; }
-/* Úzka doska (mobil): tri karty v rade majú ~95 px — prepínač anjela sa zmenší,
-   aby sa oba stupne zmestili vedľa seba. */
-@container (max-width: 479px) {
-  .co-dogs .co-seg-b { min-width: 34px; height: 26px; padding: 0 4px; font-size: 10px; }
-  .co-dogs .co-dog-name { font-size: 12px; letter-spacing: 0.02em; }
+/* Psi v RADE vedľa seba: miniatúra ~24 px · meno · cena (26. 9. 2026). */
+.co-dogs {
+  list-style: none; margin: 8px 0 0; padding: 0; width: 100%;
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 16px;
+  max-height: 120px; overflow-y: auto;
 }
-.co-dog {
-  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px;
-  border-radius: ${PACK_R.tile}px; border: 1.5px solid ${LAB.hairline}; text-align: center;
-  background: linear-gradient(135deg, rgba(255, 253, 247, 0.55), rgba(242, 226, 189, 0.45));
-}
+.co-dog { display: inline-flex; align-items: center; gap: 8px; }
 .co-dog-ph {
-  flex: 0 0 auto; width: 40px; height: 40px; border-radius: ${PACK_R.tile}px;
+  flex: 0 0 auto; width: 24px; height: 24px; border-radius: 999px;
   object-fit: cover; border: 1.5px solid ${LAB.hairline};
 }
 .co-dog-ph--empty {
   display: grid; place-items: center; font-family: 'Cinzel', serif; font-weight: 700;
-  font-size: 20px; color: ${LAB.inkMuted};
+  font-size: 12px; color: ${LAB.inkMuted};
 }
 .co-dog-name {
-  max-width: 100%; font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px; letter-spacing: 0.14em;
+  max-width: 160px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px; letter-spacing: 0.08em;
   text-transform: uppercase; color: ${LAB.ink}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.co-dog-tag {
-  font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 10px;
-  letter-spacing: 0.22em; text-transform: uppercase; color: ${LAB.goldInk};
-}
-.co-dog-price { font-family: 'Cinzel', serif; font-weight: 700; font-size: 16px; color: ${LAB.ink}; line-height: 30px; }
+.co-dog-price { font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px; color: ${LAB.inkSoft}; }
 .co-seg { display: inline-flex; gap: 4px; }
 .co-seg-b {
-  height: 30px; min-width: 44px; padding: 0 8px; cursor: pointer;
+  height: 26px; min-width: 40px; padding: 0 8px; cursor: pointer;
   border-radius: ${PACK_R.pill}px; border: 1.5px solid ${LAB.hairline};
   background: transparent; color: ${LAB.inkSoft};
   font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
@@ -583,6 +565,10 @@ const CHECKOUT_CSS = `
 .co-stay.fp-panel { overflow-y: auto; overscroll-behavior: contain; padding: 16px; }
 /* Centrovať margin:auto na dieťati, nie justify-center (pretečenie by sa nedalo odrolovať hore). */
 .co-stay > .st-wrap { margin: auto 0; }
+/* ZADRŽANIE žije v paneli \`inset: 0\` dosky, takže má len jej výšku (~420 px
+   na 1477×724) — po výbere €0/€3 a checkboxe pretieklo (Matej 26. 9.). Kým je
+   otvorené, doska si vezme výšku, ktorú popup potrebuje, najviac výšku okna. */
+@media (min-width: 601px) { .co-stack.is-staying > .hf-plate { min-height: min(500px, calc(100dvh - 120px)); } }
 .co-veil { position: fixed; inset: 0; z-index: 60; background: rgba(8, 6, 4, 0.62); }
 /* \`.hf-stage\` je vlastná vrstva (z 1) ⇒ z-index bloku sa nad závoj nedostane;
    zdvihne sa celé javisko. Tapeta aj lišta s logom sú mimo neho, ostanú pod závojom. */
@@ -590,14 +576,36 @@ const CHECKOUT_CSS = `
 .co-seal { transition: opacity 200ms ease; }
 .co-stack.is-veiled .co-seal { opacity: 0; }
 
-/* ZAPLATIŤ + NECHCEM PLATIŤ vedľa seba — plné a obrysové, rovnaký tvar. */
+/* Mobil: ZAPLATIŤ hore, NECHCEM PLATIŤ pod ním (Matej 26. 9.: *„obidve CTA
+   môžu byť pod sebou"*). */
 .co-actions { display: flex; flex-direction: column; gap: 8px; }
 .co-actions > button { width: 100%; }
-.co-for { text-align: center; white-space: normal; line-height: 1.5; letter-spacing: .12em; }
-.co-for::before, .co-for::after { align-self: center; }
-@media (max-width: 600px) { .co-for { font-size: 10px; } .co-for::before, .co-for::after { min-width: 8px; } }
+/* PC: opäť VEDĽA SEBA 30/70 (Matej 26. 9. ~15:00) — NECHCEM PLATIŤ vľavo
+   obrysové, ZAPLATIŤ lapis vpravo, texty na jeden riadok. Poradie cez \`order\`,
+   aby na mobile ostalo plné CTA hore. */
+@media (min-width: 601px) {
+  .co-actions { display: grid; grid-template-columns: 3fr 7fr; gap: 8px 12px; }
+  .co-actions > .co-decline { order: 1; white-space: nowrap; }
+  .co-actions > .hf-cta { order: 2; white-space: nowrap; }
+  .co-actions > .co-secure { order: 3; grid-column: 1 / -1; }
+}
+
+/* ── POLOŽKA ─────────────────────────────────────────────────────────────── */
+.co-item { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.co-item-k {
+  font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 10px;
+  letter-spacing: 0.26em; text-transform: uppercase; color: ${LAB.goldInk};
+}
+.co-item-t {
+  border: 0; background: none; padding: 0; cursor: pointer;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 20px; line-height: 1.25;
+  letter-spacing: 0.06em; text-transform: uppercase; color: ${LAB.ink};
+  text-decoration: underline; text-decoration-color: ${LAPIS.edge};
+  text-decoration-thickness: 2px; text-underline-offset: 5px;
+}
+.co-item-t:hover { color: ${LAPIS.edge}; }
+.co-item-sub { font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: ${LAB.inkMuted}; }
 .co-promo-ask { align-self: flex-end; margin-top: -8px; font-size: 12px; }
-.co-member { align-self: center; }
 .co-decline {
   height: ${HF.cta.h}px; border-radius: ${HF.cta.radius}px; cursor: pointer;
   border: 1.5px solid ${LAPIS.edge}; background: transparent; color: ${LAPIS.edge};
@@ -634,15 +642,12 @@ const CHECKOUT_CSS = `
   .co-kicker { display: none; }
   .co-stack .hf-plate { gap: 10px; }
   /* Karty psov ustúpia ako prvé z obsahu: pri 2×2 berú dva riadky dosky. */
-  .co-dog-ph { width: 32px; height: 32px; }
-  .co-dog-price { line-height: 20px; }
 }
 @media (max-height: 700px) {
   .co-stack .hf-plate { padding-left: 16px; padding-right: 16px; padding-bottom: 14px; gap: 8px; }
   .co-kicker { margin-bottom: 8px; font-size: 12px; }
-  .co-dogs { max-height: 150px; }
+  .co-dogs { max-height: 72px; }
   .co-secure { display: none; }
-  .co-dog-ph { width: 28px; height: 28px; }
-  .co-dog-name { font-size: 12px; }
+  .co-item-t { font-size: 16px; }
 }
 `;

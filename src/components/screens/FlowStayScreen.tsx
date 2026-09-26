@@ -292,6 +292,15 @@ const STAY_CSS = `
 .st-actions { display: flex; flex-direction: column; gap: 8px; }
 .st-actions > button { width: 100%; }
 .st-actions .hf-cta { width: 100%; }
+/* PC (≥601): VEDĽA SEBA (Matej 26. 9. ~15:00: *„na PC to nie je ok, obsah preteká
+   a dá sa scrollovať, takže tlačidlá daj vedľa seba"*). Pretekalo to po výbere
+   €0/€3, keď pribudne checkbox s e-mailom. POTVRDIŤ vľavo, PLNÝ PRÍSTUP (plné
+   lapis) vpravo — plná akcia bližšie k palcu, ako v pokladni. Mobil ostáva pod sebou. */
+@media (min-width: 601px) {
+  .st-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .st-actions > .st-confirm { order: 1; }
+  .st-actions > .hf-cta { order: 2; }
+}
 .st-confirm {
   height: ${HF.cta.h}px; border-radius: ${HF.cta.radius}px; cursor: pointer;
   border: 1.5px solid ${LAPIS.edge}; background: transparent; color: ${LAPIS.edge};
@@ -303,6 +312,13 @@ const STAY_CSS = `
 .st-confirm:disabled { opacity: .4; cursor: default; }
 .st-done-cta { margin-top: 16px; max-width: 320px; }
 .st-wrap .hf-chk { border-radius: ${PACK_R.tile}px; }
+/* Nízke PC okno (1477×724): hlavička popupu ustúpi prvá, obsah (voľby, CTA) nie. */
+@media (min-width: 601px) and (max-height: 800px) {
+  .st-wrap { gap: 10px; }
+  .st-speak.hf-speak { padding: 12px 20px; gap: 16px; }
+  .st-speak h2 { font-size: 20px; }
+  .st-speak p { font-size: 14px; }
+}
 @media (max-width: 600px) {
   .st-wrap { gap: 10px; }
   .st-speak.hf-speak { padding: 8px 12px; gap: 12px; }
