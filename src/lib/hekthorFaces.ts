@@ -58,6 +58,8 @@ export const BY_STEP: Record<string, number> = {
   message: 26,
   // C · ZADRŽANIE (25. 9. 2026) — voľný ksicht, žiadny iný krok ho nemá.
   stay: 24,
+  // Ďakovačka hosťa €0 — vlastný kľúč, aby sa v dielni dala meniť zvlášť od popupu.
+  'stay-done': 24,
 };
 
 // ─────────────────────────────────────────────────────────────────────────

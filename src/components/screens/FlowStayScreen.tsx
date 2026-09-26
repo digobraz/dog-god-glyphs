@@ -324,7 +324,7 @@ function GuestThanks() {
       <div className="hf-stage">
         <div className="w-full max-w-xl flex flex-col items-center gap-3">
           <motion.div className="hf-speak gt-speak" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
-            <FlowMedallion src={hekthorFace('stay')} size={medal} />
+            <FlowMedallion src={hekthorFace('stay-done')} size={medal} />
             <span className="say">
               <h2>{pre}<b>{hi}</b>{post}</h2>
             </span>
