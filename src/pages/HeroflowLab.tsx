@@ -576,53 +576,6 @@ export default function HeroflowLab() {
           </button>
         </details>
 
-        {/* ── FOTKY HEKTORA — panel s náhľadom (26. 9. 2026) ─────────────── */}
-        <details className="hfl-testdata" open>
-          <summary>Fotky Hektora</summary>
-
-          {!active ? (
-            <div className="hfl-note">Najprv vyber vľavo krok.</div>
-          ) : !activeFaceKey ? (
-            <div className="hfl-note">Na kroku „{active.name}" fotka Hektora nie je.</div>
-          ) : (
-            <>
-              <div className="hfl-note">
-                krok „{active.name}" (kľúč „{activeFaceKey}") · predvolená #{String(activeFaceDefault).padStart(2, '0')}
-              </div>
-              <div className="hfl-faces">
-                {Array.from({ length: FACE_N }, (_, i) => i + 1).map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    className={`hfl-faceit${n === activeFaceNow ? ' on' : ''}`}
-                    onClick={() => pickFace(n)}
-                    title={`#${String(n).padStart(2, '0')}${n === activeFaceDefault ? ' · predvolená' : ''}`}
-                  >
-                    <img src={faceUrl(n)} alt={`ksicht #${n}`} />
-                    {n === activeFaceDefault && <i className="df">P</i>}
-                  </button>
-                ))}
-              </div>
-              <button type="button" className="hfl-ghost" onClick={resetFace}>
-                Späť na predvolenú
-              </button>
-            </>
-          )}
-
-          {Object.keys(faceOverrides).length > 0 && (
-            <>
-              <div className="hfl-head">Zmeny oproti predvolenej mape</div>
-              <ul className="hfl-facelist">
-                {Object.entries(faceOverrides).map(([k, n]) => (
-                  <li key={k}>{k} → #{String(n).padStart(2, '0')}</li>
-                ))}
-              </ul>
-              <button type="button" className="hfl-ghost" onClick={copyFacesForClaude}>
-                KOPÍROVAŤ PRE CLAUDA
-              </button>
-            </>
-          )}
-        </details>
       </aside>
 
       <main className="hfl-stage">
@@ -672,6 +625,55 @@ export default function HeroflowLab() {
             )}
           </div>
         </div>
+
+        {/* ── FOTKY HEKTORA — pás nad rámom (26. 9. 2026 večer) ─────────────
+            Matej: *„v herolab potrebujem vedieť meniť fotky hektora v
+            jednotlivých krokoch"* — výber existoval, ale ležal na DNE ľavého
+            panelu pod meraním výplne, teda mimo obrazovky. Pás je teraz priamo
+            nad krokom, ktorý mení: klik = override + nové načítanie rámu. */}
+        {active && (
+          <div className="hfl-facebar">
+            {!activeFaceKey ? (
+              <span className="hfl-facenote">Na kroku „{active.name}" fotka Hektora nie je.</span>
+            ) : (
+              <>
+                <span className="hfl-facenote">
+                  <b>Fotka Hektora</b> · {active.name}
+                  <br />#{String(activeFaceNow).padStart(2, '0')}{activeFaceNow === activeFaceDefault ? ' (predvolená)' : ` · predvolená #${String(activeFaceDefault).padStart(2, '0')}`}
+                </span>
+                <div className="hfl-faces">
+                  {Array.from({ length: FACE_N }, (_, i) => i + 1).map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      className={`hfl-faceit${n === activeFaceNow ? ' on' : ''}`}
+                      onClick={() => pickFace(n)}
+                      title={`#${String(n).padStart(2, '0')}${n === activeFaceDefault ? ' · predvolená' : ''}`}
+                    >
+                      <img src={faceUrl(n)} alt={`ksicht #${n}`} />
+                      {n === activeFaceDefault && <i className="df">P</i>}
+                    </button>
+                  ))}
+                </div>
+                <div className="hfl-faceacts">
+                  {activeFaceNow !== activeFaceDefault && (
+                    <button type="button" className="hfl-chip" onClick={resetFace}>Predvolená</button>
+                  )}
+                  {Object.keys(faceOverrides).length > 0 && (
+                    <button
+                      type="button"
+                      className="hfl-chip on"
+                      onClick={copyFacesForClaude}
+                      title={Object.entries(faceOverrides).map(([k, n]) => `${k} → #${n}`).join('\n')}
+                    >
+                      KOPÍROVAŤ PRE CLAUDA ({Object.keys(faceOverrides).length})
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Skrytý rám fronty. Meria sa v ňom jeden krok po druhom; je NAOZAJ
             vykreslený (mimo záberu), lebo `display:none` by mu dalo nulovú
@@ -925,12 +927,18 @@ body:has(.hfl-root) .consent-banner { display: none !important; }
    48 px kruhy, presne toľko, aby sa 26 kusov zmestilo do 292 px bočnej lišty
    v šiestich riadkoch. „P" = predvolená z BY_STEP, zlatý rám = aktuálna
    voľba (override alebo predvolená, keď override nie je). */
+.hfl-facebar {
+  display: flex; align-items: center; gap: 12px; padding: 8px 14px;
+  border-bottom: 1px solid rgba(201,154,63,.16); background: rgba(0,0,0,.25);
+}
+.hfl-facenote { flex: 0 0 auto; font-size: 11px; line-height: 1.5; color: rgba(250,244,236,.55); min-width: 120px; }
+.hfl-facenote b { color: #C99A3F; font-weight: 600; }
 .hfl-faces {
-  display: grid; grid-template-columns: repeat(auto-fill, 48px);
-  gap: 6px; padding: 8px 2px 2px;
+  flex: 1; min-width: 0; display: flex; gap: 6px; overflow-x: auto; padding: 2px;
+  scrollbar-width: thin;
 }
 .hfl-faceit {
-  position: relative; width: 48px; height: 48px; padding: 0;
+  position: relative; flex: 0 0 48px; width: 48px; height: 48px; padding: 0;
   border-radius: 50%; border: 2px solid rgba(201,154,63,.25);
   background: transparent; cursor: pointer; overflow: hidden;
 }
@@ -943,10 +951,7 @@ body:has(.hfl-root) .consent-banner { display: none !important; }
   font-style: normal; font-weight: 600; display: flex; align-items: center;
   justify-content: center; border: 1px solid rgba(250,244,236,.4);
 }
-.hfl-facelist {
-  list-style: none; margin: 0; padding: 4px 4px 0; font-size: 10px;
-  color: rgba(250,244,236,.6); display: flex; flex-direction: column; gap: 2px;
-}
+.hfl-faceacts { flex: 0 0 auto; display: flex; flex-direction: column; gap: 4px; }
 
 .hfl-stage { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .hfl-bar {
