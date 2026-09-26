@@ -8,6 +8,8 @@ import { FLOW_PALE_CSS } from "@/components/screens/flowPaleSkin";
 import { LAPIS } from "@/components/pack/navGoldSkin";
 import { PACK_HEAD, PACK_SPACE, PACK_TEXT } from "@/components/pack/packTheme";
 import { LAB } from "@/lib/labTheme";
+import { AINUBIS } from "@/components/pack/ainubisSkin";
+import ainubisEmblem from "@/assets/ainubis-head.webp";
 
 // ── ŠAT: D-BLOK + LAPIS (Matej 26. 9. 2026: „prihlasovaciu stránku musíme prerobiť
 // na brand v dbloku + lapis") ─────────────────────────────────────────────────
@@ -17,6 +19,29 @@ import { LAB } from "@/lib/labTheme";
 // Tu je len to, čo login má navyše: štítok, nadpis karty, oko pri hesle, brána.
 const LOGIN_CSS = `
 .lg-col { max-width: 420px; }
+
+/* ── AINUBIS STRÁŽI BRÁNU (26. 9. 2026) ─────────────────────────────────────
+   Matej: *„oživme sign in… dajme tam AINUBISOV EMBLÉM do stredu hore"*.
+   Brána patrí jemu — AINUBIS drží bezpečnosť, hlásenia a oznamy appky
+   (brand lock, \`ainubisSkin.ts\`), preto žiari JEHO tyrkysom, nie lapisom.
+   Emblém presahuje horný lem karty: sedí na ráme ako pečať, nie v nej.
+   Pohyb = pomalé dýchanie žiary a pol pixelu vznosu; nič, čo by rušilo pole. */
+.lg-emblem {
+  position: relative; z-index: 2; width: 96px; height: 108px;
+  margin: 0 auto -${PACK_SPACE.xxl}px;
+  animation: lgFloat 5s ease-in-out infinite;
+}
+.lg-emblem::before {
+  content: ''; position: absolute; inset: 8px 4px 12px; border-radius: 999px; z-index: -1;
+  background: radial-gradient(circle, rgba(${AINUBIS.cyanRGB},.55) 0%, rgba(${AINUBIS.cyanRGB},0) 70%);
+  filter: blur(8px); animation: lgGlow 3.2s ease-in-out infinite;
+}
+.lg-emblem img { width: 100%; height: 100%; object-fit: contain; display: block;
+  filter: drop-shadow(0 6px 10px rgba(40,26,6,.35)); }
+.lg-login .lg-card .hf-plate { padding-top: ${PACK_SPACE.xl + PACK_SPACE.lg}px; }
+@keyframes lgFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes lgGlow { 0%,100% { opacity: .45; transform: scale(.92); } 50% { opacity: 1; transform: scale(1.06); } }
+@media (prefers-reduced-motion: reduce) { .lg-emblem, .lg-emblem::before { animation: none; } }
 .lg-login .hf-plate { gap: ${PACK_SPACE.md}px; text-align: center; }
 .lg-eyebrow {
   margin: 0; font-family: ${PACK_HEAD.label.fontFamily}; font-weight: ${PACK_HEAD.label.fontWeight};
@@ -35,7 +60,7 @@ const LOGIN_CSS = `
 .lg-pw .hf-field { padding: 0 40px; }
 /* Pole ostáva 16 px (pod 16 iPhone pri ťuknutí priblíži celú stránku); zmenšuje sa
    len placeholder, inak „Nové heslo (min. 8 znakov)" medzi okrajmi pre oko odsekne. */
-.lg-pw .hf-field::placeholder { font-size: ${PACK_TEXT.label}px; }
+.lg-pw--long .hf-field::placeholder { font-size: ${PACK_TEXT.label}px; }
 .lg-eye {
   position: absolute; right: ${PACK_SPACE.sm}px; top: 50%; transform: translateY(-50%);
   display: flex; padding: ${PACK_SPACE.xs}px; background: none; border: none; cursor: pointer;
@@ -342,7 +367,8 @@ export default function Login() {
 
       <div className="hf-stage">
         <div className="w-full lg-col flex flex-col items-center">
-          <article className="hf-block" style={{ marginTop: 0 }} aria-live="polite">
+          <div className="lg-emblem" aria-hidden="true"><img src={ainubisEmblem} alt="" /></div>
+          <article className="hf-block lg-card" style={{ marginTop: 0 }} aria-live="polite">
             <div className="hf-plate">
               <p className="lg-eyebrow">{t('login.eyebrow')}</p>
               {/* Zabudnuté heslo je podstav `missing` — bez prepnutia nadpisu by karta
@@ -484,7 +510,7 @@ export default function Login() {
                   <p className="lg-done">{t('login.recovery.success')}</p>
                 ) : (
                   <form onSubmit={handleRecoverySubmit} className="lg-stack">
-                    <div className="lg-pw">
+                    <div className="lg-pw lg-pw--long">
                       <input
                         type={showRecoveryPassword ? "text" : "password"}
                         value={recoveryPassword}
