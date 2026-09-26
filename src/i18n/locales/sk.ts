@@ -259,6 +259,9 @@ export const sk: Partial<Dict> = {
   // ── /heroglyph flow — krok 1: meno ──
   'heroglyph.flow.name.greetingPrefix': 'Ahoj, ja som',
   'heroglyph.flow.name.greetingQuestion': 'Ako sa volá tvoj psík?',
+  'heroglyph.flow.name.chipName': 'MENO',
+  'heroglyph.flow.name.chipBorn': 'NARODENIE',
+  'heroglyph.flow.name.chipStatus': 'STAV',
   'heroglyph.flow.name.placeholder': 'Napíš meno svojho psíka…',
   'heroglyph.flow.name.birthday': 'Kedy sa tvoj pes narodil?',
   'heroglyph.flow.name.continue': 'Pokračovať',

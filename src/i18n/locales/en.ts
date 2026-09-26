@@ -356,6 +356,9 @@ export const en = {
   // ── /heroglyph flow — step 1: name ──
   'heroglyph.flow.name.greetingPrefix': "Hi, I'm",
   'heroglyph.flow.name.greetingQuestion': "What's your dog's name?",
+  'heroglyph.flow.name.chipName': 'NAME',
+  'heroglyph.flow.name.chipBorn': 'BORN',
+  'heroglyph.flow.name.chipStatus': 'STATUS',
   'heroglyph.flow.name.placeholder': "Type your dog's name...",
   'heroglyph.flow.name.birthday': 'When was your dog born?',
   'heroglyph.flow.name.continue': 'Continue',

@@ -22,7 +22,9 @@ import { LetterReveal, REVEAL_S, LETTER_S, FLOW_INTRO_CSS } from '@/components/s
 //    netušil prečo; obrazovka si svoj šat nosí sama.
 import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
 import { FLOW_STAGE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
-import { PACK_BOX } from '@/components/pack/packTheme';
+import { PACK_BOX, PACK_R, PACK_THEME } from '@/components/pack/packTheme';
+import { LAPIS } from '@/components/pack/navGoldSkin';
+import { TopicChips, FLOW_TOPIC_CSS, type TopicState } from '@/components/screens/flowTopicChips';
 
 /** Premena príchodovej fázy na formulárovú — jeden prechod pre všetky prvky,
  *  aby sa blok, medailón a otázka hýbali ako jedna vec, nie ako tri. */
@@ -101,6 +103,10 @@ export function NameScreen() {
   const [dogCountry, setDogCountry] = useState<string>(selections.country || '');
   const [alive, setAlive] = useState<boolean>(storedLifeStatus !== 'deceased');
   const [deathModal, setDeathModal] = useState(false);
+  // Stav sa v podkrokoch NEPREDVYPĹŇA — „žije" ako predvolené by chip STAV
+  // rozsvietil zeleno bez jediného ťuknutia. Kto sa vracia (meno v store), stav
+  // už raz vybral.
+  const [statusPicked, setStatusPicked] = useState<boolean>(!!initialName);
 
   // ── PRÍCHOD NA OBRAZOVKU (23. 9. 2026) ────────────────────────────────────
   // Matej: *„príchod fotky, zväčšená fota a otázka v ráme cez celú stránku /
@@ -203,7 +209,45 @@ export function NameScreen() {
   // ⚠️ V STAROM VSTUPE OSTÁVA. Tam za krokom 2 nič ako zoznam psov nie je,
   //    takže by krajina vypadla z kódu heroglyfu (15. segment) úplne.
   const countryValid = NEW_HEROFLOW ? true : dogCountry !== '';
-  const canContinue = nameValid && dateValid && countryValid;
+  const canContinue = nameValid && dateValid && countryValid && (!NEW_HEROFLOW || statusPicked);
+
+  // ── PODKROKY AKO PODSTATA A MAJITEĽ (26. 9. 2026) ─────────────────────────
+  // Matej: *„1. krok tiež rozdelíme meno na 3 časti podľa vzoru essence a
+  // owner"*. Pás chipov MENO · NARODENIE · STAV (`flowTopicChips.tsx`), otázku
+  // kladie Hektor v bubline a pod chipmi je JEDNA odpoveď v ploche pevnej
+  // výšky — obrazovka sa medzi podkrokmi nehýbe. POKRAČOVAŤ je od začiatku
+  // priznané a vyblednuté, rozsvieti sa po treťom zelenom chipe.
+  type NameTopic = 'name' | 'born' | 'status';
+  const TOPICS: NameTopic[] = ['name', 'born', 'status'];
+  const doneOf = (k: NameTopic) => (k === 'name' ? nameValid : k === 'born' ? dateValid : statusPicked);
+  const [step, setStep] = useState(() => Math.max(0, TOPICS.findIndex((k) => !doneOf(k))));
+  const [seen, setSeen] = useState<Partial<Record<NameTopic, true>>>({});
+  const topic = TOPICS[step];
+  useEffect(() => { setSeen((x) => ({ ...x, [topic]: true })); }, [topic]);
+  const pickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (pickTimer.current) clearTimeout(pickTimer.current); }, []);
+  /** Ďalšia nevyplnená téma za touto; keď žiadna, ostáva sa (CTA už svieti). */
+  const advance = (justDone: NameTopic) => setStep((from) => {
+    for (let i = from + 1; i < TOPICS.length; i++) if (TOPICS[i] !== justDone && !doneOf(TOPICS[i])) return i;
+    const back = TOPICS.findIndex((k) => k !== justDone && !doneOf(k));
+    return back >= 0 ? back : from;
+  });
+  const chipState = (i: number): TopicState => {
+    const k = TOPICS[i];
+    if (doneOf(k)) return 'done';
+    if (i === step) return 'todo';
+    return seen[k] ? 'miss' : 'todo';
+  };
+  const chipLabels: Record<NameTopic, string> = {
+    name: t('heroglyph.flow.name.chipName'),
+    born: t('heroglyph.flow.name.chipBorn'),
+    status: t('heroglyph.flow.name.chipStatus'),
+  };
+  const asks: Record<NameTopic, string> = {
+    name: t('heroglyph.flow.name.greetingQuestion'),
+    born: t('heroglyph.flow.name.birthday'),
+    status: t('intro.question'),
+  };
 
   const handleSend = () => {
     if (!canContinue) return;
@@ -226,6 +270,83 @@ export function NameScreen() {
     }
     navigate('/heroglyph/photo');
   };
+
+  // Pole mena je JEDNO pre oba vstupy — nový ho ukazuje v podkroku MENO, starý
+  // v riadku s krajinou. Modal na mobile, priame písanie na PC.
+  const nameField = (
+    <div className={`name-preview-wrap${trimmed.length > 0 ? ' is-filled' : ''}`} style={{ flex: '7 0 0', minWidth: 0 }}>
+      {isMobile ? (
+        <button
+          type="button"
+          onClick={openNameModal}
+          className="name-preview-btn w-full rounded-xl px-4 py-3 border-2 transition-colors"
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: '16px',
+            textAlign: 'center',
+            textTransform: trimmed.length > 0 ? 'uppercase' : 'none',
+            letterSpacing: trimmed.length > 0 ? '0.05em' : 'normal',
+            background: trimmed.length > 0 ? 'hsl(224 60% 45% / 0.10)' : 'hsl(var(--card))',
+            borderColor: trimmed.length > 0 ? 'hsl(224 60% 45%)' : 'rgba(47, 107, 255, 0.30)',
+            color: trimmed.length > 0 ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground) / 0.5)',
+            cursor: 'text',
+          }}
+        >
+          {trimmed.length > 0 ? input : t('heroglyph.flow.name.placeholder')}
+        </button>
+      ) : (
+        <input
+          ref={desktopInputRef}
+          value={input}
+          onChange={(e) => setInput(e.target.value.toUpperCase().slice(0, 30))}
+          onKeyDown={(e) => { if (e.key === 'Enter' && canContinue) handleSend(); }}
+          placeholder={t('heroglyph.flow.name.placeholder')}
+          maxLength={30}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="characters"
+          spellCheck={false}
+          data-1p-ignore
+          data-lpignore="true"
+          className="name-preview-btn w-full rounded-xl px-4 py-3 border-2 transition-colors"
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: '16px',
+            textAlign: 'center',
+            textTransform: trimmed.length > 0 ? 'uppercase' : 'none',
+            letterSpacing: trimmed.length > 0 ? '0.05em' : 'normal',
+            background: trimmed.length > 0 ? 'hsl(224 60% 45% / 0.10)' : 'hsl(var(--card))',
+            borderColor: trimmed.length > 0 ? 'hsl(224 60% 45%)' : 'rgba(47, 107, 255, 0.30)',
+            color: trimmed.length > 0 ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground) / 0.5)',
+            outline: 'none',
+          }}
+        />
+      )}
+      <style>{`
+        @property --name-prev-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+        .name-preview-wrap { position: relative; border-radius: 0.75rem; box-shadow: 0 0 10px rgba(47, 107, 255, 0.14); }
+        .name-preview-btn { position: relative; z-index: 1; }
+        .name-preview-wrap::before {
+          content: ''; position: absolute; inset: -2px; border-radius: 14px; z-index: 0;
+          pointer-events: none; padding: 2px;
+          background: conic-gradient(from var(--name-prev-ang),
+            transparent 0deg, transparent 250deg,
+            rgba(47,107,255,0.85) 312deg, rgba(156,196,255,0.95) 334deg,
+            rgba(47,107,255,0.85) 352deg, transparent 360deg);
+          -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          -webkit-mask-composite: xor;
+                  mask-composite: exclude;
+          filter: blur(1px);
+          animation: namePrevSpin 3.8s linear infinite;
+        }
+        @keyframes namePrevSpin { to { --name-prev-ang: 360deg; } }
+        @media (prefers-reduced-motion: reduce) { .name-preview-wrap::before { animation: none; } }
+        /* Filled = no animation, static "selected" highlight (like flow options) */
+        .name-preview-wrap.is-filled::before { animation: none; opacity: 0; }
+        .name-preview-wrap.is-filled { box-shadow: 0 0 0 2px hsl(224 60% 45% / 0.45), 0 0 14px hsl(224 60% 45% / 0.22); }
+      `}</style>
+        </div>
+  );
 
   const handleDateChange = (d: number, m: number, y: number) => {
     setDay(d);
@@ -398,7 +519,9 @@ export function NameScreen() {
                         : 'clamp(17px, min(5.8cqw, 3.4dvh), 26px)',
                     }}
                   >
-                    {playIntro ? (
+                    {/* Písmená len počas príchodu — potom statický text, aby otázka
+                        podkroku (NARODENIE, STAV) mohla nahradiť tú o mene. */}
+                    {playIntro && phase === 'hero' ? (
                       <>
                         <span className="whitespace-nowrap">
                           <LetterReveal text={`${t('heroglyph.flow.name.greetingPrefix')} `} from={REVEAL_S} />
@@ -415,7 +538,23 @@ export function NameScreen() {
                     ) : (
                       <>
                         <span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingPrefix')} <span className="font-bold text-amber-300">HEKTHOR</span>.</span><br />
-                        <span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingQuestion')}</span>
+                        {NEW_HEROFLOW ? (
+                          // Otázka podkroku — Hektor sa pýta, doska odpovedá (ako MAJITEĽ).
+                          <AnimatePresence mode="wait" initial={false}>
+                            <motion.span
+                              key={topic}
+                              className="inline-block"
+                              initial={{ opacity: 0, y: 8 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -6 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              {asks[topic]}
+                            </motion.span>
+                          </AnimatePresence>
+                        ) : (
+                          <span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingQuestion')}</span>
+                        )}
                       </>
                     )}
                   </motion.p>
@@ -542,84 +681,100 @@ export function NameScreen() {
               : { duration: 0.35, delay: 0.1 }}
           >
             <span className="hf-carved-rim" aria-hidden />
+            {NEW_HEROFLOW ? (
+            <div className="nm-plate">
+              <style>{FLOW_TOPIC_CSS}{NAME_TOPIC_CSS}</style>
+              <TopicChips
+                items={TOPICS.map((k, i) => ({ key: k, label: chipLabels[k], state: chipState(i) }))}
+                current={step}
+                onGo={setStep}
+              />
+
+              {/* JEDNA OTÁZKA, PLOCHA PEVNEJ VÝŠKY — ako MAJITEĽ. */}
+              <div className="nm-q">
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={topic}
+                    className="nm-qin"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.22 }}
+                  >
+                    {topic === 'name' && (
+                      <div className="nm-row">
+                        {nameField}
+                        <button type="button" className="nm-next" disabled={!nameValid} onClick={() => advance('name')}>
+                          {t('heroglyph.flow.owner.next')}
+                        </button>
+                      </div>
+                    )}
+
+                    {topic === 'born' && (
+                      <div className="nm-born">
+                        <DateDropdowns
+                          day={day}
+                          month={month}
+                          year={year}
+                          empty={!touched}
+                          emptyLabels={{
+                            day: t('heroglyph.flow.dogs.phDay'),
+                            month: t('heroglyph.flow.dogs.phMonth'),
+                            year: t('heroglyph.flow.dogs.phYear'),
+                          }}
+                          minYear={minYear}
+                          maxYear={maxYear}
+                          maxDate={today}
+                          skin="pale"
+                          onChange={handleDateChange}
+                        />
+                        <button type="button" className="nm-next" disabled={!dateValid} onClick={() => advance('born')}>
+                          {t('heroglyph.flow.owner.next')}
+                        </button>
+                      </div>
+                    )}
+
+                    {topic === 'status' && (
+                      <LifeStatusPick
+                        hideLegend
+                        value={statusPicked ? (alive ? 'alive' : 'deceased') : null}
+                        onChange={(v) => {
+                          setAlive(v === 'alive');
+                          setStatusPicked(true);
+                          if (v === 'alive') {
+                            setDeathDate(null);
+                            if (pickTimer.current) clearTimeout(pickTimer.current);
+                            pickTimer.current = setTimeout(() => advance('status'), 420);
+                          }
+                        }}
+                        onWantDate={() => setDeathModal(true)}
+                        deathDate={storedDeathDate}
+                      />
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              <Button
+                onClick={handleSend}
+                disabled={!canContinue}
+                className="w-full rounded-xl gap-2 h-10 md:h-11 font-bold tracking-wider hover:scale-[1.02] transition-transform disabled:opacity-40 disabled:hover:scale-100"
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                  color: '#000',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
+                }}
+              >
+                {t('heroglyph.flow.name.continue')}
+              </Button>
+            </div>
+            ) : (
             <div className="flex flex-col gap-2 md:gap-3">
             {/* Name + Dog Country row — name 70 %, country select 30 % */}
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
 
-            {/* Name input — modal on mobile (keeps field above iOS keyboard),
-                inline input on desktop (direct keyboard typing). */}
-            <div className={`name-preview-wrap${trimmed.length > 0 ? ' is-filled' : ''}`} style={{ flex: '7 0 0', minWidth: 0 }}>
-              {isMobile ? (
-                <button
-                  type="button"
-                  onClick={openNameModal}
-                  className="name-preview-btn w-full rounded-xl px-4 py-3 border-2 transition-colors"
-                  style={{
-                    fontFamily: "'Space Grotesk', sans-serif",
-                    fontSize: '16px',
-                    textAlign: 'center',
-                    textTransform: trimmed.length > 0 ? 'uppercase' : 'none',
-                    letterSpacing: trimmed.length > 0 ? '0.05em' : 'normal',
-                    background: trimmed.length > 0 ? 'hsl(224 60% 45% / 0.10)' : 'hsl(var(--card))',
-                    borderColor: trimmed.length > 0 ? 'hsl(224 60% 45%)' : 'rgba(47, 107, 255, 0.30)',
-                    color: trimmed.length > 0 ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground) / 0.5)',
-                    cursor: 'text',
-                  }}
-                >
-                  {trimmed.length > 0 ? input : t('heroglyph.flow.name.placeholder')}
-                </button>
-              ) : (
-                <input
-                  ref={desktopInputRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value.toUpperCase().slice(0, 30))}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && canContinue) handleSend(); }}
-                  placeholder={t('heroglyph.flow.name.placeholder')}
-                  maxLength={30}
-                  autoComplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="characters"
-                  spellCheck={false}
-                  data-1p-ignore
-                  data-lpignore="true"
-                  className="name-preview-btn w-full rounded-xl px-4 py-3 border-2 transition-colors"
-                  style={{
-                    fontFamily: "'Space Grotesk', sans-serif",
-                    fontSize: '16px',
-                    textAlign: 'center',
-                    textTransform: trimmed.length > 0 ? 'uppercase' : 'none',
-                    letterSpacing: trimmed.length > 0 ? '0.05em' : 'normal',
-                    background: trimmed.length > 0 ? 'hsl(224 60% 45% / 0.10)' : 'hsl(var(--card))',
-                    borderColor: trimmed.length > 0 ? 'hsl(224 60% 45%)' : 'rgba(47, 107, 255, 0.30)',
-                    color: trimmed.length > 0 ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground) / 0.5)',
-                    outline: 'none',
-                  }}
-                />
-              )}
-              <style>{`
-                @property --name-prev-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
-                .name-preview-wrap { position: relative; border-radius: 0.75rem; box-shadow: 0 0 10px rgba(47, 107, 255, 0.14); }
-                .name-preview-btn { position: relative; z-index: 1; }
-                .name-preview-wrap::before {
-                  content: ''; position: absolute; inset: -2px; border-radius: 14px; z-index: 0;
-                  pointer-events: none; padding: 2px;
-                  background: conic-gradient(from var(--name-prev-ang),
-                    transparent 0deg, transparent 250deg,
-                    rgba(47,107,255,0.85) 312deg, rgba(156,196,255,0.95) 334deg,
-                    rgba(47,107,255,0.85) 352deg, transparent 360deg);
-                  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-                  -webkit-mask-composite: xor;
-                          mask-composite: exclude;
-                  filter: blur(1px);
-                  animation: namePrevSpin 3.8s linear infinite;
-                }
-                @keyframes namePrevSpin { to { --name-prev-ang: 360deg; } }
-                @media (prefers-reduced-motion: reduce) { .name-preview-wrap::before { animation: none; } }
-                /* Filled = no animation, static "selected" highlight (like flow options) */
-                .name-preview-wrap.is-filled::before { animation: none; opacity: 0; }
-                .name-preview-wrap.is-filled { box-shadow: 0 0 0 2px hsl(224 60% 45% / 0.45), 0 0 14px hsl(224 60% 45% / 0.22); }
-              `}</style>
-            </div>
+            {nameField}
 
             {/* ⚠️ Krajina je v novom vstupe na kroku 3 — dôvod pri `countryValid`. */}
             {!NEW_HEROFLOW && (<>
@@ -736,6 +891,7 @@ export function NameScreen() {
               {t('heroglyph.flow.name.continue')}
             </Button>
             </div>
+            )}
           </motion.div>
           )}
         </div>
@@ -768,3 +924,24 @@ export function NameScreen() {
     </div>
   );
 }
+
+// Plocha jednej otázky má výšku najvyššieho podkroku (dlaždice stavu), aby sa
+// doska medzi MENOM, NARODENÍM a STAVOM nehýbala — to isté pravidlo ako MAJITEĽ.
+const NAME_TOPIC_CSS = `
+.nm-plate { display: flex; flex-direction: column; gap: 12px; }
+.nm-plate .ftc-row { grid-template-columns: repeat(3, 1fr); }
+.nm-q { width: 100%; min-height: 112px; display: flex; align-items: center; }
+.nm-qin { width: 100%; }
+.nm-row { display: flex; align-items: center; gap: 8px; }
+.nm-born { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+.nm-born > div:first-child { width: 100%; }
+.nm-next {
+  flex: 0 0 auto; height: 32px; padding: 0 14px; cursor: pointer; align-self: center;
+  border-radius: ${PACK_R.pill}px; border: 1.5px solid ${LAPIS.edge};
+  background: ${LAPIS.edge}; color: #FDF7E7;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
+  letter-spacing: 0.14em; text-transform: uppercase;
+}
+.nm-next:disabled { opacity: 0.35; cursor: default; }
+.nm-next.is-done { background: ${PACK_THEME.growGreen}; border-color: ${PACK_THEME.growGreen}; }
+`;

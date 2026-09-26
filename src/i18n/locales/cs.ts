@@ -179,6 +179,9 @@ export const cs: Partial<Dict> = {
   // ── /heroglyph flow — krok 1: meno ──
   'heroglyph.flow.name.greetingPrefix': 'Ahoj, já jsem',
   'heroglyph.flow.name.greetingQuestion': 'Jak se jmenuje tvůj pejsek?',
+  'heroglyph.flow.name.chipName': 'JMÉNO',
+  'heroglyph.flow.name.chipBorn': 'NAROZENÍ',
+  'heroglyph.flow.name.chipStatus': 'STAV',
   'heroglyph.flow.name.nextCta': 'Dále',
   'heroglyph.flow.name.placeholder': 'Napiš jméno svého pejska…',
   'heroglyph.flow.name.dogCountry': 'Domov',

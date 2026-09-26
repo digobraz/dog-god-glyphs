@@ -64,12 +64,17 @@ export function LifeStatusPick({
   onChange,
   onWantDate,
   deathDate,
+  hideLegend,
 }: {
-  value: LifeStatus;
+  /** `null` = ešte nevybrané (krok MENO od 26. 9. 2026 — voľba sa nepredvyplňuje). */
+  value: LifeStatus | null;
   onChange: (v: LifeStatus) => void;
   /** Klik na „psí anjel" — otvor popup s dátumom. */
   onWantDate: () => void;
   deathDate: string | null;
+  /** Otázku už povedal Hektor v bubline (krok MENO po podkrokoch) — vlys nad
+   *  dlaždicami by ju zopakoval. */
+  hideLegend?: boolean;
 }) {
   const t = useT();
 
@@ -93,9 +98,11 @@ export function LifeStatusPick({
 
   return (
     <div className="w-full flex flex-col gap-2">
-      <p className="hf-legend" style={{ justifyContent: 'center' }}>
-        {t('intro.question')}
-      </p>
+      {!hideLegend && (
+        <p className="hf-legend" style={{ justifyContent: 'center' }}>
+          {t('intro.question')}
+        </p>
+      )}
 
       <div className="grid grid-cols-2 gap-2.5">
         <button
