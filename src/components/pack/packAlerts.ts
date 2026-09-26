@@ -49,7 +49,7 @@ const SEEN_MAX = 200;
 // deň vopred. Odkaz vedie na mapu s otvorenou kartou (`/pack/map?event=<id>`) — objekt má
 // jednu kartu a upozornenie neotvára novú obrazovku.
 export type EventAlertKind = 'event_rsvp' | 'event_changed' | 'event_cancelled' | 'event_reminder' | 'event_held_ask';
-// ── PRIANIA 🍑 (26. 9. 2026) ─────────────────────────────────────────────────────────────
+// ── PRIANIA 🎯 (26. 9. 2026) ─────────────────────────────────────────────────────────────
 // Štyri druhy z `get_wish_alerts()` (20260926_wish_life.sql): B3 „niekto chce tiež" · C1
 // „ešte platí?" · C4 „ušlo ti" · C5 „neodkladaj to". Odkaz vedie na mapu, kde otázku položí
 // AINUBIS (`WishAsk.tsx`) — upozornenie len zavolá, odpovedá sa tam, kde je pin.

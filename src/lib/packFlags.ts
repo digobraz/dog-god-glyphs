@@ -141,7 +141,7 @@ export const EVENTS_LIVE = import.meta.env.VITE_EVENTS === 'true';
 // ⚠️ Už zapísané plány sa NEMAŽÚ ani neprepisujú; len sa prestanú ukazovať.
 export const PLANNING_LIVE = false;
 
-// PRIANIA 🍑 (BUDDY krok 2, 24.–26. 9. 2026). Migrácie `20260925_wish_pins.sql` +
+// PRIANIA 🎯 (BUDDY krok 2, 24.–26. 9. 2026). Migrácie `20260925_wish_pins.sql` +
 // `20260926_wish_life.sql` bežia len na DEV — bez prepínača by `go-live` vyviezol dlaždicu,
 // vrstvu aj upozornenia na LIVE, kde RPC neexistujú (404 na každej stránke /packu).
 // Dev server ich má vždy (`.env.development` je mimo gitu — druhý PC by ich inak nevidel);

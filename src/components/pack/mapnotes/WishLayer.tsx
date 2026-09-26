@@ -1,5 +1,5 @@
 // ============================================================================
-// MAPA PRIANÍ — vrstva 🍑 (BUDDY krok 2, 24. 9. 2026)
+// MAPA PRIANÍ — vrstva 🎯 (BUDDY krok 2, 24. 9. 2026)
 //
 // Zadanie: `plany/zadanie-assnif-2026-09-24.md` §2 · nákres `plany/nakres-assnif-2026-09-24.html`.
 //

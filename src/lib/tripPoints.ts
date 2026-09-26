@@ -45,7 +45,7 @@ export const POINTS = {
   peak: 0,        // vrchol — kryje ho už prevýšenie
   event: 10,      // podujatie, ktoré sa USKUTOČNILO (organizátor potvrdí príbehom a fotkou)
   note: 3,        // ODKAZ (značka na mape) — parkovisko, upozornenie, tip
-  wish: 10,       // SPLNENÉ PRIANIE 🍑 — len s LOGom a za prianie staršie ako 7 dní (Matej 24. 9. 2026)
+  wish: 10,       // SPLNENÉ PRIANIE 🎯 — len s LOGom a za prianie staršie ako 7 dní (Matej 24. 9. 2026)
 } as const;
 
 // ── ODKAZY: JEDNA CENA, DVA STROPY (Matej 2026-08-24) ───────────────────────

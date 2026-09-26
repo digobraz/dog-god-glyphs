@@ -107,7 +107,7 @@ const KINDS: KindDef[] = [
   // PRIANIE (24. 9. 2026) — bez bodov na dlaždici: body (+10 PÚTNIK) prídu až za SPLNENÉ
   // prianie s LOGom (§2.1 zadania), nie za pripnutie. Právo `social`: pin s „hľadám parťáka"
   // hovorí navonok, rovnako ako podujatie.
-  { kind: 'wish', emoji: '🍑', titleKey: 'pack.addTrip.entry.kind.wish.title', textKey: 'pack.addTrip.entry.kind.wish.text', right: 'social' },
+  { kind: 'wish', emoji: '🎯', titleKey: 'pack.addTrip.entry.kind.wish.title', textKey: 'pack.addTrip.entry.kind.wish.text', right: 'social' },
   { kind: 'event', emoji: '📣', titleKey: 'pack.addTrip.entry.kind.event.title', textKey: 'pack.addTrip.entry.kind.event.text', points: POINTS.event, right: 'social' },
   { kind: 'note', emoji: '💬', titleKey: 'pack.addTrip.entry.kind.note.title', textKey: 'pack.addTrip.entry.kind.note.text', points: POINTS.note, right: 'map.notes' },
 ];
@@ -142,7 +142,7 @@ const KINDS: KindDef[] = [
 //    `panel3`). Do 22. 9. z panela videla len tri dlaždice mapy, ostatných desať nie.
 // ⚠️ 🖼️ PRÍSPEVOK uvoľnilo 📝, ktoré kolidovalo s čipom „poznámka" v denníku.
 const EMOJI: Record<CreateId, string> = {
-  trip: '🐾', wish: '🍑', sniffer: '👃', note: '💬', event: '📣', service: '🏥', article: '📕',
+  trip: '🐾', wish: '🎯', sniffer: '👃', note: '💬', event: '📣', service: '🏥', article: '📕',
   diary: '✍️', photo: '📷',
   post: '🖼️',
   chat: '🤖', brain: '📥', board: '❓',

@@ -277,10 +277,13 @@ export function eventEmoji(kind: EventKind): string {
 }
 
 // ── PRIANIE (BUDDY krok 2, 24. 9. 2026) ─────────────────────────────────────────────────────
-// Matej 24. 9.: *„pin dajme zatiaľ emoji (broskyňa), zmeníme neskôr"*. Emoji 1.0, voľné —
-// v tomto súbore ani v paneli `+` ho nič iné nenesie.
+// Matej 24. 9.: *„pin dajme zatiaľ emoji (broskyňa), zmeníme neskôr"*.
+// 🍑 → 🎯 (Matej 26. 9.: *„namiesto broskyne daj terč … terč sedí viac"*). Prianie = cieľ,
+// kam chcem ísť. Emoji 1.0. Kolízia overená 26. 9.: cieľ plánovaného výletu nesie od 24. 8.
+// 📍 (`TRIP_TARGET_EMOJI`), terč na mape ani v paneli `+` nič iné nenesie. Jediný ďalší
+// výskyt je `VIBE_OPTIONS.training` v `packProfile.ts` — dáta, ktoré dnes nič nevykresľuje.
 // Lem = `EVENT_RIM` (mapová modrá). Lock `brand.md` r. 50: lem nesie KTO, farby svorky sú
 // štyri a modrá z nich znamená STRETNUTIE / „ideš s niekým" — pin s „hľadám parťáka" je
 // presne to. Emoji ho od podujatí odlíši. 🚩 Na odsúhlasenie Matejom (nová značka na mape).
-export const WISH_EMOJI = '🍑';
+export const WISH_EMOJI = '🎯';
 export const WISH_RIM = EVENT_RIM;

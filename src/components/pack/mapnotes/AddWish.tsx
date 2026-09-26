@@ -8,7 +8,7 @@
 // ── ŽIADNY FORMULÁR ─────────────────────────────────────────────────────────
 // Hovorí AINUBIS (jeho blok v strede obrazovky, `WishSheet`) a pod ním stojí
 // vždy len JEDNA vec, ktorú treba spraviť. Mapa je pod závojom — vybrané miesto preto
-// stojí v bloku ako štítok 🍑 a mapa k nemu priletí, aby ho po zavretí bolo vidno.
+// stojí v bloku ako štítok 🎯 a mapa k nemu priletí, aby ho po zavretí bolo vidno.
 //
 // ── TVAR (Matej 24. 9. 2026 večer) ─────────────────────────────────────────
 // Tok stojí V STREDE obrazovky nad tmavým závojom: hore AINUBISov blok s otázkou, v ňom
@@ -40,7 +40,7 @@ const NOTE_MAX = 140;
 
 export function AddWish({ map, onDraft, onSaved, onCancel }: {
   map: LeafletMap | null;
-  /** Kde má mapa ukázať rozpracovaný 🍑 (null = nikde). */
+  /** Kde má mapa ukázať rozpracovaný 🎯 (null = nikde). */
   onDraft: (p: WishDraftPoint) => void;
   onSaved: () => void;
   onCancel: () => void;

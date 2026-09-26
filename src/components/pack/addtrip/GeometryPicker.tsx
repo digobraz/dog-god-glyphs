@@ -940,7 +940,7 @@ export function GeometryPicker({
         }
       }
     }
-    // CIEĽ VÝLETU 🎯 — emoji v bielom krúžku s modrým lemom, presne ako udalosti (CLAUDE.md,
+    // CIEĽ VÝLETU 📍 (`TRIP_TARGET_EMOJI`; 🎯 je od 26. 9. PRIANIE) — emoji v bielom krúžku s modrým lemom, presne ako udalosti (CLAUDE.md,
     // Matej 22. 8.). Nie vlastný tvar: „tu je cieľ" a „tu sa niekto s niekým stretne" sú
     // z toho istého rodu a dva rôzne tvary pre jednu myšlienku sme už raz zrušili.
     // Geometriu kruhu nesie `circleMark.ts` — štvrtá kópia tých istých rozmerov by sa

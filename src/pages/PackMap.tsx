@@ -427,7 +427,7 @@ const IS_SURFACE = new Set<string>(SURFACE_TAGS);
 // transformom, takže jeho stred sedí na súradnici bez dopočtu posunu. Kvapka to potrebovala
 // (hrot je dole), kruh nie — a pridaný anchor by značku posunul o polovicu jej výšky.
 
-/** Cieľ PLÁNOVANÉHO výletu — 🎯 (Matej: „terč = event cieľ výletu"). */
+/** Cieľ PLÁNOVANÉHO výletu — 📍 od 24. 8. (pôvodne terč; 🎯 nesie od 26. 9. PRIANIE). */
 const TARGET_PIN = L.divIcon({
   className: 'mk-wrap',
   html: circleMarkHtml(TRIP_TARGET_EMOJI, EVENT_RIM),
@@ -2944,7 +2944,7 @@ const MAP_LAYERS: MapLayerDef[] = [
     labelKey: 'pack.map.layer.sleep',
     disabledReason: (ctx) => (ctx.isCleanMode ? 'pack.map.overlayDogyptDisabled' : null),
   },
-  // PRIANIA (BUDDY krok 2, 24. 9. 2026) — 🍑 kam chcú ľudia ísť. Zapnuté od začiatku:
+  // PRIANIA (BUDDY krok 2, 24. 9. 2026) — 🎯 kam chcú ľudia ísť. Zapnuté od začiatku:
   // je to vrstva, kvôli ktorej sa plánovanie presunulo sem (zadanie-assnif §2).
   // Za `WISHES_LIVE` (26. 9.): na LIVE do FLIPu by prepínač zapínal prázdnu vrstvu.
   ...(WISHES_LIVE ? [{
@@ -7202,7 +7202,7 @@ export default function PackMap() {
                   interactive={!mapDrawing}
                 />
               )}
-              {/* PRIANIA 🍑 — nad odkazmi, vidno na každom priblížení (WishLayer.tsx). */}
+              {/* PRIANIA 🎯 — nad odkazmi, vidno na každom priblížení (WishLayer.tsx). */}
               {!isCleanMode && overlayOn.wish && (
                 <WishLayer wishes={wishes} onChanged={reloadWishes} interactive={!mapDrawing && !wishFlow} />
               )}

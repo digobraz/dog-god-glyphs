@@ -1408,7 +1408,7 @@ function pointsLegend(t: TFn): Array<[string, string]> {
     // Podujatie dáva body až PO potvrdení „uskutočnilo sa" (Matej 24. 9. 2026) — veta to hovorí,
     // aby nikto nečakal desiatku za samotné založenie.
     [t('pack.stats.legend.eventHeld'), `+${POINTS.event}`],
-    // Splnené prianie 🍑 — len kým priania nie sú na LIVE, riadok by sľuboval niečo neviditeľné.
+    // Splnené prianie 🎯 — len kým priania nie sú na LIVE, riadok by sľuboval niečo neviditeľné.
     ...(WISHES_LIVE ? [[t('pack.stats.legend.wishDone'), `+${POINTS.wish}`] as [string, string]] : []),
     [t('pack.stats.legend.visitPlace'), `+${POINTS.visit}`],
     [t('pack.stats.legend.perKm'), `+${POINTS_PER_KM}`],
