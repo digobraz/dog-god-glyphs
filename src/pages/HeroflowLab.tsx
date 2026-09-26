@@ -129,6 +129,9 @@ const GROUPS: Group[] = [
       // fázami ako krok 9 — Hektor víta (majiteľ + psi), potom poradie, štyri
       // vety, progres k 1M a NA STENU (stena zapečatí psov postupne). Ťuk na
       // Hektora preskočí na poradie. V dielni bez platby: psi zo storu, čísla zo seedu.
+      // 26. 9. neskoro: bez loga, pečať + motto, ústup pri pretečení (1–6 psov cez
+      // „Koľko psov“) a certifikát pre KAŽDÉHO psa (pipeline po psoch, overené
+      // platbou na DEV). V dielni pipeline nebeží — heroglyf na stene je Hektorov.
       { name: '11 · Vitaj → Poradie → NA STENU', path: '/heroglyph/welcome', state: 'done' },
     ],
   },
