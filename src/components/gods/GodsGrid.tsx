@@ -2482,7 +2482,7 @@ export function GodsGrid() {
 
 /**
  * Filter „ako vidí pes" — psy sú dichromati (modrá + žltá, červenú a zelenú
- * nerozlíšia). Matica = Machado 2009, deuteranopia (červená/zelená → žltohnedá, modrá ostáva). SVG sa vloží do
+ * nerozlíšia). Variant E z nákresu plany/nakres-psie-videnie-2026-09-26 (Matej 26. 9.: *„dal by som E ale miernejšie rozostrenie"*): žltý kanál ťahá zelená (tráva → bledožltá, červená → tmavá), modrá ostáva, mierne vybledlé + jemné rozostrenie (psie oko vidí menej ostro). SVG sa vloží do
  * dokumentu raz; CSS naň odkazuje cez `url(#dogypt-dog-vision)`.
  */
 function ensureDogVisionFilter() {
@@ -2493,8 +2493,10 @@ function ensureDogVisionFilter() {
   svg.setAttribute('height', '0');
   svg.setAttribute('aria-hidden', 'true');
   svg.style.position = 'absolute';
-  svg.innerHTML = '<filter id="dogypt-dog-vision" color-interpolation-filters="linearRGB">'
-    + '<feColorMatrix type="matrix" values="0.367 0.861 -0.228 0 0  0.280 0.673 0.047 0 0  -0.012 0.043 0.969 0 0  0 0 0 1 0"/>'
+  svg.innerHTML = '<filter id="dogypt-dog-vision" color-interpolation-filters="sRGB">'
+    + '<feColorMatrix type="matrix" values="0.2 0.8 0 0 0  0.2 0.8 0 0 0  0 0.1 0.9 0 0  0 0 0 1 0"/>'
+    + '<feColorMatrix type="saturate" values="0.8"/>'
+    + '<feGaussianBlur stdDeviation="0.35"/>'
     + '</filter>';
   document.body.appendChild(svg);
 }
