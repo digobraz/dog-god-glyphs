@@ -10,6 +10,9 @@ import { LAPIS } from '@/components/pack/navGoldSkin';
 import { PACK_R } from '@/components/pack/packTheme';
 import { LAB } from '@/lib/labTheme';
 import { hekthorFace } from '@/lib/hekthorFaces';
+import { HeroglyphFrame } from '@/components/HeroglyphFrame';
+import { ensureDogVisionFilter } from '@/lib/dogVision';
+import { BRAND_GOLD_BTN } from '@/components/pack/packTheme';
 import {
   readSvorka, svorkaDogPayload, waitForStablePhotos,
 } from '@/lib/flowSvorka';
@@ -197,6 +200,7 @@ export function FlowStayScreen() {
     params.get('paid') === 'support' ? 'support' : params.get('done') === 'guest' ? 'guest' : null;
 
   if (!done) return <Navigate to="/checkout?stay=1" replace />;
+  if (done === 'guest') return <GuestThanks />;
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
@@ -227,7 +231,112 @@ export function FlowStayScreen() {
   );
 }
 
+/**
+ * ĎAKOVAČKA HOSŤA €0 (26. 9. 2026) — návrh z nákresu
+ * `plany/nakres-heroflow-konce-2026-09-26/`, Matej: *„kľudne tam daj ten tvoj
+ * návrh a doladíme ho priamo na mieste"*.
+ * Hore Hektor: pes je na stene. Doska: karta zo steny v psej optike + čo sa
+ * stalo, pod rytinou „keď sa rozhodneš" čo pridá členstvo, dole NA STENU
+ * (obrys) a PRIDAŤ SA ZA €11 (lapis — jediné hlavné CTA).
+ * 🔑 PRIDAŤ SA je poctivé: `create-checkout` hosťovho psa (ten istý e-mail a
+ *    meno) PREKLOPÍ, nezaloží druhého — na stene ostane jeden.
+ * 🚩 Riadok „odkaz ti príde mailom" tu NIE JE — mail hosťovi zatiaľ neexistuje
+ *    (otázka 2 nákresu čaká na Mateja).
+ */
+function GuestThanks() {
+  const navigate = useNavigate();
+  const t = useT();
+  const dogs = useMemo(() => readSvorka(), []);
+  useMemo(() => ensureDogVisionFilter(), []);
+  const first = dogs[0];
+  const names = dogs.map((d) => d.dogName).filter(Boolean).join(', ') || 'HEKTHOR';
+  const [pre, post] = t('heroglyph.flow.stay.thanks.t', { dogName: '\u0000' }).split('\u0000');
+  const medal = typeof window === 'undefined' ? 96 : window.innerHeight < 700 ? 72 : window.innerWidth > 600 ? 120 : 96;
+  const tags = [t('heroglyph.flow.stay.thanks.tagNum'), 'DOG ID', 'AINUBIS', 'DOGTRIP', 'SNIFFER'];
+  const Ok = () => (
+    <svg className="gt-ok" viewBox="0 0 24 24" fill="none" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M4 12.5 L9.5 18 L20 6" />
+    </svg>
+  );
+  return (
+    <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
+      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{STAY_CSS}</style>
+      <div className="hf-topbar flex-shrink-0"><PageTopBar /></div>
+      <div className="hf-stage">
+        <div className="w-full max-w-xl flex flex-col items-center gap-3">
+          <motion.div className="hf-speak gt-speak" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
+            <FlowMedallion src={hekthorFace('stay')} size={medal} />
+            <span className="say">
+              <h2>{pre}<b>{names}</b>{post}</h2>
+              <p>{t('heroglyph.flow.stay.thanks.sub')}</p>
+            </span>
+          </motion.div>
+
+          <motion.div className="hf-block hf-carved gt-stack" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+            <span className="hf-carved-rim" aria-hidden />
+            <div className="hf-plate">
+              <div className="gt-row">
+                <div className="gt-card">
+                  {first?.photo
+                    ? <img className="gt-photo" src={first.photo} alt="" />
+                    : <img className="gt-photo" src="/images/hektor-grid.webp" alt="" />}
+                  <span className="gt-name">{first?.dogName || 'HEKTHOR'}</span>
+                  <div className="gt-glyph">
+                    <HeroglyphFrame dogValues={first?.selections} className="gt-frame" />
+                  </div>
+                </div>
+                <ul className="gt-lines">
+                  <li><Ok />{t('heroglyph.flow.stay.thanks.l1')}</li>
+                  <li><Ok />{t('heroglyph.flow.stay.thanks.l2')}</li>
+                  <li><Ok />{t('heroglyph.flow.stay.thanks.l3')}</li>
+                </ul>
+              </div>
+              <p className="hf-legend">{t('heroglyph.flow.stay.thanks.rule')}</p>
+              <div className="gt-tags">{tags.map((x) => <span key={x}>{x}</span>)}</div>
+              <div className="gt-ctas">
+                <button type="button" className="st-confirm" onClick={() => navigate('/')}>
+                  {t('heroglyph.flow.stay.done.cta')}
+                </button>
+                <button type="button" className="hf-cta" onClick={() => navigate('/checkout')}>
+                  {t('heroglyph.flow.stay.thanks.join')}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const STAY_CSS = `
+/* ── ĎAKOVAČKA HOSŤA ── */
+.gt-speak h2 { font-size: 20px; } .gt-speak p { font-size: 14px; line-height: 1.45; }
+@media (min-width: 601px) { .gt-speak h2 { font-size: 24px; } .gt-speak p { font-size: 16px; } }
+.gt-stack { width: 100%; }
+.gt-stack .hf-plate { gap: 12px; }
+.gt-row { display: flex; align-items: center; gap: 16px; }
+.gt-card { position: relative; flex: none; width: 132px; aspect-ratio: 174 / 232; border-radius: 12px; overflow: hidden;
+  box-shadow: 0 4px 12px rgba(40, 24, 4, 0.35); background: #2a2016; }
+.gt-photo { width: 100%; height: 100%; object-fit: cover; filter: url(#dogypt-dog-vision); display: block; }
+.gt-name { position: absolute; top: 8px; left: 50%; translate: -50% 0; white-space: nowrap; padding: 2px 10px; border-radius: ${PACK_R.pill}px;
+  background: rgba(0, 0, 0, 0.5); color: #FAF4EC; font-family: 'Cinzel Decorative', serif; font-weight: 700; font-size: 10px; }
+.gt-glyph { position: absolute; left: 0; right: 0; bottom: 0; padding: 20px 6px 6px; background: linear-gradient(transparent, rgba(0, 0, 0, 0.78)); }
+.gt-glyph .gt-frame { width: 100%; filter: invert(72%) sepia(52%) saturate(560%) hue-rotate(2deg) brightness(95%); }
+.gt-lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px;
+  font-family: 'Space Grotesk', sans-serif; font-size: 16px; line-height: 1.3; color: ${LAB.ink}; }
+.gt-lines li { display: flex; align-items: center; gap: 8px; }
+.gt-ok { flex: none; width: 20px; height: 20px; stroke: #3D7A4E; }
+.gt-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.gt-tags span { padding: 4px 12px; border-radius: ${PACK_R.pill}px; border: 1px solid ${BRAND_GOLD_BTN.edge};
+  font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: ${LAB.inkBody}; }
+.gt-ctas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 600px) {
+  .gt-speak h2 { font-size: 16px; } .gt-speak p { font-size: 12px; }
+  .gt-row { gap: 12px; } .gt-card { width: 104px; }
+  .gt-lines { font-size: 14px; gap: 6px; } .gt-ok { width: 18px; height: 18px; }
+  .gt-ctas { grid-template-columns: 1fr; } .gt-ctas .hf-cta { order: -1; }
+}
 .st-wrap { display: flex; flex-direction: column; gap: 12px; }
 /* Hektor v strede, text pod ním — bublina je stĺpec (26. 9. večer). */
 .st-wrap .st-speak.hf-speak { flex-direction: column; text-align: center; padding: 20px 16px; gap: 12px; }
