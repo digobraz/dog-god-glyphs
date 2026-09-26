@@ -151,4 +151,10 @@ export const WISHES_LIVE = import.meta.env.DEV || import.meta.env.VITE_WISHES ==
 // SNIFFER (interne BUDDY, krok 3, 24. 9. 2026) — `/pack/sniffer`, brána do 100 % a nastavenia.
 // Migrácia `20260927_buddy_settings.sql` beží len na DEV; ten istý dôvod ako pri prianiach.
 // Produkčný build len s `VITE_BUDDY=true`. Odomknutie = až s FLIPom.
-export const BUDDY_LIVE = import.meta.env.DEV || import.meta.env.VITE_BUDDY === 'true';
+// ZÁMOK (Matej 26. 9.: „ide to von ale iba pre jeden účet — môj"): migrácie 0925–1003 sú
+// od 26. 9. aj na LIVE a účet z FULL_PACK_EMAILS vidí SNIFFER aj v produkčnom builde.
+// Toto je len VIDITEĽNOSŤ — ozajstný zámok je na serveri (`sniffer_gate`,
+// `20261003_sniffer_zamok.sql`): kto nie je na zozname, SNIFFER nezapne.
+// FLIP = `bash scripts/flip.sh --krok 2c` (server) + krok 4: `BUDDY_LIVE = true`.
+export const BUDDY_LIVE =
+  import.meta.env.DEV || import.meta.env.VITE_BUDDY === 'true' || isFullPackEmail(sessionEmailFromStorage());
