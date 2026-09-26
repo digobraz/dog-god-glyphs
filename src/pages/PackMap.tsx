@@ -2063,7 +2063,11 @@ ${TRAIL_LINE_CSS}
      len z-index v spoločnom kontexte. Dvíham nav na 100: nad zoznam (60), ale pod pár tlačidiel
      (.trp-mactions 900) aj pod modaly (.trp-addhost 950, .trp-msheet), nech sa poradie inde nemení.
      Padding-bottom zoznamu zároveň 100 → 150px, aby posledná karta neskončila pod navom. */
-  .trp-root > nav.fixed{z-index:100;}
+  /* ⚠️ REGRESIA 26. 9. 2026 (audit /pack/map A2): lišta prestala byť element nav — dnes je to
+     div.pk-dock-band (PackLayout), takže selektor nižšie ticho prestal niečo chytať a zoznam
+     ju znova prekryl (výlety aj podujatia). Háčik pk-dock-band je v PackLayout výslovne
+     menovaný pre PackMap, preto sa pravidlo viaže naň; starý tvar ostáva pre istotu. */
+  .trp-root > nav.fixed,.trp-root > .pk-dock-band{z-index:100;}
 
   /* PRIDÁVANIE NA MOBILE = CELÁ OBRAZOVKA. Ten istý prvok ako na PC, len iný tvar —
      dve kópie formulára tu stáli do 23. 8. a rozišli sa hneď, ako pribudol autosave. */
@@ -6996,7 +7000,10 @@ export default function PackMap() {
                   „čo tu už JE" dôležitejšia než filter — kto má zapnuté HORY, nesmie
                   nakresliť duplikát trasy, ktorú mu filter práve skryl. */}
               {mapDrawing && <DrawTrailNames points={mapPoints} onPick={setDrawPeek} />}
-              {!isCleanMode && !mapDrawing && (
+              {/* PODUJATIA PREPÍNAJÚ AJ MAPU (26. 9. 2026, audit /pack/map A2): značky výletov
+                  sa pri kategórii PODUJATIA nekreslia — inak ostala mapa na chlp rovnaká ako pod
+                  VÝLETMI a záložka pôsobila mŕtvo. Čiary trás ostávajú ako podklad. */}
+              {!isCleanMode && !mapDrawing && activeCat === 'trips' && (
                 <TripMarkers
                   /* filtrované — inak mapa odpovie, že sa filtrom nič nestalo (viď
                      `visibleMapPoints` pri definícii) */
