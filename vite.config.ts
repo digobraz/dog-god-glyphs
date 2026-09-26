@@ -53,10 +53,13 @@ export default defineConfig(({ mode }) => ({
       output: {
         // DÁTA VÝLETOV MAJÚ VLASTNÝ BALÍK (audit homepage 26. 9. 2026). Bez toho ich Rollup
         // zlepil do jedného kusu s malými zdieľanými modulmi (ainubisSkin, PackNotifications,
-        // markEmoji…) — a kto chcel skin AINUBISA, stiahol aj 1,8 MB `heroTrails.generated`.
+        // markEmoji…) — a kto chcel skin AINUBISA, stiahol aj celé `heroTrails.generated` (do 26. 9. 2026 1,8 MB, odvtedy so zriedenými čiarami 0,4 MB).
         // Tak si ich ťahala každá stránka pod `PackLayout`, hoci ten ich načítava lazy.
         manualChunks(id: string) {
           if (id.includes("/src/data/heroTrails.generated")) return "data-trails";
+          // Plná stopa trás (26. 9. 2026) — len cez import() v src/data/trailPaths.ts; vlastný
+          // balík, aby sa nikdy nezlepila so zriedenými `data-trails`, ktoré idú s mapou.
+          if (id.includes("/src/data/heroTrailPaths.generated")) return "data-trail-paths";
           if (id.includes("/src/data/heroJourneys")) return "data-journeys";
         },
       },

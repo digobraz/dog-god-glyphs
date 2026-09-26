@@ -36,7 +36,12 @@ const OUT = path.join(WEB, 'public/gpx');
 function readTrails() {
   const s = fs.readFileSync(SRC, 'utf8');
   const i = s.indexOf('= [', s.indexOf('export const HERO_TRAILS')) + 2;
-  return JSON.parse(s.slice(i, s.lastIndexOf(']') + 1));
+  const trails = JSON.parse(s.slice(i, s.lastIndexOf(']') + 1));
+  // ⚠️ PLNÁ STOPA (26. 9. 2026): `heroTrails.generated.ts` nesie čiaru zriedenú na kreslenie,
+  // GPX musí ísť z presnej — tá je v `heroTrailPaths.generated.ts` (id → body).
+  const p = fs.readFileSync(path.join(WEB, 'src/data/heroTrailPaths.generated.ts'), 'utf8');
+  const full = JSON.parse(p.slice(p.indexOf('= {') + 2, p.lastIndexOf('}') + 1).replace(/,\n}$/, '\n}'));
+  return trails.map((t) => (full[t.id] ? { ...t, path: full[t.id] } : t));
 }
 
 const esc = (v) => String(v).replace(/[<>&'"]/g, (c) =>

@@ -24,6 +24,7 @@ import { MapAttribution, MAP_ATTR_CSS } from '@/components/pack/mapAttribution';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { placeholderFor } from '@/lib/tripPlaceholder';
 import type { HeroTrail } from '@/data/heroTrails.generated';
+import { useTrailPaths } from '@/data/trailPaths';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, HieroglyphBg, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
@@ -644,10 +645,18 @@ export default function PackTripArticle() {
   const [edits, setEdits] = useState<Partial<HeroTrail> | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const canEdit = useMemo(() => !!slug && readLocalTrails().some((t) => t.id === slug), [slug]);
-  const trail = useMemo(
-    () => (baseTrail && edits ? { ...baseTrail, ...edits } : baseTrail),
-    [baseTrail, edits],
-  );
+  // PRESNÁ STOPA (26. 9. 2026). Dataset nesie čiaru zriedenú na 10 m; článok ukazuje trasu
+  // zblízka a posiela ju von (GPX, Mapy.com), preto si dotiahne plnú (src/data/trailPaths.ts).
+  // Vlastná úprava čiary (`edits.path`, len lokálne výlety) má prednosť.
+  const trailPaths = useTrailPaths(true);
+  const trail = useMemo(() => {
+    const tr = baseTrail && edits ? { ...baseTrail, ...edits } : baseTrail;
+    if (!tr || edits?.path) return tr;
+    const full = trailPaths?.[tr.id];
+    return full ? { ...tr, path: full } : tr;
+  }, [baseTrail, edits, trailPaths]);
+  // Export trasy (GPX, Mapy.com) sa ponúkne až s plnou stopou — zlomok sekundy po otvorení.
+  const exportReady = trailPaths !== null;
   // JEDNO PARKOVISKO NA VÝLET (Matej 2026-09-15) — keď ho tento výlet už má, dlaždica
   // PARKOVISKO v palete zhasne aj s dôvodom. Vyhodnocuje sa nad TÝM ISTÝM zoznamom, z ktorého
   // sa kreslí zoznam pod článkom, takže sa obe polovice nemôžu rozísť.
@@ -1732,7 +1741,7 @@ export default function PackTripArticle() {
             „vyraziť" by tam bola piata ikona bez slova a nikto by ju netrafil.
             ⚠️ Bez `path[0]` sa nevykreslí: `navTarget()` vráti null a tlačidlo bez cieľa
             by len otvorilo prázdny panel. */}
-        {trail.path.length > 0 && (
+        {trail.path.length > 0 && exportReady && (
           <TripGoButtons trail={trail} onDrive={() => setGoOpen(true)} />
         )}
         {goOpen && <TripGoPanel trail={trail} onClose={() => setGoOpen(false)} />}

@@ -35,20 +35,27 @@ export function thresholdFor(kind: NoteKind): number {
 }
 
 /**
- * Vzdialenosť bodu od najbližšieho bodu stopy.
+ * Vzdialenosť bodu od stopy — k najbližšej ÚSEČKE, nie k najbližšiemu vrcholu.
  *
- * Meria sa k VRCHOLOM stopy, nie k úsečkám medzi nimi. Je to vedomé
- * zjednodušenie: stopy v datasete sú snapnuté a husté (rozostup ~100 m, viď
- * `SPACING` v addTripGeo.ts), takže najhoršia chyba je polovica rozostupu —
- * rádovo 50 m pri prahu 150 m. Projekcia na úsečku by pridala kód aj čas
- * a nezmenila by jediný výsledok.
+ * ⚠️ ZMENA 26. 9. 2026. Dovtedy sa meralo k vrcholom s odôvodnením, že stopy sú husté
+ * (~100 m) a chyba je najviac pol rozostupu. Odkedy `HERO_TRAILS[].path` nesie čiaru
+ * zriedenú na 10 m (plany/gen-hero-trails.mjs), má rovinka pokojne kilometer bez bodu —
+ * tip v jej strede by bol od najbližšieho vrcholu 500 m a od výletu by sa ODPOJIL, hoci
+ * leží na chodníku. K úsečke je chyba zriedenia najviac 10 m pri prahu 150 m.
+ * Rovinná aproximácia (metre z lokálnej šírky) — na dĺžkach úsekov do pár km presná na metre.
  */
 function distToPath(lat: number, lon: number, path: LatLngTuple[]): number {
   if (!path.length) return Infinity;
-  const p: LatLngTuple = [lat, lon];
+  if (path.length === 1) return hav([lat, lon], path[0]);
+  const kx = 111320 * Math.cos((lat * Math.PI) / 180);
+  const ky = 110540;
   let best = Infinity;
-  for (const v of path) {
-    const d = hav(p, v);
+  for (let i = 1; i < path.length; i++) {
+    const ax = (path[i - 1][1] - lon) * kx, ay = (path[i - 1][0] - lat) * ky;
+    const bx = (path[i][1] - lon) * kx, by = (path[i][0] - lat) * ky;
+    const dx = bx - ax, dy = by - ay, len2 = dx * dx + dy * dy;
+    const t = len2 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / len2)) : 0;
+    const d = Math.hypot(ax + t * dx, ay + t * dy);
     if (d < best) best = d;
   }
   return best;

@@ -59,6 +59,7 @@ import 'leaflet/dist/leaflet.css';
 import { mapyTiles, MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
 import { track } from '@/lib/analytics';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
+import { useTrailPaths, fullPathOf } from '@/data/trailPaths';
 import { metersPerPixel } from '@/components/geo/geoMath';
 import { FogLayer } from '@/components/geo/FogLayer';
 import { useFogSource } from '@/components/geo/useFogSource';
@@ -3699,6 +3700,9 @@ export default function PackMap() {
     mapInstance.on('zoomend', sync);
     return () => { mapInstance.off('zoomend', sync); };
   }, [mapInstance]);
+  // PRESNÁ STOPA (26. 9. 2026) — mapa sa otvára so zriedenou čiarou (10 m); od priblíženia 13,
+  // kde je 10 m už ~1 px, a pri vybranom výlete sa dotiahne plná. Viď src/data/trailPaths.ts.
+  const trailPaths = useTrailPaths(noteZoom >= 13 || !!inlineDetailId);
 
   /**
    * Položí značku a odpanuje mapu tak, aby ostala NAD panelom.
@@ -7009,12 +7013,12 @@ export default function PackMap() {
                   return (
                     <Fragment key={tr.id}>
                       <Polyline
-                        positions={tr.path}
+                        positions={fullPathOf(tr, trailPaths)}
                         pathOptions={{ color: '#FFFFFF', weight: w + 4, opacity: dim, lineCap: 'round', lineJoin: 'round' }}
                         eventHandlers={handlers}
                       />
                       <Polyline
-                        positions={tr.path}
+                        positions={fullPathOf(tr, trailPaths)}
                         pathOptions={{ color: '#E01B22', weight: w, opacity: dim, lineCap: 'round', lineJoin: 'round' }}
                         eventHandlers={handlers}
                       />
@@ -7039,7 +7043,7 @@ export default function PackMap() {
                     {TRAIL_SABER_LAYERS.map((ly) => (
                       <Polyline
                         key={ly.key}
-                        positions={tr.path}
+                        positions={fullPathOf(tr, trailPaths)}
                         // POZOR (overené v prehliadači): react-leaflet vlieva `pathOptions` cez
                         // `setStyle`, a ten `className` IGNORUJE — cez pathOptions sa trieda do
                         // DOM nikdy nedostane (v čistom Leaflete áno, preto to v audite aj

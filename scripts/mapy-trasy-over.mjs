@@ -35,8 +35,12 @@ const tmp = mkdtempSync(join(tmpdir(), 'mapy-over-'));
 const bundle = join(tmp, 'urls.mjs');
 await build({
   stdin: {
-    contents: `import { HERO_TRAILS } from '@/data/heroTrails.generated';
+    // PLNÁ STOPA (26. 9. 2026) — appka skladá odkaz na Mapy.com z presnej čiary (článok ju
+    // dotiahne cez trailPaths.ts), takže aj meranie musí ísť z nej, nie zo zriedenej.
+    contents: `import { HERO_TRAILS as LIGHT } from '@/data/heroTrails.generated';
+      import { HERO_TRAIL_PATHS } from '@/data/heroTrailPaths.generated';
       import { mapyRouteUrl } from '@/components/pack/tripNav';
+      const HERO_TRAILS = LIGHT.map(t => (HERO_TRAIL_PATHS[t.id] ? { ...t, path: HERO_TRAIL_PATHS[t.id] } : t));
       export default HERO_TRAILS.map(t => ({ id: t.id, km: t.km,
         url: mapyRouteUrl(t), more: ${JSON.stringify(RETRY)}.map(n => [n, mapyRouteUrl(t, n)]) })).filter(x => x.url);`,
     resolveDir: ROOT, loader: 'ts',

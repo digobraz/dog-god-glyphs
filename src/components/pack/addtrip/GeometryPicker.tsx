@@ -17,6 +17,7 @@ import L from 'leaflet';
 import { dockFitPadding } from '@/components/pack/mapDockShape';
 import { notePanelH, formatRadius } from '@/components/pack/mapnotes/AddMapNote';
 import { TRIP_HOLD_MIN_ZOOM } from './addTripModel';
+import { useTrailPaths, fullPathOf } from '@/data/trailPaths';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
@@ -820,6 +821,8 @@ export function GeometryPicker({
   // handleMapClick sa mení pri každom kliku (závisí od `value`), preto ho držíme v ref a
   // listener registrujeme RAZ — inak by sa pri každom kliku odhlasoval a prihlasoval znova.
   const clickRef = useRef(handleMapClick);
+  // Duchovia existujúcich trás sa kreslia pri z15 — tam je 10 m zriedenia vidno, preto plná stopa.
+  const trailPaths = useTrailPaths(true);
   useEffect(() => { clickRef.current = handleMapClick; }, [handleMapClick]);
 
   useEffect(() => {
@@ -856,7 +859,7 @@ export function GeometryPicker({
           // duch = tá istá fialová rodina ako hotové trasy, len stlmená na jednu vrstvu —
           // 120 duchov × 4 vrstvy s SVG filtrom by mapu položilo a prekričalo by to trasu,
           // ktorú práve kreslíš.
-          const ghost = L.polyline(tr.path, {
+          const ghost = L.polyline(fullPathOf(tr, trailPaths), {
             color: TRAIL_LINE.light, weight: 2.5, opacity: 0.4, interactive: true,
           });
           ghost.on('click', (e) => { L.DomEvent.stopPropagation(e); onPickExisting(tr); });
@@ -996,7 +999,7 @@ export function GeometryPicker({
       layersRef.current.forEach((l) => { if (map.hasLayer(l)) map.removeLayer(l); });
       layersRef.current = [];
     };
-  }, [value, line, allTrails, onPickExisting, mapRef, zoomTick, t]);
+  }, [value, line, allTrails, onPickExisting, mapRef, zoomTick, t, trailPaths]);
 
   // ── panel ─────────────────────────────────────────────────────────────────────────────
   const pointCount = value.kind === 'route' ? value.path.length : 0;
