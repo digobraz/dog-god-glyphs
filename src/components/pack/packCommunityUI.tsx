@@ -4,7 +4,8 @@
 // Fáza UI-first: žiadna perzistencia, všetko dostáva dáta/handlery cez props z PackMap.
 import { sizedUrl } from '@/services/cloudinaryService';
 import { useEffect, useMemo, useState } from 'react';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
+import { fmtNum } from '@/i18n/bcp47';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import { useMyEventCount } from '@/components/pack/events/eventStore';
 import { useMyWishCount } from '@/components/pack/mapnotes/wishData';
@@ -1088,6 +1089,7 @@ function hazardTip(agg: CrowdAgg): string { return agg.hazardBreakdown.map((s) =
 // rámik na hover), zobrazuje sa len seedová hodnota (difficulty/crowd) bez %-rozpadu.
 export function CrowdMeta({ agg, km, compact }: { agg: CrowdAgg; km: string; compact?: boolean }) {
   const t = useT();
+  const { lang } = useLang();
   const rSize = compact ? 10 : 15;
   const fs = compact ? 10.5 : 11.5;
   const hasDiffTip = agg.difficultyBreakdown.length > 0;
@@ -1098,7 +1100,7 @@ export function CrowdMeta({ agg, km, compact }: { agg: CrowdAgg; km: string; com
           vôbec nevykresľuj, inak sa ukáže „0.0" a prázdna päťka. */}
       {agg.rating > 0 && (
         <span className="comm-crowd-rating" style={{ fontSize: fs }}>
-          <RatingPaws stars={agg.rating} size={rSize} gap={compact ? 2 : 4} /> {agg.rating.toFixed(1)}
+          <RatingPaws stars={agg.rating} size={rSize} gap={compact ? 2 : 4} /> {fmtNum(agg.rating, lang, 1, 1)}
         </span>
       )}
       <span
@@ -1106,7 +1108,7 @@ export function CrowdMeta({ agg, km, compact }: { agg: CrowdAgg; km: string; com
         style={{ fontSize: fs }}
         data-tip={hasDiffTip ? diffTip(t, agg) : undefined}
       >
-        <DiffMark diff={agg.difficulty} /> {diffTx(t, agg.difficulty)} · {km} km
+        <DiffMark diff={agg.difficulty} /> {diffTx(t, agg.difficulty)} · {fmtNum(km, lang)} km
       </span>
       {agg.crowd && (
         <span
@@ -1151,9 +1153,10 @@ export { VOLUME_THRESHOLD };
 // stĺpec karty (kde smie vážiť), ale poznámka vedľa autora — musí sedieť na jeho výšku, inak
 // riadok rozhodí. Veľkosť packiek je PROP, nie CSS, takže samotná trieda by nestačila.
 export function BigRating({ rating, count, compact, mini }: { rating: number; count?: number; compact?: boolean; mini?: boolean }) {
+  const { lang } = useLang();
   return (
     <span className={`comm-bigrating${compact ? ' compact' : ''}${mini ? ' mini' : ''}`}>
-      <b>{rating.toFixed(1)}</b>
+      <b>{fmtNum(rating, lang, 1, 1)}</b>
       <RatingPaws stars={rating} size={mini ? 11 : compact ? 13 : 17} gap={mini ? 1.5 : compact ? 2 : 3} />
       {count != null && count > 0 && <i>({count})</i>}
     </span>
@@ -1167,6 +1170,7 @@ export function BigRating({ rating, count, compact, mini }: { rating: number; co
 // hlasov členov. Zdieľané karta + inline detail. ──
 export function PhotoMetaPills({ agg, km, ascentM, hasRoute = true }: { agg: CrowdAgg; km: string; ascentM?: number; hasRoute?: boolean }) {
   const t = useT();
+  const { lang } = useLang();
   // Prázdny breakdown (walkedCount 0, „začíname so všetkým do nuly") → žiadny %-rozpad na
   // ponuku, takže žiadny tooltip (inak by hover ukázal prázdny rámik „Difficulty — ").
   const hasDiffTip = agg.difficultyBreakdown.length > 0;
@@ -1180,7 +1184,7 @@ export function PhotoMetaPills({ agg, km, ascentM, hasRoute = true }: { agg: Cro
           Ruch nižšie ostáva, ten sa vypĺňa vo všetkých kategóriách. */}
       {hasRoute && (<>
         <span className="comm-mpill">
-          ↔ {km} km{ascentM != null ? ` · ↑ ${ascentM} m` : ''}
+          ↔ {fmtNum(km, lang)} km{ascentM != null ? ` · ↑ ${fmtNum(ascentM, lang, 0)} m` : ''}
         </span>
         <span
           className={`comm-mpill${hasDiffTip ? ' comm-hastip' : ''}`}
@@ -1433,8 +1437,8 @@ function pointsLegend(t: TFn): Array<[string, string]> {
  * Región ostáva: ten okruh MÁ. Vypadne len číslo, ktoré neexistuje, aj s oddeľovačom pred ním
  * (osamotená bodka na konci riadku vyzerá ako chýbajúci text).
  */
-const walkedMeta = (tr: HeroTrail, withRegion: boolean): string => {
-  const km = hasRouteMetrics(tr) ? `${tr.km} km` : '';
+const walkedMeta = (tr: HeroTrail, withRegion: boolean, lang: string): string => {
+  const km = hasRouteMetrics(tr) ? `${fmtNum(tr.km, lang)} km` : '';
   const region = withRegion ? tr.region : '';
   return [region, km].filter(Boolean).join(' · ');
 };
@@ -1461,7 +1465,8 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
   // popup teda spadol na ReferenceError každému, kto má aspoň jeden bod. tsc to hlásil, vite
   // build nie (netypuje). Nájdené pri zapájaní hodnotení do bodov.
   const t = useT();
-  const fmtKm = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
+  const { lang } = useLang();
+  const fmtKm = (n: number) => fmtNum(n, lang);
 
   // V3 (#47): vysvedčenie je PER KRAJINU. Delí sa cez trailCountry() — tou istou funkciou triedi
   // výlety mapa, takže sa počty na dvoch povrchoch nemôžu rozísť.
@@ -1872,7 +1877,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
             {cTrails.map((tr) => (
               <div key={tr.id} className="comm-walkedrow" onClick={() => onOpenTrip(tr.id)}>
                 <span className="comm-walkedrow-name">{tr.name}</span>
-                <span className="comm-walkedrow-meta">{walkedMeta(tr, true)}</span>
+                <span className="comm-walkedrow-meta">{walkedMeta(tr, true, lang)}</span>
               </div>
             ))}
             <div className="comm-unit-addrow" style={{ marginTop: 12 }} onClick={() => onAddTrip()}>＋ Add a trip in {cName}</div>
@@ -1963,7 +1968,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
                       matches.map((tr) => (
                         <div key={tr.id} className="comm-walkedrow" onClick={() => onOpenTrip(tr.id)} style={{ marginBottom: 8 }}>
                           <span className="comm-walkedrow-name">{tr.name}</span>
-                          <span className="comm-walkedrow-meta">{walkedMeta(tr, false) && `· ${walkedMeta(tr, false)}`}</span>
+                          <span className="comm-walkedrow-meta">{walkedMeta(tr, false, lang) && `· ${walkedMeta(tr, false, lang)}`}</span>
                         </div>
                       ))
                     ) : (
@@ -2048,7 +2053,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
           {walkedOpen && cTrails.map((tr) => (
             <div key={tr.id} className="comm-walkedrow" onClick={() => onOpenTrip(tr.id)}>
               <span className="comm-walkedrow-name">{tr.name}</span>
-              <span className="comm-walkedrow-meta">{walkedMeta(tr, true)}</span>
+              <span className="comm-walkedrow-meta">{walkedMeta(tr, true, lang)}</span>
             </div>
           ))}
         </>

@@ -36,3 +36,23 @@ const LANG_TO_BCP47: Record<string, string> = {
 export function intlLocale(lang: string): string {
   return LANG_TO_BCP47[lang] ?? 'en';
 }
+
+/**
+ * Desatinné číslo v jazyku rozhrania — SK/CS „11,3", EN „11.3" (audit /pack/map, 26. 9. 2026).
+ * Dáta ostávajú s bodkou (`tr.km` = "11.3", tak ich píše generátor aj zápis výletu);
+ * formátuje sa AŽ pri vykreslení. `min` drží pevné desatinné miesto tam, kde patrí
+ * k tvaru údaja (hodnotenie „5,0", nie „5"). Formátovače sa kešujú — pilulky na mape
+ * sa kreslia po stovkách pri každom posune.
+ */
+const NUM_FMT = new Map<string, Intl.NumberFormat>();
+export function fmtNum(v: number | string, lang: string, max = 1, min = 0): string {
+  const n = typeof v === 'number' ? v : parseFloat(v);
+  if (!Number.isFinite(n)) return String(v);
+  const key = `${lang}|${max}|${min}`;
+  let f = NUM_FMT.get(key);
+  if (!f) {
+    f = new Intl.NumberFormat(intlLocale(lang), { maximumFractionDigits: max, minimumFractionDigits: min });
+    NUM_FMT.set(key, f);
+  }
+  return f.format(n);
+}

@@ -7,6 +7,8 @@ import type React from 'react';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { planPhase, readMissedPlans } from './planReminder';
 import { PACK_THEME } from '@/components/pack/packTheme';
+import { useT, useLang } from '@/i18n/LanguageContext';
+import { fmtNum } from '@/i18n/bcp47';
 import { iso2ToISO3, trailCountry } from '@/lib/countryGeo';
 import {
   packStorage, PACK_KEYS, readStringSet as readSet,
@@ -277,11 +279,13 @@ export const trailSaberScale = (zoom: number) =>
 // Obe kresby majú takmer identický pomer strán (369×382 vs 1538×1592, rozdiel 0,06 %), takže
 // pri rovnakom `width`/`height` sadnú presne na seba a prechod obrys→plná neposkočí.
 export function RatingPaws({ stars, size = 15, gap = 4 }: { stars: number; size?: number; gap?: number }) {
+  const t = useT();
+  const { lang } = useLang();
   const rounded = Math.round(stars * 10) / 10;
   return (
     <span
       role="img"
-      aria-label={`${stars.toFixed(1)} out of 5 packs`}
+      aria-label={t('pack.addTrip.paws.ariaOutOf5', { n: fmtNum(stars, lang, 1, 1) })}
       style={{ display: 'inline-flex', alignItems: 'center', gap }}
     >
       {[1, 2, 3, 4, 5].map((n) => {
@@ -359,6 +363,7 @@ export function ElevationProfile({ elev, km, onHover }: {
   km: number;
   onHover?: (index: number | null) => void;
 }) {
+  const { lang } = useLang();
   const [at, setAt] = useState<number | null>(null);
   const interactive = !!onHover;
   const move = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -419,7 +424,7 @@ export function ElevationProfile({ elev, km, onHover }: {
       </defs>
       <text x={2} y={sy(maxY) + 4} fill="currentColor" opacity={0.62} fontSize="9">{Math.round(maxY)} m</text>
       <text x={2} y={sy(minY) + 4} fill="currentColor" opacity={0.62} fontSize="9">{Math.round(minY)} m</text>
-      <text x={W - P.r} y={H - 4} fill="currentColor" opacity={0.62} fontSize="9" textAnchor="end">{km.toFixed(1)} km</text>
+      <text x={W - P.r} y={H - 4} fill="currentColor" opacity={0.62} fontSize="9" textAnchor="end">{fmtNum(km, lang, 1, 1)} km</text>
       {/* Ukazovateľ: zvislica cez celý graf, guľôčka na krivke a metre nad ňou. Farbu nesie
           krivka (currentColor cez triedu `.trp-elev-cursor` v hostiteľovi), aby ukazovateľ
           patril k tej istej čiare, na ktorej stojí — a nie k pozadiu grafu. */}
@@ -435,7 +440,7 @@ export function ElevationProfile({ elev, km, onHover }: {
             fontWeight={700}
             textAnchor={sx(cur) > W * 0.7 ? 'end' : sx(cur) < W * 0.3 ? 'start' : 'middle'}
           >
-            {Math.round(elev[cur])} m · {((cur / (elev.length - 1)) * km).toFixed(1)} km
+            {fmtNum(Math.round(elev[cur]), lang, 0)} m · {fmtNum((cur / (elev.length - 1)) * km, lang, 1, 1)} km
           </text>
         </g>
       )}

@@ -77,7 +77,7 @@ import { tierVars } from '@/lib/packTiers';
 import type { TripStat } from '@/components/pack/level/TripReveal';
 import { MapCoach, coachMuted } from '@/components/pack/MapCoach';
 import { useT, useLang } from '@/i18n/LanguageContext';
-import { intlLocale } from '@/i18n/bcp47';
+import { intlLocale, fmtNum } from '@/i18n/bcp47';
 import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
 import { PoiLayer } from '@/components/geo/PoiLayer';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
@@ -501,8 +501,8 @@ const pointIsPill = (p: MapPoint, zoom: number) =>
  *    „Liptovská Mara" 14 znakov proti „0.0 km" 6) a zhluky ustupovali nesprávnemu obdĺžniku.
  *    Preto to má jeden zdroj, nie dva zápisy toho istého.
  */
-const pillLabel = (p: MapPoint): string =>
-  p.water || !hasRouteMetrics(p.tr) ? p.tr.name : `${p.tr.km} km`;
+const pillLabel = (p: MapPoint, lang: string): string =>
+  p.water || !hasRouteMetrics(p.tr) ? p.tr.name : `${fmtNum(p.tr.km, lang)} km`;
 
 // vlnky vodnej plochy — rovnaká krivka ako pôvodný waterIcon() (Matej 2026-07-24: počet = veľkosť
 // plochy z OSM), teraz zdieľaná bodkou aj pilulkou namiesto vlastnej .trp-waterdot veľkosti.
@@ -531,10 +531,10 @@ const pointTypeClass = (p: MapPoint): string => (p.journey ? '--journey' : p.wat
 // počítala s vycentrovaním, ktoré sa nedialo. `transform` percentá berie z VLASTNEJ veľkosti
 // prvku, takže na rodičovi nezávisí. Pri pridávaní :hover so `scale` nezabudni translate
 // zopakovať — `transform` sa neskladá, prepisuje sa.
-const pointIcon = (p: MapPoint, hot: boolean, zoom: number) => {
+const pointIcon = (p: MapPoint, hot: boolean, zoom: number, lang: string) => {
   const type = pointTypeClass(p);
   if (pointIsPill(p, zoom)) {
-    const label = pillLabel(p);
+    const label = pillLabel(p, lang);
     return L.divIcon({
       className: 'trp-pinwrap',
       html: `<div class="trp-pill${type ? ` trp-pill${type}` : ''}${hot ? ' hot' : ''}">${pointPicto(p)}<span>${label}</span></div>`,
@@ -909,6 +909,7 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
   onHover: (id: string | null) => void; onSelect: (tr: HeroTrail) => void;
 }) {
   const map = useMap();
+  const { lang } = useLang();
   const [zoom, setZoom] = useState(() => map.getZoom());
   const [moveTick, setMoveTick] = useState(0);
   // 2026-07-27: handler MUSÍ mať stabilnú referenciu (useCallback), inak useMapEvent pri KAŽDOM
@@ -979,7 +980,7 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
     // (.trp-pill má top:-100% → sedí NAD bodom, preto je stred obdĺžnika o PILL_H/2 vyššie)
     const pillBoxes = pillPts.map((p) => {
       const pt = map.latLngToContainerPoint([p.lat, p.lon]);
-      const w = pillLabel(p).length * PILL_CHAR_PX + PILL_PAD_PX;
+      const w = pillLabel(p, lang).length * PILL_CHAR_PX + PILL_PAD_PX;
       return { cx: pt.x, cy: pt.y - PILL_H / 2, hw: w / 2 + PILL_GAP, hh: PILL_H / 2 + PILL_GAP };
     });
     // Bublina je súhrn, nie konkrétna trasa — posunúť ju o pár pixelov je prijateľné.
@@ -1057,7 +1058,7 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
       return { kind: 'cluster', lat: ll.lat, lon: ll.lng, count: c.pts.length };
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- moveTick je zámerný trigger prepočtu (pan), nie dáta sama
-  }, [points, tier, zoom, map, moveTick]);
+  }, [points, tier, zoom, map, moveTick, lang]);
 
   return (
     <>
@@ -1072,7 +1073,7 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
         <Marker
           key={it.p.id}
           position={[it.p.lat, it.p.lon]}
-          icon={pointIcon(it.p, hoverId === it.p.id || inlineDetailId === it.p.id, zoom)}
+          icon={pointIcon(it.p, hoverId === it.p.id || inlineDetailId === it.p.id, zoom, lang)}
           // pilulka nesie konkrétny údaj (km / názov plochy) a nehýbe sa, tak nech je aspoň
           // navrchu — prekryv s bublinou sa síce rieši ustúpením v bode 3, ale keď sa ustúpiť
           // nedá (NUDGE_MAX), nesmie skončiť tak, že číslo prekrojí polovica pilulky.
@@ -4915,7 +4916,7 @@ export default function PackMap() {
     // ⚠️ ÚDAJE IDÚ PO KUSOCH, nie ako veta (Matej 28. 8. 2026 — reveal ich kreslí do chipov).
     // Veta sa skladá naďalej: nesie ju scéna level-upu, kde chipy nie sú.
     const stats = revealStats(trail, [
-      trail.km && Number(trail.km) > 0 ? { value: String(trail.km), unit: 'km' } : null,
+      trail.km && Number(trail.km) > 0 ? { value: fmtNum(trail.km, lang), unit: 'km' } : null,
       draft.ascentM ? { value: String(draft.ascentM), unit: 'm ↑' } : null,
     ], draft.crew);
     const meta = stats.map((x) => [x.value, x.unit].filter(Boolean).join(' ')).join(' · ');
@@ -5096,7 +5097,7 @@ export default function PackMap() {
     // ⚠️ TÁ ISTÁ VETVA AKO PRI ZÁPISE. Okruhový plán nesie ako `path` jedinú kotvu (stred),
     //    takže `hasRouteMetrics` je `false` a km sú aj tu číslo bez zmyslu.
     const stats = revealStats(planTrail, [
-      km > 0 ? { value: km.toFixed(1), unit: 'km' } : null,
+      km > 0 ? { value: fmtNum(km, lang), unit: 'km' } : null,
       draft.ascentM ? { value: String(draft.ascentM), unit: 'm ↑' } : null,
     ], draft.crew);
 
@@ -5657,7 +5658,7 @@ export default function PackMap() {
   const walkedCount = walkedTrails.length;
   const walkedKm = walkedTrails
     .reduce((sum, tr) => sum + (parseFloat(tr.km) || 0), 0);
-  const fmtKm = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
+  const fmtKm = (n: number) => fmtNum(n, lang);
 
   // FILTER (sort) — Top rated (default) / Easiest / Hardest, ovládané z desktop popoveru aj
   // mobilného sheetu; zdieľané pole nech sa karta nerenderuje dvakrát rôzne (desktop vs mobile).
@@ -7213,7 +7214,7 @@ export default function PackMap() {
                   {drawPeek.diff && (
                     <><span className="trp-peek-diff" style={{ background: DIFF_COLOR[drawPeek.diff] }} />{t(`pack.map.diff.${drawPeek.diff}`)}<span className="trp-peek-sep">·</span></>
                   )}
-                  {drawPeek.km} km
+                  {fmtNum(drawPeek.km, lang)} km
                   {typeof drawPeek.ascentM === 'number' && drawPeek.ascentM > 0 && (
                     <><span className="trp-peek-sep">·</span>↑ {drawPeek.ascentM} m</>
                   )}
