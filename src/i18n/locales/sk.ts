@@ -794,7 +794,7 @@ export const sk: Partial<Dict> = {
   'login.forgot.title': 'Aj sa stane',
   'login.forgot.prompt': 'Aj Hekthor raz zabudol, kde zakopal kosť. Napíš e-mail a pošlem ti nový kľúč.',
   'login.forgot.placeholder': 'tvoj@email.com',
-  'login.forgot.submit': 'Poslať reset link',
+  'login.forgot.submit': 'Pošli nový kľúč',
   'login.forgot.submitting': 'Odosielam…',
   'login.forgot.sent': 'Ak tú adresu poznáme, poslali sme na ňu odkaz. Pozri schránku aj spam.',
   'login.forgot.back': 'Späť na prihlásenie',

@@ -942,7 +942,7 @@ export const en = {
   'login.forgot.title': 'It happens',
   'login.forgot.prompt': "Even Hekthor once forgot where he buried his bone. Type your email and I'll send you a new key.",
   'login.forgot.placeholder': 'your@email.com',
-  'login.forgot.submit': 'Send reset link',
+  'login.forgot.submit': 'Send a new key',
   'login.forgot.submitting': 'Sending…',
   'login.forgot.sent': 'If we know that address, we sent a link to it. Check your inbox and spam.',
   'login.forgot.back': 'Back to sign in',

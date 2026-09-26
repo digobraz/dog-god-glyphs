@@ -702,7 +702,7 @@ export const cs: Partial<Dict> = {
   'login.forgot.title': 'I to se stane',
   'login.forgot.prompt': 'I Hekthor jednou zapomněl, kde zakopal kost. Napiš e-mail a pošlu ti nový klíč.',
   'login.forgot.placeholder': 'tvuj@email.cz',
-  'login.forgot.submit': 'Poslat odkaz pro obnovu',
+  'login.forgot.submit': 'Pošli nový klíč',
   'login.forgot.submitting': 'Odesílám…',
   'login.forgot.sent': 'Zkontroluj si schránku pro obnovení.',
   'login.forgot.back': 'Zpět na přihlášení',

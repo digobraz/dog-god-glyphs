@@ -55,7 +55,9 @@ const LOGIN_CSS = `
 }
 @media (prefers-reduced-motion: reduce) { .lg-face { animation: none; } }
 .lg-ai { color: ${LAB.ink}; }
-.lg-ai > span { color: ${AINUBIS.aiInk}; text-shadow: ${AINUBIS.aiShadow}; }
+/* Tyrkys je jeho farba (brand lock), ale na papyruse ho samotný dosvit rozleje
+   do pozadia — tenký tmavý obrys pod ním drží tvar písmen. */
+.lg-ai > span { color: ${AINUBIS.aiInk}; text-shadow: 0 0 1px rgba(2,28,36,.95), 0 0 1px rgba(2,28,36,.95), ${AINUBIS.aiShadow}; }
 .lg-login .hf-plate { gap: ${PACK_SPACE.md}px; text-align: center; }
 .lg-eyebrow {
   margin: 0; font-family: ${PACK_HEAD.label.fontFamily}; font-weight: ${PACK_HEAD.label.fontWeight};
@@ -91,9 +93,9 @@ const LOGIN_CSS = `
 @media (prefers-reduced-motion: reduce) { .lg-pulse span { animation: none; } }
 .lg-gate {
   margin: ${PACK_SPACE.md}px 0 0; text-align: center; font-family: 'Space Grotesk', sans-serif;
-  font-size: ${PACK_TEXT.label}px; line-height: 1.5; color: ${LAB.inkSoft};
+  font-size: ${PACK_TEXT.label}px; line-height: 1.5; color: ${LAB.inkSoft}; text-wrap: balance;
 }
-.lg-gate a { color: ${LAPIS.edge}; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.lg-gate a { white-space: nowrap; color: ${LAPIS.edge}; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 `;
 
 type Status = "verifying" | "success" | "expired" | "invalid" | "network" | "missing" | "recovery";
