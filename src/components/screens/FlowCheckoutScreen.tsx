@@ -139,6 +139,8 @@ export function FlowCheckoutScreen() {
   /** ZADRŽANIE ako popup (Matej 26. 9. 2026). `?stay=1` ho otvorí hneď —
    *  tam presmeruje stará adresa `/heroglyph/stay`. */
   const [stay, setStay] = useState(() => new URLSearchParams(window.location.search).get('stay') === '1');
+  /** Zadržanie na obrazovke — VIAC INFO (odkaz ČLENSTVO) ho dočasne vystrieda doskou pokladne. */
+  const staying = stay && panel !== 'get';
 
   // ── PLATBA ────────────────────────────────────────────────────────────────
   const [loading, setLoading] = useState(false);
@@ -216,8 +218,18 @@ export function FlowCheckoutScreen() {
           {/* Nadpis „Posledný krok" zanikol: punc záveru nesie veľká pečať a nadpis
               by pod ňou zmizol (Matej 25. 9. 2026). Kľúč ostáva v i18n. */}
 
+          {/* ZADRŽANIE STOJÍ NAMIESTO DOSKY, nie v nej (Matej 26. 9. 2026 večer:
+              *„zadržanie je iná štruktúra, blok v bloku… daj to tak ako sú všetky
+              obrazovky = 2 bloky nad sebou, nie vnorené!"*). Hektorova bublina
+              a pod ňou samostatná doska — ten istý rad ako každý krok vstupu.
+              Závoj, Esc a ťuk vedľa ho stále zatvárajú (`FlowPanelShell`). */}
+          {staying ? (
+            <FlowPanelShell key="stay" className="co-stay" label={t('heroglyph.flow.checkoutNew.decline')} onClose={() => setStay(false)}>
+              <FlowStayChoice onMember={() => setStay(false)} onMore={() => setPanel('get')} />
+            </FlowPanelShell>
+          ) : (
           <motion.div
-            className={`hf-block hf-carved co-stack${dogs.length > 2 ? ' co-stack--many' : ''}${panel || stay ? ' is-veiled' : ''}${stay && panel !== 'get' ? ' is-staying' : ''}`}
+            className={`hf-block hf-carved co-stack${dogs.length > 2 ? ' co-stack--many' : ''}${panel ? ' is-veiled' : ''}`}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
@@ -406,38 +418,34 @@ export function FlowCheckoutScreen() {
               </div>
               {payError && <p role="alert" className="co-err">{payError}</p>}
 
-              {createPortal(
-                <AnimatePresence>
-                  {(panel || stay) && (
-                    <motion.div
-                      key="veil"
-                      className="co-veil"
-                      aria-hidden
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    />
-                  )}
-                </AnimatePresence>,
-                document.body,
-              )}
               <AnimatePresence>
                 {panel === 'get' && (
                   <FlowPanelShell key="get" className="co-more-info" label={t('heroglyph.flow.more.eyebrow')} onClose={() => setPanel(null)}>
                     <FlowMoreInfo onClose={() => setPanel(null)} />
                   </FlowPanelShell>
                 )}
-                {stay && panel !== 'get' && (
-                  <FlowPanelShell key="stay" className="co-stay" label={t('heroglyph.flow.checkoutNew.decline')} onClose={() => setStay(false)}>
-                    <FlowStayChoice onMember={() => setStay(false)} onMore={() => setPanel('get')} />
-                  </FlowPanelShell>
-                )}
               </AnimatePresence>
             </div>
           </motion.div>
+          )}
 
         </div>
+      {createPortal(
+        <AnimatePresence>
+          {(panel || stay) && (
+            <motion.div
+              key="veil"
+              className="co-veil"
+              aria-hidden
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            />
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
       </div>
     </div>
   );
@@ -566,29 +574,21 @@ const CHECKOUT_CSS = `
    svetlá. Blok ide nad závoj, pečať zmizne. Ťuk do závoja zatvára panel
    (\`FlowPanel\` počúva ťuk mimo seba). */
 .co-more-info.fp-panel { padding: 16px 20px; }
-.co-stay.fp-panel { overflow-y: auto; overscroll-behavior: contain; padding: 16px; }
-/* Centrovať margin:auto na dieťati, nie justify-center (pretečenie by sa nedalo odrolovať hore). */
-.co-stay > .st-wrap { margin: auto 0; }
-/* ZADRŽANIE: panel bol \`inset: 0\` DOSKY, takže mal len jej výšku — a tá závisí
-   od obsahu pokladne (počet psov, promo). Na 390×844 v dielni tlačidlá odrezalo
-   (Matej 26. 9.: *„zadržanie preteká a máš to aj na screene"*). Kým je otvorené,
-   obsah pokladne pod závojom zmizne a panel stojí V TOKU — doska má jeho výšku,
-   nie opačne. */
-.co-stack.is-staying > .hf-plate { padding: 0; }
-/* ZADRŽANIE: ŠÍRKA ako ostatné obrazovky, VÝŠKA cez celé okno (Matej 26. 9.
-   večer: *„zúž ju tak ako ostatné, ale na výšku môže byť vyššia, nech je obsah
-   cez celú výšku — tak ako je najväčší obsah vo flow"*). Rezerva od okraja
-   (PAGE_AIR) ostáva: odrátaná je lišta so šípkou (~56) a vzduch hore aj dole. */
-.co-stack.is-staying { margin-top: 0; } /* pečať je skrytá — jej miesto hore sa vracia popupu */
-.co-stack.is-staying .co-stay.fp-panel { min-height: min(calc(100dvh - 136px), 820px); display: flex; }
-.co-stack.is-staying .co-stay > .st-wrap { flex: 1; margin: 0; justify-content: space-between; gap: 16px; }
-.co-stack.is-staying .st-wrap .st-speak.hf-speak { flex: 1; justify-content: center; }
-.co-stack.is-staying > .hf-plate > *:not(.co-stay) { display: none; }
-.co-stack.is-staying .co-stay.fp-panel { position: relative; inset: auto; overflow: visible; }
+/* ZADRŽANIE = DVA BLOKY NAD SEBOU (bublina + doska), nie panel v doske
+   (Matej 26. 9. večer: *„blok v bloku… daj to tak ako sú všetky obrazovky"*).
+   Rám panelu je tu len obal: bez podkladu a bez polohy, v toku javiska.
+   VÝŠKA cez celé okno (skôr v ten večer: *„na výšku môže byť vyššia, nech je
+   obsah cez celú výšku"*) — rezerva od okraja (PAGE_AIR) ostáva: odrátaná je
+   lišta so šípkou (~56) a vzduch hore aj dole. Zvyšok výšky berie bublina. */
+.co-stay.fp-panel {
+  position: relative; inset: auto; padding: 0; border-radius: 0; background: none;
+  width: 100%; min-height: min(calc(100dvh - 136px), 820px);
+}
+.co-stay > .st-wrap { flex: 1; }
 .co-veil { position: fixed; inset: 0; z-index: 60; background: rgba(8, 6, 4, 0.62); }
 /* \`.hf-stage\` je vlastná vrstva (z 1) ⇒ z-index bloku sa nad závoj nedostane;
    zdvihne sa celé javisko. Tapeta aj lišta s logom sú mimo neho, ostanú pod závojom. */
-.hf-stage:has(.co-stack.is-veiled) { z-index: 61; }
+.hf-stage:has(.co-stack.is-veiled), .hf-stage:has(.co-stay) { z-index: 61; }
 .co-seal { transition: opacity 200ms ease; }
 .co-stack.is-veiled .co-seal { opacity: 0; }
 

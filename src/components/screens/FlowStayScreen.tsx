@@ -60,27 +60,20 @@ import { getAttribution } from '@/lib/attribution';
 //    `send-support-thanks`) ostáva nedotknutý — len ho už nič nevolá.
 const TIER = 'guest' as const;
 
-/** Obsah popupu ZADRŽANIE — v pokladni v `FlowModal`. */
-export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onMore: () => void }) {
-  const navigate = useNavigate();
-  const t = useT();
-  const { lang } = useLang();
-  const dogs = useMemo(() => readSvorka(), []);
-  const email = useDogyptStore((s) => s.email);
-  const ownerName = useDogyptStore((s) => s.ownerName);
-  const extraPhotos = useDogyptStore((s) => s.extraPhotos);
-  const [news, setNews] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // ── MEDAILÓN VYPĹŇA BUBLINU ─────────────────────────────────────────────
-  // Bublina je v popupe natiahnutá (`flex: 1`); jej výška je daná rozložením,
-  // nie medailónom. Zmeriame ju a medailónu dáme, čo zostane po texte.
-  // Strop 260 (ksicht je rastrový), dno 88; ± 2 px tolerancia proti kmitaniu.
+/**
+ * ── MEDAILÓN VYPĹŇA BUBLINU ───────────────────────────────────────────────
+ * Bublina je natiahnutá (`flex: 1`) na celú výšku stĺpca; jej výška je daná
+ * rozložením, nie medailónom. Zmeriame ju a medailónu dáme, čo zostane po
+ * texte. Strop 220 (ksicht je rastrový), dno 72; ± 2 px proti kmitaniu.
+ * Spoločné pre ZADRŽANIE aj ĎAKOVAČKU HOSŤA (Matej 26. 9. večer: *„pri
+ * nezaplatenom daj tiež foto Hektora do stredu podobne ako pri zadržaní"*).
+ */
+function useFillMedal() {
+  const wrapRef = useRef<HTMLDivElement>(null);
   const speakRef = useRef<HTMLDivElement>(null);
   const sayRef = useRef<HTMLSpanElement>(null);
-  const [medal, setMedal] = useState(120);
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const [medal, setMedal] = useState(120);
   const [titleSize, setTitleSize] = useState(24);
   useLayoutEffect(() => {
     const el = speakRef.current;
@@ -107,9 +100,9 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
       const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
       const gap = parseFloat(cs.rowGap || cs.gap || '0') || 0;
       const room = Math.min(el.clientHeight - padY - say.offsetHeight - gap, el.clientWidth - 32);
-      // Nízke okno: keď spodok popupu (tlačidlá) vyjde z okna, medailón ustúpi
+      // Nízke okno: keď spodok stĺpca (tlačidlá) vyjde z okna, medailón ustúpi
       // presne o presah — obsah sa zmenšuje, rezerva od okraja (16) nie.
-      const wrap = el.closest('.st-wrap') as HTMLElement | null;
+      const wrap = wrapRef.current;
       const bottom = wrap ? wrap.getBoundingClientRect().bottom : 0;
       const over = bottom - (window.innerHeight - 16);
       setMedal((m) => {
@@ -127,6 +120,23 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
     window.addEventListener('resize', fit);
     return () => { ro.disconnect(); window.removeEventListener('resize', fit); };
   }, []);
+  return { wrapRef, speakRef, sayRef, titleRef, medal, titleSize };
+}
+
+/** Obsah popupu ZADRŽANIE — v pokladni v `FlowModal`. */
+export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onMore: () => void }) {
+  const navigate = useNavigate();
+  const t = useT();
+  const { lang } = useLang();
+  const dogs = useMemo(() => readSvorka(), []);
+  const email = useDogyptStore((s) => s.email);
+  const ownerName = useDogyptStore((s) => s.ownerName);
+  const extraPhotos = useDogyptStore((s) => s.extraPhotos);
+  const [news, setNews] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const { wrapRef, speakRef, sayRef, titleRef, medal, titleSize } = useFillMedal();
 
   const confirm = async () => {
     if (busy) return;
@@ -172,7 +182,7 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
   };
 
   return (
-    <div className="st-wrap">
+    <div className="st-wrap" ref={wrapRef}>
       <style>{FLOW_MEDAL_CSS}{STAY_CSS}</style>
       <div className="hf-speak st-speak" ref={speakRef}>
         {/* Hektor V STREDE a text pod ním, čo najväčší (Matej 26. 9.: *„tento popup
@@ -194,47 +204,55 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
         </span>
       </div>
 
-      {/* 26. 9. 2026 — Matej: *„zadržanie daj bez ukážky… bez toho na stene,
-          iba (v psej optike); poradové číslo a profil je jedno x a druhé
-          veľkým a podčiarknutým PROFIL V ČLENSKEJ SEKCII"*. Profil je odkaz —
-          otvorí ten istý popup ako VIAC INFO v pokladni. */}
-      <ul className="st-rows">
-        <li className="st-row yes">
-          <Mark yes />
-          <span><b>{t('heroglyph.flow.stay.have')}</b> <small>{t('heroglyph.flow.stay.haveNote')}</small></span>
-        </li>
-        <li className="st-row no">
-          <Mark yes={false} />
-          <b>{t('heroglyph.flow.stay.f.num')}</b>
-        </li>
-        <li className="st-row no">
-          <Mark yes={false} />
-          <button type="button" className="st-profile" onClick={onMore}>{t('heroglyph.flow.stay.miss2')}</button>
-        </li>
-      </ul>
+      {/* DVA BLOKY NAD SEBOU ako každý krok vstupu — bublina, pod ňou doska
+          (Matej 26. 9. večer: *„zadržanie je iná štruktúra, blok v bloku… daj to
+          tak ako sú všetky obrazovky = 2 bloky nad sebou nie vnorené!"*). */}
+      <div className="hf-block hf-carved st-board">
+        <span className="hf-carved-rim" aria-hidden />
+        <div className="hf-plate">
+          {/* 26. 9. 2026 — Matej: *„zadržanie daj bez ukážky… bez toho na stene,
+              iba (v psej optike); poradové číslo a profil je jedno x a druhé
+              veľkým a podčiarknutým PROFIL V ČLENSKEJ SEKCII"*. Profil je odkaz —
+              otvorí ten istý popup ako VIAC INFO v pokladni. */}
+          <ul className="st-rows">
+            <li className="st-row yes">
+              <Mark yes />
+              <span><b>{t('heroglyph.flow.stay.have')}</b> <small>{t('heroglyph.flow.stay.haveNote')}</small></span>
+            </li>
+            <li className="st-row no">
+              <Mark yes={false} />
+              <b>{t('heroglyph.flow.stay.f.num')}</b>
+            </li>
+            <li className="st-row no">
+              <Mark yes={false} />
+              <button type="button" className="st-profile" onClick={onMore}>{t('heroglyph.flow.stay.miss2')}</button>
+            </li>
+          </ul>
 
-      {/* Novinky sú marketing ⇒ výslovný súhlas (krok 4 sľúbil e-mail len
-          na „nech sa ti dizajn nestratí"). */}
-      <button type="button" className={`hf-chk${news ? ' on' : ''}`} onClick={() => setNews((v) => !v)}>
-        <span className="box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#16307A" strokeWidth="3.4"
-            strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M4 12.5 L9.5 18 L20 6" />
-          </svg>
-        </span>
-        <span className="lbl">{t('heroglyph.flow.stay.news')}</span>
-      </button>
+          {/* Novinky sú marketing ⇒ výslovný súhlas (krok 4 sľúbil e-mail len
+              na „nech sa ti dizajn nestratí"). */}
+          <button type="button" className={`hf-chk${news ? ' on' : ''}`} onClick={() => setNews((v) => !v)}>
+            <span className="box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#16307A" strokeWidth="3.4"
+                strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M4 12.5 L9.5 18 L20 6" />
+              </svg>
+            </span>
+            <span className="lbl">{t('heroglyph.flow.stay.news')}</span>
+          </button>
 
-      {error && <p role="alert" className="hf-alert">{error}</p>}
-      <div className="st-actions">
-        {/* Výplň prehodená (Matej 26. 9. 2026): PLNÝ PRÍSTUP = plné lapis,
-            POTVRDIŤ = priesvitné. Pod sebou: člen hore, potvrdenie dole. */}
-        <button type="button" className="hf-cta" onClick={() => { track('stay_tier_chosen', { tier: 'member', dogs: dogs.length }); onMember(); }} disabled={busy}>
-          {t('heroglyph.flow.stay.member')}
-        </button>
-        <button type="button" className="st-confirm" onClick={confirm} disabled={busy}>
-          {busy ? t('payment.preparing') : t('heroglyph.flow.stay.free')}
-        </button>
+          {error && <p role="alert" className="hf-alert">{error}</p>}
+          <div className="st-actions">
+            {/* Výplň prehodená (Matej 26. 9. 2026): PLNÝ PRÍSTUP = plné lapis,
+                POTVRDIŤ = priesvitné. Pod sebou: člen hore, potvrdenie dole. */}
+            <button type="button" className="hf-cta" onClick={() => { track('stay_tier_chosen', { tier: 'member', dogs: dogs.length }); onMember(); }} disabled={busy}>
+              {t('heroglyph.flow.stay.member')}
+            </button>
+            <button type="button" className="st-confirm" onClick={confirm} disabled={busy}>
+              {busy ? t('payment.preparing') : t('heroglyph.flow.stay.free')}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -310,7 +328,10 @@ function GuestThanks() {
   // podnadpisu o AINUBISovi a bez fotky. Zvýraznené slovo je medzi hviezdičkami.
   const title = t(dogs.length > 1 ? 'heroglyph.flow.stay.thanks.tMany' : 'heroglyph.flow.stay.thanks.tOne');
   const [pre, hi, post] = title.split('*');
-  const medal = typeof window === 'undefined' ? 96 : window.innerHeight < 700 ? 72 : window.innerWidth > 600 ? 120 : 96;
+  // Hektor V STREDE a väčší, ako pri zadržaní (Matej 26. 9. večer: *„pri
+  // nezaplatenom daj tiež foto Hektora do stredu… zväčši foto aj text, je tam
+  // dosť miesta"*). Medailón aj nadpis sa merajú rovnako ako tam.
+  const { wrapRef, speakRef, sayRef, titleRef, medal, titleSize } = useFillMedal();
   const tags = [t('heroglyph.flow.stay.thanks.tagNum'), 'DOG ID', 'AINUBIS', 'DOGTRIP', 'SNIFFER'];
   const Ok = () => (
     <svg className="gt-ok" viewBox="0 0 24 24" fill="none" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -322,11 +343,15 @@ function GuestThanks() {
       <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{STAY_CSS}</style>
       <div className="hf-topbar flex-shrink-0"><PageTopBar /></div>
       <div className="hf-stage">
-        <div className="w-full max-w-xl flex flex-col items-center gap-3">
-          <motion.div className="hf-speak gt-speak" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
+        <div className="w-full max-w-xl st-wrap gt-wrap" ref={wrapRef}>
+          <motion.div ref={speakRef} className="hf-speak st-speak" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
             <FlowMedallion src={hekthorFace('stay-done')} size={medal} />
-            <span className="say">
-              <h2>{pre}<b>{hi}</b>{post}</h2>
+            <span className="say" ref={sayRef}>
+              {/* Dva riadky: „Hotovo. Tvoj pes" / „je v DOGYPTE!" */}
+              <h2 ref={titleRef} className="st-title" style={{ fontSize: titleSize }}>
+                <span>{pre}<b>{hi}</b></span>
+                <span>{post.trim()}</span>
+              </h2>
             </span>
           </motion.div>
 
@@ -357,9 +382,8 @@ function GuestThanks() {
 }
 
 const STAY_CSS = `
-/* ── ĎAKOVAČKA HOSŤA ── */
-.gt-speak h2 { font-size: 20px; } .gt-speak p { font-size: 14px; line-height: 1.45; }
-@media (min-width: 601px) { .gt-speak h2 { font-size: 24px; } .gt-speak p { font-size: 16px; } }
+/* ── ĎAKOVAČKA HOSŤA ── ten istý stĺpec ako zadržanie (bublina berie výšku). */
+.gt-wrap { min-height: min(calc(100dvh - 160px), 820px); }
 .gt-stack { width: 100%; }
 .gt-stack .hf-plate { gap: 12px; }
 .gt-lines { list-style: none; margin: 0 auto; padding: 0; display: flex; flex-direction: column; gap: 8px;
@@ -371,11 +395,15 @@ const STAY_CSS = `
   font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: ${LAB.inkBody}; }
 .gt-ctas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 @media (max-width: 600px) {
-  .gt-speak h2 { font-size: 16px; } .gt-speak p { font-size: 12px; }
   .gt-lines { font-size: 14px; gap: 6px; } .gt-ok { width: 18px; height: 18px; }
   .gt-ctas { grid-template-columns: 1fr; } .gt-ctas .hf-cta { order: -1; }
 }
-.st-wrap { display: flex; flex-direction: column; gap: 12px; }
+/* ZADRŽANIE aj ĎAKOVAČKA: bublina (natiahnutá na zvyšok výšky, Hektor
+   v strede) + pod ňou samostatná doska — medzeru nesie \`.hf-block\`, ako
+   na každom kroku vstupu. */
+.st-wrap { display: flex; flex-direction: column; }
+.st-wrap .st-speak.hf-speak { flex: 1; justify-content: center; }
+.st-board .hf-plate { gap: 12px; }
 /* Hektor v strede, text pod ním — bublina je stĺpec (26. 9. večer). */
 .st-wrap .st-speak.hf-speak { flex-direction: column; text-align: center; padding: 20px 16px; gap: 12px; }
 .st-wrap .st-speak .say { align-items: center; text-align: center; align-self: stretch; }
@@ -427,13 +455,13 @@ const STAY_CSS = `
 .st-wrap .hf-chk { border-radius: ${PACK_R.tile}px; }
 /* Nízke PC okno (1477×724): hlavička popupu ustúpi prvá, obsah (voľby, CTA) nie. */
 @media (min-width: 601px) and (max-height: 800px) {
-  .st-wrap { gap: 10px; }
+  .st-board .hf-plate { gap: 10px; }
   .st-wrap .st-speak.hf-speak { padding: 12px 20px; gap: 8px; }
   .st-speak h2 { font-size: 20px; }
   .st-speak p { font-size: 14px; }
 }
 @media (max-width: 600px) {
-  .st-wrap { gap: 10px; }
+  .st-board .hf-plate { gap: 10px; }
   .st-wrap .st-speak.hf-speak { padding: 12px; gap: 8px; }
   .st-speak h2 { font-size: 16px; }
   .st-speak p { font-size: 12px; line-height: 1.4; }
@@ -442,7 +470,7 @@ const STAY_CSS = `
   .st-mark { width: 18px; height: 18px; }
 }
 @media (max-width: 600px) and (max-height: 700px) {
-  .st-wrap { gap: 6px; }
+  .st-board .hf-plate { gap: 6px; }
   .st-speak h2 { font-size: 14px; }
   .st-wrap .hf-chk { padding-top: 6px; padding-bottom: 6px; }
 }
