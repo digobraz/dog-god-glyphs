@@ -240,7 +240,7 @@ export function CharacterScreen() {
                       key={c.v}
                       type="button"
                       data-v={c.v}
-                      className={`hf-pick ch-trait${at >= 0 ? ' on' : ''}`}
+                      className={`hf-pick is-pale ch-trait${at >= 0 ? ' on' : ''}`}
                       aria-pressed={at >= 0}
                       onClick={() => tap(c.v)}
                     >
@@ -353,6 +353,9 @@ const CHARACTER_CSS = `
       by z radu urobila zlatý pás, v ktorom čierna kresba prestane byť tým, na čo
       sa oko pozerá. Je to tá istá poloha, akú má rad siluet na PATRÓNOVI —
       🚩 a tá istá otvorená otázka na Mateja (do 3 volieb zlato, od 4 tint). */
+/* 26. 9. 2026 ~16:15 Matej na povahe: *„aj tu sú tie výbery inak farebné!"* ⇒
+   \`.is-pale\` + \`FLOW_PICK_ON\`, tá istá dlaždica ako silueta na PATRÓNOVI a voľby
+   PODSTATY. Vlastný sivomodrý výber zanikol. */
 .ch-trait {
   position: relative;
   flex: 0 0 auto; width: 104px; padding: 10px 4px;

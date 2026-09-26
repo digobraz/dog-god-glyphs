@@ -78,7 +78,10 @@ export function ZodiacSheet({ open, birthday, sign, year, onClose, onDate, onMan
   // to, čo je uložené — nie to, čo naklikal a zahodil.
   useEffect(() => {
     if (!open) return;
-    setMode(!birthday && sign ? 'manual' : 'date');
+    // 26. 9. 2026 ~16:15 Matej: popup je cesta „NECHCEM UVIESŤ", nie druhý dátum —
+    // dátum už stojí na obrazovke pod ním. Otvára sa preto vždy na ručnom výbere
+    // a odkaz „Podľa dátumu narodenia" zanikol (vetva 'date' nemá vstup).
+    setMode('manual');
     setPick(sign || null);
     setYr(year || DEFAULT_YEAR);
     setBd(birthday || null);
@@ -186,9 +189,6 @@ export function ZodiacSheet({ open, birthday, sign, year, onClose, onDate, onMan
                 <img src={chineseMap[chinese.name]} alt={t(`heroglyph.flow.ownerZodiac.animal.${chinese.name}`)} />
               </span>
             </div>
-            <button type="button" className="zs-switch" onClick={() => setMode('date')}>
-              {t('heroglyph.flow.owner.byDate')}
-            </button>
           </>
         )}
 

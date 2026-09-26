@@ -498,7 +498,7 @@ export function OwnerScreen() {
                             </button>
                           ) : (
                             <button type="button" className="ow-change" onClick={() => setSheet(true)}>
-                              {t('heroglyph.flow.owner.noDate')}
+                              {t('heroglyph.flow.owner.optOut')}
                             </button>
                           )}
                         </div>
