@@ -4072,6 +4072,7 @@ export const sk: Partial<Dict> = {
   'pack.hub.nature.isNow': "Tvoj pes je",
   'pack.hub.nature.revealA': "Úloha vo svorke",
   'pack.hub.nature.revealB': "Element podľa TČM",
+  'pack.hub.nature.reveal': "Dozvieš sa",
   'pack.hub.nature.pending': "Ešte chýba",
   'pack.hub.nature.read': "Prečítať výsledky",
   'pack.hub.nature.retake': "Vyplniť znova",

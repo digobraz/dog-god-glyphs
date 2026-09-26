@@ -2299,6 +2299,7 @@ export const cs: Partial<Dict> = {
   'pack.hub.nature.retake': 'Vyplnit znovu',
   'pack.hub.nature.revealA': 'Role ve smečce',
   'pack.hub.nature.revealB': 'Element podle TČM',
+  'pack.hub.nature.reveal': 'Dozvíš se',
   'pack.hub.nature.ribbon': 'Kvíz',
   'pack.hub.nature.startBig': 'Zjisti, kdo je tvůj pes',
   'pack.hub.notStarted': 'Nezačato',

@@ -4380,6 +4380,7 @@ export const en = {
   'pack.hub.nature.isNow': "Your dog is",
   'pack.hub.nature.revealA': "Role in the pack",
   'pack.hub.nature.revealB': "Element by TCM",
+  'pack.hub.nature.reveal': "You'll find out",
   'pack.hub.nature.pending': "Still missing",
   'pack.hub.nature.read': "Read the results",
   'pack.hub.nature.retake': "Take it again",
