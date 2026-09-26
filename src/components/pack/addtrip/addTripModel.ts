@@ -7,6 +7,29 @@ import type { LatLngTuple } from 'leaflet';
 import type { Companion } from '@/components/pack/packCommunityUI';
 import { CATEGORY_BY_ID, primaryCategoryOf } from '@/components/pack/tripCategories';
 
+// Priblíženie, od ktorého zaberie dlhé stlačenie pri ZAČIATKU TRASY. Zámerne nižšie než
+// `MIN_ZOOM_FOR_NOTE` (16), ktorý platí pre zápisy do mapy: značka musí sadnúť na konkrétnu
+// odbočku, kdežto prvá kotva trasy sa aj tak prichytí na najbližší chodník.
+// ⚠️ JEDNO ČÍSLO PRE CELÝ SPRIEVODCU. Rovnaký prah platí aj pre odkazy pichané v kroku 2
+// (PackMap ho odtiaľto importuje — preto žije v modeli, nie v GeometryPicker.tsx): keď sa kotva trasy dá položiť pri tomto priblížení,
+// nemá zmysel žiadať pre jej parkovisko štyri stupne navyše — po vycentrovaní na celú
+// trasu je človek pod ním a ťuk do mapy vtedy ticho nezaberie.
+//
+// 12 → 14 (Matej 24. 8. 2026: „kreslenie trasy sa musí dať pri bližšom zoome, teraz je to
+// moc z diaľky"). Pri z12 vidno pás ~19 km — vtedy jeden pixel nesie ~40 m, takže kotva sadne
+// o pol ulice vedľa a prichytávanie na chodník si vyberie cudzí chodník.
+//
+// 14 → 15 (Matej 25. 8. 2026, na telefóne: „prah odkedy sa može začať kresliť musíš ešte
+// posunúť, lebo začína moc vysoko — musí to byť ešte nižšie = viac z blízka").
+// ⚠️ VEDOMÁ VÝMENA, ktorú tu 24. 8. stálo napísané ako „vyššie sa ísť nedá": pri z15 je
+// viditeľný pás ~2,5 km, takže celodenná trasa sa na obrazovku UŽ NEZMESTÍ a človek medzi
+// kotvami posúva mapu. Matej to videl na reálnom telefóne a rozhodol, že rozoznateľnosť
+// chodníka je dôležitejšia než nakreslenie na jeden záber — a má to oporu: kotva, ktorá
+// sadne na cudzí chodník, sa opravuje ťažšie než posunutie mapy.
+// Ďalší (a posledný) stupeň by bolo 16, čo je presne `MIN_ZOOM_FOR_NOTE` — vtedy by prah
+// kreslenia a prah značiek splynuli do jedného čísla.
+export const TRIP_HOLD_MIN_ZOOM = 15;
+
 export type TripState = 'planned' | 'walked';
 export type ApprovalStatus = 'draft' | 'pending' | 'approved' | 'needs_fix' | 'rejected';
 export type GeometryKind = 'route' | 'point' | 'area';

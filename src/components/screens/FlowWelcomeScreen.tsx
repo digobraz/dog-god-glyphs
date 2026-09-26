@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { useDogyptStore } from '@/store/dogyptStore';
-import { PageTopBar } from '@/components/PageTopBar';
 import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
 import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
 import { LetterReveal, REVEAL_S, LETTER_S, FLOW_INTRO_CSS } from '@/components/screens/flowIntro';
@@ -54,9 +53,11 @@ function useWelcomeData(sessionId: string | null) {
   const fallback = useMemo(() => {
     const seed = import.meta.env.DEV ? readDevSeed() : null;
     const base = seed?.packNumber ?? 73;
+    // Dielňa vie 1–6 psov; psi navyše z dev seedu nemajú meno ani fotku.
+    const DEV_NAMES = ['ALBA', 'BENO', 'CIRA', 'DUNO', 'EMA', 'FLÓRA'];
     return readSvorka().map((d, i): NewDog => ({
       id: d.flowId,
-      name: d.dogName || '',
+      name: d.dogName || (seed ? DEV_NAMES[(i - 1 + DEV_NAMES.length) % DEV_NAMES.length] : ''),
       photo: d.photo || '',
       n: sessionId ? null : base + i,
       glyph: '',
@@ -182,8 +183,8 @@ export function FlowWelcomeScreen() {
     if (typeof window === 'undefined') return 4;
     const mobile = window.innerWidth <= 600;
     const step = mobile ? 56 : 64;
-    const fresh = (mobile ? 64 : 72) * dogs.length;
-    return Math.max(2, Math.min(8, Math.floor((window.innerHeight * 0.42 - fresh) / step)));
+    const fresh = (dogs.length >= 4 ? (mobile ? 56 : 60) : (mobile ? 64 : 72)) * dogs.length;
+    return Math.max(1, Math.min(8, Math.floor((window.innerHeight * 0.42 - fresh) / step)));
   }, [dogs.length]);
   const [rolled, setRolled] = useState(false); // predošlí vyrolovali a rozmazali sa
   const [joined, setJoined] = useState(false); // nový pes sa zaradil
@@ -272,8 +273,9 @@ export function FlowWelcomeScreen() {
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
       <style>{FLOW_PALE_CSS}{FLOW_CARVE_CSS}{FLOW_MEDAL_CSS}{FLOW_INTRO_CSS}{WELCOME_CSS}</style>
-      <div className="hf-topbar flex-shrink-0"><PageTopBar /></div>
-      <div className="hf-stage">
+      {/* BEZ LOGA HORE (Matej 26. 9.: *„posledná stránka nebude mať horné logo…
+          tým je väčšia na obsah práve kvôli pečati"*). Punc nesie pečať nad mottom. */}
+      <div className="hf-stage wl-page">
         <div className="w-full max-w-xl flex flex-col items-center">
           <AnimatePresence mode="wait">
             {phase === 'hero' ? (
@@ -329,7 +331,7 @@ export function FlowWelcomeScreen() {
                     {rolled && dogs.map((d, i) => (
                       <motion.div
                         key={`n${d.id}`}
-                        className={`wl-row is-new${joined ? ' is-joined' : ''}`}
+                        className={`wl-row is-new${joined ? ' is-joined' : ''}${dogs.length >= 4 ? ' is-many' : ''}`}
                         initial={{ opacity: 0, scale: 1.18, y: 24 }}
                         animate={joined ? { opacity: 1, scale: 1, y: 0 } : { opacity: 1, scale: 1.12, y: 0 }}
                         transition={{ delay: joined ? 0 : i * 0.35, duration: 0.6, ease: [0.2, 0.8, 0.3, 1] }}
@@ -382,10 +384,13 @@ export function FlowWelcomeScreen() {
                     {/* RYTINA oddelí poďakovanie a progres od motta (Matej 26. 9.). */}
                     <motion.p className="hf-legend wl-rule" aria-hidden initial={false} animate={{ opacity: line >= 4 ? 1 : 0 }} transition={{ delay: 0.9, duration: 0.5 }} />
 
-                    {/* Len motto, bez pečate (Matej 26. 9.: *„daj to bez pečate… nechaj iba motto"*). */}
-                    <motion.p className="wl-motto" initial={false} animate={{ opacity: line >= 4 ? 1 : 0 }} transition={{ delay: 1.1, duration: 0.5 }}>
-                      {t('religion.book.trust')}
-                    </motion.p>
+                    {/* PEČAŤ NAD MOTTOM — vrátila sa, keď stránka stratila logo (Matej 26. 9.:
+                        *„na mobile je dostatok miesta na pečať nad motto aj na PC"*).
+                        Veľkosť ide z výšky okna, pri tesnom okne ustúpi prvá. */}
+                    <motion.div className="wl-seal" initial={false} animate={{ opacity: line >= 4 ? 1 : 0, scale: line >= 4 ? 1 : 0.9 }} transition={{ delay: 1.1, duration: 0.5 }}>
+                      <img src="/images/peciat-dogypt.png" alt="" aria-hidden />
+                      <span className="wl-motto">{t('religion.book.trust')}</span>
+                    </motion.div>
 
                     <motion.button
                       type="button"
@@ -459,7 +464,8 @@ const WELCOME_CSS = `
 .wl-br { display: block; height: 0; }
 
 /* ── PORADIE — doska na celú výšku, poradie berie zvyšok ── */
-.wl-stack { width: 100%; display: flex; flex-direction: column; min-height: min(calc(100dvh - 160px), 820px); }
+.wl-stack { width: 100%; display: flex; flex-direction: column; min-height: min(calc(100dvh - 32px), 900px); }
+@media (min-width: 768px) { .wl-stack { min-height: min(calc(100dvh - 48px), 900px); } }
 .wl-stack .hf-plate { gap: 16px; flex: 1; min-height: 0; }
 .wl-rank {
   flex: none;
@@ -475,6 +481,8 @@ const WELCOME_CSS = `
 .wl-foot { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 16px; }
 .wl-foot-top { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .wl-rule { gap: 0; }
+.wl-seal { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.wl-seal img { width: clamp(64px, 13dvh, 128px); height: auto; aspect-ratio: 1; object-fit: contain; transform: rotate(-5deg); filter: drop-shadow(0 6px 12px rgba(60, 40, 10, 0.35)); }
 .wl-motto { margin: 0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 16px; letter-spacing: .14em; text-transform: uppercase; color: ${LAB.goldInk}; }
 .wl-row {
   display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 12px;
@@ -509,6 +517,10 @@ const WELCOME_CSS = `
 .wl-row.is-new .wl-name { font-family: 'Cinzel Decorative', 'Cinzel', serif; font-weight: 700; font-size: 20px; }
 .wl-row.is-new .wl-num { font-size: 20px; color: ${LAB.goldInk}; }
 .wl-row.is-new.is-joined { animation: wl-glow 2.2s ease-in-out infinite; }
+/* 4+ psov: riadky ustúpia, aby sa svorka zmestila bez scrollu. */
+.wl-row.is-new.is-many { height: 56px; grid-template-columns: 40px 1fr auto; }
+.wl-row.is-new.is-many .wl-ph { width: 40px; height: 40px; }
+.wl-row.is-new.is-many .wl-name, .wl-row.is-new.is-many .wl-num { font-size: 16px; }
 @keyframes wl-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(201, 154, 63, 0.35), 0 0 24px 6px rgba(255, 206, 100, 0.6); }
   50% { box-shadow: 0 0 0 10px rgba(201, 154, 63, 0), 0 0 56px 18px rgba(255, 206, 100, 0.95); }
@@ -534,7 +546,7 @@ const WELCOME_CSS = `
 .wl-goal-t { font-family: 'Space Grotesk', sans-serif; font-size: 12px; letter-spacing: .08em; color: ${LAB.inkBody}; }
 .wl-cta { width: 100%; }
 @media (max-width: 600px) {
-  .wl-row { height: 48px; } .wl-row.is-new { height: 56px; }
+  .wl-row { height: 48px; } .wl-row.is-new { height: 56px; } .wl-row.is-new.is-many { height: 48px; }
   .wl-name { font-size: 14px; } .wl-row.is-new .wl-name, .wl-row.is-new .wl-num { font-size: 16px; }
   .wl-line { font-size: 14px; } .wl-line.is-done, .wl-thanks { font-size: 16px; }
 }

@@ -47,7 +47,7 @@
 import { sizedUrl } from '@/services/cloudinaryService';
 import { usePublishPilgrimLevel } from '@/components/pack/usePilgrimStats';
 import { trackPack } from '@/lib/packAnalytics';
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Polyline, Polygon, Circle, Marker, ScaleControl, useMap, useMapEvent } from 'react-leaflet';
 import L from 'leaflet';
@@ -65,7 +65,6 @@ import { COUNTRY_BORDERS } from '@/data/countryBorders';
 import { trailCountry, flagUrl, flagEmoji } from '@/lib/countryGeo';
 import { PackBottomNav, HieroglyphBg, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { PackNotifications } from '@/components/pack/PackNotifications';
-import { TripComments } from '@/components/pack/trip/TripComments';
 import { TripCreatorPopup } from '@/components/pack/trip/TripCreatorPopup';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { useToast } from '@/hooks/use-toast';
@@ -75,8 +74,6 @@ import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { levelProgress, calculateTripPoints, levelThreshold } from '@/lib/tripPoints';
 import type { LevelProgress, TripPointsResult } from '@/lib/tripPoints';
 import { tierVars } from '@/lib/packTiers';
-import { LevelPanel } from '@/components/pack/level/LevelPanel';
-import { TripReveal } from '@/components/pack/level/TripReveal';
 import type { TripStat } from '@/components/pack/level/TripReveal';
 import { MapCoach, coachMuted } from '@/components/pack/MapCoach';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -129,7 +126,7 @@ import { TripProfileCard, partyMemberToProfileCardProps } from '@/components/pac
 // ADD TRIP flow (krok 9, plany/zadanie-addtrip-flow-2026-07-27.md §15 bod 8) — vytiahnuté z
 // tohto súboru do vlastného adresára (§2 zadania). Portal len zapája vstupný popup + oba
 // formuláre a konvertuje AddTripDraft → HeroTrail zápis (§3 tam), formuláre samotné sa needitujú.
-import { AddTripEntry, type AddChoice } from '@/components/pack/addtrip/AddTripEntry';
+import type { AddChoice } from '@/components/pack/addtrip/AddTripEntry';
 import { onCreate } from '@/lib/createBus';
 import { ORIGIN_PARAM, returnTo } from '@/components/pack/createRegistry';
 // ZÁPISY DO MAPY (2026-08-20) — parkovisko/výstraha/poznámka od členov + datasetové
@@ -137,9 +134,9 @@ import { ORIGIN_PARAM, returnTo } from '@/components/pack/createRegistry';
 // Zadanie: plany/zadanie-zapisy-do-mapy-2026-08-20.md
 import { MapNotesLayer, MAP_NOTES_CSS } from '@/components/pack/mapnotes/MapNotesLayer';
 import { WishLayer } from '@/components/pack/mapnotes/WishLayer';
-import { AddWish, type WishDraftPoint } from '@/components/pack/mapnotes/AddWish';
+import type { WishDraftPoint } from '@/components/pack/mapnotes/AddWish';
 import { fetchMyWishes, fetchWishPins, useMyWishCount, wishMatchForTrail, type WishPin } from '@/components/pack/mapnotes/wishData';
-import { WishAsk, type WishAskKind, type WishAskReq } from '@/components/pack/mapnotes/WishAsk';
+import type { WishAskKind, WishAskReq } from '@/components/pack/mapnotes/WishAsk';
 import { WISH_EMOJI, WISH_RIM } from '@/components/pack/mapnotes/markEmoji';
 import { dockFitPadding } from '@/components/pack/mapDockShape';
 import { MapAttribution, MAP_ATTR_CSS, mapAttrLiftCSS } from '@/components/pack/mapAttribution';
@@ -154,9 +151,8 @@ import { useLongPressPoint, useMapClickPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS 
 import { MapNoteCursor, MapPlaceCursor, MAP_NOTE_CURSOR_CSS } from '@/components/pack/mapnotes/MapNoteCursor';
 import { nearestTrailId, canAddParkingAt } from '@/components/pack/mapnotes/mapNotesGeo';
 import { GROUP_KINDS, defaultRadius, type NoteGroup, type NoteKind, type TickDisease } from '@/components/pack/mapnotes/mapNotesData';
-import { AddTripLog } from '@/components/pack/addtrip/AddTripLog';
 import { TRAVEL_EMOJI } from '@/components/pack/addtrip/addTripModel';
-import { TRIP_HOLD_MIN_ZOOM } from '@/components/pack/addtrip/GeometryPicker';
+import { TRIP_HOLD_MIN_ZOOM } from '@/components/pack/addtrip/addTripModel';
 import type { AddTripDraft, TripState } from '@/components/pack/addtrip/addTripModel';
 import { clearTripNotes, readTripNotesForSession, writeTripNotes, missingOnTrail, type TripNoteRef } from '@/components/pack/addtrip/addTripModel';
 import { savedGeometry } from '@/components/pack/addtrip/addTripModel';
@@ -164,16 +160,35 @@ import { devSyncLocalTrips } from '@/lib/devTripSync';
 // EVENT formulár (krok 3, plany/zadanie-eventy-2026-08-06.md §4) — vedľa ADD TRIP, vlastný
 // adresár. Od 25. 9. 2026 (vlna 2) číta aj píše DB cez `eventStore.ts` — dovtedy localStorage,
 // takže podujatie videl len autor.
-import { AddEvent, type AddEventOutcome } from '@/components/pack/events/AddEvent';
+import type { AddEventOutcome } from '@/components/pack/events/AddEvent';
 import type { AddEventDraft, EventKind } from '@/components/pack/events/eventModel';
 import { useEvents, saveEvent, type EventItem } from '@/components/pack/events/eventStore';
 // zoznam eventov v ľavom paneli + piny na mape (krok 5, plany/zadanie-eventy-2026-08-06.md §9
 // krok 5) — dovtedy sa event po uložení nikde nezobrazoval (formulár aj store boli hotové,
 // panel ostal viazaný len na TRIP vetvu).
-import { EventsPanel } from '@/components/pack/events/EventsPanel';
 import { BUDDY_LIVE, EVENTS_LIVE, PLANNING_LIVE, WISHES_LIVE } from '@/lib/packFlags';
 import { TRIP_CATEGORIES, ACT_TAG_EMOJI, ACT_TO_CATEGORY, CHIP_BY_ID, DATA_TAG_TO_UI, TAG_EMOJI, TAG_I18N, categoriesOf, chipsOf, isInCategory, primaryCategoryOf, type TripCategoryId } from '@/components/pack/tripCategories';
 import { AvatarRing, AV_D } from '@/components/pack/AvatarRing';
+
+/* ── SŤAHUJE SA AŽ PO KLIKNUTÍ (audit /pack/map B7, 26. 9. 2026) ─────────────────────────
+   Sprievodca výletu (AddTripLog + GeometryPicker ≈ 470 KB zdroja), podujatia, reveal po zápise,
+   komentáre a panely prianí sa na otvorenie mapy nepotrebujú, a kým boli statické, niesol ich
+   chunk PackMap celé. Vstupný panel `AddTripEntry` sa predhrieva v PackLayout.tsx
+   (`loadAddTripEntry`), takže PRIDAŤ nečaká. Hranica <Suspense> stojí pri každom mieste
+   zvlášť s `fallback={null}` — jedna spoločná by pri sťahovaní skryla celú mapu. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- ten istý tvar ako `lazy<T extends ComponentType<any>>` v typoch Reactu; `never` by zahodil typy props
+const lazyNamed = <K extends string, M extends Record<K, React.ComponentType<any>>>(load: () => Promise<M>, name: K) =>
+  lazy(() => load().then((m) => ({ default: m[name] })));
+const loadAddTripLog = () => import('@/components/pack/addtrip/AddTripLog');
+const AddTripLog = lazyNamed(loadAddTripLog, 'AddTripLog');
+const AddTripEntry = lazyNamed(() => import('@/components/pack/addtrip/AddTripEntry'), 'AddTripEntry');
+const AddEvent = lazyNamed(() => import('@/components/pack/events/AddEvent'), 'AddEvent');
+const EventsPanel = lazyNamed(() => import('@/components/pack/events/EventsPanel'), 'EventsPanel');
+const TripReveal = lazyNamed(() => import('@/components/pack/level/TripReveal'), 'TripReveal');
+const LevelPanel = lazyNamed(() => import('@/components/pack/level/LevelPanel'), 'LevelPanel');
+const TripComments = lazyNamed(() => import('@/components/pack/trip/TripComments'), 'TripComments');
+const AddWish = lazyNamed(() => import('@/components/pack/mapnotes/AddWish'), 'AddWish');
+const WishAsk = lazyNamed(() => import('@/components/pack/mapnotes/WishAsk'), 'WishAsk');
 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
@@ -3573,6 +3588,9 @@ export default function PackMap() {
   // zmazaný ako mŕtvy — archív: tag `archiv/addtripplan-2026-09-16`.
   const [addEntryOpen, setAddEntryOpen] = useState(false);
   const [addFlow, setAddFlow] = useState<TripState | null>(null);
+  // Kým človek v paneli vyberá, čo pridáva, sprievodca (najťažší kus mapy) sa už sťahuje —
+  // po ťuku na voľbu tak nečaká na sieť. Druhé volanie import() je z cache prehliadača.
+  useEffect(() => { if (addEntryOpen || addFlow) void loadAddTripLog(); }, [addEntryOpen, addFlow]);
   // EVENT flow (krok 3 zadania-eventy) — rovnaký vzor ako addFlow, drží len origin ('own'/'tip');
   // formulár samotný (AddEvent) si drží vlastný interný state.
   const [addEventFlow, setAddEventFlow] = useState<'own' | 'tip' | null>(null);
@@ -6183,15 +6201,17 @@ export default function PackMap() {
                     hodnotenie autora je `trail.stars` a počíta sa ako JEDNO hodnotenie.
                     Bez toho by tá istá sekcia hlásila na dvoch povrchoch dve rôzne čísla.
                     Magistrála je výnimka — `stars` je tam redakčná hodnota, nie hlas chodca. */}
-                <TripComments
-                  tripId={dt.id}
-                  tripName={dt.name}
-                  walked={walkedIds.has(dt.id)}
-                  onMarkWalked={() => markWalked(dt.id)}
-                  onRequestWalk={() => setWalkedPopupId(dt.id)}
-                  authorRating={dt.diff === 'Odyssey' ? 0 : (dt.stars ?? 0)}
-                  authorName={authorOf(dt)}
-                />
+                <Suspense fallback={null}>
+                  <TripComments
+                    tripId={dt.id}
+                    tripName={dt.name}
+                    walked={walkedIds.has(dt.id)}
+                    onMarkWalked={() => markWalked(dt.id)}
+                    onRequestWalk={() => setWalkedPopupId(dt.id)}
+                    authorRating={dt.diff === 'Odyssey' ? 0 : (dt.stars ?? 0)}
+                    authorName={authorOf(dt)}
+                  />
+                </Suspense>
                 {/* ZMAZAŤ PLÁNOVANÝ VÝLET (2026-08-22) — jediné miesto v appke, odkiaľ 🎯 z mapy
                     zmizne. A je to zároveň jediné miesto, KDE SA TAKÝ VÝLET DÁ NÁJSŤ: neprejdený
                     plán je zo zoznamu „všetky výlety" zámerne vylúčený (viď filter vyššie), takže
@@ -6346,20 +6366,22 @@ export default function PackMap() {
                   {/* EVENT zoznam (krok 5, zadanie-eventy §9 krok 5) — pridané NAD existujúci
                       „looking for pack" EventsView nižšie (iná entita, § zadania §1: EVENT nemá
                       väzbu na trip). withRef=true = registruje card-refy pre pin→scroll (desktop). */}
-                  <EventsPanel
-                    events={visibleEvents}
-                    view={eventsView}
-                    onViewChange={setEventsView}
-                    selectedId={selectedEventId}
-                    expandedId={expandedEventId}
-                    onCardClick={handleEventCardClick}
-                    onAddEvent={openAddEntry}
-                    withRef
-                    cardRefs={eventCardRefs}
-                    onChanged={() => void evStore.reload()}
-                    onEdit={(it) => { setEditingEvent(it); setAddEventFlow(it.origin); }}
-                    error={evStore.error}
-                  />
+                  <Suspense fallback={null}>
+                    <EventsPanel
+                      events={visibleEvents}
+                      view={eventsView}
+                      onViewChange={setEventsView}
+                      selectedId={selectedEventId}
+                      expandedId={expandedEventId}
+                      onCardClick={handleEventCardClick}
+                      onAddEvent={openAddEntry}
+                      withRef
+                      cardRefs={eventCardRefs}
+                      onChanged={() => void evStore.reload()}
+                      onEdit={(it) => { setEditingEvent(it); setAddEventFlow(it.origin); }}
+                      error={evStore.error}
+                    />
+                  </Suspense>
                   {/* 🔴 EVENTRIPY (looking-for-pack) LEN v „upcoming" (Matej 2026-08-06:
                       „v archive nebudu predsa tripy tie sa loguju len do tripov"). Naplánovaný
                       výlet po termíne NEIDE do archívu podujatí — vsiakne sa do tripu ako log
@@ -6705,18 +6727,20 @@ export default function PackMap() {
             ? renderTripList(false)
             : (<>
                 {/* mobile — rovnaký zoznam, bez card-refov (withRef=false, žiadny hover-scroll na touch). */}
-                <EventsPanel
-                  events={visibleEvents}
-                  view={eventsView}
-                  onViewChange={setEventsView}
-                  selectedId={selectedEventId}
-                  expandedId={expandedEventId}
-                  onCardClick={handleEventCardClick}
-                  onAddEvent={openAddEntry}
-                  onChanged={() => void evStore.reload()}
-                  onEdit={(it) => { setEditingEvent(it); setAddEventFlow(it.origin); }}
-                  error={evStore.error}
-                />
+                <Suspense fallback={null}>
+                  <EventsPanel
+                    events={visibleEvents}
+                    view={eventsView}
+                    onViewChange={setEventsView}
+                    selectedId={selectedEventId}
+                    expandedId={expandedEventId}
+                    onCardClick={handleEventCardClick}
+                    onAddEvent={openAddEntry}
+                    onChanged={() => void evStore.reload()}
+                    onEdit={(it) => { setEditingEvent(it); setAddEventFlow(it.origin); }}
+                    error={evStore.error}
+                  />
+                </Suspense>
                 {/* 🔴 to isté gatovanie ako na desktope (~2882): eventripy do archívu NEPATRIA. */}
                 {/* to isté ako na desktope: jeden prázdny stav, nie dva (13. 9. 2026) */}
                 {eventsView === 'upcoming' && events.length > 0 && (
@@ -6744,56 +6768,60 @@ export default function PackMap() {
       {(!!addFlow || !!addEventFlow) && (
         <div className={`trp-addhost${addMapPhase !== 'off' || notePlaceReady ? ' is-hidden' : ''}`}>
           {addFlow ? (
-            <AddTripLog
-              finishTrail={finishTrailId ? (localTrails.find((tr) => tr.id === finishTrailId) ?? null) : null}
-              fromPlan={finishFromPlan}
-              allTrails={allTrails}
-              authorName={firstName}
-              myDogs={myDogsForAdd}
-              memorialOnly={hasOnlyDeceasedDogs(id.dogs)}
-              onHasRoute={setAddHasRoute}
-              /* Meranie (v1-posthog): `pack_trip_add_done` sa vystrelí len keď zápis naozaj
-                 prešiel. `submitAddTripDraft` má šesť návratových bodov a dva z nich sú
-                 odmietnutie — merať vnútri by znamenalo rátať aj neúspechy ako zapísané
-                 výlety. `finish` odlíši dopísaný koncept od úplne nového výletu. */
-              onSubmit={(d) => {
-                const ok = submitAddTripDraft(d);
-                if (ok) trackPack('pack_trip_add_done', { finish: Boolean((d as AddTripDraft & { finishTripId?: string }).finishTripId) });
-                return ok;
-              }}
-              onClose={closeAdd}
-              /* Šípka na výbere aktivity vracia do popupu „čo pridávam" — je to krok späť,
-                 nie východ (viď `onBackToEntry` v AddTripLog). Pri dopĺňaní konceptu a pri
-                 prejdenom pláne sa sprievodca otvára BEZ popupu, takže tam sa vracať nemá
-                 kam a šípka ostáva východom. */
-              onBackToEntry={finishTrailId ? undefined : () => { closeAdd(); setAddEntryOpen(true); }}
-              placeholderFor={placeholderFor}
-              mapRef={leafletMapRef}
-              seedPoint={seedPoint}
-              onMapPhase={setAddMapPhase}
-              onPlaceNote={(g, k) => { setNotePlacing(g); setPlacingKind(k ?? null); }}
-              // MAZANIE Z CHIPU V ZHRNUTÍ KROKU 2 (Matej 2026-08-24). Ide to cez tú istú
-              // cestu ako mazanie z mapy — jedna značka, jeden spôsob, ako zmizne.
-              onRemoveNote={(id) => {
-                void mapNotes.remove(id);
-                setTripNotes((prev) => prev.filter((n) => n.id !== id));
-              }}
-              placedNotes={tripNotes}
-              /* Kým človek ukazuje miesto ALEBO vypĺňa kartičku značky, panel kroku 2 ustúpi —
-                 inak stoja dva panely na sebe a spodný hovorí o niečom inom než vrchný. */
-              notePlacing={notePlaceReady || !!noteDraft}
-            />
+            <Suspense fallback={null}>
+              <AddTripLog
+                finishTrail={finishTrailId ? (localTrails.find((tr) => tr.id === finishTrailId) ?? null) : null}
+                fromPlan={finishFromPlan}
+                allTrails={allTrails}
+                authorName={firstName}
+                myDogs={myDogsForAdd}
+                memorialOnly={hasOnlyDeceasedDogs(id.dogs)}
+                onHasRoute={setAddHasRoute}
+                /* Meranie (v1-posthog): `pack_trip_add_done` sa vystrelí len keď zápis naozaj
+                   prešiel. `submitAddTripDraft` má šesť návratových bodov a dva z nich sú
+                   odmietnutie — merať vnútri by znamenalo rátať aj neúspechy ako zapísané
+                   výlety. `finish` odlíši dopísaný koncept od úplne nového výletu. */
+                onSubmit={(d) => {
+                  const ok = submitAddTripDraft(d);
+                  if (ok) trackPack('pack_trip_add_done', { finish: Boolean((d as AddTripDraft & { finishTripId?: string }).finishTripId) });
+                  return ok;
+                }}
+                onClose={closeAdd}
+                /* Šípka na výbere aktivity vracia do popupu „čo pridávam" — je to krok späť,
+                   nie východ (viď `onBackToEntry` v AddTripLog). Pri dopĺňaní konceptu a pri
+                   prejdenom pláne sa sprievodca otvára BEZ popupu, takže tam sa vracať nemá
+                   kam a šípka ostáva východom. */
+                onBackToEntry={finishTrailId ? undefined : () => { closeAdd(); setAddEntryOpen(true); }}
+                placeholderFor={placeholderFor}
+                mapRef={leafletMapRef}
+                seedPoint={seedPoint}
+                onMapPhase={setAddMapPhase}
+                onPlaceNote={(g, k) => { setNotePlacing(g); setPlacingKind(k ?? null); }}
+                // MAZANIE Z CHIPU V ZHRNUTÍ KROKU 2 (Matej 2026-08-24). Ide to cez tú istú
+                // cestu ako mazanie z mapy — jedna značka, jeden spôsob, ako zmizne.
+                onRemoveNote={(id) => {
+                  void mapNotes.remove(id);
+                  setTripNotes((prev) => prev.filter((n) => n.id !== id));
+                }}
+                placedNotes={tripNotes}
+                /* Kým človek ukazuje miesto ALEBO vypĺňa kartičku značky, panel kroku 2 ustúpi —
+                   inak stoja dva panely na sebe a spodný hovorí o niečom inom než vrchný. */
+                notePlacing={notePlaceReady || !!noteDraft}
+              />
+            </Suspense>
           ) : addEventFlow ? (
-            <AddEvent
-              key={editingEvent?.id ?? addEventFlow}
-              origin={addEventFlow}
-              authorName={firstName}
-              initial={editingEvent ?? undefined}
-              onSubmit={submitAddEventDraft}
-              onClose={closeAddEvent}
-              onShowExisting={(eid) => { closeAddEvent(); openEventCard(eid); }}
-              mapRef={leafletMapRef}
-            />
+            <Suspense fallback={null}>
+              <AddEvent
+                key={editingEvent?.id ?? addEventFlow}
+                origin={addEventFlow}
+                authorName={firstName}
+                initial={editingEvent ?? undefined}
+                onSubmit={submitAddEventDraft}
+                onClose={closeAddEvent}
+                onShowExisting={(eid) => { closeAddEvent(); openEventCard(eid); }}
+                mapRef={leafletMapRef}
+              />
+            </Suspense>
           ) : null}
         </div>
       )}
@@ -7374,7 +7402,9 @@ export default function PackMap() {
           prázdny stav podujatí, „pridať ďalší" po zápise) a všetky otvárajú TEN ISTÝ panel —
           lock §1.1.1: jeden pridávací panel, viac vchodov. */}
       {addEntryOpen && (
-        <AddTripEntry place="VON" onPick={pickAddFlow} onClose={closeAddEntry} />
+        <Suspense fallback={null}>
+          <AddTripEntry place="VON" onPick={pickAddFlow} onClose={closeAddEntry} />
+        </Suspense>
       )}
 
       {/* ZÁPISY DO MAPY — panel žije MIMO <MapContainer> (formulár nie je vrstva mapy),
@@ -7421,12 +7451,14 @@ export default function PackMap() {
       )}
       {/* + PRIDAŤ PRIANIE — AINUBIS vedie nad voľnou mapou (BUDDY krok 2). */}
       {wishFlow && (
-        <AddWish
-          map={mapInstance}
-          onDraft={setWishDraft}
-          onSaved={() => { reloadWishes(); setOverlayOn((prev) => ({ ...prev, wish: true })); }}
-          onCancel={() => { setWishFlow(false); setWishDraft(null); }}
-        />
+        <Suspense fallback={null}>
+          <AddWish
+            map={mapInstance}
+            onDraft={setWishDraft}
+            onSaved={() => { reloadWishes(); setOverlayOn((prev) => ({ ...prev, wish: true })); }}
+            onCancel={() => { setWishFlow(false); setWishDraft(null); }}
+          />
+        </Suspense>
       )}
       {/* Medzikrok pomalej cesty: typ vybraný, mapa voľná, čaká sa na klik. */}
       {notePlacing && !noteDraft && (
@@ -7489,7 +7521,9 @@ export default function PackMap() {
 
       {/* PANEL PÁSIEM — otvára ho klik na pilulku levelu v hlavičke (viď renderIdentity). */}
       {levelPanelOpen && (
-        <LevelPanel level={levelInfo} rows={profilePoints.rows} onClose={() => setLevelPanelOpen(false)} />
+        <Suspense fallback={null}>
+          <LevelPanel level={levelInfo} rows={profilePoints.rows} onClose={() => setLevelPanelOpen(false)} />
+        </Suspense>
       )}
 
       {/* ⚠️ AŽ KEĎ SA NEKRESLÍ. Sprievodca zatemní obrazovku, takže počas pridávania ďalšieho
@@ -7505,48 +7539,52 @@ export default function PackMap() {
       {/* ŽIVOT PRIANIA — AINUBIS sa pýta (B3 · C1–C5 · D1–D3). Nikdy nie cez iný tok:
           sprievodca výletu aj prania má vlastnú bublinu na tom istom mieste. */}
       {WISHES_LIVE && !reveal && !walkedPopupId && !wishFlow && !addFlow && !addEventFlow && (wishAsk ?? wishMatch) && (
-        <WishAsk
-          key={`${(wishAsk ?? wishMatch)!.kind}:${(wishAsk ?? wishMatch)!.id}`}
-          req={(wishAsk ?? wishMatch)!}
-          wishes={wishes}
-          map={mapInstance}
-          dogName={id.dogs.find((d) => (d.life_status ?? 'alive') !== 'deceased' && d.dog_name)?.dog_name ?? null}
-          onClose={() => { if (wishAsk) setWishAsk(null); else setWishMatch(null); }}
-          onChanged={reloadWishes}
-          onLogTrip={(lat, lon) => startFromPoint('trip', lat, lon)}
-        />
+        <Suspense fallback={null}>
+          <WishAsk
+            key={`${(wishAsk ?? wishMatch)!.kind}:${(wishAsk ?? wishMatch)!.id}`}
+            req={(wishAsk ?? wishMatch)!}
+            wishes={wishes}
+            map={mapInstance}
+            dogName={id.dogs.find((d) => (d.life_status ?? 'alive') !== 'deceased' && d.dog_name)?.dog_name ?? null}
+            onClose={() => { if (wishAsk) setWishAsk(null); else setWishMatch(null); }}
+            onChanged={reloadWishes}
+            onLogTrip={(lat, lon) => startFromPoint('trip', lat, lon)}
+          />
+        </Suspense>
       )}
 
       {/* REVEAL — `levelAfter` je AKTUÁLNY levelInfo, teda už prepočítaný po zápise.
           Preto sa nikdy nerozíde s číslom v hlavičke: je to tá istá hodnota. */}
       {reveal && (
-        <TripReveal
-          tripName={reveal.tripName}
-          tripMeta={reveal.tripMeta}
-          tripStats={reveal.tripStats}
-          tripPhoto={reveal.tripPhoto}
-          points={reveal.points}
-          levelBefore={reveal.levelBefore}
-          levelAfter={reveal.levelAfter ?? levelInfo}
-          ownerAvatarUrl={id.avatarUrl}
-          ownerInitial={id.avatarInitial}
-          dogs={id.dogs.map((d) => ({
-            id: d.id,
-            name: d.dog_name ?? t('pack.map.myDogFallback'),
-            photo: d.cloudinary_main_url,
-          }))}
-          draftMissing={(reveal.draftMissing ?? []).map((k) => t(k))}
-          plan={reveal.plan}
-          onFinishNow={reveal.tripId ? () => { const tid = reveal.tripId!; setReveal(null); openFinishTrip(tid); } : undefined}
-          onAddAnother={() => { setReveal(null); openAddEntry(); }}
-          // Sprievodca po zápise sa neotvorí tomu, kto si ho vypol (coachMuted) — inak by
-          // „nabudúce nezobrazovať" nič neznamenalo. Kontrola je TU, nie v komponente: ten sa
-          // má starať o to, ako vyzerá, nie o to, či má právo existovať.
-          // Zatvorenie prúžku je POSLEDNÝ krok toku, takže práve tu platí pravidlo návratu:
-          // kto začal na DOMOVE, skončí na DOMOVE (lock §1.1.1). Uložený objekt sa NEOTVÁRA
-          // sám — prúžok ponúka ZOBRAZIŤ a klikne naň ten, kto tam ísť chce (§4.2).
-          onClose={() => { setReveal(null); if (backToOrigin()) return; setCoachOpen(!coachMuted()); }}
-        />
+        <Suspense fallback={null}>
+          <TripReveal
+            tripName={reveal.tripName}
+            tripMeta={reveal.tripMeta}
+            tripStats={reveal.tripStats}
+            tripPhoto={reveal.tripPhoto}
+            points={reveal.points}
+            levelBefore={reveal.levelBefore}
+            levelAfter={reveal.levelAfter ?? levelInfo}
+            ownerAvatarUrl={id.avatarUrl}
+            ownerInitial={id.avatarInitial}
+            dogs={id.dogs.map((d) => ({
+              id: d.id,
+              name: d.dog_name ?? t('pack.map.myDogFallback'),
+              photo: d.cloudinary_main_url,
+            }))}
+            draftMissing={(reveal.draftMissing ?? []).map((k) => t(k))}
+            plan={reveal.plan}
+            onFinishNow={reveal.tripId ? () => { const tid = reveal.tripId!; setReveal(null); openFinishTrip(tid); } : undefined}
+            onAddAnother={() => { setReveal(null); openAddEntry(); }}
+            // Sprievodca po zápise sa neotvorí tomu, kto si ho vypol (coachMuted) — inak by
+            // „nabudúce nezobrazovať" nič neznamenalo. Kontrola je TU, nie v komponente: ten sa
+            // má starať o to, ako vyzerá, nie o to, či má právo existovať.
+            // Zatvorenie prúžku je POSLEDNÝ krok toku, takže práve tu platí pravidlo návratu:
+            // kto začal na DOMOVE, skončí na DOMOVE (lock §1.1.1). Uložený objekt sa NEOTVÁRA
+            // sám — prúžok ponúka ZOBRAZIŤ a klikne naň ten, kto tam ísť chce (§4.2).
+            onClose={() => { setReveal(null); if (backToOrigin()) return; setCoachOpen(!coachMuted()); }}
+          />
+        </Suspense>
       )}
       {/* PackMap je full-bleed a nemountuje <PackLayout> (vlastný header/nav vyššie), takže
           overlay host (Inbox/Thread) sa mountuje aj tu priamo — inak by „Message owner"/„Open

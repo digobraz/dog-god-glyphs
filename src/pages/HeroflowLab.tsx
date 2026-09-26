@@ -567,14 +567,16 @@ export default function HeroflowLab() {
 
           <div className="hfl-head">Koľko psov</div>
           <div className="hfl-chips">
-            {[0, 1, 3].map((n) => (
+            {/* 1–6 psov (Matej 26. 9.: *„musíme nasimulovať 2-3-4-5-6 psov"*) —
+                hlavne pre finále po platbe, kde poradie rastie s počtom psov. */}
+            {[0, 1, 2, 3, 4, 5].map((n) => (
               <button
                 key={n}
                 type="button"
                 className={`hfl-chip${seed.extraDogs === n ? ' on' : ''}`}
                 onClick={() => setSeed((s) => ({ ...s, extraDogs: n }))}
               >
-                {n === 0 ? 'jeden' : `+${n} ďalší`}
+                {n + 1} {n === 0 ? 'pes' : n < 4 ? 'psi' : 'psov'}
               </button>
             ))}
           </div>
