@@ -68,7 +68,7 @@ const TIER = 'guest' as const;
  * Spoločné pre ZADRŽANIE aj ĎAKOVAČKU HOSŤA (Matej 26. 9. večer: *„pri
  * nezaplatenom daj tiež foto Hektora do stredu podobne ako pri zadržaní"*).
  */
-function useFillMedal() {
+function useFillMedal(phase: unknown = null) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const speakRef = useRef<HTMLDivElement>(null);
   const sayRef = useRef<HTMLSpanElement>(null);
@@ -119,13 +119,18 @@ function useFillMedal() {
     ro.observe(el);
     window.addEventListener('resize', fit);
     return () => { ro.disconnect(); window.removeEventListener('resize', fit); };
-  }, []);
+  }, [phase]);
   return { wrapRef, speakRef, sayRef, titleRef, medal, titleSize };
 }
 
 /** Obsah popupu ZADRŽANIE — v pokladni v `FlowModal`. */
-export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onMore: () => void }) {
-  const navigate = useNavigate();
+export function FlowStayChoice({ done, onDone, onMember, onMore }: {
+  /** Hosť je zapísaný — bublina hovorí „Hotovo", doska je poďakovanie. */
+  done: boolean;
+  onDone: () => void;
+  onMember: () => void;
+  onMore: () => void;
+}) {
   const t = useT();
   const { lang } = useLang();
   const dogs = useMemo(() => readSvorka(), []);
@@ -136,7 +141,11 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { wrapRef, speakRef, sayRef, titleRef, medal, titleSize } = useFillMedal();
+  const { wrapRef, speakRef, sayRef, titleRef, medal, titleSize } = useFillMedal(done);
+  // Zvýraznené slovo je medzi hviezdičkami (Matej 26. 9.: *„HOTOVO. TVOJ PES/PSY sú v DOGYPTE!"*).
+  const [donePre, doneHi, donePost = ''] = t(
+    dogs.length > 1 ? 'heroglyph.flow.stay.thanks.tMany' : 'heroglyph.flow.stay.thanks.tOne',
+  ).split('*');
 
   const confirm = async () => {
     if (busy) return;
@@ -168,7 +177,8 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
       const data = res.ok ? await res.json() : null;
       if (data?.tier === 'guest') {
         track('stay_guest_joined', { dogs: stable.length, news });
-        navigate('/heroglyph/stay?done=guest');
+        setBusy(false);
+        onDone();
         return;
       }
       console.error('create-checkout (stay) failed:', res.status, data?.error);
@@ -190,23 +200,35 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
             neskôr *„zväčši Hektorovu fotku, blok je zbytočne veľký, veľké medzery
             hore aj dole"*). Veľkosť sa preto MERIA: medailón dostane celé voľné
             miesto bubliny (výška − text − odsadenia), nie číslo podľa okna. */}
-        <FlowMedallion src={hekthorFace('stay')} size={medal} />
+        <FlowMedallion src={hekthorFace(done ? 'stay-done' : 'stay')} size={medal} />
         <span className="say" ref={sayRef}>
-          {/* NADPIS NA DVA RIADKY, ČO NAJVÄČŠÍ (Matej 26. 9.: *„zväčši nadpis na
-              telefóne — dva riadky, čo najväčšie písmo, a čo najviac aj na PC,
-              a podľa toho uprav foto"*). Stupeň sa dopočíta tak, aby dlhší
-              riadok presne vyplnil šírku bubliny; medailón dostane zvyšok výšky. */}
-          <h2 ref={titleRef} className="st-title" style={{ fontSize: titleSize }}>
-            <span>{t('heroglyph.flow.stay.titlePrefix').trim()}</span>
-            <span><b>{t('heroglyph.flow.stay.titleWord')}</b>{t('heroglyph.flow.stay.titleSuffix')}</span>
-          </h2>
-          <p>{t('heroglyph.flow.stay.sub')}</p>
+          {done ? (
+            // Po zápise len iný text, bublina a fotka ostávajú (Matej 26. 9.).
+            // Dva riadky: „Hotovo. Tvoj pes" / „je v DOGYPTE!"
+            <h2 ref={titleRef} className="st-title" style={{ fontSize: titleSize }}>
+              <span>{donePre}<b>{doneHi}</b></span>
+              <span>{donePost.trim()}</span>
+            </h2>
+          ) : (
+            <>
+              {/* NADPIS NA DVA RIADKY, ČO NAJVÄČŠÍ (Matej 26. 9.: *„zväčši nadpis na
+                  telefóne — dva riadky, čo najväčšie písmo, a čo najviac aj na PC,
+                  a podľa toho uprav foto"*). Stupeň sa dopočíta tak, aby dlhší
+                  riadok presne vyplnil šírku bubliny; medailón dostane zvyšok výšky. */}
+              <h2 ref={titleRef} className="st-title" style={{ fontSize: titleSize }}>
+                <span>{t('heroglyph.flow.stay.titlePrefix').trim()}</span>
+                <span><b>{t('heroglyph.flow.stay.titleWord')}</b>{t('heroglyph.flow.stay.titleSuffix')}</span>
+              </h2>
+              <p>{t('heroglyph.flow.stay.sub')}</p>
+            </>
+          )}
         </span>
       </div>
 
       {/* DVA BLOKY NAD SEBOU ako každý krok vstupu — bublina, pod ňou doska
           (Matej 26. 9. večer: *„zadržanie je iná štruktúra, blok v bloku… daj to
           tak ako sú všetky obrazovky = 2 bloky nad sebou nie vnorené!"*). */}
+      {done ? <GuestBoard onJoin={onMember} /> : (
       <div className="hf-block hf-carved st-board">
         <span className="hf-carved-rim" aria-hidden />
         <div className="hf-plate">
@@ -254,6 +276,7 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }
@@ -277,7 +300,8 @@ export function FlowStayScreen() {
     params.get('paid') === 'support' ? 'support' : params.get('done') === 'guest' ? 'guest' : null;
 
   if (!done) return <Navigate to="/checkout?stay=1" replace />;
-  if (done === 'guest') return <GuestThanks />;
+  // Hosť už nemá vlastnú stránku — poďakovanie je stav pokladne (26. 9. večer).
+  if (done === 'guest') return <Navigate to="/checkout?stay=done" replace />;
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
@@ -309,29 +333,19 @@ export function FlowStayScreen() {
 }
 
 /**
- * ĎAKOVAČKA HOSŤA €0 (26. 9. 2026) — návrh z nákresu
- * `plany/nakres-heroflow-konce-2026-09-26/`, Matej: *„kľudne tam daj ten tvoj
- * návrh a doladíme ho priamo na mieste"*.
- * Hore Hektor: pes je na stene. Doska: karta zo steny v psej optike + čo sa
- * stalo, pod rytinou „keď sa rozhodneš" čo pridá členstvo, dole NA STENU
- * (obrys) a PRIDAŤ SA ZA €11 (lapis — jediné hlavné CTA).
+ * ĎAKOVAČKA HOSŤA €0 — len DOLNÁ DOSKA zadržania po zápise (Matej 26. 9. večer:
+ * *„ak dá pokračovať zadarmo, zmení sa len dolný blok… nech nemusíme mať celú
+ * novú obrazovku"*). Pôvodne samostatná stránka z nákresu
+ * `plany/nakres-heroflow-konce-2026-09-26/`.
+ * Čo sa stalo (tri ✓), pod rytinou „keď sa rozhodneš" čo pridá členstvo, dole
+ * POZRIEŤ STENU (obrys) a PRIDAŤ SA ZA €11 (lapis — jediné hlavné CTA).
  * 🔑 PRIDAŤ SA je poctivé: `create-checkout` hosťovho psa (ten istý e-mail a
  *    meno) PREKLOPÍ, nezaloží druhého — na stene ostane jeden.
- * 🚩 Riadok „odkaz ti príde mailom" tu NIE JE — mail hosťovi zatiaľ neexistuje
- *    (otázka 2 nákresu čaká na Mateja).
+ * 🚩 Riadok „odkaz ti príde mailom" tu NIE JE — mail hosťovi zatiaľ neexistuje.
  */
-function GuestThanks() {
+function GuestBoard({ onJoin }: { onJoin: () => void }) {
   const navigate = useNavigate();
   const t = useT();
-  const dogs = useMemo(() => readSvorka(), []);
-  // Matej 26. 9.: *„HOTOVO. TVOJ PES/PSY sú v DOGYPTE!"* — bez mena, bez
-  // podnadpisu o AINUBISovi a bez fotky. Zvýraznené slovo je medzi hviezdičkami.
-  const title = t(dogs.length > 1 ? 'heroglyph.flow.stay.thanks.tMany' : 'heroglyph.flow.stay.thanks.tOne');
-  const [pre, hi, post] = title.split('*');
-  // Hektor V STREDE a väčší, ako pri zadržaní (Matej 26. 9. večer: *„pri
-  // nezaplatenom daj tiež foto Hektora do stredu… zväčši foto aj text, je tam
-  // dosť miesta"*). Medailón aj nadpis sa merajú rovnako ako tam.
-  const { wrapRef, speakRef, sayRef, titleRef, medal, titleSize } = useFillMedal();
   const tags = [t('heroglyph.flow.stay.thanks.tagNum'), 'DOG ID', 'AINUBIS', 'DOGTRIP', 'SNIFFER'];
   const Ok = () => (
     <svg className="gt-ok" viewBox="0 0 24 24" fill="none" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -339,51 +353,31 @@ function GuestThanks() {
     </svg>
   );
   return (
-    <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{STAY_CSS}</style>
-      <div className="hf-topbar flex-shrink-0"><PageTopBar /></div>
-      <div className="hf-stage">
-        <div className="w-full max-w-xl st-wrap gt-wrap" ref={wrapRef}>
-          <motion.div ref={speakRef} className="hf-speak st-speak" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
-            <FlowMedallion src={hekthorFace('stay-done')} size={medal} />
-            <span className="say" ref={sayRef}>
-              {/* Dva riadky: „Hotovo. Tvoj pes" / „je v DOGYPTE!" */}
-              <h2 ref={titleRef} className="st-title" style={{ fontSize: titleSize }}>
-                <span>{pre}<b>{hi}</b></span>
-                <span>{post.trim()}</span>
-              </h2>
-            </span>
-          </motion.div>
-
-          <motion.div className="hf-block hf-carved gt-stack" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
-            <span className="hf-carved-rim" aria-hidden />
-            <div className="hf-plate">
-              <ul className="gt-lines">
-                <li><Ok />{t('heroglyph.flow.stay.thanks.l1')}</li>
-                <li><Ok />{t('heroglyph.flow.stay.thanks.l2')}</li>
-                <li><Ok />{t('heroglyph.flow.stay.thanks.l3')}</li>
-              </ul>
-              <p className="hf-legend">{t('heroglyph.flow.stay.thanks.rule')}</p>
-              <div className="gt-tags">{tags.map((x) => <span key={x}>{x}</span>)}</div>
-              <div className="gt-ctas">
-                <button type="button" className="st-confirm" onClick={() => navigate('/')}>
-                  {t('heroglyph.flow.stay.thanks.wall')}
-                </button>
-                <button type="button" className="hf-cta" onClick={() => navigate('/checkout')}>
-                  {t('heroglyph.flow.stay.thanks.join')}
-                </button>
-              </div>
-            </div>
-          </motion.div>
+    <motion.div className="hf-block hf-carved gt-stack" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+      <span className="hf-carved-rim" aria-hidden />
+      <div className="hf-plate">
+        <ul className="gt-lines">
+          <li><Ok />{t('heroglyph.flow.stay.thanks.l1')}</li>
+          <li><Ok />{t('heroglyph.flow.stay.thanks.l2')}</li>
+          <li><Ok />{t('heroglyph.flow.stay.thanks.l3')}</li>
+        </ul>
+        <p className="hf-legend">{t('heroglyph.flow.stay.thanks.rule')}</p>
+        <div className="gt-tags">{tags.map((x) => <span key={x}>{x}</span>)}</div>
+        <div className="gt-ctas">
+          <button type="button" className="st-confirm" onClick={() => navigate('/')}>
+            {t('heroglyph.flow.stay.thanks.wall')}
+          </button>
+          <button type="button" className="hf-cta" onClick={onJoin}>
+            {t('heroglyph.flow.stay.thanks.join')}
+          </button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 const STAY_CSS = `
-/* ── ĎAKOVAČKA HOSŤA ── ten istý stĺpec ako zadržanie (bublina berie výšku). */
-.gt-wrap { min-height: min(calc(100dvh - 160px), 820px); }
+/* ── ĎAKOVAČKA HOSŤA ── dolná doska zadržania po zápise. */
 .gt-stack { width: 100%; }
 .gt-stack .hf-plate { gap: 12px; }
 .gt-lines { list-style: none; margin: 0 auto; padding: 0; display: flex; flex-direction: column; gap: 8px;

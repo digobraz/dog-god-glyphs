@@ -138,7 +138,15 @@ export function FlowCheckoutScreen() {
   const [panel, setPanel] = useState<'get' | null>(null);
   /** ZADRŽANIE ako popup (Matej 26. 9. 2026). `?stay=1` ho otvorí hneď —
    *  tam presmeruje stará adresa `/heroglyph/stay`. */
-  const [stay, setStay] = useState(() => new URLSearchParams(window.location.search).get('stay') === '1');
+  //  `?stay=done` = hosť je zapísaný (€0) — tá istá obrazovka, len dolná doska
+  //  sa vymenila za poďakovanie (Matej 26. 9. večer: *„ak dá pokračovať zadarmo,
+  //  zmení sa len dolný blok… nech nemusíme mať celú novú obrazovku"*). Adresa
+  //  to nesie preto, aby obnovenie stránky neukázalo voľbu znova (druhý zápis).
+  const [stay, setStay] = useState<boolean | 'done'>(() => {
+    const v = new URLSearchParams(window.location.search).get('stay');
+    return v === 'done' ? 'done' : v === '1';
+  });
+  const guestDone = stay === 'done';
   /** Zadržanie na obrazovke — VIAC INFO (odkaz ČLENSTVO) ho dočasne vystrieda doskou pokladne. */
   const staying = stay && panel !== 'get';
 
@@ -206,6 +214,7 @@ export function FlowCheckoutScreen() {
         <button
           type="button"
           className="co-back"
+          style={guestDone ? { visibility: 'hidden' } : undefined}
           onClick={() => navigate('/heroglyph/reveal')}
           aria-label={t('nav.aria.back')}
         >
@@ -224,8 +233,13 @@ export function FlowCheckoutScreen() {
               a pod ňou samostatná doska — ten istý rad ako každý krok vstupu.
               Závoj, Esc a ťuk vedľa ho stále zatvárajú (`FlowPanelShell`). */}
           {staying ? (
-            <FlowPanelShell key="stay" className="co-stay" label={t('heroglyph.flow.checkoutNew.decline')} onClose={() => setStay(false)}>
-              <FlowStayChoice onMember={() => setStay(false)} onMore={() => setPanel('get')} />
+            <FlowPanelShell key="stay" className="co-stay" label={t('heroglyph.flow.checkoutNew.decline')} onClose={() => { if (!guestDone) setStay(false); }}>
+              <FlowStayChoice
+                done={guestDone}
+                onDone={() => { setStay('done'); navigate('/checkout?stay=done', { replace: true }); }}
+                onMember={() => { setStay(false); if (guestDone) navigate('/checkout', { replace: true }); }}
+                onMore={() => setPanel('get')}
+              />
             </FlowPanelShell>
           ) : (
           <motion.div

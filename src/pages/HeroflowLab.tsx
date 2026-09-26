@@ -122,7 +122,8 @@ const GROUPS: Group[] = [
       // Ďakovačka hosťa €0 (Matej 26. 9.: *„chýba mi heroflow obrazovka HOTOVO
       // nezaplatený, aby som tam vedel zmeniť fotku"*). Vlastný kľúč fotky
       // `stay-done`, nie `stay` — popup a ďakovačka sa menia nezávisle.
-      { name: '10b · Hotovo (nezaplatený)', path: '/heroglyph/stay?done=guest', state: 'done' },
+      // Od 26. 9. večer je to STAV zadržania (vymení sa dolná doska), nie stránka.
+      { name: '10b · Hotovo (nezaplatený)', path: '/checkout?stay=done', state: 'done' },
       // FINÁLE (Matej 26. 9. 2026: *„musíme pridať nový reveal aj welcome
       // screen"*). Ešte nepostavené — rám zatiaľ ukáže dnešný `/welcome`.
       { name: '11 · Reveal po platbe', path: '/welcome', state: 'todo' },
@@ -283,7 +284,7 @@ export default function HeroflowLab() {
    * na kroku fotka Hektora nie je (napr. samotná pokladňa bez zadržania).
    */
   const faceKeyForPath = (path: string): string | null => {
-    if (path.startsWith('/heroglyph/stay') && path.includes('done=guest')) return 'stay-done';
+    if (path.startsWith('/checkout') && path.includes('stay=done')) return 'stay-done';
     const m = path.match(/^\/heroglyph\/([^/?#]+)/);
     if (m) return m[1];
     if (path.startsWith('/checkout') && path.includes('stay=1')) return 'stay';
