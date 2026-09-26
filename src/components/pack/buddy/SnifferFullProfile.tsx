@@ -5,7 +5,7 @@
 // hľadám · 4 psy. Na PC VODOROVNE (posun do strany), na mobile ZVISLO pod sebou (odpoveď 5).
 //
 // 🔴 Rajón ukazuje LEN OBRYS KRAJINY a vzdialenosť — pin je súkromný (§6.6).
-// 🐕 Psí album: prvá fotka = pes ako na WALLE (heroglyf + meno, BEZ poradového čísla), za ňou
+// 🐕 Psí blok (kolo 2, 26. 9.): MENO psa → HEROGLYF (mimo fotky) → album, za prvou fotkou
 //    fotky z denníka psa. Samostatné úložisko fotiek psa neexistuje (createRegistry.ts `photo`).
 // 🔒 Orientácia prichádza zo servera len so súhlasom človeka (`orientationPublic`).
 import type { ReactNode } from 'react';
@@ -20,7 +20,7 @@ import { countryName } from '@/lib/countryGeo';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import {
   SnifferCard, SnifferLevels, SnifferStatsChip, SNIFFER_CARD_CSS, snifferPlace,
-  HEROGLYPH_GLOW, DOG_NAME_FONT, img, bgImg, interestLabel, zodiacIcon, zodiacLabel,
+  DOG_NAME_FONT, img, bgImg, interestLabel, zodiacIcon, zodiacLabel,
 } from './SnifferCard';
 import { SnifferCountryOutline } from './SnifferPin';
 import { tripNames, type SnifferCardData, type SnifferDog } from './snifferDeck';
@@ -58,6 +58,12 @@ const CSS = `
   overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
 .sfp-list small{font-size:${PACK_TEXT.label}px;color:${T.inkFaint};}
 .sfp-dog{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
+/* KOLO 2 (Matej 26. 9.: „heroglyf dajme mimo fotky, dáme len meno psa, heroglyf a potom album").
+   Meno a heroglyf stoja NAD albumom na papyruse; heroglyf v brandovej zlatej (na bledom
+   podklade — žiarivý filter zo steny patrí na tmavú fotku). */
+.sfp-dogname{margin:0;font-family:${DOG_NAME_FONT};font-weight:700;font-size:${PACK_TEXT.h2}px;letter-spacing:.02em;color:${T.inkStrong};text-align:center;}
+.sfp-hg{display:block;width:72%;max-width:260px;height:auto;margin:0 auto;
+  filter:brightness(0) saturate(100%) invert(48%) sepia(62%) saturate(520%) hue-rotate(8deg) brightness(92%);}
 .sfp-dog + .sfp-dog{padding-top:${PACK_SPACE.md}px;border-top:1px solid ${T.hairline};}
 .sfp-alb{display:grid;grid-template-columns:2fr 1fr;grid-auto-rows:${PACK_SPACE.xxxl + PACK_SPACE.lg}px;gap:${PACK_SPACE.xs}px;}
 .sfp-alb > img{width:100%;height:100%;object-fit:cover;border-radius:${PACK_R.field}px;}
@@ -72,22 +78,18 @@ const CSS = `
 const opt = (list: Array<{ value: string; labelEN: string; emoji?: string }>, v?: string) => list.find((o) => o.value === v);
 
 function DogAlbum({ dog, tx }: { dog: SnifferDog; tx: Tx }) {
-  const rest = (dog.album ?? []).filter((u) => u && u !== dog.photo).slice(0, 6);
+  const photos = [dog.photo, ...(dog.album ?? []).filter((u) => u && u !== dog.photo)].filter(Boolean).slice(0, 7) as string[];
+  const [first, ...rest] = photos;
   return (
     <div className="sfp-dog">
+      {dog.name && <p className="sfp-dogname">{dog.name}</p>}
+      {dog.heroglyph && <img className="sfp-hg" src={img(dog.heroglyph, 520)} alt="" />}
       <div className="sfp-alb">
-        {/* 1. fotka = pes ako na WALLE: fotka, zlatý heroglyf, meno. Poradové číslo NIE. */}
         <div className={`sfp-wall sn-slide${rest.length ? '' : ' is-solo'}`}>
           {/* C2 — fotka psa má uložený výrez (c_crop): bgImg REŤAZÍ zmenšenie ZA ním, nie namiesto. */}
-          {dog.photo && <img className="sn-bg" src={bgImg(dog.photo, 220, 240)} alt="" style={{ objectPosition: '50% 30%' }} />}
-          {/* Pes bez fotky ANI heroglyfu — dlaždica nesmie ostať čierna prázdna (audit). */}
-          {!dog.photo && !dog.heroglyph && (
-            <div className="sfp-wall__empty"><BrandIcon name="paw" size={PACK_SPACE.xxl} tint="white" /></div>
-          )}
-          <div className="sn-crest">
-            {dog.heroglyph && <img className="sn-hg" src={img(dog.heroglyph, 400)} alt="" style={{ filter: HEROGLYPH_GLOW }} />}
-            {dog.name && <span className="sn-dogname pk-veil--plate" style={{ fontFamily: DOG_NAME_FONT }}>{dog.name}</span>}
-          </div>
+          {first
+            ? <img className="sn-bg" src={bgImg(first, 220, 240)} alt="" style={{ objectPosition: '50% 30%' }} />
+            : <div className="sfp-wall__empty"><BrandIcon name="paw" size={PACK_SPACE.xxl} tint="white" /></div>}
         </div>
         {rest.map((u) => <img key={u} src={bgImg(u, 100, 64)} alt="" loading="lazy" />)}
       </div>

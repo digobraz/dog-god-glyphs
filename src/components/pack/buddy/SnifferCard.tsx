@@ -5,8 +5,11 @@
 // 👫 PRVÁ FOTKA = ČLOVEK A PES (kolo 2, Matej 25. 9.: „prvá foto na profile bude človek a pes").
 //    Server ju dáva na prvé miesto (`buddyPhoto`). Pes s heroglyfom sa z karty PRESUNUL do
 //    psích albumov v celom profile (§6.2) — pôvodný bod §3.4 bol prepísaný.
-// 🏅 Pri mene dva levely POD SEBOU (PÚTNIK, DEVOTION) · výlety · km · krajiny v JEDNOM chipe ·
-//    📍 pri bydlisku (Matej 25. 9. k nákresu kola 2).
+// 🏅 KOLO 2 (Matej 26. 9. nad nákresom karty): „chipy levelov a počet štatistiky dajme na horný
+//    okraj, dolu zostane MENO, pod menom + pes, pod tým hľadáme, pod tým miesto a pod tým úryvok
+//    z bia; celý profil schovaj pod tlačidlo na miesto, kde sú teraz levely, hand drawn".
+//    ⇒ HORE levely + štatistika · DOLE meno | 👁 · + pes · Hľadám · 📍 · bio. Záľuby z karty
+//    odišli (sú v celom profile) — „Hľadám" nesie len zámery.
 // Ťuk vľavo/vpravo v hornej polovici = predošlá/ďalšia fotka (pásiky hore).
 import { useEffect, useState, type CSSProperties } from 'react';
 import { withTransform, bgImg as bgImgSized } from '@/services/cloudinaryService';
@@ -79,7 +82,7 @@ export const SNIFFER_CARD_CSS = `
 .sn-hg{width:100%;height:auto;}
 .sn-slide .sn-dogname{position:static;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;
   font-family:${DOG_NAME_FONT};font-weight:700;font-size:${PACK_TEXT.body}px;letter-spacing:.02em;color:${T.onDark};white-space:nowrap;}
-.sn-bars{position:absolute;top:${PACK_SPACE.sm}px;left:${PACK_SPACE.md}px;right:${PACK_SPACE.md}px;display:flex;gap:${PACK_SPACE.xs}px;z-index:2;}
+.sn-bars{position:absolute;top:${PACK_SPACE.sm}px;left:${PACK_SPACE.md}px;right:${PACK_SPACE.md}px;display:flex;gap:${PACK_SPACE.xs}px;z-index:3;}
 .sn-bars i{flex:1 1 0;height:3px;border-radius:${PACK_R.pill}px;background:rgba(255,255,255,.35);}
 .sn-bars i.is-on{background:${T.onDark};}
 /* B9 (audit-sniffer-2026-09-26): predtým onClick — pri viacerých fotkách zjedol gesto
@@ -98,8 +101,14 @@ export const SNIFFER_CARD_CSS = `
 .sn-nm span{font-weight:400;}
 .sn-meta{margin:0;font-size:${PACK_TEXT.label}px;opacity:.85;}
 /* flex-wrap — dlhé meno + dva odznaky levelov sa na 360 px inak pobijú (audit C7). */
-.sn-head{display:flex;align-items:center;flex-wrap:wrap;gap:${PACK_SPACE.md}px;row-gap:${PACK_SPACE.xs}px;}
-.sn-lv{display:flex;flex-direction:column;align-items:flex-start;gap:${PACK_SPACE.xs}px;}
+.sn-head{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
+.sn-lv{display:flex;flex-wrap:wrap;align-items:center;gap:${PACK_SPACE.xs}px;}
+/* HORNÝ OKRAJ — levely a štatistika (kolo 2). Pod pásikmi fotiek, s vlastným tieňom zhora,
+   aby na svetlej fotke nestratili čitateľnosť. Klik prepúšťa (ťuk na fotku ide pod ním). */
+.sn-top{position:absolute;left:0;right:0;top:0;z-index:2;pointer-events:none;
+  padding:${PACK_SPACE.lg + PACK_SPACE.xs}px ${PACK_SPACE.lg}px ${PACK_SPACE.xxxl}px;
+  background:linear-gradient(180deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,.25) 60%, rgba(0,0,0,0) 100%);
+  display:flex;flex-direction:column;align-items:flex-start;gap:${PACK_SPACE.sm}px;color:${T.onDark};font-family:${FONT_UI};}
 /* LEVELY — odznak, nie štítok (Matej 25. 9.: „vo farbe a v luxusnejšom chipe… lapis alebo zlato").
    PÚTNIK nesie farbu SVOJHO pásma (tierOfLevel, tá istá ako prstenec na mape), DEVOTION je
    lapis so zlatým písmom. Číslo v kotúči vľavo, zlatý lem, jemný lesk. */
@@ -112,7 +121,9 @@ export const SNIFFER_CARD_CSS = `
 .sn-lv .is-devotion{background:${LAPIS.grad};color:${LAPIS.ink};}
 .sn-lv .is-devotion > b{background:${BRAND_GOLD_BTN.grad};color:${BRAND_GOLD_BTN.ink};}
 /* PSY pred zámerom: „1 pes · HEKTOR · Hľadám: Priateľstvo" */
-.sn-dogs{margin:0;display:flex;align-items:center;gap:${PACK_SPACE.sm}px;font-size:${PACK_TEXT.label}px;}
+.sn-dogs{margin:0;display:flex;align-items:center;gap:${PACK_SPACE.sm}px;font-size:${PACK_TEXT.body}px;min-width:0;}
+.sn-dogs > b{font-weight:400;opacity:.75;}
+.sn-dogs em{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 /* C7 — karta nie je OFICIÁLNY povrch (DOG ID/certifikát/share/WALL/PackTree) → meno psa
    stačí plain Cinzel, nie Decorative (brand lock, výnimka zúžená 2026-08-14). */
 .sn-dogs em{font-style:normal;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;letter-spacing:.02em;}
@@ -121,12 +132,12 @@ export const SNIFFER_CARD_CSS = `
   font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;white-space:nowrap;}
 .sn-chip b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.body}px;}
 .sn-chip i{font-style:normal;opacity:.5;}
-/* C5 — vizuálne 28 px vysoký, ale ťukacia plocha ≥40 px cez neviditeľný ::after (vzor HIT_CSS). */
-.sn-full{position:relative;align-self:center;display:inline-flex;align-items:center;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.lg}px;cursor:pointer;
-  font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;letter-spacing:.14em;text-transform:uppercase;}
-.sn-full::after{content:'';position:absolute;inset:-6px;}
-/* C9 — šípka je KRESLENÁ (chevron z okraja), nie holý znak ↑. */
-.sn-full i{display:inline-block;width:6px;height:6px;margin-top:2px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-135deg);}
+/* CELÝ PROFIL = kreslené OKO pri mene (kolo 2: „schovaj to pod tlačidlo… vyber nejaký hand drawn").
+   Kotúč 44 px (ťukacia plocha bez triku), zlatý lem ako odznaky, kresba z kitu eye.svg. */
+.sn-full{flex:0 0 auto;width:44px;height:44px;border-radius:${PACK_R.pill}px;display:grid;place-items:center;cursor:pointer;padding:0;
+  background:rgba(0,0,0,.35);border:1px solid ${BRAND_GOLD_BTN.edge};color:${T.onDark};box-shadow:${PACK_SHADOW.panel};}
+.sn-full > i{width:24px;height:24px;background:currentColor;
+  -webkit-mask:url(/icons/pack/eye.svg) center/contain no-repeat;mask:url(/icons/pack/eye.svg) center/contain no-repeat;}
 .sn-bio{margin:0;font-size:${PACK_TEXT.label}px;line-height:1.45;opacity:.92;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .sn-pills{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.xs}px;}
 .sn-pills .pk-pill{font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;}
@@ -197,7 +208,6 @@ export function SnifferCard({ card, tx, back = false, className = '', style, onO
   const cur = slides[Math.min(k, slides.length - 1)];
   const go = (d: number) => setK((x) => (x + d + slides.length) % Math.max(1, slides.length));
   const place = snifferPlace(card, tx);
-  const interest = (v: string) => interestLabel(v, tx);
 
   return (
     <div className={`sn-card${back ? ' is-back' : ''} ${className}`} style={style}>
@@ -229,35 +239,38 @@ export function SnifferCard({ card, tx, back = false, className = '', style, onO
         </>
       )}
 
+      <div className="sn-top">
+        <SnifferLevels card={card} tx={tx} />
+        <SnifferStatsChip card={card} tx={tx} />
+      </div>
+
       <div className="sn-ov">
         <div className="sn-head">
           <p className="sn-nm">{card.name}{card.age ? <>, <span>{card.age}</span></> : null}</p>
-          <SnifferLevels card={card} tx={tx} />
+          {onOpenFull && (
+            <button type="button" className="sn-full" aria-label={tx('pack.sniffer.fullProfile', 'Full profile')}
+              title={tx('pack.sniffer.fullProfile', 'Full profile')}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); onOpenFull(); }}>
+              <i aria-hidden />
+            </button>
+          )}
         </div>
-        <SnifferStatsChip card={card} tx={tx} />
-        {place && <p className="sn-meta">📍 {place}</p>}
-        {!lean && card.bio?.trim() && <p className="sn-bio">{card.bio.trim()}</p>}
-        {!lean && card.dogs.length > 0 && (
+        {card.dogs.length > 0 && (
           <p className="sn-dogs">
+            <b>+</b>
             <BrandIcon name="paw" size={PACK_SPACE.lg} tint="white" />
-            <span><b>{card.dogs.length}</b> {tx(`pack.sniffer.dogsWord.${plural(card.dogs.length)}`, card.dogs.length === 1 ? 'dog' : 'dogs')}</span>
-            <i style={{ fontStyle: 'normal', opacity: 0.5 }}>·</i>
             <em>{card.dogs.map((d) => d.name).filter(Boolean).join(', ')}</em>
           </p>
         )}
-        {!lean && (card.intents.length > 0 || card.interests.length > 0) && (
+        {!lean && card.intents.length > 0 && (
           <div className="sn-pills">
-            {card.intents.length > 0 && <span className="sn-lbl">{tx('pack.sniffer.seeking', 'Looking for:')}</span>}
+            <span className="sn-lbl">{tx('pack.sniffer.seeking', 'Looking for:')}</span>
             {card.intents.map((i) => <span key={`i-${i}`} className="pk-pill pk-pill--dark">{tx(`pack.buddy.intent.${i}`, i)}</span>)}
-            {card.interests.slice(0, 4).map((v) => <span key={`a-${v}`} className="pk-pill pk-pill--dark">{interest(v)}</span>)}
           </div>
         )}
-        {onOpenFull && (
-          <button type="button" className="sn-full pk-pill pk-pill--dark" onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); onOpenFull(); }}>
-            {tx('pack.sniffer.fullProfile', 'Full profile')} <i aria-hidden />
-          </button>
-        )}
+        {place && <p className="sn-meta">📍 {place}</p>}
+        {!lean && card.bio?.trim() && <p className="sn-bio">{card.bio.trim()}</p>}
       </div>
     </div>
   );

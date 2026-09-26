@@ -9,13 +9,15 @@
 // globálny store) — nie duplikát, len druhý kanál pre iný typ udalosti.
 export type MessagingOpenEvent =
   | { mode: 'inbox' }
-  | { mode: 'thread'; convId: string };
+  | { mode: 'thread'; convId: string; backCloses?: boolean };
 
 type Listener = (ev: MessagingOpenEvent) => void;
 const listeners = new Set<Listener>();
 
-export function emitOpenThread(convId: string): void {
-  listeners.forEach((l) => l({ mode: 'thread', convId }));
+/** `backCloses` — šípka späť vo vlákne zavrie celý overlay namiesto prechodu do SPRÁV.
+ *  SNIFFER (Matej 26. 9.: „bod 2 sa vráti do snifferu nie do správ"). */
+export function emitOpenThread(convId: string, opts?: { backCloses?: boolean }): void {
+  listeners.forEach((l) => l({ mode: 'thread', convId, backCloses: opts?.backCloses }));
 }
 
 export function emitOpenInbox(): void {

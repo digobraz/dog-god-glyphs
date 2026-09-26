@@ -111,6 +111,8 @@ export const INBOX_CSS = `
 .msg-dot{flex-shrink:0;width:9px;height:9px;border-radius:50%;background:${T.accentGold};box-shadow:0 0 0 2px var(--msg-dot-ring);}
 .msg-tagchip{display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-family:${FONT_TITLE};font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:var(--msg-chip);border:1px solid var(--msg-btn-edge);color:var(--msg-chip-ink);white-space:nowrap;}
 .msg-tagchip--click{cursor:pointer;}
+.msg-avatar.is-sniffer{position:relative;}
+.msg-origin{position:absolute;right:-4px;bottom:-4px;width:20px;height:20px;border-radius:50%;background:${T.card};border:1px solid ${T.cardEdge};padding:2px;box-sizing:border-box;}
 .msg-tagchip--click:hover{background:var(--msg-chip-hot);border-color:${T.cardEdge};}
 .msg-empty{text-align:center;padding:40px 16px;color:var(--msg-dim);font-size:12.5px;font-style:italic;}
 /* #55 — prázdny inbox je celá obrazovka s jednou vetou; bez akcie je to slepá ulička. */
@@ -262,10 +264,15 @@ export function Inbox({ onOpenThread, onClose, onOpenSniffer, onOpenTrip }: {
                 }}
               >
                 <span
-                  className="msg-avatar"
+                  className={`msg-avatar${conv.tag?.label === 'SNIFFER' ? ' is-sniffer' : ''}`}
                   style={!isGroup && other?.avatarUrl ? { backgroundImage: `url('${other.avatarUrl}')` } : undefined}
                 >
                   {(isGroup || !other?.avatarUrl) && initial}
+                  {/* PÔVOD vlákna (Matej 26. 9.: „správy budú mať ikonky odkiaľ sa píše — či sniffer
+                      alebo nie"). Výlet má vlastný štítok pod správou; SNIFFER nesie znak na avatare. */}
+                  {conv.tag?.label === 'SNIFFER' && (
+                    <img className="msg-origin" src="/icons/sniffer/sniffer-znak.svg" alt="SNIFFER" title="SNIFFER" />
+                  )}
                 </span>
                 <span className="msg-row-mid">
                   <span className="msg-row-top">
