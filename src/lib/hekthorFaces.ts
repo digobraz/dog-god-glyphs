@@ -60,6 +60,8 @@ export const BY_STEP: Record<string, number> = {
   stay: 24,
   // Ďakovačka hosťa €0 — vlastný kľúč, aby sa v dielni dala meniť zvlášť od popupu.
   'stay-done': 24,
+  // Finále po platbe — Hektor víta v DOGYPTE (26. 9. 2026), voľný ksicht.
+  welcome: 3,
 };
 
 // ─────────────────────────────────────────────────────────────────────────

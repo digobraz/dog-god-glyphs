@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ensureDogVisionFilter } from '@/lib/dogVision';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import { useT } from '@/i18n/LanguageContext';
 import LanguagePicker from '../LanguagePicker';
@@ -218,7 +218,20 @@ function basePackAt(col: number, row: number, map: Map<string, RealDog>, fillers
 }
 
 
+/**
+ * VIAC PSOV = POSTUPNE (26. 9. 2026, Matej: *„ak budú viacerí psi, tak pôjdu
+ * postupne — animáciu už máme postavenú"*). Každý pes svorky prejde tým istým
+ * revealom; nasledujúci ide cez `queue` v adrese a stena sa pre neho postaví
+ * nanovo (kľúč = adresa revealu). Bez revealu je kľúč stály ⇒ bežná stena sa
+ * pri zmene adresy (`?focus=`) neprestavuje.
+ */
 export function GodsGrid() {
+  const { search } = useLocation();
+  const key = new URLSearchParams(search).get('reveal') ? search : 'wall';
+  return <GodsGridInner key={key} />;
+}
+
+function GodsGridInner() {
   const navigate = useNavigate();
   const t = useT();
   const appRef = useRef<HTMLDivElement>(null);
@@ -260,6 +273,13 @@ export function GodsGrid() {
       photoUrl: isDemo ? '/dogs/toby.jpg' : (params.get('photoUrl') || ''),
       packNumber: isDemo ? String(photos.length) : (params.get('packNumber') || String(photos.length + 1)),
       heroglyphUrl: params.get('heroglyphUrl') || '',
+      /** Ďalší psi svorky na zapečatenie (FlowWelcomeScreen). */
+      queue: (() => {
+        try {
+          const q = JSON.parse(params.get('queue') || '[]');
+          return Array.isArray(q) ? q as Array<{ n: number; name: string; photo: string; glyph: string }> : [];
+        } catch { return []; }
+      })(),
     };
   }, []);
 
@@ -348,11 +368,21 @@ export function GodsGrid() {
     setRevealStep(1);
     const t1 = setTimeout(() => setRevealStep(2), 2000);
     const t2 = setTimeout(() => setRevealStep(3), 4200);
+    let t4: ReturnType<typeof setTimeout> | undefined;
     const t3 = setTimeout(() => {
       setRevealStep(4);
-      window.history.replaceState(null, '', '/');
+      const [next, ...rest] = revealData.queue;
+      if (!next) { window.history.replaceState(null, '', '/'); return; }
+      // Ďalší pes svorky: chvíľu nechať stáť hotového, potom jeho reveal.
+      t4 = setTimeout(() => {
+        const q = new URLSearchParams({ reveal: 'true', dogName: next.name, packNumber: String(next.n) });
+        if (next.photo) q.set('photoUrl', next.photo);
+        if (next.glyph) q.set('heroglyphUrl', next.glyph);
+        if (rest.length) q.set('queue', JSON.stringify(rest));
+        navigate(`/?${q.toString()}`, { replace: true });
+      }, 1600);
     }, 5800);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); if (t4) clearTimeout(t4); };
   }, [revealData.active, revealData.heroglyphUrl, dogsReady]);
 
   const submitFilter = () => {
@@ -393,6 +423,7 @@ export function GodsGrid() {
   // pohybe myšou / dotyku po reveale — podľa toho čo nastane skôr.
   useEffect(() => {
     if (revealStep !== 4 || !revealData.active) return;
+    if (revealData.queue.length) return; // Čo ďalej až po poslednom psovi svorky
     if (whatNextShownRef.current) return;
 
     const open = () => {

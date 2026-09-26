@@ -79,6 +79,9 @@ const HeroglyphRevealScreen = lazy(() =>
 const MessageScreen = lazy(() =>
   import("@/components/screens/MessageScreen").then((m) => ({ default: m.MessageScreen }))
 );
+const FlowWelcomeScreen = lazy(() =>
+  import("@/components/screens/FlowWelcomeScreen").then((m) => ({ default: m.FlowWelcomeScreen }))
+);
 const FlowRevealScreen = lazy(() =>
   import("@/components/screens/FlowRevealScreen").then((m) => ({ default: m.FlowRevealScreen }))
 );
@@ -429,6 +432,9 @@ const App = () => (
                 element={NEW_HEROFLOW ? <FlowRevealScreen /> : <HeroglyphRevealScreen />}
               />
               <Route path="/heroglyph/message" element={<MessageScreen />} />
+              {/* Finále po platbe nového vstupu (svorka): Hektor → poradie → NA STENU
+                  (26. 9. 2026). Starý tok ostáva na /welcome. */}
+              <Route path="/heroglyph/welcome" element={<FlowWelcomeScreen />} />
 
               {/* Checkout — Stripe (flat, success_url je /welcome) */}
               {/* Nový vstup: POKLADŇA = checkout + platba na jednej obrazovke,
