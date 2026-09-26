@@ -182,7 +182,7 @@ export function PackTopRight({ last24h, total, className, layout }: { last24h: n
   // kto prezlečie stránku, pridá jej riadok do `PAPER_ROUTES` a hotovo, sem nesiaha.
   const paper = usePaperRoute(useLocation().pathname);
   if (!DEV_FULL) return null;
-  return <PackNotifications dark={!paper} last24h={last24h} total={total} className={className} layout={layout} />;
+  return <PackNotifications dark={!paper} last24h={last24h} total={total} className={className} layout={layout} capsule />;
 }
 
 // ── Messaging overlay host (Inbox/Thread) — design:
