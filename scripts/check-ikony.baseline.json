@@ -1,9 +1,10 @@
 {
  "_": "ZÁKLADŇA STRÁŽE IKONIEK — smie sa len ZMENŠOVAŤ. Zapisuje `npm run check:ikony -- --write`.",
  "__": "Rast ktorejkoľvek položky alebo nová položka = build padá. Register v brand manuáli sa generuje z tých istých čísel.",
- "merane": "2026-09-21",
+ "merane": "2026-09-26",
  "polozky": {
   "emoji@components/admin/AinubisPanel.tsx": 9,
+  "emoji@components/pack/AvatarRing.tsx": 1,
   "emoji@components/pack/DogPassport.tsx": 3,
   "emoji@components/pack/PackLayout.tsx": 1,
   "emoji@components/pack/PackNotifications.tsx": 1,
@@ -25,7 +26,9 @@
   "emoji@components/screens/AboutScreen.tsx": 1,
   "emoji@components/screens/CountryPick.tsx": 1,
   "emoji@components/screens/DogsScreen.tsx": 2,
+  "emoji@components/screens/EssenceScreen.tsx": 1,
   "emoji@components/screens/NameScreen.tsx": 1,
+  "emoji@lib/tripPoints.ts": 1,
   "emoji@lib/zodiac.ts": 24,
   "emoji@pages/Admin.tsx": 1,
   "emoji@pages/PackBuddy.tsx": 3,
@@ -51,7 +54,7 @@
   "lucide:Hash": 1,
   "lucide:Info": 7,
   "lucide:List": 1,
-  "lucide:Loader2": 10,
+  "lucide:Loader2": 11,
   "lucide:Lock": 1,
   "lucide:Mic": 1,
   "lucide:MoreHorizontal": 2,
@@ -66,12 +69,12 @@
   "lucide:Upload": 1,
   "lucide:X": 25,
   "znak:×": 14,
-  "znak:‹": 7,
-  "znak:›": 8,
+  "znak:‹": 8,
+  "znak:›": 9,
   "znak:→": 3,
   "znak:⌃": 3,
   "znak:⌄": 3,
-  "znak:✓": 15,
-  "znak:✕": 9
+  "znak:✓": 17,
+  "znak:✕": 10
  }
 }
