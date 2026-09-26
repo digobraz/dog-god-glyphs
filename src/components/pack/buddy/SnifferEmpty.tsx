@@ -1,6 +1,6 @@
 // SnifferEmpty — prázdny balíček: jazvečík okolo stromu + veta + DOČASNÝ OZNAM.
 // UPS… veľkým koralovým (farba srdca loga, font Cinzel — Alkatra ostáva LEN v logu), veta pod ním malá.
-// Jeden blok pre SNIFFUJ aj HĽADAŤ (Matej 26. 9.: „Ups… Nie je tu nikto na základe tvojich
+// Jeden blok pre SNIFFUJ, HĽADAŤ aj prázdne ZHODY (Matej 26. 9.: „Ups… Nie je tu nikto na základe tvojich
 // preferencií" + oznam v dočasnom rámiku „Je nás tu málo…"). Nehovorí AINUBIS.
 // Rámik = PODBLOK TMAVÝ (katalóg), štítok = PACK_HEAD.label.
 // Oznam je DOČASNÝ — keď bude členov dosť, zmaž `.se-note` a kľúče `pack.sniffer.emptyNote*`.
@@ -30,13 +30,15 @@ export const SNIFFER_EMPTY_CSS = `
 
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
 
-export function SnifferEmpty({ tx }: { tx: Tx }) {
+/** `line` = veta pod UPS… — prázdne ZHODY nesú vlastnú (Matej 26. 9.: „bod 3 daj tam ten istý
+ *  obrázok UPS čo sme už urobili"), obrázok aj oznam ostávajú rovnaké. */
+export function SnifferEmpty({ tx, line }: { tx: Tx; line?: string }) {
   return (
     <div className="se-box">
       <img src="/images/sniffer/empty-deck.webp" alt="" />
       <div className="se-txt">
         <b className="se-oops" style={{ ...PACK_HEAD.card }}>{tx('pack.sniffer.emptyOops', 'Oops…')}</b>
-        <strong>{tx('pack.sniffer.emptyTitle', 'Nobody here matches your preferences.')}</strong>
+        <strong>{line ?? tx('pack.sniffer.emptyTitle', 'Nobody here matches your preferences.')}</strong>
         <div className="se-note" style={{ ...PACK_BOX.subblockDark }}>
           <i style={{ ...PACK_HEAD.label }}>{tx('pack.sniffer.emptyNoteLabel', 'Notice')}</i>
           <p>{tx('pack.sniffer.emptyNote', 'There are only a few of us — DOGYPT has only just been born… Bring your friends here and help us fill it.')}</p>

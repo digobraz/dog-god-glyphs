@@ -10,7 +10,6 @@
 // · Zhoda = animované odhalenie `SnifferMatchReveal` (§2.6 D), nie to isté logo ako úvod.
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { AinubisBubble } from '@/components/pack/ainubisSheet';
 import { emitOpenThread } from '@/components/pack/messaging/openBridge';
 import { bgImg } from '@/services/cloudinaryService';
 import { useLang } from '@/i18n/LanguageContext';
@@ -469,7 +468,7 @@ export function SnifferHome({ tx, me }: {
                     </span>
                     {isNew && <span className="sh-new">{tx('pack.sniffer.new', 'NEW')}</span>}
                     {m.conv && (
-                      <button type="button" className="sh-mini" onClick={() => emitOpenThread(m.conv!)}>{tx('pack.sniffer.write', 'Write')}</button>
+                      <button type="button" className="sh-mini" onClick={() => emitOpenThread(m.conv!, { backCloses: true })}>{tx('pack.sniffer.write', 'Write')}</button>
                     )}
                     <button type="button" className="sh-mini" onClick={() => setConfirmUnmatch(m)}>{tx('pack.sniffer.unmatch', 'Cancel')}</button>
                   </div>
@@ -477,7 +476,7 @@ export function SnifferHome({ tx, me }: {
               })}
             </div>
           ) : (
-            <AinubisBubble>{tx('pack.sniffer.noMatches', 'No matches yet. A match is just a notice — whether you write is up to you.')}</AinubisBubble>
+            <SnifferEmpty tx={tx} line={tx('pack.sniffer.noMatches', 'No matches yet. A match is just a notice — whether you write is up to you.')} />
           )}
         </div>
       )}
@@ -562,7 +561,7 @@ export function SnifferHome({ tx, me }: {
               ].filter(Boolean).join(' · ')}
             >
               {match.conv && (
-                <button type="button" className="bd-cta" onClick={() => { const c = match.conv!; setMatch(null); emitOpenThread(c); }}>
+                <button type="button" className="bd-cta" onClick={() => { const c = match.conv!; setMatch(null); emitOpenThread(c, { backCloses: true }); }}>
                   {tx('pack.sniffer.writeTo', 'Write to {name}', { name: match.card.name })}
                 </button>
               )}

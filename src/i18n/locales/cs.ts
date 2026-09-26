@@ -1428,7 +1428,7 @@ export const cs: Partial<Dict> = {
   "pack.devotion.heading": "Oddanost",
   // pack.ladder — 22-stupňový devotion žebříček (natívne, bez (orig))
   "pack.ladder.novice": "Nováček",
-  "pack.ladder.wanderer": "Poutník",
+  "pack.ladder.wanderer": "Tulák",
   "pack.ladder.follower": "Následovník",
   "pack.ladder.believer": "Věřící",
   "pack.ladder.servant": "Služebník",

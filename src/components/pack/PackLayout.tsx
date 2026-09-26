@@ -201,7 +201,7 @@ export function PackTopRight({ last24h, total, className, layout }: { last24h: n
 // v zdieľanom bottom nave majú vždy kam otvoriť overlay. Gated DEV_FULL — spúšťacie miesta
 // (PackNotifications live stav, bottom nav Messages, trip panel tlačidlá) sú tiež všetky
 // DEV_FULL-only, takže LIVE build sa nemení (§8.4 bez regresie).
-type MessagingOverlayState = { mode: 'closed' } | { mode: 'inbox' } | { mode: 'thread'; convId: string };
+type MessagingOverlayState = { mode: 'closed' } | { mode: 'inbox' } | { mode: 'thread'; convId: string; backCloses?: boolean };
 
 export function MessagingOverlayHost() {
   const [overlay, setOverlay] = useState<MessagingOverlayState>({ mode: 'closed' });
@@ -212,7 +212,7 @@ export function MessagingOverlayHost() {
   useEffect(() => {
     if (!DEV_FULL) return;
     return onOpenMessaging((ev: MessagingOpenEvent) => {
-      setOverlay(ev.mode === 'inbox' ? { mode: 'inbox' } : { mode: 'thread', convId: ev.convId });
+      setOverlay(ev.mode === 'inbox' ? { mode: 'inbox' } : { mode: 'thread', convId: ev.convId, backCloses: ev.backCloses });
     });
   }, []);
 
@@ -248,12 +248,13 @@ export function MessagingOverlayHost() {
   }
 
   // Thread "back" (←) sa vracia do Inboxu (rovnaký vzor ako bežné DM appky), Inbox "×" zatvára
-  // overlay úplne.
+  // overlay úplne. Výnimka `backCloses` (SNIFFER, 26. 9.): späť vracia tam, odkiaľ vlákno prišlo.
+  const backCloses = overlay.backCloses;
   return (
     <Suspense fallback={null}>
       <Thread
         convId={overlay.convId}
-        onClose={() => setOverlay({ mode: 'inbox' })}
+        onClose={() => setOverlay(backCloses ? { mode: 'closed' } : { mode: 'inbox' })}
         onOpenTrip={(tripId) => void openTrip(tripId)}
       />
     </Suspense>

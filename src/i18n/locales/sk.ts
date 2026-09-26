@@ -1639,7 +1639,7 @@ export const sk: Partial<Dict> = {
   "pack.devotion.heading": "Oddanosť",
   // pack.ladder — 22-stupňový devotion rebríček (natívne, bez (orig))
   "pack.ladder.novice": "Nováčik",
-  "pack.ladder.wanderer": "Pútnik",
+  "pack.ladder.wanderer": "Tulák",
   "pack.ladder.follower": "Nasledovník",
   "pack.ladder.believer": "Veriaci",
   "pack.ladder.servant": "Služobník",
