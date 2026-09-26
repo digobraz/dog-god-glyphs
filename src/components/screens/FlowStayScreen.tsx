@@ -1,18 +1,18 @@
 import { useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { PageTopBar } from '@/components/PageTopBar';
-import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
+import { FLOW_PALE_CSS, FLOW_CARVE_CSS, HF } from '@/components/screens/flowPaleSkin';
 import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { PACK_R } from '@/components/pack/packTheme';
 import { LAB } from '@/lib/labTheme';
 import { hekthorFace } from '@/lib/hekthorFaces';
 import {
-  readSvorka, svorkaDogPayload, waitForStablePhotos, PRICE_MEMBER, PRICE_SUPPORT,
+  readSvorka, svorkaDogPayload, waitForStablePhotos, PRICE_SUPPORT,
 } from '@/lib/flowSvorka';
 import { EDGE_BASE } from '@/lib/env';
 import { track } from '@/lib/analytics';
@@ -46,11 +46,12 @@ import { getAttribution } from '@/lib/attribution';
 //    Fotky oboch pred stenou posúdi AINUBIS (`review-wall-photo`).
 // ════════════════════════════════════════════════════════════════════════════
 
-type Tier = 'member' | 'support' | 'guest';
-const TIERS: { id: Tier; icon: string; each: number }[] = [
-  { id: 'member', icon: '/icons/pack/badge.svg', each: PRICE_MEMBER },
-  { id: 'support', icon: '/icons/mission/heartpaw.svg', each: PRICE_SUPPORT },
-  { id: 'guest', icon: '/icons/heroglyph-page/wall-grid-gold.svg', each: 0 },
+type Tier = 'support' | 'guest';
+type Feat = 'wall' | 'msg' | 'noMsg' | 'num' | 'pack' | 'design';
+/** Čo voľba dá (✓) a čo nie (✗) — Matej 26. 9. 2026 doslova. */
+const OPTS: { id: Tier; each: number; feats: [Feat, boolean][] }[] = [
+  { id: 'support', each: PRICE_SUPPORT, feats: [['wall', true], ['msg', true], ['num', false], ['pack', false], ['design', false]] },
+  { id: 'guest', each: 0, feats: [['wall', true], ['noMsg', false], ['num', false], ['pack', false], ['design', false]] },
 ];
 
 export function FlowStayScreen() {
@@ -77,7 +78,6 @@ export function FlowStayScreen() {
   const confirm = async () => {
     if (!tier || busy) return;
     track('stay_tier_chosen', { tier, dogs: dogs.length, news });
-    if (tier === 'member') { navigate('/checkout'); return; }
     setBusy(true);
     setError(null);
     try {
@@ -192,48 +192,48 @@ export function FlowStayScreen() {
           >
             <span className="hf-carved-rim" aria-hidden />
             <div className="hf-plate">
-              <div className="st-list" role="radiogroup">
-                {TIERS.map((x) => {
+              {/* Dve voľby VEDĽA SEBA so zoznamom ✓/✗ (Matej 26. 9. 2026). Členstvo
+                  tu nie je blokom — človek od neho práve prišiel, vedie k nemu
+                  obrysové tlačidlo vedľa HOTOVO. */}
+              <div className="st-opts" role="radiogroup">
+                {OPTS.map((x) => {
                   const on = tier === x.id;
                   return (
-                    <div key={x.id} className={`st-item${on ? ' on' : ''}`}>
-                      <button
-                        type="button"
-                        role="radio"
-                        aria-checked={on}
-                        className="hf-pick st-pick"
-                        onClick={() => { setTier(x.id); setError(null); }}
-                      >
-                        <span className="well"><img src={x.icon} alt="" /></span>
-                        <span className="tx">{t(`heroglyph.flow.stay.${x.id}.t`)}</span>
+                    <button
+                      key={x.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={on}
+                      className={`hf-pick st-opt${on ? ' on' : ''}`}
+                      onClick={() => { setTier(x.id); setError(null); }}
+                    >
+                      <span className="st-opt-head">
+                        <span className="st-opt-t">{t(`heroglyph.flow.stay.${x.id}.t`)}</span>
+                        <span className="st-opt-sub">{t(`heroglyph.flow.stay.${x.id}.sub`)}</span>
                         <span className="st-price">
                           €{x.each * n}
-                          {/* Svorka: z čoho súčet vznikol — cena je ZA PSA. */}
-                          {n > 1 && x.each > 0 && <small>{n} × €{x.each}</small>}
+                          <small>{n > 1 ? `${n} × €${x.each}` : x.each > 0 ? t('heroglyph.flow.stay.perDog') : '\u00a0'}</small>
                         </span>
-                      </button>
-                      <AnimatePresence initial={false}>
-                        {on && (
-                          <motion.p
-                            className="st-desc"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.18 }}
-                          >
-                            {t(`heroglyph.flow.stay.${x.id}.d`)}
-                          </motion.p>
-                        )}
-                      </AnimatePresence>
-                    </div>
+                      </span>
+                      <ul className="st-feats">
+                        {x.feats.map(([k, yes]) => (
+                          <li key={k} className={yes ? 'yes' : 'no'}>
+                            <Mark yes={yes} />
+                            <span>
+                              {t(`heroglyph.flow.stay.f.${k}`)}
+                              {k === 'pack' && <small>{t('heroglyph.flow.stay.f.packSub')}</small>}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </button>
                   );
                 })}
               </div>
 
               {/* Novinky sú marketing ⇒ výslovný súhlas (krok 4 sľúbil e-mail len
-                  na „nech sa ti dizajn nestratí"). Len pri €3 a €0 — člen ich
-                  dostáva ako súčasť členstva. */}
-              {tier && tier !== 'member' && (
+                  na „nech sa ti dizajn nestratí"). */}
+              {tier && (
                 <button type="button" className={`hf-chk${news ? ' on' : ''}`} onClick={() => setNews((v) => !v)}>
                   <span className="box">
                     <svg viewBox="0 0 24 24" fill="none" stroke="#16307A" strokeWidth="3.4"
@@ -246,9 +246,15 @@ export function FlowStayScreen() {
               )}
 
               {error && <p role="alert" className="hf-alert">{error}</p>}
-              <button type="button" className="hf-cta" onClick={confirm} disabled={!tier || busy}>
-                {busy ? t('payment.preparing') : t('heroglyph.flow.stay.confirm')}
-              </button>
+              <p className="hf-legend st-rule" aria-hidden />
+              <div className="st-actions">
+                <button type="button" className="st-member" onClick={() => { track('stay_tier_chosen', { tier: 'member', dogs: dogs.length }); navigate('/checkout'); }} disabled={busy}>
+                  {t('heroglyph.flow.stay.member')}
+                </button>
+                <button type="button" className="hf-cta" onClick={confirm} disabled={!tier || busy}>
+                  {busy ? t('payment.preparing') : t('heroglyph.flow.stay.confirm')}
+                </button>
+              </div>
             </div>
           </motion.div>
         </div>
@@ -257,26 +263,61 @@ export function FlowStayScreen() {
   );
 }
 
+/** ✓ zelená (SPLNENÉ) · ✗ červená — kreslené, nie holý znak (stráž `check:ikony`). */
+function Mark({ yes }: { yes: boolean }) {
+  return (
+    <svg className="st-mark" viewBox="0 0 24 24" fill="none" strokeWidth="3.2"
+      strokeLinecap="round" strokeLinejoin="round" aria-label={yes ? '+' : '-'}>
+      {yes ? <path d="M4 12.5 L9.5 18 L20 6" /> : <path d="M6 6 L18 18 M18 6 L6 18" />}
+    </svg>
+  );
+}
+
 const STAY_CSS = `
 .st-speak { margin-bottom: 4px; }
-@media (max-height: 739px) {
-  .st-speak h2 { font-size: 20px; }
-  .st-stack .hf-plate { padding: 14px 16px; gap: 8px; }
-  .st-desc { padding-top: 4px; font-size: 12px; }
+.st-speak p { font-size: 14px; line-height: 1.45; }
 }
 .st-stack .hf-plate { gap: 12px; }
-.st-list { display: flex; flex-direction: column; gap: 8px; }
-.st-pick .well img { width: 22px; height: 22px; object-fit: contain; }
-.st-pick .tx { flex: 1 1 auto; }
-.st-price { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; font-family: 'Cinzel', serif; font-weight: 700; font-size: 16px; color: ${LAB.ink}; }
+.st-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.st-opt.hf-pick { flex-direction: column; align-items: stretch; gap: 8px; padding: 12px; height: 100%; }
+.st-opt-head { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; }
+.st-opt-t { font-family: 'Cinzel', serif; font-weight: 700; font-size: 16px; letter-spacing: .06em; text-transform: uppercase; color: ${LAB.ink}; }
+.st-opt-sub { font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: ${LAB.inkBody}; }
+.st-price { display: flex; flex-direction: column; align-items: center; font-family: 'Cinzel', serif; font-weight: 700; font-size: 24px; line-height: 1.1; color: ${LAB.ink}; }
 .st-price small { font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: .02em; color: ${LAB.inkBody}; }
-.st-done-cta { margin-top: 16px; max-width: 320px; }
-/* Vybraný blok = MOJA VOĽBA ⇒ lapisový tint, nie plná plocha (tá patrí CTA). */
-.st-item.on .st-pick { border-color: ${LAPIS.edge}; background: linear-gradient(${LAPIS.fill}, ${LAPIS.fill}), linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%); }
-.st-item.on .st-pick .tx, .st-item.on .st-price { color: ${LAPIS.edge}; }
-.st-desc {
-  margin: 0; overflow: hidden; padding: 8px 12px 0 56px;
-  font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.45; color: ${LAB.inkBody};
+.st-opt.on .st-opt-t, .st-opt.on .st-price { color: ${LAPIS.edge}; }
+.st-feats { list-style: none; margin: 0; padding: 8px 0 0; border-top: 1px solid rgba(179, 130, 45, .35); display: flex; flex-direction: column; gap: 4px; }
+.st-feats li { display: flex; align-items: flex-start; gap: 4px; font-family: 'Space Grotesk', sans-serif; font-size: 12px; line-height: 1.3; color: ${LAB.ink}; text-align: left; }
+.st-feats li.no { color: ${LAB.inkBody}; }
+.st-feats li small { display: block; font-size: 10px; color: ${LAB.inkBody}; }
+.st-mark { flex: none; width: 14px; height: 14px; margin-top: 1px; }
+.st-feats li.yes .st-mark { stroke: #3D7A4E; }
+.st-feats li.no .st-mark { stroke: #B25640; }
+.st-rule { gap: 0; margin: 0; }
+/* Rovnaký rad ako pokladňa: obrysové vľavo, plné CTA vpravo bližšie k palcu. */
+.st-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.st-actions .hf-cta { width: 100%; }
+.st-member {
+  height: ${HF.cta.h}px; border-radius: ${HF.cta.radius}px; cursor: pointer;
+  border: 1.5px solid ${LAPIS.edge}; background: transparent; color: ${LAPIS.edge};
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
+  letter-spacing: .04em; text-transform: uppercase; line-height: 1.15; padding: 0 8px;
+  transition: background .18s;
 }
+.st-member:hover:not(:disabled) { background: ${LAPIS.fill}; }
+.st-member:disabled { opacity: .4; cursor: default; }
+.st-done-cta { margin-top: 16px; max-width: 320px; }
 .st-stack .hf-chk { border-radius: ${PACK_R.tile}px; }
+/* Nízke okno (SE, Matejovo PC) — AŽ NA KONCI, inak ho základné pravidlá prebijú. */
+@media (max-height: 739px) {
+  .st-speak h2 { font-size: 20px; }
+  .st-speak p { font-size: 12px; }
+  .st-stack .hf-plate { padding: 12px 16px; gap: 8px; }
+  .st-opt.hf-pick { padding: 8px; gap: 4px; }
+  .st-opt-head { gap: 0; }
+  .st-price { font-size: 20px; }
+  .st-feats { gap: 2px; padding-top: 4px; }
+  .st-feats li small { display: none; }
+  .st-stack .hf-chk { padding-top: 8px; padding-bottom: 8px; }
+}
 `;
