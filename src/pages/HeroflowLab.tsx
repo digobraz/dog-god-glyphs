@@ -123,11 +123,16 @@ const GROUPS: Group[] = [
       // nezaplatený, aby som tam vedel zmeniť fotku"*). Vlastný kľúč fotky
       // `stay-done`, nie `stay` — popup a ďakovačka sa menia nezávisle.
       // Od 26. 9. večer je to STAV zadržania (vymení sa dolná doska), nie stránka.
-      { name: '10b · Hotovo (nezaplatený)', path: '/checkout?stay=done', state: 'done' },
-      // FINÁLE (Matej 26. 9. 2026: *„musíme pridať nový reveal aj welcome
-      // screen"*). Ešte nepostavené — rám zatiaľ ukáže dnešný `/welcome`.
-      { name: '11 · Reveal po platbe', path: '/welcome', state: 'todo' },
-      { name: '12 · Welcome', path: '/welcome', state: 'todo' },
+      { name: '10b · Hotovo nezaplatený (stav zadržania)', path: '/checkout?stay=done', state: 'done' },
+      // FINÁLE PO PLATBE (Matej 26. 9. 2026 večer, nákres v chate): 11 = Hektorova
+      // bublina ako pri MENE, veľká fotka + VITAJTE V DOGYPTE, meno majiteľa a psov ·
+      // 12 = poradie: riadky predošlých psov vyrolujú hore a rozmažú sa, blok
+      // nového psa zažiari, zapulzuje a zaradí sa; pod ním štyri vety po jednej
+      // (profil · certifikát · HOTOVO, všetko máš v maili · o chlp bližšie k 1M),
+      // progres a CTA NA STENU → na stene reveal a zapečatenie (viac psov postupne).
+      // Ešte nepostavené — rám zatiaľ ukáže dnešný `/welcome`.
+      { name: '11 · Vitaj (Hektor)', path: '/welcome', state: 'todo' },
+      { name: '12 · Poradie + NA STENU', path: '/welcome', state: 'todo' },
     ],
   },
   {
