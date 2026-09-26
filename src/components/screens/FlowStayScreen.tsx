@@ -87,14 +87,16 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
     const say = sayRef.current;
     if (!el || !say) return;
     const fit = () => {
-      // 1) Nadpis: najväčší stupeň (16–44), pri ktorom sa oba riadky zmestia.
+      // 1) Nadpis: najväčší stupeň, pri ktorom sa oba riadky zmestia — ale NAJVIAC
+      //    24, strop nadpisov vstupu (stupnica 18 · 21 · 24). Matej 26. 9.:
+      //    *„zmenši písmo na maximálne, aké máme vo flow z nadpisov, nie takéto obrie"*.
       const h2 = titleRef.current;
       if (h2) {
         // Šírka BUBLINY bez odsadení — stĺpec textu (`say`) sa nerozťahuje
         // nowrap riadkom a na mobile by nadpis pretiekol cez okraj.
         const ecs = getComputedStyle(el);
         const avail = el.clientWidth - parseFloat(ecs.paddingLeft) - parseFloat(ecs.paddingRight) - 4;
-        let f = 44;
+        let f = 24;
         h2.style.fontSize = `${f}px`;
         const widest = () => Math.max(...Array.from(h2.children).map((c) => (c as HTMLElement).getBoundingClientRect().width));
         while (f > 16 && widest() > avail) { f -= 1; h2.style.fontSize = `${f}px`; }
