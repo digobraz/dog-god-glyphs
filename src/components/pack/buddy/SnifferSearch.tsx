@@ -13,13 +13,13 @@ import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { trailCountry, countryName, flagUrl } from '@/lib/countryGeo';
 import { useLang } from '@/i18n/LanguageContext';
 import { withTransform } from '@/services/cloudinaryService';
-import { AinubisBubble } from '@/components/pack/ainubisSheet';
 import { saveHuman, useProfile, INTENT_OPTIONS } from '@/components/pack/profile/packProfile';
 import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, FONT_UI,
 } from '@/components/pack/packTheme';
 import { LAPIS, PICK_INK, pickTintCSS, tintRGBA } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { SnifferEmpty, SNIFFER_EMPTY_CSS } from './SnifferEmpty';
 import { loadNearby, searchPeople, type SnifferCardData, type SnifferHeading } from './snifferDeck';
 
 type Tx = (key: string, fallback: string, vars?: Record<string, string | number>) => string;
@@ -122,6 +122,7 @@ export function SnifferSearch({ tx, onOpen }: { tx: Tx; onOpen: (card: SnifferCa
   return (
     <>
       <style>{CSS}</style>
+      <style>{SNIFFER_EMPTY_CSS}</style>
       <div className="ss-head">
         <button type="button" className={`ss-flt${filterOpen || intent ? ' is-on' : ''}`} aria-pressed={filterOpen}
           aria-label={tx('pack.sniffer.search.filter', 'Filter')} onClick={() => setFilterOpen((v) => !v)}>
@@ -203,9 +204,7 @@ export function SnifferSearch({ tx, onOpen }: { tx: Tx; onOpen: (card: SnifferCa
         </div>
       )}
       {people && people.length === 0 && (mode === 'far' || hasPin) && (
-        <AinubisBubble>{mode === 'near'
-          ? tx('pack.sniffer.search.emptyNear', 'Nobody around you is showing up here yet.')
-          : tx('pack.sniffer.search.empty', 'Nobody here yet who fits you both ways. Try another patch or intent.')}</AinubisBubble>
+        <SnifferEmpty tx={tx} />
       )}
       {mode === 'far' && (
         <p className="ss-note" style={{ textAlign: 'center' }}>{tx('pack.sniffer.search.mutual', 'You only see people you’re also shown to.')}</p>

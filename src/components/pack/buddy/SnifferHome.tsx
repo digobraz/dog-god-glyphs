@@ -20,6 +20,7 @@ import {
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { SnifferCard, SNIFFER_CARD_CSS } from './SnifferCard';
 import { SnifferSearch } from './SnifferSearch';
+import { SnifferEmpty, SNIFFER_EMPTY_CSS } from './SnifferEmpty';
 import { SnifferMatchReveal } from './SnifferMatchReveal';
 import { SnifferFullProfile } from './SnifferFullProfile';
 import { loadDeck, loadMatches, swipe, unmatch, type SnifferCardData, type SnifferMatch } from './snifferDeck';
@@ -72,16 +73,7 @@ const CSS = `
 .sh-peek{width:100%;height:100%;display:flex;justify-content:center;align-items:center;transition:transform .36s ease, opacity .36s ease;}
 .sh-peek.is-like{transform:translateX(110vw) rotate(10deg);opacity:0;}
 .sh-peek.is-pass{transform:translateX(-110vw) rotate(-10deg);opacity:0;}
-/* PRÁZDNY BALÍČEK — blok vo veľkosti karty, obrázok + AINUBIS dole v prechode (Matej 25. 9.) */
-.sh-nobody{position:relative;flex:1 1 auto;min-height:360px;width:100%;max-width:440px;margin:0 auto;border-radius:${PACK_R.card}px;overflow:hidden;box-shadow:${PACK_SHADOW.panel};}
-.sh-nobody > img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
-.sh-nobody__txt{position:absolute;left:0;right:0;bottom:0;padding:${PACK_SPACE.xxxl * 2}px ${PACK_SPACE.lg}px ${PACK_SPACE.lg}px;
-  background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.75) 45%, #000 100%);color:${T.onDark};font-family:${FONT_UI};
-  display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
-.sh-nobody__txt b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;letter-spacing:.22em;}
-.sh-nobody__txt b span{color:#4FD1E8;}
-.sh-nobody__txt strong{font-weight:600;font-size:${PACK_TEXT.lead}px;line-height:1.3;}
-.sh-nobody__txt p{margin:0;font-size:${PACK_TEXT.label}px;line-height:1.45;opacity:.85;}
+/* PRÁZDNY BALÍČEK — spoločný blok SnifferEmpty.tsx (aj HĽADAŤ). */
 .sh-ico{display:block;background:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat;}
 .sh-empty{margin:auto 0;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .sh-ghost{align-self:center;border-radius:${PACK_R.field}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;border:1px solid ${T.border};background:${T.cardSoft};
@@ -239,6 +231,7 @@ export function SnifferHome({ tx, me }: {
     <>
       <style>{SNIFFER_CARD_CSS}</style>
       <style>{VEIL_CSS}</style>
+      <style>{SNIFFER_EMPTY_CSS}</style>
       <style>{CSS}</style>
       <div className="sh-tabs" role="tablist">
         {TABS.map(([k, en]) => (
@@ -291,15 +284,7 @@ export function SnifferHome({ tx, me }: {
               </div>
             </>
           ) : (
-            // Blok vo veľkosti karty so smiešnym obrázkom (Kie, bez textu) — „Skúsiť znova" zrušené.
-            <div className="sh-nobody">
-              <img src="/images/sniffer/empty-deck.jpg" alt="" />
-              <div className="sh-nobody__txt">
-                <b><span>AI</span>NUBIS</b>
-                <strong>{tx('pack.sniffer.empty2', 'Nobody matches your search.')}</strong>
-                <p>{tx('pack.sniffer.empty2Sub', 'DOGYPT is filling up with members — help us and bring your friends here.')}</p>
-              </div>
-            </div>
+            <SnifferEmpty tx={tx} />
           )}
           {err && <p className="sh-note" style={{ color: PICK_INK.red, textAlign: 'center' }}>{err}</p>}
         </div>
