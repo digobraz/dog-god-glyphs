@@ -21,7 +21,7 @@ import { saveCheckoutDraft } from '@/lib/checkoutDraft';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 import { FlowPanel, FlowPanelShell, FLOW_PANEL_CSS, type PanelGroup } from '@/components/screens/flowPanel';
 import { FlowStayChoice } from '@/components/screens/FlowStayScreen';
-import ainubisIcon from '@/assets/ainubis-head.png';
+import { FlowMoreInfo } from '@/components/screens/flowMoreInfo';
 import {
   readSvorka, svorkaDogPayload, waitForStablePhotos, PRICE_MEMBER, PRICE_ANGEL, type SvorkaDog,
 } from '@/lib/flowSvorka';
@@ -52,14 +52,6 @@ import {
 const CREATE_CHECKOUT_URL = `${EDGE_BASE}/create-checkout`;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** Kresby pre panel ČO DOSTANEŠ — poradie a skupiny podľa Matejovej predlohy z Canvy. */
-const GET_ICON: Record<string, string> = {
-  glyph: '/icons/pack/frame.svg',
-  dogid: '/icons/pack/document.svg',
-  ainubis: ainubisIcon,
-  map: '/icons/pack/world-grid.svg',
-  sniffer: '/icons/sniffer/sniffer-znak.svg',
-};
 /** Čo dostaneš — poradie podľa Matejovej predlohy z Canvy; štítky aj panel. */
 const GET_KEYS = ['glyph', 'dogid', 'ainubis', 'map', 'sniffer'];
 /** Kresby pre panel KAM IDÚ PENIAZE — v poradí `TRANSPARENCY_SPLIT`. */
@@ -157,18 +149,6 @@ export function FlowCheckoutScreen() {
   /** ZADRŽANIE ako popup (Matej 26. 9. 2026). `?stay=1` ho otvorí hneď —
    *  tam presmeruje stará adresa `/heroglyph/stay`. */
   const [stay, setStay] = useState(() => new URLSearchParams(window.location.search).get('stay') === '1');
-  const getGroups: PanelGroup[] = [
-    { heading: t('heroglyph.flow.checkoutNew.grpDesign'), items: ['glyph'].map(getItem) },
-    { heading: t('heroglyph.flow.checkoutNew.grpAccess'), items: GET_KEYS.slice(1).map(getItem) },
-  ];
-  function getItem(k: string) {
-    return {
-      key: k,
-      icon: GET_ICON[k],
-      title: t(`heroglyph.flow.checkoutNew.get.${k}`),
-      desc: t(`heroglyph.flow.checkoutNew.getD.${k}`),
-    };
-  }
   const moneyGroups: PanelGroup[] = [{
     items: TRANSPARENCY_SPLIT.map((s, i) => ({
       key: s.labelKey,
@@ -486,12 +466,16 @@ export function FlowCheckoutScreen() {
                 document.body,
               )}
               <AnimatePresence>
-                {panel && (
+                {panel === 'get' && (
+                  <FlowPanelShell key="get" className="co-more-info" label={t('heroglyph.flow.more.eyebrow')} onClose={() => setPanel(null)}>
+                    <FlowMoreInfo onClose={() => setPanel(null)} />
+                  </FlowPanelShell>
+                )}
+                {panel === 'money' && (
                   <FlowPanel
                     key={panel}
-                    title={t(panel === 'get' ? 'heroglyph.flow.checkoutNew.getTitle' : 'payment.transparency.eyebrow')}
-                    groups={panel === 'get' ? getGroups : moneyGroups}
-                    footer={panel === 'get' ? t('heroglyph.flow.checkoutNew.getFoot') : undefined}
+                    title={t('payment.transparency.eyebrow')}
+                    groups={moneyGroups}
                     closeLabel={t('heroglyph.flow.checkoutNew.getClose')}
                     onClose={() => setPanel(null)}
                   />
@@ -657,6 +641,7 @@ const CHECKOUT_CSS = `
    v portáli do <body> — tieň z bloku orezal \`.hf-stage\` a lišta s logom ostala
    svetlá. Blok ide nad závoj, pečať zmizne. Ťuk do závoja zatvára panel
    (\`FlowPanel\` počúva ťuk mimo seba). */
+.co-more-info.fp-panel { padding: 16px 20px; }
 .co-stay.fp-panel { overflow-y: auto; overscroll-behavior: contain; padding: 16px; }
 /* Centrovať margin:auto na dieťati, nie justify-center (pretečenie by sa nedalo odrolovať hore). */
 .co-stay > .st-wrap { margin: auto 0; }
