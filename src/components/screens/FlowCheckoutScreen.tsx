@@ -20,6 +20,8 @@ import { suggestEmailFix } from '@/lib/emailTypo';
 import { saveCheckoutDraft } from '@/lib/checkoutDraft';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 import { FlowPanel, FLOW_PANEL_CSS, type PanelGroup } from '@/components/screens/flowPanel';
+import { FlowModal, FLOW_MODAL_CSS } from '@/components/screens/flowModal';
+import { FlowStayChoice } from '@/components/screens/FlowStayScreen';
 import ainubisIcon from '@/assets/ainubis-head.png';
 import {
   readSvorka, svorkaDogPayload, waitForStablePhotos, PRICE_MEMBER, PRICE_ANGEL, type SvorkaDog,
@@ -153,6 +155,9 @@ export function FlowCheckoutScreen() {
   // ── KAM IDÚ PENIAZE (zbalené) ─────────────────────────────────────────────
   /** Panel nad doskou: ČO DOSTANEŠ alebo KAM IDÚ PENIAZE. */
   const [panel, setPanel] = useState<'get' | 'money' | null>(null);
+  /** ZADRŽANIE ako popup (Matej 26. 9. 2026). `?stay=1` ho otvorí hneď —
+   *  tam presmeruje stará adresa `/heroglyph/stay`. */
+  const [stay, setStay] = useState(() => new URLSearchParams(window.location.search).get('stay') === '1');
   const getGroups: PanelGroup[] = [
     { heading: t('heroglyph.flow.checkoutNew.grpDesign'), items: ['glyph'].map(getItem) },
     { heading: t('heroglyph.flow.checkoutNew.grpAccess'), items: GET_KEYS.slice(1).map(getItem) },
@@ -230,7 +235,10 @@ export function FlowCheckoutScreen() {
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_CARVE_CSS}{FLOW_PANEL_CSS}{CHECKOUT_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_CARVE_CSS}{FLOW_PANEL_CSS}{FLOW_MODAL_CSS}{CHECKOUT_CSS}</style>
+      <FlowModal open={stay} onClose={() => setStay(false)} label={t('heroglyph.flow.checkoutNew.decline')}>
+        <FlowStayChoice onMember={() => setStay(false)} />
+      </FlowModal>
 
       {/* Hlavička BEZ loga a jazyka (Matej 25. 9. 2026: *„blok je malý — daj
           preč horné logo, jazyk, šípku dozadu do stredu"*). Punc nesie pečať
@@ -407,7 +415,7 @@ export function FlowCheckoutScreen() {
                   dostaneš", len bez nápisu. */}
               <p className="hf-legend co-rule" aria-hidden />
               <div className="co-actions">
-                <button type="button" className="co-decline" onClick={() => navigate('/heroglyph/stay')} disabled={loading}>
+                <button type="button" className="co-decline" onClick={() => setStay(true)} disabled={loading}>
                   {t('heroglyph.flow.checkoutNew.decline')}
                 </button>
                 <button type="button" className="hf-cta" onClick={pay} disabled={loading || !!edit}>

@@ -401,7 +401,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.stay.guest.t': 'Ani ťuk',
   'heroglyph.flow.stay.guest.sub': 'zadarmo',
   'heroglyph.flow.stay.perDog': 'za psa',
-  'heroglyph.flow.stay.f.wall': 'Fotka s heroglyfom na stene',
+  'heroglyph.flow.stay.f.wall': 'Heroglyf na stene',
   'heroglyph.flow.stay.f.msg': 'Večný odkaz',
   'heroglyph.flow.stay.f.noMsg': 'Odkaz',
   'heroglyph.flow.stay.f.num': 'Poradové číslo',

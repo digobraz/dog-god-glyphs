@@ -319,7 +319,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.stay.guest.t': 'Ani ťuk',
   'heroglyph.flow.stay.guest.sub': 'zdarma',
   'heroglyph.flow.stay.perDog': 'za psa',
-  'heroglyph.flow.stay.f.wall': 'Fotka s heroglyfem na zdi',
+  'heroglyph.flow.stay.f.wall': 'Heroglyf na zdi',
   'heroglyph.flow.stay.f.msg': 'Věčný vzkaz',
   'heroglyph.flow.stay.f.noMsg': 'Vzkaz',
   'heroglyph.flow.stay.f.num': 'Pořadové číslo',

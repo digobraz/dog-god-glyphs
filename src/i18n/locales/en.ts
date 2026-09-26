@@ -513,7 +513,7 @@ export const en = {
   'heroglyph.flow.stay.guest.t': 'Not a penny',
   'heroglyph.flow.stay.guest.sub': 'free',
   'heroglyph.flow.stay.perDog': 'per dog',
-  'heroglyph.flow.stay.f.wall': 'Photo with heroglyph on the Wall',
+  'heroglyph.flow.stay.f.wall': 'Heroglyph on the Wall',
   'heroglyph.flow.stay.f.msg': 'Eternal message',
   'heroglyph.flow.stay.f.noMsg': 'Message',
   'heroglyph.flow.stay.f.num': 'Serial number',
