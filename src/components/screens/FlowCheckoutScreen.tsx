@@ -575,6 +575,8 @@ const CHECKOUT_CSS = `
    obsah pokladne pod závojom zmizne a panel stojí V TOKU — doska má jeho výšku,
    nie opačne. */
 .co-stack.is-staying > .hf-plate { padding: 0; }
+/* ZADRŽANIE čo najväčšie (Matej 26. 9.): doska sa v tomto stave rozšíri nad max-w-xl. */
+.hf-stage:has(.co-stack.is-staying) > .max-w-xl { max-width: 760px; }
 .co-stack.is-staying > .hf-plate > *:not(.co-stay) { display: none; }
 .co-stack.is-staying .co-stay.fp-panel { position: relative; inset: auto; overflow: visible; }
 .co-veil { position: fixed; inset: 0; z-index: 60; background: rgba(8, 6, 4, 0.62); }

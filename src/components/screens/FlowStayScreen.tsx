@@ -119,7 +119,9 @@ export function FlowStayChoice({ onMember, onMore }: { onMember: () => void; onM
     <div className="st-wrap">
       <style>{FLOW_MEDAL_CSS}{STAY_CSS}</style>
       <div className="hf-speak st-speak">
-        <FlowMedallion src={hekthorFace('stay')} size={typeof window === 'undefined' ? 88 : window.innerHeight < 700 ? 64 : window.innerWidth > 600 ? 120 : 88} />
+        {/* Hektor V STREDE a text pod ním, čo najväčší (Matej 26. 9.: *„tento popup
+            musí byť čo najväčší — Hektor bude v strede a pod ním text"*). */}
+        <FlowMedallion src={hekthorFace('stay')} size={typeof window === 'undefined' ? 120 : window.innerHeight < 700 ? 88 : window.innerHeight < 820 ? (window.innerWidth > 600 ? 132 : 112) : window.innerWidth > 600 ? 176 : 136} />
         <span className="say">
           <h2>
             {t('heroglyph.flow.stay.titlePrefix')}
@@ -227,13 +229,17 @@ export function FlowStayScreen() {
 
 const STAY_CSS = `
 .st-wrap { display: flex; flex-direction: column; gap: 12px; }
+/* Hektor v strede, text pod ním — bublina je stĺpec (26. 9. večer). */
+.st-wrap .st-speak.hf-speak { flex-direction: column; text-align: center; padding: 20px 16px; gap: 12px; }
+.st-wrap .st-speak .say { align-items: center; text-align: center; }
 .st-speak h2 { font-size: 20px; }
 .st-speak p { font-size: 14px; line-height: 1.45; }
 @media (min-width: 601px) {
-  .st-speak.hf-speak { padding: 16px 24px; gap: 24px; }
+  .st-wrap .st-speak.hf-speak { padding: 24px 32px; gap: 16px; }
   .st-speak h2 { font-size: 24px; }
-  .st-speak p { font-size: 16px; }
+  .st-speak p { font-size: 16px; max-width: 520px; }
 }
+.st-rows { align-self: center; }
 /* KARTA ZO STENY + DVA RIADKY (26. 9. 2026). Písmo 16/14, nie 12 — Matej:
    *„su miniatúrne"*. Karta = mini .dog-card psa bez člena: fotka v psej
    optike, dolu stmavnutie so zlatým heroglyfom, meno v pilulke. */
@@ -273,13 +279,13 @@ const STAY_CSS = `
 /* Nízke PC okno (1477×724): hlavička popupu ustúpi prvá, obsah (voľby, CTA) nie. */
 @media (min-width: 601px) and (max-height: 800px) {
   .st-wrap { gap: 10px; }
-  .st-speak.hf-speak { padding: 12px 20px; gap: 16px; }
+  .st-wrap .st-speak.hf-speak { padding: 12px 20px; gap: 8px; }
   .st-speak h2 { font-size: 20px; }
   .st-speak p { font-size: 14px; }
 }
 @media (max-width: 600px) {
   .st-wrap { gap: 10px; }
-  .st-speak.hf-speak { padding: 8px 12px; gap: 12px; }
+  .st-wrap .st-speak.hf-speak { padding: 12px; gap: 8px; }
   .st-speak h2 { font-size: 16px; }
   .st-speak p { font-size: 12px; line-height: 1.4; }
   .st-row, .st-profile { font-size: 14px; }
