@@ -77,8 +77,13 @@ export function FlowMoreInfo({ onClose }: { onClose: () => void }) {
     document.addEventListener('keydown', key);
     return () => document.removeEventListener('keydown', key);
   });
-  // Ťah prstom: > 40 px do strany = ďalšia / predošlá snímka.
+  // Ťah prstom AJ MYŠOU (Matej 26. 9.: *„nie na mobile, ale aj na PC by sa malo
+  // dať posúvať swajpom"*): > 40 px do strany = ďalšia / predošlá snímka.
+  // `setPointerCapture` drží ťah aj keď myš vyjde z rámu — bez neho sa
+  // `pointerup` mimo priezoru stratil a na PC sa ťahom neposunulo nič.
   const sx = useRef<number | null>(null);
+  /** Rozbalený podiel na snímke peňazí (jeden naraz). */
+  const [openMoney, setOpenMoney] = useState<number | null>(null);
   const dog = useMemo(() => readSvorka()[0]?.selections as Record<string, string> | undefined, []);
   const s = SLIDES[i];
   const pos = pc ? s.pos.pc : s.pos.ph;
@@ -91,13 +96,19 @@ export function FlowMoreInfo({ onClose }: { onClose: () => void }) {
       </p>
       <div
         className="mi-stage"
-        onPointerDown={(e) => { sx.current = e.clientX; }}
+        onPointerDown={(e) => {
+          // Na snímke peňazí je zoznam s rozklikom — ťah tam nechytáme, klik má patriť riadku.
+          if ((e.target as HTMLElement).closest('.mi-money, .mi-ar')) return;
+          sx.current = e.clientX;
+          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+        }}
         onPointerUp={(e) => {
           if (sx.current === null) return;
           const dx = e.clientX - sx.current;
           sx.current = null;
           if (Math.abs(dx) > 40) go(i + (dx < 0 ? 1 : -1));
         }}
+        onPointerCancel={() => { sx.current = null; }}
       >
         <div className="mi-frame">
           <AnimatePresence initial={false} custom={dir} mode="popLayout">
@@ -121,12 +132,19 @@ export function FlowMoreInfo({ onClose }: { onClose: () => void }) {
                 </div>
               )}
               {s.key === 'money' && (
+                // Nie dlaždice ako ostatné snímky, ale ZOZNAM S ROZKLIKOM ako
+                // predtým (Matej 26. 9.: *„daj to normálne, ako bolo predtým, na
+                // rozklik a dropdown s vysvetlením"*).
                 <ul className="mi-money">
                   {TRANSPARENCY_SPLIT.map((m, k) => (
-                    <li key={m.labelKey} style={{ borderColor: m.color }}>
-                      <img src={MONEY_ICON[k]} alt="" />
-                      <b>€{m.share}</b>
-                      <span>{t(m.labelKey)}</span>
+                    <li key={m.labelKey} className={openMoney === k ? 'on' : ''} style={{ borderColor: m.color }}>
+                      <button type="button" onClick={() => setOpenMoney(openMoney === k ? null : k)} aria-expanded={openMoney === k}>
+                        <img src={MONEY_ICON[k]} alt="" />
+                        <span>{t(m.labelKey)}</span>
+                        <b>€{m.share}</b>
+                        <svg className="mi-chev" viewBox="0 0 12 12" aria-hidden><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+                      </button>
+                      {openMoney === k && <p>{t(m.noteKey)}</p>}
                     </li>
                   ))}
                 </ul>
@@ -201,11 +219,17 @@ const MORE_INFO_CSS = `
 .mi-sniff { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 16px 24px; text-align: center; }
 .mi-sniff img { width: min(70%, 320px); height: auto; }
 .mi-sniff p { margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.4; color: ${LAB.ink}; max-width: 320px; }
-.mi-money { position: absolute; inset: 0; margin: 0; padding: 12px; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.mi-money li { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-radius: 12px; border: 2px solid; background: rgba(255, 252, 240, .7); }
-.mi-money img { width: 32px; height: 32px; object-fit: contain; }
-.mi-money b { font-family: 'Cinzel', serif; font-weight: 700; font-size: 24px; line-height: 1; color: ${LAB.ink}; }
-.mi-money span { font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: .06em; color: ${LAB.inkBody}; }
+.mi-money { position: absolute; inset: 0; margin: 0; padding: 12px; list-style: none; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+.mi-money li { border-radius: 12px; border: 2px solid; background: rgba(255, 253, 247, .7); flex: none; }
+.mi-money li button { width: 100%; display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: none; border: 0; cursor: pointer; text-align: left; }
+.mi-money img { width: 28px; height: 28px; object-fit: contain; flex: none; }
+.mi-money li button span { flex: 1; font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 14px; color: ${LAB.ink}; }
+.mi-money b { font-family: 'Cinzel', serif; font-weight: 700; font-size: 20px; line-height: 1; color: ${LAB.ink}; }
+.mi-chev { width: 14px; height: 14px; color: ${LAB.inkBody}; transition: transform .18s; flex: none; }
+.mi-money li.on .mi-chev { transform: rotate(180deg); }
+.mi-money li p { margin: 0; padding: 0 12px 12px 52px; font-family: 'Space Grotesk', sans-serif; font-size: 12px; line-height: 1.45; color: ${LAB.inkBody}; }
+.mi-stage { cursor: grab; }
+.mi-stage:active { cursor: grabbing; }
 .mi-ar { position: absolute; top: calc(50% - 18px); width: 36px; height: 36px; border-radius: 999px; border: 1px solid #C99A3F; background: #FBF5E6; color: #9A7325; display: grid; place-items: center; cursor: pointer; z-index: 2; }
 .mi-ar.l { left: -12px; }
 .mi-ar.r { right: -12px; }
@@ -229,9 +253,11 @@ const MORE_INFO_CSS = `
   .mi-text h3 { font-size: 16px; }
   .mi-text p { font-size: 12px; }
   .mi-ar { width: 32px; height: 32px; top: calc(50% - 16px); }
-  .mi-money { padding: 8px 16px; gap: 4px 8px; }
+  .mi-money { padding: 8px; gap: 4px; }
   .mi-money img { width: 20px; height: 20px; }
   .mi-money b { font-size: 16px; }
-  .mi-money span { font-size: 10px; }
+  .mi-money li button { padding: 6px 8px; gap: 8px; }
+  .mi-money li button span { font-size: 12px; }
+  .mi-money li p { padding: 0 8px 8px 36px; font-size: 11px; }
 }
 `;
