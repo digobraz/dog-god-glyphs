@@ -2019,7 +2019,7 @@ export const cs: Partial<Dict> = {
   'pack.buddy.gateGo': "Doplnit a zapnout",
   'pack.buddy.notify': "Upozornění",
   'pack.buddy.notifyMatch': "Nová shoda",
-  'pack.buddy.notifyMail': "I e-mailem",
+  'pack.buddy.notifyMail': "E-mail o nové shodě",
   'pack.buddy.age': "Věk",
   'pack.buddy.anywhere': "Kdekoli",
   'pack.buddy.km': "do {n} km",

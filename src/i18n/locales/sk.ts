@@ -3542,7 +3542,7 @@ export const sk: Partial<Dict> = {
   'pack.buddy.gateGo': "Doplniť a zapnúť",
   'pack.buddy.notify': "Upozornenia",
   'pack.buddy.notifyMatch': "Nová zhoda",
-  'pack.buddy.notifyMail': "Aj mailom",
+  'pack.buddy.notifyMail': "E-mail o novej zhode",
   'pack.buddy.age': "Vek",
   'pack.buddy.anywhere': "Kdekoľvek",
   'pack.buddy.km': "do {n} km",

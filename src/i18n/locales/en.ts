@@ -3882,7 +3882,7 @@ export const en = {
   'pack.buddy.gateGo': "Fill in and switch on",
   'pack.buddy.notify': "Notifications",
   'pack.buddy.notifyMatch': "New match",
-  'pack.buddy.notifyMail': "Also by e-mail",
+  'pack.buddy.notifyMail': "E-mail me about new matches",
   'pack.buddy.age': "Age",
   'pack.buddy.anywhere': "Anywhere",
   'pack.buddy.km': "up to {n} km",

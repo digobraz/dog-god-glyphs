@@ -631,9 +631,12 @@ export function SnifferProfile({
             <span><b>{tx('pack.sniffer.set.showPassed', 'Show people I passed again (in FAR SNIFF and search)')}</b></span>
             <Switch on={settings.show_passed} onChange={(v) => void onPatch({ show_passed: v })} label={tx('pack.sniffer.set.showPassed', 'Show people I passed again (in FAR SNIFF and search)')} />
           </label>
-          {/* „Aj e-mailom" SCHOVANÉ 26. 9. 2026: `assnif_settings.notify_mail` sa ukladal, ale
-              žiadna funkcia ho nečíta a mail o zhode neposiela — prepínač sľuboval niečo, čo
-              neexistuje. Vráti sa s edge funkciou mailu o zhode (stĺpec aj kľúč ostávajú). */}
+          {/* „Aj e-mailom" = mail o zhode tomu, kto dal SNIFF skôr (edge `notify-sniffer`,
+              `20261004_sniffer_match_mail.sql`). Do 26. 9. večer ho nikto nečítal. */}
+          <label className="sp-sw">
+            <span><b>{tx('pack.buddy.notifyMail', 'E-mail me about new matches')}</b></span>
+            <Switch on={settings.notify_mail} onChange={(v) => void onPatch({ notify_mail: v })} label={tx('pack.buddy.notifyMail', 'E-mail me about new matches')} />
+          </label>
         </>
       ),
     },
