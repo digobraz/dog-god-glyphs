@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
@@ -186,6 +186,30 @@ export function FlowWelcomeScreen() {
     const fresh = (dogs.length >= 4 ? (mobile ? 56 : 60) : (mobile ? 64 : 72)) * dogs.length;
     return Math.max(1, Math.min(8, Math.floor((window.innerHeight * 0.42 - fresh) / step)));
   }, [dogs.length]);
+  // ── ZMESTIŤ SA BEZ SCROLLU (Matej 26. 9.: *„nasimulovať 2-3-4-5-6 psov"*) ──
+  // Merané: pri 4–6 psoch na nízkom okne (1477×724, 375×667) doska pretiekla
+  // o 38–166 px. Obrazovka preto po každom vykreslení zmeria pretečenie javiska
+  // a ustúpi v poradí: predošlí psi (až po jedného) → menšia pečať → nižšie
+  // riadky → posledný predošlý → pečať bez obrázka (motto ostane). Vzduch od
+  // okraja (PAGE_AIR) sa nezmenšuje nikdy — ustupuje obsah.
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [drop, setDrop] = useState(0);
+  const [tight, setTight] = useState(0);
+  const shownPrev = Math.max(0, Math.min(prev?.length ?? 0, prevVisible) - drop);
+  useLayoutEffect(() => {
+    if (phase !== 'rank' || prev == null) return;
+    const st = stageRef.current;
+    if (!st || st.scrollHeight - st.clientHeight <= 1) return;
+    if (shownPrev > 1) setDrop((d) => d + 1);
+    else if (tight < 2) setTight((x) => x + 1);
+    else if (shownPrev > 0) setDrop((d) => d + 1);
+    else if (tight < 3) setTight(3);
+  });
+  useEffect(() => {
+    const reset = () => { setDrop(0); setTight(0); };
+    window.addEventListener('resize', reset);
+    return () => window.removeEventListener('resize', reset);
+  }, []);
   const [rolled, setRolled] = useState(false); // predošlí vyrolovali a rozmazali sa
   const [joined, setJoined] = useState(false); // nový pes sa zaradil
   useEffect(() => {
@@ -275,7 +299,7 @@ export function FlowWelcomeScreen() {
       <style>{FLOW_PALE_CSS}{FLOW_CARVE_CSS}{FLOW_MEDAL_CSS}{FLOW_INTRO_CSS}{WELCOME_CSS}</style>
       {/* BEZ LOGA HORE (Matej 26. 9.: *„posledná stránka nebude mať horné logo…
           tým je väčšia na obsah práve kvôli pečati"*). Punc nesie pečať nad mottom. */}
-      <div className="hf-stage wl-page">
+      <div className={`hf-stage wl-page wl-tight-${tight}`} ref={stageRef}>
         <div className="w-full max-w-xl flex flex-col items-center">
           <AnimatePresence mode="wait">
             {phase === 'hero' ? (
@@ -314,7 +338,7 @@ export function FlowWelcomeScreen() {
                         stojí mimo neho, inak mu orez odstrihol zväčšenie aj žiaru
                         (Matej 26. 9.: *„blok so zaplateným psom je orezaný"*). */}
                     <div className="wl-prev">
-                    {(prev ?? []).slice(-prevVisible).map((d, i) => (
+                    {(prev ?? []).slice(prev && shownPrev ? -shownPrev : (prev?.length ?? 0)).map((d, i) => (
                       <motion.div
                         key={`p${d.n}`}
                         className={`wl-row is-prev${rolled ? ' is-blur' : ''}`}
@@ -464,7 +488,7 @@ const WELCOME_CSS = `
 .wl-br { display: block; height: 0; }
 
 /* ── PORADIE — doska na celú výšku, poradie berie zvyšok ── */
-.wl-stack { width: 100%; display: flex; flex-direction: column; min-height: min(calc(100dvh - 32px), 900px); }
+.wl-stack { width: 100%; margin-top: 0; display: flex; flex-direction: column; min-height: min(calc(100dvh - 32px), 900px); }
 @media (min-width: 768px) { .wl-stack { min-height: min(calc(100dvh - 48px), 900px); } }
 .wl-stack .hf-plate { gap: 16px; flex: 1; min-height: 0; }
 .wl-rank {
@@ -517,6 +541,13 @@ const WELCOME_CSS = `
 .wl-row.is-new .wl-name { font-family: 'Cinzel Decorative', 'Cinzel', serif; font-weight: 700; font-size: 20px; }
 .wl-row.is-new .wl-num { font-size: 20px; color: ${LAB.goldInk}; }
 .wl-row.is-new.is-joined { animation: wl-glow 2.2s ease-in-out infinite; }
+/* Ústup pri pretečení (wl-tight-N na javisku, N rastie). */
+.wl-tight-1 .wl-seal img, .wl-tight-2 .wl-seal img { width: clamp(48px, 8dvh, 72px); }
+.wl-tight-2 .wl-row, .wl-tight-3 .wl-row { height: 44px; }
+.wl-tight-2 .wl-row.is-new, .wl-tight-3 .wl-row.is-new { height: 48px; }
+.wl-tight-2 .hf-plate, .wl-tight-3 .hf-plate { gap: 12px; }
+.wl-tight-2 .wl-foot, .wl-tight-3 .wl-foot { gap: 8px; }
+.wl-tight-3 .wl-seal img { display: none; }
 /* 4+ psov: riadky ustúpia, aby sa svorka zmestila bez scrollu. */
 .wl-row.is-new.is-many { height: 56px; grid-template-columns: 40px 1fr auto; }
 .wl-row.is-new.is-many .wl-ph { width: 40px; height: 40px; }
