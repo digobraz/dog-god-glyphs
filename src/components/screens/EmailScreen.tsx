@@ -125,7 +125,9 @@ export function EmailScreen() {
   //    mobile aj PC."* Ustupuje teda OBSAH (Hektor 200 → 190 px na SE), nie
   //    rezerva od okraja; na väčších oknách sa nemení nič, tam drží strop 260.
   const medallion = useWinSize(
-    (w, h) => Math.round(Math.max(160, Math.min(260, Math.min(w * 0.55, h * 0.285)))),
+    // Nízke okno (≤ 700) berie z tváre, nie zo vzduchu: nadpis 21 px (26. 9. 2026)
+    // pridal riadok a na 375×667 doska pretiekla o 22 px (PAGE_AIR = dno).
+    (w, h) => Math.round(Math.max(96, Math.min(260, Math.min(w * 0.55, h <= 700 ? h * 0.245 - (700 - h) * 0.7 : h * 0.285)))),
   );
 
   if (!flowOk) return null;

@@ -43,7 +43,7 @@ export const HF = {
   //    s obručou (Matej: *„prečo nemá okolo fotky obruč ako na prvých dvoch?"*)
   //    a priemer si počíta `EmailScreen` z okna — obruč je súčasť čísla, takže
   //    spoločný token by klamal o veľkosti samotnej fotky.
-  bubble: { radius: 16, pad: 20, title: 17 },
+  bubble: { radius: 16, pad: 20, title: 21 }, // 21 = e-mail (Matej 26. 9. 2026: „email: nadpis zväčši na 21“; stupeň nadpisov flowu 18 · 21 · 24)
   // ⚠️ Matej 31. 8.: *„pri /name sú horizontálne veľké CTA a text area = malý priestor
   //    medzi okrajom bloku a obsahom, trošku to prevzdušnime"*. Doska mala 14 px na
   //    všetky strany a 10 px medzi prvkami — pole aj tlačidlo sa lepili na zlatý rám.
