@@ -891,7 +891,7 @@ export const en = {
   'sharecard.linkCopied': 'Link copied',
 
   // ── /login — magic-link callback (Login.tsx) ──
-  'login.eyebrow': 'DOGYPT · Pack Access',
+  'login.eyebrow': 'Gatekeeper',
   // status: verifying
   'login.verifying.title': 'Opening the Gate',
   'login.verifying.body': 'Verifying your magic link…',
@@ -908,8 +908,8 @@ export const en = {
   'login.network.title': 'Connection Hiccup',
   'login.network.body': 'We could not reach the temple. Check your connection and try again.',
   // status: missing
-  'login.missing.title': 'Sign In',
-  'login.missing.body': 'Sign in with your email and password, or get a magic link.',
+  'login.missing.title': 'Who goes there?',
+  'login.missing.body': 'I know dogs by scent. Humans by password.',
   // status: recovery
   'login.recovery.title': 'Set New Password',
   'login.recovery.body': 'Choose a new password for your account.',
@@ -918,17 +918,17 @@ export const en = {
   'login.resend.sending': 'Sending…',
   'login.resend.sent': 'Magic link sent',
   'login.backHome': 'Back home',
-  'login.gate.line': "Only dogs with a heroglyph get in. Don't have one yet?",
+  'login.gate.line': "Only dogs with a heroglyph pass — and their humans. Don't have one?",
   'login.gate.cta': 'Create it →',
   'login.homeAria': 'DOGYPT home',
   // password login form
   'login.password.placeholder': 'Password',
-  'login.password.submit': 'Sign in',
+  'login.password.submit': 'Enter',
   'login.password.submitting': 'Signing in…',
   'login.password.error': 'Incorrect email or password.',
   'login.password.networkError': 'Connection error. Try again.',
-  'login.password.forgotPassword': 'Forgot password?',
-  'login.password.magicLinkAlt': 'Email me a link instead',
+  'login.password.forgotPassword': 'I forgot my password',
+  'login.password.magicLinkAlt': 'Send me a key by email',
   // magic link form (secondary)
   'login.magicLink.placeholder': 'your@email.com',
   'login.magicLink.submit': 'Send magic link',
@@ -939,7 +939,8 @@ export const en = {
   'login.magicLink.needEmail': 'Fill in your e-mail first — where should we send the link?',
   'login.magicLink.noAccount': 'No pack member with this e-mail. A heroglyph comes first — that is the key to the pack.',
   // forgot password
-  'login.forgot.prompt': 'Enter your email to reset your password.',
+  'login.forgot.title': 'It happens',
+  'login.forgot.prompt': "Even Hekthor once forgot where he buried his bone. Type your email and I'll send you a new key.",
   'login.forgot.placeholder': 'your@email.com',
   'login.forgot.submit': 'Send reset link',
   'login.forgot.submitting': 'Sending…',

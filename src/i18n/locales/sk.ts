@@ -747,7 +747,7 @@ export const sk: Partial<Dict> = {
   'sharecard.linkCopied': 'Odkaz skopírovaný',
 
   // ── /login — magic-link callback (Login.tsx) ──
-  'login.eyebrow': 'DOGYPT · Vstupná brána',
+  'login.eyebrow': 'Strážca brány',
   'login.verifying.title': 'Otváram bránu',
   'login.verifying.body': 'Overujem tvoj magic link…',
   'login.success.title': 'Vitaj späť',
@@ -758,8 +758,8 @@ export const sk: Partial<Dict> = {
   'login.invalid.body': 'Nedokázali sme overiť tento link. Možno bol už použitý alebo skopírovaný nesprávne.',
   'login.network.title': 'Problém so spojením',
   'login.network.body': 'Nedostali sme sa do chrámu. Skontroluj si pripojenie a skús znova.',
-  'login.missing.title': 'Prihlásenie',
-  'login.missing.body': 'Prihlás sa e-mailom a heslom, alebo si nechaj poslať magic link.',
+  'login.missing.title': 'Stoj, kto ide?',
+  'login.missing.body': 'Psov poznám po čuchu. Ľudí po hesle.',
   // status: recovery
   'login.recovery.title': 'Nastaviť nové heslo',
   'login.recovery.body': 'Vyber nové heslo pre svoje konto.',
@@ -767,17 +767,17 @@ export const sk: Partial<Dict> = {
   'login.resend.sending': 'Odosielam…',
   'login.resend.sent': 'Magic link odoslaný',
   'login.backHome': 'Späť domov',
-  'login.gate.line': 'Dnu sa dostane len pes s heroglyfom. Nemáš ho?',
+  'login.gate.line': 'Bránou prejde len pes s heroglyfom — a jeho človek. Nemáš ho?',
   'login.gate.cta': 'Vytvor ho →',
   'login.homeAria': 'DOGYPT domov',
   // password login form
   'login.password.placeholder': 'Heslo',
-  'login.password.submit': 'Prihlásiť sa',
+  'login.password.submit': 'Vstúpiť',
   'login.password.submitting': 'Prihlasujem…',
   'login.password.error': 'Nesprávny e-mail alebo heslo.',
   'login.password.networkError': 'Chyba spojenia. Skús znova.',
-  'login.password.forgotPassword': 'Zabudol/a si heslo?',
-  'login.password.magicLinkAlt': 'Pošli mi link',
+  'login.password.forgotPassword': 'Zabudnuté heslo',
+  'login.password.magicLinkAlt': 'Pošli mi kľúč do schránky',
   // magic link form (secondary)
   'login.magicLink.placeholder': 'tvoj@email.com',
   'login.magicLink.submit': 'Poslať magic link',
@@ -791,7 +791,8 @@ export const sk: Partial<Dict> = {
   // aby sa pri prípadnom návrate neobjavil anglický fallback.
   'login.magicLink.noAccount': 'S týmto e-mailom tu nikto nie je. Najprv heroglyf — ten je kľúč do svorky.',
   // forgot password
-  'login.forgot.prompt': 'Zadaj e-mail na resetovanie hesla.',
+  'login.forgot.title': 'Aj sa stane',
+  'login.forgot.prompt': 'Aj Hekthor raz zabudol, kde zakopal kosť. Napíš e-mail a pošlem ti nový kľúč.',
   'login.forgot.placeholder': 'tvoj@email.com',
   'login.forgot.submit': 'Poslať reset link',
   'login.forgot.submitting': 'Odosielam…',

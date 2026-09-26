@@ -432,7 +432,14 @@ export const fra: Partial<Dict> = {
   'welcome.emailHint': 'Ton certificat est en route — vérifie ta boîte mail.',
 
   // ── /login — magic-link callback (Login.tsx) ──
-  'login.eyebrow': 'DOGYPT · Accès à la meute',
+  'login.eyebrow': 'Gardien de la porte',
+  'login.gate.cta': 'Crée-le →',
+  'login.gate.line': 'Seul un chien avec un hiéroglyphe passe la porte — et son humain. Tu n’en as pas ?',
+  'login.forgot.prompt': 'Même Hekthor a un jour oublié où il avait enterré son os. Écris ton e-mail et je t’envoie une nouvelle clé.',
+  'login.forgot.title': 'Ça arrive',
+  'login.password.forgotPassword': 'Mot de passe oublié',
+  'login.password.magicLinkAlt': 'Envoie-moi une clé par e-mail',
+  'login.password.submit': 'Entrer',
   // status: verifying
   'login.verifying.title': 'Ouverture de la Porte',
   'login.verifying.body': 'Vérification de ton lien magique…',
@@ -449,8 +456,8 @@ export const fra: Partial<Dict> = {
   'login.network.title': 'Problème de connexion',
   'login.network.body': 'Nous n’avons pas pu joindre le temple. Vérifie ta connexion et réessaie.',
   // status: missing
-  'login.missing.title': 'Aucun jeton trouvé',
-  'login.missing.body': 'Cette page attend un lien magique provenant de ton e-mail. Vérifie ta boîte de réception pour le plus récent.',
+  'login.missing.title': 'Qui va là ?',
+  'login.missing.body': 'Les chiens, je les reconnais au flair. Les humains, au mot de passe.',
   // resend button states
   'login.resend.idle': 'Renvoyer le lien magique',
   'login.resend.sending': 'Envoi…',

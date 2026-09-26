@@ -431,7 +431,14 @@ export const ita: Partial<Dict> = {
   'welcome.emailHint': 'Il tuo certificato è in arrivo — controlla la tua email.',
 
   // ── /login — magic-link callback (Login.tsx) ──
-  'login.eyebrow': 'DOGYPT · Accesso al branco',
+  'login.eyebrow': 'Guardiano della porta',
+  'login.gate.cta': 'Crealo →',
+  'login.gate.line': 'Dalla porta passa solo un cane con il geroglifo — e il suo umano. Non ce l’hai?',
+  'login.forgot.prompt': 'Anche Hekthor una volta ha dimenticato dove aveva sepolto l’osso. Scrivi la tua email e ti mando una chiave nuova.',
+  'login.forgot.title': 'Capita',
+  'login.password.forgotPassword': 'Ho dimenticato la password',
+  'login.password.magicLinkAlt': 'Mandami una chiave via email',
+  'login.password.submit': 'Entra',
   // status: verifying
   'login.verifying.title': 'Apertura del Cancello',
   'login.verifying.body': 'Verifica del tuo magic link…',
@@ -448,8 +455,8 @@ export const ita: Partial<Dict> = {
   'login.network.title': 'Problema di Connessione',
   'login.network.body': 'Non siamo riusciti a raggiungere il tempio. Controlla la connessione e riprova.',
   // status: missing
-  'login.missing.title': 'Nessun Token Trovato',
-  'login.missing.body': 'Questa pagina si aspetta un magic link dalla tua email. Controlla la tua casella e cerca quello più recente.',
+  'login.missing.title': 'Chi va là?',
+  'login.missing.body': 'I cani li riconosco dal fiuto. Gli umani dalla password.',
   // resend button states
   'login.resend.idle': 'Invia di nuovo il magic link',
   'login.resend.sending': 'Invio…',

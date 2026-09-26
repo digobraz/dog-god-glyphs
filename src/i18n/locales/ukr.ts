@@ -431,7 +431,14 @@ export const ukr: Partial<Dict> = {
   'welcome.emailHint': 'Твій сертифікат уже в дорозі — перевір свою пошту.',
 
   // ── /login — magic-link callback (Login.tsx) ──
-  'login.eyebrow': 'DOGYPT · Доступ до зграї',
+  'login.eyebrow': 'Вартовий брами',
+  'login.gate.cta': 'Створи його →',
+  'login.gate.line': 'Крізь браму пройде лише пес із герогліфом — і його людина. Не маєш?',
+  'login.forgot.prompt': 'Навіть Hekthor колись забув, де закопав кістку. Напиши e-mail, і я надішлю тобі новий ключ.',
+  'login.forgot.title': 'Буває',
+  'login.password.forgotPassword': 'Забутий пароль',
+  'login.password.magicLinkAlt': 'Надішли мені ключ поштою',
+  'login.password.submit': 'Увійти',
   // status: verifying
   'login.verifying.title': 'Відчиняємо Браму',
   'login.verifying.body': 'Перевіряємо твоє магічне посилання…',
@@ -448,8 +455,8 @@ export const ukr: Partial<Dict> = {
   'login.network.title': 'Збій з\'єднання',
   'login.network.body': 'Ми не змогли дістатися до храму. Перевір з\'єднання та спробуй знову.',
   // status: missing
-  'login.missing.title': 'Токен не знайдено',
-  'login.missing.body': 'Ця сторінка очікує магічне посилання з твоєї пошти. Перевір скриньку та знайди найновіше.',
+  'login.missing.title': 'Стій, хто йде?',
+  'login.missing.body': 'Собак я впізнаю за нюхом. Людей — за паролем.',
   // resend button states
   'login.resend.idle': 'Надіслати магічне посилання знову',
   'login.resend.sending': 'Надсилаємо…',

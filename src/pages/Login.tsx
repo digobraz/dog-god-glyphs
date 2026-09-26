@@ -5,7 +5,7 @@ import { DEV_FULL, isFullPackEmail } from "@/lib/packFlags";
 import { useT, useLang } from "@/i18n/LanguageContext";
 import { PageTopBar } from "@/components/PageTopBar";
 import { FLOW_PALE_CSS } from "@/components/screens/flowPaleSkin";
-import { LAPIS } from "@/components/pack/navGoldSkin";
+import { LAPIS, goldFrameCSS } from "@/components/pack/navGoldSkin";
 import { PACK_HEAD, PACK_SPACE, PACK_TEXT } from "@/components/pack/packTheme";
 import { LAB } from "@/lib/labTheme";
 import { AINUBIS } from "@/components/pack/ainubisSkin";
@@ -17,31 +17,45 @@ import ainubisEmblem from "@/assets/ainubis-head.webp";
 // odliatok `goldFrameCSS()` ako `.hf-block`, biele pole `.hf-field`, lapisové CTA
 // `.hf-cta`. Na bledom je hlavná akcia LAPIS (brand lock); zlato = konštrukcia.
 // Tu je len to, čo login má navyše: štítok, nadpis karty, oko pri hesle, brána.
+/** Priemer výbežku s AINUBISOM (rám 6 + kruh). */
+const CREST = 96;
+
 const LOGIN_CSS = `
 .lg-col { max-width: 420px; }
 
-/* ── AINUBIS STRÁŽI BRÁNU (26. 9. 2026) ─────────────────────────────────────
-   Matej: *„oživme sign in… dajme tam AINUBISOV EMBLÉM do stredu hore"*.
-   Brána patrí jemu — AINUBIS drží bezpečnosť, hlásenia a oznamy appky
-   (brand lock, \`ainubisSkin.ts\`), preto žiari JEHO tyrkysom, nie lapisom.
-   Emblém presahuje horný lem karty: sedí na ráme ako pečať, nie v nej.
-   Pohyb = pomalé dýchanie žiary a pol pixelu vznosu; nič, čo by rušilo pole. */
-.lg-emblem {
-  position: relative; z-index: 2; width: 96px; height: 108px;
-  margin: 0 auto -${PACK_SPACE.xxl}px;
-  animation: lgFloat 5s ease-in-out infinite;
+/* ── AINUBIS STRÁŽI BRÁNU — VÝBEŽOK D-BLOKU (26. 9. 2026) ──────────────────
+   Matej: *„oživme sign in… dajme tam AINUBISOV EMBLÉM do stredu hore"* a po
+   prvom kole *„ten emblém sa mi nepáči, že tam je len tak — urob z D-BLOKU taký
+   výbežok, nech je to súčasť bloku, a daj AINUBISOVO logo do kruhu"*.
+   Výbežok je ten istý odliatok ako karta (\`goldFrameCSS\`, len s kruhovým
+   polomerom — tvar vyžiadal Matej) a sedí na hornom leme tak, že ho prekrýva:
+   oko ho číta ako hrbolček rámu, nie ako minca položená na karte.
+   V ňom AINUBISOV kruh v JEHO šate (\`AINUBIS.faceBg/faceRing\`) — brána patrí
+   jemu (bezpečnosť, brand lock), preto žiari tyrkysom, nie lapisom.
+   Pohyb = len dýchanie žiary v kruhu; výbežok sa nehýbe, je to rám. */
+.lg-card { position: relative; }
+.lg-crest {
+  position: absolute; left: 50%; top: -${CREST / 2}px; transform: translateX(-50%);
+  width: ${CREST}px; height: ${CREST}px; z-index: 2;
+  ${goldFrameCSS({ radius: 999 })}
+  display: flex; align-items: center; justify-content: center;
 }
-.lg-emblem::before {
-  content: ''; position: absolute; inset: 8px 4px 12px; border-radius: 999px; z-index: -1;
-  background: radial-gradient(circle, rgba(${AINUBIS.cyanRGB},.55) 0%, rgba(${AINUBIS.cyanRGB},0) 70%);
-  filter: blur(8px); animation: lgGlow 3.2s ease-in-out infinite;
+.lg-face {
+  width: 100%; height: 100%; border-radius: 999px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background: ${AINUBIS.faceBg}; box-shadow: ${AINUBIS.faceRing};
+  animation: lgGlow 3.2s ease-in-out infinite;
 }
-.lg-emblem img { width: 100%; height: 100%; object-fit: contain; display: block;
-  filter: drop-shadow(0 6px 10px rgba(40,26,6,.35)); }
-.lg-login .lg-card .hf-plate { padding-top: ${PACK_SPACE.xl + PACK_SPACE.lg}px; }
-@keyframes lgFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-@keyframes lgGlow { 0%,100% { opacity: .45; transform: scale(.92); } 50% { opacity: 1; transform: scale(1.06); } }
-@media (prefers-reduced-motion: reduce) { .lg-emblem, .lg-emblem::before { animation: none; } }
+.lg-face img { width: 82%; height: 82%; object-fit: contain; margin-top: 6%; display: block; }
+.lg-login .lg-card .hf-plate { padding-top: ${CREST / 2 + PACK_SPACE.md}px; }
+.lg-login .lg-col { padding-top: ${CREST / 2}px; }
+@keyframes lgGlow {
+  0%,100% { box-shadow: ${AINUBIS.faceRing}; }
+  50% { box-shadow: 0 0 0 1.5px rgba(${AINUBIS.cyanRGB},.7), 0 0 22px rgba(${AINUBIS.cyanRGB},.55); }
+}
+@media (prefers-reduced-motion: reduce) { .lg-face { animation: none; } }
+.lg-ai { color: ${LAB.ink}; }
+.lg-ai > span { color: ${AINUBIS.aiInk}; text-shadow: ${AINUBIS.aiShadow}; }
 .lg-login .hf-plate { gap: ${PACK_SPACE.md}px; text-align: center; }
 .lg-eyebrow {
   margin: 0; font-family: ${PACK_HEAD.label.fontFamily}; font-weight: ${PACK_HEAD.label.fontWeight};
@@ -367,15 +381,18 @@ export default function Login() {
 
       <div className="hf-stage">
         <div className="w-full lg-col flex flex-col items-center">
-          <div className="lg-emblem" aria-hidden="true"><img src={ainubisEmblem} alt="" /></div>
           <article className="hf-block lg-card" style={{ marginTop: 0 }} aria-live="polite">
+            <div className="lg-crest" aria-hidden="true">
+              <div className="lg-face"><img src={ainubisEmblem} alt="" /></div>
+            </div>
             <div className="hf-plate">
-              <p className="lg-eyebrow">{t('login.eyebrow')}</p>
+              {/* Meno strážcu má tvar: `AI` v jeho tyrkyse, v markupe, nie v preklade. */}
+              <p className="lg-eyebrow"><span className="lg-ai"><span>AI</span>NUBIS</span> · {t('login.eyebrow')}</p>
               {/* Zabudnuté heslo je podstav `missing` — bez prepnutia nadpisu by karta
                   hovorila PRIHLÁSENIE nad formulárom na reset. */}
               {forgotView ? (
                 <>
-                  <h1 className="lg-title">{t('login.password.forgotPassword')}</h1>
+                  <h1 className="lg-title">{t('login.forgot.title')}</h1>
                   <p className="lg-body">{t('login.forgot.prompt')}</p>
                 </>
               ) : (

@@ -431,7 +431,14 @@ export const prt: Partial<Dict> = {
   'welcome.emailHint': 'O teu certificado está a caminho — verifica o teu email.',
 
   // ── /login — magic-link callback (Login.tsx) ──
-  'login.eyebrow': 'DOGYPT · Acesso à matilha',
+  'login.eyebrow': 'Guardião do portão',
+  'login.gate.cta': 'Cria-o →',
+  'login.gate.line': 'Só passa o portão um cão com heróglifo — e o seu humano. Não tens?',
+  'login.forgot.prompt': 'Até o Hekthor já se esqueceu de onde enterrou o osso. Escreve o teu e-mail e envio-te uma chave nova.',
+  'login.forgot.title': 'Acontece',
+  'login.password.forgotPassword': 'Esqueci a senha',
+  'login.password.magicLinkAlt': 'Manda-me uma chave por e-mail',
+  'login.password.submit': 'Entrar',
   // status: verifying
   'login.verifying.title': 'A Abrir o Portão',
   'login.verifying.body': 'A verificar o teu magic link…',
@@ -448,8 +455,8 @@ export const prt: Partial<Dict> = {
   'login.network.title': 'Falha de Ligação',
   'login.network.body': 'Não conseguimos chegar ao templo. Verifica a tua ligação e tenta de novo.',
   // status: missing
-  'login.missing.title': 'Nenhum Token Encontrado',
-  'login.missing.body': 'Esta página espera um magic link do teu email. Verifica a caixa de entrada à procura do mais recente.',
+  'login.missing.title': 'Quem vem lá?',
+  'login.missing.body': 'Os cães eu conheço pelo faro. Os humanos, pela senha.',
   // resend button states
   'login.resend.idle': 'Reenviar magic link',
   'login.resend.sending': 'A enviar…',

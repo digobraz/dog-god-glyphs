@@ -431,7 +431,14 @@ export const esp: Partial<Dict> = {
   'welcome.emailHint': 'Tu certificado va en camino — revisa tu correo.',
 
   // ── /login — magic-link callback (Login.tsx) ──
-  'login.eyebrow': 'DOGYPT · Acceso a la jauría',
+  'login.eyebrow': 'Guardián de la puerta',
+  'login.gate.cta': 'Créalo →',
+  'login.gate.line': 'Solo cruza la puerta un perro con heroglifo — y su humano. ¿No lo tienes?',
+  'login.forgot.prompt': 'Hasta Hekthor olvidó una vez dónde enterró su hueso. Escribe tu correo y te enviaré una llave nueva.',
+  'login.forgot.title': 'Pasa',
+  'login.password.forgotPassword': 'Olvidé mi contraseña',
+  'login.password.magicLinkAlt': 'Envíame una llave por correo',
+  'login.password.submit': 'Entrar',
   // status: verifying
   'login.verifying.title': 'Abriendo la Puerta',
   'login.verifying.body': 'Verificando tu enlace mágico…',
@@ -448,8 +455,8 @@ export const esp: Partial<Dict> = {
   'login.network.title': 'Problema de Conexión',
   'login.network.body': 'No pudimos llegar al templo. Comprueba tu conexión e inténtalo de nuevo.',
   // status: missing
-  'login.missing.title': 'No Se Encontró Ningún Token',
-  'login.missing.body': 'Esta página espera un enlace mágico de tu correo. Revisa tu bandeja de entrada y busca el más reciente.',
+  'login.missing.title': '¿Quién va?',
+  'login.missing.body': 'A los perros los conozco por el olfato. A los humanos, por la contraseña.',
   // resend button states
   'login.resend.idle': 'Reenviar enlace mágico',
   'login.resend.sending': 'Enviando…',
