@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore, MAIN_DOG_ID } from '@/store/dogyptStore';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -11,6 +11,8 @@ import { PageTopBar } from '@/components/PageTopBar';
 //    vedľa poľa a slot v ráme boli dve rôzne sady toho istého.
 import { HeroglyphFrame, letterMap, zodiacMap, chineseMap, genderMap } from '@/components/HeroglyphFrame';
 import { FLOW_PALE_CSS, FLOW_CARVE_CSS, FLOW_GLYPH_CSS } from '@/components/screens/flowPaleSkin';
+import { TopicChips, FLOW_TOPIC_CSS, type TopicState } from '@/components/screens/flowTopicChips';
+import { DateDropdowns } from '@/components/DateDropdowns';
 import { FlowMedallion, FLOW_MEDAL_CSS, useSpeakMedal } from '@/components/screens/flowMedallion';
 import { FlowTextModal } from '@/components/screens/flowTextModal';
 import { LAPIS } from '@/components/pack/navGoldSkin';
@@ -90,7 +92,25 @@ import { useFlowDogs, FlowDogHeader, FLOW_DOG_CSS } from '@/components/screens/f
 //    hlavný obraz bude uť len výsledok"*). Na obrazovke ostal jeden riadok
 //    s výsledkom a tlačidlom VYBRAŤ / ZMENIŤ; dátum, vysvetlenie o vinši aj
 //    ručný výber sú v `zodiacSheet.tsx`.
+//
+// 🧩 PODKROKY AKO PODSTATA (26. 9. 2026). Matej: *„majiteľa urob ako essence na
+//    viac krokov a vymeň zlaté tlačidlá pohlavia"*. Rám stojí hore, pod ním pás
+//    chipov KTO · MENO · HVIEZDY · PORADIE (`flowTopicChips.tsx`) a pod ním JEDNA
+//    otázka v ploche pevnej výšky — obrazovka sa medzi podkrokmi nehýbe.
+//    · KTO: bledé dlaždice s lapisovým výberom, po ťuknutí ide sama ďalej;
+//    · MENO: pole + písmeno, ĎALEJ;
+//    · HVIEZDY: kolieska deň/mesiac/rok (tie isté ako krok SVORKA), obe znamenia
+//      hneď pod nimi; ručný výber bez dátumu ostal v popupe (`zodiacSheet.tsx`);
+//    · PORADIE: veta + ZMENIŤ, údaj je z kroku svorka.
+//    CTA je od začiatku priznané a vyblednuté — ten istý rozsudok ako podstata.
 // ════════════════════════════════════════════════════════════════════════════
+
+/** Ako dlho po voľbe pohlavia pulzuje slot, kým príde ďalšia otázka (= podstata). */
+const PICK_MS = 420;
+type OwnerTopic = 'who' | 'name' | 'stars' | 'order';
+const OWNER_TOPICS: OwnerTopic[] = ['who', 'name', 'stars', 'order'];
+const MIN_YEAR = 1920;
+const DEFAULT_YEAR = 1985;
 
 /**
  * 🔴 DÁTUM NARODENIA SA UKLADÁ — A TEXT POD ZNAČKAMI TO NEPOPIERA.
@@ -237,6 +257,57 @@ export function OwnerScreen() {
 
   const canGo = trimmed.length >= 1 && !!gender && !!western && !!chinese;
 
+  // ── PODKROKY ───────────────────────────────────────────────────────────────
+  const doneOf = (k: OwnerTopic) =>
+    k === 'who' ? !!gender : k === 'name' ? trimmed.length >= 1 : k === 'stars' ? !!western && !!chinese : hasRank;
+  const firstOpenTopic = () => OWNER_TOPICS.findIndex((k) => !doneOf(k));
+  const [step, setStep] = useState(() => Math.max(0, firstOpenTopic()));
+  const [seen, setSeen] = useState<Partial<Record<OwnerTopic, true>>>({});
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  const topic = OWNER_TOPICS[step];
+  useEffect(() => { setSeen((s) => ({ ...s, [topic]: true })); }, [topic]);
+  /** Ďalšia nevyplnená téma ZA touto; keď žiadna, ostáva sa (CTA už svieti). */
+  const nextOpen = (from: number, justDone?: OwnerTopic) => {
+    for (let i = from + 1; i < OWNER_TOPICS.length; i++) {
+      const k = OWNER_TOPICS[i];
+      if (k !== justDone && !doneOf(k)) return i;
+    }
+    const back = OWNER_TOPICS.findIndex((k) => k !== justDone && !doneOf(k));
+    return back >= 0 ? back : Math.min(from + 1, OWNER_TOPICS.length - 1);
+  };
+  const advance = (justDone?: OwnerTopic) => setStep((s) => nextOpen(s, justDone));
+  const chipState = (i: number): TopicState => {
+    const k = OWNER_TOPICS[i];
+    if (doneOf(k)) return 'done';
+    if (i === step) return 'todo';
+    return seen[k] ? 'miss' : 'todo';
+  };
+  const chipLabels: Record<OwnerTopic, string> = {
+    who: t('heroglyph.flow.owner.chipWho'),
+    name: t('heroglyph.flow.owner.chipName'),
+    stars: t('heroglyph.flow.owner.chipStars'),
+    order: t('heroglyph.flow.owner.chipOrder'),
+  };
+  const asks: Record<OwnerTopic, string> = {
+    who: t('heroglyph.flow.owner.askWho'),
+    name: t('heroglyph.flow.owner.askName'),
+    stars: t(gender === 'woman' ? 'heroglyph.flow.owner.askBornF' : 'heroglyph.flow.owner.askBornM'),
+    order: t('heroglyph.flow.owner.askOrder'),
+  };
+  const pickGender = (v: string) => {
+    setSelection('ownerGender', v);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => advance('who'), PICK_MS);
+  };
+  /** Dátum z koliesok → obe znamenia hneď (bez popupu). */
+  const today = new Date();
+  const pickDateInline = (d: number, m: number, y: number) => {
+    setSelection('ownerBirthday', `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`);
+    setSelection('ownerZodiac', getWesternZodiac(m, d).name);
+    setSelection('ownerChineseZodiac', getChineseZodiac(y).name);
+  };
+
   /**
    * POKRAČOVAŤ. Majiteľ je jeden, ale poradie je psie — každý pes dostane
    * svoje číslo do `dogEssence`, prvý pes ho má navyše v `selections`
@@ -255,7 +326,7 @@ export function OwnerScreen() {
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{FLOW_DOG_CSS}{OWNER_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{FLOW_DOG_CSS}{FLOW_TOPIC_CSS}{OWNER_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
         <PageTopBar onBack={() => navigate('/heroglyph/dog-character')} />
@@ -273,12 +344,18 @@ export function OwnerScreen() {
           >
             <FlowMedallion src={hekthorFace('owner-info')} size={medal} />
             <span className="say">
-              <h2>
-                {t('heroglyph.flow.owner.questionPrefix')}
-                <b>{t('heroglyph.flow.owner.questionWord')}</b>
-                {t('heroglyph.flow.owner.questionSuffix')}
-              </h2>
-              <p>{t('heroglyph.flow.owner.sub')}</p>
+              {/* Otázka podkroku, ako na podstate — Hektor sa pýta, doska odpovedá. */}
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.h2
+                  key={topic}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {asks[topic]}
+                </motion.h2>
+              </AnimatePresence>
             </span>
           </motion.div>
 
@@ -309,109 +386,156 @@ export function OwnerScreen() {
                 style={{ width: 'var(--flow-glyph-w)' }}
               />
 
-              {/* ── KTO SI: mriežka 30 / 70 (Matej 25. 9. 2026) ──────────────
-                  *„zmenšiť text žena muž alebo zväčšiť tie tlačidlá hore cez
-                  riadok a to poradie psa sa zarovná so začiatkom textarey
-                  s krstným menom… blok sa rozdelí na 30/70, na 30 časti budú
-                  veľké tlačidlá cez dva riadky a vedľa dva riadky"*.
-                  Vľavo dve dlaždice pohlavia na výšku OBOCH riadkov, vpravo
-                  poradie psa a pod ním meno + písmeno — oba riadky začínajú
-                  na tej istej zvislici. */}
-              <p className="hf-legend">{t('heroglyph.flow.owner.whoLegend')}</p>
+              <TopicChips
+                items={OWNER_TOPICS.map((k, i) => ({ key: k, label: chipLabels[k], state: chipState(i) }))}
+                current={step}
+                onGo={setStep}
+              />
+              <span className="fdh-rule" aria-hidden />
 
-              <div className="ow-who">
-                <div className="ow-genders">
-                {GENDERS.map((g) => (
-                  <button
-                    key={g.v}
-                    type="button"
-                    // `is-gold` = zlatá poloha dlaždice zo spoločného šatu (Matej
-                    // 25. 9.: *„tlačítka s ikonami — daj zlaté"*). Ten istý recept
-                    // ako PODSTATA a „žije tvoj pes?" na kroku 2 — dve voľby
-                    // s kresbou majú vyzerať rovnako naprieč vstupom.
-                    className={`hf-pick is-gold ow-gender${gender === g.v ? ' on' : ''}`}
-                    aria-pressed={gender === g.v}
-                    onClick={() => setSelection('ownerGender', g.v)}
+              {/* ── JEDNA OTÁZKA, PLOCHA PEVNEJ VÝŠKY ──────────────────────────
+                  Matej 26. 9.: *„výška obrazovky sa medzi podkrokmi nesmie
+                  meniť"* — plocha má \`min-height\` najvyššieho podkroku a obsah
+                  sa v nej centruje. */}
+              <div className="ow-q">
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={topic}
+                    className="ow-qin"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.22 }}
                   >
-                    <span className="well"><img src={genderMap[g.v]} alt="" /></span>
-                    <span className="tx">{t(`heroglyph.flow.ownerInfo.${g.v}`)}</span>
-                  </button>
-                ))}
-                </div>
-
-                <div className="ow-right">
-                  <div className="ow-order">
-                    <span className="tx">
-                      {hasRank
-                        ? t('heroglyph.flow.owner.orderLine', {
-                            dogName: dog?.name || t('heroglyph.flow.yourDogFallback'),
-                            ord: ordinal(rankNum),
-                          })
-                        : t('heroglyph.flow.owner.orderMissing')}
-                    </span>
-                    <button type="button" className="ow-change" onClick={() => navigate('/heroglyph/dogs')}>
-                      {hasRank ? t('heroglyph.flow.owner.orderChange') : t('heroglyph.flow.owner.orderPick')}
-                    </button>
-                  </div>
-
-                  <div className="ow-namerow">
-                    {isMobile ? (
-                      <button
-                        type="button"
-                        className={`hf-field ow-name${trimmed ? ' is-valid' : ''}`}
-                        onClick={openNameModal}
-                      >
-                        {/* Krátky tvar — v riadku s pohlavím a písmenom ostane poľu
-                            na telefóne ~120 px a dlhý placeholder by sa odsekol. */}
-                        {trimmed || t('heroglyph.checkout.firstName')}
-                      </button>
-                    ) : (
-                      <input
-                        ref={deskInputRef}
-                        className={`hf-field ow-name${trimmed ? ' is-valid' : ''}`}
-                        value={input}
-                        onChange={(e) => typeName(e.target.value.toUpperCase().slice(0, 30))}
-                        placeholder={t('heroglyph.flow.ownerInfo.placeholder')}
-                        maxLength={30}
-                        name="ownerName"
-                        autoComplete="off"
-                        autoCorrect="off"
-                        spellCheck={false}
-                      />
+                    {topic === 'who' && (
+                      <div className="ow-genders">
+                        {GENDERS.map((g) => (
+                          <button
+                            key={g.v}
+                            type="button"
+                            // Bledá poloha + lapisový výber — tá istá dlaždica ako
+                            // podstata (Matej 26. 9.: *„vymeň zlaté tlačidlá pohlavia"*).
+                            className={`hf-pick is-pale ow-gender${gender === g.v ? ' on' : ''}`}
+                            aria-pressed={gender === g.v}
+                            onClick={() => pickGender(g.v)}
+                          >
+                            <span className="well"><img src={genderMap[g.v]} alt="" /></span>
+                            <span className="tx">{t(`heroglyph.flow.ownerInfo.${g.v}`)}</span>
+                          </button>
+                        ))}
+                      </div>
                     )}
-                    {/* Náhľad písmena = presne ten symbol, ktorý práve pristál v ráme. */}
-                    <span className={`ow-mark${letterSvg ? ' on' : ''}`}>
-                      {letterSvg ? <img src={letterSvg} alt={letter} /> : <i>?</i>}
-                    </span>
-                  </div>
-                </div>
+
+                    {topic === 'name' && (
+                      <div className="ow-namerow">
+                        {isMobile ? (
+                          <button
+                            type="button"
+                            className={`hf-field ow-name${trimmed ? ' is-valid' : ''}`}
+                            onClick={openNameModal}
+                          >
+                            {trimmed || t('heroglyph.checkout.firstName')}
+                          </button>
+                        ) : (
+                          <input
+                            ref={deskInputRef}
+                            autoFocus
+                            className={`hf-field ow-name${trimmed ? ' is-valid' : ''}`}
+                            value={input}
+                            onChange={(e) => typeName(e.target.value.toUpperCase().slice(0, 30))}
+                            onKeyDown={(e) => { if (e.key === 'Enter' && trimmed) advance('name'); }}
+                            placeholder={t('heroglyph.flow.ownerInfo.placeholder')}
+                            maxLength={30}
+                            name="ownerName"
+                            autoComplete="off"
+                            autoCorrect="off"
+                            spellCheck={false}
+                          />
+                        )}
+                        {/* Náhľad písmena = presne ten symbol, ktorý práve pristál v ráme. */}
+                        <span className={`ow-mark${letterSvg ? ' on' : ''}`}>
+                          {letterSvg ? <img src={letterSvg} alt={letter} /> : <i>?</i>}
+                        </span>
+                        <button type="button" className="ow-next" disabled={!trimmed} onClick={() => advance('name')}>
+                          {t('heroglyph.flow.owner.next')}
+                        </button>
+                      </div>
+                    )}
+
+                    {topic === 'stars' && (
+                      <div className="ow-born">
+                        <DateDropdowns
+                          day={bd?.d ?? 1}
+                          month={bd?.m ?? 1}
+                          year={bd?.y ?? DEFAULT_YEAR}
+                          empty={!bd}
+                          emptyLabels={{
+                            day: t('heroglyph.flow.dogs.phDay'),
+                            month: t('heroglyph.flow.dogs.phMonth'),
+                            year: t('heroglyph.flow.dogs.phYear'),
+                          }}
+                          minYear={MIN_YEAR}
+                          maxYear={today.getFullYear()}
+                          maxDate={today}
+                          skin="pale"
+                          onChange={pickDateInline}
+                        />
+                        <div className="ow-signs">
+                          <span className={`ow-mark${western ? ' on' : ''}`}>
+                            {western ? <img src={zodiacMap[western.name]} alt="" /> : <i>?</i>}
+                          </span>
+                          <span className={`ow-mark${chinese ? ' on' : ''}`}>
+                            {chinese ? <img src={chineseMap[chinese.name]} alt="" /> : <i>?</i>}
+                          </span>
+                          <span className="ow-said">
+                            {western && chinese
+                              ? `${t(`heroglyph.flow.ownerZodiac.sign.${western.name}`)} · ${t(`heroglyph.flow.ownerZodiac.animal.${chinese.name}`)}`
+                              : t('heroglyph.flow.owner.signsEmpty')}
+                          </span>
+                          {western && chinese ? (
+                            <button type="button" className="ow-next" onClick={() => advance('stars')}>
+                              {t('heroglyph.flow.owner.next')}
+                            </button>
+                          ) : (
+                            <button type="button" className="ow-change" onClick={() => setSheet(true)}>
+                              {t('heroglyph.flow.owner.noDate')}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {topic === 'order' && (
+                      <div className="ow-order">
+                        <span className="tx">
+                          {hasRank
+                            ? t('heroglyph.flow.owner.orderLine', {
+                                dogName: dog?.name || t('heroglyph.flow.yourDogFallback'),
+                                ord: ordinal(rankNum),
+                              })
+                            : t('heroglyph.flow.owner.orderMissing')}
+                        </span>
+                        <button type="button" className="ow-change" onClick={() => navigate('/heroglyph/dogs')}>
+                          {hasRank ? t('heroglyph.flow.owner.orderChange') : t('heroglyph.flow.owner.orderPick')}
+                        </button>
+                      </div>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
               </div>
 
-              {/* ── ČO O TEBE HOVORIA HVIEZDY — len VÝSLEDOK ─────────────────
-                  Dátum, vysvetlenie o vinši a ručný výber sú v popupe
-                  (`zodiacSheet.tsx`). Tu stojí vlys, dve značky, mená znamení
-                  a jedno tlačidlo. Celý riadok je ťukací — kto ťukne na
-                  otáznik, chce presne to, čo tlačidlo. */}
-              <p className="hf-legend">{t('heroglyph.flow.ownerZodiac.question')}</p>
-
-              <button type="button" className="ow-stars" onClick={() => setSheet(true)}>
-                <span className={`ow-mark${western ? ' on' : ''}`}>
-                  {western ? <img src={zodiacMap[western.name]} alt="" /> : <i>?</i>}
-                </span>
-                <span className={`ow-mark${chinese ? ' on' : ''}`}>
-                  {chinese ? <img src={chineseMap[chinese.name]} alt="" /> : <i>?</i>}
-                </span>
-                <span className="ow-said">
-                  {western && chinese
-                    ? `${t(`heroglyph.flow.ownerZodiac.sign.${western.name}`)} · ${t(`heroglyph.flow.ownerZodiac.animal.${chinese.name}`)}`
-                    : t('heroglyph.flow.owner.signsEmpty')}
-                </span>
-                <span className="ow-change">
-                  {western && chinese ? t('heroglyph.flow.owner.orderChange') : t('heroglyph.flow.owner.orderPick')}
-                </span>
-              </button>
-
-              <button type="button" className="hf-cta" disabled={!canGo} onClick={goOn}>
+              {/* CTA priznané od začiatku, vyblednuté (= podstata). Ťuknutie pred
+                  koncom zavedie na prvú nevyplnenú tému. */}
+              <button
+                type="button"
+                className={`hf-cta ow-cta${canGo ? '' : ' is-off'}`}
+                aria-disabled={!canGo}
+                onClick={() => {
+                  if (canGo) { goOn(); return; }
+                  const open = firstOpenTopic();
+                  if (open >= 0) setStep(open);
+                }}
+              >
                 {t('heroglyph.flow.breed.continue')}
               </button>
             </div>
@@ -665,4 +789,34 @@ button.ow-name:not(.is-valid) { text-transform: none; letter-spacing: normal; }
      302 px na patrónovi — teda presne to, čo lock zakazuje. */
   .ow-stack .hf-plate { padding: 26px 22px; gap: 12px; }
 }
+/* ── PODKROKY (26. 9. 2026) ─────────────────────────────────────────────────
+   Plocha otázky má PEVNÚ výšku najvyššieho podkroku (dlaždice pohlavia ako na
+   podstate, 124 px) — výška obrazovky sa medzi podkrokmi nemení. Staré
+   \`.ow-who\` (30/70) a \`.ow-stars\` (riadok s popupom) už nikto nekreslí. */
+.ow-q { width: 100%; min-height: 124px; display: flex; align-items: center; }
+.ow-qin { width: 100%; }
+.ow-q .ow-genders { gap: 16px; min-height: 124px; }
+.ow-q .ow-gender { padding: 12px; gap: 8px; align-items: center; }
+.ow-q .ow-gender .tx { font-size: 14px; letter-spacing: 0.05em; }
+.ow-q .ow-gender .well { width: 52px; height: 52px; }
+.ow-q .ow-gender .well img { width: 40px; height: 40px; }
+.ow-born { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+.ow-signs { display: flex; align-items: center; gap: 8px; width: 100%; }
+.ow-next {
+  flex: 0 0 auto; height: 32px; padding: 0 14px; cursor: pointer; align-self: center;
+  border-radius: ${PACK_R.pill}px; border: 1.5px solid ${LAPIS.edge};
+  background: ${LAPIS.edge}; color: #FDF7E7;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
+  letter-spacing: 0.14em; text-transform: uppercase;
+}
+.ow-next:disabled { opacity: 0.35; cursor: default; }
+.ow-cta.is-off { opacity: 0.4; cursor: default; }
+.ow-cta.is-off:hover { transform: none; }
+@media (max-height: 700px) {
+  .ow-q, .ow-q .ow-genders { min-height: 112px; }
+  .ow-q .ow-gender { padding: 8px; gap: 4px; }
+  .ow-q .ow-gender .well { width: 44px; height: 44px; }
+  .ow-q .ow-gender .well img { width: 34px; height: 34px; }
+}
+
 `;
