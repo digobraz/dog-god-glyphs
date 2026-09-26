@@ -769,8 +769,6 @@ export const sk: Partial<Dict> = {
   'login.backHome': 'Späť domov',
   'login.gate.line': 'Dnu sa dostane len pes s heroglyfom. Nemáš ho?',
   'login.gate.cta': 'Vytvor ho →',
-  'login.gate.line': 'Dnu sa dostane len pes s heroglyfom. Nemáš ho?',
-  'login.gate.cta': 'Vytvor ho →',
   'login.homeAria': 'DOGYPT domov',
   // password login form
   'login.password.placeholder': 'Heslo',

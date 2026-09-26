@@ -920,8 +920,6 @@ export const en = {
   'login.backHome': 'Back home',
   'login.gate.line': "Only dogs with a heroglyph get in. Don't have one yet?",
   'login.gate.cta': 'Create it →',
-  'login.gate.line': "Only dogs with a heroglyph get in. Don't have one yet?",
-  'login.gate.cta': 'Create it →',
   'login.homeAria': 'DOGYPT home',
   // password login form
   'login.password.placeholder': 'Password',

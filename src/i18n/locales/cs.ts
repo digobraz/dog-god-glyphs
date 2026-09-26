@@ -684,8 +684,6 @@ export const cs: Partial<Dict> = {
   'login.backHome': 'Zpět domů',
   'login.gate.line': 'Dovnitř se dostane jen pes s heroglyfem. Nemáš ho?',
   'login.gate.cta': 'Vytvoř ho →',
-  'login.gate.line': 'Dovnitř se dostane jen pes s heroglyfem. Nemáš ho?',
-  'login.gate.cta': 'Vytvoř ho →',
   'login.homeAria': 'DOGYPT domů',
   // password login form
   'login.password.placeholder': 'Heslo',
