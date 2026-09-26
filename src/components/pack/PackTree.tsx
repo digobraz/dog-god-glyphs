@@ -624,7 +624,7 @@ function PackActions() {
   return (
     <div className="w-full mt-5 flex flex-col sm:flex-row gap-2.5">
       <Link
-        to="/heroglyph/photo"
+        to="/heroglyph/name"
         onClick={resetFlow}
         className="flex-1 inline-flex items-center justify-center gap-2"
         style={{

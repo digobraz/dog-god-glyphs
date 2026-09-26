@@ -7,7 +7,6 @@ import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PageTopBar } from '@/components/PageTopBar';
-import imageCompression from 'browser-image-compression';
 import hekthorImg from '@/assets/hekthor.png';
 import { uploadMainPhoto, uploadCroppedPhoto, uploadExtraPhoto } from '@/services/cloudinaryService';
 import { useT } from '@/i18n/LanguageContext';
@@ -18,6 +17,8 @@ import { NEW_HEROFLOW } from '@/lib/flowMode';
 /* ───── helpers ───── */
 
 async function compressFile(file: File): Promise<{ url: string; blob: Blob }> {
+  // Knižnica (53 KB) sa stiahne až pri prvej fotke, nie s obrazovkou (26. 9. 2026).
+  const { default: imageCompression } = await import('browser-image-compression');
   const compressed = await imageCompression(file, {
     maxSizeMB: 0.4,
     maxWidthOrHeight: 1200,

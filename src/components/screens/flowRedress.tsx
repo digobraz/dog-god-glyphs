@@ -7,6 +7,7 @@ import { FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
 // Stena je vymenovaná RAZ (viď tam) — oba šaty vstupu si ju berú odtiaľ.
 import { FLOW_WALL_IMAGE, FLOW_WALL_VEIL } from '@/components/screens/flowPaleSkin';
 import { NEW_HEROFLOW } from '@/lib/flowMode';
+import { prefetchFlowStep } from '@/lib/flowPrefetch';
 
 // ════════════════════════════════════════════════════════════════════════════
 // PREZLEČENIE STARÝCH OBRAZOVIEK VSTUPU (31. 8. 2026)
@@ -408,6 +409,14 @@ export function FlowRedress() {
     return () => { delete root.dataset.flowSkin; };
   }, [onFlow, skin]);
 
+  // Krok N si na pozadí stiahne kód aj ksicht kroku N+1 (`lib/flowPrefetch.ts`).
+  // Za odhalením nasleduje pokladňa, ktorá v poradí pruhu nie je.
+  useEffect(() => {
+    if (!NEW_HEROFLOW || !onFlow) return;
+    const i = FLOW_ORDER.indexOf(pathname);
+    if (i >= 0) prefetchFlowStep(FLOW_ORDER[i + 1] ?? '/checkout');
+  }, [onFlow, pathname]);
+
   if (!onFlow) return null;
   return (
     <>
@@ -480,21 +489,38 @@ function FlowProgress({ pathname }: { pathname: string }) {
     //    samotnej lište (zmena výšky, zmena breakpointu) a `MutationObserver`
     //    na tele (lišta na kroku mena vzniká AŽ po príchodovej animácii, takže
     //    pri montáži tejto vrstvy ešte v DOM nie je).
+    // ⚠️ 26. 9. 2026: `MutationObserver` na tele strieľa pri KAŽDEJ zmene DOM
+    //    (písmenkový úvod vkladá desiatky spanov, písanie, rozbaľovačky) a každý
+    //    výstrel znova staval `ResizeObserver` a čítal `getBoundingClientRect`
+    //    = vynútený reflow uprostred animácie. Odteraz sa výstrely zlejú do
+    //    jedného snímku a lišta sa prepája LEN keď sa zmenili samotné logá.
     let ro: ResizeObserver | null = null;
+    let seen: Element[] = [];
+    let raf = 0;
     const attach = () => {
+      const imgs = Array.from(document.querySelectorAll('img[alt="DOGYPT"]'));
+      if (imgs.length === seen.length && imgs.every((el, k) => el === seen[k])) return;
+      seen = imgs;
       ro?.disconnect();
       ro = new ResizeObserver(measure);
-      document.querySelectorAll('img[alt="DOGYPT"]').forEach((img) => {
+      imgs.forEach((img) => {
         const bar = img.closest('div');
         if (bar) ro?.observe(bar);
       });
       measure();
     };
     attach();
-    const mo = new MutationObserver(attach);
+    measure();
+    const mo = new MutationObserver(() => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => { raf = 0; attach(); });
+    });
     mo.observe(document.body, { childList: true, subtree: true });
     window.addEventListener('resize', measure);
-    return () => { mo.disconnect(); ro?.disconnect(); window.removeEventListener('resize', measure); };
+    return () => {
+      mo.disconnect(); ro?.disconnect(); cancelAnimationFrame(raf);
+      window.removeEventListener('resize', measure);
+    };
   }, [idx, pathname]);
 
   if (idx < 0) return null;

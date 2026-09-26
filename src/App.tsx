@@ -347,7 +347,7 @@ const App = () => (
                   a záložky musia niekam dôjsť. */}
               {NEW_HEROFLOW ? (
                 <>
-                  <Route path="/heroglyph/intro" element={<Navigate to="/heroglyph/photo" replace />} />
+                  <Route path="/heroglyph/intro" element={<Navigate to="/heroglyph/name" replace />} />
                   <Route path="/heroglyph/photo" element={<PhotoScreen />} />
                   <Route path="/heroglyph/name" element={<NameScreen />} />
                   <Route path="/heroglyph/dogs" element={<DogsScreen />} />

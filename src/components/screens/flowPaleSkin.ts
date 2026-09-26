@@ -216,7 +216,7 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
 }
 .hf-phase span {
   display: block; font-family: 'Space Grotesk', sans-serif; font-weight: 500;
-  font-size: 8.5px; letter-spacing: .16em; text-transform: uppercase;
+  font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
   color: ${LAB.inkMuted};
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
@@ -292,13 +292,13 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
 
 .hf-qlabel {
   margin: 0; text-align: center; font-family: 'Cinzel', serif; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .08em; font-size: 11.5px; color: ${LAB.ink};
+  text-transform: uppercase; letter-spacing: .08em; font-size: 12px; color: ${LAB.ink};
 }
 /* Návod k prvku (ťahaj ⋮⋮ · ťukni na číslo) je POZNÁMKA, nie druhý nadpis:
    malé bezpätkové písmo bez rozstrelenia, na vlastnom riadku. */
 .hf-qlabel .hint {
   display: block; margin-top: 2px; font-family: 'Space Grotesk', sans-serif;
-  font-weight: 400; font-size: 10.5px; letter-spacing: 0; text-transform: none;
+  font-weight: 400; font-size: 10px; letter-spacing: 0; text-transform: none;
   color: ${LAB.inkSoft};
 }
 
@@ -336,7 +336,7 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
    a rokom zanikol — pilulky vpravo hovoria to isté a presnejšie. */
 .hf-dogrow .txt { flex: 1; min-width: 0; display: flex; align-items: center; }
 .hf-dogrow .nm {
-  min-width: 0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 14.5px;
+  min-width: 0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px;
   letter-spacing: .05em; color: ${LAB.ink};
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
@@ -494,11 +494,11 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
       pás, značka ako odpoveď na konkrétneho psa. */
 .hf-dogrow.is-slim { padding: 6px 10px; gap: 10px; }
 .hf-dogrow.is-slim .hf-dogmid { flex-direction: row; align-items: center; gap: 8px; }
-.hf-dogrow.is-slim .nm { font-size: 13.5px; }
+.hf-dogrow.is-slim .nm { font-size: 14px; }
 .hf-dogmark {
   flex: 0 0 auto; width: 22px; height: 22px; border-radius: 999px;
   display: grid; place-items: center; border: 1.5px solid;
-  font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; line-height: 1;
+  font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600; /* 700 = fake bold, Grotesk je načítaný len 300–600 */ line-height: 1;
 }
 .hf-dogmark svg { width: 13px; height: 13px; }
 .hf-dogmark.ok   { border-color: #3D7A4E; background: rgba(61,122,78,.14);  color: #2E5C3B; }
@@ -634,7 +634,7 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
 .hf-cpick-item .lbl { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hf-cpick-empty {
   margin: 0; padding: 10px; text-align: center;
-  font-family: 'Space Grotesk', sans-serif; font-size: 12.5px; color: ${LAB.inkMuted};
+  font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: ${LAB.inkMuted};
 }
 
 /* Zaškrtnuté políčko je PRIESVITNÝ TINT + plný lapisový rám (lock 26. 8.) —
@@ -656,7 +656,7 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
                font-size: 12px; line-height: 1.35; color: ${LAB.ink}; }
 /* Variant do riadku s výberom krajiny — nerastie, drží výšku poľa, text nezalamuje. */
 .hf-chk--inline { width: auto; flex: 0 0 auto; height: 40px; padding: 0 11px; white-space: nowrap; }
-.hf-chk--inline .lbl { flex: 0 0 auto; font-size: 11.5px; }
+.hf-chk--inline .lbl { flex: 0 0 auto; font-size: 12px; }
 
 /* ── VÝBER ŽIVÝ / ZA MOSTOM ─────────────────────────────────────────────
    Matej 28. 8.: „zmenši a daj do jedného riadku… nerozťahujme to." Dlaždica
@@ -723,7 +723,7 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
 .hf-head em { font-style: normal; color: ${LAB.goldInk}; }
 .hf-lead {
   margin: 0; text-align: center;
-  font-family: 'Space Grotesk', sans-serif; font-size: 12.5px; line-height: 1.5;
+  font-family: 'Space Grotesk', sans-serif; font-size: 12px; line-height: 1.5;
   color: ${LAB.inkSoft};
 }
 /* Matej 31. 8.: *„Toto je alba daj boldom"* — tučná je PRVÁ polovica po dvojbodku,
@@ -770,7 +770,7 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
 .hf-alb .num {
   position: absolute; bottom: -3px; left: 50%; transform: translateX(-50%);
   display: inline-flex; align-items: center; justify-content: center;
-  font-family: 'Cinzel', serif; font-weight: 700; font-size: 9.5px;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 10px;
   letter-spacing: .02em; line-height: 1; white-space: nowrap;
   padding: 3px 7px; border-radius: 999px;
   background: linear-gradient(180deg,#F5C73D,#E69E1A); color: #3d1f00;
@@ -782,7 +782,7 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
 /* Veta pod stĺpcami — uzatvára dôkaz, preto je bližšie k nemu než k tlačidlu. */
 .hf-albnote {
   margin: 0; text-align: center;
-  font-family: 'Space Grotesk', sans-serif; font-size: 11.5px; line-height: 1.45;
+  font-family: 'Space Grotesk', sans-serif; font-size: 12px; line-height: 1.45;
   color: ${LAB.inkSoft};
 }
 

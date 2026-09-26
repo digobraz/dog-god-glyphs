@@ -144,7 +144,16 @@ export function NameScreen() {
   useEffect(() => {
     if (phase !== 'hero') return;
     const id = window.setTimeout(() => setPhase('form'), introMs);
-    return () => window.clearTimeout(id);
+    // Ťuknutie alebo kláves príchod preskočí — ako na ODHALENÍ a vo finále
+    // (26. 9. 2026). Kto sa vracia alebo sa ponáhľa, nečaká na písmená.
+    const skip = () => setPhase('form');
+    window.addEventListener('pointerdown', skip);
+    window.addEventListener('keydown', skip);
+    return () => {
+      window.clearTimeout(id);
+      window.removeEventListener('pointerdown', skip);
+      window.removeEventListener('keydown', skip);
+    };
   }, [phase, introMs]);
 
   // Ako veľmi sa medailón v príchodovej fáze nafúkne. Číslo NIE JE natvrdo:

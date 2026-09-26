@@ -101,6 +101,9 @@ export function FlowFillProbe() {
   }, []);
 
   useEffect(() => {
+    // Mimo dielne a s vypnutou HRANICOU nemá kto výsledok čítať — meranie by
+    // len vynucovalo reflow pri každej zmene javiska (26. 9. 2026).
+    if (!on && window.parent === window) return;
     // 🔴 ČASOVAČ, NIE `requestAnimationFrame`. Dielňa meria kroky v SKRYTOM ráme
     //    (mimo záberu) a prehliadač v takom ráme rAF netiká — premerané 25. 9.:
     //    z šiestich krokov sa ozval JEDEN, zvyšok vypadol na časový limit fronty
@@ -139,7 +142,7 @@ export function FlowFillProbe() {
       mo.disconnect();
       window.removeEventListener('resize', read);
     };
-  }, [pathname]);
+  }, [pathname, on]);
 
   if (!on || !fill) return null;
 

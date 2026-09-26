@@ -1309,7 +1309,7 @@ function AddPopup({ onClose, onPawmate }: {
         <div className="flex flex-col" style={{ gap: 10 }}>
           {/* DVERE PES — heroglyf flow. JEDINÉ ŽIVÉ. Reset storu je na `onClick`, nie na
               cieľovej obrazovke: tá o tom, odkiaľ sa prišlo, nič nevie. */}
-          <Link to="/heroglyph/photo" onClick={resetFlow} style={DOOR}>
+          <Link to="/heroglyph/name" onClick={resetFlow} style={DOOR}>
             <DoorFace icon={<HandPaw size={18} />} label={t('pack.add.dog')} sub={t('pack.add.dogSub')} />
           </Link>
 

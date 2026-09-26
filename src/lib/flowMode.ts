@@ -18,4 +18,9 @@ export const NEW_HEROFLOW =
   import.meta.env.DEV && import.meta.env.VITE_HEROFLOW_NEW !== "0";
 
 // Prvý krok flow — líši sa podľa režimu a guard naň presmeruje pri deep-linku.
-export const FLOW_FIRST_STEP = NEW_HEROFLOW ? "/heroglyph/photo" : "/heroglyph/name";
+// 🔴 26. 9. 2026: v novom vstupe tu stála `/heroglyph/photo` — STARÁ tmavá
+//    obrazovka fotky, ktorú nový vstup nepoužíva (fotka je popup nad stenou).
+//    Refresh uprostred vstupu tak hodil človeka do starého šatu a jej POKRAČOVAŤ
+//    skočilo rovno na `/heroglyph/breed` cez svorku, e-mail aj podstatu.
+//    Prvá VLASTNÁ routa nového vstupu je meno.
+export const FLOW_FIRST_STEP = "/heroglyph/name";

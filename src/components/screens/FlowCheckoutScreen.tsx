@@ -251,7 +251,7 @@ export function FlowCheckoutScreen() {
             <span className="hf-carved-rim" aria-hidden />
             {/* Zlatá pečať DOGYPTU na hornej hrane dosky — „správny punc na záver"
                 (Matej 25. 9. 2026). Tá istá pečať ako na faktúre a certifikáte. */}
-            <img className="co-seal" src="/images/peciat-dogypt.png" alt="" aria-hidden />
+            <img className="co-seal" src="/images/peciat-dogypt-360.webp" alt="" aria-hidden />
             <div className="hf-plate">
 
               {/* ── KTO PLATÍ ─────────────────────────────────────────────── */}

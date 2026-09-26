@@ -1,4 +1,3 @@
-import imageCompression from 'browser-image-compression';
 import { uploadMainPhoto, withTransform, type CloudinaryResult } from '@/services/cloudinaryService';
 import { useDogyptStore } from '@/store/dogyptStore';
 
@@ -28,6 +27,8 @@ import { useDogyptStore } from '@/store/dogyptStore';
  * zahodí, inak by prehliadač otočil fotku druhýkrát.
  */
 export async function compressFile(file: File): Promise<{ url: string; blob: Blob }> {
+  // Knižnica (53 KB) sa stiahne až pri prvej fotke, nie s obrazovkou (26. 9. 2026).
+  const { default: imageCompression } = await import('browser-image-compression');
   const compressed = await imageCompression(file, {
     maxSizeMB: 0.4,
     maxWidthOrHeight: 1200,

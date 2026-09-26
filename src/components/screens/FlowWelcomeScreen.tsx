@@ -431,7 +431,7 @@ export function FlowWelcomeScreen() {
                         *„na mobile je dostatok miesta na pečať nad motto aj na PC"*).
                         Veľkosť ide z výšky okna, pri tesnom okne ustúpi prvá. */}
                     <motion.div className="wl-seal" initial={false} animate={{ opacity: line >= 4 ? 1 : 0, scale: line >= 4 ? 1 : 0.9 }} transition={{ delay: 1.1, duration: 0.5 }}>
-                      <img src="/images/peciat-dogypt.png" alt="" aria-hidden />
+                      <img src="/images/peciat-dogypt-360.webp" alt="" aria-hidden />
                       <span className="wl-motto">{t('religion.book.trust')}</span>
                     </motion.div>
 
