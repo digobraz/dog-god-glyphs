@@ -1193,8 +1193,8 @@ export const FLOW_CARVE_CSS = `
    aby boli dostatočne viditeľné a pekné, ich výber musí byť podsvietený modrou"*
    — a zlatú plnú farbu dostali CHIPY tém. Novší pokyn prebíja ranné *„voľby sú
    zlaté, lebo hlavné CTA je modré"* (24.–25. 9., viď \`.is-gold\` vyššie).
-   Od 26. 9. ~16:15 ju má aj krok MENO (Matej: *„tieto zlaté tlačítka majú byť
-   bledé"*) — \`.is-gold\` tým nemá volajúceho, ostáva len ako záznam. */
+   ⚠️ \`.is-gold\` sa NEMAŽE — nesie ho krok MENO („žije tvoj pes?"), ktorý Matej
+   schválil. Bledú polohu majú podstata a majiteľ. */
 .hf-pick.is-pale {
   border-radius: ${PACK_R.tile}px;
   background: linear-gradient(180deg, #FFFDF7 0%, #F5E9CC 100%);
