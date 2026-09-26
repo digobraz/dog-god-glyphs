@@ -3795,7 +3795,11 @@ export const cs: Partial<Dict> = {
   'pack.hero.popLevelStamp': 'Začne počítat s appkou',
   'pack.hero.popLevelTitle': '{name} · úroveň {index} z 22',
   'pack.hero.popPawtner1': 'Pawtner je tvoje postavení ve smečce — jsi společník psa, kterému jsi vytvořil HEROGLYF. Bez heroglyfu nejsi Dogypťan.',
-  'pack.hero.popPawtner2': 'Účet v DOGYPTU nevzniká registrací, ale psem. Proto tu nenajdeš prázdné profily — za každým jménem stojí konkrétní pes.',
+  'pack.hero.rolePack': "Smečka",
+  'pack.hero.roleDog': "pes",
+  'pack.hero.rolePawtner': "společník psa (handler)",
+  'pack.hero.rolePawmate': "člen smečky (partner, rodina)",
+  'pack.hero.roleRule': "Pawmate může vytvořit jen Pawtner.",
   'pack.hero.popStatusEyebrow': 'Status',
   'pack.hero.readonlyNote': 'Fotka i jméno se mění v profilu.',
 

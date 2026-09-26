@@ -5,11 +5,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
 // Brandové hand-drawn ikonky namiesto lucide (audit 12.8., nasadené 13.8.). `X` ostáva
 // lucide zámerne — systémový ovládač zavretia, brand glyf by tam pridal len šum.
-import { HandHouseHeart, HandKey, HandLink, HandPaw, HandPencil, HandPlus } from './HandIcons';
+import { HandForward, HandHouseHeart, HandKey, HandLink, HandPaw, HandPencil, HandPlus } from './HandIcons';
 import { INVITE_ANCHOR_ID } from './FounderInvite';
 import { BrandIcon } from './BrandIcon';
 import { GOLD_BLOCK_CSS, LAPIS, LAPIS_BTN_SHADOW } from './navGoldSkin';
-import { PACK_BOX, PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, PILL_CSS, GOLD_BTN } from './packTheme';
+import { PACK_BOX, PACK_HEAD, PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, PILL_CSS, GOLD_BTN } from './packTheme';
 import { saveHuman } from './profile/packProfile';
 import { PackNotifications } from './PackNotifications';
 import { WIZ } from './wizAnchors';
@@ -982,7 +982,9 @@ function HeroPopup({
     pawtner: {
       eyebrow: t('pack.hero.popStatusEyebrow'),
       title: 'Pawtner',
-      body: [t('pack.hero.popPawtner1'), t('pack.hero.popPawtner2')],
+      // Druhý odsek („účet nevzniká registráciou, ale psom") Matej 26. 9. 2026 vyhodil —
+      // jeho miesto berie schéma troch rolí `PackRoles` pod textom.
+      body: [t('pack.hero.popPawtner1')],
     },
     // Od 12.8.2026 je toto JEDINÉ miesto, kde sa oddanosť vysvetľuje — devotion bar
     // s vlastným popupom z karty odišiel. Preto tu pribudla aj pečiatka „začne rátať
@@ -1024,7 +1026,10 @@ function HeroPopup({
       onClick={onClose}
       style={{
         // Prekrýva PRESNE tento blok. zIndex 20 = nad ornamentmi aj pilulkami editácie (zIndex 3).
-        position: 'absolute', inset: 0, zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        // Centruje `margin:auto` na dieťati, NIE `alignItems:center` — so schémou rolí text
+        // na mobile pretečie a `center + overflow` by vrch (STATUS) odrezal bez možnosti
+        // doscrollovať (lock PAGE_AIR, 24. 9. 2026).
+        position: 'absolute', inset: 0, zIndex: 20, display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         padding: '24px 24px', overflowY: 'auto',
         background: T.panelGrad,
       }}
@@ -1046,7 +1051,7 @@ function HeroPopup({
           // `textAlign:center` = blok je centrovaná kompozícia (welcome / pyramída / pilulky);
           // vľavo zarovnaný stĺpec textu v širokom poli vyzeral ako odseknutý kus obsahu.
           // Pečiatka aj CTA sú inline prvky → centrovanie zdedia, netreba im vlastný flex.
-          position: 'relative', width: '100%', maxWidth: 520, color: T.ink, textAlign: 'center',
+          position: 'relative', width: '100%', maxWidth: 520, color: T.ink, textAlign: 'center', margin: 'auto',
         }}
       >
         <span style={{ fontFamily: FONT_UI, fontWeight: 500, fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.cardEdge }}>
@@ -1060,6 +1065,7 @@ function HeroPopup({
             {line}
           </p>
         ))}
+        {which === 'pawtner' && <PackRoles />}
         {c.stamp && (
           <span style={{
             display: 'inline-block', marginTop: 6, padding: '4px 12px', borderRadius: 999,
@@ -1093,6 +1099,56 @@ function HeroPopup({
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+// ── SCHÉMA ROLÍ V POPUPE PAWTNER (26. 9. 2026) ─────────────────────────────────
+// Matej: *„doplňme vizuálne znázornenie do bloku — DOG pes, PAWTNER bublinka človek,
+// spoločník psa (handler), PAWMATE človek člen svorky — partner, rodina"* a hneď potom:
+// *„poradie DOG PAWTNER daj ich do bloku a potom daj vedľa pawmateho a všetkých troch do
+// jedného bloku… budú dva bloky jeden v druhom"* + *„iba pawtner môže vytvoriť pawmate"*.
+// Vnútorný blok = pes a jeho človek (PODBLOK, zlatý rám), vonkajší = svorka (RIADOK, tichý).
+// Zlato nesie DOG a PAWTNER (poloha „kde som"), PAWMATE je tlmený.
+// Kresby sú z kitu: `dogsphinx`, `person` (= `add-user` bez plusu), šípka `HandForward`.
+function PackRoles() {
+  const t = useT();
+  const role = (icon: string, title: string, sub: string, lit: boolean) => (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, minWidth: 0 }}>
+      <div
+        style={{
+          width: 56, height: 56, borderRadius: 999, flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: T.tileBg,
+          border: lit ? `1.5px solid ${T.cardEdge}` : `1px solid ${T.border}`,
+        }}
+      >
+        <BrandIcon name={icon} size={icon === 'dogsphinx' ? 32 : 24} tint={lit ? 'gold' : 'dim'} />
+      </div>
+      <span style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, letterSpacing: '0.14em', color: T.inkStrong }}>
+        {title}
+      </span>
+      <span style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.4, color: T.inkWarm }}>
+        {sub}
+      </span>
+    </div>
+  );
+  return (
+    <div style={{ ...PACK_BOX.row, margin: '16px 0 8px', padding: 12 }}>
+      <div style={{ ...PACK_HEAD.label, color: T.cardEdge, marginBottom: 12 }}>
+        {t('pack.hero.rolePack')}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) auto minmax(0, 1fr)', alignItems: 'center', gap: 8 }}>
+        <div style={{ ...PACK_BOX.subblock, display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8, padding: '12px 8px', alignItems: 'start' }}>
+          {role('dogsphinx', 'DOG', t('pack.hero.roleDog'), true)}
+          {role('person', 'PAWTNER', t('pack.hero.rolePawtner'), true)}
+        </div>
+        <HandForward size={16} style={{ color: T.cardEdge }} />
+        {role('person', 'PAWMATE', t('pack.hero.rolePawmate'), false)}
+      </div>
+      <p style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.4, color: T.inkWarm, margin: '12px 0 0' }}>
+        {t('pack.hero.roleRule')}
+      </p>
     </div>
   );
 }
