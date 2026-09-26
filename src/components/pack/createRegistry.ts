@@ -549,8 +549,24 @@ export function createAll(place: CreatePlace): CreateObject[] {
  *    DOMOVE päť dlaždíc a vyšlo to nachystane: presne toľko ich dnes má obrazovku. Keď
  *    pribudne denník a feed, panel narastie sám — bez zásahu sem.
  */
+// 🔴 DOMOV UKAZUJE LEN ŠTYRI VECI (Matej 26. 9. 2026, audit pred launchom): *„z ponuky,
+//    ktorá tam je teraz, daj všetko čo nie je aktuálne preč — nechaj na homepage len: Zapíš
+//    výlet, Pridaj tripwish, Sniffuj, Do denníka (nič viac)"*. Prebíja to „DOMOV má celý
+//    repertoár" z 21. 9. — celý repertoár mal 12 riadkov a štyri z nich „čoskoro".
+// ⚠️ Je to VÝBER, nie druhý register: stav, text aj cieľ ostávajú v `CREATE_OBJECTS`.
+//    Položka, ktorá prestane byť hotová (`isReady`), z panela zmizne aj odtiaľto.
+// ⚠️ Poradie je Matejovo, nie poradie registra. Hlavičky skupín tu nie sú — štyri riadky
+//    ich nepotrebujú. Ostatné miesta (VON, JA, AINUBIS) svoj výrez nezmenili.
+export const DOMOV_PANEL: readonly CreateId[] = ['trip', 'wish', 'sniffer', 'diary'];
+
 export function panelFor(place: CreatePlace): Array<{ group: CreatePlace | null; items: CreateObject[] }> {
-  if (place !== 'DOMOV') {
+  if (place === 'DOMOV') {
+    const items = DOMOV_PANEL
+      .map((id) => CREATE_OBJECTS.find((o) => o.id === id))
+      .filter((o): o is CreateObject => !!o && isReady(o));
+    return [{ group: null, items }];
+  }
+  {
     const items = createFor(place);
     // 🔴 MIESTO BEZ DVOCH VLASTNÝCH POLOŽIEK UKÁŽE REPERTOÁR DOMOVA (Matej 21. 9. 2026:
     //    „alebo tam dať to, čo je na homepage (zatiaľ)"). Panel tak nikdy nie je prázdny
@@ -561,13 +577,6 @@ export function panelFor(place: CreatePlace): Array<{ group: CreatePlace | null;
     if (items.length >= 2) return [{ group: null, items }];
     return panelFor('DOMOV');
   }
-  const out: Array<{ group: CreatePlace | null; items: CreateObject[] }> = [];
-  for (const p of PLACE_ORDER) {
-    const items = createFor(p);
-    if (!items.length) continue;
-    out.push({ group: p === 'DOMOV' ? null : p, items });
-  }
-  return out;
 }
 
 // ── REGISTER `ROUTA → MIESTO` ───────────────────────────────────────────────────────────────

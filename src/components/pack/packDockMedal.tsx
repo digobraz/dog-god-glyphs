@@ -264,7 +264,13 @@ export const DOCK_MEDAL_CSS = `
     inset 0 -8px 14px -6px rgba(0,0,0,0.65),
     inset 0 0 0 1px rgba(0,0,0,0.4);
 }
-/* ── PLUS NA DISPLEJI — KRESBA Z KITU, NIE ZNAK ────────────────────────────────────
+/* ── HEKTOROVA PACKA NA DISPLEJI (Matej 26. 9. 2026) ──────────────────────────────
+   „vymeniť ikonku na strede namiesto + daj Hektorovu packu". Kresba z kitu
+   Hekypaw full.svg = /icons/pack/paw-full.svg. Trieda sa volá ďalej .pk-medal-plus,
+   lebo je to identifikátor, nie text — kotúč stále znamená „pridávam".
+   Nižšie je história plusu; platí pre ňu to isté: kresba z kitu, maskou, nie znak.
+   ── (do 26. 9.) PLUS NA DISPLEJI — KRESBA Z KITU, NIE ZNAK ──────────────────────── */
+/*
    Matej 21. 9. 2026 poslal kartu z kitu: „tento plus sign!" Je to
    plus-hand-drawn-sign-svgrepo-com.svg z vstupy/vizualna-identita/Icons hand drawn/,
    prekopírovaná sem ako /icons/pack/plus-sign.svg.
@@ -282,8 +288,8 @@ export const DOCK_MEDAL_CSS = `
   display:block;
   width:${(DOCK.faceW * 0.58).toFixed(0)}%;height:${(DOCK.faceW * 0.58).toFixed(0)}%;
   background:#F5F0E4;
-  -webkit-mask:url(/icons/pack/plus-sign.svg) center / contain no-repeat;
-  mask:url(/icons/pack/plus-sign.svg) center / contain no-repeat;
+  -webkit-mask:url(/icons/pack/paw-full.svg) center / contain no-repeat;
+  mask:url(/icons/pack/paw-full.svg) center / contain no-repeat;
 }
 .pk-medal-gloss{
   position:absolute;inset:0;border-radius:50%;pointer-events:none;mix-blend-mode:screen;
