@@ -153,6 +153,18 @@ export default function PackJoin() {
                   // nerozlišuje, aby sa z odpovede nedalo zisťovať, ktoré tokeny existujú.
                   : tx('pack.join.invalidBody', 'This link is not an invitation, or it was withdrawn. Ask the person who invited you for a new one.')
               }</Line>
+              {/* Cesta ďalej (audit 27. 9.): dovtedy tu bol len text a stránka bez navu nemala
+                  žiadny odchod. Použitá pozvánka → do svorky (prihlásenie si vypýta /pack sám),
+                  neplatná a expirovaná → na úvod DOGYPT. */}
+              <button
+                type="button"
+                onClick={() => navigate(phase.why === 'already_accepted' ? '/pack' : '/')}
+                style={cta(false)}
+              >
+                {phase.why === 'already_accepted'
+                  ? tx('pack.join.openPack', 'OPEN THE PACK')
+                  : tx('pack.join.home', 'BACK TO DOGYPT')}
+              </button>
             </>
           )}
 

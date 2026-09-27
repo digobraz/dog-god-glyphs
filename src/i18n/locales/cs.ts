@@ -3849,6 +3849,8 @@ export const cs: Partial<Dict> = {
   'pack.join.fullBody': 'K tomuhle psovi už někdo přibyl. Ozvi se tomu, kdo tě pozval.',
   'pack.join.fullTitle': 'Místo je už obsazené',
   'pack.join.invalidBody': 'Tenhle odkaz není pozvánka, nebo byla stažena. Popros o novou toho, kdo tě pozval.',
+  'pack.join.openPack': "OTEVŘÍT SMEČKU",
+  'pack.join.home': "ZPĚT NA DOGYPT",
   'pack.join.invalidTitle': 'Tahle pozvánka neplatí',
   'pack.join.loading': 'Otevírám pozvánku…',
   'pack.join.r.dogid': 'upravovat DOG ID',

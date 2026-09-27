@@ -1891,6 +1891,8 @@ export const sk: Partial<Dict> = {
   "pack.join.expiredBody": "Pozvánka platí sedem dní. Popros o novú toho, kto ťa pozval — trvá to jeden klik.",
   "pack.join.invalidTitle": "Táto pozvánka neplatí",
   "pack.join.invalidBody": "Tento odkaz nie je pozvánka, alebo bola stiahnutá. Popros o novú toho, kto ťa pozval.",
+  "pack.join.openPack": "OTVORIŤ SVORKU",
+  "pack.join.home": "SPÄŤ NA DOGYPT",
   "pack.join.title": "{owner} ťa volá k svorke!",
   "pack.join.body": "Prijmi pozvanie a dostaň sa do DOGYPTu, kde budeš mať prehľad o psovi: {dog}",
   "pack.join.signedAs": "Si prihlásený ako {email}.",
