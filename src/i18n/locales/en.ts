@@ -1236,6 +1236,11 @@ export const en = {
   'onepage.apps.ainubis.b2': 'Answers questions about your dog',
   'onepage.apps.ainubis.b3': 'A library of dog knowledge',
   'onepage.apps.ainubis.b4': 'Keeps watch over safety and alerts',
+  'onepage.apps.cause.name': 'COMMUNITY & HELP',
+  'onepage.apps.cause.b1': '€2 of every €11 goes to rescuing dogs',
+  'onepage.apps.cause.b2': 'Every expense public and documented',
+  'onepage.apps.cause.b3': 'Backing new research on dogs',
+  'onepage.apps.cause.b4': 'A pack that helps dogs in need',
   'onepage.need.step': 'Next step',
   'onepage.need.cta': 'Join the mission',
   // Číslo je dopočítané (počet psov + 1) a stojí v `<b>` za týmto kusom.

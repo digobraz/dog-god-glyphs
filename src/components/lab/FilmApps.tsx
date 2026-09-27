@@ -41,7 +41,7 @@
  *   ďalej      karusel sa točí po funkciách 1 → 4, text naľavo sa mení s ním
  * Zastávky: `APPS_STOPS` (OnePage.filmStops).
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { LAB } from '@/lib/labTheme';
@@ -68,12 +68,15 @@ type AppFeature = {
 const b4 = (id: string) => [1, 2, 3, 4].map((i) => `onepage.apps.${id}.b${i}`);
 
 /** Poradie = poradie v karuseli. Matej: *„dog id/profil, sniffer, dogtrips,
- *  AInubis a pomoc/možnosti… celkovo 4 obrazovky"*. */
+ *  AInubis a pomoc/možnosti… celkovo 4 obrazovky"*, 27. 9. doplnená piata. */
 const APPS: AppFeature[] = [
   { id: 'dogid', nameKey: 'heroglyph.flow.more.dogid.t', textKey: 'heroglyph.flow.more.dogid.d', bulletKeys: b4('dogid'), shots: [] },
   { id: 'sniffer', nameKey: 'heroglyph.flow.more.sniffer.t', textKey: 'heroglyph.flow.more.sniffer.d', bulletKeys: b4('sniffer'), shots: [] },
   { id: 'dogtrip', nameKey: 'heroglyph.flow.more.dogtrip.t', textKey: 'heroglyph.flow.more.dogtrip.d', bulletKeys: b4('dogtrip'), shots: [] },
   { id: 'ainubis', nameKey: 'heroglyph.flow.more.ainubis.t', textKey: 'heroglyph.flow.more.ainubis.d', bulletKeys: b4('ainubis'), shots: [] },
+  // 5/5 — Matej 27. 9.: *„komunita/pomoc… transparentná pomoc, nové výskumy —
+  // to, čo členstvo vie pomáhať psom"*. Detail = text „VYŠŠÍ CIEĽ" z heroflowu.
+  { id: 'cause', nameKey: 'onepage.apps.cause.name', textKey: 'heroglyph.flow.more.cause.d', bulletKeys: b4('cause'), shots: [] },
 ];
 
 /** Dráha ODCHODU HEROGLYPHu a príchodu telefónov (prvý ťah) vo `vh`. Oblúk
@@ -230,7 +233,11 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
               <p className="op-apps-eye">{t('onepage.apps.head')} · {i + 1}/{n}</p>
               <h3 className="op-apps-name">{t(a.nameKey)}</h3>
               <ul className="op-apps-ul">
-                {a.bulletKeys.map((k) => <li key={k}>{t(k)}</li>)}
+                {a.bulletKeys.map((k, j) => (
+                  <li key={k} style={{ ['--i' as string]: j } as CSSProperties}>
+                    <i className="op-apps-dot" aria-hidden="true" />{t(k)}
+                  </li>
+                ))}
               </ul>
               <button type="button" className="dgx-example op-apps-chip" onClick={() => setOpen(i)}>
                 {t('onepage.apps.more')}
@@ -335,7 +342,15 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           margin: 16px auto 0; max-width: 640px;
           font: 400 clamp(14px, 1.4vw, 20px)/1.5 'Space Grotesk', sans-serif; color: ${LAB.ink};
         }
+        /* Zlatá čiara pod nadpisom — tá istá ako pod VÍZIOU (.vhero-h2::after,
+           Matej 27. 9.: *„pod nadpis dať čiaru ako je pod víziou"*). */
+        .op-apps-h2::after, .op-apps-name::after {
+          content: ''; position: absolute; bottom: 0; height: 2px;
+          background: linear-gradient(90deg, rgba(201,154,63,0) 0%, rgba(201,154,63,.85) 22%, rgba(201,154,63,.85) 78%, rgba(201,154,63,0) 100%);
+        }
+        .op-apps-h2::after { left: 50%; transform: translateX(-50%); width: min(220px, 60%); }
         .op-apps-h2 {
+          position: relative; padding-bottom: 16px;
           margin: 0; text-align: center;
           font: 700 clamp(24px, 4.2vw, 56px)/1.1 'Cinzel', serif; letter-spacing: .06em; text-transform: uppercase;
           background: linear-gradient(90deg, #8A6420, #C99A3F 30%, #E8C35A 50%, #C99A3F 70%, #8A6420);
@@ -401,16 +416,45 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           margin: 0 0 8px; font: 500 10px/1.4 'Space Grotesk', sans-serif; letter-spacing: .22em;
           text-transform: uppercase; color: rgba(35,22,8,.6);
         }
+        /* Pri nadpise zarovnanom doľava čiara vychádza z plnej zlatej a doznieva. */
+        .op-apps-name::after {
+          left: 0; width: min(200px, 70%);
+          background: linear-gradient(90deg, rgba(201,154,63,.9) 0%, rgba(201,154,63,.85) 55%, rgba(201,154,63,0) 100%);
+        }
         .op-apps-name {
-          margin: 0 0 24px; white-space: nowrap; font: 700 clamp(24px, 3vw, 40px)/1.1 'Cinzel', serif; letter-spacing: .06em; color: #8A6420;
+          position: relative; padding-bottom: 16px;
+          margin: 0 0 8px; white-space: nowrap; font: 700 clamp(24px, 3vw, 40px)/1.1 'Cinzel', serif; letter-spacing: .06em; color: #8A6420;
         }
-        .op-apps-ul { margin: 0 0 32px; padding: 0; list-style: none; font: 400 16px/1.5 'Space Grotesk', sans-serif; color: ${LAB.ink}; }
-        /* Odrážka = JEDEN riadok (Matej 27. 9.) — zalomenie by rozhodilo výšku slajdov. */
-        .op-apps-ul li { position: relative; margin: 0 0 12px; padding-left: 20px; white-space: nowrap; }
-        .op-apps-ul li::before {
-          content: ''; position: absolute; left: 0; top: .6em; width: 6px; height: 6px;
-          border-radius: 999px; background: ${LAPIS.edge};
+        /* ODRÁŽKY = RIADKY (Matej 27. 9.: *„zatraktívni… urob tam riadky,
+           pulzujúce odrážky, skrátka nejak to oživiť"*). Deliace čiary ako vo
+           VÍZII, bod = lapisová bodka s vlnou (hotspot DOGTRIXu), riadky
+           nabehnú postupne, keď sa slajd rozsvieti. */
+        .op-apps-ul { margin: 0 0 24px; padding: 0; list-style: none; font: 400 16px/1.5 'Space Grotesk', sans-serif; color: ${LAB.ink}; }
+        /* Odrážka = JEDEN riadok — zalomenie by rozhodilo výšku slajdov. */
+        .op-apps-ul li {
+          position: relative; display: flex; align-items: center; gap: 16px;
+          padding: 12px 0; white-space: nowrap;
+          border-bottom: 1px solid rgba(201,154,63,.35);
+          opacity: 0; transform: translateX(-16px);
+          transition: opacity .5s ease, transform .5s ease;
+          transition-delay: calc(var(--i, 0) * 110ms + 150ms);
         }
+        .op-apps-txt.is-on .op-apps-ul li { opacity: 1; transform: none; }
+        .op-apps-dot {
+          position: relative; flex: none; width: 8px; height: 8px; border-radius: 999px;
+          background: ${LAPIS.edge}; box-shadow: 0 0 0 2px #FBF5E6;
+        }
+        .op-apps-dot::after {
+          content: ''; position: absolute; inset: -4px; border-radius: inherit;
+          border: 1.5px solid rgba(22,48,122,.55);
+          animation: opAppsDot 2.4s ease-out infinite;
+          animation-delay: calc(var(--i, 0) * .6s);
+        }
+        @keyframes opAppsDot {
+          0% { transform: scale(.6); opacity: .9; }
+          70%, 100% { transform: scale(2.2); opacity: 0; }
+        }
+        .op-apps-ul li:hover .op-apps-dot { background: #2A4CA8; }
         .op-apps .op-apps-chip { margin: 0; }
         /* Popup — plášť je .op-alba z OnePage, tu len obsah. */
         .op-apps-pop-p { margin: 16px auto 0; max-width: 560px; font: 400 16px/1.55 'Space Grotesk', sans-serif; color: ${LAB.ink}; }
@@ -440,11 +484,12 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           .op-apps-txt { transform: none; }
           .op-apps-name { margin-bottom: 8px; }
           .op-apps-ul { margin-bottom: 16px; font-size: 14px; }
-          .op-apps-ul li { margin-bottom: 4px; }
+          .op-apps-ul li { padding: 8px 0; gap: 12px; }
           .op-apps-sl { gap: 8px; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .op-apps-ph, .op-apps-txt, .op-apps-sl-track { transition: none; }
+          .op-apps-ph, .op-apps-txt, .op-apps-sl-track, .op-apps-ul li { transition: none; }
+          .op-apps-dot::after { animation: none; }
         }
       `}</style>
     </section>
