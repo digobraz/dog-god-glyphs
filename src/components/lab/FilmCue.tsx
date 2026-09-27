@@ -42,11 +42,14 @@ function Chevron({ i, scale }: { i: number; scale: number }) {
   );
 }
 
-export default function FilmCue({ moving, onNext, label }: { moving: boolean; onNext: () => void; label: string }) {
+export default function FilmCue({ moving, onNext, label, hint }: { moving: boolean; onNext: () => void; label: string; hint?: string }) {
   const sc = CUE.order === 'A' ? [1, 0.78, 0.58] : CUE.order === 'B' ? [0.58, 0.78, 1] : [0.8, 0.8, 0.8];
   return (
     <button type="button" className={`op-cue${moving ? ' is-moving' : ''}`} aria-label={label} onClick={onNext}
       style={{ ['--dur' as string]: `${CUE.dur}s`, ['--gap' as string]: `${CUE.gap}s`, ['--dim' as string]: CUE.dim, ['--glow' as string]: `${CUE.glow}px` } as React.CSSProperties}>
+      {/* Nápis nad šípkami — len v príbehu (Matej 27. 9.: *„nad šípkami nápis
+          prescroluj príbeh"*). Miesto drží stále, aby šípky neposkakovali. */}
+      <em className={`op-cue-hint${hint ? ' is-on' : ''}`}>{hint ?? ''}</em>
       {sc.map((s, i) => (
         <span key={i} style={{ marginTop: i ? CUE.space : 0 }}><Chevron i={i} scale={s} /></span>
       ))}
@@ -63,6 +66,13 @@ export const FILM_CUE_CSS = `
     transition: opacity .35s ease;
   }
   .op-cue > span { display: block; line-height: 0; }
+  .op-cue-hint {
+    display: block; min-height: 12px; margin-bottom: 8px; font-style: normal;
+    font: 500 10px/1.2 'Space Grotesk', sans-serif; letter-spacing: .22em; text-transform: uppercase;
+    color: rgba(239,215,154,.85); white-space: nowrap;
+    opacity: 0; transition: opacity .4s ease;
+  }
+  .op-cue-hint.is-on { opacity: 1; }
   .op-cue.is-moving { opacity: 0; pointer-events: none; }
   .op-cue-c { display: block; overflow: visible; opacity: var(--dim); animation: opCueRun var(--dur) ease-in-out infinite; animation-delay: calc(var(--i) * var(--gap)); }
   .op-cue:hover .op-cue-c { animation-duration: calc(var(--dur) * .6); }

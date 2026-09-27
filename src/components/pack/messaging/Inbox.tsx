@@ -23,6 +23,7 @@
 // `t()` na celý inbox — Slovák tak v slovenskom rozhraní čítal „No messages yet" a dátumy
 // „Aug 9" (natvrdo `en-US`). Thread.tsx je preložený od začiatku; Inbox dorovnaný 2026-08-12.
 import { BUDDY_LIVE } from '@/lib/packFlags';
+import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { useEffect, useState } from 'react';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_COL_FIT, packColCSS } from '@/components/pack/packTheme';
 import { MSG_SKIN_CSS, useMsgSkin } from './msgTheme';
@@ -62,10 +63,11 @@ export const INBOX_CSS = `
    aby sa krok späť zo správy nepohol o pixel. Vodorovný padding preto drží vnútro, nie pás. */
 .msg-inbox-head{position:sticky;top:0;z-index:3;padding:calc(env(safe-area-inset-top,0px) + 22px) 0 16px;background:var(--msg-bar);border-bottom:1px solid var(--msg-bar-edge);box-shadow:var(--msg-bar-shadow);flex-shrink:0;}
 .msg-inbox-headinner{display:flex;align-items:center;justify-content:space-between;gap:12px;${PACK_COL_FIT}margin:0 auto;}
-.msg-inbox-title{font-family:${FONT_TITLE};font-weight:700;font-size:20px;color:var(--msg-title);}
+.msg-inbox-title{flex:1 1 auto;min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:20px;color:var(--msg-title);}
 .msg-inbox-acts{display:flex;align-items:center;gap:8px;flex-shrink:0;}
-.msg-x{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:var(--msg-btn);border:1px solid var(--msg-btn-edge);color:var(--msg-btn-ink);font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,color .15s,background .15s;}
-.msg-x:hover{border-color:${T.cardEdge};color:var(--msg-title);background:var(--msg-btn-hot);}
+/* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
+.msg-x{${backCircleCSS('pale')}}
+.msg-x:hover{${backHoverCSS('pale')}}
 /* ⚠️ Doska sa MUSÍ držať obsahu, preto tu NIE JE flex:1 1 auto — s ním by sa pri troch
    vláknach roztiahla na celú výšku okna a bola z nej prázdna platňa.
    ⚠️ Rám berie 6 px z každej strany, tak vodorovný padding klesol o toľko isto (16 -> 10).
@@ -219,10 +221,10 @@ export function Inbox({ onOpenThread, onClose, onOpenSniffer, onOpenTrip }: {
       <style>{INBOX_CSS}</style>
       <div className="msg-inbox-head">
         <div className="msg-inbox-headinner">
+          <button type="button" className="msg-x" onClick={onClose} aria-label={t('pack.msg.closeAriaLabel')}><BackIcon /></button>
           <div className="msg-inbox-title">{t('pack.msg.inboxTitle')}</div>
           <div className="msg-inbox-acts">
             <SkinToggle skin={skin} onToggle={toggleSkin} />
-            <button type="button" className="msg-x" onClick={onClose} aria-label={t('pack.msg.closeAriaLabel')}>×</button>
           </div>
         </div>
       </div>

@@ -1800,10 +1800,11 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
   width:min(360px,calc(100vw - 28px));padding:12px 14px 10px;border-radius:14px;
   background:linear-gradient(180deg,rgba(23,20,14,.97),rgba(11,9,6,.97));
   border:1.5px solid ${TRAIL_LINE.light};box-shadow:0 12px 34px rgba(0,0,0,.6);color:#F3E9FF;}
-.trp-peek-x{position:absolute;top:6px;right:9px;background:none;border:0;color:rgba(243,233,255,.6);
-  font-size:19px;line-height:1;cursor:pointer;padding:2px 4px;}
+/* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
+.trp-peek-x{position:absolute;top:8px;left:8px;${backCircleCSS('pale')}}
+.trp-peek-x:hover{${backHoverCSS('pale')}}
 .trp-peek-name{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.02em;
-  padding-right:22px;margin-bottom:3px;}
+  padding-left:40px;min-height:30px;margin-bottom:3px;}
 .trp-peek-row{font-family:${FONT_UI};font-weight:500;font-size:12px;color:rgba(243,233,255,.82);
   display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
 .trp-peek-sep{color:rgba(243,233,255,.35);}
@@ -2019,9 +2020,11 @@ ${TRAIL_LINE_CSS}
   .trp-msheet-back{position:fixed;inset:0;z-index:960;background:rgba(0,0,0,0.55);backdrop-filter:blur(2px);}
   .trp-msheet{position:fixed;left:0;right:0;bottom:0;z-index:961;display:flex;flex-direction:column;max-height:86vh;background:rgba(10,9,6,0.97);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid ${T.onDarkBorder};border-radius:20px 20px 0 0;box-shadow:0 -18px 50px rgba(0,0,0,0.6);padding-bottom:env(safe-area-inset-bottom,0px);}
   .trp-msheet-grab{width:38px;height:4px;border-radius:999px;background:rgba(245,240,228,0.22);margin:9px auto 2px;flex:0 0 auto;}
-  .trp-msheet-head{display:flex;align-items:center;justify-content:space-between;padding:8px 18px 12px;flex:0 0 auto;}
+  .trp-msheet-head{display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:8px 18px 12px;flex:0 0 auto;}
   .trp-msheet-title{font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:${GOLD};}
-  .trp-msheet-x{width:30px;height:30px;border-radius:50%;background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:15px;line-height:1;cursor:pointer;}
+  /* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
+  .trp-msheet-x{${backCircleCSS('pale')}}
+  .trp-msheet-x:hover{${backHoverCSS('pale')}}
   .trp-msheet-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:0 18px 16px;display:flex;flex-direction:column;gap:15px;}
   .trp-msheet-field{display:flex;flex-direction:column;gap:6px;}
   .trp-msheet-pair{display:flex;gap:10px;}
@@ -2648,7 +2651,6 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-msheet::before{content:'';position:absolute;left:0;right:0;top:0;height:${NAV_R.rim}px;border-radius:20px 20px 0 0;background:linear-gradient(180deg,#FCF0C2,#D8B052);box-shadow:0 1px 0 ${NAV_GOLD.edge};}
   .trp-msheet-grab{background:rgba(42,22,8,0.28);}
   .trp-msheet-title{color:${P_INK};}
-  .trp-msheet-x{background:${P_FIELD};border:1px solid ${P_BORDER};color:${P_INK};}
   .trp-msheet-label{color:${P_DIM};}
   .trp-msheet-chip{background:${P_SOFT};border:1px solid ${P_BORDER};color:${P_INK};}
 
@@ -6582,8 +6584,8 @@ export default function PackMap() {
           <div className="trp-msheet" role="dialog" aria-label={t('pack.map.filters')}>
             <div className="trp-msheet-grab" aria-hidden />
             <div className="trp-msheet-head">
+              <button type="button" className="trp-msheet-x" onClick={() => setFilterSheetOpen(false)} aria-label={t('pack.map.closeFilters')}><BackIcon /></button>
               <span className="trp-msheet-title">{t('pack.map.filters')}</span>
-              <button type="button" className="trp-msheet-x" onClick={() => setFilterSheetOpen(false)} aria-label={t('pack.map.closeFilters')}>✕</button>
             </div>
 
             <div className="trp-msheet-body">
@@ -7254,7 +7256,7 @@ export default function PackMap() {
                 Zavrieť sa dá krížikom aj ťuknutím na inú pilulku — a kreslenie medzitým beží. */}
             {drawPeek && (
               <div className="trp-peek" role="dialog" aria-label={drawPeek.name}>
-                <button type="button" className="trp-peek-x" onClick={() => setDrawPeek(null)} aria-label={t('pack.map.closePeek')}>×</button>
+                <button type="button" className="trp-peek-x" onClick={() => setDrawPeek(null)} aria-label={t('pack.map.closePeek')}><BackIcon /></button>
                 {/* ⚠️ AINUBIS SA MUSÍ OZVAŤ (Matej 2026-08-25: „ainubis by sa mal ozvať a pri kliku
                     na inú trasu napísať — prešiel si túto istú trasu? nekresli ju znova iba ju
                     zapíš"). Karta bez tejto vety len POPISUJE cudziu trasu; s ňou POVIE, čo s tým

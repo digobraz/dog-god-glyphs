@@ -122,6 +122,8 @@ const pinnedAt = (sel: string, f: number): number | null => {
  *  úvodu, takže jeho pásmo 0.10–0.18 sadne na prvé pixely dráhy crawlu. Odchod
  *  výzvy sa preto meria piatou dráhou filmu, nie týmto číslom (viď KEEP_OUT). */
 const STORY_AT = 0.20;
+/** Kde na dráhe príbehu naplno svieti prvá veta — začiatok voľného pásma. */
+const STORY_START = 0.14;
 
 type FilmSlide = {
   id: string;
@@ -3691,6 +3693,7 @@ export default function OnePage() {
   // obrazovky príbehu, DOGTRIX, ALBA, most a kniha.
   const [filmMoving, setFilmMoving] = useState(false);
   const [atFilmEnd, setAtFilmEnd] = useState(false);
+  const [inStory, setInStory] = useState(false);
   /** Popup s tromi Albami — vstup je chip PRÍKLAD pri podnadpise HEROGLYPH. */
   const [albaOpen, setAlbaOpen] = useState(false);
   const albaOpenRef = useRef(false);
@@ -3702,7 +3705,11 @@ export default function OnePage() {
     return () => window.removeEventListener('keydown', onKey);
   }, [albaOpen]);
   useEffect(() => {
-    const on = () => setAtFilmEnd(window.scrollY >= document.documentElement.scrollHeight - window.innerHeight - 8);
+    const on = () => {
+      setAtFilmEnd(window.scrollY >= document.documentElement.scrollHeight - window.innerHeight - 8);
+      const z = filmFree();
+      setInStory(!!z && window.scrollY >= z[0] - 4 && window.scrollY < z[1] - 4);
+    };
     on();
     window.addEventListener('scroll', on, { passive: true });
     return () => window.removeEventListener('scroll', on);
@@ -3734,7 +3741,12 @@ export default function OnePage() {
     const tl = document.querySelector<HTMLElement>('.op-timeline');
     if (!tl) return null;
     const top = tl.getBoundingClientRect().top + window.scrollY;
-    return [top, top + Math.max(0, tl.offsetHeight - filmVh())];
+    const span = Math.max(0, tl.offsetHeight - filmVh());
+    // Začiatok pásma = bod, kde svieti prvá veta („Pred desiatimi rokmi…").
+    // AboutLab ju vo filme rozsvieti pri 0,10 dráhy (pásmo 0.10–0.18 posunuté
+    // o OPENING_END, viď AboutLab.tsx). Na 0 je čierna — tam motor zastavoval
+    // a Matej: *„scrolujem nejak veľa, aby sa to vôbec pohlo"*.
+    return [top + span * STORY_START, top + span];
   }, []);
   const filmGo = useFilmStops({
     stops: filmStops,
@@ -3788,7 +3800,7 @@ export default function OnePage() {
           šípky, ktoré navádzajú na SLIDE… 3 pod sebou blikajúce"*. Jedny pre
           celý film; počas jazdy motora zhasnú, klik = ďalšia obrazovka. */}
       {!wallOpen && !atFilmEnd && (
-        <FilmCue moving={filmMoving} onNext={() => filmGo(1)} label={t('onepage.cue.next')} />
+        <FilmCue moving={filmMoving} onNext={() => filmGo(1)} label={t('onepage.cue.next')} hint={inStory ? t('onepage.cue.story') : undefined} />
       )}
       {albaOpen && (
         <div className="op-alba" role="dialog" aria-modal="true" aria-label="ALBA" data-film-free onClick={() => setAlbaOpen(false)}>
@@ -4115,7 +4127,9 @@ export default function OnePage() {
           background-position: center;
           background-repeat: no-repeat;
           filter: brightness(0.5) saturate(0.8);
-          opacity: 0.4;
+          /* 0.34 = o 15 % tmavšie (Matej 27. 9.: *„príbehovú linku ešte o čosi
+             stmaviť o 15 %"*). ⚠️ To isté číslo nesie GATE_DIM vo FilmGate.tsx. */
+          opacity: 0.34;
         }
 
         /* ── FILM SA POSÚVA PO STRÁNKACH (snap) ───────────────────────────

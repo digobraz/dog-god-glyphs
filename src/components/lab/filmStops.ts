@@ -51,6 +51,7 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
   const apiRef = useRef(api);
   apiRef.current = api;
   const goRef = useRef<(dir: 1 | -1) => void>(() => {});
+  const stepRef = useRef<(dir: 1 | -1) => void>(() => {});
 
   useEffect(() => {
     if (!enabled) return;
@@ -100,6 +101,19 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
       if (to != null) ride(to);
     };
     goRef.current = go;
+    /** Klik na šípky: vo voľnom pásme sa ide po KÚSKOCH (0,8 obrazovky),
+     *  nie na jeho koniec — Matej 27. 9.: *„ak človek klikne na šípku, nech sa
+     *  mu to nepreskroluje až dolu"*. */
+    stepRef.current = (dir: 1 | -1) => {
+      if (moving) return;
+      const z = apiRef.current.free?.();
+      if (z && inFree(dir)) {
+        const y = window.scrollY + dir * window.innerHeight * 0.8;
+        ride(Math.max(z[0], Math.min(z[1], y)));
+        return;
+      }
+      go(dir);
+    };
 
     /** Je poloha vo voľnom pásme a ťah smeruje DOVNÚTRA neho? */
     const inFree = (dir: 1 | -1): boolean => {
@@ -173,9 +187,10 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
       window.removeEventListener('touchend', onTouchEnd);
       window.removeEventListener('keydown', onKey);
       goRef.current = () => {};
+      stepRef.current = () => {};
     };
   }, [enabled]);
 
-  /** Pre šípky dole — klik = ďalšia obrazovka. */
-  return (dir: 1 | -1) => goRef.current(dir);
+  /** Pre šípky dole — klik = ďalšia obrazovka (vo voľnom pásme kúsok). */
+  return (dir: 1 | -1) => stepRef.current(dir);
 }

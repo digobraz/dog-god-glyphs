@@ -370,7 +370,7 @@
     "odsadenie": 0
   },
   "components/pack/WillPanel.tsx": {
-    "radius": 1,
+    "radius": 0,
     "font": 6,
     "zavoj": 1,
     "progres": 0,
@@ -391,7 +391,7 @@
   },
   "components/pack/addtrip/AddTripLog.tsx": {
     "radius": 20,
-    "font": 64,
+    "font": 63,
     "zavoj": 5,
     "progres": 0,
     "ram": 8,
@@ -411,13 +411,13 @@
   },
   "components/pack/addtrip/GeometryPicker.tsx": {
     "radius": 0,
-    "font": 13,
+    "font": 12,
     "zavoj": 2,
     "progres": 0,
     "ram": 2,
     "tien": 11,
     "pismenka": 5,
-    "odsadenie": 27
+    "odsadenie": 26
   },
   "components/pack/addtrip/PlaceSearch.tsx": {
     "radius": 2,
@@ -454,7 +454,7 @@
     "font": 4,
     "zavoj": 1,
     "progres": 1,
-    "ram": 1,
+    "ram": 0,
     "tien": 1,
     "pismenka": 1,
     "odsadenie": 6
@@ -661,7 +661,7 @@
   },
   "components/pack/trip/TripCreatorPopup.tsx": {
     "radius": 2,
-    "font": 5,
+    "font": 4,
     "zavoj": 1,
     "progres": 0,
     "ram": 0,
@@ -720,7 +720,7 @@
     "odsadenie": 1
   },
   "pages/PackDogDetail.tsx": {
-    "radius": 29,
+    "radius": 28,
     "font": 63,
     "zavoj": 1,
     "progres": 1,
@@ -761,13 +761,13 @@
   },
   "pages/PackMap.tsx": {
     "radius": 22,
-    "font": 68,
+    "font": 66,
     "zavoj": 67,
     "progres": 0,
     "ram": 27,
     "tien": 58,
     "pismenka": 29,
-    "odsadenie": 101
+    "odsadenie": 100
   },
   "pages/PackNatureQuiz.tsx": {
     "radius": 6,
@@ -791,10 +791,10 @@
   },
   "pages/PackTripArticle.tsx": {
     "radius": 3,
-    "font": 19,
+    "font": 18,
     "zavoj": 4,
     "progres": 0,
-    "ram": 4,
+    "ram": 3,
     "tien": 3,
     "pismenka": 8,
     "odsadenie": 18

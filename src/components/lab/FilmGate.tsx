@@ -22,6 +22,9 @@ import { LAB } from '@/lib/labTheme';
 export const GATE_VH = 320;
 /** Kde na dráhe stojí zastávka „brána zatvorená, celá vidieť". */
 export const GATE_REST = 0.3;
+/** Krytie zhasnutej brány v pozadí príbehu (.op-wall::before v OnePage). Brána
+ *  sa rozsvecuje PRÁVE Z NEJ, preto musí sedieť presne. */
+const GATE_DIM = 0.34;
 /** Druhá zastávka — video dohralo (ruka a labka sa dotkli), obraz ešte nebledne. */
 export const GATE_TOUCH = 0.84;
 
@@ -46,9 +49,15 @@ export default function FilmGate() {
       const p = clamp01(-r.top / span);
       if (Math.abs(p - lastP) < 0.0005) return;
       lastP = p;
-      const rise = easeInOut(seg(p, 0.02, GATE_REST));
+      const rise = easeInOut(seg(p, 0.01, GATE_REST));
       const open = easeInOut(seg(p, GATE_REST, 0.62));
       const pale = seg(p, 0.86, 1);
+      // 🔴 BEZ PRÍCHODU ZDOLA (Matej 27. 9.: *„záver nie je scroll na osvetlené
+      // dvere, ale táto scéna sa osvetlí… bez pohnutia"*). Kým sekcia neprilepí,
+      // je javisko priehľadné a vidno len zhasnutú bránu v pozadí príbehu.
+      // V okamihu prilepenia sa naň prepne tá istá brána v tom istom jase —
+      // prechod nie je vidieť — a až potom sa rozsvecuje.
+      sec.style.setProperty('--g-in', r.top <= 1 ? '1' : '0');
       sec.style.setProperty('--g-rise', rise.toFixed(4));
       sec.style.setProperty('--g-open', open.toFixed(4));
       sec.style.setProperty('--g-pale', pale.toFixed(4));
@@ -72,16 +81,19 @@ export default function FilmGate() {
   return (
     <section ref={secRef} className="op-gate" aria-hidden="true" style={{ height: `${GATE_VH}lvh` }}>
       <div className="op-gate-stage">
+        <div className="op-gate-back" />
         <video ref={vidRef} className="op-gate-vid" src="/videos/touch_opening.mp4" muted playsInline preload="auto" />
         <div className="op-gate-door is-l"><div className="op-gate-img" /></div>
         <div className="op-gate-door is-r"><div className="op-gate-img" /></div>
         <div className="op-gate-pale" />
       </div>
       <style>{`
-        .op-gate { position: relative; background: #000; }
+        .op-gate { position: relative; }
         .op-gate-stage {
-          position: sticky; top: 0; height: 100lvh; overflow: hidden; background: #000;
+          position: sticky; top: 0; height: 100lvh; overflow: hidden;
+          opacity: var(--g-in, 0);
         }
+        .op-gate-back { position: absolute; inset: 0; background: #000; }
         .op-gate-vid {
           position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
           opacity: var(--g-open, 0);
@@ -91,7 +103,7 @@ export default function FilmGate() {
            Rozsvietenie = jas aj krytie idú z tejto hodnoty na plnú. */
         .op-gate-door {
           position: absolute; top: 0; width: 50%; height: 100%; overflow: hidden;
-          opacity: calc(0.4 + var(--g-rise, 0) * 0.6);
+          opacity: calc(${GATE_DIM} + var(--g-rise, 0) * ${1 - GATE_DIM});
           filter: brightness(calc(0.5 + var(--g-rise, 0) * 0.5)) saturate(calc(0.8 + var(--g-rise, 0) * 0.2));
         }
         .op-gate-door.is-l { left: 0; transform: translateX(calc(var(--g-open, 0) * -100%)); }

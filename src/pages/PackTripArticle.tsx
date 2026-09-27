@@ -31,7 +31,11 @@ import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL_FIT, packColCSS, HIT_CSS } from '@/components/pack/packTheme';
+<<<<<<< HEAD
 import { BackButton, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
+=======
+import { BackButton, BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
+>>>>>>> 4a872cf (Auto-save 2026-09-27 12:12)
 // Lapisové hlavné CTA + priesvitný tint stavu — jeden zdroj pre celý /pack (2026-08-26/28).
 import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK, PALE } from '@/components/pack/navGoldSkin';
 // Emoji v čísle výletu (km, prevýšenie) — bez tohto fontu sadne Windows na čiernobiely
@@ -294,7 +298,9 @@ const CSS = `
 /* bod 3 (iterácia 14): fotky v galérii klikacie → lightbox (fullscreen popup) */
 .pta-lightbox{position:fixed;inset:0;z-index:200;background:rgba(5,5,5,0.94);display:flex;align-items:center;justify-content:center;padding:28px;}
 .pta-lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:10px;}
-.pta-lightbox-close{position:absolute;top:16px;right:16px;z-index:2;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff;font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+/* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
+.pta-lightbox-close{position:absolute;top:16px;left:16px;z-index:2;${backCircleCSS('pale')}}
+.pta-lightbox-close:hover{${backHoverCSS('pale')}}
 .pta-lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff;font-size:24px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .pta-lightbox-prev{left:16px;}
 .pta-lightbox-next{right:16px;}
@@ -2048,10 +2054,10 @@ export default function PackTripArticle() {
         />
       )}
 
-      {/* bod 3 (iterácia 14): lightbox — fullscreen popup, tmavé pozadie, ✕ + prev/next */}
+      {/* bod 3 (iterácia 14): lightbox — fullscreen popup, tmavé pozadie, šípka späť (do 27. 9. ✕) + prev/next */}
       {lightboxIdx !== null && (
         <div className="pta-lightbox" onClick={() => setLightboxIdx(null)}>
-          <button type="button" className="pta-lightbox-close" onClick={() => setLightboxIdx(null)} aria-label={t('pack.trip.photoClose')}>×</button>
+          <button type="button" className="pta-lightbox-close" onClick={() => setLightboxIdx(null)} aria-label={t('pack.trip.photoClose')}><BackIcon /></button>
           {trail.photos.length > 1 && (
             <button
               type="button"

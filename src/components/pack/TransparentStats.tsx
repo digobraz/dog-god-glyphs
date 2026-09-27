@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
+import { BackButton } from './BackButton';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { X } from 'lucide-react';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from './packTheme';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 import { EDGE_BASE } from '@/lib/env';
@@ -342,23 +342,8 @@ export function TransparentStats() {
                 boxShadow: T.panelShadow,
               }}
             >
-              <button
-                type="button"
-                onClick={() => setOpenTile(null)}
-                aria-label={t('pack.invite.close')}
-                className="absolute flex items-center justify-center"
-                style={{
-                  top: 10,
-                  right: 10,
-                  width: 26,
-                  height: 26,
-                  borderRadius: 999,
-                  border: `1px solid ${T.border}`,
-                  color: T.inkWarm,
-                }}
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
+              {/* × → šípka späť vľavo (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */}
+              <BackButton tone="pale" onClick={() => setOpenTile(null)} label={t('pack.invite.close')} style={{ marginBottom: 8 }} />
 
               <span className="flex gap-[5px]" style={{ marginBottom: 10 }}>
                 {Array.from({ length: ALLOC[openTile].share }).map((_, i) => (

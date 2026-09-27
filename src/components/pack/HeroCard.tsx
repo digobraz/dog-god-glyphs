@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { BackButton } from './BackButton';
 import { sizedUrl } from '@/services/cloudinaryService';
 import type { CSSProperties, FormEvent, ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { X } from 'lucide-react';
 // Brandové hand-drawn ikonky namiesto lucide (audit 12.8., nasadené 13.8.). `X` ostáva
 // lucide zámerne — systémový ovládač zavretia, brand glyf by tam pridal len šum.
 import { HandForward, HandHouseHeart, HandKey, HandLink, HandPaw, HandPencil, HandPlus } from './HandIcons';
@@ -1034,15 +1034,9 @@ function HeroPopup({
         background: T.panelGrad,
       }}
     >
-      {/* Krížik sedí v ROHU BLOKU (nie panela s textom) — je to zatvorenie celého prekrytia. */}
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label={t('pack.hero.popClose')}
-        style={{ position: 'absolute', top: 14, right: 16, background: 'none', border: 0, cursor: 'pointer', color: T.inkFaint, lineHeight: 1 }}
-      >
-        <X className="h-5 w-5" />
-      </button>
+      {/* Šípka späť sedí v ĽAVOM ROHU BLOKU (nie panela s textom) — je to zatvorenie celého
+          prekrytia. Do 27. 9. 2026 krížik vpravo (Matej: „dávajme všade len šípky, nie krížiky"). */}
+      <BackButton tone="pale" onClick={onClose} label={t('pack.hero.popClose')} style={{ position: 'absolute', top: 12, left: 12 }} />
 
       <div
         onClick={(e) => e.stopPropagation()}

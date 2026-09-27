@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
+import { BackButton } from './BackButton';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Loader2, X } from 'lucide-react';
-// `Loader2`, `X`, `Check` ostávajú lucide — systémové ovládače (spinner, zavrieť, potvrdiť).
+import { Loader2 } from 'lucide-react';
+// `Loader2`, `Check` ostávajú lucide — systémové ovládače (spinner, potvrdiť). Zavrieť je od 27. 9. 2026 šípka späť.
 import { HandExit, HandKey } from './HandIcons';
 import { BrandIcon } from './BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
@@ -298,19 +299,12 @@ export function PackSettings() {
               boxShadow: T.panelShadow,
             }}
           >
-            <div className="flex items-center justify-between" style={{ marginBottom: 6 }}>
+            <div className="flex items-center" style={{ gap: 12, marginBottom: 6 }}>
+              {/* × → šípka späť vľavo (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */}
+              <BackButton tone="pale" onClick={() => setPwModalOpen(false)} label={t('pack.settings.close')} />
               <span style={{ fontFamily: FONT_TITLE, fontSize: 11, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.inkDim }}>
                 {t('pack.settings.password')}
               </span>
-              <button
-                type="button"
-                onClick={() => setPwModalOpen(false)}
-                aria-label={t('pack.settings.close')}
-                className="inline-flex items-center justify-center"
-                style={{ width: 30, height: 30, borderRadius: 999, background: T.tileBg, border: 'none', cursor: 'pointer', color: T.inkDim }}
-              >
-                <X className="h-4 w-4" />
-              </button>
             </div>
             <p style={{ fontFamily: FONT_UI, fontSize: 13, color: T.inkDim, margin: '0 0 16px' }}>
               {fromWelcome

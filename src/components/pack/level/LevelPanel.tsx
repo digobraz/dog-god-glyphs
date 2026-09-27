@@ -14,7 +14,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect } from 'react';
-import { X } from 'lucide-react';
+import { BackButton } from '../BackButton';
+
 import { FONT_TITLE, FONT_UI, PACK_THEME as T, GOLD_BTN } from '@/components/pack/packTheme';
 import type { LevelProgress, PointsRow } from '@/lib/tripPoints';
 import { tierOfLevel, tierGradient } from '@/lib/packTiers';
@@ -64,6 +65,8 @@ export function LevelPanel({ level, rows, onClose }: LevelPanelProps) {
       >
         {/* HLAVIČKA — rang, level v pilulke svojho pásma, meno pásma */}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
+          {/* × → šípka späť vľavo (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */}
+          <BackButton tone="pale" onClick={onClose} label={t('pack.tier.close')} />
           <div style={{ flex: '1 1 auto', minWidth: 0 }}>
             <div style={{
               fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 15,
@@ -87,18 +90,6 @@ export function LevelPanel({ level, rows, onClose }: LevelPanelProps) {
               {t('pack.tier.pointsOfNext', { points: level.points, next: level.nextPoints })}
             </div>
           </div>
-          <button
-            onClick={onClose}
-            aria-label={t('pack.tier.close')}
-            style={{
-              flex: '0 0 auto', width: 30, height: 30, borderRadius: '50%',
-              background: 'rgba(245,240,228,0.07)', border: '1px solid rgba(245,240,228,0.14)',
-              color: 'rgba(245,240,228,0.55)', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-          >
-            <X size={15} />
-          </button>
         </div>
 
         {/* LIŠTA POSTUPU — to isté číslo ako v hlavičke, len väčšie */}
