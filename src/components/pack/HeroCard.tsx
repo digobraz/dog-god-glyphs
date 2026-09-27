@@ -453,12 +453,14 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
             <span
               aria-hidden
               style={{
-                width: 5,
-                height: 5,
+                width: 8,
+                height: 8,
                 borderRadius: '50%',
                 flexShrink: 0,
-                background: T.accentGold ?? 'hsl(40 55% 50%)',
-                boxShadow: '0 0 6px rgba(201, 154, 63, 0.6)',
+                // Lapisová bodka (Matej 27. 9.: „pri pawtnerovi musíme vymyslieť nejakú ikonku
+                // alebo farbu" → variant 3). Zlatá bodka na zlatej pilulke nič nehovorila.
+                background: LAPIS.edge,
+                boxShadow: '0 0 6px rgba(22, 48, 122, 0.6)',
               }}
             />
             <span style={{ fontFamily: FONT_TITLE, fontSize: 10, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase' }}>
@@ -696,9 +698,12 @@ function DogSlot({ dog, size, boxH, gap }: { dog: HeroDog; size: number; boxH: n
                 whiteSpace: 'nowrap',
                 padding: `${Math.max(3, Math.round(size * 0.035))}px ${Math.max(6, Math.round(size * 0.072))}px`,
                 borderRadius: 999,
-                background: 'linear-gradient(180deg, #F5C73D, #E69E1A)',
-                color: '#3d1f00',
-                border: '1px solid rgba(250, 244, 236, 0.55)',
+                // LAPIS od 27. 9. 2026 (Matej nad hárkom plany/nakres-cislo-pawtner-2026-09-27:
+                // „daj A3" — oranžový gradient na papyruse bol „to jediné na tej obrazovke zlé").
+                // Ruší výnimku z locku 12. 9. „#1 zlatý ostáva"; teraz = tá istá farba ako pilulka dní.
+                background: LAPIS.grad,
+                color: LAPIS.ink,
+                border: '1px solid rgba(239, 215, 154, 0.55)',
                 boxShadow: '0 2px 6px rgba(0,0,0,0.28)',
               }}
             >
