@@ -310,6 +310,17 @@ export function FlowWelcomeScreen() {
     navigate(`/?${q.toString()}`);
   };
 
+  // CTA HNEĎ PO ZARADENÍ (Matej 27. 9., audit 26. 9.: finále trvalo 12–14 s do
+  // klikateľného CTA). Certifikát sa ale vyrába NA TEJTO obrazovke (`DogCertJob`),
+  // takže skorý odchod by ho prerušil — ťuk pred dokončením sa zapamätá a na
+  // stenu sa ide, až keď je hotový (strop drží 25 s na psa vyššie).
+  const [wantWall, setWantWall] = useState(false);
+  const ctaReady = certDone;
+  useEffect(() => {
+    if (wantWall && ctaReady) toWall();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wantWall, ctaReady]);
+
   const totalN = dogs.reduce((m, d) => Math.max(m, d.n ?? 0), 0);
   const pct = Math.max(2, Math.min(100, (totalN / 1_000_000) * 100));
 
@@ -438,14 +449,15 @@ export function FlowWelcomeScreen() {
                     <motion.button
                       type="button"
                       className="hf-cta wl-cta"
-                      onClick={toWall}
-                      disabled={line < 4}
+                      onClick={() => (ctaReady ? toWall() : setWantWall(true))}
+                      disabled={!joined || wantWall}
+                      aria-busy={wantWall}
                       initial={false}
-                      animate={{ opacity: line >= 4 ? 1 : 0, y: line >= 4 ? 0 : 8 }}
-                      transition={{ delay: line >= 4 ? 1.6 : 0, duration: 0.4 }}
-                      style={{ visibility: line >= 4 ? 'visible' : 'hidden' }}
+                      animate={{ opacity: joined ? 1 : 0, y: joined ? 0 : 8 }}
+                      transition={{ delay: joined ? 0.3 : 0, duration: 0.4 }}
+                      style={{ visibility: joined ? 'visible' : 'hidden' }}
                     >
-                      {t('heroglyph.flow.welcomeNew.cta')}
+                      {wantWall ? t('heroglyph.flow.welcomeNew.ctaWait') : t('heroglyph.flow.welcomeNew.cta')}
                     </motion.button>
                   </div>
                 </div>

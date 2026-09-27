@@ -297,7 +297,8 @@ export function OwnerScreen() {
     who: t('heroglyph.flow.owner.askWho'),
     name: t('heroglyph.flow.owner.askName'),
     stars: t(gender === 'woman' ? 'heroglyph.flow.owner.askBornF' : 'heroglyph.flow.owner.askBornM'),
-    order: t('heroglyph.flow.owner.askOrder'),
+    // Matej 27. 9.: poradie sa nepýta znova — veta pripomenie, že ho určil na začiatku.
+    order: t(gender === 'woman' ? 'heroglyph.flow.owner.askOrderF' : 'heroglyph.flow.owner.askOrder'),
   };
   const pickGender = (v: string) => {
     setSelection('ownerGender', v);
@@ -520,7 +521,7 @@ export function OwnerScreen() {
                             : t('heroglyph.flow.owner.orderMissing')}
                         </span>
                         <button type="button" className="ow-change" onClick={() => navigate('/heroglyph/dogs?back=owner')}>
-                          {hasRank ? t('heroglyph.flow.owner.orderChange') : t('heroglyph.flow.owner.orderPick')}
+                          {hasRank ? t('heroglyph.flow.owner.orderCheck') : t('heroglyph.flow.owner.orderPick')}
                         </button>
                       </div>
                     )}

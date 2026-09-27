@@ -216,7 +216,7 @@ export function FlowStayChoice({ done, onDone, onMember, onMore }: {
                   a podľa toho uprav foto"*). Stupeň sa dopočíta tak, aby dlhší
                   riadok presne vyplnil šírku bubliny; medailón dostane zvyšok výšky. */}
               <h2 ref={titleRef} className="st-title" style={{ fontSize: titleSize }}>
-                <span>{t('heroglyph.flow.stay.titlePrefix').trim()}</span>
+                <span>{t(dogs.length > 1 ? 'heroglyph.flow.stay.titlePrefixMany' : 'heroglyph.flow.stay.titlePrefix').trim()}</span>
                 <span><b>{t('heroglyph.flow.stay.titleWord')}</b>{t('heroglyph.flow.stay.titleSuffix')}</span>
               </h2>
               <p>{t('heroglyph.flow.stay.sub')}</p>
