@@ -10,7 +10,7 @@ import { PageTopBar } from '@/components/PageTopBar';
 // ⚠️ Sady symbolov sa berú Z RÁMU, nevymenúvajú sa tu znovu — inak by náhľad
 //    vedľa poľa a slot v ráme boli dve rôzne sady toho istého.
 import { HeroglyphFrame, letterMap, zodiacMap, chineseMap, genderMap } from '@/components/HeroglyphFrame';
-import { FLOW_PALE_CSS, FLOW_CARVE_CSS, FLOW_GLYPH_CSS, HF_HIGHLIGHT } from '@/components/screens/flowPaleSkin';
+import { FLOW_PALE_CSS, FLOW_CARVE_CSS, FLOW_GLYPH_CSS, HF_HIGHLIGHT, FLOW_TITLE } from '@/components/screens/flowPaleSkin';
 import { TopicChips, FLOW_TOPIC_CSS, type TopicState } from '@/components/screens/flowTopicChips';
 import { DateDropdowns } from '@/components/DateDropdowns';
 import { FlowMedallion, FLOW_MEDAL_CSS, useSpeakMedal } from '@/components/screens/flowMedallion';
@@ -394,13 +394,12 @@ export function OwnerScreen() {
               <AnimatePresence>
                 {egypt && (
                   <FlowPanelShell key="egypt" className="ow-egypt" label={t('heroglyph.flow.ownerFinal.infoTitle')} onClose={() => setEgypt(false)}>
-                    <p className="hf-legend">{t('heroglyph.flow.ownerFinal.infoTitle')}</p>
+                    {/* Nadpis v tvare nadpisu otázky, smie na dva riadky (Matej 27. 9.:
+                        *„nadpis treba zväčšiť, kľudne na dva riadky… aby to sedelo s FLOW"*). */}
+                    <h2 className="ow-egypt-h">{t('heroglyph.flow.ownerFinal.infoTitle')}</h2>
                     <div className="fp-scroll">
                       <p className="ow-egypt-tx">{t('heroglyph.flow.ownerFinal.infoBody')}</p>
-                      <figure className="ow-egypt-fig">
-                        <img src={cleopatraImg} alt={t('heroglyph.flow.ownerFinal.cleopatraAlt')} />
-                        <figcaption>{t('heroglyph.flow.ownerFinal.cleopatraCaption')}</figcaption>
-                      </figure>
+                      <EgyptSlides alt={t('heroglyph.flow.ownerFinal.cleopatraAlt')} caption={t('heroglyph.flow.ownerFinal.cleopatraCaption')} />
                     </div>
                     <button type="button" className="hf-cta" onClick={() => setEgypt(false)}>{t('heroglyph.flow.ownerFinal.back')}</button>
                   </FlowPanelShell>
@@ -619,6 +618,39 @@ export function OwnerScreen() {
  *    dvom inde. Kto sem pridá prvok, MUSÍ iný zmenšiť (lock 24. 9.: zmenšuje sa
  *    OBSAH, nie rezerva od okraja).
  */
+/**
+ * SLAJDER KARTUŠE (Matej 27. 9. 2026: *„prvá bude foto a potom to, čo tam máme
+ * nakreslené"*). Posun prstom (scroll-snap) alebo ťuk na bodku.
+ * ⚠️ Fotka reliéfu je z Pinterestu (pôvod plancksconstant.org) — licencia
+ *    NEOVERENÁ; pred LIVE vyriešiť práva alebo vymeniť za voľnú (Wikimedia).
+ */
+function EgyptSlides({ alt, caption }: { alt: string; caption: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [at, setAt] = useState(0);
+  const slides = ['/images/cleopatra-cartouche-relief.webp', cleopatraImg];
+  const go = (i: number) => ref.current?.scrollTo({ left: i * ref.current.clientWidth, behavior: 'smooth' });
+  return (
+    <figure className="ow-egypt-fig">
+      <div
+        ref={ref}
+        className="ow-slides"
+        onScroll={(e) => { const el = e.currentTarget; setAt(Math.round(el.scrollLeft / Math.max(1, el.clientWidth))); }}
+      >
+        {slides.map((src, i) => (
+          <div key={src} className={`ow-slide${i === 0 ? ' is-photo' : ''}`}><img src={src} alt={alt} /></div>
+        ))}
+      </div>
+      <div className="ow-dots" role="tablist">
+        {slides.map((src, i) => (
+          <button key={src} type="button" role="tab" aria-selected={at === i} aria-label={`${i + 1}/${slides.length}`}
+            className={at === i ? 'on' : ''} onClick={() => go(i)} />
+        ))}
+      </div>
+      <figcaption>{caption}</figcaption>
+    </figure>
+  );
+}
+
 const OWNER_CSS = `
 /* Bublina: stupeň písma viazaný na ŠÍRKU BUBLINY (cqw), nie na okno — tá istá
    dvojica hodnôt ako PODSTATA, PATRÓN a POVAHA. */
@@ -633,10 +665,31 @@ const OWNER_CSS = `
 }
 .ow-info:hover, .ow-info.on { border-color: ${HF_HIGHLIGHT}; color: ${HF_HIGHLIGHT}; }
 .ow-stack .hf-plate { position: relative; }
+.ow-egypt-h {
+  margin: 0; text-align: center; text-wrap: balance;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: ${FLOW_TITLE}; line-height: 1.25;
+  letter-spacing: 0.02em; color: ${LAB.goldInk};
+}
+.ow-egypt .fp-scroll { container-type: inline-size; }
 .ow-egypt-tx { margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.45; color: ${LAB.inkBody}; }
-.ow-egypt-fig { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.ow-egypt-fig img { width: 100%; max-width: 320px; border-radius: 8px; }
-.ow-egypt-fig figcaption { font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: ${LAB.inkMuted}; text-align: center; }
+.ow-egypt .hf-cta { flex: 0 0 auto; }
+.ow-egypt-tx { flex: 0 0 auto; }
+/* Slajder berie ZVYŠOK výšky dosky — popup sa nerolluje a tlačidlo sa nestláča. */
+.ow-egypt-fig { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; flex: 1 1 auto; min-height: 120px; }
+.ow-slides {
+  width: 100%; flex: 1 1 auto; min-height: 0; display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+  scrollbar-width: none; border-radius: 12px;
+}
+.ow-slides::-webkit-scrollbar { display: none; }
+.ow-slide { flex: 0 0 100%; height: 100%; scroll-snap-align: center; display: flex; align-items: center; justify-content: center; }
+.ow-slide img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.ow-slide.is-photo img { border-radius: 12px; }
+.ow-dots { display: flex; gap: 8px; }
+.ow-dots button { width: 8px; height: 8px; padding: 0; border: none; border-radius: 999px; cursor: pointer; background: ${LAB.hairline}; }
+.ow-dots button.on { background: ${LAB.goldInk}; }
+.ow-egypt-fig figcaption { font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: ${LAB.inkMuted}; text-align: center; }
+/* Nízke okno (iPhone SE): popis pod slajdom ustúpi prvý — obrázok ho nesie aj tak. */
+@media (max-height: 700px) { .ow-egypt-fig figcaption { display: none; } .ow-egypt-fig { min-height: 96px; } }
 /* Farbu slova drží \`.hf-speak b\` (HF_HIGHLIGHT) — tu sa neprepisuje. */
 /* Osem prvkov pod sebou — rozstup je 8, nie 12 ako na POVAHE. Tá nesie jednu
    otázku, táto štyri. */
