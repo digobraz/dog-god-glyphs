@@ -684,6 +684,8 @@ const OWNER_CSS = `
 .ow-slide { flex: 0 0 100%; height: 100%; scroll-snap-align: center; display: flex; align-items: center; justify-content: center; }
 .ow-slide img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .ow-slide.is-photo img { border-radius: 12px; }
+/* Kresba zrkadlovo, aby vtáky pozerali doprava ako na reliéfe (Matej 27. 9. 2026). */
+.ow-slide:not(.is-photo) img { transform: scaleX(-1); }
 .ow-dots { display: flex; gap: 8px; }
 .ow-dots button { width: 8px; height: 8px; padding: 0; border: none; border-radius: 999px; cursor: pointer; background: ${LAB.hairline}; }
 .ow-dots button.on { background: ${LAB.goldInk}; }
