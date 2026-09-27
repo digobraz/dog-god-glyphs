@@ -24,8 +24,9 @@
 // Výsledok je JEDEN DOKUMENT NA PSA (`ResultDoc`), nie štyri karty pod sebou.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { X, ChevronLeft } from 'lucide-react';
-import { PACK_THEME, PACK_BOX, PACK_COL, PACK_HEAD, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, PAPER_PAGE_CSS, usePaperRoute } from '@/components/pack/packTheme';
+import { ChevronLeft } from 'lucide-react';
+import { PackTopRow } from '@/components/pack/PackTopRow';
+import { PACK_THEME, PACK_BOX, PACK_COL, PACK_HEAD, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, PAPER_PAGE_CSS, usePaperRoute, PACK_TOPROW_PAD } from '@/components/pack/packTheme';
 import {
   ELEMENT_QUESTIONS, ROLE_QUESTIONS, BALANCE_ITEMS, BALANCE_VET_NOTE,
   NATURE_ELEMENTS, NATURE_ROLES, NATURE_SPECIALS,
@@ -1370,18 +1371,12 @@ function Shell({ children, onClose, fill, overlay }: {
       <style>{NQ_CSS}</style>
       <div
         className={`relative z-10 mx-auto w-full px-4 sm:px-6 flex flex-col ${fill ? 'flex-1 pb-6' : 'pb-24'}`}
-        style={{ maxWidth: PACK_COL.wide, paddingTop: 'calc(env(safe-area-inset-top, 0px) + 22px)' }}
+        style={{ maxWidth: PACK_COL.wide, paddingTop: PACK_TOPROW_PAD }}
       >
-        <div className="flex justify-end" style={{ marginBottom: 12 }}>
-          {/* Krížik berie tón PODKLADU, nie šatu appky: tmavý kruh na papyruse
-              bol jediná čierna škvrna na stránke. */}
-          <button type="button" onClick={onClose} aria-label={t('pack.quiz.close')} style={{
-            width: 36, height: 36, borderRadius: 999, cursor: 'pointer',
-            background: paper ? PALE.soft : 'rgba(0,0,0,0.35)',
-            border: `1px solid ${paper ? PALE.border : PACK_THEME.border}`,
-            color: paper ? PALE.dim : '#E9D9B8', display: 'grid', placeItems: 'center',
-          }}><X className="h-4 w-4" /></button>
-        </div>
+        {/* × → ŠÍPKA SPÄŤ v spoločnom rade (Matej 27. 9. 2026: „pri kvízoch je nutný ten
+            krížik? nemáme ho nikde"). Robí to isté, čo krížik (`onClose`) — rozpracovaný kvíz
+            sa pred odchodom ešte opýta cez `requestClose`. Ľavý roh pripadol AINUBISOVI. */}
+        <PackTopRow onBack={onClose} backLabel={t('pack.quiz.back')} />
         {fill ? <div className="flex-1 flex flex-col" style={{ minHeight: 0 }}>{children}</div> : children}
       </div>
       {/* Dialóg žije TU, nie vedľa Shellu — NQ_CSS (a s ním `.nq-scrim`) sa vkladá

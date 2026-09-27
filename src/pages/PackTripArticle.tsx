@@ -31,9 +31,9 @@ import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL_FIT, packColCSS, HIT_CSS } from '@/components/pack/packTheme';
-import { BackButton } from '@/components/pack/BackButton';
+import { BackButton, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 // Lapisové hlavné CTA + priesvitný tint stavu — jeden zdroj pre celý /pack (2026-08-26/28).
-import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
+import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK, PALE } from '@/components/pack/navGoldSkin';
 // Emoji v čísle výletu (km, prevýšenie) — bez tohto fontu sadne Windows na čiernobiely
 // textový variant. Ten istý zdroj, aký drží značky na mape.
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
@@ -224,12 +224,13 @@ const CSS = `
 .pta-hero-grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.30) 0%,rgba(0,0,0,0) 34%,rgba(0,0,0,0.55) 100%);}
 /* CC atribúcia cover fotky (Wikimedia Commons, CC BY-SA — legálne nutná viditeľnosť) */
 .pta-hero-credit{position:absolute;top:8px;right:10px;z-index:4;font-family:system-ui,sans-serif;font-size:9.5px;letter-spacing:.02em;line-height:1.25;color:rgba(255,255,255,0.72);background:rgba(0,0,0,0.34);padding:3px 8px;border-radius:6px;max-width:62%;text-align:right;pointer-events:none;}
-/* Vzhľad kruhu ide z BackButton.tsx (tone scrim) — tu ostáva len POLOHA nad hero fotkou. */
+/* Vzhľad kruhu ide z BackButton.tsx (tone pale — od 27. 9. 2026 bledá aj na fotke, Matej: „zjednoťme to a daj ju tiež bledú") — tu ostáva len POLOHA nad hero fotkou. */
 .pta-back{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);left:18px;z-index:5;}
 /* Zrkadlo .pta-back — rovnaká výška aj tvar, aby hero mal dva rovnocenné rohy a nie jeden
    ovládač a jednu ozdobu. Zlatý inkoust hovorí „toto je tvoje", nie „pozor". */
-.pta-edit{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);right:18px;z-index:5;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.55);border:1px solid rgba(201,154,63,0.55);color:#E9C46A;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;}
-.pta-edit:hover{border-color:${T.cardEdge};color:#F5C73D;}
+/* 27. 9. 2026 bledá spolu so šípkou (tá istá plocha ako backCircleCSS pale), inkoust ostáva zlatý. */
+.pta-edit{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);right:18px;z-index:5;${backCircleCSS('pale')}color:${PALE.deep};font-size:16px;}
+.pta-edit:hover{${backHoverCSS('pale')}}
 /* iterácia 15 (Matej 2026-07-27): akčný rad je VON z hero fotky — sedí v glass paneli NAD
    stat tabuľkou (km/prevýšenie). Dôvod: ghost tlačidlá na fotke boli „slabo viditeľné a biedne",
    plné farby na tmavom paneli čítajú lepšie a fotka ostáva čistá.
@@ -1569,7 +1570,7 @@ export default function PackTripArticle() {
         {(trail as { photoCredit?: string }).photoCredit && (
           <div className="pta-hero-credit">{(trail as { photoCredit?: string }).photoCredit}</div>
         )}
-        <BackButton tone="scrim" className="pta-back" onClick={() => navigate('/pack/map')} label={t('pack.trip.backToTrips')} />
+        <BackButton tone="pale" className="pta-back" onClick={() => navigate('/pack/map')} label={t('pack.trip.backToTrips')} />
         {/* Ceruzka je v hero oproti šípke späť — je to akcia nad CELÝM článkom, nie nad jeho
             sekciou, a v rade pod titulom (triplist / prešiel som / zdieľať) by si konkurovala
             s vecami, ktoré robí ktokoľvek. Vidí ju len autor (`canEdit`). */}

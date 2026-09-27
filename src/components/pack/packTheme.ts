@@ -197,6 +197,32 @@ export const PAGE_AIR = {
   side: PACK_SPACE.lg,
 } as const;
 
+// ════════════════════════════════════════════════════════════════════════════
+// HORNÝ RAD /pack — [AINUBIS · šípka späť · pravý slot] (LOCK 27. 9. 2026)
+// ────────────────────────────────────────────────────────────────────────────
+// Matej 27. 9. 2026: *„zjednoť na každej stránke výšku aj veľkosť podľa triplistu"*
+// + *„AINUBISA bublinku musíme tiež zjednotiť veľkosť aj polohu"* + *„obsah musí ísť
+// nižšie podľa jedného pravidla v celom packu"*. Nad hárkom
+// `plany/nakres-hlavicka-pack-2026-09-27/v90.html`: *„ten vzor dajme na 90 … nie 104"*
+// → variant B (*„ano B super aplikuj to"*): celý rad vyššie, medzera pod ním ostáva.
+//
+//   rad začína 16 (= PAGE_AIR.min) · AINUBIS 54 vľavo · šípka 38 v strede na osi (⇒ 24)
+//   · OBSAH ZAČÍNA NA 90. Na mobile aj na PC.
+// ⚠️ 16 platí aj na PC, hoci `PAGE_AIR.md` je 24 — rad je chrome, nie obsah, a Matej
+//    schválil variant B so snímkou PC pred sebou.
+// 🔴 Čísla sa neopisujú: rad kreslí `PackTopRow`, odsadenie stĺpca nesie `PACK_TOPROW_PAD`.
+//    Obrazovka bez radu (mapa, článok, VAULT) ho nemá — AINUBIS tam ostáva dole.
+export const PACK_TOPROW = {
+  /** Vrch radu od safe-area. */
+  top: PAGE_AIR.min,
+  /** Výška radu = priemer kolieska AINUBISA. */
+  h: 54,
+  /** Začiatok obsahu od safe-area. */
+  content: 90,
+} as const;
+/** `padding-top` stĺpca, v ktorom rad stojí. */
+export const PACK_TOPROW_PAD = `calc(env(safe-area-inset-top, 0px) + ${PACK_TOPROW.top}px)`;
+
 /** Typografická stupnica — 6 veľkostí, ŽIADNE desatiny (výber `t6`).
  *  ⚠️ 9,5 / 10,5 / 12,5 sú od 13. 9. 2026 mimo sady. Mikropopisok je 10. */
 export const PACK_TEXT = {

@@ -30,8 +30,9 @@ const T = PACK_THEME;
 
 /** Jediný zdroj rozmerov návratu. Ladené v `plany/nakres-triplist-2026-09-01.html` (tab A). */
 export const BACK = {
-  /** priemer kruhu (px) */
-  dia: 36,
+  /** priemer kruhu (px). 36 → 38 (27. 9. 2026): vzorom je triplist (`.tl-back` 38),
+   *  Matej: „zjednoť na každej stránke výšku aj veľkosť podľa triplistu". */
+  dia: 38,
   /** veľkosť `HandArrowLeft` v kruhu (px) */
   icon: 15,
   /** hrúbka lemu (px) */

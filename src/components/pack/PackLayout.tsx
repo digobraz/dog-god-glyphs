@@ -2,11 +2,12 @@ import { lazy, ReactNode, Suspense, useEffect, useRef, useState } from 'react';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { BonesCoin } from './BonesCoin';
-import { PACK_THEME, PACK_COL, PACK_COL_INNER, usePaperRoute, PAPER_PAGE_CSS } from './packTheme';
+import { PACK_THEME, PACK_COL, PACK_COL_INNER, PACK_TOPROW_PAD, usePaperRoute, PAPER_PAGE_CSS } from './packTheme';
+import { PackTopRow } from './PackTopRow';
 import { devotionLevel } from '@/lib/devotion';
 import { DEV_FULL } from '@/lib/packFlags';
 import { usePackIdentity, type PackDog } from './usePackIdentity';
-import { PackNotifications, HubAinubis } from './PackNotifications';
+import { PackNotifications } from './PackNotifications';
 import { WIZ } from './wizAnchors';
 import iconHome from '@/assets/icons/nav-home.svg';
 import statBadge from '@/assets/icons/stat-badge.svg';
@@ -119,7 +120,8 @@ export function PackLayout({ children, title, subtitle }: PackLayoutProps) {
           // ktorý PackLayout nemountuje (vlastný tmavý root). Dve čísla by sa rozišli.
           // Jedna šírka pre všetky centrované /pack obrazovky (21. 9. 2026, `narrow` zanikol).
           maxWidth: PACK_COL.wide,
-          paddingTop: DEV_FULL ? 'calc(env(safe-area-inset-top, 0px) + 28px)' : 'calc(env(safe-area-inset-top, 0px) + 106px)',
+          // Rad hlavičky + začiatok obsahu = jedno pravidlo pre celý /pack (`PACK_TOPROW`, 27. 9. 2026).
+          paddingTop: DEV_FULL ? PACK_TOPROW_PAD : 'calc(env(safe-area-inset-top, 0px) + 106px)',
         }}
       >
         {/* Global top-right hub — notif + messages, on EVERY narrow-column pack page
@@ -131,17 +133,7 @@ export function PackLayout({ children, title, subtitle }: PackLayoutProps) {
             away with the rest of the column. Pinned just under the safe-area, above content
             (z-index above the z-10 column). */}
         {DEV_FULL && (
-          <div
-            className="mb-5 flex items-center justify-between"
-            // Rad je cez celý stĺpec, ale klikateľné sú len jeho deti — prázdny stred
-            // nesmie pri scrollovaní zjesť ťuk na obsah pod sebou.
-            style={{ position: 'sticky', top: 'calc(env(safe-area-inset-top, 0px) + 12px)', zIndex: 30, pointerEvents: 'none' }}
-          >
-            <span style={{ pointerEvents: 'auto' }}><HubAinubis /></span>
-            <span className="ml-auto" style={{ pointerEvents: 'auto' }}>
-              <PackTopRight last24h={packToday} total={packTotal} layout="inline" />
-            </span>
-          </div>
+          <PackTopRow right={<PackTopRight last24h={packToday} total={packTotal} layout="inline" />} />
         )}
         {(title || subtitle) && (
           <header className="mb-7 text-center">

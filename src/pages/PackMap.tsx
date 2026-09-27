@@ -1570,9 +1570,10 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
    .trp-sidebar (viď mobile media query) — DETAIL/ADD sú desktop-only, mobile
    detail ide cez existujúci .trp-detoverlay full-page modal. ── */
 /* Zdieľa ju aj tlačidlo „rozbaliť" ⤢ vedľa — tvar (BackButton.tsx) sa aplikuje na oboje,
-   znak ⤢ zámerne ostáva textom a len zdedí nový rozmer kruhu. */
-.trp-panelnav-btn{${backCircleCSS('dark')}}
-.trp-panelnav-btn:hover{${backHoverCSS('dark')}}
+   znak ⤢ zámerne ostáva textom a len zdedí nový rozmer kruhu.
+   Bledá v OBOCH šatoch (Matej 27. 9. 2026: „šípka vzad … je čierna — daj ju tiež bledú"). */
+.trp-panelnav-btn{${backCircleCSS('pale')}}
+.trp-panelnav-btn:hover{${backHoverCSS('pale')}}
 
 .trp-inldet{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden;}
 .trp-inldet-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px;flex-shrink:0;}

@@ -17,9 +17,9 @@ import { sizedUrl } from '@/services/cloudinaryService';
 import { trackPack } from '@/lib/packAnalytics';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, GOLD_BTN, PAPER_PAGE_CSS, usePaperRoute } from '@/components/pack/packTheme';
-import { PALE } from '@/components/pack/navGoldSkin';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { PackTopRow } from '@/components/pack/PackTopRow';
+import { PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, GOLD_BTN, PAPER_PAGE_CSS, usePaperRoute, PACK_TOPROW_PAD } from '@/components/pack/packTheme';
 import { QUIZ_BY_KEY, type QuizStep } from '@/components/pack/dogQuiz';
 import { appendDogEvents, readLatestForDogs, type DogEventInput, type LatestValue } from '@/lib/dogEvents';
 import { supabase } from '@/integrations/supabase/client';
@@ -516,28 +516,12 @@ function Shell({ children, onClose }: { children: React.ReactNode; onClose?: () 
       <style>{QUIZ_CSS}</style>
       <div
         className="relative z-10 mx-auto w-full max-w-2xl px-4 sm:px-6 pb-24"
-        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 22px)' }}
+        style={{ paddingTop: PACK_TOPROW_PAD }}
       >
-        {onClose && (
-          <div className="flex justify-end" style={{ marginBottom: 12 }}>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label={t('pack.quiz.close')}
-              style={{
-                width: 36, height: 36, borderRadius: 999, cursor: 'pointer',
-                // Krížik berie tón PODKLADU, nie šatu appky: na papyruse bol
-                // krémový na krémovom, teda neviditeľný.
-                background: paper ? PALE.soft : 'rgba(245,240,228,0.06)',
-                border: `1px solid ${paper ? PALE.border : T.onDarkBorder}`,
-                color: paper ? PALE.dim : T.onDarkDim,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        )}
+        {/* × → ŠÍPKA SPÄŤ v spoločnom rade (Matej 27. 9. 2026: „pri kvízoch je nutný ten
+            krížik? nemáme ho nikde … napr. šípka dozadu"). Robí to isté, čo krížik: uloží
+            rozpracované a vráti na /pack/dogs. Ľavý roh tým pripadol AINUBISOVI. */}
+        <PackTopRow onBack={onClose} backLabel={t('pack.quiz.back')} />
         {children}
       </div>
     </div>

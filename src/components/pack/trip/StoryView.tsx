@@ -19,11 +19,11 @@ import { useEffect, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import {
   PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, PACK_SHADOW,
-  PACK_THEME, FONT_TITLE, FONT_UI,
+  PACK_THEME, FONT_TITLE, FONT_UI, PACK_TOPROW_PAD,
 } from '../packTheme';
 import { LAPIS } from '../navGoldSkin';
 import { HandPlus, HandForward, HandStar, HandLink, HandHeart } from '../HandIcons';
-import { BackButton } from '../BackButton';
+import { PackTopRow } from '../PackTopRow';
 import type { TripStory } from '../story/storyData';
 import { getConsent } from '@/lib/consent';
 import { sizedUrl, heroPx } from '@/services/cloudinaryService';
@@ -47,20 +47,18 @@ export const STORY_VIEW_CSS = `
   background:${T.pageBg};
   -webkit-overflow-scrolling:touch;
 }
-.psv-wrap{ max-width:760px; margin:0 auto; padding:0 0 ${PACK_SPACE.xxxl}px; }
+/* Hore spoločný rad /pack (PackTopRow, 27. 9. 2026): AINUBIS vľavo, šípka v strede, obsah
+   (fotka alebo karta) začína na PACK_TOPROW.content — dovtedy šípka vľavo na fotke. */
+.psv-wrap{ max-width:760px; margin:0 auto; padding:${PACK_TOPROW_PAD} 0 ${PACK_SPACE.xxxl}px; }
 .psv-hero{
   position:relative; width:100%; height:38vh; min-height:220px; max-height:380px;
   overflow:hidden; background:${T.tileBg};
 }
 .psv-hero > img{ width:100%; height:100%; object-fit:cover; display:block; }
 /* Príbeh BEZ fotky (audit 27. 9. 2026): 38vh prázdnej tmavej plochy nad kartou vyzeralo ako
-   nenačítaná fotka. Ostáva len pás na šípku späť a karta sa nevyťahuje pod ňu. */
-.psv-hero--none{ height:${PACK_SPACE.xxxl + PACK_SPACE.xl}px; min-height:0; background:none; }
+   nenačítaná fotka. Šípka späť je od 27. 9. v rade nad ňou, takže bez fotky hero zmizne celý. */
+.psv-hero--none{ display:none; }
 .psv-hero--none + .psv-body{ margin-top:0; }
-.psv-back{
-  position:absolute; top:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.lg}px);
-  left:${PACK_SPACE.lg}px; z-index:3;
-}
 /* Telo príbehu = KARTA (PACK_BOX.card) vytiahnutá pod fotku. */
 .psv-body{
   position:relative; z-index:2;
@@ -214,9 +212,9 @@ export function StoryView({ story, next, locale, onClose, onNext, onLike, onSave
   return (
     <div className="psv-veil" role="dialog" aria-modal="true">
       <div className="psv-wrap">
+        <PackTopRow onBack={onClose} backLabel={t('pack.trip.backToTrips')} />
         <div className={`psv-hero${story.photos[0] ? '' : ' psv-hero--none'}`}>
           {story.photos[0] && <img src={sizedUrl(story.photos[0], heroPx())} alt="" />}
-          <div className="psv-back"><BackButton tone="scrim" onClick={onClose} label={t('pack.trip.backToTrips')} /></div>
         </div>
 
         <div className="psv-body" style={{ ...PACK_BOX.card }}>

@@ -15,7 +15,7 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useT } from '@/i18n/LanguageContext';
 import { usePackUser } from '@/hooks/usePackUser';
-import { BackButton } from '@/components/pack/BackButton';
+import { PackTopRow } from '@/components/pack/PackTopRow';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
 import { countryISO2 } from '@/lib/countryGeo';
@@ -27,7 +27,7 @@ import { SnifferFullProfile } from '@/components/pack/buddy/SnifferFullProfile';
 import type { SnifferCardData } from '@/components/pack/buddy/snifferDeck';
 import { MessagingOverlayHost } from '@/components/pack/PackLayout';
 import {
-  PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PAGE_AIR,
+  PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PAGE_AIR, PACK_TOPROW, PACK_TOPROW_PAD,
   PACK_SHADOW, PACK_AVATAR, PACK_COL_INNER, PAPER_PAGE_CSS, PILL_CSS, PF_FIELD_CSS, PHOTO_CSS, PROGRESS_CSS, MEDALLION_CSS, VEIL_CSS, FONT_TITLE, FONT_UI,
 } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
@@ -54,11 +54,13 @@ const STEP_EN: Record<BuddyStepKey, string> = {
 
 const CSS = `
 .bd-root{min-height:100dvh;display:flex;flex-direction:column;}
-.bd-bar{display:flex;align-items:center;justify-content:space-between;gap:${PACK_SPACE.sm}px;}
 .bd-gear{justify-self:end;width:40px;height:40px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};
   background:${T.cardSoft};display:flex;align-items:center;justify-content:center;cursor:pointer;}
-.bd-col{flex:1 1 auto;width:100%;max-width:640px;min-height:100dvh;margin:0 auto;padding:${PAGE_AIR.min}px ${PAGE_AIR.side}px ${PAGE_AIR.md}px;
+.bd-col{flex:1 1 auto;width:100%;max-width:640px;min-height:100dvh;margin:0 auto;padding:${PACK_TOPROW_PAD} ${PAGE_AIR.side}px ${PAGE_AIR.md}px;
   display:flex;flex-direction:column;gap:${PACK_SPACE.lg}px;}
+/* Spoločný rad hlavičky (27. 9. 2026): stĺpec už medzi deťmi dáva gap, rad si z vlastnej
+   medzery nechá len rozdiel, aby obsah začal na PACK_TOPROW.content ako všade inde. */
+.bd-col > .pk-toprow{margin-bottom:${PACK_TOPROW.content - PACK_TOPROW.top - PACK_TOPROW.h - PACK_SPACE.lg}px;}
 /* SNIFFUJ = jedna obrazovka bez scrollu: stĺpec presne na výšku okna, balíček berie zvyšok. */
 .bd-col--fit{height:100dvh;min-height:0;}
 .bd-card{padding:${PACK_SPACE.lg}px;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
@@ -188,7 +190,6 @@ const CSS = `
 /* PRUH „Váš profil" sa vypĺňa LAPISOM, nie červenou (Matej 25. 9.: „váš profil sa vypĺňa modrou
    nie červenou") — je to moja akcia, nie chyba. Hotový ostáva zelený (splnené). */
 .bd-col .pk-progress__fill--low{background:${LAPIS.grad};}
-.bd-bar--center{justify-content:center;}
 .bd-dock--card{width:100%;max-width:440px;margin:0 auto;}
 /* ZAPNUTIE v karte Základ (nastavenia). Matej 25. 9.: „ten lapis tam nie je ok a ani ten celý blok…
    daj tlačidlo do obrysu a zväčši to, nech je to súmerné, na výšku tej fotky". Výška = výška fotky
@@ -461,8 +462,7 @@ export default function PackBuddy() {
       // Pri logu hore len šípka späť, nastavenia nie (Matej 25. 9.). V úvode a v bráne tiež nie —
       // otvorili by to isté, čo človek práve vypĺňa (Matej 25. 9.: „otvorí to isté").
       onGear={view === 'home' || view === 'done' ? () => setView('settings') : undefined}
-      // Úvod: šípka sama v strede (Matej 25. 9.: „šípku daj do stredu").
-      centerBack={view === 'splash' || view === 'intro'}
+      // Šípka je v strede VŽDY (spoločný rad PackTopRow, 27. 9. 2026).
       gearLabel={tx('pack.buddy.settings', 'Settings')} wide={view === 'gate' || view === 'settings'} fit={view === 'home' || view === 'done' || view === 'gate' || view === 'settings'}>
       {view === 'splash' && (
         <div className="bd-stage" onClick={() => { if (s.enabled) afterSplash(); }}>
@@ -699,8 +699,8 @@ const HOW_EN: Record<'1' | '2' | '3', [string, string]> = {
   '3': ['You catch each other’s scent', 'A match is just a notice. Writing is up to you.'],
 };
 
-function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, fit, centerBack, children }: {
-  title: string; onBack: () => void; backLabel: string; onGear?: () => void; gearLabel?: string; wide?: boolean; fit?: boolean; centerBack?: boolean; children?: ReactNode;
+function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, fit, children }: {
+  title: string; onBack: () => void; backLabel: string; onGear?: () => void; gearLabel?: string; wide?: boolean; fit?: boolean; children?: ReactNode;
 }) {
   return (
     <div className="pk-paper bd-root">
@@ -716,14 +716,17 @@ function Shell({ title, onBack, backLabel, onGear, gearLabel, wide, fit, centerB
           okraje obsahu panela, nie úplne na kraj obrazovky"). Lišta preto stojí VNÚTRI
           stĺpca a jej kraje sú kraje kariet. Meno obrazovky nesie karta pod ňou. */}
       <main className={`bd-col${wide ? ' bd-col--wide' : ''}${fit ? ' bd-col--fit' : ''}`} aria-label={title}>
-        <div className={`bd-bar${centerBack && !onGear ? ' bd-bar--center' : ''}`}>
-          <BackButton tone="pale" onClick={onBack} label={backLabel} />
-          {onGear && (
+        {/* Spoločný rad /pack (27. 9. 2026): AINUBIS vľavo · šípka v strede · nastavenia vpravo.
+            Dovtedy šípka vľavo alebo v strede a AINUBIS presúvaný cez CSS do stredu či doprava. */}
+        <PackTopRow
+          onBack={onBack}
+          backLabel={backLabel}
+          right={onGear && (
             <button type="button" className="bd-gear" onClick={onGear} aria-label={gearLabel}>
               <BrandIcon name="sliders" size={PACK_SPACE.lg} tint="dark" />
             </button>
           )}
-        </div>
+        />
         {children}
       </main>
       {/* Vlákno po zhode — stránka nemountuje PackLayout (kôš 3), tak si hostiteľa správ nesie sama. */}

@@ -607,13 +607,18 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
 // (inline `left/top` z ťahania) má prednosť — to je voľba človeka.
 const HUB_AINUBIS_CSS = `
 body.has-hub-ainubis .ainubis-launcher { visibility: hidden; }
+/* Od 27. 9. 2026 stojí koliesko v spoločnom rade (PackTopRow) aj na obrazovkách BEZ spodnej
+   lišty (SNIFFER, kvízy, príbeh) a so stĺpcom inej šírky. Poloha panela sa preto neráta
+   z rovnice stĺpca, ale číta z kolieska samého (--hub-ai-x/y, píše ich HubAinubis).
+   Dvojitá trieda = špecificita nad body.has-pack-nav .ainubis-panel aj nad pravidlami
+   SNIFFERu (body:has(.bd-col) .ainubis-panel). */
 @media (min-width: 768px) {
-  body.has-hub-ainubis.has-pack-nav .ainubis-panel {
-    top: calc(env(safe-area-inset-top, 0px) + 78px);
+  body.has-hub-ainubis .ainubis-panel.ainubis-panel {
+    top: var(--hub-ai-y, calc(env(safe-area-inset-top, 0px) + 78px));
     bottom: auto;
-    left: max(16px, calc(50% - 416px));
+    left: var(--hub-ai-x, max(16px, calc(50% - 416px)));
     right: auto;
-    height: min(560px, calc(100vh - 190px)); /* 78 hore + lišta ~96 + vôľa */
+    height: min(560px, calc(100vh - var(--hub-ai-y, 78px) - 112px)); /* lišta ~96 + vôľa */
   }
 }
 @media (max-width: 767px) {
@@ -622,16 +627,32 @@ body.has-hub-ainubis .ainubis-launcher { visibility: hidden; }
 
 export function HubAinubis() {
   const [unread, setUnread] = useState(getAinubisUnread);
+  const ref = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     document.body.classList.add('has-hub-ainubis');
     const off = onAinubisUnread(setUnread);
-    return () => { off(); document.body.classList.remove('has-hub-ainubis'); };
+    // Panel rastie spod kolieska (PC). Rad je sticky, takže poloha sa mení len so šírkou okna.
+    const root = document.documentElement.style;
+    const place = () => {
+      const r = ref.current?.getBoundingClientRect();
+      if (!r) return;
+      root.setProperty('--hub-ai-x', `${Math.round(Math.min(r.left, window.innerWidth - 436))}px`);
+      root.setProperty('--hub-ai-y', `${Math.round(r.bottom + 8)}px`);
+    };
+    place();
+    window.addEventListener('resize', place);
+    return () => {
+      off(); window.removeEventListener('resize', place);
+      document.body.classList.remove('has-hub-ainubis');
+      root.removeProperty('--hub-ai-x'); root.removeProperty('--hub-ai-y');
+    };
   }, []);
   return (
     <>
       <style>{HUB_AINUBIS_CSS}</style>
       <button
         type="button"
+        ref={ref}
         onClick={() => openAinubis()}
         aria-label="AINUBIS"
         className="pk-hub-ainubis relative inline-flex items-center justify-center"

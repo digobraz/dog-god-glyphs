@@ -27,7 +27,7 @@ import { JOIN_REQUIRED_STEPS } from '@/components/pack/dogQuiz';
 import { hasValue, readLatestForDogs, onDogEventsChange } from '@/lib/dogEvents';
 import { useMyDogRights } from '@/lib/dogRights';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL, PACK_COL_PAD, GOLD_BTN, PACK_SHADOW, HIT_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL, PACK_COL_PAD, PACK_TOPROW_PAD, GOLD_BTN, PACK_SHADOW, HIT_CSS } from '@/components/pack/packTheme';
 // Bledý chrome: inkousty a plochy (PALE), lapisové CTA a priesvitný tint výberu.
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy.
 import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK, goldFrameCSS } from '@/components/pack/navGoldSkin';
@@ -52,7 +52,7 @@ import {
   type TriplistTrip, type TripStatus,
 } from '@/components/pack/triplist/triplist';
 import { RightGate } from '@/components/pack/RightGate';
-import { BackIcon } from '@/components/pack/BackButton';
+import { PackTopRow } from '@/components/pack/PackTopRow';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { fetchMyWishes, type MyWish } from '@/components/pack/mapnotes/wishData';
 import { WISHES_LIVE } from '@/lib/packFlags';
@@ -81,14 +81,10 @@ const CSS = `
 /* Šírka aj vodorovný padding sú TIE ISTÉ ako v PackLayout (PACK_COL) — táto stránka
    PackLayout nemountuje, tak si ich musí vziať z konštanty. Do 13. 8. tu bolo 860px
    a preklik z profilu (1024px) stránku viditeľne zúžil. */
-.tl-body{max-width:${PACK_COL.wide}px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 26px) ${PACK_COL_PAD.desktop}px 0;position:relative;z-index:2;}
+.tl-body{max-width:${PACK_COL.wide}px;margin:0 auto;padding:${PACK_TOPROW_PAD} ${PACK_COL_PAD.desktop}px 0;position:relative;z-index:2;}
 @media (max-width:640px){ .tl-body{padding-left:${PACK_COL_PAD.mobile}px;padding-right:${PACK_COL_PAD.mobile}px;} }
-/* back = šípka v STREDE, NAD blokmi (flow, nie absolute — neprekrýva karty).
-   ⚠️ Kruh si drží tvar TU, ikonku berie z BackButton.tsx — holý znak ← odtiaľto
-   odišiel 16. 9. 2026 (Matej: „stále tu vidím zlú šípku“). */
-.tl-backrow{display:flex;justify-content:center;margin-bottom:16px;}
-.tl-back{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:${P.soft};border:1px solid ${P.border};color:${P.ink};font-size:19px;line-height:1;cursor:pointer;transition:border-color .15s,color .15s,background .15s;}
-.tl-back:hover{border-color:${T.cardEdge};color:${P.deep};background:${T.card};}
+/* Šípka späť + AINUBIS = spoločný rad PackTopRow (27. 9. 2026). Tvar tejto šípky (38 px,
+   v strede) bol vzorom pre celý /pack — odtiaľto odišiel do BACK a PACK_TOPROW. */
 .tl-title{font-family:${FONT_TITLE};font-weight:700;font-size:26px;letter-spacing:.03em;color:${P.deep};text-align:center;}
 .tl-sub{font-size:12.5px;color:${P.dim};text-align:center;margin-top:6px;}
 
@@ -940,9 +936,7 @@ export default function PackTriplist() {
           čiernej) sa sem už nevkladá. Volať oboje naraz = dve tapety cez seba. */}
 
       <div className="tl-body">
-        <div className="tl-backrow">
-          <button type="button" className="tl-back" onClick={() => navigate('/pack/map')} aria-label={t('pack.triplist.backToMap')}><BackIcon /></button>
-        </div>
+        <PackTopRow onBack={() => navigate('/pack/map')} backLabel={t('pack.triplist.backToMap')} />
 
         {/* dve karty-prepínače (Matej 2026-07-23): naše ikony (paw/trophy), žiadne emoji, žiadne nadpisy nad.
             Matej 2026-07-26: poradie otočené — Tripstats vľavo, Triplist vpravo. */}

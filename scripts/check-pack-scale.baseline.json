@@ -794,14 +794,14 @@
     "font": 19,
     "zavoj": 4,
     "progres": 0,
-    "ram": 5,
+    "ram": 4,
     "tien": 3,
     "pismenka": 8,
     "odsadenie": 18
   },
   "pages/PackTriplist.tsx": {
     "radius": 3,
-    "font": 25,
+    "font": 24,
     "zavoj": 2,
     "progres": 0,
     "ram": 5,
