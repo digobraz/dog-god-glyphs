@@ -3813,6 +3813,8 @@ export default function OnePage() {
   /** Sme v príbehu (od prvej vety po jeho koniec)? Šípky tam zavadzajú textu
    *  crawlu (Matej 27. 9. 2026: *„pri príbehu daj preč aj šípky"*). */
   const [inStory, setInStory] = useState(false);
+  /** Scéna ČLENSTVO — šípky filmu v nej zavadzajú telefónom (Matej 27. 9.). */
+  const [inApps, setInApps] = useState(false);
   /** Popup s tromi Albami — vstup je chip PRÍKLAD pri podnadpise HEROGLYPH. */
   const [albaOpen, setAlbaOpen] = useState(false);
   const appsOpenRef = useRef(false);
@@ -3834,6 +3836,11 @@ export default function OnePage() {
         const top = tl.getBoundingClientRect().top + window.scrollY;
         const span = Math.max(0, tl.offsetHeight - filmVh());
         setInStory(window.scrollY >= top + span * STORY_START - 4 && window.scrollY < top + span - 4);
+      }
+      const ap = document.querySelector<HTMLElement>('.op-apps');
+      if (ap) {
+        const top = ap.getBoundingClientRect().top + window.scrollY;
+        setInApps(window.scrollY >= top + 4 && window.scrollY < top + ap.offsetHeight - window.innerHeight * 0.5);
       }
     };
     on();
@@ -3913,7 +3920,9 @@ export default function OnePage() {
     },
     paused: () => bookOpenRef.current || wallOpenRef.current || albaOpenRef.current || appsOpenRef.current || document.body.style.overflow === 'hidden',
     onMove: setFilmMoving,
-    onTopFlick: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
+    // HORE PO SEKCIÁCH (Matej 27. 9.: *„nie scroll po scrole, ale plynulo po
+    // sekciách"*) — začiatky obrazov z navu, nie všetky zastávky.
+    upStops: () => FILM_SLIDES.map((sl) => sl.at()).filter((y): y is number => y != null),
   }, true);
 
   // ── STENA JE SAMOSTATNÁ STRÁNKA, NIE OBRAZ FILMU ────────────────────────
@@ -3958,7 +3967,7 @@ export default function OnePage() {
       {/* ŠÍPKY DOLE (27. 9. 2026) — Matej: *„namiesto CTA urobiť na obrazovkách
           šípky, ktoré navádzajú na SLIDE… 3 pod sebou blikajúce"*. Jedny pre
           celý film; počas jazdy motora zhasnú, klik = ďalšia obrazovka. */}
-      {!wallOpen && !atFilmEnd && !inStory && (
+      {!wallOpen && !atFilmEnd && !inStory && !inApps && (
         <FilmCue moving={filmMoving} onNext={() => filmGo(1)} label={t('onepage.cue.next')} big={atHome} />
       )}
       {!wallOpen && (

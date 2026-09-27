@@ -8,6 +8,15 @@
  * vždy aj chip, ktorý otvorí popup so screenshotmi priamo z appky a viac info,
  * aby sme nezaplnili hlavnú obrazovku."* Predloha: 21st.dev `phone-mockups-1`
  * (stredný telefón vpredu, bočné za ním, nižšie a menšie — karusel).
+ * 🔴 KARUSEL JE PRENESENÝ Z KOMPONENTU, NIE NAKRESLENÝ PODĽA NEHO (Matej
+ * 27. 9.: *„sú užšie a menšie a nefunguje to tak ako v komponente a pri dotyku
+ * nereagujú — chcem ich ako v tom prompte"*). Rám = `ui/iphone-15-pro.tsx`
+ * (šírka 350, mobil 280) · bočné ±60 %, mierka .9, krytie .3 · prechod
+ * 700 ms · samé sa točia á 3 s a pri hover stoja · tlačidlá predošlá / ďalšia
+ * (pauza vynechaná — brandová kresba chýba) · ťuk na bočný telefón = prepni naň · hover na prednom = ×1,05 a −6°.
+ * Rozdiel oproti komponentu: v stave FUNKCIA drží telefón scroll (text vľavo
+ * k nemu patrí), takže šípky a ťuk tam presunú stránku na zastávku tej funkcie
+ * a samé točenie beží len v úvodnom stave (nadpis + telefóny do polovice).
  *
  * ⚠️ KOSTRA. Obsah (screenshoty, odrážky, finálne texty) sa dopĺňa spolu
  * s Matejom — všetko je v `APPS` nižšie. Texty zatiaľ berú hotové kľúče
@@ -28,11 +37,13 @@
  *   ďalej      karusel sa točí po funkciách 1 → 4, text naľavo sa mení s ním
  * Zastávky: `APPS_STOPS` (OnePage.filmStops).
  */
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { LAB } from '@/lib/labTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
+import { HandArrowLeft } from '@/components/pack/HandIcons';
+import Iphone15Pro, { IPHONE_H, IPHONE_W } from '@/components/ui/iphone-15-pro';
 
 type AppFeature = {
   id: string;
@@ -75,11 +86,23 @@ export const APPS_STOPS = [PEEK, ...APPS.map((_, i) => PEEK + (i + 1) * STEP)];
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const smooth = (t: number) => t * t * (3 - 2 * t);
+const mix = (a: number, b: number, t: number) => a + (b - a) * t;
+const NARROW = 768;
+/** Šírka rámu z komponentu (useIsMobile: < 768 ⇒ 280). */
+const phoneW = () => (window.innerWidth < NARROW ? 280 : 350);
 
 export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => void }) {
   const t = useT();
   const secRef = useRef<HTMLElement>(null);
+  const rigRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState<number | null>(null);
+  /** Telefón vpredu (index do APPS). */
+  const [idx, setIdx] = useState(0);
+  /** Úvodný stav (nadpis + telefóny do polovice) — len tu sa točia samé. */
+  const [peek, setPeek] = useState(true);
+  const [shown, setShown] = useState(false);
+  const [hover, setHover] = useState(false);
+  const n = APPS.length;
 
   useEffect(() => { onPopup?.(open != null); }, [open, onPopup]);
   useEffect(() => {
@@ -89,19 +112,37 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
 
+  // Samé točenie á 3 s — ako komponent, ale len v úvodnom stave a keď je vidieť.
+  useEffect(() => {
+    if (!peek || !shown || hover || open != null) return;
+    const id = setInterval(() => setIdx((i) => (i + 1) % n), 3000);
+    return () => clearInterval(id);
+  }, [peek, shown, hover, open, n]);
+
+  /** Prepni na funkciu i. V stave FUNKCIA ide stránka na jej zastávku
+   *  (text a telefón patria k sebe), v úvode len otočí karusel. */
+  const goTo = useCallback((i: number) => {
+    const j = ((i % n) + n) % n;
+    const sec = secRef.current;
+    if (peek || !sec) { setIdx(j); return; }
+    const top = sec.getBoundingClientRect().top + window.scrollY;
+    const span = Math.max(1, sec.offsetHeight - window.innerHeight);
+    window.scrollTo({ top: top + span * APPS_STOPS[j + 1], behavior: 'smooth' });
+  }, [peek, n]);
+
   useEffect(() => {
     const sec = secRef.current;
-    if (!sec) return;
-    const phones = Array.from(sec.querySelectorAll<HTMLElement>('.op-apps-ph'));
-    const texts = Array.from(sec.querySelectorAll<HTMLElement>('.op-apps-txt'));
-    const n = APPS.length;
+    const rig = rigRef.current;
+    if (!sec || !rig) return;
     const arc = document.querySelector<HTMLElement>('.op-arc');
+    const root = document.querySelector<HTMLElement>('.op-root');
     let raf = 0;
     let lastP = -1;
     const apply = () => {
       raf = 0;
       const r = sec.getBoundingClientRect();
-      const p = clamp01(-r.top / Math.max(1, sec.offsetHeight - window.innerHeight));
+      const vh = window.innerHeight, vw = window.innerWidth;
+      const p = clamp01(-r.top / Math.max(1, sec.offsetHeight - vh));
       if (Math.abs(p - lastP) < 0.0003) return;
       lastP = p;
       // Príchod: HEROGLYPH zhasne, telefóny vyjdú zdola do polovice.
@@ -112,31 +153,36 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
       const rise = smooth(clamp01((k - 0.4) / 0.6));
       // Posun telefónov doprava (a nábeh ľavého stĺpca).
       const sx = smooth(clamp01((p - PEEK) / STEP));
-      // Karusel: plávajúci index funkcie, mäkký medzi zastávkami.
-      const raw = clamp01((p - PEEK - STEP) / (1 - PEEK - STEP)) * (n - 1);
-      const fi = Math.min(n - 1, Math.floor(raw));
-      const f = fi + smooth(raw - fi);
       sec.style.setProperty('--r', rise.toFixed(4));
       sec.style.setProperty('--sx', sx.toFixed(4));
       sec.style.setProperty('--o', out.toFixed(4));
       arc?.style.setProperty('--apps-out', out.toFixed(4));
-      phones.forEach((el, i) => {
-        // Kruhová vzdialenosť od čela v rozsahu [-n/2, n/2) — vpredu je d = 0,
-        // po bokoch ±1, zadný (±2) je skrytý. Tak stoja vždy tri ako v predlohe.
-        let d = i - f;
-        d = ((d + n / 2) % n + n) % n - n / 2;
-        const a = Math.abs(d);
-        el.style.setProperty('--d', d.toFixed(4));
-        el.style.setProperty('--a', Math.min(a, 1.5).toFixed(4));
-        el.style.opacity = clamp01(1.7 - a).toFixed(3);
-        el.style.zIndex = String(10 - Math.round(a * 2));
-      });
-      texts.forEach((el, i) => {
-        const o = clamp01(1 - Math.abs(f - i) * 2) * sx;
-        el.style.opacity = o.toFixed(3);
-        el.style.visibility = o < 0.01 ? 'hidden' : 'visible';
-        el.style.pointerEvents = o > 0.5 ? 'auto' : 'none';
-      });
+
+      // POLOHA SÚPRAVY — rovnicou z okna, nie meraním po vykreslení.
+      const navH = parseFloat(root ? getComputedStyle(root).getPropertyValue('--op-nav-h') : '') || 124;
+      const w = phoneW(), h = w * IPHONE_H / IPHONE_W;
+      const narrow = vw < NARROW;
+      // Úvod: plná veľkosť komponentu, horná hrana v polovici okna.
+      const peekY = vh * 0.5 + h / 2;
+      // Funkcia: PC napravo a celé vidieť; mobil pod textom, menšie.
+      // CTL = rezerva pod telefónom pre tlačidlá (40 + medzery), v mierke.
+      const CTL = 72;
+      const fs = narrow ? Math.min(0.62, (vh * 0.4) / (h + CTL)) : Math.min(1, (vh - navH - 24) / (h + CTL));
+      const featX = narrow ? 0 : Math.min(vw * 0.22, 300);
+      const featY = narrow ? vh - 16 - ((h / 2 + CTL) * fs) : navH + (vh - navH - CTL * fs) / 2 + 8;
+      const x = mix(0, featX, sx);
+      const y = mix(peekY, featY, sx) + (1 - rise) * vh;
+      const s = mix(1, fs, sx);
+      rig.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${s.toFixed(4)})`;
+      sec.style.setProperty('--mid', `${(navH + (vh - navH) / 2).toFixed(1)}px`);
+
+      const isPeek = p < PEEK + STEP * 0.5;
+      setPeek(isPeek);
+      setShown(rise > 0.9);
+      if (!isPeek) {
+        const fi = Math.max(0, Math.min(n - 1, Math.round((p - PEEK - STEP) / STEP)));
+        setIdx(fi);
+      }
     };
     const on = () => { if (!raf) raf = requestAnimationFrame(apply); };
     apply();
@@ -148,9 +194,10 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
       window.removeEventListener('scroll', on);
       window.removeEventListener('resize', onResize);
     };
-  }, []);
+  }, [n]);
 
   const cur = open != null ? APPS[open] : null;
+  const prevI = (idx - 1 + n) % n, nextI = (idx + 1) % n;
 
   return (
     <section ref={secRef} className="op-scene op-apps" aria-label={t('heroglyph.flow.more.eyebrow')}
@@ -160,8 +207,8 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
 
         <div className="op-apps-col">
           {APPS.map((a, i) => (
-            <div className="op-apps-txt" key={a.id} style={{ opacity: 0, visibility: 'hidden' }}>
-              <p className="op-apps-eye">{t('heroglyph.flow.more.eyebrow')} · {i + 1}/{APPS.length}</p>
+            <div className={`op-apps-txt${!peek && i === idx ? ' is-on' : ''}`} key={a.id} aria-hidden={peek || i !== idx}>
+              <p className="op-apps-eye">{t('heroglyph.flow.more.eyebrow')} · {i + 1}/{n}</p>
               <h3 className="op-apps-name">{t(a.nameKey)}</h3>
               <p className="op-apps-p">{t(a.textKey)}</p>
               <ul className="op-apps-ul">
@@ -174,17 +221,29 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           ))}
         </div>
 
-        <div className="op-apps-rig">
-          {APPS.map((a) => (
-            <div className="op-apps-ph" key={a.id}>
-              <div className="op-apps-scr">
-                <i className="op-apps-isl" aria-hidden="true" />
-                {a.shot
-                  ? <img src={a.shot} alt={t(a.nameKey)} />
-                  : <div className="op-apps-ph-empty"><b>{t(a.nameKey)}</b><span>screenshot</span></div>}
-              </div>
-            </div>
-          ))}
+        <div className="op-apps-rig" ref={rigRef}>
+          <div className="op-apps-car" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+            {APPS.map((a, i) => {
+              const pos = i === idx ? 'is-cur' : i === prevI ? 'is-prev' : i === nextI ? 'is-next' : 'is-off';
+              return (
+                <div className={`op-apps-ph ${pos}`} key={a.id} aria-hidden={i !== idx}
+                  onClick={pos === 'is-prev' || pos === 'is-next' ? () => goTo(i) : undefined}>
+                  <div className="op-apps-tilt">
+                    <Iphone15Pro src={a.shot} alt={t(a.nameKey)}>
+                      <div className="op-apps-ph-empty"><b>{t(a.nameKey)}</b><span>screenshot</span></div>
+                    </Iphone15Pro>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="op-apps-ctl">
+            {/* Šípky = brandová kresba (HandArrowLeft, pravá zrkadlená). Pauza
+                z komponentu tu NIE JE — kresba v kite chýba (check:ikony) a točenie
+                aj tak stojí, keď je nad telefónmi myš. */}
+            <button type="button" aria-label={t('heroglyph.flow.more.prev')} onClick={() => goTo(idx - 1)}><HandArrowLeft size={18} /></button>
+            <button type="button" aria-label={t('heroglyph.flow.more.next')} onClick={() => goTo(idx + 1)}><HandArrowLeft size={18} style={{ transform: 'scaleX(-1)' }} /></button>
+          </div>
         </div>
       </div>
 
@@ -218,23 +277,13 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
         .op-apps-stage {
           position: sticky; top: 0; height: 100lvh; overflow: hidden;
           pointer-events: none;
-          /* PEEK — telefóny väčšie a nižšie, horná polovica v spodnej polovici okna. */
-          --ps: 1.5;
-          --py: calc(50lvh + var(--ph-h) * var(--ps) / 2 - var(--mid) + 24px);
-          /* Konečná poloha po posune (PC doprava, mobil dolu a menšie). */
-          --fx: 22vw; --fy: 0px; --fs: 1;
-          --ph-w: min(240px, 24lvh);
-          /* Stred súpravy: plocha pod navom mínus pás 88 px pre šípky filmu. */
-          --mid: calc(var(--op-nav-h, 124px) + (100lvh - var(--op-nav-h, 124px) - 88px) / 2);
-          --ph-h: calc(var(--ph-w) * 2.05);
         }
-        /* Papyrus javiska nabieha s príchodom — keď oblúk odíde, drží obraz on. */
+        /* Papyrus javiska nabieha s odchodom HEROGLYPHu — keď oblúk odíde, drží obraz on. */
         .op-apps-stage::before {
           content: ''; position: absolute; inset: 0;
           background: ${LAB.pageBg}; background-image: ${LAB.pageBackdrop};
           opacity: var(--o, 0);
         }
-        /* Nadpis na strede — odchádza hore, keď telefóny idú doprava. */
         .op-apps-h2 {
           position: absolute; left: 16px; right: 16px; bottom: calc(50lvh + 48px);
           margin: 0; text-align: center;
@@ -244,54 +293,62 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           opacity: calc(var(--r, 0) * (1 - var(--sx, 0)));
           transform: translateY(calc((1 - var(--r, 0)) * 32px - var(--sx, 0) * 24px));
         }
-        /* Súprava telefónov — stred okna pod nadpisom, s posunom doprava. */
+        /* Súprava: bod (0,0) = stred predného telefónu; polohu píše réžia. */
         .op-apps-rig {
-          position: absolute; left: 50%; top: var(--mid);
-          width: 0; height: 0;
-          transform:
-            translate(
-              calc(var(--sx, 0) * var(--fx)),
-              calc(var(--sx, 0) * var(--fy) + (1 - var(--sx, 0)) * var(--py) + (1 - var(--r, 0)) * 100lvh))
-            scale(calc(var(--sx, 0) * var(--fs) + (1 - var(--sx, 0)) * var(--ps)));
+          position: absolute; left: 50%; top: 0; width: 0; height: 0;
+          transform-origin: 0 0; will-change: transform;
         }
+        .op-apps-car { position: absolute; left: 0; top: 0; pointer-events: auto; }
+        /* Karusel = komponent phone-mockups-1: bočné ±60 %, ×0,9, krytie .3, 700 ms. */
         .op-apps-ph {
-          position: absolute; left: calc(var(--ph-w) / -2); top: calc(var(--ph-h) / -2);
-          width: var(--ph-w); height: var(--ph-h);
-          padding: 9px; border-radius: 44px; box-sizing: border-box;
-          background: linear-gradient(145deg, #2A2520, #0E0C0A);
-          box-shadow: 0 0 0 1.5px #3A332C, 0 28px 60px -24px rgba(42,22,8,.55);
-          transform:
-            translateX(calc(var(--d, 0) * var(--ph-w) * .62))
-            translateY(calc(var(--a, 0) * 7%))
-            scale(calc(1 - var(--a, 0) * .16));
-          filter: brightness(calc(1 - var(--a, 0) * .12));
-          will-change: transform, opacity;
+          position: absolute; left: 0; top: 0; width: 350px;
+          transition: transform .7s ease-in-out, opacity .7s ease-in-out;
+          transform: translate(-50%, -50%) scale(.9);
+          opacity: 0; z-index: 0;
         }
-        .op-apps-scr {
-          position: relative; width: 100%; height: 100%; overflow: hidden;
-          border-radius: 36px; background: ${LAB.pageBg};
-        }
-        .op-apps-scr > img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .op-apps-isl {
-          position: absolute; top: 10px; left: 50%; width: 32%; height: 22px; margin-left: -16%;
-          border-radius: 999px; background: #0E0C0A; z-index: 2;
-        }
+        .op-apps-ph.is-cur { transform: translate(-50%, -50%); opacity: 1; z-index: 20; }
+        .op-apps-ph.is-prev { transform: translate(-50%, -50%) translateX(-60%) scale(.9); opacity: .3; z-index: 10; cursor: pointer; }
+        .op-apps-ph.is-next { transform: translate(-50%, -50%) translateX(60%) scale(.9); opacity: .3; z-index: 10; cursor: pointer; }
+        .op-apps-ph.is-prev:hover, .op-apps-ph.is-next:hover { opacity: .5; }
+        .op-apps-tilt { transition: transform .1s; }
+        .op-apps-ph.is-cur:hover .op-apps-tilt { transform: scale(1.05) rotate(-6deg); }
         .op-apps-ph-empty {
           position: absolute; inset: 0; display: flex; flex-direction: column;
           align-items: center; justify-content: center; gap: 8px;
-          border: 1.5px dashed rgba(201,154,63,.55); border-radius: 36px;
+          background: ${LAB.pageBg}; background-image: ${LAB.pageBackdrop};
         }
-        .op-apps-ph-empty b { font: 700 16px/1.2 'Cinzel', serif; letter-spacing: .14em; color: #8A6420; }
+        .op-apps-ph-empty b { font: 700 24px/1.2 'Cinzel', serif; letter-spacing: .14em; color: #8A6420; }
         .op-apps-ph-empty span, .op-apps-pop-shot span {
           font: 500 10px/1 'Space Grotesk', sans-serif; letter-spacing: .22em; text-transform: uppercase;
           color: rgba(35,22,8,.45);
         }
-        /* Ľavý stĺpec — texty funkcií stoja na sebe, réžia prelína krytie. */
+        /* Tlačidlá z komponentu (predošlá · pauza · ďalšia) — pod predným telefónom. */
+        .op-apps-ctl {
+          position: absolute; left: 0; top: calc(${(350 * IPHONE_H / IPHONE_W / 2).toFixed(1)}px + 16px);
+          transform: translateX(-50%);
+          display: flex; gap: 16px; pointer-events: auto;
+          opacity: var(--r, 0);
+        }
+        .op-apps-ctl button {
+          width: 40px; height: 40px; border-radius: 999px; display: grid; place-items: center; cursor: pointer;
+          background: rgba(0,0,0,.6); border: 1px solid rgba(255,255,255,.2); color: #fff;
+          backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+          box-shadow: 0 4px 12px rgba(0,0,0,.2); transition: background .2s;
+        }
+        .op-apps-ctl button:hover { background: rgba(0,0,0,.8); }
+        .op-apps-ctl svg { width: 18px; height: 18px; fill: currentColor; }
+        /* Ľavý stĺpec — texty funkcií stoja na sebe, vymenia sa s telefónom (700 ms). */
         .op-apps-col {
           position: absolute; left: max(16px, calc(50vw - 560px)); width: min(440px, 40vw);
-          top: var(--mid);
+          top: var(--mid, 50%);
+          opacity: var(--sx, 0);
         }
-        .op-apps-txt { position: absolute; left: 0; right: 0; top: 0; transform: translateY(-50%); }
+        .op-apps-txt {
+          position: absolute; left: 0; right: 0; top: 0; transform: translateY(-50%);
+          opacity: 0; visibility: hidden; pointer-events: none;
+          transition: opacity .7s ease-in-out, visibility .7s;
+        }
+        .op-apps-txt.is-on { opacity: 1; visibility: visible; pointer-events: auto; }
         .op-apps-eye {
           margin: 0 0 8px; font: 500 10px/1.4 'Space Grotesk', sans-serif; letter-spacing: .22em;
           text-transform: uppercase; color: rgba(35,22,8,.6);
@@ -317,18 +374,19 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
         }
         .op-apps-pop-shot img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* MOBIL — text hore, telefóny pod ním (posun dolu a zmenšenie namiesto doprava). */
-        @media (max-width: 768px) {
-          .op-apps-stage { --ph-w: min(200px, 24lvh); --ps: 1.35; --fx: 0px; --fy: 12lvh; --fs: .7; }
-          .op-apps-col {
-            left: 16px; right: 16px; width: auto;
-            top: calc(var(--op-nav-h, 118px) + 8px); transform: none;
-          }
+        /* MOBIL — rám 280 (komponent), text hore, telefóny pod ním. */
+        @media (max-width: 767px) {
+          .op-apps-ph { width: 280px; }
+          .op-apps-ctl { top: calc(${(280 * IPHONE_H / IPHONE_W / 2).toFixed(1)}px + 16px); }
+          .op-apps-col { left: 16px; right: 16px; width: auto; top: calc(var(--op-nav-h, 118px) + 8px); }
           .op-apps-txt { transform: none; }
           .op-apps-name { margin-bottom: 8px; }
           .op-apps-p { font-size: 14px; margin-bottom: 8px; }
           .op-apps-ul { margin-bottom: 16px; font-size: 12px; }
           .op-apps-pop-shot { width: 132px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .op-apps-ph, .op-apps-txt { transition: none; }
         }
       `}</style>
     </section>
