@@ -2622,6 +2622,9 @@ export const en = {
   'pack.publicProfile.editButton': "Edit profile",
   'pack.publicProfile.walkedSection': "Where they've walked",
   'pack.publicProfile.myPack': "My Pack",
+  'pack.publicProfile.theirPack': "Their pack",
+  'pack.publicProfile.trips': "Trips",
+  'pack.publicProfile.npMedals': "NP medals",
   'pack.publicProfile.badgesLabel': "Trips & badges",
   'pack.publicProfile.noBio': "No bio yet.",
 

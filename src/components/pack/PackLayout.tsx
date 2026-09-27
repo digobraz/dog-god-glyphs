@@ -48,9 +48,12 @@ interface PackLayoutProps {
   children: ReactNode;
   title?: string;
   subtitle?: string;
+  /** Šípka späť v strede horného radu (PackTopRow). Bez nej je stred prázdny — homepage, profil. */
+  onBack?: () => void;
+  backLabel?: string;
 }
 
-export function PackLayout({ children, title, subtitle }: PackLayoutProps) {
+export function PackLayout({ children, title, subtitle, onBack, backLabel }: PackLayoutProps) {
   const t = useT();
   const navigate = useNavigate();
   const { session, loading, dogs, devotion, bones, avatarUrl, avatarInitial, packTotal, packToday } = usePackIdentity();
@@ -133,7 +136,7 @@ export function PackLayout({ children, title, subtitle }: PackLayoutProps) {
             away with the rest of the column. Pinned just under the safe-area, above content
             (z-index above the z-10 column). */}
         {DEV_FULL && (
-          <PackTopRow right={<PackTopRight last24h={packToday} total={packTotal} layout="inline" />} />
+          <PackTopRow onBack={onBack} backLabel={backLabel} right={<PackTopRight last24h={packToday} total={packTotal} layout="inline" />} />
         )}
         {(title || subtitle) && (
           <header className="mb-7 text-center">

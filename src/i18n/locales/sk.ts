@@ -2294,6 +2294,9 @@ export const sk: Partial<Dict> = {
   'pack.publicProfile.editButton': "Upraviť profil",
   'pack.publicProfile.walkedSection': "Kadiaľ šli",
   'pack.publicProfile.myPack': "Moja svorka",
+  'pack.publicProfile.theirPack': "Svorka",
+  'pack.publicProfile.trips': "Výlety",
+  'pack.publicProfile.npMedals': "Medaily NP",
   'pack.publicProfile.badgesLabel': "Výlety a odznaky",
   'pack.publicProfile.noBio': "Zatiaľ žiadne bio.",
 

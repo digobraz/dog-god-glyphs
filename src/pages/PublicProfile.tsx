@@ -22,9 +22,8 @@
 // žiadne `trip`-tier polia nerenderujeme vôbec (viď report — spĺňa „skry trip-tier" bez potreby
 // shared-trip výpočtu). Psí BIO + tagy = vždy verejné (fixné pravidlo, nie cez getTier()).
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { BackLinkIcon } from '@/components/pack/BackButton';
 import type { Session } from '@supabase/supabase-js';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { countryLabel } from '@/lib/countryOptions';
@@ -66,6 +65,12 @@ export default function PublicProfile() {
     });
     return () => { mounted = false; };
   }, []);
+
+  // Šípka späť v hornom rade (audit 27. 9.) — dovtedy tu bol tmavý odkaz „‹ PACK“ na tmavom
+  // podklade, iný tvar než na každej inej obrazovke. Cudzí profil sa otvára z partie výletu
+  // alebo podujatia, takže späť = tam, odkiaľ človek prišiel; priamy odkaz spadne na /pack.
+  const navigate = useNavigate();
+  const goBack = () => { if (window.history.state?.idx > 0) navigate(-1); else navigate('/pack'); };
 
   const isSelf = sessionChecked && !!session?.user && session.user.id === id;
   const { dogs, loading: dogsLoading } = usePackUser(isSelf ? session!.user.id : null);
@@ -131,8 +136,7 @@ export default function PublicProfile() {
   // Odpoveď je zámerne rovnaká pre všetky tri prípady, ako v `get_trip_party()`. ──
   if (!isSelf && !member) {
     return (
-      <PackLayout>
-        <BackLink />
+      <PackLayout onBack={goBack} backLabel={t('pack.publicProfile.backToPack')}>
         <div
           className="flex flex-col items-center text-center gap-3"
           style={{
@@ -206,13 +210,12 @@ export default function PublicProfile() {
   const loadingDogs = isSelf && dogsLoading;
 
   return (
-    <PackLayout>
+    <PackLayout onBack={goBack} backLabel={t('pack.publicProfile.backToPack')}>
       <div className="flex flex-col gap-5">
         {/* `.pf-field`/`.pf-pill` (packTheme.ts) — DogGalleryAccordion tu renderuje
             tie isté chipy/polia ako PackProfile.tsx (editor), takže potrebujú tú
             istú CSS triedu aj na read-only profile. */}
         <style>{PF_FIELD_CSS}</style>
-        <BackLink />
 
         {/* Owner hlavička — avatar · meno/nickname · nationalita · pack# · badges */}
         <section
@@ -249,7 +252,7 @@ export default function PublicProfile() {
                 )}
               </div>
               {packNumber != null && (
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: T.inkFaint, marginTop: 3 }}>
+                <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: T.inkFaint, marginTop: 3 }}>
                   Dogyptian #{packNumber}
                 </div>
               )}
@@ -268,17 +271,18 @@ export default function PublicProfile() {
             )}
           </div>
 
-          {/* Badges — agregované (trips walked + NP medaily); „—" len keď selfBadges zlyhá
-              (try/catch vyššie). */}
-          <div style={{ borderTop: `1px solid ${T.hairline}`, marginTop: 18, paddingTop: 16 }}>
+          {/* Badges — agregované (trips walked + NP medaily). Len keď ich máme: o cudzom
+              človeku appka výlety nevydáva, takže riadok „— —“ stál na KAŽDOM cudzom profile
+              ako mŕtvy údaj (audit 27. 9.). */}
+          {selfBadges && (<div style={{ borderTop: `1px solid ${T.hairline}`, marginTop: 18, paddingTop: 16 }}>
             <span style={{ fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.28em', textTransform: 'uppercase', color: T.inkFaint, display: 'block', marginBottom: 10 }}>
               {t('pack.publicProfile.badgesLabel')}
             </span>
             <div className="flex items-center gap-6">
-              <BadgeStat value={selfBadges ? String(selfBadges.trips) : '—'} label="Trips" />
-              <BadgeStat value={selfBadges ? String(selfBadges.np) : '—'} label="NP medals" />
+              <BadgeStat value={String(selfBadges.trips)} label={t('pack.publicProfile.trips')} />
+              <BadgeStat value={String(selfBadges.np)} label={t('pack.publicProfile.npMedals')} />
             </div>
-          </div>
+          </div>)}
         </section>
 
         {/* Moja svorka — read-only galéria (rovnaký accordion ako editor, bez edit polí) */}
@@ -290,7 +294,7 @@ export default function PublicProfile() {
         >
           <div className="flex items-center gap-2.5" style={{ color: T.inkDim, marginBottom: 14 }}>
             <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.32em', textTransform: 'uppercase' }}>
-              {t('pack.publicProfile.myPack')}
+              {member ? t('pack.publicProfile.theirPack') : t('pack.publicProfile.myPack')}
             </span>
           </div>
           {loadingDogs ? (
@@ -338,23 +342,6 @@ export default function PublicProfile() {
         <div style={{ height: 24 }} />
       </div>
     </PackLayout>
-  );
-}
-
-function BackLink() {
-  const t = useT();
-  return (
-    <Link
-      to="/pack"
-      className="inline-flex items-center gap-2"
-      style={{
-        fontFamily: "'Cinzel', serif", letterSpacing: '0.22em', fontSize: 11, textTransform: 'uppercase',
-        color: T.inkDim, textDecoration: 'none',
-      }}
-    >
-      <BackLinkIcon />
-      {t('pack.publicProfile.backToPack')}
-    </Link>
   );
 }
 
