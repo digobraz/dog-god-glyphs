@@ -3694,6 +3694,7 @@ export default function OnePage() {
   const [filmMoving, setFilmMoving] = useState(false);
   const [atFilmEnd, setAtFilmEnd] = useState(false);
   const [inStory, setInStory] = useState(false);
+  const [atHome, setAtHome] = useState(true);
   /** Popup s tromi Albami — vstup je chip PRÍKLAD pri podnadpise HEROGLYPH. */
   const [albaOpen, setAlbaOpen] = useState(false);
   const albaOpenRef = useRef(false);
@@ -3709,6 +3710,7 @@ export default function OnePage() {
       setAtFilmEnd(window.scrollY >= document.documentElement.scrollHeight - window.innerHeight - 8);
       const z = filmFree();
       setInStory(!!z && window.scrollY >= z[0] - 4 && window.scrollY < z[1] - 4);
+      setAtHome(window.scrollY < window.innerHeight * 0.3);
     };
     on();
     window.addEventListener('scroll', on, { passive: true });
@@ -3800,7 +3802,7 @@ export default function OnePage() {
           šípky, ktoré navádzajú na SLIDE… 3 pod sebou blikajúce"*. Jedny pre
           celý film; počas jazdy motora zhasnú, klik = ďalšia obrazovka. */}
       {!wallOpen && !atFilmEnd && (
-        <FilmCue moving={filmMoving} onNext={() => filmGo(1)} label={t('onepage.cue.next')} hint={inStory ? t('onepage.cue.story') : undefined} />
+        <FilmCue moving={filmMoving} onNext={() => filmGo(1)} label={t('onepage.cue.next')} hint={inStory ? t('onepage.cue.story') : undefined} big={atHome} />
       )}
       {albaOpen && (
         <div className="op-alba" role="dialog" aria-modal="true" aria-label="ALBA" data-film-free onClick={() => setAlbaOpen(false)}>

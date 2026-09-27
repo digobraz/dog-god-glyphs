@@ -24,7 +24,7 @@
 import { useEffect, useRef } from 'react';
 
 const QUIET = 170;          // ms bez udalosti = predošlý ťah skončil
-const MIN_DELTA = 4;        // šum trackpadu
+const GESTURE_PX = 24;      // súčet delty, od ktorého je to ťah (nie šum)
 const TOUCH_MIN = 36;       // px swipu, ktorý sa počíta ako ťah
 
 export type FilmStopsApi = {
@@ -60,6 +60,12 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
     let lastWheel = 0;
     let lastAbs = 0;
     let touchY: number | null = null;
+    /** Súčet delty aktuálneho ťahu a či už ťah spustil jazdu. */
+    let gAcc = 0;
+    let gFired = false;
+    /** Ťah, ktorý prišiel počas jazdy — vykoná sa hneď po nej. */
+    let queued: 1 | -1 | 0 = 0;
+    let rideK = 0;
 
     const setMoving = (m: boolean) => {
       moving = m;
@@ -83,13 +89,18 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
       const dur = (apiRef.current.duration ?? defaultDuration)(screens, from, to);
       const t0 = performance.now();
       setMoving(true);
+      queued = 0;
       const step = (now: number) => {
         const k = Math.min(1, (now - t0) / dur);
+        rideK = k;
         // 'instant' — html má v index.css scroll-behavior: smooth, ktorý by
         // každý snímok rozbehol na vlastnú animáciu.
         window.scrollTo({ top: from + (to - from) * ease(k), behavior: 'instant' as ScrollBehavior });
         if (k < 1) raf = requestAnimationFrame(step);
-        else { raf = 0; setMoving(false); }
+        else {
+          raf = 0; setMoving(false);
+          if (queued) { const d = queued; queued = 0; go(d); }
+        }
       };
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(step);
@@ -132,15 +143,27 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
       // Vnútri vlastného scrollujúceho prvku (popup, zoznam) nechaj koliesko jemu.
       if ((e.target as Element | null)?.closest?.('[data-film-free]')) return;
       e.preventDefault();
+      // 🔴 27. 9. 2026 — Matej: *„niekde to nezachytáva a musím sa viac snažiť"*.
+      // Pôvodne rozhodovala PRVÁ udalosť ťahu; trackpad však začína malými
+      // krokmi (2 → 5 → 9 px) a keď bola prvá pod šumom, celý ťah prepadol.
+      // Teraz sa ťah SČÍTAVA a spustí jazdu, keď prekročí GESTURE_PX.
+      // Nový ťah = ticho > QUIET, alebo zrýchlenie uprostred dobehu zotrvačnosti
+      // (zotrvačnosť len spomaľuje, prst zrýchľuje).
       const abs = Math.abs(e.deltaY);
       const now = performance.now();
       const quiet = now - lastWheel > QUIET;
-      const accel = abs > lastAbs * 1.4 + 6;
+      const accel = gFired && abs > lastAbs * 1.25 + 8;
+      if (quiet || accel) { gAcc = 0; gFired = false; }
       lastWheel = now;
       lastAbs = abs;
-      if (abs < MIN_DELTA || moving) return;
-      if (!quiet && !accel) return;
-      go(e.deltaY > 0 ? 1 : -1);
+      gAcc += abs;
+      if (gFired || gAcc < GESTURE_PX) return;
+      gFired = true;
+      const dir: 1 | -1 = e.deltaY > 0 ? 1 : -1;
+      // Ťah počas jazdy sa nezahodí: v druhej polovici jazdy sa zapamätá
+      // a vykoná hneď po dojazde (skorší by bol dvojitý švih omylom).
+      if (moving) { if (rideK > 0.45) queued = dir; return; }
+      go(dir);
     };
 
     const onTouchStart = (e: TouchEvent) => {

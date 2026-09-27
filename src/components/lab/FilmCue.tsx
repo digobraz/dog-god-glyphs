@@ -42,10 +42,10 @@ function Chevron({ i, scale }: { i: number; scale: number }) {
   );
 }
 
-export default function FilmCue({ moving, onNext, label, hint }: { moving: boolean; onNext: () => void; label: string; hint?: string }) {
+export default function FilmCue({ moving, onNext, label, hint, big }: { moving: boolean; onNext: () => void; label: string; hint?: string; big?: boolean }) {
   const sc = CUE.order === 'A' ? [1, 0.78, 0.58] : CUE.order === 'B' ? [0.58, 0.78, 1] : [0.8, 0.8, 0.8];
   return (
-    <button type="button" className={`op-cue${moving ? ' is-moving' : ''}`} aria-label={label} onClick={onNext}
+    <button type="button" className={`op-cue${moving ? ' is-moving' : ''}${big ? ' is-big' : ''}`} aria-label={label} onClick={onNext}
       style={{ ['--dur' as string]: `${CUE.dur}s`, ['--gap' as string]: `${CUE.gap}s`, ['--dim' as string]: CUE.dim, ['--glow' as string]: `${CUE.glow}px` } as React.CSSProperties}>
       {/* Nápis nad šípkami — len v príbehu (Matej 27. 9.: *„nad šípkami nápis
           prescroluj príbeh"*). Miesto drží stále, aby šípky neposkakovali. */}
@@ -63,8 +63,11 @@ export const FILM_CUE_CSS = `
     transform: translateX(-50%);
     display: flex; flex-direction: column; align-items: center;
     padding: 8px 16px; background: none; border: 0; cursor: pointer;
-    transition: opacity .35s ease;
+    transition: opacity .35s ease, transform .5s cubic-bezier(.22,.9,.28,1);
+    transform-origin: 50% 100%;
   }
+  /* Na homepage (guľa) o 50 % väčšie — Matej 27. 9. 2026. */
+  .op-cue.is-big { transform: translateX(-50%) scale(1.5); }
   .op-cue > span { display: block; line-height: 0; }
   .op-cue-hint {
     display: block; min-height: 12px; margin-bottom: 8px; font-style: normal;
