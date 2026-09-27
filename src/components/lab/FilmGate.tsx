@@ -1,0 +1,110 @@
+/**
+ * BRÁNA — koniec príbehu na čiernej (Matej 27. 9. 2026: *„pri konci scrolu
+ * v príbehu by sme mohli pomaly vyjsť z tmy tú bránu, ktorú sme už raz
+ * postavili, ktorá sa scrollingom otvára"*).
+ *
+ * 🔑 NIE JE TO NOVÝ NÁPAD — je to `GateRevealSection` z `/betavision`
+ * (`pages/BetaVision.tsx`): fotka brány `brana-final.webp` rozdelená na švíku
+ * a za ňou video `touch_opening.mp4` (ruka s heroglyfom podáva dlaň labke).
+ * Tu je bez framer-motion a bez CTA — film ďalej vedie motor a šípky.
+ *
+ * DEJ na vlastnej prilepenej dráhe (podiel p 0–1):
+ *   0.00–0.30  brána vychádza z tmy (krytie + jemné priblíženie)
+ *   0.30–0.62  krídla sa rozostúpia, za nimi video
+ *   0.36–0.84  video sa prehrá scrollom (currentTime = dráha), dobehne na zastávke
+ *   0.86–1.00  obraz zbledne do papyrusu — WE NEED YOU za ním je papyrus
+ *
+ * Zastávky motora: `GATE_REST` (brána zatvorená) · `GATE_TOUCH` (dotyk).
+ */
+import { useEffect, useRef } from 'react';
+import { LAB } from '@/lib/labTheme';
+
+export const GATE_VH = 320;
+/** Kde na dráhe stojí zastávka „brána zatvorená, celá vidieť". */
+export const GATE_REST = 0.3;
+/** Druhá zastávka — video dohralo (ruka a labka sa dotkli), obraz ešte nebledne. */
+export const GATE_TOUCH = 0.84;
+
+const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
+const seg = (p: number, a: number, b: number) => clamp01((p - a) / (b - a));
+const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+
+export default function FilmGate() {
+  const secRef = useRef<HTMLElement>(null);
+  const vidRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const sec = secRef.current;
+    const vid = vidRef.current;
+    if (!sec) return;
+    let raf = 0;
+    let lastP = -1;
+    const apply = () => {
+      raf = 0;
+      const r = sec.getBoundingClientRect();
+      const span = Math.max(1, sec.offsetHeight - window.innerHeight);
+      const p = clamp01(-r.top / span);
+      if (Math.abs(p - lastP) < 0.0005) return;
+      lastP = p;
+      const rise = easeInOut(seg(p, 0.02, GATE_REST));
+      const open = easeInOut(seg(p, GATE_REST, 0.62));
+      const pale = seg(p, 0.86, 1);
+      sec.style.setProperty('--g-rise', rise.toFixed(4));
+      sec.style.setProperty('--g-open', open.toFixed(4));
+      sec.style.setProperty('--g-pale', pale.toFixed(4));
+      if (vid && vid.readyState >= 1 && isFinite(vid.duration) && vid.duration > 0) {
+        const t = seg(p, 0.36, GATE_TOUCH) * vid.duration;
+        if (Math.abs(vid.currentTime - t) > 0.03) vid.currentTime = t;
+      }
+    };
+    const on = () => { if (!raf) raf = requestAnimationFrame(apply); };
+    vid?.load();
+    apply();
+    window.addEventListener('scroll', on, { passive: true });
+    window.addEventListener('resize', on);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('scroll', on);
+      window.removeEventListener('resize', on);
+    };
+  }, []);
+
+  return (
+    <section ref={secRef} className="op-gate" aria-hidden="true" style={{ height: `${GATE_VH}lvh` }}>
+      <div className="op-gate-stage">
+        <video ref={vidRef} className="op-gate-vid" src="/videos/touch_opening.mp4" muted playsInline preload="auto" />
+        <div className="op-gate-door is-l"><div className="op-gate-img" /></div>
+        <div className="op-gate-door is-r"><div className="op-gate-img" /></div>
+        <div className="op-gate-pale" />
+      </div>
+      <style>{`
+        .op-gate { position: relative; background: #000; }
+        .op-gate-stage {
+          position: sticky; top: 0; height: 100lvh; overflow: hidden; background: #000;
+        }
+        .op-gate-vid {
+          position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+          opacity: var(--g-open, 0);
+        }
+        .op-gate-door {
+          position: absolute; top: 0; width: 50%; height: 100%; overflow: hidden;
+          opacity: var(--g-rise, 0);
+        }
+        .op-gate-door.is-l { left: 0; transform: translateX(calc(var(--g-open, 0) * -100%)); }
+        .op-gate-door.is-r { right: 0; transform: translateX(calc(var(--g-open, 0) * 100%)); }
+        .op-gate-img {
+          position: absolute; top: 0; width: 100vw; height: 100%;
+          background: url(/images/brana-final.webp) center / cover no-repeat;
+          transform: scale(calc(1.08 - var(--g-rise, 0) * 0.08));
+        }
+        /* Obe polovice nesú CELÚ bránu (100vw), jej stred leží na švíku. */
+        .op-gate-door.is-l .op-gate-img { left: 0; }
+        .op-gate-door.is-r .op-gate-img { right: 0; }
+        .op-gate-pale {
+          position: absolute; inset: 0; pointer-events: none;
+          background: ${LAB.pageBg}; opacity: var(--g-pale, 0);
+        }
+      `}</style>
+    </section>
+  );
+}

@@ -32,6 +32,10 @@ export type FilmStopsApi = {
   stops: () => number[];
   /** Motor mlčí (otvorené prekrytie, stena, menu…). */
   paused: () => boolean;
+  /** VOĽNÉ PÁSMO [od, do] v px — tam si človek scrolluje sám (príbeh na
+   *  čiernej, Matej 27. 9.: *„tejto sekcie sa ten motor netýka"*). Motor sa
+   *  ozve až na jeho okraji a v smere von. */
+  free?: () => [number, number] | null;
   /** Dĺžka jazdy v ms podľa vzdialenosti v obrazovkách. */
   duration?: (screens: number, from: number, to: number) => number;
   /** Hlási, či práve ide jazda (šípky dole ju skrývajú). */
@@ -97,8 +101,20 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
     };
     goRef.current = go;
 
+    /** Je poloha vo voľnom pásme a ťah smeruje DOVNÚTRA neho? */
+    const inFree = (dir: 1 | -1): boolean => {
+      const z = apiRef.current.free?.();
+      if (!z) return false;
+      const y = window.scrollY;
+      if (y < z[0] - 2 || y > z[1] + 2) return false;
+      if (dir > 0 && y >= z[1] - 2) return false;   // dno pásma, ťah von
+      if (dir < 0 && y <= z[0] + 2) return false;   // strop pásma, ťah von
+      return true;
+    };
+
     const onWheel = (e: WheelEvent) => {
       if (apiRef.current.paused() || e.ctrlKey) return;
+      if (!moving && inFree(e.deltaY > 0 ? 1 : -1)) { lastWheel = performance.now(); lastAbs = Math.abs(e.deltaY); return; }
       // Vnútri vlastného scrollujúceho prvku (popup, zoznam) nechaj koliesko jemu.
       if ((e.target as Element | null)?.closest?.('[data-film-free]')) return;
       e.preventDefault();
@@ -120,6 +136,8 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
     };
     const onTouchMove = (e: TouchEvent) => {
       if (touchY == null) return;
+      const dy = touchY - (e.touches[0]?.clientY ?? touchY);
+      if (!moving && Math.abs(dy) > 2 && inFree(dy > 0 ? 1 : -1)) { touchY = null; return; }
       e.preventDefault();
     };
     const onTouchEnd = (e: TouchEvent) => {
@@ -137,6 +155,7 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
       const down = ['ArrowDown', 'PageDown', ' '].includes(e.key) && !(e.key === ' ' && e.shiftKey);
       const up = ['ArrowUp', 'PageUp'].includes(e.key) || (e.key === ' ' && e.shiftKey);
       if (!down && !up) return;
+      if (!moving && inFree(down ? 1 : -1)) return;
       e.preventDefault();
       go(down ? 1 : -1);
     };

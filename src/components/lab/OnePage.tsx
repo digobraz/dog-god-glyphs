@@ -61,6 +61,7 @@ import {
 import NavMedallion, { NAV_MEDALLION_CSS } from './NavMedallion';
 import { filmVh } from '@/lib/filmVh';
 import { useFilmStops } from './filmStops';
+import FilmGate, { GATE_REST, GATE_TOUCH } from './FilmGate';
 
 // ── OBRAZY FILMU SÚ NA JEDNOM MIESTE ────────────────────────────────────────
 // Matejov zoznam z 2. 9. 2026, doslova: *„1-HOME · 2 COW vs DOG · 3 Religion ·
@@ -2916,6 +2917,15 @@ export default function OnePage() {
       if (n.crawl) {
         const cr = n.crawl.getBoundingClientRect();
         nightOut = seg(clamp01((vh - cr.bottom) / vh), NIGHT_OUT[0], NIGHT_OUT[1]);
+        // 🔴 27. 9. 2026: za príbehom stojí BRÁNA (FilmGate) — noc aj skrytá
+        // lišta trvajú, kým brána nezbledne do papyrusu, inak by sa lišta
+        // rozsvietila nad zatvorenou bránou.
+        const gateEl = document.querySelector<HTMLElement>('.op-gate');
+        if (gateEl) {
+          const gr = gateEl.getBoundingClientRect();
+          const gp = clamp01(-gr.top / Math.max(1, gateEl.offsetHeight - vh));
+          nightOut = seg(gp, 0.86, 1);
+        }
         // Prílet príbehu: 0 = jeho horná hrana je ešte celú obrazovku pod
         // ohybom, 1 = dosadla na horný okraj okna (= prvý modrý riadok).
         keepOut = seg(clamp01((vh - cr.top) / vh), KEEP_OUT[0], KEEP_OUT[1]);
@@ -3697,12 +3707,11 @@ export default function OnePage() {
     const out: number[] = [0];
     let acc = 0;
     for (const s of [PIN_VH, PIN2_VH, PIN3_VH, PIN4_VH, PIN5_VH]) { acc += s; out.push(acc * vh); }
-    const tl = document.querySelector<HTMLElement>('.op-timeline');
-    if (tl) {
-      const top = tl.getBoundingClientRect().top + window.scrollY;
-      const n = Math.floor(tl.offsetHeight / vh);
-      for (let k = 1; k <= n; k++) out.push(top + k * vh * 0.92);
-    }
+    // Príbeh je VOĽNÉ PÁSMO (viď filmFree) — zastávka je len jeho začiatok a koniec.
+    const z = filmFree();
+    if (z) out.push(z[0], z[1]);
+    const gate = pinnedAt('.op-gate', GATE_REST);
+    if (gate != null) out.push(gate, pinnedAt('.op-gate', GATE_TOUCH) ?? gate);
     for (const sel of ['.op-arc-rest', '.op-arc-rest2']) {
       const y = absTop(sel);
       if (y != null) out.push(y);
@@ -3714,8 +3723,17 @@ export default function OnePage() {
     out.push(document.documentElement.scrollHeight - window.innerHeight);
     return out;
   }, []);
+  /** Príbeh na čiernej si človek scrolluje sám (Matej 27. 9. 2026: *„tejto
+   *  sekcie sa ten motor netýka… tu si to človek vie ovládať sám"*). */
+  const filmFree = useCallback((): [number, number] | null => {
+    const tl = document.querySelector<HTMLElement>('.op-timeline');
+    if (!tl) return null;
+    const top = tl.getBoundingClientRect().top + window.scrollY;
+    return [top, top + Math.max(0, tl.offsetHeight - filmVh())];
+  }, []);
   const filmGo = useFilmStops({
     stops: filmStops,
+    free: filmFree,
     paused: () => bookOpenRef.current || wallOpenRef.current || albaOpenRef.current || document.body.style.overflow === 'hidden',
     onMove: setFilmMoving,
   }, true);
@@ -4913,6 +4931,34 @@ export default function OnePage() {
           font-size: min(clamp(2.17rem, 5.2vw, 4.0625rem), 7.4vh);
         }
         .op-root #op-vision .vhero-h2 { --vb-at: 0; }
+        /* ── VÍZIA BEZ ZLATÝCH PLÁTOV (27. 9. 2026) ──────────────────────
+           Matej: *„tá zlatá mi vadí vizuálne… to musíme urobiť"*. Tri body
+           ostávajú, stráca sa MATERIÁL: z liateho zlata je riadok na papyruse.
+           Zlato = konštrukcia (linka, obrys medailónu), lapis = štítok.
+           Len vo filme — /vision-lab si pláty drží. */
+        .op-root #op-vision .vhero-list { gap: 0; }
+        .op-root #op-vision .vhero-item {
+          background: none; border: 0; border-radius: 0; box-shadow: none;
+          padding: 16px 0; align-items: center;
+          border-top: 1px solid rgba(201,154,63,.38);
+        }
+        .op-root #op-vision .vhero-item:last-child { border-bottom: 1px solid rgba(201,154,63,.38); }
+        .op-root #op-vision .vhero-item::before { display: none; }
+        .op-root #op-vision .vhero-item:hover { background: none; box-shadow: none; }
+        .op-root #op-vision .vhero-num {
+          background: none; box-shadow: none; color: #8C6014;
+          border: 1px solid rgba(201,154,63,.75);
+        }
+        .op-root #op-vision .vhero-item:hover .vhero-num {
+          background: ${LAPIS.fill}; border-color: ${LAPIS.edge}; color: ${LAPIS.deep}; box-shadow: none;
+        }
+        .op-root #op-vision .vhero-v { color: #8C6014; text-shadow: none; }
+        .op-root #op-vision .vhero-item:hover .vhero-v { color: ${LAPIS.edge}; }
+        .op-root #op-vision .vhero-d { color: ${LAB.inkBody}; }
+        .op-root #op-vision .vhero-chip {
+          background: ${LAPIS.fill}; color: ${LAPIS.deep}; border: 1px solid rgba(22,48,122,.28);
+          box-shadow: none; right: 0; top: 16px; font-size: 10px;
+        }
         .op-root #op-vision .vhero-h2,
         .op-root #op-vision .vhero-item {
           --vb-p: clamp(0, var(--op-vb, 0) * 2.2 - var(--vb-at, 0) * 0.4, 1);
@@ -6898,6 +6944,9 @@ export default function OnePage() {
             vo filme AboutLabu) — čierna sa rozplýva na ne.
             ⚠️ ID ostáva `op-join` — visí na ňom snap aj pozorovateľ obrazov
             v nave. Zmena mena by ticho zabila oboje. */}
+        {/* ── BRÁNA — z tmy príbehu do WE NEED YOU (27. 9. 2026), viď FilmGate.tsx */}
+        <FilmGate />
+
         <section className="op-scene op-arc" id="op-join" aria-label={t('onepage.aria.join')}>
           {/* Odpočívadlo na hotovom obraze — viď .op-arc-rest v štýloch. */}
           <i className="op-arc-rest" aria-hidden="true" />
