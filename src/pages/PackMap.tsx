@@ -3761,7 +3761,12 @@ export default function PackMap() {
   // klasickom písaní tripu? zmizne aj horný nav aj bočný okraj") — ten istý zámok, nie závoj.
   // Otázky AINUBISA o prianí (WishAsk) rovnako; D1 až po zavretí odmeny.
   const wishLock = wishFlow || !!wishAsk || (!!wishMatch && !reveal);
-  const drawLock = noteBusy || notePlacing !== null || wishLock;
+  // 🔴 PANEL `+` (addEntryOpen) ZÁMOK NEZAPÍNA (27. 9. 2026). Panel sa vysúva zo spodnej lišty
+  //    a šírku aj polohu berie z nej (`--pack-nav-half`/`--pack-nav-bottom`, AddTripEntry).
+  //    Zámok lištu skryje → ResizeObserver nahlási 0 px → panel mal 36 px a stál NAD oknom.
+  //    Matej: „pri kliknutí na pridať podujatie sa nič nedeje, obraz stmavne". Zamyká až tok.
+  const drawLock = !!noteDraft || !!noteSpot || addFlow !== null || addEventFlow !== null
+    || notePlacing !== null || wishLock;
   useEffect(() => {
     if (!drawLock) return;
     document.body.classList.add('trp-draw-lock');

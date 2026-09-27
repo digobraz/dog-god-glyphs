@@ -34,6 +34,7 @@ import { estimateTripMinutes, formatTripTime } from '@/lib/tripTime';
 import { TRAIL_LINE, TRAIL_SABER_LAYERS, trailSaberScale, ensureTrailLineCss, ElevationProfile } from '@/components/pack/tripShared';
 import { useLongPressPoint } from '@/components/pack/mapnotes/useLongPressPoint';
 import { PlaceSearch } from './PlaceSearch';
+import { readGpxFile, GpxError } from './gpxImport';
 import { AinubisGuide, AINUBIS_GUIDE_CSS } from './AinubisGuide';
 import { MiniOverview, MINI_OVERVIEW_CSS } from '@/components/pack/MiniOverview';
 import { MAP_DOCK_CSS, DOCK_COL_W, DOCK_MOBILE_MAX } from '@/components/pack/mapDockShape';
@@ -161,6 +162,11 @@ export type GeometryPickerProps = {
    * ⚠️ Ref, nie callback v `drawBar`: dialóg sa pýta v inom kroku, než v akom lišta žije.
    */
   mirrorRef?: React.MutableRefObject<(() => void) | null>;
+  /**
+   * GPX IMPORT (27. 9. 2026) — trasa prišla zo súboru, nie z klikania. Hore ide len to, čo
+   * picker nevlastní: dátum zo stopy (predvyplní pole dátumu) a odkiaľ súbor je (`sourceGpx`).
+   */
+  onGpx?: (m: { date?: string; app: string; originalName: string }) => void;
   /**
    * LIŠTA KRESLENIA (beh 2, rez B — Matej 22. 8.: „musí to zvládnuť človek po ceste v aute").
    *
@@ -332,6 +338,7 @@ export function GeometryPicker({
   onMetrics,
   mapRef,
   mirrorRef,
+  onGpx,
   drawBar,
 }: GeometryPickerProps) {
   const t = useT();
@@ -637,6 +644,32 @@ export function GeometryPicker({
    * `mirroredFrom` drží počet pôvodných kotiev — číta ho undo, ktoré zdvojenie vracia CELÉ
    * (inak by ostala pol trasy tam a pol späť, bez možnosti to opraviť inak než VYMAZAŤ).
    */
+  // ── GPX IMPORT (Matej 27. 9. 2026: „rýchlejšie než klikať") ─────────────────────────────
+  // Súbor zo Stravy, Mapy.com, Garminu… naplní TÚ ISTÚ trasu, akú by človek naklikal: kotvy
+  // + hotová stopa, prevýšenie cez `recomputeAscent`, km z `line`. Potom je to obyčajná
+  // nakreslená trasa — dá sa vrátiť o bod, vymazať aj doplniť cesta späť.
+  const gpxInputRef = useRef<HTMLInputElement>(null);
+  // Trasa zo súboru je hotová — AINUBIS nesmie pýtať „klikaj ďalej". Zhasne s vymazaním trasy.
+  const [fromGpx, setFromGpx] = useState(false);
+  useEffect(() => { if (routePath.length === 0) setFromGpx(false); }, [routePath.length]);
+  const importGpx = useCallback(async (file: File) => {
+    setNotice(null);
+    try {
+      const g = await readGpxFile(file);
+      legsRef.current = [];
+      ensureLegs(g.anchors, g.track);
+      onChange({ kind: 'route', path: g.anchors, snapPath: g.track, snapped: true });
+      setFromGpx(true);
+      void recomputeAscent(g.track);
+      onGpx?.({ date: g.date, app: g.app, originalName: g.originalName });
+      const map = mapRef.current;
+      if (map) map.fitBounds(L.latLngBounds(g.track), { ...dockFitPadding(notePanelH()), animate: true, duration: 0.4 });
+    } catch (e) {
+      const code = e instanceof GpxError ? e.code : 'broken';
+      setNotice(t(`pack.addTrip.geo.gpxErr.${code}`));
+    }
+  }, [ensureLegs, onChange, recomputeAscent, onGpx, mapRef, t]);
+
   const mirrorBack = useCallback(() => {
     if (value.kind !== 'route' || value.path.length < 2) return;
     const anchors = value.path;
@@ -1180,7 +1213,7 @@ export function GeometryPicker({
         ? (routePath.length < 2
             // Tá istá dvojica gest ako pri prvej kotve — na PC sa klikne, nie ťukne.
             ? t(isPC ? 'pack.addTrip.geo.continueClick' : 'pack.addTrip.geo.continueTap')
-            : routeLooksDone
+            : routeLooksDone || fromGpx
               ? t('pack.addTrip.ainubis.routeLooksDone')
               : tp('pack.addTrip.ainubis.drawDone'))
         // ⚠️ TU AINUBIS MLČAL (opravené 2026-08-31). Po položení okruhu ostala jeho bublina
@@ -1655,6 +1688,27 @@ export function GeometryPicker({
                 („kde"). Pod poľom by človek prepínal tvar potom, ako mapu už odletel. */}
             {kindSwitch}
             <PlaceSearch mapRef={mapRef} zoom={TRIP_HOLD_MIN_ZOOM} />
+            {/* GPX NAMIESTO KLIKANIA (27. 9. 2026). Stojí pred prvou kotvou, lebo nahrádza
+                celé kreslenie — po nej by prepísal to, čo človek už naklikal.
+                ⚠️ <input> BEZ `accept`: iOS Safari by inak .gpx vo výbere zošedil (gpxImport.ts). */}
+            {allowed.includes('route') && (
+              <>
+                <input
+                  ref={gpxInputRef}
+                  type="file"
+                  hidden
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    e.target.value = '';
+                    if (f) void importGpx(f);
+                  }}
+                />
+                <button type="button" className="trp-dbar-btn" onClick={() => gpxInputRef.current?.click()}>
+                  {t('pack.addTrip.geo.gpxBtn')}
+                </button>
+                {notice && <div className="trp-notice">{notice}</div>}
+              </>
+            )}
             {backLink}
           </div>
         )}

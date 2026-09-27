@@ -531,6 +531,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
   // ── polia formulára (kroky 3–5) ───────────────────────────────────────────────────────────
   const [name, setName] = useState('');
   const [date, setDate] = useState('');
+  // Odkiaľ prišla trasa, keď ju človek nahral ako GPX (27. 9. 2026) — pole `sourceGpx` v modeli
+  // stálo od júla, nikto ho neplnil.
+  const [sourceGpx, setSourceGpx] = useState<{ app: string; originalName: string } | undefined>(undefined);
   const [dontRemember, setDontRemember] = useState(false);
   // MULTIDAY (Matej 2026-07-29, živý test) — journey je VŽDY viacdňová (End date rovno viditeľné,
   // žiadny toggle); ostatné aktivity multi-day vôbec nemajú, len odkaz naspäť na Journey (§1 popis
@@ -1427,8 +1430,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
       createdAt: now,
       updatedAt: now,
       step,
+      sourceGpx: geometry.kind === 'route' && geometry.path.length > 0 ? sourceGpx : undefined,
     };
-  }, [name, activity, geometry, effCountry, effRegion, dontRemember, date, isMultiDay, dateEnd, crew, isHikeLike, diff, terrain, crowd, tags, chips, paws, photos, effCoverIndex, coverY, note, authorName, existingTripId, isPlan, visibility, step, finishTrail, fromPlan, travelMode, travelFrom, pickup, pickupSeats]);
+  }, [sourceGpx, name, activity, geometry, effCountry, effRegion, dontRemember, date, isMultiDay, dateEnd, crew, isHikeLike, diff, terrain, crowd, tags, chips, paws, photos, effCoverIndex, coverY, note, authorName, existingTripId, isPlan, visibility, step, finishTrail, fromPlan, travelMode, travelFrom, pickup, pickupSeats]);
 
   // §4.3: toSubmit blokuje odoslanie úplne; toApprove (len walked) rozhoduje draft vs pending.
   const missing = missingFields(draft);
@@ -2883,6 +2887,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                     onMetrics={(m) => { metricsRef.current = m; }}
                     mapRef={mapRef}
                     mirrorRef={mirrorRef}
+                    /* GPX: dátum zo stopy vyplní pole dátumu, len keď je prázdne a ide o zápis —
+                       plán má dátum v budúcnosti a vyplnené pole je človekova voľba. */
+                    onGpx={(m) => {
+                      setSourceGpx({ app: m.app, originalName: m.originalName });
+                      if (!isPlan && m.date) setDate((d) => d || m.date!);
+                    }}
                     drawBar={drawBar}
                   />
                 )}

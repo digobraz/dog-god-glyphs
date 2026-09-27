@@ -485,6 +485,10 @@ function Shell({ children, onClose }: { children: React.ReactNode; onClose?: () 
   // Recept bledej plochy je `pk-paper` + `PAPER_PAGE_CSS` (packTheme.ts), rovnako ako
   // v `PackLayout`; tmavá vetva ostáva nedotknutá.
   const paper = usePaperRoute(useLocation().pathname);
+  // Šípka späť je VŽDY — aj keď kvíz nemá komu sa vypĺňať alebo neexistuje. Bez nej
+  // to bola slepá ulička (audit 26. 9.): text bez cesty von.
+  const navigate = useNavigate();
+  const back = onClose ?? (() => navigate('/pack/dogs'));
   return (
     <div
       className={`min-h-[100dvh] relative${paper ? ' pk-paper' : ''}`}
@@ -521,7 +525,7 @@ function Shell({ children, onClose }: { children: React.ReactNode; onClose?: () 
         {/* × → ŠÍPKA SPÄŤ v spoločnom rade (Matej 27. 9. 2026: „pri kvízoch je nutný ten
             krížik? nemáme ho nikde … napr. šípka dozadu"). Robí to isté, čo krížik: uloží
             rozpracované a vráti na /pack/dogs. Ľavý roh tým pripadol AINUBISOVI. */}
-        <PackTopRow onBack={onClose} backLabel={t('pack.quiz.back')} />
+        <PackTopRow onBack={back} backLabel={t('pack.quiz.back')} />
         {children}
       </div>
     </div>
