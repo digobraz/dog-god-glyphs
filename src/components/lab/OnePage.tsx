@@ -61,7 +61,7 @@ import {
 import NavMedallion, { NAV_MEDALLION_CSS } from './NavMedallion';
 import { filmVh } from '@/lib/filmVh';
 import { useFilmStops } from './filmStops';
-import FilmGate, { GATE_REST, GATE_TOUCH } from './FilmGate';
+import FilmGate, { GATE_REST, GATE_TOUCH, GATE_RIDE_MS } from './FilmGate';
 import FilmCue, { FilmTop, FILM_CUE_CSS } from './FilmCue';
 
 // ── OBRAZY FILMU SÚ NA JEDNOM MIESTE ────────────────────────────────────────
@@ -113,6 +113,14 @@ const pinnedAt = (sel: string, f: number): number | null => {
   return top + Math.max(1, el.offsetHeight - filmVh()) * f;
 };
 
+/** Jazda motora medzi zastávkami brány (zatvorená ⇄ dotyk). */
+const isGateRide = (from: number, to: number): boolean => {
+  const a = pinnedAt('.op-gate', GATE_REST), b = pinnedAt('.op-gate', GATE_TOUCH);
+  if (a == null || b == null) return false;
+  const near = (y: number, z: number) => Math.abs(y - z) < 4;
+  return (near(from, a) && near(to, b)) || (near(from, b) && near(to, a));
+};
+
 /** Kde na dráhe crawlu stojí ROZBEHNUTÝ príbeh (zlatý text). Odmerané na
  *  živej stránke (dráha 2377 px pri okne 699 px).
  *  ⚠️ UŽ TO NIE JE CIEĽ SKOKU — od 2. 9. 2026 kotva PRÍBEHU sedí o obrazovku
@@ -124,6 +132,12 @@ const pinnedAt = (sel: string, f: number): number | null => {
 const STORY_AT = 0.20;
 /** Kde na dráhe príbehu naplno svieti prvá veta — začiatok voľného pásma. */
 const STORY_START = 0.14;
+/** ZASTÁVKA NA LOGU — kde na dráhe CRAWLU (.swcrawl) logo práve naplno
+ *  vyšlo (AboutLab: nábeh 0.42–0.50, film ho posúva o úvod 0.10 ⇒
+ *  (0.50 − 0.10) / 0.90). Matej 27. 9. 2026: *„najprv predstavenie loga,
+ *  zaseknutie vo fáze objavenia, a potom nasleduje pomalý scroll"*.
+ *  Voľné (pribrzdené) pásmo príbehu začína AŽ TU. */
+const STORY_LOGO = 0.444;
 
 type FilmSlide = {
   id: string;
@@ -134,7 +148,13 @@ type FilmSlide = {
   from: () => number | null;
 };
 
-const FILM_SLIDES: FilmSlide[] = [
+/** 🔴 WE NEED YOU JE ODLOŽENÝ (Matej 27. 9. 2026: *„po tom čo sa ruka a labka
+ *  rozplynú začne DOGTRIX a ide sekcia HEROGLYPH, nie POTREBUJEME ŤA — ten
+ *  odložíme na neskôr"*). Obraz sa nemaže: prepínač vynuluje jeho dráhu aj
+ *  výdrž, schová ho a vyradí z navu aj zo zastávok. Návrat = true. */
+const WNY_ON = false as boolean;
+
+const FILM_SLIDES: FilmSlide[] = ([
   {
     id: 'home',
     navKey: 'nav.home',
@@ -215,7 +235,7 @@ const FILM_SLIDES: FilmSlide[] = [
     at: () => pinnedAt('.op-quo', QUO.colsIn[1]),
     from: () => absTop('.op-quo'),
   },
-];
+] as FilmSlide[]).filter((sl) => WNY_ON || sl.id !== 'mission');
 
 /**
  * DĹŽKA PRECHODU 1. → 2. OBRAZU, v obrazovkách scrollu.
@@ -1029,6 +1049,9 @@ const DGX = {
   sig: 92, sigD: 4, fp: 52.0, fpM: 56, ns: 19.1, nsM: 21, sgap: 14, rls: 8.4, rlsM: 9,
 } as const;
 
+/** Dráha WE NEED YOU, ktorú oblúk naozaj má — 0, kým je obraz odložený (WNY_ON). */
+const NXT_VH = WNY_ON ? ARC.nxt.vh : 0;
+
 /** Dráha obrazu DOGTRIX vo `vh` (`DGX.vh` z nákresu). */
 const DOGTRIX_VH = 340;
 /** Dĺžka DRUHÉHO odovzdania (dogtrix → alba) vo `vh`.
@@ -1063,7 +1086,7 @@ const DGX_SLIDE_VW = 110;
  *  scroll premení obrazovku".
  *  ⚠️ Nie je to spomalenie deja — počas výdrže sa NEHÝBE NIČ. Je to tá istá
  *  vec, akú robí pás recenzií: miesto, kde má človek čo pozerať bez scrollovania. */
-const ARC_HOLD_VH = 120;
+const ARC_HOLD_VH = WNY_ON ? 120 : 0;
 
 /** 🔴 TÁ ISTÁ CHYBA, DRUHÝ OBRAZ (2. 9. 2026). Matej po prvom naživo pozretí
  *  DOGTRIXu: *„opäť pri konci ľahko človek prebehne preč bez toho aby si
@@ -1111,7 +1134,7 @@ const ARC_XFADE_VH = 24;
  *  🔴 SIEDMY DIEL (2. 9. 2026): `ARC_HOLD2_VH`, DOGTRIXOVA VLASTNÁ VÝDRŽ —
  *  pripočítaná, nie odkrojená zo susedov (presne poučenie z prvej vety
  *  vyššie, tentoraz aplikované vopred). */
-const ARC_TOTAL_VH = ARC.nxt.vh + ARC_HOLD_VH + ARC_XFADE_VH + DOGTRIX_VH + ARC_HOLD2_VH + ARC_XFADE2_VH + GLF_VH
+const ARC_TOTAL_VH = NXT_VH + ARC_HOLD_VH + ARC_XFADE_VH + DOGTRIX_VH + ARC_HOLD2_VH + ARC_XFADE2_VH + GLF_VH
   // 🔴 DESIATY DIEL (2. 9. 2026): výdrž ALBY, tretie odovzdanie a MOST —
   // opäť PRIPOČÍTANÉ, nie odkrojené zo susedov. Tretíkrát to isté poučenie.
   + ARC_HOLD3_VH + ARC_XFADE3_VH + MOST_VH;
@@ -1127,7 +1150,7 @@ const ARC_VH = 1 + ARC_TOTAL_VH / 100;
  *  🔴 ČÍSLO NIE JE VKUS a nie je ani opísané: je to podiel, ktorý z dielov
  *  vyplynie. Predtým tu stálo 0.46 a komentár k nemu žiadal ručný prepočet
  *  pri každej zmene ARC_VH — teraz sa prepočíta sám. */
-const ARC_SPLIT = ARC.nxt.vh / ARC_TOTAL_VH;
+const ARC_SPLIT = NXT_VH / ARC_TOTAL_VH;
 
 /** 🔴 PRVÁ OBRAZOVKA MUSÍ STÁŤ HOTOVÁ, KÝM SA ZAČNE HASIŤ.
  *  Pôvodne to bola poistka na pár vh (posledný prvok sa objavoval súčasne
@@ -1181,7 +1204,7 @@ const ARC_MOST_F = MOST_VH / ARC_TOTAL_VH;
 /** Kde DOGTRIX dobehne svoje vlastné písanie (kóty, čierny klikateľný
  *  glyf) a začína jeho výdrž — v RAW `vh`, tá istá súradnicová sústava, akú
  *  používa `.op-arc-rest` (`top: ARC.nxt.vh`). O jednu obrazovku ďalej. */
-const ARC_REST2_VH = ARC.nxt.vh + ARC_HOLD_VH + ARC_XFADE_VH + DOGTRIX_VH;
+const ARC_REST2_VH = NXT_VH + ARC_HOLD_VH + ARC_XFADE_VH + DOGTRIX_VH;
 
 /** To isté o obraz ďalej — ALBA dopísala tri glyfy aj výzvu a začína jej
  *  výdrž. Sčítanie, nie opísané číslo: kto zmení ktorýkoľvek diel vyššie,
@@ -2994,7 +3017,7 @@ export default function OnePage() {
         // Dráha PRVEJ obrazovky — vlastná 0–1 vnútri svojho úseku. Tým si NEXT
         // STEP drží tempo, na ktorom ho Matej doladil, aj keď sa za neho pridali
         // ďalšie dve obrazovky a celá sekcia narástla.
-        const np = clamp01(npAll / ARC_SPLIT);
+        const np = ARC_SPLIT > 0 ? clamp01(npAll / ARC_SPLIT) : 1;
         // Kde sa prvá obrazovka (WE NEED YOU) prestáva hasiť a DOGTRIX začína
         // písať. Až ZA výdržou — prvá musí byť chvíľu hotová a vidieť ju celú.
         const handover1 = ARC_SPLIT + ARC_DWELL;
@@ -3022,7 +3045,7 @@ export default function OnePage() {
         // Odovzdanie 1 (nxt → dogtrix): prvá zhasne v prvej polovici prechodu,
         // druhá nabehne v druhej — prekryv je zámerne len pár percent, aby
         // medzi nimi nevznikol strih, ale ani dva texty na sebe.
-        const xfOut1 = seg(npAll, handover1, handover1 + ARC_XFADE * 0.5);
+        const xfOut1 = WNY_ON ? seg(npAll, handover1, handover1 + ARC_XFADE * 0.5) : 1;
         const xfIn1 = seg(npAll, handover1 + ARC_XFADE * 0.44, handover1 + ARC_XFADE);
         // Odovzdanie 2 (dogtrix → alba) — dvojča odovzdania 1, o obrazovku ďalej.
         // 🔴 ODOVZDANIE 2 NIE JE PRELÍNAČKA, ALE POSUN (2. 9. 2026). Matej:
@@ -3724,9 +3747,12 @@ export default function OnePage() {
     // Príbeh je VOĽNÉ PÁSMO (viď filmFree) — zastávka je len jeho začiatok a koniec.
     const z = filmFree();
     if (z) out.push(z[0], z[1]);
+    // Prvá veta príbehu je samostatná zastávka PRED logom.
+    const tl = document.querySelector<HTMLElement>('.op-timeline');
+    if (tl) out.push(tl.getBoundingClientRect().top + window.scrollY + Math.max(0, tl.offsetHeight - filmVh()) * STORY_START);
     const gate = pinnedAt('.op-gate', GATE_REST);
     if (gate != null) out.push(gate, pinnedAt('.op-gate', GATE_TOUCH) ?? gate);
-    for (const sel of ['.op-arc-rest', '.op-arc-rest2']) {
+    for (const sel of WNY_ON ? ['.op-arc-rest', '.op-arc-rest2'] : ['.op-arc-rest2']) {
       const y = absTop(sel);
       if (y != null) out.push(y);
     }
@@ -3748,7 +3774,8 @@ export default function OnePage() {
     // AboutLab ju vo filme rozsvieti pri 0,10 dráhy (pásmo 0.10–0.18 posunuté
     // o OPENING_END, viď AboutLab.tsx). Na 0 je čierna — tam motor zastavoval
     // a Matej: *„scrolujem nejak veľa, aby sa to vôbec pohlo"*.
-    return [top + span * STORY_START, top + span];
+    const logo = pinnedAt('.op-timeline .swcrawl', STORY_LOGO);
+    return [logo ?? top + span * STORY_START, top + span];
   }, []);
   const filmGo = useFilmStops({
     stops: filmStops,
@@ -3759,12 +3786,13 @@ export default function OnePage() {
     // tempo JE dĺžka tejto jazdy: rýchlosť ×0,7 ⇒ čas ÷0,7.
     duration: (screens, from, to) => {
       const base = Math.round(Math.min(2800, Math.max(1000, 700 + 600 * screens)));
-      const a = pinnedAt('.op-gate', GATE_REST), b = pinnedAt('.op-gate', GATE_TOUCH);
-      if (a == null || b == null) return base;
-      const near = (y: number, z: number) => Math.abs(y - z) < 4;
-      const gateRide = (near(from, a) && near(to, b)) || (near(from, b) && near(to, a));
-      return gateRide ? Math.round(base / 0.7) : base;
+      const gateRide = isGateRide(from, to);
+      // 27. 9. druhé kolo: ÷0,7 nestačilo (*„idú k sebe veľmi rýchlo"*) —
+      // mäkká jazda má v strede 3× priemernú rýchlosť. Jazda brány preto ide
+      // ROVNOMERNE a tak dlho, aby video bežalo vo svojom vlastnom tempe.
+      return gateRide ? GATE_RIDE_MS : base;
     },
+    easing: (from, to) => (isGateRide(from, to) ? (t: number) => t : undefined),
     paused: () => bookOpenRef.current || wallOpenRef.current || albaOpenRef.current || document.body.style.overflow === 'hidden',
     onMove: setFilmMoving,
   }, true);
@@ -5873,7 +5901,7 @@ export default function OnePage() {
         .op-arc-rest {
           position: absolute;
           left: 0;
-          top: ${ARC.nxt.vh}vh;
+          top: ${NXT_VH}vh;
           width: 1px;
           height: 1px;
           pointer-events: none;

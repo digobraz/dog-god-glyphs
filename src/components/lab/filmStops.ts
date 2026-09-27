@@ -26,6 +26,12 @@ import { useEffect, useRef } from 'react';
 const QUIET = 170;          // ms bez udalosti = predošlý ťah skončil
 const GESTURE_PX = 24;      // súčet delty, od ktorého je to ťah (nie šum)
 const TOUCH_MIN = 36;       // px swipu, ktorý sa počíta ako ťah
+/** VOĽNÉ PÁSMO JE PRIBRZDENÉ (Matej 27. 9. 2026: *„keď človek potiahne viac,
+ *  preletí celý príbeh = treba scroll spomaliť"*). Koliesko/trackpad sa v ňom
+ *  neposúva natívne, ale o podiel delty so stropom na udalosť. Dotyk na mobile
+ *  ostáva natívny — prst bez zotrvačnosti by pôsobil ako zaseknutý. */
+const FREE_GAIN = 0.35;
+const FREE_MAX = 36;        // px na jednu udalosť kolieska
 
 export type FilmStopsApi = {
   /** Zoradené polohy zastávok v px. Volá sa pri každom ťahu (výšky sa menia). */
@@ -38,6 +44,8 @@ export type FilmStopsApi = {
   free?: () => [number, number] | null;
   /** Dĺžka jazdy v ms podľa vzdialenosti v obrazovkách. */
   duration?: (screens: number, from: number, to: number) => number;
+  /** Vlastný priebeh jazdy (0–1 → 0–1); bez neho mäkký rozjazd aj dojazd. */
+  easing?: (from: number, to: number) => ((t: number) => number) | undefined;
   /** Hlási, či práve ide jazda (šípky dole ju skrývajú). */
   onMove?: (moving: boolean) => void;
 };
@@ -87,6 +95,7 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
       const from = window.scrollY;
       const screens = Math.abs(to - from) / Math.max(1, window.innerHeight);
       const dur = (apiRef.current.duration ?? defaultDuration)(screens, from, to);
+      const ez = apiRef.current.easing?.(from, to) ?? ease;
       const t0 = performance.now();
       setMoving(true);
       queued = 0;
@@ -95,7 +104,7 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
         rideK = k;
         // 'instant' — html má v index.css scroll-behavior: smooth, ktorý by
         // každý snímok rozbehol na vlastnú animáciu.
-        window.scrollTo({ top: from + (to - from) * ease(k), behavior: 'instant' as ScrollBehavior });
+        window.scrollTo({ top: from + (to - from) * ez(k), behavior: 'instant' as ScrollBehavior });
         if (k < 1) raf = requestAnimationFrame(step);
         else {
           raf = 0; setMoving(false);
@@ -139,7 +148,18 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
 
     const onWheel = (e: WheelEvent) => {
       if (apiRef.current.paused() || e.ctrlKey) return;
-      if (!moving && inFree(e.deltaY > 0 ? 1 : -1)) { lastWheel = performance.now(); lastAbs = Math.abs(e.deltaY); return; }
+      if (!moving && inFree(e.deltaY > 0 ? 1 : -1)) {
+        lastWheel = performance.now(); lastAbs = Math.abs(e.deltaY);
+        const z = apiRef.current.free?.();
+        if (!z) return;
+        e.preventDefault();
+        const px = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * window.innerHeight : e.deltaY;
+        const d = Math.max(-FREE_MAX, Math.min(FREE_MAX, px * FREE_GAIN));
+        // Z pásma sa brzdeným scrollom nevypadne — na okraji prevezme motor.
+        const y = Math.max(z[0], Math.min(z[1], window.scrollY + d));
+        window.scrollTo({ top: y, behavior: 'instant' as ScrollBehavior });
+        return;
+      }
       // Vnútri vlastného scrollujúceho prvku (popup, zoznam) nechaj koliesko jemu.
       if ((e.target as Element | null)?.closest?.('[data-film-free]')) return;
       e.preventDefault();

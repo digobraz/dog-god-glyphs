@@ -79,6 +79,8 @@ export const FILM_CUE_CSS = `
   .op-top.is-on { opacity: .85; pointer-events: auto; transform: none; }
   .op-top.is-on:hover { opacity: 1; }
   .op-top svg { transform: rotate(180deg); }
+  /* Rámik po kliku myšou nie — len pri klávesnici (Matej ho videl ako štvorec). */
+  .op-top:focus:not(:focus-visible) { outline: none; }
   @media (max-width: 768px) { .op-top { right: 16px; bottom: 16px; } }
   .op-cue {
     position: fixed; left: 50%; bottom: clamp(24px, 10vh, 104px); z-index: 60;
