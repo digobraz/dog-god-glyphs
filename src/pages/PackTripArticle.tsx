@@ -31,11 +31,7 @@ import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL_FIT, packColCSS, HIT_CSS } from '@/components/pack/packTheme';
-<<<<<<< HEAD
-import { BackButton, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
-=======
 import { BackButton, BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
->>>>>>> 4a872cf (Auto-save 2026-09-27 12:12)
 // Lapisové hlavné CTA + priesvitný tint stavu — jeden zdroj pre celý /pack (2026-08-26/28).
 import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK, PALE } from '@/components/pack/navGoldSkin';
 // Emoji v čísle výletu (km, prevýšenie) — bez tohto fontu sadne Windows na čiernobiely

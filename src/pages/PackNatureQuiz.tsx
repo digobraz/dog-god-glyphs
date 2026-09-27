@@ -1878,6 +1878,10 @@ export default function PackNatureQuiz() {
     if (advanceRef.current !== null) { window.clearTimeout(advanceRef.current); advanceRef.current = null; }
   };
   useEffect(() => clearAdvance, []);
+  // Nová otázka = začiatok stránky (audit 27. 9.). Bez toho na mobile po START alebo po
+  // automatickom posune ostalo okno dole, kde bolo tlačidlo, a nadpis otázky stál pod
+  // pripnutým radom AINUBIS · šípka — človek pristál uprostred otázky.
+  useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior }); }, [phase, idx]);
 
   useEffect(() => {
     let alive = true;
@@ -2170,7 +2174,8 @@ export default function PackNatureQuiz() {
             {tx('pack.nature.result.done', 'Done')}
           </button>
         </div>
-        <Attribution tx={tx} />
+        {/* Poďakovanie nesie pätička dokumentu (ResultDoc) — druhé pod tlačidlami bolo
+            zdvojené (audit 27. 9.). */}
       </Shell>
     );
   }
@@ -2532,7 +2537,7 @@ export default function PackNatureQuiz() {
             : tx('pack.nature.result.savedAll', 'Saved to every dog’s card')}
         </p>
       )}
-      <Attribution tx={tx} />
+      {/* Poďakovanie nesie pätička dokumentu (ResultDoc), tu by bolo druhýkrát. */}
     </Shell>
   );
 }

@@ -19,13 +19,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PackTopRow } from '@/components/pack/PackTopRow';
-import { PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, GOLD_BTN, PAPER_PAGE_CSS, usePaperRoute, PACK_TOPROW_PAD } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, PAPER_PAGE_CSS, usePaperRoute, PACK_TOPROW_PAD } from '@/components/pack/packTheme';
 import { QUIZ_BY_KEY, type QuizStep } from '@/components/pack/dogQuiz';
 import { appendDogEvents, readLatestForDogs, type DogEventInput, type LatestValue } from '@/lib/dogEvents';
 import { supabase } from '@/integrations/supabase/client';
 import { getAccessibleDogIds } from '@/lib/dogRights';
 import { useT } from '@/i18n/LanguageContext';
 import { HandCheck } from '@/components/pack/HandIcons';
+import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 
 const T = PACK_THEME;
 const NAME_FONT = "'Cinzel Decorative', 'Cinzel', serif";
@@ -36,17 +37,19 @@ interface QuizDog { id: string; dog_name: string | null; cloudinary_main_url: st
 type Answer = string | string[] | null;
 
 const QUIZ_CSS = `
+/* CTA na papyruse = LAPIS (brand kánon 28. 8., rovnako ako kvíz povahy .nq-gold).
+   Oranžovo-zlatý gradient patrí na tmavý podklad; tu stojí tlačidlo vždy na karte. */
 .qz-gold{
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
   padding:12px 24px;
-  background:${GOLD_BTN.grad};
-  border:1px solid ${GOLD_BTN.edge}; border-radius:8px; color:#000;
-  font-family:'Cinzel',serif; font-size:11px; font-weight:800;
+  background:${LAPIS.grad};
+  border:1px solid ${LAPIS.edge}; border-radius:8px; color:${LAPIS.ink};
+  font-family:'Cinzel',serif; font-size:11px; font-weight:700;
   letter-spacing:0.14em; text-transform:uppercase; cursor:pointer; white-space:nowrap;
-  box-shadow:0 0 28px rgba(230,158,26,0.34), inset 0 1px 0 rgba(255,255,255,0.3);
+  box-shadow:${LAPIS_BTN_SHADOW};
   transition: transform .2s, box-shadow .22s;
 }
-.qz-gold:hover{ transform:scale(1.04); }
+.qz-gold:hover{ transform:scale(1.04); background:${LAPIS.gradHover}; }
 .qz-gold:disabled{ opacity:.45; cursor:default; transform:none; box-shadow:none; }
 .qz-ghost{
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
@@ -132,6 +135,10 @@ export default function PackDogQuiz() {
     const i = section.steps.findIndex((s) => s.field === jumpField);
     if (i >= 0) setIdx(i);
   }, [section, jumpField]);
+
+  // Nová otázka = začiatok stránky — inak na mobile ostane okno dole pri tlačidle DALEJ
+  // a nadpis ďalšej otázky stojí pod pripnutým radom AINUBIS · šípka (audit 27. 9.).
+  useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior }); }, [idx]);
 
   const step = section?.steps[idx];
   const solo = (dogs?.length ?? 0) === 1;
