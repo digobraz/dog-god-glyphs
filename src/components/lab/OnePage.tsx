@@ -114,18 +114,40 @@ const pinnedAt = (sel: string, f: number): number | null => {
 };
 
 /** Dva ťahy za dotykom (27. 9. 2026): ROZPLYNUTIE (dotyk → dážď) a PÍSANIE
- *  (dážď → dopísaný DOGTRIX s Hektorom). Druhý ide pomaly a bez prudkého
+ *  (dážď → nadpis a glyf; kóty a Hektor idú ďalšími ťahmi, viď `dgxStopsDp`).
+ *  Druhý ide pomaly a bez prudkého
  *  stredu — *„nábeh textu a postupne aj heroglyph, pomaly, teraz je to moc
  *  rýchlo"*. Platí oboma smermi. */
-const DGX_WRITE_MS = 6000;
+const DGX_WRITE_MS = 4000;
+/** Jazda medzi zastávkami kót (a z poslednej kóty do konečného stavu). */
+const DGX_KOTA_MS = 1600;
 const easeSine = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2;
-const dgxLeg = (from: number, to: number): 'dissolve' | 'write' | null => {
+
+/** 🔴 DOGTRIX PO ŤAHOCH (Matej 27. 9. 2026: *„nemôže jeden scroll ukázať
+ *  celý obsah — ukáže nadpisy a heroglyph, ďalšie slajdy postupne ukazujú
+ *  kóty (4 slajdy) a po nich sa dá stránka do konečného stavu aj s navom"*).
+ *  Zastávky sú body na dráhe `dp` (0–1), odvodené z časovania `DGX` — nie
+ *  opísané čísla: kto posunie kótu v DGX, posunie sa aj zastávka.
+ *  ① nadpis + glyf dopísaný · ②–⑤ kóta i naplno svieti (tie predošlé
+ *  svietia ďalej, `hold:'acc'`) · ⑥ = `.op-arc-rest2` (kóty zhasnú, Hektor,
+ *  horný nav). */
+const dgxStopsDp = (): number[] => [
+  (DGX.glyph + DGX.glyphD) / 100,
+  ...[0, 1, 2, 3].map((i) => (DGX.kota + i * DGX.kotaStag + DGX.pulseW + DGX.kotaD) / 100),
+];
+/** Poloha bodu `dp` na stránke (px) — tá istá rovnica ako `dp` v réžii. */
+const dgxAt = (f: number): number | null =>
+  pinnedAt('.op-arc', ARC_SPLIT + ARC_DWELL + f * (ARC_XFADE + ARC_DGX_F));
+
+const dgxLeg = (from: number, to: number): 'dissolve' | 'write' | 'kota' | null => {
   const touch = pinnedAt('.op-gate', GATE_TOUCH), gone = pinnedAt('.op-gate', GATE_FADE[1]);
-  const rest2 = absTop('.op-arc-rest2');
   const pair = (a: number | null, b: number | null) =>
     a != null && b != null && ((Math.abs(from - a) < 4 && Math.abs(to - b) < 4) || (Math.abs(from - b) < 4 && Math.abs(to - a) < 4));
   if (pair(touch, gone)) return 'dissolve';
-  if (pair(gone, rest2)) return 'write';
+  const d = dgxStopsDp().map(dgxAt);
+  if (pair(gone, d[0])) return 'write';
+  const chain = [...d, absTop('.op-arc-rest2')];
+  for (let i = 0; i + 1 < chain.length; i++) if (pair(chain[i], chain[i + 1])) return 'kota';
   return null;
 };
 
@@ -3816,6 +3838,8 @@ export default function OnePage() {
     // 2. scroll nábeh textu a postupne aj heroglyph"*).
     const gone = pinnedAt('.op-gate', GATE_FADE[1]);
     if (gone != null) out.push(gone);
+    // DOGTRIX po ťahoch: nadpis+glyf, potom štyri kóty (viď dgxStopsDp).
+    for (const f of dgxStopsDp()) { const y = dgxAt(f); if (y != null) out.push(y); }
     for (const sel of WNY_ON ? ['.op-arc-rest', '.op-arc-rest2'] : ['.op-arc-rest2']) {
       const y = absTop(sel);
       if (y != null) out.push(y);
@@ -3858,10 +3882,14 @@ export default function OnePage() {
       const leg = dgxLeg(from, to);
       if (leg === 'dissolve') return 2000;
       if (leg === 'write') return DGX_WRITE_MS;
+      if (leg === 'kota') return DGX_KOTA_MS;
       return base;
     },
-    easing: (from, to) => (isGateRide(from, to) ? (t: number) => t
-      : dgxLeg(from, to) === 'write' ? easeSine : undefined),
+    easing: (from, to) => {
+      if (isGateRide(from, to)) return (t: number) => t;
+      const leg = dgxLeg(from, to);
+      return leg === 'write' || leg === 'kota' ? easeSine : undefined;
+    },
     paused: () => bookOpenRef.current || wallOpenRef.current || albaOpenRef.current || document.body.style.overflow === 'hidden',
     onMove: setFilmMoving,
   }, true);
