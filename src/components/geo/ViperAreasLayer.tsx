@@ -15,7 +15,7 @@
 // `VIPER_MAX_ZOOM` sa preto nekreslí.
 // (Opačná logika než `MapNotesLayer`, ktorá sa naopak pri ODDIALENÍ skrýva:
 // konkrétny bod bez priblíženia nič nehovorí, krajová značka bez odstupu klame.)
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Marker, Popup, useMap, useMapEvent } from 'react-leaflet';
 import L from 'leaflet';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
@@ -66,8 +66,15 @@ export function ViperAreasLayer({ lang }: { lang: string }) {
   // (tá istá pasca ako v TripMarkers a MapNotesLayer).
   const onZoomEnd = useCallback(() => setZoom(map.getZoom()), [map]);
   useMapEvent('zoomend', onZoomEnd);
-  const onMoveEnd = useCallback(() => setMoveTick((n) => n + 1), []);
+  // Kým je popup otvorený, posun mapy vrstvu neprekreslí (autopan → moveend → render → update …
+  // = „Maximum update depth exceeded"; audit 27. 9. 2026, rovnaký zámok ako `geo/PoiLayer.tsx`).
+  const popupOpen = useRef(false);
+  const onMoveEnd = useCallback(() => { if (!popupOpen.current) setMoveTick((n) => n + 1); }, []);
+  const onPopupOpen = useCallback(() => { popupOpen.current = true; }, []);
+  const onPopupClose = useCallback(() => { popupOpen.current = false; setMoveTick((n) => n + 1); }, []);
   useMapEvent('moveend', onMoveEnd);
+  useMapEvent('popupopen', onPopupOpen);
+  useMapEvent('popupclose', onPopupClose);
 
   // Zhlukuje sa LEN v rámci tejto vrstvy — cudzí dataset sa nesmie zliať
   // s upozorneniami svorky do jedného čísla (dôvod v `clusterPoints.ts`).

@@ -26,6 +26,7 @@ import { HandPlus, HandForward, HandStar, HandLink, HandHeart } from '../HandIco
 import { BackButton } from '../BackButton';
 import type { TripStory } from '../story/storyData';
 import { getConsent } from '@/lib/consent';
+import { sizedUrl, heroPx } from '@/services/cloudinaryService';
 
 const T = PACK_THEME;
 const DOG_NAME_FONT = "'Cinzel Decorative','Cinzel',serif";
@@ -52,6 +53,10 @@ export const STORY_VIEW_CSS = `
   overflow:hidden; background:${T.tileBg};
 }
 .psv-hero > img{ width:100%; height:100%; object-fit:cover; display:block; }
+/* Príbeh BEZ fotky (audit 27. 9. 2026): 38vh prázdnej tmavej plochy nad kartou vyzeralo ako
+   nenačítaná fotka. Ostáva len pás na šípku späť a karta sa nevyťahuje pod ňu. */
+.psv-hero--none{ height:${PACK_SPACE.xxxl + PACK_SPACE.xl}px; min-height:0; background:none; }
+.psv-hero--none + .psv-body{ margin-top:0; }
 .psv-back{
   position:absolute; top:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.lg}px);
   left:${PACK_SPACE.lg}px; z-index:3;
@@ -209,8 +214,8 @@ export function StoryView({ story, next, locale, onClose, onNext, onLike, onSave
   return (
     <div className="psv-veil" role="dialog" aria-modal="true">
       <div className="psv-wrap">
-        <div className="psv-hero">
-          {story.photos[0] && <img src={story.photos[0]} alt="" />}
+        <div className={`psv-hero${story.photos[0] ? '' : ' psv-hero--none'}`}>
+          {story.photos[0] && <img src={sizedUrl(story.photos[0], heroPx())} alt="" />}
           <div className="psv-back"><BackButton tone="scrim" onClick={onClose} label={t('pack.trip.backToTrips')} /></div>
         </div>
 
@@ -232,12 +237,12 @@ export function StoryView({ story, next, locale, onClose, onNext, onLike, onSave
             <span className="psv-faces">
               <span className="psv-face">
                 {story.ownerPhoto
-                  ? <img src={story.ownerPhoto} alt="" loading="lazy" />
+                  ? <img src={sizedUrl(story.ownerPhoto, 96)} alt="" loading="lazy" />
                   : (story.ownerFirst || '?').slice(0, 1).toUpperCase()}
               </span>
               {story.dogs[0]?.photo && (
                 <span className="psv-face psv-face--dog">
-                  <img src={story.dogs[0].photo} alt="" loading="lazy" />
+                  <img src={sizedUrl(story.dogs[0].photo, 96)} alt="" loading="lazy" />
                 </span>
               )}
             </span>
@@ -259,7 +264,7 @@ export function StoryView({ story, next, locale, onClose, onNext, onLike, onSave
                   a React by na dvoch rovnakych klucoch hlasil kolziu (zmerane 22. 9.). */}
               {story.photos.slice(1).map((src, i) => (
                 <button key={`${i}-${src}`} type="button" onClick={() => window.open(src, '_blank', 'noopener,noreferrer')}>
-                  <img src={src} alt="" loading="lazy" />
+                  <img src={sizedUrl(src, 600)} alt="" loading="lazy" />
                 </button>
               ))}
             </div>

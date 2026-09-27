@@ -82,6 +82,8 @@ import { MapNotesSection, MAP_NOTES_SECTION_CSS } from '@/components/pack/mapnot
 import { TripStories, TRIP_STORIES_CSS } from '@/components/pack/trip/TripStories';
 import { useTripStories, toggleMark, loadTripStories, type TripStory } from '@/components/pack/story/storyData';
 import { StoryView, STORY_VIEW_CSS } from '@/components/pack/trip/StoryView';
+// Fotky v zobrazenej veľkosti (audit 27. 9.: článok ťahal 8 originálov, 6,8 MB).
+import { sizedUrl, heroPx } from '@/services/cloudinaryService';
 import { StoryWrite, STORY_WRITE_CSS } from '@/components/pack/trip/StoryWrite';
 import {
   AddMapNotePin, NoteSpotPin, AddMapNotePanel, MapNotePlacing, NoteQuickPalette, MapNoteTooFar,
@@ -1562,7 +1564,7 @@ export default function PackTripArticle() {
           nevkladá. Volať oboje naraz = dve tapety cez seba. */}
 
       <div className="pta-shell">
-      <div className="pta-hero" ref={heroRef} style={cover ? { backgroundImage: `url('${cover}')` } : undefined}>
+      <div className="pta-hero" ref={heroRef} style={cover ? { backgroundImage: `url('${sizedUrl(cover, heroPx())}')` } : undefined}>
         <div className="pta-hero-grad" />
         {(trail as { photoCredit?: string }).photoCredit && (
           <div className="pta-hero-credit">{(trail as { photoCredit?: string }).photoCredit}</div>
@@ -1700,7 +1702,7 @@ export default function PackTripArticle() {
           <div className="pta-gallery">
             {/* bod 3 (iterácia 14): klik na fotku → lightbox */}
             {trail.photos.map((p, i) => (
-              <img key={i} src={p} alt="" loading="lazy" onClick={() => setLightboxIdx(i)} />
+              <img key={i} src={sizedUrl(p, 450)} alt="" loading="lazy" decoding="async" onClick={() => setLightboxIdx(i)} />
             ))}
           </div>
         )}
@@ -2057,7 +2059,7 @@ export default function PackTripArticle() {
               aria-label={t('pack.trip.photoPrev')}
             >‹</button>
           )}
-          <img src={trail.photos[lightboxIdx]} alt="" onClick={(e) => e.stopPropagation()} />
+          <img src={sizedUrl(trail.photos[lightboxIdx], 2000)} alt="" onClick={(e) => e.stopPropagation()} />
           {trail.photos.length > 1 && (
             <button
               type="button"

@@ -24,6 +24,7 @@ import { PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, PACK_SHADOW, PACK_T
 import { LAPIS } from '../navGoldSkin';
 import { HandPlus, HandForward, HandStar, HandLink, HandHeart } from '../HandIcons';
 import type { TripStory } from '../story/storyData';
+import { sizedUrl } from '@/services/cloudinaryService';
 
 const T = PACK_THEME;
 
@@ -168,7 +169,7 @@ export function StoryCard({ story, locale, onOpen, onLike, onSave, onUse, onShar
     >
       <span className="pst-num">{story.rank}</span>
       <div className="pst-photo">
-        {story.photos[0] ? <img src={story.photos[0]} alt="" loading="lazy" /> : null}
+        {story.photos[0] ? <img src={sizedUrl(story.photos[0], 168)} alt="" loading="lazy" /> : null}
       </div>
       <div className="pst-mid">
         <div className="pst-date">{when ? `${labels.walked} ${when}` : labels.walked}</div>

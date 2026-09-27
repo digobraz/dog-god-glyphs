@@ -136,6 +136,11 @@ export const sizedUrl = (url: string | null | undefined, px: number): string => 
   return `${pred}/image/upload/${casti.join('/')}`;
 };
 
+/** Fotka na celú šírku okna (hlavička článku, príbehu): šírka okna × DPR, strop 1600.
+ *  Telefón 390 px dostane 780 namiesto 1600 — na 4G je to rozdiel ~1 s (audit 27. 9. 2026). */
+export const heroPx = (): number =>
+  typeof window === 'undefined' ? 1600 : Math.min(1600, Math.round(window.innerWidth * Math.min(window.devicePixelRatio || 1, 2) / 100) * 100);
+
 export const lightboxUrl = (publicId: string) =>
   `${BASE_URL}/c_fill,w_1200,h_1200,f_auto,q_auto/${publicId}`;
 

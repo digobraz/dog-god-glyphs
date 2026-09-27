@@ -18,7 +18,7 @@
 // ktoré appka doteraz NIKDE nekreslila — pozri `datasetNotes()` v mapNotesGeo.ts.
 // Sú to dáta z datasetu, nie od členov: nemajú autora, nehlasuje sa o nich
 // a nedajú sa mazať.
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import { Marker, Circle, Popup, useMap, useMapEvent } from 'react-leaflet';
 import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
@@ -209,8 +209,16 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showT
   const onZoomEnd = useCallback(() => setZoom(map.getZoom()), [map]);
   useMapEvent('zoomend', onZoomEnd);
 
-  const onMoveEnd = useCallback(() => setMoveTick((n) => n + 1), []);
+  // 🔴 Kým je popup otvorený, posun mapy vrstvu neprekreslí — inak `popup.update()` → autopan →
+  //    `moveend` → render → `update()` … = „Maximum update depth exceeded" (audit 27. 9. 2026,
+  //    klik na 🅿️ v článku výletu). Rovnaký zámok ako v `geo/PoiLayer.tsx`.
+  const popupOpen = useRef(false);
+  const onMoveEnd = useCallback(() => { if (!popupOpen.current) setMoveTick((n) => n + 1); }, []);
+  const onPopupOpen = useCallback(() => { popupOpen.current = true; }, []);
+  const onPopupClose = useCallback(() => { popupOpen.current = false; setMoveTick((n) => n + 1); }, []);
   useMapEvent('moveend', onMoveEnd);
+  useMapEvent('popupopen', onPopupOpen);
+  useMapEvent('popupclose', onPopupClose);
 
   // Oblasti sa kreslia POD značkami — kruh je kontext, značka je to, na čo sa klikne.
   const areas = useMemo(() => notes.filter((n) => n.radiusM != null), [notes]);

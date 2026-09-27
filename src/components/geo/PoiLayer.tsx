@@ -23,8 +23,13 @@
 // Dáta nie sú ťahané naživo: Overpass je nespoľahlivý (zažitý celoplošný výpadok), takže sú
 // predpočítané do koridoru okolo našich trás skriptom `plany/compute-trail-poi.py` a zapečené
 // generátorom do `src/data/trailPoi.generated.ts`.
-import { useCallback, useMemo, useState, type CSSProperties } from 'react';
+import { useCallback, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Marker, Popup, useMap, useMapEvent } from 'react-leaflet';
+
+// Odsadenie autopanu ako konštanta — stabilná referencia pre react-leaflet (slučku po kliku
+// na značku rieši `popupOpen` nižšie, nie toto).
+const PAN_TL: [number, number] = [20, 180];
+const PAN_BR: [number, number] = [20, 110];
 import L from 'leaflet';
 import { TRAIL_POI, POI_ATTRIBUTION, type TrailPoi } from '@/data/trailPoi.generated';
 import { FONT_UI } from '@/components/pack/packTheme';
@@ -136,9 +141,18 @@ export function PoiLayer({ minZoom = POI_MIN_ZOOM, tiles = false }: { minZoom?: 
   // odhlási starý a prihlási nový listener a udalosť sa vie stratiť v okne medzi tým
   // (rovnaký dôvod je rozpísaný pri TripMarkers v PackMap.tsx).
   const onZoomEnd = useCallback(() => setZoom(map.getZoom()), [map]);
-  const onMoveEnd = useCallback(() => setMoveTick((n) => n + 1), []);
+  // 🔴 KÝM JE POPUP OTVORENÝ, POSUN MAPY VRSTVU NEPREKRESLÍ (audit 27. 9. 2026). react-leaflet
+  //    volá `popup.update()` pri každej zmene detí popupu → autopan posunie mapu → `moveend`
+  //    → render → nové deti → `update()` … = „Maximum update depth exceeded" po kliku na 💧/🅿️.
+  //    Výrez sa dožene pri zatvorení popupu.
+  const popupOpen = useRef(false);
+  const onMoveEnd = useCallback(() => { if (!popupOpen.current) setMoveTick((n) => n + 1); }, []);
+  const onPopupOpen = useCallback(() => { popupOpen.current = true; }, []);
+  const onPopupClose = useCallback(() => { popupOpen.current = false; setMoveTick((n) => n + 1); }, []);
   useMapEvent('zoomend', onZoomEnd);
   useMapEvent('moveend', onMoveEnd);
+  useMapEvent('popupopen', onPopupOpen);
+  useMapEvent('popupclose', onPopupClose);
 
   // Hook sa volá VŽDY, aj keď `tiles` nie je zapnuté — podmienené volanie hooku React
   // nedovolí. Vypnutý vráti prázdno a nesiahne na sieť.
@@ -190,8 +204,8 @@ export function PoiLayer({ minZoom = POI_MIN_ZOOM, tiles = false }: { minZoom?: 
           <Popup
             className="poi-popup"
             closeButton={false}
-            autoPanPaddingTopLeft={[20, 180]}
-            autoPanPaddingBottomRight={[20, 110]}
+            autoPanPaddingTopLeft={PAN_TL}
+            autoPanPaddingBottomRight={PAN_BR}
           >
             <PlaceCard
               poiType={p.t}
