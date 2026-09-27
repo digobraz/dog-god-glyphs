@@ -61,7 +61,7 @@ import {
 import NavMedallion, { NAV_MEDALLION_CSS } from './NavMedallion';
 import { filmVh } from '@/lib/filmVh';
 import { useFilmStops } from './filmStops';
-import FilmGate, { GATE_REST, GATE_TOUCH, GATE_RIDE_MS } from './FilmGate';
+import FilmGate, { GATE_REST, GATE_TOUCH, GATE_RIDE_MS, GATE_FADE } from './FilmGate';
 import FilmCue, { FilmTop, FILM_CUE_CSS } from './FilmCue';
 
 // ── OBRAZY FILMU SÚ NA JEDNOM MIESTE ────────────────────────────────────────
@@ -2944,6 +2944,7 @@ export default function OnePage() {
       // v tomto snímku nečítalo rozloženie druhýkrát. Noc sleduje jeho SPODNÚ
       // hranu (koniec príbehu), výzva HORNÚ (jeho začiatok).
       let keepOut = 0;
+      let navHold = 0;
       if (n.crawl) {
         const cr = n.crawl.getBoundingClientRect();
         nightOut = seg(clamp01((vh - cr.bottom) / vh), NIGHT_OUT[0], NIGHT_OUT[1]);
@@ -2954,7 +2955,21 @@ export default function OnePage() {
         if (gateEl) {
           const gr = gateEl.getBoundingClientRect();
           const gp = clamp01(-gr.top / Math.max(1, gateEl.offsetHeight - vh));
-          nightOut = seg(gp, 0.86, 1);
+          // Noc odíde ešte POD nepriehľadným dotykom — keď sa začne
+          // rozplývať, pod ním už nemá byť čierna, ale DOGTRIX.
+          nightOut = seg(gp, GATE_FADE[0] - 0.08, GATE_FADE[0]);
+          // 🔴 HORNÝ NAV AŽ PO DOPÍSANOM DOGTRIXE (Matej 27. 9.: *„až po celom
+          // obsahu príde nakoniec horný nav"*). Od brány po koniec písania
+          // DOGTRIXu lišta mlčí, potom sa rozsvieti.
+          if (gr.top < vh) {
+            const arcEl = document.querySelector<HTMLElement>('.op-arc');
+            if (arcEl) {
+              const ar = arcEl.getBoundingClientRect();
+              const ap = clamp01(-ar.top / Math.max(1, arcEl.offsetHeight - vh));
+              const done = ARC_REST2_VH / ARC_TOTAL_VH;
+              navHold = 1 - seg(ap, done - 0.03, done);
+            }
+          }
         }
         // Prílet príbehu: 0 = jeho horná hrana je ešte celú obrazovku pod
         // ohybom, 1 = dosadla na horný okraj okna (= prvý modrý riadok).
@@ -2966,8 +2981,9 @@ export default function OnePage() {
       // dej (*„celá obrazovka vrátane headru sčerná"*), nie tri zhody náhod.
       // Deje sa to pod závojom, takže samotné hasnutie nikto nevidí; keby ho
       // nebolo, po odchode závoja by na čiernej svietila lišta a pás videa.
-      put(n.nav, 'nvo', 'opacity', (1 - night).toFixed(3));
-      put(n.nav, 'nvpe', 'pointerEvents', night > 0.5 ? 'none' : '');
+      const navOff = Math.max(night, navHold);
+      put(n.nav, 'nvo', 'opacity', (1 - navOff).toFixed(3));
+      put(n.nav, 'nvpe', 'pointerEvents', navOff > 0.5 ? 'none' : '');
       // Výzva „skroluj ďalej" svieti presne na tej prázdnej čiernej: príde
       // v okamihu, keď obrazovka zhasla, a je preč skôr, než sa rozsvieti
       // prvý modrý riadok príbehu.
@@ -3716,7 +3732,6 @@ export default function OnePage() {
   // obrazovky príbehu, DOGTRIX, ALBA, most a kniha.
   const [filmMoving, setFilmMoving] = useState(false);
   const [atFilmEnd, setAtFilmEnd] = useState(false);
-  const [inStory, setInStory] = useState(false);
   const [atHome, setAtHome] = useState(true);
   /** Popup s tromi Albami — vstup je chip PRÍKLAD pri podnadpise HEROGLYPH. */
   const [albaOpen, setAlbaOpen] = useState(false);
@@ -3731,8 +3746,6 @@ export default function OnePage() {
   useEffect(() => {
     const on = () => {
       setAtFilmEnd(window.scrollY >= document.documentElement.scrollHeight - window.innerHeight - 8);
-      const z = filmFree();
-      setInStory(!!z && window.scrollY >= z[0] - 4 && window.scrollY < z[1] - 4);
       setAtHome(window.scrollY < window.innerHeight * 0.3);
     };
     on();
@@ -3790,7 +3803,12 @@ export default function OnePage() {
       // 27. 9. druhé kolo: ÷0,7 nestačilo (*„idú k sebe veľmi rýchlo"*) —
       // mäkká jazda má v strede 3× priemernú rýchlosť. Jazda brány preto ide
       // ROVNOMERNE a tak dlho, aby video bežalo vo svojom vlastnom tempe.
-      return gateRide ? GATE_RIDE_MS : base;
+      if (gateRide) return GATE_RIDE_MS;
+      // Dotyk → dopísaný DOGTRIX: rozplynutie, dážď aj nadpis sa odohrajú
+      // počas jednej jazdy — mäkko a dlhšie, nech to *„neseká"* (27. 9.).
+      const touch = pinnedAt('.op-gate', GATE_TOUCH), rest2 = absTop('.op-arc-rest2');
+      if (touch != null && rest2 != null && Math.abs(from - touch) < 4 && Math.abs(to - rest2) < 4) return 4200;
+      return base;
     },
     easing: (from, to) => (isGateRide(from, to) ? (t: number) => t : undefined),
     paused: () => bookOpenRef.current || wallOpenRef.current || albaOpenRef.current || document.body.style.overflow === 'hidden',
@@ -3840,7 +3858,7 @@ export default function OnePage() {
           šípky, ktoré navádzajú na SLIDE… 3 pod sebou blikajúce"*. Jedny pre
           celý film; počas jazdy motora zhasnú, klik = ďalšia obrazovka. */}
       {!wallOpen && !atFilmEnd && (
-        <FilmCue moving={filmMoving} onNext={() => filmGo(1)} label={t('onepage.cue.next')} hint={inStory ? t('onepage.cue.story') : undefined} big={atHome} />
+        <FilmCue moving={filmMoving} onNext={() => filmGo(1)} label={t('onepage.cue.next')} big={atHome} />
       )}
       {!wallOpen && (
         <FilmTop show={!atHome} label={t('onepage.cue.top')}

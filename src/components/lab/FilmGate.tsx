@@ -12,7 +12,7 @@
  *   0.00–0.30  zhasnutá brána z pozadia príbehu sa rozsvieti (jas + krytie + priblíženie)
  *   0.30–0.62  krídla sa rozostúpia, za nimi video
  *   0.36–0.84  video sa prehrá scrollom (currentTime = dráha), dobehne na zastávke
- *   0.86–1.00  obraz zbledne do papyrusu — WE NEED YOU za ním je papyrus
+ *   0.86–1.00  dotyk sa ROZPLYNIE (krytie javiska → 0), pod ním už beží DOGTRIX
  *
  * Zastávky motora: `GATE_REST` (brána zatvorená) · `GATE_TOUCH` (dotyk).
  */
@@ -30,7 +30,17 @@ export const GATE_TOUCH = 0.84;
 /** Jazda REST → TOUCH v ms, rovnomerná. Video (5 s) beží na 0.36–0.84 z nej,
  *  teda ~89 % jazdy ⇒ 6 s ≈ vlastné tempo videa. Matej 27. 9.: *„ruka
  *  a labka idú k sebe veľmi rýchlo, spomaľ ich"*. */
-export const GATE_RIDE_MS = 6000;
+export const GATE_RIDE_MS = 3500;
+/** 27. 9. tretie kolo — 6 s bolo *„prehnané"*, 2 s s mäkkou jazdou *„veľmi
+ *  rýchlo"*. 3,5 s rovnomerne ≈ video 1,4×. */
+
+/** ROZPLYNUTIE DOTYKU — na tomto úseku dráhy celé javisko brány stráca krytie
+ *  a pod ním už beží DOGTRIX (Matej 27. 9.: *„dotyk labka a dlaň pomaly sa
+ *  strácajú, ale začína DOGTRIX — padať, potom nadpis HEROGLYF…"*). */
+export const GATE_FADE: [number, number] = [0.86, 1];
+/** O koľko vh sa oblúk (DOGTRIX) zasunie POD bránu, aby sa prilepil presne
+ *  v okamihu, keď sa dotyk začne rozplývať. Počíta sa, nepíše. */
+const GATE_OVERLAP_VH = GATE_VH - GATE_FADE[0] * (GATE_VH - 100);
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const seg = (p: number, a: number, b: number) => clamp01((p - a) / (b - a));
@@ -55,7 +65,7 @@ export default function FilmGate() {
       lastP = p;
       const rise = easeInOut(seg(p, 0.01, GATE_REST));
       const open = easeInOut(seg(p, GATE_REST, 0.62));
-      const pale = seg(p, 0.86, 1);
+      const pale = seg(p, GATE_FADE[0], GATE_FADE[1]);
       // 🔴 BEZ PRÍCHODU ZDOLA (Matej 27. 9.: *„záver nie je scroll na osvetlené
       // dvere, ale táto scéna sa osvetlí… bez pohnutia"*). Kým sekcia neprilepí,
       // je javisko priehľadné a vidno len zhasnutú bránu v pozadí príbehu.
@@ -83,19 +93,20 @@ export default function FilmGate() {
   }, []);
 
   return (
-    <section ref={secRef} className="op-gate" aria-hidden="true" style={{ height: `${GATE_VH}lvh` }}>
+    <section ref={secRef} className="op-gate" aria-hidden="true" style={{ height: `${GATE_VH}lvh`, marginBottom: `-${GATE_OVERLAP_VH.toFixed(2)}lvh` }}>
       <div className="op-gate-stage">
         <div className="op-gate-back" />
         <video ref={vidRef} className="op-gate-vid" src="/videos/touch_opening_papyrus.mp4" muted playsInline preload="auto" />
         <div className="op-gate-door is-l"><div className="op-gate-img" /></div>
         <div className="op-gate-door is-r"><div className="op-gate-img" /></div>
-        <div className="op-gate-pale" />
       </div>
       <style>{`
-        .op-gate { position: relative; }
+        /* Nad oblúkom — oblúk sa pod bránu zasúva (margin-bottom) a jeho
+           DOGTRIX začína pod rozplývajúcim sa dotykom. */
+        .op-gate { position: relative; z-index: 3; pointer-events: none; }
         .op-gate-stage {
           position: sticky; top: 0; height: 100lvh; overflow: hidden;
-          opacity: var(--g-in, 0);
+          opacity: calc(var(--g-in, 0) * (1 - var(--g-pale, 0)));
         }
         /* 🟫 ZA BRÁNOU JE PAPYRUS, NIE BIELA (Matej 27. 9.: *„po otvorení brány
            by bolo béžové pozadie, to biele čo je teraz"*). Papyrus je VO VIDEU:
@@ -131,10 +142,7 @@ export default function FilmGate() {
         }
         /* Obe polovice nesú CELÚ bránu (100vw), jej stred leží na švíku. */
         .op-gate-door.is-l .op-gate-img { left: 0; }
-        .op-gate-door.is-r .op-gate-img { right: 0; }
-        .op-gate-pale {
-          position: absolute; inset: 0; pointer-events: none;
-          background: ${LAB.pageBg}; opacity: var(--g-pale, 0);
+        .op-gate-door.is-r .op-gate-img { right: 0; }; opacity: var(--g-pale, 0);
         }
       `}</style>
     </section>
