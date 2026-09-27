@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { fmtNum } from '@/i18n/bcp47';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Download, Loader2, Save, Sparkles, ChevronDown } from 'lucide-react';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { RightGate } from '@/components/pack/RightGate';
@@ -14,6 +14,8 @@ import { DogPassport, type FixedRow } from '@/components/pack/DogPassport';
 import { WillPanel } from '@/components/pack/WillPanel';
 import { PACK_THEME, PILL_CSS, PACK_BOX, PACK_HEAD, PACK_TEXT, PACK_SPACE } from '@/components/pack/packTheme';
 import { dogTripStats, fmtDogKm } from '@/lib/dogTripStats';
+import { readEvents, readLatest, onDogEventsChange } from '@/lib/dogEvents';
+import { TILT_CSS, TILT_PROPS } from '@/components/pack/packTilt';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { CertificateCard } from '@/components/CertificateCard';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
@@ -195,6 +197,7 @@ function FlagCircle({ src, iso2, label }: { src: string; iso2: string; label: st
 
 export default function PackDogDetail() {
   const t = useT();
+  const navigate = useNavigate();
   // Fallback pre kľúče, ktoré ešte nie sú v i18n — inak by na karte svietil holý kľúč.
   const tx = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
   const { id } = useParams<{ id: string }>();
@@ -758,7 +761,7 @@ export default function PackDogDetail() {
   };
 
   return (
-    <PackLayout>
+    <PackLayout onBack={() => navigate('/pack/dogs')} backLabel={t('pack.tree.title')}>
       {/* `PackDogWizard` (krok „Prayer of Presence") tu bol vypnutý od 3. 8. 2026 a
           24. 8. zanikol úplne — stál na starom číslovanom stave prehliadky (`dogypt_wz==='2'`)
           a sľuboval modlitby, ktoré z appky odišli 6. 8. Nový scenár (AInubis) má krok
@@ -771,11 +774,9 @@ export default function PackDogDetail() {
           spôsob návratu. Kruh má vlastné tmavé pozadie, lebo leží MIMO bledej karty.
           ZMAZANÉ 6.8.: odkaz „POZRI NA WALL #<n>" (Matej: „daj to celkom preč mne to tam
           nedáva zmysel"). */}
-      <div className="did-backrow">
-        <Link to="/pack/dogs" className="did-back" aria-label={t('pack.tree.title')}>
-          <BackIcon />
-        </Link>
-      </div>
+      {/* 27. 9. 2026: vlastný riadok so šípkou POD logom („.did-backrow“) zanikol — Matej:
+          „tu je velka medzera hore“. Šípka je odteraz v spoločnom hornom rade (PackTopRow cez
+          PackLayout), ako na triplist, príbehu a kvízoch; obsah začína na PACK_TOPROW.content. */}
 
       <div className="flex flex-col gap-5 md:gap-6">
 
@@ -838,9 +839,8 @@ export default function PackDogDetail() {
                 obdĺžnikový pokus bol chyba, ktorú si nikto neobjednal. */}
             <div className="did-stack">
 
-            <div className="did-head">
-              <span className="pk-pill did-idpill">{tx('pack.dog.idTitle', 'DOG ID')}</span>
-            </div>
+            {/* Pilulka „DOG ID“ nad fotkou zanikla 27. 9. 2026 (Matej: „to dog id v chipe hore
+                daj preč“). Kľúč pack.dog.idTitle sa nemaže. */}
 
             {/* Foto — kruh, zlatý prsteň; hover (PC) / tap (mobile) = zmena, ako avatar majiteľa */}
             <RightGate right="dog.photo" dogId={dog.id} lock="corner">
@@ -1386,19 +1386,48 @@ export default function PackDogDetail() {
 }
 
 /**
- * PSIE KM — dve čísla psa (B20). Vlastný komponent, nie kus JSX v stránke: číta cez
- * `usePackStoreEpoch`, teda sa prekresľuje pri hydratácii `dog_trips` z DB.
+ * ŽIVOT V KOCKE — štyri čísla psa (27. 9. 2026). Do 27. 9. „PREJDENÉ CESTY" s dvomi
+ * číslami (B20); Matej nad DOG ID: „zmeň ten nadpis na niečo v zmysle štatistiky alebo
+ * život v kocke: výlety, km a dajme tam aj zápisky/príbehy, počet dní spolu" + „oživ na
+ * dotyk aj bloky".
+ *
+ * Zdroje — žiadne nové úložisko:
+ * - výlety + km = `dogTripStats` (ten istý zdroj ako TRIPSTATS a mapa),
+ * - zápisky = riadky denníka v `dog_events` (`diary.note|health|milestone`). Váženie sa
+ *   NERÁTA: `health.weightKg` píše aj kvíz, číslo by nieslo aj odpovede, nie zápisky,
+ * - dni spolu = pole „Spolu od" (`basics.since`) z DOG ID; bez neho pomlčka, nie nula.
  *
  * ⚠️ BLOK SA PRI NULE NESKRÝVA. Pes bez zapísaného výletu nie je chyba ani prázdno —
  * je to pozvánka; skrytý blok by po prvom výlete „vyskočil" ako nová funkcia.
  */
+const LIFE_NOTE_FIELDS = ['diary.note', 'diary.health', 'diary.milestone'];
+const LIFE_CSS = `.did-life{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:${PACK_SPACE.md}px;}
+@media (max-width:720px){.did-life{grid-template-columns:repeat(2,minmax(0,1fr));}}`;
 function DogTrailsBlock({ dogId, tx }: { dogId: string; tx: (k: string, f: string) => string }) {
   const epoch = usePackStoreEpoch();
+  const { lang } = useLang();
   // eslint-disable-next-line react-hooks/exhaustive-deps -- `epoch` JE tá závislosť:
   // dáta ležia v localStorage, takže sa o ich zmene inak nedozvieme.
   const stats = useMemo(() => dogTripStats(dogId), [dogId, epoch]);
+  const [notes, setNotes] = useState<number | null>(null);
+  const [since, setSince] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const load = () => {
+      readEvents([dogId], LIFE_NOTE_FIELDS).then((rows) => { if (alive) setNotes(rows.length); });
+      readLatest(dogId).then((r) => {
+        const v = r['basics.since']?.value;
+        if (alive) setSince(typeof v === 'string' && v ? v : null);
+      });
+    };
+    load();
+    const off = onDogEventsChange(load);
+    return () => { alive = false; off(); };
+  }, [dogId]);
+  const sinceMs = since ? Date.parse(since) : NaN;
+  const days = Number.isFinite(sinceMs) ? Math.max(0, Math.floor((Date.now() - sinceMs) / 86400000)) : null;
   const cell = (label: string, value: string) => (
-    <div style={{ ...PACK_BOX.subblock, padding: PACK_SPACE.lg, textAlign: 'center', flex: '1 1 0' }}>
+    <div className="pk-tilt" {...TILT_PROPS} style={{ ...PACK_BOX.subblock, padding: PACK_SPACE.lg, textAlign: 'center' }}>
       <div style={{ ...PACK_HEAD.section, color: T.inkDim, marginBottom: PACK_SPACE.xs }}>{label}</div>
       <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: PACK_TEXT.h1, color: T.ink, lineHeight: 1 }}>
         {value}
@@ -1407,12 +1436,16 @@ function DogTrailsBlock({ dogId, tx }: { dogId: string; tx: (k: string, f: strin
   );
   return (
     <section style={{ ...PACK_BOX.card, marginTop: PACK_SPACE.xl, padding: PACK_SPACE.xl }}>
+      <style>{TILT_CSS}</style>
+      <style>{LIFE_CSS}</style>
       <div style={{ ...PACK_HEAD.card, color: PALE.deep, textAlign: 'center', marginBottom: PACK_SPACE.lg }}>
-        {tx('pack.dog.trailsTitle', 'Trails walked')}
+        {tx('pack.dog.lifeTitle', 'Life at a glance')}
       </div>
-      <div className="flex" style={{ gap: PACK_SPACE.md }}>
+      <div className="did-life">
         {cell(tx('pack.dog.trailsTrips', 'Trips'), String(stats.trips))}
         {cell(tx('pack.dog.trailsKm', 'Kilometres'), fmtDogKm(stats.km))}
+        {cell(tx('pack.dog.lifeNotes', 'Diary entries'), notes === null ? '—' : String(notes))}
+        {cell(tx('pack.dog.lifeDays', 'Days together'), days === null ? '—' : fmtNum(days, lang, 0))}
       </div>
       <div
         style={{
@@ -1420,9 +1453,7 @@ function DogTrailsBlock({ dogId, tx }: { dogId: string; tx: (k: string, f: strin
           color: T.inkDim, textAlign: 'center', marginTop: PACK_SPACE.md,
         }}
       >
-        {stats.trips === 0
-          ? tx('pack.dog.trailsEmpty', 'No trip logged with this dog yet.')
-          : tx('pack.dog.trailsNote', 'Counted from the trips you logged with this dog.')}
+        {tx('pack.dog.lifeNote', 'Counted from the trips and diary entries you logged with this dog.')}
       </div>
     </section>
   );

@@ -4331,6 +4331,10 @@ export const sk: Partial<Dict> = {
   'pack.dog.trailsKm': "Kilometre",
   'pack.dog.trailsEmpty': "S týmto psom zatiaľ nie je zapísaný žiadny výlet.",
   'pack.dog.trailsNote': "Počíta sa z výletov, ktoré si s ním zapísal.",
+  'pack.dog.lifeTitle': "Život v kocke",
+  'pack.dog.lifeNotes': "Zápisky",
+  'pack.dog.lifeDays': "Dni spolu",
+  'pack.dog.lifeNote': "Z výletov a denníka, ktoré si s ním zapísal.",
   'pack.dog.idTitle': "DOG ID",
   // Dátum vstupu do DOGYPTU už nestojí pod nadpisom — je to tooltip nad pilulkou
   // s poradovým číslom (Matej 13.8.2026): číslo aj dátum hovoria to isté, „odkedy".

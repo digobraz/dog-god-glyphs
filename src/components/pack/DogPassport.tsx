@@ -32,6 +32,7 @@ import { natureArt, storedSpecials } from './natureQuiz';
 import { readLatest, onDogEventsChange, hasValue, readSeries, appendDogEvents, type LatestValue } from '@/lib/dogEvents';
 import { RightGate } from '@/components/pack/RightGate';
 import { LAPIS, PICK_INK, pickTintCSS } from './navGoldSkin';
+import { TILT_CSS, TILT_PROPS } from './packTilt';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
@@ -79,9 +80,15 @@ const PASS_CSS = `
    nie na vypĺňanie formulára. */
 .pass-block--dark{ background:${BD.background}; border:${BD.border};
   box-shadow:${BD.boxShadow};
+  /* 27. 9. 2026 Matej: „závet dajme lapisovým resp. gradientom zlatá–lapis (ako je na
+     heroflow)" — tá istá plocha ako bublina vstupu (.hf-speak = var(--brand-gradient)).
+     Recept rámu a tieňa ostáva z PACK_BOX.subblockDark, mení sa len výplň. */
+  background:var(--brand-gradient);
   --pass-lbl:${T.onDarkDim}; --pass-val:${T.onDark}; --pass-faint:rgba(245,240,228,0.34); }
 .pass-block--dark .pass-btitle{ color:rgba(245,240,228,0.92); }
 .pass-block--dark .pass-brule{ opacity:.55; }
+/* číslo sekcie je lapisové — na gradiente závetu by zaniklo, preto zlatý inkoust lapisu */
+.pass-block--dark .pass-bnum{ color:${LAPIS.ink}; }
 /* Červená chýbajúceho poľa musí na čiernej zosvetliť — ${T.alertRed} na ${T.pageBg} je pod
    čitateľnou hranicou. Rovnaký odtieň, len vyššia svetlosť. */
 .pass-block--dark .pass-missing{ color:#D9705C; }
@@ -249,6 +256,7 @@ export function DogPassport({
       <style>{PILL_CSS}</style>
       <style>{PF_FIELD_CSS}</style>
       <style>{PASS_CSS}</style>
+      <style>{TILT_CSS}</style>
 
 
       {/* Hláška „zatiaľ nič vyplnené" zanikla 13.8.2026 — doklad má odteraz všetky
@@ -282,7 +290,7 @@ export function DogPassport({
         // ďalšia sekcia, sčernela by bez rozhodnutia. Čierna je tu za VÝZNAM, nie za mechaniku.
         const dark = group.key === 'will';
         return (
-        <div key={group.key} className={`pass-block${dark ? ' pass-block--dark' : ''}`}>
+        <div key={group.key} className={`pass-block pk-tilt${dark ? ' pass-block--dark' : ''}`} {...TILT_PROPS}>
           <div className="pass-bhead">
             <h5 className="pass-btitle">
               <span className="pass-bnum">{String(i + 1).padStart(2, '0')}</span>
