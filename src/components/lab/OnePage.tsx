@@ -4321,15 +4321,31 @@ export default function OnePage() {
           .main-nav .nav-tools .gods-bottom-bar { gap: 6px; }
         }
         .dgx-rulerow { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+        /* INFO CHIP filmu — tie isté hodnoty ako .codex-chip pri krave a psovi
+           (ReligionLab), Matej 27. 9. 2026: *„tlačidlo PRÍKLAD urob v štýle
+           chipu aký máme vyššie, napr. pri krave"*. */
         .dgx-example {
-          pointer-events: auto; cursor: pointer;
-          padding: 6px 12px; border-radius: 999px;
-          border: 1px solid ${LAPIS.edge}; background: ${LAPIS.fill};
-          color: ${LAPIS.deep};
-          font: 500 12px/1 'Space Grotesk', sans-serif; letter-spacing: .14em; text-transform: uppercase;
-          transition: background .2s ease, transform .2s ease;
+          position: relative; pointer-events: auto; cursor: pointer;
+          display: inline-flex; align-items: center; justify-content: center;
+          margin: 0 0 0 8px; padding: 8px 16px; border-radius: 999px;
+          border: 1.5px solid ${LAPIS.edge};
+          background: linear-gradient(180deg, #FFFBF1 0%, #F6EAD0 100%);
+          color: ${LAPIS.edge};
+          font: 600 12px/1.3 'Space Grotesk', sans-serif; letter-spacing: .14em; text-transform: uppercase;
+          box-shadow: 0 0 0 3px #F6EAD0, 0 0 0 4px rgba(22,48,122,.45), 0 6px 16px -8px rgba(10,26,74,.45);
+          transition: transform .2s ease;
         }
-        .dgx-example:hover { background: ${LAPIS.halo}; transform: translateY(-1px); }
+        .dgx-example::after {
+          content: ''; position: absolute; inset: -5px; border-radius: inherit; pointer-events: none;
+          border: 1px solid rgba(22,48,122,.55);
+          animation: dgxChipPulse 2.4s ease-out infinite;
+        }
+        @keyframes dgxChipPulse {
+          0% { transform: scale(1); opacity: .9; }
+          70%, 100% { transform: scale(1.12, 1.45); opacity: 0; }
+        }
+        .dgx-example:hover { transform: translateY(-1px); }
+        @media (prefers-reduced-motion: reduce) { .dgx-example::after { animation: none; opacity: .5; } }
         .op-alba {
           position: fixed; inset: 0; z-index: 200;
           display: flex; align-items: center; justify-content: center;

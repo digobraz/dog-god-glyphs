@@ -30,7 +30,7 @@ export const GATE_TOUCH = 0.84;
 /** Jazda REST → TOUCH v ms, rovnomerná. Video (5 s) beží na 0.36–0.84 z nej,
  *  teda ~89 % jazdy ⇒ 6 s ≈ vlastné tempo videa. Matej 27. 9.: *„ruka
  *  a labka idú k sebe veľmi rýchlo, spomaľ ich"*. */
-export const GATE_RIDE_MS = 3500;
+export const GATE_RIDE_MS = 2900; // 27. 9. štvrté kolo: o 20 % rýchlejšie (3500 ÷ 1,2)
 /** 27. 9. tretie kolo — 6 s bolo *„prehnané"*, 2 s s mäkkou jazdou *„veľmi
  *  rýchlo"*. 3,5 s rovnomerne ≈ video 1,4×. */
 
