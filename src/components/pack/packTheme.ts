@@ -1065,9 +1065,17 @@ export const PF_FIELD_CSS = `
    popisok v hlavičke, ktorý nestál na zvislej osi tých ostatných, a presne to
    z riadku robilo cudzí prvok. Pod prahom ide popisok aj prepínač na plnú šírku
    a oba k pravému okraju, teda k tej istej hrane, na ktorej končia polia nad nimi. */
+/* ⚠️ 27. 9. 2026 — pod prahom už sa riadok NELÁME. Matej nad hárkom
+   plany/nakres-profil-mobil-hlavicka-2026-09-27: „daj D ale show as daj pod pack name…
+   nech su ako keby 4 riadky pod sebou". Fotka ide na mobile NAD mená (.pf-head nižšie),
+   stĺpec má celú šírku karty a prepínač sa vedľa popisku zmestí — štyri rovnaké riadky
+   popisok | ovládač. Tým padá aj 29. 7. „fotku daj naľavo aj na mobile" — novší pokyn. */
+.pf-head{ display:flex; flex-direction:row; align-items:center; gap:16px; }
+.pf-head-av{ width:clamp(88px, 24vw, 148px); }
 @media (max-width:459px){
-  .pf-inline-grid > .pf-inline--toggle > .pf-inline-lbl{ grid-column:1 / -1; text-align:right; }
-  .pf-inline-grid > .pf-inline--toggle > .pf-toggle{ grid-column:1 / -1; justify-self:end; margin-top:0; }
+  .pf-head{ flex-direction:column; align-items:stretch; }
+  .pf-head-av{ width:112px; align-self:center; }
+  .pf-inline-grid > .pf-inline--toggle > .pf-toggle{ justify-self:start; }
 }
 
 /* ── VÝBER KRAJINY: ÚZKY CHIP + NATÍVNY ZOZNAM (2026-09-12) ───────────────────

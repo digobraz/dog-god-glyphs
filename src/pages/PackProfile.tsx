@@ -600,7 +600,7 @@ export default function PackProfile() {
               bloku (BIO → basics/lifestyle → what you're like) ostáva
               centrovaný — mení sa len táto hlavička. */}
           <Column max={640}>
-          <div className="flex flex-row items-center" style={{ gap: 16 }}>
+          <div className="pf-head">
             {/* Avatar — vľavo, menší než v centrovanej verzii: vedľa neho teraz
                 sedia polia, takže `clamp` má nižší strop aj nižšie dno (na
                 390px mobile ostane ~94px a zvyšok riadku patrí menám).
@@ -610,9 +610,8 @@ export default function PackProfile() {
               onClick={handleAvatarClick}
               disabled={uploading}
               aria-label={tx('pack.profile.changeAvatarAria', 'Change avatar')}
-              className="relative shrink-0 group"
+              className="pf-head-av relative shrink-0 group"
               style={{
-                width: 'clamp(88px, 24vw, 148px)',
                 aspectRatio: '1 / 1',
                 borderRadius: '50%',
                 // 1px šedý hairline z 88px krúžku sa pri 176px stratí a fotka
