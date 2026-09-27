@@ -57,7 +57,29 @@ export default function FilmCue({ moving, onNext, label, hint, big }: { moving: 
   );
 }
 
+/** ŠÍPKA HORE (27. 9. 2026) — Matej: *„treba doplniť aj do pravého dolného
+ *  rohu šípku hore pre návrat"*. Tá istá kresba z kitu, otočená; jedna, bez
+ *  runway bliku — nie je to výzva, je to cesta späť. */
+export function FilmTop({ show, onTop, label }: { show: boolean; onTop: () => void; label: string }) {
+  return (
+    <button type="button" className={`op-top${show ? ' is-on' : ''}`} aria-label={label} onClick={onTop} tabIndex={show ? 0 : -1}>
+      <Chevron i={9} scale={1.3} />
+    </button>
+  );
+}
+
 export const FILM_CUE_CSS = `
+  .op-top {
+    position: fixed; right: 24px; bottom: 24px; z-index: 60;
+    display: grid; place-items: center; width: 48px; height: 48px; padding: 0;
+    background: none; border: 0; cursor: pointer;
+    opacity: 0; pointer-events: none; transform: translateY(8px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+  .op-top.is-on { opacity: .85; pointer-events: auto; transform: none; }
+  .op-top.is-on:hover { opacity: 1; }
+  .op-top svg { transform: rotate(180deg); }
+  @media (max-width: 768px) { .op-top { right: 16px; bottom: 16px; } }
   .op-cue {
     position: fixed; left: 50%; bottom: clamp(24px, 10vh, 104px); z-index: 60;
     transform: translateX(-50%);

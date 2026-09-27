@@ -93,10 +93,24 @@ export default function FilmGate() {
           position: sticky; top: 0; height: 100lvh; overflow: hidden;
           opacity: var(--g-in, 0);
         }
+        /* 🟫 ZA BRÁNOU JE PAPYRUS, NIE BIELA (Matej 27. 9.: *„po otvorení brány
+           by bolo béžové pozadie, to biele čo je teraz"*). Video má bielu
+           vírivú oblohu; násobenie (multiply) ju nad papyrusom prefarbí na papyrus
+           a ruka s labkou (tmavšie) ostanú. Filter najprv vybieli sivé víry,
+           inak by po násobení zostali ako špinavé mapy. */
+        .op-gate-stage { isolation: isolate; }
+        /* Kým brána stojí zatvorená, svieti jej krídlami (krytie < 1) čierna
+           ako doteraz — papyrus pribúda až s otváraním. */
         .op-gate-back { position: absolute; inset: 0; background: #000; }
+        .op-gate-back::after {
+          content: ''; position: absolute; inset: 0;
+          background: ${LAB.pageBg}; opacity: var(--g-open, 0);
+        }
         .op-gate-vid {
           position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
           opacity: var(--g-open, 0);
+          mix-blend-mode: multiply;
+          filter: brightness(1.16) contrast(1.12);
         }
         /* Brána nevychádza z čiernej, ale zo ZHASNUTEJ SEBA — príbeh beží na
            tej istej bráne stlmenej (.op-wall::before v OnePage: jas .5, krytie .4).

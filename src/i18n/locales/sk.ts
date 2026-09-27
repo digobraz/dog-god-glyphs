@@ -988,6 +988,7 @@ export const sk: Partial<Dict> = {
   'onepage.need.goal': 'Náš cieľ',
   'onepage.cue.next': 'Ďalej',
   'onepage.cue.story': 'Prescroluj príbeh',
+  'onepage.cue.top': 'Späť na začiatok',
   'onepage.need.step': 'Ďalší krok',
   'onepage.need.cta': 'Pridaj sa k misii',
   'onepage.need.ctasub': 'Vezmi si svoje číslo —',

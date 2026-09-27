@@ -1212,6 +1212,7 @@ export const en = {
   'onepage.need.goal': 'Our goal',
   'onepage.cue.next': 'Next',
   'onepage.cue.story': 'Scroll through the story',
+  'onepage.cue.top': 'Back to top',
   'onepage.need.step': 'Next step',
   'onepage.need.cta': 'Join the mission',
   // Číslo je dopočítané (počet psov + 1) a stojí v `<b>` za týmto kusom.

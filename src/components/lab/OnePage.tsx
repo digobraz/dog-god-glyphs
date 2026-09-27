@@ -62,7 +62,7 @@ import NavMedallion, { NAV_MEDALLION_CSS } from './NavMedallion';
 import { filmVh } from '@/lib/filmVh';
 import { useFilmStops } from './filmStops';
 import FilmGate, { GATE_REST, GATE_TOUCH } from './FilmGate';
-import FilmCue, { FILM_CUE_CSS } from './FilmCue';
+import FilmCue, { FilmTop, FILM_CUE_CSS } from './FilmCue';
 
 // ── OBRAZY FILMU SÚ NA JEDNOM MIESTE ────────────────────────────────────────
 // Matejov zoznam z 2. 9. 2026, doslova: *„1-HOME · 2 COW vs DOG · 3 Religion ·
@@ -3754,7 +3754,17 @@ export default function OnePage() {
     stops: filmStops,
     free: filmFree,
     // Pomalšia jazda než predvolená — prechody filmu majú dýchať (27. 9. 2026).
-    duration: (screens) => Math.round(Math.min(2800, Math.max(1000, 700 + 600 * screens))),
+    // 🔴 BRÁNA → DOTYK o 30 % pomalšie (Matej 27. 9.: *„ruka a labka sa musia
+    // spojiť pomalšie… treba ubrať 30 %"*). Video beží scrollom, takže jeho
+    // tempo JE dĺžka tejto jazdy: rýchlosť ×0,7 ⇒ čas ÷0,7.
+    duration: (screens, from, to) => {
+      const base = Math.round(Math.min(2800, Math.max(1000, 700 + 600 * screens)));
+      const a = pinnedAt('.op-gate', GATE_REST), b = pinnedAt('.op-gate', GATE_TOUCH);
+      if (a == null || b == null) return base;
+      const near = (y: number, z: number) => Math.abs(y - z) < 4;
+      const gateRide = (near(from, a) && near(to, b)) || (near(from, b) && near(to, a));
+      return gateRide ? Math.round(base / 0.7) : base;
+    },
     paused: () => bookOpenRef.current || wallOpenRef.current || albaOpenRef.current || document.body.style.overflow === 'hidden',
     onMove: setFilmMoving,
   }, true);
@@ -3803,6 +3813,10 @@ export default function OnePage() {
           celý film; počas jazdy motora zhasnú, klik = ďalšia obrazovka. */}
       {!wallOpen && !atFilmEnd && (
         <FilmCue moving={filmMoving} onNext={() => filmGo(1)} label={t('onepage.cue.next')} hint={inStory ? t('onepage.cue.story') : undefined} big={atHome} />
+      )}
+      {!wallOpen && (
+        <FilmTop show={!atHome} label={t('onepage.cue.top')}
+          onTop={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
       )}
       {albaOpen && (
         <div className="op-alba" role="dialog" aria-modal="true" aria-label="ALBA" data-film-free onClick={() => setAlbaOpen(false)}>
