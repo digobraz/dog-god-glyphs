@@ -4172,6 +4172,9 @@ export default function OnePage() {
         ${FILM_CUE_CSS}
         /* Starý A/B prepínač steny je dielňa /wall-lab — vo filme nemá čo robiť ani v deve. */
         .op-root .ab-switch { display: none !important; }
+        /* 27. 9. 2026: výzva SKROLUJ ĎALEJ na tmavej sále ZRUŠENÁ — Matej: *„tu
+           vymaž to scroluj ďalej… bude stačiť naša brand šípka"* (.op-cue). */
+        .op-keep { display: none !important; }
         /* ── LIŠTA STENY V HORNOM NAVE (27. 9. 2026) ─────────────────────
            Z plávajúcej zlatej lišty ostanú len dve tlačidlá v rade s loginom.
            Terč (center) a mobilný jazyk tu nie sú — jazyk má nav vlastný. */
