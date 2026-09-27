@@ -1430,6 +1430,8 @@ export default function OnePage() {
     let tints: Record<string, SVGElement[]> = {};
     let tintOf: Record<string, SVGElement> = {};
     let hitOf: Record<string, SVGElement> = {};
+    /** Blikajúce body na symboloch (27. 9. 2026). */
+    let hotOf: Record<string, SVGElement> = {};
     let hoverKey: string | null = null;
     let cartTNode: SVGElement | null = null;
     let K: KLine[] = [];
@@ -1501,7 +1503,7 @@ export default function OnePage() {
       const box = vertical ? DGX_VB_V : DGX_VB;
       svg.setAttribute('viewBox', `${box.x} ${box.y} ${box.w} ${box.h}`);
 
-      pieces = []; tints = {}; for (const g in DGX_COL) tints[g] = []; tintOf = {}; hitOf = {};
+      pieces = []; tints = {}; for (const g in DGX_COL) tints[g] = []; tintOf = {}; hitOf = {}; hotOf = {};
 
       // Ink priamo (nie CSS premenná) — rám a čierna kartuša sa nemenia,
       // netreba ich prehadzovať cez custom property.
@@ -1524,6 +1526,19 @@ export default function OnePage() {
         pieces.push({ node: base, g: s.g }, { node: tint, g: s.g });
         tintOf[s.k] = tint;
 
+        // HOTSPOT — blikajúci bod v strede symbolu, láka ťuknúť / prejsť myšou
+        // (27. 9. 2026). Pod `hit`, takže klik ide ďalej na slot.
+        const hr = Math.min(s.w, s.h) * 0.12;
+        const hsw = String(hr * 0.38);
+        const hot = mk('g', { class: 'hot' });
+        (hot as unknown as HTMLElement).style.setProperty('--hd', `${((SL as readonly { k: string }[]).findIndex((z) => z.k === s.k) * 0.37).toFixed(2)}s`);
+        const hcx = String(s.x + s.w / 2), hcy = String(s.y + s.h / 2);
+        hot.append(
+          mk('circle', { class: 'hot-ring', cx: hcx, cy: hcy, r: String(hr), 'stroke-width': hsw }),
+          mk('circle', { class: 'hot-dot', cx: hcx, cy: hcy, r: String(hr), 'stroke-width': hsw }),
+        );
+        gGlyph.append(hot);
+        hotOf[s.k] = hot;
         const hit = mk('rect', { class: 'hit', x: String(s.x), y: String(s.y), width: String(s.w), height: String(s.h) });
         gGlyph.append(hit);
         hitOf[s.k] = hit;
@@ -2001,8 +2016,9 @@ export default function OnePage() {
       // Scéna A: kóty svietia (pad.up/pad.down reálne zaberajú miesto).
       const budgetA = availH - usedShared - pad.up - pad.down;
       // Scéna B: kóty už dohasli, podpis + pilulka sa práve píšu.
-      // Na PC Hektor visí vedľa glyfu (27. 9. 2026), pod ním miesto nezaberá.
-      const budgetB = availH - usedShared - (narrow ? gapPx(1.8) + sigH : 0) - (gapPx(1.8) + pillH);
+      // Pilulka „Prejdi po symbole" zanikla (27. 9. 2026) — miesto nezaberá.
+      void pillH;
+      const budgetB = availH - usedShared - (gapPx(1.8) + sigH);
       const budget = Math.max(0, Math.min(budgetA, budgetB));
       const aspect = vertical ? (DGX_VB_V.h / DGX_VB_V.w) : (DGX_VB.h / DGX_VB.w);
       const gwFromH = (budget / aspect / availW) * 100;
@@ -2149,6 +2165,7 @@ export default function OnePage() {
 
       // Podržaný symbol (hover/klik) prebíja vypočítané krytie — koncový
       // stav je čierny glyf, svetlo je odpoveď na dotyk.
+      for (const hk in hotOf) hotOf[hk].classList.toggle('off', hk === hoverKey);
       if (sec.dataset.live === '1' && hoverKey && tintOf[hoverKey]) {
         const g = vertical ? SLOT_G_V(hoverKey) : SLOT_G_H(hoverKey);
         const nd = tintOf[hoverKey];
@@ -2200,18 +2217,7 @@ export default function OnePage() {
         k.lab.style.opacity = (parseFloat(k.lab.style.getPropertyValue('--ko') || '0') * gone).toFixed(3);
       });
 
-      const sv = seg(pc, DGX.sig, DGX.sig + DGX.sigD);
-      put2(el.sig, sv);
-      // 🔴 HEKTOR NAĽAVO OD GLYFU (Matej 27. 9. 2026: *„Hektor prvý Dogypťan
-      // daj na ľavú stranu heroglyphu"*). Na PC beat vypadne z toku
-      // (CSS [data-narrow="0"]) a réžia ho zavesí k ľavej hrane glyfu,
-      // zvislo na jeho stred. Mobil (zvislý glyf) ho má ďalej pod ním.
-      if (!narrow && el.sig && sv > 0) {
-        const sr = sec.getBoundingClientRect(), gr = gbox.getBoundingClientRect();
-        const w = sigWrap.offsetWidth, h = sigWrap.offsetHeight;
-        el.sig.style.left = (gr.left - sr.left - w - 32).toFixed(1) + 'px';
-        el.sig.style.top = (gr.top - sr.top + gr.height / 2 - h / 2).toFixed(1) + 'px';
-      }
+      put2(el.sig, seg(pc, DGX.sig, DGX.sig + DGX.sigD));
       sigWrap.style.setProperty('--fp', (narrow ? DGX.fpM : DGX.fp) + 'px');
       sigNm.style.setProperty('--ns', (narrow ? DGX.nsM : DGX.ns) + 'px');
       sigRl.style.setProperty('--rls', (narrow ? DGX.rlsM : DGX.rls) + 'px');
@@ -6460,13 +6466,10 @@ export default function OnePage() {
            Scoped na op-dgx — WE NEED YOU aj ALBA zdieľajú tú istú triedu
            op-beat a nesmú sa tým zmeniť. */
         .op-dgx .op-beat { flex-shrink: 0; }
-        /* Hektor na PC visí naľavo od glyfu — polohu píše réžia (left/top). */
-        .op-dgx[data-narrow="0"] > .dgx-b-sig { position: absolute; width: auto; }
         /* Pás pre šípky filmu (.op-cue) — inak padnú na info chip pod glyfom.
            fitGw číta padding, takže glyf sa mu prispôsobí sám. */
         .op-dgx[data-narrow="0"] { padding-bottom: calc(18px + var(--arc-center-fix) + 72px); }
-        .op-dgx[data-narrow="0"] > .dgx-b-sig > .op-bin { padding-top: 0; }
-        .op-dgx[data-narrow="0"] .dgx-sig { justify-content: flex-end; }
+
         .dgx-rain { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
 
         /* Text stojí NAD pohyblivým dažďom — papyrusový „bazén" pod ním
@@ -6516,6 +6519,25 @@ export default function OnePage() {
         .dgx-gsvg .tint { opacity: 0; }
         .dgx-gsvg .hit { fill: transparent; cursor: pointer; pointer-events: none; }
         .op-dgx[data-live="1"] .dgx-gsvg .hit { pointer-events: auto; }
+        /* HOTSPOTY — lapisový bod s bielym lemom (čitateľný na čiernej kresbe
+           aj na papyruse) a vlna okolo. Svietia až na hotovom glyfe (live),
+           striedavo; symbol pod myšou/prstom svoj bod zhasne. */
+        .dgx-gsvg .hot { pointer-events: none; opacity: 0; transition: opacity .4s ease; }
+        .op-dgx[data-live="1"] .dgx-gsvg .hot { opacity: 1; }
+        .dgx-gsvg .hot.off { opacity: 0 !important; }
+        .dgx-gsvg .hot-dot {
+          fill: ${LAPIS.edge}; stroke: #FFFBF1;
+          transform-box: fill-box; transform-origin: center;
+          animation: dgxHotDot 2.2s ease-in-out infinite; animation-delay: var(--hd, 0s);
+        }
+        .dgx-gsvg .hot-ring {
+          fill: none; stroke: #6E93EE;
+          transform-box: fill-box; transform-origin: center;
+          animation: dgxHotRing 2.2s ease-out infinite; animation-delay: var(--hd, 0s);
+        }
+        @keyframes dgxHotDot { 0%, 100% { transform: scale(.85); opacity: .75; } 30% { transform: scale(1.1); opacity: 1; } }
+        @keyframes dgxHotRing { 0% { transform: scale(1); opacity: .8; } 70%, 100% { transform: scale(3.2); opacity: 0; } }
+        @media (prefers-reduced-motion: reduce) { .dgx-gsvg .hot-dot, .dgx-gsvg .hot-ring { animation: none; } }
 
         /* ── KÓTY: ČIARA + POPISOK, ŽIADNY RÁMIK ────────────────────────
            Matej 1. 9. 2026: „nedával by som kóty a rámik, iba kótu a
@@ -6543,32 +6565,11 @@ export default function OnePage() {
 
         /* Pilulka „symboly sa dajú prečítať" — vlastný posledný beat,
            vystredený svojím .op-bin (flex column), vysúva sa zdola. */
-        /* INFO CHIP filmu (Matej 27. 9. 2026: *„prejdi po symbole daj do chipu,
-           ktorý máme už vyššie, napr. pri krave a psovi"*) — tie isté hodnoty
-           ako .codex-chip v ReligionLab: lapisové písmo, dvojitý okraj, pulz.
-           Nie je klikateľný — ukazuje na glyf. */
-        .dgx-khint {
-          position: relative; z-index: 1;
-          white-space: nowrap; pointer-events: none;
-          opacity: var(--ho, 0); transform: translateY(var(--hy, 14px));
-          padding: 8px 16px; border-radius: 999px;
-          border: 1.5px solid ${LAPIS.edge};
-          background: linear-gradient(180deg, #FFFBF1 0%, #F6EAD0 100%);
-          color: ${LAPIS.edge};
-          font: 600 12px/1.3 'Space Grotesk', sans-serif; letter-spacing: .14em; text-transform: uppercase;
-          box-shadow: 0 0 0 3px #F6EAD0, 0 0 0 4px rgba(22,48,122,.45), 0 6px 16px -8px rgba(10,26,74,.45);
-        }
-        .dgx-khint::after {
-          content: ''; position: absolute; inset: -5px; border-radius: inherit; pointer-events: none;
-          border: 1px solid rgba(22,48,122,.55);
-          animation: dgxChipPulse 2.4s ease-out infinite;
-        }
-        @keyframes dgxChipPulse {
-          0% { transform: scale(1); opacity: .9; }
-          70%, 100% { transform: scale(1.12, 1.45); opacity: 0; }
-        }
-        @media (prefers-reduced-motion: reduce) { .dgx-khint::after { animation: none; opacity: .5; } }
-        @media (max-width: 768px) { .dgx-khint { font-size: 10px; letter-spacing: .1em; } }
+        /* 🔴 PILULKA „PREJDI PO SYMBOLE" ZANIKLA (Matej 27. 9. 2026: *„to
+           prejdi po symbole daj celkom preč… namiesto toho daj blikajúce
+           hotspoty na jednotlivých symboloch"*). Beat ostáva v DOM-e len ako
+           časovač (setLive), nezaberá miesto. Hotspoty = .dgx-gsvg .hot. */
+        .op-dgx > .dgx-b-hint { display: none; }
 
         /* ── BUBLINA: odpoveď na dotyk symbolu ──────────────────────────
            Koncový stav obrazu (Matej 1. 9. 2026): glyf je čierny a
