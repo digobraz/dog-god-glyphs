@@ -67,6 +67,36 @@ export function maskPath(path: string): string {
   return '/pack/' + masked.join('/');
 }
 
+// ── Tajomstvá v URL (27. 9. 2026) ─────────────────────────────────────────────────────────────
+// Filter `before_send` v `main.tsx`. Čistí KAŽDÝ reťazec vo vlastnostiach udalosti (aj `$set`
+// a `$set_once`, kam PostHog odkladá `$initial_current_url`), nie vymenované kľúče — nový
+// automatický kľúč s URL by inak prešiel ticho.
+const JOIN_RE = /\/pack\/join\/[^/?#\s"]+/g;
+const SECRET_PARAM_RE = /([?&#])(access_token|refresh_token|provider_token|token_hash|token|code|session_id)=[^&#\s"]*/gi;
+
+const scrubStr = (s: string) =>
+  s.includes('/pack/join/') || /token|code=|session_id=/i.test(s)
+    ? s.replace(JOIN_RE, '/pack/join/:token').replace(SECRET_PARAM_RE, '$1$2=:redacted')
+    : s;
+
+function scrubObj(o: Record<string, unknown>) {
+  for (const key of Object.keys(o)) {
+    // `$heatmap_data` má URL ako KĽÚČ objektu, nie ako hodnotu
+    const k = scrubStr(key);
+    if (k !== key) { o[k] = o[key]; delete o[key]; }
+    const v = o[k];
+    if (typeof v === 'string') o[k] = scrubStr(v);
+    else if (v && typeof v === 'object' && !Array.isArray(v)) scrubObj(v as Record<string, unknown>);
+  }
+}
+
+export function scrubSecrets<T extends { properties?: Record<string, unknown>; $set?: unknown; $set_once?: unknown }>(ev: T): T {
+  if (ev.properties) scrubObj(ev.properties);
+  if (ev.$set && typeof ev.$set === 'object') scrubObj(ev.$set as Record<string, unknown>);
+  if (ev.$set_once && typeof ev.$set_once === 'object') scrubObj(ev.$set_once as Record<string, unknown>);
+  return ev;
+}
+
 // ── Routa → udalosť ───────────────────────────────────────────────────────────────────────────
 // Päť z chrbtice sa meria z navigácie, nie z obrazoviek. Dôvod je prevádzkový: obrazovky
 // prestavuje rámec (blok 2) a každá prestavba by inak odniesla aj meranie. Navigácia prestavbu

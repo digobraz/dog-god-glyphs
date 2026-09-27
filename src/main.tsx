@@ -3,6 +3,7 @@ import posthog from "posthog-js";
 import App from "./App.tsx";
 import "./index.css";
 import { POSTHOG_KEY, POSTHOG_HOST } from "./lib/env";
+import { scrubSecrets } from "./lib/packAnalytics";
 // Testovacie dáta z dielne vstupu (`/lab/heroflow`) musia byť v store SKÔR, než
 // sa vykreslí prvá obrazovka — obrazovky flow si store kopírujú do lokálneho
 // stavu pri prvom renderi. Telo modulu je celé za `import.meta.env.DEV`.
@@ -22,6 +23,16 @@ if (POSTHOG_KEY) {
     // rôzne veci. Zapína sa globálne (verejný web z toho ťaží rovnako); dáta idú ako
     // `$$heatmap_data` prilepené k pageview, teda bez ďalšieho volania navyše.
     enable_heatmaps: true,
+    // Čas na obrazovke (27. 9. 2026): PostHog ho ráta ako `$prev_pageview_duration` na ĎALŠOM
+    // pageview, takže posledná obrazovka session nemala čas nikdy — `$pageleave` bolo za 30 dní 0.
+    // Heatmapa „kde sa ľudia zdržujú" v dashboarde (Funkcie → TEPLO) by tak mlčala práve o tej
+    // obrazovke, na ktorej človek skončil.
+    capture_pageleave: true,
+    // 🔴 Tajomstvá v URL nesmú do analytiky. `maskPath` čistí len náš `path` — PostHog si
+    // `$current_url`, `$pathname`, `$referrer` a `$prev_pageview_pathname` berie sám z okna,
+    // takže pozývací token z `/pack/join/<token>` a Supabase tokeny v hashi magic linku
+    // odchádzali celé (overené 27. 9. na `$current_url` s `/pack/join/…`).
+    before_send: (ev) => (ev ? scrubSecrets(ev) : ev),
   });
 }
 
