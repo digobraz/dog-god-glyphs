@@ -13,12 +13,20 @@
  * s Matejom — všetko je v `APPS` nižšie. Texty zatiaľ berú hotové kľúče
  * z heroflowu (`heroglyph.flow.more.*`, `…checkoutNew.getD.*`), nič nové.
  *
+ * 🔴 STRÁNKA SA NEROLUJE (Matej 27. 9. 2026: *„scéna sa neroluje nová, iba obsah
+ * odchádza a nový prichádza — stránka drží obraz ako v celom flowe"*). Sekcia
+ * je preto zasunutá POD koniec oblúka (margin-top −(100 + APPS_OUT_VH) lvh):
+ * jej javisko sa prilepí presne na dopísanom DOGTRIXe (`.op-arc-rest2`), kým
+ * oblúk ešte stojí prilepený vo svojej výdrži (`ARC_HOLD2_VH = APPS_OUT_VH`).
+ * Obe javiská stoja naraz, toto je navrchu a priehľadné.
+ *
  * DEJ na vlastnej prilepenej dráhe (p 0–1), jeden ťah motora = jedna zastávka:
- *   p = 0      telefóny na strede, nadpis ČLENSTVO V DOGYPTE (sem prídu zdola
- *              obyčajným scrollom — sekcia vytlačí oblúk HEROGLYPH)
- *   0 → .25    telefóny idú doprava, naľavo nabehne 1. funkcia
- *   .25 → 1    karusel sa točí po funkciách 1 → 4, text naľavo sa mení s ním
- * Zastávky: `absTop('.op-apps')` + `APPS_STOPS` (OnePage.filmStops).
+ *   0 → PEEK   obsah HEROGLYPHu zhasne (`--apps-out` na `.op-arc`), zdola
+ *              vyjdú VEĽKÉ telefóny len do polovice obrazovky, nad nimi nadpis
+ *              (Matej: *„ukážu sa len do polovice stránky, budú veľké"*)
+ *   PEEK → 1.  telefóny sa zmenšia a idú doprava, naľavo nabehne 1. funkcia
+ *   ďalej      karusel sa točí po funkciách 1 → 4, text naľavo sa mení s ním
+ * Zastávky: `APPS_STOPS` (OnePage.filmStops).
  */
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -53,10 +61,17 @@ const APPS: AppFeature[] = [
     bulletKeys: ['heroglyph.flow.checkoutNew.getD.ainubis'], shots: [] },
 ];
 
-/** Dráha sekcie vo `vh`: obrazovka javiska + 100 vh na každý ťah (4 ťahy). */
-export const APPS_VH = 100 + APPS.length * 100;
-/** Zastávky motora na dráhe (bez nulky — tú dáva začiatok sekcie). */
-export const APPS_STOPS = APPS.map((_, i) => (i + 1) / APPS.length);
+/** Dráha ODCHODU HEROGLYPHu a príchodu telefónov (prvý ťah) vo `vh`. Oblúk
+ *  si o toľko predĺži výdrž (OnePage `ARC_HOLD2_VH`), aby stál, kým sa to deje. */
+export const APPS_OUT_VH = 100;
+/** Dráha sekcie vo `vh`: obrazovka javiska + príchod + 100 vh na každú funkciu. */
+export const APPS_VH = 100 + APPS_OUT_VH + APPS.length * 100;
+const TRACK_VH = APPS_VH - 100;
+/** Zastávka „telefóny do polovice" (podiel dráhy). */
+const PEEK = APPS_OUT_VH / TRACK_VH;
+const STEP = 100 / TRACK_VH;
+/** Zastávky motora na dráhe: PEEK + štyri funkcie. */
+export const APPS_STOPS = [PEEK, ...APPS.map((_, i) => PEEK + (i + 1) * STEP)];
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const smooth = (t: number) => t * t * (3 - 2 * t);
@@ -80,7 +95,7 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
     const phones = Array.from(sec.querySelectorAll<HTMLElement>('.op-apps-ph'));
     const texts = Array.from(sec.querySelectorAll<HTMLElement>('.op-apps-txt'));
     const n = APPS.length;
-    const step = 1 / n;
+    const arc = document.querySelector<HTMLElement>('.op-arc');
     let raf = 0;
     let lastP = -1;
     const apply = () => {
@@ -89,13 +104,22 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
       const p = clamp01(-r.top / Math.max(1, sec.offsetHeight - window.innerHeight));
       if (Math.abs(p - lastP) < 0.0003) return;
       lastP = p;
-      // Posun telefónov doprava (a nábeh ľavého stĺpca) — prvý ťah.
-      const sx = smooth(clamp01(p / step));
+      // Príchod: HEROGLYPH zhasne, telefóny vyjdú zdola do polovice.
+      // Dva texty naraz sa nečítajú ako prelínačka, ale ako chyba — preto
+      // HEROGLYPH zhasne v prvej polovici ťahu a nový obsah vyjde v druhej.
+      const k = clamp01(p / PEEK);
+      const out = smooth(clamp01(k / 0.5));
+      const rise = smooth(clamp01((k - 0.4) / 0.6));
+      // Posun telefónov doprava (a nábeh ľavého stĺpca).
+      const sx = smooth(clamp01((p - PEEK) / STEP));
       // Karusel: plávajúci index funkcie, mäkký medzi zastávkami.
-      const raw = clamp01((p - step) / (1 - step)) * (n - 1);
+      const raw = clamp01((p - PEEK - STEP) / (1 - PEEK - STEP)) * (n - 1);
       const fi = Math.min(n - 1, Math.floor(raw));
       const f = fi + smooth(raw - fi);
+      sec.style.setProperty('--r', rise.toFixed(4));
       sec.style.setProperty('--sx', sx.toFixed(4));
+      sec.style.setProperty('--o', out.toFixed(4));
+      arc?.style.setProperty('--apps-out', out.toFixed(4));
       phones.forEach((el, i) => {
         // Kruhová vzdialenosť od čela v rozsahu [-n/2, n/2) — vpredu je d = 0,
         // po bokoch ±1, zadný (±2) je skrytý. Tak stoja vždy tri ako v predlohe.
@@ -129,7 +153,8 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
   const cur = open != null ? APPS[open] : null;
 
   return (
-    <section ref={secRef} className="op-scene op-apps" aria-label={t('heroglyph.flow.more.eyebrow')} style={{ height: `${APPS_VH}lvh` }}>
+    <section ref={secRef} className="op-scene op-apps" aria-label={t('heroglyph.flow.more.eyebrow')}
+      style={{ height: `${APPS_VH}lvh`, marginTop: `-${100 + APPS_OUT_VH}lvh` }}>
       <div className="op-apps-stage">
         <h2 className="op-apps-h2">{t('heroglyph.flow.more.eyebrow')}</h2>
 
@@ -187,30 +212,47 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
       )}
 
       <style>{`
-        .op-apps { position: relative; z-index: 2; }
+        .op-apps { position: relative; z-index: 3; }
+        /* Obsah oblúka (DOGTRIX) zhasína, kým vychádzajú telefóny. */
+        .op-arc .op-arc-stage { opacity: calc(1 - var(--apps-out, 0)); }
         .op-apps-stage {
           position: sticky; top: 0; height: 100lvh; overflow: hidden;
-          background: ${LAB.pageBg}; background-image: ${LAB.pageBackdrop};
+          pointer-events: none;
+          /* PEEK — telefóny väčšie a nižšie, horná polovica v spodnej polovici okna. */
+          --ps: 1.5;
+          --py: calc(50lvh + var(--ph-h) * var(--ps) / 2 - var(--mid) + 24px);
+          /* Konečná poloha po posune (PC doprava, mobil dolu a menšie). */
+          --fx: 22vw; --fy: 0px; --fs: 1;
           --ph-w: min(240px, 24lvh);
           /* Stred súpravy: plocha pod navom mínus pás 88 px pre šípky filmu. */
           --mid: calc(var(--op-nav-h, 124px) + (100lvh - var(--op-nav-h, 124px) - 88px) / 2);
           --ph-h: calc(var(--ph-w) * 2.05);
         }
+        /* Papyrus javiska nabieha s príchodom — keď oblúk odíde, drží obraz on. */
+        .op-apps-stage::before {
+          content: ''; position: absolute; inset: 0;
+          background: ${LAB.pageBg}; background-image: ${LAB.pageBackdrop};
+          opacity: var(--o, 0);
+        }
         /* Nadpis na strede — odchádza hore, keď telefóny idú doprava. */
         .op-apps-h2 {
-          position: absolute; left: 16px; right: 16px; top: calc(var(--op-nav-h, 124px) + 8px);
+          position: absolute; left: 16px; right: 16px; bottom: calc(50lvh + 48px);
           margin: 0; text-align: center;
           font: 700 clamp(24px, 4.2vw, 56px)/1.1 'Cinzel', serif; letter-spacing: .06em; text-transform: uppercase;
           background: linear-gradient(90deg, #8A6420, #C99A3F 30%, #E8C35A 50%, #C99A3F 70%, #8A6420);
           -webkit-background-clip: text; background-clip: text; color: transparent;
-          opacity: calc(1 - var(--sx, 0));
-          transform: translateY(calc(var(--sx, 0) * -24px));
+          opacity: calc(var(--r, 0) * (1 - var(--sx, 0)));
+          transform: translateY(calc((1 - var(--r, 0)) * 32px - var(--sx, 0) * 24px));
         }
         /* Súprava telefónov — stred okna pod nadpisom, s posunom doprava. */
         .op-apps-rig {
           position: absolute; left: 50%; top: var(--mid);
           width: 0; height: 0;
-          transform: translateX(calc(var(--sx, 0) * 22vw));
+          transform:
+            translate(
+              calc(var(--sx, 0) * var(--fx)),
+              calc(var(--sx, 0) * var(--fy) + (1 - var(--sx, 0)) * var(--py) + (1 - var(--r, 0)) * 100lvh))
+            scale(calc(var(--sx, 0) * var(--fs) + (1 - var(--sx, 0)) * var(--ps)));
         }
         .op-apps-ph {
           position: absolute; left: calc(var(--ph-w) / -2); top: calc(var(--ph-h) / -2);
@@ -277,10 +319,7 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
 
         /* MOBIL — text hore, telefóny pod ním (posun dolu a zmenšenie namiesto doprava). */
         @media (max-width: 768px) {
-          .op-apps-stage { --ph-w: min(200px, 24lvh); }
-          .op-apps-rig {
-            transform: translateY(calc(var(--sx, 0) * 12lvh)) scale(calc(1 - var(--sx, 0) * .3));
-          }
+          .op-apps-stage { --ph-w: min(200px, 24lvh); --ps: 1.35; --fx: 0px; --fy: 12lvh; --fs: .7; }
           .op-apps-col {
             left: 16px; right: 16px; width: auto;
             top: calc(var(--op-nav-h, 118px) + 8px); transform: none;

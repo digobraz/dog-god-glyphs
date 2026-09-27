@@ -63,7 +63,7 @@ import { filmVh } from '@/lib/filmVh';
 import { useFilmStops } from './filmStops';
 import FilmGate, { GATE_REST, GATE_TOUCH, GATE_RIDE_MS, GATE_FADE } from './FilmGate';
 import FilmCue, { FilmTop, FILM_CUE_CSS } from './FilmCue';
-import FilmApps, { APPS_STOPS } from './FilmApps';
+import FilmApps, { APPS_STOPS, APPS_OUT_VH } from './FilmApps';
 
 // ── OBRAZY FILMU SÚ NA JEDNOM MIESTE ────────────────────────────────────────
 // Matejov zoznam z 2. 9. 2026, doslova: *„1-HOME · 2 COW vs DOG · 3 Religion ·
@@ -271,8 +271,8 @@ const FILM_SLIDES: FilmSlide[] = ([
     // ČLENSTVO — telefóny s funkciami appky (FilmApps.tsx, 27. 9. 2026).
     id: 'apps',
     navKey: 'film.slide.apps',
-    at: () => absTop('.op-apps'),
-    from: () => { const y = absTop('.op-apps'); return y == null ? null : y - filmVh() * 0.5; },
+    at: () => pinnedAt('.op-apps', APPS_STOPS[0]),
+    from: () => pinnedAt('.op-apps', APPS_STOPS[0] * 0.5),
   },
   {
     // Pás recenzií. Klik má pristáť tam, kde sú karty v strede obrazovky —
@@ -1150,7 +1150,9 @@ const ARC_HOLD_VH = WNY_ON ? 120 : 0;
  *  prelínačka na ALBU — žiadna výdrž, žiadne odpočívadlo. Rovnaký princíp,
  *  rovnaké číslo: viac než jedna obrazovka, aby ťah, ktorý začne na
  *  dobehnutom glyfe, skončil ešte v ňom. */
-const ARC_HOLD2_VH = MOST_ON ? 120 : 0;
+// Bez MOSTA drží oblúk výdrž presne tak dlho, ako trvá príchod telefónov
+// (FilmApps zasunutý pod koniec oblúka — stránka sa nehýbe, mení sa obsah).
+const ARC_HOLD2_VH = MOST_ON ? 120 : APPS_OUT_VH;
 
 /** 🔴 TÁ ISTÁ CHYBA TRETÍKRÁT — a tentoraz nájdená výpočtom, nie na živej
  *  stránke. ALBA dobiehala PRESNE na konci celého oblúka (`gp` = 1 až v jeho
@@ -3864,11 +3866,7 @@ export default function OnePage() {
     }
     if (MOST_ON) { const most = pinnedAt('.op-arc', 1); if (most != null) out.push(most); }
     // ČLENSTVO: príchod telefónov na stred + štyri funkcie (FilmApps.tsx).
-    const apps = absTop('.op-apps');
-    if (apps != null) {
-      out.push(apps);
-      for (const f of APPS_STOPS) { const y = pinnedAt('.op-apps', f); if (y != null) out.push(y); }
-    }
+    for (const f of APPS_STOPS) { const y = pinnedAt('.op-apps', f); if (y != null) out.push(y); }
     const quo = pinnedAt('.op-quo', QUO.colsIn[1]);
     if (quo != null) out.push(quo);
     out.push(document.documentElement.scrollHeight - window.innerHeight);
