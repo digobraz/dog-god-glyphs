@@ -18,9 +18,13 @@
  * k nemu patrí), takže šípky a ťuk tam presunú stránku na zastávku tej funkcie
  * a samé točenie beží len v úvodnom stave (nadpis + telefóny do polovice).
  *
- * ⚠️ KOSTRA. Obsah (screenshoty, odrážky, finálne texty) sa dopĺňa spolu
- * s Matejom — všetko je v `APPS` nižšie. Texty zatiaľ berú hotové kľúče
- * z heroflowu (`heroglyph.flow.more.*`, `…checkoutNew.getD.*`), nič nové.
+ * ⚠️ KOSTRA. Screenshoty sa dopĺňajú spolu s Matejom — všetko je v `APPS`.
+ * Nadpis ČLENSTVO + dva riadky pod ním, vo funkcii nadpis + 4 jednoriadkové
+ * odrážky + chip DETAIL (Matej 27. 9.: *„nadpis jeden riadok a 3–4 odrážky
+ * pod seba jednoriadkových… namiesto pozri v appke daj detail — veľký popup,
+ * slider fotka/screen konkrétnej veci a 1–3 riadky o tej funkcii… obsah naľavo
+ * je max vo výške tých telefónov"*). Odrážky `onepage.apps.<id>.b1–4` sú
+ * PRVÝ NÁSTREL, 1–3 riadky v detaile = `heroglyph.flow.more.<id>.d`.
  *
  * 🔴 STRÁNKA SA NEROLUJE (Matej 27. 9. 2026: *„scéna sa neroluje nová, iba obsah
  * odchádza a nový prichádza — stránka drží obraz ako v celom flowe"*). Sekcia
@@ -47,29 +51,29 @@ import Iphone15Pro, { IPHONE_H, IPHONE_W } from '@/components/ui/iphone-15-pro';
 
 type AppFeature = {
   id: string;
-  /** Názov funkcie (nadpis vľavo aj na obrazovke telefónu). */
+  /** Názov funkcie (nadpis vľavo aj na obrazovke telefónu). JEDEN riadok. */
   nameKey: string;
-  /** Odstavec vľavo. */
+  /** 1–3 riadky o funkcii — v DETAILE pod sliderom. */
   textKey: string;
-  /** Odrážky vľavo — dopĺňa sa. */
+  /** Presne 4 jednoriadkové odrážky (≤ 38 znakov) — všetky štyri slajdy
+   *  majú tú istú stavbu a výšku (Matej 27. 9.: *„snažme sa to urobiť rovnaké
+   *  na všetkých 1/4 slajdoch"*). */
   bulletKeys: string[];
   /** Obrázok na displeji telefónu; kým chýba, stojí tam zástupca. */
   shot?: string;
-  /** Screenshoty z appky do popupu. */
+  /** Slider v DETAILE: screenshoty z appky. Kým chýbajú, 3 prázdne rámy. */
   shots: string[];
 };
+
+const b4 = (id: string) => [1, 2, 3, 4].map((i) => `onepage.apps.${id}.b${i}`);
 
 /** Poradie = poradie v karuseli. Matej: *„dog id/profil, sniffer, dogtrips,
  *  AInubis a pomoc/možnosti… celkovo 4 obrazovky"*. */
 const APPS: AppFeature[] = [
-  { id: 'dogid', nameKey: 'heroglyph.flow.more.dogid.t', textKey: 'heroglyph.flow.more.dogid.d',
-    bulletKeys: ['heroglyph.flow.checkoutNew.getD.dogid'], shots: [] },
-  { id: 'sniffer', nameKey: 'heroglyph.flow.more.sniffer.t', textKey: 'heroglyph.flow.more.sniffer.d',
-    bulletKeys: ['heroglyph.flow.checkoutNew.getD.sniffer'], shots: [] },
-  { id: 'dogtrip', nameKey: 'heroglyph.flow.more.dogtrip.t', textKey: 'heroglyph.flow.more.dogtrip.d',
-    bulletKeys: ['heroglyph.flow.checkoutNew.getD.map'], shots: [] },
-  { id: 'ainubis', nameKey: 'heroglyph.flow.more.ainubis.t', textKey: 'heroglyph.flow.more.ainubis.d',
-    bulletKeys: ['heroglyph.flow.checkoutNew.getD.ainubis'], shots: [] },
+  { id: 'dogid', nameKey: 'heroglyph.flow.more.dogid.t', textKey: 'heroglyph.flow.more.dogid.d', bulletKeys: b4('dogid'), shots: [] },
+  { id: 'sniffer', nameKey: 'heroglyph.flow.more.sniffer.t', textKey: 'heroglyph.flow.more.sniffer.d', bulletKeys: b4('sniffer'), shots: [] },
+  { id: 'dogtrip', nameKey: 'heroglyph.flow.more.dogtrip.t', textKey: 'heroglyph.flow.more.dogtrip.d', bulletKeys: b4('dogtrip'), shots: [] },
+  { id: 'ainubis', nameKey: 'heroglyph.flow.more.ainubis.t', textKey: 'heroglyph.flow.more.ainubis.d', bulletKeys: b4('ainubis'), shots: [] },
 ];
 
 /** Dráha ODCHODU HEROGLYPHu a príchodu telefónov (prvý ťah) vo `vh`. Oblúk
@@ -96,6 +100,9 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
   const secRef = useRef<HTMLElement>(null);
   const rigRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState<number | null>(null);
+  /** Snímok slideru v DETAILE. */
+  const [slide, setSlide] = useState(0);
+  const swipeX = useRef<number | null>(null);
   /** Telefón vpredu (index do APPS). */
   const [idx, setIdx] = useState(0);
   /** Úvodný stav (nadpis + telefóny do polovice) — len tu sa točia samé. */
@@ -105,12 +112,19 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
   const n = APPS.length;
 
   useEffect(() => { onPopup?.(open != null); }, [open, onPopup]);
+  useEffect(() => { setSlide(0); }, [open]);
+  const slideCount = open != null ? Math.max(1, APPS[open].shots.length || 3) : 1;
+  const moveSlide = useCallback((d: number) => setSlide((i) => (i + d + slideCount) % slideCount), [slideCount]);
   useEffect(() => {
     if (open == null) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(null); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(null);
+      else if (e.key === 'ArrowLeft') moveSlide(-1);
+      else if (e.key === 'ArrowRight') moveSlide(1);
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open]);
+  }, [open, moveSlide]);
 
   // Samé točenie á 3 s — ako komponent, ale len v úvodnom stave a keď je vidieť.
   useEffect(() => {
@@ -174,7 +188,9 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
       const y = mix(peekY, featY, sx) + (1 - rise) * vh;
       const s = mix(1, fs, sx);
       rig.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${s.toFixed(4)})`;
-      sec.style.setProperty('--mid', `${(navH + (vh - navH) / 2).toFixed(1)}px`);
+      // Ľavý stĺpec stojí na strede PREDNÉHO telefónu — výškou sa do neho zmestí.
+      sec.style.setProperty('--mid', `${(narrow ? navH + (vh - navH) / 2 : featY).toFixed(1)}px`);
+      sec.style.setProperty('--phh', `${(h * fs).toFixed(1)}px`);
 
       const isPeek = p < PEEK + STEP * 0.5;
       setPeek(isPeek);
@@ -200,17 +216,19 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
   const prevI = (idx - 1 + n) % n, nextI = (idx + 1) % n;
 
   return (
-    <section ref={secRef} className="op-scene op-apps" aria-label={t('heroglyph.flow.more.eyebrow')}
+    <section ref={secRef} className="op-scene op-apps" aria-label={t('onepage.apps.head')}
       style={{ height: `${APPS_VH}lvh`, marginTop: `-${100 + APPS_OUT_VH}lvh` }}>
       <div className="op-apps-stage">
-        <h2 className="op-apps-h2">{t('heroglyph.flow.more.eyebrow')}</h2>
+        <div className="op-apps-hero">
+          <h2 className="op-apps-h2">{t('onepage.apps.head')}</h2>
+          <p className="op-apps-sub">{t('onepage.apps.sub1')}<br />{t('onepage.apps.sub2')}</p>
+        </div>
 
         <div className="op-apps-col">
           {APPS.map((a, i) => (
             <div className={`op-apps-txt${!peek && i === idx ? ' is-on' : ''}`} key={a.id} aria-hidden={peek || i !== idx}>
-              <p className="op-apps-eye">{t('heroglyph.flow.more.eyebrow')} · {i + 1}/{n}</p>
+              <p className="op-apps-eye">{t('onepage.apps.head')} · {i + 1}/{n}</p>
               <h3 className="op-apps-name">{t(a.nameKey)}</h3>
-              <p className="op-apps-p">{t(a.textKey)}</p>
               <ul className="op-apps-ul">
                 {a.bulletKeys.map((k) => <li key={k}>{t(k)}</li>)}
               </ul>
@@ -256,15 +274,38 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
             <h2 className="op-alba-h2">{t(cur.nameKey)}</h2>
-            <p className="op-apps-pop-p">{t(cur.textKey)}</p>
-            {/* Screenshoty z appky — kým nie sú, tri prázdne rámy. */}
-            <div className="op-apps-pop-shots">
-              {(cur.shots.length ? cur.shots : ['', '', '']).map((s, i) => (
-                <div className="op-apps-pop-shot" key={i}>
-                  {s ? <img src={s} alt="" /> : <span>screenshot</span>}
+            {/* SLIDER — screenshoty konkrétnej funkcie v ráme telefónu. */}
+            <div className="op-apps-sl"
+              onPointerDown={(e) => { swipeX.current = e.clientX; }}
+              onPointerUp={(e) => {
+                if (swipeX.current == null) return;
+                const dx = e.clientX - swipeX.current; swipeX.current = null;
+                if (Math.abs(dx) > 40) moveSlide(dx < 0 ? 1 : -1);
+              }}>
+              <button type="button" className="op-apps-sl-btn is-l" aria-label={t('onepage.apps.prev')} onClick={() => moveSlide(-1)}>
+                <HandArrowLeft size={18} />
+              </button>
+              <div className="op-apps-sl-view">
+                <div className="op-apps-sl-track" style={{ transform: `translateX(${-slide * 100}%)` }}>
+                  {Array.from({ length: slideCount }, (_, i) => (
+                    <div className="op-apps-sl-item" key={i} aria-hidden={i !== slide}>
+                      <Iphone15Pro src={cur.shots[i]} alt={`${t(cur.nameKey)} ${i + 1}`}>
+                        <div className="op-apps-ph-empty"><b>{t(cur.nameKey)}</b><span>screenshot {i + 1}</span></div>
+                      </Iphone15Pro>
+                    </div>
+                  ))}
                 </div>
+              </div>
+              <button type="button" className="op-apps-sl-btn is-r" aria-label={t('onepage.apps.next')} onClick={() => moveSlide(1)}>
+                <HandArrowLeft size={18} style={{ transform: 'scaleX(-1)' }} />
+              </button>
+            </div>
+            <div className="op-apps-sl-dots">
+              {Array.from({ length: slideCount }, (_, i) => (
+                <button type="button" key={i} className={i === slide ? 'is-on' : ''} aria-label={`${i + 1}`} onClick={() => setSlide(i)} />
               ))}
             </div>
+            <p className="op-apps-pop-p">{t(cur.textKey)}</p>
           </div>
         </div>,
         document.body,
@@ -284,14 +325,21 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           background: ${LAB.pageBg}; background-image: ${LAB.pageBackdrop};
           opacity: var(--o, 0);
         }
+        .op-apps-hero {
+          position: absolute; left: 16px; right: 16px; bottom: calc(50lvh + 32px);
+          text-align: center;
+          opacity: calc(var(--r, 0) * (1 - var(--sx, 0)));
+          transform: translateY(calc((1 - var(--r, 0)) * 32px - var(--sx, 0) * 24px));
+        }
+        .op-apps-sub {
+          margin: 16px auto 0; max-width: 640px;
+          font: 400 clamp(14px, 1.4vw, 20px)/1.5 'Space Grotesk', sans-serif; color: ${LAB.ink};
+        }
         .op-apps-h2 {
-          position: absolute; left: 16px; right: 16px; bottom: calc(50lvh + 48px);
           margin: 0; text-align: center;
           font: 700 clamp(24px, 4.2vw, 56px)/1.1 'Cinzel', serif; letter-spacing: .06em; text-transform: uppercase;
           background: linear-gradient(90deg, #8A6420, #C99A3F 30%, #E8C35A 50%, #C99A3F 70%, #8A6420);
           -webkit-background-clip: text; background-clip: text; color: transparent;
-          opacity: calc(var(--r, 0) * (1 - var(--sx, 0)));
-          transform: translateY(calc((1 - var(--r, 0)) * 32px - var(--sx, 0) * 24px));
         }
         /* Súprava: bod (0,0) = stred predného telefónu; polohu píše réžia. */
         .op-apps-rig {
@@ -318,7 +366,7 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           background: ${LAB.pageBg}; background-image: ${LAB.pageBackdrop};
         }
         .op-apps-ph-empty b { font: 700 24px/1.2 'Cinzel', serif; letter-spacing: .14em; color: #8A6420; }
-        .op-apps-ph-empty span, .op-apps-pop-shot span {
+        .op-apps-ph-empty span {
           font: 500 10px/1 'Space Grotesk', sans-serif; letter-spacing: .22em; text-transform: uppercase;
           color: rgba(35,22,8,.45);
         }
@@ -354,25 +402,35 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           text-transform: uppercase; color: rgba(35,22,8,.6);
         }
         .op-apps-name {
-          margin: 0 0 16px; font: 700 clamp(24px, 3vw, 40px)/1.1 'Cinzel', serif; letter-spacing: .06em; color: #8A6420;
+          margin: 0 0 24px; white-space: nowrap; font: 700 clamp(24px, 3vw, 40px)/1.1 'Cinzel', serif; letter-spacing: .06em; color: #8A6420;
         }
-        .op-apps-p { margin: 0 0 16px; font: 400 16px/1.55 'Space Grotesk', sans-serif; color: ${LAB.ink}; }
-        .op-apps-ul { margin: 0 0 24px; padding: 0; list-style: none; font: 400 14px/1.5 'Space Grotesk', sans-serif; color: ${LAB.ink}; }
-        .op-apps-ul li { position: relative; margin: 0 0 4px; padding-left: 16px; }
+        .op-apps-ul { margin: 0 0 32px; padding: 0; list-style: none; font: 400 16px/1.5 'Space Grotesk', sans-serif; color: ${LAB.ink}; }
+        /* Odrážka = JEDEN riadok (Matej 27. 9.) — zalomenie by rozhodilo výšku slajdov. */
+        .op-apps-ul li { position: relative; margin: 0 0 12px; padding-left: 20px; white-space: nowrap; }
         .op-apps-ul li::before {
           content: ''; position: absolute; left: 0; top: .6em; width: 6px; height: 6px;
           border-radius: 999px; background: ${LAPIS.edge};
         }
         .op-apps .op-apps-chip { margin: 0; }
         /* Popup — plášť je .op-alba z OnePage, tu len obsah. */
-        .op-apps-pop-p { margin: 8px auto 24px; max-width: 640px; font: 400 16px/1.55 'Space Grotesk', sans-serif; color: ${LAB.ink}; }
-        .op-apps-pop-shots { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-        .op-apps-pop-shot {
-          width: 180px; aspect-ratio: 9 / 19; border-radius: 24px; overflow: hidden;
-          display: grid; place-items: center;
-          border: 1.5px dashed rgba(201,154,63,.55); background: rgba(255,251,241,.5);
+        .op-apps-pop-p { margin: 16px auto 0; max-width: 560px; font: 400 16px/1.55 'Space Grotesk', sans-serif; color: ${LAB.ink}; }
+        /* DETAIL — slider: telefón so screenshotom, šípky po bokoch, bodky pod ním. */
+        .op-apps-sl { position: relative; display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 16px; touch-action: pan-y; }
+        .op-apps-sl-view { width: min(280px, calc((100dvh - 320px) * ${(IPHONE_W / IPHONE_H).toFixed(4)})); overflow: hidden; }
+        .op-apps-sl-track { display: flex; transition: transform .5s ease-in-out; }
+        .op-apps-sl-item { flex: 0 0 100%; }
+        .op-apps-sl-btn {
+          width: 40px; height: 40px; border-radius: 999px; display: grid; place-items: center; cursor: pointer; flex: none;
+          background: rgba(0,0,0,.6); border: 1px solid rgba(255,255,255,.2); color: #fff;
         }
-        .op-apps-pop-shot img { width: 100%; height: 100%; object-fit: cover; }
+        .op-apps-sl-btn:hover { background: rgba(0,0,0,.8); }
+        .op-apps-sl-btn svg { fill: currentColor; }
+        .op-apps-sl-dots { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
+        .op-apps-sl-dots button {
+          width: 8px; height: 8px; padding: 0; border-radius: 999px; cursor: pointer;
+          border: 1px solid ${LAPIS.edge}; background: transparent;
+        }
+        .op-apps-sl-dots button.is-on { background: ${LAPIS.edge}; }
 
         /* MOBIL — rám 280 (komponent), text hore, telefóny pod ním. */
         @media (max-width: 767px) {
@@ -381,12 +439,12 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           .op-apps-col { left: 16px; right: 16px; width: auto; top: calc(var(--op-nav-h, 118px) + 8px); }
           .op-apps-txt { transform: none; }
           .op-apps-name { margin-bottom: 8px; }
-          .op-apps-p { font-size: 14px; margin-bottom: 8px; }
-          .op-apps-ul { margin-bottom: 16px; font-size: 12px; }
-          .op-apps-pop-shot { width: 132px; }
+          .op-apps-ul { margin-bottom: 16px; font-size: 14px; }
+          .op-apps-ul li { margin-bottom: 4px; }
+          .op-apps-sl { gap: 8px; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .op-apps-ph, .op-apps-txt { transition: none; }
+          .op-apps-ph, .op-apps-txt, .op-apps-sl-track { transition: none; }
         }
       `}</style>
     </section>
