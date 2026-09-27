@@ -30,7 +30,7 @@ import { PackBottomNav, HieroglyphBg, MessagingOverlayHost } from '@/components/
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT, useLang } from '@/i18n/LanguageContext';
-import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL_FIT, packColCSS } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL_FIT, packColCSS, HIT_CSS } from '@/components/pack/packTheme';
 import { BackButton } from '@/components/pack/BackButton';
 // Lapisové hlavné CTA + priesvitný tint stavu — jeden zdroj pre celý /pack (2026-08-26/28).
 import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
@@ -1540,7 +1540,7 @@ export default function PackTripArticle() {
 
   return (
     <div className="pk-paper pta-root">
-      <style>{PAPER_PAGE_CSS}</style>
+      <style>{PAPER_PAGE_CSS}{HIT_CSS}</style>
       <style>{CSS}</style>
       <style>{COMMUNITY_CSS}</style>
       <style>{POINTS_PILL_CSS}</style>
@@ -1614,7 +1614,7 @@ export default function PackTripArticle() {
               {/* Zátvorka je ODKAZ na zoznam hodnotení (Matej 2026-08-25: „kliknutie na
                   zátvorku scroluje na hodnotenie"). Číslo bez cesty k tomu, čo počíta,
                   je slepá ulička — kto sa pýta „kto to hodnotil?", musí mať kam kliknúť. */}
-              <button type="button" className="pta-bycount" onClick={scrollToReviews}>({ratingCount})</button>
+              <button type="button" className="pta-bycount pk-hit" onClick={scrollToReviews}>({ratingCount})</button>
             </span>
           )}
         </div>
