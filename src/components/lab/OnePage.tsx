@@ -1526,19 +1526,22 @@ export default function OnePage() {
         pieces.push({ node: base, g: s.g }, { node: tint, g: s.g });
         tintOf[s.k] = tint;
 
-        // HOTSPOT — blikajúci bod v strede symbolu, láka ťuknúť / prejsť myšou
-        // (27. 9. 2026). Pod `hit`, takže klik ide ďalej na slot.
-        const hr = Math.min(s.w, s.h) * 0.12;
-        const hsw = String(hr * 0.38);
-        const hot = mk('g', { class: 'hot' });
-        (hot as unknown as HTMLElement).style.setProperty('--hd', `${((SL as readonly { k: string }[]).findIndex((z) => z.k === s.k) * 0.37).toFixed(2)}s`);
-        const hcx = String(s.x + s.w / 2), hcy = String(s.y + s.h / 2);
-        hot.append(
-          mk('circle', { class: 'hot-ring', cx: hcx, cy: hcy, r: String(hr), 'stroke-width': hsw }),
-          mk('circle', { class: 'hot-dot', cx: hcx, cy: hcy, r: String(hr), 'stroke-width': hsw }),
-        );
-        gGlyph.append(hot);
-        hotOf[s.k] = hot;
+        // HOTSPOT — blikajúci bod, láka ťuknúť / prejsť myšou (27. 9. 2026).
+        // LEN NA PSOVI (Matej: *„nechaj hotspot iba na symbole psa"*).
+        // Pod `hit`, takže klik ide ďalej na slot.
+        if (s.k === 'shape') {
+          const hr = Math.min(s.w, s.h) * 0.12;
+          const hsw = String(hr * 0.38);
+          const hot = mk('g', { class: 'hot' });
+          (hot as unknown as HTMLElement).style.setProperty('--hd', '0s');
+          const hcx = String(s.x + s.w / 2), hcy = String(s.y + s.h / 2);
+          hot.append(
+            mk('circle', { class: 'hot-ring', cx: hcx, cy: hcy, r: String(hr), 'stroke-width': hsw }),
+            mk('circle', { class: 'hot-dot', cx: hcx, cy: hcy, r: String(hr), 'stroke-width': hsw }),
+          );
+          gGlyph.append(hot);
+          hotOf[s.k] = hot;
+        }
         const hit = mk('rect', { class: 'hit', x: String(s.x), y: String(s.y), width: String(s.w), height: String(s.h) });
         gGlyph.append(hit);
         hitOf[s.k] = hit;
