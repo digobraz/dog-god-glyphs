@@ -9,7 +9,7 @@ import { DEV_NOAUTH, DEV_MOCK_DOG_ROW } from '@/lib/devMockDogs';
 import { getAccessibleDogIds } from '@/lib/dogRights';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
-import { PALE } from '@/components/pack/navGoldSkin';
+import { PALE, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { DogPassport, type FixedRow } from '@/components/pack/DogPassport';
 import { WillPanel } from '@/components/pack/WillPanel';
 import { PACK_THEME, PILL_CSS, PACK_BOX, PACK_HEAD, PACK_TEXT, PACK_SPACE } from '@/components/pack/packTheme';
@@ -981,7 +981,7 @@ export default function PackDogDetail() {
                       className="inline-flex items-center gap-1.5"
                       style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.inkDim }}
                     >
-                      <Sparkles className="h-3 w-3" style={{ color: T.accentGold }} />
+                      <Sparkles className="h-3 w-3" style={{ color: LAPIS.edge }} />
                       {t('pack.dog.livingBestLife')}
                     </span>
                     <BestLifeBadge age={age} />
@@ -1687,14 +1687,16 @@ function BestLifeBadge({ age }: { age: DogAge }) {
         style={{
           padding: '4px 16px',
           borderRadius: 999,
-          background: 'linear-gradient(180deg, #F5C73D 0%, #E69E1A 100%)',
-          color: '#3d1f00',
+          // Pilulka dní = LAPIS (lock 12. 9., zdroj PackTree.tsx / DAYS_PILL); tu ostala
+          // zlatá do 27. 9. — Matej nad hárkom DOG ID: „zmeň všetky zlaté veci na lapisové".
+          background: LAPIS.grad,
+          color: LAPIS.ink,
           fontFamily: "'Cinzel', serif",
-          fontSize: 15,
+          fontSize: PACK_TEXT.lead,
           fontWeight: 700,
           letterSpacing: '0.02em',
           cursor: 'pointer',
-          boxShadow: '0 6px 16px -6px rgba(201, 154, 63, 0.6)',
+          boxShadow: LAPIS_BTN_SHADOW,
           lineHeight: 1.1,
           whiteSpace: 'nowrap',
         }}

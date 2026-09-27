@@ -31,6 +31,7 @@ import { PASS_GROUPS, STEP_BY_FIELD, PROGRESS_STEPS, type QuizStep } from './dog
 import { natureArt, storedSpecials } from './natureQuiz';
 import { readLatest, onDogEventsChange, hasValue, readSeries, appendDogEvents, type LatestValue } from '@/lib/dogEvents';
 import { RightGate } from '@/components/pack/RightGate';
+import { LAPIS, PICK_INK, pickTintCSS } from './navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
@@ -53,6 +54,10 @@ const PASS_CSS = `
 .pass-share:disabled{ opacity:.5; cursor:default; }
 .pass-edit{ font-family:'Space Grotesk',sans-serif; font-size:10px; letter-spacing:0.14em;
   text-transform:uppercase; padding:4px 12px; text-decoration:none; }
+/* LAPIS NA DOG ID (Matej 27. 9. 2026 nad hárkom plany/nakres-dogid-detail-2026-09-27:
+   „zmeň všetky zlaté veci na lapisové — progres bar, chipy atď."). Zlato ostáva len
+   konštrukcii (rám karty, deliaca čiara) a čiernemu bloku závetu, kde by lapis zanikol. */
+.pass-edit:not(.pk-pill--dark), .pass-chip, .pass-share{ ${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.08)} }
 /* KATEGÓRIE = SAMOSTATNÉ BLOKY (Matej 12.8.: „kategorie treba vizualne zoradit do
    blokov … vacsie nadpisy kategorii a viac strukturovane"). Blok = ÚROVEŇ 2 matrice
    (PODBLOK) — je to sekcia vnútri karty DOG ID, presne ako ZÁKLAD a ŽIVOTNÝ ŠTÝL
@@ -89,14 +94,14 @@ const PASS_CSS = `
 .pass-block--dark .pass-noteadd:hover{ color:rgba(245,240,228,0.88); }
 .pass-bhead{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
 .pass-btitle{ display:flex; align-items:center; gap:9px; font-family:'Cinzel',serif; font-weight:700;
-  font-size:16.5px; letter-spacing:0.14em; text-transform:uppercase; color:${T.inkStrong}; margin:0; }
-.pass-bnum{ font-family:'JetBrains Mono',ui-monospace,monospace; font-size:10px; font-weight:700;
-  color:${T.cardEdge}; opacity:.75; }
+  font-size:16px; letter-spacing:0.14em; text-transform:uppercase; color:${T.inkStrong}; margin:0; }
+.pass-bnum{ font-family:'Space Grotesk',sans-serif; font-size:10px; font-weight:500;
+  letter-spacing:.14em; font-variant-numeric:tabular-nums; color:${LAPIS.edge}; opacity:.75; }
 /* deliaca čiara vnútri bloku = predpísaný token T.rule, nie vlastný gradient.
    POZOR: tento blok je JS template literal — spätný apostrof v komentári zhodí build. */
 .pass-brule{ height:2px; margin:10px 0 12px; background:${T.rule}; opacity:.75; }
 /* NEVYPLNENÉ POLE. Červená je token T.alertRed, nie ľubovoľná červená. Veľkosť 15px
-   a váha 600 sú tu preto, že jeden znak v riadku s 11.5px popiskom inak zanikne —
+   a váha 600 sú tu preto, že jeden znak v riadku s 12px popiskom inak zanikne —
    pomlčka má byť vidieť cez celý blok. Váha 600 je STROP: Space Grotesk je načítaný
    300–600, pri 700 by prehliadač dosyntetizoval fake bold. */
 .pass-toresult{
@@ -104,11 +109,11 @@ const PASS_CSS = `
   /* Podčiarknutie musí byť VIDIEŤ, inak je to mŕtve tlačidlo — bodkovaná zlatá
      linka pod hodnotou hovorí „dá sa na to kliknúť" bez toho, aby z údaja spravila
      modrý odkaz. Ostatné riadky dokladu klikateľné nie sú a nesmú tak vyzerať. */
-  border-bottom:1px dotted rgba(201,154,63,0.75);
+  border-bottom:1px dotted rgba(22,48,122,0.55);
   transition:border-color .15s ease, opacity .15s ease;
 }
-.pass-toresult:hover{ border-bottom-color:${T.cardEdge}; opacity:.85; }
-.pass-missing{ font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:600;
+.pass-toresult:hover{ border-bottom-color:${LAPIS.edge}; opacity:.85; }
+.pass-missing{ font-family:'Space Grotesk',sans-serif; font-size:16px; font-weight:600;
   letter-spacing:0.02em; color:${T.alertRed}; text-decoration:none; }
 /* zámerne prázdne pole (zvláštna úloha) — pomlčka bez poplachu */
 .pass-missing--optional{ color:${T.inkFaint}; }
@@ -120,22 +125,22 @@ const PASS_CSS = `
 .pass-fillhead{ display:flex; align-items:baseline; justify-content:space-between; gap:10px;
   margin-bottom:6px; }
 .pass-filllbl{ font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:10px;
-  letter-spacing:.26em; text-transform:uppercase; color:${T.cardEdge}; }
-.pass-fillnum{ font-family:'JetBrains Mono',ui-monospace,monospace; font-size:11px;
+  letter-spacing:.26em; text-transform:uppercase; color:${LAPIS.edge}; }
+.pass-fillnum{ font-family:'Space Grotesk',sans-serif; font-size:12px; font-variant-numeric:tabular-nums;
   color:${T.inkWarm}; white-space:nowrap; }
 .pass-fillbar{ height:6px; border-radius:999px; background:${T.tileBg};
   border:1px solid ${T.border}; overflow:hidden; }
 .pass-fillbar__on{ height:100%; border-radius:999px;
-  background:linear-gradient(90deg,#F5C73D 0%,#E69E1A 100%); transition:width .4s ease; }
+  background:linear-gradient(90deg,${LAPIS.lite} 0%,${LAPIS.edge} 100%); transition:width .4s ease; }
 /* riadok, ktorý sa needituje (plemeno, narodenie, pohlavie) */
-.pass-fixed{ font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:500;
+.pass-fixed{ font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:500;
   color:${T.inkStrong}; }
-.pass-fixed--empty{ font-size:15px; font-weight:600; letter-spacing:0.02em; color:${T.inkFaint}; }
+.pass-fixed--empty{ font-size:16px; font-weight:600; letter-spacing:0.02em; color:${T.inkFaint}; }
 /* poznámka vlastnými slovami — to, čo z údajov robí psa */
 .pass-note{ margin-top:12px; padding-top:12px; border-top:1px dashed ${T.hairline}; }
-.pass-notetext{ font-family:'Space Grotesk',sans-serif; font-size:12.5px; line-height:1.55;
+.pass-notetext{ font-family:'Space Grotesk',sans-serif; font-size:14px; line-height:1.55;
   color:${T.inkWarm}; font-style:italic; white-space:pre-wrap; margin:0; }
-.pass-noteadd{ font-family:'Space Grotesk',sans-serif; font-size:10.5px; letter-spacing:0.14em;
+.pass-noteadd{ font-family:'Space Grotesk',sans-serif; font-size:10px; letter-spacing:0.14em;
   text-transform:uppercase; color:rgba(31,26,14,.42); background:transparent; border:0; padding:0;
   cursor:pointer; }
 .pass-noteadd:hover{ color:${T.inkStrong}; }
@@ -245,7 +250,6 @@ export function DogPassport({
       <style>{PF_FIELD_CSS}</style>
       <style>{PASS_CSS}</style>
 
-      <ShareRow tx={tx} position="top" onWill={onEditPanel ? () => onEditPanel('will') : undefined} />
 
       {/* Hláška „zatiaľ nič vyplnené" zanikla 13.8.2026 — doklad má odteraz všetky
           položky od prvej sekundy, takže prázdno nie je stav, ktorý by sa dal opísať
@@ -360,9 +364,6 @@ export function DogPassport({
       })}
       </div>
 
-      {/* Druhý rovnaký rad dole — pri dlhom dokumente je scroll späť hore réžia navyše.
-          Nie je to duplicita obsahu, je to ten istý ovládač na oboch koncoch. */}
-      <ShareRow tx={tx} position="bottom" onWill={onEditPanel ? () => onEditPanel('will') : undefined} />
     </section>
   );
 }
@@ -373,54 +374,8 @@ export function DogPassport({
 //
 // Share sheet sa ešte nestavia (krok 6 poradia), preto sú tlačidlá zatiaľ mŕtve a označené
 // „čoskoro" — radšej viditeľný zámer než tlačidlo, ktoré nič neurobí a tvári sa funkčne.
-function ShareRow({
-  tx, position, onWill,
-}: {
-  tx: (k: string, f: string) => string; position: 'top' | 'bottom'; onWill?: () => void;
-}) {
-  // ZÁVET UŽ NIE JE MŔTVE TLAČIDLO (13.8.2026). Ostatné tri ciele stále čakajú na share
-  // sheet, ale závet má odteraz vlastný panel priamo na doklade — takže jediné tlačidlo
-  // v tomto rade, ktoré niečo robí, je ono.
-  // VET · SITTER · FRIEND ZMIZLI (nákres launchu 21. 9. 2026, §2 „zmizne"): share sheet
-  // neexistuje a tri vypnuté tlačidlá vedľa jedného živého pôsobili ako rozbitý rad.
-  // Vrátia sa sem, keď bude odkaz s výberom polí; kľúče `pack.pass.share.*` ostávajú.
-  const targets = [
-    { key: 'will', labelEN: 'Will', i18n: 'pack.pass.share.will', emoji: '🕊' },
-  ];
-  return (
-    <div style={position === 'top' ? { marginBottom: 6 } : { marginTop: 22 }}>
-      <div
-        className="text-center"
-        style={{
-          fontFamily: FONT_UI, fontWeight: 500, fontSize: 10, letterSpacing: '0.26em',
-          textTransform: 'uppercase', color: T.accentGold, marginBottom: 9,
-        }}
-      >
-        {tx('pack.pass.shareTitle', 'Share this card')}
-      </div>
-      <div className="flex flex-wrap gap-1.5 justify-center">
-        {targets.map((x) => {
-          const live = x.key === 'will' && !!onWill;
-          return (
-            <button
-              key={x.key}
-              type="button"
-              className={`pk-pill pass-share${live ? ' pk-pill--tap' : ''}`}
-              disabled={!live}
-              onClick={live ? onWill : undefined}
-            >
-              <span aria-hidden>{x.emoji}</span>
-              {tx(x.i18n, x.labelEN)}
-            </button>
-          );
-        })}
-      </div>
-      {/* Veta „každý príjemca vidí len to, čo potrebuje" odišla s Vet/Sitter/Friend —
-          hovorila o odkaze pre príjemcov, ktorý závet nie je. */}
-      {position === 'top' && <div style={{ height: 14 }} />}
-    </div>
-  );
-}
+// ShareRow (rad „Zdieľať kartu“ s tlačidlom Závet hore aj dole) zanikol 27. 9. 2026 — Matej
+// nad hárkom DOG ID: „zavet tlačítko daj preč“. Závet sa píše cez ✎ v bloku 09.
 
 /**
  * Zvláštna úloha na doklade — orezaná na dnešný strop (najviac JEDNA, lock 22. 8. 2026).
@@ -450,7 +405,7 @@ function capSpecials(
 function FixedPassRow({ row, tx }: { row: FixedRow; tx: (k: string, f: string) => string }) {
   return (
     <>
-      <dt style={{ fontFamily: FONT_UI, fontSize: 11.5, color: 'var(--pass-lbl)', whiteSpace: 'nowrap' }}>
+      <dt style={{ fontFamily: FONT_UI, fontSize: 12, color: 'var(--pass-lbl)', whiteSpace: 'nowrap' }}>
         {tx(row.i18n, row.labelEN)}
       </dt>
       <dd style={{ margin: 0 }}>
@@ -482,7 +437,7 @@ function PassRow({
     const optional = !!step.noProgress || !!step.optional;
     return (
       <>
-        <dt style={{ fontFamily: FONT_UI, fontSize: 11.5, color: 'var(--pass-lbl)', whiteSpace: 'nowrap' }}>
+        <dt style={{ fontFamily: FONT_UI, fontSize: 12, color: 'var(--pass-lbl)', whiteSpace: 'nowrap' }}>
           {tx(step.rowI18n, step.rowEN)}
         </dt>
         <dd style={{ margin: 0 }}>
@@ -512,10 +467,10 @@ function PassRow({
 
   return (
     <>
-      <dt style={{ fontFamily: FONT_UI, fontSize: 11.5, color: 'var(--pass-lbl)', whiteSpace: 'nowrap' }}>
+      <dt style={{ fontFamily: FONT_UI, fontSize: 12, color: 'var(--pass-lbl)', whiteSpace: 'nowrap' }}>
         {tx(step.rowI18n, step.rowEN)}
       </dt>
-      <dd style={{ margin: 0, fontFamily: FONT_UI, fontSize: 13, color: 'var(--pass-val)', fontWeight: 500 }}>
+      <dd style={{ margin: 0, fontFamily: FONT_UI, fontSize: 14, color: 'var(--pass-val)', fontWeight: 500 }}>
         {/* HODNOTA JE ODKAZ NA VÝSLEDOK, nie samostatné tlačidlo vedľa nej.
             „Metal" a „The Defender" nie sú údaje ako výška v kohútiku — sú to
             závery dvadsiatich dvoch otázok a za každým stojí celá strana textu.
@@ -532,12 +487,12 @@ function PassRow({
           </Link>
         ) : renderValue(step, value.value, tx)}
         {trend && (
-          <span style={{ fontFamily: FONT_UI, fontSize: 10.5, color: T.growGreen, marginLeft: 6 }}>{trend}</span>
+          <span style={{ fontFamily: FONT_UI, fontSize: 10, color: T.growGreen, marginLeft: 6 }}>{trend}</span>
         )}
         {/* Dátum aktualizácie — bez neho je údaj len tvrdenie (§2/6). */}
         <span
           style={{
-            fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 9.5,
+            fontFamily: FONT_UI, fontSize: 10, fontVariantNumeric: 'tabular-nums',
             color: 'var(--pass-faint)', marginLeft: 7, whiteSpace: 'nowrap',
           }}
         >
@@ -574,9 +529,9 @@ function renderValue(step: QuizStep, v: unknown, tx: (k: string, f: string) => s
           // len veľkosť písma a rozostupy, výplň a rám nesie matrica.
           <span
             key={String(x)}
-            className="pk-pill"
+            className="pk-pill pass-chip"
             style={{
-              fontFamily: FONT_UI, fontSize: 11, padding: '4px 12px',
+              fontFamily: FONT_UI, fontSize: 12, padding: '4px 12px',
               display: 'inline-flex', alignItems: 'center', gap: 5,
             }}
           >
@@ -703,7 +658,7 @@ function GroupNote({
           className="pf-field pf-field--flat"
           style={{
             width: '100%', borderRadius: 8, padding: '8px 12px', fontFamily: FONT_UI,
-            fontSize: 12.5, lineHeight: 1.5, color: T.inkStrong, resize: 'none', outline: 'none',
+            fontSize: 14, lineHeight: 1.5, color: T.inkStrong, resize: 'none', outline: 'none',
           }}
         />
         <div className="flex items-center justify-end gap-3" style={{ marginTop: 7 }}>

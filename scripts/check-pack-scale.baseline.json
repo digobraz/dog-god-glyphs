@@ -61,7 +61,7 @@
   },
   "components/pack/DogPassport.tsx": {
     "radius": 0,
-    "font": 15,
+    "font": 0,
     "zavoj": 0,
     "progres": 1,
     "ram": 1,
@@ -721,11 +721,11 @@
   },
   "pages/PackDogDetail.tsx": {
     "radius": 28,
-    "font": 63,
+    "font": 62,
     "zavoj": 1,
     "progres": 1,
     "ram": 10,
-    "tien": 15,
+    "tien": 14,
     "pismenka": 0,
     "odsadenie": 7
   },
