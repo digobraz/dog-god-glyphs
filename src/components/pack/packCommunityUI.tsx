@@ -10,7 +10,8 @@ import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import { useMyEventCount } from '@/components/pack/events/eventStore';
 import { useMyWishCount } from '@/components/pack/mapnotes/wishData';
 import { WISHES_LIVE } from '@/lib/packFlags';
-import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI, PACK_SHADOW, GOLD_BTN } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI, PACK_SHADOW, GOLD_BTN, HIT_CSS } from '@/components/pack/packTheme';
+import { pluralKey } from '@/lib/plural';
 // Bledý chrome: inkousty a plochy (PALE), lapisové CTA a priesvitný tint výberu.
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy aj triplist.
 import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
@@ -124,7 +125,7 @@ const CHKO_LOGO: Record<string, string> = {
 };
 
 // ── zdieľané CSS — PackMap ho injektne raz vedľa svojho vlastného <style> ──────────────────
-export const COMMUNITY_CSS = `
+export const COMMUNITY_CSS = `${HIT_CSS}
 /* ════════════════════════════════════════════════════════════════════════════
    DRAK → BRIGHT (2026-09-01) — TRIPSTATS, WalkedPopup a EventsView do bledého šatu.
    ────────────────────────────────────────────────────────────────────────────
@@ -1701,10 +1702,10 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
                 <button
                   key={c.iso}
                   type="button"
-                  className={`comm-vflag${c.iso === country ? ' on' : ''}`}
+                  className={`comm-vflag pk-hit${c.iso === country ? ' on' : ''}`}
                   onClick={() => pickCountry(c.iso)}
-                  title={`${c.name} · ${c.trips} trip${c.trips === 1 ? '' : 's'}`}
-                  aria-label={`${c.name}, ${c.trips} trips`}
+                  title={`${c.name} · ${t(`pack.triplist.myTripsCount${pluralKey(c.trips)}`, { n: c.trips })}`}
+                  aria-label={`${c.name}, ${t(`pack.triplist.myTripsCount${pluralKey(c.trips)}`, { n: c.trips })}`}
                 >
                   <FlagCircle iso2={c.iso} label={c.name} size={22} />
                 </button>

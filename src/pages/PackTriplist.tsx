@@ -27,7 +27,7 @@ import { JOIN_REQUIRED_STEPS } from '@/components/pack/dogQuiz';
 import { hasValue, readLatestForDogs, onDogEventsChange } from '@/lib/dogEvents';
 import { useMyDogRights } from '@/lib/dogRights';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL, PACK_COL_PAD, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL, PACK_COL_PAD, GOLD_BTN, PACK_SHADOW, HIT_CSS } from '@/components/pack/packTheme';
 // Bledý chrome: inkousty a plochy (PALE), lapisové CTA a priesvitný tint výberu.
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy.
 import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK, goldFrameCSS } from '@/components/pack/navGoldSkin';
@@ -135,6 +135,8 @@ const CSS = `
 /* Nadpis sekcie na papyruse: zlatá je TMAVŠIA (#8a5a14), nie brandová ${T.cardEdge} — tá je na
    svetlom podklade len o niečo tmavšia než sám papyrus a stráca sa. */
 .tl-sechead h3{font-family:${FONT_UI};font-weight:500;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:${P.deep};margin:0;}
+/* nadpis vľavo, počet + tlačidlo spolu vpravo — pri troch prvkoch space-between rozhodil počet doprostred (audit 27. 9.) */
+.tl-sechead h3{margin-right:auto;}
 /* Počet + PREČO je karta tam, kde je. Pás MOJICH VÝLETOV mal pri meraní 16. 9. 2026
    73 kariet (11 818 px; na 500 px okne vidno 2,6) a 72 z nich bolo prejdených — bez
    tejto vety je to nekonečný pás bez zjavného poradia. sortMyTrips radí najbližší
@@ -907,7 +909,7 @@ export default function PackTriplist() {
 
   return (
     <div className="pk-paper tl-root">
-      <style>{PAPER_PAGE_CSS}</style>
+      <style>{PAPER_PAGE_CSS}{HIT_CSS}</style>
       {/* GLASS_CSS ostáva: .pk-glass ani .pk-glass-block na tejto stránke UŽ NIE SÚ, ale
           vnorené povrchy (karta člena .pmc) si sklo ešte berú — prezliekajú sa vo vlastnom
           kroku, nie tu. */}
@@ -1075,7 +1077,7 @@ export default function PackTriplist() {
                 <span className="tl-sechint">
                   {t(`pack.triplist.myTripsCount${pluralKey(walkedTrips.length)}`, { n: walkedTrips.length })}
                 </span>
-                <button type="button" className={`tl-seeall${walkedCollapsed ? ' on' : ''}`} onClick={toggleWalkedCollapsed}>
+                <button type="button" className={`tl-seeall pk-hit${walkedCollapsed ? ' on' : ''}`} onClick={toggleWalkedCollapsed}>
                   {walkedCollapsed ? t('pack.triplist.showOpenTrips') : t('pack.triplist.hideOpenTrips')}
                 </button>
               </div>
