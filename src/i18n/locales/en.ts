@@ -1187,6 +1187,7 @@ export const en = {
   'film.slide.stars': 'Dogs and Stars',
   'film.slide.mission': 'Mission',
   'film.slide.heroglyph': 'Heroglyph',
+  'film.slide.apps': 'Membership',
   'film.slide.menu': 'Jump to a scene',
   // Výzva na čiernej sále medzi víziou a príbehom — viď KEEP_IN v OnePage.tsx.
   'film.keepScrolling': 'Keep scrolling',
@@ -1213,6 +1214,7 @@ export const en = {
   'onepage.cue.next': 'Next',
   'onepage.cue.story': 'Scroll through the story',
   'onepage.cue.top': 'Back to top',
+  'onepage.apps.more': 'See it in the app',
   'onepage.need.step': 'Next step',
   'onepage.need.cta': 'Join the mission',
   // Číslo je dopočítané (počet psov + 1) a stojí v `<b>` za týmto kusom.

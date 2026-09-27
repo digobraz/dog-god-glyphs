@@ -63,6 +63,7 @@ import { filmVh } from '@/lib/filmVh';
 import { useFilmStops } from './filmStops';
 import FilmGate, { GATE_REST, GATE_TOUCH, GATE_RIDE_MS, GATE_FADE } from './FilmGate';
 import FilmCue, { FilmTop, FILM_CUE_CSS } from './FilmCue';
+import FilmApps, { APPS_STOPS } from './FilmApps';
 
 // ── OBRAZY FILMU SÚ NA JEDNOM MIESTE ────────────────────────────────────────
 // Matejov zoznam z 2. 9. 2026, doslova: *„1-HOME · 2 COW vs DOG · 3 Religion ·
@@ -192,6 +193,14 @@ type FilmSlide = {
  *  výdrž, schová ho a vyradí z navu aj zo zastávok. Návrat = true. */
 const WNY_ON = false as boolean;
 
+/** 🔴 MOST („Am I doing right by him?") JE ODLOŽENÝ (Matej 27. 9. 2026:
+ *  *„HEROGLYPH sekciu vytlačí táto scénka mobilov, ktorá príde zdola na
+ *  stred"*). Oblúk bez neho končí PRESNE na dopísanom DOGTRIXe
+ *  (`.op-arc-rest2`) — výdrž, posun doľava aj MOST majú nulovú dráhu, takže
+ *  prilepené javisko sa uvoľní a vytlačí ho zdola `FilmApps`. Obraz sa nemaže,
+ *  návrat = true (vráti aj výdrž DOGTRIXu a odovzdanie). */
+const MOST_ON = false as boolean;
+
 const FILM_SLIDES: FilmSlide[] = ([
   {
     id: 'home',
@@ -258,6 +267,13 @@ const FILM_SLIDES: FilmSlide[] = ([
     from: () => pinnedAt('.op-arc', ARC_SPLIT + ARC_DWELL + ARC_XFADE),
   },
 
+  {
+    // ČLENSTVO — telefóny s funkciami appky (FilmApps.tsx, 27. 9. 2026).
+    id: 'apps',
+    navKey: 'film.slide.apps',
+    at: () => absTop('.op-apps'),
+    from: () => { const y = absTop('.op-apps'); return y == null ? null : y - filmVh() * 0.5; },
+  },
   {
     // Pás recenzií. Klik má pristáť tam, kde sú karty v strede obrazovky —
     // teda na konci posledného beatu (`QUO.colsIn`), nie na nadpise, ktorý
@@ -1099,7 +1115,7 @@ const DOGTRIX_VH = 340;
  *  DOGTRIX teda nezhasína: jeho dážď beží ďalej ako pozadie celého obrazu
  *  ALBA a odchádza len jeho OBSAH (beaty), vodorovne doľava. Číslo ostalo
  *  rovnaké — je to dĺžka toho pohybu. */
-const ARC_XFADE2_VH = 24;
+const ARC_XFADE2_VH = MOST_ON ? 24 : 0;
 
 /** O koľko šírok okna odíde OBSAH DOGTRIXu doľava, kým sa uvoľní stred pre
  *  „MEET ALBA". Vo `vw`, nie v percentách vlastnej šírky — vo `vw` prejdú
@@ -1134,7 +1150,7 @@ const ARC_HOLD_VH = WNY_ON ? 120 : 0;
  *  prelínačka na ALBU — žiadna výdrž, žiadne odpočívadlo. Rovnaký princíp,
  *  rovnaké číslo: viac než jedna obrazovka, aby ťah, ktorý začne na
  *  dobehnutom glyfe, skončil ešte v ňom. */
-const ARC_HOLD2_VH = 120;
+const ARC_HOLD2_VH = MOST_ON ? 120 : 0;
 
 /** 🔴 TÁ ISTÁ CHYBA TRETÍKRÁT — a tentoraz nájdená výpočtom, nie na živej
  *  stránke. ALBA dobiehala PRESNE na konci celého oblúka (`gp` = 1 až v jeho
@@ -1148,13 +1164,13 @@ const ARC_HOLD3_VH = 0; // bola 120 — výdrž ALBY, ALBA odišla do popupu (27
  *  mechanika ako pri druhom: obsah ALBY odchádza VODOROVNE doľava, dážď pod
  *  ním beží ďalej. Je to gramatika, ktorú si obraz už zaviedol — nový spôsob
  *  odchodu by v jednom javisku znamenal dve pravidlá pre tú istú vec. */
-const ARC_XFADE3_VH = 24;
+const ARC_XFADE3_VH = MOST_ON ? 24 : 0;
 
 /** Dráha MOSTA vo `vh`. Nesie dva beaty a medzi nimi zhasnutie, takže je
  *  kratší než plnohodnotný obraz, ale dlhší než prelínačka — otázka na konci
  *  musí ostať stáť dosť dlho na to, aby si ju človek prečítal skôr, než ju
  *  odvezie ďalší obraz. */
-const MOST_VH = 260;
+const MOST_VH = MOST_ON ? 260 : 0;
 
 /** Dĺžka odovzdania medzi obrazovkami vo `vh`. */
 const ARC_XFADE_VH = 24;
@@ -3110,13 +3126,13 @@ export default function OnePage() {
         // výdrž — to isté správanie, aké má `np` počas ARC_DWELL pri NXT.
         const handover2 = handover1 + ARC_XFADE + ARC_DGX_F + ARC_DWELL2;
         // Dráha TRETEJ obrazovky (ALBA) — rovnaký princíp o obrazovku ďalej.
-        const gp = clamp01((npAll - handover2) / Math.max(0.001, ARC_XFADE2 + ARC_GLF_F));
+        const gp = ARC_XFADE2 + ARC_GLF_F > 0 ? clamp01((npAll - handover2) / (ARC_XFADE2 + ARC_GLF_F)) : 0;
         // Odovzdanie 3 (alba → most) — až ZA ALBINOU VÝDRŽOU, tá istá stavba
         // ako handover1/2. `gp` medzitým sedí na 1 (clamp01), takže ALBA počas
         // výdrže stojí dopísaná a nič sa v nej nehýbe.
         const handover3 = handover2 + ARC_XFADE2 + ARC_GLF_F + ARC_DWELL3;
         // Dráha ŠTVRTEJ obrazovky (MOST).
-        const mp = clamp01((npAll - handover3) / Math.max(0.001, ARC_XFADE3 + ARC_MOST_F));
+        const mp = MOST_ON ? clamp01((npAll - handover3) / Math.max(0.001, ARC_XFADE3 + ARC_MOST_F)) : 0;
         // Odovzdanie 1 (nxt → dogtrix): prvá zhasne v prvej polovici prechodu,
         // druhá nabehne v druhej — prekryv je zámerne len pár percent, aby
         // medzi nimi nevznikol strih, ale ani dva texty na sebe.
@@ -3129,11 +3145,11 @@ export default function OnePage() {
         // Jedna hodnota, jeden dej: DOGTRIX neuberá krytie, len odchádza
         // vodorovne. Preto tu nie sú dva segmenty (out/in) ako pri odovzdaní 1
         // — druhý mechanizmus popri tomto by sa s ním bil.
-        const slide2 = seg(npAll, handover2, handover2 + ARC_XFADE2);
+        const slide2 = ARC_XFADE2 > 0 ? seg(npAll, handover2, handover2 + ARC_XFADE2) : 0;
         // Odovzdanie 3 je DVOJČA odovzdania 2, nie nový nápad: obsah ALBY
         // odchádza vodorovne doľava, dážď pod ním beží ďalej. Jedna hodnota,
         // jeden dej — preto ani tu nie sú dva segmenty (out/in).
-        const slide3 = seg(npAll, handover3, handover3 + ARC_XFADE3);
+        const slide3 = ARC_XFADE3 > 0 ? seg(npAll, handover3, handover3 + ARC_XFADE3) : 0;
 
         const W = ARC.nxt;
         // Fázy sú v PERCENTÁCH dráhy (tak, ako ich píše nákres) — réžia si ich
@@ -3797,6 +3813,8 @@ export default function OnePage() {
   const [inStory, setInStory] = useState(false);
   /** Popup s tromi Albami — vstup je chip PRÍKLAD pri podnadpise HEROGLYPH. */
   const [albaOpen, setAlbaOpen] = useState(false);
+  const appsOpenRef = useRef(false);
+  const onAppsPopup = useCallback((o: boolean) => { appsOpenRef.current = o; }, []);
   const albaOpenRef = useRef(false);
   albaOpenRef.current = albaOpen;
   useEffect(() => {
@@ -3844,8 +3862,13 @@ export default function OnePage() {
       const y = absTop(sel);
       if (y != null) out.push(y);
     }
-    const most = pinnedAt('.op-arc', 1);
-    if (most != null) out.push(most);
+    if (MOST_ON) { const most = pinnedAt('.op-arc', 1); if (most != null) out.push(most); }
+    // ČLENSTVO: príchod telefónov na stred + štyri funkcie (FilmApps.tsx).
+    const apps = absTop('.op-apps');
+    if (apps != null) {
+      out.push(apps);
+      for (const f of APPS_STOPS) { const y = pinnedAt('.op-apps', f); if (y != null) out.push(y); }
+    }
     const quo = pinnedAt('.op-quo', QUO.colsIn[1]);
     if (quo != null) out.push(quo);
     out.push(document.documentElement.scrollHeight - window.innerHeight);
@@ -3890,7 +3913,7 @@ export default function OnePage() {
       const leg = dgxLeg(from, to);
       return leg === 'write' || leg === 'kota' ? easeSine : undefined;
     },
-    paused: () => bookOpenRef.current || wallOpenRef.current || albaOpenRef.current || document.body.style.overflow === 'hidden',
+    paused: () => bookOpenRef.current || wallOpenRef.current || albaOpenRef.current || appsOpenRef.current || document.body.style.overflow === 'hidden',
     onMove: setFilmMoving,
     onTopFlick: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
   }, true);
@@ -7582,6 +7605,9 @@ export default function OnePage() {
             whileInView) — dva stmievače na jednom prvku sa prepisujú a nadpis
             bliká. A prepína nadpis na filmový kľúč: ostrá /about si necháva
             svoj vo všetkých 18 jazykoch. */}
+        {/* ── ČLENSTVO — telefóny s funkciami appky, vytlačí HEROGLYPH zdola (FilmApps.tsx). */}
+        <FilmApps onPopup={onAppsPopup} />
+
         <section className="op-scene op-quo" aria-label={t('about.legends.titleFilm')}>
           <div className="op-quo-stage">
             <TestimonialsSection variant="papyrus" pinned />

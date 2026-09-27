@@ -972,6 +972,7 @@ export const sk: Partial<Dict> = {
   'film.slide.stars': 'Psy a hviezdy',
   'film.slide.mission': 'Misia',
   'film.slide.heroglyph': 'Heroglyf',
+  'film.slide.apps': 'Členstvo',
   'film.slide.menu': 'Skoč na obraz',
   'film.keepScrolling': 'Skroluj ďalej',
 
@@ -989,6 +990,7 @@ export const sk: Partial<Dict> = {
   'onepage.cue.next': 'Ďalej',
   'onepage.cue.story': 'Prescroluj príbeh',
   'onepage.cue.top': 'Späť na začiatok',
+  'onepage.apps.more': 'Pozri v appke',
   'onepage.need.step': 'Ďalší krok',
   'onepage.need.cta': 'Pridaj sa k misii',
   'onepage.need.ctasub': 'Vezmi si svoje číslo —',
