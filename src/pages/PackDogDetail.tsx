@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
+import { fmtNum } from '@/i18n/bcp47';
 import { Link, useParams } from 'react-router-dom';
 import { Download, Loader2, Save, Sparkles, ChevronDown, X } from 'lucide-react';
 import { BrandIcon } from '@/components/pack/BrandIcon';
@@ -1678,6 +1679,7 @@ function NumberPill({ number, since }: { number: string; since: string }) {
 
 function BestLifeBadge({ age }: { age: DogAge }) {
   const t = useT();
+  const { lang } = useLang();
   const [open, setOpen] = useState(false);
   return (
     <div
@@ -1704,7 +1706,7 @@ function BestLifeBadge({ age }: { age: DogAge }) {
           whiteSpace: 'nowrap',
         }}
       >
-        {age.totalDays.toLocaleString('en-US')} days
+        {t('pack.tree.daysUnit', { days: fmtNum(age.totalDays, lang, 0) })}
       </button>
       {open && (
         <div
@@ -1735,6 +1737,7 @@ function BestLifeBadge({ age }: { age: DogAge }) {
 // FIX9: živé počítadlo dní v anjelskej podobe (death → dnes). Strieborné, ráta ďalej.
 function AngelBadge({ days, sinceLabel }: { days: number; sinceLabel: string | null }) {
   const t = useT();
+  const { lang } = useLang();
   const [open, setOpen] = useState(false);
   return (
     <div
@@ -1762,7 +1765,7 @@ function AngelBadge({ days, sinceLabel }: { days: number; sinceLabel: string | n
           whiteSpace: 'nowrap',
         }}
       >
-        {days.toLocaleString('en-US')} days
+        {t('pack.tree.daysUnit', { days: fmtNum(days, lang, 0) })}
       </button>
       {open && sinceLabel && (
         <div

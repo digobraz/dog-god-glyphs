@@ -68,7 +68,8 @@ import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { supabase } from '@/integrations/supabase/client';
 import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
 import { getAccessibleDogIds } from '@/lib/dogRights';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
+import { fmtNum } from '@/i18n/bcp47';
 import { RightGate } from '@/components/pack/RightGate';
 
 const T = PACK_THEME;
@@ -980,6 +981,7 @@ function DogBlock({
   t: (k: string, p?: Record<string, string | number>) => string;
   tx: Tx;
 }) {
+  const { lang } = useLang();
   // PSIE KM (B20) — dáta ležia v localStorage (`trp-dog-trips-v1`), takže sa o ich
   // zmene inak nedozvieme. ⚠️ Hook MUSÍ stáť nad každým skorým returnom v tomto
   // komponente — hook pod ním zhodí celú stránku na „Rendered more hooks…".
@@ -1038,7 +1040,7 @@ function DogBlock({
 
   const days = life.days === null
     ? null
-    : t('pack.tree.daysUnit', { days: life.days.toLocaleString('en-US') });
+    : t('pack.tree.daysUnit', { days: fmtNum(life.days, lang, 0) });
 
   // Rad pilulek POD MENOM (Matej 12.8.: „pils čo sú pod to premiestni vedľa aby začínali
   // pod menom psa nie pod foto — ušetríme priestor"). Predtým to bol zvislý stĺpec vpravo

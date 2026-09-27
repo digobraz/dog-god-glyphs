@@ -6,7 +6,8 @@ import { PACK_THEME, GOLD_BTN } from './packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from './navGoldSkin';
 import { BrandIcon } from './BrandIcon';
 import heroglyphFrame from '@/assets/heroglyph-frame.svg';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
+import { fmtNum } from '@/i18n/bcp47';
 import { dogLifeLine } from '@/lib/dogAge';
 import { flagUrl, countryISO2 } from '@/lib/countryGeo';
 import { Sparkles } from 'lucide-react';
@@ -107,6 +108,7 @@ export function PackTree({ ownerAvatarUrl, ownerInitial, dogs, hideOwner }: Pack
 // a vnorené tlačidlo by mu kradlo klik.
 function LifeLine({ dog, center = false }: { dog: DogNode; center?: boolean }) {
   const t = useT();
+  const { lang } = useLang();
   const life = dogLifeLine(dog);
   if (life.days === null) return null;
 
@@ -148,7 +150,7 @@ function LifeLine({ dog, center = false }: { dog: DogNode; center?: boolean }) {
           whiteSpace: 'nowrap',
         }}
       >
-        {t('pack.tree.daysUnit', { days: life.days.toLocaleString('en-US') })}
+        {t('pack.tree.daysUnit', { days: fmtNum(life.days, lang, 0) })}
       </span>
     </div>
   );

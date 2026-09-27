@@ -1828,6 +1828,9 @@ const CAL_CSS = `
 /* Tmavá = boli ste spolu vonku. Plná, neškálovaná — jeden zápis stačí. */
 .cal-lifecell.dark{background:#14243F;box-shadow:none;cursor:pointer}
 .cal-lifecell.dark:hover{background:${LAPIS.edge};transform:scale(1.55);border-radius:2px;position:relative;z-index:2}
+/* vzorka v LEGENDE nie je týždeň — nesmie sa tváriť klikateľne (audit 27. 9. 2026: ruka + zväčšenie bez akcie) */
+.cal-sw.cal-lifecell,.cal-sw.cal-lifecell.dark{cursor:default}
+.cal-sw.cal-lifecell.dark:hover{background:#14243F;transform:none}
 /* BUDÚCI TÝŽDEŇ = NAZNAČENÝ BLOK (Matej 13. 9. popoludní: „bloky tam vráť,
    klasika priesvitné, naznačené"). Nie je to biely štvorec ako predtým, ale
    ani prázdno: tichý obrys bez výplne. Vidno, že mriežka pokračuje, a pritom
