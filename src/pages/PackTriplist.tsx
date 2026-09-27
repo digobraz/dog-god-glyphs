@@ -54,6 +54,10 @@ import {
 import { RightGate } from '@/components/pack/RightGate';
 import { BackIcon } from '@/components/pack/BackButton';
 import { sizedUrl } from '@/services/cloudinaryService';
+import { fetchMyWishes, type MyWish } from '@/components/pack/mapnotes/wishData';
+import { WISHES_LIVE } from '@/lib/packFlags';
+import { withOrigin } from '@/components/pack/createRegistry';
+import { emitCreate } from '@/lib/createBus';
 
 // Karta je v mriežke najviac ~270 px (PC, 3 stĺpce v 832) a ~170 px (mobil, 2 stĺpce × DPR 2–3).
 const COVER_PX = 540;
@@ -353,7 +357,8 @@ function statusLabel(t: ReturnType<typeof useT>, entry: TriplistTrip, done?: boo
     // visieť celému packu ako inzerát — aj s dátumom. Samotné „Hotovo" tú pascu zakrylo, majiteľ
     // o bežiacom inzeráte nevedel. Label preto povie oboje. Skladá sa z DVOCH existujúcich kľúčov
     // zámerne: nový string by bolo treba preložiť do všetkých 18 jazykov, takto je pokrytý hneď.
-    if (entry.status === 'looking') return `${t('pack.triplist.statusDone')} · ${t('pack.triplist.statusLookingForPack')}`;
+    // Bez PLÁNOVANIA „hľadám partiu" nič neznamená — partiu hľadá TRIPWISH (Matej 27. 9. 2026).
+    if (entry.status === 'looking' && PLANNING_LIVE) return `${t('pack.triplist.statusDone')} · ${t('pack.triplist.statusLookingForPack')}`;
     return t('pack.triplist.statusDone');
   }
   const real = party?.joiners ?? [];
@@ -372,7 +377,7 @@ function statusClass(entry: TriplistTrip, done?: boolean, party?: TripParty, mod
   if (mod === 'rejected') return 'rejected';
   // prejdený + stále zverejnený = vlastný stav, nie „done" (viď statusLabel) — badge musí
   // vyzerať ako upozornenie, nie ako uzavretá vec
-  if (done) return entry.status === 'looking' ? 'done-open' : 'done';
+  if (done) return entry.status === 'looking' && PLANNING_LIVE ? 'done-open' : 'done';
   if ((party?.joiners.length ?? 0) > 0) return 'with';
   if (entry.status === 'going') return 'with';
   if (entry.status === 'looking') return 'looking';
@@ -681,6 +686,20 @@ export default function PackTriplist() {
     return () => document.removeEventListener('keydown', onKey);
   }, [dateTripId, visTripId]);
 
+
+  // ── TRIPWISH (Matej 27. 9. 2026: „riadok tripwish … to nahradí looking for") ──────
+  // Moje živé priania (🎯 na mape). Klik = správa prania na mape (C1: posunúť / splnené /
+  // zrušiť), prázdno = vstup do toku PRIDAJ TRIPWISH na mape. Bez WISHES_LIVE sa nekreslí.
+  const [wishes, setWishes] = useState<MyWish[] | null>(null);
+  useEffect(() => {
+    if (!WISHES_LIVE) return;
+    let alive = true;
+    fetchMyWishes()
+      .then((w) => { if (alive) setWishes(w.filter((x) => x.status === 'live' || x.status === 'missed')); })
+      .catch(() => { if (alive) setWishes([]); });
+    return () => { alive = false; };
+  }, [storeEpoch]);
+  const addWish = () => { navigate(withOrigin('/pack/map', '/pack/map/triplist')); emitCreate({ id: 'wish' }); };
 
   const [closeOffer, setCloseOffer] = useState<{ slug: string; who: string | null } | null>(null);
   const incoming = useIncomingRequests(reqEpoch);
@@ -1067,6 +1086,49 @@ export default function PackTriplist() {
               </div>
             )}
           </div>
+
+          {WISHES_LIVE && wishes && (
+            <div className="tl-section">
+              <div className="tl-sechead">
+                <h3>TRIPWISH</h3>
+                <button type="button" className="tl-seeall pk-hit" onClick={addWish}>+ {t('pack.triplist.wishAdd')}</button>
+              </div>
+              {wishes.length === 0 ? (
+                <div className="tl-emptybox"><span className="tl-empty">{t('pack.triplist.wishEmpty')}</span></div>
+              ) : (
+                <div className="tl-hscroll">
+                  {wishes.map((w) => {
+                    const trail = w.trailId ? allTrails.find((tr) => tr.id === w.trailId) : undefined;
+                    const cover = trail?.photos[0] ?? '';
+                    const open = () => navigate(`/pack/map?wish=${w.id}&ask=${w.status === 'missed' ? 'wish_missed' : 'wish_ask'}`);
+                    return (
+                      <div key={w.id} className="tl-mycard">
+                        <div
+                          className="tl-block"
+                          role="button"
+                          tabIndex={0}
+                          onClick={open}
+                          onKeyDown={(e) => { if (e.key !== 'Enter' && e.key !== ' ') return; e.preventDefault(); open(); }}
+                        >
+                          <div className={`tl-block-cover${cover ? '' : ' nophoto'}`}>
+                            {cover && <img className="tl-cover-img" src={sizedUrl(cover, COVER_PX)} alt="" loading="lazy" decoding="async" draggable={false} />}
+                            {w.countryCode && <img className="tl-flag" src={flagUrl(w.countryCode)} alt="" loading="lazy" draggable={false} />}
+                            <span className={`tl-block-badge ${w.status === 'missed' ? 'rejected' : 'looking'}`}>
+                              {w.status === 'missed' ? t('pack.triplist.wishMissed') : t(`pack.wish.when.${w.when}`)}
+                            </span>
+                          </div>
+                          <div className="tl-block-info">
+                            <div className="tl-block-name">{w.placeName}</div>
+                            {w.others > 0 && <div className="tl-block-pendhint">{t('pack.wish.crowd', { n: w.others + 1 })}</div>}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* PREJDENÉ — archív. Nekreslí sa vôbec, kým niet čo archivovať: prázdna sekcia
               s nadpisom je nábytok, nie informácia. */}
