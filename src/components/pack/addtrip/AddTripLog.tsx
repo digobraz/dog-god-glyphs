@@ -34,7 +34,7 @@ import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
-import { BackIcon } from '@/components/pack/BackButton';
+import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { MAP_SKIN, PALE, PALE_PC_MIN, LAPIS, LAPIS_BTN_SHADOW, PLATE_TILE_R, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { useIsPaleChrome } from '@/components/pack/usePaleChrome';
 import { CompanionPicker, type Companion } from '@/components/pack/packCommunityUI';
@@ -2634,8 +2634,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
         >
           <div className="atl-editor">
             <div className="atl-editor-head">
+              <button type="button" className="atl-editor-x" onClick={() => setStoryFull(false)} aria-label={t('pack.mapNotes.add.close')}><BackIcon /></button>
               <span>{t('pack.addTrip.log.story')}</span>
-              <button type="button" className="atl-editor-x" onClick={() => setStoryFull(false)} aria-label={t('pack.mapNotes.add.close')}>×</button>
             </div>
             <textarea
               className="atl-editor-area"
@@ -4027,9 +4027,10 @@ const STEP_CSS = `
    inak by sa pri písaní hýbalo tlačidlo pod ním. */
 .atl-editor-scrim{position:fixed;inset:0;z-index:1500;background:rgba(24,14,4,0.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px;}
 .atl-editor{display:flex;flex-direction:column;gap:12px;width:min(860px,100%);height:min(80vh,760px);padding:20px;border-radius:18px;background:linear-gradient(135deg,${T.card} 0%,#F2E2BD 100%);border:1.5px solid ${T.cardEdge};box-shadow:0 24px 64px rgba(0,0,0,0.55),0 0 0 3px rgba(201,154,63,0.15);}
-.atl-editor-head{display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:${T.inkStrong};}
-.atl-editor-x{border:0;background:transparent;color:${T.inkWarm};font-size:22px;line-height:1;cursor:pointer;padding:0 4px;}
-.atl-editor-x:hover{color:${T.inkStrong};}
+.atl-editor-head{display:flex;align-items:center;justify-content:flex-start;gap:10px;font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:${T.inkStrong};}
+/* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
+.atl-editor-x{${backCircleCSS('pale')}}
+.atl-editor-x:hover{${backHoverCSS('pale')}}
 .atl-editor-area{flex:1 1 auto;min-height:0;resize:none;width:100%;box-sizing:border-box;padding:14px 16px;border-radius:8px;background:${T.card};border:1px solid ${PALE.border};color:${T.inkStrong};font-family:${FONT_UI};font-size:15px;line-height:1.6;}
 .atl-editor-area:focus{outline:none;border-color:${T.cardEdge};}
 .atl-editor-area::placeholder{color:${T.inkWarm};opacity:.7;}

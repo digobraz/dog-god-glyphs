@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { createPortal } from 'react-dom';
-import { Loader2, Copy, X } from 'lucide-react';
+import { Loader2, Copy } from 'lucide-react';
+import { BackButton } from './BackButton';
 import { toast } from 'sonner';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
@@ -907,7 +908,9 @@ function WalletPanel({
           boxShadow: T.panelShadow,
         }}
       >
-        <div className="flex items-start justify-between" style={{ gap: 12 }}>
+        <div className="flex items-start" style={{ gap: 12 }}>
+          {/* × → šípka späť vľavo (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */}
+          <BackButton tone="pale" onClick={onClose} label={tx('pack.network.close', 'Close')} />
           <div className="flex items-center" style={{ gap: 13, minWidth: 0 }}>
             <BonesCoin size="l" />
             <div style={{ minWidth: 0 }}>
@@ -922,9 +925,6 @@ function WalletPanel({
               </button>
             </div>
           </div>
-          <button type="button" onClick={onClose} aria-label={tx('pack.network.close', 'Close')} style={{ background: 'none', border: 'none', color: T.inkWarm, cursor: 'pointer', padding: 0 }}>
-            <X className="h-4 w-4" />
-          </button>
         </div>
 
         <div aria-hidden style={{ height: 2, margin: '16px 0', background: T.rule }} />
@@ -1608,7 +1608,9 @@ function NetworkListPanel({ rows, onClose }: {
           boxShadow: T.panelShadow,
         }}
       >
-        <div className="flex items-start justify-between shrink-0" style={{ gap: 12, marginBottom: 12 }}>
+        <div className="flex items-start shrink-0" style={{ gap: 12, marginBottom: 12 }}>
+          {/* × → šípka späť vľavo (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */}
+          <BackButton tone="pale" onClick={onClose} label={tx('pack.network.close', 'Close')} />
           <div style={{ minWidth: 0 }}>
             <span
               style={{
@@ -1622,14 +1624,6 @@ function NetworkListPanel({ rows, onClose }: {
               {tx('pack.network.listSummary', '{n} people · {b} BONES earned', { n: rows.length, b: total })}
             </span>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={tx('pack.network.close', 'Close')}
-            style={{ background: 'none', border: 'none', color: T.inkWarm, cursor: 'pointer', padding: 0 }}
-          >
-            <X className="h-4 w-4" />
-          </button>
         </div>
 
         <div className="flex flex-col overflow-y-auto" style={{ gap: 5, minHeight: 0 }}>
@@ -2000,7 +1994,9 @@ function InfoPanel({ variant, onClose }: { variant: 'why' | 'bones'; onClose: ()
           boxShadow: T.panelShadow,
         }}
       >
-        <div className="flex items-start justify-between" style={{ gap: 12, marginBottom: 10 }}>
+        <div className="flex items-start" style={{ gap: 12, marginBottom: 10 }}>
+          {/* × → šípka späť vľavo (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */}
+          <BackButton tone="pale" onClick={onClose} label={tx('pack.network.close', 'Close')} />
           <span
             style={{
               fontFamily: FONT_TITLE,
@@ -2012,9 +2008,6 @@ function InfoPanel({ variant, onClose }: { variant: 'why' | 'bones'; onClose: ()
           >
             {cap}
           </span>
-          <button type="button" onClick={onClose} aria-label={tx('pack.network.close', 'Close')} style={{ background: 'none', border: 'none', color: T.inkWarm, cursor: 'pointer', padding: 0 }}>
-            <X className="h-4 w-4" />
-          </button>
         </div>
         <p
           style={{ fontFamily: FONT_UI, fontSize: 13, lineHeight: 1.6, color: T.inkDim, margin: 0 }}

@@ -32,7 +32,7 @@ import { MAP_DOCK_CSS, DOCK_COL_W, DOCK_MOBILE_MAX, DOCK_VH } from '@/components
 import { FONT_EMOJI, GROUP_EMOJI, threatEmoji } from './markEmoji';
 import { KindGrid, KIND_GRID_CSS } from './KindGrid';
 import { AinubisGuide } from '@/components/pack/addtrip/AinubisGuide';
-import { BackIcon } from '@/components/pack/BackButton';
+import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { noteMarkHtml } from './MapNotesLayer';
 import { GROUP_TINT, HAZARD_RED, TICK_ORANGE, NotePalette, NOTE_PALETTE_CSS, type PaletteExtra } from './NotePalette';
 
@@ -388,14 +388,14 @@ export function NoteQuickPalette({ onPick, onPickExtra, onCancel, blocked }: {
       <style>{NOTE_PALETTE_CSS}</style>
       <div className="mnq-panel">
         {/* NADPIS PANELA, nie eyebrow (Matej 2026-08-21: „namiesto čo tu je daj dostredu —
-            PRIDAJ ODKAZ"). Krížik je `absolute`, aby nadpis sedel v OPTICKOM strede panela;
+            PRIDAJ ODKAZ"). Šípka späť (do 27. 9. krížik) je `absolute`, aby nadpis sedel v OPTICKOM strede panela;
             keby bol v toku, centroval by sa len zvyšok šírky po jeho odčítaní a nadpis by
             sa opticky zosunul vľavo. */}
         <div className="mnq-head">
           {/* Nadpis sa mení podľa toho, čo paleta ponúka: s výletom a udalosťou v rade by
               „Pridaj odkaz" klamal o dvoch z piatich dlaždíc. */}
           <h3 className="mnq-title">{t(onPickExtra ? 'pack.mapNotes.quick.titleAny' : 'pack.mapNotes.quick.title')}</h3>
-          <button type="button" className="mna-close mnq-close" onClick={onCancel} aria-label={t('pack.mapNotes.add.close')}>×</button>
+          <button type="button" className="mna-close mnq-close" onClick={onCancel} aria-label={t('pack.mapNotes.add.close')}><BackIcon /></button>
         </div>
         <NotePalette variant="strip" onPick={onPick} extras={onPickExtra ? ['trip', 'event'] : undefined} onPickExtra={onPickExtra} blocked={blocked} />
       </div>
@@ -533,11 +533,12 @@ export function AddMapNotePanel({
           a hovoril to isté, čo sa zmestí sem. Skupina ostáva, lebo farba panela
           aj kruhov ide z nej. */}
       <div className="mna-head">
+        {/* × → šípka späť vľavo (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */}
+        <button type="button" className="mna-close" onClick={onCancel} aria-label={t('pack.mapNotes.add.close')}><BackIcon /></button>
         <span className="mna-title" style={{ color: GROUP_TINT[group] }}>
           {t(`pack.mapNotes.group.${group}`)}
           {subKinds.length > 1 && <b className="mna-title-kind">{t(`pack.mapNotes.kind.${kind}`)}</b>}
         </span>
-        <button type="button" className="mna-close" onClick={onCancel} aria-label={t('pack.mapNotes.add.close')}>×</button>
       </div>
 
       {/* ── SKROLUJE SA LEN STRED (Matej 2026-08-24) ────────────────────────
@@ -845,10 +846,11 @@ export const ADD_NOTE_CSS = `
 .mna-sheet > .mna-actions{flex:0 0 auto;margin-top:10px;}
 .mna-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:10px;padding-top:8px;}
 
-.mna-head{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.mna-head{display:flex;align-items:center;justify-content:flex-start;gap:12px;}
 .mna-title{font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;}
-.mna-close{width:30px;height:30px;border:0;background:transparent;color:${T.onDarkDim};font-size:16px;line-height:1;cursor:pointer;padding:0;}
-.mna-close:hover{color:${GOLD};}
+/* Zavrieť = šípka späť v bledom kruhu (27. 9. 2026, bolo holé × vpravo). */
+.mna-close{${backCircleCSS('pale')}}
+.mna-close:hover{${backHoverCSS('pale')}}
 /* ── DRUHY HROZBY = RAD EMOJI KRUHOV, NIE PILULKY S TEXTOM ─────────────────
    Matej 2026-08-22: „nesmie tam byť scrolling musí to byť celé na jedno videnie
    v popupe… neviem kam mam kliknúť musí to mať kekné body ako aj vizuálne
@@ -970,7 +972,7 @@ export const ADD_NOTE_CSS = `
 /* Panel je RASTÚCI ZOZNAM („tu časom vieme pridať dalšie položky") — nadpis preto
    patrí nad celý panel, nie k prvej dlaždici. */
 .mnq-title{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:${T.onDark};text-align:center;}
-.mnq-close{position:absolute;right:0;top:50%;transform:translateY(-50%);}
+.mnq-close{position:absolute;left:0;top:50%;transform:translateY(-50%);}
 
 /* Bod z podržania — kruh bez významu, typ sa vyberá až v palete pod ním. */
 .mn-spot{width:18px;height:18px;border-radius:50%;background:${T.glassSoft};border:2px solid rgba(245,240,228,0.9);box-shadow:0 2px 8px rgba(0,0,0,0.5);animation:mnPulse 1.4s ease-in-out infinite;}
@@ -1050,8 +1052,6 @@ ${MAP_SKIN !== 'pale' ? '' : `
      na zlatom a hlavná akcia by splynula s doskou, ktorá ju drží. */
   .mna-submit.btn-gold{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};}
   .mna-submit.btn-gold:hover:not(:disabled){background:${LAPIS.gradHover};box-shadow:${LAPIS_BTN_SHADOW};}
-  .mna-close{color:${PALE.dim};}
-  .mna-close:hover{color:${PALE.deep};}
   .mna-select{color-scheme:light;color:${PALE.ink};background:${PALE.field};border-color:${PALE.border};}
   .mna-radius-label{color:${PALE.dim};}
   .mna-radius-val{color:${PALE.ink};}

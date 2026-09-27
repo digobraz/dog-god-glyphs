@@ -24,6 +24,7 @@
 // (signed out, unpaid, DEV_NOAUTH) the popup shows an error instead of pretending it saved — same
 // rule as `sendMessage()` in packMessaging.ts.
 import { useCallback, useEffect, useState } from 'react';
+import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_SHADOW, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PALE, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
@@ -134,11 +135,12 @@ export const TRIP_COMMENTS_CSS = `
 /* popup (self-contained, same look as WalkedPopup in packCommunityUI.tsx) */
 .tcm-overlay{position:fixed;inset:0;z-index:1200;background:rgba(3,2,1,0.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;}
 .tcm-modal{width:100%;max-width:400px;max-height:calc(100dvh - 40px);overflow-y:auto;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:24px;}
-.tcm-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;}
+.tcm-modal-head{display:flex;align-items:flex-start;justify-content:flex-start;gap:12px;margin-bottom:18px;}
 .tcm-modal-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${T.inkStrong};line-height:1.25;}
 .tcm-modal-sub{font-size:12px;color:${T.inkWarm};margin-top:4px;}
-.tcm-x{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:${T.tileBg};border:1px solid ${T.border};color:${T.inkStrong};font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.tcm-x:hover{border-color:${GOLD};color:${GOLD};}
+/* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
+.tcm-x{${backCircleCSS('pale')}}
+.tcm-x:hover{${backHoverCSS('pale')}}
 .tcm-field{margin-bottom:16px;}
 .tcm-label{display:block;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.cardEdge};margin-bottom:9px;}
 .tcm-pawpick{display:flex;justify-content:center;}
@@ -223,11 +225,11 @@ function ReviewPopup({ trailName, initial, canWrite, saving, error, onSubmit, on
     <div className="tcm-overlay" onClick={onClose}>
       <div className="tcm-modal" onClick={(e) => e.stopPropagation()}>
         <div className="tcm-modal-head">
+          <button type="button" className="tcm-x" onClick={onClose} aria-label={t('pack.trip.cm.close')}><BackIcon /></button>
           <div>
             <div className="tcm-modal-title">{initial ? t('pack.trip.cm.editYours') : t('pack.trip.cm.addYours')}</div>
             <div className="tcm-modal-sub">{trailName}</div>
           </div>
-          <button type="button" className="tcm-x" onClick={onClose} aria-label={t('pack.trip.cm.close')}>×</button>
         </div>
         <div className="tcm-field" style={{ textAlign: 'center' }}>
           <label className="tcm-label">{t('pack.trip.cm.howWas')}</label>

@@ -38,7 +38,7 @@ import { AinubisGuide, AINUBIS_GUIDE_CSS } from './AinubisGuide';
 import { MiniOverview, MINI_OVERVIEW_CSS } from '@/components/pack/MiniOverview';
 import { MAP_DOCK_CSS, DOCK_COL_W, DOCK_MOBILE_MAX } from '@/components/pack/mapDockShape';
 import { HandTrash } from '@/components/pack/HandIcons';
-import { BackLinkIcon } from '@/components/pack/BackButton';
+import { BackIcon, BackLinkIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { EVENT_RIM, FONT_EMOJI, TRIP_TARGET_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { circleMarkHtml, CIRCLE_MARK_CSS } from '@/components/pack/mapnotes/circleMark';
 import {
@@ -1426,11 +1426,11 @@ export function GeometryPicker({
     ? (
       <div className="trp-delev">
         <div className="trp-delev-head">
-          <span>{t('pack.trip.elevation')}</span>
-          {/* Zatvoriť sa dá len to, čo sa dá otvoriť — pripnutý profil krížik nemá. */}
+          {/* Zatvoriť sa dá len to, čo sa dá otvoriť — pripnutý profil šípku nemá. */}
           {!elevPinned && (
-            <button type="button" className="trp-delev-x" onClick={() => setElevOpen(false)} aria-label={t('pack.mapNotes.add.close')}>×</button>
+            <button type="button" className="trp-delev-x" onClick={() => setElevOpen(false)} aria-label={t('pack.mapNotes.add.close')}><BackIcon /></button>
           )}
+          <span>{t('pack.trip.elevation')}</span>
         </div>
         {elevSeries
           ? <ElevationProfile elev={elevSeries} km={km} onHover={setElevAtIdx} />
@@ -2014,9 +2014,10 @@ const DRAW_BAR_CSS = `
    (mapDockShape.ts), a toto je údaj o trase, ktorý žije v mape.
    Šírka je orámovaná, nie plná: nad panelom má ostať vidieť mapu po stranách. */
 .trp-delev{pointer-events:auto;align-self:center;width:min(100%,360px);margin:0 16px;padding:10px 14px 6px;border-radius:16px;background:rgba(18,13,7,0.94);border:1.5px solid ${TRAIL_LINE.light};box-shadow:0 0 0 4px rgba(122,47,191,0.20),0 6px 20px rgba(0,0,0,0.55);}
-.trp-delev-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};}
-.trp-delev-x{border:0;background:transparent;color:${T.onDarkDim};font-size:17px;line-height:1;cursor:pointer;padding:0 2px;}
-.trp-delev-x:hover{color:#C9A6F2;}
+.trp-delev-head{display:flex;align-items:center;justify-content:flex-start;gap:10px;margin-bottom:4px;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};}
+/* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
+.trp-delev-x{${backCircleCSS('pale')}}
+.trp-delev-x:hover{${backHoverCSS('pale')}}
 .trp-delev-wait{padding:14px 0 16px;text-align:center;font-family:${FONT_UI};font-size:12px;color:${T.onDarkDim};}
 .trp-dreadrow .trp-dread{font-size:13.5px;padding:7px 14px;}
 /* ⚠️ TRIEDA, NIE INLINE ŠTÝL. Stlmené časti čítania (oddeľovače, šípka, náhradná veta)

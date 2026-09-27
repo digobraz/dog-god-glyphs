@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { BackButton } from './BackButton';
 import { PACK_THEME, FONT_UI, HIT_CSS } from './packTheme';
 import { countryFlag } from '@/lib/countryGeo';
 import { useT } from '@/i18n/LanguageContext';
@@ -298,9 +298,11 @@ function ModalHeader({ title, count, onClose }: { title: string; count?: number;
   const t = useT();
   return (
     <div
-      className="flex items-center justify-between"
-      style={{ padding: '18px 20px', borderBottom: `1px solid ${T.hairline}` }}
+      className="flex items-center"
+      style={{ gap: 12, padding: '18px 20px', borderBottom: `1px solid ${T.hairline}` }}
     >
+      {/* × → šípka späť vľavo (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */}
+      <BackButton tone="pale" onClick={onClose} label={t('pack.rank.ariaClose')} />
       <div
         style={{
           fontFamily: "'Cinzel', serif",
@@ -315,23 +317,6 @@ function ModalHeader({ title, count, onClose }: { title: string; count?: number;
           <span style={{ color: T.inkFaint, marginLeft: 8, fontSize: 11 }}>{count}</span>
         )}
       </div>
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label={t('pack.rank.ariaClose')}
-        className="inline-flex items-center justify-center"
-        style={{
-          width: 30,
-          height: 30,
-          borderRadius: 999,
-          background: T.tileBg,
-          border: 'none',
-          cursor: 'pointer',
-          color: T.inkDim,
-        }}
-      >
-        <X className="h-4 w-4" />
-      </button>
     </div>
   );
 }

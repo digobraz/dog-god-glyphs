@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { fmtNum } from '@/i18n/bcp47';
 import { Link, useParams } from 'react-router-dom';
-import { Download, Loader2, Save, Sparkles, ChevronDown, X } from 'lucide-react';
+import { Download, Loader2, Save, Sparkles, ChevronDown } from 'lucide-react';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { RightGate } from '@/components/pack/RightGate';
 import { DEV_NOAUTH, DEV_MOCK_DOG_ROW } from '@/lib/devMockDogs';
@@ -28,7 +28,7 @@ import { DEV_FULL } from '@/lib/packFlags';
 import { computeAge, type DogAge } from '@/lib/dogAge';
 import { HEALTH_KEYS, HEALTH_COLORS, healthLabelKey, type HealthKey } from '@/lib/dogHealth';
 import { HandCamera, HandCheck, HandLock, HandCycle } from '@/components/pack/HandIcons';
-import { BackIcon, BackLinkIcon } from '@/components/pack/BackButton';
+import { BackButton, BackIcon, BackLinkIcon } from '@/components/pack/BackButton';
 
 const T = PACK_THEME;
 const MESSAGE_MAX = 150;
@@ -1016,17 +1016,10 @@ export default function PackDogDetail() {
                 overflowY: 'visible',
               }}
             >
-              <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
+              <div className="flex items-center" style={{ gap: 12, marginBottom: 12 }}>
+                {/* × → šípka späť vľavo (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */}
+                <BackButton tone="pale" onClick={() => setProfileOpen(false)} label={t('pack.dog.ariaBackToProfile')} />
                 <SectionHeading icon={<BrandIcon name="document" size={12} tint="gold" />} label={t('pack.dog.profileDocuments')} inline />
-                <button
-                  type="button"
-                  onClick={() => setProfileOpen(false)}
-                  aria-label={t('pack.dog.ariaBackToProfile')}
-                  className="inline-flex items-center justify-center"
-                  style={{ width: 28, height: 28, borderRadius: 10, background: T.tileBg, border: `1px solid ${T.border}`, color: T.ink, cursor: 'pointer' }}
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
               </div>
 
               {/* Documents — first (header above already says it) */}

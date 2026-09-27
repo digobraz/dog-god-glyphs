@@ -11,6 +11,7 @@
 // nenesie žiadne uuid. Keď výlet organizátora MÁ, ide jeho id a platí bežné
 // pravidlo „museli ste sa stretnúť na výlete".
 import { useState } from 'react';
+import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
 import { emitOpenThread } from '@/components/pack/messaging/openBridge';
 import { PartyMemberCard } from '@/components/pack/triplist/PartyMemberCard';
@@ -26,9 +27,11 @@ export const TRIP_CREATOR_CSS = `
 @media(min-width:640px){.tcp-back{align-items:center;}}
 .tcp{width:100%;max-width:460px;max-height:86vh;overflow-y:auto;background:${T.pageBg};border:1px solid ${T.onDarkBorder};border-radius:18px 18px 0 0;padding:20px 18px calc(env(safe-area-inset-bottom,0px) + 20px);}
 @media(min-width:640px){.tcp{border-radius:18px;padding-bottom:20px;}}
-.tcp-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
+.tcp-head{display:flex;align-items:center;justify-content:flex-start;gap:12px;margin-bottom:14px;}
 .tcp-title{font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:${GOLD};}
-.tcp-x{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:15px;line-height:1;cursor:pointer;}
+/* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
+.tcp-x{${backCircleCSS('pale')}}
+.tcp-x:hover{${backHoverCSS('pale')}}
 .tcp-author{display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;border:1px solid ${PACK_THEME.border};background:rgba(201,154,63,0.08);}
 .tcp-av{flex-shrink:0;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_TITLE};font-weight:700;font-size:18px;color:${INK};}
 .tcp-name{font-family:${FONT_TITLE};font-weight:700;font-size:14px;color:${T.onDark};}
@@ -80,8 +83,8 @@ export function TripCreatorPopup({ tripSlug, authorName, organizerId, joiners, o
       <style>{TRIP_CREATOR_CSS}</style>
       <div className="tcp" onClick={(e) => e.stopPropagation()}>
         <div className="tcp-head">
+          <button type="button" className="tcp-x" onClick={onClose} aria-label={t('pack.trip.cm.close')}><BackIcon /></button>
           <span className="tcp-title">{t('pack.trip.creator.title')}</span>
-          <button type="button" className="tcp-x" onClick={onClose} aria-label={t('pack.trip.cm.close')}>×</button>
         </div>
 
         <div className="tcp-author">

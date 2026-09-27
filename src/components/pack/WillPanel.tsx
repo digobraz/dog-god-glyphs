@@ -17,7 +17,8 @@
 // zdieľanom pohľade. Veterinár ani opatrovateľ ho neuvidia ani omylom; vidí ho len
 // majiteľ (pohľad `full`) a adresát, ktorému ho pošle.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { X, Loader2, Save, Send } from 'lucide-react';
+import { Loader2, Save, Send } from 'lucide-react';
+import { BackButton } from './BackButton';
 import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, FONT_TITLE, FONT_UI } from './packTheme';
 import { appendDogEvents, readLatest, type LatestValue } from '@/lib/dogEvents';
 import { RightGate } from '@/components/pack/RightGate';
@@ -184,7 +185,9 @@ export function WillPanel({
       >
         <style>{PF_FIELD_CSS}</style>
 
-        <div className="flex items-start justify-between" style={{ gap: 12, marginBottom: 4 }}>
+        {/* × → šípka späť vľavo (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */}
+        <div className="flex items-start" style={{ gap: 12, marginBottom: 4 }}>
+          <BackButton tone="pale" onClick={onClose} label={tx('pack.will.close', 'Close')} />
           <div>
             <div
               style={{
@@ -203,18 +206,6 @@ export function WillPanel({
               {tx('pack.will.title', 'If you are not here')}
             </h3>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={tx('pack.will.close', 'Close')}
-            className="inline-flex items-center justify-center shrink-0"
-            style={{
-              width: 28, height: 28, borderRadius: 10, background: T.tileBg,
-              border: `1px solid ${T.border}`, color: T.ink, cursor: 'pointer',
-            }}
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
         </div>
 
         <p style={{ fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.55, color: T.inkWarm, margin: '10px 0 16px' }}>
