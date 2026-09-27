@@ -96,6 +96,8 @@ const GROUPS: Group[] = [
         path: '/heroglyph/essence',
         state: 'done',
       },
+      // 27. 9. 2026 — stav overený po audite (CTA 8 · FLOW_TITLE · Hektor v bublinách · texty · (i) Egypt na MAJITEĽOVI):
+      // podstata/patrón/povaha/majiteľ ostávajú `done`, zadržanie a finále tiež. Snímky TEL+PC v scratchpade session.
       {
         name: '6 · Patrón',
         path: '/heroglyph/breed',
