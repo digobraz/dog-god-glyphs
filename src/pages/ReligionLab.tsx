@@ -1329,6 +1329,17 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
            overlay padding-top clamp(64px,9vh,96px) [1.2 BILLION vyššie] · .q-call 1.7em [DOGLOVERS]
            · .codex-question-big margin-top clamp(12px,1.8vh,24px) v @media(min-width:768px) [BOW→DOGLOVERS odstup]
            · "ARE YOU READY?" odstránené. NEMENIŤ PC bez Matejovho OK. Mobil = vlastný HARD LOCK nižšie. */
+        .codex-chip {
+          display: inline-flex; align-items: center; justify-content: center;
+          margin: 0; padding: 8px 16px; border-radius: 999px;
+          border: 1px solid rgba(201,154,63,.55);
+          background: rgba(250,243,225,.72);
+          color: #5a3d16;
+          font-family: 'Space Grotesk', sans-serif; font-weight: 500;
+          font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+          line-height: 1.3; text-align: center;
+          box-shadow: 0 0 0 4px rgba(201,154,63,.08);
+        }
         .codex-3-overlay {
           position: relative;
           z-index: 2;
@@ -2170,11 +2181,19 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
                     „Become Dogyptian" identita bez následku a človek nevidí, že
                     tým niečomu pomáha. Label tlačidla ostáva, je LOCKED
                     v CLAUDE.md; vysvetlenie preto nesie tento riadok. */}
+                {/* 🔴 VO FILME BEZ CTA (Matej 27. 9. 2026): *„tu treba zrušiť CTA
+                    a namiesto toho… (v chipe) naším cieľom je to zmeniť!"*.
+                    Film ďalej vedú šípky dole, nie tlačidlo. Samostatná
+                    /religion-lab si CTA drží. */}
                 <div className="codex-cta-cluster">
-                  <Link to="/entry" className="codex-cta">
-                    {t('religion.cta')}
-                  </Link>
-                  <p className="codex-cta-line">{t('religion.hook.claim.close')}</p>
+                  {flow ? (
+                    <p className="codex-chip">{t('religion.hook.claim.goalChip')}</p>
+                  ) : (<>
+                    <Link to="/entry" className="codex-cta">
+                      {t('religion.cta')}
+                    </Link>
+                    <p className="codex-cta-line">{t('religion.hook.claim.close')}</p>
+                  </>)}
                 </div>
                 </>)}
               </div>
@@ -2228,11 +2247,10 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
                   je to jediná cesta k textu, ktorý celá sekcia cituje.
                   ⚠️ Label NIE JE `wall.hero.cta` (BECOME DOGYPTIAN, LOCKED
                   v CLAUDE.md) — to je iná akcia a je na prvom výjave. */}
-              {flow && onOpenBook && (
-                <button type="button" className="codex-book-cta" onClick={onOpenBook}>
-                  {t('religion.preamble.readCta')}
-                </button>
-              )}
+              {/* 🔴 27. 9. 2026: CTA do knihy ZRUŠENÉ — Matej: *„namiesto CTA
+                  dajme do chipu — psiu bibliu nájdeš na konci tejto stránky!"*.
+                  Kniha stojí v pätičke filmu; `onOpenBook` ostáva pre ňu. */}
+              {flow && <p className="codex-chip codex-chip--book">{t('religion.preamble.bookChip')}</p>}
             </div>
           </div>
         </section>

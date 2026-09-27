@@ -1,0 +1,162 @@
+/**
+ * MOTOR FILMU — JEDEN ŤAH = JEDNA OBRAZOVKA (Matej 27. 9. 2026).
+ *
+ * Matej: *„každá stránka bude jedna obrazovka jedno posolstvo a každý scrol
+ * urobí plynulý snip na ďalšiu stránku, žiadne seknutie v medzipriestore"* +
+ * *„úvodný scrol sa nesmie zaseknúť ani byť ovládaný vôľou — ako náhle je
+ * zaznamenaný scrol z úvodu, stránka sama urobí plynulý scrol"*.
+ *
+ * 🔑 CHOREOGRAFIA SA NEPREPISUJE. Film je dráha scrollu a všetky jeho
+ * prechody (guľa sa vzdiali, krava a pes vyjdú, príbeh…) sú viazané na
+ * `scrollY`. Motor len prevezme volant: ťah kolieskom / prstom / klávesou
+ * nezmení polohu o pár pixelov, ale spustí ANIMOVANÝ scroll na ďalšiu
+ * zastávku. Choreografia medzitým beží sama, lebo `scrollY` sa hýbe.
+ *
+ * 🔴 CSS scroll-snap sa s tým BIJE — preto ho film pri zapnutom motore
+ * nemá (viď `.op-root` v OnePage.tsx). Zapísané ako zmena locku 28. 8.
+ * (proximity) v `plany/locky/onepage-nav.md`.
+ *
+ * ⚠️ ZOTRVAČNOSŤ TRACKPADU. Mac posiela po švihu ešte ~1,5 s udalostí
+ * s klesajúcou deltou. Keby každá spúšťala skok, jeden švih by prebehol
+ * tri obrazovky. Nový ťah sa preto uzná len keď: je po tichu (> QUIET ms
+ * bez udalosti), alebo delta ZRÝCHĽUJE (zotrvačnosť vždy len spomaľuje).
+ */
+import { useEffect, useRef } from 'react';
+
+const QUIET = 170;          // ms bez udalosti = predošlý ťah skončil
+const MIN_DELTA = 4;        // šum trackpadu
+const TOUCH_MIN = 36;       // px swipu, ktorý sa počíta ako ťah
+
+export type FilmStopsApi = {
+  /** Zoradené polohy zastávok v px. Volá sa pri každom ťahu (výšky sa menia). */
+  stops: () => number[];
+  /** Motor mlčí (otvorené prekrytie, stena, menu…). */
+  paused: () => boolean;
+  /** Dĺžka jazdy v ms podľa vzdialenosti v obrazovkách. */
+  duration?: (screens: number, from: number, to: number) => number;
+  /** Hlási, či práve ide jazda (šípky dole ju skrývajú). */
+  onMove?: (moving: boolean) => void;
+};
+
+const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+const defaultDuration = (screens: number) =>
+  Math.round(Math.min(2800, Math.max(850, 650 + 420 * screens)));
+
+export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
+  const apiRef = useRef(api);
+  apiRef.current = api;
+  const goRef = useRef<(dir: 1 | -1) => void>(() => {});
+
+  useEffect(() => {
+    if (!enabled) return;
+    let raf = 0;
+    let moving = false;
+    let lastWheel = 0;
+    let lastAbs = 0;
+    let touchY: number | null = null;
+
+    const setMoving = (m: boolean) => {
+      moving = m;
+      apiRef.current.onMove?.(m);
+    };
+
+    const target = (dir: 1 | -1): number | null => {
+      const y = window.scrollY;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const list = apiRef.current.stops()
+        .map((s) => Math.max(0, Math.min(max, Math.round(s))))
+        .sort((a, b) => a - b);
+      if (dir > 0) return list.find((s) => s > y + 4) ?? null;
+      for (let i = list.length - 1; i >= 0; i--) if (list[i] < y - 4) return list[i];
+      return null;
+    };
+
+    const ride = (to: number) => {
+      const from = window.scrollY;
+      const screens = Math.abs(to - from) / Math.max(1, window.innerHeight);
+      const dur = (apiRef.current.duration ?? defaultDuration)(screens, from, to);
+      const t0 = performance.now();
+      setMoving(true);
+      const step = (now: number) => {
+        const k = Math.min(1, (now - t0) / dur);
+        // 'instant' — html má v index.css scroll-behavior: smooth, ktorý by
+        // každý snímok rozbehol na vlastnú animáciu.
+        window.scrollTo({ top: from + (to - from) * ease(k), behavior: 'instant' as ScrollBehavior });
+        if (k < 1) raf = requestAnimationFrame(step);
+        else { raf = 0; setMoving(false); }
+      };
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(step);
+    };
+
+    const go = (dir: 1 | -1) => {
+      if (moving) return;
+      const to = target(dir);
+      if (to != null) ride(to);
+    };
+    goRef.current = go;
+
+    const onWheel = (e: WheelEvent) => {
+      if (apiRef.current.paused() || e.ctrlKey) return;
+      // Vnútri vlastného scrollujúceho prvku (popup, zoznam) nechaj koliesko jemu.
+      if ((e.target as Element | null)?.closest?.('[data-film-free]')) return;
+      e.preventDefault();
+      const abs = Math.abs(e.deltaY);
+      const now = performance.now();
+      const quiet = now - lastWheel > QUIET;
+      const accel = abs > lastAbs * 1.4 + 6;
+      lastWheel = now;
+      lastAbs = abs;
+      if (abs < MIN_DELTA || moving) return;
+      if (!quiet && !accel) return;
+      go(e.deltaY > 0 ? 1 : -1);
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (apiRef.current.paused()) { touchY = null; return; }
+      if ((e.target as Element | null)?.closest?.('[data-film-free]')) { touchY = null; return; }
+      touchY = e.touches[0]?.clientY ?? null;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (touchY == null) return;
+      e.preventDefault();
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      if (touchY == null) return;
+      const endY = e.changedTouches[0]?.clientY ?? touchY;
+      const dy = touchY - endY;
+      touchY = null;
+      if (Math.abs(dy) >= TOUCH_MIN) go(dy > 0 ? 1 : -1);
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (apiRef.current.paused()) return;
+      const el = e.target as HTMLElement | null;
+      if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
+      const down = ['ArrowDown', 'PageDown', ' '].includes(e.key) && !(e.key === ' ' && e.shiftKey);
+      const up = ['ArrowUp', 'PageUp'].includes(e.key) || (e.key === ' ' && e.shiftKey);
+      if (!down && !up) return;
+      e.preventDefault();
+      go(down ? 1 : -1);
+    };
+
+    window.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd, { passive: true });
+    window.addEventListener('keydown', onKey);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('keydown', onKey);
+      goRef.current = () => {};
+    };
+  }, [enabled]);
+
+  /** Pre šípky dole — klik = ďalšia obrazovka. */
+  return (dir: 1 | -1) => goRef.current(dir);
+}

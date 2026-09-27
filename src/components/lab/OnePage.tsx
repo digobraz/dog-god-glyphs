@@ -60,6 +60,7 @@ import {
 } from '@/components/pack/navGoldSkin';
 import NavMedallion, { NAV_MEDALLION_CSS } from './NavMedallion';
 import { filmVh } from '@/lib/filmVh';
+import { useFilmStops } from './filmStops';
 
 // ── OBRAZY FILMU SÚ NA JEDNOM MIESTE ────────────────────────────────────────
 // Matejov zoznam z 2. 9. 2026, doslova: *„1-HOME · 2 COW vs DOG · 3 Religion ·
@@ -817,7 +818,10 @@ const ARC = {
  *  osem beatov (nadpis, eyebrow, tri stĺpce, veta) namiesto štyroch prvkov,
  *  takže 140vh, na ktorých sedeli tri náhodné glyfy, by ich stlačilo. Číslo
  *  je `HGL.vh` z nákresu. */
-const GLF_VH = 300;
+// 🔴 27. 9. 2026: ALBA VO FILME NIE JE — Matej: *„alby nebudú na ďalšom slajde,
+// ale v popupe"* (chip PRÍKLAD pri nadpise HEROGLYPH). Dráha je 0, sekcia
+// `.op-glf` sa nekreslí; pôvodné číslo bolo 300 (`HGL.vh` z nákresu).
+const GLF_VH = 0;
 
 /** Pomer strán vodorovného heroglyfu pod menom (600 × 161 px z Cloudinary,
  *  sústava `HeroglyphFrame` 13100 × 3500). Je to VSTUP DO ROVNICE, ktorou si
@@ -1070,7 +1074,7 @@ const ARC_HOLD2_VH = 120;
  *  dopísal, ju rovno aj odviezol preč. Kým bola posledná, prekrylo to
  *  odpočívadlo za sekciou; s MOSTOM za ňou by to bola tá istá porucha, akú
  *  Matej dvakrát vytkol (`ARC_HOLD_VH`, `ARC_HOLD2_VH`). Rovnaké číslo. */
-const ARC_HOLD3_VH = 120;
+const ARC_HOLD3_VH = 0; // bola 120 — výdrž ALBY, ALBA odišla do popupu (27. 9. 2026)
 
 /** Dĺžka TRETIEHO odovzdania (ALBA → MOST) vo `vh`. To isté číslo aj tá istá
  *  mechanika ako pri druhom: obsah ALBY odchádza VODOROVNE doľava, dážď pod
@@ -1265,6 +1269,10 @@ export default function OnePage() {
   // Otvorena STENA (mozaika zo spodnej listy). Nie je to sekcia filmu — je to
   // odbocka, ktora sa sprava ako samostatna stranka. Viac pri useEffect nizsie.
   const [wallOpen, setWallOpen] = useState(false);
+  const bookOpenRef = useRef(false);
+  bookOpenRef.current = bookOpen;
+  const wallOpenRef = useRef(false);
+  wallOpenRef.current = wallOpen;
   /** Choreografia filmu — drží sa v refe, aby sa dala vyvolať aj mimo scrollu. */
   const applyRef = useRef<() => void>(() => {});
   /** To isté pre PRESTAVBU: zahodí uzlovú tabuľku, pamäť zapísaných hodnôt aj
@@ -3661,6 +3669,57 @@ export default function OnePage() {
     window.scrollTo({ top: Math.max(0, Math.round(at)), behavior: 'smooth' });
   }, []);
 
+  // ── MOTOR FILMU: JEDEN ŤAH = JEDNA OBRAZOVKA (27. 9. 2026) ─────────────
+  // Zastávky sa merajú pri KAŽDOM ťahu, nie raz — výšky dráh sa menia
+  // s jazykom aj oknom. Jadro je súčet prilepených dráh (to isté, kam skáče
+  // nav); pribudli obrazy, ktoré nav nemá: video na plátne, čierna sála,
+  // obrazovky príbehu, DOGTRIX, ALBA, most a kniha.
+  const [filmMoving, setFilmMoving] = useState(false);
+  const [atFilmEnd, setAtFilmEnd] = useState(false);
+  /** Popup s tromi Albami — vstup je chip PRÍKLAD pri podnadpise HEROGLYPH. */
+  const [albaOpen, setAlbaOpen] = useState(false);
+  const albaOpenRef = useRef(false);
+  albaOpenRef.current = albaOpen;
+  useEffect(() => {
+    if (!albaOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setAlbaOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [albaOpen]);
+  useEffect(() => {
+    const on = () => setAtFilmEnd(window.scrollY >= document.documentElement.scrollHeight - window.innerHeight - 8);
+    on();
+    window.addEventListener('scroll', on, { passive: true });
+    return () => window.removeEventListener('scroll', on);
+  }, []);
+  const filmStops = useCallback((): number[] => {
+    const vh = filmVh();
+    const out: number[] = [0];
+    let acc = 0;
+    for (const s of [PIN_VH, PIN2_VH, PIN3_VH, PIN4_VH, PIN5_VH]) { acc += s; out.push(acc * vh); }
+    const tl = document.querySelector<HTMLElement>('.op-timeline');
+    if (tl) {
+      const top = tl.getBoundingClientRect().top + window.scrollY;
+      const n = Math.floor(tl.offsetHeight / vh);
+      for (let k = 1; k <= n; k++) out.push(top + k * vh * 0.92);
+    }
+    for (const sel of ['.op-arc-rest', '.op-arc-rest2']) {
+      const y = absTop(sel);
+      if (y != null) out.push(y);
+    }
+    const most = pinnedAt('.op-arc', 1);
+    if (most != null) out.push(most);
+    const quo = pinnedAt('.op-quo', QUO.colsIn[1]);
+    if (quo != null) out.push(quo);
+    out.push(document.documentElement.scrollHeight - window.innerHeight);
+    return out;
+  }, []);
+  const filmGo = useFilmStops({
+    stops: filmStops,
+    paused: () => bookOpenRef.current || wallOpenRef.current || albaOpenRef.current || document.body.style.overflow === 'hidden',
+    onMove: setFilmMoving,
+  }, true);
+
   // ── STENA JE SAMOSTATNÁ STRÁNKA, NIE OBRAZ FILMU ────────────────────────
   // Matej 27. 8. 2026: *„ONEPAGE je homepage planéta — kliknutím na spodný nav
   // 4 štvorce (grid) otvorí wall, to je samostatná stránka a teda scrolovanie
@@ -3700,6 +3759,40 @@ export default function OnePage() {
 
   return (
     <div className="op-root">
+      {/* ŠÍPKY DOLE (27. 9. 2026) — Matej: *„namiesto CTA urobiť na obrazovkách
+          šípky, ktoré navádzajú na SLIDE… 3 pod sebou blikajúce"*. Jedny pre
+          celý film; počas jazdy motora zhasnú, klik = ďalšia obrazovka. */}
+      {!wallOpen && !atFilmEnd && (
+        <button
+          type="button"
+          className={`op-cue${filmMoving ? ' is-moving' : ''}`}
+          aria-label={t('onepage.cue.next')}
+          onClick={() => filmGo(1)}
+        >
+          <i /><i /><i />
+        </button>
+      )}
+      {albaOpen && (
+        <div className="op-alba" role="dialog" aria-modal="true" aria-label="ALBA" data-film-free onClick={() => setAlbaOpen(false)}>
+          <div className="op-alba-card" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="op-alba-x" aria-label={t('nav.aria.close')} onClick={() => setAlbaOpen(false)}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+            <h2 className="op-alba-h2">{t('onepage.alba.head')} <span className="nm">Alba</span></h2>
+            <p className="op-alba-eye">{t('onepage.alba.eye')}</p>
+            <div className="op-alba-trio">
+              {ALBAS.map((a, i) => (
+                <figure className="op-alba-al" key={a.n} style={{ ['--i' as string]: i } as React.CSSProperties}>
+                  <div className="op-alba-ph"><img src={cldPhoto(a.photo)} alt={`ALBA #${a.n}`} /></div>
+                  <div className="op-alba-nm"><span>ALBA</span><b>#{a.n}</b></div>
+                  <img className="op-alba-gl" src={cldGlyph(a.glyph)} alt={`heroglyph ALBA #${a.n}`} />
+                </figure>
+              ))}
+            </div>
+            <p className="op-alba-says">{t('onepage.alba.says')} <b>HEROGLYPH</b>!</p>
+          </div>
+        </div>
+      )}
       <Seo path="/onepage" noindex title="DOGYPT" description="One page, one story: the planet, the question, the vision, the pack." />
       <style>{`
         /* ── PLÁTNO ───────────────────────────────────────────────────────
@@ -4049,8 +4142,109 @@ export default function OnePage() {
            jeho (0,2,0) bez ohľadu na poradie vloženia štýlov. */
         .op-snaps { position: absolute; top: 0; left: 0; width: 1px; height: 0; pointer-events: none; }
         .op-snaps > span { position: absolute; left: 0; width: 1px; height: 1px; }
+        /* 🔴 27. 9. 2026: CSS snap VYPNUTÝ — volant má motor filmu
+           (filmStops.ts, jeden ťah = jedna obrazovka). Snap by sa s jeho
+           animovanou jazdou bil. Platí aj proti VisionLabu, ktorý si
+           proximity zapína sám. Značky nižšie ostávajú ako záznam. */
+        html:has(.op-root) { scroll-snap-type: none !important; }
+        .op-cue {
+          position: fixed; left: 50%; bottom: 4px; z-index: 60;
+          transform: translateX(-50%);
+          display: flex; flex-direction: column; align-items: center; gap: 0;
+          padding: 4px 16px; background: none; border: 0; cursor: pointer;
+          transition: opacity .35s ease;
+        }
+        .op-cue.is-moving { opacity: 0; pointer-events: none; }
+        .op-cue i {
+          display: block; width: 12px; height: 12px; margin-top: -2px;
+          border-right: 2px solid #C99A3F; border-bottom: 2px solid #C99A3F;
+          transform: rotate(45deg);
+          opacity: .15;
+          animation: opCue 1.8s ease-in-out infinite;
+        }
+        .op-cue i:nth-child(2) { animation-delay: .2s; }
+        .op-cue i:nth-child(3) { animation-delay: .4s; }
+        @keyframes opCue {
+          0%, 100% { opacity: .15; }
+          35% { opacity: 1; filter: drop-shadow(0 0 4px rgba(201,154,63,.7)); }
+        }
+        @media (prefers-reduced-motion: reduce) { .op-cue i { animation: none; opacity: .7; } }
+        /* Starý A/B prepínač steny je dielňa /wall-lab — vo filme nemá čo robiť ani v deve. */
+        .op-root .ab-switch { display: none !important; }
+        .dgx-rulerow { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+        .dgx-example {
+          pointer-events: auto; cursor: pointer;
+          padding: 6px 12px; border-radius: 999px;
+          border: 1px solid ${LAPIS.edge}; background: ${LAPIS.fill};
+          color: ${LAPIS.deep};
+          font: 500 12px/1 'Space Grotesk', sans-serif; letter-spacing: .14em; text-transform: uppercase;
+          transition: background .2s ease, transform .2s ease;
+        }
+        .dgx-example:hover { background: ${LAPIS.halo}; transform: translateY(-1px); }
+        .op-alba {
+          position: fixed; inset: 0; z-index: 200;
+          display: flex; align-items: center; justify-content: center;
+          padding: 16px; background: rgba(42,22,8,.55);
+          backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+          animation: opAlbaIn .35s ease both; overflow-y: auto;
+        }
+        @keyframes opAlbaIn { from { opacity: 0; } to { opacity: 1; } }
+        .op-alba-card {
+          position: relative; margin: auto; width: min(832px, 100%);
+          padding: 48px 24px 32px; border-radius: 16px;
+          background: ${LAB.pageBg}; background-image: ${LAB.pageBackdrop}; border: 1px solid rgba(201,154,63,.45);
+          box-shadow: 0 24px 64px rgba(42,22,8,.35);
+          text-align: center;
+          animation: opAlbaCard .45s cubic-bezier(.2,.8,.2,1) both;
+        }
+        @keyframes opAlbaCard { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
+        .op-alba-x {
+          position: absolute; top: 12px; right: 12px; width: 40px; height: 40px;
+          display: grid; place-items: center; border-radius: 999px; cursor: pointer;
+          background: rgba(42,22,8,.06); border: 0;
+        }
+        .op-alba-x svg { width: 20px; height: 20px; stroke: ${LAB.ink}; stroke-width: 2; fill: none; stroke-linecap: round; }
+        .op-alba-h2 {
+          margin: 0; font: 700 clamp(28px, 5vw, 48px)/1.1 'Cinzel', serif; letter-spacing: .06em;
+          color: ${LAB.ink};
+        }
+        .op-alba-h2 .nm { font-family: 'Cinzel Decorative', 'Cinzel', serif; }
+        .op-alba-eye {
+          margin: 12px 0 0; font: 500 12px/1.4 'Space Grotesk', sans-serif;
+          letter-spacing: .22em; text-transform: uppercase; color: ${LAB.inkSoft};
+        }
+        .op-alba-trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 32px; }
+        .op-alba-al {
+          margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px;
+          animation: opAlbaCard .5s cubic-bezier(.2,.8,.2,1) both;
+          animation-delay: calc(.15s + var(--i) * .12s);
+        }
+        .op-alba-ph { width: 100%; aspect-ratio: 1; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(42,22,8,.18); }
+        .op-alba-ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .op-alba-nm { display: flex; align-items: center; gap: 8px; }
+        .op-alba-nm span { font: 700 20px/1 'Cinzel Decorative', 'Cinzel', serif; color: ${LAB.ink}; }
+        .op-alba-nm b {
+          font: 500 12px/1 'Space Grotesk', sans-serif; letter-spacing: .02em; color: ${LAPIS.ink};
+          background: ${LAPIS.grad}; padding: 4px 8px; border-radius: 999px;
+        }
+        .op-alba-gl { width: 100%; height: auto; display: block; }
+        .op-alba-says {
+          margin: 32px 0 0; font: 400 16px/1.5 'Space Grotesk', sans-serif; color: ${LAB.inkSoft};
+        }
+        .op-alba-says b { color: ${LAB.ink}; font-weight: 500; }
+        @media (max-width: 560px) {
+          .op-alba-trio { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+          .op-alba-nm { flex-direction: column; gap: 4px; }
+          .op-alba-nm span { font-size: 14px; }
+          .op-alba-card { padding: 48px 16px 24px; }
+        }
+        /* WE NEED YOU BEZ CTA (Matej 27. 9. 2026: *„POTREBUJEME ŤA bez cta —
+           bude tam opäť len scroll"*). Šípka, „ďalší krok" aj tlačidlo odchádzajú
+           spolu — bez tlačidla by šípka mierila do prázdna. Beaty ostávajú
+           v DOM-e (choreografia ich počíta), len sa nekreslia. */
+        .op-root .op-glf { display: none !important; }
+        .op-root .op-b-arrow, .op-root .op-b-step, .op-root .op-b-cta { visibility: hidden !important; }
         @media (min-width: 768px) {
-          html { scroll-snap-type: y proximity; }
           .op-snaps > span,
           /* ⚠️ PREAMBULA ANI KNIHA TU UŽ NIE SÚ. Preambula má vlastnú prilepenú
              dráhu, takže jej ZAČIATOK je obrazovka, na ktorej ešte nič nie je
@@ -4221,7 +4415,8 @@ export default function OnePage() {
         .op-root #op-religion .codex-section[data-idx="1"] .codex-slide > .codex-oath-label {
           margin-top: min(clamp(10px, 1.6vh, 16px), 1.8vh);
         }
-        .op-root #op-religion .codex-section[data-idx="1"] .codex-book-cta {
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-book-cta,
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-chip--book {
           margin-top: min(clamp(14px, 2.4vh, 24px), 2.4vh);
         }
         @media (max-width: 767px) {
@@ -4256,7 +4451,8 @@ export default function OnePage() {
           }
           /* Hodnota auto zhltne všetok zvyšný vzduch, takže CTA sadne na spodok bez
              jediného čísla navyše — a ostane tam pri akejkoľvek výške okna. */
-          .op-root #op-religion .codex-section[data-idx="1"] .codex-book-cta {
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-book-cta,
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-chip--book {
             margin-top: auto;
             font-size: 0.92rem;
             padding: 14px 18px;
@@ -4433,7 +4629,8 @@ export default function OnePage() {
         }
         /* CTA dosadá ako posledné — je to jediná akcia obrazovky a nemá
            súperiť s textom, ktorý ju odôvodňuje. */
-        .op-root #op-religion .codex-section[data-idx="1"] .codex-book-cta {
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-book-cta,
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-chip--book {
           opacity: calc(var(--op-cta, 1) * (1 - var(--op-unink, 0)));
           transform: translateY(calc((1 - var(--op-cta, 1)) * 12px));
         }
@@ -6948,7 +7145,15 @@ export default function OnePage() {
               </div></div>
 
               <div className="op-beat dgx-b-rule"><div className="op-bin">
-                <p className="dgx-rule">{t('onepage.dgx.rule')}</p>
+                <div className="dgx-rulerow">
+                  <p className="dgx-rule">{t('onepage.dgx.rule')}</p>
+                  {/* CHIP PRÍKLAD (Matej 27. 9. 2026): *„vedľa nadpisu Jedinečný
+                      symbol pre každého psa CHIP príklad — kliknutie otvorí popup,
+                      kde bude obsah ALBA"*. ALBA tým z filmu odišla. */}
+                  <button type="button" className="dgx-example" onClick={() => setAlbaOpen(true)}>
+                    {t('onepage.dgx.example')}
+                  </button>
+                </div>
               </div></div>
 
               <div className="op-beat dgx-b-glf"><div className="op-bin">

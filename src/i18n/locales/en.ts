@@ -1058,6 +1058,8 @@ export const en = {
   // v CLAUDE.md („Primárne CTA: BECOME DOGYPTIAN, identity-first voice"),
   // takže vysvetlenie nesie riadok, nie tlačidlo.
   'religion.hook.claim.close': 'One million of us changes that.',
+  'religion.hook.claim.goalChip': 'Our goal is to change that!',
+  'religion.preamble.bookChip': 'The Bible for dog lovers waits at the end of this page!',
   // ── VARIANT 2 textingu druhej sekcie (Matej 27. 8. 2026) ──────────────────
   // *„skúsme urobiť Variant 2, a síce ten texting viac zosúladiť do riadkov ako
   // obyčajný text, ktorý je vopred napísaný, ale scrolingom dostáva život, ako
@@ -1208,6 +1210,7 @@ export const en = {
   'onepage.need.sub1': 'Our goal is to unite one million dog lovers',
   'onepage.need.sub2': 'in one place —',
   'onepage.need.goal': 'Our goal',
+  'onepage.cue.next': 'Next',
   'onepage.need.step': 'Next step',
   'onepage.need.cta': 'Join the mission',
   // Číslo je dopočítané (počet psov + 1) a stojí v `<b>` za týmto kusom.
@@ -1224,6 +1227,7 @@ export const en = {
   // ručne (`retext` v OnePage.tsx), nie cez React.
   'onepage.dgx.eye': 'The ticket to Dogypt',
   'onepage.dgx.rule': 'Unique symbol for every dog.',
+  'onepage.dgx.example': 'Example',
   'onepage.dgx.sigrole': 'First Dogyptian',
   'onepage.dgx.hint.hover': 'Hover a symbol — it tells you what it means.',
   'onepage.dgx.hint.touch': 'Touch a symbol to read it.',
