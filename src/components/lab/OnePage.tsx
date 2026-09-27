@@ -113,6 +113,22 @@ const pinnedAt = (sel: string, f: number): number | null => {
   return top + Math.max(1, el.offsetHeight - filmVh()) * f;
 };
 
+/** Dva ťahy za dotykom (27. 9. 2026): ROZPLYNUTIE (dotyk → dážď) a PÍSANIE
+ *  (dážď → dopísaný DOGTRIX s Hektorom). Druhý ide pomaly a bez prudkého
+ *  stredu — *„nábeh textu a postupne aj heroglyph, pomaly, teraz je to moc
+ *  rýchlo"*. Platí oboma smermi. */
+const DGX_WRITE_MS = 6000;
+const easeSine = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2;
+const dgxLeg = (from: number, to: number): 'dissolve' | 'write' | null => {
+  const touch = pinnedAt('.op-gate', GATE_TOUCH), gone = pinnedAt('.op-gate', GATE_FADE[1]);
+  const rest2 = absTop('.op-arc-rest2');
+  const pair = (a: number | null, b: number | null) =>
+    a != null && b != null && ((Math.abs(from - a) < 4 && Math.abs(to - b) < 4) || (Math.abs(from - b) < 4 && Math.abs(to - a) < 4));
+  if (pair(touch, gone)) return 'dissolve';
+  if (pair(gone, rest2)) return 'write';
+  return null;
+};
+
 /** Jazda motora medzi zastávkami brány (zatvorená ⇄ dotyk). */
 const isGateRide = (from: number, to: number): boolean => {
   const a = pinnedAt('.op-gate', GATE_REST), b = pinnedAt('.op-gate', GATE_TOUCH);
@@ -1985,7 +2001,8 @@ export default function OnePage() {
       // Scéna A: kóty svietia (pad.up/pad.down reálne zaberajú miesto).
       const budgetA = availH - usedShared - pad.up - pad.down;
       // Scéna B: kóty už dohasli, podpis + pilulka sa práve píšu.
-      const budgetB = availH - usedShared - (gapPx(1.8) + sigH) - (gapPx(1.8) + pillH);
+      // Na PC Hektor visí vedľa glyfu (27. 9. 2026), pod ním miesto nezaberá.
+      const budgetB = availH - usedShared - (narrow ? gapPx(1.8) + sigH : 0) - (gapPx(1.8) + pillH);
       const budget = Math.max(0, Math.min(budgetA, budgetB));
       const aspect = vertical ? (DGX_VB_V.h / DGX_VB_V.w) : (DGX_VB.h / DGX_VB.w);
       const gwFromH = (budget / aspect / availW) * 100;
@@ -2183,7 +2200,18 @@ export default function OnePage() {
         k.lab.style.opacity = (parseFloat(k.lab.style.getPropertyValue('--ko') || '0') * gone).toFixed(3);
       });
 
-      put2(el.sig, seg(pc, DGX.sig, DGX.sig + DGX.sigD));
+      const sv = seg(pc, DGX.sig, DGX.sig + DGX.sigD);
+      put2(el.sig, sv);
+      // 🔴 HEKTOR NAĽAVO OD GLYFU (Matej 27. 9. 2026: *„Hektor prvý Dogypťan
+      // daj na ľavú stranu heroglyphu"*). Na PC beat vypadne z toku
+      // (CSS [data-narrow="0"]) a réžia ho zavesí k ľavej hrane glyfu,
+      // zvislo na jeho stred. Mobil (zvislý glyf) ho má ďalej pod ním.
+      if (!narrow && el.sig && sv > 0) {
+        const sr = sec.getBoundingClientRect(), gr = gbox.getBoundingClientRect();
+        const w = sigWrap.offsetWidth, h = sigWrap.offsetHeight;
+        el.sig.style.left = (gr.left - sr.left - w - 32).toFixed(1) + 'px';
+        el.sig.style.top = (gr.top - sr.top + gr.height / 2 - h / 2).toFixed(1) + 'px';
+      }
       sigWrap.style.setProperty('--fp', (narrow ? DGX.fpM : DGX.fp) + 'px');
       sigNm.style.setProperty('--ns', (narrow ? DGX.nsM : DGX.ns) + 'px');
       sigRl.style.setProperty('--rls', (narrow ? DGX.rlsM : DGX.rls) + 'px');
@@ -3733,6 +3761,9 @@ export default function OnePage() {
   const [filmMoving, setFilmMoving] = useState(false);
   const [atFilmEnd, setAtFilmEnd] = useState(false);
   const [atHome, setAtHome] = useState(true);
+  /** Sme v príbehu (od prvej vety po jeho koniec)? Šípky tam zavadzajú textu
+   *  crawlu (Matej 27. 9. 2026: *„pri príbehu daj preč aj šípky"*). */
+  const [inStory, setInStory] = useState(false);
   /** Popup s tromi Albami — vstup je chip PRÍKLAD pri podnadpise HEROGLYPH. */
   const [albaOpen, setAlbaOpen] = useState(false);
   const albaOpenRef = useRef(false);
@@ -3747,6 +3778,12 @@ export default function OnePage() {
     const on = () => {
       setAtFilmEnd(window.scrollY >= document.documentElement.scrollHeight - window.innerHeight - 8);
       setAtHome(window.scrollY < window.innerHeight * 0.3);
+      const tl = document.querySelector<HTMLElement>('.op-timeline');
+      if (tl) {
+        const top = tl.getBoundingClientRect().top + window.scrollY;
+        const span = Math.max(0, tl.offsetHeight - filmVh());
+        setInStory(window.scrollY >= top + span * STORY_START - 4 && window.scrollY < top + span - 4);
+      }
     };
     on();
     window.addEventListener('scroll', on, { passive: true });
@@ -3765,6 +3802,11 @@ export default function OnePage() {
     if (tl) out.push(tl.getBoundingClientRect().top + window.scrollY + Math.max(0, tl.offsetHeight - filmVh()) * STORY_START);
     const gate = pinnedAt('.op-gate', GATE_REST);
     if (gate != null) out.push(gate, pinnedAt('.op-gate', GATE_TOUCH) ?? gate);
+    // Tretia zastávka brány: dotyk sa rozplynul, pod ním padá dážď DOGTRIXu
+    // (Matej 27. 9.: *„1. scroll = rozplynutie labky a ruky / nástup DOGTRIXu,
+    // 2. scroll nábeh textu a postupne aj heroglyph"*).
+    const gone = pinnedAt('.op-gate', GATE_FADE[1]);
+    if (gone != null) out.push(gone);
     for (const sel of WNY_ON ? ['.op-arc-rest', '.op-arc-rest2'] : ['.op-arc-rest2']) {
       const y = absTop(sel);
       if (y != null) out.push(y);
@@ -3804,13 +3846,13 @@ export default function OnePage() {
       // mäkká jazda má v strede 3× priemernú rýchlosť. Jazda brány preto ide
       // ROVNOMERNE a tak dlho, aby video bežalo vo svojom vlastnom tempe.
       if (gateRide) return GATE_RIDE_MS;
-      // Dotyk → dopísaný DOGTRIX: rozplynutie, dážď aj nadpis sa odohrajú
-      // počas jednej jazdy — mäkko a dlhšie, nech to *„neseká"* (27. 9.).
-      const touch = pinnedAt('.op-gate', GATE_TOUCH), rest2 = absTop('.op-arc-rest2');
-      if (touch != null && rest2 != null && Math.abs(from - touch) < 4 && Math.abs(to - rest2) < 4) return 4200;
+      const leg = dgxLeg(from, to);
+      if (leg === 'dissolve') return 2000;
+      if (leg === 'write') return DGX_WRITE_MS;
       return base;
     },
-    easing: (from, to) => (isGateRide(from, to) ? (t: number) => t : undefined),
+    easing: (from, to) => (isGateRide(from, to) ? (t: number) => t
+      : dgxLeg(from, to) === 'write' ? easeSine : undefined),
     paused: () => bookOpenRef.current || wallOpenRef.current || albaOpenRef.current || document.body.style.overflow === 'hidden',
     onMove: setFilmMoving,
   }, true);
@@ -3857,7 +3899,7 @@ export default function OnePage() {
       {/* ŠÍPKY DOLE (27. 9. 2026) — Matej: *„namiesto CTA urobiť na obrazovkách
           šípky, ktoré navádzajú na SLIDE… 3 pod sebou blikajúce"*. Jedny pre
           celý film; počas jazdy motora zhasnú, klik = ďalšia obrazovka. */}
-      {!wallOpen && !atFilmEnd && (
+      {!wallOpen && !atFilmEnd && !inStory && (
         <FilmCue moving={filmMoving} onNext={() => filmGo(1)} label={t('onepage.cue.next')} big={atHome} />
       )}
       {!wallOpen && (
@@ -3881,7 +3923,6 @@ export default function OnePage() {
                 </figure>
               ))}
             </div>
-            <p className="op-alba-says">{t('onepage.alba.says')} <b>HEROGLYPH</b>!</p>
           </div>
         </div>
       )}
@@ -6419,6 +6460,13 @@ export default function OnePage() {
            Scoped na op-dgx — WE NEED YOU aj ALBA zdieľajú tú istú triedu
            op-beat a nesmú sa tým zmeniť. */
         .op-dgx .op-beat { flex-shrink: 0; }
+        /* Hektor na PC visí naľavo od glyfu — polohu píše réžia (left/top). */
+        .op-dgx[data-narrow="0"] > .dgx-b-sig { position: absolute; width: auto; }
+        /* Pás pre šípky filmu (.op-cue) — inak padnú na info chip pod glyfom.
+           fitGw číta padding, takže glyf sa mu prispôsobí sám. */
+        .op-dgx[data-narrow="0"] { padding-bottom: calc(18px + var(--arc-center-fix) + 72px); }
+        .op-dgx[data-narrow="0"] > .dgx-b-sig > .op-bin { padding-top: 0; }
+        .op-dgx[data-narrow="0"] .dgx-sig { justify-content: flex-end; }
         .dgx-rain { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
 
         /* Text stojí NAD pohyblivým dažďom — papyrusový „bazén" pod ním
@@ -6495,14 +6543,32 @@ export default function OnePage() {
 
         /* Pilulka „symboly sa dajú prečítať" — vlastný posledný beat,
            vystredený svojím .op-bin (flex column), vysúva sa zdola. */
+        /* INFO CHIP filmu (Matej 27. 9. 2026: *„prejdi po symbole daj do chipu,
+           ktorý máme už vyššie, napr. pri krave a psovi"*) — tie isté hodnoty
+           ako .codex-chip v ReligionLab: lapisové písmo, dvojitý okraj, pulz.
+           Nie je klikateľný — ukazuje na glyf. */
         .dgx-khint {
           position: relative; z-index: 1;
           white-space: nowrap; pointer-events: none;
           opacity: var(--ho, 0); transform: translateY(var(--hy, 14px));
-          font: 500 var(--hs2, 13px)/1 'Space Grotesk', sans-serif; letter-spacing: 0.06em;
-          border-radius: 999px; padding: 0.72em 1.3em;
-          background: #FBF5E6; color: ${LAB.ink}; border: 1px solid rgba(179,130,45,0.55); box-shadow: 0 4px 14px rgba(60,40,10,0.16);
+          padding: 8px 16px; border-radius: 999px;
+          border: 1.5px solid ${LAPIS.edge};
+          background: linear-gradient(180deg, #FFFBF1 0%, #F6EAD0 100%);
+          color: ${LAPIS.edge};
+          font: 600 12px/1.3 'Space Grotesk', sans-serif; letter-spacing: .14em; text-transform: uppercase;
+          box-shadow: 0 0 0 3px #F6EAD0, 0 0 0 4px rgba(22,48,122,.45), 0 6px 16px -8px rgba(10,26,74,.45);
         }
+        .dgx-khint::after {
+          content: ''; position: absolute; inset: -5px; border-radius: inherit; pointer-events: none;
+          border: 1px solid rgba(22,48,122,.55);
+          animation: dgxChipPulse 2.4s ease-out infinite;
+        }
+        @keyframes dgxChipPulse {
+          0% { transform: scale(1); opacity: .9; }
+          70%, 100% { transform: scale(1.12, 1.45); opacity: 0; }
+        }
+        @media (prefers-reduced-motion: reduce) { .dgx-khint::after { animation: none; opacity: .5; } }
+        @media (max-width: 768px) { .dgx-khint { font-size: 10px; letter-spacing: .1em; } }
 
         /* ── BUBLINA: odpoveď na dotyk symbolu ──────────────────────────
            Koncový stav obrazu (Matej 1. 9. 2026): glyf je čierny a
