@@ -1274,7 +1274,7 @@ export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
               {/* meno reálneho člena bez známeho id nie je klikateľné — žiadny odkaz do prázdna. */}
               <span
                 className={`comm-comp-chip-av${c.photo ? '' : ' ph'}`}
-                style={c.photo ? { backgroundImage: `url('${c.photo}')` } : undefined}
+                style={c.photo ? { backgroundImage: `url('${sizedUrl(c.photo, 96)}')` } : undefined}
               >
                 {c.photo ? '' : c.name.charAt(0).toUpperCase()}
               </span>
@@ -1292,7 +1292,7 @@ export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
               const on = selectedKeys.has(`dog-${d.id}`);
               return (
                 <button key={d.id} type="button" className={`comm-comp-dog${on ? ' on' : ''}`} onClick={() => toggleDog(d)}>
-                  <span className={`comm-comp-dog-av${d.photo ? '' : ' ph'}`} style={d.photo ? { backgroundImage: `url('${d.photo}')` } : undefined}>
+                  <span className={`comm-comp-dog-av${d.photo ? '' : ' ph'}`} style={d.photo ? { backgroundImage: `url('${sizedUrl(d.photo, 96)}')` } : undefined}>
                     {d.photo ? '' : (d.name || 'D').charAt(0).toUpperCase()}
                   </span>
                   <span>{d.name || t('pack.companions.myDog')}</span>
@@ -1750,7 +1750,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
         <div className="comm-dogstats">
           {dogStats.map((d) => (
             <div key={d.id} className="comm-dogstat">
-              <img src={d.photo || ICON('paw')} alt="" />
+              <img src={d.photo ? sizedUrl(d.photo, 120) : ICON('paw')} alt="" />
               <span className="comm-dogstat-txt">
                 <span className="comm-dogstat-name">{d.name}</span>
                 <span className="comm-dogstat-num">
@@ -1799,7 +1799,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
          dropdown na inú krajinu vpravo hore. Cieľ je v TRIPOCH, nie v percentách. */}
       <div
         className={`comm-chero${heroPhoto ? '' : ' comm-chero--noimg'}`}
-        style={heroPhoto ? { backgroundImage: `url('${heroPhoto}')` } : undefined}
+        style={heroPhoto ? { backgroundImage: `url('${sizedUrl(heroPhoto, 1200)}')` } : undefined}
       >
         <div className="comm-chero-sel">
           <select value={country} onChange={(e) => pickCountry(e.target.value)} aria-label={t('pack.stats.countryAria')}>

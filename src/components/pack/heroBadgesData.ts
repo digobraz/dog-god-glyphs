@@ -23,46 +23,46 @@ export interface HeroBadge {
 export const HERO_BADGES: HeroBadge[] = [
   {
     id: 'hachiko', name: 'Hachikō', trips: 5,
-    img: '/icons/hero-badges/hachiko.png',
+    img: '/icons/hero-badges/hachiko.webp',
     source: { url: 'https://www.u-tokyo.ac.jp/en/whyutokyo/hongo_hi_014.html', label: 'University of Tokyo' },
   },
   {
     id: 'barry', name: 'Barry', trips: 15,
-    img: '/icons/hero-badges/barry.png',
+    img: '/icons/hero-badges/barry.webp',
     source: { url: 'https://www.nmbe.ch/en/exhibitions/barry', label: 'Naturhistorisches Museum Bern' },
   },
   {
     id: 'togo', name: 'Togo', trips: 25,
-    img: '/icons/hero-badges/togo.png',
+    img: '/icons/hero-badges/togo.webp',
     source: { url: 'https://www.smithsonianmag.com/history/this-heroic-dog-raced-across-the-frozen-alaskan-wilderness-to-deliver-life-saving-medicine-but-his-contributions-were-long-overlooked-180985905/', label: 'Smithsonian Magazine' },
   },
   {
     id: 'hekthor', name: 'Hekthor', trips: 42,
-    img: '/icons/hero-badges/hekthor.png',
+    img: '/icons/hero-badges/hekthor.webp',
   },
   {
     id: 'bothie', name: 'Bothie', trips: 82,
-    img: '/icons/hero-badges/bothie.png',
+    img: '/icons/hero-badges/bothie.webp',
     source: { url: 'https://geographical.co.uk/news/reliving-the-transglobe-expedition', label: 'Geographical · RGS' },
   },
   {
     id: 'laika', name: 'Laika', trips: 100,
-    img: '/icons/hero-badges/laika.png',
+    img: '/icons/hero-badges/laika.webp',
     source: { url: 'https://www.smithsonianmag.com/smithsonian-institution/sad-story-laika-space-dog-and-her-one-way-trip-orbit-1-180968728/', label: 'Smithsonian Magazine' },
   },
   {
     id: 'bobbie', name: 'Bobbie', trips: 150,
-    img: '/icons/hero-badges/bobbie.png',
+    img: '/icons/hero-badges/bobbie.webp',
     source: { url: 'https://kval.com/features/pet-of-the-week/bobbie-oregons-wonder-dog', label: 'KVAL News' },
   },
   {
     id: 'seaman', name: 'Seaman', trips: 300,
-    img: '/icons/hero-badges/seaman.png',
+    img: '/icons/hero-badges/seaman.webp',
     source: { url: 'https://www.nps.gov/articles/000/seaman-s-contributions-to-the-lewis-and-clark-expedition.htm', label: 'U.S. National Park Service' },
   },
   {
     id: 'savannah', name: 'Savannah', trips: 1000,
-    img: '/icons/hero-badges/savannah.png',
+    img: '/icons/hero-badges/savannah.webp',
     source: { url: 'https://www.inquirer.com/life/tom-turcich-walk-world-jersey-dog-death-20240521.html', label: 'The Philadelphia Inquirer' },
   },
 ];

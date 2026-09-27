@@ -1472,6 +1472,8 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
    TRIPLIST priamo na fotke — to je to isté dvakrát, raz pomenované a raz nie. */
 .trp-bigcard:hover,.trp-bigcard.hot{border-color:${GOLD};background:rgba(201,154,63,0.07);}
 .trp-bigcard-photo{position:relative;width:100%;aspect-ratio:4/3;height:auto;background-size:cover;background-position:center;background-color:#111;flex-shrink:0;}
+/* fotka ako <img loading=lazy> — background-image sa sťahoval pre všetkých ~70 kariet hneď (audit 27. 9.) */
+.trp-bigcard-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
 .trp-cardflag{position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.4);z-index:2;pointer-events:none;}
 /* bod 3 (Matej 2026-07-22): šípky VŽDY viditeľné (opacity .9, nie hover-only) — člen musí
    vidieť, že fotky sa dajú prepínať. Plnšie na hover. */
@@ -5815,7 +5817,8 @@ export default function PackMap() {
     // 📉 ZMENŠENÁ (audit /pack/map B3, 26. 9. 2026): všetkých 544 fotiek výletov má v dátach
     // holú Cloudinary adresu bez transformácie — karta ťahala ORIGINÁL (aj 4000 px .jpg).
     // Karta je najviac ~360 px široká ⇒ strop 1080 px na dlhšej strane = ostrá na retine.
-    const photo = sizedUrl(tr.photos[idx] ?? tr.photos[0], 1080) || placeholderFor(tr.acts, tr.id);
+    // Karta v zozname má najviac ~400 px (panel 440) × DPR 2 ⇒ 800; 1080 ťahal 13 MB pri otvorení (audit 27. 9.).
+    const photo = sizedUrl(tr.photos[idx] ?? tr.photos[0], 800) || placeholderFor(tr.acts, tr.id);
     const agg = crowdAggregate(tr, votes[tr.id]);
     const others = Math.max(0, agg.dogyptianCount - founderDogyptians(tr)); // Dogypťania nad zakladateľa (človek + psy)
     // ⚠️ `walkerCount` = koľkí PREŠLI. `walkedCount` je od 17. 9. počet HODNOTENÍ a dal by tu nulu vždy.
@@ -5860,7 +5863,8 @@ export default function PackMap() {
         onMouseLeave={() => setHoverId(null)}
         onClick={() => selectTrail(tr)}
       >
-        <div className="trp-bigcard-photo" style={photo ? { backgroundImage: `url('${photo}')` } : undefined}>
+        <div className="trp-bigcard-photo">
+          {photo && <img className="trp-bigcard-img" src={photo} alt="" loading="lazy" decoding="async" draggable={false} />}
           <img className="trp-cardflag" src={flagUrl(trailCountry(tr))} alt="" loading="lazy" draggable={false} />
           {tr.photos.length > 1 && (
             <div className="trp-bigcard-photonav">
