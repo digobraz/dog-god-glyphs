@@ -3892,6 +3892,7 @@ export default function OnePage() {
     },
     paused: () => bookOpenRef.current || wallOpenRef.current || albaOpenRef.current || document.body.style.overflow === 'hidden',
     onMove: setFilmMoving,
+    onTopFlick: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
   }, true);
 
   // ── STENA JE SAMOSTATNÁ STRÁNKA, NIE OBRAZ FILMU ────────────────────────

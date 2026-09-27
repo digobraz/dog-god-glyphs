@@ -32,6 +32,16 @@ const TOUCH_MIN = 36;       // px swipu, ktorý sa počíta ako ťah
  *  ostáva natívny — prst bez zotrvačnosti by pôsobil ako zaseknutý. */
 const FREE_GAIN = 0.35;
 const FREE_MAX = 36;        // px na jednu udalosť kolieska
+/** 🔴 HORE BEZ PRAVIDIEL (Matej 27. 9. 2026: *„smer dolu odhaľuje film podľa
+ *  našich pravidiel, ale hore to musí ísť plynulo a rýchlo… tam sa pravidlo
+ *  vypína… prípadne pri rýchlom scrole ho vytiahne hneď na úvod"*).
+ *  Ťah hore motor nechytá — ide natívny scroll (a zastaví rozbehnutú jazdu).
+ *  ŠVIH hore = ťah, ktorý za prvých FLICK_MS naberie viac než FLICK_SCREENS
+ *  obrazovky (koliesko/trackpad), alebo prst rýchlejší než FLICK_TOUCH px/ms
+ *  → `onTopFlick` (to isté ako klik na šípku HORE). */
+const FLICK_MS = 300;
+const FLICK_SCREENS = 1.2;
+const FLICK_TOUCH = 1.2;
 
 export type FilmStopsApi = {
   /** Zoradené polohy zastávok v px. Volá sa pri každom ťahu (výšky sa menia). */
@@ -46,6 +56,8 @@ export type FilmStopsApi = {
   duration?: (screens: number, from: number, to: number) => number;
   /** Vlastný priebeh jazdy (0–1 → 0–1); bez neho mäkký rozjazd aj dojazd. */
   easing?: (from: number, to: number) => ((t: number) => number) | undefined;
+  /** Rýchly švih hore — vytiahni na úvod. */
+  onTopFlick?: () => void;
   /** Hlási, či práve ide jazda (šípky dole ju skrývajú). */
   onMove?: (moving: boolean) => void;
 };
@@ -74,6 +86,15 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
     /** Ťah, ktorý prišiel počas jazdy — vykoná sa hneď po nej. */
     let queued: 1 | -1 | 0 = 0;
     let rideK = 0;
+    /** Ťah HORE: súčet delty za prvých FLICK_MS a či už vystrelil švih. */
+    let upAcc = 0, upT0 = 0, upLast = 0, upFired = false;
+    let touchT0 = 0, touchY0: number | null = null;
+
+    const stopRide = () => {
+      if (!moving) return;
+      cancelAnimationFrame(raf); raf = 0; queued = 0; setMoving(false);
+    };
+    const flickTop = () => { stopRide(); apiRef.current.onTopFlick?.(); };
 
     const setMoving = (m: boolean) => {
       moving = m;
@@ -148,6 +169,25 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
 
     const onWheel = (e: WheelEvent) => {
       if (apiRef.current.paused() || e.ctrlKey) return;
+      if ((e.target as Element | null)?.closest?.('[data-film-free]')) return;
+      if (e.deltaY < 0) {
+        // HORE: natívny scroll, motor len zastaví svoju jazdu a stráži švih.
+        const px = Math.abs(e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * window.innerHeight : e.deltaY);
+        const now = performance.now();
+        if (now - upLast > QUIET) { upAcc = 0; upT0 = now; upFired = false; }
+        upLast = now;
+        gAcc = 0; gFired = false; lastWheel = 0;
+        if (upFired) { e.preventDefault(); return; }   // dobeh zotrvačnosti po švihu
+        stopRide();
+        if (now - upT0 <= FLICK_MS) {
+          upAcc += px;
+          if (upAcc > window.innerHeight * FLICK_SCREENS && window.scrollY > window.innerHeight) {
+            upFired = true; e.preventDefault(); flickTop();
+          }
+        }
+        return;
+      }
+      upLast = 0;
       if (!moving && inFree(e.deltaY > 0 ? 1 : -1)) {
         lastWheel = performance.now(); lastAbs = Math.abs(e.deltaY);
         const z = apiRef.current.free?.();
@@ -160,8 +200,6 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
         window.scrollTo({ top: y, behavior: 'instant' as ScrollBehavior });
         return;
       }
-      // Vnútri vlastného scrollujúceho prvku (popup, zoznam) nechaj koliesko jemu.
-      if ((e.target as Element | null)?.closest?.('[data-film-free]')) return;
       e.preventDefault();
       // 🔴 27. 9. 2026 — Matej: *„niekde to nezachytáva a musím sa viac snažiť"*.
       // Pôvodne rozhodovala PRVÁ udalosť ťahu; trackpad však začína malými
@@ -190,19 +228,28 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
       if (apiRef.current.paused()) { touchY = null; return; }
       if ((e.target as Element | null)?.closest?.('[data-film-free]')) { touchY = null; return; }
       touchY = e.touches[0]?.clientY ?? null;
+      touchY0 = touchY; touchT0 = performance.now();
     };
     const onTouchMove = (e: TouchEvent) => {
       if (touchY == null) return;
       const dy = touchY - (e.touches[0]?.clientY ?? touchY);
+      // HORE (prst ide dolu): natívne, motor pustí volant.
+      if (dy < -2) { stopRide(); touchY = null; return; }
       if (!moving && Math.abs(dy) > 2 && inFree(dy > 0 ? 1 : -1)) { touchY = null; return; }
       e.preventDefault();
     };
     const onTouchEnd = (e: TouchEvent) => {
+      if (touchY0 != null) {
+        const up = (e.changedTouches[0]?.clientY ?? touchY0) - touchY0;
+        const v = up / Math.max(1, performance.now() - touchT0);
+        touchY0 = null;
+        if (up >= TOUCH_MIN && v > FLICK_TOUCH && window.scrollY > window.innerHeight) { touchY = null; flickTop(); return; }
+      }
       if (touchY == null) return;
       const endY = e.changedTouches[0]?.clientY ?? touchY;
       const dy = touchY - endY;
       touchY = null;
-      if (Math.abs(dy) >= TOUCH_MIN) go(dy > 0 ? 1 : -1);
+      if (dy >= TOUCH_MIN) go(1);
     };
 
     const onKey = (e: KeyboardEvent) => {
@@ -212,6 +259,7 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
       const down = ['ArrowDown', 'PageDown', ' '].includes(e.key) && !(e.key === ' ' && e.shiftKey);
       const up = ['ArrowUp', 'PageUp'].includes(e.key) || (e.key === ' ' && e.shiftKey);
       if (!down && !up) return;
+      if (up) { stopRide(); return; }   // hore natívne
       if (!moving && inFree(down ? 1 : -1)) return;
       e.preventDefault();
       go(down ? 1 : -1);
