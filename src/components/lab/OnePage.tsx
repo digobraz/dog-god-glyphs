@@ -4345,6 +4345,9 @@ export default function OnePage() {
           70%, 100% { transform: scale(1.12, 1.45); opacity: 0; }
         }
         .dgx-example:hover { transform: translateY(-1px); }
+        /* Beat má overflow:hidden (nábeh riadkom 0fr→1fr) — bez rezervy by
+           orezal spodok chipu: dvojitý okraj aj pulz (Matej 27. 9. 2026). */
+        .op-dgx > .dgx-b-rule > .op-bin { padding-bottom: 14px; }
         @media (prefers-reduced-motion: reduce) { .dgx-example::after { animation: none; opacity: .5; } }
         .op-alba {
           position: fixed; inset: 0; z-index: 200;
