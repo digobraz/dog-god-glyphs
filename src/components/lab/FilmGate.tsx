@@ -9,7 +9,7 @@
  * Tu je bez framer-motion a bez CTA — film ďalej vedie motor a šípky.
  *
  * DEJ na vlastnej prilepenej dráhe (podiel p 0–1):
- *   0.00–0.30  brána vychádza z tmy (krytie + jemné priblíženie)
+ *   0.00–0.30  zhasnutá brána z pozadia príbehu sa rozsvieti (jas + krytie + priblíženie)
  *   0.30–0.62  krídla sa rozostúpia, za nimi video
  *   0.36–0.84  video sa prehrá scrollom (currentTime = dráha), dobehne na zastávke
  *   0.86–1.00  obraz zbledne do papyrusu — WE NEED YOU za ním je papyrus
@@ -86,16 +86,20 @@ export default function FilmGate() {
           position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
           opacity: var(--g-open, 0);
         }
+        /* Brána nevychádza z čiernej, ale zo ZHASNUTEJ SEBA — príbeh beží na
+           tej istej bráne stlmenej (.op-wall::before v OnePage: jas .5, krytie .4).
+           Rozsvietenie = jas aj krytie idú z tejto hodnoty na plnú. */
         .op-gate-door {
           position: absolute; top: 0; width: 50%; height: 100%; overflow: hidden;
-          opacity: var(--g-rise, 0);
+          opacity: calc(0.4 + var(--g-rise, 0) * 0.6);
+          filter: brightness(calc(0.5 + var(--g-rise, 0) * 0.5)) saturate(calc(0.8 + var(--g-rise, 0) * 0.2));
         }
         .op-gate-door.is-l { left: 0; transform: translateX(calc(var(--g-open, 0) * -100%)); }
         .op-gate-door.is-r { right: 0; transform: translateX(calc(var(--g-open, 0) * 100%)); }
         .op-gate-img {
           position: absolute; top: 0; width: 100vw; height: 100%;
           background: url(/images/brana-final.webp) center / cover no-repeat;
-          transform: scale(calc(1.08 - var(--g-rise, 0) * 0.08));
+          transform: scale(calc(1 + var(--g-rise, 0) * 0.04));
         }
         /* Obe polovice nesú CELÚ bránu (100vw), jej stred leží na švíku. */
         .op-gate-door.is-l .op-gate-img { left: 0; }

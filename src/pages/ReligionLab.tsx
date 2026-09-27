@@ -113,9 +113,13 @@ interface ReligionLabProps {
    * ReligionLab v režime filmu ju už nevykresľuje vôbec.
    */
   onOpenBook?: () => void;
+  /** Info chip s cieľom: klik = ďalšia obrazovka filmu. */
+  onChipNext?: () => void;
+  /** Info chip o biblii: klik = skok ku knihe na konci filmu. */
+  onChipBook?: () => void;
 }
 
-export default function ReligionLab({ embedded = false, flow = false, onOpenBook }: ReligionLabProps = {}) {
+export default function ReligionLab({ embedded = false, flow = false, onOpenBook, onChipNext, onChipBook }: ReligionLabProps = {}) {
   const t = useT();
   const [active, setActive] = useState(0);
   /** Ktoré sekcie už boli odhalené. Jednosmerné — odhalené ostáva odhalené. */
@@ -1330,16 +1334,31 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
            · .codex-question-big margin-top clamp(12px,1.8vh,24px) v @media(min-width:768px) [BOW→DOGLOVERS odstup]
            · "ARE YOU READY?" odstránené. NEMENIŤ PC bez Matejovho OK. Mobil = vlastný HARD LOCK nižšie. */
         .codex-chip {
-          display: inline-flex; align-items: center; justify-content: center;
-          margin: 0; padding: 8px 16px; border-radius: 999px;
-          border: 1px solid rgba(201,154,63,.55);
-          background: rgba(250,243,225,.72);
-          color: #5a3d16;
-          font-family: 'Space Grotesk', sans-serif; font-weight: 500;
+          /* INFO CHIP = jednotný tvar pre celý film (Matej 27. 9. 2026: *„chip
+             dajme farebný, viac pútavý, lapisové písmená a dvojitý okraj ako
+             keby pulz… uzákonime info chip, kliknutím sa posúva obrazovka"*). */
+          position: relative; display: inline-flex; align-items: center; justify-content: center;
+          margin: 0; padding: 8px 16px; border-radius: 999px; cursor: pointer;
+          border: 1.5px solid ${LAPIS.edge};
+          background: linear-gradient(180deg, #FFFBF1 0%, #F6EAD0 100%);
+          color: ${LAPIS.edge};
+          font-family: 'Space Grotesk', sans-serif; font-weight: 600;
           font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
           line-height: 1.3; text-align: center;
-          box-shadow: 0 0 0 4px rgba(201,154,63,.08);
+          box-shadow: 0 0 0 3px #F6EAD0, 0 0 0 4px rgba(22,48,122,.45), 0 6px 16px -8px rgba(10,26,74,.45);
+          transition: transform .2s ease;
         }
+        .codex-chip::after {
+          content: ''; position: absolute; inset: -5px; border-radius: inherit; pointer-events: none;
+          border: 1px solid rgba(22,48,122,.55);
+          animation: codexChipPulse 2.4s ease-out infinite;
+        }
+        @keyframes codexChipPulse {
+          0% { transform: scale(1); opacity: .9; }
+          70%, 100% { transform: scale(1.12, 1.45); opacity: 0; }
+        }
+        .codex-chip:hover { transform: translateY(-1px); }
+        @media (prefers-reduced-motion: reduce) { .codex-chip::after { animation: none; opacity: .5; } }
         .codex-3-overlay {
           position: relative;
           z-index: 2;
@@ -2187,7 +2206,7 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
                     /religion-lab si CTA drží. */}
                 <div className="codex-cta-cluster">
                   {flow ? (
-                    <p className="codex-chip">{t('religion.hook.claim.goalChip')}</p>
+                    <button type="button" className="codex-chip" onClick={onChipNext}>{t('religion.hook.claim.goalChip')}</button>
                   ) : (<>
                     <Link to="/entry" className="codex-cta">
                       {t('religion.cta')}
@@ -2250,7 +2269,7 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
               {/* 🔴 27. 9. 2026: CTA do knihy ZRUŠENÉ — Matej: *„namiesto CTA
                   dajme do chipu — psiu bibliu nájdeš na konci tejto stránky!"*.
                   Kniha stojí v pätičke filmu; `onOpenBook` ostáva pre ňu. */}
-              {flow && <p className="codex-chip codex-chip--book">{t('religion.preamble.bookChip')}</p>}
+              {flow && <button type="button" className="codex-chip codex-chip--book" onClick={onChipBook}>{t('religion.preamble.bookChip')}</button>}
             </div>
           </div>
         </section>

@@ -62,6 +62,7 @@ import NavMedallion, { NAV_MEDALLION_CSS } from './NavMedallion';
 import { filmVh } from '@/lib/filmVh';
 import { useFilmStops } from './filmStops';
 import FilmGate, { GATE_REST, GATE_TOUCH } from './FilmGate';
+import FilmCue, { FILM_CUE_CSS } from './FilmCue';
 
 // ── OBRAZY FILMU SÚ NA JEDNOM MIESTE ────────────────────────────────────────
 // Matejov zoznam z 2. 9. 2026, doslova: *„1-HOME · 2 COW vs DOG · 3 Religion ·
@@ -381,13 +382,16 @@ const SPOT_IN: readonly [number, number] = [0.94, 1.0];
  * zviera. Dáva to zmysel výjavu: kravin argument sa skončil na predošlej
  * obrazovke, svetlo odteraz patrí psovi — rovnako ako svätožiara.
  */
-const COW_OUT: readonly [number, number] = [0.10, 0.44];
+const COW_OUT: readonly [number, number] = [0.08, 0.50];
 /**
  * CIEĽOVÁ krycia hodnota kravy — nie odpočítaná, ale to, čo z nej ostane.
  * NIE 0.26 z pôvodného stlmenia neaktívneho výjavu: na papyruse z nej pri 0.26
  * ostane duch a veta znie „krava zmizla", nie „vybledla".
  */
-const COW_DIM = 0.38;
+// 🔴 27. 9. 2026: 0 (bola 0.38) — Matej: *„treba zjemniť prechod z 2-3 slajd,
+// krajší posun"*. Vybledlý duch kravy stál pol prechodu na mieste; teraz
+// krava ODCHÁDZA doľava (--op-cowx) a zároveň zhasína.
+const COW_DIM = 0;
 /**
  * Kedy sa spodná lišta prezlečie z nástrojov na CTA chip.
  * Viazané na dráhu prechodu, nie na vlastný prah v pixeloch — je to výmena
@@ -2808,6 +2812,7 @@ export default function OnePage() {
       // BLEDNE UŽ LEN KRAVA (viď COW_OUT). Hektor si drží farbu po celý film —
       // spoločné stlmenie oboch zaniklo spolu so štvrtým obrazom.
       put(n.bleed, 'cw', '--op-cow', (1 - (1 - COW_DIM) * seg(q, COW_OUT[0], COW_OUT[1])).toFixed(3));
+      { const cx = seg(q, COW_OUT[0], COW_OUT[1]); put(n.bleed, 'cwx', '--op-cowx', (cx * cx * (3 - 2 * cx)).toFixed(3)); }
       // SVÄTOŽIARA HEKTORA — odpoveď na predchádzajúci obraz, nie jeho ozdoba.
       // Prichádza hneď za blednutím kravy: pes ostal sám, a až vtedy svieti.
       // Sedí na bleede (tam žijú obe zvieratá aj obe halá), nie na texte.
@@ -3734,6 +3739,8 @@ export default function OnePage() {
   const filmGo = useFilmStops({
     stops: filmStops,
     free: filmFree,
+    // Pomalšia jazda než predvolená — prechody filmu majú dýchať (27. 9. 2026).
+    duration: (screens) => Math.round(Math.min(2800, Math.max(1000, 700 + 600 * screens))),
     paused: () => bookOpenRef.current || wallOpenRef.current || albaOpenRef.current || document.body.style.overflow === 'hidden',
     onMove: setFilmMoving,
   }, true);
@@ -3781,14 +3788,7 @@ export default function OnePage() {
           šípky, ktoré navádzajú na SLIDE… 3 pod sebou blikajúce"*. Jedny pre
           celý film; počas jazdy motora zhasnú, klik = ďalšia obrazovka. */}
       {!wallOpen && !atFilmEnd && (
-        <button
-          type="button"
-          className={`op-cue${filmMoving ? ' is-moving' : ''}`}
-          aria-label={t('onepage.cue.next')}
-          onClick={() => filmGo(1)}
-        >
-          <i /><i /><i />
-        </button>
+        <FilmCue moving={filmMoving} onNext={() => filmGo(1)} label={t('onepage.cue.next')} />
       )}
       {albaOpen && (
         <div className="op-alba" role="dialog" aria-modal="true" aria-label="ALBA" data-film-free onClick={() => setAlbaOpen(false)}>
@@ -3944,7 +3944,7 @@ export default function OnePage() {
            zmenšovať nesmie. */
         /* Mierku pise JS; tu treba vypnut len 620 ms prechod, ktory by pri
            scrolle sposobil, ze gula trieli za prstom. */
-        .op-planet .planet-root.open .planet-stage { transition: none; }
+        .op-planet .planet-root.open .planet-stage { transition: translate 620ms cubic-bezier(.22,.9,.28,1); }
 
         /* ── FILM ─────────────────────────────────────────────────────────
            Záporný okraj o presne jednu obrazovku vťahuje film NA guľu: prvý
@@ -4106,12 +4106,16 @@ export default function OnePage() {
           content: '';
           position: absolute;
           inset: 0;
-          background-image: url('/images/bg-dark.webp');
+          /* 🔴 27. 9. 2026: TAPETA = ZHASNUTÁ BRÁNA, nie hieroglyfy. Matej: *„už tu
+             by som dal prechod nie na dark pozadie, ale tú bránu… len v tme,
+             nie žiariacu… veľmi zatmavnutá, nech je písmo z príbehu čitateľné"*.
+             Na konci príbehu sa tá istá brána rozsvieti a otvorí (FilmGate.tsx). */
+          background-image: url('/images/brana-final.webp');
           background-size: cover;
           background-position: center;
           background-repeat: no-repeat;
-          filter: blur(3px);
-          opacity: 0.42;
+          filter: brightness(0.5) saturate(0.8);
+          opacity: 0.4;
         }
 
         /* ── FILM SA POSÚVA PO STRÁNKACH (snap) ───────────────────────────
@@ -4165,30 +4169,28 @@ export default function OnePage() {
            animovanou jazdou bil. Platí aj proti VisionLabu, ktorý si
            proximity zapína sám. Značky nižšie ostávajú ako záznam. */
         html:has(.op-root) { scroll-snap-type: none !important; }
-        .op-cue {
-          position: fixed; left: 50%; bottom: 4px; z-index: 60;
-          transform: translateX(-50%);
-          display: flex; flex-direction: column; align-items: center; gap: 0;
-          padding: 4px 16px; background: none; border: 0; cursor: pointer;
-          transition: opacity .35s ease;
-        }
-        .op-cue.is-moving { opacity: 0; pointer-events: none; }
-        .op-cue i {
-          display: block; width: 12px; height: 12px; margin-top: -2px;
-          border-right: 2px solid #C99A3F; border-bottom: 2px solid #C99A3F;
-          transform: rotate(45deg);
-          opacity: .15;
-          animation: opCue 1.8s ease-in-out infinite;
-        }
-        .op-cue i:nth-child(2) { animation-delay: .2s; }
-        .op-cue i:nth-child(3) { animation-delay: .4s; }
-        @keyframes opCue {
-          0%, 100% { opacity: .15; }
-          35% { opacity: 1; filter: drop-shadow(0 0 4px rgba(201,154,63,.7)); }
-        }
-        @media (prefers-reduced-motion: reduce) { .op-cue i { animation: none; opacity: .7; } }
+        ${FILM_CUE_CSS}
         /* Starý A/B prepínač steny je dielňa /wall-lab — vo filme nemá čo robiť ani v deve. */
         .op-root .ab-switch { display: none !important; }
+        /* ── LIŠTA STENY V HORNOM NAVE (27. 9. 2026) ─────────────────────
+           Z plávajúcej zlatej lišty ostanú len dve tlačidlá v rade s loginom.
+           Terč (center) a mobilný jazyk tu nie sú — jazyk má nav vlastný. */
+        .main-nav .nav-tools { display: contents; }
+        .main-nav .nav-tools .gods-dock-portal { display: flex; }
+        .main-nav .nav-tools .gods-bottom-bar {
+          position: static; transform: none; padding: 0; gap: 8px;
+          background: none; border: 0; box-shadow: none; border-radius: 0;
+        }
+        .main-nav .nav-tools .gods-bottom-bar::before,
+        .main-nav .nav-tools .gods-bottom-bar::after { display: none; }
+        .main-nav .nav-tools .center-btn-mobile,
+        .main-nav .nav-tools .lang-btn-mobile,
+        .main-nav .nav-tools .gbb-cta { display: none !important; }
+        .main-nav .nav-tools .filter-btn { width: 40px; height: 40px; }
+        @media (max-width: 768px) {
+          .main-nav .nav-tools .filter-btn { width: 32px; height: 32px; }
+          .main-nav .nav-tools .gods-bottom-bar { gap: 6px; }
+        }
         .dgx-rulerow { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
         .dgx-example {
           pointer-events: auto; cursor: pointer;
@@ -5172,7 +5174,7 @@ export default function OnePage() {
              mierke 1.14 a origin bottom left. */
           .op-root.op-root .codex-bleed .codex-cow {
             transform: translateX(calc(
-              var(--op-in, 0) * -120% - var(--op-split, 0) * 140%
+              var(--op-in, 0) * -120% - var(--op-split, 0) * 140% - var(--op-cowx, 0) * 45%
             )) scale(1.14);
           }
           .op-root.op-root :is(.codex-bleed, .codex-spotlayer) .codex-hektor {
@@ -6838,6 +6840,9 @@ export default function OnePage() {
               PC dropdown zavesený pod pilulku. Jedna inštancia by musela meniť
               variant podľa `matchMedia`, teda držať šírku okna v stave. */}
           <span className="main-nav-right">
+            {/* KOMPAS + MRIEŽKA zo zrušenej spodnej lišty (27. 9. 2026) — poradie
+                kompas · mriežka · login · jazyk. Plní ich GodsGridLab portálom. */}
+            <span className="nav-tools" id="op-nav-tools" />
             <span className="nav-lang-mobile"><LanguagePicker variant="flow" /></span>
             <a href="/login" className="nav-login" aria-label={t('nav.login')}>
               <HandHouseHeart size={20} />
@@ -6886,7 +6891,7 @@ export default function OnePage() {
               úspora batérie: tá slučka číta 15× za sekundu dlaždicu pod kurzorom
               cez elementFromPoint nad ~1000 prvkami v 3D — a keďže je guľa
               prilepená na CELÝ film, bežala by pri každom scrolle až po pätu. */}
-          <GodsGridLab embedded portalDock paused={past} onWallChange={setWallOpen} />
+          <GodsGridLab embedded portalDock dockHostId="op-nav-tools" paused={past} onWallChange={setWallOpen} />
         </div>
 
         <div className="op-film">
@@ -6895,7 +6900,14 @@ export default function OnePage() {
             odkrýva riadky s odstupmi 100/220/340/460 ms. Nemá zmysel k tomu
             pridávať druhú animáciu — bili by sa. */}
         <section className="op-scene" id="op-religion" aria-label={t('nav.religion')}>
-          <ReligionLab embedded flow onOpenBook={() => setBookOpen(true)} />
+          <ReligionLab
+            embedded flow onOpenBook={() => setBookOpen(true)}
+            onChipNext={() => filmGo(1)}
+            onChipBook={() => {
+              const b = document.querySelector<HTMLElement>('.op-book');
+              if (b) window.scrollTo({ top: b.getBoundingClientRect().top + window.scrollY - filmVh() * 0.15, behavior: 'smooth' });
+            }}
+          />
         </section>
 
         {/* ── OBRAZ 3 — VIDEO A VÍZIA ────────────────────────────────────

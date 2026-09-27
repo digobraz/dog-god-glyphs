@@ -2031,8 +2031,19 @@ export function DogPlanetLab({
         /* Guľa sa uhýba PODĽA ŠÍRKY PANELA, nie o pevný počet pixelov —
            panel rastie s oknom a pevný posun by ho pri širokom okne nechal
            ležať na psoch. */
+        /* 🔴 27. 9. 2026: posun ide cez vlastnosť translate, NIE v transform.
+           Film (/onepage) vypína prechod na transform (mierka ide s prstom),
+           a tým zabil aj uhnutie gule — detail len „blikol". Oddelený posun si
+           drží vlastný prechod nezávisle od mierky. */
         .planet-root.open.pop.v-side .planet-stage {
-          transform: translateX(calc(-1 * (var(--pw) / 2 + 40px))) scale(var(--op-sc, 1));
+          translate: calc(-1 * (var(--pw) / 2 + 40px)) 0;
+        }
+        .planet-stage { transition: transform 620ms cubic-bezier(.22,.9,.28,1), opacity 420ms ease, translate 620ms cubic-bezier(.22,.9,.28,1); }
+        /* Panel sa pri prvom otvorení vykreslí rovno s triedou pop — prechod
+           nemá odkiaľ štartovať, preto príchod nesie aj animácia. */
+        @keyframes ppSideIn { from { transform: translate(calc(100% + 46px), -50%); opacity: 0; } to { transform: translate(0, -50%); opacity: 1; } }
+        @media (min-width: 761px) {
+          .planet-root.pop.v-side .pp-panel { animation: ppSideIn 520ms cubic-bezier(.22,.9,.28,1) both; }
         }
         /* NAV STENY IDE NAD PLANÉTU (Matej 25. 8.: „namiesto toho sem prehoď
            spodný nav aj vrchné"). Bar aj horné menu sú fixované na z-index 50,

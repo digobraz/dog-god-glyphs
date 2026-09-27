@@ -12,7 +12,7 @@
 // ⚠️ CSS triedy sú globálne a zhodné s originálom; naraz je namontovaná vždy len
 //    jedna z dvoch stien, takže kolízia nehrozí.
 // ════════════════════════════════════════════════════════════════════════════
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 
@@ -410,6 +410,10 @@ interface GodsGridLabProps {
    * zlaty odliatok (.theme-light .gods-bottom-bar) a ostal by z nej holy riadok.
    */
   portalDock?: boolean;
+  /** 27. 9. 2026: lišta nejde do <body>, ale do prvku s týmto id (horný nav
+   *  filmu). Matej: *„z homepage zrušme dolný nav a tie 2 ikonky presuňme hore
+   *  do pravej strany horného navu"*. Kým hostiteľ nie je v DOM-e, nekreslí sa. */
+  dockHostId?: string;
   /**
    * Zastavi bezuce slucky gule (automaticke otacanie + citanie dlazdice pod
    * kurzorom). Vo filme je gula prilepena na cely scroll, takze bez tohto by
@@ -430,7 +434,11 @@ interface GodsGridLabProps {
   onWallChange?: (wallOpen: boolean) => void;
 }
 
-export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHref = '/entry', portalDock = false, paused = false, onWallChange }: GodsGridLabProps = {}) {
+export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHref = '/entry', portalDock = false, dockHostId, paused = false, onWallChange }: GodsGridLabProps = {}) {
+  const [dockHost, setDockHost] = useState<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    if (dockHostId) setDockHost(document.getElementById(dockHostId));
+  }, [dockHostId]);
   const navigate = useNavigate();
   const t = useT();
   const appRef = useRef<HTMLDivElement>(null);
@@ -3535,7 +3543,9 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
         </div>
 
         {/* Spodná lišta. `portalDock` ju posiela do <body> — dôvod v props. */}
-        {portalDock
+        {portalDock && dockHostId && !dockHost
+          ? null
+          : portalDock
           ? createPortal(
               <div className="theme-light gods-dock-portal">
               <div className={`gods-bottom-bar${ctaMode ? ' has-cta' : ''}`}>
@@ -3596,7 +3606,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
                 {ctaLabel ? <a className="gbb-cta" href={ctaHref}>{ctaLabel}</a> : null}
               </div>
               </div>,
-              document.body
+              dockHost ?? document.body
             )
           : (
             <div className={`gods-bottom-bar${ctaMode ? ' has-cta' : ''}`}>
