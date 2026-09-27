@@ -53,6 +53,10 @@ import {
 } from '@/components/pack/triplist/triplist';
 import { RightGate } from '@/components/pack/RightGate';
 import { BackIcon } from '@/components/pack/BackButton';
+import { sizedUrl } from '@/services/cloudinaryService';
+
+// Karta je v mriežke najviac ~270 px (PC, 3 stĺpce v 832) a ~170 px (mobil, 2 stĺpce × DPR 2–3).
+const COVER_PX = 540;
 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
@@ -185,6 +189,9 @@ const CSS = `
 .tl-block.is-done{border-color:${T.growGreen};}
 .tl-block.is-done:hover{box-shadow:0 0 0 3px rgba(61,122,78,0.18),0 2px 8px rgba(122,90,42,0.16);}
 .tl-block-cover{position:relative;aspect-ratio:4/3;background-size:cover;background-position:center;background-color:rgba(201,154,63,0.14);}
+/* Fotka ako <img loading=lazy>, nie background-image (audit 27. 9. 2026): pozadie sa sťahuje
+   pre KAŽDÚ kartu hneď, aj mimo obrazovky — 73 prejdených výletov v origináli = 51 MB. */
+.tl-cover-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
 /* Výlet bez fotky (2026-08-14). Členom nahodený trip fotku nemá takmer nikdy, takže z holého
    background-color bola v prvom rade MY TRIPS diera. Fallback je brandový: tlmený zlatý nádych
    a hand-drawn hora (ikonka ide cez ::after, nie cez background-image — ten už drží fotka a
@@ -681,16 +688,19 @@ export default function PackTriplist() {
   // triplist) nemajú v DB čo hľadať a zbytočne by strieľali RPC. Slugy zo schránky
   // sa pridávajú aj keď v lokálnom triplíste (ešte) nie sú — inak by žiadosť visela bez mena.
   const partySlugs = useMemo(() => {
-    const s = new Set<string>(realMyTrips.map((r) => r.entry.tripId));
+    // Prejdený výlet partiu nečíta (statusLabel/statusClass pri `done` skončia skôr) —
+    // RPC je per výlet, takže 72 prejdených = 72 volaní naprázdno (audit 27. 9. 2026).
+    const s = new Set<string>(realMyTrips.filter((r) => !r.done).map((r) => r.entry.tripId));
     Object.keys(incoming.bySlug).forEach((slug) => s.add(slug));
     return [...s];
   }, [realMyTrips, incoming.bySlug]);
   const parties = useMyTripParties(partySlugs, reqEpoch);
 
   // #41: REÁLNE otvorené výlety ostatných členov (DB) + ich organizátori.
-  const { trips: dbOpenTrips } = useOpenTrips(reqEpoch);
+  // OPEN TRIPS sa bez PLANNING_LIVE nekreslí ⇒ ani nesťahuje (vzor PackMap).
+  const { trips: dbOpenTrips } = useOpenTrips(reqEpoch, PLANNING_LIVE);
   const openParties = useTripParties(
-    dbOpenTrips.map((o) => ({ slug: o.slug, organizerId: o.organizerId })),
+    PLANNING_LIVE ? dbOpenTrips.map((o) => ({ slug: o.slug, organizerId: o.organizerId })) : [],
     reqEpoch,
   );
   // najbližší nadchádzajúci trip → sub v TRIPLIST tab-e (Matej: „v headri môže byť info next trip za xy dní")
@@ -855,7 +865,8 @@ export default function PackTriplist() {
             navigate(tripPath(trail));
           }}
         >
-          <div className={`tl-block-cover${cover ? '' : ' nophoto'}`} style={cover ? { backgroundImage: `url('${cover}')` } : undefined}>
+          <div className={`tl-block-cover${cover ? '' : ' nophoto'}`}>
+            {cover && <img className="tl-cover-img" src={sizedUrl(cover, COVER_PX)} alt="" loading="lazy" decoding="async" draggable={false} />}
             <img className="tl-flag" src={flagUrl(trailCountry(trail))} alt="" loading="lazy" draggable={false} />
             {/* Kým výlet čaká na schválenie, badge NIE JE prepínač viditeľnosti —
                 prepínať nie je čo, pack ho aj tak nevidí. */}
@@ -1137,7 +1148,8 @@ export default function PackTriplist() {
                       navigate(tripPath(c.trail));
                     }}
                   >
-                    <div className={`tl-block-cover${(c.trail.photos[0] ?? placeholderFor(c.trail.acts, c.trail.id)) ? '' : ' nophoto'}`} style={{ backgroundImage: `url('${c.trail.photos[0] ?? placeholderFor(c.trail.acts, c.trail.id)}')` }}>
+                    <div className={`tl-block-cover${(c.trail.photos[0] ?? placeholderFor(c.trail.acts, c.trail.id)) ? '' : ' nophoto'}`}>
+                      {(c.trail.photos[0] ?? placeholderFor(c.trail.acts, c.trail.id)) && <img className="tl-cover-img" src={sizedUrl(c.trail.photos[0] ?? placeholderFor(c.trail.acts, c.trail.id), COVER_PX)} alt="" loading="lazy" decoding="async" draggable={false} />}
                       {/* menovka organizátora NA FOTKE (nie modrý rám — mapová farba,
                           iný význam), vlajka preto uhýba doprava, viď .tl-flag--r. */}
                       <div className="tl-block-ownertag">
