@@ -584,7 +584,6 @@ const PATRON_CSS = `
    aj foto aj písmo"*). Na telefóne má bublina ~302 px, takže 4,6cqw dá 13,9 a clamp
    spadne na spodnú hranicu — tá je teda JEDINÉ číslo, ktoré na mobile platí.
    Na PC sa nemení nič: 4,6cqw je tam nad 20 a clamp drží strop. */
-.pt-speak h2 { font-size: clamp(18px, 4.6cqw, 20px); }
 .pt-stack .hf-plate { gap: 10px; }
 
 /* ── PLEMENO ──────────────────────────────────────────────────────────────
@@ -740,13 +739,7 @@ const PATRON_CSS = `
       obrazovka ho nededí (to pravidlo visí na \`.dark-bg\`), takže si ho berie
       sama — ten istý recept: plochý papyrus, tlmený inkoust, žiadny tieň.
       Tvar ostáva, takže je vidno, čo pribudne, keď patrón pribudne. */
-.pt-stack .hf-cta:disabled {
-  opacity: 1; cursor: default;
-  background: ${T.tileBg};
-  color: ${LAB.inkMuted};
-  box-shadow: none;
-  border: 1.5px solid ${LAB.hairline};
-}
+/* ⚠️ 27. 9. 2026: pravidlo zaniklo — neaktívne CTA má vzhľad z E-MAILU, drží ho .hf-cta:disabled vo flowPaleSkin. */
 /* ── KRÁTKE OKNO: USTUPUJE OBSAH, NIE REZERVA ─────────────────────────────
    Lock \`PAGE_AIR\`: *kto sa nezmestí, ZMENŠÍ OBSAH — nie vzduch od okraja.*
    Po zväčšení prvého bloku (24. 9.) pretekala jediná zostava: **iPhone SE

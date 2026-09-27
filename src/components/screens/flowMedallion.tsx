@@ -209,6 +209,15 @@ type Props = {
  * ⚠️ Rozmer je inline `style` na komponente, takže sa z hárku prepísať NEDÁ —
  *    preto hook, a nie `@media`.
  */
+/**
+ * ── TRI VEĽKOSTI HEKTORA VO VSTUPE (Matej 27. 9. 2026) ─────────────────────
+ * *„ustáliť najmenšiu, najväčšiu a klasickú veľkosť"*:
+ *   · MALÁ      = Hektor v bubline pri otázke → `useSpeakMedal` (PODSTATA, PATRÓN,
+ *                 POVAHA, MAJITEĽ — musia byť ZHODNÉ, susedné kroky nesmú skákať)
+ *   · KLASICKÁ  = Hektor sám nad doskou (MENO, E-MAIL, ZADRŽANIE) — ráta sa z okna
+ *   · VEĽKÁ     = úvod a finále (odhalenie, uvítanie po platbe)
+ * SVORKA drží 104 px (Matejova voľba „C" 24. 9.) — stojí mimo radu otázok.
+ */
 export function useSpeakMedal(): number {
   const [box, setBox] = useState(() => (typeof window === 'undefined'
     ? { w: 1024, h: 768 }

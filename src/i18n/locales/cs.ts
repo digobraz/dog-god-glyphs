@@ -223,7 +223,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.breed.question': 'Vyber patrona pro {name}.',
   // ⚠️ Skrátené 24. 9. 2026 pre zliatu obrazovku PATRÓN (dôvod v en.ts).
   'heroglyph.flow.breed.subtitle': 'Hledání podle plemene ti pomůže — ale výběr je na tobě.',
-  'heroglyph.flow.breed.needs': 'Tvůj pes potřebuje patrona.',
+  'heroglyph.flow.breed.needs': 'Vyber si patrona.',
   'heroglyph.flow.breed.legend': 'Patron',
   'heroglyph.flow.breed.mix.second': 'Druhé plemeno',
   'heroglyph.flow.breed.pickHint': 'Patrona vyber podle siluety, která tvému psovi sedí nejvíc.',
@@ -286,7 +286,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.owner.chipName': "JMÉNO",
   'heroglyph.flow.owner.chipStars': "HVĚZDY",
   'heroglyph.flow.owner.chipOrder': "POŘADÍ",
-  'heroglyph.flow.owner.askWho': "Kdo jsi?",
+  'heroglyph.flow.owner.askWho': 'Kdo jsi, *člověče*?',
   'heroglyph.flow.owner.askName': "Jak se jmenuješ?",
   'heroglyph.flow.owner.askBornM': "Kdy ses narodil?",
   'heroglyph.flow.owner.askBornF': "Kdy ses narodila?",
@@ -559,8 +559,8 @@ export const cs: Partial<Dict> = {
   // ── /heroglyph flow — krok 12: charakter psa ──
   'heroglyph.flow.dogCharacter.infoAria': 'Info o charakteru',
   'heroglyph.flow.dogCharacter.title': 'Charakter',
-  'heroglyph.flow.dogCharacter.questionPrefix': 'Jaká je ',
-  'heroglyph.flow.dogCharacter.questionWord': 'povaha',
+  'heroglyph.flow.dogCharacter.questionPrefix': '',
+  'heroglyph.flow.dogCharacter.questionWord': 'Povaha',
   'heroglyph.flow.dogCharacter.questionSuffix': ' tvého psa?',
   'heroglyph.flow.dogCharacter.chooseTwo': 'Vyber dvě možnosti.',
   'heroglyph.flow.dogCharacter.infoTitle': 'Vyber vibe svého psa',

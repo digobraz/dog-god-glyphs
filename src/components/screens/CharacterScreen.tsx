@@ -175,7 +175,8 @@ export function CharacterScreen() {
                    iPhone SE preteká o 67 px a SVORKA o 64, takže by ich väčší
                    Hektor potopil ešte hlbšie. Keď sa tie dve zoštíhlia, patrí
                    toto číslo do `useSpeakMedal` a tento riadok zmizne. */}
-            <FlowMedallion src={hekthorFace('dog-character')} size={medal + 24} />
+            {/* 27. 9. 2026 — Matej: *„podstata, povaha a patrón by mali mať takú istú veľkosť"*. +24 zaniklo: na iPhone SE by PATRÓN s väčším Hektorom klesol pod dno vzduchu (13 < 16 px). */}
+            <FlowMedallion src={hekthorFace('dog-character')} size={medal} />
             <span className="say">
               <h2>
                 {t('heroglyph.flow.dogCharacter.questionPrefix')}
@@ -327,7 +328,6 @@ const CHARACTER_CSS = `
    nadpis pri zmene šírky ticho pretečie. Tá istá dvojica hodnôt ako PODSTATA
    a PATRÓN, aby tri susedné kroky mali to isté písmo. */
 .ch-speak { container-type: inline-size; margin-bottom: 8px; }
-.ch-speak h2 { font-size: clamp(18px, 4.6cqw, 20px); }
 /* Zlaté slovo v otázke je zvýraznenie vnútri vety, nie druhá farba textu —
    ten istý zvyk, aký mala otázka v starom šate (\`text-amber-300\`). */
 /* Farbu slova drží \`.hf-speak b\` (HF_HIGHLIGHT) — tu sa neprepisuje. */
@@ -410,13 +410,7 @@ const CHARACTER_CSS = `
    PLOCHA cez celú šírku dosky (Matej to zamietol 31. 8. 2026: *„šedé tlačítko
    a tieň presvitá"*). Ten istý recept ako na PATRÓNOVI: plochý papyrus, tlmený
    inkoust, žiadny tieň. Tvar ostáva, takže je vidno, čo pribudne. */
-.ch-stack .hf-cta:disabled {
-  opacity: 1; cursor: default;
-  background: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%);
-  color: ${LAB.inkMuted};
-  box-shadow: none;
-  border: 1.5px solid ${LAB.hairline};
-}
+/* ⚠️ 27. 9. 2026: pravidlo zaniklo — neaktívne CTA má vzhľad z E-MAILU, drží ho .hf-cta:disabled vo flowPaleSkin. */
 
 
 /* ── 📱 NA TELEFÓNE JE DLAŽDICA VÄČŠIA ────────────────────────────────────

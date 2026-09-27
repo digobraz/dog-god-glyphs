@@ -345,8 +345,8 @@ export const esp: Partial<Dict> = {
   // ── /heroglyph flow — step 12: dog-character ──
   'heroglyph.flow.dogCharacter.infoAria': 'Información sobre el carácter',
   'heroglyph.flow.dogCharacter.title': 'El Carácter',
-  'heroglyph.flow.dogCharacter.questionPrefix': '¿Cómo es la ',
-  'heroglyph.flow.dogCharacter.questionWord': 'personalidad',
+  'heroglyph.flow.dogCharacter.questionPrefix': '¿El ',
+  'heroglyph.flow.dogCharacter.questionWord': 'carácter',
   'heroglyph.flow.dogCharacter.questionSuffix': ' de tu perro?',
   'heroglyph.flow.dogCharacter.chooseTwo': 'Elige dos opciones.',
   'heroglyph.flow.dogCharacter.infoTitle': 'Elige el rollo de tu perro',

@@ -345,9 +345,9 @@ export const ukr: Partial<Dict> = {
   // ── /heroglyph flow — step 12: dog-character ──
   'heroglyph.flow.dogCharacter.infoAria': 'Інформація про характер',
   'heroglyph.flow.dogCharacter.title': 'Характер',
-  'heroglyph.flow.dogCharacter.questionPrefix': 'Яка ',
-  'heroglyph.flow.dogCharacter.questionWord': 'вдача',
-  'heroglyph.flow.dogCharacter.questionSuffix': ' у твого пса?',
+  'heroglyph.flow.dogCharacter.questionPrefix': '',
+  'heroglyph.flow.dogCharacter.questionWord': 'Вдача',
+  'heroglyph.flow.dogCharacter.questionSuffix': ' твого пса?',
   'heroglyph.flow.dogCharacter.chooseTwo': 'Вибери два варіанти.',
   'heroglyph.flow.dogCharacter.infoTitle': 'Вибери вайб свого пса',
   'heroglyph.flow.dogCharacter.infoBody':

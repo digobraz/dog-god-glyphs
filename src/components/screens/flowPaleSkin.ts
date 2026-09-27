@@ -43,7 +43,7 @@ export const HF = {
   //    s obručou (Matej: *„prečo nemá okolo fotky obruč ako na prvých dvoch?"*)
   //    a priemer si počíta `EmailScreen` z okna — obruč je súčasť čísla, takže
   //    spoločný token by klamal o veľkosti samotnej fotky.
-  bubble: { radius: 16, pad: 20, title: 21 }, // 21 = e-mail (Matej 26. 9. 2026: „email: nadpis zväčši na 21“; stupeň nadpisov flowu 18 · 21 · 24)
+  bubble: { radius: 16, pad: 20 },
   // ⚠️ Matej 31. 8.: *„pri /name sú horizontálne veľké CTA a text area = malý priestor
   //    medzi okrajom bloku a obsahom, trošku to prevzdušnime"*. Doska mala 14 px na
   //    všetky strany a 10 px medzi prvkami — pole aj tlačidlo sa lepili na zlatý rám.
@@ -51,7 +51,8 @@ export const HF = {
   //    vodorovne stojí tesne pri hrane okna, takže sa oko oprie práve tam.
   card: { pad: 18, padX: 22, gap: 14 },
   gapBlocks: 12,
-  cta: { h: 40, radius: 12, size: 14 },
+  // Rohy = LOCK CTA 8 px (Matej 27. 9. 2026 nad hárkom 12 vs 8: *„tlačítko rohy dajme lock"*).
+  cta: { h: 40, radius: 8, size: 14 },
   field: { h: 48, radius: 12 },
 } as const;
 
@@ -60,7 +61,15 @@ export const HF = {
 export const HF_HIGHLIGHT = '#FCD34D';
 
 /** Podnadpis bubliny — LAB ho počíta z nadpisu, nie je to voľné číslo. */
-const BUBBLE_SUB = Math.max(11, Math.round(HF.bubble.title * 0.78));
+const BUBBLE_SUB = 16;
+
+// ── NADPIS OTÁZKY: JEDEN TVAR PRE CELÝ VSTUP (27. 9. 2026) ───────────────────
+// Audit 26. 9. našiel 7 veľkostí na 11 obrazovkách (16 · 18 · 20 · 21 · 24…);
+// Matej 27. 9.: *„pokúsime sa o 1. možnosť… premerať aj v iných jazykoch"*.
+// Premerané SK/EN/CS na 375×667, 390×844 a 1477×724: nič nepreteká; jediný
+// štvorriadok (EN POVAHA) vyriešil kratší text, nie menšie písmo.
+// 🔴 Obrazovky si nadpis bubliny NEPREPISUJÚ — veľkosť je len tu.
+export const FLOW_TITLE = 'clamp(20px, 4.6cqw, 24px)';
 
 // ── BUBLINA NA ŠÍRKU MÁ VLASTNÉ PÍSMO (24. 9. 2026) ─────────────────────────
 // Matej nad štyrmi veľkosťami vedľa seba: *„ok daj C"* — nadpis 24, podnadpis 14,
@@ -71,7 +80,7 @@ const BUBBLE_SUB = Math.max(11, Math.round(HF.bubble.title * 0.78));
 //    vo veľkej ploche pod veľkou tvárou a 17 px sedí; tu stojí vedľa medailónu
 //    v nízkom páse a zaniká. Zdvihnutie spoločnej hodnoty by nepozorovane zväčšilo
 //    pozdrav na predchádzajúcej obrazovke.
-const SPEAK = { title: 24, sub: 14 } as const;
+const SPEAK = { sub: 14 } as const;
 
 // ═══════════════════════════════════════════════════════════════════════
 // PAPYRUSOVÁ STENA — JEDEN ZDROJ PRE CELÝ VSTUP (23. 9. 2026)
@@ -239,7 +248,7 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
   margin: 0;
   font-family: 'Cinzel', serif;
   font-weight: 700;
-  font-size: ${HF.bubble.title}px;
+  font-size: ${FLOW_TITLE};
   line-height: 1.3;
   color: #FAF4EC;
 }
@@ -414,7 +423,7 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
 .hf-speak .say { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .hf-speak h2 {
   margin: 0; font-family: 'Cinzel', serif; font-weight: 700;
-  font-size: ${SPEAK.title}px; line-height: 1.25; color: #FAF4EC;
+  font-size: ${FLOW_TITLE}; line-height: 1.25; color: #FAF4EC;
   /* Dva riadky = rovnomerne (Matej 26. 9.: *„ak je to na 2 riadky, nech sa to
      rozdelí rovnomerne, nie aby v hornom bolo o mnoho viac textu"*). */
   text-wrap: balance;
@@ -898,7 +907,11 @@ export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `
   transition: background .18s, transform .18s, opacity .18s;
 }
 .hf-cta:hover:not(:disabled) { background: ${LAPIS.gradHover}; transform: scale(1.02); }
-.hf-cta:disabled { opacity: .4; cursor: default; }
+/* NEAKTÍVNE = vzhľad z E-MAILU na KAŽDOM kroku (Matej 27. 9. 2026: *„ujasni vzhľad
+   neaktívneho tlačidla tak ako je na emaile"*). Nahrádza bledý papyrus, ktorý mali
+   PATRÓN/POVAHA/MAJITEĽ po 31. 8. 2026 (*„šedé tlačítko a tieň presvitá"*) — novší
+   pokyn prebíja; tieň sa pri neaktívnom preto vypína, aby nepresvital. */
+.hf-cta:disabled, .hf-cta.is-off { opacity: .4; cursor: default; box-shadow: none; }
 
 /* ── PRESKOČENIE — dostupné, nie ponúkané ─────────────────────────────── */
 .hf-skip {

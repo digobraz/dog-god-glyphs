@@ -303,7 +303,7 @@ export const sk: Partial<Dict> = {
   // ⚠️ Skrátené 24. 9. 2026 (viď en.ts) a zároveň opravené „Rasa" → „plemeno":
   //    appka hovorí PLEMENO všade inde, vrátane placeholderov o dva riadky nižšie.
   'heroglyph.flow.breed.subtitle': 'Vyhľadávanie podľa plemena ti pomôže — no výber je na tebe.',
-  'heroglyph.flow.breed.needs': 'Tvoj pes potrebuje patróna.', // bez mena — pri svorke sa pýta raz za všetkých (Matej 26. 9. 2026)
+  'heroglyph.flow.breed.needs': 'Vyber si patróna.', // bez mena — pri svorke sa pýta raz za všetkých (Matej 26. 9. 2026)
   'heroglyph.flow.breed.legend': 'Patrón',
   'heroglyph.flow.breed.mix.second': 'Druhé plemeno',
   'heroglyph.flow.breed.pickHint': 'Patróna vyber podľa siluety, ktorá tvojmu psovi sedí najviac.',
@@ -368,7 +368,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.owner.chipName': "MENO",
   'heroglyph.flow.owner.chipStars': "HVIEZDY",
   'heroglyph.flow.owner.chipOrder': "PORADIE",
-  'heroglyph.flow.owner.askWho': "Kto si?",
+  'heroglyph.flow.owner.askWho': 'Kto si, *človeče*?',
   'heroglyph.flow.owner.askName': "Ako sa voláš?",
   'heroglyph.flow.owner.askBornM': "Kedy si sa narodil?",
   'heroglyph.flow.owner.askBornF': "Kedy si sa narodila?",
@@ -643,8 +643,8 @@ export const sk: Partial<Dict> = {
   // ── /heroglyph flow — step 12: dog-character ──
   'heroglyph.flow.dogCharacter.infoAria': 'Info o charaktere',
   'heroglyph.flow.dogCharacter.title': 'Charakter',
-  'heroglyph.flow.dogCharacter.questionPrefix': 'Aká je ',
-  'heroglyph.flow.dogCharacter.questionWord': 'povaha',
+  'heroglyph.flow.dogCharacter.questionPrefix': '',
+  'heroglyph.flow.dogCharacter.questionWord': 'Povaha',
   'heroglyph.flow.dogCharacter.questionSuffix': ' tvojho psa?',
   'heroglyph.flow.dogCharacter.chooseTwo': 'Vyber dve možnosti.',
   'heroglyph.flow.dogCharacter.infoTitle': 'Vyber vibe svojho psa',

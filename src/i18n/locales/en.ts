@@ -406,7 +406,7 @@ export const en = {
   // Nadpis zliatej obrazovky PATRÓN (Matej 24. 9. 2026: „… potrebuje patróna").
   // Nové kľúče sú v sk/en/cs, zvyšok padá na EN fallback — ten istý postup ako
   // pri chipoch PODSTATY.
-  'heroglyph.flow.breed.needs': 'Your dog needs a patron.',
+  'heroglyph.flow.breed.needs': 'Choose a patron.',
   /** Vlys nad výberom patróna. */
   'heroglyph.flow.breed.legend': 'Patron',
   // ⚠️ VLASTNÝ kľúč, nie skrátený `mix.placeholder2`. Ten beží na LIVE
@@ -480,7 +480,7 @@ export const en = {
   'heroglyph.flow.owner.chipName': "NAME",
   'heroglyph.flow.owner.chipStars': "STARS",
   'heroglyph.flow.owner.chipOrder': "ORDER",
-  'heroglyph.flow.owner.askWho': "Who are you?",
+  'heroglyph.flow.owner.askWho': 'Who are you, *human*?',
   'heroglyph.flow.owner.askName': "What's your name?",
   'heroglyph.flow.owner.askBornM': "When were you born?",
   'heroglyph.flow.owner.askBornF': "When were you born?",
@@ -753,9 +753,9 @@ export const en = {
   // ── /heroglyph flow — step 12: dog-character ──
   'heroglyph.flow.dogCharacter.infoAria': 'Info about Character',
   'heroglyph.flow.dogCharacter.title': 'The Character',
-  'heroglyph.flow.dogCharacter.questionPrefix': "What's your dog's ",
-  'heroglyph.flow.dogCharacter.questionWord': 'personality',
-  'heroglyph.flow.dogCharacter.questionSuffix': ' like?',
+  'heroglyph.flow.dogCharacter.questionPrefix': "Your dog's ",
+  'heroglyph.flow.dogCharacter.questionWord': 'nature',
+  'heroglyph.flow.dogCharacter.questionSuffix': '?',
   'heroglyph.flow.dogCharacter.chooseTwo': 'Choose two options.',
   'heroglyph.flow.dogCharacter.infoTitle': "Pick your dog's vibe",
   'heroglyph.flow.dogCharacter.infoBody':

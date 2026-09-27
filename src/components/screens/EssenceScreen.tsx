@@ -266,7 +266,8 @@ export function EssenceScreen() {
                 CTA a pod."*). Ranné 104 bolo prevzaté z kroku SVORKA, kde je
                 Hektor hlavou obrazovky; tu stojí len ako ten, kto sa pýta, a
                 obrazovka potrebovala výšku inde. */}
-            <FlowMedallion src={hekthorFace('essence')} size={medal + 24} />
+            {/* 27. 9. 2026 — Matej: *„podstata, povaha a patrón by mali mať takú istú veľkosť"*. +24 zaniklo: na iPhone SE by PATRÓN s väčším Hektorom klesol pod dno vzduchu (13 < 16 px). */}
+            <FlowMedallion src={hekthorFace('essence')} size={medal} />
             <span className="say">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.h2
@@ -480,7 +481,6 @@ const ESSENCE_CSS = `
    jediné číslo, ktoré tam platí. Matej 24. 9. na kroku PATRÓN: *„na mobile môžme
    zväčšiť prvý blok aj foto aj písmo"*; prenesené sem, aby sa kroky nerozišli.
    Na PC sa nemení nič — tam 4,6cqw drží strop 20. */
-.es-speak h2 { font-size: clamp(16px, 4cqw, 18px); } /* Matej 26. 9.: otázka menším písmom, fotka väčšia */
 
 /* ⚠️ Tu stála DRUHÁ definícia \`.es-who\` — ranná pilulka (gradient, plný zlatý
    rám, polomer 999) z prvej verzie prepínača. Po presune riadka do dosky
@@ -648,7 +648,6 @@ const ESSENCE_CSS = `
   justify-content: center;
 }
 .es-cta { width: 100%; }
-.es-cta.is-off { opacity: 0.4; cursor: default; }
 .es-cta.is-off:hover { transform: none; }
 
 /* ── 🔴 KRÁTKE OKNO: JEDNA PEVNÁ POLOHA, NIE STUPŇOVANIE (25. 9. 2026) ───────

@@ -10,11 +10,13 @@ import { PageTopBar } from '@/components/PageTopBar';
 // ⚠️ Sady symbolov sa berú Z RÁMU, nevymenúvajú sa tu znovu — inak by náhľad
 //    vedľa poľa a slot v ráme boli dve rôzne sady toho istého.
 import { HeroglyphFrame, letterMap, zodiacMap, chineseMap, genderMap } from '@/components/HeroglyphFrame';
-import { FLOW_PALE_CSS, FLOW_CARVE_CSS, FLOW_GLYPH_CSS } from '@/components/screens/flowPaleSkin';
+import { FLOW_PALE_CSS, FLOW_CARVE_CSS, FLOW_GLYPH_CSS, HF_HIGHLIGHT } from '@/components/screens/flowPaleSkin';
 import { TopicChips, FLOW_TOPIC_CSS, type TopicState } from '@/components/screens/flowTopicChips';
 import { DateDropdowns } from '@/components/DateDropdowns';
 import { FlowMedallion, FLOW_MEDAL_CSS, useSpeakMedal } from '@/components/screens/flowMedallion';
 import { FlowTextModal } from '@/components/screens/flowTextModal';
+import { FlowPanelShell, FLOW_PANEL_CSS } from '@/components/screens/flowPanel';
+import cleopatraImg from '@/assets/cleopatra-cartouche.png';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { PACK_R, PACK_THEME, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
 import { LAB } from '@/lib/labTheme';
@@ -229,6 +231,10 @@ export function OwnerScreen() {
 
   /** Otvorený popup znamení. */
   const [sheet, setSheet] = useState(false);
+  // (i) EGYPTSKÁ INŠPIRÁCIA (Matej 27. 9. 2026: *„na pravú stranu bloku aj (i) a po
+  // kliku popup s infom o egyptskej inšpirácii… Kleopatra, heroglyf"*). Obsah je zo
+  // starého kroku OwnerFinal — preložený v 11 jazykoch, nový text netreba.
+  const [egypt, setEgypt] = useState(false);
 
   const pickDate = (d: number, m: number, y: number) => {
     setSelection('ownerBirthday', `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`);
@@ -331,7 +337,7 @@ export function OwnerScreen() {
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{FLOW_DOG_CSS}{FLOW_TOPIC_CSS}{OWNER_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{FLOW_DOG_CSS}{FLOW_TOPIC_CSS}{FLOW_PANEL_CSS}{OWNER_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
         <PageTopBar brandBack onBack={() => navigate('/heroglyph/dog-character')} />
@@ -358,10 +364,18 @@ export function OwnerScreen() {
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.2 }}
                 >
-                  {asks[topic]}
+                  {/* `*slovo*` = zvýraznené (Matej 27. 9.: „KTO si, človeče?" — *človeče* farebne). */}
+                  {asks[topic].split(/\*([^*]+)\*/).map((part, i) => (i % 2 ? <b key={i}>{part}</b> : part))}
                 </motion.h2>
               </AnimatePresence>
             </span>
+            <button
+              type="button"
+              className={`ow-info${egypt ? ' on' : ''}`}
+              aria-label={t('heroglyph.flow.ownerFinal.infoAria')}
+              aria-expanded={egypt}
+              onClick={() => setEgypt((v) => !v)}
+            >i</button>
           </motion.div>
 
           {/* ── 2. BLOK: RÁM → PORADIE → KTO SI → NARODENIE ──────────────── */}
@@ -377,6 +391,21 @@ export function OwnerScreen() {
               {/* KOHO HEROGLYF PRÁVE VIDÍM — rovnaký riadok ako na PODSTATE,
                   PATRÓNOVI a POVAHE, ale LEN NA PREZERANIE: majiteľ sa vypĺňa
                   raz, psy sa líšia len číslom a psou časťou rámu. */}
+              <AnimatePresence>
+                {egypt && (
+                  <FlowPanelShell key="egypt" className="ow-egypt" label={t('heroglyph.flow.ownerFinal.infoTitle')} onClose={() => setEgypt(false)}>
+                    <p className="hf-legend">{t('heroglyph.flow.ownerFinal.infoTitle')}</p>
+                    <div className="fp-scroll">
+                      <p className="ow-egypt-tx">{t('heroglyph.flow.ownerFinal.infoBody')}</p>
+                      <figure className="ow-egypt-fig">
+                        <img src={cleopatraImg} alt={t('heroglyph.flow.ownerFinal.cleopatraAlt')} />
+                        <figcaption>{t('heroglyph.flow.ownerFinal.cleopatraCaption')}</figcaption>
+                      </figure>
+                    </div>
+                    <button type="button" className="hf-cta" onClick={() => setEgypt(false)}>{t('heroglyph.flow.ownerFinal.back')}</button>
+                  </FlowPanelShell>
+                )}
+              </AnimatePresence>
               <FlowDogHeader dogs={dogs} cur={cur} onGo={setCur} />
               <span className="fdh-rule" aria-hidden />
 
@@ -593,8 +622,21 @@ export function OwnerScreen() {
 const OWNER_CSS = `
 /* Bublina: stupeň písma viazaný na ŠÍRKU BUBLINY (cqw), nie na okno — tá istá
    dvojica hodnôt ako PODSTATA, PATRÓN a POVAHA. */
-.ow-speak { container-type: inline-size; margin-bottom: 8px; }
-.ow-speak h2 { font-size: clamp(18px, 4.6cqw, 20px); }
+.ow-speak { container-type: inline-size; margin-bottom: 8px; position: relative; }
+/* (i) vpravo na bloku — písmeno v kruhu ako ⓘ v komunite (packCommunityUI), kit ikonku „info" nemá. */
+.ow-speak .say { flex: 1 1 auto; }
+.ow-info {
+  flex: 0 0 auto; align-self: flex-start; width: 28px; height: 28px; border-radius: 999px;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  background: transparent; border: 2px solid rgba(250, 244, 236, 0.55); color: #FAF4EC;
+  font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 16px; line-height: 1; /* Cinzel nemá malé „i“ */
+}
+.ow-info:hover, .ow-info.on { border-color: ${HF_HIGHLIGHT}; color: ${HF_HIGHLIGHT}; }
+.ow-stack .hf-plate { position: relative; }
+.ow-egypt-tx { margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.45; color: ${LAB.inkBody}; }
+.ow-egypt-fig { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.ow-egypt-fig img { width: 100%; max-width: 320px; border-radius: 8px; }
+.ow-egypt-fig figcaption { font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: ${LAB.inkMuted}; text-align: center; }
 /* Farbu slova drží \`.hf-speak b\` (HF_HIGHLIGHT) — tu sa neprepisuje. */
 /* Osem prvkov pod sebou — rozstup je 8, nie 12 ako na POVAHE. Tá nesie jednu
    otázku, táto štyri. */
@@ -726,13 +768,7 @@ button.ow-name:not(.is-valid) { text-transform: none; letter-spacing: normal; }
 /* ── ZAMKNUTÉ CTA NESIE MATERIÁL, NIE PRIESVITNOSŤ ────────────────────────
    Ten istý recept ako na PATRÓNOVI a POVAHE: 40 % lapisu je na papyruse šedá
    plocha cez celú šírku dosky (Matej to zamietol 31. 8. 2026). */
-.ow-stack .hf-cta:disabled {
-  opacity: 1; cursor: default;
-  background: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%);
-  color: ${LAB.inkMuted};
-  box-shadow: none;
-  border: 1.5px solid ${LAB.hairline};
-}
+/* ⚠️ 27. 9. 2026: pravidlo zaniklo — neaktívne CTA má vzhľad z E-MAILU, drží ho .hf-cta:disabled vo flowPaleSkin. */
 
 /* ── 📱 TELEFÓN ──────────────────────────────────────────────────────────
    Dátum a dve značky sa do 360 px v jednom riadku nezmestia — rolety pod 96 px
@@ -820,7 +856,6 @@ button.ow-name:not(.is-valid) { text-transform: none; letter-spacing: normal; }
    HOTOVO, nie ĎALEJ"* — znamenia sú potvrdený stav, nie krok vpred. Zelená =
    SPLNENÉ (\`PACK_THEME.growGreen\`, tá istá ako 100 % DOG ID). */
 .ow-next.is-done { background: ${PACK_THEME.growGreen}; border-color: ${PACK_THEME.growGreen}; color: #FDF7E7; }
-.ow-cta.is-off { opacity: 0.4; cursor: default; }
 .ow-cta.is-off:hover { transform: none; }
 @media (max-height: 700px) {
   .ow-q, .ow-q .ow-genders { min-height: 112px; }
