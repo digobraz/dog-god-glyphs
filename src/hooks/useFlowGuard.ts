@@ -20,6 +20,12 @@ export function useFlowGuard(enabled = true): boolean {
   const dogName = useDogyptStore((s) => s.dogName);
 
   useEffect(() => {
+    // DEV: `?dev=1` doplní HEKTHORA a pustí rovno na krok (náhľad pre Mateja, 27. 9. 2026).
+    //      V produkčnom builde `import.meta.env.DEV` je false a vetva vypadne.
+    if (import.meta.env.DEV && enabled && !dogName && new URLSearchParams(window.location.search).has('dev')) {
+      useDogyptStore.getState().setDogName('HEKTHOR');
+      return;
+    }
     if (enabled && !dogName) {
       navigate(FLOW_FIRST_STEP, { replace: true });
     }
