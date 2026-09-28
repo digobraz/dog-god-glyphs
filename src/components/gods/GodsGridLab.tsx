@@ -437,7 +437,9 @@ interface GodsGridLabProps {
 export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHref = '/entry', portalDock = false, dockHostId, paused = false, onWallChange }: GodsGridLabProps = {}) {
   const [dockHost, setDockHost] = useState<HTMLElement | null>(null);
   useLayoutEffect(() => {
-    if (dockHostId) setDockHost(document.getElementById(dockHostId));
+    // Bez hostiteľa (mobil vo filme) ide lišta späť do <body> — nesmie ostať
+    // visieť na starom hostiteľovi z PC šírky.
+    setDockHost(dockHostId ? document.getElementById(dockHostId) : null);
   }, [dockHostId]);
   const navigate = useNavigate();
   const t = useT();

@@ -64,6 +64,7 @@ import { useFilmStops } from './filmStops';
 import FilmGate, { GATE_REST, GATE_TOUCH, GATE_RIDE_MS, GATE_FADE } from './FilmGate';
 import FilmCue, { FilmTop, FILM_CUE_CSS } from './FilmCue';
 import FilmApps, { APPS_STOPS, APPS_OUT_VH, APPS_EXIT_VH } from './FilmApps';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // ── OBRAZY FILMU SÚ NA JEDNOM MIESTE ────────────────────────────────────────
 // Matejov zoznam z 2. 9. 2026, doslova: *„1-HOME · 2 COW vs DOG · 3 Religion ·
@@ -160,6 +161,11 @@ const GATE_KEYS = (from: number, to: number) => keyRide(from, to, [
   [pinnedAt('.op-gate', 0), 400],          // dojazd príbehu, brána prilepí
   [pinnedAt('.op-gate', GATE_REST), 900],  // rozžiarenie 0,5 s
   [pinnedAt('.op-gate', GATE_TOUCH), 900 + GATE_RIDE_MS], // otvorenie + dotyk
+  // 🔴 DOGTRIX ZAČÍNA UŽ NA DOTYKU (Matej 28. 9. 2026: *„dogtrix začne už na
+  // obrazovke, kde sú ruka a labka, v momente ako sa dotknú… takže na ďalší
+  // slajd ide len obsah"*). Ten istý ťah dotyk rozplynie a zastaví v plnom
+  // daždi, pred prvým písmenom.
+  [dgxAt(DGX.rainFull / 100), 900 + GATE_RIDE_MS + 900],
 ]);
 
 /** 🔴 DOGTRIX JEDNÝM ŤAHOM (Matej 28. 9. 2026: *„1 scroll načíta DOGTRIX
@@ -168,13 +174,13 @@ const GATE_KEYS = (from: number, to: number) => keyRide(from, to, [
  *  postupne"*). Zastávky rozplynutia, dopísaného glyfu a kót zanikli.
  *  Body sú odvodené z `DGX` — kto posunie beat, posunie sa aj čas. */
 const DGX_KEYS = (from: number, to: number) => keyRide(from, to, [
-  [from, 0],
-  [dgxAt(DGX.head / 100), 800],                          // dotyk sa rozplynul, padá dážď
-  [dgxAt((DGX.head + DGX.dur) / 100), 1300],             // nadpis 0,5 s
-  [dgxAt((DGX.glyph + DGX.glyphD) / 100), 2500],         // podnadpis + heroglyf
-  [dgxAt((DGX.kota + 3 * DGX.kotaStag + DGX.pulseW + DGX.kotaD) / 100), 6900], // 4 kóty, ~1,1 s každá
-  [dgxAt((DGX.sig + DGX.sigD) / 100), 8100],             // kóty zhasnú, Hektor
-  [absTop('.op-arc-rest2'), 8500],                       // konečný stav s navom
+  [from, 0],                                             // plný dážď (koniec ťahu brány)
+  [dgxAt(DGX.head / 100), 450],                          // eyebrow
+  [dgxAt((DGX.head + DGX.dur) / 100), 950],              // nadpis 0,5 s
+  [dgxAt((DGX.glyph + DGX.glyphD) / 100), 2150],         // podnadpis + heroglyf
+  [dgxAt((DGX.kota + 3 * DGX.kotaStag + DGX.pulseW + DGX.kotaD) / 100), 6550], // 4 kóty, ~1,1 s každá
+  [dgxAt((DGX.sig + DGX.sigD) / 100), 7750],             // kóty zhasnú, Hektor
+  [absTop('.op-arc-rest2'), 8150],                       // konečný stav s navom
 ]);
 
 /** Kde na dráhe hviezd ich javisko nabieha: od zhasnutia ČLENSTVA (polovica
@@ -1397,6 +1403,7 @@ const ALBA_SAME = false as boolean;
 const ALBA_CNT = false as boolean;
 
 export default function OnePage() {
+  const isMobile = useIsMobile();
   const t = useT();
   /** 🔴 DGX (dážď + dekodér) STAVIA VANILLA DOM V MOUNT-ONCE EFEKTE, takže by
    *  `t` z prvého renderu držal navždy. Ref nesie AKTUÁLNU funkciu; prepísanie
@@ -3939,9 +3946,9 @@ export default function OnePage() {
     const tl = document.querySelector<HTMLElement>('.op-timeline');
     if (tl) out.push(tl.getBoundingClientRect().top + window.scrollY + Math.max(0, tl.offsetHeight - filmVh()) * STORY_START);
     // Brána a DOGTRIX sú od 28. 9. po JEDNOM ťahu (viď GATE_KEYS, DGX_KEYS):
-    // koniec príbehu → dotyk → dopísaný DOGTRIX (.op-arc-rest2 nižšie).
-    const touch = pinnedAt('.op-gate', GATE_TOUCH);
-    if (touch != null) out.push(touch);
+    // koniec príbehu → dotyk a dážď → dopísaný DOGTRIX (.op-arc-rest2 nižšie).
+    const rain = dgxAt(DGX.rainFull / 100);
+    if (rain != null) out.push(rain);
     for (const sel of WNY_ON ? ['.op-arc-rest', '.op-arc-rest2'] : ['.op-arc-rest2']) {
       const y = absTop(sel);
       if (y != null) out.push(y);
@@ -7220,7 +7227,10 @@ export default function OnePage() {
               úspora batérie: tá slučka číta 15× za sekundu dlaždicu pod kurzorom
               cez elementFromPoint nad ~1000 prvkami v 3D — a keďže je guľa
               prilepená na CELÝ film, bežala by pri každom scrolle až po pätu. */}
-          <GodsGridLab embedded portalDock dockHostId="op-nav-tools" paused={past} onWallChange={setWallOpen} />
+          {/* 🔴 SPODNÁ LIŠTA OSTÁVA NA MOBILE (Matej 28. 9. 2026: *„spodný nav
+              nechaj na mobiloch — včera sme ho dali preč pri ladení PC"*).
+              Hore do navu ide kompas + mriežka len od 768 px. */}
+          <GodsGridLab embedded portalDock dockHostId={isMobile ? undefined : 'op-nav-tools'} paused={past} onWallChange={setWallOpen} />
         </div>
 
         <div className="op-film">
