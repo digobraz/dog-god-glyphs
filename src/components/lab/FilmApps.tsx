@@ -101,8 +101,11 @@ const PEEK = APPS_OUT_VH / TRACK_VH;
 const STEP = 100 / TRACK_VH;
 /** Zastávka „funkcia vľavo, telefóny vpravo". */
 const FEAT = PEEK + STEP;
-/** Zastávky motora na dráhe — od 28. 9. 2026 jediná. */
-export const APPS_STOPS = [FEAT];
+/** Zastávky motora na dráhe. 🔴 PEEK JE ZNOVA ZASTÁVKA (Matej 28. 9. 2026,
+ *  večer: *„po slajde s heroglyfom zostane snipnutý najprv obraz, kde je
+ *  nadpis členstvo a 3 telefóny dolu, až následný slajd posunie telefóny
+ *  doprava a text doľava"*). Ranný „jeden ťah" tým padol. */
+export const APPS_STOPS = [PEEK, FEAT];
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const smooth = (t: number) => t * t * (3 - 2 * t);

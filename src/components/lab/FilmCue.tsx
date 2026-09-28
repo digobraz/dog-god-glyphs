@@ -92,7 +92,7 @@ export const FILM_CUE_CSS = `
   }
   /* Na homepage (guľa) o 50 % väčšie — Matej 27. 9. 2026. 28. 9.: *„šípky
      dolu zväčši o 20 % iba na tejto obrazovke, nemôžu byť priesvitné a posuň
-     ich o 20px dolu"* ⇒ 1,5 × 1,2 = 1,8, krytie 1 (blik nesie len žiara; `--dim` ide inline z komponentu). */
+     ich o 20px dolu"* ⇒ 1,5 × 1,2 = 1,8, krytie 1 (blik nesie len žiara; --dim ide inline z komponentu). */
   .op-cue.is-big { transform: translateX(-50%) translateY(20px) scale(1.8); }
   /* ČLENSTVO — šípky VŽDY V STREDE (Matej 28. 9. 2026: *„táto obrazovka má
      šípky dolu na ľavej strane… vždy musia byť v strede! na každej obrazovke"*).

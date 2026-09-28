@@ -64,6 +64,7 @@ import { useFilmStops } from './filmStops';
 import FilmGate, { GATE_REST, GATE_TOUCH, GATE_RIDE_MS, GATE_FADE } from './FilmGate';
 import FilmCue, { FilmTop, FILM_CUE_CSS } from './FilmCue';
 import FilmApps, { APPS_STOPS, APPS_OUT_VH, APPS_EXIT_VH } from './FilmApps';
+import FilmFinale, { FIN_STOPS, FIN_OVER_VH } from './FilmFinale';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 // ── OBRAZY FILMU SÚ NA JEDNOM MIESTE ────────────────────────────────────────
@@ -178,9 +179,10 @@ const DGX_KEYS = (from: number, to: number) => keyRide(from, to, [
   [dgxAt(DGX.head / 100), 450],                          // eyebrow
   [dgxAt((DGX.head + DGX.dur) / 100), 950],              // nadpis 0,5 s
   [dgxAt((DGX.glyph + DGX.glyphD) / 100), 2150],         // podnadpis + heroglyf
-  [dgxAt((DGX.kota + 3 * DGX.kotaStag + DGX.pulseW + DGX.kotaD) / 100), 6550], // 4 kóty, ~1,1 s každá
-  [dgxAt((DGX.sig + DGX.sigD) / 100), 7750],             // kóty zhasnú, Hektor
-  [absTop('.op-arc-rest2'), 8150],                       // konečný stav s navom
+  [dgxAt((DGX.kota + DGX.pulseW + DGX.kotaD) / 100), 3250], // všetky 4 kóty naraz
+  [dgxAt((DGX.kota + DGX.pulseW + DGX.kotaD + DGX.holdGap) / 100), 6250], // 3 s na čítanie
+  [dgxAt((DGX.sig + DGX.sigD) / 100), 7450],             // kóty zhasnú, Hektor
+  [absTop('.op-arc-rest2'), 7850],                       // konečný stav s navom
 ]);
 
 /** Kde na dráhe hviezd ich javisko nabieha: od zhasnutia ČLENSTVA (polovica
@@ -202,10 +204,16 @@ const QUO_KEYS = (from: number, to: number) => keyRide(from, to, [
 /** WE NEED YOU JEDNÝM ŤAHOM, pomaly (28. 9. 2026): hviezdy zhasnú, faraón sa
  *  vynorí a obraz prejde všetkých jedenásť beatov (`ARC.nxt`). */
 const WNY_MS = 10000;
+/** Koniec obrazu WE NEED YOU. Sekcia je o `FIN_OVER_VH` dlhšia (výdrž, pod
+ *  ktorou sa vynorí FINÁLE), takže koniec už NIE JE `pinnedAt('.op-wny', 1)`. */
+const wnyEnd = (): number | null => {
+  const y = absTop('.op-wny');
+  return y == null ? null : y + (ARC.nxt.vh / 100) * filmVh();
+};
 const WNY_KEYS = (from: number, to: number) => keyRide(from, to, [
   [from, 0],
   [absTop('.op-wny'), 900],
-  [pinnedAt('.op-wny', 1), 900 + WNY_MS],
+  [wnyEnd(), 900 + WNY_MS],
 ]);
 
 /** Kde na dráhe crawlu stojí ROZBEHNUTÝ príbeh (zlatý text). Odmerané na
@@ -347,7 +355,7 @@ const FILM_SLIDES: FilmSlide[] = ([
     // dobehnutom obraze, na konci jeho dráhy.
     id: 'mission',
     navKey: 'film.slide.mission',
-    at: () => (WNY_END ? pinnedAt('.op-wny', 1) : pinnedAt('.op-arc', ARC_SPLIT)),
+    at: () => (WNY_END ? wnyEnd() : pinnedAt('.op-arc', ARC_SPLIT)),
     from: () => { if (!WNY_END) return pinnedAt('.op-arc', 0); const y = pinnedAt('.op-wny', 0.02); return y == null ? null : y + filmVh() * 0.5; },
   },
 ] as FilmSlide[]).filter((sl) => WNY_ON || WNY_END || sl.id !== 'mission');
@@ -779,6 +787,8 @@ const MILESTONES = [
 
    Tri beaty na jednej prilepenej dráhe. Podiely sú VNÚTRI nej, nie na celom
    filme — tak sa dá dráha predĺžiť bez prepisovania fáz. */
+/** Krytie citátov v pozadí, kým stojí nadpis (0–1). */
+const QUO_FAINT = 0.22;
 const QUO = {
   /** Nadpis a podnadpis prídu VEĽKÉ a sami — na obrazovke nie je nič iné. */
   headIn: [0.00, 0.16],
@@ -1149,12 +1159,16 @@ const DGX = {
      Plati len na PC (vodorovny glyf): mobilna `gwV` je odmerany strop z
      1. 9. a Matej mobil pri tomto pokyne nevidel. */
   gwK: 0.81,
-  kota: 42, kotaStag: 12, kotaD: 5, lead: 8,
+  // 🔴 VŠETKY KÓTY NARAZ (Matej 28. 9. 2026: *„pri heroglyphe sa nenačítajú
+  //    vysvetlivky zvlášť ale na 1× všetky"*). Rozostup 12 → 0; dráha, ktorú
+  //    zabrali tri rozostupy (36), sa pridala k výdrži (`holdGap` 2 → 38),
+  //    takže zhasnú na tom istom mieste ako predtým (89) a podpis sa nehýbe.
+  kota: 42, kotaStag: 0, kotaD: 5, lead: 8,
   pulseW: 4, pulseN: 3,
   kNamePx: 34, kNamePxM: 22,
   kPx: 12, kPxM: 9, kPx2: 13, kPx2M: 11, glow: 8,
   kotaEdge: 8, overHalo: 70,
-  holdGap: 2, offD: 3,
+  holdGap: 38, offD: 3,
   hintD: 4, hintPx: 11.7, hintPxM: 11,
   hint: 96,
   /* 🔴 „zmensi fotku a meno - pod heroglyfom (obsah) o 15%" (Matej 2. 9. 2026).
@@ -3313,6 +3327,10 @@ export default function OnePage() {
         // ── 6 · PODTITUL ─────────────────────────────────────────────────
         show(n.nxBeats?.sub, 'abs', ph(W.sub));
         put(n.nxLine, 'ass', '--ss', `${subSize(narrow).toFixed(1)}px`);
+        // CIEĽ sa ZAKRÚŽKUJE a zväčší (Matej 28. 9. 2026: *„pri potrebujeme ťa
+        // musíme zvýrazniť náš cieľ… napríklad zakrúžkovaním a zväčšením
+        // textu"*). Krúžok sa dokreslí až po príchode vety, počas pásu.
+        put(n.nxLine, 'asg', '--gc', ph(W.sub + 3, 5).toFixed(3));
 
         // ── 7–8 · PÁS ────────────────────────────────────────────────────
         const bIn = ph(W.zin);
@@ -3607,11 +3625,16 @@ export default function OnePage() {
             `translate(-50%, -50%) scale(${(0.96 + seg(qp, QUO.headIn[0], QUO.headIn[1]) * 0.04 + qout * 0.10).toFixed(3)})`);
         n.quoCols?.forEach((el, i) => {
           const cp = seg(qp, QUO.colsIn[0] + i * QUO.colStagger, QUO.colsIn[1] + i * QUO.colStagger);
-          put(el, 'qc' + i, 'opacity', cp.toFixed(3));
-          put(el, 'qct' + i, 'transform', `translateY(${((1 - cp) * 26).toFixed(1)}px)`);
-          // Citáty sa ZAOSTRIA (Matej 28. 9. 2026: *„nadpis sa rozplynie a bloky
-          // sa zaostria"*). Tri stĺpce, nie celá plocha — sekanie nehrozí.
-          put(el, 'qcb' + i, 'filter', cp >= 0.999 ? 'none' : `blur(${((1 - cp) * 8).toFixed(1)}px)`);
+          // 🔴 CITÁTY SÚ V POZADÍ UŽ OD PRÍCHODU (Matej 28. 9. 2026, večer:
+          // *„v pozadí sa načítajú bloky známych osobností, ktoré sa pohybujú,
+          // ale sú slabo viditeľné, potom nadpis (dobre čitateľný), potom sa
+          // nadpis rozplynie a recenzie sa zaostria a zviditeľnia"*). Pás beží
+          // od začiatku, len rozmazaný a na `QUO_FAINT` krytia; `cp` ho dotiahne.
+          const cv = qIn * (QUO_FAINT + (1 - QUO_FAINT) * cp);
+          put(el, 'qc' + i, 'opacity', cv.toFixed(3));
+          put(el, 'qct' + i, 'transform', `scale(${(0.96 + cp * 0.04).toFixed(3)})`);
+          // Tri stĺpce, nie celá plocha — sekanie nehrozí.
+          put(el, 'qcb' + i, 'filter', cp >= 0.999 ? 'none' : `blur(${((1 - cp) * 5).toFixed(1)}px)`);
         });
         // Zdroje fotiek (CC) sú právna podmienka, nie ozdoba — držia sa krytia
         // citátov, aby sa neobjavili skôr než to, k čomu patria.
@@ -3937,7 +3960,7 @@ export default function OnePage() {
       if (ap) {
         const top = ap.getBoundingClientRect().top + window.scrollY;
         // Len po zastávku funkcií (+ pol obrazovky) — za ňou už nabiehajú hviezdy.
-        const stop = pinnedAt('.op-apps', APPS_STOPS[0]) ?? top;
+        const stop = pinnedAt('.op-apps', APPS_STOPS[APPS_STOPS.length - 1]) ?? top;
         setInApps(window.scrollY >= top + 4 && window.scrollY < stop + window.innerHeight * 0.1);
       }
     };
@@ -3970,7 +3993,9 @@ export default function OnePage() {
     const quo = pinnedAt('.op-quo', QUO.colsIn[1]);
     if (quo != null) out.push(quo);
     // WE NEED YOU — jeden ťah cez celý obraz (viď WNY_KEYS).
-    if (WNY_END) { const w = pinnedAt('.op-wny', 1); if (w != null) out.push(w); }
+    if (WNY_END) { const w = wnyEnd(); if (w != null) out.push(w); }
+    // FINÁLE — portál v strede · portál vľavo + dvere (FilmFinale.tsx).
+    for (const f of FIN_STOPS) { const y = pinnedAt('.op-fin', f); if (y != null) out.push(y); }
     out.push(document.documentElement.scrollHeight - window.innerHeight);
     return out;
   }, []);
@@ -4522,12 +4547,6 @@ export default function OnePage() {
           animation: opAlbaCard .45s cubic-bezier(.2,.8,.2,1) both;
         }
         @keyframes opAlbaCard { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
-        .op-alba-x {
-          position: absolute; top: 12px; right: 12px; width: 40px; height: 40px;
-          display: grid; place-items: center; border-radius: 999px; cursor: pointer;
-          background: rgba(42,22,8,.06); border: 0;
-        }
-        .op-alba-x svg { width: 20px; height: 20px; stroke: ${LAB.ink}; stroke-width: 2; fill: none; stroke-linecap: round; }
         .op-alba-h2 {
           margin: 0; font: 700 clamp(28px, 5vw, 48px)/1.1 'Cinzel', serif; letter-spacing: .06em;
           color: ${LAB.ink};
@@ -6101,6 +6120,14 @@ export default function OnePage() {
           margin: 0;
           opacity: 0;
           pointer-events: none;
+          /* Nadpis stojí NAD bežiacimi citátmi (tie sú v pozadí od príchodu,
+             viď QUO_FAINT) — preto vrstva nad nimi a mäkký papyrusový dvor,
+             aby bol „dobre čitateľný" (Matej 28. 9. 2026). */
+          z-index: 2;
+        }
+        .op-root .op-quo .tst-head::before {
+          content: ''; position: absolute; inset: -18% -12%; z-index: -1;
+          background: radial-gradient(closest-side, ${LAB.pageBg} 55%, transparent);
         }
         /* Inline maxHeight 640px drží komponent (na /about je to správne — tam
            pás stojí v toku). Vo filme musí zmiznúť pod lištu, preto !important:
@@ -6318,6 +6345,22 @@ export default function OnePage() {
           color: ${LAB.goldSolid};
           letter-spacing: 0.02em;
         }
+        /* CIEĽ: väčší, tučnejší, ovál sa dokreslí (--gc 0 → 1).
+           ⚠️ .op-nxt-goal je iný prvok (cieľ na páse), preto „aim". */
+        .op-nxt-aim {
+          position: relative; display: inline-block;
+          font-size: calc(1em + .5em * var(--gc, 0)); font-weight: 600; color: ${LAB.ink};
+          padding: 0 .3em;
+        }
+        .op-nxt-aim svg {
+          position: absolute; left: -10%; top: -32%; width: 120%; height: 164%;
+          overflow: visible; pointer-events: none;
+        }
+        .op-nxt-aim path {
+          fill: none; stroke: ${LAB.goldSolid}; stroke-width: 3; stroke-linecap: round;
+          vector-effect: non-scaling-stroke;
+          stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--gc, 0));
+        }
 
         /* ── PÁS ─────────────────────────────────────────────────────────
            Os je hlavný dej obrazu — dostáva takmer celú šírku. Bočné odsadenia
@@ -6534,6 +6577,7 @@ export default function OnePage() {
         @media (max-width: ${NARROW_MAX}px) {
           .op-nxt-h2 { flex-direction: column; column-gap: 0; line-height: 0.92; }
           .op-nxt-line span { display: block; margin-left: 0; }
+          .op-nxt-line .op-nxt-aim { display: table; margin: .2em auto 0; }
           /* Na mobile je každý pixel šírky vzácny: menovky klesnú nižšie, aby
              si nekonkurovali s cieľom, a os dostane skoro celý riadok. */
           .op-nxt-plot { width: 100%; padding: 62px 16px 62px 50px; }
@@ -7557,7 +7601,7 @@ export default function OnePage() {
             Zasunuté pod hviezdy: tie zhasnú na mieste a faraón sa vynorí. */}
         {WNY_END && (
         <section className="op-scene op-wny" aria-label={t('onepage.aria.join')}
-          style={{ height: `${100 + ARC.nxt.vh}vh`, marginTop: `-${100 + WNY_OVER_VH}vh` }}>
+          style={{ height: `${100 + ARC.nxt.vh + FIN_OVER_VH}vh`, marginTop: `-${100 + WNY_OVER_VH}vh` }}>
           <div className="op-arc-stage">
             {/* ── OBRAZ 6 — WE NEED YOU ──────────────────────────────────
                   Postavené 1. 9. 2026 z nákresu
@@ -7627,7 +7671,14 @@ export default function OnePage() {
                     <p className="op-nxt-line">
                       {/* Matej 28. 9. 2026: *„Naše poslanie je vytvoriť HEROGLYF pre milión psov."* */}
                       <span>{t('onepage.need.mis1')}</span>
-                      <span><b>{t('onepage.need.misGlyph')}</b> {t('onepage.need.mis2')}</span>
+                      <span><b>{t('onepage.need.misGlyph')}</b> {t('onepage.need.misFor')}</span>
+                      <span className="op-nxt-aim">
+                        {t('onepage.need.misGoal')}
+                        {/* Ručne ťahaný ovál — dva oblúky, druhý presahuje prvý ako pri pere. */}
+                        <svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true">
+                          <path pathLength={1} d="M150 8 C 110 0, 30 2, 10 22 C -6 40, 40 58, 104 56 C 170 54, 204 40, 192 20 C 184 8, 150 4, 118 6" />
+                        </svg>
+                      </span>
                     </p>
                   </div></div>
   
@@ -7768,6 +7819,21 @@ export default function OnePage() {
               </section>
           </div>
         </section>
+        )}
+
+        {/* ── FINÁLE — veľký portál, potom dvere ďalej (28. 9. 2026) ────── */}
+        {WNY_END && (
+          <FilmFinale
+            packNo={dogCount === null ? null : dogCount + 1}
+            onBible={() => setBookOpen(true)}
+            // O AUTOROVI = príbeh (Hektor, cesta, kniha) — od jeho prvej vety.
+            onAuthor={() => {
+              const tl = document.querySelector<HTMLElement>('.op-timeline');
+              if (!tl) return;
+              const top = tl.getBoundingClientRect().top + window.scrollY;
+              window.scrollTo({ top: top + Math.max(0, tl.offsetHeight - filmVh()) * STORY_START, behavior: 'smooth' });
+            }}
+          />
         )}
 
         {/* ── PODPIS — LOGO + TAGLINE ────────────────────────────────────
