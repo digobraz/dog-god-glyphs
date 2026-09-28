@@ -26,7 +26,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { PackTopRow } from '@/components/pack/PackTopRow';
-import { PACK_THEME, PACK_BOX, PACK_COL, PACK_HEAD, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, PAPER_PAGE_CSS, usePaperRoute, PACK_TOPROW_PAD } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, PACK_COL, PACK_HEAD, PACK_TEXT, PACK_SPACE, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, PAPER_PAGE_CSS, usePaperRoute, PACK_TOPROW_PAD } from '@/components/pack/packTheme';
 import {
   ELEMENT_QUESTIONS, ROLE_QUESTIONS, BALANCE_ITEMS, BALANCE_VET_NOTE,
   NATURE_ELEMENTS, NATURE_ROLES, NATURE_SPECIALS,
@@ -642,14 +642,14 @@ const NQ_CSS = `
 .nqd-art img{ width:104px; margin:0; filter:drop-shadow(0 8px 18px rgba(60,38,8,.32)); }
 .nqd-slot.spec .nqd-art img{ width:88px; }
 .nqd-lbl{
-  margin-top:auto; font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:8.5px;
+  margin-top:auto; font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:${PACK_TEXT.micro}px;
   letter-spacing:0.22em; text-transform:uppercase; color:${T.inkWarm};
 }
 .nqd-nm{
-  font-family:'Cinzel',serif; font-weight:900; font-size:15px; letter-spacing:.02em;
+  font-family:'Cinzel',serif; font-weight:900; font-size:${PACK_TEXT.lead}px; letter-spacing:.02em;
   text-transform:uppercase; color:#1a0900; margin-top:2px; line-height:1.2;
 }
-.nqd-slot.spec .nqd-nm{ font-size:13.5px; }
+.nqd-slot.spec .nqd-nm{ font-size:${PACK_TEXT.body}px; }
 
 /* ── NADPISY SEKCIÍ ───────────────────────────────────────────────────────
    ⚠️ Číslo sekcie MUSÍ sedieť s číslom odznaku v hlavičke. I = konštitúcia na
@@ -657,10 +657,10 @@ const NQ_CSS = `
 .nqd-head{ text-align:center; margin:0 0 18px; }
 .nqd-head .num{ font-family:'Cinzel',serif; font-weight:900; font-size:12px; letter-spacing:0.26em; color:#8a5c10; }
 .nqd-head h2{
-  font-family:'Cinzel',serif; font-weight:900; font-size:27px; letter-spacing:0.02em;
+  font-family:'Cinzel',serif; font-weight:900; font-size:${PACK_TEXT.h1}px; letter-spacing:0.02em;
   text-transform:uppercase; color:#1a0900; margin:5px 0 0; line-height:1.1;
 }
-.nqd-head .sub{ font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:${T.inkWarm}; margin-top:6px; }
+.nqd-head .sub{ font-family:'Space Grotesk',sans-serif; font-size:${PACK_TEXT.label}px; color:${T.inkWarm}; margin-top:6px; }
 .nqd-wing{ display:flex; align-items:center; justify-content:center; gap:8px; margin-top:9px; }
 .nqd-wing i{ width:64px; height:1px; background:linear-gradient(90deg,transparent,#8a5c10); }
 .nqd-wing i:last-child{ background:linear-gradient(90deg,#8a5c10,transparent); }
@@ -678,18 +678,18 @@ const NQ_CSS = `
 .nqd-panel.quiet::before,.nqd-panel.quiet::after{ border-color:rgba(122,80,16,0.28); }
 
 .nqd-eyebrow{
-  font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:9.5px; letter-spacing:.26em;
+  font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:${PACK_TEXT.micro}px; letter-spacing:.26em;
   text-transform:uppercase; color:#8a5c10; margin:0 0 8px;
 }
-.nqd p.body{ font-family:'Space Grotesk',sans-serif; font-size:13.5px; line-height:1.65; color:#1a0900; margin:0 0 10px; }
-.nqd p.dim{ font-family:'Space Grotesk',sans-serif; font-size:12.5px; line-height:1.6; color:#5a3a0a; margin:0; }
+.nqd p.body{ font-family:'Space Grotesk',sans-serif; font-size:${PACK_TEXT.body}px; line-height:1.65; color:#1a0900; margin:0 0 10px; }
+.nqd p.dim{ font-family:'Space Grotesk',sans-serif; font-size:${PACK_TEXT.label}px; line-height:1.6; color:#5a3a0a; margin:0; }
 /* Zvýraznenie nesú DÁTA (**takto**), sadzba mu len dá váhu. */
 .nqd b{ font-weight:600; color:#1a0900; }
 
 .nqd-list{ margin:0; padding:0; display:grid; gap:10px; }
 .nqd-list li{
   list-style:none; position:relative; padding-left:24px;
-  font-family:'Space Grotesk',sans-serif; font-size:13.5px; line-height:1.6; color:#1a0900;
+  font-family:'Space Grotesk',sans-serif; font-size:${PACK_TEXT.body}px; line-height:1.6; color:#1a0900;
 }
 .nqd-list li::before{
   content:''; position:absolute; left:3px; top:8px; width:6px; height:6px;
@@ -717,7 +717,7 @@ const NQ_CSS = `
 .nqd-facts{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:14px; }
 .nqd-fact{ border:1px solid rgba(122,80,16,0.28); border-radius:8px; padding:8px 12px; background:rgba(255,255,255,.22); }
 .nqd-fact .k{
-  display:block; font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:8.5px;
+  display:block; font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:${PACK_TEXT.micro}px;
   letter-spacing:0.22em; text-transform:uppercase; color:${T.inkWarm};
 }
 .nqd-fact .v{ display:block; font-family:'Cinzel',serif; font-weight:700; font-size:12.5px; color:#1a0900; margin-top:2px; }
@@ -760,13 +760,21 @@ const NQ_CSS = `
 @media(max-width:720px){
   .nqd-inner{ padding:24px 16px 24px; }
   .nqd-who{ font-size:29px; }
-  .nqd-head h2{ font-size:21px; }
+  .nqd-head h2{ font-size:${PACK_TEXT.h2}px; }
   .nqd-elhero{ grid-template-columns:1fr; gap:14px; }
   .nqd-cnbox{ max-width:150px; margin-inline:auto; }
   .nqd-duo{ grid-template-columns:1fr; }
   .nqd-radars{ grid-template-columns:1fr; }
 }
 @media(max-width:520px){
+  /* VIAC MIESTA PRE TEXT (Matej 28. 9. 2026 nad hárkom plany/nakres-kviz-povahy-2026-09-28: „ano").
+     Štyri vnorené rámy (stránka → dvojitý rám → panel → odrážka) nechávali textu ~225 px z 390.
+     Rámy aj rohové značky ostávajú — ustupujú len okraje. */
+  .nqd-framed{ padding:${PACK_SPACE.xs}px; }
+  .nqd-inner{ padding:${PACK_SPACE.xl}px ${PACK_SPACE.md}px; }
+  .nqd-panel{ padding:${PACK_SPACE.xl}px ${PACK_SPACE.lg}px ${PACK_SPACE.md}px; }
+  .nqd-list li{ padding-left:${PACK_SPACE.lg}px; }
+  .nqd-list li::before{ left:1px; }
   .nqd-facts{ grid-template-columns:repeat(2,1fr); }
   .nqd-medal{ width:124px; height:124px; }
   .nqd-slot{ width:calc(50% - 5px); }

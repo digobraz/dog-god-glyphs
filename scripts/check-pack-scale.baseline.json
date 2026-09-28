@@ -771,7 +771,7 @@
   },
   "pages/PackNatureQuiz.tsx": {
     "radius": 6,
-    "font": 58,
+    "font": 47,
     "zavoj": 2,
     "progres": 1,
     "ram": 15,
