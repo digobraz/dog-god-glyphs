@@ -1263,6 +1263,9 @@ export const en = {
   'onepage.apps.cause.b4': 'A pack that helps dogs in need',
   'onepage.need.step': 'Next step',
   'onepage.need.cta': 'Join the mission',
+  'onepage.need.want': 'I want a HEROGLYPH!',
+  'onepage.fin.take': 'Get your number',
+  'onepage.fin.about': 'About us',
   // Číslo je dopočítané (počet psov + 1) a stojí v `<b>` za týmto kusom.
   'onepage.need.ctasub': 'Get your number —',
   // Chvost obrazu — dnes VYPNUTÝ (`ARC_TAIL` v OnePage.tsx). Kľúče tu sú, aby

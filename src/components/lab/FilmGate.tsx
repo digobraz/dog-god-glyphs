@@ -50,6 +50,20 @@ export default function FilmGate() {
   const secRef = useRef<HTMLElement>(null);
   const vidRef = useRef<HTMLVideoElement>(null);
 
+  // 🔴 VIDEO SA ŤAHÁ AŽ NA DOSAH (28. 9. 2026, meranie rýchlosti): 2,8 MB
+  // (každé políčko kľúčové kvôli scrubu) išlo pri štarte popri guli. Brána je
+  // za celým príbehom — sťahovať sa začne 4 obrazovky pred ňou.
+  useEffect(() => {
+    const sec = secRef.current, vid = vidRef.current;
+    if (!sec || !vid) return;
+    const io = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return;
+      vid.preload = 'auto'; vid.load(); io.disconnect();
+    }, { rootMargin: '400% 0px' });
+    io.observe(sec);
+    return () => io.disconnect();
+  }, []);
+
   useEffect(() => {
     const sec = secRef.current;
     const vid = vidRef.current;
@@ -81,7 +95,7 @@ export default function FilmGate() {
       }
     };
     const on = () => { if (!raf) raf = requestAnimationFrame(apply); };
-    vid?.load();
+    // load() spúšťa efekt vyššie, až keď je brána na dosah.
     apply();
     window.addEventListener('scroll', on, { passive: true });
     window.addEventListener('resize', on);
@@ -96,7 +110,7 @@ export default function FilmGate() {
     <section ref={secRef} className="op-gate" aria-hidden="true" style={{ height: `${GATE_VH}lvh`, marginBottom: `-${GATE_OVERLAP_VH.toFixed(2)}lvh` }}>
       <div className="op-gate-stage">
         <div className="op-gate-back" />
-        <video ref={vidRef} className="op-gate-vid" src="/videos/touch_opening_papyrus.mp4" muted playsInline preload="auto" />
+        <video ref={vidRef} className="op-gate-vid" src="/videos/touch_opening_papyrus.mp4" muted playsInline preload="none" />
         <div className="op-gate-door is-l"><div className="op-gate-img" /></div>
         <div className="op-gate-door is-r"><div className="op-gate-img" /></div>
       </div>

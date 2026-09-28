@@ -127,6 +127,56 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PXB5MV3L"
       height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
+    <!-- 🔴 ÚVODNÁ OPONA /onepage (Matej 28. 9. 2026: *„úvodné načítanie planéty je
+         divne roztiahnuté… nevyzerá to profi — loader?"*). Zmerané: ~3 s čierna (JS
+         sa ešte nestiahol), potom prázdny papyrus s lištou a šípkami a až potom guľa.
+         Opona je v HTML, takže sa vykreslí s prvým bajtom — nečaká na React. Zdvihne
+         ju udalosť `dogypt:planet-ready` (DogPlanetLab, keď je predná pologuľa
+         načítaná) a guľa sa pod ňou práve vynára. Strop 9 s pre prípad chyby. -->
+    <script>
+      (function () {
+        if (location.pathname !== '/onepage') return;
+        var css = document.createElement('style');
+        css.textContent =
+          '#op-boot{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;'
+          + 'background:radial-gradient(60% 55% at 50% 48%,#FFF8E6 0%,#F6EACB 45%,#EAD5A6 100%);'
+          + 'transition:opacity .75s cubic-bezier(.4,0,.2,1),visibility 0s linear .75s}'
+          + '#op-boot .b{display:flex;flex-direction:column;align-items:center;gap:22px;'
+          + 'animation:opBootIn .6s cubic-bezier(.2,.8,.2,1) both}'
+          + '#op-boot img{width:92px;height:92px;object-fit:contain;'
+          + 'filter:drop-shadow(0 6px 18px rgba(122,90,42,.25));animation:opBootBreath 2.4s ease-in-out infinite}'
+          + '#op-boot i{display:block;width:120px;height:2px;border-radius:2px;overflow:hidden;'
+          + 'background:rgba(163,120,43,.18);position:relative}'
+          + '#op-boot i::after{content:"";position:absolute;inset:0;width:40%;'
+          + 'background:linear-gradient(90deg,transparent,#C99A3F,transparent);animation:opBootRun 1.3s ease-in-out infinite}'
+          + '#op-boot.out{opacity:0;visibility:hidden}'
+          + '#op-boot.out .b{transform:scale(1.06);transition:transform .75s cubic-bezier(.4,0,.2,1)}'
+          + '@keyframes opBootIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}'
+          + '@keyframes opBootBreath{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}'
+          + '@keyframes opBootRun{from{transform:translateX(-100%)}to{transform:translateX(250%)}}'
+          + '@media (prefers-reduced-motion:reduce){#op-boot img,#op-boot i::after{animation:none}}';
+        document.head.appendChild(css);
+        var el = document.createElement('div');
+        el.id = 'op-boot'; el.setAttribute('aria-hidden', 'true');
+        el.innerHTML = '<div class="b"><img src="/images/dogypt-gold-logo.webp" alt="" fetchpriority="high"><i></i></div>';
+        var t0 = Date.now(), gone = false;
+        var lift = function () {
+          if (gone) return; gone = true;
+          setTimeout(function () {
+            el.classList.add('out');
+            setTimeout(function () { el.remove(); }, 900);
+          }, Math.max(0, 450 - (Date.now() - t0)));
+        };
+        window.addEventListener('dogypt:planet-ready', lift);
+        setTimeout(lift, 9000);
+        // Film sa nevykreslil (produkcia bez preview tokenu, chyba) — opona nesmie
+        // visieť nad prázdnou stránkou. Po `load` sa pozrie, či film existuje.
+        window.addEventListener('load', function () {
+          setTimeout(function () { if (!document.querySelector('.op-root')) lift(); }, 1500);
+        });
+        document.body.appendChild(el);
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

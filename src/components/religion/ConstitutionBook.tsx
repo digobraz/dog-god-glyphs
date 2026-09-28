@@ -271,7 +271,7 @@ export default function ConstitutionBook({ belowBook, openOnMount = false }: { b
           <span className="cb-halo" aria-hidden />
           {/* minHeight = height: Chrome (150+) ignoruje `height` na <img> flex-item vo flex
               kontajneri (kniha sa scvrkla na ~8%), ale rešpektuje min-height. 2026-07-08. */}
-          <img src="/images/dogma-cover.png" alt={t('religion.book.coverAlt')} className="cb-cover-img" style={{ height: dims.h, minHeight: dims.h }} />
+          <img src="/images/dogma-cover.webp" alt={t('religion.book.coverAlt')} className="cb-cover-img" style={{ height: dims.h, minHeight: dims.h }} />
           <span className="cb-shimmer" aria-hidden />
         </button>
       </div>
@@ -355,7 +355,7 @@ const CSS = `
 
 /* záblesk — svetelný pruh prejde po obálke (len transform → plynulé, maska statická) */
 .cb-shimmer{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;overflow:hidden;
-  -webkit-mask:url(/images/dogma-cover.png) center/contain no-repeat;mask:url(/images/dogma-cover.png) center/contain no-repeat;
+  -webkit-mask:url(/images/dogma-cover.webp) center/contain no-repeat;mask:url(/images/dogma-cover.webp) center/contain no-repeat;
   transition:opacity .5s ease;}
 .cb-closed .cb-shimmer{opacity:1;}
 .cb-shimmer::before{content:"";position:absolute;top:-25%;left:0;width:42%;height:150%;
@@ -366,8 +366,8 @@ const CSS = `
 
 /* pages */
 .cb-page{position:relative;background:transparent;overflow:hidden;}
-.cb-left{background-image:url(/images/dogma-page-left.png);background-size:100% 100%;background-repeat:no-repeat;}
-.cb-right{background-image:url(/images/dogma-page-right.png);background-size:100% 100%;background-repeat:no-repeat;}
+.cb-left{background-image:url(/images/dogma-page-left.webp);background-size:100% 100%;background-repeat:no-repeat;}
+.cb-right{background-image:url(/images/dogma-page-right.webp);background-size:100% 100%;background-repeat:no-repeat;}
 
 /* ── Obsahový box = parchment safe-area (kožená väzba na vonkajšej strane).
    Tu sa ladí KDE môže text ísť. Každá strana má vlastnú page-triedu nižšie. ── */

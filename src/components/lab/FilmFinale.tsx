@@ -22,7 +22,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { LAB } from '@/lib/labTheme';
-import { LAPIS } from '@/components/pack/navGoldSkin';
+import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { PORTAL_CSS, PORTAL_REDUCE_MOTION, buildPortal, createSparks } from '@/components/gods/dogPortal';
 import { openPhotoConfirm } from '@/components/gods/photoConfirm';
 import { intakePhoto, finishPhotoChoice } from '@/lib/photoIntake';
@@ -41,7 +41,7 @@ const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const seg = (v: number, a: number, b: number) => clamp01((v - a) / Math.max(1e-6, b - a));
 const smooth = (t: number) => t * t * (3 - 2 * t);
 
-export default function FilmFinale({ packNo, onBible, onAuthor }: { packNo: number | null; onBible: () => void; onAuthor: () => void }) {
+export default function FilmFinale({ packNo, onBible, onAuthor, onAbout }: { packNo: number | null; onBible: () => void; onAuthor: () => void; onAbout: () => void }) {
   const t = useT();
   const navigate = useNavigate();
   const secRef = useRef<HTMLElement>(null);
@@ -81,9 +81,12 @@ export default function FilmFinale({ packNo, onBible, onAuthor }: { packNo: numb
         onClose: () => track('finale_photo_confirm_dismissed'),
       });
     };
+    // 🔴 „VEZMI SI SVOJE ČÍSLO" JE V PORTÁLI (Matej 28. 9. 2026: *„vezmi si
+    // svoje číslo daj do toho portálu"*) — predtým riadok pod ním.
+    const label = packNo == null ? t('onepage.fin.take') : `${t('onepage.fin.take')}<br><b class="ph-no">#${packNo.toLocaleString('en-US')}</b>`;
     const p = buildPortal({
       faces,
-      label: 'Add photo<br>of your dog',
+      label,
       note: '',
       onPick: () => (picked ? showConfirm(picked) : openPicker()),
     });
@@ -118,7 +121,7 @@ export default function FilmFinale({ packNo, onBible, onAuthor }: { packNo: numb
     });
     if (stageRef.current) io.observe(stageRef.current);
     return () => { on = false; cancelAnimationFrame(raf); io.disconnect(); p.el.remove(); file.remove(); };
-  }, [navigate, ready]);
+  }, [navigate, ready, packNo, t]);
 
   // ── RÉŽIA PODĽA SCROLLU ───────────────────────────────────────────────
   useEffect(() => {
@@ -149,9 +152,13 @@ export default function FilmFinale({ packNo, onBible, onAuthor }: { packNo: numb
         <div className="op-fin-left">
           <h2 className="op-fin-h2">{t('onepage.need.cta')}</h2>
           <div className="op-fin-portal" ref={mountRef} />
-          <p className="op-fin-sub">
-            {packNo == null ? '' : <>{t('onepage.need.ctasub')} <b>#{packNo.toLocaleString('en-US')}</b>.</>}
-          </p>
+          {/* Namiesto šípok tlačidlo O NÁS (Matej 28. 9. 2026: *„ani na tejto
+              obrazovke nie je treba šípky dolu, skôr tlačítko o nás"*) — klik
+              = druhá zastávka finále (portál vľavo, O autorovi + Psia biblia). */}
+          <button type="button" className="op-fin-about" onClick={onAbout} tabIndex={live ? 0 : -1}
+            style={{ opacity: 'calc(1 - var(--sh, 0))' } as React.CSSProperties}>
+            {t('onepage.fin.about')}
+          </button>
         </div>
         <div className="op-fin-right">
           <p className="op-fin-eye">{t('onepage.fin.eye')}</p>
@@ -192,8 +199,15 @@ export default function FilmFinale({ packNo, onBible, onAuthor }: { packNo: numb
           text-transform: uppercase; color: ${LAB.goldSolid}; text-align: center;
           position: relative; z-index: 3;
         }
-        .op-fin-sub { position: relative; z-index: 3; margin: 0; min-height: 1.4em; font: 400 16px/1.4 'Space Grotesk', sans-serif; color: ${LAB.inkSoft}; }
-        .op-fin-sub b { font: 700 1.1em/1 'Cinzel', serif; color: ${LAPIS.edge}; }
+        .op-fin-portal .ph-no { display: inline-block; margin-top: 4px; font: 700 1.5em/1 'Cinzel', serif; letter-spacing: .04em; color: ${LAPIS.ink}; }
+        .op-fin-about {
+          position: relative; z-index: 3; cursor: pointer;
+          padding: 12px 32px; border-radius: 8px; border: 1.5px solid rgba(250,244,236,0.30);
+          background: ${LAPIS.grad}; box-shadow: ${LAPIS_BTN_SHADOW};
+          font: 700 16px/1 'Cinzel', serif; letter-spacing: .06em; text-transform: uppercase; color: ${LAPIS.ink};
+          transition: transform .2s ease;
+        }
+        .op-fin-about:hover { background: ${LAPIS.gradHover}; transform: translateY(-2px); }
         .op-fin-right {
           position: absolute; left: 50%; top: 50%;
           width: min(380px, 40vw);
@@ -217,7 +231,7 @@ export default function FilmFinale({ packNo, onBible, onAuthor }: { packNo: numb
           .op-fin-stage { flex-direction: column; justify-content: flex-start; padding-top: calc(var(--op-nav-h, 118px) + 16px); }
           .op-fin-left { transform: translateY(calc(var(--sh, 0) * -8vh)) scale(calc(1 - var(--sh, 0) * .3)); transform-origin: 50% 0; }
           .op-fin-right {
-            left: 16px; right: 16px; top: auto; bottom: 32px; width: auto;
+            left: 16px; right: 16px; top: auto; bottom: 112px; width: auto; /* nad spodnou lištou */
             transform: translateY(calc(24px * (1 - var(--sh, 0))));
           }
         }

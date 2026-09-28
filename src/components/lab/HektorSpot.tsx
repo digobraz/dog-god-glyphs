@@ -38,7 +38,7 @@ import { pluralKey } from '@/lib/plural';
 import { LAB } from '@/lib/labTheme';
 
 /** Fotka, ktorou sa maskuje lesk. Musí to byť TÁ ISTÁ, čo kreslí ReligionLab. */
-const HEKTOR_IMG = '/images/codex3-hektor-v1.png';
+const HEKTOR_IMG = '/images/codex3-hektor-v1.webp';
 
 /**
  * Bodka v súradniciach fotky (960 x 1080) — líce za papuľou, pod uchom.

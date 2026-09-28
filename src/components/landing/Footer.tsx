@@ -182,7 +182,7 @@ export function Footer() {
 
         {/* Brand — center: seal */}
         <div className="footer-brand">
-          <img className="footer-seal" src="/images/peciat-dogypt.png" alt={t('about.footer.sealAlt')} />
+          <img className="footer-seal" src="/images/peciat-dogypt.webp" alt={t('about.footer.sealAlt')} />
         </div>
 
         {/* Contact — right: email, emphasized */}

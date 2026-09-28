@@ -1128,7 +1128,13 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       el.className = fill ? 'dog-card dog-card--fill' : 'dog-card';
       el.style.left = (col * GX) + 'px';
       el.style.top  = (row * GY) + 'px';
-      const overlayHeroSrc = dog.heroglyph_png_url ? esc(dog.heroglyph_png_url) : '';
+      // 🔴 Heroglyf cez Cloudinary ZMENŠENÝ (28. 9. 2026, meranie /onepage): surové
+      // PNG malo ~110 KB a stena ich pri štarte ťahala 63 = 5,8 MB popri guli.
+      // Karta ho kreslí na ~1/3 šírky, 480 px stačí aj na 2× displej.
+      const glyphUrl = dog.heroglyph_png_url?.includes('res.cloudinary.com') && dog.heroglyph_png_url.includes('/upload/')
+        ? dog.heroglyph_png_url.replace('/upload/', '/upload/c_fit,w_480,q_auto,f_auto/')
+        : dog.heroglyph_png_url;
+      const overlayHeroSrc = glyphUrl ? esc(glyphUrl) : '';
       const tileSrc = esc(tileImageUrl(dog.cloudinary_main_url));
       // Verejná stránka psa — len keď máme reálne dáta (pack_number + meno) z DB.
       // Fillery bez čísla (edge/transitional stav) tlačidlo nedostanú.
@@ -3866,7 +3872,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
                 </div>
 
                 <div className="wn-footer">
-                  <img className="wn-seal" src="/images/peciat-dogypt.png" alt="DOGYPT seal" />
+                  <img className="wn-seal" src="/images/peciat-dogypt.webp" alt="DOGYPT seal" />
                   <span className="wn-motto-side">{t('whatNext.motto')}</span>
                 </div>
               </div>

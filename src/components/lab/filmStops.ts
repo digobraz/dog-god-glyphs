@@ -32,7 +32,9 @@ const TOUCH_MIN = 36;       // px swipu, ktorý sa počíta ako ťah
  *  ostáva natívny — prst bez zotrvačnosti by pôsobil ako zaseknutý. */
 const FREE_GAIN = 0.35;
 const FREE_MAX = 36;        // px na jednu udalosť kolieska
-/** 🔴 HORE PO SEKCIÁCH (Matej 27. 9. 2026). Prvý pokus bol „hore bez pravidiel"
+/** ⚠️ 28. 9. 2026 OnePage `upStops` už nedáva — hore ide o jednu zastávku späť
+ *  (Matej: *„scroll dozadu je moc agresívny"*). Pôvodný zápis:
+ *  🔴 HORE PO SEKCIÁCH (Matej 27. 9. 2026). Prvý pokus bol „hore bez pravidiel"
  *  (natívny scroll + švih = skok na úvod) a Matej ho vrátil: *„odstráň ten
  *  agresívny scroll naspäť… nie scroll po scrole, ale plynulo po sekciách —
  *  teraz ma to vždy hodí veľmi rýchlo preč"*. Ťah hore teda znova vedie motor,

@@ -195,13 +195,18 @@ const quoIn = (): [number, number] => [
   (APPS_EXIT_VH * 0.5) / (QUO_VH * 100 - 100),
   (APPS_EXIT_VH * 0.5 + 15) / (QUO_VH * 100 - 100),
 ];
+/** 🔴 ZASTÁVKA HVIEZD = POSLEDNÝ STĹPEC OSTRÝ (Matej 28. 9. 2026: *„ak zmizne
+ *  nadpis, celá obrazovka je rozostrená — nebude treba ešte jeden scroll?"*).
+ *  Stĺpce sa zaostrujú po sebe (`colStagger`), takže na `colsIn[1]` bol ostrý
+ *  len prvý a zvyšok dobehol až v ďalšom ťahu. Stĺpce sú tri. */
+const quoSharp = () => QUO.colsIn[1] + 2 * QUO.colStagger;
 /** HVIEZDY JEDNÝM ŤAHOM z ČLENSTVA (28. 9. 2026): telefóny zhasnú, nadpis
  *  „Psov miluje každý" sa vynorí, chvíľu stojí, rozplynie sa na citáty. */
 const QUO_KEYS = (from: number, to: number) => keyRide(from, to, [
   [from, 0],
   [pinnedAt('.op-quo', quoIn()[1]), 1100],
   [pinnedAt('.op-quo', QUO.headOut[0]), 2600],
-  [pinnedAt('.op-quo', QUO.colsIn[1]), 3800],
+  [pinnedAt('.op-quo', quoSharp()), 4300],
 ]);
 
 /** WE NEED YOU JEDNÝM ŤAHOM, pomaly (28. 9. 2026): hviezdy zhasnú, faraón sa
@@ -3339,7 +3344,6 @@ export default function OnePage() {
         // CIEĽ sa ZAKRÚŽKUJE a zväčší (Matej 28. 9. 2026: *„pri potrebujeme ťa
         // musíme zvýrazniť náš cieľ… napríklad zakrúžkovaním a zväčšením
         // textu"*). Krúžok sa dokreslí až po príchode vety, počas pásu.
-        put(n.nxLine, 'asg', '--gc', ph(W.sub + 3, 5).toFixed(3));
 
         // ── 7–8 · PÁS ────────────────────────────────────────────────────
         const bIn = ph(W.zin);
@@ -3371,6 +3375,7 @@ export default function OnePage() {
         const fwPx = Math.max(truePx, axW * (minFillPct / 100) * out);
         put(n.nxPlot, 'afw', '--fwpx', `${fwPx.toFixed(1)}px`);
         put(n.nxGoal, 'ago', '--go', out.toFixed(3));
+        put(n.nxGoal, 'agc', '--gc', ph(W.zout + W.zoutD, 6).toFixed(3));
 
         // Dve veľkosti, nie jedna: zakladateľ pri oddialení RASTIE (odchádza
         // vedľa osi a má tam byť vidno, kto to je), hlava pásu sa zmenšuje
@@ -3877,14 +3882,39 @@ export default function OnePage() {
    * a heroglyf je celý vidieť. Opísané číslo by sa rozišlo pri prvej zmene
    * `ARC.nxt.vh`.
    */
+  /**
+   * 🔴 SKOK = PREKLOPENIE, NIE PREROLOVANIE (Matej 28. 9. 2026: *„po kliknutí
+   * na položke v menu zobraz len tú stránku, neroluj cez celý obsah"*).
+   * Film je dráha scrollu, takže plynulý scroll z úvodu na koniec prehral celú
+   * choreografiu zrýchlene. Papyrusová opona zakryje obraz (pod lištou — nav
+   * ostáva), stránka skočí naraz a opona odíde. Krátky skok (< 1,2 obrazovky)
+   * ostáva plynulý: tam niet čo preskakovať.
+   */
+  const veilRef = useRef<HTMLDivElement>(null);
+  const filmJump = useCallback((y: number) => {
+    const to = Math.max(0, Math.round(y));
+    const v = veilRef.current;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!v || Math.abs(to - window.scrollY) < window.innerHeight * 1.2) {
+      window.scrollTo({ top: to, behavior: reduce ? 'instant' as ScrollBehavior : 'smooth' });
+      return;
+    }
+    v.classList.add('is-on');
+    window.setTimeout(() => {
+      window.scrollTo({ top: to, behavior: 'instant' as ScrollBehavior });
+      // Dva snímky: choreografia sa prepočíta na novej polohe skôr, než opona odíde.
+      requestAnimationFrame(() => requestAnimationFrame(() => v.classList.remove('is-on')));
+    }, reduce ? 0 : 340);
+  }, []);
+
   const goToGlyph = useCallback(() => {
     const arc = document.querySelector<HTMLElement>('.op-arc');
     if (!arc) return;
     const vh = filmVh();
     const span = Math.max(1, arc.offsetHeight - vh);
     const at = ARC_SPLIT + ARC_DWELL + ARC_XFADE;
-    window.scrollTo({ top: arc.offsetTop + span * at, behavior: 'smooth' });
-  }, []);
+    filmJump(arc.offsetTop + span * at);
+  }, [filmJump]);
 
   /**
    * KLIK NA „POZRI DOGYPT INTROFILM" = SKOK NA PLÁTNO (Matej 28. 8. 2026:
@@ -3901,11 +3931,8 @@ export default function OnePage() {
    * dojazd nikam nepodkĺzne. Meno konštánt je jediné miesto, kde sa číslo drží.
    */
   const goCinema = useCallback(() => {
-    window.scrollTo({
-      top: filmVh() * (PIN_VH + PIN2_VH + PIN3_VH + PIN4_VH),
-      behavior: 'smooth',
-    });
-  }, []);
+    filmJump(filmVh() * (PIN_VH + PIN2_VH + PIN3_VH + PIN4_VH));
+  }, [filmJump]);
 
   /**
    * SKOK NA OBRAZ Z NAVIGÁCIE.
@@ -3926,8 +3953,8 @@ export default function OnePage() {
     // sa medzitým zmenila výška obsahu a merací efekt ešte nedobehol.
     const at = FILM_SLIDES[i].at() ?? slideAtRef.current[i];
     if (at == null || !Number.isFinite(at)) return;
-    window.scrollTo({ top: Math.max(0, Math.round(at)), behavior: 'smooth' });
-  }, []);
+    filmJump(at);
+  }, [filmJump]);
 
   // ── MOTOR FILMU: JEDEN ŤAH = JEDNA OBRAZOVKA (27. 9. 2026) ─────────────
   // Zastávky sa merajú pri KAŽDOM ťahu, nie raz — výšky dráh sa menia
@@ -3936,6 +3963,9 @@ export default function OnePage() {
   // obrazovky príbehu, DOGTRIX, ALBA, most a kniha.
   const [filmMoving, setFilmMoving] = useState(false);
   const [atFilmEnd, setAtFilmEnd] = useState(false);
+  /** Od konca WE NEED YOU ďalej vedú tlačidlá, nie šípky (Matej 28. 9. 2026:
+   *  CTA „CHCEM HEROGLYPH!" a vo finále „O NÁS"). */
+  const [atFinale, setAtFinale] = useState(false);
   const [atHome, setAtHome] = useState(true);
   /** Sme v príbehu (od prvej vety po jeho koniec)? Šípky tam zavadzajú textu
    *  crawlu (Matej 27. 9. 2026: *„pri príbehu daj preč aj šípky"*). */
@@ -3959,6 +3989,8 @@ export default function OnePage() {
     const on = () => {
       setAtFilmEnd(window.scrollY >= document.documentElement.scrollHeight - window.innerHeight - 8);
       setAtHome(window.scrollY < window.innerHeight * 0.3);
+      const we = WNY_END ? wnyEnd() : null;
+      setAtFinale(we != null && window.scrollY >= we - window.innerHeight * 0.25);
       const tl = document.querySelector<HTMLElement>('.op-timeline');
       if (tl) {
         const top = tl.getBoundingClientRect().top + window.scrollY;
@@ -3999,7 +4031,7 @@ export default function OnePage() {
     if (MOST_ON) { const most = pinnedAt('.op-arc', 1); if (most != null) out.push(most); }
     // ČLENSTVO: príchod telefónov na stred + štyri funkcie (FilmApps.tsx).
     for (const f of APPS_STOPS) { const y = pinnedAt('.op-apps', f); if (y != null) out.push(y); }
-    const quo = pinnedAt('.op-quo', QUO.colsIn[1]);
+    const quo = pinnedAt('.op-quo', quoSharp());
     if (quo != null) out.push(quo);
     // WE NEED YOU — jeden ťah cez celý obraz (viď WNY_KEYS).
     if (WNY_END) { const w = wnyEnd(); if (w != null) out.push(w); }
@@ -4039,6 +4071,12 @@ export default function OnePage() {
     // spojiť pomalšie… treba ubrať 30 %"*). Video beží scrollom, takže jeho
     // tempo JE dĺžka tejto jazdy: rýchlosť ×0,7 ⇒ čas ÷0,7.
     duration: (screens, from, to) => {
+      // 🔴 HORE = O JEDNU ZASTÁVKU SPÄŤ, POKOJNE (Matej 28. 9. 2026: *„ten scroll
+      // dozadu je moc agresívny, urob ho normálny, aby človek nebol zmätený"*).
+      // Predtým skok na začiatok celého obrazu (upStops) — jeden ťah preletel
+      // aj päť obrazoviek. Teraz zrkadlo cesty dole: tie isté zastávky, mäkší
+      // priebeh a čas, ktorý rastie so vzdialenosťou.
+      if (to < from) return Math.round(Math.min(3200, Math.max(1200, 900 + 450 * screens)));
       const base = Math.round(Math.min(2800, Math.max(1000, 700 + 600 * screens)));
       const k = keyedRide(from, to);
       if (k) return k.dur;
@@ -4046,15 +4084,13 @@ export default function OnePage() {
       return base;
     },
     easing: (from, to) => {
+      if (to < from) return easeSine;
       const k = keyedRide(from, to);
       if (k) return k.ease;
       return isCredoRide(from, to) ? easeSine : undefined;
     },
     paused: () => bookOpenRef.current || wallOpenRef.current || albaOpenRef.current || appsOpenRef.current || document.body.style.overflow === 'hidden',
     onMove: setFilmMoving,
-    // HORE PO SEKCIÁCH (Matej 27. 9.: *„nie scroll po scrole, ale plynulo po
-    // sekciách"*) — začiatky obrazov z navu, nie všetky zastávky.
-    upStops: () => FILM_SLIDES.map((sl) => sl.at()).filter((y): y is number => y != null),
   }, true);
 
   // ── STENA JE SAMOSTATNÁ STRÁNKA, NIE OBRAZ FILMU ────────────────────────
@@ -4099,12 +4135,13 @@ export default function OnePage() {
       {/* ŠÍPKY DOLE (27. 9. 2026) — Matej: *„namiesto CTA urobiť na obrazovkách
           šípky, ktoré navádzajú na SLIDE… 3 pod sebou blikajúce"*. Jedny pre
           celý film; počas jazdy motora zhasnú, klik = ďalšia obrazovka. */}
-      {!wallOpen && !atFilmEnd && !inStory && (
+      <div ref={veilRef} className="op-veil" aria-hidden="true" />
+      {!wallOpen && !atFilmEnd && !inStory && !atFinale && (
         <FilmCue moving={filmMoving} onNext={() => filmGo(1)} label={t('onepage.cue.next')} big={atHome} apps={inApps} />
       )}
       {!wallOpen && (
         <FilmTop show={!atHome} label={t('onepage.cue.top')}
-          onTop={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
+          onTop={() => filmJump(0)} />
       )}
       {albaOpen && (
         <div className="op-alba" role="dialog" aria-modal="true" aria-label="ALBA" data-film-free onClick={() => setAlbaOpen(false)}>
@@ -4600,7 +4637,9 @@ export default function OnePage() {
            obsah centrovať na stred, teraz je moc hore"*). visibility:hidden
            nechalo šípke, kroku a CTA ~130 px pod pásom, takže stred obsahu
            sedel vysoko. */
-        .op-wny .op-b-arrow, .op-wny .op-b-step, .op-wny .op-b-cta, .op-wny .op-b-tail { display: none !important; }
+        .op-wny .op-b-arrow, .op-wny .op-b-step, .op-wny .op-b-tail, .op-wny .op-nxt-ctasub { display: none !important; }
+        .op-root .op-wny .op-b-cta { visibility: visible !important; }
+        .op-wny .op-b-cta .op-bin { padding-top: 16px; }
         /* 🔴 MÄKČEŇ NAD Ť (Matej 28. 9.: *„nie je vidno mäkčeň"*). Zlato je
            background-clip:text a pozadie siaha len po box slova — pri riadkovaní
            0.94 končí na výške verzálky, takže diakritika nad ňou nemala farbu
@@ -4608,6 +4647,14 @@ export default function OnePage() {
            vráti, riadok sa nepohne. Pozor na to isté všade, kde je zlaté písmo
            cez background-clip s riadkovaním pod 1. */
         .op-nxt-h2 { padding-top: 0.2em; }
+        /* OPONA SKOKU (filmJump) — pod lištou (z 60), nad celým filmom. */
+        .op-veil {
+          position: fixed; inset: 0; z-index: 58; pointer-events: none;
+          background: ${LAB.pageBg}; opacity: 0;
+          transition: opacity .45s cubic-bezier(.4,0,.2,1);
+        }
+        .op-veil::before { content: ''; position: absolute; inset: 0; background: ${LAB.pageBackdrop}; }
+        .op-veil.is-on { opacity: 1; pointer-events: auto; transition-duration: .32s; }
         .op-nxt-h2 span { padding-top: 0.2em; margin-top: -0.2em; }
         @media (min-width: 768px) {
           .op-snaps > span,
@@ -6398,20 +6445,7 @@ export default function OnePage() {
         }
         /* CIEĽ: väčší, tučnejší, ovál sa dokreslí (--gc 0 → 1).
            ⚠️ .op-nxt-goal je iný prvok (cieľ na páse), preto „aim". */
-        .op-nxt-aim {
-          position: relative; display: inline-block;
-          font-size: calc(1em + .5em * var(--gc, 0)); font-weight: 600; color: ${LAB.ink};
-          padding: 0 .3em;
-        }
-        .op-nxt-aim svg {
-          position: absolute; left: -10%; top: -32%; width: 120%; height: 164%;
-          overflow: visible; pointer-events: none;
-        }
-        .op-nxt-aim path {
-          fill: none; stroke: ${LAB.goldSolid}; stroke-width: 3; stroke-linecap: round;
-          vector-effect: non-scaling-stroke;
-          stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--gc, 0));
-        }
+        .op-nxt-aim { font-weight: 600; color: ${LAB.ink}; }
 
         /* ── PÁS ─────────────────────────────────────────────────────────
            Os je hlavný dej obrazu — dostáva takmer celú šírku. Bočné odsadenia
@@ -6469,13 +6503,28 @@ export default function OnePage() {
           gap: 7px;
           white-space: nowrap;
         }
-        .op-nxt-goal b { font: 700 15px/1 'Cinzel', serif; color: ${LAB.ink}; }
+        /* CIEĽ ZVÝRAZNENÝ A ZAKRÚŽKOVANÝ LAPISOM (Matej 28. 9. 2026). Písmo
+           dorastie a ovál sa dokreslí (--gc 0 → 1) až po odchode kamery na
+           milión — dovtedy by krúžil okolo niečoho, čo ešte nie je cieľ. */
+        .op-nxt-goal b {
+          font: 700 calc(15px + 13px * var(--gc, 0))/1 'Cinzel', serif;
+          color: ${LAPIS.edge};
+        }
         .op-nxt-goal em {
-          font: 500 9.5px/1 'Space Grotesk', sans-serif;
+          font: 500 calc(9.5px + 2.5px * var(--gc, 0))/1 'Space Grotesk', sans-serif;
           font-style: normal;
           letter-spacing: 0.2em;
           text-transform: uppercase;
-          color: ${LAB.inkSoft};
+          color: ${LAPIS.edge};
+        }
+        .op-nxt-goal svg {
+          position: absolute; left: -24%; top: -46%; width: 146%; height: 192%;
+          overflow: visible; pointer-events: none;
+        }
+        .op-nxt-goal path {
+          fill: none; stroke: ${LAPIS.edge}; stroke-width: 3; stroke-linecap: round;
+          vector-effect: non-scaling-stroke;
+          stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--gc, 0));
         }
 
         /* 🔴 MENOVKA NIE JE ČASŤ FOTKY (Matej 1. 9. 2026: *„Hektorova pils musí
@@ -6628,11 +6677,14 @@ export default function OnePage() {
         @media (max-width: ${NARROW_MAX}px) {
           .op-nxt-h2 { flex-direction: column; column-gap: 0; line-height: 0.92; }
           .op-nxt-line span { display: block; margin-left: 0; }
-          .op-nxt-line .op-nxt-aim { display: table; margin: .2em auto 0; }
+          .op-nxt-line .op-nxt-aim { display: block; }
           /* Na mobile je každý pixel šírky vzácny: menovky klesnú nižšie, aby
              si nekonkurovali s cieľom, a os dostane skoro celý riadok. */
           .op-nxt-plot { width: 100%; padding: 62px 16px 62px 50px; }
-          .op-nxt-goal { transform: translate(-100%, calc(-100% - var(--goalY, 64px))); }
+          .op-nxt-goal { transform: translate(calc(-100% - 10px), calc(-100% - var(--goalY, 44px))); }
+          .op-nxt-goal b { font-size: calc(14px + 6px * var(--gc, 0)); }
+          .op-nxt-goal em { font-size: calc(9px + 1px * var(--gc, 0)); }
+          .op-nxt-goal svg { left: -14%; width: 128%; }
         }
 
         /* ── CHVOST OBRAZU (ARC_TAIL) ────────────────────────────────────
@@ -7681,7 +7733,7 @@ export default function OnePage() {
                       stredu okna. Jedna premenná, jeden dej.
                       ⚠️ NEZMIZNE — ostáva za textom na 14 % krytia (Matej:
                       *„ide do fade, ale nestratí sa celkom"*). */}
-                  <img className="op-nxt-phar" src="/images/council-pharaoh.png" alt="" aria-hidden="true" />
+                  <img className="op-nxt-phar" src="/images/council-pharaoh.webp" alt="" aria-hidden="true" />
   
                   {/* 🔴 BEAT, KTORÝ EŠTE NEPRIŠIEL, NEDRŽÍ MIESTO.
                       Kým boli všetky beaty v toku, „obrovský nadpis cez celú
@@ -7723,13 +7775,10 @@ export default function OnePage() {
                       {/* Matej 28. 9. 2026: *„Naše poslanie je vytvoriť HEROGLYF pre milión psov."* */}
                       <span>{t('onepage.need.mis1')}</span>
                       <span><b>{t('onepage.need.misGlyph')}</b> {t('onepage.need.misFor')}</span>
-                      <span className="op-nxt-aim">
-                        {t('onepage.need.misGoal')}
-                        {/* Ručne ťahaný ovál — dva oblúky, druhý presahuje prvý ako pri pere. */}
-                        <svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true">
-                          <path pathLength={1} d="M150 8 C 110 0, 30 2, 10 22 C -6 40, 40 58, 104 56 C 170 54, 204 40, 192 20 C 184 8, 150 4, 118 6" />
-                        </svg>
-                      </span>
+                      {/* 🔴 OVÁL ODIŠIEL Z TEXTU NA PÁS (Matej 28. 9. 2026: *„nechcel
+                          som zakrúžkovať slovo v texte, ale pri progres bare dolu aj
+                          zvýrazniť aj zakrúžkovať — modrou"*). Viď `.op-nxt-goal`. */}
+                      <span className="op-nxt-aim">{t('onepage.need.misGoal')}</span>
                     </p>
                   </div></div>
   
@@ -7749,7 +7798,12 @@ export default function OnePage() {
                             posledného psa (Matej 1. 9. 2026: *„ten goal daj hore
                             pri progresbar"*), a bez zvislej značky — tá ukazovala
                             na koniec pásu, čiže hovorila to, čo už bolo vidieť. */}
-                        <span className="op-nxt-goal"><b>1M</b><em>{t('onepage.need.goal')}</em></span>
+                        <span className="op-nxt-goal"><b>1M</b><em>{t('onepage.need.goal')}</em>
+                          {/* Ručne ťahaný ovál — dva oblúky, druhý presahuje prvý ako pri pere. */}
+                          <svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true">
+                            <path pathLength={1} d="M150 8 C 110 0, 30 2, 10 22 C -6 40, 40 58, 104 56 C 170 54, 204 40, 192 20 C 184 8, 150 4, 118 6" />
+                          </svg>
+                        </span>
   
                         {/* Psy MEDZI zakladateľom a posledným. Vypĺňajú modrý
                             úsek TVÁRAMI, nie farbou; sú menšie zámerne (väčšie sú
@@ -7836,8 +7890,11 @@ export default function OnePage() {
                       von zo stránky, ale doscrolluje na obraz heroglyfu, ktorý
                       stojí v tom istom javisku. */}
                   <div className="op-beat op-b-cta"><div className="op-bin">
-                    <button type="button" className="op-nxt-cta" onClick={goToGlyph}>
-                      {t('onepage.need.cta')}
+                    {/* 🔴 VO FINÁLE CTA NAMIESTO ŠÍPOK (Matej 28. 9. 2026: *„tu dajme CTA,
+                        nie šípky, a v CTA dajme CHCEM HEROGLYPH!"*). Klik = ďalší
+                        obraz filmu, teda veľký portál s fotkou psa (FilmFinale). */}
+                    <button type="button" className="op-nxt-cta" onClick={WNY_END ? () => filmGo(1) : goToGlyph}>
+                      {t(WNY_END ? 'onepage.need.want' : 'onepage.need.cta')}
                     </button>
                     {/* Riadok pod tlačidlom je jeho popiska, nie druhé CTA —
                         Space Grotesk, bez rámu, bez farebnej plochy.
@@ -7882,8 +7939,9 @@ export default function OnePage() {
               const tl = document.querySelector<HTMLElement>('.op-timeline');
               if (!tl) return;
               const top = tl.getBoundingClientRect().top + window.scrollY;
-              window.scrollTo({ top: top + Math.max(0, tl.offsetHeight - filmVh()) * STORY_START, behavior: 'smooth' });
+              filmJump(top + Math.max(0, tl.offsetHeight - filmVh()) * STORY_START);
             }}
+            onAbout={() => filmGo(1)}
           />
         )}
 

@@ -423,7 +423,8 @@ export function DogPlanetLab({
   useEffect(() => {
     if (ballIn) return;
     let done = false;
-    const arrive = () => { if (!done) { done = true; setBallIn(true); } };
+    // `dogypt:planet-ready` zdvihne úvodnú oponu z index.html (28. 9. 2026).
+    const arrive = () => { if (!done) { done = true; setBallIn(true); window.dispatchEvent(new Event('dogypt:planet-ready')); } };
     // Strop: výzva príde aj keby sa nenačítala ani jedna fotka (offline, 404).
     const cap = window.setTimeout(arrive, 1200);
     const poll = window.setInterval(() => {

@@ -363,9 +363,9 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
         aria-hidden
       >
         <CodexHalo who="cow" />
-        <img src="/images/codex3-cow-nohalo.png" alt="" className="codex-cow" />
+        <img src="/images/codex3-cow-nohalo.webp" alt="" className="codex-cow" />
         <CodexHalo who="hektor" />
-        <img src="/images/codex3-hektor-v1.png" alt="" className="codex-hektor" />
+        <img src="/images/codex3-hektor-v1.webp" alt="" className="codex-hektor" />
       </div>
 
       {/* ── LESK A BODKA LEN VO FILME ────────────────────────────────────────
