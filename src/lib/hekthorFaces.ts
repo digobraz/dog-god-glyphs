@@ -27,41 +27,45 @@ export const face = (i: number) => `/images/hekt-flow/${String(i).padStart(2, '0
 //    musí byť čo najväčšie Hektorova fotka, najlepšie tá kde má vycerené zuby"*),
 //    a 260 px by na retine bolo rozmazané. 400 je strop: presne toľko meria kruh
 //    v origináli (`4OK.png`, 500×500 s okrajom 50 px), väčšie by sa už dopočítavalo.
+// 🔴 28. 9. 2026 — Matejov výber z dielne /lab/heroflow („Skopíruj"): name 1 ·
+//    essence 15 · breed 7 · dog-character 2 · owner-info 21 · reveal 10 ·
+//    stay 12 · email 8 · dogs 5 · stay-done 14 · welcome 9. Komentáre pri
+//    jednotlivých krokoch nižšie popisujú STARŠIE voľby (história rozhodnutí).
 export const BY_STEP: Record<string, number> = {
   name: 1,
   // Matej 24. 9.: „pri tvoja svorka si nezmenil fotku... a tam byť profil
   // hektora" — v sade sú dva kandidáti, `04` (čelný portrét) a `07` (jediný
   // BOČNÝ PROFIL); obe som si otvoril a profil sedí ku „svorke" tematicky
   // lepšie (rad psov z boku), takže krok `dogs` dostáva `07`.
-  dogs: 7,
+  dogs: 5,
   // Matejov výber z troch fotiek, ktoré označil príponou OK (2OK · 3OK · 4OK):
   // tá s vycerenými zubami = `4OK.png` = `02.webp`. Predtým tu stálo 7 (profil).
-  email: 2,
+  email: 8,
   // `essence` (24. 9.) v mape chýbal, takže padal na ksicht kroku 1 — ten istý,
   // aký má krok `name`. `17` bola priradená starej routе `dog-gender`, ktorú
   // podstata pohltila (pohlavie je teraz jedna z otázok podstaty) — je preto
   // voľná a tematicky sedí.
-  essence: 17,
+  essence: 15,
   why: 9,
-  breed: 11,
+  breed: 7,
   ranking: 13,
-  'owner-info': 14,
+  'owner-info': 21,
   'owner-zodiac': 15,
   'owner-final': 16,
   'dog-gender': 17,
   'dog-fate': 18,
   'dog-colour': 19,
   'dog-bloodline': 20,
-  'dog-character': 21,
+  'dog-character': 2,
   crop: 23,
-  reveal: 25,
+  reveal: 10,
   message: 26,
   // C · ZADRŽANIE (25. 9. 2026) — voľný ksicht, žiadny iný krok ho nemá.
-  stay: 24,
+  stay: 12,
   // Ďakovačka hosťa €0 — vlastný kľúč, aby sa v dielni dala meniť zvlášť od popupu.
-  'stay-done': 24,
+  'stay-done': 14,
   // Finále po platbe — Hektor víta v DOGYPTE (26. 9. 2026), voľný ksicht.
-  welcome: 3,
+  welcome: 9,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
