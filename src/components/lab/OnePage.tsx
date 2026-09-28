@@ -120,8 +120,10 @@ const pinnedAt = (sel: string, f: number): number | null => {
  *  stredu — *„nábeh textu a postupne aj heroglyph, pomaly, teraz je to moc
  *  rýchlo"*. Platí oboma smermi. */
 const DGX_WRITE_MS = 4000;
-/** Jazda medzi zastávkami kót (a z poslednej kóty do konečného stavu). */
+/** Jazda z poslednej kóty do konečného stavu. */
 const DGX_KOTA_MS = 1600;
+/** Jazda cez všetky štyri kóty naraz (~1,4 s na kótu, rovnomerne). */
+const DGX_KOTAS_MS = 5600;
 const easeSine = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2;
 
 /** 🔴 DOGTRIX PO ŤAHOCH (Matej 27. 9. 2026: *„nemôže jeden scroll ukázať
@@ -132,23 +134,28 @@ const easeSine = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2;
  *  ① nadpis + glyf dopísaný · ②–⑤ kóta i naplno svieti (tie predošlé
  *  svietia ďalej, `hold:'acc'`) · ⑥ = `.op-arc-rest2` (kóty zhasnú, Hektor,
  *  horný nav). */
+/*  🔴 KÓTY JEDNÝM ŤAHOM (Matej 28. 9. 2026: *„pri heroglyphe zruš ukazovanie
+ *  detailov scrollom — načítajú sa jedným scrolom všetky, ale pomaly po
+ *  poradí"*). Zastávky ②–④ zanikli: ① nadpis + glyf · ② posledná kóta
+ *  dosvietila. Jazda ①→② ide ROVNOMERNE (`DGX_KOTAS_MS`), takže kóty
+ *  nabiehajú jedna po druhej vlastným rozstupom `kotaStag`. */
 const dgxStopsDp = (): number[] => [
   (DGX.glyph + DGX.glyphD) / 100,
-  ...[0, 1, 2, 3].map((i) => (DGX.kota + i * DGX.kotaStag + DGX.pulseW + DGX.kotaD) / 100),
+  (DGX.kota + 3 * DGX.kotaStag + DGX.pulseW + DGX.kotaD) / 100,
 ];
 /** Poloha bodu `dp` na stránke (px) — tá istá rovnica ako `dp` v réžii. */
 const dgxAt = (f: number): number | null =>
   pinnedAt('.op-arc', ARC_SPLIT + ARC_DWELL + f * (ARC_XFADE + ARC_DGX_F));
 
-const dgxLeg = (from: number, to: number): 'dissolve' | 'write' | 'kota' | null => {
+const dgxLeg = (from: number, to: number): 'dissolve' | 'write' | 'kotas' | 'kota' | null => {
   const touch = pinnedAt('.op-gate', GATE_TOUCH), gone = pinnedAt('.op-gate', GATE_FADE[1]);
   const pair = (a: number | null, b: number | null) =>
     a != null && b != null && ((Math.abs(from - a) < 4 && Math.abs(to - b) < 4) || (Math.abs(from - b) < 4 && Math.abs(to - a) < 4));
   if (pair(touch, gone)) return 'dissolve';
   const d = dgxStopsDp().map(dgxAt);
   if (pair(gone, d[0])) return 'write';
-  const chain = [...d, absTop('.op-arc-rest2')];
-  for (let i = 0; i + 1 < chain.length; i++) if (pair(chain[i], chain[i + 1])) return 'kota';
+  if (pair(d[0], d[1])) return 'kotas';
+  if (pair(d[1], absTop('.op-arc-rest2'))) return 'kota';
   return null;
 };
 
@@ -3813,7 +3820,8 @@ export default function OnePage() {
   /** Sme v príbehu (od prvej vety po jeho koniec)? Šípky tam zavadzajú textu
    *  crawlu (Matej 27. 9. 2026: *„pri príbehu daj preč aj šípky"*). */
   const [inStory, setInStory] = useState(false);
-  /** Scéna ČLENSTVO — šípky filmu v nej zavadzajú telefónom (Matej 27. 9.). */
+  /** Scéna ČLENSTVO — šípky filmu sa v nej presunú pod ľavý stĺpec
+   *  (27. 9. skryté, 28. 9. Matej: *„nevidím scroll šípky"*). */
   const [inApps, setInApps] = useState(false);
   /** Popup s tromi Albami — vstup je chip PRÍKLAD pri podnadpise HEROGLYPH. */
   const [albaOpen, setAlbaOpen] = useState(false);
@@ -3910,12 +3918,14 @@ export default function OnePage() {
       const leg = dgxLeg(from, to);
       if (leg === 'dissolve') return 2000;
       if (leg === 'write') return DGX_WRITE_MS;
+      if (leg === 'kotas') return DGX_KOTAS_MS;
       if (leg === 'kota') return DGX_KOTA_MS;
       return base;
     },
     easing: (from, to) => {
       if (isGateRide(from, to)) return (t: number) => t;
       const leg = dgxLeg(from, to);
+      if (leg === 'kotas') return (t: number) => t;
       return leg === 'write' || leg === 'kota' ? easeSine : undefined;
     },
     paused: () => bookOpenRef.current || wallOpenRef.current || albaOpenRef.current || appsOpenRef.current || document.body.style.overflow === 'hidden',
@@ -3967,8 +3977,8 @@ export default function OnePage() {
       {/* ŠÍPKY DOLE (27. 9. 2026) — Matej: *„namiesto CTA urobiť na obrazovkách
           šípky, ktoré navádzajú na SLIDE… 3 pod sebou blikajúce"*. Jedny pre
           celý film; počas jazdy motora zhasnú, klik = ďalšia obrazovka. */}
-      {!wallOpen && !atFilmEnd && !inStory && !inApps && (
-        <FilmCue moving={filmMoving} onNext={() => filmGo(1)} label={t('onepage.cue.next')} big={atHome} />
+      {!wallOpen && !atFilmEnd && !inStory && (
+        <FilmCue moving={filmMoving} onNext={() => filmGo(1)} label={t('onepage.cue.next')} big={atHome} apps={inApps} />
       )}
       {!wallOpen && (
         <FilmTop show={!atHome} label={t('onepage.cue.top')}
