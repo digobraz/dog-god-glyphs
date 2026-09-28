@@ -8,7 +8,7 @@ import { PackNetwork } from '@/components/pack/PackNetwork';
 import { PackSettings } from '@/components/pack/PackSettings';
 import { PawmatesSection } from '@/components/pack/PawmatesSection';
 import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
-import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, FONT_TITLE, FONT_UI, usePaperRoute } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, PACK_TEXT, PACK_SPACE, PF_FIELD_CSS, FONT_TITLE, FONT_UI, usePaperRoute } from '@/components/pack/packTheme';
 import { GOLD_BLOCK_CSS } from '@/components/pack/navGoldSkin';
 import { tierVars } from '@/lib/packTiers';
 import { uploadExtraPhoto, sizedUrl } from '@/services/cloudinaryService';
@@ -896,7 +896,9 @@ export default function PackProfile() {
             </div>
           </SubBlock>
           <SubBlock label={tx('pack.profile.lifestyle', 'Lifestyle')} hint={tx('pack.profile.optional', 'Optional')} center>
-            <div className="flex flex-wrap items-center justify-center gap-1.5">
+            {/* MRIEŽKA 2 × 2 (Matej 28. 9. 2026 nad hárkom plany/nakres-profil-zivotny-styl-2026-09-28: „ok").
+                Dovtedy flex-wrap: každý výber inak široký, na mobile sa lámali 2 + 1 + 1. */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: PACK_SPACE.sm, width: '100%', maxWidth: 340, margin: '0 auto' }}>
               <StatusSelect
                 value={human?.relationship}
                 onChange={(v) => patchHuman({ relationship: v })}
@@ -1219,8 +1221,9 @@ function LifestyleSelect<V extends string>({
       className="pf-field pf-selpad"
       style={{
         borderRadius: 999,
+        width: '100%',
         fontFamily: "'Space Grotesk', sans-serif",
-        fontSize: 11,
+        fontSize: PACK_TEXT.label,
         color: value ? T.ink : T.inkFaint,
         cursor: 'pointer',
       }}
@@ -1597,8 +1600,9 @@ function StatusSelect({
       className="pf-field pf-selpad"
       style={{
         borderRadius: 999,
+        width: '100%',
         fontFamily: "'Space Grotesk', sans-serif",
-        fontSize: 11,
+        fontSize: PACK_TEXT.label,
         color: value ? T.ink : T.inkFaint,
         cursor: 'pointer',
       }}
