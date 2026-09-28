@@ -838,7 +838,8 @@ const ARC = {
     vh: 460,
     // 1–3 · faraón
     h0: 100, rise: 10, gmax: 100, grow: 12,
-    fade: 20, fadeD: 16, h1: 42, o1: 14,
+    // h1 42 → 55: faraón o 30 % väčší (Matej 28. 9. 2026).
+    fade: 20, fadeD: 16, h1: 55, o1: 14,
     // 4–5 · WE · NEED · YOU!
     head: 22, stag: 4, shrink: 42, shrinkD: 8, glow: 42,
     /** 🔴 DVE SADY — PC a mobil (`…M`). Bez nich sa mobil doladí len na úkor
@@ -3578,7 +3579,9 @@ export default function OnePage() {
         const [qi0, qi1] = quoIn();
         const qIn = seg(qp, qi0, qi1);
         const qEx = WNY_END ? seg(qp, 1 - WNY_OVER_VH / (QUO_VH * 100 - 100), 1) : 0;
-        put(n.quoStage, 'qso', 'opacity', (qIn * (1 - qEx)).toFixed(3));
+        const qVis = qIn * (1 - qEx);
+        put(n.quoStage, 'qso', 'opacity', qVis.toFixed(3));
+        put(n.quoStage, 'qspe', 'pointerEvents', qVis > 0.5 ? 'auto' : 'none');
         put(n.quoHead, 'qh', 'opacity', qh.toFixed(3));
         // Nadpis pri odchode RASTIE — text, ktorý sa zväčšuje, čítame ako
         // „prešiel okolo nás". Pri zmenšovaní by to vyzeralo, že cúvol.
@@ -3588,6 +3591,9 @@ export default function OnePage() {
           const cp = seg(qp, QUO.colsIn[0] + i * QUO.colStagger, QUO.colsIn[1] + i * QUO.colStagger);
           put(el, 'qc' + i, 'opacity', cp.toFixed(3));
           put(el, 'qct' + i, 'transform', `translateY(${((1 - cp) * 26).toFixed(1)}px)`);
+          // Citáty sa ZAOSTRIA (Matej 28. 9. 2026: *„nadpis sa rozplynie a bloky
+          // sa zaostria"*). Tri stĺpce, nie celá plocha — sekanie nehrozí.
+          put(el, 'qcb' + i, 'filter', cp >= 0.999 ? 'none' : `blur(${((1 - cp) * 8).toFixed(1)}px)`);
         });
         // Zdroje fotiek (CC) sú právna podmienka, nie ozdoba — držia sa krytia
         // citátov, aby sa neobjavili skôr než to, k čomu patria.
@@ -3912,7 +3918,9 @@ export default function OnePage() {
       const ap = document.querySelector<HTMLElement>('.op-apps');
       if (ap) {
         const top = ap.getBoundingClientRect().top + window.scrollY;
-        setInApps(window.scrollY >= top + 4 && window.scrollY < top + ap.offsetHeight - window.innerHeight * 0.5);
+        // Len po zastávku funkcií (+ pol obrazovky) — za ňou už nabiehajú hviezdy.
+        const stop = pinnedAt('.op-apps', APPS_STOPS[0]) ?? top;
+        setInApps(window.scrollY >= top + 4 && window.scrollY < stop + window.innerHeight * 0.1);
       }
     };
     on();
@@ -4543,6 +4551,19 @@ export default function OnePage() {
            v DOM-e (choreografia ich počíta), len sa nekreslia. */
         .op-root .op-glf { display: none !important; }
         .op-root .op-b-arrow, .op-root .op-b-step, .op-root .op-b-cta { visibility: hidden !important; }
+        /* 🔴 VO FINÁLE SKRYTÉ BEATY NEDRŽIA MIESTO (Matej 28. 9. 2026: *„celý
+           obsah centrovať na stred, teraz je moc hore"*). visibility:hidden
+           nechalo šípke, kroku a CTA ~130 px pod pásom, takže stred obsahu
+           sedel vysoko. */
+        .op-wny .op-b-arrow, .op-wny .op-b-step, .op-wny .op-b-cta, .op-wny .op-b-tail { display: none !important; }
+        /* 🔴 MÄKČEŇ NAD Ť (Matej 28. 9.: *„nie je vidno mäkčeň"*). Zlato je
+           background-clip:text a pozadie siaha len po box slova — pri riadkovaní
+           0.94 končí na výške verzálky, takže diakritika nad ňou nemala farbu
+           (priehľadné písmo = neviditeľná). Box sa zdvihne o 0.2em a okraj ho
+           vráti, riadok sa nepohne. Pozor na to isté všade, kde je zlaté písmo
+           cez background-clip s riadkovaním pod 1. */
+        .op-nxt-h2 { padding-top: 0.2em; }
+        .op-nxt-h2 span { padding-top: 0.2em; margin-top: -0.2em; }
         @media (min-width: 768px) {
           .op-snaps > span,
           /* ⚠️ PREAMBULA ANI KNIHA TU UŽ NIE SÚ. Preambula má vlastnú prilepenú
@@ -6032,8 +6053,12 @@ export default function OnePage() {
            pri jeho zmiznutí by citáty poskočili o jeho výšku. Obraz WE NEED YOU
            rieši to isté inak — beat, ktorý ešte neprišiel, tam miesto nedrží
            (grid-template-rows 0fr) a pri odchode ho zase pustí. */
-        .op-quo { position: relative; z-index: 4; height: ${QUO_VH * 100}vh; }
-        .op-quo-stage { opacity: 0; }
+        .op-quo { position: relative; z-index: 4; height: ${QUO_VH * 100}vh; pointer-events: none; }
+        /* Javisko hviezd povoľuje kliky až keď je vidieť (réžia, 'qspe') —
+           inak by neviditeľné ležalo nad šípkami ČLENSTVA. */
+        .op-quo-stage { opacity: 0; pointer-events: none; }
+        /* WE NEED YOU nemá nič na klik a jeho javisko leží nad hviezdami. */
+        .op-wny, .op-wny * { pointer-events: none !important; }
         .op-wny { position: relative; z-index: 5; }
         .op-quo-stage { position: sticky; top: 0; height: 100vh; overflow: hidden; }
         /* Rezerva na lištu na OBOCH koncoch: obsah sa centruje v tom, čo
@@ -7566,8 +7591,9 @@ export default function OnePage() {
                       DOGYPT je značka, nie slovo vety — Cinzel a zlato. */}
                   <div className="op-beat op-b-sub"><div className="op-bin">
                     <p className="op-nxt-line">
-                      <span>{t('onepage.need.sub1')}</span>
-                      <span>{t('onepage.need.sub2')} <b>DOGYPT.</b></span>
+                      {/* Matej 28. 9. 2026: *„Naše poslanie je vytvoriť HEROGLYF pre milión psov."* */}
+                      <span>{t('onepage.need.mis1')}</span>
+                      <span><b>{t('onepage.need.misGlyph')}</b> {t('onepage.need.mis2')}</span>
                     </p>
                   </div></div>
   

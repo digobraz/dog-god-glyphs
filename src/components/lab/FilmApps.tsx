@@ -333,7 +333,11 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
       )}
 
       <style>{`
-        .op-apps { position: relative; z-index: 3; }
+        /* 🔴 SEKCIA NECHYTÁ KLIKY (Matej 28. 9.: *„na tejto stránke nejde klikať
+           na ikonky ani na chip"*). Je zasunutá pod koniec oblúka, takže jej
+           prázdny obal leží nad dopísaným DOGTRIXom. Kliky chytajú len prvky,
+           ktoré ich majú povolené samy (karusel, šípky, text funkcie). */
+        .op-apps { position: relative; z-index: 3; pointer-events: none; }
         /* Obsah oblúka (DOGTRIX) zhasína, kým vychádzajú telefóny. */
         .op-arc .op-arc-stage { opacity: calc(1 - var(--apps-out, 0)); }
         .op-apps-stage {

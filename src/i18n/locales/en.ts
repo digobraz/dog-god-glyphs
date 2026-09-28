@@ -1210,6 +1210,9 @@ export const en = {
   // sa zmestil ten širší. DOGYPT je značka a stojí v `<b>` MIMO kľúča.
   'onepage.need.sub1': 'Our goal is to unite one million dog lovers',
   'onepage.need.sub2': 'in one place —',
+  'onepage.need.mis1': 'Our mission is to create a',
+  'onepage.need.misGlyph': 'HEROGLYPH',
+  'onepage.need.mis2': 'for one million dogs.',
   'onepage.need.goal': 'Our goal',
   'onepage.cue.next': 'Next',
   'onepage.cue.story': 'Scroll through the story',
