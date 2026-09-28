@@ -1655,14 +1655,15 @@ export function DogPlanetLab({
           font-weight: 700;
           letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: #6E4E18;
-          background: rgba(255,250,236,0.45);
-          border: 1px solid rgba(201,154,63,0.65);
+          /* Akcia na bledom = LAPIS (obrys, nie plná plocha — hlavné CTA to nie je). */
+          color: ${LAPIS.edge};
+          background: transparent;
+          border: 1px solid ${LAPIS.edge};
           border-radius: 8px;
           text-decoration: none;
           transition: box-shadow 200ms ease, background 200ms ease;
         }
-        .pp-link:hover { background: rgba(255,250,236,0.85); box-shadow: 0 0 12px rgba(201,154,63,0.4); }
+        .pp-link:hover { background: ${LAPIS.fill}; box-shadow: 0 0 12px ${LAPIS.halo}; }
         /* ── ŠÍPKY PREPÍNANIA (mobil) ────────────────────────────────────────
            Visia cez hranu karty, zvisle na jej strede. Vzhľad je odliatok pečate
            s poradovým číslom (.pp-seal) — tá istá zlatá pilulka s krémovým lemom,
@@ -1719,8 +1720,10 @@ export function DogPlanetLab({
           font-size: 0.86rem;
           line-height: 1.1;
           letter-spacing: 0.02em;
-          color: #3d1f00;
-          background: linear-gradient(180deg, #F5C73D 0%, #E69E1A 100%);
+          /* LAPIS (Matej 28. 9. 2026: *„tu treba upraviť farby na lapis"*) —
+             to isté číslo ako odznak #1 na homepage (HeroCard, 27. 9.). */
+          color: ${LAPIS.ink};
+          background: ${LAPIS.grad};
           border: 1.5px solid #FFF8E4;
           border-radius: 999px;
           padding: 3px 12px;
@@ -1757,8 +1760,9 @@ export function DogPlanetLab({
         .pp-days {
           padding: 4px 13px;
           border-radius: 999px;
-          background: linear-gradient(180deg, #F5C73D 0%, #E69E1A 100%);
-          color: #3d1f00;
+          /* Pilulka dní = LAPIS naprieč appkou (lock 12. 9., DAYS_PILL v PackDogs). */
+          background: ${LAPIS.grad};
+          color: ${LAPIS.ink};
           font-family: 'Cinzel', serif;
           font-size: 0.86rem;
           font-weight: 700;
@@ -1766,7 +1770,7 @@ export function DogPlanetLab({
           line-height: 1.1;
           white-space: nowrap;
           border: none;
-          box-shadow: 0 6px 16px -6px rgba(201,154,63,0.6);
+          box-shadow: ${LAPIS_BTN_SHADOW};
         }
 
         /* Karta rastie spolu s panelom — obsah sa neškáluje sám, veľkosti sú
