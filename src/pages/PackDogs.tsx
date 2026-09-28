@@ -63,8 +63,6 @@ import { storedSpecials } from '@/components/pack/natureQuiz';
 import { readLatestForDogs, onDogEventsChange, hasValue, type LatestValue } from '@/lib/dogEvents';
 import { dogLifeLine } from '@/lib/dogAge';
 import { countryISO2 } from '@/lib/countryGeo';
-import { dogTripStats } from '@/lib/dogTripStats';
-import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { supabase } from '@/integrations/supabase/client';
 import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
 import { getAccessibleDogIds } from '@/lib/dogRights';
@@ -245,8 +243,9 @@ const HUB_CSS = `
   display:inline-flex; align-items:center; justify-content:center;
   font-family:'Cinzel',serif; font-weight:700; font-size:14px; letter-spacing:0.02em;
   line-height:1; white-space:nowrap; padding:4px 8px; border-radius:999px;
-  background:linear-gradient(180deg,#F5C73D,#E69E1A); color:#3d1f00;
-  border:1px solid rgba(250,244,236,0.55);
+  /* LAPIS od 28. 9. 2026 (Matej: „daj lapis") — ten istý odznak ako #1 na homepage (HeroCard). */
+  background:${LAPIS.grad}; color:${LAPIS.ink};
+  border:1px solid rgba(239,215,154,0.55);
   box-shadow:0 2px 6px rgba(0,0,0,0.28);
 }
 /* ⚠️ 721px, NIE 900px. Hranica musí byť tá istá, akú používa useFitName — kým tu bolo
@@ -982,10 +981,6 @@ function DogBlock({
   tx: Tx;
 }) {
   const { lang } = useLang();
-  // PSIE KM (B20) — dáta ležia v localStorage (`trp-dog-trips-v1`), takže sa o ich
-  // zmene inak nedozvieme. ⚠️ Hook MUSÍ stáť nad každým skorým returnom v tomto
-  // komponente — hook pod ním zhodí celú stránku na „Rendered more hooks…".
-  const storeEpoch = usePackStoreEpoch();
   const idwRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLSpanElement>(null);
   /**
@@ -1047,20 +1042,11 @@ function DogBlock({
   // so stropom 4 položky; vodorovný rad zalamuje, takže strop odpadol.
   // ⚠️ `#poradové číslo` tu UŽ NIE JE — presunulo sa na kruh fotky (`.dogblk-num`), aby
   // nebolo v bloku dvakrát.
-  /**
-   * PSIE KM (B20, Matej 17. 9. 2026) — JEDNA pilulka, a len keď má čo povedať.
-   * Rad pilulek zalamuje, ale je to zhrnutie: dva ďalšie údaje by z neho spravili
-   * zoznam. Počet výletov aj tak stojí v psom profile (`/pack/dogs/:id`), kam celý
-   * blok vedie — tu je len číslo, ktoré sa dá prečítať jedným pohľadom.
-   * ⚠️ Pri nule sa NEZOBRAZÍ: „0 km" nie je údaj o psovi, je to údaj o tom, že sa
-   * ešte nič nezapísalo — a to patrí do profilu, nie na kartu.
-   * 🔒 NIE JE TO PÚTNIK. Pútnikov level a body ostávajú človeku (hlavička `/map`).
-   */
-  const dogKm = useMemo(() => dogTripStats(dog.id).km, [dog.id, storeEpoch]);
+  // PSIE KM (B20, 17. 9.) ZANIKLI 28. 9. 2026 — Matej nad hárkom plany/nakres-cislo-dogs-2026-09-28:
+  // „tie kilometre daj preč". Km psa ostávajú v DOG ID („Život v kocke") a v TRIPSTATS.
 
   const pills = [
     days ? <Pill key="days" solid>{life.isAngel ? `🕊 ${days}` : days}</Pill> : null,
-    dogKm > 0 ? <Pill key="km">{`${fmtNum(dogKm, lang, 1)} KM`}</Pill> : null,
     <Pill key="country">
       <FlagCircle iso2={iso2} label={iso2.toUpperCase()} size={13} />
       {iso2.toUpperCase()}
