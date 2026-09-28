@@ -871,20 +871,7 @@ button.ow-name:not(.is-valid) { text-transform: none; letter-spacing: normal; }
   .ow-gender .well img { width: 32px; height: 32px; }
 }
 
-/* ── 📱 VYSOKÝ TELEFÓN: VIAC VZDUCHU V BLOKOCH ───────────────────────────────
-   Ten istý zásah ako na PATRÓNOVI a POVAHE a z tej istej Matejovej vety
-   (*„mali by sme mať každú obrazovku cca rovnako vyplnenú"*). Merané 25. 9. na
-   390×844: MAJITEĽ mal 83 %, teda na spodnej hrane pásma 82–95 %, hoci susedné
-   kroky tam už vzduch dostali — pri prechode by pôsobil stiesnene.
-   ⚠️ LEN VYSOKÝ TELEFÓN (min-height 701). Na iPhone SE je táto obrazovka na
-      95 % a ďalšia výplň by ju potopila. */
-@media (max-width: 559px) and (min-height: 701px) {
-  .ow-speak { padding: 16px; margin-bottom: 12px; }
-  /* ⚠️ BOČNÝ PADDING 22 JE ZHODNÝ SO SUSEDMI, hoci zvislý je menší. Rám berie
-     na telefóne 100 % vnútra dosky, takže 20 vs. 22 znamenalo rám 306 px tu a
-     302 px na patrónovi — teda presne to, čo lock zakazuje. */
-  .ow-stack .hf-plate { padding: 26px 22px; gap: 12px; }
-}
+/* ⚠️ Pravidlo vysokého telefónu ZANIKLO 28. 9. 2026 — rovnaký dôvod ako na PATRÓNOVI. */
 /* ── PODKROKY (26. 9. 2026) ─────────────────────────────────────────────────
    Plocha otázky má PEVNÚ výšku najvyššieho podkroku (dlaždice pohlavia ako na
    podstate, 124 px) — výška obrazovky sa medzi podkrokmi nemení. Staré
@@ -901,8 +888,11 @@ button.ow-name:not(.is-valid) { text-transform: none; letter-spacing: normal; }
 .ow-next {
   flex: 0 0 auto; height: 32px; padding: 0 14px; cursor: pointer; align-self: center;
   /* ZLATÉ, nie lapis — lapis je len jediné hlavné CTA (Matej 26. 9. na MENE). */
-  border-radius: ${PACK_R.pill}px; border: 1px solid ${BRAND_GOLD_BTN.edge};
-  background: ${BRAND_GOLD_BTN.grad}; color: ${BRAND_GOLD_BTN.ink}; box-shadow: ${BRAND_GOLD_BTN.glow};
+  /* 28. 9. 2026 — OBRYSOVÝ, nie plný (Matej: *„chip hotovo dajme obrysový, nie
+     plný — všade vo flow, kde sme taký chip použili; nech nie sú dve fill
+     tlačidlá pod sebou"*). Plné je len hlavné CTA pod ním. */
+  border-radius: ${PACK_R.pill}px; border: 1.5px solid ${BRAND_GOLD_BTN.edge};
+  background: transparent; color: ${BRAND_GOLD_BTN.ink}; box-shadow: none;
   font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
   letter-spacing: 0.14em; text-transform: uppercase;
 }
@@ -910,7 +900,7 @@ button.ow-name:not(.is-valid) { text-transform: none; letter-spacing: normal; }
 /* 26. 9. 2026 ~16:15 Matej na HVIEZDACH: *„keď je vybraté, bude svietiť na zeleno
    HOTOVO, nie ĎALEJ"* — znamenia sú potvrdený stav, nie krok vpred. Zelená =
    SPLNENÉ (\`PACK_THEME.growGreen\`, tá istá ako 100 % DOG ID). */
-.ow-next.is-done { background: ${PACK_THEME.growGreen}; border-color: ${PACK_THEME.growGreen}; color: #FDF7E7; }
+.ow-next.is-done { background: transparent; border-color: ${PACK_THEME.growGreen}; color: ${PACK_THEME.growGreen}; }
 .ow-cta.is-off:hover { transform: none; }
 @media (max-height: 700px) {
   .ow-q, .ow-q .ow-genders { min-height: 112px; }

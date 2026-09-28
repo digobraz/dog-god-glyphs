@@ -558,7 +558,11 @@ const CHECKOUT_CSS = `
    veľkú, zväčši aspoň o 200 %"* ⇒ 80 → 240 px). Veľkosť drží výška okna, nie
    pevné číslo: na nízkom okne sa scvrkne a doska sa zmestí bez scrollu. Polovica
    pečate visí nad rámom, druhá polovica zaberá hornú časť dosky. */
-.co-stack { --seal: clamp(120px, 24dvh, 240px); margin-top: calc(var(--seal) * 0.42); }
+/* 28. 9. 2026 — pečať MENŠIA (Matej: *„zmenšime pečať, lebo keď kliknem na
+   promokód a otvorí sa ešte jeden riadok, obsah už nie je na 100vh"*).
+   Bolo clamp(120px, 24dvh, 240px) — na 390×740 to bolo 178 px a pečať si brala
+   takmer 150 px výšky dosky. */
+.co-stack { --seal: clamp(96px, 16dvh, 168px); margin-top: calc(var(--seal) * 0.42); }
 .co-seal {
   position: absolute; z-index: 3; left: 50%; top: 0; width: var(--seal); height: var(--seal);
   transform: translate(-50%, -58%) rotate(-5deg); pointer-events: none;
@@ -566,10 +570,10 @@ const CHECKOUT_CSS = `
 }
 .co-stack .hf-plate { padding-top: calc(var(--seal) * 0.42 + 8px); }
 /* Viac psov = viac riadkov kariet ⇒ pečať sa scvrkne (Matej 25. 9. 2026). */
-.co-stack--many { --seal: clamp(88px, 13dvh, 160px); }
+.co-stack--many { --seal: clamp(80px, 12dvh, 128px); }
 @media (max-height: 700px) {
-  .co-stack { --seal: 18dvh; }
-  .co-stack--many { --seal: 12dvh; }
+  .co-stack { --seal: 14dvh; }
+  .co-stack--many { --seal: 11dvh; }
 }
 
 /* ⚠️ ZELENÁ je tu Matejova výslovná voľba. Inde v appke zelená znamená TIP
@@ -646,7 +650,8 @@ const CHECKOUT_CSS = `
 .co-bill-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .co-member-link {
   border: 0; background: none; padding: 0; cursor: pointer; white-space: nowrap;
-  font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px;
+  /* 28. 9. 2026: „Členstvo v DOGYPTE" pretekalo ⇒ len „Členstvo" a písmo 14 → 12. */
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
   letter-spacing: 0.08em; text-transform: uppercase; color: ${LAB.ink};
   text-decoration: underline; text-decoration-color: ${LAPIS.edge};
   text-decoration-thickness: 2px; text-underline-offset: 4px;

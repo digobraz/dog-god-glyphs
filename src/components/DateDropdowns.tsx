@@ -101,8 +101,12 @@ export function DateDropdowns({ day, month, year, minYear, maxYear, maxDate, onC
   const blank = !!empty;
   const ph = emptyLabels || { day: '—', month: '—', year: '—' };
 
-  const monthName = (m: number) =>
-    new Intl.DateTimeFormat(locale, { month: 'long' }).format(new Date(2000, m - 1, 1));
+  // 28. 9. 2026 — Matej: *„vo výbere mesiaca dajme tiež číslo, nie názov, aby bol
+  // dátum len číselný"*. Platí pre bledý šat (nový vstup); /pack a starý vstup
+  // si mesiac slovom nechávajú.
+  const monthName = (m: number) => skin === 'pale'
+    ? String(m).padStart(2, '0')
+    : new Intl.DateTimeFormat(locale, { month: 'long' }).format(new Date(2000, m - 1, 1));
 
   const clamp = (newDay: number, newMonth: number, newYear: number) => {
     const maxDay = daysInMonth(newMonth, newYear);

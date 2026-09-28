@@ -181,12 +181,16 @@ export function FlowStayChoice({ done, onDone, onMember, onMore }: {
         onDone();
         return;
       }
-      console.error('create-checkout (stay) failed:', res.status, data?.error);
-      setError(t('payment.error'));
+      const err = res.ok ? null : await res.json().catch(() => null);
+      console.error('create-checkout (stay) failed:', res.status, err?.error);
+      // 28. 9. 2026 — hosť NEPLATÍ, takže „Platbu sa nepodarilo spustiť" bola
+      // nepravda (Matej to videl pri „Pokračovať zadarmo"). Chýbajúci e-mail
+      // (400 invalid_input) povie, čo doplniť; zvyšok je obyčajné „neuložilo sa".
+      setError(t(err?.error === 'invalid_input' ? 'heroglyph.flow.stay.errEmail' : 'heroglyph.flow.stay.errSave'));
       setBusy(false);
     } catch (err) {
       console.error('stay confirm error:', err);
-      setError(t('payment.error'));
+      setError(t('heroglyph.flow.stay.errSave'));
       setBusy(false);
     }
   };
@@ -253,7 +257,13 @@ export function FlowStayChoice({ done, onDone, onMember, onMore }: {
 
           {/* Novinky sú marketing ⇒ výslovný súhlas (krok 4 sľúbil e-mail len
               na „nech sa ti dizajn nestratí"). */}
-          <button type="button" className={`hf-chk${news ? ' on' : ''}`} onClick={() => setNews((v) => !v)}>
+          {/* 28. 9. 2026 — HLÁŠKA A SÚHLAS ZDIEĽAJÚ JEDNO MIESTO. Hláška pribudla
+              ako nový riadok, doska narástla a medailón (useFillMedal) sa
+              scvrkol presne o ňu — Matej: *„fotka Hektora sa scvrkla práve kvôli
+              tejto hláške"*. Obe ležia v tej istej bunke mriežky; pri chybe súhlas
+              len zhasne, takže výška dosky sa nezmení. */}
+          <div className="st-slot">
+          <button type="button" className={`hf-chk${news ? ' on' : ''}${error ? ' is-hidden' : ''}`} onClick={() => setNews((v) => !v)} aria-hidden={!!error} tabIndex={error ? -1 : 0}>
             <span className="box">
               <svg viewBox="0 0 24 24" fill="none" stroke="#16307A" strokeWidth="3.4"
                 strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -263,7 +273,8 @@ export function FlowStayChoice({ done, onDone, onMember, onMore }: {
             <span className="lbl">{t('heroglyph.flow.stay.news')}</span>
           </button>
 
-          {error && <p role="alert" className="hf-alert">{error}</p>}
+          {error && <p role="alert" className="hf-alert st-err">{error}</p>}
+          </div>
           <div className="st-actions">
             {/* Výplň prehodená (Matej 26. 9. 2026): PLNÝ PRÍSTUP = plné lapis,
                 POTVRDIŤ = priesvitné. Pod sebou: člen hore, potvrdenie dole. */}
@@ -377,6 +388,11 @@ function GuestBoard({ onJoin }: { onJoin: () => void }) {
 }
 
 const STAY_CSS = `
+/* Hláška a súhlas v JEDNEJ bunke — výška dosky sa pri chybe nemení (28. 9. 2026). */
+.st-slot { display: grid; }
+.st-slot > * { grid-area: 1 / 1; }
+.st-slot > .hf-chk.is-hidden { visibility: hidden; }
+.st-slot > .st-err { align-self: center; margin: 0; }
 /* ── ĎAKOVAČKA HOSŤA ── dolná doska zadržania po zápise. */
 .gt-stack { width: 100%; }
 .gt-stack .hf-plate { gap: 12px; }

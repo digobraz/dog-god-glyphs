@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { DateDropdowns } from '@/components/DateDropdowns';
 import legendIconUrl from '@/assets/legend-icon.svg';
 import angelIconUrl from '@/assets/angel-icon.svg';
-import { PICK_INK } from '@/components/pack/navGoldSkin';
+import { PICK_INK, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { HF } from './flowPaleSkin';
 import { useT } from '@/i18n/LanguageContext';
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -229,25 +230,28 @@ export function DeathDateModal({
             maxYear={now.getFullYear()}
             maxDate={now}
             onChange={(nd, nm, ny) => { setD(nd); setM(nm); setY(ny); }}
+            skin="pale"
           />
         </div>
         <button
           type="button"
           onClick={() => onSave(`${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`)}
+          // 28. 9. 2026 — Matej: *„CTA aj pri anjelovi treba upraviť… toto tlačidlo
+          // už vo flow nemôže byť"*. Hlavné CTA vstupu: lapis, rohy 8, z HF.cta.
           style={{
             width: '100%',
-            height: 46,
+            height: HF.cta.h,
             border: 'none',
-            borderRadius: 12,
+            borderRadius: HF.cta.radius,
             cursor: 'pointer',
             fontFamily: "'Cinzel', serif",
             fontWeight: 700,
-            fontSize: '0.85rem',
-            letterSpacing: '0.12em',
+            fontSize: HF.cta.size,
+            letterSpacing: '.08em',
             textTransform: 'uppercase',
-            color: '#000',
-            background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
+            color: LAPIS.ink,
+            background: LAPIS.grad,
+            boxShadow: LAPIS_BTN_SHADOW,
           }}
         >
           {t('pack.dog.memorial.save')}

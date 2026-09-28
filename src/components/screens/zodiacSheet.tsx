@@ -8,6 +8,7 @@ import { zodiacMap, chineseMap } from '@/components/HeroglyphFrame';
 import { LAB } from '@/lib/labTheme';
 import { PACK_R } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { HF } from './flowPaleSkin';
 
 // ════════════════════════════════════════════════════════════════════════════
 // „NECHCEM UVIESŤ" — výber znamenia bez dátumu narodenia (25. 9. 2026)
@@ -114,7 +115,7 @@ export function ZodiacSheet({ open, birthday, sign, year, onClose, onDate, onMan
     <div className="zs-root" role="dialog" aria-modal="true">
       <div className="zs-backdrop" onClick={onClose} />
       <div className="zs-card">
-        <button type="button" className="zs-close" aria-label={t('nav.aria.close')} onClick={onClose}>✕</button>
+        {/* 28. 9. 2026 — krížik preč (Matej: *„je tam aj krížik — vymaž ho"*); zatvára ťuk mimo karty. */}
         {mode === 'date' ? (
           <>
             {/* ── DÁTUM (bežná cesta) ─────────────────────────────────────
@@ -221,12 +222,8 @@ const ZODIAC_SHEET_CSS = `
   padding: 20px 16px 16px; box-shadow: 0 20px 64px rgba(0, 0, 0, 0.65);
   display: flex; flex-direction: column; gap: 12px;
 }
-.zs-close {
-  position: absolute; top: 10px; right: 12px; padding: 4px; cursor: pointer;
-  background: none; border: none; font-size: 14px; line-height: 1; color: rgba(0, 0, 0, 0.4);
-}
 .zs-title {
-  margin: 0; padding: 0 20px; text-align: center;
+  margin: 0; padding: 0; text-align: center;
   font-family: 'Cinzel', serif; font-weight: 700; font-size: 16px;
   color: ${LAB.goldInk};
 }
@@ -288,16 +285,14 @@ const ZODIAC_SHEET_CSS = `
 }
 
 .zs-done {
-  width: 100%; height: 44px; border: none; border-radius: ${PACK_R.field}px; cursor: pointer;
-  font-family: 'Cinzel', serif; font-weight: 700; font-size: 13px;
-  letter-spacing: 0.12em; text-transform: uppercase; color: ${LAPIS.ink};
+  /* Hlavné CTA vstupu (HF.cta): lapis, rohy 8 — jedno tlačidlo naprieč flowom (28. 9. 2026). */
+  width: 100%; height: ${HF.cta.h}px; border: none; border-radius: ${HF.cta.radius}px; cursor: pointer;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: ${HF.cta.size}px;
+  letter-spacing: .08em; text-transform: uppercase; color: ${LAPIS.ink};
   background: ${LAPIS.grad};
   box-shadow: ${LAPIS_BTN_SHADOW};
 }
 .zs-done:hover:not(:disabled) { background: ${LAPIS.gradHover}; }
-.zs-done:disabled {
-  cursor: default; color: ${LAB.inkMuted}; box-shadow: none;
-  background: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%);
-  border: 1.5px solid ${LAB.hairline};
-}
+/* Neaktívne = ako .hf-cta:disabled (vzhľad z e-mailu, 27. 9. 2026). */
+.zs-done:disabled { opacity: .4; cursor: default; box-shadow: none; }
 `;

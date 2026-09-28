@@ -162,8 +162,13 @@ export const FLOW_STAGE_CSS = `
    takže kresba sedí presne na hrane stĺpca. Na mobile je hrana stĺpca odsadenie
    javiska (16 px) — tam to vychádza na \`max(8px, …)\`.
    ⚠️ Háčik je obal \`.hf-topbar\`, ktorý nesie každý krok vstupu. \`PageTopBar\`
-   je LOCKED a nosí ho aj ostrý web, preto zásah zvonku, nie v komponente. */
-.hf-topbar > div > button.absolute { left: max(8px, calc(50% - 296px)); }
+   je LOCKED a nosí ho aj ostrý web, preto zásah zvonku, nie v komponente.
+   🔴 28. 9. 2026 — Matej: *„šípka späť nie je zarovnaná s hranicou obsahu
+      (blokov), ale je viac ku kraju"*. Rátalo sa s holou šípkou v \`p-2\`, lenže
+      \`brandBack\` kreslí KRUH s obrysom — a jeho hrana stála na 8 px, kým bloky
+      začínajú na 16. Hranu kruhu kladieme na hranu stĺpca: 16 px na mobile,
+      \`50% − 288\` (polovica \`max-w-xl\`) na širokom okne. */
+.hf-topbar > div > button.absolute { left: max(${FLOW_AIR.side}px, calc(50% - 288px)); }
 `;
 
 export const FLOW_PALE_CSS = FLOW_STAGE_CSS + `

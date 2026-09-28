@@ -438,13 +438,11 @@ const CHARACTER_CSS = `
   .ch-say { min-height: 60px; }
 }
 
-/* ── 📱 VYSOKÝ TELEFÓN: VIAC VZDUCHU V BLOKOCH (25. 9. 2026) ──────────────────
-   Ten istý zásah ako na PATRÓNOVI a z tej istej vety (Matej: *„patrón a povaha
-   na tel kľudne daj na 85 = pridaj väčšie okraje 1. alebo druhému bloku"*).
-   Povaha mala na 390×844 výplň 77 %.
-   ⚠️ LEN VYSOKÝ TELEFÓN (min-height 701) — na iPhone SE je povaha na 87 %. */
-@media (max-width: 559px) and (min-height: 701px) {
-  .ch-speak { padding: 16px; margin-bottom: 12px; }
-  .ch-stack .hf-plate { padding: 32px 22px; gap: 16px; }
-}
+/* ── 📱 VYSOKÝ TELEFÓN — pravidlo ZANIKLO 28. 9. 2026 ─────────────────────────
+   25. 9. tu rástol vzduch v blokoch od výšky 701 px (padding 32, medzery 16).
+   Merané bolo len na 390×844; na 390×740 (telefón s lištou prehliadača) tým
+   obrazovka pretiekla o 72 px a CTA zmizlo pod okrajom. Matej 28. 9.: *„horná
+   časť 2. bloku kde je meno je tu zbytočne vysoká — premeraj výšky na každej
+   obrazovke a zjednoť ich na také ako sú pri essence"*. Novší pokyn prebil
+   „daj na 85 %" z 25. 9.; bloky majú odteraz rozmery PODSTATY. */
 `;

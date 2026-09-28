@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Info, X } from 'lucide-react';
+import { Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { PageTopBar } from '@/components/PageTopBar';
@@ -21,7 +21,8 @@ import { LetterReveal, REVEAL_S, LETTER_S, FLOW_INTRO_CSS } from '@/components/s
 //    prepnúť na starý šat. Medailón by tým prišiel o kresbu obruče a nikto by
 //    netušil prečo; obrazovka si svoj šat nosí sama.
 import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
-import { FLOW_STAGE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
+import { FLOW_STAGE_CSS, FLOW_CARVE_CSS, HF } from '@/components/screens/flowPaleSkin';
+import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { PACK_BOX, PACK_R, PACK_THEME, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
 import { TopicChips, FLOW_TOPIC_CSS, type TopicState } from '@/components/screens/flowTopicChips';
 
@@ -462,7 +463,10 @@ export function NameScreen() {
                 animácii nebude info ikonka hore vpravo v bloku"). Scéna príchodu
                 je obraz, nie ovládací panel: jediné, čo sa v nej hýbe, má byť
                 medailón a veta. Ikonka sa vráti aj s formulárom. */}
-            {phase === 'form' && (
+            {/* 28. 9. 2026 — Matej: *„vymaž krížik (i) na úvodnej obrazovke"*.
+                Otvorená karta o Hektorovi sa zatvára ŤUKNUTÍM NA ŇU, nie krížikom;
+                ikonka (i) je preto vidno len vtedy, keď je karta zatvorená. */}
+            {phase === 'form' && !showInfo && (
             <button
               className="absolute top-3 right-3 z-20 flex items-center justify-center"
               style={{ width: 44, height: 44 }}
@@ -470,9 +474,7 @@ export function NameScreen() {
               onClick={() => setShowInfo((p) => !p)}
             >
               <span className="w-7 h-7 rounded-full border-2 border-foreground/40 flex items-center justify-center transition-colors hover:border-foreground/70">
-                {showInfo
-                  ? <X className="h-4 w-4 text-foreground/70" />
-                  : <Info className="h-4 w-4 text-white/80" />}
+                <Info className="h-4 w-4 text-white/80" />
               </span>
             </button>
             )}
@@ -616,10 +618,10 @@ export function NameScreen() {
                   //    dostane (nie pomer 4:5, ktorý si výšku diktoval sám),
                   //    a text je v rolovateľnom stĺpci — radšej pár riadkov
                   //    dorolovať než naťahovať blok.
-                  style={{ ...PACK_BOX.card, height: '100%', overflow: 'hidden' }}
+                  style={{ ...PACK_BOX.card, height: '100%', overflow: 'hidden', cursor: 'pointer' }}
+                  onClick={() => setShowInfo(false)}
                 >
-                  {/* pt accounts for the X button */}
-                  <div className="p-3 pt-10 pb-3 md:p-4 md:pt-12 md:pb-4 h-full min-h-0">
+                  <div className="p-3 md:p-4 h-full min-h-0">
                     {/* Two-column layout */}
                     <div className="flex gap-3 md:gap-4 items-stretch h-full min-h-0">
                       {/* Left column – video */}
@@ -784,19 +786,14 @@ export function NameScreen() {
                 </AnimatePresence>
               </div>
 
-              <Button
-                onClick={handleSend}
-                disabled={!canContinue}
-                className="w-full rounded-xl gap-2 h-10 md:h-11 font-bold tracking-wider hover:scale-[1.02] transition-transform disabled:opacity-40 disabled:hover:scale-100"
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-                  color: '#000',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
-                }}
-              >
+              {/* 28. 9. 2026 — HLAVNÉ CTA VSTUPU aj tu (Matej: *„toto tlačidlo už vo
+                  flow nemôže byť"*). Dovtedy shadcn Button so zlatým inline štýlom
+                  (rohy 12), ktorý flowRedress prefarboval na lapis a pri
+                  nedostupnosti na plochý papyrus — iný vzhľad než na každom
+                  ďalšom kroku. Obrazovka FLOW_PALE_CSS nevkladá, preto nm-cta. */}
+              <button type="button" className="nm-cta" onClick={handleSend} disabled={!canContinue}>
                 {t('heroglyph.flow.name.continue')}
-              </Button>
+              </button>
             </div>
             ) : (
             <div className="flex flex-col gap-2 md:gap-3">
@@ -968,11 +965,24 @@ const NAME_TOPIC_CSS = `
 .nm-plate .name-preview-wrap.is-filled { box-shadow: 0 0 0 2px rgba(22,48,122,.6), 0 0 18px rgba(80,130,255,.55); }
 .nm-next {
   flex: 0 0 auto; height: 32px; padding: 0 14px; cursor: pointer; align-self: center;
-  border-radius: ${PACK_R.pill}px; border: 1px solid ${BRAND_GOLD_BTN.edge};
-  background: ${BRAND_GOLD_BTN.grad}; color: ${BRAND_GOLD_BTN.ink}; box-shadow: ${BRAND_GOLD_BTN.glow};
+  /* 28. 9. 2026 — OBRYSOVÝ, nie plný (Matej: *„chip hotovo dajme obrysový, nie
+     plný — všade vo flow, kde sme taký chip použili; nech nie sú dve fill
+     tlačidlá pod sebou"*). Plné je len hlavné CTA pod ním. */
+  border-radius: ${PACK_R.pill}px; border: 1.5px solid ${BRAND_GOLD_BTN.edge};
+  background: transparent; color: ${BRAND_GOLD_BTN.ink}; box-shadow: none;
   font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
   letter-spacing: 0.14em; text-transform: uppercase;
 }
 .nm-next:disabled { opacity: 0.35; cursor: default; }
-.nm-next.is-done { background: ${PACK_THEME.growGreen}; border-color: ${PACK_THEME.growGreen}; color: #FDF7E7; }
+/* Hlavné CTA vstupu — 1:1 s \`.hf-cta\` (flowPaleSkin). */
+.nm-cta {
+  width: 100%; height: ${HF.cta.h}px; border: none; border-radius: ${HF.cta.radius}px; cursor: pointer;
+  background: ${LAPIS.grad}; color: ${LAPIS.ink}; box-shadow: ${LAPIS_BTN_SHADOW};
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: ${HF.cta.size}px;
+  letter-spacing: .08em; text-transform: uppercase;
+  transition: background .18s, transform .18s, opacity .18s;
+}
+.nm-cta:hover:not(:disabled) { background: ${LAPIS.gradHover}; transform: scale(1.02); }
+.nm-cta:disabled { opacity: .4; cursor: default; box-shadow: none; }
+.nm-next.is-done { background: transparent; border-color: ${PACK_THEME.growGreen}; color: ${PACK_THEME.growGreen}; }
 `;

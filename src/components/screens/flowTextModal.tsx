@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useBlockAutocorrect } from '@/hooks/useBlockAutocorrect';
+import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { HF } from './flowPaleSkin';
 
 // ════════════════════════════════════════════════════════════════════════════
 // ZADANIE MENA NA TELEFÓNE — JEDEN MODAL PRE CELÝ VSTUP (25. 9. 2026)
@@ -85,9 +87,10 @@ export function FlowTextModal({
       aria-modal="true"
       style={{ top: vp.top, height: vp.height || undefined }}
     >
-      <div className="name-modal-backdrop" onClick={onClose} />
+      <div className="name-modal-backdrop" role="button" aria-label={closeLabel} onClick={onClose} />
       <div className="name-modal-card">
-        <button type="button" className="name-modal-close" aria-label={closeLabel} onClick={onClose}>✕</button>
+        {/* 28. 9. 2026 — Matej: *„je tam aj krížik — vymaž ho"*. Zatvára ťuk mimo
+            karty (závoj) a CTA; closeLabel nesie závoj ako aria-label. */}
         <p className="name-modal-title">{title}</p>
         <div className="name-modal-inputwrap">
           <input
@@ -139,16 +142,9 @@ export function FlowTextModal({
           transform: translateY(8px) scale(0.97);
         }
         .name-modal-root.is-open .name-modal-card { transform: translateY(0) scale(1); }
-        .name-modal-close {
-          position: absolute; top: 12px; right: 14px;
-          background: none; border: none; cursor: pointer; font-size: 14px;
-          color: rgba(0, 0, 0, 0.4); line-height: 1; padding: 4px;
-          transition: color 150ms ease;
-        }
-        .name-modal-close:hover { color: rgba(0, 0, 0, 0.75); }
         .name-modal-title {
           font-family: 'Cinzel', serif; font-weight: 700; font-size: 1rem;
-          text-align: center; color: hsl(var(--gold-dark)); margin: 0; padding: 0 20px;
+          text-align: center; color: hsl(var(--gold-dark)); margin: 0; padding: 0;
         }
         /* Statický modrý podsvietený rám — popup (a neskôr polia vstupu). Bez pohybu. */
         .name-modal-inputwrap { position: relative; border-radius: 12px; }
@@ -173,16 +169,18 @@ export function FlowTextModal({
           color: hsl(var(--gold-dark)); font-weight: 700;
           letter-spacing: 0.08em; text-transform: uppercase;
         }
+        /* CTA = HLAVNÉ CTA VSTUPU (\`.hf-cta\`): lapis, rohy 8, výška a písmo z \`HF.cta\`.
+           28. 9. 2026 Matej: *„pri popupoch je staré CTA — zmeň to všade"*. Dovtedy
+           tu stálo zlaté tlačidlo s rohmi 12 z čias tmavého vstupu. */
         .name-modal-done {
-          width: 100%; height: 46px; border: none; border-radius: 12px; cursor: pointer;
-          font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.85rem;
-          letter-spacing: 0.12em; text-transform: uppercase; color: #000;
-          /* Zhodné s hlavným CTA vstupu (POKRAČOVAŤ na kroku 2) — zlato, nie oranžová. */
-          background: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)));
-          box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35);
-          transition: opacity 150ms ease, transform 150ms ease;
+          width: 100%; height: ${HF.cta.h}px; border: none; border-radius: ${HF.cta.radius}px; cursor: pointer;
+          font-family: 'Cinzel', serif; font-weight: 700; font-size: ${HF.cta.size}px;
+          letter-spacing: .08em; text-transform: uppercase; color: ${LAPIS.ink};
+          background: ${LAPIS.grad}; box-shadow: ${LAPIS_BTN_SHADOW};
+          transition: background .18s, transform .18s, opacity .18s;
         }
-        .name-modal-done:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
+        .name-modal-done:hover:not(:disabled) { background: ${LAPIS.gradHover}; }
+        .name-modal-done:disabled { opacity: .4; cursor: default; box-shadow: none; }
         .name-modal-done:not(:disabled):active { transform: scale(0.97); }
       `}</style>
     </div>,

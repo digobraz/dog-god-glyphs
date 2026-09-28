@@ -10,6 +10,7 @@ import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
 import hekthorImg from '@/assets/hekthor.png';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { HF } from './flowPaleSkin';
 
 const MAX_CHARS = 150;
 /** Limit odkazu — zdieľa ho aj nová obrazovka ODHALENIE + ODKAZ (`FlowRevealScreen`). */
@@ -182,14 +183,19 @@ export function MessageModal({
           box-shadow: none;
         }
         .msg-modal-done:not(:disabled):active { transform: scale(0.97); }
-        /* Lapis = hlavné CTA na papyruse (nový vstup). Tvar .btn-gold: radius 8. */
+        /* Lapis = hlavné CTA nového vstupu — rozmery 1:1 s \`.hf-cta\` (HF.cta), aby
+           popup nemal iné tlačidlo než obrazovka pod ním (Matej 28. 9. 2026). */
         .msg-modal-done--lapis {
-          border-radius: 8px;
+          height: ${HF.cta.h}px;
+          border-radius: ${HF.cta.radius}px;
+          font-size: ${HF.cta.size}px;
+          letter-spacing: .08em;
           color: ${LAPIS.ink};
           background: ${LAPIS.grad};
           box-shadow: ${LAPIS_BTN_SHADOW};
         }
         .msg-modal-done--lapis:not(:disabled):hover { background: ${LAPIS.gradHover}; }
+        .msg-modal-done--lapis:disabled { opacity: .4; cursor: default; }
         @keyframes msgScrimIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes msgCardIn {
           from { opacity: 0; transform: translateY(-10px) scale(0.96); }

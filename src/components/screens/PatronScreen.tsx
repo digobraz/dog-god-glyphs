@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore, MAIN_DOG_ID } from '@/store/dogyptStore';
 import { useFlowDogs, FlowDogHeader, FLOW_DOG_CSS } from '@/components/screens/flowDogPicker';
@@ -9,9 +9,10 @@ import { useFlowGuard } from '@/hooks/useFlowGuard';
 import { NEW_HEROFLOW } from '@/lib/flowMode';
 import { PageTopBar } from '@/components/PageTopBar';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
-import { FLOW_PALE_CSS, FLOW_CARVE_CSS, FLOW_GLYPH_CSS, FLOW_PICK_ON } from '@/components/screens/flowPaleSkin';
+import { FLOW_PALE_CSS, FLOW_CARVE_CSS, FLOW_GLYPH_CSS, FLOW_PICK_ON, FLOW_TITLE } from '@/components/screens/flowPaleSkin';
 import { FlowMedallion, FLOW_MEDAL_CSS, useSpeakMedal } from '@/components/screens/flowMedallion';
 import { Scroller, FLOW_SCROLL_CSS } from '@/components/screens/flowScroller';
+import { FlowPanelShell, FLOW_PANEL_CSS } from '@/components/screens/flowPanel';
 import { LAPIS, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { PACK_R, PACK_THEME as T, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
 import { LAB } from '@/lib/labTheme';
@@ -242,6 +243,9 @@ function BreedField({
         <div
           ref={menuRef}
           className="pt-menu"
+          // Ponuka je portál do <body>, teda MIMO panelu s plemenom — bez tejto
+          // značky by ťuk na plemeno panel zavrel skôr, než sa plemeno zapíše.
+          data-panel-keep=""
           style={{ left: box.left, top: box.top, width: box.width, maxHeight: box.maxHeight }}
         >
           {matches.map((m) => (
@@ -344,6 +348,11 @@ export function PatronScreen() {
     if (found && !patronSvg) choose(found.patron, group);
   };
 
+  /** Popup s plemenom (28. 9. 2026) — viď riadok pt-breedbtn nižšie. */
+  const [breedOpen, setBreedOpen] = useState(false);
+  const { lang } = useLang();
+  const breedShown = [breed1, mix ? breed2 : ''].filter(Boolean).map((b) => localizeBreed(b, lang)).join(' × ');
+
   const canGo = !!patronSvg;
   /** Prvý pes bez patróna. -1 = hotoví sú všetci. */
   const missing = dogs.findIndex((d) => !(dogEssence[d.id] || {}).patronSvg);
@@ -385,7 +394,7 @@ export function PatronScreen() {
 
   return (
     <div className="hf-pale flex flex-col h-[100dvh] overflow-hidden">
-      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{FLOW_SCROLL_CSS}{FLOW_DOG_CSS}{PATRON_CSS}</style>
+      <style>{FLOW_PALE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_GLYPH_CSS}{FLOW_SCROLL_CSS}{FLOW_DOG_CSS}{FLOW_PANEL_CSS}{PATRON_CSS}</style>
 
       <div className="hf-topbar flex-shrink-0">
         <PageTopBar brandBack onBack={() => navigate('/heroglyph/essence')} />
@@ -461,53 +470,79 @@ export function PatronScreen() {
                   plemena daj pod heroglyf (lebo všetky obrazovky s plniacim sa
                   heroglyfom začínajú hneď pod menom)"*). Rám stojí na každom
                   kroku na tom istom mieste pod riadkom psa. */}
-              {/* Hľadanie a kríženec v JEDNOM riadku. Pri krížencovi pribudne
-                  druhé pole — na šírke dosky sa zmestí do toho istého riadka
-                  (`flex-wrap`), na telefóne sa zalomí pod prvé. Zámok CTA sa
-                  tým nemení, takže doska nemá dôvod poskočiť inde než tam, kde
-                  je na to miesto. */}
-              <div className="pt-breedrow">
-                <BreedField
-                  value={breed1}
-                  onPick={pickBreed}
-                  onClear={() => put(mix ? 'mixBreed1' : 'breed', '')}
-                  placeholder={mix
-                    ? t('heroglyph.flow.breed.mix.placeholder1')
-                    : t('heroglyph.flow.breed.one.placeholder')}
-                />
-                {/* Pilulka, nie dvojica dlaždíc „jedno plemeno / kríženec".
-                    Východiskový stav je jedno plemeno, takže druhá dlaždica
-                    nepýtala rozhodnutie — len zaberala riadok.
-                    ⚠️ STOJÍ MEDZI POĽAMI, nie za nimi. Na 390 px má doska 302 px,
-                       takže dve polia po 150 sa do riadka nezmestia (308) —
-                       v pôvodnom poradí sa zalomilo DRUHÉ pole k pilulke a
-                       zostalo mu 154 px, teda „Second breed (opt…". Takto ide
-                       do druhého radu celé a placeholder sa doň vojde. Na doske
-                       520 px stoja všetky tri prvky v jednom rade tak či tak. */}
-                <button
-                  type="button"
-                  className={`pt-mix${mix ? ' on' : ''}`}
-                  aria-pressed={mix}
-                  onClick={() => {
-                    const next = !mix;
-                    put('breedType', next ? 'mix' : 'purebred');
-                    // Pri prepnutí na kríženca sa doterajšie plemeno stáva prvou
-                    // polovicou; pri návrate späť sa vracia ako jediné plemeno.
-                    if (next) { put('mixBreed1', breed1); put('breed', 'Mixed'); }
-                    else { put('breed', breed1); put('mixBreed2', ''); }
-                  }}
-                >
-                  {t('heroglyph.flow.breed.type.mix')}
-                </button>
-                {mix && (
-                  <BreedField
-                    value={breed2}
-                    onPick={(name) => put('mixBreed2', name)}
-                    onClear={() => put('mixBreed2', '')}
-                    placeholder={t('heroglyph.flow.breed.mix.second')}
-                  />
+              {/* 🔴 PLEMENO JE POPUP, NIE RIADOK V DOSKE (Matej 28. 9. 2026: *„pri
+                  patrónovi by sme mohli dať popup, kde by sa dalo vybrať plemeno,
+                  prípadne dve ako kríženca — mohla by tam byť aj info o tom, že
+                  údaj bude slúžiť na celosvetovú štatistiku psov"*).
+                  Dôvod nie je len miesto: so zapnutým krížencom pribudol v doske
+                  druhý riadok polí a obrazovka pretiekla (390×740 o 32 px, CTA pod
+                  okrajom). V doske ostáva JEDEN riadok rovnakej výšky v každom
+                  stave — hľadanie, kríženec a vysvetlenie sú v paneli nad doskou,
+                  rovnako ako (i) na MAJITEĽOVI. */}
+              <button
+                type="button"
+                className={`pt-field pt-breedbtn${breedShown ? ' is-set' : ''}`}
+                onClick={() => setBreedOpen(true)}
+                aria-haspopup="dialog"
+              >
+                <HandSearch size={15} className="ic" />
+                <span className={breedShown ? 'v' : 'ph'}>{breedShown || t('heroglyph.flow.breed.one.placeholder')}</span>
+                {breedShown ? <HandCheck size={15} className="ok" /> : null}
+              </button>
+
+              <AnimatePresence>
+                {breedOpen && (
+                  <FlowPanelShell key="breed" className="pt-breedpanel" label={t('heroglyph.flow.breed.popTitle', { name: dog?.name || heroName })} onClose={() => setBreedOpen(false)}>
+                    <h2 className="pt-pop-h">{t('heroglyph.flow.breed.popTitle', { name: dog?.name || heroName })}</h2>
+                    <div className="fp-scroll">
+                    <div className="pt-breedrow">
+                      <BreedField
+                        value={breed1}
+                        onPick={pickBreed}
+                        onClear={() => put(mix ? 'mixBreed1' : 'breed', '')}
+                        placeholder={mix
+                          ? t('heroglyph.flow.breed.mix.placeholder1')
+                          : t('heroglyph.flow.breed.one.placeholder')}
+                      />
+                      {/* Pilulka, nie dvojica dlaždíc „jedno plemeno / kríženec".
+                          Východiskový stav je jedno plemeno, takže druhá dlaždica
+                          nepýtala rozhodnutie — len zaberala riadok.
+                          ⚠️ STOJÍ MEDZI POĽAMI, nie za nimi. Na 390 px má doska 302 px,
+                             takže dve polia po 150 sa do riadka nezmestia (308) —
+                             v pôvodnom poradí sa zalomilo DRUHÉ pole k pilulke a
+                             zostalo mu 154 px, teda „Second breed (opt…". Takto ide
+                             do druhého radu celé a placeholder sa doň vojde. Na doske
+                             520 px stoja všetky tri prvky v jednom rade tak či tak. */}
+                      <button
+                        type="button"
+                        className={`pt-mix${mix ? ' on' : ''}`}
+                        aria-pressed={mix}
+                        onClick={() => {
+                          const next = !mix;
+                          put('breedType', next ? 'mix' : 'purebred');
+                          // Pri prepnutí na kríženca sa doterajšie plemeno stáva prvou
+                          // polovicou; pri návrate späť sa vracia ako jediné plemeno.
+                          if (next) { put('mixBreed1', breed1); put('breed', 'Mixed'); }
+                          else { put('breed', breed1); put('mixBreed2', ''); }
+                        }}
+                      >
+                        {t('heroglyph.flow.breed.type.mix')}
+                      </button>
+                      {mix && (
+                        <BreedField
+                          value={breed2}
+                          onPick={(name) => put('mixBreed2', name)}
+                          onClear={() => put('mixBreed2', '')}
+                          placeholder={t('heroglyph.flow.breed.mix.second')}
+                        />
+                      )}
+                    </div>
+                      <p className="pt-pop-note">{t('heroglyph.flow.breed.statsNote')}</p>
+                    </div>
+                    <button type="button" className="hf-cta" onClick={() => setBreedOpen(false)}>{t('heroglyph.flow.message.done')}</button>
+                  </FlowPanelShell>
                 )}
-              </div>
+              </AnimatePresence>
 
               <p className="hf-legend">{t('heroglyph.flow.breed.legend')}</p>
 
@@ -591,6 +626,27 @@ const PATRON_CSS = `
    aj pilulka v jednom rade (180 + 180 + ~112), na 302 px sa druhé pole zalomí
    pod prvé. Žiadny \`@media\` — zalomenie určuje miesto, nie šírka okna. */
 .pt-breedrow { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+/* ── POPUP S PLEMENOM (28. 9. 2026) ──────────────────────────────────────────
+   V doske ostal jeden riadok v tvare poľa; ťuk otvorí panel nad doskou
+   (\`FlowPanelShell\`, ten istý ako (i) na MAJITEĽOVI). */
+.pt-stack .hf-plate { position: relative; }
+.pt-breedbtn { width: 100%; cursor: pointer; text-align: left; }
+.pt-breedbtn .ph, .pt-breedbtn .v {
+  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: 'Space Grotesk', sans-serif; font-size: 14px;
+}
+.pt-breedbtn .ph { color: ${LAB.inkMuted}; }
+.pt-breedbtn .v { color: ${LAB.ink}; }
+.pt-pop-h {
+  margin: 0; text-align: center; text-wrap: balance;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: ${FLOW_TITLE}; line-height: 1.25;
+  letter-spacing: 0.02em; color: ${LAB.goldInk};
+}
+.pt-pop-note {
+  margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.45;
+  color: ${LAB.inkBody};
+}
+.pt-breedpanel .hf-cta { flex: 0 0 auto; }
 /* ⚠️ ZÁKLAD 150, NIE 180 px. Pri 180 sa na iPhone SE (375 px, doska 287) nezmestilo
    do riadka ani JEDNO pole s pilulkou (180 + 8 + 112 = 300) a riadok mal 88 px
    ešte pred zapnutím kríženca — teda obrazovka bola o 48 px vyššia zbytočne.
@@ -795,16 +851,11 @@ const PATRON_CSS = `
   .pt-sil img { width: 52px; height: 52px; }
 }
 
-/* ── 📱 VYSOKÝ TELEFÓN: VIAC VZDUCHU V BLOKOCH (25. 9. 2026) ──────────────────
-   Matej: *„patrón a povaha na tel kľudne daj na 85 = pridaj väčšie okraje 1.
-   alebo druhému bloku, aby si to viac vyplnil."* Na 390×844 mal patrón výplň
-   74 % — najprázdnejšia zostava z celého vstupu (merač HRANICA).
-   🔑 RASTIE VZDUCH V BLOKOCH, NIE OBSAH. Dlaždice, rám ani písmo sa nedotýkajú:
-      na telefóne sú už zväčšené a ďalší rast by ich priblížil k okrajom dosky.
-   ⚠️ LEN VYSOKÝ TELEFÓN (min-height 701). iPhone SE má 667 a tam je patrón na
-      91 % — pridať vzduch by ho poslalo cez hranicu. */
-@media (max-width: 559px) and (min-height: 701px) {
-  .pt-speak { padding: 16px; margin-bottom: 12px; }
-  .pt-stack .hf-plate { padding: 32px 22px; gap: 16px; }
-}
+/* ── 📱 VYSOKÝ TELEFÓN — pravidlo ZANIKLO 28. 9. 2026 ─────────────────────────
+   25. 9. tu rástol vzduch v blokoch od výšky 701 px (padding 32, medzery 16).
+   Merané bolo len na 390×844; na 390×740 (telefón s lištou prehliadača) tým
+   obrazovka pretiekla o 72 px a CTA zmizlo pod okrajom. Matej 28. 9.: *„horná
+   časť 2. bloku kde je meno je tu zbytočne vysoká — premeraj výšky na každej
+   obrazovke a zjednoť ich na také ako sú pri essence"*. Novší pokyn prebil
+   „daj na 85 %" z 25. 9.; bloky majú odteraz rozmery PODSTATY. */
 `;

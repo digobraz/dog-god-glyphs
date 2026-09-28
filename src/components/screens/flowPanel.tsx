@@ -71,7 +71,10 @@ function useOutsideClose(onClose: () => void) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const down = (e: PointerEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+      const tgt = e.target as Node;
+      // Portály, ktoré k panelu patria (ponuka plemien), nesú data-panel-keep.
+      if (tgt instanceof Element && tgt.closest('[data-panel-keep]')) return;
+      if (ref.current && !ref.current.contains(tgt)) onClose();
     };
     const key = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('pointerdown', down);
