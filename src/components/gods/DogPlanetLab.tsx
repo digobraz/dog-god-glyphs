@@ -415,18 +415,36 @@ export function DogPlanetLab({
   // po nej a portál sa na guli ROZVINIE (keyframes `phBirth` nižšie).
   const [ballIn, setBallIn] = useState(false);
   const [heroIn, setHeroIn] = useState(false);
+  /** 🔴 POD ÚVODNOU OPONOU SA SCÉNA NESKLADÁ (Matej 28. 9. 2026: *„stále je tam
+   *  deformovaná planéta… ak dávame loader, chcem to bez toho a už to musí vyzerať
+   *  luxusne"*). Holá guľa bez nadpisu (0,7 s pred ním) pôsobila natiahnuto.
+   *  Keď je v stránke opona z index.html (`#op-boot`), guľa, nadpis aj portál
+   *  prídu NARAZ a bez vlastných nábehov — opona odhalí hotový obraz. */
+  const bootRef = useRef(typeof document !== 'undefined' && !!document.getElementById('op-boot'));
   useEffect(() => {
-    if (!ballIn || heroIn) return;
+    if (!ballIn || heroIn || bootRef.current) return;
     const id = window.setTimeout(() => setHeroIn(true), 700);
     return () => window.clearTimeout(id);
   }, [ballIn, heroIn]);
   useEffect(() => {
     if (ballIn) return;
     let done = false;
-    // `dogypt:planet-ready` zdvihne úvodnú oponu z index.html (28. 9. 2026).
-    const arrive = () => { if (!done) { done = true; setBallIn(true); window.dispatchEvent(new Event('dogypt:planet-ready')); } };
+    // `dogypt:planet-ready` zdvihne úvodnú oponu z index.html (28. 9. 2026) —
+    // až keď je hotový celý obraz: fonty (inak nadpis preskočí z náhradného
+    // písma) a dva snímky po zapnutí, aby opona neodhalila nič rozpracované.
+    const arrive = () => {
+      if (done) return;
+      done = true;
+      if (!bootRef.current) { setBallIn(true); return; }
+      setBallIn(true); setHeroIn(true);
+      const fonts = (document as Document & { fonts?: FontFaceSet }).fonts?.ready ?? Promise.resolve();
+      Promise.race([fonts, new Promise((r) => setTimeout(r, 1500))]).then(() => {
+        requestAnimationFrame(() => requestAnimationFrame(() => window.dispatchEvent(new Event('dogypt:planet-ready'))));
+      });
+    };
     // Strop: výzva príde aj keby sa nenačítala ani jedna fotka (offline, 404).
-    const cap = window.setTimeout(arrive, 1200);
+    // Pod oponou sa na fotky čaká dlhšie — nikto nevidí prázdnu guľu.
+    const cap = window.setTimeout(arrive, bootRef.current ? 3500 : 1200);
     const poll = window.setInterval(() => {
       const imgs = document.querySelectorAll<HTMLImageElement>('.planet-ball img');
       if (!imgs.length) return;
@@ -2214,6 +2232,10 @@ export function DogPlanetLab({
         }
         .planet-hero.hero-in .ph-lead { transition-delay: 110ms; }
         .planet-hero.hero-in .ph-mount { transition-delay: 240ms; }
+        /* Pod oponou bez nábehov — opona sama je prechod. */
+        .planet-stage.no-intro .planet-ball,
+        .planet-stage.no-intro .planet-hero > * { transition: none; }
+        .planet-stage.no-intro .planet-hero.hero-in .ph-portal { animation: none; opacity: 1; }
         @media (prefers-reduced-motion: reduce) {
           .planet-hero > * { transition: none; }
           .planet-ball { transition: none; }
@@ -2224,7 +2246,7 @@ export function DogPlanetLab({
       {/* DEV PULT (dizajn · pozadie · psov) tu STÁL a 25. 8. zanikol — voľby sú
           hore v konštantách DESIGN / BG / TARGET. */}
 
-      <div className={`planet-stage${ballIn ? ' ball-in' : ''}`}>
+      <div className={`planet-stage${ballIn ? ' ball-in' : ''}${bootRef.current ? ' no-intro' : ''}`}>
         <div
           className="planet-ball"
           ref={ballRef}
