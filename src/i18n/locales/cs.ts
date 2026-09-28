@@ -4777,6 +4777,12 @@ export const cs: Partial<Dict> = {
   'pack.nature.doc.myth': 'Obvyklý ortel',
   'pack.nature.doc.pair': 'Kde se ty dvě potkávají',
   'pack.nature.doc.traits': 'Jak se to projeví v běžném dni',
+  // 28. 9. 2026: štítky piatich faktov elementu — dovtedy chýbali vo všetkých jazykoch (SK doklad písal SEASON, ORGANS…).
+  'pack.nature.fact.season': 'Roční období',
+  'pack.nature.fact.organs': 'Orgány',
+  'pack.nature.fact.emotion': 'Emoce',
+  'pack.nature.fact.taste': 'Chuť',
+  'pack.nature.fact.colour': 'Barva',
   'pack.nature.doc.v.sub': 'Každá odpověď přidá váhu víc liniím naráz',
   'pack.nature.guide.element.earth.0.text': 'Zemní pes je mimořádně přesvědčivý a váha není. **Jídlo važ — žebrání není měření.**',
   'pack.nature.guide.element.earth.0.title': 'Věřit tomu hladu',

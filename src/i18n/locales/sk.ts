@@ -4693,6 +4693,12 @@ export const sk: Partial<Dict> = {
   'pack.nature.doc.i.title': 'Konštitúcia',
   'pack.nature.doc.i.sub': 'Z čoho je urobený — telo, miska a ročné obdobie. Podľa tradičnej čínskej medicíny.',
   'pack.nature.doc.traits': 'Ako sa to prejaví v bežnom dni',
+  // 28. 9. 2026: štítky piatich faktov elementu — dovtedy chýbali vo všetkých jazykoch (SK doklad písal SEASON, ORGANS…).
+  'pack.nature.fact.season': 'Ročné obdobie',
+  'pack.nature.fact.organs': 'Orgány',
+  'pack.nature.fact.emotion': 'Emócia',
+  'pack.nature.fact.taste': 'Chuť',
+  'pack.nature.fact.colour': 'Farba',
   'pack.nature.doc.food': 'Čo mu svedčí',
   'pack.nature.doc.avoid': 'Čo proti nemu pracuje',
   'pack.nature.doc.ib.title': 'Kam sa rovnováha nakláňa',

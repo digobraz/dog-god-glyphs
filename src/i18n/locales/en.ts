@@ -5442,6 +5442,12 @@ export const en = {
   'pack.nature.doc.i.title': 'The constitution',
   'pack.nature.doc.i.sub': 'What they are made of — body, bowl and season. After Traditional Chinese Medicine.',
   'pack.nature.doc.traits': 'How it shows in a normal day',
+  // 28. 9. 2026: štítky piatich faktov elementu — dovtedy chýbali vo všetkých jazykoch (SK doklad písal SEASON, ORGANS…).
+  'pack.nature.fact.season': 'Season',
+  'pack.nature.fact.organs': 'Organs',
+  'pack.nature.fact.emotion': 'Emotion',
+  'pack.nature.fact.taste': 'Taste',
+  'pack.nature.fact.colour': 'Colour',
   'pack.nature.doc.avoid': 'What works against them',
   'pack.nature.result.body': 'Body',
   'pack.nature.result.watch': 'Worth keeping an eye on',
