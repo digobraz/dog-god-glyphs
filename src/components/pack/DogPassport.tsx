@@ -33,7 +33,8 @@ import { readLatest, onDogEventsChange, hasValue, readSeries, appendDogEvents, t
 import { RightGate } from '@/components/pack/RightGate';
 import { LAPIS, PICK_INK, pickTintCSS } from './navGoldSkin';
 import { TILT_CSS, TILT_PROPS } from './packTilt';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
+import { intlLocale } from '@/i18n/bcp47';
 
 const T = PACK_THEME;
 
@@ -433,6 +434,10 @@ function PassRow({
   onEditPanel?: () => void;
   tx: (k: string, f: string) => string;
 }) {
+  // Dátum podľa jazyka APPKY, nie prehliadača — slovenský doklad v anglickom Chrome
+  // písal „8/6/2026" (28. 9. 2026).
+  const { lang } = useLang();
+  const loc = intlLocale(lang);
   // NEVYPLNENÉ POLE = ČERVENÁ POMLČKA, KTORÁ VEDIE TAM, KDE SA DOPLNÍ (Matej 13.8.2026).
   // Doklad tým prestal byť výpisom toho, čo je hotové, a stal sa zoznamom toho, čo chýba —
   // preto je pomlčka odkaz, nie mŕtvy znak. Výnimka: `nature.specials` (`noProgress`) je
@@ -491,9 +496,9 @@ function PassRow({
             className="pass-toresult"
             title={tx('pack.pass.openResult', 'Open the full result')}
           >
-            {renderValue(step, value.value, tx)}
+            {renderValue(step, value.value, tx, loc)}
           </Link>
-        ) : renderValue(step, value.value, tx)}
+        ) : renderValue(step, value.value, tx, loc)}
         {trend && (
           <span style={{ fontFamily: FONT_UI, fontSize: 10, color: T.growGreen, marginLeft: 6 }}>{trend}</span>
         )}
@@ -504,7 +509,7 @@ function PassRow({
             color: 'var(--pass-faint)', marginLeft: 7, whiteSpace: 'nowrap',
           }}
         >
-          {shortDate(value.recordedAt)}
+          {shortDate(value.recordedAt, loc)}
         </span>
       </dd>
     </>
@@ -512,7 +517,7 @@ function PassRow({
 }
 
 // ── formátovanie hodnôt ──────────────────────────────────────────────────────
-function renderValue(step: QuizStep, v: unknown, tx: (k: string, f: string) => string) {
+function renderValue(step: QuizStep, v: unknown, tx: (k: string, f: string) => string, loc: string) {
   // Jeden popisok pre kvíz aj doklad — `quizValueLabel` v dogQuiz.ts (vlastné labely poľa,
   // jeho priečinok `labelNs`, zdieľané `opt.*`/`dogTag.*`, až potom EN).
   const label = (val: string) => quizValueLabel(step, val, tx);
@@ -540,7 +545,7 @@ function renderValue(step: QuizStep, v: unknown, tx: (k: string, f: string) => s
   }
 
   const s = String(v);
-  if (step.kind === 'date') return longDate(s);
+  if (step.kind === 'date') return longDate(s, loc);
   if (step.kind === 'number') return step.unit ? `${s} ${step.unit}` : s;
   if (step.kind === 'single') {
     const art = natureArt(step.field, s);
@@ -585,14 +590,14 @@ function NatureArt({ field, value, size }: { field: string; value: unknown; size
   );
 }
 
-function shortDate(iso: string): string {
+function shortDate(iso: string, loc: string): string {
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString(undefined, { day: 'numeric', month: 'numeric', year: 'numeric' });
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString(loc, { day: 'numeric', month: 'numeric', year: 'numeric' });
 }
 
-function longDate(iso: string): string {
+function longDate(iso: string, loc: string): string {
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString(loc, { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 function monthsBetween(a: string, b: string): number {
@@ -602,10 +607,6 @@ function monthsBetween(a: string, b: string): number {
   return Math.round((d2 - d1) / (1000 * 60 * 60 * 24 * 30.44));
 }
 
-function humanize(v: string): string {
-  const s = v.replace(/_/g, ' ');
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
 
 // ── POZNÁMKA KU KATEGÓRII ────────────────────────────────────────────────────
 // Zapisuje sa do toho istého append-only logu ako údaje (`<kategória>.note`), takže

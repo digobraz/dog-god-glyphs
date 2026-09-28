@@ -568,7 +568,3 @@ function sameAnswer(a: Answer, b: Answer): boolean {
 }
 
 /** Fallback popisok pre návrh bez prekladu: 'flat_faced' → 'Flat faced'. */
-function humanize(v: string): string {
-  const s = v.replace(/_/g, ' ');
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}

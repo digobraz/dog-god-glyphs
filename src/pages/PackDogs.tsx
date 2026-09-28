@@ -63,7 +63,7 @@ import { storedSpecials } from '@/components/pack/natureQuiz';
 import { readLatestForDogs, onDogEventsChange, hasValue, type LatestValue } from '@/lib/dogEvents';
 import { dogLifeLine } from '@/lib/dogAge';
 import { countryISO2 } from '@/lib/countryGeo';
-import { dogTripStats, fmtDogKm } from '@/lib/dogTripStats';
+import { dogTripStats } from '@/lib/dogTripStats';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { supabase } from '@/integrations/supabase/client';
 import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
@@ -1060,7 +1060,7 @@ function DogBlock({
 
   const pills = [
     days ? <Pill key="days" solid>{life.isAngel ? `🕊 ${days}` : days}</Pill> : null,
-    dogKm > 0 ? <Pill key="km">{`${fmtDogKm(dogKm)} KM`}</Pill> : null,
+    dogKm > 0 ? <Pill key="km">{`${fmtNum(dogKm, lang, 1)} KM`}</Pill> : null,
     <Pill key="country">
       <FlagCircle iso2={iso2} label={iso2.toUpperCase()} size={13} />
       {iso2.toUpperCase()}

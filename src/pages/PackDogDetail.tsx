@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useT, useLang } from '@/i18n/LanguageContext';
-import { fmtNum } from '@/i18n/bcp47';
+import { fmtNum, intlLocale } from '@/i18n/bcp47';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Download, Loader2, Save, Sparkles, ChevronDown } from 'lucide-react';
 import { BrandIcon } from '@/components/pack/BrandIcon';
@@ -13,7 +13,7 @@ import { PALE, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { DogPassport, type FixedRow } from '@/components/pack/DogPassport';
 import { WillPanel } from '@/components/pack/WillPanel';
 import { PACK_THEME, PILL_CSS, PACK_BOX, PACK_HEAD, PACK_TEXT, PACK_SPACE } from '@/components/pack/packTheme';
-import { dogTripStats, fmtDogKm } from '@/lib/dogTripStats';
+import { dogTripStats } from '@/lib/dogTripStats';
 import { readEvents, readLatest, onDogEventsChange } from '@/lib/dogEvents';
 import { TILT_CSS, TILT_PROPS } from '@/components/pack/packTilt';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
@@ -31,6 +31,7 @@ import { computeAge, type DogAge } from '@/lib/dogAge';
 import { HEALTH_KEYS, HEALTH_COLORS, healthLabelKey, type HealthKey } from '@/lib/dogHealth';
 import { HandCamera, HandCheck, HandLock, HandCycle } from '@/components/pack/HandIcons';
 import { BackButton, BackIcon, BackLinkIcon } from '@/components/pack/BackButton';
+import { localizeBreed } from '@/lib/breedDisplay';
 
 const T = PACK_THEME;
 const MESSAGE_MAX = 150;
@@ -197,6 +198,9 @@ function FlagCircle({ src, iso2, label }: { src: string; iso2: string; label: st
 
 export default function PackDogDetail() {
   const t = useT();
+  // Dátumy na DOG ID v jazyku APPKY (28. 9. 2026: slovenský doklad písal „May 20, 2016").
+  const { lang: appLang } = useLang();
+  const appLoc = intlLocale(appLang);
   const navigate = useNavigate();
   // Fallback pre kľúče, ktoré ešte nie sú v i18n — inak by na karte svietil holý kľúč.
   const tx = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
@@ -466,7 +470,7 @@ export default function PackDogDetail() {
   const issuedDateLocal = useMemo(() => {
     if (!dog?.created_at) return '';
     try {
-      return new Date(dog.created_at).toLocaleDateString(undefined, {
+      return new Date(dog.created_at).toLocaleDateString(appLoc, {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
@@ -474,7 +478,7 @@ export default function PackDogDetail() {
     } catch {
       return '';
     }
-  }, [dog]);
+  }, [dog, appLoc]);
 
   // Cert # = plain number, NO leading zeros (Matej lock 2026-06-07): "# 1" not "#00001".
   const certNumber = useMemo(() => {
@@ -691,7 +695,7 @@ export default function PackDogDetail() {
     ? Math.max(0, Math.floor((Date.now() - deathDate.getTime()) / 86_400_000))
     : null;
   const deathDateLabel = deathDate
-    ? deathDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+    ? deathDate.toLocaleDateString(appLoc, { day: 'numeric', month: 'short', year: 'numeric' })
     : null;
   const WALK_LEVELS = getWalkLevels(t);
 
@@ -716,7 +720,7 @@ export default function PackDogDetail() {
   const breed = (dog.breed || (typeof sel.breed === 'string' ? sel.breed : '') || '').trim();
   const birthDateLabel =
     birthYear && birthMonth && birthDay
-      ? new Date(birthYear, birthMonth - 1, birthDay).toLocaleDateString(undefined, {
+      ? new Date(birthYear, birthMonth - 1, birthDay).toLocaleDateString(appLoc, {
           day: 'numeric',
           month: 'long',
           year: 'numeric',
@@ -746,7 +750,7 @@ export default function PackDogDetail() {
   // nie červenú: červená znamená „doplň to", a tieto sa doplniť nedajú (heroglyph dáta).
   const fixedIdentityRows: Record<string, FixedRow[]> = {
     identity: [
-      { i18n: 'pack.dog.rowBreed', labelEN: 'Breed', value: breed ? capWords(breed) : null },
+      { i18n: 'pack.dog.rowBreed', labelEN: 'Breed', value: breed ? (appLang === 'sk' ? localizeBreed(breed, appLang) : capWords(breed)) : null },
       { i18n: 'pack.dog.rowBorn', labelEN: 'Born', value: birthDateLabel },
       {
         i18n: 'pack.dog.rowSex',
@@ -1443,7 +1447,7 @@ function DogTrailsBlock({ dogId, tx }: { dogId: string; tx: (k: string, f: strin
       </div>
       <div className="did-life">
         {cell(tx('pack.dog.trailsTrips', 'Trips'), String(stats.trips))}
-        {cell(tx('pack.dog.trailsKm', 'Kilometres'), fmtDogKm(stats.km))}
+        {cell(tx('pack.dog.trailsKm', 'Kilometres'), fmtNum(stats.km, lang, 1))}
         {cell(tx('pack.dog.lifeNotes', 'Diary entries'), notes === null ? '—' : String(notes))}
         {cell(tx('pack.dog.lifeDays', 'Days together'), days === null ? '—' : fmtNum(days, lang, 0))}
       </div>
