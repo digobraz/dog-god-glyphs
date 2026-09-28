@@ -1063,7 +1063,7 @@ export const en = {
   // takže vysvetlenie nesie riadok, nie tlačidlo.
   'religion.hook.claim.close': 'One million of us changes that.',
   'religion.hook.claim.goalChip': 'Our goal is to change that!',
-  'religion.preamble.bookChip': 'The Bible for dog lovers waits at the end of this page!',
+  'religion.preamble.bookChip': 'Read the DOGMA (the Dog Bible)',
   // ── VARIANT 2 textingu druhej sekcie (Matej 27. 8. 2026) ──────────────────
   // *„skúsme urobiť Variant 2, a síce ten texting viac zosúladiť do riadkov ako
   // obyčajný text, ktorý je vopred napísaný, ale scrolingom dostáva život, ako
@@ -1221,6 +1221,7 @@ export const en = {
   'onepage.cue.next': 'Next',
   'onepage.cue.story': 'Scroll through the story',
   'onepage.cue.top': 'Back to top',
+  'onepage.dogma.back': 'Back',
   'onepage.apps.more': 'Detail',
   'onepage.apps.head': 'Membership',
   'onepage.apps.sub1': 'The heroglyph is the key. Behind it, an app for you and your dog.',

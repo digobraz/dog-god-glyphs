@@ -406,11 +406,24 @@ export function DogPlanetLab({
   // ⚠️ Strop je 1200 ms, nie 1800 (Matej 4. 9. 2026: „zrýchli to maximálne
   // možné, web musí byť rýchly a pružný"). Poradie *guľa → výzva* ostáva, len
   // sa naň nečaká dlhšie, než trvá prvá pologuľa.
+  //
+  // 🔴 GUĽA NAJPRV, PORTÁL AŽ NA NEJ (Matej 28. 9. 2026: *„úvodné načítanie
+  // musíme urobiť plynulejšie — najprv sa načíta zemeguľa až potom na nej
+  // vznikne portál"*). Doteraz sa čakalo len s výzvou; guľa sama naskakovala
+  // po dlaždiciach tak, ako dobiehali fotky. Teraz dva kroky: `ballIn` = guľa
+  // sa celá vynorí naraz (krytie, žiadny skok), `heroIn` príde `HERO_AFTER_MS`
+  // po nej a portál sa na guli ROZVINIE (keyframes `phBirth` nižšie).
+  const [ballIn, setBallIn] = useState(false);
   const [heroIn, setHeroIn] = useState(false);
   useEffect(() => {
-    if (heroIn) return;
+    if (!ballIn || heroIn) return;
+    const id = window.setTimeout(() => setHeroIn(true), 700);
+    return () => window.clearTimeout(id);
+  }, [ballIn, heroIn]);
+  useEffect(() => {
+    if (ballIn) return;
     let done = false;
-    const arrive = () => { if (!done) { done = true; setHeroIn(true); } };
+    const arrive = () => { if (!done) { done = true; setBallIn(true); } };
     // Strop: výzva príde aj keby sa nenačítala ani jedna fotka (offline, 404).
     const cap = window.setTimeout(arrive, 1200);
     const poll = window.setInterval(() => {
@@ -423,7 +436,7 @@ export function DogPlanetLab({
       if (ok >= Math.min(24, imgs.length)) arrive();
     }, 90);
     return () => { window.clearTimeout(cap); window.clearInterval(poll); };
-  }, [heroIn]);
+  }, [ballIn]);
   // Tváre, ktoré sa v prázdnej dlaždici striedajú. Berú sa z psov NA GULI, nie
   // z pevného zoznamu — dlaždica má ukazovať, kam sa človek pridáva.
   const cycPhotos = dogs.slice(0, 12).map(d => d.photo).filter(Boolean);
@@ -446,6 +459,10 @@ export function DogPlanetLab({
     if (!host) return;
     const p = buildPortal({
       faces: cycPhotos,
+      // Matej 28. 9. 2026: *„v CTA bude len ADD PHOTO OF YOUR DOG (bez toho
+      // malého textu)"*. Dva riadky, lebo na guli má portál ~118 px.
+      label: 'Add photo<br>of your dog',
+      note: '',
       // ⚠️ Cez REF, nie cez `photo` zo stavu — portál sa stavia raz (deps
       // `facesKey`) a uzáver by navždy držal prvú hodnotu, teda `null`.
       onPick: () => (photoRef.current ? showConfirm(photoRef.current) : openPicker()),
@@ -2174,17 +2191,39 @@ export function DogPlanetLab({
           transition: opacity 560ms ease;
         }
         .planet-hero.hero-in > * { opacity: 1; }
+        /* Guľa sa vynorí CELÁ naraz — krytie nesie .planet-ball, nie
+           .planet-stage (tej film zapisuje inline opacity a transform). */
+        .planet-ball { opacity: 0; transition: opacity 900ms ease; }
+        .planet-stage.ball-in .planet-ball { opacity: 1; }
+        /* Portál na guli VZNIKNE: z bodu sa roztvorí s jemným prekmitom.
+           Jednorazová animácia transformu pri príchode — iskry (plátno) sa
+           pritom zväčšujú s ním, v pokoji je transform prázdny. */
+        .planet-hero .ph-portal { opacity: 0; }
+        /* Jadro portálu na guli = LAPIS, priesvitnosť ostáva (Matej 28. 9.
+           2026: *„skúsme to pozadie nedať čierne ale tmavomodré (lapis,
+           priesvitnosť zachovaj)"*). Stena má svoje tmavé jadro ďalej. */
+        .planet-hero .ph-bed { background: radial-gradient(120% 120% at 50% 30%, rgba(30,60,144,.9) 0%, rgba(22,48,122,.9) 55%, rgba(10,26,74,.92) 100%); }
+        .planet-hero .ph-add-veil { background: linear-gradient(180deg, rgba(10,26,74,0.12), rgba(10,26,74,0.5)); }
+        .planet-hero .ph-lbl { text-align: center; line-height: 1.15; }
+        .planet-hero.hero-in .ph-portal { animation: phBirth 900ms cubic-bezier(.2,.9,.3,1.12) 240ms both; }
+        @keyframes phBirth {
+          0% { opacity: 0; transform: scale(.15) rotate(-18deg); }
+          45% { opacity: 1; }
+          100% { opacity: 1; transform: none; }
+        }
         .planet-hero.hero-in .ph-lead { transition-delay: 110ms; }
         .planet-hero.hero-in .ph-mount { transition-delay: 240ms; }
         @media (prefers-reduced-motion: reduce) {
           .planet-hero > * { transition: none; }
+          .planet-ball { transition: none; }
+          .planet-hero.hero-in .ph-portal { animation: none; opacity: 1; }
         }
       `}</style>
 
       {/* DEV PULT (dizajn · pozadie · psov) tu STÁL a 25. 8. zanikol — voľby sú
           hore v konštantách DESIGN / BG / TARGET. */}
 
-      <div className="planet-stage">
+      <div className={`planet-stage${ballIn ? ' ball-in' : ''}`}>
         <div
           className="planet-ball"
           ref={ballRef}

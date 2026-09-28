@@ -306,7 +306,7 @@ export function buildPortal(opts: PortalOptions = {}): PortalHandle {
       + '<span class="ph-mark">'
       +   `<span class="ph-ico" aria-hidden="true">${PLUS_SVG}</span>`
       +   `<span class="ph-lbl">${photo ? labelPicked : label}</span>`
-      +   `<span class="ph-note">${note}</span>`
+      +   (note ? `<span class="ph-note">${note}</span>` : '')
       +   (subnote ? `<span class="ph-sub">${subnote}</span>` : '')
       + '</span>';
   };

@@ -1420,6 +1420,12 @@ export default function OnePage() {
   const [wallOpen, setWallOpen] = useState(false);
   const bookOpenRef = useRef(false);
   bookOpenRef.current = bookOpen;
+  useEffect(() => {
+    if (!bookOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setBookOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [bookOpen]);
   const wallOpenRef = useRef(false);
   wallOpenRef.current = wallOpen;
   /** Choreografia filmu — drží sa v refe, aby sa dala vyvolať aj mimo scrollu. */
@@ -4069,9 +4075,8 @@ export default function OnePage() {
       {albaOpen && (
         <div className="op-alba" role="dialog" aria-modal="true" aria-label="ALBA" data-film-free onClick={() => setAlbaOpen(false)}>
           <div className="op-alba-card" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="op-alba-x" aria-label={t('nav.aria.close')} onClick={() => setAlbaOpen(false)}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
-            </button>
+            {/* Krížik zanikol (Matej 28. 9. 2026: *„na webe nechceme krížiky"*)
+                — zatvára klik mimo karty a Esc. */}
             <h2 className="op-alba-h2">{t('onepage.alba.head')} <span className="nm">Alba</span></h2>
             <p className="op-alba-eye">{t('onepage.alba.eye')}</p>
             <div className="op-alba-trio">
@@ -6024,14 +6029,14 @@ export default function OnePage() {
           top: 14px;
           right: 14px;
           z-index: 130;
-          width: 42px; height: 42px;
-          border-radius: 50%;
+          height: 42px; padding: 0 20px;
+          border-radius: 999px;
           display: flex; align-items: center; justify-content: center;
+          font: 500 12px/1 'Space Grotesk', sans-serif; letter-spacing: .22em; text-transform: uppercase;
           background: ${NAV_GOLD.activeFill};
           border: ${NAV_R.line}px solid ${NAV_GOLD.edge};
           box-shadow: ${NAV_PILL_SHADOW};
           color: ${NAV_GOLD.ink};
-          font-size: 1.05rem;
           cursor: pointer;
         }
 
@@ -7252,10 +7257,10 @@ export default function OnePage() {
           <ReligionLab
             embedded flow onOpenBook={() => setBookOpen(true)}
             onChipNext={() => filmGo(1)}
-            onChipBook={() => {
-              const b = document.querySelector<HTMLElement>('.op-book');
-              if (b) window.scrollTo({ top: b.getBoundingClientRect().top + window.scrollY - filmVh() * 0.15, behavior: 'smooth' });
-            }}
+            // Matej 28. 9. 2026: *„pri veríme v psa treba zmeniť chip — Prečítaj
+            // si DOGMU (Psia biblia) otvorí popup cez celú stránku, obsah
+            // doladíme neskôr"*. Skok ku knihe na konci stránky zanikol.
+            onChipBook={() => setBookOpen(true)}
           />
         </section>
 
@@ -7803,8 +7808,10 @@ export default function OnePage() {
           `dogma.dogypt.com` je vnútri knihy, kde bol vždy. */}
       {bookOpen && (
         <div className="op-storymodal" role="dialog" aria-modal="true" aria-label={t('religion.bookTitle')}>
+          {/* Bez krížika (Matej 28. 9. 2026: *„na webe nechceme krížiky"*) —
+              pilulka SPÄŤ + Esc. */}
           <button type="button" className="op-storyclose" onClick={() => setBookOpen(false)} aria-label={t('nav.aria.close')}>
-            ✕
+            {t('onepage.dogma.back')}
           </button>
           <div className="lsh-scroll op-bookmodal">
             <ConstitutionBook openOnMount />

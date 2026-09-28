@@ -46,7 +46,7 @@ export default function FilmCue({ moving, onNext, label, hint, big, apps }: { mo
   const sc = CUE.order === 'A' ? [1, 0.78, 0.58] : CUE.order === 'B' ? [0.58, 0.78, 1] : [0.8, 0.8, 0.8];
   return (
     <button type="button" className={`op-cue${moving ? ' is-moving' : ''}${big ? ' is-big' : ''}${apps ? ' is-apps' : ''}`} aria-label={label} onClick={onNext}
-      style={{ ['--dur' as string]: `${CUE.dur}s`, ['--gap' as string]: `${CUE.gap}s`, ['--dim' as string]: CUE.dim, ['--glow' as string]: `${CUE.glow}px` } as React.CSSProperties}>
+      style={{ ['--dur' as string]: `${CUE.dur}s`, ['--gap' as string]: `${CUE.gap}s`, ['--dim' as string]: big ? 1 : CUE.dim, ['--glow' as string]: `${CUE.glow}px` } as React.CSSProperties}>
       {/* Nápis nad šípkami — len v príbehu (Matej 27. 9.: *„nad šípkami nápis
           prescroluj príbeh"*). Miesto drží stále, aby šípky neposkakovali. */}
       <em className={`op-cue-hint${hint ? ' is-on' : ''}`}>{hint ?? ''}</em>
@@ -90,13 +90,15 @@ export const FILM_CUE_CSS = `
     transition: opacity .35s ease, transform .5s cubic-bezier(.22,.9,.28,1);
     transform-origin: 50% 100%;
   }
-  /* Na homepage (guľa) o 50 % väčšie — Matej 27. 9. 2026. */
-  .op-cue.is-big { transform: translateX(-50%) scale(1.5); }
-  /* ČLENSTVO (Matej 28. 9. 2026: *„pri tejto obrazovke nevidím scroll
-     šípky"*). V strede by padli na telefóny, preto stoja pod ĽAVÝM stĺpcom
-     (tá istá rovnica ako .op-apps-col vo FilmApps.tsx). Na mobile telefóny
-     zaberajú celý spodok — tam ostávajú skryté. */
-  .op-cue.is-apps { left: calc(max(16px, 50vw - 560px) + min(440px, 40vw) / 2); bottom: 24px; }
+  /* Na homepage (guľa) o 50 % väčšie — Matej 27. 9. 2026. 28. 9.: *„šípky
+     dolu zväčši o 20 % iba na tejto obrazovke, nemôžu byť priesvitné a posuň
+     ich o 20px dolu"* ⇒ 1,5 × 1,2 = 1,8, krytie 1 (blik nesie len žiara; `--dim` ide inline z komponentu). */
+  .op-cue.is-big { transform: translateX(-50%) translateY(20px) scale(1.8); }
+  /* ČLENSTVO — šípky VŽDY V STREDE (Matej 28. 9. 2026: *„táto obrazovka má
+     šípky dolu na ľavej strane… vždy musia byť v strede! na každej obrazovke"*).
+     Ľavý stĺpec (27. 9.) zanikol; ostáva len nižšia poloha nad telefónmi.
+     Na mobile telefóny zaberajú celý spodok — tam ostávajú skryté. */
+  .op-cue.is-apps { bottom: 24px; }
   @media (max-width: 768px) { .op-cue.is-apps { display: none; } }
   .op-cue > span { display: block; line-height: 0; }
   .op-cue-hint {
