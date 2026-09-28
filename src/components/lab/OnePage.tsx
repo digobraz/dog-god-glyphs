@@ -179,10 +179,13 @@ const DGX_KEYS = (from: number, to: number) => keyRide(from, to, [
   [dgxAt(DGX.head / 100), 450],                          // eyebrow
   [dgxAt((DGX.head + DGX.dur) / 100), 950],              // nadpis 0,5 s
   [dgxAt((DGX.glyph + DGX.glyphD) / 100), 2150],         // podnadpis + heroglyf
+  // Rovnaké tempo celou cestou (~120 ms na 1 % dráhy) — žiadny úsek
+  // nestojí a žiadny neskočí.
   [dgxAt((DGX.kota + DGX.pulseW + DGX.kotaD) / 100), 3250], // všetky 4 kóty naraz
-  [dgxAt((DGX.kota + DGX.pulseW + DGX.kotaD + DGX.holdGap) / 100), 6250], // 3 s na čítanie
-  [dgxAt((DGX.sig + DGX.sigD) / 100), 7450],             // kóty zhasnú, Hektor
-  [absTop('.op-arc-rest2'), 7850],                       // konečný stav s navom
+  [dgxAt((DGX.kota + DGX.pulseW + DGX.kotaD + DGX.holdGap) / 100), 4750], // čítanie
+  [dgxAt((DGX.sig) / 100), 5100],                        // kóty zhasnú
+  [dgxAt((DGX.sig + DGX.sigD) / 100), 5600],             // Hektor
+  [absTop('.op-arc-rest2'), 6000],                       // konečný stav s navom
 ]);
 
 /** Kde na dráhe hviezd ich javisko nabieha: od zhasnutia ČLENSTVA (polovica
@@ -787,6 +790,9 @@ const MILESTONES = [
 
    Tri beaty na jednej prilepenej dráhe. Podiely sú VNÚTRI nej, nie na celom
    filme — tak sa dá dráha predĺžiť bez prepisovania fáz. */
+/** JEDNO ZLATO NADPISOV FILMU = recept motta (.codex-headline .grad v
+ *  ReligionLab). Viď „SYSTÉM NADPISOV FILMU" v štýloch. */
+const FILM_GOLD = 'linear-gradient(100deg, #6E4A12 0%, #A3782B 30%, #D8A93F 50%, #A3782B 70%, #6E4A12 100%)';
 /** Krytie citátov v pozadí, kým stojí nadpis (0–1). */
 const QUO_FAINT = 0.22;
 const QUO = {
@@ -1160,23 +1166,26 @@ const DGX = {
      1. 9. a Matej mobil pri tomto pokyne nevidel. */
   gwK: 0.81,
   // 🔴 VŠETKY KÓTY NARAZ (Matej 28. 9. 2026: *„pri heroglyphe sa nenačítajú
-  //    vysvetlivky zvlášť ale na 1× všetky"*). Rozostup 12 → 0; dráha, ktorú
-  //    zabrali tri rozostupy (36), sa pridala k výdrži (`holdGap` 2 → 38),
-  //    takže zhasnú na tom istom mieste ako predtým (89) a podpis sa nehýbe.
+  //    vysvetlivky zvlášť ale na 1× všetky"*). Rozostup 12 → 0.
+  //    🔴 A HEKTOR IDE HNEĎ ZA NIMI (Matej 28. 9.: *„po načítaní obsahu dlhá
+  //    pauza pri načítaní iniciály — Hekthor prvý Dogypťan… musí to byť
+  //    plynulé, nie sekané"*). Medzi kótami (51) a podpisom (92) bola prázdna
+  //    dráha. Teraz kóty svietia 51–63 (`holdGap` 12), zhasnú 63–66 a podpis
+  //    sa píše HNEĎ 66–70 (`sig`), pilulka/hotspot 70 (`hint`).
   kota: 42, kotaStag: 0, kotaD: 5, lead: 8,
   pulseW: 4, pulseN: 3,
   kNamePx: 34, kNamePxM: 22,
   kPx: 12, kPxM: 9, kPx2: 13, kPx2M: 11, glow: 8,
   kotaEdge: 8, overHalo: 70,
-  holdGap: 38, offD: 3,
+  holdGap: 12, offD: 3,
   hintD: 4, hintPx: 11.7, hintPxM: 11,
-  hint: 96,
+  hint: 70,
   /* 🔴 „zmensi fotku a meno - pod heroglyfom (obsah) o 15%" (Matej 2. 9. 2026).
      PC hodnoty × 0.85: fp 68→57.8 · ns 25→21.25 · rls 11→9.35.
      Mobilne (`fpM`/`nsM`/`rlsM`) ostavaju — pokyn padol nad PC obrazovkou,
      rovnako ako pri `gwK`. `sgap` (medzera fotka↔text) sa nedeli: nema
      mobilny variant, takze by zmena zasiahla aj telefon, a ide o 2 px. */
-  sig: 92, sigD: 4, fp: 52.0, fpM: 56, ns: 19.1, nsM: 21, sgap: 14, rls: 8.4, rlsM: 9,
+  sig: 66, sigD: 4, fp: 52.0, fpM: 56, ns: 19.1, nsM: 21, sgap: 14, rls: 8.4, rlsM: 9,
 } as const;
 
 /** Dráha WE NEED YOU, ktorú oblúk naozaj má — 0, kým je obraz odložený (WNY_ON). */
@@ -6032,6 +6041,48 @@ export default function OnePage() {
            preklep: komponenty si podľa nej hľadajú, čo vlastne scrolluje
            (closest('.lsh-scroll') ?? window). Bez nej by počítali svoje beaty
            voči oknu, ktoré sa pod otvoreným prekrytím nehýbe. */
+        /* ── SYSTÉM NADPISOV FILMU (Matej 28. 9. 2026 nad nákresom
+           plany/nakres-nadpisy-onepage-2026-09-28: *„ok skúsme teda to zlato,
+           ale pri úvode sa mi páči ten cinzel decorative na dog a god"*).
+           Dovtedy 9 veľkostí, 4 zlaté prechody, váha 700 aj 900. Teraz:
+             VÝKRIK        HEROGLYPH · WE NEED YOU — veľkosť ďalej riadi réžia
+             NADPIS OBRAZU vízia · členstvo · hviezdy · finále — 56 / mobil 32
+             KARTA         názov funkcie — 40 / mobil 24
+           Všade Cinzel 700, rozostup .04em, JEDNO zlato = recept motta
+           (FILM_GOLD). Úvod (guľa) je výnimka: atrament + DOG/GOD v Cinzel
+           Decorative, ostáva ako je. Krava a pes (čísla) a príbeh (čierna) tiež. */
+        .op-root #op-vision .vhero-h2 { letter-spacing: .04em; }
+        .op-root #op-vision .vhero-h2 > span { background-image: ${FILM_GOLD} !important; }
+        .op-root .dgx-h2 { letter-spacing: .04em; }
+        .op-root .dgx-h2 .ln { background-image: ${FILM_GOLD}; }
+        .op-root .op-nxt-h2 span { background-image: ${FILM_GOLD}; }
+        .op-root .op-nxt-h2 { letter-spacing: .04em; }
+        .op-root .op-apps-h2 { font-size: 56px; letter-spacing: .04em; background-image: ${FILM_GOLD}; }
+        .op-root .op-apps-name {
+          font-size: 40px; letter-spacing: .04em;
+          background-image: ${FILM_GOLD}; -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .op-root .op-quo .tst-head h2 {
+          font-weight: 700; font-size: 56px; letter-spacing: .04em !important;
+          position: relative; padding-bottom: 16px;
+          background-image: ${FILM_GOLD} !important; -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .op-root .op-fin-h2 {
+          font-size: 56px; letter-spacing: .04em;
+          background-image: ${FILM_GOLD}; -webkit-background-clip: text; background-clip: text; color: transparent;
+          padding-top: .2em; margin-top: -.2em;
+          position: relative; padding-bottom: 16px;
+        }
+        /* Zlatá čiara pod NADPISOM OBRAZU — tá istá ako pod víziou a členstvom. */
+        .op-root .op-quo .tst-head h2::after, .op-root .op-fin-h2::after {
+          content: ''; position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+          width: min(220px, 60%); height: 2px;
+          background: linear-gradient(90deg, rgba(201,154,63,0) 0%, rgba(201,154,63,.85) 22%, rgba(201,154,63,.85) 78%, rgba(201,154,63,0) 100%);
+        }
+        @media (max-width: 768px) {
+          .op-root .op-apps-h2, .op-root .op-quo .tst-head h2, .op-root .op-fin-h2 { font-size: 32px; }
+          .op-root .op-apps-name { font-size: 24px; }
+        }
         .op-storymodal { position: fixed; inset: 0; z-index: 120; background: ${LAB.pageBg}; }
         .op-storymodal::before { content: ''; position: absolute; inset: 0; background: ${LAB.pageBackdrop}; pointer-events: none; }
         .op-storymodal .lsh-scroll { z-index: 1; }
