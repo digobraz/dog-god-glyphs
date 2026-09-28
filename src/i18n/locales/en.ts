@@ -976,15 +976,15 @@ export const en = {
   'about.crawl.episode': 'Episode I',
   'about.crawl.faith': 'A New Faith',
   'about.crawl.p1':
-    'In 2016, eight black puppies arrived at the shelter, thrown away in a single box. Seven found a home. The biggest one nobody wanted — he waited a whole year. His name was Hekthor.',
+    'In 2016, eight black puppies arrived at the shelter in a single box. Seven of them found a home. The biggest one nobody wanted — he waited at the shelter for a whole year. His name was Hekthor.',
   'about.crawl.p2':
-    'One day a couple came to the shelter to see Sindy, a small white female they wanted to adopt. By pure chance, Hekthor was in her kennel at the time — his own was just being cleaned. The man, who had only come along for the ride and never wanted a dog, fell in love with the black dog he was seeing for the very first time.',
+    'One day a young couple came to the shelter to adopt a small white female they had spotted online. By pure chance, Hekthor was in her kennel at that moment — his own was being cleaned. The man, who never wanted a dog and had only come along as the driver, fell in love with a black dog he was seeing for the first time in his life.',
   'about.crawl.p3':
-    'A week later the two of them were together, and a beautiful story began. The man\'s whole life changed, and in time he understood one thing: only someone who has a dog, and knows what a dog\'s love feels like, can truly help dogs in need.',
+    'A week later the two of them were together, and a beautiful story began. The man’s whole world changed. Life with a dog shaped him, and in time he understood one thing: only someone who has felt a dog’s unconditional love can truly help shelters and dogs in need.',
   'about.crawl.p4':
-    'And so the Heroglyph was born — a symbol meant to unite dog lovers everywhere into the largest community the world has ever known. A community that will stand for us, for our dogs, and for the generations to come — for people unafraid to admit that a dog is not just an animal, but a being that makes us better humans.',
+    'And so the Heroglyph was born — a symbol meant to unite dog lovers all over the world into the largest community the world has ever known. A community that will always stand up for our dogs and be here for them for generations after us. A community of people unafraid to admit that a dog is not just an animal, but a being that makes us better humans.',
   'about.crawl.p5':
-    'Right now, the journey to the first milestone begins — to create 1,000,000 Heroglyphs. And you can be part of it. Because the only ones crazy enough to believe they can change the world are the ones who do.',
+    'Right now, the journey to the first milestone begins — to create a HEROGLYPH for 1,000,000 dogs. And you can be part of it. Because the world is changed only by those crazy enough to believe they can do it.',
   'about.crawl.p6': 'IN DOG WE TRUST.',
 
   // ── /about — timeline (5 milestones) ──
