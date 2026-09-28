@@ -18,6 +18,12 @@ import './WhatNextPopup.css';
 
 // `?tiers=all` = aj podporovatelia (€3) a hostia (€0) — REBRÍK, Matej 25. 9. 2026.
 // Funkcia bez tejto schopnosti parameter ignoruje a vráti len členov (bez `wall_tier`).
+// 🅿️ ZAPARKOVANÉ 28. 9. 2026 — Matej po teste heroflowu: *„ten posledný moment
+//    po reveale, tá karta s 5 krokmi — zatiaľ ju zaparkujme, nedávajme ju von"*.
+//    Popup „Čo ďalej" (WhatNext, 5 slajdov) sa po reveale neotvorí; kód aj CSS
+//    ostávajú. Vrátiť = false.
+const WHAT_NEXT_PARKED = true;
+
 const GRID_DOGS_URL = `${EDGE_BASE}/get-grid-dogs?tiers=all`;
 /** Hlášky PSA na mieste odkazu pri €0 — všetkých päť sa strieda (Matej 25. 9.: „daj všetky rotácie"). */
 const GUEST_LINES = 5;
@@ -422,6 +428,7 @@ function GodsGridInner() {
   // reveal animácie (step 4). Spustí sa 2s po dokončení, ALEBO hneď pri prvom
   // pohybe myšou / dotyku po reveale — podľa toho čo nastane skôr.
   useEffect(() => {
+    if (WHAT_NEXT_PARKED) return;
     if (revealStep !== 4 || !revealData.active) return;
     if (revealData.queue.length) return; // Čo ďalej až po poslednom psovi svorky
     if (whatNextShownRef.current) return;

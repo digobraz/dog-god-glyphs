@@ -86,6 +86,14 @@ export function FlowCheckoutScreen() {
     setEdit(what);
   };
   const draftOk = edit === 'email' ? EMAIL_RE.test(draft.trim()) : draft.trim().length > 0;
+  // ── E-MAIL JE POVINNÝ AŽ TU (28. 9. 2026) ─────────────────────────────────
+  // Krok e-mailu sa dá preskočiť („Zatiaľ preskočiť"), a pokladňa to dovtedy
+  // nekontrolovala: ZAPLATIŤ aj „zadarmo" padli na 400 invalid_input s hláškou
+  // „nepodarilo sa" bez dôvodu (Matej 28. 9.: *„nenapísalo prečo… kvôli e-mailu"*).
+  // Bez platného e-mailu obe tlačidlá otvoria pole e-mailu s vysvetlením.
+  const emailOk = EMAIL_RE.test((email || '').trim());
+  const [needEmail, setNeedEmail] = useState(false);
+  const askEmail = () => { openEdit('email'); setNeedEmail(true); setPayError(null); };
   const emailFix = edit === 'email' && draftOk ? suggestEmailFix(draft.trim()) : null;
   const saveEdit = () => {
     if (!draftOk) return;
@@ -93,6 +101,7 @@ export function FlowCheckoutScreen() {
     if (edit === 'name') setOwnerName(v);
     else {
       setEmail(v);
+      setNeedEmail(false);
       saveCheckoutDraft(v, lang);
       track('checkout_email_changed');
     }
@@ -157,6 +166,7 @@ export function FlowCheckoutScreen() {
 
   const pay = async () => {
     if (loading || edit) return;
+    if (!emailOk) { askEmail(); return; }
     setLoading(true);
     setPayError(null);
     try {
@@ -266,6 +276,9 @@ export function FlowCheckoutScreen() {
                     onChange={(e) => setDraft(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); }}
                   />
+                  {needEmail && edit === 'email' && (
+                    <p role="alert" className="hf-alert">{t('heroglyph.flow.checkoutNew.needEmail')}</p>
+                  )}
                   {emailFix && (
                     <button type="button" className="hf-hint" onClick={() => setDraft(emailFix)}>
                       {t('heroglyph.checkout.emailTypo').replace('{suggestion}', emailFix)}
@@ -425,7 +438,7 @@ export function FlowCheckoutScreen() {
                     ? <span className="co-cta-in"><Loader2 className="h-4 w-4 animate-spin" />{waitingPhoto ? t('payment.sealing') : t('payment.preparing')}</span>
                     : t('heroglyph.flow.checkoutNew.pay', { sum: `€${totalShown}` })}
                 </button>
-                <button type="button" className="co-decline" onClick={() => setStay(true)} disabled={loading}>
+                <button type="button" className="co-decline" onClick={() => { if (!emailOk) { askEmail(); return; } setStay(true); }} disabled={loading}>
                   {t('heroglyph.flow.checkoutNew.decline')}
                 </button>
                 <p className="co-secure">{t('heroglyph.flow.checkoutNew.secureShort')}</p>

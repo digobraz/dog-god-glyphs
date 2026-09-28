@@ -425,6 +425,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.checkoutNew.whatYouBuy': "Čo kupuješ",
   'heroglyph.flow.checkoutNew.memberLine': "+ Členstvo ({year})",
   'heroglyph.flow.checkoutNew.free': "€0",
+  'heroglyph.flow.checkoutNew.needEmail': 'Doplň e-mail — pošleme naň tvoj HEROGLYF.',
   'heroglyph.flow.checkoutNew.whatMember': 'Čo zahŕňa členstvo',
   'heroglyph.flow.more.money.t': 'KAM IDÚ PENIAZE',
   'heroglyph.flow.more.money.d': 'Z každých €11 ide €5 na rozvoj, €3 komunite, €2 na záchranu psov a €1 do Hekthorovej misky. Každý výdavok bude zdokumentovaný a verejný.',

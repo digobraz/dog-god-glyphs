@@ -537,6 +537,7 @@ export const en = {
   'heroglyph.flow.checkoutNew.whatYouBuy': "What you buy",
   'heroglyph.flow.checkoutNew.memberLine': "+ Membership ({year})",
   'heroglyph.flow.checkoutNew.free': "€0",
+  'heroglyph.flow.checkoutNew.needEmail': 'Add your e-mail — we will send your HEROGLYPH there.',
   'heroglyph.flow.checkoutNew.whatMember': 'What membership includes',
   'heroglyph.flow.more.money.t': 'WHERE THE MONEY GOES',
   'heroglyph.flow.more.money.d': 'Of every €11, €5 goes to development, €3 to the community, €2 to rescuing dogs and €1 to Hekthor’s bowl. Every expense will be documented and public.',
