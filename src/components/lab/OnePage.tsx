@@ -63,7 +63,7 @@ import { filmVh } from '@/lib/filmVh';
 import { useFilmStops } from './filmStops';
 import FilmGate, { GATE_REST, GATE_TOUCH, GATE_RIDE_MS, GATE_FADE } from './FilmGate';
 import FilmCue, { FilmTop, FILM_CUE_CSS } from './FilmCue';
-import FilmApps, { APPS_STOPS, APPS_OUT_VH } from './FilmApps';
+import FilmApps, { APPS_STOPS, APPS_OUT_VH, APPS_EXIT_VH } from './FilmApps';
 
 // ── OBRAZY FILMU SÚ NA JEDNOM MIESTE ────────────────────────────────────────
 // Matejov zoznam z 2. 9. 2026, doslova: *„1-HOME · 2 COW vs DOG · 3 Religion ·
@@ -114,58 +114,93 @@ const pinnedAt = (sel: string, f: number): number | null => {
   return top + Math.max(1, el.offsetHeight - filmVh()) * f;
 };
 
-/** Dva ťahy za dotykom (27. 9. 2026): ROZPLYNUTIE (dotyk → dážď) a PÍSANIE
- *  (dážď → nadpis a glyf; kóty a Hektor idú ďalšími ťahmi, viď `dgxStopsDp`).
- *  Druhý ide pomaly a bez prudkého
- *  stredu — *„nábeh textu a postupne aj heroglyph, pomaly, teraz je to moc
- *  rýchlo"*. Platí oboma smermi. */
-const DGX_WRITE_MS = 4000;
-/** Jazda z poslednej kóty do konečného stavu. */
-const DGX_KOTA_MS = 1600;
-/** Jazda cez všetky štyri kóty naraz (~1,4 s na kótu, rovnomerne). */
-const DGX_KOTAS_MS = 5600;
 const easeSine = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2;
+/** Jazda krava a pes → preambula (ústava). Predtým ~1,8 s mäkko. */
+const CREDO_RIDE_MS = 3000;
 
-/** 🔴 DOGTRIX PO ŤAHOCH (Matej 27. 9. 2026: *„nemôže jeden scroll ukázať
- *  celý obsah — ukáže nadpisy a heroglyph, ďalšie slajdy postupne ukazujú
- *  kóty (4 slajdy) a po nich sa dá stránka do konečného stavu aj s navom"*).
- *  Zastávky sú body na dráhe `dp` (0–1), odvodené z časovania `DGX` — nie
- *  opísané čísla: kto posunie kótu v DGX, posunie sa aj zastávka.
- *  ① nadpis + glyf dopísaný · ②–⑤ kóta i naplno svieti (tie predošlé
- *  svietia ďalej, `hold:'acc'`) · ⑥ = `.op-arc-rest2` (kóty zhasnú, Hektor,
- *  horný nav). */
-/*  🔴 KÓTY JEDNÝM ŤAHOM (Matej 28. 9. 2026: *„pri heroglyphe zruš ukazovanie
- *  detailov scrollom — načítajú sa jedným scrolom všetky, ale pomaly po
- *  poradí"*). Zastávky ②–④ zanikli: ① nadpis + glyf · ② posledná kóta
- *  dosvietila. Jazda ①→② ide ROVNOMERNE (`DGX_KOTAS_MS`), takže kóty
- *  nabiehajú jedna po druhej vlastným rozstupom `kotaStag`. */
-const dgxStopsDp = (): number[] => [
-  (DGX.glyph + DGX.glyphD) / 100,
-  (DGX.kota + 3 * DGX.kotaStag + DGX.pulseW + DGX.kotaD) / 100,
-];
-/** Poloha bodu `dp` na stránke (px) — tá istá rovnica ako `dp` v réžii. */
+/** 🔴 JAZDA PO ČASOVÝCH BODOCH (Matej 28. 9. 2026 — konsolidácia scrollov:
+ *  *„všetko na jeden scrol, iba postupne"*). Jeden ťah motora prejde viac
+ *  dejov naraz, ale každý dej má vlastný ČAS: body `[poloha px, čas ms]`
+ *  od `from` po `to`, medzi nimi rovnomerne. Choreografia sa neprepisuje —
+ *  beží zo `scrollY` ako doteraz, body len určujú, kedy jazda ktorým úsekom
+ *  prejde. Platí len smerom DOLU (hore idú sekcie, `upStops`). Keď bod
+ *  chýba alebo nesedí poradie, vráti null a jazda ide predvolene. */
+type RideKey = [number | null, number];
+type KeyedRide = { dur: number; ease: (t: number) => number };
+const keyRide = (from: number, to: number, keys: RideKey[]): KeyedRide | null => {
+  if (to <= from || keys.some((k) => k[0] == null)) return null;
+  const ks = keys as [number, number][];
+  if (Math.abs(ks[0][0] - from) > 4 || Math.abs(ks[ks.length - 1][0] - to) > 4) return null;
+  for (let i = 1; i < ks.length; i++) if (ks[i][0] < ks[i - 1][0] - 1 || ks[i][1] <= ks[i - 1][1]) return null;
+  const dur = ks[ks.length - 1][1];
+  return {
+    dur,
+    ease: (t: number) => {
+      const ms = t * dur;
+      let i = 1;
+      while (i < ks.length - 1 && ms > ks[i][1]) i++;
+      const [y0, t0] = ks[i - 1], [y1, t1] = ks[i];
+      const y = y0 + (y1 - y0) * Math.min(1, Math.max(0, (ms - t0) / (t1 - t0)));
+      return (y - from) / (to - from);
+    },
+  };
+};
+
+/** Poloha bodu `dp` DOGTRIXu na stránke (px) — tá istá rovnica ako `dp` v réžii. */
 const dgxAt = (f: number): number | null =>
   pinnedAt('.op-arc', ARC_SPLIT + ARC_DWELL + f * (ARC_XFADE + ARC_DGX_F));
 
-const dgxLeg = (from: number, to: number): 'dissolve' | 'write' | 'kotas' | 'kota' | null => {
-  const touch = pinnedAt('.op-gate', GATE_TOUCH), gone = pinnedAt('.op-gate', GATE_FADE[1]);
-  const pair = (a: number | null, b: number | null) =>
-    a != null && b != null && ((Math.abs(from - a) < 4 && Math.abs(to - b) < 4) || (Math.abs(from - b) < 4 && Math.abs(to - a) < 4));
-  if (pair(touch, gone)) return 'dissolve';
-  const d = dgxStopsDp().map(dgxAt);
-  if (pair(gone, d[0])) return 'write';
-  if (pair(d[0], d[1])) return 'kotas';
-  if (pair(d[1], absTop('.op-arc-rest2'))) return 'kota';
-  return null;
-};
+/** 🔴 BRÁNA JEDNÝM ŤAHOM (Matej 28. 9. 2026: *„scroll po príbehu, kedy sa
+ *  rozžiaria dvere, urob rýchlejší a hneď sa aj otvoria = rozžiarenie 0,5 s
+ *  a otvorenie"*). Zastávka „brána zatvorená" (`GATE_REST`) zanikla: z konca
+ *  príbehu ide jazda rovno na dotyk. Dotyk sám ostáva rovnomerný
+ *  (`GATE_RIDE_MS`), tempo videa sa nemení. */
+const GATE_KEYS = (from: number, to: number) => keyRide(from, to, [
+  [from, 0],
+  [pinnedAt('.op-gate', 0), 400],          // dojazd príbehu, brána prilepí
+  [pinnedAt('.op-gate', GATE_REST), 900],  // rozžiarenie 0,5 s
+  [pinnedAt('.op-gate', GATE_TOUCH), 900 + GATE_RIDE_MS], // otvorenie + dotyk
+]);
 
-/** Jazda motora medzi zastávkami brány (zatvorená ⇄ dotyk). */
-const isGateRide = (from: number, to: number): boolean => {
-  const a = pinnedAt('.op-gate', GATE_REST), b = pinnedAt('.op-gate', GATE_TOUCH);
-  if (a == null || b == null) return false;
-  const near = (y: number, z: number) => Math.abs(y - z) < 4;
-  return (near(from, a) && near(to, b)) || (near(from, b) && near(to, a));
-};
+/** 🔴 DOGTRIX JEDNÝM ŤAHOM (Matej 28. 9. 2026: *„1 scroll načíta DOGTRIX
+ *  a po 0,8 s začne načítavať obsah — 0,5 s nadpis, potom heroglyf, potom
+ *  vysvetlenie a nakoniec Hektorov avatar, všetko na jeden scroll, iba
+ *  postupne"*). Zastávky rozplynutia, dopísaného glyfu a kót zanikli.
+ *  Body sú odvodené z `DGX` — kto posunie beat, posunie sa aj čas. */
+const DGX_KEYS = (from: number, to: number) => keyRide(from, to, [
+  [from, 0],
+  [dgxAt(DGX.head / 100), 800],                          // dotyk sa rozplynul, padá dážď
+  [dgxAt((DGX.head + DGX.dur) / 100), 1300],             // nadpis 0,5 s
+  [dgxAt((DGX.glyph + DGX.glyphD) / 100), 2500],         // podnadpis + heroglyf
+  [dgxAt((DGX.kota + 3 * DGX.kotaStag + DGX.pulseW + DGX.kotaD) / 100), 6900], // 4 kóty, ~1,1 s každá
+  [dgxAt((DGX.sig + DGX.sigD) / 100), 8100],             // kóty zhasnú, Hektor
+  [absTop('.op-arc-rest2'), 8500],                       // konečný stav s navom
+]);
+
+/** Kde na dráhe hviezd ich javisko nabieha: od zhasnutia ČLENSTVA (polovica
+ *  `APPS_EXIT_VH`) o 15 vh ďalej. Podiel dráhy (140 vh). */
+//  ⚠️ Funkcia, nie konštanta: `QUO_VH` je deklarované nižšie (mŕtva zóna).
+const quoIn = (): [number, number] => [
+  (APPS_EXIT_VH * 0.5) / (QUO_VH * 100 - 100),
+  (APPS_EXIT_VH * 0.5 + 15) / (QUO_VH * 100 - 100),
+];
+/** HVIEZDY JEDNÝM ŤAHOM z ČLENSTVA (28. 9. 2026): telefóny zhasnú, nadpis
+ *  „Psov miluje každý" sa vynorí, chvíľu stojí, rozplynie sa na citáty. */
+const QUO_KEYS = (from: number, to: number) => keyRide(from, to, [
+  [from, 0],
+  [pinnedAt('.op-quo', quoIn()[1]), 1100],
+  [pinnedAt('.op-quo', QUO.headOut[0]), 2600],
+  [pinnedAt('.op-quo', QUO.colsIn[1]), 3800],
+]);
+
+/** WE NEED YOU JEDNÝM ŤAHOM, pomaly (28. 9. 2026): hviezdy zhasnú, faraón sa
+ *  vynorí a obraz prejde všetkých jedenásť beatov (`ARC.nxt`). */
+const WNY_MS = 10000;
+const WNY_KEYS = (from: number, to: number) => keyRide(from, to, [
+  [from, 0],
+  [absTop('.op-wny'), 900],
+  [pinnedAt('.op-wny', 1), 900 + WNY_MS],
+]);
 
 /** Kde na dráhe crawlu stojí ROZBEHNUTÝ príbeh (zlatý text). Odmerané na
  *  živej stránke (dráha 2377 px pri okne 699 px).
@@ -199,6 +234,17 @@ type FilmSlide = {
  *  odložíme na neskôr"*). Obraz sa nemaže: prepínač vynuluje jeho dráhu aj
  *  výdrž, schová ho a vyradí z navu aj zo zastávok. Návrat = true. */
 const WNY_ON = false as boolean;
+
+/** 🔴 WE NEED YOU JE FINÁLE FILMU (Matej 28. 9. 2026: *„ďalší scroll = fade in,
+ *  vynorenie mňa, WE NEED YOU, 1 scroll postupne pomaly"*). Ten istý obraz
+ *  (`.op-nxt`, choreografia `ARC.nxt` sa nemení), ale stojí vo vlastnej
+ *  prilepenej sekcii `.op-wny` ZA hviezdami, nie v oblúku pred DOGTRIXom.
+ *  Sekcia je o `WNY_OVER_VH` zasunutá pod pás hviezd: hviezdy zhasnú na mieste
+ *  a faraón sa vynorí zdola — žiadny posun sekcie. Prepínač `WNY_ON` (oblúk)
+ *  ostáva vypnutý; oba naraz zapnúť nejde. */
+const WNY_END = !WNY_ON;
+/** O koľko vh sa WE NEED YOU zasunie pod hviezdy (= dĺžka ich zhasnutia). */
+const WNY_OVER_VH = 30;
 
 /** 🔴 MOST („Am I doing right by him?") JE ODLOŽENÝ (Matej 27. 9. 2026:
  *  *„HEROGLYPH sekciu vytlačí táto scénka mobilov, ktorá príde zdola na
@@ -256,15 +302,6 @@ const FILM_SLIDES: FilmSlide[] = ([
     from: () => filmVh() * (PIN_VH + PIN2_VH + PIN3_VH + PIN4_VH + PIN5_VH),
   },
   {
-    // WE NEED YOU. Klik pristane na začiatku VÝDRŽE — presne tam, kde obraz
-    // dobehol celý aj s CTA (to isté miesto, kde stojí odpočívadlo snapu
-    // `.op-arc-rest`).
-    id: 'mission',
-    navKey: 'film.slide.mission',
-    at: () => pinnedAt('.op-arc', ARC_SPLIT),
-    from: () => pinnedAt('.op-arc', 0),
-  },
-  {
     // HEROGLYPH = DOGTRIX aj ALBA pod jednou položkou (Matejovo zadanie).
     // Klik pristane na dobehnutom DOGTRIXe (odpočívadlo `.op-arc-rest2`),
     // ALBA je odtiaľ scrollom ďalej.
@@ -294,9 +331,20 @@ const FILM_SLIDES: FilmSlide[] = ([
     id: 'stars',
     navKey: 'film.slide.stars',
     at: () => pinnedAt('.op-quo', QUO.colsIn[1]),
-    from: () => absTop('.op-quo'),
+    // ⚠️ NIE absTop: pás je od 28. 9. zasunutý pod ČLENSTVO a jeho začiatok
+    // leží presne na zastávke telefónov — pilulka by prepla priskoro.
+    // Pilulka meria STRED okna (scrollY + ½ vh), preto + ½ obrazovky.
+    from: () => { const y = pinnedAt('.op-quo', QUO.headIn[1] * 0.5); return y == null ? null : y + filmVh() * 0.5; },
   },
-] as FilmSlide[]).filter((sl) => WNY_ON || sl.id !== 'mission');
+  {
+    // WE NEED YOU ako FINÁLE (28. 9. 2026, viď WNY_END) — klik pristane na
+    // dobehnutom obraze, na konci jeho dráhy.
+    id: 'mission',
+    navKey: 'film.slide.mission',
+    at: () => (WNY_END ? pinnedAt('.op-wny', 1) : pinnedAt('.op-arc', ARC_SPLIT)),
+    from: () => { if (!WNY_END) return pinnedAt('.op-arc', 0); const y = pinnedAt('.op-wny', 0.02); return y == null ? null : y + filmVh() * 0.5; },
+  },
+] as FilmSlide[]).filter((sl) => WNY_ON || WNY_END || sl.id !== 'mission');
 
 /**
  * DĹŽKA PRECHODU 1. → 2. OBRAZU, v obrazovkách scrollu.
@@ -2400,7 +2448,8 @@ export default function OnePage() {
       mostHead?: HTMLElement | null; mostHeadBeat?: HTMLElement | null;
       mostQ?: HTMLElement | null; mostQBeat?: HTMLElement | null;
       // Recenzie.
-      quo?: HTMLElement | null; quoHead?: HTMLElement | null;
+      quo?: HTMLElement | null; quoHead?: HTMLElement | null; quoStage?: HTMLElement | null;
+      wny?: HTMLElement | null;
       quoCols?: NodeListOf<HTMLElement>; quoCredits?: HTMLElement | null;
       quoCreditsSum?: HTMLElement | null;
     } = {};
@@ -2516,6 +2565,8 @@ export default function OnePage() {
         // ── RECENZIE ─────────────────────────────────────────────────────
         // Dráhu meria SEKCIA (je vyššia než okno), obsah v nej stojí prilepený.
         quo: q<HTMLElement>('.op-quo'),
+        quoStage: q<HTMLElement>('.op-quo-stage'),
+        wny: q<HTMLElement>('.op-wny'),
         quoHead: q<HTMLElement>('.op-quo .tst-head'),
         // ⚠️ Stĺpce sa berú ako PRIAME DETI obalu, nie cez vlastnú triedu:
         // `TestimonialsColumn` je zdieľaný s ostrou /about a trieda na jeho
@@ -3117,7 +3168,11 @@ export default function OnePage() {
         // Dráha PRVEJ obrazovky — vlastná 0–1 vnútri svojho úseku. Tým si NEXT
         // STEP drží tempo, na ktorom ho Matej doladil, aj keď sa za neho pridali
         // ďalšie dve obrazovky a celá sekcia narástla.
-        const np = ARC_SPLIT > 0 ? clamp01(npAll / ARC_SPLIT) : 1;
+        // Vo finále (WNY_END) nesie dráhu obrazu jeho vlastná sekcia `.op-wny`
+        // — prvých `ARC.nxt.vh` jej prilepenej dráhy, tempo ostáva Matejovo.
+        const wnyR = WNY_END ? n.wny?.getBoundingClientRect() : null;
+        const np = wnyR ? clamp01(-wnyR.top / Math.max(1, (ARC.nxt.vh / 100) * vh))
+          : ARC_SPLIT > 0 ? clamp01(npAll / ARC_SPLIT) : 1;
         // Kde sa prvá obrazovka (WE NEED YOU) prestáva hasiť a DOGTRIX začína
         // písať. Až ZA výdržou — prvá musí byť chvíľu hotová a vidieť ju celú.
         const handover1 = ARC_SPLIT + ARC_DWELL;
@@ -3145,7 +3200,7 @@ export default function OnePage() {
         // Odovzdanie 1 (nxt → dogtrix): prvá zhasne v prvej polovici prechodu,
         // druhá nabehne v druhej — prekryv je zámerne len pár percent, aby
         // medzi nimi nevznikol strih, ale ani dva texty na sebe.
-        const xfOut1 = WNY_ON ? seg(npAll, handover1, handover1 + ARC_XFADE * 0.5) : 1;
+        const xfOut1 = WNY_ON ? seg(npAll, handover1, handover1 + ARC_XFADE * 0.5) : WNY_END ? 0 : 1;
         const xfIn1 = seg(npAll, handover1 + ARC_XFADE * 0.44, handover1 + ARC_XFADE);
         // Odovzdanie 2 (dogtrix → alba) — dvojča odovzdania 1, o obrazovku ďalej.
         // 🔴 ODOVZDANIE 2 NIE JE PRELÍNAČKA, ALE POSUN (2. 9. 2026). Matej:
@@ -3515,6 +3570,15 @@ export default function OnePage() {
         // skôr, než dorazil.
         const qh = clamp01(seg(qp, QUO.headIn[0], QUO.headIn[1]) - seg(qp, QUO.headOut[0], QUO.headOut[1]));
         const qout = seg(qp, QUO.headOut[0], QUO.headOut[1]);
+        // 🔴 HVIEZDY SA VYNORIA A ZHASNÚ NA MIESTE (Matej 28. 9. 2026: *„ďalší
+        // scroll bude fade in a nie posun sekcie"*). Javisko je zasunuté pod
+        // ČLENSTVO (príchod = jeho nadpis) a pod ním je zasunuté WE NEED YOU
+        // (odchod = posledných WNY_OVER_VH dráhy).
+        // Nabieha až keď ČLENSTVO zhaslo (prvá polovica APPS_EXIT_VH).
+        const [qi0, qi1] = quoIn();
+        const qIn = seg(qp, qi0, qi1);
+        const qEx = WNY_END ? seg(qp, 1 - WNY_OVER_VH / (QUO_VH * 100 - 100), 1) : 0;
+        put(n.quoStage, 'qso', 'opacity', (qIn * (1 - qEx)).toFixed(3));
         put(n.quoHead, 'qh', 'opacity', qh.toFixed(3));
         // Nadpis pri odchode RASTIE — text, ktorý sa zväčšuje, čítame ako
         // „prešiel okolo nás". Pri zmenšovaní by to vyzeralo, že cúvol.
@@ -3866,15 +3930,10 @@ export default function OnePage() {
     // Prvá veta príbehu je samostatná zastávka PRED logom.
     const tl = document.querySelector<HTMLElement>('.op-timeline');
     if (tl) out.push(tl.getBoundingClientRect().top + window.scrollY + Math.max(0, tl.offsetHeight - filmVh()) * STORY_START);
-    const gate = pinnedAt('.op-gate', GATE_REST);
-    if (gate != null) out.push(gate, pinnedAt('.op-gate', GATE_TOUCH) ?? gate);
-    // Tretia zastávka brány: dotyk sa rozplynul, pod ním padá dážď DOGTRIXu
-    // (Matej 27. 9.: *„1. scroll = rozplynutie labky a ruky / nástup DOGTRIXu,
-    // 2. scroll nábeh textu a postupne aj heroglyph"*).
-    const gone = pinnedAt('.op-gate', GATE_FADE[1]);
-    if (gone != null) out.push(gone);
-    // DOGTRIX po ťahoch: nadpis+glyf, potom štyri kóty (viď dgxStopsDp).
-    for (const f of dgxStopsDp()) { const y = dgxAt(f); if (y != null) out.push(y); }
+    // Brána a DOGTRIX sú od 28. 9. po JEDNOM ťahu (viď GATE_KEYS, DGX_KEYS):
+    // koniec príbehu → dotyk → dopísaný DOGTRIX (.op-arc-rest2 nižšie).
+    const touch = pinnedAt('.op-gate', GATE_TOUCH);
+    if (touch != null) out.push(touch);
     for (const sel of WNY_ON ? ['.op-arc-rest', '.op-arc-rest2'] : ['.op-arc-rest2']) {
       const y = absTop(sel);
       if (y != null) out.push(y);
@@ -3884,6 +3943,8 @@ export default function OnePage() {
     for (const f of APPS_STOPS) { const y = pinnedAt('.op-apps', f); if (y != null) out.push(y); }
     const quo = pinnedAt('.op-quo', QUO.colsIn[1]);
     if (quo != null) out.push(quo);
+    // WE NEED YOU — jeden ťah cez celý obraz (viď WNY_KEYS).
+    if (WNY_END) { const w = pinnedAt('.op-wny', 1); if (w != null) out.push(w); }
     out.push(document.documentElement.scrollHeight - window.innerHeight);
     return out;
   }, []);
@@ -3901,6 +3962,15 @@ export default function OnePage() {
     const logo = pinnedAt('.op-timeline .swcrawl', STORY_LOGO);
     return [logo ?? top + span * STORY_START, top + span];
   }, []);
+  /** Jazdy po časových bodoch — brána a DOGTRIX (viď GATE_KEYS, DGX_KEYS). */
+  const keyedRide = (from: number, to: number) =>
+    GATE_KEYS(from, to) ?? DGX_KEYS(from, to) ?? QUO_KEYS(from, to) ?? WNY_KEYS(from, to);
+  /** 🔴 ÚSTAVA POMALŠIE (Matej 28. 9. 2026: *„spomaľ načítanie ústavy, je to
+   *  moc rýchle"*). Druhý ťah filmu — krava a pes → preambula s mottom. */
+  const isCredoRide = (from: number, to: number) => {
+    const a = filmVh() * PIN_VH, b = filmVh() * (PIN_VH + PIN2_VH);
+    return Math.abs(from - a) < 4 && Math.abs(to - b) < 4;
+  };
   const filmGo = useFilmStops({
     stops: filmStops,
     free: filmFree,
@@ -3910,23 +3980,15 @@ export default function OnePage() {
     // tempo JE dĺžka tejto jazdy: rýchlosť ×0,7 ⇒ čas ÷0,7.
     duration: (screens, from, to) => {
       const base = Math.round(Math.min(2800, Math.max(1000, 700 + 600 * screens)));
-      const gateRide = isGateRide(from, to);
-      // 27. 9. druhé kolo: ÷0,7 nestačilo (*„idú k sebe veľmi rýchlo"*) —
-      // mäkká jazda má v strede 3× priemernú rýchlosť. Jazda brány preto ide
-      // ROVNOMERNE a tak dlho, aby video bežalo vo svojom vlastnom tempe.
-      if (gateRide) return GATE_RIDE_MS;
-      const leg = dgxLeg(from, to);
-      if (leg === 'dissolve') return 2000;
-      if (leg === 'write') return DGX_WRITE_MS;
-      if (leg === 'kotas') return DGX_KOTAS_MS;
-      if (leg === 'kota') return DGX_KOTA_MS;
+      const k = keyedRide(from, to);
+      if (k) return k.dur;
+      if (isCredoRide(from, to)) return CREDO_RIDE_MS;
       return base;
     },
     easing: (from, to) => {
-      if (isGateRide(from, to)) return (t: number) => t;
-      const leg = dgxLeg(from, to);
-      if (leg === 'kotas') return (t: number) => t;
-      return leg === 'write' || leg === 'kota' ? easeSine : undefined;
+      const k = keyedRide(from, to);
+      if (k) return k.ease;
+      return isCredoRide(from, to) ? easeSine : undefined;
     },
     paused: () => bookOpenRef.current || wallOpenRef.current || albaOpenRef.current || appsOpenRef.current || document.body.style.overflow === 'hidden',
     onMove: setFilmMoving,
@@ -5970,7 +6032,9 @@ export default function OnePage() {
            pri jeho zmiznutí by citáty poskočili o jeho výšku. Obraz WE NEED YOU
            rieši to isté inak — beat, ktorý ešte neprišiel, tam miesto nedrží
            (grid-template-rows 0fr) a pri odchode ho zase pustí. */
-        .op-quo { position: relative; height: ${QUO_VH * 100}vh; }
+        .op-quo { position: relative; z-index: 4; height: ${QUO_VH * 100}vh; }
+        .op-quo-stage { opacity: 0; }
+        .op-wny { position: relative; z-index: 5; }
         .op-quo-stage { position: sticky; top: 0; height: 100vh; overflow: hidden; }
         /* Rezerva na lištu na OBOCH koncoch: obsah sa centruje v tom, čo
            z výšky ostane, takže nesúmerná rezerva posadí celý obraz nízko.
@@ -5979,7 +6043,7 @@ export default function OnePage() {
         .op-root .op-quo #testimonials {
           position: absolute;
           inset: 0;
-          padding: var(--op-nav-h) 0;
+          padding: var(--op-nav-h) 0 48px;
           display: grid;
           place-items: center;
         }
@@ -5999,8 +6063,11 @@ export default function OnePage() {
         /* Inline maxHeight 640px drží komponent (na /about je to správne — tam
            pás stojí v toku). Vo filme musí zmiznúť pod lištu, preto !important:
            inline zápis sa inak prebiť nedá. */
+        /* 🔴 VIAC MIESTA PRE CITÁTY (Matej 28. 9. 2026: *„treba zväčšiť
+           priestor, lebo je dosť malý na obsah"*). Rezerva lišty už len HORE
+           — spodok drží len pásik zdrojov fotiek. Pri 1477×724 z 380 na 520 px. */
         .op-root .op-quo .tst-cols {
-          max-height: min(640px, calc(100lvh - 2 * var(--op-nav-h) - 96px)) !important;
+          max-height: min(820px, calc(100lvh - var(--op-nav-h) - 80px)) !important;
         }
         .op-root .op-quo .tst-cols > div { opacity: 0; }
         /* Zdroje fotiek (CC) sú právna podmienka vrstvy, nie ozdoba — musia byť
@@ -6031,7 +6098,7 @@ export default function OnePage() {
         .op-root .op-quo .tst-credits {
           position: absolute;
           left: 50%;
-          bottom: calc(var(--op-nav-h) * 0.34);
+          bottom: 12px;
           transform: translateX(-50%);
           width: min(90vw, 640px);
           margin: 0;
@@ -7204,212 +7271,7 @@ export default function OnePage() {
           {/* A tretie — ALBA dopísala tri glyfy aj výzvu, viď .op-arc-rest3. */}
           <i className="op-arc-rest3" aria-hidden="true" />
           <div className="op-arc-stage">
-            {/* ── OBRAZ 6 — WE NEED YOU ──────────────────────────────────
-                Postavené 1. 9. 2026 z nákresu
-                `plany/nakres-weneedyou-film-2026-09-01.html` (osem kôl réžie).
-                Matejovo zadanie: *„potrebujeme z toho urobiť film"* a
-                *„potrebujeme to celé rozsekať a nechať čitateľa prečítať si to
-                celé, nie vychrliť všetok obsah naraz."*
-
-                Jedenásť beatov: faraón zdola → drží → ustupuje (nezmizne) →
-                WE · NEED · YOU! po slovách → nadpis klesá → podtitul → pás
-                zblízka s bežiacim počítadlom → odchod kamery na milión →
-                šípka → NEXT STEP → lapisové CTA.
-
-                ČO TU ZANIKLO: veľký NEXT STEP, ktorý sa zmenšoval na eyebrow
-                (`.op-nxt-eyebrow`, `--nx-swap`), nadpis „Join the mission",
-                zvislá značka pri zastávke 1M, holé číslo nad čiarou (nahradila
-                ho menovka posledného psa) a veta „It seems impossible…". */}
-            <section className="op-arc-scr op-nxt">
-                {/* 🔴 FARAÓN SA KOTVÍ NA SPODOK, ALE USTUPUJE DO STREDU.
-                    Matej 1. 9. 2026: *„nástup faraóna bude zdola a bude veľký
-                    cez celú obrazovku (pod lištu, aby mu bola vidno hlava)"* a
-                    o kolo neskôr *„daj faraóna do stredu viewportu"*. Sú to dve
-                    rôzne veci a obe platia: výška je % PRIESTORU POD LIŠTOU
-                    (pri strede by sa delila na obe strany a hlava by mu zaliezla
-                    za lištu), a počas ústupu sa kotva presunie zo spodku do
-                    stredu okna. Jedna premenná, jeden dej.
-                    ⚠️ NEZMIZNE — ostáva za textom na 14 % krytia (Matej:
-                    *„ide do fade, ale nestratí sa celkom"*). */}
-                <img className="op-nxt-phar" src="/images/council-pharaoh.png" alt="" aria-hidden="true" />
-
-                {/* 🔴 BEAT, KTORÝ EŠTE NEPRIŠIEL, NEDRŽÍ MIESTO.
-                    Kým boli všetky beaty v toku, „obrovský nadpis cez celú
-                    stranu" nebol veľký na celú stranu — bol veľký na to, čo
-                    ostalo po rezervácii miesta pre päť vecí, ktoré na obrazovke
-                    ešte nie sú (pri 1440 px pretiekol o 108 px). Riadok rastie
-                    z 0fr na 1fr spolu s krytím, takže si beat miesto vezme, až
-                    keď prichádza — a odsadenie zmizne s ním.
-                    ⚠️ Odsadenie patrí DOVNÚTRA obalu, nie ako `gap` na
-                    kontajner: gap medzi zbalenými riadkami ostane a nasčíta sa. */}
-                <div className="op-beat op-b-head"><div className="op-bin">
-                  {/* Zlato musí niesť KAŽDÉ SLOVO SAMO (v súradniciach celého
-                      nadpisu) — gradient na rodičovi by zabil potomka s vlastným
-                      krytím, a krytie je tu to, čo slová privádza po jednom. */}
-                  {/* 🔴 PRÁZDNY KĽÚČ BEAT PRESKOČÍ. EN sype tri slová
-                      (We · need · you!), SK je dvojslovné — `onepage.need.w3`
-                      je v `sk.ts` prázdny reťazec a tretí `<span>` sa
-                      nevykreslí vôbec. Prázdny by tu ostal ako flex položka
-                      a `column-gap` by nadpis odcentroval o 0,22 em doľava.
-                      Výkričník preto visí na POSLEDNOM vykreslenom slove,
-                      nie na treťom. */}
-                  <h2 className="op-nxt-h2">
-                    {[t('onepage.need.w1'), t('onepage.need.w2'), t('onepage.need.w3')]
-                      .filter((w) => w.trim() !== '')
-                      .map((w, i, a) => (
-                        <span key={i}>{w}{i === a.length - 1 ? <i>!</i> : null}</span>
-                      ))}
-                  </h2>
-                </div></div>
-
-                {/* 🔴 POČET RIADKOV SA NEZARIAĎUJE ZALOMENÍM (Matej 1. 9. 2026:
-                    *„na pc jeden riadok, na mobile 2"*). `<br>` hovorí KDE sa
-                    zlomí, nie koľko riadkov vznikne — pri užšom okne sa zlomí aj
-                    inde. Preto sú to dva kusy, každý `nowrap`, a veľkosť sa
-                    dopočíta tak, aby sa najširší z nich zmestil.
-                    DOGYPT je značka, nie slovo vety — Cinzel a zlato. */}
-                <div className="op-beat op-b-sub"><div className="op-bin">
-                  <p className="op-nxt-line">
-                    <span>{t('onepage.need.sub1')}</span>
-                    <span>{t('onepage.need.sub2')} <b>DOGYPT.</b></span>
-                  </p>
-                </div></div>
-
-                {/* ── PÁS ────────────────────────────────────────────────────
-                    🔑 KAMERA JE ZMENA MIERKY OSI, NIE `transform: scale`.
-                    `dom` = koľko psov je na osi vidno: zblízka ~100 (dnešných
-                    72 je skoro plná os, číta sa ako „načítava sa"), zďaleka
-                    milión (72 padne na nulu). Geometrickým zväčšením by sa
-                    rozmazal lem, fotka aj písmo — a číslo by muselo klamať, aby
-                    bolo čo vidieť. Takto neklame ani raz, mení sa len mierka.
-                    To je celý dej obrazu. */}
-                <div className="op-beat op-b-bar"><div className="op-bin">
-                  <div className="op-nxt-plot">
-                    <div className="op-nxt-ax">
-                      <div className="op-nxt-groove"><span className="op-nxt-fill" /></div>
-                      {/* Cieľ stojí NAD pásom, v jednom riadku s menovkou
-                          posledného psa (Matej 1. 9. 2026: *„ten goal daj hore
-                          pri progresbar"*), a bez zvislej značky — tá ukazovala
-                          na koniec pásu, čiže hovorila to, čo už bolo vidieť. */}
-                      <span className="op-nxt-goal"><b>1M</b><em>{t('onepage.need.goal')}</em></span>
-
-                      {/* Psy MEDZI zakladateľom a posledným. Vypĺňajú modrý
-                          úsek TVÁRAMI, nie farbou; sú menšie zámerne (väčšie sú
-                          len dva konce). Uzly stoja v DOM-e RAZ ako bazén —
-                          koľko sa ich do úseku zmestí, sa rieši polohou a
-                          krytím, nie prestavbou (tá by sťahovala tie isté
-                          obrázky dookola).
-                          🔴 Psy sú vybrané ROVNOMERNE z celej svorky, nie
-                          prvých N — inak by pás ukazoval len najstarších psov. */}
-                      {midDogs.map((u, i) => (
-                        <span className="op-nxt-dog op-nxt-dog--mid" key={i}>
-                          <img src={u} alt="" />
-                        </span>
-                      ))}
-
-                      {/* ZAKLADATEĽ. Pri oddialení ustúpi VEDĽA osi a ZVÄČŠÍ sa
-                          (Matej 1. 9. 2026: *„na konci musí mať Hekthor väčšiu
-                          fotku aj meno a dal by som to pred začiatok, teda ako
-                          keby vedľa osi fotka a pod ňou meno"*) — prestane byť
-                          prvým dielikom mierky a stane sa tým, od koho sa
-                          počíta.
-                          🔴 MENOVKA NIE JE ČASŤ FOTKY. Kým visela na tej istej
-                          premennej, zmenšila sa spolu s fotkou na 13 px a meno
-                          zaniklo. Fotka sedí NA čiare a mení veľkosť s kamerou;
-                          menovka stojí v pevnej vzdialenosti od čiary a má
-                          vlastnú veľkosť písma.
-                          🔴 KOTVA (zvislá čiarka) stojí na X FOTKY, nie menovky:
-                          menovka sa pri okraji okna posúva, takže bez kotvy sa
-                          nedá povedať, ku ktorému psovi patrí. */}
-                      <span className="op-nxt-dog op-nxt-dog--anchor">
-                        <img src="/images/hektor-grid.webp" alt="" />
-                        <i className="op-nxt-tie" />
-                        <span className="op-nxt-pill"><em>Hekthor</em><b>#1</b></span>
-                      </span>
-
-                      {/* POSLEDNÝ PES — hlava pásu. Fotku, meno aj číslo píše
-                          RÉŽIA (React by pri sedemdesiatich prepisoch počas
-                          počítadla prekresľoval celý film). Je to skutočný pes
-                          z feedu steny: `#72` patrí tomu, kto na tom mieste
-                          naozaj stojí, a pri ďalšom sa prepíše sám.
-                          Menovka je NAD pásom (Matej 1. 9. 2026) — dolné pole
-                          nesie začiatok, horné to, čo sa hýbe, a koniec. */}
-                      <span className="op-nxt-dog op-nxt-dog--head">
-                        <img className="op-nxt-head-img" src="" alt="" />
-                        <i className="op-nxt-tie" />
-                        <span className="op-nxt-pill">
-                          <em className="op-nxt-head-name" /><b className="op-nxt-head-num" />
-                        </span>
-                      </span>
-                    </div>
-                  </div>
-                </div></div>
-
-                {/* Šípka sa KRESLÍ (stroke-dasharray) a ukazuje na NEXT STEP —
-                    Matej 1. 9. 2026: *„pod progresbarom sa animuje šípka, ktorá
-                    sa načíta a ukáže na veľký nápis NEXT STEP"*. */}
-                <div className="op-beat op-b-arrow"><div className="op-bin">
-                  <svg className="op-nxt-arrow" viewBox="0 0 34 52" preserveAspectRatio="none" aria-hidden="true">
-                    <path d="M17 2 V44 M6 33 L17 45 L28 33" />
-                  </svg>
-                </div></div>
-
-                {/* 🔴 NEXT STEP JE POPISKA, NIE NADPIS (Matej 1. 9. 2026:
-                    *„next step musí byť groteskom a malým"*). Tým padol jeho
-                    vlastný skorší beat „veľký NEXT STEP, ktorý sa zmenší" — a
-                    dáva to zmysel: nadpis obrazu je WE NEED YOU, dva veľké
-                    Cinzel nápisy na jednej obrazovke si konkurujú. Tá veľká vec
-                    dole má byť CTA. */}
-                <div className="op-beat op-b-step"><div className="op-bin">
-                  <p className="op-nxt-ns">{t('onepage.need.step')}</p>
-                </div></div>
-
-                {/* ── CTA ────────────────────────────────────────────────────
-                    🔵 LAPIS = jediné hlavné CTA na obrazovke (brandový kánon
-                    28. 8. 2026). Geometriu preberá od `.btn-gold` — radius 8,
-                    NIE pilulka; mení sa výplň, nie tvar. Zlaté písmo na modrom
-                    nie je ozdoba: bez neho je to len tmavé tlačidlo bez brandu.
-                    Preto sú menovky psov nad ním len priesvitný tint — dve plné
-                    farebné plochy na obrazovke a ani jedna nevedie.
-
-                    🔴 KLIK POSUNIE FILM NA ĎALŠÍ OBRAZ (Matej 1. 9. 2026, po
-                    piatich kolách otázky). NIE `navigate('/heroglyph')`: to by
-                    preskočilo obrazy 7–9, teda celý pitch. Tlačidlo teda nevedie
-                    von zo stránky, ale doscrolluje na obraz heroglyfu, ktorý
-                    stojí v tom istom javisku. */}
-                <div className="op-beat op-b-cta"><div className="op-bin">
-                  <button type="button" className="op-nxt-cta" onClick={goToGlyph}>
-                    {t('onepage.need.cta')}
-                  </button>
-                  {/* Riadok pod tlačidlom je jeho popiska, nie druhé CTA —
-                      Space Grotesk, bez rámu, bez farebnej plochy.
-                      🔴 ČÍSLO JE DOPOČÍTANÉ (počet psov + 1). Natvrdo zapísané
-                      by z neho prvý nový pes spravil lož.
-                      ⚠️ Kým počet nedorazí, riadok je prázdny — nie nula. */}
-                  <p className="op-nxt-ctasub">
-                    {dogCount === null ? '' : (
-                      <>{t('onepage.need.ctasub')} <b>#{(dogCount + 1).toLocaleString('en-US')}</b>.</>
-                    )}
-                  </p>
-                </div></div>
-
-                {/* 🚩 CHVOST JE VYPNUTÝ (ARC_TAIL). V nákrese je to prepínač
-                    `fin` a Matej ho k 1. 9. 2026 nechal na „koniec CTA", takže
-                    veta rozdelená cez dve obrazovky („All you can do is —" /
-                    „— write your dog into it.") zanikla. Kód tu ostáva, aby sa
-                    dala vrátiť jedným prepnutím. */}
-                {ARC_TAIL && (
-                  <div className="op-beat op-b-tail"><div className="op-bin">
-                    <p className="op-nxt-lead">{t('onepage.need.tailLead')}</p>
-                    <p className="op-nxt-be">
-                      <span className="op-nxt-be-slot">
-                        <b className="op-nxt-be-num"><i>#</i>{dogCount === null ? '' : (dogCount + 1).toLocaleString('en-US')}</b>
-                      </span>
-                      <span className="op-nxt-be-free">{t('onepage.need.tailFree')}</span>
-                    </p>
-                  </div></div>
-                )}
-            </section>
+            {/* WE NEED YOU odtiaľto odišiel na koniec filmu (28. 9. 2026) — viď `.op-wny`. */}
 
             {/* ── OBRAZOVKA — DOGTRIX (dážď + dekodér heroglyfu) ───────────
                 Matej 1. 9. 2026: „v dogtrixe budú iba heroglyfy nie
@@ -7625,11 +7487,228 @@ export default function OnePage() {
         {/* ── ČLENSTVO — telefóny s funkciami appky, vytlačí HEROGLYPH zdola (FilmApps.tsx). */}
         <FilmApps onPopup={onAppsPopup} />
 
-        <section className="op-scene op-quo" aria-label={t('about.legends.titleFilm')}>
+        <section className="op-scene op-quo" aria-label={t('about.legends.titleFilm')}
+          style={{ marginTop: `-${100 + APPS_EXIT_VH}lvh` }}>
           <div className="op-quo-stage">
             <TestimonialsSection variant="papyrus" pinned />
           </div>
         </section>
+
+        {/* ── FINÁLE — WE NEED YOU (28. 9. 2026, viď WNY_END) ─────────────
+            Zasunuté pod hviezdy: tie zhasnú na mieste a faraón sa vynorí. */}
+        {WNY_END && (
+        <section className="op-scene op-wny" aria-label={t('onepage.aria.join')}
+          style={{ height: `${100 + ARC.nxt.vh}vh`, marginTop: `-${100 + WNY_OVER_VH}vh` }}>
+          <div className="op-arc-stage">
+            {/* ── OBRAZ 6 — WE NEED YOU ──────────────────────────────────
+                  Postavené 1. 9. 2026 z nákresu
+                  `plany/nakres-weneedyou-film-2026-09-01.html` (osem kôl réžie).
+                  Matejovo zadanie: *„potrebujeme z toho urobiť film"* a
+                  *„potrebujeme to celé rozsekať a nechať čitateľa prečítať si to
+                  celé, nie vychrliť všetok obsah naraz."*
+  
+                  Jedenásť beatov: faraón zdola → drží → ustupuje (nezmizne) →
+                  WE · NEED · YOU! po slovách → nadpis klesá → podtitul → pás
+                  zblízka s bežiacim počítadlom → odchod kamery na milión →
+                  šípka → NEXT STEP → lapisové CTA.
+  
+                  ČO TU ZANIKLO: veľký NEXT STEP, ktorý sa zmenšoval na eyebrow
+                  (`.op-nxt-eyebrow`, `--nx-swap`), nadpis „Join the mission",
+                  zvislá značka pri zastávke 1M, holé číslo nad čiarou (nahradila
+                  ho menovka posledného psa) a veta „It seems impossible…". */}
+              <section className="op-arc-scr op-nxt">
+                  {/* 🔴 FARAÓN SA KOTVÍ NA SPODOK, ALE USTUPUJE DO STREDU.
+                      Matej 1. 9. 2026: *„nástup faraóna bude zdola a bude veľký
+                      cez celú obrazovku (pod lištu, aby mu bola vidno hlava)"* a
+                      o kolo neskôr *„daj faraóna do stredu viewportu"*. Sú to dve
+                      rôzne veci a obe platia: výška je % PRIESTORU POD LIŠTOU
+                      (pri strede by sa delila na obe strany a hlava by mu zaliezla
+                      za lištu), a počas ústupu sa kotva presunie zo spodku do
+                      stredu okna. Jedna premenná, jeden dej.
+                      ⚠️ NEZMIZNE — ostáva za textom na 14 % krytia (Matej:
+                      *„ide do fade, ale nestratí sa celkom"*). */}
+                  <img className="op-nxt-phar" src="/images/council-pharaoh.png" alt="" aria-hidden="true" />
+  
+                  {/* 🔴 BEAT, KTORÝ EŠTE NEPRIŠIEL, NEDRŽÍ MIESTO.
+                      Kým boli všetky beaty v toku, „obrovský nadpis cez celú
+                      stranu" nebol veľký na celú stranu — bol veľký na to, čo
+                      ostalo po rezervácii miesta pre päť vecí, ktoré na obrazovke
+                      ešte nie sú (pri 1440 px pretiekol o 108 px). Riadok rastie
+                      z 0fr na 1fr spolu s krytím, takže si beat miesto vezme, až
+                      keď prichádza — a odsadenie zmizne s ním.
+                      ⚠️ Odsadenie patrí DOVNÚTRA obalu, nie ako `gap` na
+                      kontajner: gap medzi zbalenými riadkami ostane a nasčíta sa. */}
+                  <div className="op-beat op-b-head"><div className="op-bin">
+                    {/* Zlato musí niesť KAŽDÉ SLOVO SAMO (v súradniciach celého
+                        nadpisu) — gradient na rodičovi by zabil potomka s vlastným
+                        krytím, a krytie je tu to, čo slová privádza po jednom. */}
+                    {/* 🔴 PRÁZDNY KĽÚČ BEAT PRESKOČÍ. EN sype tri slová
+                        (We · need · you!), SK je dvojslovné — `onepage.need.w3`
+                        je v `sk.ts` prázdny reťazec a tretí `<span>` sa
+                        nevykreslí vôbec. Prázdny by tu ostal ako flex položka
+                        a `column-gap` by nadpis odcentroval o 0,22 em doľava.
+                        Výkričník preto visí na POSLEDNOM vykreslenom slove,
+                        nie na treťom. */}
+                    <h2 className="op-nxt-h2">
+                      {[t('onepage.need.w1'), t('onepage.need.w2'), t('onepage.need.w3')]
+                        .filter((w) => w.trim() !== '')
+                        .map((w, i, a) => (
+                          <span key={i}>{w}{i === a.length - 1 ? <i>!</i> : null}</span>
+                        ))}
+                    </h2>
+                  </div></div>
+  
+                  {/* 🔴 POČET RIADKOV SA NEZARIAĎUJE ZALOMENÍM (Matej 1. 9. 2026:
+                      *„na pc jeden riadok, na mobile 2"*). `<br>` hovorí KDE sa
+                      zlomí, nie koľko riadkov vznikne — pri užšom okne sa zlomí aj
+                      inde. Preto sú to dva kusy, každý `nowrap`, a veľkosť sa
+                      dopočíta tak, aby sa najširší z nich zmestil.
+                      DOGYPT je značka, nie slovo vety — Cinzel a zlato. */}
+                  <div className="op-beat op-b-sub"><div className="op-bin">
+                    <p className="op-nxt-line">
+                      <span>{t('onepage.need.sub1')}</span>
+                      <span>{t('onepage.need.sub2')} <b>DOGYPT.</b></span>
+                    </p>
+                  </div></div>
+  
+                  {/* ── PÁS ────────────────────────────────────────────────────
+                      🔑 KAMERA JE ZMENA MIERKY OSI, NIE `transform: scale`.
+                      `dom` = koľko psov je na osi vidno: zblízka ~100 (dnešných
+                      72 je skoro plná os, číta sa ako „načítava sa"), zďaleka
+                      milión (72 padne na nulu). Geometrickým zväčšením by sa
+                      rozmazal lem, fotka aj písmo — a číslo by muselo klamať, aby
+                      bolo čo vidieť. Takto neklame ani raz, mení sa len mierka.
+                      To je celý dej obrazu. */}
+                  <div className="op-beat op-b-bar"><div className="op-bin">
+                    <div className="op-nxt-plot">
+                      <div className="op-nxt-ax">
+                        <div className="op-nxt-groove"><span className="op-nxt-fill" /></div>
+                        {/* Cieľ stojí NAD pásom, v jednom riadku s menovkou
+                            posledného psa (Matej 1. 9. 2026: *„ten goal daj hore
+                            pri progresbar"*), a bez zvislej značky — tá ukazovala
+                            na koniec pásu, čiže hovorila to, čo už bolo vidieť. */}
+                        <span className="op-nxt-goal"><b>1M</b><em>{t('onepage.need.goal')}</em></span>
+  
+                        {/* Psy MEDZI zakladateľom a posledným. Vypĺňajú modrý
+                            úsek TVÁRAMI, nie farbou; sú menšie zámerne (väčšie sú
+                            len dva konce). Uzly stoja v DOM-e RAZ ako bazén —
+                            koľko sa ich do úseku zmestí, sa rieši polohou a
+                            krytím, nie prestavbou (tá by sťahovala tie isté
+                            obrázky dookola).
+                            🔴 Psy sú vybrané ROVNOMERNE z celej svorky, nie
+                            prvých N — inak by pás ukazoval len najstarších psov. */}
+                        {midDogs.map((u, i) => (
+                          <span className="op-nxt-dog op-nxt-dog--mid" key={i}>
+                            <img src={u} alt="" />
+                          </span>
+                        ))}
+  
+                        {/* ZAKLADATEĽ. Pri oddialení ustúpi VEDĽA osi a ZVÄČŠÍ sa
+                            (Matej 1. 9. 2026: *„na konci musí mať Hekthor väčšiu
+                            fotku aj meno a dal by som to pred začiatok, teda ako
+                            keby vedľa osi fotka a pod ňou meno"*) — prestane byť
+                            prvým dielikom mierky a stane sa tým, od koho sa
+                            počíta.
+                            🔴 MENOVKA NIE JE ČASŤ FOTKY. Kým visela na tej istej
+                            premennej, zmenšila sa spolu s fotkou na 13 px a meno
+                            zaniklo. Fotka sedí NA čiare a mení veľkosť s kamerou;
+                            menovka stojí v pevnej vzdialenosti od čiary a má
+                            vlastnú veľkosť písma.
+                            🔴 KOTVA (zvislá čiarka) stojí na X FOTKY, nie menovky:
+                            menovka sa pri okraji okna posúva, takže bez kotvy sa
+                            nedá povedať, ku ktorému psovi patrí. */}
+                        <span className="op-nxt-dog op-nxt-dog--anchor">
+                          <img src="/images/hektor-grid.webp" alt="" />
+                          <i className="op-nxt-tie" />
+                          <span className="op-nxt-pill"><em>Hekthor</em><b>#1</b></span>
+                        </span>
+  
+                        {/* POSLEDNÝ PES — hlava pásu. Fotku, meno aj číslo píše
+                            RÉŽIA (React by pri sedemdesiatich prepisoch počas
+                            počítadla prekresľoval celý film). Je to skutočný pes
+                            z feedu steny: `#72` patrí tomu, kto na tom mieste
+                            naozaj stojí, a pri ďalšom sa prepíše sám.
+                            Menovka je NAD pásom (Matej 1. 9. 2026) — dolné pole
+                            nesie začiatok, horné to, čo sa hýbe, a koniec. */}
+                        <span className="op-nxt-dog op-nxt-dog--head">
+                          <img className="op-nxt-head-img" src="" alt="" />
+                          <i className="op-nxt-tie" />
+                          <span className="op-nxt-pill">
+                            <em className="op-nxt-head-name" /><b className="op-nxt-head-num" />
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                  </div></div>
+  
+                  {/* Šípka sa KRESLÍ (stroke-dasharray) a ukazuje na NEXT STEP —
+                      Matej 1. 9. 2026: *„pod progresbarom sa animuje šípka, ktorá
+                      sa načíta a ukáže na veľký nápis NEXT STEP"*. */}
+                  <div className="op-beat op-b-arrow"><div className="op-bin">
+                    <svg className="op-nxt-arrow" viewBox="0 0 34 52" preserveAspectRatio="none" aria-hidden="true">
+                      <path d="M17 2 V44 M6 33 L17 45 L28 33" />
+                    </svg>
+                  </div></div>
+  
+                  {/* 🔴 NEXT STEP JE POPISKA, NIE NADPIS (Matej 1. 9. 2026:
+                      *„next step musí byť groteskom a malým"*). Tým padol jeho
+                      vlastný skorší beat „veľký NEXT STEP, ktorý sa zmenší" — a
+                      dáva to zmysel: nadpis obrazu je WE NEED YOU, dva veľké
+                      Cinzel nápisy na jednej obrazovke si konkurujú. Tá veľká vec
+                      dole má byť CTA. */}
+                  <div className="op-beat op-b-step"><div className="op-bin">
+                    <p className="op-nxt-ns">{t('onepage.need.step')}</p>
+                  </div></div>
+  
+                  {/* ── CTA ────────────────────────────────────────────────────
+                      🔵 LAPIS = jediné hlavné CTA na obrazovke (brandový kánon
+                      28. 8. 2026). Geometriu preberá od `.btn-gold` — radius 8,
+                      NIE pilulka; mení sa výplň, nie tvar. Zlaté písmo na modrom
+                      nie je ozdoba: bez neho je to len tmavé tlačidlo bez brandu.
+                      Preto sú menovky psov nad ním len priesvitný tint — dve plné
+                      farebné plochy na obrazovke a ani jedna nevedie.
+  
+                      🔴 KLIK POSUNIE FILM NA ĎALŠÍ OBRAZ (Matej 1. 9. 2026, po
+                      piatich kolách otázky). NIE `navigate('/heroglyph')`: to by
+                      preskočilo obrazy 7–9, teda celý pitch. Tlačidlo teda nevedie
+                      von zo stránky, ale doscrolluje na obraz heroglyfu, ktorý
+                      stojí v tom istom javisku. */}
+                  <div className="op-beat op-b-cta"><div className="op-bin">
+                    <button type="button" className="op-nxt-cta" onClick={goToGlyph}>
+                      {t('onepage.need.cta')}
+                    </button>
+                    {/* Riadok pod tlačidlom je jeho popiska, nie druhé CTA —
+                        Space Grotesk, bez rámu, bez farebnej plochy.
+                        🔴 ČÍSLO JE DOPOČÍTANÉ (počet psov + 1). Natvrdo zapísané
+                        by z neho prvý nový pes spravil lož.
+                        ⚠️ Kým počet nedorazí, riadok je prázdny — nie nula. */}
+                    <p className="op-nxt-ctasub">
+                      {dogCount === null ? '' : (
+                        <>{t('onepage.need.ctasub')} <b>#{(dogCount + 1).toLocaleString('en-US')}</b>.</>
+                      )}
+                    </p>
+                  </div></div>
+  
+                  {/* 🚩 CHVOST JE VYPNUTÝ (ARC_TAIL). V nákrese je to prepínač
+                      `fin` a Matej ho k 1. 9. 2026 nechal na „koniec CTA", takže
+                      veta rozdelená cez dve obrazovky („All you can do is —" /
+                      „— write your dog into it.") zanikla. Kód tu ostáva, aby sa
+                      dala vrátiť jedným prepnutím. */}
+                  {ARC_TAIL && (
+                    <div className="op-beat op-b-tail"><div className="op-bin">
+                      <p className="op-nxt-lead">{t('onepage.need.tailLead')}</p>
+                      <p className="op-nxt-be">
+                        <span className="op-nxt-be-slot">
+                          <b className="op-nxt-be-num"><i>#</i>{dogCount === null ? '' : (dogCount + 1).toLocaleString('en-US')}</b>
+                        </span>
+                        <span className="op-nxt-be-free">{t('onepage.need.tailFree')}</span>
+                      </p>
+                    </div></div>
+                  )}
+              </section>
+          </div>
+        </section>
+        )}
 
         {/* ── PODPIS — LOGO + TAGLINE ────────────────────────────────────
             Matej 26. 8. 2026: *„Logo aj tagline preč — dáme to úplne dolu…

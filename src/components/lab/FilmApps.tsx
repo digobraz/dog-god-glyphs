@@ -40,6 +40,15 @@
  *   PEEK → 1.  telefóny sa zmenšia a idú doprava, naľavo nabehne 1. funkcia
  *   ďalej      karusel sa točí po funkciách 1 → 4, text naľavo sa mení s ním
  * Zastávky: `APPS_STOPS` (OnePage.filmStops).
+ *
+ * 🔴 JEDEN ŤAH (Matej 28. 9. 2026: *„členstvo, kde je 5/5 možností, dajme na
+ * jeden scroll — človek môže a nemusí mať záujem čítať… na horizontálny scroll
+ * slúžia šípky"*). Dráha má už len príchod (PEEK) a posun doprava, ktoré motor
+ * prejde jednou jazdou, a zastávka je jediná: 1. funkcia vľavo. Funkcie 2–5
+ * prepínajú šípky a ťuk na bočný telefón — stránka sa pri tom nehýbe.
+ * Za zastávkou je krátka dráha ODCHODU (`APPS_EXIT_VH`): javisko zhasne na
+ * mieste a pod ním sa vynorí pás hviezd (Matej: *„ďalší scroll bude fade in,
+ * nie posun sekcie"*) — `.op-quo` je o ňu zasunutá pod túto sekciu.
  */
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
@@ -82,14 +91,18 @@ const APPS: AppFeature[] = [
 /** Dráha ODCHODU HEROGLYPHu a príchodu telefónov (prvý ťah) vo `vh`. Oblúk
  *  si o toľko predĺži výdrž (OnePage `ARC_HOLD2_VH`), aby stál, kým sa to deje. */
 export const APPS_OUT_VH = 100;
-/** Dráha sekcie vo `vh`: obrazovka javiska + príchod + 100 vh na každú funkciu. */
-export const APPS_VH = 100 + APPS_OUT_VH + APPS.length * 100;
+/** Dráha ODCHODU javiska (zhasne na mieste, pod ním nabehnú hviezdy) vo `vh`. */
+export const APPS_EXIT_VH = 30;
+/** Dráha sekcie vo `vh`: obrazovka javiska + príchod + posun doprava + odchod. */
+export const APPS_VH = 100 + APPS_OUT_VH + 100 + APPS_EXIT_VH;
 const TRACK_VH = APPS_VH - 100;
-/** Zastávka „telefóny do polovice" (podiel dráhy). */
+/** Bod „telefóny do polovice" (podiel dráhy) — motor ním len prejde. */
 const PEEK = APPS_OUT_VH / TRACK_VH;
 const STEP = 100 / TRACK_VH;
-/** Zastávky motora na dráhe: PEEK + štyri funkcie. */
-export const APPS_STOPS = [PEEK, ...APPS.map((_, i) => PEEK + (i + 1) * STEP)];
+/** Zastávka „funkcia vľavo, telefóny vpravo". */
+const FEAT = PEEK + STEP;
+/** Zastávky motora na dráhe — od 28. 9. 2026 jediná. */
+export const APPS_STOPS = [FEAT];
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const smooth = (t: number) => t * t * (3 - 2 * t);
@@ -136,16 +149,12 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
     return () => clearInterval(id);
   }, [peek, shown, hover, open, n]);
 
-  /** Prepni na funkciu i. V stave FUNKCIA ide stránka na jej zastávku
-   *  (text a telefón patria k sebe), v úvode len otočí karusel. */
+  /** Prepni na funkciu i — len karusel a text vľavo, stránka stojí. */
   const goTo = useCallback((i: number) => {
-    const j = ((i % n) + n) % n;
-    const sec = secRef.current;
-    if (peek || !sec) { setIdx(j); return; }
-    const top = sec.getBoundingClientRect().top + window.scrollY;
-    const span = Math.max(1, sec.offsetHeight - window.innerHeight);
-    window.scrollTo({ top: top + span * APPS_STOPS[j + 1], behavior: 'smooth' });
-  }, [peek, n]);
+    setIdx(((i % n) + n) % n);
+  }, [n]);
+  /** Z úvodu do funkcií sa vždy vchádza na 1/5 (DOG ID). */
+  const wasPeek = useRef(true);
 
   useEffect(() => {
     const sec = secRef.current;
@@ -195,13 +204,18 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
       sec.style.setProperty('--mid', `${(narrow ? navH + (vh - navH) / 2 : featY).toFixed(1)}px`);
       sec.style.setProperty('--phh', `${(h * fs).toFixed(1)}px`);
 
+      // Odchod: javisko zhasne na mieste, pod ním nabiehajú hviezdy.
+      // Zhasne v PRVEJ polovici odchodu — hviezdy nabiehajú až v druhej
+      // (dva texty naraz sa nečítajú ako prelínačka, ale ako chyba).
+      const exit = smooth(clamp01((p - FEAT) / Math.max(0.001, (1 - FEAT) * 0.5)));
+      sec.style.setProperty('--x', exit.toFixed(4));
+      sec.toggleAttribute('data-gone', exit > 0.5);
+
       const isPeek = p < PEEK + STEP * 0.5;
       setPeek(isPeek);
       setShown(rise > 0.9);
-      if (!isPeek) {
-        const fi = Math.max(0, Math.min(n - 1, Math.round((p - PEEK - STEP) / STEP)));
-        setIdx(fi);
-      }
+      if (wasPeek.current && !isPeek) setIdx(0);
+      wasPeek.current = isPeek;
     };
     const on = () => { if (!raf) raf = requestAnimationFrame(apply); };
     apply();
@@ -325,7 +339,9 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
         .op-apps-stage {
           position: sticky; top: 0; height: 100lvh; overflow: hidden;
           pointer-events: none;
+          opacity: calc(1 - var(--x, 0));
         }
+        .op-apps[data-gone] .op-apps-stage * { pointer-events: none !important; }
         /* Papyrus javiska nabieha s odchodom HEROGLYPHu — keď oblúk odíde, drží obraz on. */
         .op-apps-stage::before {
           content: ''; position: absolute; inset: 0;
