@@ -829,15 +829,15 @@ export const sk: Partial<Dict> = {
   'about.crawl.episode': 'Epizóda I',
   'about.crawl.faith': 'Nová viera',
   'about.crawl.p1':
-    'V roku 2016 prišlo do útulku osem čiernych šteniat, pohodených v jednej krabici. Sedem si našlo domov. Toho najväčšieho nikto nechcel — čakal celý rok. Volal sa Hekthor.',
+    'V roku 2016 prišlo do útulku osem čiernych šteniat v jednej krabici. Sedem z nich si našlo domov. Toho najväčšieho nikto nechcel — čakal v útulku celý rok. Volal sa Hekthor.',
   'about.crawl.p2':
-    'Jedného dňa prišiel do útulku pár pozrieť si Sindy, malú bielu fenku, ktorú si chceli adoptovať. Čírou náhodou bol vtedy Hekthor v jej koterci — ten jeho práve čistili. Muž, ktorý prišiel len odviezť ostatných a psa nikdy nechcel, sa zamiloval do čierneho psa, ktorého videl úplne prvýkrát.',
+    'Jedného dňa prišiel do útulku mladý pár adoptovať si malú bielu fenku, ktorú si vyhliadli na internete. Čírou náhodou bol vtedy Hekthor v jej koterci — ten jeho práve čistili. Muž, ktorý psa pôvodne nechcel a bol len ako vodič sa zamiloval do čierneho psa, ktorého videl prvýkrát v živote.',
   'about.crawl.p3':
-    'O týždeň neskôr boli spolu a začal sa krásny príbeh. Mužovi sa zmenil celý život a časom pochopil jedno: naozaj pomôcť psom v núdzi dokáže len ten, kto psa má a vie, aké je to cítiť psiu lásku.',
+    'O týždeň neskôr boli títo dvaja spolu. Začal sa písať krásny príbeh. Mužovi sa zmenil celý svet. Život so psom ho ovplyvnil a časom pochopil jednu vec: pomôcť útulkom a psom v núdzi dokáže len ten, kto už raz zažil bezpodmienečnú psiu lásku.',
   'about.crawl.p4':
-    'A tak sa zrodil Heroglyph — symbol, ktorý má zjednotiť psíčkarov všade na svete do najväčšej komunity, akú svet kedy poznal. Komunity, ktorá sa postaví za nás, za naše psy aj za generácie, čo prídu — za ľudí, ktorí sa neboja priznať, že pes nie je len zviera, ale bytosť, ktorá z nás robí lepších ľudí.',
+    'A tak sa zrodil Heroglyph — symbol, ktorý má zjednotiť psíčkarov po celom svete do najväčšej komunity, akú svet kedy poznal. Komunity, ktorá sa vždy postaví za naše psy a bude tu pre ne aj generácie po nás. Komunita kde sa ľudia, neboja priznať, že pes nie je len zviera, ale bytosť, ktorá z nás robí lepších ľudí.',
   'about.crawl.p5':
-    'Práve teraz sa začína cesta k prvému míľniku — vytvoriť 1 000 000 Heroglyphov. A ty môžeš byť pri tom. Lebo svet menia jedine tí, čo sú dosť blázniví veriť, že to dokážu.',
+    'Práve teraz sa začína cesta k prvému míľniku — vytvoriť HEROGLYPH pre 1 000 000 psov. A ty môžeš byť pri tom. Lebo svet menia jedine tí, čo sú dosť blázniví veriť, že to dokážu.',
   'about.crawl.p6': 'Veríme v psa.',
 
   // ── /about — timeline (5 míľnikov) ──
