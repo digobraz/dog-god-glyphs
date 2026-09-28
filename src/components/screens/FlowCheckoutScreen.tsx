@@ -18,7 +18,7 @@ import { getStoredRef } from '@/lib/refCapture';
 import { getAttribution } from '@/lib/attribution';
 import { suggestEmailFix } from '@/lib/emailTypo';
 import { saveCheckoutDraft } from '@/lib/checkoutDraft';
-import { FlowPanelShell, FLOW_PANEL_CSS } from '@/components/screens/flowPanel';
+import { FlowPanelShell, FlowModal, FLOW_PANEL_CSS } from '@/components/screens/flowPanel';
 import { FlowStayChoice } from '@/components/screens/FlowStayScreen';
 import { FlowMoreInfo } from '@/components/screens/flowMoreInfo';
 import {
@@ -432,13 +432,6 @@ export function FlowCheckoutScreen() {
               </div>
               {payError && <p role="alert" className="co-err">{payError}</p>}
 
-              <AnimatePresence>
-                {panel === 'get' && (
-                  <FlowPanelShell key="get" className="co-more-info" label={t('heroglyph.flow.more.eyebrow')} onClose={() => setPanel(null)}>
-                    <FlowMoreInfo onClose={() => setPanel(null)} />
-                  </FlowPanelShell>
-                )}
-              </AnimatePresence>
             </div>
           </motion.div>
           )}
@@ -461,6 +454,13 @@ export function FlowCheckoutScreen() {
         document.body,
       )}
       </div>
+
+      {/* ČLENSTVO = POPUP NAD OKNOM (Matej 28. 9. 2026: *„členstvo je tiež popup,
+          nie na blok spodný"*). Stojí mimo dosky, takže sa otvorí aj zo ZADRŽANIA,
+          kde doska pokladne nie je vôbec na svete. */}
+      <FlowModal open={panel === 'get'} className="co-more-info" label={t('heroglyph.flow.more.eyebrow')} onClose={() => setPanel(null)}>
+        <FlowMoreInfo onClose={() => setPanel(null)} />
+      </FlowModal>
     </div>
   );
 }
@@ -591,7 +591,9 @@ const CHECKOUT_CSS = `
    v portáli do <body> — tieň z bloku orezal \`.hf-stage\` a lišta s logom ostala
    svetlá. Blok ide nad závoj, pečať zmizne. Ťuk do závoja zatvára panel
    (\`FlowPanel\` počúva ťuk mimo seba). */
-.co-more-info.fp-panel { padding: 16px 20px; }
+.co-more-info.fm-card { padding: 16px 20px; }
+/* Javisko slajdu potrebuje pevnú výšku (container-type: size) — karta je potom taká vysoká ako obsah. */
+.co-more-info .mi-stage { flex: 0 0 auto; height: min(34dvh, 260px); }
 /* ZADRŽANIE = DVA BLOKY NAD SEBOU (bublina + doska), nie panel v doske
    (Matej 26. 9. večer: *„blok v bloku… daj to tak ako sú všetky obrazovky"*).
    Rám panelu je tu len obal: bez podkladu a bez polohy, v toku javiska.

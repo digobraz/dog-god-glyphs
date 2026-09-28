@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LAPIS } from '@/components/pack/navGoldSkin';
-import { PACK_R } from '@/components/pack/packTheme';
+import { PACK_R, PACK_SPACE } from '@/components/pack/packTheme';
 import { LAB } from '@/lib/labTheme';
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -62,6 +63,64 @@ export function FlowPanelShell({
     >
       {children}
     </motion.div>
+  );
+}
+
+/**
+ * POPUP NAD OKNOM SO STMAVENÝM POZADÍM (28. 9. 2026).
+ *
+ * Matej 28. 9. z mobilu: *„klik na (i) otvorí popup, nie flip bloku, aby sa nám
+ * všetko zmestilo, pozadie stmavne"* · *„po kliku na i sa otvorí popup, nevyplní
+ * sa spodný blok… členstvo je tiež popup, nie na blok spodný"*.
+ * 🔑 Panel v doske (FlowPanelShell) mal rozmer dosky — na nízkom telefóne
+ *    teda málo miesta pre text a slajdy. Popup berie výšku OKNA a doska pod ním
+ *    ostáva, akú ju človek nechal. Závoj je ten istý ako pri zadaní mena
+ *    (flowTextModal): čierna .78 + rozmazanie.
+ * Zatvára ho ťuk na závoj, Esc a tlačidlo v obsahu — krížik nie (28. 9.).
+ */
+export function FlowModal({
+  open, label, onClose, className = '', children,
+}: {
+  open: boolean;
+  label: string;
+  onClose: () => void;
+  className?: string;
+  children: ReactNode;
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', key);
+    return () => document.removeEventListener('keydown', key);
+  }, [open, onClose]);
+  return createPortal(
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          key="fm"
+          className="fm-root"
+          role="dialog"
+          aria-modal="true"
+          aria-label={label}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.16 }}
+        >
+          <div className="fm-backdrop" onClick={onClose} />
+          <motion.div
+            className={`fm-card ${className}`}
+            initial={{ y: 12, scale: 0.98 }}
+            animate={{ y: 0, scale: 1 }}
+            exit={{ y: 8, scale: 0.98 }}
+            transition={{ duration: 0.22, ease: [0.2, 0.8, 0.3, 1.1] }}
+          >
+            {children}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body,
   );
 }
 
@@ -158,6 +217,26 @@ export function FlowPanel({
 }
 
 export const FLOW_PANEL_CSS = `
+.fm-root {
+  position: fixed; inset: 0; z-index: 2000;
+  display: flex; align-items: center; justify-content: center;
+  padding: ${PACK_SPACE.lg}px;
+}
+.fm-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+}
+.fm-card {
+  position: relative; width: 100%; max-width: 520px; max-height: 100%;
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 18px 22px; border-radius: ${PACK_R.card}px;
+  background: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 55%, #EAD7A8 100%);
+  border: 1.5px solid rgba(201, 154, 63, 0.55);
+  box-shadow: 0 20px 64px rgba(0, 0, 0, 0.65);
+  container-type: inline-size;
+}
+.fm-card .hf-cta { flex: 0 0 auto; }
 .fp-panel {
   position: absolute; inset: 0; z-index: 5;
   display: flex; flex-direction: column; gap: 12px;

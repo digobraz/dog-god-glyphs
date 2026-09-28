@@ -15,7 +15,7 @@ import { TopicChips, FLOW_TOPIC_CSS, type TopicState } from '@/components/screen
 import { DateDropdowns } from '@/components/DateDropdowns';
 import { FlowMedallion, FLOW_MEDAL_CSS, useSpeakMedal } from '@/components/screens/flowMedallion';
 import { FlowTextModal } from '@/components/screens/flowTextModal';
-import { FlowPanelShell, FLOW_PANEL_CSS } from '@/components/screens/flowPanel';
+import { FlowModal, FLOW_PANEL_CSS } from '@/components/screens/flowPanel';
 import cleopatraImg from '@/assets/cleopatra-cartouche.png';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { PACK_R, PACK_THEME, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
@@ -391,9 +391,9 @@ export function OwnerScreen() {
               {/* KOHO HEROGLYF PRÁVE VIDÍM — rovnaký riadok ako na PODSTATE,
                   PATRÓNOVI a POVAHE, ale LEN NA PREZERANIE: majiteľ sa vypĺňa
                   raz, psy sa líšia len číslom a psou časťou rámu. */}
-              <AnimatePresence>
-                {egypt && (
-                  <FlowPanelShell key="egypt" className="ow-egypt" label={t('heroglyph.flow.ownerFinal.infoTitle')} onClose={() => setEgypt(false)}>
+              {/* (i) = POPUP NAD OKNOM, nie panel v doske (Matej 28. 9. 2026: *„po kliku
+                  na i sa otvorí popup, nevyplní sa spodný blok"*). */}
+              <FlowModal open={egypt} className="ow-egypt" label={t('heroglyph.flow.ownerFinal.infoTitle')} onClose={() => setEgypt(false)}>
                     {/* Nadpis v tvare nadpisu otázky, smie na dva riadky (Matej 27. 9.:
                         *„nadpis treba zväčšiť, kľudne na dva riadky… aby to sedelo s FLOW"*). */}
                     <h2 className="ow-egypt-h">{t('heroglyph.flow.ownerFinal.infoTitle')}</h2>
@@ -402,9 +402,7 @@ export function OwnerScreen() {
                       <EgyptSlides alt={t('heroglyph.flow.ownerFinal.cleopatraAlt')} caption={t('heroglyph.flow.ownerFinal.cleopatraCaption')} />
                     </div>
                     <button type="button" className="hf-cta" onClick={() => setEgypt(false)}>{t('heroglyph.flow.ownerFinal.back')}</button>
-                  </FlowPanelShell>
-                )}
-              </AnimatePresence>
+              </FlowModal>
               <FlowDogHeader dogs={dogs} cur={cur} onGo={setCur} />
               <span className="fdh-rule" aria-hidden />
 
@@ -671,6 +669,8 @@ const OWNER_CSS = `
   letter-spacing: 0.02em; color: ${LAB.goldInk};
 }
 .ow-egypt .fp-scroll { container-type: inline-size; }
+/* Popup nad oknom (28. 9.): pevná výška, aby slajder kartuše mal z čoho brať. */
+.ow-egypt .ow-egypt-fig { flex: 0 0 auto; height: min(34dvh, 260px); }
 .ow-egypt-tx { margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.45; color: ${LAB.inkBody}; }
 .ow-egypt .hf-cta { flex: 0 0 auto; }
 .ow-egypt-tx { flex: 0 0 auto; }

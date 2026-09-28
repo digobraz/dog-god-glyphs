@@ -21,9 +21,11 @@ import { LetterReveal, REVEAL_S, LETTER_S, FLOW_INTRO_CSS } from '@/components/s
 //    prepnúť na starý šat. Medailón by tým prišiel o kresbu obruče a nikto by
 //    netušil prečo; obrazovka si svoj šat nosí sama.
 import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
-import { FLOW_STAGE_CSS, FLOW_CARVE_CSS, HF } from '@/components/screens/flowPaleSkin';
+import { FLOW_STAGE_CSS, FLOW_CARVE_CSS, HF, FLOW_TITLE } from '@/components/screens/flowPaleSkin';
+import { FlowModal, FLOW_PANEL_CSS } from '@/components/screens/flowPanel';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
-import { PACK_BOX, PACK_R, PACK_THEME, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
+import { PACK_R, PACK_THEME, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
+import { LAB } from '@/lib/labTheme';
 import { TopicChips, FLOW_TOPIC_CSS, type TopicState } from '@/components/screens/flowTopicChips';
 
 /** Premena príchodovej fázy na formulárovú — jeden prechod pre všetky prvky,
@@ -390,7 +392,7 @@ export function NameScreen() {
       {/* Javisko a jeho vzduch (`FLOW_AIR`) sú spoločné pre celý vstup. Táto
           obrazovka je v TMAVOM šate, takže `FLOW_PALE_CSS` nevkladá — pravidlo
           o rezerve nad a pod obsahom si preto donesie samostatne. */}
-      <style>{FLOW_STAGE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}</style>
+      <style>{FLOW_STAGE_CSS}{FLOW_MEDAL_CSS}{FLOW_CARVE_CSS}{FLOW_PANEL_CSS}</style>
       {/* Späť: v novom vstupe je za nami popup na stene, nie Intro (to je len
           redirect na fotku, takže by šípka skončila v kruhu). */}
       {/* 🔴 POČAS PRÍCHODU NIE JE HORNÁ LIŠTA — ani logo, ani šípka, ani vlajka
@@ -466,7 +468,7 @@ export function NameScreen() {
             {/* 28. 9. 2026 — Matej: *„vymaž krížik (i) na úvodnej obrazovke"*.
                 Otvorená karta o Hektorovi sa zatvára ŤUKNUTÍM NA ŇU, nie krížikom;
                 ikonka (i) je preto vidno len vtedy, keď je karta zatvorená. */}
-            {phase === 'form' && !showInfo && (
+            {phase === 'form' && (
             <button
               className="absolute top-3 right-3 z-20 flex items-center justify-center"
               style={{ width: 44, height: 44 }}
@@ -488,11 +490,9 @@ export function NameScreen() {
                 <motion.div
                   key="front"
                   layout
-                  aria-hidden={showInfo}
                   className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4 w-full"
                   initial={{ opacity: 0 }}
-                  animate={{ opacity: showInfo ? 0 : 1 }}
-                  style={{ pointerEvents: showInfo ? 'none' : undefined }}
+                  animate={{ opacity: 1 }}
                   transition={{ duration: 0.25 }}
                 >
                   {/* Nový vstup má na každom kroku iný Hektorov ksicht (Matej 23. 9.:
@@ -595,107 +595,6 @@ export function NameScreen() {
                   </motion.p>
                 </motion.div>
               )}
-              <AnimatePresence initial={false}>
-              {showInfo && (
-                <motion.div
-                  key="info"
-                  // Prekryv: leží NA prednej strane, takže do výšky bubliny
-                  // nehovorí. `inset: 0` + vlastné rolovanie vnútri.
-                  className="absolute inset-0 z-10"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.25 }}
-                  // Odvrátená strana bubliny (text o Hektorovi) je BLEDÝ BLOK ako
-                  // všetky ostatné v appke — Matej 23. 9.: „musí byť v našom brande,
-                  // teda vo farbe blokov aké máme naprieč /packom".
-                  // ⚠️ Matrica sa berie VYKONATEĽNE, hodnoty sa neopisujú (CLAUDE.md):
-                  //    dosiaľ tu bola plochá `hsl(var(--papyrus))` a `rounded-2xl`,
-                  //    teda plochá výplň bez gradientu, zlatého rámu a tieňa.
-                  // 🔴 `height: 100%` + `overflow: hidden` = zadná strana sa
-                  //    vpisuje do výšky prednej (`frontH` na bubline), nie
-                  //    naopak. Obsah sa preto SKRÁŠIL: video berie výšku, akú
-                  //    dostane (nie pomer 4:5, ktorý si výšku diktoval sám),
-                  //    a text je v rolovateľnom stĺpci — radšej pár riadkov
-                  //    dorolovať než naťahovať blok.
-                  style={{ ...PACK_BOX.card, height: '100%', overflow: 'hidden', cursor: 'pointer' }}
-                  onClick={() => setShowInfo(false)}
-                >
-                  <div className="p-3 md:p-4 h-full min-h-0">
-                    {/* Two-column layout */}
-                    <div className="flex gap-3 md:gap-4 items-stretch h-full min-h-0">
-                      {/* Left column – video */}
-                      <div className="w-[36%] md:w-[32%] flex-shrink-0 rounded-2xl overflow-hidden h-full min-h-0">
-                        <video
-                          src="/videos/WHO_IS_HEKTHOR.mp4"
-                          autoPlay
-                          loop
-                          muted
-                          playsInline
-                          className="w-full h-full object-cover object-center"
-                        />
-                      </div>
-
-                      {/* Right column */}
-                      <div className="flex-1 flex flex-col gap-1 md:gap-2 min-w-0 min-h-0">
-                        <h3
-                          className="text-sm md:text-lg font-bold leading-tight flex-shrink-0"
-                          style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
-                        >
-                          {t('heroglyph.flow.name.whoTitle')} {t('heroglyph.flow.name.whoTitleName')}
-                        </h3>
-
-                        {/* ⚠️ `line-clamp` tu už NIE JE: orezával text natvrdo po
-                            šiestich riadkoch bez ohľadu na to, koľko miesta
-                            naozaj je. Odteraz rozhoduje MIESTO — stĺpec roluje
-                            a na PC sa text zmestí celý. */}
-                        <p
-                          className="text-foreground/80 text-[11px] md:text-[12.5px] leading-snug flex-1 min-h-0 overflow-y-auto pr-1"
-                          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-                        >
-                          {t('heroglyph.flow.name.whoBody')}
-                        </p>
-
-                        {/* Stats – stacked on mobile, decorative table on desktop */}
-                        <div className="flex flex-col md:flex-row md:gap-0 gap-1 pt-1.5 md:pt-1 flex-shrink-0">
-                          {/* Mobile: simple stacked */}
-                          <div className="flex flex-col gap-1 md:hidden">
-                            <div className="flex items-center gap-1.5">
-                              <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>{t('heroglyph.flow.name.born')}:</p>
-                              <p className="text-foreground text-sm font-semibold">2016</p>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>{t('heroglyph.flow.name.adopted')}:</p>
-                              <p className="text-foreground text-sm font-semibold">2017</p>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>{t('heroglyph.flow.name.location')}:</p>
-                              <p className="text-foreground text-sm font-semibold">{t('heroglyph.flow.name.locationValue')}</p>
-                            </div>
-                          </div>
-
-                          {/* Desktop: decorative open-table style */}
-                          <div className="hidden md:flex md:gap-0 w-full rounded-lg border-2" style={{ borderColor: 'hsl(var(--gold-dark) / 0.35)' }}>
-                            <div className="flex-1 flex flex-col items-center py-1.5">
-                              <p className="text-[10px] font-bold uppercase tracking-widest mb-0" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>{t('heroglyph.flow.name.born')}</p>
-                              <p className="text-foreground text-sm font-semibold">2016</p>
-                            </div>
-                            <div className="flex-1 flex flex-col items-center py-1.5 border-l-2 border-r-2" style={{ borderColor: 'hsl(var(--gold-dark) / 0.35)' }}>
-                              <p className="text-[10px] font-bold uppercase tracking-widest mb-0" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>{t('heroglyph.flow.name.adopted')}</p>
-                              <p className="text-foreground text-sm font-semibold">2017</p>
-                            </div>
-                            <div className="flex-1 flex flex-col items-center py-1.5">
-                              <p className="text-[10px] font-bold uppercase tracking-widest mb-0" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>{t('heroglyph.flow.name.location')}</p>
-                              <p className="text-foreground text-sm font-semibold">{t('heroglyph.flow.name.locationValue')}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-              </AnimatePresence>
             </>
           </motion.div>
 
@@ -923,6 +822,24 @@ export function NameScreen() {
         </div>
       </div>
 
+      {/* KTO JE HEKTHOR = POPUP NAD OKNOM (Matej 28. 9. 2026: *„klik na (i) otvorí
+          popup, nie flip bloku, aby sa nám všetko zmestilo, pozadie stmavne"*).
+          Dovtedy sa bublina otáčala a text sa tlačil do jej výšky — na telefóne
+          sa dal len dorolovať. Popup berie výšku okna. */}
+      <FlowModal open={showInfo} className="nm-who" label={t('heroglyph.flow.name.infoAria')} onClose={() => setShowInfo(false)}>
+        <video className="nm-who-v" src="/videos/WHO_IS_HEKTHOR.mp4" autoPlay loop muted playsInline />
+        <h2 className="nm-who-h">{t('heroglyph.flow.name.whoTitle')} {t('heroglyph.flow.name.whoTitleName')}</h2>
+        <div className="fp-scroll">
+          <p className="nm-who-tx">{t('heroglyph.flow.name.whoBody')}</p>
+          <dl className="nm-who-facts">
+            <div><dt>{t('heroglyph.flow.name.born')}</dt><dd>2016</dd></div>
+            <div><dt>{t('heroglyph.flow.name.adopted')}</dt><dd>2017</dd></div>
+            <div><dt>{t('heroglyph.flow.name.location')}</dt><dd>{t('heroglyph.flow.name.locationValue')}</dd></div>
+          </dl>
+        </div>
+        <button type="button" className="nm-cta" onClick={() => setShowInfo(false)}>{t('heroglyph.flow.more.close')}</button>
+      </FlowModal>
+
       {/* Dátum odchodu — vysunie sa po kliku na „psí anjel". */}
       {NEW_HEROFLOW && (
         <DeathDateModal
@@ -984,5 +901,17 @@ const NAME_TOPIC_CSS = `
 }
 .nm-cta:hover:not(:disabled) { background: ${LAPIS.gradHover}; transform: scale(1.02); }
 .nm-cta:disabled { opacity: .4; cursor: default; box-shadow: none; }
+/* Popup KTO JE HEKTHOR (28. 9. 2026). */
+.nm-who .nm-who-v { width: 100%; max-height: 36dvh; aspect-ratio: 4 / 3; object-fit: cover; border-radius: ${PACK_R.tile}px; flex: 0 1 auto; min-height: 0; }
+.nm-who-h {
+  margin: 0; text-align: center; text-wrap: balance;
+  font-family: 'Cinzel', serif; font-weight: 700; font-size: ${FLOW_TITLE}; line-height: 1.25;
+  letter-spacing: 0.02em; color: ${LAB.goldInk};
+}
+.nm-who-tx { margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.45; color: ${LAB.inkBody}; }
+.nm-who-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.nm-who-facts div { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px; border-radius: ${PACK_R.tile}px; border: 1px solid ${LAB.hairline}; }
+.nm-who-facts dt { font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: ${LAB.inkMuted}; text-align: center; }
+.nm-who-facts dd { margin: 0; font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px; color: ${LAB.ink}; text-align: center; }
 .nm-next.is-done { background: transparent; border-color: ${PACK_THEME.growGreen}; color: ${PACK_THEME.growGreen}; }
 `;

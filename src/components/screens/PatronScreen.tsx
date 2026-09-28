@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore, MAIN_DOG_ID } from '@/store/dogyptStore';
 import { useFlowDogs, FlowDogHeader, FLOW_DOG_CSS } from '@/components/screens/flowDogPicker';
@@ -12,7 +12,7 @@ import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { FLOW_PALE_CSS, FLOW_CARVE_CSS, FLOW_GLYPH_CSS, FLOW_PICK_ON, FLOW_TITLE } from '@/components/screens/flowPaleSkin';
 import { FlowMedallion, FLOW_MEDAL_CSS, useSpeakMedal } from '@/components/screens/flowMedallion';
 import { Scroller, FLOW_SCROLL_CSS } from '@/components/screens/flowScroller';
-import { FlowPanelShell, FLOW_PANEL_CSS } from '@/components/screens/flowPanel';
+import { FlowModal, FLOW_PANEL_CSS } from '@/components/screens/flowPanel';
 import { LAPIS, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { PACK_R, PACK_THEME as T, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
 import { LAB } from '@/lib/labTheme';
@@ -348,7 +348,7 @@ export function PatronScreen() {
     if (found && !patronSvg) choose(found.patron, group);
   };
 
-  /** Popup s plemenom (28. 9. 2026) — viď riadok pt-breedbtn nižšie. */
+  /** Popup s plemenom (28. 9. 2026) — viď pilulku pt-breedchip pod rámom. */
   const [breedOpen, setBreedOpen] = useState(false);
   const { lang } = useLang();
   const breedShown = [breed1, mix ? breed2 : ''].filter(Boolean).map((b) => localizeBreed(b, lang)).join(' × ');
@@ -479,20 +479,21 @@ export function PatronScreen() {
                   okrajom). V doske ostáva JEDEN riadok rovnakej výšky v každom
                   stave — hľadanie, kríženec a vysvetlenie sú v paneli nad doskou,
                   rovnako ako (i) na MAJITEĽOVI. */}
+              {/* 28. 9. 2026 (druhé kolo) — Matej: *„daj to tlačidlo do chipu do stredu
+                  pod heroglyf"*. Pilulka, nie pole na celú šírku: je to vstup do
+                  popupu, nie formulár v doske. */}
               <button
                 type="button"
-                className={`pt-field pt-breedbtn${breedShown ? ' is-set' : ''}`}
+                className={`pt-breedchip${breedShown ? ' is-set' : ''}`}
                 onClick={() => setBreedOpen(true)}
                 aria-haspopup="dialog"
               >
-                <HandSearch size={15} className="ic" />
-                <span className={breedShown ? 'v' : 'ph'}>{breedShown || t('heroglyph.flow.breed.one.placeholder')}</span>
-                {breedShown ? <HandCheck size={15} className="ok" /> : null}
+                <HandSearch size={14} className="ic" />
+                <span className="tx">{breedShown || t('heroglyph.flow.breed.pick')}</span>
+                {breedShown ? <HandCheck size={14} className="ok" /> : null}
               </button>
 
-              <AnimatePresence>
-                {breedOpen && (
-                  <FlowPanelShell key="breed" className="pt-breedpanel" label={t('heroglyph.flow.breed.popTitle', { name: dog?.name || heroName })} onClose={() => setBreedOpen(false)}>
+              <FlowModal open={breedOpen} className="pt-breedpanel" label={t('heroglyph.flow.breed.popTitle', { name: dog?.name || heroName })} onClose={() => setBreedOpen(false)}>
                     <h2 className="pt-pop-h">{t('heroglyph.flow.breed.popTitle', { name: dog?.name || heroName })}</h2>
                     <div className="fp-scroll">
                     <div className="pt-breedrow">
@@ -537,12 +538,11 @@ export function PatronScreen() {
                         />
                       )}
                     </div>
-                      <p className="pt-pop-note">{t('heroglyph.flow.breed.statsNote')}</p>
+                      <p className="pt-pop-note">{t('heroglyph.flow.breed.popNote')}</p>
+                      <p className="pt-pop-note"><b>{t('heroglyph.flow.breed.statsNote')}</b></p>
                     </div>
                     <button type="button" className="hf-cta" onClick={() => setBreedOpen(false)}>{t('heroglyph.flow.message.done')}</button>
-                  </FlowPanelShell>
-                )}
-              </AnimatePresence>
+              </FlowModal>
 
               <p className="hf-legend">{t('heroglyph.flow.breed.legend')}</p>
 
@@ -580,13 +580,10 @@ export function PatronScreen() {
                 ))}
               </Scroller>
 
-              {/* Veta NAD CTA a POD výberom (Matej 24. 9.: *„pridal by som text aj na
-                  mobile aj na PC pod výberom ikon a nad CTA… malým písmom"*).
-                  Stojí tu, lebo je to NÁVOD K VÝBERU, nie podnadpis obrazovky —
-                  v bubline hore by ju človek čítal skôr, než uvidí, z čoho vyberá.
-                  ⚠️ Trieda je `.hf-note` zo spoločného šatu, nie nová — je to ten
-                     istý tichý riadok, aký nesie poznámky inde vo vstupe. */}
-              <p className="hf-note pt-hintline">{t('heroglyph.flow.breed.pickHint')}</p>
+              {/* Veta „Patróna vyber podľa siluety…" pod výberom ZANIKLA 28. 9. 2026 —
+                  jej obsah nesie popup plemena (Matej: *„Výber plemena ti ukáže
+                  odporúčanú siluetu, ale výber tvaru je na tebe"*) a doska bola
+                  takmer v dotyku so spodným okrajom. Kľúč pickHint ostáva v i18n. */}
 
               <button type="button" className="hf-cta" disabled={!canGo} onClick={go}>
                 {handover ? t('heroglyph.flow.multi.nextDog') : t('heroglyph.flow.breed.continue')}
@@ -627,16 +624,20 @@ const PATRON_CSS = `
    pod prvé. Žiadny \`@media\` — zalomenie určuje miesto, nie šírka okna. */
 .pt-breedrow { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
 /* ── POPUP S PLEMENOM (28. 9. 2026) ──────────────────────────────────────────
-   V doske ostal jeden riadok v tvare poľa; ťuk otvorí panel nad doskou
-   (\`FlowPanelShell\`, ten istý ako (i) na MAJITEĽOVI). */
-.pt-stack .hf-plate { position: relative; }
-.pt-breedbtn { width: 100%; cursor: pointer; text-align: left; }
-.pt-breedbtn .ph, .pt-breedbtn .v {
-  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+   V doske ostala pilulka pod rámom; ťuk otvorí popup nad oknom (FlowModal,
+   ten istý ako (i) na MAJITEĽOVI a členstvo v pokladni). */
+.pt-breedchip {
+  align-self: center; display: inline-flex; align-items: center; gap: 8px;
+  max-width: 100%; height: 32px; padding: 0 14px; cursor: pointer;
+  border-radius: ${PACK_R.pill}px; border: 1.5px solid ${BRAND_GOLD_BTN.edge};
+  background: #FFFDF7; color: ${LAB.ink};
   font-family: 'Space Grotesk', sans-serif; font-size: 14px;
 }
-.pt-breedbtn .ph { color: ${LAB.inkMuted}; }
-.pt-breedbtn .v { color: ${LAB.ink}; }
+.pt-breedchip .tx { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pt-breedchip .ic { flex: none; color: ${LAB.inkMuted}; }
+.pt-breedchip .ok { flex: none; color: #2E5C3B; }
+.pt-breedchip.is-set { border-color: ${LAPIS.edge}; background: linear-gradient(${LAPIS.fill}, ${LAPIS.fill}), #FFFDF7; }
+.pt-pop-note b { font-weight: 600; }
 .pt-pop-h {
   margin: 0; text-align: center; text-wrap: balance;
   font-family: 'Cinzel', serif; font-weight: 700; font-size: ${FLOW_TITLE}; line-height: 1.25;
