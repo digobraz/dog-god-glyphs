@@ -2439,7 +2439,7 @@ export default function OnePage() {
       perGlfLine?: number;
       perMostHead?: number; perMostQ?: number;
       // Štyri obrazovky oblúka — krytie nesú ONE, nie ich obsah.
-      nxt?: HTMLElement | null; dgx?: HTMLElement | null; glf?: HTMLElement | null;
+      nxt?: HTMLElement | null; dgx?: HTMLElement | null; glf?: HTMLElement | null; dgxCut?: HTMLElement | null;
       most?: HTMLElement | null;
       // HEROGLYF / ALBA — nadpis (dva riadky), eyebrow, tri stĺpce, veta.
       glfHead?: HTMLElement | null; glfLines?: HTMLElement[];
@@ -2543,6 +2543,7 @@ export default function OnePage() {
         // ich prelínačky — preto sa hasia CELÉ, nie po prvkoch.
         nxt: q<HTMLElement>('.op-nxt'),
         dgx: q<HTMLElement>('.op-dgx'),
+        dgxCut: q<HTMLElement>('.op-dgx-cut'),
         glf: q<HTMLElement>('.op-glf'),
         // ── HEROGLYF / ALBA ──────────────────────────────────────────────
         glfHead: q<HTMLElement>('.op-glf-h2'),
@@ -3444,6 +3445,10 @@ export default function OnePage() {
         // každý prvok posunuli o jeho vlastnú šírku a bublina (úzka) by ostala
         // stáť na obrazovke.
         put(n.dgx, 'axd', 'opacity', xfIn1.toFixed(3));
+        // Ruka a labka nad dažďom: plné, kým padá dážď, zhasnú s nábehom
+        // eyebrow a nadpisu (DGX.rainFull → DGX.head).
+        const cutO = dp <= 0 ? 0 : 1 - seg(dp * 100, DGX.rainFull, DGX.head);
+        put(n.dgxCut, 'acut', 'opacity', cutO.toFixed(3));
         put(n.dgx, 'axdv', 'visibility', xfIn1 <= 0.002 ? 'hidden' : 'visible');
         put(n.dgx, 'axdx', '--dgx-x', `${(slide2 * -DGX_SLIDE_VW).toFixed(2)}vw`);
         // ALBA má krytie len ako vypínač — čo je z nej vidieť, riadia jej
@@ -6184,6 +6189,11 @@ export default function OnePage() {
           pointer-events: none;
         }
         .op-arc-stage { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+        /* Tá istá geometria ako .op-gate-vid (cover, výška lvh ako javisko brány). */
+        .op-dgx-cut {
+          position: absolute; left: 0; top: 0; width: 100%; height: 100lvh;
+          object-fit: cover; z-index: 5; opacity: 0; pointer-events: none;
+        }
         .op-arc-scr {
           position: absolute;
           inset: 0;
@@ -7328,6 +7338,15 @@ export default function OnePage() {
                 kóty naň ležia priesvitnou pilulkou bez rezervy okolo.
                 Koncový stav: glyf čierny a klikateľný, dotyk/hover na
                 symbole ho rozsvieti a otvorí bublinu s troma riadkami. */}
+            {/* 🔴 RUKA A LABKA OSTÁVAJÚ, DOGTRIX PRŠÍ ZA NIMI (Matej 28. 9. 2026:
+                *„myslel som, že DOGTRIX sa spustí za ich rukami, nie že zmizne
+                labka aj ruka"*). Video brány má papyrusové pozadie, takže za
+                ním nič nevidno — preto tu leží VÝSTRIH posledného políčka
+                (`touch_cut.webp`, alfa z kľúča papyrusu spojeného s okrajom)
+                v tej istej geometrii ako video (cover, celé okno). Kým brána
+                bledne, výstrih je pod ňou identický a nič neposkočí; zhasne až
+                s nábehom obsahu (réžia, 'acut'). */}
+            <img className="op-dgx-cut" src="/images/touch_cut.webp" alt="" aria-hidden="true" draggable={false} />
             <section className="op-arc-scr op-dgx" aria-label="Dogtrix" ref={dgxRootRef}>
               <canvas className="dgx-rain" aria-hidden="true" />
 
