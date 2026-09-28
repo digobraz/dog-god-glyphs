@@ -116,6 +116,9 @@ const GROUPS: Group[] = [
       // Chvost flowu (25. 9. 2026, nákres `plany/nakres-chvost-flowu-2026-09-25.html`):
       // ODHALENIE a ODKAZ sú jedna obrazovka, CHECKOUT + PLATBA jedna POKLADŇA,
       // „Nechcem platiť" vedie na ZADRŽANIE.
+      // 28. 9. 2026 — ladenie z mobilu + smoke test až po Stripe (web b83e1830, a5b3d5ad,
+      // d4cf1ee6): stavy ostávajú „done" — výšky zjednotené na PODSTATU, info a plemeno
+      // sú popupy nad oknom (FlowModal), pokladňa pýta e-mail. Otvorené: fotky Hektora z labu.
       { name: '9 · Odhalenie + odkaz', path: '/heroglyph/reveal', state: 'done' },
       { name: '10 · Pokladňa', path: '/checkout', state: 'done' },
       // 26. 9. 2026: zadržanie je POPUP v pokladni (preto 10a, nie 11 — Matej: „nie je to nová obrazovka“), `/heroglyph/stay` bez
