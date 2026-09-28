@@ -70,8 +70,14 @@ export interface QuizStep {
   rowI18n: string;
   kind: QuizInputKind;
   options?: readonly TaxonomyOption[];
-  /** Návrhy pre `chips` — hodnoty sa prekladajú cez `pack.dogCard.opt.<value>`. */
+  /** Návrhy pre `chips` — hodnoty sa prekladajú cez `labelNs`, inak `pack.dogCard.opt.<value>`. */
   suggestions?: readonly string[];
+  /**
+   * Priečinok prekladov HODNÔT tohto poľa (`pack.dogCard.fear` ⇒ `pack.dogCard.fear.storm`).
+   * 28. 9. 2026: preklady strachov, radostí a spúšťačov v sk.ts ležali od augusta, ale kvíz
+   * aj DOG ID hľadali len v `opt.*` a `dogTag.*` — slovenský doklad tak písal „Strange men".
+   */
+  labelNs?: string;
   /**
    * Strop viacnásobného výberu (Matej odklepol 2026-09-02: „fakty bez stropu, povahové
    * otázky so stropom 3").
@@ -254,6 +260,7 @@ export const QUIZ_SECTIONS: QuizSection[] = [
       },
       {
         field: 'howWorks.commands', kind: 'chips',
+        labelNs: 'pack.dogCard.cmd',
         suggestions: ['sit', 'down', 'come', 'stay', 'place', 'heel', 'leave_it', 'paw'],
         labelEN: 'Which commands do they know?', i18n: 'pack.quiz.howWorks.commands.q',
         rowEN: 'Commands', rowI18n: 'pack.quiz.howWorks.commands.row',
@@ -316,6 +323,7 @@ export const QUIZ_SECTIONS: QuizSection[] = [
       },
       {
         field: 'temperament.fears', kind: 'chips', maxPick: 3, suggestions: DOG_FEAR_SUGGESTIONS,
+        labelNs: 'pack.dogCard.fear',
         labelEN: 'What are they afraid of?', i18n: 'pack.quiz.temperament.fears.q',
         hintEN: 'A sitter needs to know before the first storm, not after.', hintI18n: 'pack.quiz.temperament.fears.hint',
         rowEN: 'Afraid of', rowI18n: 'pack.quiz.temperament.fears.row',
@@ -323,12 +331,14 @@ export const QUIZ_SECTIONS: QuizSection[] = [
       },
       {
         field: 'temperament.triggers', kind: 'chips', maxPick: 3, suggestions: DOG_TRIGGER_SUGGESTIONS,
+        labelNs: 'pack.dogCard.trigger',
         labelEN: 'What sets them off?', i18n: 'pack.quiz.temperament.triggers.q',
         rowEN: 'Triggers', rowI18n: 'pack.quiz.temperament.triggers.row',
         views: ['sitter'],
       },
       {
         field: 'temperament.joys', kind: 'chips', maxPick: 3, suggestions: DOG_JOY_SUGGESTIONS,
+        labelNs: 'pack.dogCard.joy',
         labelEN: 'What makes them happy?', i18n: 'pack.quiz.temperament.joys.q',
         rowEN: 'Loves', rowI18n: 'pack.quiz.temperament.joys.row',
         // BONUS, nie diera: „čo ho teší" nikoho neohrozí. Spúšťače (`triggers`) a
@@ -357,6 +367,7 @@ export const QUIZ_SECTIONS: QuizSection[] = [
       },
       {
         field: 'health.allergies', kind: 'chips',
+        labelNs: 'pack.dogCard.item',
         suggestions: ['chicken', 'beef', 'grain', 'dairy', 'pollen', 'flea_saliva', 'none'],
         labelEN: 'Any allergies?', i18n: 'pack.quiz.health.allergies.q',
         rowEN: 'Allergies', rowI18n: 'pack.quiz.health.allergies.row',
@@ -367,6 +378,7 @@ export const QUIZ_SECTIONS: QuizSection[] = [
         // ale nie „má epilepsiu" — veterinár z toho musel hádať. Legacy stĺpec
         // `dogs.conditions` existoval, kvízové pole k nemu nie.
         field: 'health.conditions', kind: 'chips',
+        labelNs: 'pack.dogCard.item',
         suggestions: ['epilepsy', 'hip_dysplasia', 'heart', 'thyroid', 'diabetes',
           'kidney', 'skin', 'arthritis', 'none'],
         labelEN: 'Any diagnosed conditions?', i18n: 'pack.quiz.health.conditions.q',
@@ -446,6 +458,7 @@ export const QUIZ_SECTIONS: QuizSection[] = [
       },
       {
         field: 'food.mealsPerDay', kind: 'single',
+        labelNs: 'pack.dogCard.meals',
         options: [
           { value: '1', labelEN: 'Once a day' },
           { value: '2', labelEN: 'Twice a day' },
@@ -465,6 +478,7 @@ export const QUIZ_SECTIONS: QuizSection[] = [
       },
       {
         field: 'food.forbidden', kind: 'chips',
+        labelNs: 'pack.dogCard.item',
         suggestions: ['chicken', 'chocolate', 'grapes', 'onion', 'bones', 'dairy', 'table_scraps'],
         labelEN: 'What must they never get?', i18n: 'pack.quiz.food.forbidden.q',
         rowEN: 'Never give', rowI18n: 'pack.quiz.food.forbidden.row',
@@ -472,6 +486,7 @@ export const QUIZ_SECTIONS: QuizSection[] = [
       },
       {
         field: 'food.walks', kind: 'single',
+        labelNs: 'pack.dogCard.walks',
         options: [
           { value: '1', labelEN: 'Once a day' },
           { value: '2', labelEN: 'Twice a day' },
@@ -714,6 +729,28 @@ export const JOIN_REQUIRED_STEPS: QuizStep[] = PROGRESS_STEPS.filter((s) =>
   (JOIN_REQUIRED_SECTIONS as readonly string[]).includes(s.field.split('.')[0]));
 
 /** Sekcia, do ktorej krok patrí — pohon „✎" deep-linku z karty psa do kvízu. */
+/**
+ * Zobrazený popisok ULOŽENEJ hodnoty — jeden pre kvíz aj DOG ID, aby sa nerozišli.
+ * Poradie: vlastné labely poľa → priečinok poľa → zdieľané `opt.*`/`dogTag.*` →
+ * EN z možností → humanize. Vlastná hodnota, ktorú človek dopísal, ostáva ako ju napísal.
+ */
+export function quizValueLabel(step: QuizStep, val: string, tx: (k: string, f: string) => string): string {
+  const own = step.valueLabels?.[val];
+  if (own) return tx(own.i18n, own.labelEN);
+  if (step.labelNs) {
+    const ns = tx(`${step.labelNs}.${val}`, '');
+    if (ns) return ns;
+  }
+  const fromOpt = tx(`pack.dogCard.opt.${val}`, '');
+  if (fromOpt) return fromOpt;
+  const fromTag = tx(`pack.dogTag.${val}`, '');
+  if (fromTag) return fromTag;
+  const known = step.options?.find((o) => o.value === val);
+  if (known) return known.labelEN;
+  const s = val.replace(/_/g, ' ');
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 export function sectionOfField(field: string): QuizSection | undefined {
   return QUIZ_SECTIONS.find((s) => s.steps.some((st) => st.field === field));
 }

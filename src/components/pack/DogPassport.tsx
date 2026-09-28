@@ -27,7 +27,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PACK_THEME, PACK_BOX, PILL_CSS, PF_FIELD_CSS, FONT_TITLE, FONT_UI } from './packTheme';
-import { PASS_GROUPS, STEP_BY_FIELD, PROGRESS_STEPS, type QuizStep } from './dogQuiz';
+import { PASS_GROUPS, STEP_BY_FIELD, PROGRESS_STEPS, quizValueLabel, type QuizStep } from './dogQuiz';
 import { natureArt, storedSpecials } from './natureQuiz';
 import { readLatest, onDogEventsChange, hasValue, readSeries, appendDogEvents, type LatestValue } from '@/lib/dogEvents';
 import { RightGate } from '@/components/pack/RightGate';
@@ -513,21 +513,9 @@ function PassRow({
 
 // ── formátovanie hodnôt ──────────────────────────────────────────────────────
 function renderValue(step: QuizStep, v: unknown, tx: (k: string, f: string) => string) {
-  const label = (val: string) => {
-    // Vlastné labely poľa majú PREDNOSŤ pred zdieľanými priestormi. Bez toho by
-    // `nature.specials: ['loner']` spadlo na `pack.dogTag.loner` = „Samotár",
-    // čo je TAG POVAHY, nie zvláštna úloha „The Loner" — presne tá kolízia,
-    // kvôli ktorej sa zvláštna úloha nikdy neukazuje ako holý chip.
-    const own = step.valueLabels?.[val];
-    if (own) return tx(own.i18n, own.labelEN);
-    // Rovnaký kľúčový priestor ako `DogCardFields.tsx` — preklady možností už existujú.
-    const fromOpt = tx(`pack.dogCard.opt.${val}`, '');
-    if (fromOpt) return fromOpt;
-    const fromTag = tx(`pack.dogTag.${val}`, '');
-    if (fromTag) return fromTag;
-    const known = step.options?.find((o) => o.value === val);
-    return known ? known.labelEN : humanize(val);
-  };
+  // Jeden popisok pre kvíz aj doklad — `quizValueLabel` v dogQuiz.ts (vlastné labely poľa,
+  // jeho priečinok `labelNs`, zdieľané `opt.*`/`dogTag.*`, až potom EN).
+  const label = (val: string) => quizValueLabel(step, val, tx);
 
   if (Array.isArray(v)) {
     return (

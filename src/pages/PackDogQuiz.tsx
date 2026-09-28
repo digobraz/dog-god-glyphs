@@ -20,7 +20,7 @@ import { useLocation, useNavigate, useParams, useSearchParams } from 'react-rout
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PackTopRow } from '@/components/pack/PackTopRow';
 import { PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, PAPER_PAGE_CSS, usePaperRoute, PACK_TOPROW_PAD } from '@/components/pack/packTheme';
-import { QUIZ_BY_KEY, type QuizStep } from '@/components/pack/dogQuiz';
+import { QUIZ_BY_KEY, quizValueLabel, type QuizStep } from '@/components/pack/dogQuiz';
 import { appendDogEvents, readLatestForDogs, type DogEventInput, type LatestValue } from '@/lib/dogEvents';
 import { supabase } from '@/integrations/supabase/client';
 import { getAccessibleDogIds } from '@/lib/dogRights';
@@ -339,12 +339,8 @@ function AnswerControl({
   const [custom, setCustom] = useState('');
   const list = Array.isArray(value) ? value : [];
 
-  const optLabel = (v: string, fallback: string) => {
-    // Rovnaký kľúčový priestor ako `DogCardFields.tsx` — preklady možností už existujú.
-    const k = `pack.dogCard.opt.${v}`;
-    const translated = tx(k, '');
-    return translated || tx(`pack.dogTag.${v}`, fallback);
-  };
+  // Ten istý popisok ako v DOG ID (`quizValueLabel`) — kvíz a doklad sa nesmú rozísť.
+  const optLabel = (v: string) => quizValueLabel(step, v, tx);
 
   /**
    * STROP VÝBERU (2026-09-02). Plný sa nedá pridať ďalšie, ale odobrať áno — vybrané pilulky
@@ -379,7 +375,7 @@ function AnswerControl({
                     : onChange(on ? list.filter((x) => x !== o.value) : [...list, o.value])
                 }
               >
-                {o.emoji ? `${o.emoji} ` : ''}{optLabel(o.value, o.labelEN)}
+                {o.emoji ? `${o.emoji} ` : ''}{optLabel(o.value)}
               </button>
             );
           })}
@@ -408,7 +404,7 @@ function AnswerControl({
                 className={`pf-pill qz-pill${on ? ' is-selected' : ''}${blocked ? ' is-capped' : ''}`}
                 onClick={() => onChange(on ? list.filter((x) => x !== v) : [...list, v])}
               >
-                {optLabel(v, humanize(v))}
+                {optLabel(v)}
               </button>
             );
           })}
