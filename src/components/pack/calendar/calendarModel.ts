@@ -533,10 +533,19 @@ export function weekStart(birth: Date, wi: number): Date {
 export interface LifeRecord {
   name: string;
   years: number;
-  /** Do popisku: „29 rokov 160 dní". Prázdne = známe sú len roky. */
+  /** Do popisku: „29 rokov 160 dní" (SK fallback, i18n kľúč `pack.cal.life.rec.<slug>.exact`).
+   *  Prázdne = známe sú len roky. */
   exactSK: string;
+  /** SK fallback, i18n kľúč `pack.cal.life.rec.<slug>.breed`. */
   breedSK: string;
-  fromTo: string;
+  /** Rok narodenia. Rozpätie „1910 – 1939" sa skladá z čísel, teda je jazykovo
+   *  neutrálne a nepotrebuje i18n. */
+  born: number;
+  /** Rok úmrtia. Chýba u žijúceho rekordmana (Spike) — vtedy sa kreslí
+   *  „od {born}" cez i18n kľúč `pack.cal.life.recSince` (pôvodne bol tento
+   *  prípad natvrdo po slovensky „od 1999", čo v EN/CS zostalo slovenské). */
+  died?: number;
+  /** SK fallback, i18n kľúč `pack.cal.life.rec.<slug>.country`. */
   countrySK: string;
   /** true = doložené a uznané · false = tvrdenie, ktoré nikto nepotvrdil. */
   verified: boolean;
@@ -576,33 +585,33 @@ export interface LifeRecord {
 
 export const LIFE_RECORDS: LifeRecord[] = [
   { name: 'Bluey', years: 29.4, exactSK: '29 rokov 160 dní', breedSK: 'Austrálsky honácky pes',
-    fromTo: '1910 – 1939', countrySK: 'Austrália', verified: true,
+    born: 1910, died: 1939, countrySK: 'Austrália', verified: true,
     photo: '/images/records/bluey.jpg',
     photoCredit: 'Bluey: neznámy autor, 20. roky 20. st. · public domain · Wikimedia Commons' },
   { name: 'Lazare', years: 30.4, exactSK: '30 rokov 161 dní', breedSK: 'Papillon',
-    fromTo: '1995 – 2026', countrySK: 'Francúzsko', verified: false, patron: '03-02' },
+    born: 1995, died: 2026, countrySK: 'Francúzsko', verified: false, patron: '03-02' },
   { name: 'Maggie', years: 30, exactSK: '', breedSK: 'Austrálsky kelpie',
-    fromTo: '1986 – 2016', countrySK: 'Austrália', verified: false, patron: '09-05' },
+    born: 1986, died: 2016, countrySK: 'Austrália', verified: false, patron: '09-05' },
   { name: 'Max', years: 29.8, exactSK: '29 rokov 282 dní', breedSK: 'Kríženec beagla a jazvečíka',
-    fromTo: '1983 – 2013', countrySK: 'USA', verified: false, patron: '05-06' },
+    born: 1983, died: 2013, countrySK: 'USA', verified: false, patron: '05-06' },
   { name: 'Bella', years: 29, exactSK: '', breedSK: 'Kríženec labradora',
-    fromTo: '1979 – 2008', countrySK: 'Veľká Británia', verified: true, patron: '08-01' },
+    born: 1979, died: 2008, countrySK: 'Veľká Británia', verified: true, patron: '08-01' },
   { name: 'Butch', years: 28, exactSK: '', breedSK: 'Plemeno sa neuvádza',
-    fromTo: '1975 – 2003', countrySK: 'USA', verified: true },
+    born: 1975, died: 2003, countrySK: 'USA', verified: true },
   { name: 'Taffy', years: 27.6, exactSK: '27 rokov 211 dní', breedSK: 'Welšský ovčiak',
-    fromTo: '1975 – 2003', countrySK: 'Veľká Británia', verified: true },
+    born: 1975, died: 2003, countrySK: 'Veľká Británia', verified: true },
   { name: 'Adjutant', years: 27.3, exactSK: '27 rokov 98 dní', breedSK: 'Labradorský retríver',
-    fromTo: '1936 – 1963', countrySK: 'Veľká Británia', verified: true, patron: '08-01' },
+    born: 1936, died: 1963, countrySK: 'Veľká Británia', verified: true, patron: '08-01' },
   { name: 'Pusuke', years: 26.7, exactSK: '26 rokov 8 mesiacov', breedSK: 'Kríženec šiba inu',
-    fromTo: '1985 – 2011', countrySK: 'Japonsko', verified: true, patron: '01-05' },
+    born: 1985, died: 2011, countrySK: 'Japonsko', verified: true, patron: '01-05' },
   { name: 'Spike', years: 26.8, exactSK: '26 rokov 286 dní', breedSK: 'Kríženec čivavy',
-    fromTo: 'od 1999', countrySK: 'USA', verified: true, patron: '03-01' },
+    born: 1999, countrySK: 'USA', verified: true, patron: '03-01' },
   { name: 'Bramble', years: 25, exactSK: '', breedSK: 'Border kólia',
-    fromTo: '1978 – 2003', countrySK: 'Veľká Británia', verified: false, patron: '09-01' },
+    born: 1978, died: 2003, countrySK: 'Veľká Británia', verified: false, patron: '09-01' },
   { name: 'TobyKeith', years: 23.3, exactSK: '23 rokov 112 dní', breedSK: 'Čivava',
-    fromTo: '2001 – 2024', countrySK: 'USA', verified: true, patron: '03-01' },
+    born: 2001, died: 2024, countrySK: 'USA', verified: true, patron: '03-01' },
   { name: 'Pebbles', years: 22.5, exactSK: '22 rokov 189 dní', breedSK: 'Toy foxteriér',
-    fromTo: '2000 – 2022', countrySK: 'USA', verified: true, patron: '03-04' },
+    born: 2000, died: 2022, countrySK: 'USA', verified: true, patron: '03-04' },
 ];
 
 // ── RADY, AKO PREDĹŽIŤ ŽIVOT ────────────────────────────────────────────────

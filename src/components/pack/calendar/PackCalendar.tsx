@@ -48,6 +48,8 @@ import { readTriplist } from '@/components/pack/triplist/triplist';
 import { readLocalTrails } from '@/components/pack/tripShared';
 import { readStringSet, PACK_KEYS } from '@/lib/packStore';
 import { computeAge } from '@/lib/dogAge';
+import { useLang } from '@/i18n/LanguageContext';
+import { intlLocale } from '@/i18n/bcp47';
 import type { ElementKey } from '@/components/pack/natureQuiz';
 import {
   SEASONS, seasonOf, seasonsInMonth, seasonOfMonth, dim, doy, dateKey, parseFullDay,
@@ -85,12 +87,23 @@ const num = (v: number): string => {
 };
 
 /**
- * SK skloňovanie po číslovke: 1 rok · 2–4 roky · 5+ rokov. Píše sa raz tu,
- * lebo vek sa v mriežke skladá na troch miestach (dlaždica, bublina, popisok)
- * a tri kópie tej istej tabuľky sa rozídu pri prvej oprave.
+ * SK/CS skloňovanie po číslovke: 1 rok · 2–4 roky · 5+ rokov (CS má pri rokoch
+ * navyše iné slovo pre 5+: „let"). EN pozná len singulár/plurál, preto dostáva
+ * `few` aj `many` rovnaké. i18n kľúče `pack.cal.ageUnit.<unit>.<one|few|many>`
+ * (28. 9. 2026 — dovtedy bolo natvrdo po slovensky bez ohľadu na jazyk appky).
+ * Píše sa raz tu, lebo vek sa v mriežke skladá na troch miestach (dlaždica,
+ * bublina, popisok) a tri kópie tej istej tabuľky sa rozídu pri prvej oprave.
  */
-const plural = (n: number, one: string, few: string, many: string): string =>
-  `${n} ${n === 1 ? one : n >= 2 && n <= 4 ? few : many}`;
+const pluralForm = (n: number): 'one' | 'few' | 'many' => (n === 1 ? 'one' : n >= 2 && n <= 4 ? 'few' : 'many');
+
+const ageUnit = (
+  tx: (key: string, fallback: string) => string,
+  n: number, unit: 'year' | 'month' | 'week', one: string, few: string, many: string,
+): string => {
+  const form = pluralForm(n);
+  const fallback = form === 'one' ? one : form === 'few' ? few : many;
+  return `${n} ${tx(`pack.cal.ageUnit.${unit}.${form}`, fallback)}`;
+};
 
 /** „24. 3. 2019" — deň v tvare, aký appka používa všade inde. */
 const fmtDay = (d: Date): string => `${d.getDate()}. ${d.getMonth() + 1}. ${d.getFullYear()}`;
@@ -100,11 +113,11 @@ const fmtDay = (d: Date): string => `${d.getDate()}. ${d.getMonth() + 1}. ${d.ge
  * 3 týždne" je šum, a pri šteňati je práve to najčastejší prípad. Keď je vek
  * kratší než týždeň, ostane aspoň „0 týždňov", nech dlaždica nie je prázdna.
  */
-const ageText = (a: { y: number; m: number; w: number }): string => {
+const ageText = (tx: (key: string, fallback: string) => string, a: { y: number; m: number; w: number }): string => {
   const out: string[] = [];
-  if (a.y) out.push(plural(a.y, 'rok', 'roky', 'rokov'));
-  if (a.m) out.push(plural(a.m, 'mesiac', 'mesiace', 'mesiacov'));
-  if (a.w || out.length === 0) out.push(plural(a.w, 'týždeň', 'týždne', 'týždňov'));
+  if (a.y) out.push(ageUnit(tx, a.y, 'year', 'rok', 'roky', 'rokov'));
+  if (a.m) out.push(ageUnit(tx, a.m, 'month', 'mesiac', 'mesiace', 'mesiacov'));
+  if (a.w || out.length === 0) out.push(ageUnit(tx, a.w, 'week', 'týždeň', 'týždne', 'týždňov'));
   return out.join(' · ');
 };
 
@@ -130,9 +143,22 @@ export interface CalendarDogRow {
   breed?: string | null;
 }
 
-const MONTHS_SHORT_SK = ['Jan', 'Feb', 'Mar', 'Apr', 'Máj', 'Jún', 'Júl', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
-const MONTHS_LONG_SK = ['Január', 'Február', 'Marec', 'Apríl', 'Máj', 'Jún', 'Júl', 'August', 'September', 'Október', 'November', 'December'];
-const DOW_SK = ['Po', 'Ut', 'St', 'Št', 'Pi', 'So', 'Ne'];
+/**
+ * Mená mesiacov a dní v týždni idú cez `Intl`, nie cez i18n slovník — appka to
+ * inde robí rovnako (`AddTripLog.tsx`, `DailyPrayers.tsx`). Nula kľúčov, nula
+ * fallbackov, ktoré sa rozídu s tým, čo prehliadač naozaj vie.
+ * ⚠️ `2020-0-1` a `2024-0-1` sú len kotvy pre `Intl.DateTimeFormat` (rok/deň
+ * nehrajú rolu, len mesiac/deň-v-týždni) — 2024-01-01 je pondelok, presne to,
+ * čo `(getDay()+6)%7` v zvyšku súboru čaká na indexe 0.
+ */
+function monthNames(locale: string, style: 'long' | 'short'): string[] {
+  const fmt = new Intl.DateTimeFormat(locale, { month: style });
+  return Array.from({ length: 12 }, (_, i) => fmt.format(new Date(2020, i, 1)));
+}
+function dowNames(locale: string): string[] {
+  const fmt = new Intl.DateTimeFormat(locale, { weekday: 'short' });
+  return Array.from({ length: 7 }, (_, i) => fmt.format(new Date(2024, 0, 1 + i)));
+}
 
 // ⚠️ ŽIVOT JE HLAVNÝ POHĽAD NA OBOCH ŠÍRKACH (Matej 13. 9. 2026 večer: „tento
 // život prehoď ako MAIN = človek ho uvidí ako prvý a potom vie prepínať na rok
@@ -164,6 +190,12 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
 }) {
   const year = new Date().getFullYear();
   const today = useMemo(() => { const n = new Date(); return { m: n.getMonth() + 1, d: n.getDate(), year: n.getFullYear() }; }, []);
+
+  const { lang } = useLang();
+  const locale = useMemo(() => intlLocale(lang), [lang]);
+  const monthLong = useMemo(() => monthNames(locale, 'long'), [locale]);
+  const monthShorts = useMemo(() => monthNames(locale, 'short'), [locale]);
+  const dow = useMemo(() => dowNames(locale), [locale]);
 
   const [view, setView] = useState<'year' | 'month' | 'life'>('life');
   const [sel, setSel] = useState<string>('all');          // 'all' | dogId
@@ -363,8 +395,8 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
 
-  const monthName = (m: number): string => tx(`pack.cal.monthLong.${m}`, MONTHS_LONG_SK[m - 1]);
-  const monthShort = (m: number): string => tx(`pack.cal.monthShort.${m}`, MONTHS_SHORT_SK[m - 1]);
+  const monthName = (m: number): string => monthLong[m - 1] ?? '';
+  const monthShort = (m: number): string => monthShorts[m - 1] ?? '';
   const seasonName = (k: ElementKey): string => tx(`pack.cal.season.${k}`, SEASONS.find((s) => s.key === k)!.nameSK);
   const elementName = (k: ElementKey): string => tx(`pack.nature.el.${k}`, SEASONS.find((s) => s.key === k)!.elementSK);
   const typeName = (k: LogKind): string => tx(LOG_TYPES[k].i18n, LOG_TYPES[k].nameSK);
@@ -465,7 +497,7 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
       {view === 'life' ? (
         lifeRow ? (
           <LifeGrid
-            row={lifeRow} dogs={shown} entries={allEntries} latest={latest} tx={tx} monthName={monthName}
+            row={lifeRow} dogs={shown} entries={allEntries} latest={latest} tx={tx} monthName={monthName} dow={dow}
           />
         ) : null
       ) : view === 'year' ? (
@@ -482,7 +514,7 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
           seniorSelected={seniorSelected} layers={layers}
           entriesOn={entriesOn} moonOn={moonOn} onDay={(m, d) => setOpen({ m, d })}
           setMonth={setMonth} monthName={monthName} seasonName={seasonName} elementName={elementName}
-          protName={protName} tx={tx}
+          protName={protName} tx={tx} dow={dow}
         />
       )}
 
@@ -652,7 +684,7 @@ const rangeTxt = (w: ProtWindow): string => `${w.from.d}. ${w.from.m}. – ${w.t
 // ════════════════════════════════════════════════════════════════════════════
 function MonthGrid({
   year, month, today, dogs, solo, myElement, seniorSelected, layers, entriesOn, moonOn, onDay,
-  setMonth, monthName, seasonName, elementName, protName, tx,
+  setMonth, monthName, seasonName, elementName, protName, tx, dow,
 }: {
   year: number; month: number; today: { m: number; d: number; year: number }; dogs: CalDog[]; solo: boolean;
   myElement: ElementKey | null; seniorSelected: boolean; layers: { log: boolean; prot: boolean; nat: boolean };
@@ -660,6 +692,8 @@ function MonthGrid({
   onDay: (m: number, d: number) => void; setMonth: (m: number) => void;
   monthName: (m: number) => string; seasonName: (k: ElementKey) => string;
   elementName: (k: ElementKey) => string; protName: (w: ProtWindow) => string; tx: Tx;
+  /** Mená dní v týždni (Po–Ne) v jazyku rozhrania — `Intl`, pozri `dowNames()`. */
+  dow: string[];
 }) {
   const s1 = seasonOf(year, month, 1);
   const s2 = seasonOf(year, month, dim(year, month));
@@ -698,7 +732,7 @@ function MonthGrid({
       </div>
 
       <div className="cal-mogrid">
-        {DOW_SK.map((x, i) => <div key={x} className="cal-dow">{tx(`pack.cal.dow.${i}`, x)}</div>)}
+        {dow.map((x, i) => <div key={`${i}-${x}`} className="cal-dow">{x}</div>)}
         {Array.from({ length: first }, (_, i) => <div key={`out-${i}`} className="cal-mocell out" />)}
         {Array.from({ length: dim(year, month) }, (_, di) => {
           const d = di + 1;
@@ -838,7 +872,7 @@ function DayPopup({
     id === null ? tx('pack.cal.wholePack', 'celá svorka') : dogs.find((g) => g.id === id)?.name ?? '—';
 
   let when = `${seasonName(s.key)} · ${elementName(s.key)}${s.key === myElement ? ` — ${tx('pack.cal.hisSeason', 'jeho sezóna')}` : ''}`;
-  if (moon) when += ` · ${moon === 'full' ? `${tx('pack.cal.full', 'spln')} 🌕` : `${tx('pack.cal.new', 'nov')} 🌑`}`;
+  if (moon) when += ` · ${moon === 'full' ? `${tx('pack.cal.full', 'Spln')} 🌕` : `${tx('pack.cal.new', 'Nov')} 🌑`}`;
   if (layers.nat && ticksInMonth(m)) when += ` · ${tx('pack.cal.ticks', TICKS.nameSK)} ${TICKS.emoji}`;
 
   const empty = entries.length === 0 && prots.length === 0 && births.length === 0 && humans.length === 0;
@@ -961,10 +995,12 @@ function DayPopup({
 // o tomto. Preto je pod ňou PÁSMO (low–high) a preto appka nikde nepíše dátum.
 // ════════════════════════════════════════════════════════════════════════════
 function LifeGrid({
-  row, dogs, entries, latest, tx, monthName,
+  row, dogs, entries, latest, tx, monthName, dow,
 }: {
   row: CalendarDogRow; dogs: CalDog[]; entries: CalEntry[]; latest: Latest; tx: Tx;
   monthName: (m: number) => string;
+  /** Mená dní v týždni (Po–Ne) — posiela sa ďalej do `WeekPopup`. */
+  dow: string[];
 }) {
   const [hover, setHover] = useState<{ wi: number; x: number; y: number } | null>(null);
   const [openWeek, setOpenWeek] = useState<number | null>(null);
@@ -1091,7 +1127,7 @@ function LifeGrid({
       + (band.fromBreed
         ? ` · ${tx('pack.cal.life.srcBreed', 'publikovaný údaj plemena')}`
         : est.size
-          ? ` · ${tx('pack.cal.life.srcWeight', 'odhad podľa hmotnosti')} (${SIZE_NAME_SK[est.size]}, ${band.kgSK})`
+          ? ` · ${tx('pack.cal.life.srcWeight', 'odhad podľa hmotnosti')} (${tx(`pack.cal.life.size.${est.size}`, SIZE_NAME_SK[est.size])}, ${tx(`pack.cal.life.kg.${est.size}`, band.kgSK)})`
           : '');
   // ⚠️ ODKIAĽ SA ČÍSLO BERIE, MUSÍ BYŤ V POPISKU (Matej 13. 9. 2026: „aj
   // s odkazom, odkiaľ sa čerpá! wikipedia napr."). Wikipédia to ale NIE JE
@@ -1168,7 +1204,7 @@ function LifeGrid({
           <span>{deceased
             ? tx('pack.cal.life.daysLived', 'dní najlepšieho života')
             : tx('pack.cal.life.days', 'dní najlepšieho života')}</span>
-          <u>{ageText(ageParts(birth, endDate))}</u>
+          <u>{ageText(tx, ageParts(birth, endDate))}</u>
         </div>
         {togetherDays !== null && sinceDate && (
           /* ✎ VEDIE DO DOG ID, NEEDITUJE TU (Matej: „to by bolo prepojené aj
@@ -1231,7 +1267,7 @@ function LifeGrid({
                 <div
                   className={`cal-liferow${past ? ' faded' : ''}${inBand ? ' inband' : ''}${yr === LIFE_ACTIVE_YEARS ? ' zone' : ''}`}
                   data-zone={yr === LIFE_ACTIVE_YEARS
-                    ? tx('pack.cal.life.zone', 'Odtiaľto ďalej sa dostala hŕstka psov v histórii')
+                    ? tx('pack.cal.life.zone', 'Few dogs in history got past here')
                     : undefined}
                 >
                   {Array.from({ length: WEEKS_PER_YEAR }, (__, w) => {
@@ -1322,35 +1358,49 @@ function LifeGrid({
             onClick={() => recRef.current?.scrollBy({ left: recStep(), behavior: 'smooth' })}
           >›</button>
         <div className="cal-recgrid" ref={recRef}>
-          {LIFE_RECORDS.map((r) => (
-            <div className={`cal-rec${r.verified ? '' : ' unver'}`} key={r.name}>
-              {/* 🔴 FOTKA JE ZATIAĽ U VŠETKÝCH PRÁZDNA A JE TO ZÁMER (Matej 13. 9.:
-                  „k rekordmanom sa hodia aj fotky!"). Sú to snímky skutočných psov
-                  s vlastníkom práv; stiahnuť ich odniekiaľ „lebo tam sú" znamená
-                  publikovať cudzí obrázok na komerčnom povrchu. Kruh preto ukáže
-                  iniciálu — ten istý vzor, aký má appka na chýbajúci avatar —
-                  a karta nevyzerá rozbito. Detail v `LifeRecord.photo`. */}
-              <div className="cal-rechead">
-                <span className={`cal-recphoto${r.patron && !r.photo ? ' pat' : ''}`} aria-hidden>
-                  {r.photo
-                    ? <img src={r.photo} alt="" />
-                    : r.patron
-                      ? <img src={`/patrons/${r.patron}.svg`} alt="" />
-                      : r.name.slice(0, 1)}
-                </span>
-                <span className="cal-recname">
-                  <b>{r.name}</b>
-                  <u>{r.exactSK || `${num(r.years)} ${tx('pack.cal.life.years', 'rokov')}`}</u>
-                </span>
+          {LIFE_RECORDS.map((r) => {
+            // i18n kľúč pre rekordmana je `pack.cal.life.rec.<slug>` — slug je meno
+            // malými písmenami (mená sú v appke jedno slovo, kolízia nehrozí, meno
+            // psa samo sa NEPREKLADÁ). `fromTo` sa skladá z rokov (jazykovo neutrálne)
+            // alebo z „od {born}" pre žijúceho rekordmana (`died` chýba) — pôvodne
+            // tu bolo natvrdo slovenské „od 1999", čo EN/CS čítali po slovensky.
+            const slug = r.name.toLowerCase();
+            const breed = tx(`pack.cal.life.rec.${slug}.breed`, r.breedSK);
+            const country = tx(`pack.cal.life.rec.${slug}.country`, r.countrySK);
+            const exact = r.exactSK ? tx(`pack.cal.life.rec.${slug}.exact`, r.exactSK) : '';
+            const fromTo = r.died != null
+              ? `${r.born} – ${r.died}`
+              : tx('pack.cal.life.recSince', 'od {year}').replace('{year}', String(r.born));
+            return (
+              <div className={`cal-rec${r.verified ? '' : ' unver'}`} key={r.name}>
+                {/* 🔴 FOTKA JE ZATIAĽ U VŠETKÝCH PRÁZDNA A JE TO ZÁMER (Matej 13. 9.:
+                    „k rekordmanom sa hodia aj fotky!"). Sú to snímky skutočných psov
+                    s vlastníkom práv; stiahnuť ich odniekiaľ „lebo tam sú" znamená
+                    publikovať cudzí obrázok na komerčnom povrchu. Kruh preto ukáže
+                    iniciálu — ten istý vzor, aký má appka na chýbajúci avatar —
+                    a karta nevyzerá rozbito. Detail v `LifeRecord.photo`. */}
+                <div className="cal-rechead">
+                  <span className={`cal-recphoto${r.patron && !r.photo ? ' pat' : ''}`} aria-hidden>
+                    {r.photo
+                      ? <img src={r.photo} alt="" />
+                      : r.patron
+                        ? <img src={`/patrons/${r.patron}.svg`} alt="" />
+                        : r.name.slice(0, 1)}
+                  </span>
+                  <span className="cal-recname">
+                    <b>{r.name}</b>
+                    <u>{exact || `${num(r.years)} ${tx('pack.cal.life.years', 'rokov')}`}</u>
+                  </span>
+                </div>
+                <i>{breed} · {country} · {fromTo}</i>
+                {/* Neoverený rekord sa NESKRÝVA, ale ani nepredstiera. Značka je
+                    jediné, čo ho odlišuje — a je to tá dôležitá časť. */}
+                {!r.verified && (
+                  <em>{tx('pack.cal.life.unverified', 'neoverené — stojí na tvrdení majiteľa')}</em>
+                )}
               </div>
-              <i>{r.breedSK} · {r.countrySK} · {r.fromTo}</i>
-              {/* Neoverený rekord sa NESKRÝVA, ale ani nepredstiera. Značka je
-                  jediné, čo ho odlišuje — a je to tá dôležitá časť. */}
-              {!r.verified && (
-                <em>{tx('pack.cal.life.unverified', 'neoverené — stojí na tvrdení majiteľa')}</em>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
         </div>
         {/* ⚠️ PÔVOD FOTKY JE PODMIENKA LICENCIE, NIE ZDVORILOSŤ (Matej: „fotky
@@ -1360,7 +1410,9 @@ function LifeGrid({
             keď fotku nemá ani jedna, riadok sa nevykreslí. */}
         {LIFE_RECORDS.some((r) => r.photo && r.photoCredit) && (
           <p className="cal-reccredit">
-            {LIFE_RECORDS.filter((r) => r.photo && r.photoCredit).map((r) => r.photoCredit).join(' · ')}
+            {LIFE_RECORDS.filter((r) => r.photo && r.photoCredit)
+              .map((r) => tx(`pack.cal.life.rec.${r.name.toLowerCase()}.photoCredit`, r.photoCredit as string))
+              .join(' · ')}
           </p>
         )}
       </div>
@@ -1386,10 +1438,10 @@ function LifeGrid({
             <details className="cal-tip" key={t.id}>
               <summary>
                 <em>{t.emoji}</em>
-                <b>{t.titleSK}</b>
+                <b>{tx(`pack.cal.life.tip.${t.id}.title`, t.titleSK)}</b>
                 <i aria-hidden>▾</i>
               </summary>
-              <p>{t.bodySK}</p>
+              <p>{tx(`pack.cal.life.tip.${t.id}.body`, t.bodySK)}</p>
             </details>
           ))}
         </div>
@@ -1436,7 +1488,7 @@ function LifeGrid({
           leží v rokoch pásma, čo je presne tá „hranica priamo pri blokoch". */}
       {hover && (
         <div className="cal-lifetip" style={{ left: hover.x + 14, top: hover.y + 14 }}>
-          <b>{ageText(ageParts(birth, weekStart(birth, hover.wi)))}</b>
+          <b>{ageText(tx, ageParts(birth, weekStart(birth, hover.wi)))}</b>
           <span>{weekLabel(hover.wi)}</span>
           {hoverEntries.map((e, i) => (
             <span key={i}>{LOG_TYPES[e.kind].emoji} {e.title || tx(LOG_TYPES[e.kind].i18n, LOG_TYPES[e.kind].nameSK)}</span>
@@ -1457,7 +1509,7 @@ function LifeGrid({
         <WeekPopup
           birth={birth} wi={openWeek} entries={byWeek.get(openWeek) ?? []}
           onClose={() => setOpenWeek(null)} monthName={monthName} tx={tx}
-          label={weekLabel(openWeek)}
+          label={weekLabel(openWeek)} dow={dow}
         />
       )}
     </div>
@@ -1471,10 +1523,10 @@ function LifeGrid({
 // fázy mesiaca sa počítajú pre `year`), kým tu ide o mesiac spred rokov.
 // ════════════════════════════════════════════════════════════════════════════
 function WeekPopup({
-  birth, wi, entries, onClose, monthName, tx, label,
+  birth, wi, entries, onClose, monthName, tx, label, dow,
 }: {
   birth: Date; wi: number; entries: CalEntry[]; onClose: () => void;
-  monthName: (m: number) => string; tx: Tx; label: string;
+  monthName: (m: number) => string; tx: Tx; label: string; dow: string[];
 }) {
   const start = weekStart(birth, wi);
   const end = new Date(start.getTime() + 6 * 86_400_000);
@@ -1509,7 +1561,7 @@ function WeekPopup({
         <div className="cal-when">{label}</div>
 
         <div className="cal-wkmini">
-          {DOW_SK.map((w) => <div className="cal-dow" key={w}>{w}</div>)}
+          {dow.map((w, i) => <div className="cal-dow" key={`${i}-${w}`}>{w}</div>)}
           {Array.from({ length: lead }, (_, i) => <div key={`l${i}`} />)}
           {Array.from({ length: days }, (_, i) => {
             const d = i + 1;
@@ -1812,6 +1864,9 @@ const CAL_CSS = `
 .cal-liferow.zone::before{content:attr(data-zone);position:absolute;left:0;right:0;top:-20px;
   font-family:${FONT_UI};font-size:10px;letter-spacing:0.14em;text-transform:uppercase;
   color:${T.accentGold};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.95}
+/* 28. 9. 2026: veta sa na mobile orezávala („…PSOV V …") — preto kratšie znenie
+   v i18n a na úzkom riadku tesnejšie písmenká (.02em patrí husté popisky). */
+@media (max-width:480px){ .cal-liferow.zone::before{ letter-spacing:0.02em; } }
 .cal-liferow.zone::after{content:'';position:absolute;left:0;right:0;top:-7px;height:1px;
   background:linear-gradient(90deg,rgba(201,154,63,.55),rgba(201,154,63,0))}
 /* KONIEC TABUĽKY (Matej 13. 9. 2026: „pod 30 riadkom treba urobiť vizuálnu
