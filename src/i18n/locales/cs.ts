@@ -5372,7 +5372,7 @@ export const cs: Partial<Dict> = {
   'onepage.dgx.bub.ownInitial.glyph': 'Počáteční písmeno',
   'onepage.dgx.bub.ownRank.label': 'Jeho číslo v tvém životě',
   'onepage.dgx.bub.ownRank.value': 'Tvůj 1. pes',
-  'onepage.dgx.bub.ownRank.glyph': 'Číslo jedna',
+  'onepage.dgx.bub.ownRank.glyph': 'Římská číslice I',
   'onepage.alba.head': 'Tohle je',
   'onepage.alba.eye': 'Stejné jméno — jiný pes — jedinečný symbol',
   'onepage.alba.same': 'Stejné jméno. Jiný pes.',

@@ -1093,7 +1093,7 @@ export const sk: Partial<Dict> = {
   'onepage.dgx.bub.ownInitial.glyph': 'Začiatočné písmeno',
   'onepage.dgx.bub.ownRank.label': 'Jeho číslo v tvojom živote',
   'onepage.dgx.bub.ownRank.value': 'Tvoj 1. pes',
-  'onepage.dgx.bub.ownRank.glyph': 'Číslo jeden',
+  'onepage.dgx.bub.ownRank.glyph': 'Rímska číslica I',
 
   'onepage.alba.head': 'Toto je',
   'onepage.alba.eye': 'To isté meno — iný pes — jedinečný symbol',

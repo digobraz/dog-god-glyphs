@@ -1326,7 +1326,7 @@ export const en = {
   'onepage.dgx.bub.ownInitial.glyph': 'Initial letter',
   'onepage.dgx.bub.ownRank.label': 'His number in your life',
   'onepage.dgx.bub.ownRank.value': 'Your 1st dog',
-  'onepage.dgx.bub.ownRank.glyph': 'Number one',
+  'onepage.dgx.bub.ownRank.glyph': 'Roman numeral I',
 
   // ALBA — tri psy s tým istým menom. Meno psa stojí v `<span class="nm">`
   // MIMO kľúča: nesie Cinzel Decorative a preklad ho nesmie zhltnúť.
