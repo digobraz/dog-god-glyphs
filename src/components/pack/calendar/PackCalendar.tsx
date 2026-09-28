@@ -106,7 +106,8 @@ const ageUnit = (
 };
 
 /** „24. 3. 2019" — deň v tvare, aký appka používa všade inde. */
-const fmtDay = (d: Date): string => `${d.getDate()}. ${d.getMonth() + 1}. ${d.getFullYear()}`;
+// Dátum v jazyku APPKY (28. 9. 2026: EN kalendár písal slovenské „6. 6. 2017").
+const fmtDay = (d: Date, loc: string): string => d.toLocaleDateString(loc, { day: 'numeric', month: 'numeric', year: 'numeric' });
 
 /**
  * „10 rokov · 4 mesiace · 2 týždne". Nulové časti VYPADNÚ — „0 rokov 0 mesiacov
@@ -1002,6 +1003,8 @@ function LifeGrid({
   /** Mená dní v týždni (Po–Ne) — posiela sa ďalej do `WeekPopup`. */
   dow: string[];
 }) {
+  const { lang } = useLang();
+  const loc = intlLocale(lang);
   const [hover, setHover] = useState<{ wi: number; x: number; y: number } | null>(null);
   const [openWeek, setOpenWeek] = useState<number | null>(null);
   // Pás rekordmanov — šípky ním posúvajú, preto naň treba ref. Krok sa počíta
@@ -1160,7 +1163,7 @@ function LifeGrid({
   const weekLabel = (wi: number): string => {
     const a = weekStart(birth, wi);
     const b = new Date(a.getTime() + 6 * 86_400_000);
-    return `${a.getDate()}. ${a.getMonth() + 1}. – ${b.getDate()}. ${b.getMonth() + 1}. ${b.getFullYear()}`;
+    return `${a.toLocaleDateString(loc, { day: 'numeric', month: 'numeric' })} – ${fmtDay(b, loc)}`;
   };
 
   return (
@@ -1199,7 +1202,7 @@ function LifeGrid({
             povrch, ktorý by ho vedel zmeniť (doklad ho kreslí medzi read-only
             riadkami). Ceruzka by viedla do prázdna. Ostáva teda „minimálne"
             z Matejovho zadania — dátum na dotyk. */}
-        <div className="cal-lifestat" title={`${tx('pack.cal.life.fromBirth', 'Počíta sa od narodenia')}: ${fmtDay(birth)}`}>
+        <div className="cal-lifestat" title={`${tx('pack.cal.life.fromBirth', 'Počíta sa od narodenia')}: ${fmtDay(birth, loc)}`}>
           <b>{num(livedDays)}</b>
           <span>{deceased
             ? tx('pack.cal.life.daysLived', 'dní najlepšieho života')
@@ -1210,12 +1213,12 @@ function LifeGrid({
           /* ✎ VEDIE DO DOG ID, NEEDITUJE TU (Matej: „to by bolo prepojené aj
              z dog id, čiže zmena tam by sa prejavila aj tu"). Je to ten istý
              deep-link, aký má doklad — jeden zdroj, `basics.since`. */
-          <div className="cal-lifestat" title={`${tx('pack.cal.life.fromSince', 'Počíta sa od')}: ${fmtDay(new Date(sinceDate.y, sinceDate.m - 1, sinceDate.d))}`}>
+          <div className="cal-lifestat" title={`${tx('pack.cal.life.fromSince', 'Počíta sa od')}: ${fmtDay(new Date(sinceDate.y, sinceDate.m - 1, sinceDate.d), loc)}`}>
             <Link className="cal-statedit" to={`/pack/dogs/quiz/basics?dog=${row.id}&field=basics.since`}
               aria-label={tx('pack.pass.edit', 'edit')}>✎</Link>
             <b>{num(togetherDays)}</b>
             <span>{tx('pack.cal.life.together', 'dní spolu')}</span>
-            <u>{fmtDay(new Date(sinceDate.y, sinceDate.m - 1, sinceDate.d))}</u>
+            <u>{fmtDay(new Date(sinceDate.y, sinceDate.m - 1, sinceDate.d), loc)}</u>
           </div>
         )}
       </div>
