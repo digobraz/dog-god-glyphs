@@ -205,9 +205,12 @@ export function OwnerScreen() {
   // ── PORADIE PSA NA RADE (odvodené zo zoznamu kroku 3) ───────────────────────
   const rankNum = rankOf(Math.min(cur, Math.max(0, dogs.length - 1)));
   const hasRank = rankNum > 0;
-  /** `1st` v angličtine, `1.` inde — tá istá pomôcka, akú mala obrazovka poradia. */
+  /** `1st` v angličtine, `1.` tam, kde sa radová číslovka píše bodkou, inde holé
+   *  číslo — príponu (FR `3e`, RU `3-й`, JA `3番目`) nesie preklad `orderLine`
+   *  (preklad flowu 2. 10. 2026: „3.番目" / „第3.只"). */
   const ordinal = (n: number) => {
-    if (lang !== 'en') return `${n}.`;
+    if (['sk', 'cs', 'deu', 'pol', 'tur'].includes(lang)) return `${n}.`;
+    if (lang !== 'en') return `${n}`;
     const s = ['th', 'st', 'nd', 'rd'];
     const v = n % 100;
     return `${n}${s[(v - 20) % 10] || s[v] || s[0]}`;
