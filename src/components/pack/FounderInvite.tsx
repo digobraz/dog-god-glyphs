@@ -12,7 +12,7 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { track } from '@/lib/analytics';
 import { shareDog, downloadCard } from '@/lib/useShareCard';
 import { dogPagePath } from '@/lib/dogSlug';
-import { FONT_TITLE, FONT_UI, PILL_CSS, GOLD_BTN, PACK_THEME } from './packTheme';
+import { FONT_TITLE, FONT_UI, PILL_CSS, GOLD_BTN, PACK_THEME, PACK_SHADOW } from './packTheme';
 import { HandCheck } from '@/components/pack/HandIcons';
 
 const APP_ORIGIN = 'https://dogypt.com';
@@ -93,7 +93,7 @@ const CSS = `
   flex:1 1 0; min-width:0;
   display:inline-flex; align-items:center; justify-content:center; gap:7px;
   padding:12px 8px; border-radius:8px; text-decoration:none; cursor:pointer;
-  font-family:${FONT_TITLE}; font-size:10.5px; letter-spacing:0.14em; text-transform:uppercase;
+  font-family:${FONT_TITLE}; font-size:10px; letter-spacing:0.14em; text-transform:uppercase;
   white-space:nowrap;
   transition:background .18s ease, border-color .18s ease;
 }
@@ -113,7 +113,7 @@ const CSS = `
    okraj, radius aj hover má spoločné s pilulkami na papyruse, aby homepage nemala dve
    rôzne pilulky vedľa seba. */
 .fi-pill{
-  font-family:${FONT_UI}; font-size:10.5px; font-weight:500;
+  font-family:${FONT_UI}; font-size:10px; font-weight:500;
   letter-spacing:0.02em; text-transform:uppercase; text-decoration:none;
 }
 `;
@@ -229,7 +229,7 @@ export function FounderInvite({ dogName, packNumber, shareCardUrl }: FounderInvi
         border: `1.5px solid ${PACK_THEME.border}`,
         borderRadius: 16,
         padding: '32px 24px',
-        boxShadow: '0 24px 55px -28px rgba(31, 26, 14, 0.45)',
+        boxShadow: PACK_SHADOW.panel,
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -262,7 +262,7 @@ export function FounderInvite({ dogName, packNumber, shareCardUrl }: FounderInvi
                 overflow: 'hidden',
                 border: '1px solid rgba(245,199,61,0.32)',
                 background: '#000',
-                boxShadow: '0 18px 44px -22px rgba(0,0,0,0.8)',
+                boxShadow: PACK_SHADOW.panel,
               }}
             >
               <img
@@ -275,7 +275,7 @@ export function FounderInvite({ dogName, packNumber, shareCardUrl }: FounderInvi
             <p
               style={{
                 fontFamily: FONT_UI,
-                fontSize: 13,
+                fontSize: 12,
                 color: 'hsl(45 40% 88% / 0.8)',
                 margin: 0,
               }}
@@ -332,7 +332,7 @@ export function FounderInvite({ dogName, packNumber, shareCardUrl }: FounderInvi
             <p
               style={{
                 fontFamily: FONT_UI,
-                fontSize: 13,
+                fontSize: 12,
                 lineHeight: 1.55,
                 color: 'hsl(45 40% 90% / 0.9)',
                 margin: 0,
@@ -390,7 +390,7 @@ export function FounderInvite({ dogName, packNumber, shareCardUrl }: FounderInvi
               style={{
                 background: 'rgba(0,0,0,0.28)',
                 border: '1px solid rgba(245,199,61,0.32)',
-                borderRadius: 10,
+                borderRadius: 8,
                 padding: '4px 4px 4px 12px',
               }}
             >
@@ -398,7 +398,7 @@ export function FounderInvite({ dogName, packNumber, shareCardUrl }: FounderInvi
                 className="flex-1 truncate text-left"
                 style={{
                   fontFamily: FONT_UI,
-                  fontSize: 12.5,
+                  fontSize: 12,
                   color: 'hsl(45 60% 92%)',
                   letterSpacing: '0.02em',
                 }}
@@ -420,7 +420,7 @@ export function FounderInvite({ dogName, packNumber, shareCardUrl }: FounderInvi
                   height: 34,
                   cursor: link ? 'pointer' : 'default',
                   opacity: link ? 1 : 0.5,
-                  boxShadow: '0 6px 16px -8px rgba(0,0,0,0.6)',
+                  boxShadow: PACK_SHADOW.panel,
                 }}
               >
                 {copied ? <HandCheck size={16} /> : <HandClipboard size={16} />}
@@ -429,7 +429,7 @@ export function FounderInvite({ dogName, packNumber, shareCardUrl }: FounderInvi
             <p
               style={{
                 fontFamily: FONT_UI,
-                fontSize: 10.5,
+                fontSize: 10,
                 lineHeight: 1.4,
                 color: 'hsl(45 30% 84% / 0.6)',
                 margin: '7px 0 0',
@@ -443,7 +443,7 @@ export function FounderInvite({ dogName, packNumber, shareCardUrl }: FounderInvi
             className="inline-flex items-center gap-1.5"
             style={{
               fontFamily: FONT_UI,
-              fontSize: 11,
+              fontSize: 10,
               color: 'hsl(45 40% 88% / 0.7)',
             }}
           >
@@ -481,7 +481,7 @@ function StatTile({
           ? 'linear-gradient(180deg, rgba(245,199,61,0.26) 0%, rgba(245,199,61,0.08) 100%)'
           : 'linear-gradient(180deg, rgba(0,0,0,0.34) 0%, rgba(0,0,0,0.18) 100%)',
         border: `1px solid ${highlight ? 'rgba(245,199,61,0.62)' : 'rgba(245,199,61,0.34)'}`,
-        borderRadius: 10,
+        borderRadius: 8,
         padding: '16px 8px 12px',
         boxShadow: highlight
           ? '0 10px 26px -16px rgba(245,199,61,0.75), inset 0 1px 0 rgba(255,246,226,0.22)'
@@ -504,7 +504,7 @@ function StatTile({
       <span
         style={{
           fontFamily: FONT_UI,
-          fontSize: 9.5,
+          fontSize: 10,
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
           color: 'hsl(45 40% 88% / 0.78)',
@@ -518,7 +518,7 @@ function StatTile({
         <span
           style={{
             fontFamily: FONT_UI,
-            fontSize: 8.5,
+            fontSize: 10,
             color: 'hsl(45 35% 86% / 0.5)',
             marginTop: 2,
             textAlign: 'center',

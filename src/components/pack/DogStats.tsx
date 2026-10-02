@@ -12,7 +12,7 @@
 // Vytiahnuté 1:1 z `PackDogDetail.tsx` — z neho sa NEIMPORTUJE nič (~3200 riadkov, lazy).
 import React, { useState } from 'react';
 import { BrandIcon } from './BrandIcon';
-import { PACK_THEME } from './packTheme';
+import { PACK_THEME, PACK_SHADOW } from './packTheme';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
@@ -53,7 +53,7 @@ export function DogStats({ birthMonth = null, birthDay = null }: { birthMonth?: 
           <p
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 12.5,
+              fontSize: 12,
               color: T.inkDim,
               marginBottom: 18,
             }}
@@ -84,10 +84,9 @@ export function DogStats({ birthMonth = null, birthDay = null }: { birthMonth?: 
                 color: T.accentGold,
                 background: 'rgba(255, 251, 242, 0.72)',
                 border: `1px solid ${PACK_THEME.border}`,
-                backdropFilter: 'blur(1px)',
                 padding: '12px 24px',
                 borderRadius: 999,
-                boxShadow: '0 10px 30px -10px rgba(20, 8, 40, 0.35)',
+                boxShadow: PACK_SHADOW.panel,
               }}
             >
               {t('pack.dog.comingSoon')}
@@ -173,7 +172,7 @@ function StatsCalendar({ birthMonth, birthDay }: { birthMonth: number | null; bi
                 minWidth: 0,
                 textAlign: 'center',
                 fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-                fontSize: 7,
+                fontSize: 10,
                 color: T.inkFaint,
               }}
             >
@@ -191,7 +190,7 @@ function StatsCalendar({ birthMonth, birthDay }: { birthMonth: number | null; bi
               width: 28,
               flexShrink: 0,
               fontFamily: "'Cinzel', serif",
-              fontSize: 9,
+              fontSize: 10,
               letterSpacing: '0.02em',
               textTransform: 'uppercase',
               color: T.inkFaint,
@@ -207,7 +206,7 @@ function StatsCalendar({ birthMonth, birthDay }: { birthMonth: number | null; bi
                   flex: '1 1 0',
                   minWidth: 0,
                   aspectRatio: '1 / 1',
-                  borderRadius: 3,
+                  borderRadius: 8,
                   background: d < m.days ? cellColor(m.base + d) : 'transparent',
                 }}
               />
@@ -239,12 +238,12 @@ function StatsLegend({ onAdd }: { onAdd: () => void }) {
 
       {STAT_LEGEND.map((l) => (
         <div key={l.label} className="flex items-center gap-2.5">
-          <span style={{ width: 16, height: 16, borderRadius: 4, flexShrink: 0, background: l.color }} />
+          <span style={{ width: 16, height: 16, borderRadius: 8, flexShrink: 0, background: l.color }} />
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontFamily: "'Cinzel', serif", fontSize: 12.5, fontWeight: 700, color: T.ink, lineHeight: 1.1 }}>
+            <div style={{ fontFamily: "'Cinzel', serif", fontSize: 12, fontWeight: 700, color: T.ink, lineHeight: 1.1 }}>
               {l.label}
             </div>
-            <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10.5, color: T.inkFaint }}>{l.desc}</div>
+            <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: T.inkFaint }}>{l.desc}</div>
           </div>
         </div>
       ))}
@@ -257,7 +256,7 @@ function StatsLegend({ onAdd }: { onAdd: () => void }) {
         style={{
           marginTop: 4,
           padding: '8px 8px',
-          borderRadius: 11,
+          borderRadius: 12,
           border: `1.5px dashed ${T.border}`,
           background: 'transparent',
           cursor: 'pointer',
@@ -266,15 +265,15 @@ function StatsLegend({ onAdd }: { onAdd: () => void }) {
       >
         <span
           className="inline-flex items-center justify-center"
-          style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, border: `1px dashed ${T.border}` }}
+          style={{ width: 32, height: 32, borderRadius: 8, flexShrink: 0, border: `1px dashed ${T.border}` }}
         >
           <img src="/icons/pack/plus.svg" alt="" style={{ width: 16, height: 16, filter: GOLD_FILTER }} />
         </span>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontFamily: "'Cinzel', serif", fontSize: 12.5, fontWeight: 700, color: T.ink, lineHeight: 1.1 }}>
+          <div style={{ fontFamily: "'Cinzel', serif", fontSize: 12, fontWeight: 700, color: T.ink, lineHeight: 1.1 }}>
             {t('pack.dog.addActivity')}
           </div>
-          <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10.5, color: T.inkFaint }}>
+          <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: T.inkFaint }}>
             {t('pack.dog.addActivityDesc')}
           </div>
         </div>

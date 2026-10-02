@@ -19,7 +19,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2, Save, Send } from 'lucide-react';
 import { BackButton } from './BackButton';
-import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, FONT_TITLE, FONT_UI } from './packTheme';
+import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, VEIL_CSS, FONT_TITLE, FONT_UI } from './packTheme';
 import { appendDogEvents, readLatest, type LatestValue } from '@/lib/dogEvents';
 import { RightGate } from '@/components/pack/RightGate';
 import { supabase } from '@/integrations/supabase/client';
@@ -166,8 +166,8 @@ export function WillPanel({
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center"
-      style={{ zIndex: 60, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(3px)', padding: 16 }}
+      className="pk-veil pk-veil--modal"
+      style={{ zIndex: 60, padding: 16 }}
       onClick={onClose}
     >
       <div
@@ -175,7 +175,7 @@ export function WillPanel({
         style={{
           // Úroveň 4 MATRICE (`PACK_BOX.panel`) — plávajúci panel nad stránkou.
           ...PACK_BOX.panel,
-          padding: '22px 20px',
+          padding: '24px 16px',
           width: '100%',
           maxWidth: 480,
           maxHeight: '86vh',
@@ -183,7 +183,7 @@ export function WillPanel({
           color: T.ink,
         }}
       >
-        <style>{PF_FIELD_CSS}</style>
+        <style>{PF_FIELD_CSS}{VEIL_CSS}</style>
 
         {/* × → šípka späť vľavo (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */}
         <div className="flex items-start" style={{ gap: 12, marginBottom: 4 }}>
@@ -199,7 +199,7 @@ export function WillPanel({
             </div>
             <h3
               style={{
-                fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 19, letterSpacing: '0.06em',
+                fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 20, letterSpacing: '0.02em',
                 textTransform: 'uppercase', color: T.inkStrong, margin: '3px 0 0',
               }}
             >
@@ -208,7 +208,7 @@ export function WillPanel({
           </div>
         </div>
 
-        <p style={{ fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.55, color: T.inkWarm, margin: '10px 0 16px' }}>
+        <p style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.55, color: T.inkWarm, margin: '10px 0 16px' }}>
           {tx('pack.will.intro', 'Everything in this card is already the handover. This is the part only they get: who takes over, and what you want them to know.')}
         </p>
 
@@ -264,7 +264,7 @@ export function WillPanel({
             />
             <div
               style={{
-                fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 9.5,
+                fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 10,
                 color: remaining < 100 ? T.alertRed : T.inkFaint, textAlign: 'right', marginTop: 4,
               }}
             >
@@ -282,8 +282,8 @@ export function WillPanel({
         {/* Odoslanie je druhý krok, nie druhé tlačidlo vedľa uloženia. Závet odchádza
             cudziemu človeku a späť sa vziať nedá — jeden klik na to nestačí. */}
         {sendStep ? (
-          <div style={{ ...PACK_BOX.row, padding: '12px 13px', marginTop: 16 }}>
-            <p style={{ fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.5, color: T.inkStrong, margin: 0 }}>
+          <div style={{ ...PACK_BOX.row, padding: '12px 12px', marginTop: 16 }}>
+            <p style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.5, color: T.inkStrong, margin: 0 }}>
               {tx('pack.will.confirm', 'Send this to {who} now? They will receive the message and the card.')
                 .replace('{who}', [heirEmail, heirEmail2].filter(Boolean).join(', '))}
             </p>
@@ -296,7 +296,7 @@ export function WillPanel({
                 className="pk-pill pk-pill--gold pk-pill--tap inline-flex items-center gap-2"
                 onClick={send}
                 disabled={sending}
-                style={{ fontFamily: FONT_TITLE, fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase' }}
+                style={{ fontFamily: FONT_TITLE, fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' }}
               >
                 {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                 {tx('pack.will.sendNow', 'Send')}
@@ -319,7 +319,7 @@ export function WillPanel({
                     : undefined
               }
               style={{
-                fontFamily: FONT_TITLE, fontSize: 10, fontWeight: 700, letterSpacing: '0.16em',
+                fontFamily: FONT_TITLE, fontSize: 10, fontWeight: 700, letterSpacing: '0.14em',
                 textTransform: 'uppercase', opacity: canSend ? 1 : 0.45,
                 cursor: canSend ? 'pointer' : 'default',
               }}
@@ -336,7 +336,7 @@ export function WillPanel({
               onClick={save}
               disabled={!dirty || saving}
               style={{
-                fontFamily: FONT_TITLE, fontSize: 10, fontWeight: 700, letterSpacing: '0.16em',
+                fontFamily: FONT_TITLE, fontSize: 10, fontWeight: 700, letterSpacing: '0.14em',
                 textTransform: 'uppercase', opacity: dirty || savedAt ? 1 : 0.45,
                 cursor: dirty ? 'pointer' : 'default',
               }}
@@ -359,9 +359,9 @@ export function WillPanel({
 const fieldStyle: React.CSSProperties = {
   width: '100%',
   borderRadius: 8,
-  padding: '9px 11px',
+  padding: '8px 12px',
   fontFamily: FONT_UI,
-  fontSize: 13,
+  fontSize: 12,
   color: T.inkStrong,
   outline: 'none',
 };
@@ -379,7 +379,7 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
       </span>
       {children}
       {hint && (
-        <span style={{ fontFamily: FONT_UI, fontSize: 11, lineHeight: 1.45, color: T.inkFaint }}>
+        <span style={{ fontFamily: FONT_UI, fontSize: 10, lineHeight: 1.45, color: T.inkFaint }}>
           {hint}
         </span>
       )}

@@ -12,7 +12,7 @@ import { PackLayout } from '@/components/pack/PackLayout';
 import { PALE, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { DogPassport, type FixedRow } from '@/components/pack/DogPassport';
 import { WillPanel } from '@/components/pack/WillPanel';
-import { PACK_THEME, PILL_CSS, PACK_BOX, PACK_HEAD, PACK_TEXT, PACK_SPACE } from '@/components/pack/packTheme';
+import { PACK_THEME, PILL_CSS, VEIL_CSS, PACK_BOX, PACK_HEAD, PACK_TEXT, PACK_SPACE, PACK_SHADOW } from '@/components/pack/packTheme';
 import { dogTripStats } from '@/lib/dogTripStats';
 import { readEvents, readLatest, onDogEventsChange } from '@/lib/dogEvents';
 import { TILT_CSS, TILT_PROPS } from '@/components/pack/packTilt';
@@ -47,7 +47,7 @@ const DOGID_CSS = `
 @keyframes did-in{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
 .did-card{position:relative;animation:did-in .32s cubic-bezier(.16,1,.3,1) both;}
 /* dvojitý rám — doklady majú vnútornú linku, nie jednu hranu */
-.did-card::before{content:'';position:absolute;inset:7px;border:1px solid rgba(201,154,63,.20);border-radius:11px;pointer-events:none;}
+.did-card::before{content:'';position:absolute;inset:7px;border:1px solid ${PACK_THEME.hairline};border-radius:12px;pointer-events:none;}
 .did-idzone{position:relative;}
 
 /* CENTROVANÁ OS — vzor je certifikát: všetko na jednej osi, zhora nadol. */
@@ -59,12 +59,12 @@ const DOGID_CSS = `
    pilulky na homepage a v profile — DNA nesie .pk-pill, tu je len typografia a
    rozostupy. */
 .did-head{display:flex;flex-direction:column;align-items:center;margin-bottom:16px;}
-.did-idpill{font-family:'Cinzel',serif;font-weight:700;font-size:11px;letter-spacing:0.26em;text-transform:uppercase;padding:8px 16px;}
+.did-idpill{font-family:'Cinzel',serif;font-weight:700;font-size:10px;letter-spacing:0.26em;text-transform:uppercase;padding:8px 16px;}
 /* Poradové číslo = ČÍSLO ⇒ Space Grotesk 600 (strop načítanej váhy), nie Cinzel —
    pravidlo pilulky z packTheme.ts: názov Cinzel, číslo Grotesk. */
 /* Výška 30px je spoločná pre všetky TRI čipy v rade (číslo · vlajka · zdravie) —
    inak je jeden o 6 px vyšší a rad vyzerá nedbalo. Preto pevná výška, nie padding. */
-.did-numpill{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.02em;height:30px;padding:0 12px;}
+.did-numpill{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12px;letter-spacing:.02em;height:30px;padding:0 12px;}
 
 /* fotka = KRUH so zlatým prsteňom (ako na certifikáte a na GRIDE) */
 .did-photoframe{position:relative;display:block;width:136px;height:136px;border-radius:50%;overflow:hidden;padding:0;background:${T.bg};border:2px solid ${T.accentGold};box-shadow:0 0 0 1px rgba(201,154,63,.45),0 10px 26px rgba(201,154,63,.24);}
@@ -157,8 +157,8 @@ function FlagCircle({ src, iso2, label }: { src: string; iso2: string; label: st
     height: 30,
     borderRadius: '50%',
     justifySelf: 'center',
-    border: '1.5px solid rgba(201, 154, 63, 0.55)',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+    border: `1.5px solid ${PACK_THEME.border}`,
+    boxShadow: PACK_SHADOW.lift,
     background: '#1a1a1a',
   };
 
@@ -653,7 +653,7 @@ export default function PackDogDetail() {
       <PackLayout>
         <div className="flex items-center justify-center py-16" style={{ color: T.inkDim }}>
           <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.26em', fontSize: 11 }}>
+          <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.26em', fontSize: 10 }}>
             {t('pack.dog.loading')}
           </span>
         </div>
@@ -867,7 +867,7 @@ export default function PackDogDetail() {
                    pozvanie nesie IKONKA, nie nové anglické slovo v 16 jazykoch. */
                 <div
                   className="flex flex-col items-center justify-center h-full"
-                  style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.22em', gap: 4 }}
+                  style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.22em', gap: 4 }}
                 >
                   <HandCamera size={16} aria-hidden="true" />
                   {t('pack.dog.noPhoto')}
@@ -991,7 +991,7 @@ export default function PackDogDetail() {
                     <BestLifeBadge age={age} />
                   </div>
                 ) : (
-                  <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, color: T.inkDim }}>
+                  <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: T.inkDim }}>
                     {t('pack.dog.birthdayUnknown')}
                   </div>
                 )}
@@ -1016,7 +1016,7 @@ export default function PackDogDetail() {
                 zIndex: 6,
                 background: T.cardGrad,
                 borderRadius: 16,
-                padding: 18,
+                padding: 16,
                 overflowY: 'visible',
               }}
             >
@@ -1041,11 +1041,11 @@ export default function PackDogDetail() {
                 style={{
                   marginTop: 8,
                   background: 'rgba(201, 154, 63, 0.07)',
-                  border: '1px solid rgba(201, 154, 63, 0.30)',
+                  border: `1px solid ${PACK_THEME.hairline}`,
                   padding: '8px 12px',
-                  borderRadius: 10,
+                  borderRadius: 8,
                   fontFamily: "'Cinzel', serif",
-                  fontSize: 9.5,
+                  fontSize: 10,
                   letterSpacing: '0.22em',
                   textTransform: 'uppercase',
                   fontWeight: 700,
@@ -1104,7 +1104,7 @@ export default function PackDogDetail() {
                       background: 'transparent',
                       border: 'none',
                       fontFamily: "'Cinzel', serif",
-                      fontSize: 8.5,
+                      fontSize: 10,
                       letterSpacing: '0.22em',
                       textTransform: 'uppercase',
                       fontWeight: 700,
@@ -1128,11 +1128,11 @@ export default function PackDogDetail() {
                 style={{
                   marginTop: 14,
                   background: 'rgba(201, 154, 63, 0.07)',
-                  border: '1px solid rgba(201, 154, 63, 0.30)',
+                  border: `1px solid ${PACK_THEME.hairline}`,
                   padding: '8px 12px',
-                  borderRadius: 10,
+                  borderRadius: 8,
                   fontFamily: "'Cinzel', serif",
-                  fontSize: 9.5,
+                  fontSize: 10,
                   letterSpacing: '0.22em',
                   textTransform: 'uppercase',
                   fontWeight: 700,
@@ -1163,9 +1163,9 @@ export default function PackDogDetail() {
                     color: T.card,
                     border: 'none',
                     padding: '8px 16px',
-                    borderRadius: 10,
+                    borderRadius: 8,
                     fontFamily: "'Cinzel', serif",
-                    fontSize: 9.5,
+                    fontSize: 10,
                     letterSpacing: '0.22em',
                     textTransform: 'uppercase',
                     fontWeight: 700,
@@ -1212,10 +1212,11 @@ export default function PackDogDetail() {
               back panel stays short and never scrolls (Matej 2026-07-07). */}
           {wallOpen && (
             <div
-              className="fixed inset-0 flex items-center justify-center"
-              style={{ zIndex: 50, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(3px)' }}
+              className="pk-veil pk-veil--modal"
+              style={{ zIndex: 50 }}
               onClick={() => setWallOpen(false)}
             >
+              <style>{VEIL_CSS}</style>
               <div
                 onClick={(e) => e.stopPropagation()}
                 style={{
@@ -1230,7 +1231,7 @@ export default function PackDogDetail() {
               >
                 <div className="flex items-center justify-between mb-1.5">
                   <SectionHeading icon={<BrandIcon name="heartpaw" size={12} tint="gold" />} label={t('pack.dog.wordOnWall')} inline />
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9.5, color: T.inkDim }}>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: T.inkDim }}>
                     {messageDraft.length}/{MESSAGE_MAX}
                   </span>
                 </div>
@@ -1248,11 +1249,11 @@ export default function PackDogDetail() {
                     width: '100%',
                     background: T.bg,
                     border: `1px solid ${T.hairline}`,
-                    borderRadius: 10,
-                    padding: 11,
+                    borderRadius: 8,
+                    padding: 12,
                     color: T.ink,
                     fontFamily: "'Space Grotesk', sans-serif",
-                    fontSize: 13,
+                    fontSize: 12,
                     lineHeight: 1.45,
                     resize: 'none',
                     outline: 'none',
@@ -1265,7 +1266,7 @@ export default function PackDogDetail() {
                     disabled={messageSaving}
                     style={{
                       padding: '8px 16px',
-                      borderRadius: 10,
+                      borderRadius: 8,
                       background: 'transparent',
                       border: `1px solid ${T.hairline}`,
                       color: T.inkDim,
@@ -1289,7 +1290,7 @@ export default function PackDogDetail() {
                       color: messageDirty ? T.card : T.inkFaint,
                       border: messageDirty ? 'none' : `1px solid ${T.hairline}`,
                       padding: '8px 16px',
-                      borderRadius: 10,
+                      borderRadius: 8,
                       fontFamily: "'Cinzel', serif",
                       fontSize: 10,
                       letterSpacing: '0.22em',
@@ -1547,7 +1548,7 @@ function StatsCalendar({ birthMonth, birthDay }: { birthMonth: number | null; bi
                 minWidth: 0,
                 textAlign: 'center',
                 fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-                fontSize: 7,
+                fontSize: 10,
                 color: T.inkFaint,
               }}
             >
@@ -1565,7 +1566,7 @@ function StatsCalendar({ birthMonth, birthDay }: { birthMonth: number | null; bi
               width: 28,
               flexShrink: 0,
               fontFamily: "'Cinzel', serif",
-              fontSize: 9,
+              fontSize: 10,
               letterSpacing: '0.02em',
               textTransform: 'uppercase',
               color: T.inkFaint,
@@ -1581,7 +1582,7 @@ function StatsCalendar({ birthMonth, birthDay }: { birthMonth: number | null; bi
                   flex: '1 1 0',
                   minWidth: 0,
                   aspectRatio: '1 / 1',
-                  borderRadius: 3,
+                  borderRadius: 8,
                   background: d < m.days ? cellColor(m.base + d) : 'transparent',
                 }}
               />
@@ -1613,12 +1614,12 @@ function StatsLegend({ onAdd }: { onAdd: () => void }) {
 
       {STAT_LEGEND.map((l) => (
         <div key={l.label} className="flex items-center gap-2.5">
-          <span style={{ width: 16, height: 16, borderRadius: 4, flexShrink: 0, background: l.color }} />
+          <span style={{ width: 16, height: 16, borderRadius: 8, flexShrink: 0, background: l.color }} />
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontFamily: "'Cinzel', serif", fontSize: 12.5, fontWeight: 700, color: T.ink, lineHeight: 1.1 }}>
+            <div style={{ fontFamily: "'Cinzel', serif", fontSize: 12, fontWeight: 700, color: T.ink, lineHeight: 1.1 }}>
               {l.label}
             </div>
-            <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10.5, color: T.inkFaint }}>{l.desc}</div>
+            <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: T.inkFaint }}>{l.desc}</div>
           </div>
         </div>
       ))}
@@ -1631,7 +1632,7 @@ function StatsLegend({ onAdd }: { onAdd: () => void }) {
         style={{
           marginTop: 4,
           padding: '8px 8px',
-          borderRadius: 11,
+          borderRadius: 12,
           border: `1.5px dashed ${T.border}`,
           background: 'transparent',
           cursor: 'pointer',
@@ -1640,15 +1641,15 @@ function StatsLegend({ onAdd }: { onAdd: () => void }) {
       >
         <span
           className="inline-flex items-center justify-center"
-          style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, border: `1px dashed ${T.border}` }}
+          style={{ width: 32, height: 32, borderRadius: 8, flexShrink: 0, border: `1px dashed ${T.border}` }}
         >
           <img src="/icons/pack/plus.svg" alt="" style={{ width: 16, height: 16, filter: GOLD_FILTER }} />
         </span>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontFamily: "'Cinzel', serif", fontSize: 12.5, fontWeight: 700, color: T.ink, lineHeight: 1.1 }}>
+          <div style={{ fontFamily: "'Cinzel', serif", fontSize: 12, fontWeight: 700, color: T.ink, lineHeight: 1.1 }}>
             {t('pack.dog.addActivity')}
           </div>
-          <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10.5, color: T.inkFaint }}>
+          <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: T.inkFaint }}>
             {t('pack.dog.addActivityDesc')}
           </div>
         </div>
@@ -1688,13 +1689,13 @@ function NumberPill({ number, since }: { number: string; since: string }) {
             transform: 'translateX(-50%)',
             whiteSpace: 'nowrap',
             padding: '8px 16px',
-            borderRadius: 10,
+            borderRadius: 8,
             background: T.ink,
             color: T.card,
             fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 12.5,
+            fontSize: 12,
             fontWeight: 500,
-            boxShadow: '0 10px 28px rgba(10,10,10,0.28)',
+            boxShadow: PACK_SHADOW.panel,
             zIndex: 6,
           }}
         >
@@ -1747,13 +1748,13 @@ function BestLifeBadge({ age }: { age: DogAge }) {
             transform: 'translateX(-50%)',
             whiteSpace: 'nowrap',
             padding: '8px 16px',
-            borderRadius: 10,
+            borderRadius: 8,
             background: T.ink,
             color: T.card,
             fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 12.5,
+            fontSize: 12,
             fontWeight: 500,
-            boxShadow: '0 10px 28px rgba(10,10,10,0.28)',
+            boxShadow: PACK_SHADOW.panel,
             zIndex: 5,
           }}
         >
@@ -1785,11 +1786,11 @@ function AngelBadge({ days, sinceLabel }: { days: number; sinceLabel: string | n
           background: 'linear-gradient(180deg, #F4F6FB 0%, #D9DEE8 100%)',
           color: '#3a4256',
           fontFamily: "'Cinzel', serif",
-          fontSize: 15,
+          fontSize: 14,
           fontWeight: 700,
           letterSpacing: '0.02em',
           cursor: 'pointer',
-          boxShadow: '0 6px 16px -6px rgba(120, 130, 150, 0.55)',
+          boxShadow: PACK_SHADOW.panel,
           border: '1px solid rgba(180,190,210,0.6)',
           lineHeight: 1.1,
           whiteSpace: 'nowrap',
@@ -1806,13 +1807,13 @@ function AngelBadge({ days, sinceLabel }: { days: number; sinceLabel: string | n
             transform: 'translateX(-50%)',
             whiteSpace: 'nowrap',
             padding: '8px 16px',
-            borderRadius: 10,
+            borderRadius: 8,
             background: T.ink,
             color: T.card,
             fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 12.5,
+            fontSize: 12,
             fontWeight: 500,
-            boxShadow: '0 10px 28px rgba(10,10,10,0.28)',
+            boxShadow: PACK_SHADOW.panel,
             zIndex: 5,
           }}
         >
@@ -1850,7 +1851,7 @@ function LevelMeter({ title, pct, label }: { title: string; pct: number; label: 
         <span
           style={{
             fontFamily: "'Cinzel', serif",
-            fontSize: 11,
+            fontSize: 10,
             letterSpacing: '0.22em',
             textTransform: 'uppercase',
             color: T.ink,
@@ -1908,7 +1909,7 @@ function EditableHealthText({ value, placeholder, onSave }: { value: string; pla
         color: T.ink,
         background: T.card,
         border: `1px solid ${T.border}`,
-        borderRadius: 6,
+        borderRadius: 8,
         padding: '4px 8px',
       }}
     />
@@ -1935,14 +1936,14 @@ function EditableCriticalChip({ lucide, label, value, placeholder, onSave }: { l
   return (
     <div
       className="flex items-start gap-2.5"
-      style={{ padding: '12px 12px', borderRadius: 10, background: T.tileBg, border: `1px solid ${T.border}` }}
+      style={{ padding: '12px 12px', borderRadius: 8, background: T.tileBg, border: `1px solid ${T.border}` }}
     >
-      <span style={{ color: T.accentGold, display: 'inline-flex', paddingTop: 2 }}>{lucide}</span>
+      <span style={{ color: T.accentGold, display: 'inline-flex', paddingTop: 4 }}>{lucide}</span>
       <div className="flex flex-col" style={{ gap: 1, minWidth: 0, flex: 1 }}>
         <span
           style={{
             fontFamily: "'Cinzel', serif",
-            fontSize: 8.5,
+            fontSize: 10,
             letterSpacing: '0.22em',
             textTransform: 'uppercase',
             color: T.inkFaint,
@@ -1967,7 +1968,7 @@ function EditableCriticalChip({ lucide, label, value, placeholder, onSave }: { l
               color: T.ink,
               background: T.bg,
               border: `1px solid ${T.border}`,
-              borderRadius: 5,
+              borderRadius: 8,
               padding: '4px 4px',
             }}
           />
@@ -2015,7 +2016,7 @@ const PRAYER_GRADIENT = 'var(--brand-gradient)';
 // Points pill — light text on the gradient row.
 const PTS_PILL: React.CSSProperties = {
   fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-  fontSize: 11,
+  fontSize: 10,
   fontWeight: 700,
   color: T.card,
   background: 'rgba(0,0,0,0.22)',
@@ -2069,7 +2070,7 @@ function PrayerRow({
           borderRadius: 14,
           padding: '0 16px',
           minHeight: 58,
-          boxShadow: '0 10px 28px -16px rgba(40, 16, 70, 0.6)',
+          boxShadow: PACK_SHADOW.panel,
           cursor: rowClickable ? 'pointer' : 'default',
           opacity: disabled ? 0.82 : faded ? 0.55 : 1,
           transition: 'opacity 0.15s',
@@ -2091,7 +2092,7 @@ function PrayerRow({
           style={{
             width: 30,
             height: 30,
-            borderRadius: 9,
+            borderRadius: 8,
             flexShrink: 0,
             background: checked ? '#22C55E' : 'rgba(255,255,255,0.10)',
             border: checked ? 'none' : '2px solid rgba(250,244,236,0.55)',
@@ -2109,7 +2110,7 @@ function PrayerRow({
             <div
               style={{
                 fontFamily: "'Cinzel', serif",
-                fontSize: 8,
+                fontSize: 10,
                 letterSpacing: '0.22em',
                 textTransform: 'uppercase',
                 color: 'rgba(245, 222, 170, 0.92)',
@@ -2118,11 +2119,11 @@ function PrayerRow({
               {eyebrow}
             </div>
           )}
-          <div style={{ fontFamily: "'Cinzel', serif", fontSize: 15, fontWeight: 700, color: T.card, lineHeight: 1.15 }}>
+          <div style={{ fontFamily: "'Cinzel', serif", fontSize: 14, fontWeight: 700, color: T.card, lineHeight: 1.15 }}>
             {title}
           </div>
           {sub && (
-            <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, color: 'rgba(250,244,236,0.72)', marginTop: 1 }}>
+            <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: 'rgba(250,244,236,0.72)', marginTop: 1 }}>
               {sub}
             </div>
           )}
@@ -2144,11 +2145,11 @@ function PrayerRow({
             background: T.ink,
             color: T.card,
             fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 10.5,
+            fontSize: 10,
             lineHeight: 1.4,
             padding: '8px 12px',
-            borderRadius: 10,
-            boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+            borderRadius: 8,
+            boxShadow: PACK_SHADOW.panel,
           }}
         >
           {hint}
@@ -2197,7 +2198,7 @@ function HealthBadge({
           // len výplň a farbu, nie hrúbku okraja — inak rad vyzerá nedbalo.
           border: `1.5px solid ${current.color}`,
           fontFamily: "'Cinzel', serif",
-          fontSize: 9,
+          fontSize: 10,
           letterSpacing: '0.22em',
           textTransform: 'uppercase',
           fontWeight: 700,
@@ -2238,7 +2239,7 @@ function HealthBadge({
                 className="flex items-center gap-2.5 w-full"
                 style={{
                   padding: '8px 12px',
-                  borderRadius: 9,
+                  borderRadius: 8,
                   background: o.key === status ? `${o.color}14` : 'transparent',
                   border: o.key === status ? `1px solid ${o.color}66` : '1px solid transparent',
                   cursor: 'pointer',
@@ -2246,7 +2247,7 @@ function HealthBadge({
                 }}
               >
                 <span style={{ width: 9, height: 9, borderRadius: '50%', background: o.color, flexShrink: 0 }} />
-                <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, fontWeight: 600, color: T.ink }}>
+                <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, fontWeight: 600, color: T.ink }}>
                   {o.label}
                 </span>
                 {o.key === status && <HandCheck size={14} style={{ marginLeft: 'auto', color: o.color }} />}
@@ -2254,8 +2255,8 @@ function HealthBadge({
             ))}
           </div>
           {/* Vízia — vysvetlivka (pozvánka, nie funkčné) */}
-          <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${T.hairline}` }}>
-            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, lineHeight: 1.5, color: T.inkDim }}>
+          <div style={{ marginTop: 10, paddingTop: 8, borderTop: `1px solid ${T.hairline}` }}>
+            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, lineHeight: 1.5, color: T.inkDim }}>
               {t('pack.dog.healthVision')}
             </p>
             <span
@@ -2263,7 +2264,7 @@ function HealthBadge({
                 display: 'inline-block',
                 marginTop: 6,
                 fontFamily: "'Cinzel', serif",
-                fontSize: 8,
+                fontSize: 10,
                 letterSpacing: '0.22em',
                 textTransform: 'uppercase',
                 color: T.inkFaint,
@@ -2292,7 +2293,7 @@ function InLovingMemoryBadge() {
         background: 'linear-gradient(180deg, #F4F6FB 0%, #D9DEE8 100%)',
         border: '1.5px solid rgba(180,190,210,0.6)',
         fontFamily: "'Cinzel', serif",
-        fontSize: 9,
+        fontSize: 10,
         letterSpacing: '0.22em',
         textTransform: 'uppercase',
         fontWeight: 700,
@@ -2300,7 +2301,7 @@ function InLovingMemoryBadge() {
         lineHeight: 1,
       }}
     >
-      <span aria-hidden style={{ fontSize: 11, lineHeight: 1 }}>🕊</span>
+      <span aria-hidden style={{ fontSize: 10, lineHeight: 1 }}>🕊</span>
       {t('pack.dog.inLovingMemory')}
     </div>
   );
@@ -2343,11 +2344,11 @@ function AliveDot() {
             background: T.ink,
             color: T.card,
             fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: 500,
             padding: '8px 12px',
-            borderRadius: 9,
-            boxShadow: '0 8px 24px rgba(10,10,10,0.28)',
+            borderRadius: 8,
+            boxShadow: PACK_SHADOW.panel,
           }}
         >
           {t('pack.dog.stillAliveTooltip')}
@@ -2379,7 +2380,7 @@ function AngelDot() {
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: 8,
+          fontSize: 10,
           lineHeight: 1,
           background: 'radial-gradient(circle at 35% 30%, #F4F6FB 0%, #D9DEE8 70%)',
           boxShadow: '0 0 0 1px rgba(180,190,210,0.6)',
@@ -2399,11 +2400,11 @@ function AngelDot() {
             background: T.ink,
             color: T.card,
             fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: 500,
             padding: '8px 12px',
-            borderRadius: 9,
-            boxShadow: '0 8px 24px rgba(10,10,10,0.28)',
+            borderRadius: 8,
+            boxShadow: PACK_SHADOW.panel,
           }}
         >
           {t('pack.dog.angelFormTooltip')}
@@ -2464,7 +2465,7 @@ function IconBtn({
         style={{
           width: 36,
           height: 36,
-          borderRadius: 11,
+          borderRadius: 12,
           background: bg,
           border: `1px solid ${border}`,
           color: iconColor,
@@ -2489,11 +2490,11 @@ function IconBtn({
             background: T.ink,
             color: T.card,
             fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 10.5,
+            fontSize: 10,
             lineHeight: 1.4,
             padding: '8px 12px',
-            borderRadius: 10,
-            boxShadow: '0 8px 24px rgba(0,0,0,0.28)',
+            borderRadius: 8,
+            boxShadow: PACK_SHADOW.panel,
             textAlign: 'left',
           }}
         >
@@ -2525,7 +2526,7 @@ function TilePanel({
         background: T.cardGrad,
         border: `1.5px solid ${T.cardEdge}`,
         borderRadius: 16,
-        padding: 22,
+        padding: 24,
         boxShadow: T.cardShadow,
       }}
     >
@@ -2547,7 +2548,7 @@ function TilePanel({
           <h3
             style={{
               fontFamily: "'Cinzel', serif",
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: 700,
               letterSpacing: '0.14em',
               textTransform: 'uppercase',
@@ -2557,7 +2558,7 @@ function TilePanel({
           >
             {title}
           </h3>
-          <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12.5, color: T.inkDim }}>
+          <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: T.inkDim }}>
             {tagline}
           </span>
         </div>
@@ -2596,7 +2597,7 @@ function PreviewRow({
         style={{
           width: 32,
           height: 32,
-          borderRadius: 9,
+          borderRadius: 8,
           background: 'rgba(201, 154, 63, 0.10)',
           color: T.accentGold,
         }}
@@ -2608,7 +2609,7 @@ function PreviewRow({
           <span
             style={{
               fontFamily: "'Cinzel', serif",
-              fontSize: 12.5,
+              fontSize: 12,
               fontWeight: 700,
               letterSpacing: '0.02em',
               textTransform: 'uppercase',
@@ -2622,7 +2623,7 @@ function PreviewRow({
               className="inline-flex items-center gap-1"
               style={{
                 fontFamily: "'Cinzel', serif",
-                fontSize: 8,
+                fontSize: 10,
                 letterSpacing: '0.14em',
                 textTransform: 'uppercase',
                 color: T.growGreen,
@@ -2639,7 +2640,7 @@ function PreviewRow({
                 borderRadius: 999,
                 background: T.tileBg,
                 fontFamily: "'Cinzel', serif",
-                fontSize: 8,
+                fontSize: 10,
                 letterSpacing: '0.14em',
                 textTransform: 'uppercase',
                 color: T.inkFaint,
@@ -2650,7 +2651,7 @@ function PreviewRow({
             </span>
           )}
         </div>
-        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11.5, color: T.inkDim, lineHeight: 1.35 }}>
+        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: T.inkDim, lineHeight: 1.35 }}>
           {desc}
         </span>
       </div>
@@ -2678,7 +2679,7 @@ function VisionCallout({ title, body, tone = 'gold' }: { title: string; body: st
         <span
           style={{
             fontFamily: "'Cinzel', serif",
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: 700,
             letterSpacing: '0.14em',
             textTransform: 'uppercase',
@@ -2715,7 +2716,7 @@ function OverviewFact({
       <span
         style={{
           fontFamily: "'Cinzel', serif",
-          fontSize: 8.5,
+          fontSize: 10,
           letterSpacing: '0.22em',
           textTransform: 'uppercase',
           color: T.inkFaint,
@@ -2740,7 +2741,7 @@ function OverviewFact({
         {live && <span style={{ width: 7, height: 7, borderRadius: '50%', background: T.growGreen, flexShrink: 0 }} />}
         {soon && <HandLock size={10} className="shrink-0" style={{ color: T.inkFaint }} />}
         {hint && (
-          <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, color: T.inkDim }}>· {hint}</span>
+          <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: T.inkDim }}>· {hint}</span>
         )}
       </span>
     </div>
@@ -2752,14 +2753,14 @@ function CriticalChip({ lucide, label, value }: { lucide: React.ReactNode; label
   return (
     <div
       className="flex items-center gap-2.5"
-      style={{ padding: '12px 12px', borderRadius: 10, background: T.tileBg, border: `1px solid ${T.border}` }}
+      style={{ padding: '12px 12px', borderRadius: 8, background: T.tileBg, border: `1px solid ${T.border}` }}
     >
       <span style={{ color: T.accentGold, display: 'inline-flex' }}>{lucide}</span>
       <div className="flex flex-col" style={{ gap: 1, minWidth: 0 }}>
         <span
           style={{
             fontFamily: "'Cinzel', serif",
-            fontSize: 8.5,
+            fontSize: 10,
             letterSpacing: '0.22em',
             textTransform: 'uppercase',
             color: T.inkFaint,
@@ -2802,7 +2803,7 @@ function TestChip({
     >
       <span
         className="inline-flex items-center justify-center shrink-0"
-        style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(46, 95, 208, 0.14)', color: T.partHek }}
+        style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(46, 95, 208, 0.14)', color: T.partHek }}
       >
         {lucide}
       </span>
@@ -2819,7 +2820,7 @@ function TestChip({
         >
           {label}
         </span>
-        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, color: T.inkDim, lineHeight: 1.3 }}>
+        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: T.inkDim, lineHeight: 1.3 }}>
           {sub}
         </span>
       </div>
@@ -2831,7 +2832,7 @@ function TestChip({
           background: 'rgba(46, 95, 208, 0.16)',
           border: '1px solid rgba(46, 95, 208, 0.42)',
           fontFamily: "'Cinzel', serif",
-          fontSize: 9,
+          fontSize: 10,
           fontWeight: 700,
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
@@ -2874,7 +2875,7 @@ function SubCard({ lucide, title, desc }: { lucide: React.ReactNode; title: stri
           borderRadius: 999,
           background: T.tileBg,
           fontFamily: "'Cinzel', serif",
-          fontSize: 8,
+          fontSize: 10,
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
           color: T.inkFaint,
@@ -2890,7 +2891,7 @@ function SubCard({ lucide, title, desc }: { lucide: React.ReactNode; title: stri
           height: 40,
           borderRadius: '50%',
           background: 'rgba(201, 154, 63, 0.10)',
-          border: '1px solid rgba(201, 154, 63, 0.30)',
+          border: `1px solid ${PACK_THEME.hairline}`,
           color: T.accentGold,
           marginBottom: 10,
         }}
@@ -2938,7 +2939,7 @@ function PrayersComingSoon({ dogName }: { dogName: string }) {
       >
         <HandLock size={24} style={{ color: T.accentGold }} />
       </span>
-      <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 19, fontWeight: 700, color: T.ink, lineHeight: 1.2 }}>
+      <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 20, fontWeight: 700, color: T.ink, lineHeight: 1.2 }}>
         {t('pack.dog.dailyPrayers')}
       </h2>
       <span
@@ -2948,7 +2949,7 @@ function PrayersComingSoon({ dogName }: { dogName: string }) {
           borderRadius: 999,
           background: T.tileBg,
           fontFamily: "'Cinzel', serif",
-          fontSize: 9,
+          fontSize: 10,
           letterSpacing: '0.22em',
           textTransform: 'uppercase',
           color: T.inkDim,
@@ -2957,7 +2958,7 @@ function PrayersComingSoon({ dogName }: { dogName: string }) {
         <HandLock size={10} />
         {t('pack.dog.comingSoon')}
       </span>
-      <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, lineHeight: 1.5, color: T.inkDim, maxWidth: 280 }}>
+      <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, lineHeight: 1.5, color: T.inkDim, maxWidth: 280 }}>
         {t('pack.dog.prayersComingSoonDesc', { dogName })}
       </p>
     </section>
@@ -3021,7 +3022,7 @@ function HubTile({
             borderRadius: 999,
             background: T.tileBg,
             fontFamily: "'Cinzel', serif",
-            fontSize: 8,
+            fontSize: 10,
             letterSpacing: '0.14em',
             textTransform: 'uppercase',
             color: T.inkFaint,
@@ -3053,7 +3054,7 @@ function HubTile({
           borderRadius: '50%',
           flexShrink: 0,
           background: active ? 'rgba(201, 154, 63, 0.12)' : 'rgba(201, 154, 63, 0.05)',
-          border: `1px solid rgba(201, 154, 63, ${active ? 0.42 : 0.2})`,
+          border: `1px solid ${active ? PACK_THEME.border : PACK_THEME.hairline}`,
           boxShadow: lift ? '0 0 0 6px rgba(201, 154, 63, 0.10)' : 'none',
           transition: 'box-shadow 0.2s ease',
         }}
@@ -3070,7 +3071,7 @@ function HubTile({
         <span
           style={{
             fontFamily: "'Cinzel', serif",
-            fontSize: 15,
+            fontSize: 14,
             letterSpacing: '0.14em',
             textTransform: 'uppercase',
             color: active ? T.ink : T.inkDim,
@@ -3084,7 +3085,7 @@ function HubTile({
           <span
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 10.5,
+              fontSize: 10,
               letterSpacing: '0.02em',
               color: active ? T.inkDim : T.inkFaint,
               lineHeight: 1.2,
@@ -3134,14 +3135,14 @@ function DownloadButton({
           : <Loader2 className="h-5 w-5 animate-spin" style={{ flexShrink: 0, color: '#3d1f00' }} />
         }
         <span className="flex flex-col" style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-          <span style={{ fontFamily: "'Cinzel', serif", fontSize: 8, letterSpacing: '0.22em', textTransform: 'uppercase', opacity: 0.7, lineHeight: 1 }}>
+          <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', opacity: 0.7, lineHeight: 1 }}>
             {t('pack.dog.certOfficialRecord')}
           </span>
           <span style={{ fontFamily: "'Cinzel', serif", fontSize: 14, fontWeight: 700, letterSpacing: '0.02em', lineHeight: 1.25 }}>
             {t('pack.dog.docCertificate')}
           </span>
         </span>
-        <span className="inline-flex items-center gap-1.5" style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+        <span className="inline-flex items-center gap-1.5" style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
           {enabled ? 'PDF' : '…'}
           <Download className="h-4 w-4" />
         </span>
@@ -3162,7 +3163,7 @@ function DownloadButton({
     gap: 7,
     width: '100%',
     padding: '12px 12px',
-    borderRadius: 10,
+    borderRadius: 8,
     textDecoration: 'none',
     background: T.tileBg,
     border: `1px solid ${enabled ? 'rgba(201,154,63,0.32)' : T.hairline}`,
@@ -3194,7 +3195,7 @@ function NotFoundBox() {
       style={{
         background: T.cardGrad,
         borderRadius: 16,
-        padding: 28,
+        padding: 24,
         maxWidth: 480,
         margin: '0 auto',
         border: `1.5px solid ${T.cardEdge}`,
@@ -3204,7 +3205,7 @@ function NotFoundBox() {
       <h2
         style={{
           fontFamily: "'Cinzel', serif",
-          fontSize: 22,
+          fontSize: 20,
           letterSpacing: '0.02em',
           textTransform: 'uppercase',
           fontWeight: 700,
@@ -3227,7 +3228,7 @@ function NotFoundBox() {
           borderRadius: 12,
           fontFamily: "'Cinzel', serif",
           letterSpacing: '0.22em',
-          fontSize: 11,
+          fontSize: 10,
           textTransform: 'uppercase',
           fontWeight: 700,
           textDecoration: 'none',
@@ -3243,11 +3244,11 @@ function NotFoundBox() {
 function ErrorBox({ message }: { message: string }) {
   const t = useT();
   return (
-    <div style={{ background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`, boxShadow: T.cardShadow, borderRadius: 16, padding: 20, maxWidth: 480, margin: '0 auto' }}>
+    <div style={{ background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`, boxShadow: T.cardShadow, borderRadius: 16, padding: 16, maxWidth: 480, margin: '0 auto' }}>
       <p style={{ fontFamily: "'Space Grotesk', sans-serif", color: T.ink }}>
         {t('pack.dog.errorLoading')}
       </p>
-      <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: T.inkDim, marginTop: 6 }}>
+      <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: T.inkDim, marginTop: 6 }}>
         {message}
       </p>
     </div>

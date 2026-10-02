@@ -16,7 +16,7 @@
 import { useEffect } from 'react';
 import { BackButton } from '../BackButton';
 
-import { FONT_TITLE, FONT_UI, PACK_THEME as T, GOLD_BTN } from '@/components/pack/packTheme';
+import { FONT_TITLE, FONT_UI, PACK_THEME as T, GOLD_BTN, VEIL_CSS, PACK_SHADOW } from '@/components/pack/packTheme';
 import type { LevelProgress, PointsRow } from '@/lib/tripPoints';
 import { tierOfLevel, tierGradient } from '@/lib/packTiers';
 import { useT } from '@/i18n/LanguageContext';
@@ -46,21 +46,18 @@ export function LevelPanel({ level, rows, onClose }: LevelPanelProps) {
       aria-modal="true"
       aria-label={t('pack.tier.panelTitle')}
       onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 2600,
-        background: 'rgba(5,5,5,0.88)', backdropFilter: 'blur(4px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '18px 16px',
-      }}
+      className="pk-veil pk-veil--modal"
+      style={{ zIndex: 2600, padding: 16 }}
     >
+      <style>{VEIL_CSS}</style>
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
           width: '100%', maxWidth: 460, maxHeight: '92vh', overflowY: 'auto',
           background: 'linear-gradient(160deg, rgba(28,20,10,0.98), rgba(14,10,5,0.98))',
           border: `1.5px solid ${T.cardEdge}`, borderRadius: 16,
-          boxShadow: '0 16px 50px rgba(0,0,0,0.7)',
-          padding: '16px 15px 15px',
+          boxShadow: PACK_SHADOW.panel,
+          padding: '16px 16px 16px',
         }}
       >
         {/* HLAVIČKA — rang, level v pilulke svojho pásma, meno pásma */}
@@ -69,13 +66,13 @@ export function LevelPanel({ level, rows, onClose }: LevelPanelProps) {
           <BackButton tone="pale" onClick={onClose} label={t('pack.tier.close')} />
           <div style={{ flex: '1 1 auto', minWidth: 0 }}>
             <div style={{
-              fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 15,
-              letterSpacing: '.16em', textTransform: 'uppercase',
+              fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 14,
+              letterSpacing: '0.14em', textTransform: 'uppercase',
               color: 'rgba(245,240,228,0.92)', display: 'flex', alignItems: 'center', gap: 9,
             }}>
               {t('pack.map.rankPilgrim')}
               <span style={{
-                display: 'inline-flex', alignItems: 'center', padding: '3px 11px 4px',
+                display: 'inline-flex', alignItems: 'center', padding: '4px 12px 4px',
                 borderRadius: 999, border: `1px solid ${GOLD_BTN.edge}`,
                 background: tierGradient(tier), color: tier.ink,
                 fontFamily: FONT_UI, fontWeight: 600, fontSize: 14, lineHeight: 1,
@@ -84,7 +81,7 @@ export function LevelPanel({ level, rows, onClose }: LevelPanelProps) {
               </span>
             </div>
             <div style={{
-              marginTop: 4, fontFamily: FONT_UI, fontSize: 11.5,
+              marginTop: 4, fontFamily: FONT_UI, fontSize: 12,
               color: 'rgba(245,240,228,0.55)', fontVariantNumeric: 'tabular-nums',
             }}>
               {t('pack.tier.pointsOfNext', { points: level.points, next: level.nextPoints })}
@@ -103,7 +100,7 @@ export function LevelPanel({ level, rows, onClose }: LevelPanelProps) {
           }} />
         </div>
         <p style={{
-          margin: '0 0 14px', fontFamily: FONT_UI, fontSize: 11.5,
+          margin: '0 0 14px', fontFamily: FONT_UI, fontSize: 12,
           color: 'rgba(245,240,228,0.55)',
         }}>
           {t('pack.tier.toNext', { n: level.toNext, level: level.level + 1 })}
@@ -118,7 +115,7 @@ export function LevelPanel({ level, rows, onClose }: LevelPanelProps) {
             <PointsBreakdown rows={rows} />
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-              marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(201,154,63,0.4)',
+              marginTop: 10, paddingTop: 8, borderTop: `1px solid ${T.border}`,
             }}>
               <span style={{
                 fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12,
@@ -143,7 +140,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <div style={{ marginBottom: 14 }}>
       <div style={{
-        marginBottom: 7, fontFamily: FONT_UI, fontWeight: 500, fontSize: 9.5,
+        marginBottom: 7, fontFamily: FONT_UI, fontWeight: 500, fontSize: 10,
         letterSpacing: '.26em', textTransform: 'uppercase', color: T.cardEdge,
       }}>
         {title}

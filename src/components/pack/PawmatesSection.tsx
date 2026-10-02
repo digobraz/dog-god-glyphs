@@ -51,33 +51,33 @@ const MAX_PAWMATES = 1;
 
 // ⚠️ JS template literal: spätný apostrof v komentári zhodí build (`npm run check:css`).
 const CSS = `
-.pws-row{ display:flex; align-items:center; gap:11px; width:100%; padding:11px 12px; text-align:left; }
+.pws-row{ display:flex; align-items:center; gap:11px; width:100%; padding:12px 12px; text-align:left; }
 .pws-btn{
   font-family:${FONT_UI}; font-weight:500; font-size:10px; letter-spacing:.14em;
-  text-transform:uppercase; padding:6px 10px; border-radius:999px; cursor:pointer;
+  text-transform:uppercase; padding:4px 8px; border-radius:999px; cursor:pointer;
   background:${T.tileBg}; border:1px solid ${T.border}; color:${T.inkWarm};
   transition:border-color .15s ease, color .15s ease;
 }
 .pws-btn:hover{ border-color:${T.cardEdge}; color:${T.inkStrong}; }
 .pws-btn--danger:hover{ border-color:${T.alertRed}; color:#8E2A20; }
 .pws-tick{
-  display:flex; align-items:flex-start; gap:9px; width:100%; padding:9px 11px;
-  border-radius:10px; cursor:pointer; text-align:left;
+  display:flex; align-items:flex-start; gap:9px; width:100%; padding:8px 12px;
+  border-radius:8px; cursor:pointer; text-align:left;
   background:${T.tileBg}; border:1px solid ${T.border}; color:${T.inkWarm};
   transition:background .15s ease, border-color .15s ease, color .15s ease;
 }
 .pws-tick:hover{ border-color:${T.cardEdge}; }
 .pws-tick.on{ ${pickTintCSS(LAPIS.edge, PICK_INK.lapis)} }
 .pws-box{
-  width:16px; height:16px; border-radius:5px; flex:0 0 auto; margin-top:1px;
+  width:16px; height:16px; border-radius:8px; flex:0 0 auto; margin-top:1px;
   border:1.5px solid ${T.border}; background:${T.card};
   display:flex; align-items:center; justify-content:center;
-  font-size:11px; line-height:1; color:transparent;
+  font-size:10px; line-height:1; color:transparent;
 }
 .pws-tick.on .pws-box{ border-color:${LAPIS.edge}; background:${LAPIS.edge}; color:${LAPIS.ink}; }
-.pws-dog{ align-items:center; gap:11px; padding:9px 11px; }
+.pws-dog{ align-items:center; gap:11px; padding:8px 12px; }
 .pws-preset{
-  flex:1 1 45%; min-width:0; padding:9px 10px; border-radius:10px; cursor:pointer; text-align:left;
+  flex:1 1 45%; min-width:0; padding:8px 8px; border-radius:8px; cursor:pointer; text-align:left;
   background:${T.tileBg}; border:1px solid ${T.border}; color:${T.inkWarm};
   transition:background .15s ease, border-color .15s ease, color .15s ease;
 }
@@ -87,7 +87,7 @@ const CSS = `
   width:100%; padding:12px 16px; border-radius:8px; cursor:pointer;
   background:${LAPIS.grad}; color:${LAPIS.ink}; border:1px solid ${LAPIS.edge};
   box-shadow:${LAPIS_BTN_SHADOW};
-  font-family:${FONT_TITLE}; font-weight:700; font-size:12px; letter-spacing:.16em;
+  font-family:${FONT_TITLE}; font-weight:700; font-size:12px; letter-spacing:0.14em;
   text-transform:uppercase;
   display:flex; align-items:center; justify-content:center; gap:8px;
   transition:background .15s ease;
@@ -95,20 +95,20 @@ const CSS = `
 .pws-cta:hover:not(:disabled){ background:${LAPIS.gradHover}; }
 .pws-cta:disabled{ opacity:.5; cursor:default; }
 .pws-chip{
-  font-family:${FONT_TITLE}; font-weight:700; font-size:9.5px; letter-spacing:.1em;
-  text-transform:uppercase; padding:3px 9px; border-radius:999px; white-space:nowrap;
+  font-family:${FONT_TITLE}; font-weight:700; font-size:10px; letter-spacing:0.14em;
+  text-transform:uppercase; padding:4px 8px; border-radius:999px; white-space:nowrap;
   border:1px solid ${T.border}; color:${T.inkWarm}; background:${T.tileBg};
 }
 `;
 
 const EYEBROW = {
-  fontFamily: FONT_UI, fontWeight: 500, fontSize: 11, letterSpacing: '0.26em',
+  fontFamily: FONT_UI, fontWeight: 500, fontSize: 10, letterSpacing: '0.26em',
   textTransform: 'uppercase', color: T.cardEdge,
 } as const;
 
 const PILL = {
-  fontFamily: FONT_UI, fontWeight: 500, fontSize: 8.5, letterSpacing: '0.16em',
-  textTransform: 'uppercase', padding: '2px 8px', borderRadius: 999,
+  fontFamily: FONT_UI, fontWeight: 500, fontSize: 10, letterSpacing: '0.14em',
+  textTransform: 'uppercase', padding: '4px 8px', borderRadius: 999,
   border: `1px solid ${T.border}`, color: T.inkWarm, whiteSpace: 'nowrap',
 } as const;
 
@@ -117,13 +117,13 @@ function looksLikeEmail(v: string): boolean {
 }
 
 const NAME_STYLE = {
-  display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12.5,
-  letterSpacing: '0.06em', color: T.inkStrong,
+  display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12,
+  letterSpacing: '0.02em', color: T.inkStrong,
   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
 } as const;
 
 const ADDR_STYLE = {
-  display: 'block', fontFamily: FONT_UI, fontWeight: 500, fontSize: 12.5,
+  display: 'block', fontFamily: FONT_UI, fontWeight: 500, fontSize: 12,
   color: T.inkStrong,
   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
 } as const;
@@ -315,10 +315,10 @@ export function PawmatesSection() {
         <div className="flex" style={{ gap: 7, flexWrap: 'wrap', marginTop: 7 }}>
           {PAWMATE_PRESETS.map((p) => (
             <button key={p.id} type="button" className={`pws-preset${activePreset === p.id ? ' on' : ''}`} onClick={() => applyPreset(p.id)}>
-              <span style={{ display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              <span style={{ display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                 {lb(p.label)}
               </span>
-              <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 10.5, lineHeight: 1.35, marginTop: 2, opacity: 0.85 }}>
+              <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 10, lineHeight: 1.35, marginTop: 2, opacity: 0.85 }}>
                 {lb(p.hint)}
               </span>
             </button>
@@ -329,7 +329,7 @@ export function PawmatesSection() {
         <div style={EYEBROW}>{tx('pack.mate.rightsTitle', 'What they may change')}</div>
         {/* ZÁKLAD SA NEZAŠKRTÁVA — každý pawmate vidí o psovi všetko (§5). Bez tejto
             vety vyzerá prázdny zoznam ako „nevidí nič", a to je opak pravdy. */}
-        <p style={{ fontFamily: FONT_UI, fontSize: 11.5, lineHeight: 1.5, color: T.inkWarm, margin: '5px 0 8px' }}>
+        <p style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.5, color: T.inkWarm, margin: '5px 0 8px' }}>
           {tx('pack.mate.rightsBase', 'They always see everything about the dog — health, food, trips. Below you choose only what they may change.')}
         </p>
         <div className="flex flex-col" style={{ gap: 6 }}>
@@ -370,7 +370,7 @@ export function PawmatesSection() {
                   meno), nie popiskou v zozname — ten istý tvar má výber psa
                   v `PawmatePanel`. V drobných chipoch nižšie je meno len odkazom,
                   tam ostáva obyčajný Cinzel (lock zúžený 14. 8. 2026). */}
-              <span style={{ fontFamily: "'Cinzel Decorative', 'Cinzel', serif", fontWeight: 700, fontSize: 13, color: T.inkStrong, minWidth: 0, flex: 1 }}>
+              <span style={{ fontFamily: "'Cinzel Decorative', 'Cinzel', serif", fontWeight: 700, fontSize: 12, color: T.inkStrong, minWidth: 0, flex: 1 }}>
                 {d.name || tx('pack.mate.unnamedDog', 'Your dog')}
               </span>
               {typeof d.pack_number === 'number' && <span style={PILL}>#{d.pack_number}</span>}
@@ -386,7 +386,7 @@ export function PawmatesSection() {
 
   if (data === null) {
     body = (
-      <div className="flex items-center justify-center" style={{ padding: '28px 0', color: T.inkWarm }}>
+      <div className="flex items-center justify-center" style={{ padding: '24px 0', color: T.inkWarm }}>
         <Loader2 className="h-4 w-4 animate-spin" />
       </div>
     );
@@ -401,7 +401,7 @@ export function PawmatesSection() {
             value={email}
             onChange={(e) => setEmail(e.target.value.slice(0, 160))}
             placeholder={tx('pack.mate.emailPh', 'name@example.com')}
-            style={{ width: '100%', borderRadius: 8, padding: '10px 12px', marginTop: 7, fontFamily: FONT_UI, fontSize: 13, color: T.inkStrong }}
+            style={{ width: '100%', borderRadius: 8, padding: '8px 12px', marginTop: 7, fontFamily: FONT_UI, fontSize: 12, color: T.inkStrong }}
           />
         </div>
         {/* Pri JEDNOM voľnom psovi sa zaškrtávatko nekreslí — nedalo by sa odškrtnúť,
@@ -424,7 +424,7 @@ export function PawmatesSection() {
           {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <HandKey size={15} />}
           {tx('pack.mate.send', 'Send the invitation')}
         </button>
-        <p style={{ fontFamily: FONT_UI, fontSize: 11, lineHeight: 1.5, color: T.inkWarm, margin: 0 }}>
+        <p style={{ fontFamily: FONT_UI, fontSize: 10, lineHeight: 1.5, color: T.inkWarm, margin: 0 }}>
           {tx('pack.mate.sendNote', 'They get one personal link, good for seven days. Nothing exists until they open it themselves — and it costs nothing, the heroglyph belongs to the dog.')}
         </p>
         <div><button type="button" className="pws-btn" onClick={() => { setOpen(null); setErr(null); }}>{tx('pack.mate.back', 'Back')}</button></div>
@@ -447,11 +447,11 @@ export function PawmatesSection() {
             <span style={{ minWidth: 0, flex: 1 }}>
               {/* Tá istá deliaca čiara ako v zozname: meno = Cinzel, ADRESA = Space
                   Grotesk. Cinzel má len verzálky a z adresy by spravil `MENO@DOMENA`. */}
-              <span style={p.name ? { ...NAME_STYLE, fontSize: 14 } : { ...ADDR_STYLE, fontSize: 13 }}>
+              <span style={p.name ? { ...NAME_STYLE, fontSize: 14 } : { ...ADDR_STYLE, fontSize: 12 }}>
                 {p.name || p.email || tx('pack.mate.someone', 'Pawmate')}
               </span>
               {p.email && p.name && (
-                <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 11, color: T.inkWarm, marginTop: 1 }}>{p.email}</span>
+                <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 10, color: T.inkWarm, marginTop: 1 }}>{p.email}</span>
               )}
             </span>
           </div>
@@ -460,7 +460,7 @@ export function PawmatesSection() {
               ako fakt — obrazovka povie, čo v DB naozaj je, a uloženie to zjednotí.
               Bez tejto vety by majiteľ uložil detail a ticho prepísal druhého psa. */}
           {mixed && (
-            <p style={{ fontFamily: FONT_UI, fontSize: 11.5, lineHeight: 1.5, color: '#8E2A20', margin: 0 }}>
+            <p style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.5, color: '#8E2A20', margin: 0 }}>
               {txv('pack.mates.mixed', 'Right now {name} has different access at each dog. What you save here applies to all of them.',
                 { name: who })}
             </p>
@@ -504,7 +504,7 @@ export function PawmatesSection() {
     // s počtom ĽUDÍ, nie psov.
     body = (
       <div className="flex flex-col" style={{ gap: 12 }}>
-        <p style={{ fontFamily: FONT_UI, fontSize: 13, lineHeight: 1.6, color: T.inkWarm, margin: 0 }}>
+        <p style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.6, color: T.inkWarm, margin: 0 }}>
           {tx('pack.mates.emptyBody', 'Bring one human into DOGYPT beside you. Give them access, let them look in — so they are in the picture too.')}
         </p>
         {err && <p style={{ fontFamily: FONT_UI, fontSize: 12, color: '#8E2A20', margin: 0 }}>{err}</p>}
@@ -518,7 +518,7 @@ export function PawmatesSection() {
     body = (
       <div className="flex flex-col" style={{ gap: 9 }}>
         {sentTo && (
-          <p style={{ fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.5, color: PICK_INK.green, margin: 0 }}>
+          <p style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.5, color: PICK_INK.green, margin: 0 }}>
             {txv('pack.mate.sent', 'The invitation is on its way to {email}.', { email: sentTo })}
           </p>
         )}
@@ -554,14 +554,14 @@ export function PawmatesSection() {
         ))}
 
         {invites.map((iv) => (
-          <div key={iv.email ?? 'i'} className="flex flex-col" style={{ ...PACK_BOX.row, gap: 8, padding: '11px 12px' }}>
+          <div key={iv.email ?? 'i'} className="flex flex-col" style={{ ...PACK_BOX.row, gap: 8, padding: '12px 12px' }}>
             <div className="flex items-center" style={{ gap: 11 }}>
               <Avatar url={null} label={iv.email} dim />
               <span style={{ minWidth: 0, flex: 1 }}>
-                <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 12.5, color: T.inkStrong, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 12, color: T.inkStrong, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {iv.email}
                 </span>
-                <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 11, color: T.inkWarm, marginTop: 1 }}>
+                <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 10, color: T.inkWarm, marginTop: 1 }}>
                   {tx('pack.mate.waiting', 'Waiting for them to accept')}
                   {iv.expires_at ? ` · ${tx('pack.mate.until', 'until')} ${fmtDate(iv.expires_at)}` : ''}
                 </span>
@@ -613,14 +613,14 @@ export function PawmatesSection() {
         border: `1.5px solid ${T.cardEdge}`,
         borderRadius: 16,
         boxShadow: T.cardShadow,
-        padding: 26,
+        padding: 24,
         scrollMarginTop: 90,
       }}
     >
       <style>{PF_FIELD_CSS}{CSS}</style>
       <div style={EYEBROW}>{tx('pack.mates.eyebrow', 'Pawmates')}</div>
       <h3 style={{
-        fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 18, letterSpacing: '0.06em',
+        fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 16, letterSpacing: '0.02em',
         textTransform: 'uppercase', color: T.inkStrong, margin: '3px 0 0',
       }}>
         {tx('pack.mates.title', 'Your people')}
@@ -641,7 +641,7 @@ function Avatar({ url, label, dim = false }: { url: string | null; label: string
         width: 34, height: 34, borderRadius: '50%',
         border: `1.5px ${dim ? 'dashed' : 'solid'} ${dim ? T.border : T.cardEdge}`,
         background: url ? `center/cover url('${url}')` : T.tileBg,
-        fontFamily: FONT_UI, fontWeight: 600, fontSize: 13, color: T.inkWarm,
+        fontFamily: FONT_UI, fontWeight: 600, fontSize: 12, color: T.inkWarm,
       }}
     >
       {url ? '' : (label || '?').charAt(0).toUpperCase()}
@@ -657,7 +657,7 @@ function ConfirmRow({ question, yes, no, busy, onYes, onNo }: {
 }) {
   return (
     <div className="flex items-center" style={{ gap: 8, flexWrap: 'wrap' }}>
-      <span style={{ fontFamily: FONT_UI, fontSize: 11.5, color: T.inkStrong, flex: '1 1 100%' }}>{question}</span>
+      <span style={{ fontFamily: FONT_UI, fontSize: 12, color: T.inkStrong, flex: '1 1 100%' }}>{question}</span>
       <button type="button" className="pws-btn pws-btn--danger" onClick={onYes} disabled={busy} style={{ borderColor: T.alertRed, color: '#8E2A20' }}>
         {yes}
       </button>

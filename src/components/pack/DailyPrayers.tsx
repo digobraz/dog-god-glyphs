@@ -14,7 +14,7 @@ import React, { useState } from 'react';
 import { ChevronDown, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
-import { PACK_THEME, GOLD_BTN } from './packTheme';
+import { PACK_THEME, GOLD_BTN, VEIL_CSS, PACK_SHADOW } from './packTheme';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { toast } from '@/hooks/use-toast';
@@ -85,7 +85,7 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
               background: T.cardGrad,
               border: `1.5px solid ${T.cardEdge}`,
               borderRadius: 16,
-              padding: '22px 20px',
+              padding: '24px 16px',
               boxShadow: T.cardShadow,
             }}
           >
@@ -93,8 +93,8 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
             <div
               style={{
                 fontFamily: "'Cinzel', serif",
-                fontSize: 9,
-                letterSpacing: '0.32em',
+                fontSize: 10,
+                letterSpacing: '0.26em',
                 textTransform: 'uppercase',
                 color: T.accentGold,
                 marginBottom: 8,
@@ -106,7 +106,7 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
             <h2
               style={{
                 fontFamily: "'Cinzel', serif",
-                fontSize: 19,
+                fontSize: 20,
                 lineHeight: 1.2,
                 fontWeight: 700,
                 color: T.ink,
@@ -170,7 +170,7 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
                         justifyContent: 'space-between',
                         paddingRight: 52,
                         fontFamily: "'Cinzel', serif",
-                        fontSize: 7.5,
+                        fontSize: 10,
                         letterSpacing: '0.02em',
                         color: 'rgba(250,244,236,0.62)',
                       }}
@@ -225,9 +225,9 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
                     fontWeight: 700,
                     fontSize: 16,
                     letterSpacing: '0.02em',
-                    padding: '9px 20px',
+                    padding: '8px 16px',
                     borderRadius: 999,
-                    boxShadow: '0 10px 24px -10px rgba(201, 154, 63, 0.7)',
+                    boxShadow: PACK_SHADOW.panel,
                   }}
                 >
                   {prayersSubmitted ? <HandCheck size={16} /> : <Sparkles className="h-4 w-4" />}
@@ -247,9 +247,9 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
                       color: '#fff',
                       fontFamily: "'Cinzel', serif",
                       fontWeight: 700,
-                      fontSize: 13,
-                      letterSpacing: '0.04em',
-                      padding: '9px 18px',
+                      fontSize: 12,
+                      letterSpacing: '0.02em',
+                      padding: '8px 16px',
                       borderRadius: 999,
                       cursor: (presenceDone || walkHours !== null) ? 'pointer' : 'not-allowed',
                       boxShadow: (presenceDone || walkHours !== null) ? '0 10px 24px -10px rgba(34, 197, 94, 0.7)' : 'none',
@@ -264,7 +264,7 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
                 style={{
                   marginTop: 7,
                   fontFamily: "'Space Grotesk', sans-serif",
-                  fontSize: 10.5,
+                  fontSize: 10,
                   letterSpacing: '0.14em',
                   textTransform: 'uppercase',
                   color: T.inkFaint,
@@ -277,17 +277,18 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
             {/* Confirm dialog — modal overlay */}
             {showPrayerConfirm && (
               <div
-                className="fixed inset-0 flex items-center justify-center"
-                style={{ zIndex: 50, background: 'rgba(10,8,20,0.72)', backdropFilter: 'blur(3px)' }}
+                className="pk-veil pk-veil--modal"
+                style={{ zIndex: 50 }}
                 onClick={() => setShowPrayerConfirm(false)}
               >
+                <style>{VEIL_CSS}</style>
                 <div
                   onClick={(e) => e.stopPropagation()}
                   style={{
                     background: T.panelGrad,
                     border: `1.5px solid ${T.cardEdge}`,
                     borderRadius: 14,
-                    padding: '28px 26px',
+                    padding: '24px 24px',
                     maxWidth: 360,
                     width: '90vw',
                     boxShadow: T.panelShadow,
@@ -298,7 +299,7 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
                       fontFamily: "'Cinzel', serif",
                       fontSize: 16,
                       fontWeight: 700,
-                      letterSpacing: '0.08em',
+                      letterSpacing: '0.02em',
                       color: T.ink,
                       marginBottom: 10,
                     }}
@@ -308,7 +309,7 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
                   <p
                     style={{
                       fontFamily: "'Space Grotesk', sans-serif",
-                      fontSize: 13,
+                      fontSize: 12,
                       lineHeight: 1.5,
                       color: T.inkDim,
                       marginBottom: 22,
@@ -321,12 +322,12 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
                       type="button"
                       onClick={() => setShowPrayerConfirm(false)}
                       style={{
-                        padding: '9px 18px',
-                        borderRadius: 10,
+                        padding: '8px 16px',
+                        borderRadius: 8,
                         background: 'transparent',
                         border: `1px solid ${T.border}`,
                         fontFamily: "'Cinzel', serif",
-                        fontSize: 11,
+                        fontSize: 10,
                         letterSpacing: '0.14em',
                         textTransform: 'uppercase',
                         color: T.inkDim,
@@ -339,18 +340,18 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
                       type="button"
                       onClick={confirmAndSubmitPrayers}
                       style={{
-                        padding: '9px 20px',
-                        borderRadius: 10,
+                        padding: '8px 16px',
+                        borderRadius: 8,
                         background: GOLD_BTN.grad,
                         border: `1px solid ${GOLD_BTN.edge}`,
                         fontFamily: "'Cinzel', serif",
-                        fontSize: 11,
+                        fontSize: 10,
                         letterSpacing: '0.14em',
                         textTransform: 'uppercase',
                         fontWeight: 700,
                         color: '#3d1f00',
                         cursor: 'pointer',
-                        boxShadow: '0 8px 20px -8px rgba(201, 154, 63, 0.65)',
+                        boxShadow: PACK_SHADOW.panel,
                       }}
                     >
                       {t('pack.dog.logPrayers')}
@@ -384,12 +385,12 @@ const PRAYER_GRADIENT = 'var(--brand-gradient)';
 // Points pill — light text on the gradient row.
 const PTS_PILL: React.CSSProperties = {
   fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-  fontSize: 11,
+  fontSize: 10,
   fontWeight: 700,
   color: T.card,
   background: 'rgba(0,0,0,0.22)',
   borderRadius: 999,
-  padding: '3px 9px',
+  padding: '4px 8px',
   whiteSpace: 'nowrap',
 };
 
@@ -436,9 +437,9 @@ function PrayerRow({
         style={{
           background: PRAYER_GRADIENT,
           borderRadius: 14,
-          padding: '0 14px',
+          padding: '0 12px',
           minHeight: 58,
-          boxShadow: '0 10px 28px -16px rgba(40, 16, 70, 0.6)',
+          boxShadow: PACK_SHADOW.panel,
           cursor: rowClickable ? 'pointer' : 'default',
           opacity: disabled ? 0.82 : faded ? 0.55 : 1,
           transition: 'opacity 0.15s',
@@ -460,7 +461,7 @@ function PrayerRow({
           style={{
             width: 30,
             height: 30,
-            borderRadius: 9,
+            borderRadius: 8,
             flexShrink: 0,
             background: checked ? '#22C55E' : 'rgba(255,255,255,0.10)',
             border: checked ? 'none' : '2px solid rgba(250,244,236,0.55)',
@@ -478,7 +479,7 @@ function PrayerRow({
             <div
               style={{
                 fontFamily: "'Cinzel', serif",
-                fontSize: 8,
+                fontSize: 10,
                 letterSpacing: '0.22em',
                 textTransform: 'uppercase',
                 color: 'rgba(245, 222, 170, 0.92)',
@@ -487,11 +488,11 @@ function PrayerRow({
               {eyebrow}
             </div>
           )}
-          <div style={{ fontFamily: "'Cinzel', serif", fontSize: 15, fontWeight: 700, color: T.card, lineHeight: 1.15 }}>
+          <div style={{ fontFamily: "'Cinzel', serif", fontSize: 14, fontWeight: 700, color: T.card, lineHeight: 1.15 }}>
             {title}
           </div>
           {sub && (
-            <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, color: 'rgba(250,244,236,0.72)', marginTop: 1 }}>
+            <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: 'rgba(250,244,236,0.72)', marginTop: 1 }}>
               {sub}
             </div>
           )}
@@ -513,11 +514,11 @@ function PrayerRow({
             background: T.ink,
             color: T.card,
             fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 10.5,
+            fontSize: 10,
             lineHeight: 1.4,
-            padding: '8px 10px',
-            borderRadius: 10,
-            boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+            padding: '8px 8px',
+            borderRadius: 8,
+            boxShadow: PACK_SHADOW.panel,
           }}
         >
           {hint}
@@ -547,7 +548,7 @@ function PrayersComingSoon({ dogName }: { dogName: string }) {
       >
         <HandLock size={24} style={{ color: T.accentGold }} />
       </span>
-      <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 19, fontWeight: 700, color: T.ink, lineHeight: 1.2 }}>
+      <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 20, fontWeight: 700, color: T.ink, lineHeight: 1.2 }}>
         {t('pack.dog.dailyPrayers')}
       </h2>
       <span
@@ -557,8 +558,8 @@ function PrayersComingSoon({ dogName }: { dogName: string }) {
           borderRadius: 999,
           background: T.tileBg,
           fontFamily: "'Cinzel', serif",
-          fontSize: 9,
-          letterSpacing: '0.18em',
+          fontSize: 10,
+          letterSpacing: '0.14em',
           textTransform: 'uppercase',
           color: T.inkDim,
         }}
@@ -566,7 +567,7 @@ function PrayersComingSoon({ dogName }: { dogName: string }) {
         <HandLock size={10} />
         {t('pack.dog.comingSoon')}
       </span>
-      <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, lineHeight: 1.5, color: T.inkDim, maxWidth: 280 }}>
+      <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, lineHeight: 1.5, color: T.inkDim, maxWidth: 280 }}>
         {t('pack.dog.prayersComingSoonDesc', { dogName })}
       </p>
     </section>

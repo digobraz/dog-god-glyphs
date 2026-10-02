@@ -95,7 +95,7 @@ const PILGRIM_CSS = `
 @media (max-width:459px){
   .pf-pilgrim{ flex-wrap:wrap; row-gap:8px; }
   .pf-pilgrim-stats{ order:3; flex:0 0 100%; gap:14px; }
-  .pf-pilgrim-stats b{ font-size:15px; }
+  .pf-pilgrim-stats b{ font-size:14px; }
 }
 `;
 
@@ -203,7 +203,7 @@ function SubBlock({
           <span
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 10.5,
+              fontSize: 10,
               color: T.inkFaint,
               textAlign: center ? 'center' : 'right',
             }}
@@ -242,7 +242,7 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
     <span
       style={{
         fontFamily: "'Space Grotesk', sans-serif",
-        fontSize: 11,
+        fontSize: 10,
         fontWeight: 500,
         letterSpacing: '0.26em',
         textTransform: 'uppercase',
@@ -562,7 +562,7 @@ export default function PackProfile() {
             style={{
               fontFamily: "'Cinzel', serif",
               letterSpacing: '0.22em',
-              fontSize: 11,
+              fontSize: 10,
               textTransform: 'uppercase',
               color: paperPage ? T.inkDim : T.accentGold,
               textDecoration: 'none',
@@ -708,7 +708,7 @@ export default function PackProfile() {
                     padding: '8px 12px',
                     color: T.ink,
                     fontFamily: FONT_UI,
-                    fontSize: 13,
+                    fontSize: 12,
                     textAlign: 'left',
                   }}
                 />
@@ -776,7 +776,7 @@ export default function PackProfile() {
                 }}
               >
                 <span className="flex items-center shrink-0" style={{ gap: 9, minWidth: 0 }}>
-                  <span style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 13, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkStrong }}>
+                  <span style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkStrong }}>
                     {t('pack.map.rankPilgrim')}
                   </span>
                   {/* Level = pilulka s holým číslom, rovnako ako v hlavičke mapy a na karte
@@ -821,7 +821,7 @@ export default function PackProfile() {
           <Column max={640}>
             {/* BIO heading — one bold, oversized line. It's the funny/unique hook
                 of the profile, so it should pop (Matej 2026-07-24). */}
-            <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 17, fontWeight: 600, lineHeight: 1.2, color: T.inkStrong, marginBottom: 10 }}>
+            <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 16, fontWeight: 600, lineHeight: 1.2, color: T.inkStrong, marginBottom: 10 }}>
               {tx('pack.profile.bioHeading', 'BIO: What my dog would probably say about me')}
             </div>
             <WordLimitTextarea
@@ -1045,7 +1045,7 @@ function ProfilePill<V extends string>({
         borderRadius: 999,
         padding: '4px 8px',
         fontFamily: "'Space Grotesk', sans-serif",
-        fontSize: 11,
+        fontSize: 10,
         fontWeight: selected ? 600 : 500,
         cursor: disabled ? 'default' : 'pointer',
       }}
@@ -1109,7 +1109,7 @@ function PersonalityConcentrate({
             {tx('pack.profile.personality', 'Personality')}
           </span>
         )}
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: atMax ? T.accentGold : T.inkFaint }}>
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: atMax ? T.accentGold : T.inkFaint }}>
           {total}/{MAX_PERSONALITY}
         </span>
       </div>
@@ -1141,7 +1141,7 @@ function PersonalityConcentrate({
               borderRadius: 999,
               padding: '4px 8px',
               fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: 600,
               cursor: 'pointer',
             }}
@@ -1168,7 +1168,7 @@ function PersonalityConcentrate({
               padding: '4px 12px',
               width: 120,
               fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 11,
+              fontSize: 10,
               color: T.ink,
             }}
           />
@@ -1183,7 +1183,7 @@ function PersonalityConcentrate({
               borderRadius: 999,
               padding: '4px 8px',
               fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: 500,
               color: T.inkFaint,
               cursor: 'pointer',
@@ -1290,7 +1290,7 @@ function WordLimitTextarea({
           minHeight: 48,
           color: T.ink,
           fontFamily: "'Space Grotesk', sans-serif",
-          fontSize: 13,
+          fontSize: 12,
           lineHeight: 1.4,
           textAlign: align,
           resize: 'vertical',
@@ -1405,7 +1405,7 @@ function IdentityVisibilityEye({
               // Úroveň 4 MATRICE (`PACK_BOX.panel`). `T.card` je PLNÁ farba, nie gradient —
               // CLAUDE.md pred tým výslovne varuje a tu bola použitá ako pozadie panelu.
               ...PACK_BOX.panel,
-              padding: 10,
+              padding: 8,
               textAlign: 'left',
             }}
           >
@@ -1437,7 +1437,7 @@ function IdentityVisibilityEye({
                     cursor: 'pointer',
                     textAlign: 'left',
                     fontFamily: "'Space Grotesk', sans-serif",
-                    fontSize: 12.5,
+                    fontSize: 12,
                     color: off ? T.inkFaint : T.ink,
                   }}
                 >
@@ -1470,7 +1470,7 @@ function MiniChip({ children }: { children: React.ReactNode }) {
         borderRadius: 999,
         padding: '4px 8px',
         fontFamily: "'Space Grotesk', sans-serif",
-        fontSize: 11,
+        fontSize: 10,
         color: T.ink,
       }}
     >
@@ -1517,7 +1517,7 @@ function MiniChipInput({
           padding: 0,
           color: T.ink,
           fontFamily: "'Space Grotesk', sans-serif",
-          fontSize: 11,
+          fontSize: 10,
         }}
       />
     </MiniChip>
@@ -1547,12 +1547,12 @@ function NationalitySelect({ value, onChange }: { value: string; onChange: (v: s
         borderRadius: 999,
         padding: '4px 12px 4px 12px',
         fontFamily: "'Space Grotesk', sans-serif",
-        fontSize: 11,
+        fontSize: 10,
         color: T.ink,
         cursor: 'pointer',
       }}
     >
-      <span aria-hidden style={{ fontSize: 13, lineHeight: 1 }}>
+      <span aria-hidden style={{ fontSize: 12, lineHeight: 1 }}>
         {iso2 ? flagEmojiFromISO2(iso2) : '\u{1F3F3}\uFE0F'}
       </span>
       <span style={{ fontWeight: 600, letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
@@ -1645,7 +1645,7 @@ function AutoSaveTextInput({
         padding: '8px 12px',
         color: T.ink,
         fontFamily: "'Space Grotesk', sans-serif",
-        fontSize: 13,
+        fontSize: 12,
         textAlign: align,
       }}
     />
@@ -1673,7 +1673,7 @@ function DisplayAsToggle({
      na mobile prebil media query, ktorá prepínač zmenšuje, aby sa vošiel do karty.
      Modrá (`T.partHek`) tu bola do 12. 8., zrušená spolu so zvyškom modrej v bloku. */
   return (
-    <div className="pf-toggle inline-flex items-center" style={{ borderRadius: 999, padding: 3, gap: 3 }}>
+    <div className="pf-toggle inline-flex items-center" style={{ borderRadius: 999, padding: 4, gap: 3 }}>
       {opts.map((opt) => (
         <button
           key={opt.key}

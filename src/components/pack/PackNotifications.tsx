@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BrandIcon } from './BrandIcon';
 import { HandNose } from './HandIcons';
-import { PACK_THEME } from './packTheme';
+import { PACK_THEME, PACK_SHADOW } from './packTheme';
 import { pluralKey } from '@/lib/plural';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
@@ -247,8 +247,6 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
             borderRadius: 999,
             border: `${c.buttonBorderW}px solid ${c.border}`,
             background: c.buttonBg,
-            backdropFilter: dark ? 'blur(14px)' : undefined,
-            WebkitBackdropFilter: dark ? 'blur(14px)' : undefined,
             boxShadow: c.buttonShadow,
             color: c.ink,
             cursor: 'pointer',
@@ -309,13 +307,13 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
               bottom: -5,
               right: -3,
               fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 7,
-              letterSpacing: '0.08em',
+              fontSize: 10,
+              letterSpacing: '0.02em',
               textTransform: 'uppercase',
               color: T.inkDim,
               background: T.card,
-              padding: '1px 3px',
-              borderRadius: 4,
+              padding: '0px 4px',
+              borderRadius: 8,
               border: `1px solid ${T.hairline}`,
               lineHeight: 1,
             }}
@@ -352,8 +350,6 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           background: open
             ? (dark ? 'rgba(245,240,228,0.14)' : `linear-gradient(0deg, rgba(201,154,63,0.18), rgba(201,154,63,0.18)), ${T.panelGrad}`)
             : c.buttonBg,
-          backdropFilter: dark ? 'blur(14px)' : undefined,
-          WebkitBackdropFilter: dark ? 'blur(14px)' : undefined,
           boxShadow: c.buttonShadow,
           color: c.ink,
           cursor: 'pointer',
@@ -402,18 +398,16 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
             background: c.panelBg,
             border: `1px solid ${dark ? c.border : c.hairline}`,
             borderRadius: 14,
-            boxShadow: '0 18px 44px -12px rgba(10,10,10,0.28)',
+            boxShadow: PACK_SHADOW.panel,
             padding: 12,
             zIndex: 2100,
-            backdropFilter: dark ? 'blur(14px)' : undefined,
-            WebkitBackdropFilter: dark ? 'blur(14px)' : undefined,
           }}
         >
           {DEV_FULL && alerts.length > 0 && (
             <>
               <div
                 style={{
-                  fontFamily: "'Cinzel', serif", fontSize: 9.5, letterSpacing: '0.28em',
+                  fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.26em',
                   textTransform: 'uppercase', color: c.inkDim, marginBottom: 8,
                 }}
               >
@@ -463,7 +457,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                         <span
                           style={{
                             display: 'block', fontFamily: "'Cinzel', serif", fontWeight: 700,
-                            fontSize: 8.5, letterSpacing: '0.04em', textTransform: 'uppercase',
+                            fontSize: 10, letterSpacing: '0.02em', textTransform: 'uppercase',
                             color: T.accentGold, marginTop: 1,
                           }}
                         >
@@ -481,7 +475,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
             <>
               <div
                 style={{
-                  fontFamily: "'Cinzel', serif", fontSize: 9.5, letterSpacing: '0.28em',
+                  fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.26em',
                   textTransform: 'uppercase', color: c.inkDim, marginBottom: 8,
                 }}
               >
@@ -514,18 +508,18 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                         </span>
                         <span style={{ minWidth: 0, flex: 1 }}>
                           <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                            <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11.5, fontWeight: 600, color: c.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, fontWeight: 600, color: c.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {name}
                             </span>
                             <span style={{ flexShrink: 0, width: 6, height: 6, borderRadius: '50%', background: T.accentGold }} />
                           </span>
                           {conv.tag?.kind === 'trip' && conv.tag.label && (
-                            <span style={{ display: 'block', fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 8, letterSpacing: '0.04em', textTransform: 'uppercase', color: T.accentGold, marginTop: 1 }}>
+                            <span style={{ display: 'block', fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 10, letterSpacing: '0.02em', textTransform: 'uppercase', color: T.accentGold, marginTop: 1 }}>
                               🥾 {conv.tag.label}
                             </span>
                           )}
                           {last && (
-                            <span style={{ display: 'block', fontFamily: "'Space Grotesk', sans-serif", fontSize: 10.5, color: c.inkDim, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <span style={{ display: 'block', fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: c.inkDim, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {last.text}
                             </span>
                           )}
@@ -541,8 +535,8 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           <div
             style={{
               fontFamily: "'Cinzel', serif",
-              fontSize: 9.5,
-              letterSpacing: '0.28em',
+              fontSize: 10,
+              letterSpacing: '0.26em',
               textTransform: 'uppercase',
               color: c.inkDim,
               marginBottom: 10,
@@ -557,7 +551,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                 <span
                   style={{
                     fontFamily: "'Space Grotesk', sans-serif",
-                    fontSize: 12.5,
+                    fontSize: 12,
                     lineHeight: 1.4,
                     color: c.ink,
                   }}
@@ -575,10 +569,10 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
             <div
               style={{
                 marginTop: 12,
-                paddingTop: 10,
+                paddingTop: 8,
                 borderTop: `1px solid ${c.hairline}`,
                 fontFamily: "'Space Grotesk', sans-serif",
-                fontSize: 11,
+                fontSize: 10,
                 color: c.inkDim,
                 textAlign: 'center',
               }}

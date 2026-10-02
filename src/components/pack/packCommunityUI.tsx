@@ -10,7 +10,7 @@ import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import { useMyEventCount } from '@/components/pack/events/eventStore';
 import { useMyWishCount } from '@/components/pack/mapnotes/wishData';
 import { WISHES_LIVE } from '@/lib/packFlags';
-import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI, PACK_SHADOW, GOLD_BTN, HIT_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI, PACK_SHADOW, GOLD_BTN, HIT_CSS, VEIL_CSS } from '@/components/pack/packTheme';
 import { pluralKey } from '@/lib/plural';
 // Bledý chrome: inkousty a plochy (PALE), lapisové CTA a priesvitný tint výberu.
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy aj triplist.
@@ -126,6 +126,7 @@ const CHKO_LOGO: Record<string, string> = {
 
 // ── zdieľané CSS — PackMap ho injektne raz vedľa svojho vlastného <style> ──────────────────
 export const COMMUNITY_CSS = `${HIT_CSS}
+${VEIL_CSS}
 /* ════════════════════════════════════════════════════════════════════════════
    DRAK → BRIGHT (2026-09-01) — TRIPSTATS, WalkedPopup a EventsView do bledého šatu.
    ────────────────────────────────────────────────────────────────────────────
@@ -143,7 +144,8 @@ export const COMMUNITY_CSS = `${HIT_CSS}
    Panel = úroveň 4 matrice (PACK_BOX.panel): papyrusový gradient, 1.5px zlatý rám,
    radius 14, panelShadow. Bez backdrop-filter — rozmazávať sa má závoj pod panelom,
    nie panel sám. */
-.comm-overlay{position:fixed;inset:0;z-index:1200;background:rgba(3,2,1,0.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;}
+/* ZÁVOJ = recept .pk-veil--modal (VEIL_CSS) — tu len vrstva a odsadenie. */
+.comm-overlay{z-index:1200;padding:16px;}
 .comm-modal{width:100%;max-width:420px;max-height:calc(100dvh - 40px);overflow-y:auto;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:24px;}
 .comm-modal.wide{max-width:640px;}
 /* Matej 2026-08-06 („konsolidujeme zjednodušujeme"): nadpis je CENTROVANÝ a nesie priamo názov
@@ -152,10 +154,10 @@ export const COMMUNITY_CSS = `${HIT_CSS}
    tlačidla, ktoré tam už nie je — panel podľa locku z 28. 8. krížik nemá (von sa ide klikom
    mimo alebo Esc), takže by rezerva len zbytočne zužovala nadpis. */
 .comm-modal-head{position:relative;display:flex;align-items:flex-start;justify-content:center;gap:12px;margin-bottom:18px;}
-.comm-modal-title{font-family:${FONT_TITLE};font-weight:700;font-size:18px;color:${P.ink};line-height:1.25;text-align:center;}
+.comm-modal-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${P.ink};line-height:1.25;text-align:center;}
 .comm-modal-sub{font-size:12px;color:${P.dim};margin-top:4px;text-align:center;}
 .comm-field{margin-bottom:18px;}
-.comm-label{display:block;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:${P.deep};margin-bottom:9px;}
+.comm-label{display:block;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;color:${P.deep};margin-bottom:9px;}
 
 /* rating packy (klikateľné) žijú v PawRating (addtrip/PawRating.tsx) — vlastné inline štýly. */
 
@@ -170,10 +172,10 @@ export const COMMUNITY_CSS = `${HIT_CSS}
    správna — bola v ňom jediná svetlá plocha. Odkedy je papyrusový celý panel, sú to dve
    rovnaké karty v sebe a matricový tieň karty (0 14px 44px čiernej + halo ring) urobí okolo
    odmeny tmavý prstenec. Úroveň 2 = panelGrad, 1px rám, radius 12, jemný lift. */
-.comm-reward{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;padding:15px 16px;border-radius:12px;background:${T.panelGrad};border:1px solid ${T.cardEdge};box-shadow:${PACK_SHADOW.lift};}
-.comm-reward-eyebrow{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:${T.cardEdge};}
+.comm-reward{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;padding:16px 16px;border-radius:12px;background:${T.panelGrad};border:1px solid ${T.cardEdge};box-shadow:${PACK_SHADOW.lift};}
+.comm-reward-eyebrow{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:${T.cardEdge};}
 .comm-reward-row{display:flex;align-items:center;gap:11px;min-width:0;}
-.comm-reward-txt{font-family:${FONT_UI};font-weight:600;font-size:12.5px;color:${T.inkStrong};min-width:0;overflow:hidden;text-overflow:ellipsis;}
+.comm-reward-txt{font-family:${FONT_UI};font-weight:600;font-size:12px;color:${T.inkStrong};min-width:0;overflow:hidden;text-overflow:ellipsis;}
 /* Bonusový riadok je „objav" — meno jednotky nesie väčšiu váhu než druh objavenia.
    Na papyruse ide inkoust, nie svetlý text; druh objavenia ostáva zlatý (drží aj na bledom). */
 .comm-reward-row--bonus .comm-reward-txt{color:${T.inkStrong};}
@@ -183,16 +185,16 @@ export const COMMUNITY_CSS = `${HIT_CSS}
 /* ⚠️ zvislá čiara NESMIE byť ${'T.rule'} — ten je gradient, a border:2px solid <gradient> je
    neplatné CSS, ktoré prehliadač ticho zahodí (čiara by zmizla bez chyby). Preto vyblednutá
    zlatá ako plná farba. */
-.comm-reward-break{display:flex;flex-direction:column;gap:3px;margin:-4px 0 0 8px;padding-left:11px;border-left:2px solid ${T.border};}
-.comm-reward-breakrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:${FONT_UI};font-weight:500;font-size:11px;color:${T.inkWarm};}
+.comm-reward-break{display:flex;flex-direction:column;gap:3px;margin:-4px 0 0 8px;padding-left:12px;border-left:2px solid ${T.border};}
+.comm-reward-breakrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:${FONT_UI};font-weight:500;font-size:10px;color:${T.inkWarm};}
 .comm-reward-breakrow b{font-weight:600;color:${T.inkStrong};font-variant-numeric:tabular-nums;white-space:nowrap;}
 .comm-reward-unit{font-family:${FONT_TITLE};font-weight:700;}
-.comm-reward-kind{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:${T.cardEdge};margin-top:2px;}
+.comm-reward-kind{display:block;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${T.cardEdge};margin-top:2px;}
 /* deliaca čiara vnútri bledej karty = zlatá, vyblednutá do strán (lock z Entry.tsx),
    NIE šedý hairline. Oddeľuje „čo už padlo" od „čo ešte môžeš získať". */
 .comm-reward-rule{height:2px;border:0;margin:2px 0 0;background:${T.rule};}
 .comm-reward-next{display:flex;align-items:center;gap:10px;min-width:0;}
-.comm-reward-nexttxt{font-family:${FONT_UI};font-weight:500;font-size:11.5px;line-height:1.35;color:${T.inkWarm};min-width:0;}
+.comm-reward-nexttxt{font-family:${FONT_UI};font-weight:500;font-size:12px;line-height:1.35;color:${T.inkWarm};min-width:0;}
 
 /* WalkedPopup 2-stĺpcový layout (Matej 2026-07-23 — širší popup, zmestí sa na výšku bez rolovania) */
 .comm-walked-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;}
@@ -201,7 +203,7 @@ export const COMMUNITY_CSS = `${HIT_CSS}
 /* segmented choice (difficulty / crowd) — VÝBER = PRIESVITNÝ LAPISOVÝ TINT (lock 2026-08-26).
    Plná farebná plocha je vyhradená jedinému hlavnému CTA panela (ODOSLAŤ). */
 .comm-seg{display:flex;gap:8px;}
-.comm-seg button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border-radius:10px;border:1px solid ${P.border};background:${P.soft};color:${P.ink};font-family:inherit;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.comm-seg button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 8px;border-radius:8px;border:1px solid ${P.border};background:${P.soft};color:${P.ink};font-family:inherit;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
 .comm-seg button:hover{border-color:${T.cardEdge};background:${T.card};}
 .comm-seg button.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}font-weight:600;}
 
@@ -211,13 +213,13 @@ export const COMMUNITY_CSS = `${HIT_CSS}
 /* Písacie pole = .pf-field--flat recept: PLOCHÁ papyrusová výplň, jeden zlatý rám, tmavý
    inkoust. Priesvitná biela (starý recept) na svetlom podklade nekreslí nič.
    Zaostrenie je LAPIS — je to moja akcia, nie konštrukcia. */
-.comm-textarea,.comm-input,.comm-selectinput{width:100%;min-width:0;max-width:100%;box-sizing:border-box;background:${P.field};border:1px solid ${P.border};border-radius:8px;padding:10px 12px;color:${P.ink};font-family:inherit;font-size:16px;outline:0;resize:vertical;color-scheme:light;}
+.comm-textarea,.comm-input,.comm-selectinput{width:100%;min-width:0;max-width:100%;box-sizing:border-box;background:${P.field};border:1px solid ${P.border};border-radius:8px;padding:8px 12px;color:${P.ink};font-family:inherit;font-size:16px;outline:0;resize:vertical;color-scheme:light;}
 .comm-textarea:focus,.comm-input:focus,.comm-selectinput:focus{border-color:${LAPIS.edge};box-shadow:0 0 0 3px ${LAPIS.halo};}
 .comm-textarea{min-height:66px;}
 
 /* HLAVNÉ CTA PANELA = LAPIS (brandový kánon 2026-08-28). Geometria (radius 8) je z locku
    .btn-gold — zmena farby nie je povolenie na iný tvar. */
-.comm-submit{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:14px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
+.comm-submit{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;padding:12px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
 .comm-submit:hover:not(:disabled){background:${LAPIS.gradHover};}
 /* ⚠️ NEDOSTUPNÉ CTA SA NA PAPYRUSE NEROBÍ KRYTÍM. opacity:.4 na plnom lapise dá levanduľovú
    škvrnu, na ktorej zlaté písmo zmizne — svetlý podklad zabíja všetko postavené na
@@ -226,14 +228,14 @@ export const COMMUNITY_CSS = `${HIT_CSS}
    → [[feedback_svetly_povrch_zabija_priesvitnost]] */
 .comm-submit:disabled{background:rgba(42,22,8,0.06);border-color:${P.hair};color:${P.faint};box-shadow:none;cursor:default;}
 /* „Teraz nie" je rovnocenná ponuka, nie akcia — papyrusový outline, nie druhá plná farba. */
-.comm-ghostbtn{width:100%;margin-top:9px;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:11px;border-radius:8px;background:${P.soft};color:${P.ink};border:1px solid ${P.border};cursor:pointer;}
+.comm-ghostbtn{width:100%;margin-top:9px;font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:12px;border-radius:8px;background:${P.soft};color:${P.ink};border:1px solid ${P.border};cursor:pointer;}
 .comm-ghostbtn:hover{border-color:${T.cardEdge};color:${P.deep};background:${T.card};}
 
 
 /* multi-select chips (hazards, atď.) — hrozba je červená, lebo červená TU nesie význam
    (nie je to voľba farby): označený hazard je varovanie pre ostatných. */
 .comm-chips{display:flex;flex-wrap:wrap;gap:7px;}
-.comm-chip{padding:7px 12px;border-radius:999px;border:1px solid ${P.border};background:${P.soft};color:${P.ink};font-family:inherit;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.comm-chip{padding:8px 12px;border-radius:999px;border:1px solid ${P.border};background:${P.soft};color:${P.ink};font-family:inherit;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
 .comm-chip:hover{border-color:${T.cardEdge};background:${T.card};}
 .comm-chip.on{${pickTintCSS(T.alertRed, PICK_INK.red, 0.14)}font-weight:600;}
 
@@ -243,17 +245,17 @@ export const COMMUNITY_CSS = `${HIT_CSS}
 .comm-crowd.detail{gap:6px;}
 .comm-crowd-rating{display:inline-flex;align-items:center;gap:5px;font-family:${FONT_UI};font-weight:600;color:${GOLD};}
 .comm-crowd-row{display:inline-flex;align-items:center;gap:5px;color:rgba(245,240,228,0.6);white-space:nowrap;}
-.comm-crowd-count{font-size:9.5px;color:${T.onDarkDim};font-style:italic;white-space:nowrap;}
-.comm-crowd-seed{font-size:9px;color:${GOLD};opacity:.7;letter-spacing:.04em;text-transform:uppercase;}
+.comm-crowd-count{font-size:10px;color:${T.onDarkDim};font-style:italic;white-space:nowrap;}
+.comm-crowd-seed{font-size:10px;color:${GOLD};opacity:.7;letter-spacing:0.02em;text-transform:uppercase;}
 
 /* ── BigRating (Matej 2026-07-22): pravý stĺpec karty/detailu = LEN 1 packa + veľké číslo X.Y,
    ostatné (náročnosť/popularita/hazard) sa presunuli na fotku ako PhotoMetaPills. ── */
 /* Rad sa zalomí, keď je stĺpec úzky — päť packiek s číslom a zátvorkou je širšie než jedna
    ikonka, ktorá tu stála predtým. Zarovnanie doprava drží celý blok pri hrane karty. */
 .comm-bigrating{display:inline-flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:4px 7px;}
-.comm-bigrating b{font-family:${FONT_UI};font-weight:600;font-size:26px;color:${GOLD};line-height:1;}
+.comm-bigrating b{font-family:${FONT_UI};font-weight:600;font-size:24px;color:${GOLD};line-height:1;}
 /* Počet hlasov je poznámka k číslu, nie druhé číslo — najmenší stupeň, bez kurzívy navyše. */
-.comm-bigrating i{font-style:normal;font-family:${FONT_UI};font-weight:500;font-size:11px;color:${T.onDarkDim};line-height:1;}
+.comm-bigrating i{font-style:normal;font-family:${FONT_UI};font-weight:500;font-size:10px;color:${T.onDarkDim};line-height:1;}
 .comm-bigrating.compact b{font-size:20px;}
 .comm-bigrating.compact i{font-size:10px;}
 /* mini = podpisový riadok karty (autor + hodnotenie). Nezalamuje sa: je to jedna poznámka,
@@ -261,7 +263,7 @@ export const COMMUNITY_CSS = `${HIT_CSS}
 .comm-bigrating.mini{flex-wrap:nowrap;gap:0 5px;}
 /* Matej 2026-08-26: „hodnotenie o 10 % zväčši" — podpis vedľa klesol na 12 px, takže hodnotenie
    musí zostať tým, čo v riadku vedie. 12 → 13,2 px, labky 10 → 11 px, počet hlasov 9 → 10 px. */
-.comm-bigrating.mini b{font-size:13.2px;}
+.comm-bigrating.mini b{font-size:14px;}
 .comm-bigrating.mini i{font-size:10px;}
 
 /* ── PhotoMetaPills — DOLNÝ pruh fotky. Hazard TU NIE JE (ten je až v detaile vedľa tagov).
@@ -270,9 +272,9 @@ export const COMMUNITY_CSS = `${HIT_CSS}
    po šírke fotky — ↔ km · ↑ m │ náročnosť │ popularita. Dôvod: stacknuté zaberali výšku
    fotky a km sa strácali v pilulke náročnosti. ── */
 .comm-photometa{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px;}
-.comm-mpill{display:inline-flex;align-items:center;gap:5px;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.2);color:#fff;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.02em;padding:5px 9px;border-radius:999px;white-space:nowrap;}
+.comm-mpill{display:inline-flex;align-items:center;gap:5px;background:rgba(0,0,0,0.6);border:1px solid ${T.onDarkBorder};color:#fff;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.02em;padding:4px 8px;border-radius:999px;white-space:nowrap;}
 /* hazard chip (len v detaile, vedľa tagov) — červený, % = koľko členov nahlásilo. */
-.comm-hazardtag{display:inline-flex;align-items:center;gap:5px;background:rgba(178,38,30,0.16);border:1px solid rgba(206,75,60,0.6);color:#E0796D;font-size:10.5px;font-weight:600;padding:5px 10px;border-radius:999px;white-space:nowrap;}
+.comm-hazardtag{display:inline-flex;align-items:center;gap:5px;background:rgba(178,38,30,0.16);border:1px solid ${T.alertRed};color:#E0796D;font-size:10px;font-weight:600;padding:4px 8px;border-radius:999px;white-space:nowrap;}
 
 /* hover %-rozpad tooltip (design §A) */
 .comm-hastip{position:relative;cursor:help;}
@@ -290,10 +292,9 @@ export const COMMUNITY_CSS = `${HIT_CSS}
    z nej potom nedá vymaniť ani cez position:static a ostane široký ako pilulka (5 riadkov na
    šírku 80px). Na fotke preto blur rušíme; pozadie rgba(0,0,0,0.6) + biely okraj ostávajú,
    rozdiel je opticky nulový. Mimo fotky (.comm-mpill inde) sa blur nemení. */
-.comm-photometa .comm-mpill{backdrop-filter:none;-webkit-backdrop-filter:none;}
 .comm-photometa .comm-hastip{position:static;}
 .comm-photometa .comm-hastip::after{left:0;right:0;width:auto;max-width:none;white-space:normal;text-align:left;line-height:1.4;}
-.comm-hastip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);right:0;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};color:${INK};font-family:${FONT_UI};font-size:10px;font-weight:600;padding:6px 10px;border-radius:10px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;box-shadow:${T.panelShadow};z-index:20;}
+.comm-hastip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);right:0;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};color:${INK};font-family:${FONT_UI};font-size:10px;font-weight:600;padding:4px 8px;border-radius:8px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;box-shadow:${T.panelShadow};z-index:20;}
 .comm-hastip:hover::after{opacity:1;}
 
 /* ⚠️ SHELL ZRUŠENÉHO DASHBOARDU „My Slovakia" ZMAZANÝ 2026-09-01.
@@ -313,7 +314,7 @@ export const COMMUNITY_CSS = `${HIT_CSS}
    panel papyrusová karta, sú to dve rovnaké karty v sebe: rovnaký gradient, rovnaký rám,
    a matricový tieň (0 14px 44px čiernej + halo ring) z toho urobí tmavý mrak vnútri svetlého
    bloku. Úroveň 2 = panelGrad, 1px rám, radius 12, jemný lift. */
-.comm-vhead{position:relative;display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:${T.panelGrad};border:1px solid ${T.cardEdge};border-radius:12px;box-shadow:${PACK_SHADOW.lift};padding:18px 20px;margin-bottom:22px;}
+.comm-vhead{position:relative;display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:${T.panelGrad};border:1px solid ${T.cardEdge};border-radius:12px;box-shadow:${PACK_SHADOW.lift};padding:16px 16px;margin-bottom:22px;}
 .comm-vhead-pack{display:flex;align-items:center;flex-shrink:0;}
 /* prstenec okolo avatara = farba PODKLADU, nie čierna stránka — na papyruse by čierny krúžok
    vyzeral ako dier(k)a. T.card je plná papyrusová, T.cardGrad by sa v box-shadow nedal použiť. */
@@ -326,7 +327,7 @@ export const COMMUNITY_CSS = `${HIT_CSS}
    ZMAZANÝ 2026-08-05 — Matej: „to plus daj preč tu sa psy nebudú pridávať". */
 /* MENO + PILULKA V JEDNOM RADE (Matej 2026-08-06: „pils dajme vedla nie pod"). Meno berie
    zvyšok šírky, pilulka sa nezmenší; "padding-right" drží text mimo info tlačidla v rohu. */
-.comm-vhead-id{flex:1;min-width:180px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-right:30px;}
+.comm-vhead-id{flex:1;min-width:180px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-right:32px;}
 /* vlajky precestovaných krajín — trofej, ktorá rastie. Krúžok má vlastný zlatý rám z FlagCircle,
    takže tu ide len o rozostup, klikateľnosť a zvýraznenie práve zvolenej krajiny. */
 .comm-vflags{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;}
@@ -340,7 +341,7 @@ export const COMMUNITY_CSS = `${HIT_CSS}
 /* Výplň, inkoust a rám dodáva tierPillStyle(level) inline — tu ostáva len tvar. Pilulka je
    TLAČIDLO (otvára škálu pásiem), takže potrebuje reset kurzora a rodinu písma. */
 .comm-tierwrap{position:relative;display:inline-flex;flex-shrink:0;}
-.comm-level-pill{display:inline-flex;align-items:center;gap:7px;border:1px solid ${GOLD_BTN.edge};border-radius:999px;padding:7px 14px;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;flex-shrink:0;cursor:pointer;transition:filter .15s;}
+.comm-level-pill{display:inline-flex;align-items:center;gap:7px;border:1px solid ${GOLD_BTN.edge};border-radius:999px;padding:8px 12px;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;white-space:nowrap;flex-shrink:0;cursor:pointer;transition:filter .15s;}
 .comm-level-pill:hover{filter:brightness(1.06);}
 /* Ikonka DEDÍ inkoust pásma cez masku — pri tmavých pásmach (karneol, cyprus, lapis, ametyst)
    je tier.ink svetlý a čierny filter by z pohára spravil dieru. */
@@ -356,9 +357,9 @@ export const COMMUNITY_CSS = `${HIT_CSS}
    pevných 52vh znamenalo, že sa k vlastným bodom vždy musí rolovať.
    ⚠️ Šírka je 520, nie 340 — dvojstĺpcový cenník sa do úzkeho popupu nezmestí; pod 560 px
    padá na jeden stĺpec sám (media query pri .comm-pts-cols). */
-.comm-tiers{position:absolute;top:calc(100% + 9px);left:0;z-index:32;width:min(520px,88vw);max-height:max(320px,calc(100vh - 300px));overflow-y:auto;overscroll-behavior:contain;text-align:left;cursor:default;text-transform:none;letter-spacing:normal;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:14px 15px;}
+.comm-tiers{position:absolute;top:calc(100% + 9px);left:0;z-index:32;width:min(520px,88vw);max-height:max(320px,calc(100vh - 300px));overflow-y:auto;overscroll-behavior:contain;text-align:left;cursor:default;text-transform:none;letter-spacing:normal;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:12px 16px;}
 @media (max-width:560px){
-  .comm-vhead{padding:14px 16px;gap:12px;}
+  .comm-vhead{padding:12px 16px;gap:12px;}
   .comm-vhead-name{font-size:14px;}
   /* ⚠️ NA ÚZKOM OKNE SA POPUP KOTVÍ NA BLOK, NIE NA PILULKU. Pilulka začína ~145 px od ľavého
      okraja, takže popup široký 88vw jej spod pravého okraja vytiekol z obrazovky (bolo to tak
@@ -382,19 +383,19 @@ export const COMMUNITY_CSS = `${HIT_CSS}
        deliaca čiara karty, len 26 px) — dlaždica tým dostane os, na ktorej číslo visí
      · hover dvíha a pridáva zlaté halo, teda to isté správanie ako dlaždice DOG ID */
 .comm-worldstats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:8px;}
-.comm-wstat{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${PACK_SHADOW.lift};padding:18px 12px 15px;text-align:center;transition:transform .2s ease,box-shadow .2s ease;}
-.comm-wstat:hover{transform:translateY(-2px);box-shadow:0 0 0 3px rgba(201,154,63,0.22),0 1px 3px rgba(122,90,42,0.10);}
-.comm-wstat b{display:block;font-family:${FONT_UI};font-weight:600;font-size:30px;font-variant-numeric:tabular-nums;color:${P.ink};line-height:1;}
+.comm-wstat{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${PACK_SHADOW.lift};padding:16px 12px 16px;text-align:center;transition:transform .2s ease,box-shadow .2s ease;}
+.comm-wstat:hover{transform:translateY(-2px);box-shadow:${PACK_SHADOW.card};}
+.comm-wstat b{display:block;font-family:${FONT_UI};font-weight:600;font-size:24px;font-variant-numeric:tabular-nums;color:${P.ink};line-height:1;}
 /* ⚠️ NAJVYŠŠÍ BOD JE MENO MIESTA, NIE ČÍSLO — a typografický lock hovorí, že identitu
    (názvy miest) nesie Cinzel, kým dáta nesie Space Grotesk. Do 1. 9. tu stálo meno vrcholu
    v Space Grotesku so zmenšeným písmom cez inline style, takže sa v rade štyroch dlaždíc
    čítalo ako pokazené číslo. */
-.comm-wstat--name b{font-family:${FONT_TITLE};font-weight:700;font-size:17px;line-height:1.15;letter-spacing:.01em;}
-.comm-wstat span{display:block;font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:${T.cardEdge};margin-top:9px;padding-top:9px;position:relative;}
+.comm-wstat--name b{font-family:${FONT_TITLE};font-weight:700;font-size:16px;line-height:1.15;letter-spacing:0.02em;}
+.comm-wstat span{display:block;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.cardEdge};margin-top:9px;padding-top:8px;position:relative;}
 /* krátka zlatá linka nad popiskom — vyblednutá do strán, teda tá istá technika ako T.rule,
    len na 26 px. Border-top by kreslil ostrý predel cez celú šírku dlaždice. */
 .comm-wstat span::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:26px;height:2px;background:${T.rule};}
-@media (max-width:560px){ .comm-worldstats{grid-template-columns:repeat(2,1fr);} .comm-wstat b{font-size:26px;} }
+@media (max-width:560px){ .comm-worldstats{grid-template-columns:repeat(2,1fr);} .comm-wstat b{font-size:24px;} }
 /* PSIE KM (B20, Matej 17. 9. 2026) — „v tripstats bude aj pes a jeho stats."
    🔒 JE TO DRUHÝ RIADOK, NIE DRUHÝ PÚTNIK. WORLD staty nad tým ostávajú ČLOVEKU
    (pútnik = všetky km so psami) a nič sa im neodoberá; tu stojí, koľko z toho
@@ -408,7 +409,7 @@ export const COMMUNITY_CSS = `${HIT_CSS}
 .comm-dogstat-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.02em;color:${P.ink};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .comm-dogstat-num{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.cardEdge};}
 
-.comm-cat{background:${T.panelGrad};border:1px solid ${T.cardEdge};border-radius:12px;box-shadow:${PACK_SHADOW.lift};padding:16px 18px;margin-bottom:12px;}
+.comm-cat{background:${T.panelGrad};border:1px solid ${T.cardEdge};border-radius:12px;box-shadow:${PACK_SHADOW.lift};padding:16px 16px;margin-bottom:12px;}
 /* klikateľná geo kategória → ADD TRIP (Matej 2026-07-23): button reset + hover. */
 .comm-cat--click{display:block;width:100%;text-align:left;cursor:pointer;font-family:inherit;transition:border-color .15s;}
 .comm-cat--click:hover{border-color:${P.deep};background:${T.card};}
@@ -426,23 +427,23 @@ export const COMMUNITY_CSS = `${HIT_CSS}
    pohár, vlnky sa pri sebe čítali ako ozdoba) a v každom bloku pridávala druhý tvar do riadku,
    ktorý má niesť jedno slovo a jedno číslo. c.icon v SK_GEO ostáva — kreslí sa ním MEDAILA
    v kategóriách bez loga (vrcholy, vody). */
-.comm-cat-name{font-family:${FONT_TITLE};font-weight:700;font-size:13px;color:${P.ink};flex:1;}
-.comm-cat-pct{font-family:${FONT_UI};font-weight:600;font-size:13px;color:${P.deep};}
+.comm-cat-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;color:${P.ink};flex:1;}
+.comm-cat-pct{font-family:${FONT_UI};font-weight:600;font-size:12px;color:${P.deep};}
 /* koľajnica pruhu = tmavý inkoust s nízkou alfou (ako .comm-lvlbar). Svetlá koľajnica by
    na papyruse zmizla a pruh by vyzeral, akoby začínal odnikiaľ. */
 .comm-cat-bar{height:7px;border-radius:999px;background:rgba(42,22,8,0.14);overflow:hidden;}
 .comm-cat-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#F5C73D,#E69E1A);transition:width .4s;}
 /* ⚠️ .comm-walkedhead / -n ZMAZANÉ 2026-09-01 — nahradil ich .comm-drop (viditeľný ovládač,
    #46) a od vtedy ich nekreslil nikto. */
-.comm-dash-section-title{font-family:${FONT_UI};font-weight:600;font-size:13px;letter-spacing:.04em;color:${P.deep};margin:20px 0 12px;}
+.comm-dash-section-title{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:${P.deep};margin:20px 0 12px;}
 /* položka zoznamu = RIADOK (úroveň 3 matrice): plochá výplň, slabší rám. Desať kariet pod
    sebou by z panela spravilo schodisko. */
-.comm-walkedrow{display:flex;align-items:center;justify-content:space-between;gap:12px;background:${T.tileBg};border:1px solid ${T.border};border-radius:10px;padding:13px 16px;margin-bottom:9px;cursor:pointer;transition:border-color .15s,background .15s;}
+.comm-walkedrow{display:flex;align-items:center;justify-content:space-between;gap:12px;background:${T.tileBg};border:1px solid ${T.border};border-radius:8px;padding:12px 16px;margin-bottom:9px;cursor:pointer;transition:border-color .15s,background .15s;}
 .comm-walkedrow:hover{border-color:${T.cardEdge};background:${T.card};}
-.comm-walkedrow-name{font-family:${FONT_TITLE};font-weight:700;font-size:13px;color:${P.ink};}
-.comm-walkedrow-meta{font-size:11px;color:${P.dim};white-space:nowrap;flex-shrink:0;}
+.comm-walkedrow-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;color:${P.ink};}
+.comm-walkedrow-meta{font-size:10px;color:${P.dim};white-space:nowrap;flex-shrink:0;}
 .comm-cat-units{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px;}
-.comm-unit{font-size:10.5px;padding:4px 9px;border-radius:999px;border:1px solid ${P.border};color:${P.dim};background:${P.soft};font-family:inherit;cursor:pointer;transition:border-color .15s,color .15s,background .15s;}
+.comm-unit{font-size:10px;padding:4px 8px;border-radius:999px;border:1px solid ${P.border};color:${P.dim};background:${P.soft};font-family:inherit;cursor:pointer;transition:border-color .15s,color .15s,background .15s;}
 .comm-unit:hover{border-color:${T.cardEdge};color:${P.deep};background:${T.card};}
 .comm-unit.done{border-color:${T.cardEdge};color:${P.deep};background:rgba(201,154,63,0.18);}
 /* per-unit rozklad (Slice A, bod 2): farba podľa počtu prejdených tripov na jednotku.
@@ -454,12 +455,12 @@ export const COMMUNITY_CSS = `${HIT_CSS}
 
 /* medaily (parks/chko/peaks/waters) — Matej 2026-07-23 zadanie bod 2: „musia to byť ozaj
    odznaky… na to sa kliknúť nebude dať bude to len medaila". Žiadny bar, žiadny ×N, žiadny klik. */
-.comm-cat-count{font-size:11px;color:${P.dim};flex-shrink:0;}
+.comm-cat-count{font-size:10px;color:${P.dim};flex-shrink:0;}
 .comm-medals{display:flex;flex-wrap:wrap;gap:14px;margin-top:13px;}
 .comm-medal{width:68px;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;}
 .comm-medal-ic{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .comm-medal-ic img{width:26px;height:26px;}
-.comm-medal--on .comm-medal-ic{background:${GOLD_BTN.grad};box-shadow:0 0 14px rgba(245,199,61,0.45),inset 0 1px 0 rgba(255,255,255,0.35);}
+.comm-medal--on .comm-medal-ic{background:${GOLD_BTN.grad};box-shadow:${PACK_SHADOW.lift};}
 .comm-medal--on .comm-medal-ic img{filter:brightness(0) invert(1);}
 /* ⚠️ VRCHOLY A VODY SÚ LAPISOVÉ, NIE ZLATÉ (Matej 1. 9. 2026: „highest peaks a top waters by
    mali byť lapisom nie zlatou").
@@ -468,7 +469,7 @@ export const COMMUNITY_CSS = `${HIT_CSS}
    vlastné farebné logá, takže odlíšiť sa potrebujú práve tie dve kategórie, ktoré kreslíme
    my. Zlato ostáva na LEME — lapis so zlatým prstencom je pôvodná egyptská dvojica, holý
    modrý kruh by na papyruse stál mimo brandu. */
-.comm-medal--on.comm-medal--lapis .comm-medal-ic{background:${LAPIS.grad};box-shadow:0 0 0 1.5px rgba(201,154,63,0.60),0 4px 12px rgba(5,15,48,0.35),inset 0 1px 0 rgba(239,215,154,0.30);}
+.comm-medal--on.comm-medal--lapis .comm-medal-ic{background:${LAPIS.grad};box-shadow:${LAPIS_BTN_SHADOW};}
 /* nezískaná medaila = zapustené miesto v papyruse, nie svetlá škvrna: tmavý inkoust s nízkou
    alfou a ČIERNA maska ikonky. invert(1) ju robilo bielou — správne na čiernej doske, na
    piesku prázdne miesto. */
@@ -484,7 +485,7 @@ export const COMMUNITY_CSS = `${HIT_CSS}
 .comm-medal--off .comm-medal-ic--logo img{filter:grayscale(1) brightness(.88) contrast(1.05);opacity:.62;}
 /* TANAP + Pieniny = biely kruh za logo (tmavý text robený pre biele pozadie → čitateľný v OBOCH
    stavoch). off = mierne stlmený svetlý disk, ale text stále vidno (žiadne opacity .3/.5 fade). */
-.comm-medal-ic--disc{background:#FBF9F4;border-radius:50%;padding:7px;box-shadow:0 0 0 1px rgba(122,90,42,0.30),0 2px 7px rgba(122,90,42,0.22);}
+.comm-medal-ic--disc{background:#FBF9F4;border-radius:50%;padding:8px;box-shadow:${PACK_SHADOW.lift};}
 .comm-medal-ic--disc img{filter:none;opacity:1;}
 .comm-medal--off .comm-medal-ic--disc{background:#D6D1C4;}
 .comm-medal--off .comm-medal-ic--disc img{filter:grayscale(.45);opacity:.92;}
@@ -492,9 +493,9 @@ export const COMMUNITY_CSS = `${HIT_CSS}
 .comm-medal-ic--big img{transform:scale(1.22);}
 .comm-medal-name{font-size:10px;line-height:1.25;color:${P.ink};}
 .comm-medal--off .comm-medal-name{color:${P.dim};opacity:.7;}
-.comm-unit-drop{margin-top:10px;padding-top:10px;border-top:1px solid ${P.hair};}
-.comm-unit-empty{text-align:center;font-size:11px;color:${P.dim};padding:6px 0 10px;font-style:italic;}
-.comm-unit-addrow{text-align:center;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.04em;color:${P.deep};padding:10px;border-radius:10px;border:1px dashed rgba(201,154,63,0.55);cursor:pointer;transition:border-color .15s,background .15s;}
+.comm-unit-drop{margin-top:10px;padding-top:8px;border-top:1px solid ${P.hair};}
+.comm-unit-empty{text-align:center;font-size:10px;color:${P.dim};padding:4px 0 8px;font-style:italic;}
+.comm-unit-addrow{text-align:center;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;color:${P.deep};padding:8px;border-radius:8px;border:1px dashed ${T.border};cursor:pointer;transition:border-color .15s,background .15s;}
 .comm-unit-addrow:hover{border-color:${T.cardEdge};background:rgba(201,154,63,0.14);}
 
 /* HERO BADGES — deviatka hrdinských odznakov (Matej 2026-07-24), globálny trip-míľnik achievement.
@@ -502,7 +503,7 @@ export const COMMUNITY_CSS = `${HIT_CSS}
    (pes aj číslo míľnika stále čitateľné — žiadna silueta). */
 .comm-heroes{display:grid;grid-template-columns:repeat(9,1fr);gap:6px;margin-top:13px;}
 @media (min-width:640px){.comm-heroes{gap:10px;}}
-.comm-hero{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:none;font-family:inherit;cursor:pointer;padding:2px;}
+.comm-hero{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:none;font-family:inherit;cursor:pointer;padding:4px;}
 .comm-hero img{width:100%;aspect-ratio:1;object-fit:contain;transition:transform .25s,filter .25s;}
 /* ⚠️ ZÍSKANÝ ODZNAK SVIETI TIEŇOM, NIE ŽIAROU (2026-09-01). Zlatá žiara okolo zlatého
    medailónu na PIESKU nekreslí nič — halo na svetlom podklade sa nezosilňuje polomerom,
@@ -525,25 +526,25 @@ export const COMMUNITY_CSS = `${HIT_CSS}
 /* Závoj ostáva tmavý — je to okamih, keď má obrazovka stíchnuť a svietiť má len odznak.
    Karta pod ním je PANEL (úroveň 4 matrice): papyrus, 1.5px zlatý rám, panelShadow. */
 .comm-reveal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;z-index:9999;padding:24px;cursor:pointer;animation:comm-reveal-fadein .35s ease;}
-.comm-reveal-card{position:relative;display:flex;gap:28px;align-items:center;width:100%;max-width:760px;max-height:86vh;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;padding:34px;cursor:default;box-shadow:${T.panelShadow};animation:comm-reveal-pop .55s cubic-bezier(.2,1.3,.4,1);}
+.comm-reveal-card{position:relative;display:flex;gap:28px;align-items:center;width:100%;max-width:760px;max-height:86vh;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;padding:32px;cursor:default;box-shadow:${T.panelShadow};animation:comm-reveal-pop .55s cubic-bezier(.2,1.3,.4,1);}
 .comm-reveal-left{flex:0 0 210px;display:flex;flex-direction:column;align-items:center;gap:12px;}
 .comm-reveal-badge{width:210px;max-width:44vw;filter:drop-shadow(0 0 14px rgba(201,154,63,.45)) drop-shadow(0 10px 20px rgba(90,62,20,.40));}
-.comm-reveal-trips{font-family:${FONT_UI};font-weight:600;font-size:13px;color:${P.deep};letter-spacing:.16em;text-transform:uppercase;}
+.comm-reveal-trips{font-family:${FONT_UI};font-weight:600;font-size:12px;color:${P.deep};letter-spacing:0.14em;text-transform:uppercase;}
 .comm-reveal-right{flex:1;min-width:0;text-align:left;max-height:70vh;overflow-y:auto;}
 /* Eyebrow na papyruse = zlatá (T.cardEdge), telo textu plný inkoust s tichším krytím —
    inkWarm je na popisky a odsek v ňom sa číta ako poznámka pod čiarou. */
-.comm-reveal-kicker{font-family:${FONT_UI};font-weight:600;font-size:11px;letter-spacing:.24em;color:${T.cardEdge};text-transform:uppercase;}
-.comm-reveal-name{font-family:${FONT_TITLE};font-weight:700;font-size:30px;color:${P.ink};margin-top:6px;line-height:1.05;}
+.comm-reveal-kicker{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.22em;color:${T.cardEdge};text-transform:uppercase;}
+.comm-reveal-name{font-family:${FONT_TITLE};font-weight:700;font-size:24px;color:${P.ink};margin-top:6px;line-height:1.05;}
 .comm-reveal-story{font-size:14px;line-height:1.65;color:rgba(42,22,8,0.86);margin-top:14px;}
 /* ⚠️ .comm-reveal-x ZMAZANÉ 2026-09-01 — panel podľa locku z 28. 8. krížik nemá, von sa ide
    klikom na závoj alebo Esc (obidve rieši HeroBadges.tsx). */
 .comm-reveal-badge--off{filter:grayscale(1) brightness(.94) contrast(1.06) drop-shadow(0 10px 20px rgba(90,62,20,.30));}
 .comm-reveal-kicker--locked{color:${P.dim};}
-.comm-reveal-source{display:inline-block;margin-top:16px;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.04em;color:${P.deep};text-decoration:none;border-bottom:1px solid rgba(201,154,63,.55);padding-bottom:2px;}
+.comm-reveal-source{display:inline-block;margin-top:16px;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.02em;color:${P.deep};text-decoration:none;border-bottom:1px solid ${T.border};padding-bottom:4px;}
 .comm-reveal-source:hover{border-bottom-color:${T.cardEdge};}
-.comm-reveal-source-label{font-family:inherit;font-weight:400;font-size:11px;color:${P.dim};letter-spacing:0;}
+.comm-reveal-source-label{font-family:inherit;font-weight:400;font-size:10px;color:${P.dim};letter-spacing:0;}
 @media (max-width:600px){
-  .comm-reveal-card{flex-direction:column;gap:16px;padding:26px 20px 22px;text-align:center;}
+  .comm-reveal-card{flex-direction:column;gap:16px;padding:24px 16px 24px;text-align:center;}
   .comm-reveal-left{flex:none;}
   .comm-reveal-badge{width:150px;}
   .comm-reveal-right{text-align:center;max-height:48vh;}
@@ -566,35 +567,35 @@ export const COMMUNITY_CSS = `${HIT_CSS}
    Matricový T.cardShadow je pre kartu na ČIERNEJ stránke; na papyruse je z neho čierny
    mrak a ring sa reže o okraj skrolovacieho stĺpca.
    ⚠️ .comm-plan-tag ZMAZANÉ — pravidlo bez jediného výskytu v JSX (overené grepom cez src). */
-.comm-plan{background:${T.cardGrad};border:1.5px solid ${T.cardEdge};border-radius:16px;box-shadow:0 2px 8px rgba(122,90,42,0.16),inset 0 1px 0 rgba(255,255,255,0.45);padding:15px 17px;margin-bottom:12px;}
+.comm-plan{background:${T.cardGrad};border:1.5px solid ${T.cardEdge};border-radius:16px;box-shadow:${PACK_SHADOW.lift};padding:16px 16px;margin-bottom:12px;}
 /* Fotka a štítok na nej ostávajú TMAVÉ — podklad je snímka, nie papyrus, presne ako
    .trp-bigcard-photoactbtn. Radius je o hrúbku rámu menší (16 − 1.5), inak fotka vyčnieva
    z oblúka karty. */
-.comm-plan-photo{position:relative;margin:-15px -17px 13px;height:150px;background-size:cover;background-position:center;border-radius:15px 15px 0 0;cursor:pointer;}
-.comm-plan-planned{position:absolute;left:12px;bottom:10px;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.5);padding:4px 9px;border-radius:7px;border:1px solid rgba(201,154,63,0.5);}
+.comm-plan-photo{position:relative;margin:-15px -17px 13px;height:150px;background-size:cover;background-position:center;border-radius:14px 15px 0 0;cursor:pointer;}
+.comm-plan-planned{position:absolute;left:12px;bottom:10px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.5);padding:4px 8px;border-radius:8px;border:1px solid ${T.border};}
 .comm-plan-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
 /* NEUTRÁLNY typový štítok (výlet). Protipól je zlatý .pev-typechip (podujatie) v
    events/EventCard.tsx — dvojica sa musí líšiť farbou, nielen textom. Na papyruse je
    z toho holý obrys proti teplej zlatej výplni.
    ⚠️ Zlatá ${T.cardEdge} ako PÍSMO má na piesku ~1.9:1, takže zvýraznenie nesie tmavšia
    P.deep — tá istá hodnota, akou svieti zvýraznený stav v celom bledom skine mapy. */
-.comm-plan-type{display:inline-block;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid ${P.border};color:${P.dim};margin-bottom:5px;}
+.comm-plan-type{display:inline-block;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:4px 8px;border-radius:999px;border:1px solid ${P.border};color:${P.dim};margin-bottom:5px;}
 .comm-plan-name{font-family:${FONT_TITLE};font-weight:700;font-size:14px;color:${P.ink};}
-.comm-plan-meta{font-size:11.5px;color:${P.dim};margin-top:3px;}
+.comm-plan-meta{font-size:12px;color:${P.dim};margin-top:3px;}
 .comm-plan-people{display:flex;flex-direction:column;gap:7px;margin-top:12px;padding-top:12px;border-top:1px solid ${P.hair};}
 .comm-person{display:flex;align-items:center;gap:9px;}
 /* Zlatý krúžok s tmavým písmenom drží aj na papyruse — je to plocha, nie písmo. */
 .comm-person-av{width:28px;height:28px;border-radius:50%;flex-shrink:0;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:12px;color:${INK};}
-.comm-person-txt{flex:1;min-width:0;font-size:11.5px;color:${P.ink};}
+.comm-person-txt{flex:1;min-width:0;font-size:12px;color:${P.ink};}
 .comm-person-txt b{color:${P.ink};}
 .comm-person-txt span{color:${P.dim};}
-.comm-buddytoggle{font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:6px 0;background:none;border:none;color:${P.deep};cursor:pointer;}
-.comm-msgbtn{flex-shrink:0;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.04em;text-transform:uppercase;padding:6px 11px;border-radius:999px;background:${P.soft};border:1px solid ${P.border};color:${P.ink};cursor:pointer;}
+.comm-buddytoggle{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 0;background:none;border:none;color:${P.deep};cursor:pointer;}
+.comm-msgbtn{flex-shrink:0;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 12px;border-radius:999px;background:${P.soft};border:1px solid ${P.border};color:${P.ink};cursor:pointer;}
 .comm-msgbtn:hover{border-color:${T.cardEdge};color:${P.deep};background:${P.hot};}
 /* JOIN = HLAVNÉ CTA karty ⇒ LAPIS, radius 8 (brandový kánon 28. 8.). Tá istá dvojica,
    akú dostali JOIN a SAVE DATE v tripliste 1. 9. Pilulkový tvar zaniká: geometriu nesie
    lock .btn-gold, lapis mení len výplň. */
-.comm-joinbtn{flex-shrink:0;font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:8px 15px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
+.comm-joinbtn{flex-shrink:0;font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:8px 16px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
 .comm-joinbtn:hover{background:${LAPIS.gradHover};}
 /* „Going" nie je akcia, je to STAV — zelený tint, rovnako ako prejdený výlet v článku.
    Plná zelená by na karte stála druhá plná farba vedľa lapisu a ani jedna by neviedla. */
@@ -602,64 +603,64 @@ export const COMMUNITY_CSS = `${HIT_CSS}
 /* Vypnuté CTA = PLOCHÝ PAPYRUS, nie opacity — krytie na svetlom podklade dá levanduľovú
    škvrnu a písmo z nej zmizne (zistené pri tripliste 1. 9.). */
 .comm-joinbtn.closed{background:${P.soft};color:${P.faint};border-color:${P.hair};box-shadow:none;cursor:default;}
-.comm-lockbtn{flex-shrink:0;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.04em;text-transform:uppercase;padding:5px 10px;border-radius:999px;background:none;border:1px solid ${P.border};color:${P.dim};cursor:pointer;}
+.comm-lockbtn{flex-shrink:0;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:none;border:1px solid ${P.border};color:${P.dim};cursor:pointer;}
 .comm-lockbtn:hover{border-color:${T.cardEdge};color:${P.deep};}
 .comm-lockbtn.on{border-color:${P.deep};color:${P.deep};background:${P.hot};}
-.comm-empty{text-align:center;padding:34px 16px;color:${P.dim};font-size:12.5px;font-style:italic;}
+.comm-empty{text-align:center;padding:32px 16px;color:${P.dim};font-size:12px;font-style:italic;}
 /* #55 — prázdny stav = JEDNA veta faktu + JEDNA akcia. Bez tlačidla je to slepá ulička:
    po zmazaní fabrikovaných dát (2026-08-03) je toto prvé, čo nový člen v paneli uvidí. */
-.comm-emptybox{display:flex;flex-direction:column;align-items:center;gap:14px;padding:34px 16px;text-align:center;}
-.comm-emptybox p{margin:0;color:${P.dim};font-size:12.5px;font-style:italic;line-height:1.5;}
+.comm-emptybox{display:flex;flex-direction:column;align-items:center;gap:14px;padding:32px 16px;text-align:center;}
+.comm-emptybox p{margin:0;color:${P.dim};font-size:12px;font-style:italic;line-height:1.5;}
 /* jediná akcia prázdneho stavu = hlavné CTA ⇒ LAPIS (kánon 2026-08-28). Radius 8 ostáva
    z locku .btn-gold — mení sa výplň, nie tvar. */
-.comm-emptybtn{font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:11px 20px;border-radius:8px;border:1px solid ${LAPIS.deep};background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
+.comm-emptybtn{font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:12px 16px;border-radius:8px;border:1px solid ${LAPIS.deep};background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
 .comm-emptybtn:hover{background:${LAPIS.gradHover};}
 /* #41 — úprimná veta namiesto fabrikovaného člena/prázdneho bloku (issue #41, ČASŤ 2) */
-.comm-buddynote{font-size:11px;color:${P.dim};font-style:italic;padding:8px 0 2px;}
+.comm-buddynote{font-size:10px;color:${P.dim};font-style:italic;padding:8px 0 4px;}
 
 /* ── CompanionPicker (Matej 2026-07-23): „kto bol so mnou" — svorka (moje psy s fotkami) +
    iní členovia podľa mena. Vybraté = avatar chipy s ×. ── */
 .comm-comp-selected{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:11px;}
-.comm-comp-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(201,154,63,0.12);border:1px solid ${PACK_THEME.border};border-radius:999px;padding:5px 11px 5px 5px;}
-.comm-comp-chip-av{width:26px;height:26px;border-radius:50%;flex-shrink:0;background-size:cover;background-position:center;background-color:rgba(245,240,228,0.1);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:11px;color:${INK};}
+.comm-comp-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(201,154,63,0.12);border:1px solid ${PACK_THEME.border};border-radius:999px;padding:4px 12px 4px 4px;}
+.comm-comp-chip-av{width:26px;height:26px;border-radius:50%;flex-shrink:0;background-size:cover;background-position:center;background-color:rgba(245,240,228,0.1);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:10px;color:${INK};}
 .comm-comp-chip-av.ph{background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);}
 .comm-comp-chip b{font-size:12px;color:${T.onDark};font-weight:600;}
-.comm-comp-chip button{background:none;border:none;color:${T.onDarkDim};font-size:15px;line-height:1;cursor:pointer;padding:0 2px;}
+.comm-comp-chip button{background:none;border:none;color:${T.onDarkDim};font-size:14px;line-height:1;cursor:pointer;padding:0 4px;}
 .comm-comp-chip button:hover{color:${GOLD};}
-.comm-comp-grouplabel{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:${T.onDarkDim};margin:2px 0 7px;font-family:${FONT_UI};font-weight:600;}
+.comm-comp-grouplabel{font-size:10px;letter-spacing:0.02em;text-transform:uppercase;color:${T.onDarkDim};margin:2px 0 7px;font-family:${FONT_UI};font-weight:600;}
 .comm-comp-pack{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
-.comm-comp-dog{display:inline-flex;align-items:center;gap:8px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:999px;padding:5px 13px 5px 5px;cursor:pointer;transition:all .15s;}
+.comm-comp-dog{display:inline-flex;align-items:center;gap:8px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:999px;padding:4px 12px 4px 4px;cursor:pointer;transition:all .15s;}
 .comm-comp-dog:hover{border-color:${GOLD};}
 .comm-comp-dog.on{background:rgba(201,154,63,0.16);border-color:${GOLD};}
 .comm-comp-dog-av{width:28px;height:28px;border-radius:50%;flex-shrink:0;background-size:cover;background-position:center;background-color:rgba(245,240,228,0.1);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:12px;color:${INK};}
 .comm-comp-dog-av.ph{background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);}
-.comm-comp-dog span{font-size:12.5px;color:${T.onDark};}
-.comm-comp-dog .plus{margin-left:2px;color:${GOLD};font-size:15px;font-weight:600;line-height:1;}
+.comm-comp-dog span{font-size:12px;color:${T.onDark};}
+.comm-comp-dog .plus{margin-left:2px;color:${GOLD};font-size:14px;font-weight:600;line-height:1;}
 /* ⚠️ VYBRATÝ PES SVIETI NAZELENO, NIE NAZLATO (Matej 2026-08-25: „musí tam svietiť hlavy
    psov a po kliknutí sa zazelenajú"). Zlatá na tejto obrazovke znamená „tu si" a nesie ju
    postup krokov; zelená znamená HOTOVO — tá istá, akou svieti dokončený krok v číselníku
    a splnená značka na trase (GROUP_TINT.comment). Jeden význam, jedna farba. */
 .comm-comp-dog.on{background:rgba(58,150,88,0.18);border-color:#3A9658;}
-.comm-comp-dog.on .comm-comp-dog-av{box-shadow:0 0 0 2px #3A9658;}
+.comm-comp-dog.on .comm-comp-dog-av{box-shadow:0 0 0 2px ${T.growGreen};}
 /* Zbalené + pred otvorením poľa s menami. Nie zlaté CTA — je to rozbalenie, nie akcia kroku. */
-.comm-comp-openothers{display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;margin-top:10px;border-radius:10px;background:rgba(245,240,228,0.04);border:1px dashed ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};font-size:12px;cursor:pointer;}
+.comm-comp-openothers{display:flex;align-items:center;gap:9px;width:100%;padding:8px 12px;margin-top:10px;border-radius:8px;background:rgba(245,240,228,0.04);border:1px dashed ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};font-size:12px;cursor:pointer;}
 .comm-comp-openothers:hover{border-color:${GOLD};color:${T.onDark};}
-.comm-comp-openplus{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:rgba(201,154,63,0.16);color:${GOLD};font-size:15px;line-height:1;}
+.comm-comp-openplus{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:rgba(201,154,63,0.16);color:${GOLD};font-size:14px;line-height:1;}
 .comm-comp-searchwrap{position:relative;}
 .comm-comp-searchrow{display:flex;gap:8px;align-items:stretch;}
 .comm-comp-searchrow .comm-input{flex:1 1 auto;min-width:0;}
 /* Štvorec vedľa poľa, nie zlaté CTA: zlatá je vyhradená hlavnej akcii obrazovky a tou je
    ĎALEJ dole. Toto je pomocné potvrdenie jedného poľa. */
-.comm-comp-addbtn{flex:0 0 auto;width:44px;border-radius:9px;background:rgba(201,154,63,0.14);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-size:20px;line-height:1;cursor:pointer;padding:0;}
+.comm-comp-addbtn{flex:0 0 auto;width:44px;border-radius:8px;background:rgba(201,154,63,0.14);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-size:20px;line-height:1;cursor:pointer;padding:0;}
 .comm-comp-addbtn:disabled{opacity:.38;cursor:default;}
 .comm-comp-addbtn:not(:disabled):hover{border-color:${GOLD};}
-.comm-comp-sug{position:absolute;top:calc(100% + 6px);left:0;right:0;background:rgba(6,5,3,0.96);backdrop-filter:blur(8px);border:1px solid ${T.onDarkBorder};border-radius:11px;overflow:hidden;box-shadow:0 12px 34px rgba(0,0,0,0.55);z-index:30;max-height:210px;overflow-y:auto;}
-.comm-comp-sugitem{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid ${T.onDarkHair};}
+.comm-comp-sug{position:absolute;top:calc(100% + 6px);left:0;right:0;background:rgba(6,5,3,0.96);border:1px solid ${T.onDarkBorder};border-radius:12px;overflow:hidden;box-shadow:${PACK_SHADOW.panel};z-index:30;max-height:210px;overflow-y:auto;}
+.comm-comp-sugitem{display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;border-bottom:1px solid ${T.onDarkHair};}
 .comm-comp-sugitem:last-child{border-bottom:0;}
 .comm-comp-sugitem:hover{background:rgba(201,154,63,0.14);}
 .comm-comp-sugitem-av{width:30px;height:30px;border-radius:50%;flex-shrink:0;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:12px;color:${INK};}
-.comm-comp-sugitem-tx{font-size:12.5px;color:${T.onDark};}
-.comm-comp-sugitem-tx span{color:${T.onDarkDim};font-size:11px;}
+.comm-comp-sugitem-tx{font-size:12px;color:${T.onDark};}
+.comm-comp-sugitem-tx span{color:${T.onDarkDim};font-size:10px;}
 
 /* ⚠️ .comm-modechoice / .comm-mode* ZMAZANÉ 2026-09-01 — voľba „Plánujem / Prešiel som" sa
    presťahovala do ADD toku (dlaždice TRIP / EVENT / QUICK NOTE na /pack/add/trip) a tieto
@@ -684,7 +685,7 @@ export const COMMUNITY_CSS = `${HIT_CSS}
    fallback drží pôvodnú zlatú, takže povrch bez premenných vyzerá presne ako predtým.
    Poradie b→a (tmavý → svetlý) je zhodné s pruhom v paneli levelu na mape. */
 .comm-lvlbar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--tier-b,#F5C73D),var(--tier-a,#E69E1A));transition:width .45s;}
-.comm-lvlfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:${FONT_UI};font-weight:500;font-size:10.5px;color:${T.inkWarm};}
+.comm-lvlfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:${FONT_UI};font-weight:500;font-size:10px;color:${T.inkWarm};}
 /* ⚠️ .comm-lvlinfo / .comm-lvlinfo-btn ZMAZANÉ 1. 9. 2026 — ⓘ tlačidlo v pravom hornom rohu
    zaniklo spolu s druhým popupom (Matej: „spojiť dva popupy na hlavičke do jedného ako na
    mape"). Cenník žije v popupe pilulky levelu. */
@@ -697,28 +698,28 @@ export const COMMUNITY_CSS = `${HIT_CSS}
    ktoré ten popup používa. */
 .comm-pts-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
 /* zvislý predel medzi stĺpcami = zlatý, nie šedý hairline (lock bledého bloku). */
-.comm-pts-col + .comm-pts-col{padding-left:18px;border-left:1.5px solid ${PACK_THEME.border};}
+.comm-pts-col + .comm-pts-col{padding-left:16px;border-left:1.5px solid ${PACK_THEME.border};}
 @media (max-width:560px){
   .comm-pts-cols{grid-template-columns:1fr;gap:12px;}
   .comm-pts-col + .comm-pts-col{padding-left:0;border-left:0;padding-top:12px;border-top:1.5px solid ${PACK_THEME.border};}
 }
-.comm-pts-eyebrow{display:block;font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.26em;text-transform:uppercase;color:${T.cardEdge};margin-bottom:9px;}
-.comm-pts-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:${FONT_UI};font-weight:500;font-size:11px;color:${T.inkWarm};padding:3px 0;}
+.comm-pts-eyebrow{display:block;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:${T.cardEdge};margin-bottom:9px;}
+.comm-pts-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:${FONT_UI};font-weight:500;font-size:10px;color:${T.inkWarm};padding:4px 0;}
 .comm-pts-row b{font-weight:600;color:${T.inkStrong};white-space:nowrap;font-variant-numeric:tabular-nums;}
 .comm-pts-rule{display:block;height:2px;margin:10px 0;background:${T.rule};}
-.comm-pts-tot{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:${FONT_TITLE};font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:${T.inkStrong};}
+.comm-pts-tot{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.02em;color:${T.inkStrong};}
 /* prázdny pravý stĺpec — nový člen nemá ani bod, a prázdna polovica bez vysvetlenia vyzerá
    ako chyba renderu. */
-.comm-pts-none{font-family:${FONT_UI};font-weight:500;font-size:11px;font-style:italic;line-height:1.5;color:${T.inkWarm};}
+.comm-pts-none{font-family:${FONT_UI};font-weight:500;font-size:10px;font-style:italic;line-height:1.5;color:${T.inkWarm};}
 /* jednoveté vysvetlenie pod nadpisom sekcie (ranky krajiny) — menšie a kurzívou, aby sa
    nečítalo ako ďalšia položka zoznamu s chýbajúcim číslom vpravo. */
 .comm-pts-note{display:block;font-family:${FONT_UI};font-weight:500;font-size:10px;font-style:italic;line-height:1.45;color:${T.inkWarm};margin:-4px 0 7px;}
 
 /* countries — VŠETKY štáty s vlajkou, aj tie bez výletu (#46) */
-.comm-ctrys{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px;margin-bottom:14px;-webkit-overflow-scrolling:touch;}
+.comm-ctrys{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;margin-bottom:14px;-webkit-overflow-scrolling:touch;}
 /* VYBRANÁ KRAJINA = PRIESVITNÝ LAPISOVÝ TINT (lock 2026-08-26) — je to moja voľba, čo
    chcem vo vysvedčení vidieť, nie konštrukcia. Plná plocha ostáva hlavnému CTA. */
-.comm-ctry{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:7px 13px 7px 8px;border-radius:999px;border:1px solid ${P.border};background:${P.soft};font-family:inherit;cursor:pointer;transition:border-color .15s,background .15s;}
+.comm-ctry{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:8px 12px 8px 8px;border-radius:999px;border:1px solid ${P.border};background:${P.soft};font-family:inherit;cursor:pointer;transition:border-color .15s,background .15s;}
 .comm-ctry:hover{border-color:${T.cardEdge};background:${T.card};}
 .comm-ctry.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}}
 .comm-ctry--empty{opacity:.55;}
@@ -726,8 +727,8 @@ export const COMMUNITY_CSS = `${HIT_CSS}
    hovorí „sem si zatiaľ nešiel"; keď na taký chip klikne, je to jeho voľba a musí byť
    vidieť rovnako ako pri prejdenej krajine — inak vyzerá výber ako nedotiahnutý. */
 .comm-ctry--empty.on{opacity:1;}
-.comm-ctry img{width:22px;height:15px;border-radius:3px;object-fit:cover;flex-shrink:0;}
-.comm-ctry b{font-family:${FONT_UI};font-weight:600;font-size:11.5px;color:${P.ink};white-space:nowrap;}
+.comm-ctry img{width:22px;height:15px;border-radius:8px;object-fit:cover;flex-shrink:0;}
+.comm-ctry b{font-family:${FONT_UI};font-weight:600;font-size:12px;color:${P.ink};white-space:nowrap;}
 .comm-ctry.on b{color:${PICK_INK.lapis};}
 .comm-ctry span{font-family:${FONT_UI};font-weight:500;font-size:10px;color:${P.dim};white-space:nowrap;}
 
@@ -741,8 +742,8 @@ export const COMMUNITY_CSS = `${HIT_CSS}
    výletu cez celý blok; biely text a tmavý spád naň patria, papyrusová výplň by fotku
    prekryla. Prezliekol sa len RÁM (zlatý namiesto svetlého) a radius, aby blok sedel do
    mriežky ostatných. */
-.comm-chero{position:relative;border-radius:14px;border:1.5px solid ${T.cardEdge};background:#2A2013;background-size:cover;background-position:center;min-height:172px;display:flex;align-items:flex-end;padding:18px;margin-bottom:16px;box-shadow:0 2px 8px rgba(122,90,42,0.18);}
-.comm-chero::before{content:'';position:absolute;inset:0;border-radius:12.5px;background:linear-gradient(180deg,rgba(0,0,0,0.15) 0%,rgba(0,0,0,0.78) 100%);}
+.comm-chero{position:relative;border-radius:14px;border:1.5px solid ${T.cardEdge};background:#2A2013;background-size:cover;background-position:center;min-height:172px;display:flex;align-items:flex-end;padding:16px;margin-bottom:16px;box-shadow:${PACK_SHADOW.lift};}
+.comm-chero::before{content:'';position:absolute;inset:0;border-radius:12px;background:linear-gradient(180deg,rgba(0,0,0,0.15) 0%,rgba(0,0,0,0.78) 100%);}
 /* krajina bez vlastnej fotky: vlajka NEsmie ísť cez background cover — roztiahnutá rakúska
    alebo švajčiarska vlajka je len biela plocha. Bez fotky niet čo prekrývať, takže tu už
    tmavý blok nemá dôvod byť a hero ide do papyrusu — inak by v bledom vysvedčení stála
@@ -756,26 +757,26 @@ export const COMMUNITY_CSS = `${HIT_CSS}
 .comm-chero--noimg .comm-chero-sub{color:${P.dim};}
 .comm-chero--noimg .comm-chero-goaltxt{color:${P.deep};}
 .comm-chero--noimg .comm-chero-bar{background:rgba(42,22,8,0.14);}
-.comm-chero--noimg .comm-chero-flag{border-color:${P.border};box-shadow:0 2px 8px rgba(122,90,42,0.28);}
+.comm-chero--noimg .comm-chero-flag{border-color:${P.border};box-shadow:${PACK_SHADOW.lift};}
 .comm-chero--noimg .comm-rankinfo-btn{border-color:${P.border};background:${P.soft};color:${P.ink};}
 .comm-chero--noimg .comm-chero-sel select{background:${P.field};border-color:${P.border};color:${P.ink};}
-.comm-chero-flag{display:block;width:54px;height:36px;object-fit:cover;border-radius:8px;border:1px solid rgba(245,240,228,0.35);box-shadow:0 4px 14px rgba(0,0,0,0.5);margin-bottom:11px;}
+.comm-chero-flag{display:block;width:54px;height:36px;object-fit:cover;border-radius:8px;border:1px solid ${T.onDarkBorder};box-shadow:${PACK_SHADOW.panel};margin-bottom:11px;}
 .comm-chero-sel{position:absolute;top:12px;right:12px;z-index:2;}
-.comm-chero-sel select{appearance:none;-webkit-appearance:none;background:rgba(3,2,1,0.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(201,154,63,0.55);border-radius:999px;color:${T.card};font-family:${FONT_UI};font-weight:600;font-size:11px;padding:7px 28px 7px 13px;cursor:pointer;}
-.comm-chero-sel::after{content:'';position:absolute;right:12px;top:50%;width:6px;height:6px;border-right:1.5px solid rgba(201,154,63,0.9);border-bottom:1.5px solid rgba(201,154,63,0.9);transform:translateY(-70%) rotate(45deg);pointer-events:none;}
+.comm-chero-sel select{appearance:none;-webkit-appearance:none;background:rgba(3,2,1,0.55);border:1px solid ${T.border};border-radius:999px;color:${T.card};font-family:${FONT_UI};font-weight:600;font-size:10px;padding:8px 24px 8px 12px;cursor:pointer;}
+.comm-chero-sel::after{content:'';position:absolute;right:12px;top:50%;width:6px;height:6px;border-right:1.5px solid ${GOLD};border-bottom:1.5px solid ${GOLD};transform:translateY(-70%) rotate(45deg);pointer-events:none;}
 .comm-chero-in{position:relative;z-index:1;width:100%;}
-.comm-chero-name{font-family:${FONT_TITLE};font-weight:700;font-size:28px;line-height:1;letter-spacing:.07em;text-transform:uppercase;color:${T.card};text-shadow:0 2px 14px rgba(0,0,0,0.7);}
+.comm-chero-name{font-family:${FONT_TITLE};font-weight:700;font-size:24px;line-height:1;letter-spacing:0.02em;text-transform:uppercase;color:${T.card};text-shadow:0 2px 14px rgba(0,0,0,0.7);}
 .comm-chero-sub{font-family:${FONT_UI};font-weight:500;font-size:12px;color:rgba(245,240,228,0.85);margin-top:7px;}
 .comm-chero-goal{margin-top:11px;max-width:340px;}
-.comm-chero-goaltxt{display:flex;align-items:center;gap:8px;font-family:${FONT_UI};font-weight:500;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:rgba(245,240,228,0.8);margin-bottom:5px;}
+.comm-chero-goaltxt{display:flex;align-items:center;gap:8px;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;color:rgba(245,240,228,0.8);margin-bottom:5px;}
 /* ⓘ pri titule krajiny — na FOTKE, takže svetlý obrys a tmavé sklo, nie inkoust ako v profile. */
 .comm-rankinfo{position:relative;display:inline-flex;flex-shrink:0;}
-.comm-rankinfo-btn{width:19px;height:19px;border-radius:50%;border:1px solid rgba(245,240,228,0.5);background:rgba(3,2,1,0.45);color:${T.card};font-family:${FONT_UI};font-weight:600;font-size:10px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,border-color .15s;}
+.comm-rankinfo-btn{width:19px;height:19px;border-radius:50%;border:1px solid ${T.onDarkDim};background:rgba(3,2,1,0.45);color:${T.card};font-family:${FONT_UI};font-weight:600;font-size:10px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,border-color .15s;}
 .comm-rankinfo-btn:hover,.comm-rankinfo-btn.on{background:${GOLD};border-color:${GOLD};color:#241a06;}
 /* Otvára sa NAHOR (bottom:100%): titul sedí na spodku hera, smerom dole by popup prekryl
    kategórie pod ním a na nižšom okne by pretiekol pod okraj viewportu — presne tá chyba,
    ktorú už raz spravil cenník bodov. Nahor má nad sebou celú fotku hera. */
-.comm-ranks{position:absolute;bottom:calc(100% + 9px);left:0;z-index:30;width:min(290px,78vw);text-align:left;cursor:default;text-transform:none;letter-spacing:normal;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:14px 15px;}
+.comm-ranks{position:absolute;bottom:calc(100% + 9px);left:0;z-index:30;width:min(290px,78vw);text-align:left;cursor:default;text-transform:none;letter-spacing:normal;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:12px 16px;}
 .comm-rankrow b{font-variant-numeric:tabular-nums;}
 /* dosiahnutý rank = zelená (rovnaká ako odškrtnutá jednotka), nasledujúci = zlatý a zvýraznený;
    ostatné ostávajú tlmené, aby bolo na prvý pohľad vidieť, kde človek stojí. */
@@ -785,23 +786,23 @@ export const COMMUNITY_CSS = `${HIT_CSS}
 .comm-rankrow.next b{color:${T.cardEdge};}
 .comm-chero-bar{height:6px;border-radius:999px;background:${T.onDarkBorder};overflow:hidden;}
 .comm-chero-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#F5C73D,#E69E1A);}
-@media (max-width:560px){ .comm-chero{min-height:150px;padding:14px;} .comm-chero-name{font-size:22px;} }
+@media (max-width:560px){ .comm-chero{min-height:150px;padding:12px;} .comm-chero-name{font-size:20px;} }
 
 /* magistrály = odkazy na detail, žiadny dropdown (#50) */
 .comm-jrows{display:flex;flex-direction:column;gap:7px;margin-top:12px;}
 /* položka = RIADOK (úroveň 3 matrice) */
-.comm-jrow{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;text-align:left;padding:11px 14px;border-radius:10px;border:1px solid ${T.border};background:${T.tileBg};font-family:inherit;cursor:pointer;transition:border-color .15s,background .15s;}
+.comm-jrow{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;text-align:left;padding:12px 12px;border-radius:8px;border:1px solid ${T.border};background:${T.tileBg};font-family:inherit;cursor:pointer;transition:border-color .15s,background .15s;}
 .comm-jrow:hover{border-color:${T.cardEdge};background:${T.card};}
-.comm-jrow-name{font-family:${FONT_TITLE};font-weight:700;font-size:12.5px;color:${P.ink};}
+.comm-jrow-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;color:${P.ink};}
 .comm-jrow.on .comm-jrow-name{color:${P.deep};}
-.comm-jrow-meta{font-family:${FONT_UI};font-weight:500;font-size:10.5px;color:${P.dim};white-space:nowrap;flex-shrink:0;}
+.comm-jrow-meta{font-family:${FONT_UI};font-weight:500;font-size:10px;color:${P.dim};white-space:nowrap;flex-shrink:0;}
 .comm-jrow.on .comm-jrow-meta{color:${UNIT_DONE_INK};}
 
 /* zoznam prejdených = viditeľný ovládač, nie holý klikací nadpis (#46) */
-.comm-drop{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:20px 0 12px;padding:12px 15px;border-radius:12px;border:1px solid ${T.cardEdge};background:${T.panelGrad};box-shadow:${PACK_SHADOW.lift};font-family:inherit;cursor:pointer;transition:border-color .15s,background .15s;}
+.comm-drop{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:20px 0 12px;padding:12px 16px;border-radius:12px;border:1px solid ${T.cardEdge};background:${T.panelGrad};box-shadow:${PACK_SHADOW.lift};font-family:inherit;cursor:pointer;transition:border-color .15s,background .15s;}
 .comm-drop:hover{border-color:${P.deep};background:${T.card};}
-.comm-drop-t{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.04em;color:${P.deep};}
-.comm-drop-n{display:flex;align-items:center;gap:8px;font-family:${FONT_UI};font-weight:500;font-size:11px;color:${P.dim};}
+.comm-drop-t{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.02em;color:${P.deep};}
+.comm-drop-n{display:flex;align-items:center;gap:8px;font-family:${FONT_UI};font-weight:500;font-size:10px;color:${P.dim};}
 .comm-drop-chev{display:inline-block;width:7px;height:7px;border-right:1.5px solid ${P.dim};border-bottom:1.5px solid ${P.dim};transform:translateY(-2px) rotate(45deg);transition:transform .2s;}
 .comm-drop.on .comm-drop-chev{transform:translateY(1px) rotate(-135deg);}
 
@@ -822,7 +823,7 @@ function Modal({ title, sub, onClose, wide, children }: {
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
   return (
-    <div className="comm-overlay" onClick={onClose}>
+    <div className="pk-veil pk-veil--modal comm-overlay" onClick={onClose}>
       <div className={`comm-modal${wide ? ' wide' : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className="comm-modal-head">
           <div>
@@ -2269,7 +2270,7 @@ function BuddyList({ event, party, isMine, myId, onShareTrip }: {
         members.length === 0 ? (
           // #55 — prázdny stav dostal akciu: inzerát je vypísaný, chýba už len to, aby ho
           // niekto videl. Odkaz na výlet je jediná vec, ktorú s tým člen môže spraviť sám.
-          <div className="comm-emptybox" style={{ paddingTop: 10, paddingBottom: 4 }}>
+          <div className="comm-emptybox" style={{ paddingTop: 8, paddingBottom: 4 }}>
             <p>Nobody has joined yet. Your listing is live in the pack — share the trip and someone will.</p>
             {onShareTrip && <button type="button" className="comm-emptybtn" onClick={() => onShareTrip(event.tripId)}>Share this trip</button>}
           </div>

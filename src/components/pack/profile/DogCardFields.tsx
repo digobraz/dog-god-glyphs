@@ -26,7 +26,7 @@ const labelStyle: React.CSSProperties = {
 
 const sectionLabelStyle: React.CSSProperties = {
   fontFamily: "'Cinzel', serif",
-  fontSize: 9,
+  fontSize: 10,
   letterSpacing: '0.22em',
   textTransform: 'uppercase',
   color: T.inkFaint,
@@ -57,9 +57,9 @@ export function SubSection({
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         className={`flex items-center gap-2.5 w-full pf-subsection${open ? ' is-open' : ''}`}
-        style={{ borderRadius: 10, padding: '12px 12px', cursor: 'pointer', textAlign: 'left' }}
+        style={{ borderRadius: 8, padding: '12px 12px', cursor: 'pointer', textAlign: 'left' }}
       >
-        <span style={{ ...sectionLabelStyle, fontSize: 10.5, letterSpacing: '0.22em', color: T.inkStrong }}>{title}</span>
+        <span style={{ ...sectionLabelStyle, fontSize: 10, letterSpacing: '0.22em', color: T.inkStrong }}>{title}</span>
         {editable && (
           <span className={`pf-subsection-badge${filled > 0 ? ' is-filled' : ' is-empty'}`}>
             {filled}/{total}
@@ -139,10 +139,10 @@ export function SelectRow<V extends string>({
     const found = options.find((o) => o.value === value);
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <span style={{ ...sectionLabelStyle, fontSize: 8.5 }}>{label}</span>
+        <span style={{ ...sectionLabelStyle, fontSize: 10 }}>{label}</span>
         <span
           style={{
-            fontFamily: "'Space Grotesk', sans-serif", fontSize: 12.5,
+            fontFamily: "'Space Grotesk', sans-serif", fontSize: 12,
             color: tone ?? T.ink, fontWeight: tone ? 600 : 400,
           }}
         >
@@ -154,7 +154,7 @@ export function SelectRow<V extends string>({
 
   return (
     <label style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <span style={{ ...sectionLabelStyle, fontSize: 8.5 }}>{label}</span>
+      <span style={{ ...sectionLabelStyle, fontSize: 10 }}>{label}</span>
       <select
         value={value ?? ''}
         onChange={(e) => onChange((e.target.value || undefined) as V | undefined)}
@@ -195,8 +195,8 @@ export function NumberRow({
     if (value == null) return null;
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <span style={{ ...sectionLabelStyle, fontSize: 8.5 }}>{label}</span>
-        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12.5, color: T.ink }}>
+        <span style={{ ...sectionLabelStyle, fontSize: 10 }}>{label}</span>
+        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: T.ink }}>
           {value}{unit ? ` ${unit}` : ''}
         </span>
       </div>
@@ -204,7 +204,7 @@ export function NumberRow({
   }
   return (
     <label style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <span style={{ ...sectionLabelStyle, fontSize: 8.5 }}>{label}{unit ? ` (${unit})` : ''}</span>
+      <span style={{ ...sectionLabelStyle, fontSize: 10 }}>{label}{unit ? ` (${unit})` : ''}</span>
       <input
         type="number"
         inputMode="decimal"
@@ -255,7 +255,7 @@ export function NeuterPills({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <span style={{ ...sectionLabelStyle, fontSize: 8.5 }}>{label}</span>
+      <span style={{ ...sectionLabelStyle, fontSize: 10 }}>{label}</span>
       <div className="flex gap-1.5" style={{ whiteSpace: 'nowrap' }}>
         {opts.map((o) => {
           const active = value === o.v;
@@ -274,7 +274,7 @@ export function NeuterPills({
                 background: active ? (o.filled ? tone : 'transparent') : undefined,
                 border: active ? `1.5px solid ${tone}` : undefined,
                 borderRadius: 999, padding: '4px 12px',
-                fontFamily: "'Space Grotesk', sans-serif", fontSize: 11,
+                fontFamily: "'Space Grotesk', sans-serif", fontSize: 10,
                 fontWeight: active ? 600 : 500,
                 color: active ? (o.filled ? '#FFFBF2' : tone) : T.inkDim,
                 cursor: editable ? 'pointer' : 'default',
@@ -302,14 +302,14 @@ export function DateRow({
     if (!value) return null;
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <span style={{ ...sectionLabelStyle, fontSize: 8.5 }}>{label}</span>
-        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12.5, color: T.ink }}>{value}</span>
+        <span style={{ ...sectionLabelStyle, fontSize: 10 }}>{label}</span>
+        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: T.ink }}>{value}</span>
       </div>
     );
   }
   return (
     <label style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <span style={{ ...sectionLabelStyle, fontSize: 8.5 }}>{label}</span>
+      <span style={{ ...sectionLabelStyle, fontSize: 10 }}>{label}</span>
       <input
         type="date"
         value={value ?? ''}
@@ -336,7 +336,7 @@ export function TrafficLegend() {
         return (
           <span key={o.value} className="inline-flex items-center gap-1.5">
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: TRAFFIC_COLOR[o.value] }} />
-            <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10.5, color: T.inkFaint }}>
+            <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: T.inkFaint }}>
               {translated === key ? o.labelEN : translated}
             </span>
           </span>
@@ -425,7 +425,7 @@ export function ChipMulti({
             className={`pf-pill${isSelected ? ' is-selected' : ''}`}
             style={{
               borderRadius: 999, padding: '4px 8px',
-              fontFamily: "'Space Grotesk', sans-serif", fontSize: 11,
+              fontFamily: "'Space Grotesk', sans-serif", fontSize: 10,
               fontWeight: isSelected ? 600 : 500,
               cursor: editable && !blocked ? 'pointer' : 'default',
             }}
@@ -492,7 +492,7 @@ export function OpenQuestion({
               style={{
                 background: chipBg, border: `1px solid ${chipBg}`, borderRadius: 999,
                 padding: '4px 8px 4px 8px', fontFamily: "'Space Grotesk', sans-serif",
-                fontSize: 11, fontWeight: 600, color: chipInk,
+                fontSize: 10, fontWeight: 600, color: chipInk,
               }}
             >
               {label(v)}
@@ -537,7 +537,7 @@ export function OpenQuestion({
                   onClick={() => add(s)}
                   style={{
                     background: 'transparent', border: `1px dashed ${T.border}`, borderRadius: 999,
-                    padding: '4px 8px', fontFamily: "'Space Grotesk', sans-serif", fontSize: 10.5,
+                    padding: '4px 8px', fontFamily: "'Space Grotesk', sans-serif", fontSize: 10,
                     color: T.inkFaint, cursor: 'pointer',
                   }}
                 >

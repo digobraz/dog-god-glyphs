@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { BackButton } from './BackButton';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { PACK_THEME, FONT_TITLE, FONT_UI } from './packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, VEIL_CSS } from './packTheme';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 import { EDGE_BASE } from '@/lib/env';
 import { intlLocale } from '@/i18n/bcp47';
@@ -83,7 +83,7 @@ export function TransparentStats() {
             fontFamily: FONT_TITLE,
             fontSize: 'clamp(14px, 2.6vw, 17px)',
             fontWeight: 700,
-            letterSpacing: '0.16em',
+            letterSpacing: '0.14em',
             textTransform: 'uppercase',
             color: T.ink,
             margin: 0,
@@ -94,14 +94,14 @@ export function TransparentStats() {
         <span
           style={{
             fontFamily: FONT_UI,
-            fontSize: 10.5,
-            letterSpacing: '0.08em',
+            fontSize: 10,
+            letterSpacing: '0.02em',
             textTransform: 'uppercase',
             color: T.inkDim,
             background: T.tileBg,
             border: `1px solid ${T.border}`,
             borderRadius: 999,
-            padding: '4px 11px',
+            padding: '4px 12px',
           }}
         >
           {t('pack.stats.allTime')}
@@ -114,8 +114,8 @@ export function TransparentStats() {
         style={{
           background: T.tileBg,
           border: `1px solid ${T.border}`,
-          borderRadius: 10,
-          padding: '18px 24px',
+          borderRadius: 8,
+          padding: '16px 24px',
           marginBottom: 14,
         }}
       >
@@ -133,8 +133,8 @@ export function TransparentStats() {
         <span
           style={{
             fontFamily: FONT_TITLE,
-            fontSize: 11,
-            letterSpacing: '0.16em',
+            fontSize: 10,
+            letterSpacing: '0.14em',
             textTransform: 'uppercase',
             color: T.inkDim,
           }}
@@ -152,9 +152,9 @@ export function TransparentStats() {
       <p
         style={{
           fontFamily: FONT_TITLE,
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: 700,
-          letterSpacing: '0.16em',
+          letterSpacing: '0.14em',
           textTransform: 'uppercase',
           color: T.inkDim,
           margin: '0 0 9px',
@@ -191,8 +191,8 @@ export function TransparentStats() {
             style={{
               background: `linear-gradient(180deg, ${a.color}1A 0%, ${a.color}08 46%, ${T.tileBg} 100%)`,
               border: `1px solid ${a.color}59`,
-              borderRadius: 10,
-              padding: '13px 13px 12px',
+              borderRadius: 8,
+              padding: '12px 12px 12px',
               position: 'relative',
               overflow: 'hidden',
               boxShadow: `inset 0 1px 0 rgba(255,255,255,0.45)`,
@@ -208,7 +208,7 @@ export function TransparentStats() {
               <span
                 style={{
                   fontFamily: FONT_TITLE,
-                  fontSize: 9,
+                  fontSize: 10,
                   letterSpacing: '0.14em',
                   textTransform: 'uppercase',
                   color: T.inkDim,
@@ -221,12 +221,12 @@ export function TransparentStats() {
                   // JetBrains Mono odišiel 12.8.2026 (font AINUBISA, nie chrámového povrchu).
                   // Váha 600 = strop Space Grotesku, 700 by bol fake bold.
                   fontFamily: FONT_UI,
-                  fontSize: 9.5,
+                  fontSize: 10,
                   fontWeight: 600,
                   color: a.color,
                   background: `${a.color}1F`,
                   borderRadius: 999,
-                  padding: '1px 6px',
+                  padding: '0px 4px',
                 }}
               >
                 ×{a.share}
@@ -240,7 +240,7 @@ export function TransparentStats() {
                 fontSize: 'clamp(23px, 5.2vw, 29px)',
                 fontWeight: 600,
                 lineHeight: 1,
-                letterSpacing: '-0.01em',
+                letterSpacing: '0.02em',
                 color: T.inkStrong,
               }}
             >
@@ -253,7 +253,7 @@ export function TransparentStats() {
       <div
         style={{
           fontFamily: FONT_UI,
-          fontSize: 10.5,
+          fontSize: 10,
           color: T.inkDim,
           opacity: 0.75,
           marginTop: 9,
@@ -273,7 +273,7 @@ export function TransparentStats() {
           rel="noopener noreferrer"
           style={{
             fontFamily: FONT_UI,
-            fontSize: 11,
+            fontSize: 10,
             color: T.inkDim,
             textDecoration: 'none',
             transition: 'color 0.2s ease',
@@ -290,7 +290,7 @@ export function TransparentStats() {
         <span
           style={{
             fontFamily: FONT_UI,
-            fontSize: 11,
+            fontSize: 10,
             color: T.inkDim,
           }}
         >
@@ -316,15 +316,10 @@ export function TransparentStats() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
             onClick={() => setOpenTile(null)}
-            className="fixed inset-0 flex items-center justify-center"
-            style={{
-              zIndex: 120,
-              background: 'rgba(31, 26, 14, 0.55)',
-              backdropFilter: 'blur(3px)',
-              WebkitBackdropFilter: 'blur(3px)',
-              padding: 18,
-            }}
+            className="pk-veil pk-veil--modal"
+            style={{ zIndex: 120, padding: 16 }}
           >
+            <style>{VEIL_CSS}</style>
             <motion.div
               initial={{ scale: 0.94, y: 8 }}
               animate={{ scale: 1, y: 0 }}
@@ -338,7 +333,7 @@ export function TransparentStats() {
                 background: T.panelGrad,
                 border: `1.5px solid ${ALLOC[openTile].color}`,
                 borderRadius: 14,
-                padding: '20px 18px 18px',
+                padding: '16px 16px 16px',
                 boxShadow: T.panelShadow,
               }}
             >
@@ -357,7 +352,7 @@ export function TransparentStats() {
               <div
                 style={{
                   fontFamily: FONT_TITLE,
-                  fontSize: 30,
+                  fontSize: 24,
                   fontWeight: 700,
                   lineHeight: 1,
                   color: ALLOC[openTile].color,
@@ -369,9 +364,9 @@ export function TransparentStats() {
               <div
                 style={{
                   fontFamily: FONT_TITLE,
-                  fontSize: 13.5,
+                  fontSize: 14,
                   fontWeight: 700,
-                  letterSpacing: '0.05em',
+                  letterSpacing: '0.02em',
                   textTransform: 'uppercase',
                   color: T.inkStrong,
                   margin: '6px 0 9px',
@@ -382,7 +377,7 @@ export function TransparentStats() {
               <p
                 style={{
                   fontFamily: FONT_UI,
-                  fontSize: 12.5,
+                  fontSize: 12,
                   lineHeight: 1.55,
                   color: T.inkWarm,
                   margin: 0,

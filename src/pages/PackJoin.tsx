@@ -132,8 +132,8 @@ export default function PackJoin() {
   return (
     <div style={{ minHeight: '100dvh', background: T.pageBg, color: T.onDark, fontFamily: FONT_UI }}>
       <PageTopBar />
-      <div style={{ maxWidth: 560, margin: '0 auto', padding: '8px 16px 56px' }}>
-        <section style={{ ...PACK_BOX.card, padding: '26px 22px', color: T.ink }}>
+      <div style={{ maxWidth: 560, margin: '0 auto', padding: '8px 16px 48px' }}>
+        <section style={{ ...PACK_BOX.card, padding: '24px 24px', color: T.ink }}>
           {phase.k === 'loading' && <Line>{tx('pack.join.loading', 'Opening the invitation…')}</Line>}
 
           {phase.k === 'dead' && (
@@ -315,9 +315,9 @@ function Line({ children }: { children: React.ReactNode }) {
 /** CTA na papyruse = LAPIS (lock 28. 8. 2026), geometria z `.btn-gold` — radius 8, nie pilulka. */
 function cta(busy: boolean): React.CSSProperties {
   return {
-    display: 'block', width: '100%', marginTop: 18, padding: '12px 18px', minHeight: 44,
+    display: 'block', width: '100%', marginTop: 18, padding: '12px 16px', minHeight: 44,
     background: LAPIS.grad, color: LAPIS.ink, border: 'none', borderRadius: 8,
-    fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 14, letterSpacing: '.06em',
+    fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 14, letterSpacing: '0.02em',
     textTransform: 'uppercase', cursor: busy ? 'default' : 'pointer',
     opacity: busy ? 0.6 : 1, boxShadow: LAPIS_BTN_SHADOW,
   };
@@ -338,7 +338,7 @@ function RightsList({ rights, tx }: { rights: Record<string, boolean>; tx: (k: s
     'will':         ['pack.join.r.will', 'edit the will'],
   };
   return (
-    <div style={{ ...PACK_BOX.subblock, padding: '13px 15px', marginTop: 16 }}>
+    <div style={{ ...PACK_BOX.subblock, padding: '12px 16px', marginTop: 16 }}>
       <div style={{ ...sub, color: T.inkStrong, fontWeight: 600, marginBottom: 6 }}>
         {tx('pack.join.rightsTitle', 'What you will be able to do')}
       </div>
@@ -350,7 +350,7 @@ function RightsList({ rights, tx }: { rights: Record<string, boolean>; tx: (k: s
       {/* `listStyleType` výslovne — globálny reset odrážky vypína a zoznam bez nich
           sa číta ako odsadený odsek, nie ako výpočet. */}
       {granted.length > 0 && (
-        <ul style={{ margin: 0, paddingLeft: 18, listStyleType: 'disc' }}>
+        <ul style={{ margin: 0, paddingLeft: 16, listStyleType: 'disc' }}>
           {granted.map((r) => (
             <li key={r} style={{ ...sub, marginBottom: 2 }}>{tx(label[r][0], label[r][1])}</li>
           ))}

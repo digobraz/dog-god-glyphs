@@ -46,8 +46,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PackLayout } from '@/components/pack/PackLayout';
 import {
-  PACK_THEME, PACK_BOX, PACK_HEAD, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, GOLD_BTN,
-} from '@/components/pack/packTheme';
+  PACK_THEME, PACK_BOX, PACK_HEAD, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
 import { PALE } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { FlagCircle } from '@/components/pack/FlagCircle';
@@ -246,7 +245,7 @@ const HUB_CSS = `
   /* LAPIS od 28. 9. 2026 (Matej: „daj lapis") — ten istý odznak ako #1 na homepage (HeroCard). */
   background:${LAPIS.grad}; color:${LAPIS.ink};
   border:1px solid rgba(239,215,154,0.55);
-  box-shadow:0 2px 6px rgba(0,0,0,0.28);
+  box-shadow:${PACK_SHADOW.lift};
 }
 /* ⚠️ 721px, NIE 900px. Hranica musí byť tá istá, akú používa useFitName — kým tu bolo
    900 a v mobilnej vetve 720, ostalo medzi nimi pásmo 721–899 bez pravidiel a meno sa
@@ -326,9 +325,9 @@ const HUB_CSS = `
   background:${T.alertRed}; color:#FDECE7;
   font-family:${FONT_UI}; font-weight:600;
   font-size:10px; letter-spacing:0.02em; text-transform:uppercase;
-  box-shadow:0 4px 12px rgba(178,86,64,0.4);
+  box-shadow:${PACK_SHADOW.lift};
 }
-.dogblk-fill.is-done{ background:${T.growGreen}; color:#EAF7ED; box-shadow:0 4px 12px rgba(61,122,78,0.4); }
+.dogblk-fill.is-done{ background:${T.growGreen}; color:#EAF7ED; box-shadow:${PACK_SHADOW.lift}; }
 
 /* Heroglyf: zdrojový PNG má ČIERNE ťahy. Na tmavom podklade sa musel prefarbovať na
    zlato — na PAPYRUSE sa filter ZRUŠIL a glyf ostáva čierny (Matej 12.8.: „čierny
@@ -396,8 +395,8 @@ const HUB_CSS = `
 .hub-hero{
   position:relative; overflow:hidden; display:flex; align-items:flex-end;
   min-height:300px; padding:24px;
-  border-radius:16px; border:1px solid rgba(201,154,63,0.5);
-  box-shadow:0 30px 74px -32px rgba(0,0,0,0.95);
+  border-radius:16px; border:1px solid ${PACK_THEME.border};
+  box-shadow:${PACK_SHADOW.panel};
   text-decoration:none; cursor:pointer;
 }
 .hub-hero-art{
@@ -428,7 +427,7 @@ const HUB_CSS = `
   background:linear-gradient(135deg,#22C3B6 0%,#0E7A72 100%);
   border-top:1px solid rgba(234,251,248,0.42);
   border-bottom:1px solid rgba(6,58,54,0.35);
-  box-shadow:0 6px 18px rgba(0,0,0,0.28);
+  box-shadow:${PACK_SHADOW.panel};
   color:#F2FFFD; font-family:'Cinzel',serif; font-weight:800;
   font-size:10px; letter-spacing:0.22em; text-transform:uppercase;
 }
@@ -439,7 +438,6 @@ const HUB_CSS = `
   display:inline-flex; align-items:center; gap:8px;
   padding:8px 12px; border-radius:999px;
   background:rgba(8,5,2,0.55); border:1px solid rgba(255,236,190,0.42);
-  backdrop-filter:blur(6px);
 }
 /* CTA a meta vedľa seba na jednom riadku — spodok karty je úzky pruh, stĺpec pod
    tlačidlom by ho zbytočne predĺžil. */
@@ -452,7 +450,6 @@ const HUB_CSS = `
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
   padding:16px 24px; border-radius:8px;
   background:rgba(8,5,2,0.55); border:1px solid rgba(255,236,190,0.42);
-  backdrop-filter:blur(6px);
   color:#FFF3DA; font-family:'Cinzel',serif; font-size:12px; font-weight:700;
   letter-spacing:0.14em; text-transform:uppercase;
   cursor:pointer; white-space:nowrap; text-decoration:none;

@@ -3,7 +3,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { DateDropdowns } from '@/components/DateDropdowns';
-import { PACK_THEME, GOLD_BTN } from '@/components/pack/packTheme';
+import { PACK_THEME, GOLD_BTN, VEIL_CSS, PACK_SHADOW } from '@/components/pack/packTheme';
 
 const T = PACK_THEME;
 
@@ -98,29 +98,29 @@ export function MemorialControl({ dogId, dogName, isDeceased, deathDate, birthYe
   };
 
   const primaryBtn: React.CSSProperties = {
-    padding: '9px 20px',
-    borderRadius: 10,
+    padding: '8px 16px',
+    borderRadius: 8,
     background: GOLD_BTN.grad,
     border: `1px solid ${GOLD_BTN.edge}`,
     color: '#3d1f00',
     fontFamily: "'Cinzel', serif",
-    fontSize: 11,
+    fontSize: 10,
     letterSpacing: '0.14em',
     textTransform: 'uppercase',
     fontWeight: 700,
     cursor: saving ? 'default' : 'pointer',
     opacity: saving ? 0.6 : 1,
-    boxShadow: '0 8px 20px -8px rgba(201, 154, 63, 0.65)',
+    boxShadow: PACK_SHADOW.panel,
   };
 
   const ghostBtn: React.CSSProperties = {
-    padding: '9px 18px',
-    borderRadius: 10,
+    padding: '8px 16px',
+    borderRadius: 8,
     background: 'transparent',
     border: `1px solid ${T.border}`,
     color: T.inkDim,
     fontFamily: "'Cinzel', serif",
-    fontSize: 11,
+    fontSize: 10,
     letterSpacing: '0.14em',
     textTransform: 'uppercase',
     cursor: saving ? 'default' : 'pointer',
@@ -128,17 +128,18 @@ export function MemorialControl({ dogId, dogName, isDeceased, deathDate, birthYe
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center"
-      style={{ zIndex: 50, background: 'rgba(10,8,20,0.72)', backdropFilter: 'blur(3px)' }}
+      className="pk-veil pk-veil--modal"
+      style={{ zIndex: 50 }}
       onClick={onClose}
     >
+      <style>{VEIL_CSS}</style>
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
           background: T.panelGrad,
           border: `1.5px solid ${T.cardEdge}`,
           borderRadius: 14,
-          padding: '28px 26px',
+          padding: '24px 24px',
           maxWidth: 360,
           width: '90vw',
           boxShadow: T.panelShadow,
@@ -146,10 +147,10 @@ export function MemorialControl({ dogId, dogName, isDeceased, deathDate, birthYe
       >
         {step === 'confirm' ? (
           <>
-            <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: 16, fontWeight: 700, letterSpacing: '0.08em', color: T.ink, marginBottom: 10 }}>
+            <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: 16, fontWeight: 700, letterSpacing: '0.02em', color: T.ink, marginBottom: 10 }}>
               {t('pack.dog.memorial.confirmTitle')}
             </h3>
-            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, lineHeight: 1.5, color: T.inkDim, marginBottom: 22 }}>
+            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, lineHeight: 1.5, color: T.inkDim, marginBottom: 22 }}>
               {t('pack.dog.memorial.confirmBody', { name: dogName })}
             </p>
             <div className="flex items-center gap-3 justify-end">
@@ -163,7 +164,7 @@ export function MemorialControl({ dogId, dogName, isDeceased, deathDate, birthYe
           </>
         ) : (
           <>
-            <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: 14, fontWeight: 700, letterSpacing: '0.06em', color: T.ink, marginBottom: 16, textAlign: 'center' }}>
+            <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: 14, fontWeight: 700, letterSpacing: '0.02em', color: T.ink, marginBottom: 16, textAlign: 'center' }}>
               {t('pack.dog.memorial.datePrompt', { name: dogName })}
             </h3>
             <div className="flex justify-center" style={{ marginBottom: 22 }}>

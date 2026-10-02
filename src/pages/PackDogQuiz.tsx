@@ -44,7 +44,7 @@ const QUIZ_CSS = `
   padding:12px 24px;
   background:${LAPIS.grad};
   border:1px solid ${LAPIS.edge}; border-radius:8px; color:${LAPIS.ink};
-  font-family:'Cinzel',serif; font-size:11px; font-weight:700;
+  font-family:'Cinzel',serif; font-size:10px; font-weight:700;
   letter-spacing:0.14em; text-transform:uppercase; cursor:pointer; white-space:nowrap;
   box-shadow:${LAPIS_BTN_SHADOW};
   transition: transform .2s, box-shadow .22s;
@@ -55,17 +55,17 @@ const QUIZ_CSS = `
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
   padding:12px 24px; background:transparent;
   border:1.5px solid ${T.border}; border-radius:8px; color:${T.inkWarm};
-  font-family:'Cinzel',serif; font-size:11px; font-weight:700;
+  font-family:'Cinzel',serif; font-size:10px; font-weight:700;
   letter-spacing:0.14em; text-transform:uppercase; cursor:pointer;
 }
 .qz-ghost:hover{ border-color:${T.cardEdge}; color:${T.inkStrong}; }
-.qz-pill{ font-family:'Space Grotesk',sans-serif; font-size:11.5px; font-weight:500;
+.qz-pill{ font-family:'Space Grotesk',sans-serif; font-size:12px; font-weight:500;
   padding:8px 12px; border-radius:999px; cursor:pointer; }
 /* STROP VÝBERU (2026-09-02) — pilulka nad strop nezhasína priesvitnosťou: papyrus je svetlý
    a krytie na ňom takmer nič neurobí (to isté zistenie ako pri prezliekaní na bledé).
    Stlmí sa preto INKOUST a rám, výplň ostáva. */
 .qz-pill.is-capped{ cursor:not-allowed; color:rgba(42,22,8,.34); border-color:rgba(179,130,45,.22); }
-.qz-cap-note{ font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:${T.inkWarm}; margin:2px 0 0; }
+.qz-cap-note{ font-family:'Space Grotesk',sans-serif; font-size:12px; color:${T.inkWarm}; margin:2px 0 0; }
 `;
 
 export default function PackDogQuiz() {
@@ -213,15 +213,15 @@ export default function PackDogQuiz() {
               background: 'linear-gradient(90deg,#F5C73D,#E69E1A)', borderRadius: 999, display: 'block',
             }} />
           </div>
-          <span style={{ fontFamily: FONT_UI, fontSize: 11, color: T.inkFaint, whiteSpace: 'nowrap' }}>
+          <span style={{ fontFamily: FONT_UI, fontSize: 10, color: T.inkFaint, whiteSpace: 'nowrap' }}>
             {idx + 1} / {total}
           </span>
         </div>
 
-        <h1 style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 21, color: T.inkStrong, margin: '0 0 5px' }}>
+        <h1 style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 20, color: T.inkStrong, margin: '0 0 5px' }}>
           {tx(step!.i18n, step!.labelEN)}
         </h1>
-        <p style={{ fontFamily: FONT_UI, fontSize: 12.5, color: T.inkWarm, margin: '0 0 16px' }}>
+        <p style={{ fontFamily: FONT_UI, fontSize: 12, color: T.inkWarm, margin: '0 0 16px' }}>
           {step!.hintEN
             ? tx(step!.hintI18n ?? '', step!.hintEN)
             : solo
@@ -236,7 +236,7 @@ export default function PackDogQuiz() {
             onClick={() => setAllSame((p) => ({ ...p, [step!.field]: !p[step!.field] }))}
             className="flex items-center gap-2 w-full"
             style={{
-              padding: '12px 12px', borderRadius: 11, marginBottom: 12, textAlign: 'left',
+              padding: '12px 12px', borderRadius: 12, marginBottom: 12, textAlign: 'left',
               border: `1.5px dashed ${isAll ? T.cardEdge : 'rgba(179,130,45,0.6)'}`,
               background: isAll ? 'rgba(201,154,63,0.10)' : 'transparent',
               color: T.inkWarm, fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, cursor: 'pointer',
@@ -278,7 +278,7 @@ export default function PackDogQuiz() {
                     border: `2px solid ${T.cardEdge}`,
                   }} />
                 )}
-                <span style={{ fontFamily: NAME_FONT, fontWeight: 700, fontSize: 13.5, color: T.inkStrong }}>
+                <span style={{ fontFamily: NAME_FONT, fontWeight: 700, fontSize: 14, color: T.inkStrong }}>
                   {d.dog_name}
                 </span>
               </div>
@@ -444,7 +444,7 @@ function AnswerControl({
           onChange={(e) => onChange(e.target.value || null)}
           style={{ ...fieldStyle, maxWidth: 140 }}
         />
-        {step.unit && <span style={{ fontFamily: FONT_UI, fontSize: 12.5, color: T.inkWarm }}>{step.unit}</span>}
+        {step.unit && <span style={{ fontFamily: FONT_UI, fontSize: 12, color: T.inkWarm }}>{step.unit}</span>}
       </div>
     );
   }
@@ -473,10 +473,10 @@ function AnswerControl({
 
 const fieldStyle: React.CSSProperties = {
   width: '100%',
-  borderRadius: 10,
+  borderRadius: 8,
   padding: '12px 12px',
   fontFamily: FONT_UI,
-  fontSize: 13,
+  fontSize: 12,
   color: T.inkStrong,
 };
 

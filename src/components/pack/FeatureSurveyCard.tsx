@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { intlLocale } from '@/i18n/bcp47';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { PACK_THEME } from './packTheme';
+import { PACK_THEME, PACK_SHADOW } from './packTheme';
 import imgMobileApp from '@/assets/pack-survey/mobile-app.webp';
 import imgHealth from '@/assets/pack-survey/health.webp';
 import imgMerch from '@/assets/pack-survey/merch.webp';
@@ -210,9 +210,9 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
       style={{
         background: `linear-gradient(150deg, ${FAIENCE.light} -12%, ${FAIENCE.core} 42%, ${FAIENCE.deep} 112%)`,
         color: CREAM,
-        borderRadius: 24,
-        padding: '20px 20px 18px',
-        boxShadow: '0 25px 60px -20px rgba(15, 126, 120, 0.55)',
+        borderRadius: 16,
+        padding: '16px 16px 16px',
+        boxShadow: PACK_SHADOW.panel,
         overflow: 'hidden',
         position: 'relative',
         display: 'flex',
@@ -226,7 +226,7 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
             fontFamily: "'Cinzel', serif",
             fontSize: 'clamp(20px, 5vw, 26px)',
             fontWeight: 700,
-            letterSpacing: '0.04em',
+            letterSpacing: '0.02em',
             textTransform: 'uppercase',
             lineHeight: 1.05,
             textShadow: '0 1px 8px rgba(8,60,57,0.35)',
@@ -237,8 +237,8 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
         <div
           style={{
             fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 12.5,
-            letterSpacing: '0.01em',
+            fontSize: 12,
+            letterSpacing: '0.02em',
             color: 'rgba(250,244,236,0.82)',
             marginTop: 5,
           }}
@@ -255,15 +255,15 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
             className="mt-3"
             style={{
               fontFamily: "'Cinzel', serif",
-              fontSize: 9.5,
+              fontSize: 10,
               fontWeight: 700,
-              letterSpacing: '0.16em',
+              letterSpacing: '0.14em',
               textTransform: 'uppercase',
               color: T.ink,
               background: FAIENCE.light,
               borderRadius: 999,
-              padding: '6px 14px',
-              boxShadow: '0 4px 12px -4px rgba(0,0,0,0.4)',
+              padding: '4px 12px',
+              boxShadow: PACK_SHADOW.lift,
             }}
           >
             {showResults ? t('pack.survey.toggleVote') : t('pack.survey.toggleResults')}
@@ -295,7 +295,7 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
                 const isMine = myVotes.has(f.key);
                 const isBusy = busy === f.key;
                 return (
-                  <div key={f.key} className="shrink-0" style={{ width: '100%', padding: '0 1px' }}>
+                  <div key={f.key} className="shrink-0" style={{ width: '100%', padding: '0 0px' }}>
                     {/* Image — šípky overlay na obrázku */}
                     <div
                       style={{
@@ -337,7 +337,7 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
                           fontFamily: "'Cinzel', serif",
                           fontSize: 16,
                           fontWeight: 700,
-                          letterSpacing: '0.03em',
+                          letterSpacing: '0.02em',
                           textShadow: '0 1px 8px rgba(8,60,57,0.35)',
                         }}
                       >
@@ -365,11 +365,11 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
                         className="mt-3 inline-flex items-center gap-2"
                         style={{
                           fontFamily: "'Cinzel', serif",
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: 700,
-                          letterSpacing: '0.16em',
+                          letterSpacing: '0.14em',
                           textTransform: 'uppercase',
-                          padding: '9px 20px',
+                          padding: '8px 16px',
                           borderRadius: 999,
                           cursor: isBusy ? 'progress' : 'pointer',
                           color: isMine ? T.ink : CREAM,
@@ -425,8 +425,8 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
         <span
           style={{
             fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-            fontSize: 9.5,
-            letterSpacing: '0.1em',
+            fontSize: 10,
+            letterSpacing: '0.14em',
             color: 'rgba(250,244,236,0.7)',
           }}
         >
@@ -435,8 +435,8 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
         <span
           style={{
             fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-            fontSize: 9.5,
-            letterSpacing: '0.1em',
+            fontSize: 10,
+            letterSpacing: '0.14em',
             color: 'rgba(250,244,236,0.55)',
           }}
         >
@@ -521,7 +521,7 @@ function ResultsGraph({
                 style={{
                   width: 11,
                   height: 11,
-                  borderRadius: 3,
+                  borderRadius: 8,
                   background: s.color,
                   flexShrink: 0,
                   boxShadow: isMine ? `0 0 0 2px rgba(250,244,236,0.5)` : 'none',
@@ -543,7 +543,7 @@ function ResultsGraph({
               <span
                 style={{
                   fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-                  fontSize: 11,
+                  fontSize: 10,
                   color: 'rgba(250,244,236,0.78)',
                   marginLeft: 'auto',
                   paddingLeft: 8,
@@ -575,11 +575,9 @@ function NavArrow({ dir, disabled, onClick }: { dir: 'left' | 'right'; disabled:
         background: 'rgba(8,60,57,0.55)',
         border: '1px solid rgba(250,244,236,0.45)',
         color: CREAM,
-        backdropFilter: 'blur(4px)',
-        WebkitBackdropFilter: 'blur(4px)',
         opacity: disabled ? 0.25 : 1,
         cursor: disabled ? 'default' : 'pointer',
-        boxShadow: '0 3px 10px -3px rgba(0,0,0,0.5)',
+        boxShadow: PACK_SHADOW.lift,
         transition: 'opacity 0.2s',
       }}
     >

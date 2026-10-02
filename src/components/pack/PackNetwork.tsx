@@ -6,7 +6,7 @@ import { BackButton } from './BackButton';
 import { toast } from 'sonner';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
-import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { BonesCoin } from '@/components/pack/BonesCoin';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -241,7 +241,7 @@ const rpc = supabase.rpc.bind(supabase) as unknown as LooseRpc;
 const NET_CSS = `
 @keyframes pknet-flow{from{background-position:0 0}to{background-position:46px 0}}
 @keyframes pknet-halo{0%,100%{box-shadow:0 0 0 4px rgba(201,154,63,.14)}50%{box-shadow:0 0 0 8px rgba(201,154,63,.26)}}
-@keyframes pknet-glow{0%,100%{box-shadow:0 0 0 rgba(22,48,122,0)}50%{box-shadow:0 2px 12px rgba(22,48,122,.45)}}
+@keyframes pknet-glow{0%,100%{box-shadow:0 0 0 rgba(22,48,122,0)}50%{box-shadow:${PACK_SHADOW.lift}}}
 .pknet-track{background:linear-gradient(90deg,rgba(201,154,63,.25) 0%,#F5C73D 45%,rgba(201,154,63,.25) 90%);
   background-size:46px 100%;animation:pknet-flow 2s linear infinite}
 .pknet-me{animation:pknet-halo 3s ease-in-out infinite}
@@ -424,7 +424,7 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
         background: T.cardGrad,
         border: `1.5px solid ${T.cardEdge}`,
         borderRadius: 16,
-        padding: 22,
+        padding: 24,
         boxShadow: T.cardShadow,
       }}
     >
@@ -460,7 +460,7 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
           <p
             style={{
               fontFamily: FONT_UI,
-              fontSize: 13.5,
+              fontSize: 14,
               lineHeight: 1.55,
               color: T.inkWarm,
               margin: '8px 0 0',
@@ -509,7 +509,7 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
           style={{
             gap: 10,
             marginBottom: 10,
-            padding: '6px 10px',
+            padding: '4px 8px',
             borderRadius: 8,
             background: 'rgba(160,64,64,0.10)',
             border: `1px dashed ${RED_EDGE}`,
@@ -699,7 +699,7 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
           background: 'rgba(160,64,64,0.10)',
           border: `1.5px solid ${RED_EDGE}`,
           borderRadius: 12,
-          padding: '13px 15px',
+          padding: '12px 16px',
           marginTop: 12,
         }}
       >
@@ -709,7 +709,7 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
             fontFamily: FONT_UI,
             fontWeight: 600,
             fontSize: 10,
-            letterSpacing: '0.2em',
+            letterSpacing: '0.22em',
             textTransform: 'uppercase',
             color: RED_INK,
             marginBottom: 8,
@@ -718,7 +718,7 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
           {tx('pack.network.ads.header', 'Why this way?')}
         </span>
         <span
-          style={{ display: 'block', fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.55, color: RED_INK }}
+          style={{ display: 'block', fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.55, color: RED_INK }}
           dangerouslySetInnerHTML={{
             __html: tx(
               'pack.network.ads.body',
@@ -744,7 +744,7 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
             style={{
               fontFamily: FONT_TITLE,
               fontSize: 10,
-              letterSpacing: '0.32em',
+              letterSpacing: '0.26em',
               textTransform: 'uppercase',
               color: T.inkDim,
               margin: '0 0 8px',
@@ -769,11 +769,11 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
               borderRadius: 8,
               boxShadow: LAPIS_BTN_SHADOW,
               color: LAPIS.ink,
-              padding: '11px 18px',
+              padding: '12px 16px',
               fontFamily: FONT_TITLE,
-              fontSize: 11.5,
+              fontSize: 12,
               fontWeight: 700,
-              letterSpacing: '0.12em',
+              letterSpacing: '0.14em',
               textTransform: 'uppercase',
               cursor: link ? 'pointer' : 'default',
               opacity: link ? 1 : 0.5,
@@ -785,7 +785,7 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
 
           <div
             className="flex items-center justify-center gap-1.5"
-            style={{ marginTop: 7, fontFamily: FONT_UI, fontSize: 11.5, color: T.inkFaint }}
+            style={{ marginTop: 7, fontFamily: FONT_UI, fontSize: 12, color: T.inkFaint }}
           >
             <span className="truncate" style={{ minWidth: 0 }}>
               {/* ⚠️ Predtým sa tu čítal `loading` z `get_my_network` — ten dobehol skôr než
@@ -806,10 +806,10 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
                   background: 'none',
                   border: `1px solid ${T.cardEdge}`,
                   borderRadius: 999,
-                  padding: '3px 10px',
+                  padding: '4px 8px',
                   fontFamily: FONT_UI,
                   fontWeight: 600,
-                  fontSize: 10.5,
+                  fontSize: 10,
                   color: T.inkStrong,
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
@@ -830,7 +830,7 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
                 border: 'none',
                 color: T.inkWarm,
                 cursor: link ? 'pointer' : 'default',
-                padding: 2,
+                padding: 4,
               }}
             >
               {copied ? <HandCheck size={14} /> : <Copy className="h-3.5 w-3.5" />}
@@ -906,7 +906,7 @@ function WalletPanel({
           background: T.panelGrad,
           border: `1.5px solid ${T.cardEdge}`,
           borderRadius: 14,
-          padding: 22,
+          padding: 24,
           boxShadow: T.panelShadow,
         }}
       >
@@ -916,13 +916,13 @@ function WalletPanel({
           <div className="flex items-center" style={{ gap: 13, minWidth: 0 }}>
             <BonesCoin size="l" />
             <div style={{ minWidth: 0 }}>
-              <span style={{ display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 22, letterSpacing: '0.06em', lineHeight: 1.05, color: T.inkStrong }}>
+              <span style={{ display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 20, letterSpacing: '0.02em', lineHeight: 1.05, color: T.inkStrong }}>
                 {balance.toLocaleString(intlLocale(lang))}
               </span>
               <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 12, color: T.inkWarm, marginTop: 3 }}>
                 BONES · ≈ €{(balance / BONES_PER_EUR).toFixed(2)}
               </span>
-              <button type="button" onClick={onInfo} style={{ background: 'none', border: 'none', padding: 0, marginTop: 4, fontFamily: FONT_UI, fontSize: 11.5, color: T.cardEdge, textDecoration: 'underline', textUnderlineOffset: 3, cursor: 'pointer' }}>
+              <button type="button" onClick={onInfo} style={{ background: 'none', border: 'none', padding: 0, marginTop: 4, fontFamily: FONT_UI, fontSize: 12, color: T.cardEdge, textDecoration: 'underline', textUnderlineOffset: 3, cursor: 'pointer' }}>
                 {tx('pack.network.whatIsBones', 'What is BONES?')}
               </button>
             </div>
@@ -942,7 +942,7 @@ function WalletPanel({
           />
         ) : (
           <>
-            <span style={{ display: 'block', fontFamily: FONT_TITLE, fontSize: 10, letterSpacing: '0.32em', textTransform: 'uppercase', color: T.inkDim, marginBottom: 10 }}>
+            <span style={{ display: 'block', fontFamily: FONT_TITLE, fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.inkDim, marginBottom: 10 }}>
               {tx('pack.network.sendWhere', 'Send them where?')}
             </span>
             <div className="grid grid-cols-2 gap-2.5">
@@ -963,8 +963,8 @@ function WalletPanel({
                       gap: 4,
                       background: live ? 'rgba(201,154,63,0.12)' : 'rgba(31,26,14,0.03)',
                       border: live ? `1px solid ${T.cardEdge}` : '1px solid rgba(31,26,14,0.12)',
-                      borderRadius: 10,
-                      padding: '12px 13px',
+                      borderRadius: 8,
+                      padding: '12px 12px',
                       // SOON (merch/payments) = trvale nedostupné → dimne sa celý rám.
                       // „No BONES yet" (grow/help pri nulovom zostatku) = dočasné → rám
                       // ostáva plný, stlmí sa len text (nižšie), nech nevyzerá ako
@@ -974,10 +974,10 @@ function WalletPanel({
                     }}
                   >
                     <BrandIcon name={o.icon} size={18} tint={live ? 'gold' : 'dim'} style={{ marginBottom: 2 }} />
-                    <span style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12.5, color: live && !can ? T.inkFaint : T.inkStrong }}>{name}</span>
-                    <span style={{ fontFamily: FONT_UI, fontSize: 11, color: live ? (can ? T.inkWarm : T.inkFaint) : T.inkFaint }}>{sub}</span>
+                    <span style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, color: live && !can ? T.inkFaint : T.inkStrong }}>{name}</span>
+                    <span style={{ fontFamily: FONT_UI, fontSize: 10, color: live ? (can ? T.inkWarm : T.inkFaint) : T.inkFaint }}>{sub}</span>
                     {!live && (
-                      <span style={{ position: 'absolute', top: 9, right: 9, fontFamily: FONT_TITLE, fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: T.inkFaint, border: '1px solid rgba(31,26,14,0.18)', borderRadius: 999, padding: '2px 6px' }}>
+                      <span style={{ position: 'absolute', top: 9, right: 9, fontFamily: FONT_TITLE, fontSize: 10, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkFaint, border: '1px solid rgba(31,26,14,0.18)', borderRadius: 999, padding: '4px 4px' }}>
                         {tx('pack.network.soon', 'Soon')}
                       </span>
                     )}
@@ -997,7 +997,7 @@ function WalletPanel({
             {spent.length > 0 && (
               <>
                 <div aria-hidden style={{ height: 2, margin: '16px 0 12px', background: T.rule }} />
-                <span style={{ display: 'block', fontFamily: FONT_TITLE, fontSize: 10, letterSpacing: '0.32em', textTransform: 'uppercase', color: T.inkDim, marginBottom: 8 }}>
+                <span style={{ display: 'block', fontFamily: FONT_TITLE, fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.inkDim, marginBottom: 8 }}>
                   {tx('pack.network.transactionLog', 'Transaction log')}
                 </span>
                 {spent.some((r) => r.devotion_capped) && (
@@ -1092,12 +1092,12 @@ function SendStep({
         <span style={{ fontFamily: FONT_UI, fontWeight: 500, fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.cardEdge }}>
           {eyebrow}
         </span>
-        <h4 style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 19, color: T.inkStrong, margin: '6px 0 2px' }}>
+        <h4 style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 20, color: T.inkStrong, margin: '6px 0 2px' }}>
           {title}
         </h4>
-        <p style={{ fontFamily: FONT_UI, fontSize: 12.5, color: T.inkWarm, margin: 0 }}>{lede}</p>
+        <p style={{ fontFamily: FONT_UI, fontSize: 12, color: T.inkWarm, margin: 0 }}>{lede}</p>
 
-        <div style={{ background: T.tileBg, border: `1px solid ${T.border}`, borderRadius: 12, padding: 13, marginTop: 14 }}>
+        <div style={{ background: T.tileBg, border: `1px solid ${T.border}`, borderRadius: 12, padding: 12, marginTop: 14 }}>
           <div className="flex items-center" style={{ gap: 9 }}>
             <input
               type="number"
@@ -1110,14 +1110,14 @@ function SendStep({
                 flex: 1,
                 minWidth: 0,
                 borderRadius: 8,
-                padding: '10px 12px',
+                padding: '8px 12px',
                 fontFamily: FONT_TITLE,
                 fontWeight: 700,
                 fontSize: 20,
                 color: T.ink,
               }}
             />
-            <span style={{ fontFamily: FONT_UI, fontSize: 10, fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase', color: T.inkWarm }}>
+            <span style={{ fontFamily: FONT_UI, fontSize: 10, fontWeight: 500, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkWarm }}>
               {tx('pack.network.bonesUnit', 'bones')}
             </span>
           </div>
@@ -1133,7 +1133,7 @@ function SendStep({
 
           <div
             className="flex items-baseline justify-between"
-            style={{ marginTop: 11, paddingTop: 10, borderTop: `1px solid ${T.hairline}`, fontFamily: FONT_UI, fontSize: 12, color: T.inkFaint }}
+            style={{ marginTop: 11, paddingTop: 8, borderTop: `1px solid ${T.hairline}`, fontFamily: FONT_UI, fontSize: 12, color: T.inkFaint }}
           >
             <span>≈ €<b style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 14, color: T.inkStrong }}>{(v / BONES_PER_EUR).toFixed(2)}</b></span>
             <span style={{ color: T.inkWarm }}>
@@ -1146,14 +1146,14 @@ function SendStep({
           <p
             style={{
               fontFamily: FONT_UI,
-              fontSize: 11.5,
+              fontSize: 12,
               lineHeight: 1.5,
               color: T.inkWarm,
               margin: '11px 0 0',
               background: 'rgba(31,26,14,0.05)',
               border: '1px dashed rgba(31,26,14,0.20)',
-              borderRadius: 10,
-              padding: '9px 11px',
+              borderRadius: 8,
+              padding: '8px 12px',
             }}
             dangerouslySetInnerHTML={{
               __html: room > 0
@@ -1179,8 +1179,8 @@ function SendStep({
             margin: '12px 0 0',
             background: 'rgba(201,154,63,0.10)',
             border: `1px solid ${T.border}`,
-            borderRadius: 10,
-            padding: '10px 12px',
+            borderRadius: 8,
+            padding: '8px 12px',
           }}
         >
           {tx('pack.network.confirmSend', "Are you sure? Once sent, the BONES leave your balance — this can't be undone.")}
@@ -1201,11 +1201,11 @@ function SendStep({
               border: `1px solid ${GOLD_BTN.edge}`,
               borderRadius: 8,
               color: T.ink,
-              padding: '11px 16px',
+              padding: '12px 16px',
               fontFamily: FONT_TITLE,
-              fontSize: 11.5,
+              fontSize: 12,
               fontWeight: 700,
-              letterSpacing: '0.12em',
+              letterSpacing: '0.14em',
               textTransform: 'uppercase',
               cursor: v < 1 || busy ? 'default' : 'pointer',
               opacity: v < 1 || busy ? 0.55 : 1,
@@ -1226,9 +1226,9 @@ const quickBtn: React.CSSProperties = {
   border: `1px solid ${T.border}`,
   borderRadius: 8,
   fontFamily: FONT_UI,
-  fontSize: 11.5,
+  fontSize: 12,
   color: T.inkWarm,
-  padding: '6px 4px',
+  padding: '4px 4px',
   cursor: 'pointer',
 };
 
@@ -1237,11 +1237,11 @@ const ghostBtn: React.CSSProperties = {
   border: `1px solid ${T.border}`,
   borderRadius: 8,
   color: T.ink,
-  padding: '11px 16px',
+  padding: '12px 16px',
   fontFamily: FONT_TITLE,
-  fontSize: 11.5,
+  fontSize: 12,
   fontWeight: 700,
-  letterSpacing: '0.12em',
+  letterSpacing: '0.14em',
   textTransform: 'uppercase',
   cursor: 'pointer',
 };
@@ -1263,22 +1263,22 @@ function LedgerRowView({ row }: { row: LedgerRow }) {
         gap: 10,
         background: T.tileBg,
         border: `1px solid ${T.border}`,
-        borderRadius: 10,
-        padding: '8px 11px',
+        borderRadius: 8,
+        padding: '8px 12px',
         marginBottom: 6,
       }}
     >
-      <span style={{ fontFamily: FONT_UI, fontSize: 11, color: T.inkFaint, whiteSpace: 'nowrap' }}>
+      <span style={{ fontFamily: FONT_UI, fontSize: 10, color: T.inkFaint, whiteSpace: 'nowrap' }}>
         {new Date(row.created_at).toLocaleDateString(intlLocale(lang), { day: '2-digit', month: 'short' })}
       </span>
-      <span className="flex-1 truncate" style={{ fontFamily: FONT_UI, fontSize: 12.5, color: T.ink, minWidth: 0 }}>
+      <span className="flex-1 truncate" style={{ fontFamily: FONT_UI, fontSize: 12, color: T.ink, minWidth: 0 }}>
         {row.purpose === 'help'
           ? tx('pack.network.spend.help.name', 'Help a dog')
           : row.purpose === 'grow'
             ? tx('pack.network.spend.grow.name', 'Grow DOGYPT')
             : row.kind}
       </span>
-      <span style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 13, color: T.inkStrong, whiteSpace: 'nowrap' }}>
+      <span style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, color: T.inkStrong, whiteSpace: 'nowrap' }}>
         {row.amount > 0 ? '+' : '\u2212'}{Math.abs(row.amount)}
       </span>
       <span
@@ -1318,7 +1318,7 @@ function Step({
         // („je to také plané") a 13. 8. sa stal kánonom pre všetky sekcie vnútri karty —
         // hodnoty preto nie sú opísané ručne, ale ťahané z matrice.
         ...PACK_BOX.subblock,
-        padding: '15px 16px',
+        padding: '16px 16px',
         boxShadow: '0 2px 6px rgba(122,90,42,0.14), inset 0 1px 0 rgba(255,255,255,0.55)',
       }}
     >
@@ -1337,7 +1337,7 @@ function Step({
                nie zlatou"). Číslo kroku je malý plný disk, nie plocha — zlatý gradient
                `.btn-gold` na ňom kričal rovnako ako CTA o pár riadkov nižšie. */
             background: LAPIS.grad,
-            border: '1px solid rgba(201,154,63,0.55)',
+            border: `1px solid ${PACK_THEME.border}`,
             color: LAPIS.ink,
             fontFamily: FONT_TITLE,
             fontWeight: 700,
@@ -1357,15 +1357,15 @@ function Step({
             display: 'block',
             fontFamily: FONT_TITLE,
             fontWeight: 700,
-            fontSize: 13.5,
+            fontSize: 14,
             color: T.inkStrong,
-            letterSpacing: '0.01em',
+            letterSpacing: '0.02em',
             marginBottom: 4,
           }}
         >
           {title}
         </span>
-        <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.55, color: T.inkWarm }}>
+        <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.55, color: T.inkWarm }}>
           {children}
         </span>
       </div>
@@ -1384,7 +1384,7 @@ function RowNo({ n, dim }: { n: number; dim?: boolean }) {
         textAlign: 'right',
         fontFamily: FONT_UI,
         fontWeight: 500,
-        fontSize: 11,
+        fontSize: 10,
         lineHeight: 1,
         color: dim ? T.inkFaint : T.inkWarm,
       }}
@@ -1405,8 +1405,8 @@ function EmptyRow({ no }: { no: number }) {
       className="flex items-center"
       style={{
         gap: 10,
-        padding: '8px 10px',
-        borderRadius: 10,
+        padding: '8px 8px',
+        borderRadius: 8,
         background: 'transparent',
         border: `1px dashed ${T.border}`,
       }}
@@ -1423,19 +1423,19 @@ function EmptyRow({ no }: { no: number }) {
         }}
       />
       <span aria-hidden className="flex-1 min-w-0 flex flex-col" style={{ gap: 5 }}>
-        <span style={{ display: 'block', width: '58%', height: 7, borderRadius: 4, background: 'rgba(122,90,42,0.13)' }} />
-        <span style={{ display: 'block', width: '34%', height: 5, borderRadius: 4, background: 'rgba(122,90,42,0.09)' }} />
+        <span style={{ display: 'block', width: '58%', height: 7, borderRadius: 8, background: 'rgba(122,90,42,0.13)' }} />
+        <span style={{ display: 'block', width: '34%', height: 5, borderRadius: 8, background: 'rgba(122,90,42,0.09)' }} />
       </span>
       <span
         aria-hidden
         style={{
           fontFamily: FONT_UI,
           fontWeight: 600,
-          fontSize: 10.5,
+          fontSize: 10,
           color: T.inkFaint,
           border: `1px dashed ${T.border}`,
           borderRadius: 999,
-          padding: '2px 8px',
+          padding: '4px 8px',
           whiteSpace: 'nowrap',
         }}
       >
@@ -1467,7 +1467,7 @@ function MemberRow({ m, lvl, full, no }: { m: Member; lvl: number; full?: boolea
       style={{
         gap: 10,
         padding: full ? '9px 12px' : '8px 10px',
-        borderRadius: 10,
+        borderRadius: 8,
         background: T.tileBg,
         border: `1px solid ${T.border}`,
       }}
@@ -1480,24 +1480,24 @@ function MemberRow({ m, lvl, full, no }: { m: Member; lvl: number; full?: boolea
       <span className="flex-1 min-w-0">
         <span
           className="block truncate"
-          style={{ fontFamily: "'Cinzel Decorative', 'Cinzel', serif", fontWeight: 700, fontSize: 13, color: T.inkStrong, lineHeight: 1.2 }}
+          style={{ fontFamily: "'Cinzel Decorative', 'Cinzel', serif", fontWeight: 700, fontSize: 12, color: T.inkStrong, lineHeight: 1.2 }}
         >
           {m.dog_name || '—'}
         </span>
-        <span className="block truncate" style={{ fontFamily: FONT_UI, fontSize: 10.5, color: T.inkWarm, marginTop: 1 }}>
+        <span className="block truncate" style={{ fontFamily: FONT_UI, fontSize: 10, color: T.inkWarm, marginTop: 1 }}>
           {m.owner_name || '—'}
           {full && <> · {m.email || '—'}</>}
         </span>
       </span>
 
       {full && (
-        <span style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 11.5, color: T.inkDim, whiteSpace: 'nowrap' }}>
+        <span style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, color: T.inkDim, whiteSpace: 'nowrap' }}>
           {m.dog_no ? `#${m.dog_no}` : '—'}
         </span>
       )}
 
       {/* `inkWarm`, nie `inkFaint`: 0.42 alfa dávala na papyruse 2,5 : 1 (audit B3). */}
-      <span style={{ fontFamily: FONT_UI, fontSize: 11, color: T.inkWarm, whiteSpace: 'nowrap' }}>
+      <span style={{ fontFamily: FONT_UI, fontSize: 10, color: T.inkWarm, whiteSpace: 'nowrap' }}>
         {date}
       </span>
 
@@ -1510,11 +1510,11 @@ function MemberRow({ m, lvl, full, no }: { m: Member; lvl: number; full?: boolea
           : tx('pack.network.circle2', 'Second paw — they were brought by your first paw')}
         style={{
           fontFamily: FONT_UI, fontWeight: 600, fontSize: 10,
-          letterSpacing: '0.08em',
+          letterSpacing: '0.02em',
           color: lvl === 1 ? T.inkStrong : T.inkWarm,
           border: `1px solid ${lvl === 1 ? T.cardEdge : T.border}`,
           borderRadius: 999,
-          padding: '1px 6px',
+          padding: '0px 4px',
           whiteSpace: 'nowrap',
         }}
       >
@@ -1526,11 +1526,11 @@ function MemberRow({ m, lvl, full, no }: { m: Member; lvl: number; full?: boolea
         style={{
           fontFamily: FONT_UI,
           fontWeight: 600,
-          fontSize: 10.5,
+          fontSize: 10,
           color: '#3d1f00',
           background: 'linear-gradient(180deg, #F5C73D, #E69E1A)',
           borderRadius: 999,
-          padding: '2px 8px',
+          padding: '4px 8px',
           gap: 4,
           whiteSpace: 'nowrap',
         }}
@@ -1607,7 +1607,7 @@ function NetworkListPanel({ rows, onClose }: {
           background: T.panelGrad,
           border: `1.5px solid ${T.cardEdge}`,
           borderRadius: 14,
-          padding: 20,
+          padding: 16,
           boxShadow: T.panelShadow,
         }}
       >
@@ -1618,12 +1618,12 @@ function NetworkListPanel({ rows, onClose }: {
             <span
               style={{
                 display: 'block', fontFamily: FONT_TITLE, fontSize: 10,
-                letterSpacing: '0.32em', textTransform: 'uppercase', color: T.inkDim,
+                letterSpacing: '0.26em', textTransform: 'uppercase', color: T.inkDim,
               }}
             >
               {tx('pack.network.whoJoined', 'Who joined through you')}
             </span>
-            <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 12.5, color: T.inkWarm, marginTop: 4 }}>
+            <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 12, color: T.inkWarm, marginTop: 4 }}>
               {tx('pack.network.listSummary', '{n} people · {b} BONES earned', { n: rows.length, b: total })}
             </span>
           </div>
@@ -1728,9 +1728,9 @@ function Link20({ pill, small }: { pill: string; small?: boolean }) {
              zlatá — je to SPOJKA medzi uzlami, teda konštrukcia, nie odmena. */
           color: LAPIS.ink,
           background: LAPIS.grad,
-          border: '1px solid rgba(201,154,63,0.55)',
+          border: `1px solid ${PACK_THEME.border}`,
           borderRadius: 999,
-          padding: '2px 8px',
+          padding: '4px 8px',
         }}
       >
         {pill}
@@ -1751,7 +1751,7 @@ function Lab({ children, dim }: { children: React.ReactNode; dim?: boolean }) {
         fontFamily: FONT_UI,
         fontWeight: 500,
         fontSize: 10,
-        letterSpacing: '0.16em',
+        letterSpacing: '0.14em',
         textTransform: 'uppercase',
         color: T.inkFaint,
         marginTop: 6,
@@ -1812,7 +1812,7 @@ function Node({
     // fotka pod ním dodáva, o čo ide. Jemné stlmenie ju odlíši od reálneho
     // člena, ale nechá ju vidieť — čisté `opacity: .3` bolo neviditeľné.
     base.background = 'transparent';
-    base.border = `1.5px dashed rgba(201,154,63,${faint ? 0.45 : 0.7})`;
+    base.border = `1.5px dashed ${faint ? PACK_THEME.border : PACK_THEME.border}`;
     base.color = 'rgba(201,154,63,0.5)';
     base.opacity = faint ? 0.8 : 0.92;
   }
@@ -1877,9 +1877,9 @@ function BigStat({
          zapustený tieň. */
       style={{
         background: LAPIS.grad,
-        border: '1px solid rgba(201,154,63,0.55)',
+        border: `1px solid ${PACK_THEME.border}`,
         borderRadius: 14,
-        padding: '14px 15px',
+        padding: '12px 16px',
         boxShadow: 'inset 0 1px 0 rgba(201,154,63,0.22), 0 10px 24px -14px rgba(5,15,48,0.75)',
         cursor: onClick ? 'pointer' : undefined,
       }}
@@ -1917,7 +1917,7 @@ function BigStat({
         {value}
       </b>
       {sub && (
-        <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 11.5, color: LAPIS_INK_DIM, marginTop: 6 }}>
+        <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 12, color: LAPIS_INK_DIM, marginTop: 6 }}>
           {sub}
         </span>
       )}
@@ -1928,7 +1928,7 @@ function BigStat({
             gap: 5,
             marginTop: 8,
             fontFamily: FONT_UI,
-            fontSize: 11.5,
+            fontSize: 12,
             fontWeight: 500,
             color: LAPIS.ink,
             textDecoration: 'underline',
@@ -1993,7 +1993,7 @@ function InfoPanel({ variant, onClose }: { variant: 'why' | 'bones'; onClose: ()
           background: T.panelGrad,
           border: `1.5px solid ${T.cardEdge}`,
           borderRadius: 14,
-          padding: 22,
+          padding: 24,
           boxShadow: T.panelShadow,
         }}
       >
@@ -2004,7 +2004,7 @@ function InfoPanel({ variant, onClose }: { variant: 'why' | 'bones'; onClose: ()
             style={{
               fontFamily: FONT_TITLE,
               fontSize: 10,
-              letterSpacing: '0.32em',
+              letterSpacing: '0.26em',
               textTransform: 'uppercase',
               color: T.inkDim,
             }}
@@ -2013,7 +2013,7 @@ function InfoPanel({ variant, onClose }: { variant: 'why' | 'bones'; onClose: ()
           </span>
         </div>
         <p
-          style={{ fontFamily: FONT_UI, fontSize: 13, lineHeight: 1.6, color: T.inkDim, margin: 0 }}
+          style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.6, color: T.inkDim, margin: 0 }}
           dangerouslySetInnerHTML={{ __html: body }}
         />
       </div>

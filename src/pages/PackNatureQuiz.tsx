@@ -26,7 +26,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { PackTopRow } from '@/components/pack/PackTopRow';
-import { PACK_THEME, PACK_BOX, PACK_COL, PACK_HEAD, PACK_TEXT, PACK_SPACE, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, PAPER_PAGE_CSS, usePaperRoute, PACK_TOPROW_PAD } from '@/components/pack/packTheme';
+import { PACK_THEME, PACK_BOX, PACK_COL, PACK_HEAD, PACK_TEXT, PACK_SPACE, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, PAPER_PAGE_CSS, VEIL_CSS, usePaperRoute, PACK_TOPROW_PAD } from '@/components/pack/packTheme';
 import {
   ELEMENT_QUESTIONS, ROLE_QUESTIONS, BALANCE_ITEMS, BALANCE_VET_NOTE,
   NATURE_ELEMENTS, NATURE_ROLES, NATURE_SPECIALS,
@@ -72,7 +72,7 @@ interface QuizDog {
   heroglyph_png_url: string | null;
 }
 
-const NQ_CSS = `
+const NQ_CSS = `${VEIL_CSS}
 /* ── CTA — ZLATÚ URČUJE PODKLAD, NIE VKUS ────────────────────────────────────
    Pravidlo je v index.css od 14. 7. 2026 aj s Matejovým OK:
      LIGHT/papyrus → --cta-gradient      (medová ${T.cardEdge}→#A07423) + --cta-shadow-grounded
@@ -97,7 +97,7 @@ const NQ_CSS = `
   padding:12px 24px;
   background:${LAPIS.grad};
   border:1px solid ${LAPIS.edge}; border-radius:8px; color:${LAPIS.ink};
-  font-family:'Cinzel',serif; font-size:11px; font-weight:700;
+  font-family:'Cinzel',serif; font-size:10px; font-weight:700;
   letter-spacing:0.14em; text-transform:uppercase; cursor:pointer; white-space:nowrap;
   box-shadow:${LAPIS_BTN_SHADOW};
   transition: transform .2s, box-shadow .22s;
@@ -128,7 +128,7 @@ const NQ_CSS = `
   display:inline-flex; align-items:center; justify-content:center; gap:7px;
   padding:12px 24px; background:transparent;
   border:1.5px solid ${T.border}; border-radius:8px; color:${T.inkWarm};
-  font-family:'Cinzel',serif; font-size:10.5px; font-weight:700;
+  font-family:'Cinzel',serif; font-size:10px; font-weight:700;
   letter-spacing:0.14em; text-transform:uppercase; cursor:pointer;
 }
 .nq-ghost:hover{ border-color:${T.cardEdge}; color:${T.inkStrong}; }
@@ -163,21 +163,21 @@ const NQ_CSS = `
   padding:12px 16px; border-radius:12px;
   background:linear-gradient(180deg,#FFFDF7 0%,#EFDDAE 100%);
   border:1.5px solid ${PALE.border};
-  font-family:'Space Grotesk',sans-serif; font-size:13.5px; line-height:1.45;
+  font-family:'Space Grotesk',sans-serif; font-size:14px; line-height:1.45;
   color:#5c4318;
   transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .18s;
 }
 .nq-optlbl{ flex:1 1 auto; }
 .nq-opt:hover, .nq-optlbl:hover{
   border-color:rgba(179,130,45,0.85); transform:translateY(-1px);
-  box-shadow:0 3px 10px rgba(122,90,42,0.22);
+  box-shadow:${PACK_SHADOW.lift};
 }
 .nq-opt.is-on, .nq-optlbl.is-on{
   background:${GOLD_BTN.grad};
   border-color:#E69E1A; color:#241a06;
-  box-shadow:0 3px 12px rgba(230,158,26,0.5);
+  box-shadow:${PACK_SHADOW.lift};
 }
-.nq-opt.is-on:hover, .nq-optlbl.is-on:hover{ box-shadow:0 4px 16px rgba(230,158,26,0.62); }
+.nq-opt.is-on:hover, .nq-optlbl.is-on:hover{ box-shadow:${PACK_SHADOW.lift}; }
 .nq-optxt{ flex:1 1 auto; min-width:0; }
 
 /* ── ROZOBRATÁ ODPOVEĎ: „NIEKTO" JE TIEŽ STAV ─────────────────────────────────
@@ -212,7 +212,7 @@ const NQ_CSS = `
   flex:0 0 auto; width:26px; height:26px; border-radius:999px;
   display:grid; place-items:center;
   background:rgba(255,255,255,0.55); border:1.5px solid rgba(179,130,45,0.45);
-  font-family:'Cinzel',serif; font-weight:700; font-size:11px; letter-spacing:.02em;
+  font-family:'Cinzel',serif; font-weight:700; font-size:10px; letter-spacing:.02em;
   color:${T.inkWarm}; transition:background .18s, border-color .18s, color .18s;
 }
 .is-on > .nq-mark{
@@ -239,16 +239,16 @@ const NQ_CSS = `
   flex:1 1 0; cursor:pointer; padding:12px 8px; border-radius:999px;
   background:linear-gradient(180deg,#FFFDF7 0%,#EFDDAE 100%);
   border:1.5px solid ${PALE.border};
-  font-family:'Space Grotesk',sans-serif; font-size:12.5px; font-weight:500; color:#5c4318;
+  font-family:'Space Grotesk',sans-serif; font-size:12px; font-weight:500; color:#5c4318;
   transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
 }
 .nq-tri:hover{
   border-color:rgba(179,130,45,0.85); transform:translateY(-1px);
-  box-shadow:0 3px 10px rgba(122,90,42,0.22);
+  box-shadow:${PACK_SHADOW.lift};
 }
 .nq-tri.is-on{
   background:${GOLD_BTN.grad};
-  border-color:#E69E1A; color:#241a06; box-shadow:0 3px 12px rgba(230,158,26,0.5);
+  border-color:#E69E1A; color:#241a06; box-shadow:${PACK_SHADOW.lift};
 }
 
 /* ── PROGRES ──────────────────────────────────────────────────────────────────
@@ -269,7 +269,7 @@ const NQ_CSS = `
   display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:9px;
 }
 .nq-proglbl{
-  font-family:'Cinzel',serif; font-weight:700; font-size:13px;
+  font-family:'Cinzel',serif; font-weight:700; font-size:12px;
   letter-spacing:.14em; text-transform:uppercase; color:${T.inkStrong};
 }
 .nq-prognum{
@@ -421,7 +421,7 @@ const NQ_CSS = `
   width:48px; height:48px; border-radius:999px; display:grid; place-items:center;
   flex:0 0 auto;
   background:radial-gradient(circle at 34% 28%, rgba(245,199,61,0.34), rgba(201,154,63,0.08) 72%);
-  border:1px solid rgba(201,154,63,0.55);
+  border:1px solid ${PACK_THEME.border};
   box-shadow:inset 0 1px 0 rgba(255,255,255,0.65);
   transition:transform .35s ease;
 }
@@ -437,8 +437,7 @@ const NQ_CSS = `
    Panel = úroveň 4 matrice (PACK_BOX.panel): papyrusový gradient, 1.5px zlatý rám,
    r14. Scrim je tmavý s rozostrením, aby bolo vidno, že kvíz nezmizol — len čaká. */
 .nq-scrim{
-  position:fixed; inset:0; z-index:60; display:grid; place-items:center; padding:24px;
-  background:rgba(3,2,0,0.66); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px);
+  z-index:60; padding:24px;
 }
 .nq-confirm{
   width:100%; max-width:420px; padding:24px 24px;
@@ -460,7 +459,7 @@ const NQ_CSS = `
    pri rôzne dlhých názvoch (Fire vs. The Companion) nedá porovnať dĺžka. */
 .nq-scorerow{ display:grid; grid-template-columns:96px 1fr 40px; align-items:center; gap:10px; }
 .nq-scorename{
-  font-family:'Space Grotesk',sans-serif; font-size:11.5px; line-height:1.25;
+  font-family:'Space Grotesk',sans-serif; font-size:12px; line-height:1.25;
   color:${T.inkWarm}; text-align:right;
 }
 .nq-scorename.is-top{ color:${T.inkStrong}; font-weight:600; }
@@ -479,17 +478,17 @@ const NQ_CSS = `
   box-shadow:0 0 14px rgba(230,158,26,0.5);
 }
 .nq-scorepct{
-  font-family:'Space Grotesk',sans-serif; font-size:11px; color:${T.inkWarm}; text-align:right;
+  font-family:'Space Grotesk',sans-serif; font-size:10px; color:${T.inkWarm}; text-align:right;
   font-variant-numeric:tabular-nums;
 }
 .nq-scorepct.is-top{ color:${T.inkStrong}; font-weight:600; }
 .nq-scorenote{
-  font-family:'Space Grotesk',sans-serif; font-size:10.5px; line-height:1.5;
+  font-family:'Space Grotesk',sans-serif; font-size:10px; line-height:1.5;
   color:${T.inkFaint}; margin:10px 0 0;
 }
 @media (max-width:560px){
   .nq-scorerow{ grid-template-columns:82px 1fr 34px; gap:8px; }
-  .nq-scorename{ font-size:10.5px; }
+  .nq-scorename{ font-size:10px; }
 }
 /* ── ODZNAKY (14 ks: 5 elementov + 5 základných + 4 zvláštne úlohy) ──────────
    Zdroj vstupy/vizualna-identita/, do webu idú ako 256 px webp s alfou.
@@ -509,7 +508,7 @@ const NQ_CSS = `
   width:clamp(92px,29vw,132px); aspect-ratio:1; object-fit:contain; display:block;
 }
 .nq-badgelbl{
-  font-family:'Space Grotesk',sans-serif; font-size:9.5px; font-weight:500;
+  font-family:'Space Grotesk',sans-serif; font-size:10px; font-weight:500;
   letter-spacing:0.22em; text-transform:uppercase; color:${T.cardEdge}; margin-top:8px;
 }
 .nq-badgename{
@@ -570,8 +569,8 @@ const NQ_CSS = `
   .nq-axis{ padding:12px; column-gap:12px; border-radius:12px; }
   .nq-axisicon{ width:46px; height:46px; }
   .nq-axisicon img{ width:26px; height:26px; }
-  .nq-axistitle{ font-size:11.5px; letter-spacing:0.14em; }
-  .nq-axissub{ font-size:11px; line-height:1.42; }
+  .nq-axistitle{ font-size:12px; letter-spacing:0.14em; }
+  .nq-axissub{ font-size:10px; line-height:1.42; }
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
@@ -598,7 +597,7 @@ const NQ_CSS = `
   background:radial-gradient(ellipse 90% 95% at 50% 50%, transparent 58%, rgba(80,45,5,.26) 100%);
 }
 .nqd > *{ position:relative; z-index:3; }
-.nqd-framed{ border:3px solid #8a5c10; border-radius:4px; padding:8px; margin:0; }
+.nqd-framed{ border:3px solid #8a5c10; border-radius:8px; padding:8px; margin:0; }
 .nqd-inner{ border:1px solid rgba(122,80,16,0.28); border-radius:2px; padding:32px 32px 32px; }
 
 /* ornament medzi sekciami: čiara – kosoštvorce – čiara */
@@ -669,11 +668,11 @@ const NQ_CSS = `
 
 /* ── PANELY (rohové značky, dva stupne) ───────────────────────────────── */
 .nqd-panel{
-  position:relative; border:1px solid #8a5c10; border-radius:10px; padding:24px 24px 16px;
+  position:relative; border:1px solid #8a5c10; border-radius:8px; padding:24px 24px 16px;
   background:rgba(255,252,242,.42);
 }
 .nqd-panel::before,.nqd-panel::after{ content:''; position:absolute; width:14px; height:14px; border:2px solid #8a5c10; }
-.nqd-panel::before{ top:-1px; left:-1px; border-right:0; border-bottom:0; border-radius:10px 0 0 0; }
+.nqd-panel::before{ top:-1px; left:-1px; border-right:0; border-bottom:0; border-radius:8px 0 0 0; }
 .nqd-panel::after{ bottom:-1px; right:-1px; border-left:0; border-top:0; border-radius:0 0 10px 0; }
 .nqd-panel.quiet{ border-color:rgba(122,80,16,0.28); background:rgba(122,80,16,.05); }
 .nqd-panel.quiet::before,.nqd-panel.quiet::after{ border-color:rgba(122,80,16,0.28); }
@@ -702,7 +701,7 @@ const NQ_CSS = `
 /* ── I · KONŠTITÚCIA: čínsky znak + päť korešpondencií ────────────────── */
 .nqd-elhero{ display:grid; grid-template-columns:150px 1fr; gap:20px; align-items:center; }
 .nqd-cnbox{
-  text-align:center; padding:16px 12px 12px; border:1px solid #8a5c10; border-radius:10px;
+  text-align:center; padding:16px 12px 12px; border:1px solid #8a5c10; border-radius:8px;
   background:rgba(255,252,242,.5); position:relative;
 }
 .nqd-cnbox::before,.nqd-cnbox::after{ content:''; position:absolute; width:12px; height:12px; border:1px solid #8a5c10; }
@@ -713,7 +712,7 @@ const NQ_CSS = `
   font-family:'Cinzel',serif; font-weight:900; font-size:16px; letter-spacing:0.14em;
   text-transform:uppercase; color:#1a0900; margin-top:8px;
 }
-.nqd-cnpin{ font-family:'Space Grotesk',sans-serif; font-size:11px; color:${T.inkWarm}; font-style:italic; }
+.nqd-cnpin{ font-family:'Space Grotesk',sans-serif; font-size:10px; color:${T.inkWarm}; font-style:italic; }
 /* ⚠️ Päť PEVNÝCH stĺpcov. auto-fit zalomí 4+1 a Colour ostane sama ako nedorobok. */
 .nqd-facts{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:14px; }
 .nqd-fact{ border:1px solid rgba(122,80,16,0.28); border-radius:8px; padding:8px 12px; background:rgba(255,255,255,.22); }
@@ -721,12 +720,12 @@ const NQ_CSS = `
   display:block; font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:${PACK_TEXT.micro}px;
   letter-spacing:0.22em; text-transform:uppercase; color:${T.inkWarm};
 }
-.nqd-fact .v{ display:block; font-family:'Cinzel',serif; font-weight:700; font-size:12.5px; color:#1a0900; margin-top:2px; }
+.nqd-fact .v{ display:block; font-family:'Cinzel',serif; font-weight:700; font-size:12px; color:#1a0900; margin-top:2px; }
 
 /* ── IV · USMERNENIE ──────────────────────────────────────────────────────
    Kombinačný riadok stojí SAMOSTATNE nad omylmi. Je to jediná veta dokumentu,
    kde sa obe osi stretnú — zamiešaná medzi šestnásť riadkov by zanikla. */
-.nqd-pair{ position:relative; border:1px solid #8a5c10; border-radius:10px; padding:16px 16px;
+.nqd-pair{ position:relative; border:1px solid #8a5c10; border-radius:8px; padding:16px 16px;
   background:linear-gradient(135deg, rgba(245,199,61,.16), rgba(230,158,26,.09)); margin-bottom:20px; }
 .nqd-pair .cross{
   font-family:'Cinzel',serif; font-weight:900; font-size:10px; letter-spacing:0.22em;
@@ -744,17 +743,17 @@ const NQ_CSS = `
 .nqd-rules li{ list-style:none; display:grid; grid-template-columns:30px 1fr; gap:12px; align-items:start; }
 .nqd-rules .n{ font-family:'Cinzel',serif; font-weight:900; font-size:14px; color:#8a5c10; text-align:right; line-height:1.3; }
 .nqd-rules b.t{
-  display:block; font-family:'Cinzel',serif; font-weight:700; font-size:12.5px; letter-spacing:0.02em;
+  display:block; font-family:'Cinzel',serif; font-weight:700; font-size:12px; letter-spacing:0.02em;
   text-transform:uppercase; color:#1a0900; margin-bottom:3px;
 }
-.nqd-rules span.d{ font-family:'Space Grotesk',sans-serif; font-size:13px; line-height:1.6; color:#5a3a0a; }
+.nqd-rules span.d{ font-family:'Space Grotesk',sans-serif; font-size:12px; line-height:1.6; color:#5a3a0a; }
 
 /* ── V · ROZPAD (pentagram) ───────────────────────────────────────────── */
 .nqd-radars{ display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:center; }
 .nqd-radar{ width:100%; max-width:340px; margin-inline:auto; display:block; }
-.nqd-note{ font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:${T.inkWarm}; margin:14px 0 0; text-align:center; }
+.nqd-note{ font-family:'Space Grotesk',sans-serif; font-size:12px; color:${T.inkWarm}; margin:14px 0 0; text-align:center; }
 .nqd-foot{ display:flex; align-items:flex-end; gap:16px; }
-.nqd-foot p{ flex:1; font-family:'Space Grotesk',sans-serif; font-size:10.5px; color:#5a3a0a; line-height:1.55; margin:0; }
+.nqd-foot p{ flex:1; font-family:'Space Grotesk',sans-serif; font-size:10px; color:#5a3a0a; line-height:1.55; margin:0; }
 .nqd-seal{ width:98px; opacity:.9; flex:0 0 auto; }
 
 @media(max-width:900px){ .nqd-facts{ grid-template-columns:repeat(3,1fr); } }
@@ -868,7 +867,7 @@ function GuideLane({ title, from, rows, tx }: {
   return (
     <div className="nqd-cat">
       <div className="nqd-cap"><h3>{title}</h3><i /></div>
-      <p className="dim" style={{ fontSize: 11, margin: '-6px 0 10px' }}>{from}</p>
+      <p className="dim" style={{ fontSize: 10, margin: '-6px 0 10px' }}>{from}</p>
       <ol className="nqd-rules">
         {rows.map((row, i) => (
           <li key={row.i18n}>
@@ -904,7 +903,7 @@ function Rule({ className }: { className?: string }) {
 function Tile({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      background: T.tileBg, border: `1px solid ${T.border}`, borderRadius: 10, padding: '12px 16px',
+      background: T.tileBg, border: `1px solid ${T.border}`, borderRadius: 8, padding: '12px 16px',
     }}>{children}</div>
   );
 }
@@ -1250,7 +1249,7 @@ function OptionRow({
 function PackHint({ tx }: { tx: (k: string, f: string) => string }) {
   return (
     <p style={{
-      fontFamily: FONT_UI, fontSize: 11.5, lineHeight: 1.5, color: T.inkWarm,
+      fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.5, color: T.inkWarm,
       margin: '10px 0 0',
     }}>
       {tx('pack.nature.pickHint', 'Answer for each dog separately — tap that dog’s photo in the row that fits them.')}
@@ -1278,7 +1277,7 @@ function HowItWorks({ solo, tx }: { solo: boolean; tx: (k: string, f: string) =>
         textTransform: 'uppercase', color: T.cardEdge, marginBottom: 6,
       }}>{tx('pack.nature.how.eyebrow', 'How it works')}</div>
       <p style={{
-        fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.55, color: T.inkStrong, margin: 0,
+        fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.55, color: T.inkStrong, margin: 0,
       }}>
         {solo
           ? tx('pack.nature.how.solo',
@@ -1308,7 +1307,7 @@ function LeaveConfirm({ onStay, onLeave, tx }: {
     <div
       role="dialog"
       aria-modal="true"
-      className="nq-scrim"
+      className="pk-veil pk-veil--modal nq-scrim"
       onClick={onStay}
     >
       {/* Klik do panela nesmie prepadnúť na scrim a zavrieť dialóg. */}
@@ -1318,7 +1317,7 @@ function LeaveConfirm({ onStay, onLeave, tx }: {
           fontSize: 16, letterSpacing: '0.02em', color: T.inkStrong, margin: 0,
         }}>{tx('pack.nature.leave.title', 'Leave the quiz?')}</h2>
         <p style={{
-          fontFamily: FONT_UI, fontSize: 13, lineHeight: 1.55, color: T.inkWarm, margin: '10px 0 0',
+          fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.55, color: T.inkWarm, margin: '10px 0 0',
         }}>
           {tx('pack.nature.leave.body',
             'Your answers are not saved yet — they are written to the DOG ID only at the end. Leave now and you start over.')}
@@ -1447,7 +1446,7 @@ function BalanceSection({ b, own, tx }: {
   const extra = b.top.support.filter((k) => k !== own);
   const chip = (it: BalanceItem) => (
     <span key={it.id} className="pf-pill" style={{
-      fontFamily: FONT_UI, fontSize: 11.5, padding: '4px 12px', borderRadius: 999,
+      fontFamily: FONT_UI, fontSize: 12, padding: '4px 12px', borderRadius: 999,
       border: `1px solid ${T.border}`, background: T.tileBg, color: T.inkStrong,
     }}>{tx(it.i18n, it.labelEN)}</span>
   );
@@ -1457,7 +1456,7 @@ function BalanceSection({ b, own, tx }: {
         title={tx('pack.nature.doc.ib.title', 'Where the balance is leaning')}
         sub={tx('pack.nature.doc.ib.sub', 'What you ticked, read the way Chinese medicine reads it')}
       />
-      <p style={{ fontFamily: FONT_UI, fontSize: 13.5, lineHeight: 1.6, color: T.inkStrong, margin: '0 0 12px' }}>
+      <p style={{ fontFamily: FONT_UI, fontSize: 14, lineHeight: 1.6, color: T.inkStrong, margin: '0 0 12px' }}>
         {tx('pack.nature.balance.reading', 'In Traditional Chinese Medicine this reads as')}{' '}
         <b>{dir} {leaning}</b>.
       </p>
@@ -1510,12 +1509,12 @@ function BalanceSection({ b, own, tx }: {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '8px 0 10px' }}>
             {b.diagnoses.map((it) => (
               <span key={it.id} className="pk-pill--dark" style={{
-                fontFamily: FONT_UI, fontSize: 11.5, padding: '4px 12px', borderRadius: 999,
+                fontFamily: FONT_UI, fontSize: 12, padding: '4px 12px', borderRadius: 999,
                 border: `1px solid ${T.cardEdge}`, background: 'rgba(201,154,63,0.10)', color: T.onDark,
               }}>{tx(it.i18n, it.labelEN)}</span>
             ))}
           </div>
-          <p style={{ fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.6, color: T.onDarkDim, margin: 0 }}>
+          <p style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.6, color: T.onDarkDim, margin: 0 }}>
             {tx(BALANCE_VET_NOTE.i18n, BALANCE_VET_NOTE.textEN)}
           </p>
         </div>
@@ -1603,7 +1602,7 @@ function ResultDoc({ dog, r, b, tx }: {
             <div className="nqd-cnpin">{el.pinyin}</div>
           </div>
           <div>
-            <p className="body" style={{ fontSize: 15 }}><Bold s={tx(`${el.i18n}.summary`, el.summaryEN)} /></p>
+            <p className="body" style={{ fontSize: 14 }}><Bold s={tx(`${el.i18n}.summary`, el.summaryEN)} /></p>
             {/* ⚠️ Päť PEVNÝCH stĺpcov, nie auto-fit — inak sa to zalomí 4+1. */}
             <div className="nqd-facts">
               {([
@@ -1648,7 +1647,7 @@ function ResultDoc({ dog, r, b, tx }: {
             </ul>
           </div>
         </div>
-        <p className="dim" style={{ fontSize: 10.5, marginTop: 9, textAlign: 'center' }}>
+        <p className="dim" style={{ fontSize: 10, marginTop: 9, textAlign: 'center' }}>
           {tx(NUTRITION_DISCLAIMER.i18n, NUTRITION_DISCLAIMER.textEN)}
         </p>
 
@@ -1660,7 +1659,7 @@ function ResultDoc({ dog, r, b, tx }: {
           <div className="nqd-panel quiet">
             <p className="nqd-eyebrow">{tx('pack.nature.result.watch', 'Worth keeping an eye on')}</p>
             <p className="dim"><Bold s={tx(`${el.i18n}.watch`, el.watchEN)} /></p>
-            <p className="dim" style={{ fontSize: 10.5, color: T.inkWarm, marginTop: 9 }}>
+            <p className="dim" style={{ fontSize: 10, color: T.inkWarm, marginTop: 9 }}>
               {tx('pack.nature.result.notDiagnosis',
                 'This is a conversation to have with your vet — not a diagnosis.')}
             </p>
@@ -1717,7 +1716,7 @@ function ResultDoc({ dog, r, b, tx }: {
         </div>
 
         {/* Zdroj sa priznáva pri mene úlohy, nie až v pätičke — meno je z WDDC. */}
-        <p className="dim" style={{ textAlign: 'center', marginTop: 12, fontSize: 11 }}>
+        <p className="dim" style={{ textAlign: 'center', marginTop: 12, fontSize: 10 }}>
           {tx('pack.nature.result.origin', 'In the source research')}: {role.originEN}
           {second && (
             <>
@@ -1744,7 +1743,7 @@ function ResultDoc({ dog, r, b, tx }: {
                   <img src={sp.art} alt="" aria-hidden loading="lazy" style={{ width: 78, flex: '0 0 auto' }} />
                   <div>
                     <h3 style={{
-                      fontFamily: FONT_TITLE, fontWeight: 900, fontSize: 17, letterSpacing: '0.02em',
+                      fontFamily: FONT_TITLE, fontWeight: 900, fontSize: 16, letterSpacing: '0.02em',
                       textTransform: 'uppercase', margin: '0 0 5px', color: '#1a0900',
                     }}>{tx(sp.i18n, sp.labelEN)}</h3>
                     <p className="dim"><Bold s={tx(`${sp.i18n}.desc`, sp.descEN)} /></p>
@@ -1776,10 +1775,10 @@ function ResultDoc({ dog, r, b, tx }: {
                 {tx(role.i18n, role.labelEN)} × {tx(el.i18n, el.labelEN)}
               </div>
               <b className="t" style={{
-                display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 13,
+                display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12,
                 letterSpacing: '0.02em', textTransform: 'uppercase', marginBottom: 4, color: '#1a0900',
               }}>{tx(`${g.pair.i18n}.title`, g.pair.titleEN)}</b>
-              <span style={{ fontFamily: FONT_UI, fontSize: 13.5, lineHeight: 1.6, color: '#1a0900' }}>
+              <span style={{ fontFamily: FONT_UI, fontSize: 14, lineHeight: 1.6, color: '#1a0900' }}>
                 <Bold s={tx(`${g.pair.i18n}.text`, g.pair.textEN)} />
               </span>
             </div>
@@ -2145,7 +2144,7 @@ export default function PackNatureQuiz() {
       <Shell onClose={() => navigate(exitTo)}>
         <Card>
           <Eyebrow>{tx('pack.nature.intro.eyebrow', 'Three short quizzes, one document')}</Eyebrow>
-          <p style={{ fontFamily: FONT_UI, fontSize: 13.5, lineHeight: 1.6, color: T.inkStrong, margin: 0 }}>
+          <p style={{ fontFamily: FONT_UI, fontSize: 14, lineHeight: 1.6, color: T.inkStrong, margin: 0 }}>
             {tx('pack.nature.noDogs', 'This quiz writes its result onto a dog’s card, and there is no dog on your account yet.')}
           </p>
           <div style={{ marginTop: 16, textAlign: 'center' }}>
@@ -2342,11 +2341,11 @@ export default function PackNatureQuiz() {
               height: 2, width: 132, borderRadius: 2, margin: '13px 0 16px',
               background: `linear-gradient(90deg, ${T.cardEdge}, rgba(201,154,63,0))`,
             }} />
-            <p style={{ fontFamily: FONT_UI, fontSize: 13, lineHeight: 1.6, color: T.inkStrong, margin: '0 0 6px' }}>
+            <p style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.6, color: T.inkStrong, margin: '0 0 6px' }}>
               {tx('pack.nature.balance.body',
                 'Your dog’s constitution is set for life, but it can tip out of balance. Tick anything that applies — as much or as little as you like.')}
             </p>
-            <p style={{ fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.55, color: T.inkWarm, margin: '0 0 16px' }}>
+            <p style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.55, color: T.inkWarm, margin: '0 0 16px' }}>
               {tx('pack.nature.balance.none', 'Nothing on the list? Leave it empty and carry on — that is the best answer there is.')}
             </p>
 
@@ -2358,7 +2357,7 @@ export default function PackNatureQuiz() {
               <div key={d.id} style={{ marginTop: 18 }}>
                 {!solo && (
                   <div style={{
-                    fontFamily: NAME_FONT, fontWeight: 700, fontSize: 15, letterSpacing: '.02em',
+                    fontFamily: NAME_FONT, fontWeight: 700, fontSize: 14, letterSpacing: '.02em',
                     color: T.inkStrong, marginBottom: 10, textTransform: 'uppercase',
                   }}>{d.dog_name ?? '—'}</div>
                 )}
@@ -2368,7 +2367,7 @@ export default function PackNatureQuiz() {
                     return (
                       <div key={el} style={{ ...PACK_BOX.subblock, padding: '12px 16px' }}>
                         <div style={{
-                          fontFamily: FONT_UI, fontWeight: 500, fontSize: 10.5, letterSpacing: '.26em',
+                          fontFamily: FONT_UI, fontWeight: 500, fontSize: 10, letterSpacing: '.26em',
                           textTransform: 'uppercase', color: T.cardEdge, marginBottom: 10,
                         }}>{tx(NATURE_ELEMENTS[el].i18n, NATURE_ELEMENTS[el].labelEN)}</div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
@@ -2393,7 +2392,7 @@ export default function PackNatureQuiz() {
                               >
                                 {tx(b.i18n, b.labelEN)}
                                 {b.noteEN && (
-                                  <span style={{ display: 'block', fontSize: 10.5, opacity: 0.75, marginTop: 1 }}>
+                                  <span style={{ display: 'block', fontSize: 10, opacity: 0.75, marginTop: 1 }}>
                                     {tx(`${b.i18n}.note`, b.noteEN)}
                                   </span>
                                 )}
@@ -2433,7 +2432,7 @@ export default function PackNatureQuiz() {
           <div style={readStyle(list.length)}>
             <Progress done={done} total={total} label={tx('pack.nature.progress', 'Progress')} />
             <Eyebrow>{tx('pack.nature.special.eyebrow', 'Four more — looking for special roles')}</Eyebrow>
-            <p style={{ fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.55, color: T.inkWarm, marginBottom: 14 }}>
+            <p style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.55, color: T.inkWarm, marginBottom: 14 }}>
               {tx('pack.nature.special.body',
                 'These four roles sit on top of the main one. Most dogs carry none — that is normal.')}
             </p>
@@ -2443,7 +2442,7 @@ export default function PackNatureQuiz() {
                 const s = NATURE_SPECIALS[k];
                 return (
                   <div key={k}>
-                    <div style={{ fontFamily: FONT_UI, fontSize: 13, lineHeight: 1.45, color: T.inkStrong, marginBottom: 8 }}>
+                    <div style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.45, color: T.inkStrong, marginBottom: 8 }}>
                       {tx(s.qI18n, s.questionEN)}
                     </div>
                     {/* Pri svorke idú áno/občas/nie POD SEBA ako v jadre kvízu — tri
@@ -2539,7 +2538,7 @@ export default function PackNatureQuiz() {
         </button>
       </div>
       {saved && (
-        <p style={{ fontFamily: FONT_UI, fontSize: 11, color: 'rgba(245,240,228,0.55)', marginTop: 12, textAlign: 'center' }}>
+        <p style={{ fontFamily: FONT_UI, fontSize: 10, color: 'rgba(245,240,228,0.55)', marginTop: 12, textAlign: 'center' }}>
           <HandCheck size={12} />{' '}
           {solo
             ? tx('pack.nature.result.saved', 'Saved to your dog’s card')

@@ -74,7 +74,7 @@ export const INBOX_CSS = `
    ⚠️ Rám berie 6 px z každej strany, tak vodorovný padding klesol o toľko isto (16 -> 10).
       Odstup od spodného navu je MARGIN, nie padding — inak by tých 100 px bolo vnútri dosky.
    ⚠️ Vzduch od okrajov okna nesie width:calc(100% - 32px), nie 100% (precedens .pta-shell). */
-.msg-inbox-list{${PACK_COL_FIT}margin:14px auto 100px;padding:14px 10px 16px;box-sizing:border-box;flex:0 0 auto;position:relative;z-index:2;}
+.msg-inbox-list{${PACK_COL_FIT}margin:14px auto 100px;padding:12px 8px 16px;box-sizing:border-box;flex:0 0 auto;position:relative;z-index:2;}
 /* ⚠️ Riadok je <div role="button">, NIE <button> — vnútri je vlastné tlačidlo (štítok výletu)
    a <button> v <button> je nevalidný HTML, ktorý prehliadač ticho rozbije. Preto tu musí
    ostať aj :focus-visible, klávesnica sa inak stratí.
@@ -88,7 +88,7 @@ export const INBOX_CSS = `
    tmavší; obe polohy nesie --msg-row-* v msgTheme.ts, tento súbor o šate nevie.
    ⚠️ Bubliny vo VLÁKNE sa tým NEMENIA — cudzia ostáva bledá aj v tmavom šate (Matej 1. 9.).
    Preto má riadok vlastné tokeny a nesiaha už na --msg-block-*. */
-.msg-row{display:flex;align-items:flex-start;gap:12px;width:100%;text-align:left;background:var(--msg-row-bg);color:var(--msg-row-ink);border:1px solid var(--msg-row-edge);border-radius:12px;padding:13px 15px;margin-bottom:10px;cursor:pointer;box-shadow:var(--msg-row-shadow);transition:border-color .15s,transform .15s,box-shadow .15s;font-family:inherit;}
+.msg-row{display:flex;align-items:flex-start;gap:12px;width:100%;text-align:left;background:var(--msg-row-bg);color:var(--msg-row-ink);border:1px solid var(--msg-row-edge);border-radius:12px;padding:12px 16px;margin-bottom:10px;cursor:pointer;box-shadow:var(--msg-row-shadow);transition:border-color .15s,transform .15s,box-shadow .15s;font-family:inherit;}
 .msg-row:last-child{margin-bottom:0;}
 .msg-row:hover{transform:translateY(-1px);box-shadow:var(--msg-row-hover);}
 .msg-row:focus-visible{outline:none;box-shadow:var(--msg-row-hover);}
@@ -99,11 +99,11 @@ export const INBOX_CSS = `
 .msg-avatar{flex-shrink:0;width:42px;height:42px;border-radius:50%;background:linear-gradient(140deg,${T.cardEdge},#A3782B);background-size:cover;background-position:center;border:1px solid ${PALE.border};box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:16px;color:${T.card};}
 .msg-row-mid{flex:1;min-width:0;}
 .msg-row-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
-.msg-row-name{font-weight:700;font-size:13.5px;color:var(--msg-row-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.msg-row-name{font-weight:700;font-size:14px;color:var(--msg-row-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 /* ⚠️ Riadok má v tmavom šate BLEDÝ podklad, takže jeho druhotné texty NEMÔŽU brať --msg-dim
    (ten je počítaný pre tmavé pozadie stránky). Tlmenie sa robí krytím TEJ ISTEJ farby
    inkoustu riadku — inak by v tmavom šate zmizli. */
-.msg-row-pack{font-family:${FONT_UI};font-weight:400;font-size:11px;color:var(--msg-row-ink);opacity:.66;}
+.msg-row-pack{font-family:${FONT_UI};font-weight:400;font-size:10px;color:var(--msg-row-ink);opacity:.66;}
 .msg-row-time{flex-shrink:0;font-size:10px;color:var(--msg-row-ink);opacity:.52;}
 .msg-row-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:3px;}
 .msg-row-preview{font-size:12px;color:var(--msg-row-ink);opacity:.72;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -112,19 +112,19 @@ export const INBOX_CSS = `
    Nie je to lapis: lapis znamená „moja voľba / moja akcia", a neprečítaná správa
    nie je ani jedno — je to stav. */
 .msg-dot{flex-shrink:0;width:9px;height:9px;border-radius:50%;background:${T.accentGold};box-shadow:0 0 0 2px var(--msg-dot-ring);}
-.msg-tagchip{display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-family:${FONT_TITLE};font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:var(--msg-chip);border:1px solid var(--msg-btn-edge);color:var(--msg-chip-ink);white-space:nowrap;}
+.msg-tagchip{display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:var(--msg-chip);border:1px solid var(--msg-btn-edge);color:var(--msg-chip-ink);white-space:nowrap;}
 .msg-tagchip--click{cursor:pointer;}
 .msg-avatar.is-sniffer{position:relative;}
 .msg-origin{position:absolute;right:-4px;bottom:-4px;width:20px;height:20px;border-radius:50%;background:${T.card};border:1px solid ${T.cardEdge};padding:0;box-sizing:border-box;object-fit:contain;}
 .msg-tagchip--click:hover{background:var(--msg-chip-hot);border-color:${T.cardEdge};}
-.msg-empty{text-align:center;padding:40px 16px;color:var(--msg-dim);font-size:12.5px;font-style:italic;}
+.msg-empty{text-align:center;padding:32px 16px;color:var(--msg-dim);font-size:12px;font-style:italic;}
 /* #55 — prázdny inbox je celá obrazovka s jednou vetou; bez akcie je to slepá ulička. */
-.msg-emptybox{display:flex;flex-direction:column;align-items:center;gap:16px;padding:40px 16px;text-align:center;}
-.msg-emptybox p{margin:0;color:var(--msg-ink);opacity:.72;font-size:12.5px;font-style:italic;line-height:1.5;max-width:320px;}
+.msg-emptybox{display:flex;flex-direction:column;align-items:center;gap:16px;padding:32px 16px;text-align:center;}
+.msg-emptybox p{margin:0;color:var(--msg-ink);opacity:.72;font-size:12px;font-style:italic;line-height:1.5;max-width:320px;}
 /* Jediné hlavné CTA na tejto obrazovke → farba MOJEJ bubliny (v svetlom šate lapis,
    v tmavom oranžovozlatá). Geometriu si berie od .btn-gold (radius 8, NIE pilulka) —
    zmena farby nie je povolenie na iný tvar. */
-.msg-emptybtn{font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:11px 20px;border-radius:8px;border:1px solid var(--msg-mine-edge);background:var(--msg-mine);color:var(--msg-mine-ink);box-shadow:var(--msg-mine-shadow);cursor:pointer;}
+.msg-emptybtn{font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:12px 16px;border-radius:8px;border:1px solid var(--msg-mine-edge);background:var(--msg-mine);color:var(--msg-mine-ink);box-shadow:var(--msg-mine-shadow);cursor:pointer;}
 .msg-emptybtn:hover{background:var(--msg-mine-hover);}
 
 /* Šírka stĺpca = domov /pack (PACK_COL, 21. 9. 2026) — od 640 px padding 24, nie 16. */

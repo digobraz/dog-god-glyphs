@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BackButton } from './BackButton';
-import { PACK_THEME, FONT_UI, HIT_CSS } from './packTheme';
+import { PACK_THEME, FONT_UI, HIT_CSS, VEIL_CSS } from './packTheme';
 import { countryFlag } from '@/lib/countryGeo';
 import { useT } from '@/i18n/LanguageContext';
 
@@ -61,12 +61,12 @@ export function Ranking({
             zlatá `T.rule` — NIE šedý hairline, ten je na riadky tabuľky. */}
         <div
           className="flex items-center justify-between"
-          style={{ padding: '13px 16px 11px' }}
+          style={{ padding: '12px 16px 12px' }}
         >
           <div
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: 500,
               letterSpacing: '0.22em',
               textTransform: 'uppercase',
@@ -81,7 +81,7 @@ export function Ranking({
             className="pk-hit"
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: 600,
               letterSpacing: '0.02em',
               color: T.accentGold,
@@ -138,11 +138,11 @@ function RankRowView({
       style={{
         gridTemplateColumns: '30px 26px 1fr auto',
         gap: 11,
-        padding: '13px 16px',
+        padding: '12px 16px',
         borderTop: first ? 'none' : `1px solid ${T.hairline}`,
       }}
     >
-      <span style={{ fontFamily: "'Cinzel', serif", fontSize: 12, color: T.inkDim, letterSpacing: '0.1em' }}>
+      <span style={{ fontFamily: "'Cinzel', serif", fontSize: 12, color: T.inkDim, letterSpacing: '0.14em' }}>
         {String(rank).padStart(2, '0')}
       </span>
       <span style={{ fontSize: kind === 'country' ? 19 : 16, lineHeight: 1 }}>{glyph}</span>
@@ -150,7 +150,7 @@ function RankRowView({
         <div
           style={{
             fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 13.5,
+            fontSize: 14,
             fontWeight: 600,
             letterSpacing: '0.02em',
             color: T.ink,
@@ -192,17 +192,17 @@ function PlaceholderRow({ rank, first }: { rank: number; first: boolean }) {
       style={{
         gridTemplateColumns: '30px 26px 1fr auto',
         gap: 11,
-        padding: '13px 16px',
+        padding: '12px 16px',
         borderTop: first ? 'none' : `1px solid ${T.hairline}`,
         opacity: 0.45,
       }}
     >
-      <span style={{ fontFamily: "'Cinzel', serif", fontSize: 12, color: T.inkFaint, letterSpacing: '0.1em' }}>
+      <span style={{ fontFamily: "'Cinzel', serif", fontSize: 12, color: T.inkFaint, letterSpacing: '0.14em' }}>
         {String(rank).padStart(2, '0')}
       </span>
       <span style={{ fontSize: 16, lineHeight: 1, color: T.inkFaint }}>—</span>
       <div className="min-w-0">
-        <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13.5, fontWeight: 600, color: T.inkFaint }}>
+        <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, fontWeight: 600, color: T.inkFaint }}>
           —
         </div>
       </div>
@@ -260,18 +260,10 @@ function ModalShell({
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 60,
-        background: 'rgba(20,16,8,0.55)',
-        backdropFilter: 'blur(4px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 20,
-      }}
+      className="pk-veil pk-veil--modal"
+      style={{ zIndex: 60, padding: 16 }}
     >
+      <style>{VEIL_CSS}</style>
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
@@ -299,14 +291,14 @@ function ModalHeader({ title, count, onClose }: { title: string; count?: number;
   return (
     <div
       className="flex items-center"
-      style={{ gap: 12, padding: '18px 20px', borderBottom: `1px solid ${T.hairline}` }}
+      style={{ gap: 12, padding: '16px 16px', borderBottom: `1px solid ${T.hairline}` }}
     >
       {/* × → šípka späť vľavo (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */}
       <BackButton tone="pale" onClick={onClose} label={t('pack.rank.ariaClose')} />
       <div
         style={{
           fontFamily: "'Cinzel', serif",
-          fontSize: 13,
+          fontSize: 12,
           letterSpacing: '0.22em',
           textTransform: 'uppercase',
           color: T.ink,
@@ -314,7 +306,7 @@ function ModalHeader({ title, count, onClose }: { title: string; count?: number;
       >
         {title}
         {count !== undefined && (
-          <span style={{ color: T.inkFaint, marginLeft: 8, fontSize: 11 }}>{count}</span>
+          <span style={{ color: T.inkFaint, marginLeft: 8, fontSize: 10 }}>{count}</span>
         )}
       </div>
     </div>
@@ -328,10 +320,10 @@ function RankList({ rows, kind }: { rows: RankRow[]; kind: 'country' | 'breed' }
     return (
       <div
         style={{
-          padding: '28px 20px',
+          padding: '24px 16px',
           textAlign: 'center',
           fontFamily: "'Space Grotesk', sans-serif",
-          fontSize: 13,
+          fontSize: 12,
           color: T.inkDim,
         }}
       >
@@ -404,12 +396,12 @@ export function RankingBoardsModal({
             >
               <div
                 className="flex items-center justify-between"
-                style={{ padding: '13px 16px 11px' }}
+                style={{ padding: '12px 16px 12px' }}
               >
                 <div
                   style={{
                     fontFamily: "'Space Grotesk', sans-serif",
-                    fontSize: 11,
+                    fontSize: 10,
                     fontWeight: 500,
                     letterSpacing: '0.22em',
                     textTransform: 'uppercase',
@@ -421,7 +413,7 @@ export function RankingBoardsModal({
                 <span
                   style={{
                     fontFamily: "'Space Grotesk', sans-serif",
-                    fontSize: 11,
+                    fontSize: 10,
                     fontWeight: 500,
                     color: T.inkFaint,
                   }}

@@ -150,7 +150,7 @@ export function DogGalleryAccordion({
                 style={{
                   fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
                   fontWeight: 700,
-                  fontSize: 15,
+                  fontSize: 14,
                   letterSpacing: '0.14em',
                   textTransform: 'uppercase',
                   color: T.inkStrong,
@@ -168,7 +168,7 @@ export function DogGalleryAccordion({
                   borderRadius: 8,
                   padding: '4px 12px',
                   fontFamily: "'Space Grotesk', sans-serif",
-                  fontSize: 11,
+                  fontSize: 10,
                   letterSpacing: '0.14em',
                   textTransform: 'uppercase',
                   color: T.inkDim,
@@ -532,12 +532,12 @@ function DogTile({
         <span
           className="absolute inset-0 flex flex-col items-center justify-center"
           // paddingBottom = výška cartouche pásu, inak doň „Add a photo" naráža.
-          style={{ background: `linear-gradient(160deg, ${T.bgTop} 0%, ${T.bgBottom} 100%)`, gap: 6, paddingBottom: 46 }}
+          style={{ background: `linear-gradient(160deg, ${T.bgTop} 0%, ${T.bgBottom} 100%)`, gap: 6, paddingBottom: 48 }}
         >
           <span style={{ fontFamily: "'Cinzel', serif", fontSize: 46, fontWeight: 700, color: 'rgba(31,26,14,0.28)', lineHeight: 1 }}>
             {(dog.name?.[0] || '?').toUpperCase()}
           </span>
-          <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10.5, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkFaint }}>
+          <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkFaint }}>
             Add a photo
           </span>
         </span>
@@ -569,7 +569,7 @@ function DogTile({
             {dog.name}
           </span>
           {dog.packNumber != null && (
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10.5, color: T.accentGold }}>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: T.accentGold }}>
               #{dog.packNumber}
             </span>
           )}
@@ -621,11 +621,11 @@ function DogGalleryBody({
           {editable ? (
             <BioTextarea value={dog.attrs.bio} onSave={(v) => onSaveBio?.(dog.id, v)} />
           ) : dog.attrs.bio ? (
-            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, lineHeight: 1.5, color: T.ink, margin: 0 }}>
+            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, lineHeight: 1.5, color: T.ink, margin: 0 }}>
               {dog.attrs.bio}
             </p>
           ) : (
-            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12.5, color: T.inkFaint, fontStyle: 'italic', margin: 0 }}>
+            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: T.inkFaint, fontStyle: 'italic', margin: 0 }}>
               {t('pack.publicProfile.noBio')}
             </p>
           )}
@@ -687,7 +687,7 @@ function DogGalleryBody({
             </FieldGrid>
 
             <div style={{ marginTop: 10 }}>
-              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkFaint, display: 'block', marginBottom: 6 }}>
+              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkFaint, display: 'block', marginBottom: 6 }}>
                 {t('pack.dogCard.feeding')}
               </span>
               <ChipMulti
@@ -812,7 +812,7 @@ function TagGroup({ label, options, selected, editable, max, onToggle }: {
   return (
     <div style={{ marginTop: 12 }}>
       <span className="flex items-baseline gap-2" style={{ marginBottom: 8 }}>
-        <span style={{ fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkFaint }}>
+        <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkFaint }}>
           {label}
         </span>
         {editable && max != null && (
@@ -861,12 +861,12 @@ function BioTextarea({ value, onSave }: { value: string; onSave: (v: string) => 
           // `${T.card}` namiesto čistej bielej, viď `WordLimitTextarea`
           // v `PackProfile.tsx`. `.pf-field` okraj/focus glow ostávajú.
           background: T.card,
-          borderRadius: 10,
+          borderRadius: 8,
           padding: '8px 12px 24px',
           minHeight: 48,
           color: T.ink,
           fontFamily: "'Space Grotesk', sans-serif",
-          fontSize: 13,
+          fontSize: 12,
           lineHeight: 1.4,
           resize: 'vertical',
         }}

@@ -23,7 +23,7 @@
 // Použitie si musí injektnúť `POINTS_PILL_CSS` (rovnaký vzor ako GLASS_CSS v packTheme.ts).
 
 import { useEffect, useRef, useState } from 'react';
-import { PACK_THEME as T, FONT_UI, GOLD_BTN } from './packTheme';
+import { PACK_THEME as T, FONT_UI, GOLD_BTN, PACK_SHADOW } from './packTheme';
 
 /** Papyrusová béžová — najsvetlejšia plocha v tmavom UI. Zhodná s `onDark` rodinou. */
 const PILL_BEIGE = T.card;
@@ -31,7 +31,7 @@ const PILL_BEIGE = T.card;
 export const POINTS_PILL_CSS = `
 .pts-pill{
   display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
-  font-family:${FONT_UI};font-weight:600;line-height:1;letter-spacing:.01em;
+  font-family:${FONT_UI};font-weight:600;line-height:1;letter-spacing:0.02em;
   border-radius:999px;white-space:nowrap;font-variant-numeric:tabular-nums;
 }
 /* ZÁKLAD — béžová. border v tej istej farbe, nie priehľadný okraj: pilulka leží aj na
@@ -39,13 +39,13 @@ export const POINTS_PILL_CSS = `
 .pts-pill--base{
   background:${PILL_BEIGE};color:${T.inkStrong};
   border:1px solid rgba(42,22,8,0.14);
-  box-shadow:0 1px 4px rgba(0,0,0,0.35);
+  box-shadow:${PACK_SHADOW.lift};
 }
 /* BONUS — zlatá. Rovnaký gradient ako .btn-gold / level pilulka, žiadny nový. */
 .pts-pill--bonus{
   background:${GOLD_BTN.grad};color:#241a06;
   border:1px solid ${GOLD_BTN.edge};
-  box-shadow:0 2px 10px rgba(230,158,26,0.45);
+  box-shadow:${PACK_SHADOW.lift};
 }
 /* NA PAPYRUSE — LAPIS LAZULI. Béžová pilulka na béžovom podklade zanikne; čierna to vyriešila,
    ale Matej 2026-08-06: „ta pils s tými bodmi daj ju farebne nie čierne! modrá/zelená".
@@ -59,12 +59,12 @@ export const POINTS_PILL_CSS = `
    dopĺňať inde, vychádzaj odtiaľto, nevymýšľaj druhú modrú. */
 .pts-pill--lapis{
   background:linear-gradient(135deg,#3A7BC8,#1E5AA8);color:${PILL_BEIGE};
-  border:1px solid rgba(245,240,228,0.28);
-  box-shadow:0 2px 10px rgba(30,90,168,0.45);
+  border:1px solid ${T.onDarkDim};
+  box-shadow:${PACK_SHADOW.lift};
 }
-.pts-pill--sm{font-size:10.5px;padding:3px 7px;}
-.pts-pill--md{font-size:13px;padding:6px 13px;}
-.pts-pill--lg{font-size:17px;padding:8px 16px;}
+.pts-pill--sm{font-size:10px;padding:4px 8px;}
+.pts-pill--md{font-size:12px;padding:4px 12px;}
+.pts-pill--lg{font-size:16px;padding:8px 16px;}
 /* Prílet bonusu — odmena sa má „objaviť", nie tam len ticho byť (zadanie §3b: animácia patrí
    BONUSU, nie základu — základ si vedel dopredu). prefers-reduced-motion ju vypína. */
 @keyframes pts-pop{0%{transform:scale(.72);opacity:0}60%{transform:scale(1.06);opacity:1}100%{transform:scale(1);opacity:1}}

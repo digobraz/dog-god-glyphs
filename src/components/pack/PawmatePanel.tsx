@@ -29,7 +29,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Loader2 } from 'lucide-react';
-import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, FONT_TITLE, FONT_UI } from './packTheme';
+import { PACK_THEME, PACK_BOX, PF_FIELD_CSS, VEIL_CSS, FONT_TITLE, FONT_UI } from './packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK } from './navGoldSkin';
 import { HandKey, HandTrash, HandArrowLeft } from './HandIcons';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -50,32 +50,32 @@ const MAX_PAWMATES = 1;
 // Hover a zaškrtávatká — jediná vec, ktorá sa inline štýlom napísať nedá.
 // ⚠️ JS template literal: spätný apostrof v komentári zhodí build (`npm run check:css`).
 const PANEL_CSS = `
-.mate-row{ display:flex; align-items:center; gap:11px; width:100%; padding:11px 12px; text-align:left; }
+.mate-row{ display:flex; align-items:center; gap:11px; width:100%; padding:12px 12px; text-align:left; }
 .mate-btn{
   font-family:${FONT_UI}; font-weight:500; font-size:10px; letter-spacing:.14em;
-  text-transform:uppercase; padding:6px 10px; border-radius:999px; cursor:pointer;
+  text-transform:uppercase; padding:4px 8px; border-radius:999px; cursor:pointer;
   background:${T.tileBg}; border:1px solid ${T.border}; color:${T.inkWarm};
   transition:border-color .15s ease, color .15s ease;
 }
 .mate-btn:hover{ border-color:${T.cardEdge}; color:${T.inkStrong}; }
 .mate-btn--danger:hover{ border-color:${T.alertRed}; color:#8E2A20; }
 .mate-tick{
-  display:flex; align-items:flex-start; gap:9px; width:100%; padding:9px 11px;
-  border-radius:10px; cursor:pointer; text-align:left;
+  display:flex; align-items:flex-start; gap:9px; width:100%; padding:8px 12px;
+  border-radius:8px; cursor:pointer; text-align:left;
   background:${T.tileBg}; border:1px solid ${T.border}; color:${T.inkWarm};
   transition:background .15s ease, border-color .15s ease, color .15s ease;
 }
 .mate-tick:hover{ border-color:${T.cardEdge}; }
 .mate-tick.on{ ${pickTintCSS(LAPIS.edge, PICK_INK.lapis)} }
 .mate-box{
-  width:16px; height:16px; border-radius:5px; flex:0 0 auto; margin-top:1px;
+  width:16px; height:16px; border-radius:8px; flex:0 0 auto; margin-top:1px;
   border:1.5px solid ${T.border}; background:${T.card};
   display:flex; align-items:center; justify-content:center;
-  font-size:11px; line-height:1; color:transparent;
+  font-size:10px; line-height:1; color:transparent;
 }
 .mate-tick.on .mate-box{ border-color:${LAPIS.edge}; background:${LAPIS.edge}; color:${LAPIS.ink}; }
 .mate-preset{
-  flex:1 1 45%; min-width:0; padding:9px 10px; border-radius:10px; cursor:pointer; text-align:left;
+  flex:1 1 45%; min-width:0; padding:8px 8px; border-radius:8px; cursor:pointer; text-align:left;
   background:${T.tileBg}; border:1px solid ${T.border}; color:${T.inkWarm};
   transition:background .15s ease, border-color .15s ease, color .15s ease;
 }
@@ -85,7 +85,7 @@ const PANEL_CSS = `
   width:100%; padding:12px 16px; border-radius:8px; cursor:pointer;
   background:${LAPIS.grad}; color:${LAPIS.ink}; border:1px solid ${LAPIS.edge};
   box-shadow:${LAPIS_BTN_SHADOW};
-  font-family:${FONT_TITLE}; font-weight:700; font-size:12px; letter-spacing:.16em;
+  font-family:${FONT_TITLE}; font-weight:700; font-size:12px; letter-spacing:0.14em;
   text-transform:uppercase;
   display:flex; align-items:center; justify-content:center; gap:8px;
   transition:background .15s ease;
@@ -100,8 +100,8 @@ const EYEBROW = {
 } as const;
 
 const PILL = {
-  fontFamily: FONT_UI, fontWeight: 500, fontSize: 8.5, letterSpacing: '0.16em',
-  textTransform: 'uppercase', padding: '2px 8px', borderRadius: 999,
+  fontFamily: FONT_UI, fontWeight: 500, fontSize: 10, letterSpacing: '0.14em',
+  textTransform: 'uppercase', padding: '4px 8px', borderRadius: 999,
   border: `1px solid ${T.border}`, color: T.inkWarm, whiteSpace: 'nowrap',
 } as const;
 
@@ -235,7 +235,7 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
   // ── VÝBER PSA ─────────────────────────────────────────────────────────────
   const dogPicker = (
     <div className="flex flex-col" style={{ gap: 9 }}>
-      <p style={{ fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.55, color: T.inkWarm, margin: '0 0 2px' }}>
+      <p style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.55, color: T.inkWarm, margin: '0 0 2px' }}>
         {tx('pack.mate.pickDog', 'Access is given to a dog, not to your account. Which one?')}
       </p>
       {dogs.map((d) => (
@@ -246,7 +246,7 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
             style={{
               width: 34, height: 34, borderRadius: '50%', border: `1.5px solid ${T.cardEdge}`,
               background: d.cloudinary_main_url ? `center/cover url('${d.cloudinary_main_url}')` : T.tileBg,
-              fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 13, color: T.inkStrong,
+              fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, color: T.inkStrong,
             }}
           >
             {d.cloudinary_main_url ? '' : (d.dog_name || 'D').charAt(0).toUpperCase()}
@@ -278,10 +278,10 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
               className={`mate-preset${activePreset === p.id ? ' on' : ''}`}
               onClick={() => applyPreset(p.id)}
             >
-              <span style={{ display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              <span style={{ display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                 {lb(p.label)}
               </span>
-              <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 10.5, lineHeight: 1.35, marginTop: 2, opacity: 0.85 }}>
+              <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 10, lineHeight: 1.35, marginTop: 2, opacity: 0.85 }}>
                 {lb(p.hint)}
               </span>
             </button>
@@ -293,7 +293,7 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
         <div style={EYEBROW}>{tx('pack.mate.rightsTitle', 'What they may change')}</div>
         {/* ZÁKLAD SA NEZAŠKRTÁVA — každý pawmate vidí o psovi všetko (§5). Bez tejto
             vety vyzerá prázdny zoznam ako „nevidí nič", a to je opak pravdy. */}
-        <p style={{ fontFamily: FONT_UI, fontSize: 11.5, lineHeight: 1.5, color: T.inkWarm, margin: '5px 0 8px' }}>
+        <p style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.5, color: T.inkWarm, margin: '5px 0 8px' }}>
           {tx('pack.mate.rightsBase', 'They always see everything about the dog — health, food, trips. Below you choose only what they may change.')}
         </p>
         <div className="flex flex-col" style={{ gap: 6 }}>
@@ -321,7 +321,7 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
     body = dogPicker;
   } else if (rows === null) {
     body = (
-      <div className="flex items-center justify-center" style={{ padding: '28px 0', color: T.inkWarm }}>
+      <div className="flex items-center justify-center" style={{ padding: '24px 0', color: T.inkWarm }}>
         <Loader2 className="h-4 w-4 animate-spin" />
       </div>
     );
@@ -338,7 +338,7 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
             value={email}
             onChange={(e) => setEmail(e.target.value.slice(0, 160))}
             placeholder={tx('pack.mate.emailPh', 'name@example.com')}
-            style={{ width: '100%', borderRadius: 8, padding: '10px 12px', marginTop: 7, fontFamily: FONT_UI, fontSize: 13, color: T.inkStrong }}
+            style={{ width: '100%', borderRadius: 8, padding: '8px 12px', marginTop: 7, fontFamily: FONT_UI, fontSize: 12, color: T.inkStrong }}
           />
         </div>
         {rightsEditor}
@@ -349,7 +349,7 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
         </button>
         {/* Čo sa stane POTOM — pozvaný dostane mail a účet mu vznikne až vtedy, keď
             naň klikne. Bez tejto vety majiteľ nevie, prečo sa nič nedeje. */}
-        <p style={{ fontFamily: FONT_UI, fontSize: 11, lineHeight: 1.5, color: T.inkWarm, margin: 0 }}>
+        <p style={{ fontFamily: FONT_UI, fontSize: 10, lineHeight: 1.5, color: T.inkWarm, margin: 0 }}>
           {tx('pack.mate.sendNote', 'They get one personal link, good for seven days. Nothing exists until they open it themselves — and it costs nothing, the heroglyph belongs to the dog.')}
         </p>
         <div>{backBtn}</div>
@@ -371,7 +371,7 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
     body = (
       <div className="flex flex-col" style={{ gap: 9 }}>
         {sentTo && (
-          <p style={{ fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.5, color: PICK_INK.green, margin: 0 }}>
+          <p style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.5, color: PICK_INK.green, margin: 0 }}>
             {txv('pack.mate.sent', 'The invitation is on its way to {email}.', { email: sentTo })}
           </p>
         )}
@@ -380,10 +380,10 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
           <div className="mate-row" style={PACK_BOX.row}>
             <Avatar url={owner.avatar_url} label={owner.name} />
             <span style={{ minWidth: 0, flex: 1 }}>
-              <span style={{ display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12.5, letterSpacing: '0.06em', color: T.inkStrong }}>
+              <span style={{ display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, letterSpacing: '0.02em', color: T.inkStrong }}>
                 {owner.name || tx('pack.mate.you', 'You')}
               </span>
-              <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 11, color: T.inkWarm, marginTop: 1 }}>
+              <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 10, color: T.inkWarm, marginTop: 1 }}>
                 {tx('pack.mate.ownerNote', 'Payment, the number, and everything that cannot be undone')}
               </span>
             </span>
@@ -392,14 +392,14 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
         )}
 
         {mates.map((m) => (
-          <div key={m.user_id ?? 'm'} className="flex flex-col" style={{ ...PACK_BOX.row, gap: 8, padding: '11px 12px' }}>
+          <div key={m.user_id ?? 'm'} className="flex flex-col" style={{ ...PACK_BOX.row, gap: 8, padding: '12px 12px' }}>
             <div className="flex items-center" style={{ gap: 11 }}>
               <Avatar url={m.avatar_url} label={m.name || m.email} />
               <span style={{ minWidth: 0, flex: 1 }}>
-                <span style={{ display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12.5, letterSpacing: '0.06em', color: T.inkStrong, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, letterSpacing: '0.02em', color: T.inkStrong, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {m.name || m.email || tx('pack.mate.someone', 'Pawmate')}
                 </span>
-                <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 11, color: T.inkWarm, marginTop: 1 }}>
+                <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 10, color: T.inkWarm, marginTop: 1 }}>
                   {rightsSummary(m.rights, tx)}
                 </span>
               </span>
@@ -427,14 +427,14 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
         ))}
 
         {invites.map((iv) => (
-          <div key={iv.invite_id ?? 'i'} className="flex flex-col" style={{ ...PACK_BOX.row, gap: 8, padding: '11px 12px' }}>
+          <div key={iv.invite_id ?? 'i'} className="flex flex-col" style={{ ...PACK_BOX.row, gap: 8, padding: '12px 12px' }}>
             <div className="flex items-center" style={{ gap: 11 }}>
               <Avatar url={null} label={iv.email} dim />
               <span style={{ minWidth: 0, flex: 1 }}>
-                <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 12.5, color: T.inkStrong, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 12, color: T.inkStrong, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {iv.email}
                 </span>
-                <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 11, color: T.inkWarm, marginTop: 1 }}>
+                <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 10, color: T.inkWarm, marginTop: 1 }}>
                   {tx('pack.mate.waiting', 'Waiting for them to accept')}
                   {iv.expires_at ? ` · ${tx('pack.mate.until', 'until')} ${fmtDate(iv.expires_at)}` : ''}
                 </span>
@@ -470,7 +470,7 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
         ) : (
           // Prečo sa nedá pozvať druhého — bez tejto vety vyzerá chýbajúce tlačidlo
           // ako porucha. Číslo drží server, takže sa tu netvrdí nič, čo by neplatilo.
-          <p style={{ fontFamily: FONT_UI, fontSize: 11.5, lineHeight: 1.5, color: T.inkWarm, margin: '4px 0 0' }}>
+          <p style={{ fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.5, color: T.inkWarm, margin: '4px 0 0' }}>
             {tx('pack.mate.slotNote', 'One dog, one pawmate for now. Remove this one and the place opens again.')}
           </p>
         )}
@@ -480,8 +480,8 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
 
   return createPortal(
     <div
-      className="fixed inset-0 flex items-center justify-center"
-      style={{ zIndex: 70, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(3px)', padding: 16 }}
+      className="pk-veil pk-veil--modal"
+      style={{ zIndex: 70, padding: 16 }}
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -491,16 +491,16 @@ export function PawmatePanel({ dogs, onClose }: { dogs: HeroDog[]; onClose: () =
         onClick={(e) => e.stopPropagation()}
         style={{
           ...PACK_BOX.panel,
-          padding: '22px 20px',
+          padding: '24px 16px',
           width: '100%', maxWidth: 460, maxHeight: '88vh', overflowY: 'auto',
           color: T.ink,
         }}
       >
-        <style>{PF_FIELD_CSS}{PANEL_CSS}</style>
+        <style>{PF_FIELD_CSS}{VEIL_CSS}{PANEL_CSS}</style>
 
         <div style={EYEBROW}>{tx('pack.mate.eyebrow', 'Pawmate')}</div>
         <h3 style={{
-          fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 18, letterSpacing: '0.06em',
+          fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 16, letterSpacing: '0.02em',
           textTransform: 'uppercase', color: T.inkStrong, margin: '3px 0 0',
         }}>
           {tx('pack.mate.title', 'Who has access')}
@@ -543,7 +543,7 @@ function Avatar({ url, label, dim = false }: { url: string | null; label: string
         width: 34, height: 34, borderRadius: '50%',
         border: `1.5px ${dim ? 'dashed' : 'solid'} ${dim ? T.border : T.cardEdge}`,
         background: url ? `center/cover url('${url}')` : T.tileBg,
-        fontFamily: FONT_UI, fontWeight: 600, fontSize: 13, color: T.inkWarm,
+        fontFamily: FONT_UI, fontWeight: 600, fontSize: 12, color: T.inkWarm,
       }}
     >
       {url ? '' : (label || '?').charAt(0).toUpperCase()}
@@ -559,7 +559,7 @@ function ConfirmRow({ question, yes, no, busy, onYes, onNo }: {
 }) {
   return (
     <div className="flex items-center" style={{ gap: 8, flexWrap: 'wrap' }}>
-      <span style={{ fontFamily: FONT_UI, fontSize: 11.5, color: T.inkStrong, flex: '1 1 100%' }}>{question}</span>
+      <span style={{ fontFamily: FONT_UI, fontSize: 12, color: T.inkStrong, flex: '1 1 100%' }}>{question}</span>
       <button type="button" className="mate-btn mate-btn--danger" onClick={onYes} disabled={busy} style={{ borderColor: T.alertRed, color: '#8E2A20' }}>
         {yes}
       </button>

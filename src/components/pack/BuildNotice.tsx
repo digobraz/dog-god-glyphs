@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowUpRight, Send, Paperclip, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadFeedbackPhoto } from '@/services/cloudinaryService';
-import { PACK_THEME } from './packTheme';
+import { PACK_THEME, PACK_SHADOW } from './packTheme';
 import { useT } from '@/i18n/LanguageContext';
 import { HandCheck } from '@/components/pack/HandIcons';
 
@@ -61,7 +61,7 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
         background: `linear-gradient(180deg, rgba(181,72,47,0.09) 0%, rgba(181,72,47,0) 58%), ${T.cardGrad}`,
         border: `1.5px solid rgba(181,72,47,0.55)`,
         borderRadius: 16,
-        padding: 20,
+        padding: 16,
         boxShadow: `0 10px 30px -6px rgba(181,72,47,0.28), ${T.cardShadow}`,
         height: '100%',
         display: 'flex',
@@ -79,13 +79,13 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
         style={{
           background: BRICK,
           borderRadius: 999,
-          padding: '5px 12px',
+          padding: '4px 12px',
           fontFamily: "'Cinzel', serif",
-          fontSize: 9.5,
+          fontSize: 10,
           letterSpacing: '0.22em',
           textTransform: 'uppercase',
           color: '#FFF3EE',
-          boxShadow: '0 4px 14px -4px rgba(181,72,47,0.6)',
+          boxShadow: PACK_SHADOW.lift,
         }}
       >
         <span
@@ -99,7 +99,7 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
         style={{
           fontFamily: "'Cinzel', serif",
           fontSize: 20,
-          letterSpacing: '0.04em',
+          letterSpacing: '0.02em',
           fontWeight: 700,
           color: T.ink,
           margin: '14px 0 6px',
@@ -120,15 +120,15 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
       </p>
 
       {/* actions — pinned to the bottom so the card lines up with its neighbours */}
-      <div style={{ marginTop: 'auto', paddingTop: 18 }}>
+      <div style={{ marginTop: 'auto', paddingTop: 16 }}>
         {status === 'done' ? (
           <div
             className="flex items-center gap-2"
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 13.5,
+              fontSize: 14,
               color: T.ink,
-              padding: '10px 0',
+              padding: '8px 0',
             }}
           >
             <HandCheck size={16} style={{ color: BRICK }} />
@@ -146,8 +146,8 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
                 resize: 'vertical',
                 background: T.tileBg,
                 border: `1px solid ${T.hairline}`,
-                borderRadius: 10,
-                padding: '10px 12px',
+                borderRadius: 8,
+                padding: '8px 12px',
                 outline: 'none',
                 fontFamily: "'Space Grotesk', sans-serif",
                 fontSize: 14,
@@ -169,19 +169,19 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
                 className="flex items-center gap-2"
                 style={{
                   border: `1px solid ${T.hairline}`,
-                  borderRadius: 10,
-                  padding: 6,
+                  borderRadius: 8,
+                  padding: 4,
                   background: T.tileBg,
                 }}
               >
                 <img
                   src={preview}
                   alt={t('pack.build.attachmentPreviewAlt')}
-                  style={{ width: 40, height: 40, borderRadius: 6, objectFit: 'cover' }}
+                  style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }}
                 />
                 <span
                   className="flex-1 truncate"
-                  style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12.5, color: T.inkDim }}
+                  style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: T.inkDim }}
                 >
                   {file?.name}
                 </span>
@@ -204,9 +204,9 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
                   background: 'transparent',
                   border: 'none',
                   color: T.inkDim,
-                  padding: '2px 0',
+                  padding: '4px 0',
                   fontFamily: "'Space Grotesk', sans-serif",
-                  fontSize: 12.5,
+                  fontSize: 12,
                   cursor: 'pointer',
                 }}
               >
@@ -227,13 +227,13 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
               style={{
                 background: BRICK,
                 border: 'none',
-                borderRadius: 10,
+                borderRadius: 8,
                 color: '#FFF8F2',
-                padding: '11px 16px',
+                padding: '12px 16px',
                 fontFamily: "'Cinzel', serif",
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: 700,
-                letterSpacing: '0.12em',
+                letterSpacing: '0.14em',
                 textTransform: 'uppercase',
                 cursor: message.trim() ? 'pointer' : 'default',
                 opacity: message.trim() && status !== 'loading' ? 1 : 0.55,
@@ -251,7 +251,7 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
           className="inline-flex items-center gap-1.5 mt-3"
           style={{
             fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 12.5,
+            fontSize: 12,
             color: T.inkDim,
             textDecoration: 'none',
           }}

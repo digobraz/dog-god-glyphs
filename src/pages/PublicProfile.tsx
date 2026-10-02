@@ -111,7 +111,7 @@ export default function PublicProfile() {
       <PackLayout>
         <div className="flex items-center justify-center py-16" style={{ color: T.inkDim }}>
           <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.28em', fontSize: 11 }}>
+          <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.26em', fontSize: 10 }}>
             {t('pack.dog.loading')}
           </span>
         </div>
@@ -126,7 +126,7 @@ export default function PublicProfile() {
       <PackLayout>
         <div className="flex items-center justify-center py-16" style={{ color: T.inkDim }}>
           <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.28em', fontSize: 11 }}>
+          <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.26em', fontSize: 10 }}>
             {t('pack.dog.loading')}
           </span>
         </div>
@@ -147,7 +147,7 @@ export default function PublicProfile() {
             padding: '48px 24px', marginTop: 16,
           }}
         >
-          <span style={{ fontSize: 30 }}>🐾</span>
+          <span style={{ fontSize: 24 }}>🐾</span>
           <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, color: T.inkDim, maxWidth: 340 }}>
             {t('pack.publicProfile.notPublic')}
           </p>
@@ -235,14 +235,14 @@ export default function PublicProfile() {
               {headerAvatar ? (
                 <img src={sizedUrl(headerAvatar, 240)} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
-                <span style={{ fontFamily: "'Cinzel', serif", fontSize: 26, fontWeight: 700, color: T.inkDim }}>
+                <span style={{ fontFamily: "'Cinzel', serif", fontSize: 24, fontWeight: 700, color: T.inkDim }}>
                   {(displayName?.[0] || 'D').toUpperCase()}
                 </span>
               )}
             </span>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 style={{ fontFamily: "'Cinzel', serif", fontSize: 19, fontWeight: 700, color: T.ink, margin: 0 }}>
+                <h1 style={{ fontFamily: "'Cinzel', serif", fontSize: 20, fontWeight: 700, color: T.ink, margin: 0 }}>
                   {displayName}
                 </h1>
                 {nationality && (
@@ -250,7 +250,7 @@ export default function PublicProfile() {
                     src={flagUrl(countryISO2(nationality) || 'sk', 80)}
                     alt={nationalityLabel || nationality}
                     title={nationalityLabel || nationality}
-                    style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid rgba(201,154,63,0.55)' }}
+                    style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover', border: `1.5px solid ${PACK_THEME.border}` }}
                   />
                 )}
               </div>
@@ -264,8 +264,8 @@ export default function PublicProfile() {
               <Link
                 to="/pack/profile"
                 style={{
-                  fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase',
-                  color: T.ink, padding: '8px 14px', border: `1px solid ${T.border}`, borderRadius: 8,
+                  fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase',
+                  color: T.ink, padding: '8px 12px', border: `1px solid ${T.border}`, borderRadius: 8,
                   textDecoration: 'none', whiteSpace: 'nowrap',
                 }}
               >
@@ -292,18 +292,18 @@ export default function PublicProfile() {
         <section
           style={{
             background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 16,
-            padding: 22, boxShadow: T.cardShadow,
+            padding: 24, boxShadow: T.cardShadow,
           }}
         >
           <div className="flex items-center gap-2.5" style={{ color: T.inkDim, marginBottom: 14 }}>
-            <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.32em', textTransform: 'uppercase' }}>
+            <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase' }}>
               {member ? t('pack.publicProfile.theirPack') : t('pack.publicProfile.myPack')}
             </span>
           </div>
           {loadingDogs ? (
             <div className="flex items-center gap-2 py-2" style={{ color: T.inkFaint }}>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13 }}>{t('pack.dog.loading')}</span>
+              <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12 }}>{t('pack.dog.loading')}</span>
             </div>
           ) : (
             <DogGalleryAccordion dogs={dogEntries} editable={false} />
@@ -315,10 +315,10 @@ export default function PublicProfile() {
           <section
             style={{
               background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 16,
-              padding: 22, boxShadow: T.cardShadow,
+              padding: 24, boxShadow: T.cardShadow,
             }}
           >
-            <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.32em', textTransform: 'uppercase', color: T.inkDim, display: 'block', marginBottom: 14 }}>
+            <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.inkDim, display: 'block', marginBottom: 14 }}>
               {t('pack.publicProfile.walkedSection')}
             </span>
             <div className="flex flex-col gap-2">
@@ -328,14 +328,14 @@ export default function PublicProfile() {
                   to={tripPath(tr)}
                   className="flex items-center justify-between"
                   style={{
-                    padding: '9px 12px', border: `1px solid ${T.hairline}`, borderRadius: 10,
-                    textDecoration: 'none', fontFamily: "'Space Grotesk', sans-serif", fontSize: 13,
+                    padding: '8px 12px', border: `1px solid ${T.hairline}`, borderRadius: 8,
+                    textDecoration: 'none', fontFamily: "'Space Grotesk', sans-serif", fontSize: 12,
                   }}
                 >
                   <span style={{ color: T.ink, fontWeight: 600 }}>{tr.name}</span>
                   {/* vodná plocha (isWaterTrail) má km: '' — bez podmienky by sa vykreslilo holé
                       "region ·  km" (rovnaký audit #45 fix ako PackTripArticle/PublicProfile). */}
-                  <span style={{ color: T.inkFaint, fontSize: 11.5 }}>{tr.region}{tr.km?.trim() ? ` · ${tr.km} km` : ''}</span>
+                  <span style={{ color: T.inkFaint, fontSize: 12 }}>{tr.region}{tr.km?.trim() ? ` · ${tr.km} km` : ''}</span>
                 </Link>
               ))}
             </div>
@@ -354,7 +354,7 @@ function BadgeStat({ value, label }: { value: string; label: string }) {
       <span style={{ fontFamily: "'Cinzel', serif", fontSize: 20, fontWeight: 700, color: value === '—' ? T.inkFaint : T.accentGold }}>
         {value}
       </span>
-      <span style={{ fontFamily: "'Cinzel', serif", fontSize: 8.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.inkFaint, marginTop: 2 }}>
+      <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.inkFaint, marginTop: 2 }}>
         {label}
       </span>
     </div>

@@ -10,7 +10,7 @@ import { HandForward, HandHouseHeart, HandKey, HandLink, HandPaw, HandPencil, Ha
 import { INVITE_ANCHOR_ID } from './FounderInvite';
 import { BrandIcon } from './BrandIcon';
 import { GOLD_BLOCK_CSS, LAPIS, LAPIS_BTN_SHADOW } from './navGoldSkin';
-import { PACK_BOX, PACK_HEAD, PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, PILL_CSS, GOLD_BTN } from './packTheme';
+import { PACK_BOX, PACK_HEAD, PACK_THEME, FONT_TITLE, FONT_UI, PF_FIELD_CSS, PILL_CSS, GOLD_BTN, PACK_SHADOW } from './packTheme';
 import { saveHuman } from './profile/packProfile';
 import { PackNotifications } from './PackNotifications';
 import { WIZ } from './wizAnchors';
@@ -502,7 +502,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
             </span>
             {/* Číslo = DÁTA → Space Grotesk (typo lock: Cinzel = identita, Grotesk = čísla).
                 ⚠️ Váha STROP 600 — Grotesk je načítaný len v 300–600, 700 by bol fake bold. */}
-            <span style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: '0.02em' }}>
+            <span style={{ fontFamily: FONT_UI, fontSize: 10, fontWeight: 600, letterSpacing: '0.02em' }}>
               {bones.toLocaleString(intlLocale(lang))}
             </span>
           </button>
@@ -579,7 +579,7 @@ function OwnerSlot({
           style={{ width: size, height: size, padding: 4, background: STORY_RING }}
         >
           {/* gap ring (papyrus) */}
-          <div className="rounded-full h-full w-full" style={{ padding: 3, background: T.card }}>
+          <div className="rounded-full h-full w-full" style={{ padding: 4, background: T.card }}>
             <div
               className="relative block h-full w-full"
               style={{
@@ -705,7 +705,7 @@ function DogSlot({ dog, size, boxH, gap }: { dog: HeroDog; size: number; boxH: n
                 background: LAPIS.grad,
                 color: LAPIS.ink,
                 border: '1px solid rgba(239, 215, 154, 0.55)',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.28)',
+                boxShadow: PACK_SHADOW.lift,
               }}
             >
               #{dog.pack_number}
@@ -839,7 +839,7 @@ function PackNameRow({ label, fallback }: { label: string; fallback: string }) {
             maxLength={40}
             style={{
               flex: 1, minWidth: 0, borderRadius: 8, padding: '8px 12px',
-              color: T.ink, fontFamily: FONT_UI, fontSize: 13,
+              color: T.ink, fontFamily: FONT_UI, fontSize: 12,
             }}
           />
           {/* Jediné plné lapisové CTA v riadku. Geometriu berie z locku `.btn-gold`
@@ -885,7 +885,7 @@ function PackNameRow({ label, fallback }: { label: string; fallback: string }) {
                 minWidth: 0,
                 fontFamily: FONT_TITLE,
                 fontWeight: 700,
-                fontSize: 13,
+                fontSize: 12,
                 letterSpacing: '0.22em',
                 textTransform: 'uppercase',
                 color: T.inkStrong,
@@ -957,7 +957,7 @@ function EmptyPackCta({ onAdd }: { onAdd: () => void }) {
         style={{
           fontFamily: FONT_TITLE,
           fontWeight: 700,
-          fontSize: 11,
+          fontSize: 10,
           letterSpacing: '0.22em',
           textTransform: 'uppercase',
           color: LAPIS.edge,
@@ -1058,11 +1058,11 @@ function HeroPopup({
         <span style={{ fontFamily: FONT_UI, fontWeight: 500, fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.cardEdge }}>
           {c.eyebrow}
         </span>
-        <h3 style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 17, letterSpacing: '0.02em', textTransform: 'uppercase', color: T.inkStrong, margin: '8px 0 10px' }}>
+        <h3 style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 16, letterSpacing: '0.02em', textTransform: 'uppercase', color: T.inkStrong, margin: '8px 0 10px' }}>
           {c.title}
         </h3>
         {c.body.map((line, i) => (
-          <p key={i} style={{ fontFamily: FONT_UI, fontSize: 13.5, lineHeight: 1.65, color: T.inkWarm, margin: '0 0 10px' }}>
+          <p key={i} style={{ fontFamily: FONT_UI, fontSize: 14, lineHeight: 1.65, color: T.inkWarm, margin: '0 0 10px' }}>
             {line}
           </p>
         ))}
@@ -1071,7 +1071,7 @@ function HeroPopup({
           <span style={{
             display: 'inline-block', marginTop: 6, padding: '4px 12px', borderRadius: 999,
             border: '1px dashed rgba(179,130,45,0.6)', color: T.inkWarm,
-            fontFamily: FONT_UI, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
+            fontFamily: FONT_UI, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
           }}>
             {c.stamp}
           </span>
@@ -1090,7 +1090,7 @@ function HeroPopup({
               padding: '12px 16px', borderRadius: 8, cursor: 'pointer',
               background: LAPIS.grad,
               border: `1px solid ${GOLD_BTN.edge}`, color: LAPIS.ink,
-              fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 11.5,
+              fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12,
               letterSpacing: '0.14em', textTransform: 'uppercase',
               boxShadow: LAPIS_BTN_SHADOW,
             }}
@@ -1246,7 +1246,7 @@ function DoorFace({ icon, label, sub, locked = false, soon }: { icon: ReactNode;
               štvrtá varianta štítku. Neinteraktívna, preto smie stáť pri texte. */}
           {soon && (
             <span className="pk-pill" style={{
-              fontFamily: FONT_UI, fontWeight: 500, fontSize: 8.5,
+              fontFamily: FONT_UI, fontWeight: 500, fontSize: 10,
               letterSpacing: '0.22em', textTransform: 'uppercase',
               padding: '4px 8px',
             }}>
@@ -1256,7 +1256,7 @@ function DoorFace({ icon, label, sub, locked = false, soon }: { icon: ReactNode;
         </span>
         {/* Vysvetlenie = DÁTA/popis → Space Grotesk (typo lock: Cinzel = identita). */}
         <span style={{
-          display: 'block', fontFamily: FONT_UI, fontSize: 11.5, lineHeight: 1.4,
+          display: 'block', fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.4,
           color: T.inkWarm, marginTop: 2,
         }}>
           {sub}
@@ -1301,7 +1301,7 @@ function AddPopup({ onClose, onPawmate }: {
         style={{ position: 'relative', width: '100%', maxWidth: 360 }}
       >
         <h3 style={{
-          fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 15, letterSpacing: '0.22em',
+          fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 14, letterSpacing: '0.22em',
           textTransform: 'uppercase', color: T.inkStrong, textAlign: 'center', margin: '0 0 14px',
         }}>
           {t('pack.add.title')}

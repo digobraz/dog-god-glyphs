@@ -1996,7 +1996,7 @@ const CAL_CSS = `
   width:28px;height:28px;border-radius:50%;display:grid;place-items:center;cursor:pointer;
   background:${T.card};border:1px solid ${T.cardEdge};color:${T.inkStrong};
   font-size:16px;line-height:1;padding:0 0 4px;
-  box-shadow:0 2px 8px rgba(90,62,20,.22)}
+  box-shadow:${PACK_SHADOW.lift}}
 .cal-recarrow:hover{background:${T.card};border-color:${T.accentGold}}
 .cal-recarrow.left{left:0}
 .cal-recarrow.right{right:0}
@@ -2098,7 +2098,7 @@ const CAL_CSS = `
 .cal-longev{margin-top:12px;display:flex;align-items:center;justify-content:space-between;
   gap:12px 16px;flex-wrap:wrap;border-radius:${PACK_R.card}px;padding:12px 16px;
   background:${AINUBIS.surface};border:1px solid ${AINUBIS.edge};
-  box-shadow:0 10px 30px rgba(0,0,0,.34),0 0 26px rgba(59,158,255,.10)}
+  box-shadow:${PACK_SHADOW.panel}}
 /* Hlava má PEVNÝ kruh a nesmie sa zmršťovať (flex:0 0 auto), inak ju text
    pri úzkom okne stlačí na ovál. */
 .cal-longev-face{flex:0 0 auto;width:46px;height:46px;border-radius:50%;
