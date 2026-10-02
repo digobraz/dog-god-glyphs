@@ -9,14 +9,15 @@
 //  · nemá KRÍŽIK (lock CLAUDE.md: PACK_BOX.panel) — von sa ide klikom mimo alebo Esc.
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, MAPY, MAPY_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { navTarget, navUrl, isAppleDevice, mapyTrailUrl, downloadGpx, type NavApp } from '@/components/pack/tripNav';
 
-const GO_CSS = `
-.tgo-veil{position:fixed;inset:0;z-index:1300;background:rgba(3,2,1,0.62);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);display:flex;align-items:flex-end;justify-content:center;padding:0;}
+const GO_CSS = `${VEIL_CSS}
+/* ZÁVOJ = recept .pk-veil--modal (VEIL_CSS) — tu len poloha a odsadenie. */
+.tgo-veil{z-index:1300;align-items:flex-end;padding:0;}
 @media(min-width:600px){.tgo-veil{align-items:center;padding:16px;}}
 /* ⚠️ SPODNÝ NAV PLÁVA NAD PANELOM. Na telefóne panel sadá na spodnú hranu okna a lišta
    /pack (fixed, z-index nad obsahom) mu prekryla POSLEDNÝ riadok — „Otvoriť v Mapy.com"
@@ -120,7 +121,7 @@ export function TripGoPanel({ trail, onClose }: { trail: HeroTrail; onClose: () 
   return (
     <>
       <style>{GO_CSS}</style>
-      <div className="tgo-veil" onClick={onClose} role="presentation">
+      <div className="pk-veil pk-veil--modal tgo-veil" onClick={onClose} role="presentation">
         <div className="tgo-panel" onClick={(e) => e.stopPropagation()}>
           <div className="tgo-title">{t('pack.trip.go.title')}</div>
           {/* ⚠️ ROZDIEL SA POMENÚVA, NEZAMLČÍ. Parkovisko je overené miesto, štart stopy je len

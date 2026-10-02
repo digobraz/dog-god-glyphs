@@ -11,15 +11,21 @@
 // vznikne, táto adresa doň patrí do koša 2 spolu s článkom.)
 //
 // Obsah podľa nákresu `plany/nakres-odysea-zapisy-2026-09-22.html`, obrazovka 3.
-// ⚠️ NADPIS PRÍBEHU TU NIE JE. Nákres ho kreslí („Posledný kopec"), ale zadanie ho
-// nemá ani v obsahu obrazovky, ani medzi poliami písania (KROK 4) — príbeh má text,
-// nie titulok. Keby ho Matej chcel, je to jedno pole a jeden riadok tu.
+// ⚠️ NADPIS PRÍBEHU JE VOLITEĽNÝ (nákres ho kreslí: „Posledný kopec"). Vykreslí sa, keď ho
+// príbeh má; štyri staršie príbehy ho nemajú a vtedy riadok zmizne celý (`.psv-title`).
+//
+// 🎨 ŠAT: pod /pack/map/* je povrch vždy papyrusový (`PAPER_ROUTES_LOCKED`), preto vrstva
+// berie podklad `.pk-paper` a nie `T.pageBg` — rovnako ako článok pod ňou. Čierna ostáva len
+// pre cestu, ktorú by `usePaperRoute` papyrusom neoznačil. Dole stojí spodný nav /pack
+// (z-index 40) — vrstva je POD ním (39), nie nad ním, a telo mu necháva miesto cez
+// `--pack-nav-h` / `--pack-nav-bottom`, ktoré nav sám publikuje.
 // ============================================================================
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import {
   PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, PACK_SHADOW,
-  PACK_THEME, FONT_TITLE, FONT_UI, PACK_TOPROW_PAD,
+  PACK_THEME, FONT_TITLE, FONT_UI, PACK_TOPROW_PAD, PAPER_BG, PAPER_PAGE_CSS, usePaperRoute,
 } from '../packTheme';
 import { LAPIS } from '../navGoldSkin';
 import { HandPlus, HandForward, HandStar, HandLink, HandHeart } from '../HandIcons';
@@ -47,9 +53,13 @@ export const STORY_VIEW_CSS = `
   background:${T.pageBg};
   -webkit-overflow-scrolling:touch;
 }
+/* Bledý šat: podklad nesie .pk-paper v JSX. Vrstva stojí tesne POD spodným navom (40),
+   aby dok ostal na očiach; pravý rail článku (45) by cez ňu presvital, preto sa skryje. */
+.psv-veil--paper{ z-index:39; background:${PAPER_BG}; }
+body.psv-open .pta-acts.collapsed{ display:none; }
 /* Hore spoločný rad /pack (PackTopRow, 27. 9. 2026): AINUBIS vľavo, šípka v strede, obsah
    (fotka alebo karta) začína na PACK_TOPROW.content — dovtedy šípka vľavo na fotke. */
-.psv-wrap{ max-width:760px; margin:0 auto; padding:${PACK_TOPROW_PAD} 0 ${PACK_SPACE.xxxl}px; }
+.psv-wrap{ max-width:760px; margin:0 auto; padding:${PACK_TOPROW_PAD} 0 calc(${PACK_SPACE.xxxl}px + var(--pack-nav-h, 62px) + var(--pack-nav-bottom, 0px)); }
 .psv-hero{
   position:relative; width:100%; height:38vh; min-height:220px; max-height:380px;
   overflow:hidden; background:${T.tileBg};
@@ -184,6 +194,7 @@ export interface StoryViewProps {
 
 export function StoryView({ story, next, locale, onClose, onNext, onLike, onSave, onUse, onShare }: StoryViewProps) {
   const t = useT();
+  const paper = usePaperRoute(useLocation().pathname);
   const [playing, setPlaying] = useState(false);
   const vid = youtubeId(story.attach.youtube);
 
@@ -194,7 +205,8 @@ export function StoryView({ story, next, locale, onClose, onNext, onLike, onSave
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
+    document.body.classList.add('psv-open');
+    return () => { document.body.style.overflow = prev; document.body.classList.remove('psv-open'); };
   }, []);
 
   const when = story.happenedAt
@@ -210,7 +222,9 @@ export function StoryView({ story, next, locale, onClose, onNext, onLike, onSave
   };
 
   return (
-    <div className="psv-veil" role="dialog" aria-modal="true">
+    <div className={`psv-veil${paper ? ' psv-veil--paper' : ''}`} role="dialog" aria-modal="true">
+      <style>{PAPER_PAGE_CSS}</style>
+      <div className={paper ? 'pk-paper' : undefined}>
       <div className="psv-wrap">
         <PackTopRow onBack={onClose} backLabel={t('pack.trip.backToTrips')} />
         <div className={`psv-hero${story.photos[0] ? '' : ' psv-hero--none'}`}>
@@ -320,6 +334,7 @@ export function StoryView({ story, next, locale, onClose, onNext, onLike, onSave
             </button>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

@@ -39,7 +39,8 @@
 // je horší zážitok, ale pravdivý; preklad sa doplní tou istou cestou ako u ostatných výletov.
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
+import { sizedUrl } from '@/services/cloudinaryService';
+import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN, VEIL_CSS, PACK_SHADOW } from '@/components/pack/packTheme';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { updateLocalTrail } from '@/components/pack/tripShared';
 import { MAX_PHOTOS, optimizePhoto } from '@/components/pack/addtrip/photoOptimize';
@@ -52,9 +53,10 @@ export type PlanEdit = { date: string; visibility: 'open' | 'private'; travel?: 
 
 const GOLD = T.cardEdge;
 
-const TRIP_EDIT_CSS = `
-.tep-overlay{position:fixed;inset:0;z-index:1200;background:rgba(3,2,1,0.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px;}
-.tep-modal{width:100%;max-width:440px;max-height:calc(100dvh - 40px);overflow-y:auto;background:${T.glass};backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid ${T.onDarkBorder};border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,0.6),inset 0 1px 0 rgba(245,240,228,0.06);padding:24px;}
+const TRIP_EDIT_CSS = `${VEIL_CSS}
+/* ZÁVOJ = recept .pk-veil--modal (VEIL_CSS) — tu len poloha a odsadenie. */
+.tep-overlay{z-index:1200;padding:16px;}
+.tep-modal{width:100%;max-width:440px;max-height:calc(100dvh - 40px);overflow-y:auto;background:${T.glass};border:1px solid ${T.onDarkBorder};border-radius:16px;box-shadow:${PACK_SHADOW.panel};padding:24px;}
 .tep-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;}
 .tep-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${GOLD};line-height:1.25;}
 .tep-sub{font-size:12px;color:${T.onDarkDim};margin-top:4px;}
@@ -184,7 +186,7 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
   };
 
   return (
-    <div className="tep-overlay" onClick={onClose}>
+    <div className="pk-veil pk-veil--modal tep-overlay" onClick={onClose}>
       <div className="tep-modal" onClick={(e) => e.stopPropagation()}>
         <style>{TRIP_EDIT_CSS}</style>
         <div className="tep-head">
@@ -209,7 +211,7 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
           <div className="tep-photos">
             {photos.map((p, i) => (
               <div className="tep-photo" key={`${i}-${p.slice(-24)}`}>
-                <img src={p} alt="" />
+                <img src={sizedUrl(p, 240)} alt="" loading="lazy" decoding="async" />
                 <button
                   type="button"
                   className="tep-photo-x"

@@ -12,7 +12,7 @@
 // pravidlo „museli ste sa stretnúť na výlete".
 import { useState } from 'react';
 import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
-import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN, VEIL_CSS } from '@/components/pack/packTheme';
 import { emitOpenThread } from '@/components/pack/messaging/openBridge';
 import { PartyMemberCard } from '@/components/pack/triplist/PartyMemberCard';
 import type { PartyMember } from '@/components/pack/triplist/useTripParty';
@@ -22,8 +22,9 @@ const T = PACK_THEME;
 const GOLD = T.cardEdge;
 const INK = T.ink;
 
-export const TRIP_CREATOR_CSS = `
-.tcp-back{position:fixed;inset:0;z-index:1400;background:rgba(8,7,5,0.72);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;}
+export const TRIP_CREATOR_CSS = `${VEIL_CSS}
+/* ZÁVOJ = recept .pk-veil--modal (VEIL_CSS) — tu len poloha a odsadenie. */
+.tcp-back{z-index:1400;align-items:flex-end;padding:0;}
 @media(min-width:640px){.tcp-back{align-items:center;}}
 .tcp{width:100%;max-width:460px;max-height:86vh;overflow-y:auto;background:${T.pageBg};border:1px solid ${T.onDarkBorder};border-radius:16px 16px 0 0;padding:20px 18px calc(env(safe-area-inset-bottom,0px) + 20px);}
 @media(min-width:640px){.tcp{border-radius:16px;padding-bottom:16px;}}
@@ -79,7 +80,7 @@ export function TripCreatorPopup({ tripSlug, authorName, organizerId, joiners, o
   const humanName = authorName.split('&').pop()!.trim().split(' ')[0] || authorName;
 
   return (
-    <div className="tcp-back" onClick={onClose}>
+    <div className="pk-veil pk-veil--modal tcp-back" onClick={onClose}>
       <style>{TRIP_CREATOR_CSS}</style>
       <div className="tcp" onClick={(e) => e.stopPropagation()}>
         <div className="tcp-head">

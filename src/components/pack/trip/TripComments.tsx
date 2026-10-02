@@ -26,7 +26,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_SHADOW, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, PACK_SHADOW, BRAND_GOLD_BTN, VEIL_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PALE, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
@@ -59,7 +59,7 @@ const PAGE_SIZE = 5;
 // Zlatá na text je `#6E4A12` (tmavý koniec brandovej rampy), nie `#C99A3F` — tá je
 // na papyruse takmer neviditeľná. Textové pole ostáva PLOCHÝ papyrus (vzor
 // `.pf-field--flat`): písať sa má do svetla, nie do skla.
-export const TRIP_COMMENTS_CSS = `
+export const TRIP_COMMENTS_CSS = `${VEIL_CSS}
 .tcm-wrap{margin-top:16px;border:1px solid ${T.cardEdge};border-radius:12px;background:${T.panelGrad};overflow:hidden;box-shadow:${PACK_SHADOW.lift};}
 .tcm-tabs{display:flex;border-bottom:1px solid ${T.hairline};}
 .tcm-tab{flex:1;text-align:center;padding:12px 8px;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};background:transparent;border:none;cursor:pointer;transition:color .15s,background .15s;}
@@ -133,7 +133,8 @@ export const TRIP_COMMENTS_CSS = `
 .tcm-postbtn:disabled{opacity:.35;cursor:default;}
 
 /* popup (self-contained, same look as WalkedPopup in packCommunityUI.tsx) */
-.tcm-overlay{position:fixed;inset:0;z-index:1200;background:rgba(3,2,1,0.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px;}
+/* ZÁVOJ = recept .pk-veil--modal (VEIL_CSS) — tu len poloha a odsadenie. */
+.tcm-overlay{z-index:1200;padding:16px;}
 .tcm-modal{width:100%;max-width:400px;max-height:calc(100dvh - 40px);overflow-y:auto;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:24px;}
 .tcm-modal-head{display:flex;align-items:flex-start;justify-content:flex-start;gap:12px;margin-bottom:18px;}
 .tcm-modal-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${T.inkStrong};line-height:1.25;}
@@ -150,7 +151,7 @@ export const TRIP_COMMENTS_CSS = `
    hodnotenie → odošli" nemení farbu uprostred. */
 .tcm-submit{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;padding:12px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.edge};cursor:pointer;box-shadow:${LAPIS_BTN_SHADOW};}
 .tcm-submit:disabled{opacity:.4;cursor:default;}
-.tcm-deletebtn{width:100%;margin-top:9px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:12px;border-radius:12px;background:rgba(178,38,30,0.14);color:#E0796D;border:1px solid rgba(206,75,60,0.4);cursor:pointer;}
+.tcm-deletebtn{width:100%;margin-top:9px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:12px;border-radius:12px;background:rgba(178,38,30,0.14);color:#E0796D;border:1px solid ${T.alertRed};cursor:pointer;}
 .tcm-deletebtn:hover{background:rgba(178,38,30,0.22);}
 
 /* nenápadné "Report" na cudzom (reálnom, nie mock) komentári — issue #54 */
@@ -222,7 +223,7 @@ function ReviewPopup({ trailName, initial, canWrite, saving, error, onSubmit, on
   const [text, setText] = useState(initial?.body ?? '');
   const canSubmit = paws > 0 && canWrite && !saving;
   return (
-    <div className="tcm-overlay" onClick={onClose}>
+    <div className="pk-veil pk-veil--modal tcm-overlay" onClick={onClose}>
       <div className="tcm-modal" onClick={(e) => e.stopPropagation()}>
         <div className="tcm-modal-head">
           <button type="button" className="tcm-x" onClick={onClose} aria-label={t('pack.trip.cm.close')}><BackIcon /></button>

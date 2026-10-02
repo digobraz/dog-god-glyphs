@@ -27,10 +27,10 @@ import { JOIN_REQUIRED_STEPS } from '@/components/pack/dogQuiz';
 import { hasValue, readLatestForDogs, onDogEventsChange } from '@/lib/dogEvents';
 import { useMyDogRights } from '@/lib/dogRights';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL, PACK_COL_PAD, PACK_TOPROW_PAD, GOLD_BTN, PACK_SHADOW, HIT_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL, PACK_COL_PAD, PACK_TOPROW_PAD, GOLD_BTN, PACK_SHADOW, PACK_SPACE, HIT_CSS, VEIL_CSS } from '@/components/pack/packTheme';
 // Bledý chrome: inkousty a plochy (PALE), lapisové CTA a priesvitný tint výberu.
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy.
-import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK, goldFrameCSS } from '@/components/pack/navGoldSkin';
+import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, tintRGBA, PICK_INK, goldFrameCSS } from '@/components/pack/navGoldSkin';
 import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER, tripPath, tripPathById, visibleLocalTrails, tripDraftMissing, memberTrailIds } from '@/components/pack/tripShared';
 import { closeMyTripEvents, readLocalTrailMeta, readJson, writeJson, PACK_KEYS } from '@/lib/packStore';
 import { placeholderFor } from '@/lib/tripPlaceholder';
@@ -77,7 +77,7 @@ const CSS = `
    píše ju na zlé miesto.
    ⚠️ .tl-root už NEMÁ vlastné pozadie ani min-height — oboje nesie .pk-paper.
       Dve nepriehľadné plochy nad sebou by tapetu prekryli. */
-.tl-root{color:${P.ink};font-family:${FONT_UI};position:relative;padding-bottom:110px;}
+.tl-root{color:${P.ink};font-family:${FONT_UI};position:relative;padding-bottom:calc(${PACK_SPACE.xxxl}px + 62px);}
 /* Šírka aj vodorovný padding sú TIE ISTÉ ako v PackLayout (PACK_COL) — táto stránka
    PackLayout nemountuje, tak si ich musí vziať z konštanty. Do 13. 8. tu bolo 860px
    a preklik z profilu (1024px) stránku viditeľne zúžil. */
@@ -106,14 +106,14 @@ const CSS = `
    Riešenie je MASKA, nie filter: background:currentColor cez -webkit-mask znamená, že
    ikonka DEDÍ farbu textu — na papyruse inkoust, na lapise zlato, a pri ďalšej zmene farby
    nadpisu ju netreba dolaďovať. Filter by sa musel prepočítavať ku každému odtieňu zvlášť. */
-.tl-tab{display:flex;align-items:center;justify-content:center;padding:16px 16px;border-radius:16px;border:1.5px solid ${T.cardEdge};background:${T.panelGrad};box-shadow:0 2px 8px rgba(122,90,42,0.16),inset 0 1px 0 rgba(255,255,255,0.45);cursor:pointer;text-align:center;transition:border-color .15s,transform .15s,background .15s,box-shadow .15s;}
-.tl-tab:hover{transform:translateY(-1px);box-shadow:0 0 0 3px ${PACK_THEME.hairline},0 2px 8px rgba(122,90,42,0.16);}
+.tl-tab{display:flex;align-items:center;justify-content:center;padding:16px 16px;border-radius:16px;border:1.5px solid ${T.cardEdge};background:${T.panelGrad};box-shadow:${PACK_SHADOW.lift};cursor:pointer;text-align:center;transition:border-color .15s,transform .15s,background .15s,box-shadow .15s;}
+.tl-tab:hover{transform:translateY(-1px);box-shadow:0 0 0 3px ${PACK_THEME.hairline},${PACK_SHADOW.lift};}
 .tl-tab-label{font-family:${FONT_TITLE};font-weight:700;font-size:16px;letter-spacing:0.14em;text-transform:uppercase;color:${P.ink};display:flex;flex-direction:row;align-items:center;gap:11px;min-width:0;}
 .tl-tab-ic{width:26px;height:26px;flex-shrink:0;background:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat;}
-.tl-tab.on{background:${LAPIS.grad};border-color:${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};}
-.tl-tab.on:hover{background:${LAPIS.gradHover};}
-.tl-tab.on .tl-tab-label{color:${LAPIS.ink};}
-@media (max-width:400px){ .tl-tab{padding:16px 12px;} .tl-tab-label{font-size:12px;letter-spacing:0.02em;gap:8px;} .tl-tab-ic{width:22px;height:22px;} }
+/* AKTÍVNA KARTA = PRIESVITNÝ LAPISOVÝ TINT (lock: výber je tint, plná plocha len pre jediné CTA; audit 1A, 2. 10. 2026) */
+.tl-tab.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}background:linear-gradient(${tintRGBA(LAPIS.edge, 0.14)},${tintRGBA(LAPIS.edge, 0.14)}),${T.panelGrad};}
+.tl-tab.on .tl-tab-label{color:${PICK_INK.lapis};}
+@media (max-width:400px){ .tl-tab{padding:16px 12px;} .tl-tab-label{font-size:12px;letter-spacing:0.14em;gap:8px;} .tl-tab-ic{width:22px;height:22px;} }
 
 /* OBSAHOVÝ PANEL = ZLATO-RÁMOVANÝ BLOK (Matej 1. 9. 2026: „celý tento blok by mal byť nejakou
    zlatou… možno cely blok kde je tento a konci to odznakmi by mal byť blok").
@@ -134,7 +134,7 @@ const CSS = `
 .tl-sechead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;}
 /* Nadpis sekcie na papyruse: zlatá je TMAVŠIA (#8a5a14), nie brandová ${T.cardEdge} — tá je na
    svetlom podklade len o niečo tmavšia než sám papyrus a stráca sa. */
-.tl-sechead h3{font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:0.22em;text-transform:uppercase;color:${P.deep};margin:0;}
+.tl-sechead h3{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:${P.deep};margin:0;}
 /* nadpis vľavo, počet + tlačidlo spolu vpravo — pri troch prvkoch space-between rozhodil počet doprostred (audit 27. 9.) */
 .tl-sechead h3{margin-right:auto;}
 /* Počet + PREČO je karta tam, kde je. Pás MOJICH VÝLETOV mal pri meraní 16. 9. 2026
@@ -178,18 +178,18 @@ const CSS = `
    postavený pre kartu na ČIERNEJ stránke. Karta v zozname stojí NA papyrusovom paneli, kde
    z toho ostane čierny mrak — dostáva preto teplý tieň bez ringu, presne ako .trp-bigcard
    v bledom zozname mapy. */
-.tl-block{cursor:pointer;overflow:hidden;background:${T.cardGrad};border:1.5px solid ${T.cardEdge};border-radius:16px;box-shadow:0 2px 8px rgba(122,90,42,0.16),inset 0 1px 0 rgba(255,255,255,0.45);transition:border-color .15s,transform .15s,box-shadow .15s;}
+.tl-block{cursor:pointer;overflow:hidden;background:${T.cardGrad};border:1.5px solid ${T.cardEdge};border-radius:16px;box-shadow:${PACK_SHADOW.lift};transition:border-color .15s,transform .15s,box-shadow .15s;}
 /* Zameranie klávesnicou musí byť VIDNO — inak sa dá po kartách chodiť, ale nevidieť kde.
    Je to TEN ISTÝ selektor ako hover, nie druhé pravidlo: vlastný tieň by znamenal deviatu
    výšku mimo PACK_SHADOW a stráž check:pack ho ráta ako nový tvar. */
-.tl-block:hover,.tl-block:focus-visible{outline:none;border-color:${P.deep};transform:translateY(-2px);box-shadow:0 0 0 3px ${PACK_THEME.hairline},0 2px 8px rgba(122,90,42,0.16);}
+.tl-block:hover,.tl-block:focus-visible{outline:none;border-color:${P.deep};transform:translateY(-2px);box-shadow:0 0 0 3px ${PACK_THEME.hairline},${PACK_SHADOW.lift};}
 /* PREJDENÉ v MY TRIPS = ZELENÝ RÁM (Matej 1. 9. 2026: „prejdené v mojich výletoch zelenou").
    T.growGreen je naprieč appkou (mimo mapy) SÉMANTIKA „SPLNENÉ" — comm-unit--done,
    comm-joinbtn.joined, DogCardFields, 100 % na DOG ID a nižšie .tl-closebar v TOMTO súbore.
    Lock „zelená = tip od svorky" je o MAPOVÝCH ZNAČKÁCH (GROUP_TINT.comment), nie o kartách,
    takže sa tu sémantika nebije. */
 .tl-block.is-done{border-color:${T.growGreen};}
-.tl-block.is-done:hover{box-shadow:0 0 0 3px rgba(61,122,78,0.18),0 2px 8px rgba(122,90,42,0.16);}
+.tl-block.is-done:hover{box-shadow:0 0 0 3px ${T.growGreenSoft},${PACK_SHADOW.lift};}
 .tl-block-cover{position:relative;aspect-ratio:4/3;background-size:cover;background-position:center;background-color:rgba(201,154,63,0.14);}
 /* Fotka ako <img loading=lazy>, nie background-image (audit 27. 9. 2026): pozadie sa sťahuje
    pre KAŽDÚ kartu hneď, aj mimo obrazovky — 73 prejdených výletov v origináli = 51 MB. */
@@ -203,7 +203,7 @@ const CSS = `
 .tl-block-cover.nophoto{background:radial-gradient(120% 90% at 50% 15%,${T.hairline},rgba(234,214,166,0.95) 72%),${T.panelGrad};}
 .tl-block-cover.nophoto::after{content:'';position:absolute;left:50%;top:50%;width:36%;height:36%;transform:translate(-50%,-50%);background:url('/icons/pack/mountain.svg') no-repeat center/contain;filter:${GOLD_ICON_FILTER};opacity:.55;pointer-events:none;}
 /* vlajka do kruhu — ľavý horný roh, vzor z /wall .card-flag */
-.tl-flag{position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,0.9);box-shadow:0 2px 8px rgba(0,0,0,0.45);background:#1a1a1a;z-index:2;}
+.tl-flag{position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:50%;object-fit:cover;border:1.5px solid ${T.card};box-shadow:${PACK_SHADOW.lift};background:#1a1a1a;z-index:2;}
 /* OPEN TRIPS uhne vlajku doprava — ľavý roh preberá menovka organizátora (nižšie) */
 .tl-flag--r{left:auto;right:7px;}
 /* ČÍ JE TENTO VÝLET — menovka organizátora NA FOTKE, OPEN TRIPS (Matej 1. 9. 2026 chcel modrý
@@ -211,17 +211,17 @@ const CSS = `
    mape — druhý význam pre tú istú farbu na susediacich povrchoch. Namiesto novej farby preto
    karta ukáže priamo ČÍ výlet to je: existujúci avatar .tl-block-avatar + meno v tmavom
    štítku, presne ako na mape/kartách inde. Rám karty ostáva zlatý. */
-.tl-block-ownertag{position:absolute;top:8px;left:8px;z-index:2;display:flex;align-items:center;gap:5px;max-width:calc(100% - 40px);padding:4px 8px 4px 4px;border-radius:999px;background:rgba(20,14,4,0.82);border:1px solid rgba(201,154,63,0.5);}
+.tl-block-ownertag{position:absolute;top:8px;left:8px;z-index:2;display:flex;align-items:center;gap:5px;max-width:calc(100% - 40px);padding:4px 8px 4px 4px;border-radius:999px;background:rgba(20,14,4,0.82);border:1px solid ${T.border};}
 .tl-block-ownertag span{font-family:${FONT_UI};font-weight:600;font-size:10px;color:#EFE6D6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 /* výrazný odpočet dní — VYTŔČA nad horný okraj karty (dôležitý údaj), na wrapperi .tl-mycard.
    ⚠️ Krúžok okolo pilulky je farba PODKLADU, teda papyrus karty (${T.card}) — nie T.pageBg.
    Čierny prstenec na bledej karte by vyzeral ako dier(k)a po pilulke. */
-.tl-countdown{position:absolute;top:-11px;right:8px;z-index:6;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:4px 12px;border-radius:999px;background:${GOLD_BTN.grad};color:#1a1305;box-shadow:0 4px 14px rgba(230,158,26,0.5),0 0 0 3px ${T.card};white-space:nowrap;pointer-events:none;}
-.tl-countdown.soon{background:linear-gradient(135deg,#FF7A45,#E5502A);color:#fff;box-shadow:0 4px 16px rgba(229,80,42,0.55),0 0 0 3px ${T.card};}
+.tl-countdown{position:absolute;top:-11px;right:8px;z-index:6;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:4px 12px;border-radius:999px;background:${GOLD_BTN.grad};color:#1a1305;box-shadow:0 0 0 3px ${T.card},${GOLD_BTN.glow};white-space:nowrap;pointer-events:none;}
+.tl-countdown.soon{background:linear-gradient(135deg,#FF7A45,#E5502A);color:#fff;box-shadow:0 0 0 3px ${T.card},${PACK_SHADOW.lift};}
 /* ⚠️ BADGE SEDÍ NA FOTKE, teda ostáva tmavý (2026-09-01). Prezliekať ho do papyrusu by
    znamenalo bledú pilulku na svetlej fotke — presne to, čo sa na obrázkoch nečíta. Sada
    nižšie sa preto pri prechode na bledý šat NEMENÍ. */
-.tl-block-badge{position:absolute;right:8px;bottom:8px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:rgba(201,154,63,0.92);color:#1a1305;box-shadow:0 2px 8px rgba(0,0,0,0.45);max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tl-block-badge{position:absolute;right:8px;bottom:8px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:rgba(201,154,63,0.92);color:#1a1305;box-shadow:${PACK_SHADOW.lift};max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 /* Status badge v BRANDE (2026-08-14). Pôvodná sada (done=#37B26A zelená · with=#3B82F6 modrá ·
    looking=#2ED3C3 tyrkys, Matej 2026-07-23) dávala tri cudzie farby na jednu obrazovku. Stavy sa
    teraz rozlišujú v zlato-papyrusovej palete tým, čo badge znamená: výzva svieti plnou zlatou,
@@ -238,11 +238,11 @@ const CSS = `
 .tl-block-badge.done-open{background:rgba(20,14,4,0.92);color:#E8B84B;border:1.5px solid ${GOLD};white-space:normal;line-height:1.25;border-radius:8px;text-align:center;padding:4px 8px;}
 .tl-block-badge.solo{background:rgba(20,14,4,0.82);color:rgba(239,230,214,0.72);}
 /* moderácia členom nahodeného výletu — pending je čakanie (tiché), rejected uzavretá vec */
-.tl-block-badge.pending{background:rgba(20,14,4,0.92);color:#E8B84B;border:1px dashed rgba(201,154,63,0.75);}
-.tl-block-badge.rejected{background:rgba(20,14,4,0.92);color:rgba(239,230,214,0.6);border:1px solid rgba(239,230,214,0.28);}
+.tl-block-badge.pending{background:rgba(20,14,4,0.92);color:#E8B84B;border:1px dashed ${T.cardEdge};}
+.tl-block-badge.rejected{background:rgba(20,14,4,0.92);color:rgba(239,230,214,0.6);border:1px solid ${T.onDarkBorder};}
 /* ⚠️ Hint UŽ NIE JE na fotke — stojí v .tl-block-info, teda na papyruse. */
 .tl-block-pendhint{margin-top:3px;font-family:${FONT_UI};font-size:10px;line-height:1.35;color:${P.dim};}
-.tl-block-badge.with{background:#F0E6D2;color:#1a1305;border:1px solid rgba(201,154,63,0.55);}
+.tl-block-badge.with{background:#F0E6D2;color:#1a1305;border:1px solid ${T.border};}
 .tl-block-badge.looking{background:${GOLD_BTN.grad};color:#3d1f00;}
 .tl-block-info{padding:8px 12px 12px;}
 .tl-block-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;line-height:1.25;color:${P.ink};display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px;}
@@ -324,7 +324,8 @@ const CSS = `
 /* Add date popup — plávajúci PANEL (úroveň 4 matrice PACK_BOX.panel) nad tmavým závojom.
    ⚠️ BEZ KRÍŽIKA (lock 2026-08-28, Matej: „nedávajme tie krížiky na bloky") — von sa ide
    klikom mimo (overlay) alebo klávesom Esc. Trieda .tl-x preto zanikla aj z JSX. */
-.tl-overlay{position:fixed;inset:0;z-index:1200;background:rgba(3,2,1,0.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px;}
+/* ZÁVOJ = recept .pk-veil--modal (VEIL_CSS) — tu len poloha nad spodným navom a odsadenie. */
+.tl-overlay{z-index:1200;padding:16px;}
 .tl-modal{width:100%;max-width:360px;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:24px;}
 .tl-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;}
 .tl-modal-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${P.ink};}
@@ -928,7 +929,7 @@ export default function PackTriplist() {
       {/* GLASS_CSS ostáva: .pk-glass ani .pk-glass-block na tejto stránke UŽ NIE SÚ, ale
           vnorené povrchy (karta člena .pmc) si sklo ešte berú — prezliekajú sa vo vlastnom
           kroku, nie tu. */}
-      <style>{GLASS_CSS}</style>
+      <style>{GLASS_CSS}{VEIL_CSS}</style>
       <style>{COMMUNITY_CSS}</style>
       <style>{PARTY_CARD_CSS}</style>
       <style>{CSS}</style>
@@ -1276,7 +1277,7 @@ export default function PackTriplist() {
       </div>
 
       {dateTripId && (
-        <div className="tl-overlay" onClick={() => setDateTripId(null)}>
+        <div className="pk-veil pk-veil--modal tl-overlay" onClick={() => setDateTripId(null)}>
           <div className="tl-modal" onClick={(e) => e.stopPropagation()}>
             {/* BEZ KRÍŽIKA (lock 2026-08-28) — von sa ide klikom mimo alebo Esc. */}
             <div className="tl-modal-head">
@@ -1298,7 +1299,7 @@ export default function PackTriplist() {
         const joiners = parties[visTripId]?.joiners.length ?? 0;
         const waiting = parties[visTripId]?.requests.length ?? 0;
         return (
-          <div className="tl-overlay" onClick={() => setVisTripId(null)}>
+          <div className="pk-veil pk-veil--modal tl-overlay" onClick={() => setVisTripId(null)}>
             <div className="tl-modal" onClick={(e) => e.stopPropagation()}>
               <div className="tl-modal-head">
                 <div>

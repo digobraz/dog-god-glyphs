@@ -27,7 +27,7 @@ import { readTriplist } from './triplist/triplist';
 import { parsePlanDate, planDateLabel, planStart } from './addtrip/planDate';
 import { planPhase } from './planReminder';
 import { tierVars } from '@/lib/packTiers';
-import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN } from './packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW } from './packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from './navGoldSkin';
 import { PackTrailSketch } from './PackTrailSketch';
 import { trailCountry } from '@/lib/countryGeo';
@@ -67,8 +67,8 @@ const CSS = `
 .ts-hero{
   position:relative; overflow:hidden; display:flex; align-items:flex-end;
   min-height:300px; padding:32px 32px 24px;
-  border-radius:16px; border:1px solid rgba(201,154,63,0.5);
-  box-shadow:0 30px 74px -32px rgba(0,0,0,0.95);
+  border-radius:16px; border:1px solid ${T.border};
+  box-shadow:${PACK_SHADOW.panel};
   text-decoration:none; cursor:pointer;
   transition: transform .2s ease, box-shadow .2s ease;
 }
@@ -93,14 +93,14 @@ const CSS = `
   width:200px; text-align:center; transform:rotate(45deg); padding:8px 0;
   font-family:${FONT_UI}; font-weight:600; font-size:10px;
   letter-spacing:0.22em; text-transform:uppercase; color:#04140f;
-  background:#1AA39A; box-shadow:0 6px 18px rgba(0,0,0,0.5);
+  background:#1AA39A; box-shadow:${PACK_SHADOW.lift};
 }
 .ts-count{
   position:absolute; top:22px; left:24px; z-index:3;
   display:inline-flex; align-items:center; gap:7px;
   padding:8px 16px; border-radius:999px; white-space:nowrap;
   font-family:${FONT_TITLE}; font-weight:700; font-size:14px;
-  box-shadow:0 6px 20px -6px rgba(0,0,0,0.9);
+  box-shadow:${PACK_SHADOW.lift};
   animation: ts-glow 2.6s ease-in-out infinite;
 }
 @keyframes ts-glow{
@@ -111,7 +111,7 @@ const CSS = `
 .ts-chip{
   font-family:${FONT_UI}; font-size:10px; letter-spacing:0.14em;
   text-transform:uppercase; color:rgba(255,246,226,0.9);
-  background:rgba(4,2,0,0.42); border:1px solid rgba(245,240,228,0.28);
+  background:rgba(4,2,0,0.42); border:1px solid ${T.onDarkBorder};
   border-radius:999px; padding:4px 12px;
 }
 /* BLEDÁ karta = papyrus lock (Entry.tsx): T.cardGrad · 1.5px T.cardEdge · radius 16.
@@ -257,13 +257,13 @@ const CSS = `
    ⚠️ Plná farebná plocha inak patrí JEDINÉMU hlavnému CTA na obrazovke — tu platí výnimka
    pre neinteraktívny štítok (CLAUDE.md 28. 8.): dlaždice sa nedajú kliknúť samostatne,
    nemajú stav a na paneli nie je iné plné farebné CTA.
-   Preto tu nie je backdrop-filter: pod plnou výplňou nemá čo rozostrovať a stál výkon
+   Preto tu nie je závoj (backdrop-filter) — pod plnou výplňou nemá čo rozostrovať a stál výkon
    pri každom prekreslení gule. */
 .ts-pill{
   position:relative; overflow:hidden; border-radius:12px; padding:12px 12px; text-align:center;
   background:${LAPIS.grad};
-  border:1px solid rgba(201,154,63,0.55);
-  box-shadow:inset 0 1px 0 rgba(201,154,63,0.22), 0 10px 24px -14px rgba(5,15,48,0.75);
+  border:1px solid ${T.border};
+  box-shadow:${LAPIS_BTN_SHADOW};
 }
 /* Zlatý svetelný pruh po hornej hrane — to je celý „šperk" pilulky, nie ďalší rám. */
 .ts-pill::before{

@@ -30,7 +30,7 @@ import { PackBottomNav, HieroglyphBg, MessagingOverlayHost } from '@/components/
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT, useLang } from '@/i18n/LanguageContext';
-import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL_FIT, packColCSS, HIT_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL_FIT, packColCSS, HIT_CSS, PACK_SPACE, PACK_SHADOW, BRAND_GOLD_BTN } from '@/components/pack/packTheme';
 import { BackButton, BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 // Lapisové hlavné CTA + priesvitný tint stavu — jeden zdroj pre celý /pack (2026-08-26/28).
 import { LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, PICK_INK, PALE } from '@/components/pack/navGoldSkin';
@@ -211,7 +211,7 @@ const CSS = `
 /* Packy hodnotenia na papyruse — presná brandová zlatá (15. 9. 2026, Matej: „to treba
    urobiť tmavšie, zlaté"). Východisko RatingPaws je tmavý povrch (svetlá zlatá, biely
    obrys); článok je pieskový, takže si premenné prepisuje. */
-.pta-root{color:${T.inkStrong};font-family:${FONT_UI};position:relative;padding-bottom:100px;--rp-fill:#A3782B;--rp-empty:#A3782B;--rp-empty-op:0.28;}
+.pta-root{color:${T.inkStrong};font-family:${FONT_UI};position:relative;padding-bottom:calc(${PACK_SPACE.xxxl}px + 52px);--rp-fill:#A3782B;--rp-empty:#A3782B;--rp-empty-op:0.28;}
 /* §16 (2026-07-23): fotka je VNÚTRI rámika (.pta-shell) — full-bleed hore, zaoblené rohy
    dedí z rámika (overflow:hidden). Už NIE samostatná karta + rámik pod ňou, ale fotka v rámiku.
    2026-09-01: rámik prestal byť tmavý .pk-glass a stal sa papyrusovou KARTOU — úroveň 1
@@ -284,7 +284,7 @@ const CSS = `
   .pta-acts .pta-actbtn--ghost,.pta-acts .pta-actbtn--green{flex:1 1 auto;min-width:0;overflow:hidden;}
   .pta-acts.collapsed{position:fixed;left:auto;right:14px;bottom:auto;top:50%;transform:translateY(-50%);flex-direction:column;padding:0;gap:10px;z-index:45;}
   .pta-acts.collapsed .pta-actwrap{flex:0 0 auto;}
-  .pta-acts.collapsed .pta-actbtn{flex:0 0 auto;width:42px;height:42px;padding:0;border-radius:50%;box-shadow:0 6px 18px rgba(0,0,0,0.45);}
+  .pta-acts.collapsed .pta-actbtn{flex:0 0 auto;width:42px;height:42px;padding:0;border-radius:50%;box-shadow:${PACK_SHADOW.panel};}
   /* Rail = kruhové ikonky pri okraji → text, šípka aj pilulka bodov idú preč (kruh má 42 px). */
   .pta-acts.collapsed .pta-actbtn-label,.pta-acts.collapsed .pta-caret,.pta-acts.collapsed .pts-pill{display:none;}
   .pta-acts.collapsed .pta-actbtn,.pta-acts.collapsed .pta-actbtn--gold,.pta-acts.collapsed .pta-actbtn--blue{flex:0 0 auto;padding:0;}
@@ -297,12 +297,13 @@ const CSS = `
 /* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
 .pta-lightbox-close{position:absolute;top:16px;left:16px;z-index:2;${backCircleCSS('pale')}}
 .pta-lightbox-close:hover{${backHoverCSS('pale')}}
-.pta-lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:#fff;font-size:24px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.pta-lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid ${T.onDarkBorder};color:#fff;font-size:24px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .pta-lightbox-prev{left:16px;}
 .pta-lightbox-next{right:16px;}
 /* bod 1: bez negatívneho margin-top prekryvu (buttony teraz sedia na spodku hero fotky —
    prekryv by kolidoval s nimi); telo článku začína čisto pod fotkou. */
 .pta-body{max-width:760px;margin:0 auto;padding:16px 16px 0;position:relative;z-index:2;}
+@media (min-width:768px){.pta-body{padding:24px 24px 0;}}
 /* Rám článku = stĺpec domova /pack (21. 9. 2026); užší ostáva len text (.pta-body 760). */
 ${packColCSS('.pta-shell')}
 /* §16 (2026-07-23): obsahová časť článku do zdieľaného LIQUID GLASS panelu (.pk-glass z GLASS_CSS)
@@ -399,8 +400,8 @@ ${packColCSS('.pta-shell')}
    a Matej si tú zmes spája s AINUBISOM. Chip nie je tlačidlo — nedá sa naň kliknúť a
    nemá stav, je to menovka. Preto plná plocha, ale v tmavšej brandovej zlatej.
    Inkoust je tmavý ("#3d2405"), aby text na zlatej držal kontrast. */
-.pta-tag{background:linear-gradient(140deg,#D9AE55,#B98F33);border:1px solid #8C6014;color:#3d2405;font-size:12px;font-weight:600;padding:8px 12px;border-radius:999px;
-  box-shadow:0 2px 5px -1px rgba(110,71,16,0.35), inset 0 1px 0 rgba(255,255,255,0.38);}
+.pta-tag{background:linear-gradient(140deg,#D9AE55,#B98F33);border:1px solid ${BRAND_GOLD_BTN.edge};color:#3d2405;font-size:12px;font-weight:600;padding:8px 12px;border-radius:999px;
+  box-shadow:${PACK_SHADOW.lift};}
 .pta-gallery{display:flex;gap:8px;overflow-x:auto;margin-top:20px;padding-bottom:4px;scrollbar-width:none;}
 .pta-gallery::-webkit-scrollbar{display:none;}
 .pta-gallery img{flex:0 0 148px;height:104px;border-radius:12px;object-fit:cover;background:#111;cursor:pointer;}
@@ -469,7 +470,7 @@ body.pta-mapfull .pta-shell{z-index:1100;}
 
    Vzhľad je .mns-add (zlatý outline pill), nie .btn-gold — plná zlatá by na mape
    kričala hlasnejšie než samotné značky. Výška 40 px je dotykové minimum. */
-.pta-mapadd{position:absolute;left:12px;bottom:12px;z-index:700;display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:0 16px;border-radius:999px;cursor:pointer;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${GOLD};background:rgba(5,5,5,0.82);border:1px solid rgba(201,154,63,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 4px 14px rgba(0,0,0,0.45);transition:background .15s,border-color .15s;}
+.pta-mapadd{position:absolute;left:12px;bottom:12px;z-index:700;display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:0 16px;border-radius:999px;cursor:pointer;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${GOLD};background:rgba(5,5,5,0.82);border:1px solid ${T.border};box-shadow:${PACK_SHADOW.lift};transition:background .15s,border-color .15s;}
 .pta-mapadd:hover{background:rgba(201,154,63,0.18);border-color:${GOLD};}
 .pta-mapadd b{font-weight:400;font-size:16px;line-height:1;}
 /* ÚZKE OKNO: tlačidlo sa musí zmestiť VEDĽA atribúcie, nie na ňu — zakrytá
@@ -490,7 +491,7 @@ body.pta-mapfull .pta-shell{z-index:1100;}
    tá je na svetlom podklade len o niečo tmavšia než sám papyrus a stráca sa. */
 .pta-problem{display:block;margin:32px auto 0;background:none;border:0;padding:8px;font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:.02em;color:#8a5a14;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
 .pta-problem:hover{color:#5c3b0c;}
-.pta-section h3{font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:0.22em;text-transform:uppercase;color:#8a5a14;margin-bottom:8px;}
+.pta-section h3{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:#8a5a14;margin-bottom:8px;}
 .pta-empty{font-size:12px;color:${T.inkWarm};font-style:italic;}
 /* .pta-actbtn — zdieľané medzi .pta-acts (iterácia 15; predtým .pta-hero-actions na fotke) */
 /* ════════════════════════════════════════════════════════════════════════

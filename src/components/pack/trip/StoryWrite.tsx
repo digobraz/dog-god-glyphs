@@ -20,7 +20,7 @@ import { LAPIS, LAPIS_BTN_SHADOW } from '../navGoldSkin';
 import { HandTrash } from '../HandIcons';
 import { BackButton } from '../BackButton';
 import { MAX_PHOTOS, optimizePhoto } from '../addtrip/photoOptimize';
-import { uploadTripStoryPhoto } from '@/services/cloudinaryService';
+import { uploadTripStoryPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { loadMyStory, loadStoryCount, saveStory } from '../story/storyData';
 
 const T = PACK_THEME;
@@ -233,7 +233,7 @@ export function StoryWrite({ slug, requireDate = false, onClose, onSaved }: Stor
             <div className="psw-photos">
               {photos.map((src, i) => (
                 <div className="psw-ph" key={`${i}-${src}`}>
-                  <img src={src} alt="" />
+                  <img src={sizedUrl(src, 400)} alt="" loading="lazy" decoding="async" />
                   <button type="button" onClick={() => setPhotos((p) => p.filter((_, x) => x !== i))}
                     aria-label={t('pack.trip.stories.write.photoDrop')}><HandTrash size={11} /></button>
                 </div>
