@@ -50,6 +50,8 @@ import {
 //    rozhodnutiam z 23. 9. Pri každej hotovej obrazovke sa prepíše `state` tu.
 //    Druhý zoznam ciest webu žije v `DevNav.tsx`, poradie vstupu v
 //    `HeroflowDevMenu.tsx` — keď sa vstup zmení, meň všetky tri.
+//    2. 10. 2026 (preklad do 15 jazykov): Email/FlowWelcome/Owner dostali len
+//    `listSep` a radovú číslovku podľa jazyka — stav krokov sa nemení.
 // ════════════════════════════════════════════════════════════════════════════
 
 type StepState = 'done' | 'wip' | 'todo';
