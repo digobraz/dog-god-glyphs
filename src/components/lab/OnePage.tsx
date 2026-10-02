@@ -2148,10 +2148,14 @@ export default function OnePage() {
       const pillH = hintPxV * (1 + 2 * 0.72) + 2;
       // Spoločný základ oboch scén: eyebrow + nadpis + podnadpis + medzera
       // PRED glyfom (glf beat vlastný gapTop, ešte pred pad/gbox).
+      // Chip PRÍKLAD (.dgx-example, 34 px + medzera 12) sa na mobile zalomí POD
+      // podnadpis — odhad ho dovtedy nepočítal a obsah pretekol o jeho výšku
+      // (na 360×740 zalezie eyebrow pod medailón). Na PC stojí v jednom riadku.
+      const chipExtra = narrow ? 46 : 0;
       const usedShared =
         gapPx(1.8) + eyeH +
         gapPx(1.8) + headPx * 0.98 +
-        gapPx(DGX.subGap) + ruleH +
+        gapPx(DGX.subGap) + ruleH + chipExtra +
         gapPx(1.8);
       // Scéna A: kóty svietia (pad.up/pad.down reálne zaberajú miesto).
       const budgetA = availH - usedShared - pad.up - pad.down;
@@ -4189,7 +4193,14 @@ export default function OnePage() {
              zvyšok je vzduch pod ním. Kto číta výšku lišty, číta TOTO — nie
              vlastné číslo. Mobil: top 34 − 28 = 6 ⇒ spodok 106. */
           --op-nav-h: 124px;
+          /* KOĽKO OBRAZOVKY ZDOLA ZABERÁ SPODNÁ PILULKA (kompas + mriežka).
+             Pilulka je fixed bottom 16 + výška 62 = 78 px, len na mobile (od 768
+             sú oba prvky hore v nave). Je to JEDINÉ miesto s touto hodnotou —
+             obrazy si pod obsahom nechávajú rezervu z tejto premennej (rovnako
+             ako z --op-nav-h hore), pilulka sa nikam nesúva. */
+          --op-dock-h: 0px;
         }
+        @media (max-width: 767px) { .op-root { --op-dock-h: 78px; } }
         .op-root::before {
           content: '';
           position: fixed;
@@ -4845,6 +4856,12 @@ export default function OnePage() {
           .op-root #op-religion .codex-section[data-idx="1"] .codex-slide > * + * {
             margin-top: min(clamp(13px, 2.2vh, 20px), 2.6vh);
           }
+          /* CTA nesmie sadnúť pod spodnú pilulku — spodok boxu je nad ňou
+             (--op-dock-h) a ešte o 48 px vyššie, aby sa CTA nekrylo so šípkami
+             filmu (.op-cue), ktoré visia tesne nad pilulkou. */
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-slider {
+            padding-bottom: calc(var(--op-dock-h) + 48px);
+          }
 
           /* ── NADPIS HORE, CTA DOLE (Matej 4. 9. 2026) ────────────────────
              *„nadpis posuň hore a hektora viac centruj a zväčši CTA nechaj
@@ -5180,6 +5197,21 @@ export default function OnePage() {
         .op-film .sw-logo {
           filter: drop-shadow(0 0 50px rgba(201,154,63,0.45));
         }
+        /* Text príbehu vychádza zospodu — na mobile NAD spodnou pilulkou, nie
+           pod ňou (posledné riadky boli pod kompasom a mriežkou). Javisko sa
+           skráti o --op-dock-h a dostane druhú masku s mäkkým okrajom, aby text
+           nevyrážal z ostrej hrany. */
+        @media (max-width: 767px) {
+          .op-film .sw-stage {
+            bottom: var(--op-dock-h);
+            -webkit-mask-image: linear-gradient(to top, transparent 0, #000 36px),
+              linear-gradient(to top, #000 14%, rgba(0,0,0,0.92) 34%, transparent 76%);
+            mask-image: linear-gradient(to top, transparent 0, #000 36px),
+              linear-gradient(to top, #000 14%, rgba(0,0,0,0.92) 34%, transparent 76%);
+            -webkit-mask-composite: source-in;
+            mask-composite: intersect;
+          }
+        }
         /* ⚠️ NADPIS THE ORIGIN, JEHO PODTITULOK A POSTAVY TU UŽ NIE SÚ.
            Vo filme sa úvod sekvencie nekreslí vôbec (Matej 28. 8. 2026: *„začni
            scénu inak - nás tam vôbec nedávaj = scéna začne modrým nápisom"*),
@@ -5465,6 +5497,8 @@ export default function OnePage() {
             height: auto;
             min-height: 100lvh;
             padding-top: var(--op-nav-h);
+            /* Rezerva pod obsahom = spodná pilulka (--op-dock-h). */
+            padding-bottom: var(--op-dock-h);
             box-sizing: border-box;
             gap: clamp(14px, 2.4vh, 22px);
           }
@@ -5484,7 +5518,10 @@ export default function OnePage() {
              „celá obrazovka" tu znamená celú ŠÍRKU — video výšku nezaplní a ani
              nemá, orezať 16:9 do portrétu by bolo orezanie filmu. */
           .op-root #op-vision .video-embed-frame {
-            --vf-rest: min(100%, calc(31vh * 16 / 9));
+            /* Výška videa ustupuje rezerve: pod lištou a nad pilulkou ostane
+               100lvh − nav − dock, text (nadpis + 3 bloky) berie ~380 px, zvyšok
+               je video. Na vysokom okne vyhráva šírka (100 %), na nízkom výška. */
+            --vf-rest: min(100%, max(220px, calc((100lvh - var(--op-nav-h) - var(--op-dock-h) - 380px) * 16 / 9)));
             /* ⚠️ A CELÉ OKNO JE TU CELÁ ŠÍRKA, nie pokrytie. Zdedený strop
                z PC (100lvh * 16/9) je na výšku držanom telefóne skoro štvornásobok
                šírky okna — video by narástlo mimo obraz a z filmu by ostal
@@ -6202,7 +6239,7 @@ export default function OnePage() {
         .op-root .op-quo #testimonials {
           position: absolute;
           inset: 0;
-          padding: var(--op-nav-h) 0 48px;
+          padding: var(--op-nav-h) 0 max(48px, calc(var(--op-dock-h) + 8px));
           display: grid;
           place-items: center;
         }
@@ -6234,7 +6271,7 @@ export default function OnePage() {
            priestor, lebo je dosť malý na obsah"*). Rezerva lišty už len HORE
            — spodok drží len pásik zdrojov fotiek. Pri 1477×724 z 380 na 520 px. */
         .op-root .op-quo .tst-cols {
-          max-height: min(820px, calc(100lvh - var(--op-nav-h) - 80px)) !important;
+          max-height: min(820px, calc(100lvh - var(--op-nav-h) - var(--op-dock-h) - 80px)) !important;
         }
         .op-root .op-quo .tst-cols > div { opacity: 0; }
         /* Zdroje fotiek (CC) sú právna podmienka vrstvy, nie ozdoba — musia byť
@@ -6265,7 +6302,7 @@ export default function OnePage() {
         .op-root .op-quo .tst-credits {
           position: absolute;
           left: 50%;
-          bottom: 12px;
+          bottom: calc(var(--op-dock-h) + 12px); /* nad spodnou pilulkou */
           transform: translateX(-50%);
           width: min(90vw, 640px);
           margin: 0;
@@ -6344,7 +6381,7 @@ export default function OnePage() {
            pásme 390/500/860/1440 px. */
         .op-nxt {
           gap: 0;
-          padding: calc(var(--op-nav-h) + 8px) 5vw 4vh;
+          padding: calc(var(--op-nav-h) + 8px) 5vw calc(4vh + var(--op-dock-h));
         }
 
         /* 🔴 FARAÓN SA KOTVÍ NA SPODOK, NIE NA STRED (Matej 1. 9. 2026:
@@ -6821,6 +6858,8 @@ export default function OnePage() {
         /* Pás pre šípky filmu (.op-cue) — inak padnú na info chip pod glyfom.
            fitGw číta padding, takže glyf sa mu prispôsobí sám. */
         .op-dgx[data-narrow="0"] { padding-bottom: calc(18px + var(--arc-center-fix) + 72px); }
+        /* Na mobile (stĺpec) drží spodok spodná pilulka — rovnaký recept. */
+        .op-dgx[data-narrow="1"], .op-glf { padding-bottom: calc(18px + var(--arc-center-fix) + var(--op-dock-h)); }
 
         .dgx-rain { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
 
