@@ -1,5 +1,6 @@
 import { getMyAffiliate } from '@/lib/sharedFetch';
 import { useEffect, useState } from 'react';
+import { intlLocale } from '@/i18n/bcp47';
 ;
 // `Check` ostáva lucide — systémové potvrdenie, nie brandový prvok.
 import { HandClipboard, HandStar } from './HandIcons';
@@ -7,7 +8,7 @@ import { BrandIcon } from './BrandIcon';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
 import { track } from '@/lib/analytics';
 import { shareDog, downloadCard } from '@/lib/useShareCard';
 import { dogPagePath } from '@/lib/dogSlug';
@@ -119,6 +120,7 @@ const CSS = `
 
 export function FounderInvite({ dogName, packNumber, shareCardUrl }: FounderInviteProps) {
   const t = useT();
+  const { lang } = useLang();
   const [aff, setAff] = useState<Affiliate | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -347,7 +349,7 @@ export function FounderInvite({ dogName, packNumber, shareCardUrl }: FounderInvi
           {/* Network stats — Points · Level 1 · Level 2 (your whole tree) */}
           <div className="grid grid-cols-3 gap-2 w-full" style={{ maxWidth: 360 }}>
             <StatTile
-              value={loading ? '—' : (aff?.points ?? 0).toLocaleString('en-US')}
+              value={loading ? '—' : (aff?.points ?? 0).toLocaleString(intlLocale(lang))}
               label="BONES"
               highlight
             />

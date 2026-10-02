@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { intlLocale } from '@/i18n/bcp47';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { PACK_THEME } from './packTheme';
@@ -6,7 +7,7 @@ import imgMobileApp from '@/assets/pack-survey/mobile-app.webp';
 import imgHealth from '@/assets/pack-survey/health.webp';
 import imgMerch from '@/assets/pack-survey/merch.webp';
 import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
 import { HandCheck } from '@/components/pack/HandIcons';
 
 const T = PACK_THEME;
@@ -65,6 +66,7 @@ interface FeatureSurveyCardProps {
 
 export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardProps) {
   const t = useT();
+  const { lang } = useLang();
   const FEATURES = getFeatures(t);
   const [myVotes, setMyVotes] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState<string | null>(null);
@@ -438,7 +440,7 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
             color: 'rgba(250,244,236,0.55)',
           }}
         >
-          {t('pack.survey.totalVotes', { count: totalVotes.toLocaleString('en-US') })}
+          {t('pack.survey.totalVotes', { count: totalVotes.toLocaleString(intlLocale(lang)) })}
         </span>
       </div>
     </section>

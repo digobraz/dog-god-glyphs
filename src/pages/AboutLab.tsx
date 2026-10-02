@@ -1050,10 +1050,10 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
             right. Both transparent cutouts on a warm gold halo so the (black) dog
             reads against the dark page. They fade out with the hero on scroll. */}
         <div className="about-fig fig-matej" aria-hidden>
-          <img src="/images/about-matej.png" alt="" />
+          <img src="/images/about-matej.webp" alt="" />
         </div>
         <div className="about-fig fig-hekthor" aria-hidden>
-          <img src="/images/about-hekthor.png" alt="" />
+          <img src="/images/about-hekthor.webp" alt="" />
         </div>
 
         {/* Opening = clean dark screen + a single SCROLL cue. Scrolling dissolves

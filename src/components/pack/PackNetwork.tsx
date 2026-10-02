@@ -270,6 +270,7 @@ const NET_CSS = `
 
 export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null; initial?: string }) {
   const t = useT();
+  const { lang } = useLang();
   const tx: Tx = (key, fallback, vars) => {
     const v = t(key, vars);
     return v === key ? fillVars(fallback, vars) : v;
@@ -549,7 +550,7 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
              kde by zlato na zlate zmizlo — tá dlaždica je od dnes lapisová, takže dôvod
              zanikol spolu s ňou. Tvar nesie `BonesCoin`, nie tento súbor. */
           icon={<BonesCoin size="m" />}
-          value={shownBones == null ? '—' : shownBones.toLocaleString('en-US')}
+          value={shownBones == null ? '—' : shownBones.toLocaleString(intlLocale(lang))}
           label={tx('pack.network.bonesLabel', 'Your BONES')}
           sub={
             shownBones != null && shownBones > 0
@@ -882,6 +883,7 @@ function WalletPanel({
   onDone: () => Promise<void>;
 }) {
   const t = useT();
+  const { lang } = useLang();
   const tx: Tx = (key, fallback, vars) => {
     const v = t(key, vars);
     return v === key ? fillVars(fallback, vars) : v;
@@ -915,7 +917,7 @@ function WalletPanel({
             <BonesCoin size="l" />
             <div style={{ minWidth: 0 }}>
               <span style={{ display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 22, letterSpacing: '0.06em', lineHeight: 1.05, color: T.inkStrong }}>
-                {balance.toLocaleString('en-US')}
+                {balance.toLocaleString(intlLocale(lang))}
               </span>
               <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 12, color: T.inkWarm, marginTop: 3 }}>
                 BONES · ≈ €{(balance / BONES_PER_EUR).toFixed(2)}
@@ -1033,6 +1035,7 @@ function SendStep({
   onDone: () => Promise<void>;
 }) {
   const t = useT();
+  const { lang } = useLang();
   const tx: Tx = (key, fallback, vars) => {
     const v = t(key, vars);
     return v === key ? fillVars(fallback, vars) : v;
@@ -1134,7 +1137,7 @@ function SendStep({
           >
             <span>≈ €<b style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 14, color: T.inkStrong }}>{(v / BONES_PER_EUR).toFixed(2)}</b></span>
             <span style={{ color: T.inkWarm }}>
-              +<b style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 14, color: T.accentGold }}>{granted.toLocaleString('en-US')}</b> {tx('pack.network.devotionWord', 'devotion')}
+              +<b style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 14, color: T.accentGold }}>{granted.toLocaleString(intlLocale(lang))}</b> {tx('pack.network.devotionWord', 'devotion')}
             </span>
           </div>
         </div>
@@ -1157,7 +1160,7 @@ function SendStep({
                 ? tx(
                     'pack.network.capped.room',
                     "Capped at <b style=\"color:#2a1608\">{room}</b> — a gift can only match what you've lived ({lived} devotion so far). The BONES still go through; the honour waits for the days.",
-                    { room: room.toLocaleString('en-US'), lived: lived.toLocaleString('en-US') },
+                    { room: room.toLocaleString(intlLocale(lang)), lived: lived.toLocaleString(intlLocale(lang)) },
                   )
                 : tx(
                     'pack.network.capped.none',

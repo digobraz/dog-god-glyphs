@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { intlLocale } from '@/i18n/bcp47';
 import { BackButton } from './BackButton';
 import { sizedUrl } from '@/services/cloudinaryService';
 import type { CSSProperties, FormEvent, ReactNode } from 'react';
@@ -502,7 +503,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
             {/* Číslo = DÁTA → Space Grotesk (typo lock: Cinzel = identita, Grotesk = čísla).
                 ⚠️ Váha STROP 600 — Grotesk je načítaný len v 300–600, 700 by bol fake bold. */}
             <span style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: '0.02em' }}>
-              {bones.toLocaleString('en-US')}
+              {bones.toLocaleString(intlLocale(lang))}
             </span>
           </button>
         </div>
@@ -982,6 +983,7 @@ function HeroPopup({
   which, bones, level, levelIndex, onClose,
 }: { which: PopKey; bones: number; level: string; levelIndex: number; onClose: () => void }) {
   const t = useT();
+  const { lang } = useLang();
 
   const COPY: Record<PopKey, { eyebrow: string; title: string; body: string[]; stamp?: string }> = {
     pawtner: {
@@ -1002,7 +1004,7 @@ function HeroPopup({
     },
     bones: {
       eyebrow: t('pack.hero.popBonesEyebrow'),
-      title: `BONES · ${bones.toLocaleString('en-US')}`,
+      title: `BONES · ${bones.toLocaleString(intlLocale(lang))}`,
       body: [t('pack.hero.popBones1'), t('pack.hero.popBones2')],
     },
     devotion: {

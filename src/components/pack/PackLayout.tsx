@@ -7,12 +7,13 @@ import { PackTopRow } from './PackTopRow';
 import { devotionLevel } from '@/lib/devotion';
 import { DEV_FULL } from '@/lib/packFlags';
 import { usePackIdentity, type PackDog } from './usePackIdentity';
+import { intlLocale } from '@/i18n/bcp47';
 import { PackNotifications } from './PackNotifications';
 import { WIZ } from './wizAnchors';
 import iconHome from '@/assets/icons/nav-home.svg';
 import statBadge from '@/assets/icons/stat-badge.svg';
 import statBars from '@/assets/icons/stat-bars.svg';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
 import { onOpenMessaging, type MessagingOpenEvent } from './messaging/openBridge';
 // `tripPathById` samo dataset trás neimportuje (berie ho parametrom) — tento
 // import je preto lacný, na rozdiel od `heroTrails.generated`, ktorý sa načíta
@@ -923,6 +924,7 @@ export function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, pack
 }
 
 function BonesChip({ bones }: { bones: number }) {
+  const { lang } = useLang();
   return (
     <div
       title="BONES"
@@ -935,7 +937,7 @@ function BonesChip({ bones }: { bones: number }) {
         fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: 11,
         color: 'rgba(245,240,228,0.92)',
       }}>
-        {bones.toLocaleString('en-US')}
+        {bones.toLocaleString(intlLocale(lang))}
       </span>
     </div>
   );
@@ -943,6 +945,7 @@ function BonesChip({ bones }: { bones: number }) {
 
 
 function DevotionBarCompact({ devotion }: { devotion: number }) {
+  const { lang } = useLang();
   const lv = devotionLevel(devotion);
   return (
     <div style={{
@@ -972,7 +975,7 @@ function DevotionBarCompact({ devotion }: { devotion: number }) {
         color: 'rgba(245, 240, 228, 0.92)', letterSpacing: '0.02em',
         textShadow: '0 1px 3px rgba(0,0,0,0.6)',
       }}>
-        {Math.round(devotion).toLocaleString('en-US')}
+        {Math.round(devotion).toLocaleString(intlLocale(lang))}
         <i style={{ fontStyle: 'normal', fontSize: 10 }}>☥</i>
       </span>
     </div>
