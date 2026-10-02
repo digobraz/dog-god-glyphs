@@ -636,7 +636,7 @@ export const esp: Partial<Dict> = {
   'nav.aria.back': "Atrás",
   'nav.aria.openMenu': "Abrir menú",
   'nav.aria.menu': "Menú",
-  'nav.aria.wallHome': "MURO — inicio",
+  'nav.aria.wallHome': "WALL — inicio",
   'nav.aria.chooseLanguage': "Elegir idioma",
   'nav.langModal.title': "Elige idioma",
   'nav.aria.close': "Cerrar",
