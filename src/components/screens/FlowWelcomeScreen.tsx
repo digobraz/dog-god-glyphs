@@ -174,7 +174,7 @@ export function FlowWelcomeScreen() {
   const names = [ownerFirst, ...dogs.map((d) => d.name)].filter(Boolean);
   const and = t('heroglyph.flow.welcomeNew.and');
   const titleA = t('heroglyph.flow.welcomeNew.hi');
-  const titleB = (names.length > 1 ? `${names.slice(0, -1).join(', ')}${and}${names[names.length - 1]}` : (names[0] || '')) + '!';
+  const titleB = (names.length > 1 ? `${names.slice(0, -1).join(t('heroglyph.flow.listSep'))}${and}${names[names.length - 1]}` : (names[0] || '')) + '!';
   const introMs = Math.min(4200, Math.round((REVEAL_S + (titleA + titleB).length * LETTER_S + 1.6) * 1000));
   useEffect(() => {
     if (phase !== 'hero') return;

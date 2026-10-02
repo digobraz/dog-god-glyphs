@@ -105,7 +105,7 @@ export function EmailScreen() {
   const dogNames = [displayName, ...extraDogs.map((d) => d.name.trim()).filter(Boolean)];
   const manyDogs = dogNames.length > 1;
   const nameList = manyDogs
-    ? `${dogNames.slice(0, -1).join(', ')} ${t('heroglyph.flow.email.and')} ${dogNames[dogNames.length - 1]}`
+    ? `${dogNames.slice(0, -1).join(t('heroglyph.flow.listSep'))} ${t('heroglyph.flow.email.and')} ${dogNames[dogNames.length - 1]}`
     : dogNames[0];
   const minutes = dogNames.length + 2;
   // SK: 3–4 „minúty", 5+ „minút". EN má jeden tvar, kľúče sú tam zhodné.

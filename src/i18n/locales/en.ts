@@ -591,6 +591,8 @@ export const en = {
   // Finále po platbe nového vstupu (FlowWelcomeScreen, Matej 26. 9. 2026 večer).
   'heroglyph.flow.welcomeNew.hi': 'Welcome to DOGYPT,',
   'heroglyph.flow.welcomeNew.and': ' and ',
+  // Oddeľovač zoznamu mien („HEKTHOR, BELLA a MAX") — JA/ZH „、", AR „، " (2. 10. 2026).
+  'heroglyph.flow.listSep': ', ',
   'heroglyph.flow.welcomeNew.l1': '… creating your profile',
   'heroglyph.flow.welcomeNew.l2': '… generating the certificate',
   'heroglyph.flow.welcomeNew.l3': 'Done! Everything is in your inbox!',

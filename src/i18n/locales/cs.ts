@@ -397,6 +397,8 @@ export const cs: Partial<Dict> = {
   // Finále po platbe nového vstupu (FlowWelcomeScreen, Matej 26. 9. 2026 večer).
   'heroglyph.flow.welcomeNew.hi': 'Vítejte v DOGYPTU,',
   'heroglyph.flow.welcomeNew.and': ' a ',
+  // Oddeľovač zoznamu mien („HEKTHOR, BELLA a MAX") — JA/ZH „、", AR „، " (2. 10. 2026).
+  'heroglyph.flow.listSep': ', ',
   'heroglyph.flow.welcomeNew.l1': '… právě se ti vytváří profil',
   'heroglyph.flow.welcomeNew.l2': '… generuje se certifikát',
   'heroglyph.flow.welcomeNew.l3': 'Hotovo! Všechno máš v mailu!',
