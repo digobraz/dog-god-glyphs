@@ -215,7 +215,7 @@ export default function FilmFinale({ packNo, onBible, onAuthor, onAbout }: { pac
           opacity: var(--sh, 0);
           display: flex; flex-direction: column; gap: 12px;
         }
-        .op-fin-eye { margin: 0; font: 500 10px/1.2 'Space Grotesk', sans-serif; letter-spacing: .22em; text-transform: uppercase; color: ${LAB.inkSoft}; }
+        .op-fin-eye { margin: 0; font: 500 11px/1.2 'Space Grotesk', sans-serif; letter-spacing: .22em; text-transform: uppercase; color: ${LAB.inkSoft}; }
         .op-fin-h3 { margin: 0 0 12px; font: 700 24px/1.2 'Cinzel', serif; letter-spacing: .06em; color: ${LAB.ink}; }
         .op-fin-card {
           display: flex; flex-direction: column; gap: 4px; text-align: left;

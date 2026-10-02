@@ -27,19 +27,19 @@ const T = PACK_THEME;
 
 const CSS = `
 .mlk-wrap{min-height:100dvh;background:${T.pageBg};display:flex;flex-direction:column;}
-.mlk-body{flex:1;display:flex;align-items:center;justify-content:center;padding:24px 16px 64px;}
-.mlk-card{width:100%;max-width:460px;padding:28px 22px 26px;text-align:center;}
+.mlk-body{flex:1;display:flex;align-items:center;justify-content:center;padding:24px 16px 48px;}
+.mlk-card{width:100%;max-width:460px;padding:32px 24px 24px;text-align:center;}
 .mlk-eyebrow{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:${T.cardEdge};}
-.mlk-title{font-family:${FONT_TITLE};font-weight:700;font-size:22px;line-height:1.2;letter-spacing:.02em;text-transform:uppercase;color:${T.inkStrong};margin-top:10px;}
-.mlk-sub{font-family:${FONT_UI};font-weight:400;font-size:13.5px;line-height:1.55;color:${T.inkWarm};margin-top:12px;}
+.mlk-title{font-family:${FONT_TITLE};font-weight:700;font-size:24px;line-height:1.2;letter-spacing:.02em;text-transform:uppercase;color:${T.inkStrong};margin-top:10px;}
+.mlk-sub{font-family:${FONT_UI};font-weight:400;font-size:14px;line-height:1.55;color:${T.inkWarm};margin-top:12px;}
 .mlk-rule{height:2px;margin:20px 0;background:${T.rule};}
 .mlk-actions{display:flex;flex-direction:column;gap:10px;}
 /* .btn-gold (brand manuál v3.2 — LOCKED): gradient 135°, radius 8 (NIE pilulka),
    papyrusový rám, zlatý dosvit. Nedoladovať. */
-.mlk-cta{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:13px 22px;border-radius:8px;background:${GOLD_BTN.grad};border:1px solid ${GOLD_BTN.edge};color:#000;font-family:${FONT_TITLE};font-weight:700;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;box-shadow:${GOLD_BTN.glow};transition:transform .2s, box-shadow .22s;}
+.mlk-cta{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:12px 24px;border-radius:8px;background:${GOLD_BTN.grad};border:1px solid ${GOLD_BTN.edge};color:#000;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;box-shadow:${GOLD_BTN.glow};transition:transform .2s, box-shadow .22s;}
 .mlk-cta:hover{box-shadow:${GOLD_BTN.glowHover};}
 .mlk-cta:active{transform:scale(0.98);}
-.mlk-ghost{display:inline-flex;align-items:center;justify-content:center;padding:11px 22px;border-radius:8px;background:transparent;border:1px solid ${T.cardEdge};color:${T.inkStrong};font-family:${FONT_UI};font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;}
+.mlk-ghost{display:inline-flex;align-items:center;justify-content:center;padding:12px 24px;border-radius:8px;background:transparent;border:1px solid ${T.cardEdge};color:${T.inkStrong};font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;}
 .mlk-ghost:hover{background:rgba(201,154,63,0.12);}
 `;
 

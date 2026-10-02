@@ -128,7 +128,7 @@ export const AINUBIS_GUIDE_CSS = `
    "T.brandBlue": egyptská modrá na TEJTO obrazovke už nesie iný význam — modrým lemom
    appka značí udalosti a „ideš s niekým" ("EVENT_RIM", CLAUDE.md), takže by sprievodca
    splynul so značkami na mape pod ním. AInubis má vlastnú modrú a tá je tu tá správna. */
-.ang-bar{pointer-events:auto;display:flex;align-items:center;gap:10px;padding:9px 6px 9px 9px;border-radius:15px;background:radial-gradient(120% 160% at 50% -40%,rgba(59,158,255,0.20) 0%,rgba(59,158,255,0) 62%),linear-gradient(180deg,#071019 0%,#03070C 100%);backdrop-filter:blur(10px);border:1.5px solid rgba(91,224,240,0.55);box-shadow:0 0 0 3px rgba(59,158,255,0.22),0 0 26px rgba(59,158,255,0.42),0 10px 30px rgba(0,0,0,0.62);animation:ang-glow 3.4s ease-in-out infinite;}
+.ang-bar{pointer-events:auto;display:flex;align-items:center;gap:10px;padding:8px 8px 8px 8px;border-radius:14px;background:radial-gradient(120% 160% at 50% -40%,rgba(59,158,255,0.20) 0%,rgba(59,158,255,0) 62%),linear-gradient(180deg,#071019 0%,#03070C 100%);backdrop-filter:blur(10px);border:1.5px solid rgba(91,224,240,0.55);box-shadow:0 0 0 3px rgba(59,158,255,0.22),0 0 26px rgba(59,158,255,0.42),0 10px 30px rgba(0,0,0,0.62);animation:ang-glow 3.4s ease-in-out infinite;}
 @keyframes ang-glow{
   0%,100%{box-shadow:0 0 0 3px rgba(59,158,255,0.20),0 0 22px rgba(59,158,255,0.32),0 10px 30px rgba(0,0,0,0.62);}
   50%{box-shadow:0 0 0 3px rgba(59,158,255,0.34),0 0 40px rgba(59,158,255,0.60),0 10px 30px rgba(0,0,0,0.62);}
@@ -140,13 +140,13 @@ export const AINUBIS_GUIDE_CSS = `
    Obrázok je 800×940 (vyšší než širší), takže 'object-fit:contain' ho v kruhu nechá dýchať
    — 'cover' by mu odrezal uši. */
 .ang-face{flex:0 0 auto;width:48px;height:48px;object-fit:contain;border-radius:50%;background:radial-gradient(circle at 35% 28%,#12233a 0%,#01050A 74%);box-shadow:0 0 0 1.5px rgba(91,224,240,0.45),0 0 16px rgba(59,158,255,0.38);}
-.ang-text{flex:1 1 auto;min-width:0;margin:0;font-family:${FONT_UI};font-size:13px;font-weight:500;line-height:1.35;color:#E6FAFF;}
+.ang-text{flex:1 1 auto;min-width:0;margin:0;font-family:${FONT_UI};font-size:14px;font-weight:500;line-height:1.35;color:#E6FAFF;}
 /* Kurzor bliká LEN kým sa píše — blikanie nad dopísanou vetou by tvrdilo, že ešte príde
    pokračovanie. */
 .ang-caret{display:inline-block;width:2px;height:1em;margin-left:2px;vertical-align:-2px;background:#5BE0F0;animation:ang-blink .9s steps(1,end) infinite;}
 @keyframes ang-blink{0%,49%{opacity:1;}50%,100%{opacity:0;}}
 .ang-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
-.ang-x{float:right;width:30px;height:26px;margin:-2px -2px 0 6px;border:0;background:transparent;color:${T.onDarkDim};font-size:19px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
+.ang-x{float:right;width:30px;height:26px;margin:-2px -2px 0 6px;border:0;background:transparent;color:${T.onDarkDim};font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
 .ang-x:hover{color:#5BE0F0;}
 /* Ikonka dedí farbu textu (fill:currentColor v HandIcons), takže hover platí aj pre ňu. */
 .ang-x svg{display:block;}
@@ -170,7 +170,7 @@ export const AINUBIS_GUIDE_CSS = `
      ⚠️ Bublina sa NEROZŤAHUJE na celú šírku mapy. left:480px;right:74px z nej robilo
      pás, ktorý sa čítal ako vycentrovaný panel; s hornou hranicou šírky stojí pri ľavom
      okraji mapy, teda hneď vedľa panela, z ktorého tok vyšiel. */
-  .ang-wrap{left:480px;right:74px;padding-top:18px;background:none;}
+  .ang-wrap{left:480px;right:74px;padding-top:16px;background:none;}
   /* Panel v tejto chvíli na obrazovke nie je — mapa začína pri okraji okna a bublina s ňou. */
   .ang-wrap--edge{left:0;padding-left:16px;}
   .ang-bar{max-width:560px;}

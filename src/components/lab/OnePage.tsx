@@ -1180,7 +1180,7 @@ const DGX = {
   kota: 42, kotaStag: 0, kotaD: 5, lead: 8,
   pulseW: 4, pulseN: 3,
   kNamePx: 34, kNamePxM: 22,
-  kPx: 12, kPxM: 9, kPx2: 13, kPx2M: 11, glow: 8,
+  kPx: 12, kPxM: 11, kPx2: 13, kPx2M: 11, glow: 8,
   kotaEdge: 8, overHalo: 70,
   holdGap: 12, offD: 3,
   hintD: 4, hintPx: 11.7, hintPxM: 11,
@@ -1190,7 +1190,7 @@ const DGX = {
      Mobilne (`fpM`/`nsM`/`rlsM`) ostavaju — pokyn padol nad PC obrazovkou,
      rovnako ako pri `gwK`. `sgap` (medzera fotka↔text) sa nedeli: nema
      mobilny variant, takze by zmena zasiahla aj telefon, a ide o 2 px. */
-  sig: 66, sigD: 4, fp: 52.0, fpM: 56, ns: 19.1, nsM: 21, sgap: 14, rls: 8.4, rlsM: 9,
+  sig: 66, sigD: 4, fp: 52.0, fpM: 56, ns: 19.1, nsM: 21, sgap: 14, rls: 8.4, rlsM: 11,
 } as const;
 
 /** Dráha WE NEED YOU, ktorú oblúk naozaj má — 0, kým je obraz odložený (WNY_ON). */
@@ -4041,6 +4041,24 @@ export default function OnePage() {
     if (WNY_END) { const w = wnyEnd(); if (w != null) out.push(w); }
     // FINÁLE — portál v strede · portál vľavo + dvere (FilmFinale.tsx).
     for (const f of FIN_STOPS) { const y = pinnedAt('.op-fin', f); if (y != null) out.push(y); }
+    // KNIHA V PÄTE — vlastná zastávka pred koncom stránky. Na dne stránky sa
+    // pod lištu zasunie vrch knihy (PC) alebo celá (mobil 360), takže človek
+    // nevidel ani knihu, ani výzvu „ťukni na knihu". Zastávka: kniha celá POD
+    // lištou, a keď sa nezmestí (nízke okno), aspoň výzva nad spodným okrajom
+    // (na mobile nad pilulkou). Rezervy čítame z premenných (--op-nav-h,
+    // --op-dock-h), nie z vlastných čísel.
+    const bw = document.querySelector<HTMLElement>('.op-book .cb-wrap');
+    if (bw) {
+      const rootCs = getComputedStyle(document.querySelector<HTMLElement>('.op-root') ?? document.documentElement);
+      const navH = parseFloat(rootCs.getPropertyValue('--op-nav-h')) || 0;
+      const dockH = parseFloat(rootCs.getPropertyValue('--op-dock-h')) || 0;
+      const hint = document.querySelector<HTMLElement>('.op-book .cb-hint');
+      const wr = bw.getBoundingClientRect();
+      const bottom = (hint ?? bw).getBoundingClientRect().bottom + window.scrollY;
+      const y = Math.max(wr.top + window.scrollY - navH, bottom + 16 + dockH - window.innerHeight);
+      const last = Math.max(...out);
+      if (y > last + 24 && y < document.documentElement.scrollHeight - window.innerHeight - 24) out.push(y);
+    }
     out.push(document.documentElement.scrollHeight - window.innerHeight);
     return out;
   }, []);
@@ -4536,6 +4554,7 @@ export default function OnePage() {
         ${FILM_CUE_CSS}
         /* Starý A/B prepínač steny je dielňa /wall-lab — vo filme nemá čo robiť ani v deve. */
         .op-root .ab-switch { display: none !important; }
+
         /* 27. 9. 2026: výzva SKROLUJ ĎALEJ na tmavej sále ZRUŠENÁ — Matej: *„tu
            vymaž to scroluj ďalej… bude stačiť naša brand šípka"* (.op-cue). */
         .op-keep { display: none !important; }
@@ -5109,7 +5128,14 @@ export default function OnePage() {
           position: static;
           transform: none;
           margin-top: clamp(8px, 1.4vh, 14px);
+          /* Pilulka je vo filme na PAPYRUSE, nie na tmavej stránke — zdieľané
+             tmavé sklo + zlatý text sa v nej strácali (zlato-sivé na šedo-
+             zlatom). Rovnaké hodnoty ako .lab-papyrus .cb-hint v ReligionLab. */
+          background: rgba(255,252,244,0.78);
+          border-color: rgba(140,96,20,0.45);
+          color: #6E4A12;
         }
+        .op-book .cb-hint-dot { background: #A3782B; box-shadow: none; }
         .op-book .cb-wrap { height: auto; gap: 0; }
         /* Prekrytie s ústavou používa plátno príbehu (.op-storymodal) — jeden
            tvar pre obe odbočky z filmu. Kniha v ňom len dostane vzduch a stred. */
@@ -7311,6 +7337,48 @@ export default function OnePage() {
           color: ${LAB.inkSoft};
         }
         .op-sign-tag b { color: ${LAB.goldInk}; font-weight: 700; }
+        /* ── DOTYKOVÉ CIELE A NAJMENŠIE PÍSMO NA MOBILE (audit 2. 10. 2026) ──
+           ⚠️ BLOK STOJÍ NA KONCI ŠTÝLOV schválne: pravidlá o písme prebíjajú
+           rovnako špecifické pravidlá vyššie len poradím.
+           Tester na 360–430 px našiel ciele pod 44 px (kresba lišty, chipy,
+           päta) a písmo pod 11 px. Kresba sa NEMENÍ — oblasť ťuknutia rozšíri
+           neviditeľný pseudoprvok (vzor HIT_CSS v packTheme: inset: -N px),
+           písmo sa dvíha len tam, kde to kompozícia znesie.
+           ⚠️ .dgx-example a .codex-chip majú ::after obsadený (pulz okraja),
+           preto idú cez ::before. Len mobil — na PC ukazovateľ ciele netrápia. */
+        @media (max-width: 767px) {
+          .op-root .nav-top .scene-pill::after { content: ''; position: absolute; inset: -10px -4px; }
+          .op-root .nav-top .lang-trigger::after { content: ''; position: absolute; inset: -16px -8px; }
+          .op-root .nav-top .nav-login { position: relative; }
+          .op-root .nav-top .nav-login::after { content: ''; position: absolute; inset: -6px; }
+          .op-root .gods-bottom-bar .filter-btn::after { content: ''; position: absolute; inset: -2px; }
+          .op-root .dgx-example::before { content: ''; position: absolute; inset: -6px -2px; }
+          .op-root .codex-chip::before { content: ''; position: absolute; inset: -6px -2px; }
+          .op-root .op-fin-about::after { content: ''; position: absolute; inset: -2px; }
+          .op-root .op-nxt-cta { position: relative; }
+          .op-root .op-nxt-cta::after { content: ''; position: absolute; inset: -6px 0; }
+          .op-root .op-book .cb-hint { position: relative; }
+          .op-root .op-book .cb-hint::after { content: ''; position: absolute; inset: -4px -2px; }
+          .op-root footer a { position: relative; }
+          .op-root footer a::after { content: ''; position: absolute; inset: -12px -6px; }
+          .op-root .op-apps-ctl button { position: relative; }
+          .op-root .op-apps-ctl button::after { content: ''; position: absolute; inset: -4px; }
+          .op-root .op-quo .tst-credits > summary { position: relative; }
+          .op-root .op-quo .tst-credits > summary::after { content: ''; position: absolute; inset: -11px 0; }
+          /* Popisok „pozri intro" je orezaný (overflow) a ::before nesie ▶ —
+             cieľ sa preto zväčší vlastným odsadením, vyrovnaným zápornou medzerou. */
+          .op-root #op-vision .video-hero-caption { padding-block: 11px; margin-block: -11px; }
+
+          /* Najmenšie písmo 11 px. */
+          .op-root .main-nav .scene-pill { font-size: 0.6875rem; }
+          .op-root .dgx-signum { font-size: max(0.40em, 11px); }
+          .op-root .op-nxt-goal em { font-size: 11px; }
+          .op-root .op-book .cb-sub { font-size: 11px; }
+          .op-root .op-quo .tst-credits > summary,
+          .op-root .op-quo .tst-credits > p { font-size: 11px; }
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-eyebrow,
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-oath-label { font-size: 11px; }
+        }
       `}</style>
 
       {/* ── HORNÝ NAV — namontovaný RAZ, film pod ním beží ─────────────── */}

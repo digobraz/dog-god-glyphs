@@ -83,6 +83,8 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
     /** Ťah, ktorý prišiel počas jazdy — vykoná sa hneď po nej. */
     let queued: 1 | -1 | 0 = 0;
     let rideK = 0;
+    /** Prst práve (alebo ešte dobiehajúcim švihom) hýbe voľným pásmom natívne. */
+    let nativeFree = false;
 
     const setMoving = (m: boolean) => {
       moving = m;
@@ -109,6 +111,7 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
       const t0 = performance.now();
       setMoving(true);
       queued = 0;
+      nativeFree = false;
       const step = (now: number) => {
         const k = Math.min(1, (now - t0) / dur);
         rideK = k;
@@ -196,6 +199,7 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
     };
 
     const onTouchStart = (e: TouchEvent) => {
+      nativeFree = false;
       if (apiRef.current.paused()) { touchY = null; return; }
       if ((e.target as Element | null)?.closest?.('[data-film-free]')) { touchY = null; return; }
       touchY = e.touches[0]?.clientY ?? null;
@@ -203,8 +207,23 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
     const onTouchMove = (e: TouchEvent) => {
       if (touchY == null) return;
       const dy = touchY - (e.touches[0]?.clientY ?? touchY);
-      if (!moving && Math.abs(dy) > 2 && inFree(dy > 0 ? 1 : -1)) { touchY = null; return; }
+      if (!moving && Math.abs(dy) > 2 && inFree(dy > 0 ? 1 : -1)) { touchY = null; nativeFree = true; return; }
       e.preventDefault();
+    };
+    /** 🔴 DOTYKOVÝ ŠVIH Z VOĽNÉHO PÁSMA NESMIE ODLETIEŤ POD OKRAJ (N6, 2. 10.
+     *  2026). Dotyk je vo voľnom pásme natívny, takže zotrvačnosť švihu nič
+     *  nebrzdí — na 430 px raz švih späť z príbehu preletel pásmo aj všetky
+     *  obrazy nad ním a pristál na úvode. Koliesko to rieši clampom v onWheel;
+     *  tu to isté robí scroll: keď natívny pohyb z pásma vybehne von, vráti sa
+     *  na jeho okraj (programový scrollTo zastaví aj dobeh zotrvačnosti) a ďalší
+     *  ťah už vedie motor o jednu zastávku. */
+    const onScroll = () => {
+      if (!nativeFree || moving) return;
+      const z = apiRef.current.free?.();
+      if (!z) { nativeFree = false; return; }
+      const y = window.scrollY;
+      if (y < z[0] - 2) { nativeFree = false; window.scrollTo({ top: z[0], behavior: 'instant' as ScrollBehavior }); }
+      else if (y > z[1] + 2) { nativeFree = false; window.scrollTo({ top: z[1], behavior: 'instant' as ScrollBehavior }); }
     };
     const onTouchEnd = (e: TouchEvent) => {
       if (touchY == null) return;
@@ -230,6 +249,7 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
     window.addEventListener('touchstart', onTouchStart, { passive: true });
     window.addEventListener('touchmove', onTouchMove, { passive: false });
     window.addEventListener('touchend', onTouchEnd, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('keydown', onKey);
     return () => {
       cancelAnimationFrame(raf);
@@ -237,6 +257,7 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
       window.removeEventListener('touchstart', onTouchStart);
       window.removeEventListener('touchmove', onTouchMove);
       window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('scroll', onScroll);
       window.removeEventListener('keydown', onKey);
       goRef.current = () => {};
       stepRef.current = () => {};

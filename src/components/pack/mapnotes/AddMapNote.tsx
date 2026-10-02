@@ -330,11 +330,11 @@ export const NOTE_TYPE_STRIP_CSS = `
    MapNotePlacing. Materiál je ten istý .mnts, takže sa číta ako súčasť toho istého radu.
    align-items:flex-start drží šípku na prvom riadku aj vtedy, keď sa rad hrozieb zalomí. */
 .mnp-below{display:flex;align-items:flex-start;gap:7px;max-width:100%;}
-.mnts-back{flex:0 0 auto;display:flex;align-items:center;justify-content:center;min-height:34px;padding:5px 11px;color:${T.onDark};cursor:pointer;}
+.mnts-back{flex:0 0 auto;display:flex;align-items:center;justify-content:center;min-height:34px;padding:4px 12px;color:${T.onDark};cursor:pointer;}
 .mnts-back svg{display:block;}
 /* Recept je 1:1 z .atl-steps--onmap (bodky 1–5 nad mapou) — jeden materiál pre všetko,
    čo v krokoch 1–2 visí pod AInubisovou bublinou. */
-.mnts{max-width:100%;box-sizing:border-box;border-radius:999px;background:rgba(18,13,7,0.94);backdrop-filter:blur(10px);border:1px solid rgba(245,240,228,0.16);box-shadow:0 6px 20px rgba(0,0,0,0.55);padding:5px 7px;}
+.mnts{max-width:100%;box-sizing:border-box;border-radius:999px;background:rgba(18,13,7,0.94);backdrop-filter:blur(10px);border:1px solid ${T.onDarkBorder};box-shadow:0 6px 20px rgba(0,0,0,0.55);padding:4px 8px;}
 /* Mriežka si odstup nesie pre panel, kde pod ňou stojí text; tu je podkladom pilulka. */
 .mnts .mnk-grid{margin-top:0;}
 /* ── RAD HROZIEB SA ZALAMUJE AJ TU (Matej 2026-08-28: „tu stále je jeden riadok… toto som
@@ -847,7 +847,7 @@ export const ADD_NOTE_CSS = `
 .mna-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:10px;padding-top:8px;}
 
 .mna-head{display:flex;align-items:center;justify-content:flex-start;gap:12px;}
-.mna-title{font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;}
+.mna-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:0.14em;text-transform:uppercase;}
 /* Zavrieť = šípka späť v bledom kruhu (27. 9. 2026, bolo holé × vpravo). */
 .mna-close{${backCircleCSS('pale')}}
 .mna-close:hover{${backHoverCSS('pale')}}
@@ -888,20 +888,20 @@ export const ADD_NOTE_CSS = `
    („potvrdená choroba: borelióza"), takže jeden riadok je aj vecne správnejší. */
 .mna-tick{margin-top:9px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
 .mna-tick-switch{display:flex;gap:6px;flex:1 1 auto;}
-.mna-tick-switch .mna-opt{flex:1 1 0;font-size:10px;padding:6px 10px;}
+.mna-tick-switch .mna-opt{flex:1 1 0;font-size:10px;padding:8px 12px;}
 /* Natívny select nesie na macOS aj Windows vlastný chrome — prefarbuje sa len
    to, čo sa dá, a color-scheme:dark povie prehliadaču, nech rozbaľovací zoznam
    nakreslí tmavý. Bez toho je zoznam biely nad čiernym panelom. */
-.mna-select{flex:1 1 150px;min-width:0;color-scheme:dark;font-family:${FONT_UI};font-size:11.5px;color:${T.onDark};background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};border-radius:8px;padding:7px 9px;cursor:pointer;}
+.mna-select{flex:1 1 150px;min-width:0;color-scheme:dark;font-family:${FONT_UI};font-size:12px;color:${T.onDark};background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};border-radius:8px;padding:8px 8px;cursor:pointer;}
 
 .mna-radius{margin-top:10px;}
 .mna-radius-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.mna-radius-label{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:${T.onDarkDim};}
+.mna-radius-label{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:${T.onDarkDim};}
 .mna-radius-switch{display:flex;gap:6px;}
-.mna-radius-switch .mna-opt{flex:0 1 auto;font-size:10px;padding:5px 10px;}
+.mna-radius-switch .mna-opt{flex:0 1 auto;font-size:10px;padding:4px 12px;}
 .mna-radius-switch .mna-opt.on{color:${GOLD};border-color:${GOLD};background:rgba(201,154,63,0.12);}
-.mna-radius-val{margin-left:auto;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.04em;color:${T.onDark};}
-.mna-radius-note{margin:6px 0 0;font-family:${FONT_UI};font-size:10.5px;line-height:1.4;color:${T.onDarkDim};}
+.mna-radius-val{margin-left:auto;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;color:${T.onDark};}
+.mna-radius-note{margin:6px 0 0;font-family:${FONT_UI};font-size:10px;line-height:1.4;color:${T.onDarkDim};}
 .mna-range{width:100%;margin:9px 0 0;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;}
 .mna-range:focus{outline:none;}
 .mna-range::-webkit-slider-runnable-track{height:4px;border-radius:999px;background:rgba(245,240,228,0.16);}
@@ -912,11 +912,11 @@ export const ADD_NOTE_CSS = `
 .mna-range::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--mn-tint,${GOLD});border:2px solid rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.5);}
 /* 16 px je minimum, pod ktorým iOS Safari pri fokuse zoomuje celú stránku —
    v mape by to znamenalo, že sa človeku pri písaní rozsype výrez. */
-.mna-body{width:100%;box-sizing:border-box;margin-top:8px;font-family:${FONT_UI};font-size:16px;line-height:1.45;color:${T.onDark};background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};border-radius:8px;padding:9px 11px;resize:none;min-height:56px;}
+.mna-body{width:100%;box-sizing:border-box;margin-top:8px;font-family:${FONT_UI};font-size:16px;line-height:1.45;color:${T.onDark};background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};border-radius:8px;padding:8px 12px;resize:none;min-height:56px;}
 .mna-body:focus{outline:none;border-color:${GOLD};}
 .mna-body::placeholder{color:${T.onDarkDim};}
 .mna-paid{display:flex;gap:6px;margin-top:8px;}
-.mna-opt{flex:1 1 0;font-family:${FONT_UI};font-weight:600;font-size:11px;color:${T.onDarkDim};background:transparent;border:1px solid ${T.onDarkBorder};border-radius:999px;padding:7px 10px;cursor:pointer;}
+.mna-opt{flex:1 1 0;font-family:${FONT_UI};font-weight:600;font-size:12px;color:${T.onDarkDim};background:transparent;border:1px solid ${T.onDarkBorder};border-radius:999px;padding:8px 12px;cursor:pointer;}
 .mna-opt.on{color:${PARK_BLUE};border-color:${PARK_BLUE};background:rgba(46,95,208,0.14);}
 /* ── PREPÍNAČ KLIEŠŤA NESIE FARBU, KTORÚ DOSTANE ZNAČKA ────────────────────
    Do 22. 8. dedil .mna-opt.on, teda MODRÚ — a modrá je v tejto appke farba
@@ -927,10 +927,10 @@ export const ADD_NOTE_CSS = `
    je aktívna. Zdroj oboch farieb je noteTint, nie nové hodnoty. */
 .mna-opt--sight.on{color:${TICK_ORANGE};border-color:${TICK_ORANGE};background:rgba(224,138,46,0.16);}
 .mna-opt--ill.on{color:${HAZARD_RED};border-color:${HAZARD_RED};background:rgba(206,75,60,0.16);}
-.mna-pinned{margin:8px 0 0;font-family:${FONT_UI};font-size:11px;color:${T.onDarkDim};}
-.mna-error{margin:8px 0 0;font-family:${FONT_UI};font-size:11.5px;color:#E0796D;}
+.mna-pinned{margin:8px 0 0;font-family:${FONT_UI};font-size:12px;color:${T.onDarkDim};}
+.mna-error{margin:8px 0 0;font-family:${FONT_UI};font-size:12px;color:#E0796D;}
 .mna-actions{display:flex;gap:10px;align-items:center;margin-top:10px;}
-.mna-hint{flex:1 1 auto;display:flex;align-items:center;gap:6px;font-family:${FONT_UI};font-size:10.5px;line-height:1.35;color:${T.onDarkDim};}
+.mna-hint{flex:1 1 auto;display:flex;align-items:center;gap:6px;font-family:${FONT_UI};font-size:10px;line-height:1.35;color:${T.onDarkDim};}
 /* Zelená je tu JEDINÁ v paneli a nesie presne jeden význam: „môžeš odoslať".
    Je to ten istý odtieň, aký na mape nesie tip — pozitívny stav, nie výstraha. */
 .mna-hint--ok{color:${GROUP_TINT.comment};font-weight:600;}
@@ -939,9 +939,9 @@ export const ADD_NOTE_CSS = `
    SpiralLanding.css) — lokálna kópia hodnôt 1:1, rovnaký zavedený vzor ako
    AddTripPlan.tsx a AddEvent.tsx. Gradient 135°, radius 8, papyrusový rám. */
 .mna-submit.btn-gold{
-  flex:0 0 auto;padding:11px 18px;background:${GOLD_BTN.grad};
+  flex:0 0 auto;padding:12px 16px;background:${GOLD_BTN.grad};
   border:1px solid ${GOLD_BTN.edge};border-radius:8px;color:#000;font-family:${FONT_TITLE};
-  font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
+  font-size:12px;font-weight:700;letter-spacing:0.02em;text-transform:uppercase;cursor:pointer;
   box-shadow:${GOLD_BTN.glow};
   transition:transform .2s,box-shadow .22s,opacity .22s;
 }
@@ -985,8 +985,8 @@ export const ADD_NOTE_CSS = `
 /* Nápoveda leží nad MAPOU, nie nad tmavou stránkou — priesvitné sklo na nej
    zmizlo (overené screenshotom: biely text na svetlozelenej mape). Preto plná
    tmavá výplň a papyrusový text, nie pk-glass. */
-.mna-tip{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:900;display:flex;align-items:flex-start;gap:10px;padding:10px 14px;max-width:min(92vw,420px);border-radius:14px;background:rgba(5,5,5,0.92);border:1px solid ${T.border};box-shadow:0 6px 20px rgba(0,0,0,0.5);font-family:${FONT_UI};font-size:12px;line-height:1.4;color:${T.onDark};}
-.mna-tip button{flex:0 0 auto;border:0;background:transparent;color:${T.onDarkDim};font-size:15px;line-height:1;cursor:pointer;padding:0 2px;}
+.mna-tip{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:900;display:flex;align-items:flex-start;gap:10px;padding:12px 16px;max-width:min(92vw,420px);border-radius:14px;background:rgba(5,5,5,0.92);border:1px solid ${T.border};box-shadow:0 6px 20px rgba(0,0,0,0.5);font-family:${FONT_UI};font-size:12px;line-height:1.4;color:${T.onDark};}
+.mna-tip button{flex:0 0 auto;border:0;background:transparent;color:${T.onDarkDim};font-size:16px;line-height:1;cursor:pointer;padding:0 4px;}
 .mna-tip button:hover{color:${GOLD};}
 @media (max-width:720px){.mna-tip{bottom:156px;}}
 /* ⚠️ PÁS PATRÍ LEN DOTYKU (2026-09-02). Hovorí „podrž dlhšie PRST" — gesto, ktoré myš nemá.
@@ -1004,7 +1004,7 @@ export const ADD_NOTE_CSS = `
    iné než na upozornenie. NEDÁVAJ ju na MapNoteHint: tá privíta, nevaruje.
    pointer-events:none — bublina nesmie zjesť ďalší klik, ktorým sa človek
    pokúsi priblížiť dvojklikom. */
-.mntf{position:absolute;z-index:1150;pointer-events:none;padding:10px 13px;border-radius:12px;background:rgba(5,5,5,0.94);border:1px solid ${HAZARD_RED};box-shadow:0 6px 20px rgba(0,0,0,0.5),0 0 0 1px rgba(206,75,60,0.35),0 0 18px rgba(206,75,60,0.3);font-family:${FONT_UI};font-size:12px;line-height:1.4;color:#F4C9C2;animation:mntfIn .16s ease-out;}
+.mntf{position:absolute;z-index:1150;pointer-events:none;padding:12px 12px;border-radius:12px;background:rgba(5,5,5,0.94);border:1px solid ${HAZARD_RED};box-shadow:0 6px 20px rgba(0,0,0,0.5),0 0 0 1px rgba(206,75,60,0.35),0 0 18px rgba(206,75,60,0.3);font-family:${FONT_UI};font-size:12px;line-height:1.4;color:#F4C9C2;animation:mntfIn .16s ease-out;}
 /* Šípka = otočený štvorec s dvomi zvýraznenými hranami. Posúva sa cez
    --mntf-arrow, aby ukazovala na bod aj keď je telo prirazené k okraju. */
 .mntf::after{content:'';position:absolute;left:var(--mntf-arrow,50%);width:10px;height:10px;margin-left:-5px;background:rgba(5,5,5,0.94);transform:rotate(45deg);}
@@ -1027,11 +1027,11 @@ export const ADD_NOTE_CSS = `
    ⚠️ Responzívnu zmenu preto meraj v PÁSME (338/367/400/440), nie na jednej
    šírke — to je tá istá pasca ako pri psom bloku na /pack/dogs. */
 @media (max-width:430px){
-  .mna-sheet .mnk-tile{padding:8px 3px;}
-  .mna-sheet .mnk-tile i{font-size:17px;}
-  .mna-sheet .mnk-tile em{font-size:9.5px;}
-  .mna-sheet .mna-tick-switch .mna-opt{font-size:9px;padding:6px 5px;letter-spacing:.04em;}
-  .mna-sheet .mna-select{flex:1 1 120px;font-size:11px;padding:6px 7px;}
+  .mna-sheet .mnk-tile{padding:8px 4px;}
+  .mna-sheet .mnk-tile i{font-size:16px;}
+  .mna-sheet .mnk-tile em{font-size:10px;}
+  .mna-sheet .mna-tick-switch .mna-opt{font-size:10px;padding:8px 4px;letter-spacing:0.02em;}
+  .mna-sheet .mna-select{flex:1 1 120px;font-size:12px;padding:8px 8px;}
   .mna-sheet .mna-radius-note{font-size:10px;}
 }
 ${MAP_SKIN !== 'pale' ? '' : `

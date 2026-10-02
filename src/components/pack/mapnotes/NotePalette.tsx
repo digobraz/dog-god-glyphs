@@ -159,7 +159,7 @@ export const NOTE_PALETTE_CSS = `
 @media (max-width:560px){.np-wrap--blocks{flex-direction:column;}}
 
 .np-item{flex:1 1 0;display:flex;align-items:center;gap:10px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};border-radius:12px;cursor:pointer;transition:border-color .16s,background .16s,transform .16s;}
-.np-wrap--blocks .np-item{flex-direction:column;align-items:flex-start;gap:8px;padding:16px 14px;text-align:left;}
+.np-wrap--blocks .np-item{flex-direction:column;align-items:flex-start;gap:8px;padding:16px 16px;text-align:left;}
 .np-wrap--strip .np-item{padding:8px 12px 8px 8px;border-radius:999px;}
 .np-item:hover{border-color:${GOLD};background:rgba(201,154,63,0.10);transform:translateY(-1px);}
 /* Zhasnutá možnosť: nie je to chyba ani čakanie, je to hotová vec inde (výlet už
@@ -167,8 +167,8 @@ export const NOTE_PALETTE_CSS = `
 .np-item--off{opacity:.42;cursor:default;}
 .np-item--off:hover{border-color:${T.onDarkBorder};background:rgba(245,240,228,0.04);transform:none;}
 
-.np-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:${T.onDark};white-space:nowrap;}
-.np-text{font-family:${FONT_UI};font-size:11.5px;line-height:1.45;color:${T.onDarkDim};}
+.np-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:${T.onDark};white-space:nowrap;}
+.np-text{font-family:${FONT_UI};font-size:12px;line-height:1.45;color:${T.onDarkDim};}
 
 .np-mark{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;font-family:${FONT_EMOJI};line-height:1;-webkit-user-select:none;user-select:none;}
 ${MAP_SKIN !== 'pale' ? '' : `

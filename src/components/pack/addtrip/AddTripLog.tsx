@@ -34,6 +34,7 @@ import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
+import { sizedUrl, heroPx } from '@/services/cloudinaryService';
 import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { MAP_SKIN, PALE, PALE_PC_MIN, LAPIS, LAPIS_BTN_SHADOW, PLATE_TILE_R, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { useIsPaleChrome } from '@/components/pack/usePaleChrome';
@@ -405,7 +406,7 @@ function SoloCompanionAdd({ dog, selected, onChange }: {
             <span key={c.key} className="comm-comp-chip">
               <span
                 className={`comm-comp-chip-av${c.photo ? '' : ' ph'}`}
-                style={c.photo ? { backgroundImage: `url('${c.photo}')` } : undefined}
+                style={c.photo ? { backgroundImage: `url('${sizedUrl(c.photo, 96)}')` } : undefined}
               >
                 {c.photo ? '' : c.name.charAt(0).toUpperCase()}
               </span>
@@ -423,7 +424,7 @@ function SoloCompanionAdd({ dog, selected, onChange }: {
           aria-pressed={dogOn}
           aria-label={dog.name || t('pack.companions.myDog')}
         >
-          <span className={`comm-comp-dog-av${dog.photo ? '' : ' ph'}`} style={dog.photo ? { backgroundImage: `url('${dog.photo}')` } : undefined}>
+          <span className={`comm-comp-dog-av${dog.photo ? '' : ' ph'}`} style={dog.photo ? { backgroundImage: `url('${sizedUrl(dog.photo, 96)}')` } : undefined}>
             {dog.photo ? '' : (dog.name || 'D').charAt(0).toUpperCase()}
           </span>
           <span>{dog.name || t('pack.companions.myDog')}</span>
@@ -2861,7 +2862,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                           <span className="atl-journey-meta">{j.km} km · {j.journey.days}d · {j.journey.start} → {j.journey.end}</span>
                         </button>
                       ))}
-                      {journeyList.length === 0 && <p className="atl-field-hint" style={{ padding: '6px 4px' }}>{t('pack.addTrip.step.noTrails')}</p>}
+                      {journeyList.length === 0 && <p className="atl-field-hint" style={{ padding: '8px 4px' }}>{t('pack.addTrip.step.noTrails')}</p>}
                     </div>
                     <button type="button" className="atl-journey-link" onClick={drawInstead}>
                       {t('pack.addTrip.step.drawInstead')}
@@ -2962,7 +2963,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                   <div
                     className="atl-photo"
                     style={{
-                      backgroundImage: `linear-gradient(180deg,rgba(0,0,0,0.15),rgba(0,0,0,0.45)), url('${heroPhoto}')`,
+                      backgroundImage: `linear-gradient(180deg,rgba(0,0,0,0.15),rgba(0,0,0,0.45)), url('${sizedUrl(heroPhoto, heroPx())}')`,
                       backgroundPosition: `center ${coverY}%`,
                     }}
                   />
@@ -3504,7 +3505,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                             <div
                               key={i}
                               className={`atl-photo-thumb${i === effCoverIndex ? ' cover' : ''}`}
-                              style={{ backgroundImage: `url('${ph}')` }}
+                              style={{ backgroundImage: `url('${sizedUrl(ph, 240)}')` }}
                               onClick={() => setCoverIndex(i)}
                               role="button"
                               tabIndex={0}
@@ -3532,7 +3533,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                           <div
                             className="atl-cover-preview"
                             style={{
-                              backgroundImage: `linear-gradient(180deg,rgba(0,0,0,0.15),rgba(0,0,0,0.45)), url('${heroPhoto}')`,
+                              backgroundImage: `linear-gradient(180deg,rgba(0,0,0,0.15),rgba(0,0,0,0.45)), url('${sizedUrl(heroPhoto, 800)}')`,
                               backgroundPosition: `center ${coverY}%`,
                             }}
                           />
@@ -3859,7 +3860,7 @@ const STEP_CSS = `
    ⚠️ ČIARA JE T.rule — zlatá, vyblednutá do strán, 2 px (CLAUDE.md). NIE šedý 1px
    hairline a NIE T.hairline ako rám: ten je iba na deliace čiary vnútri karty a ako
    predel medzi dvoma vrstvami obrazovky pôsobí ako nedokončený návrh. */
-.atl-steps{display:flex;gap:6px;padding:2px 20px 12px;flex-shrink:0;position:relative;}
+.atl-steps{display:flex;gap:6px;padding:4px 24px 12px;flex-shrink:0;position:relative;}
 /* ⚠️ PODKLAD KROKOVNÍKA ZANIKOL (Matej 2026-08-26, druhé kolo): „nepáči sa mi ani okolie,
    kde je 5 krokov — hore a dole taký divný pás. Daj len dole takú čiaru do stratena."
    Ráno tu pribudlo jemné stmavnutie dosky s odôvodnením „Matej pýtal zvizuálniť, nie
@@ -3868,16 +3869,16 @@ const STEP_CSS = `
    rovnou hranou, mal dva okraje namiesto jedného.
    Ostáva jediný predel: T.rule — zlatá linka vyblednutá do strán (presne „do stratena"),
    teda bez hrán, o ktoré by sa dalo zakopnúť. */
-.atl-steps:not(.atl-steps--onmap){padding:6px 20px 11px;}
+.atl-steps:not(.atl-steps--onmap){padding:8px 24px 12px;}
 .atl-steps:not(.atl-steps--onmap)::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:${T.rule};}
 /* Veta o zámku stojí POD krokovníkom, teda mimo neho — v ňom by si delila riadok
    s piatimi bodkami a rozhodila by ich rovnaké diely. */
-.atl-steps-lock{margin:-2px 20px 8px;font-family:${FONT_UI};font-size:10.5px;line-height:1.45;color:${T.onDarkDim};}
+.atl-steps-lock{margin:-2px 20px 8px;font-family:${FONT_UI};font-size:10px;line-height:1.45;color:${T.onDarkDim};}
 /* BODKY NAD MAPOU (kroky 1–2). Musia zniesť pestrý podklad, tak dostanú vlastný tmavý
    podklad a rám — nad turistickou mapou by holé číslice zanikli rovnako ako kedysi
    fialová pilulka. Popisky sa skryjú: päť názvov krokov sa vedľa krížika na 360 px
    nezmestí a číslo v krúžku aj tak nesie celú informáciu. */
-.atl-steps--onmap{width:max-content;gap:5px;border-radius:999px;background:rgba(18,13,7,0.94);backdrop-filter:blur(10px);border:1px solid rgba(245,240,228,0.16);box-shadow:0 6px 20px rgba(0,0,0,0.55);padding:5px 7px;}
+.atl-steps--onmap{width:max-content;gap:5px;border-radius:999px;background:rgba(18,13,7,0.94);backdrop-filter:blur(10px);border:1px solid ${T.onDarkBorder};box-shadow:0 6px 20px rgba(0,0,0,0.55);padding:4px 8px;}
 /* ⚠️ flex:0 0 auto, NIE zdedené 1 1 0. V paneli sa päť krokov delí o celú šírku, tu by
    sa tým rozťahovali cez pol obrazovky a medzi číslami by ostali prázdne polia — pilulka
    má obopnúť bodky, nie mapu pod nimi. */
@@ -3887,15 +3888,15 @@ const STEP_CSS = `
    tom istom prvku. */
 .atl-steps--onmap .atl-step.on b{box-shadow:0 0 0 3px ${LAPIS.halo};}
 /* ÚNIK — otázka pred zahodením rozrobeného výletu. Tmavý povrch, lebo stojí nad mapou. */
-.atl-abort-scrim{position:fixed;inset:0;z-index:1400;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;}
-.atl-abort{width:100%;max-width:380px;padding:20px;border-radius:14px;background:rgba(18,13,7,0.97);border:1px solid ${T.onDarkBorder};box-shadow:0 18px 50px rgba(0,0,0,0.6);}
+.atl-abort-scrim{position:fixed;inset:0;z-index:1400;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px;}
+.atl-abort{width:100%;max-width:380px;padding:24px;border-radius:14px;background:rgba(18,13,7,0.97);border:1px solid ${T.onDarkBorder};box-shadow:0 18px 50px rgba(0,0,0,0.6);}
 .atl-abort-face{display:block;width:46px;height:46px;object-fit:contain;margin:0 auto 10px;border-radius:12px;background:rgba(201,154,63,0.14);box-shadow:0 0 0 1.5px rgba(201,154,63,0.55);}
-.atl-abort h2{margin:0;font-family:${FONT_TITLE};font-weight:700;text-transform:uppercase;font-size:15px;letter-spacing:.06em;color:${T.onDark};}
-.atl-abort p{margin:10px 0 0;font-family:${FONT_UI};font-size:12.5px;line-height:1.55;color:${T.onDarkDim};}
+.atl-abort h2{margin:0;font-family:${FONT_TITLE};font-weight:700;text-transform:uppercase;font-size:16px;letter-spacing:0.02em;color:${T.onDark};}
+.atl-abort p{margin:10px 0 0;font-family:${FONT_UI};font-size:12px;line-height:1.55;color:${T.onDarkDim};}
 .atl-abort-btns{display:flex;gap:8px;margin-top:16px;}
 .atl-abort-btns > *{flex:1 1 0;}
 /* Zahodenie je červené a je to jediná červená v celom toku — je to jediná nevratná akcia. */
-.atl-abort-quit{padding:11px 10px;border-radius:8px;background:rgba(160,42,42,0.18);border:1px solid rgba(214,77,77,0.65);color:#F0A0A0;font-family:${FONT_UI};font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;}
+.atl-abort-quit{padding:12px 12px;border-radius:8px;background:rgba(160,42,42,0.18);border:1px solid rgba(214,77,77,0.65);color:#F0A0A0;font-family:${FONT_UI};font-size:12px;font-weight:600;letter-spacing:0.02em;text-transform:uppercase;cursor:pointer;}
 .atl-abort-quit:hover{background:rgba(160,42,42,0.34);color:#fff;}
 /* ── AINUBISOV DIALÓG (Matej 25. 8. 2026) ──────────────────────────────────────────────
    „daj všetky interakcie v jeho dizajne (tmavomodrá) tento nadpis centruj, CTA tlačítka
@@ -3911,11 +3912,11 @@ const STEP_CSS = `
 .atl-abort--ainubis .atl-abort-face{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#12233a 0%,#01050A 74%);box-shadow:0 0 0 1.5px rgba(91,224,240,0.40),0 0 26px rgba(59,158,255,0.34);margin-bottom:12px;}
 /* CTA = brandový zlatý gradient ('.btn-gold' lock: #F5C73D→#E69E1A, papyrusový rám, r8).
    NIE pilulka a NIE vlastný gradient. */
-.atl-abort-cta{width:100%;padding:12px 12px;border-radius:8px;background:${GOLD_BTN.grad};border:1px solid ${GOLD_BTN.edge};color:#1c160c;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 6px 18px rgba(230,158,26,0.28);}
+.atl-abort-cta{width:100%;padding:12px 12px;border-radius:8px;background:${GOLD_BTN.grad};border:1px solid ${GOLD_BTN.edge};color:#1c160c;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;cursor:pointer;box-shadow:0 6px 18px rgba(230,158,26,0.28);}
 .atl-abort-cta:hover{filter:brightness(1.06);}
 /* Druhá voľba hovorí AInubisovým hlasom (cyan obrys), aby bolo vidieť, že ju ponúka ON —
    nie je to odmietnutie dialógu, je to rovnocenná odpoveď. */
-.atl-abort-ghost{width:100%;padding:12px 12px;border-radius:8px;background:rgba(59,158,255,0.08);border:1px solid rgba(91,224,240,0.35);color:rgba(207,243,250,0.88);font-family:${FONT_UI};font-weight:600;font-size:11.5px;letter-spacing:.04em;cursor:pointer;}
+.atl-abort-ghost{width:100%;padding:12px 12px;border-radius:8px;background:rgba(59,158,255,0.08);border:1px solid rgba(91,224,240,0.35);color:rgba(207,243,250,0.88);font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.02em;cursor:pointer;}
 .atl-abort-ghost:hover{background:rgba(59,158,255,0.16);color:#E6FAFF;}
 /* ── JEDNO TLAČIDLO = JEDEN RIADOK (Matej 2026-08-26) ─────────────────────────────────
    „tento popup zväčši a možnosti daj pod seba nie vedľa (sú dlhé textovo a lámu sa —
@@ -3926,17 +3927,17 @@ const STEP_CSS = `
    („Doplniť tú istú cestu späť", „Vrátil som sa inak"), takže sa lámali aj na PC, každá
    na iný počet riadkov, a rad z toho vyzeral ako rozbitý.
    Škatuľa je zároveň širšia: v 380 px sa tri vety lámali aj pod sebou. */
-.atl-abort--ainubis{max-width:520px;padding:26px 24px;}
+.atl-abort--ainubis{max-width:520px;padding:24px 24px;}
 .atl-abort--ainubis .atl-abort-btns{flex-direction:column;gap:9px;}
-.atl-step{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:7px 4px;border-radius:9px;background:transparent;border:1px solid transparent;color:${T.onDarkDim};cursor:default;}
+.atl-step{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:8px;background:transparent;border:1px solid transparent;color:${T.onDarkDim};cursor:default;}
 /* ── ČÍSLA KROKOV: VÄČŠIE, PLNOU FARBOU, BIELE (Matej 2026-08-26) ──────────────────────
    „tieto chipy s číslami si predstavujem o čosi väčšie a skôr plnou farbou a čísla bielou."
    Do teraz mali 20 px a priesvitnú výplň pri 6 % — na papyruse PC z toho ostal svetlý
    krúžok bez obsahu, teda presne to, čo sa má na prvý pohľad prečítať, sa prečítať nedalo.
    Biely inkoust drží vo VŠETKÝCH stavoch (aktívny, hotový, splnený), aby číslo nemenilo
    čitateľnosť podľa toho, kde človek stojí. */
-.atl-step b{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:rgba(122,90,42,0.55);border:1px solid ${T.onDarkBorder};color:#FFF;font-family:${FONT_UI};font-weight:600;font-size:12.5px;line-height:1;}
-.atl-step span{font-family:${FONT_UI};font-weight:500;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;text-align:center;line-height:1.2;}
+.atl-step b{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:rgba(122,90,42,0.55);border:1px solid ${T.onDarkBorder};color:#FFF;font-family:${FONT_UI};font-weight:600;font-size:12px;line-height:1;}
+.atl-step span{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;text-align:center;line-height:1.2;}
 .atl-step.done{cursor:pointer;color:${T.onDark};}
 .atl-step.done b{background:#8A5F1E;border-color:#8A5F1E;color:#FFF;}
 /* ── AKTÍVNY KROK JE LAPIS, NIE ZLATÝ (Matej 2026-08-28) ───────────────────────────────
@@ -3964,15 +3965,15 @@ const STEP_CSS = `
 /* Nevyplnené pole po NÁVRATE do kroku. Rám aj popisok, nie len rám — samotný červený obrys
    sa na tmavom povrchu prehliadne. */
 .atl-miss > label{color:#E08A7A;}
-.atl-miss .atl-input,.atl-miss .atl-diffrow,.atl-miss .atl-chips,.atl-miss .atl-photos{border-radius:9px;box-shadow:0 0 0 1px ${T.alertRed};}
-.atl-donepill{margin-left:8px;padding:2px 9px;border-radius:999px;background:rgba(122,47,191,0.22);border:1px solid rgba(179,107,255,0.55);color:#E9D8FF;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;}
+.atl-miss .atl-input,.atl-miss .atl-diffrow,.atl-miss .atl-chips,.atl-miss .atl-photos{border-radius:8px;box-shadow:0 0 0 1px ${T.alertRed};}
+.atl-donepill{margin-left:8px;padding:4px 8px;border-radius:999px;background:rgba(${T.tripPurpleRGB},0.22);border:1px solid rgba(179,107,255,0.55);color:#E9D8FF;font-size:10px;font-weight:600;letter-spacing:0.02em;text-transform:uppercase;white-space:nowrap;}
 /* ── STOPA P · N · T ───────────────────────────────────────────────────────────
    Tri diely na celú šírku (rad prvkov = celá šírka kontajnera, rovnaké diely).
    Prejdené sa dajú kliknúť späť — človek, ktorý parkovisko preskočil a spomenul si,
    nemá inú cestu, ako celý krok zopakovať odznova. */
 .atl-ntrack{display:flex;gap:6px;}
-.atl-ntrack-i{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 5px;border-radius:999px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};cursor:pointer;}
-.atl-ntrack-i b{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:17px;height:17px;border-radius:50%;background:rgba(245,240,228,0.07);font-size:9.5px;font-weight:600;line-height:1;}
+.atl-ntrack-i{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 4px;border-radius:999px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};cursor:pointer;}
+.atl-ntrack-i b{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:17px;height:17px;border-radius:50%;background:rgba(245,240,228,0.07);font-size:10px;font-weight:600;line-height:1;}
 /* ⚠️ TESNEJŠIE PREKLADANIE PÍSMEN NEŽ INDE (Matej 2026-08-26, druhé kolo). Odkedy je
    neoznačená možnosť ČERVENÁ, nesie chip s bodmi KAŽDÁ z troch (predtým len tie, ktoré človek
    nechal za sebou) — a na kompaktnom PC (stĺpec 360 px) sa z „PARKOVISKO" stalo „PARK…".
@@ -3984,7 +3985,7 @@ const STEP_CSS = `
    pasca, na akej sa 26. 8. rezala žiara AInubisovej bubliny. Záporný offset ho posadí na
    vnútornú hranu, kde ho nemá čo orezať; viditeľnosť pre klávesnicu ostáva. */
 .atl-ntrack-i:focus-visible{outline:2px solid ${LAPIS.edge};outline-offset:-2px;}
-.atl-ntrack-i span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9.5px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;}
+.atl-ntrack-i span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;font-weight:600;letter-spacing:0.02em;text-transform:uppercase;}
 /* ── VÝBER = MODRÁ, ALE PRIESVITNÁ (Matej 2026-08-26, tretie kolo) ─────────────────────
    „výber PWT som chcel modré/zelené/červené, ale priesvitné — nie modrá plná, to sa bije
     s CTA."
@@ -4013,11 +4014,11 @@ const STEP_CSS = `
 .atl-ntrack-i.miss b{background:rgba(255,217,210,0.22);border:1px solid ${HAZARD_RED};color:#FFD9D2;}
 /* Chip s bodmi. Malý a bez rámu — je to poznámka k pilulke, nie druhá pilulka v nej.
    tabular-nums, aby sa „+3" a „0" nehojdali v rade vedľa seba. */
-.atl-ntrack-pts{flex:0 0 auto;font-style:normal;font-size:9px;font-weight:600;line-height:1;letter-spacing:.02em;font-variant-numeric:tabular-nums;padding:3px 4px;border-radius:999px;}
+.atl-ntrack-pts{flex:0 0 auto;font-style:normal;font-size:10px;font-weight:600;line-height:1;letter-spacing:.02em;font-variant-numeric:tabular-nums;padding:4px 4px;border-radius:999px;}
 .atl-ntrack-i.ok .atl-ntrack-pts{background:rgba(61,122,78,0.30);color:#D8F2E0;}
 .atl-ntrack-i.miss .atl-ntrack-pts{background:rgba(206,75,60,0.30);color:#FFD9D2;}
-.atl-noteask{padding:12px 14px;border-radius:12px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};}
-.atl-noteask p{margin:0 0 10px;font-family:${FONT_UI};font-size:13px;line-height:1.45;color:${T.onDark};}
+.atl-noteask{padding:12px 16px;border-radius:12px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};}
+.atl-noteask p{margin:0 0 10px;font-family:${FONT_UI};font-size:14px;line-height:1.45;color:${T.onDark};}
 .atl-noteask-btns{display:flex;gap:8px;}
 .atl-noteask-btns .atl-toggle-btn{flex:1 1 0;}
 /* KROK 2 V LIŠTE NAD MAPOU — lišta už rám aj podklad má, druhý dovnútra by vyrobil
@@ -4029,19 +4030,19 @@ const STEP_CSS = `
    riadku a nie vo vlastnom, ktorý by krok natiahol. */
 .atl-fieldhead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
 .atl-fieldhead > label{margin:0;}
-.atl-expand{flex:0 0 auto;background:none;border:0;padding:0;color:${GOLD};font-family:${FONT_UI};font-size:11px;font-weight:500;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
+.atl-expand{flex:0 0 auto;background:none;border:0;padding:0;color:${GOLD};font-family:${FONT_UI};font-size:12px;font-weight:500;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
 .atl-expand:hover{color:#F5C73D;}
 /* ── EDITOR PRÍBEHU NA CELÚ OBRAZOVKU (§4.5) ───────────────────────────────────────────
    Papyrusová plocha, do ktorej sa píše — teda úroveň 5 matrice (plochý papyrus), nie
    sklenený panel. Výška je daná oknom, nie obsahom: text má rásť do plochy, ktorá už stojí,
    inak by sa pri písaní hýbalo tlačidlo pod ním. */
 .atl-editor-scrim{position:fixed;inset:0;z-index:1500;background:rgba(24,14,4,0.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px;}
-.atl-editor{display:flex;flex-direction:column;gap:12px;width:min(860px,100%);height:min(80vh,760px);padding:20px;border-radius:18px;background:linear-gradient(135deg,${T.card} 0%,#F2E2BD 100%);border:1.5px solid ${T.cardEdge};box-shadow:0 24px 64px rgba(0,0,0,0.55),0 0 0 3px rgba(201,154,63,0.15);}
-.atl-editor-head{display:flex;align-items:center;justify-content:flex-start;gap:10px;font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:${T.inkStrong};}
+.atl-editor{display:flex;flex-direction:column;gap:12px;width:min(860px,100%);height:min(80vh,760px);padding:24px;border-radius:16px;background:linear-gradient(135deg,${T.card} 0%,#F2E2BD 100%);border:1.5px solid ${T.cardEdge};box-shadow:0 24px 64px rgba(0,0,0,0.55),0 0 0 3px rgba(201,154,63,0.15);}
+.atl-editor-head{display:flex;align-items:center;justify-content:flex-start;gap:10px;font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:0.02em;text-transform:uppercase;color:${T.inkStrong};}
 /* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
 .atl-editor-x{${backCircleCSS('pale')}}
 .atl-editor-x:hover{${backHoverCSS('pale')}}
-.atl-editor-area{flex:1 1 auto;min-height:0;resize:none;width:100%;box-sizing:border-box;padding:14px 16px;border-radius:8px;background:${T.card};border:1px solid ${PALE.border};color:${T.inkStrong};font-family:${FONT_UI};font-size:15px;line-height:1.6;}
+.atl-editor-area{flex:1 1 auto;min-height:0;resize:none;width:100%;box-sizing:border-box;padding:16px 16px;border-radius:8px;background:${T.card};border:1px solid ${PALE.border};color:${T.inkStrong};font-family:${FONT_UI};font-size:16px;line-height:1.6;}
 .atl-editor-area:focus{outline:none;border-color:${T.cardEdge};}
 .atl-editor-area::placeholder{color:${T.inkWarm};opacity:.7;}
 .atl-editor-done{flex:0 0 auto;align-self:flex-end;min-width:180px;}
@@ -4050,24 +4051,24 @@ const STEP_CSS = `
    Päť malých obrysových labiek v rade bez akéhokoľvek rámu vyzeralo ako popisok, nie ako
    pole, ktoré sa vypĺňa. Dostáva vlastnú plochu (úroveň 2 matrice), väčšie labky a číslo
    vedľa — číslo je jediné, čo z hodnotenia človek prečíta na diaľku. */
-.atl-rate{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-radius:12px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};}
-.atl-rate-val{flex:0 0 auto;font-family:${FONT_TITLE};font-weight:700;font-size:18px;line-height:1;color:${T.onDarkDim};font-variant-numeric:tabular-nums;}
+.atl-rate{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-radius:12px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};}
+.atl-rate-val{flex:0 0 auto;font-family:${FONT_TITLE};font-weight:700;font-size:20px;line-height:1;color:${T.onDarkDim};font-variant-numeric:tabular-nums;}
 .atl-rate-val.on{color:#F5C73D;}
 /* ── ČERVENÁ BUBLINKA NAD CTA (§5.4) ───────────────────────────────────────────────────
    Plná výplň a plný rám, nie priesvitný tint: stojí nad zlatým tlačidlom a musí sa dať
    prečítať skôr, než sa naň klikne. Inkoust je tmavočervený na svetlom, aby fungovala aj
    na papyruse PC — druhá verzia pre bledý skin tým odpadá. */
-.atl-draftwarn{margin-bottom:10px;padding:10px 13px;border-radius:10px;background:rgba(206,75,60,0.14);border:1.5px solid rgba(206,75,60,0.75);}
-.atl-draftwarn b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:#E9A093;}
-.atl-draftwarn p{margin:5px 0 0;font-family:${FONT_UI};font-size:11.5px;line-height:1.5;color:${T.onDarkDim};}
+.atl-draftwarn{margin-bottom:10px;padding:12px 12px;border-radius:8px;background:rgba(206,75,60,0.14);border:1.5px solid rgba(206,75,60,0.75);}
+.atl-draftwarn b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;color:#E9A093;}
+.atl-draftwarn p{margin:5px 0 0;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:${T.onDarkDim};}
 .atl-nav{display:flex;gap:8px;align-items:stretch;}
 .atl-nav .atl-toggle-btn{flex:0 0 34%;}
 .atl-nav .btn-gold{flex:1 1 0;}
 `;
 
 const RESTORE_CSS = `
-.atl-restore{margin:16px 20px;padding:14px 16px;border:1px solid ${T.onDarkBorder};border-radius:12px;background:rgba(245,240,228,0.04);}
-.atl-restore-txt{margin:0 0 12px;font-family:${FONT_UI};font-size:13px;line-height:1.5;color:${T.onDark};}
+.atl-restore{margin:16px 20px;padding:16px 16px;border:1px solid ${T.onDarkBorder};border-radius:12px;background:rgba(245,240,228,0.04);}
+.atl-restore-txt{margin:0 0 12px;font-family:${FONT_UI};font-size:14px;line-height:1.5;color:${T.onDark};}
 .atl-restore-btns{display:flex;gap:8px;}
 .atl-restore-btns .atl-toggle-btn{flex:1 1 0;}
 `;
@@ -4090,16 +4091,16 @@ const COMPANION_CSS = `
 /* Jeden pes: avatar a pole na človeka v JEDNOM riadku (24. 9. 2026). */
 .atl-companions .atl-solo-row{display:flex;align-items:center;gap:8px;}
 .atl-companions .atl-solo-row .comm-comp-searchwrap{flex:1;min-width:0;}
-.atl-companions .comm-comp-chip{padding:3px;gap:4px;position:relative;}
+.atl-companions .comm-comp-chip{padding:4px;gap:4px;position:relative;}
 .atl-companions .comm-comp-chip b{
   position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);
   white-space:nowrap;background:rgba(6,5,3,0.95);border:1px solid ${T.onDarkBorder};
-  padding:4px 9px;border-radius:6px;font-family:${FONT_UI};font-size:11px;font-weight:500;
+  padding:4px 8px;border-radius:8px;font-family:${FONT_UI};font-size:12px;font-weight:500;
   color:${T.onDark};opacity:0;pointer-events:none;transition:opacity .15s ease;z-index:6;
 }
 .atl-companions .comm-comp-chip:hover b{opacity:1;}
 .atl-companions .comm-comp-pack{gap:8px;}
-.atl-companions .comm-comp-dog{padding:3px;gap:0;position:relative;}
+.atl-companions .comm-comp-dog{padding:4px;gap:0;position:relative;}
 /* ⚠️ TOOLTIP JE MENO, NIE AVATAR (opravené 2026-08-26). Selektor span:not(.plus) bral
    z toku AJ .comm-comp-dog-av, lebo aj ten je <span>. Kým bola pilulka nevybraná, držal
    jej šírku aspoň plusko; odkedy je vlastný pes predvyplnený (§5.1 zadania), plusko tam nie je
@@ -4108,7 +4109,7 @@ const COMPANION_CSS = `
 .atl-companions .comm-comp-dog span:not(.plus):not(.comm-comp-dog-av){
   position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);
   white-space:nowrap;background:rgba(6,5,3,0.95);border:1px solid ${T.onDarkBorder};
-  padding:4px 9px;border-radius:6px;font-family:${FONT_UI};font-size:11px;font-weight:500;
+  padding:4px 8px;border-radius:8px;font-family:${FONT_UI};font-size:12px;font-weight:500;
   color:${T.onDark};opacity:0;pointer-events:none;transition:opacity .15s ease;z-index:6;
 }
 .atl-companions .comm-comp-dog:hover span:not(.plus):not(.comm-comp-dog-av),
@@ -4116,7 +4117,7 @@ const COMPANION_CSS = `
 .atl-companions .comm-comp-dog .plus{
   position:absolute;right:-3px;bottom:-3px;margin:0;background:${GOLD};color:${T.ink};
   width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:11px;line-height:1;
+  font-size:12px;line-height:1;
 }
 `;
 
@@ -4125,18 +4126,18 @@ const COMPANION_CSS = `
 // SpiralLanding.css, tmavý povrch varianta.
 const LOG_CSS = `
 .atl-log{display:flex;flex-direction:column;height:100%;min-height:0;}
-.atl-log-head{display:flex;align-items:center;gap:10px;padding:11px 20px 7px;flex-shrink:0;}
-.atl-log-back{display:inline-flex;align-items:center;justify-content:center;background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};color:${T.onDark};width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;line-height:1;}
+.atl-log-head{display:flex;align-items:center;gap:10px;padding:12px 24px 8px;flex-shrink:0;}
+.atl-log-back{display:inline-flex;align-items:center;justify-content:center;background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};color:${T.onDark};width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;line-height:1;}
 .atl-log-back:hover{border-color:${GOLD};color:${GOLD};}
-.atl-log-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.onDark};}
+.atl-log-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:0.02em;text-transform:uppercase;color:${T.onDark};}
 /* Titulná obrazovka pridávania — návrat v strede, pod ním nadpis a jedna veta. */
-.atl-log-head--plain{justify-content:center;padding:14px 20px 8px;}
+.atl-log-head--plain{justify-content:center;padding:16px 24px 8px;}
 /* ⚠️ SEDEM DLAŽDÍC SA MUSÍ ZMESTIŤ NA TELEFÓN (Matej 2026-08-23: „výber aktivity sa nezmestí
    na viewport mobilu"). Je to prvá obrazovka pridávania a zoznam, z ktorého sa vyberá — keď
    spodné dve položky ležia pod hranou, vyzerá to, že aktivít je päť. Preto je tu rytmus
    utiahnutý (výplne, medzery, nadpis) a veta pod nadpisom je DVOJRIADKOVÁ; keď ju budeš
    predlžovať, premeraj to znova pri innerHeight ~700. */
-.atl-log-head--intro{flex-direction:column;align-items:center;gap:18px;padding:30px 20px 14px;text-align:center;}
+.atl-log-head--intro{flex-direction:column;align-items:center;gap:18px;padding:32px 24px 16px;text-align:center;}
 /* Matej 2026-08-27: „vyzerá to prázdne… centruj nadpis, zväčši nadpis Pick an activity."
    Je to titulná strana celého pridávania a od zúženia sedmičky aktivít na ŠTYRI kategórie
    je pod ňou o tri dlaždice menej — nadpis teda nekonkuruje zoznamu, ale drží prázdnu
@@ -4148,7 +4149,7 @@ const LOG_CSS = `
    odseku. Odkedy pod ňou nestojí veta, je to jediné, čo nadpis oddeľuje od zoznamu.
    ⚠️ Kreslí sa na ::after, teda nezaberá vlastný riadok — výškový rozpočet obrazovky
    (dlaždice sa musia zmestiť bez skrolu) sa nemení. */
-.atl-log-title--big{font-size:26px;letter-spacing:.07em;line-height:1.2;position:relative;padding-bottom:12px;}
+.atl-log-title--big{font-size:24px;letter-spacing:0.02em;line-height:1.2;position:relative;padding-bottom:12px;}
 .atl-log-title--big::after{content:'';position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:52px;height:2px;border-radius:2px;background:${T.rule};}
 /* JEDEN STĹPEC NA MOBILE (Matej 2026-08-23: „políčka na mobile zväčši tak aby boli cez celý
    displej"). Dlaždica sa tým narovná do riadku — emoji vľavo, názov vedľa — takže výška
@@ -4178,12 +4179,12 @@ const LOG_CSS = `
    nestojí sedem aktivít, ale ŠTYRI kategórie — pri sedmičke bol jednoriadkový tvar jediný
    spôsob, ako sa zmestiť bez skrolovania, a to bol celý dôvod, prečo veta z dlaždice
    odišla do rozbaľovača. Zoznam ostáva skrolovateľný, takže pribudnutie piatej to nezhodí. */
-.atl-tile{display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:${PLATE_TILE_R}px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};cursor:pointer;text-align:left;transition:border-color .15s ease,background .15s ease;}
+.atl-tile{display:flex;align-items:center;gap:16px;padding:16px 24px;border-radius:${PLATE_TILE_R}px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};cursor:pointer;text-align:left;transition:border-color .15s ease,background .15s ease;}
 .atl-tile:hover{border-color:${GOLD};background:rgba(201,154,63,0.10);}
-.atl-tile-emoji{flex:0 0 auto;font-size:34px;line-height:1;}
+.atl-tile-emoji{flex:0 0 auto;font-size:24px;line-height:1;}
 /* Názov je JEDNO SLOVO a nesie identitu voľby ⇒ Cinzel, nie Space Grotesk (brand: nadpisy
    a názvy sú Cinzel). Ako veta pod ním by to bolo zlé, ako štítok je to správne. */
-.atl-tile-label{min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:16px;letter-spacing:.05em;text-transform:uppercase;color:${T.onDark};}
+.atl-tile-label{min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:16px;letter-spacing:0.02em;text-transform:uppercase;color:${T.onDark};}
 /* ── KROK 0b: PLÁNUJEM / PREŠLI SME TO ────────────────────────────────────────────────────
    Rozbaľovač je SÚČASŤ dlaždice, nie samostatný blok pod zoznamom: keby stál mimo, pri
    siedmich položkách by človek nevidel, ku ktorej sa voľba vzťahuje. Otvorená dlaždica preto
@@ -4193,8 +4194,8 @@ const LOG_CSS = `
 /* Dvojriadkový text vedľa emoji — názov nesie Cinzel, veta ide bežným písmom a nededí
    uppercase ani letter-spacing z nadpisu. */
 .atl-tile-txt{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:5px;}
-.atl-tile-note{font-family:${FONT_UI};font-weight:400;font-size:12.5px;line-height:1.4;letter-spacing:0;text-transform:none;color:${T.onDarkDim};}
-.atl-tile-caret{flex:0 0 auto;font-family:${FONT_UI};font-size:15px;line-height:1;color:${T.onDarkDim};}
+.atl-tile-note{font-family:${FONT_UI};font-weight:400;font-size:12px;line-height:1.4;letter-spacing:0;text-transform:none;color:${T.onDarkDim};}
+.atl-tile-caret{flex:0 0 auto;font-family:${FONT_UI};font-size:16px;line-height:1;color:${T.onDarkDim};}
 /* ── OTVORENÁ DLAŽDICA = JEDEN TMAVÝ BLOK (Matej 2026-08-27) ─────────────────────────────
    „treba skúsiť iné otváranie — blok stmavne a priamo v tom istom bloku budú 2 možnosti."
    Predtým to boli DVA prvky pod sebou (svetlá dlaždica + prilepený pásik s vlastným rámom),
@@ -4222,14 +4223,14 @@ const LOG_CSS = `
 /* Rad tlačidiel berie celú šírku rovnakými dielmi (feedback_rad_prvkov_plna_sirka_kontajnera). */
 /* Tlačidlá stoja NA lapise, tak nesú zlatý inkoust — plná svetlá výplň by z nich urobila
    dve hlavné CTA vnútri prvku, ktorý sám je len vybraná dlaždica. */
-.atl-mode-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:46px;padding:10px 12px;border-radius:10px;background:rgba(239,215,154,0.10);border:1.5px solid rgba(239,215,154,0.32);color:${LAPIS.ink};cursor:pointer;transition:border-color .15s ease,background .15s ease;}
-.atl-mode-btn b{font-family:${FONT_TITLE};font-weight:700;font-size:13.5px;letter-spacing:.05em;text-transform:uppercase;line-height:1.15;}
+.atl-mode-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:46px;padding:12px 12px;border-radius:8px;background:rgba(239,215,154,0.10);border:1.5px solid rgba(239,215,154,0.32);color:${LAPIS.ink};cursor:pointer;transition:border-color .15s ease,background .15s ease;}
+.atl-mode-btn b{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:0.02em;text-transform:uppercase;line-height:1.15;}
 /* Vysvetlivka nie je tlačidlo — nemá rám ani plochu, len tichý text na šírku stĺpca. */
-.atl-mode-cap{font-family:${FONT_UI};font-weight:400;font-size:10.5px;line-height:1.35;text-align:center;color:rgba(239,215,154,0.68);}
+.atl-mode-cap{font-family:${FONT_UI};font-weight:400;font-size:10px;line-height:1.35;text-align:center;color:rgba(239,215,154,0.68);}
 /* Popisok v zátvorke na druhom riadku — je to spresnenie, nie druhá voľba, tak nesmie mať
    rovnakú váhu ako label. Strop 600 platí aj tu: Space Grotesk nad 600 je fake bold. */
 .atl-mode-btn:hover,.atl-mode-btn:focus-visible{border-color:${LAPIS.ink};background:rgba(239,215,154,0.20);outline:none;}
-.atl-mode-emoji{font-family:${FONT_EMOJI};font-size:17px;line-height:1;}
+.atl-mode-emoji{font-family:${FONT_EMOJI};font-size:16px;line-height:1;}
 @media (max-width:359px){
   .atl-mode-btns{grid-template-columns:1fr;}
 }
@@ -4254,11 +4255,11 @@ const LOG_CSS = `
      rozdiel oproti 1fr je práve to, že rásť do prázdna už nemôžu.
      Voľná výška teda ide do ROZOSTUPOV a okrajov, presne ako si Matej vypýtal. */
   .atl-tiles{grid-auto-rows:minmax(min-content,96px);align-content:safe center;gap:18px;padding:2px 22px calc(18px + env(safe-area-inset-bottom,0px));}
-  .atl-tile{gap:14px;padding:14px 16px;}
-  .atl-tile-emoji{font-size:28px;}
-  .atl-tile-label{font-size:15px;}
+  .atl-tile{gap:14px;padding:16px 16px;}
+  .atl-tile-emoji{font-size:24px;}
+  .atl-tile-label{font-size:16px;}
   .atl-tile-note{font-size:12px;}
-  .atl-log-head--intro{padding-left:22px;padding-right:22px;}
+  .atl-log-head--intro{padding-left:24px;padding-right:24px;}
 
   /* ── NADPIS PATRÍ K DLAŽDICIAM, NIE K HORNEJ HRANE (Matej 2026-08-28) ──────────────────
      „ten nadpis posuň nižšie — patrí to k tým 4 blokom"
@@ -4274,7 +4275,7 @@ const LOG_CSS = `
      ⚠️ flex:0 1 auto na zozname (namiesto 1 1 auto): zoznam sa smie ZMRAŠTIŤ a rolovať
      na nízkom displeji, ale nesmie sa naťahovať — inak vyplní zvyšok a centrovať nie je čo.
      Slovo safe drží vrch dosiahnuteľný, keď sa dvojica nezmestí. */
-  .atl-log--intro{position:relative;justify-content:safe center;padding-top:52px;}
+  .atl-log--intro{position:relative;justify-content:safe center;padding-top:48px;}
   .atl-log--intro .atl-log-head--intro{padding-top:0;gap:0;}
   .atl-log--intro .atl-log-back{position:absolute;top:14px;left:50%;transform:translateX(-50%);}
   .atl-log--intro .atl-tiles{flex:0 1 auto;}
@@ -4290,7 +4291,7 @@ const LOG_CSS = `
    Vodorovne sa neskroluje nikdy — čo pretečie, je chyba prvku, nie dôvod na posúvanie
    stránky. Vlastnosť overscroll-behavior drží ťah prsta vnútri formulára, aby sa pod ním nehýbala
    mapa ani celý dokument. */
-.atl-log-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:4px 20px 16px;display:flex;flex-direction:column;gap:11px;}
+.atl-log-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:4px 24px 16px;display:flex;flex-direction:column;gap:11px;}
 /* ── KROK SA MÁ ZMESTIŤ, NIE SKROLOVAŤ (Matej 2026-08-26) ──────────────────────────────
    „niektoré kroky vo flow sa musia scrolovať… skúsme to spraviť tak, aby sa nemuselo."
    Krok 4 potreboval 544 px do 450 px vysokého tela. Šesť polí nad sebou, z toho päť má
@@ -4309,9 +4310,9 @@ const LOG_CSS = `
    stĺpca; toto číslo platí len vtedy, keď stĺpec žiadny zvyšok nemá (nízke okno). */
 .atl-field--grow .atl-textarea{flex:1 1 auto;min-height:120px;resize:none;}
 .atl-photo{flex:0 0 auto;position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,#1c2b1a,#0e1a0d);background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;border:1px solid ${T.onDarkBorder};}
-.atl-photo-badge{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.45);padding:8px 14px;border-radius:8px;border:1px solid rgba(201,154,63,0.5);}
-.atl-field label{display:block;font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:4px;}
-.atl-field-hint{font-weight:400;text-transform:none;letter-spacing:0;opacity:.72;font-size:10.5px;font-family:${FONT_UI};color:${T.onDarkDim};}
+.atl-photo-badge{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.22em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.45);padding:8px 16px;border-radius:8px;border:1px solid rgba(201,154,63,0.5);}
+.atl-field label{display:block;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:4px;}
+.atl-field-hint{font-weight:400;text-transform:none;letter-spacing:0;opacity:.72;font-size:10px;font-family:${FONT_UI};color:${T.onDarkDim};}
 /* ⚠️ 16 px JE MINIMUM, NIE VKUS (feedback_dogypt_form_input_recurring_bugs, tretí výskyt
    23. 8.). Pod ním iOS Safari pri kliknutí do poľa priblíži CELÝ dokument a ovládanie
    ukotvené k okrajom vypadne mimo obrazovky — vyzerá to, že sa appka rozbila, nie že je
@@ -4319,7 +4320,7 @@ const LOG_CSS = `
    min-width:0 + max-width:100%: pole s type=date má na iOS vlastnú vnútornú šírku
    a v grid bunke (min-width:auto) ju presadí — riadok tak pretiekol cez okraj stránky
    a dal sa vodorovne posúvať (Matej 23. 8.: „dátum preteká cez okraj"). */
-.atl-input{width:100%;min-width:0;max-width:100%;box-sizing:border-box;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:9px;padding:9px 11px;color:${T.onDark};font-family:${FONT_UI};font-size:16px;outline:0;}
+.atl-input{width:100%;min-width:0;max-width:100%;box-sizing:border-box;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:8px;padding:8px 12px;color:${T.onDark};font-family:${FONT_UI};font-size:16px;outline:0;}
 .atl-input:focus{border-color:${GOLD};}
 .atl-input::placeholder{color:${T.onDarkDim};}
 .atl-input:disabled{opacity:.45;}
@@ -4341,7 +4342,7 @@ const LOG_CSS = `
    ostane text prilepený hore, lebo prázdny vnútorný box sa nemá o čo oprieť.
    Počíta sa z 'em', nie z pevných pixelov — pole vedľa má 'font-size:16px', a keby sa
    niekedy zmenilo, dvojica sa nesmie rozísť. */
-.atl-input[type="date"]{-webkit-appearance:none;appearance:none;position:relative;display:block;width:100%;min-width:0;max-width:100%;padding-right:46px;text-align:left;min-height:calc(1.2em + 20px);}
+.atl-input[type="date"]{-webkit-appearance:none;appearance:none;position:relative;display:block;width:100%;min-width:0;max-width:100%;padding-right:48px;text-align:left;min-height:calc(1.2em + 20px);}
 .atl-input[type="date"]::-webkit-date-and-time-value{text-align:left;margin:0;min-height:1.2em;line-height:1.2;}
 /* ── IKONKA KALENDÁRA NA PLNÚ VÝŠKU POĽA (Matej 2026-08-24) ──────────────────────────
    „dátum na mobile má úzky text area — dajme tam ikonku kalendára v normálnej výške
@@ -4383,7 +4384,7 @@ const LOG_CSS = `
    pod 9,5 px by prestali byť čitateľné. */
 .atl-row3--tight{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
 .atl-row3--tight .atl-field label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.atl-row3--tight .atl-input{padding-left:8px;padding-right:6px;}
+.atl-row3--tight .atl-input{padding-left:8px;padding-right:8px;}
 /* ⚠️ DVOJICA, KTORÁ SA NA TELEFÓNE NEROZPADNE (Matej 2026-08-25: „povrch a ruch daj do
    jedného riadku vedla saba nie pod seba"). '.atl-row2' sa pod 640 px zlomí do stĺpca —
    správne pre dlhé polia (názov, dátum), ale toto sú dva krátke rozbaľovače a pod sebou
@@ -4391,7 +4392,7 @@ const LOG_CSS = `
    media query zámerne nie je. */
 .atl-row2--tight{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
 .atl-row2--tight .atl-field label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.atl-row2--tight .atl-input{padding-left:8px;padding-right:6px;}
+.atl-row2--tight .atl-input{padding-left:8px;padding-right:8px;}
 /* Rad náročností: celá šírka, rovnaké diely (rad prvkov = celý kontajner). Štyri stupne sa
    na najužší telefón zmestia len s malým písmom a bez uppercase — značka nesie význam,
    text ju už len pomenúva. */
@@ -4400,7 +4401,7 @@ const LOG_CSS = `
    ňou — vyberá sa jedna z troch — ale ako jediná stála na dvoch riadkoch, takže vyzerala
    ako iný druh ovládania a stála o 20 px viac. Rad emoji + slovo je vzor, ktorý už drží
    zvyšok kroku. */
-.atl-diffbtn{flex:1 1 0;min-width:0;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:6px;padding:9px 4px;border-radius:9px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};font-size:10.5px;font-weight:500;line-height:1.1;cursor:pointer;}
+.atl-diffbtn{flex:1 1 0;min-width:0;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:6px;padding:8px 4px;border-radius:8px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};font-size:10px;font-weight:500;line-height:1.1;cursor:pointer;}
 .atl-diffbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
 .atl-diffbtn.on{background:rgba(61,122,78,0.26);border-color:${PICK};color:${T.onDark};box-shadow:inset 0 0 0 1px ${PICK};}
 .atl-toggle-row{display:flex;gap:8px;}
@@ -4409,7 +4410,7 @@ const LOG_CSS = `
    rozostup a popiska. Žiadny vlastný podklad — druhá plocha vnútri panela by z jedného
    ovládania spravila dve. */
 .atl-daymode{display:flex;flex-direction:column;gap:7px;}
-.atl-daymode-ask{font-family:${FONT_UI};font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:${T.onDarkDim};}
+.atl-daymode-ask{font-family:${FONT_UI};font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:${T.onDarkDim};}
 /* Odkaz, nie tretie tlačidlo: výber z magistrál je vedľajšia cesta k tej istej trase a
    v rade s dvoma prepínačmi by vyzeral ako tretia odpoveď na otázku o dĺžke výletu. */
 /* ── ODYSEA (2026-08-27) — OZNÁMENIE, NIE VOĽBA ────────────────────────────────────────
@@ -4419,13 +4420,13 @@ const LOG_CSS = `
 /* ⚠️ border MUSÍ BYŤ DEKLAROVANÝ — pickTintCSS dáva len border-COLOR — bez šírky a štýlu
    sa rám nevykreslí a z modrého tintu ostane na piesku šedá plocha. Práve plný farebný
    rám (nie krytie výplne) nesie podľa locku z 26. 8. čitateľnosť. */
-.atl-odyssey{display:flex;align-items:center;gap:10px;padding:11px 13px;border:1px solid transparent;border-radius:10px;cursor:default;${pickTintCSS(LAPIS.edge, LAPIS.ink, 0.26)}}
+.atl-odyssey{display:flex;align-items:center;gap:10px;padding:12px 12px;border:1px solid transparent;border-radius:8px;cursor:default;${pickTintCSS(LAPIS.edge, LAPIS.ink, 0.26)}}
 .atl-odyssey-mark{font-size:14px;line-height:1;opacity:.9;}
 .atl-odyssey-txt{display:flex;flex-direction:column;gap:2px;min-width:0;}
-.atl-odyssey-txt b{font-family:${FONT_TITLE};font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;}
-.atl-odyssey-txt i{font-family:${FONT_UI};font-style:normal;font-size:11.5px;font-weight:400;opacity:.85;}
-.atl-daycount{margin:2px 0 0;font-family:${FONT_UI};font-size:12px;font-weight:500;letter-spacing:.06em;color:${T.onDarkDim};}
-.atl-daymode-link{align-self:flex-start;background:none;border:none;padding:2px 0;color:${T.onDarkDim};font-family:${FONT_UI};font-size:12px;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
+.atl-odyssey-txt b{font-family:${FONT_TITLE};font-size:14px;font-weight:700;letter-spacing:0.02em;text-transform:uppercase;}
+.atl-odyssey-txt i{font-family:${FONT_UI};font-style:normal;font-size:12px;font-weight:400;opacity:.85;}
+.atl-daycount{margin:2px 0 0;font-family:${FONT_UI};font-size:12px;font-weight:500;letter-spacing:0.02em;color:${T.onDarkDim};}
+.atl-daymode-link{align-self:flex-start;background:none;border:none;padding:4px 0;color:${T.onDarkDim};font-family:${FONT_UI};font-size:12px;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
 /* ⚠️ RAD PREPÍNAČOV = CELÁ ŠÍRKA, ROVNAKÉ DIELY. Trieda atl-toggle-row doteraz nemala ŽIADNE
    pravidlo — bol to holý div, takže tlačidlá so šírkou 100% sa poukladali POD SEBA a jedno
    pole („kedy idete" má tri presnosti a štyri týždne) zabralo sedem riadkov. Rovnako stála
@@ -4434,18 +4435,18 @@ const LOG_CSS = `
 /* ⚠️ ZELENÁ LEN V RADE VOLIEB. Samostatný .atl-toggle-btn.on je AKCIA (Zostať,
    Pokračovať, Zapísať aj tak), nie označená možnosť — tam zlatá ostáva. */
 .atl-toggle-row > .atl-toggle-btn.on{background:rgba(61,122,78,0.26);border-color:${PICK};color:${T.onDark};box-shadow:inset 0 0 0 1px ${PICK};}
-.atl-toggle-btn{width:100%;font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.03em;padding:8px 10px;border-radius:9px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;white-space:nowrap;}
+.atl-toggle-btn{width:100%;font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:0.02em;padding:8px 12px;border-radius:8px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;white-space:nowrap;}
 .atl-toggle-btn.on{background:rgba(201,154,63,0.14);border-color:${GOLD};color:${T.onDark};}
-.atl-daterange-hint{margin:-4px 0 0;font-family:${FONT_UI};font-weight:400;font-size:11px;line-height:1.4;color:${T.onDarkDim};}
-.atl-journey-link{background:none;border:0;padding:0;margin:0;color:${GOLD};font-family:${FONT_UI};font-size:11px;font-weight:600;cursor:pointer;align-self:flex-start;}
+.atl-daterange-hint{margin:-4px 0 0;font-family:${FONT_UI};font-weight:400;font-size:12px;line-height:1.4;color:${T.onDarkDim};}
+.atl-journey-link{background:none;border:0;padding:0;margin:0;color:${GOLD};font-family:${FONT_UI};font-size:12px;font-weight:600;cursor:pointer;align-self:flex-start;}
 .atl-journey-link:hover{text-decoration:underline;}
 .atl-journeys{display:flex;flex-direction:column;gap:8px;}
-.atl-journey-list{max-height:230px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;border:1px solid ${T.onDarkBorder};border-radius:10px;padding:6px;}
-.atl-journey-item{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;padding:9px 11px;border-radius:8px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};cursor:pointer;}
+.atl-journey-list{max-height:230px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;border:1px solid ${T.onDarkBorder};border-radius:8px;padding:8px;}
+.atl-journey-item{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;padding:8px 12px;border-radius:8px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};cursor:pointer;}
 .atl-journey-item:hover{border-color:${GOLD};}
 .atl-journey-item.on{background:rgba(201,154,63,0.14);border-color:${GOLD};}
-.atl-journey-name{font-family:${FONT_TITLE};font-weight:700;font-size:12.5px;letter-spacing:.02em;color:${T.onDark};}
-.atl-journey-meta{font-family:${FONT_UI};font-weight:500;font-size:10.5px;letter-spacing:.02em;color:${T.onDarkDim};}
+.atl-journey-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.02em;color:${T.onDark};}
+.atl-journey-meta{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.02em;color:${T.onDarkDim};}
 .atl-chips{display:flex;flex-wrap:wrap;gap:6px;}
 /* ── MRIEŽKA VÝBERU HLAVNÉHO MIESTA (krok „Čo", 1. 9. 2026) ───────────────────────────
    Je to TEN ISTÝ chip, len v dvoch stĺpcoch a vyšší — nie nová značka. Vlastná trieda
@@ -4453,7 +4454,7 @@ const LOG_CSS = `
    svetlom podklade by z výberu ostal nečitateľný obdĺžnik. */
 /* OTÁZKA KROKU „ČO" — jediný nadpis vnútri panela krokov. Odsadenie zhora je zámerné:
    nad ním je zlatá deliaca čiara číselníka a bez neho sa naň nadpis lepí. */
-.atl-ask{font-family:${FONT_TITLE};font-weight:700;font-size:19px;line-height:1.18;letter-spacing:.01em;
+.atl-ask{font-family:${FONT_TITLE};font-weight:700;font-size:20px;line-height:1.18;letter-spacing:0.02em;
   text-transform:uppercase;color:${T.onDark};margin:14px 0 0;}
 .atl-ask-sub{font-family:${FONT_UI};font-weight:500;font-size:12px;line-height:1.4;color:${T.onDarkDim};margin:7px 0 14px;}
 .atl-chips--picks{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
@@ -4461,9 +4462,9 @@ const LOG_CSS = `
    Rám je ten istý, aký nesú polia a pilulky matrice: rgba(179,130,45,0.55) — jeden, nie dva. */
 .atl-ctxpill{align-self:center;display:inline-flex;align-items:center;gap:7px;height:26px;padding:0 12px;border-radius:999px;
   background:rgba(255,250,240,0.72);border:1px solid ${PALE.border};color:${T.inkStrong};
-  font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;}
+  font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;white-space:nowrap;}
 .atl-chips--picks .atl-chip{height:46px;justify-content:flex-start;font-size:12px;padding:0 12px;}
-.atl-chips--picks .atl-chip-emoji{width:20px;flex:0 0 20px;font-size:17px;margin-right:9px;}
+.atl-chips--picks .atl-chip-emoji{width:20px;flex:0 0 20px;font-size:16px;margin-right:9px;}
 /* ── DOPRAVA (2026-08-26) ───────────────────────────────────────────────────────────────
    Mriežka, nie zalamovaný rad: šesť dlaždíc s emoji a slovom sa pri wrape láme na 4+2
    a posledný riadok potom visí. Tri stĺpce dajú vždy 3+3.
@@ -4478,26 +4479,26 @@ const LOG_CSS = `
 .atl-field--off{opacity:.42;}
 .atl-field--off .atl-input,.atl-field--off .atl-travel-btn{cursor:not-allowed;}
 .atl-travel{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
-.atl-travel-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:9px 4px;border-radius:9px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;min-width:0;}
-.atl-travel-btn b{font-size:17px;line-height:1;font-weight:400;}
-.atl-travel-btn span{font-family:${FONT_UI};font-weight:500;font-size:10.5px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.atl-travel-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 4px;border-radius:8px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;min-width:0;}
+.atl-travel-btn b{font-size:16px;line-height:1;font-weight:400;}
+.atl-travel-btn span{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
 .atl-travel-btn:hover{border-color:${GOLD};}
 .atl-travel-btn.on{background:rgba(61,122,78,0.26);border-color:${PICK};color:${T.onDark};box-shadow:inset 0 0 0 1px ${PICK};}
 /* ZAŠKRTNUTIE — vlastný prvok, nie natívny checkbox: ten sa nedá zladiť s tmavým povrchom
    bez appearance hackov a na mobile má cudziu veľkosť. Je to <button aria-pressed>. */
-.atl-check{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:9px 11px;border-radius:9px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;}
-.atl-check b{flex:0 0 auto;width:16px;height:16px;border-radius:4px;border:1px solid ${T.onDarkBorder};display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;}
-.atl-check span{font-family:${FONT_UI};font-weight:500;font-size:11.5px;letter-spacing:.02em;}
+.atl-check{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:8px 12px;border-radius:8px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;}
+.atl-check b{flex:0 0 auto;width:16px;height:16px;border-radius:0px;border:1px solid ${T.onDarkBorder};display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1;}
+.atl-check span{font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:.02em;}
 .atl-check.on{background:rgba(61,122,78,0.26);border-color:${PICK};color:${T.onDark};box-shadow:inset 0 0 0 1px ${PICK};}
 .atl-check.on b{border-color:${PICK};color:${T.onDark};}
 .atl-seats{display:flex;align-items:center;gap:8px;margin-top:8px;}
-.atl-seats span{font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.02em;color:${T.onDarkDim};}
+.atl-seats span{font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:.02em;color:${T.onDarkDim};}
 .atl-seats b{font-family:${FONT_TITLE};font-weight:700;font-size:14px;color:${T.onDark};min-width:16px;text-align:center;}
 .atl-seats button{width:26px;height:26px;border-radius:8px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:14px;line-height:1;cursor:pointer;}
 .atl-seats button:hover{border-color:${GOLD};}
-.atl-chip{display:inline-flex;align-items:center;height:28px;font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.02em;padding:0 10px;border-radius:8px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;}
+.atl-chip{display:inline-flex;align-items:center;height:28px;font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:.02em;padding:0 12px;border-radius:8px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;}
 .atl-chip.on{background:rgba(61,122,78,0.28);border-color:${PICK};color:${T.onDark};box-shadow:inset 0 0 0 1px ${PICK};}
-.atl-chip-emoji{display:inline-flex;align-items:center;justify-content:center;width:15px;flex:0 0 15px;line-height:1;font-size:13px;margin-right:5px;}
+.atl-chip-emoji{display:inline-flex;align-items:center;justify-content:center;width:15px;flex:0 0 15px;line-height:1;font-size:14px;margin-right:5px;}
 .atl-chip-label{line-height:1;}
 .atl-chip-add{border-style:dashed;}
 /* ── DRUHÝ, ZBALENÝ RAD CHIPOV (2026-08-31) ────────────────────────────────────────────
@@ -4505,19 +4506,19 @@ const LOG_CSS = `
    z rozbaľovača spravil rovnocenný ovládač s chipmi nad ním, a práve to sa nemá stať —
    druhý rad si musí človek vypýtať. */
 .atl-more{margin-top:9px;}
-.atl-morebtn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;text-align:left;font-family:${FONT_UI};font-weight:500;font-size:11.5px;letter-spacing:.02em;padding:9px 12px;border-radius:10px;background:transparent;border:1px dashed ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;}
+.atl-morebtn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;text-align:left;font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:.02em;padding:8px 12px;border-radius:8px;background:transparent;border:1px dashed ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;}
 .atl-morebtn:hover{border-color:${GOLD};color:${T.onDark};}
-.atl-morebtn-arw{flex:0 0 auto;font-size:11px;line-height:1;opacity:.7;}
-.atl-more-body{margin-top:9px;padding-top:10px;border-top:1px solid ${T.onDarkBorder};display:flex;flex-direction:column;gap:9px;}
+.atl-morebtn-arw{flex:0 0 auto;font-size:12px;line-height:1;opacity:.7;}
+.atl-more-body{margin-top:9px;padding-top:12px;border-top:1px solid ${T.onDarkBorder};display:flex;flex-direction:column;gap:9px;}
 /* ── TICHÁ PONUKA MIESTA ───────────────────────────────────────────────────────────────
    LAPIS, nie zelená: zelená v tomto toku znamená „vybral som si", lapis „appka niečo
    ponúka / vie". Rovnaká dvojica ako pri odysei o kus vyššie. */
-.atl-where{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border:1px solid transparent;border-radius:10px;${pickTintCSS(LAPIS.edge, LAPIS.ink, 0.20)}}
+.atl-where{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;border:1px solid transparent;border-radius:8px;${pickTintCSS(LAPIS.edge, LAPIS.ink, 0.20)}}
 .atl-where-txt{display:flex;flex-direction:column;gap:2px;min-width:0;}
-.atl-where-txt b{font-family:${FONT_UI};font-weight:500;font-size:11.5px;letter-spacing:.02em;}
+.atl-where-txt b{font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:.02em;}
 /* „nemusíš" musí byť vidno bez rozklikávania — je to celý zmysel tejto ponuky. */
-.atl-where-txt i{font-style:normal;font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.72;}
-.atl-where-btn{flex:0 0 auto;font-family:${FONT_UI};font-weight:600;font-size:11px;letter-spacing:.03em;white-space:nowrap;padding:7px 11px;border-radius:8px;background:${LAPIS.grad};border:1px solid ${LAPIS.deep};color:${LAPIS.ink};cursor:pointer;box-shadow:${LAPIS_BTN_SHADOW};}
+.atl-where-txt i{font-style:normal;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.72;}
+.atl-where-btn{flex:0 0 auto;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.02em;white-space:nowrap;padding:8px 12px;border-radius:8px;background:${LAPIS.grad};border:1px solid ${LAPIS.deep};color:${LAPIS.ink};cursor:pointer;box-shadow:${LAPIS_BTN_SHADOW};}
 /* ── ODISTENÝ CHIP ZNAČKY (mazanie dvoma ťukmi) ───────────────────────────────────────
    Odistený chip zčervenie a pribudne mu × — druhý ťuk už značku zmaže, a to nevratne,
    takže to musí vyzerať inak než „vybraté". Červená je tá istá, akú nesie upozornenie
@@ -4526,8 +4527,8 @@ const LOG_CSS = `
 .atl-chip--del.armed{background:rgba(206,75,60,0.18);border-color:rgba(206,75,60,0.65);color:#F0A0A0;}
 .atl-chip-x{font-style:normal;margin-left:6px;font-size:14px;line-height:1;opacity:.9;}
 .atl-custom-hazard{display:flex;gap:6px;margin-top:8px;}
-.atl-custom-hazard .atl-toggle-btn{flex:0 0 auto;padding:9px 14px;}
-.atl-file-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.03em;padding:10px 12px;border-radius:11px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};color:${T.onDark};cursor:pointer;}
+.atl-custom-hazard .atl-toggle-btn{flex:0 0 auto;padding:8px 16px;}
+.atl-file-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.02em;padding:12px 12px;border-radius:12px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};color:${T.onDark};cursor:pointer;}
 .atl-file-btn:hover:not(:disabled){border-color:${GOLD};color:${GOLD};}
 .atl-file-btn:disabled{opacity:.45;cursor:default;}
 .atl-file-input-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
@@ -4535,13 +4536,13 @@ const LOG_CSS = `
 .atl-photo-thumb{position:relative;aspect-ratio:1;border-radius:8px;background-size:cover;background-position:center;border:1px solid ${T.onDarkBorder};cursor:pointer;}
 .atl-photo-thumb.cover{border:2px solid ${GOLD};box-shadow:0 0 0 1px ${T.border};}
 .atl-photo-thumb button{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.7);border:0;color:${T.onDark};cursor:pointer;font-size:12px;line-height:1;}
-.atl-photo-cover-badge{position:absolute;left:0;right:0;bottom:0;text-align:center;font-family:${FONT_UI};font-weight:600;font-size:7.5px;letter-spacing:.12em;color:#000;background:${GOLD};padding:2px 0;border-radius:0 0 6px 6px;}
+.atl-photo-cover-badge{position:absolute;left:0;right:0;bottom:0;text-align:center;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;color:#000;background:${GOLD};padding:4px 0;border-radius:0 0 8px 8px;}
 .atl-cover-crop{margin-top:10px;display:flex;flex-direction:column;gap:5px;}
 /* Náhľad titulnej fotky priamo nad posuvníkom. Pomer 16:9 = ten istý tvar, v akom fotka
    nakoniec sedí na karte výletu, takže sa neposúva výrez, ktorý človek nikdy neuvidí. */
-.atl-cover-preview{width:100%;aspect-ratio:16/9;border-radius:10px;background-size:cover;
+.atl-cover-preview{width:100%;aspect-ratio:16/9;border-radius:8px;background-size:cover;
   background-repeat:no-repeat;border:1px solid ${PALE.border};}
-.atl-cover-crop label{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:${T.onDarkDim};}
+.atl-cover-crop label{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:${T.onDarkDim};}
 .atl-cover-slider{width:100%;accent-color:${GOLD};}
 /* ⚠️ ODSTUP OD OBSAHU JE NA PÄTE, NIE NA POSLEDNOM POLI (Matej 1. 9. 2026: „text area je
    v dotyku s CTA, čo je zle — musí tam byť väčší priestor"). Príbeh je atl-field--grow,
@@ -4555,9 +4556,9 @@ const LOG_CSS = `
    .btn-gold lock (CLAUDE.md) hovorí, že gradient existuje na jednom mieste na súbor. */
 .atl-log-foot .btn-gold,
 .atl-editor .btn-gold{
-  width:100%;padding:13px;background:${GOLD_BTN.grad};
+  width:100%;padding:12px;background:${GOLD_BTN.grad};
   border:1px solid ${GOLD_BTN.edge};border-radius:8px;color:#000;font-family:${FONT_TITLE};
-  font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
+  font-size:12px;font-weight:700;letter-spacing:0.02em;text-transform:uppercase;cursor:pointer;
   box-shadow:${GOLD_BTN.glow};
   transition:transform .2s,box-shadow .22s,opacity .22s;
 }
@@ -4565,12 +4566,12 @@ const LOG_CSS = `
 .atl-editor .btn-gold:hover:not(:disabled){transform:scale(1.02);box-shadow:${GOLD_BTN.glowHover};}
 .atl-log-foot .btn-gold:disabled,
 .atl-editor .btn-gold:disabled{opacity:.45;cursor:default;box-shadow:none;}
-.atl-log-hint{margin:0;font-family:${FONT_UI};font-size:11px;color:${T.onDarkDim};text-align:center;}
-.atl-log-error{margin:0;font-family:${FONT_UI};font-size:11.5px;color:#E08A6E;text-align:center;}
-.atl-dupwarn{padding:10px 12px;border-radius:10px;background:rgba(201,154,63,0.10);border:1px solid ${GOLD};}
-.atl-dupwarn p{margin:0 0 8px;font-family:${FONT_UI};font-size:11.5px;color:${T.onDark};line-height:1.4;}
+.atl-log-hint{margin:0;font-family:${FONT_UI};font-size:12px;color:${T.onDarkDim};text-align:center;}
+.atl-log-error{margin:0;font-family:${FONT_UI};font-size:12px;color:#E08A6E;text-align:center;}
+.atl-dupwarn{padding:12px 12px;border-radius:8px;background:rgba(201,154,63,0.10);border:1px solid ${GOLD};}
+.atl-dupwarn p{margin:0 0 8px;font-family:${FONT_UI};font-size:12px;color:${T.onDark};line-height:1.4;}
 .atl-dupwarn-btns{display:flex;gap:8px;}
-.atl-dupwarn-btns .atl-toggle-btn{padding:7px 10px;font-size:10.5px;}
+.atl-dupwarn-btns .atl-toggle-btn{padding:8px 12px;font-size:10px;}
 @media (max-width:640px){
   .atl-row2,.atl-row3{grid-template-columns:minmax(0,1fr);}
   /* .atl-row3--tight sem ZÁMERNE nepatrí — viď jeho komentár vyššie. */

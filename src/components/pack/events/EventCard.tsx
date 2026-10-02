@@ -261,7 +261,7 @@ export function EventCard({ item, highlighted, expanded, onToggle, onChanged, on
           {item.heldConfirmedAt && item.recap && (
             <div className="pev-recap">
               <div className="pev-label">{t('pack.event.recapTitle')}</div>
-              {item.recapPhotos[0] && <div className="pk-photo pev-photo"><img src={item.recapPhotos[0]} alt="" loading="lazy" /></div>}
+              {item.recapPhotos[0] && <div className="pk-photo pev-photo"><img src={sizedUrl(item.recapPhotos[0], 800)} alt="" loading="lazy" /></div>}
               <div className="pev-desc">{item.recap}</div>
             </div>
           )}
@@ -346,7 +346,7 @@ export function EventCard({ item, highlighted, expanded, onToggle, onChanged, on
                   <div className="pev-hint">{recap.length} / 500</div>
                   <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => void pickRecapPhoto(e)} />
                   {recapPhoto
-                    ? <div className="pk-photo pev-photo"><img src={recapPhoto} alt="" /></div>
+                    ? <div className="pk-photo pev-photo"><img src={sizedUrl(recapPhoto, 800)} alt="" loading="lazy" /></div>
                     : <button type="button" className="pev-maybe" disabled={busy} onClick={() => fileRef.current?.click()}>{t('pack.event.recapAddPhoto')}</button>}
                   <button type="button" className="pev-go" disabled={busy || !recap.trim() || !recapPhoto} onClick={() => void doConfirmHeld()}>
                     {t('pack.event.recapConfirm')}

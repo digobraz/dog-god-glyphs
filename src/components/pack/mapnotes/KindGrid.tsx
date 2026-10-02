@@ -92,15 +92,15 @@ export const KIND_GRID_CSS = `
    a zaberajú cenný priestor v dolnom paneli, kde sa to nezmestí"). V mriežke bolo emoji NAD
    názvom, lebo stĺpec je úzky; v rade sa smie ísť VEDĽA SEBA a dlaždica tým klesne z ~58 px
    na ~34 px. Ušetrené dva riadky sú presne to, čo v paneli chýbalo. */
-.mnk-grid--row .mnk-tile{flex:0 0 auto;flex-direction:row;gap:5px;padding:6px 9px;border-radius:999px;white-space:nowrap;}
+.mnk-grid--row .mnk-tile{flex:0 0 auto;flex-direction:row;gap:5px;padding:8px 8px;border-radius:999px;white-space:nowrap;}
 .mnk-grid--row .mnk-tile i{font-size:14px;}
 .mnk-grid--row .mnk-tile em{font-size:10px;}
-.mnk-tile{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:5px;box-sizing:border-box;padding:9px 4px;border-radius:10px;background:rgba(245,240,228,0.06);border:1.5px solid ${T.onDarkBorder};cursor:pointer;transition:transform .12s ease,background .12s ease,border-color .12s ease;}
+.mnk-tile{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:5px;box-sizing:border-box;padding:8px 4px;border-radius:8px;background:rgba(245,240,228,0.06);border:1.5px solid ${T.onDarkBorder};cursor:pointer;transition:transform .12s ease,background .12s ease,border-color .12s ease;}
 .mnk-tile:hover{transform:translateY(-1px);border-color:${T.onDarkDim};}
 /* Ten istý dôvod ako pri chipoch skupiny v AddTripLog: outline mimo hranice by sa orezal
    o skrolovací stĺpec. Dovnútra ho vidno rovnako. */
 .mnk-tile:focus-visible{outline:2px solid ${T.onDark};outline-offset:-2px;}
-.mnk-tile i{font-style:normal;font-family:${FONT_EMOJI};font-size:19px;line-height:1;}
+.mnk-tile i{font-style:normal;font-family:${FONT_EMOJI};font-size:20px;line-height:1;}
 /* Space Grotesk je načítaný len 300–600 ⇒ strop 600, inak fake bold (CLAUDE.md). */
 .mnk-tile em{font-style:normal;font-family:${FONT_UI};font-size:10px;font-weight:500;line-height:1.2;text-align:center;color:${T.onDarkDim};}
 .mnk-tile.on em{color:#FFFFFF;}

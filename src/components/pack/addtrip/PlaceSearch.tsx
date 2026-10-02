@@ -45,10 +45,10 @@ export type PlaceSearchProps = {
 const GLOW_DIM = 'rgba(47,107,255,0.55)';
 const PLACE_SEARCH_CSS = `
 @property --trp-ps-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
-.trp-ps{position:relative;border-radius:10px;}
+.trp-ps{position:relative;border-radius:8px;}
 .trp-ps.is-attn{box-shadow:0 0 16px rgba(47,107,255,0.22);}
 .trp-ps.is-attn::before{
-  content:'';position:absolute;inset:-2px;border-radius:12px;z-index:0;pointer-events:none;padding:2px;
+  content:'';position:absolute;inset:-2px;border-radius:12px;z-index:0;pointer-events:none;padding:4px;
   background:conic-gradient(from var(--trp-ps-ang),
     transparent 0deg, transparent 250deg,
     rgba(47,107,255,0.85) 312deg, rgba(156,196,255,0.95) 334deg,
@@ -238,7 +238,7 @@ export function PlaceSearch({ mapRef, zoom = 14, placeholder, onPicked }: PlaceS
           placeholder={placeholder ?? t('pack.addTrip.geo.searchPlace')}
           style={{
             position: 'relative', zIndex: 1,
-            width: '100%', boxSizing: 'border-box', padding: '11px 13px', borderRadius: 10,
+            width: '100%', boxSizing: 'border-box', padding: '12px 12px', borderRadius: 8,
             // ⚠️ Výplň, rám a inkoust NIE SÚ tu, ale v PLACE_SEARCH_CSS (.trp-ps-input).
             // Bledý skin PC ich musí vedieť prebiť a inline štýl sa z CSS prebiť nedá —
             // musel by na to !important na piatich miestach. Zvýraznený stav (is-attn) je
@@ -281,13 +281,13 @@ export function PlaceSearch({ mapRef, zoom = 14, placeholder, onPicked }: PlaceS
               onClick={() => pick(s)}
               style={{
                 display: 'block', width: '100%', textAlign: 'left', cursor: 'pointer',
-                padding: '10px 13px', background: 'none', border: 'none',
+                padding: '12px 12px', background: 'none', border: 'none',
               }}
               className="trp-ps-sugitem"
             >
-              <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 13.5, fontWeight: 500 }}>{s.name}</span>
+              <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 14, fontWeight: 500 }}>{s.name}</span>
               {s.sub && (
-                <span className="trp-ps-sugsub" style={{ display: 'block', fontFamily: FONT_UI, fontSize: 11.5, marginTop: 2 }}>{s.sub}</span>
+                <span className="trp-ps-sugsub" style={{ display: 'block', fontFamily: FONT_UI, fontSize: 12, marginTop: 2 }}>{s.sub}</span>
               )}
             </button>
           ))}

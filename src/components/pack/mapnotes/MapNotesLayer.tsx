@@ -22,6 +22,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import { Marker, Circle, Popup, useMap, useMapEvent } from 'react-leaflet';
 import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { sizedUrl } from '@/services/cloudinaryService';
 import { useT } from '@/i18n/LanguageContext';
 import { groupOf, type MapNote, type NoteKind, type TickDisease } from './mapNotesData';
 import { isDatasetNote } from './mapNotesGeo';
@@ -334,7 +335,7 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showT
               {/* Fotka autora = FOTKA PSA. Portrét človeka appka nemá a pes je
                   tvárou člena aj v PackTree, GodsGrid a na share karte. */}
               {n.authorPhoto
-                ? <img className="mn-bubble-face" src={n.authorPhoto} alt="" loading="lazy" />
+                ? <img className="mn-bubble-face" src={sizedUrl(n.authorPhoto, 96)} alt="" loading="lazy" />
                 : <span className="mn-bubble-face mn-bubble-face--empty" aria-hidden="true">
                     {(n.authorFirst || '?').slice(0, 1).toUpperCase()}
                   </span>}
@@ -512,7 +513,7 @@ ${CIRCLE_MARK_CSS}
    sa naň nedá len „položiť": tip je otočený štvorec, ktorý dedí background,
    takže bez explicitného prebitia by pod bublinou visel biely zub. */
 .mn-popup .leaflet-popup-content-wrapper{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:${PACK_BOX.panel.borderRadius}px;box-shadow:${T.panelShadow};padding:0;}
-.mn-popup .leaflet-popup-content{margin:0;padding:12px 14px;width:auto!important;min-width:190px;max-width:260px;}
+.mn-popup .leaflet-popup-content{margin:0;padding:12px 16px;width:auto!important;min-width:190px;max-width:260px;}
 /* Zub dedí len plnú farbu — gradient by v ňom vyzeral ako iný odtieň než telo.
    T.card je PLNÁ papyrusová farba (nie gradient), presne na toto. */
 .mn-popup .leaflet-popup-tip{background:${T.card};border:1.5px solid ${T.cardEdge};box-shadow:none;}
@@ -524,11 +525,11 @@ ${CIRCLE_MARK_CSS}
    komponent inline z noteTint(), preto tu border-color nie je — bola by to druhá
    pravda vedľa tej z JS. */
 .mn-bubble-mark{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:999px;background:#FFFFFF;border:2px solid ${T.border};box-sizing:border-box;}
-.mn-bubble-em{font-style:normal;font-family:${FONT_EMOJI};font-size:15px;line-height:1;-webkit-user-select:none;user-select:none;}
-.mn-bubble-kind{font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.12em;text-transform:uppercase;}
-.mn-bubble-tag{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:${T.inkWarm};border:1px solid ${T.border};border-radius:999px;padding:2px 7px;}
-.mn-bubble-stale{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:${T.inkWarm};}
-.mn-bubble-body{margin:0;font-family:${FONT_UI};font-size:12.5px;line-height:1.5;color:${T.inkStrong};white-space:pre-wrap;word-break:break-word;}
+.mn-bubble-em{font-style:normal;font-family:${FONT_EMOJI};font-size:16px;line-height:1;-webkit-user-select:none;user-select:none;}
+.mn-bubble-kind{font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;}
+.mn-bubble-tag{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;color:${T.inkWarm};border:1px solid ${T.border};border-radius:999px;padding:4px 8px;}
+.mn-bubble-stale{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;color:${T.inkWarm};}
+.mn-bubble-body{margin:0;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:${T.inkStrong};white-space:pre-wrap;word-break:break-word;}
 
 /* ── AUTOR: FOTKA + MENO ───────────────────────────────────────────────────
    align-items:center, nie baseline — s fotkou v riadku by baseline zarovnal
@@ -536,19 +537,19 @@ ${CIRCLE_MARK_CSS}
 /* ⚠️ T.rule je GRADIENT (zlatá vyblednutá do strán), NIE border-shorthand —
    ako border-top by to bolo neplatné CSS a ticho by nenakreslilo nič.
    Preto pseudo-prvok s background. */
-.mn-bubble-meta{position:relative;display:flex;align-items:center;gap:8px;margin-top:9px;padding-top:9px;}
+.mn-bubble-meta{position:relative;display:flex;align-items:center;gap:8px;margin-top:9px;padding-top:8px;}
 .mn-bubble-meta::before{content:'';position:absolute;left:0;right:0;top:0;height:2px;background:${T.rule};}
 .mn-bubble-face{flex:0 0 auto;width:26px;height:26px;border-radius:50%;object-fit:cover;background:${T.tileBg};border:1px solid ${T.cardEdge};}
-.mn-bubble-face--empty{display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:11px;color:${T.inkWarm};}
-.mn-bubble-who{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;min-width:0;font-family:${FONT_UI};font-size:10.5px;color:${T.inkWarm};}
-.mn-bubble-author{font-family:${FONT_TITLE};font-weight:700;font-size:11px;color:${T.inkStrong};}
+.mn-bubble-face--empty{display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:12px;color:${T.inkWarm};}
+.mn-bubble-who{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;min-width:0;font-family:${FONT_UI};font-size:10px;color:${T.inkWarm};}
+.mn-bubble-author{font-family:${FONT_TITLE};font-weight:700;font-size:12px;color:${T.inkStrong};}
 
 .mn-bubble-votes{display:flex;gap:6px;margin-top:9px;}
-.mn-vote{flex:1 1 0;display:inline-flex;align-items:center;justify-content:center;gap:5px;font-family:${FONT_UI};font-weight:600;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:${T.inkWarm};background:transparent;border:1px solid ${T.border};border-radius:999px;padding:5px 8px;cursor:pointer;transition:color .15s,border-color .15s,background .15s;}
+.mn-vote{flex:1 1 0;display:inline-flex;align-items:center;justify-content:center;gap:5px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${T.inkWarm};background:transparent;border:1px solid ${T.border};border-radius:999px;padding:4px 8px;cursor:pointer;transition:color .15s,border-color .15s,background .15s;}
 .mn-vote:hover{color:${T.inkStrong};border-color:${T.cardEdge};}
 .mn-vote.on{color:#7a5410;border-color:${T.cardEdge};background:rgba(201,154,63,0.20);}
 .mn-vote--no.on{color:${HAZARD_RED};border-color:${HAZARD_RED};background:rgba(206,75,60,0.14);}
 .mn-vote b{font-weight:600;}
-.mn-bubble-del{margin-top:8px;width:100%;font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:${T.inkWarm};background:transparent;border:0;padding:4px;cursor:pointer;}
+.mn-bubble-del{margin-top:8px;width:100%;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${T.inkWarm};background:transparent;border:0;padding:4px;cursor:pointer;}
 .mn-bubble-del:hover{color:${HAZARD_RED};}
 `;

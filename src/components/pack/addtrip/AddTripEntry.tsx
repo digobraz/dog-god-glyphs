@@ -503,16 +503,16 @@ const ENTRY_CSS = `
 .att-entry-row--soon:hover,.att-entry-row--soon:focus-visible{border-color:${T.cardEdge};}
 /* Emoji má vlastný font-family, inak naň sadne zdedený Cinzel a na Windows sa z 🅿️ stane
    obdĺžnik. Pevná šírka drží názvy pod sebou v jednej zvislej osi. */
-.att-entry-emoji{flex:0 0 auto;width:28px;font-family:${FONT_EMOJI};font-size:22px;line-height:1;text-align:center;}
-.att-entry-title{flex:1 1 auto;min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.inkStrong};
+.att-entry-emoji{flex:0 0 auto;width:28px;font-family:${FONT_EMOJI};font-size:24px;line-height:1;text-align:center;}
+.att-entry-title{flex:1 1 auto;min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:0.02em;text-transform:uppercase;color:${T.inkStrong};
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 /* ⚠️ NÁZOV JE VŽDY NA JEDEN RIADOK (Matej 22. 9.: „nezalamuj texty… musia byť vždy na jeden
    riadok"). Panel má šírku lišty (~310 px na PC), preto termín „čoskoro" nestojí vedľa
    názvu, ale ako ŠTÍTOK NA HORNEJ HRANE riadku — šírku názvu nezje. Tri tečky sú len
    poistka pre budúci dlhší preklad, nie plán. */
 /* BODY V LAPISOVEJ PILULKE (Matej 26. 8.: „body budú v modrom pilse") — odmena je „moje". */
-.att-entry-pts{flex:0 0 auto;padding:3px 8px;border-radius:999px;background:${LAPIS.grad};border:1px solid ${LAPIS.deep};font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:${LAPIS.ink};}
-.att-entry-soon{position:absolute;top:-7px;right:12px;padding:0 6px;border-radius:999px;border:1px solid ${T.cardEdge};background:#FBF5E6;font-family:${FONT_UI};font-weight:600;font-size:10px;line-height:14px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:${T.inkWarm};}
+.att-entry-pts{flex:0 0 auto;padding:4px 8px;border-radius:999px;background:${LAPIS.grad};border:1px solid ${LAPIS.deep};font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;white-space:nowrap;color:${LAPIS.ink};}
+.att-entry-soon{position:absolute;top:-7px;right:12px;padding:0 8px;border-radius:999px;border:1px solid ${T.cardEdge};background:#FBF5E6;font-family:${FONT_UI};font-weight:600;font-size:10px;line-height:14px;letter-spacing:0.02em;text-transform:uppercase;white-space:nowrap;color:${T.inkWarm};}
 /* Štítok presahuje hornú hranu — medzera nad riadkom so štítkom, aby nesadol na suseda. */
 .att-entry-row--soon{margin-top:4px;}
 

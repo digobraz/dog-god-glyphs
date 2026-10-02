@@ -1531,11 +1531,11 @@ export function GeometryPicker({
         <div
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-            padding: '9px 12px', borderRadius: 12,
+            padding: '8px 12px', borderRadius: 12,
             background: T.glass, border: `1px solid ${T.onDarkBorder}`,
           }}
         >
-          <span style={{ fontFamily: FONT_UI, fontSize: 13, fontWeight: 500, color: T.onDark }}>
+          <span style={{ fontFamily: FONT_UI, fontSize: 14, fontWeight: 500, color: T.onDark }}>
             {readout}
           </span>
 
@@ -1569,7 +1569,7 @@ export function GeometryPicker({
         <div style={{ fontFamily: FONT_UI, fontSize: 12, color: T.onDarkDim }}>{t('pack.addTrip.geo.snappingBusy')}</div>
       )}
       {value.kind === 'route' && onPickExisting && pointCount === 0 && (
-        <div style={{ fontFamily: FONT_TITLE, fontSize: 11, letterSpacing: '.1em', color: T.onDarkDim, textTransform: 'uppercase' }}>
+        <div style={{ fontFamily: FONT_TITLE, fontSize: 12, letterSpacing: '0.14em', color: T.onDarkDim, textTransform: 'uppercase' }}>
           {t('pack.addTrip.geo.ghostHint')}
         </div>
       )}
@@ -1731,7 +1731,7 @@ export function GeometryPicker({
           {stage === 2 && (
           <>
           {busy && (
-            <div style={{ fontFamily: FONT_UI, fontSize: 11.5, color: T.onDarkDim, textAlign: 'center' }}>
+            <div style={{ fontFamily: FONT_UI, fontSize: 12, color: T.onDarkDim, textAlign: 'center' }}>
               {t('pack.addTrip.geo.snappingBusy')}
             </div>
           )}
@@ -1877,15 +1877,15 @@ export function GeometryPicker({
  * než ju stratiť tým, že sa nedá zapísať.
  */
 const miniBtn: React.CSSProperties = {
-  padding: '5px 10px',
+  padding: '4px 12px',
   borderRadius: 8,
   background: 'transparent',
   border: `1px solid ${T.onDarkBorder}`,
   color: T.onDark,
   fontFamily: FONT_UI,
-  fontSize: 11,
+  fontSize: 12,
   fontWeight: 500,
-  letterSpacing: '.06em',
+  letterSpacing: '0.02em',
   textTransform: 'uppercase',
   cursor: 'pointer',
 };
@@ -1977,7 +1977,7 @@ function directionArrows(map: LeafletMap, line: LatLngTuple[]): L.Layer[] {
 }
 
 const ANCHOR_TAG_CSS = `
-.trp-anchor-tag{position:absolute;left:0;top:0;transform:translate(-50%,-26px);pointer-events:none;white-space:nowrap;padding:3px 9px;border-radius:999px;background:rgba(18,13,7,0.94);border:1px solid ${TRAIL_LINE.light};box-shadow:0 2px 10px rgba(0,0,0,0.5);font-family:${FONT_UI};font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#F3E9FF;}
+.trp-anchor-tag{position:absolute;left:0;top:0;transform:translate(-50%,-26px);pointer-events:none;white-space:nowrap;padding:4px 8px;border-radius:999px;background:rgba(18,13,7,0.94);border:1px solid ${TRAIL_LINE.light};box-shadow:0 2px 10px rgba(0,0,0,0.5);font-family:${FONT_UI};font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#F3E9FF;}
 /* Menovka cieľa výletu sedí NAD krúžkom s terčom, nie na kotve — preto vyššie odsadenie
    (krúžok má 28 px, viď circleMark.ts) a zlatý rám, aby sa nečítala ako koniec trasy. */
 .trp-anchor-tag--target{transform:translate(-50%,-40px);border-color:${GOLD};color:#FFF3D6;}
@@ -2008,7 +2008,7 @@ const DRAW_BAR_CSS = `
    číslo, ktoré počas kreslenia rastie, a v šedom ráme nad pestrou mapou ho oko minulo.
    Rám a dosvit sú tie isté ako na pokynovej pilulke a na 🎯 — počas kreslenia hovorí
    fialová, a hovorí ju celá obrazovka rovnako. */
-.trp-dread{pointer-events:none;padding:9px 18px;border-radius:999px;background:rgba(18,13,7,0.94);border:1.5px solid ${TRAIL_LINE.light};box-shadow:0 0 0 4px rgba(122,47,191,0.20),0 6px 20px rgba(0,0,0,0.55);font-family:${FONT_UI};font-size:15px;font-weight:600;color:#F3E9FF;white-space:nowrap;}
+.trp-dread{pointer-events:none;padding:8px 16px;border-radius:999px;background:rgba(18,13,7,0.94);border:1.5px solid ${TRAIL_LINE.light};box-shadow:0 0 0 4px rgba(${T.tripPurpleRGB},0.20),0 6px 20px rgba(0,0,0,0.55);font-family:${FONT_UI};font-size:16px;font-weight:600;color:#F3E9FF;white-space:nowrap;}
 /* KROK 0 — pilulka stojí sama tam, kde neskôr narastie lišta, aby to vyzeralo, že jej
    okolie len dorástlo, nie že sa presunula. */
 /* DOK — stĺpec pri spodnej hrane: pokyn (v mape), panel, návrat. Sám je priehľadný a ťuky
@@ -2034,7 +2034,7 @@ const DRAW_BAR_CSS = `
 .trp-notice{font-family:${FONT_UI};font-size:12px;font-weight:600;line-height:1.4;color:#F3B0A0;}
 /* NÁVRAT — podčiarknutý text v strede pod panelom. Šípka v rohu brala mape výšku a palec
    na ňu nedosiahol; text zaberie riadok a povie aj KAM sa vracia. */
-.trp-dback{align-self:center;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;background:none;border:0;padding:4px 10px;color:${T.onDarkDim};font-family:${FONT_UI};font-size:12.5px;font-weight:500;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
+.trp-dback{align-self:center;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;background:none;border:0;padding:4px 12px;color:${T.onDarkDim};font-family:${FONT_UI};font-size:12px;font-weight:500;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
 .trp-dback:hover{color:${GOLD};}
 /* ZLATÝ, NIE FIALOVÝ (Matej 2026-08-24). Fialová je na tejto obrazovke jazyk POKYNOV
    („toto máš spraviť"), zlatá je jazyk POSTUPU a odmeny — a toto je jediný prúžok, ktorý
@@ -2058,22 +2058,22 @@ const DRAW_BAR_CSS = `
    je čierne"). Vzhľad tlačidla NETREBA resetovať: .trp-dread nastavuje farbu, písmo, rám
    aj výplň sama a autorský štýl porazí štýl prehliadača bez pomoci. */
 .trp-dread--btn{pointer-events:auto;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:box-shadow .16s,border-color .16s;}
-.trp-dread--btn::after{content:'⌃';display:inline-block;margin-left:9px;font-size:11px;line-height:1;transform:translateY(2px);color:#C9A6F2;transition:transform .18s;}
+.trp-dread--btn::after{content:'⌃';display:inline-block;margin-left:9px;font-size:12px;line-height:1;transform:translateY(2px);color:#C9A6F2;transition:transform .18s;}
 .trp-dread--btn[aria-expanded="true"]::after{transform:translateY(-2px) rotate(180deg);}
-.trp-dread--btn:hover{border-color:#C9A6F2;box-shadow:0 0 0 4px rgba(122,47,191,0.30),0 6px 20px rgba(0,0,0,0.55);}
+.trp-dread--btn:hover{border-color:#C9A6F2;box-shadow:0 0 0 4px rgba(${T.tripPurpleRGB},0.30),0 6px 20px rgba(0,0,0,0.55);}
 
 /* ── PROFIL PREVÝŠENIA NAD PILULKOU ────────────────────────────────────────────────────
    Ten istý povrch a rám ako pilulka, len roztiahnutý — má sa čítať ako JEJ otvorenie, nie
    ako tretí druh panela. Preto tu NIE JE .trp-dockpanel: ten je tvar OVLÁDACIEHO panela
    (mapDockShape.ts), a toto je údaj o trase, ktorý žije v mape.
    Šírka je orámovaná, nie plná: nad panelom má ostať vidieť mapu po stranách. */
-.trp-delev{pointer-events:auto;align-self:center;width:min(100%,360px);margin:0 16px;padding:10px 14px 6px;border-radius:16px;background:rgba(18,13,7,0.94);border:1.5px solid ${TRAIL_LINE.light};box-shadow:0 0 0 4px rgba(122,47,191,0.20),0 6px 20px rgba(0,0,0,0.55);}
+.trp-delev{pointer-events:auto;align-self:center;width:min(100%,360px);margin:0 16px;padding:12px 16px 8px;border-radius:16px;background:rgba(18,13,7,0.94);border:1.5px solid ${TRAIL_LINE.light};box-shadow:0 0 0 4px rgba(${T.tripPurpleRGB},0.20),0 6px 20px rgba(0,0,0,0.55);}
 .trp-delev-head{display:flex;align-items:center;justify-content:flex-start;gap:10px;margin-bottom:4px;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};}
 /* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
 .trp-delev-x{${backCircleCSS('pale')}}
 .trp-delev-x:hover{${backHoverCSS('pale')}}
-.trp-delev-wait{padding:14px 0 16px;text-align:center;font-family:${FONT_UI};font-size:12px;color:${T.onDarkDim};}
-.trp-dreadrow .trp-dread{font-size:13.5px;padding:7px 14px;}
+.trp-delev-wait{padding:16px 0 16px;text-align:center;font-family:${FONT_UI};font-size:12px;color:${T.onDarkDim};}
+.trp-dreadrow .trp-dread{font-size:14px;padding:8px 16px;}
 /* ⚠️ TRIEDA, NIE INLINE ŠTÝL. Stlmené časti čítania (oddeľovače, šípka, náhradná veta)
    mali farbu v inline štýle, takže bledý skin PC ich nevedel prebiť bez !important —
    na zlatej pilulke by ostali svetlošedé, teda neviditeľné. */
@@ -2129,13 +2129,13 @@ const DRAW_BAR_CSS = `
    ⚠️ V CSS KOMENTÁRI ŽIADNE SPÄTNÉ APOSTROFY — celý blok je JS template literal a jeden
    apostrof ho ukončí (chytí to npm run check:css, vite build padne). */
 .trp-dkind{display:flex;gap:6px;}
-.trp-dkind-btn{flex:1 1 0;padding:9px 10px;border-radius:8px;background:${T.glass};border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};font-size:11.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;}
+.trp-dkind-btn{flex:1 1 0;padding:8px 12px;border-radius:8px;background:${T.glass};border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};font-size:12px;font-weight:500;letter-spacing:0.02em;text-transform:uppercase;cursor:pointer;}
 .trp-dkind-btn:hover{border-color:${GOLD};color:${GOLD};}
 .trp-dkind-btn.on{background:rgba(201,154,63,0.18);border-color:${GOLD};color:${GOLD_BRIGHT};}
-.trp-dbar-btn{flex:1 1 0;display:flex;align-items:center;justify-content:center;gap:7px;padding:12px 10px;border-radius:8px;background:${T.glass};border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;}
+.trp-dbar-btn{flex:1 1 0;display:flex;align-items:center;justify-content:center;gap:7px;padding:12px 12px;border-radius:8px;background:${T.glass};border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-size:12px;font-weight:500;letter-spacing:0.02em;text-transform:uppercase;cursor:pointer;}
 /* NÁSTROJE POD HOTOVOM SÚ VEDĽAJŠIE (Matej 23. 8.: „pod ňou menšími späť o bod a vymazať").
    Keď je trasa hotová, tieto dve už nie sú úloha — sú oprava. */
-.trp-dbar-row--minor .trp-dbar-btn{padding:9px 10px;font-size:11px;background:none;color:${T.onDarkDim};}
+.trp-dbar-row--minor .trp-dbar-btn{padding:8px 12px;font-size:12px;background:none;color:${T.onDarkDim};}
 .trp-dbar-row--minor .trp-dbar-btn:hover:not(:disabled){color:${GOLD};}
 .trp-dbar-btn:hover:not(:disabled){border-color:${GOLD};color:${GOLD};}
 .trp-dbar-btn:disabled{cursor:default;}
@@ -2157,10 +2157,10 @@ const DRAW_BAR_CSS = `
 .trp-dbar-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;margin-top:-9px;border-radius:50%;background:${GOLD};border:2px solid rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.5);}
 .trp-dbar-range::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:${GOLD};border:2px solid rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.5);}
 /* HOTOVO — brand CTA podľa .btn-gold locku: gradient 135°, radius 8, papyrusový rám. */
-.trp-dbar-done{flex:1 1 0;padding:12px 10px;border-radius:8px;background:${GOLD_BTN.grad};border:1px solid ${GOLD_BTN.edge};color:#1c160c;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;box-shadow:${GOLD_BTN.glow};cursor:pointer;}
+.trp-dbar-done{flex:1 1 0;padding:12px 12px;border-radius:8px;background:${GOLD_BTN.grad};border:1px solid ${GOLD_BTN.edge};color:#1c160c;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;box-shadow:${GOLD_BTN.glow};cursor:pointer;}
 /* CELÁ ŠÍRKA, KEĎ JE TO JEDINÁ ÚLOHA NA OBRAZOVKE (Matej 23. 8.: „dominantné tlačidlo
    TRASA HOTOVÁ cez celú šírku mobilu"). */
-.trp-dbar-done--hero{width:100%;flex:none;padding:15px 12px;font-size:13.5px;}
+.trp-dbar-done--hero{width:100%;flex:none;padding:16px 12px;font-size:14px;}
 /* CIEĽ — fialový, teda z rodiny trasy, nie zlatý: zlatá je v tomto rade vyhradená HOTOVU. */
 /* CIEĽ — PILULKA, nie tlačidlo v rade (Matej 23. 8.: „to tlačítko mark the destination by
    malo byť v pils ako pri začiatku"). Tvar aj rám sú zhodné s pokynovou pilulkou vyššie:
@@ -2173,7 +2173,7 @@ const DRAW_BAR_CSS = `
      · CIEĽ   = pilulka na šírku obsahu, priehľadná zlatá výplň so zlatým rámom, Space Grotesk
    Cieľ je teda zlatý „obrys" toho istého jazyka — patrí do zlatej rodiny, ale nikdy
    nevyzerá ako záverečné tlačidlo. */
-.trp-dbar-emoji{font-family:${FONT_EMOJI};font-size:15px;line-height:1;}
+.trp-dbar-emoji{font-family:${FONT_EMOJI};font-size:16px;line-height:1;}
 
 /* ── PC: OVLÁDANIE JE V ĽAVOM BLOKU, STRED PATRÍ MAPE ─────────────────────────────────
    Matej 2026-08-24 (po prvom teste): „vieš čo bude lepší nápad dať to do ľavého bloku ako
@@ -2229,7 +2229,7 @@ const DRAW_BAR_CSS = `
      kontajnera a zreže sa rovnou čiarou. Preto je tu UŽŠIA: prstenec ostáva (obrys je to,
      čo bublinu drží viditeľnú), žiara sa zmestí do výplne a dýchanie sa hýbe v jej medziach.
      ⚠️ Hodnoty a GLOW_PAD sú spojená nádoba — kto zväčší jedno, musí aj druhé. */
-  .trp-dock--pc .ang-bar{border-radius:16px;padding:11px 8px 11px 11px;box-shadow:0 0 0 3px rgba(59,158,255,0.22),0 0 12px rgba(59,158,255,0.42),0 6px 14px rgba(0,0,0,0.55);animation:ang-glow-dock 3.4s ease-in-out infinite;}
+  .trp-dock--pc .ang-bar{border-radius:16px;padding:12px 8px 12px 12px;box-shadow:0 0 0 3px rgba(59,158,255,0.22),0 0 12px rgba(59,158,255,0.42),0 6px 14px rgba(0,0,0,0.55);animation:ang-glow-dock 3.4s ease-in-out infinite;}
   @keyframes ang-glow-dock{
     0%,100%{box-shadow:0 0 0 3px rgba(59,158,255,0.20),0 0 10px rgba(59,158,255,0.32),0 6px 14px rgba(0,0,0,0.55);}
     50%{box-shadow:0 0 0 3px rgba(59,158,255,0.34),0 0 13px rgba(59,158,255,0.60),0 6px 14px rgba(0,0,0,0.55);}
@@ -2249,7 +2249,7 @@ const DRAW_BAR_CSS = `
   .trp-dsteps{flex:0 0 auto;padding-bottom:12px;position:relative;}
   .trp-dsteps::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:${T.rule};}
   .trp-dsteps .atl-steps--onmap{width:auto;gap:6px;padding:0;background:none;border:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;}
-  .trp-dsteps .atl-steps--onmap .atl-step{flex:1 1 0;padding:6px 3px;gap:4px;}
+  .trp-dsteps .atl-steps--onmap .atl-step{flex:1 1 0;padding:8px 4px;gap:4px;}
   .trp-dsteps .atl-steps--onmap .atl-step span{display:block;}
   /* Rám, zaoblenie aj spodná výplň prišli do .trp-dockpanel (mapDockShape.ts) — panel
      značky ich musí mať rovnaké, inak sa na PC pri zapichovaní zmení tvar rovnako ako
@@ -2298,7 +2298,7 @@ ${MAP_SKIN !== 'pale' ? '' : `
   .trp-dock--pc .trp-delev svg line{stroke:${PALE.border};}
   .trp-dock--pc .trp-delev svg path[stroke]{stroke:${TRAIL_LINE.mid};}
   .trp-dock--pc .trp-delev .trp-elev-cursor{color:${TRAIL_LINE.mid};}
-  .trp-dock--pc .trp-delev svg path[fill^="url"]{fill:rgba(122,47,191,0.16);}
+  .trp-dock--pc .trp-delev svg path[fill^="url"]{fill:rgba(${T.tripPurpleRGB},0.16);}
   /* ── PILULKA S ÚDAJMI OSTÁVA FIALOVÁ (Matej 2026-08-26, druhé kolo) ────────────────────
      „tá pils kde sú údaje — to si nemal meniť ale nechať fialové ako je trasa."
      Prvé kolo ju prefarbilo na zlatú pilulku navu s odôvodnením „bloky musia byť všade

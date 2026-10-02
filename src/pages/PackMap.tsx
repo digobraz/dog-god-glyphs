@@ -84,7 +84,7 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale, fmtNum } from '@/i18n/bcp47';
 import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
 import { PoiLayer } from '@/components/geo/PoiLayer';
-import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
 import { BackIcon, ExpandIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { goldFrameCSS, goldPlateCSS, pickTintCSS, PICK_INK, SLAB, LAPIS, LAPIS_BTN_SHADOW, MAP_SKIN, NAV_GOLD, NAV_PILL_SHADOW, NAV_R, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
 import { estimateTripMinutes, formatTripTime } from '@/lib/tripTime';
@@ -1139,7 +1139,7 @@ const CSS = `
 /* bod 3 (iterácia 11): Activity/Difficulty/Popularity už NIE SÚ zabalené v samostatnom
    glass boxe (.trp-topfilters zrušený) — sú to teraz totožné, borderless polia priamo
    v .trp-topsearchrow, rovnaká výška/radius/glass ako search-a-place vedľa nich. */
-.trp-tagdd-btn{flex:1 1 140px;min-width:120px;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:12px;padding:10px 15px;box-shadow:0 6px 22px rgba(0,0,0,0.4);color:${T.onDark};font-family:inherit;font-size:16px;cursor:pointer;outline:0;}
+.trp-tagdd-btn{flex:1 1 140px;min-width:120px;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:12px;padding:12px 16px;box-shadow:0 6px 22px rgba(0,0,0,0.4);color:${T.onDark};font-family:inherit;font-size:16px;cursor:pointer;outline:0;}
 /* ⚠️ .trp-toprow-select ZANIKOL 2026-08-26. Náročnosť aj Návštevnosť sú vlastné rozbaľovačky
    (TripPickDropdown) — natívny select nevie vykresliť značku náročnosti a jeho zoznam kreslí
    prehliadač, takže sa otváral čierny. Trieda tu nesmie ostať ako sirota: prvý, kto by ju
@@ -1149,16 +1149,16 @@ const CSS = `
 .trp-tagdd-btn{position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;box-sizing:border-box;text-align:left;}
 .trp-tagdd-btn.on{border-color:${GOLD};color:${GOLD};}
 .trp-tagdd-chevron{flex-shrink:0;opacity:.7;font-size:10px;}
-.trp-tagdd-panel{position:absolute;top:calc(100% + 8px);right:0;z-index:41;min-width:210px;max-height:420px;overflow-y:auto;background:rgba(6,5,3,0.94);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid ${T.onDarkBorder};border-radius:12px;box-shadow:0 12px 34px rgba(0,0,0,0.55);padding:10px;}
-.trp-tagdd-eyebrow{display:block;font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:8px;}
-.trp-tagdd-row{display:flex;align-items:center;gap:8px;width:100%;padding:7px 4px;background:none;border:0;cursor:pointer;font-family:${FONT_UI};font-size:12.5px;color:${T.onDark};opacity:.75;text-align:left;}
+.trp-tagdd-panel{position:absolute;top:calc(100% + 8px);right:0;z-index:41;min-width:210px;max-height:420px;overflow-y:auto;background:rgba(6,5,3,0.94);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid ${T.onDarkBorder};border-radius:12px;box-shadow:0 12px 34px rgba(0,0,0,0.55);padding:12px;}
+.trp-tagdd-eyebrow{display:block;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:8px;}
+.trp-tagdd-row{display:flex;align-items:center;gap:8px;width:100%;padding:8px 4px;background:none;border:0;cursor:pointer;font-family:${FONT_UI};font-size:12px;color:${T.onDark};opacity:.75;text-align:left;}
 .trp-tagdd-row.on{color:${GOLD};font-weight:600;opacity:1;}
-.trp-tagdd-row:hover{background:rgba(201,154,63,0.14);border-radius:7px;}
+.trp-tagdd-row:hover{background:rgba(201,154,63,0.14);border-radius:8px;}
 /* ⚠️ PRIAMY POTOMOK (znak >), nie ktorýkoľvek span. Bez neho pravidlo trafí AJ značku vnútri
    položky (tá je prvým dieťaťom svojho obalu), dá jej flex:1 a z 9px kruhu sa stane pruh cez
    pol panela — presne to sa stalo pri prvom nasadení TripPickDropdown. */
 .trp-tagdd-row > span:first-child{flex:1;}
-.trp-tagdd-clear{display:block;width:100%;text-align:center;margin-top:6px;padding-top:8px;border-top:1px solid ${T.onDarkHair};background:none;border-left:0;border-right:0;border-bottom:0;font-family:${FONT_UI};font-weight:600;font-size:11px;letter-spacing:.04em;color:${T.onDarkDim};cursor:pointer;}
+.trp-tagdd-clear{display:block;width:100%;text-align:center;margin-top:6px;padding-top:8px;border-top:1px solid ${T.onDarkHair};background:none;border-left:0;border-right:0;border-bottom:0;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.02em;color:${T.onDarkDim};cursor:pointer;}
 .trp-tagdd-clear:hover{color:${GOLD};}
 
 /* ── Jednovoľbová rozbaľovačka (TripPickDropdown) — Náročnosť, Návštevnosť, Región, Aktivity.
@@ -1172,7 +1172,7 @@ const CSS = `
 .trp-pickdd-item{display:inline-flex;align-items:center;gap:8px;flex:1;min-width:0;}
 /* Emoji vždy s FONT_EMOJI — bez neho sadne na Windows čiernobiely textový variant
    (to isté pravidlo ako značky na mape, markEmoji.ts). */
-.trp-pickdd-emoji{font-family:${FONT_EMOJI};font-size:13px;line-height:1;flex-shrink:0;}
+.trp-pickdd-emoji{font-family:${FONT_EMOJI};font-size:14px;line-height:1;flex-shrink:0;}
 
 /* place-search box — iterácia 9 (Matejov feedback bod 2): tmavá/glass karta
    (bola svetlý papyrus), ladí s ostatnými tmavými prvkami nad mapou. */
@@ -1180,29 +1180,29 @@ const CSS = `
    285x40, input v nej 238x24 - klik na jej okraj nezafokusoval NIC, cize clovek tukol
    na pole a appka mlcala. Padding sa len prestahoval dovnutra, takze vyska pilulky
    ani vzhlad sa nemenia; menia sa hranice, ktore reaguju na prst. */
-.trp-mapsearch{display:flex;align-items:center;gap:9px;width:100%;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:12px;padding:0 15px;box-shadow:0 6px 22px rgba(0,0,0,0.4);}
+.trp-mapsearch{display:flex;align-items:center;gap:9px;width:100%;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:12px;padding:0 16px;box-shadow:0 6px 22px rgba(0,0,0,0.4);}
 .trp-mapsearch img{width:15px;height:15px;filter:brightness(0) invert(1);opacity:0.6;flex-shrink:0;}
 /* ⚠️ 16 px — iOS Safari inak pri kliknutí do poľa priblíži celý dokument a ovládanie
    ukotvené k okrajom mapy vypadne mimo obrazovky (feedback_dogypt_form_input_recurring_bugs;
    presne toto zhodilo hľadanie miesta v kreslení 23. 8.). Platí na každý input nad mapou. */
-.trp-mapsearch input{background:transparent;border:0;outline:0;color:${T.onDark};font-size:16px;width:100%;font-family:inherit;padding:10px 0;align-self:stretch;box-sizing:border-box;}
+.trp-mapsearch input{background:transparent;border:0;outline:0;color:${T.onDark};font-size:16px;width:100%;font-family:inherit;padding:12px 0;align-self:stretch;box-sizing:border-box;}
 .trp-mapsearch input::placeholder{color:${T.onDarkDim};}
 .trp-mapsug{background:rgba(6,5,3,0.94);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid ${T.onDarkBorder};border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.5);max-height:260px;overflow-y:auto;}
-.trp-mapsug-item{padding:10px 15px;cursor:pointer;border-bottom:1px solid ${T.onDarkHair};transition:background .12s;}
+.trp-mapsug-item{padding:12px 16px;cursor:pointer;border-bottom:1px solid ${T.onDarkHair};transition:background .12s;}
 .trp-mapsug-item:last-child{border-bottom:0;}
 .trp-mapsug-none{cursor:default;font-family:${FONT_UI};font-size:12px;letter-spacing:.02em;color:${T.onDarkDim};}
 .trp-mapsug-none:hover{background:transparent;}
 .trp-mapsug-item:hover{background:rgba(201,154,63,0.18);}
-.trp-mapsug-name{font-size:13px;color:${T.onDark};font-weight:600;}
-.trp-mapsug-sub{font-size:11px;color:${T.onDarkDim};margin-top:1px;}
+.trp-mapsug-name{font-size:14px;color:${T.onDark};font-weight:600;}
+.trp-mapsug-sub{font-size:12px;color:${T.onDarkDim};margin-top:1px;}
 
 /* ── floating dark "Explore" panel — margined off top/left/bottom, rounded,
    gold-pale border + shadow. Map is full-bleed behind it (position:relative). ── */
-.trp-sidebar{position:absolute;top:20px;left:20px;bottom:20px;width:440px;max-width:calc(100vw - 40px);background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,0.55),inset 0 1px 0 rgba(245,240,228,0.06);display:flex;flex-direction:column;min-height:0;overflow:hidden;z-index:20;}
+.trp-sidebar{position:absolute;top:20px;left:20px;bottom:20px;width:440px;max-width:calc(100vw - 40px);background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,0.55),inset 0 1px 0 rgba(245,240,228,0.06);display:flex;flex-direction:column;min-height:0;overflow:hidden;z-index:20;}
 
 /* top block (status/greeting/search/pills/country/filters) — fixed, does NOT
    scroll; only .trp-cards-scroll below it does (= "sticky" behavior via layout). */
-.trp-sidebar-top{flex:0 0 auto;display:flex;flex-direction:column;gap:13px;padding:20px 20px 12px;}
+.trp-sidebar-top{flex:0 0 auto;display:flex;flex-direction:column;gap:13px;padding:16px 16px 12px;}
 
 /* status riadok — floating (iterácia 8), nad search-a-place;
    km/trips/wishlist staty z lokálneho stavu. Vlastná glass karta, lebo stojí
@@ -1212,7 +1212,7 @@ const CSS = `
    D4 nav rework (2026-07-24): avatar (.trp-status-avatar, i15 bod 1) ODSTRÁNENÝ —
    žije v zdieľanom bottom nave (PackBottomNav), duplicita zrušená.
    Matej 2026-07-26: obsah rozdelený na tri bloky (.trp-status-left / -center / .trp-headright). */
-.trp-status-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;width:100%;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:14px;padding:13px 20px;box-shadow:0 10px 30px rgba(0,0,0,0.35);}
+.trp-status-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;width:100%;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:14px;padding:12px 16px;box-shadow:0 10px 30px rgba(0,0,0,0.35);}
 
 /* TROJDIELNY header (Matej 2026-07-26): [LEVEL] — [TRIPSTATS/TRIPLIST/ADD TRIP] — [messages+bell].
    Krajné bloky nesú flex:1 1 0 (rovnaký podiel voľného miesta), stredný len svoj obsah → stredný
@@ -1222,12 +1222,12 @@ const CSS = `
    deti sa správajú, akoby stáli priamo v .trp-status-row. Tvar dostane až v PALE_CSS. */
 .trp-status-plate{display:contents;}
 .trp-status-center{flex:0 1 auto;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;}
-.trp-stat-pill{display:flex;align-items:center;gap:6px;background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};border-radius:999px;padding:9px 15px;}
+.trp-stat-pill{display:flex;align-items:center;gap:6px;background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};border-radius:999px;padding:8px 16px;}
 .trp-stat-pill img{width:14px;height:14px;filter:brightness(0) invert(1);opacity:.75;flex-shrink:0;}
 /* Obsah pilulky = dáta (počet výletov, km, názov zoznamu) → FONT_UI. Číslice v Space Grotesku
    sú tabular-ish a pri 13px čitateľnejšie než Cinzel serifka. */
-.trp-stat-pill span{font-family:${FONT_UI};font-weight:600;font-size:12.5px;color:${GOLD};line-height:1;}
-.trp-stat-pill b{font-family:${FONT_UI};font-weight:600;font-size:12.5px;letter-spacing:.01em;color:rgba(245,240,228,0.92);white-space:nowrap;}
+.trp-stat-pill span{font-family:${FONT_UI};font-weight:600;font-size:12px;color:${GOLD};line-height:1;}
+.trp-stat-pill b{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.02em;color:rgba(245,240,228,0.92);white-space:nowrap;}
 button.trp-stat-pill{cursor:pointer;transition:all .15s;}
 button.trp-stat-pill:hover{border-color:${GOLD};}
 button.trp-stat-pill.on{background:${GOLD};border-color:${GOLD};}
@@ -1245,7 +1245,7 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
    filter:drop-shadow, nie text-shadow). V hlavičke mapy ho .trp-midentity .trp-level-num
    nižšie prebíja na PLNÚ zlatú pilulku — na oboch šírkach (Matej 2026-08-05). Popisok „Lvl"
    sa už nerenderuje nikde (Matej 2026-08-03: „to LVL ma ruší"). */
-.trp-level{display:inline-flex;align-items:baseline;gap:9px;flex-shrink:0;padding-right:2px;white-space:nowrap;}
+.trp-level{display:inline-flex;align-items:baseline;gap:9px;flex-shrink:0;padding-right:4px;white-space:nowrap;}
 /* ── IDENTITA V HLAVIČKE MAPY — JEDEN BLOK PRE OBE ŠÍRKY (2026-08-05) ──────────
    Matej: „pri PILGRIM nie je profilová foto ako sme si povedali je to len na mobile… aj ten
    level (urob to tak aj na PC)". Desktop mal do 5. 8. vlastný kus kódu (rang + „Lvl N" ako
@@ -1270,20 +1270,20 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
 .trp-mavatar--initial{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#2a2317,#14110b);color:${GOLD};font-family:${FONT_TITLE};font-weight:700;font-size:14px;line-height:1;}
 .trp-midentity-txt{display:flex;flex-direction:column;gap:2px;min-width:0;}
 .trp-midentity .trp-level{gap:7px;}
-.trp-midentity .trp-level-name{font-size:11px;letter-spacing:.14em;}
+.trp-midentity .trp-level-name{font-size:12px;letter-spacing:.14em;}
 /* Matej 2026-08-03: „LVL daj do oranžovej pill alebo inak vizuálne zvýrazni" — level je PLNÁ
    zlatá pilulka (nie gradientový text), a od 5. 8. aj na PC („daj tiež lvl do pils ako na
    mobile"). Preto sa musí zhasnúť aj background-clip aj -webkit-text-fill-color — samotné
    color: by pri background-clip:text neprebilo priehľadnú výplň písma.
    Popisok „Lvl" je preč na OBOCH šírkach (Matej 3. 8.: „to LVL ma ruší") — v pilulke je holé
    číslo a rang vedľa (PILGRIM) povie, čo to je. */
-.trp-midentity .trp-level-num{align-items:center;padding:3px 10px 4px;border-radius:999px;background:linear-gradient(135deg,var(--tier-a,#F5C73D),var(--tier-b,#E69E1A));-webkit-background-clip:border-box;background-clip:border-box;color:var(--tier-ink,${INK});-webkit-text-fill-color:var(--tier-ink,${INK});filter:none;box-shadow:0 2px 8px var(--tier-glow,rgba(245,199,61,0.28));transition:background .5s,color .5s,box-shadow .5s;}
+.trp-midentity .trp-level-num{align-items:center;padding:4px 12px 4px;border-radius:999px;background:linear-gradient(135deg,var(--tier-a,#F5C73D),var(--tier-b,#E69E1A));-webkit-background-clip:border-box;background-clip:border-box;color:var(--tier-ink,${INK});-webkit-text-fill-color:var(--tier-ink,${INK});filter:none;box-shadow:0 2px 8px var(--tier-glow,rgba(245,199,61,0.28));transition:background .5s,color .5s,box-shadow .5s;}
 .trp-midentity .trp-level-num em{font-size:14px;}
 /* Číslo NA OKRAJI avatara. Lem --notch-rim je farba podkladu POD ním — na tmavej mobilnej
    hlavičke sklo, na papyrusovom PC doska; bez neho číslo splýva s prstencom. Trieda ostáva
    .trp-level-num, takže klik naň naďalej otvára panel pásiem (closest v renderIdentity). */
 .trp-avwrap .trp-level-num--notch{position:absolute;z-index:3;right:-2px;bottom:-2px;width:20px;height:20px;padding:0;border-radius:50%;justify-content:center;align-items:center;box-shadow:0 2px 7px var(--tier-glow,rgba(245,199,61,0.28)),0 0 0 2px var(--notch-rim,#171009);}
-.trp-avwrap .trp-level-num--notch em{font-size:11px;}
+.trp-avwrap .trp-level-num--notch em{font-size:12px;}
 /* ⚠️ KLIK NA ČÍSLO OTVÁRA PANEL PÁSIEM, a 20 px bublina je pod dotykovým prahom — predtým to
    bola pilulka v riadku (~34×22). Kresba ostáva malá, klikacia plocha sa zväčšuje neviditeľným
    štvorcom: bez neho sa na telefóne trafíš do identity a odletíš na triplist. */
@@ -1296,23 +1296,23 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
    Zapnuté LEN v mobilnej vetve; na PC ostáva rang, lebo tam je naň miesto. */
 .trp-mstats2{display:none;flex-direction:column;gap:1px;min-width:0;}
 .trp-mstats2 span{display:flex;align-items:baseline;gap:5px;white-space:nowrap;line-height:1.05;}
-.trp-mstats2 b{font-family:${FONT_UI};font-weight:600;font-size:17px;letter-spacing:0;color:rgba(245,240,228,0.94);font-variant-numeric:tabular-nums;}
+.trp-mstats2 b{font-family:${FONT_UI};font-weight:600;font-size:16px;letter-spacing:0;color:rgba(245,240,228,0.94);font-variant-numeric:tabular-nums;}
 /* 9px -> 10px (2026-09-19): deviatka je MIMO brandovej stupnice, najmensia povolena
    hodnota je PACK_TEXT.micro = 10. Zdvih je jeden pixel a riadok sa nerozbil
    (overene fotkou na 390 aj 500 px), takze to nie je zmena dizajnu, ale navrat
    k systemu. Struktura z locku - dva riadky km + vylety - ostava nedotknuta. */
-.trp-mstats2 i{font-family:${FONT_UI};font-style:normal;font-weight:500;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:${T.onDarkDim};}
+.trp-mstats2 i{font-family:${FONT_UI};font-style:normal;font-weight:500;font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:${T.onDarkDim};}
 .trp-midentity:hover .trp-level-name{color:#fff;}
-.trp-level-name{font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:rgba(245,240,228,0.92);}
+.trp-level-name{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:0.22em;text-transform:uppercase;color:rgba(245,240,228,0.92);}
 .trp-level-num{display:inline-flex;align-items:baseline;gap:5px;font-family:${FONT_UI};line-height:1;background:linear-gradient(135deg,var(--tier-a,#F5C73D),var(--tier-b,#E69E1A));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 7px var(--tier-glow,rgba(245,199,61,0.35)));}
-.trp-level-num em{font-style:normal;font-weight:600;font-size:21px;letter-spacing:0;}
+.trp-level-num em{font-style:normal;font-weight:600;font-size:20px;letter-spacing:0;}
 /* CTA tlačidlo → Cinzel ostáva: .btn-gold (SpiralLanding.css) je LOCKED brand CTA a ten je
    Cinzel 700 uppercase. Grotesk sem nepatrí. */
 /* DOSVIT Z LOCKU (2026-08-22) — .btn-gold (SpiralLanding.css:241) má
    box-shadow: 0 0 40px rgba(230,158,26,.4) + inset 0 1px 0 rgba(255,255,255,.3). Tunajšie CTA
    ho nemalo, takže na tmavej mape splývalo s pozadím a s ostatnými zlatými prvkami. Gradient,
    radius 8 aj papyrusový rám sedeli, chýbal len halo — dopĺňa sa, nevymýšľa sa vlastný. */
-.trp-addtrip-btn{flex-shrink:0;display:inline-flex;align-items:center;gap:5px;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:9px 16px;border-radius:8px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);box-shadow:0 0 40px rgba(230,158,26,0.4), inset 0 1px 0 rgba(255,255,255,0.3);transition:transform .2s, box-shadow .22s, filter .22s;cursor:pointer;white-space:nowrap;}
+.trp-addtrip-btn{flex-shrink:0;display:inline-flex;align-items:center;gap:5px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;padding:8px 16px;border-radius:8px;background:${GOLD_BTN.grad};color:${INK};border:1px solid ${GOLD_BTN.edge};box-shadow:${GOLD_BTN.glow};transition:transform .2s, box-shadow .22s, filter .22s;cursor:pointer;white-space:nowrap;}
 .trp-addtrip-btn:hover{filter:brightness(1.05);box-shadow:0 0 56px rgba(230,158,26,0.55), inset 0 1px 0 rgba(255,255,255,0.3);}
 .trp-addtrip-btn:active{transform:scale(0.98);}
 /* Dva labely CTA (Matej 2026-07-27): plný „Add trip" na širokom desktope, skrátený „Add"
@@ -1365,8 +1365,8 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
 .trp-addtrip-icon{width:13px;height:13px;flex-shrink:0;display:block;}
 
 /* „Hi Guest," = sub riadok nad otázkou → FONT_UI; samotná otázka = nadpis → FONT_TITLE. */
-.trp-greet-hi{font-family:${FONT_UI};font-weight:500;font-size:12.5px;color:rgba(245,240,228,0.65);}
-.trp-greet-sub{font-family:${FONT_TITLE};font-weight:700;font-size:19px;color:${GOLD};letter-spacing:.01em;margin-top:2px;line-height:1.25;}
+.trp-greet-hi{font-family:${FONT_UI};font-weight:500;font-size:12px;color:rgba(245,240,228,0.65);}
+.trp-greet-sub{font-family:${FONT_TITLE};font-weight:700;font-size:20px;color:${GOLD};letter-spacing:0;margin-top:2px;line-height:1.25;}
 
 /* bod 2 (Matej 2026-07-22): pozdrav vľavo + filter (sliders) ikonka vpravo hore, medzi nimi space. */
 .trp-greet-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
@@ -1376,17 +1376,17 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
 .trp-greet-filterwrap{position:relative;flex-shrink:0;}
 .trp-flagdd{position:relative;display:inline-flex;flex-shrink:0;}
 /* Vlajka je emoji ⇒ vlastný font, inak na Windows sadne čiernobiely textový variant. */
-.trp-flagdd-face{font-family:${FONT_EMOJI};font-size:19px;line-height:1;}
+.trp-flagdd-face{font-family:${FONT_EMOJI};font-size:20px;line-height:1;}
 /* Panel sa otvára pod vlajkou, ale zarovnaný VPRAVO — vľavo je pozdrav a zoznam by z panela
    vytiekol. Rovnaké pravidlo ako pri zoraďovaní vedľa neho. */
 .trp-flagdd-panel{right:0;min-width:150px;}
-.trp-greet-filter{width:38px;height:38px;border-radius:11px;background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;}
+.trp-greet-filter{width:38px;height:38px;border-radius:12px;background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;}
 .trp-greet-filter:hover{border-color:${GOLD};}
 .trp-greet-filter.on{background:${GOLD};border-color:${GOLD};}
 .trp-greet-filter img{width:17px;height:17px;filter:brightness(0) invert(1);opacity:.85;}
 .trp-greet-filter.on img{filter:brightness(0);opacity:.85;}
-.trp-sortpop--desk{position:absolute;top:calc(100% + 8px);right:0;background:rgba(6,5,3,0.96);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid ${T.onDarkBorder};border-radius:11px;overflow:hidden;box-shadow:0 12px 34px rgba(0,0,0,0.55);z-index:40;min-width:150px;}
-.trp-sortpop--desk button{display:block;width:100%;text-align:left;padding:11px 15px;font-family:inherit;font-size:12.5px;color:${T.onDark};background:none;border:0;border-bottom:1px solid ${T.onDarkHair};cursor:pointer;}
+.trp-sortpop--desk{position:absolute;top:calc(100% + 8px);right:0;background:rgba(6,5,3,0.96);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid ${T.onDarkBorder};border-radius:12px;overflow:hidden;box-shadow:0 12px 34px rgba(0,0,0,0.55);z-index:40;min-width:150px;}
+.trp-sortpop--desk button{display:block;width:100%;text-align:left;padding:12px 16px;font-family:inherit;font-size:12px;color:${T.onDark};background:none;border:0;border-bottom:1px solid ${T.onDarkHair};cursor:pointer;}
 .trp-sortpop--desk button:last-child{border-bottom:0;}
 .trp-sortpop--desk button.on{color:${GOLD};font-weight:600;}
 .trp-sortpop--desk button:hover{background:rgba(201,154,63,0.14);}
@@ -1405,11 +1405,11 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
    jeho hlas a šat (ainubisSheet.tsx); tu je len poloha. */
 .trp-eventshint{position:absolute;top:calc(100% + 8px);right:0;z-index:30;max-width:300px;}
 /* Kategórie (Trips/Events/Places/Services) sú nadpisy sekcií, nie dáta → FONT_TITLE. */
-.trp-catpill{flex:1 1 0;min-width:0;padding:12px 8px;border-radius:10px;border:1px solid rgba(245,240,228,0.22);background:rgba(245,240,228,0.07);font-family:${FONT_TITLE};font-weight:700;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:rgba(245,240,228,0.78);cursor:pointer;white-space:nowrap;transition:all .15s;text-align:center;}
-.trp-catpill.on{background:linear-gradient(135deg,#F5C73D,#E69E1A);border-color:rgba(250,244,236,0.3);color:#1c160c;box-shadow:0 4px 14px rgba(201,154,63,0.3);}
+.trp-catpill{flex:1 1 0;min-width:0;padding:12px 8px;border-radius:8px;border:1px solid rgba(245,240,228,0.22);background:rgba(245,240,228,0.07);font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;color:rgba(245,240,228,0.78);cursor:pointer;white-space:nowrap;transition:all .15s;text-align:center;}
+.trp-catpill.on{background:${GOLD_BTN.grad};border-color:rgba(250,244,236,0.3);color:#1c160c;box-shadow:0 4px 14px rgba(201,154,63,0.3);}
 .trp-catpill.soon{border-style:dashed;opacity:.5;cursor:default;position:relative;}
 .trp-catpill.soon:hover{opacity:.8;}
-.trp-catpill.soon::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:${T.panelGrad};border:1.5px solid ${T.cardEdge};color:${INK};font-family:${FONT_UI};font-size:10px;font-weight:600;padding:5px 10px;border-radius:10px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;box-shadow:${T.panelShadow};z-index:5;}
+.trp-catpill.soon::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:${T.panelGrad};border:1.5px solid ${T.cardEdge};color:${INK};font-family:${FONT_UI};font-size:10px;font-weight:600;padding:4px 12px;border-radius:8px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;box-shadow:${T.panelShadow};z-index:5;}
 .trp-catpill.soon:hover::after{opacity:1;}
 /* PODUJATIA nemá data-tip — svoju vetu ukazuje pod pilulkami (.trp-eventshint); bez tohto
    by hover vykreslil prázdnu bublinu nad pilulkou. */
@@ -1436,24 +1436,24 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
    Šírku preto berie kontajner, nie inline štýl komponentu: ten istý komponent stál do teraz
    v hornom paneli, kde bol rad iný, a pevné 1 1 140px by tu prebilo rovnaké diely. */
 .trp-tagdd-wrap{flex:1 1 0;min-width:0;}
-.trp-georow .trp-tagdd-btn{padding:8px 9px;border-radius:9px;font-size:13px;}
+.trp-georow .trp-tagdd-btn{padding:8px 8px;border-radius:8px;font-size:14px;}
 
 /* tag chips — iterácia 8: Activity/Difficulty/Popularity presunuté hore do top filter
    baru (viď komentár pri .trp-topfilters), panel teraz nesie len 8 univerzálnych tagov. */
 .trp-filters-row2{display:flex;flex-wrap:wrap;gap:5px;}
-.trp-chip-sm{padding:5px 10px;border-radius:999px;border:1px solid rgba(245,240,228,0.16);background:transparent;color:rgba(245,240,228,0.55);font-family:inherit;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.trp-chip-sm{padding:4px 12px;border-radius:999px;border:1px solid ${T.onDarkBorder};background:transparent;color:rgba(245,240,228,0.55);font-family:inherit;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s;}
 .trp-chip-sm:hover{border-color:${GOLD};}
 .trp-chip-sm.on{background:${GOLD};border-color:${GOLD};color:${INK};}
 .trp-chip-sm.locked{opacity:.38;cursor:not-allowed;}
 
 /* trips list — scrolls independently below the fixed top block; card height
    doesn't divide the panel evenly on purpose (peek = scroll affordance). */
-.trp-cards-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;padding:0 20px 20px;}
+.trp-cards-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;padding:0 16px 16px;}
 .trp-cards{display:flex;flex-direction:column;gap:14px;}
 /* oddeľovač „Elsewhere on the map · N" (Matej 2026-07-27) — zoznam je delený výrezom mapy:
    nad čiarou to, čo je práve vidno, pod ňou zvyšok. Typografia = dark-panel UI (Space Grotesk,
    nie Cinzel — nie je to nadpis ani identita), vlasová linka rovnaká ako .trp-tagdd-clear. */
-.trp-cards-sep{display:flex;align-items:center;gap:9px;margin:8px 0 0;font-family:${FONT_UI};font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:rgba(245,240,228,0.40);}
+.trp-cards-sep{display:flex;align-items:center;gap:9px;margin:8px 0 0;font-family:${FONT_UI};font-size:10px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:rgba(245,240,228,0.40);}
 /* Prázdny zoznam po filtroch — jedna veta a cesta von.
    ⚠️ FARBA SA NEDEDÍ. Prvý pokus stavil na color:inherit a veta na papyruse vyšla takmer
    biela: v bledom šate sa prefarbujú JEDNOTLIVÉ triedy (.trp-cards-sep a spol.), nie
@@ -1463,8 +1463,8 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
 .trp-listempty p{margin:0;font-family:${FONT_UI};font-size:14px;line-height:1.5;color:${T.onDarkDim};}
 .trp-listempty button{margin-top:12px;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:${T.accentGold};background:none;border:none;cursor:pointer;text-decoration:underline;}
 .trp-cards-sep::before,.trp-cards-sep::after{content:'';flex:1;height:1px;background:rgba(245,240,228,0.12);}
-.trp-cards-sep b{font-weight:600;color:rgba(245,240,228,0.28);letter-spacing:.06em;}
-.trp-bigcard{border-radius:14px;overflow:hidden;background:rgba(245,240,228,0.03);border:1px solid rgba(245,240,228,0.10);cursor:pointer;transition:all .15s;flex-shrink:0;}
+.trp-cards-sep b{font-weight:600;color:rgba(245,240,228,0.28);letter-spacing:0.02em;}
+.trp-bigcard{border-radius:14px;overflow:hidden;background:rgba(245,240,228,0.03);border:1px solid ${T.onDarkHair};cursor:pointer;transition:all .15s;flex-shrink:0;}
 /* ⚠️ ŽIADNY FAREBNÝ ĽAVÝ PRUH (Matej 2026-08-28: „tripy majú na ľavom boku farebný rámik
    zelený… prečo? daj to preč“). Bol to 3px lem vo farbe stavu (zelená = prejdený, zlatá =
    v triplistoch, červená = ani jedno) — posledný zvyšok legendy, ktorá zanikla 3. 8., takže
@@ -1477,9 +1477,9 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
 .trp-cardflag{position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.4);z-index:2;pointer-events:none;}
 /* bod 3 (Matej 2026-07-22): šípky VŽDY viditeľné (opacity .9, nie hover-only) — člen musí
    vidieť, že fotky sa dajú prepínať. Plnšie na hover. */
-.trp-bigcard-photonav{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:0 6px;opacity:.9;transition:opacity .15s;}
+.trp-bigcard-photonav{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:0 8px;opacity:.9;transition:opacity .15s;}
 .trp-bigcard-photo:hover .trp-bigcard-photonav{opacity:1;}
-.trp-bigcard-photobtn{width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.28);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,0.5);}
+.trp-bigcard-photobtn{width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.28);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,0.5);}
 .trp-bigcard-photobtn:hover{background:rgba(0,0,0,0.85);border-color:${GOLD};}
 /* dots → dolný ĽAVÝ roh (dolný pravý zabrali náročnosť/popularita pilulky, Matej 2026-07-22) */
 .trp-bigcard-dots{position:absolute;bottom:9px;left:10px;display:flex;justify-content:flex-start;gap:4px;z-index:2;}
@@ -1491,7 +1491,7 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
    dve stacknuté pilulky v pravom rohu). left+right, nie len right — pilulky idú vedľa seba. */
 .trp-bigcard-photometa{position:absolute;left:9px;right:9px;bottom:9px;z-index:2;}
 /* Chipy na fotke (Walked / Triplist) = drobné ovládanie, nie CTA → FONT_UI. */
-.trp-bigcard-photoactbtn{display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.22);color:#fff;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.04em;padding:6px 10px;border-radius:999px;cursor:pointer;white-space:nowrap;}
+.trp-bigcard-photoactbtn{display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.22);color:#fff;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;padding:8px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;}
 .trp-bigcard-photoactbtn:hover{border-color:${GOLD};}
 .trp-bigcard-photoactbtn.on{background:${GOLD};border-color:${GOLD};color:${INK};}
 /* Walked chip je ZELENÝ, nie zlatý (Matej 2026-07-27) — rovnaká farba ako WALKED ✓ v detaile
@@ -1507,20 +1507,20 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
    ⚠️ ZANIKLI TU DVA STĹPCE (loc/názov/autor vľavo, rating vpravo). Kým bol rating stĺpcom,
    ukrajoval názvu ~90 px šírky, takže sa dlhé mená lámali do dvoch riadkov pri 13,5 px písme —
    presne to, kvôli čomu názov nevedel vážiť viac. */
-.trp-bigcard-body{padding:11px 13px 12px;display:flex;flex-direction:column;}
+.trp-bigcard-body{padding:12px 12px 12px;display:flex;flex-direction:column;}
 .trp-bigcard-info{min-width:0;}
 /* justify-content:space-between — hodnotenie drží PRAVÝ okraj karty, nie koniec mena autora:
    inak by pri každom výlete stálo inde a riadok by pri skrolovaní poskakoval. */
 .trp-bigcard-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px;}
 /* pohorie · región label, pod fotkou (Matejov feedback bod 3, iterácia 7) */
 /* Región nad názvom = eyebrow (Entry.tsx .religion-eyebrow vzor) → FONT_UI 500 + .22em. */
-.trp-bigcard-loc{font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:rgba(245,240,228,0.45);margin-bottom:3px;}
+.trp-bigcard-loc{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:rgba(245,240,228,0.45);margin-bottom:3px;}
 /* ── PREČO JE KARTA V TOMTO FILTRI (2026-08-31) ────────────────────────────────────────
    Dvojica pilulek: identita výletu + hodnota, cez ktorú sa do filtra dostal. Zelená je tá
    istá, akou celý tok značí „vybral som si" — tu hovorí „toto si hľadal". Zobrazuje sa len
    počas filtrovania, takže bežná karta ostáva bez nich. */
 .trp-bigcard-why{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px;}
-.trp-cbadge{display:inline-flex;align-items:center;gap:4px;font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:999px;border:1px solid rgba(245,240,228,0.22);color:rgba(245,240,228,0.62);}
+.trp-cbadge{display:inline-flex;align-items:center;gap:4px;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 8px;border-radius:999px;border:1px solid rgba(245,240,228,0.22);color:rgba(245,240,228,0.62);}
 .trp-cbadge-e{font-size:10px;line-height:1;}
 .trp-cbadge--via{border-color:${T.growGreen};color:#9FD3AC;background:rgba(61,122,78,0.16);}
 /* bod 4 (iterácia 16): line-clamp 2 riadky, nech dlhé názvy nerozbíjajú layout */
@@ -1531,7 +1531,7 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
    Bodkový oddeľovač je PSEUDOPRVOK medzi súrodencami, nie znak v texte: ktorékoľvek z políčok
    môže chýbať a bodka by ostala visieť na kraji. Emoji sedí v jednom span so svojím slovom,
    inak by ich oddeľovač rozrazil na „🚆 · Vlakom". */
-.trp-bigcard-travel{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:5px;font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.02em;color:rgba(245,240,228,0.62);}
+.trp-bigcard-travel{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:5px;font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:.02em;color:rgba(245,240,228,0.62);}
 .trp-bigcard-travel > span + span::before{content:'·';margin-right:6px;opacity:.5;}
 .trp-bigcard-travel .trp-bigcard-seats{color:${GOLD};}
 /* bod 6: "by {author}" riadok + avatarpair (majiteľ+pes) — .trp-bigcard-author je teraz
@@ -1553,7 +1553,7 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
 button.trp-authorbtn{background:none;border:none;padding:0;margin:0;text-align:left;cursor:pointer;font-family:inherit;font-weight:inherit;font-style:inherit;line-height:inherit;color:inherit;letter-spacing:inherit;text-decoration:underline;text-decoration-color:rgba(201,154,63,0.45);text-underline-offset:3px;}
 button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 .trp-bigcard-meta2{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
-.trp-bigcard-meta2 span{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;white-space:nowrap;}
+.trp-bigcard-meta2 span{display:inline-flex;align-items:center;gap:5px;font-size:10px;white-space:nowrap;}
 .trp-bigcard-meta2-row{color:rgba(245,240,228,0.55);}
 .trp-bigcard-star{color:${GOLD};font-weight:600;}
 
@@ -1576,8 +1576,8 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 .trp-panelnav-btn:hover{${backHoverCSS('pale')}}
 
 .trp-inldet{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden;}
-.trp-inldet-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px;flex-shrink:0;}
-.trp-inldet-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:0 20px 16px;}
+.trp-inldet-head{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 12px;flex-shrink:0;}
+.trp-inldet-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:0 16px 16px;}
 /* bod 4 (iterácia 15): fotka nesie 3 overlaye — avatar autora (roh, initial fallback ako
    .trp-status-avatar), bočné šípky (reused .trp-bigcard-photonav — position:absolute inset:0
    = presne bočné, vertikálne centrované) a ★ "Add to wishlist" textové tlačidlo (dolný pravý
@@ -1586,20 +1586,20 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 .trp-inldet-photo{width:100%;aspect-ratio:4/3;border-radius:12px;background-size:cover;background-position:center;background-color:#111;}
 .trp-inldet-authoravatar{position:absolute;top:10px;left:10px;z-index:3;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);border:2px solid rgba(255,255,255,0.5);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,0.4);}
 .trp-inldet-authoravatar span{font-family:${FONT_UI};font-weight:600;font-size:12px;color:#1c160c;}
-.trp-inldet-savebtn{position:absolute;bottom:10px;right:10px;z-index:3;display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);border:1.5px solid rgba(255,255,255,0.28);color:#fff;font-family:${FONT_UI};font-weight:600;font-size:10.5px;padding:7px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;}
+.trp-inldet-savebtn{position:absolute;bottom:10px;right:10px;z-index:3;display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);border:1.5px solid rgba(255,255,255,0.28);color:#fff;font-family:${FONT_UI};font-weight:600;font-size:10px;padding:8px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;}
 .trp-inldet-savebtn.on{background:${GOLD};border-color:${GOLD};color:${INK};}
 /* bod 4 (i15) + bod 1/2/6 (i16): 2 stĺpce (ako karta) — vľavo 3 riadky (loc/název/autor+
    avatarpair), vpravo rating(packy+číslo)+difficulty+km+Crowd. Tagy a text idú POD tento blok
    (mimo gridu, vlastný riadok). */
 .trp-inldet-main{display:grid;grid-template-columns:1fr auto;gap:14px;margin-top:12px;align-items:center;}
-.trp-inldet-loc{font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};}
+.trp-inldet-loc{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};}
 /* bod 4 (iterácia 16): line-clamp 2 riadky */
-.trp-inldet-name{font-family:${FONT_TITLE};font-weight:700;font-size:17px;color:${T.onDark};margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.trp-inldet-name{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${T.onDark};margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 /* bod 6: "by {author}" riadok + avatarpair (majiteľ+pes), rovnaký vzor ako karta */
 .trp-inldet-authorrow{display:flex;align-items:center;gap:7px;margin-top:5px;}
-.trp-inldet-author{font-size:10.5px;color:${T.onDarkDim};}
+.trp-inldet-author{font-size:10px;color:${T.onDarkDim};}
 .trp-inldet-meta2{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
-.trp-inldet-meta2-row{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:${T.onDarkDim};white-space:nowrap;}
+.trp-inldet-meta2-row{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:${T.onDarkDim};white-space:nowrap;}
 /* bod 2 (iterácia 16): rating = 5-pack (RatingPaws, tripShared) + stars.toFixed(1) */
 .trp-inldet-rating{display:inline-flex;align-items:center;gap:6px;}
 .trp-inldet-rating b{font-family:${FONT_UI};font-weight:600;font-size:12px;color:${GOLD};}
@@ -1612,19 +1612,19 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
    "#F5C73D→#E69E1A" — ten je zlatooranžový, patrí tlačidlu a Matej si tú zmes spája
    s AINUBISOM. Chip nie je tlačidlo: nedá sa naň kliknúť a nemá stav, je to menovka.
    Menšie písmo a padding než v článku sú zámerné — panel mapy je užší než stránka. */
-.trp-inldet-tag{background:linear-gradient(140deg,#D9AE55,#B98F33);border:1px solid #8C6014;color:#3d2405;font-size:10.5px;font-weight:600;padding:5px 11px;border-radius:999px;white-space:nowrap;
+.trp-inldet-tag{background:linear-gradient(140deg,#D9AE55,#B98F33);border:1px solid #8C6014;color:#3d2405;font-size:10px;font-weight:600;padding:4px 12px;border-radius:999px;white-space:nowrap;
   box-shadow:0 2px 5px -1px rgba(110,71,16,0.35), inset 0 1px 0 rgba(255,255,255,0.38);}
-.trp-inldet-desc{font-size:12.5px;line-height:1.6;color:${T.onDarkDim};margin-top:10px;}
+.trp-inldet-desc{font-size:12px;line-height:1.6;color:${T.onDarkDim};margin-top:10px;}
 /* bod 4: Comments + "Walked by N Dogyptians" — placeholder empty-state sekcie */
 .trp-inldet-section{margin-top:16px;}
 /* Sekčné popisky v detaile ("Elevation profile", "Walked by N Dogyptians") sú pri 10.5px
    uppercase eyebrow, nie nadpis → FONT_UI 500. Titulnú rolu v detaile nesie .trp-inldet-name. */
-.trp-inldet-section h4{font-family:${FONT_UI};font-weight:500;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:${T.onDark};margin-bottom:6px;}
-.trp-inldet-empty{font-size:11.5px;color:${T.onDarkDim};font-style:italic;}
+.trp-inldet-section h4{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:${T.onDark};margin-bottom:6px;}
+.trp-inldet-empty{font-size:12px;color:${T.onDarkDim};font-style:italic;}
 /* #41 — blok jednej partie (organizátor + kto s ním ide) v inline detaile */
 .trp-inldet-host + .trp-inldet-host{margin-top:10px;}
-.trp-inldet-actions{display:flex;gap:9px;padding:14px 20px 20px;border-top:1px solid ${T.onDarkHair};flex-shrink:0;}
-.trp-inldet-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:${FONT_TITLE};font-weight:700;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:10px 8px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:all .15s;}
+.trp-inldet-actions{display:flex;gap:9px;padding:16px 16px 16px;border-top:1px solid ${T.onDarkHair};flex-shrink:0;}
+.trp-inldet-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:12px 8px;border-radius:8px;cursor:pointer;border:1px solid transparent;transition:all .15s;}
 .trp-inldet-btn--ghost{background:rgba(245,240,228,0.06);color:${T.onDark};border-color:${T.onDarkBorder};}
 .trp-inldet-btn--ghost.on{background:rgba(201,154,63,0.16);color:${GOLD};border-color:${GOLD};}
 
@@ -1633,24 +1633,24 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
    tmavého portal panela. Submit ide len do lokálneho session state (viď
    submitAdd) — DB zápis je mimo rozsahu tejto iterácie. ── */
 .trp-addsetup{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden;}
-.trp-addsetup-head{display:flex;align-items:center;gap:10px;padding:16px 20px 10px;flex-shrink:0;}
+.trp-addsetup-head{display:flex;align-items:center;gap:10px;padding:16px 16px 12px;flex-shrink:0;}
 .trp-addsetup-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;color:${T.onDark};}
-.trp-addsetup-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:4px 20px 16px;display:flex;flex-direction:column;gap:13px;}
-.trp-addsetup-field label{display:block;font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:6px;}
-.trp-addsetup-input{width:100%;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:9px;padding:9px 11px;color:${T.onDark};font-family:inherit;font-size:12.5px;outline:0;}
+.trp-addsetup-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:4px 16px 16px;display:flex;flex-direction:column;gap:13px;}
+.trp-addsetup-field label{display:block;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:6px;}
+.trp-addsetup-input{width:100%;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:8px;padding:8px 12px;color:${T.onDark};font-family:inherit;font-size:12px;outline:0;}
 .trp-addsetup-input:focus{border-color:${GOLD};}
 .trp-addsetup-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.trp-multitoggle{margin-top:6px;background:none;border:0;padding:2px 0;color:${GOLD};font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer;opacity:.85;}
+.trp-multitoggle{margin-top:6px;background:none;border:0;padding:4px 0;color:${GOLD};font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;opacity:.85;}
 .trp-multitoggle:hover{opacity:1;text-decoration:underline;}
-.trp-plannedpill{display:inline-block;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.5);padding:4px 9px;border-radius:7px;border:1px solid rgba(201,154,63,0.5);}
+.trp-plannedpill{display:inline-block;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.5);padding:4px 8px;border-radius:8px;border:1px solid rgba(201,154,63,0.5);}
 /* KONCEPT — nedokončený výlet. Pilulka zámerne NIE JE zlatá: zlatá na mape znamená STAV
    „hotové/tvoje", a koncept je opak. Papierová šeď hovorí „ešte to nie je vonku". */
-.trp-draftpill{display:inline-block;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#E8DCC3;background:rgba(0,0,0,0.55);padding:4px 9px;border-radius:7px;border:1px dashed rgba(232,220,195,0.55);}
-.trp-draftrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:9px 12px 0;}
-.trp-draftmiss{font-family:${FONT_UI};font-size:11px;line-height:1.35;color:rgba(232,220,195,0.72);flex:1 1 120px;min-width:0;}
-.trp-draftbtn{flex-shrink:0;font-family:${FONT_TITLE};font-weight:700;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;padding:7px 12px;border-radius:8px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#3d1f00;border:1px solid rgba(250,244,236,0.30);cursor:pointer;}
+.trp-draftpill{display:inline-block;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:#E8DCC3;background:rgba(0,0,0,0.55);padding:4px 8px;border-radius:8px;border:1px dashed rgba(232,220,195,0.55);}
+.trp-draftrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px 0;}
+.trp-draftmiss{font-family:${FONT_UI};font-size:12px;line-height:1.35;color:rgba(232,220,195,0.72);flex:1 1 120px;min-width:0;}
+.trp-draftbtn{flex-shrink:0;font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:8px 12px;border-radius:8px;background:${GOLD_BTN.grad};color:#3d1f00;border:1px solid ${GOLD_BTN.edge};cursor:pointer;}
 .trp-draftbtn:active{transform:scale(0.98);}
-.trp-norating{font-size:22px;font-weight:600;color:rgba(245,240,228,0.35);letter-spacing:.05em;}
+.trp-norating{font-size:24px;font-weight:600;color:rgba(245,240,228,0.35);letter-spacing:0.02em;}
 /* Ružová kvapka planu (.trp-planmarker-dot) aj zlatá kvapka podujatia
    (.trp-eventmarker-dot) tu stáli do 22. 8. 2026. Obe nahradil biely kruh s modrým
    lemom — dôvod je hore pri TARGET_PIN. Triedy sú zmazané, nie zakomentované: mŕtve
@@ -1660,21 +1660,21 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
    a stránka spadne na "... is not a function". TypeScript ani build to nechytia. */
 /* plánovanie (Matej 2026-07-23): 3 date dropdowny (deň/mesiac/rok) + profil note. */
 .trp-addsetup-daterow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
-.trp-addsetup-profilenote{font-size:11.5px;line-height:1.5;color:${GOLD};background:rgba(201,154,63,0.1);border:1px solid rgba(201,154,63,0.3);border-radius:10px;padding:11px 13px;}
+.trp-addsetup-profilenote{font-size:12px;line-height:1.5;color:${GOLD};background:rgba(201,154,63,0.1);border:1px solid ${T.hairline};border-radius:8px;padding:12px 12px;}
 /* TODO: forest placeholder foto (Cloudinary) doplniť keď Matej vyberie z 10 návrhov → background-image na .trp-planph */
 .trp-planph{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;margin-bottom:12px;overflow:hidden;background:linear-gradient(135deg,#1c2b1a,#0e1a0d);display:flex;align-items:center;justify-content:center;border:1px solid rgba(245,240,228,0.12);}
-.trp-planph-badge{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.45);padding:8px 14px;border-radius:8px;border:1px solid rgba(201,154,63,0.5);}
-.trp-planpin{padding:9px 11px;border-radius:9px;border:1px dashed rgba(201,154,63,0.5);background:rgba(201,154,63,0.06);color:rgba(245,240,228,0.75);font-size:12px;}
+.trp-planph-badge{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.22em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.45);padding:8px 16px;border-radius:8px;border:1px solid rgba(201,154,63,0.5);}
+.trp-planpin{padding:8px 12px;border-radius:8px;border:1px dashed rgba(201,154,63,0.5);background:rgba(201,154,63,0.06);color:rgba(245,240,228,0.75);font-size:12px;}
 .trp-planpin.set{border-style:solid;color:${GOLD};}
-.trp-addsetup-file{font-size:11px;color:${T.onDarkDim};}
+.trp-addsetup-file{font-size:12px;color:${T.onDarkDim};}
 .trp-addsetup-photos{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;}
 .trp-addsetup-photo{position:relative;width:64px;height:64px;border-radius:8px;background-size:cover;background-position:center;}
-.trp-addsetup-photo button{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.75);color:#fff;border:none;font-size:11px;line-height:1;cursor:pointer;}
+.trp-addsetup-photo button{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.75);color:#fff;border:none;font-size:12px;line-height:1;cursor:pointer;}
 .trp-addsetup-stars{display:flex;gap:4px;}
 .trp-addsetup-stars button{background:none;border:none;font-size:20px;color:rgba(245,240,228,0.22);cursor:pointer;line-height:1;}
 .trp-addsetup-stars button.on{color:${GOLD};}
-.trp-addsetup-livekm{font-family:${FONT_UI};font-weight:600;font-size:11.5px;color:${GOLD};background:rgba(201,154,63,0.1);border:1px solid rgba(201,154,63,0.3);border-radius:9px;padding:9px 11px;}
-.trp-addsetup-submit{flex-shrink:0;margin:0 20px 20px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:10px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);cursor:pointer;}
+.trp-addsetup-livekm{font-family:${FONT_UI};font-weight:600;font-size:12px;color:${GOLD};background:rgba(201,154,63,0.1);border:1px solid ${T.hairline};border-radius:8px;padding:8px 12px;}
+.trp-addsetup-submit{flex-shrink:0;margin:0 20px 20px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;padding:12px;border-radius:8px;background:${GOLD_BTN.grad};color:${INK};border:1px solid ${GOLD_BTN.edge};cursor:pointer;}
 .trp-addsetup-submit:disabled{opacity:.45;cursor:default;}
 
 /* draw hint bubble — shown on the map while ADD TRIP is open (bod 6) */
@@ -1689,7 +1689,7 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
    prechode do pridávania „preskočil"); na mobile celá obrazovka (media query nižšie).
    ⚠️ Šírka MUSÍ sedieť s .trp-sidebar aj s odsadením lišty kreslenia (DRAW_BAR_CSS
    v GeometryPicker.tsx) — tri miesta, jedno číslo. */
-.trp-addhost{position:absolute;top:20px;left:20px;bottom:20px;width:440px;max-width:calc(100vw - 40px);background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,0.55),inset 0 1px 0 rgba(245,240,228,0.06);display:flex;flex-direction:column;min-height:0;overflow:hidden;z-index:30;}
+.trp-addhost{position:absolute;top:20px;left:20px;bottom:20px;width:440px;max-width:calc(100vw - 40px);background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,0.55),inset 0 1px 0 rgba(245,240,228,0.06);display:flex;flex-direction:column;min-height:0;overflow:hidden;z-index:30;}
 .trp-addhost.is-hidden{display:none;}
 
 /* ── mobile-only surfaces (header/list/toggle/ADD overlay), hidden on desktop — see the
@@ -1730,16 +1730,16 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
 .trp-layersdd{position:relative;}
 .trp-layersdd-panel{position:absolute;top:0;right:calc(100% + 10px);z-index:41;width:238px;background:rgba(6,5,3,0.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid ${T.onDarkBorder};border-radius:14px;box-shadow:0 16px 40px rgba(0,0,0,0.55);padding:12px;}
 .trp-layersdd-group + .trp-layersdd-group{margin-top:12px;padding-top:12px;border-top:1px solid ${T.onDarkHair};}
-.trp-layersdd-row{display:flex;align-items:center;gap:9px;width:100%;padding:6px 4px;font-family:${FONT_UI};font-size:12.5px;color:${T.onDark};cursor:pointer;}
+.trp-layersdd-row{display:flex;align-items:center;gap:9px;width:100%;padding:8px 4px;font-family:${FONT_UI};font-size:12px;color:${T.onDark};cursor:pointer;}
 .trp-layersdd-row input{accent-color:${GOLD};width:14px;height:14px;flex-shrink:0;}
 .trp-layersdd-row span{flex:1;}
 .trp-layersdd-row.disabled{opacity:.4;cursor:default;}
-.trp-layersdd-hint{margin:0 0 6px 23px;font-family:${FONT_UI};font-size:10.5px;line-height:1.4;color:${T.onDarkDim};}
-.trp-zoomgroup{display:flex;flex-direction:column;background:${T.glass};backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid ${T.onDarkBorder};border-radius:9px;overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,0.45);}
-.trp-zoomgroup button{background:none;border:none;cursor:pointer;width:38px;height:36px;font-size:17px;font-weight:600;line-height:1;color:${T.onDark};display:flex;align-items:center;justify-content:center;}
+.trp-layersdd-hint{margin:0 0 6px 23px;font-family:${FONT_UI};font-size:10px;line-height:1.4;color:${T.onDarkDim};}
+.trp-zoomgroup{display:flex;flex-direction:column;background:${T.glass};backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid ${T.onDarkBorder};border-radius:8px;overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,0.45);}
+.trp-zoomgroup button{background:none;border:none;cursor:pointer;width:38px;height:36px;font-size:16px;font-weight:600;line-height:1;color:${T.onDark};display:flex;align-items:center;justify-content:center;}
 .trp-zoomgroup button:first-child{border-bottom:1px solid ${T.onDarkHair};}
 .trp-zoomgroup button:hover{background:rgba(201,154,63,0.18);}
-.trp-locatebtn{width:38px;height:38px;border-radius:9px;background:${T.glass};backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid ${T.onDarkBorder};box-shadow:0 3px 10px rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.trp-locatebtn{width:38px;height:38px;border-radius:8px;background:${T.glass};backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid ${T.onDarkBorder};box-shadow:0 3px 10px rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .trp-locatebtn:hover{border-color:${GOLD};}
 .trp-locatebtn img{width:18px;height:18px;filter:brightness(0) invert(1);opacity:.78;}
 .trp-locatebtn.loading img{opacity:.35;}
@@ -1763,12 +1763,12 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
 /* Markery na mape nesú ČÍSLA (km) v 10.5px — Cinzel serifka sa tu zlievala, Grotesk 600 má
    pri tejto veľkosti výrazne lepšiu čitateľnosť. 2026-07-27: štýl A z prototypu (tmavá glass +
    zlatý lem) — plná zlatá sa šetrí len na hot/vybraté (a len pre bežný, nie journey/water typ). */
-.trp-pill{position:relative;transform:translate(-50%,-100%);display:inline-flex;align-items:center;gap:5px;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));color:#F6F1E4;font-family:${FONT_UI};font-weight:600;font-size:10.5px;padding:5px 9px 5px 7px;border-radius:999px;border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 7px rgba(0,0,0,0.34);white-space:nowrap;transition:all .15s;}
+.trp-pill{position:relative;transform:translate(-50%,-100%);display:inline-flex;align-items:center;gap:5px;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));color:#F6F1E4;font-family:${FONT_UI};font-weight:600;font-size:10px;padding:4px 8px 4px 8px;border-radius:999px;border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 7px rgba(0,0,0,0.34);white-space:nowrap;transition:all .15s;}
 /* ⚠️ 2026-08-20 — POD MYŠOU JE PILULKA BIELA, nie zlatá (Matej: „pri prejdení myšou na
    náročnosť/alebo trasu sa pill s km zmení na bielu nie žltú"). Zlatá na mape ostáva
    len tam, kde nesie brand (lem), nie ako signál stavu — ten dnes nesie rozsvietený meč.
    Prsteň je fialový, nech je pilulka viditeľne spojená s trasou, ktorá sa zároveň rozsvieti. */
-.trp-pill.hot{background:linear-gradient(180deg,#FFFFFF,#F2ECE0);color:#1c160c;border-color:rgba(122,47,191,0.55);box-shadow:0 0 0 3px rgba(179,107,255,0.35),0 4px 12px rgba(0,0,0,0.5);}
+.trp-pill.hot{background:linear-gradient(180deg,#FFFFFF,#F2ECE0);color:#1c160c;border-color:rgba(${PACK_THEME.tripPurpleRGB},0.55);box-shadow:0 0 0 3px rgba(179,107,255,0.35),0 4px 12px rgba(0,0,0,0.5);}
 /* ── NÁZOV EXISTUJÚCEJ TRASY POČAS KRESLENIA (2026-08-25) ─────────────────────
    Rovnaký recept, aký si vyžiadal Matej 23. 8. na fialovú pilulku nad mapou („takmer
    neviditeľná — treba ju zvýrazniť"): PLNÝ tmavý podklad, nie priesvitný tint. Na papierovej
@@ -1776,10 +1776,10 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
    na prvý pohľad jasné, že pilulka patrí TRASE, nie značke svorky (tá má vlastné tvary a farby).
    Meno výletu = Cinzel (identita), nie Space Grotesk — rovnaké pravidlo ako názvy výletov inde. */
 .trp-dname{position:absolute;left:0;top:0;transform:translate(-50%,-50%);white-space:nowrap;
-  padding:4px 10px;border-radius:999px;cursor:pointer;
+  padding:4px 12px;border-radius:999px;cursor:pointer;
   background:linear-gradient(180deg,rgba(23,20,14,.96),rgba(11,9,6,.96));
   border:1px solid ${TRAIL_LINE.light};color:#F3E9FF;
-  font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.03em;
+  font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;
   box-shadow:0 2px 10px rgba(0,0,0,.5);transition:transform .12s,box-shadow .12s;}
 .trp-dname:hover{transform:translate(-50%,-50%) scale(1.06);box-shadow:0 0 0 3px rgba(179,107,255,.3),0 3px 12px rgba(0,0,0,.6);}
 /* Bodka náročnosti vnútri názvu — malá, aby meno ostalo hlavné. */
@@ -1797,14 +1797,14 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
    (mapDockShape.ts) — vlievať doň cudzí obsah by ten tvar rozbilo. Karta je preto
    samostatná, nízka a dá sa zavrieť, takže kreslenie pod ňou nezastane. */
 .trp-peek{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(33vh + 14px);z-index:1200;
-  width:min(360px,calc(100vw - 28px));padding:12px 14px 10px;border-radius:14px;
+  width:min(360px,calc(100vw - 28px));padding:12px 16px 12px;border-radius:14px;
   background:linear-gradient(180deg,rgba(23,20,14,.97),rgba(11,9,6,.97));
   border:1.5px solid ${TRAIL_LINE.light};box-shadow:0 12px 34px rgba(0,0,0,.6);color:#F3E9FF;}
 /* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
 .trp-peek-x{position:absolute;top:8px;left:8px;${backCircleCSS('pale')}}
 .trp-peek-x:hover{${backHoverCSS('pale')}}
 .trp-peek-name{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.02em;
-  padding-left:40px;min-height:30px;margin-bottom:3px;}
+  padding-left:48px;min-height:30px;margin-bottom:3px;}
 .trp-peek-row{font-family:${FONT_UI};font-weight:500;font-size:12px;color:rgba(243,233,255,.82);
   display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
 .trp-peek-sep{color:rgba(243,233,255,.35);}
@@ -1813,17 +1813,17 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
 .trp-peek-diff{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:1px;}
 /* AInubisov hlas. Tvár v kruhu ako v jeho bubline nad mapou; text menší než názov trasy —
    je to rada, nie nadpis. */
-.trp-peek-ainubis{display:flex;align-items:flex-start;gap:9px;margin:0 0 9px;padding-right:20px;}
+.trp-peek-ainubis{display:flex;align-items:flex-start;gap:9px;margin:0 0 9px;padding-right:16px;}
 .trp-peek-ainubis img{flex:0 0 auto;border-radius:50%;}
 .trp-peek-ainubis span{font-family:${FONT_UI};font-weight:500;font-size:12px;line-height:1.35;color:rgba(243,233,255,.9);}
 .trp-peek-acts{display:flex;align-items:center;gap:10px;margin-top:10px;}
 /* Zlaté CTA = .btn-gold lock (gradient, radius 8, papyrusový rám) — nie pilulka. */
-.trp-peek-go{flex:1 1 auto;padding:10px 14px;border-radius:8px;cursor:pointer;
-  background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#1c160c;
-  border:1px solid rgba(250,244,236,0.30);box-shadow:inset 0 1px 0 rgba(255,255,255,0.3);
-  font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;}
-.trp-peek-mine{flex:0 0 auto;background:none;border:0;cursor:pointer;padding:8px 2px;
-  font-family:${FONT_UI};font-weight:500;font-size:11.5px;color:rgba(243,233,255,.62);text-decoration:underline;}
+.trp-peek-go{flex:1 1 auto;padding:12px 16px;border-radius:8px;cursor:pointer;
+  background:${GOLD_BTN.grad};color:#1c160c;
+  border:1px solid ${GOLD_BTN.edge};box-shadow:inset 0 1px 0 rgba(255,255,255,0.3);
+  font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;}
+.trp-peek-mine{flex:0 0 auto;background:none;border:0;cursor:pointer;padding:8px 4px;
+  font-family:${FONT_UI};font-weight:500;font-size:12px;color:rgba(243,233,255,.62);text-decoration:underline;}
 /* Nízke okno (mobil na šírku): dok aj karta by si sadli na seba — profil ustúpi ako prvý,
    lebo názov a čas sú odpoveď na otázku, profil je bonus. */
 @media (max-height:560px){.trp-peek-elev{display:none;}}
@@ -1833,7 +1833,7 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
    nenápadný". Diaľkové sú na mape rarita (10 z 67) a jediné nesú km aj z diaľky → väčšie písmo,
    viac priestoru, plný zlatý prsteň (bežné pilulky majú lem na 55 % — zlatý RING je vyhradený
    práve im) a väčší trojuholník náročnosti. */
-.trp-pill--journey{background:linear-gradient(135deg,#8C1C22,#4a0f13);color:#fff;font-size:11.5px;padding:5px 10px 5px 8px;gap:6px;border-width:1.5px;border-color:${GOLD};box-shadow:0 0 0 2px rgba(201,154,63,0.20),0 3px 10px rgba(0,0,0,0.42);}
+.trp-pill--journey{background:linear-gradient(135deg,#8C1C22,#4a0f13);color:#fff;font-size:12px;padding:4px 12px 4px 8px;gap:6px;border-width:1.5px;border-color:${GOLD};box-shadow:0 0 0 2px rgba(201,154,63,0.20),0 3px 10px rgba(0,0,0,0.42);}
 /* ⚠️ FARBU PÍSMA MUSIA OBE VÝNIMKY VRÁTIŤ SPÄŤ NA BIELU. Trieda .trp-pill.hot nastavuje tmavý
    inkoust (patrí k bielej výplni), ale magistrála a vodná plocha si pod myšou necháva
    SVOJU tmavú výplň — a keďže color v ich .hot vetve nebol, zdedil sa tmavý a text
@@ -1849,7 +1849,7 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
 .trp-pill--water.hot{background:${WATER_COLOR};color:#fff;border-color:#fff;box-shadow:0 0 0 3px rgba(46,111,214,0.35),0 4px 12px rgba(0,0,0,0.6);}
 /* bodka (z<=9, zadanie 2.3) — 17px kruh, rovnaký glass+zlatý lem ako pilulka, len piktogram. */
 .trp-dot{position:relative;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 6px rgba(0,0,0,0.32);transition:transform .12s;}
-.trp-dot.hot{background:linear-gradient(180deg,#FFFFFF,#F2ECE0);border-color:rgba(122,47,191,0.6);box-shadow:0 0 0 2px rgba(179,107,255,0.3),0 2px 6px rgba(0,0,0,0.4);}
+.trp-dot.hot{background:linear-gradient(180deg,#FFFFFF,#F2ECE0);border-color:rgba(${PACK_THEME.tripPurpleRGB},0.6);box-shadow:0 0 0 2px rgba(179,107,255,0.3),0 2px 6px rgba(0,0,0,0.4);}
 .trp-dot--journey{background:linear-gradient(135deg,#8C1C22,#4a0f13);border-color:rgba(201,154,63,0.5);}
 .trp-dot--journey.hot{background:linear-gradient(135deg,#8C1C22,#4a0f13);border-color:#fff;}
 .trp-dot--journey .trp-diffmark--triangle{border-bottom-color:#fff;}
@@ -1869,7 +1869,7 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
 /* bod 2 (iterácia 17): live "{km} km" label pri konci kreslenej trasy (ADD flow draw) —
    rovnaká centrovacia technika ako .trp-pill (left:-50%/top:-100%), o kúsok vyššie (-10px
    extra gap), nech nesedí priamo na poslednom bode trasy. */
-.trp-drawlabel{position:relative;transform:translate(-50%,calc(-100% - 10px));background:rgba(6,5,3,0.92);color:${GOLD};font-family:${FONT_UI};font-weight:600;font-size:10.5px;padding:4px 10px;border-radius:999px;border:1.5px solid ${GOLD};box-shadow:0 3px 10px rgba(0,0,0,0.5);white-space:nowrap;}
+.trp-drawlabel{position:relative;transform:translate(-50%,calc(-100% - 10px));background:rgba(6,5,3,0.92);color:${GOLD};font-family:${FONT_UI};font-weight:600;font-size:10px;padding:4px 12px;border-radius:999px;border:1.5px solid ${GOLD};box-shadow:0 3px 10px rgba(0,0,0,0.5);white-space:nowrap;}
 ${DIFF_MARK_CSS}
 ${TRAIL_LINE_CSS}
 
@@ -1892,20 +1892,20 @@ ${TRAIL_LINE_CSS}
   .trp-sidebar{width:360px;}
   .trp-addhost{width:360px;}
   .trp-topbar{left:400px;right:74px;}
-  .trp-status-row{gap:10px;padding:11px 14px;}
+  .trp-status-row{gap:10px;padding:12px 16px;}
   .trp-status-center{gap:7px;flex-wrap:nowrap;}
   .trp-status-row .trp-stat-pill{padding:8px 12px;}
-  .trp-status-row .trp-stat-pill span,.trp-status-row .trp-stat-pill b{font-size:11.5px;}
+  .trp-status-row .trp-stat-pill span,.trp-status-row .trp-stat-pill b{font-size:12px;}
   /* Triplist = len clipboard ikonka (route je rovnaká, title/aria label ostáva). */
   .trp-status-row .trp-triplist-label{display:none;}
-  .trp-status-row .trp-stat-pill--icon{padding:8px 10px;}
+  .trp-status-row .trp-stat-pill--icon{padding:8px 12px;}
   .trp-status-row .trp-addtrip-btn{padding:8px 12px;font-size:10px;}
   .trp-status-row .trp-addtrip-full{display:none;}
   .trp-status-row .trp-addtrip-short{display:inline;}
   .trp-headright{gap:6px;}
   .trp-topsearchrow{gap:8px;}
   .trp-floatsearch{flex:1 1 160px;min-width:140px;}
-  .trp-tagdd-btn{flex:1 1 100px;min-width:92px;padding:9px 11px;font-size:12px;}
+  .trp-tagdd-btn{flex:1 1 100px;min-width:92px;padding:8px 12px;font-size:12px;}
 }
 
 /* ── mobile (≤760px) — bod 5, iterácia 11: map-first + LIST/MAP toggle +
@@ -1928,8 +1928,8 @@ ${TRAIL_LINE_CSS}
 
   .trp-stylebtn{width:34px;height:34px;}
   .trp-stylebtn img{width:16px;height:16px;}
-  .trp-layersdd-panel{width:206px;padding:10px;}
-  .trp-zoomgroup button{width:34px;height:32px;font-size:15px;}
+  .trp-layersdd-panel{width:206px;padding:12px;}
+  .trp-zoomgroup button{width:34px;height:32px;font-size:16px;}
   .trp-locatebtn{width:34px;height:34px;}
   .trp-locatebtn img{width:16px;height:16px;}
 
@@ -2006,11 +2006,11 @@ ${TRAIL_LINE_CSS}
   .trp-mheader-row2 .trp-mapsug{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:5;}
   .trp-mheader.has-sug{mask-image:none;-webkit-mask-image:none;}
   .trp-mheader .trp-mapsearch{flex:1 1 auto;min-width:0;padding:0 12px;border-radius:999px;}
-  .trp-mheader .trp-mapsearch input{padding:7px 0;}
+  .trp-mheader .trp-mapsearch input{padding:8px 0;}
   .trp-mheader .trp-mapsearch img{width:12px;height:12px;}
   /* NEZNIŽOVAŤ POD 16 px — viď pravidlo pri .trp-mapsearch input vyššie. */
   .trp-mfilterwrap{position:relative;flex:0 0 auto;}
-  .trp-mfilterbtn{display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;background:${T.glassSoft};border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-weight:500;font-size:11.5px;white-space:nowrap;cursor:pointer;}
+  .trp-mfilterbtn{display:flex;align-items:center;gap:7px;padding:8px 12px;border-radius:999px;background:${T.glassSoft};border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-weight:500;font-size:12px;white-space:nowrap;cursor:pointer;}
   .trp-mfilterbtn img{width:14px;height:14px;filter:brightness(0) invert(1);opacity:.8;}
   .trp-mfilterbtn.on{border-color:${GOLD};color:${GOLD};}
   .trp-mfilterbtn.on img{filter:none;opacity:1;}
@@ -2018,26 +2018,26 @@ ${TRAIL_LINE_CSS}
   /* ── FILTER SHEET (bottom sheet) — AllTrails vzor. Tmavý glass povrch, lebo stojí nad
      mapou (rovnaká vrstva ako .trp-mheader), nie papyrus. z-index nad .trp-mheader (900). */
   .trp-msheet-back{position:fixed;inset:0;z-index:960;background:rgba(0,0,0,0.55);backdrop-filter:blur(2px);}
-  .trp-msheet{position:fixed;left:0;right:0;bottom:0;z-index:961;display:flex;flex-direction:column;max-height:86vh;background:rgba(10,9,6,0.97);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid ${T.onDarkBorder};border-radius:20px 20px 0 0;box-shadow:0 -18px 50px rgba(0,0,0,0.6);padding-bottom:env(safe-area-inset-bottom,0px);}
+  .trp-msheet{position:fixed;left:0;right:0;bottom:0;z-index:961;display:flex;flex-direction:column;max-height:86vh;background:rgba(10,9,6,0.97);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid ${T.onDarkBorder};border-radius:16px 16px 0 0;box-shadow:0 -18px 50px rgba(0,0,0,0.6);padding-bottom:env(safe-area-inset-bottom,0px);}
   .trp-msheet-grab{width:38px;height:4px;border-radius:999px;background:rgba(245,240,228,0.22);margin:9px auto 2px;flex:0 0 auto;}
-  .trp-msheet-head{display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:8px 18px 12px;flex:0 0 auto;}
-  .trp-msheet-title{font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:${GOLD};}
+  .trp-msheet-head{display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:8px 16px 12px;flex:0 0 auto;}
+  .trp-msheet-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:0.22em;text-transform:uppercase;color:${GOLD};}
   /* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
   .trp-msheet-x{${backCircleCSS('pale')}}
   .trp-msheet-x:hover{${backHoverCSS('pale')}}
-  .trp-msheet-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:0 18px 16px;display:flex;flex-direction:column;gap:15px;}
+  .trp-msheet-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:0 16px 16px;display:flex;flex-direction:column;gap:15px;}
   .trp-msheet-field{display:flex;flex-direction:column;gap:6px;}
   .trp-msheet-pair{display:flex;gap:10px;}
   .trp-msheet-pair .trp-msheet-field{flex:1 1 0;min-width:0;}
-  .trp-msheet-label{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};}
+  .trp-msheet-label{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};}
   .trp-msheet-chips{display:flex;flex-wrap:wrap;gap:7px;}
   .trp-msheet-chip{display:inline-flex;align-items:center;gap:5px;padding:8px 12px;border-radius:999px;background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-size:12px;cursor:pointer;}
   .trp-msheet-chip.on{border-color:${GOLD};color:${GOLD};background:rgba(201,154,63,0.16);font-weight:600;}
   /* Sticky pätka — Clear (ghost) + SHOW N (brand gold CTA, radius 8, .btn-gold lock). */
-  .trp-msheet-foot{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:12px 18px 16px;border-top:1px solid ${T.onDarkHair};background:rgba(10,9,6,0.97);}
-  .trp-msheet-clear{flex:0 0 auto;padding:12px 18px;border-radius:8px;background:none;border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};font-weight:600;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;}
+  .trp-msheet-foot{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:12px 16px 16px;border-top:1px solid ${T.onDarkHair};background:rgba(10,9,6,0.97);}
+  .trp-msheet-clear{flex:0 0 auto;padding:12px 16px;border-radius:8px;background:none;border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;cursor:pointer;}
   .trp-msheet-clear:disabled{opacity:.4;cursor:default;}
-  .trp-msheet-show{flex:1 1 auto;padding:12px 18px;border-radius:8px;background:linear-gradient(135deg,#F5C73D,#E69E1A);border:1px solid rgba(250,244,236,0.30);color:${INK};font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;}
+  .trp-msheet-show{flex:1 1 auto;padding:12px 16px;border-radius:8px;background:${GOLD_BTN.grad};border:1px solid ${GOLD_BTN.edge};color:${INK};font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;cursor:pointer;}
 
   /* LIST/MAP toggle pill, bottom-center — default view = map (žiadny
      bottom-sheet defaultne), klik prepína celú stránku na zoznam.
@@ -2068,7 +2068,7 @@ ${TRAIL_LINE_CSS}
      🔴 21. 9. 2026: .trp-mfab ZANIKLO (vchod sa presťahoval do kotúča + v lište), takže
      spor o dve identické tlačidlá zanikol s ním. Pravidlo ostáva zapísané — je to jediné
      miesto, kde sa dá prečítať, PREČO je prepínač pilulka a CTA nie. */
-  .trp-mtoggle{display:flex;align-items:center;justify-content:center;gap:8px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:11px 24px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);cursor:pointer;white-space:nowrap;}
+  .trp-mtoggle{display:flex;align-items:center;justify-content:center;gap:8px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;padding:12px 24px;background:${GOLD_BTN.grad};color:${INK};border:1px solid ${GOLD_BTN.edge};cursor:pointer;white-space:nowrap;}
   .trp-mtoggle{border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,0.4);}
   /* 🔴 ZÁZNAM ZRUŠENÉHO PRVKU (.trp-mfab, 23. 8. – 21. 9. 2026). Kresba zanikla, dôvod nie:
      je to jediné miesto, kde stojí, prečo sa PRIDAŤ a ZOZNAM museli odlíšiť. Kto by na mapu
@@ -2197,8 +2197,8 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-status-row{${goldFrameCSS({ plate: false })}backdrop-filter:none;-webkit-backdrop-filter:none;padding:0;gap:0;}
   /* align-self:stretch — riadok centruje deti, ale doska musí siahať na plnú výšku lemu.
      Radius je vnútorný (NAV_R.plate = rám 14 mínus lem 6), takže rohy sú koncentrické s rámom. */
-  .trp-status-plate{${goldPlateCSS()}display:flex;align-items:center;gap:16px;flex:1 1 auto;min-width:0;align-self:stretch;padding:11px 16px;}
-  .trp-status-left{padding:0 16px 0 14px;}
+  .trp-status-plate{${goldPlateCSS()}display:flex;align-items:center;gap:16px;flex:1 1 auto;min-width:0;align-self:stretch;padding:12px 16px;}
+  .trp-status-left{padding:0 16px 0 16px;}
   /* Stredný klaster sa centruje NAD DOSKOU, nie nad celým riadkom: doska je odteraz plocha,
      ktorú človek číta ako „lištu", a chipy patria do jej osi. Auto-margin (nie flex:1) —
      pravý blok si berie len svoju šírku a stred sa vycentruje do zvyšku. */
@@ -2224,7 +2224,7 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
      čierny krúžok na svetlom. */
   .trp-topbar .trp-avwrap{--notch-rim:#D8B052;}
   /* Rang ostal v riadku sám, tak môže vážiť viac. */
-  .trp-topbar .trp-level-name{font-size:16px;letter-spacing:.12em;}
+  .trp-topbar .trp-level-name{font-size:16px;letter-spacing:0.14em;}
   .trp-topbar .trp-midentity:hover .trp-level-name{color:#000;}
   /* Avatar: zlatý krúžok na tmavom pozadí mal čierny halo ring, ktorý na papyruse vyzerá
      ako špina. Ostáva rám, halo sa mení na svetlý. */
@@ -2359,7 +2359,7 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-sidebar .trp-greet-filter{background:${P_SOFT};border-color:${P_BORDER};}
   .trp-sidebar .trp-greet-filter img{filter:none;opacity:.7;}
   .trp-sidebar .trp-greet-filter:hover{border-color:${T.cardEdge};background:#FFFDF6;}
-  .trp-sidebar .trp-greet-filter.on{background:linear-gradient(135deg,#F5C73D,#E69E1A);border-color:rgba(250,244,236,0.55);}
+  .trp-sidebar .trp-greet-filter.on{background:${GOLD_BTN.grad};border-color:rgba(250,244,236,0.55);}
   .trp-sidebar .trp-greet-filter.on img{filter:none;opacity:.9;}
 
   .trp-sidebar .trp-sortpop--desk{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};box-shadow:${T.panelShadow};backdrop-filter:none;-webkit-backdrop-filter:none;}
@@ -2390,7 +2390,7 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
      stránku priblíži. Bledý blok začína na 1024 px, teda tu žiadny takýto telefón nie je.
      (Rozbaľovačky sú od 26. 8. tlačidlá, kde to riziko nehrozí ani na mobile — hodnota tu
      ostáva preto, že rad má byť drobnejší než hlavička, nie kvôli priblíženiu.) */
-  .trp-sidebar .trp-pickdd-wrap .trp-tagdd-btn{font-size:13px;}
+  .trp-sidebar .trp-pickdd-wrap .trp-tagdd-btn{font-size:14px;}
   /* ⚠️ PANEL SA V ĽAVOM PANELI OTVÁRA DOPRAVA (Matej 2026-08-26: „dropdown región je zle mimo
      výrezu"). Základné pravidlo má right:0, čo je správne pre filtre v pravej časti hlavičky,
      ale prvá rozbaľovačka v rade rastie od svojho pravého okraja doľava — a keďže je panel
@@ -2566,9 +2566,9 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
      ⚠️ Žiadne nové natvrdo písané číslo výšky: hlavička publikuje svoju SKUTOČNÚ výšku
      ako --trp-mheader-h (ResizeObserver, PackMap ~4180), takže ovládače mapy aj zoznam
      pod ňou sa posunú samy. */
-  .trp-mheader-cats{position:relative;display:inline-flex;align-self:flex-start;gap:2px;padding:3px;border-radius:999px;background:${P_SOFT};border:1px solid ${P_BORDER};}
+  .trp-mheader-cats{position:relative;display:inline-flex;align-self:flex-start;gap:2px;padding:4px;border-radius:999px;background:${P_SOFT};border:1px solid ${P_BORDER};}
   .trp-mheader-cats .trp-eventshint{left:0;right:auto;width:max-content;max-width:min(280px,calc(100vw - 32px));}
-  .trp-mheader-cats button{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:999px;border:0;background:transparent;color:${P_DIM};cursor:pointer;transition:all .15s;}
+  .trp-mheader-cats button{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 12px;border-radius:999px;border:0;background:transparent;color:${P_DIM};cursor:pointer;transition:all .15s;}
   .trp-mheader-cats button.is-locked{opacity:.6;}
   .trp-mheader-cats button.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}font-weight:600;}
   /* SNIFFER — mobilná dvojička tmavého tlačidla z panelu (komentár pri .trp-sniffer vyššie). */
@@ -2602,7 +2602,7 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
      roztiahlo na celý rad. Polomer sa vracia na 999: dôvod pre osmičku bol „dve tlačidlá
      rovnakej šírky vedľa seba s rôznym polomerom čítajú ako dva nesúvisiace prvky",
      a ten druhý prvok už neexistuje. Pilulka BEZ dosvitu je tvar predpísaný lockom §1.3.1. */
-  .trp-mtoggle{min-width:0;padding:14px 24px;gap:7px;font-size:11.5px;letter-spacing:.12em;border-radius:999px;}
+  .trp-mtoggle{min-width:0;padding:16px 24px;gap:7px;font-size:12px;letter-spacing:0.14em;border-radius:999px;}
   .trp-mtoggle img{width:14px;height:14px;}
 
   /* 🔴 ZÁZNAM: PRIDAŤ bolo od 28. 8. 2026 PLNÝ LAPIS s bledým obsahom (Matej: „má byť plný
@@ -2647,8 +2647,8 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
   /* ── FILTER SHEET — bledý (Matej 2026-08-28: „po kliknutí sa zobrazí panel ale je Dark") ──
      Doska je tá istá ako hlavička; mení sa len tvar (zaoblený vrch) a smer hrany — tu je
      zlatý pás HORE, lebo panel prichádza zdola. */
-  .trp-msheet{${goldPlateCSS({ radius: 0 })}border-radius:20px 20px 0 0;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:0 -18px 50px rgba(0,0,0,0.5);border-top:${NAV_R.rim}px solid transparent;background-clip:padding-box;}
-  .trp-msheet::before{content:'';position:absolute;left:0;right:0;top:0;height:${NAV_R.rim}px;border-radius:20px 20px 0 0;background:linear-gradient(180deg,#FCF0C2,#D8B052);box-shadow:0 1px 0 ${NAV_GOLD.edge};}
+  .trp-msheet{${goldPlateCSS({ radius: 0 })}border-radius:16px 16px 0 0;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:0 -18px 50px rgba(0,0,0,0.5);border-top:${NAV_R.rim}px solid transparent;background-clip:padding-box;}
+  .trp-msheet::before{content:'';position:absolute;left:0;right:0;top:0;height:${NAV_R.rim}px;border-radius:16px 16px 0 0;background:linear-gradient(180deg,#FCF0C2,#D8B052);box-shadow:0 1px 0 ${NAV_GOLD.edge};}
   .trp-msheet-grab{background:rgba(42,22,8,0.28);}
   .trp-msheet-title{color:${P_INK};}
   .trp-msheet-label{color:${P_DIM};}
@@ -2665,12 +2665,12 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
      Rovnaká pasca ako s kotvením panela nižšie — prenesený komponent si nesie geometriu
      z pôvodného miesta a v inom smere osi znamená to isté číslo niečo iné. */
   .trp-msheet-field--pick .trp-pickdd-wrap{display:flex;width:100%;flex:0 0 auto;min-width:0;}
-  .trp-msheet .trp-tagdd-btn{flex:1 1 auto;min-width:0;background:${P_FIELD};backdrop-filter:none;-webkit-backdrop-filter:none;border:1px solid ${P_BORDER};border-radius:10px;padding:11px 12px;color:${P_INK};font-size:13px;box-shadow:none;}
+  .trp-msheet .trp-tagdd-btn{flex:1 1 auto;min-width:0;background:${P_FIELD};backdrop-filter:none;-webkit-backdrop-filter:none;border:1px solid ${P_BORDER};border-radius:8px;padding:12px 12px;color:${P_INK};font-size:14px;box-shadow:none;}
   .trp-msheet .trp-tagdd-btn.on{border-color:${LAPIS.edge};color:${P_INK};}
   /* Šípka: susedné polia sú natívne selecty so systémovou (tmavou, výraznou) šípkou.
      Textové ▾ v pôvodnej svetlej dim farbe pri nich vyzeralo ako neaktívne pole —
      rozdiel spôsobila výmena ovládača, nie zadanie, tak sa dorovnáva tu. */
-  .trp-msheet .trp-tagdd-chevron{color:${P_INK};font-size:13px;opacity:.75;}
+  .trp-msheet .trp-tagdd-chevron{color:${P_INK};font-size:14px;opacity:.75;}
   .trp-msheet .trp-pickdd-cur{display:inline-flex;align-items:center;gap:8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   /* ⚠️ PANEL SA KOTVÍ VĽAVO, NIE VPRAVO. Globálne pravidlo má right:0 + min-width:210px,
      čo je postavené pre riadok filtrov na PC. V sheete stojí trigger v ĽAVOM stĺpci páru
@@ -4440,7 +4440,7 @@ export default function PackMap() {
       <div className="min-h-[100dvh] flex items-center justify-center relative" style={{ backgroundColor: T.pageBg }}>
         <HieroglyphBg />
         <div className="relative" style={{ zIndex: 1 }}>
-          <div style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.3em', fontSize: 12, color: T.onDarkDim }}>
+          <div style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.26em', fontSize: 12, color: T.onDarkDim }}>
             {t('pack.layout.loading')}
           </div>
         </div>

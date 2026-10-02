@@ -19,7 +19,7 @@
 //   · tvrdá duplicita (`source_url` už máme) → „už ho máme" + ukázať existujúce
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { optimizePhoto } from '@/components/pack/addtrip/photoOptimize';
-import { uploadEventPhoto } from '@/services/cloudinaryService';
+import { uploadEventPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { previewLink, isoToLocalInput, type EventItem } from './eventStore';
 import type { MutableRefObject } from 'react';
 import L from 'leaflet';
@@ -406,7 +406,7 @@ export function AddEvent({ origin: originProp, authorName, onSubmit, onClose, ma
           <div className="aev-field">
             <label>{t('pack.addEvent.photoLabel')}</label>
             <input ref={photoRef} type="file" accept="image/*" hidden onChange={(e) => void pickPhoto(e)} />
-            {photoUrl && <div className="aev-photo"><img src={photoUrl} alt="" /></div>}
+            {photoUrl && <div className="aev-photo"><img src={sizedUrl(photoUrl, 800)} alt="" loading="lazy" /></div>}
             <button type="button" className="aev-pill" disabled={photoBusy} onClick={() => photoRef.current?.click()}>
               {photoBusy ? t('pack.event.photoUploading') : photoUrl ? t('pack.event.photoChange') : t('pack.event.photoAdd')}
             </button>
@@ -451,39 +451,39 @@ export function AddEvent({ origin: originProp, authorName, onSubmit, onClose, ma
 // ako AddTripPlan.tsx (`.att-plan-foot .btn-gold`), tmavý povrch → gradient/border/shadow 1:1.
 const AEV_CSS = `
 .aev-root{display:flex;flex-direction:column;height:100%;min-height:0;}
-.aev-head{display:flex;align-items:center;gap:10px;padding:16px 20px 10px;flex-shrink:0;}
-.aev-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.onDark};}
-.aev-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:4px 20px 16px;display:flex;flex-direction:column;gap:14px;}
-.aev-field label{display:block;font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:6px;}
-.aev-input{width:100%;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:9px;padding:9px 11px;color:${T.onDark};font-family:${FONT_UI};font-size:12.5px;outline:0;}
+.aev-head{display:flex;align-items:center;gap:10px;padding:16px 16px 12px;flex-shrink:0;}
+.aev-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:0.02em;text-transform:uppercase;color:${T.onDark};}
+.aev-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:4px 16px 16px;display:flex;flex-direction:column;gap:14px;}
+.aev-field label{display:block;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:6px;}
+.aev-input{width:100%;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:8px;padding:8px 12px;color:${T.onDark};font-family:${FONT_UI};font-size:12px;outline:0;}
 .aev-input:focus{border-color:${GOLD};}
 .aev-input::placeholder{color:${T.onDarkDim};}
 .aev-textarea{resize:vertical;font-family:${FONT_UI};}
 .aev-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .aev-pills{display:flex;flex-wrap:wrap;gap:6px;}
-.aev-pill{font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.03em;padding:8px 12px;border-radius:8px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;}
+.aev-pill{font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:0.02em;padding:8px 12px;border-radius:8px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;}
 .aev-pill.on{background:rgba(201,154,63,0.14);border-color:${GOLD};color:${T.onDark};}
 .aev-pill:hover{border-color:${GOLD};}
 .aev-venuebox{position:relative;}
-.aev-suggest{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:5;background:rgba(6,5,3,0.97);border:1px solid ${T.onDarkBorder};border-radius:10px;overflow:hidden;box-shadow:0 12px 32px rgba(0,0,0,0.5);}
-.aev-suggest-item{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;padding:9px 11px;background:transparent;border:0;border-bottom:1px solid ${T.onDarkHair};cursor:pointer;text-align:left;}
+.aev-suggest{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:5;background:rgba(6,5,3,0.97);border:1px solid ${T.onDarkBorder};border-radius:8px;overflow:hidden;box-shadow:0 12px 32px rgba(0,0,0,0.5);}
+.aev-suggest-item{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;padding:8px 12px;background:transparent;border:0;border-bottom:1px solid ${T.onDarkHair};cursor:pointer;text-align:left;}
 .aev-suggest-item:last-child{border-bottom:0;}
 .aev-suggest-item:hover{background:rgba(201,154,63,0.10);}
-.aev-suggest-name{font-family:${FONT_UI};font-size:12.5px;font-weight:500;color:${T.onDark};}
-.aev-suggest-sub{font-family:${FONT_UI};font-size:11px;color:${T.onDarkDim};}
-.aev-hint{margin:8px 0 0;font-family:${FONT_UI};font-size:11.5px;color:${T.onDarkDim};font-style:italic;}
+.aev-suggest-name{font-family:${FONT_UI};font-size:12px;font-weight:500;color:${T.onDark};}
+.aev-suggest-sub{font-family:${FONT_UI};font-size:12px;color:${T.onDarkDim};}
+.aev-hint{margin:8px 0 0;font-family:${FONT_UI};font-size:12px;color:${T.onDarkDim};font-style:italic;}
 .aev-hint-center{text-align:center;font-style:normal;}
 .aev-foot{flex-shrink:0;margin:0 20px 20px;display:flex;flex-direction:column;gap:8px;}
 .aev-foot .btn-gold{
-  width:100%;padding:13px;background:${GOLD_BTN.grad};
+  width:100%;padding:12px;background:${GOLD_BTN.grad};
   border:1px solid ${GOLD_BTN.edge};border-radius:8px;color:#000;font-family:${FONT_TITLE};
-  font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
+  font-size:12px;font-weight:700;letter-spacing:0.02em;text-transform:uppercase;cursor:pointer;
   box-shadow:${GOLD_BTN.glow};
   transition:transform .2s,box-shadow .22s,opacity .22s;
 }
 .aev-foot .btn-gold:hover:not(:disabled){transform:scale(1.02);box-shadow:${GOLD_BTN.glowHover};}
 .aev-foot .btn-gold:disabled{opacity:.45;cursor:default;box-shadow:none;}
-.aev-error{margin:0;font-family:${FONT_UI};font-size:11.5px;color:#E08A6E;text-align:center;}
+.aev-error{margin:0;font-family:${FONT_UI};font-size:12px;color:#E08A6E;text-align:center;}
 @media (max-width:640px){
   .aev-row2{grid-template-columns:1fr;}
 }

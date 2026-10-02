@@ -436,7 +436,7 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
         }
         .op-apps-txt.is-on { opacity: 1; visibility: visible; pointer-events: auto; }
         .op-apps-eye {
-          margin: 0 0 8px; font: 500 10px/1.4 'Space Grotesk', sans-serif; letter-spacing: .22em;
+          margin: 0 0 8px; font: 500 11px/1.4 'Space Grotesk', sans-serif; letter-spacing: .22em;
           text-transform: uppercase; color: rgba(35,22,8,.6);
         }
         /* Pri nadpise zarovnanom doľava čiara vychádza z plnej zlatej a doznieva. */
