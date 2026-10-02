@@ -25,22 +25,22 @@ const INK = T.ink;
 export const TRIP_CREATOR_CSS = `
 .tcp-back{position:fixed;inset:0;z-index:1400;background:rgba(8,7,5,0.72);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;}
 @media(min-width:640px){.tcp-back{align-items:center;}}
-.tcp{width:100%;max-width:460px;max-height:86vh;overflow-y:auto;background:${T.pageBg};border:1px solid ${T.onDarkBorder};border-radius:18px 18px 0 0;padding:20px 18px calc(env(safe-area-inset-bottom,0px) + 20px);}
-@media(min-width:640px){.tcp{border-radius:18px;padding-bottom:20px;}}
+.tcp{width:100%;max-width:460px;max-height:86vh;overflow-y:auto;background:${T.pageBg};border:1px solid ${T.onDarkBorder};border-radius:16px 16px 0 0;padding:20px 18px calc(env(safe-area-inset-bottom,0px) + 20px);}
+@media(min-width:640px){.tcp{border-radius:16px;padding-bottom:16px;}}
 .tcp-head{display:flex;align-items:center;justify-content:flex-start;gap:12px;margin-bottom:14px;}
-.tcp-title{font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:${GOLD};}
+.tcp-title{font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.22em;text-transform:uppercase;color:${GOLD};}
 /* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
 .tcp-x{${backCircleCSS('pale')}}
 .tcp-x:hover{${backHoverCSS('pale')}}
-.tcp-author{display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;border:1px solid ${PACK_THEME.border};background:rgba(201,154,63,0.08);}
-.tcp-av{flex-shrink:0;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_TITLE};font-weight:700;font-size:18px;color:${INK};}
+.tcp-author{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;border:1px solid ${PACK_THEME.border};background:rgba(201,154,63,0.08);}
+.tcp-av{flex-shrink:0;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_TITLE};font-weight:700;font-size:20px;color:${INK};}
 .tcp-name{font-family:${FONT_TITLE};font-weight:700;font-size:14px;color:${T.onDark};}
-.tcp-role{font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:${GOLD};margin-bottom:3px;}
-.tcp-msg{margin-top:14px;width:100%;height:42px;border-radius:8px;border:1px solid ${GOLD_BTN.edge};background:${GOLD_BTN.grad};color:${INK};font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;}
+.tcp-role{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${GOLD};margin-bottom:3px;}
+.tcp-msg{margin-top:14px;width:100%;height:42px;border-radius:8px;border:1px solid ${GOLD_BTN.edge};background:${GOLD_BTN.grad};color:${INK};font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;}
 .tcp-msg:disabled{opacity:.5;cursor:default;}
 .tcp-sec{margin-top:18px;}
 .tcp-sec h4{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${GOLD};margin:0 0 10px;}
-.tcp-note{font-family:${FONT_UI};font-size:11.5px;font-style:italic;color:${T.onDarkDim};line-height:1.5;margin:0;}
+.tcp-note{font-family:${FONT_UI};font-size:12px;font-style:italic;color:${T.onDarkDim};line-height:1.5;margin:0;}
 `;
 
 export function TripCreatorPopup({ tripSlug, authorName, organizerId, joiners, onClose }: {

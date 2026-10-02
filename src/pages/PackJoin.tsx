@@ -293,7 +293,7 @@ const sub: React.CSSProperties = {
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      fontFamily: FONT_UI, fontSize: 11, fontWeight: 500, letterSpacing: '.26em',
+      fontFamily: FONT_UI, fontSize: 10, fontWeight: 500, letterSpacing: '.26em',
       textTransform: 'uppercase', color: T.cardEdge, marginBottom: 8,
     }}>{children}</div>
   );
@@ -302,20 +302,20 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 function Title({ children }: { children: React.ReactNode }) {
   return (
     <h1 style={{
-      fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 22, lineHeight: 1.25,
+      fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 20, lineHeight: 1.25,
       color: T.inkStrong, margin: '0 0 10px', textWrap: 'balance',
     }}>{children}</h1>
   );
 }
 
 function Line({ children }: { children: React.ReactNode }) {
-  return <p style={{ ...sub, fontSize: 13.5, margin: '0 0 4px' }}>{children}</p>;
+  return <p style={{ ...sub, fontSize: 14, margin: '0 0 4px' }}>{children}</p>;
 }
 
 /** CTA na papyruse = LAPIS (lock 28. 8. 2026), geometria z `.btn-gold` — radius 8, nie pilulka. */
 function cta(busy: boolean): React.CSSProperties {
   return {
-    display: 'block', width: '100%', marginTop: 18, padding: '12px 18px',
+    display: 'block', width: '100%', marginTop: 18, padding: '12px 18px', minHeight: 44,
     background: LAPIS.grad, color: LAPIS.ink, border: 'none', borderRadius: 8,
     fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 14, letterSpacing: '.06em',
     textTransform: 'uppercase', cursor: busy ? 'default' : 'pointer',

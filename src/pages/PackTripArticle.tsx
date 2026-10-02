@@ -223,7 +223,7 @@ const CSS = `
 .pta-hero{position:relative;width:100%;height:34vh;min-height:230px;max-height:360px;overflow:hidden;background-size:cover;background-position:center;background-color:#111;}
 .pta-hero-grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.30) 0%,rgba(0,0,0,0) 34%,rgba(0,0,0,0.55) 100%);}
 /* CC atribúcia cover fotky (Wikimedia Commons, CC BY-SA — legálne nutná viditeľnosť) */
-.pta-hero-credit{position:absolute;top:8px;right:10px;z-index:4;font-family:system-ui,sans-serif;font-size:9.5px;letter-spacing:.02em;line-height:1.25;color:rgba(255,255,255,0.72);background:rgba(0,0,0,0.34);padding:3px 8px;border-radius:6px;max-width:62%;text-align:right;pointer-events:none;}
+.pta-hero-credit{position:absolute;top:8px;right:10px;z-index:4;font-family:system-ui,sans-serif;font-size:10px;letter-spacing:.02em;line-height:1.25;color:rgba(255,255,255,0.72);background:rgba(0,0,0,0.34);padding:4px 8px;border-radius:8px;max-width:62%;text-align:right;pointer-events:none;}
 /* Vzhľad kruhu ide z BackButton.tsx (tone pale — od 27. 9. 2026 bledá aj na fotke, Matej: „zjednoťme to a daj ju tiež bledú") — tu ostáva len POLOHA nad hero fotkou. */
 .pta-back{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);left:18px;z-index:5;}
 /* Zrkadlo .pta-back — rovnaká výška aj tvar, aby hero mal dva rovnocenné rohy a nie jeden
@@ -247,11 +247,11 @@ const CSS = `
 .pta-actwrap .pta-actbtn{flex:1;}
 /* Rozbaľovacie menu je plávajúci panel nad stránkou = úroveň 4 matrice (PACK_BOX.panel). */
 .pta-actmenu{position:absolute;left:0;top:calc(100% + 6px);z-index:20;min-width:200px;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};overflow:hidden;}
-.pta-actmenu button{display:flex;width:100%;align-items:center;gap:9px;padding:11px 13px;background:none;border:0;cursor:pointer;font-family:${FONT_UI};font-size:12px;font-weight:500;color:${T.inkStrong};text-align:left;}
+.pta-actmenu button{display:flex;width:100%;align-items:center;gap:9px;padding:12px 12px;background:none;border:0;cursor:pointer;font-family:${FONT_UI};font-size:12px;font-weight:500;color:${T.inkStrong};text-align:left;}
 .pta-actmenu button + button{border-top:1px solid ${T.hairline};}
 .pta-actmenu button:hover{background:rgba(201,154,63,0.12);}
 .pta-actmenu .pta-actmenu-off{color:${T.inkWarm};}
-.pta-caret{font-size:9px;opacity:0.8;}
+.pta-caret{font-size:10px;opacity:0.8;}
 .pta-actbtn-label{white-space:nowrap;}
 /* Body za prejdenie = <PointsPill> (components/pack/PointsPill.tsx). Zlatý <span>
    .pta-actbtn-pts ZMAZANÝ 2026-08-05 (Matej: „tie body musia byť výrazné… je to úplne
@@ -279,7 +279,7 @@ const CSS = `
   /* Cinzel 700 uppercase s .06em sa v SK („Označiť ako prejdené", 20 znakov) na 390 px nezmestí
      ani po zmrštení susedov — chýbalo 16 px. Rozpal písmen je jediné, čo sa dá ubrať bez toho,
      aby sa buď skrátil text, alebo zmizla pilulka. Cinzel a veľkosť ostávajú. */
-  .pta-acts .pta-actbtn-label{letter-spacing:.01em;min-width:0;overflow:hidden;text-overflow:ellipsis;}
+  .pta-acts .pta-actbtn-label{letter-spacing:0.02em;min-width:0;overflow:hidden;text-overflow:ellipsis;}
   .pta-acts .pta-actbtn--gold .pta-actbtn-label,.pta-acts .pta-actbtn--blue .pta-actbtn-label{display:none;}
   .pta-acts .pta-actbtn--ghost,.pta-acts .pta-actbtn--green{flex:1 1 auto;min-width:0;overflow:hidden;}
   .pta-acts.collapsed{position:fixed;left:auto;right:14px;bottom:auto;top:50%;transform:translateY(-50%);flex-direction:column;padding:0;gap:10px;z-index:45;}
@@ -292,8 +292,8 @@ const CSS = `
   .pta-acts.collapsed .pta-actmenu{left:auto;right:calc(100% + 8px);top:0;}
 }
 /* bod 3 (iterácia 14): fotky v galérii klikacie → lightbox (fullscreen popup) */
-.pta-lightbox{position:fixed;inset:0;z-index:200;background:rgba(5,5,5,0.94);display:flex;align-items:center;justify-content:center;padding:28px;}
-.pta-lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:10px;}
+.pta-lightbox{position:fixed;inset:0;z-index:200;background:rgba(5,5,5,0.94);display:flex;align-items:center;justify-content:center;padding:24px;}
+.pta-lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:12px;}
 /* Zavrieť = šípka späť vľavo v bledom kruhu (Matej 27. 9. 2026: „dávajme všade len šípky, nie krížiky"). */
 .pta-lightbox-close{position:absolute;top:16px;left:16px;z-index:2;${backCircleCSS('pale')}}
 .pta-lightbox-close:hover{${backHoverCSS('pale')}}
@@ -302,30 +302,30 @@ const CSS = `
 .pta-lightbox-next{right:16px;}
 /* bod 1: bez negatívneho margin-top prekryvu (buttony teraz sedia na spodku hero fotky —
    prekryv by kolidoval s nimi); telo článku začína čisto pod fotkou. */
-.pta-body{max-width:760px;margin:0 auto;padding:20px 20px 0;position:relative;z-index:2;}
+.pta-body{max-width:760px;margin:0 auto;padding:16px 16px 0;position:relative;z-index:2;}
 /* Rám článku = stĺpec domova /pack (21. 9. 2026); užší ostáva len text (.pta-body 760). */
 ${packColCSS('.pta-shell')}
 /* §16 (2026-07-23): obsahová časť článku do zdieľaného LIQUID GLASS panelu (.pk-glass z GLASS_CSS)
    — nemá plávať na plnej čiernej, rovnaká situácia ako triplist/walked. */
-.pta-panel{padding:22px 20px 26px;}
+.pta-panel{padding:24px 16px 24px;}
 /* Eyebrow na papyruse = Space Grotesk 500 / rozpal / uppercase v ZLATEJ (cardEdge),
    nie v tlmenom inkouste — vzor .religion-eyebrow z Entry.tsx. */
 .pta-loc{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.cardEdge};display:flex;align-items:center;gap:7px;}
 /* vlajka krajiny — na karte v mape je (.trp-cardflag), v článku chýbala, takže zahraničný
    výlet stratil pri otvorení jediný signál, že je v cudzine (audit #45) */
 .pta-flag{width:16px;height:16px;border-radius:50%;object-fit:cover;border:1px solid ${T.border};flex-shrink:0;}
-.pta-title{font-family:${FONT_TITLE};font-weight:700;font-size:26px;line-height:1.15;color:${T.inkStrong};margin-top:4px;}
+.pta-title{font-family:${FONT_TITLE};font-weight:700;font-size:24px;line-height:1.15;color:${T.inkStrong};margin-top:4px;}
 /* Autor vľavo, hodnotenie vpravo — jeden riadok pod titulom (Matej 2026-08-25).
    align-items:baseline (nie center): meno aj číslo sedia na tej istej linke písma, inak
    labky riadok opticky roztiahnu a podpis odskočí nahor. Na úzkom mobile sa smie zalomiť. */
 .pta-byline{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px;}
-.pta-author{font-size:11.5px;color:${T.inkWarm};}
+.pta-author{font-size:12px;color:${T.inkWarm};}
 .pta-byrating{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;}
-.pta-byrating b{font-family:${FONT_UI};font-weight:600;font-size:13px;color:${T.inkStrong};}
+.pta-byrating b{font-family:${FONT_UI};font-weight:600;font-size:14px;color:${T.inkStrong};}
 /* Počet hodnotení je váha čísla, nie údaj sám o sebe — preto tichšie a bez kurzívy. */
 /* Zátvorka s počtom je tlačidlo, ale nesmie vyzerať ako tlačidlo — je to počet, ktorý sa dá
    nasledovať. Podčiarknutie bodkami hovorí „dá sa kliknúť" tichšie než rám alebo farba. */
-.pta-bycount{font-family:${FONT_UI};font-size:11px;color:${T.inkWarm};background:none;border:none;padding:0;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;}
+.pta-bycount{font-family:${FONT_UI};font-size:12px;color:${T.inkWarm};background:none;border:none;padding:0;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;}
 .pta-bycount:hover{color:${T.inkStrong};}
 /* Tabuľka čísel = PODBLOK vnútri karty (úroveň 2 matrice): papyrusový gradient + plný
    zlatý rám. Plochá výplň so slabým rámom je úroveň 3 a Matej ju na sekcii zamietol
@@ -360,7 +360,7 @@ ${packColCSS('.pta-shell')}
   .pta-statrow{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:1fr;}
   .pta-stat--full{grid-column:auto;}
 }
-.pta-stat{padding:14px 8px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:5px;
+.pta-stat{padding:16px 8px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:5px;
   background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};
   transition:transform .2s ease;}
 .pta-stat:hover{transform:translateY(-2px);}
@@ -371,7 +371,7 @@ ${packColCSS('.pta-shell')}
    Váha 600 je strop: Space Grotesk je načítaný len v 300–600 a 700 by prehliadač
    dosyntetizoval na rozmazaný fake bold. */
 .pta-stat b{display:flex;align-items:center;justify-content:center;gap:6px;font-family:${FONT_UI};font-size:16px;font-weight:600;color:${T.inkStrong};line-height:1.15;}
-.pta-stat span{display:block;font-family:${FONT_UI};font-weight:500;font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;color:${T.cardEdge};}
+.pta-stat span{display:block;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.cardEdge};}
 /* F1 (Matej 2026-07-24): „Zlúčiť dĺžka + prevýšenie do jedného bloku oddeleného zvislou čiarou
    + spraviť miesto na VIBE." Route = km │ ↑m v jednej bunke, uvoľnená bunka ide na Crowd. */
 .pta-route{display:flex;align-items:center;justify-content:center;gap:8px;}
@@ -399,16 +399,16 @@ ${packColCSS('.pta-shell')}
    a Matej si tú zmes spája s AINUBISOM. Chip nie je tlačidlo — nedá sa naň kliknúť a
    nemá stav, je to menovka. Preto plná plocha, ale v tmavšej brandovej zlatej.
    Inkoust je tmavý ("#3d2405"), aby text na zlatej držal kontrast. */
-.pta-tag{background:linear-gradient(140deg,#D9AE55,#B98F33);border:1px solid #8C6014;color:#3d2405;font-size:11.5px;font-weight:600;padding:6px 13px;border-radius:999px;
+.pta-tag{background:linear-gradient(140deg,#D9AE55,#B98F33);border:1px solid #8C6014;color:#3d2405;font-size:12px;font-weight:600;padding:8px 12px;border-radius:999px;
   box-shadow:0 2px 5px -1px rgba(110,71,16,0.35), inset 0 1px 0 rgba(255,255,255,0.38);}
 .pta-gallery{display:flex;gap:8px;overflow-x:auto;margin-top:20px;padding-bottom:4px;scrollbar-width:none;}
 .pta-gallery::-webkit-scrollbar{display:none;}
-.pta-gallery img{flex:0 0 148px;height:104px;border-radius:11px;object-fit:cover;background:#111;cursor:pointer;}
+.pta-gallery img{flex:0 0 148px;height:104px;border-radius:12px;object-fit:cover;background:#111;cursor:pointer;}
 /* AKO SA TAM IDE — riadok plánu nad popisom. Bodka medzi políčkami je pseudoprvok medzi
    súrodencami, nie znak v texte: ktorékoľvek z troch políčok môže chýbať. */
-.pta-travel{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:20px;font-family:${FONT_UI};font-weight:500;font-size:13px;color:${PACK_THEME.inkWarm};}
+.pta-travel{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:20px;font-family:${FONT_UI};font-weight:500;font-size:14px;color:${PACK_THEME.inkWarm};}
 /* Pod kartou organizátora stojí tesnejšie — nie je to odsek stránky, ale poznámka k nemu. */
-.pta-travel--host{margin:6px 0 10px 4px;font-size:12.5px;}
+.pta-travel--host{margin:6px 0 10px 4px;font-size:12px;}
 .pta-travel > span + span::before{content:'·';margin-right:8px;opacity:.5;}
 .pta-travel-seats{color:#8a5a14;}
 /* Telo článku je to, kvôli čomu sa sem chodí — na papyruse teda NIE tlmený inkoust
@@ -469,20 +469,20 @@ body.pta-mapfull .pta-shell{z-index:1100;}
 
    Vzhľad je .mns-add (zlatý outline pill), nie .btn-gold — plná zlatá by na mape
    kričala hlasnejšie než samotné značky. Výška 40 px je dotykové minimum. */
-.pta-mapadd{position:absolute;left:12px;bottom:12px;z-index:700;display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:0 15px;border-radius:999px;cursor:pointer;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:${GOLD};background:rgba(5,5,5,0.82);border:1px solid rgba(201,154,63,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 4px 14px rgba(0,0,0,0.45);transition:background .15s,border-color .15s;}
+.pta-mapadd{position:absolute;left:12px;bottom:12px;z-index:700;display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:0 16px;border-radius:999px;cursor:pointer;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${GOLD};background:rgba(5,5,5,0.82);border:1px solid rgba(201,154,63,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 4px 14px rgba(0,0,0,0.45);transition:background .15s,border-color .15s;}
 .pta-mapadd:hover{background:rgba(201,154,63,0.18);border-color:${GOLD};}
-.pta-mapadd b{font-weight:400;font-size:15px;line-height:1;}
+.pta-mapadd b{font-weight:400;font-size:16px;line-height:1;}
 /* ÚZKE OKNO: tlačidlo sa musí zmestiť VEDĽA atribúcie, nie na ňu — zakrytá
    atribúcia je porušenie licencie ODbL, nie kozmetika. Merané na obale mapy:
    pri plnej veľkosti sa obe zrazia až pod ~334 px okna, so zúžením pod ~305 px.
    Výška 40 px ostáva — je to dotykové minimum, nie ozdoba. */
-@media (max-width:420px){.pta-mapadd{padding:0 11px;font-size:9.5px;letter-spacing:.09em;gap:5px;}}
+@media (max-width:420px){.pta-mapadd{padding:0 12px;font-size:10px;letter-spacing:0.14em;gap:5px;}}
 /* PRÁZDNY STAV JE PAPYRUSOVÝ, NIE ČIERNA DIERA (Matej 1. 9. 2026 — na okruhu z neho
    bol čierny blok cez pol obrazovky). Vlastný podklad má preto tento prvok, nie obal:
    ".pta-mapwrap" drží tmavú farbu zámerne (pod dlaždicami mapy, kým sa načítajú), ale
    keď mapa nie je vôbec, tá tmavá nemá čo prekrývať a číta sa ako porucha. */
 .pta-mapempty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
-  background:${T.panelGrad};color:${T.inkWarm};font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;text-align:center;padding:20px;}
+  background:${T.panelGrad};color:${T.inkWarm};font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:0.22em;text-transform:uppercase;text-align:center;padding:16px;}
 .pta-section{margin-top:28px;}
 /* #41 — blok jednej partie (organizátor + kto s ním ide) */
 .pta-host + .pta-host{margin-top:10px;}
@@ -490,8 +490,8 @@ body.pta-mapfull .pta-shell{z-index:1100;}
    tá je na svetlom podklade len o niečo tmavšia než sám papyrus a stráca sa. */
 .pta-problem{display:block;margin:32px auto 0;background:none;border:0;padding:8px;font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:.02em;color:#8a5a14;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
 .pta-problem:hover{color:#5c3b0c;}
-.pta-section h3{font-family:${FONT_UI};font-weight:500;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:#8a5a14;margin-bottom:8px;}
-.pta-empty{font-size:12.5px;color:${T.inkWarm};font-style:italic;}
+.pta-section h3{font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:0.22em;text-transform:uppercase;color:#8a5a14;margin-bottom:8px;}
+.pta-empty{font-size:12px;color:${T.inkWarm};font-style:italic;}
 /* .pta-actbtn — zdieľané medzi .pta-acts (iterácia 15; predtým .pta-hero-actions na fotke) */
 /* ════════════════════════════════════════════════════════════════════════
    AKČNÝ RAD — HIERARCHIA PREPÍSANÁ 2026-09-01 (DRAK → BRIGHT)
@@ -512,7 +512,7 @@ body.pta-mapfull .pta-shell{z-index:1100;}
      ✓ PREJDENÉ (po označení)     = STAV       → zelený tint
    Po označení tak na obrazovke NIE JE plné CTA — a to je správne: hlavná
    akcia je hotová a zostal z nej záznam, nie výzva. */
-.pta-actbtn{flex:1;font-family:${FONT_TITLE};font-weight:700;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:12px 6px;border-radius:8px;cursor:pointer;border:1px solid transparent;transition:all .15s;}
+.pta-actbtn{flex:1;font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:12px 8px;border-radius:8px;cursor:pointer;border:1px solid transparent;transition:all .15s;}
 /* HLAVNÉ CTA. Radius 8 (nie pilulka) — geometriu preberá od ".btn-gold", mení sa
    len výplň; zmena farby nie je povolenie na iný tvar. Zlaté písmo na modrom nie je
    ozdoba: lapis + zlato je pôvodná egyptská dvojica a bez nej je z toho len tmavé
@@ -537,7 +537,7 @@ body.pta-mapfull .pta-shell{z-index:1100;}
 /* Ghost už nikto nevolá — trieda ostáva len ako bezpečná výplň, keby na ňu niekde
    ostal odkaz; vyzerá ako SHARE, teda nikdy ako diera. */
 .pta-actbtn--ghost{background:rgba(255,255,255,0.42);color:${T.inkStrong};border-color:${T.border};}
-.pta-notfound{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:${T.inkWarm};font-family:${FONT_UI};text-align:center;padding:20px;}
+.pta-notfound{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:${T.inkWarm};font-family:${FONT_UI};text-align:center;padding:16px;}
 ${DIFF_MARK_CSS}
 `;
 
@@ -1291,7 +1291,7 @@ export default function PackTripArticle() {
       <div className="pk-paper flex items-center justify-center" style={{ minHeight: '100dvh' }}>
         <style>{PAPER_PAGE_CSS}</style>
         <div className="relative" style={{ zIndex: 1 }}>
-          <div style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.3em', fontSize: 12, color: T.inkWarm }}>
+          <div style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.26em', fontSize: 12, color: T.inkWarm }}>
             {t('pack.layout.loading')}
           </div>
         </div>
@@ -1304,11 +1304,11 @@ export default function PackTripArticle() {
     return (
       <div className="pta-notfound" style={{ backgroundColor: T.pageBg }}>
         <style>{CSS}</style>
-        <div style={{ fontSize: 14, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{t('pack.trip.notFound')}</div>
+        <div style={{ fontSize: 14, letterSpacing: '0.02em', textTransform: 'uppercase' }}>{t('pack.trip.notFound')}</div>
         <button
           type="button"
           onClick={() => navigate('/pack/map')}
-          style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: GOLD, background: 'none', border: 'none', cursor: 'pointer' }}
+          style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: GOLD, background: 'none', border: 'none', cursor: 'pointer' }}
         >{t('pack.trip.notFoundBackToTrips')}</button>
       </div>
     );

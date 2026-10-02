@@ -17,7 +17,7 @@ import { navTarget, navUrl, isAppleDevice, mapyTrailUrl, downloadGpx, type NavAp
 
 const GO_CSS = `
 .tgo-veil{position:fixed;inset:0;z-index:1300;background:rgba(3,2,1,0.62);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);display:flex;align-items:flex-end;justify-content:center;padding:0;}
-@media(min-width:600px){.tgo-veil{align-items:center;padding:20px;}}
+@media(min-width:600px){.tgo-veil{align-items:center;padding:16px;}}
 /* ⚠️ SPODNÝ NAV PLÁVA NAD PANELOM. Na telefóne panel sadá na spodnú hranu okna a lišta
    /pack (fixed, z-index nad obsahom) mu prekryla POSLEDNÝ riadok — „Otvoriť v Mapy.com"
    bolo vidieť len spolovice. Rezerva sa NEPÍŠE číslom: nav publikuje svoju nameranú výšku
@@ -30,20 +30,20 @@ const GO_CSS = `
   border-radius:16px 16px 0 0;}
 /* Nad 600 px panel stojí v strede okna, nie na hrane — nav mu už do cesty nevstupuje. */
 @media(min-width:600px){.tgo-panel{border-radius:${PACK_BOX.panel.borderRadius}px;padding-bottom:24px;}}
-.tgo-title{font-family:${FONT_TITLE};font-weight:700;font-size:15px;letter-spacing:.04em;text-transform:uppercase;color:${T.inkStrong};}
+.tgo-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;letter-spacing:0.02em;text-transform:uppercase;color:${T.inkStrong};}
 .tgo-where{font-family:${FONT_UI};font-size:12px;line-height:1.5;color:${T.inkWarm};margin-top:5px;}
 .tgo-eyebrow{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:${T.cardEdge};margin:20px 0 9px;}
 .tgo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 /* Riadok, nie dlaždica: každá položka je ODKAZ a ten sa číta zľava doprava.
    Mriežka 2×2 drží panel nízky aj na telefóne, kde stojí nad spodnou hranou. */
-.tgo-item{display:flex;align-items:center;gap:9px;padding:12px 11px;border-radius:10px;text-align:left;
+.tgo-item{display:flex;align-items:center;gap:9px;padding:12px 12px;border-radius:12px;text-align:left;
   background:${T.tileBg};border:1px solid ${T.border};color:${T.inkStrong};
-  font-family:${FONT_UI};font-size:12.5px;font-weight:500;cursor:pointer;text-decoration:none;transition:border-color .15s,background .15s;}
+  font-family:${FONT_UI};font-size:12px;font-weight:500;cursor:pointer;text-decoration:none;transition:border-color .15s,background .15s;}
 .tgo-item:hover{border-color:${LAPIS.edge};background:${LAPIS.fill};}
 .tgo-item--wide{grid-column:1 / -1;}
 .tgo-grid--top{margin-top:16px;}
-.tgo-ic{font-family:${FONT_EMOJI};font-size:17px;line-height:1;flex-shrink:0;}
-.tgo-sub{display:block;font-size:11px;font-weight:400;color:${T.inkWarm};margin-top:2px;}
+.tgo-ic{font-family:${FONT_EMOJI};font-size:16px;line-height:1;flex-shrink:0;}
+.tgo-sub{display:block;font-size:12px;font-weight:400;color:${T.inkWarm};margin-top:2px;}
 
 /* ── DVA CTA, DVE RÔZNE VECI (Matej 2026-09-15) ──────────────────────────────────────────
    „v článku by som ale urobil edit na tlačítko - lebo miešame veci… treba urobiť 2 CTA pod
@@ -73,9 +73,9 @@ const GO_CSS = `
 @media(max-width:439px){.tgo-ctas{grid-template-columns:1fr;}}
 /* Geometria z locknutého .btn-gold — radius 8, nie pilulka. Farbu nesie modifikátor. */
 .tgo-cta{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;
-  border-radius:8px;font-family:${FONT_TITLE};font-weight:700;font-size:11.5px;letter-spacing:.08em;
+  border-radius:8px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;
   text-transform:uppercase;cursor:pointer;text-align:center;}
-.tgo-cta .tgo-ic{font-size:15px;}
+.tgo-cta .tgo-ic{font-size:16px;}
 .tgo-cta--park{background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.edge};box-shadow:${LAPIS_BTN_SHADOW};}
 .tgo-cta--park:hover{background:${LAPIS.gradHover};}
 /* Zelená nesie ten istý odliatok ako lapis, aby tlačidlá čítali ako dvojica. */

@@ -22,6 +22,7 @@
 // ⚠️ TEXTY IDÚ CEZ `t()`. Pôvodná hlavička tu tvrdila „web texty = EN" a súbor mal 5 volaní
 // `t()` na celý inbox — Slovák tak v slovenskom rozhraní čítal „No messages yet" a dátumy
 // „Aug 9" (natvrdo `en-US`). Thread.tsx je preložený od začiatku; Inbox dorovnaný 2026-08-12.
+import { sizedUrl } from '@/services/cloudinaryService';
 import { BUDDY_LIVE } from '@/lib/packFlags';
 import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { useEffect, useState } from 'react';
@@ -267,7 +268,7 @@ export function Inbox({ onOpenThread, onClose, onOpenSniffer, onOpenTrip }: {
               >
                 <span
                   className={`msg-avatar${conv.tag?.label === 'SNIFFER' ? ' is-sniffer' : ''}`}
-                  style={!isGroup && other?.avatarUrl ? { backgroundImage: `url('${other.avatarUrl}')` } : undefined}
+                  style={!isGroup && other?.avatarUrl ? { backgroundImage: `url('${sizedUrl(other.avatarUrl, 160)}')` } : undefined}
                 >
                   {(isGroup || !other?.avatarUrl) && initial}
                   {/* PÔVOD vlákna (Matej 26. 9.: „správy budú mať ikonky odkiaľ sa píše — či sniffer

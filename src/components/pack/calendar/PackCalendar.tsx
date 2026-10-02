@@ -29,6 +29,7 @@
 // nie deň, kedy si šiel. Preto sú tu len výlety, ktoré prešli cez PRIDAJ VÝLET
 // alebo plán s dátumom. Riadok „KEDY" v popupe po ✓ je ďalší krok.
 // ════════════════════════════════════════════════════════════════════════════
+import { sizedUrl } from '@/services/cloudinaryService';
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -919,7 +920,7 @@ function DayPopup({
               {e.text && <p>{e.text}</p>}
               {/* Fotka zápisu denníka. `loading="lazy"` je zámer: popup sa otvára na
                   dotyk a obrázok nesmie zdržať jeho vykreslenie. */}
-              {e.photo && <img className="cal-shot" src={e.photo} alt="" loading="lazy" />}
+              {e.photo && <img className="cal-shot" src={sizedUrl(e.photo, 480)} alt="" loading="lazy" />}
               <p style={{ color: col, marginTop: 4, fontWeight: 600 }}>
                 {typeName(e.kind)} · {nameOf(e.dogId)}
               </p>
@@ -1385,7 +1386,7 @@ function LifeGrid({
                 <div className="cal-rechead">
                   <span className={`cal-recphoto${r.patron && !r.photo ? ' pat' : ''}`} aria-hidden>
                     {r.photo
-                      ? <img src={r.photo} alt="" />
+                      ? <img src={sizedUrl(r.photo, 200)} alt="" loading="lazy" />
                       : r.patron
                         ? <img src={`/patrons/${r.patron}.svg`} alt="" />
                         : r.name.slice(0, 1)}

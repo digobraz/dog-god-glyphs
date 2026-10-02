@@ -85,8 +85,8 @@ const CSS = `
 @media (max-width:640px){ .tl-body{padding-left:${PACK_COL_PAD.mobile}px;padding-right:${PACK_COL_PAD.mobile}px;} }
 /* Šípka späť + AINUBIS = spoločný rad PackTopRow (27. 9. 2026). Tvar tejto šípky (38 px,
    v strede) bol vzorom pre celý /pack — odtiaľto odišiel do BACK a PACK_TOPROW. */
-.tl-title{font-family:${FONT_TITLE};font-weight:700;font-size:26px;letter-spacing:.03em;color:${P.deep};text-align:center;}
-.tl-sub{font-size:12.5px;color:${P.dim};text-align:center;margin-top:6px;}
+.tl-title{font-family:${FONT_TITLE};font-weight:700;font-size:24px;letter-spacing:0.02em;color:${P.deep};text-align:center;}
+.tl-sub{font-size:12px;color:${P.dim};text-align:center;margin-top:6px;}
 
 /* dvojkartový prepínač TRIPLIST | TRIPSTATS — aktívna karta = LAPIS, druhá „vedľa" = klik na prepnutie */
 /* V3 (#46): len IKONA a NÁZOV, žiadny podnadpis, vycentrované a väčšie. Podnadpisy („12 walked ·
@@ -106,14 +106,14 @@ const CSS = `
    Riešenie je MASKA, nie filter: background:currentColor cez -webkit-mask znamená, že
    ikonka DEDÍ farbu textu — na papyruse inkoust, na lapise zlato, a pri ďalšej zmene farby
    nadpisu ju netreba dolaďovať. Filter by sa musel prepočítavať ku každému odtieňu zvlášť. */
-.tl-tab{display:flex;align-items:center;justify-content:center;padding:20px 14px;border-radius:16px;border:1.5px solid ${T.cardEdge};background:${T.panelGrad};box-shadow:0 2px 8px rgba(122,90,42,0.16),inset 0 1px 0 rgba(255,255,255,0.45);cursor:pointer;text-align:center;transition:border-color .15s,transform .15s,background .15s,box-shadow .15s;}
+.tl-tab{display:flex;align-items:center;justify-content:center;padding:16px 16px;border-radius:16px;border:1.5px solid ${T.cardEdge};background:${T.panelGrad};box-shadow:0 2px 8px rgba(122,90,42,0.16),inset 0 1px 0 rgba(255,255,255,0.45);cursor:pointer;text-align:center;transition:border-color .15s,transform .15s,background .15s,box-shadow .15s;}
 .tl-tab:hover{transform:translateY(-1px);box-shadow:0 0 0 3px ${PACK_THEME.hairline},0 2px 8px rgba(122,90,42,0.16);}
-.tl-tab-label{font-family:${FONT_TITLE};font-weight:700;font-size:15px;letter-spacing:.09em;text-transform:uppercase;color:${P.ink};display:flex;flex-direction:row;align-items:center;gap:11px;min-width:0;}
+.tl-tab-label{font-family:${FONT_TITLE};font-weight:700;font-size:16px;letter-spacing:0.14em;text-transform:uppercase;color:${P.ink};display:flex;flex-direction:row;align-items:center;gap:11px;min-width:0;}
 .tl-tab-ic{width:26px;height:26px;flex-shrink:0;background:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat;}
 .tl-tab.on{background:${LAPIS.grad};border-color:${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};}
 .tl-tab.on:hover{background:${LAPIS.gradHover};}
 .tl-tab.on .tl-tab-label{color:${LAPIS.ink};}
-@media (max-width:400px){ .tl-tab{padding:16px 10px;} .tl-tab-label{font-size:12.5px;letter-spacing:.05em;gap:8px;} .tl-tab-ic{width:22px;height:22px;} }
+@media (max-width:400px){ .tl-tab{padding:16px 12px;} .tl-tab-label{font-size:12px;letter-spacing:0.02em;gap:8px;} .tl-tab-ic{width:22px;height:22px;} }
 
 /* OBSAHOVÝ PANEL = ZLATO-RÁMOVANÝ BLOK (Matej 1. 9. 2026: „celý tento blok by mal byť nejakou
    zlatou… možno cely blok kde je tento a konci to odznakmi by mal byť blok").
@@ -126,7 +126,7 @@ const CSS = `
    s pieskovcovou doskou a papyrus ostáva tomu, čo na doske leží.
    ⚠️ Rám je border:6px solid transparent, teda si berie 6 px z každej strany — vodorovný
    padding preto klesol o toľko isto, nech obsah stojí tam, kde stál. */
-.tl-panel{margin-top:14px;padding:16px 14px 18px;${goldFrameCSS()}}
+.tl-panel{margin-top:14px;padding:16px 16px 16px;${goldFrameCSS()}}
 .tl-section + .tl-section{margin-top:22px;}
 /* deliaca čiara vnútri karty = zlatá, vyblednutá do strán (lock bledého bloku z Entry.tsx),
    NIE šedý 1px hairline. */
@@ -134,7 +134,7 @@ const CSS = `
 .tl-sechead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;}
 /* Nadpis sekcie na papyruse: zlatá je TMAVŠIA (#8a5a14), nie brandová ${T.cardEdge} — tá je na
    svetlom podklade len o niečo tmavšia než sám papyrus a stráca sa. */
-.tl-sechead h3{font-family:${FONT_UI};font-weight:500;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:${P.deep};margin:0;}
+.tl-sechead h3{font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:0.22em;text-transform:uppercase;color:${P.deep};margin:0;}
 /* nadpis vľavo, počet + tlačidlo spolu vpravo — pri troch prvkoch space-between rozhodil počet doprostred (audit 27. 9.) */
 .tl-sechead h3{margin-right:auto;}
 /* Počet + PREČO je karta tam, kde je. Pás MOJICH VÝLETOV mal pri meraní 16. 9. 2026
@@ -146,26 +146,26 @@ const CSS = `
    riadkov (merané na 360 px) a nápoveda tak vyhrá nad titulkom, čo je naopak. */
 .tl-sechint i{font-style:normal;}
 @media (max-width:480px){.tl-sechint i{display:none;}}
-.tl-seeall{font-family:${FONT_UI};font-weight:600;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:${P.dim};background:${P.soft};border:1px solid ${P.border};border-radius:999px;padding:5px 12px;cursor:pointer;white-space:nowrap;}
+.tl-seeall{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${P.dim};background:${P.soft};border:1px solid ${P.border};border-radius:999px;padding:4px 12px;cursor:pointer;white-space:nowrap;}
 .tl-seeall:hover{color:${P.deep};border-color:${T.cardEdge};background:${T.card};}
 /* prepínač viditeľnosti sekcie OPEN TRIPS (Matej 1. 9. 2026: „možnosť vybrať si či sa mi to
    má zobrazovať alebo nie") — stav pilulky je VÝBER, teda priesvitný lapisový tint (lock
    2026-08-26), nie plná farba; tá je vyhradená jedinému hlavnému CTA na obrazovke. */
 .tl-seeall.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}}
-.tl-empty{font-size:12.5px;color:${P.dim};font-style:italic;padding:6px 0 2px;}
+.tl-empty{font-size:12px;color:${P.dim};font-style:italic;padding:8px 0 4px;}
 /* #55 — prázdny stav = veta faktu + JEDNA akcia. Po zmazaní výplne (2026-08-03) je toto
    prvá obrazovka nového člena v triplíste, samotná kurzíva ho nikam nepustí. */
-.tl-emptybox{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:6px 0 4px;}
+.tl-emptybox{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:8px 0 4px;}
 /* HLAVNÉ CTA = LAPIS (brandový kánon 2026-08-28). Geometriu berie od .btn-gold (radius 8,
    nie pilulka) a mení len výplň — zmena farby nie je povolenie na iný tvar. */
-.tl-emptybtn{font-family:${FONT_TITLE};font-weight:700;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;padding:11px 20px;border-radius:8px;border:1px solid ${LAPIS.deep};background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
+.tl-emptybtn{font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:12px 16px;border-radius:8px;border:1px solid ${LAPIS.deep};background:${LAPIS.grad};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
 .tl-emptybtn:hover{background:${LAPIS.gradHover};}
 
 /* zdieľaný štvorcový GRID — OPEN TRIPS (MY TRIPS = horizontálny scroll .tl-hscroll) */
 .tl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
 @media(max-width:560px){.tl-grid{grid-template-columns:repeat(2,1fr);}}
 /* MY TRIPS — horizontálny slajd */
-.tl-hscroll{display:flex;gap:12px;overflow-x:auto;padding:15px 2px 10px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:thin;}
+.tl-hscroll{display:flex;gap:12px;overflow-x:auto;padding:16px 4px 12px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:thin;}
 .tl-hscroll::-webkit-scrollbar{height:6px;}
 .tl-hscroll::-webkit-scrollbar-thumb{background:rgba(201,154,63,0.55);border-radius:999px;}
 /* wrapper nesie flex + necháva countdown vytŕčať nad kartu (.tl-block má overflow:hidden) */
@@ -211,17 +211,17 @@ const CSS = `
    mape — druhý význam pre tú istú farbu na susediacich povrchoch. Namiesto novej farby preto
    karta ukáže priamo ČÍ výlet to je: existujúci avatar .tl-block-avatar + meno v tmavom
    štítku, presne ako na mape/kartách inde. Rám karty ostáva zlatý. */
-.tl-block-ownertag{position:absolute;top:8px;left:8px;z-index:2;display:flex;align-items:center;gap:5px;max-width:calc(100% - 40px);padding:3px 9px 3px 3px;border-radius:999px;background:rgba(20,14,4,0.82);border:1px solid rgba(201,154,63,0.5);}
-.tl-block-ownertag span{font-family:${FONT_UI};font-weight:600;font-size:9px;color:#EFE6D6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tl-block-ownertag{position:absolute;top:8px;left:8px;z-index:2;display:flex;align-items:center;gap:5px;max-width:calc(100% - 40px);padding:4px 8px 4px 4px;border-radius:999px;background:rgba(20,14,4,0.82);border:1px solid rgba(201,154,63,0.5);}
+.tl-block-ownertag span{font-family:${FONT_UI};font-weight:600;font-size:10px;color:#EFE6D6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 /* výrazný odpočet dní — VYTŔČA nad horný okraj karty (dôležitý údaj), na wrapperi .tl-mycard.
    ⚠️ Krúžok okolo pilulky je farba PODKLADU, teda papyrus karty (${T.card}) — nie T.pageBg.
    Čierny prstenec na bledej karte by vyzeral ako dier(k)a po pilulke. */
-.tl-countdown{position:absolute;top:-11px;right:8px;z-index:6;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:5px 11px;border-radius:999px;background:${GOLD_BTN.grad};color:#1a1305;box-shadow:0 4px 14px rgba(230,158,26,0.5),0 0 0 3px ${T.card};white-space:nowrap;pointer-events:none;}
+.tl-countdown{position:absolute;top:-11px;right:8px;z-index:6;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:4px 12px;border-radius:999px;background:${GOLD_BTN.grad};color:#1a1305;box-shadow:0 4px 14px rgba(230,158,26,0.5),0 0 0 3px ${T.card};white-space:nowrap;pointer-events:none;}
 .tl-countdown.soon{background:linear-gradient(135deg,#FF7A45,#E5502A);color:#fff;box-shadow:0 4px 16px rgba(229,80,42,0.55),0 0 0 3px ${T.card};}
 /* ⚠️ BADGE SEDÍ NA FOTKE, teda ostáva tmavý (2026-09-01). Prezliekať ho do papyrusu by
    znamenalo bledú pilulku na svetlej fotke — presne to, čo sa na obrázkoch nečíta. Sada
    nižšie sa preto pri prechode na bledý šat NEMENÍ. */
-.tl-block-badge{position:absolute;right:8px;bottom:8px;font-family:${FONT_UI};font-weight:600;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:rgba(201,154,63,0.92);color:#1a1305;box-shadow:0 2px 8px rgba(0,0,0,0.45);max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tl-block-badge{position:absolute;right:8px;bottom:8px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:rgba(201,154,63,0.92);color:#1a1305;box-shadow:0 2px 8px rgba(0,0,0,0.45);max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 /* Status badge v BRANDE (2026-08-14). Pôvodná sada (done=#37B26A zelená · with=#3B82F6 modrá ·
    looking=#2ED3C3 tyrkys, Matej 2026-07-23) dávala tri cudzie farby na jednu obrazovku. Stavy sa
    teraz rozlišujú v zlato-papyrusovej palete tým, čo badge znamená: výzva svieti plnou zlatou,
@@ -235,29 +235,29 @@ const CSS = `
 /* done-open nesie DVE informácie naraz, takže sa do jedného riadku pilulky nezmestí a orezal by
    sa na „Hotovo · Hľadám par…". Zalomenie je tu správnejšie než skratka: nový jednoslovný kľúč by
    bolo treba preložiť do 18 jazykov a v každom by hrozilo, že sa oreže znova. */
-.tl-block-badge.done-open{background:rgba(20,14,4,0.92);color:#E8B84B;border:1.5px solid ${GOLD};white-space:normal;line-height:1.25;border-radius:9px;text-align:center;padding:4px 8px;}
+.tl-block-badge.done-open{background:rgba(20,14,4,0.92);color:#E8B84B;border:1.5px solid ${GOLD};white-space:normal;line-height:1.25;border-radius:8px;text-align:center;padding:4px 8px;}
 .tl-block-badge.solo{background:rgba(20,14,4,0.82);color:rgba(239,230,214,0.72);}
 /* moderácia členom nahodeného výletu — pending je čakanie (tiché), rejected uzavretá vec */
 .tl-block-badge.pending{background:rgba(20,14,4,0.92);color:#E8B84B;border:1px dashed rgba(201,154,63,0.75);}
 .tl-block-badge.rejected{background:rgba(20,14,4,0.92);color:rgba(239,230,214,0.6);border:1px solid rgba(239,230,214,0.28);}
 /* ⚠️ Hint UŽ NIE JE na fotke — stojí v .tl-block-info, teda na papyruse. */
-.tl-block-pendhint{margin-top:3px;font-family:${FONT_UI};font-size:9.5px;line-height:1.35;color:${P.dim};}
+.tl-block-pendhint{margin-top:3px;font-family:${FONT_UI};font-size:10px;line-height:1.35;color:${P.dim};}
 .tl-block-badge.with{background:#F0E6D2;color:#1a1305;border:1px solid rgba(201,154,63,0.55);}
 .tl-block-badge.looking{background:${GOLD_BTN.grad};color:#3d1f00;}
-.tl-block-info{padding:9px 11px 11px;}
+.tl-block-info{padding:8px 12px 12px;}
 .tl-block-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;line-height:1.25;color:${P.ink};display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px;}
-.tl-block-sub{font-size:9.5px;color:${P.dim};margin-top:3px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.tl-block-avatar{flex-shrink:0;width:17px;height:17px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:8.5px;color:${INK};}
+.tl-block-sub{font-size:10px;color:${P.dim};margin-top:3px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.tl-block-avatar{flex-shrink:0;width:17px;height:17px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:10px;color:${INK};}
 /* krátka správa usporiadateľa — 2 riadky, celá v natívnom tooltipe (overflow:hidden na karte by orezal custom bublinu) */
 .tl-block-foot{margin-top:8px;}
-.tl-datebtn{font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;border-radius:999px;border:1px solid ${P.border};background:${P.soft};color:${P.dim};cursor:pointer;}
+.tl-datebtn{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:4px 8px;border-radius:999px;border:1px solid ${P.border};background:${P.soft};color:${P.dim};cursor:pointer;}
 .tl-datebtn:hover{border-color:${T.cardEdge};color:${P.deep};background:${T.card};}
 /* dátum v rámiku (open trips) */
-.tl-datepill{display:inline-flex;align-items:center;gap:5px;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.04em;padding:4px 9px;border-radius:8px;border:1px solid ${P.border};background:${P.soft};color:${P.ink};}
+.tl-datepill{display:inline-flex;align-items:center;gap:5px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;padding:4px 8px;border-radius:8px;border:1px solid ${P.border};background:${P.soft};color:${P.ink};}
 .tl-date{font-size:10px;color:${P.dim};}
 /* OPEN TRIPS filter bar */
 .tl-filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;}
-.tl-filter{font-family:${FONT_UI};font-weight:600;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;padding:6px 12px;border-radius:999px;border:1px solid ${P.border};background:${P.soft};color:${P.dim};cursor:pointer;transition:all .15s;}
+.tl-filter{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:8px 12px;border-radius:999px;border:1px solid ${P.border};background:${P.soft};color:${P.dim};cursor:pointer;transition:all .15s;}
 .tl-filter:hover{border-color:${T.cardEdge};color:${P.deep};background:${T.card};}
 /* VYBRANÝ FILTER = PRIESVITNÝ LAPISOVÝ TINT, nie plná farba (lock 2026-08-26). Plná plocha je
    vyhradená jedinému hlavnému CTA na obrazovke; keď ju dostane aj chip, ktorý človek práve
@@ -266,31 +266,31 @@ const CSS = `
 .tl-filter.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}font-weight:600;}
 /* ⚠️ color-scheme:light, nie dark — natívna rozbaľovačka by inak vyskočila čierna nad
    papyrusovou stránkou. */
-.tl-filter-sel{font-family:${FONT_UI};font-weight:600;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;padding:6px 10px;border-radius:999px;border:1px solid ${P.border};background:${P.field};color:${P.ink};cursor:pointer;color-scheme:light;outline:0;}
+.tl-filter-sel{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:8px 12px;border-radius:999px;border:1px solid ${P.border};background:${P.field};color:${P.ink};cursor:pointer;color-scheme:light;outline:0;}
 .tl-filter-sep{width:1px;height:20px;background:${P.hair};margin:0 2px;}
 /* OPEN TRIPS pager */
 .tl-pager{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:18px;}
-.tl-pagebtn{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:8px 15px;border-radius:999px;border:1px solid ${P.border};background:${P.soft};color:${P.ink};cursor:pointer;transition:all .15s;}
+.tl-pagebtn{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:8px 16px;border-radius:999px;border:1px solid ${P.border};background:${P.soft};color:${P.ink};cursor:pointer;transition:all .15s;}
 .tl-pagebtn:hover:not(:disabled){border-color:${T.cardEdge};color:${P.deep};background:${T.card};}
 .tl-pagebtn:disabled{opacity:.35;cursor:default;}
-.tl-pageinfo{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.06em;color:${P.dim};}
+.tl-pageinfo{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.02em;color:${P.dim};}
 
 /* VIDITEĽNOSŤ VÝLETU (#42) — badge na MY TRIPS karte je prepínač, nie nálepka */
 .tl-block-badge.tap{cursor:pointer;border:0;font-family:inherit;}
 .tl-block-badge.tap:hover{filter:brightness(1.08);}
 .tl-vis{display:flex;flex-direction:column;gap:10px;}
 /* voľba = PODBLOK (úroveň 2 matrice), vybraná = lapisový tint */
-.tl-vischoice{display:flex;align-items:flex-start;gap:11px;text-align:left;padding:13px 14px;border-radius:12px;border:1px solid ${T.cardEdge};background:${T.panelGrad};box-shadow:${PACK_SHADOW.lift};cursor:pointer;transition:all .15s;}
+.tl-vischoice{display:flex;align-items:flex-start;gap:11px;text-align:left;padding:12px 16px;border-radius:12px;border:1px solid ${T.cardEdge};background:${T.panelGrad};box-shadow:${PACK_SHADOW.lift};cursor:pointer;transition:all .15s;}
 .tl-vischoice:hover{border-color:${P.deep};background:${T.card};}
 .tl-vischoice.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.12)}}
-.tl-vischoice-ic{flex-shrink:0;width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(201,154,63,0.14);border:1px solid ${P.border};font-size:14px;}
-.tl-vischoice-t{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:12.5px;letter-spacing:.04em;color:${P.ink};}
-.tl-vischoice-d{display:block;font-size:10.5px;line-height:1.45;color:${P.dim};margin-top:4px;}
+.tl-vischoice-ic{flex-shrink:0;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(201,154,63,0.14);border:1px solid ${P.border};font-size:14px;}
+.tl-vischoice-t{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;color:${P.ink};}
+.tl-vischoice-d{display:block;font-size:10px;line-height:1.45;color:${P.dim};margin-top:4px;}
 
 /* Po prijatí žiadosti — ponuka stiahnuť inzerát (#42, „na rande nechceš tretiu osobu").
    Zelená = hotové; na papyruse ide ako tint s tmavým inkoustom, nie ako svetlý text. */
-.tl-closebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding:12px 14px;border-radius:12px;${pickTintCSS(T.growGreen, PICK_INK.green, 0.14)}}
-.tl-closebar-t{flex:1;min-width:180px;font-size:11.5px;line-height:1.45;color:${PICK_INK.green};}
+.tl-closebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding:12px 16px;border-radius:12px;${pickTintCSS(T.growGreen, PICK_INK.green, 0.14)}}
+.tl-closebar-t{flex:1;min-width:180px;font-size:12px;line-height:1.45;color:${PICK_INK.green};}
 .tl-closebar-t b{font-family:${FONT_TITLE};font-weight:700;}
 
 /* REQUESTS TO JOIN — schránka organizátora (#41). Riadok = karta člena (.pmc) + dve akcie. */
@@ -299,7 +299,7 @@ const CSS = `
 .tl-req-member{flex:1;min-width:0;}
 .tl-req-member .pmc{margin-top:0;}
 .tl-req-acts{display:flex;gap:6px;flex-shrink:0;}
-.tl-reqbtn{font-family:${FONT_UI};font-weight:600;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:9px 13px;border-radius:10px;border:1px solid ${P.border};background:${P.soft};color:${P.dim};cursor:pointer;transition:all .15s;}
+.tl-reqbtn{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:8px 12px;border-radius:12px;border:1px solid ${P.border};background:${P.soft};color:${P.dim};cursor:pointer;transition:all .15s;}
 .tl-reqbtn:disabled{opacity:.4;cursor:default;}
 /* Zelená áno / červená nie ostávajú — nesú význam. Na papyruse len tmavnú do inkoustu:
    svetlé #5FD98C a #FF8A66 boli robené na čiernu dosku a na piesku zaniknú. */
@@ -309,7 +309,7 @@ const CSS = `
 
 /* JOIN na karte cudzieho otvoreného výletu (#41) — hlavná akcia karty, teda LAPIS.
    Geometria (radius 8) ostáva z locku .btn-gold, mení sa iba výplň. */
-.tl-join{width:100%;margin-top:8px;font-family:${FONT_TITLE};font-weight:700;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:8px 6px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;transition:background .15s;}
+.tl-join{width:100%;margin-top:8px;font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:8px 8px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;transition:background .15s;}
 .tl-join:hover:not(:disabled){background:${LAPIS.gradHover};}
 .tl-join:disabled{cursor:default;}
 /* prijatý = STAV, nie výzva ⇒ zelený tint bez tieňa CTA */
@@ -319,20 +319,20 @@ const CSS = `
    akú nesie percento na dlaždici psa. Tlačidlo ostáva VIDITEĽNÉ, len neaktívne — vysvetlenie
    stojí v .tl-joinerr pod ním (žiadna nová trieda, žiadna nová hodnota mimo matríc). */
 .tl-join.locked{${pickTintCSS(T.alertRed, PICK_INK.red, 0.18)}box-shadow:none;cursor:default;}
-.tl-joinerr{font-size:9px;color:${PICK_INK.red};margin-top:5px;line-height:1.35;}
+.tl-joinerr{font-size:10px;color:${PICK_INK.red};margin-top:5px;line-height:1.35;}
 
 /* Add date popup — plávajúci PANEL (úroveň 4 matrice PACK_BOX.panel) nad tmavým závojom.
    ⚠️ BEZ KRÍŽIKA (lock 2026-08-28, Matej: „nedávajme tie krížiky na bloky") — von sa ide
    klikom mimo (overlay) alebo klávesom Esc. Trieda .tl-x preto zanikla aj z JSX. */
-.tl-overlay{position:fixed;inset:0;z-index:1200;background:rgba(3,2,1,0.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;}
+.tl-overlay{position:fixed;inset:0;z-index:1200;background:rgba(3,2,1,0.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px;}
 .tl-modal{width:100%;max-width:360px;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:24px;}
 .tl-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;}
 .tl-modal-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${P.ink};}
 /* pole = .pf-field--flat recept: plochá papyrusová výplň, jeden zlatý rám, tmavý inkoust.
    color-scheme:light kvôli natívnemu kalendáru — v dark by vyskočil čierny. */
-.tl-dateinput{width:100%;background:${P.field};border:1px solid ${P.border};border-radius:8px;padding:11px 12px;color:${P.ink};font-family:inherit;font-size:16px;outline:0;color-scheme:light;}
+.tl-dateinput{width:100%;background:${P.field};border:1px solid ${P.border};border-radius:8px;padding:12px 12px;color:${P.ink};font-family:inherit;font-size:16px;outline:0;color-scheme:light;}
 .tl-dateinput:focus{border-color:${LAPIS.edge};box-shadow:0 0 0 3px ${LAPIS.halo};}
-.tl-modal-submit{width:100%;margin-top:16px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
+.tl-modal-submit{width:100%;margin-top:16px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;padding:12px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
 .tl-modal-submit:hover:not(:disabled){background:${LAPIS.gradHover};}
 .tl-modal-submit:disabled{opacity:.4;cursor:default;}
 `;
@@ -823,7 +823,7 @@ export default function PackTriplist() {
       <div className="pk-paper flex items-center justify-center" style={{ minHeight: '100dvh' }}>
         <style>{PAPER_PAGE_CSS}</style>
         <div className="relative" style={{ zIndex: 1 }}>
-          <div style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.3em', fontSize: 12, color: T.inkWarm }}>
+          <div style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.26em', fontSize: 12, color: T.inkWarm }}>
             {t('pack.layout.loading')}
           </div>
         </div>

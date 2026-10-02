@@ -62,42 +62,42 @@ const PAGE_SIZE = 5;
 export const TRIP_COMMENTS_CSS = `
 .tcm-wrap{margin-top:16px;border:1px solid ${T.cardEdge};border-radius:12px;background:${T.panelGrad};overflow:hidden;box-shadow:${PACK_SHADOW.lift};}
 .tcm-tabs{display:flex;border-bottom:1px solid ${T.hairline};}
-.tcm-tab{flex:1;text-align:center;padding:12px 8px;font-family:${FONT_UI};font-weight:600;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};background:transparent;border:none;cursor:pointer;transition:color .15s,background .15s;}
+.tcm-tab{flex:1;text-align:center;padding:12px 8px;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:${T.inkWarm};background:transparent;border:none;cursor:pointer;transition:color .15s,background .15s;}
 .tcm-tab:hover{color:${T.inkStrong};}
 .tcm-tab.on{color:#6E4A12;background:rgba(201,154,63,0.16);box-shadow:inset 0 -2px 0 ${GOLD};}
-.tcm-body{padding:12px 16px 6px;}
-.tcm-empty{text-align:center;padding:20px 8px;color:${T.inkWarm};font-size:12px;font-style:italic;}
-.tcm-review{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid ${T.hairline};}
+.tcm-body{padding:12px 16px 8px;}
+.tcm-empty{text-align:center;padding:16px 8px;color:${T.inkWarm};font-size:12px;font-style:italic;}
+.tcm-review{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid ${T.hairline};}
 .tcm-review:last-child{border-bottom:none;}
-.tcm-review.mine{cursor:pointer;border:1px solid ${T.border};background:rgba(201,154,63,0.07);border-radius:10px;padding:11px 12px;margin-bottom:4px;}
+.tcm-review.mine{cursor:pointer;border:1px solid ${T.border};background:rgba(201,154,63,0.07);border-radius:12px;padding:12px 12px;margin-bottom:4px;}
 .tcm-review.mine:hover{border-color:${GOLD};}
 .tcm-avatar{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:12px;color:${INK};}
 .tcm-review-main{flex:1;min-width:0;}
 .tcm-review-top{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;}
-.tcm-review-name{font-family:${FONT_TITLE};font-weight:700;font-size:12.5px;color:${T.inkStrong};}
+.tcm-review-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;color:${T.inkStrong};}
 .tcm-review-pack{font-size:10px;color:${T.inkWarm};}
-.tcm-review-badge{font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#6E4A12;background:rgba(201,154,63,0.20);padding:2px 7px;border-radius:999px;}
+.tcm-review-badge{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#6E4A12;background:rgba(201,154,63,0.20);padding:4px 8px;border-radius:999px;}
 .tcm-paws{display:inline-flex;gap:2px;margin-top:4px;}
 .tcm-review-text{font-size:12px;line-height:1.5;color:rgba(42,22,8,0.86);margin-top:5px;}
-.tcm-advice{padding:11px 0;border-bottom:1px solid ${T.hairline};}
+.tcm-advice{padding:12px 0;border-bottom:1px solid ${T.hairline};}
 .tcm-advice:last-child{border-bottom:none;}
-.tcm-advice.mine{border:1px solid ${T.border};background:rgba(201,154,63,0.07);border-radius:10px;padding:11px 12px;margin-bottom:4px;}
-.tcm-advice-text{font-size:12.5px;line-height:1.5;color:rgba(42,22,8,0.86);}
-.tcm-advice-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:10.5px;color:${T.inkWarm};margin-top:5px;}
-.tcm-advice-del{flex-shrink:0;background:none;border:none;color:${T.inkWarm};font-size:14px;line-height:1;cursor:pointer;padding:0 2px;}
+.tcm-advice.mine{border:1px solid ${T.border};background:rgba(201,154,63,0.07);border-radius:12px;padding:12px 12px;margin-bottom:4px;}
+.tcm-advice-text{font-size:12px;line-height:1.5;color:rgba(42,22,8,0.86);}
+.tcm-advice-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:10px;color:${T.inkWarm};margin-top:5px;}
+.tcm-advice-del{flex-shrink:0;background:none;border:none;color:${T.inkWarm};font-size:14px;line-height:1;cursor:pointer;padding:0 4px;}
 .tcm-advice-del:hover{color:#E0796D;}
 
 /* pager */
-.tcm-pager{display:flex;align-items:center;justify-content:center;gap:16px;padding:13px 0 8px;}
-.tcm-pager button{width:26px;height:26px;border-radius:50%;border:1px solid ${T.border};background:${T.tileBg};color:${T.inkStrong};font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.tcm-pager{display:flex;align-items:center;justify-content:center;gap:16px;padding:12px 0 8px;}
+.tcm-pager button{width:26px;height:26px;border-radius:50%;border:1px solid ${T.border};background:${T.tileBg};color:${T.inkStrong};font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
 .tcm-pager button:hover:not(:disabled){border-color:${GOLD};color:${GOLD};}
 .tcm-pager button:disabled{opacity:.28;cursor:default;}
-.tcm-pager span{font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.04em;color:${T.inkWarm};min-width:30px;text-align:center;}
+.tcm-pager span{font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:0.02em;color:${T.inkWarm};min-width:30px;text-align:center;}
 
 /* reviews dropdown toggle — list is collapsed by default, CTA above stays visible */
-.tcm-collapse-toggle{width:100%;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px;margin-bottom:10px;border-radius:10px;border:1px solid ${T.border};background:${T.tileBg};color:${T.inkWarm};font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;}
+.tcm-collapse-toggle{width:100%;display:flex;align-items:center;justify-content:center;gap:7px;padding:12px;margin-bottom:10px;border-radius:12px;border:1px solid ${T.border};background:${T.tileBg};color:${T.inkWarm};font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;}
 .tcm-collapse-toggle:hover{border-color:${GOLD};color:${GOLD};}
-.tcm-collapse-chevron{display:inline-block;font-size:11px;transition:transform .15s;}
+.tcm-collapse-chevron{display:inline-block;font-size:12px;transition:transform .15s;}
 .tcm-collapse-chevron.open{transform:rotate(180deg);}
 
 /* per-review like/heart */
@@ -121,19 +121,19 @@ export const TRIP_COMMENTS_CSS = `
    Dôvod farby sa NEMENÍ: zlato tu nie je „hlavné CTA", ale TRETIA farba pre tretiu
    akciu — nad ňou stojí lapis (parkovisko) a zelená Mapy.com (trasa).
    Geometria (šírka, radius 8, Cinzel 700 uppercase) sa NEMENÍ, mení sa výplň. */
-.tcm-btn-brandgold{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:12px;border-radius:8px;background:${BRAND_GOLD_BTN.grad};color:${BRAND_GOLD_BTN.ink};border:1px solid ${BRAND_GOLD_BTN.edge};cursor:pointer;box-shadow:${BRAND_GOLD_BTN.glow};transition:box-shadow .15s,background .15s;}
+.tcm-btn-brandgold{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;padding:12px;border-radius:8px;background:${BRAND_GOLD_BTN.grad};color:${BRAND_GOLD_BTN.ink};border:1px solid ${BRAND_GOLD_BTN.edge};cursor:pointer;box-shadow:${BRAND_GOLD_BTN.glow};transition:box-shadow .15s,background .15s;}
 .tcm-btn-brandgold:hover:not(:disabled){background:${BRAND_GOLD_BTN.gradHover};box-shadow:${BRAND_GOLD_BTN.glowHover};}
 .tcm-btn-brandgold:disabled{opacity:.35;cursor:default;box-shadow:none;filter:none;}
-.tcm-gatehint{text-align:center;font-size:11px;color:${T.inkWarm};font-style:italic;margin-top:7px;}
+.tcm-gatehint{text-align:center;font-size:12px;color:${T.inkWarm};font-style:italic;margin-top:7px;}
 
 /* ask a question box */
 .tcm-askbox{margin-bottom:16px;}
 .tcm-ask-actions{display:flex;justify-content:flex-end;margin-top:8px;}
-.tcm-postbtn{font-family:${FONT_TITLE};font-weight:700;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:8px 18px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.edge};cursor:pointer;box-shadow:${LAPIS_BTN_SHADOW};}
+.tcm-postbtn{font-family:${FONT_TITLE};font-weight:700;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:8px 16px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.edge};cursor:pointer;box-shadow:${LAPIS_BTN_SHADOW};}
 .tcm-postbtn:disabled{opacity:.35;cursor:default;}
 
 /* popup (self-contained, same look as WalkedPopup in packCommunityUI.tsx) */
-.tcm-overlay{position:fixed;inset:0;z-index:1200;background:rgba(3,2,1,0.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;}
+.tcm-overlay{position:fixed;inset:0;z-index:1200;background:rgba(3,2,1,0.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px;}
 .tcm-modal{width:100%;max-width:400px;max-height:calc(100dvh - 40px);overflow-y:auto;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:24px;}
 .tcm-modal-head{display:flex;align-items:flex-start;justify-content:flex-start;gap:12px;margin-bottom:18px;}
 .tcm-modal-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${T.inkStrong};line-height:1.25;}
@@ -144,23 +144,23 @@ export const TRIP_COMMENTS_CSS = `
 .tcm-field{margin-bottom:16px;}
 .tcm-label{display:block;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.cardEdge};margin-bottom:9px;}
 .tcm-pawpick{display:flex;justify-content:center;}
-.tcm-textarea{width:100%;background:${T.card};border:1px solid ${PALE.border};border-radius:8px;padding:10px 12px;color:${T.inkStrong};font-family:inherit;font-size:13px;outline:0;resize:vertical;min-height:72px;}
+.tcm-textarea{width:100%;background:${T.card};border:1px solid ${PALE.border};border-radius:8px;padding:12px 12px;color:${T.inkStrong};font-family:inherit;font-size:14px;outline:0;resize:vertical;min-height:72px;}
 .tcm-textarea:focus{border-color:${GOLD};}
 /* Odoslanie v modáli = hlavné CTA toho panela ⇒ tiež lapis, nech sa cesta „pridaj
    hodnotenie → odošli" nemení farbu uprostred. */
-.tcm-submit{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.edge};cursor:pointer;box-shadow:${LAPIS_BTN_SHADOW};}
+.tcm-submit{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;padding:12px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.edge};cursor:pointer;box-shadow:${LAPIS_BTN_SHADOW};}
 .tcm-submit:disabled{opacity:.4;cursor:default;}
-.tcm-deletebtn{width:100%;margin-top:9px;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;padding:10px;border-radius:10px;background:rgba(178,38,30,0.14);color:#E0796D;border:1px solid rgba(206,75,60,0.4);cursor:pointer;}
+.tcm-deletebtn{width:100%;margin-top:9px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:12px;border-radius:12px;background:rgba(178,38,30,0.14);color:#E0796D;border:1px solid rgba(206,75,60,0.4);cursor:pointer;}
 .tcm-deletebtn:hover{background:rgba(178,38,30,0.22);}
 
 /* nenápadné "Report" na cudzom (reálnom, nie mock) komentári — issue #54 */
-.tcm-reportlink{background:none;border:none;padding:0;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.05em;color:${T.inkWarm};cursor:pointer;text-decoration:underline;text-underline-offset:2px;}
+.tcm-reportlink{background:none;border:none;padding:0;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.02em;color:${T.inkWarm};cursor:pointer;text-decoration:underline;text-underline-offset:2px;}
 .tcm-reportlink:hover{color:${GOLD};}
-.tcm-reportreason{width:100%;text-align:left;font-size:13px;padding:12px 14px;border-radius:10px;background:${T.tileBg};border:1px solid ${T.border};color:${T.inkStrong};cursor:pointer;margin-bottom:8px;}
+.tcm-reportreason{width:100%;text-align:left;font-size:14px;padding:12px 16px;border-radius:12px;background:${T.tileBg};border:1px solid ${T.border};color:${T.inkStrong};cursor:pointer;margin-bottom:8px;}
 .tcm-reportreason:hover{border-color:${GOLD};}
 /* Výber = lapisový TINT (brand: zlato = konštrukcia, lapis = moja voľba). */
 .tcm-reportreason.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}}
-.tcm-reportcancel{width:100%;margin-top:8px;background:none;border:0;color:${T.inkWarm};font-family:inherit;font-size:12.5px;padding:9px;cursor:pointer;}
+.tcm-reportcancel{width:100%;margin-top:8px;background:none;border:0;color:${T.inkWarm};font-family:inherit;font-size:12px;padding:8px;cursor:pointer;}
 .tcm-reportcancel:hover{color:${GOLD};}
 `;
 

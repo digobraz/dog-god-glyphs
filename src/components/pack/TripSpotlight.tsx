@@ -99,7 +99,7 @@ const CSS = `
   position:absolute; top:22px; left:24px; z-index:3;
   display:inline-flex; align-items:center; gap:7px;
   padding:8px 16px; border-radius:999px; white-space:nowrap;
-  font-family:${FONT_TITLE}; font-weight:700; font-size:13px;
+  font-family:${FONT_TITLE}; font-weight:700; font-size:14px;
   box-shadow:0 6px 20px -6px rgba(0,0,0,0.9);
   animation: ts-glow 2.6s ease-in-out infinite;
 }
@@ -109,7 +109,7 @@ const CSS = `
 }
 @media (prefers-reduced-motion: reduce){ .ts-count{ animation:none; } }
 .ts-chip{
-  font-family:${FONT_UI}; font-size:10.5px; letter-spacing:0.14em;
+  font-family:${FONT_UI}; font-size:10px; letter-spacing:0.14em;
   text-transform:uppercase; color:rgba(255,246,226,0.9);
   background:rgba(4,2,0,0.42); border:1px solid rgba(245,240,228,0.28);
   border-radius:999px; padding:4px 12px;
@@ -154,7 +154,7 @@ const CSS = `
   position:relative; z-index:3; display:block; width:100%; margin-top:auto;
   padding:16px 16px; border-radius:8px; text-align:center;
   background:${LAPIS.grad}; border:1px solid ${GOLD_BTN.edge};
-  color:${LAPIS.ink}; font-family:${FONT_TITLE}; font-weight:700; font-size:12.5px;
+  color:${LAPIS.ink}; font-family:${FONT_TITLE}; font-weight:700; font-size:12px;
   letter-spacing:0.14em; text-transform:uppercase;
   box-shadow:${LAPIS_BTN_SHADOW};
   transition:transform .18s ease, box-shadow .22s ease;
@@ -182,7 +182,7 @@ const CSS = `
    slová (SK „Rozšír hranice DOGYPTU", EN „Expand DOGYPT's borders") — pri dvoch vyjdú dva
    riadky a karta ostane hore prázdna, pri štyroch pretečie. */
 .ts-globe-title{
-  font-family:${FONT_TITLE}; font-weight:700; font-size:30px; line-height:1.08;
+  font-family:${FONT_TITLE}; font-weight:700; font-size:24px; line-height:1.08;
   letter-spacing:0.02em; text-transform:uppercase; color:${T.inkStrong}; margin:0;
   /* Svetlé halo, nie tmavý tieň — nadpis stojí nad kontinentmi, ktoré sú v bledej
      verzii TMAVÉ, takže ho drží čitateľný rozžiarený papyrus okolo písmen. */
@@ -228,7 +228,7 @@ const CSS = `
   text-shadow:0 2px 10px rgba(250,244,236,0.9);
 }
 .ts-rank-name{
-  font-family:${FONT_TITLE}; font-weight:700; font-size:13px; letter-spacing:0.22em;
+  font-family:${FONT_TITLE}; font-weight:700; font-size:14px; letter-spacing:0.22em;
   text-transform:uppercase; color:${T.inkStrong}; text-shadow:0 2px 10px rgba(250,244,236,0.9);
 }
 /* FARBA PÁSMA (2026-08-24) — gradient a inkoust berie z premenných --tier-a / --tier-b /
@@ -276,19 +276,19 @@ const CSS = `
    ⚠️ Váha STROP 600: Space Grotesk je načítaný len v 300–600, 700 by prehliadač dosyntetizoval
    (fake bold, rozmazané hrany). */
 .ts-pill b{
-  display:block; font-family:${FONT_UI}; font-weight:600; font-size:22px;
+  display:block; font-family:${FONT_UI}; font-weight:600; font-size:20px;
   line-height:1; color:${LAPIS.ink}; letter-spacing:0; text-shadow:0 2px 10px rgba(3,10,34,0.7);
 }
 .ts-pill span{
   display:block; margin-top:6px; font-family:${FONT_UI}; font-weight:500;
-  font-size:8.5px; letter-spacing:0.22em; text-transform:uppercase; color:rgba(239,215,154,0.66);
+  font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:rgba(239,215,154,0.66);
 }
 
 @media (max-width: 860px){
   .ts-row{ grid-template-columns: 1fr; }
   .ts-hero{ min-height:340px; padding:24px 16px 16px; }
   .ts-globe{ min-height:270px; }
-  .ts-ribbon{ top:16px; right:-58px; width:184px; font-size:9px; letter-spacing:0.22em; }
+  .ts-ribbon{ top:16px; right:-58px; width:184px; font-size:10px; letter-spacing:0.22em; }
   /* Mobil: nadpis + rang sa zarovnajú DOPRAVA (vľavo je guľa, vpravo voľné miesto),
      tri pilulky sedia na spodnej hrane. Guľa preto nesedí pri spodku — tam by ju pilulky
      prekryli — ale v STREDOVEJ medzere vľavo. */
@@ -303,7 +303,7 @@ const CSS = `
   /* Rang sedí v pravom hornom rohu aj tu, preto hlavička začína pod ním — inak by sa
      prvý riadok nadpisu (zarovnaný doprava) prekryl s pilulkou levelu. */
   .ts-globe-head{ text-align:right; display:flex; flex-direction:column; align-items:flex-end; padding-top:32px; }
-  .ts-globe-title{ font-size:28px; }
+  .ts-globe-title{ font-size:24px; }
   .ts-pills{ grid-template-columns:repeat(3, 1fr); }
 }
 `;
@@ -494,7 +494,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
           <span className="ts-count" style={DAYS_PILL}>
             {countdown ?? dateLabel}
             {countdown && dateLabel && (
-              <small style={{ fontFamily: FONT_UI, fontWeight: 500, fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', opacity: 0.72 }}>
+              <small style={{ fontFamily: FONT_UI, fontWeight: 500, fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', opacity: 0.72 }}>
                 {dateLabel}
               </small>
             )}
@@ -502,11 +502,11 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
         )}
 
         <div className="ts-body">
-          <p style={{ fontFamily: FONT_UI, fontWeight: 500, fontSize: 11.5, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#F5C73D', margin: '0 0 9px', textShadow: '0 2px 12px rgba(0,0,0,0.8)' }}>
+          <p style={{ fontFamily: FONT_UI, fontWeight: 500, fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#F5C73D', margin: '0 0 9px', textShadow: '0 2px 12px rgba(0,0,0,0.8)' }}>
             {eyebrow}
           </p>
 
-          <h3 style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 30, lineHeight: 1.08, letterSpacing: '0.02em', textTransform: 'uppercase', color: T.cardSoft, margin: 0, textShadow: '0 4px 26px rgba(0,0,0,0.9)' }}>
+          <h3 style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 24, lineHeight: 1.08, letterSpacing: '0.02em', textTransform: 'uppercase', color: T.cardSoft, margin: 0, textShadow: '0 4px 26px rgba(0,0,0,0.9)' }}>
             {trail.name}
           </h3>
 
@@ -529,7 +529,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
           {/* Kto ide s vami — údaj, ktorý mapa nevie zobraziť. Existuje len pri pláne
               (bez plánu niet koho pozvať), preto sa inde nezobrazuje. */}
           {kind === 'plan' && view.joiners > 0 && (
-            <div style={{ marginTop: 12, fontFamily: FONT_UI, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,246,226,0.78)', textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
+            <div style={{ marginTop: 12, fontFamily: FONT_UI, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,246,226,0.78)', textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
               {t('pack.spotlight.joiners', { count: String(view.joiners) })}
             </div>
           )}

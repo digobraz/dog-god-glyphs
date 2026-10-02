@@ -21,6 +21,8 @@
 // pre všeobecný verejný read-profil, kde viewer nemusí mať s majiteľom žiadny vzťah. Preto tu
 // žiadne `trip`-tier polia nerenderujeme vôbec (viď report — spĺňa „skry trip-tier" bez potreby
 // shared-trip výpočtu). Psí BIO + tagy = vždy verejné (fixné pravidlo, nie cez getTier()).
+import { sizedUrl } from '@/services/cloudinaryService';
+import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
@@ -152,9 +154,10 @@ export default function PublicProfile() {
           <Link
             to="/pack"
             style={{
-              marginTop: 8, fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.22em',
-              textTransform: 'uppercase', color: T.ink, padding: '9px 18px', border: `1px solid ${T.border}`,
-              borderRadius: 999, textDecoration: 'none',
+              marginTop: 8, fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 12, letterSpacing: '0.14em',
+              textTransform: 'uppercase', color: LAPIS.ink, background: LAPIS.grad, boxShadow: LAPIS_BTN_SHADOW,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 44,
+              padding: '0 24px', border: 'none', borderRadius: 8, textDecoration: 'none',
             }}
           >
             {t('pack.publicProfile.backToPack')}
@@ -230,7 +233,7 @@ export default function PublicProfile() {
               style={{ width: 72, height: 72, borderRadius: '50%', background: T.bg, border: `2px solid ${T.accentGold}` }}
             >
               {headerAvatar ? (
-                <img src={headerAvatar} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={sizedUrl(headerAvatar, 240)} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 <span style={{ fontFamily: "'Cinzel', serif", fontSize: 26, fontWeight: 700, color: T.inkDim }}>
                   {(displayName?.[0] || 'D').toUpperCase()}
@@ -261,8 +264,8 @@ export default function PublicProfile() {
               <Link
                 to="/pack/profile"
                 style={{
-                  fontFamily: "'Cinzel', serif", fontSize: 9.5, letterSpacing: '0.2em', textTransform: 'uppercase',
-                  color: T.ink, padding: '8px 14px', border: `1px solid ${T.border}`, borderRadius: 999,
+                  fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase',
+                  color: T.ink, padding: '8px 14px', border: `1px solid ${T.border}`, borderRadius: 8,
                   textDecoration: 'none', whiteSpace: 'nowrap',
                 }}
               >
@@ -275,7 +278,7 @@ export default function PublicProfile() {
               človeku appka výlety nevydáva, takže riadok „— —“ stál na KAŽDOM cudzom profile
               ako mŕtvy údaj (audit 27. 9.). */}
           {selfBadges && (<div style={{ borderTop: `1px solid ${T.hairline}`, marginTop: 18, paddingTop: 16 }}>
-            <span style={{ fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.28em', textTransform: 'uppercase', color: T.inkFaint, display: 'block', marginBottom: 10 }}>
+            <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.inkFaint, display: 'block', marginBottom: 10 }}>
               {t('pack.publicProfile.badgesLabel')}
             </span>
             <div className="flex items-center gap-6">

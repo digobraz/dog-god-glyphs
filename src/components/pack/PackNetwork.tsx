@@ -1828,7 +1828,7 @@ function Node({
       ) : member?.avatar ? (
         // Uzol s fotkou psa. Dnes ju má len ukážková línia — `get_my_network()`
         // fotku nevracia, takže na reálnych členoch padá na iniciálu nižšie.
-        <img src={member.avatar} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <img src={sizedUrl(member.avatar, 160)} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       ) : ghost ? (
         <img
           src={placeholderDog(seed)}

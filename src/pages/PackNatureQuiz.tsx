@@ -44,6 +44,7 @@ import { getAccessibleDogIds } from '@/lib/dogRights';
 import { useT } from '@/i18n/LanguageContext';
 import { PALE, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { HandCheck, HandCycle } from '@/components/pack/HandIcons';
+import { sizedUrl } from '@/services/cloudinaryService';
 
 const T = PACK_THEME;
 const NAME_FONT = "'Cinzel Decorative', 'Cinzel', serif";
@@ -1162,7 +1163,7 @@ function DogFace({ dog, on = true, size = 34 }: { dog: QuizDog; on?: boolean; si
       }}
     >
       {dog.cloudinary_main_url
-        ? <img src={dog.cloudinary_main_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        ? <img src={sizedUrl(dog.cloudinary_main_url, 320)} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         : <span className="nq-dogfb" style={{ fontSize: Math.round(size * 0.38) }}>{initial}</span>}
     </span>
   );
@@ -1236,7 +1237,7 @@ function OptionRow({
             onClick={() => onPickDog(d.id)}
           >
             {d.cloudinary_main_url
-              ? <img src={d.cloudinary_main_url} alt="" />
+              ? <img src={sizedUrl(d.cloudinary_main_url, 200)} alt="" loading="lazy" />
               : <span className="nq-dogfb">{(d.dog_name || '?').trim().charAt(0).toUpperCase()}</span>}
           </button>
         ))}
@@ -1544,7 +1545,7 @@ function ResultDoc({ dog, r, b, tx }: {
             tú istú vec povedia odznaky pod heroglyfom, a to s obrázkom a poradím. */}
         <div className="nqd-medal">
           {dog.cloudinary_main_url
-            ? <img src={dog.cloudinary_main_url} alt="" aria-hidden />
+            ? <img src={sizedUrl(dog.cloudinary_main_url, 320)} alt="" aria-hidden />
             : <span>{(dog.dog_name || '?').trim().charAt(0).toUpperCase()}</span>}
         </div>
         {name && <div className="nqd-who">{name}</div>}

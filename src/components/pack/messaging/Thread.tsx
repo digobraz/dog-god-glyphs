@@ -19,6 +19,7 @@
 //
 // ⚠️ PANEL HLÁSENÍ NIE JE PAPYRUSOVÝ — je AINUBISOV (tmavá modrá, cyan, zlato-oranžové
 //    CTA). Bezpečnosť má na starosti on, nie appka. Tokeny v `ainubisSkin.ts`.
+import { sizedUrl } from '@/services/cloudinaryService';
 import { trackPack } from '@/lib/packAnalytics';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -410,7 +411,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
                 <span
                   className="msg-bubbleav"
                   aria-hidden="true"
-                  style={avatar ? { backgroundImage: `url('${avatar}')` } : undefined}
+                  style={avatar ? { backgroundImage: `url('${sizedUrl(avatar, 160)}')` } : undefined}
                 >
                   {!avatar && initial}
                 </span>

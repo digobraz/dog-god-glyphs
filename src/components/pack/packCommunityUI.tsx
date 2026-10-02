@@ -2166,7 +2166,7 @@ function EventCard({ ev, tr, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, 
       {/* fotka (placeholder podľa aktivity) — plán vyzerá ako bežná karta. Rating = pomlčky
           (výlet sa ešte neodohral → nehodnotený). Matej 2026-07-24. */}
       {photo && (
-        <div className="comm-plan-photo" style={{ backgroundImage: `linear-gradient(180deg,rgba(0,0,0,0.05),rgba(0,0,0,0.5)), url('${photo}')` }} onClick={() => onOpenTrip(ev.tripId)}>
+        <div className="comm-plan-photo" style={{ backgroundImage: `linear-gradient(180deg,rgba(0,0,0,0.05),rgba(0,0,0,0.5)), url('${sizedUrl(photo, 800)}')` }} onClick={() => onOpenTrip(ev.tripId)}>
           <span className="comm-plan-planned">🗓️ Planned · —</span>
         </div>
       )}
