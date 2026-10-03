@@ -538,7 +538,8 @@ export function PatronScreen() {
                         />
                       )}
                     </div>
-                      <p className="pt-pop-note">{t('heroglyph.flow.breed.popNote')}</p>
+                      {/* 3. 10. 2026 — veta „výber tvaru je na tebe“ (`breed.popNote`) zmazaná:
+                          opakovala podnadpis obrazovky. Matej: „áno súhlasím“. Kľúč v i18n ostáva. */}
                       <p className="pt-pop-note"><b>{t('heroglyph.flow.breed.statsNote')}</b></p>
                     </div>
                     <button type="button" className="hf-cta" onClick={() => setBreedOpen(false)}>{t('heroglyph.flow.message.done')}</button>
