@@ -1292,7 +1292,7 @@ export const en = {
   'onepage.dgx.k.2.name': 'BREED',
   'onepage.dgx.k.2.desc': 'PATRON/silhouette',
   'onepage.dgx.k.3.name': 'CHARACTER',
-  'onepage.dgx.k.3.desc': 'CHARACTER',
+  'onepage.dgx.k.3.desc': 'Two traits · who he is',
   'onepage.dgx.k.4.name': 'YOU/Owner',
   'onepage.dgx.k.4.desc': 'You live inside his frame.',
   // Bubliny podržaného symbolu — tri riadky: čo je to za údaj · aká je

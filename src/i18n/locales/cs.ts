@@ -5355,7 +5355,7 @@ export const cs: Partial<Dict> = {
   'onepage.dgx.k.2.name': 'PLEMENO',
   'onepage.dgx.k.2.desc': 'PATRON/silueta',
   'onepage.dgx.k.3.name': 'POVAHA',
-  'onepage.dgx.k.3.desc': 'POVAHA',
+  'onepage.dgx.k.3.desc': 'Dvě vlastnosti · jaký je',
   'onepage.dgx.k.4.name': 'TY/Majitel',
   'onepage.dgx.k.4.desc': 'Žiješ uvnitř jeho rámu.',
   'onepage.dgx.bub.dogGender.label': 'Pohlaví',
