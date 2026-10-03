@@ -20,7 +20,7 @@ export type DemoScroll = {
    ktorá nahradila ČO ÁNO / ČO NIE (fasáda v2, 18. 9.). rel = susedia z toho istého okruhu. */
 const Z = [
   { t: 'Pes bol prvý — a dlho jediný', v: 'Pes bol pri človeku skôr než koza, mačka či kôň. Už pred 14 000 rokmi sa ľudia týždne starali o choré šteňa, hoci im nebolo na nič.',
-    min: 3, src: 7, take: 'Keď sa staráš o chorého či starého psa, robíš to, čo ľudia robia už 14 000 rokov.',
+    min: 3, src: 7, take: 'Pes v rodine: trend, ktorý nevyšiel z módy už najmenej 14 000 rokov.',
     rel: ['Kto si koho ochočil', 'Úžitok naprieč vekom'], n: ['rez zeminou', 'miska pre šteňa', 'rad k ohňu'] },
   { t: 'Kto si koho ochočil', v: 'Vlk k človeku pristupoval po kúskoch, až si prvý raz zobral jedlo z ruky.',
     min: 2, src: 5, take: 'Dôveru psa nevynútiš. Príde po kúskoch, keď ho necháš prísť samého.',
