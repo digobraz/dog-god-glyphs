@@ -103,3 +103,18 @@ export function addTalk(id: string, text: string) {
 export function useTalk(id: string): Talk[] {
   return useSyncExternalStore((f) => { tsubs.add(f); return () => { tsubs.delete(f); }; }, () => talk[id] || NONE, () => talk[id] || NONE);
 }
+
+// ── páči sa (labka) — DEV len v prehliadači, rovnako ako Uložené ─────────────
+const LKEY = 'vault-demo-liked';
+let liked: string[] = (() => {
+  try { return JSON.parse(localStorage.getItem(LKEY) || '[]') as string[]; } catch { return []; }
+})();
+const lsubs = new Set<() => void>();
+export function toggleLiked(id: string) {
+  liked = liked.includes(id) ? liked.filter((x) => x !== id) : [...liked, id];
+  try { localStorage.setItem(LKEY, JSON.stringify(liked)); } catch { /* súkromné okno */ }
+  lsubs.forEach((f) => f());
+}
+export function useLiked(): string[] {
+  return useSyncExternalStore((f) => { lsubs.add(f); return () => { lsubs.delete(f); }; }, () => liked, () => liked);
+}

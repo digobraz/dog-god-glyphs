@@ -33,7 +33,7 @@ const Ic = ({ ic }: { ic: string }) => (
 import { BackButton } from '@/components/pack/BackButton';
 import {
   type DemoScroll, pickText, pickPod, sourceHref, fmtSec, scrollLang,
-  markScroll, useScrollState, toggleSaved, useSaved, useTalk, addTalk,
+  markScroll, useScrollState, toggleSaved, useSaved, useTalk, addTalk, toggleLiked, useLiked,
 } from './vaultScrollDemo';
 
 // ── texty rozhrania: základ EN/SK/CZ ako obsah VAULTU ───────────────────────
@@ -105,6 +105,7 @@ export const SCROLL_CSS = `
 .zv-act[data-k="share"]{color:var(--zv-read);}
 .zv-act.is-on{opacity:1;filter:drop-shadow(0 0 6px currentColor) drop-shadow(0 0 2px currentColor);}
 .zv-act .zv-ic{margin-right:0;width:20px;height:20px;}
+.zv-n{font:500 ${PACK_TEXT.label}px ${FONT_UI};color:${AINUBIS.ink};min-width:1ch;}
 /* SILA DÔKAZU */
 .zv-sd{position:relative;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;flex:0 0 auto;
   border-radius:${PACK_R.field}px;font:700 ${PACK_TEXT.lead}px ${FONT_TITLE};cursor:help;
@@ -228,19 +229,23 @@ export function ScrollActions({ id, lang, onShare, onTalk }: {
   const u = scrollUI(lang);
   const saved = useSaved().includes(id);
   const talk = useTalk(id).length;
-  const [liked, setLiked] = useState(false);
+  const liked = useLiked().includes(id);
+  const likes = (liked ? 1 : 0);
+  const saves = (saved ? 1 : 0);
   const [sent, setSent] = useState(false);
   // ZAPNUTÁ AKCIA = VYPLNENÁ IKONKA (Matej 3. 10.: „vyplnia sa farbou, nie len obrys, ale aj vnútro —
   // pri komentoch len pravá bublina"). Labka = plná z kitu, hviezdička a šípka = vyplnený vonkajší
   // obrys tej istej kresby, bubliny = pravá vyplnená. Zdieľanie nie je prepínač — svieti chvíľu po kliku.
+  // POČTY pri páči sa a uložení (Matej 3. 10.: „počty musia byť pri likeoch a uloženiach"). ⚠️ DEV: zatiaľ
+  // len môj klik (0/1) — číslo ostatných príde s tabuľkou VAULTU, nič sa tu nevymýšľa.
   return (
     <div className="zv-acts">
-      <button type="button" data-k="like" className={`zv-act${liked ? ' is-on' : ''}`} onClick={() => setLiked(v => !v)} aria-label={u.like}>
-        {liked ? <Ic ic="paw-full" /> : <HandPaw size={20} />}
+      <button type="button" data-k="like" className={`zv-act${liked ? ' is-on' : ''}`} onClick={() => toggleLiked(id)} aria-label={u.like}>
+        {liked ? <Ic ic="paw-full" /> : <HandPaw size={20} />}<span className="zv-n">{likes}</span>
       </button>
-      <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={() => toggleSaved(id)} aria-label={u.save}><HandStar size={20} filled={saved} /></button>
+      <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={() => toggleSaved(id)} aria-label={u.save}><HandStar size={20} filled={saved} /><span className="zv-n">{saves}</span></button>
       <button type="button" data-k="talk" className={`zv-act${talk > 0 ? ' is-on' : ''}`} onClick={onTalk} aria-label={u.talk}>
-        <Ic ic={talk > 0 ? 'chat-right-full' : 'chat'} />{talk > 0 && talk}
+        <Ic ic={talk > 0 ? 'chat-right-full' : 'chat'} /><span className="zv-n">{talk}</span>
       </button>
       <button type="button" data-k="share" className={`zv-act${sent ? ' is-on' : ''}`}
         onClick={() => { onShare(); setSent(true); window.setTimeout(() => setSent(false), 1500); }} aria-label={u.share}>
