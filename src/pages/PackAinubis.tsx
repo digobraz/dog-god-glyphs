@@ -542,7 +542,7 @@ export default function PackAinubis() {
   const zid = (useParams()['*'] || '').match(/^zvitok\/([^/]+)/)?.[1];
   const [scrollFocus, setScrollFocus] = useState<string | null>(null);
   const [zvToast, setZvToast] = useState('');
-  const openScroll = (id: string, focus?: 'pod' | 'src') => {
+  const openScroll = (id: string, focus?: 'pod' | 'src' | 'talk') => {
     setScrollFocus(focus || null);
     navigate(`/pack/ainubis/zvitok/${id}`);
   };

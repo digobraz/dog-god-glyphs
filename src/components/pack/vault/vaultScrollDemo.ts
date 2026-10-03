@@ -86,3 +86,20 @@ export function toggleSaved(id: string) {
 export function useSaved(): string[] {
   return useSyncExternalStore((f) => { ssubs.add(f); return () => { ssubs.delete(f); }; }, () => saved, () => saved);
 }
+
+// ── diskusia (komentáre k celému zvitku, „ako fórum") — DEV len v prehliadači ─
+const TKEY = 'vault-demo-talk';
+type Talk = { text: string; at: number };
+let talk: Record<string, Talk[]> = (() => {
+  try { return JSON.parse(localStorage.getItem(TKEY) || '{}') as Record<string, Talk[]>; } catch { return {}; }
+})();
+const tsubs = new Set<() => void>();
+const NONE: Talk[] = [];
+export function addTalk(id: string, text: string) {
+  talk = { ...talk, [id]: [...(talk[id] || []), { text, at: Date.now() }] };
+  try { localStorage.setItem(TKEY, JSON.stringify(talk)); } catch { /* súkromné okno */ }
+  tsubs.forEach((f) => f());
+}
+export function useTalk(id: string): Talk[] {
+  return useSyncExternalStore((f) => { tsubs.add(f); return () => { tsubs.delete(f); }; }, () => talk[id] || NONE, () => talk[id] || NONE);
+}
