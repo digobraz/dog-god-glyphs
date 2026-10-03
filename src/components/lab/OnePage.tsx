@@ -1189,7 +1189,7 @@ const DGX = {
      Mobilne (`fpM`/`nsM`/`rlsM`) ostavaju — pokyn padol nad PC obrazovkou,
      rovnako ako pri `gwK`. `sgap` (medzera fotka↔text) sa nedeli: nema
      mobilny variant, takze by zmena zasiahla aj telefon, a ide o 2 px. */
-  sig: 66, sigD: 4, fp: 52.0, fpM: 56, ns: 19.1, nsM: 21, sgap: 14, rls: 8.4, rlsM: 11,
+  sig: 66, sigD: 4, fp: 52.0, fpM: 56, ns: 19.1, nsM: 21, sgap: 14, rls: 11, rlsM: 11,
 } as const;
 
 /** Dráha WE NEED YOU, ktorú oblúk naozaj má — 0, kým je obraz odložený (WNY_ON). */
@@ -1948,8 +1948,11 @@ export default function OnePage() {
     // ktorý po ňom počíta — dvojkolová `layoutKoty` (viď `fitKotaScale`).
     let kotaScale = 1;
     const layoutKoty = (narrow: boolean, vertical: boolean) => {
-      const px = (narrow ? DGX.kPxM : DGX.kPx) * kotaScale;
-      const px2 = (narrow ? DGX.kPx2M : DGX.kPx2) * kotaScale;
+      // Popis kóty nikdy pod 11 px (najmenšie písmo filmu, 3. 10. 2026) — na
+      // nízkom okne (1477 × 724) ho kotaScale stláčal na 6,7 px. Miesto potom
+      // uvoľní glyf (fitGw), nie písmo.
+      const px = Math.max(11, (narrow ? DGX.kPxM : DGX.kPx) * kotaScale);
+      const px2 = Math.max(11, (narrow ? DGX.kPx2M : DGX.kPx2) * kotaScale);
       const npx = (narrow ? DGX.kNamePxM : DGX.kNamePx) * kotaScale;
       const scs = getComputedStyle(sec), sr = sec.getBoundingClientRect();
       const limX = { left: sr.left + parseFloat(scs.paddingLeft), right: sr.right - parseFloat(scs.paddingRight) };
@@ -5395,7 +5398,7 @@ export default function OnePage() {
         .op-root #op-vision .vhero-d { color: ${LAB.inkBody}; }
         .op-root #op-vision .vhero-chip {
           background: ${LAPIS.fill}; color: ${LAPIS.deep}; border: 1px solid rgba(22,48,122,.28);
-          box-shadow: none; right: 0; top: 16px; font-size: 10px;
+          box-shadow: none; right: 0; top: 16px; font-size: 11px;
         }
         .op-root #op-vision .vhero-h2,
         .op-root #op-vision .vhero-item {
@@ -7335,6 +7338,11 @@ export default function OnePage() {
         /* CTA knihy na papyruse = LAPIS (brand: na bledom je hlavné CTA lapis), druhé
            tlačidlo ako tichá voľba v zlatom ráme. Dovtedy obe zlato-oranžové GOLD_BTN,
            ktoré na papyrus nepatrí (3. 10. 2026). */
+        /* Najmenšie písmo 11 px aj na PC (3. 10. 2026) — mobil to má nižšie. */
+        .op-root .dgx-signum { font-size: max(0.40em, 11px); }
+        .op-root .op-nxt-goal em { font-size: 11px; }
+        .op-root .op-quo .tst-credits > summary,
+        .op-root .op-quo .tst-credits > p { font-size: 11px; }
         .op-root .op-book .cb-cta-btn {
           background: ${LAPIS.grad}; color: ${LAPIS.ink};
           border: 1px solid ${LAPIS.deep}; box-shadow: ${LAPIS_BTN_SHADOW};
