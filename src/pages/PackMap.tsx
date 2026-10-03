@@ -1992,7 +1992,6 @@ ${TRAIL_LINE_CSS}
      to už neplatí, lebo ubudlo slovo aj celý riadok pod ním). */
   .trp-mheader-status .trp-level{display:none;}
   .trp-mheader-status .trp-mstats2{display:flex;}
-  .trp-mtriplist{flex:0 0 auto;}
   /* Riadok 2 (Matej 2026-07-27, prestavané): predtým tu boli 3 natívne selecty
      (Activities/Difficulty/Crowd) v horizontálnom scrolli — a country, región a Tagy sa na
      mobile NEZOBRAZOVALI VÔBEC (žijú v .trp-sidebar / .trp-topbar, oboje display:none).
@@ -6440,19 +6439,9 @@ export default function PackMap() {
         <div className="trp-mheader-status">
           {/* tá istá identita ako na PC — `renderIdentity()` vyššie */}
           {renderIdentity()}
-          {/* TRIPLIST sa 2026-08-28 VRACIA do hlavičky (Matej: „daj tam triplist a hotovo").
-              Miesto naň vzniklo tým, že odišlo slovo PÚTNIK aj jednoriadkový podriadok pod ním.
-              Zo zoznamu (`.trp-mlist-head`) zmizol — dva vstupy do tej istej routy na jednej
-              obrazovke by boli duplicita, nie dostupnosť. */}
-          <button
-            type="button"
-            className="trp-stat-pill trp-stat-pill--icon trp-mtriplist trp-triplist-btn"
-            onClick={() => navigate('/pack/map/triplist')}
-            title={t('pack.map.openTriplist')}
-            aria-label={t('pack.map.openTriplist')}
-          >
-            <img src={ICON('clipboard')} alt="" />
-          </button>
+          {/* ⛔ TRIPLIST Z MOBILNEJ HLAVIČKY ODIŠIEL 3. 10. 2026 (Matej: *„tlačidlo triplist zrušme
+              s hlavičky"*; 28. 8. ho tu chcel). Ťuk na fotku vľavo otvorí ŠTATISTIKY a TRIPLIST
+              je vedľa ako záložka — jeden ťuk navyše, hlavička voľnejšia. PC pilulka ostáva. */}
           {/* ⚠️ Mobilná hlavička si musí pýtať šat ROVNAKO ako PC (opravené 2026-09-02).
               Do dneška tu stálo holé `renderHeaderRight()`, teda východisková hodnota
               `dark = true` — lenže tá pochádza z čias, keď bol mobilný chrome mapy tmavý.
