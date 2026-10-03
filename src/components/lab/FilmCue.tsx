@@ -93,7 +93,13 @@ export const FILM_CUE_CSS = `
   /* Na homepage (guľa) o 50 % väčšie — Matej 27. 9. 2026. 28. 9.: *„šípky
      dolu zväčši o 20 % iba na tejto obrazovke, nemôžu byť priesvitné a posuň
      ich o 20px dolu"* ⇒ 1,5 × 1,2 = 1,8, krytie 1 (blik nesie len žiara; --dim ide inline z komponentu). */
-  .op-cue.is-big { transform: translateX(-50%) translateY(20px) scale(1.8); }
+  /* 3. 10. 2026 — na úvode PRAVÝ DOLNÝ ROH (Matej: *„šípky ktoré ukazujú na smer
+     dolu daj na pravý dolný roh (iba na úvodnej obrazovke) inak budú v strede"*).
+     Stred dole patrí spodnej lište; šípka HORE na úvode nie je, roh je voľný. */
+  .op-cue.is-big {
+    left: auto; right: 24px; bottom: 24px;
+    transform: scale(1.8); transform-origin: 100% 100%;
+  }
   /* ČLENSTVO — šípky VŽDY V STREDE (Matej 28. 9. 2026: *„táto obrazovka má
      šípky dolu na ľavej strane… vždy musia byť v strede! na každej obrazovke"*).
      Ľavý stĺpec (27. 9.) zanikol; ostáva len nižšia poloha nad telefónmi.
@@ -116,6 +122,9 @@ export const FILM_CUE_CSS = `
     22% { opacity: 1; filter: drop-shadow(0 0 var(--glow) rgba(90,130,230,.55)); }
     44% { opacity: var(--dim); }
   }
-  @media (max-width: 768px) { .op-cue { bottom: clamp(16px, 8vh, 72px); } }
+  @media (max-width: 768px) {
+    .op-cue { bottom: clamp(16px, 8vh, 72px); }
+    .op-cue.is-big { right: 16px; bottom: 24px; transform: scale(1.4); }
+  }
   @media (prefers-reduced-motion: reduce) { .op-cue-c { animation: none; opacity: .8; } }
 `;

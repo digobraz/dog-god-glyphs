@@ -65,7 +65,6 @@ import FilmGate, { GATE_REST, GATE_TOUCH, GATE_RIDE_MS, GATE_FADE } from './Film
 import FilmCue, { FilmTop, FILM_CUE_CSS } from './FilmCue';
 import FilmApps, { APPS_STOPS, APPS_OUT_VH, APPS_EXIT_VH } from './FilmApps';
 import FilmFinale, { FIN_STOPS, FIN_OVER_VH } from './FilmFinale';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 // ── OBRAZY FILMU SÚ NA JEDNOM MIESTE ────────────────────────────────────────
 // Matejov zoznam z 2. 9. 2026, doslova: *„1-HOME · 2 COW vs DOG · 3 Religion ·
@@ -1431,7 +1430,6 @@ const ALBA_SAME = false as boolean;
 const ALBA_CNT = false as boolean;
 
 export default function OnePage() {
-  const isMobile = useIsMobile();
   const t = useT();
   /** 🔴 DGX (dážď + dekodér) STAVIA VANILLA DOM V MOUNT-ONCE EFEKTE, takže by
    *  `t` z prvého renderu držal navždy. Ref nesie AKTUÁLNU funkciu; prepísanie
@@ -4558,25 +4556,10 @@ export default function OnePage() {
         /* 27. 9. 2026: výzva SKROLUJ ĎALEJ na tmavej sále ZRUŠENÁ — Matej: *„tu
            vymaž to scroluj ďalej… bude stačiť naša brand šípka"* (.op-cue). */
         .op-keep { display: none !important; }
-        /* ── LIŠTA STENY V HORNOM NAVE (27. 9. 2026) ─────────────────────
-           Z plávajúcej zlatej lišty ostanú len dve tlačidlá v rade s loginom.
-           Terč (center) a mobilný jazyk tu nie sú — jazyk má nav vlastný. */
-        .main-nav .nav-tools { display: contents; }
-        .main-nav .nav-tools .gods-dock-portal { display: flex; }
-        .main-nav .nav-tools .gods-bottom-bar {
-          position: static; transform: none; padding: 0; gap: 8px;
-          background: none; border: 0; box-shadow: none; border-radius: 0;
-        }
-        .main-nav .nav-tools .gods-bottom-bar::before,
-        .main-nav .nav-tools .gods-bottom-bar::after { display: none; }
-        .main-nav .nav-tools .center-btn-mobile,
-        .main-nav .nav-tools .lang-btn-mobile,
-        .main-nav .nav-tools .gbb-cta { display: none !important; }
-        .main-nav .nav-tools .filter-btn { width: 40px; height: 40px; }
-        @media (max-width: 768px) {
-          .main-nav .nav-tools .filter-btn { width: 32px; height: 32px; }
-          .main-nav .nav-tools .gods-bottom-bar { gap: 6px; }
-        }
+        /* LIŠTA STENY V HORNOM NAVE (27. 9. 2026) ZANIKLA 3. 10. 2026 — Matej:
+           *„vráť spodný nav na PC pri prvej sekcii a pri scrole na druhú zmizne…
+           tlačítka z headru zmiznú a zostanú tam opäť iba login a jazyky"*.
+           Lišta je znova dole na každej šírke a hasne s prvou obrazovkou (DOCK_OUT). */
         .dgx-rulerow { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
         /* INFO CHIP filmu — tie isté hodnoty ako .codex-chip pri krave a psovi
            (ReligionLab), Matej 27. 9. 2026: *„tlačidlo PRÍKLAD urob v štýle
@@ -7451,9 +7434,6 @@ export default function OnePage() {
               PC dropdown zavesený pod pilulku. Jedna inštancia by musela meniť
               variant podľa `matchMedia`, teda držať šírku okna v stave. */}
           <span className="main-nav-right">
-            {/* KOMPAS + MRIEŽKA zo zrušenej spodnej lišty (27. 9. 2026) — poradie
-                kompas · mriežka · login · jazyk. Plní ich GodsGridLab portálom. */}
-            <span className="nav-tools" id="op-nav-tools" />
             <span className="nav-lang-mobile"><LanguagePicker variant="flow" /></span>
             <a href="/login" className="nav-login" aria-label={t('nav.login')}>
               <HandHouseHeart size={20} />
@@ -7502,10 +7482,10 @@ export default function OnePage() {
               úspora batérie: tá slučka číta 15× za sekundu dlaždicu pod kurzorom
               cez elementFromPoint nad ~1000 prvkami v 3D — a keďže je guľa
               prilepená na CELÝ film, bežala by pri každom scrolle až po pätu. */}
-          {/* 🔴 SPODNÁ LIŠTA OSTÁVA NA MOBILE (Matej 28. 9. 2026: *„spodný nav
-              nechaj na mobiloch — včera sme ho dali preč pri ladení PC"*).
-              Hore do navu ide kompas + mriežka len od 768 px. */}
-          <GodsGridLab embedded portalDock dockHostId={isMobile ? undefined : 'op-nav-tools'} paused={past} onWallChange={setWallOpen} />
+          {/* 🔴 SPODNÁ LIŠTA NA KAŽDEJ ŠÍRKE (Matej 28. 9. pre mobil, 3. 10. 2026
+              aj pre PC: *„vráť spodný nav na PC pri prvej sekcii a pri scrole
+              na druhú zmizne"*). Do horného navu už nejde nič. */}
+          <GodsGridLab embedded portalDock paused={past} onWallChange={setWallOpen} />
         </div>
 
         <div className="op-film">
