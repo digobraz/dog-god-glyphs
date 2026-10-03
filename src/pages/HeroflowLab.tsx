@@ -130,6 +130,8 @@ const GROUPS: Group[] = [
       // nezaplatený, aby som tam vedel zmeniť fotku"*). Vlastný kľúč fotky
       // `stay-done`, nie `stay` — popup a ďakovačka sa menia nezávisle.
       // Od 26. 9. večer je to STAV zadržania (vymení sa dolná doska), nie stránka.
+      // 3. 10. 2026: POZRIEŤ STENU mieri na psa hosťa (`/?dog=<id>`), po verdikte
+      // AINUBISA mu ide mail (`send-guest-mail`), PRIDAŤ SA preklopí toho istého psa.
       { name: '10b · Hotovo nezaplatený (stav zadržania)', path: '/checkout?stay=done', state: 'done' },
       // FINÁLE PO PLATBE (Matej 26. 9. 2026 večer, zadanie
       // `plany/zadanie-heroflow-po-platbe-2026-09-26/`): jedna obrazovka s dvoma
