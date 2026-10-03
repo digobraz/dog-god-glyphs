@@ -30,12 +30,9 @@
 //    TÚ ISTÚ triedu .codex-hektor, takže LOCKED geometria (scale 1.08, origin
 //    bottom right, mobilná vetva 1.352) platí naň bez prepočtu.
 // ════════════════════════════════════════════════════════════════════════════
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useCallback, useState } from 'react';
+import HektorBook from './HektorBook';
 import { useT } from '@/i18n/LanguageContext';
-import { hekthorAgeYears } from '@/lib/hektor';
-import { pluralKey } from '@/lib/plural';
-import { LAB } from '@/lib/labTheme';
 
 /** Fotka, ktorou sa maskuje lesk. Musí to byť TÁ ISTÁ, čo kreslí ReligionLab. */
 const HEKTOR_IMG = '/images/codex3-hektor-v1.webp';
@@ -67,17 +64,6 @@ const GRAD_ID = 'codex-spot-grad';
 
 /** Koľko miesta okolo bodky je citlivé na klik (v jednotkách viewBoxu). */
 const SPOT_HIT_R = 100;
-
-/** Bublina: šírka a odsadenie od bodky v pixeloch obrazovky. */
-const BUBBLE_W = 300;
-const BUBBLE_GAP = 18;
-
-/**
- * Hranica, pod ktorou bublina stojí v strede obrazovky. Zhodná s breakpointom
- * rozdelenia obrazovky v OnePage (min-width: 768px) — pod ním zvieratá nestoja
- * vedľa textu, ale pod ním, a pri bodke už nie je miesto na nič.
- */
-const MOBILE_MAX = 768;
 
 export const HEKTOR_SPOT_CSS = `
 /* Obal má rovnaký rám ako .codex-bleed (v ňom bývajú obe zvieratá), ale leží
@@ -195,52 +181,11 @@ export const HEKTOR_SPOT_CSS = `
 .codex-spot-hit:focus { outline: none; }
 .codex-spot-hit:focus-visible + .codex-spot-ring { opacity: 0.85; }
 
-/* Bublina stojí na obrazovke (position: fixed), nie vo viewBoxe fotky —
-   text vo viewBoxe by sa škáloval spolu s psom a pri rozdelení narástol. */
-.codex-spot-bubble {
-  position: fixed;
-  z-index: 60;
-  width: ${BUBBLE_W}px;
-  max-width: calc(100vw - 32px);
-  padding: 14px 16px 15px;
-  border-radius: 14px;
-  border: 1px solid ${LAB.edge};
-  background: linear-gradient(160deg, #FDF6E6 0%, #F6E8CB 100%);
-  box-shadow: ${LAB.shadow};
-  color: ${LAB.inkBody};
-  font-family: 'Space Grotesk', system-ui, sans-serif;
-  font-size: 13px;
-  line-height: 1.5;
-  animation: codexSpotIn 220ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-@keyframes codexSpotIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.codex-spot-bubble--center {
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  animation: codexSpotInCenter 220ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-@keyframes codexSpotInCenter {
-  from { opacity: 0; transform: translate(-50%, calc(-50% + 6px)); }
-  to   { opacity: 1; transform: translate(-50%, -50%); }
-}
-.codex-spot-claim {
-  font-family: 'Cinzel', serif;
-  font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: ${LAB.goldInk};
-  margin: 0 0 7px;
-}
-.codex-spot-body { margin: 0; }
-.codex-spot-age { margin: 7px 0 0; color: ${LAB.inkSoft}; }
 
 @media (prefers-reduced-motion: reduce) {
   .codex-shine::before { display: none; }
   .codex-spot-pulse { animation: none; opacity: 0.9; }
   .codex-spot-ping, .codex-spot-flare { display: none; }
-  .codex-spot-bubble { animation: none; }
 }
 `;
 
@@ -251,44 +196,12 @@ export const HEKTOR_SPOT_CSS = `
  */
 export default function HektorSpot() {
   const t = useT();
-  const hitRef = useRef<SVGCircleElement | null>(null);
-  const [at, setAt] = useState<{ left: number; top: number } | 'center' | null>(null);
+  // Matej 3. 10. 2026: bublina (1–3 vety) nahradená celostránkovou KNIHOU
+  // s príbehom Hektora — `HektorBook.tsx`. Bodka, lesk aj záblesk ostávajú.
+  const [bookOpen, setBookOpen] = useState(false);
+  const open = useCallback(() => setBookOpen(true), []);
+  const close = useCallback(() => setBookOpen(false), []);
 
-  const close = useCallback(() => setAt(null), []);
-
-  const open = useCallback(() => {
-    const r = hitRef.current?.getBoundingClientRect();
-    if (!r) return;
-    // 🔴 NA MOBILE STOJÍ BUBLINA V STREDE OBRAZOVKY, NIE PRI BODKE. Zo psa je
-    // tam pri rozdelení len pruh pri dolnej hrane, takže bublina prilepená
-    // k bodke sadne rovno na hlavné CTA — odskúšané pri 390 px. Stred je
-    // zároveň vzor, ktorý Matej vybral pre popup psa na guli.
-    if (window.innerWidth < MOBILE_MAX) { setAt('center'); return; }
-    // Jednorazové odčítanie pri KLIKU, nie meranie počas choreografie: bublina
-    // sa nepodieľa na layoute psa, takže tu nevzniká slučka „nastav a zmeraj".
-    const cx = r.left + r.width / 2;
-    const cy = r.top + r.height / 2;
-    const left = Math.max(16, Math.min(cx - BUBBLE_W - BUBBLE_GAP, window.innerWidth - BUBBLE_W - 16));
-    const top = Math.max(16, Math.min(cy - 40, window.innerHeight - 190));
-    setAt({ left, top });
-  }, []);
-
-  // Film sa hýbe, bublina stojí — pri scrolle by sa od psa odlepila, takže sa
-  // zavrie. Je to zároveň cesta von bez krížika (ako popup psa na guli).
-  useEffect(() => {
-    if (!at) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
-    window.addEventListener('scroll', close, { passive: true });
-    window.addEventListener('resize', close);
-    window.addEventListener('keydown', onKey);
-    return () => {
-      window.removeEventListener('scroll', close);
-      window.removeEventListener('resize', close);
-      window.removeEventListener('keydown', onKey);
-    };
-  }, [at, close]);
-
-  const age = hekthorAgeYears();
   const hint = t('religion.spot.hint');
 
   return (
@@ -331,18 +244,17 @@ export default function HektorSpot() {
                   stroke="rgba(255,240,205,0.7)" strokeWidth={2.5 * SPOT_K} />
           <circle className="codex-spot-flare" r={34 * SPOT_K} fill={`url(#${GRAD_ID})`} />
           <circle
-            ref={hitRef}
             className="codex-spot-hit"
             r={SPOT_HIT_R}
             fill="transparent"
             role="button"
             tabIndex={0}
             aria-label={hint}
-            onClick={() => { if (at) close(); else open(); }}
+            onClick={open}
             onKeyDown={(e) => {
               if (e.key !== 'Enter' && e.key !== ' ') return;
               e.preventDefault();
-              if (at) close(); else open();
+              open();
             }}
           >
             <title>{hint}</title>
@@ -351,23 +263,7 @@ export default function HektorSpot() {
         </g>
       </svg>
 
-      {/* BUBLINA IDE PORTÁLOM DO <body>, nie do bleedu. Bleed má z-index
-          a pointer-events: none, takže vnútri by bublina (a) ležala v cudzom
-          stohovacom kontexte pod filmom a (b) zdedila nepriepustnosť pre myš.
-          Rovnaký dôvod, pre ktorý ide portálom aj spodná lišta v OnePage. */}
-      {at && createPortal(
-        <div
-          className={`codex-spot-bubble${at === 'center' ? ' codex-spot-bubble--center' : ''}`}
-          style={at === 'center' ? undefined : { left: at.left, top: at.top }}
-          role="dialog"
-          aria-label={hint}
-        >
-          <p className="codex-spot-claim">{hint}</p>
-          <p className="codex-spot-body">{t('religion.spot.body')}</p>
-          <p className="codex-spot-age">{t(`religion.spot.age${pluralKey(age)}`, { n: age })}</p>
-        </div>,
-        document.body,
-      )}
+      {bookOpen && <HektorBook onClose={close} />}
     </>
   );
 }

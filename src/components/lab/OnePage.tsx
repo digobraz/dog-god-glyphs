@@ -8133,7 +8133,13 @@ export default function OnePage() {
           <button type="button" className="op-storyclose" onClick={() => setBookOpen(false)} aria-label={t('nav.aria.close')}>
             {t('onepage.dogma.back')}
           </button>
-          <div className="lsh-scroll op-bookmodal">
+          {/* Klik MIMO knihy = zavrieť (Matej 3. 10. 2026: *„nedá sa kliknúť
+              mimo, aby sa to vyplo"*). Plátno je celé okno, takže „mimo" je
+              plocha tohto obalu okolo knihy — target === currentTarget. */}
+          <div
+            className="lsh-scroll op-bookmodal"
+            onClick={(e) => { if (e.target === e.currentTarget) setBookOpen(false); }}
+          >
             <ConstitutionBook openOnMount />
           </div>
         </div>
