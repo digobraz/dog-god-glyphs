@@ -32,6 +32,7 @@ import { track } from '@/lib/analytics';
 import { gridTileUrl } from '@/services/cloudinaryService';
 import { Seo } from '@/components/Seo';
 import { DogPlanetLab, type PlanetDog } from './DogPlanetLab';
+import { DogCardBody, DOG_CARD_CSS, type DogCardData } from './DogCard';
 import { PORTAL_CSS, PORTAL_REDUCE_MOTION, buildPortal, createSparks } from './dogPortal';
 import { openPhotoConfirm } from './photoConfirm';
 import { intakePhoto, finishPhotoChoice } from '@/lib/photoIntake';
@@ -365,6 +366,33 @@ const HEKTHOR_FILL: RealDog = {
   birth_date: null,
 };
 
+// Dáta pre kartu psa na stene (3. 10. 2026) — bledá karta z DogCard.tsx, tá istá
+// ako na planéte. Rebrík (člen / hosť / čaká na AINUBISA) je ten istý ako na
+// dlaždici v `makeRealDogCard`; Hektor má odkaz v preklade, nie v DB.
+function toCardData(dog: RealDog, t: (k: string) => string): DogCardData {
+  const tier = dog.wall_tier;
+  const member = !tier || tier === 'member';
+  const pending = !!dog.wall_pending;
+  const hektor = member && dog.pack_number === 1;
+  const guestLine = tier === 'guest' && !dog.owner_message
+    ? t(`wall.guestLine.${1 + Math.floor(Math.random() * GUEST_LINES)}`)
+    : '';
+  return {
+    // ⚠️ Verejný feed (`get-grid-dogs`) `id` psa NEVRACIA — kľúč je číslo člena
+    //    alebo id hosťa. S `dog.id` mali všetci psi ten istý kľúč `undefined`.
+    key: hektor ? 'hektor' : member ? `n:${dog.pack_number}` : `g:${dog.wall_id}`,
+    name: (dog.dog_name || 'DOGYPTIAN').toUpperCase(),
+    n: member ? dog.pack_number : null,
+    wallId: member ? null : (dog.wall_id || null),
+    photo: planetDetailUrl(dog.cloudinary_main_url),
+    heroglyph: safeUrl(dog.heroglyph_png_url || ''),
+    message: pending ? '' : (dog.owner_message || guestLine || (hektor ? t('wall.hektor.msg') : '')),
+    birthDate: dog.birth_date || null,
+    guest: !member,
+    status: !tier ? '' : pending ? t('wall.status.pending') : member ? '' : t(`wall.status.${tier}`),
+  };
+}
+
 const NEIGHBORS8: ReadonlyArray<[number, number]> = [
   [1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1],
 ];
@@ -484,6 +512,23 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     return !q.get('dog') && !q.get('focus');
   });
   const [planetDogs, setPlanetDogs] = useState<PlanetDog[]>([]);
+  // ── KARTA PSA NA STENE (Matej 3. 10. 2026: „s návrhmi súhlasím") ──────────
+  // Klik na psa už NEOTVÁRA tmavý závoj vnútri dlaždice (orezal číslo, text aj
+  // DOG PAGE a zakryl fotku). Otvorí bledú kartu z DogCard.tsx — tú istú ako
+  // na planéte: na PC bokom vpravo, na mobile šuplík zdola. Dlaždica ostáva
+  // viditeľná s lapisovým prstencom (`.is-picked`).
+  const [wallPick, setWallPick] = useState<DogCardData | null>(null);
+  const wallPickRef = useRef<DogCardData | null>(null);
+  wallPickRef.current = wallPick;
+  /** Dáta karty na DOM prvku dlaždice — stena je vanilla DOM, karta React. */
+  const cardDataRef = useRef(new WeakMap<HTMLElement, DogCardData>());
+  const pickPanelRef = useRef<HTMLDivElement>(null);
+  /** Bunka otvoreného psa — kam stena dôjde, keď mu karta zakryje dlaždicu. */
+  const pickCellRef = useRef<{ col: number; row: number } | null>(null);
+  const showCellRef = useRef<((col: number, row: number, panel: { sheet: boolean; left: number; top: number }) => void) | null>(null);
+  const stepPickRef = useRef<((dir: 1 | -1) => void) | null>(null);
+  const focusOpenedRef = useRef(false);
+  const sheetTouchRef = useRef<{ x: number; y: number } | null>(null);
   // Žiadosť z kalkulačky pre planétu. `seq` sa zvyšuje pri každom potvrdení, aby
   // sa dalo to isté číslo natukať dvakrát po sebe (viď prop `pick` v DogPlanetLab).
   const [planetPick, setPlanetPick] = useState<{ n: number; seq: number } | null>(null);
@@ -1022,6 +1067,20 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     let openCardEl: HTMLElement | null = null;
 
     function toggleCard(card: HTMLElement) {
+      // Pes s dátami (člen, hosť, Hektor) = bledá karta. Starý závoj ostáva len
+      // reveal karte po platbe — tá má vlastnú choreografiu.
+      const data = cardDataRef.current.get(card);
+      if (data) {
+        if (openCardEl) { openCardEl.classList.remove('is-open'); openCardEl = null; }
+        if (wallPickRef.current?.key === data.key) { setWallPick(null); return; }
+        pickCellRef.current = {
+          col: Math.round(parseFloat(card.style.left) / GX),
+          row: Math.round(parseFloat(card.style.top) / GY),
+        };
+        setWallPick(data);
+        track('wall_dog_click', data.n != null ? { pack_number: data.n } : { guest: true });
+        return;
+      }
       const opening = !card.classList.contains('is-open');
       if (openCardEl && openCardEl !== card) openCardEl.classList.remove('is-open');
       if (opening) {
@@ -1142,15 +1201,6 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       el.style.top  = (-1 * GY) + 'px';
       el.innerHTML = `
         <div class="card-img" style="background-image:url('/images/hektor-grid.webp');background-position:50% 35%"></div>
-        <div class="card-open-overlay">
-          <div class="card-open-titlerow">
-            <span class="card-open-rank">#1</span>
-            <span class="card-open-name">HEKTHOR</span>
-          </div>
-          <img class="card-open-heroglyph" src="/images/hekthor-heroglyph.webp" alt="HEKTHOR heroglyph" draggable="false">
-          <div class="card-open-msg">${tRef.current('wall.hektor.msg')}</div>
-          <a class="card-open-dogpage-link" href="${dogPagePath('Hekthor', 1)}">${tRef.current('wall.dogPage')}</a>
-        </div>
         <div class="card-rank-top">#1</div>
         <img class="card-flag" src="${flagUrl('sk')}" alt="Slovakia" title="Slovakia" loading="lazy" draggable="false">
         <div class="hektor-heroglyph-wrap">
@@ -1160,6 +1210,8 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           <div class="card-label hektor-label">HEKTHOR</div>
         </div>
       `;
+      cardDataRef.current.set(el, toCardData(HEKTHOR_FILL, tRef.current));
+      if (wallPickRef.current?.key === 'hektor') el.classList.add('is-picked');
       return el;
     }
 
@@ -1266,14 +1318,6 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
         : '';
       el.innerHTML = `
         <div class="card-img" style="background-image:url('${tileSrc}');background-position:50% 30%"></div>
-        <div class="card-open-overlay">
-          ${member ? `<div class="card-open-rank">#${packNum}</div>` : ''}
-          <div class="card-open-name">${safeName}</div>
-          ${overlayHeroSrc ? `<img class="card-open-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" draggable="false">` : ''}
-          ${openMsg ? `<div class="card-open-msg">${esc(openMsg)}</div>` : ''}
-          ${status ? `<div class="card-open-status">${esc(status)}</div>` : ''}
-          ${member && dogPageHref ? `<a class="card-open-dogpage-link" href="${dogPageHref}">${tRef.current('wall.dogPage')}</a>` : ''}
-        </div>
         ${member ? `<div class="card-rank-top">#${packNum}</div>` : ''}
         ${cc ? `<img class="card-flag" src="${flagUrl(cc)}" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">` : ''}
         ${overlayHeroSrc ? `
@@ -1284,6 +1328,9 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           <div class="card-label">${safeName}</div>
         </div>
       `;
+      const data = toCardData(dog, tRef.current);
+      cardDataRef.current.set(el, data);
+      if (!fill && wallPickRef.current?.key === data.key) el.classList.add('is-picked');
       return el;
     }
 
@@ -1559,6 +1606,8 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           const card = target.closest('.dog-card:not(.center-hero):not(.enroll-card)') as HTMLElement | null;
           if (card) { toggleCard(card); return; }
         }
+        // Klik do prázdna (medzera, nie pes) zavrie kartu — krížik karta nemá.
+        if (wallPickRef.current) setWallPick(null);
         return; // don't start inertia on click
       }
       raf = requestAnimationFrame(inertia);
@@ -1589,6 +1638,9 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       scheduleRender();
     };
     const onTouchEnd = (e: TouchEvent) => {
+      // Dotyk, ktorý nezačal na stene (karta psa je portál v <body>), sa stenou
+      // nespracúva — inak by zastaraný štart poslal stenu zotrvačnosťou preč.
+      if (!dragging) return;
       dragging = false;
       app!.classList.remove('is-dragging');
 
@@ -1620,6 +1672,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           const el = document.elementFromPoint(t.clientX, t.clientY);
           const card = (el as HTMLElement | null)?.closest?.('.dog-card:not(.center-hero):not(.enroll-card)') as HTMLElement | null;
           if (card) { toggleCard(card); return; }
+          if (wallPickRef.current) setWallPick(null);
           return;
         }
       }
@@ -1698,20 +1751,21 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     app.addEventListener('wheel', onWheel, { passive: false });
     window.addEventListener('resize', onResize);
 
+    function cellOfPack(n: number): { col: number; row: number } | null {
+      if (n < 1) return null;
+      // #1 = Hekthor, the founder card. Hardcoded at (0,-1), NOT in the spiral.
+      if (n === 1) return { col: 0, row: -1 };
+      // #2 = positions[0] (prvá špirálová pozícia) … #n → positions[n-2].
+      const positions = generatePackPositions(n + 5, enrollRef.current ? 1 : 0);
+      const idx = n - 2;
+      return idx >= 0 && idx < positions.length ? positions[idx] : null;
+    }
+
     function navigateTo(n: number) {
-      if (n < 1) return;
+      const cell = cellOfPack(n);
+      if (!cell) return;
       if (raf) cancelAnimationFrame(raf);
-      let col: number, row: number;
-      if (n === 1) {
-        // #1 = Hekthor, the founder card. Hardcoded at (0,-1), NOT in the spiral.
-        col = 0; row = -1;
-      } else {
-        // #2 = positions[0] (prvá špirálová pozícia) … #n → positions[n-2].
-        const positions = generatePackPositions(n + 5, enrollRef.current ? 1 : 0);
-        const idx = n - 2;
-        if (idx < 0 || idx >= positions.length) return;
-        ({ col, row } = positions[idx]);
-      }
+      const { col, row } = cell;
       const tx = vw / 2 - col * GX - W / 2;
       const ty = vh / 2 - row * GY - H / 2;
       const sx = ox, sy = oy;
@@ -1732,10 +1786,11 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
 
     // Prelet na bunku podľa súradníc — hosť nemá číslo, takže `navigateTo` naňho
     // nemieri (hľadanie podľa mena aj `/?dog=<id>`, 3. 10. 2026).
-    function panTo(col: number, row: number) {
+    // `cx`/`cy` = kam na obrazovke má bunka dôjsť (karta psa zaberá časť okna).
+    function panTo(col: number, row: number, cx = vw / 2, cy = vh / 2) {
       if (raf) cancelAnimationFrame(raf);
-      const tx = vw / 2 - col * GX - W / 2;
-      const ty = vh / 2 - row * GY - H / 2;
+      const tx = cx - col * GX - W / 2;
+      const ty = cy - row * GY - H / 2;
       const sx = ox, sy = oy;
       const t0 = performance.now();
       const dur = 800;
@@ -1752,6 +1807,37 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     }
     panToRef.current = panTo;
 
+    // Dlaždica otvoreného psa nesmie ostať pod kartou. Voľné miesto = okno bez
+    // horného navu a bez karty (PC: vľavo od nej · mobil: nad šuplíkom). Keď
+    // stred dlaždice leží mimo, stena dôjde do stredu voľného miesta.
+    function showCell(col: number, row: number, panel: { sheet: boolean; left: number; top: number }) {
+      const { sheet } = panel;
+      const L = 0, R = sheet ? vw : panel.left, T = 96, B = sheet ? panel.top : vh;
+      const x = ox + col * GX + W / 2, y = oy + row * GY + H / 2;
+      const m = W / 2; // celá dlaždica, nie len jej stred
+      if (x - m >= L && x + m <= R && y - m >= T && y + m <= B) return;
+      panTo(col, row, (L + R) / 2, (T + B) / 2);
+    }
+    showCellRef.current = showCell;
+
+    // Švih na karte (mobil) = ďalší / predošlý pes: Hektor, členovia podľa čísla,
+    // potom hostia v poradí steny. Stena ide s kartou.
+    stepPickRef.current = (dir) => {
+      const cur = wallPickRef.current;
+      if (!cur) return;
+      const placed = [...realDogMapRef.current.values()];
+      const members = placed.filter(d => !d.wall_tier || d.wall_tier === 'member')
+        .sort((a, b) => (a.pack_number ?? 0) - (b.pack_number ?? 0));
+      const rest = placed.filter(d => d.wall_tier && d.wall_tier !== 'member');
+      const list = [HEKTHOR_FILL, ...members, ...rest];
+      const keyOf = (d: RealDog) => toCardData(d, tRef.current).key;
+      const i = list.findIndex(d => keyOf(d) === cur.key);
+      const next = list[((i < 0 ? 0 : i) + dir + list.length) % list.length];
+      const data = toCardData(next, tRef.current);
+      pickCellRef.current = data.n != null ? cellOfPack(data.n) : (data.wallId ? guestCellRef.current.get(data.wallId) ?? null : null);
+      setWallPick(data);
+    };
+
     const centerBtnMobile = document.getElementById('gods-center-btn-mobile');
     centerBtnMobile?.addEventListener('click', onCenter);
 
@@ -1760,14 +1846,32 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     // Kamera skočí na hero (0,0)/reveal pozíciu pri initial render() vyššie — ak URL
     // nesie `?focus=N`, dožeň animovaný pan na cieľovú kartu (Hekthor #1 je fixný na
     // (0,-1), nič v navigateTo tú pozíciu nemení ani nerotuje).
+    // 🆕 3. 10. 2026 (hárok karty psa, bod 4): odkaz kartu psa po prelete rovno
+    // OTVORÍ. Predtým len centroval — tmavý závoj by fotku zakryl; bledá karta
+    // stojí vedľa dlaždice, takže fotka ostáva. Raz za návštevu (efekt sa
+    // prestavuje aj pri zmene režimu steny).
+    let focusTimer: number | null = null;
+    const openAfterPan = (dog: RealDog | undefined, cell: { col: number; row: number } | null) => {
+      if (!dog || !cell || focusOpenedRef.current) return;
+      focusTimer = window.setTimeout(() => {
+        focusOpenedRef.current = true;
+        pickCellRef.current = cell;
+        setWallPick(toCardData(dog, tRef.current));
+      }, 850);
+    };
     if (focusPackNumber !== null && !revealData.active) {
       navigateTo(focusPackNumber);
+      const dog = focusPackNumber === 1 ? HEKTHOR_FILL
+        : [...realDogMapRef.current.values()].find(d => d.pack_number === focusPackNumber && (!d.wall_tier || d.wall_tier === 'member'));
+      openAfterPan(dog, cellOfPack(focusPackNumber));
     }
-    // Hosť: nájdi jeho bunku podľa id a dojdi na ňu. Karta ostáva ZATVORENÁ —
-    // otvorená by fotku prekryla textom (Matej 3. 10. 2026, GodsGrid).
+    // Hosť: nájdi jeho bunku podľa id, dojdi na ňu a otvor kartu.
     if (focusDogId && focusPackNumber === null && !revealData.active) {
       const cell = guestCellRef.current.get(focusDogId);
-      if (cell) panTo(cell.col, cell.row);
+      if (cell) {
+        panTo(cell.col, cell.row);
+        openAfterPan([...realDogMapRef.current.values()].find(d => d.wall_id === focusDogId), cell);
+      }
     }
 
     return () => {
@@ -1780,12 +1884,63 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       app.removeEventListener('wheel', onWheel);
       window.removeEventListener('resize', onResize);
       centerBtnMobile?.removeEventListener('click', onCenter);
+      if (focusTimer !== null) window.clearTimeout(focusTimer);
       if (raf) cancelAnimationFrame(raf);
       if (renderRafId !== null) cancelAnimationFrame(renderRafId);
       cells.forEach(el => el.remove());
       cells.clear();
     };
   }, [navigate, dogsReady, focusPackNumber, focusDogId, revealData.active, enrollOn]);
+
+  // Prstenec na dlaždici otvoreného psa. Dlaždice vznikajú a zanikajú s posunom
+  // steny — nové si prstenec berú samy (`makeRealDogCard`), tu sa rieši zmena psa.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.querySelectorAll('.dog-card.is-picked').forEach(el => el.classList.remove('is-picked'));
+    if (!wallPick) return;
+    canvas.querySelectorAll<HTMLElement>('.dog-card:not(.dog-card--fill)').forEach(el => {
+      if (cardDataRef.current.get(el)?.key === wallPick.key) el.classList.add('is-picked');
+    });
+  }, [wallPick]);
+
+  // Karta sa vykreslila ⇒ až teraz vieme, koľko okna zabrala; dlaždica nesmie
+  // ostať pod ňou.
+  // ⚠️ Z ROZLOŽENIA (offsetWidth/Height), nie z getBoundingClientRect: karta
+  //    práve prilieta animáciou a jej obdĺžnik je ešte posunutý mimo okna —
+  //    meranie by tvrdilo, že nezakrýva nič (KYLIE ostala pod šuplíkom).
+  // ⚠️ A ZNOVA PRI KAŽDEJ ZMENE VEĽKOSTI: heroglyf a fotka sa dotiahnu až po
+  //    prvom meraní a karta narastie (šuplík 325 → 379 px) — prvé meranie by
+  //    tvrdilo, že dlaždica je voľná, hoci ju o chvíľu prekryje.
+  useEffect(() => {
+    const panel = pickPanelRef.current;
+    if (!wallPick || !panel) return;
+    const check = () => {
+      const cell = pickCellRef.current;
+      if (!cell) return;
+      const sheet = window.matchMedia('(max-width: 767px)').matches;
+      showCellRef.current?.(cell.col, cell.row, {
+        sheet,
+        left: sheet ? 0 : window.innerWidth - 24 - panel.offsetWidth,
+        top: sheet ? window.innerHeight - panel.offsetHeight : 0,
+      });
+    };
+    const id = requestAnimationFrame(check);
+    const ro = new ResizeObserver(check);
+    ro.observe(panel);
+    return () => { cancelAnimationFrame(id); ro.disconnect(); };
+  }, [wallPick]);
+
+  // Esc zavrie kartu — ten istý únik ako z karty na planéte.
+  useEffect(() => {
+    if (!wallPick) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setWallPick(null); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [wallPick]);
+
+  // Guľa má vlastnú kartu — otvorená karta steny by pod ňou visela.
+  useEffect(() => { if (planetOpen) setWallPick(null); }, [planetOpen]);
 
   // Zmena jazyka → NEBÚRAME grid (rebuild by zrušil scroll pozíciu, otvorenú kartu aj
   // virtualizované bunky — je to najťažší efekt v komponente). Jediné miesta kde grid
@@ -3860,6 +4015,36 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
 
         <DogPlanetLab dogs={planetDogs} open={planetOpen} paused={paused} onClose={() => setPlanetOpen(false)} pick={planetPick} />
 
+        {/* KARTA PSA NA STENE — portál do <body>: stena si na `app` chytá ťah
+            myšou aj prstom a karta nesmie byť jeho súčasťou (ťuk do karty by
+            sa rátal ako ťuk do steny). */}
+        {wallPick && createPortal(
+          <div className="dc-wall">
+            <style>{DOG_CARD_CSS + DC_WALL_CSS}</style>
+            <div className="dc-veil" aria-hidden="true" />
+            <div
+              ref={pickPanelRef}
+              key={wallPick.key}
+              className="pp-panel pp-svetla dc-panel"
+              role="dialog"
+              aria-label={wallPick.name}
+              onTouchStart={(e) => { const t0 = e.touches[0]; sheetTouchRef.current = { x: t0.clientX, y: t0.clientY }; }}
+              onTouchEnd={(e) => {
+                const s0 = sheetTouchRef.current; sheetTouchRef.current = null;
+                const t1 = e.changedTouches[0];
+                if (!s0 || !t1) return;
+                const dx = t1.clientX - s0.x, dy = t1.clientY - s0.y;
+                if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.4) stepPickRef.current?.(dx < 0 ? 1 : -1);
+                else if (dy > 70 && Math.abs(dy) > Math.abs(dx)) setWallPick(null);
+              }}
+            >
+              <span className="dc-grip" aria-hidden="true" />
+              <DogCardBody dog={wallPick} where="wall" edgeBase={EDGE_BASE} anonKey={SUPABASE_ANON_KEY} />
+            </div>
+          </div>,
+          document.body,
+        )}
+
         {/* KALKULAČKA MÁ DVE PODOBY. Nad stenou je to modál so závojom — vyberáš
             číslo a stránka pod ním počká. Nad guľou je to PULT NA ĽAVOM BOKU
             (Matej 25. 8.: „kalkulačka zostáva na ľavej strane nad planétou"):
@@ -4089,3 +4274,64 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     </>
   );
 }
+
+// ── POLOHA KARTY PSA NA STENE (3. 10. 2026) ─────────────────────────────────
+// Obsah a materiál nesie DogCard.tsx; tu len KDE sadne. PC = bok vpravo (stena
+// sa dá posúvať ďalej, klik na iného psa kartu vymení) · mobil = šuplík zdola
+// s úchytom, ten istý tvar ako panel + v /pack. Hranica 768 px = tá istá, podľa
+// ktorej sa stena zmenšuje (`MScale`).
+const DC_WALL_CSS = `
+.dc-panel {
+  position: fixed;
+  z-index: 120;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: clamp(340px, 30vw, 440px);
+  max-height: calc(100dvh - 208px);
+  overflow-y: auto;
+  padding: 32px 24px 24px;
+  gap: 12px;
+  animation: dcSideIn 420ms cubic-bezier(.22,.9,.28,1) both;
+}
+@keyframes dcSideIn { from { transform: translate(calc(100% + 48px), -50%); opacity: 0; } to { transform: translateY(-50%); opacity: 1; } }
+.dc-panel .pp-photo { width: 112px; height: 112px; }
+.dc-panel .pp-glyph { width: 70%; max-width: 240px; }
+.dc-panel .pp-msg { font-size: 0.82rem; -webkit-line-clamp: 8; }
+.dc-grip, .dc-veil { display: none; }
+/* !important: Hektorova karta nesie vlastnú zlatú žiaru, ktorá by prstenec prebila. */
+.dog-card.is-picked {
+  box-shadow: 0 0 0 3px ${LAPIS.edge}, 0 0 0 8px rgba(22,48,122,0.22) !important;
+  z-index: 7;
+}
+@media (max-width: 767px) {
+  .dc-veil {
+    display: block; position: fixed; inset: 0; z-index: 119;
+    background: rgba(42,22,8,0.28); pointer-events: none;
+    animation: dcFade 260ms ease both;
+  }
+  .dc-panel {
+    left: 0; right: 0; bottom: 0; top: auto;
+    width: auto; transform: none;
+    max-height: 80dvh;
+    border-radius: 16px 16px 0 0;
+    border-bottom: 0;
+    padding: 8px 16px calc(16px + env(safe-area-inset-bottom));
+    gap: 8px;
+    animation: dcSheetUp 360ms cubic-bezier(.22,.9,.28,1) both;
+  }
+  .dc-grip {
+    display: block; flex-shrink: 0;
+    width: 40px; height: 4px; border-radius: 999px;
+    background: rgba(110,78,24,0.4);
+    margin-bottom: 4px;
+  }
+  .dc-panel .pp-photo { width: 88px; height: 88px; }
+  .dc-panel .pp-name { font-size: 1.35rem; }
+  .dc-panel .pp-glyph { width: 70%; max-width: 200px; }
+  .dc-panel .pp-msg { font-size: 0.75rem; line-height: 1.5; -webkit-line-clamp: 6; }
+}
+@keyframes dcSheetUp { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes dcFade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .dc-panel, .dc-veil { animation: none; } }
+`;
