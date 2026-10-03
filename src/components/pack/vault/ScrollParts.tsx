@@ -85,18 +85,17 @@ export const SCROLL_CSS = `
   font:400 ${PACK_TEXT.label}px/1.5 ${FONT_UI};letter-spacing:0;text-transform:none;pointer-events:none;
   opacity:0;transition:opacity 150ms ease;}
 /* AKCIE — pod obrazom na PC aj mobile (Matej 3. 10.) */
-.zv-acts{display:flex;gap:${PACK_SPACE.sm}px;padding-top:${PACK_SPACE.sm}px;}
-/* AKCIE — LEN IKONKY (Matej 3. 10.: „akčné tlačidlá nevysvetľujeme, len ikonky… aj komenty").
-   Každá vo svojom tóne, zapnutá = plná plocha. Komentáre nesú počet. */
+.zv-acts{display:flex;align-items:center;justify-content:space-around;margin-top:${PACK_SPACE.sm}px;
+  padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;background:${AINUBIS.surface};border:1px solid ${AINUBIS.edge};}
+/* AKCIE = JEDNA PILULKA cez celú šírku obrazu, ikonky ako na IG (Matej 3. 10.: „do jedného pilu… roztiahnuť po celej
+   šírke obrázka… nefarbiť krúžky, iba ikonky"). Bez krúžkov a výplní — farbu nesie len ikonka; zapnutá = farebná. */
 .zv-act{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:${PACK_SPACE.xs}px;
-  min-width:36px;height:36px;padding:0 ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;cursor:pointer;
-  font:500 ${PACK_TEXT.label}px ${FONT_UI};color:var(--zv-a);background:var(--zv-at);border:1px solid var(--zv-ae);
-  transition:background 150ms ease,border-color 150ms ease;}
-.zv-act[data-k="like"]{--zv-a:${AINUBIS.ctaA};--zv-at:${AINUBIS.ctaTint};--zv-ae:${AINUBIS.ctaEdge};}
-.zv-act[data-k="save"],.zv-act[data-k="share"],.zv-act[data-k="talk"]{--zv-a:${AINUBIS.cyan};--zv-at:${AINUBIS.raised};--zv-ae:${AINUBIS.edge};}
-.zv-act:hover{border-color:var(--zv-a);}
-.zv-act.is-on{background:var(--zv-a);color:${AINUBIS.ctaInk};border-color:var(--zv-a);}
-.zv-act .zv-ic{margin-right:0;}
+  min-width:44px;height:36px;padding:0 ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;cursor:pointer;
+  background:none;border:0;color:${AINUBIS.ink};font:500 ${PACK_TEXT.label}px ${FONT_UI};transition:color 150ms ease;}
+.zv-act:hover{color:${AINUBIS.cyan};}
+.zv-act[data-k="like"].is-on{color:${AINUBIS.ctaA};}
+.zv-act[data-k="save"].is-on{color:${AINUBIS.cyan};}
+.zv-act .zv-ic{margin-right:0;width:20px;height:20px;}
 /* SILA DÔKAZU */
 .zv-sd{position:relative;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;flex:0 0 auto;
   border-radius:${PACK_R.field}px;font:700 ${PACK_TEXT.lead}px ${FONT_TITLE};cursor:help;
@@ -223,10 +222,10 @@ export function ScrollActions({ id, lang, onShare, onTalk }: {
   const [liked, setLiked] = useState(false);
   return (
     <div className="zv-acts">
-      <button type="button" data-k="like" className={`zv-act${liked ? ' is-on' : ''}`} onClick={() => setLiked(v => !v)} aria-label={u.like}><HandPaw size={14} /></button>
-      <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={() => toggleSaved(id)} aria-label={u.save}><HandStar size={14} /></button>
+      <button type="button" data-k="like" className={`zv-act${liked ? ' is-on' : ''}`} onClick={() => setLiked(v => !v)} aria-label={u.like}><HandPaw size={20} /></button>
+      <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={() => toggleSaved(id)} aria-label={u.save}><HandStar size={20} /></button>
       <button type="button" data-k="talk" className="zv-act" onClick={onTalk} aria-label={u.talk}><Ic ic="chat" />{talk > 0 && talk}</button>
-      <button type="button" data-k="share" className="zv-act" onClick={onShare} aria-label={u.share}><HandForward size={14} /></button>
+      <button type="button" data-k="share" className="zv-act" onClick={onShare} aria-label={u.share}><HandForward size={20} /></button>
     </div>
   );
 }
