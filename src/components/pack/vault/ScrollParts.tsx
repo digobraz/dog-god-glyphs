@@ -118,6 +118,9 @@ export const SCROLL_CSS = `
 .zv-sd[data-g="B"]{--zv-g:rgb(${BRAIN_STATE.seen});--zv-gt:rgba(${BRAIN_STATE.seen},0.14);}
 .zv-sd[data-g="C"]{--zv-g:${AINUBIS.inkDim};--zv-gt:${AINUBIS.surface};}
 .zv-sd .zv-tip{top:36px;left:0;}
+.zv-sd--corner{position:absolute;top:0;right:0;z-index:3;width:44px;height:44px;font-size:${PACK_TEXT.h2}px;
+  border-width:0 0 1px 1px;border-radius:0 ${PACK_R.card - 1}px 0 ${PACK_R.tile}px;}
+.zv-sd--corner .zv-tip{top:52px;left:auto;right:0;}
 .zv-sd:hover .zv-tip,.zv-sd:focus-visible .zv-tip{opacity:1;}
 .zv-read{align-self:stretch;display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.sm}px;cursor:pointer;
   padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.field}px;background:${AINUBIS.surface};
@@ -246,11 +249,11 @@ export const SCROLL_CSS = `
   border:1px solid ${AINUBIS.edge};font-size:${PACK_TEXT.label}px;color:${AINUBIS.ink};}
 `;
 
-export function EvidenceBadge({ sd, lang }: { sd: number; lang: string }) {
+export function EvidenceBadge({ sd, lang, corner = false }: { sd: number; lang: string; corner?: boolean }) {
   const u = scrollUI(lang);
   if (!sd) return null;
   return (
-    <span className="zv-sd" data-g={GRADE[sd]} tabIndex={0} aria-label={`${u.sd} ${u.sdName[sd]}`}>
+    <span className={`zv-sd${corner ? ' zv-sd--corner' : ''}`} data-g={GRADE[sd]} tabIndex={0} aria-label={`${u.sd} ${u.sdName[sd]}`}>
       {GRADE[sd]}
       <span className="zv-tip" role="tooltip"><b>{u.sd} {u.sdName[sd]}</b><br />A · B · C — {u.sdName[3].slice(4)} → {u.sdName[1].slice(4)}</span>
     </span>
@@ -312,6 +315,9 @@ export function ScrollCard({ z, lang, onOpen, onShare }: {
   }, [z.id, s]);
   return (
     <article ref={ref} className="akv-zv">
+      {/* ZNÁMKA V ROHU KARTY — Matej 3. 10. nad náčrtom: „A daj úplne do rohu a priznaj roh toho bloku
+          v rámci bloku". Horný pravý roh známky = roh karty, ostatné rohy menšie. */}
+      <EvidenceBadge sd={z.sd} lang={lang} corner />
       <div className="akv-zvimg">
         {z.img && <img src={z.img} alt="" loading="lazy" onClick={() => onOpen(z.id)} />}
         <ScrollActions id={z.id} lang={lang} onShare={() => onShare(z.id)} onTalk={() => onOpen(z.id, 'talk')} />
@@ -319,7 +325,7 @@ export function ScrollCard({ z, lang, onOpen, onShare }: {
       <div className="akv-zvt">
         <div className="zv-mid">
           <span className="akv-zvlbl">{u.scroll} {z.n} / {z.total} · {x.min} {u.min}</span>
-          <div className="zv-hl"><h3 className="akv-zvn">{x.t}</h3><EvidenceBadge sd={z.sd} lang={lang} /></div>
+          <h3 className="akv-zvn" style={{ paddingRight: PACK_SPACE.xxl }}>{x.t}</h3>
           <span className="zv-rule" aria-hidden />
         </div>
         {/* Tri skupiny rovnomerne po výške obrazu (Matej 3. 10.: „blok vyzerá prázdny, rozlož obsah,

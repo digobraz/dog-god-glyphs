@@ -358,7 +358,7 @@ ${STAGE_CSS}
 .akv-zvacts button{width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;
   border-radius:${PACK_R.pill}px;background:${AINUBIS.surface};border:1px solid ${AINUBIS.edge};color:${AINUBIS.ink};}
 .akv-zvacts button:hover{color:${AINUBIS.cyan};border-color:${AINUBIS.edgeStrong};}
-.akv-zvt{display:flex;flex-direction:column;align-items:flex-start;gap:${PACK_SPACE.sm}px;min-width:0;}
+.akv-zvt{display:flex;flex-direction:column;align-items:flex-start;gap:${PACK_SPACE.lg}px;min-width:0;}
 .akv-zvlbl{font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.cyan};}
 .akv-zvn{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;line-height:1.2;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.ink};overflow-wrap:anywhere;}
@@ -391,8 +391,10 @@ ${STAGE_CSS}
   .akv-zv{flex-direction:row;align-items:stretch;gap:${PACK_SPACE.lg}px;}
   /* Pod obrazom stojí trojica akcií — obraz jej uvoľní ZV_ACTS. */
   .akv-zvimg img{width:auto;height:calc(100cqh - ${2 * PACK_SPACE.md + ZV_ACTS}px);}
-  /* Text karty sa rozloží po výške obrazu: nadpis hore, veta + blok v strede, CTA dole. */
-  .akv-zvt{flex:1 1 ${ZV_TEXT_COL}px;justify-content:space-between;}
+  /* Text karty: nadpis a veta s blokom hore, CTA dole na úrovni spodku obrazu (space-between
+     nechával medzi skupinami diery — Matej 3. 10.: „aj tu je to také divné“). */
+  .akv-zvt{flex:1 1 ${ZV_TEXT_COL}px;}
+  .akv-zvt .zv-ctas{margin-top:auto;}
 }
 
 /* ── POHĽAD DOLE — pilulka nad lištou (lock §1.3.1, geometria .trp-mactions) ──
