@@ -2931,6 +2931,9 @@ export default function OnePage() {
       // vtedy, keď ho nevidno, a otvoril by nahrávanie fotky uprostred filmu.
       put(n.pHero, 'phpe', 'pointerEvents', ho === '0.000' ? 'none' : '');
       // Spodná lišta odchádza s prvou obrazovkou a už sa nevracia.
+      // ⚠️ Pri zmene šírky cez 768 px ju wall vykreslí nanovo (iný uzol) —
+      // starý odkaz by ostal visieť a lišta by už nikdy nezhasla.
+      if (!n.dock?.isConnected) { n.dock = document.querySelector<HTMLElement>('.gods-dock-portal'); delete prev.dk; delete prev.dkv; }
       const doc = (1 - seg(p, DOCK_OUT[0], DOCK_OUT[1])).toFixed(3);
       put(n.dock, 'dk', 'opacity', doc);
       put(n.dock, 'dkv', 'visibility', doc === '0.000' ? 'hidden' : '');
