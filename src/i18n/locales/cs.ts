@@ -3981,6 +3981,7 @@ export const cs: Partial<Dict> = {
   'pack.ainubis.lead': 'AINUBIS se učí. Sedm světů psího poznání právě píšeme, svitek po svitku. Budeš sledovat, jak se otevírají jeden po druhém.',
   'pack.ainubis.opening': 'Otevření: listopad 2026',
   'pack.ainubis.openingShort': "Otevření: lis. 2026",
+  'pack.ainubis.openingNote': "AINUBIS právě sbírá poznání do všech světů — jak rostou, vidíš už teď. Až přibude něco nového, dáme ti vědět.",
   'pack.ainubis.chat': 'chat',
   'pack.ainubis.ask': 'Zeptej se AINUBISE',
   'pack.ainubis.state.building': 'Staví se',

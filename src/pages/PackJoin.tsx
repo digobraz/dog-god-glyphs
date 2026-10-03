@@ -134,10 +134,12 @@ export default function PackJoin() {
     // handwritten icon"). Do vtedy čierna plocha #050505 so zlatou kartou hore a 70 % prázdna.
     // Recept je ten istý ako článok výletu: `.pk-paper` + `PAPER_PAGE_CSS`; cesta je zapísaná
     // v `PAPER_ROUTES_LOCKED`, aby pred načítaním nebliklo čierne.
-    <div className="pk-paper" style={{ fontFamily: FONT_UI }}>
+    <div className="pk-paper" style={{ fontFamily: FONT_UI, display: 'flex', flexDirection: 'column' }}>
       <style>{PAPER_PAGE_CSS}</style>
       <PageTopBar />
-      <div style={{ maxWidth: 560, margin: '0 auto', padding: '8px 16px 48px' }}>
+      {/* Karta v STREDE okna (Matej 3. 10. 2026, 6A). Centruje `margin:auto` na dieťati,
+          nie justify-center rodiča — lock PAGE_AIR: pri nízkom okne by sa vrch nedal odrolovať. */}
+      <div style={{ width: '100%', maxWidth: 560, margin: 'auto', padding: '16px 16px 48px', boxSizing: 'border-box' }}>
         <section style={{ ...PACK_BOX.card, padding: '24px 24px', color: T.ink }}>
           {/* Kresba z ručného kitu (`/icons/pack/envelope.svg`), farbí ju maska — zlato = konštrukcia. */}
           <div aria-hidden style={{

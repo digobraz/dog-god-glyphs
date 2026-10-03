@@ -1,11 +1,11 @@
 {
  "_": "ZÁKLADŇA STRÁŽE IKONIEK — smie sa len ZMENŠOVAŤ. Zapisuje `npm run check:ikony -- --write`.",
  "__": "Rast ktorejkoľvek položky alebo nová položka = build padá. Register v brand manuáli sa generuje z tých istých čísel.",
- "merane": "2026-09-27",
+ "merane": "2026-10-03",
  "polozky": {
   "emoji@components/admin/AinubisPanel.tsx": 9,
   "emoji@components/pack/AvatarRing.tsx": 1,
-  "emoji@components/pack/DogPassport.tsx": 3,
+  "emoji@components/pack/DogPassport.tsx": 2,
   "emoji@components/pack/PackLayout.tsx": 1,
   "emoji@components/pack/PackNotifications.tsx": 1,
   "emoji@components/pack/PackTrailSketch.tsx": 4,
@@ -35,7 +35,6 @@
   "emoji@pages/PackDogQuiz.tsx": 1,
   "emoji@pages/PackDogs.tsx": 1,
   "emoji@pages/PackProfile.tsx": 8,
-  "emoji@pages/PublicProfile.tsx": 1,
   "lucide:ArrowLeft": 13,
   "lucide:ArrowUpRight": 1,
   "lucide:Check": 5,
@@ -64,14 +63,14 @@
   "lucide:Send": 2,
   "lucide:Sparkles": 5,
   "lucide:Upload": 1,
-  "lucide:X": 15,
-  "znak:×": 5,
+  "lucide:X": 14,
+  "znak:×": 4,
   "znak:‹": 8,
   "znak:›": 9,
   "znak:→": 3,
   "znak:⌃": 3,
   "znak:⌄": 3,
   "znak:✓": 16,
-  "znak:✕": 9
+  "znak:✕": 7
  }
 }

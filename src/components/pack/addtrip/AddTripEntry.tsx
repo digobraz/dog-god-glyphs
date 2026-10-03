@@ -448,6 +448,10 @@ const ENTRY_CSS = `
      a lišta sú jeden materiál. Riadky = PODBLOK na papyruse (cardGrad + cardEdge).
    🔴 Z-INDEX 1300: na mape má pilulka ZOZNAM 900 a peek bublina 1200 (21. 9. 2026). */
 .att-entry-backdrop{position:fixed;inset:0;z-index:1300;background:rgba(24,14,4,0.45);}
+/* AINUBIS USTÚPI, KÝM JE PANEL OTVORENÝ (Matej 3. 10. 2026, hárok rozhodnutí — variant A):
+   na mobile sedel na rohu panela a prekrýval poslednú položku. Panel je chvíľka úlohy,
+   AINUBIS v nej nemá čo robiť; po zatvorení sa vráti. Precedens: VaultWall/VaultChat. */
+body:has(.att-entry-backdrop) .ainubis-launcher{visibility:hidden;pointer-events:none;}
 /* ⚠️ goldFrameCSS() STOJÍ PRVÝ — nesie position:relative a za position:fixed by ho prebil. */
 .att-entry-panel{${goldFrameCSS()}
   position:fixed;left:50%;transform:translateX(-50%);

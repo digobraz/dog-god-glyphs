@@ -1803,6 +1803,7 @@ export const en = {
   'pack.ainubis.lead': "AINUBIS is learning. Seven worlds of dog knowledge are being written right now, scroll by scroll. You’ll watch them open one by one.",
   'pack.ainubis.opening': "Expected opening: November 2026",
   'pack.ainubis.openingShort': "Opens Nov 2026",
+  'pack.ainubis.openingNote': "AINUBIS is gathering knowledge into every world right now — and you can watch it grow already. We will let you know when something new opens.",
   'pack.ainubis.chat': "chat",
   'pack.ainubis.ask': "Ask AINUBIS",
   'pack.ainubis.state.building': "Building",

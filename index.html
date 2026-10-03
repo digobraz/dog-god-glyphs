@@ -145,7 +145,9 @@
           + 'animation:opBootIn 1s cubic-bezier(.2,.8,.2,1) both}'
           + '#op-boot .l{position:relative;width:132px;height:132px}'
           + '#op-boot .l img{width:100%;height:100%;object-fit:contain;display:block;'
-          + 'filter:drop-shadow(0 10px 24px rgba(122,90,42,.22))}'
+          /* TMAVÉ LOGO NA PAPYRUSE (Matej 3. 10. 2026: „zlatá na bielom zaniká — aj pri loaderi
+             /onepage musí byť logo tmavé"). Ten istý filter ako lišta heroflowu (flowPaleSkin.ts). */
+          + 'filter:brightness(.34) sepia(1) saturate(2.2) hue-rotate(-12deg) drop-shadow(0 10px 24px rgba(122,90,42,.22))}'
           /* Zlatý odlesk prechádza CEZ kresbu loga (maska = logo), nie cez štvorec. */
           + '#op-boot .l::after{content:"";position:absolute;inset:0;'
           + 'background:linear-gradient(105deg,transparent 35%,rgba(255,244,210,.95) 50%,transparent 65%) no-repeat;'

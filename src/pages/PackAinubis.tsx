@@ -130,27 +130,20 @@ ${STAGE_CSS}
 .akv-plane:disabled{cursor:default;color:${AINUBIS.inkFaint};}
 .akv-plane em{font-style:normal;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;
   letter-spacing:${PACK_HEAD.section.letterSpacing};color:${AINUBIS.inkFaint};}
-.akv-when{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;
-  padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
-  font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;letter-spacing:0.02em;
-  text-transform:uppercase;color:${AINUBIS.ctaA};background:${AINUBIS.surface};border:1px solid ${AINUBIS.ctaEdge};}
-/* ⚠️ .02em, nie .22em: je to PILULKA, nie nadpis (lock dizajn-systému — tesné sledovanie
-   patrí pilulkám). Pri .22em sa na 360 px vedľa správ nezmestila a zvonček vytiekol z okna.
-   Mobil nesie KRÁTKE znenie (.akv-when-s) — medzi avatarom a zvončekom je ~150 px. */
-.akv-when-s{display:none;}
-.akv-mnote{display:none;}
+.akv-note{display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px;
+  border-radius:${PACK_R.tile}px;border:1px solid ${AINUBIS.ctaEdge};background:${AINUBIS.ctaTint};
+  box-shadow:0 0 24px ${AINUBIS.glowTint};}
+.akv-note b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:${PACK_HEAD.card.letterSpacing};
+  text-transform:uppercase;color:${AINUBIS.ctaA};}
+.akv-note p{margin:0;font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;line-height:1.45;color:${AINUBIS.inkDim};}
+.akv-note--t{margin-top:${PACK_SPACE.sm}px;}
+.akv-note--l{display:none;}
 @media (max-width:${PC_MIN - 1}px){
-  .akv-when-l{display:none;} .akv-when-s{display:inline;}
   /* Riadok pod menom má na mobile ~150 px — okruhy a zvitky ostávajú len na PC. */
   .akv-top .akv-stat-x{display:none;}
   /* S ostrými číslami (1487 KM · 70 TRIPS) ostáva na 390 px pre oznam ~70 px — do jedného
      riadku sa nezmestí. Radšej ZÁMERNE dva riadky než orezané „OPENS NO…" (náhľad 22. 9.). */
-  /* ⛔ Pilulka v hlavičke na mobile zanikla 3. 10. 2026 — oznam nesie rámik .akv-mnote pod rovinami. */
-  .akv-top .akv-when{display:none;}
-  .akv-mnote{display:block;margin-top:${PACK_SPACE.sm}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;
-    border-radius:${PACK_R.tile}px;border:1px solid ${AINUBIS.ctaEdge};background:${AINUBIS.surface};
-    text-align:center;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;
-    letter-spacing:0.02em;text-transform:uppercase;color:${AINUBIS.ctaA};}
+
   /* Správy a zvonček na 32 px ako v mobilnej hlavičke mapy (PackNotifications má
      rozmery v inline štýle, prebiť sa dá len !important — ten istý precedens). */
   .akv-top .pkid-right button{width:32px!important;height:32px!important;}
@@ -384,6 +377,7 @@ ${STAGE_CSS}
      obsah ĽAVÉHO bloku, tak stojí pri ňom; hore je na mobile len preto, že tam ľavý
      stĺpec neexistuje. Pravidlo „hore prepínam ROVINU" (lock §1.3.1) je o mobile. */
   .akv-toprow{display:none;}
+  .akv-note--t{display:none;} .akv-note--l{display:flex;}
   .akv-ctl{right:${PACK_SPACE.xl}px;}
   .akv-ptools{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;}
   .akv-ptools .akv-search{flex:1 1 320px;max-width:420px;}
@@ -650,6 +644,18 @@ export default function PackAinubis() {
   const mask = (ic: string) => ({ WebkitMaskImage: `url(/icons/pack/${ic}.svg)`, maskImage: `url(/icons/pack/${ic}.svg)` });
   const soon = tx('pack.ainubis.soon', 'soon');
 
+  /* OZNAM OTVORENIA — BLOK POD ROVINAMI (Matej 3. 10. 2026, bod 5B). Najprv pilulka v hlavičke
+     (na 390 px sa lámala na dva riadky), potom tichý rámik; Matej: *„dal by som masívnejší
+     a výraznejší blok s 2–3 vetami — aktuálne ainubis extrahuje informácie do všetkých svetov,
+     ktoré máš možnosť vidieť už teraz… o pridaní ťa budeme informovať"*. Jeden render, dve
+     miesta ako roviny: mobil hore pod prepínačmi, PC v ľavom bloku pod nimi. */
+  const openingNote = (cls: string) => (
+    <div className={`akv-note ${cls}`} role="status">
+      <b>{tx('pack.ainubis.opening', 'Expected opening: November 2026')}</b>
+      <p>{tx('pack.ainubis.openingNote', 'AINUBIS is gathering knowledge into every world right now — and you can watch it grow already. We will let you know when something new opens.')}</p>
+    </div>
+  );
+
   /* ROVINY — jeden render, dve miesta: mobil hore pod identitou, PC v ľavom bloku. */
   const planes = (cls: string) => (
     <nav className={`akv-planes ${cls}`} aria-label="AINUBIS">
@@ -838,6 +844,7 @@ export default function PackAinubis() {
             </div>
           </div>
           {planes('akv-planes-l')}
+          {openingNote('akv-note--l')}
         </header>
 
         <div className="akv-list">
@@ -874,12 +881,6 @@ export default function PackAinubis() {
           id={id}
           primary={vaultPrimary}
           stats={vaultStats}
-          middle={(
-            <span className="akv-when">
-              <span className="akv-when-l">{tx('pack.ainubis.opening', 'Expected opening: November 2026')}</span>
-              <span className="akv-when-s">{tx('pack.ainubis.openingShort', 'Opens Nov 2026')}</span>
-            </span>
-          )}
         />
         {/* PC: hľadanie a filtre POD hlavičkou nad mozgom, ako na /map (Matej 22. 9.). */}
         <div className="akv-ptools">
@@ -906,10 +907,7 @@ export default function PackAinubis() {
           </button>
         </div>
         <div className="akv-toprow">{planes('akv-planes-t')}</div>
-        {/* OZNAM V RÁMIKU POD ROVINAMI — len mobil (Matej 3. 10. 2026, bod 5B: pilulka v hlavičke
-            sa na 390 px lámala na dva riadky; *„dal by som oznam do rámika pod tie tri
-            tlačítka"*). Na PC ostáva pilulka v hlavičke, tam sa zmestí na jeden riadok. */}
-        <div className="akv-mnote" role="status">{tx('pack.ainubis.opening', 'Expected opening: November 2026')}</div>
+        {openingNote('akv-note--t')}
       </div>
 
       {/* ŠUPLÍK FILTROV (mobil) — vzor .trp-msheet: všetky filtre na jednom mieste. */}

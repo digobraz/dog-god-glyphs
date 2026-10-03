@@ -147,7 +147,14 @@ export default function PublicProfile() {
             padding: '48px 24px', marginTop: 16,
           }}
         >
-          <span style={{ fontSize: 24 }}>🐾</span>
+          {/* Labka z ručného kitu namiesto emoji 🐾 (Matej 3. 10. 2026, bod 7B) — emoji je na
+              každom systéme iná kresba a stráž ikoniek ho vedie ako „mimo brandu". */}
+          <span aria-hidden style={{
+            width: 32, height: 32, background: T.cardEdge,
+            WebkitMaskImage: 'url(/icons/pack/paw.svg)', maskImage: 'url(/icons/pack/paw.svg)',
+            WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain',
+            WebkitMaskPosition: 'center', maskPosition: 'center',
+          }} />
           <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, color: T.inkDim, maxWidth: 340 }}>
             {t('pack.publicProfile.notPublic')}
           </p>
