@@ -835,7 +835,17 @@ button.ow-name:not(.is-valid) { text-transform: none; letter-spacing: normal; }
 /* 📱 Na telefóne sa do riadka nezmestí text aj mená — mená idú preč a ostávajú
    len značky (kresba znamenia je zrozumiteľnejšia než jej názov v 9 px). */
 @media (max-width: 559px) {
-  .ow-said { font-size: 10px; }
+  /* 3. 10. 2026 — „ZATIAĽ NEV…" sa na telefóne orezávalo (Matej: drobnosti
+     heroflowu). Ten istý recept ako veta o poradí nižšie: dva riadky, nie
+     tri bodky. Výška riadka sa nemení — určujú ju značky (36 px). */
+  .ow-said {
+    font-size: 10px; letter-spacing: 0.02em; white-space: normal; line-height: 1.2;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  }
+  /* Na 360 px nevošlo ani dvojriadkové „NEVYBRATÉ" — 137 px si bralo NECHCEM
+     UVIESŤ. Ustupuje rozostup jeho písmen, nie text vety. */
+  .ow-signs .ow-change { padding: 0 8px; letter-spacing: 0.06em; }
+
   /* 📱 V pravých 70 % ostáva na telefóne ~180 px a ZMENIŤ si z nich berie 76 —
      veta o poradí by sa skrátila na „HEKT…" (merané 25. 9. na 390 px). Zalomí
      sa preto na dva riadky menším písmom; výška riadka (44) sa nemení. */
@@ -847,6 +857,14 @@ button.ow-name:not(.is-valid) { text-transform: none; letter-spacing: normal; }
   .ow-gender .tx { font-size: 10px; }
   .ow-gender .well { width: 40px; height: 40px; }
   .ow-gender .well img { width: 34px; height: 34px; }
+}
+/* Úzky telefón (≤ 380, napr. 360 px Android): ustúpia ešte značky 36 → 32,
+   inak „NEVYBRATÉ" ani na dva riadky nevojde. */
+@media (max-width: 380px) {
+  .ow-signs { gap: 6px; }
+  .ow-signs .ow-mark { width: 32px; height: 32px; }
+  .ow-signs .ow-mark img { width: 22px; height: 22px; }
+  .ow-signs .ow-change { padding: 0 6px; }
 }
 /* 🔴 KRÁTKE OKNO — a MUSÍ to stáť AŽ TU. Obe podmienky majú rovnakú
    špecificitu, takže rozhoduje poradie (tá istá pasca, čo 24. 9. zožrala

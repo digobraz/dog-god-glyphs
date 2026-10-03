@@ -231,7 +231,12 @@ export function useSpeakMedal(): number {
   //    krátke okno (iPhone SE, 667) len nedostane tú väčšiu, lebo PODSTATA sa
   //    doň už dnes nezmestí a zväčšený Hektor by jej pretečenie prehĺbil.
   //    Premerané 24. 9.: PODSTATA na 375×667 preteká aj s 80 px medailónom.
-  return box.w < 560 && box.h >= 700 ? 104 : 80;
+  // 🔴 3. 10. 2026 — tretia poloha LEN pre veľmi nízke okno (< 600): iPhone SE
+  //    v Safari s lištami má 375×553 a PODSTATA tam pretekala o 66 px, PATRÓN
+  //    o 26 (Matej: „SE 375×553 podstata/patrón pretečú“). Ustupuje obsah,
+  //    nie rezerva od okraja (lock PAGE_AIR) — Hektor ako prvý, je to úvod.
+  if (box.w < 560 && box.h >= 700) return 104;
+  return box.h < 600 ? 60 : 80;
 }
 
 export function FlowMedallion({ src, size = 132, alt = 'HEKTHOR', className }: Props) {

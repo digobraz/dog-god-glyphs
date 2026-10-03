@@ -851,6 +851,15 @@ const PATRON_CSS = `
   .pt-sil { width: 70px; height: 70px; }
   .pt-sil img { width: 52px; height: 52px; }
 }
+/* 🔴 3. 10. 2026 — VEĽMI nízke okno (< 600): iPhone SE v Safari s lištami
+   = 375×553, PATRÓN pretekal o 26 px a spodná hrana dosky sedela pod okrajom.
+   Hektor ustúpi sám (\`useSpeakMedal\` → 60), zvyšok berie dlaždica siluety
+   a rozstupy — rám heroglyfu ostáva (pozri vyššie, prečo). */
+@media (max-height: 600px) {
+  .pt-stack .hf-plate { gap: 6px; }
+  .pt-sil { width: 60px; height: 60px; }
+  .pt-sil img { width: 44px; height: 44px; }
+}
 
 /* ── 📱 VYSOKÝ TELEFÓN — pravidlo ZANIKLO 28. 9. 2026 ─────────────────────────
    25. 9. tu rástol vzduch v blokoch od výšky 701 px (padding 32, medzery 16).

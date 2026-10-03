@@ -673,4 +673,18 @@ const ESSENCE_CSS = `
   .es-act { min-height: 36px; }
   .es-cta { height: 36px; }
 }
+/* 🔴 3. 10. 2026 — DRUHÁ pevná poloha pre VEĽMI nízke okno (< 600): iPhone SE
+   v Safari s lištami = 375×553, PODSTATA tam pretekala o 66 px a POKRAČOVAŤ
+   bolo pod okrajom. Ten istý recept ako 700: ustupuje plocha odpovedí,
+   nie rezerva od okraja. Hektor ustúpi sám (\`useSpeakMedal\` → 60). */
+@media (max-height: 600px) {
+  .es-stack .hf-plate { gap: 6px; }
+  .es-picks { --es-picks-h: 80px; gap: 8px; }
+  .es-speak { margin-bottom: 4px; }
+  .es-stack { margin-top: 4px; }
+  .es-stack .ftc-chip { min-height: 26px; }
+  .es-picks .hf-pick { padding: 6px; gap: 2px; }
+  .es-picks .hf-pick .well { width: 36px; height: 36px; }
+  .es-picks .hf-pick .well img { width: 28px; height: 28px; }
+}
 `;
