@@ -76,6 +76,8 @@ export const scrollUI = (lang: string) => UI[scrollLang(lang) as keyof typeof UI
 
 /** Známka dôkazu ako v medicíne (úroveň dôkazov A/B/C), Matej 3. 10.: „možno ABC? stupnica?“ — sd 3/2/1 → A/B/C. */
 const GRADE = ['', 'C', 'B', 'A'];
+/** Ružová diskusie — NOVÁ farba mimo palety AINUBISA (Matej 3. 10.), kým ju nepotvrdí. */
+const ZV_PINK = '#FF8AC8';
 
 export const SCROLL_CSS = `
 :root{--zv-read:rgb(${BRAIN_STATE.read});}
@@ -92,9 +94,16 @@ export const SCROLL_CSS = `
 .zv-act{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:${PACK_SPACE.xs}px;
   min-width:44px;height:36px;padding:0 ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;cursor:pointer;
   background:none;border:0;color:${AINUBIS.ink};font:500 ${PACK_TEXT.label}px ${FONT_UI};transition:color 150ms ease;}
-.zv-act:hover{color:${AINUBIS.cyan};}
-.zv-act[data-k="like"].is-on{color:${AINUBIS.ctaA};}
-.zv-act[data-k="save"].is-on{color:${AINUBIS.cyan};}
+/* FARBY IKONIEK — Matej 3. 10.: „labka cyan neónová žiariaca, hviezdička žltá, komenty ružová, zdieľanie zelená“.
+   ⚠️ RUŽOVÁ nie je v palete AINUBISA (nová, ZV_PINK) · ZELENÁ zdieľania je tá istá ako „prečítané“ (BRAIN_STATE.read)
+   — flagnuté Matejovi, zatiaľ podľa neho. Zapnutá akcia = ikonka žiari (drop-shadow, nie box-shadow). */
+.zv-act{opacity:.9;}
+.zv-act:hover{opacity:1;}
+.zv-act[data-k="like"]{color:${AINUBIS.cyan};filter:drop-shadow(0 0 4px rgba(${AINUBIS.cyanRGB},0.7));}
+.zv-act[data-k="save"]{color:${AINUBIS.ctaA};}
+.zv-act[data-k="talk"]{color:${ZV_PINK};}
+.zv-act[data-k="share"]{color:var(--zv-read);}
+.zv-act.is-on{opacity:1;filter:drop-shadow(0 0 6px currentColor) drop-shadow(0 0 2px currentColor);}
 .zv-act .zv-ic{margin-right:0;width:20px;height:20px;}
 /* SILA DÔKAZU */
 .zv-sd{position:relative;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;flex:0 0 auto;
