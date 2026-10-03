@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { PageTopBar } from '@/components/PageTopBar';
 import { Seo } from '@/components/Seo';
-import { EDGE_BASE } from '@/lib/env';
+import { EDGE_BASE, LIVE_EDGE_BASE } from '@/lib/env';
 import { track } from '@/lib/analytics';
 import { dogPagePath, packFromSlug } from '@/lib/dogSlug';
 import { captureDogPageRef } from '@/lib/refCapture';
@@ -35,6 +35,15 @@ import { withTransform } from '@/services/cloudinaryService';
  * ~460 to 390, to leave room for those. Mobile stays a plain scrolling stack:
  * photo → CTA → papyrus block → back link.
  */
+
+// 🔧 DEV: stránka psa číta TEN ISTÝ zdroj ako stena (GodsGridLab, `WALL_SRC_DEV`).
+// Stena v deve ťahá ostrých psov, DEV projekt má 5 testovacích — klik na
+// STRÁNKU PSA zo steny (napr. LUKY #37) potom končil „Tento pes ešte nie je vo
+// svorke" (Matej 3. 10. 2026). Endpoint je verejný a len na čítanie. V produkcii
+// sú EDGE_BASE aj LIVE_EDGE_BASE ten istý projekt, takže sa tam nemení nič.
+const DOG_FEED_BASE = import.meta.env.DEV && (() => {
+  try { return localStorage.getItem('dogypt-wall-src') !== 'dev'; } catch { return true; }
+})() ? LIVE_EDGE_BASE : EDGE_BASE;
 
 interface GridDog {
   pack_number: number | null;
@@ -245,7 +254,7 @@ export default function DogShare() {
     // allows `content-type, authorization` (not `apikey`), and the function is
     // public/service-role internally anyway. Matches the working fetch in
     // GodsGrid.tsx (the WALL uses the exact same feed with a plain fetch).
-    fetch(`${EDGE_BASE}/get-grid-dogs`)
+    fetch(`${DOG_FEED_BASE}/get-grid-dogs`)
       .then((r) => (r.ok ? r.json() : []))
       .then((dogs: GridDog[]) => {
         if (!alive) return;
