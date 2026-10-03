@@ -68,11 +68,11 @@ const BOTTOM_PC = 112;
 /* Ukážka zvitku s obrazom 3:4 na PC (3. 10. 2026) — rovnica šírky police:
    police = výška obrazu × 3/4 + stĺpec textu + okraje,
    výška obrazu = okno − ZV_CHROME (to isté, čo vnútri karty dá 100cqh − 2× md).
-   ZV_CHROME = hlavička police 248 (zmerané na okne 1477×724: DOGSCROLLING, roviny,
-               oznam) + zoznam hore lg 16 + dole BOTTOM_PC+xl 136 (rezerva na lištu,
+   ZV_CHROME = hlavička police 143 (zmerané na okne 1477×724: DOGSCROLLING + roviny;
+               oznam OTVORENIE je v ukážke skrytý, s ním bolo 248) + zoznam hore lg 16 + dole BOTTOM_PC+xl 136 (rezerva na lištu,
                ktorá na PC zasahuje aj do police) + karta 2× md 24.
    ZV_SIDE   = zoznam 2× xl 48 + karta 2× md 24 + medzera obraz–text lg 16. */
-const ZV_CHROME = 248 + PACK_SPACE.lg + BOTTOM_PC + PACK_SPACE.xl + 2 * PACK_SPACE.md;
+const ZV_CHROME = 143 + PACK_SPACE.lg + BOTTOM_PC + PACK_SPACE.xl + 2 * PACK_SPACE.md;
 const ZV_TEXT_COL = 280;
 const ZV_SIDE = 2 * PACK_SPACE.xl + 2 * PACK_SPACE.md + PACK_SPACE.lg;
 
@@ -360,6 +360,8 @@ ${STAGE_CSS}
 @media (min-width:${PC_MIN}px){
   .akv-root.has-zv{--akv-panel:clamp(480px,calc((100dvh - ${ZV_CHROME}px) * 0.75 + ${ZV_TEXT_COL + ZV_SIDE}px),56vw);}
   .akv-root.has-zv .akv-list{container-type:size;}
+  /* Matej 3. 10.: „skús to bez oznamu" — oznam OTVORENIE berie ~128 px, ktoré chýbali obrazu. */
+  .akv-root.has-zv .akv-note--l{display:none;}
   .akv-root.has-zv .akv-col{max-width:none;}
   .akv-zv{flex-direction:row;align-items:stretch;gap:${PACK_SPACE.lg}px;}
   .akv-zv img{width:auto;height:calc(100cqh - ${2 * PACK_SPACE.md}px);max-width:60%;flex:0 0 auto;}
