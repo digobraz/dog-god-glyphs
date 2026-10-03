@@ -24,7 +24,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { AINUBIS, AI_GLASS, BRAIN_STATE } from '@/components/pack/ainubisSkin';
-import { HandPaw, HandStar, HandPlus, HandForward, HandCheck, HandPencil, HandAlert } from '@/components/pack/HandIcons';
+import { HandPaw, HandStar, HandPlus, HandForward, HandCheck, HandPencil, HandAlert, HandCamera } from '@/components/pack/HandIcons';
 
 /** Kresba z kitu `/icons/pack/` cez masku (ten istý zápis ako v PackAinubis). */
 const Ic = ({ ic }: { ic: string }) => (
@@ -34,6 +34,7 @@ import { BackButton } from '@/components/pack/BackButton';
 import {
   type DemoScroll, pickText, pickPod, sourceHref, fmtSec, scrollLang,
   markScroll, useScrollState, toggleSaved, useSaved, useTalk, addTalk, toggleLiked, useLiked,
+  toggleTalkLike, addProposal, shrinkPhoto, type ProposalKind,
 } from './vaultScrollDemo';
 
 // ── texty rozhrania: základ EN/SK/CZ ako obsah VAULTU ───────────────────────
@@ -43,9 +44,10 @@ const UI = {
     sd: 'Dôkaz', sdName: ['', 'C · tradícia, skúsenosť, legenda', 'B · veda + výklad, alebo zatiaľ málo štúdií', 'A · zmerané, vedci sa zhodujú'],
     like: 'Páči sa', save: 'Uložiť', share: 'Zdieľať', talk: 'Diskusia', readDone: 'Prečítané',
     talkNone: 'Zatiaľ tu nikto nenapísal. Začni ty — otázka, skúsenosť, nesúhlas.', talkPh: 'Napíš do diskusie…', talkSend: 'Pridať', you: 'Ty',
-    back: 'Späť', podWho: 'Matej sa pýta, AINUBIS odpovedá', added: 'Doplnené',
+    back: 'Späť', added: 'Doplnené',
     addedNone: 'Zatiaľ nič nové. Keď pribudne poznatok, ktorý nie je v podcaste, zapíše sa sem s dátumom.',
-    rel: 'Súvisí', contrib: 'Prispej', cAdd: 'Pridať znalosť', cEdit: 'Navrhnúť zmenu', cFlag: 'Nahlásiť chybu',
+    rel: 'Súvisí', contrib: 'Prispej', cEdit: 'Navrhnúť zmenu', kinds: ['Pridať novú znalosť k téme', 'Nahlásiť chybné tvrdenie', 'Vlastný text'],
+    propPh: 'Napíš, čo chýba alebo čo nesedí. Ak máš zdroj, pridaj odkaz.', propSend: 'Odoslať AINUBISOVI', propOk: 'Odoslané — AINUBIS to posúdi a overí zdroj.', photo: 'Fotka',
     done: 'Prečítané — zapíš do mozgu', doneSub: 'krúžok zozelenie a zrno v mozgu sa rozsvieti',
     doneOk: 'Zapísané do mozgu', copied: 'Odkaz skopírovaný',
   },
@@ -54,9 +56,10 @@ const UI = {
     sd: 'Důkaz', sdName: ['', 'C · tradice, zkušenost, legenda', 'B · věda + výklad, nebo zatím málo studií', 'A · změřeno, vědci se shodují'],
     like: 'Líbí se', save: 'Uložit', share: 'Sdílet', talk: 'Diskuse', readDone: 'Přečteno',
     talkNone: 'Zatím tu nikdo nenapsal. Začni ty — otázka, zkušenost, nesouhlas.', talkPh: 'Napiš do diskuse…', talkSend: 'Přidat', you: 'Ty',
-    back: 'Zpět', podWho: 'Matej se ptá, AINUBIS odpovídá', added: 'Doplněno',
+    back: 'Zpět', added: 'Doplněno',
     addedNone: 'Zatím nic nového. Když přibude poznatek, který není v podcastu, zapíše se sem s datem.',
-    rel: 'Souvisí', contrib: 'Přispěj', cAdd: 'Přidat znalost', cEdit: 'Navrhnout změnu', cFlag: 'Nahlásit chybu',
+    rel: 'Souvisí', contrib: 'Přispěj', cEdit: 'Navrhnout změnu', kinds: ['Přidat novou znalost k tématu', 'Nahlásit chybné tvrzení', 'Vlastní text'],
+    propPh: 'Napiš, co chybí nebo co nesedí. Pokud máš zdroj, přidej odkaz.', propSend: 'Odeslat AINUBISOVI', propOk: 'Odesláno — AINUBIS to posoudí a ověří zdroj.', photo: 'Fotka',
     done: 'Přečteno — zapiš do mozku', doneSub: 'kroužek zezelená a zrno v mozku se rozsvítí',
     doneOk: 'Zapsáno do mozku', copied: 'Odkaz zkopírován',
   },
@@ -65,9 +68,10 @@ const UI = {
     sd: 'Evidence', sdName: ['', 'C · tradition, experience, legend', 'B · science + interpretation, or few studies yet', 'A · measured, scientists agree'],
     like: 'Like', save: 'Save', share: 'Share', talk: 'Discussion', readDone: 'Read',
     talkNone: 'Nobody has written here yet. Start — a question, an experience, a disagreement.', talkPh: 'Write to the discussion…', talkSend: 'Post', you: 'You',
-    back: 'Back', podWho: 'Matej asks, AINUBIS answers', added: 'Added',
+    back: 'Back', added: 'Added',
     addedNone: 'Nothing new yet. When a finding that is not in the podcast arrives, it is written here with a date.',
-    rel: 'Related', contrib: 'Contribute', cAdd: 'Add knowledge', cEdit: 'Suggest a change', cFlag: 'Report a mistake',
+    rel: 'Related', contrib: 'Contribute', cEdit: 'Suggest a change', kinds: ['Add new knowledge to the topic', 'Report a wrong claim', 'Own text'],
+    propPh: 'Write what is missing or wrong. If you have a source, add the link.', propSend: 'Send to AINUBIS', propOk: 'Sent — AINUBIS will review it and check the source.', photo: 'Photo',
     done: 'Read — write it into the brain', doneSub: 'the ring turns green and the grain lights up',
     doneOk: 'Written into the brain', copied: 'Link copied',
   },
@@ -148,13 +152,22 @@ export const SCROLL_CSS = `
 .zv-top{display:grid;grid-template-columns:1fr;gap:${PACK_SPACE.lg}px;}
 @media (min-width:768px){.zv-top{grid-template-columns:280px 1fr;}}
 .zv-hero img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:${PACK_R.tile}px;}
-.zv-head{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:${PACK_SPACE.sm}px;min-width:0;}
+.zv-head{position:relative;display:flex;flex-direction:column;align-items:stretch;gap:${PACK_SPACE.xl}px;min-width:0;}
+.zv-grp{display:flex;flex-direction:column;align-items:flex-start;gap:${PACK_SPACE.md}px;}
+/* PC: úvod sa rozloží po výške obrazu — nadpis hore, veta s blokom v strede, podcast dole
+   (Matej 3. 10.: „úvod sa mi na PC nepáči, vyzerá to natlačené na sebe"). */
+@media (min-width:768px){.zv-head{justify-content:space-between;padding-bottom:${PACK_SPACE.xs}px;}}
 .zv-meta{font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.cyan};padding-right:${PACK_SPACE.xl}px;}
 .zv-h{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;line-height:1.2;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;overflow-wrap:anywhere;}
 .zv-v{margin:0;font-size:${PACK_TEXT.body}px;line-height:1.6;color:${AINUBIS.inkDim};}
-.zv-pod{align-self:stretch;padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;${AI_GLASS}}
-.zv-pod small{display:block;margin-bottom:${PACK_SPACE.sm}px;font-size:${PACK_TEXT.label}px;color:${AINUBIS.inkDim};}
+/* PODCAST — cyan NEÓN (Matej 3. 10.: „podcast by som dal cyanom neónom tam, kde sa prehráva"). Žiara cez
+   filter (box-shadow by zhodil check:pack); keď hrá, rozsvieti sa naplno. */
+.zv-pod{align-self:stretch;padding:${PACK_SPACE.md}px;border-radius:${PACK_R.card}px;background:${AINUBIS.raised};
+  border:1px solid ${AINUBIS.cyan};filter:drop-shadow(0 0 6px rgba(${AINUBIS.cyanRGB},0.45));transition:filter 200ms ease;}
+.zv-pod.is-play{filter:drop-shadow(0 0 14px rgba(${AINUBIS.cyanRGB},0.85));}
+.zv-pod small{display:flex;align-items:center;gap:${PACK_SPACE.xs}px;margin-bottom:${PACK_SPACE.sm}px;
+  font:700 ${PACK_TEXT.label}px ${FONT_TITLE};letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.cyan};}
 .zv-pod audio{display:block;width:100%;height:40px;}
 .zv-body{margin-top:${PACK_SPACE.xl}px;max-width:760px;font-size:${PACK_TEXT.lead}px;line-height:1.75;}
 .zv-body p{margin:0 0 ${PACK_SPACE.md}px;}
@@ -166,7 +179,28 @@ export const SCROLL_CSS = `
   background:linear-gradient(90deg, var(--zv-bx, ${AINUBIS.cyan}) 0%, transparent 60%) left bottom / 100% 1px no-repeat;}
 .zv-box--src{--zv-bx:${AINUBIS.ctaA};}
 .zv-box--add{--zv-bx:${AINUBIS.aiInk};}
-.zv-box--you{--zv-bx:rgb(${BRAIN_STATE.read});}
+.zv-box--you{--zv-bx:${AINUBIS.danger};filter:drop-shadow(0 0 10px ${AINUBIS.dangerEdge});}
+/* NAVRHNÚŤ ZMENU — červené podsvietenie (Matej 3. 10.), po kliku tri druhy návrhu + text. */
+.zv-prop{display:inline-flex;align-items:center;gap:${PACK_SPACE.sm}px;cursor:pointer;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;
+  border-radius:${PACK_R.field}px;background:${AINUBIS.dangerTint};border:1px solid ${AINUBIS.danger};color:${AINUBIS.danger};
+  font:700 ${PACK_TEXT.label}px ${FONT_TITLE};letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;}
+.zv-prop.is-open{background:${AINUBIS.danger};color:${AINUBIS.ctaInk};}
+.zv-kinds{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;margin:${PACK_SPACE.md}px 0;}
+.zv-kind{padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;background:transparent;
+  border:1px solid ${AINUBIS.dangerEdge};color:${AINUBIS.ink};font:500 ${PACK_TEXT.label}px ${FONT_UI};}
+.zv-kind.is-on{background:${AINUBIS.dangerTint};border-color:${AINUBIS.danger};color:${AINUBIS.danger};}
+.zv-ok{margin-top:${PACK_SPACE.md}px;font-size:${PACK_TEXT.label}px;color:${AINUBIS.ok};}
+/* komentár: labka s počtom + fotka */
+.zv-cmt > div{flex:1 1 auto;min-width:0;}
+.zv-cimg{display:block;max-width:100%;max-height:320px;margin-top:${PACK_SPACE.sm}px;border-radius:${PACK_R.tile}px;}
+.zv-clike{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;margin-top:${PACK_SPACE.xs}px;padding:0;cursor:pointer;
+  background:none;border:0;color:${AINUBIS.inkDim};font:500 ${PACK_TEXT.label}px ${FONT_UI};}
+.zv-clike.is-on{color:${AINUBIS.cyan};}
+.zv-clike .zv-ic{margin-right:0;width:16px;height:16px;}
+.zv-crow{display:flex;align-items:center;justify-content:space-between;align-self:stretch;gap:${PACK_SPACE.sm}px;}
+.zv-cpic{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;cursor:pointer;color:${AINUBIS.cyan};font:500 ${PACK_TEXT.label}px ${FONT_UI};}
+.zv-cpic input{display:none;}
+.zv-cprev{max-height:80px;border-radius:${PACK_R.field}px;}
 .zv-box--talk{--zv-bx:${AINUBIS.cyan};}
 .zv-cmt{display:flex;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.sm}px 0;border-bottom:1px solid ${AINUBIS.edge};font-size:${PACK_TEXT.body}px;}
 .zv-cmt p{margin:${PACK_SPACE.xs}px 0 0;color:${AINUBIS.inkDim};}
@@ -342,6 +376,12 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
   const s = useScrollState()[z.id] || 0;
   const talkList = useTalk(z.id);
   const [draft, setDraft] = useState('');
+  const [pic, setPic] = useState('');
+  const [playing, setPlaying] = useState(false);
+  const [propOpen, setPropOpen] = useState(false);
+  const [kind, setKind] = useState<ProposalKind>('add');
+  const [prop, setProp] = useState('');
+  const [propSent, setPropSent] = useState(false);
   const veil = useRef<HTMLDivElement>(null);
   const podRef = useRef<HTMLDivElement>(null);
   const srcRef = useRef<HTMLHeadingElement>(null);
@@ -375,16 +415,22 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
             <ScrollActions id={z.id} lang={lang} onShare={() => onShare(z.id)} onTalk={() => talkRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
           </div>
           <div className="zv-head">
-            <span className="zv-meta">{z.circle} · {u.scroll} {z.n}/{z.total} · {x.min} {u.min}</span>
-            <div className="zv-hl" style={{ alignSelf: 'stretch' }}><h1 className="zv-h">{x.t}</h1><EvidenceBadge sd={z.sd} lang={lang} /></div>
-            <span className="zv-rule" aria-hidden />
-            {s === 2 && <span className="zv-badge"><HandCheck size={14} />{u.readDone}</span>}
-            <p className="zv-v">{x.v}</p>
-            {x.vz && <div className="zv-take">{x.vz}</div>}
+            <div className="zv-grp">
+              <span className="zv-meta">{z.circle} · {u.scroll} {z.n}/{z.total} · {x.min} {u.min}</span>
+              <div className="zv-hl" style={{ alignSelf: 'stretch' }}><h1 className="zv-h">{x.t}</h1><EvidenceBadge sd={z.sd} lang={lang} /></div>
+              <span className="zv-rule" aria-hidden />
+              {s === 2 && <span className="zv-badge"><HandCheck size={14} />{u.readDone}</span>}
+            </div>
+            <div className="zv-grp">
+              <p className="zv-v">{x.v}</p>
+              {x.vz && <div className="zv-take" style={{ alignSelf: 'stretch' }}>{x.vz}</div>}
+            </div>
             {pod && (
-              <div className="zv-pod" ref={podRef}>
-                <small><Ic ic="play" />{u.podWho} · {fmtSec(pod.sec)}</small>
-                <audio controls preload="none" src={pod.src} onTimeUpdate={onTime} onEnded={() => markScroll(z.id, 2)} />
+              <div className={`zv-pod${playing ? ' is-play' : ''}`} ref={podRef}>
+                <small><Ic ic="play" />{u.pod} · {fmtSec(pod.sec)}</small>
+                <audio controls preload="none" src={pod.src} onTimeUpdate={onTime}
+                  onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}
+                  onEnded={() => { setPlaying(false); markScroll(z.id, 2); }} />
               </div>
             )}
           </div>
@@ -427,11 +473,24 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
 
           <section className="zv-box zv-box--you">
           <h3 className="zv-sec">{u.contrib}</h3>
-          <div className="zv-rel">
-            <button type="button" className="zv-chip zv-chip--dash" onClick={onUse}><HandPlus size={12} />{u.cAdd}</button>
-            <button type="button" className="zv-chip zv-chip--dash" onClick={onUse}><HandPencil size={12} />{u.cEdit}</button>
-            <button type="button" className="zv-chip zv-chip--dash" onClick={onUse}><HandAlert size={12} />{u.cFlag}</button>
-          </div>
+          {/* Z troch tlačidiel jedno (Matej 3. 10.): NAVRHNÚŤ ZMENU → druh návrhu + text → AINUBIS posúdi. */}
+          <button type="button" className={`zv-prop${propOpen ? ' is-open' : ''}`} onClick={() => { setPropOpen(v => !v); setPropSent(false); }}>
+            <HandPencil size={14} />{u.cEdit}
+          </button>
+          {propOpen && !propSent && (
+            <form className="zv-cform" onSubmit={(e) => { e.preventDefault(); if (prop.trim()) { addProposal(z.id, kind, prop.trim()); setProp(''); setPropSent(true); } }}>
+              <div className="zv-kinds" style={{ alignSelf: 'stretch' }}>
+                {(['add', 'wrong', 'own'] as ProposalKind[]).map((k, i) => (
+                  <button key={k} type="button" className={`zv-kind${kind === k ? ' is-on' : ''}`} onClick={() => setKind(k)}>
+                    {k === 'add' ? <HandPlus size={12} /> : k === 'wrong' ? <HandAlert size={12} /> : <HandPencil size={12} />} {u.kinds[i]}
+                  </button>
+                ))}
+              </div>
+              <textarea value={prop} onChange={(e) => setProp(e.target.value)} placeholder={u.propPh} rows={3} />
+              <button type="submit" className="zv-chip" disabled={!prop.trim()}>{u.propSend}</button>
+            </form>
+          )}
+          {propSent && <div className="zv-ok">{u.propOk}</div>}
           </section>
 
           <button type="button" className={`zv-done${s === 2 ? ' is-done' : ''}`} onClick={() => markScroll(z.id, 2)}>
@@ -446,11 +505,23 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
             {talkList.length === 0 && <div className="zv-add">{u.talkNone}</div>}
             {talkList.map((c, i) => (
               <div key={i} className="zv-cmt"><span className="zv-cav">{u.you.slice(0, 1)}</span>
-                <div><b>{u.you}</b> <small>{new Date(c.at).toLocaleDateString(lang)}</small><p>{c.text}</p></div></div>
+                <div><b>{u.you}</b> <small>{new Date(c.at).toLocaleDateString(lang)}</small><p>{c.text}</p>
+                  {c.img && <img className="zv-cimg" src={c.img} alt="" />}
+                  {/* Lajk komentára s počtom. ⚠️ DEV: len môj klik — počty ostatných prídu s tabuľkou. */}
+                  <button type="button" className={`zv-clike${c.liked ? ' is-on' : ''}`} onClick={() => toggleTalkLike(z.id, i)} aria-label={u.like}>
+                    <Ic ic={c.liked ? 'paw-full' : 'paw'} />{c.liked ? 1 : 0}
+                  </button>
+                </div></div>
             ))}
-            <form className="zv-cform" onSubmit={(e) => { e.preventDefault(); if (draft.trim()) { addTalk(z.id, draft.trim()); setDraft(''); } }}>
+            <form className="zv-cform" onSubmit={(e) => { e.preventDefault(); if (draft.trim() || pic) { addTalk(z.id, draft.trim(), pic || undefined); setDraft(''); setPic(''); } }}>
               <textarea value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={u.talkPh} rows={2} />
-              <button type="submit" className="zv-chip" disabled={!draft.trim()}>{u.talkSend}</button>
+              {pic && <img className="zv-cprev" src={pic} alt="" />}
+              <div className="zv-crow">
+                <label className="zv-cpic"><HandCamera size={16} />{u.photo}
+                  <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) shrinkPhoto(f).then(setPic).catch(() => undefined); e.target.value = ''; }} />
+                </label>
+                <button type="submit" className="zv-chip" disabled={!draft.trim() && !pic}>{u.talkSend}</button>
+              </div>
             </form>
           </section>
         </div>

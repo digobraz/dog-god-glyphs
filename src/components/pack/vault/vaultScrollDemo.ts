@@ -89,14 +89,26 @@ export function useSaved(): string[] {
 
 // ── diskusia (komentáre k celému zvitku, „ako fórum") — DEV len v prehliadači ─
 const TKEY = 'vault-demo-talk';
-type Talk = { text: string; at: number };
+export type Talk = { text: string; at: number; img?: string; liked?: boolean };
 let talk: Record<string, Talk[]> = (() => {
   try { return JSON.parse(localStorage.getItem(TKEY) || '{}') as Record<string, Talk[]>; } catch { return {}; }
 })();
 const tsubs = new Set<() => void>();
 const NONE: Talk[] = [];
-export function addTalk(id: string, text: string) {
-  talk = { ...talk, [id]: [...(talk[id] || []), { text, at: Date.now() }] };
+function saveTalk() {
+  try { localStorage.setItem(TKEY, JSON.stringify(talk)); } catch { /* plná pamäť / súkromné okno */ }
+  tsubs.forEach((f) => f());
+}
+/** Lajk komentára (labka s počtom). DEV: len môj klik. */
+export function toggleTalkLike(id: string, i: number) {
+  const list = [...(talk[id] || [])];
+  if (!list[i]) return;
+  list[i] = { ...list[i], liked: !list[i].liked };
+  talk = { ...talk, [id]: list };
+  saveTalk();
+}
+export function addTalk(id: string, text: string, img?: string) {
+  talk = { ...talk, [id]: [...(talk[id] || []), { text, at: Date.now(), ...(img ? { img } : {}) }] };
   try { localStorage.setItem(TKEY, JSON.stringify(talk)); } catch { /* súkromné okno */ }
   tsubs.forEach((f) => f());
 }
@@ -117,4 +129,33 @@ export function toggleLiked(id: string) {
 }
 export function useLiked(): string[] {
   return useSyncExternalStore((f) => { lsubs.add(f); return () => { lsubs.delete(f); }; }, () => liked, () => liked);
+}
+
+// ── NÁVRH ZMENY (Prispej) — DEV: len v prehliadači; naostro ide AINUBISOVI na posúdenie ─
+const PKEY = 'vault-demo-proposals';
+export type ProposalKind = 'add' | 'wrong' | 'own';
+export function addProposal(id: string, kind: ProposalKind, text: string) {
+  try {
+    const all = JSON.parse(localStorage.getItem(PKEY) || '[]') as unknown[];
+    all.push({ id, kind, text, at: Date.now() });
+    localStorage.setItem(PKEY, JSON.stringify(all));
+  } catch { /* súkromné okno */ }
+}
+
+/** Fotka do komentára: zmenší na dlhšiu stranu 800 px a vráti JPEG data URL. */
+export function shrinkPhoto(file: File, max = 800): Promise<string> {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file);
+    const im = new Image();
+    im.onload = () => {
+      const k = Math.min(1, max / Math.max(im.width, im.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      c.getContext('2d')?.drawImage(im, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      res(c.toDataURL('image/jpeg', 0.8));
+    };
+    im.onerror = rej;
+    im.src = url;
+  });
 }
