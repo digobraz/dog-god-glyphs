@@ -42,6 +42,8 @@ interface RealDog {
   wall_tier?: 'member' | 'supporter' | 'guest';
   /** AINUBIS fotku ešte neposúdil — pes na stene JE, ale stmavnutý a rozmazaný. */
   wall_pending?: boolean;
+  /** Id hosťa (len bez čísla) — cieľ `/?dog=<id>`. */
+  wall_id?: string;
 }
 
 // Hekthor (0,-1) + hero/CTA karta (0,0) tvoria spolu 1×2 "core" blok. Špirála
@@ -297,6 +299,14 @@ function GodsGridInner() {
     if (!raw) return null;
     const n = parseInt(raw, 10);
     return Number.isFinite(n) && n >= 1 ? n : null;
+  }, []);
+
+  // `/?dog=<id>` — HOSŤ nemá číslo, takže `focus=N` naňho nemieri (3. 10. 2026,
+  // Matej: *„pri kliknutí na pozrieť stenu mi neukázalo toho psa, ale vycentrovalo
+  // na stred webu"*). Odkaz nesie ďakovačka hosťa aj mail `send-guest-mail`.
+  const focusDogId = useMemo(() => {
+    const raw = new URLSearchParams(window.location.search).get('dog');
+    return raw && /^[0-9a-f-]{36}$/.test(raw) ? raw : null;
   }, []);
 
   // Load real dogs for the grid
@@ -1084,7 +1094,6 @@ function GodsGridInner() {
 
     function navigateTo(n: number) {
       if (n < 1) return;
-      if (raf) cancelAnimationFrame(raf);
       let col: number, row: number;
       if (n === 1) {
         // #1 = Hekthor, the founder card. Hardcoded at (0,-1), NOT in the spiral.
@@ -1096,6 +1105,11 @@ function GodsGridInner() {
         if (idx < 0 || idx >= positions.length) return;
         ({ col, row } = positions[idx]);
       }
+      panTo(col, row);
+    }
+
+    function panTo(col: number, row: number) {
+      if (raf) cancelAnimationFrame(raf);
       const tx = vw / 2 - col * GX - W / 2;
       const ty = vh / 2 - row * GY - H / 2;
       const sx = ox, sy = oy;
@@ -1125,6 +1139,17 @@ function GodsGridInner() {
     if (focusPackNumber !== null && !revealData.active) {
       navigateTo(focusPackNumber);
     }
+    // Hosť: nájdi jeho bunku podľa id a dojdi na ňu. Karta ostáva ZATVORENÁ —
+    // otvorená by fotku prekryla textom, a človek má vidieť práve fotku svojho
+    // psa v psej optike (Matej 3. 10. 2026).
+    if (focusDogId && focusPackNumber === null && !revealData.active) {
+      for (const [key, d] of realDogMapRef.current) {
+        if (d.wall_id !== focusDogId) continue;
+        const [c, r] = key.split(',').map(Number);
+        panTo(c, r);
+        break;
+      }
+    }
 
     return () => {
       app.removeEventListener('mousedown', onMouseDown);
@@ -1141,7 +1166,7 @@ function GodsGridInner() {
       cells.forEach(el => el.remove());
       cells.clear();
     };
-  }, [navigate, dogsReady, focusPackNumber, revealData.active]);
+  }, [navigate, dogsReady, focusPackNumber, focusDogId, revealData.active]);
 
   // Zmena jazyka → NEBÚRAME grid (rebuild by zrušil scroll pozíciu, otvorenú kartu aj
   // virtualizované bunky — je to najťažší efekt v komponente). Jediné miesta kde grid

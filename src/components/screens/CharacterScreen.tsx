@@ -370,6 +370,10 @@ const CHARACTER_CSS = `
   letter-spacing: 0.02em; line-height: 1.1; text-transform: uppercase;
   color: ${LAB.inkSoft}; text-shadow: 0 1px 0 rgba(255, 252, 240, 0.70);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+  /* 3. 10. 2026 — riadok 1,1 s orezom odstrihol diakritiku VEĽKÝCH písmen
+     (Matej: „chýbajú mäkčene STRÁŽCA, HRÁČ"). Háček nad Ž/Č trčí nad výšku
+     riadku. Vankúš pridá miesto do orezu, záporný okraj vráti rozmer dlaždice. */
+  padding: 4px 0 2px; margin: -4px 0 -2px;
 }
 .ch-trait.on .lb { color: #16307A; text-shadow: 0 1px 0 rgba(255, 252, 240, 0.55); }
 /* Poradové číslo = ktorý slot rámu vlastnosť obsadila. Plná lapisová plocha je tu

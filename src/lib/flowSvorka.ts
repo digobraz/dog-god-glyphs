@@ -94,6 +94,8 @@ export function svorkaDogPayload(d: SvorkaDog, ownerName: string, amount: number
     lifeStatus: d.lifeStatus,
     deathDate: d.deathDate,
     amount,
+    // Pes už visí na stene ako hosť ⇒ pokladňa ho preklopí, nezaloží druhého.
+    guestId: useDogyptStore.getState().guestIds[d.flowId] || undefined,
   };
 }
 

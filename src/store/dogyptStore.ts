@@ -139,6 +139,16 @@ export interface DogyptState {
   setLifeStatus: (v: 'alive' | 'deceased') => void;
   setDeathDate: (v: string | null) => void;
   setExtraDogs: (v: ExtraDog[]) => void;
+  /**
+   * HOSŤ → ČLEN (3. 10. 2026). Po zápise zadarmo si prehliadač drží id riadkov
+   * psov (`flowId` → `dogs.id`) a e-mail, pod ktorým zápis prebehol. PRIDAŤ SA
+   * ich pošle do `create-checkout`, ktorý preklopí TÝCH ISTÝCH psov aj vtedy, keď
+   * človek v pokladni opraví meno alebo e-mail — inak by pes visel na stene 2×.
+   * Len v pamäti (žiadna perzistencia, rovnako ako ostatné údaje kupca).
+   */
+  guestIds: Record<string, string>;
+  guestEmail: string;
+  setGuest: (ids: Record<string, string>, email: string) => void;
   setMainDogPos: (v: number) => void;
   setDogOrderStart: (v: number) => void;
   reset: () => void;
@@ -173,6 +183,8 @@ const freshState = () => ({
   draftId: null as string | null,
   lifeStatus: 'alive' as 'alive' | 'deceased',
   deathDate: null as string | null,
+  guestIds: {} as Record<string, string>,
+  guestEmail: '',
 });
 
 export const useDogyptStore = create<DogyptState>()(
@@ -206,6 +218,7 @@ export const useDogyptStore = create<DogyptState>()(
       setLifeStatus: (v) => set({ lifeStatus: v }),
       setDeathDate: (v) => set({ deathDate: v }),
       setExtraDogs: (v) => set({ extraDogs: v }),
+      setGuest: (ids, email) => set({ guestIds: ids, guestEmail: email }),
       setMainDogPos: (v) => set({ mainDogPos: v }),
       setDogOrderStart: (v) => set({ dogOrderStart: v }),
       reset: () => set(freshState()),

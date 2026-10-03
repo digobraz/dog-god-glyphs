@@ -177,6 +177,13 @@ export function FlowStayChoice({ done, onDone, onMember, onMore }: {
       const data = res.ok ? await res.json() : null;
       if (data?.tier === 'guest') {
         track('stay_guest_joined', { dogs: stable.length, news });
+        // Id riadkov v poradí psov — POZRIEŤ STENU na ne zamieri a PRIDAŤ SA
+        // podľa nich preklopí tých istých psov (3. 10. 2026).
+        const ids: string[] = Array.isArray(data.dogIds) ? data.dogIds : [];
+        useDogyptStore.getState().setGuest(
+          Object.fromEntries(stable.map((d, i) => [d.flowId, ids[i]]).filter(([, id]) => !!id)),
+          email,
+        );
         setBusy(false);
         onDone();
         return;
@@ -352,11 +359,15 @@ export function FlowStayScreen() {
  * POZRIEŤ STENU (obrys) a PRIDAŤ SA ZA €11 (lapis — jediné hlavné CTA).
  * 🔑 PRIDAŤ SA je poctivé: `create-checkout` hosťovho psa (ten istý e-mail a
  *    meno) PREKLOPÍ, nezaloží druhého — na stene ostane jeden.
- * 🚩 Riadok „odkaz ti príde mailom" tu NIE JE — mail hosťovi zatiaľ neexistuje.
+ * ✉️ Mail hosťovi existuje od 3. 10. 2026 (`send-guest-mail`) — ide až po
+ *    verdikte AINUBISA, takže táto doska ho nesľubuje vopred.
  */
 function GuestBoard({ onJoin }: { onJoin: () => void }) {
   const navigate = useNavigate();
   const t = useT();
+  // Stena zamieri na PRVÉHO psa zápisu (3. 10. 2026). Holé `/` ukázalo stred
+  // steny — Matej: *„neukázalo toho psa, ale vycentrovalo na stred webu"*.
+  const firstGuest = useDogyptStore((s) => Object.values(s.guestIds)[0]);
   const tags = [t('heroglyph.flow.stay.thanks.tagNum'), 'DOG ID', 'AINUBIS', 'DOGTRIP', 'SNIFFER'];
   const Ok = () => (
     <svg className="gt-ok" viewBox="0 0 24 24" fill="none" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -375,7 +386,7 @@ function GuestBoard({ onJoin }: { onJoin: () => void }) {
         <p className="hf-legend">{t('heroglyph.flow.stay.thanks.rule')}</p>
         <div className="gt-tags">{tags.map((x) => <span key={x}>{x}</span>)}</div>
         <div className="gt-ctas">
-          <button type="button" className="st-confirm" onClick={() => navigate('/')}>
+          <button type="button" className="st-confirm" onClick={() => navigate(firstGuest ? `/?dog=${firstGuest}` : '/')}>
             {t('heroglyph.flow.stay.thanks.wall')}
           </button>
           <button type="button" className="hf-cta" onClick={onJoin}>

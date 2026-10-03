@@ -387,6 +387,12 @@ export function openPhotoConfirm(opts: PhotoConfirmOptions): PhotoConfirmHandle 
   back.className = 'pfc-back';
   back.setAttribute('role', 'dialog');
   back.setAttribute('aria-modal', 'true');
+  // 🔴 3. 10. 2026 — na mobile nešiel posuvník výrezu (Matej: *„hneď v úvode
+  //    mi na mobile nejde posúvnik na orez fotky"*). Film `/onepage`
+  //    (`filmStops.ts`) chytá ťah prstom na CELOM okne a volá preventDefault,
+  //    takže posuvník ani posun fotky prst nedostali. Značka `data-film-free`
+  //    je jeho vlastná výnimka — popup je mimo filmu, ťah patrí jemu.
+  back.setAttribute('data-film-free', '');
 
   const card = document.createElement('div');
   card.className = 'pfc-card';

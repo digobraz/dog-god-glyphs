@@ -191,6 +191,9 @@ export function FlowCheckoutScreen() {
           refCode: getStoredRef(),
           promoCode: promoCode.trim() || undefined,
           language: lang,
+          // E-mail, pod ktorým prebehol zápis hosťa — bez neho server psa
+          // podľa `guestId` nepreklopí (id je vidno zo steny, e-mail nie).
+          guestEmail: useDogyptStore.getState().guestEmail || undefined,
           ...getAttribution(),
         }),
       });
