@@ -9,6 +9,7 @@ import { useLocation } from 'react-router-dom';
 import { HandArrowLeft } from '@/components/pack/HandIcons';
 import { useT } from '@/i18n/LanguageContext';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { PACK_THEME as T } from '@/components/pack/packTheme';
 import { getConsent, saveConsent, applyConsent, hasChoice } from '@/lib/consent';
 
 // Headless capture routes (generate-pdfs → Cloudflare Browser Rendering,
@@ -150,10 +151,13 @@ export function ConsentBanner() {
              keby celé tlačidlo len otváralo menu, bolo by.
           ⚠️ V CSS nižšie nesmie byť spätný apostrof — celý blok je template literál. */}
       <style>{`
+        /* PAPYRUS = matrica PACK_BOX.panel (Matej 3. 10. 2026: *„cookie lišta nie je
+           v brande, je v takej divnej farbe"*). Dovtedy plochá #F5EEDF so šedým
+           inkoustom — bledý blok podľa locku je papyrusový gradient v zlatom ráme. */
         .consent-banner {
           position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
-          background: #F5EEDF; border-top: 1px solid rgba(201,154,63,0.55);
-          box-shadow: 0 -6px 26px rgba(0,0,0,0.28);
+          background: ${T.panelGrad}; border-top: 1.5px solid ${T.cardEdge};
+          box-shadow: 0 -8px 28px rgba(0,0,0,0.35), 0 -3px 0 rgba(201,154,63,0.15);
           padding: 12px 24px;
         }
         .consent-inner {
@@ -162,11 +166,11 @@ export function ConsentBanner() {
         }
         .consent-body {
           font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.45;
-          color: #2a2013; margin: 0; max-width: 640px;
+          color: ${T.inkWarm}; margin: 0; max-width: 640px;
         }
         .consent-body b {
           font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
-          letter-spacing: 0.14em; text-transform: uppercase; color: #1a1206; margin-right: 4px;
+          letter-spacing: 0.14em; text-transform: uppercase; color: ${T.inkStrong}; margin-right: 4px;
         }
         .consent-bone { display: inline-block; width: 20px; height: 20px; vertical-align: -4px; margin-right: 8px; }
         .consent-actions { display: flex; flex-direction: row; align-items: center; gap: 8px; flex-shrink: 0; }
@@ -181,53 +185,53 @@ export function ConsentBanner() {
         }
         .consent-btn-primary:hover { background: ${LAPIS.gradHover}; }
         .consent-btn-secondary {
-          background: transparent; border: 1px solid rgba(26,18,6,0.35);
-          border-radius: 8px; color: #2a2013; padding: 12px 24px;
+          background: ${T.tileBg}; border: 1px solid ${T.border};
+          border-radius: 8px; color: ${T.inkStrong}; padding: 12px 24px;
         }
-        .consent-btn-secondary:hover { background: rgba(26,18,6,0.06); }
+        .consent-btn-secondary:hover { background: rgba(201,154,63,0.14); }
         /* DELENÉ TLAČIDLO — hlavná plocha = len nevyhnutné, šípka = rozbaľovačka */
         .consent-split { position: relative; display: flex; }
         .consent-split-main {
-          background: transparent; color: #2a2013; padding: 12px 16px;
-          border: 1px solid rgba(26,18,6,0.35); border-right: none; border-radius: 8px 0 0 8px;
+          background: ${T.tileBg}; color: ${T.inkStrong}; padding: 12px 16px;
+          border: 1px solid ${T.border}; border-right: none; border-radius: 8px 0 0 8px;
         }
         .consent-split-arrow {
           display: flex; align-items: center; justify-content: center; padding: 0 8px;
-          background: transparent; color: #2a2013;
-          border: 1px solid rgba(26,18,6,0.35); border-radius: 0 8px 8px 0;
+          background: ${T.tileBg}; color: ${T.inkStrong};
+          border: 1px solid ${T.border}; border-radius: 0 8px 8px 0;
         }
-        .consent-split-main:hover, .consent-split-arrow:hover { background: rgba(26,18,6,0.06); }
+        .consent-split-main:hover, .consent-split-arrow:hover { background: rgba(201,154,63,0.14); }
         .consent-arrow-ic { display: flex; transform: rotate(-90deg); transition: transform .15s ease; }
         .consent-split-arrow[aria-expanded="true"] .consent-arrow-ic { transform: rotate(90deg); }
         .consent-menu {
           position: absolute; right: 0; bottom: calc(100% + 8px); min-width: 100%;
-          background: #FFFDF7; border: 1px solid rgba(201,154,63,0.55); border-radius: 8px;
+          background: ${T.card}; border: 1px solid ${T.cardEdge}; border-radius: 8px;
           box-shadow: 0 8px 24px rgba(0,0,0,0.22); padding: 4px; z-index: 1;
         }
         .consent-menu button {
           display: block; width: 100%; text-align: left; background: none; border: none; cursor: pointer;
           padding: 8px 12px; border-radius: 8px;
-          font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: #2a2013;
+          font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: ${T.inkStrong};
         }
         .consent-menu button:hover { background: ${LAPIS.fill}; }
         .consent-settings {
           display: flex; flex-direction: column; gap: 12px;
           margin-top: 12px; padding-top: 12px;
-          border-top: 1px solid rgba(26,18,6,0.15);
+          border-top: 1px solid ${T.hairline};
         }
         .consent-toggle-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
         .consent-toggle-label {
           font-family: 'Cinzel', serif; font-weight: 700; font-size: 12px;
-          letter-spacing: 0.06em; color: #1a1206; margin: 0 0 4px;
+          letter-spacing: 0.06em; color: ${T.inkStrong}; margin: 0 0 4px;
         }
         .consent-toggle-desc {
           font-family: 'Space Grotesk', sans-serif; font-size: 12px; line-height: 1.5;
-          color: rgba(42,32,19,0.72); margin: 0; max-width: 460px;
+          color: ${T.inkWarm}; margin: 0; max-width: 460px;
         }
         .consent-switch {
           position: relative; flex-shrink: 0; width: 44px; height: 24px;
-          border-radius: 999px; border: 1px solid rgba(26,18,6,0.30);
-          background: rgba(26,18,6,0.12); cursor: pointer;
+          border-radius: 999px; border: 1px solid ${T.border};
+          background: rgba(201,154,63,0.18); cursor: pointer;
         }
         .consent-switch[data-on="true"] { background: ${LAPIS.edge}; border-color: ${LAPIS.deep}; }
         .consent-switch-knob {
@@ -239,9 +243,11 @@ export function ConsentBanner() {
 
         /* MOBIL: text nad tlačidlami, obe tlačidlá v JEDNOM riadku 50/50. */
         @media (max-width: 759px) {
-          .consent-banner { padding: 12px 16px; }
+          /* 3. 10. 2026 nižšia: 133 → ~110 px (zakrývala spodok úvodu /onepage). */
+          .consent-banner { padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px)); }
           .consent-inner { flex-direction: column; align-items: stretch; gap: 8px; }
-          .consent-body { font-size: 12px; }
+          .consent-body { font-size: 12px; line-height: 1.35; }
+          .consent-bone { width: 16px; height: 16px; vertical-align: -3px; margin-right: 4px; }
           .consent-actions > * { flex: 1 1 0; min-width: 0; }
           .consent-btn-primary, .consent-btn-secondary { padding: 12px 8px; letter-spacing: 0.02em; }
           .consent-split-main { flex: 1 1 auto; min-width: 0; padding: 12px 8px; letter-spacing: 0.02em; }
@@ -262,8 +268,8 @@ export function ConsentBanner() {
           .consent-banner {
             left: auto; right: 24px; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
             width: min(420px, calc(50vw - var(--pack-nav-half, 0px) - 48px));
-            padding: 16px; border: 1px solid rgba(201,154,63,0.55); border-radius: 16px;
-            box-shadow: 0 12px 36px -8px rgba(0,0,0,0.45);
+            padding: 16px; border: 1.5px solid ${T.cardEdge}; border-radius: 16px;
+            box-shadow: ${T.panelShadow};
           }
           .consent-inner { flex-direction: column; align-items: stretch; gap: 12px; }
           .consent-actions > * { flex: 1 1 0; min-width: 0; }

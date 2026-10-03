@@ -97,7 +97,7 @@ export const FILM_CUE_CSS = `
      dolu daj na pravý dolný roh (iba na úvodnej obrazovke) inak budú v strede"*).
      Stred dole patrí spodnej lište; šípka HORE na úvode nie je, roh je voľný. */
   .op-cue.is-big {
-    left: auto; right: 24px; bottom: 24px;
+    left: auto; right: 24px; bottom: calc(24px + var(--consent-h, 0px));
     transform: scale(1.8); transform-origin: 100% 100%;
   }
   /* ČLENSTVO — šípky VŽDY V STREDE (Matej 28. 9. 2026: *„táto obrazovka má
@@ -124,7 +124,8 @@ export const FILM_CUE_CSS = `
   }
   @media (max-width: 768px) {
     .op-cue { bottom: clamp(16px, 8vh, 72px); }
-    .op-cue.is-big { right: 16px; bottom: 24px; transform: scale(1.4); }
+    /* Cookie lišta (--consent-h, publikuje ConsentBanner) by šípky prekryla. */
+    .op-cue.is-big { right: 16px; bottom: calc(24px + var(--consent-h, 0px)); transform: scale(1.4); }
   }
   @media (prefers-reduced-motion: reduce) { .op-cue-c { animation: none; opacity: .8; } }
 `;
