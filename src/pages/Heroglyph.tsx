@@ -918,6 +918,31 @@ export default function Heroglyph() {
         @media (prefers-reduced-motion: reduce) {
           .hg-benefit-pop { transition: none; transform: translateX(-50%); }
         }
+        /* KRAJNÉ DLAŽDICE (3. 10. 2026): bublina centrovaná na dlaždici pretŕčala
+           z okna — pri PROFILE o 26 px vpravo (horizontálny scroll celej stránky
+           aj skrytá, lebo visibility:hidden drží miesto) a po ťuknutí bola orezaná.
+           Krajná bublina sa zarovná ku kraju dlaždice, šípka ostáva nad jej stredom. */
+        .hg-benefit:first-child .hg-benefit-pop { left: 0; }
+        .hg-benefit:last-child .hg-benefit-pop { left: auto; right: 0; }
+        .hg-benefit:first-child .hg-benefit-pop,
+        .hg-benefit:last-child .hg-benefit-pop { transform: translateY(4px); }
+        /* 50cqw = polovica šírky DLAŽDICE (je kontajnerom), nie bubliny. */
+        .hg-benefit:first-child, .hg-benefit:last-child { container-type: inline-size; }
+        .hg-benefit:first-child .hg-benefit-pop::after { left: 50cqw; }
+        .hg-benefit:last-child .hg-benefit-pop::after { left: auto; right: 50cqw; transform: translateX(50%); }
+        .hg-benefit:first-child .hg-benefit-pop::after { transform: translateX(-50%); }
+        @media (hover: hover) {
+          .hg-benefit:first-child:hover .hg-benefit-pop,
+          .hg-benefit:last-child:hover .hg-benefit-pop { transform: translateY(0); }
+        }
+        @media (hover: none) {
+          .hg-benefit:first-child.is-active .hg-benefit-pop,
+          .hg-benefit:last-child.is-active .hg-benefit-pop { transform: translateY(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .hg-benefit:first-child .hg-benefit-pop,
+          .hg-benefit:last-child .hg-benefit-pop { transform: none; }
+        }
         .hg-benefit-icon {
           width: clamp(32px, 10vw, 40px);
           height: clamp(32px, 10vw, 40px);
