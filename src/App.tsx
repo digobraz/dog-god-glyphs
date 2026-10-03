@@ -518,7 +518,10 @@ const App = () => (
                   Za `DEV_FULL` z toho istého dôvodu ako `/pack/dogs`: obrazovka ide von
                   s 1. vlnou, nie skôr. Chat sa z nej otvára cez `ainubisBus`, takže widget
                   ostáva tam, kde je — root-level singleton mimo `/pack` stromu. */}
-              <Route path="/pack/ainubis" element={DEV_FULL ? <PackAinubis /> : <Navigate to="/pack" replace />} />
+              {/* `/*` — aj článok zvitku `/pack/ainubis/zvitok/:id` (modal-as-route, kôš 2, 3. 10. 2026)
+                  beží v TEJ ISTEJ inštancii: dve routy by VAULT pri otvorení zvitku postavili
+                  nanovo a návrat by stratil zoznam, pohľad aj mozog. */}
+              <Route path="/pack/ainubis/*" element={DEV_FULL ? <PackAinubis /> : <Navigate to="/pack" replace />} />
               {/* SNIFFER (interne BUDDY; Matej 24. 9.: „premenujem to na SNIFFER") = kôš 3 (bez spodnej lišty), rovina vo VON — lock architektura-pack §8/§8.1. */}
               <Route path="/pack/sniffer" element={DEV_FULL && BUDDY_LIVE ? <PackBuddy /> : <Navigate to="/pack/map" replace />} />
               {/* ODKIAĽ TO VIEM — od 24. 9. 2026 (Matej, voľba E1) to NIE JE vlastná

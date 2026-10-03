@@ -36,7 +36,7 @@
 // 🚩 OTVORENÉ: chat ako rovina hore + stred mozgu ako vstup (postavené podľa odporúčania).
 // ════════════════════════════════════════════════════════════════════════════
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { PackIdentityBar } from '@/components/pack/PackIdentityBar';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
@@ -49,7 +49,8 @@ import {
 import { VaultChat, VAULT_CHAT_CSS } from '@/components/pack/vault/VaultChat';
 import { VaultWall, VAULT_WALL_CSS } from '@/components/pack/vault/VaultWall';
 import { VAULT_SOURCE_TOTALS } from '@/components/pack/vault/vaultSources';
-import { SCROLL_DEMO, DEMO_SCROLLS, DEMO_TOTAL, demoImg } from '@/components/pack/vault/vaultScrollDemo';
+import { SCROLL_DEMO, useDemoScrolls } from '@/components/pack/vault/vaultScrollDemo';
+import { ScrollCard, ScrollView, SCROLL_CSS, scrollUI } from '@/components/pack/vault/ScrollParts';
 import { openAinubis } from '@/lib/ainubisBus';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
@@ -74,6 +75,8 @@ const BOTTOM_PC = 112;
    ZV_SIDE   = zoznam 2× xl 48 + karta 2× md 24 + medzera obraz–text lg 16. */
 const ZV_CHROME = 143 + PACK_SPACE.lg + BOTTOM_PC + PACK_SPACE.xl + 2 * PACK_SPACE.md;
 const ZV_TEXT_COL = 340;
+/** Štvorica akcií pod obrazom: ikonka 32 + medzera 4 + popis ~14 + odsadenie 8. */
+const ZV_ACTS = 58;
 const ZV_SIDE = 2 * PACK_SPACE.xl + 2 * PACK_SPACE.md + PACK_SPACE.lg;
 
 const CSS = `
@@ -349,7 +352,7 @@ ${STAGE_CSS}
 .akv-zv{position:relative;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;
   padding:${PACK_SPACE.md}px;border-radius:${PACK_R.card}px;${AI_GLASS}}
 .akv-zvimg{position:relative;flex:0 0 auto;}
-.akv-zvimg img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:${PACK_R.tile}px;}
+.akv-zvimg img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:${PACK_R.tile}px;cursor:pointer;}
 .akv-zvacts{align-self:stretch;margin-top:auto;display:flex;gap:${PACK_SPACE.sm}px;padding-top:${PACK_SPACE.sm}px;
   border-top:1px solid ${AINUBIS.edge};}
 .akv-zvacts button{width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;
@@ -380,13 +383,14 @@ ${STAGE_CSS}
 .akv-zvrel span{color:${AINUBIS.inkDim};}
 .akv-zvrel a{color:${AINUBIS.cyan};cursor:pointer;}
 @media (min-width:${PC_MIN}px){
-  .akv-root.has-zv{--akv-panel:clamp(480px,calc((100dvh - ${ZV_CHROME}px) * 0.75 + ${ZV_TEXT_COL + ZV_SIDE}px),56vw);}
+  .akv-root.has-zv{--akv-panel:clamp(480px,calc((100dvh - ${ZV_CHROME + ZV_ACTS}px) * 0.75 + ${ZV_TEXT_COL + ZV_SIDE}px),56vw);}
   .akv-root.has-zv .akv-list{container-type:size;}
   /* Matej 3. 10.: „skús to bez oznamu" — oznam OTVORENIE berie ~128 px, ktoré chýbali obrazu. */
   .akv-root.has-zv .akv-note--l{display:none;}
   .akv-root.has-zv .akv-col{max-width:none;}
   .akv-zv{flex-direction:row;align-items:stretch;gap:${PACK_SPACE.lg}px;}
-  .akv-zvimg img{width:auto;height:calc(100cqh - ${2 * PACK_SPACE.md}px);}
+  /* Pod obrazom stojí štvorica (32 + popis + 8) — obraz jej uvoľní ZV_ACTS. */
+  .akv-zvimg img{width:auto;height:calc(100cqh - ${2 * PACK_SPACE.md + ZV_ACTS}px);}
   .akv-zvt{flex:1 1 ${ZV_TEXT_COL}px;}
 }
 
@@ -531,6 +535,26 @@ export default function PackAinubis() {
         by zmazal všetko ostatné, čo na adrese je. */
   const [sp, setSp] = useSearchParams();
   const navigate = useNavigate();
+  // ZVITKY (DEV ukážka, 3. 10. 2026) — článok zvitku žije na vlastnej adrese
+  // `/pack/ainubis/zvitok/:id` (modal-as-route ako článok výletu, kôš 2).
+  const scrolls = useDemoScrolls();
+  const zid = (useParams()['*'] || '').match(/^zvitok\/([^/]+)/)?.[1];
+  const [scrollFocus, setScrollFocus] = useState<string | null>(null);
+  const [zvToast, setZvToast] = useState('');
+  const openScroll = (id: string, focus?: 'pod' | 'src') => {
+    setScrollFocus(focus || null);
+    navigate(`/pack/ainubis/zvitok/${id}`);
+  };
+  const closeScroll = () => navigate('/pack/ainubis');
+  /** ➕ POUŽIŤ = spýtaj sa AINUBISA k zvitku (nákres v2, 3. 10.). */
+  const askAinubis = () => (CHAT_MOCK ? navigate('/pack/ainubis?plane=chat') : openAinubis());
+  const shareScroll = (id: string) => {
+    const url = `${window.location.origin}/pack/ainubis/zvitok/${id}`;
+    const done = () => { setZvToast(scrollUI(lang).copied); window.setTimeout(() => setZvToast(''), 2000); };
+    if (navigator.share) navigator.share({ url }).catch(() => undefined);
+    else navigator.clipboard?.writeText(url).then(done, () => undefined);
+  };
+  const openZ = zid ? scrolls.find(z => z.id === zid) : undefined;
   const planeParam = sp.get('plane');
   const [plane2, setPlane2] = useState<'vault' | 'chat' | 'wall'>(
     planeParam === 'wall' && WALL_MOCK ? 'wall'
@@ -810,6 +834,7 @@ export default function PackAinubis() {
   return (
     <div className={`akv-root${SCROLL_DEMO ? ' has-zv' : ''}`} ref={rootRef} data-view={view} data-plane={plane2}>
       <style>{CSS}</style>
+      {SCROLL_DEMO && <style>{SCROLL_CSS}</style>}
       {CHAT_MOCK && <style>{VAULT_CHAT_CSS}</style>}
       {WALL_MOCK && <style>{VAULT_WALL_CSS}</style>}
       <div className="akv-bg" aria-hidden />
@@ -914,32 +939,9 @@ export default function PackAinubis() {
         <div className="akv-list">
         <div className="akv-col">
           {shown.length === 0 && <p className="akv-empty">{tx('pack.ainubis.noMatch', 'Nothing found.')}</p>}
-          {SCROLL_DEMO && <div className="akv-zvh">Ukážka 3:4 · Cesta psa · okruh 1</div>}
-          {SCROLL_DEMO && DEMO_SCROLLS.map(z => (
-            <article key={z.id} className="akv-zv">
-              <div className="akv-zvimg">
-                <img src={demoImg(z.id)} alt="" loading="lazy" />
-              </div>
-              <div className="akv-zvt">
-                <span className="akv-zvlbl">Zvitok {z.n} / {DEMO_TOTAL} · {z.min} min čítania · {z.variant}</span>
-                <h3 className="akv-zvn">{z.t}</h3>
-                <p className="akv-zvv">{z.v}</p>
-                <div className="akv-zvtake"><b>Vezmi si z toho</b>{z.take}</div>
-                <button type="button" className="akv-zvcta">Prečítať príbeh</button>
-                <div className="akv-zvrow">
-                  <button type="button" className="akv-zvsec"><i style={mask('play')} />Vypočuť podcast</button>
-                  <button type="button" className="akv-zvsec"><i style={mask('document')} />Zdroje · {z.src}</button>
-                </div>
-                <div className="akv-zvrel"><span>Súvisí</span>{z.rel.map(r => <a key={r}>{r} ›</a>)}</div>
-                {/* ŠTVORICA (lock §4.2) — na obraze zakrývala jeho spodnú vetu, preto pod textom. */}
-                <div className="akv-zvacts">
-                  <button type="button" aria-label="Packa"><HandPaw size={14} /></button>
-                  <button type="button" aria-label="Uložiť"><HandStar size={14} /></button>
-                  <button type="button" aria-label="Použiť"><HandPlus size={14} /></button>
-                  <button type="button" aria-label="Poslať"><HandForward size={14} /></button>
-                </div>
-              </div>
-            </article>
+          {SCROLL_DEMO && scrolls.length > 0 && <div className="akv-zvh">Ukážka · Cesta psa · okruh 1</div>}
+          {SCROLL_DEMO && scrolls.map(z => (
+            <ScrollCard key={z.id} z={z} lang={lang} onOpen={openScroll} onUse={askAinubis} onShare={shareScroll} />
           ))}
           {shown.map(({ w, i }) => (
             <section
@@ -1053,6 +1055,11 @@ export default function PackAinubis() {
       {plane2 === 'vault' && (
         <PackBottomNav avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial} dogs={id.dogs} />
       )}
+      {SCROLL_DEMO && openZ && (
+        <ScrollView z={openZ} all={scrolls} lang={lang} focus={scrollFocus}
+          onClose={closeScroll} onOpen={(i) => openScroll(i)} onUse={askAinubis} onShare={shareScroll} />
+      )}
+      {zvToast && <div className="zv-toast" role="status">{zvToast}</div>}
       <MessagingOverlayHost />
     </div>
   );
