@@ -75,8 +75,8 @@ const BOTTOM_PC = 112;
    ZV_SIDE   = zoznam 2× xl 48 + karta 2× md 24 + medzera obraz–text lg 16. */
 const ZV_CHROME = 143 + PACK_SPACE.lg + BOTTOM_PC + PACK_SPACE.xl + 2 * PACK_SPACE.md;
 const ZV_TEXT_COL = 340;
-/** Štvorica akcií pod obrazom: ikonka 32 + medzera 4 + popis ~14 + odsadenie 8. */
-const ZV_ACTS = 58;
+/** Trojica akcií pod obrazom: pilulka 36 + odsadenie 8. */
+const ZV_ACTS = 44;
 const ZV_SIDE = 2 * PACK_SPACE.xl + 2 * PACK_SPACE.md + PACK_SPACE.lg;
 
 const CSS = `
@@ -389,9 +389,10 @@ ${STAGE_CSS}
   .akv-root.has-zv .akv-note--l{display:none;}
   .akv-root.has-zv .akv-col{max-width:none;}
   .akv-zv{flex-direction:row;align-items:stretch;gap:${PACK_SPACE.lg}px;}
-  /* Pod obrazom stojí štvorica (32 + popis + 8) — obraz jej uvoľní ZV_ACTS. */
+  /* Pod obrazom stojí trojica akcií — obraz jej uvoľní ZV_ACTS. */
   .akv-zvimg img{width:auto;height:calc(100cqh - ${2 * PACK_SPACE.md + ZV_ACTS}px);}
-  .akv-zvt{flex:1 1 ${ZV_TEXT_COL}px;}
+  /* Text karty sa rozloží po výške obrazu: nadpis hore, veta + blok v strede, CTA dole. */
+  .akv-zvt{flex:1 1 ${ZV_TEXT_COL}px;justify-content:space-between;}
 }
 
 /* ── POHĽAD DOLE — pilulka nad lištou (lock §1.3.1, geometria .trp-mactions) ──
@@ -546,7 +547,7 @@ export default function PackAinubis() {
     navigate(`/pack/ainubis/zvitok/${id}`);
   };
   const closeScroll = () => navigate('/pack/ainubis');
-  /** ➕ POUŽIŤ = spýtaj sa AINUBISA k zvitku (nákres v2, 3. 10.). */
+  /** PRISPEJ v článku zvitku → chat s AINUBISOM (➕ Použiť Matej 3. 10. vyradil). */
   const askAinubis = () => (CHAT_MOCK ? navigate('/pack/ainubis?plane=chat') : openAinubis());
   const shareScroll = (id: string) => {
     const url = `${window.location.origin}/pack/ainubis/zvitok/${id}`;
@@ -941,7 +942,7 @@ export default function PackAinubis() {
           {shown.length === 0 && <p className="akv-empty">{tx('pack.ainubis.noMatch', 'Nothing found.')}</p>}
           {SCROLL_DEMO && scrolls.length > 0 && <div className="akv-zvh">Ukážka · Cesta psa · okruh 1</div>}
           {SCROLL_DEMO && scrolls.map(z => (
-            <ScrollCard key={z.id} z={z} lang={lang} onOpen={openScroll} onUse={askAinubis} onShare={shareScroll} />
+            <ScrollCard key={z.id} z={z} lang={lang} onOpen={openScroll} onShare={shareScroll} />
           ))}
           {shown.map(({ w, i }) => (
             <section
