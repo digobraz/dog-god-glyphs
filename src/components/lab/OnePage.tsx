@@ -7332,7 +7332,28 @@ export default function OnePage() {
            písmo sa dvíha len tam, kde to kompozícia znesie.
            ⚠️ .dgx-example a .codex-chip majú ::after obsadený (pulz okraja),
            preto idú cez ::before. Len mobil — na PC ukazovateľ ciele netrápia. */
+        /* CTA knihy na papyruse = LAPIS (brand: na bledom je hlavné CTA lapis), druhé
+           tlačidlo ako tichá voľba v zlatom ráme. Dovtedy obe zlato-oranžové GOLD_BTN,
+           ktoré na papyrus nepatrí (3. 10. 2026). */
+        .op-root .op-book .cb-cta-btn {
+          background: ${LAPIS.grad}; color: ${LAPIS.ink};
+          border: 1px solid ${LAPIS.deep}; box-shadow: ${LAPIS_BTN_SHADOW};
+        }
+        .op-root .op-book .cb-cta-btn.cb-cta-ghost {
+          background: rgba(201,154,63,0.06); color: #2a1608;
+          border: 1px solid rgba(201,154,63,0.45); box-shadow: none;
+        }
         @media (max-width: 767px) {
+          /* Tlačidlá pod knihou VEDĽA SEBA — pod sebou padli na nadpis sekcie
+             a spodné odrezala čierna päta (3. 10. 2026). */
+          .op-root .op-book .cb-mobile-cta {
+            flex-direction: row; justify-content: center; gap: 8px;
+            top: calc(50% - 60px + var(--cb-h) / 2 - 36px);
+          }
+          .op-root .op-book .cb-mobile-cta .cb-cta-btn {
+            width: auto; max-width: none; flex: 0 1 auto;
+            font-size: 12px; padding: 12px 16px; white-space: nowrap;
+          }
           .op-root .nav-top .scene-pill::after { content: ''; position: absolute; inset: -11px -4px; }
           .op-root .nav-top .lang-trigger::after { content: ''; position: absolute; inset: -16px -8px; }
           .op-root .nav-top .nav-login { position: relative; }
@@ -7364,6 +7385,22 @@ export default function OnePage() {
           .op-root .op-nxt-goal em { font-size: 11px; }
           .op-root .op-book .cb-sub { font-size: 11px; }
           .op-root .op-book .cb-trust { font-size: 11px; }
+          /* Kniha: obsah je na mobile zmenšený transformom (kapitoly 0,765, CTA 0,85),
+             takže 11 px v CSS by na oku bolo 8–9 px. Kapitoly idú bez zmenšenia
+             a tesnejšie, CTA dostane 13 px (× 0,85 = 11). Pod 380 px sa nezmestí —
+             tam ostáva pôvodné zmenšenie. */
+          .op-root .op-book .cb-chapters { transform: none; gap: 6px; }
+          .op-root .op-book .cb-right .cb-chapters { transform: translateX(14px); }
+          .op-root .op-book .cb-chapter { gap: 5px; }
+          .op-root .op-book .cb-ch-name { font-size: 11px; letter-spacing: 0; }
+          .op-root .op-book .cb-ch-num { font-size: 11px; min-width: 2.1em; }
+          .op-root .op-book .cb-ch-desc { font-size: 11px; line-height: 1.15; }
+          .op-root .op-book .cb-cta-kicker,
+          .op-root .op-book .cb-cta-text { font-size: 13px; }
+          @media (max-width: 379px) {
+            .op-root .op-book .cb-chapters { transform: scale(0.765); }
+            .op-root .op-book .cb-right .cb-chapters { transform: scale(0.765); }
+          }
           .op-root .cl-lead { font-size: 11px; }
           .op-root #op-vision .video-hero-caption { font-size: 11px; }
           .op-root .op-quo .tst-credits > summary,
