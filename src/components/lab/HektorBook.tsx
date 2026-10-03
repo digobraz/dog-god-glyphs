@@ -35,8 +35,13 @@ import symChiller from '@/assets/character/CHARACTER-CHILLER.svg';
 
 const IMG = '/images/hektor-kniha';
 
-/** Kapitoly. Prvý obrázok je vždy KRESBA, za ňou fotky (Matej: *„úvodná bude kresba"*). */
+/** Kapitoly. Prvý obrázok je vždy KRESBA, za ňou fotky (Matej: *„úvodná bude kresba"*).
+ *  n: 0 = TITULNÁ dvojstrana (Matej 4. 10.: *„lavá strana Once upon a time, na
+ *  druhej hektorov heroglyf v strede a ako keby zrkadlo — vidí tam seba v odraze
+ *  malinkého smutného z čias, kedy bol vyhodený"*). Heroglyf leží na hladine
+ *  zrkadla — pás v strede kresby je na to nechaný prázdny. */
 const CHAPTERS = [
+  { n: 0, media: ['k0-zrkadlo-b'] },
   { n: 1, media: ['k1-kresba', 'k1-f1', 'k1-f2'] },
   { n: 2, media: ['k2-kresba', 'k2-f1', 'k2-f2', 'k2-f3'] },
   { n: 3, media: ['k3-kresba', 'k3-f1', 'k3-f2'] },
@@ -126,6 +131,21 @@ export const HEKTOR_BOOK_CSS = `
   box-shadow: 0 0 0 2px #C99A3F, 0 4px 10px rgba(0, 0, 0, 0.3);
   font: 700 16px/1 'Dogyptian', serif; color: #A8432A;
 }
+.hb-glyph {
+  position: absolute; left: 50%; top: 50.8%; z-index: 2; transform: translate(-50%, -50%);
+  width: 62%; padding: 5px 7px; border-radius: 4px; background: #F1E2BF;
+  box-shadow: 0 0 0 2px #C99A3F, 0 0 0 4px #16307A, 0 0 0 6px #C99A3F, 0 8px 18px rgba(0, 0, 0, 0.35);
+}
+.hb-glyph img { position: static; display: block; width: 100%; height: auto; opacity: 1; }
+.hb-title { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-bottom: 40px; }
+.hb-title p {
+  font: 700 52px/1.05 'Dogyptian', 'Cinzel', serif; text-transform: uppercase; letter-spacing: .02em;
+  color: #16307A; margin: 0;
+}
+.hb-title::before, .hb-title::after {
+  content: ''; width: 200px; height: 14px; margin: 24px 0;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='14'><path d='M4 7l5-5 5 5-5 5z' fill='%23C99A3F'/><circle cx='22' cy='7' r='3' fill='%23A8432A'/><path d='M30 7l5-5 5 5-5 5z' fill='%2316307A'/></svg>") center / 40px 14px repeat-x;
+}
 .hb-track { display: none; }
 .hb-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 16px; }
 .hb-nav button {
@@ -161,6 +181,8 @@ export const HEKTOR_BOOK_CSS = `
   .hb-lead { font-size: 18px; }
   .hb-lead::after { margin: 8px 0 10px; }
   .hb-txt { font-size: 16px; }
+  .hb-title p { font-size: 34px; }
+  .hb-title::before, .hb-title::after { width: 140px; margin: 16px 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hb-veil { animation: none; }
@@ -210,7 +232,18 @@ export default function HektorBook({ onClose }: { onClose: () => void }) {
   const c = CHAPTERS[ch];
   const k = `onepage.hbook.${c.n}`;
   const cap = t(`${k}.cap`);
-  const text = (
+  const isTitle = c.n === 0;
+  const glyph = isTitle && (
+    <span className="hb-glyph" aria-hidden><img src="/images/hekthor-heroglyph.webp" alt="" /></span>
+  );
+  const text = isTitle ? (
+    <>
+      <div className="hb-title"><p>{t(`${k}.title`)}</p></div>
+      <div className="hb-band" aria-hidden>
+        {BAND.map((s, i) => <img key={i} src={s} alt="" />)}
+      </div>
+    </>
+  ) : (
     <>
       <div>
         <span className="hb-ini" aria-hidden>{t(`${k}.ini`)}</span>
@@ -248,9 +281,12 @@ export default function HektorBook({ onClose }: { onClose: () => void }) {
               {c.media.map((m, j) => (
                 <img key={m} src={`${IMG}/${m}.webp`} alt={j === 0 ? cap : ''} className={j === pic ? 'on' : ''} loading={j === 0 ? 'eager' : 'lazy'} />
               ))}
-              <span className="hb-pdots" aria-hidden>
-                {c.media.map((m, j) => <i key={m} className={j === pic ? 'on' : ''} />)}
-              </span>
+              {glyph}
+              {c.media.length > 1 && (
+                <span className="hb-pdots" aria-hidden>
+                  {c.media.map((m, j) => <i key={m} className={j === pic ? 'on' : ''} />)}
+                </span>
+              )}
               <span className="hb-plate">{cap}</span>
             </button>
           </div>
@@ -259,6 +295,7 @@ export default function HektorBook({ onClose }: { onClose: () => void }) {
             {c.media.map((m, j) => (
               <div key={m} className="hb-mpic">
                 <img src={`${IMG}/${m}.webp`} alt={j === 0 ? cap : ''} loading="lazy" />
+                {j === 0 && glyph}
                 {j === 0 && <span className="hb-plate">{cap}</span>}
               </div>
             ))}

@@ -1234,6 +1234,8 @@ export const en = {
   'onepage.hbook.prev': "Previous chapter",
   'onepage.hbook.next': "Next chapter",
   'onepage.hbook.nextPic': "Next picture",
+  'onepage.hbook.0.title': "Once upon a time…",
+  'onepage.hbook.0.cap': "The mirror",
   'onepage.hbook.1.ini': "B",
   'onepage.hbook.1.lead': "orn unwanted. Dumped in a box, where he waited with his brothers to die.",
   'onepage.hbook.1.txt': "Eight tiny souls ended up in a shelter. Seven of them found a home. Only one stayed behind — the biggest one, with the biggest temperament. A year later, by pure chance, he met Matej, who had never planned on a dog. A spark jumped, and since June 2017 they have walked through life together.",

@@ -1010,6 +1010,8 @@ export const sk: Partial<Dict> = {
   'onepage.hbook.prev': "Predošlá kapitola",
   'onepage.hbook.next': "Ďalšia kapitola",
   'onepage.hbook.nextPic': "Ďalší obrázok",
+  'onepage.hbook.0.title': "Kde bolo, tam bolo…",
+  'onepage.hbook.0.cap': "Zrkadlo",
   'onepage.hbook.1.ini': "N",
   'onepage.hbook.1.lead': "arodil sa nechcený. Vyhodený v krabici, kde s bratmi čakal na smrť.",
   'onepage.hbook.1.txt': "Osem maličkých duší skončilo v útulku. Sedem z nich si našlo domov. V útulku zostal iba jediný — ten najväčší, s najväčším temperamentom. Po roku sa zhodou náhod stretol s Matejom, ktorý psa neplánoval. Prebehla iskra a od júna 2017 kráčajú životom spoločne.",
