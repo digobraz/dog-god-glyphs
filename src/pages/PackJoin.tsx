@@ -145,6 +145,17 @@ export default function PackJoin() {
 
           {phase.k === 'dead' && (
             <>
+              {/* KRÍŽIK z ručného kitu (Matej 3. 10. 2026: *„ikonku nechaj, ale daj tam ikonu X"*) —
+                  len pri neplatnej a vypršanej pozvánke. Už prijatá nie je chyba (človek sa len
+                  prihlási), krížik by klamal. Ten istý `cross.svg` a červená ako v SNIFFERi. */}
+              {phase.why !== 'already_accepted' && (
+                <div aria-hidden style={{
+                  width: 40, height: 40, margin: '0 auto 16px', background: T.alertRed,
+                  WebkitMaskImage: 'url(/icons/pack/cross.svg)', maskImage: 'url(/icons/pack/cross.svg)',
+                  WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain',
+                  WebkitMaskPosition: 'center', maskPosition: 'center',
+                }} />
+              )}
               <Title>{
                 phase.why === 'already_accepted' ? tx('pack.join.usedTitle', 'This invitation was already accepted')
                 : phase.why === 'expired' ? tx('pack.join.expiredTitle', 'The invitation expired')
