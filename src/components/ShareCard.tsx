@@ -1,9 +1,15 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
-// Share card — 1080×1080 social share image. Recreates the Matej-approved
-// locked mock (scratchpad/share-card-thor.html) 1:1 in React. LOCKED format —
-// do not redesign; brand v3.2 exact (Cinzel / Cinzel Decorative gold+cream on
-// black, .btn-gold-adjacent gold #C99A3F).
+// Share card — 1080×1080 social share image.
+//
+// 🆕 BLEDÁ OD 3. 10. 2026 (Matej nad hárkom `plany/nakres-stranka-psa-2026-10-03/
+// kolo2.html`: *„super daj bledú"*). Fotka cez celý štvorec, dole prechod do
+// slonoviny a v ňom meno · čierny heroglyf · lapisové #číslo + DOGYPT.COM.
+// Číslo je DOLE (Matej: *„najlepšie v dolnej časti obrázka"*), nie hore ako
+// v tmavej verzii; riadok „of 1,000,000 dogs" a motto zanikli.
+// ⚠️ Starí psi majú v `dogs.share_card_url` ešte TMAVÉ PNG — nová karta sa
+//    upečie len novým členom (platba) alebo prebehom `wall-healer` na LIVE.
+//    Stránka psa preto kartu kreslí NAŽIVO z tohto komponentu.
 //
 // Rendered headlessly by ShareRender.tsx (Playwright batch) and can also be
 // captured client-side via html-to-image (same toPng approach as
@@ -20,15 +26,12 @@ export interface ShareCardProps {
   onHeroglyphReady?: () => void;
 }
 
-const GOLD = '#C99A3F';
-const CREAM = '#F7EFDD';
-
-// Approved variant C gold gradient (Matej-approved) for the heroglyph recolor.
-const HEROGLYPH_GRADIENT_STOPS: [number, string][] = [
-  [0, '#F5C73D'],
-  [0.6, '#C99A3F'],
-  [1, '#A87A2A'],
-];
+const IVORY = '#FBF0D8';
+const INK = '#1a1a1a';
+const BROWN = '#6E4E18';
+// Lapis = číslo člena naprieč appkou (stena, karta psa) — hodnoty z navGoldSkin LAPIS.
+const LAPIS_GRAD = 'linear-gradient(180deg, #16307A, #0A1A4A)';
+const LAPIS_INK = '#EFD79A';
 
 // Auto-fit: name width must land ~880px (== heroglyph display width) so the
 // two elements visually align. We measure at BASE_FONT_SIZE (the max) via a
@@ -36,23 +39,22 @@ const HEROGLYPH_GRADIENT_STOPS: [number, string][] = [
 // real .name element, then scale so the rendered width hits TARGET_WIDTH,
 // clamped so short names (THOR) never blow past MAX and long/CJK names never
 // shrink past MIN.
-const BASE_FONT_SIZE = 116;
+const BASE_FONT_SIZE = 108;
 const MIN_FONT_SIZE = 40;
-const MAX_FONT_SIZE = 116;
-const TARGET_WIDTH = 880;
+const MAX_FONT_SIZE = 108;
+const TARGET_WIDTH = 800;
 
 const NAME_FONT_FAMILY = "'Cinzel Decorative', serif";
 
 export function ShareCard({ packNumber, dogName, photoUrl, heroglyphUrl, onHeroglyphReady }: ShareCardProps) {
   const measureRef = useRef<HTMLSpanElement>(null);
   const [fontSize, setFontSize] = useState<number | null>(null);
-  const [goldHeroglyphUri, setGoldHeroglyphUri] = useState<string | null>(null);
+  const [glyphUri, setGlyphUri] = useState<string | null>(null);
 
   const upperName = dogName.toUpperCase();
 
-  // Heroglyph asset is BLACK strokes on transparent bg — invisible on the
-  // black card. Recolor to gold via canvas (source-in + vertical gradient)
-  // and bake it into a self-contained data: URI PNG, so html-to-image's
+  // Heroglyph sa prefarbí na čistý atrament cez canvas (source-in) a upečie do
+  // data: URI PNG — zdroj nemusí byť čierny a html-to-image's
   // toPng capture (post-payment pipeline) doesn't need to inline an external
   // mask/filter URL (it wouldn't — external CSS mask-image/color-filter URLs
   // vanish in the toPng output). A plain <img src="data:..."> always survives.
@@ -71,17 +73,15 @@ export function ShareCard({ packNumber, dogName, photoUrl, heroglyphUrl, onHerog
         if (!ctx) throw new Error('no 2d context');
         ctx.drawImage(bitmap, 0, 0);
         ctx.globalCompositeOperation = 'source-in';
-        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        HEROGLYPH_GRADIENT_STOPS.forEach(([offset, color]) => gradient.addColorStop(offset, color));
-        ctx.fillStyle = gradient;
+        ctx.fillStyle = INK;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         const dataUri = canvas.toDataURL('image/png');
         if (cancelled) return;
-        setGoldHeroglyphUri(dataUri);
+        setGlyphUri(dataUri);
         onHeroglyphReady?.();
       } catch (e) {
         // eslint-disable-next-line no-console
-        console.error('ShareCard: heroglyph gold recolor failed', e);
+        console.error('ShareCard: heroglyph recolor failed', e);
         // Still signal "ready" so a headless capture doesn't hang forever —
         // the card renders without the heroglyph in this fallback case.
         if (!cancelled) onHeroglyphReady?.();
@@ -135,12 +135,12 @@ export function ShareCard({ packNumber, dogName, photoUrl, heroglyphUrl, onHerog
         position: 'relative',
         width: 1080,
         height: 1080,
-        background: '#000',
+        background: IVORY,
         overflow: 'hidden',
         fontFamily: "'Space Grotesk', sans-serif",
       }}
     >
-      {/* Hidden measuring span — same font settings as the visible .name below,
+      {/* Hidden measuring span — same font settings as the visible name below,
           rendered at BASE_FONT_SIZE so we can compute the auto-fit scale. */}
       <span
         ref={measureRef}
@@ -161,129 +161,59 @@ export function ShareCard({ packNumber, dogName, photoUrl, heroglyphUrl, onHerog
         {upperName}
       </span>
 
-      {/* .photo — hero photo, top 72%, with the mock's ::after gradient
-          reproduced as a nested overlay div (inline styles can't do pseudo-els). */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 'auto',
-          height: '72%',
-          // Pes bez fotky — od 28. 8. 2026 sa dá fotka pri vstupe preskočiť.
-          // Prázdna plocha by kartu rozbila, tak drží miesto zlatý prechod
-          // s iniciálou; rovnaký fallback ako na certifikáte a na stene.
-          backgroundImage: photoUrl
-            ? `url(${photoUrl})`
-            : 'linear-gradient(135deg, #d4a94a, #8a5c10)',
-          backgroundSize: 'cover',
-          backgroundPosition: '50% 30%',
-          display: photoUrl ? undefined : 'flex',
-          alignItems: photoUrl ? undefined : 'center',
-          justifyContent: photoUrl ? undefined : 'center',
-        }}
-      >
-        {!photoUrl && (
-          <span
-            style={{
-              font: `700 220px/1 'Cinzel', serif`,
-              color: 'rgba(250,244,236,0.92)',
-              letterSpacing: '.04em',
-            }}
-          >
-            {upperName.charAt(0)}
-          </span>
-        )}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.75) 80%, #000 100%)',
-          }}
-        />
-      </div>
-
-      {/* .topfade */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '28%',
-          zIndex: 2,
-          background:
-            'linear-gradient(180deg, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.5) 42%, rgba(0,0,0,0) 100%)',
-        }}
-      />
-
-      {/* .frame */}
+      {/* Fotka cez celý štvorec. Pes bez fotky (od 28. 8. 2026 sa dá preskočiť)
+          dostane bledý zlatý prechod s iniciálou — prázdna plocha by kartu rozbila. */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
-          boxShadow: 'inset 0 0 0 2px rgba(201,154,63,0.35), inset 0 0 120px 30px rgba(0,0,0,0.55)',
-          zIndex: 4,
-        }}
-      />
-
-      {/* .counter */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 56,
-          left: 0,
-          right: 0,
-          zIndex: 3,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center',
+          backgroundImage: photoUrl
+            ? `url(${photoUrl})`
+            : 'linear-gradient(135deg, #F2DFAF, #C99A3F)',
+          backgroundSize: 'cover',
+          backgroundPosition: '50% 30%',
+          display: photoUrl ? undefined : 'flex',
+          alignItems: photoUrl ? undefined : 'flex-start',
+          justifyContent: photoUrl ? undefined : 'center',
+          paddingTop: photoUrl ? undefined : 140,
         }}
       >
-        <span
-          style={{
-            fontFamily: "'Cinzel', serif",
-            fontWeight: 900,
-            fontSize: 74,
-            color: CREAM,
-            textShadow: '0 4px 20px rgba(0,0,0,0.8)',
-          }}
-        >
-          {packNumber}
-        </span>
-        <span
-          style={{
-            fontFamily: "'Cinzel', serif",
-            fontWeight: 700,
-            fontSize: 26,
-            letterSpacing: '0.26em',
-            textTransform: 'uppercase',
-            color: GOLD,
-            marginTop: 8,
-          }}
-        >
-          of 1,000,000 dogs
-        </span>
+        {!photoUrl && (
+          <span style={{ font: `700 220px/1 'Cinzel', serif`, color: 'rgba(255,250,236,0.95)', letterSpacing: '.04em' }}>
+            {upperName.charAt(0)}
+          </span>
+        )}
       </div>
 
-      {/* .content */}
+      {/* Prechod do slonoviny — spodných 58 % (hárok kolo 2). */}
       <div
         style={{
           position: 'absolute',
           left: 0,
           right: 0,
           bottom: 0,
-          padding: '0 60px 60px',
+          height: '58%',
+          background: `linear-gradient(180deg, rgba(251,240,216,0) 0%, rgba(251,240,216,0.86) 34%, ${IVORY} 70%)`,
+        }}
+      />
+
+      {/* Zlatý lem — konštrukcia, nie ozdoba (zlato = rám). */}
+      <div style={{ position: 'absolute', inset: 0, boxShadow: 'inset 0 0 0 4px rgba(201,154,63,0.85)', zIndex: 4 }} />
+
+      <div
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          padding: '0 64px 48px',
           zIndex: 3,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          gap: 24,
         }}
       >
-        {/* .name — auto-fit font size */}
         <div
           style={{
             fontFamily: NAME_FONT_FAMILY,
@@ -292,56 +222,36 @@ export function ShareCard({ packNumber, dogName, photoUrl, heroglyphUrl, onHerog
             lineHeight: 1,
             letterSpacing: '0.02em',
             textTransform: 'uppercase',
-            color: CREAM,
-            textShadow: '0 6px 30px rgba(0,0,0,0.75)',
+            color: INK,
             whiteSpace: 'nowrap',
           }}
         >
           {upperName}
         </div>
 
-        {/* .divider */}
-        <div
-          style={{
-            width: 120,
-            height: 2,
-            margin: '20px 0 22px',
-            background: 'linear-gradient(90deg, transparent, rgba(201,154,63,0.8), transparent)',
-          }}
-        />
-
-        {/* .heroglyph — gold data: URI (recolored via canvas above), not the
-            raw black-on-transparent source. Nothing rendered until the recolor
-            resolves, so the card doesn't briefly show the invisible black glyph. */}
-        {goldHeroglyphUri && (
-          <img
-            src={goldHeroglyphUri}
-            alt={upperName}
-            style={{
-              width: 880,
-              height: 'auto',
-              filter: 'drop-shadow(0 8px 22px rgba(0,0,0,0.6))',
-            }}
-          />
+        {/* Heroglyf — atramentový data: URI (prefarbený vyššie). Kým nie je
+            hotový, nekreslí sa nič. */}
+        {glyphUri && (
+          <img src={glyphUri} alt={upperName} style={{ width: 800, height: 'auto' }} />
         )}
 
-        {/* .footer — brand constants, EN hardcoded, do not translate */}
-        <div
-          style={{
-            marginTop: 34,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 22,
-            fontFamily: "'Cinzel', serif",
-            fontSize: 24,
-            letterSpacing: '0.22em',
-            textTransform: 'uppercase',
-            color: 'rgba(247,239,221,0.62)',
-          }}
-        >
-          <span style={{ color: GOLD, fontWeight: 700 }}>dogypt.com</span>
-          <span style={{ width: 6, height: 6, borderRadius: '50%', background: GOLD, flexShrink: 0 }} />
-          <span>In Dogs We Trust</span>
+        {/* Číslo + web — brand konštanty, EN natvrdo, neprekladá sa. */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 32, fontFamily: "'Cinzel', serif", whiteSpace: 'nowrap' }}>
+          <span
+            style={{
+              fontWeight: 700,
+              fontSize: 50,
+              lineHeight: 1.1,
+              letterSpacing: '0.04em',
+              color: LAPIS_INK,
+              background: LAPIS_GRAD,
+              borderRadius: 999,
+              padding: '6px 32px',
+            }}
+          >
+            #{packNumber}
+          </span>
+          <span style={{ fontWeight: 700, fontSize: 34, letterSpacing: '0.2em', color: BROWN }}>DOGYPT.COM</span>
         </div>
       </div>
     </div>
