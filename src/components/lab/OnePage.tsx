@@ -3555,7 +3555,7 @@ export default function OnePage() {
         const colW = (n.glfTrio?.getBoundingClientRect().width ?? 0) * (colPct / 100);
         n.glfNms?.forEach((el, i) => {
           put(el, 'gno' + i, '--gno', pg(G.name + i * G.photoStag).toFixed(3));
-          put(el, 'gns' + i, '--gns', `${Math.max(9, (colW * G.nameK) / 100).toFixed(1)}px`);
+          put(el, 'gns' + i, '--gns', `${Math.max(11, (colW * G.nameK) / 100).toFixed(1)}px`);   // 11 = najmenšie písmo filmu (3. 10. 2026)
         });
         // 🔴 LEN KRYTIE (Matej 2. 9. 2026: „nacitanie heroglyphov pod obrazkom daj
         //    fade in nedeformuj ho tym nacitanim ako je to teraz"). Do 2. 9. tu boli
@@ -7358,7 +7358,11 @@ export default function OnePage() {
           .op-root .nav-top .lang-trigger::after { content: ''; position: absolute; inset: -16px -8px; }
           .op-root .nav-top .nav-login { position: relative; }
           .op-root .nav-top .nav-login::after { content: ''; position: absolute; inset: -8px; }
-          .op-root .gods-bottom-bar .filter-btn::after { content: ''; position: absolute; inset: -4px; }
+          /* Lišta je portál do <body>, nie dieťa .op-root — pravidlo vyššie ju
+             nikdy nechytilo (40 × 40 aj po 2. 10.). .gods-dock-portal má len /onepage. */
+          .gods-dock-portal .filter-btn { position: relative; }
+          .gods-dock-portal .filter-btn::after { content: ''; position: absolute; inset: -4px; }
+          .op-root .info-close::after { content: ''; position: absolute; inset: -4px; }
           .op-root .dgx-example::before { content: ''; position: absolute; inset: -7px -2px; }
           .op-root .codex-chip::before { content: ''; position: absolute; inset: -7px -2px; }
           .op-root .op-fin-about::after { content: ''; position: absolute; inset: -3px; }
