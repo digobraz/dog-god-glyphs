@@ -49,6 +49,7 @@ import {
 import { VaultChat, VAULT_CHAT_CSS } from '@/components/pack/vault/VaultChat';
 import { VaultWall, VAULT_WALL_CSS } from '@/components/pack/vault/VaultWall';
 import { VAULT_SOURCE_TOTALS } from '@/components/pack/vault/vaultSources';
+import { SCROLL_DEMO, DEMO_SCROLLS, demoImg } from '@/components/pack/vault/vaultScrollDemo';
 import { openAinubis } from '@/lib/ainubisBus';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
@@ -64,6 +65,16 @@ const PC_MIN = 1024;
    do plochy nad ňou (nákres: `vol = H - 110`, tam bez lišty). */
 const BOTTOM_MOBILE = 160;
 const BOTTOM_PC = 112;
+/* Ukážka zvitku s obrazom 3:4 na PC (3. 10. 2026) — rovnica šírky police:
+   police = výška obrazu × 3/4 + stĺpec textu + okraje,
+   výška obrazu = okno − ZV_CHROME (to isté, čo vnútri karty dá 100cqh − 2× md).
+   ZV_CHROME = hlavička police 248 (zmerané na okne 1477×724: DOGSCROLLING, roviny,
+               oznam) + zoznam hore lg 16 + dole BOTTOM_PC+xl 136 (rezerva na lištu,
+               ktorá na PC zasahuje aj do police) + karta 2× md 24.
+   ZV_SIDE   = zoznam 2× xl 48 + karta 2× md 24 + medzera obraz–text lg 16. */
+const ZV_CHROME = 248 + PACK_SPACE.lg + BOTTOM_PC + PACK_SPACE.xl + 2 * PACK_SPACE.md;
+const ZV_TEXT_COL = 280;
+const ZV_SIDE = 2 * PACK_SPACE.xl + 2 * PACK_SPACE.md + PACK_SPACE.lg;
 
 const CSS = `
 ${AI_BREATHE_CSS}
@@ -325,6 +336,35 @@ ${STAGE_CSS}
 .akv-wsoon{display:inline-block;margin-top:${PACK_SPACE.lg}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;
   border-radius:${PACK_R.pill}px;font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.section.letterSpacing};
   text-transform:uppercase;color:${AINUBIS.inkDim};border:1px solid ${AINUBIS.edge};}
+
+/* ── ZVITOK S OBRAZOM 3:4 — UKÁŽKA (3. 10. 2026, len DEV, vaultScrollDemo.ts) ──
+   Matej: na PC sa musí zmestiť CELÝ zvitok naraz — obraz, nadpis, text aj CTA.
+   Pod sebou to na okne 1477×724 nejde: hlavička police berie ~248 px a obraz 3:4
+   by vyšiel ~180 px široký. Preto na PC stojí obraz VĽAVO na celú výšku zoznamu
+   a text VPRAVO; na mobile pod sebou.
+   🔴 ROVNICA, NIE MERANIE: výšku obrazu drží 100cqh zoznamu (obsahová výška = nad
+      rezervou lišty, takže CTA nikdy nepodlezie lištu), šírku police obraz + text. */
+.akv-zvh{text-align:center;font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.label.letterSpacing};
+  text-transform:uppercase;color:${AINUBIS.cyan};}
+.akv-zv{position:relative;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;
+  padding:${PACK_SPACE.md}px;border-radius:${PACK_R.card}px;${AI_GLASS}}
+.akv-zv img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:${PACK_R.tile}px;}
+.akv-zvt{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;min-width:0;}
+.akv-zvlbl{font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.label.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkDim};}
+.akv-zvn{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;line-height:1.2;
+  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.ink};overflow-wrap:anywhere;}
+.akv-zvv{margin:0;font-size:${PACK_TEXT.lead}px;line-height:1.55;color:${AINUBIS.inkDim};}
+.akv-zvcta{align-self:flex-start;margin-top:${PACK_SPACE.sm}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;cursor:pointer;
+  border-radius:${PACK_R.field}px;background:transparent;border:1px solid ${AINUBIS.edgeStrong};color:${AINUBIS.cyan};
+  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;}
+@media (min-width:${PC_MIN}px){
+  .akv-root.has-zv{--akv-panel:clamp(480px,calc((100dvh - ${ZV_CHROME}px) * 0.75 + ${ZV_TEXT_COL + ZV_SIDE}px),56vw);}
+  .akv-root.has-zv .akv-list{container-type:size;}
+  .akv-root.has-zv .akv-col{max-width:none;}
+  .akv-zv{flex-direction:row;align-items:stretch;gap:${PACK_SPACE.lg}px;}
+  .akv-zv img{width:auto;height:calc(100cqh - ${2 * PACK_SPACE.md}px);max-width:60%;flex:0 0 auto;}
+  .akv-zvt{flex:1 1 ${ZV_TEXT_COL}px;justify-content:flex-end;}
+}
 
 /* ── POHĽAD DOLE — pilulka nad lištou (lock §1.3.1, geometria .trp-mactions) ──
    ⚠️ Číslo je OPÍSANÉ z PackMap.tsx, lebo register spodného pásu (nástenka r-pas)
@@ -744,7 +784,7 @@ export default function PackAinubis() {
   const vaultStats = (<><b>{pct} %</b></>);
 
   return (
-    <div className="akv-root" ref={rootRef} data-view={view} data-plane={plane2}>
+    <div className={`akv-root${SCROLL_DEMO ? ' has-zv' : ''}`} ref={rootRef} data-view={view} data-plane={plane2}>
       <style>{CSS}</style>
       {CHAT_MOCK && <style>{VAULT_CHAT_CSS}</style>}
       {WALL_MOCK && <style>{VAULT_WALL_CSS}</style>}
@@ -850,6 +890,18 @@ export default function PackAinubis() {
         <div className="akv-list">
         <div className="akv-col">
           {shown.length === 0 && <p className="akv-empty">{tx('pack.ainubis.noMatch', 'Nothing found.')}</p>}
+          {SCROLL_DEMO && <div className="akv-zvh">Ukážka 3:4 · Cesta psa · okruh 1</div>}
+          {SCROLL_DEMO && DEMO_SCROLLS.map(z => (
+            <article key={z.id} className="akv-zv">
+              <img src={demoImg(z.id)} alt="" loading="lazy" />
+              <div className="akv-zvt">
+                <span className="akv-zvlbl">{z.id.slice(3)} · {z.variant}</span>
+                <h3 className="akv-zvn">{z.t}</h3>
+                <p className="akv-zvv">{z.v}</p>
+                <button type="button" className="akv-zvcta">Celý príbeh ›</button>
+              </div>
+            </article>
+          ))}
           {shown.map(({ w, i }) => (
             <section
               key={w.key}

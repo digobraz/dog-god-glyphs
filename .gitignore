@@ -47,3 +47,6 @@ dist-ssr
 # node_modules tohto priečinka — ale do repa nepatria. Auto-save hook ich inak
 # zoberie so sebou (stalo sa 24. 9.: päť `*.tmp.mjs` v commite).
 *.tmp.mjs
+
+# Ukážkové obrazy zvitkov VAULTU len pre lokálny dev (3. 10. 2026) — ostré obrazy pôjdu cez Cloudinary.
+public/vault-demo/
