@@ -93,22 +93,6 @@ export function notePanelH(): number {
     : NOTE_PANEL_H;
 }
 
-/**
- * Bod z dlhého podržania, kým človek vyberá typ.
- *
- * Bez neho je rýchla cesta slepá: paleta sa otvorí dole, ale nikde nevidno, KDE
- * gesto pristálo — takže sa nedá zistiť, či prst trafil, alebo je bod o kus vedľa.
- * Značka je zámerne bezfarebná (typ ešte nie je zvolený) a nedá sa ťahať —
- * ťahanie prichádza až s draftom.
- */
-export function NoteSpotPin({ lat, lon }: { lat: number; lon: number }) {
-  const icon = useMemo(
-    () => L.divIcon({ className: 'mn-wrap', html: '<div class="mn-mark mn-spot"></div>' }),
-    [],
-  );
-  return <Marker position={[lat, lon]} icon={icon} interactive={false} />;
-}
-
 export type AddMapNotePinProps = {
   lat: number;
   lon: number;
@@ -748,32 +732,6 @@ export function MapNoteTooFar({ x, y, width, height }: { x: number; y: number; w
   );
 }
 
-/**
- * Jednorazová nápoveda o rýchlej ceste — „podrž dlhšie prst na mieste".
- *
- * Matej 2026-08-20: „na mobile vyjde tento oznam nad tlačítka kde je aj
- * pridať… podrž dlhšie prst na mieste kde chceš pridať". Na PC to isté hovorí
- * plusko pri kurzore (`MapNoteCursor`), takže tam sa pruh nekreslí.
- */
-export function MapNoteHint({ onDismiss }: { onDismiss: () => void }) {
-  const t = useT();
-  return (
-    <div className="mna-tip" role="status">
-      <style>{ADD_NOTE_CSS}</style>
-      <span>{t('pack.mapNotes.hint')}</span>
-      <button type="button" onClick={onDismiss} aria-label={t('pack.mapNotes.add.close')}>×</button>
-    </div>
-  );
-}
-
-const HINT_KEY = 'dogypt.mapNotes.hintSeen.v1';
-export const hintSeen = (): boolean => {
-  try { return localStorage.getItem(HINT_KEY) === '1'; } catch { return true; }
-};
-export const markHintSeen = (): void => {
-  try { localStorage.setItem(HINT_KEY, '1'); } catch { /* private mode — nápoveda sa ukáže znova, nie je to chyba */ }
-};
-
 export const ADD_NOTE_CSS = `
 /* ── PANEL AKO NÍZKY PÁS ───────────────────────────────────────────────────
    Žiadny backdrop: mapa musí ostať vidieť aj klikateľná mimo panela.
@@ -822,22 +780,18 @@ export const ADD_NOTE_CSS = `
    Bez tohto by na PC panel v kroku 2 odskočil z ľavého bloku na pás cez celú spodnú hranu —
    tá istá chyba ako na telefóne, len s väčším skokom. Miery sú zhodné s .trp-dock
    (GeometryPicker.tsx): je to ten istý stĺpec, nie jeho druhá verzia.
-   ⚠️ Platí LEN v sprievodcovi. Na holej mape žiadny ľavý blok nie je a panel tam ostáva
-   spodným pásom. */
+   ⛔ Do 3. 10. 2026 to platilo LEN v sprievodcovi a na holej mape bol panel pásom cez celú
+   spodnú hranu (1477 px pri jednej vete a rade chipov). Matej nad hárkom (bod F3, „ok oprav
+   všetko"): rovnaký ľavý stĺpec ako formulár podujatia — jedna úloha, jedno miesto. */
 @media (min-width:1024px){
   /* ⚠️ ZAROVNANÝ HORE A VYSOKÝ PODĽA OBSAHU (bottom:auto). Dok má síce top aj bottom 20 px,
      ale je to len RÁM stĺpca — panely v ňom stoja hore (justify-content:flex-start) a výšku
      si berú podľa obsahu. Keď si tie isté dve hodnoty vzal panel značky priamo na seba,
      natiahol sa cez celú obrazovku a medzi vetou o okruhu a tlačidlom ostala pol metra diera. */
-  .mna-sheet--dock{top:20px;bottom:auto;left:20px;right:auto;width:${DOCK_COL_W}px;max-width:calc(100vw - 40px);max-height:calc(100vh - 40px);}
+  .mna-sheet{top:20px;bottom:auto;left:20px;right:auto;width:${DOCK_COL_W}px;max-width:calc(100vw - 40px);max-height:calc(100vh - 40px);}
 }
 @media (min-width:1024px) and (max-width:1400px){
-  .mna-sheet--dock{width:360px;}
-}
-/* Na holej mape ostáva panel PRIPÚTANÝ k spodnej hrane, takže dole nemá čo zaobľovať ani
-   rámovať — .trp-dockpanel zaobľuje dokola, lebo tam je karta plávajúca. */
-@media (min-width:1024px){
-  .mna-sheet:not(.mna-sheet--dock){border-radius:16px 16px 0 0;border-bottom:0;border-left:0;border-right:0;}
+  .mna-sheet{width:360px;}
 }
 /* Hlavička a CTA stoja, skroluje sa len stred v .mna-scroll.
    ⚠️ NIE mna-body — to je trieda TEXTAREY o pár riadkov nižšie a obal s tým istým

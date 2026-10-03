@@ -2527,7 +2527,7 @@ export const sk: Partial<Dict> = {
   'pack.addEvent.descriptionLabel': "Popis",
   'pack.addEvent.descriptionPlaceholderOwn': "Čo sa deje, pre koho to je, čo si zobrať…",
   'pack.addEvent.descriptionPlaceholderTip': "Krátke zhrnutie vlastnými slovami — nie prevzaté zo zdroja",
-  'pack.addEvent.photoLabel': "URL fotky (voliteľné)",
+  'pack.addEvent.photoLabel': "Fotka (voliteľné)",
   'pack.addEvent.photoPlaceholder': "https://…",
   'pack.addEvent.sourceUrlLabel': "Odkaz na podujatie",
   'pack.addEvent.sourceUrlPlaceholder': "https://…",

@@ -222,8 +222,20 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
       const z = apiRef.current.free?.();
       if (!z) { nativeFree = false; return; }
       const y = window.scrollY;
-      if (y < z[0] - 2) { nativeFree = false; window.scrollTo({ top: z[0], behavior: 'instant' as ScrollBehavior }); }
-      else if (y > z[1] + 2) { nativeFree = false; window.scrollTo({ top: z[1], behavior: 'instant' as ScrollBehavior }); }
+      if (y < z[0] - 2) stopAt(z[0]);
+      else if (y > z[1] + 2) stopAt(z[1]);
+    };
+    /** Sám scrollTo dobeh zotrvačnosti nezastaví (švih pokračuje z novej
+     *  polohy), preto sa na dva snímky zamkne scroll koreňa. */
+    let locked = false;
+    const stopAt = (top: number) => {
+      const el = document.documentElement;
+      window.scrollTo({ top, behavior: 'instant' as ScrollBehavior });
+      if (locked) return;
+      locked = true;
+      const prev = el.style.overflow;
+      el.style.overflow = 'hidden';
+      requestAnimationFrame(() => requestAnimationFrame(() => { el.style.overflow = prev; locked = false; }));
     };
     const onTouchEnd = (e: TouchEvent) => {
       if (touchY == null) return;

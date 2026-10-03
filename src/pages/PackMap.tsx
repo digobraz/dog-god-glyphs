@@ -144,15 +144,15 @@ import type { WishAskKind, WishAskReq } from '@/components/pack/mapnotes/WishAsk
 import { WISH_EMOJI, WISH_RIM } from '@/components/pack/mapnotes/markEmoji';
 import { dockFitPadding } from '@/components/pack/mapDockShape';
 import { MapAttribution, MAP_ATTR_CSS, mapAttrLiftCSS } from '@/components/pack/mapAttribution';
-import { AddMapNotePin, NoteSpotPin, AddMapNotePanel, MapNotePlacing, NoteQuickPalette, MapNoteHint, MapNoteTooFar, ADD_NOTE_CSS, notePanelH, hintSeen, markHintSeen } from '@/components/pack/mapnotes/AddMapNote';
+import { AddMapNotePin, AddMapNotePanel, MapNotePlacing, MapNoteTooFar, ADD_NOTE_CSS, notePanelH } from '@/components/pack/mapnotes/AddMapNote';
 import { NOTE_PALETTE_CSS } from '@/components/pack/mapnotes/NotePalette';
 import { DeleteButton, DELETE_BUTTON_CSS } from '@/components/pack/DeleteButton';
 // Kruhová značka — TÁ ISTÁ geometria ako hrozba/tip vo vrstve zápisov (hlavička circleMark.ts).
 import { circleMarkHtml, CIRCLE_MARK_CSS } from '@/components/pack/mapnotes/circleMark';
 import { EVENT_RIM, TRIP_TARGET_EMOJI, eventEmoji, FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
-import { useLongPressPoint, useMapClickPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS } from '@/components/pack/mapnotes/useLongPressPoint';
-import { MapNoteCursor, MapPlaceCursor, MAP_NOTE_CURSOR_CSS } from '@/components/pack/mapnotes/MapNoteCursor';
+import { useMapClickPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS } from '@/components/pack/mapnotes/useLongPressPoint';
+import { MapPlaceCursor, MAP_NOTE_CURSOR_CSS } from '@/components/pack/mapnotes/MapNoteCursor';
 import { nearestTrailId, canAddParkingAt } from '@/components/pack/mapnotes/mapNotesGeo';
 import { GROUP_KINDS, defaultRadius, type NoteGroup, type NoteKind, type TickDisease } from '@/components/pack/mapnotes/mapNotesData';
 import { TRAVEL_EMOJI } from '@/components/pack/addtrip/addTripModel';
@@ -1982,8 +1982,6 @@ ${TRAIL_LINE_CSS}
      a žiadny overflow-x — už niet čo scrollovať, obsah sa vždy zmestí. */
   .trp-mheader-status{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap;}
   .trp-mheader-status .trp-headright{gap:5px;flex:0 0 auto;justify-content:flex-end;}
-  /* PackNotifications má rozmery v inline style (38px) → prebiť sa dá len !important. */
-  .trp-mheader-status .trp-header-notif button{width:32px!important;height:32px!important;}
   /* Identita samotná je v GLOBÁLNOM CSS vyššie (.trp-midentity a spol.) — jeden blok na oboch
      šírkach. Tu ostáva len to, čo je naozaj mobilné: na mobile ide identita cez celú voľnú šírku. */
   .trp-mheader-status .trp-midentity{flex:1 1 auto;}
@@ -2241,26 +2239,6 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
      lapis je vždy tmavá výplň v chrome — to je jediné, čo tie dve modré drží oddelene.
      ⚠️ Do brand manuálu sa to NEZAPISUJE, kým Matej redizajn neodklepne (jeho slová:
      „zatiaľ to nezapisuj ale používajme to pri redizajne"). Zdroj hodnôt: LAPIS v navGoldSkin.ts. */
-  /* ── SPRÁVY A NOS BOLI NEVIDITEĽNÉ (Matej 2026-08-26: „správy a nos viac zvýrazni sú
-     neviditeľné") ────────────────────────────────────────────────────────────────────────
-     PackNotifications má v svetlej vetve buttonBg: transparent a slabý rám — na
-     pieskovej doske z tlačidla nezostalo nič. Farby si nesie v INLINE štýloch, takže sa bez
-     !important prebiť nedajú; parameter dark tu nepomôže, lebo problém je práve svetlá
-     vetva. Meniť ju v komponente by prefarbilo aj HeroCard na /pack, čo nikto nepýtal —
-     preto lokálny prepis. Precedens: .trp-header-notif a .trp-mheader-status už
-     !important používajú z toho istého dôvodu. */
-  /* ── SPRÁVY A UPOZORNENIA = OBRÁTENÁ PILULKA (Matej 2026-08-26, tretie kolo) ──────────
-     „skúsme dať tie správy a upozornenia revertnú = chip tmavý a ikonka zlatá."
-     Presný opak chipov vedľa: tam zlatá výplň a tmavá kresba, tu tmavá výplň a zlatá kresba.
-     Nie je to tretia farba — je to tá istá dvojica prevrátená, takže pás ostáva jednotný a
-     zároveň je hneď vidieť, že tieto dve tlačidlá robia niečo iné než odkazy na výlety.
-     ⚠️ Vystúpený tieň sa NEDEDÍ z NAV_PILL_SHADOW: jeho horná hrana je svetlý krém, ktorý na
-     tmavej výplni vyzerá ako škrabanec. Tmavá pilulka má vlastnú — zlatú — hornú hranu. */
-  .trp-topbar .trp-header-notif button{background:linear-gradient(180deg,#3A2410,#1B0F05)!important;border:1px solid ${T.cardEdge}!important;color:${T.accentGold}!important;box-shadow:inset 0 1px 0 rgba(201,154,63,0.45),0 3px 8px -1px rgba(40,25,6,0.55)!important;}
-  .trp-topbar .trp-header-notif button:hover{filter:brightness(1.18);}
-  /* Obálka je obrázok tintovaný filtrom — na tmavom chipe zlatý tint (zhoda s BrandIcon gold).
-     Nos je inline SVG s currentColor, ten si farbu berie z color vyššie. */
-  .trp-topbar .trp-header-notif button img{filter:brightness(0) saturate(100%) invert(58%) sepia(56%) saturate(481%) hue-rotate(2deg) brightness(91%) contrast(86%)!important;opacity:1!important;}
 
   .trp-topbar .trp-addtrip-btn{background:${LAPIS.grad};color:${LAPIS.ink};border-color:${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};}
   .trp-topbar .trp-addtrip-btn:hover{background:${LAPIS.gradHover};filter:none;box-shadow:${LAPIS_BTN_SHADOW};}
@@ -2541,11 +2519,6 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-mheader .trp-stat-pill b,.trp-mheader .trp-stat-pill span{color:${P_INK};}
   .trp-mheader .trp-mfilterbtn.on{border-color:${LAPIS.edge};color:${LAPIS.deep};}
 
-  /* ── SPRÁVY A UPOZORNENIA = OBRÁTENÁ PILULKA ───────────────────────────────────────
-     Tá istá dvojica ako na PC (.trp-topbar .trp-header-notif): tam zlatá výplň a tmavá
-     kresba, tu tmavá výplň a zlatá kresba. Farby si komponent nesie v INLINE štýloch,
-     takže bez !important sa prebiť nedajú. */
-  .trp-mheader .trp-header-notif button{background:linear-gradient(180deg,#3A2410,#1B0F05)!important;border:1px solid ${T.cardEdge}!important;color:${T.accentGold}!important;box-shadow:inset 0 1px 0 rgba(201,154,63,0.45),0 3px 8px -1px rgba(40,25,6,0.55)!important;}
 
   /* ── HĽADANIE — ploché papyrusové pole (úroveň 5 matrice, pilulkový variant) ────────── */
   .trp-mheader .trp-mapsearch{background:${P_FIELD};border:1px solid ${P_BORDER};box-shadow:inset 0 1px 2px rgba(96,64,16,0.14);}
@@ -3675,7 +3648,6 @@ export default function PackMap() {
   }, []);
   // Bez tohto by po odchode zo stránky bežal `setState` nad odmountovaným stromom.
   useEffect(() => () => { if (tooFarTimer.current !== null) window.clearTimeout(tooFarTimer.current); }, []);
-  const [noteHint, setNoteHint] = useState(false);
   // POMALÁ CESTA: typ je vybraný z palety a čaká sa, kde človek klikne na mape.
   const [notePlacing, setNotePlacing] = useState<NoteGroup | null>(null);
   /**
@@ -3692,8 +3664,6 @@ export default function PackMap() {
    * o druh nestoja. `null` = ber prvý druh skupiny, teda pôvodné správanie.
    */
   const [placingKind, setPlacingKind] = useState<NoteKind | null>(null);
-  // RÝCHLA CESTA: dlhé podržanie dalo bod a paleta sa pýta, čo to je.
-  const [noteSpot, setNoteSpot] = useState<{ lat: number; lon: number } | null>(null);
   const [noteZoom, setNoteZoom] = useState(0);
 
   // Priblíženie ako STATE, nech lišta „ukáž miesto" vie prepnúť text na „priblíž
@@ -3719,11 +3689,8 @@ export default function PackMap() {
   const placeNote = (group: NoteGroup, lat: number, lon: number, kindOverride?: NoteKind | null) => {
     const kind = kindOverride ?? GROUP_KINDS[group][0];
     setNoteTooFar(null);
-    setNoteHint(false);
     setNotePlacing(null);
     setPlacingKind(null);
-    setNoteSpot(null);
-    markHintSeen();
     // Pripnutie je VÝNIMKA, nie väzba (viď mapNotesGeo.ts): väčšinu práce spraví
     // geometria pri čítaní, toto len podchytí prípad, keď zápis vznikol
     // s konkrétnym výletom na mysli.
@@ -3735,25 +3702,12 @@ export default function PackMap() {
     if (pt.y > safeY) map.panBy([0, pt.y - safeY], { animate: true, duration: 0.35 });
   };
 
-  // Nápoveda sa ukáže RAZ, a až keď je mapa dosť priblížená na to, aby gesto
-  // vôbec fungovalo — inak by radila niečo, čo v tej chvíli nejde spustiť.
-  // ⚠️ Wizard je parkovaný na po launchi, takže toto je jediné miesto, kde sa
-  // človek o písaní po mape dozvie.
-  useEffect(() => {
-    if (!mapInstance || hintSeen()) return;
-    const check = () => { if (mapInstance.getZoom() >= MIN_ZOOM_FOR_NOTE) setNoteHint(true); };
-    check();
-    mapInstance.on('zoomend', check);
-    return () => { mapInstance.off('zoomend', check); };
-  }, [mapInstance]);
-
   const addBusy = addEntryOpen || addFlow !== null || addEventFlow !== null;
-  const noteBusy = !!noteDraft || !!noteSpot || addBusy;
+  const noteBusy = !!noteDraft || addBusy;
 
   // ── ZÁMOK OBRAZOVKY (Matej 2026-08-22, LOCK §2.2b zadania-mapa-composer) ──
   // „ihneď po PRVOM dlhom stlačení sa musí obrazovka locknúť do stavu vpisovania výletov."
-  // Preto tu nie je len addBusy: zámok zapína už `noteSpot` (paleta pri prste hneď po
-  // podržaní) a `notePlacing` (typ vybraný, čaká sa na klik do mapy) — teda naozaj prvý krok
+  // Preto tu nie je len addBusy: zámok zapína už `notePlacing` (typ vybraný, čaká sa na klik do mapy) — teda naozaj prvý krok
   // pridávania čohokoľvek, nie až otvorený formulár.
   // Celý účinok je v CSS pri `body.trp-draw-lock` (jedna trieda, jedno miesto). Únik nesie
   // každý panel sám (× / Zrušiť) — režim bez východu je pasca, nie sústredenie.
@@ -3765,7 +3719,7 @@ export default function PackMap() {
   //    a šírku aj polohu berie z nej (`--pack-nav-half`/`--pack-nav-bottom`, AddTripEntry).
   //    Zámok lištu skryje → ResizeObserver nahlási 0 px → panel mal 36 px a stál NAD oknom.
   //    Matej: „pri kliknutí na pridať podujatie sa nič nedeje, obraz stmavne". Zamyká až tok.
-  const drawLock = !!noteDraft || !!noteSpot || addFlow !== null || addEventFlow !== null
+  const drawLock = !!noteDraft || addFlow !== null || addEventFlow !== null
     || notePlacing !== null || wishLock;
   useEffect(() => {
     if (!drawLock) return;
@@ -3775,33 +3729,18 @@ export default function PackMap() {
     return () => document.body.classList.remove('trp-draw-lock');
   }, [drawLock]);
 
-  // RÝCHLA CESTA — podržanie dá miesto, paleta sa spýta na typ. Beží len keď
-  // NEPREBIEHA pomalá cesta: v režime „ukáž miesto" by dlhé podržanie a klik
-  // súperili o ten istý dotyk.
-  // 🔒 GESTO SA NEDÁ STLMIŤ — `<RightGate>` obalí PRVOK, dlhé podržanie prvok nemá.
-  // Preto sa tu berie tá istá odpoveď priamo z hooku a namiesto palety sa povie,
-  // prečo to nejde; ticho by to vyzeralo ako nefunkčná mapa.
-  useLongPressPoint(mapInstance, !noteBusy && !notePlacing, {
-    onPoint: (lat, lng) => {
-      if (!dogRights.canAny('map.notes')) {
-        const line = t('pack.gate.owner');
-        toast({ title: line === 'pack.gate.owner' ? 'Only the owner can change this.' : line });
-        return;
-      }
-      setNoteTooFar(null);
-      setNoteHint(false);
-      markHintSeen();
-      setNoteSpot({ lat, lon: lng });
-    },
-    onTooFar: showTooFar,
-  });
+  // ⛔ RÝCHLA CESTA (dlhé podržanie → paleta pri prste) ZRUŠENÁ 3. 10. 2026. Matej: *„tento
+  // panel by som úplne zrušil spolu s dlhým podržaním a ikonkou + pri šípke… a nechal to len
+  // konkrétnym klikom cez akčné stredové tlačítko = žiadny panel netreba"*. Zápis odkazu,
+  // výletu aj podujatia ide výhradne cez `+` v lište (createRegistry) → typ → klik do mapy.
+  // Nevracaj gesto ani plusko pri kurzore bez jeho slova — súperili o tú istú úlohu s `+`.
 
   // POMALÁ CESTA — typ už je vybraný, stačí jeden klik do mapy.
   // ⚠️ ZÁMERNE NIE `!noteBusy`: `noteBusy` obsahuje aj `addBusy`, a krok 2 sprievodcu výletu
   // („bolo na trase parkovisko / nebezpečenstvo / tip?") zapichuje značky práve POČAS
   // pridávania výletu. S pôvodnou podmienkou by tam klik do mapy nikdy nezabral a tlačidlo
   // OZNAČ NA MAPE by bolo mŕtve.
-  const notePlaceReady = !!notePlacing && !noteDraft && !noteSpot && !addEntryOpen;
+  const notePlaceReady = !!notePlacing && !noteDraft && !addEntryOpen;
   /**
    * PRAH PRIBLÍŽENIA JE INÝ VNÚTRI SPRIEVODCU VÝLETU.
    *
@@ -4818,8 +4757,6 @@ export default function PackMap() {
    * (krok 1 sprievodcu si o mapu povie sám cez `onMapPhase`).
    */
   const startFromPoint = (what: 'trip' | 'event', lat: number, lon: number) => {
-    setNoteSpot(null);
-    setNoteHint(false);
     setInlineDetailId(null);
     setMobileView('map');
     setSeedPoint({ lat, lon });
@@ -5650,7 +5587,10 @@ export default function PackMap() {
 
   const renderHeaderRight = (dark = true) => (
     <div className="trp-headright">
-      <PackNotifications dark={dark} layout="inline" className="trp-header-notif" last24h={id.packToday} total={id.packTotal} />
+      {/* KAPSULA ako na každej inej stránke /pack (Matej 3. 10. 2026: *„správy a upozornenia sú
+          na mobile klasicky v spoločnom chipe… nech je to všade také isté"*). Do vtedy tu boli
+          dve samostatné tmavé kolieska („obrátená pilulka" z 26. 8.) a na papyruse zanikali. */}
+      <PackNotifications dark={dark} layout="inline" className="trp-header-notif" last24h={id.packToday} total={id.packTotal} capsule />
     </div>
   );
 
@@ -7219,8 +7159,6 @@ export default function PackMap() {
                 <WishLayer wishes={wishes} onChanged={reloadWishes} interactive={!mapDrawing && !wishFlow} />
               )}
               {wishDraft && <Marker position={[wishDraft.lat, wishDraft.lon]} icon={WISH_DRAFT_ICON} interactive={false} />}
-              {/* bod z dlhého podržania, kým sa vyberá typ */}
-              {noteSpot && !noteDraft && <NoteSpotPin lat={noteSpot.lat} lon={noteSpot.lon} />}
               {noteDraft && (
                 <AddMapNotePin
                   lat={noteDraft.lat}
@@ -7244,10 +7182,6 @@ export default function PackMap() {
                 Dve rôzne licencie, dva zdroje, dva riadky nad sebou. */}
 
 
-            {/* Plusko s prstencom PRI KURZORE (Matej 2026-08-20) — nahradilo pevné
-                tlačidlo v rohu, ktoré bolo slabo viditeľné a súperilo s tlačidlom
-                PRIDAŤ o tú istú úlohu. Na dotyku sa nekreslí (kurzor neexistuje). */}
-            {!isCleanMode && <MapNoteCursor map={mapInstance} hidden={noteBusy || !!notePlacing} />}
             {/* Kým je typ vybraný a čaká sa na klik, kurzor NESIE ZNAČKU, ktorá dopadne
                 (Matej 2026-08-27). Plusko sa v tej chvíli skrýva — pozývalo by do druhého
                 zápisu uprostred prvého. */}
@@ -7539,28 +7473,6 @@ export default function PackMap() {
              pri `onPickType` v AddMapNote.tsx). */
           onPickType={addFlow ? ((g, k) => { setNotePlacing(g); setPlacingKind(k); }) : undefined}
         />
-      )}
-      {/* Rýchla cesta: bod je z dlhého podržania, pýta sa typ. */}
-      {noteSpot && !noteDraft && (
-        <NoteQuickPalette
-          onPick={(g) => placeNote(g, noteSpot.lat, noteSpot.lon)}
-          onPickExtra={(x) => startFromPoint(x, noteSpot.lat, noteSpot.lon)}
-          onCancel={() => setNoteSpot(null)}
-          /* JEDNO PARKOVISKO NA VÝLET (Matej 2026-09-15). Rozhoduje výlet, ku ktorému by sa
-             bod pripol (`nearestTrailId`) — na holej mape ho človek nevidí, preto dlaždica
-             nezmizne, len zhasne a povie dôvod. Bod mimo dosahu každej trasy sa neblokuje. */
-          blocked={canAddParkingAt(noteSpot.lat, noteSpot.lon, mapNotes.notes, allTrails)
-            ? undefined
-            : { parking: t('pack.mapNotes.parking.already') }}
-        />
-      )}
-      {/* ⚠️ NIE POČAS SPRIEVODCU (2026-08-31). Nápoveda o odkazoch svieti podľa priblíženia
-          mapy, teda aj v kroku 1 pridávania výletu — a tam hovorí „podrž dlhšie prst"
-          zároveň s Ainubisom, ktorý pri oblasti hovorí „ťukni". Dve bubliny, dve gestá,
-          dva rôzne účely (odkaz vs. výlet) na jednej obrazovke. Odkazy majú vlastný krok 2,
-          takže sa o nich človek dozvie aj tak. */}
-      {noteHint && addMapPhase === 'off' && !noteDraft && !notePlacing && !noteSpot && (
-        <MapNoteHint onDismiss={() => { setNoteHint(false); markHintSeen(); }} />
       )}
       {/* `reward` sa pustí dnu len keď patrí PRÁVE otvorenému výletu (WalkReward.tid) — inak by
           odmena za trasu A vyskočila v popupe trasy B. */}

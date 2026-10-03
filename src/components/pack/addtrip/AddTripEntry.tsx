@@ -20,7 +20,7 @@ import { TRIP_CATEGORIES } from '@/components/pack/tripCategories';
 import { EVENT_KINDS, EVENT_KIND_LABEL_KEYS, type EventKind } from '@/components/pack/events/eventModel';
 import type { TripState } from './addTripModel';
 import {
-  panelFor, isReady, isSoon, type CreateId, type CreateObject, type CreatePlace,
+  panelFor, isReady, type CreateId, type CreateObject, type CreatePlace,
 } from '@/components/pack/createRegistry';
 import { POINTS } from '@/lib/tripPoints';
 import { BUDDY_LIVE, EVENTS_LIVE, WISHES_LIVE } from '@/lib/packFlags';
@@ -168,22 +168,6 @@ const PLACE_TITLE: Record<CreatePlace, string> = {
   GLOBAL: 'Add',
 };
 
-/**
- * Štítok „čoskoro" S TERMÍNOM (lock §1.1.1: panel nesmie mať jedinú položku a dopĺňa sa
- * OHLÁSENÝM, nie vymysleným).
- *
- * ⚠️ Mesiac sa NEPREKLADÁ na názov. `11/2026` je zrozumiteľné v osemnástich jazykoch
- *    a nepotrebuje osemnásť tvarov skloňovaného mesiaca; slovo „čoskoro" preklad má.
- */
-function soonLabel(soon: string | undefined, tx: (k: string, f: string) => string): string {
-  const word = tx('pack.create.soon', 'Soon');
-  if (!soon) return word;
-  const [y, m] = soon.split('-');
-  /* Len termín — riadok je stlmený, „čoskoro" hovorí sám. Panel má od 22. 9. šírku
-     lišty (~310 px na PC) a „ČOSKORO · 11/2026" v ňom zalamoval názov do troch riadkov. */
-  return `${Number(m)}/${y}`;
-}
-
 // Druhá úroveň pre TRIP — texty prevzaté 1:1 z pôvodných BLOCKS (needituje sa, len sa
 // presúva sem, §2.2).
 // ⚠️ NERENDERUJE SA od 22. 8. 2026 (rez C) — ostáva ako doklad, čo tu stálo, a ako
@@ -325,7 +309,6 @@ export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryP
       >
         <span className="att-entry-emoji" aria-hidden="true">{EMOJI[o.id]}</span>
         <span className="att-entry-title">{tx(o.labelKey, o.labelFallback)}</span>
-        {isSoon(o) && <span className="att-entry-soon">{soonLabel(o.soon, tx)}</span>}
       </button>
     );
   };
@@ -412,15 +395,9 @@ export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryP
                        jedna vec, dve odpovede. Teraz rovnaký riadok ako SLUŽBA: vidno ho,
                        neklikne sa. Dôvod zámku ostáva v `lib/packFlags.ts`. */
                     // PRIANIE rovnako (26. 9. 2026): migrácie bežia len na DEV.
-                    if ((o.id === 'event' && !EVENTS_LIVE) || (o.id === 'wish' && !WISHES_LIVE)) {
-                      return (
-                        <button key={o.id} type="button" className="att-entry-row att-entry-row--soon" disabled aria-disabled>
-                          <span className="att-entry-emoji" aria-hidden="true">{o.id === 'wish' ? EMOJI.wish : EMOJI.event}</span>
-                          <span className="att-entry-title">{tx(o.labelKey, o.labelFallback)}</span>
-                          <span className="att-entry-soon">{soonLabel(undefined, tx)}</span>
-                        </button>
-                      );
-                    }
+                    // ⛔ Nehotové (podujatia/prianie mimo DEV) sa od 3. 10. 2026 NEKRESLIA vôbec —
+                    // Matej: „ak to pridáme, bude to tam" (viď `createFor` v createRegistry.ts).
+                    if ((o.id === 'event' && !EVENTS_LIVE) || (o.id === 'wish' && !WISHES_LIVE)) return null;
                     const k = KIND_BY_ID[o.id];
                     // Mapový objekt kreslí panel sám a vie o ňom viac než register: emoji,
                     // body za zápis, potrebné právo aj chipy taxonómie. Register mu to
@@ -499,8 +476,6 @@ const ENTRY_CSS = `
 .att-entry-list{display:flex;flex-direction:column;gap:4px;}
 .att-entry-row{position:relative;display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:${T.cardGrad};border:1px solid ${T.cardEdge};border-radius:${PLATE_TILE_R}px;padding:8px 12px;cursor:pointer;transition:border-color .15s ease,background .15s ease;}
 .att-entry-row:hover,.att-entry-row:focus-visible{border-color:${T.inkWarm};outline:none;}
-.att-entry-row--soon{opacity:.45;cursor:default;}
-.att-entry-row--soon:hover,.att-entry-row--soon:focus-visible{border-color:${T.cardEdge};}
 /* Emoji má vlastný font-family, inak naň sadne zdedený Cinzel a na Windows sa z 🅿️ stane
    obdĺžnik. Pevná šírka drží názvy pod sebou v jednej zvislej osi. */
 .att-entry-emoji{flex:0 0 auto;width:28px;font-family:${FONT_EMOJI};font-size:24px;line-height:1;text-align:center;}
@@ -512,9 +487,7 @@ const ENTRY_CSS = `
    poistka pre budúci dlhší preklad, nie plán. */
 /* BODY V LAPISOVEJ PILULKE (Matej 26. 8.: „body budú v modrom pilse") — odmena je „moje". */
 .att-entry-pts{flex:0 0 auto;padding:4px 8px;border-radius:999px;background:${LAPIS.grad};border:1px solid ${LAPIS.deep};font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;white-space:nowrap;color:${LAPIS.ink};}
-.att-entry-soon{position:absolute;top:-7px;right:12px;padding:0 8px;border-radius:999px;border:1px solid ${T.cardEdge};background:#FBF5E6;font-family:${FONT_UI};font-weight:600;font-size:10px;line-height:14px;letter-spacing:0.02em;text-transform:uppercase;white-space:nowrap;color:${T.inkWarm};}
 /* Štítok presahuje hornú hranu — medzera nad riadkom so štítkom, aby nesadol na suseda. */
-.att-entry-row--soon{margin-top:4px;}
 
 /* ── NÁVRAT V TOKU ───────────────────────────────────────────────────────────────────
    backCircleCSS nesie priemer, lem aj farby (BackButton.tsx, LOCKED 2026-09-01).

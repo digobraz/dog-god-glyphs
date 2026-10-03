@@ -4274,9 +4274,12 @@ const LOG_CSS = `
      o 70 px, teda presne to, čomu sa presunom šípky do stredu predchádzalo.
      ⚠️ flex:0 1 auto na zozname (namiesto 1 1 auto): zoznam sa smie ZMRAŠTIŤ a rolovať
      na nízkom displeji, ale nesmie sa naťahovať — inak vyplní zvyšok a centrovať nie je čo.
-     Slovo safe drží vrch dosiahnuteľný, keď sa dvojica nezmestí. */
-  .atl-log--intro{position:relative;justify-content:safe center;padding-top:48px;}
-  .atl-log--intro .atl-log-head--intro{padding-top:0;gap:0;}
+     Slovo safe drží vrch dosiahnuteľný, keď sa dvojica nezmestí.
+     ⛔ CENTROVANIE ZRUŠENÉ 3. 10. 2026 (hárok rozhodnutí, bod 4A — Matej „ok"): nad nadpisom
+     ostávalo ~240 px prázdna. Nadpis a zoznam stoja HORE pod šípkou (48 + 32 px), voľno je
+     dole pod palcom. Šípka ostáva mimo toku v strede hore (zadanie 23. 8.). */
+  .atl-log--intro{position:relative;justify-content:flex-start;padding-top:48px;}
+  .atl-log--intro .atl-log-head--intro{padding-top:32px;gap:0;}
   .atl-log--intro .atl-log-back{position:absolute;top:14px;left:50%;transform:translateX(-50%);}
   .atl-log--intro .atl-tiles{flex:0 1 auto;}
 }

@@ -696,6 +696,8 @@ export const PAPER_ROUTES_LOCKED: readonly RegExp[] = [
   /^\/pack\/add(\/|$)/,
   // SNIFFER `/pack/sniffer` (interne BUDDY, 24. 9. 2026) — rovina VON, teda šat mapy; tmavú verziu nikdy nemal.
   /^\/pack\/sniffer(\/|$)/,
+  // Pozvánka do svorky `/pack/join/:token` — papyrus od 3. 10. 2026 (hárok rozhodnutí 6A), tmavú vetvu nemá.
+  /^\/pack\/join(\/|$)/,
 ];
 
 // `PAPER_ROUTES_PAGES` = povrchy prezlečené 8. 9. 2026, ktoré tmavú vetvu MAJÚ

@@ -86,10 +86,10 @@ import { StoryView, STORY_VIEW_CSS } from '@/components/pack/trip/StoryView';
 import { sizedUrl, heroPx } from '@/services/cloudinaryService';
 import { StoryWrite, STORY_WRITE_CSS } from '@/components/pack/trip/StoryWrite';
 import {
-  AddMapNotePin, NoteSpotPin, AddMapNotePanel, MapNotePlacing, NoteQuickPalette, MapNoteTooFar,
+  AddMapNotePin, AddMapNotePanel, MapNotePlacing, NoteQuickPalette, MapNoteTooFar,
   ADD_NOTE_CSS, notePanelH,
 } from '@/components/pack/mapnotes/AddMapNote';
-import { useLongPressPoint, useMapClickPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS } from '@/components/pack/mapnotes/useLongPressPoint';
+import { useMapClickPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS } from '@/components/pack/mapnotes/useLongPressPoint';
 import { GROUP_KINDS, defaultRadius, type NoteGroup, type NoteKind, type TickDisease } from '@/components/pack/mapnotes/mapNotesData';
 import { notesForTripMap, canAddParkingAt, parkingForTrail } from '@/components/pack/mapnotes/mapNotesGeo';
 import { MapNotesLayer, MAP_NOTES_CSS } from '@/components/pack/mapnotes/MapNotesLayer';
@@ -400,8 +400,10 @@ ${packColCSS('.pta-shell')}
    a Matej si tú zmes spája s AINUBISOM. Chip nie je tlačidlo — nedá sa naň kliknúť a
    nemá stav, je to menovka. Preto plná plocha, ale v tmavšej brandovej zlatej.
    Inkoust je tmavý ("#3d2405"), aby text na zlatej držal kontrast. */
-.pta-tag{background:linear-gradient(140deg,#D9AE55,#B98F33);border:1px solid ${BRAND_GOLD_BTN.edge};color:#3d2405;font-size:12px;font-weight:600;padding:8px 12px;border-radius:999px;
-  box-shadow:${PACK_SHADOW.lift};}
+/* ⛔ PLNÁ ZLATÁ ZRUŠENÁ 3. 10. 2026 (hárok rozhodnutí, bod 2E — Matej „ok"): plné zlaté
+   pilulky pod nadpisom vyzerali ako tlačidlá, hoci sú len menovky. Odteraz priesvitný
+   zlatý TINT (zlato = konštrukcia/menovka, nie akcia) — rámom ostávajú výrazné. */
+.pta-tag{${pickTintCSS(T.cardEdge, PALE.ink, 0.16)}border-width:1px;border-style:solid;font-size:12px;font-weight:600;padding:8px 12px;border-radius:999px;}
 .pta-gallery{display:flex;gap:8px;overflow-x:auto;margin-top:20px;padding-bottom:4px;scrollbar-width:none;}
 .pta-gallery::-webkit-scrollbar{display:none;}
 .pta-gallery img{flex:0 0 148px;height:104px;border-radius:12px;object-fit:cover;background:#111;cursor:pointer;}
@@ -596,7 +598,6 @@ export default function PackTripArticle() {
   const [noteMap, setNoteMap] = useState<L.Map | null>(null);
   const [noteDraft, setNoteDraft] = useState<{ lat: number; lon: number; group: NoteGroup; kind: NoteKind; disease: TickDisease | null; radiusM: number | null } | null>(null);
   const [notePlacing, setNotePlacing] = useState<NoteGroup | null>(null);
-  const [noteSpot, setNoteSpot] = useState<{ lat: number; lon: number } | null>(null);
   const [notePick, setNotePick] = useState(false);
   const [noteZoom, setNoteZoom] = useState(0);
   const [noteTooFar, setNoteTooFar] = useState<{ x: number; y: number } | null>(null);
@@ -753,7 +754,7 @@ export default function PackTripArticle() {
   //
   // Bránu na písanie (`noteGate`) drží jedno miesto nižšie — potrebuje hlasy,
   // ktoré vznikajú až za komunitnou vrstvou.
-  const noteBusy = !!noteDraft || !!noteSpot || notePick;
+  const noteBusy = !!noteDraft || notePick;
 
   /**
    * CELOOBRAZOVKOVÝ REŽIM MAPY. Zapína sa v okamihu, keď sa začne zápis odkazu — teda
@@ -875,7 +876,6 @@ export default function PackTripArticle() {
   const placeNote = useCallback((group: NoteGroup, lat: number, lon: number) => {
     setNoteTooFar(null);
     setNotePlacing(null);
-    setNoteSpot(null);
     setNotePick(false);
     setNoteDraft({ lat, lon, group, kind: GROUP_KINDS[group][0], disease: null, radiusM: defaultRadius(GROUP_KINDS[group][0]) });
     const map = noteMap;
@@ -1036,10 +1036,8 @@ export default function PackTripArticle() {
     return true;
   }, [noteGate]);
 
-  useLongPressPoint(noteGate !== 'none' ? noteMap : null, !noteBusy && !notePlacing, {
-    onPoint: (lat, lng) => { if (!passNoteGate()) return; setNoteTooFar(null); setNoteSpot({ lat, lon: lng }); },
-    onTooFar: showTooFar,
-  });
+  // ⛔ Dlhé podržanie v mape článku ZRUŠENÉ 3. 10. 2026 (Matej: zápis len klikom, panel pri
+  // prste netreba) — ostáva tlačidlo „pridaj odkaz" (`notePick`) a `+` v lište.
   // Klik do mapy je POKRAČOVANIE už začatého zápisu (`notePlacing`), takže bránou
   // prešiel o krok skôr — druhýkrát sa nepýta.
   useMapClickPoint(noteGate !== 'none' ? noteMap : null, !!notePlacing && !noteBusy, {
@@ -1896,7 +1894,6 @@ export default function PackTripArticle() {
               <MapNotesLayer notes={notesForTripMap(mapNotes.notes, trail)} locale={dateLocale} />
               {/* Rozpracovaný zápis. Patrí DOVNÚTRA MapContainer (na rozdiel od panela) —
                   viď hlavičku AddMapNote.tsx. */}
-              {noteSpot && !noteDraft && <NoteSpotPin lat={noteSpot.lat} lon={noteSpot.lon} />}
               {noteDraft && (
                 <AddMapNotePin
                   lat={noteDraft.lat}
@@ -2112,17 +2109,6 @@ export default function PackTripArticle() {
           onCancel={() => setNotePick(false)}
           /* Miesto ešte nie je vybrané, ale výlet áno — a pravidlo je o výlete. */
           blocked={parkingBlocked}
-        />
-      )}
-      {noteSpot && !noteDraft && (
-        <NoteQuickPalette
-          onPick={(g) => placeNote(g, noteSpot.lat, noteSpot.lon)}
-          onCancel={() => setNoteSpot(null)}
-          /* Tu už miesto vybrané je: rozhoduje výlet, ku ktorému by sa parkovisko priplo —
-             ten nemusí byť ten otvorený (bod smie padnúť bližšie k susednej trase). */
-          blocked={canAddParkingAt(noteSpot.lat, noteSpot.lon, mapNotes.notes, allTrails)
-            ? undefined
-            : { parking: t('pack.mapNotes.parking.already') }}
         />
       )}
       {notePlacing && !noteDraft && (

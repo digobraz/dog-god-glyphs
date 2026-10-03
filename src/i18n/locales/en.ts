@@ -2814,7 +2814,7 @@ export const en = {
   'pack.addEvent.descriptionLabel': "Description",
   'pack.addEvent.descriptionPlaceholderOwn': "What's happening, who's it for, what to bring…",
   'pack.addEvent.descriptionPlaceholderTip': "A short summary in your own words — not copied from the source",
-  'pack.addEvent.photoLabel': "Photo URL (optional)",
+  'pack.addEvent.photoLabel': "Photo (optional)",
   'pack.addEvent.photoPlaceholder': "https://…",
   'pack.addEvent.sourceUrlLabel': "Link to the event",
   'pack.addEvent.sourceUrlPlaceholder': "https://…",

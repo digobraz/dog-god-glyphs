@@ -527,7 +527,11 @@ export function isSoon(o: CreateObject): boolean {
  * nesie význam miesta, nie stav práce. Štítok odlíši stav, poradie nie.
  */
 export function createFor(place: CreatePlace): CreateObject[] {
-  return CREATE_OBJECTS.filter((o) => o.place === place && (isReady(o) || isSoon(o)));
+  // ⛔ „ČOSKORO" V PANELI ZRUŠENÉ 3. 10. 2026. Matej nad štítkom 12/2026 pri SLUŽBE: *„daj to
+  //    celkom preč — ak to pridáme, bude to tam"*. Prebíja jeho vetu z 21. 9. *„dáme tam
+  //    čoskoro"* (lock architektúra-pack §1.1.1). Panel ukazuje LEN to, čo funguje; pole
+  //    `soon` v registri ostáva ako údaj o termíne (nástenka, diagnostika), panel ho nečíta.
+  return CREATE_OBJECTS.filter((o) => o.place === place && isReady(o));
 }
 
 /**

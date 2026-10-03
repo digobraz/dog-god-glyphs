@@ -15,7 +15,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useT } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
-import { PACK_BOX, PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_BOX, PACK_THEME as T, FONT_TITLE, FONT_UI, PAPER_PAGE_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { PAWMATE_RIGHTS } from '@/lib/pawmateRights';
 
@@ -130,10 +130,22 @@ export default function PackJoin() {
   }, [phase.k]);
 
   return (
-    <div style={{ minHeight: '100dvh', background: T.pageBg, color: T.onDark, fontFamily: FONT_UI }}>
+    // PAPYRUS (Matej 3. 10. 2026, hárok rozhodnutí bod 6A: „daj to v bledom šate a pridaj
+    // handwritten icon"). Do vtedy čierna plocha #050505 so zlatou kartou hore a 70 % prázdna.
+    // Recept je ten istý ako článok výletu: `.pk-paper` + `PAPER_PAGE_CSS`; cesta je zapísaná
+    // v `PAPER_ROUTES_LOCKED`, aby pred načítaním nebliklo čierne.
+    <div className="pk-paper" style={{ fontFamily: FONT_UI }}>
+      <style>{PAPER_PAGE_CSS}</style>
       <PageTopBar />
       <div style={{ maxWidth: 560, margin: '0 auto', padding: '8px 16px 48px' }}>
         <section style={{ ...PACK_BOX.card, padding: '24px 24px', color: T.ink }}>
+          {/* Kresba z ručného kitu (`/icons/pack/envelope.svg`), farbí ju maska — zlato = konštrukcia. */}
+          <div aria-hidden style={{
+            width: 48, height: 48, margin: '0 auto 16px', background: T.cardEdge,
+            WebkitMaskImage: 'url(/icons/pack/envelope.svg)', maskImage: 'url(/icons/pack/envelope.svg)',
+            WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain',
+            WebkitMaskPosition: 'center', maskPosition: 'center',
+          }} />
           {phase.k === 'loading' && <Line>{tx('pack.join.loading', 'Opening the invitation…')}</Line>}
 
           {phase.k === 'dead' && (

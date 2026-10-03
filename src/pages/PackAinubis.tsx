@@ -138,13 +138,19 @@ ${STAGE_CSS}
    patrí pilulkám). Pri .22em sa na 360 px vedľa správ nezmestila a zvonček vytiekol z okna.
    Mobil nesie KRÁTKE znenie (.akv-when-s) — medzi avatarom a zvončekom je ~150 px. */
 .akv-when-s{display:none;}
+.akv-mnote{display:none;}
 @media (max-width:${PC_MIN - 1}px){
   .akv-when-l{display:none;} .akv-when-s{display:inline;}
   /* Riadok pod menom má na mobile ~150 px — okruhy a zvitky ostávajú len na PC. */
   .akv-top .akv-stat-x{display:none;}
   /* S ostrými číslami (1487 KM · 70 TRIPS) ostáva na 390 px pre oznam ~70 px — do jedného
      riadku sa nezmestí. Radšej ZÁMERNE dva riadky než orezané „OPENS NO…" (náhľad 22. 9.). */
-  .akv-when{white-space:normal;text-align:center;line-height:1.15;border-radius:${PACK_R.tile}px;max-width:112px;}
+  /* ⛔ Pilulka v hlavičke na mobile zanikla 3. 10. 2026 — oznam nesie rámik .akv-mnote pod rovinami. */
+  .akv-top .akv-when{display:none;}
+  .akv-mnote{display:block;margin-top:${PACK_SPACE.sm}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;
+    border-radius:${PACK_R.tile}px;border:1px solid ${AINUBIS.ctaEdge};background:${AINUBIS.surface};
+    text-align:center;font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;
+    letter-spacing:0.02em;text-transform:uppercase;color:${AINUBIS.ctaA};}
   /* Správy a zvonček na 32 px ako v mobilnej hlavičke mapy (PackNotifications má
      rozmery v inline štýle, prebiť sa dá len !important — ten istý precedens). */
   .akv-top .pkid-right button{width:32px!important;height:32px!important;}
@@ -900,6 +906,10 @@ export default function PackAinubis() {
           </button>
         </div>
         <div className="akv-toprow">{planes('akv-planes-t')}</div>
+        {/* OZNAM V RÁMIKU POD ROVINAMI — len mobil (Matej 3. 10. 2026, bod 5B: pilulka v hlavičke
+            sa na 390 px lámala na dva riadky; *„dal by som oznam do rámika pod tie tri
+            tlačítka"*). Na PC ostáva pilulka v hlavičke, tam sa zmestí na jeden riadok. */}
+        <div className="akv-mnote" role="status">{tx('pack.ainubis.opening', 'Expected opening: November 2026')}</div>
       </div>
 
       {/* ŠUPLÍK FILTROV (mobil) — vzor .trp-msheet: všetky filtre na jednom mieste. */}

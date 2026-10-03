@@ -26,6 +26,7 @@ import L from 'leaflet';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
 import { useT } from '@/i18n/LanguageContext';
+import { LAPIS, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { trailCountry } from '@/lib/countryGeo';
 import { MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
 import { BackButton } from '@/components/pack/BackButton';
@@ -455,11 +456,11 @@ const AEV_CSS = `
 .aev-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:0.02em;text-transform:uppercase;color:${T.onDark};}
 .aev-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:4px 16px 16px;display:flex;flex-direction:column;gap:14px;}
 .aev-field label{display:block;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:6px;}
-.aev-input{width:100%;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:8px;padding:8px 12px;color:${T.onDark};font-family:${FONT_UI};font-size:12px;outline:0;}
+.aev-input{width:100%;box-sizing:border-box;min-width:0;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:8px;padding:8px 12px;color:${T.onDark};font-family:${FONT_UI};font-size:12px;outline:0;}
 .aev-input:focus{border-color:${GOLD};}
 .aev-input::placeholder{color:${T.onDarkDim};}
 .aev-textarea{resize:vertical;font-family:${FONT_UI};}
-.aev-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.aev-row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}
 .aev-pills{display:flex;flex-wrap:wrap;gap:6px;}
 .aev-pill{font-family:${FONT_UI};font-weight:500;font-size:12px;letter-spacing:0.02em;padding:8px 12px;border-radius:8px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;}
 .aev-pill.on{background:rgba(201,154,63,0.14);border-color:${GOLD};color:${T.onDark};}
@@ -513,7 +514,8 @@ const PALE_AEV_CSS = MAP_SKIN !== 'pale' ? '' : `
 .aev-pill:hover{border-color:${PALE.edge};color:${PALE.ink};}
 /* Vybraná pilulka = priesvitný tint, nie plná farba (LOCKED 2026-08-26) — plná výplň je
    vyhradená jedinému hlavnému CTA na doske, a to je PRIDAŤ PODUJATIE dole. */
-.aev-pill.on{background:rgba(201,154,63,0.22);border-color:${PALE.edge};color:${PALE.ink};}
+/* Vybraná voľba = LAPIS tint (brand ⚖️: lapis = moja voľba), nie zlatý — oprava F4 z 3. 10. 2026. */
+.aev-pill.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}font-weight:600;}
 .aev-suggest{background:${T.card};border-color:${PALE.border};box-shadow:0 12px 32px rgba(122,90,42,0.28);}
 .aev-suggest-item{border-bottom-color:${PALE.hair};}
 .aev-suggest-item:hover{background:rgba(201,154,63,0.12);}

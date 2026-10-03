@@ -3790,7 +3790,7 @@ export const cs: Partial<Dict> = {
   'pack.addEvent.missingHint': 'Chybí: {fields}',
   'pack.addEvent.organizerLabel': 'Organizátor (volitelné)',
   'pack.addEvent.organizerPlaceholder': 'Kdo to organizuje',
-  'pack.addEvent.photoLabel': 'URL fotky (volitelné)',
+  'pack.addEvent.photoLabel': 'Fotka (volitelné)',
   'pack.addEvent.photoPlaceholder': 'https://…',
   'pack.addEvent.sourceUrlHint': 'Zobrazíme to jako převzatý zdroj s odkazem na originál — text z něj sem prosím nekopíruj.',
   'pack.addEvent.sourceUrlLabel': 'Odkaz na akci',

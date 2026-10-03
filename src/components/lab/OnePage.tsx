@@ -4055,7 +4055,7 @@ export default function OnePage() {
       const hint = document.querySelector<HTMLElement>('.op-book .cb-hint');
       const wr = bw.getBoundingClientRect();
       const bottom = (hint ?? bw).getBoundingClientRect().bottom + window.scrollY;
-      const y = Math.max(wr.top + window.scrollY - navH, bottom + 16 + dockH - window.innerHeight);
+      const y = Math.max(wr.top + window.scrollY - navH - 32, bottom + 16 + dockH - window.innerHeight);
       const last = Math.max(...out);
       if (y > last + 24 && y < document.documentElement.scrollHeight - window.innerHeight - 24) out.push(y);
     }
@@ -7347,18 +7347,21 @@ export default function OnePage() {
            ⚠️ .dgx-example a .codex-chip majú ::after obsadený (pulz okraja),
            preto idú cez ::before. Len mobil — na PC ukazovateľ ciele netrápia. */
         @media (max-width: 767px) {
-          .op-root .nav-top .scene-pill::after { content: ''; position: absolute; inset: -10px -4px; }
+          .op-root .nav-top .scene-pill::after { content: ''; position: absolute; inset: -11px -4px; }
           .op-root .nav-top .lang-trigger::after { content: ''; position: absolute; inset: -16px -8px; }
           .op-root .nav-top .nav-login { position: relative; }
-          .op-root .nav-top .nav-login::after { content: ''; position: absolute; inset: -6px; }
-          .op-root .gods-bottom-bar .filter-btn::after { content: ''; position: absolute; inset: -2px; }
-          .op-root .dgx-example::before { content: ''; position: absolute; inset: -6px -2px; }
-          .op-root .codex-chip::before { content: ''; position: absolute; inset: -6px -2px; }
-          .op-root .op-fin-about::after { content: ''; position: absolute; inset: -2px; }
+          .op-root .nav-top .nav-login::after { content: ''; position: absolute; inset: -8px; }
+          .op-root .gods-bottom-bar .filter-btn::after { content: ''; position: absolute; inset: -4px; }
+          .op-root .dgx-example::before { content: ''; position: absolute; inset: -7px -2px; }
+          .op-root .codex-chip::before { content: ''; position: absolute; inset: -7px -2px; }
+          .op-root .op-fin-about::after { content: ''; position: absolute; inset: -3px; }
           .op-root .op-nxt-cta { position: relative; }
-          .op-root .op-nxt-cta::after { content: ''; position: absolute; inset: -6px 0; }
-          .op-root .op-book .cb-hint { position: relative; }
-          .op-root .op-book .cb-hint::after { content: ''; position: absolute; inset: -4px -2px; }
+          .op-root .op-nxt-cta::after { content: ''; position: absolute; inset: -9px 0; }
+          .op-root .op-book .cb-hint { position: relative; left: auto; top: auto; }
+          .op-root .op-book .cb-hint::after { content: ''; position: absolute; inset: -6px -2px; }
+          /* Pätička končí nad spodnou pilulkou (e-mail, Privacy, Terms, Cookie
+             settings boli na dne stránky pod ňou). */
+          .op-root footer.dogypt-footer { padding-bottom: calc(var(--op-dock-h) + 30px); }
           .op-root footer a { position: relative; }
           .op-root footer a::after { content: ''; position: absolute; inset: -12px -6px; }
           .op-root .op-apps-ctl button { position: relative; }
@@ -7367,13 +7370,16 @@ export default function OnePage() {
           .op-root .op-quo .tst-credits > summary::after { content: ''; position: absolute; inset: -11px 0; }
           /* Popisok „pozri intro" je orezaný (overflow) a ::before nesie ▶ —
              cieľ sa preto zväčší vlastným odsadením, vyrovnaným zápornou medzerou. */
-          .op-root #op-vision .video-hero-caption { padding-block: 11px; margin-block: -11px; }
+          .op-root #op-vision .video-hero-caption { padding-block: 15px; margin-block: -11px; }
 
           /* Najmenšie písmo 11 px. */
           .op-root .main-nav .scene-pill { font-size: 0.6875rem; }
           .op-root .dgx-signum { font-size: max(0.40em, 11px); }
           .op-root .op-nxt-goal em { font-size: 11px; }
           .op-root .op-book .cb-sub { font-size: 11px; }
+          .op-root .op-book .cb-trust { font-size: 11px; }
+          .op-root .cl-lead { font-size: 11px; }
+          .op-root #op-vision .video-hero-caption { font-size: 11px; }
           .op-root .op-quo .tst-credits > summary,
           .op-root .op-quo .tst-credits > p { font-size: 11px; }
           .op-root #op-religion .codex-section[data-idx="1"] .codex-eyebrow,
