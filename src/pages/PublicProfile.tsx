@@ -147,11 +147,12 @@ export default function PublicProfile() {
             padding: '48px 24px', marginTop: 16,
           }}
         >
-          {/* Labka z ručného kitu namiesto emoji 🐾 (Matej 3. 10. 2026, bod 7B) — emoji je na
-              každom systéme iná kresba a stráž ikoniek ho vedie ako „mimo brandu". */}
+          {/* GUMENÉ KÁČATKO z ručného kitu (Matej 3. 10. 2026, bod 7B: najprv emoji 🐾, potom labka,
+              potom *„niečo iné než packu, napr. káčatko, niečo funny čo sme ešte nepoužili"*).
+              Zdroj: kit `bird-hand-drawn-animal-toy` → `/icons/pack/duck.svg`. */}
           <span aria-hidden style={{
-            width: 32, height: 32, background: T.cardEdge,
-            WebkitMaskImage: 'url(/icons/pack/paw.svg)', maskImage: 'url(/icons/pack/paw.svg)',
+            width: 48, height: 48, background: T.cardEdge,
+            WebkitMaskImage: 'url(/icons/pack/duck.svg)', maskImage: 'url(/icons/pack/duck.svg)',
             WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain',
             WebkitMaskPosition: 'center', maskPosition: 'center',
           }} />

@@ -341,3 +341,18 @@ export const BRAIN_STATE = {
    *  [[feedback_brandova_farba_pre_papier_zanikne_na_svietiacom_bode]] */
   read: '92,190,120',
 } as const;
+
+/**
+ * TMAVÝ CHIP AINUBISA NA BLEDOM POVRCHU — „AINUBIS · STRÁŽCA BRÁNY" (Matej 3. 10. 2026:
+ * *„6A/login Ainubis strážca brány daj do tmavého chipu"*). Na papyruse bol jeho tyrkys len
+ * dosvit bez podkladu; v jeho vlastnom tmavom šate je čitateľný a hneď vidno, kto hovorí.
+ * Jeden zdroj pre login (`Login.tsx`) aj pozvánku (`PackJoin.tsx`).
+ */
+export const AI_GATE_CHIP: Record<string, string | number> = {
+  display: 'inline-flex', alignItems: 'center', alignSelf: 'center', gap: 6,
+  padding: '4px 12px', borderRadius: 999,
+  background: `linear-gradient(180deg, ${BG} 0%, ${BG_DEEP} 100%)`,
+  border: `1px solid ${AINUBIS.ctaEdge}`,
+  fontFamily: "'Space Grotesk', sans-serif", fontWeight: 500, fontSize: 10, letterSpacing: '.26em',
+  textTransform: 'uppercase', color: CTA_A, whiteSpace: 'nowrap',
+};

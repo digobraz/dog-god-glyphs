@@ -59,11 +59,18 @@ const LOGIN_CSS = `
    do pozadia — tenký tmavý obrys pod ním drží tvar písmen. */
 .lg-ai > span { color: ${AINUBIS.aiInk}; text-shadow: 0 0 1px rgba(2,28,36,.95), 0 0 1px rgba(2,28,36,.95), ${AINUBIS.aiShadow}; }
 .lg-login .hf-plate { gap: ${PACK_SPACE.md}px; text-align: center; }
+/* TMAVÝ CHIP AINUBISA (Matej 3. 10. 2026: „Ainubis strážca brány daj do tmavého chipu").
+   Hodnoty = AI_GATE_CHIP v ainubisSkin.ts (ten istý chip nesie pozvánka /pack/join). */
 .lg-eyebrow {
-  margin: 0; font-family: ${PACK_HEAD.label.fontFamily}; font-weight: ${PACK_HEAD.label.fontWeight};
+  margin: 0; align-self: center; display: inline-flex; align-items: center; gap: 6px;
+  padding: ${PACK_SPACE.xs}px ${PACK_SPACE.md}px; border-radius: 999px;
+  background: ${AINUBIS.surfaceBase}; border: 1px solid ${AINUBIS.ctaEdge};
+  font-family: ${PACK_HEAD.label.fontFamily}; font-weight: ${PACK_HEAD.label.fontWeight};
   font-size: ${PACK_HEAD.label.fontSize}px; letter-spacing: ${PACK_HEAD.label.letterSpacing};
-  text-transform: uppercase; color: ${LAB.goldInk};
+  text-transform: uppercase; color: ${AINUBIS.ctaA}; white-space: nowrap;
 }
+.lg-eyebrow .lg-ai { color: ${AINUBIS.ink}; }
+.lg-eyebrow .lg-ai > span { text-shadow: ${AINUBIS.aiShadow}; }
 .lg-title {
   margin: 0; font-family: ${PACK_HEAD.card.fontFamily}; font-weight: 700;
   font-size: ${PACK_TEXT.h2}px; letter-spacing: ${PACK_HEAD.card.letterSpacing};
