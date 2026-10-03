@@ -49,14 +49,14 @@ import {
 import { VaultChat, VAULT_CHAT_CSS } from '@/components/pack/vault/VaultChat';
 import { VaultWall, VAULT_WALL_CSS } from '@/components/pack/vault/VaultWall';
 import { VAULT_SOURCE_TOTALS } from '@/components/pack/vault/vaultSources';
-import { SCROLL_DEMO, DEMO_SCROLLS, demoImg } from '@/components/pack/vault/vaultScrollDemo';
+import { SCROLL_DEMO, DEMO_SCROLLS, DEMO_TOTAL, demoImg } from '@/components/pack/vault/vaultScrollDemo';
 import { openAinubis } from '@/lib/ainubisBus';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 import { VAULT_CIRCLES } from '@/components/pack/vault/circles';
 import { mountBrain, type BrainHandle, type BrainLayer } from '@/components/pack/vault/brainEngine';
 import ainubisHead from '@/assets/ainubis-head.webp';
-import { HandArrowLeft, HandSearch } from '@/components/pack/HandIcons';
+import { HandArrowLeft, HandSearch, HandPaw, HandStar, HandPlus, HandForward } from '@/components/pack/HandIcons';
 
 /* ⚠️ JEDNA HRANICA — tá istá ako na mape (`PackMap`: ≤1023 = mobilný pohľad
    s pilulkou ZOZNAM). Dve čísla by znamenali šírku, kde má mapa pilulku a VAULT nie. */
@@ -73,7 +73,7 @@ const BOTTOM_PC = 112;
                ktorá na PC zasahuje aj do police) + karta 2× md 24.
    ZV_SIDE   = zoznam 2× xl 48 + karta 2× md 24 + medzera obraz–text lg 16. */
 const ZV_CHROME = 143 + PACK_SPACE.lg + BOTTOM_PC + PACK_SPACE.xl + 2 * PACK_SPACE.md;
-const ZV_TEXT_COL = 280;
+const ZV_TEXT_COL = 340;
 const ZV_SIDE = 2 * PACK_SPACE.xl + 2 * PACK_SPACE.md + PACK_SPACE.lg;
 
 const CSS = `
@@ -348,15 +348,37 @@ ${STAGE_CSS}
   text-transform:uppercase;color:${AINUBIS.cyan};}
 .akv-zv{position:relative;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;
   padding:${PACK_SPACE.md}px;border-radius:${PACK_R.card}px;${AI_GLASS}}
-.akv-zv img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:${PACK_R.tile}px;}
-.akv-zvt{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;min-width:0;}
-.akv-zvlbl{font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.label.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkDim};}
+.akv-zvimg{position:relative;flex:0 0 auto;}
+.akv-zvimg img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:${PACK_R.tile}px;}
+.akv-zvacts{align-self:stretch;margin-top:auto;display:flex;gap:${PACK_SPACE.sm}px;padding-top:${PACK_SPACE.sm}px;
+  border-top:1px solid ${AINUBIS.edge};}
+.akv-zvacts button{width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  border-radius:${PACK_R.pill}px;background:${AINUBIS.surface};border:1px solid ${AINUBIS.edge};color:${AINUBIS.ink};}
+.akv-zvacts button:hover{color:${AINUBIS.cyan};border-color:${AINUBIS.edgeStrong};}
+.akv-zvt{display:flex;flex-direction:column;align-items:flex-start;gap:${PACK_SPACE.sm}px;min-width:0;}
+.akv-zvlbl{font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.cyan};}
 .akv-zvn{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;line-height:1.2;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.ink};overflow-wrap:anywhere;}
-.akv-zvv{margin:0;font-size:${PACK_TEXT.lead}px;line-height:1.55;color:${AINUBIS.inkDim};}
-.akv-zvcta{align-self:flex-start;margin-top:${PACK_SPACE.sm}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;cursor:pointer;
-  border-radius:${PACK_R.field}px;background:transparent;border:1px solid ${AINUBIS.edgeStrong};color:${AINUBIS.cyan};
+.akv-zvv{margin:0;font-size:${PACK_TEXT.body}px;line-height:1.55;color:${AINUBIS.inkDim};}
+/* VEZMI SI Z TOHO — jedna veta (fasáda v2). Ľavá niť v zlato-oranžovej AINUBISA, nie plná plocha. */
+.akv-zvtake{align-self:stretch;display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;background:${AINUBIS.ctaTint};
+  border-left:2px solid ${AINUBIS.ctaA};font-size:${PACK_TEXT.body}px;line-height:1.45;color:${AINUBIS.ink};}
+.akv-zvtake b{font-size:${PACK_TEXT.micro}px;font-weight:500;letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.ctaA};}
+/* Jediné plné CTA na karte = AINUBISOVO zlato-oranžové; ostatné sú obrysové. */
+.akv-zvcta{align-self:stretch;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;cursor:pointer;border-radius:${PACK_R.field}px;
+  background:${AINUBIS.ctaGrad};border:1px solid ${AINUBIS.ctaEdge};color:${AINUBIS.ctaInk};
   font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;}
+.akv-zvrow{align-self:stretch;display:flex;gap:${PACK_SPACE.sm}px;}
+.akv-zvsec{flex:1 1 0;display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.xs}px;cursor:pointer;white-space:nowrap;
+  padding:${PACK_SPACE.sm}px;border-radius:${PACK_R.field}px;background:transparent;border:1px solid ${AINUBIS.edge};
+  color:${AINUBIS.cyan};font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;}
+.akv-zvsec:hover{border-color:${AINUBIS.edgeStrong};}
+.akv-zvsec i{width:14px;height:14px;flex:0 0 auto;background:currentColor;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;}
+.akv-zvrel{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;font-size:${PACK_TEXT.label}px;}
+.akv-zvrel span{color:${AINUBIS.inkDim};}
+.akv-zvrel a{color:${AINUBIS.cyan};cursor:pointer;}
 @media (min-width:${PC_MIN}px){
   .akv-root.has-zv{--akv-panel:clamp(480px,calc((100dvh - ${ZV_CHROME}px) * 0.75 + ${ZV_TEXT_COL + ZV_SIDE}px),56vw);}
   .akv-root.has-zv .akv-list{container-type:size;}
@@ -364,8 +386,8 @@ ${STAGE_CSS}
   .akv-root.has-zv .akv-note--l{display:none;}
   .akv-root.has-zv .akv-col{max-width:none;}
   .akv-zv{flex-direction:row;align-items:stretch;gap:${PACK_SPACE.lg}px;}
-  .akv-zv img{width:auto;height:calc(100cqh - ${2 * PACK_SPACE.md}px);max-width:60%;flex:0 0 auto;}
-  .akv-zvt{flex:1 1 ${ZV_TEXT_COL}px;justify-content:flex-end;}
+  .akv-zvimg img{width:auto;height:calc(100cqh - ${2 * PACK_SPACE.md}px);}
+  .akv-zvt{flex:1 1 ${ZV_TEXT_COL}px;}
 }
 
 /* ── POHĽAD DOLE — pilulka nad lištou (lock §1.3.1, geometria .trp-mactions) ──
@@ -895,12 +917,27 @@ export default function PackAinubis() {
           {SCROLL_DEMO && <div className="akv-zvh">Ukážka 3:4 · Cesta psa · okruh 1</div>}
           {SCROLL_DEMO && DEMO_SCROLLS.map(z => (
             <article key={z.id} className="akv-zv">
-              <img src={demoImg(z.id)} alt="" loading="lazy" />
+              <div className="akv-zvimg">
+                <img src={demoImg(z.id)} alt="" loading="lazy" />
+              </div>
               <div className="akv-zvt">
-                <span className="akv-zvlbl">{z.id.slice(3)} · {z.variant}</span>
+                <span className="akv-zvlbl">Zvitok {z.n} / {DEMO_TOTAL} · {z.min} min čítania · {z.variant}</span>
                 <h3 className="akv-zvn">{z.t}</h3>
                 <p className="akv-zvv">{z.v}</p>
-                <button type="button" className="akv-zvcta">Celý príbeh ›</button>
+                <div className="akv-zvtake"><b>Vezmi si z toho</b>{z.take}</div>
+                <button type="button" className="akv-zvcta">Prečítať príbeh</button>
+                <div className="akv-zvrow">
+                  <button type="button" className="akv-zvsec"><i style={mask('play')} />Vypočuť podcast</button>
+                  <button type="button" className="akv-zvsec"><i style={mask('document')} />Zdroje · {z.src}</button>
+                </div>
+                <div className="akv-zvrel"><span>Súvisí</span>{z.rel.map(r => <a key={r}>{r} ›</a>)}</div>
+                {/* ŠTVORICA (lock §4.2) — na obraze zakrývala jeho spodnú vetu, preto pod textom. */}
+                <div className="akv-zvacts">
+                  <button type="button" aria-label="Packa"><HandPaw size={14} /></button>
+                  <button type="button" aria-label="Uložiť"><HandStar size={14} /></button>
+                  <button type="button" aria-label="Použiť"><HandPlus size={14} /></button>
+                  <button type="button" aria-label="Poslať"><HandForward size={14} /></button>
+                </div>
               </div>
             </article>
           ))}
