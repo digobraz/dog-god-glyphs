@@ -234,11 +234,20 @@ export function HandClipboard({ size = 16, className, style, title }: HandIconPr
   );
 }
 
-/** odmena, bonus · zdroj: star-hand-drawn-symbol-outline-svgrepo-com.svg */
-export function HandStar({ size = 16, className, style, title }: HandIconProps) {
+/** odmena, bonus · zdroj: star-hand-drawn-symbol-outline-svgrepo-com.svg
+ *  `filled` = vyplnený VONKAJŠÍ obrys tej istej kresby (prvý podťah `d`) pod ňou — plná hviezda
+ *  v kite nie je (VAULT zvitok, Matej 3. 10.: „pri kliku sa vyplnia farbou nie len obrys“). */
+export function HandStar({ size = 16, className, style, title, filled = false }: HandIconProps & { filled?: boolean }) {
   return (
     <svg viewBox="0 0 482.829 482.829" className={className} style={style} {...svgProps(size)} role={title ? 'img' : undefined} aria-hidden={title ? undefined : true}>
       {title ? <title>{title}</title> : null}
+      {filled && <path d="M8.538,201.486c39.093,35.828,80.379,68.967,125.332,97.159c-14.82,50.318-30.976,100.194-48.287,149.715
+			c-3.171,9.074,2.963,15.34,10.296,16.747c3.671,2.233,8.34,2.498,13.114-0.909c43.445-31.026,88.065-60.352,132.004-90.678
+			c44.43,32.646,87.856,66.618,134.387,96.289c10.308,6.581,20.017-2.316,20.626-11.781c0.513-2.062,0.6-4.347-0.025-6.865
+			c-12.288-49.982-26.726-99.224-48.905-145.677c47.728-30.499,86.34-72.39,130.864-107.191c8.353-6.525,4.905-15.965-2.194-20.467
+			c-2.254-2.892-5.737-4.883-10.526-4.883H315.296c-20.043-50.403-40.497-100.633-56.782-152.418
+			c-4.845-15.419-27.048-11.077-27.683,2.453c-23.354,49.835-44.788,100.399-57.262,154.094
+			c-53.349-0.338-106.676-2.564-160.03-2.725C-2.674,174.301-4.307,196.771,8.538,201.486z" />}
       <path d="M8.538,201.486c39.093,35.828,80.379,68.967,125.332,97.159c-14.82,50.318-30.976,100.194-48.287,149.715
 			c-3.171,9.074,2.963,15.34,10.296,16.747c3.671,2.233,8.34,2.498,13.114-0.909c43.445-31.026,88.065-60.352,132.004-90.678
 			c44.43,32.646,87.856,66.618,134.387,96.289c10.308,6.581,20.017-2.316,20.626-11.781c0.513-2.062,0.6-4.347-0.025-6.865
@@ -463,10 +472,19 @@ export function HandCamera({ size = 16, className, style, title }: HandIconProps
  *  ⚠️ Prečo ZAHNUTÁ a nie rovná šípka doprava: sedí v kruhu HNEĎ VEDĽA šípky
  *  späť. Dve rovné protichodné šípky by sa čítali ako „predchádzajúci /
  *  nasledujúci výlet". Zahnutie a sklon nahor to rozlišuje. */
-export function HandForward({ size = 16, className, style, title }: HandIconProps) {
+/* `filled` — rovnaký postup ako HandStar: vyplnený vonkajší obrys šípky pod kresbou. */
+export function HandForward({ size = 16, className, style, title, filled = false }: HandIconProps & { filled?: boolean }) {
   return (
     <svg viewBox="0 0 487.09 487.09" className={className} style={style} {...svgProps(size)} role={title ? 'img' : undefined} aria-hidden={title ? undefined : true}>
       {title ? <title>{title}</title> : null}
+      {filled && <path d="M26.932,389.625c65.066-50.384,137.016-97.004,222.237-97.004l1.328,0.01c0.869,6.037,0.569,28.731,0.27,36.516
+			c-0.274,7.013,1.823,16.555,7.109,22.054c2.706,2.803,6.043,4.286,9.658,4.286c2.554,0,5.271-0.731,8.063-2.174
+			c28.96-14.955,56.635-34.221,83.386-52.852c25.131-17.493,51.12-35.586,77.973-49.941c4.524-2.418,7.271-6.317,7.738-10.986
+			c0.503-5.018-1.797-10.479-5.87-14.011c-1.056-1.513-2.27-2.765-3.696-3.826c-23.277-17.174-47.489-37.173-70.904-56.522
+			c-27.979-23.118-56.914-47.022-85.102-66.864c-2.661-1.872-5.443-2.818-8.282-2.818c-6.611,0-12.573,5.403-14.041,12.418
+			c-0.629,1.579-1.005,2.993-1.178,4.451c-1.808,16.016-2.681,41.937-2.98,52.509C127.468,176.333,59.743,273.68,6.066,364.15
+			c-0.759,1.279-1.325,2.646-1.706,4.133c-4.07,3.778-5.37,8.739-3.562,13.746c2.326,6.419,9.133,11.085,16.174,11.085
+			C20.543,393.114,23.984,391.906,26.932,389.625z" />}
       <path d="M26.932,389.625c65.066-50.384,137.016-97.004,222.237-97.004l1.328,0.01c0.869,6.037,0.569,28.731,0.27,36.516
 			c-0.274,7.013,1.823,16.555,7.109,22.054c2.706,2.803,6.043,4.286,9.658,4.286c2.554,0,5.271-0.731,8.063-2.174
 			c28.96-14.955,56.635-34.221,83.386-52.852c25.131-17.493,51.12-35.586,77.973-49.941c4.524-2.418,7.271-6.317,7.738-10.986

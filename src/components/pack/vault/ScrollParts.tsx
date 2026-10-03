@@ -229,12 +229,23 @@ export function ScrollActions({ id, lang, onShare, onTalk }: {
   const saved = useSaved().includes(id);
   const talk = useTalk(id).length;
   const [liked, setLiked] = useState(false);
+  const [sent, setSent] = useState(false);
+  // ZAPNUTÁ AKCIA = VYPLNENÁ IKONKA (Matej 3. 10.: „vyplnia sa farbou, nie len obrys, ale aj vnútro —
+  // pri komentoch len pravá bublina"). Labka = plná z kitu, hviezdička a šípka = vyplnený vonkajší
+  // obrys tej istej kresby, bubliny = pravá vyplnená. Zdieľanie nie je prepínač — svieti chvíľu po kliku.
   return (
     <div className="zv-acts">
-      <button type="button" data-k="like" className={`zv-act${liked ? ' is-on' : ''}`} onClick={() => setLiked(v => !v)} aria-label={u.like}><HandPaw size={20} /></button>
-      <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={() => toggleSaved(id)} aria-label={u.save}><HandStar size={20} /></button>
-      <button type="button" data-k="talk" className="zv-act" onClick={onTalk} aria-label={u.talk}><Ic ic="chat" />{talk > 0 && talk}</button>
-      <button type="button" data-k="share" className="zv-act" onClick={onShare} aria-label={u.share}><HandForward size={20} /></button>
+      <button type="button" data-k="like" className={`zv-act${liked ? ' is-on' : ''}`} onClick={() => setLiked(v => !v)} aria-label={u.like}>
+        {liked ? <Ic ic="paw-full" /> : <HandPaw size={20} />}
+      </button>
+      <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={() => toggleSaved(id)} aria-label={u.save}><HandStar size={20} filled={saved} /></button>
+      <button type="button" data-k="talk" className={`zv-act${talk > 0 ? ' is-on' : ''}`} onClick={onTalk} aria-label={u.talk}>
+        <Ic ic={talk > 0 ? 'chat-right-full' : 'chat'} />{talk > 0 && talk}
+      </button>
+      <button type="button" data-k="share" className={`zv-act${sent ? ' is-on' : ''}`}
+        onClick={() => { onShare(); setSent(true); window.setTimeout(() => setSent(false), 1500); }} aria-label={u.share}>
+        <HandForward size={20} filled={sent} />
+      </button>
     </div>
   );
 }
