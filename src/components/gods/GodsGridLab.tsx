@@ -20,7 +20,9 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { useDogyptStore } from '@/store/dogyptStore';
 import LanguagePicker from '../LanguagePicker';
 import { photoPositions, photos } from './godsData';
-import { LIVE_EDGE_BASE } from '@/lib/env';
+import { LIVE_EDGE_BASE, EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
+import { ensureDogVisionFilter } from '@/lib/dogVision';
+import { WallSearchResults, matchDogs, isNameQuery, type WallSearchDog } from './wallSearch';
 import {
   NAV_R, NAV_GOLD, NAV_FRAME_BG, NAV_FRAME_BLEND, NAV_PLATE_BG, NAV_PLATE_BLEND,
   NAV_GRAIN_SCREEN_CSS, NAV_FRAME_SHADOW, NAV_PLATE_SHADOW, NAV_PILL_SHADOW,
@@ -44,7 +46,15 @@ import './WhatNextPopup.css';
 
 // LAB: stena ťahá SKUTOČNÝCH členov z produkcie (read-only, verejný endpoint) —
 // na DEV projekte sú len testovací psi s jednou fotkou a papyrus sa na tom posúdiť nedá.
-const GRID_DOGS_URL = `${LIVE_EDGE_BASE}/get-grid-dogs`;
+// `?tiers=all` = aj hostia (€0) bez čísla — tí istí, čo na `/` (3. 10. 2026: po SWAPe
+// je táto stena homepage a bez nich by hosť na stene vôbec nebol).
+// 🔧 DEV: `localStorage['dogypt-wall-src'] = 'dev'` prepne stenu na DEV projekt —
+//    hostia sa zakladajú tam a inak sa nedajú vyskúšať (hľadanie, PRIDAJ SA, `?dog=`).
+const WALL_SRC_DEV = import.meta.env.DEV && (() => {
+  try { return localStorage.getItem('dogypt-wall-src') === 'dev'; } catch { return false; }
+})();
+const GRID_DOGS_URL = `${WALL_SRC_DEV ? EDGE_BASE : LIVE_EDGE_BASE}/get-grid-dogs?tiers=all`;
+const GUEST_LINES = 5;
 
 interface RealDog {
   id: string;
@@ -58,6 +68,12 @@ interface RealDog {
   owner_message: string | null;
   /** Na dopočet dní v detaile na planéte — endpoint ho vracia, len sa nečítal. */
   birth_date?: string | null;
+  /** Len keď feed pozná rebrík. Chýba = člen (starý feed). */
+  wall_tier?: 'member' | 'supporter' | 'guest';
+  /** AINUBIS fotku ešte neposúdil — pes na stene JE, ale stmavnutý a rozmazaný. */
+  wall_pending?: boolean;
+  /** Id hosťa (len bez čísla) — cieľ `/?dog=<id>` a hľadania. */
+  wall_id?: string;
 }
 
 // Hekthor (0,-1) + hero/CTA karta (0,0) tvoria spolu 1×2 "core" blok. Špirála
@@ -460,7 +476,13 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
   // LAB: planéta psov — overlay nad stenou, otvára ju tretia ikonka v spodnom nave.
   // V ráme (`embedded`) je guľa VÝCHODISKOVÝ stav = homepage; samostatný wall
   // (bez rámu) sa stále otvára stenou.
-  const [planetOpen, setPlanetOpen] = useState(embedded);
+  // ⚠️ Odkaz na KONKRÉTNEHO psa (`?dog=` hosť, `?focus=N` člen) otvára STENU,
+  //    nie guľu — prelet na bunku by inak prebehol pod guľou (3. 10. 2026).
+  const [planetOpen, setPlanetOpen] = useState(() => {
+    if (!embedded) return false;
+    const q = new URLSearchParams(window.location.search);
+    return !q.get('dog') && !q.get('focus');
+  });
   const [planetDogs, setPlanetDogs] = useState<PlanetDog[]>([]);
   // Žiadosť z kalkulačky pre planétu. `seq` sa zvyšuje pri každom potvrdení, aby
   // sa dalo to isté číslo natukať dvakrát po sebe (viď prop `pick` v DogPlanetLab).
@@ -475,6 +497,11 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
   // Reálni psi (zákazníci, bez Hektora) opakovaní cez prázdne bunky → nekonečný WALL.
   const fillerDogsRef = useRef<RealDog[]>([]);
   const navigateToRef = useRef<((n: number) => void) | null>(null);
+  // Hľadanie podľa mena (3. 10. 2026) — zoznam psov zo steny + kde sedí hosť.
+  const [searchDogs, setSearchDogs] = useState<WallSearchDog[]>([]);
+  const guestCellRef = useRef(new Map<string, { col: number; row: number }>());
+  const panToRef = useRef<((col: number, row: number) => void) | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   // t() drží aktuálnu funkciu bez toho, aby bola v deps hlavného build efektu (ten je
   // najťažší v komponente — teardown pri každom prepnutí jazyka by zbúral celý grid,
   // resetol scroll pozíciu a zavrel otvorenú kartu). Preklady vnútri efektu čítaj cez
@@ -554,6 +581,13 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     return Number.isFinite(n) && n >= 1 ? n : null;
   }, []);
 
+  // `/?dog=<id>` — HOSŤ nemá číslo, takže `focus=N` naňho nemieri (prenesené
+  // z GodsGrid 3. 10. 2026). Odkaz nesie ďakovačka hosťa aj mail `send-guest-mail`.
+  const focusDogId = useMemo(() => {
+    const raw = new URLSearchParams(window.location.search).get('dog');
+    return raw && /^[0-9a-f-]{36}$/.test(raw) ? raw : null;
+  }, []);
+
   // Load real dogs for the grid
   useEffect(() => {
     let alive = true; // unmount guard — nesetuj state po odmountovaní (StrictMode dvojfetch, rýchla navigácia preč)
@@ -574,6 +608,20 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
               map.set(`${positions[idx].col},${positions[idx].row}`, dog);
             }
           }
+          // €0 nemajú číslo ⇒ miesto v špirále HNEĎ ZA posledným členom, v poradí
+          // príchodu (feed ich tak radí) — ten istý recept ako GodsGrid. Duplikátmi
+          // stenu nevypĺňajú — výplň ostáva psom s číslom.
+          const wallRest = dogs.filter(d => d.wall_tier === 'supporter' || d.wall_tier === 'guest');
+          const restBase = Math.max(0, maxN - 1);
+          const restPositions = generatePackPositions(restBase + wallRest.length, enrollRef.current ? 1 : 0);
+          const guestCells = new Map<string, { col: number; row: number }>();
+          wallRest.forEach((dog, i) => {
+            const pos = restPositions[restBase + i];
+            if (!pos) return;
+            map.set(`${pos.col},${pos.row}`, dog);
+            if (dog.wall_id) guestCells.set(dog.wall_id, { col: pos.col, row: pos.row });
+          });
+          guestCellRef.current = guestCells;
           realDogMapRef.current = map;
           // Filler set = Hektor + všetci zákazníci (#2+); každý sa rozmnožuje v stene.
           fillerDogsRef.current = [HEKTHOR_FILL, ...dogs.filter(d => (d.pack_number ?? 0) >= 2)];
@@ -593,6 +641,20 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
                 birthDate: d.birth_date || null,
               }))
               .filter(d => d.photo)
+          );
+          // Hľadanie: Hektor + členovia + hostia. Hosť bez fotky sa nedá spoznať,
+          // ale nájsť sa dá — meno je to, čo si človek pamätá.
+          setSearchDogs(
+            [HEKTHOR_FILL, ...dogs.filter(d => (d.pack_number ?? 0) >= 2), ...wallRest]
+              .filter(d => d.dog_name)
+              .map(d => ({
+                key: d.wall_id || d.id,
+                name: (d.dog_name || '').toUpperCase(),
+                n: d.wall_tier && d.wall_tier !== 'member' ? null : d.pack_number,
+                wallId: d.wall_id || null,
+                photo: planetTileUrl(d.cloudinary_main_url),
+                country: iso2ToISO3(countryISO2(d.country) || '') || '',
+              }))
           );
           // Štatistika krajín (vrátane Hektora #1) pre filter popup.
           const cc = new Map<string, number>();
@@ -650,8 +712,34 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
   wallCbRef.current = onWallChange;
   useEffect(() => { wallCbRef.current?.(!planetOpen); }, [planetOpen]);
 
+  // Pes z hľadania podľa mena (3. 10. 2026). Člen = ten istý cieľ ako číslo;
+  // hosť nemá číslo ⇒ prelet na jeho bunku. Na guli hosť nie je (guľa nesie len
+  // čísla), takže sa guľa zavrie a stena dojde k nemu.
+  const goToDog = (d: WallSearchDog) => {
+    if (d.n) {
+      if (planetOpen) setPlanetPick(p => ({ n: d.n as number, seq: (p?.seq ?? 0) + 1 }));
+      else navigateToRef.current?.(d.n);
+    } else if (d.wallId) {
+      const cell = guestCellRef.current.get(d.wallId);
+      if (cell) {
+        if (planetOpen) {
+          setPlanetOpen(false);
+          window.setTimeout(() => panToRef.current?.(cell.col, cell.row), 450);
+        } else panToRef.current?.(cell.col, cell.row);
+      }
+    }
+    if (!planetOpen || !d.n) setFilterOpen(false);
+    setFilterValue('');
+  };
+
   const submitFilter = () => {
-    const n = parseInt(filterValue, 10);
+    // Meno: Enter = prvý výsledok (ten istý, čo je v zozname hore).
+    if (isNameQuery(filterValue)) {
+      const first = matchDogs(searchDogs, filterValue, 1)[0];
+      if (first) goToDog(first);
+      return;
+    }
+    const n = parseInt(filterValue.replace(/[#\s]/g, ''), 10);
     // DVA CIELE PRE JEDNO ČÍSLO. Na stene číslo znamená „prejdi tam" — kalkulačka
     // splnila úlohu a zavrie sa. Na guli znamená „ukáž mi ho" a kalkulačka
     // ZOSTÁVA (Matej 25. 8.: „človek môže klikať ďalšie čísla a napravo sa bude
@@ -677,6 +765,10 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     if (!filterOpen || !planetOpen) return;
     const onDocClick = (e: MouseEvent) => {
       const el = e.target as HTMLElement;
+      // ⚠️ Klik, ktorý v pulte niečo prekreslí (PRIDAJ SA → formulár, 3. 10. 2026),
+      //    dorazí sem s cieľom, ktorý už v dokumente NIE JE — `closest` potom nič
+      //    nenájde a pult by sa zavrel uprostred práce.
+      if (!el.isConnected) return;
       if (el.closest('.numpad') || el.closest('.planet-ball') || el.closest('.gods-bottom-bar')) return;
       setFilterOpen(false);
       setFilterValue('');
@@ -689,6 +781,12 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
   useEffect(() => {
     if (!filterOpen) return;
     const onKey = (e: KeyboardEvent) => {
+      // Do poľa sa píše samo (meno aj číslo) — tu ostáva len Enter a Esc.
+      // Pole e-mailu pri PRIDAJ SA má Enter vlastný.
+      const el = e.target as HTMLElement | null;
+      const inField = !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA');
+      if (inField && el?.classList.contains('ws-mail')) return;
+      if (inField && e.key !== 'Enter' && e.key !== 'Escape') return;
       if (e.key >= '0' && e.key <= '9') {
         setFilterValue(v => (v + e.key).slice(0, 6));
       } else if (e.key === 'Backspace') {
@@ -702,7 +800,16 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [filterOpen, filterValue]);
+  }, [filterOpen, filterValue, searchDogs, planetOpen]);
+
+  // Na počítači sa do poľa dá písať hneď — kurzor tam skočí sám. Na dotyku NIE:
+  // vyskočila by klávesnica a zakryla kalkulačku, ktorou väčšina hľadá číslo.
+  useEffect(() => {
+    if (!filterOpen) return;
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    const id = window.setTimeout(() => searchInputRef.current?.focus(), 60);
+    return () => window.clearTimeout(id);
+  }, [filterOpen]);
 
   useEffect(() => {
     if (revealStep === 2) {
@@ -1119,13 +1226,29 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     // ako originál (vrátane #čísla + správy) — slúži len nato aby WALL nebola prázdna.
     // Nových psov pribúda od stredu (špirála) a postupne tieto duplikáty prepisujú.
     function makeRealDogCard(dog: RealDog, col: number, row: number, fill = false) {
+      ensureDogVisionFilter();
       const cc = countryToISO2(dog.country);
       const flagName = FLAG_NAMES[cc] || cc;
       const safeName = esc((dog.dog_name || 'DOGYPTIAN').toUpperCase());
       const packNum = dog.pack_number ?? '?';
+      // REBRÍK NA STENE — prenesené z GodsGrid 3. 10. 2026 (po SWAPe je toto
+      // homepage). Hosť: bez čísla, fotka v psej optike, riadok pod odkazom
+      // hovorí, kde človek stojí. Starý feed `wall_tier` nemá ⇒ člen.
+      const tier = dog.wall_tier;
+      const member = !tier || tier === 'member';
+      const pending = !!dog.wall_pending;
+      const guestLine = tier === 'guest' && !dog.owner_message
+        ? tRef.current(`wall.guestLine.${1 + Math.floor(Math.random() * GUEST_LINES)}`)
+        : '';
+      const openMsg = pending ? '' : (dog.owner_message || guestLine || '');
+      const status = !tier ? ''
+        : pending ? tRef.current('wall.status.pending')
+        : tier === 'member' ? '' // číslo nesie odznak; Lab riadok člena nemal
+        : tRef.current(`wall.status.${tier}`);
 
       const el = document.createElement('article');
-      el.className = fill ? 'dog-card dog-card--fill' : 'dog-card';
+      el.className = (fill ? 'dog-card dog-card--fill' : 'dog-card')
+        + (member ? '' : ' dog-card--nomember') + (pending ? ' dog-card--pending' : '');
       el.style.left = (col * GX) + 'px';
       el.style.top  = (row * GY) + 'px';
       // 🔴 Heroglyf cez Cloudinary ZMENŠENÝ (28. 9. 2026, meranie /onepage): surové
@@ -1144,13 +1267,14 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       el.innerHTML = `
         <div class="card-img" style="background-image:url('${tileSrc}');background-position:50% 30%"></div>
         <div class="card-open-overlay">
-          <div class="card-open-rank">#${packNum}</div>
+          ${member ? `<div class="card-open-rank">#${packNum}</div>` : ''}
           <div class="card-open-name">${safeName}</div>
           ${overlayHeroSrc ? `<img class="card-open-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" draggable="false">` : ''}
-          ${dog.owner_message ? `<div class="card-open-msg">${esc(dog.owner_message)}</div>` : ''}
-          ${dogPageHref ? `<a class="card-open-dogpage-link" href="${dogPageHref}">${tRef.current('wall.dogPage')}</a>` : ''}
+          ${openMsg ? `<div class="card-open-msg">${esc(openMsg)}</div>` : ''}
+          ${status ? `<div class="card-open-status">${esc(status)}</div>` : ''}
+          ${member && dogPageHref ? `<a class="card-open-dogpage-link" href="${dogPageHref}">${tRef.current('wall.dogPage')}</a>` : ''}
         </div>
-        <div class="card-rank-top">#${packNum}</div>
+        ${member ? `<div class="card-rank-top">#${packNum}</div>` : ''}
         ${cc ? `<img class="card-flag" src="${flagUrl(cc)}" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">` : ''}
         ${overlayHeroSrc ? `
         <div class="dog-heroglyph-wrap">
@@ -1606,6 +1730,28 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     }
     navigateToRef.current = navigateTo;
 
+    // Prelet na bunku podľa súradníc — hosť nemá číslo, takže `navigateTo` naňho
+    // nemieri (hľadanie podľa mena aj `/?dog=<id>`, 3. 10. 2026).
+    function panTo(col: number, row: number) {
+      if (raf) cancelAnimationFrame(raf);
+      const tx = vw / 2 - col * GX - W / 2;
+      const ty = vh / 2 - row * GY - H / 2;
+      const sx = ox, sy = oy;
+      const t0 = performance.now();
+      const dur = 800;
+      const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+      function step(now: number) {
+        const p = Math.min((now - t0) / dur, 1);
+        const e = ease(p);
+        ox = sx + (tx - sx) * e;
+        oy = sy + (ty - sy) * e;
+        render();
+        if (p < 1) raf = requestAnimationFrame(step);
+      }
+      raf = requestAnimationFrame(step);
+    }
+    panToRef.current = panTo;
+
     const centerBtnMobile = document.getElementById('gods-center-btn-mobile');
     centerBtnMobile?.addEventListener('click', onCenter);
 
@@ -1616,6 +1762,12 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     // (0,-1), nič v navigateTo tú pozíciu nemení ani nerotuje).
     if (focusPackNumber !== null && !revealData.active) {
       navigateTo(focusPackNumber);
+    }
+    // Hosť: nájdi jeho bunku podľa id a dojdi na ňu. Karta ostáva ZATVORENÁ —
+    // otvorená by fotku prekryla textom (Matej 3. 10. 2026, GodsGrid).
+    if (focusDogId && focusPackNumber === null && !revealData.active) {
+      const cell = guestCellRef.current.get(focusDogId);
+      if (cell) panTo(cell.col, cell.row);
     }
 
     return () => {
@@ -1633,7 +1785,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       cells.forEach(el => el.remove());
       cells.clear();
     };
-  }, [navigate, dogsReady, focusPackNumber, revealData.active, enrollOn]);
+  }, [navigate, dogsReady, focusPackNumber, focusDogId, revealData.active, enrollOn]);
 
   // Zmena jazyka → NEBÚRAME grid (rebuild by zrušil scroll pozíciu, otvorenú kartu aj
   // virtualizované bunky — je to najťažší efekt v komponente). Jediné miesta kde grid
@@ -1935,6 +2087,19 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           border-radius: 999px;
           padding: 2px 11px;
         }
+        /* ── HOSŤ NA STENE — prenesené z GodsGrid 3. 10. 2026 (po SWAPe je toto
+           homepage). PSIE VIDENIE (Matej 26. 9.): pes bez člena je v spektre, ako
+           ho vidia psy, kým človek nezaplatí €11. Čaká na AINUBISA = stmavnutý
+           a rozmazaný (25. 9.). Filter definuje ensureDogVisionFilter(). */
+        .card-open-status {
+          margin-top: 6px; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
+          color: rgba(201,154,63,0.85); text-align: center;
+        }
+        .dog-card--nomember:not(.dog-card--pending) .card-img { filter: url(#dogypt-dog-vision); }
+        .dog-card--pending .card-img,
+        .dog-card--pending .dog-heroglyph,
+        .dog-card--pending .card-open-heroglyph { filter: blur(6px) brightness(0.45); }
+        .dog-card--pending .card-label { opacity: .55; }
         .card-open-msg {
           font-size: 0.7rem;
           color: rgba(255,255,255,0.6);
@@ -2987,7 +3152,18 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           min-width: 1.4em;
           text-align: right;
         }
-        /* Mobile: countries on TOP, numpad below (palec dosiahne numpad → ľahšie písanie) */
+        /* ── POLE NA MENO AJ ČÍSLO (3. 10. 2026) — ten istý displej, len sa doň
+           dá písať. Číslo ostáva veľké ako predtým; meno je dlhšie, preto menšie. */
+        .numpad-input {
+          width: 100%; padding: 0 12px; text-align: center; outline: none;
+          font-size: 1.3rem; text-transform: uppercase;
+        }
+        .numpad-input::placeholder {
+          color: rgba(0,0,0,0.3); font-size: 0.85rem; letter-spacing: 0.06em; text-transform: none;
+        }
+        .numpad-input:focus { border-color: ${LAPIS.edge}; box-shadow: 0 0 0 2px rgba(22,48,122,0.18); }
+        .numpad--typing .numpad-input { font-size: 1.05rem; letter-spacing: 0.06em; }
+                /* Mobile: countries on TOP, numpad below (palec dosiahne numpad → ľahšie písanie) */
         @media (max-width: 520px) {
           .numpad--wide { width: min(88vw, 320px); }
           .numpad-body { grid-template-columns: 1fr; gap: 14px; }
@@ -3001,6 +3177,12 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
             border-top: 1px solid rgba(201,154,63,0.3);
             padding-top: 14px;
           }
+          /* 📱 Píšem meno ⇒ vyskočí klávesnica: kalkulačka sa schová a výsledky
+             idú POD pole (Matej 3. 10. 2026, hárok nakres-stena-hladanie). */
+          .numpad--typing .numpad-grid { display: none; }
+          .numpad--typing .numpad-countries { order: 1; }
+          .numpad--typing .numpad-search { border-top: none; padding-top: 0; }
+          .numpad--typing .numpad-display { margin-bottom: 0; }
         }
 
         /* ── KALKULAČKA NAD GUĽOU — TEN ISTÝ PANEL, INÉ UKOTVENIE ───────────
@@ -3688,12 +3870,24 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           className={`numpad-overlay${filterOpen ? ' open' : ''}${planetOpen ? ' numpad-overlay--planet' : ''}`}
           onClick={(e) => { if (e.target === e.currentTarget) { setFilterOpen(false); setFilterValue(''); } }}
         >
-          <div className="numpad numpad--wide" role="dialog" aria-label={t('wall.filter.find')}>
+          <div className={`numpad numpad--wide${isNameQuery(filterValue) ? ' numpad--typing' : ''}`} role="dialog" aria-label={t('wall.filter.find')}>
             <div className="numpad-body">
               <div className="numpad-search">
-                <div className="numpad-display">
-                  {filterValue ? `#${filterValue}` : <span className="ph">{t('wall.filter.placeholder')}</span>}
-                </div>
+                {/* JEDNO POLE NA MENO AJ ČÍSLO (Matej 3. 10. 2026, hárok
+                    nakres-stena-hladanie). Kalkulačka doň ďalej píše číslice. */}
+                <input
+                  ref={searchInputRef}
+                  className="numpad-display numpad-input"
+                  value={filterValue}
+                  onChange={(e) => setFilterValue(e.target.value.slice(0, 40))}
+                  placeholder={t('wall.filter.placeholderName')}
+                  aria-label={t('wall.filter.find')}
+                  enterKeyHint="search"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                />
                 <div className="numpad-grid">
                   {['1','2','3','4','5','6','7','8','9'].map(d => (
                     <button
@@ -3729,6 +3923,17 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
                 </div>
               </div>
 
+              {isNameQuery(filterValue) ? (
+                <div className="numpad-countries numpad-results">
+                  <div className="numpad-countries-title">{t('wall.search.found')}</div>
+                  <WallSearchResults
+                    hits={matchDogs(searchDogs, filterValue)}
+                    onGo={goToDog}
+                    edgeBase={EDGE_BASE}
+                    anonKey={SUPABASE_ANON_KEY}
+                  />
+                </div>
+              ) : (
               <div className="numpad-countries">
                 <div className="numpad-countries-title">{t('wall.filter.countries')}</div>
                 <div className="numpad-countries-list">
@@ -3741,6 +3946,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
                   ))}
                 </div>
               </div>
+              )}
             </div>
           </div>
         </div>
