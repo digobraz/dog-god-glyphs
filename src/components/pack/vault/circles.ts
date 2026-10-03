@@ -26,7 +26,7 @@ export const VAULT_CIRCLES: Record<string, readonly CircleName[]> = {
     { sk: 'Rozhodnutie pred psom', en: 'The decision before the dog' },
     { sk: 'Odkiaľ ho vziať', en: 'Where to get one' },
     { sk: 'Príchod a prvý rok', en: 'Arrival and the first year' },
-    { sk: 'Vzťah človek–pes', en: 'Human and dog' },
+    { sk: 'Spolu: človek a pes', en: 'Human and dog' },
     { sk: 'Reprodukcia a kastrácia', en: 'Breeding and neutering' },
     { sk: 'Dospelosť a staroba', en: 'Adulthood and old age' },
     { sk: 'Odchod', en: 'Saying goodbye' },
