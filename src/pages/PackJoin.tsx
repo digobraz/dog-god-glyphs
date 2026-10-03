@@ -18,7 +18,6 @@ import { PageTopBar } from '@/components/PageTopBar';
 import { PACK_BOX, PACK_THEME as T, FONT_TITLE, FONT_UI, PAPER_PAGE_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { PAWMATE_RIGHTS } from '@/lib/pawmateRights';
-import { AINUBIS, AI_GATE_CHIP } from '@/components/pack/ainubisSkin';
 
 type Preview = {
   /** Mená psov spojené „&" — server ich skladá sám, aby stránka nemusela poznať
@@ -142,18 +141,10 @@ export default function PackJoin() {
           nie justify-center rodiča — lock PAGE_AIR: pri nízkom okne by sa vrch nedal odrolovať. */}
       <div style={{ width: '100%', maxWidth: 560, margin: 'auto', padding: '16px 16px 48px', boxSizing: 'border-box' }}>
         <section style={{ ...PACK_BOX.card, padding: '24px 24px', color: T.ink, textAlign: 'center' }}>
-          {/* Kresba z ručného kitu (`/icons/pack/envelope.svg`), farbí ju maska — zlato = konštrukcia. */}
-          <div aria-hidden style={{
-            width: 48, height: 48, margin: '0 auto 16px', background: T.cardEdge,
-            WebkitMaskImage: 'url(/icons/pack/envelope.svg)', maskImage: 'url(/icons/pack/envelope.svg)',
-            WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskSize: 'contain', maskSize: 'contain',
-            WebkitMaskPosition: 'center', maskPosition: 'center',
-          }} />
           {phase.k === 'loading' && <Line>{tx('pack.join.loading', 'Opening the invitation…')}</Line>}
 
           {phase.k === 'dead' && (
             <>
-              <GateChip />
               <Title>{
                 phase.why === 'already_accepted' ? tx('pack.join.usedTitle', 'This invitation was already accepted')
                 : phase.why === 'expired' ? tx('pack.join.expiredTitle', 'The invitation expired')
@@ -185,7 +176,6 @@ export default function PackJoin() {
 
           {phase.k === 'ready' && (
             <>
-              <GateChip />
               {/* Pri viacerých psoch stoja kruhy vedľa seba a zmenšia sa — jedna fotka
                   s dvoma menami pod ňou by tvrdila, že ten druhý pes je ten na fotke. */}
               {(() => {
@@ -250,7 +240,6 @@ export default function PackJoin() {
 
           {phase.k === 'sent' && (
             <>
-              <GateChip />
               <Title>{tx('pack.join.sentTitle', 'Check your inbox')}</Title>
               <Line>
                 {tx('pack.join.sentBody', 'We sent a link to {masked}. One tap and you are in the pack. The link works once.')
@@ -261,7 +250,6 @@ export default function PackJoin() {
 
           {phase.k === 'wrong' && (
             <>
-              <GateChip />
               <Title>{tx('pack.join.wrongTitle', 'This invitation belongs to another address')}</Title>
               <Line>
                 {tx('pack.join.wrongBody', 'You are signed in as {email}, but the invitation went to {masked}. Sign out and open the link again.')
@@ -279,7 +267,6 @@ export default function PackJoin() {
 
           {phase.k === 'full' && (
             <>
-              <GateChip />
               <Title>{tx('pack.join.fullTitle', 'The place is taken')}</Title>
               <Line>{tx('pack.join.fullBody', 'Someone has already joined this dog. Talk to the person who invited you.')}</Line>
             </>
@@ -287,7 +274,6 @@ export default function PackJoin() {
 
           {phase.k === 'done' && (
             <>
-              <GateChip />
               <Title>{tx('pack.join.doneTitle', 'You are in the pack')}</Title>
               <Line>
                 {tx('pack.join.doneBody', 'Welcome beside {dog}. Opening the pack…').replace('{dog}', phase.dogName)}
@@ -305,19 +291,8 @@ const sub: React.CSSProperties = {
   fontFamily: FONT_UI, fontSize: 12, lineHeight: 1.6, color: T.inkWarm, margin: 0,
 };
 
-/** AINUBIS · STRÁŽCA BRÁNY v tmavom chipe — ten istý ako na /login (Matej 3. 10. 2026).
- *  Pozvánka je brána do svorky, takže ju stráži ten istý strážca. */
-function GateChip() {
-  const t = useT();
-  return (
-    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
-      <span style={AI_GATE_CHIP as React.CSSProperties}>
-        <span style={{ color: AINUBIS.ink }}><span style={{ color: AINUBIS.aiInk, textShadow: AINUBIS.aiShadow }}>AI</span>NUBIS</span> · {t('login.eyebrow')}
-      </span>
-    </div>
-  );
-}
-
+// ⛔ Pozvánka nemá nad nadpisom nič — ani AINUBISOV chip, ani obálku (Matej 3. 10. 2026:
+//    *„pozvánka — preč ainubis aj nad nadpis… iba nadpis a text"*). Chip ostáva na /login.
 function Title({ children }: { children: React.ReactNode }) {
   return (
     <h1 style={{
