@@ -26,11 +26,10 @@ import L from 'leaflet';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
 import { useT } from '@/i18n/LanguageContext';
-import { LAPIS, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import { trailCountry } from '@/lib/countryGeo';
 import { MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
 import { BackButton } from '@/components/pack/BackButton';
-import { MAP_SKIN, PALE, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { MAP_SKIN, PALE, LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
 import {
   EVENT_KINDS, EVENT_KIND_LABEL_KEYS, missingEventFields, endsBeforeStarts, normalizeSourceUrl,
   type AddEventDraft, type EventKind, type EventOrigin,

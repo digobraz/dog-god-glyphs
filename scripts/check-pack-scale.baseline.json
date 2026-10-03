@@ -439,16 +439,6 @@
     "pismenka": 0,
     "odsadenie": 0
   },
-  "components/pack/mapnotes/MapNoteCursor.tsx": {
-    "radius": 0,
-    "font": 0,
-    "zavoj": 0,
-    "progres": 0,
-    "ram": 0,
-    "tien": 1,
-    "pismenka": 0,
-    "odsadenie": 0
-  },
   "components/pack/mapnotes/MapNotesLayer.tsx": {
     "radius": 0,
     "font": 0,
@@ -595,7 +585,7 @@
     "zavoj": 67,
     "progres": 0,
     "ram": 17,
-    "tien": 57,
+    "tien": 55,
     "pismenka": 0,
     "odsadenie": 0
   },

@@ -70,12 +70,22 @@ export const MAP_ATTR_CSS = `
  */
 export const mapAttrLiftCSS = (maxWidth: number) => `
 @media (max-width:${maxWidth}px){
-  .trp-attrstack,.leaflet-control-scale{
+  .leaflet-control-scale{
     bottom:calc(env(safe-area-inset-bottom, 0px) + 16px + var(--pack-nav-h, 0px) + 10px);}
-  body.has-map-actions .trp-attrstack,body.has-map-actions .leaflet-control-scale{
+  body.has-map-actions .leaflet-control-scale{
     bottom:calc(var(--trp-mactions-h, 149px) + 10px);}
-  body.trp-draw-lock .trp-attrstack,body.trp-draw-lock .leaflet-control-scale{
+  body.trp-draw-lock .leaflet-control-scale{
     bottom:calc(${DOCK_VH * 100}vh + 10px);}
+  /* ── ATRIBÚCIA NA MOBILE HORE POD HLAVIČKOU, VEDĽA SEBA A MENŠIA (Matej 3. 10. 2026:
+     *„na mobile by som dal info o poi a mapy cz hore pod lištu horného headra — vedľa seba
+     a menším"*). Dole súperila o pás s radom ZOZNAM, AINUBISOM a navom (tri stupne zdvihu
+     vyššie). Vľavo, lebo vpravo pod hlavičkou stojí stĺpec ovládačov (.trp-ctlstack).
+     Licencia (ODbL, Mapy.com) chce atribúciu VIDITEĽNÚ, nie dole — logo ostáva celé. */
+  .trp-attrstack{top:calc(var(--trp-mheader-h, 159px) + ${PACK_SPACE.sm}px);bottom:auto;
+    left:${PACK_SPACE.md}px;right:auto;flex-direction:row;align-items:center;}
+  .trp-attrstack .trp-attr{padding:2px ${PACK_SPACE.xs}px;}
+  .trp-attrstack .trp-attr img{height:10px!important;}
+  body.trp-draw-lock .trp-attrstack{top:calc(env(safe-area-inset-top, 0px) + ${PACK_SPACE.md}px);}
 }
 `;
 
