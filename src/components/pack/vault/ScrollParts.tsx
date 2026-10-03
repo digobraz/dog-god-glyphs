@@ -111,7 +111,11 @@ export const SCROLL_CSS = `
   border:1px solid ${AINUBIS.edgeStrong};color:${AINUBIS.ink};font-family:${FONT_TITLE};font-weight:700;
   font-size:${PACK_TEXT.label}px;letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;}
 .zv-read:hover{border-color:${AINUBIS.cyan};}
-.zv-read.is-done{background:rgba(${BRAIN_STATE.read},0.16);border-color:var(--zv-read);color:var(--zv-read);}
+/* HOTOVO = PLNÁ zelená s tmavým inkoustom (Matej: „treba viac zvýrazniť, teraz je to prehliadnuteľné“). */
+.zv-read.is-done{background:var(--zv-read);border-color:var(--zv-read);color:#03140A;outline:3px solid rgba(${BRAIN_STATE.read},0.28);outline-offset:2px;}
+.zv-badge{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
+  background:var(--zv-read);color:#03140A;font:700 ${PACK_TEXT.label}px ${FONT_TITLE};letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;
+  outline:3px solid rgba(${BRAIN_STATE.read},0.28);outline-offset:2px;}
 /* ČIARA POD NADPISOM — zlatá niť AINUBISA, ktorá doznie do tmy (Matej: „chýba vizuál… pod nadpisom línia"). */
 .zv-rule{display:block;height:2px;width:100%;max-width:160px;border-radius:${PACK_R.pill}px;
   background:linear-gradient(90deg, ${AINUBIS.ctaA} 0%, ${AINUBIS.ctaB} 40%, transparent 100%);}
@@ -149,7 +153,8 @@ export const SCROLL_CSS = `
 .zv-body li{margin-bottom:${PACK_SPACE.xs}px;}
 .zv-box{margin-top:${PACK_SPACE.lg}px;padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.card}px;${AI_GLASS}
   border-top:2px solid var(--zv-bx, ${AINUBIS.cyan});}
-.zv-box .zv-sec{margin-top:${PACK_SPACE.xs}px;color:var(--zv-bx, ${AINUBIS.cyan});}
+.zv-box .zv-sec{margin-top:${PACK_SPACE.xs}px;font-size:${PACK_TEXT.lead}px;color:var(--zv-bx, ${AINUBIS.cyan});
+  background:linear-gradient(90deg, var(--zv-bx, ${AINUBIS.cyan}) 0%, transparent 60%) left bottom / 100% 1px no-repeat;}
 .zv-box--src{--zv-bx:${AINUBIS.ctaA};}
 .zv-box--add{--zv-bx:${AINUBIS.aiInk};}
 .zv-box--you{--zv-bx:rgb(${BRAIN_STATE.read});}
@@ -164,9 +169,11 @@ export const SCROLL_CSS = `
   background:${AINUBIS.surface};border:1px solid ${AINUBIS.edge};color:${AINUBIS.ink};font:400 ${PACK_TEXT.body}px ${FONT_UI};}
 .zv-cform textarea:focus{outline:none;border-color:${AINUBIS.edgeStrong};}
 .zv-chip:disabled{opacity:.5;cursor:default;}
-.zv-sec{margin:${PACK_SPACE.xl}px 0 ${PACK_SPACE.sm}px;font-size:${PACK_TEXT.micro}px;font-weight:500;
-  letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.cyan};}
-.zv-body h3.zv-sec{font-family:${FONT_UI};}
+/* NADPISY ČLÁNKU — Matej 3. 10.: „tie nadpisy modré sú malinké, nevýrazné… ľahko sa prehliadnu“.
+   Tvar KARTY z PACK_HEAD (Cinzel 700/.14em), stupeň h2 20 px, svetlý inkoust + zlatá niť pod ním. */
+.zv-sec{margin:${PACK_SPACE.xxl}px 0 ${PACK_SPACE.md}px;padding-bottom:${PACK_SPACE.sm}px;font-family:${FONT_TITLE};font-weight:700;
+  font-size:${PACK_TEXT.h2}px;line-height:1.25;letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.ink};
+  background:linear-gradient(90deg, ${AINUBIS.ctaA} 0%, ${AINUBIS.ctaB} 25%, transparent 60%) left bottom / 100% 2px no-repeat;}
 .zv-add{padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-left:2px solid ${AINUBIS.cyan};border-radius:0 ${PACK_R.tile}px ${PACK_R.tile}px 0;
   background:${AINUBIS.raised};font-size:${PACK_TEXT.label}px;color:${AINUBIS.inkDim};}
 .zv-src{margin:0;padding-left:${PACK_SPACE.lg}px;font-size:${PACK_TEXT.label}px;line-height:1.55;color:${AINUBIS.inkDim};}
@@ -347,6 +354,7 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
             <span className="zv-meta">{z.circle} · {u.scroll} {z.n}/{z.total} · {x.min} {u.min}</span>
             <div className="zv-hl" style={{ alignSelf: 'stretch' }}><h1 className="zv-h">{x.t}</h1><EvidenceBadge sd={z.sd} lang={lang} /></div>
             <span className="zv-rule" aria-hidden />
+            {s === 2 && <span className="zv-badge"><HandCheck size={14} />{u.readDone}</span>}
             <p className="zv-v">{x.v}</p>
             {x.vz && <div className="zv-take">{x.vz}</div>}
             {pod && (
