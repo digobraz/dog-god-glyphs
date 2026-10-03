@@ -98,6 +98,9 @@ const GROUPS: Group[] = [
         path: '/heroglyph/essence',
         state: 'done',
       },
+      // 3. 10. 2026 — podstata/patrón/majiteľ ostávajú `done` po drobnostiach: SE 375×553
+      // bez pretečenia (medailón 60 pod 600 px, web 031c0a13), hviezdy bez orezania do 360 px,
+      // z okna plemena preč veta duplikujúca podnadpis (1833c5ce). Overené headless.
       // 27. 9. 2026 — stav overený po audite (CTA 8 · FLOW_TITLE · Hektor v bublinách · texty · (i) Egypt na MAJITEĽOVI):
       // podstata/patrón/povaha/majiteľ ostávajú `done`, zadržanie a finále tiež. Snímky TEL+PC v scratchpade session.
       {
