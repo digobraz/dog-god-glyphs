@@ -22,9 +22,10 @@
 // HOTOVO = prečítal (tlačidlo na konci) ALEBO dopočúval podcast (≥ 90 %).
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { AINUBIS, AI_GLASS, BRAIN_STATE } from '@/components/pack/ainubisSkin';
-import { HandPaw, HandStar, HandPlus, HandForward, HandCheck, HandPencil, HandAlert, HandCamera } from '@/components/pack/HandIcons';
+import { HandPaw, HandStar, HandPlus, HandForward, HandCheck, HandPencil, HandAlert, HandCamera, HandArrowLeft } from '@/components/pack/HandIcons';
 
 /** Kresba z kitu `/icons/pack/` cez masku (ten istý zápis ako v PackAinubis). */
 const Ic = ({ ic }: { ic: string }) => (
@@ -112,11 +113,12 @@ export const SCROLL_CSS = `
    — flagnuté Matejovi, zatiaľ podľa neho. Zapnutá akcia = ikonka žiari (drop-shadow, nie box-shadow). */
 .zv-act{opacity:.9;}
 .zv-act:hover{opacity:1;}
-.zv-act[data-k="like"]{color:${AINUBIS.cyan};filter:drop-shadow(0 0 4px rgba(${AINUBIS.cyanRGB},0.7));}
+.zv-act[data-k="like"]{color:${AINUBIS.cyan};filter:drop-shadow(0 0 2px rgba(${AINUBIS.cyanRGB},0.4));}
 .zv-act[data-k="save"]{color:${AINUBIS.ctaA};}
 .zv-act[data-k="talk"]{color:${ZV_PINK};}
 .zv-act[data-k="share"]{color:var(--zv-read);}
-.zv-act.is-on{opacity:1;filter:drop-shadow(0 0 6px currentColor) drop-shadow(0 0 2px currentColor);}
+/* Žiara len jemná (Matej 4. 10.: „nerob takú žiaru na ikonkách, packa je celá rozmazaná“). */
+.zv-act.is-on{opacity:1;filter:drop-shadow(0 0 3px rgba(${AINUBIS.cyanRGB},0.35));}
 .zv-act .zv-ic{margin-right:0;width:20px;height:20px;}
 .zv-n{font:500 ${PACK_TEXT.label}px ${FONT_UI};color:${AINUBIS.ink};min-width:1ch;}
 /* SILA DÔKAZU */
@@ -206,7 +208,33 @@ export const SCROLL_CSS = `
 .zv-ptr{padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;background:transparent;
   border:1px solid ${AINUBIS.edge};color:${AINUBIS.inkDim};font:500 ${PACK_TEXT.label}px ${FONT_UI};text-transform:none;letter-spacing:0;}
 .zv-ptr.is-on{border-color:${AINUBIS.cyan};color:${AINUBIS.cyan};}
-.zv-pod audio{display:block;width:100%;height:40px;}
+/* PREHRÁVAČ — vlastný, cyan neón s tmavým ovládaním (Matej 4. 10.: „sivý blok prehrávača… výplň cyanová/neónová,
+   text a čísla tmavé ako pozadie“). Natívne ovládanie prehliadača sa farbiť nedá. */
+.zv-player{display:flex;align-items:center;gap:${PACK_SPACE.md}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
+  background:${AINUBIS.cyan};color:${AINUBIS.bgDeep};filter:drop-shadow(0 0 8px rgba(${AINUBIS.cyanRGB},0.55));}
+.zv-pbtn{flex:none;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:${PACK_R.pill}px;
+  cursor:pointer;background:${AINUBIS.bgDeep};color:${AINUBIS.cyan};border:0;padding:0;}
+.zv-pbtn .zv-ic{margin:0 0 0 2px;width:16px;height:16px;}
+.zv-pause{display:inline-flex;gap:4px;}
+.zv-pause i{display:block;width:4px;height:14px;border-radius:${PACK_R.pill}px;background:currentColor;}
+.zv-ptime{flex:none;font:600 ${PACK_TEXT.label}px ${FONT_UI};font-variant-numeric:tabular-nums;}
+.zv-pbar{flex:1 1 auto;min-width:0;height:6px;margin:0;cursor:pointer;-webkit-appearance:none;appearance:none;border-radius:${PACK_R.pill}px;
+  background:linear-gradient(90deg, ${AINUBIS.bgDeep} var(--p,0%), rgba(0,0,0,0.22) var(--p,0%));}
+.zv-pbar::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:${PACK_R.pill}px;background:${AINUBIS.bgDeep};border:0;}
+.zv-pbar::-moz-range-thumb{width:14px;height:14px;border-radius:${PACK_R.pill}px;background:${AINUBIS.bgDeep};border:0;}
+/* GALÉRIA — klik na obraz otvorí väčší a so šípkami aj obrazy z článku (Matej 4. 10.). */
+.zv-hero img{cursor:zoom-in;}
+.zv-gal{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.md}px;
+  padding:${PACK_SPACE.xxxl}px ${PACK_SPACE.lg}px;background:rgba(1,5,10,0.94);}
+.zv-gal img{display:block;max-width:min(100%, 640px);max-height:calc(100dvh - 140px);object-fit:contain;border-radius:${PACK_R.tile}px;}
+.zv-gal figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:${PACK_SPACE.sm}px;max-height:100%;min-width:0;}
+.zv-gal figcaption{font-size:${PACK_TEXT.label}px;color:${AINUBIS.inkFaint};}
+.zv-gnav{flex:none;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:${PACK_R.pill}px;cursor:pointer;
+  background:${AINUBIS.raised};border:1px solid ${AINUBIS.edgeStrong};color:${AINUBIS.cyan};}
+.zv-gnav:disabled{opacity:.3;cursor:default;}
+.zv-gback{position:absolute;top:${PACK_SPACE.lg}px;left:${PACK_SPACE.lg}px;}
+@media (max-width:767px){.zv-gal{padding:${PACK_SPACE.xxxl}px ${PACK_SPACE.sm}px;}.zv-gnav{position:absolute;bottom:${PACK_SPACE.lg}px;}
+  .zv-gnav--prev{left:calc(50% - 56px);}.zv-gnav--next{right:calc(50% - 56px);}}
 .zv-tr{margin-top:${PACK_SPACE.md}px;max-height:360px;overflow-y:auto;padding-right:${PACK_SPACE.sm}px;
   font-size:${PACK_TEXT.body}px;line-height:1.6;color:${AINUBIS.inkDim};}
 .zv-tr p{margin:0 0 ${PACK_SPACE.sm}px;}
@@ -421,7 +449,7 @@ function Years({ t }: { t: string }) {
 }
 
 /** Príbeh `d`: ▸ sekcia · – odrážky · ◷ ROK | text (časová os) · \u00BB zvýraznený fakt · ▣ B | popis (nepoužitý obraz). */
-function StoryBody({ d, imgs }: { d: string; imgs?: Record<string, string> }) {
+function StoryBody({ d, imgs, onImg }: { d: string; imgs?: Record<string, string>; onImg?: (src: string) => void }) {
   const blocks = d.split(/\n\n+/);
   return (
     <>
@@ -431,7 +459,7 @@ function StoryBody({ d, imgs }: { d: string; imgs?: Record<string, string> }) {
         if (b.startsWith('▣')) {
           const m = b.match(/^▣\s*([ABC])\s*\|?\s*(.*)$/s);
           const src = m && imgs?.[m[1]];
-          return src ? <figure key={i} className="zv-fig"><img src={src} alt={m[2]} loading="lazy" /><figcaption>{m[2]}</figcaption></figure> : null;
+          return src ? <figure key={i} className="zv-fig"><img src={src} alt={m[2]} loading="lazy" onClick={() => onImg?.(src)} style={{ cursor: 'zoom-in' }} /><figcaption>{m[2]}</figcaption></figure> : null;
         }
         const lines = b.split('\n');
         const tl = lines.filter(l => l.startsWith('◷'));
@@ -484,6 +512,9 @@ function PodcastBox({ z, lang, onDone, boxRef }: {
   const [req, setReq] = useState(REQ_LANGS[0][0]);
   const [reqSent, setReqSent] = useState(false);
   const [menu, setMenu] = useState(false);
+  const [t, setT] = useState(0);
+  const audio = useRef<HTMLAudioElement>(null);
+  useEffect(() => { setT(0); }, [pl]);
   if (!pod || !pl) return null;
   const onTime = (e: React.SyntheticEvent<HTMLAudioElement>) => {
     const a = e.currentTarget;
@@ -513,9 +544,20 @@ function PodcastBox({ z, lang, onDone, boxRef }: {
           )}
         </span>
       </small>
-      <audio key={pod.src} controls preload="none" src={pod.src} onTimeUpdate={onTime}
+      <audio key={pod.src} ref={audio} preload="metadata" src={pod.src}
+        onTimeUpdate={(e) => { onTime(e); setT(e.currentTarget.currentTime); }}
         onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}
         onEnded={() => { setPlaying(false); onDone(); }} />
+      <div className="zv-player">
+        <button type="button" className="zv-pbtn" aria-label={playing ? 'Pause' : 'Play'}
+          onClick={() => { const a = audio.current; if (!a) return; if (a.paused) void a.play(); else a.pause(); }}>
+          {playing ? <span className="zv-pause" aria-hidden><i /><i /></span> : <Ic ic="play" />}
+        </button>
+        <span className="zv-ptime">{fmtSec(Math.floor(t))} / {fmtSec(pod.sec)}</span>
+        <input type="range" className="zv-pbar" min={0} max={pod.sec} step={1} value={Math.floor(t)} aria-label={u.pod}
+          style={{ ['--p' as string]: `${pod.sec ? (t / pod.sec) * 100 : 0}%` }}
+          onChange={(e) => { const a = audio.current; const v = Number(e.target.value); if (a) a.currentTime = v; setT(v); }} />
+      </div>
       {open === 'tr' && (
         <div className="zv-tr">
           {pod.tr!.map((r, i) => (
@@ -542,6 +584,45 @@ function PodcastBox({ z, lang, onDone, boxRef }: {
   );
 }
 
+/** Obrazy článku v poradí: hlavný + nepoužité varianty tak, ako stoja v príbehu (`▣ B | popis`). */
+function galleryOf(z: DemoScroll, d: string): { src: string; cap: string }[] {
+  const out = z.img ? [{ src: z.img, cap: '' }] : [];
+  for (const m of d.matchAll(/^▣\s*([ABC])\s*\|?\s*(.*)$/gm)) {
+    const src = z.imgs?.[m[1]];
+    if (src && !out.some((o) => o.src === src)) out.push({ src, cap: m[2] });
+  }
+  return out;
+}
+
+/** GALÉRIA — väčší obraz + šípky (klávesy ← → Esc, na mobile potiahnutie). */
+function Gallery({ list, start, label, onClose }: { list: { src: string; cap: string }[]; start: number; label: string; onClose: () => void }) {
+  const [i, setI] = useState(start);
+  const x0 = useRef<number | null>(null);
+  const go = (k: number) => setI((v) => Math.min(list.length - 1, Math.max(0, v + k)));
+  useEffect(() => {
+    const on = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); if (e.key === 'ArrowLeft') go(-1); if (e.key === 'ArrowRight') go(1); };
+    window.addEventListener('keydown', on);
+    return () => window.removeEventListener('keydown', on);
+  });
+  const it = list[i];
+  // portál do body: článok (.zv-veil, z 39) je vlastný kontext vrstiev — vnútri by galériu prekryla lišta
+  return createPortal(
+    <div className="zv-gal" role="dialog" aria-modal="true" aria-label={label} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onTouchStart={(e) => { x0.current = e.touches[0].clientX; }}
+      onTouchEnd={(e) => { if (x0.current === null) return; const dx = e.changedTouches[0].clientX - x0.current; if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1); x0.current = null; }}>
+      <BackButton tone="pale" onClick={onClose} label={label} className="zv-gback" />
+      {list.length > 1 && <button type="button" className="zv-gnav zv-gnav--prev" disabled={i === 0} onClick={() => go(-1)} aria-label="Prev"><HandArrowLeft size={20} /></button>}
+      <figure>
+        <img src={it.src} alt={it.cap} />
+        <figcaption>{i + 1} / {list.length}{it.cap ? ` · ${it.cap}` : ''}</figcaption>
+      </figure>
+      {list.length > 1 && <button type="button" className="zv-gnav zv-gnav--next" disabled={i === list.length - 1} onClick={() => go(1)} aria-label="Next"><HandArrowLeft size={20} style={{ transform: 'scaleX(-1)' }} /></button>}
+    </div>
+,
+    document.body,
+  );
+}
+
 /** Článok zvitku — vrstva nad VAULTOM s vlastnou adresou. */
 export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShare }: {
   z: DemoScroll; all: DemoScroll[]; lang: string; focus?: string | null;
@@ -561,6 +642,8 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
   const podRef = useRef<HTMLDivElement>(null);
   const srcRef = useRef<HTMLHeadingElement>(null);
   const talkRef = useRef<HTMLElement>(null);
+  const [gal, setGal] = useState<number | null>(null);
+  const gallery = galleryOf(z, x.d);
 
   // Otvorenie článku = videné. Telo pod vrstvou nescrolluje (kôš 2, ako StoryView).
   useEffect(() => { markScroll(z.id, 1); }, [z.id]);
@@ -577,11 +660,12 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
 
   return (
     <div className="zv-veil" ref={veil} role="dialog" aria-modal="true" aria-label={x.t}>
+      {gal !== null && gallery.length > 0 && <Gallery list={gallery} start={gal} label={u.back} onClose={() => setGal(null)} />}
       <div className="zv-wrap">
         <BackButton tone="pale" onClick={onClose} label={u.back} className="zv-back" />
         <div className="zv-top">
           <div className="zv-hero">
-            {z.img && <img src={z.img} alt="" />}
+            {z.img && <img src={z.img} alt="" onClick={() => setGal(0)} />}
             <ScrollActions id={z.id} lang={lang} onShare={() => onShare(z.id)} onTalk={() => talkRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
           </div>
           <div className="zv-head">
@@ -602,7 +686,7 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
         </div>
 
         <div className="zv-body">
-          <StoryBody d={x.d} imgs={z.imgs} />
+          <StoryBody d={x.d} imgs={z.imgs} onImg={(src) => setGal(Math.max(0, gallery.findIndex((g) => g.src === src)))} />
 
           <section className="zv-box zv-box--add">
           <h3 className="zv-sec">{u.added}</h3>
