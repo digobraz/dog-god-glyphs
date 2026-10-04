@@ -6176,7 +6176,17 @@ export default function OnePage() {
           color: transparent; -webkit-text-fill-color: transparent; text-shadow: none;
         }
         .op-root #op-vision .vhero-h2 { letter-spacing: .04em; }
-        .op-root #op-vision .vhero-h2 > span { background-image: ${FILM_GOLD} !important; }
+        .op-root #op-vision .vhero-h2 > span { background-image: ${FILM_GOLD} !important; filter: none !important; }
+        /* KRAVA VS PES — čísla sú nadpis obrazu, nie údaj (Matej 4. 10. 2026
+           nad snímkou: *„a tu je zas iná farba!"*). Bola tu plná hnedá #6E4A12
+           pri krave a LAPIS pri psovi — tretia a štvrtá farba nadpisov filmu.
+           Kontrast krava/pes nesie veta (MÁ 1,2 MILIARDY / MÁ NIKOHO), nie farba.
+           ⚠️ padding .12em: background-clip:text inak oseká diakritiku nad verzálkami. */
+        .op-root .cl-figure, .op-root .cl-figure-void {
+          background-image: ${FILM_GOLD}; -webkit-background-clip: text; background-clip: text;
+          color: transparent; -webkit-text-fill-color: transparent;
+          letter-spacing: .04em; padding-top: .12em; margin-top: -.12em;
+        }
         .op-root .dgx-h2 { letter-spacing: .04em; }
         .op-root .dgx-h2 .ln { background-image: ${FILM_GOLD}; }
         .op-root .op-nxt-h2 span { background-image: ${FILM_GOLD}; }

@@ -15,7 +15,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "sync-codex": "node scripts/sync-codex.mjs"
+    "sync-codex": "node scripts/sync-codex.mjs",
+    "check:nadpisy": "node scripts/check-nadpisy-onepage.mjs"
   },
   "dependencies": {
     "@mapbox/vector-tile": "^2.0.5",
