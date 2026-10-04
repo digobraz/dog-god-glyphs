@@ -139,7 +139,8 @@ ${MEDALLION_CSS}
 .vk-req:last-child{border-bottom:0;}
 .vk-req small{display:block;font-size:${PACK_TEXT.label}px;color:${AINUBIS.inkFaint};}
 .vk-req p{margin:${PACK_SPACE.xs}px 0 0;color:${AINUBIS.inkDim};}
-.vk .zv-box h3 svg{vertical-align:-2px;margin-right:${PACK_SPACE.xs}px;}
+.vk .zv-box h3{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;}
+.vk .zv-box h3 svg{flex:none;}
 `;
 
 export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, worldName, onClose, onOpen }: {

@@ -35,7 +35,7 @@ import { BackButton } from '@/components/pack/BackButton';
 import {
   type DemoScroll, pickText, pickPod, sourceHref, fmtSec, scrollLang,
   markScroll, useScrollState, toggleSaved, useSaved, useTalk, addTalk, toggleLiked, useLiked,
-  toggleTalkLike, addProposal, shrinkPhoto, type ProposalKind, podLang, requestLang, useCounts, saveListen,
+  toggleTalkLike, addProposal, shrinkPhoto, type ProposalKind, podLang, requestLang, useCounts, saveListen, useReads,
 } from './vaultScrolls';
 import { VAULT_CIRCLES } from './circles';
 
@@ -547,6 +547,9 @@ function PodcastBox({ z, lang, onDone, boxRef }: {
   const audio = useRef<HTMLAudioElement>(null);
   const lastSave = useRef(0);
   useEffect(() => { setT(0); lastSave.current = 0; }, [pl]);
+  // POKRAČUJ — rozpočúvaný podcast začne tam, kde človek skončil (nie pri dopočúvanom).
+  const row = useReads()[z.id];
+  const resumeAt = row && !row.listened_at ? row.listen_sec : 0;
   if (!pod || !pl) return null;
   // Kam došiel — do postupu najviac raz za 15 s (+ pri pauze a konci), nie pri každom ticku.
   const keep = (sec: number, force = false) => {
@@ -584,6 +587,7 @@ function PodcastBox({ z, lang, onDone, boxRef }: {
         </span>
       </small>
       <audio key={pod.src} ref={audio} preload="metadata" src={pod.src}
+        onLoadedMetadata={(e) => { const a = e.currentTarget; if (resumeAt > 5 && resumeAt < a.duration * 0.9) { a.currentTime = resumeAt; setT(resumeAt); lastSave.current = resumeAt; } }}
         onTimeUpdate={(e) => { onTime(e); setT(e.currentTarget.currentTime); }}
         onPlay={() => setPlaying(true)} onPause={(e) => { setPlaying(false); keep(e.currentTarget.currentTime, true); }}
         onEnded={(e) => { setPlaying(false); keep(e.currentTarget.currentTime, true); onDone(); }} />
