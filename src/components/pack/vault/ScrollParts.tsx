@@ -164,11 +164,16 @@ export const SCROLL_CSS = `
 .zv-top{display:grid;grid-template-columns:1fr;gap:${PACK_SPACE.lg}px;}
 @media (min-width:768px){.zv-top{grid-template-columns:280px 1fr;}}
 .zv-hero img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:${PACK_R.tile}px;}
-.zv-head{position:relative;display:flex;flex-direction:column;align-items:stretch;gap:${PACK_SPACE.xl}px;min-width:0;}
+.zv-head{position:relative;display:flex;flex-direction:column;align-items:stretch;gap:${PACK_SPACE.lg}px;min-width:0;
+  padding:${PACK_SPACE.lg}px;border-radius:${PACK_R.card}px;${AI_GLASS}}
+/* Pravá časť je JEDEN blok (Matej 4. 10.: „pravú časť vedľa obrázka dať do bloku a lepšie poukladať, teraz je to rozhádzané").
+   Skupiny oddeľuje tenká čiara, podcast sedí na dne bloku. */
+.zv-head > .zv-grp + .zv-grp{padding-top:${PACK_SPACE.lg}px;border-top:1px solid ${AINUBIS.edge};}
+.zv-head > .zv-pod{margin-top:auto;}
 .zv-grp{display:flex;flex-direction:column;align-items:flex-start;gap:${PACK_SPACE.md}px;}
 /* PC: úvod sa rozloží po výške obrazu — nadpis hore, veta s blokom v strede, podcast dole
    (Matej 3. 10.: „úvod sa mi na PC nepáči, vyzerá to natlačené na sebe"). */
-@media (min-width:768px){.zv-head{justify-content:space-between;padding-bottom:${PACK_SPACE.xs}px;}}
+@media (min-width:768px){.zv-head{padding:${PACK_SPACE.xl}px;}}
 .zv-meta{font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.cyan};padding-right:${PACK_SPACE.xl}px;}
 .zv-h{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;line-height:1.2;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;overflow-wrap:anywhere;}
@@ -183,16 +188,23 @@ export const SCROLL_CSS = `
 /* hlavička podcastu: názov vľavo, jazyky vpravo (Matej 4. 10.: „pri tlačidle prehrať výber jazykov") */
 .zv-pod small{justify-content:space-between;flex-wrap:wrap;}
 .zv-pod small > span{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;}
-.zv-plang{display:inline-flex;gap:${PACK_SPACE.xs}px;}
-.zv-plang button{min-width:32px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;cursor:pointer;
-  background:transparent;border:1px solid ${AINUBIS.edge};color:${AINUBIS.inkFaint};font:700 ${PACK_TEXT.micro}px ${FONT_UI};letter-spacing:.02em;}
-.zv-plang button.is-on{background:${AINUBIS.raised};border-color:${AINUBIS.cyan};color:${AINUBIS.cyan};}
+/* Jazyk = rozbaľovač (Matej 4. 10.: „jazyk daj do dropdownu, podľa jazyka člena, posledná možnosť pridať iný jazyk, vedľa prepis"). */
+.zv-ptools{flex:none;display:inline-flex;align-items:center;gap:${PACK_SPACE.sm}px;}
+.zv-plang{flex:none;cursor:pointer;padding:${PACK_SPACE.xs}px ${PACK_SPACE.xl}px ${PACK_SPACE.xs}px ${PACK_SPACE.md}px;
+  border-radius:${PACK_R.pill}px;background:${AINUBIS.raised} no-repeat right ${PACK_SPACE.sm}px center / 10px 10px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M1 3l4 4 4-4' fill='none' stroke='%235BE0F0' stroke-width='1.6'/%3E%3C/svg%3E");
+  border:1px solid ${AINUBIS.cyan};color:${AINUBIS.cyan};font:700 ${PACK_TEXT.label}px ${FONT_UI};letter-spacing:.02em;}
+.zv-pdd{position:relative;display:inline-flex;}
+.zv-pmenu{position:absolute;top:calc(100% + ${PACK_SPACE.xs}px);right:0;z-index:6;display:flex;flex-direction:column;min-width:160px;
+  padding:${PACK_SPACE.xs}px;border-radius:${PACK_R.tile}px;background:${AINUBIS.surfaceBase};border:1px solid ${AINUBIS.edgeStrong};}
+.zv-pmenu button{padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.field}px;cursor:pointer;text-align:left;background:transparent;
+  border:0;color:${AINUBIS.ink};font:500 ${PACK_TEXT.body}px ${FONT_UI};letter-spacing:0;text-transform:none;}
+.zv-pmenu button:hover,.zv-pmenu button.is-on{background:${AINUBIS.raised};color:${AINUBIS.cyan};}
+.zv-pmenu .zv-padd{margin-top:${PACK_SPACE.xs}px;border-top:1px solid ${AINUBIS.edge};border-radius:0 0 ${PACK_R.field}px ${PACK_R.field}px;color:${AINUBIS.inkDim};}
+.zv-ptr{padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;background:transparent;
+  border:1px solid ${AINUBIS.edge};color:${AINUBIS.inkDim};font:500 ${PACK_TEXT.label}px ${FONT_UI};text-transform:none;letter-spacing:0;}
+.zv-ptr.is-on{border-color:${AINUBIS.cyan};color:${AINUBIS.cyan};}
 .zv-pod audio{display:block;width:100%;height:40px;}
-.zv-pmore{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;margin-top:${PACK_SPACE.sm}px;}
-.zv-pmore > button{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;
-  border-radius:${PACK_R.pill}px;cursor:pointer;background:transparent;border:1px solid ${AINUBIS.edge};color:${AINUBIS.inkDim};
-  font:500 ${PACK_TEXT.label}px ${FONT_UI};}
-.zv-pmore > button.is-on{border-color:${AINUBIS.cyan};color:${AINUBIS.cyan};}
 .zv-tr{margin-top:${PACK_SPACE.md}px;max-height:360px;overflow-y:auto;padding-right:${PACK_SPACE.sm}px;
   font-size:${PACK_TEXT.body}px;line-height:1.6;color:${AINUBIS.inkDim};}
 .zv-tr p{margin:0 0 ${PACK_SPACE.sm}px;}
@@ -221,7 +233,9 @@ export const SCROLL_CSS = `
 .zv-fig{margin:${PACK_SPACE.xl}px auto;max-width:420px;}
 .zv-fig img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:${PACK_R.tile}px;border:1px solid ${AINUBIS.edge};}
 .zv-fig figcaption{margin-top:${PACK_SPACE.sm}px;font-size:${PACK_TEXT.label}px;line-height:1.5;color:${AINUBIS.inkFaint};text-align:center;}
-.zv-body{margin-top:${PACK_SPACE.xl}px;max-width:760px;font-size:${PACK_TEXT.lead}px;line-height:1.75;}
+.zv-body{margin-top:${PACK_SPACE.xl}px;max-width:760px;font-size:${PACK_TEXT.lead}px;line-height:1.75;font-weight:300;color:${AINUBIS.inkDim};}
+/* Tenší rez 300 (Matej 4. 10.: „písmo celého textu sa mi zdá dosť hrubé… nebolo by čitateľnejšie tenšie?"). Space Grotesk je načítaný 300–600. */
+.zv-body b,.zv-body strong{font-weight:600;color:${AINUBIS.ink};}
 .zv-body p{margin:0 0 ${PACK_SPACE.md}px;}
 .zv-body ul{margin:0 0 ${PACK_SPACE.lg}px;padding-left:${PACK_SPACE.xl}px;list-style:disc;}
 .zv-body ul li{margin-bottom:${PACK_SPACE.sm}px;}
@@ -467,6 +481,7 @@ function PodcastBox({ z, lang, onDone, boxRef }: {
   const [open, setOpen] = useState<'' | 'tr' | 'req'>('');
   const [req, setReq] = useState(REQ_LANGS[0][0]);
   const [reqSent, setReqSent] = useState(false);
+  const [menu, setMenu] = useState(false);
   if (!pod || !pl) return null;
   const onTime = (e: React.SyntheticEvent<HTMLAudioElement>) => {
     const a = e.currentTarget;
@@ -476,26 +491,29 @@ function PodcastBox({ z, lang, onDone, boxRef }: {
     <div className={`zv-pod${playing ? ' is-play' : ''}`} ref={boxRef}>
       <small>
         <span><Ic ic="play" />{u.pod} · {fmtSec(pod.sec)}</span>
-        <span className="zv-plang" role="group" aria-label={u.other}>
-          {['sk', 'en', 'cs'].filter((l) => z.pod[l]).map((l) => (
-            <button key={l} type="button" className={l === pl ? 'is-on' : ''} aria-pressed={l === pl}
-              onClick={() => { setWant(l); setPlaying(false); }}>{POD_TAG[l]}</button>
-          ))}
+        <span className="zv-ptools">
+          <span className="zv-pdd">
+            <button type="button" className="zv-plang" aria-haspopup="listbox" aria-expanded={menu}
+              onClick={() => setMenu(!menu)}>{POD_TAG[pl]}</button>
+            {menu && (
+              <span className="zv-pmenu" role="listbox" aria-label={u.other}>
+                {['sk', 'en', 'cs'].filter((l) => z.pod[l]).map((l) => (
+                  <button key={l} type="button" role="option" aria-selected={l === pl} className={l === pl ? 'is-on' : ''}
+                    onClick={() => { setWant(l); setPlaying(false); setMenu(false); if (open === 'req') setOpen(''); }}>{POD_TAG[l]}</button>
+                ))}
+                <button type="button" className="zv-padd" onClick={() => { setOpen('req'); setMenu(false); }}>+ {u.other}</button>
+              </span>
+            )}
+          </span>
+          {!!pod.tr?.length && (
+            <button type="button" className={`zv-ptr${open === 'tr' ? ' is-on' : ''}`} aria-pressed={open === 'tr'}
+              onClick={() => setOpen(open === 'tr' ? '' : 'tr')}>{u.tr}</button>
+          )}
         </span>
       </small>
       <audio key={pod.src} controls preload="none" src={pod.src} onTimeUpdate={onTime}
         onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}
         onEnded={() => { setPlaying(false); onDone(); }} />
-      <div className="zv-pmore">
-        {!!pod.tr?.length && (
-          <button type="button" className={open === 'tr' ? 'is-on' : ''} onClick={() => setOpen(open === 'tr' ? '' : 'tr')}>
-            {open === 'tr' ? u.trHide : u.tr}
-          </button>
-        )}
-        <button type="button" className={open === 'req' ? 'is-on' : ''} onClick={() => setOpen(open === 'req' ? '' : 'req')}>
-          + {u.other}
-        </button>
-      </div>
       {open === 'tr' && (
         <div className="zv-tr">
           {pod.tr!.map((r, i) => (
