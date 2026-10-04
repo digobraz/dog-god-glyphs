@@ -34,7 +34,7 @@ import { BackButton } from '@/components/pack/BackButton';
 import {
   type DemoScroll, pickText, pickPod, sourceHref, fmtSec, scrollLang,
   markScroll, useScrollState, toggleSaved, useSaved, useTalk, addTalk, toggleLiked, useLiked,
-  toggleTalkLike, addProposal, shrinkPhoto, type ProposalKind,
+  toggleTalkLike, addProposal, shrinkPhoto, type ProposalKind, podLang, requestLang,
 } from './vaultScrollDemo';
 
 // ── texty rozhrania: základ EN/SK/CZ ako obsah VAULTU ───────────────────────
@@ -50,6 +50,9 @@ const UI = {
     propPh: 'Napíš, čo chýba alebo čo nesedí. Ak máš zdroj, pridaj odkaz.', propSend: 'Odoslať AINUBISOVI', propOk: 'Odoslané — AINUBIS to posúdi a overí zdroj.', photo: 'Fotka',
     done: 'Prečítané — zapíš do mozgu', doneSub: 'krúžok zozelenie a zrno v mozgu sa rozsvieti',
     doneOk: 'Zapísané do mozgu', copied: 'Odkaz skopírovaný',
+    tr: 'Prepis', trHide: 'Skryť prepis', other: 'Iný jazyk', reqTitle: 'Podcast v tvojom jazyku',
+    reqText: 'Základ je SK · EN · CZ. Iný jazyk vznikne, keď oň požiada prvý člen — potom ostane pre všetkých.',
+    reqBtn: 'Požiadať', reqOk: 'Žiadosť zapísaná. Keď podcast vznikne, dáme ti vedieť.',
   },
   cs: {
     scroll: 'Svitek', min: 'min', read: 'Přečíst znalost', listen: 'Poslechnout podcast', pod: 'Podcast', src: 'Zdroje',
@@ -62,6 +65,9 @@ const UI = {
     propPh: 'Napiš, co chybí nebo co nesedí. Pokud máš zdroj, přidej odkaz.', propSend: 'Odeslat AINUBISOVI', propOk: 'Odesláno — AINUBIS to posoudí a ověří zdroj.', photo: 'Fotka',
     done: 'Přečteno — zapiš do mozku', doneSub: 'kroužek zezelená a zrno v mozku se rozsvítí',
     doneOk: 'Zapsáno do mozku', copied: 'Odkaz zkopírován',
+    tr: 'Přepis', trHide: 'Skrýt přepis', other: 'Jiný jazyk', reqTitle: 'Podcast ve tvém jazyce',
+    reqText: 'Základ je SK · EN · CZ. Jiný jazyk vznikne, když o něj požádá první člen — pak zůstane pro všechny.',
+    reqBtn: 'Požádat', reqOk: 'Žádost zapsána. Až podcast vznikne, dáme ti vědět.',
   },
   en: {
     scroll: 'Scroll', min: 'min', read: 'Read the knowledge', listen: 'Listen to the podcast', pod: 'Podcast', src: 'Sources',
@@ -74,6 +80,9 @@ const UI = {
     propPh: 'Write what is missing or wrong. If you have a source, add the link.', propSend: 'Send to AINUBIS', propOk: 'Sent — AINUBIS will review it and check the source.', photo: 'Photo',
     done: 'Read — write it into the brain', doneSub: 'the ring turns green and the grain lights up',
     doneOk: 'Written into the brain', copied: 'Link copied',
+    tr: 'Transcript', trHide: 'Hide transcript', other: 'Other language', reqTitle: 'Podcast in your language',
+    reqText: 'The base is SK · EN · CZ. Another language is made when the first member asks for it — then it stays for everyone.',
+    reqBtn: 'Request', reqOk: 'Request saved. We will let you know when the podcast is ready.',
   },
 };
 export const scrollUI = (lang: string) => UI[scrollLang(lang) as keyof typeof UI];
@@ -171,7 +180,46 @@ export const SCROLL_CSS = `
 .zv-pod.is-play{filter:drop-shadow(0 0 14px rgba(${AINUBIS.cyanRGB},0.85));}
 .zv-pod small{display:flex;align-items:center;gap:${PACK_SPACE.xs}px;margin-bottom:${PACK_SPACE.sm}px;
   font:700 ${PACK_TEXT.label}px ${FONT_TITLE};letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.cyan};}
+/* hlavička podcastu: názov vľavo, jazyky vpravo (Matej 4. 10.: „pri tlačidle prehrať výber jazykov") */
+.zv-pod small{justify-content:space-between;flex-wrap:wrap;}
+.zv-pod small > span{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;}
+.zv-plang{display:inline-flex;gap:${PACK_SPACE.xs}px;}
+.zv-plang button{min-width:32px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px;border-radius:${PACK_R.pill}px;cursor:pointer;
+  background:transparent;border:1px solid ${AINUBIS.edge};color:${AINUBIS.inkFaint};font:700 ${PACK_TEXT.micro}px ${FONT_UI};letter-spacing:.02em;}
+.zv-plang button.is-on{background:${AINUBIS.raised};border-color:${AINUBIS.cyan};color:${AINUBIS.cyan};}
 .zv-pod audio{display:block;width:100%;height:40px;}
+.zv-pmore{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;margin-top:${PACK_SPACE.sm}px;}
+.zv-pmore > button{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;
+  border-radius:${PACK_R.pill}px;cursor:pointer;background:transparent;border:1px solid ${AINUBIS.edge};color:${AINUBIS.inkDim};
+  font:500 ${PACK_TEXT.label}px ${FONT_UI};}
+.zv-pmore > button.is-on{border-color:${AINUBIS.cyan};color:${AINUBIS.cyan};}
+.zv-tr{margin-top:${PACK_SPACE.md}px;max-height:360px;overflow-y:auto;padding-right:${PACK_SPACE.sm}px;
+  font-size:${PACK_TEXT.body}px;line-height:1.6;color:${AINUBIS.inkDim};}
+.zv-tr p{margin:0 0 ${PACK_SPACE.sm}px;}
+.zv-tr b{display:inline-block;min-width:72px;font:700 ${PACK_TEXT.micro}px ${FONT_UI};letter-spacing:.02em;text-transform:uppercase;color:${AINUBIS.inkFaint};}
+.zv-tr b.is-ai{color:${AINUBIS.ink};}
+.zv-tr b.is-ai span{color:${AINUBIS.aiInk};}
+.zv-req{margin-top:${PACK_SPACE.md}px;font-size:${PACK_TEXT.label}px;line-height:1.5;color:${AINUBIS.inkDim};}
+.zv-req > div{display:flex;gap:${PACK_SPACE.sm}px;margin-top:${PACK_SPACE.sm}px;}
+.zv-req select{flex:1 1 auto;min-width:0;padding:${PACK_SPACE.sm}px;border-radius:${PACK_R.field}px;background:${AINUBIS.bgDeep};
+  border:1px solid ${AINUBIS.edge};color:${AINUBIS.ink};font:500 ${PACK_TEXT.body}px ${FONT_UI};}
+.zv-req button{flex:none;padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.field}px;cursor:pointer;
+  background:${AINUBIS.raised};border:1px solid ${AINUBIS.cyan};color:${AINUBIS.cyan};font:700 ${PACK_TEXT.label}px ${FONT_TITLE};
+  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;}
+.zv-req .zv-ok{margin-top:${PACK_SPACE.sm}px;}
+/* ČLENITOSŤ PRÍBEHU (Matej 4. 10.: „chýba rozmanitosť odsekov, roky, odrážky… obrázky, ktoré sme nepoužili")
+   — značky v príbehu d: ◷ ROK | text = časová os · » = zvýraznený fakt · ▣ B | popis = nepoužitý obraz. */
+.zv-yr{color:${AINUBIS.ctaA};font-weight:600;}
+.zv-tl{list-style:none;margin:${PACK_SPACE.lg}px 0 ${PACK_SPACE.xl}px;padding:0 0 0 ${PACK_SPACE.lg}px;border-left:1px solid ${AINUBIS.ctaEdge};}
+.zv-tl li{position:relative;margin:0 0 ${PACK_SPACE.md}px;}
+.zv-tl li::before{content:'';position:absolute;left:-${PACK_SPACE.lg + 4}px;top:9px;width:7px;height:7px;border-radius:${PACK_R.pill}px;background:${AINUBIS.ctaA};}
+.zv-tl b{display:block;font:700 ${PACK_TEXT.label}px ${FONT_TITLE};letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.ctaA};}
+.zv-tl span{display:block;font-size:${PACK_TEXT.body}px;line-height:1.6;}
+.zv-fact{margin:${PACK_SPACE.xl}px 0;padding:${PACK_SPACE.sm}px 0 ${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;border-left:2px solid ${AINUBIS.ctaA};
+  font:600 ${PACK_TEXT.h2}px/1.45 ${FONT_UI};color:${AINUBIS.ink};}
+.zv-fig{margin:${PACK_SPACE.xl}px auto;max-width:420px;}
+.zv-fig img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:${PACK_R.tile}px;border:1px solid ${AINUBIS.edge};}
+.zv-fig figcaption{margin-top:${PACK_SPACE.sm}px;font-size:${PACK_TEXT.label}px;line-height:1.5;color:${AINUBIS.inkFaint};text-align:center;}
 .zv-body{margin-top:${PACK_SPACE.xl}px;max-width:760px;font-size:${PACK_TEXT.lead}px;line-height:1.75;}
 .zv-body p{margin:0 0 ${PACK_SPACE.md}px;}
 .zv-body ul{margin:0 0 ${PACK_SPACE.md}px;padding-left:${PACK_SPACE.lg}px;}
@@ -348,26 +396,127 @@ export function ScrollCard({ z, lang, onOpen, onShare }: {
 }
 
 /** Telo príbehu: „▸ " = medzinadpis, riadky „– " = zoznam. */
-function StoryBody({ d }: { d: string }) {
+/** Roky v texte zlatou (Matej 4. 10.: „chýba… roky"). Len štvorciferné roky 1000–2099 — strany „s. 22" nie. */
+function Years({ t }: { t: string }) {
+  const parts = t.split(/(\b(?:1\d{3}|20\d{2})\b)/);
+  return <>{parts.map((p, i) => (i % 2 ? <span key={i} className="zv-yr">{p}</span> : p))}</>;
+}
+
+/** Príbeh `d`: ▸ sekcia · – odrážky · ◷ ROK | text (časová os) · \u00BB zvýraznený fakt · ▣ B | popis (nepoužitý obraz). */
+function StoryBody({ d, imgs }: { d: string; imgs?: Record<string, string> }) {
   const blocks = d.split(/\n\n+/);
   return (
     <>
       {blocks.map((b, i) => {
         if (b.startsWith('▸')) return <h3 key={i} className="zv-sec">{b.replace(/^▸\s*/, '')}</h3>;
+        if (b.startsWith('\u00BB')) return <blockquote key={i} className="zv-fact"><Years t={b.replace(/^\u00BB\s*/, '')} /></blockquote>;
+        if (b.startsWith('▣')) {
+          const m = b.match(/^▣\s*([ABC])\s*\|?\s*(.*)$/s);
+          const src = m && imgs?.[m[1]];
+          return src ? <figure key={i} className="zv-fig"><img src={src} alt={m[2]} loading="lazy" /><figcaption>{m[2]}</figcaption></figure> : null;
+        }
         const lines = b.split('\n');
+        const tl = lines.filter(l => l.startsWith('◷'));
+        if (tl.length) {
+          const head = lines.filter(l => !l.startsWith('◷'));
+          return (
+            <div key={i}>
+              {head.length > 0 && <p><Years t={head.join(' ')} /></p>}
+              <ol className="zv-tl">{tl.map((l, j) => {
+                const [y, ...rest] = l.replace(/^◷\s*/, '').split('|');
+                return <li key={j}><b>{y.trim()}</b><span>{rest.join('|').trim()}</span></li>;
+              })}</ol>
+            </div>
+          );
+        }
         const list = lines.filter(l => /^[–-]\s/.test(l));
         if (list.length) {
           const head = lines.filter(l => !/^[–-]\s/.test(l));
           return (
             <div key={i}>
-              {head.length > 0 && <p>{head.join(' ')}</p>}
-              <ul>{list.map((l, j) => <li key={j}>{l.replace(/^[–-]\s/, '')}</li>)}</ul>
+              {head.length > 0 && <p><Years t={head.join(' ')} /></p>}
+              <ul>{list.map((l, j) => <li key={j}><Years t={l.replace(/^[–-]\s/, '')} /></li>)}</ul>
             </div>
           );
         }
-        return <p key={i}>{b}</p>;
+        return <p key={i}><Years t={b} /></p>;
       })}
     </>
+  );
+}
+
+/** Jazyky na žiadosť — natívne mená (Matej 3. 10.: ďalší jazyk vznikne až na žiadosť člena). */
+const REQ_LANGS: [string, string][] = [
+  ['de', 'Deutsch'], ['es', 'Español'], ['fr', 'Français'], ['it', 'Italiano'], ['pl', 'Polski'], ['pt', 'Português'],
+  ['nl', 'Nederlands'], ['uk', 'Українська'], ['ru', 'Русский'], ['tr', 'Türkçe'], ['id', 'Bahasa Indonesia'],
+  ['ja', '日本語'], ['ko', '한국어'], ['zh', '中文'], ['ar', 'العربية'],
+];
+const POD_TAG: Record<string, string> = { sk: 'SK', en: 'EN', cs: 'CZ' };
+
+/** PODCAST — prehrávač s výberom jazyka, prepisom a žiadosťou o nový jazyk (Matej 4. 10.). */
+function PodcastBox({ z, lang, onDone, boxRef }: {
+  z: DemoScroll; lang: string; onDone: () => void; boxRef: React.RefObject<HTMLDivElement>;
+}) {
+  const u = scrollUI(lang);
+  const [want, setWant] = useState<string | undefined>();
+  const pl = podLang(z, lang, want);
+  const pod = pl ? z.pod[pl] : null;
+  const [playing, setPlaying] = useState(false);
+  const [open, setOpen] = useState<'' | 'tr' | 'req'>('');
+  const [req, setReq] = useState(REQ_LANGS[0][0]);
+  const [reqSent, setReqSent] = useState(false);
+  if (!pod || !pl) return null;
+  const onTime = (e: React.SyntheticEvent<HTMLAudioElement>) => {
+    const a = e.currentTarget;
+    if (a.duration && a.currentTime / a.duration >= 0.9) onDone();
+  };
+  return (
+    <div className={`zv-pod${playing ? ' is-play' : ''}`} ref={boxRef}>
+      <small>
+        <span><Ic ic="play" />{u.pod} · {fmtSec(pod.sec)}</span>
+        <span className="zv-plang" role="group" aria-label={u.other}>
+          {['sk', 'en', 'cs'].filter((l) => z.pod[l]).map((l) => (
+            <button key={l} type="button" className={l === pl ? 'is-on' : ''} aria-pressed={l === pl}
+              onClick={() => { setWant(l); setPlaying(false); }}>{POD_TAG[l]}</button>
+          ))}
+        </span>
+      </small>
+      <audio key={pod.src} controls preload="none" src={pod.src} onTimeUpdate={onTime}
+        onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}
+        onEnded={() => { setPlaying(false); onDone(); }} />
+      <div className="zv-pmore">
+        {!!pod.tr?.length && (
+          <button type="button" className={open === 'tr' ? 'is-on' : ''} onClick={() => setOpen(open === 'tr' ? '' : 'tr')}>
+            {open === 'tr' ? u.trHide : u.tr}
+          </button>
+        )}
+        <button type="button" className={open === 'req' ? 'is-on' : ''} onClick={() => setOpen(open === 'req' ? '' : 'req')}>
+          + {u.other}
+        </button>
+      </div>
+      {open === 'tr' && (
+        <div className="zv-tr">
+          {pod.tr!.map((r, i) => (
+            <p key={i}>
+              {r.s === 'A' ? <b className="is-ai"><span>AI</span>NUBIS</b> : <b>Matej</b>} {r.t}
+            </p>
+          ))}
+        </div>
+      )}
+      {open === 'req' && (
+        <div className="zv-req">
+          <b>{u.reqTitle}</b> — {u.reqText}
+          {reqSent ? <div className="zv-ok">{u.reqOk}</div> : (
+            <div>
+              <select value={req} onChange={(e) => setReq(e.target.value)} aria-label={u.other}>
+                {REQ_LANGS.map(([k, n]) => <option key={k} value={k}>{n}</option>)}
+              </select>
+              <button type="button" onClick={() => { requestLang(z.id, req); setReqSent(true); }}>{u.reqBtn}</button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -378,12 +527,10 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
 }) {
   const u = scrollUI(lang);
   const x = pickText(z, lang);
-  const pod = pickPod(z, lang);
   const s = useScrollState()[z.id] || 0;
   const talkList = useTalk(z.id);
   const [draft, setDraft] = useState('');
   const [pic, setPic] = useState('');
-  const [playing, setPlaying] = useState(false);
   const [propOpen, setPropOpen] = useState(false);
   const [kind, setKind] = useState<ProposalKind>('add');
   const [prop, setProp] = useState('');
@@ -406,11 +553,6 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
     if (el) window.setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
   }, [z.id, focus]);
 
-  const onTime = (e: React.SyntheticEvent<HTMLAudioElement>) => {
-    const a = e.currentTarget;
-    if (a.duration && a.currentTime / a.duration >= 0.9) markScroll(z.id, 2);
-  };
-
   return (
     <div className="zv-veil" ref={veil} role="dialog" aria-modal="true" aria-label={x.t}>
       <div className="zv-wrap">
@@ -431,19 +573,12 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
               <p className="zv-v">{x.v}</p>
               {x.vz && <div className="zv-take" style={{ alignSelf: 'stretch' }}>{x.vz}</div>}
             </div>
-            {pod && (
-              <div className={`zv-pod${playing ? ' is-play' : ''}`} ref={podRef}>
-                <small><Ic ic="play" />{u.pod} · {fmtSec(pod.sec)}</small>
-                <audio controls preload="none" src={pod.src} onTimeUpdate={onTime}
-                  onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}
-                  onEnded={() => { setPlaying(false); markScroll(z.id, 2); }} />
-              </div>
-            )}
+            <PodcastBox z={z} lang={lang} boxRef={podRef} onDone={() => markScroll(z.id, 2)} />
           </div>
         </div>
 
         <div className="zv-body">
-          <StoryBody d={x.d} />
+          <StoryBody d={x.d} imgs={z.imgs} />
 
           <section className="zv-box zv-box--add">
           <h3 className="zv-sec">{u.added}</h3>

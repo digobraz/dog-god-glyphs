@@ -20,12 +20,16 @@ export const SCROLL_DEMO = import.meta.env.DEV;
 
 export type ScrollLang = { t: string; v: string; vz: string; d: string; min: number };
 export type ScrollSource = { a: string; r: number; t: string; j: string; doi?: string; url?: string };
+export type ScrollPod = { src: string; sec: number; tr?: { s: 'A' | 'B'; t: string }[] };
 export type DemoScroll = {
   id: string; n: number; total: number; world: string; circle: string; img: string;
   /** Sila dôkazu: 3 merané + zhoda vedy · 2 veda + výklad · 1 tradícia/legenda · 0 neurčené. */
   sd: number;
   lang: Record<string, ScrollLang>;
-  pod: Record<string, { src: string; sec: number }>;
+  /** Podcast po jazykoch; `tr` = prepis (scenár, z ktorého vzniklo audio): A = AINUBIS, B = Matej. */
+  pod: Record<string, ScrollPod>;
+  /** Všetky varianty obrazu (A/B/C) — nepoužité idú do článku cez značku `▣ B | popis`. */
+  imgs?: Record<string, string>;
   zdroje: ScrollSource[];
   doplnene: { date: string; text: string }[];
   rel: string[];
@@ -35,8 +39,13 @@ export type DemoScroll = {
 export const scrollLang = (lang: string) => (lang === 'sk' || lang === 'cs' ? lang : 'en');
 export const pickText = (z: DemoScroll, lang: string): ScrollLang =>
   z.lang[scrollLang(lang)] || z.lang.en || z.lang.sk;
-export const pickPod = (z: DemoScroll, lang: string) =>
-  z.pod[scrollLang(lang)] || z.pod.en || z.pod.sk || null;
+/** Jazyk podcastu: zvolený (ak existuje) → jazyk appky → EN → SK. */
+export const podLang = (z: DemoScroll, lang: string, want?: string) =>
+  [want, scrollLang(lang), 'en', 'sk'].find((l) => l && z.pod[l]) || null;
+export const pickPod = (z: DemoScroll, lang: string, want?: string) => {
+  const l = podLang(z, lang, want);
+  return l ? z.pod[l] : null;
+};
 export const sourceHref = (s: ScrollSource) => (s.doi ? `https://doi.org/${s.doi}` : s.url || '');
 export const fmtSec = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
@@ -158,4 +167,15 @@ export function shrinkPhoto(file: File, max = 800): Promise<string> {
     im.onerror = rej;
     im.src = url;
   });
+}
+
+// ── ŽIADOSŤ O NOVÝ JAZYK (Matej 3. 10.: základ SK/EN/CZ, ďalší jazyk vznikne až na žiadosť
+// člena, vygeneruje sa a ostane pre všetkých). DEV: len v prehliadači; naostro → AINUBIS fronta.
+const RKEY = 'vault-demo-langreq';
+export function requestLang(id: string, lang: string) {
+  try {
+    const all = JSON.parse(localStorage.getItem(RKEY) || '[]') as unknown[];
+    all.push({ id, lang, at: Date.now() });
+    localStorage.setItem(RKEY, JSON.stringify(all));
+  } catch { /* súkromné okno */ }
 }
