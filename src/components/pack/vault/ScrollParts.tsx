@@ -23,7 +23,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS } from '@/components/pack/packTheme';
 import { AINUBIS, AI_GLASS, BRAIN_STATE } from '@/components/pack/ainubisSkin';
 import { HandPaw, HandStar, HandPlus, HandForward, HandCheck, HandPencil, HandAlert, HandCamera, HandArrowLeft } from '@/components/pack/HandIcons';
 
@@ -94,6 +94,7 @@ const GRADE = ['', 'C', 'B', 'A'];
 const ZV_PINK = '#FF8AC8';
 
 export const SCROLL_CSS = `
+${STAGE_CSS}
 :root{--zv-read:rgb(${BRAIN_STATE.read});}
 /* KRÚŽOK STAVU — biely obrys · plný oranžový (videné) · zelený s ✓ (hotovo). Farby BRAIN_STATE. */
 .zv-tip{position:absolute;z-index:5;width:240px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;
@@ -161,7 +162,26 @@ export const SCROLL_CSS = `
 /* ── ČLÁNOK ZVITKU (kôš 2) ── */
 .zv-veil{position:fixed;inset:0;z-index:39;overflow-y:auto;-webkit-overflow-scrolling:touch;
   background:${AINUBIS.surfaceBase};color:${AINUBIS.ink};font-family:${FONT_UI};}
-.zv-wrap{max-width:832px;margin:0 auto;padding:${PACK_SPACE.lg}px ${PACK_SPACE.lg}px calc(var(--pack-nav-h, 112px) + ${PACK_SPACE.xl}px);}
+/* SCI-FI DOSKA (Matej 4. 10.: „pozadie nie len tmavé, ale blok z liquid skla a za tým jemné mriežky ako má AINUBIS,
+   nech to vytvorí 3D efekt sci-fi informácií"). Mriežka = tá istá ako .akv-bg v PackAinubis; stojí FIXNE, sklo nad ňou
+   scrolluje ⇒ hĺbka. Sklo = SKLENENÁ DOSKA .pk-stage (STAGE_CSS, katalóg) vo farbe AINUBISA cez --pk-stage;
+   AI_GLASS nie — má plnú výplň a mriežku by zakryl. */
+.zv-bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(${AINUBIS.cyanRGB},0.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(${AINUBIS.cyanRGB},0.06) 1px,transparent 1px),
+    linear-gradient(rgba(${AINUBIS.cyanRGB},0.10) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(${AINUBIS.cyanRGB},0.10) 1px,transparent 1px);
+  background-size:24px 24px,24px 24px,192px 192px,192px 192px;}
+.zv-bg::after{content:'';position:absolute;inset:0;
+  background:radial-gradient(60vw 60vw at 85% 10%,rgba(${AINUBIS.cyanRGB},0.14),transparent 62%),
+             radial-gradient(55vw 55vw at 10% 95%,rgba(${AINUBIS.glowRGB},0.12),transparent 62%);}
+.zv-wrap{position:relative;z-index:1;max-width:880px;margin:${PACK_SPACE.lg}px auto calc(var(--pack-nav-h, 112px) + ${PACK_SPACE.xl}px);
+  padding:${PACK_SPACE.lg}px ${PACK_SPACE.lg}px ${PACK_SPACE.xl}px;box-shadow:${AINUBIS.panelShadow};
+  --pk-stage:linear-gradient(180deg,rgba(${AINUBIS.cyanRGB},0.07) 0%,rgba(4,8,14,0.55) 22%,rgba(4,8,14,0.62) 100%);
+  --pk-stage-edge:${AINUBIS.edge};}
+@media (max-width:767px){.zv-wrap{margin:${PACK_SPACE.sm}px ${PACK_SPACE.sm}px calc(var(--pack-nav-h, 112px) + ${PACK_SPACE.lg}px);padding:${PACK_SPACE.md}px;}}
+@media (min-width:768px){.zv-wrap{padding:${PACK_SPACE.xl}px;}}
 .zv-back{margin-bottom:${PACK_SPACE.md}px;}
 .zv-top{display:grid;grid-template-columns:1fr;gap:${PACK_SPACE.lg}px;}
 @media (min-width:768px){.zv-top{grid-template-columns:280px 1fr;}}
@@ -660,8 +680,9 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
 
   return (
     <div className="zv-veil" ref={veil} role="dialog" aria-modal="true" aria-label={x.t}>
+      <div className="zv-bg" aria-hidden />
       {gal !== null && gallery.length > 0 && <Gallery list={gallery} start={gal} label={u.back} onClose={() => setGal(null)} />}
-      <div className="zv-wrap">
+      <div className="zv-wrap pk-stage">
         <BackButton tone="pale" onClick={onClose} label={u.back} className="zv-back" />
         <div className="zv-top">
           <div className="zv-hero">
