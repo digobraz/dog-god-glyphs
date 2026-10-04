@@ -25,7 +25,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS } from '@/components/pack/packTheme';
 import { AINUBIS, AI_GLASS, BRAIN_STATE } from '@/components/pack/ainubisSkin';
-import { HandPaw, HandStar, HandPlus, HandForward, HandCheck, HandPencil, HandAlert, HandCamera, HandArrowLeft } from '@/components/pack/HandIcons';
+import { HandStar, HandPlus, HandForward, HandCheck, HandPencil, HandAlert, HandCamera, HandArrowLeft, HandHeart } from '@/components/pack/HandIcons';
 
 /** Kresba z kitu `/icons/pack/` cez masku (ten istý zápis ako v PackAinubis). */
 const Ic = ({ ic }: { ic: string }) => (
@@ -392,7 +392,7 @@ export function ScrollActions({ id, lang, onShare, onTalk }: {
   return (
     <div className="zv-acts">
       <button type="button" data-k="like" className={`zv-act${liked ? ' is-on' : ''}`} onClick={() => toggleLiked(id)} aria-label={u.like}>
-        {liked ? <Ic ic="paw-full" /> : <HandPaw size={20} />}<span className="zv-n">{likes}</span>
+        <HandHeart size={20} on={liked} />{/* srdiečko, nie labka — lock §4.2 ❤️, labka = nav + RatingPaws (Matej 4. 10.: „dajme srdiečko“) */}<span className="zv-n">{likes}</span>
       </button>
       <button type="button" data-k="save" className={`zv-act${saved ? ' is-on' : ''}`} onClick={() => toggleSaved(id)} aria-label={u.save}><HandStar size={20} filled={saved} /><span className="zv-n">{saves}</span></button>
       <button type="button" data-k="talk" className={`zv-act${talk > 0 ? ' is-on' : ''}`} onClick={onTalk} aria-label={u.talk}>
@@ -779,7 +779,7 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
                   {c.img && <img className="zv-cimg" src={c.img} alt="" />}
                   {/* Lajk komentára s počtom. ⚠️ DEV: len môj klik — počty ostatných prídu s tabuľkou. */}
                   <button type="button" className={`zv-clike${c.liked ? ' is-on' : ''}`} onClick={() => toggleTalkLike(z.id, i)} aria-label={u.like}>
-                    <Ic ic={c.liked ? 'paw-full' : 'paw'} />{c.liked ? 1 : 0}
+                    <HandHeart size={16} on={!!c.liked} />{c.liked ? 1 : 0}
                   </button>
                 </div></div>
             ))}
