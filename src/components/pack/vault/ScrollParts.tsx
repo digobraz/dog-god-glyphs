@@ -23,7 +23,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS } from '@/components/pack/packTheme';
+import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS, PACK_COL_FIT, packColCSS } from '@/components/pack/packTheme';
 import { AINUBIS, AI_GLASS, BRAIN_STATE } from '@/components/pack/ainubisSkin';
 import { HandStar, HandPlus, HandForward, HandCheck, HandPencil, HandAlert, HandCamera, HandArrowLeft, HandHeart } from '@/components/pack/HandIcons';
 
@@ -35,8 +35,15 @@ import { BackButton } from '@/components/pack/BackButton';
 import {
   type DemoScroll, pickText, pickPod, sourceHref, fmtSec, scrollLang,
   markScroll, useScrollState, toggleSaved, useSaved, useTalk, addTalk, toggleLiked, useLiked,
-  toggleTalkLike, addProposal, shrinkPhoto, type ProposalKind, podLang, requestLang,
-} from './vaultScrollDemo';
+  toggleTalkLike, addProposal, shrinkPhoto, type ProposalKind, podLang, requestLang, useCounts, saveListen,
+} from './vaultScrolls';
+import { VAULT_CIRCLES } from './circles';
+
+/** Meno okruhu v jazyku člena — z `circles.ts` (zdroj mien), DB nesie len SK. CS zatiaľ padá na SK. */
+export const circleName = (z: DemoScroll, lang: string) => {
+  const c = VAULT_CIRCLES[z.world]?.[z.okruh - 1];
+  return c ? (lang === 'sk' || lang === 'cs' ? c.sk : c.en) : z.circle;
+};
 
 // ── texty rozhrania: základ EN/SK/CZ ako obsah VAULTU ───────────────────────
 const UI = {
@@ -176,11 +183,14 @@ ${STAGE_CSS}
 .zv-bg::after{content:'';position:absolute;inset:0;
   background:radial-gradient(60vw 60vw at 85% 10%,rgba(${AINUBIS.cyanRGB},0.14),transparent 62%),
              radial-gradient(55vw 55vw at 10% 95%,rgba(${AINUBIS.glowRGB},0.12),transparent 62%);}
-.zv-wrap{position:relative;z-index:1;max-width:880px;margin:${PACK_SPACE.lg}px auto calc(var(--pack-nav-h, 112px) + ${PACK_SPACE.xl}px);
+/* ŠÍRKA = článok výletu (Matej 4. 10.: „detail zvitku by mal byť takej istej šírky ako je trip blog") —
+   ten istý stĺpec PACK_COL_FIT + packColCSS ako .pta-shell, nie vlastných 880. */
+.zv-wrap{position:relative;z-index:1;${PACK_COL_FIT}margin:${PACK_SPACE.lg}px auto calc(var(--pack-nav-h, 112px) + ${PACK_SPACE.xl}px);
   padding:${PACK_SPACE.lg}px ${PACK_SPACE.lg}px ${PACK_SPACE.xl}px;box-shadow:${AINUBIS.panelShadow};
   --pk-stage:linear-gradient(180deg,rgba(${AINUBIS.cyanRGB},0.07) 0%,rgba(4,8,14,0.55) 22%,rgba(4,8,14,0.62) 100%);
   --pk-stage-edge:${AINUBIS.edge};}
-@media (max-width:767px){.zv-wrap{margin:${PACK_SPACE.sm}px ${PACK_SPACE.sm}px calc(var(--pack-nav-h, 112px) + ${PACK_SPACE.lg}px);padding:${PACK_SPACE.md}px;}}
+${packColCSS('.zv-wrap')}
+@media (max-width:767px){.zv-wrap{margin-top:${PACK_SPACE.md}px;margin-bottom:calc(var(--pack-nav-h, 112px) + ${PACK_SPACE.lg}px);padding:${PACK_SPACE.md}px;}}
 @media (min-width:768px){.zv-wrap{padding:${PACK_SPACE.xl}px;}}
 .zv-back{margin-bottom:${PACK_SPACE.md}px;}
 .zv-top{display:grid;grid-template-columns:1fr;gap:${PACK_SPACE.lg}px;}
@@ -381,14 +391,15 @@ export function ScrollActions({ id, lang, onShare, onTalk }: {
   const saved = useSaved().includes(id);
   const talk = useTalk(id).length;
   const liked = useLiked().includes(id);
-  const likes = (liked ? 1 : 0);
-  const saves = (saved ? 1 : 0);
+  // Počet od všetkých členov (`vault_scroll_counts`); bez účtu (NOAUTH dev) len môj klik.
+  const c = useCounts(id);
+  const likes = c ? c.likes : (liked ? 1 : 0);
+  const saves = c ? c.saves : (saved ? 1 : 0);
   const [sent, setSent] = useState(false);
   // ZAPNUTÁ AKCIA = VYPLNENÁ IKONKA (Matej 3. 10.: „vyplnia sa farbou, nie len obrys, ale aj vnútro —
   // pri komentoch len pravá bublina"). Labka = plná z kitu, hviezdička a šípka = vyplnený vonkajší
   // obrys tej istej kresby, bubliny = pravá vyplnená. Zdieľanie nie je prepínač — svieti chvíľu po kliku.
-  // POČTY pri páči sa a uložení (Matej 3. 10.: „počty musia byť pri likeoch a uloženiach"). ⚠️ DEV: zatiaľ
-  // len môj klik (0/1) — číslo ostatných príde s tabuľkou VAULTU, nič sa tu nevymýšľa.
+  // POČTY pri páči sa a uložení (Matej 3. 10.: „počty musia byť pri likeoch a uloženiach").
   return (
     <div className="zv-acts">
       <button type="button" data-k="like" className={`zv-act${liked ? ' is-on' : ''}`} onClick={() => toggleLiked(id)} aria-label={u.like}>
@@ -534,10 +545,18 @@ function PodcastBox({ z, lang, onDone, boxRef }: {
   const [menu, setMenu] = useState(false);
   const [t, setT] = useState(0);
   const audio = useRef<HTMLAudioElement>(null);
-  useEffect(() => { setT(0); }, [pl]);
+  const lastSave = useRef(0);
+  useEffect(() => { setT(0); lastSave.current = 0; }, [pl]);
   if (!pod || !pl) return null;
+  // Kam došiel — do postupu najviac raz za 15 s (+ pri pauze a konci), nie pri každom ticku.
+  const keep = (sec: number, force = false) => {
+    if (!force && sec - lastSave.current < 15) return;
+    lastSave.current = sec;
+    saveListen(z.id, sec, pl);
+  };
   const onTime = (e: React.SyntheticEvent<HTMLAudioElement>) => {
     const a = e.currentTarget;
+    keep(a.currentTime);
     if (a.duration && a.currentTime / a.duration >= 0.9) onDone();
   };
   return (
@@ -566,8 +585,8 @@ function PodcastBox({ z, lang, onDone, boxRef }: {
       </small>
       <audio key={pod.src} ref={audio} preload="metadata" src={pod.src}
         onTimeUpdate={(e) => { onTime(e); setT(e.currentTarget.currentTime); }}
-        onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}
-        onEnded={() => { setPlaying(false); onDone(); }} />
+        onPlay={() => setPlaying(true)} onPause={(e) => { setPlaying(false); keep(e.currentTarget.currentTime, true); }}
+        onEnded={(e) => { setPlaying(false); keep(e.currentTarget.currentTime, true); onDone(); }} />
       <div className="zv-player">
         <button type="button" className="zv-pbtn" aria-label={playing ? 'Pause' : 'Play'}
           onClick={() => { const a = audio.current; if (!a) return; if (a.paused) void a.play(); else a.pause(); }}>
@@ -630,7 +649,7 @@ function Gallery({ list, start, label, onClose }: { list: { src: string; cap: st
     <div className="zv-gal" role="dialog" aria-modal="true" aria-label={label} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       onTouchStart={(e) => { x0.current = e.touches[0].clientX; }}
       onTouchEnd={(e) => { if (x0.current === null) return; const dx = e.changedTouches[0].clientX - x0.current; if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1); x0.current = null; }}>
-      <BackButton tone="pale" onClick={onClose} label={label} className="zv-gback" />
+      <BackButton tone="ainubis" onClick={onClose} label={label} className="zv-gback" />
       {list.length > 1 && <button type="button" className="zv-gnav zv-gnav--prev" disabled={i === 0} onClick={() => go(-1)} aria-label="Prev"><HandArrowLeft size={20} /></button>}
       <figure>
         <img src={it.src} alt={it.cap} />
@@ -683,7 +702,7 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
       <div className="zv-bg" aria-hidden />
       {gal !== null && gallery.length > 0 && <Gallery list={gallery} start={gal} label={u.back} onClose={() => setGal(null)} />}
       <div className="zv-wrap pk-stage">
-        <BackButton tone="pale" onClick={onClose} label={u.back} className="zv-back" />
+        <BackButton tone="ainubis" onClick={onClose} label={u.back} className="zv-back" />
         <div className="zv-top">
           <div className="zv-hero">
             {z.img && <img src={z.img} alt="" onClick={() => setGal(0)} />}
@@ -693,7 +712,7 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
             {/* Známka v rohu bloku ako na karte (Matej 4. 10.: „v detaile dať známku na kraj ako pri náhľade“). */}
             <EvidenceBadge sd={z.sd} lang={lang} corner />
             <div className="zv-grp">
-              <span className="zv-meta">{z.circle} · {u.scroll} {z.n}/{z.total} · {x.min} {u.min}</span>
+              <span className="zv-meta">{circleName(z, lang)} · {u.scroll} {z.n}/{z.total} · {x.min} {u.min}</span>
               <h1 className="zv-h">{x.t}</h1>
               <span className="zv-rule" aria-hidden />
               {s === 2 && <span className="zv-badge"><HandCheck size={14} />{u.readDone}</span>}
@@ -702,7 +721,7 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
               <p className="zv-v">{x.v}</p>
               {x.vz && <div className="zv-take" style={{ alignSelf: 'stretch' }}>{x.vz}</div>}
             </div>
-            <PodcastBox z={z} lang={lang} boxRef={podRef} onDone={() => markScroll(z.id, 2)} />
+            <PodcastBox z={z} lang={lang} boxRef={podRef} onDone={() => markScroll(z.id, 2, 'listen')} />
           </div>
         </div>
 
@@ -769,7 +788,8 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
           </button>
 
           {/* DISKUSIA — komentáre k celému článku, „ako také fórum" (Matej 3. 10.).
-              ⚠️ DEV: drží ich len prehliadač; naostro patria do tabuliek VAULTU (BLOK 2). */}
+              ⚠️ Drží ich len prehliadač: podľa locku /pack §4.3 je to príspevok so ŠTÍTKOM zvitku
+                 a tabuľka príspevkov ešte neexistuje — vlastnú tabuľku komentárov nezakladáme. */}
           <section className="zv-box zv-box--talk" ref={talkRef}>
             <h3 className="zv-sec">{u.talk}{talkList.length > 0 && ` · ${talkList.length}`}</h3>
             {talkList.length === 0 && <div className="zv-add">{u.talkNone}</div>}

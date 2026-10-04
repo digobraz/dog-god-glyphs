@@ -50,6 +50,8 @@ interface Node {
   zi: number;
   /** 0 nedotknuté · 1 videné · 2 prečítané (len `z`). */
   st: 0 | 1 | 2;
+  /** poradie zrna v jeho okruhu (len `z`) */
+  zo?: number;
 }
 
 export interface BrainTip { title: string; sub?: string; hint?: string }
@@ -72,7 +74,8 @@ export interface BrainOptions {
    *     `/pack` to neukladá — takže atrapu podáva volajúci a je na jednom mieste
    *     vidieť, že je to atrapa. Keď stav vznikne naozaj, vymení sa TÁTO funkcia
    *     a v engine sa nemení nič. */
-  progress?: (zi: number) => 0 | 1 | 2;
+  /** Stav zrna. `wi`/`oi`/`z` = svet, okruh a poradie zrna v okruhu — zvitok `<svet>-O<oi+1>-<z+1>`. */
+  progress?: (zi: number, wi: number, oi: number, z: number) => 0 | 1 | 2;
   /** Ktorý pohľad sa kreslí. Číta sa KAŽDÝ RÁMEC (rovnako ako `isMobile`), takže
    *  prepnutie vrstvy sa prejaví bez premontovania plátna a bez straty polohy. */
   layer?: () => BrainLayer;
@@ -84,6 +87,8 @@ export interface BrainHandle {
   zoomBy: (k: number) => void;
   reset: () => void;
   resize: () => void;
+  /** Prepočíta stav zŕn z `o.progress` (postup člena sa načíta až po postavení mozgu). */
+  refresh: () => void;
   destroy: () => void;
 }
 
@@ -216,7 +221,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
            než 18px prah okruhu — pri 20 j. sa prvé zrno nedalo trafiť (nákres §12). */
         const ang = z * 2.39996 + oi, r = 26 + Math.sqrt(z) * C.zr;
         const zn = mk(ox + Math.cos(ang) * r, oy + Math.sin(ang) * r, 'z', wi, 2.9);
-        zn.zi = zc; zn.st = o.progress ? o.progress(zc) : 0; zc++;
+        zn.zi = zc; zn.oi = oi; zn.zo = z; zn.st = o.progress ? o.progress(zc, wi, oi, z) : 0; zc++;
         N.push(zn); E.push([node, zn]);
       }
     }
@@ -604,6 +609,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     zoomBy: (k) => zoomTo(vt.k * k),
     reset,
     resize: () => { size(); reset(); },
+    refresh: () => { if (o.progress) for (const p of N) if (p.role === 'z') p.st = o.progress(p.zi, p.wi, p.oi, p.zo ?? 0); },
     destroy: () => {
       alive = false; cancelAnimationFrame(raf);
       cv.removeEventListener('pointermove', onMove);

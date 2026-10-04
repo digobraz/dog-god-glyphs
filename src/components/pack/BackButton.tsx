@@ -25,6 +25,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { HandArrowLeft, HandForward } from '@/components/pack/HandIcons';
 import { PACK_THEME } from '@/components/pack/packTheme';
 import { PALE } from '@/components/pack/navGoldSkin';
+import { AINUBIS } from '@/components/pack/ainubisSkin';
 
 const T = PACK_THEME;
 
@@ -47,8 +48,11 @@ export const BACK = {
  *  `dark`  tmavý panel toku (správy, pridávanie, podujatie)
  *  `scrim` priamo na fotke (detail výletu) — potrebuje vlastné stmavenie, priesvitná
  *          plocha nad obrázkom je nečitateľná
+ *  `ainubis` displej AINUBISA (článok zvitku, galéria) — cyan inkoust na tmavom skle, ten istý
+ *          šat ako `.akw-back`/`.akc-back` VAULTU, ale rozmer z `BACK` (Matej 4. 10. 2026: „šípka
+ *          dozadu by mala sedieť s brandom (ainubis…)" — bledá papyrusová na cyan doske nesedela)
  */
-export type BackTone = 'pale' | 'dark' | 'scrim';
+export type BackTone = 'pale' | 'dark' | 'scrim' | 'ainubis';
 
 const TONE: Record<BackTone, { bg: string; border: string; ink: string; hoverBg: string; hoverBorder: string; hoverInk: string }> = {
   pale: {
@@ -62,6 +66,10 @@ const TONE: Record<BackTone, { bg: string; border: string; ink: string; hoverBg:
   scrim: {
     bg: 'rgba(0,0,0,0.55)', border: 'rgba(255,255,255,0.28)', ink: '#fff',
     hoverBg: 'rgba(0,0,0,0.72)', hoverBorder: 'rgba(255,255,255,0.5)', hoverInk: '#fff',
+  },
+  ainubis: {
+    bg: AINUBIS.raised, border: AINUBIS.edge, ink: AINUBIS.cyan,
+    hoverBg: AINUBIS.raised, hoverBorder: AINUBIS.edgeStrong, hoverInk: AINUBIS.ink,
   },
 };
 

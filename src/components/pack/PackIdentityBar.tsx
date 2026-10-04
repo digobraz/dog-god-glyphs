@@ -79,8 +79,11 @@ const CSS = `
 /** `stats` nahradí riadok „km · výlety" — povrch, ktorý nie je o výletoch, nesie vlastné
  *  počty (AINUBIS 22. 9.: „meno nebude mať počet tripov ani km, tu sa bude rátať počet
  *  svetov / okruhov / zvitkov / celkové %"). */
-export function PackIdentityBar({ id, middle, stats, primary }: {
+export function PackIdentityBar({ id, middle, stats, primary, onMe }: {
   id: ReturnType<typeof usePackIdentity>; middle?: ReactNode; stats?: ReactNode;
+  /** Kam vedie klik na fotku. Bez neho TRIPSTATS ako na mape; AINUBIS (4. 10. 2026)
+   *  vedie na vlastné štatistiky — Matej: *„ainubis stats po kliknutí na fotku"*. */
+  onMe?: () => void;
   /**
    * Čo stojí v PRVOM riadku namiesto mena. Mapa tam má `1516,1 KM`, teda ČÍSLO —
    * a Matej 23. 9. 2026 rozhodol, že AINUBIS sa má mape zhodovať: *„ainubis nebude
@@ -121,7 +124,7 @@ export function PackIdentityBar({ id, middle, stats, primary }: {
   return (
     <div className="pkid">
       <style>{CSS}</style>
-      <button type="button" className="pkid-me" onClick={() => navigate('/pack/map/triplist?tab=stats')}>
+      <button type="button" className="pkid-me" onClick={onMe ?? (() => navigate('/pack/map/triplist?tab=stats'))}>
         <AvatarRing
           pct={lv.pct}
           avatarUrl={id.avatarUrl}

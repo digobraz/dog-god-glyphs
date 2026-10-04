@@ -1,28 +1,37 @@
 // ════════════════════════════════════════════════════════════════════════════
-// ZVITKY S OBRAZOM — UKÁŽKA (3. 10. 2026, LEN DEV)
+// ZVITKY VAULTU — obsah + postup člena (naostro od 4. 10. 2026; ukážka od 3. 10.)
 // ────────────────────────────────────────────────────────────────────────────
-// Matej 3. 10. nad nákresom plany/nakres-zvitok-detail-2026-10-03-v2.html:
-// „pozične aj obsahovo ok, dizajn doladíme na mieste — daj to do devu, tak aby sme
-// mali kompletný 1. zvitok".
+// Matej 4. 10.: *„urobiť 1. okruh na komplet + ainubis stats po kliknutí na fotku…
+// postaviť tak, aby to bolo ready"*.
 //
-// Dáta NIE SÚ v kóde. Generuje ich `node scripts/gen-vault-demo.mjs` (koreň repa) z
-// plany/ainubis/extraktor/<svet>/organizmus.json + obrazov + podcastov do
-// public/vault-demo/zvitky.json — priečinok je v .gitignore, takže sa naostro
-// nevyvezie nič. Appka ho číta fetchom, len keď beží DEV.
+// OBSAH = tabuľka `vault_scrolls` (migrácia 20261007). Plní ju LEN
+// `node scripts/vault-nahraj.mjs <dev|live> <svet> <okruh>` z organizmu — ručne nie.
+// V DEV bez riadkov (iná DB, NOAUTH) padá na starú ukážku `public/vault-demo/zvitky.json`.
 //
-// STAV ZVITKU (krúžok v rohu karty): 0 nevidené · 1 videné (karta ~2 s na obrazovke)
-// · 2 hotovo (prečítal ALEBO dopočúval podcast). Farby = BRAIN_STATE (24. 9.).
-// ⚠️ Kým nežije tabuľka `vault_reads` (BLOK 2), stav drží len prehliadač.
+// POSTUP = tabuľka `vault_reads`, riadok na (človek, zvitok): videné · prečítané ·
+// dopočúvané · kam došiel v podcaste · srdiečko · uložené. Bez prihlásenia (NOAUTH dev)
+// drží to isté prehliadač, aby sa dalo klikať aj bez účtu.
+//
+// STAV ZVITKU: 0 nevidené · 1 videné (karta ~2 s na obrazovke) · 2 hotovo (prečítal
+// ALEBO dopočúval podcast ≥ 90 %). Farby = BRAIN_STATE (24. 9.).
+// ⚠️ Zápis je optimistický — klik sa ukáže hneď, DB dobehne; chyba zápisu sa len zaloguje
+//    (stav sa nevráti, ďalší zápis ten istý riadok aj tak prepíše celý).
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useState, useSyncExternalStore } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
-export const SCROLL_DEMO = import.meta.env.DEV;
+/** Zvitky sú zapnuté všade, kde je `/pack/ainubis` (ten je za DEV_FULL — von ide s FLIPom). */
+export const SCROLL_DEMO = true;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = supabase as any;
 
 export type ScrollLang = { t: string; v: string; vz: string; d: string; min: number };
 export type ScrollSource = { a: string; r: number; t: string; j: string; doi?: string; url?: string };
 export type ScrollPod = { src: string; sec: number; tr?: { s: 'A' | 'B'; t: string }[] };
 export type DemoScroll = {
-  id: string; n: number; total: number; world: string; circle: string; img: string;
+  /** `dogsPath-O1-1` — svet je v id, lebo O1-1 má každý svet. `code` = O1-1 (extraktor, súbory). */
+  id: string; code: string; okruh: number;
+  n: number; total: number; world: string; circle: string; img: string;
   /** Sila dôkazu: 3 merané + zhoda vedy · 2 veda + výklad · 1 tradícia/legenda · 0 neurčené. */
   sd: number;
   lang: Record<string, ScrollLang>;
@@ -49,51 +58,151 @@ export const pickPod = (z: DemoScroll, lang: string, want?: string) => {
 export const sourceHref = (s: ScrollSource) => (s.doi ? `https://doi.org/${s.doi}` : s.url || '');
 export const fmtSec = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
+/** Riadok `vault_scrolls` → tvar, s ktorým pracuje UI. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const fromRow = (r: any): DemoScroll => ({
+  id: r.id, code: r.code, okruh: r.okruh, n: r.n, total: r.total, world: r.world,
+  circle: r.circle?.sk || '', img: r.img, imgs: r.imgs || {}, sd: r.sd || 0,
+  lang: r.lang || {}, pod: r.pod || {}, zdroje: r.zdroje || [], doplnene: r.doplnene || [], rel: r.rel || [],
+});
+/** Stará DEV ukážka (id bez sveta) → id so svetom, aby sedeli kľúče postupu. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const fromDemo = (z: any): DemoScroll => ({
+  ...z, code: z.id, id: `${z.world}-${z.id}`, okruh: Number(String(z.id).match(/^O(\d+)/)?.[1] || 1),
+  rel: (z.rel || []).map((x: string) => `${z.world}-${x}`),
+});
+
 let cache: DemoScroll[] | null = null;
+let loading: Promise<DemoScroll[]> | null = null;
+function loadScrolls(): Promise<DemoScroll[]> {
+  if (cache) return Promise.resolve(cache);
+  if (!loading) {
+    loading = (async () => {
+      const { data, error } = await db.from('vault_scrolls').select('*').order('world').order('okruh').order('n');
+      let list: DemoScroll[] = !error && data?.length ? data.map(fromRow) : [];
+      if (!list.length && import.meta.env.DEV) {
+        list = await fetch('/vault-demo/zvitky.json').then((r) => (r.ok ? r.json() : [])).then((j) => j.map(fromDemo)).catch(() => []);
+      }
+      cache = list;
+      return list;
+    })();
+  }
+  return loading;
+}
 export function useDemoScrolls(): DemoScroll[] {
   const [list, setList] = useState<DemoScroll[]>(cache || []);
   useEffect(() => {
-    if (!SCROLL_DEMO || cache) return;
-    fetch('/vault-demo/zvitky.json')
-      .then((r) => (r.ok ? r.json() : []))
-      .then((j: DemoScroll[]) => { cache = j; setList(j); })
-      .catch(() => setList([]));
+    if (cache) return;
+    let on = true;
+    void loadScrolls().then((l) => { if (on) setList(l); });
+    return () => { on = false; };
   }, []);
   return list;
 }
 
-// ── stav: 0 / 1 / 2 ─────────────────────────────────────────────────────────
-const KEY = 'vault-demo-state';
+// ── POSTUP ČLENA (`vault_reads`) ─────────────────────────────────────────────
+export type ReadRow = {
+  scroll_id: string; seen_at: string | null; read_at: string | null; listened_at: string | null;
+  listen_sec: number; listen_langs: string[]; liked: boolean; saved: boolean; updated_at?: string;
+};
 type StateMap = Record<string, 0 | 1 | 2>;
-let state: StateMap = (() => {
-  try { return JSON.parse(localStorage.getItem(KEY) || '{}') as StateMap; } catch { return {}; }
-})();
+const LOCAL = 'vault-reads';
+let uid: string | null = null;
+let reads: Record<string, ReadRow> = {};
+let snap = { state: {} as StateMap, liked: [] as string[], saved: [] as string[] };
 const subs = new Set<() => void>();
+const derive = () => {
+  const state: StateMap = {};
+  const liked: string[] = []; const saved: string[] = [];
+  for (const r of Object.values(reads)) {
+    state[r.scroll_id] = r.read_at || r.listened_at ? 2 : r.seen_at ? 1 : 0;
+    if (r.liked) liked.push(r.scroll_id);
+    if (r.saved) saved.push(r.scroll_id);
+  }
+  snap = { state, liked, saved };
+  subs.forEach((f) => f());
+};
+const sub = (f: () => void) => { subs.add(f); return () => { subs.delete(f); }; };
 
-/** Stav sa len ZVYŠUJE — videné neprepíše hotovo. */
-export function markScroll(id: string, s: 1 | 2) {
-  if ((state[id] || 0) >= s) return;
-  state = { ...state, [id]: s };
-  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* súkromné okno */ }
+let started = false;
+/** Načíta postup raz za session; bez účtu číta prehliadač. */
+function startReads() {
+  if (started) return;
+  started = true;
+  void (async () => {
+    const { data } = await supabase.auth.getSession();
+    uid = data.session?.user?.id ?? null;
+    if (!uid) {
+      try { reads = JSON.parse(localStorage.getItem(LOCAL) || '{}'); } catch { reads = {}; }
+      derive();
+      return;
+    }
+    const { data: rows } = await db.from('vault_reads').select('*');
+    reads = Object.fromEntries(((rows || []) as ReadRow[]).map((r) => [r.scroll_id, r]));
+    derive();
+    void loadCounts();
+  })();
+}
+const blank = (id: string): ReadRow => ({
+  scroll_id: id, seen_at: null, read_at: null, listened_at: null, listen_sec: 0, listen_langs: [], liked: false, saved: false,
+});
+function write(id: string, patch: Partial<ReadRow>) {
+  const row = { ...(reads[id] || blank(id)), ...patch, updated_at: new Date().toISOString() };
+  reads = { ...reads, [id]: row };
+  derive();
+  if (!uid) {
+    try { localStorage.setItem(LOCAL, JSON.stringify(reads)); } catch { /* súkromné okno */ }
+    return;
+  }
+  void db.from('vault_reads').upsert({ ...row, user_id: uid }, { onConflict: 'user_id,scroll_id' })
+    .then(({ error }: { error: unknown }) => { if (error) console.warn('[vault] zápis postupu', error); });
+}
+
+/** Stav sa len ZVYŠUJE — videné neprepíše hotovo. `how` = čím sa stal hotovým. */
+export function markScroll(id: string, s: 1 | 2, how: 'read' | 'listen' = 'read') {
+  const r = reads[id];
+  const now = new Date().toISOString();
+  if (s === 1) { if (!r?.seen_at) write(id, { seen_at: now }); return; }
+  if (how === 'listen' ? r?.listened_at : r?.read_at) return;
+  write(id, { seen_at: r?.seen_at || now, ...(how === 'listen' ? { listened_at: now } : { read_at: now }) });
+}
+/** Kam došiel v podcaste — zapisuje sa len posun vpred (najviac raz za 15 s z prehrávača). */
+export function saveListen(id: string, sec: number, lang: string) {
+  const r = reads[id];
+  const langs = r?.listen_langs || [];
+  if ((r?.listen_sec || 0) >= sec && langs.includes(lang)) return;
+  write(id, { listen_sec: Math.max(r?.listen_sec || 0, Math.floor(sec)), listen_langs: langs.includes(lang) ? langs : [...langs, lang] });
+}
+export function toggleLiked(id: string) { bump(id, 'likes', !reads[id]?.liked); write(id, { liked: !reads[id]?.liked }); }
+export function toggleSaved(id: string) { bump(id, 'saves', !reads[id]?.saved); write(id, { saved: !reads[id]?.saved }); }
+
+export function useScrollState(): StateMap { startReads(); return useSyncExternalStore(sub, () => snap.state, () => snap.state); }
+export function useLiked(): string[] { startReads(); return useSyncExternalStore(sub, () => snap.liked, () => snap.liked); }
+export function useSaved(): string[] { startReads(); return useSyncExternalStore(sub, () => snap.saved, () => snap.saved); }
+/** Celé riadky postupu — pre štatistiky (Moje znalosti). */
+export function useReads(): Record<string, ReadRow> {
+  startReads();
+  return useSyncExternalStore(sub, () => reads, () => reads);
+}
+
+// ── POČTY srdiečok a uložení od VŠETKÝCH (bez mien) ─────────────────────────
+let counts: Record<string, { likes: number; saves: number }> = {};
+async function loadCounts() {
+  const { data } = await db.rpc('vault_scroll_counts');
+  counts = Object.fromEntries(((data || []) as { scroll_id: string; likes: number; saves: number }[])
+    .map((c) => [c.scroll_id, { likes: Number(c.likes), saves: Number(c.saves) }]));
   subs.forEach((f) => f());
 }
-export function useScrollState(): StateMap {
-  return useSyncExternalStore((f) => { subs.add(f); return () => { subs.delete(f); }; }, () => state, () => state);
+function bump(id: string, k: 'likes' | 'saves', up: boolean) {
+  if (!uid) return; // bez účtu je počet len môj klik (ráta ho UI)
+  const c = counts[id] || { likes: 0, saves: 0 };
+  counts = { ...counts, [id]: { ...c, [k]: Math.max(0, c[k] + (up ? 1 : -1)) } };
 }
-
-// ── uložené (☆) — polica „Uložené" v Mojich znalostiach ─────────────────────
-const SKEY = 'vault-demo-saved';
-let saved: string[] = (() => {
-  try { return JSON.parse(localStorage.getItem(SKEY) || '[]') as string[]; } catch { return []; }
-})();
-const ssubs = new Set<() => void>();
-export function toggleSaved(id: string) {
-  saved = saved.includes(id) ? saved.filter((x) => x !== id) : [...saved, id];
-  try { localStorage.setItem(SKEY, JSON.stringify(saved)); } catch { /* súkromné okno */ }
-  ssubs.forEach((f) => f());
-}
-export function useSaved(): string[] {
-  return useSyncExternalStore((f) => { ssubs.add(f); return () => { ssubs.delete(f); }; }, () => saved, () => saved);
+/** Počet od všetkých; bez účtu `null` ⇒ UI ukáže len môj klik. */
+export function useCounts(id: string): { likes: number; saves: number } | null {
+  startReads();
+  const c = useSyncExternalStore(sub, () => counts[id], () => counts[id]);
+  return uid ? (c || { likes: 0, saves: 0 }) : null;
 }
 
 // ── diskusia (komentáre k celému zvitku, „ako fórum") — DEV len v prehliadači ─
@@ -125,30 +234,44 @@ export function useTalk(id: string): Talk[] {
   return useSyncExternalStore((f) => { tsubs.add(f); return () => { tsubs.delete(f); }; }, () => talk[id] || NONE, () => talk[id] || NONE);
 }
 
-// ── páči sa (labka) — DEV len v prehliadači, rovnako ako Uložené ─────────────
-const LKEY = 'vault-demo-liked';
-let liked: string[] = (() => {
-  try { return JSON.parse(localStorage.getItem(LKEY) || '[]') as string[]; } catch { return []; }
-})();
-const lsubs = new Set<() => void>();
-export function toggleLiked(id: string) {
-  liked = liked.includes(id) ? liked.filter((x) => x !== id) : [...liked, id];
-  try { localStorage.setItem(LKEY, JSON.stringify(liked)); } catch { /* súkromné okno */ }
-  lsubs.forEach((f) => f());
-}
-export function useLiked(): string[] {
-  return useSyncExternalStore((f) => { lsubs.add(f); return () => { lsubs.delete(f); }; }, () => liked, () => liked);
-}
-
-// ── NÁVRH ZMENY (Prispej) — DEV: len v prehliadači; naostro ide AINUBISOVI na posúdenie ─
-const PKEY = 'vault-demo-proposals';
+// ── NÁVRH ZMENY (Prispej) a ŽIADOSŤ O JAZYK → `vault_requests` (AINUBIS posúdi) ─
+// Matej 3. 10.: základ SK/EN/CZ, ďalší jazyk vznikne až na žiadosť člena a ostane pre všetkých.
 export type ProposalKind = 'add' | 'wrong' | 'own';
-export function addProposal(id: string, kind: ProposalKind, text: string) {
-  try {
-    const all = JSON.parse(localStorage.getItem(PKEY) || '[]') as unknown[];
-    all.push({ id, kind, text, at: Date.now() });
-    localStorage.setItem(PKEY, JSON.stringify(all));
-  } catch { /* súkromné okno */ }
+export type VaultRequest = { id: string; scroll_id: string; kind: ProposalKind | 'lang'; lang: string | null; body: string | null; status: string; created_at: string };
+const RKEY = 'vault-requests';
+function sendRequest(row: { scroll_id: string; kind: ProposalKind | 'lang'; lang?: string; body?: string }) {
+  const full: VaultRequest = { id: `local-${Date.now()}`, lang: null, body: null, status: 'new', created_at: new Date().toISOString(), ...row };
+  myReq = [full, ...myReq];
+  reqSubs.forEach((f) => f());
+  if (!uid) {
+    try { localStorage.setItem(RKEY, JSON.stringify(myReq)); } catch { /* súkromné okno */ }
+    return;
+  }
+  void db.from('vault_requests').insert(row).then(({ error }: { error: unknown }) => { if (error) console.warn('[vault] žiadosť', error); });
+}
+export function addProposal(id: string, kind: ProposalKind, text: string) { sendRequest({ scroll_id: id, kind, body: text }); }
+export function requestLang(id: string, lang: string) { sendRequest({ scroll_id: id, kind: 'lang', lang }); }
+
+let myReq: VaultRequest[] = [];
+let reqLoaded = false;
+const reqSubs = new Set<() => void>();
+/** Moje príspevky a žiadosti (najnovšie hore) — pre štatistiky. */
+export function useMyRequests(): VaultRequest[] {
+  useEffect(() => {
+    if (reqLoaded) return;
+    reqLoaded = true;
+    void (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        try { myReq = JSON.parse(localStorage.getItem(RKEY) || '[]'); } catch { myReq = []; }
+      } else {
+        const { data: rows } = await db.from('vault_requests').select('*').order('created_at', { ascending: false });
+        myReq = (rows || []) as VaultRequest[];
+      }
+      reqSubs.forEach((f) => f());
+    })();
+  }, []);
+  return useSyncExternalStore((f) => { reqSubs.add(f); return () => { reqSubs.delete(f); }; }, () => myReq, () => myReq);
 }
 
 /** Fotka do komentára: zmenší na dlhšiu stranu 800 px a vráti JPEG data URL. */
@@ -167,15 +290,4 @@ export function shrinkPhoto(file: File, max = 800): Promise<string> {
     im.onerror = rej;
     im.src = url;
   });
-}
-
-// ── ŽIADOSŤ O NOVÝ JAZYK (Matej 3. 10.: základ SK/EN/CZ, ďalší jazyk vznikne až na žiadosť
-// člena, vygeneruje sa a ostane pre všetkých). DEV: len v prehliadači; naostro → AINUBIS fronta.
-const RKEY = 'vault-demo-langreq';
-export function requestLang(id: string, lang: string) {
-  try {
-    const all = JSON.parse(localStorage.getItem(RKEY) || '[]') as unknown[];
-    all.push({ id, lang, at: Date.now() });
-    localStorage.setItem(RKEY, JSON.stringify(all));
-  } catch { /* súkromné okno */ }
 }

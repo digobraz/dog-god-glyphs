@@ -36,7 +36,7 @@
 // 🚩 OTVORENÉ: chat ako rovina hore + stred mozgu ako vstup (postavené podľa odporúčania).
 // ════════════════════════════════════════════════════════════════════════════
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { PackIdentityBar } from '@/components/pack/PackIdentityBar';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
@@ -49,8 +49,9 @@ import {
 import { VaultChat, VAULT_CHAT_CSS } from '@/components/pack/vault/VaultChat';
 import { VaultWall, VAULT_WALL_CSS } from '@/components/pack/vault/VaultWall';
 import { VAULT_SOURCE_TOTALS } from '@/components/pack/vault/vaultSources';
-import { SCROLL_DEMO, useDemoScrolls } from '@/components/pack/vault/vaultScrollDemo';
-import { ScrollCard, ScrollView, SCROLL_CSS, scrollUI } from '@/components/pack/vault/ScrollParts';
+import { SCROLL_DEMO, useDemoScrolls, useScrollState } from '@/components/pack/vault/vaultScrolls';
+import { VaultKnowledge, KNOW_CSS } from '@/components/pack/vault/VaultKnowledge';
+import { ScrollCard, ScrollView, SCROLL_CSS, scrollUI, circleName as scrollCircle } from '@/components/pack/vault/ScrollParts';
 import { openAinubis } from '@/lib/ainubisBus';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
@@ -508,6 +509,7 @@ const TOTAL_SCROLLS = VAULT_WORLDS.reduce((s, w) => s + w.scrolls, 0);
 //    teda ~14 % a ~8 %. Mozog má vyzerať ROZČÍTANE, nie zelene.
 const demoProgress = (zi: number): 0 | 1 | 2 =>
   (zi % 7 === 0 ? 2 : zi % 13 === 5 ? 1 : 0);
+void demoProgress; // 4. 10. 2026 nahradená skutočným postupom (`vault_reads`) — ostáva ako záznam, čím mozog svietil dovtedy
 
 export default function PackAinubis() {
   const t = useT();
@@ -541,14 +543,20 @@ export default function PackAinubis() {
   // ZVITKY (DEV ukážka, 3. 10. 2026) — článok zvitku žije na vlastnej adrese
   // `/pack/ainubis/zvitok/:id` (modal-as-route ako článok výletu, kôš 2).
   const scrolls = useDemoScrolls();
-  const zid = (useParams()['*'] || '').match(/^zvitok\/([^/]+)/)?.[1];
+  const loc = useLocation();
+  const sub = useParams()['*'] || '';
+  const zid = sub.match(/^zvitok\/([^/]+)/)?.[1];
+  /* MOJE ZNALOSTI (4. 10. 2026) — štatistiky po kliku na fotku v hlavičke, vlastná adresa ako TRIPSTATS. */
+  const knowOpen = /^knowledge\/?$/.test(sub);
+  const zstate = useScrollState();
   const [scrollFocus, setScrollFocus] = useState<string | null>(null);
   const [zvToast, setZvToast] = useState('');
   const openScroll = (id: string, focus?: 'pod' | 'src' | 'talk') => {
     setScrollFocus(focus || null);
-    navigate(`/pack/ainubis/zvitok/${id}`);
+    // návrat tam, odkiaľ prišiel (zoznam alebo Moje znalosti) — nie vždy na zoznam
+    navigate(`/pack/ainubis/zvitok/${id}`, { state: { back: zid ? (loc.state as { back?: string } | null)?.back : loc.pathname + loc.search } });
   };
-  const closeScroll = () => navigate('/pack/ainubis');
+  const closeScroll = () => navigate((loc.state as { back?: string } | null)?.back || '/pack/ainubis');
   /** PRISPEJ v článku zvitku → chat s AINUBISOM (➕ Použiť Matej 3. 10. vyradil). */
   const askAinubis = () => (CHAT_MOCK ? navigate('/pack/ainubis?plane=chat') : openAinubis());
   const shareScroll = (id: string) => {
@@ -657,6 +665,10 @@ export default function PackAinubis() {
   };
   const live = useRef({ names, tx, circleName });
   live.current = { names, tx, circleName };
+  const liveState = useRef(zstate);
+  liveState.current = zstate;
+  /* Postup sa načíta až po postavení mozgu — pri každej zmene sa zrná prefarbia. */
+  useEffect(() => { brain.current?.refresh(); }, [zstate]);
 
   const openWorld = (wi: number) => {
     const key = VAULT_WORLDS[wi].key;
@@ -709,7 +721,9 @@ export default function PackAinubis() {
       },
       onWorld: (wi) => openWorldRef.current(wi),
       onRoot: openAinubis,
-      progress: demoProgress,
+      /* SKUTOČNÝ POSTUP (4. 10. 2026): zrno `z` okruhu `oi` sveta `wi` = zvitok `<svet>-O<oi+1>-<z+1>`.
+         Okruh má v mozgu toľko zŕn, koľko mu dáva rozpad; zvitky, ktoré ešte nie sú, ostávajú modré. */
+      progress: (_zi, wi, oi, z) => liveState.current[`${VAULT_WORLDS[wi].key}-O${oi + 1}-${z + 1}`] || 0,
     });
     const ro = new ResizeObserver(() => brain.current?.resize());
     ro.observe(cv);
@@ -820,8 +834,13 @@ export default function PackAinubis() {
      predtým, než je rozpad svetov odsúhlasený — sú to CIEĽOVÉ čísla, nie stav.
      Zamietnuté boli obe úľavy: skrytie menovateľov („0 svetov · 0 okruhov") aj
      orezanie PC na svety + %. Keď sa rozpad zmení, zmení sa číslo — to je v poriadku. */
-  const read = { worlds: 0, circles: 0, scrolls: 0 };
-  const pct = Math.round((read.scrolls / Math.max(1, TOTAL_SCROLLS)) * 100);
+  const doneIds = Object.keys(zstate).filter((k) => zstate[k] === 2);
+  const read = {
+    worlds: VAULT_WORLDS.filter((w) => doneIds.some((k) => k.startsWith(`${w.key}-`))).length,
+    circles: 0, scrolls: doneIds.length,
+  };
+  // prvý prečítaný zvitok nesmie ukázať 0 % — zaokrúhľuje sa nahor na 1
+  const pct = read.scrolls ? Math.max(1, Math.round((read.scrolls / Math.max(1, TOTAL_SCROLLS)) * 100)) : 0;
   /* 🔴 HLAVIČKA = SVETY A %, BEZ MENA (Matej 23. 9. 2026).
      Prvé zadanie: *„ainubis nebude mať pri fotka meno ale počet svetov a okruhov"*,
      spresnené o hodinu: *„ok daj len svety a %"*. Dva riadky s číslami — presne ako
@@ -837,7 +856,7 @@ export default function PackAinubis() {
   return (
     <div className={`akv-root${SCROLL_DEMO ? ' has-zv' : ''}`} ref={rootRef} data-view={view} data-plane={plane2}>
       <style>{CSS}</style>
-      {SCROLL_DEMO && <style>{SCROLL_CSS}</style>}
+      {SCROLL_DEMO && <style>{SCROLL_CSS}{KNOW_CSS}</style>}
       {CHAT_MOCK && <style>{VAULT_CHAT_CSS}</style>}
       {WALL_MOCK && <style>{VAULT_WALL_CSS}</style>}
       <div className="akv-bg" aria-hidden />
@@ -942,7 +961,7 @@ export default function PackAinubis() {
         <div className="akv-list">
         <div className="akv-col">
           {shown.length === 0 && <p className="akv-empty">{tx('pack.ainubis.noMatch', 'Nothing found.')}</p>}
-          {SCROLL_DEMO && scrolls.length > 0 && <div className="akv-zvh">Ukážka · Cesta psa · okruh 1</div>}
+          {SCROLL_DEMO && scrolls.length > 0 && <div className="akv-zvh">{names[VAULT_WORLDS.findIndex((w) => w.key === scrolls[0].world)]} · {scrollCircle(scrolls[0], lang)}</div>}
           {SCROLL_DEMO && scrolls.map(z => (
             <ScrollCard key={z.id} z={z} lang={lang} onOpen={openScroll} onShare={shareScroll} />
           ))}
@@ -977,6 +996,7 @@ export default function PackAinubis() {
           id={id}
           primary={vaultPrimary}
           stats={vaultStats}
+          onMe={() => navigate('/pack/ainubis/knowledge')}
         />
         {/* PC: hľadanie a filtre POD hlavičkou nad mozgom, ako na /map (Matej 22. 9.). */}
         <div className="akv-ptools">
@@ -1061,6 +1081,12 @@ export default function PackAinubis() {
       {SCROLL_DEMO && openZ && (
         <ScrollView z={openZ} all={scrolls} lang={lang} focus={scrollFocus}
           onClose={closeScroll} onOpen={(i) => openScroll(i)} onUse={askAinubis} onShare={shareScroll} />
+      )}
+      {SCROLL_DEMO && knowOpen && !openZ && (
+        <VaultKnowledge scrolls={scrolls} lang={lang} avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial}
+          who={(id.dogs ?? []).map((d) => d.dog_name).filter(Boolean).join(' · ')}
+          worldName={(key) => names[VAULT_WORLDS.findIndex((w) => w.key === key)] || key}
+          onClose={() => navigate('/pack/ainubis')} onOpen={(i) => openScroll(i)} />
       )}
       {zvToast && <div className="zv-toast" role="status">{zvToast}</div>}
       <MessagingOverlayHost />
