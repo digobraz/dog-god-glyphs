@@ -98,6 +98,8 @@ const GROUPS: Group[] = [
         path: '/heroglyph/essence',
         state: 'done',
       },
+      // 4. 10. 2026 — `Heroglyph.tsx` (1474f377: bublina krajnej dlaždice ku kraju, 390 px bez
+      // pretečenia) je PREDAJNÁ stránka `/heroglyph`, nie krok tohto zoznamu ⇒ stavy sa nemenia.
       // 3. 10. 2026 — podstata/patrón/majiteľ ostávajú `done` po drobnostiach: SE 375×553
       // bez pretečenia (medailón 60 pod 600 px, web 031c0a13), hviezdy bez orezania do 360 px,
       // z okna plemena preč veta duplikujúca podnadpis (1833c5ce). Overené headless.
