@@ -1235,6 +1235,8 @@ export const en = {
   'onepage.hbook.next': "Next chapter",
   'onepage.hbook.nextPic': "Next picture",
   'onepage.hbook.0.title': "Once upon a time…",
+  'onepage.hbook.0.glyph': "Hekthor's heroglyph",
+  'onepage.hbook.0.sub': "Hekthor · dog #1",
   'onepage.hbook.0.cap': "The mirror",
   'onepage.hbook.1.ini': "B",
   'onepage.hbook.1.lead': "orn unwanted. Dumped in a box, where he waited with his brothers to die.",

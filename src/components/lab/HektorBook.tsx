@@ -38,10 +38,11 @@ const IMG = '/images/hektor-kniha';
 /** Kapitoly. Prvý obrázok je vždy KRESBA, za ňou fotky (Matej: *„úvodná bude kresba"*).
  *  n: 0 = TITULNÁ dvojstrana (Matej 4. 10.: *„lavá strana Once upon a time, na
  *  druhej hektorov heroglyf v strede a ako keby zrkadlo — vidí tam seba v odraze
- *  malinkého smutného z čias, kedy bol vyhodený"*). Heroglyf leží na hladine
- *  zrkadla — pás v strede kresby je na to nechaný prázdny. */
+ *  malinkého smutného z čias, kedy bol vyhodený"*). Kolo 2 (4. 10.): stojace
+ *  zrkadlo vpravo, HEROGLYF pod nadpisom na ľavej strane, nadpisy Cinzel
+ *  Decorative, Hektor kreslený podľa fotiek (krátka srsť, čierno-hnedý). */
 const CHAPTERS = [
-  { n: 0, media: ['k0-zrkadlo-b'] },
+  { n: 0, media: ['k0-zrkadlo'] },
   { n: 1, media: ['k1-kresba', 'k1-f1', 'k1-f2'] },
   { n: 2, media: ['k2-kresba', 'k2-f1', 'k2-f2', 'k2-f3'] },
   { n: 3, media: ['k3-kresba', 'k3-f1', 'k3-f2'] },
@@ -87,7 +88,24 @@ export const HEKTOR_BOOK_CSS = `
   pointer-events: none; z-index: 2;
   background: linear-gradient(90deg, transparent, rgba(90, 55, 15, 0.2) 46%, rgba(60, 35, 8, 0.36) 50%, rgba(90, 55, 15, 0.2) 54%, transparent);
 }
-.hb-page { position: relative; display: flex; flex-direction: column; min-height: 0; overflow: hidden; padding: 28px 36px 76px; }
+.hb-book {
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9 .06' numOctaves='3' seed='4'/><feColorMatrix values='0 0 0 0 .45 0 0 0 0 .3 0 0 0 0 .12 0 0 0 .09 0'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>"),
+    radial-gradient(90% 70% at 50% 40%, #F6E9CA, #EAD5A8);
+}
+.hb-page { position: relative; display: flex; flex-direction: column; min-height: 0; overflow: hidden; padding: 40px 48px 84px; }
+.hb-page::before {
+  content: ''; position: absolute; inset: 14px 14px 70px; pointer-events: none; border-radius: 3px;
+  box-shadow: inset 0 0 0 1.5px #C99A3F, inset 0 0 0 5px transparent, inset 0 0 0 6px rgba(22, 48, 122, 0.55);
+}
+.hb-page.m::before { display: none; }
+.hb-corner { position: absolute; width: 26px; height: 26px; pointer-events: none; z-index: 1; }
+.hb-corner::before {
+  content: ''; position: absolute; inset: 0; transform: rotate(45deg) scale(.5);
+  background: #A8432A; box-shadow: 0 0 0 3px #F1E2BF, 0 0 0 5px #C99A3F;
+}
+.hb-corner.tl { top: 2px; left: 2px; } .hb-corner.tr { top: 2px; right: 2px; }
+.hb-corner.bl { bottom: 58px; left: 2px; } .hb-corner.br { bottom: 58px; right: 2px; }
 .hb-page.t { overflow-y: auto; }
 .hb-page.m { padding: 22px; align-items: center; justify-content: center; }
 .hb-ini {
@@ -100,14 +118,14 @@ export const HEKTOR_BOOK_CSS = `
   font: 900 78px/1 'Cinzel Decorative', serif; color: #F6DE9C; text-shadow: 0 2px 0 #0A1A4A;
 }
 .hb-lead {
-  font: 700 25px/1.15 'Dogyptian', 'Cinzel', serif; text-transform: uppercase; letter-spacing: .02em;
+  font: 700 28px/1.2 'Cinzel Decorative', 'Cinzel', serif; letter-spacing: .01em;
   color: #16307A; margin: 0 0 4px;
 }
 .hb-lead::after {
   content: ''; display: block; width: 160px; height: 14px; margin: 10px 0 12px;
   background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='14'><path d='M4 7l5-5 5 5-5 5z' fill='%23C99A3F'/><circle cx='22' cy='7' r='3' fill='%23A8432A'/><path d='M30 7l5-5 5 5-5 5z' fill='%2316307A'/></svg>") left / 40px 14px repeat-x;
 }
-.hb-txt { font: 400 19px/1.45 'Dogyptian', 'Space Grotesk', sans-serif; color: rgba(42, 26, 12, 0.88); margin: 0; }
+.hb-txt { font: 400 22px/1.45 'Dogyptian', 'Space Grotesk', sans-serif; color: rgba(42, 26, 12, 0.88); margin: 0; }
 .hb-band {
   position: absolute; left: 24px; right: 24px; bottom: 18px; height: 40px; border-radius: 3px;
   display: flex; align-items: center; justify-content: space-around;
@@ -132,18 +150,22 @@ export const HEKTOR_BOOK_CSS = `
   font: 700 16px/1 'Dogyptian', serif; color: #A8432A;
 }
 .hb-glyph {
-  position: absolute; left: 50%; top: 50.8%; z-index: 2; transform: translate(-50%, -50%);
-  width: 62%; padding: 5px 7px; border-radius: 4px; background: #F1E2BF;
-  box-shadow: 0 0 0 2px #C99A3F, 0 0 0 4px #16307A, 0 0 0 6px #C99A3F, 0 8px 18px rgba(0, 0, 0, 0.35);
+  width: min(88%, 420px); margin-top: 28px; padding: 8px 10px; border-radius: 6px;
+  background: linear-gradient(#16307A, #0A1A4A);
+  box-shadow: inset 0 0 0 2px #C99A3F, inset 0 0 0 5px #A8432A, inset 0 0 0 7px #C99A3F, 0 10px 22px rgba(60, 35, 8, 0.3);
 }
-.hb-glyph img { position: static; display: block; width: 100%; height: auto; opacity: 1; }
-.hb-title { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-bottom: 40px; }
+.hb-glyph img { display: block; width: 100%; height: auto; filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.5)); }
+.hb-title { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-bottom: 24px; }
 .hb-title p {
-  font: 700 52px/1.05 'Dogyptian', 'Cinzel', serif; text-transform: uppercase; letter-spacing: .02em;
-  color: #16307A; margin: 0;
+  font: 900 60px/1.08 'Cinzel Decorative', 'Cinzel', serif; letter-spacing: .01em;
+  color: #16307A; margin: 0; text-shadow: 0 2px 0 rgba(201, 154, 63, 0.45);
+}
+.hb-title p::first-letter { color: #A8432A; font-size: 1.3em; }
+.hb-title small {
+  margin-top: 18px; font: 400 22px/1.3 'Dogyptian', serif; color: #A8432A; letter-spacing: .04em;
 }
 .hb-title::before, .hb-title::after {
-  content: ''; width: 200px; height: 14px; margin: 24px 0;
+  content: ''; flex-shrink: 0; width: 220px; height: 14px; margin: 22px 0;
   background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='14'><path d='M4 7l5-5 5 5-5 5z' fill='%23C99A3F'/><circle cx='22' cy='7' r='3' fill='%23A8432A'/><path d='M30 7l5-5 5 5-5 5z' fill='%2316307A'/></svg>") center / 40px 14px repeat-x;
 }
 .hb-track { display: none; }
@@ -171,6 +193,7 @@ export const HEKTOR_BOOK_CSS = `
     background: rgba(255, 248, 232, 0.55); box-shadow: inset 0 0 0 1px rgba(201, 154, 63, 0.45);
   }
   .hb-mtext .hb-band { left: 12px; right: 12px; bottom: 12px; height: 34px; }
+  .hb-mtext .hb-band img { height: 16px; max-width: 11%; object-fit: contain; }
   .hb-mpic {
     position: relative; flex-basis: auto !important; aspect-ratio: 3 / 4; max-width: 80%; border-radius: 12px; overflow: hidden;
     box-shadow: 0 0 0 2px #C99A3F, 0 0 0 4px #16307A, 0 10px 20px rgba(60, 35, 8, 0.3);
@@ -178,11 +201,14 @@ export const HEKTOR_BOOK_CSS = `
   .hb-mpic img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .hb-mpic .hb-plate { font-size: 14px; padding: 5px 12px; }
   .hb-ini { width: 64px; height: 70px; font-size: 48px; margin-right: 12px; }
-  .hb-lead { font-size: 18px; }
   .hb-lead::after { margin: 8px 0 10px; }
-  .hb-txt { font-size: 16px; }
-  .hb-title p { font-size: 34px; }
-  .hb-title::before, .hb-title::after { width: 140px; margin: 16px 0; }
+  .hb-txt { font-size: 18px; }
+  .hb-lead { font-size: 20px; }
+  .hb-title p { font-size: 38px; }
+  .hb-title small { font-size: 18px; }
+  .hb-corner { display: none; }
+  .hb-glyph { margin-top: 20px; }
+  .hb-title::before, .hb-title::after { width: 150px; margin: 14px 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hb-veil { animation: none; }
@@ -233,18 +259,22 @@ export default function HektorBook({ onClose }: { onClose: () => void }) {
   const k = `onepage.hbook.${c.n}`;
   const cap = t(`${k}.cap`);
   const isTitle = c.n === 0;
-  const glyph = isTitle && (
-    <span className="hb-glyph" aria-hidden><img src="/images/hekthor-heroglyph.webp" alt="" /></span>
-  );
+  const corners = ['tl', 'tr', 'bl', 'br'].map((x) => <span key={x} className={`hb-corner ${x}`} aria-hidden />);
   const text = isTitle ? (
     <>
-      <div className="hb-title"><p>{t(`${k}.title`)}</p></div>
+      {corners}
+      <div className="hb-title">
+        <p>{t(`${k}.title`)}</p>
+        <span className="hb-glyph"><img src="/images/hekthor-heroglyph.webp" alt={t(`${k}.glyph`)} /></span>
+        <small>{t(`${k}.sub`)}</small>
+      </div>
       <div className="hb-band" aria-hidden>
         {BAND.map((s, i) => <img key={i} src={s} alt="" />)}
       </div>
     </>
   ) : (
     <>
+      {corners}
       <div>
         <span className="hb-ini" aria-hidden>{t(`${k}.ini`)}</span>
         <p className="hb-lead"><span className="sr-only">{t(`${k}.ini`)}</span>{t(`${k}.lead`)}</p>
@@ -281,7 +311,6 @@ export default function HektorBook({ onClose }: { onClose: () => void }) {
               {c.media.map((m, j) => (
                 <img key={m} src={`${IMG}/${m}.webp`} alt={j === 0 ? cap : ''} className={j === pic ? 'on' : ''} loading={j === 0 ? 'eager' : 'lazy'} />
               ))}
-              {glyph}
               {c.media.length > 1 && (
                 <span className="hb-pdots" aria-hidden>
                   {c.media.map((m, j) => <i key={m} className={j === pic ? 'on' : ''} />)}
@@ -295,7 +324,6 @@ export default function HektorBook({ onClose }: { onClose: () => void }) {
             {c.media.map((m, j) => (
               <div key={m} className="hb-mpic">
                 <img src={`${IMG}/${m}.webp`} alt={j === 0 ? cap : ''} loading="lazy" />
-                {j === 0 && glyph}
                 {j === 0 && <span className="hb-plate">{cap}</span>}
               </div>
             ))}
