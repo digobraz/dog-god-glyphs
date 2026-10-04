@@ -76,10 +76,13 @@ export type PhotoConfirmOptions = {
   onClose?: () => void;
   /**
    * ⚠️ Texty sú zatiaľ ANGLICKÉ NATVRDO, rovnako ako celá dlaždica portálu
-   * (`ADD PHOTO`, `you can change the photo later`, `Yours will be #72`).
-   * Je to lab, kde sa znenie ešte hýbe — zaviesť kvôli nemu kľúče do 18 jazykov
-   * by znamenalo prekladať text, ktorý sa o deň zmení. Keď sa usadí, ide sem
-   * `t()` a texty odtiaľto zmiznú; volajúci ich už dnes vie prebiť.
+   * (`ADD PHOTO`, `DEFAULT_COPY.eyebrow/lead/cta/another/zoom`, `Yours will be
+   * #72`). Je to lab, kde sa znenie ešte hýbe — zaviesť kvôli nemu kľúče do 18
+   * jazykov by znamenalo prekladať text, ktorý sa o deň zmení. Keď sa usadí,
+   * ide sem `t()` a texty odtiaľto zmiznú.
+   * ✅ VÝNIMKA 4. 10. 2026: `DEFAULT_COPY.later` ide cez i18n kľúč
+   * `wall.photo.laterNote` — volajúci ho dnes vždy prebíja (`copy.later`),
+   * táto hodnota ostáva len ako fallback pre budúceho volajúceho bez prekladu.
    */
   copy?: Partial<PhotoConfirmCopy>;
 };

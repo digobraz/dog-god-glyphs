@@ -524,6 +524,10 @@ export function DogPlanetLab({
       },
       onPickAnother: () => { track('planet_photo_confirm_another'); openPicker(); },
       onClose: () => track('planet_photo_confirm_dismissed'),
+      // Jediné pole DEFAULT_COPY, ktoré opúšťa lab-angličtinu — ide cez i18n
+      // (Motto lock 2026-08-28 vzor): ostatné (eyebrow/lead/cta/another/zoom)
+      // ostávajú natvrdo, znenie sa ešte hýba (photoConfirm.ts komentár).
+      copy: { later: t('wall.photo.laterNote') },
     });
   };
 
@@ -2098,7 +2102,7 @@ export function DogPlanetLab({
               (Matej 26. 8.: „Logo aj tagline preč — dáme to úplne dolu").
               Prvá obrazovka teraz hovorí jedinú vec: pridaj svojho psa. */}
           {/* Matej 27. 8. 2026: *„zmeň nadpis na hero (1 sekcia) aj tagline
-              YOUR DOG IS A GOD HERE. And we're still missing his face."*
+              YOUR DOG IS A GOD HERE. […]"* (druhá veta dnes `wall.hero.missingFace`).
               Nahradilo „Dogs of the world, unite." + „We are building a world
               of dogs…". Veta hovorí to isté v poradí, v akom to človek potrebuje:
               najprv čo tu jeho pes JE, až potom čo od neho chceme.
@@ -2119,7 +2123,7 @@ export function DogPlanetLab({
             <span className="ph-l">a <span className="g">god</span> here.</span>
           </h1>
           <p className="ph-lead">
-            And we&rsquo;re still missing his face.
+            {t('wall.hero.missingFace')}
           </p>
 
           {/* ── PORTÁL ───────────────────────────────────────────────────

@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
 import ainubisFace from '@/assets/ainubis-badge.webp';
 import { WIZ, WIZ_ROUND, anchorExists, type WizAnchor } from './wizAnchors';
+import { GOLD_BTN } from './packTheme';
 
 // PREHLIADKA — AInubis prevedie člena po `/pack`. Scenár je SKRIPTOVANÝ, nie AI
 // (Matej 23. 8. 2026): text je vždy ten istý, žije v prekladoch, AInubis je tu hlas
@@ -124,14 +125,16 @@ const WIZ_CSS = `
   }
 `;
 
-const GOLD_BTN: React.CSSProperties = {
+// CTA zlaté = blok GOLD_BTN z packTheme.ts (grad + edge), tu len doplnený o layout
+// vlastnosti tejto obrazovky (meno GOLD_BTN je obsadené importom, preto WIZ_GOLD_BTN).
+const WIZ_GOLD_BTN: React.CSSProperties = {
   flex: 1,
   display: 'flex', alignItems: 'center', justifyContent: 'center',
-  background: 'linear-gradient(135deg,#F5C73D,#E69E1A)',
+  background: GOLD_BTN.grad,
   color: '#1c160c', fontWeight: 700,
   fontFamily: "'Space Grotesk',sans-serif",
   fontSize: 14,
-  border: '1px solid rgba(250,244,236,.30)',
+  border: `1px solid ${GOLD_BTN.edge}`,
   borderRadius: 8,
   padding: '12px 16px',
   cursor: 'pointer',
@@ -448,7 +451,7 @@ export function PackWizard({ primaryDogId, primaryDogName }: PackWizardProps) {
             </p>
             <button
               onClick={next}
-              style={{ ...GOLD_BTN, flex: 'none', width: '100%', maxWidth: 300, marginBottom: 14 }}
+              style={{ ...WIZ_GOLD_BTN, flex: 'none', width: '100%', maxWidth: 300, marginBottom: 14 }}
             >
               {t('pack.wizard.welcome.cta')}
             </button>
@@ -475,7 +478,7 @@ export function PackWizard({ primaryDogId, primaryDogName }: PackWizardProps) {
 
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <button onClick={skip} style={GHOST_BTN}>{t('pack.wizard.skip')}</button>
-              <button onClick={next} style={GOLD_BTN}>{t(def.ctaKey)}</button>
+              <button onClick={next} style={WIZ_GOLD_BTN}>{t(def.ctaKey)}</button>
             </div>
           </CoachCard>
         </>
@@ -492,7 +495,7 @@ export function PackWizard({ primaryDogId, primaryDogName }: PackWizardProps) {
             <button onClick={finish} style={GHOST_BTN}>{t('pack.wizard.handoff.later')}</button>
             <button
               onClick={() => { finish(); openAinubis(); }}
-              style={GOLD_BTN}
+              style={WIZ_GOLD_BTN}
             >
               {t('pack.wizard.handoff.cta')}
             </button>

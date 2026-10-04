@@ -957,6 +957,7 @@ export const tur: Partial<Dict> = {
   "pack.dog.walkLevel4h": "4s",
   "pack.dog.walkLevelDay": "Gün",
   "pack.dog.legendTrip": "Gezi",
+  "pack.spotlight.mapTitle": "Gezini ekle",
   "pack.dog.legendTripDesc": "Doğaya uzun bir gün",
   "pack.dog.legendWalk": "Yürüyüş",
   "pack.dog.legendWalkDesc": "Düzgün bir günlük yürüyüş",

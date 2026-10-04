@@ -1,7 +1,8 @@
 // /pack/map/triplist — DVOJPOVRCH: TRIPLIST + TRIPSTATS na jednej route (Matej 2026-07-23,
 // konsolidácia headera 4→2). ?tab=stats fokusuje TRIPSTATS, inak TRIPLIST; dve karty vedľa seba
 // prepínajú view. Vstup z PackMap headera: ✓/km pilulka → ?tab=stats, 🐾 pilulka → list.
-//   TRIPLIST = MY TRIPS (seeded z plans; placeholdery keď prázdne) + OPEN TRIPS (mock). Wishlist
+//   TRIPLIST = MY TRIPS (seeded z plans; placeholdery keď prázdne) + OPEN TRIPS (reálne
+//     inzeráty z `user_trips`, issue #41 — `mock`/MOCK_MEMBER_POOL zmazaný 2026-08-03). Wishlist
 //     splynul sem (★ = „mám to v zozname"), samostatná wishlist sekcia zrušená.
 //   TRIPSTATS = <TripStatsPanel> z packCommunityUI (svet + home 🇸🇰 + prejdené) — bývalý „Trippin'"
 //     dashboard modal, ktorý je TÝMTO zrušený (MySlovakiaDashboard už nemá vstup).

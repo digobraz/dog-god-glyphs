@@ -4,7 +4,7 @@
 // ODVODENÁ, NIE VYMYSLENÁ. Formát share karty je LOCKED (Matejom schválený mock,
 // `components/ShareCard.tsx`): čierna, fotka hore s prechodom, zlatý inset rám,
 // meno psa v Cinzel Decorative s auto-fitom na 880 px, pätička „dogypt.com ·
-// In Dogs We Trust". Tá istá DNA — mení sa len to, čo stojí pod menom: namiesto
+// [motto]". Tá istá DNA — mení sa len to, čo stojí pod menom: namiesto
 // heroglyfu výsledok kvízu.
 //
 // ČO SA TU NESMIE ROZBIŤ:
@@ -19,10 +19,13 @@
 //  5. Share/cert povrchy sú VÝNIMKA z locku na bledý papyrusový blok — renderujú
 //     sa do obrázka a majú vlastný (tmavý) dizajn.
 //
-// Text je zámerne EN a NEPREKLADÁ SA: karta ide do sveta, nie do appky — rovnako
-// ako pätička v `ShareCard.tsx`. Mená úloh a elementov sú brand pojmy.
+// Mená úloh a elementov sú brand pojmy a ostávajú EN natvrdo (nedostávajú
+// komponentu dataset, len preložené labely — pozri props vyššie). MOTTO v päte
+// ide cez `religion.book.trust` (Motto lock 2026-08-28): EN kánon „In Dog We
+// Trust" sa neprekladá, SK/CS povrch dostane „Veríme v psa"/„Věříme ve psa".
 import { useLayoutEffect, useRef, useState } from 'react';
 import { PACK_THEME } from '@/components/pack/packTheme';
+import { useT } from '@/i18n/LanguageContext';
 
 const GOLD = PACK_THEME.cardEdge;
 const CREAM = '#F7EFDD';
@@ -49,6 +52,7 @@ export interface NatureShareCardProps {
 export function NatureShareCard({
   dogName, photoUrl, packNumber, roleLabel, elementLabel, specialLabels,
 }: NatureShareCardProps) {
+  const t = useT();
   const measureRef = useRef<HTMLSpanElement>(null);
   const [fontSize, setFontSize] = useState<number | null>(null);
   const upperName = dogName.toUpperCase();
@@ -139,7 +143,7 @@ export function NatureShareCard({
             textShadow: '0 4px 20px rgba(0,0,0,0.8)',
           }}
         >
-          {packNumber !== null ? `№ ${packNumber} of 1,000,000 dogs` : 'In Dogs We Trust'}
+          {packNumber !== null ? `№ ${packNumber} of 1,000,000 dogs` : t('religion.book.trust')}
         </span>
       </div>
 
@@ -217,7 +221,7 @@ export function NatureShareCard({
         >
           <span style={{ color: GOLD, fontWeight: 700 }}>dogypt.com</span>
           <span style={{ width: 6, height: 6, borderRadius: '50%', background: GOLD, flexShrink: 0 }} />
-          <span>In Dogs We Trust</span>
+          <span>{t('religion.book.trust')}</span>
         </div>
       </div>
     </div>

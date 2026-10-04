@@ -2,5 +2,11 @@
 # HTTPS presmerovanie, HSTS a nosniff nastavuje ZÓNA v Cloudflare dashboarde (22. 9. 2026),
 # nie tento súbor. ⚠️ Referrer-Policy sem NEPATRÍ prísnejšia než default prehliadača:
 # kľúč Mapy.com je zamknutý referrerom dogypt.com, `same-origin` by mapy vyprázdnil (403).
+#
+# Content-Security-Policy nesie LEN `frame-ancestors` (4. 10. 2026) — žiadna iná
+# direktíva, aby sa nezlomili skripty/štýly/connect appky. Over v `vystupy/dashboard`:
+# žiadny `<iframe src="…dogypt.com…">` tam dogypt.com naživo nevkladá (iframe-y tam majú
+# vlastné dashboard/embeds nástroje, nie hlavnú appku) — `self` teda nič legitímne nezabije.
 /*
   X-Frame-Options: SAMEORIGIN
+  Content-Security-Policy: frame-ancestors 'self'

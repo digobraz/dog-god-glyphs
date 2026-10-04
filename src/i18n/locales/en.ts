@@ -1383,6 +1383,11 @@ export const en = {
   'wall.hero.cta': 'Become Dogyptian',
   'wall.hero.total': '1,000,000',
   'wall.hero.dogs': 'DOGS',
+  // /wall-lab + planet lab hero (redesign sandbox, DEV-only — GodsGridLab.tsx, DogPlanetLab.tsx)
+  'wall.hero.missingFace': 'And we’re still missing his face.',
+  // dogPortal.ts buildPortal() note + photoConfirm.ts popup — „(you can change the photo later)" family
+  'wall.portal.laterNote': '(you can change the photo later)',
+  'wall.photo.laterNote': 'You can change the photo later.',
   // Hekthor founder card
   'wall.hektor.msg': 'Hekthor, you are my greatest hero, my best friend, my loyal companion, my merciless mentor — you are the most beautiful story of my life. Because of you I founded a dog religion, and I realised that my love is nothing special — everyone who has ever loved a dog feels the very same thing in their heart. Thank you for our best life together. I love you.',
   // info overlay

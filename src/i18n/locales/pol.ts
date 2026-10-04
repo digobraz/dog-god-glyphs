@@ -1126,6 +1126,7 @@ export const pol: Partial<Dict> = {
   "pack.dog.walkLevel4h": "4h",
   "pack.dog.walkLevelDay": "Dzień",
   "pack.dog.legendTrip": "Wyprawa",
+  "pack.spotlight.mapTitle": "Dodaj swoją wyprawę",
   "pack.dog.legendTripDesc": "Długi dzień na łonie natury",
   "pack.dog.legendWalk": "Spacer",
   "pack.dog.legendWalkDesc": "Porządny codzienny spacer",

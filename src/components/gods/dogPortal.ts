@@ -226,13 +226,15 @@ export interface PortalOptions {
   label?: string;
   /** Popisok, keď je fotka vybraná. */
   labelPicked?: string;
-  /** Poznámka pod popiskom (vnútri jadra). Smie niesť HTML (napr. <b>#72</b>). */
+  /** Poznámka pod popiskom (vnútri jadra). Smie niesť HTML (napr. <b>#72</b>).
+   *  Vanilla util nepozná i18n — preklad (`wall.portal.laterNote`) dodáva volajúci. */
   note?: string;
   /**
    * Druhý, podradený riadok pod poznámkou. Vznikol 27. 8. 2026, keď do portálu
    * sadol počet psov: hook *„look around — your dog can be #72 here"* si vzal
-   * hlavnú poznámku a uistenie *„(you can change the photo later)"* — Matejova
-   * požiadavka z toho istého dňa — by inak zaniklo. Prázdny reťazec = riadok nie je.
+   * hlavnú poznámku a uistenie, že fotku možno zmeniť neskôr (`wall.portal.
+   * laterNote`) — Matejova požiadavka z toho istého dňa — by inak zaniklo.
+   * Prázdny reťazec = riadok nie je.
    */
   subnote?: string;
   ariaLabel?: string;
@@ -262,7 +264,7 @@ export interface PortalHandle {
 export function buildPortal(opts: PortalOptions = {}): PortalHandle {
   const {
     faces = [], label = 'Add photo', labelPicked = 'Change photo',
-    note = '(you can change the photo later)', subnote = '',
+    note = '', subnote = '',
     ariaLabel = "Add your dog's photo", onPick,
   } = opts;
 

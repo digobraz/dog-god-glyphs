@@ -954,6 +954,7 @@ export const chn: Partial<Dict> = {
   "pack.dog.walkLevel4h": "4小时",
   "pack.dog.walkLevelDay": "整日",
   "pack.dog.legendTrip": "远行",
+  "pack.spotlight.mapTitle": "添加你的远行",
   "pack.dog.legendTripDesc": "深入荒野的漫长一天",
   "pack.dog.legendWalk": "散步",
   "pack.dog.legendWalkDesc": "一次正经的日常散步",

@@ -954,6 +954,7 @@ export const ara: Partial<Dict> = {
   "pack.dog.walkLevel4h": "4 ساعات",
   "pack.dog.walkLevelDay": "يوم",
   "pack.dog.legendTrip": "رحلة",
+  "pack.spotlight.mapTitle": "أضف رحلتك",
   "pack.dog.legendTripDesc": "يوم طويل في البرية",
   "pack.dog.legendWalk": "مشي",
   "pack.dog.legendWalkDesc": "نزهة يومية حقيقية",

@@ -954,6 +954,7 @@ export const jpn: Partial<Dict> = {
   "pack.dog.walkLevel4h": "4時間",
   "pack.dog.walkLevelDay": "終日",
   "pack.dog.legendTrip": "遠出",
+  "pack.spotlight.mapTitle": "あなたの遠出を追加",
   "pack.dog.legendTripDesc": "野へ繰り出す長い一日",
   "pack.dog.legendWalk": "散歩",
   "pack.dog.legendWalkDesc": "きちんとした毎日の散歩",

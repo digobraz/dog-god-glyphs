@@ -958,6 +958,7 @@ export const ind: Partial<Dict> = {
   "pack.dog.walkLevel4h": "4घं",
   "pack.dog.walkLevelDay": "दिन",
   "pack.dog.legendTrip": "यात्रा",
+  "pack.spotlight.mapTitle": "अपनी यात्रा जोड़ें",
   "pack.dog.legendTripDesc": "जंगल में एक लंबा दिन",
   "pack.dog.legendWalk": "सैर",
   "pack.dog.legendWalkDesc": "एक उचित दैनिक सैर",

@@ -957,6 +957,7 @@ export const kor: Partial<Dict> = {
   "pack.dog.walkLevel4h": "4시간",
   "pack.dog.walkLevelDay": "하루",
   "pack.dog.legendTrip": "여행",
+  "pack.spotlight.mapTitle": "나의 여행 추가하기",
   "pack.dog.legendTripDesc": "자연 속으로 떠난 긴 하루",
   "pack.dog.legendWalk": "산책",
   "pack.dog.legendWalkDesc": "제대로 된 하루 산책",
