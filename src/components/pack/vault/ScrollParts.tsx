@@ -170,6 +170,8 @@ export const SCROLL_CSS = `
    Skupiny oddeľuje tenká čiara, podcast sedí na dne bloku. */
 .zv-head > .zv-grp + .zv-grp{padding-top:${PACK_SPACE.lg}px;border-top:1px solid ${AINUBIS.edge};}
 .zv-head > .zv-pod{margin-top:auto;}
+/* miesto pre známku v rohu: meta aj nadpis nesmú vbehnúť pod ňu */
+.zv-head .zv-meta,.zv-head .zv-h{padding-right:${PACK_SPACE.xxxl}px;}
 .zv-grp{display:flex;flex-direction:column;align-items:flex-start;gap:${PACK_SPACE.md}px;}
 /* PC: úvod sa rozloží po výške obrazu — nadpis hore, veta s blokom v strede, podcast dole
    (Matej 3. 10.: „úvod sa mi na PC nepáči, vyzerá to natlačené na sebe"). */
@@ -583,9 +585,11 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
             <ScrollActions id={z.id} lang={lang} onShare={() => onShare(z.id)} onTalk={() => talkRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
           </div>
           <div className="zv-head">
+            {/* Známka v rohu bloku ako na karte (Matej 4. 10.: „v detaile dať známku na kraj ako pri náhľade“). */}
+            <EvidenceBadge sd={z.sd} lang={lang} corner />
             <div className="zv-grp">
               <span className="zv-meta">{z.circle} · {u.scroll} {z.n}/{z.total} · {x.min} {u.min}</span>
-              <div className="zv-hl" style={{ alignSelf: 'stretch' }}><h1 className="zv-h">{x.t}</h1><EvidenceBadge sd={z.sd} lang={lang} /></div>
+              <h1 className="zv-h">{x.t}</h1>
               <span className="zv-rule" aria-hidden />
               {s === 2 && <span className="zv-badge"><HandCheck size={14} />{u.readDone}</span>}
             </div>
