@@ -210,9 +210,10 @@ export const SCROLL_CSS = `
 /* ČLENITOSŤ PRÍBEHU (Matej 4. 10.: „chýba rozmanitosť odsekov, roky, odrážky… obrázky, ktoré sme nepoužili")
    — značky v príbehu d: ◷ ROK | text = časová os · » = zvýraznený fakt · ▣ B | popis = nepoužitý obraz. */
 .zv-yr{color:${AINUBIS.ctaA};font-weight:600;}
-.zv-tl{list-style:none;margin:${PACK_SPACE.lg}px 0 ${PACK_SPACE.xl}px;padding:0 0 0 ${PACK_SPACE.lg}px;border-left:1px solid ${AINUBIS.ctaEdge};}
-.zv-tl li{position:relative;margin:0 0 ${PACK_SPACE.md}px;}
-.zv-tl li::before{content:'';position:absolute;left:-${PACK_SPACE.lg + 4}px;top:9px;width:7px;height:7px;border-radius:${PACK_R.pill}px;background:${AINUBIS.ctaA};}
+.zv-tl{list-style:none;margin:${PACK_SPACE.xl}px 0;padding:0 0 0 ${PACK_SPACE.lg}px;border-left:2px solid ${AINUBIS.ctaEdge};}
+.zv-tl li{position:relative;margin:0 0 ${PACK_SPACE.lg}px;}
+.zv-tl li:last-child{margin-bottom:0;}
+.zv-tl li::before{content:'';position:absolute;left:-${PACK_SPACE.lg + 6}px;top:4px;width:10px;height:10px;border-radius:${PACK_R.pill}px;background:${AINUBIS.ctaA};}
 .zv-tl b{display:block;font:700 ${PACK_TEXT.label}px ${FONT_TITLE};letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.ctaA};}
 .zv-tl span{display:block;font-size:${PACK_TEXT.body}px;line-height:1.6;}
 .zv-fact{margin:${PACK_SPACE.xl}px 0;padding:${PACK_SPACE.sm}px 0 ${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;border-left:2px solid ${AINUBIS.ctaA};
@@ -222,8 +223,9 @@ export const SCROLL_CSS = `
 .zv-fig figcaption{margin-top:${PACK_SPACE.sm}px;font-size:${PACK_TEXT.label}px;line-height:1.5;color:${AINUBIS.inkFaint};text-align:center;}
 .zv-body{margin-top:${PACK_SPACE.xl}px;max-width:760px;font-size:${PACK_TEXT.lead}px;line-height:1.75;}
 .zv-body p{margin:0 0 ${PACK_SPACE.md}px;}
-.zv-body ul{margin:0 0 ${PACK_SPACE.md}px;padding-left:${PACK_SPACE.lg}px;}
-.zv-body li{margin-bottom:${PACK_SPACE.xs}px;}
+.zv-body ul{margin:0 0 ${PACK_SPACE.lg}px;padding-left:${PACK_SPACE.xl}px;list-style:disc;}
+.zv-body ul li{margin-bottom:${PACK_SPACE.sm}px;}
+.zv-body ul li::marker{color:${AINUBIS.ctaA};}
 .zv-box{margin-top:${PACK_SPACE.lg}px;padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.card}px;${AI_GLASS}
   border-top:2px solid var(--zv-bx, ${AINUBIS.cyan});}
 .zv-box .zv-sec{margin-top:${PACK_SPACE.xs}px;font-size:${PACK_TEXT.lead}px;color:var(--zv-bx, ${AINUBIS.cyan});
