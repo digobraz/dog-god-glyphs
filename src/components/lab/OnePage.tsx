@@ -6164,6 +6164,17 @@ export default function OnePage() {
            Všade Cinzel 700, rozostup .04em, JEDNO zlato = recept motta
            (FILM_GOLD). Úvod (guľa) je výnimka: atrament + DOG/GOD v Cinzel
            Decorative, ostáva ako je. Krava a pes (čísla) a príbeh (čierna) tiež. */
+        /* ÚVOD V TOM ISTOM ZLATE (Matej 4. 10. 2026: *„farba je rôznorodá,
+           v úvodnej sekcii je hnedá, potom zlatá"*). DOG a GOD ostávajú v Cinzel
+           Decorative (28. 9.), menia len farbu: #6E4A12 → FILM_GOLD, rovnaký
+           vzor ako motto (zlaté slovo + atrament). Starý zákaz gradientu nad
+           guľou (DogPlanetLab: stred #D8A93F zmizne na fotkách) tu neplatí —
+           pod slovom leží biela žiara .g::before. text-shadow musí preč:
+           pri background-clip:text sa kreslí CEZ zlato a vybieli ho. */
+        .op-root .ph-h1 .g, .op-root .hero-h1 .g {
+          background-image: ${FILM_GOLD}; -webkit-background-clip: text; background-clip: text;
+          color: transparent; -webkit-text-fill-color: transparent; text-shadow: none;
+        }
         .op-root #op-vision .vhero-h2 { letter-spacing: .04em; }
         .op-root #op-vision .vhero-h2 > span { background-image: ${FILM_GOLD} !important; }
         .op-root .dgx-h2 { letter-spacing: .04em; }
