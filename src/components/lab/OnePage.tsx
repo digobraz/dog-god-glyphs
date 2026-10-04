@@ -867,7 +867,9 @@ const ARC = {
     // h1 42 → 55: faraón o 30 % väčší (Matej 28. 9. 2026).
     fade: 20, fadeD: 16, h1: 55, o1: 14,
     // 4–5 · WE · NEED · YOU!
-    head: 22, stag: 4, shrink: 42, shrinkD: 8, glow: 42,
+    // glow 42 → 0 (Matej 4. 10. 2026: nadpisy „každý má iný odlesk") —
+    // WE NEED YOU bol jediný nadpis filmu s trojitým reliéfom a halom.
+    head: 22, stag: 4, shrink: 42, shrinkD: 8, glow: 0,
     /** 🔴 DVE SADY — PC a mobil (`…M`). Bez nich sa mobil doladí len na úkor
      *  PC; Matej to vytkol menovite. Hranicu drží JEDNO číslo — NARROW_MAX. */
     fillPct: 92, headVh: 46, finSize: 8,
@@ -4215,6 +4217,12 @@ export default function OnePage() {
              zvyšok je vzduch pod ním. Kto číta výšku lišty, číta TOTO — nie
              vlastné číslo. Mobil: top 34 − 28 = 6 ⇒ spodok 106. */
           --op-nav-h: 124px;
+          /* VEĽKOSŤ NADPISU OBRAZU — JEDNO ČÍSLO pre motto, víziu, členstvo,
+             hviezdy aj finále (Matej 4. 10. 2026: *„urob súrodé nadpisy lebo
+             každý má inú farbu veľkosť odlesk štýl"*). Strop 7.4vh je pôvodná
+             medza motta a vízie — na nízkom okne ustúpia VŠETKY rovnako,
+             nie len dve z piatich. Mobil = 32 px nižšie pri SYSTÉME NADPISOV. */
+          --op-h-obraz: min(56px, 7.4vh);
           /* KOĽKO OBRAZOVKY ZDOLA ZABERÁ SPODNÁ PILULKA (kompas + mriežka).
              Pilulka je fixed bottom 16 + výška 62 = 78 px, len na mobile (od 768
              sú oba prvky hore v nave). Je to JEDINÉ miesto s touto hodnotou —
@@ -4828,7 +4836,7 @@ export default function OnePage() {
            narazia na inú medzu. Strop je dnes 4.0625rem = presne 65 px. Kto mení jednu,
            mení obe — inak sa rozídu presne tak, ako sa už raz rozišli. */
         .op-root #op-religion .codex-section[data-idx="1"] .codex-headline {
-          font-size: min(clamp(2.17rem, 5.2vw, 4.0625rem), 7.4vh);
+          font-size: var(--op-h-obraz);
         }
         .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-wrap {
           max-width: 660px;
@@ -4855,7 +4863,8 @@ export default function OnePage() {
              vyššie nesie DESKTOPOVÝ clamp, takže bez tejto vetvy by nadpis na
              390 px spadol zo 44,8 px (2.8rem) na 25 px (6.5vw). */
           .op-root #op-religion .codex-section[data-idx="1"] .codex-headline {
-            font-size: min(2.24rem, 7.4vh);
+            font-size: var(--op-h-obraz);
+            letter-spacing: .04em; /* ReligionLab má na mobile .03 — vo filme platí SYSTÉM NADPISOV */
           }
           .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-text {
             font-size: min(12.5px, 2.75vh);
@@ -5107,6 +5116,7 @@ export default function OnePage() {
            v momente, keď sa aj tak mení celý blok — tá istá vedomá cena ako
            predtým na obraze filmu. */
         .op-book .codex-book-title--below {
+          filter: none; /* odlesk — jediný nadpis filmu s ním (SYSTÉM NADPISOV) */
           position: static;
           transform: none;
           display: block;
@@ -5369,7 +5379,7 @@ export default function OnePage() {
            ⚠️ 7.4vh tu nie je ozdoba: pod týmto nadpisom stoja TRI bloky, takže na
            nízkom okne musí ustúpiť rovnako, ako ustupuje preambula. */
         .op-root #op-vision .vhero-h2 {
-          font-size: min(clamp(2.17rem, 5.2vw, 4.0625rem), 7.4vh);
+          font-size: var(--op-h-obraz);
         }
         .op-root #op-vision .vhero-h2 { --vb-at: 0; }
         /* ── VÍZIA BEZ ZLATÝCH PLÁTOV (27. 9. 2026) ──────────────────────
@@ -5556,7 +5566,7 @@ export default function OnePage() {
             overflow: hidden;
           }
           .op-root #op-vision .vhero-item { padding: 10px 12px; gap: 10px; }
-          .op-root #op-vision .vhero-h2 { font-size: clamp(1.45rem, 6.6vw, 1.95rem); }
+          .op-root #op-vision .vhero-h2 { font-size: var(--op-h-obraz); }
           /* Medzera medzi videom a blokmi odchádza s nimi. */
           .op-root #op-vision .vhero-inner { gap: calc(10px * (1 - var(--op-vout, 0))); }
           .op-root #op-vision .vision-video-hero { padding: 0 16px; }
@@ -6042,7 +6052,7 @@ export default function OnePage() {
              v mobilnom náhľade nákresu a lišta má na 390 px dosť miesta (267 z 390).
              Odsadenie ostáva 34 px — nižšia lišta znamená VÄČŠÍ presah kruhu. */
           .nav-top { top: 34px; }
-          .op-root { --op-nav-h: 118px; }
+          .op-root { --op-nav-h: 118px; --op-h-obraz: min(32px, 7.4vh); }
           /* Jazyk ostáva aj na mobile — lišta má po prestavbe miesto (279 px z 390). */
           .main-nav { gap: 7px; padding: ${NAV_R.rim + 3}px ${NAV_R.rim + 7}px; }
           .main-nav-right { gap: 7px; }
@@ -6145,7 +6155,11 @@ export default function OnePage() {
            ale pri úvode sa mi páči ten cinzel decorative na dog a god"*).
            Dovtedy 9 veľkostí, 4 zlaté prechody, váha 700 aj 900. Teraz:
              VÝKRIK        HEROGLYPH · WE NEED YOU — veľkosť ďalej riadi réžia
-             NADPIS OBRAZU vízia · členstvo · hviezdy · finále — 56 / mobil 32
+             NADPIS OBRAZU motto · vízia · členstvo · hviezdy · finále —
+                           var(--op-h-obraz) = min(56, 7.4vh) / mobil min(32, 7.4vh)
+                           (4. 10. 2026: motto a vízia mali vlastný vzorec — 35,8 a
+                           25,7 px na mobile proti 32; hviezdy, WE NEED YOU a titul
+                           knihy niesli odlesk, ktorý iný nadpis nemá)
              KARTA         názov funkcie — 40 / mobil 24
            Všade Cinzel 700, rozostup .04em, JEDNO zlato = recept motta
            (FILM_GOLD). Úvod (guľa) je výnimka: atrament + DOG/GOD v Cinzel
@@ -6156,18 +6170,23 @@ export default function OnePage() {
         .op-root .dgx-h2 .ln { background-image: ${FILM_GOLD}; }
         .op-root .op-nxt-h2 span { background-image: ${FILM_GOLD}; }
         .op-root .op-nxt-h2 { letter-spacing: .04em; }
-        .op-root .op-apps-h2 { font-size: 56px; letter-spacing: .04em; background-image: ${FILM_GOLD}; }
+        /* fit-content: zlato sa rozťahuje na šírku BOXU — na celom stĺpci
+           z neho na krátkom slove ostal len svetlý stred a ČLENSTVO svietilo
+           inou farbou než ostatné nadpisy. */
+        .op-root .op-apps-h2 { font-size: var(--op-h-obraz); letter-spacing: .04em; background-image: ${FILM_GOLD}; width: fit-content; margin-inline: auto; }
         .op-root .op-apps-name {
           font-size: 40px; letter-spacing: .04em;
           background-image: ${FILM_GOLD}; -webkit-background-clip: text; background-clip: text; color: transparent;
         }
         .op-root .op-quo .tst-head h2 {
-          font-weight: 700; font-size: 56px; letter-spacing: .04em !important;
+          font-weight: 700; font-size: var(--op-h-obraz); letter-spacing: .04em !important;
+          /* Odlesk (drop-shadow) nesie komponent inline — žiadny iný nadpis ho nemá. */
+          filter: none !important;
           position: relative; padding-bottom: 16px;
           background-image: ${FILM_GOLD} !important; -webkit-background-clip: text; background-clip: text; color: transparent;
         }
         .op-root .op-fin-h2 {
-          font-size: 56px; letter-spacing: .04em;
+          font-size: var(--op-h-obraz); letter-spacing: .04em;
           background-image: ${FILM_GOLD}; -webkit-background-clip: text; background-clip: text; color: transparent;
           padding-top: .2em; margin-top: -.2em;
           position: relative; padding-bottom: 16px;
@@ -6179,7 +6198,6 @@ export default function OnePage() {
           background: linear-gradient(90deg, rgba(201,154,63,0) 0%, rgba(201,154,63,.85) 22%, rgba(201,154,63,.85) 78%, rgba(201,154,63,0) 100%);
         }
         @media (max-width: 768px) {
-          .op-root .op-apps-h2, .op-root .op-quo .tst-head h2, .op-root .op-fin-h2 { font-size: 32px; }
           .op-root .op-apps-name { font-size: 24px; }
         }
         .op-storymodal { position: fixed; inset: 0; z-index: 120; background: ${LAB.pageBg}; }
