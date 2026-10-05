@@ -272,13 +272,16 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
                 >×</button>
               </div>
             ))}
+            {/* Pri plnom počte `+` zmizne — neaktívna dlaždica by založila 4. rad (5×3 = 15). */}
+            {photos.length < MAX_PHOTOS && (
             <button
               type="button"
               className="tep-addphoto"
-              disabled={busy || photos.length >= MAX_PHOTOS}
+              disabled={busy}
               onClick={() => fileRef.current?.click()}
               aria-label={t('pack.trip.edit.addPhoto')}
             >+</button>
+            )}
           </div>
           {photos.length > 1 && <p className="tep-hint" style={{ marginTop: 8 }}>{t('pack.addTrip.step.coverPick')}</p>}
           <input
