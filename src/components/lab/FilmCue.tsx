@@ -158,6 +158,22 @@ export const FILM_CUE_CSS = `
       transform: translate(-50%, 50%) scale(1.4); transform-origin: 50% 50%;
     }
   }
+  /* 5. 10. 2026 večer — MOBIL: ZO STREDU PREČ, DOLE VEDĽA ŠÍPKY HORE (Matej: *„okrem
+     1 slajdu tie 3 šípky v strede… dáme šípky hore aj dolu vedľa seba napravo = na kraji
+     hore a vedľa dolu, zo stredu šípky zmiznú"*). Platí na každom obraze okrem úvodu
+     (.is-big ostáva pod planétou). Jedna šípka, rovnaká veľkosť a pole 48×48 ako .op-top,
+     sedí hneď vľavo od nej — dvojica sa číta ako ovládač späť/ďalej.
+     ⚠️ Len mobil: na PC platí „šípky vždy v strede" (Matej 28. 9.) do jeho slova. */
+  @media (max-width: 768px) {
+    .op-cue:not(.is-big) {
+      left: auto; right: 64px; bottom: 16px; transform: none;
+      width: 48px; height: 48px; padding: 0; justify-content: center;
+    }
+    .op-cue:not(.is-big) .op-cue-hint,
+    .op-cue:not(.is-big) .op-cue-arr:not(:last-of-type) { display: none; }
+    .op-cue:not(.is-big) .op-cue-arr { margin-top: 0 !important; }
+    .op-cue:not(.is-big) .op-cue-c { width: 32.5px; height: 26px; }
+  }
   @media (prefers-reduced-motion: reduce) { .op-cue-c { animation: none; opacity: .8; } }
   /* 5. 10. 2026 — DETAIL PSA Z PLANÉTKY: šípky preč (Matej: *„pri kliknutí na psa na
      planetke sa otvorí blok s detailom ale šípky na scroll musia zmiznúť!"*). Otvorený

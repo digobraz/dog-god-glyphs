@@ -5814,6 +5814,14 @@ export default function OnePage() {
           .op-root #op-religion .codex-flow.codex-page,
           .op-root #op-religion .codex-flow .codex-scroll { overflow-x: visible; }
           .op-root #op-religion .codex-flow :is(.codex-bleed, .codex-spotlayer) { overflow: hidden; }
+          /* 🔴 …LENŽE ODCHÁDZAJÚCI RÁM PREAMBULY TÝM VYTIEKOL (5. 10. 2026 večer). Na
+             slajde 4 stojí .codex-slide posunutý o 112vw doprava (445–819 px pri 390) a bez
+             orezania predka natiahol stránku na 819 px — telefón ju oddialil, horná lišta
+             a šípky ušli doprava. Orezanie preto patrí SAMOTNÉMU prilepenému boxu
+             (.codex-slider), nie jeho predkovi — tam kmitanie nevzniká.
+             ⚠️ overflow-x: clip na html NESTAČÍ: mobilný Chrome aj tak rozšíri layout
+             viewport na šírku obsahu (odmerané: innerWidth ostal 819). */
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-slider { overflow-x: clip; }
           .op-root #op-religion { --ani-k: 2; }
           @media (max-height: 800px) { .op-root #op-religion { --ani-k: 1.8; --dog-g: 0.1; } }
           @media (max-height: 700px) { .op-root #op-religion { --ani-k: 1.3; --dog-g: 0.05; } }
