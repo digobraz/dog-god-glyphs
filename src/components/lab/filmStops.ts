@@ -124,7 +124,12 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
         rideK = k;
         // 'instant' — html má v index.css scroll-behavior: smooth, ktorý by
         // každý snímok rozbehol na vlastnú animáciu.
-        window.scrollTo({ top: from + (to - from) * ez(k), behavior: 'instant' as ScrollBehavior });
+        // 🔴 CELÉ PIXELY (Matej 5. 10. 2026, nahrávka z iPhonu: text aj čip slajdu 2
+        // kmitali spolu ±1 CSS px celú sekundu po príchode). V dobehu easingu sa
+        // poloha mení o zlomky pixelu (2531,4 → 2531,7 …) a Safari zaokrúhľuje
+        // prilepené vrstvy inak než stránku — vrstva skáče o pixel tam a späť.
+        // Zaokrúhlená poloha dá prilepeným vrstvám vždy to isté celé číslo.
+        window.scrollTo({ top: Math.round(from + (to - from) * ez(k)), behavior: 'instant' as ScrollBehavior });
         apiRef.current.onStep?.();
         if (k < 1) raf = requestAnimationFrame(step);
         else {
