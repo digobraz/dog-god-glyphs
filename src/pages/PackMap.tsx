@@ -70,6 +70,7 @@ import { trailCountry, flagUrl, flagEmoji } from '@/lib/countryGeo';
 import { PackBottomNav, HieroglyphBg, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { PackNotifications } from '@/components/pack/PackNotifications';
 import { TripCreatorPopup } from '@/components/pack/trip/TripCreatorPopup';
+import { UnwalkConfirm } from '@/components/pack/trip/UnwalkConfirm';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { useToast } from '@/hooks/use-toast';
 import { useMyDogRights } from '@/lib/dogRights';
@@ -3574,6 +3575,9 @@ export default function PackMap() {
   // rámci tej istej browser session (žiadna Supabase perzistencia, viď tripShared komentár).
   const [favIds, setFavIds] = useState<Set<string>>(() => readFavIds());
   const [walkedIds, setWalkedIds] = useState<Set<string>>(() => { ensureWalkedSeeded(DEFAULT_WALKED_IDS); return readWalkedIds(); });
+  // Prejdený výlet sa ruší až po otázke (UnwalkConfirm, Matej 5. 10. 2026) — pilulka na karte
+  // aj v detaile ho predtým zhodila jedným klikom aj s bodmi a km.
+  const [unwalk, setUnwalk] = useState<HeroTrail | null>(null);
   useEffect(() => { writeFavIds(favIds); }, [favIds]);
   useEffect(() => { writeWalkedIds(walkedIds); }, [walkedIds]);
 
@@ -5918,6 +5922,7 @@ export default function PackMap() {
                         plán sa má otvoriť ako zápis s predvyplnenou trasou. Odznačiť (`on`)
                         ostáva na `toggleWalked` — to je návrat, nie zápis. */
                         if (isUnwalkedPlan && isMine) { openWalkPlan(tr.id); return; }
+                  if (walkedIds.has(tr.id)) { setUnwalk(tr); return; }
                   toggleWalked(tr.id);
                 }}
               >
@@ -6017,6 +6022,15 @@ export default function PackMap() {
   return (
     <div className={`trp-root${mobileView === 'list' ? ' mlist-active' : ''}`}>
       <style>{CSS}</style>
+      {unwalk && (
+        <UnwalkConfirm
+          name={unwalk.name}
+          points={walkPointsFor(unwalk)}
+          km={unwalk.km}
+          onConfirm={() => { if (walkedIds.has(unwalk.id)) toggleWalked(unwalk.id); }}
+          onClose={() => setUnwalk(null)}
+        />
+      )}
       <style>{PALE_CSS}{PALE_MOBILE_CSS}{PALE_ADD_CSS}</style>
       <style>{MAP_NOTES_CSS}</style>
       {/* Vlastný <style>, hoci ten istý blok nesie aj MAP_NOTES_CSS vyššie: značka udalosti
@@ -6103,6 +6117,7 @@ export default function PackMap() {
                         onClick={() => {
                           // Rovnaká vidlica ako na karte — viď komentár tam.
                           if (isUnwalkedPlan && isMine) { openWalkPlan(dt.id); return; }
+                          if (walkedIds.has(dt.id)) { setUnwalk(dt); return; }
                           toggleWalked(dt.id);
                         }}
                       >

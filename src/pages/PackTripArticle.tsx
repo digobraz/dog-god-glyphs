@@ -74,6 +74,7 @@ const TRIP_PROBLEM_REASONS: ReportReasonOption[] = [
   { id: 'other', label: 'pack.trip.rp.reasonOther' },
 ];
 import { TripEditPanel, type PlanEdit } from '@/components/pack/trip/TripEditPanel';
+import { UnwalkConfirm } from '@/components/pack/trip/UnwalkConfirm';
 // ZÁPISY DO MAPY (2026-08-20) — v článku sú ROZBALENÉ, v mape schované pod ikonkou.
 // Ktoré sem patria, rozhoduje geometria (notesForTrail), nie uložený kľúč.
 import { MapNotesSection, MAP_NOTES_SECTION_CSS } from '@/components/pack/mapnotes/MapNotesSection';
@@ -1050,6 +1051,8 @@ export default function PackTripArticle() {
   // Zelené WALKED ✓ nie je toggle — klik otvorí menu (Add to triplist / Remove walked).
   // Dôvod (Matej 2026-07-27): odznačenie zmaže aj hlas o obtiažnosti, nesmie sa stať omylom.
   const [walkedMenuOpen, setWalkedMenuOpen] = useState(false);
+  // Zrušenie prejdenia ide cez otázku — to isté okno ako pilulka na mape (5. 10. 2026).
+  const [unwalkOpen, setUnwalkOpen] = useState(false);
   const walkedMenuRef = useRef<HTMLDivElement | null>(null);
 
   // bod 1 (iterácia 14): mobile sticky icon-only rail — keď .pta-hero vyscrolluje z viewportu
@@ -1489,7 +1492,7 @@ export default function PackTripArticle() {
                     type="button"
                     role="menuitem"
                     className="pta-actmenu-off"
-                    onClick={() => { setWalkedMenuOpen(false); toggleWalked(trail.id); }}
+                    onClick={() => { setWalkedMenuOpen(false); setUnwalkOpen(true); }}
                   >
                     {t('pack.trip.removeWalked')}
                   </button>
@@ -2076,6 +2079,15 @@ export default function PackTripArticle() {
       {railed && createPortal(actsRow, document.body)}
 
       {/* ── ÚPRAVA VÝLETU (len autor) ── */}
+      {unwalkOpen && (
+        <UnwalkConfirm
+          name={trail.name}
+          points={walkPointsFor(trail)}
+          km={trail.km}
+          onConfirm={() => { if (walkedIds.has(trail.id)) toggleWalked(trail.id); }}
+          onClose={() => setUnwalkOpen(false)}
+        />
+      )}
       {editOpen && (
         <TripEditPanel
           trail={trail}
