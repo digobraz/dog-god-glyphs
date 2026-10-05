@@ -3106,6 +3106,8 @@ export const sk: Partial<Dict> = {
   'pack.companions.addTyped': "Pridať napísané meno",
   'pack.companions.myDog': "Môj pes",
   'pack.companions.remove': "Odobrať {name}",
+  'pack.companions.packHumans': "Ľudia tvojho psa",
+  'pack.companions.packHumanNoName': "Člen svorky",
   'pack.map.surface': "Povrch",
   'pack.map.anySurface': "Akýkoľvek",
   'pack.map.surfaceLabel.forest': "Hlina / chodník",

@@ -118,6 +118,7 @@ import {
 } from '@/components/pack/packCommunityUI';
 import { PointsPill, POINTS_PILL_CSS } from '@/components/pack/PointsPill';
 import { deletePackTrip, attributeDogTrips, setDogTripCrew, clearDogTrip, claimJourney, readMyClaims, translateTripDesc, readTrailOverrides, saveTrailOverride } from '@/lib/packStore';
+import { tagWalked, crewHumanIds } from '@/lib/packHumans';
 import { placeholderFor } from '@/lib/tripPlaceholder';
 import { upsertMyTrip, removeMyTrip, ensureMyTrip } from '@/components/pack/triplist/triplist';
 import { supabase } from '@/integrations/supabase/client';
@@ -5285,6 +5286,8 @@ export default function PackMap() {
         // POSÁDKA JE ROZHODNUTIE, NIE ODHAD (B20): dopísaný koncept smie psa aj ODOBRAŤ,
       // preto `setDogTripCrew` (prepisuje), nie `attributeDogTrips` (dopĺňa).
       setDogTripCrew(finishId, crewDogIds(draft.crew));
+      // P2 (F3b): ľudia tvojho psa dostanú ten istý výlet a km (`tag_walked`).
+      void tagWalked(finishId, crewHumanIds(draft.crew));
       setLocalTrails(readLocalTrails());
       // Hlas nesie náročnosť a ruch pre celý pack — dopísané hodnoty musia dôjsť aj sem,
       // inak by karta výletu tvrdila niečo iné než filtre nad tými istými dátami.
@@ -5477,6 +5480,8 @@ export default function PackMap() {
       // PSIE KM (B20): sprievodca ako jediný vie, KTORÝ pes išiel — jeho slovo prebíja
       // odhad triggeru nad `trip_walked`.
       setDogTripCrew(tid, crewDogIds(draft.crew));
+      // P2 (F3b): ľudia tvojho psa dostanú ten istý výlet a km (`tag_walked`).
+      void tagWalked(tid, crewHumanIds(draft.crew));
       /**
        * 🔴 ZAPÍSANÝ VÝLET MUSÍ BYŤ V TRIPLISTE (Matej 2026-08-26: „po zápise výlet nevidím
        * v tripliste").

@@ -10,6 +10,7 @@ import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import { useMyEventCount } from '@/components/pack/events/eventStore';
 import { useMyWishCount } from '@/components/pack/mapnotes/wishData';
 import { WISHES_LIVE } from '@/lib/packFlags';
+import { fetchPackHumans, HUMAN_KEY_PREFIX, type PackHuman } from '@/lib/packHumans';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI, PACK_SHADOW, GOLD_BTN, HIT_CSS, VEIL_CSS } from '@/components/pack/packTheme';
 import { pluralKey } from '@/lib/plural';
 // Bledý chrome: inkousty a plochy (PALE), lapisové CTA a priesvitný tint výberu.
@@ -1231,6 +1232,53 @@ export function HazardTags({ agg }: { agg: CrowdAgg }) {
   );
 }
 
+// ── ĽUDIA TVOJHO PSA (P2 / F3b, 5. 10. 2026) — tretia skupina posádky ────────────────
+// Matej 12. 9.: *„označí psa aj pawmate, tak sa mu pripíšu tie isté km“*. Ponúka LEN
+// ľudí, s ktorými zdieľam psa (`my_pack_humans`), nie adresár — inak by si ľudia navzájom
+// nafúkli PÚTNIKA. Vybratý človek svieti v rade ako pes (zelený prstenec), a preto NIE JE
+// aj medzi chipmi hore — dva rovnaké portréty čítajú ako dvaja ľudia (Matej 26. 8. o psovi).
+// Bez PAWMATE_LIVE alebo bez spoločného psa sa rad nevykreslí vôbec.
+export function PackHumansRow({ selected, onChange }: {
+  selected: Companion[];
+  onChange: (next: Companion[]) => void;
+}) {
+  const t = useT();
+  const [humans, setHumans] = useState<PackHuman[]>([]);
+  useEffect(() => {
+    let alive = true;
+    void fetchPackHumans().then((h) => { if (alive) setHumans(h); });
+    return () => { alive = false; };
+  }, []);
+  if (humans.length === 0) return null;
+  const keys = new Set(selected.map((c) => c.key));
+  const nameOf = (h: PackHuman) => h.name?.split(/\s+/)[0] || t('pack.companions.packHumanNoName');
+  const toggle = (h: PackHuman) => {
+    const key = `${HUMAN_KEY_PREFIX}${h.userId}`;
+    if (keys.has(key)) onChange(selected.filter((c) => c.key !== key));
+    else onChange([...selected, { key, name: nameOf(h), sub: h.dogNames.join(', '), photo: h.avatarUrl }]);
+  };
+  return (
+    <>
+      <div className="comm-comp-grouplabel">{t('pack.companions.packHumans')}</div>
+      <div className="comm-comp-pack">
+        {humans.map((h) => {
+          const on = keys.has(`${HUMAN_KEY_PREFIX}${h.userId}`);
+          const name = nameOf(h);
+          return (
+            <button key={h.userId} type="button" className={`comm-comp-dog${on ? ' on' : ''}`} onClick={() => toggle(h)}>
+              <span className={`comm-comp-dog-av${h.avatarUrl ? '' : ' ph'}`} style={h.avatarUrl ? { backgroundImage: `url('${sizedUrl(h.avatarUrl, 96)}')` } : undefined}>
+                {h.avatarUrl ? '' : name.charAt(0).toUpperCase()}
+              </span>
+              <span>{name}</span>
+              {!on && <span className="plus">+</span>}
+            </button>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
 // ── CompanionPicker (Matej 2026-07-23) — „kto bol so mnou": jasný + a výber zo SVORKY (moje
 // psy, reálne fotky) + iní ČLENOVIA podľa mena. Matej 2026-08-03 „začíname so všetkým do
 // nuly" — reálny zoznam členov (`pack_members`) ešte neexistuje, takže autocomplete zo
@@ -1249,7 +1297,7 @@ export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
   const [q, setQ] = useState('');
   // Otvorí sa samo, keď už nejaký človek vybratý je — inak by po návrate do kroku 5 vyzeralo,
   // že sa vybraté mená stratili.
-  const [othersOpen, setOthersOpen] = useState(() => selected.some((c) => !c.key.startsWith('dog-')));
+  const [othersOpen, setOthersOpen] = useState(() => selected.some((c) => c.key.startsWith('member-')));
   const selectedKeys = new Set(selected.map((c) => c.key));
   const add = (c: Companion) => { if (!selectedKeys.has(c.key)) onChange([...selected, c]); };
   const remove = (key: string) => onChange(selected.filter((c) => c.key !== key));
@@ -1275,7 +1323,7 @@ export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
    * ⚠️ MENÁ ĽUDÍ V CHIPOCH OSTÁVAJÚ. Tie nemajú svoj rad, v ktorom by sa dali označiť —
    * bez chipu by po napísaní mena nebolo vidieť vôbec nič.
    */
-  const namedSelected = selected.filter((c) => !c.key.startsWith('dog-'));
+  const namedSelected = selected.filter((c) => !c.key.startsWith('dog-') && !c.key.startsWith(HUMAN_KEY_PREFIX));
   return (
     <div>
       {namedSelected.length > 0 && (
@@ -1314,6 +1362,7 @@ export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
           </div>
         </>
       )}
+      <PackHumansRow selected={selected} onChange={onChange} />
       {/* ── MENÁ ĽUDÍ SA OTVÁRAJÚ, NESTOJA OTVORENÉ (Matej 2026-08-25) ──────────────────
           „musíme zjednodušiť to pridávanie členov — je to matúce… musí tam svietiť hlavy
            psov a po kliknutí sa zazelenajú a potom bude +, ktoré otvorí textareu, kde môže

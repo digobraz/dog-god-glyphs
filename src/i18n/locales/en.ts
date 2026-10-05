@@ -3368,6 +3368,8 @@ export const en = {
   'pack.companions.addTyped': "Add the typed name",
   'pack.companions.myDog': "My dog",
   'pack.companions.remove': "Remove {name}",
+  'pack.companions.packHumans': "Your dog's people",
+  'pack.companions.packHumanNoName': "Pack member",
   // Povrch, ruch a značky vo formulári výletu. Uložená hodnota ostáva anglická (je to kľúč
   // do DB a filtra na mape) — prekladá sa len to, čo človek vidí.
   'pack.map.surface': "Surface",

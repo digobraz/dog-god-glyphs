@@ -38,7 +38,8 @@ import { sizedUrl, heroPx } from '@/services/cloudinaryService';
 import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { MAP_SKIN, PALE, PALE_PC_MIN, LAPIS, LAPIS_BTN_SHADOW, PLATE_TILE_R, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import { useIsPaleChrome } from '@/components/pack/usePaleChrome';
-import { CompanionPicker, type Companion } from '@/components/pack/packCommunityUI';
+import { CompanionPicker, PackHumansRow, type Companion } from '@/components/pack/packCommunityUI';
+import { HUMAN_KEY_PREFIX } from '@/lib/packHumans';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS, type Journey } from '@/data/heroJourneys';
 import { trailCountry, flagEmoji } from '@/lib/countryGeo';
@@ -386,7 +387,7 @@ function SoloCompanionAdd({ dog, selected, onChange }: {
 }) {
   const t = useT();
   const [q, setQ] = useState('');
-  const named = selected.filter((c) => !c.key.startsWith('dog-'));
+  const named = selected.filter((c) => !c.key.startsWith('dog-') && !c.key.startsWith(HUMAN_KEY_PREFIX));
   const addTyped = () => {
     const name = q.trim();
     if (!name || selected.some((c) => c.key === `member-${name}`)) return;
@@ -458,6 +459,7 @@ function SoloCompanionAdd({ dog, selected, onChange }: {
         </div>
       </div>
       </div>
+      <div style={{ marginTop: 12 }}><PackHumansRow selected={selected} onChange={onChange} /></div>
     </>
   );
 }
