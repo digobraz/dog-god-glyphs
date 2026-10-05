@@ -3367,6 +3367,7 @@ export const sk: Partial<Dict> = {
   'pack.community.walkedRatingLabel': "Hodnotenie",
   'pack.community.difficultyLabel': "Náročnosť",
   'pack.community.crowdLabel': "Návštevnosť",
+  'pack.community.optional': "(nepovinné)",
   'pack.community.hazardsLabel': "Nejaké nástrahy? (pomôže to svorke)",
   'pack.community.whenLabel': "Kedy? (zhruba — stačí mesiac)",
   'pack.community.commentLabel': "Komentár (nepovinné)",

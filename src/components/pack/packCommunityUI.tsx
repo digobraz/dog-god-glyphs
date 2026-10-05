@@ -853,7 +853,7 @@ function Modal({ title, sub, onClose, wide, children }: {
 // `rewardPoints` = režim ponuky — nadpis povie, koľko bodov za hodnotenie padne, a vedľa
 // odoslania stojí rovnocenné „Teraz nie". Bez neho je to obyčajná úprava hlasu (klik na
 // „Ohodnotiť" z toastu / úprava starého hodnotenia), kde by sľubovanie bodov klamalo.
-export interface WalkedInput { rating: number; difficulty: Difficulty; crowd: Crowd; comment: string; when: string; hazards: Hazard[]; }
+export interface WalkedInput { rating: number; difficulty?: Difficulty; crowd?: Crowd; comment: string; when: string; hazards: Hazard[]; }
 
 /**
  * Čo padlo za práve zapísané prejdenie: základ (vždy) + objavenia (len prvýkrát).
@@ -929,8 +929,17 @@ export function WalkRewardBlock({ trailName, reward, ratingPoints }: {
   );
 }
 
-export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoints, reward }: {
+export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoints, reward, routeTrip = true }: {
   trailName: string; initial?: WalkedInput | null; onSubmit: (v: WalkedInput) => void; onClose: () => void;
+  /**
+   * VÝLET S TRASOU (Matej 5. 10. 2026, nad Liptovskou Marou: „ak chcem pridať note, chce to
+   * odo mňa difficulty a rušnosť… vodná plocha je visit a má inú logiku ako hike"). Volajúci
+   * posiela TÚ ISTÚ podmienku, ktorou článok skrýva náročnosť (`!isWaterTrail && hasRouteMetrics`)
+   * — formulár sa tak nepýta na údaj, ktorý sa nikde neukáže.
+   * `false` ⇒ náročnosť zmizne a návštevnosť je NEPOVINNÁ (pri jazere je to pre psa užitočný
+   * údaj — leto vs. október —, ale nesmie brániť odoslaniu). Povinné ostáva len hodnotenie.
+   */
+  routeTrip?: boolean;
   rewardPoints?: number;
   /** Odmena za PRÁVE zapísané prejdenie — blok hore. Bez nej je to obyčajná úprava hlasu. */
   reward?: WalkReward | null;
@@ -943,7 +952,7 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
   const [when, setWhen] = useState(initial?.when ?? '');
   const [hazards, setHazards] = useState<Hazard[]>(initial?.hazards ?? []);
   const toggleHazard = (h: Hazard) => setHazards((prev) => prev.includes(h) ? prev.filter((x) => x !== h) : [...prev, h]);
-  const canSubmit = rating > 0 && difficulty !== '' && crowd !== '';
+  const canSubmit = rating > 0 && (!routeTrip || (difficulty !== '' && crowd !== ''));
   // Matej 2026-07-23: „urop popup širší aby sa zmestil na vh 100" → wide modal + 2-stĺpcový
   // layout, nech sa zmestí bez rolovania. Rating hore cez obe kolóny, zvyšok v 2 stĺpcoch.
   // Matej 2026-08-06: „horný nadpis ohodnoť... daj celý preč resp nahraď to tým že v tom istom
@@ -984,7 +993,7 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
       </div>
       {reward && <WalkRewardBlock trailName={trailName} reward={reward} ratingPoints={rewardPoints} />}
       <div className="comm-walked-grid">
-        <div className="comm-field">
+        {routeTrip && <div className="comm-field">
           <label className="comm-label">{t('pack.community.difficultyLabel')}</label>
           <div className="comm-seg">
             {DIFFICULTIES.map((d) => (
@@ -993,9 +1002,9 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
               </button>
             ))}
           </div>
-        </div>
+        </div>}
         <div className="comm-field">
-          <label className="comm-label">{t('pack.community.crowdLabel')}</label>
+          <label className="comm-label">{t('pack.community.crowdLabel')}{routeTrip ? '' : ` ${t('pack.community.optional')}`}</label>
           <div className="comm-seg">
             {CROWDS.map((v) => (
               <button key={v} type="button" className={crowd === v ? 'on' : ''} onClick={() => setCrowd(v)}>
@@ -1029,7 +1038,7 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
         type="button"
         className="comm-submit"
         disabled={!canSubmit}
-        onClick={() => canSubmit && onSubmit({ rating, difficulty: difficulty as Difficulty, crowd: crowd as Crowd, comment, when, hazards })}
+        onClick={() => canSubmit && onSubmit({ rating, difficulty: routeTrip && difficulty ? difficulty : undefined, crowd: crowd || undefined, comment, when, hazards })}
       >
         {initial ? t('pack.community.updateVoteBtn') : t('pack.community.logWalkBtn')}
       </button>

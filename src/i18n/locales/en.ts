@@ -3650,6 +3650,7 @@ export const en = {
   'pack.community.walkedRatingLabel': "Rating",
   'pack.community.difficultyLabel': "Difficulty",
   'pack.community.crowdLabel': "Crowd",
+  'pack.community.optional': "(optional)",
   'pack.community.hazardsLabel': "Any hazards? (helps the pack)",
   'pack.community.whenLabel': "When? (roughly — month is enough)",
   'pack.community.commentLabel': "Comment (optional)",

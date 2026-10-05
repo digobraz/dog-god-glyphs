@@ -2126,6 +2126,7 @@ export default function PackTripArticle() {
           onClose={closeWalkedPopup}
           rewardPoints={votes[trail.id] ? undefined : RATE_PROMPT_POINTS}
           reward={walkedReward?.tid === trail.id ? walkedReward : null}
+          routeTrip={showDiffStat}
         />
       )}
 

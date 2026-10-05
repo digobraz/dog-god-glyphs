@@ -119,7 +119,7 @@ function mulberry32(seed: number) {
 
 // ── User vote (flow „Walked", design §A) ──
 export interface TripVote {
-  tripId: string; rating: number; difficulty: Difficulty; crowd: Crowd; comment: string;
+  tripId: string; rating: number; difficulty?: Difficulty; crowd?: Crowd; comment: string;
   when: string; hazards: Hazard[]; at: number; // when = rok/mesiac (YYYY-MM), nemusí byť presný
 }
 
@@ -251,7 +251,11 @@ function breakdown<T extends string>(votes: T[], order: T[]): CrowdSlice<T>[] {
 export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): CrowdAgg {
   const { diffs, crowds, ratings, hazards } = founderVotes(trail);
   if (userVote) {
-    diffs.push(userVote.difficulty); crowds.push(userVote.crowd); ratings.push(userVote.rating);
+    // Náročnosť/návštevnosť môžu chýbať (VISIT, `WalkedPopup.routeTrip`) — prázdny hlas sa
+    // do pomeru nepočíta, rovnako ako ho vynecháva `trip_crowd()` v DB (`filter where … not null`).
+    if (userVote.difficulty) diffs.push(userVote.difficulty);
+    if (userVote.crowd) crowds.push(userVote.crowd);
+    ratings.push(userVote.rating);
     hazards.push(userVote.hazards ?? []);
   }
   // OSTATNÍ ČLENOVIA (rozhodnutie 3A, 21. 9. 2026) — súhrn z RPC `trip_crowd()`. Hlasy sú

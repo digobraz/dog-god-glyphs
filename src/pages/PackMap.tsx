@@ -7551,6 +7551,7 @@ export default function PackMap() {
           onClose={closeWalkedPopup}
           rewardPoints={votes[walkedPopupId] ? undefined : RATE_PROMPT_POINTS}
           reward={walkedReward?.tid === walkedPopupId ? walkedReward : null}
+          routeTrip={(() => { const tr = trailsById(walkedPopupId); return !tr || (!isWaterTrail(tr) && hasRouteMetrics(tr)); })()}
         />
       )}
       {creatorTrail && (

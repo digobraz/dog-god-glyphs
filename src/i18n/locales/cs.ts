@@ -3845,6 +3845,7 @@ export const cs: Partial<Dict> = {
   'pack.community.commentLabel': 'Komentář (nepovinné)',
   'pack.community.commentPlaceholder': 'Po dešti bláto, pěkný úsek na volno u vrcholu…',
   'pack.community.crowdLabel': 'Návštěvnost',
+  'pack.community.optional': '(nepovinné)',
   'pack.community.difficultyLabel': 'Náročnost',
   'pack.community.hazardsLabel': 'Nějaké nástrahy? (pomůže to smečce)',
   'pack.community.logWalkBtn': 'Zapsat tenhle výlet',
