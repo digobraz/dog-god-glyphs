@@ -3691,6 +3691,8 @@ export const en = {
   'pack.stats.trips': "Trips",
   'pack.stats.km': "Km",
   'pack.stats.highestPoint': "Highest point",
+  'pack.stats.addedTrips': "Added trips",
+  'pack.stats.ratingsGiven': "Ratings given",
   'pack.stats.emptyWalked': "Nothing walked yet — your first trip starts the record.",
   'pack.stats.logFirstTrip': "Log your first trip",
   'pack.stats.countryRanksAria': "How country ranks work",

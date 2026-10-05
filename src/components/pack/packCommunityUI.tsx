@@ -382,7 +382,7 @@ ${VEIL_CSS}
      · medzi číslom a popiskom je krátka ZLATÁ LINKA (ten istý vyblednutý gradient ako
        deliaca čiara karty, len 26 px) — dlaždica tým dostane os, na ktorej číslo visí
      · hover dvíha a pridáva zlaté halo, teda to isté správanie ako dlaždice DOG ID */
-.comm-worldstats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:8px;}
+.comm-worldstats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px;}
 .comm-wstat{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${PACK_SHADOW.lift};padding:16px 12px 16px;text-align:center;transition:transform .2s ease,box-shadow .2s ease;}
 .comm-wstat:hover{transform:translateY(-2px);box-shadow:${PACK_SHADOW.card};}
 .comm-wstat b{display:block;font-family:${FONT_UI};font-weight:600;font-size:24px;font-variant-numeric:tabular-nums;color:${P.ink};line-height:1;}
@@ -1741,6 +1741,12 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
             trieda `--name` prepína písmo aj veľkosť, aby to nerobil inline style. Pomlčka
             (žiadny vrchol) ostáva číselným písmom: je to prázdna hodnota, nie meno. */}
         <div className={`comm-wstat${highest === '—' ? '' : ' comm-wstat--name'}`}><b>{highest}</b><span>{t('pack.stats.highestPoint')}</span></div>
+        {/* PRÍNOS SVORKE (Matej 5. 10. 2026: „niekde by sme tu mohli mať aj štatistiky o tom,
+            koľko výletov človek pridal, koľko hodnotení dal"). Obe čísla sú TIE ISTÉ, z ktorých
+            sa rátajú body levelu vyššie (`addedByMe` = len schválené, `myRatings`) — dlaždica
+            a level sa tak nemôžu rozísť. */}
+        <div className="comm-wstat"><b>{addedByMe.size}</b><span>{t('pack.stats.addedTrips')}</span></div>
+        <div className="comm-wstat"><b>{myRatings}</b><span>{t('pack.stats.ratingsGiven')}</span></div>
       </div>
 
       {/* PSY A ICH ČÍSLA (B20, Matej 17. 9. 2026: „v tripstats bude aj pes a jeho stats").

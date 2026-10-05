@@ -54,6 +54,13 @@ const STEP_EN: Record<BuddyStepKey, string> = {
 
 const CSS = `
 .bd-root{min-height:100dvh;display:flex;flex-direction:column;}
+/* ZLATÝ SÚMRAK namiesto tapety s heroglyfmi (Matej 5. 10. 2026: *„snifer by som dal pozadie bez
+   tých heroglyfov a zvýraznil tie bloky, ale nech je to v brande a cool"* → z hárku A/B/C *„daj C"*).
+   Bloky v rozmazanej tapete zanikali. Papyrus hore prechádza do zlata dole, v pravom rohu svetlo.
+   Prepisuje len vrstvy receptu .pk-paper (::before = kresba, ::after = odtieň), nie jeho stavbu. */
+.bd-root.pk-paper::before{background-image:none;filter:none;
+  background:radial-gradient(circle at 85% 8%, rgba(255,236,190,0.95) 0%, rgba(255,236,190,0) 38%);}
+.bd-root.pk-paper::after{background:linear-gradient(180deg, #F7EBD0 0%, #EED7A6 45%, #D9A95A 100%);}
 .bd-gear{justify-self:end;width:40px;height:40px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};
   background:${T.cardSoft};display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .bd-col{flex:1 1 auto;width:100%;max-width:640px;min-height:100dvh;margin:0 auto;padding:${PACK_TOPROW_PAD} ${PAGE_AIR.side}px ${PAGE_AIR.md}px;

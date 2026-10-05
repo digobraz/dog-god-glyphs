@@ -3714,6 +3714,8 @@ export const cs: Partial<Dict> = {
   'pack.stats.heroBadges': 'Odznaky hrdinů',
   'pack.stats.heroglyphsTotal': 'heroglyfů celkem',
   'pack.stats.highestPoint': 'Nejvyšší bod',
+  'pack.stats.addedTrips': 'Přidané výlety',
+  'pack.stats.ratingsGiven': 'Hodnocení',
   'pack.stats.hikes': 'Túry',
   'pack.stats.howPointsWork': 'Jak se počítají body',
   'pack.stats.km': 'Km',

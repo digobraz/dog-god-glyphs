@@ -229,7 +229,7 @@ export function SnifferSearch({ tx, onOpen }: { tx: Tx; onOpen: (card: SnifferCa
             // Server posiela `pilgrimLevel` vždy null (A8) — dopočíta sa z výletov (kontrakt 26. 9.).
             const lvl = p.pilgrimLevel ?? pilgrimLevelOf(p.trips ?? []);
             return (
-              <button key={p.member} type="button" className="ss-mini" style={{ ...PACK_BOX.row }} onClick={() => onOpen(p)}>
+              <button key={p.member} type="button" className="ss-mini" style={{ ...PACK_BOX.card }} onClick={() => onOpen(p)}>
                 <img src={pic(p.photos[0] ?? p.dogs[0]?.photo)} alt="" />
                 <b>{p.name}{p.age ? `, ${p.age}` : ''}</b>
                 <span>{[lvl ? tx('pack.sniffer.pilgrimLv', 'Pilgrim {n}', { n: lvl }) : '', km(p) || p.region].filter(Boolean).join(' · ')}</span>

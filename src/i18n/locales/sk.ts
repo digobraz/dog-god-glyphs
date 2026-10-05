@@ -2623,6 +2623,8 @@ export const sk: Partial<Dict> = {
   'pack.stats.trips': "Výlety",
   'pack.stats.km': "Km",
   'pack.stats.highestPoint': "Najvyšší bod",
+  'pack.stats.addedTrips': "Pridané výlety",
+  'pack.stats.ratingsGiven': "Hodnotenia",
   'pack.stats.emptyWalked': "Zatiaľ žiadny výlet — prvým sa začína záznam.",
   'pack.stats.logFirstTrip': "Zapíš prvý výlet",
   'pack.stats.countryRanksAria': "Ako fungujú hodnosti v krajinách",
