@@ -87,22 +87,19 @@ const TRIP_EDIT_CSS = `${VEIL_CSS}
 .tep-addphoto:hover{border-color:${LAPIS.edge};color:${LAPIS.edge};}
 .tep-addphoto:disabled{opacity:.35;cursor:default;}
 .tep-photo-drop.drag .tep-addphoto{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}border-style:dashed;}
-.tep-crop{margin-top:16px;}
+.tep-crop{margin:16px 0;}
 .tep-crop-preview{width:100%;aspect-ratio:16/9;border-radius:12px;border:1px solid ${T.border};background-size:cover;background-color:${T.tileBg};}
 .tep-crop-slider{width:100%;margin-top:8px;accent-color:${LAPIS.edge};}
 .tep-pawpick{display:flex;justify-content:center;}
 /* PC: 832 = PACK_COL_INNER (lock centrovaného obsahu). Fotky 5 v rade, tri rady = MAX 15. */
 @media(min-width:900px){
   .tep-modal:has(.tep-body--trip){max-width:832px;}
-  .tep-body--trip{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:stretch;}
-  .tep-body--trip > .tep-col:first-child{display:flex;flex-direction:column;}
-  .tep-body--trip .tep-desc{flex:1;display:flex;flex-direction:column;margin-bottom:0;}
-  .tep-body--trip .tep-desc .tep-textarea{flex:1;min-height:170px;resize:none;}
-  .tep-body--trip > .tep-col:last-child{display:flex;flex-direction:column;justify-content:space-between;}
-  .tep-body--trip > .tep-col:last-child > .tep-field:last-child{margin-bottom:0;}
+  .tep-body--trip{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;margin-bottom:16px;}
+  .tep-body--trip .tep-photo-drop{margin-bottom:0;}
+  .tep-desc--trip .tep-textarea{min-height:120px;}
   .tep-body--trip .tep-photos{grid-template-columns:repeat(5,1fr);}
   .tep-body--trip .tep-photo,.tep-body--trip .tep-addphoto{height:64px;}
-  .tep-body--trip .tep-crop{margin-top:0;}
+  .tep-body--trip .tep-crop{margin:0;}
 }
 /* CTA = LAPIS, geometria locknutého .btn-gold (radius 8, nie pilulka). */
 .tep-submit{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;padding:12px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.edge};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
@@ -222,10 +219,11 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
     onClose();
   };
 
-  // POPIS: pri výlete stojí VĽAVO pod fotkami a na PC vyplní výšku stĺpca (Matej 5. 10.:
-  // „máme veľký priestor voľný a textarea je malinká"). Pri pláne ostáva v jednom stĺpci.
+  // POPIS: pri výlete ide CEZ CELÚ ŠÍRKU pod oba stĺpce, hodnotenie pod ním (Matej 5. 10.:
+  // „natiahni textareu po šírke, a hodnotenie daj pod to"). Predtým stál vľavo pod fotkami
+  // s flex:1 a jeho spodok sa lepil na CTA — vyzeral ako schovaný pod tlačidlom.
   const descField = (
-    <div className="tep-field tep-desc">
+    <div className={`tep-field tep-desc${isPlan ? '' : ' tep-desc--trip'}`}>
       <label className="tep-label">{t('pack.trip.edit.desc')}</label>
       <textarea className="tep-textarea" value={desc} onChange={(e) => setDesc(e.target.value)} />
     </div>
@@ -308,7 +306,6 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
           />
         </div>
         )}
-        {!isPlan && descField}
         </div>
         <div className="tep-col">
           {/* VÝREZ TITULKY (Matej 5. 10. 2026: „nedá sa mi nastaviť výrez na titulnú foto").
@@ -429,15 +426,16 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
 
         {isPlan && descField}
 
+        </div>
+        </div>
+
+        {!isPlan && descField}
         {!isPlan && (
           <div className="tep-field" style={{ textAlign: 'center' }}>
             <label className="tep-label">{t('pack.trip.edit.rating')}</label>
             <div className="tep-pawpick"><PawRating value={stars} onChange={setStars} size={30} /></div>
           </div>
         )}
-
-        </div>
-        </div>
 
         <button type="button" className="tep-submit" disabled={busy} onClick={save}>
           {busy ? t('pack.mapNotes.add.saving') : t('pack.trip.edit.save')}
