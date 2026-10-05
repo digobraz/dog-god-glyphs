@@ -6210,7 +6210,10 @@ export default function OnePage() {
            guľou (DogPlanetLab: stred #D8A93F zmizne na fotkách) tu neplatí —
            pod slovom leží biela žiara .g::before. text-shadow musí preč:
            pri background-clip:text sa kreslí CEZ zlato a vybieli ho. */
-        .op-root .ph-h1 .g, .op-root .hero-h1 .g {
+        /* ⚠️ .theme-light .hero-h1 .g (stena) má tú istú špecificitu a bielu žiaru
+           v text-shadow — stál neskôr, takže na stene vyhrával a DOG/GOD vybledli
+           (Matej 5. 10. 2026: *„tu treba opraviť nadpis"*). Preto aj s .theme-light. */
+        .op-root .ph-h1 .g, .op-root .hero-h1 .g, .op-root .theme-light .hero-h1 .g {
           background-image: ${FILM_GOLD}; -webkit-background-clip: text; background-clip: text;
           color: transparent; -webkit-text-fill-color: transparent; text-shadow: none;
         }
