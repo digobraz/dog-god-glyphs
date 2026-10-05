@@ -111,9 +111,13 @@ const CSS = `
 .tl-tab:hover{transform:translateY(-1px);box-shadow:0 0 0 3px ${PACK_THEME.hairline},${PACK_SHADOW.lift};}
 .tl-tab-label{font-family:${FONT_TITLE};font-weight:700;font-size:16px;letter-spacing:0.14em;text-transform:uppercase;color:${P.ink};display:flex;flex-direction:row;align-items:center;gap:11px;min-width:0;}
 .tl-tab-ic{width:26px;height:26px;flex-shrink:0;background:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat;}
-/* AKTÍVNA KARTA = PRIESVITNÝ LAPISOVÝ TINT (lock: výber je tint, plná plocha len pre jediné CTA; audit 1A, 2. 10. 2026) */
-.tl-tab.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}background:linear-gradient(${tintRGBA(LAPIS.edge, 0.14)},${tintRGBA(LAPIS.edge, 0.14)}),${T.panelGrad};}
-.tl-tab.on .tl-tab-label{color:${PICK_INK.lapis};}
+/* AKTÍVNA KARTA = PLNÝ LAPIS (Matej 5. 10. 2026: „toto tlačidlo výberu daj ako bolo — lapisom,
+   nie len priesvitným"). Audit 1A (2. 10.) ho prepol na priesvitný tint podľa locku „výber je tint,
+   plná plocha len pre jediné CTA" (brand.md) — Matej to tu vrátil. VÝNIMKA platí pre TENTO
+   prepínač dvoch veľkých kariet, nie pre chipy a filtre. */
+.tl-tab.on{background:${LAPIS.grad};border-color:${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};}
+.tl-tab.on:hover{background:${LAPIS.gradHover};}
+.tl-tab.on .tl-tab-label{color:${LAPIS.ink};}
 @media (max-width:400px){ .tl-tab{padding:16px 12px;} .tl-tab-label{font-size:12px;letter-spacing:0.14em;gap:8px;} .tl-tab-ic{width:22px;height:22px;} }
 
 /* OBSAHOVÝ PANEL = ZLATO-RÁMOVANÝ BLOK (Matej 1. 9. 2026: „celý tento blok by mal byť nejakou
