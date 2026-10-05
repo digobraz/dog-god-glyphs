@@ -3264,7 +3264,7 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.step.rate': "Ohodnoť výlet",
   'pack.addTrip.step.photos': "Fotky",
   'pack.addTrip.step.choosePhotos': "Vybrať fotky",
-  'pack.addTrip.step.photoHint': "JPG alebo PNG, najviac {n} fotiek.",
+  'pack.addTrip.step.photoHint': "Klikni alebo ich sem pretiahni. JPG alebo PNG, najviac {n} fotiek.",
   'pack.addTrip.step.coverPhoto': "Nastaviť ako titulnú fotku",
   'pack.addTrip.step.cover': "TITULNÁ",
   'pack.addTrip.step.removePhoto': "Odstrániť fotku",

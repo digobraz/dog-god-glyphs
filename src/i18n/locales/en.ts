@@ -3551,7 +3551,7 @@ export const en = {
   'pack.addTrip.step.rate': "Rate this trip",
   'pack.addTrip.step.photos': "Photos",
   'pack.addTrip.step.choosePhotos': "Choose photos",
-  'pack.addTrip.step.photoHint': "JPG or PNG, up to {n} photos.",
+  'pack.addTrip.step.photoHint': "Click or drag them here. JPG or PNG, up to {n} photos.",
   'pack.addTrip.step.coverPhoto': "Set as cover photo",
   'pack.addTrip.step.cover': "COVER",
   'pack.addTrip.step.removePhoto': "Remove photo",

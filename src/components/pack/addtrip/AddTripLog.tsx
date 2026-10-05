@@ -1349,9 +1349,33 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                                 >{t('pack.addTrip.log.whereBtn')}</button>
                               </div>
   ) : null;
+  // Tlačidlo aj ťahanie (Matej 5. 10. 2026: „na PC sa mi nedalo pretiahnuť fotky ale iba
+  // klikom cez tlačítko... to treba zmeniť") idú cez TÚ ISTÚ funkciu — limit, HEIC a poznámky
+  // sa nesmú rozísť podľa toho, ktorou cestou fotka prišla.
   const handlePhotos = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const picked = Array.from(e.target.files ?? []);
     e.target.value = '';
+    await addPhotoFiles(picked);
+  };
+  const [photoDrag, setPhotoDrag] = useState(false);
+  const photoDropProps = {
+    onDragOver: (e: React.DragEvent) => {
+      if (!Array.from(e.dataTransfer.types).includes('Files')) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = photos.length >= MAX_PHOTOS ? 'none' : 'copy';
+      if (!photoDrag) setPhotoDrag(true);
+    },
+    onDragLeave: (e: React.DragEvent) => {
+      if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setPhotoDrag(false);
+    },
+    onDrop: (e: React.DragEvent) => {
+      if (!Array.from(e.dataTransfer.types).includes('Files')) return;
+      e.preventDefault();
+      setPhotoDrag(false);
+      void addPhotoFiles(Array.from(e.dataTransfer.files));
+    },
+  };
+  const addPhotoFiles = async (picked: File[]) => {
     const imgs = picked.filter((f) => f.type.startsWith('image/'));
     const room = MAX_PHOTOS - photos.length;
     if (room <= 0) { setPhotoNote(`Max ${MAX_PHOTOS} photos reached.`); return; }
@@ -3477,7 +3501,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
                 )}
 
                 {!isPlan && (
-                  <div className="atl-field">
+                  <div className={`atl-field atl-photo-drop${photoDrag ? ' drag' : ''}`} {...photoDropProps}>
                     <label>{t('pack.addTrip.step.photos')} <span className="atl-field-hint">· {photos.length}/{MAX_PHOTOS}</span></label>
                     <button
                       type="button"
@@ -4534,6 +4558,7 @@ const LOG_CSS = `
 .atl-file-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:0.02em;padding:12px 12px;border-radius:12px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};color:${T.onDark};cursor:pointer;}
 .atl-file-btn:hover:not(:disabled){border-color:${GOLD};color:${GOLD};}
 .atl-file-btn:disabled{opacity:.45;cursor:default;}
+.atl-photo-drop.drag .atl-file-btn{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}border-style:dashed;}
 .atl-file-input-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
 .atl-photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;margin-top:8px;}
 .atl-photo-thumb{position:relative;aspect-ratio:1;border-radius:8px;background-size:cover;background-position:center;border:1px solid ${T.onDarkBorder};cursor:pointer;}

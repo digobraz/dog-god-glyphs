@@ -78,6 +78,7 @@ const TRIP_EDIT_CSS = `${VEIL_CSS}
 .tep-addphoto{height:70px;border-radius:8px;border:1px dashed ${T.onDarkBorder};background:rgba(245,240,228,0.04);color:${T.onDarkDim};font-family:${FONT_UI};font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .tep-addphoto:hover{border-color:${GOLD};color:${GOLD};}
 .tep-addphoto:disabled{opacity:.35;cursor:default;}
+.tep-photo-drop.drag .tep-addphoto{border-color:${GOLD};color:${GOLD};}
 .tep-pawpick{display:flex;justify-content:center;}
 .tep-submit{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;padding:12px;border-radius:12px;background:${GOLD_BTN.grad};color:#000;border:1px solid ${GOLD_BTN.edge};cursor:pointer;}
 .tep-submit:disabled{opacity:.4;cursor:default;}
@@ -141,7 +142,10 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  const addPhotos = async (files: FileList | null) => {
+  // Ťahanie fotiek z plochy (Matej 5. 10. 2026) ide cez tú istú `addPhotos` ako tlačidlo +.
+  const [photoDrag, setPhotoDrag] = useState(false);
+  const hasFiles = (e: React.DragEvent) => Array.from(e.dataTransfer.types).includes('Files');
+  const addPhotos = async (files: FileList | File[] | null) => {
     if (!files?.length) return;
     const room = MAX_PHOTOS - photos.length;
     if (room <= 0) { setErr(t('pack.trip.edit.photoMax', { n: MAX_PHOTOS })); return; }
@@ -204,7 +208,12 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
             ohodnotiť cestu, po ktorej človek ešte nešiel — presne tá istá úvaha, kvôli
             ktorej ich nemá ani sprievodca v režime plánu. */}
         {!isPlan && (
-        <div className="tep-field">
+        <div
+          className={`tep-field tep-photo-drop${photoDrag ? ' drag' : ''}`}
+          onDragOver={(e) => { if (!hasFiles(e)) return; e.preventDefault(); if (!photoDrag) setPhotoDrag(true); }}
+          onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setPhotoDrag(false); }}
+          onDrop={(e) => { if (!hasFiles(e)) return; e.preventDefault(); setPhotoDrag(false); void addPhotos(Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'))); }}
+        >
           <label className="tep-label">
             {t('pack.trip.edit.photos')} <span className="tep-hint">· {photos.length}/{MAX_PHOTOS}</span>
           </label>

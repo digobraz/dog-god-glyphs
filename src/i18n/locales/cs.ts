@@ -3327,7 +3327,7 @@ export const cs: Partial<Dict> = {
   'pack.addTrip.step.noTrails': 'Nic se nenašlo.',
   'pack.addTrip.step.odysseyNote': 'Výlet na víc dní — odysea se přiřadila sama.',
   'pack.addTrip.step.oneDay': 'Jeden den',
-  'pack.addTrip.step.photoHint': 'JPG nebo PNG, nejvíc {n} fotek.',
+  'pack.addTrip.step.photoHint': 'Klikni nebo je sem přetáhni. JPG nebo PNG, nejvíc {n} fotek.',
   'pack.addTrip.step.photos': 'Fotky',
   'pack.addTrip.step.pickJourney': 'Jdu po dálkové trase — vybrat ze seznamu',
   'pack.addTrip.step.progress': 'Kroky',
