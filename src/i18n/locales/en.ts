@@ -1279,7 +1279,7 @@ export const en = {
   'onepage.fin.photoAlt': 'Matej and Hektor',
   'onepage.fin.p1': "Hi, I'm Matthew. Nine years ago my life changed — because of a shelter dog. Once I'd felt the power of a dog's love, I got a vision of how to pay dogs back — not just mine, but every dog in the world.",
   'onepage.fin.p2': "Every free moment I'm out enjoying trips with my dog, and while he rests, I work on this project until it becomes reality. It's only a matter of time.",
-  'onepage.fin.p3': "Please don't keep us waiting :)",
+  'onepage.fin.p3': "Please don't keep us waiting — join us today!",
   'onepage.apps.more': 'Detail',
   'onepage.apps.head': 'Membership',
   'onepage.apps.sub1': 'We’re building a dog world — a helpful, entertaining ecosystem for every dog lover.',
@@ -3433,6 +3433,8 @@ export const en = {
   'pack.trip.edit.removePhoto': "Remove photo",
   'pack.trip.edit.photoMax': "Max {n} photos.",
   'pack.trip.edit.desc': "Description",
+  'pack.trip.ghost.body': "I pre-built this route from the official trail data — nobody from the pack has walked it yet. Have you? Log it first and it's yours. The route is already drawn.",
+  'pack.trip.ghost.cta': "Log it first",
   // ── GET THERE (2026-09-13) ────────────────────────────────────────────────────────────
   // `go.fromStart` is DELIBERATELY cautious: a trail only has parking if someone marked it in
   // the audit — otherwise navigation aims at the first point of the track, and there may be

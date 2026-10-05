@@ -1055,7 +1055,7 @@ export const sk: Partial<Dict> = {
   'onepage.fin.photoAlt': 'Matej a Hektor',
   'onepage.fin.p1': 'Ahoj, som Matej. Pred 9 rokmi sa môj život zmenil — vďaka psovi z útulku. Odkedy som okúsil silu psej lásky, dostal som víziu, ako sa psom odvďačiť — nielen tomu môjmu, ale všetkým na svete.',
   'onepage.fin.p2': 'Každú voľnú chvíľu si užívam výlety so psom a keď oddychuje, makám na tomto projekte, kým sa nepremení na realitu. Je to len otázka času.',
-  'onepage.fin.p3': 'Prosím, nenechaj nás čakať :)',
+  'onepage.fin.p3': 'Prosím, nenechaj nás čakať — pridaj sa k nám ešte dnes!',
   'onepage.apps.more': 'Detail',
   'onepage.apps.head': 'Členstvo',
   'onepage.apps.sub1': 'Staviame psí svet — užitočný a zábavný ekosystém pre všetkých psíčkarov.',
@@ -3156,6 +3156,8 @@ export const sk: Partial<Dict> = {
   'pack.trip.edit.removePhoto': "Odobrať fotku",
   'pack.trip.edit.photoMax': "Najviac {n} fotiek.",
   'pack.trip.edit.desc': "Popis",
+  'pack.trip.ghost.body': "Túto magistrálu som predvytvoril podľa oficiálnych údajov o trase — nikto zo svorky ju zatiaľ neprešiel. Prešiel si ju? Zapíš ju ako prvý a bude tvoja. Trasa je už nakreslená.",
+  'pack.trip.ghost.cta': "Zapísať ako prvý",
   // ── VYRAZIŤ NA MIESTO (2026-09-13) ────────────────────────────────────────────────────
   'pack.trip.go.ctaRoute': "Trasa v Mapy.com",
   'pack.trip.go.routeHow': "Stiahni súbor a otvor ho v appke Mapy.com (alebo Locus, Garmin, Organic Maps) — trasa sa ti nakreslí na mape aj s výškovým profilom.",

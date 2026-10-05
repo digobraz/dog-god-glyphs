@@ -142,7 +142,12 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
         {/* ── A · MOJE SLOVÁ ─────────────────────────────────────────── */}
         <div className="op-fin-a" aria-hidden={on !== 'a'} style={{ pointerEvents: on === 'a' ? 'auto' : 'none' }}>
           <figure className="op-fin-photo">
-            <img src="/images/kontakt-matej-hektor-cut.webp" alt={t('onepage.fin.photoAlt')} />
+            {/* Dve veľkosti (Matej: *„veľmi slabá kvalita, rozmazanú tvár mám"* — 1600 px na
+                výšku sa pri 150 % a retine rozťahoval). `sizes` = šírka výrezu: PC ≈ výška okna,
+                mobil ≈ pol výšky okna. */}
+            <img src="/images/kontakt-matej-hektor-cut.webp"
+              srcSet="/images/kontakt-matej-hektor-cut-m.webp 1048w, /images/kontakt-matej-hektor-cut.webp 1957w"
+              sizes="(max-width: 768px) 53vh, 100vh" alt={t('onepage.fin.photoAlt')} />
           </figure>
           <div className="op-fin-words">
             <h2 className="op-fin-h2 op-fin-h2--left">
