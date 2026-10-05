@@ -1467,31 +1467,6 @@ export default function OnePage() {
    *  textov po zmene jazyka robí `retext` (viď efekt s `[t]` nižšie). */
   const tRef = useRef(t);
   tRef.current = t;
-  // 🧪 LADENIE TRASENIA NA iPHONE (5. 10. 2026) — len dev server a len s ?dbg=1.
-  // Vypisuje po snímkach polohu stránky a prilepenej vrstvy slajdu 2, aby nahrávka
-  // obrazovky z telefónu ukázala, či sa vrstva hýbe v rozložení, alebo len vo vykreslení.
-  useEffect(() => {
-    if (!import.meta.env.DEV || !/[?&]dbg=1/.test(location.search)) return;
-    const box = document.createElement('div');
-    box.style.cssText = 'position:fixed;left:4px;top:140px;z-index:2147483647;font:11px/1.25 monospace;background:rgba(0,0,0,.75);color:#0f0;padding:4px 6px;border-radius:4px;pointer-events:none;white-space:pre';
-    document.body.appendChild(box);
-    let raf = 0, fr = 0;
-    const tick = () => {
-      fr++;
-      const sl = document.querySelector<HTMLElement>('#op-religion .codex-section[data-idx="0"] .codex-slider');
-      const fig = document.querySelector<HTMLElement>('#op-religion .codex-claim-cow .cl-figure');
-      const vv = window.visualViewport;
-      box.textContent =
-        'f ' + fr + '  sY ' + window.scrollY.toFixed(2) +
-        '\nslider ' + (sl ? sl.getBoundingClientRect().top.toFixed(2) : '-') +
-        '  fig ' + (fig ? fig.getBoundingClientRect().top.toFixed(2) : '-') +
-        '\nvv ' + (vv ? vv.offsetTop.toFixed(1) + '/' + vv.height.toFixed(1) + '/' + vv.pageTop.toFixed(1) : '-') +
-        '  ih ' + window.innerHeight;
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => { cancelAnimationFrame(raf); box.remove(); };
-  }, []);
   const [scene, setScene] = useState(0);
   const [past, setPast] = useState(false);       // je už guľa preč?
   // Ústava v prekrytí. Kniha ako OBRAZ filmu zanikla (Matej 28. 8. 2026),
@@ -5747,6 +5722,18 @@ export default function OnePage() {
              ⇒ 844 → 2 · ≤ 800 → 1,8 · ≤ 700 → 1,3 (iPhone SE 375×667). Odsun do strán rastie s mierkou
              ((k − 1,377) × 80 %), aby sa nosy stretli bez dotyku pri každej — Matej
              5. 10.: *„prekrývajú si tváre… nosy pri sebe ale nedotýkali sa"*. */
+          /* 🔴 TRASENIE SLAJDOV 2 A 3 NA iPHONE — PRÍČINA (5. 10. 2026). Matej: *„trasie sa
+             to… z 1 na 2, z 3 na 2, obsah aj na 3 slajde"*, nahrávka: text + čip kmitali
+             SPOLU ±1 px ~1 s po príchode, zvieratá nie. Jediný rozdiel oproti slajdu 4
+             (ten sa netrasie): prilepené vrstvy náboženstva ležia VNÚTRI obalov
+             s overflow-x: clip (.codex-page, .codex-scroll z ReligionLab). Safari prilepený
+             prvok v takom predkovi pri posúvaní prepočítava s chybou a kmitá.
+             Orezanie sa preto sťahuje z predkov NA VRSTVU, ktorá ho potrebuje — zvieratá
+             (.codex-bleed) a bodku pri Hektorovi (.codex-spotlayer). Bočný scroll stránky
+             tým nevznikne (overené scrollWidth = šírka okna na celej dráhe náboženstva). */
+          .op-root #op-religion .codex-flow.codex-page,
+          .op-root #op-religion .codex-flow .codex-scroll { overflow-x: visible; }
+          .op-root #op-religion .codex-flow :is(.codex-bleed, .codex-spotlayer) { overflow: hidden; }
           .op-root #op-religion { --ani-k: 2; }
           @media (max-height: 800px) { .op-root #op-religion { --ani-k: 1.8; } }
           @media (max-height: 700px) { .op-root #op-religion { --ani-k: 1.3; } }
