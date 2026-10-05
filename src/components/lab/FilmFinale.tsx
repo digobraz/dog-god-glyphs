@@ -342,7 +342,7 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
         }
         /* Nízky telefón: ustúpi FOTKA, nie vzduch (PAGE_AIR). */
         @media (max-width: 768px) and (max-height: 720px) {
-          .op-fin-photo { height: 42vh; }
+          .op-fin-photo { height: 38vh; }
           .op-fin-words { margin-top: -56px; }
           .op-fin-words .op-fin-h2 { margin-bottom: 0; }
           .op-fin-txt { font-size: 12px; line-height: 1.4; }
