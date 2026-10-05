@@ -4042,6 +4042,7 @@ export const cs: Partial<Dict> = {
   'pack.ainubis.stat.worlds': 'světů',
   'pack.ainubis.stat.circles': 'okruhů',
   'pack.ainubis.stat.scrolls': 'svitků',
+  'pack.ainubis.stat.read': "přečteno",
   'pack.ainubis.tip.home': 'Zpět na celý mozek',
   'pack.gateway.dogma.lead': 'Přečti si filozofii Dogypťanů a poznej celou DNA DOGYPTU.',
   'pack.gateway.dogma.title': 'Bible pro pejskaře',

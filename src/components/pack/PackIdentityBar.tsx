@@ -25,7 +25,7 @@
 // ⚠️ Šat je AINUBISOV (tmavý displej). Papyrusovú polohu komponent zatiaľ nemá.
 // ⚠️ Panel pásiem (klik na číslo levelu na mape) tu NIE JE — žije vnútri PackMap.
 // ════════════════════════════════════════════════════════════════════════════
-import { useEffect, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { pluralKey } from './tripShared';
@@ -34,9 +34,10 @@ import { tierVars } from '@/lib/packTiers';
 import type { usePackIdentity } from './usePackIdentity';
 import { PackTopRight } from './PackLayout';
 import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI } from './packTheme';
-import { AINUBIS } from './ainubisSkin';
+import { AINUBIS, AI_GLASS } from './ainubisSkin';
+import { NAV_R, PALE_PC_MIN } from './navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
-import { AvatarRing, AV_D, PHOTO } from './AvatarRing';
+import { AvatarRing, AV_D, AV_D_HEAD, PHOTO, photoAt } from './AvatarRing';
 
 /** Krstné meno — PORADIE AKO blok JA v `Pack.tsx` (`displayName`): účet (full_name
  *  z /pack/profile) → meno z objednávky psa (`dogs.owner_name`, kartuša) → e-mail.
@@ -73,14 +74,41 @@ const CSS = `
 .pkid-stats b{font-weight:600;color:${AINUBIS.inkDim};font-variant-numeric:tabular-nums;}
 .pkid-mid{flex:1 1 auto;min-width:0;display:flex;justify-content:center;}
 .pkid-right{flex:0 0 auto;display:flex;align-items:center;}
+/* ── PC HLAVIČKA = PC HLAVIČKA /map (Matej 5. 10. 2026: „ainubis nech má logiku /map horný
+   header = tie isté veľkosti, fotka aj stats vedľa seba"). Vzor .trp-status-row +
+   .trp-pcstats v PackMap.tsx: pás s rámom, fotka AV_D_HEAD (60), čísla v JEDNOM rade
+   oddelené zvislou čiarou, kapsula vnútri pásu. Výška pásu = výška D-BLOKU na mape
+   (2 lemy + 2 × 12 + fotka 60 = 96) — mapa má lem 6 px zlata, tu je 1 px skla, preto
+   min-height; bočný okraj = 16 + (lem mapy 6 − lem skla 1), aby fotka aj kapsula stáli
+   od hrany pásu presne tam, kde na mape. Materiál ostáva AINUBISOV (AI_GLASS), zlato
+   patrí mape. Mobil sa nemení: tam ostávajú dva riadky ako na mobilnej mape. */
+.pkid-pcstats{display:none;align-items:center;gap:${PACK_SPACE.lg}px;min-width:0;}
+.pkid-pcstats > span:not(.pkid-pcsep){display:flex;align-items:baseline;gap:${PACK_SPACE.xs}px;white-space:nowrap;}
+.pkid-pcstats b{font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.h2}px;line-height:1;
+  font-variant-numeric:tabular-nums;color:${AINUBIS.ink};}
+.pkid-pcstats i{font-family:${FONT_UI};font-style:normal;font-weight:500;font-size:${PACK_TEXT.micro}px;
+  letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
+.pkid-pcsep{width:1px;height:${PACK_SPACE.xl}px;flex:0 0 1px;background:${AINUBIS.edge};}
+@media (min-width:${PALE_PC_MIN}px){
+  .pkid--head{box-sizing:border-box;min-height:${2 * NAV_R.rim + 2 * PACK_SPACE.md + AV_D_HEAD}px;
+    padding:0 ${PACK_SPACE.lg + NAV_R.rim - NAV_R.line}px;gap:${PACK_SPACE.lg}px;border-radius:${PACK_R.frame}px;${AI_GLASS}}
+  .pkid--head .pkid-me{gap:${PACK_SPACE.lg}px;}
+  .pkid--head .pkid-av{width:${AV_D_HEAD}px;height:${AV_D_HEAD}px;}
+  .pkid--head .pkid-photo{width:${photoAt(AV_D_HEAD)}px;height:${photoAt(AV_D_HEAD)}px;}
+  .pkid--head .pkid-txt{display:none;}
+  .pkid--head .pkid-pcstats{display:flex;}
+}
 `;
 
 /** `id` podáva stránka — druhé volanie `usePackIdentity` by načítalo session a psov znova. */
 /** `stats` nahradí riadok „km · výlety" — povrch, ktorý nie je o výletoch, nesie vlastné
  *  počty (AINUBIS 22. 9.: „meno nebude mať počet tripov ani km, tu sa bude rátať počet
  *  svetov / okruhov / zvitkov / celkové %"). */
-export function PackIdentityBar({ id, middle, stats, primary, onMe }: {
+export function PackIdentityBar({ id, middle, stats, primary, onMe, pcStats }: {
   id: ReturnType<typeof usePackIdentity>; middle?: ReactNode; stats?: ReactNode;
+  /** PC hlavička podľa /map: čísla v jednom rade (`b` = hodnota, `i` = popisok). Kto ich
+   *  podá, dostane na PC pás s fotkou 60; bez nich ostáva bar na všetkých šírkach ako bol. */
+  pcStats?: { v: ReactNode; l: ReactNode }[];
   /** Kam vedie klik na fotku. Bez neho TRIPSTATS ako na mape; AINUBIS (4. 10. 2026)
    *  vedie na vlastné štatistiky — Matej: *„ainubis stats po kliknutí na fotku"*. */
   onMe?: () => void;
@@ -122,7 +150,7 @@ export function PackIdentityBar({ id, middle, stats, primary, onMe }: {
 
   const lv = view.level;
   return (
-    <div className="pkid">
+    <div className={pcStats ? 'pkid pkid--head' : 'pkid'}>
       <style>{CSS}</style>
       <button type="button" className="pkid-me" onClick={onMe ?? (() => navigate('/pack/map/triplist?tab=stats'))}>
         <AvatarRing
@@ -144,6 +172,16 @@ export function PackIdentityBar({ id, middle, stats, primary, onMe }: {
             )}
           </span>
         </span>
+        {pcStats && (
+          <span className="pkid-pcstats">
+            {pcStats.map((s, i) => (
+              <Fragment key={i}>
+                {i > 0 && <span className="pkid-pcsep" aria-hidden />}
+                <span><b>{s.v}</b><i>{s.l}</i></span>
+              </Fragment>
+            ))}
+          </span>
+        )}
       </button>
       <div className="pkid-mid">{middle}</div>
       <div className="pkid-right">

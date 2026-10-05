@@ -1000,6 +1000,10 @@ export default function PackAinubis() {
           id={id}
           primary={vaultPrimary}
           stats={vaultStats}
+          pcStats={[
+            { v: `${read.worlds}/${VAULT_WORLDS.length}`, l: tx('pack.ainubis.stat.worlds', 'worlds') },
+            { v: `${pct} %`, l: tx('pack.ainubis.stat.read', 'read') },
+          ]}
           onMe={() => navigate('/pack/ainubis/knowledge')}
         />
         {/* PC: hľadanie a filtre POD hlavičkou nad mozgom, ako na /map (Matej 22. 9.). */}

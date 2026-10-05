@@ -1883,6 +1883,7 @@ export const en = {
   'pack.ainubis.stat.worlds': "worlds",
   'pack.ainubis.stat.circles': "circles",
   'pack.ainubis.stat.scrolls': "scrolls",
+  'pack.ainubis.stat.read': "read",
   'pack.ainubis.view.brain': "Brain",
   'pack.ainubis.view.dogscroll': "Dogscroll",
   'pack.ainubis.dogscroll.title': "Dogscrolling",

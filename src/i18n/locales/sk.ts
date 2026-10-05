@@ -4069,6 +4069,7 @@ export const sk: Partial<Dict> = {
   'pack.ainubis.stat.worlds': "svetov",
   'pack.ainubis.stat.circles': "okruhov",
   'pack.ainubis.stat.scrolls': "zvitkov",
+  'pack.ainubis.stat.read': "prečítané",
   'pack.ainubis.view.brain': "Mozog",
   'pack.ainubis.view.dogscroll': "Dogscroll",
   'pack.ainubis.dogscroll.title': "Dogscrolling",
