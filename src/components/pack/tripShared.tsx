@@ -90,12 +90,17 @@ export const GOLD_ICON_FILTER =
 const WATER_TAGS = new Set(['lake', 'water']);
 export const isWaterTrail = (tr: { acts?: string[]; tags?: string[]; path?: unknown[] }): boolean => {
   if (tr.acts?.includes('journey')) return false;
+  const hasRoute = (tr.path?.length ?? 0) > 1;
+  // TURISTIKA S NAKRESLENOU TRASOU JE TRASA, aj keď sa pri nej kúpalo (Matej 5. 10. 2026:
+  // „ja som vybral hike — naklikal to a teraz mi ukazuje jazero"). Oeschinensee mal
+  // hike + camping + paddle a pádlo ho prepísalo na vodnú plochu: mapa ukázala bod
+  // v jazere namiesto 7,5 km okruhu. Pádlo rozhoduje len tam, kde turistika nie je.
+  if (hasRoute && tr.acts?.includes('hike')) return false;
   // ⚠️ 'paddle' JE NÁSTUPCA 'paddleboard' (2026-08-31). Nová sada chipov SPORTu nesie
   // pádlovanie pod kľúčom `paddle`; bez tohto riadku by výlet zapísaný po 31. 8. stratil
   // presne to správanie, kvôli ktorému tu výnimka stojí — a rozdiel by sa prejavil až
   // na karte ako fabrikované km a náročnosť vodnej plochy.
   if (tr.acts?.includes('paddleboard') || tr.acts?.includes('paddle')) return true;
-  const hasRoute = (tr.path?.length ?? 0) > 1;
   return !hasRoute && !!tr.tags?.some((tag) => WATER_TAGS.has(tag.toLowerCase()));
 };
 
