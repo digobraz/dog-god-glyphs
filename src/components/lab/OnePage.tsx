@@ -201,11 +201,19 @@ const quoIn = (): [number, number] => [
 const quoSharp = () => QUO.colsIn[1] + 2 * QUO.colStagger;
 /** HVIEZDY JEDNÝM ŤAHOM z ČLENSTVA (28. 9. 2026): telefóny zhasnú, nadpis
  *  „Psov miluje každý" sa vynorí, chvíľu stojí, rozplynie sa na citáty. */
+/** 🔴 NADPIS ČAKÁ NA ČLOVEKA (Matej 5. 10. 2026: *„nadpis nezmizne s textom,
+ *  kým nedá človek slajd, aby stihol prečítať"*). Jeden ťah sa rozpadol na
+ *  dva: ① telefóny zhasnú → nadpis stojí (zastávka `QUO.headOut[0]`, posledný
+ *  bod pred rozplynutím) · ② ďalší slajd → rozplynie sa na citáty. Výdrž
+ *  1,5 s v strede ťahu zanikla — čas na čítanie si teraz určuje človek. */
+const quoRead = () => pinnedAt('.op-quo', QUO.headOut[0]);
 const QUO_KEYS = (from: number, to: number) => keyRide(from, to, [
   [from, 0],
   [pinnedAt('.op-quo', quoIn()[1]), 1100],
-  [pinnedAt('.op-quo', QUO.headOut[0]), 2600],
-  [pinnedAt('.op-quo', quoSharp()), 4300],
+  [quoRead(), 1500],
+]) ?? keyRide(from, to, [
+  [from, 0],
+  [pinnedAt('.op-quo', quoSharp()), 1700],
 ]);
 
 /** WE NEED YOU JEDNÝM ŤAHOM, pomaly (28. 9. 2026): hviezdy zhasnú, faraón sa
@@ -4055,6 +4063,8 @@ export default function OnePage() {
     if (MOST_ON) { const most = pinnedAt('.op-arc', 1); if (most != null) out.push(most); }
     // ČLENSTVO: príchod telefónov na stred + štyri funkcie (FilmApps.tsx).
     for (const f of APPS_STOPS) { const y = pinnedAt('.op-apps', f); if (y != null) out.push(y); }
+    const quoR = quoRead();
+    if (quoR != null) out.push(quoR);
     const quo = pinnedAt('.op-quo', quoSharp());
     if (quo != null) out.push(quo);
     // WE NEED YOU — jeden ťah cez celý obraz (viď WNY_KEYS).
