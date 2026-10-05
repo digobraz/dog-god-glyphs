@@ -1583,11 +1583,20 @@ export function natureResultFromStored(v: {
 
   const specials = storedSpecials(v.specials, spec);
 
+  // Uložený druhý element/úloha (`scores.sec`, od 5. 10. 2026) má prednosť — je to presne
+  // to, čo videl majiteľ po kvíze. Výpočet nižšie je len pre staršie zápisy bez neho.
+  const sec = (raw.sec ?? null) as { el?: unknown; role?: unknown } | null;
+  const hasSec = !!sec && typeof sec === 'object';
+  const secEl = hasSec && (sec.el === null || (ELEMENT_KEYS.includes(sec.el as ElementKey) && sec.el !== element))
+    ? (sec.el as ElementKey | null) : undefined;
+  const secRole = hasSec && (sec.role === null || (ROLE_KEYS.includes(sec.role as RoleKey) && sec.role !== role))
+    ? (sec.role as RoleKey | null) : undefined;
+
   return {
     element,
-    elementSecond: second(el, ELEMENT_KEYS, element, DUAL_MIN_EL),
+    elementSecond: secEl !== undefined ? secEl : second(el, ELEMENT_KEYS, element, DUAL_MIN_EL),
     role,
-    roleSecond: second(roleS, ROLE_KEYS, role, DUAL_MIN_ROLE),
+    roleSecond: secRole !== undefined ? secRole : second(roleS, ROLE_KEYS, role, DUAL_MIN_ROLE),
     specials,
     scores: { el, role: roleS, spec, v: version },
   };

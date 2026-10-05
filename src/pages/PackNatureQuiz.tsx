@@ -2018,17 +2018,20 @@ export default function PackNatureQuiz() {
       // pred týmto dňom, sa to doplniť nedá — až pri opakovaní kvízu.
       // ⚠️ `noProgress` v `dogQuiz.ts` toto pole NEMÁ, lebo tam žiadny krok nemá —
       // `nature.scores` je odvodený zápis, nie otázka, a do progresu dokladu nevstupuje.
-      inputs.push({ dogId: dog.id, field: 'nature.scores', value: r.scores, source: 'quiz' });
+      // `sec` = druhý element/úloha PRESNE tak, ako ich určil `scoreNature` (remízu láme
+      // odpoveď na a1/b8, ktorá sa neukladá). Bez neho `natureResultFromStored` lámal
+      // remízu poradím kľúčov a výsledok po obnovení stránky vyšiel iný (audit 5. 10.).
+      inputs.push({ dogId: dog.id, field: 'nature.scores', value: { ...r.scores, sec: { el: r.elementSecond, role: r.roleSecond } }, source: 'quiz' });
       // ROVNOVÁHA SA UKLADÁ AKO ZAŠKRTNUTÉ `id`, NIE AKO VYPOČÍTANÝ ZÁVER.
       // Závery sa menia — triedenie prejav/diagnóza aj prevodná tabuľka podpory
       // sú naše rozhodnutia a môžu sa opraviť. Zaškrtnutia sú to, čo majiteľ
       // naozaj povedal, a z nich sa záver kedykoľvek prepočíta. Uložiť „podpor
       // Vodu" by znamenalo, že po prvej oprave tabuľky ukazuje karta psa radu,
       // ktorá už z jeho odpovedí nevyplýva — a nič to nenahlási.
+      // ⚠️ ZAPISUJE SA AJ PRÁZDNA (audit 5. 10. 2026): pri opakovaní kvízu bez zaškrtnutia
+      // ostávala na DOG ID aj v AINUBISOVI stará diagnóza z minulého kola.
       const picked = balance[dog.id] ?? [];
-      if (picked.length) {
-        inputs.push({ dogId: dog.id, field: 'nature.balance', value: picked, source: 'quiz' });
-      }
+      inputs.push({ dogId: dog.id, field: 'nature.balance', value: picked, source: 'quiz' });
     }
     try {
       await appendDogEvents(inputs);
