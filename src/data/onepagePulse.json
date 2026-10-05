@@ -6,7 +6,7 @@
   {
    "tag": "testing",
    "name": "members",
-   "pct": 56
+   "pct": 59
   },
   {
    "tag": "develop",
@@ -16,17 +16,17 @@
   {
    "tag": "research",
    "name": "vault",
-   "pct": 44
+   "pct": 56
   },
   {
    "tag": "develop",
    "name": "ainubis",
-   "pct": 64
+   "pct": 71
   },
   {
    "tag": "design",
    "name": "web",
-   "pct": 45
+   "pct": 50
   }
  ]
 }
