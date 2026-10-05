@@ -83,16 +83,21 @@ const bn = (id: string, n = 4) => Array.from({ length: n }, (_, i) => `onepage.a
    slajdy sa ešte vyberajú. */
 /** Poradie = poradie v karuseli. Matej: *„dog id/profil, sniffer, dogtrips,
  *  AInubis a pomoc/možnosti… celkovo 4 obrazovky"*, 27. 9. doplnená piata. */
+/** Snímka z `public/images/onepage/apps/`. Pri prefotení zvýš `v` (cache — Matej: „nevidím to na lokáli"). */
+const img = (f: string) => `/images/onepage/apps/${f}.webp?v=9`;
+/* DETAIL = hlavná snímka z telefónu + výber z nákresu `plany/nakres-clenstvo-screeny-2026-10-05/`
+   (Matej 5. 10. 2026: *„máš to vybraté — aplikuj to"*). Komunita na OSTRÝCH číslach z LIVE,
+   SNIFFER s fiktívnymi ľuďmi (Eva…) a správami len na snímke. */
 const APPS: AppFeature[] = [
   /* 🔁 PORADIE 5. 10. 2026 — Matej: *„na úvodnom mockupe musia byť tie najkrajšie = DOG ID
      v strede, sprava DOGTRIP, zľava AINUBIS"*. Sprava stojí nasledujúci, zľava posledný. */
-  { id: 'dogid', nameKey: 'heroglyph.flow.more.dogid.t', ledeKey: 'onepage.apps.dogid.lede', bulletKeys: bn('dogid', 5), shot: '/images/onepage/apps/dogid-profil.webp?v=8', shots: ['/images/onepage/apps/dogid-profil.webp?v=8', '/images/onepage/apps/dogid-kviz.webp?v=8'] },
-  { id: 'dogtrip', nameKey: 'heroglyph.flow.more.dogtrip.t', ledeKey: 'onepage.apps.dogtrip.lede', bulletKeys: bn('dogtrip', 5), shot: '/images/onepage/apps/dogtrip-swiss.webp?v=8', shots: ['/images/onepage/apps/dogtrip-swiss.webp?v=8', '/images/onepage/apps/dogtrip-mapa.webp?v=8'] },
-  { id: 'sniffer', nameKey: 'heroglyph.flow.more.sniffer.t', ledeKey: 'onepage.apps.sniffer.lede', bulletKeys: bn('sniffer'), shot: '/images/onepage/apps/sniffer-cisty.webp?v=8', shots: ['/images/onepage/apps/sniffer-cisty.webp?v=8'] },
+  { id: 'dogid', nameKey: 'heroglyph.flow.more.dogid.t', ledeKey: 'onepage.apps.dogid.lede', bulletKeys: bn('dogid', 5), shot: img('dogid-profil'), shots: [img('dogid-profil'), img('dogid-kviz'), img('dogid-kalendar'), img('dogid-zdravie'), img('dogid-zivot-prehlad')] },
+  { id: 'dogtrip', nameKey: 'heroglyph.flow.more.dogtrip.t', ledeKey: 'onepage.apps.dogtrip.lede', bulletKeys: bn('dogtrip', 5), shot: img('dogtrip-swiss'), shots: [img('dogtrip-swiss'), img('dogtrip-mapa'), img('dogtrip-clanok'), img('dogtrip-mapa-celok'), img('dogtrip-stats'), img('dogtrip-odznaky'), img('dogtrip-odznaky-parky'), img('dogtrip-pridat-2-druh'), img('dogtrip-pridat-6-o-vylete')] },
+  { id: 'sniffer', nameKey: 'heroglyph.flow.more.sniffer.t', ledeKey: 'onepage.apps.sniffer.lede', bulletKeys: bn('sniffer'), shot: img('sniffer-cisty'), shots: [img('sniffer-cisty'), img('sniffer-hladat'), img('sniffer-profil-eva'), img('sniffer-profil-eva-2'), img('sniffer-zhody')] },
   // 5/5 — Matej 27. 9.: *„komunita/pomoc… transparentná pomoc, nové výskumy —
   // to, čo členstvo vie pomáhať psom"*. Detail = text „VYŠŠÍ CIEĽ" z heroflowu.
-  { id: 'cause', nameKey: 'onepage.apps.cause.name', ledeKey: 'onepage.apps.cause.lede', bulletKeys: bn('cause'), shot: '/images/onepage/apps/komunita-transparency.webp?v=8', shots: ['/images/onepage/apps/komunita-transparency.webp?v=8'] },
-  { id: 'ainubis', nameKey: 'heroglyph.flow.more.ainubis.t', ledeKey: 'onepage.apps.ainubis.lede', bulletKeys: bn('ainubis'), shot: '/images/onepage/apps/ainubis-vault-bez-oznamu.webp?v=8', shots: ['/images/onepage/apps/ainubis-vault-bez-oznamu.webp?v=8', '/images/onepage/apps/ainubis-dogscroll.webp?v=8'] },
+  { id: 'cause', nameKey: 'onepage.apps.cause.name', ledeKey: 'onepage.apps.cause.lede', bulletKeys: bn('cause'), shot: img('komunita-transparency'), shots: [img('komunita-transparency'), img('kom-pokladnica'), img('kom-svet')] },
+  { id: 'ainubis', nameKey: 'heroglyph.flow.more.ainubis.t', ledeKey: 'onepage.apps.ainubis.lede', bulletKeys: bn('ainubis'), shot: img('ainubis-vault-bez-oznamu'), shots: [img('ainubis-vault-bez-oznamu'), img('ainubis-dogscroll'), img('ainubis-zvitok-podcast'), img('ainubis-zvitok-prepis'), img('ainubis-zvitok-text')] },
 ];
 
 /** Dráha ODCHODU HEROGLYPHu a príchodu telefónov (prvý ťah) vo `vh`. Oblúk
@@ -346,9 +351,8 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
       {cur && createPortal(
         <div className="op-alba" role="dialog" aria-modal="true" aria-label={t(cur.nameKey)} data-film-free onClick={() => setOpen(null)}>
           <div className="op-alba-card op-apps-pop" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="op-alba-x" aria-label={t('nav.aria.close')} onClick={() => setOpen(null)}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
-            </button>
+            {/* Bez krížika (Matej 28. 9. 2026: *„na webe nechceme krížiky"*) — zatvára klik mimo karty a Esc.
+                Tlačidlo bez štýlu tu prežilo a v mriežke popupu si vzalo vlastnú bunku (karta 973 px). */}
             {/* MOCKUP NA JEDNEJ STRANE, TEXT NA DRUHEJ (Matej 5. 10. 2026: *„pri popupe by som
                 dal mockup na jednu stranu a text na druhú"*). Mobil: pod sebou. */}
             <div className="op-apps-pop-shot">
