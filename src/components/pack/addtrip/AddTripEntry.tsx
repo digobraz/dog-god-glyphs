@@ -68,6 +68,8 @@ export type AddTripEntryProps = {
    * Vchod, ktorý už vie, čo človek chce (Matej 5. 10. 2026: „rovno na vec"), otvorí panel
    * hneď na druhej úrovni. Návrat z nej potom panel ZAVRIE — človek rozcestník nevidel,
    * takže „späť" doň by ho poslalo niekam, kde nikdy nebol.
+   * Šípka sa preto správa ako na prvej úrovni (`--close`): v plávajúcom bloku je skrytá
+   * a zatvára klik vedľa (Matej 5. 10. 2026: „tá šípka dozadu tam nemá čo robiť").
    */
   startAt?: 'event';
 };
@@ -372,7 +374,7 @@ export function AddTripEntry({ onPick, onClose, place, onCreate, startAt }: AddT
             návrat v toku a ten má v pridávaní vlastný tvar od 1. 9. */}
         <button
           type="button"
-          className={`att-entry-nav${step === 'kind' ? ' att-entry-nav--close' : ''}`}
+          className={`att-entry-nav${step === 'kind' || step === startAt ? ' att-entry-nav--close' : ''}`}
           onClick={() => (step === 'kind' || step === startAt ? onClose() : setStep('kind'))}
           aria-label={t(step === 'kind' || step === startAt ? 'pack.addTrip.entry.closeAriaLabel' : 'pack.addTrip.entry.backAriaLabel')}
         >
