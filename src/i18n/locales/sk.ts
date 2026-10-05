@@ -1427,9 +1427,9 @@ export const sk: Partial<Dict> = {
 
   // ── /about — Legends (citáty celebrít) — STROJOVÝ PREKLAD citátov, čaká review ──
   'about.legends.title': 'AJ LEGENDY POKĽAKLI',
-  'about.legends.titleFilm': 'PSOV MILUJE KAŽDÝ',
+  'about.legends.titleFilm': 'JAZYK LÁSKY: PES',
   'about.legends.subFilm':
-    'Je to jediná vec, na ktorej sa celá planéta zhodne. A nikto s tým ešte nikdy nič neurobil.',
+    'Psov miluje každý, ale chýba im oficiálny celosvetový fanklub!',
   'about.legends.sub':
     'Najmocnejší ľudia, akí kedy žili, sa klaňali tomu istému tichému učiteľovi — a napísali to.',
   'about.legends.creditsSummary': 'Citáty z verejných rozhovorov · Autori fotografií',

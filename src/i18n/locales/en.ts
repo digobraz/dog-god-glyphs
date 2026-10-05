@@ -1690,12 +1690,15 @@ export const en = {
   // *„PSOV miluje každý, ale nikto im ešte nevytvoril celosvetovú podpornú komunitu."*
   // Z DÔKAZU („nie sme blázni, aj legendy to hovoria") sa stala DIERA („láska tam už je,
   // chýba jej miesto") — a tú má o obrazovku nižšie zaplniť výzva.
-  'about.legends.titleFilm': 'EVERYONE LOVES DOGS',
+  // Matej 5. 10. 2026 prepísal „EVERYONE LOVES DOGS" na *„LOVE LANGUAGE - DOG: Everybody love dogs,
+  // ale chýba im oficiálny globálny fanklub!"*. Diera ostala, len má meno: FANKLUB. Ostatných
+  // 15 jazykov zmazané ⇒ EN fallback, kým sa nepreložia (staré znenie by tvrdilo niečo iné).
+  'about.legends.titleFilm': 'LOVE LANGUAGE: DOG',
   // 🔴 PODNADPIS SA MUSEL ZMENIŤ SPOLU S NADPISOM. Pôvodný („The most powerful humans who
   // ever lived all bowed to the same quiet teacher") DOKAZOVAL to isté, čo nový nadpis
   // TVRDÍ ⇒ dvojica by povedala jednu vec dvakrát. Nadpis tvrdí, podnadpis otvára dieru.
   'about.legends.subFilm':
-    'It is the one thing this whole planet already agrees on. And nobody has ever done anything with it.',
+    "Everybody loves dogs — but there's still no official global fan club!",
   'about.legends.sub':
     'The most powerful humans who ever lived all bowed to the same quiet teacher — and they wrote it down.',
   'about.legends.creditsSummary': 'Quotes from public interviews · Photo credits',
