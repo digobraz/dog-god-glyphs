@@ -85,6 +85,9 @@ export default function PackDogQuiz() {
   const [idx, setIdx] = useState(0);
   const [allSame, setAllSame] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState(false);
+  // Server zápis ODMIETOL (napr. pawmate bez práva zápisu) — do 5. 10. 2026 to tu nebolo
+  // vidno vôbec: `appendDogEvents` chybu prehltol a odpoveď ostala len v prehliadači.
+  const [saveErr, setSaveErr] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -154,7 +157,7 @@ export default function PackDogQuiz() {
     });
 
   /** Zapíše LEN zmenené polia — append log nesmie zbierať duplicitné riadky. */
-  const flush = async () => {
+  const flush = async (): Promise<boolean> => {
     const inputs: DogEventInput[] = [];
     for (const d of dogs ?? []) {
       for (const st of section?.steps ?? []) {
@@ -164,17 +167,23 @@ export default function PackDogQuiz() {
         inputs.push({ dogId: d.id, field: st.field, value: now, source: 'quiz' });
       }
     }
-    if (inputs.length === 0) return;
+    if (inputs.length === 0) return true;
     setBusy(true);
     try {
       await appendDogEvents(inputs);
       setSaved(structuredClone(answers));
+      setSaveErr(false);
+      return true;
+    } catch {
+      setSaveErr(true);
+      return false;
     } finally {
       setBusy(false);
     }
   };
 
-  const finish = async () => { await flush(); navigate('/pack/dogs'); };
+  // Pri chybe zápisu NEODCHÁDZAME — odpovede by sa stratili s komponentom.
+  const finish = async () => { if (await flush()) navigate('/pack/dogs'); };
 
   if (!section || section.kind !== 'quiz') {
     return <Shell><Card><p style={{ fontFamily: FONT_UI, color: T.inkDim, margin: 0 }}>
@@ -294,6 +303,11 @@ export default function PackDogQuiz() {
           ))
         )}
 
+        {saveErr && (
+          <p role="alert" style={{ fontFamily: FONT_UI, fontSize: 12, color: '#B25640', margin: '16px 0 0', textAlign: 'center' }}>
+            {tx('pack.diary.saveFailed', 'The entry could not be saved. Try again.')}
+          </p>
+        )}
         {/* pätička */}
         <div className="flex items-center justify-between gap-3" style={{ marginTop: 18 }}>
           <button

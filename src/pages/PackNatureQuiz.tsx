@@ -1874,6 +1874,7 @@ export default function PackNatureQuiz() {
    */
   const [balance, setBalance] = useState<Record<string, string[]>>({});
   const [saved, setSaved] = useState(false);
+  const [saveErr, setSaveErr] = useState(false);
   const [askLeave, setAskLeave] = useState(false);
   // Zrkadlo stavu pre kliky, ktoré prídu skôr, než React stihne prekresliť.
   const answersRef = useRef<Record<string, Record<string, string>>>({});
@@ -2032,8 +2033,11 @@ export default function PackNatureQuiz() {
     try {
       await appendDogEvents(inputs);
       setSaved(true);
+      setSaveErr(false);
     } catch {
-      /* zápis je bonus — výsledok sa ukáže aj keď zlyhá */
+      // Výsledok sa ukáže aj tak, ale člen MUSÍ vedieť, že na karte psa nie je
+      // (do 5. 10. 2026 tu bolo ticho a lokálna fronta sa tvárila ako uložené).
+      setSaveErr(true);
     }
   };
 
@@ -2537,6 +2541,11 @@ export default function PackNatureQuiz() {
           {tx('pack.nature.result.done', 'Done')}
         </button>
       </div>
+      {saveErr && !saved && (
+        <p role="alert" style={{ fontFamily: FONT_UI, fontSize: 12, color: '#E08A70', marginTop: 12, textAlign: 'center' }}>
+          {tx('pack.diary.saveFailed', 'The entry could not be saved. Try again.')}
+        </p>
+      )}
       {saved && (
         <p style={{ fontFamily: FONT_UI, fontSize: 10, color: 'rgba(245,240,228,0.55)', marginTop: 12, textAlign: 'center' }}>
           <HandCheck size={12} />{' '}

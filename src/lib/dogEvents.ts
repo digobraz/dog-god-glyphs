@@ -87,6 +87,55 @@ function emitChange(): void { listeners.forEach((l) => l()); }
  * Zapíše prírastky. Jeden krok kvízu pri troch psoch = tri vstupy v JEDNOM volaní
  * (a jednom round-tripe) — preto pole, nie jeden objekt.
  */
+// 🔴 ODMIETNUTIE SERVEROM ≠ VÝPADOK SIETE (audit 5. 10. 2026). Do vtedy išlo do lokálnej
+//    fronty KAŽDÉ zlyhanie a fronta sa NIKDY neodoslala — nikde nebol kód, ktorý by ju
+//    vyprázdnil. Člen videl „Uložené", DOG ID ukazovalo 100 %, server nemal nič a na inom
+//    zariadení bol pes prázdny. Najčastejší prípad: pawmate (RLS `dog_events_insert_own`
+//    pustí len majiteľa) — jeho zápis sa nikdy nemohol podariť.
+//    Teraz: PostgREST/Postgres vráti kód (`42501` RLS, `23…` integrita, `42P01` tabuľka,
+//    `PGRST…`) ⇒ je to odpoveď servera a opakovanie nepomôže ⇒ THROW, volajúci ukáže chybu.
+//    Bez kódu (fetch padol, offline PWA) ⇒ fronta, ktorú `flushDogEventsQueue` dopošle.
+function isServerRejection(error: { code?: string } | null | undefined): boolean {
+  return !!error?.code && /^([0-9A-Z]{5}|PGRST\d+)$/.test(error.code);
+}
+
+let flushing = false;
+/**
+ * Dopošle lokálnu frontu na server. Volá sa pred každým zápisom a pri načítaní hubu.
+ * Rows, ktoré server ODMIETNE, sa z fronty zahodia (opakovanie by nepomohlo a len by
+ * držali falošné percento DOG ID); pri výpadku siete fronta ostáva na ďalší pokus.
+ */
+export async function flushDogEventsQueue(userId?: string | null): Promise<void> {
+  if (flushing) return;
+  const queued = readLocal();
+  if (queued.length === 0) return;
+  let uid = userId;
+  if (uid === undefined) {
+    const { data } = await supabase.auth.getSession();
+    uid = data?.session?.user?.id ?? null;
+  }
+  if (!uid) return; // DEV_NOAUTH — fronta je jediné úložisko, nechaj ju tak
+  flushing = true;
+  try {
+    const { error } = await sb.from('dog_events').insert(queued.map((r) => ({
+      dog_id: r.dogId,
+      user_id: uid,
+      field: r.field,
+      value: r.value === undefined ? null : r.value,
+      source: r.source,
+      recorded_at: r.recordedAt,
+    })));
+    if (!error) { writeLocal([]); emitChange(); return; }
+    if (isServerRejection(error)) {
+      console.warn('[dogEvents] server rejected queued rows, dropping them:', error.message);
+      writeLocal([]);
+      emitChange();
+    }
+  } finally {
+    flushing = false;
+  }
+}
+
 export async function appendDogEvents(inputs: DogEventInput[]): Promise<void> {
   if (inputs.length === 0) return;
   const now = new Date().toISOString();
@@ -95,6 +144,7 @@ export async function appendDogEvents(inputs: DogEventInput[]): Promise<void> {
   const userId = auth?.user?.id ?? null;
 
   if (userId) {
+    await flushDogEventsQueue(userId);
     const rows = inputs.map((i) => ({
       dog_id: i.dogId,
       user_id: userId,
@@ -105,9 +155,12 @@ export async function appendDogEvents(inputs: DogEventInput[]): Promise<void> {
     }));
     const { error } = await sb.from('dog_events').insert(rows);
     if (!error) { emitChange(); return; }
-    // Insert padol (offline / RLS / tabuľka ešte nie je na tomto projekte) — zápis
-    // sa NESMIE stratiť, ide do lokálnej fronty. Preto tu nie je `throw`.
-    console.warn('[dogEvents] insert failed, falling back to local queue:', error.message);
+    if (isServerRejection(error)) {
+      console.warn('[dogEvents] insert rejected:', error.code, error.message);
+      throw new Error(error.message);
+    }
+    // Výpadok siete — zápis sa NESMIE stratiť, ide do fronty a dopošle sa neskôr.
+    console.warn('[dogEvents] insert failed (offline?), queued:', error.message);
   }
 
   writeLocal([
@@ -191,6 +244,8 @@ export async function readSeries(dogId: string, field: string): Promise<DogEvent
 export async function readLatestForDogs(dogIds: string[]): Promise<Record<string, Record<string, LatestValue>>> {
   if (dogIds.length === 0) return {};
 
+  // Hub MY PACK je prvé miesto po prihlásení — tu sa dopošle, čo ostalo vo fronte offline.
+  await flushDogEventsQueue().catch(() => { /* ďalší pokus pri ďalšom zápise */ });
   const local = readLocal().filter((r) => dogIds.includes(r.dogId));
 
   const { data, error } = await sb
