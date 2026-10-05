@@ -95,7 +95,7 @@ import { useMyEventCount } from '@/components/pack/events/eventStore';
 import {
   ICON, authorOf, REGION_OF, diffMarkShape, DiffMark, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
   DIFF_COLOR, TRAIL_LINE, TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, coverPos, hasRouteMetrics, tripShareText, pluralKey,
-  readLocalTrails, writeLocalTrails, updateLocalTrail, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, hasLiveDog,
+  readLocalTrails, writeLocalTrails, updateLocalTrail, translateLocalTrailDesc, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, hasLiveDog,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
   tripPath, tripPathById, tripText, visibleLocalTrails, tripDraftMissing, memberTrailIds, isOdyssey } from '@/components/pack/tripShared';
 import {
@@ -5237,10 +5237,15 @@ export default function PackMap() {
           ? { acts: [ACT_DATA_ID[draft.activity] ?? draft.activity, ...draft.chips] }
           : {}),
       };
+      // Zmenený popis = starý EN preklad je lož; zahodí sa a dorobí v pozadí. Nezmenený sa
+      // neprekladá znova (zbytočné volanie a chvíľa na SK fallbacku).
+      const descChanged = (readLocalTrails().find((tr) => tr.id === finishId)?.desc ?? '') !== patch.desc;
+      if (descChanged) patch.descEN = undefined;
       if (!updateLocalTrail(finishId, patch)) {
         reportAddError(t('pack.map.errorPhotosStorage'));
         return false;
       }
+      if (descChanged) translateLocalTrailDesc(finishId, () => setLocalTrails(readLocalTrails()));
         // POSÁDKA JE ROZHODNUTIE, NIE ODHAD (B20): dopísaný koncept smie psa aj ODOBRAŤ,
       // preto `setDogTripCrew` (prepisuje), nie `attributeDogTrips` (dopĺňa).
       setDogTripCrew(finishId, crewDogIds(draft.crew));
@@ -5408,6 +5413,7 @@ export default function PackMap() {
       }
       reportAddError(photosDropped ? t('pack.map.errorPhotosDropped') : '');
       setLocalTrails(next);
+      translateLocalTrailDesc(tid, () => setLocalTrails(readLocalTrails()));
       setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
       // PSIE KM (B20): sprievodca ako jediný vie, KTORÝ pes išiel — jeho slovo prebíja
       // odhad triggeru nad `trip_walked`.
@@ -5476,6 +5482,7 @@ export default function PackMap() {
       ...(draft.geometry.kind === 'route' && draft.geometry.path.length ? { planPath: draft.geometry.path } : {}),
     };
     setLocalTrails((prev) => [planTrail, ...prev]);
+    translateLocalTrailDesc(tid, () => setLocalTrails(readLocalTrails()), planTrail.desc);
     const dateStr = draft.dateKind === 'flexible' ? '' : (draft.date ?? '');
     // #42 — konzervatívny default: draft.visibility chýba len na starých draftoch (autosave
     // z čias pred týmto poľom), fallback je preto 'private', NIE 'open'. Len výslovné 'open'

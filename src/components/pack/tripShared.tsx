@@ -13,7 +13,7 @@ import { iso2ToISO3, trailCountry } from '@/lib/countryGeo';
 import {
   packStorage, PACK_KEYS, readStringSet as readSet,
   persistWalked, persistFav, scheduleFounderSeed, queueLocalTripUpload,
-  readLocalTrailMeta,
+  readLocalTrailMeta, translateTripDesc,
 } from '@/lib/packStore';
 import { missingOnTrail } from '@/components/pack/addtrip/addTripModel';
 
@@ -732,6 +732,22 @@ export function updateLocalTrail(id: string, patch: Partial<HeroTrail>): boolean
   } catch { return false; /* kvóta — volajúci nech to ošetrí, rovnako ako writeLocalTrails */ }
   queueLocalTripUpload([id]);
   return true;
+}
+
+/**
+ * EN PREKLAD POPISU ČLENSKÉHO VÝLETU v pozadí (5. 10. 2026). Dovtedy sa prekladal len
+ * popis upravený v `TripEditPanel`; výlet zo sprievodcu ostal na SK fallbacku navždy.
+ * Zapíše `descEN` LEN keď `desc` medzitým nikto neprepísal — pomalý preklad starého textu
+ * by inak prebil nový. `onDone` = volajúci si prenačíta stav (PackMap `setLocalTrails`).
+ */
+export function translateLocalTrailDesc(id: string, onDone?: () => void, text?: string): void {
+  // `text` = výlet ešte nie je v úložisku (plán zapisuje až efekt po `setLocalTrails`).
+  const src = text ?? readLocalTrails().find((t) => t.id === id)?.desc ?? '';
+  void translateTripDesc(src).then((en) => {
+    if (!en) return;
+    if ((readLocalTrails().find((t) => t.id === id)?.desc ?? '') !== src) return;
+    if (updateLocalTrail(id, { descEN: en })) onDone?.();
+  });
 }
 
 const readStringSet = readSet;
