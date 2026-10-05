@@ -118,6 +118,13 @@ const pinnedAt = (sel: string, f: number): number | null => {
 const easeSine = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2;
 /** Jazda krava a pes → preambula (ústava). Predtým ~1,8 s mäkko. */
 const CREDO_RIDE_MS = 3000;
+/** 🔴 Jazda guľa → krava a pes NA MOBILE (Matej 5. 10. 2026: *„trošku seká prechod
+ *  z 1-2 slajd… chceme to viac plynulé"*). Predvolený cubic in-out má v strede
+ *  3× priemernú rýchlosť a odchod gule (PLANET_OUT 0,06–0,60) aj príchod zvierat
+ *  (ANIMALS_IN 0,10–0,74) sa natlačili do ~0,7 s z 2,5 s. Sínus má v strede len
+ *  1,57× priemer — ten istý, na ktorom ide 2 → 3 a ten Matej za sekaný nemal.
+ *  PC ostáva (mení sa až na Matejovo slovo). */
+const INTRO_RIDE_MS = 2800;
 
 /** 🔴 JAZDA PO ČASOVÝCH BODOCH (Matej 28. 9. 2026 — konsolidácia scrollov:
  *  *„všetko na jeden scrol, iba postupne"*). Jeden ťah motora prejde viac
@@ -4126,6 +4133,8 @@ export default function OnePage() {
     GATE_KEYS(from, to) ?? DGX_KEYS(from, to) ?? QUO_KEYS(from, to) ?? WNY_KEYS(from, to);
   /** 🔴 ÚSTAVA POMALŠIE (Matej 28. 9. 2026: *„spomaľ načítanie ústavy, je to
    *  moc rýchle"*). Druhý ťah filmu — krava a pes → preambula s mottom. */
+  const isIntroRide = (from: number, to: number) =>
+    window.innerWidth <= 768 && from < 4 && Math.abs(to - filmVh() * PIN_VH) < 4;
   const isCredoRide = (from: number, to: number) => {
     const a = filmVh() * PIN_VH, b = filmVh() * (PIN_VH + PIN2_VH);
     return Math.abs(from - a) < 4 && Math.abs(to - b) < 4;
@@ -4148,13 +4157,14 @@ export default function OnePage() {
       const k = keyedRide(from, to);
       if (k) return k.dur;
       if (isCredoRide(from, to)) return CREDO_RIDE_MS;
+      if (isIntroRide(from, to)) return INTRO_RIDE_MS;
       return base;
     },
     easing: (from, to) => {
       if (to < from) return easeSine;
       const k = keyedRide(from, to);
       if (k) return k.ease;
-      return isCredoRide(from, to) ? easeSine : undefined;
+      return isCredoRide(from, to) || isIntroRide(from, to) ? easeSine : undefined;
     },
     paused: () => bookOpenRef.current || wallOpenRef.current || albaOpenRef.current || appsOpenRef.current || document.body.style.overflow === 'hidden',
     onMove: setFilmMoving,
