@@ -5437,7 +5437,7 @@ export const cs: Partial<Dict> = {
   'onepage.need.tailFree': 'tohle je zdarma',
   'onepage.aria.join': 'Přidej se',
   'onepage.aria.most': 'Co heroglyf otevírá',
-  'onepage.dgx.eye': 'Vstupenka do Dogyptu',
+  'onepage.dgx.eye': 'Vstupenka do Dogyptu:',
   'onepage.dgx.rule': 'Jedinečný symbol pro každého psa.',
   'onepage.dgx.example': 'Příklad',
   'onepage.dgx.sigrole': 'První Dogypťan',

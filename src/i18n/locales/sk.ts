@@ -1124,7 +1124,7 @@ export const sk: Partial<Dict> = {
   'onepage.aria.join': 'Pridaj sa',
   'onepage.aria.most': 'Čo heroglyf otvára',
 
-  'onepage.dgx.eye': 'Vstupenka do Dogyptu',
+  'onepage.dgx.eye': 'Vstupenka do Dogyptu:',
   'onepage.dgx.rule': 'Jedinečný symbol pre každého psa.',
   'onepage.dgx.example': 'Príklad',
   'onepage.dgx.sigrole': 'Prvý Dogypťan',

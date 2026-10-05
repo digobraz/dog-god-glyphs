@@ -1354,7 +1354,7 @@ export const en = {
   // DOGTRIX — dážď heroglyfov a dekodér. Popisky skupín aj bubliny píše
   // vanilla DOM v mount-once efekte, preto sa po zmene jazyka prepisujú
   // ručne (`retext` v OnePage.tsx), nie cez React.
-  'onepage.dgx.eye': 'The ticket to Dogypt',
+  'onepage.dgx.eye': 'The ticket to Dogypt:',
   'onepage.dgx.rule': 'Unique symbol for every dog.',
   'onepage.dgx.example': 'Example',
   'onepage.dgx.sigrole': 'First Dogyptian',

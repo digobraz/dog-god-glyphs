@@ -1135,6 +1135,11 @@ const DGX_GROUPS_V = [
  *  `DGX_GROUPS`/`DGX_GROUPS_V`; adresuje sa indexom, nie fyzickým poradím.
  *  Text je v slovníku (`onepage.dgx.k.<n>.name` / `.desc`). */
 const DGX_KKEY = ['onepage.dgx.k.1', 'onepage.dgx.k.2', 'onepage.dgx.k.3', 'onepage.dgx.k.4'];
+/** Id oblastí v TOM ISTOM poradí ako `DGX_KKEY` — bublina oblasti z nich berie text. */
+const DGX_GROUP_IDS = ['basics', 'breed', 'char', 'own'] as const;
+/** Krytie farby oblasti po zhasnutí kót (5. 10. 2026) — glyf ostáva čitateľne
+ *  farebný ako mapa štyroch oblastí; plná farba + žiara patrí len dotyku. */
+const DGX_HOT_REST = 0.55;
 
 /** Ktoré sloty majú bublinu. Jej obsah (Hektorove SKUTOČNÉ hodnoty, pes #1)
  *  je v slovníku: `onepage.dgx.bub.<slot>.label` / `.value` / `.glyph` — tri
@@ -1227,7 +1232,9 @@ const DGX = {
      Mobilne (`fpM`/`nsM`/`rlsM`) ostavaju — pokyn padol nad PC obrazovkou,
      rovnako ako pri `gwK`. `sgap` (medzera fotka↔text) sa nedeli: nema
      mobilny variant, takze by zmena zasiahla aj telefon, a ide o 2 px. */
-  sig: 66, sigD: 4, fp: 52.0, fpM: 56, ns: 19.1, nsM: 21, sgap: 14, rls: 11, rlsM: 11,
+  /* 5. 10. 2026 — MOBIL o štvrtinu menší (Matej: *„na mobile zmenši foto hektora aj
+     textting pri ňom, je to moc veľké"*): fpM 56→42 · nsM 21→16 · rlsM 11→9. PC nemenené. */
+  sig: 66, sigD: 4, fp: 52.0, fpM: 42, ns: 19.1, nsM: 16, sgap: 14, rls: 11, rlsM: 9,
 } as const;
 
 /** Dráha WE NEED YOU, ktorú oblúk naozaj má — 0, kým je obraz odložený (WNY_ON). */
@@ -2320,7 +2327,15 @@ export default function OnePage() {
         const fadeIn = Math.max(1.2, pw * 0.35);
         const lit = seg(pc, a, a + fadeIn);
         const on = seg(pc, a + pw, a + pw + DGX.kotaD);
-        const sv = Math.max(0, Math.max(lit, on)) * dgxPulseAt(pc, a, pw, DGX.pulseN) * (1 - dark);
+        // 🔴 PO ZHASNUTÍ KÓT OSTÁVAJÚ OBLASTI FAREBNÉ (Matej 5. 10. 2026: *„potrebujem
+        // aj na mobile aj na PC ponechať možnosť pozrieť sa na tie 4 časti… pomerne
+        // rýchlo zmiznú = mohli by zostať farebné hotspoty a po kliknutí bublinka pre
+        // danú oblasť"*). Farba neodíde do čiernej, ale do tlmeného tónu DGX_HOT_REST —
+        // tým istým `dark`, takže prechod je jeden pohyb, nie druhé rozsvietenie.
+        const sv = Math.max(
+          Math.max(0, Math.max(lit, on)) * dgxPulseAt(pc, a, pw, DGX.pulseN) * (1 - dark),
+          DGX_HOT_REST * dark,
+        );
         const kv = Math.max(0, on) * (1 - dark);
         kMax = Math.max(kMax, on);
         for (const nd of tints[k.id]) {
@@ -2351,16 +2366,26 @@ export default function OnePage() {
       for (const hk in hotOf) hotOf[hk].classList.toggle('off', hk === hoverKey);
       if (sec.dataset.live === '1' && hoverKey && tintOf[hoverKey]) {
         const g = vertical ? SLOT_G_V(hoverKey) : SLOT_G_H(hoverKey);
-        const nd = tintOf[hoverKey];
-        (nd as unknown as HTMLElement).style.opacity = '1';
-        (nd as unknown as HTMLElement).style.filter = `url(#dgx-t-${g}) drop-shadow(0 0 ${DGX.glow}px ${DGX_COL[g]})`;
+        // Rozsvieti sa CELÁ OBLASŤ (5. 10. 2026), nie len symbol pod prstom —
+        // bublina hovorí o oblasti, svetlo musí ukázať, ktorá to je.
+        for (const nd of tints[g] ?? []) {
+          (nd as unknown as HTMLElement).style.opacity = '1';
+          (nd as unknown as HTMLElement).style.filter = (nd === cartTNode ? '' : `url(#dgx-t-${g}) `) +
+            `drop-shadow(0 0 ${DGX.glow}px ${DGX_COL[g]})`;
+        }
         const slot = (vertical ? DGX_SLOTS_V : DGX_SLOTS).find((s) => s.k === hoverKey)!;
         bub.style.color = DGX_COL[g];
         const bk = `onepage.dgx.bub.${hoverKey}`;
-        const [label, val, name] = DGX_BUB.has(hoverKey)
-          ? [tRef.current(`${bk}.label`), tRef.current(`${bk}.value`), tRef.current(`${bk}.glyph`)]
-          : ['', '', ''];
-        bub.innerHTML = `<b>${label}</b><i>${val}</i><em>${name}</em>`;
+        const [label, val] = DGX_BUB.has(hoverKey)
+          ? [tRef.current(`${bk}.label`), tRef.current(`${bk}.value`)]
+          : ['', ''];
+        // Bublina OBLASTI: hore symbol pod prstom (údaj · hodnota), veľkým jej
+        // názov z kóty, pod ním popis kóty — ten istý text, ktorý predtým zhasol.
+        const gi = DGX_GROUP_IDS.indexOf(g as typeof DGX_GROUP_IDS[number]);
+        const area = gi >= 0 ? tRef.current(`${DGX_KKEY[gi]}.name`) : '';
+        const desc = gi >= 0 ? tRef.current(`${DGX_KKEY[gi]}.desc`) : '';
+        const esc = (x: string) => x.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]!));
+        bub.innerHTML = `<b>${esc(label && val ? `${label} · ${val}` : label)}</b><i>${esc(area)}</i><em>${esc(desc)}</em>`;
         bub.classList.add('on');
         const gr = gbox.getBoundingClientRect(), sr = sec.getBoundingClientRect();
         bub.style.removeProperty('transform');
