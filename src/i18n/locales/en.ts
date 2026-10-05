@@ -1234,6 +1234,7 @@ export const en = {
   'onepage.hbook.prev': "Previous chapter",
   'onepage.hbook.next': "Next chapter",
   'onepage.hbook.nextPic': "Next picture",
+  'onepage.hbook.tap': "Tap to read ›",
   'onepage.hbook.0.title': "Once upon a time…",
   'onepage.hbook.0.glyph': "Hekthor's heroglyph",
   'onepage.hbook.0.sub': "Hekthor · dog #1",

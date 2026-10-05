@@ -43,12 +43,13 @@ const IMG = '/images/hektor-kniha';
  *  Decorative, Hektor kreslený podľa fotiek (krátka srsť, čierno-hnedý). */
 const CHAPTERS = [
   { n: 0, media: ['k0-zrkadlo'] },
+  // 5. 10. 2026 — fotky a ich poradie prenesené zo `scenes.json` (Matej: *„obsah — done“*).
   { n: 1, media: ['k1-kresba', 'k1-f1', 'k1-f2'] },
-  { n: 2, media: ['k2-kresba', 'k2-f1', 'k2-f2', 'k2-f3'] },
-  { n: 3, media: ['k3-kresba', 'k3-f1', 'k3-f2'] },
-  { n: 4, media: ['k4-kresba', 'k4-f1', 'k4-f2', 'k4-f3'] },
+  { n: 2, media: ['k2-kresba', 'k2-f1', 'k2-f2', 'k2-f3', 'k2-f4', 'k2-f5', 'k2-f6', 'k2-f7', 'k2-f8'] },
+  { n: 3, media: ['k3-kresba', 'k3-f1', 'k3-f2', 'k3-f3', 'k3-f4'] },
+  { n: 4, media: ['k4-kresba', 'k4-f1', 'k4-f2', 'k4-f3', 'k4-f4', 'k4-f5', 'k4-f6', 'k4-f7', 'k4-f8', 'k4-f9', 'k4-f10', 'k4-f11', 'k4-f12'] },
   // 5. 10. 2026 — Matej: „pridal by som ešte jeden list o Hektorovi, niečo osobné… obrázok s kocúrmi po boku“
-  { n: 5, media: ['k5-kresba'] },
+  { n: 5, media: ['k5-kresba', 'k5-f1', 'k5-f2', 'k5-f3', 'k5-f4', 'k5-f5'] },
 ] as const;
 
 /** Ornamentový pás dole = symboly heroglyfu, nie cudzí ornament. */
@@ -173,7 +174,7 @@ export const HEKTOR_BOOK_CSS = `
   content: ''; flex-shrink: 0; width: 220px; height: 14px; margin: 22px 0;
   background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='14'><path d='M4 7l5-5 5 5-5 5z' fill='%23C99A3F'/><circle cx='22' cy='7' r='3' fill='%23A8432A'/><path d='M30 7l5-5 5 5-5 5z' fill='%2316307A'/></svg>") center / 40px 14px repeat-x;
 }
-.hb-track { display: none; }
+.hb-story { display: none; }
 .hb-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 16px; }
 .hb-nav button {
   width: 48px; height: 48px; border-radius: 999px; display: grid; place-items: center; cursor: pointer;
@@ -183,37 +184,71 @@ export const HEKTOR_BOOK_CSS = `
 .hb-dots { display: flex; gap: 8px; }
 .hb-dots i { width: 8px; height: 8px; border-radius: 999px; background: rgba(243, 228, 196, 0.45); }
 .hb-dots i.on { background: #F3E4C4; width: 24px; }
-@container (max-width: 720px) {
-  .hb-book { display: block; height: min(740px, calc(100dvh - 160px)); }
-  .hb-book::after, .hb-page { display: none; }
-  .hb-track {
-    display: flex; gap: 12px; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory;
-    padding: 20px 16px 20px 20px; scrollbar-width: none; position: relative; z-index: 4;
+/* ── MOBIL = PRÍBEH (Matej 5. 10. 2026: *„ten mobil sa mi nepáči… daj to ako príbeh"*,
+   variant B z plany/nakres-hektor-pribeh-2026-10-03/mobil.html). Ako Instagram story:
+   ťuk vpravo = ďalej, vľavo = späť, švih tiež. Kapitola = kresba s úvodnou vetou →
+   celý text → fotky na celú obrazovku. Dvojstrana pod 753 px zaniká (= kniha 720 px). */
+@media (max-width: 752px) {
+  .hb-veil { padding: 0; }
+  .hb-stage { display: none; }
+  .hb-back { top: calc(12px + env(safe-area-inset-top)); height: 36px; padding: 0 16px; z-index: 3; }
+  .hb-story {
+    display: block; position: fixed; inset: 0; z-index: 1; overflow: hidden;
+    background: #1D140B; user-select: none; -webkit-user-select: none; touch-action: pan-y;
   }
-  .hb-track::-webkit-scrollbar { display: none; }
-  .hb-track > * { flex: 0 0 80%; scroll-snap-align: start; height: 100%; }
-  .hb-track > :last-child { scroll-snap-align: end; }
-  .hb-mtext {
-    position: relative; border-radius: 12px; padding: 16px 16px 64px; overflow-y: auto;
-    background: rgba(255, 248, 232, 0.55); box-shadow: inset 0 0 0 1px rgba(201, 154, 63, 0.45);
+  .hb-seg {
+    position: absolute; z-index: 2; left: 16px; right: 128px; top: calc(28px + env(safe-area-inset-top));
+    display: flex; gap: 4px; pointer-events: none;
   }
-  .hb-mtext .hb-band { left: 12px; right: 12px; bottom: 12px; height: 34px; }
-  .hb-mtext .hb-band img { height: 16px; max-width: 11%; object-fit: contain; }
-  .hb-mpic {
-    position: relative; flex-basis: auto !important; aspect-ratio: 3 / 4; max-width: 80%;
-    filter: drop-shadow(0 8px 14px rgba(60, 35, 8, 0.3));
+  .hb-seg i { flex: 1; height: 3px; border-radius: 999px; background: rgba(243, 228, 196, 0.3); }
+  .hb-seg i.on { background: #F3E4C4; }
+  .hb-chl {
+    position: absolute; z-index: 2; left: 16px; top: calc(40px + env(safe-area-inset-top)); pointer-events: none;
+    font: 700 12px/1 'Cinzel', serif; letter-spacing: .2em; color: #F3E4C4;
   }
-  .hb-mpic img { width: 100%; height: 100%; object-fit: contain; display: block; }
-  .hb-mpic .hb-plate { font-size: 14px; padding: 5px 12px; }
+  .hb-story.is-light .hb-seg i { background: rgba(22, 48, 122, 0.2); }
+  .hb-story.is-light .hb-seg i.on { background: #16307A; }
+  .hb-story.is-light .hb-chl { color: #16307A; }
+  .hb-fr { position: absolute; inset: 0; }
+  .hb-fr.paper {
+    padding: calc(72px + env(safe-area-inset-top)) 24px 32px; overflow-y: auto;
+    background:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9 .06' numOctaves='3' seed='4'/><feColorMatrix values='0 0 0 0 .45 0 0 0 0 .3 0 0 0 0 .12 0 0 0 .09 0'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>"),
+      radial-gradient(90% 70% at 50% 40%, #F6E9CA, #EAD5A8);
+  }
+  .hb-fr.paper .hb-title { min-height: 100%; padding-bottom: 0; }
+  .hb-fr.draw {
+    display: flex; flex-direction: column; gap: 16px;
+    padding: calc(64px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+  }
+  .hb-fr.draw > img {
+    flex: 1; min-height: 0; width: 100%; object-fit: contain;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
+  }
+  .hb-strip {
+    flex-shrink: 0; border-radius: 12px; padding: 16px; background: #F1E2BF;
+    box-shadow: 0 0 0 2px #C99A3F, 0 10px 24px rgba(0, 0, 0, 0.4);
+  }
+  .hb-strip .hb-lead::after { display: none; }
+  .hb-strip .hb-lead { margin: 0; }
+  .hb-more {
+    clear: both; display: block; margin-top: 12px;
+    font: 500 10px/1 'Space Grotesk', sans-serif; letter-spacing: .22em; text-transform: uppercase; color: #A8432A;
+  }
+  .hb-strip .hb-plate, .hb-fr.paper .hb-plate { position: static; transform: none; display: inline-block; }
+  .hb-fr.photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hb-fr.photo .hb-plate { bottom: calc(24px + env(safe-area-inset-bottom)); }
+  .hb-capr { text-align: center; margin: 24px 0 0; }
+  .hb-fr.draw .hb-capr { margin: 0; }
+  .hb-fr.draw .hb-plate { position: static; transform: none; display: inline-block; }
   .hb-ini { width: 64px; height: 70px; font-size: 48px; margin-right: 12px; }
-  .hb-lead::after { margin: 8px 0 10px; }
+  .hb-lead::after { margin: 8px 0 12px; }
   .hb-txt { font-size: 18px; }
   .hb-lead { font-size: 20px; }
   .hb-title p { font-size: 38px; }
-  .hb-title small { font-size: 18px; }
-  .hb-corner { display: none; }
-  .hb-glyph { margin-top: 20px; }
-  .hb-title::before, .hb-title::after { width: 150px; margin: 14px 0; }
+  .hb-title small { font-size: 16px; }
+  .hb-glyph { margin-top: 0; }
+  .hb-title::before, .hb-title::after { width: 150px; margin: 16px 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hb-veil { animation: none; }
@@ -233,12 +268,15 @@ export default function HektorBook({ onClose }: { onClose: () => void }) {
   const t = useT();
   const [ch, setCh] = useState(0);
   const [pic, setPic] = useState(0);
+  /** Mobil: poloha v príbehu kapitoly (0 = kresba / titul, 1 = text, 2+ = fotky). */
+  const [fr, setFr] = useState(0);
   const backRef = useRef<HTMLButtonElement | null>(null);
-  const trackRef = useRef<HTMLDivElement | null>(null);
+  const swipeX = useRef<number | null>(null);
 
   const go = useCallback((n: number) => {
     setCh(Math.max(0, Math.min(CHAPTERS.length - 1, n)));
     setPic(0);
+    setFr(0);
   }, []);
 
   useEffect(() => {
@@ -257,13 +295,71 @@ export default function HektorBook({ onClose }: { onClose: () => void }) {
     };
   }, [onClose]);
 
-  // Na mobile sa pri novej kapitole pás vráti na text.
-  useEffect(() => { trackRef.current?.scrollTo({ left: 0 }); }, [ch]);
-
   const c = CHAPTERS[ch];
   const k = `onepage.hbook.${c.n}`;
   const cap = t(`${k}.cap`);
   const isTitle = c.n === 0;
+  // Príbeh (mobil): titul = [titul, zrkadlo]; kapitola = [kresba + veta, text, …fotky].
+  const frames = (i: number) => (CHAPTERS[i].n === 0 ? 2 : CHAPTERS[i].media.length + 1);
+  const nFr = frames(ch);
+  const step = (d: 1 | -1) => {
+    if (d === 1) {
+      if (fr < nFr - 1) setFr(fr + 1);
+      else if (ch < CHAPTERS.length - 1) { setCh(ch + 1); setFr(0); }
+    } else if (fr > 0) setFr(fr - 1);
+    else if (ch > 0) { setCh(ch - 1); setFr(frames(ch - 1) - 1); }
+  };
+  const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+  const story = (() => {
+    const head = (
+      <span className="hb-ini" aria-hidden>{t(`${k}.ini`)}</span>
+    );
+    if (isTitle && fr === 0) {
+      return (
+        <div className="hb-fr paper">
+          <div className="hb-title">
+            <p>{t(`${k}.title`)}</p>
+            <span className="hb-glyph"><img src="/images/hekthor-heroglyph.webp" alt={t(`${k}.glyph`)} /></span>
+            <small>{t(`${k}.sub`)}</small>
+          </div>
+        </div>
+      );
+    }
+    if (fr === 0 || isTitle) {
+      return (
+        <div className="hb-fr draw">
+          <img src={`${IMG}/${c.media[0]}.webp`} alt={cap} />
+          {isTitle ? <p className="hb-capr"><span className="hb-plate">{cap}</span></p> : (
+            <div className="hb-strip">
+              {head}
+              <p className="hb-lead"><span className="sr-only">{t(`${k}.ini`)}</span>{t(`${k}.lead`)}</p>
+              <span className="hb-more">{t('onepage.hbook.tap')}</span>
+            </div>
+          )}
+        </div>
+      );
+    }
+    if (fr === 1) {
+      return (
+        <div className="hb-fr paper">
+          {head}
+          <p className="hb-lead"><span className="sr-only">{t(`${k}.ini`)}</span>{t(`${k}.lead`)}</p>
+          <p className="hb-txt">{t(`${k}.txt`)}</p>
+          <p className="hb-capr"><span className="hb-plate">{cap}</span></p>
+        </div>
+      );
+    }
+    const m = c.media[fr - 1];
+    return (
+      <div className="hb-fr photo">
+        <img src={`${IMG}/${m}.webp`} alt="" />
+        <span className="hb-plate">{cap}</span>
+      </div>
+    );
+  })();
+  // Ďalší obrázok príbehu sa načíta vopred, aby ťuk neukázal prázdno.
+  const nextSrc = !isTitle && fr >= 0 && fr < nFr - 1 && fr + 1 >= 2 ? `${IMG}/${c.media[fr]}.webp` : null;
+
   const corners = ['tl', 'tr', 'bl', 'br'].map((x) => <span key={x} className={`hb-corner ${x}`} aria-hidden />);
   const text = isTitle ? (
     <>
@@ -324,15 +420,6 @@ export default function HektorBook({ onClose }: { onClose: () => void }) {
               <span className="hb-plate">{cap}</span>
             </button>
           </div>
-          <div className="hb-track" ref={trackRef}>
-            <div className="hb-mtext">{text}</div>
-            {c.media.map((m, j) => (
-              <div key={m} className="hb-mpic">
-                <img src={`${IMG}/${m}.webp`} alt={j === 0 ? cap : ''} loading="lazy" />
-                {j === 0 && <span className="hb-plate">{cap}</span>}
-              </div>
-            ))}
-          </div>
         </div>
         <div className="hb-nav">
           <button type="button" onClick={() => go(ch - 1)} disabled={ch === 0} aria-label={t('onepage.hbook.prev')}><Arrow dir="l" /></button>
@@ -341,6 +428,24 @@ export default function HektorBook({ onClose }: { onClose: () => void }) {
           </span>
           <button type="button" onClick={() => go(ch + 1)} disabled={ch === CHAPTERS.length - 1} aria-label={t('onepage.hbook.next')}><Arrow dir="r" /></button>
         </div>
+      </div>
+      <div
+        className={`hb-story${fr === 1 || (isTitle && fr === 0) ? ' is-light' : ''}`}
+        onPointerDown={(e) => { swipeX.current = e.clientX; }}
+        onPointerUp={(e) => {
+          const x0 = swipeX.current; swipeX.current = null;
+          if (x0 == null) return;
+          const dx = e.clientX - x0;
+          if (Math.abs(dx) > 40) { step(dx < 0 ? 1 : -1); return; }
+          step(e.clientX < window.innerWidth / 3 ? -1 : 1);
+        }}
+      >
+        <div className="hb-seg" aria-hidden>
+          {Array.from({ length: nFr }, (_, j) => <i key={j} className={j <= fr ? 'on' : ''} />)}
+        </div>
+        {!isTitle && <span className="hb-chl" aria-hidden>{ROMAN[c.n]} / {ROMAN[CHAPTERS.length - 1]}</span>}
+        {story}
+        {nextSrc && <link rel="preload" as="image" href={nextSrc} />}
       </div>
     </div>,
     document.body,

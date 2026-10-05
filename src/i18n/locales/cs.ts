@@ -5308,6 +5308,7 @@ export const cs: Partial<Dict> = {
   'onepage.hbook.prev': "Předchozí kapitola",
   'onepage.hbook.next': "Další kapitola",
   'onepage.hbook.nextPic': "Další obrázek",
+  'onepage.hbook.tap': "Ťukni a čti ›",
   'onepage.hbook.0.title': "Bylo nebylo…",
   'onepage.hbook.0.glyph': "Hekthorův heroglyf",
   'onepage.hbook.0.sub': "Hekthor · pes #1",
