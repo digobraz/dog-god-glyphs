@@ -71,6 +71,8 @@ type AppFeature = {
   shot?: string;
   /** Slider v DETAILE: screenshoty z appky. Kým chýbajú, 3 prázdne rámy. */
   shots: string[];
+  /** Mapy pod funkciou dodáva Mapy.com — v DETAILE pod vetou čip s ich logom. */
+  mapy?: boolean;
 };
 
 const bn = (id: string, n = 4) => Array.from({ length: n }, (_, i) => `onepage.apps.${id}.b${i + 1}`);
@@ -92,7 +94,7 @@ const APPS: AppFeature[] = [
   /* 🔁 PORADIE 5. 10. 2026 — Matej: *„na úvodnom mockupe musia byť tie najkrajšie = DOG ID
      v strede, sprava DOGTRIP, zľava AINUBIS"*. Sprava stojí nasledujúci, zľava posledný. */
   { id: 'dogid', nameKey: 'heroglyph.flow.more.dogid.t', ledeKey: 'onepage.apps.dogid.lede', bulletKeys: bn('dogid', 5), shot: img('dogid-profil'), shots: [img('dogid-profil'), img('dogid-kviz'), img('dogid-kalendar'), img('dogid-zdravie'), img('dogid-zivot-prehlad')] },
-  { id: 'dogtrip', nameKey: 'heroglyph.flow.more.dogtrip.t', ledeKey: 'onepage.apps.dogtrip.lede', bulletKeys: bn('dogtrip', 5), shot: img('dogtrip-swiss'), shots: [img('dogtrip-swiss'), img('dogtrip-mapa'), img('dogtrip-clanok'), img('dogtrip-mapa-celok'), img('dogtrip-stats'), img('dogtrip-odznaky'), img('dogtrip-odznaky-parky'), img('dogtrip-pridat-2-druh'), img('dogtrip-pridat-6-o-vylete')] },
+  { id: 'dogtrip', nameKey: 'heroglyph.flow.more.dogtrip.t', ledeKey: 'onepage.apps.dogtrip.lede', bulletKeys: bn('dogtrip', 5), shot: img('dogtrip-swiss'), shots: [img('dogtrip-swiss'), img('dogtrip-mapa'), img('dogtrip-clanok'), img('dogtrip-mapa-celok'), img('dogtrip-stats'), img('dogtrip-odznaky'), img('dogtrip-odznaky-parky'), img('dogtrip-pridat-2-druh'), img('dogtrip-pridat-6-o-vylete')], mapy: true },
   { id: 'sniffer', nameKey: 'heroglyph.flow.more.sniffer.t', ledeKey: 'onepage.apps.sniffer.lede', bulletKeys: bn('sniffer'), shot: img('sniffer-cisty'), shots: [img('sniffer-cisty'), img('sniffer-hladat'), img('sniffer-profil-eva'), img('sniffer-profil-eva-2'), img('sniffer-zhody')] },
   // 5/5 — Matej 27. 9.: *„komunita/pomoc… transparentná pomoc, nové výskumy —
   // to, čo členstvo vie pomáhať psom"*. Detail = text „VYŠŠÍ CIEĽ" z heroflowu.
@@ -411,6 +413,15 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
             <div className="op-apps-pop-txt">
               <h2 className="op-apps-name">{t(cur.nameKey)}</h2>
               <p className="op-apps-lede">{t(cur.ledeKey)}</p>
+              {/* ČIP MAPY.COM (Matej 5. 10. 2026: *„dal by som logo mapy cz alebo chip… nech to má
+                  lepšiu relevantnosť"*). Logo je to isté ako vo „Vyraziť na miesto" (`/nav-apps/mapy.svg`). */}
+              {cur.mapy && (
+                <a className="op-apps-mapy" href="https://mapy.com" target="_blank" rel="noopener noreferrer">
+                  <span>{t('onepage.apps.mapy')}</span>
+                  <img src="/nav-apps/mapy.svg" alt="" width={20} height={20} />
+                  <b>Mapy.com</b>
+                </a>
+              )}
               <ul className="op-apps-ul">
                 {cur.bulletKeys.map((k, j) => (
                   <li key={k} style={{ ['--i' as string]: j } as CSSProperties}>
@@ -590,6 +601,15 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
         .op-apps-pop-txt { grid-column: 2; grid-row: 1; }
         .op-apps-pop .op-apps-sl-view { width: min(300px, calc((100dvh - 250px) * ${(IPHONE_W / IPHONE_H).toFixed(4)})); }
         .op-apps-pop .op-apps-ul { margin: 0; }
+        .op-apps-mapy {
+          display: inline-flex; align-items: center; gap: 8px; margin: -8px 0 24px; padding: 4px 12px 4px 12px;
+          border-radius: 999px; border: 1px solid rgba(201,154,63,.6); background: rgba(255,255,255,.55);
+          font: 500 12px/1 'Space Grotesk', sans-serif; letter-spacing: .02em; color: rgba(35,22,8,.7);
+          text-decoration: none; transition: background .15s;
+        }
+        .op-apps-mapy:hover { background: #fff; }
+        .op-apps-mapy img { width: 20px; height: 20px; border-radius: 4px; display: block; }
+        .op-apps-mapy b { font-weight: 600; color: ${LAB.ink}; }
         /* DETAIL — slider: telefón so screenshotom, šípky po bokoch, bodky pod ním. */
         .op-apps-sl { position: relative; display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 16px; touch-action: pan-y; }
         .op-apps-sl-view { width: min(280px, calc((100dvh - 320px) * ${(IPHONE_W / IPHONE_H).toFixed(4)})); overflow: hidden; }

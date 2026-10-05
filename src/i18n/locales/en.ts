@@ -1299,6 +1299,7 @@ export const en = {
   'onepage.apps.cause.b2': 'Transparent treasury',
   'onepage.apps.cause.b3': 'Direct help for dogs in need',
   'onepage.apps.cause.b4': 'Funding new innovations',
+  'onepage.apps.mapy': 'Maps powered by',
   'onepage.need.step': 'Next step',
   'onepage.need.cta': 'Join the mission',
   'onepage.need.want': 'Join us',
