@@ -1068,7 +1068,7 @@ export const sk: Partial<Dict> = {
   'onepage.apps.dogtrip.b4': 'Zbieranie bodov a odznakov',
   'onepage.apps.dogtrip.b5': 'Plánovanie výletov',
   'onepage.apps.sniffer.lede': 'Dog friendly zoznamka. Nájdi si kamoša, partiu alebo partnera, s ktorým budeš objavovať svet ako jedna svorka.',
-  'onepage.apps.ainubis.lede': 'Naša personalizovaná AI, tvoj pomocník a mentor. Tvojho psa dokonale pozná.',
+  'onepage.apps.ainubis.lede': 'Naša personalizovaná AI, pomocník a mentor, ktorý tvojho psa dokonale pozná. Čerpá z internetu aj z kníh od odborníkov — zaujímavé, overené texty a rýchle náučné podcasty.',
   'onepage.apps.cause.name': 'SILA KOMUNITY',
   'onepage.apps.cause.lede': 'DOGYPT tvoríme spoločne z lásky ku psom, a preto sme 100 % transparentní. Každý člen vidí príjmy a výdavky projektu.',
   'onepage.apps.cause.b1': 'Affiliate systém',

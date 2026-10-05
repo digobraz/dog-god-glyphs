@@ -17,7 +17,7 @@ import {
   PACK_THEME as T, PACK_BOX, PACK_R, PACK_SPACE, PACK_TEXT, PACK_SHADOW, PACK_AVATAR,
   VEIL_CSS, FONT_TITLE, FONT_UI,
 } from '@/components/pack/packTheme';
-import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
+import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS, goldFrameCSS } from '@/components/pack/navGoldSkin';
 import { SnifferCard, SNIFFER_CARD_CSS } from './SnifferCard';
 import { SnifferSearch } from './SnifferSearch';
 import { SnifferEmpty, SNIFFER_EMPTY_CSS } from './SnifferEmpty';
@@ -92,8 +92,10 @@ const CSS = `
 .sh-area{width:100%;min-height:96px;resize:vertical;border-radius:${PACK_R.field}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;
   font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;color:${T.inkStrong};}
 .sh-ghost--dark{background:transparent;color:${LAPIS.ink};}
-/* ZHODY — riadky */
+/* ZHODY — riadky. Zoznam sedí v D-BLOKU, nie holý na rozmazanej tapete (Matej 5. 10. 2026:
+   „podklad je rozmazaná tabuľa = je to zlé, správy by mali byť vidno na D-bloku"). */
 .sh-list{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;}
+.sh-dblk{${goldFrameCSS()}padding:${PACK_SPACE.md}px;}
 .sh-row{display:flex;align-items:center;gap:${PACK_SPACE.md}px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;}
 .sh-row img{width:${PACK_AVATAR.md}px;height:${PACK_AVATAR.md}px;border-radius:${PACK_R.pill}px;object-fit:cover;flex:0 0 auto;}
 .sh-row__txt{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;font-family:${FONT_UI};}
@@ -456,7 +458,7 @@ export function SnifferHome({ tx, me }: {
               {[0, 1, 2].map((i) => <div key={i} className="sh-skel-row" />)}
             </div>
           ) : matches.length > 0 ? (
-            <div className="sh-list">
+            <div className="sh-list sh-dblk">
               {matches.map((m) => {
                 const isNew = new Date(m.matchedAt).getTime() > seenAt;
                 return (

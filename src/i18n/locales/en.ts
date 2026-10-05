@@ -1292,7 +1292,7 @@ export const en = {
   'onepage.apps.dogtrip.b4': 'Collect points and badges',
   'onepage.apps.dogtrip.b5': 'Plan your trips',
   'onepage.apps.sniffer.lede': 'A dog friendly matchmaker. Find a buddy, a crew or a partner to explore the world with — as one pack.',
-  'onepage.apps.ainubis.lede': 'Our personalised AI, your helper and mentor. It knows your dog inside out.',
+  'onepage.apps.ainubis.lede': 'Our personalised AI, helper and mentor who knows your dog inside out. It draws on the internet and on books by experts — interesting, verified texts and quick educational podcasts.',
   'onepage.apps.cause.name': 'COMMUNITY POWER',
   'onepage.apps.cause.lede': 'We build DOGYPT together, out of love for dogs — so we are 100 % transparent. Every member sees the project’s income and expenses.',
   'onepage.apps.cause.b1': 'Affiliate system',
