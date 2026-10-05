@@ -79,8 +79,8 @@ const b4 = (id: string) => [1, 2, 3, 4].map((i) => `onepage.apps.${id}.b${i}`);
 /* SNÍMKY (Matej 5. 10. 2026) — DOG ID = stránka psa s heroglyfom (Hekthor, ostré prihlásenie; kvíz ide do detailu) · SNIFFER = len bledá
    plocha karty s logom, podnadpisom a CTA, bez tapety s heroglyfmi (*„zjednodušíme to"*) ·
    DOGTRIP = švajčiarsky výlet Seealpsee (karta + trasa na mape) · AINUBIS = VAULT a Dogscroll
-   BEZ oznamu otvorenia · KOMUNITA = dotyk ruky a labky (`touch_cut.webp` z filmu, Matej 5. 10.) na bledej
-   ploche. Zdroj a výber: `plany/nakres-clenstvo-screeny-2026-10-05/`; detailné
+   BEZ oznamu otvorenia · KOMUNITA = „100 % TRANSPARENCY" nad obrazom The Open Treasury z ústavy 10.6, zdola
+   tmavý prechod so zlatým nadpisom (Matej 5. 10.: poloha B z `plany/nakres-komunita-2026-10-05/`). Zdroj a výber: `plany/nakres-clenstvo-screeny-2026-10-05/`; detailné
    slajdy sa ešte vyberajú. */
 /** Poradie = poradie v karuseli. Matej: *„dog id/profil, sniffer, dogtrips,
  *  AInubis a pomoc/možnosti… celkovo 4 obrazovky"*, 27. 9. doplnená piata. */
@@ -92,7 +92,7 @@ const APPS: AppFeature[] = [
   { id: 'sniffer', nameKey: 'heroglyph.flow.more.sniffer.t', textKey: 'heroglyph.flow.more.sniffer.d', bulletKeys: b4('sniffer'), shot: '/images/onepage/apps/sniffer-cisty.webp?v=8', shots: ['/images/onepage/apps/sniffer-cisty.webp?v=8'] },
   // 5/5 — Matej 27. 9.: *„komunita/pomoc… transparentná pomoc, nové výskumy —
   // to, čo členstvo vie pomáhať psom"*. Detail = text „VYŠŠÍ CIEĽ" z heroflowu.
-  { id: 'cause', nameKey: 'onepage.apps.cause.name', textKey: 'heroglyph.flow.more.cause.d', bulletKeys: b4('cause'), shot: '/images/onepage/apps/komunita-dotyk.webp?v=8', shots: ['/images/onepage/apps/komunita-dotyk.webp?v=8'] },
+  { id: 'cause', nameKey: 'onepage.apps.cause.name', textKey: 'heroglyph.flow.more.cause.d', bulletKeys: b4('cause'), shot: '/images/onepage/apps/komunita-transparency.webp?v=8', shots: ['/images/onepage/apps/komunita-transparency.webp?v=8'] },
   { id: 'ainubis', nameKey: 'heroglyph.flow.more.ainubis.t', textKey: 'heroglyph.flow.more.ainubis.d', bulletKeys: b4('ainubis'), shot: '/images/onepage/apps/ainubis-vault-bez-oznamu.webp?v=8', shots: ['/images/onepage/apps/ainubis-vault-bez-oznamu.webp?v=8', '/images/onepage/apps/ainubis-dogscroll.webp?v=8'] },
 ];
 
