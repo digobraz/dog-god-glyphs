@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PACK_THEME, PACK_BOX } from '@/components/pack/packTheme';
 import { HeroCard } from '@/components/pack/HeroCard';
-import { PackSettings } from '@/components/pack/PackSettings';
+import { Navigate, useLocation } from 'react-router-dom';
 import { GlobePulse } from '@/components/pack/GlobePulse';
 import { FounderInvite } from '@/components/pack/FounderInvite';
 import { PackWizard } from '@/components/pack/PackWizard';
@@ -43,7 +43,8 @@ const T = PACK_THEME;
 // ČO ZOSTALO ZÁMERNE:
 //   · GlobePulse — TransparentStats (pokladnica €11) žije VNÚTRI neho; vyhodiť
 //     planétu = vyhodiť transparentnosť financií, čo je pilier misie.
-//   · PackSettings — NEMÔŽE odísť do `/pack/profile`, kým je profil za `DEV_FULL`:
+//   · PackSettings — ODIŠIEL do `/pack/profile` 5. 10. 2026 (po FLIPe). Do toho platilo,
+//     že nemôže odísť, kým je profil za `DEV_FULL`:
 //     člen by stratil odhlásenie aj zmenu hesla a rozbil by sa post-payment
 //     deep-link `/pack?welcome=1`, ktorý tu otvára modál na nastavenie hesla.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -92,6 +93,10 @@ function firstNameFrom(email: string, fullName?: string): string {
 
 export default function Pack() {
   const t = useT();
+  // Uvítací mail po platbe (`send-certificate`, aj tie už odoslané) vedie na `/pack?welcome=1`.
+  // Účet (heslo, odhlásenie) žije od FLIPu 5. 10. 2026 len v JA — tam ide aj odkaz.
+  const { search } = useLocation();
+  const welcome = new URLSearchParams(search).get('welcome') === '1';
   const [dogs, setDogs] = useState<DogRow[] | null>(null);
   const [stats, setStats] = useState<PackStats | null>(null);
   const [user, setUser] = useState<UserMeta | null>(null);
@@ -232,6 +237,8 @@ export default function Pack() {
     return (d.pack_number ?? Infinity) < (best.pack_number ?? Infinity) ? d : best;
   }, null);
 
+  if (welcome) return <Navigate to="/pack/profile?welcome=1" replace />;
+
   return (
     <PackLayout>
       <PackAnimations />
@@ -331,13 +338,9 @@ export default function Pack() {
           shareCardUrl={primaryDog?.share_card_url ?? null}
         />
 
-        {/* Účet / nastavenia — ostáva na homepage AJ po odomknutí `/pack/profile` (2026-08-06).
-            ⚠️ NEODSTRAŇOVAŤ bez zmeny edge fn `send-certificate`: welcome e-mail po platbe
-            linkuje na `/pack?welcome=1` (`profileNext`) a práve PackSettings ten parameter
-            číta a otvára modál na nastavenie hesla. Bez neho by nový platiaci člen nemal
-            kde nastaviť heslo. PackProfile vie `?welcome=1` tiež — až keď sa prepíše link
-            v edge funkcii, môže tento blok z homepage odísť. */}
-        <PackSettings />
+        {/* Účet / nastavenia (PackSettings) ODIŠLI do JA 5. 10. 2026 (test po FLIPe: duplikát
+            + SIGN OUT na DOMOVE). `?welcome=1` z uvítacieho mailu presmeruje hore na
+            `/pack/profile?welcome=1`, kde PackSettings modál na heslo otvorí sám. */}
 
         <div style={{ height: 32 }} />
       </div>

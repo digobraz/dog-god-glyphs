@@ -543,6 +543,10 @@ const App = () => (
 
               {/* /admin — read-only backoffice (admin-email gated) */}
               <Route path="/admin" element={<Admin />} />
+              {/* Neznáma cesta v /pack NEVYPADNE z appky (test po FLIPe 5. 10. 2026: verejná 404
+                  bez spodnej lišty s návratom na stenu `/`). `buddy` je staré meno SNIFFERu. */}
+              <Route path="/pack/buddy" element={<Navigate to="/pack/sniffer" replace />} />
+              <Route path="/pack/*" element={<Navigate to="/pack" replace />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

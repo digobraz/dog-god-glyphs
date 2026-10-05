@@ -13,6 +13,9 @@
 //    (624) majú užší stĺpec — keby rad šiel s nimi, AINUBIS by na PC na každej obrazovke
 //    stál inde. Rad sa preto centruje na stred rodiča a berie šírku z `PACK_COL_INNER`.
 //    Podmienka: rodič je vodorovne na stred okna (všetky obrazovky vyššie sú).
+// ⚠️ NIE sticky (5. 10. 2026, test po FLIPe): rad nemá podklad, takže pri rolovaní plával cez
+//    obsah — logo cez „€94 RESCUE“, kapsula cez km PILGRIMA. Rad ide s obsahom; AINUBIS je
+//    stále v spodnej lište. Miesto v toku je rovnaké (padding-top rodiča nesie `top`).
 // ⚠️ `translate`, nie `transform` — hover kolieska píše `transform` a dedenie sa nesmie biť.
 import type { ReactNode } from 'react';
 import { HubAinubis } from './PackNotifications';
@@ -20,7 +23,7 @@ import { BackButton } from './BackButton';
 import { PACK_TOPROW, PACK_COL_INNER, PACK_COL_PAD } from './packTheme';
 
 const CSS = `
-.pk-toprow{position:sticky;top:calc(env(safe-area-inset-top, 0px) + ${PACK_TOPROW.top}px);z-index:30;
+.pk-toprow{position:relative;z-index:30;
   display:grid;grid-template-columns:1fr auto 1fr;align-items:center;box-sizing:border-box;
   height:${PACK_TOPROW.h}px;margin-bottom:${PACK_TOPROW.content - PACK_TOPROW.top - PACK_TOPROW.h}px;
   width:min(${PACK_COL_INNER}px, calc(100vw - ${2 * PACK_COL_PAD.mobile}px));margin-left:50%;translate:-50% 0;

@@ -6539,6 +6539,9 @@ export default function PackMap() {
                       error={evStore.error}
                     />
                   </Suspense>
+                  {/* 🔴 5. 10. 2026 (test po FLIPe): EVENTRIPY sú naplánované výlety = PLÁNOVANIE V SKLADE
+                      (`PLANNING_LIVE`). Bez zámku sa pod EVENTS ukázal starý naplánovaný výlet hneď
+                      pod hláškou „No events yet" — dva protirečivé stavy. */}
                   {/* 🔴 EVENTRIPY (looking-for-pack) LEN v „upcoming" (Matej 2026-08-06:
                       „v archive nebudu predsa tripy tie sa loguju len do tripov"). Naplánovaný
                       výlet po termíne NEIDE do archívu podujatí — vsiakne sa do tripu ako log
@@ -6554,7 +6557,7 @@ export default function PackMap() {
                       ⚠️ Prázdna vetva v `EventsView` sa NEMAŽE ani sa nemažú jej kľúče:
                       komponent je napísaný, aby vedel stáť sám, a tu ho len nevoláme
                       nazmar. SK preklad kľúčov doplnený v tom istom behu. */}
-                  {eventsView === 'upcoming' && events.length > 0 && (
+                  {PLANNING_LIVE && eventsView === 'upcoming' && events.length > 0 && (
                     <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => sizedUrl(tr.photos[0], 1080) || placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => { setActiveCat('trips'); selectTrail(trailsById(tid) ?? HERO_TRAILS[0]); }} onBrowseTrips={() => setActiveCat('trips')} myId={id.session?.user?.id ?? null} onShareTrip={shareTripLink} onDelete={deleteListing} />
                   )}
                 </>)}
@@ -6890,7 +6893,7 @@ export default function PackMap() {
                 </Suspense>
                 {/* 🔴 to isté gatovanie ako na desktope (~2882): eventripy do archívu NEPATRIA. */}
                 {/* to isté ako na desktope: jeden prázdny stav, nie dva (13. 9. 2026) */}
-                {eventsView === 'upcoming' && events.length > 0 && (
+                {PLANNING_LIVE && eventsView === 'upcoming' && events.length > 0 && (
                   <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => sizedUrl(tr.photos[0], 1080) || placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => navigate(tripPathById(tid, allTrails))} onBrowseTrips={() => setActiveCat('trips')} myId={id.session?.user?.id ?? null} onShareTrip={shareTripLink} onDelete={deleteListing} />
                 )}
               </>)}

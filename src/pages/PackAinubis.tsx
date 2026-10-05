@@ -1099,7 +1099,9 @@ export default function PackAinubis() {
           ⚠️ NEVYKRESLIŤ, NIE SKRYŤ: `navRef` v lište publikuje `--pack-nav-h`
              a skrytá lišta by appke tvrdila, že pod obsahom je 68 px, ktoré tam
              nie sú. */}
-      {plane2 === 'vault' && (
+      {/* 5. 10. 2026 (test po FLIPe): MOJE ZNALOSTI sú podobrazovka so šípkou späť — lišta
+          v polohe AINUBIS splitu tam na PC ležala cez zoznam svetov. */}
+      {plane2 === 'vault' && !knowOpen && (
         <PackBottomNav avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial} dogs={id.dogs} />
       )}
       {SCROLL_DEMO && openZ && (
