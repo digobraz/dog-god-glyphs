@@ -64,6 +64,7 @@ import { metersPerPixel } from '@/components/geo/geoMath';
 import { FogLayer } from '@/components/geo/FogLayer';
 import { useFogSource } from '@/components/geo/useFogSource';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
+import { GhostJourneyNote } from '@/components/pack/trip/GhostJourneyNote';
 import { SVK_BORDER } from '@/data/svkBorder';
 import { COUNTRY_BORDERS } from '@/data/countryBorders';
 import { trailCountry, flagUrl, flagEmoji } from '@/lib/countryGeo';
@@ -97,7 +98,7 @@ import {
   DIFF_COLOR, TRAIL_LINE, TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, coverPos, hasRouteMetrics, tripShareText, pluralKey,
   readLocalTrails, writeLocalTrails, updateLocalTrail, translateLocalTrailDesc, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, hasLiveDog,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
-  tripPath, tripPathById, tripText, visibleLocalTrails, tripDraftMissing, memberTrailIds, isOdyssey } from '@/components/pack/tripShared';
+  tripPath, tripPathById, tripText, visibleLocalTrails, tripDraftMissing, memberTrailIds, isOdyssey, isGhostJourney, usePackWalked, GHOST_SABER_LAYERS, CLAIMABLE_JOURNEY_IDS } from '@/components/pack/tripShared';
 import {
   crowdAggregate, founderDogyptians, seedCrowd, CROWD_EMOJI, CROWD_KEY_TO_CROWD,
   readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
@@ -116,7 +117,7 @@ import {
   type WalkedInput, type WalkReward, type Companion,
 } from '@/components/pack/packCommunityUI';
 import { PointsPill, POINTS_PILL_CSS } from '@/components/pack/PointsPill';
-import { deletePackTrip, attributeDogTrips, setDogTripCrew, clearDogTrip } from '@/lib/packStore';
+import { deletePackTrip, attributeDogTrips, setDogTripCrew, clearDogTrip, claimJourney, readMyClaims, translateTripDesc, readTrailOverrides, saveTrailOverride } from '@/lib/packStore';
 import { placeholderFor } from '@/lib/tripPlaceholder';
 import { upsertMyTrip, removeMyTrip, ensureMyTrip } from '@/components/pack/triplist/triplist';
 import { supabase } from '@/integrations/supabase/client';
@@ -481,7 +482,7 @@ function firstNameFrom(email: string, fullName?: string): string {
 // rieš zhlukmi"). Nahrádza pôvodné oddelené pillIcon/waterIcon + dva samostatné <Marker> loopy
 // jedným systémom (viď <TripMarkers> nižšie pri mape), lebo zhlukovanie musí vidieť VŠETKY typy
 // bodov naraz (trip aj vodná plocha môžu spadnúť do tej istej pixelovej bunky). ──
-type MapPoint = { id: string; tr: HeroTrail; lat: number; lon: number; water: boolean; journey: boolean };
+type MapPoint = { id: string; tr: HeroTrail; lat: number; lon: number; water: boolean; journey: boolean; ghost?: boolean };
 
 // tri vrstvy podľa zoomu (zadanie 2.3): z<=9 len bodka · z10–11 bodka (diaľkové už pilulka) ·
 // z>=12 všetko pilulka.
@@ -553,12 +554,12 @@ const pointIcon = (p: MapPoint, hot: boolean, zoom: number, lang: string) => {
     const label = pillLabel(p, lang);
     return L.divIcon({
       className: 'trp-pinwrap',
-      html: `<div class="trp-pill${type ? ` trp-pill${type}` : ''}${hot ? ' hot' : ''}">${pointPicto(p)}<span>${label}</span></div>`,
+      html: `<div class="trp-pill${type ? ` trp-pill${type}` : ''}${p.ghost ? ' trp-ghost' : ''}${hot ? ' hot' : ''}">${pointPicto(p)}<span>${label}</span></div>`,
     });
   }
   return L.divIcon({
     className: 'trp-pinwrap',
-    html: `<div class="trp-dot${type ? ` trp-dot${type}` : ''}${hot ? ' hot' : ''}">${pointPicto(p)}</div>`,
+    html: `<div class="trp-dot${type ? ` trp-dot${type}` : ''}${p.ghost ? ' trp-ghost' : ''}${hot ? ' hot' : ''}">${pointPicto(p)}</div>`,
   });
 };
 // zhluk (zadanie 2.4) — veľkosť bubliny rastie s počtom bodov v nej.
@@ -1870,6 +1871,11 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
 .trp-dot--journey.hot{background:linear-gradient(135deg,#8C1C22,#4a0f13);border-color:#fff;}
 .trp-dot--journey .trp-diffmark--triangle{border-bottom-color:#fff;}
 .trp-dot--journey .trp-diffmark--circle,.trp-dot--journey .trp-diffmark--square{background:#fff;}
+/* MAGISTRÁLA NA PREVZATIE (5. 10. 2026) — ten istý tvar, čiernobiely; pod myšou ožije, aby
+   bolo jasné, že sa na ňu dá kliknúť. */
+.trp-ghost{filter:grayscale(1);opacity:.7;}
+.trp-bigcard--ghost .trp-bigcard-photo,.trp-ghostphoto .trp-inldet-photo{filter:grayscale(1);}
+.trp-ghost.hot{opacity:1;}
 /* vodná bodka — zachováva pôvodný .trp-waterdot hover-pop (jediný CSS :hover efekt v pôvodnom
    kóde), teraz na zdieľanej .trp-dot základni. */
 .trp-dot--water{background:${WATER_COLOR};border-color:rgba(255,255,255,0.55);}
@@ -3939,6 +3945,8 @@ export default function PackMap() {
   const [finishTrailId, setFinishTrailId] = useState<string | null>(null);
   /** true = `finishTrailId` je PREJDENÝ PLÁN, nie dopĺňaný koncept (viď `openWalkPlan`). */
   const [finishFromPlan, setFinishFromPlan] = useState(false);
+  /** Magistrála na PREVZATIE otvorená v sprievodcovi (trasa hotová, človek len vypĺňa). */
+  const [claimJourneyId, setClaimJourneyId] = useState<string | null>(null);
   useEffect(() => { writeLocalTrails(localTrails); }, [localTrails]);
   // DEV: výlety nakreslené na telefóne odošli na disk vývojára (`plany/prijate-vylety/`),
   // inak ostanú uväznené v localStorage toho zariadenia. V prod builde neexistuje.
@@ -3966,6 +3974,14 @@ export default function PackMap() {
      * ⚠️ Neexistujúce id sa ticho ignoruje — inak by sprievodca spadol do režimu zápisu
      * NOVÉHO výletu a ponúkol kreslenie človeku, ktorý klikol „áno, bol som".
      */
+    // `?claim=<id>` — „ZAPÍŠ JU AKO PRVÝ" z článku magistrály na mobile (PackTripArticle).
+    const claim = searchParams.get('claim');
+    if (claim && CLAIMABLE_JOURNEY_IDS.has(claim)) {
+      setSearchParams({}, { replace: true });
+      setClaimJourneyId(claim);
+      setAddFlow('walked');
+      return;
+    }
     const walk = searchParams.get('walk');
     if (walk) {
       setSearchParams({}, { replace: true });
@@ -4160,6 +4176,8 @@ export default function PackMap() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
   const allTrails = useMemo(() => [...visibleLocalTrails(localTrails), ...HERO_JOURNEYS, ...HERO_TRAILS], [localTrails]);
+  // Magistrály na prevzatie sú čiernobiele, kým ich niekto zo svorky neprejde (`isGhostJourney`).
+  const packWalked = usePackWalked(walkedIds);
   // Množina členských id — raz za zmenu zoznamu, nie pri každej karte (inak by sa
   // `trp-local-trails` parsovalo z úložiska raz na výlet).
   const memberIds = useMemo(() => memberTrailIds(), [localTrails]);
@@ -4181,11 +4199,11 @@ export default function PackMap() {
       } else {
         const journey = !!tr.acts?.includes('journey');
         const [lat, lon] = journey ? tr.path[Math.floor(tr.path.length / 2)] : tr.path[0];
-        pts.push({ id: tr.id, tr, lat, lon, water: false, journey });
+        pts.push({ id: tr.id, tr, lat, lon, water: false, journey, ghost: isGhostJourney(tr, packWalked) });
       }
     });
     return pts;
-  }, [allTrails]);
+  }, [allTrails, packWalked]);
   // bbox každej trasy — predpočítané raz, porovnáva sa s výrezom mapy pri každom paneli (r. nižšie,
   // inViewTrails/elsewhereTrails). Trasa bez bodov (napr. plán bez pinu) sem nepatrí a berie sa
   // ako „nedá sa umiestniť" → ostáva v hornej skupine, nech ju viewport nikdy nezhodí dolu.
@@ -4556,6 +4574,12 @@ export default function PackMap() {
       else toast({ title: t('pack.addTrip.step.needDogTitle'), description: t('pack.addTrip.step.needDog') });
       return;
     }
+    // MAGISTRÁLA NA PREVZATIE sa neodškrtáva holým ✓ — kto ju prešiel, vyplní ju a stane sa
+    // jej autorom (Matej 5. 10. 2026). Holý ✓ by ju zafarbil bez autora aj bez príbehu.
+    if (!walkedIds.has(tid)) {
+      const g = trailsById(tid);
+      if (g && isGhostJourney(g, packWalked)) { openClaimJourney(tid); return; }
+    }
     if (walkedIds.has(tid)) {
       setWalkedIds((prev) => { const n = new Set(prev); n.delete(tid); return n; });
       setVotes((prev) => { const n = { ...prev }; delete n[tid]; return n; });
@@ -4880,8 +4904,20 @@ export default function PackMap() {
     setAddFlow('walked');
   };
 
+  /** Sivá magistrála: „prešiel som" = zápis s hotovou trasou, ktorý ju zároveň prevezme. */
+  const openClaimJourney = (tripId: string) => {
+    setInlineDetailId(null);
+    setAddEntryOpen(false);
+    setAddMapPhase('off');
+    setFinishTrailId(null);
+    setFinishFromPlan(false);
+    setClaimJourneyId(tripId);
+    setAddFlow('walked');
+  };
+
   const closeAdd = () => {
     setAddFlow(null);
+    setClaimJourneyId(null);
     setFinishTrailId(null);
     setFinishFromPlan(false);
     setAddMapPhase('off');
@@ -5339,6 +5375,29 @@ export default function PackMap() {
             comment: '', when: draft.date?.slice(0, 7) ?? '',
             hazards: (draft.hazards ?? []) as Hazard[], at: Date.now(),
           } }));
+        }
+        // PREVZATIE MAGISTRÁLY (Matej 5. 10. 2026: „vyplň ju ako prvý (privlastni si ju)").
+        // Prvý, kto ju zapíše, sa stáva jej autorom — server (`claim_journey`) rozhodne, kto bol
+        // prvý. Posielajú sa len polia, ktoré človek naozaj vyplnil: prázdny popis by zmazal
+        // oficiálny opis trasy. Trasa, názov ani km sa nemenia (filtruje ich aj server).
+        const claimTarget = allTrails.find((tr) => tr.id === tid) as (HeroTrail & { claimed?: boolean }) | undefined;
+        if (claimTarget && CLAIMABLE_JOURNEY_IDS.has(tid) && (!claimTarget.claimed || readMyClaims().includes(tid))) {
+          const note = (draft.note ?? '').trim();
+          const claimPatch: Partial<HeroTrail> = {
+            author: firstName,
+            ...(note ? { desc: note, descEN: '' } : {}),
+            ...(draft.photos?.length ? { photos: draft.photos } : {}),
+            ...(draft.photos?.length && typeof draft.coverY === 'number' ? { coverY: draft.coverY } : {}),
+            ...((draft.paws ?? 0) > 0 ? { stars: draft.paws } : {}),
+            ...(draft.dateKind !== 'flexible' && draft.date ? { date: draft.date } : {}),
+            ...(draft.dateEnd ? { dateEnd: draft.dateEnd } : {}),
+            ...(draft.crew?.length ? { dogs: draft.crew.length } : {}),
+          };
+          if (claimJourney(tid, claimPatch) && note) {
+            void translateTripDesc(note).then((en) => {
+              if (en && readTrailOverrides()[tid]?.desc === note) saveTrailOverride(tid, { descEN: en });
+            });
+          }
         }
         // reveal si berie trasu zo zoznamu — pri existujúcom výlete žiadny nový záznam nevzniká
         const existing = allTrails.find((tr) => tr.id === tid);
@@ -5880,7 +5939,7 @@ export default function PackMap() {
       <div
         key={tr.id}
         ref={withRef ? (el: HTMLDivElement | null) => { heroCardRefs.current[tr.id] = el; } : undefined}
-        className={`trp-bigcard${hoverId === tr.id || inlineDetailId === tr.id ? ' hot' : ''}`}
+        className={`trp-bigcard${hoverId === tr.id || inlineDetailId === tr.id ? ' hot' : ''}${isGhostJourney(tr, packWalked) ? ' trp-bigcard--ghost' : ''}`}
         onMouseEnter={() => setHoverId(tr.id)}
         onMouseLeave={() => setHoverId(null)}
         onClick={() => selectTrail(tr)}
@@ -6107,11 +6166,14 @@ export default function PackMap() {
                 {/* bod 4 (iterácia 15): fotka — avatar autora (initial, ľavý horný roh) + bočné
                     šípky (reused .trp-bigcard-photonav) + ♡ zmenené na ★ "Add to wishlist"
                     textové tlačidlo (dolný pravý roh, ako karta bod 3). */}
-                <div className="trp-inldet-photowrap">
+                <div className={`trp-inldet-photowrap${isGhostJourney(dt, packWalked) ? ' trp-ghostphoto' : ''}`}>
                   {photo && <div className="trp-inldet-photo" style={{ backgroundImage: `url('${photo}')`, backgroundPosition: coverPos(dt, idx) }} />}
+                  {/* Magistrála na prevzatie autora NEMÁ — „by Hekthor & Matej" by klamalo. */}
+                  {!isGhostJourney(dt, packWalked) && (
                   <div className="trp-inldet-authoravatar" title={t('pack.map.byAuthor', { author: authorOf(dt) })}>
                     <span>{authorOf(dt).charAt(0).toUpperCase()}</span>
                   </div>
+                  )}
                   {/* Matej 2026-07-22: ✓ walked + ★ wishlist v hornom pravom rohu fotky (rovnaký
                       princíp ako karta; „mark as walked" zmizlo zo spodu detailu → je tu). */}
                   <div className="trp-bigcard-photoacts">
@@ -6162,6 +6224,8 @@ export default function PackMap() {
                   )}
                 </div>
 
+                {isGhostJourney(dt, packWalked) && <GhostJourneyNote onClaim={() => openClaimJourney(dt.id)} />}
+
                 {/* bod 4 (i15) + bod 1/2/6 (i16): 2 stĺpce ako karta — vľavo 3 riadky (loc/
                     název/autor+avatarpair), vpravo rating(packy+číslo)+difficulty+km+Crowd */}
                 <div className="trp-inldet-main">
@@ -6193,14 +6257,14 @@ export default function PackMap() {
                       </div>
                     )}
                     {/* bod 6 (iterácia 16): dva avatary (majiteľ+pes) vedľa "by {author}" */}
-                    <div className="trp-inldet-authorrow">
+                    {!isGhostJourney(dt, packWalked) && <div className="trp-inldet-authorrow">
                       <AuthorAvatars author={authorOf(dt)} size={22} />
                       <button
                         type="button"
                         className="trp-inldet-author trp-authorbtn"
                         onClick={(e) => { e.stopPropagation(); setCreatorTrail(dt); }}
                       >{t('pack.map.byAuthor', { author: authorOf(dt) })}{dtAgg.dogyptianCount - founderDogyptians(dt) > 0 ? ` · ${t('pack.map.plusDogyptians' + pluralKey(dtAgg.dogyptianCount - founderDogyptians(dt)), { n: dtAgg.dogyptianCount - founderDogyptians(dt) })}` : ''}</button>
-                    </div>
+                    </div>}
                   </div>
                   {/* Matej 2026-07-22: pravý stĺpec = LEN veľký rating (1 packa + X.Y). Náročnosť/
                       popularita/hazard sú na fotke (PhotoMetaPills). */}
@@ -6855,6 +6919,7 @@ export default function PackMap() {
               <AddTripLog
                 finishTrail={finishTrailId ? (localTrails.find((tr) => tr.id === finishTrailId) ?? null) : null}
                 fromPlan={finishFromPlan}
+                presetJourneyId={claimJourneyId ?? undefined}
                 allTrails={allTrails}
                 authorName={firstName}
                 myDogs={myDogsForAdd}
@@ -7046,7 +7111,7 @@ export default function PackMap() {
                       />
                       <Polyline
                         positions={fullPathOf(tr, trailPaths)}
-                        pathOptions={{ color: '#E01B22', weight: w, opacity: dim, lineCap: 'round', lineJoin: 'round' }}
+                        pathOptions={{ color: isGhostJourney(tr, packWalked) ? '#6E6E6E' : '#E01B22', weight: w, opacity: dim, lineCap: 'round', lineJoin: 'round' }}
                         eventHandlers={handlers}
                       />
                     </Fragment>
@@ -7065,9 +7130,13 @@ export default function PackMap() {
                 // Zlatá z ČIARY tým odišla: keď svieti len tá, na ktorú sa pozeráš, druhá farba
                 // na rozlíšenie netreba. Zlatú nesie ďalej pilulka (a tá je pod myšou BIELA).
                 const alpha = hot ? 1 : SABER_REST_OPACITY;
+                // MAGISTRÁLA NA PREVZATIE: v pokoji sa NEKRESLÍ (Matej 5. 10.: „nech nám zbytočne
+                // nezavadzá"), drží ju čiernobiela pilulka; pod myšou a vo výbere čiernobiely meč.
+                const ghost = isGhostJourney(tr, packWalked);
+                if (ghost && !hot) return null;
                 return (
                   <Fragment key={tr.id}>
-                    {TRAIL_SABER_LAYERS.map((ly) => (
+                    {(ghost ? GHOST_SABER_LAYERS : TRAIL_SABER_LAYERS).map((ly) => (
                       <Polyline
                         key={ly.key}
                         positions={fullPathOf(tr, trailPaths)}

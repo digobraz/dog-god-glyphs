@@ -199,6 +199,12 @@ export type AddTripLogProps = {
    * opak toho, čo dvojvrstvový model chráni (viď `TripGeometry` v addTripModel.ts).
    */
   finishTrail?: HeroTrail | null;
+  /**
+   * MAGISTRÁLA NA PREVZATIE (Matej 5. 10. 2026: „človek nemusí klikať trasu, lebo už je").
+   * Sprievodca sa otvorí ako zápis viacdňovej túry s touto magistrálou už vybranou — ten istý
+   * stav, aký by si človek doklikal cez „vybrať magistrálu", len bez hľadania.
+   */
+  presetJourneyId?: string;
   /** `kind` = druh vybraný ešte pred ťuknutím do mapy (mriežka v kroku 2); bez neho sa
    *  použije prvý druh skupiny, teda pôvodné správanie. */
   onPlaceNote?: (group: NoteGroup, kind?: NoteKind) => void;
@@ -456,7 +462,7 @@ function SoloCompanionAdd({ dog, selected, onChange }: {
   );
 }
 
-export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubmit, onClose, onBackToEntry, placeholderFor, mapRef, seedPoint, onMapPhase, onHasRoute, onPlaceNote, onRemoveNote, placedNotes, notePlacing, finishTrail, fromPlan }: AddTripLogProps) {
+export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubmit, onClose, onBackToEntry, placeholderFor, mapRef, seedPoint, onMapPhase, onHasRoute, onPlaceNote, onRemoveNote, placedNotes, notePlacing, finishTrail, fromPlan, presetJourneyId }: AddTripLogProps) {
   const paleChrome = useIsPaleChrome();
   // ⚠️ Tento súbor NEBOL preložený vôbec — `t` v ňom doteraz znamenalo lokálnu premennú
   // (text hrozby, položka tagu). Obe sú premenované, inak by prekladač zmizol pod nimi
@@ -678,6 +684,22 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
     setGeometry({ kind: 'route', path: j.path, snapped: true });
     metricsRef.current = { km: parseFloat(j.km) || 0, ascentM: j.ascentM ?? j.journey.ascentM ?? null, minutes: null, points: j.path.length };
   };
+  const presetDoneRef = useRef(false);
+  useEffect(() => {
+    if (!presetJourneyId || presetDoneRef.current) return;
+    const j = HERO_JOURNEYS.find((x) => x.id === presetJourneyId);
+    if (!j) return;
+    presetDoneRef.current = true;
+    refitRef.current = true;
+    setTripMode('walked');
+    setActivity('hike');
+    setMultiDay(true);
+    setJourneyPick(true);
+    // Zoznam ukáže len túto jednu — celý zoznam so SNP navrchu by pôsobil, že treba vyberať.
+    setJourneyFilter(j.name);
+    pickJourney(j);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [presetJourneyId]);
   const drawInstead = () => {
     setDrawManually(true);
     setExistingTripId(undefined);
@@ -943,7 +965,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
   const [restored, setRestored] = useState<AddTripDraft | null>(() => {
     // Dopĺňanie konceptu je návrat k ULOŽENÉMU výletu — ponuka „pokračovať v rozrobenom"
     // by nad ním ponúkala niečo úplne iné a jedno kliknutie by prepísalo druhé.
-    if (finishTrail) return null;
+    if (finishTrail || presetJourneyId) return null;
     const d = readAddDraft();
     // Prázdny náčrt nemá čo obnovovať — ponuka „pokračovať" by bola falošný sľub.
     return d && (d.name || (d.geometry?.kind === 'route' && d.geometry.path?.length)) ? d : null;

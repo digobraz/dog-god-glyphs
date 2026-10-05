@@ -45,7 +45,8 @@ import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
 import {
   ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail, hasRouteMetrics, pluralKey,
   readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, hasLiveDog, RENAMED_TRIP_IDS, tripPath,
-  tripShareText, tripText, TRAIL_SABER_LAYERS, TRAIL_LINE, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing, coverPos } from '@/components/pack/tripShared';
+  tripShareText, tripText, TRAIL_SABER_LAYERS, TRAIL_LINE, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing, coverPos, isGhostJourney, usePackWalked } from '@/components/pack/tripShared';
+import { GhostJourneyNote } from '@/components/pack/trip/GhostJourneyNote';
 import { TripGoPanel, TripGoButtons } from '@/components/pack/trip/TripGoPanel';
 import {
   crowdAggregate, founderWalkers, founderDogyptians, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
@@ -53,7 +54,7 @@ import {
   type TripVote, type TripPlan, type PartnerEvent, type CrowdSlice,
 } from '@/components/pack/packCommunity';
 import { TripWalkers } from '@/components/pack/trip/TripWalkers';
-import { readLocalTrailMeta, readTrailOverrides } from '@/lib/packStore';
+import { readLocalTrailMeta, readTrailOverrides, readMyClaims } from '@/lib/packStore';
 import { useCrowdOthers, refreshCrowdOthers } from '@/components/pack/crowdOthers';
 import {
   COMMUNITY_CSS, WalkedPopup,
@@ -667,6 +668,8 @@ export default function PackTripArticle() {
   const canEdit = useMemo(() => {
     if (!slug) return false;
     if (readLocalTrails().some((t) => t.id === slug)) return readLocalTrailMeta()[slug]?.mine ?? true;
+    // Prevzatú magistrálu upravuje aj ten, kto ju prevzal (zápis ide cez `claim_journey`).
+    if (readMyClaims().includes(slug)) return true;
     return isFounder && [...HERO_JOURNEYS, ...HERO_TRAILS].some((t) => t.id === slug);
   }, [slug, isFounder]);
   // PRESNÁ STOPA (26. 9. 2026). Dataset nesie čiaru zriedenú na 10 m; článok ukazuje trasu
@@ -746,6 +749,7 @@ export default function PackTripArticle() {
   const [walkedIds, setWalkedIds] = useState<Set<string>>(() => readWalkedIds());
   useEffect(() => { writeFavIds(favIds); }, [favIds]);
   useEffect(() => { writeWalkedIds(walkedIds); }, [walkedIds]);
+  const packWalked = usePackWalked(walkedIds);
 
   // ✓ NA TRASE ZALOŽÍ AJ RIADOK V MY TRIPS (2026-09-16). Zápis prejdenej trasy prešiel
   // (`trip_walked` → 201), hlavička PÚTNIK aj ŠTATISTIKY reagovali — ale zoznam MY TRIPS
@@ -1153,6 +1157,11 @@ export default function PackTripArticle() {
     if (!dogRights.canAny('trips.log')) {
       const line = t('pack.gate.owner');
       toast({ title: line === 'pack.gate.owner' ? 'Only the owner can change this.' : line });
+      return;
+    }
+    // Magistrála na prevzatie: „prešiel som" = zápis, ktorý ju prevezme (viď PackMap `?claim=`).
+    if (!walkedIds.has(tid) && trail && trail.id === tid && isGhostJourney(trail, packWalked)) {
+      navigate(`/pack/map?claim=${encodeURIComponent(tid)}`);
       return;
     }
     // 🐕 Bez živého psa sa výlet nezapíše — dôvod pri toggleWalked v PackMap.tsx.
@@ -1628,7 +1637,8 @@ export default function PackTripArticle() {
             k tabuľke. Slovo „HODNOTENIE" odpadá: labka s číslom sa nedá čítať inak.
             Zátvorka = koľko chodcov ho dalo (`walkedCount`), teda váha toho čísla. */}
         <div className="pta-byline">
-          <span className="pta-author">{t('pack.trip.by', { author: authorOf(trail) })}{extraWalkers > 0 ? ` · ${t('pack.trip.extraWalkers', { n: extraWalkers })}` : ''}</span>
+          {/* magistrála na prevzatie autora nemá — viď GhostJourneyNote */}
+          {!isGhostJourney(trail, packWalked) && <span className="pta-author">{t('pack.trip.by', { author: authorOf(trail) })}{extraWalkers > 0 ? ` · ${t('pack.trip.extraWalkers', { n: extraWalkers })}` : ''}</span>}
           {/* rating = 0 znamená ŽIADNY hlas (Matej 2026-08-03) — vtedy tu nesmie byť nič,
               inak vyskočí „0.0" a prázdne labky vedľa mena autora. */}
           {shownRating > 0 && (
@@ -1652,6 +1662,9 @@ export default function PackTripArticle() {
             SHARE je VŽDY viditeľný a modrý: má vyzývať na zdieľanie, nie sa stratiť. */}
         <div className="pta-acts-slot">
           {railed ? null : actsRow}
+          {isGhostJourney(trail, packWalked) && (
+            <GhostJourneyNote onClaim={() => navigate(`/pack/map?claim=${encodeURIComponent(trail.id)}`)} />
+          )}
         </div>
 
         {/* crowd-sourced agregát (design §A): rating = priemer, difficulty + crowd = konsenzus.

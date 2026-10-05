@@ -2,7 +2,7 @@
 // (PackTripArticle.tsx) — iterácia 12 bod 5/6: expand (⤢) teraz navigates to a SEPARATE
 // route/page (article), not a modal, so anything both surfaces render (author fallback,
 // difficulty pictogram) lives here once instead of being copy-pasted across two files.
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type React from 'react';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { planPhase, readMissedPlans } from './planReminder';
@@ -13,7 +13,7 @@ import { iso2ToISO3, trailCountry } from '@/lib/countryGeo';
 import {
   packStorage, PACK_KEYS, readStringSet as readSet,
   persistWalked, persistFav, scheduleFounderSeed, queueLocalTripUpload,
-  readLocalTrailMeta, translateTripDesc,
+  readLocalTrailMeta, translateTripDesc, fetchPackWalkedSlugs,
 } from '@/lib/packStore';
 import { missingOnTrail } from '@/components/pack/addtrip/addTripModel';
 
@@ -249,6 +249,14 @@ export const TRAIL_SABER_LAYERS = [
   { key: 'mid', color: TRAIL_LINE.mid, weight: 7, opacity: 0.92, glow: true },
   { key: 'light', color: TRAIL_LINE.light, weight: 4, opacity: 1 },
   { key: 'core', color: TRAIL_LINE.core, weight: 1.8, opacity: 0.97 },
+] as const;
+// MAGISTRÁLA NA PREVZATIE (`isGhostJourney`, 5. 10. 2026) = TEN ISTÝ MEČ, LEN ČIERNOBIELY.
+// Nie druhý tvar čiary: hrúbky a poradie vrstiev sú tie isté, mení sa iba farba.
+export const GHOST_SABER_LAYERS = [
+  { key: 'edge', color: '#161616', weight: 11, opacity: 0.8 },
+  { key: 'mid', color: '#6E6E6E', weight: 7, opacity: 0.92, glow: false },
+  { key: 'light', color: '#B8B8B8', weight: 4, opacity: 1 },
+  { key: 'core', color: '#FFFFFF', weight: 1.8, opacity: 0.97 },
 ] as const;
 
 // POKOJNÁ TRASA JE PRIEHĽADNÁ, SVIETI AŽ POD MYŠOU (Matej 2026-08-20: „trasy nebudú tak žiariť,
@@ -774,6 +782,34 @@ export const hasLiveDog = (dogs: ReadonlyArray<{ life_status?: string | null }>)
 // POZOR: `packCommunity.ts` má DRUHÚ kópiu tohto zoznamu (`FOUNDER_WALKED_JOURNEY_IDS`) — obe
 // musia byť ručne držané v zhode.
 export const FOUNDER_WALKED_JOURNEY_IDS = ['snp-cesta-hrdinov', 'poloniny'];
+
+/**
+ * MAGISTRÁLY NA PREVZATIE (Matej 5. 10. 2026: „všetky odysey, ktoré som pridal len pre
+ * relevanciu… daj ich čiernobielou… prešiel si ju? vyplň ju ako prvý (privlastni si ju)").
+ * `HERO_JOURNEYS` bez dvoch vyššie — predvytvorené z oficiálnych dát, nikto z nás ich neprešiel.
+ * ⚠️ DRUHÁ KÓPIA je v DB funkcii `claim_journey` (migrácia 20261009_magistrala_prevzatie.sql).
+ */
+export const CLAIMABLE_JOURNEY_IDS = new Set([
+  'malofatransky-okruh', 'rudna-magistrala', 'vychodokarpatska-magistrala',
+  'velkofatranska-magistrala', 'ponitrianska-magistrala', 'kysucka-magistrala',
+  'zahoracka-magistrala', 'stefanikova-magistrala', 'nizkotatranska-hrebenovka',
+]);
+
+/** Magistrála ČAKÁ NA PRVÉHO: predvytvorená, nikto zo svorky ju neprešiel ani neprevzal.
+ *  Kreslí sa čiernobielo a v detaile nesie výzvu AINUBISA. `packWalked` = `usePackWalked()`. */
+export function isGhostJourney(tr: HeroTrail, packWalked: Set<string>): boolean {
+  if (!CLAIMABLE_JOURNEY_IDS.has(tr.id)) return false;
+  if ((tr as HeroTrail & { claimed?: boolean }).claimed) return false;
+  return !packWalked.has(tr.id);
+}
+
+/** Slugy, ktoré prešiel ASPOŇ JEDEN člen svorky (`get_pack_walked_slugs`, tá istá RPC ako
+ *  hmla) + moje vlastné hneď, bez čakania na server. Zlyhanie RPC = len moje. */
+export function usePackWalked(myWalked: Set<string>): Set<string> {
+  const [pack, setPack] = useState<string[]>([]);
+  useEffect(() => { let on = true; void fetchPackWalkedSlugs().then((s) => { if (on) setPack(s); }); return () => { on = false; }; }, []);
+  return useMemo(() => new Set([...pack, ...myWalked]), [pack, myWalked]);
+}
 
 // ── Jednorazové odstránenie nesprávne naseedovanej Štefánikovej (2026-08-03) ────────────────
 // FOUNDER_WALKED_JOURNEY_IDS vyššie donedávna obsahovala 'stefanikova-magistrala'. Kto sa stihol

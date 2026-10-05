@@ -449,6 +449,8 @@ const TRIP_PENDING_KEY = 'trp-trip-upload-pending-v1';
 const TRIP_MIGRATED_KEY = 'trp-trips-db-migrated-v1';
 
 const OVR_PENDING_KEY = 'trp-trail-overrides-pending-v1';
+// Magistrály, ktoré som PREVZAL ja (`pack_trips.author_id` = ja pri `claimed`) — ceruzka v článku.
+const MY_CLAIMS_KEY = 'trp-my-journey-claims-v1';
 const readTripPending = (): string[] => readJson<string[]>(TRIP_PENDING_KEY, []);
 const writeTripPending = (ids: string[]): void => { writeJson(TRIP_PENDING_KEY, Array.from(new Set(ids))); };
 
@@ -567,6 +569,29 @@ export function saveTrailOverride(id: string, patch: Partial<HeroTrail>): boolea
 }
 
 /**
+ * PREVZATIE MAGISTRÁLY (Matej 5. 10. 2026: „vyplň ju ako prvý (privlastni si ju)"). Ten istý
+ * nosič ako prepis zakladateľa (`ovr-<id>`), len s `claimed: true` — do DB ide cez RPC
+ * `claim_journey`, lebo člen do `pack_trips` schválený riadok sám zapísať nesmie. Kto bol prvý,
+ * rozhodne server; prehra (`taken`) sa prejaví pri najbližšom pulle, kde vyhrá cudzí zápis.
+ */
+export function claimJourney(id: string, patch: Partial<HeroTrail>): boolean {
+  const ok = saveTrailOverride(id, { ...patch, claimed: true } as Partial<HeroTrail>);
+  if (ok) writeJson(MY_CLAIMS_KEY, Array.from(new Set([...readMyClaims(), id])));
+  return ok;
+}
+export const readMyClaims = (): string[] => readJson<string[]>(MY_CLAIMS_KEY, []);
+
+/** Slugy prejdené aspoň jedným členom svorky — agregát bez mien (viď migrácia
+ *  20260804_fog_walked_agg.sql). Chyba = prázdny zoznam, volajúci si pridá vlastné. */
+export async function fetchPackWalkedSlugs(): Promise<string[]> {
+  try {
+    const { data, error } = await (supabase as any).rpc('get_pack_walked_slugs');
+    if (error || !Array.isArray(data)) return [];
+    return data.map((r: { trip_slug: string }) => r.trip_slug);
+  } catch { return []; }
+}
+
+/**
  * EN PREKLAD PO ÚPRAVE (Matej 5. 10. 2026: „treba ošetriť tie preklady"). Úprava popisu
  * EN preklad zahadzuje (`TripEditPanel`), táto funkcia ho hneď vyrobí znova cez Edge Function
  * `translate-trip`. `null` = nepodarilo sa (offline, limit) — výlet ostane na SK fallbacku,
@@ -603,6 +628,14 @@ async function processOverrideQueue(): Promise<void> {
             writeJson(PACK_KEYS.trailOverrides, { ...cur, [id]: { ...cur[id], photos } });
           }
           const fresh = readTrailOverrides()[id] ?? ov;
+          if ((fresh as { claimed?: boolean }).claimed) {
+            // Prevzatá magistrála — zapisuje ju server (aj zakladateľovu úpravu, autor ostane).
+            const { error } = await (supabase as any).rpc('claim_journey', { p_trip: id, p_payload: fresh });
+            if (error) throw error;
+            pending = readOvrPending().slice(1);
+            writeOvrPending(pending);
+            continue;
+          }
           enqueue([{
             kind: 'upsert', tbl: 'pack_trips', onConflict: 'slug', own: 'author_id',
             // `status: 'approved'` — prepis autora datasetu moderáciou neprechádza; politika
@@ -828,6 +861,9 @@ export function hydratePackStore(): Promise<boolean> {
             const { override, ...patch } = r.payload ?? {};
             if (typeof override === 'string') ovr[override] = patch;
           }
+          writeJson(MY_CLAIMS_KEY, (packTrips.data as any[])
+            .filter((r) => isOvr(r) && r.payload?.claimed && r.author_id === uid)
+            .map((r) => r.payload.override));
           writeJson(PACK_KEYS.trailOverrides, ovr);
           await applyToDataset();
         }
