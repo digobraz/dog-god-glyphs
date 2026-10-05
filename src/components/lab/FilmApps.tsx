@@ -164,6 +164,48 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
   const goTo = useCallback((i: number) => {
     setIdx(((i % n) + n) % n);
   }, [n]);
+  /* ŠVIH PRSTAMI — mobil aj PC (Matej 5. 10. 2026: *„prepínať by sa malo dať aj slajdom
+     prstami na mobile aj na PC"*). Dotyk a myš = ťah po telefónoch (pointer), PC touchpad =
+     vodorovné koliesko (deltaX). Vodorovný ťah si karusel nechá — motor filmu ho nedostane
+     (`stopPropagation`) a Chrome z neho neurobí „späť" v histórii (`preventDefault`). */
+  const carRef = useRef<HTMLDivElement>(null);
+  const dragged = useRef(false);
+  useEffect(() => {
+    const el = carRef.current;
+    if (!el) return;
+    const MIN = 40;
+    let x0: number | null = null, y0 = 0;
+    const down = (e: PointerEvent) => { x0 = e.clientX; y0 = e.clientY; dragged.current = false; };
+    const up = (e: PointerEvent) => {
+      if (x0 == null) return;
+      const dx = e.clientX - x0, dy = e.clientY - y0;
+      x0 = null;
+      if (Math.abs(dx) >= MIN && Math.abs(dx) > Math.abs(dy) * 1.2) {
+        dragged.current = true;
+        setIdx((i) => (((i + (dx < 0 ? 1 : -1)) % n) + n) % n);
+      }
+    };
+    let acc = 0, last = 0, fired = false;
+    const wheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+      e.preventDefault(); e.stopPropagation();
+      const now = performance.now();
+      if (now - last > 250) { acc = 0; fired = false; }
+      last = now;
+      acc += e.deltaX;
+      if (fired || Math.abs(acc) < 50) return;
+      fired = true;
+      setIdx((i) => (((i + (acc > 0 ? 1 : -1)) % n) + n) % n);
+    };
+    el.addEventListener('pointerdown', down);
+    window.addEventListener('pointerup', up);
+    el.addEventListener('wheel', wheel, { passive: false });
+    return () => {
+      el.removeEventListener('pointerdown', down);
+      window.removeEventListener('pointerup', up);
+      el.removeEventListener('wheel', wheel);
+    };
+  }, [n]);
   /** Z úvodu do funkcií sa vždy vchádza na 1/5 (DOG ID). */
   const wasPeek = useRef(true);
 
@@ -275,14 +317,18 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
         </div>
 
         <div className="op-apps-rig" ref={rigRef}>
-          <div className="op-apps-car" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+          <div className="op-apps-car" ref={carRef} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
             {APPS.map((a, i) => {
               const pos = i === idx ? 'is-cur' : i === prevI ? 'is-prev' : i === nextI ? 'is-next' : 'is-off';
               return (
                 <div className={`op-apps-ph ${pos}`} key={a.id} aria-hidden={i !== idx}
                   /* Ťuk na PREDNÝ telefón = DETAIL, to isté ako tlačidlo DETAIL (Matej 5. 10. 2026:
                      *„po kliknutí na obrazovku sa otvorí detail"*). Bočný telefón ostáva prepnutím. */
-                  onClick={pos === 'is-prev' || pos === 'is-next' ? () => goTo(i) : pos === 'is-cur' ? () => setOpen(i) : undefined}>
+                  onClick={() => {
+                    if (dragged.current) { dragged.current = false; return; } /* koniec švihu nie je ťuk */
+                    if (pos === 'is-prev' || pos === 'is-next') goTo(i);
+                    else if (pos === 'is-cur') setOpen(i);
+                  }}>
                   <div className="op-apps-tilt">
                     <Iphone15Pro src={a.shot} alt={t(a.nameKey)}>
                       <div className="op-apps-ph-empty"><b>{t(a.nameKey)}</b><span>screenshot</span></div>
@@ -296,8 +342,8 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
             {/* Šípky = brandová kresba (HandArrowLeft, pravá zrkadlená). Pauza
                 z komponentu tu NIE JE — kresba v kite chýba (check:ikony) a točenie
                 aj tak stojí, keď je nad telefónmi myš. */}
-            <button type="button" aria-label={t('heroglyph.flow.more.prev')} onClick={() => goTo(idx - 1)}><HandArrowLeft size={18} /></button>
-            <button type="button" aria-label={t('heroglyph.flow.more.next')} onClick={() => goTo(idx + 1)}><HandArrowLeft size={18} style={{ transform: 'scaleX(-1)' }} /></button>
+            <button type="button" aria-label={t('heroglyph.flow.more.prev')} onClick={() => goTo(idx - 1)}><HandArrowLeft size={24} /></button>
+            <button type="button" aria-label={t('heroglyph.flow.more.next')} onClick={() => goTo(idx + 1)}><HandArrowLeft size={24} style={{ transform: 'scaleX(-1)' }} /></button>
           </div>
         </div>
       </div>
@@ -421,21 +467,29 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           font: 500 10px/1 'Space Grotesk', sans-serif; letter-spacing: .22em; text-transform: uppercase;
           color: rgba(35,22,8,.45);
         }
-        /* Tlačidlá z komponentu (predošlá · pauza · ďalšia) — pod predným telefónom. */
+        /* ŠÍPKY V STREDE VÝŠKY, PO BOKOCH PREDNÉHO TELEFÓNU, VÄČŠIE (Matej 5. 10. 2026:
+           *„šípky by som dal do stredu mockupov a vedľa a väčšie"*). Dovtedy 40 px pod
+           telefónom. Bod (0,0) súpravy = stred predného telefónu; šípka sedí na jeho hrane
+           + 40 px, na mobile ju drží okraj okna (16 px vzduchu). */
         .op-apps-ctl {
-          position: absolute; left: 0; top: calc(${(350 * IPHONE_H / IPHONE_W / 2).toFixed(1)}px + 16px);
-          transform: translateX(-50%);
-          display: flex; gap: 16px; pointer-events: auto;
-          opacity: var(--r, 0);
+          position: absolute; left: 0; top: 0; width: 0; height: 0; pointer-events: none;
+          opacity: var(--r, 0); --arr-x: 215px;
         }
         .op-apps-ctl button {
-          width: 40px; height: 40px; border-radius: 999px; display: grid; place-items: center; cursor: pointer;
+          position: absolute; top: 0; pointer-events: auto;
+          width: 56px; height: 56px; border-radius: 999px; display: grid; place-items: center; cursor: pointer;
           background: rgba(0,0,0,.6); border: 1px solid rgba(255,255,255,.2); color: #fff;
           backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
           box-shadow: 0 4px 12px rgba(0,0,0,.2); transition: background .2s;
+          z-index: 30;
         }
+        .op-apps-ctl button:first-child { transform: translate(calc(-1 * var(--arr-x) - 50%), -50%); }
+        .op-apps-ctl button:last-child { transform: translate(calc(var(--arr-x) - 50%), -50%); }
         .op-apps-ctl button:hover { background: rgba(0,0,0,.8); }
-        .op-apps-ctl svg { width: 18px; height: 18px; fill: currentColor; }
+        .op-apps-ctl svg { width: 24px; height: 24px; fill: currentColor; }
+        .op-apps-car { touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+        /* Bez toho myš „chytí" obrázok (natívny drag) a pointerup nepríde — ťah by nič neprepol. */
+        .op-apps-car img { -webkit-user-drag: none; user-drag: none; pointer-events: none; }
         /* Ľavý stĺpec — texty funkcií stoja na sebe, vymenia sa s telefónom (700 ms). */
         .op-apps-col {
           position: absolute; left: max(16px, calc(50vw - 560px)); width: min(440px, 40vw);
@@ -515,7 +569,8 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
         /* MOBIL — rám 280 (komponent), text hore, telefóny pod ním. */
         @media (max-width: 767px) {
           .op-apps-ph { width: 280px; }
-          .op-apps-ctl { top: calc(${(280 * IPHONE_H / IPHONE_W / 2).toFixed(1)}px + 16px); }
+          .op-apps-ctl { --arr-x: min(172px, calc(50vw - 44px)); }
+          .op-apps-ctl button { width: 48px; height: 48px; }
           .op-apps-col { left: 16px; right: 16px; width: auto; top: calc(var(--op-nav-h, 118px) + 8px); }
           .op-apps-txt { transform: none; }
           .op-apps-name { margin-bottom: 8px; }
