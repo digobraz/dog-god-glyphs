@@ -91,6 +91,14 @@ const TRIP_EDIT_CSS = `${VEIL_CSS}
 .tep-crop-preview{width:100%;aspect-ratio:16/9;border-radius:12px;border:1px solid ${T.border};background-size:cover;background-color:${T.tileBg};}
 .tep-crop-slider{width:100%;margin-top:8px;accent-color:${LAPIS.edge};}
 .tep-pawpick{display:flex;justify-content:center;}
+/* PC: 832 = PACK_COL_INNER (lock centrovaného obsahu). Fotky 5 v rade, tri rady = MAX 15. */
+@media(min-width:900px){
+  .tep-modal:has(.tep-body--trip){max-width:832px;}
+  .tep-body--trip{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;}
+  .tep-body--trip .tep-photos{grid-template-columns:repeat(5,1fr);}
+  .tep-body--trip .tep-photo,.tep-body--trip .tep-addphoto{height:64px;}
+  .tep-body--trip .tep-crop{margin-top:0;}
+}
 /* CTA = LAPIS, geometria locknutého .btn-gold (radius 8, nie pilulka). */
 .tep-submit{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;padding:12px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.edge};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
 .tep-submit:hover:not(:disabled){background:${LAPIS.gradHover};}
@@ -227,6 +235,12 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
         {/* FOTKY A HODNOTENIE LEN PRI PREJDENOM VÝLETE. Na pláne by to bola výzva
             ohodnotiť cestu, po ktorej človek ešte nešiel — presne tá istá úvaha, kvôli
             ktorej ich nemá ani sprievodca v režime plánu. */}
+        {/* DVA STĹPCE NA PC (Matej 5. 10. 2026: „prečo je ten popup taký úzky… daj na PC 5 fotiek
+            vedľa seba na 3 riadky a tým roztiahni celý blok"). Vľavo fotky (15 = 5×3), vpravo
+            výrez, text a hodnotenie — panel sa zmestí bez scrollu aj na 1477×724. Na mobile
+            a pri pláne je to jeden stĺpec ako doteraz. */}
+        <div className={`tep-body${isPlan ? '' : ' tep-body--trip'}`}>
+        <div className="tep-col">
         {!isPlan && (
         <div
           className={`tep-field tep-photo-drop${photoDrag ? ' drag' : ''}`}
@@ -267,9 +281,21 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
             >+</button>
           </div>
           {photos.length > 1 && <p className="tep-hint" style={{ marginTop: 8 }}>{t('pack.addTrip.step.coverPick')}</p>}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            multiple
+            hidden
+            onChange={(e) => { void addPhotos(e.target.files); e.target.value = ''; }}
+          />
+        </div>
+        )}
+        </div>
+        <div className="tep-col">
           {/* VÝREZ TITULKY (Matej 5. 10. 2026: „nedá sa mi nastaviť výrez na titulnú foto").
               Náhľad má pomer hlavičky článku a karty, posuvník je hneď pod ním — ťahaš a vidíš. */}
-          {photos.length > 0 && (
+          {!isPlan && photos.length > 0 && (
             <div className="tep-crop">
               <label className="tep-label">{t('pack.addTrip.step.coverCrop')}</label>
               <div
@@ -287,16 +313,6 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
               />
             </div>
           )}
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            multiple
-            hidden
-            onChange={(e) => { void addPhotos(e.target.files); e.target.value = ''; }}
-          />
-        </div>
-        )}
 
         {/* ── PLÁN: KEDY · S KÝM · AKO SA TAM IDE ─────────────────────────────────────────
             Poradie kopíruje sprievodcu (AddTripLog), aby to bola tá istá otázka na tom
@@ -404,6 +420,9 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
             <div className="tep-pawpick"><PawRating value={stars} onChange={setStars} size={30} /></div>
           </div>
         )}
+
+        </div>
+        </div>
 
         <button type="button" className="tep-submit" disabled={busy} onClick={save}>
           {busy ? t('pack.mapNotes.add.saving') : t('pack.trip.edit.save')}
