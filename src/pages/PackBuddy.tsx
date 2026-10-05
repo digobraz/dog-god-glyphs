@@ -9,7 +9,8 @@
 //    doplnený. Preto stránka NEMOUNTUJE `PackLayout` (ten by priniesol spodnú lištu).
 // 🔴 BRÁNA SA DOPĹŇA TU, NIE ODKAZOM DO PROFILU (nákres 0b), ale zapisuje sa do TÝCH ISTÝCH
 //    polí ako profil (`saveHuman` / `saveDogAttrs`). Definícia 100 % → `buddy/buddyGate.ts`.
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { prefillFromDogId } from '@/lib/dogIdBridge';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -247,6 +248,19 @@ export default function PackBuddy() {
   const [doneFrom, setDoneFrom] = useState<'enable' | 'settings'>('enable');
   const { profile } = useProfile();
   const { dogs, avatarUrl, ownerGender, loading: dogsLoading } = usePackUser(session?.user?.id ?? null);
+  // MOST DOG ID → SNIFFER (Matej 5. 10. 2026): čo člen už vyplnil v DOG ID (povaha, kondícia,
+  // so psami, radosti), SNIFFER sa nepýta druhýkrát — doplní to do `dog_profiles`, odkiaľ ho
+  // číta aj balíček kariet v SQL. Raz za načítanie zoznamu psov; prázdne nič neprepíše.
+  const prefilledFor = useRef<string>('');
+  useEffect(() => {
+    if (!profile || dogsLoading || !dogs.length || !session?.user?.id) return;
+    const key = dogs.map((d) => d.id).join(',');
+    if (prefilledFor.current === key) return;
+    prefilledFor.current = key;
+    void prefillFromDogId(dogs.map((d) => d.id), (id) => profile.dogs[id] ?? emptyDogAttrs(id))
+      .then((patches) => Promise.all(patches.map((p) => saveDogAttrs(p.dogId, p.patch, { noMirror: true }))))
+      .catch((e) => console.warn('[PackBuddy] prefill from DOG ID failed:', (e as Error).message));
+  }, [profile, dogs, dogsLoading, session?.user?.id]);
   // POHLAVIE JE Z HEROGLYFU (Matej 25. 9.: „pohlavie je predsa z heroglyfu"). Malý rámik
   // majiteľa ho nesie od platby, takže sa na neho SNIFFER nepýta druhýkrát — zapíše ho do
   // `human.gender`, odkiaľ ho číta brána na serveri. Kto heroglyf bez pohlavia nemá,

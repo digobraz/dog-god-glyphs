@@ -3,6 +3,7 @@
 // localStorage kľúč 'dogypt.profile.v1', async-tvarované CRUD API kvôli
 // budúcemu drop-in swapu na Supabase (žiadne priame localStorage v
 // komponentoch — vždy cez toto API).
+import { mirrorToDogId } from '@/lib/dogIdBridge';
 import { trackPack } from '@/lib/packAnalytics';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -899,7 +900,7 @@ export async function saveHuman(patch: Partial<HumanProfile>, opts?: { throwOnEr
 }
 
 export async function saveDogAttrs(
-  dogId: string, patch: Partial<DogProfileAttrs>, opts?: { throwOnError?: boolean },
+  dogId: string, patch: Partial<DogProfileAttrs>, opts?: { throwOnError?: boolean; noMirror?: boolean },
 ): Promise<CentralProfile> {
   const cur = readRaw();
   const existing = cur.dogs[dogId] ?? emptyDogAttrs(dogId);
@@ -927,6 +928,9 @@ export async function saveDogAttrs(
       .upsert({ dog_id: dogId, user_id: uid, attrs: merged as unknown as Record<string, unknown> }, { onConflict: 'dog_id' });
     if (error && opts?.throwOnError) throw error;
   }
+  // Most do DOG ID (SNIFFER ↔ DOG ID, Matej 5. 10. 2026) — povaha, kondícia, so psami, radosti.
+  // `noMirror` = zápis, ktorý z DOG ID práve prišiel (predvyplnenie), späť ho neposielaj.
+  if (!opts?.noMirror) void mirrorToDogId(dogId, existing, merged);
   return next;
 }
 
