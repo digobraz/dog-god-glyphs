@@ -1115,6 +1115,7 @@ export const sk: Partial<Dict> = {
   'onepage.apps.cause.b3': 'Priama pomoc psom v núdzi',
   'onepage.apps.cause.b4': 'Financovanie nových inovácií',
   'onepage.apps.mapy': 'Mapy poháňa',
+  'onepage.apps.claude': 'AI poháňa',
   'onepage.need.step': 'Ďalší krok',
   'onepage.need.cta': 'Pridaj sa k misii',
   'onepage.need.want': 'Pridaj sa k misii',

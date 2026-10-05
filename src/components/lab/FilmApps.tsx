@@ -73,6 +73,8 @@ type AppFeature = {
   shots: string[];
   /** Mapy pod funkciou dodáva Mapy.com — v DETAILE pod vetou čip s ich logom. */
   mapy?: boolean;
+  /** AINUBIS beží na Claude — v DETAILE čip „Powered by Claude“. */
+  claude?: boolean;
 };
 
 const bn = (id: string, n = 4) => Array.from({ length: n }, (_, i) => `onepage.apps.${id}.b${i + 1}`);
@@ -99,7 +101,7 @@ const APPS: AppFeature[] = [
   // 5/5 — Matej 27. 9.: *„komunita/pomoc… transparentná pomoc, nové výskumy —
   // to, čo členstvo vie pomáhať psom"*. Detail = text „VYŠŠÍ CIEĽ" z heroflowu.
   { id: 'cause', nameKey: 'onepage.apps.cause.name', ledeKey: 'onepage.apps.cause.lede', bulletKeys: bn('cause'), shot: img('komunita-transparency'), shots: [img('komunita-transparency'), img('kom-pokladnica'), img('kom-svet')] },
-  { id: 'ainubis', nameKey: 'heroglyph.flow.more.ainubis.t', ledeKey: 'onepage.apps.ainubis.lede', bulletKeys: bn('ainubis'), shot: img('ainubis-vault-bez-oznamu'), shots: [img('ainubis-vault-bez-oznamu'), img('ainubis-dogscroll'), img('ainubis-zvitok-podcast'), img('ainubis-zvitok-prepis'), img('ainubis-zvitok-text')] },
+  { id: 'ainubis', nameKey: 'heroglyph.flow.more.ainubis.t', ledeKey: 'onepage.apps.ainubis.lede', bulletKeys: bn('ainubis'), shot: img('ainubis-vault-bez-oznamu'), shots: [img('ainubis-vault-bez-oznamu'), img('ainubis-dogscroll'), img('ainubis-zvitok-podcast'), img('ainubis-zvitok-prepis'), img('ainubis-zvitok-text')], claude: true },
 ];
 
 /** Dráha ODCHODU HEROGLYPHu a príchodu telefónov (prvý ťah) vo `vh`. Oblúk
@@ -160,25 +162,36 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
     ro.observe(card); ro.observe(sl);
     return () => ro.disconnect();
   }, [open]);
-  /* ŠVIH PRSTOM KDEKOĽVEK NA KARTE = ďalšia snímka (Matej 5. 10. 2026: *„popup umožní slajdovať
-     prstom"* → *„slajd nefunguje na popupe, len na mockupy"*). React onPointerUp na karte v Safari
+  const moveApp = useCallback((d: number) => {
+    setOpen((o) => {
+      if (o == null) return o;
+      const nx = (o + d + n) % n;
+      setIdx(nx);
+      return nx;
+    });
+  }, [n]);
+  /* ŠVIH PRSTOM V DETAILE (Matej 5. 10. 2026: *„popup umožní slajdovať prstom"* → *„slajd nefunguje
+     na popupe, len na mockupy"* → *„ak slajdujem na ploche pod obrázkom, aj tak sa posúva obrázok
+     mockupu a nie celá karta 1/5"*): ťah PO TELEFÓNE = ďalšia snímka, ťah KDEKOĽVEK INDE na karte
+     = ďalšia FUNKCIA (ako zlaté šípky). React onPointerUp na karte v Safari
      na iPhone nedošiel — preto natívne TOUCH udalosti (prst) a pointer len pre myš, pustenie
      sa chytá na okne ako pri karuseli. Zvislý ťah sa ignoruje. */
   useEffect(() => {
     const card = popRef.current;
     if (!card) return;
     const MIN = 40;
-    let x0: number | null = null, y0 = 0;
+    let x0: number | null = null, y0 = 0, onShot = false;
     const end = (x: number, y: number) => {
       if (x0 == null) return;
       const dx = x - x0, dy = y - y0;
       x0 = null;
-      if (Math.abs(dx) >= MIN && Math.abs(dx) > Math.abs(dy) * 1.2) moveSlide(dx < 0 ? 1 : -1);
+      if (Math.abs(dx) >= MIN && Math.abs(dx) > Math.abs(dy) * 1.2) (onShot ? moveSlide : moveApp)(dx < 0 ? 1 : -1);
     };
-    const ts = (e: TouchEvent) => { const t0 = e.touches[0]; x0 = t0.clientX; y0 = t0.clientY; };
+    const shotHit = (t: EventTarget | null) => !!(t as Element | null)?.closest?.('.op-apps-sl');
+    const ts = (e: TouchEvent) => { const t0 = e.touches[0]; x0 = t0.clientX; y0 = t0.clientY; onShot = shotHit(e.target); };
     const te = (e: TouchEvent) => { const t1 = e.changedTouches[0]; end(t1.clientX, t1.clientY); };
     const tc = () => { x0 = null; };
-    const pd = (e: PointerEvent) => { if (e.pointerType === 'mouse') { x0 = e.clientX; y0 = e.clientY; } };
+    const pd = (e: PointerEvent) => { if (e.pointerType === 'mouse') { x0 = e.clientX; y0 = e.clientY; onShot = shotHit(e.target); } };
     const pu = (e: PointerEvent) => { if (e.pointerType === 'mouse') end(e.clientX, e.clientY); };
     card.addEventListener('touchstart', ts, { passive: true });
     card.addEventListener('touchend', te);
@@ -192,15 +205,7 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
       card.removeEventListener('pointerdown', pd);
       window.removeEventListener('pointerup', pu);
     };
-  }, [open, moveSlide]);
-  const moveApp = useCallback((d: number) => {
-    setOpen((o) => {
-      if (o == null) return o;
-      const nx = (o + d + n) % n;
-      setIdx(nx);
-      return nx;
-    });
-  }, [n]);
+  }, [open, moveSlide, moveApp]);
   useEffect(() => {
     if (open == null) return;
     const onKey = (e: KeyboardEvent) => {
@@ -311,6 +316,7 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
       const x = mix(0, featX, sx);
       const y = mix(peekY, featY, sx) + (1 - rise) * vh;
       const s = mix(1, fs, sx);
+      sec.style.setProperty('--rig-s', s.toFixed(4));
       rig.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${s.toFixed(4)})`;
       // Ľavý stĺpec stojí na strede PREDNÉHO telefónu — výškou sa do neho zmestí.
       sec.style.setProperty('--mid', `${(narrow ? navH + (vh - navH) / 2 : featY).toFixed(1)}px`);
@@ -470,6 +476,14 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
                   <span>{t('onepage.apps.mapy')}</span>
                   <img src="/nav-apps/mapy.svg" alt="" width={20} height={20} />
                   <b>Mapy.com</b>
+                </a>
+              )}
+              {/* ČIP CLAUDE (Matej 5. 10. 2026: *„pri ainubisovi dať chip powered by claude"*) —
+                  ten istý tvar ako čip Mapy.com; logo Claude v repe nie je, preto len meno. */}
+              {cur.claude && (
+                <a className="op-apps-mapy" href="https://claude.ai" target="_blank" rel="noopener noreferrer">
+                  <span>{t('onepage.apps.claude')}</span>
+                  <b>Claude</b>
                 </a>
               )}
               <ul className="op-apps-ul">
@@ -707,8 +721,15 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           .op-apps-txt .op-apps-lede { margin-bottom: 0; }
           /* DETAIL otvára ťuk na predný telefón. */
           .op-apps .op-apps-chip { display: none; }
-          .op-apps-eye { font-size: 14px; margin-bottom: 12px; }
-          .op-apps-name { margin-bottom: 8px; }
+          /* NADPISY VÝRAZNEJŠIE (Matej 5. 10. 2026: *„trocha zväčšiť, zvýrazniť nadpisy"*). */
+          .op-apps-eye { font-size: 14px; font-weight: 600; color: rgba(35,22,8,.8); margin-bottom: 12px; }
+          .op-apps-name { margin-bottom: 8px; font-size: 32px; }
+          /* ŠÍPKY VEDĽA TELEFÓNOV, NIE NA NICH (Matej 5. 10. 2026: *„tie šípky dať mimo mockupov,
+             vedľa"*). Súprava je zmenšená (--rig-s), preto sa veľkosť aj odstup delia mierkou:
+             na obrazovke 40 px, stred 16 + 20 px od okraja okna. */
+          .op-apps-col ~ .op-apps-rig .op-apps-ctl { --arr-x: calc((50vw - 36px) / var(--rig-s, 1)); }
+          .op-apps-ctl button { width: calc(40px / var(--rig-s, 1)); height: calc(40px / var(--rig-s, 1)); }
+          .op-apps-ctl svg { width: calc(20px / var(--rig-s, 1)); height: calc(20px / var(--rig-s, 1)); }
           .op-apps-ul { margin-bottom: 16px; font-size: 14px; }
           .op-apps-ul li { padding: 8px 0; gap: 12px; }
           .op-apps-sl { gap: 8px; }
