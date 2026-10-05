@@ -1143,9 +1143,12 @@ function BrandIcon({ src, active }: { src: string; active: boolean }) {
  *    nesie vo VAULTE svet POCHOPENIE (`vault/worlds.ts`) — zámerne jedna značka pre
  *    „miesto, kde sa učím". Predtým tu bola návrhom `dogsphinx.svg`, ktorú si ďalej drží
  *    svet CESTA PSA.
+ * 🔁 ZMENENÉ 5. 10. 2026 — `star-six.svg` (šesťcípa hviezda z hand-drawn kitu, „Star of six
+ *    points"). Matej: *„ešte by som rád zmenil ikonku ainubisa dolu v nave, daj star of six
+ *    points"*. `idea.svg` ostáva svetu POCHOPENIE vo VAULTE.
  */
 function AinubisNavLink({ label }: { label: string }) {
-  return <FloatingNavLink to="/pack/ainubis" label={label} icon="/icons/pack/idea.svg" />;
+  return <FloatingNavLink to="/pack/ainubis" label={label} icon="/icons/pack/star-six.svg" />;
 }
 
 function FloatingNavLink({ to, label, icon, end }: { to: string; label: string; icon: string; end?: boolean }) {
