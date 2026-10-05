@@ -29,8 +29,9 @@ export const DOCK_VH = 0.33;
 /** Hranica telefónnej vetvy. ⚠️ To isté číslo ako v `DRAW_BAR_CSS` — jeden breakpoint. */
 export const DOCK_MOBILE_MAX = 899;
 
-/** Šírka plávajúceho stĺpca na PC. Zhodná s `.trp-sidebar` / `.trp-addhost`. */
-export const DOCK_COL_W = 440;
+/** Šírka plávajúceho stĺpca na PC. JEDINÝ zdroj — `.trp-sidebar` / `.trp-addhost` ju čítajú.
+ *  440 → 480 (5. 10. 2026) = šírka panela AINUBISA, lišta mapy sa tým dostala k pravému okraju. */
+export const DOCK_COL_W = 480;
 
 /**
  * SPOLOČNÁ TRIEDA. Nesie povrch, výplň a výšku; obsah si každý panel rieši sám

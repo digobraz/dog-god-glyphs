@@ -142,7 +142,7 @@ import type { WishDraftPoint } from '@/components/pack/mapnotes/AddWish';
 import { fetchMyWishes, fetchWishPins, useMyWishCount, wishMatchForTrail, type WishPin } from '@/components/pack/mapnotes/wishData';
 import type { WishAskKind, WishAskReq } from '@/components/pack/mapnotes/WishAsk';
 import { WISH_EMOJI, WISH_RIM } from '@/components/pack/mapnotes/markEmoji';
-import { dockFitPadding } from '@/components/pack/mapDockShape';
+import { dockFitPadding, DOCK_COL_W } from '@/components/pack/mapDockShape';
 import { MapAttribution, MAP_ATTR_CSS, mapAttrLiftCSS } from '@/components/pack/mapAttribution';
 import { AddMapNotePin, AddMapNotePanel, MapNotePlacing, MapNoteTooFar, ADD_NOTE_CSS, notePanelH } from '@/components/pack/mapnotes/AddMapNote';
 import { NOTE_PALETTE_CSS } from '@/components/pack/mapnotes/NotePalette';
@@ -210,7 +210,13 @@ const T = PACK_THEME;
 
 // Typografický poriadok (FONT_TITLE = identita, FONT_UI = dáta/eyebrow/chipy) žije
 // v packTheme.ts vedľa farebných tokenov — pravidlá a dôvody sú tam.
-const PANEL_W = 440; // .trp-sidebar width — used to offset the inline-detail fitBounds
+const PANEL_W = DOCK_COL_W; // .trp-sidebar width — used to offset the inline-detail fitBounds
+// ROZLOŽENIE PC AKO AINUBIS (Matej 5. 10. 2026: „rozšíril lavý panel tak aby horný nav bol na
+// pravej strane celkom pri kraji… vrstvy mapy atď posunieme dolu pod crowd"). Panel 440 → 480
+// (= AINUBIS `--akv-panel`), lišta ide k pravému okraju a ovládanie mapy stojí POD ňou.
+// Výška lišty sa RÁTA, nemeria: pás identity 96 + medzera 10 + rad hľadania 42.
+const MAP_EDGE = 20;
+const TOPBAR_BOTTOM = MAP_EDGE + 96 + 10 + 42;
 // Matej 2026-07-27 („pozri ako sa pri zúžení obrazovky správa mapa"): desktop layout
 // (floating panel 440px + topbar NA mape) potrebuje reálne ~1024px+. Pod tým ostával
 // topbaru pás cca 100–340px, takže sa status riadok aj filtre lámali do stĺpca a liezli
@@ -1132,7 +1138,7 @@ const CSS = `
    stránkou) — rovnaká pozícia ako v iterácii 8. Jediná zmena oproti i8 je
    šírka .trp-status-row (viď nižšie) — teraz 100% tohto topbaru, nech
    zodpovedá search-a-place/top-filter riadku pod ňou. ── */
-.trp-topbar{position:absolute;top:20px;left:480px;right:180px;z-index:700;display:flex;flex-direction:column;gap:10px;}
+.trp-topbar{position:absolute;top:20px;left:${MAP_EDGE + DOCK_COL_W + MAP_EDGE}px;right:${MAP_EDGE}px;z-index:700;display:flex;flex-direction:column;gap:10px;}
 .trp-topsearchrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .trp-floatsearch{position:relative;flex:1 1 260px;min-width:220px;}
 .trp-floatsearch .trp-mapsug{position:absolute;top:calc(100% + 8px);left:0;right:0;margin-top:0;}
@@ -1198,7 +1204,7 @@ const CSS = `
 
 /* ── floating dark "Explore" panel — margined off top/left/bottom, rounded,
    gold-pale border + shadow. Map is full-bleed behind it (position:relative). ── */
-.trp-sidebar{position:absolute;top:20px;left:20px;bottom:20px;width:440px;max-width:calc(100vw - 40px);background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,0.55),inset 0 1px 0 rgba(245,240,228,0.06);display:flex;flex-direction:column;min-height:0;overflow:hidden;z-index:20;}
+.trp-sidebar{position:absolute;top:20px;left:20px;bottom:20px;width:${DOCK_COL_W}px;max-width:calc(100vw - 40px);background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,0.55),inset 0 1px 0 rgba(245,240,228,0.06);display:flex;flex-direction:column;min-height:0;overflow:hidden;z-index:20;}
 
 /* top block (status/greeting/search/pills/country/filters) — fixed, does NOT
    scroll; only .trp-cards-scroll below it does (= "sticky" behavior via layout). */
@@ -1695,7 +1701,7 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
    prechode do pridávania „preskočil"); na mobile celá obrazovka (media query nižšie).
    ⚠️ Šírka MUSÍ sedieť s .trp-sidebar aj s odsadením lišty kreslenia (DRAW_BAR_CSS
    v GeometryPicker.tsx) — tri miesta, jedno číslo. */
-.trp-addhost{position:absolute;top:20px;left:20px;bottom:20px;width:440px;max-width:calc(100vw - 40px);background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,0.55),inset 0 1px 0 rgba(245,240,228,0.06);display:flex;flex-direction:column;min-height:0;overflow:hidden;z-index:30;}
+.trp-addhost{position:absolute;top:20px;left:20px;bottom:20px;width:${DOCK_COL_W}px;max-width:calc(100vw - 40px);background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,0.55),inset 0 1px 0 rgba(245,240,228,0.06);display:flex;flex-direction:column;min-height:0;overflow:hidden;z-index:30;}
 .trp-addhost.is-hidden{display:none;}
 
 /* ── mobile-only surfaces (header/list/toggle/ADD overlay), hidden on desktop — see the
@@ -1718,7 +1724,7 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
 .trp-headright{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:10px;}
 /* pravý vertikálny ovládací stack (AllTrails vzor): štýl / zoom / poloha —
    z-index 800 musí prebiť Leaflet vlastné panes (idú až po 700). */
-.trp-ctlstack{position:absolute;top:16px;right:16px;z-index:800;display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
+.trp-ctlstack{position:absolute;top:${TOPBAR_BOTTOM + 12}px;right:${MAP_EDGE}px;z-index:800;display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
 /* bod 2 (iterácia 12): Terrain/Satellite/Winter stack → JEDNO kruhové tlačidlo. Integračná vlna
    (spec-hmla.md) ho prerobila na rozbaľovací panel vrstiev (.trp-layersdd nižšie) — trigger
    ostáva vizuálne .trp-stylebtn, len teraz otvára panel namiesto priameho cyklovania. */
@@ -1897,7 +1903,7 @@ ${TRAIL_LINE_CSS}
 @media (min-width:1024px) and (max-width:1400px){
   .trp-sidebar{width:360px;}
   .trp-addhost{width:360px;}
-  .trp-topbar{left:400px;right:74px;}
+  .trp-topbar{left:400px;right:${MAP_EDGE}px;}
   .trp-status-row{gap:10px;padding:12px 16px;}
   .trp-status-center{gap:7px;flex-wrap:nowrap;}
   .trp-status-row .trp-stat-pill{padding:8px 12px;}
