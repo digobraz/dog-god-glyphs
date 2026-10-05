@@ -36,7 +36,8 @@
 // ⚠️ EN PREKLAD SA PRI ÚPRAVE ZAHADZUJE. `descEN` je preklad SK originálu (viď
 // `tripText()` v tripShared.tsx). Keby po prepise textu ostali, EN návštevník by čítal PÔVODNÚ
 // verziu — teda text, ktorý autor práve prepísal, a nemal by ako zistiť, že je starý. Pád na SK
-// je horší zážitok, ale pravdivý; preklad sa doplní tou istou cestou ako u ostatných výletov.
+// je horší zážitok, ale pravdivý. Od 5. 10. 2026 sa nový preklad dorobí hneď po uložení
+// (Edge Function `translate-trip`), takže SK fallback trvá len pár sekúnd.
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { sizedUrl } from '@/services/cloudinaryService';
@@ -44,7 +45,7 @@ import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/comp
 import { LAPIS, LAPIS_BTN_SHADOW, PALE, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { readLocalTrails, updateLocalTrail } from '@/components/pack/tripShared';
-import { saveTrailOverride } from '@/lib/packStore';
+import { readTrailOverrides, saveTrailOverride, translateTripDesc } from '@/lib/packStore';
 import { MAX_PHOTOS, optimizePhoto } from '@/components/pack/addtrip/photoOptimize';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
 import { TRAVEL_MODES, type TravelMode, type TravelInfo } from '@/components/pack/addtrip/addTripModel';
@@ -207,11 +208,22 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
     // Výlet z DATASETU (nie je v `localTrails`) ide do prepisu — viď `saveTrailOverride`.
     // ⚠️ Tam `undefined` nestačí: prepis sa KLADIE na pôvodný objekt a JSON kľúč s `undefined`
     //    zahodí, takže starý EN preklad by prežil. Prázdny reťazec ho naozaj zmaže.
-    const ok = readLocalTrails().some((x) => x.id === trail.id)
+    const isLocal = readLocalTrails().some((x) => x.id === trail.id);
+    const ok = isLocal
       ? updateLocalTrail(trail.id, patch)
       : saveTrailOverride(trail.id, { ...patch, descEN: '', dogNote: '', dogNoteEN: '' });
     if (!ok) { setErr(t('pack.trip.edit.saveFailed')); return; }
     onSaved(patch);
+    // EN preklad sa dorobí v pozadí (panel sa medzitým zavrie). Zapíše sa LEN keď popis
+    // medzitým nikto neprepísal — inak by pomalý preklad starého textu prebil nový.
+    const src = patch.desc ?? '';
+    void translateTripDesc(src).then((en) => {
+      if (!en) return;
+      const cur = isLocal ? readLocalTrails().find((x) => x.id === trail.id)?.desc : readTrailOverrides()[trail.id]?.desc;
+      if ((cur ?? '') !== src) return;
+      const enPatch = { descEN: en };
+      if (isLocal ? updateLocalTrail(trail.id, enPatch) : saveTrailOverride(trail.id, enPatch)) onSaved(enPatch);
+    });
     if (isPlan) {
       // VYZDVIHNUTIE NESIE LEN VEREJNÝ PLÁN — na súkromnom ho nemá kto prijať. Vypĺňať sa
       // pritom smie ďalej (pole ostáva v paneli aj v drafte sprievodcu, Matej 3. 9.:

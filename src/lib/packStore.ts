@@ -566,6 +566,21 @@ export function saveTrailOverride(id: string, patch: Partial<HeroTrail>): boolea
   return true;
 }
 
+/**
+ * EN PREKLAD PO ÚPRAVE (Matej 5. 10. 2026: „treba ošetriť tie preklady"). Úprava popisu
+ * EN preklad zahadzuje (`TripEditPanel`), táto funkcia ho hneď vyrobí znova cez Edge Function
+ * `translate-trip`. `null` = nepodarilo sa (offline, limit) — výlet ostane na SK fallbacku,
+ * ako doteraz, a preloží sa pri ďalšom uložení.
+ */
+export async function translateTripDesc(text: string): Promise<string | null> {
+  if (!text.trim()) return null;
+  try {
+    const { data, error } = await (supabase as any).functions.invoke('translate-trip', { body: { text } });
+    if (error || typeof data?.en !== 'string' || !data.en.trim()) return null;
+    return data.en.trim();
+  } catch { return null; }
+}
+
 let ovrProcessing = false;
 async function processOverrideQueue(): Promise<void> {
   if (ovrProcessing) return;
