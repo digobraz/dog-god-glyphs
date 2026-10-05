@@ -5718,18 +5718,26 @@ export default function OnePage() {
              „Our goal…". Podmienka: vrch svätožiary ≥ spodok čipu + ~20 px; pri
              mierke k siaha svätožiara ~0,28·k/1,5·vh nad spodnú hranu (zmerané)
              ⇒ 844 → 2 · ≤ 800 → 1,8 · ≤ 700 → 1,3 (iPhone SE 375×667). Odsun do strán rastie s mierkou
-             ((k − 1,377) × 32 %), aby sa nosy stretli pri každej. */
+             ((k − 1,377) × 80 %), aby sa nosy stretli bez dotyku pri každej — Matej
+             5. 10.: *„prekrývajú si tváre… nosy pri sebe ale nedotýkali sa"*. */
           .op-root #op-religion { --ani-k: 2; }
           @media (max-height: 800px) { .op-root #op-religion { --ani-k: 1.8; } }
           @media (max-height: 700px) { .op-root #op-religion { --ani-k: 1.3; } }
           .op-root.op-root .codex-bleed .codex-cow {
-            transform: translateX(calc(var(--op-in, 0) * -120% - var(--op-hek, 0) * 140% - (var(--ani-k) - 1.377) * 32%)) scale(var(--ani-k));
+            transform: translateX(calc(var(--op-in, 0) * -120% - var(--op-hek, 0) * 140% - (var(--ani-k) - 1.377) * 80%)) scale(var(--ani-k));
           }
           /* TEXT POD LIŠTU (Matej 5. 10.: *„treba posunúť texty dolu, lebo teraz pretekajú
              hore"*). „A COW HAS" stál na y 92, medailón lišty siaha po 110 —
              odteraz výška lišty (--op-nav-h) + 16 px vzduchu (PAGE_AIR). */
           .op-root #op-religion .codex-section[data-idx="0"] .codex-3-overlay {
             padding-top: calc(var(--op-nav-h, 118px) + 16px);
+          }
+          /* ČIP „OUR GOAL IS TO CHANGE THAT!" MENŠÍ (Matej 5. 10. 2026: *„chip je moc
+             veľký"*). Len tento čip a len na mobile — tvar INFO ČIPU filmu
+             (ReligionLab .codex-chip, 27. 9.) ostáva; mení sa písmo a výplň. */
+          .op-root #op-religion .codex-section[data-idx="0"] .codex-chip {
+            font-size: 10px;
+            padding: 6px 12px;
           }
           /* 🔴 NA TREŤOM OBRAZE SA PES POSUNIE DO ZÁBERU (Matej 4. 9. 2026:
              *„hektora viac centruj"*). Mobil nemá rozdelenie obrazovky, takže
@@ -5745,7 +5753,7 @@ export default function OnePage() {
               var(--op-in, 0) * 120%
               - var(--op-split, 0) * 15%
               + var(--op-hek, 0) * 140%
-              + (var(--ani-k) - 1.377) * 32%
+              + (var(--ani-k) - 1.377) * 80%
             )) scale(calc(var(--ani-k) * 0.985));
           }
         }

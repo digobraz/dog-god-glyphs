@@ -159,4 +159,10 @@ export const FILM_CUE_CSS = `
     }
   }
   @media (prefers-reduced-motion: reduce) { .op-cue-c { animation: none; opacity: .8; } }
+  /* 5. 10. 2026 — DETAIL PSA Z PLANÉTKY: šípky preč (Matej: *„pri kliknutí na psa na
+     planetke sa otvorí blok s detailom ale šípky na scroll musia zmiznúť!"*). Otvorený
+     detail = .planet-root.pop (DogPlanetLab). Len mobil — PC sa mení až na Matejovo slovo. */
+  @media (max-width: 768px) {
+    .op-root:has(.planet-root.pop) :is(.op-cue, .op-top) { opacity: 0; pointer-events: none; }
+  }
 `;
