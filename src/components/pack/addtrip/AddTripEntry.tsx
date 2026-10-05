@@ -25,7 +25,6 @@ import {
 import { POINTS } from '@/lib/tripPoints';
 import { BUDDY_LIVE, EVENTS_LIVE, WISHES_LIVE } from '@/lib/packFlags';
 import { useNavigate } from 'react-router-dom';
-import { BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { RightGate } from '@/components/pack/RightGate';
 import type { PawmateRight } from '@/lib/pawmateRights';
 
@@ -66,10 +65,7 @@ export type AddTripEntryProps = {
   onCreate?: (o: CreateObject) => void;
   /**
    * Vchod, ktorý už vie, čo človek chce (Matej 5. 10. 2026: „rovno na vec"), otvorí panel
-   * hneď na druhej úrovni. Návrat z nej potom panel ZAVRIE — človek rozcestník nevidel,
-   * takže „späť" doň by ho poslalo niekam, kde nikdy nebol.
-   * Šípka sa preto správa ako na prvej úrovni (`--close`): v plávajúcom bloku je skrytá
-   * a zatvára klik vedľa (Matej 5. 10. 2026: „tá šípka dozadu tam nemá čo robiť").
+   * hneď na druhej úrovni. Šípka späť v paneli nie je (5. 10. 2026) — zatvára klik vedľa.
    */
   startAt?: 'event';
 };
@@ -353,6 +349,10 @@ export function AddTripEntry({ onPick, onClose, place, onCreate, startAt }: AddT
             prvok. Padol tým aj celý spor z 5. 8. o tom, ako ďaleko má krížik stáť od rámu.
             Kľúč `pack.addTrip.entry.closeAriaLabel` ostáva — nesie ho podklad. */}
 
+        {/* 🔴 ŠÍPKA V PANELI `+` ZANIKLA ÚPLNE (Matej 5. 10. 2026: „poriadne to skontroluj,
+            aby v tomto dropdowne nebolo toto tlačidlo vzad!"). Panel sa zatvára klikom vedľa,
+            Escape a na mobile stiahnutím úchytu — aj z druhej úrovne. Kto chce iný typ,
+            zatvorí a otvorí `+` znova. Text nižšie je história (prečo šípka bola), neplatí. */}
         {/* ── JEDEN NÁVRAT PRE OBE ÚROVNE (Matej 2026-09-13) ────────────────────────────
             „cta prekrývajú zadnú šípku (šípky nemáme)" — šípku /pack MÁ a je locknutá
             (`BackButton.tsx`, LOCKED 2026-09-01, na Matejovu požiadavku „mali by sme ju
@@ -372,14 +372,6 @@ export function AddTripEntry({ onPick, onClose, place, onCreate, startAt }: AddT
             neviedol o krok späť, ale zahodil celý popup.
             ⚠️ Nie je to návrat krížika: lock hovorí o ZATVORENÍ plávajúceho bloku, toto je
             návrat v toku a ten má v pridávaní vlastný tvar od 1. 9. */}
-        <button
-          type="button"
-          className={`att-entry-nav${step === 'kind' || step === startAt ? ' att-entry-nav--close' : ''}`}
-          onClick={() => (step === 'kind' || step === startAt ? onClose() : setStep('kind'))}
-          aria-label={t(step === 'kind' || step === startAt ? 'pack.addTrip.entry.closeAriaLabel' : 'pack.addTrip.entry.backAriaLabel')}
-        >
-          <BackIcon />
-        </button>
         {step === 'kind' && (
           <div className="att-entry-reg" role="group" aria-label={tx(`pack.create.title.${place}`, PLACE_TITLE[place])}>
             {/* NADPIS ANI ŠTÍTKY SKUPÍN UŽ NIE SÚ (Matej 22. 9.: „nadpis daj preč, budú tam
@@ -504,11 +496,8 @@ body:has(.att-entry-backdrop) .ainubis-launcher{visibility:hidden;pointer-events
 /* ── NÁVRAT V TOKU ───────────────────────────────────────────────────────────────────
    backCircleCSS nesie priemer, lem aj farby (BackButton.tsx, LOCKED 2026-09-01).
    ⚠️ Na PRVEJ úrovni je skrytý: von sa ide klikom vedľa alebo Escape (lock 26. 8.). */
-.att-entry-nav{position:absolute;top:12px;left:50%;transform:translateX(-50%);${backCircleCSS('pale')}}
-.att-entry-nav:hover{${backHoverCSS('pale')}}
-.att-entry-nav--close{display:none;}
-/* Na prvej úrovni návrat nie je, horná výplň pre neho by bola prázdny pás. */
-.att-entry-panel:has(.att-entry-nav--close){padding-top:16px;}
+/* Od 5. 10. 2026 šípka nie je na ŽIADNEJ úrovni — horná výplň pre ňu by bola prázdny pás. */
+.att-entry-panel{padding-top:16px;}
 
 .att-entry-note{padding-top:4px;}
 .att-entry-lead{margin:0 0 12px;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:${T.inkWarm};}
@@ -518,11 +507,9 @@ body:has(.att-entry-backdrop) .ainubis-launcher{visibility:hidden;pointer-events
    ako na PC — bar lišty je na telefóne takmer cez celé okno, panel s ním.
    ⚠️ env(safe-area-inset-bottom) tu netreba: panel stojí NAD lištou, nie na hrane okna. */
 @media (max-width:640px){
-  .att-entry-panel,.att-entry-panel:has(.att-entry-nav--close){padding:4px 12px 12px;}
+  .att-entry-panel{padding:4px 12px 12px;}
   .att-entry-grab{display:block;width:100%;padding:8px 0 8px;background:none;border:0;cursor:grab;touch-action:none;}
   .att-entry-grab::before{content:'';display:block;width:44px;height:4px;margin:0 auto;border-radius:999px;background:rgba(179,130,45,0.26);}
   .att-entry-grab:active{cursor:grabbing;}
-  /* Návrat sa na mobile nevznáša nad obsahom — stojí v riadku pod úchytom. */
-  .att-entry-nav{position:static;transform:none;margin:0 0 8px;}
 }
 `;
