@@ -4214,7 +4214,7 @@ export default function OnePage() {
       {/* ŠÍPKY DOLE (27. 9. 2026) — Matej: *„namiesto CTA urobiť na obrazovkách
           šípky, ktoré navádzajú na SLIDE… 3 pod sebou blikajúce"*. Jedny pre
           celý film; počas jazdy motora zhasnú, klik = ďalšia obrazovka. */}
-      <div ref={veilRef} className="op-veil" aria-hidden="true" />
+      <div ref={veilRef} className="op-jumpveil" aria-hidden="true" />
       {!wallOpen && !atFilmEnd && !inStory && !atFinale && !atQuoHead && (
         <FilmCue moving={filmMoving} onNext={() => filmGo(1)} label={t('onepage.cue.next')} big={atHome} apps={inApps} chip={t('onepage.cue.more')} />
       )}
@@ -4725,14 +4725,20 @@ export default function OnePage() {
            vráti, riadok sa nepohne. Pozor na to isté všade, kde je zlaté písmo
            cez background-clip s riadkovaním pod 1. */
         .op-nxt-h2 { padding-top: 0.2em; }
-        /* OPONA SKOKU (filmJump) — pod lištou (z 60), nad celým filmom. */
-        .op-veil {
+        /* OPONA SKOKU (filmJump) — pod lištou (z 60), nad celým filmom.
+           🔴 VLASTNÁ TRIEDA, NIE .op-veil (5. 10. 2026 večer). Od kola 23 niesla meno
+           čierneho ZÁVOJU prechodu do príbehu: réžia (q('.op-veil')) chytila prvý prvok
+           v DOM-e, teda túto papyrusovú oponu, a tieto pravidlá stojace nižšie prebili aj
+           závoj (papyrus, z 58 pod lištou, 0,45 s prechod). Video tak pred príbehom
+           blednulo do papyrusu a čierna naskočila až po ňom — Matej: *„prechod na story
+           musí byť plynulejší… na mobile to nevyzerá dobre"*. */
+        .op-jumpveil {
           position: fixed; inset: 0; z-index: 58; pointer-events: none;
           background: ${LAB.pageBg}; opacity: 0;
           transition: opacity .45s cubic-bezier(.4,0,.2,1);
         }
-        .op-veil::before { content: ''; position: absolute; inset: 0; background: ${LAB.pageBackdrop}; }
-        .op-veil.is-on { opacity: 1; pointer-events: auto; transition-duration: .32s; }
+        .op-jumpveil::before { content: ''; position: absolute; inset: 0; background: ${LAB.pageBackdrop}; }
+        .op-jumpveil.is-on { opacity: 1; pointer-events: auto; transition-duration: .32s; }
         .op-nxt-h2 span { padding-top: 0.2em; margin-top: -0.2em; }
         @media (min-width: 768px) {
           .op-snaps > span,
