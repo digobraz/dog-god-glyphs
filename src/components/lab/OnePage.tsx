@@ -1467,6 +1467,31 @@ export default function OnePage() {
    *  textov po zmene jazyka robí `retext` (viď efekt s `[t]` nižšie). */
   const tRef = useRef(t);
   tRef.current = t;
+  // 🧪 LADENIE TRASENIA NA iPHONE (5. 10. 2026) — len dev server a len s ?dbg=1.
+  // Vypisuje po snímkach polohu stránky a prilepenej vrstvy slajdu 2, aby nahrávka
+  // obrazovky z telefónu ukázala, či sa vrstva hýbe v rozložení, alebo len vo vykreslení.
+  useEffect(() => {
+    if (!import.meta.env.DEV || !/[?&]dbg=1/.test(location.search)) return;
+    const box = document.createElement('div');
+    box.style.cssText = 'position:fixed;left:4px;top:140px;z-index:2147483647;font:11px/1.25 monospace;background:rgba(0,0,0,.75);color:#0f0;padding:4px 6px;border-radius:4px;pointer-events:none;white-space:pre';
+    document.body.appendChild(box);
+    let raf = 0, fr = 0;
+    const tick = () => {
+      fr++;
+      const sl = document.querySelector<HTMLElement>('#op-religion .codex-section[data-idx="0"] .codex-slider');
+      const fig = document.querySelector<HTMLElement>('#op-religion .codex-claim-cow .cl-figure');
+      const vv = window.visualViewport;
+      box.textContent =
+        'f ' + fr + '  sY ' + window.scrollY.toFixed(2) +
+        '\nslider ' + (sl ? sl.getBoundingClientRect().top.toFixed(2) : '-') +
+        '  fig ' + (fig ? fig.getBoundingClientRect().top.toFixed(2) : '-') +
+        '\nvv ' + (vv ? vv.offsetTop.toFixed(1) + '/' + vv.height.toFixed(1) + '/' + vv.pageTop.toFixed(1) : '-') +
+        '  ih ' + window.innerHeight;
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => { cancelAnimationFrame(raf); box.remove(); };
+  }, []);
   const [scene, setScene] = useState(0);
   const [past, setPast] = useState(false);       // je už guľa preč?
   // Ústava v prekrytí. Kniha ako OBRAZ filmu zanikla (Matej 28. 8. 2026),
