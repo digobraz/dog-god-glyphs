@@ -145,7 +145,18 @@ export const FILM_CUE_CSS = `
   @media (max-width: 768px) {
     .op-cue { bottom: clamp(16px, 8vh, 72px); }
     /* Cookie lišta (--consent-h, publikuje ConsentBanner) by šípky prekryla. */
-    .op-cue.is-big { right: 16px; bottom: calc(24px + var(--consent-h, 0px)); transform: scale(1.4); }
+    /* 5. 10. 2026 — na mobile úvode V STREDE medzi guľou a spodnou lištou (Matej:
+       *„tie tri šípky premiestni pod planétu medzi nav a planétu"*; roh z 3. 10. platí
+       už len pre PC — tam ich aj tak nahradil chip). Rovnica, nie meranie:
+       spodok gule = 50vh + 331·k (BALL_SPAN 662 / 2 × mierka --ball-k z DogPlanetLab),
+       vrch lišty = vh − 78 px ⇒ stred pásu od spodku okna = 25vh + 39px − 165,5px·k.
+       Zmerané na 390×844: guľa končí 608, lišta začína 766, stred 687 = rovnica.
+       Cookie lišta (--consent-h) má prednosť — šípky sa nad ňu zdvihnú. */
+    .op-cue.is-big {
+      left: 50%; right: auto;
+      bottom: max(calc(25vh + 39px - 165.5px * min(0.57, var(--ball-fit, 0.57))), calc(var(--consent-h, 0px) + 64px));
+      transform: translate(-50%, 50%) scale(1.4); transform-origin: 50% 50%;
+    }
   }
   @media (prefers-reduced-motion: reduce) { .op-cue-c { animation: none; opacity: .8; } }
 `;

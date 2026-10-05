@@ -1412,10 +1412,23 @@ export function DogPlanetLab({
              ktorej sa guľa ešte zmestí do okna (viď --ball-fit v efekte). */
           .planet-root { --ball-k: min(0.57, var(--ball-fit, 0.57)); }
 
+          /* 🔴 NADPIS = CELÁ ŠÍRKA OKNA (Matej 5. 10. 2026: *„zväčši písmo, aby bolo
+             čo najväčšie a vždy v 2 riadkoch v každom jazyku"*). Rovnica, nie meranie:
+             písmo = (okno − 2×16 px) / dĺžka dlhšieho riadka v em. EN „YOUR DOG IS"
+             má s Cinzel Decorative na DOG 7,37 em (zmerané 5. 10.), --ph-em 7,5 nechá
+             ~2 % na rozdiely v sadzbe medzi prehliadačmi. Riadky sú nowrap bloky,
+             takže tretí riadok nevznikne — rovnica len stráži, aby nevytiekli z okna.
+             ⚠️ Keď nadpis dostane preklad, jazyk s dlhším riadkom si nastaví vlastné
+             --ph-em (dĺžku dlhšieho riadka v em + ~2 %), inak pretečie.
+             ⚠️ z-index: biela žiara portálu (.ph-halo, 2,45× portálu) je v DOM-e neskôr
+             a ležala CEZ spodok nadpisu — Matej: *„žiara z portálu zakrýva nadpis"*.
+             .ph-lead to isté riešil už predtým (z-index 1). */
           .ph-h1 {
+            --ph-em: 7.5;
             white-space: normal;
-            /* VIDITEĽNE clamp(1.711rem, 8.841vw, 3.103rem) — pôvodok × 1,15 */
-            font-size: calc(clamp(1.711rem, 8.841vw, 3.103rem) / var(--ball-k, 0.57));
+            position: relative;
+            z-index: 2;
+            font-size: calc((100vw - 32px) / var(--ph-em) / var(--ball-k, 0.57));
             line-height: 1.04;
           }
           .planet-hero .ph-lead {
@@ -1432,9 +1445,11 @@ export function DogPlanetLab({
              69,9vw = pôvodných 98vw (layout) × 0,62 (vtedajšia mierka) × 1,2509.
              (Historicky: 98vw, nie 92vw, lebo Cinzel Decorative pri DOG a GOD
              je o ~2,8 % širšia než Cinzel a pri 96vw zožrala tretinu rezervy.) */
+          /* 5. 10. 2026: priehradka = okno − 2×16 px (VIDITEĽNE), teda presne šírka,
+             na ktorú rovnica nadpisu vyššie počíta. */
           .planet-hero {
             gap: calc(10px / var(--ball-k, 0.57));
-            width: calc(69.9vw / var(--ball-k, 0.57));
+            width: calc((100vw - 32px) / var(--ball-k, 0.57));
           }
         }
 
@@ -1947,7 +1962,11 @@ export function DogPlanetLab({
              Preto min() s dopočítaným --ball-fit.
              ⚠️ --op-sc je násobič filmu, nie hotová mierka (viď hlavné pravidlo). */
           .planet-root.open .planet-stage { transform: scale(calc(var(--ball-k, 0.57) * var(--op-sc, 1))); }
-          .planet-hero img { width: 104px; }
+          /* ⚠️ Tu stálo .planet-hero img { width: 104px } — pozostatok z čias, keď
+             v hero stálo logo (odsťahovalo sa 26. 8.). Pravidlo potom ticho zúžilo
+             tváre v portáli na 59 % dlaždice a vpravo ostal holý lapisový pás —
+             Matej 5. 10.: *„CTA je pokazené, fotka je ako keby mimo a je vidno
+             jednofarebný okraj"*. Zmazané; portál si veľkosti rieši sám (dogPortal.ts). */
 
           /* CTA BLOK: −25 % (Matej 27. 8.) a teraz +25 % (Matej 28. 8. 2026:
              „CTA blok o 25 %"). Škáluje sa JEDNA premenná — lem, ikonka, popisok
