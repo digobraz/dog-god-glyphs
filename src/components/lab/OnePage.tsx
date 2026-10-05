@@ -1135,11 +1135,6 @@ const DGX_GROUPS_V = [
  *  `DGX_GROUPS`/`DGX_GROUPS_V`; adresuje sa indexom, nie fyzickým poradím.
  *  Text je v slovníku (`onepage.dgx.k.<n>.name` / `.desc`). */
 const DGX_KKEY = ['onepage.dgx.k.1', 'onepage.dgx.k.2', 'onepage.dgx.k.3', 'onepage.dgx.k.4'];
-/** Id oblastí v TOM ISTOM poradí ako `DGX_KKEY` — bublina oblasti z nich berie text. */
-const DGX_GROUP_IDS = ['basics', 'breed', 'char', 'own'] as const;
-/** Krytie farby oblasti po zhasnutí kót (5. 10. 2026) — glyf ostáva čitateľne
- *  farebný ako mapa štyroch oblastí; plná farba + žiara patrí len dotyku. */
-const DGX_HOT_REST = 0.55;
 
 /** Ktoré sloty majú bublinu. Jej obsah (Hektorove SKUTOČNÉ hodnoty, pes #1)
  *  je v slovníku: `onepage.dgx.bub.<slot>.label` / `.value` / `.glyph` — tri
@@ -1157,6 +1152,8 @@ const DGX_BUB = new Set([
 
 /** 20 zvislých heroglyfov psov #1–#20 (dážď = LEN celé heroglyfy, žiadne
  *  samostatné symboly — Matej 1. 9. 2026 zamietol pôvodnú deľbu). */
+/** Mobil: meno pod fotkou podpisu — medzera 6 + riadok mena (~1,3 × nsM). */
+const SIG_NAME_M = 24;
 const DGX_RAIN_IMGS = Array.from({ length: 20 }, (_, i) => `/heroglyph/dogtrix/glyphs/${String(i + 1).padStart(2, '0')}.png`);
 /** Pomer strán zvislého heroglyfu (w/h), z `extract-glyphs.py`. */
 const DGX_GA = 0.323;
@@ -1232,9 +1229,11 @@ const DGX = {
      Mobilne (`fpM`/`nsM`/`rlsM`) ostavaju — pokyn padol nad PC obrazovkou,
      rovnako ako pri `gwK`. `sgap` (medzera fotka↔text) sa nedeli: nema
      mobilny variant, takze by zmena zasiahla aj telefon, a ide o 2 px. */
-  /* 5. 10. 2026 — MOBIL o štvrtinu menší (Matej: *„na mobile zmenši foto hektora aj
-     textting pri ňom, je to moc veľké"*): fpM 56→42 · nsM 21→16 · rlsM 11→9. PC nemenené. */
-  sig: 66, sigD: 4, fp: 52.0, fpM: 42, ns: 19.1, nsM: 16, sgap: 14, rls: 11, rlsM: 9,
+  /* 5. 10. 2026 — MOBIL menší (Matej: *„na mobile zmenši foto hektora aj textting pri
+     ňom"*, 2. kolo: *„centruj fotku pod heroglyf, pod ňu daj meno, celé to zmenši,
+     first dogyptian daj preč"*): fpM 56→36 · nsM 21→14; rola na mobile skrytá (CSS).
+     Fotka a meno idú POD SEBOU — výška podpisu = fpM + SIG_NAME_M (rozpočet fitGw). PC nemenené. */
+  sig: 66, sigD: 4, fp: 52.0, fpM: 36, ns: 19.1, nsM: 14, sgap: 14, rls: 11, rlsM: 9,
 } as const;
 
 /** Dráha WE NEED YOU, ktorú oblúk naozaj má — 0, kým je obraz odložený (WNY_ON). */
@@ -1602,7 +1601,7 @@ export default function OnePage() {
     type Piece = { node: SVGElement; g: string | null };
     type KLine = {
       id: string; side: string; dogma?: boolean; row: number; i: number;
-      li: HTMLDivElement; lab: HTMLDivElement; nameEl: HTMLElement; descEl: HTMLElement;
+      li: HTMLDivElement; lab: HTMLDivElement; nameEl: HTMLElement; descEl: HTMLElement; dot: HTMLButtonElement;
       edgeT?: number; edgeB?: number; edgeL?: number; edgeR?: number;
       ay?: number; ax?: number; lineFull?: number;
     };
@@ -1613,6 +1612,8 @@ export default function OnePage() {
     /** Blikajúce body na symboloch (27. 9. 2026). */
     let hotOf: Record<string, SVGElement> = {};
     let hoverKey: string | null = null;
+    /** Oblasť, ktorej kótu si človek vyžiadal bodkou (5. 10. 2026). */
+    let kotaKey: string | null = null;
     let cartTNode: SVGElement | null = null;
     let K: KLine[] = [];
     let curVertical: boolean | null = null;
@@ -1621,7 +1622,8 @@ export default function OnePage() {
     // ── KÓTY: vodič + popisok, bez rámika (Matej 1. 9. 2026: „iba kótu
     // a vysvietil symbol" — svetlo JE značka, rámik by to povedal druhýkrát) ──
     const buildKoty = (vertical: boolean) => {
-      K.forEach((k) => { k.li.remove(); k.lab.remove(); });
+      K.forEach((k) => { k.li.remove(); k.lab.remove(); k.dot.remove(); });
+      kotaKey = null;
       const GR = vertical ? DGX_GROUPS_V : DGX_GROUPS;
       const SL = vertical ? DGX_SLOTS_V : DGX_SLOTS;
       K = GR.map((g, i) => {
@@ -1663,9 +1665,34 @@ export default function OnePage() {
         const nameEl = document.createElement('b'); nameEl.className = 'kname';
         const descEl = document.createElement('i'); descEl.className = 'kdesc';
         lab.append(nameEl, descEl);
-        gbox.append(li, lab);
+        // BODKA OBLASTI — na tej strane glyfu, kam kóta ukazuje (mobil vľavo/vpravo
+        // vo výške skupiny, PC nad/pod v jej osi). Poloha v % rámu, ako kóta.
+        // ⚠️ PC: tiež VEDĽA glyfu, nie nad/pod (Matej: *„z jednej a druhej strany
+        // vedľa heroglyfu dve farebné bodky"*) — nad ním je podnadpis, pod ním Hektor.
+        // Poradie zľava ako na glyfe: PÔVOD, PLEMENO vľavo · MAJITEĽ, POVAHA vpravo.
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.style.setProperty('--kc', DGX_COL[g.id]);
+        if (vertical) {
+          dot.className = 'kdot kdot--' + g.side;
+          dot.style.top = g.ay + '%';
+        } else {
+          const PC_DOT: Record<string, [string, number]> = {
+            basics: ['left', 30], breed: ['left', 70], own: ['right', 30], char: ['right', 70],
+          };
+          const [sd, y] = PC_DOT[g.id] ?? ['left', 50];
+          dot.className = 'kdot kdot--' + sd;
+          dot.style.top = y + '%';
+        }
+        dot.addEventListener('click', (e) => {
+          e.stopPropagation();
+          kotaKey = kotaKey === g.id ? null : g.id;
+          hoverKey = null;
+          dgxApiRef.current?.draw(lastDp);
+        });
+        gbox.append(li, lab, dot);
         return {
-          ...g, li, lab, nameEl, descEl, i,
+          ...g, li, lab, nameEl, descEl, dot, i,
           ...(vertical ? { edgeL: members.l, edgeR: members.r } : { edgeT: members.t, edgeB: members.b }),
         } as KLine;
       });
@@ -1727,7 +1754,7 @@ export default function OnePage() {
         hitOf[s.k] = hit;
         hit.addEventListener('pointerenter', () => { hoverKey = s.k; dgxApiRef.current?.draw(lastDp); });
         hit.addEventListener('pointerleave', () => { hoverKey = null; dgxApiRef.current?.draw(lastDp); });
-        hit.addEventListener('click', () => { hoverKey = hoverKey === s.k ? null : s.k; dgxApiRef.current?.draw(lastDp); });
+        hit.addEventListener('click', () => { hoverKey = hoverKey === s.k ? null : s.k; kotaKey = null; dgxApiRef.current?.draw(lastDp); });
       }
 
       buildKoty(vertical);
@@ -2189,7 +2216,7 @@ export default function OnePage() {
       const gapPx = (vh: number) => (filmVh() * vh) / 100;
       const eyeH = (narrow ? DGX.eyePxM : DGX.eyePx) * 1.2;
       const ruleH = rulePxV * 1.4;
-      const sigH = narrow ? DGX.fpM : DGX.fp;
+      const sigH = narrow ? DGX.fpM + SIG_NAME_M : DGX.fp;
       const hintPxV = narrow ? DGX.hintPxM : DGX.hintPx;
       const pillH = hintPxV * (1 + 2 * 0.72) + 2;
       // Spoločný základ oboch scén: eyebrow + nadpis + podnadpis + medzera
@@ -2250,7 +2277,7 @@ export default function OnePage() {
         gapPx(1.8) + headH +
         gapPx(DGX.subGap) + rulePxV * 1.4 +
         gapPx(1.8);
-      const sigH = narrow ? DGX.fpM : DGX.fp;
+      const sigH = narrow ? DGX.fpM + SIG_NAME_M : DGX.fp;
       const pillH = (narrow ? DGX.hintPxM : DGX.hintPx) * (1 + 2 * 0.72) + 2;
       const budgetB = availH - usedShared - (gapPx(1.8) + sigH) - (gapPx(1.8) + pillH);
       const padSum = pad.up + pad.down;
@@ -2327,17 +2354,17 @@ export default function OnePage() {
         const fadeIn = Math.max(1.2, pw * 0.35);
         const lit = seg(pc, a, a + fadeIn);
         const on = seg(pc, a + pw, a + pw + DGX.kotaD);
-        // 🔴 PO ZHASNUTÍ KÓT OSTÁVAJÚ OBLASTI FAREBNÉ (Matej 5. 10. 2026: *„potrebujem
-        // aj na mobile aj na PC ponechať možnosť pozrieť sa na tie 4 časti… pomerne
-        // rýchlo zmiznú = mohli by zostať farebné hotspoty a po kliknutí bublinka pre
-        // danú oblasť"*). Farba neodíde do čiernej, ale do tlmeného tónu DGX_HOT_REST —
-        // tým istým `dark`, takže prechod je jeden pohyb, nie druhé rozsvietenie.
-        const sv = Math.max(
-          Math.max(0, Math.max(lit, on)) * dgxPulseAt(pc, a, pw, DGX.pulseN) * (1 - dark),
-          DGX_HOT_REST * dark,
-        );
-        const kv = Math.max(0, on) * (1 - dark);
+        // 🔴 BODKA OBLASTI (Matej 5. 10. 2026: *„tie hotspoty musia byť vedľa heroglyfu…
+        // z jednej a druhej strany dve farebné bodky, tak aby bolo stále možné kliknúť
+        // na jednotlivé symboly"*). Kóty po prehratí zhasnú; bodka pri glyfe vráti
+        // kótu SVOJEJ oblasti (čiara + popis + farba oblasti) na požiadanie.
+        const ask = sec.dataset.live === '1' && kotaKey === k.id ? 1 : 0;
+        const sv = Math.max(Math.max(0, Math.max(lit, on)) * dgxPulseAt(pc, a, pw, DGX.pulseN) * (1 - dark), ask);
+        // Kóta sa vracia LEN na mobile (leží cez glyf); na PC nemá kam — rezerva
+        // nad/pod glyfom po prehratí zaniká — a oblasť tam opíše bublina pri bodke.
+        const kv = Math.max(Math.max(0, on) * (1 - dark), vertical ? ask : 0);
         kMax = Math.max(kMax, on);
+        k.dot.classList.toggle('on', ask === 1);
         for (const nd of tints[k.id]) {
           (nd as unknown as HTMLElement).style.opacity = (sv * gone).toFixed(3);
           (nd as unknown as HTMLElement).style.filter = (nd === cartTNode ? '' : `url(#dgx-t-${k.id}) `) +
@@ -2366,26 +2393,16 @@ export default function OnePage() {
       for (const hk in hotOf) hotOf[hk].classList.toggle('off', hk === hoverKey);
       if (sec.dataset.live === '1' && hoverKey && tintOf[hoverKey]) {
         const g = vertical ? SLOT_G_V(hoverKey) : SLOT_G_H(hoverKey);
-        // Rozsvieti sa CELÁ OBLASŤ (5. 10. 2026), nie len symbol pod prstom —
-        // bublina hovorí o oblasti, svetlo musí ukázať, ktorá to je.
-        for (const nd of tints[g] ?? []) {
-          (nd as unknown as HTMLElement).style.opacity = '1';
-          (nd as unknown as HTMLElement).style.filter = (nd === cartTNode ? '' : `url(#dgx-t-${g}) `) +
-            `drop-shadow(0 0 ${DGX.glow}px ${DGX_COL[g]})`;
-        }
+        const nd = tintOf[hoverKey];
+        (nd as unknown as HTMLElement).style.opacity = '1';
+        (nd as unknown as HTMLElement).style.filter = `url(#dgx-t-${g}) drop-shadow(0 0 ${DGX.glow}px ${DGX_COL[g]})`;
         const slot = (vertical ? DGX_SLOTS_V : DGX_SLOTS).find((s) => s.k === hoverKey)!;
         bub.style.color = DGX_COL[g];
         const bk = `onepage.dgx.bub.${hoverKey}`;
-        const [label, val] = DGX_BUB.has(hoverKey)
-          ? [tRef.current(`${bk}.label`), tRef.current(`${bk}.value`)]
-          : ['', ''];
-        // Bublina OBLASTI: hore symbol pod prstom (údaj · hodnota), veľkým jej
-        // názov z kóty, pod ním popis kóty — ten istý text, ktorý predtým zhasol.
-        const gi = DGX_GROUP_IDS.indexOf(g as typeof DGX_GROUP_IDS[number]);
-        const area = gi >= 0 ? tRef.current(`${DGX_KKEY[gi]}.name`) : '';
-        const desc = gi >= 0 ? tRef.current(`${DGX_KKEY[gi]}.desc`) : '';
-        const esc = (x: string) => x.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]!));
-        bub.innerHTML = `<b>${esc(label && val ? `${label} · ${val}` : label)}</b><i>${esc(area)}</i><em>${esc(desc)}</em>`;
+        const [label, val, name] = DGX_BUB.has(hoverKey)
+          ? [tRef.current(`${bk}.label`), tRef.current(`${bk}.value`), tRef.current(`${bk}.glyph`)]
+          : ['', '', ''];
+        bub.innerHTML = `<b>${label}</b><i>${val}</i><em>${name}</em>`;
         bub.classList.add('on');
         const gr = gbox.getBoundingClientRect(), sr = sec.getBoundingClientRect();
         bub.style.removeProperty('transform');
@@ -2404,6 +2421,18 @@ export default function OnePage() {
         if (limB > limT) { if (br.top < limT) bdy = limT - br.top; else if (br.bottom > limB) bdy = limB - br.bottom; }
         bub.style.setProperty('--bdx', bdx.toFixed(1) + 'px');
         bub.style.setProperty('--bdy', bdy.toFixed(1) + 'px');
+      } else if (sec.dataset.live === '1' && kotaKey && !vertical) {
+        // PC: bublina OBLASTI pri bodke — názov a popis kóty, farbou oblasti.
+        const gi = K.findIndex((k) => k.id === kotaKey);
+        const kk = K[gi];
+        bub.style.color = DGX_COL[kotaKey];
+        bub.innerHTML = `<i>${tRef.current(`${DGX_KKEY[gi]}.name`)}</i><em>${tRef.current(`${DGX_KKEY[gi]}.desc`)}</em>`;
+        bub.classList.add('on');
+        const dr = kk.dot.getBoundingClientRect(), sr = sec.getBoundingClientRect();
+        bub.style.left = (dr.left + dr.width / 2 - sr.left).toFixed(1) + 'px';
+        bub.style.top = (dr.top - 4 - sr.top).toFixed(1) + 'px';
+        bub.style.setProperty('--bdx', '0px');
+        bub.style.setProperty('--bdy', '0px');
       } else {
         bub.classList.remove('on');
       }
@@ -7255,6 +7284,33 @@ export default function OnePage() {
         /* ── KÓTY: ČIARA + POPISOK, ŽIADNY RÁMIK ────────────────────────
            Matej 1. 9. 2026: „nedával by som kóty a rámik, iba kótu a
            vysvietil symbol." Značkou je SVETLO, nie obkreslenie. */
+        /* ── BODKY OBLASTÍ (Matej 5. 10. 2026) ────────────────────────────
+           Štyri farebné bodky VEDĽA glyfu, dve z každej strany (mobil vľavo/vpravo,
+           PC nad/pod) — každá vráti kótu svojej oblasti. Glyf ostáva čierny a jeho
+           symboly klikateľné po jednom; bodky ležia MIMO rámu, takže im nič neberú.
+           Tlačidlo 28 px = cieľ prsta, farebný bod 12 px je jeho ::before. */
+        .dgx-gbox .kdot {
+          position: absolute; width: 28px; height: 28px; padding: 0; margin: 0;
+          border: 0; background: none; cursor: pointer; z-index: 3;
+          opacity: 0; pointer-events: none; transition: opacity .4s ease;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .dgx-gbox .kdot::before {
+          content: ''; position: absolute; left: 50%; top: 50%; width: 12px; height: 12px;
+          border-radius: 999px; background: var(--kc); transform: translate(-50%, -50%);
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--kc) 22%, transparent);
+          transition: transform .25s ease, box-shadow .25s ease;
+        }
+        .dgx-gbox .kdot:hover::before, .dgx-gbox .kdot.on::before {
+          transform: translate(-50%, -50%) scale(1.25);
+          box-shadow: 0 0 0 5px color-mix(in srgb, var(--kc) 30%, transparent), 0 0 10px var(--kc);
+        }
+        .op-dgx[data-live="1"] .dgx-gbox .kdot { opacity: 1; pointer-events: auto; }
+        .dgx-gbox .kdot--left  { right: calc(100% + 4px); transform: translateY(-50%); }
+        .dgx-gbox .kdot--right { left: calc(100% + 4px);  transform: translateY(-50%); }
+        .dgx-gbox .kdot--up    { bottom: calc(100% + 4px); transform: translateX(-50%); }
+        .dgx-gbox .kdot--down  { top: calc(100% + 4px);    transform: translateX(-50%); }
+        .dgx-gbox .kdot:focus:not(:focus-visible) { outline: none; }
         .dgx-gbox .kline { position: absolute; width: 1.8px; transform: translateX(-50%); opacity: var(--ko, 0); pointer-events: none; }
         .dgx-gbox .kline--h { width: 0; height: 1.8px; transform: translateY(-50%); }
         /* Kóta = VEĽKÝ NÁZOV sekcie (Cinzel — je to nadpis, nie údaj) +
@@ -7311,6 +7367,10 @@ export default function OnePage() {
         .dgx-sigtx { display: flex; flex-direction: column; align-items: flex-start; gap: 0.35em; }
         .dgx-signm { display: flex; align-items: baseline; gap: 0.42em; font: 700 var(--ns, 26px)/1.05 'Cinzel Decorative', 'Cinzel', serif; color: ${LAB.ink}; letter-spacing: 0.01em; white-space: nowrap; }
         .dgx-signum { flex: none; font: 500 0.40em/1 'Space Grotesk'; letter-spacing: 0.06em; color: ${LAPIS.ink}; background: ${LAPIS.edge}; border-radius: 999px; padding: 0.42em 0.72em; transform: translateY(-0.28em); box-shadow: 0 2px 8px rgba(10,26,74,0.28); }
+        /* 📱 MOBIL: fotka v strede pod glyfom, meno pod ňou, bez roly (5. 10. 2026). */
+        .op-dgx[data-narrow="1"] .dgx-sig { flex-direction: column; gap: 6px; }
+        .op-dgx[data-narrow="1"] .dgx-sigtx { align-items: center; }
+        .op-dgx[data-narrow="1"] .dgx-sigrole { display: none; }
         .dgx-sigrole { margin: 0; font: 500 var(--rls, 11px)/1.2 'Space Grotesk', sans-serif; letter-spacing: 0.24em; text-transform: uppercase; color: ${LAB.inkSoft}; }
 
         /* Podnadpis medzera k nadpisu — jediný beat, ktorý nedrží
