@@ -94,7 +94,12 @@ const TRIP_EDIT_CSS = `${VEIL_CSS}
 /* PC: 832 = PACK_COL_INNER (lock centrovaného obsahu). Fotky 5 v rade, tri rady = MAX 15. */
 @media(min-width:900px){
   .tep-modal:has(.tep-body--trip){max-width:832px;}
-  .tep-body--trip{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;}
+  .tep-body--trip{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:stretch;}
+  .tep-body--trip > .tep-col:first-child{display:flex;flex-direction:column;}
+  .tep-body--trip .tep-desc{flex:1;display:flex;flex-direction:column;margin-bottom:0;}
+  .tep-body--trip .tep-desc .tep-textarea{flex:1;min-height:170px;resize:none;}
+  .tep-body--trip > .tep-col:last-child{display:flex;flex-direction:column;justify-content:space-between;}
+  .tep-body--trip > .tep-col:last-child > .tep-field:last-child{margin-bottom:0;}
   .tep-body--trip .tep-photos{grid-template-columns:repeat(5,1fr);}
   .tep-body--trip .tep-photo,.tep-body--trip .tep-addphoto{height:64px;}
   .tep-body--trip .tep-crop{margin-top:0;}
@@ -217,6 +222,15 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
     onClose();
   };
 
+  // POPIS: pri výlete stojí VĽAVO pod fotkami a na PC vyplní výšku stĺpca (Matej 5. 10.:
+  // „máme veľký priestor voľný a textarea je malinká"). Pri pláne ostáva v jednom stĺpci.
+  const descField = (
+    <div className="tep-field tep-desc">
+      <label className="tep-label">{t('pack.trip.edit.desc')}</label>
+      <textarea className="tep-textarea" value={desc} onChange={(e) => setDesc(e.target.value)} />
+    </div>
+  );
+
   return (
     <div className="pk-veil pk-veil--modal tep-overlay" onClick={onClose}>
       <div className="tep-modal" onClick={(e) => e.stopPropagation()}>
@@ -294,6 +308,7 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
           />
         </div>
         )}
+        {!isPlan && descField}
         </div>
         <div className="tep-col">
           {/* VÝREZ TITULKY (Matej 5. 10. 2026: „nedá sa mi nastaviť výrez na titulnú foto").
@@ -412,10 +427,7 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
           </>
         )}
 
-        <div className="tep-field">
-          <label className="tep-label">{t('pack.trip.edit.desc')}</label>
-          <textarea className="tep-textarea" value={desc} onChange={(e) => setDesc(e.target.value)} />
-        </div>
+        {isPlan && descField}
 
         {!isPlan && (
           <div className="tep-field" style={{ textAlign: 'center' }}>
