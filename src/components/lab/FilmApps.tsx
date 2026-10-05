@@ -280,7 +280,9 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
               const pos = i === idx ? 'is-cur' : i === prevI ? 'is-prev' : i === nextI ? 'is-next' : 'is-off';
               return (
                 <div className={`op-apps-ph ${pos}`} key={a.id} aria-hidden={i !== idx}
-                  onClick={pos === 'is-prev' || pos === 'is-next' ? () => goTo(i) : undefined}>
+                  /* Ťuk na PREDNÝ telefón = DETAIL, to isté ako tlačidlo DETAIL (Matej 5. 10. 2026:
+                     *„po kliknutí na obrazovku sa otvorí detail"*). Bočný telefón ostáva prepnutím. */
+                  onClick={pos === 'is-prev' || pos === 'is-next' ? () => goTo(i) : pos === 'is-cur' ? () => setOpen(i) : undefined}>
                   <div className="op-apps-tilt">
                     <Iphone15Pro src={a.shot} alt={t(a.nameKey)}>
                       <div className="op-apps-ph-empty"><b>{t(a.nameKey)}</b><span>screenshot</span></div>
@@ -403,7 +405,7 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           transform: translate(-50%, -50%) scale(.9);
           opacity: 0; z-index: 0;
         }
-        .op-apps-ph.is-cur { transform: translate(-50%, -50%); opacity: 1; z-index: 20; }
+        .op-apps-ph.is-cur { transform: translate(-50%, -50%); opacity: 1; z-index: 20; cursor: pointer; }
         .op-apps-ph.is-prev { transform: translate(-50%, -50%) translateX(-60%) scale(.9); opacity: .3; z-index: 10; cursor: pointer; }
         .op-apps-ph.is-next { transform: translate(-50%, -50%) translateX(60%) scale(.9); opacity: .3; z-index: 10; cursor: pointer; }
         .op-apps-ph.is-prev:hover, .op-apps-ph.is-next:hover { opacity: .5; }
