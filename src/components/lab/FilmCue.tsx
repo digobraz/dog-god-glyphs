@@ -105,7 +105,9 @@ export const FILM_CUE_CSS = `
      napravo… dajme info o scrollingu medzi spodný nav a CTA do chipu: scroll down
      for more info malinkým písmom"*). Mobil ostáva so šípkou v rohu (pravidlo z 3. 10.).
      Výška = spodná lišta (~70 px + 14 od okraja) + vzduch. */
-  .op-cue-chip { display: none; }
+  /* Dvojtriedne: .dgx-example (OnePage) má display a stojí neskôr — jednotriedne pravidlo
+     tu prehrávalo a chip sa na mobile ukázal 1,8× zväčšený cez spodnú lištu. */
+  .op-cue .op-cue-chip { display: none; }
   @media (min-width: 769px) {
     .op-cue.is-big {
       left: 50%; right: auto; bottom: calc(max(112px, 112px + (100vh - 724px) * .3) + var(--consent-h, 0px));

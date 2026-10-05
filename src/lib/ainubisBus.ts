@@ -9,9 +9,10 @@
 export const AINUBIS_OPEN_EVENT = 'dogypt:ainubis-open';
 
 /** Otvorí panel AINUBISA. Bez efektu, ak widget na danej route nebeží. */
-export function openAinubis(): void {
+export function openAinubis(prefill?: string): void {
   if (typeof window === 'undefined') return;
-  window.dispatchEvent(new CustomEvent(AINUBIS_OPEN_EVENT));
+  // `prefill` = začiatok správy z rýchlej voľby (karta WHAT'S NEXT na /onepage).
+  window.dispatchEvent(new CustomEvent(AINUBIS_OPEN_EVENT, { detail: prefill ? { prefill } : undefined }));
 }
 
 // ── NEPREČÍTANÉ SPRÁVY ──────────────────────────────────────────────────────

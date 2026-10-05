@@ -1,4 +1,32 @@
 {
- "hours": 237,
- "since": "2026-08-14"
+ "hours": 5100,
+ "since": "2026-03-20",
+ "updated": "2026-10-04",
+ "work": [
+  {
+   "tag": "testing",
+   "name": "members",
+   "pct": 60
+  },
+  {
+   "tag": "develop",
+   "name": "app",
+   "pct": 85
+  },
+  {
+   "tag": "research",
+   "name": "vault",
+   "pct": 44
+  },
+  {
+   "tag": "develop",
+   "name": "ainubis",
+   "pct": 64
+  },
+  {
+   "tag": "design",
+   "name": "web",
+   "pct": 43
+  }
+ ]
 }

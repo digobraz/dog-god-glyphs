@@ -1109,3 +1109,39 @@ body:has(.ainubis-panel--away) .ainubis-launcher { visibility: hidden; }
   -webkit-mask: url(/icons/pack/send.svg) center / contain no-repeat;
   mask: url(/icons/pack/send.svg) center / contain no-repeat;
 }
+
+/* ── /onepage: guľa a panel VĽAVO (Matej 5. 10. 2026 „ok vľavo“) ─────────────
+   Vpravo dole sú šípky filmu a cookie lišta. Na mobile je panel aj tak sheet
+   cez celú šírku, takže `--left` mení len kotvu na PC. */
+.ainubis-launcher.ainubis-launcher--left { left: 16px; right: auto; }
+.ainubis-panel.ainubis-panel--left { left: 16px; right: auto; }
+
+/* ── Brána na e-mail (rozhodnutie „2A“) ──────────────────────────────────────
+   Prvá správa hosťa ostane v chate, odíde až s adresou. Zlato = rám otázky,
+   akcia = AINUBIS CTA (zlato-oranžová), ako všade v jeho brande. */
+.ainubis-gate {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin: 0 12px 8px; padding: 12px;
+  border: 1px solid rgba(201, 154, 63, 0.6);
+  border-radius: 12px;
+  background: rgba(201, 154, 63, 0.08);
+}
+.ainubis-gate__input {
+  flex: 1 1 160px; min-width: 0;
+  height: 40px; padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(230, 250, 255, 0.22);
+  background: rgba(0, 0, 0, 0.35);
+  color: #E6FAFF;
+  font: 400 14px/1 'Space Grotesk', sans-serif;
+}
+.ainubis-gate__input:focus { outline: none; border-color: rgba(var(--ainubis-cyan-rgb), 0.7); }
+.ainubis-gate__input--err { border-color: #B25640; }
+.ainubis-gate__btn {
+  height: 40px; padding: 0 16px;
+  border: 0; border-radius: 8px; cursor: pointer;
+  background: linear-gradient(#F5C73D, #E69E1A);
+  color: #2a1608;
+  font: 700 12px/1 'Cinzel', serif; letter-spacing: .14em; text-transform: uppercase;
+}
+.ainubis-gate__err { flex-basis: 100%; font: 400 12px/1.4 'Space Grotesk', sans-serif; color: #F0A08C; }

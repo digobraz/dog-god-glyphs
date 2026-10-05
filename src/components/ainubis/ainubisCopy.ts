@@ -29,6 +29,10 @@ export interface AinubisCopy {
   micDenied: string;
   /** Dve bubliny, nie jedna — viď 04-copy-a-vizual.md §1. */
   welcome: string[];
+  /** Uvítanie na verejnom /onepage (Matej 5. 10. 2026): projekt, chyby, pomoc, pridať sa. */
+  welcomePublic: string[];
+  /** Brána na e-mail po prvej správe hosťa (rozhodnutie „2A“). */
+  gate: { ask: string; placeholder: string; send: string; invalid: string };
   suggestions: {
     problem: string;
     idea: string;
@@ -101,6 +105,16 @@ const sk: AinubisCopy = {
     'Ahoj, som AInubis, tvoj osobný sprievodca v DOGYPTE. Keďže sa na stránke stále maká, práve tu mi môžeš nahlásiť svoj postreh — chyby, nápady, čokoľvek. Posuniem to ďalej a vyriešime to rýchlejšie, než si myslíš!',
     'Stlač toto a urob mi snímku obrazovky priamo do chatu :)',
   ],
+  welcomePublic: [
+    'Haf. Som AINUBIS, strážca DOGYPTU.',
+    'Máš nápad, niečo nefunguje, chceš pomôcť alebo sa pridať? Napíš mi — odnesiem to rovno Matejovi.',
+  ],
+  gate: {
+    ask: 'Mám to. Kam ti môže Matej odpísať?',
+    placeholder: 'tvoj@email.sk',
+    send: 'Pošli',
+    invalid: 'Tento e-mail nevyzerá správne — skús ho ešte raz.',
+  },
   suggestions: {
     problem: 'Mám problém',
     idea: 'Mám nápad',
@@ -152,6 +166,16 @@ const en: AinubisCopy = {
     "Hi, I'm AInubis, your personal guide in DOGYPT. The site is still being built, so this is the place to report anything you notice — bugs, ideas, whatever. I'll pass it on and it gets fixed faster than you think!",
     'Press this and send me a screenshot straight into the chat :)',
   ],
+  welcomePublic: [
+    "Woof. I'm AINUBIS, guardian of DOGYPT.",
+    "Got an idea, something broken, want to help or join? Write to me — I'll carry it straight to Matthew.",
+  ],
+  gate: {
+    ask: 'Got it. Where can Matthew reply to you?',
+    placeholder: 'your@email.com',
+    send: 'Send',
+    invalid: "That e-mail doesn't look right — try once more.",
+  },
   suggestions: {
     problem: 'I have a problem',
     idea: 'I have an idea',

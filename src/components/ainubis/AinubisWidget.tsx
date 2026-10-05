@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { X, Move } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,6 +31,8 @@ const LS_VISITOR = 'ainubis.visitor';
 const LS_POS = 'ainubis.pos';
 /** Naposledy vybraná vetva. Drží fialový mód aj po reloade, kým server odpovie. */
 const LS_BRANCH = 'ainubis.branch';
+/** E-mail hosťa z brány v chate (/onepage, Matej 5. 10. 2026 „2A“) — kam môže Matej odpísať. */
+const LS_EMAIL = 'ainubis.email';
 
 /**
  * Vetva promptu. Musí sedieť s `Branch` v `_shared/ainubis-persona.ts` — server
@@ -80,6 +82,13 @@ const HIDDEN_EXACT_PREFIXES = ['/cert-render', '/invoice-render', '/share-render
 // e-mailu nechceme na public route) — AINUBIS beží len v /pack, kým sa
 // nedorieši email-gate pre anonymov. Otoč na false, keď sa public launch schváli.
 const PUBLIC_LAUNCH_PAUSED = true;
+/**
+ * Výnimky z pauzy (Matej 5. 10. 2026: „na /onepage aj pre verejnosť ainubisa ako bublinku
+ * dolu“). Podmienka z 29. 7. — e-mail od anonyma — sa tu plní BRÁNOU: po prvej správe sa
+ * AINUBIS spýta na e-mail a správa odíde až s ním (rozhodnutie „2A“).
+ * Guľa tu sedí VĽAVO dole — vpravo sú šípky filmu a cookie lišta.
+ */
+const PUBLIC_ROUTES = ['/onepage'];
 
 /**
  * Pes, ktorého kartu má člen otvorenú (`/pack/dogs/:id`). Ide do chatu len ako
@@ -99,7 +108,7 @@ function isAinubisHidden(pathname: string): boolean {
   // Celý heroglyph flow OKREM bare /heroglyph (sales page) — v platobnom
   // flow by widget rušil konverziu.
   if (pathname.startsWith('/heroglyph/')) return true;
-  if (PUBLIC_LAUNCH_PAUSED && !pathname.startsWith('/pack')) return true;
+  if (PUBLIC_LAUNCH_PAUSED && !pathname.startsWith('/pack') && !PUBLIC_ROUTES.includes(pathname)) return true;
   return false;
 }
 
@@ -376,7 +385,12 @@ function readStoredPanelPos(): PanelPos | null {
 function AinubisWidgetInner() {
   const { lang } = useLang();
   const { pathname } = useLocation();
-  const copy = getAinubisCopy(lang);
+  const onPublicRoute = PUBLIC_ROUTES.includes(pathname);
+  // Verejné uvítanie: o projekte, chybách a pomoci — nie technická podpora appky.
+  const copy = useMemo(() => {
+    const c = getAinubisCopy(lang);
+    return onPublicRoute ? { ...c, welcome: c.welcomePublic } : c;
+  }, [lang, onPublicRoute]);
   const reducedMotion = useReducedMotion();
   const memberEmail = useOptionalMemberEmail();
   // pack_number zámerne NEposielame: jediná typovaná tabuľka je `pack_members`
@@ -424,6 +438,12 @@ function AinubisWidgetInner() {
   useEffect(() => { setAinubisUnread(unreadCount); }, [unreadCount]);
   const [takeoverActive, setTakeoverActive] = useState(false);
   const [input, setInput] = useState('');
+  /** E-mail hosťa (brána 2A). Ref kvôli odoslaniu hneď po zadaní — stav sa prepíše až po rendri. */
+  const visitorEmailRef = useRef<string | null>(safeLocalStorageGet(LS_EMAIL));
+  /** Správa, ktorá čaká na e-mail. Kým tu niečo je, svieti brána a písanie je zamknuté. */
+  const [gatePending, setGatePending] = useState<{ text: string; image: PendingImage | null } | null>(null);
+  const [gateInput, setGateInput] = useState('');
+  const [gateError, setGateError] = useState(false);
   const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
   /** TARGET (26. 9. 2026): `aim` = závoj s mieridlom, `shoot` = práve sa fotí (všetko skryté). */
   const [target, setTarget] = useState<'off' | 'aim' | 'shoot'>('off');
@@ -548,7 +568,12 @@ function AinubisWidgetInner() {
   // druhý klik na dlaždicu ho nesmie zavrieť (človek klikol „chcem poradiť", nie
   // „zavri to"). Nezávislé od `handleToggleOpen`, ktoré patrí launcheru.
   useEffect(() => {
-    const onOpen = () => {
+    const onOpen = (e: Event) => {
+      const prefill = (e as CustomEvent<{ prefill?: string } | undefined>).detail?.prefill;
+      if (prefill) {
+        setInput(prefill);
+        window.setTimeout(() => textareaRef.current?.focus(), 50);
+      }
       if (openRef.current) return;
       setOpen(true);
       setUnreadCount(0);
@@ -851,6 +876,7 @@ function AinubisWidgetInner() {
           // z tokenu, ktorý `functions.invoke` posiela v `Authorization`.
           // Necháva sa len preto, aby sa tvar požiadavky nemenil skokom.
           member_email: memberEmail ?? undefined,
+          visitor_email: memberEmail ? undefined : visitorEmailRef.current ?? undefined,
         },
       });
 
@@ -913,8 +939,39 @@ function AinubisWidgetInner() {
     ]);
     setInput('');
     setPendingImage(null);
+    // BRÁNA 2A: hosť na verejnej route bez e-mailu — správa ostane v chate, ale na server
+    // odíde až s adresou. Člen (memberEmail) bránou neprechádza.
+    if (onPublicRoute && !memberEmail && !visitorEmailRef.current) {
+      setGatePending({ text, image: imageToSend });
+      setMessages((prev) => [
+        ...prev,
+        { id: `assistant-gate-${Date.now()}`, role: 'assistant', content: copy.gate.ask, created_at: new Date().toISOString() },
+      ]);
+      setSending(false);
+      return;
+    }
     setWaitingReply(true);
     await sendToBackend(text, imageToSend, false);
+    setWaitingReply(false);
+    setSending(false);
+  }
+
+  async function submitGate() {
+    const e = gateInput.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e) || e.length > 254) {
+      setGateError(true);
+      return;
+    }
+    const pending = gatePending;
+    visitorEmailRef.current = e;
+    safeLocalStorageSet(LS_EMAIL, e);
+    setGatePending(null);
+    setGateInput('');
+    setGateError(false);
+    if (!pending) return;
+    setSending(true);
+    setWaitingReply(true);
+    await sendToBackend(pending.text, pending.image, false);
     setWaitingReply(false);
     setSending(false);
   }
@@ -1107,7 +1164,7 @@ function AinubisWidgetInner() {
     <>
       <button
         type="button"
-        className={`ainubis-launcher${unreadCount > 0 ? ' ainubis-launcher--unread' : ''}${
+        className={`ainubis-launcher${onPublicRoute ? ' ainubis-launcher--left' : ''}${unreadCount > 0 ? ' ainubis-launcher--unread' : ''}${
           blinking ? ' ainubis-launcher--blink' : ''
         }`}
         onClick={handleToggleOpen}
@@ -1125,7 +1182,7 @@ function AinubisWidgetInner() {
       {open && (
         <div
           ref={panelRef}
-          className={`ainubis-panel${target !== 'off' ? ' ainubis-panel--away' : ''}${dragging ? ' ainubis-panel--dragging' : ''}${
+          className={`ainubis-panel${onPublicRoute ? ' ainubis-panel--left' : ''}${target !== 'off' ? ' ainubis-panel--away' : ''}${dragging ? ' ainubis-panel--dragging' : ''}${
             branch === 'personal' ? ' ainubis-panel--personal' : ''
           }`}
           /* ⚠️ Inline `left/top` MUSÍ vypnúť aj `right/bottom` — základné pravidlo
@@ -1213,7 +1270,8 @@ function AinubisWidgetInner() {
               žije len v systémovom prompte, kam človek nevidí. Preto stojí v páse pod
               hlavičkou (rovnaký vzor ako prúžok prevzatia), nie v intre — intro sa po
               pár správach odroluje a s ním by zmizla aj výhrada. */}
-          {!takeoverActive && (
+          {/* Pruh o technickej podpore a výžive patrí appke, nie verejnému /onepage. */}
+          {!takeoverActive && !onPublicRoute && (
             <div className="ainubis-panel__learning">{copy.learning}</div>
           )}
 
@@ -1253,7 +1311,7 @@ function AinubisWidgetInner() {
                   {/* DRUHÁ UVÍTACIA BUBLINA NESIE TERČ (Matej 26. 9. 2026: „druhý text daj ikonku
                       terča a napíš — stlač toto a urob mi snímku obrazovky priamo do chatu :)").
                       Ikonka je to isté tlačidlo ako v riadku dole, nie obrázok. */}
-                  {m.id === 'welcome-1' && (
+                  {m.id === 'welcome-1' && !onPublicRoute && (
                     <button
                       type="button"
                       className="ainubis-msg__target"
@@ -1347,6 +1405,26 @@ function AinubisWidgetInner() {
             </div>
           )}
 
+          {gatePending && (
+            <form
+              className="ainubis-gate"
+              onSubmit={(e) => { e.preventDefault(); void submitGate(); }}
+            >
+              <input
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                className={`ainubis-gate__input${gateError ? ' ainubis-gate__input--err' : ''}`}
+                placeholder={copy.gate.placeholder}
+                value={gateInput}
+                onChange={(e) => { setGateInput(e.target.value); setGateError(false); }}
+                autoFocus
+              />
+              <button type="submit" className="ainubis-gate__btn">{copy.gate.send}</button>
+              {gateError && <div className="ainubis-gate__err">{copy.gate.invalid}</div>}
+            </form>
+          )}
+
           {showSuggestions && (
             <div className="ainubis-suggestions">
               <button type="button" className="ainubis-suggestion" onClick={() => handleSuggestionClick(copy.suggestions.problem)}>
@@ -1408,7 +1486,7 @@ function AinubisWidgetInner() {
                    server poskladal plný (najdrahší) prompt — presne to, čo vetvy
                    rušia. Zamyká sa LEN v úvodnej obrazovke (`showDoors`), takže
                    vlákno spred vetiev ani vyčistený localStorage nikoho nezablokujú. */
-                disabled={branchGate}
+                disabled={branchGate || !!gatePending}
                 rows={1}
               />
               <button

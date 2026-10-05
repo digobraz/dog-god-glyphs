@@ -93,7 +93,7 @@ export function QuickTiles() {
       <span className="qt-title">{t('pack.tiles.dogma.title')}</span>
       <span className="qt-sub">{t('pack.tiles.dogma.sub')}</span>
     </a>,
-    <button key="ainubis" type="button" onClick={openAinubis} className={TILE_CLASS}>
+    <button key="ainubis" type="button" onClick={() => openAinubis()} className={TILE_CLASS}>
       <span className="qt-art">
         {/* AINUBIS má vlastnú cyborg identitu — badge nesie tvár, rám ostáva papyrusový,
             aby pás držal pohromade (paleta = reference_dogypt_ainubis_cyborg_palette). */}
