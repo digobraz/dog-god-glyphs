@@ -135,10 +135,10 @@
          načítaná) a guľa sa pod ňou práve vynára. Strop 9 s pre prípad chyby.
          🐾 LABKY PO KRUHU (Matej 5. 10. 2026: „daj 4“, nákres
          plany/nakres-loader-onepage-2026-10-05.html). 8 stôp z kitu okolo loga + %.
-         Percentá NIE SÚ vymyslený plynulý priebeh — sú to 4 ZMERANÉ zastávky:
+         Labky nesvietia podľa časovača, ale podľa 4 ZMERANÝCH zastávok (podiel z 8):
          15 opona stojí · 40 JS sa vykonal (DOMContentLoaded) · 70 film je v DOM
-         (.op-root) · 100 planéta hotová. Plynulé číslo by na pomalom mobile
-         zastalo na 94 % a vyzeralo rozbito. -->
+         (.op-root) · 100 planéta hotová. Číslo % bolo v prvej verzii — Matej
+         5. 10.: „daj to bez %“. -->
     <script>
       (function () {
         if (location.pathname !== '/onepage') return;
@@ -166,8 +166,6 @@
           + 'background:#7A5A2A;opacity:.12;transition:opacity .35s ease,background-color .35s ease;'
           + '-webkit-mask:url(/icons/pack/paw-full.svg) center/contain no-repeat;mask:url(/icons/pack/paw-full.svg) center/contain no-repeat}'
           + '#op-boot .p.on{opacity:.85;background:#A3782B;animation:opBootPaw .45s cubic-bezier(.2,.8,.2,1)}'
-          + '#op-boot .n{font:500 14px/1 "Space Grotesk",system-ui,sans-serif;letter-spacing:.22em;color:#7A5A2A;'
-          + 'font-variant-numeric:tabular-nums;margin-top:-8px}'
           + '#op-boot.out{opacity:0;visibility:hidden}'
           + '#op-boot.out .b{opacity:0;transform:scale(1.08);filter:blur(4px);'
           + 'transition:opacity .6s ease,transform .9s cubic-bezier(.65,0,.35,1),filter .6s ease}'
@@ -185,20 +183,14 @@
           paws += '<span class="p" style="--r:' + r + ';transform:' + r + '"></span>';
         }
         el.innerHTML = '<div class="b"><div class="o">' + paws
-          + '<div class="l"><img src="/images/dogypt-gold-logo.webp" alt="" fetchpriority="high"></div></div>'
-          + '<div class="n">0 %</div></div>';
+          + '<div class="l"><img src="/images/dogypt-gold-logo.webp" alt="" fetchpriority="high"></div></div></div>';
         var t0 = Date.now(), gone = false, pct = 0;
-        var num = el.querySelector('.n'), pawEls = el.querySelectorAll('.p');
-        // Percento ide len DOPREDU; číslo dobehne k zastávke za 0,5 s, labky sa rozsvietia podľa podielu z 8.
+        var pawEls = el.querySelectorAll('.p');
+        // Postup ide len DOPREDU; labky sa rozsvietia podľa podielu z 8.
         var stage = function (p) {
           if (p <= pct) return;
-          var from = pct, s0 = Date.now(); pct = p;
+          pct = p;
           for (var k = 0; k < pawEls.length; k++) if (k < Math.round(p / 100 * 8)) pawEls[k].classList.add('on');
-          (function tick() {
-            var f = Math.max(0, Math.min(1, (Date.now() - s0) / 500));
-            num.textContent = Math.round(from + (p - from) * f) + ' %';
-            if (f < 1) requestAnimationFrame(tick);
-          })();
         };
         stage(15);
         document.addEventListener('DOMContentLoaded', function () { stage(40); });
@@ -209,7 +201,7 @@
         var lift = function () {
           if (gone) return; gone = true; mo.disconnect();
           stage(100);
-          // Posledné labky a 100 % musí oko stihnúť vidieť, inak opona odíde na 70 %.
+          // Posledné labky musí oko stihnúť vidieť, inak opona odíde s neúplným kruhom.
           setTimeout(function () {
             el.classList.add('out');
             setTimeout(function () { el.remove(); }, 1000);
