@@ -82,7 +82,7 @@ const RTL_LANGS = new Set(['ara', 'ar']);
 const BROWSER_LANG_MAP: Record<string, LangCode> = {
   en: 'en', sk: 'sk', cs: 'cs', pl: 'pol', uk: 'ukr', de: 'deu',
   es: 'esp', fr: 'fra', pt: 'prt', ru: 'rus', it: 'ita', zh: 'chn',
-  ja: 'jpn', id: 'ind', ar: 'ara', ko: 'kor', nl: 'nld', tr: 'tur',
+  ja: 'jpn', hi: 'ind', ar: 'ara', ko: 'kor', nl: 'nld', tr: 'tur',
 };
 
 /** Jazyk podľa prehliadača — prvý podporovaný z `navigator.languages`, inak EN. */

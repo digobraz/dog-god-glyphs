@@ -5436,6 +5436,6 @@ export const cs: Partial<Dict> = {
   'onepage.most.q': '„Dělám pro něj dost?“',
   'dogPage.invitedBy': '{name} tě zve do DOGYPTU',
   'dogPage.invitedByFallback': 'Zveme tě do DOGYPTU',
-  'dogPage.bonesForDog': 'Přidej se přes tuhle stránku a {dog} dostane 20 kostí.',
-  'dogPage.bonesNote': 'Kosti jsou měna DOGYPTU — připíšou se na účet majitele.',
+  'dogPage.bonesForDog': 'Přidej se přes tuhle stránku a {dog} dostane 20 BONES.',
+  'dogPage.bonesNote': 'BONES jsou měna DOGYPTU — připíšou se na účet majitele.',
 };
