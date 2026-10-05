@@ -5707,8 +5707,29 @@ export default function OnePage() {
              vytlačí rozdelenie obrazovky (--op-split), lenže to na mobile
              neexistuje — takže bez tohto by krava ostala stáť pod textom
              vízie. Odskúšané: pri 500 px presvitala zľava spod blokov. */
+          /* 🔴 HLAVY VÄČŠIE A VYŠŠIE (Matej 5. 10. 2026, audit mobilu: *„hlavy zvierat
+             zväčšiť a tým posunúť hore"*). Mierka 1.377 → 2 (pes 1.352 → 1.97, pomer
+             ostal). Obe zvieratá sú ukotvené na spodných rohoch, takže zväčšenie ich
+             samo zdvihne — a súčasne ich tlačí k sebe; −20 % / +20 % vlastnej šírky
+             ich vráti tak, aby sa nosy stretli v strede ako predtým.
+             Pozor: tie isté mierky nesie aj tretí obraz (pes sám) — merané spolu.
+             ⚠️ MIERKA KLESÁ S VÝŠKOU OKNA (--ani-k). Text je v px, zviera vo vh — na
+             nízkom telefóne (360×740) pri mierke 2 narazila svätožiara kravy do čipu
+             „Our goal…". Podmienka: vrch svätožiary ≥ spodok čipu + ~20 px; pri
+             mierke k siaha svätožiara ~0,28·k/1,5·vh nad spodnú hranu (zmerané)
+             ⇒ 844 → 2 · ≤ 800 → 1,8 · ≤ 700 → 1,3 (iPhone SE 375×667). Odsun do strán rastie s mierkou
+             ((k − 1,377) × 32 %), aby sa nosy stretli pri každej. */
+          .op-root #op-religion { --ani-k: 2; }
+          @media (max-height: 800px) { .op-root #op-religion { --ani-k: 1.8; } }
+          @media (max-height: 700px) { .op-root #op-religion { --ani-k: 1.3; } }
           .op-root.op-root .codex-bleed .codex-cow {
-            transform: translateX(calc(var(--op-in, 0) * -120% - var(--op-hek, 0) * 140%)) scale(1.377);
+            transform: translateX(calc(var(--op-in, 0) * -120% - var(--op-hek, 0) * 140% - (var(--ani-k) - 1.377) * 32%)) scale(var(--ani-k));
+          }
+          /* TEXT POD LIŠTU (Matej 5. 10.: *„treba posunúť texty dolu, lebo teraz pretekajú
+             hore"*). „A COW HAS" stál na y 92, medailón lišty siaha po 110 —
+             odteraz výška lišty (--op-nav-h) + 16 px vzduchu (PAGE_AIR). */
+          .op-root #op-religion .codex-section[data-idx="0"] .codex-3-overlay {
+            padding-top: calc(var(--op-nav-h, 118px) + 16px);
           }
           /* 🔴 NA TREŤOM OBRAZE SA PES POSUNIE DO ZÁBERU (Matej 4. 9. 2026:
              *„hektora viac centruj"*). Mobil nemá rozdelenie obrazovky, takže
@@ -5724,7 +5745,8 @@ export default function OnePage() {
               var(--op-in, 0) * 120%
               - var(--op-split, 0) * 15%
               + var(--op-hek, 0) * 140%
-            )) scale(1.352);
+              + (var(--ani-k) - 1.377) * 32%
+            )) scale(calc(var(--ani-k) * 0.985));
           }
         }
 
