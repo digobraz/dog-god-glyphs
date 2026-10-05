@@ -8,7 +8,7 @@
 // component state, ktorý sa pri navigácii sem zruší — tripShared.ts sessionStorage mirror
 // (readLocalTrails/readFavIds/readWalkedIds) drží ich konzistentné cez mount/unmount v rámci
 // tej istej browser session (žiadna Supabase perzistencia, tá je mimo rozsahu).
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { PLANNING_LIVE } from '@/lib/packFlags';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -75,6 +75,8 @@ const TRIP_PROBLEM_REASONS: ReportReasonOption[] = [
 ];
 import { TripEditPanel, type PlanEdit } from '@/components/pack/trip/TripEditPanel';
 import { UnwalkConfirm } from '@/components/pack/trip/UnwalkConfirm';
+// Panel `+` je ťažký (register, všetky toky) — načíta sa až pri prvom „pridaj odkaz“, ako v lište.
+const AddTripEntry = lazy(() => import('@/components/pack/addtrip/AddTripEntry').then((m) => ({ default: m.AddTripEntry })));
 // ZÁPISY DO MAPY (2026-08-20) — v článku sú ROZBALENÉ, v mape schované pod ikonkou.
 // Ktoré sem patria, rozhoduje geometria (notesForTrail), nie uložený kľúč.
 import { MapNotesSection, MAP_NOTES_SECTION_CSS } from '@/components/pack/mapnotes/MapNotesSection';
@@ -87,7 +89,7 @@ import { StoryView, STORY_VIEW_CSS } from '@/components/pack/trip/StoryView';
 import { sizedUrl, heroPx } from '@/services/cloudinaryService';
 import { StoryWrite, STORY_WRITE_CSS } from '@/components/pack/trip/StoryWrite';
 import {
-  AddMapNotePin, AddMapNotePanel, MapNotePlacing, NoteQuickPalette, MapNoteTooFar,
+  AddMapNotePin, AddMapNotePanel, MapNotePlacing, MapNoteTooFar,
   ADD_NOTE_CSS, notePanelH,
 } from '@/components/pack/mapnotes/AddMapNote';
 import { useMapClickPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS } from '@/components/pack/mapnotes/useLongPressPoint';
@@ -473,8 +475,10 @@ body.pta-mapfull .pta-shell{z-index:1100;}
 
    Vzhľad je .mns-add (zlatý outline pill), nie .btn-gold — plná zlatá by na mape
    kričala hlasnejšie než samotné značky. Výška 40 px je dotykové minimum. */
-.pta-mapadd{position:absolute;left:12px;bottom:12px;z-index:700;display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:0 16px;border-radius:999px;cursor:pointer;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${GOLD};background:rgba(5,5,5,0.82);border:1px solid ${T.border};box-shadow:${PACK_SHADOW.lift};transition:background .15s,border-color .15s;}
-.pta-mapadd:hover{background:rgba(201,154,63,0.18);border-color:${GOLD};}
+/* PRIDAŤ ODKAZ = akcia => LAPIS, geometria CTA (r8, nie pilulka). Matej 5. 10. 2026: „je to ešte
+   v starom dizajne… prerob ho“ — dovtedy čierna pilulka so zlatým písmom. */
+.pta-mapadd{position:absolute;left:12px;bottom:12px;z-index:700;display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 16px;border-radius:8px;cursor:pointer;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;color:${LAPIS.ink};background:${LAPIS.grad};border:1px solid ${LAPIS.edge};box-shadow:${LAPIS_BTN_SHADOW};transition:background .15s;}
+.pta-mapadd:hover{background:${LAPIS.gradHover};}
 .pta-mapadd b{font-weight:400;font-size:16px;line-height:1;}
 /* ÚZKE OKNO: tlačidlo sa musí zmestiť VEDĽA atribúcie, nie na ňu — zakrytá
    atribúcia je porušenie licencie ODbL, nie kozmetika. Merané na obale mapy:
@@ -2114,14 +2118,20 @@ export default function PackTripArticle() {
           Panely žijú MIMO <MapContainer> — formulár nie je vrstva mapy (viď hlavičku
           AddMapNote.tsx). Poradie krokov je rovnaké ako na celkovej mape. */}
       {notePick && !noteDraft && (
-        <NoteQuickPalette
-          /* Uhýbanie mapou tu ZANIKLO: od celoobrazovkového režimu je mapa pod paletou
-             celá a lišta „ukáž miesto" stojí hore pri AInubisovi, nie nad mapou. */
-          onPick={(g) => { setNotePick(false); setNotePlacing(g); }}
-          onCancel={() => setNotePick(false)}
-          /* Miesto ešte nie je vybrané, ale výlet áno — a pravidlo je o výlete. */
-          blocked={parkingBlocked}
-        />
+        /* TEN ISTÝ PANEL AKO `+` → RÝCHLY ODKAZ, otvorený rovno na druhej úrovni (Matej 5. 10. 2026:
+           „to sme určite zrušili ten spodný blok! a ešte je aj čierny“). Do 5. 10. tu stála
+           `NoteQuickPalette` — čierny pás cez spodok okna, tretí tvar tej istej voľby. */
+        <Suspense fallback={null}>
+          <AddTripEntry
+            place="VON"
+            startAt="note"
+            onCreate={() => {}}
+            onPick={(c) => { setNotePick(false); if (c.kind === 'note') setNotePlacing(c.group); }}
+            onClose={() => setNotePick(false)}
+            /* Miesto ešte nie je vybrané, ale výlet áno — a pravidlo je o výlete. */
+            noteBlocked={parkingBlocked}
+          />
+        </Suspense>
       )}
       {notePlacing && !noteDraft && (
         <MapNotePlacing

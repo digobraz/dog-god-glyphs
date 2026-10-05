@@ -67,7 +67,9 @@ export type AddTripEntryProps = {
    * Vchod, ktorý už vie, čo človek chce (Matej 5. 10. 2026: „rovno na vec"), otvorí panel
    * hneď na druhej úrovni. Šípka späť v paneli nie je (5. 10. 2026) — zatvára klik vedľa.
    */
-  startAt?: 'event';
+  startAt?: 'event' | 'note';
+  /** Zhasnuté skupiny odkazu s dôvodom (článok: výlet už má parkovisko). */
+  noteBlocked?: Partial<Record<NoteGroup, string>>;
 };
 
 type Kind = 'trip' | 'wish' | 'event' | 'note' | 'service';
@@ -189,7 +191,7 @@ const EVENT_BLOCKS: Array<{ origin: 'own' | 'tip'; emoji: string; titleKey: stri
   { origin: 'tip', emoji: '🔗', titleKey: 'pack.addTrip.entry.event.tip.title', textKey: 'pack.addTrip.entry.event.tip.text' },
 ];
 
-export function AddTripEntry({ onPick, onClose, place, onCreate, startAt }: AddTripEntryProps) {
+export function AddTripEntry({ onPick, onClose, place, onCreate, startAt, noteBlocked }: AddTripEntryProps) {
   const t = useT();
   const navigate = useNavigate();
   // Názvy položiek panela sú v zadaní §6 ponechané MATEJOVI, takže register nesie kľúč
@@ -326,6 +328,9 @@ export function AddTripEntry({ onPick, onClose, place, onCreate, startAt }: AddT
       aria-label={t('pack.addTrip.entry.closeAriaLabel')}
     >
       <style>{ENTRY_CSS}</style>
+      {/* Paleta odkazu si nesie vlastné CSS — panel ho do 5. 10. 2026 nevkladal a spoliehal sa na
+          `PackMap`. V článku výletu (iný komponent) sa preto kreslila ako holý text. */}
+      {step === 'note' && <style>{NOTE_PALETTE_CSS}</style>}
       <div
         className="att-entry-panel"
         role="dialog"
@@ -414,7 +419,7 @@ export function AddTripEntry({ onPick, onClose, place, onCreate, startAt }: AddT
         {step === 'note' && (
           <div className="att-entry-note">
             <p className="att-entry-lead">{t('pack.mapNotes.palette.lead')}</p>
-            <NotePalette onPick={(group) => onPick({ kind: 'note', group })} />
+            <NotePalette onPick={(group) => onPick({ kind: 'note', group })} blocked={noteBlocked} />
           </div>
         )}
         {step === 'event' && (
@@ -500,6 +505,14 @@ body:has(.att-entry-backdrop) .ainubis-launcher{visibility:hidden;pointer-events
 .att-entry-panel{padding-top:16px;}
 
 .att-entry-note{padding-top:4px;}
+/* Druhá úroveň má TEN ISTÝ tvar ako prvá — riadok emoji + názov pod sebou (lock panela PLUS:
+   bez podnadpisov, bez scrollu). Tri dlaždice vedľa seba sa do šírky navu nezmestili a TIP
+   sa na PC orezával (premerané 5. 10. 2026). Vysvetlivka ostáva len zhasnutej voľbe — tam je
+   to DÔVOD („výlet už parkovisko má“), nie popis. */
+.att-entry-note .np-wrap--blocks{flex-direction:column;gap:8px;}
+.att-entry-note .np-wrap--blocks .np-item{flex:0 0 auto;flex-direction:row;align-items:center;flex-wrap:wrap;gap:4px 12px;padding:8px 12px;}
+.att-entry-note .np-wrap--blocks .np-item .np-text{display:none;}
+.att-entry-note .np-wrap--blocks .np-item--off .np-text{display:block;flex-basis:100%;}
 .att-entry-lead{margin:0 0 12px;font-family:${FONT_UI};font-size:12px;line-height:1.5;color:${T.inkWarm};}
 
 /* ── MOBIL: ÚCHYT NAD ZOZNAMOM (Matej 21. 9. 2026) ────────────────────────────────────

@@ -267,10 +267,21 @@ export function ConsentBanner() {
         @media (min-width: 1024px) {
           .consent-banner {
             left: auto; right: 24px; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
-            width: min(420px, calc(100vw - var(--pack-nav-cx, 50vw) - var(--pack-nav-half, 0px) - 48px));
+            width: min(420px, calc(50vw - var(--pack-nav-half, 0px) - 48px));
             padding: 16px; border: 1.5px solid ${T.cardEdge}; border-radius: 16px;
             box-shadow: ${T.panelShadow};
           }
+          /* /map a AINUBIS majú nav v strede PLOCHY vpravo (5. 10. 2026) — vedľa neho ostáva
+             ~250 px a tlačidlá sa v karte prekrývali. Tam karta stojí NAD radom navu
+             v plnej šírke, nie vedľa neho. */
+          body:has(.trp-root) .consent-banner, body:has(.akv-root) .consent-banner {
+            width: 420px;
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 16px + var(--pack-nav-h, 64px) + 12px);
+          }
+          /* Panel PLUS vychádza z toho istého navu do tej istej výšky — kým je otvorený, karta
+             ustúpi (ako AINUBIS, rozhodnutie 3. 10.) a po zavretí sa vráti. */
+          body:has(.trp-root):has(.att-entry-backdrop) .consent-banner,
+          body:has(.akv-root):has(.att-entry-backdrop) .consent-banner { display: none; }
           .consent-inner { flex-direction: column; align-items: stretch; gap: 12px; }
           .consent-actions > * { flex: 1 1 0; min-width: 0; }
           .consent-btn-primary, .consent-btn-secondary { padding: 12px 8px; }
