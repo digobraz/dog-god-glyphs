@@ -154,6 +154,22 @@ export default function FilmGate() {
           background: url(/images/brana-final.webp) center / cover no-repeat;
           transform: scale(calc(1 + var(--g-rise, 0) * 0.04));
         }
+        /* 📱 MOBIL NA VÝŠKU: DOTYK SA OTÁČA (Matej 5. 10. 2026: *„na mobile by som to
+           otočil — packa pôjde zhora a ruka zdola = na výšku mobilu, nie na šírku, aby
+           bolo viac vidno ruku a labku"*). Video je 16:9 a ruka ide zľava zdola, labka
+           sprava zhora; cover na výšku z neho nechal úzky stredný pás. Otočenie o −90°
+           dá ľavý okraj dole a pravý hore. Box má rozmery OTOČENÉHO okna (šírka = výška
+           okna a naopak), takže po otočení ho presne pokryje — cover oreže už len
+           ~ 18 % po stranách (na 390×844), nie dve tretiny. */
+        @media (max-width: 767px) and (orientation: portrait) {
+          .op-gate-vid {
+            inset: auto; top: 50%; left: 50%;
+            width: 100lvh; height: 100vw;
+            /* Preflight Tailwindu dáva video max-width: 100 % — bez tohto ostal box 390×390. */
+            max-width: none;
+            transform: translate(-50%, -50%) rotate(-90deg);
+          }
+        }
         /* Obe polovice nesú CELÚ bránu (100vw), jej stred leží na švíku. */
         .op-gate-door.is-l .op-gate-img { left: 0; }
         .op-gate-door.is-r .op-gate-img { right: 0; }; opacity: var(--g-pale, 0);
