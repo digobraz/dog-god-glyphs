@@ -1154,6 +1154,9 @@ const DGX_BUB = new Set([
  *  samostatné symboly — Matej 1. 9. 2026 zamietol pôvodnú deľbu). */
 /** Mobil: meno pod fotkou podpisu — medzera 6 + riadok mena (~1,3 × nsM). */
 const SIG_NAME_M = 24;
+/** Mobil: šírka pripnutého popisku oblasti a medzera od glyfu (bodka ~28 px + vzduch). */
+const DGX_PIN_W = 150;
+const DGX_PIN_GAP = 36;
 const DGX_RAIN_IMGS = Array.from({ length: 20 }, (_, i) => `/heroglyph/dogtrix/glyphs/${String(i + 1).padStart(2, '0')}.png`);
 /** Pomer strán zvislého heroglyfu (w/h), z `extract-glyphs.py`. */
 const DGX_GA = 0.323;
@@ -1614,6 +1617,8 @@ export default function OnePage() {
     let hoverKey: string | null = null;
     /** Oblasť, ktorej kótu si človek vyžiadal bodkou (5. 10. 2026). */
     let kotaKey: string | null = null;
+    /** Aktuálny posun glyfu do strany (px) — aby sa nový posun rátal od nuly. */
+    let curShift = 0;
     let cartTNode: SVGElement | null = null;
     let K: KLine[] = [];
     let curVertical: boolean | null = null;
@@ -2371,9 +2376,19 @@ export default function OnePage() {
             (DGX.glow > 0 ? `drop-shadow(0 0 ${(DGX.glow * sv).toFixed(1)}px ${DGX_COL[k.id]})` : '');
         }
         const over = dgxOver;
-        k.li.style.setProperty('--ko', over ? '0' : kv.toFixed(3));
+        k.li.style.setProperty('--ko', over || (vertical && ask) ? '0' : kv.toFixed(3));
         k.lab.style.setProperty('--ko', kv.toFixed(3));
-        if (over) {
+        // 📱 VYŽIADANÁ KÓTA NA MOBILE SA PRIPÍNA NA OKRAJ (Matej 5. 10. 2026: *„bez
+        // kolízie… popisok sa zobrazí na kraji tak, aby nezavadzal — prípadne sa
+        // heroglyf posunie na stranu"*). Poloha je v CSS (.klab--pin-*), glyf
+        // uhne o --gshift nižšie, takže popisok leží VEDĽA bodky, nie cez glyf.
+        const pin = vertical && ask === 1;
+        k.lab.classList.toggle('klab--pin', pin);
+        k.lab.classList.toggle('klab--pin-left', pin && k.side === 'left');
+        k.lab.classList.toggle('klab--pin-right', pin && k.side === 'right');
+        if (pin) {
+          k.lab.style.transform = 'translateY(-50%)';
+        } else if (over) {
           k.lab.style.transform = vertical
             ? `translate(calc(var(--kdx,0px)),calc(-50% + var(--kdy,0px)))`
             : `translate(calc(-50% + var(--kdx,0px)),calc(var(--kdy,0px)))`;
@@ -2387,6 +2402,22 @@ export default function OnePage() {
           k.lab.style.transform = `translate(calc(-50% + var(--kdx,0px)),${dy.toFixed(1)}px)`;
         }
       });
+
+      // GLYF UHNE (mobil, vyžiadaná kóta): na opačnú stranu, aby za bodkou ostal
+      // pás PIN_W + medzera na popisok. Počíta sa z polohy BEZ posunu, takže sa
+      // nesčítava; strop drží bodky druhej strany v okne.
+      let gshift = 0;
+      const pk = vertical && sec.dataset.live === '1' && kotaKey ? K.find((k) => k.id === kotaKey) : undefined;
+      if (pk) {
+        const gr = gbox.getBoundingClientRect();
+        const l0 = gr.left - curShift, r0 = gr.right - curShift, vw = window.innerWidth;
+        const need = DGX_PIN_W + DGX_PIN_GAP + 16;
+        const room = 16 + 32; // okraj okna + bodka na druhej strane
+        gshift = pk.side === 'left'
+          ? Math.max(0, Math.min(need - l0, vw - room - r0))
+          : -Math.max(0, Math.min(r0 - (vw - need), l0 - room));
+      }
+      if (gshift !== curShift) { curShift = gshift; gbox.style.setProperty('--gshift', gshift.toFixed(1) + 'px'); }
 
       // Podržaný symbol (hover/klik) prebíja vypočítané krytie — koncový
       // stav je čierny glyf, svetlo je odpoveď na dotyk.
@@ -7311,6 +7342,19 @@ export default function OnePage() {
         .dgx-gbox .kdot--up    { bottom: calc(100% + 4px); transform: translateX(-50%); }
         .dgx-gbox .kdot--down  { top: calc(100% + 4px);    transform: translateX(-50%); }
         .dgx-gbox .kdot:focus:not(:focus-visible) { outline: none; }
+        /* Glyf uhýba do strany plynulo — --gshift píše réžia (mobil, vyžiadaná kóta). */
+        .dgx-gbox { transform: translateX(var(--gshift, 0px)); transition: transform .45s cubic-bezier(.22,.9,.28,1); }
+        /* PRIPNUTÝ POPISOK — za bodkou na okraji, zalomený do úzkeho stĺpca. */
+        .dgx-gbox .klab.klab--pin {
+          width: ${DGX_PIN_W}px; max-width: ${DGX_PIN_W}px;
+          transition: opacity .3s ease;
+        }
+        .dgx-gbox .klab--pin-left  { right: calc(100% + ${DGX_PIN_GAP}px) !important; left: auto !important; align-items: flex-end !important; }
+        .dgx-gbox .klab--pin-right { left: calc(100% + ${DGX_PIN_GAP}px) !important; right: auto !important; align-items: flex-start !important; }
+        .dgx-gbox .klab--pin .kname, .dgx-gbox .klab--pin .kdesc { white-space: normal !important; overflow-wrap: break-word; }
+        .dgx-gbox .klab--pin .kdesc { letter-spacing: .1em; line-height: 1.4; }
+        .dgx-gbox .klab--pin-left .kname, .dgx-gbox .klab--pin-left .kdesc { text-align: right !important; }
+        .dgx-gbox .klab--pin-right .kname, .dgx-gbox .klab--pin-right .kdesc { text-align: left !important; }
         .dgx-gbox .kline { position: absolute; width: 1.8px; transform: translateX(-50%); opacity: var(--ko, 0); pointer-events: none; }
         .dgx-gbox .kline--h { width: 0; height: 1.8px; transform: translateY(-50%); }
         /* Kóta = VEĽKÝ NÁZOV sekcie (Cinzel — je to nadpis, nie údaj) +
