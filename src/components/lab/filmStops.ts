@@ -57,6 +57,13 @@ export type FilmStopsApi = {
   upStops?: () => number[];
   /** Hlási, či práve ide jazda (šípky dole ju skrývajú). */
   onMove?: (moving: boolean) => void;
+  /** Volá sa v KAŽDOM snímku jazdy hneď po scrollTo — v tom istom snímku.
+   *  🔴 TRASENIE NA TELEFÓNE (Matej 5. 10. 2026: *„trasie sa obsah aj na 3 slajde"*,
+   *  slajd 2 pri 1→2 a 3→2). Film sa prepočítaval z udalosti scroll cez vlastný
+   *  requestAnimationFrame, teda o snímok neskôr než posun — prilepené vrstvy
+   *  sedeli na novej polohe, ich obsah (transform/opacity z JS) ešte na starej.
+   *  V Chrome sa to zhodou poradia zlepí, v Safari obsah kmitá. */
+  onStep?: () => void;
 };
 
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
@@ -118,6 +125,7 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
         // 'instant' — html má v index.css scroll-behavior: smooth, ktorý by
         // každý snímok rozbehol na vlastnú animáciu.
         window.scrollTo({ top: from + (to - from) * ez(k), behavior: 'instant' as ScrollBehavior });
+        apiRef.current.onStep?.();
         if (k < 1) raf = requestAnimationFrame(step);
         else {
           raf = 0; setMoving(false);

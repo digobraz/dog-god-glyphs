@@ -4158,6 +4158,8 @@ export default function OnePage() {
     },
     paused: () => bookOpenRef.current || wallOpenRef.current || albaOpenRef.current || appsOpenRef.current || document.body.style.overflow === 'hidden',
     onMove: setFilmMoving,
+    // Prepočet filmu v TOM ISTOM snímku ako posun (viď onStep vo filmStops.ts).
+    onStep: () => applyRef.current(),
   }, true);
 
   // ── STENA JE SAMOSTATNÁ STRÁNKA, NIE OBRAZ FILMU ────────────────────────
