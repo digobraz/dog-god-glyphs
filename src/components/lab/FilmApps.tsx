@@ -76,7 +76,7 @@ type AppFeature = {
 
 const b4 = (id: string) => [1, 2, 3, 4].map((i) => `onepage.apps.${id}.b${i}`);
 
-/* SNÍMKY (Matej 5. 10. 2026) — DOG ID = úvod kvízu „Who is your dog?" · SNIFFER = len bledá
+/* SNÍMKY (Matej 5. 10. 2026) — DOG ID = stránka psa s heroglyfom (Hekthor, ostré prihlásenie; kvíz ide do detailu) · SNIFFER = len bledá
    plocha karty s logom, podnadpisom a CTA, bez tapety s heroglyfmi (*„zjednodušíme to"*) ·
    DOGTRIP = švajčiarsky výlet Seealpsee (karta + trasa na mape) · AINUBIS = VAULT a Dogscroll
    BEZ oznamu otvorenia · KOMUNITA = dotyk ruky a labky (`touch_cut.webp` z filmu, Matej 5. 10.) na bledej
@@ -85,7 +85,7 @@ const b4 = (id: string) => [1, 2, 3, 4].map((i) => `onepage.apps.${id}.b${i}`);
 /** Poradie = poradie v karuseli. Matej: *„dog id/profil, sniffer, dogtrips,
  *  AInubis a pomoc/možnosti… celkovo 4 obrazovky"*, 27. 9. doplnená piata. */
 const APPS: AppFeature[] = [
-  { id: 'dogid', nameKey: 'heroglyph.flow.more.dogid.t', textKey: 'heroglyph.flow.more.dogid.d', bulletKeys: b4('dogid'), shot: '/images/onepage/apps/dogid-kviz.webp?v=4', shots: ['/images/onepage/apps/dogid-kviz.webp?v=4'] },
+  { id: 'dogid', nameKey: 'heroglyph.flow.more.dogid.t', textKey: 'heroglyph.flow.more.dogid.d', bulletKeys: b4('dogid'), shot: '/images/onepage/apps/dogid-profil.webp?v=4', shots: ['/images/onepage/apps/dogid-profil.webp?v=4', '/images/onepage/apps/dogid-kviz.webp?v=4'] },
   { id: 'sniffer', nameKey: 'heroglyph.flow.more.sniffer.t', textKey: 'heroglyph.flow.more.sniffer.d', bulletKeys: b4('sniffer'), shot: '/images/onepage/apps/sniffer-cisty.webp?v=4', shots: ['/images/onepage/apps/sniffer-cisty.webp?v=4'] },
   { id: 'dogtrip', nameKey: 'heroglyph.flow.more.dogtrip.t', textKey: 'heroglyph.flow.more.dogtrip.d', bulletKeys: b4('dogtrip'), shot: '/images/onepage/apps/dogtrip-swiss.webp?v=4', shots: ['/images/onepage/apps/dogtrip-swiss.webp?v=4', '/images/onepage/apps/dogtrip-mapa.webp?v=4'] },
   { id: 'ainubis', nameKey: 'heroglyph.flow.more.ainubis.t', textKey: 'heroglyph.flow.more.ainubis.d', bulletKeys: b4('ainubis'), shot: '/images/onepage/apps/ainubis-vault-bez-oznamu.webp?v=4', shots: ['/images/onepage/apps/ainubis-vault-bez-oznamu.webp?v=4', '/images/onepage/apps/ainubis-dogscroll.webp?v=4'] },
