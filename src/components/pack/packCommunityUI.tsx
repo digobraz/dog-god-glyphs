@@ -1265,7 +1265,7 @@ export function PackHumansRow({ selected, onChange }: {
           const on = keys.has(`${HUMAN_KEY_PREFIX}${h.userId}`);
           const name = nameOf(h);
           return (
-            <button key={h.userId} type="button" className={`comm-comp-dog${on ? ' on' : ''}`} onClick={() => toggle(h)}>
+            <button key={h.userId} type="button" className={`comm-comp-dog comm-comp-human${on ? ' on' : ''}`} onClick={() => toggle(h)}>
               <span className={`comm-comp-dog-av${h.avatarUrl ? '' : ' ph'}`} style={h.avatarUrl ? { backgroundImage: `url('${sizedUrl(h.avatarUrl, 96)}')` } : undefined}>
                 {h.avatarUrl ? '' : name.charAt(0).toUpperCase()}
               </span>

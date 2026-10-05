@@ -2861,6 +2861,8 @@ const PALE_ADD_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-addhost .comm-comp-dog{background:${P_FIELD};border-color:${P_BORDER};}
   .trp-addhost .comm-comp-dog:hover{border-color:${T.cardEdge};}
   .trp-addhost .comm-comp-dog span{color:${P_INK};}
+  /* človek z tvojho psa nesie meno v pilulke (P2) — kompaktný tooltip by mu dal tmavý inkoust */
+  .trp-addhost .atl-companions .comm-comp-dog.comm-comp-human span:not(.plus):not(.comm-comp-dog-av){color:${P_INK};}
   .trp-addhost .comm-comp-dog .plus{color:#8A5F1E;}
   .trp-addhost .comm-comp-chip{background:rgba(201,154,63,0.18);border-color:${P_BORDER};}
   .trp-addhost .comm-comp-chip b{color:${P_INK};}

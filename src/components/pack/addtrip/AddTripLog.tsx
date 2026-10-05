@@ -4173,6 +4173,13 @@ const COMPANION_CSS = `
   width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-size:12px;line-height:1;
 }
+/* ČLOVEK Z TVOJHO PSA (P2, 5. 10. 2026) nesie MENO v pilulke, nie v tooltipe. Psa poznáš
+   po fotke; človeka bez fotky by tu zastupovalo len písmeno a na telefóne hover nie je. */
+.atl-companions .comm-comp-dog.comm-comp-human{padding:4px 12px 4px 4px;gap:8px;}
+.atl-companions .comm-comp-dog.comm-comp-human span:not(.plus):not(.comm-comp-dog-av){
+  position:static;transform:none;background:none;border:0;padding:0;opacity:1;pointer-events:auto;
+}
+.atl-companions .comm-comp-dog.comm-comp-human .plus{position:static;width:auto;height:auto;background:none;color:${GOLD};font-size:14px;}
 `;
 
 // CTA (§14 LOCKED): .btn-gold — lokálna kópia (rovnaký vzor ako AddTripPlan.tsx, NotFound.tsx,
