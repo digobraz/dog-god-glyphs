@@ -5,7 +5,7 @@
  * aktuality a štatistiky"* · *„musí byť pekná, úprimná, minimalistická…
  * nadpis musí byť výrazný"*.
  *
- *   A · MOJE SLOVÁ   fotka Mateja s Hektorom (`kontakt-matej-hektor.webp`,
+ *   A · MOJE SLOVÁ   výrez Mateja s Hektorom bez pozadia (`kontakt-matej-hektor-cut.webp`,
  *                    neskôr YouTube video) + DOG IS GOD (for me) + tri odseky
  *   B · ČO ĎALEJ     tri čísla (odpracované hodiny · verzia · dni do mobilnej
  *                    appky) · tri ďalšie kroky + zvyšok po rozkliku · kontakty
@@ -142,7 +142,7 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
         {/* ── A · MOJE SLOVÁ ─────────────────────────────────────────── */}
         <div className="op-fin-a" aria-hidden={on !== 'a'} style={{ pointerEvents: on === 'a' ? 'auto' : 'none' }}>
           <figure className="op-fin-photo">
-            <img src="/images/kontakt-matej-hektor.webp" alt={t('onepage.fin.photoAlt')} />
+            <img src="/images/kontakt-matej-hektor-cut.webp" alt={t('onepage.fin.photoAlt')} />
           </figure>
           <div className="op-fin-words">
             <h2 className="op-fin-h2 op-fin-h2--left">
@@ -226,6 +226,7 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
 
         /* NADPIS = SYSTÉM NADPISOV FILMU (veľkosť a zlato nesie .op-root .op-fin-h2 v OnePage). */
         .op-fin-h2 { margin: 0; font-family: 'Cinzel', serif; font-weight: 700; text-transform: uppercase; }
+        .op-fin-h2--left { white-space: nowrap; }
         .op-root .op-fin .op-fin-h2--left { text-align: left; }
         .op-root .op-fin .op-fin-h2--left::after { left: 0; transform: none; }
         .op-fin-h2 small {
@@ -234,17 +235,30 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
         }
 
         /* ── A ── */
-        .op-fin-a { gap: 48px; }
-        /* FOTKA = ŠTVOREC NAKRIVO (Matej 5. 10. 2026: *„urob obrázok trošku inak, krivo,
-           prípadne do štvorca"*) — papierová fotka s bledým okrajom, položená na stôl. */
+        /* VÝREZ BEZ POZADIA, VYCHÁDZAME Z GRADIENTU (Matej 5. 10. 2026: *„odstráň pozadie,
+           daj preč rámik a z gradientu vyjdeme obaja, zväčši nás… nech nám je dobre vidno
+           tváre, moja tvár môže byť aj v dotyku s navom"* + skica: postava vľavo ukotvená
+           na spodok obrazovky, text v bloku vpravo). Výrez = macOS Vision (foreground
+           mask) z FOTO-REF/Kontakt.JPG. Hlava sedí tesne pod lištou, kolená odchádzajú
+           pod spodný okraj a maska ich rozplynie. */
+        .op-fin-a { justify-content: flex-end; padding-right: max(16px, calc(50vw - 560px)); }
         .op-fin-photo {
-          margin: 0; flex: 0 0 auto; width: min(440px, calc(100vh - var(--op-nav-h, 124px) - 96px));
-          aspect-ratio: 1; padding: 12px; border-radius: 4px;
-          background: #FFFBF1; transform: rotate(-3deg);
-          box-shadow: 0 0 0 1px rgba(201,154,63,.45), 0 24px 48px -20px rgba(42,22,8,.45);
+          position: absolute; margin: 0; bottom: 0; top: calc(var(--op-nav-h, 124px) - 32px);
+          /* Celá ľavá polovica — maska strihá na okraji boxu, užší box useknul ruky. */
+          left: 0; width: calc(50vw + 40px);
+          -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+                  mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
         }
-        .op-fin-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 32%; display: block; border-radius: 2px; }
-        .op-fin-words { max-width: 520px; display: flex; flex-direction: column; gap: 16px; text-align: left; }
+        .op-fin-photo img {
+          position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+          height: 150%; width: auto; max-width: none; display: block;
+        }
+        .op-fin-words {
+          position: relative; z-index: 1; width: min(580px, 46vw); display: flex; flex-direction: column; gap: 16px; text-align: left;
+          padding: 32px; border-radius: 16px;
+          background: rgba(255,251,241,.62); border: 1px solid rgba(201,154,63,.45);
+          box-shadow: 0 16px 40px -24px rgba(42,22,8,.35);
+        }
         .op-fin-words .op-fin-h2 { margin-bottom: 8px; }
         .op-fin-txt { margin: 0; font: 400 16px/1.6 'Space Grotesk', sans-serif; color: ${LAB.ink}; }
         .op-fin-txt--last { font-weight: 600; }
@@ -294,21 +308,20 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
 
         @media (max-width: 768px) {
           .op-fin-a { flex-direction: column; justify-content: flex-start; gap: 16px; padding-top: calc(var(--op-nav-h, 118px) + 8px); }
-          /* MOBIL: fotka cez celú šírku, tváre hore, spodok sa rozplynie do papyrusu
-             a nadpis sedí NA nej (Matej: *„aby nám boli vidno tváre, kľudne dolnú časť
-             schovaj gradientom a daj tam text"*). Maska, nie farebný gradient — stage
-             má pod sebou ešte žiaru pageBackdrop, jednou farbou by vznikol šev. */
-          .op-fin-a { padding-left: 0; padding-right: 0; gap: 0; }
+          /* MOBIL: výrez cez celú šírku, hlava pri lište, spodok sa rozplynie a nadpis
+             sedí NA ňom; text bez bloku (na úzkom displeji by blok len ubral miesto). */
+          .op-fin-a { padding: calc(var(--op-nav-h, 118px) - 24px) 0 0; gap: 0; justify-content: flex-start; }
           .op-fin-photo {
-            width: 100%; height: 46vh; aspect-ratio: auto; padding: 0; border-radius: 0;
-            background: none; box-shadow: none; transform: none;
+            position: relative; top: auto; left: auto; bottom: auto; flex: 0 0 auto;
+            width: 100%; height: 50vh;
+            -webkit-mask-image: linear-gradient(to bottom, #000 56%, transparent 96%);
+                    mask-image: linear-gradient(to bottom, #000 56%, transparent 96%);
           }
-          .op-fin-photo img {
-            object-position: 50% 24%; border-radius: 0;
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 10%, #000 68%, transparent 100%);
-                    mask-image: linear-gradient(to bottom, transparent 0, #000 10%, #000 68%, transparent 100%);
+          .op-fin-photo img { height: 150%; }
+          .op-fin-words {
+            width: auto; gap: 8px; margin-top: -72px; padding: 0 16px;
+            background: none; border: 0; box-shadow: none; border-radius: 0;
           }
-          .op-fin-words { gap: 8px; margin-top: -72px; padding: 0 16px; position: relative; }
           .op-fin-txt { font-size: 14px; line-height: 1.5; }
           .op-fin-b { justify-content: flex-start; gap: 12px; padding-top: calc(var(--op-nav-h, 118px) + 8px); }
           .op-fin-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; gap: 8px; }
@@ -324,13 +337,8 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
         }
         /* Nízky telefón: ustúpi FOTKA, nie vzduch (PAGE_AIR). */
         @media (max-width: 768px) and (max-height: 720px) {
-          .op-fin-a { gap: 8px; }
-          /* Vrch fotky je rozplynutý maskou, smie teda zájsť pod lištu (88 px = pod
-             pás lišty, medailón leží nad rozplynutou časťou). */
-          .op-fin-a { padding-top: 88px; }
-          .op-fin-photo { height: 40vh; }
-          .op-fin-photo img { object-position: 50% 30%; }
-          .op-fin-words { margin-top: -48px; }
+          .op-fin-photo { height: 42vh; }
+          .op-fin-words { margin-top: -56px; }
           .op-fin-words .op-fin-h2 { margin-bottom: 0; }
           .op-fin-txt { font-size: 12px; line-height: 1.4; }
         }
