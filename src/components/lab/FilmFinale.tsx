@@ -76,7 +76,6 @@ const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const seg = (v: number, a: number, b: number) => clamp01((v - a) / Math.max(1e-6, b - a));
 const smooth = (x: number) => x * x * (3 - 2 * x);
 
-const EMAIL = 'woof@dogypt.com';
 /** Brand v3.2 zlato — na tmavom podklade B (LAB.goldInk je atrament pre papier). */
 const GOLD = '#C99A3F';
 
@@ -212,9 +211,15 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
             {/* Hodiny = zamrznutý odhad do 14. 8. + zmeraný čas AI agentov z `plany/praca-log.json`
                 (gen-praca-stats → onepagePulse.json, čerstvé k poslednému deployu). */}
             <div className="op-fin-stats">
-              <div className="op-fin-stat op-glass"><b>2018</b><span>{t('onepage.fin.statIdea')}</span></div>
-              <div className="op-fin-stat op-glass"><b>07/2026</b><span>{t('onepage.fin.statOnline')}</span></div>
-              <div className="op-fin-stat op-glass"><b><span ref={hoursRef}>{PULSE.hours.toLocaleString('en-US')}</span>+</b><span>{t('onepage.fin.statHours')}</span></div>
+              {/* Tri farby (Matej 5. 10. 2026: *„tie tri bloky nejak farebne urobiť"*) — všetky
+                  z palety AINUBISA: myšlienka = svit, online = cyan, práca = zelená „živé". */}
+              <div className="op-fin-stat op-glass op-fin-stat--idea"><b>2018</b><span>{t('onepage.fin.statIdea')}</span></div>
+              <div className="op-fin-stat op-glass op-fin-stat--online"><b>07/2026</b><span>{t('onepage.fin.statOnline')}</span></div>
+              <div className="op-fin-stat op-glass op-fin-stat--work">
+                <b><span ref={hoursRef}>{PULSE.hours.toLocaleString('en-US')}</span>+</b>
+                <span>{t('onepage.fin.statHours')}</span>
+                <small>{t('onepage.fin.statHoursWho')}</small>
+              </div>
             </div>
             <div className="op-fin-workbox op-glass">
               <div className="op-fin-eb">{t('onepage.fin.nowHead')}</div>
@@ -264,7 +269,7 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
                   {s.icon}
                 </a>
               ))}
-              <a className="op-fin-blk op-fin-blk--mail" href={`mailto:${EMAIL}`} tabIndex={tabB}>{EMAIL}</a>
+              {/* E-mail schovaný (Matej 5. 10. 2026: *„email by som schoval, ainubis ho vie keby niečo"*). */}
               <button type="button" className="op-fin-blk" onClick={onDogma} tabIndex={tabB}>DOGMA</button>
             </div>
             <p className="op-fin-legal">
@@ -413,8 +418,26 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
 
         .op-fin-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
         .op-fin-stat { display: flex; flex-direction: column; gap: 4px; padding: 16px; }
-        .op-fin-stat b { font: 700 24px/1 'Cinzel', serif; letter-spacing: .04em; color: ${AINUBIS.ink}; text-shadow: 0 0 16px rgba(${AINUBIS.cyanRGB},.35); }
+        .op-fin-stat b { font: 700 24px/1 'Cinzel', serif; letter-spacing: .04em; color: var(--sc); text-shadow: 0 0 18px rgba(var(--scr),.55); }
         .op-fin-stat > span { font: 400 12px/1.3 'Space Grotesk', sans-serif; color: ${AINUBIS.inkDim}; }
+        .op-fin-stat > small { font: 400 10px/1.3 'Space Grotesk', sans-serif; letter-spacing: .04em; color: ${AINUBIS.inkFaint}; }
+        /* Farba bloku: tónovaná výplň, farebný lem a horná svetelná hrana. */
+        .op-fin-stat.op-glass {
+          overflow: hidden;
+          background: linear-gradient(160deg, rgba(var(--scr),.20) 0%, rgba(var(--scr),.05) 55%, rgba(var(--scr),.10) 100%);
+          border-color: rgba(var(--scr),.45);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 16px 40px rgba(0,0,0,.45), 0 0 28px rgba(var(--scr),.18);
+          transition: transform .25s ease, box-shadow .25s ease;
+        }
+        .op-fin-stat.op-glass::after {
+          content: ''; position: absolute; left: 16px; right: 16px; top: 0; height: 2px; border-radius: 2px;
+          background: linear-gradient(90deg, rgba(var(--scr),0), var(--sc), rgba(var(--scr),0));
+          box-shadow: 0 0 12px var(--sc);
+        }
+        .op-fin-stat.op-glass:hover { transform: translateY(-3px); box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 20px 44px rgba(0,0,0,.5), 0 0 36px rgba(var(--scr),.32); }
+        .op-fin-stat--idea { --sc: ${AINUBIS.glow}; --scr: ${AINUBIS.glowRGB}; }
+        .op-fin-stat--online { --sc: ${AINUBIS.cyan}; --scr: ${AINUBIS.cyanRGB}; }
+        .op-fin-stat--work { --sc: ${AINUBIS.ok}; --scr: 127,215,154; }
 
         .op-fin-workbox { padding: 16px; }
         .op-fin-eb {
