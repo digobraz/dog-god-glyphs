@@ -4005,6 +4005,9 @@ export default function OnePage() {
   /** Scéna ČLENSTVO — šípky filmu sa v nej presunú pod ľavý stĺpec
    *  (27. 9. skryté, 28. 9. Matej: *„nevidím scroll šípky"*). */
   const [inApps, setInApps] = useState(false);
+  /** Stojí nadpis pásu hviezd (zastávka `quoRead`)? Vtedy vedie chip „najznámejší fans",
+   *  nie šípky (Matej 5. 10. 2026: *„keď tam dáš chip, šípky môžeš dať preč"*). */
+  const [atQuoHead, setAtQuoHead] = useState(false);
   /** Popup s tromi Albami — vstup je chip PRÍKLAD pri podnadpise HEROGLYPH. */
   const [albaOpen, setAlbaOpen] = useState(false);
   const appsOpenRef = useRef(false);
@@ -4029,6 +4032,8 @@ export default function OnePage() {
         const span = Math.max(0, tl.offsetHeight - filmVh());
         setInStory(window.scrollY >= top + span * STORY_START - 4 && window.scrollY < top + span - 4);
       }
+      const qr = quoRead(), qi = pinnedAt('.op-quo', quoIn()[1]);
+      setAtQuoHead(qr != null && qi != null && window.scrollY >= qi - 8 && window.scrollY <= qr + window.innerHeight * 0.05);
       const ap = document.querySelector<HTMLElement>('.op-apps');
       if (ap) {
         const top = ap.getBoundingClientRect().top + window.scrollY;
@@ -4188,7 +4193,7 @@ export default function OnePage() {
           šípky, ktoré navádzajú na SLIDE… 3 pod sebou blikajúce"*. Jedny pre
           celý film; počas jazdy motora zhasnú, klik = ďalšia obrazovka. */}
       <div ref={veilRef} className="op-veil" aria-hidden="true" />
-      {!wallOpen && !atFilmEnd && !inStory && !atFinale && (
+      {!wallOpen && !atFilmEnd && !inStory && !atFinale && !atQuoHead && (
         <FilmCue moving={filmMoving} onNext={() => filmGo(1)} label={t('onepage.cue.next')} big={atHome} apps={inApps} />
       )}
       {!wallOpen && (
@@ -7908,7 +7913,7 @@ export default function OnePage() {
         <section className="op-scene op-quo" aria-label={t('about.legends.titleFilm')}
           style={{ marginTop: `-${100 + APPS_EXIT_VH}lvh` }}>
           <div className="op-quo-stage">
-            <TestimonialsSection variant="papyrus" pinned />
+            <TestimonialsSection variant="papyrus" pinned onFans={() => filmGo(1)} fansLive={atQuoHead} />
           </div>
         </section>
 

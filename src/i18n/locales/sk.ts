@@ -978,7 +978,7 @@ export const sk: Partial<Dict> = {
   // ── /onepage FILM — názvy obrazov v ľavej pilulke horného navu ──
   'film.slide.cowdog': 'Krava vs pes',
   'film.slide.story': 'Príbeh',
-  'film.slide.stars': 'Psy a hviezdy',
+  'film.slide.stars': 'Fanklub',
   'film.slide.mission': 'Misia',
   'film.slide.heroglyph': 'Heroglyf',
   'film.slide.apps': 'Členstvo',
@@ -1428,6 +1428,7 @@ export const sk: Partial<Dict> = {
   // ── /about — Legends (citáty celebrít) — STROJOVÝ PREKLAD citátov, čaká review ──
   'about.legends.title': 'AJ LEGENDY POKĽAKLI',
   'about.legends.titleFilm': 'JAZYK LÁSKY: PES',
+  'about.legends.fansChip': 'Pozri najznámejších fanúšikov',
   'about.legends.subFilm':
     'Psov miluje každý, ale chýba im oficiálny celosvetový fanklub!',
   'about.legends.sub':

@@ -1135,6 +1135,7 @@ export const cs: Partial<Dict> = {
   // ── /about — Legends (citáty celebrit) — STROJOVÝ PŘEKLAD citátů, čeká review ──
   'about.legends.title': 'I LEGENDY POKLEKLY',
   'about.legends.titleFilm': 'JAZYK LÁSKY: PES',
+  'about.legends.fansChip': 'Podívej se na nejslavnější fanoušky',
   'about.legends.subFilm':
     'Psy miluje každý, ale chybí jim oficiální celosvětový fanklub!',
   'about.legends.sub':
@@ -5291,7 +5292,7 @@ export const cs: Partial<Dict> = {
   'nav.home': 'Domů',
   'film.slide.cowdog': 'Kráva vs pes',
   'film.slide.story': 'Příběh',
-  'film.slide.stars': 'Psi a hvězdy',
+  'film.slide.stars': 'Fanklub',
   'film.slide.mission': 'Mise',
   'film.slide.heroglyph': 'Heroglyf',
   'film.slide.apps': 'Členství',

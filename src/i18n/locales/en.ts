@@ -1193,7 +1193,7 @@ export const en = {
   // preklad zahodil. Nové sú len tie, ktoré vo webe dosiaľ neexistovali.
   'film.slide.cowdog': 'Cow vs Dog',
   'film.slide.story': 'Story',
-  'film.slide.stars': 'Dogs and Stars',
+  'film.slide.stars': 'Fan Club',
   'film.slide.mission': 'Mission',
   'film.slide.heroglyph': 'Heroglyph',
   'film.slide.apps': 'Membership',
@@ -1694,6 +1694,7 @@ export const en = {
   // ale chýba im oficiálny globálny fanklub!"*. Diera ostala, len má meno: FANKLUB. Ostatných
   // 15 jazykov zmazané ⇒ EN fallback, kým sa nepreložia (staré znenie by tvrdilo niečo iné).
   'about.legends.titleFilm': 'LOVE LANGUAGE: DOG',
+  'about.legends.fansChip': 'Meet the most famous fans',
   // 🔴 PODNADPIS SA MUSEL ZMENIŤ SPOLU S NADPISOM. Pôvodný („The most powerful humans who
   // ever lived all bowed to the same quiet teacher") DOKAZOVAL to isté, čo nový nadpis
   // TVRDÍ ⇒ dvojica by povedala jednu vec dvakrát. Nadpis tvrdí, podnadpis otvára dieru.

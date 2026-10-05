@@ -403,8 +403,8 @@ function shuffle<T>(arr: readonly T[]): T[] {
  *    v `TestimonialsColumn.tsx`: pod týmto komponentom leží 355 riadkov citátov
  *    so zdrojmi a tie sa nesmú rozdvojiť.
  */
-export function TestimonialsSection({ variant = 'dark', pinned = false }:
-  { variant?: TestimonialVariant; pinned?: boolean } = {}) {
+export function TestimonialsSection({ variant = 'dark', pinned = false, onFans, fansLive = true }:
+  { variant?: TestimonialVariant; pinned?: boolean; onFans?: () => void; fansLive?: boolean } = {}) {
   const t = useT();
   // Shuffle + pick a random subset once per mount → line-up changes each refresh.
   const { columns } = useMemo(() => {
@@ -488,6 +488,15 @@ export function TestimonialsSection({ variant = 'dark', pinned = false }:
                 znamenalo, že sa pri prvej ďalšej úprave rozídu. */}
             {t(pinned ? 'about.legends.subFilm' : 'about.legends.sub')}
           </p>
+          {/* Vo filme chip pod textom (Matej 5. 10. 2026: *„pod texting dajme chip ako už máme
+              na webe, že pozri najznámejších fans… a klikom sa zobrazia"*). Štýl = INFO CHIP filmu
+              `.dgx-example` (OnePage.tsx). /about ho nemá — `onFans` posiela len film. */}
+          {pinned && onFans && (
+            <button type="button" className="dgx-example tst-fans" onClick={onFans}
+              tabIndex={fansLive ? 0 : -1} style={{ pointerEvents: fansLive ? 'auto' : 'none', marginLeft: 0, marginTop: 24 }}>
+              {t('about.legends.fansChip')}
+            </button>
+          )}
         </motion.div>
 
         <div
