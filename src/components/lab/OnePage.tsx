@@ -6648,6 +6648,16 @@ export default function OnePage() {
           position: absolute; left: 0; top: 0; width: 100%; height: 100lvh;
           object-fit: cover; z-index: 5; opacity: 0; pointer-events: none;
         }
+        /* 📱 Mobil na výšku: otočený a zrkadlený PRESNE ako .op-gate-vid (FilmGate) —
+           Matej 5. 10.: *„pri dotyku zostanú na mieste, teraz to po dotyku vrátiš do
+           pôvodnej polohy"*. Výstrih stál na šírku, takže po zblednutí brány ruka
+           a labka skočili späť. Meníš jedno, meň obe. */
+        @media (max-width: 767px) and (orientation: portrait) {
+          .op-dgx-cut {
+            left: 50%; top: 50lvh; width: 100lvh; height: 100vw; max-width: none;
+            transform: translate(-50%, -50%) scaleX(-1) rotate(-90deg);
+          }
+        }
         .op-arc-scr {
           position: absolute;
           inset: 0;

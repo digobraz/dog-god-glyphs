@@ -167,7 +167,11 @@ export default function FilmGate() {
             width: 100lvh; height: 100vw;
             /* Preflight Tailwindu dáva video max-width: 100 % — bez tohto ostal box 390×390. */
             max-width: none;
-            transform: translate(-50%, -50%) rotate(-90deg);
+            /* 2. kolo (Matej 5. 10.: *„vymeň strany, ruka pôjde z ľavej strany"*): samé
+               otočenie dalo ruku vpravo dole a labku vľavo hore — zrkadlo po otočení
+               ich prehodí. ⚠️ Tetovanie je tým zrkadlové. Tú istú transformáciu MUSÍ
+               mať výstrih .op-dgx-cut v OnePage (zostáva po dotyku pod DOGTRIXom). */
+            transform: translate(-50%, -50%) scaleX(-1) rotate(-90deg);
           }
         }
         /* Obe polovice nesú CELÚ bránu (100vw), jej stred leží na švíku. */
