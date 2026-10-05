@@ -4935,12 +4935,14 @@ export default function OnePage() {
              rezerva. Ostatných 15 jazykov motto neprekladá (padá na EN) ⇒ EN číslo je
              predvolené. Nový preklad motta = dopísať jeho dĺžku sem, inak dostane EN. */
           .op-root #op-religion .codex-section[data-idx="1"] .codex-headline {
-            --motto-em: 10.4;
-            font-size: calc((100vw - 32px) / var(--motto-em));
+            /* 5. 10. 2026 večer: −10 % (Matej: *„to z 3 môžeš zmenšiť o 10 %, teraz je na
+               max"*) — a tá istá hodnota je nadpis vízie, preto premenná na .op-root. */
+            font-size: var(--op-h-motto);
             white-space: nowrap;
           }
-          html:lang(sk) .op-root #op-religion .codex-section[data-idx="1"] .codex-headline { --motto-em: 7.9; }
-          html:lang(cs) .op-root #op-religion .codex-section[data-idx="1"] .codex-headline { --motto-em: 8.6; }
+          .op-root { --motto-em: 10.4; --op-h-motto: calc((100vw - 32px) / var(--motto-em) * 0.9); }
+          html:lang(sk) .op-root { --motto-em: 7.9; }
+          html:lang(cs) .op-root { --motto-em: 8.6; }
           .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-text {
             font-size: min(12.5px, 2.75vh);
             line-height: 1.45;
@@ -5660,6 +5662,32 @@ export default function OnePage() {
           }
           .op-root #op-vision .vhero-item { padding: 10px 12px; gap: 10px; }
           .op-root #op-vision .vhero-h2 { font-size: var(--op-h-obraz); }
+          /* 🔴 MOBIL: NADPIS A TRI BODY HORE, VIDEO POD NIMI (Matej 5. 10. 2026: *„prehodiť
+             obsah — hore bude nadpis a 3 body, nadpis a jeden riadok"*). Poradie v DOM-e
+             ostáva (PC ho potrebuje: video vľavo), mení sa len poradie v mriežke.
+             Choreografia sa tým nemení: video aj tak prichádza zdola a bloky hasnú
+             a skladajú sa — po zložení ostane video samo a centruje sa v páse. */
+          .op-root #op-vision .vhero-blocks { order: -1; }
+          /* NADPIS VÍZIA = VEĽKOSŤ MOTTA Z 3. SLAJDU (Matej: *„daj taký, aké písmo je
+             v predchádzajúcich slajdoch"*). Jedna premenná --op-h-motto (pri motte),
+             strop zdola súčasným nadpisom obrazu — v EN je motto dlhé a vyšlo by menšie. */
+          .op-root #op-vision .vhero-h2 { font-size: max(var(--op-h-obraz), var(--op-h-motto)); }
+          /* BOD = NADPIS + JEDEN RIADOK. Popis nesmie zalomiť, takže písmo ustúpi šírke:
+             (okno − 2×16 okraj − 34 číslo s medzerou) / dĺžka najdlhšieho popisu v em
+             (zmerané Space Grotesk 400, 5. 10.: EN 28,6 · SK 27 · CS 26,7; tu +2 %).
+             Strop 12 px. Ostatných 15 jazykov popisy neprekladá (padajú na EN). */
+          .op-root #op-vision .vhero-item { padding: 8px 0; gap: 10px; }
+          .op-root #op-vision .vhero-num { width: 24px; height: 24px; min-width: 24px; font-size: 12px; }
+          .op-root #op-vision .vhero-t { display: block; line-height: 1.2; }
+          .op-root #op-vision .vhero-d {
+            --vd-em: 29.2;
+            font-size: min(12px, calc((100vw - 66px) / var(--vd-em)));
+            white-space: nowrap;
+            line-height: 1.35;
+            margin-top: 2px;
+          }
+          html:lang(sk) .op-root #op-vision .vhero-d { --vd-em: 27.6; }
+          html:lang(cs) .op-root #op-vision .vhero-d { --vd-em: 27.3; }
           /* Medzera medzi videom a blokmi odchádza s nimi. */
           .op-root #op-vision .vhero-inner { gap: calc(10px * (1 - var(--op-vout, 0))); }
           .op-root #op-vision .vision-video-hero { padding: 0 16px; }
@@ -5842,12 +5870,16 @@ export default function OnePage() {
              --op-split je tá istá premenná, ktorou sa na PC preskupuje obrazovka
              — tu robí jedinú vec: dotiahne psa naspäť k hrane okna.
              ⚠️ Sčítava sa s --op-hek, nie nahrádza ho: štvrtý prechod psa
-             vytláča von a musí ho vytlačiť aj z tejto novej polohy. */
+             vytláča von a musí ho vytlačiť aj z tejto novej polohy.
+             🔴 ODCHOD = 140 % + k × 100 % (Matej 5. 10. 2026 večer: *„na slajde 4 je
+             vidno ešte Hektorov nos — každý slajd nesie len to, čo mu patrí"*). Mierka
+             2,36 s ukotvením vpravo dole ťahá psa doľava o (mierka − 1) jeho šírky,
+             takže samotných 140 % ho nechalo ľavou hranou na x 226 z 390. */
           .op-root.op-root :is(.codex-bleed, .codex-spotlayer) .codex-hektor {
             transform: translateX(calc(
               var(--op-in, 0) * 120%
               - var(--op-split, 0) * (var(--ani-k) - 1) * 58%
-              + var(--op-hek, 0) * 140%
+              + var(--op-hek, 0) * (140% + var(--ani-k) * 100%)
               + (var(--ani-k) - 1.377) * 80%
             )) scale(calc(var(--ani-k) * 0.985 * (1 + var(--op-split, 0) * var(--dog-g, 0.2))));
             /* 5. 10. 2026 — TRETÍ OBRAZ: pes do STREDU a väčší (Matej: *„psa centrovať
