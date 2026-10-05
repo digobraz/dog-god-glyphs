@@ -1100,8 +1100,9 @@ export default function PackAinubis() {
              a skrytá lišta by appke tvrdila, že pod obsahom je 68 px, ktoré tam
              nie sú. */}
       {/* 5. 10. 2026 (test po FLIPe): MOJE ZNALOSTI sú podobrazovka so šípkou späť — lišta
-          v polohe AINUBIS splitu tam na PC ležala cez zoznam svetov. */}
-      {plane2 === 'vault' && !knowOpen && (
+          v polohe AINUBIS splitu tam na PC ležala cez zoznam svetov. To isté otvorený ZVITOK
+          (2. kolo testu: lišta cez text článku) — zatvára ho šípka `.zv-back`. */}
+      {plane2 === 'vault' && !knowOpen && !openZ && (
         <PackBottomNav avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial} dogs={id.dogs} />
       )}
       {SCROLL_DEMO && openZ && (

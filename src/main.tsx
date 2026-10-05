@@ -9,6 +9,22 @@ import { scrubSecrets } from "./lib/packAnalytics";
 // stavu pri prvom renderi. Telo modulu je celé za `import.meta.env.DEV`.
 import "./lib/devSeedApply";
 
+// ── STARÁ ZÁLOŽKA PO DEPLOYI (5. 10. 2026, test po FLIPe) ─────────────────────
+// Každý deploy zmení hashe chunkov. Záložka otvorená pred deployom pri lazy navigácii
+// pýta starý chunk, Cloudflare (SPA fallback) vráti index.html a import padne na
+// „MIME type text/html" ⇒ „Something went wrong". Vite vtedy vyšle `vite:preloadError`:
+// stránku raz obnovíme (dostane nový index aj chunky). Poistka proti slučke: ďalší
+// reload najskôr o 30 s — keby chunk chýbal aj v novom builde, ukáže sa chyba ako doteraz.
+window.addEventListener("vite:preloadError", (event) => {
+  try {
+    const last = Number(sessionStorage.getItem("dogypt_chunk_reload") || 0);
+    if (Date.now() - last < 30_000) return;
+    sessionStorage.setItem("dogypt_chunk_reload", String(Date.now()));
+  } catch { return; /* bez sessionStorage nevieme ustrážiť slučku — ostane chyba ako doteraz */ }
+  event.preventDefault();
+  window.location.reload();
+});
+
 if (POSTHOG_KEY) {
   posthog.init(POSTHOG_KEY, {
     api_host: POSTHOG_HOST,

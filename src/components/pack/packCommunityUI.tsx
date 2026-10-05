@@ -1829,8 +1829,8 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
           {!heroPhoto && <img className="comm-chero-flag" src={flagUrl(country, 160)} alt="" loading="lazy" draggable={false} />}
           <div className="comm-chero-name">{cName}</div>
           <div className="comm-chero-sub">
-            {cTrails.length} trip{cTrails.length === 1 ? '' : 's'} · {fmtKm(cKm)} km
-            {country === 'sk' ? ` · ${completion.doneUnits}/${completion.totalUnits} places ticked` : ''}
+            {t(`pack.triplist.myTripsCount${pluralKey(cTrails.length)}`, { n: cTrails.length })} · {fmtKm(cKm)} km
+            {country === 'sk' ? ` · ${t('pack.stats.placesTicked', { done: completion.doneUnits, total: completion.totalUnits })}` : ''}
           </div>
           <div className="comm-chero-goal">
             {/* ⓘ PRI SAMOTNOM TITULE (Matej 2026-08-06: „nevidím ten popup v krajine").
@@ -2064,7 +2064,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
             onClick={() => setWalkedOpen((v) => !v)}
             aria-expanded={walkedOpen}
           >
-            <span className="comm-drop-t">{walkedOpen ? 'Hide' : 'Show all'} {cTrails.length} trip{cTrails.length === 1 ? '' : 's'} you've walked</span>
+            <span className="comm-drop-t">{t(walkedOpen ? 'pack.stats.walkedHide' : 'pack.stats.walkedShow', { trips: t(`pack.triplist.myTripsCount${pluralKey(cTrails.length)}`, { n: cTrails.length }) })}</span>
             <span className="comm-drop-n">{fmtKm(cKm)} km <i className="comm-drop-chev" /></span>
           </button>
           {walkedOpen && cTrails.map((tr) => (

@@ -66,6 +66,11 @@ const PASS_CSS = `
    v profile. Rovnaká hranica 720/721 px ako zvyšok karty psa. */
 .pass-groups{ columns:2; column-gap:14px; }
 @media (max-width:720px){ .pass-groups{ columns:1; } }
+/* Cudzí profil (readOnly) má len 3 očíslované sekcie — stĺpce ich čítali 01 · 03 · 02
+   (test po FLIPe 5. 10. 2026). Mriežka drží poradie po riadkoch. */
+.pass-groups--ro{ columns:auto; display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; }
+.pass-groups--ro .pass-block{ margin:0; }
+@media (max-width:720px){ .pass-groups--ro{ grid-template-columns:1fr; } }
 .pass-block{ break-inside:avoid; -webkit-column-break-inside:avoid; margin:0 0 14px;
   background:${B.background}; border:${B.border}; border-radius:${B.borderRadius}px;
   padding:16px 16px 16px; box-shadow:${B.boxShadow};
@@ -304,7 +309,7 @@ export function DogPassport({
         </div>
       )}
 
-      <div className="pass-groups">
+      <div className={readOnly ? 'pass-groups pass-groups--ro' : 'pass-groups'}>
       {groups.map(({ group, rows }, i) => {
         // ČIERNY JE PRÁVE JEDEN BLOK — závet. Podmienka je na `key`, nie na `editPanel`:
         // panel je technická vlastnosť (edituje sa inde než kvízom) a keby ho zajtra dostala
