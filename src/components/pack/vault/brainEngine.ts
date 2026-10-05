@@ -398,9 +398,13 @@ export function mountBrain(o: BrainOptions): BrainHandle {
         ctx.shadowBlur = HOV === p ? 36 : 24; ctx.shadowColor = 'rgba(91,224,240,.95)';
         ctx.fillStyle = 'rgba(91,224,240,1)';
         ctx.beginPath(); ctx.arc(p.sx, p.sy, rr, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
+        /* HLAVA JE VNORENÁ DO CYAN KRUHU (Matej 5. 10. 2026: *„stredové logo viac
+           obtiahnuť/vnoriť do cyan kruhu, je moc tenké vzhľadom na ostatné kruhy"*).
+           Dovtedy lem 1,5 px — vedľa plných bublín svetov pôsobil ako čiara. */
         if (HEAD.complete) {
-          ctx.save(); ctx.beginPath(); ctx.arc(p.sx, p.sy, rr - 1.5, 0, TAU); ctx.clip();
-          drawFit(ctx, HEAD, p.sx, p.sy, rr * 2, 'cover'); ctx.restore();
+          const hr = rr * 0.8;
+          ctx.save(); ctx.beginPath(); ctx.arc(p.sx, p.sy, hr, 0, TAU); ctx.clip();
+          drawFit(ctx, HEAD, p.sx, p.sy, hr * 2, 'cover'); ctx.restore();
         }
         return;
       }

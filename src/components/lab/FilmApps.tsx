@@ -76,13 +76,18 @@ type AppFeature = {
 
 const b4 = (id: string) => [1, 2, 3, 4].map((i) => `onepage.apps.${id}.b${i}`);
 
+/* SNÍMKY (Matej 5. 10. 2026) — DOG ID = úvod kvízu „Who is your dog?" · SNIFFER = len bledá
+   plocha karty s logom, podnadpisom a CTA, bez tapety s heroglyfmi (*„zjednodušíme to"*) ·
+   DOGTRIP = švajčiarsky výlet Seealpsee (karta + trasa na mape) · AINUBIS = VAULT a Dogscroll
+   BEZ oznamu otvorenia. Zdroj a výber: `plany/nakres-clenstvo-screeny-2026-10-05/`; detailné
+   slajdy sa ešte vyberajú. */
 /** Poradie = poradie v karuseli. Matej: *„dog id/profil, sniffer, dogtrips,
  *  AInubis a pomoc/možnosti… celkovo 4 obrazovky"*, 27. 9. doplnená piata. */
 const APPS: AppFeature[] = [
-  { id: 'dogid', nameKey: 'heroglyph.flow.more.dogid.t', textKey: 'heroglyph.flow.more.dogid.d', bulletKeys: b4('dogid'), shots: [] },
-  { id: 'sniffer', nameKey: 'heroglyph.flow.more.sniffer.t', textKey: 'heroglyph.flow.more.sniffer.d', bulletKeys: b4('sniffer'), shots: [] },
-  { id: 'dogtrip', nameKey: 'heroglyph.flow.more.dogtrip.t', textKey: 'heroglyph.flow.more.dogtrip.d', bulletKeys: b4('dogtrip'), shots: [] },
-  { id: 'ainubis', nameKey: 'heroglyph.flow.more.ainubis.t', textKey: 'heroglyph.flow.more.ainubis.d', bulletKeys: b4('ainubis'), shots: [] },
+  { id: 'dogid', nameKey: 'heroglyph.flow.more.dogid.t', textKey: 'heroglyph.flow.more.dogid.d', bulletKeys: b4('dogid'), shot: '/images/onepage/apps/dogid-kviz.webp', shots: ['/images/onepage/apps/dogid-kviz.webp'] },
+  { id: 'sniffer', nameKey: 'heroglyph.flow.more.sniffer.t', textKey: 'heroglyph.flow.more.sniffer.d', bulletKeys: b4('sniffer'), shot: '/images/onepage/apps/sniffer-cisty.webp', shots: ['/images/onepage/apps/sniffer-cisty.webp'] },
+  { id: 'dogtrip', nameKey: 'heroglyph.flow.more.dogtrip.t', textKey: 'heroglyph.flow.more.dogtrip.d', bulletKeys: b4('dogtrip'), shot: '/images/onepage/apps/dogtrip-swiss.webp', shots: ['/images/onepage/apps/dogtrip-swiss.webp', '/images/onepage/apps/dogtrip-mapa.webp'] },
+  { id: 'ainubis', nameKey: 'heroglyph.flow.more.ainubis.t', textKey: 'heroglyph.flow.more.ainubis.d', bulletKeys: b4('ainubis'), shot: '/images/onepage/apps/ainubis-vault-bez-oznamu.webp', shots: ['/images/onepage/apps/ainubis-vault-bez-oznamu.webp', '/images/onepage/apps/ainubis-dogscroll.webp'] },
   // 5/5 — Matej 27. 9.: *„komunita/pomoc… transparentná pomoc, nové výskumy —
   // to, čo členstvo vie pomáhať psom"*. Detail = text „VYŠŠÍ CIEĽ" z heroflowu.
   { id: 'cause', nameKey: 'onepage.apps.cause.name', textKey: 'heroglyph.flow.more.cause.d', bulletKeys: b4('cause'), shots: [] },
