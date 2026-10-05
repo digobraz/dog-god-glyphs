@@ -56,8 +56,14 @@ const TRACK = FIN_OVER_VH + FIN_NEXT_VH;
 /** Zastávky motora: A (moje slová) · B (čo ďalej). */
 export const FIN_STOPS = [FIN_OVER_VH / TRACK, 1];
 
-/** Rýchle voľby pozvánky do chatu — klik otvorí AINUBISA s rozpísaným začiatkom správy. */
-const ASKS = ['idea', 'broken', 'help', 'join'] as const;
+/** Tri dlaždice pozvánky (Matej 5. 10. 2026: *„join môžeš dať preč, nech sú len 3"*).
+ *  Klik otvorí AINUBISA rovno v téme — vlákno začne voľbou a jeho otázkou k nej.
+ *  Ikonky z ručného kitu (emoji mimo mapy = mimo brandu). */
+const ASKS = [
+  { k: 'idea', icon: '/icons/pack/idea.svg' },
+  { k: 'problem', icon: '/icons/pack/target.svg' },
+  { k: 'help', icon: '/icons/pack/heartpaw.svg' },
+] as const;
 /** Dátum nástenky „2026-10-04" → „4 Oct 2026" (mesiac podľa jazyka). */
 function boardDate(iso: string | null, lang: string): string {
   if (!iso) return '';
@@ -141,6 +147,34 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
     window.addEventListener('resize', step);
     return () => { window.removeEventListener('scroll', step); window.removeEventListener('resize', step); };
   }, []);
+  // ── B OŽÍVA PRI PRÍCHODE: hodiny sa narátajú, otázka AINUBISA sa vypíše ──
+  const hoursRef = useRef<HTMLSpanElement>(null);
+  const [said, setSaid] = useState('');
+  const question = t('onepage.fin.askHead');
+  useEffect(() => {
+    if (on !== 'b') return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const el = hoursRef.current;
+    let raf = 0;
+    if (el) {
+      if (reduce) el.textContent = PULSE.hours.toLocaleString('en-US');
+      else {
+        const t0 = performance.now();
+        const tick = (n: number) => {
+          const p = Math.min(1, (n - t0) / 1600);
+          el.textContent = Math.round(PULSE.hours * (1 - Math.pow(1 - p, 3))).toLocaleString('en-US');
+          if (p < 1) raf = requestAnimationFrame(tick);
+        };
+        raf = requestAnimationFrame(tick);
+      }
+    }
+    if (reduce) { setSaid(question); return () => cancelAnimationFrame(raf); }
+    let i = 0;
+    setSaid('');
+    const iv = window.setInterval(() => { i += 1; setSaid(question.slice(0, i)); if (i >= question.length) window.clearInterval(iv); }, 45);
+    return () => { cancelAnimationFrame(raf); window.clearInterval(iv); };
+  }, [on, question]);
+
   const tabB = on === 'b' ? 0 : -1;
   return (
     <section ref={secRef} className="op-scene op-fin" aria-label={t('onepage.fin.aria')}
@@ -168,44 +202,53 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
           </div>
         </div>
 
-        {/* ── B · ČO ĎALEJ (tmavý, AINUBIS) ───────────────────────────── */}
-        <div className="op-fin-b" data-film-free aria-hidden={on !== 'b'} style={{ pointerEvents: on === 'b' ? 'auto' : 'none' }}>
+        {/* ── B · LIVE STATUS (tmavý, AINUBIS) ───────────────────────── */}
+        <div className={`op-fin-b${on === 'b' ? ' is-on' : ''}`} data-film-free aria-hidden={on !== 'b'} style={{ pointerEvents: on === 'b' ? 'auto' : 'none' }}>
           <div className="op-fin-now">
-            <h2 className="op-fin-h2 op-fin-h2--left">{t('onepage.fin.nextHead')}</h2>
+            <h2 className="op-fin-h2 op-fin-h2--left">
+              {t('onepage.fin.liveHead')} <span className="op-fin-live"><i />LIVE</span>
+            </h2>
+            <p className="op-fin-ailine" dangerouslySetInnerHTML={{ __html: t('onepage.fin.aiLine') }} />
             {/* Hodiny = zamrznutý odhad do 14. 8. + zmeraný čas AI agentov z `plany/praca-log.json`
                 (gen-praca-stats → onepagePulse.json, čerstvé k poslednému deployu). */}
             <div className="op-fin-stats">
-              <div className="op-fin-stat"><b>2018</b><span>{t('onepage.fin.statIdea')}</span></div>
-              <div className="op-fin-stat"><b>2026</b><span>{t('onepage.fin.statOnline')}</span></div>
-              <div className="op-fin-stat"><b>{PULSE.hours.toLocaleString('en-US')}+</b><span>{t('onepage.fin.statHours')}</span></div>
+              <div className="op-fin-stat op-glass"><b>2018</b><span>{t('onepage.fin.statIdea')}</span></div>
+              <div className="op-fin-stat op-glass"><b>07/2026</b><span>{t('onepage.fin.statOnline')}</span></div>
+              <div className="op-fin-stat op-glass"><b><span ref={hoursRef}>{PULSE.hours.toLocaleString('en-US')}</span>+</b><span>{t('onepage.fin.statHours')}</span></div>
             </div>
-            <div className="op-fin-eb">{t('onepage.fin.nowHead')}</div>
-            <ul className="op-fin-work">
-              {PULSE.work.map((w, i) => (
-                <li key={i}>
-                  <span className="op-fin-tag">{t(`onepage.fin.tag.${w.tag}`)}</span>
-                  <span className="op-fin-wname">{t(`onepage.fin.work.${w.name}`)}</span>
-                  <span className="op-fin-bar"><i style={{ width: `${w.pct}%` }} /></span>
-                  <span className="op-fin-pct">{w.pct} %</span>
-                </li>
-              ))}
-            </ul>
-            {PULSE.updated && (
-              <div className="op-fin-upd"><i />{t('onepage.fin.updated')} {boardDate(PULSE.updated, lang)}</div>
-            )}
+            <div className="op-fin-workbox op-glass">
+              <div className="op-fin-eb">{t('onepage.fin.nowHead')}</div>
+              <ul className="op-fin-work">
+                {PULSE.work.map((w, i) => (
+                  <li key={i} style={{ ['--d' as string]: `${i * 90}ms` }}>
+                    <span className="op-fin-tag">{t(`onepage.fin.tag.${w.tag}`)}</span>
+                    <span className="op-fin-wname">{t(`onepage.fin.work.${w.name}`)}</span>
+                    <span className="op-fin-bar"><i style={{ ['--w' as string]: `${w.pct}%` }} /></span>
+                    <span className="op-fin-pct">{w.pct} %</span>
+                  </li>
+                ))}
+              </ul>
+              {PULSE.updated && (
+                <div className="op-fin-upd"><i />{t('onepage.fin.updated')} {boardDate(PULSE.updated, lang)}</div>
+              )}
+            </div>
           </div>
 
           <div className="op-fin-side">
-            <div className="op-fin-ai">
-              <img src={ainubisHead} alt="" className="op-fin-ai-head" />
+            <div className="op-fin-ai op-glass">
+              <div className="op-fin-ai-headwrap" aria-hidden>
+                <span className="op-fin-ai-ring2" /><span className="op-fin-ai-ring" />
+                <img src={ainubisHead} alt="" className="op-fin-ai-head" />
+              </div>
               <div className="op-fin-ai-nm"><span>AI</span>NUBIS</div>
-              <p className="op-fin-ai-q">{t('onepage.fin.askHead')}</p>
-              <p className="op-fin-ai-sub">{t('onepage.fin.askSub')}</p>
-              <div className="op-fin-ai-chips">
-                {ASKS.map((k) => (
-                  <button key={k} type="button" tabIndex={tabB}
-                    onClick={() => { track('onepage_ainubis_chip', { k }); openAinubis(t(`onepage.fin.askPre.${k}`)); }}>
-                    {t(`onepage.fin.ask.${k}`)}
+              <div className="op-fin-ai-role"><i />{t('onepage.fin.aiRole')}</div>
+              <p className="op-fin-ai-q" aria-label={question}>{said}<span className="op-fin-caret" /></p>
+              <div className="op-fin-ai-tiles">
+                {ASKS.map((a) => (
+                  <button key={a.k} type="button" tabIndex={tabB}
+                    onClick={() => { track('onepage_ainubis_topic', { k: a.k }); openAinubis(undefined, a.k); }}>
+                    <span className="op-fin-ico" style={{ ['--m' as string]: `url(${a.icon})` }} />
+                    {t(`onepage.fin.ask.${a.k}`)}
                   </button>
                 ))}
               </div>
@@ -224,17 +267,17 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
               <a className="op-fin-blk op-fin-blk--mail" href={`mailto:${EMAIL}`} tabIndex={tabB}>{EMAIL}</a>
               <button type="button" className="op-fin-blk" onClick={onDogma} tabIndex={tabB}>DOGMA</button>
             </div>
-          <p className="op-fin-legal">
-            <a href="/privacy" tabIndex={tabB}>{t('about.footer.privacy')}</a>
-            <span>·</span>
-            <a href="/terms" tabIndex={tabB}>{t('about.footer.terms')}</a>
-            <span>·</span>
-            <a href="#" tabIndex={tabB} onClick={(e) => { e.preventDefault(); window.dispatchEvent(new Event('dogypt:open-consent')); }}>
-              {t('consent.footerLink')}
-            </a>
-            <span>·</span>
-            <span>© 2026 DOGYPT</span>
-          </p>
+            <p className="op-fin-legal">
+              <a href="/privacy" tabIndex={tabB}>{t('about.footer.privacy')}</a>
+              <span>·</span>
+              <a href="/terms" tabIndex={tabB}>{t('about.footer.terms')}</a>
+              <span>·</span>
+              <a href="#" tabIndex={tabB} onClick={(e) => { e.preventDefault(); window.dispatchEvent(new Event('dogypt:open-consent')); }}>
+                {t('consent.footerLink')}
+              </a>
+              <span>·</span>
+              <span>© 2026 DOGYPT</span>
+            </p>
           </div>
         </div>
       </div>
@@ -294,32 +337,88 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
           box-shadow: 0 16px 40px -24px rgba(42,22,8,.35);
         }
         .op-fin-words .op-fin-h2 { margin-bottom: 8px; }
-        .op-fin-txt { margin: 0; font: 400 16px/1.6 'Space Grotesk', sans-serif; color: ${LAB.ink}; }
+        .op-fin-txt { margin: 0; font: 400 15px/1.55 'Space Grotesk', sans-serif; color: ${LAB.ink}; }
         .op-fin-txt--last { font-weight: 600; }
 
-        /* ── B · TMAVÝ AINUBIS (Matej 5. 10. 2026: *„v štýle ainubisa = tmavá stránka"*) ── */
+        /* ── B · LIVE STATUS — TMAVÝ AINUBIS S MRIEŽKOU (Matej 5. 10. 2026: *„pozadie mriežkové…
+           tu nesmie byť zlatá (text)… bloky krajšie a zvýrazniť… liquid glass"*). Mriežka je tá
+           istá ako na /pack/ainubis (.akv-bg). Zlaté ostáva len CTA (jeho brand). ── */
         .op-fin-dark {
-          position: absolute; inset: 0; pointer-events: none; opacity: var(--nx, 0);
-          background:
-            radial-gradient(90% 70% at 72% 18%, rgba(${AINUBIS.glowRGB},.18) 0%, rgba(${AINUBIS.glowRGB},0) 60%),
-            ${AINUBIS.surfaceBase};
+          position: absolute; inset: 0; pointer-events: none; opacity: var(--nx, 0); overflow: hidden;
+          background: ${AINUBIS.surfaceBase};
         }
+        .op-fin-dark::before {
+          content: ''; position: absolute; inset: 0;
+          background-image:
+            linear-gradient(rgba(${AINUBIS.cyanRGB},0.06) 1px,transparent 1px),
+            linear-gradient(90deg,rgba(${AINUBIS.cyanRGB},0.06) 1px,transparent 1px),
+            linear-gradient(rgba(${AINUBIS.cyanRGB},0.10) 1px,transparent 1px),
+            linear-gradient(90deg,rgba(${AINUBIS.cyanRGB},0.10) 1px,transparent 1px);
+          background-size: 24px 24px,24px 24px,192px 192px,192px 192px;
+          animation: op-fin-drift 40s linear infinite;
+        }
+        .op-fin-dark::after {
+          content: ''; position: absolute; inset: 0;
+          background:
+            radial-gradient(50vw 50vw at 78% 20%, rgba(${AINUBIS.cyanRGB},.14), transparent 62%),
+            radial-gradient(45vw 45vw at 20% 110%, rgba(${AINUBIS.glowRGB},.12), transparent 62%),
+            linear-gradient(180deg, transparent 0, rgba(${AINUBIS.cyanRGB},.05) 50%, transparent 100%) 0 -30vh / 100% 30vh no-repeat;
+          animation: op-fin-scan 7s ease-in-out infinite;
+        }
+        @keyframes op-fin-drift { to { background-position: 0 192px,192px 0,0 192px,192px 0; } }
+        @keyframes op-fin-scan { 0% { background-position: 0 0, 0 0, 0 -30vh; } 60%, 100% { background-position: 0 0, 0 0, 0 130vh; } }
+
         .op-fin-b {
           flex-direction: row; align-items: center; justify-content: center; gap: 48px; text-align: left;
           padding-left: 24px; padding-right: 24px; color: ${AINUBIS.ink};
         }
-        .op-fin-now { width: min(560px, 50vw); display: flex; flex-direction: column; }
+        .op-fin-now { width: min(600px, 52vw); display: flex; flex-direction: column; gap: 12px; }
         .op-fin-side { width: 440px; flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px; }
-        .op-fin-b .op-fin-h2 { padding-bottom: 16px; margin-bottom: 16px; }
-        .op-fin-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-        .op-fin-stat {
-          display: flex; flex-direction: column; gap: 4px; padding: 12px 16px;
-          border-radius: 12px; background: ${AINUBIS.raised}; border: 1px solid ${AINUBIS.edge};
+
+        /* SKLO („liquid glass"): rozmazaný podklad, svetlý lem hore, jemný cyan dosvit. */
+        .op-glass {
+          position: relative; border-radius: 16px;
+          background: linear-gradient(160deg, rgba(${AINUBIS.cyanRGB},.12) 0%, rgba(${AINUBIS.cyanRGB},.03) 45%, rgba(${AINUBIS.glowRGB},.06) 100%);
+          border: 1px solid rgba(${AINUBIS.cyanRGB},.28);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.14), inset 0 -1px 0 rgba(${AINUBIS.cyanRGB},.08),
+            0 16px 40px rgba(0,0,0,.45), 0 0 32px rgba(${AINUBIS.glowRGB},.10);
+          -webkit-backdrop-filter: blur(12px) saturate(140%); backdrop-filter: blur(12px) saturate(140%);
         }
-        .op-fin-stat b { font: 700 24px/1 'Cinzel', serif; letter-spacing: .04em; color: ${GOLD}; }
-        .op-fin-stat span { font: 400 12px/1.3 'Space Grotesk', sans-serif; color: ${AINUBIS.inkDim}; }
+        .op-glass::before {
+          content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+          background: linear-gradient(115deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 32%);
+        }
+
+        /* NADPIS bez zlata: biely s cyan dosvitom, čiara pod ním cyan. */
+        .op-root .op-fin .op-fin-b .op-fin-h2 {
+          background-image: none; color: ${AINUBIS.ink}; -webkit-text-fill-color: ${AINUBIS.ink};
+          text-shadow: 0 0 24px rgba(${AINUBIS.cyanRGB},.35); padding-bottom: 12px; margin: 0;
+          display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+        }
+        .op-root .op-fin .op-fin-b .op-fin-h2::after {
+          background: linear-gradient(90deg, rgba(${AINUBIS.cyanRGB},.85) 0%, rgba(${AINUBIS.cyanRGB},0) 100%);
+        }
+        .op-fin-live {
+          display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 999px;
+          font: 600 10px/1 'Space Grotesk', sans-serif; letter-spacing: .22em; text-shadow: none;
+          color: ${AINUBIS.ok}; -webkit-text-fill-color: ${AINUBIS.ok}; border: 1px solid ${AINUBIS.okEdge};
+        }
+        .op-fin-live i, .op-fin-upd i, .op-fin-ai-role i {
+          display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+          background: ${AINUBIS.ok}; box-shadow: 0 0 8px ${AINUBIS.ok}; animation: op-fin-pulse 1.6s ease-in-out infinite;
+        }
+        @keyframes op-fin-pulse { 50% { opacity: .35; transform: scale(.7); } }
+        .op-fin-ailine { margin: 0; font: 400 16px/1.5 'Space Grotesk', sans-serif; color: ${AINUBIS.inkDim}; }
+        .op-fin-ailine b { font-weight: 500; color: ${AINUBIS.cyan}; }
+
+        .op-fin-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+        .op-fin-stat { display: flex; flex-direction: column; gap: 4px; padding: 16px; }
+        .op-fin-stat b { font: 700 24px/1 'Cinzel', serif; letter-spacing: .04em; color: ${AINUBIS.ink}; text-shadow: 0 0 16px rgba(${AINUBIS.cyanRGB},.35); }
+        .op-fin-stat > span { font: 400 12px/1.3 'Space Grotesk', sans-serif; color: ${AINUBIS.inkDim}; }
+
+        .op-fin-workbox { padding: 16px; }
         .op-fin-eb {
-          margin: 24px 0 8px; font: 500 10px/1 'Space Grotesk', sans-serif; letter-spacing: .26em;
+          margin: 0 0 4px; font: 500 10px/1 'Space Grotesk', sans-serif; letter-spacing: .26em;
           text-transform: uppercase; color: ${AINUBIS.cyan};
         }
         .op-fin-work { list-style: none; margin: 0; padding: 0; }
@@ -327,46 +426,88 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
           display: grid; grid-template-columns: 88px minmax(0, 1fr) 96px 40px; gap: 12px; align-items: center;
           padding: 8px 0; border-bottom: 1px solid rgba(${AINUBIS.cyanRGB},.10);
           font: 400 14px/1.3 'Space Grotesk', sans-serif; color: ${AINUBIS.ink};
+          opacity: 0; transform: translateX(-8px); transition: opacity .5s ease var(--d, 0ms), transform .5s ease var(--d, 0ms);
         }
+        .op-fin-work li:last-child { border-bottom: 0; }
+        .op-fin-b.is-on .op-fin-work li { opacity: 1; transform: none; }
         .op-fin-tag {
           justify-self: start; padding: 4px 8px; border-radius: 999px; border: 1px solid ${AINUBIS.edgeStrong};
           font: 500 10px/1 'Space Grotesk', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: ${AINUBIS.cyan};
         }
         .op-fin-bar { height: 6px; border-radius: 999px; background: rgba(${AINUBIS.cyanRGB},.12); overflow: hidden; }
-        .op-fin-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, ${AINUBIS.glow}, ${AINUBIS.cyan}); box-shadow: 0 0 8px ${AINUBIS.cyan}; }
+        .op-fin-bar i {
+          position: relative; display: block; height: 100%; width: 0; border-radius: 999px; overflow: hidden;
+          background: linear-gradient(90deg, ${AINUBIS.glow}, ${AINUBIS.cyan}); box-shadow: 0 0 8px ${AINUBIS.cyan};
+          transition: width 1.4s cubic-bezier(.2,.8,.2,1) .3s;
+        }
+        .op-fin-b.is-on .op-fin-bar i { width: var(--w); }
+        .op-fin-bar i::after {
+          content: ''; position: absolute; inset: 0;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent);
+          animation: op-fin-shim 2.4s ease-in-out infinite;
+        }
+        @keyframes op-fin-shim { from { transform: translateX(-100%); } to { transform: translateX(200%); } }
         .op-fin-pct { font-size: 12px; text-align: right; color: ${AINUBIS.inkDim}; }
         .op-fin-upd { margin-top: 8px; font: 500 10px/1 'Space Grotesk', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: ${AINUBIS.inkFaint}; }
-        .op-fin-upd i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; background: ${AINUBIS.ok}; box-shadow: 0 0 8px ${AINUBIS.ok}; vertical-align: -1px; }
+        .op-fin-upd i { margin-right: 8px; vertical-align: -1px; }
 
-        .op-fin-ai {
-          display: flex; flex-direction: column; align-items: center; text-align: center; padding: 24px;
-          border-radius: 16px; background: rgba(7,16,25,.72); border: 1px solid ${AINUBIS.edge}; box-shadow: ${AINUBIS.panelShadow};
+        /* AINUBIS — predstavený ako strážca a AI agent, hlava v otáčajúcich sa prstencoch. */
+        .op-fin-ai { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 24px; }
+        .op-fin-ai-headwrap { position: relative; width: 104px; height: 104px; }
+        .op-fin-ai-head {
+          position: absolute; inset: 8px; width: 88px; height: 88px; border-radius: 50%; object-fit: cover; background: #000;
+          border: 2px solid ${AINUBIS.cyan}; animation: op-fin-breathe 4s ease-in-out infinite;
         }
-        .op-fin-ai-head { width: 88px; height: 88px; border-radius: 50%; object-fit: cover; background: #000; border: 2px solid ${AINUBIS.cyan}; box-shadow: 0 0 18px ${AINUBIS.cyan}; }
-        .op-fin-ai-nm { margin-top: 8px; font: 700 16px/1 'Cinzel', serif; letter-spacing: .14em; color: ${AINUBIS.ink}; }
+        @keyframes op-fin-breathe {
+          0%, 100% { box-shadow: 0 0 10px ${AINUBIS.cyan}; }
+          50% { box-shadow: 0 0 28px ${AINUBIS.cyan}, 0 0 60px rgba(${AINUBIS.cyanRGB},.4); }
+        }
+        .op-fin-ai-ring { position: absolute; inset: 0; border-radius: 50%; border: 1.5px dashed rgba(${AINUBIS.cyanRGB},.55); animation: op-fin-spin 18s linear infinite; }
+        .op-fin-ai-ring2 { position: absolute; inset: -8px; border-radius: 50%; border: 1px solid rgba(${AINUBIS.cyanRGB},.18); border-top-color: ${AINUBIS.cyan}; animation: op-fin-spin 3.5s linear infinite; }
+        @keyframes op-fin-spin { to { transform: rotate(360deg); } }
+        .op-fin-ai-nm { margin-top: 8px; font: 700 18px/1 'Cinzel', serif; letter-spacing: .14em; color: ${AINUBIS.ink}; }
         .op-fin-ai-nm span { color: ${AINUBIS.cyan}; }
-        .op-fin-ai-q { margin: 16px 0 8px; font: 700 20px/1.3 'Cinzel', serif; letter-spacing: .04em; color: ${AINUBIS.ink}; }
-        .op-fin-ai-sub { margin: 0; font: 400 14px/1.4 'Space Grotesk', sans-serif; color: ${AINUBIS.inkDim}; }
-        .op-fin-ai-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 16px 0; }
-        .op-fin-ai-chips button {
-          cursor: pointer; padding: 8px 12px; border-radius: 999px; border: 1px solid ${AINUBIS.edge};
-          background: rgba(${AINUBIS.cyanRGB},.06); color: ${AINUBIS.ink}; font: 500 12px/1 'Space Grotesk', sans-serif;
-          transition: border-color .2s ease, background .2s ease;
+        .op-fin-ai-role {
+          display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 6px 10px; border-radius: 999px;
+          border: 1px solid ${AINUBIS.edgeStrong}; color: ${AINUBIS.cyan};
+          font: 500 10px/1 'Space Grotesk', sans-serif; letter-spacing: .22em; text-transform: uppercase;
         }
-        .op-fin-ai-chips button:hover { border-color: ${AINUBIS.edgeStrong}; background: rgba(${AINUBIS.cyanRGB},.14); }
+        .op-fin-ai-role i { background: ${AINUBIS.cyan}; box-shadow: 0 0 8px ${AINUBIS.cyan}; }
+        .op-fin-ai-q { margin: 16px 0 0; min-height: 24px; font: 500 16px/1.5 'Space Grotesk', sans-serif; color: ${AINUBIS.ink}; }
+        .op-fin-caret { display: inline-block; width: 2px; height: 16px; margin-left: 2px; vertical-align: -2px; background: ${AINUBIS.cyan}; animation: op-fin-blink 1s steps(1) infinite; }
+        @keyframes op-fin-blink { 50% { opacity: 0; } }
+        .op-fin-ai-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; margin: 16px 0; }
+        .op-fin-ai-tiles button {
+          display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 8px; cursor: pointer;
+          border-radius: 12px; border: 1px solid rgba(${AINUBIS.cyanRGB},.3); color: ${AINUBIS.ink};
+          background: linear-gradient(180deg, rgba(${AINUBIS.cyanRGB},.08), rgba(${AINUBIS.cyanRGB},.02));
+          font: 500 12px/1.2 'Space Grotesk', sans-serif;
+          transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+        }
+        .op-fin-ai-tiles button:hover {
+          transform: translateY(-4px); border-color: ${AINUBIS.cyan};
+          box-shadow: 0 0 0 1px rgba(${AINUBIS.cyanRGB},.4), 0 10px 24px rgba(${AINUBIS.glowRGB},.25);
+        }
+        .op-fin-ico {
+          width: 28px; height: 28px; background: ${AINUBIS.cyan};
+          -webkit-mask: var(--m) center / contain no-repeat; mask: var(--m) center / contain no-repeat;
+          transition: transform .3s ease;
+        }
+        .op-fin-ai-tiles button:hover .op-fin-ico { transform: scale(1.15) rotate(-6deg); }
         .op-fin-ai-cta {
           cursor: pointer; width: 100%; height: 48px; border: 0; border-radius: 8px;
           background: ${AINUBIS.ctaGrad}; color: #2a1608;
           font: 700 14px/1 'Cinzel', serif; letter-spacing: .14em; text-transform: uppercase;
-          transition: transform .2s ease;
+          transition: transform .2s ease, box-shadow .2s ease;
         }
-        .op-fin-ai-cta:hover { transform: translateY(-2px); }
+        .op-fin-ai-cta:hover { transform: translateY(-2px); box-shadow: 0 0 24px rgba(${AINUBIS.ctaRGB},.45); }
+
         .op-fin-links { display: flex; flex-wrap: wrap; gap: 8px; }
         .op-fin-blk {
           height: 40px; min-width: 40px; padding: 0 16px; border-radius: 999px; cursor: pointer;
           display: inline-flex; align-items: center; justify-content: center;
-          background: transparent; border: 1px solid rgba(201,154,63,.5);
-          color: ${GOLD}; text-decoration: none;
+          background: rgba(${AINUBIS.cyanRGB},.04); border: 1px solid ${AINUBIS.edge};
+          color: ${AINUBIS.inkDim}; text-decoration: none;
           font: 700 14px/1 'Cinzel', serif; letter-spacing: .04em;
           transition: transform .2s ease, border-color .2s ease, color .2s ease;
         }
@@ -380,6 +521,9 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
         }
         .op-fin-legal a { color: inherit; text-decoration: none; }
         .op-fin-legal a:hover { color: ${AINUBIS.ink}; text-decoration: underline; }
+        @media (prefers-reduced-motion: reduce) {
+          .op-fin-dark::before, .op-fin-dark::after, .op-fin-ai-ring, .op-fin-ai-ring2, .op-fin-ai-head, .op-fin-bar i::after { animation: none; }
+        }
 
         @media (max-width: 768px) {
           .op-fin-a { flex-direction: column; justify-content: flex-start; gap: 16px; padding-top: calc(var(--op-nav-h, 118px) + 8px); }
@@ -404,13 +548,14 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
           }
           .op-fin-now, .op-fin-side { width: 100%; }
           .op-fin-stats { gap: 8px; }
-          .op-fin-stat { padding: 8px; }
+          .op-fin-stat { padding: 12px 8px; }
           .op-fin-stat b { font-size: 20px; }
           .op-fin-stat span { font-size: 10px; }
           .op-fin-work li { grid-template-columns: 76px minmax(0, 1fr) 48px 32px; gap: 8px; font-size: 12px; }
+          .op-fin-workbox { padding: 12px; }
+          .op-fin-ailine { font-size: 14px; }
           .op-fin-ai { padding: 16px; }
-          .op-fin-ai-head { width: 64px; height: 64px; }
-          .op-fin-ai-q { font-size: 16px; }
+          .op-fin-ai-q { font-size: 14px; }
           /* B je posledný obraz: obsah smie na telefóne odrolovať
              VNÚTRI obrazu (data-film-free = motor filmu ho nechá tak). Obsah stojí
              zhora (flex-start), takže pretečenie ide len dole a dá sa dočítať. */

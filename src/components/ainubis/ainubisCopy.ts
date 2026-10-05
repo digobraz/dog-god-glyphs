@@ -31,6 +31,8 @@ export interface AinubisCopy {
   welcome: string[];
   /** Uvítanie na verejnom /onepage (Matej 5. 10. 2026): projekt, chyby, pomoc, pridať sa. */
   welcomePublic: string[];
+  /** Témy verejného chatu (/onepage): voľba človeka + AINUBISOVA otázka k nej. */
+  topics: Record<'idea' | 'problem' | 'help', { label: string; reply: string }>;
   /** Brána na e-mail po prvej správe hosťa (rozhodnutie „2A“). */
   gate: { ask: string; placeholder: string; send: string; invalid: string };
   suggestions: {
@@ -105,10 +107,15 @@ const sk: AinubisCopy = {
     'Ahoj, som AInubis, tvoj osobný sprievodca v DOGYPTE. Keďže sa na stránke stále maká, práve tu mi môžeš nahlásiť svoj postreh — chyby, nápady, čokoľvek. Posuniem to ďalej a vyriešime to rýchlejšie, než si myslíš!',
     'Stlač toto a urob mi snímku obrazovky priamo do chatu :)',
   ],
+  // JEDNA bublina (Matej 5. 10. 2026: „uvítanie len v jednej bublinke").
   welcomePublic: [
-    'Haf. Som AINUBIS, strážca DOGYPTU.',
-    'Máš nápad, niečo nefunguje, chceš pomôcť alebo sa pridať? Napíš mi — odnesiem to rovno Matejovi.',
+    'Haf! Som AINUBIS — strážca DOGYPTU a jeho AI agent. Všetko, čo mi tu napíšeš, ide rovno Matejovi, zakladateľovi. Čo ťa sem privádza?',
   ],
+  topics: {
+    idea: { label: 'Mám nápad', reply: 'Super. Povedz — čo by DOGYPT urobilo lepším?' },
+    problem: { label: 'Mám problém', reply: 'Ojoj. Čo sa stalo a kde? Pomôže aj snímka — ťukni na terč.' },
+    help: { label: 'Chcem pomôcť', reply: 'Labkovo! Ako by si chcel pomôcť — zručnosťou, časom, alebo tým, že o nás povieš ďalej?' },
+  },
   gate: {
     ask: 'Mám to. Kam ti môže Matej odpísať?',
     placeholder: 'tvoj@email.sk',
@@ -166,10 +173,15 @@ const en: AinubisCopy = {
     "Hi, I'm AInubis, your personal guide in DOGYPT. The site is still being built, so this is the place to report anything you notice — bugs, ideas, whatever. I'll pass it on and it gets fixed faster than you think!",
     'Press this and send me a screenshot straight into the chat :)',
   ],
+  // ONE bubble (Matej 5. 10. 2026: „uvítanie len v jednej bublinke").
   welcomePublic: [
-    "Woof. I'm AINUBIS, guardian of DOGYPT.",
-    "Got an idea, something broken, want to help or join? Write to me — I'll carry it straight to Matthew.",
+    "Woof! I'm AINUBIS — guardian of DOGYPT and its AI agent. Everything you write here goes straight to Matthew, the founder. What brings you here?",
   ],
+  topics: {
+    idea: { label: 'An idea', reply: 'Love it. Tell me — what would make DOGYPT better?' },
+    problem: { label: 'A problem', reply: 'Oh no. What happened, and where? A screenshot helps — tap the target.' },
+    help: { label: 'I want to help', reply: 'Pawsome! How would you like to help — skills, time, or spreading the word?' },
+  },
   gate: {
     ask: 'Got it. Where can Matthew reply to you?',
     placeholder: 'your@email.com',

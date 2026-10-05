@@ -1145,3 +1145,55 @@ body:has(.ainubis-panel--away) .ainubis-launcher { visibility: hidden; }
   font: 700 12px/1 'Cinzel', serif; letter-spacing: .14em; text-transform: uppercase;
 }
 .ainubis-gate__err { flex-basis: 100%; font: 400 12px/1.4 'Space Grotesk', sans-serif; color: #F0A08C; }
+
+/* ── VEREJNÝ CHAT (/onepage) — sklenené bubliny a voľby tém (Matej 5. 10. 2026:
+   „bubliny treba krajšie urobiť… aby sa to hýbalo, animovalo"). Platí len pre
+   panel na verejnej route (--left); appka v /pack sa nemení. */
+.ainubis-panel--left .ainubis-msg {
+  font-size: 13px;
+  padding: 10px 14px;
+  animation: ainubis-pop .45s cubic-bezier(.2, .9, .3, 1.3) both;
+}
+.ainubis-panel--left .ainubis-msg--assistant {
+  border-radius: 16px 16px 16px 4px;
+  background: linear-gradient(180deg, rgba(var(--ainubis-cyan-rgb), 0.13) 0%, rgba(var(--ainubis-cyan-rgb), 0.05) 100%);
+  border: 1px solid rgba(var(--ainubis-cyan-rgb), 0.30);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 6px 18px rgba(0, 0, 0, 0.30);
+}
+.ainubis-panel--left .ainubis-msg--user {
+  border-radius: 16px 16px 4px 16px;
+  background: linear-gradient(135deg, rgba(59, 158, 255, 0.55) 0%, rgba(var(--ainubis-cyan-rgb), 0.35) 100%);
+  border: 1px solid rgba(var(--ainubis-cyan-rgb), 0.50);
+  color: #E6FAFF;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 18px rgba(0, 0, 0, 0.30);
+}
+@keyframes ainubis-pop {
+  from { opacity: 0; transform: translateY(10px) scale(.96); }
+  to { opacity: 1; transform: none; }
+}
+
+.ainubis-topics {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin: 0 12px 8px 46px;
+  animation: ainubis-pop .45s cubic-bezier(.2, .9, .3, 1.3) both;
+}
+.ainubis-topic {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 999px; cursor: pointer;
+  border: 1px solid rgba(var(--ainubis-cyan-rgb), 0.45);
+  background: rgba(var(--ainubis-cyan-rgb), 0.06);
+  color: #E6FAFF;
+  font: 500 12px/1 'Space Grotesk', sans-serif;
+  transition: background .2s ease, border-color .2s ease, transform .2s ease;
+}
+.ainubis-topic:hover { background: rgba(var(--ainubis-cyan-rgb), 0.18); border-color: var(--ainubis-cyan); transform: translateY(-2px); }
+.ainubis-topic__ico {
+  width: 16px; height: 16px; background: var(--ainubis-cyan);
+  -webkit-mask: var(--m) center / contain no-repeat; mask: var(--m) center / contain no-repeat;
+}
+.ainubis-topic__ico--idea { --m: url(/icons/pack/idea.svg); }
+.ainubis-topic__ico--problem { --m: url(/icons/pack/target.svg); }
+.ainubis-topic__ico--help { --m: url(/icons/pack/heartpaw.svg); }
+@media (prefers-reduced-motion: reduce) {
+  .ainubis-panel--left .ainubis-msg, .ainubis-topics { animation: none; }
+}

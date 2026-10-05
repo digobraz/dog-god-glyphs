@@ -89,6 +89,9 @@ const PUBLIC_LAUNCH_PAUSED = true;
  * Guľa tu sedí VĽAVO dole — vpravo sú šípky filmu a cookie lišta.
  */
 const PUBLIC_ROUTES = ['/onepage'];
+const TOPICS = ['idea', 'problem', 'help'] as const;
+type TopicKey = (typeof TOPICS)[number];
+const isTopicKey = (v: string): v is TopicKey => (TOPICS as readonly string[]).includes(v);
 
 /**
  * Pes, ktorého kartu má člen otvorenú (`/pack/dogs/:id`). Ide do chatu len ako
@@ -444,6 +447,12 @@ function AinubisWidgetInner() {
   const [gatePending, setGatePending] = useState<{ text: string; image: PendingImage | null } | null>(null);
   const [gateInput, setGateInput] = useState('');
   const [gateError, setGateError] = useState(false);
+  /** Téma verejného chatu (idea | problem | help). Prvá správa na server ju nesie ako
+   *  predponu, aby AINUBIS vedel, o čo ide — v bublinách ju človek vidí ako svoju voľbu. */
+  const [topic, setTopic] = useState<TopicKey | null>(null);
+  const topicPrefixRef = useRef<string | null>(null);
+  /** Téma z dlaždice karty, ktorá čaká na dohranie uvítania. */
+  const [pendingTopic, setPendingTopic] = useState<TopicKey | null>(null);
   const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
   /** TARGET (26. 9. 2026): `aim` = závoj s mieridlom, `shoot` = práve sa fotí (všetko skryté). */
   const [target, setTarget] = useState<'off' | 'aim' | 'shoot'>('off');
@@ -569,7 +578,9 @@ function AinubisWidgetInner() {
   // „zavri to"). Nezávislé od `handleToggleOpen`, ktoré patrí launcheru.
   useEffect(() => {
     const onOpen = (e: Event) => {
-      const prefill = (e as CustomEvent<{ prefill?: string } | undefined>).detail?.prefill;
+      const detail = (e as CustomEvent<{ prefill?: string; topic?: string } | undefined>).detail;
+      const prefill = detail?.prefill;
+      if (detail?.topic && isTopicKey(detail.topic)) setPendingTopic(detail.topic);
       if (prefill) {
         setInput(prefill);
         window.setTimeout(() => textareaRef.current?.focus(), 50);
@@ -927,6 +938,9 @@ function AinubisWidgetInner() {
     if ((!text && !pendingImage) || sending) return;
     setSending(true);
     const imageToSend = pendingImage;
+    // Predpona témy ide na server len s PRVOU správou po voľbe.
+    const outgoing = topicPrefixRef.current ? `${topicPrefixRef.current} — ${text}` : text;
+    topicPrefixRef.current = null;
     setMessages((prev) => [
       ...prev,
       {
@@ -942,7 +956,7 @@ function AinubisWidgetInner() {
     // BRÁNA 2A: hosť na verejnej route bez e-mailu — správa ostane v chate, ale na server
     // odíde až s adresou. Člen (memberEmail) bránou neprechádza.
     if (onPublicRoute && !memberEmail && !visitorEmailRef.current) {
-      setGatePending({ text, image: imageToSend });
+      setGatePending({ text: outgoing, image: imageToSend });
       setMessages((prev) => [
         ...prev,
         { id: `assistant-gate-${Date.now()}`, role: 'assistant', content: copy.gate.ask, created_at: new Date().toISOString() },
@@ -951,9 +965,24 @@ function AinubisWidgetInner() {
       return;
     }
     setWaitingReply(true);
-    await sendToBackend(text, imageToSend, false);
+    await sendToBackend(outgoing, imageToSend, false);
     setWaitingReply(false);
     setSending(false);
+  }
+
+  /** Voľba témy: bublina človeka + AINUBISOVA otázka (lokálne, server sa volá až so správou). */
+  function pickTopic(k: TopicKey) {
+    const tp = copy.topics[k];
+    setTopic(k);
+    topicPrefixRef.current = tp.label;
+    const now = Date.now();
+    setMessages((prev) => [...prev, { id: `user-topic-${now}`, role: 'user', content: tp.label, created_at: new Date().toISOString() }]);
+    window.setTimeout(() => {
+      const id = `assistant-topic-${now}`;
+      setMessages((prev) => [...prev, { id, role: 'assistant', content: tp.reply, created_at: new Date().toISOString() }]);
+      startTypewriter(id, tp.reply);
+      window.setTimeout(() => textareaRef.current?.focus(), 50);
+    }, reducedMotion ? 0 : 650);
   }
 
   async function submitGate() {
@@ -1159,6 +1188,14 @@ function AinubisWidgetInner() {
   // Návrhy tém (Mám problém / nápad / otázku) zanikli spolu s dverami (Matej 26. 9. 2026:
   // úvod = jedna bublina „a nič iné"). Render ostáva — vráti sa preklopením tohto riadku.
   const showSuggestions = SHOW_BRANCH_UI && introReady && !!branch;
+  /** Voľby tém vo verejnom chate — kým človek nič nenapísal ani nevybral. */
+  const showTopics = onPublicRoute && introReady && !topic && !gatePending;
+  useEffect(() => {
+    if (!pendingTopic || !introReady) return;
+    setPendingTopic(null);
+    if (!topic) pickTopic(pendingTopic);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingTopic, introReady]);
 
   return (
     <>
@@ -1400,6 +1437,17 @@ function AinubisWidgetInner() {
                   onClick={() => setBranch(b)}
                 >
                   {copy.branches[b].label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {showTopics && (
+            <div className="ainubis-topics">
+              {TOPICS.map((k) => (
+                <button key={k} type="button" className="ainubis-topic" onClick={() => pickTopic(k)}>
+                  <span className={`ainubis-topic__ico ainubis-topic__ico--${k}`} aria-hidden />
+                  {copy.topics[k].label}
                 </button>
               ))}
             </div>
