@@ -99,6 +99,11 @@ export const PAWMATE_LIVE =
   import.meta.env.VITE_PAWMATE === 'true' || isFullPackEmail(sessionEmailFromStorage());
 
 // ── PODUJATIA — DVERE ZAMKNUTÉ, KÝM NA LIVE NIE JE SCHÉMA (2026-09-15) ──────
+// 🟢 STAV K 5. 10. 2026: FRONTEND JE HOTOVÝ A ČÍTA AJ PÍŠE DB (vlna 2, 24.–25. 9., commit
+//    58f2b136, `events/eventStore.ts` → 12 RPC z `20260925_events_v2.sql`). Text nižšie
+//    o localStorage a „0 requestoch" je meranie z 15. 9. a UŽ NEPLATÍ — ostáva ako história.
+//    Chýba už LEN schéma na LIVE: `flip.sh` krok 2b (schéma + cron `notify-events` +
+//    allowlist *), krok 2 (funkcie) a krok 4 (`EVENTS_LIVE = true` až po 2b).
 // Audit funkčnosti pred launchom (plany/audit-launch-2026-09-15/2-podujatia.md)
 // našiel toto: formulár aj zoznam podujatí existujú a fungujú bezchybne, backend
 // (event_series, event_editions, event_rsvps, event_comments + RLS + 2 RPC) je
