@@ -238,8 +238,8 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
         <button
           type="button"
           onClick={() => emitOpenInbox()}
-          aria-label="Messages"
-          title="Messages"
+          aria-label={t('pack.notif.messages')}
+          title={t('pack.notif.messages')}
           className="relative inline-flex items-center justify-center"
           style={capsule ? capBtn(false) : {
             width: 38,
