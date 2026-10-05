@@ -163,8 +163,11 @@ export async function meTooWish(sourceId: string, when: WishWhen): Promise<strin
 
 export async function cancelWishPin(id: string): Promise<void> {
   if (DEV_NOAUTH) { mockWrite(mockRead().filter((w) => w.id !== id)); return; }
-  const { error } = await db.rpc('cancel_wish_pin', { p_id: id });
+  const { data, error } = await db.rpc('cancel_wish_pin', { p_id: id });
   if (error) throw error;
+  // RPC vracia `false`, keď nič nezrušil (cudzí pin, už zrušený) — do 5. 10. 2026 sa to
+  // tvárilo ako úspech (E2E test dvoma účtami). Zámok je v SQL, toto je len pravdivá odpoveď.
+  if (data === false) throw new Error('not_cancelled');
 }
 
 // NAPÍSAŤ z pinu žije v `messaging/packMessaging.ts` (`startWishDM`) — vedľa `startTripDM`,
