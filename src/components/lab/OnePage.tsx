@@ -6084,6 +6084,18 @@ export default function OnePage() {
           color: ${NAV_GOLD.ink};
         }
         .main-nav .nav-login:hover { opacity: 0.75; }
+        /* Jazyk na PC v tom istom chipe ako login (Matej 5. 10. 2026: *„má to mať
+           okolo seba výplň ako má aj login"*) — výška 40 = kruh loginu. */
+        .main-nav .nav-lang-desktop {
+          display: inline-flex; align-items: center; justify-content: center;
+          height: 40px; padding: 0 12px;
+          flex-shrink: 0;
+          border-radius: 999px;
+          background: ${NAV_GOLD.activeFill};
+          border: ${NAV_R.line}px solid ${NAV_GOLD.edge};
+          box-shadow: ${NAV_PILL_SHADOW};
+        }
+        .main-nav .nav-lang-desktop .lang-trigger { padding: 0; }
         /* Mobilný jazykový chip je v DOM-e vždy, viditeľný len pod 768 px. */
         .main-nav .nav-lang-mobile { display: none; }
         @media (max-width: 768px) {
