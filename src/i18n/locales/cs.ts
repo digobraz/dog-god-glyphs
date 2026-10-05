@@ -5312,6 +5312,7 @@ export const cs: Partial<Dict> = {
   'onepage.need.misGoal': 'jaká síla konat dobro.',
   'onepage.need.goal': 'Náš cíl',
   'onepage.cue.next': 'Dál',
+  'onepage.cue.more': 'Posuň níž pro víc info',
   'onepage.cue.story': 'Projeď příběh',
   'onepage.cue.top': 'Zpět na začátek',
   'onepage.dogma.back': 'Zpět',

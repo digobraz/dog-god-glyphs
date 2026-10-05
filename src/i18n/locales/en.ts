@@ -1226,6 +1226,7 @@ export const en = {
   'onepage.need.misGoal': 'the power to do so much good.',
   'onepage.need.goal': 'Our goal',
   'onepage.cue.next': 'Next',
+  'onepage.cue.more': 'Scroll down for more info',
   'onepage.cue.story': 'Scroll through the story',
   'onepage.cue.top': 'Back to top',
   'onepage.dogma.back': 'Back',

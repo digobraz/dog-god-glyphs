@@ -42,7 +42,7 @@ function Chevron({ i, scale }: { i: number; scale: number }) {
   );
 }
 
-export default function FilmCue({ moving, onNext, label, hint, big, apps }: { moving: boolean; onNext: () => void; label: string; hint?: string; big?: boolean; apps?: boolean }) {
+export default function FilmCue({ moving, onNext, label, hint, big, apps, chip }: { moving: boolean; onNext: () => void; label: string; hint?: string; big?: boolean; apps?: boolean; chip?: string }) {
   const sc = CUE.order === 'A' ? [1, 0.78, 0.58] : CUE.order === 'B' ? [0.58, 0.78, 1] : [0.8, 0.8, 0.8];
   return (
     <button type="button" className={`op-cue${moving ? ' is-moving' : ''}${big ? ' is-big' : ''}${apps ? ' is-apps' : ''}`} aria-label={label} onClick={onNext}
@@ -51,8 +51,9 @@ export default function FilmCue({ moving, onNext, label, hint, big, apps }: { mo
           prescroluj príbeh"*). Miesto drží stále, aby šípky neposkakovali. */}
       <em className={`op-cue-hint${hint ? ' is-on' : ''}`}>{hint ?? ''}</em>
       {sc.map((s, i) => (
-        <span key={i} style={{ marginTop: i ? CUE.space : 0 }}><Chevron i={i} scale={s} /></span>
+        <span key={i} className="op-cue-arr" style={{ marginTop: i ? CUE.space : 0 }}><Chevron i={i} scale={s} /></span>
       ))}
+      {big && chip && <span className="dgx-example op-cue-chip">{chip}</span>}
     </button>
   );
 }
@@ -99,6 +100,23 @@ export const FILM_CUE_CSS = `
   .op-cue.is-big {
     left: auto; right: 24px; bottom: calc(24px + var(--consent-h, 0px));
     transform: scale(1.8); transform-origin: 100% 100%;
+  }
+  /* 5. 10. 2026 — NA PC ÚVODE CHIP NAMIESTO ŠÍPKY (Matej: *„nepáči sa mi tá šípka
+     napravo… dajme info o scrollingu medzi spodný nav a CTA do chipu: scroll down
+     for more info malinkým písmom"*). Mobil ostáva so šípkou v rohu (pravidlo z 3. 10.).
+     Výška = spodná lišta (~70 px + 14 od okraja) + vzduch. */
+  .op-cue-chip { display: none; }
+  @media (min-width: 769px) {
+    .op-cue.is-big {
+      left: 50%; right: auto; bottom: calc(max(112px, 112px + (100vh - 724px) * .3) + var(--consent-h, 0px));
+      transform: translateX(-50%); transform-origin: 50% 100%; padding: 0;
+    }
+    .op-cue.is-big .op-cue-arr, .op-cue.is-big .op-cue-hint { display: none; }
+    .op-cue.is-big .op-cue-chip {
+      display: inline-flex; margin: 0; padding: 6px 12px; line-height: 1.3;
+      font-size: 10px; letter-spacing: .14em; white-space: nowrap;
+    }
+    .op-cue.is-big.is-moving { transform: translateX(-50%); }
   }
   /* ČLENSTVO — šípky VŽDY V STREDE (Matej 28. 9. 2026: *„táto obrazovka má
      šípky dolu na ľavej strane… vždy musia byť v strede! na každej obrazovke"*).

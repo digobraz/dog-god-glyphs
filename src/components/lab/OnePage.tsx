@@ -4204,7 +4204,7 @@ export default function OnePage() {
           celý film; počas jazdy motora zhasnú, klik = ďalšia obrazovka. */}
       <div ref={veilRef} className="op-veil" aria-hidden="true" />
       {!wallOpen && !atFilmEnd && !inStory && !atFinale && !atQuoHead && (
-        <FilmCue moving={filmMoving} onNext={() => filmGo(1)} label={t('onepage.cue.next')} big={atHome} apps={inApps} />
+        <FilmCue moving={filmMoving} onNext={() => filmGo(1)} label={t('onepage.cue.next')} big={atHome} apps={inApps} chip={t('onepage.cue.more')} />
       )}
       {!wallOpen && (
         <FilmTop show={!atHome} label={t('onepage.cue.top')}
