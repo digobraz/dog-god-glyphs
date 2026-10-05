@@ -2418,9 +2418,11 @@ export default function OnePage() {
         const pinW = Math.max(120, Math.min(DGX_PIN_W, vw - 32 - gr.width - DGX_PIN_GAP));
         const total = gr.width + DGX_PIN_GAP + pinW;
         gshift = Math.max(16, (vw - total) / 2) - l0;
-        gbox.style.setProperty('--pinw', pinW.toFixed(0) + 'px');
+        sec.style.setProperty('--pinw', pinW.toFixed(0) + 'px');
       }
-      if (gshift !== curShift) { curShift = gshift; gbox.style.setProperty('--gshift', gshift.toFixed(1) + 'px'); }
+      // Premenná na SEKCII — číta ju rám glyfu aj fotka podpisu (ide s glyfom).
+      if (gshift !== curShift) { curShift = gshift; sec.style.setProperty('--gshift', gshift.toFixed(1) + 'px'); }
+      sec.classList.toggle('is-kpin', !!pk);
 
       // Podržaný symbol (hover/klik) prebíja vypočítané krytie — koncový
       // stav je čierny glyf, svetlo je odpoveď na dotyk.
@@ -7345,8 +7347,15 @@ export default function OnePage() {
         .dgx-gbox .kdot--up    { bottom: calc(100% + 4px); transform: translateX(-50%); }
         .dgx-gbox .kdot--down  { top: calc(100% + 4px);    transform: translateX(-50%); }
         .dgx-gbox .kdot:focus:not(:focus-visible) { outline: none; }
-        /* Glyf uhýba do strany plynulo — --gshift píše réžia (mobil, vyžiadaná kóta). */
-        .dgx-gbox { transform: translateX(var(--gshift, 0px)); transition: transform .45s cubic-bezier(.22,.9,.28,1); }
+        /* Glyf uhýba do strany plynulo — --gshift píše réžia (mobil, vyžiadaná kóta).
+           🔴 LEFT, NIE TRANSFORM (Matej 5. 10., iPhone: *„stále nie sú farebné ikonky"*):
+           Safari v transformovanej (kompozičnej) vrstve nevykreslí CSS filter url(#…),
+           ktorým sa symboly farbia — v Chrome to ide, preto to emulácia neukázala.
+           Fotka podpisu ide s glyfom (ostáva pod ním), meno sa skryje. */
+        .dgx-gbox { left: var(--gshift, 0px); transition: left .45s cubic-bezier(.22,.9,.28,1); }
+        .op-dgx[data-narrow="1"] .dgx-sigph { position: relative; left: var(--gshift, 0px); transition: left .45s cubic-bezier(.22,.9,.28,1); }
+        .op-dgx[data-narrow="1"] .dgx-sigtx { transition: opacity .3s ease; }
+        .op-dgx[data-narrow="1"].is-kpin .dgx-sigtx { opacity: 0; }
         /* PRIPNUTÝ POPISOK — za bodkou na okraji, zalomený do úzkeho stĺpca. */
         .dgx-gbox .klab.klab--pin {
           /* !important: layoutKoty píše inline width: max-content — bez toho mala
