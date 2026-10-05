@@ -1447,8 +1447,14 @@ export function AddTripLog({ allTrails, authorName, myDogs, memorialOnly, onSubm
       // nepovie kde) a tá istá informácia na dvoch miestach sa rozíde pri prvej úprave.
       // Historické hlasy v `trip_votes.hazards` sa tým nemažú, len prestal pribúdať nový zdroj.
       paws: !isPlan && paws > 0 ? paws : undefined,
-      photos: !isPlan && photos.length > 0 ? photos : undefined,
-      coverIndex: !isPlan && photos.length > 0 ? effCoverIndex : undefined,
+      // TITULNÁ FOTKA IDE NA PRVÉ MIESTO (5. 10. 2026). Článok, karty aj stena berú `photos[0]`
+      // a `coverIndex` cestou do výletu (`PackMap.tsx`, AddTripDraft → HeroTrail) zanikal —
+      // vybraná titulka sa teda ticho nahradila prvou nahranou. Poradie je jediný nosič,
+      // ktorému rozumejú všetci čitatelia; úprava výletu (`TripEditPanel`) robí to isté.
+      photos: !isPlan && photos.length > 0
+        ? [photos[effCoverIndex], ...photos.filter((_, i) => i !== effCoverIndex)]
+        : undefined,
+      coverIndex: !isPlan && photos.length > 0 ? 0 : undefined,
       coverY,
       note: note.trim() || undefined,
       authorName,

@@ -40,7 +40,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { sizedUrl } from '@/services/cloudinaryService';
-import { PACK_THEME as T, FONT_TITLE, FONT_UI, GOLD_BTN, VEIL_CSS, PACK_SHADOW } from '@/components/pack/packTheme';
+import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
+import { LAPIS, LAPIS_BTN_SHADOW, PALE, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { updateLocalTrail } from '@/components/pack/tripShared';
 import { MAX_PHOTOS, optimizePhoto } from '@/components/pack/addtrip/photoOptimize';
@@ -51,56 +52,62 @@ import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 /** Čo sa dá na PLÁNE prestaviť. `date` prázdny = „ešte neviem kedy" (flexibilný termín). */
 export type PlanEdit = { date: string; visibility: 'open' | 'private'; travel?: TravelInfo };
 
-const GOLD = T.cardEdge;
 
 const TRIP_EDIT_CSS = `${VEIL_CSS}
-/* ZÁVOJ = recept .pk-veil--modal (VEIL_CSS) — tu len poloha a odsadenie. */
+/* ZÁVOJ = recept .pk-veil--modal (VEIL_CSS) — tu len poloha a odsadenie.
+   ── BLEDÝ PANEL S LAPISOM (Matej 5. 10. 2026: „edit trip je starý dizajn! prerobiť na bledý
+   s lapisom!") ── Doska = PACK_BOX.panel, písmo inkoust papyrusu, ZLATO = konštrukcia (rám),
+   LAPIS = voľba a akcia (vybraná možnosť, zaostrené pole, CTA). Vzor: TripGoPanel.tsx. */
 .tep-overlay{z-index:1200;padding:16px;}
-.tep-modal{width:100%;max-width:440px;max-height:calc(100dvh - 40px);overflow-y:auto;background:${T.glass};border:1px solid ${T.onDarkBorder};border-radius:16px;box-shadow:${PACK_SHADOW.panel};padding:24px;}
-.tep-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;}
-.tep-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${GOLD};line-height:1.25;}
-.tep-sub{font-size:12px;color:${T.onDarkDim};margin-top:4px;}
-.tep-x{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.tep-x:hover{border-color:${GOLD};color:${GOLD};}
+.tep-modal{width:100%;max-width:440px;max-height:calc(100dvh - 40px);overflow-y:auto;padding:24px;
+  background:${PACK_BOX.panel.background};border:${PACK_BOX.panel.border};border-radius:${PACK_BOX.panel.borderRadius}px;box-shadow:${PACK_BOX.panel.boxShadow};}
+.tep-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px;}
+.tep-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;letter-spacing:0.02em;text-transform:uppercase;color:${T.inkStrong};line-height:1.25;}
+.tep-sub{font-family:${FONT_UI};font-size:12px;color:${T.inkWarm};margin-top:4px;}
 .tep-field{margin-bottom:16px;}
-.tep-label{display:block;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:9px;}
-.tep-hint{font-family:${FONT_UI};font-size:10px;color:${T.onDarkDim};letter-spacing:0.02em;}
-.tep-textarea{width:100%;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:12px;padding:12px 12px;color:${T.onDark};font-family:inherit;font-size:14px;outline:0;resize:vertical;min-height:84px;}
-.tep-textarea:focus{border-color:${GOLD};}
+.tep-label{display:block;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.inkWarm};margin-bottom:8px;}
+.tep-hint{font-family:${FONT_UI};font-size:10px;color:${T.inkWarm};letter-spacing:0.02em;}
+.tep-textarea,.tep-input{width:100%;background:${PALE.field};border:1px solid ${T.border};border-radius:12px;padding:12px;color:${T.inkStrong};font-family:inherit;font-size:14px;outline:0;}
+.tep-textarea{resize:vertical;min-height:84px;}
+.tep-textarea:focus,.tep-input:focus{border-color:${LAPIS.edge};box-shadow:0 0 0 3px ${LAPIS.halo};}
 /* Fotky: mriežka s pevnou výškou — rôzne pomery strán by inak rozhádzali riadky a „vymeniť
    fotku" by sa menilo na hľadanie, ktorá je ktorá. */
 .tep-photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;}
-.tep-photo{position:relative;height:70px;border-radius:8px;overflow:hidden;background:#111;border:1px solid ${T.onDarkBorder};}
+.tep-photo{position:relative;height:70px;border-radius:8px;overflow:hidden;background:${T.tileBg};border:1px solid ${T.border};cursor:pointer;padding:0;}
 .tep-photo img{width:100%;height:100%;object-fit:cover;display:block;}
-/* Krížik je nad fotkou, nie vedľa nej: pri ôsmich fotkách sa vedľajšie tlačidlo nedá trafiť. */
+/* TITULNÁ = prvá fotka (článok, karty aj stena berú photos[0]). Ťuk na inú ju posunie dopredu.
+   Rám je LAPIS, lebo je to MOJA VOĽBA, nie konštrukcia. */
+.tep-photo.cover{border-color:${LAPIS.edge};box-shadow:0 0 0 2px ${LAPIS.edge};}
+.tep-photo-cover{position:absolute;left:4px;bottom:4px;padding:4px 8px;border-radius:999px;background:${LAPIS.grad};color:${LAPIS.ink};font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;line-height:1;}
+/* Krížik je nad fotkou, nie vedľa nej: pri ôsmich fotkách sa vedľajšie tlačidlo nedá trafiť.
+   Sedí na FOTKE, nie na papyruse — preto ostáva tmavý. */
 .tep-photo-x{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(10,6,2,0.78);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.tep-photo-x:hover{border-color:${GOLD};color:${GOLD};}
-.tep-addphoto{height:70px;border-radius:8px;border:1px dashed ${T.onDarkBorder};background:rgba(245,240,228,0.04);color:${T.onDarkDim};font-family:${FONT_UI};font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.tep-addphoto:hover{border-color:${GOLD};color:${GOLD};}
+.tep-photo-x:hover{border-color:${LAPIS.ink};color:${LAPIS.ink};}
+.tep-addphoto{height:70px;border-radius:8px;border:1px dashed ${T.border};background:${PALE.field};color:${T.inkWarm};font-family:${FONT_UI};font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.tep-addphoto:hover{border-color:${LAPIS.edge};color:${LAPIS.edge};}
 .tep-addphoto:disabled{opacity:.35;cursor:default;}
-.tep-photo-drop.drag .tep-addphoto{border-color:${GOLD};color:${GOLD};}
+.tep-photo-drop.drag .tep-addphoto{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}border-style:dashed;}
 .tep-pawpick{display:flex;justify-content:center;}
-.tep-submit{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;padding:12px;border-radius:12px;background:${GOLD_BTN.grad};color:#000;border:1px solid ${GOLD_BTN.edge};cursor:pointer;}
+/* CTA = LAPIS, geometria locknutého .btn-gold (radius 8, nie pilulka). */
+.tep-submit{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;padding:12px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.edge};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
+.tep-submit:hover:not(:disabled){background:${LAPIS.gradHover};}
 .tep-submit:disabled{opacity:.4;cursor:default;}
-.tep-err{font-size:12px;color:#E0796D;margin-top:9px;text-align:center;}
+.tep-err{font-size:12px;color:${PICK_INK.red};margin-top:8px;text-align:center;}
 /* ── PLÁN ────────────────────────────────────────────────────────────────────────────────
    Dvojica tlačidiel, nie prepínač: „idem sám" a „hľadám svorku" nie sú zapnuté/vypnuté,
-   sú to dve rovnocenné odpovede a jedna z nich platí vždy. */
-.tep-input{width:100%;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:12px;padding:12px 12px;color:${T.onDark};font-family:inherit;font-size:14px;outline:0;}
-.tep-input:focus{border-color:${GOLD};}
+   sú to dve rovnocenné odpovede a jedna z nich platí vždy. Vybraná = priesvitný LAPIS tint. */
 .tep-two{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.tep-opt{padding:12px 8px;border-radius:12px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.04);color:${T.onDarkDim};font-family:${FONT_UI};font-size:12px;cursor:pointer;text-align:center;line-height:1.3;}
-.tep-opt.on{border-color:${GOLD};color:${GOLD};background:rgba(201,154,63,0.13);}
+.tep-opt,.tep-travel button,.tep-check{border-radius:12px;border:1px solid ${T.border};background:${T.tileBg};color:${T.inkWarm};font-family:${FONT_UI};font-size:12px;cursor:pointer;}
+.tep-opt{padding:12px 8px;text-align:center;line-height:1.3;}
 .tep-travel{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-.tep-travel button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:12px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.04);color:${T.onDarkDim};font-family:${FONT_UI};font-size:12px;cursor:pointer;}
-.tep-travel button.on{border-color:${GOLD};color:${GOLD};background:rgba(201,154,63,0.13);}
+.tep-travel button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;}
 .tep-travel b{font-size:16px;line-height:1;}
-.tep-check{display:flex;align-items:center;gap:9px;width:100%;padding:12px 12px;border-radius:12px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.04);color:${T.onDark};font-family:${FONT_UI};font-size:12px;cursor:pointer;text-align:left;}
-.tep-check.on{border-color:${GOLD};color:${GOLD};background:rgba(201,154,63,0.13);}
+.tep-check{display:flex;align-items:center;gap:8px;width:100%;padding:12px;color:${T.inkStrong};text-align:left;}
 .tep-check b{width:16px;flex-shrink:0;font-size:12px;}
-.tep-seats{display:flex;align-items:center;gap:9px;margin-top:8px;font-family:${FONT_UI};font-size:12px;color:${T.onDarkDim};}
-.tep-seats button{width:28px;height:28px;border-radius:8px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDark};font-size:14px;line-height:1;cursor:pointer;}
-.tep-seats b{color:${T.onDark};font-size:14px;min-width:14px;text-align:center;}
+.tep-opt.on,.tep-travel button.on,.tep-check.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}}
+.tep-seats{display:flex;align-items:center;gap:8px;margin-top:8px;font-family:${FONT_UI};font-size:12px;color:${T.inkWarm};}
+.tep-seats button{width:28px;height:28px;border-radius:8px;border:1px solid ${T.border};background:${PALE.field};color:${T.inkStrong};font-size:14px;line-height:1;cursor:pointer;}
+.tep-seats b{color:${T.inkStrong};font-size:14px;min-width:14px;text-align:center;}
 `;
 
 export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
@@ -154,6 +161,13 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
     const out = (await Promise.all(take.map((f) => optimizePhoto(f)))).filter((x): x is string => !!x);
     setPhotos((prev) => [...prev, ...out].slice(0, MAX_PHOTOS));
     setBusy(false);
+  };
+
+  // Titulná fotka = PRVÁ (článok, karty aj stena berú photos[0]) — ťuk ju posunie dopredu,
+  // zvyšok poradia ostáva. Rovnaký nosič ako sprievodca (AddTripLog), nie vlastné pole.
+  const makeCover = (i: number) => {
+    if (i === 0) return;
+    setPhotos((prev) => [prev[i], ...prev.filter((_, k) => k !== i)]);
   };
 
   const save = () => {
@@ -219,13 +233,22 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
           </label>
           <div className="tep-photos">
             {photos.map((p, i) => (
-              <div className="tep-photo" key={`${i}-${p.slice(-24)}`}>
+              <div
+                className={`tep-photo${i === 0 ? ' cover' : ''}`}
+                key={`${i}-${p.slice(-24)}`}
+                role="button"
+                tabIndex={0}
+                aria-label={t('pack.addTrip.step.coverPhoto')}
+                onClick={() => makeCover(i)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); makeCover(i); } }}
+              >
                 <img src={sizedUrl(p, 240)} alt="" loading="lazy" decoding="async" />
+                {i === 0 && photos.length > 1 && <span className="tep-photo-cover">{t('pack.addTrip.step.cover')}</span>}
                 <button
                   type="button"
                   className="tep-photo-x"
                   aria-label={t('pack.trip.edit.removePhoto')}
-                  onClick={() => setPhotos((prev) => prev.filter((_, k) => k !== i))}
+                  onClick={(e) => { e.stopPropagation(); setPhotos((prev) => prev.filter((_, k) => k !== i)); }}
                 >×</button>
               </div>
             ))}
@@ -237,6 +260,7 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
               aria-label={t('pack.trip.edit.addPhoto')}
             >+</button>
           </div>
+          {photos.length > 1 && <p className="tep-hint" style={{ marginTop: 8 }}>{t('pack.addTrip.step.coverPick')}</p>}
           <input
             ref={fileRef}
             type="file"
@@ -351,7 +375,7 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
         {!isPlan && (
           <div className="tep-field" style={{ textAlign: 'center' }}>
             <label className="tep-label">{t('pack.trip.edit.rating')}</label>
-            <div className="tep-pawpick"><PawRating value={stars} onChange={setStars} onDark size={30} /></div>
+            <div className="tep-pawpick"><PawRating value={stars} onChange={setStars} size={30} /></div>
           </div>
         )}
 

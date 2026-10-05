@@ -346,6 +346,19 @@ export function GeometryPicker({
   // legs[i] = geometria medzi kotvou i a i+1. Držané v ref, nie v state: undo musí prepočítať
   // stopu BEZ sieťového volania (§10.2 bod 2) a nesmie spustiť re-render uprostred kreslenia.
   const legsRef = useRef<Array<LatLngTuple[]>>([]);
+  const samePt = (a?: LatLngTuple, b?: LatLngTuple) => !!a && !!b && a[0] === b[0] && a[1] === b[1];
+  // POSLEDNÉ ZAPÍSANÉ KOTVY — odpoveď na skorší klik nesmie prepísať trasu staršou kópiou
+  // (5. 10. 2026: pri rýchlom klikaní dobehla odpoveď na bod N po bode N+1 a `setRoute`
+  // s kotvami z jej uzáveru bod N+1 zahodil, prípadne nechal jeho úsek rovný).
+  // Zapisuje ho `setRoute` (jediné hrdlo trasy). Effect preberá len cudziu zmenu (obnova
+  // náčrtu, rodič) — render, ktorý ešte nesie NAŠU staršiu kópiu, by ho inak vrátil späť.
+  const livePath = value.kind === 'route' ? value.path : undefined;
+  const pathRef = useRef<LatLngTuple[]>(livePath ?? []);
+  const sentPaths = useRef(new WeakSet<LatLngTuple[]>());
+  useEffect(() => {
+    if (livePath && sentPaths.current.has(livePath)) return;
+    pathRef.current = livePath ?? [];
+  }, [livePath]);
   const runRef = useRef(0); // sekvencia — rýchle kliky nesmú prepísať novší výsledok starším
 
   const [busy, setBusy] = useState(false);
@@ -389,6 +402,7 @@ export function GeometryPicker({
     (patch: Partial<Extract<TripGeometry, { kind: 'route' }>>) => {
       const base: Extract<TripGeometry, { kind: 'route' }> =
         value.kind === 'route' ? value : { kind: 'route', path: [], snapped: false };
+      if (patch.path) { pathRef.current = patch.path; sentPaths.current.add(patch.path); }
       onChange({ ...base, ...patch, kind: 'route' });
     },
     [value, onChange],
@@ -543,10 +557,41 @@ export function GeometryPicker({
     setNotice(noticeFor(res.reason));
 
     legsRef.current[anchors.length - 2] = res.geometry;
-    const snapPath = buildSnapPath(anchors);
-    setRoute({ path: anchors, snapPath, snapped: value.snapped || res.snapped });
+    const cur = pathRef.current;
+    // Kotvu medzitým zmazal krok späť / VYMAZAŤ → úsek si pamätáme, trasu neprepisujeme.
+    // Porovnáva sa SÚRADNICA, nie referencia — rodič môže pole kotiev prestavať (záloha náčrtu).
+    if (cur.length < anchors.length || !samePt(cur[anchors.length - 1], p)) return;
+    const live = cur.length > anchors.length ? cur : anchors;
+    const snapPath = buildSnapPath(live);
+    setRoute({ path: live, snapPath, snapped: value.snapped || res.snapped });
     void recomputeAscent(snapPath);
+    void healLegs();
   }, [value, onChange, setRoute, buildSnapPath, recomputeAscent, drawBar?.active, mapRef]);
+
+  /**
+   * ── ROVNÉ ÚSEKY SA DOŤAHUJÚ (Matej 5. 10. 2026: „a nesnaplo to!") ─────────────────────
+   * Oeschinensee: 17 úsekov ostalo vzdušnou čiarou, hoci proxy ich pri prehratí prichytí
+   * všetky. Rovná čiara vznikne aj z PORUCHY — prerušený request (reload stránky, sieť,
+   * vypršaný token), a tá sa necachuje, takže sa nikto nikdy nespýtal znova. Po každom
+   * úspešnom bode sa preto prejdú dvojbodové úseky a vypýtajú sa ešte raz. Úsek, ktorý proxy
+   * VEDOME zamietla (klik mimo chodníka, obchádzka), je v `snapCache` a vráti sa bez siete.
+   */
+  const healLegs = async (): Promise<void> => {
+    const anchors = pathRef.current;
+    let changed = false;
+    for (let i = 0; i < anchors.length - 1; i++) {
+      const leg = legsRef.current[i];
+      if (!leg || leg.length !== 2 || hav(anchors[i], anchors[i + 1]) < 40) continue;
+      const r = await snapSegment(anchors[i], anchors[i + 1]);
+      if (!samePt(pathRef.current[i + 1], anchors[i + 1])) return; // trasa sa medzitým zmenila
+      if (r.snapped && legsRef.current[i]?.length === 2) { legsRef.current[i] = r.geometry; changed = true; }
+    }
+    if (!changed || !samePt(pathRef.current[anchors.length - 1], anchors[anchors.length - 1])) return;
+    const live = pathRef.current;
+    const snapPath = buildSnapPath(live);
+    setRoute({ path: live, snapPath, snapped: true });
+    void recomputeAscent(snapPath);
+  };
 
   /**
    * OZNAČENIE CIEĽA 🎯 (Matej 2026-08-23: „po 2 km by sa pri kurzore mohla objaviť hláška:
