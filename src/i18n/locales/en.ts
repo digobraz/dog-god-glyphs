@@ -1278,7 +1278,7 @@ export const en = {
   'onepage.fin.forMe': '(for me)',
   'onepage.fin.photoAlt': 'Matej and Hektor',
   'onepage.fin.p1': "Hi, I'm Matthew. Nine years ago my life changed — because of a shelter dog. Once I'd felt the power of a dog's love, I got a vision of how to pay dogs back — not just mine, but every dog in the world.",
-  'onepage.fin.p2': "Every free moment I'm out enjoying trips with my dog, and while he rests, I work on this project until it becomes reality. It's only a matter of time.",
+  'onepage.fin.p2': "Every free moment I'm out enjoying trips with Hekthor, and while he rests, I work on this project until it becomes reality. It's only a matter of time.",
   'onepage.fin.p3': "Please don't keep us waiting — join us today!",
   'onepage.apps.more': 'Detail',
   'onepage.apps.head': 'Membership',

@@ -1054,7 +1054,7 @@ export const sk: Partial<Dict> = {
   'onepage.fin.forMe': '(pre mňa)',
   'onepage.fin.photoAlt': 'Matej a Hektor',
   'onepage.fin.p1': 'Ahoj, som Matej. Pred 9 rokmi sa môj život zmenil — vďaka psovi z útulku. Odkedy som okúsil silu psej lásky, dostal som víziu, ako sa psom odvďačiť — nielen tomu môjmu, ale všetkým na svete.',
-  'onepage.fin.p2': 'Každú voľnú chvíľu si užívam výlety so psom a keď oddychuje, makám na tomto projekte, kým sa nepremení na realitu. Je to len otázka času.',
+  'onepage.fin.p2': 'Každú voľnú chvíľu si užívam výlety s Hekthorom a keď oddychuje, makám na tomto projekte, kým sa nepremení na realitu. Je to len otázka času.',
   'onepage.fin.p3': 'Prosím, nenechaj nás čakať — pridaj sa k nám ešte dnes!',
   'onepage.apps.more': 'Detail',
   'onepage.apps.head': 'Členstvo',
