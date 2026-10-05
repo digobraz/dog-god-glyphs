@@ -149,7 +149,11 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
   // ── B OŽÍVA PRI PRÍCHODE: hodiny sa narátajú, otázka AINUBISA sa vypíše ──
   const hoursRef = useRef<HTMLSpanElement>(null);
   const [said, setSaid] = useState('');
-  const question = t('onepage.fin.askHead');
+  // Striedajúce sa vety (Matej 5. 10. 2026: *„aby sa prepisovali texty: Like it? Join us!
+  // See potential, fund us! Donate would be great!… aby sme dali vedieť, že hľadáme
+  // investorov"*). Jeden kľúč, vety oddelené „|".
+  const phrases = t('onepage.fin.askRotate').split('|').map((x) => x.trim()).filter(Boolean);
+  const question = phrases[0] ?? '';
   useEffect(() => {
     if (on !== 'b') return;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -168,11 +172,20 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
       }
     }
     if (reduce) { setSaid(question); return () => cancelAnimationFrame(raf); }
-    let i = 0;
+    // Písací stroj v slučke: vypíš → podrž → zmaž → ďalšia veta.
+    let k = 0, i = 0, dir: 1 | -1 = 1, hold = 0;
     setSaid('');
-    const iv = window.setInterval(() => { i += 1; setSaid(question.slice(0, i)); if (i >= question.length) window.clearInterval(iv); }, 45);
+    const iv = window.setInterval(() => {
+      const ph = phrases[k % phrases.length] ?? '';
+      if (hold > 0) { hold -= 1; return; }
+      i += dir;
+      setSaid(ph.slice(0, i));
+      if (dir === 1 && i >= ph.length) { dir = -1; hold = 50; }
+      else if (dir === -1 && i <= 0) { dir = 1; k += 1; hold = 6; }
+    }, 45);
     return () => { cancelAnimationFrame(raf); window.clearInterval(iv); };
-  }, [on, question]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [on, phrases.join('|')]);
 
   const tabB = on === 'b' ? 0 : -1;
   return (
@@ -213,12 +226,19 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
             <div className="op-fin-stats">
               {/* Tri farby (Matej 5. 10. 2026: *„tie tri bloky nejak farebne urobiť"*) — všetky
                   z palety AINUBISA: myšlienka = svit, online = cyan, práca = zelená „živé". */}
-              <div className="op-fin-stat op-glass op-fin-stat--idea"><b>2018</b><span>{t('onepage.fin.statIdea')}</span></div>
-              <div className="op-fin-stat op-glass op-fin-stat--online"><b>07/2026</b><span>{t('onepage.fin.statOnline')}</span></div>
+              {/* Poradie v bloku: štítok → číslo → krátka veta (Matej 5. 10. 2026: *„nadpis bude až
+                  druhý a ten text daj hore… a potom ešte krátky text, nech tam nie je toľko voľného
+                  priestoru"*). */}
+              <div className="op-fin-stat op-glass op-fin-stat--idea">
+                <em>{t('onepage.fin.statIdea')}</em><b>2018</b><span>{t('onepage.fin.statIdeaSub')}</span>
+              </div>
+              <div className="op-fin-stat op-glass op-fin-stat--online">
+                <em>{t('onepage.fin.statOnline')}</em><b>07/2026</b><span>{t('onepage.fin.statOnlineSub')}</span>
+              </div>
               <div className="op-fin-stat op-glass op-fin-stat--work">
+                <em>{t('onepage.fin.statHours')}</em>
                 <b><span ref={hoursRef}>{PULSE.hours.toLocaleString('en-US')}</span>+</b>
-                <span>{t('onepage.fin.statHours')}</span>
-                <small>{t('onepage.fin.statHoursWho')}</small>
+                <span>{t('onepage.fin.statHoursWho')}</span>
               </div>
             </div>
             <div className="op-fin-workbox op-glass">
@@ -269,18 +289,17 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
                   {s.icon}
                 </a>
               ))}
-              {/* E-mail schovaný (Matej 5. 10. 2026: *„email by som schoval, ainubis ho vie keby niečo"*). */}
+              {/* E-mail ako čip „Email me" (Matej 5. 10. 2026: *„namiesto emailu len chip email me"*). */}
+              <a className="op-fin-blk op-fin-blk--mail" href="mailto:woof@dogypt.com" tabIndex={tabB}>{t('onepage.fin.emailMe')}</a>
               <button type="button" className="op-fin-blk" onClick={onDogma} tabIndex={tabB}>DOGMA</button>
             </div>
             <p className="op-fin-legal">
               <a href="/privacy" tabIndex={tabB}>{t('about.footer.privacy')}</a>
-              <span>·</span>
               <a href="/terms" tabIndex={tabB}>{t('about.footer.terms')}</a>
-              <span>·</span>
               <a href="#" tabIndex={tabB} onClick={(e) => { e.preventDefault(); window.dispatchEvent(new Event('dogypt:open-consent')); }}>
                 {t('consent.footerLink')}
               </a>
-              <span>·</span>
+              <span className="op-fin-motto">{t('religion.book.trust')}</span>
               <span>© 2026 DOGYPT</span>
             </p>
           </div>
@@ -420,7 +439,10 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
         .op-fin-stat { display: flex; flex-direction: column; gap: 4px; padding: 16px; }
         .op-fin-stat b { font: 700 24px/1 'Cinzel', serif; letter-spacing: .04em; color: var(--sc); text-shadow: 0 0 18px rgba(var(--scr),.55); }
         .op-fin-stat > span { font: 400 12px/1.3 'Space Grotesk', sans-serif; color: ${AINUBIS.inkDim}; }
-        .op-fin-stat > small { font: 400 10px/1.3 'Space Grotesk', sans-serif; letter-spacing: .04em; color: ${AINUBIS.inkFaint}; }
+        .op-fin-stat > em {
+          font: 500 10px/1.3 'Space Grotesk', sans-serif; font-style: normal; letter-spacing: .22em;
+          text-transform: uppercase; color: var(--sc); opacity: .9; margin-bottom: 4px;
+        }
         /* Farba bloku: tónovaná výplň, farebný lem a horná svetelná hrana. */
         .op-fin-stat.op-glass {
           overflow: hidden;
@@ -525,7 +547,7 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
         }
         .op-fin-ai-cta:hover { transform: translateY(-2px); box-shadow: 0 0 24px rgba(${AINUBIS.ctaRGB},.45); }
 
-        .op-fin-links { display: flex; flex-wrap: wrap; gap: 8px; }
+        .op-fin-links { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
         .op-fin-blk {
           height: 40px; min-width: 40px; padding: 0 16px; border-radius: 999px; cursor: pointer;
           display: inline-flex; align-items: center; justify-content: center;
@@ -539,9 +561,12 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
         .op-fin-blk--ico svg { width: 20px; height: 20px; }
         .op-fin-blk--mail { font: 500 14px/1 'Space Grotesk', sans-serif; letter-spacing: .02em; }
         .op-fin-legal {
-          margin: 0; display: flex; flex-wrap: wrap; gap: 8px;
+          /* Oba riadky pod blokom AINUBISA sú široké ako blok (Matej: *„centruj… aby to bolo
+             súrodé a obidva riadky boli široké ako blok, kde je chat"*). */
+          margin: 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 8px;
           font: 400 12px/1.4 'Space Grotesk', sans-serif; color: ${AINUBIS.inkFaint};
         }
+        .op-fin-motto { color: ${AINUBIS.inkDim}; letter-spacing: .04em; }
         .op-fin-legal a { color: inherit; text-decoration: none; }
         .op-fin-legal a:hover { color: ${AINUBIS.ink}; text-decoration: underline; }
         @media (prefers-reduced-motion: reduce) {
@@ -574,11 +599,20 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
           .op-fin-stat { padding: 12px 8px; }
           .op-fin-stat b { font-size: 20px; }
           .op-fin-stat > span { font-size: 10px; }
-          .op-fin-work li { grid-template-columns: 76px minmax(0, 1fr) 48px 32px; gap: 8px; font-size: 12px; }
+          .op-fin-work li { grid-template-columns: 84px minmax(0, 1fr) 48px 32px; gap: 8px; font-size: 12px; }
+          /* SK „TESTOVANIE" pri .14em pretiekol stĺpec — na mobile tesnejšie sledovanie. */
+          .op-fin-tag { letter-spacing: .06em; padding: 4px 6px; }
           .op-fin-workbox { padding: 12px; }
           .op-fin-ailine { font-size: 14px; }
           .op-fin-ai { padding: 16px; }
-          .op-fin-ai-q { font-size: 14px; }
+          .op-fin-ai-q { font-size: 14px; min-height: 42px; }
+          /* Riadky pod blokom: 4 ikonky + 2 čipy sa musia zmestiť do 358 px; päta nesmie
+             skončiť pod guľou AINUBISA vľavo dole (60 px + 16 od okraja). */
+          .op-fin-links { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; justify-items: center; }
+          .op-fin-blk { font-size: 12px; }
+          .op-fin-blk:not(.op-fin-blk--ico) { grid-column: span 2; width: 100%; }
+          .op-fin-legal { justify-content: center; gap: 4px 12px; }
+          .op-fin-b { padding-bottom: 96px; }
           /* B je posledný obraz: obsah smie na telefóne odrolovať
              VNÚTRI obrazu (data-film-free = motor filmu ho nechá tak). Obsah stojí
              zhora (flex-start), takže pretečenie ide len dole a dá sa dočítať. */
