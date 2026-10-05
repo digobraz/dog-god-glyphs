@@ -4928,6 +4928,19 @@ export default function OnePage() {
           .op-root #op-religion .codex-section[data-idx="1"] .codex-headline > span:first-child::after {
             content: ' ';
           }
+          /* MOTTO NA MAX (Matej 5. 10.: *„nadpis zväčši na max a daj pozor na všetky jazyky,
+             musí byť na jeden riadok"*). Rovnica, nie meranie: písmo = (okno − 2×16 px)
+             / dĺžka motta v em. Dĺžky zmerané Cinzel 700 + .04em (5. 10.): EN „In Dog We
+             Trust" 10,21 · CS „Věříme ve psa" 8,42 · SK „Veríme v psa" 7,73; tu +2 %
+             rezerva. Ostatných 15 jazykov motto neprekladá (padá na EN) ⇒ EN číslo je
+             predvolené. Nový preklad motta = dopísať jeho dĺžku sem, inak dostane EN. */
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-headline {
+            --motto-em: 10.4;
+            font-size: calc((100vw - 32px) / var(--motto-em));
+            white-space: nowrap;
+          }
+          html:lang(sk) .op-root #op-religion .codex-section[data-idx="1"] .codex-headline { --motto-em: 7.9; }
+          html:lang(cs) .op-root #op-religion .codex-section[data-idx="1"] .codex-headline { --motto-em: 8.6; }
           .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-text {
             font-size: min(12.5px, 2.75vh);
             line-height: 1.45;
@@ -4963,15 +4976,16 @@ export default function OnePage() {
              preč na mobile"*). Prebíja „riadok nad mottom vo filme je otázka" (CLAUDE.md,
              28. 8.) LEN na mobile; PC ho má ďalej. Uvoľnené miesto dvíha celý výjav. */
           .op-root #op-religion .codex-section[data-idx="1"] .codex-eyebrow { display: none; }
-          .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-wrap { padding-bottom: 62px; }
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-wrap { padding-bottom: 34px; }
           .op-root #op-religion .codex-section[data-idx="1"] .codex-book-cta,
         .op-root #op-religion .codex-section[data-idx="1"] .codex-chip--book {
-            /* 5. 10. 2026 — čip VNÚTRI RÁMU, pod textom ústavy (Matej: *„chip zakrýva
-               svätožiaru — ktorá je tu dosť podstatná — chip posuň hore medzi tie okraje"*).
-               Rám (.codex-preamble-wrap) dostane dole 62 px a čip sa doň vtiahne −50 px:
-               sadne 12 px pod text, medzi dolné rohy. Na dne ho predtým prekrýval aj
+            /* 5. 10. 2026 — čip NA SPODNEJ HRANE RÁMU (Matej: *„chip posuň trošku nižšie,
+               aby bol v strede a tie krajné zátvorky prechádzali cez stred chipu… chip nie
+               je súčasťou textu, ale podtext"*). Čiara dolných rohov leží ~1 px nad spodkom
+               rámu; čip (28 px) sa vtiahne −16 px, takže ňou prechádza jeho stred. Rám má
+               dole 34 px, aby od textu ostalo ~18 px. Na dne ho predtým prekrýval aj
                svetelný bod Hektorovho príbehu (.codex-spotlayer, z-index 6). */
-            margin-top: -50px;
+            margin-top: -16px;
             position: relative;
             z-index: 1;
             /* 5. 10. 2026 — ČIP MENŠÍ (Matej, slajd 3 na iPhone: *„potrebujeme chip
