@@ -146,6 +146,8 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
 
   useEffect(() => { onPopup?.(open != null); }, [open, onPopup]);
   useEffect(() => { setSlide(0); }, [open]);
+  const slideCount = open != null ? Math.max(1, APPS[open].shots.length || 3) : 1;
+  const moveSlide = useCallback((d: number) => setSlide((i) => (i + d + slideCount) % slideCount), [slideCount]);
   /** Stred telefónu v karte DETAILU → `--sl-mid` (šípky na krajoch v jeho výške, mobil). */
   const popRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -158,8 +160,39 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
     ro.observe(card); ro.observe(sl);
     return () => ro.disconnect();
   }, [open]);
-  const slideCount = open != null ? Math.max(1, APPS[open].shots.length || 3) : 1;
-  const moveSlide = useCallback((d: number) => setSlide((i) => (i + d + slideCount) % slideCount), [slideCount]);
+  /* ŠVIH PRSTOM KDEKOĽVEK NA KARTE = ďalšia snímka (Matej 5. 10. 2026: *„popup umožní slajdovať
+     prstom"* → *„slajd nefunguje na popupe, len na mockupy"*). React onPointerUp na karte v Safari
+     na iPhone nedošiel — preto natívne TOUCH udalosti (prst) a pointer len pre myš, pustenie
+     sa chytá na okne ako pri karuseli. Zvislý ťah sa ignoruje. */
+  useEffect(() => {
+    const card = popRef.current;
+    if (!card) return;
+    const MIN = 40;
+    let x0: number | null = null, y0 = 0;
+    const end = (x: number, y: number) => {
+      if (x0 == null) return;
+      const dx = x - x0, dy = y - y0;
+      x0 = null;
+      if (Math.abs(dx) >= MIN && Math.abs(dx) > Math.abs(dy) * 1.2) moveSlide(dx < 0 ? 1 : -1);
+    };
+    const ts = (e: TouchEvent) => { const t0 = e.touches[0]; x0 = t0.clientX; y0 = t0.clientY; };
+    const te = (e: TouchEvent) => { const t1 = e.changedTouches[0]; end(t1.clientX, t1.clientY); };
+    const tc = () => { x0 = null; };
+    const pd = (e: PointerEvent) => { if (e.pointerType === 'mouse') { x0 = e.clientX; y0 = e.clientY; } };
+    const pu = (e: PointerEvent) => { if (e.pointerType === 'mouse') end(e.clientX, e.clientY); };
+    card.addEventListener('touchstart', ts, { passive: true });
+    card.addEventListener('touchend', te);
+    card.addEventListener('touchcancel', tc);
+    card.addEventListener('pointerdown', pd);
+    window.addEventListener('pointerup', pu);
+    return () => {
+      card.removeEventListener('touchstart', ts);
+      card.removeEventListener('touchend', te);
+      card.removeEventListener('touchcancel', tc);
+      card.removeEventListener('pointerdown', pd);
+      window.removeEventListener('pointerup', pu);
+    };
+  }, [open, moveSlide]);
   const moveApp = useCallback((d: number) => {
     setOpen((o) => {
       if (o == null) return o;
@@ -377,15 +410,7 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
       {cur && createPortal(
         <div className="op-alba" role="dialog" aria-modal="true" aria-label={t(cur.nameKey)} data-film-free onClick={() => setOpen(null)}>
           <div ref={popRef} className="op-alba-card op-apps-pop" onClick={(e) => e.stopPropagation()}
-            /* ŠVIH PRSTOM KDEKOĽVEK NA KARTE = ďalšia snímka (Matej 5. 10. 2026: *„popup umožní
-               slajdovať prstom"*). Karta sa na mobile nescrolluje, takže vodorovný ťah nič nekradne. */
-            onPointerDown={(e) => { swipeX.current = e.clientX; }}
-            onPointerUp={(e) => {
-              if (swipeX.current == null) return;
-              const dx = e.clientX - swipeX.current; swipeX.current = null;
-              if (Math.abs(dx) > 40) moveSlide(dx < 0 ? 1 : -1);
-            }}
-            onPointerCancel={() => { swipeX.current = null; }}>
+>
             {/* ŠÍPKY NA KRAJI KARTY = ĎALŠIA FUNKCIA (Matej 5. 10. 2026: *„daj aj šípky na jeho kraj,
                 aby si človek mohol pozrieť detaily bez toho, aby sa neustále vracal na stránku
                 a klikal na mockupy"*). Šípky vnútri (pri telefóne) listujú SNÍMKY jednej funkcie;
