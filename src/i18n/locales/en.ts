@@ -1300,7 +1300,7 @@ export const en = {
   'onepage.fin.forMe': '(for me)',
   'onepage.fin.photoAlt': 'Matej and Hektor',
   'onepage.fin.p1': "Hi, I'm Matthew. Nine years ago my life changed — because of a shelter dog. Once I'd felt the power of a dog's love, I got a vision of how to pay dogs back — not just mine, but every dog in the world.",
-  'onepage.fin.p2': "Back then it was just an idea — thanks to AI, I can finally build it. Every free moment I'm out on trips with Hekthor, and while he rests, I work hard on DOGYPT until it becomes reality. I know it's only a matter of time.",
+  'onepage.fin.p2': "Back then it was just an idea — thanks to AI, I can finally build it. Whenever the weather is good, I'm out on trips with Hekthor, and while he rests, I work hard on DOGYPT. I'm obsessed with this mission — I sacrifice everything for it and put every last euro into it. I know it's only a matter of time.",
   'onepage.fin.p3': "Please don't keep us waiting — join us today, so I don't have to switch to plan B (OnlyFans).",
   'onepage.apps.more': 'Detail',
   'onepage.apps.head': 'Membership',
