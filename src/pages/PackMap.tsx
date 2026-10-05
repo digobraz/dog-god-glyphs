@@ -2561,9 +2561,12 @@ const PALE_MOBILE_CSS = MAP_SKIN !== 'pale' ? '' : `
      ⚠️ Žiadne nové natvrdo písané číslo výšky: hlavička publikuje svoju SKUTOČNÚ výšku
      ako --trp-mheader-h (ResizeObserver, PackMap ~4180), takže ovládače mapy aj zoznam
      pod ňou sa posunú samy. */
-  .trp-mheader-cats{position:relative;display:inline-flex;align-self:flex-start;gap:2px;padding:4px;border-radius:999px;background:${P_SOFT};border:1px solid ${P_BORDER};}
+  /* PREPÍNAČ = PREPÍNAČ ROVÍN v AINUBISE (5. 10. 2026, Matej: „ainubis je cez celú šírku
+     a tripy nie"). Cez celú šírku, tri rovnaké pilulky, rovnica výšky ako .akv-planes:
+     obal 4+4 padding + 1+1 rám + pilulka (4+4 padding + 1+1 rám + 15 riadok) = 35. */
+  .trp-mheader-cats{position:relative;display:flex;align-self:stretch;gap:4px;padding:4px;border-radius:999px;background:${P_SOFT};border:1px solid ${P_BORDER};}
   .trp-mheader-cats .trp-eventshint{left:0;right:auto;width:max-content;max-width:min(280px,calc(100vw - 32px));}
-  .trp-mheader-cats button{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 12px;border-radius:999px;border:0;background:transparent;color:${P_DIM};cursor:pointer;transition:all .15s;}
+  .trp-mheader-cats button{flex:1 1 0;min-width:0;display:inline-flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:500;font-size:10px;line-height:15px;letter-spacing:0.02em;text-transform:uppercase;padding:4px 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:${P_DIM};cursor:pointer;transition:all .15s;}
   .trp-mheader-cats button.is-locked{opacity:.6;}
   .trp-mheader-cats button.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}font-weight:600;}
   /* SNIFFER — mobilná dvojička tmavého tlačidla z panelu (komentár pri .trp-sniffer vyššie). */

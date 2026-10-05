@@ -139,10 +139,12 @@ ${STAGE_CSS}
 .akv-plane{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.xs}px;
   padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;border:1px solid transparent;
   background:transparent;color:${AINUBIS.inkDim};cursor:pointer;white-space:nowrap;
-  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;line-height:15px;
-  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;}
+  font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;line-height:15px;
+  letter-spacing:0.02em;text-transform:uppercase;}
+/* Písmo = čip, nie nadpis (5. 10. 2026): brand.md — chipy sú Space Grotesk, Cinzel patrí
+   nadpisom a CTA. Do 5. 10. tu stál Cinzel 700/.14em a rovina sa bila s prepínačom na /map. */
 /* Výber je PRIESVITNÝ TINT, nie plná plocha — AINUBIS vyberá cyanom (ainubisSkin). */
-.akv-plane[aria-current="page"]{color:${AINUBIS.ink};background:rgba(${AINUBIS.cyanRGB},0.16);
+.akv-plane[aria-current="page"]{font-weight:600;color:${AINUBIS.ink};background:rgba(${AINUBIS.cyanRGB},0.16);
   border-color:${AINUBIS.edgeStrong};}
 .akv-plane:disabled{cursor:default;color:${AINUBIS.inkFaint};}
 .akv-plane em{font-style:normal;font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;
