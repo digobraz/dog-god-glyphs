@@ -75,7 +75,22 @@ export const HEKTOR_BOOK_CSS = `
   color: ${NAV_GOLD.ink};
   cursor: pointer;
 }
-.hb-stage { width: min(1120px, 100%); container-type: inline-size; }
+.hb-stage { position: relative; width: min(1120px, calc(100% - 144px)); container-type: inline-size; }
+/* ŠÍPKY PO BOKOCH KNIHY (Matej 5. 10. 2026: *„tu chcem šípky po bokoch obrázku vedľa, lebo nie
+   je jasné, že sa dajú obrázky prepínať"*). Dovtedy stáli pod knihou pri bodkách. Sedia v zvislom
+   strede knihy, 16 px od jej hrany — stage si na ne nechá 72 px z každej strany. */
+.hb-side {
+  position: absolute; top: calc(min(640px, 100dvh - 160px) / 2); transform: translateY(-50%); z-index: 4;
+  width: 56px; height: 56px; border-radius: 999px; display: grid; place-items: center; cursor: pointer;
+  border: 1px solid rgba(201, 154, 63, 0.7); background: #F3E4C4;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35); transition: transform .15s ease, opacity .2s ease;
+}
+.hb-side.l { left: -72px; }
+.hb-side.r { right: -72px; }
+.hb-side:hover:not(:disabled) { transform: translateY(-50%) scale(1.06); }
+.hb-side:disabled { opacity: .3; cursor: default; }
+.hb-book { touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.hb-book img { -webkit-user-drag: none; }
 .hb-book {
   position: relative; display: grid; grid-template-columns: 1fr 1fr;
   height: min(640px, calc(100dvh - 160px));
@@ -279,6 +294,50 @@ export default function HektorBook({ onClose }: { onClose: () => void }) {
     setFr(0);
   }, []);
 
+  /* ŠVIH NA PC (Matej 5. 10. 2026: *„slajdovať by sa malo aj prstami na PC, nie len klikaním na
+     šípky"*) — ten istý recept ako karusel členstva (`FilmApps.tsx`): ťah myšou po knihe
+     (pointer, prah 40 px) a vodorovný švih dvoma prstami na touchpade (deltaX, nahromadený,
+     jeden švih = jedna kapitola). `preventDefault` bráni Chromu urobiť z neho „späť“. */
+  const bookRef = useRef<HTMLDivElement | null>(null);
+  const dragged = useRef(false);
+  const chRef = useRef(0);
+  chRef.current = ch;
+  useEffect(() => {
+    const el = bookRef.current;
+    if (!el) return;
+    let x0: number | null = null, y0 = 0;
+    const down = (e: PointerEvent) => { x0 = e.clientX; y0 = e.clientY; dragged.current = false; };
+    const up = (e: PointerEvent) => {
+      if (x0 == null) return;
+      const dx = e.clientX - x0, dy = e.clientY - y0;
+      x0 = null;
+      if (Math.abs(dx) >= 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+        dragged.current = true;
+        go(chRef.current + (dx < 0 ? 1 : -1));
+      }
+    };
+    let acc = 0, last = 0, fired = false;
+    const wheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+      e.preventDefault();
+      const now = performance.now();
+      if (now - last > 250) { acc = 0; fired = false; }
+      last = now;
+      acc += e.deltaX;
+      if (fired || Math.abs(acc) < 50) return;
+      fired = true;
+      go(chRef.current + (acc > 0 ? 1 : -1));
+    };
+    el.addEventListener('pointerdown', down);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('wheel', wheel, { passive: false });
+    return () => {
+      el.removeEventListener('pointerdown', down);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('wheel', wheel);
+    };
+  }, [go]);
+
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -400,13 +459,13 @@ export default function HektorBook({ onClose }: { onClose: () => void }) {
         {t('onepage.dogma.back')}
       </button>
       <div className="hb-stage">
-        <div className="hb-book">
+        <div className="hb-book" ref={bookRef}>
           <div className="hb-page t">{text}</div>
           <div className="hb-page m">
             <button
               type="button"
               className="hb-pic"
-              onClick={() => setPic((p) => (p + 1) % c.media.length)}
+              onClick={() => { if (dragged.current) { dragged.current = false; return; } setPic((p) => (p + 1) % c.media.length); }}
               aria-label={t('onepage.hbook.nextPic')}
             >
               {c.media.map((m, j) => (
@@ -421,12 +480,12 @@ export default function HektorBook({ onClose }: { onClose: () => void }) {
             </button>
           </div>
         </div>
+        <button type="button" className="hb-side l" onClick={() => go(ch - 1)} disabled={ch === 0} aria-label={t('onepage.hbook.prev')}><Arrow dir="l" /></button>
+        <button type="button" className="hb-side r" onClick={() => go(ch + 1)} disabled={ch === CHAPTERS.length - 1} aria-label={t('onepage.hbook.next')}><Arrow dir="r" /></button>
         <div className="hb-nav">
-          <button type="button" onClick={() => go(ch - 1)} disabled={ch === 0} aria-label={t('onepage.hbook.prev')}><Arrow dir="l" /></button>
           <span className="hb-dots" aria-hidden>
             {CHAPTERS.map((x, i) => <i key={x.n} className={i === ch ? 'on' : ''} />)}
           </span>
-          <button type="button" onClick={() => go(ch + 1)} disabled={ch === CHAPTERS.length - 1} aria-label={t('onepage.hbook.next')}><Arrow dir="r" /></button>
         </div>
       </div>
       <div
