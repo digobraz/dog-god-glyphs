@@ -5381,7 +5381,7 @@ export const cs: Partial<Dict> = {
   'onepage.apps.cause.b4': 'Financování nových inovací',
   'onepage.need.step': 'Další krok',
   'onepage.need.cta': 'Přidej se k misi',
-  'onepage.need.want': 'Chci HEROGLYPH!',
+  'onepage.need.want': 'Přidej se k nám',
   'onepage.fin.take': 'Vezmi si své číslo',
   'onepage.fin.about': 'O nás',
   'onepage.need.ctasub': 'Vezmi si své číslo —',

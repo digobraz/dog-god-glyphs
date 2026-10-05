@@ -1301,7 +1301,7 @@ export const en = {
   'onepage.apps.cause.b4': 'Funding new innovations',
   'onepage.need.step': 'Next step',
   'onepage.need.cta': 'Join the mission',
-  'onepage.need.want': 'I want a HEROGLYPH!',
+  'onepage.need.want': 'Join us',
   'onepage.fin.take': 'Get your number',
   'onepage.fin.about': 'About us',
   // Číslo je dopočítané (počet psov + 1) a stojí v `<b>` za týmto kusom.

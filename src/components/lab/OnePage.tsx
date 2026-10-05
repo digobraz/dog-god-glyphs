@@ -64,7 +64,7 @@ import { useFilmStops } from './filmStops';
 import FilmGate, { GATE_REST, GATE_TOUCH, GATE_RIDE_MS, GATE_FADE } from './FilmGate';
 import FilmCue, { FilmTop, FILM_CUE_CSS } from './FilmCue';
 import FilmApps, { APPS_STOPS, APPS_OUT_VH, APPS_EXIT_VH } from './FilmApps';
-import FilmFinale, { FIN_STOPS, FIN_OVER_VH } from './FilmFinale';
+import FilmFinale, { FIN_STOPS, FIN_OVER_VH, startHeroflow } from './FilmFinale';
 
 // ── OBRAZY FILMU SÚ NA JEDNOM MIESTE ────────────────────────────────────────
 // Matejov zoznam z 2. 9. 2026, doslova: *„1-HOME · 2 COW vs DOG · 3 Religion ·
@@ -6282,8 +6282,12 @@ export default function OnePage() {
         /* Javisko hviezd povoľuje kliky až keď je vidieť (réžia, 'qspe') —
            inak by neviditeľné ležalo nad šípkami ČLENSTVA. */
         .op-quo-stage { opacity: 0; pointer-events: none; }
-        /* WE NEED YOU nemá nič na klik a jeho javisko leží nad hviezdami. */
+        /* WE NEED YOU má na klik LEN CTA a jeho javisko leží nad hviezdami. */
         .op-wny, .op-wny * { pointer-events: none !important; }
+        /* 🔴 VÝNIMKA PRE CTA (Matej 5. 10. 2026: *„tu nejde CTA"*). Pravidlo vyššie vzniklo, keď
+           WE NEED YOU tlačidlo nemal; CTA sa vrátilo 28. 9. a klik celý čas prepadal na film pod ním.
+           Beat CTA nedrží miesto, kým nepríde (0fr), takže neviditeľné tlačidlo kliky nekradne. */
+        .op-wny .op-nxt-cta { pointer-events: auto !important; }
         .op-wny { position: relative; z-index: 5; }
         .op-quo-stage { position: sticky; top: 0; height: 100vh; overflow: hidden; }
         /* Rezerva na lištu na OBOCH koncoch: obsah sa centruje v tom, čo
@@ -8077,7 +8081,11 @@ export default function OnePage() {
                     {/* 🔴 VO FINÁLE CTA NAMIESTO ŠÍPOK (Matej 28. 9. 2026: *„tu dajme CTA,
                         nie šípky, a v CTA dajme CHCEM HEROGLYPH!"*). Klik = ďalší
                         obraz filmu, teda veľký portál s fotkou psa (FilmFinale). */}
-                    <button type="button" className="op-nxt-cta" onClick={WNY_END ? () => filmGo(1) : goToGlyph}>
+                    {/* 🔴 JOIN US = ŠTART HEROFLOWU (Matej 5. 10. 2026: *„tu nejde CTA… a daj tam join us —
+                        otvorí heroflow"*). Posun filmu na finále nefungoval; klik teraz otvorí výber
+                        fotky cez portál finále (`startHeroflow`). Kým portál nie je postavený, film
+                        dôjde na finále ako predtým. */}
+                    <button type="button" className="op-nxt-cta" onClick={WNY_END ? () => { if (!startHeroflow()) filmGo(1); } : goToGlyph}>
                       {t(WNY_END ? 'onepage.need.want' : 'onepage.need.cta')}
                     </button>
                     {/* Riadok pod tlačidlom je jeho popiska, nie druhé CTA —

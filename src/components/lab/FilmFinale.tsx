@@ -28,6 +28,15 @@ import { openPhotoConfirm } from '@/components/gods/photoConfirm';
 import { intakePhoto, finishPhotoChoice } from '@/lib/photoIntake';
 import { track } from '@/lib/analytics';
 
+/** Udalosť, ktorou iné miesto filmu spustí heroflow cez portál finále (výber fotky → potvrdenie →
+ *  `/heroglyph/name`). `detail.handled` ostane `false`, kým portál ešte nie je postavený. */
+export const START_HEROFLOW = 'dogypt:start-heroflow';
+export function startHeroflow(): boolean {
+  const ev = new CustomEvent(START_HEROFLOW, { detail: { handled: false } });
+  window.dispatchEvent(ev);
+  return ev.detail.handled;
+}
+
 /** O koľko vh je finále zasunuté pod koniec WE NEED YOU (= dĺžka vynorenia). */
 export const FIN_OVER_VH = 40;
 /** Dráha posunu portálu doľava vo vh. */
@@ -104,6 +113,13 @@ export default function FilmFinale({ packNo, onBible, onAuthor, onAbout }: { pac
       showConfirm(picked);
     });
     host.append(p.el, file);
+    // CTA „JOIN US" vo WE NEED YOU spúšťa heroflow TOU ISTOU cestou ako portál (Matej 5. 10. 2026:
+    // *„tu nejde CTA… a daj tam join us — otvorí heroflow"*). Jedna cesta, nie kópia výberu fotky.
+    const onStart = (e: Event) => {
+      (e as CustomEvent<{ handled: boolean }>).detail.handled = true;
+      if (picked) showConfirm(picked); else openPicker();
+    };
+    window.addEventListener(START_HEROFLOW, onStart);
     const sparks = createSparks(p.canvas, { density: 0.42 });
 
     // Slučka iskier len kým je finále na obrazovke.
@@ -120,7 +136,7 @@ export default function FilmFinale({ packNo, onBible, onAuthor, onAbout }: { pac
       else if (!vis) { on = false; cancelAnimationFrame(raf); }
     });
     if (stageRef.current) io.observe(stageRef.current);
-    return () => { on = false; cancelAnimationFrame(raf); io.disconnect(); p.el.remove(); file.remove(); };
+    return () => { on = false; cancelAnimationFrame(raf); io.disconnect(); p.el.remove(); file.remove(); window.removeEventListener(START_HEROFLOW, onStart); };
   }, [navigate, ready, packNo, t]);
 
   // ── RÉŽIA PODĽA SCROLLU ───────────────────────────────────────────────
