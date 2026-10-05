@@ -4948,12 +4948,29 @@ export default function OnePage() {
           }
           /* Hodnota auto zhltne všetok zvyšný vzduch, takže CTA sadne na spodok bez
              jediného čísla navyše — a ostane tam pri akejkoľvek výške okna. */
+          /* 5. 10. 2026 — NA MOBILE BEZ RIADKU NAD MOTTOM (Matej: *„a nad nadpis daj
+             preč na mobile"*). Prebíja „riadok nad mottom vo filme je otázka" (CLAUDE.md,
+             28. 8.) LEN na mobile; PC ho má ďalej. Uvoľnené miesto dvíha celý výjav. */
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-eyebrow { display: none; }
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-wrap { padding-bottom: 62px; }
           .op-root #op-religion .codex-section[data-idx="1"] .codex-book-cta,
         .op-root #op-religion .codex-section[data-idx="1"] .codex-chip--book {
-            margin-top: auto;
-            font-size: 0.92rem;
-            padding: 14px 18px;
-            width: min(100%, 340px);
+            /* 5. 10. 2026 — čip VNÚTRI RÁMU, pod textom ústavy (Matej: *„chip zakrýva
+               svätožiaru — ktorá je tu dosť podstatná — chip posuň hore medzi tie okraje"*).
+               Rám (.codex-preamble-wrap) dostane dole 62 px a čip sa doň vtiahne −50 px:
+               sadne 12 px pod text, medzi dolné rohy. Na dne ho predtým prekrýval aj
+               svetelný bod Hektorovho príbehu (.codex-spotlayer, z-index 6). */
+            margin-top: -50px;
+            position: relative;
+            z-index: 1;
+            /* 5. 10. 2026 — ČIP MENŠÍ (Matej, slajd 3 na iPhone: *„potrebujeme chip
+               zmenšiť"*). Tie isté čísla ako čip „Our goal…" na slajde 2 (10 px · 6/12),
+               aby boli oba čipy filmu na mobile rovnaké. Nižšie zalamovanie ostáva
+               ako poistka pre dlhšie jazyky. */
+            font-size: 10px;
+            padding: 6px 12px;
+            width: auto;
+            max-width: 100%;
             /* ⚠️ ZALAMOVANIE JE PODMIENKA VÄČŠIEHO PÍSMA, NIE VOĽBA.
                Základ má white-space: nowrap (na PC sa veta do jedného riadku
                zmestí). Na 390 px má slovenské „Prečítaj si «Bibliu» pre
@@ -5746,7 +5763,7 @@ export default function OnePage() {
           .op-root #op-religion .codex-flow :is(.codex-bleed, .codex-spotlayer) { overflow: hidden; }
           .op-root #op-religion { --ani-k: 2; }
           @media (max-height: 800px) { .op-root #op-religion { --ani-k: 1.8; } }
-          @media (max-height: 700px) { .op-root #op-religion { --ani-k: 1.3; } }
+          @media (max-height: 700px) { .op-root #op-religion { --ani-k: 1.3; --dog-g: 0.05; } }
           .op-root.op-root .codex-bleed .codex-cow {
             transform: translateX(calc(var(--op-in, 0) * -120% - var(--op-hek, 0) * 140% - (var(--ani-k) - 1.377) * 80%)) scale(var(--ani-k));
           }
@@ -5804,10 +5821,14 @@ export default function OnePage() {
           .op-root.op-root :is(.codex-bleed, .codex-spotlayer) .codex-hektor {
             transform: translateX(calc(
               var(--op-in, 0) * 120%
-              - var(--op-split, 0) * 15%
+              - var(--op-split, 0) * (var(--ani-k) - 1) * 58%
               + var(--op-hek, 0) * 140%
               + (var(--ani-k) - 1.377) * 80%
-            )) scale(calc(var(--ani-k) * 0.985));
+            )) scale(calc(var(--ani-k) * 0.985 * (1 + var(--op-split, 0) * var(--dog-g, 0.2))));
+            /* 5. 10. 2026 — TRETÍ OBRAZ: pes do STREDU a väčší (Matej: *„psa centrovať
+               a zväčšiť"*). --op-split ho dotiahne o (k − 1) × 58 % vlastnej šírky doľava (predtým
+               15 %; pri k 2 = 58 %, na iPhone SE k 1,3 len 17 % — inak vidno pravý okraj obrázka) a zväčší o --dog-g (20 %, na iPhone SE ≤ 700 px výšky 5 %) — limit je spodok rámu
+               ústavy: svätožiara nad ním nesmie vyliezť (čip je od 5. 10. vnútri rámu). */
           }
         }
 
