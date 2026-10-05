@@ -400,6 +400,9 @@ ${STAGE_CSS}
      nechával medzi skupinami diery — Matej 3. 10.: „aj tu je to také divné“). */
   .akv-zvt{flex:1 1 ${ZV_TEXT_COL}px;}
   .akv-zvt .zv-ctas{margin-top:auto;}
+  /* Známka späť do rohu KARTY — textový stĺpec je od neho o odsadenie karty. */
+  .akv-zv .akv-zvt > .zv-sd--corner{top:-${PACK_SPACE.md}px;right:-${PACK_SPACE.md}px;
+    border-width:0 0 1px 1px;border-radius:0 ${PACK_R.card - 1}px 0 ${PACK_R.tile}px;}
 }
 
 /* ── POHĽAD DOLE — pilulka nad lištou (lock §1.3.1, geometria .trp-mactions) ──

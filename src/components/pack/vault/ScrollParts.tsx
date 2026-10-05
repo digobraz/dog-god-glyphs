@@ -139,6 +139,11 @@ ${STAGE_CSS}
 .zv-sd .zv-tip{top:36px;left:0;}
 .zv-sd--corner{position:absolute;top:0;right:0;z-index:3;width:44px;height:44px;font-size:${PACK_TEXT.h2}px;
   border-width:0 0 1px 1px;border-radius:0 ${PACK_R.card - 1}px 0 ${PACK_R.tile}px;}
+/* Známka je NEPRIEHĽADNÁ (Matej 5. 10.: „nesmie byť priesvitná") — tint leží na plnom podklade. */
+.zv-sd{background:linear-gradient(var(--zv-gt),var(--zv-gt)),${AINUBIS.surfaceBase};}
+/* Na karte v zozname sedí v textovom bloku: mobil = roh pri nadpise, PC = roh karty. */
+.akv-zvt{position:relative;align-self:stretch;}
+.akv-zvt > .zv-sd--corner{border-width:1px;border-radius:${PACK_R.field}px;}
 .zv-sd--corner .zv-tip{top:52px;left:auto;right:0;}
 .zv-sd:hover .zv-tip,.zv-sd:focus-visible .zv-tip{opacity:1;}
 .zv-read{align-self:stretch;display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.sm}px;cursor:pointer;
@@ -440,14 +445,16 @@ export function ScrollCard({ z, lang, onOpen, onShare }: {
   }, [z.id, s]);
   return (
     <article ref={ref} className="akv-zv">
-      {/* ZNÁMKA V ROHU KARTY — Matej 3. 10. nad náčrtom: „A daj úplne do rohu a priznaj roh toho bloku
-          v rámci bloku". Horný pravý roh známky = roh karty, ostatné rohy menšie. */}
-      <EvidenceBadge sd={z.sd} lang={lang} corner />
       <div className="akv-zvimg">
         {z.img && <img src={z.img} alt="" loading="lazy" onClick={() => onOpen(z.id)} />}
         <ScrollActions id={z.id} lang={lang} onShare={() => onShare(z.id)} onTalk={() => onOpen(z.id, 'talk')} />
       </div>
       <div className="akv-zvt">
+        {/* ZNÁMKA V ROHU TEXTOVÉHO BLOKU, NIE KARTY (Matej 5. 10. 2026: *„relevantnosť nesmie byť
+            v tom rohu a priesvitná, mala by byť dolu, ako je nadpis, v hornom rohu vpravo"*).
+            Na mobile je karta stĺpec, takže roh karty padol na obraz. Na PC je textový stĺpec
+            vpravo a CSS ju posunie do rohu karty ako doteraz (Matej 3. 10.: „A daj úplne do rohu"). */}
+        <EvidenceBadge sd={z.sd} lang={lang} corner />
         <div className="zv-mid">
           <span className="akv-zvlbl">{u.scroll} {z.n} / {z.total} · {x.min} {u.min}</span>
           <h3 className="akv-zvn" style={{ paddingRight: PACK_SPACE.xxl }}>{x.t}</h3>
