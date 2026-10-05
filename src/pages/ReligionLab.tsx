@@ -2259,7 +2259,10 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
                 <span className="codex-frame br" aria-hidden />
                 <p className="codex-preamble-text" dangerouslySetInnerHTML={{ __html: t('religion.preamble.text') }} />
               </div>
-              <p className="codex-oath-label">{t('religion.preamble.oath')}</p>
+              {/* 5. 10. 2026: vo filme štítok ústavy ZRUŠENÝ — Matej: *„nahraďme
+                  the dogypt constitution za chip, nech nie sú dva texty pri sebe"*.
+                  Pod preambulou ostáva JEDEN prvok: chip, ktorý otvára DOGMU. */}
+              {!flow && <p className="codex-oath-label">{t('religion.preamble.oath')}</p>}
               {/* JEDINÝ VSTUP DO ÚSTAVY VO FILME. Kniha ako samostatný obraz
                   zanikla (Matej 28. 8.: *„celá 4. sekcia by zanikla… aby sa
                   neopakovali slajdy"*), takže toto tlačidlo nie je ozdoba —

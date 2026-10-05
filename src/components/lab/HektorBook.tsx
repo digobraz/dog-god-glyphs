@@ -47,6 +47,8 @@ const CHAPTERS = [
   { n: 2, media: ['k2-kresba', 'k2-f1', 'k2-f2', 'k2-f3'] },
   { n: 3, media: ['k3-kresba', 'k3-f1', 'k3-f2'] },
   { n: 4, media: ['k4-kresba', 'k4-f1', 'k4-f2', 'k4-f3'] },
+  // 5. 10. 2026 — Matej: „pridal by som ešte jeden list o Hektorovi, niečo osobné… obrázok s kocúrmi po boku“
+  { n: 5, media: ['k5-kresba'] },
 ] as const;
 
 /** Ornamentový pás dole = symboly heroglyfu, nie cudzí ornament. */
@@ -135,10 +137,13 @@ export const HEKTOR_BOOK_CSS = `
 .hb-band img { height: 20px; width: auto; filter: invert(.92) sepia(.6) saturate(2) hue-rotate(5deg); }
 .hb-pic {
   position: relative; height: 100%; aspect-ratio: 3 / 4; max-width: 100%;
-  border-radius: 6px; overflow: hidden; cursor: pointer; border: 0; padding: 0; background: #E6D2A6;
-  box-shadow: 0 0 0 3px #C99A3F, 0 0 0 6px #16307A, 0 0 0 8px #C99A3F, 0 14px 30px rgba(60, 35, 8, 0.35);
+  cursor: pointer; border: 0; padding: 0; background: transparent;
+  /* 5. 10. 2026: bez rámu a bez bieleho pozadia — Matej: „ľúbilo sa mi, že to bolo ako
+     roztrhané… chcel som len odstrániť biele pozadie a dostať PNG“. Kresby majú priehľadný
+     okraj (webp s alfou), tieň preto ide cez drop-shadow, aby kopíroval roztrhaný kraj. */
+  filter: drop-shadow(0 10px 18px rgba(60, 35, 8, 0.35));
 }
-.hb-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .45s; }
+.hb-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity .45s; }
 .hb-pic img.on { opacity: 1; }
 .hb-pdots { position: absolute; left: 0; right: 0; bottom: 48px; z-index: 2; display: flex; gap: 6px; justify-content: center; }
 .hb-pdots i { width: 8px; height: 8px; border-radius: 999px; background: rgba(255, 248, 232, 0.55); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); }
@@ -195,10 +200,10 @@ export const HEKTOR_BOOK_CSS = `
   .hb-mtext .hb-band { left: 12px; right: 12px; bottom: 12px; height: 34px; }
   .hb-mtext .hb-band img { height: 16px; max-width: 11%; object-fit: contain; }
   .hb-mpic {
-    position: relative; flex-basis: auto !important; aspect-ratio: 3 / 4; max-width: 80%; border-radius: 12px; overflow: hidden;
-    box-shadow: 0 0 0 2px #C99A3F, 0 0 0 4px #16307A, 0 10px 20px rgba(60, 35, 8, 0.3);
+    position: relative; flex-basis: auto !important; aspect-ratio: 3 / 4; max-width: 80%;
+    filter: drop-shadow(0 8px 14px rgba(60, 35, 8, 0.3));
   }
-  .hb-mpic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hb-mpic img { width: 100%; height: 100%; object-fit: contain; display: block; }
   .hb-mpic .hb-plate { font-size: 14px; padding: 5px 12px; }
   .hb-ini { width: 64px; height: 70px; font-size: 48px; margin-right: 12px; }
   .hb-lead::after { margin: 8px 0 10px; }
