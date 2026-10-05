@@ -87,13 +87,13 @@ const b4 = (id: string) => [1, 2, 3, 4].map((i) => `onepage.apps.${id}.b${i}`);
 const APPS: AppFeature[] = [
   /* 🔁 PORADIE 5. 10. 2026 — Matej: *„na úvodnom mockupe musia byť tie najkrajšie = DOG ID
      v strede, sprava DOGTRIP, zľava AINUBIS"*. Sprava stojí nasledujúci, zľava posledný. */
-  { id: 'dogid', nameKey: 'heroglyph.flow.more.dogid.t', textKey: 'heroglyph.flow.more.dogid.d', bulletKeys: b4('dogid'), shot: '/images/onepage/apps/dogid-profil.webp?v=7', shots: ['/images/onepage/apps/dogid-profil.webp?v=7', '/images/onepage/apps/dogid-kviz.webp?v=7'] },
-  { id: 'dogtrip', nameKey: 'heroglyph.flow.more.dogtrip.t', textKey: 'heroglyph.flow.more.dogtrip.d', bulletKeys: b4('dogtrip'), shot: '/images/onepage/apps/dogtrip-swiss.webp?v=7', shots: ['/images/onepage/apps/dogtrip-swiss.webp?v=7', '/images/onepage/apps/dogtrip-mapa.webp?v=7'] },
-  { id: 'sniffer', nameKey: 'heroglyph.flow.more.sniffer.t', textKey: 'heroglyph.flow.more.sniffer.d', bulletKeys: b4('sniffer'), shot: '/images/onepage/apps/sniffer-cisty.webp?v=7', shots: ['/images/onepage/apps/sniffer-cisty.webp?v=7'] },
+  { id: 'dogid', nameKey: 'heroglyph.flow.more.dogid.t', textKey: 'heroglyph.flow.more.dogid.d', bulletKeys: b4('dogid'), shot: '/images/onepage/apps/dogid-profil.webp?v=8', shots: ['/images/onepage/apps/dogid-profil.webp?v=8', '/images/onepage/apps/dogid-kviz.webp?v=8'] },
+  { id: 'dogtrip', nameKey: 'heroglyph.flow.more.dogtrip.t', textKey: 'heroglyph.flow.more.dogtrip.d', bulletKeys: b4('dogtrip'), shot: '/images/onepage/apps/dogtrip-swiss.webp?v=8', shots: ['/images/onepage/apps/dogtrip-swiss.webp?v=8', '/images/onepage/apps/dogtrip-mapa.webp?v=8'] },
+  { id: 'sniffer', nameKey: 'heroglyph.flow.more.sniffer.t', textKey: 'heroglyph.flow.more.sniffer.d', bulletKeys: b4('sniffer'), shot: '/images/onepage/apps/sniffer-cisty.webp?v=8', shots: ['/images/onepage/apps/sniffer-cisty.webp?v=8'] },
   // 5/5 — Matej 27. 9.: *„komunita/pomoc… transparentná pomoc, nové výskumy —
   // to, čo členstvo vie pomáhať psom"*. Detail = text „VYŠŠÍ CIEĽ" z heroflowu.
-  { id: 'cause', nameKey: 'onepage.apps.cause.name', textKey: 'heroglyph.flow.more.cause.d', bulletKeys: b4('cause'), shot: '/images/onepage/apps/komunita-dotyk.webp?v=7', shots: ['/images/onepage/apps/komunita-dotyk.webp?v=7'] },
-  { id: 'ainubis', nameKey: 'heroglyph.flow.more.ainubis.t', textKey: 'heroglyph.flow.more.ainubis.d', bulletKeys: b4('ainubis'), shot: '/images/onepage/apps/ainubis-vault-bez-oznamu.webp?v=7', shots: ['/images/onepage/apps/ainubis-vault-bez-oznamu.webp?v=7', '/images/onepage/apps/ainubis-dogscroll.webp?v=7'] },
+  { id: 'cause', nameKey: 'onepage.apps.cause.name', textKey: 'heroglyph.flow.more.cause.d', bulletKeys: b4('cause'), shot: '/images/onepage/apps/komunita-dotyk.webp?v=8', shots: ['/images/onepage/apps/komunita-dotyk.webp?v=8'] },
+  { id: 'ainubis', nameKey: 'heroglyph.flow.more.ainubis.t', textKey: 'heroglyph.flow.more.ainubis.d', bulletKeys: b4('ainubis'), shot: '/images/onepage/apps/ainubis-vault-bez-oznamu.webp?v=8', shots: ['/images/onepage/apps/ainubis-vault-bez-oznamu.webp?v=8', '/images/onepage/apps/ainubis-dogscroll.webp?v=8'] },
 ];
 
 /** Dráha ODCHODU HEROGLYPHu a príchodu telefónov (prvý ťah) vo `vh`. Oblúk
@@ -470,10 +470,13 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
         /* ŠÍPKY V STREDE VÝŠKY, PO BOKOCH PREDNÉHO TELEFÓNU, VÄČŠIE (Matej 5. 10. 2026:
            *„šípky by som dal do stredu mockupov a vedľa a väčšie"*). Dovtedy 40 px pod
            telefónom. Bod (0,0) súpravy = stred predného telefónu; šípka sedí na jeho hrane
-           + 40 px, na mobile ju drží okraj okna (16 px vzduchu). */
+           + 40 px, na mobile ju drží okraj okna (16 px vzduchu). Na PC stoja za bočnými telefónmi. */
         .op-apps-ctl {
           position: absolute; left: 0; top: 0; width: 0; height: 0; pointer-events: none;
-          opacity: var(--r, 0); --arr-x: 215px;
+          opacity: var(--r, 0);
+          /* MIMO OBRAZOVIEK (Matej 5. 10.: „tie šípky daj vedľa, mimo obrazoviek"): bočný telefón
+             končí na 60 % × 350 + 350 × 0,9 / 2 = 367,5 px od stredu; šípka (56) za ním + 16 px. */
+          --arr-x: 412px;
         }
         .op-apps-ctl button {
           position: absolute; top: 0; pointer-events: auto;
