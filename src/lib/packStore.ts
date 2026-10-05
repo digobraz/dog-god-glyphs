@@ -160,6 +160,7 @@ export async function flushQueue(): Promise<number> {
   if (!uid) return 0;                      // bez prihlásenia sa nikam neposiela
   flushing = true;
   let sent = 0;
+  let rejected = 0;
   try {
     let q = readQueue();
     while (q.length) {
@@ -185,6 +186,7 @@ export async function flushQueue(): Promise<number> {
         if ((e as { pg?: boolean })?.pg) {
           // Odmietla to DB, nie sieť → opakovanie nepomôže, operáciu zahodíme.
           console.warn('[packStore] zápis odmietnutý, zahodené:', op.tbl, (e as Error).message);
+          rejected += 1;
           q = readQueue().slice(1);
           writeQueue(q);
           continue;
@@ -193,7 +195,29 @@ export async function flushQueue(): Promise<number> {
       }
     }
   } finally { flushing = false; }
+  if (rejected) announceRejected();
   return sent;
+}
+
+/**
+ * 🔴 ODMIETNUTÝ ZÁPIS SA UŽ NETVÁRI AKO ULOŽENÝ (audit 5. 10. 2026). Do vtedy ostal len
+ * `console.warn`: výlet, hodnotenie či „prejdené" svietilo lokálne, server ho nemal a na
+ * inom zariadení chýbalo — kým ho ďalší pull (pri ďalšej návšteve) ticho neprepísal.
+ * Teraz: hláška v jazyku appky + nové stiahnutie stavu zo servera, aby obrazovka hneď
+ * ukazovala pravdu. Mimo Reactu, preto `toast` z use-toast a jazyk z `dogypt_lang`.
+ */
+const REJECTED_MSG: Record<string, string> = {
+  en: "Your last change wasn't saved — we restored the last saved state.",
+  sk: 'Posledná zmena sa neuložila — vrátili sme posledný uložený stav.',
+  cs: 'Poslední změna se neuložila — vrátili jsme poslední uložený stav.',
+};
+function announceRejected(): void {
+  if (typeof window === 'undefined') return;
+  let lang = 'en';
+  try { lang = (window.localStorage.getItem('dogypt_lang') || navigator.language || 'en').slice(0, 2).toLowerCase(); } catch { /* private mode */ }
+  void import('@/hooks/use-toast').then(({ toast }) => toast({ title: REJECTED_MSG[lang] ?? REJECTED_MSG.en, variant: 'destructive' }));
+  // Nové stiahnutie: `hydratePackStore` je raz za návštevu (drží prísľub) — uvoľníme ho.
+  window.setTimeout(() => { hydrating = null; void hydratePackStore(); }, 0);
 }
 
 if (typeof window !== 'undefined') {
