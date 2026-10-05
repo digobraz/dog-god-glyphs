@@ -65,8 +65,8 @@ function sessionEmailFromStorage(): string | null {
   }
 }
 
-export const DEV_FULL =
-  import.meta.env.VITE_PACK_FULL === 'true' || isFullPackEmail(sessionEmailFromStorage());
+// 🟢 FLIP 5. 10. 2026 (Matej: „iba /pack … potichu dať LIVE") — plný /pack pre všetkých členov.
+export const DEV_FULL = true;
 
 // ── PAWMATE — DVERE, KTORÉ ODOMKNE AŽ B8 ────────────────────────────────────
 // Zadanie `plany/zadanie-clenovia-svorky-2026-09-12.md` §12.1: každá časť sa
@@ -128,7 +128,7 @@ export const PAWMATE_LIVE =
 // Lokálne zapnutie:  VITE_EVENTS=true VITE_PACK_FULL=true npm run dev
 // Odomknutie natrvalo = až keď (1) migrácia beží na LIVE a (2) frontend naozaj
 // zapisuje do DB a druhá strana to vidí. Dovtedy false.
-export const EVENTS_LIVE = import.meta.env.VITE_EVENTS === 'true';
+export const EVENTS_LIVE = true; // FLIP 5. 10. 2026 — schéma na LIVE (krok 2b)
 
 // ── PLÁNOVANIE VÝLETOV — V SKLADE (Matej 24. 9. 2026) ───────────────────────
 // „funkcia plánovania aktivít aj tripov je fajn ALE je to pre začínajúcu apku až moc
@@ -151,7 +151,7 @@ export const PLANNING_LIVE = false;
 // vrstvu aj upozornenia na LIVE, kde RPC neexistujú (404 na každej stránke /packu).
 // Dev server ich má vždy (`.env.development` je mimo gitu — druhý PC by ich inak nevidel);
 // produkčný build len s `VITE_WISHES=true`. Odomknutie = až s FLIPom.
-export const WISHES_LIVE = import.meta.env.DEV || import.meta.env.VITE_WISHES === 'true';
+export const WISHES_LIVE = true; // FLIP 5. 10. 2026
 
 // SNIFFER (interne BUDDY, krok 3, 24. 9. 2026) — `/pack/sniffer`, brána do 100 % a nastavenia.
 // Migrácia `20260927_buddy_settings.sql` beží len na DEV; ten istý dôvod ako pri prianiach.
@@ -161,5 +161,4 @@ export const WISHES_LIVE = import.meta.env.DEV || import.meta.env.VITE_WISHES ==
 // Toto je len VIDITEĽNOSŤ — ozajstný zámok je na serveri (`sniffer_gate`,
 // `20261003_sniffer_zamok.sql`): kto nie je na zozname, SNIFFER nezapne.
 // FLIP = `bash scripts/flip.sh --krok 2c` (server) + krok 4: `BUDDY_LIVE = true`.
-export const BUDDY_LIVE =
-  import.meta.env.DEV || import.meta.env.VITE_BUDDY === 'true' || isFullPackEmail(sessionEmailFromStorage());
+export const BUDDY_LIVE = true; // FLIP 5. 10. 2026 — sniffer_gate.open_all (krok 2c)
