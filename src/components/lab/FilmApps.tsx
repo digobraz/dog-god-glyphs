@@ -84,10 +84,10 @@ const b4 = (id: string) => [1, 2, 3, 4].map((i) => `onepage.apps.${id}.b${i}`);
 /** Poradie = poradie v karuseli. Matej: *„dog id/profil, sniffer, dogtrips,
  *  AInubis a pomoc/možnosti… celkovo 4 obrazovky"*, 27. 9. doplnená piata. */
 const APPS: AppFeature[] = [
-  { id: 'dogid', nameKey: 'heroglyph.flow.more.dogid.t', textKey: 'heroglyph.flow.more.dogid.d', bulletKeys: b4('dogid'), shot: '/images/onepage/apps/dogid-kviz.webp?v=3', shots: ['/images/onepage/apps/dogid-kviz.webp?v=3'] },
-  { id: 'sniffer', nameKey: 'heroglyph.flow.more.sniffer.t', textKey: 'heroglyph.flow.more.sniffer.d', bulletKeys: b4('sniffer'), shot: '/images/onepage/apps/sniffer-cisty.webp?v=3', shots: ['/images/onepage/apps/sniffer-cisty.webp?v=3'] },
-  { id: 'dogtrip', nameKey: 'heroglyph.flow.more.dogtrip.t', textKey: 'heroglyph.flow.more.dogtrip.d', bulletKeys: b4('dogtrip'), shot: '/images/onepage/apps/dogtrip-swiss.webp?v=3', shots: ['/images/onepage/apps/dogtrip-swiss.webp?v=3', '/images/onepage/apps/dogtrip-mapa.webp?v=3'] },
-  { id: 'ainubis', nameKey: 'heroglyph.flow.more.ainubis.t', textKey: 'heroglyph.flow.more.ainubis.d', bulletKeys: b4('ainubis'), shot: '/images/onepage/apps/ainubis-vault-bez-oznamu.webp?v=3', shots: ['/images/onepage/apps/ainubis-vault-bez-oznamu.webp?v=3', '/images/onepage/apps/ainubis-dogscroll.webp?v=3'] },
+  { id: 'dogid', nameKey: 'heroglyph.flow.more.dogid.t', textKey: 'heroglyph.flow.more.dogid.d', bulletKeys: b4('dogid'), shot: '/images/onepage/apps/dogid-kviz.webp?v=4', shots: ['/images/onepage/apps/dogid-kviz.webp?v=4'] },
+  { id: 'sniffer', nameKey: 'heroglyph.flow.more.sniffer.t', textKey: 'heroglyph.flow.more.sniffer.d', bulletKeys: b4('sniffer'), shot: '/images/onepage/apps/sniffer-cisty.webp?v=4', shots: ['/images/onepage/apps/sniffer-cisty.webp?v=4'] },
+  { id: 'dogtrip', nameKey: 'heroglyph.flow.more.dogtrip.t', textKey: 'heroglyph.flow.more.dogtrip.d', bulletKeys: b4('dogtrip'), shot: '/images/onepage/apps/dogtrip-swiss.webp?v=4', shots: ['/images/onepage/apps/dogtrip-swiss.webp?v=4', '/images/onepage/apps/dogtrip-mapa.webp?v=4'] },
+  { id: 'ainubis', nameKey: 'heroglyph.flow.more.ainubis.t', textKey: 'heroglyph.flow.more.ainubis.d', bulletKeys: b4('ainubis'), shot: '/images/onepage/apps/ainubis-vault-bez-oznamu.webp?v=4', shots: ['/images/onepage/apps/ainubis-vault-bez-oznamu.webp?v=4', '/images/onepage/apps/ainubis-dogscroll.webp?v=4'] },
   // 5/5 — Matej 27. 9.: *„komunita/pomoc… transparentná pomoc, nové výskumy —
   // to, čo členstvo vie pomáhať psom"*. Detail = text „VYŠŠÍ CIEĽ" z heroflowu.
   { id: 'cause', nameKey: 'onepage.apps.cause.name', textKey: 'heroglyph.flow.more.cause.d', bulletKeys: b4('cause'), shots: [] },
