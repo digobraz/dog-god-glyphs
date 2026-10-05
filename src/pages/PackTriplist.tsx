@@ -32,7 +32,7 @@ import { PACK_THEME, GLASS_CSS, PAPER_PAGE_CSS, FONT_TITLE, FONT_UI, PACK_COL, P
 // Bledý chrome: inkousty a plochy (PALE), lapisové CTA a priesvitný tint výberu.
 // Jeden zdroj pre celý /pack — tie isté hodnoty drží bledý skin mapy.
 import { PALE, LAPIS, LAPIS_BTN_SHADOW, pickTintCSS, tintRGBA, PICK_INK, goldFrameCSS } from '@/components/pack/navGoldSkin';
-import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER, tripPath, tripPathById, visibleLocalTrails, tripDraftMissing, memberTrailIds } from '@/components/pack/tripShared';
+import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER, tripPath, tripPathById, visibleLocalTrails, tripDraftMissing, memberTrailIds, coverPos } from '@/components/pack/tripShared';
 import { closeMyTripEvents, readLocalTrailMeta, readJson, writeJson, PACK_KEYS } from '@/lib/packStore';
 import { placeholderFor } from '@/lib/tripPlaceholder';
 // Tvary počítaného mena (1 výlet · 2–4 výlety · 5+ výletov) — jeden zdroj pre celý /pack.
@@ -885,7 +885,7 @@ export default function PackTriplist() {
           }}
         >
           <div className={`tl-block-cover${cover ? '' : ' nophoto'}`}>
-            {cover && <img className="tl-cover-img" src={sizedUrl(cover, COVER_PX)} alt="" loading="lazy" decoding="async" draggable={false} />}
+            {cover && <img className="tl-cover-img" src={sizedUrl(cover, COVER_PX)} alt="" loading="lazy" decoding="async" draggable={false} style={{ objectPosition: coverPos(trail ?? {}) }} />}
             <img className="tl-flag" src={flagUrl(trailCountry(trail))} alt="" loading="lazy" draggable={false} />
             {/* Kým výlet čaká na schválenie, badge NIE JE prepínač viditeľnosti —
                 prepínať nie je čo, pack ho aj tak nevidí. */}
@@ -1107,7 +1107,7 @@ export default function PackTriplist() {
                           onKeyDown={(e) => { if (e.key !== 'Enter' && e.key !== ' ') return; e.preventDefault(); open(); }}
                         >
                           <div className={`tl-block-cover${cover ? '' : ' nophoto'}`}>
-                            {cover && <img className="tl-cover-img" src={sizedUrl(cover, COVER_PX)} alt="" loading="lazy" decoding="async" draggable={false} />}
+                            {cover && <img className="tl-cover-img" src={sizedUrl(cover, COVER_PX)} alt="" loading="lazy" decoding="async" draggable={false} style={{ objectPosition: coverPos(trail ?? {}) }} />}
                             {w.countryCode && <img className="tl-flag" src={flagUrl(w.countryCode)} alt="" loading="lazy" draggable={false} />}
                             <span className={`tl-block-badge ${w.status === 'missed' ? 'rejected' : 'looking'}`}>
                               {w.status === 'missed' ? t('pack.triplist.wishMissed') : t(`pack.wish.when.${w.when}`)}

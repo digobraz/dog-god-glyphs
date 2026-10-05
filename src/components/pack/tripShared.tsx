@@ -88,6 +88,11 @@ export const GOLD_ICON_FILTER =
 // paddleboard (splav/SUP) SA kresliť smie a vodou zostáva aj so stopou.
 // Kontrola po zmene: 8 skutočných plôch (0 bodov) ostalo vodou, 4 pešie trasy sa vrátili medzi trasy.
 const WATER_TAGS = new Set(['lake', 'water']);
+/** Poloha výrezu TITULNEJ fotky (`photos[0]`) — pre `object-position` aj `background-position`.
+ *  Iná fotka v galérii ide na stred: výrez patrí titulke, nie celému albumu. */
+export const coverPos = (tr: { coverY?: number }, idx = 0): string | undefined =>
+  idx === 0 && typeof tr.coverY === 'number' ? `center ${tr.coverY}%` : undefined;
+
 export const isWaterTrail = (tr: { acts?: string[]; tags?: string[]; path?: unknown[] }): boolean => {
   if (tr.acts?.includes('journey')) return false;
   const hasRoute = (tr.path?.length ?? 0) > 1;

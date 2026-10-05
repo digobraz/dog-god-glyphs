@@ -22,7 +22,7 @@ import { PLANNING_LIVE } from '@/lib/packFlags';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
-import { readLocalTrails, readWalkedIds, tripPath, pluralKey, visibleLocalTrails, RatingPaws } from './tripShared';
+import { readLocalTrails, readWalkedIds, tripPath, pluralKey, visibleLocalTrails, RatingPaws, coverPos } from './tripShared';
 import { readTriplist } from './triplist/triplist';
 import { parsePlanDate, planDateLabel, planStart } from './addtrip/planDate';
 import { planPhase } from './planReminder';
@@ -478,7 +478,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
 
       {/* ── 70 % · plagát výletu ─────────────────────────────────────────── */}
       <Link className="ts-hero" to={tripPath(trail)}>
-        {photo && <img className="ts-art" src={sizedUrl(photo, 1080)} alt="" aria-hidden />}
+        {photo && <img className="ts-art" src={sizedUrl(photo, 1080)} alt="" aria-hidden style={{ objectPosition: coverPos(trail) }} />}
 
         {/* Pri pláne ZÁMERNE bez stuhy — odpočet už hovorí „toto máš naplánované".
             Dve značky na jednej karte si konkurujú. */}

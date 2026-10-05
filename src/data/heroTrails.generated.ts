@@ -53,6 +53,10 @@ export type HeroTrail = {
   // ako prázdny zoznam, nie ako chyba. Jazdec polomeru pritom bežal a človek ním nastavoval
   // číslo, ktoré nikam neviedlo.
   areaR?: number;
+  // VÝREZ TITULNEJ FOTKY (2026-10-05) — zvislé ťažisko v % (0 hore, 100 dole) pre photos[0],
+  // len ADD-flow výlety. Sprievodca mal posuvník od 29. 7., ale hodnota cestou do výletu
+  // zanikala (Matej: "nedá sa mi nastaviť výrez na titulnú foto"). Chýba = stred.
+  coverY?: number;
 };
 
 export const HERO_TRAILS: HeroTrail[] = [

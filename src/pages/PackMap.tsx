@@ -93,7 +93,7 @@ import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import { useMyEventCount } from '@/components/pack/events/eventStore';
 import {
   ICON, authorOf, REGION_OF, diffMarkShape, DiffMark, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
-  DIFF_COLOR, TRAIL_LINE, TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, hasRouteMetrics, tripShareText, pluralKey,
+  DIFF_COLOR, TRAIL_LINE, TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, coverPos, hasRouteMetrics, tripShareText, pluralKey,
   readLocalTrails, writeLocalTrails, updateLocalTrail, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, hasLiveDog,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
   tripPath, tripPathById, tripText, visibleLocalTrails, tripDraftMissing, memberTrailIds, isOdyssey } from '@/components/pack/tripShared';
@@ -5193,6 +5193,8 @@ export default function PackMap() {
         desc: draft.note ?? '',
         ...(draft.diff ? { diff: draft.diff } : {}),
         ...(draft.photos?.length ? { photos: draft.photos } : {}),
+        // výrez titulky (AddTripLog posuvník) — do 5. 10. 2026 sa sem nedostal
+        ...(draft.photos?.length && typeof draft.coverY === 'number' ? { coverY: draft.coverY } : {}),
         // POSÁDKA (2026-08-25). Ukladá sa POČET, nie zoznam psov: karta výletu sa pýta
         // „koľko Dogypťanov tadiaľ prešlo", nie „ktorí". Mená psov patria autorovi, nie trase.
         // Platí pre nový výlet aj pre dopĺňanie konceptu — inak by dopísaný výlet psa stratil.
@@ -5338,6 +5340,7 @@ export default function PackMap() {
         path: line,
         ...(geo.areaR ? { areaR: geo.areaR } : {}),
         photos: draft.photos ?? [],
+        ...(draft.photos?.length && typeof draft.coverY === 'number' ? { coverY: draft.coverY } : {}),
         seasons: [],
         desc: draft.note ?? '',
         // KATEGÓRIA + CHIPY V JEDNOM POLI (§2.3 zadania, 2026-08-31). Chip z kroku 4 je
@@ -5854,7 +5857,7 @@ export default function PackMap() {
         onClick={() => selectTrail(tr)}
       >
         <div className="trp-bigcard-photo">
-          {photo && <img className="trp-bigcard-img" src={photo} alt="" loading="lazy" decoding="async" draggable={false} />}
+          {photo && <img className="trp-bigcard-img" src={photo} alt="" loading="lazy" decoding="async" draggable={false} style={{ objectPosition: coverPos(tr, idx) }} />}
           <img className="trp-cardflag" src={flagUrl(trailCountry(tr))} alt="" loading="lazy" draggable={false} />
           {tr.photos.length > 1 && (
             <div className="trp-bigcard-photonav">
@@ -6066,7 +6069,7 @@ export default function PackMap() {
                     šípky (reused .trp-bigcard-photonav) + ♡ zmenené na ★ "Add to wishlist"
                     textové tlačidlo (dolný pravý roh, ako karta bod 3). */}
                 <div className="trp-inldet-photowrap">
-                  {photo && <div className="trp-inldet-photo" style={{ backgroundImage: `url('${photo}')` }} />}
+                  {photo && <div className="trp-inldet-photo" style={{ backgroundImage: `url('${photo}')`, backgroundPosition: coverPos(dt, idx) }} />}
                   <div className="trp-inldet-authoravatar" title={t('pack.map.byAuthor', { author: authorOf(dt) })}>
                     <span>{authorOf(dt).charAt(0).toUpperCase()}</span>
                   </div>

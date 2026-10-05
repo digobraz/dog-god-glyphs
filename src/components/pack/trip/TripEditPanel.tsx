@@ -87,6 +87,9 @@ const TRIP_EDIT_CSS = `${VEIL_CSS}
 .tep-addphoto:hover{border-color:${LAPIS.edge};color:${LAPIS.edge};}
 .tep-addphoto:disabled{opacity:.35;cursor:default;}
 .tep-photo-drop.drag .tep-addphoto{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.14)}border-style:dashed;}
+.tep-crop{margin-top:16px;}
+.tep-crop-preview{width:100%;aspect-ratio:16/9;border-radius:12px;border:1px solid ${T.border};background-size:cover;background-color:${T.tileBg};}
+.tep-crop-slider{width:100%;margin-top:8px;accent-color:${LAPIS.edge};}
 .tep-pawpick{display:flex;justify-content:center;}
 /* CTA = LAPIS, geometria locknutého .btn-gold (radius 8, nie pilulka). */
 .tep-submit{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:0.02em;text-transform:uppercase;padding:12px;border-radius:8px;background:${LAPIS.grad};color:${LAPIS.ink};border:1px solid ${LAPIS.edge};box-shadow:${LAPIS_BTN_SHADOW};cursor:pointer;}
@@ -128,6 +131,8 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
   const [desc, setDesc] = useState(trail.desc ?? '');
   const [stars, setStars] = useState(trail.stars ?? 0);
   const [photos, setPhotos] = useState<string[]>(trail.photos ?? []);
+  // Výrez TITULNEJ fotky (zvislé ťažisko v %). Mení sa s ňou: nová titulka začína v strede.
+  const [coverY, setCoverY] = useState<number>(trail.coverY ?? 50);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -168,6 +173,7 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
   const makeCover = (i: number) => {
     if (i === 0) return;
     setPhotos((prev) => [prev[i], ...prev.filter((_, k) => k !== i)]);
+    setCoverY(50);
   };
 
   const save = () => {
@@ -183,7 +189,7 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
       descEN: undefined,
       dogNote: undefined,
       dogNoteEN: undefined,
-      ...(isPlan ? {} : { stars, photos }),
+      ...(isPlan ? {} : { stars, photos, coverY: photos.length ? coverY : undefined }),
     };
     // `updateLocalTrail` sa sama postará o frontu do Supabase (nové fotky sú base64 a nahrajú
     // sa na Cloudinary pri jej spracovaní). `false` = kvóta úložiska, nie chyba siete.
@@ -261,6 +267,26 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
             >+</button>
           </div>
           {photos.length > 1 && <p className="tep-hint" style={{ marginTop: 8 }}>{t('pack.addTrip.step.coverPick')}</p>}
+          {/* VÝREZ TITULKY (Matej 5. 10. 2026: „nedá sa mi nastaviť výrez na titulnú foto").
+              Náhľad má pomer hlavičky článku a karty, posuvník je hneď pod ním — ťahaš a vidíš. */}
+          {photos.length > 0 && (
+            <div className="tep-crop">
+              <label className="tep-label">{t('pack.addTrip.step.coverCrop')}</label>
+              <div
+                className="tep-crop-preview"
+                style={{ backgroundImage: `url('${sizedUrl(photos[0], 800)}')`, backgroundPosition: `center ${coverY}%` }}
+              />
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={coverY}
+                onChange={(e) => setCoverY(Number(e.target.value))}
+                className="tep-crop-slider"
+                aria-label={t('pack.addTrip.step.coverCrop')}
+              />
+            </div>
+          )}
           <input
             ref={fileRef}
             type="file"

@@ -45,7 +45,7 @@ import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
 import {
   ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail, hasRouteMetrics, pluralKey,
   readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, hasLiveDog, RENAMED_TRIP_IDS, tripPath,
-  tripShareText, tripText, TRAIL_SABER_LAYERS, TRAIL_LINE, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing } from '@/components/pack/tripShared';
+  tripShareText, tripText, TRAIL_SABER_LAYERS, TRAIL_LINE, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing, coverPos } from '@/components/pack/tripShared';
 import { TripGoPanel, TripGoButtons } from '@/components/pack/trip/TripGoPanel';
 import {
   crowdAggregate, founderWalkers, founderDogyptians, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
@@ -1566,7 +1566,7 @@ export default function PackTripArticle() {
           nevkladá. Volať oboje naraz = dve tapety cez seba. */}
 
       <div className="pta-shell">
-      <div className="pta-hero" ref={heroRef} style={cover ? { backgroundImage: `url('${sizedUrl(cover, heroPx())}')` } : undefined}>
+      <div className="pta-hero" ref={heroRef} style={cover ? { backgroundImage: `url('${sizedUrl(cover, heroPx())}')`, backgroundPosition: coverPos(trail) } : undefined}>
         <div className="pta-hero-grad" />
         {(trail as { photoCredit?: string }).photoCredit && (
           <div className="pta-hero-credit">{(trail as { photoCredit?: string }).photoCredit}</div>
