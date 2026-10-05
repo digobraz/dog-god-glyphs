@@ -146,6 +146,18 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
 
   useEffect(() => { onPopup?.(open != null); }, [open, onPopup]);
   useEffect(() => { setSlide(0); }, [open]);
+  /** Stred telefónu v karte DETAILU → `--sl-mid` (šípky na krajoch v jeho výške, mobil). */
+  const popRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const card = popRef.current;
+    const sl = card?.querySelector<HTMLElement>('.op-apps-sl');
+    if (!card || !sl) return;
+    const put = () => card.style.setProperty('--sl-mid', `${(sl.offsetTop + sl.offsetHeight / 2).toFixed(1)}px`);
+    put();
+    const ro = new ResizeObserver(put);
+    ro.observe(card); ro.observe(sl);
+    return () => ro.disconnect();
+  }, [open]);
   const slideCount = open != null ? Math.max(1, APPS[open].shots.length || 3) : 1;
   const moveSlide = useCallback((d: number) => setSlide((i) => (i + d + slideCount) % slideCount), [slideCount]);
   const moveApp = useCallback((d: number) => {
@@ -270,6 +282,9 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
       // Ľavý stĺpec stojí na strede PREDNÉHO telefónu — výškou sa do neho zmestí.
       sec.style.setProperty('--mid', `${(narrow ? navH + (vh - navH) / 2 : featY).toFixed(1)}px`);
       sec.style.setProperty('--phh', `${(h * fs).toFixed(1)}px`);
+      // Mobil: pás pre text = od lišty po hornú hranu telefónu (bez rezervy šípok), text v jeho strede.
+      sec.style.setProperty('--colt', `${(navH + 8).toFixed(1)}px`);
+      sec.style.setProperty('--colh', `${Math.max(0, featY - (h / 2) * fs - 16 - navH - 8).toFixed(1)}px`);
 
       // Odchod: javisko zhasne na mieste, pod ním nabiehajú hviezdy.
       // Zhasne v PRVEJ polovici odchodu — hviezdy nabiehajú až v druhej
@@ -361,7 +376,16 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           v nej by ostal POD horným navom. */}
       {cur && createPortal(
         <div className="op-alba" role="dialog" aria-modal="true" aria-label={t(cur.nameKey)} data-film-free onClick={() => setOpen(null)}>
-          <div className="op-alba-card op-apps-pop" onClick={(e) => e.stopPropagation()}>
+          <div ref={popRef} className="op-alba-card op-apps-pop" onClick={(e) => e.stopPropagation()}
+            /* ŠVIH PRSTOM KDEKOĽVEK NA KARTE = ďalšia snímka (Matej 5. 10. 2026: *„popup umožní
+               slajdovať prstom"*). Karta sa na mobile nescrolluje, takže vodorovný ťah nič nekradne. */
+            onPointerDown={(e) => { swipeX.current = e.clientX; }}
+            onPointerUp={(e) => {
+              if (swipeX.current == null) return;
+              const dx = e.clientX - swipeX.current; swipeX.current = null;
+              if (Math.abs(dx) > 40) moveSlide(dx < 0 ? 1 : -1);
+            }}
+            onPointerCancel={() => { swipeX.current = null; }}>
             {/* ŠÍPKY NA KRAJI KARTY = ĎALŠIA FUNKCIA (Matej 5. 10. 2026: *„daj aj šípky na jeho kraj,
                 aby si človek mohol pozrieť detaily bez toho, aby sa neustále vracal na stránku
                 a klikal na mockupy"*). Šípky vnútri (pri telefóne) listujú SNÍMKY jednej funkcie;
@@ -374,19 +398,19 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
             <button type="button" className="op-apps-pop-nav is-r" aria-label={t(APPS[(open! + 1) % n].nameKey)} onClick={() => moveApp(1)}>
               <HandArrowLeft size={20} style={{ transform: 'scaleX(-1)' }} />
             </button>
+            {/* KRÍŽIK LEN NA MOBILE (Matej 5. 10. 2026, nad popupom na iPhone: *„a tu by som možno dal
+                aj krížik"*) — novší pokyn prebíja 28. 9. len tu: na mobile niet „kliku mimo karty"
+                (karta je cez celé okno) ani Esc. Kresba z kitu (`cross.svg`), nie znak ×. PC ostáva bez. */}
+            <button type="button" className="op-apps-pop-x" aria-label={t('nav.aria.close')} onClick={() => setOpen(null)}>
+              <i aria-hidden="true" />
+            </button>
             {/* Bez krížika (Matej 28. 9. 2026: *„na webe nechceme krížiky"*) — zatvára klik mimo karty a Esc.
                 Tlačidlo bez štýlu tu prežilo a v mriežke popupu si vzalo vlastnú bunku (karta 973 px). */}
             {/* MOCKUP NA JEDNEJ STRANE, TEXT NA DRUHEJ (Matej 5. 10. 2026: *„pri popupe by som
                 dal mockup na jednu stranu a text na druhú"*). Mobil: pod sebou. */}
             <div className="op-apps-pop-shot">
             {/* SLIDER — screenshoty konkrétnej funkcie v ráme telefónu. */}
-            <div className="op-apps-sl"
-              onPointerDown={(e) => { swipeX.current = e.clientX; }}
-              onPointerUp={(e) => {
-                if (swipeX.current == null) return;
-                const dx = e.clientX - swipeX.current; swipeX.current = null;
-                if (Math.abs(dx) > 40) moveSlide(dx < 0 ? 1 : -1);
-              }}>
+            <div className="op-apps-sl">
               <button type="button" className="op-apps-sl-btn is-l" aria-label={t('onepage.apps.prev')} onClick={() => moveSlide(-1)}>
                 <HandArrowLeft size={18} />
               </button>
@@ -633,6 +657,8 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
         .op-apps-pop-nav.is-r { right: -24px; }
         .op-apps-pop-nav:hover { transform: translateY(-50%) scale(1.06); }
         .op-apps-pop-nav svg { fill: currentColor; }
+        .op-apps-pop-x { display: none; }
+        .op-apps-pop img { -webkit-user-drag: none; user-drag: none; pointer-events: none; }
         .op-apps-sl-dots { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
         .op-apps-sl-dots button {
           width: 8px; height: 8px; padding: 0; border-radius: 999px; cursor: pointer;
@@ -649,21 +675,53 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
              bubline a šípke filmu (Matejov iPhone 5. 10.). Točí sa samo a ide švih; šípky nabehnú s funkciou. */
           .op-apps-ctl { opacity: calc(var(--r, 0) * var(--sx, 0)); }
           .op-apps[data-peek] .op-apps-ctl button { pointer-events: none; }
-          .op-apps-col { left: 16px; right: 16px; width: auto; top: calc(var(--op-nav-h, 118px) + 8px); }
-          .op-apps-txt { transform: none; }
+          /* TEXT V STREDE MEDZI LIŠTOU A TELEFÓNOM (Matej 5. 10. 2026: *„rozloženie zosúlaď —
+             posuň text dolu a detail chip daj preč"*). Pás --colt…--colb píše réžia rovnicou. */
+          .op-apps-col { left: 16px; right: 16px; width: auto; top: var(--colt, 124px); height: var(--colh, 300px); }
+          .op-apps-txt { top: 50%; transform: translateY(-50%); }
+          .op-apps-txt .op-apps-lede { margin-bottom: 0; }
+          /* DETAIL otvára ťuk na predný telefón. */
+          .op-apps .op-apps-chip { display: none; }
+          .op-apps-eye { font-size: 14px; margin-bottom: 12px; }
           .op-apps-name { margin-bottom: 8px; }
           .op-apps-ul { margin-bottom: 16px; font-size: 14px; }
           .op-apps-ul li { padding: 8px 0; gap: 12px; }
           .op-apps-sl { gap: 8px; }
           .op-apps-lede { margin-bottom: 16px; font-size: 14px; }
-          .op-apps-pop { grid-template-columns: 1fr; gap: 24px; padding: 48px 16px 24px; }
-          /* Mobil: karta je cez celú šírku, hrana by šípku vytlačila z okna — idú do horných rohov karty (48 px rezerva nad telefónom). */
-          .op-apps-pop-nav { top: 8px; transform: none; width: 40px; height: 40px; }
+          /* POPUP SA NESCROLLUJE (Matej 5. 10. 2026: *„urob to tak, aby popup nebol scrollovateľný,
+             zmenši obsah"*). Karta má výšku okna, text svoju prirodzenú, telefón berie ZVYŠOK —
+             výška ho určuje cez aspect-ratio, šírka max 220. */
+          .op-alba:has(.op-apps-pop) { overflow: hidden; }
+          .op-apps-pop {
+            display: flex; flex-direction: column; gap: 16px;
+            height: calc(100dvh - 32px); padding: 16px 16px 16px; overflow: hidden; touch-action: pan-y;
+          }
+          .op-apps-pop-shot { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+          .op-apps-pop .op-apps-sl { flex: 1 1 0; min-height: 0; }
+          .op-apps-pop .op-apps-sl-view { height: 100%; width: auto; max-width: 220px; aspect-ratio: ${IPHONE_W} / ${IPHONE_H}; }
+          .op-apps-pop .op-apps-sl-dots { margin-top: 12px; }
+          /* Snímky švihom a bodkami — sivé šípky pri telefóne by sa bili so zlatými na kraji. */
+          .op-apps-pop .op-apps-sl-btn { display: none; }
+          .op-apps-pop-txt { flex: none; }
+          .op-apps-pop .op-apps-name { font-size: 24px; padding-bottom: 12px; }
+          .op-apps-pop .op-apps-lede { margin-bottom: 12px; font-size: 14px; line-height: 1.45; }
+          .op-apps-pop .op-apps-ul li { padding: 6px 0; font-size: 14px; }
+          /* ŠÍPKY NA KRAJOCH, V STREDE TELEFÓNU (Matej 5. 10. 2026: *„šípky premiestni na kraje
+             do stredu"*) — dovtedy v horných rohoch. Stred = polovica bunky telefónu. */
+          .op-apps-pop-nav { top: var(--sl-mid, 50%); width: 40px; height: 40px; }
           .op-apps-pop-nav.is-l { left: 8px; }
           .op-apps-pop-nav.is-r { right: 8px; }
-          .op-apps-pop-nav:hover { transform: none; }
-          .op-apps-pop-txt { grid-column: 1; grid-row: 2; }
-          .op-apps-pop .op-apps-sl-view { width: min(220px, calc((100dvh - 420px) * ${(IPHONE_W / IPHONE_H).toFixed(4)})); }
+          .op-apps-pop-nav:hover { transform: translateY(-50%); }
+          .op-apps-pop-x {
+            display: grid; place-items: center; position: absolute; top: 8px; right: 8px; z-index: 3;
+            width: 40px; height: 40px; border-radius: 999px; cursor: pointer;
+            background: ${LAB.pageBg}; border: 1.5px solid rgba(201,154,63,.85); color: ${LAB.ink};
+            box-shadow: 0 8px 24px rgba(42,22,8,.25);
+          }
+          .op-apps-pop-x i {
+            width: 16px; height: 16px; background: currentColor;
+            -webkit-mask: url(/icons/pack/cross.svg) center / contain no-repeat; mask: url(/icons/pack/cross.svg) center / contain no-repeat;
+          }
         }
         @media (prefers-reduced-motion: reduce) {
           .op-apps-ph, .op-apps-txt, .op-apps-sl-track, .op-apps-ul li { transition: none; animation: none; }

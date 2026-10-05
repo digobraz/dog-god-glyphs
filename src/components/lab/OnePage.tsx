@@ -7810,7 +7810,7 @@ export default function OnePage() {
           .op-root footer.dogypt-footer { padding-bottom: calc(var(--op-dock-h) + 30px); }
           .op-root footer a { position: relative; }
           .op-root footer a::after { content: ''; position: absolute; inset: -12px -6px; }
-          .op-root .op-apps-ctl button { position: relative; }
+          /* .op-apps-ctl button je už position:absolute — relative tu ťahal pravú šípku o riadok nižšie. */
           .op-root .op-apps-ctl button::after { content: ''; position: absolute; inset: -4px; }
           .op-root .op-quo .tst-credits > summary { position: relative; }
           .op-root .op-quo .tst-credits > summary::after { content: ''; position: absolute; inset: -11px 0; }
