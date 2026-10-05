@@ -20,6 +20,7 @@
 // Migrácia: `vystupy/supabase/migrations/20260826_pack_profiles.sql`.
 // Typy tabuliek/RPC nie sú v generovanom `types.ts` — rovnaký únik ako v
 // `mapNotesData.ts` a `packMessaging.ts`.
+import type { LatestValue } from '@/lib/dogEvents';
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -42,6 +43,9 @@ export interface MemberDog {
   /** Hotový heroglyf (`dogs.heroglyph_png_url`) — ten istý obrázok ako na verejnej stene. */
   heroglyphUrl: string | null;
   attrs: DogProfileAttrs;
+  /** Verejná časť DOG ID (tri sekcie pre turistiku + element/úloha). Allow-list drží SQL
+   *  (`20261008_member_profiles_dogid.sql`). Prázdny objekt = nevyplnené alebo stará DB. */
+  dogIdPublic: Record<string, LatestValue>;
 }
 
 export interface MemberProfile {
@@ -69,6 +73,7 @@ type Row = {
   dogs: Array<{
     dogId: string; name: string | null; photo: string | null; packNumber: number | null;
     gender: string | null; heroglyphUrl: string | null; attrs: Partial<DogProfileAttrs> | null;
+    dogIdPublic?: Record<string, { value: unknown; recordedAt: string }> | null;
   }> | null;
   updated_at: string | null;
 };
@@ -95,6 +100,9 @@ function fromRow(r: Row): MemberProfile {
       // Nevyplnená karta = prázdna karta, nie chýbajúci pes. `emptyDogAttrs`
       // drží ten istý tvar, aký očakáva `TripProfileCard` aj psia galéria.
       attrs: { ...emptyDogAttrs(d.dogId), ...(d.attrs ?? {}) },
+      dogIdPublic: Object.fromEntries(Object.entries(d.dogIdPublic ?? {}).map(([f, v]) => [
+        f, { value: v?.value ?? null, recordedAt: v?.recordedAt ?? '', source: 'quiz' as const },
+      ])),
     })),
     updatedAt: r.updated_at,
   };

@@ -170,8 +170,16 @@ export interface FixedRow {
 // `bare` — pas sa od 12.8.2026 kreslí VNÚTRI karty identity (`PackDogDetail`), takže
 // si nesmie priniesť vlastný rám: jeden doklad = jeden rám. Samostatný režim (bez
 // `bare`) ostáva funkčný pre prípadné iné použitie.
+// 👁️ VEREJNÁ ČASŤ DOG ID — čo vidí iný člen na profile (Matej 5. 10. 2026, „tri sekcie
+//    pre turistiku"). Výsledok osobnostného kvízu (element + úloha) ide do POVAHY: v plnom
+//    doklade sedí v Identite, ale Identita nesie aj čip, a tá je súkromná.
+//    ⚠️ Server má ten istý allow-list (`20261008_member_profiles_dogid.sql`) — klient len
+//    vyberá, čo z neho ukáže; o tom, čo cudzí VÔBEC dostane, rozhoduje SQL.
+export const PUBLIC_DOGID_GROUPS = ['howWorks', 'social', 'temperament'] as const;
+const PUBLIC_EXTRA_FIELDS: Record<string, string[]> = { temperament: ['nature.element', 'nature.role'] };
+
 export function DogPassport({
-  dogId, bare = false, fixedRows, onEditPanel,
+  dogId, bare = false, fixedRows, onEditPanel, values, readOnly = false,
 }: {
   dogId: string;
   bare?: boolean;
@@ -179,6 +187,12 @@ export function DogPassport({
   fixedRows?: Record<string, FixedRow[]>;
   /** Skupina s `editPanel` neodkazuje do kvízu, ale volá toto. */
   onEditPanel?: (panel: string) => void;
+  /** Hodnoty zvonka (cudzí pes z `get_member_profiles`) — doklad ich nečíta z DB sám,
+   *  lebo RLS cudziemu `dog_events` nevydá. */
+  values?: Record<string, LatestValue>;
+  /** Pohľad iného člena: len `PUBLIC_DOGID_GROUPS`, bez ✎, bez percenta, bez poznámok,
+   *  prázdne pole tlmenou pomlčkou (červená = „doplň to" patrí len majiteľovi). */
+  readOnly?: boolean;
 }) {
   const t = useT();
   const tx = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
@@ -187,16 +201,18 @@ export function DogPassport({
   const [weightTrend, setWeightTrend] = useState<string | null>(null);
 
   useEffect(() => {
+    if (values) { setLatest(values); return; }
     let alive = true;
     const load = () => { readLatest(dogId).then((r) => { if (alive) setLatest(r); }); };
     load();
     const off = onDogEventsChange(load);
     return () => { alive = false; off(); };
-  }, [dogId]);
+  }, [dogId, values]);
 
   // Trend váhy — jediné pole, kde má priebeh na karte reálnu výpovednú hodnotu.
   // Práve preto je log append-only: z prepísaného stĺpca by sa toto nedalo spočítať.
   useEffect(() => {
+    if (readOnly) return; // zdravie cudzí nevidí — a trend váhy je zdravie
     let alive = true;
     readSeries(dogId, 'health.weightKg').then((rows) => {
       if (!alive || rows.length < 2) { setWeightTrend(null); return; }
@@ -220,14 +236,18 @@ export function DogPassport({
     // doklad takmer prázdny a nebolo z čoho vidieť, čo ešte chýba.
     // Čo z pôvodného locku PLATÍ ĎALEJ: nič sa nedogeneruje. Prázdne pole nedostane
     // odhad ani predvyplnenú hodnotu — dostane pomlčku a odkaz, kde sa doplní.
-    return PASS_GROUPS.map((g) => {
+    const source = readOnly
+      ? PASS_GROUPS.filter((g) => (PUBLIC_DOGID_GROUPS as readonly string[]).includes(g.key))
+      : PASS_GROUPS;
+    return source.map((g) => {
       // Bez filtra podľa pohľadu — majiteľ vidí komplet. Filtruje sa až pri zdieľaní.
-      const rows = g.fields
+      const fields = readOnly ? [...(PUBLIC_EXTRA_FIELDS[g.key] ?? []), ...g.fields] : g.fields;
+      const rows = fields
         .map((f) => ({ step: STEP_BY_FIELD[f], value: capSpecials(f, latest[f], latest) }))
         .filter((r) => !!r.step);
       return { group: g, rows };
     }).filter((g) => g.rows.length > 0);
-  }, [latest]);
+  }, [latest, readOnly]);
 
   // KOMPLETNOSŤ NA SAMOTNOM DOKLADE. Percento žilo len na dlaždici v `/pack/dogs` —
   // teda nie tam, kde človek vypĺňa. Odkedy je nevyplnené červené, doklad JE checklist
@@ -263,7 +283,7 @@ export function DogPassport({
       {/* Hláška „zatiaľ nič vyplnené" zanikla 13.8.2026 — doklad má odteraz všetky
           položky od prvej sekundy, takže prázdno nie je stav, ktorý by sa dal opísať
           vetou. Nevyplnené sa ukáže samo, červenou. Namiesto nej stojí percento. */}
-      {fill && (
+      {fill && !readOnly && (
         <div className="pass-fill">
           <div className="pass-fillhead">
             <span className="pass-filllbl">{tx('pack.pass.fillTitle', 'Filled in')}</span>
@@ -301,7 +321,7 @@ export function DogPassport({
                 `editHref` = sekcia má vlastný povrch (osobnostný kvíz), kde deep-link
                 na jedno pole nedáva zmysel: je to jeden priebeh so scoringom.
                 `editPanel` = needituje sa inde, ale priamo tu (závet). */}
-            {group.editPanel ? (
+            {readOnly ? null : group.editPanel ? (
               /* Závet má vlastné právo — je to jediná sekcia dokladu, ktorá hovorí
                  o tom, čo bude PO psovi, a §5 ju drží oddelene od `dogid.edit`. */
               <RightGate right={group.key === 'will' ? 'will' : 'dogid.edit'} dogId={dogId}>
@@ -353,6 +373,7 @@ export function DogPassport({
                   ? `${step.editHref}?dog=${dogId}`
                   : `/pack/dogs/quiz/${group.editSection}?dog=${dogId}&field=${step.field}`}
                 onEditPanel={group.editPanel ? () => onEditPanel?.(group.editPanel!) : undefined}
+                readOnly={readOnly}
                 tx={tx}
               />
             ))}
@@ -362,12 +383,14 @@ export function DogPassport({
               Údaje ostávajú read-only (patria kvízu), ale veta o psovi patrí tam, kde
               sa číta: „Bojí sa búrky, vtedy chce byť v kúpeľni." Toto je to, čo z
               tabuľky robí psa — a čo veterinár ani opatrovateľ z hodnôt nevyčíta. */}
+          {!readOnly && (
           <GroupNote
             dogId={dogId}
             groupKey={group.key}
             value={typeof latest[`${group.key}.note`]?.value === 'string' ? String(latest[`${group.key}.note`]!.value) : ''}
             tx={tx}
           />
+          )}
         </div>
         );
       })}
@@ -427,11 +450,12 @@ function FixedPassRow({ row, tx }: { row: FixedRow; tx: (k: string, f: string) =
 }
 
 function PassRow({
-  step, value, trend, editTo, dogId, onEditPanel, tx,
+  step, value, trend, editTo, dogId, onEditPanel, readOnly = false, tx,
 }: {
   step: QuizStep; value: LatestValue | undefined; trend: string | null; editTo: string;
   dogId: string;
   onEditPanel?: () => void;
+  readOnly?: boolean;
   tx: (k: string, f: string) => string;
 }) {
   // Dátum podľa jazyka APPKY, nie prehliadača — slovenský doklad v anglickom Chrome
@@ -448,6 +472,18 @@ function PassRow({
     // úloha), `optional` = vyplniť sa dá, ale nič to neohrozí (povely, záložný e-mail).
     // Ani jedno nie je diera, takže ani jedno nedostane červenú.
     const optional = !!step.noProgress || !!step.optional;
+    if (readOnly) {
+      return (
+        <>
+          <dt style={{ fontFamily: FONT_UI, fontSize: 12, color: 'var(--pass-lbl)', whiteSpace: 'nowrap' }}>
+            {tx(step.rowI18n, step.rowEN)}
+          </dt>
+          <dd style={{ margin: 0 }}>
+            <span className="pass-missing pass-missing--optional">—</span>
+          </dd>
+        </>
+      );
+    }
     return (
       <>
         <dt style={{ fontFamily: FONT_UI, fontSize: 12, color: 'var(--pass-lbl)', whiteSpace: 'nowrap' }}>
@@ -490,7 +526,7 @@ function PassRow({
             Odkaz preto visí priamo na nich: jeden klik, žiadny nový prvok v mriežke.
             `from=id` povie kvízu, že šípka späť patrí na TENTO doklad — posiela sa
             príznak, nie cesta, aby sa cez parameter nedalo poslať človeka inam. */}
-        {step.resultHref ? (
+        {step.resultHref && !readOnly ? (
           <Link
             to={`${step.resultHref}&dog=${dogId}&from=id`}
             className="pass-toresult"

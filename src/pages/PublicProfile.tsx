@@ -204,6 +204,7 @@ export default function PublicProfile() {
         // blok „From the heroglyph" je zrušený a používa sa už len `gender` na farbu pilulky
         heroglyph: { gender: d.gender },
         heroglyphUrl: d.heroglyphUrl,
+        dogIdValues: d.dogIdPublic,
       }))
     : dogs.map((d) => ({
         id: d.id,

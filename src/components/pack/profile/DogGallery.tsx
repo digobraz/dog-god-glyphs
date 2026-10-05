@@ -23,6 +23,9 @@ import {
   ChipMulti, OpenQuestion,
 } from './DogCardFields';
 
+import { DogPassport } from '../DogPassport';
+import type { LatestValue } from '@/lib/dogEvents';
+
 const T = PACK_THEME;
 export const BIO_MAX = 200;
 export const MAX_DOG_TEMPERAMENT = 5;
@@ -39,6 +42,9 @@ export interface DogGalleryEntry {
   /** Pre-rendered heroglyf psa (`dogs.heroglyph_png_url`). Bez neho sa vykreslí
    *  prázdny rám — nikdy nie textová/unicode aproximácia. */
   heroglyphUrl?: string | null;
+  /** Verejná časť DOG ID (`get_member_profiles` → `dogIdPublic`). `undefined` = vlastný pes,
+   *  doklad si hodnoty načíta sám. */
+  dogIdValues?: Record<string, LatestValue>;
 }
 
 export function DogGalleryAccordion({
@@ -615,6 +621,24 @@ function DogGalleryBody({
   const isIntactFemale = sex === 'female' && card.neutered === 'no';
   const countFilled = (...vals: unknown[]) =>
     vals.filter((v) => v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && v.length === 0)).length;
+
+  // 🔴 NA ČÍTANIE = DOG ID, NIE STARÁ KARTA (Matej 5. 10. 2026). Karta v `dog_profiles.attrs`
+  //    od zrušenia editora nikto nevypĺňa — po FLIPe by bola prázdna u všetkých. Iný člen
+  //    vidí tri sekcie DOG ID pre turistiku; zobrazuje ich TEN ISTÝ `DogPassport` ako
+  //    /pack/dogs (lock /pack §4: objekt má jednu kartu), len `readOnly`.
+  //    Editovateľná vetva nižšie dnes nemá volajúceho (editor zanikol) — ostáva ako bola.
+  if (!editable) {
+    return (
+      <>
+        {dog.attrs.bio && (
+          <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, lineHeight: 1.5, color: T.ink, margin: 0 }}>
+            {dog.attrs.bio}
+          </p>
+        )}
+        <DogPassport dogId={dog.id} values={dog.dogIdValues} readOnly bare />
+      </>
+    );
+  }
 
   return (
         <>
