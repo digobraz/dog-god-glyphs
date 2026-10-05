@@ -677,7 +677,7 @@ export const ita: Partial<Dict> = {
     'Devi avere almeno 16 anni per utilizzare il Servizio. Creando un account o completando un acquisto confermi di avere 16 anni o più, che le informazioni fornite sono veritiere e che il tuo utilizzo del Servizio è lecito nel paese in cui vivi.',
   'terms.s3.title': '3. Account e Iscrizione al branco',
   'terms.s3.body':
-    'L\'accesso viene concesso tramite un magic link inviato alla tua email; nessuna password viene memorizzata. Il tuo account è personale — ti preghiamo di non condividere l\'accesso. Possiamo sospendere o chiudere gli account che abusano del Servizio, molestano altri Membri o violano questi Termini. Puoi richiedere la cancellazione del tuo account in qualsiasi momento scrivendo a privacy@dogypt.com.',
+    'L\'accesso viene concesso tramite un magic link inviato alla tua email; nessuna password viene memorizzata. Il tuo account è personale — ti preghiamo di non condividere l\'accesso. Possiamo sospendere o chiudere gli account che abusano del Servizio, molestano altri Membri o violano questi Termini. Puoi richiedere la cancellazione del tuo account in qualsiasi momento scrivendo a woof@dogypt.com.',
   'terms.s4.title': '4. Heroglyph e Beni Digitali',
   'terms.s4.body':
     'Ciò che acquisti è un bene digitale: un HEROGLYPH personale (un certificato simbolico unico), una versione PDF di quel certificato, la voce del tuo cane nel GodsGrid pubblico e l\'accesso continuativo al tuo profilo branco. Ti concediamo una licenza personale, non trasferibile e non esclusiva per utilizzare questi beni digitali per uso personale non commerciale. Nulla di fisico viene spedito. La riproduzione, la rivendita o lo sfruttamento commerciale della grafica o delle risorse HEROGLYPH richiede il nostro previo consenso scritto.',
@@ -686,7 +686,7 @@ export const ita: Partial<Dict> = {
     'I pagamenti sono elaborati da Stripe Payments Europe, Ltd. Non vediamo né memorizziamo mai i dati completi della tua carta. I prezzi sono mostrati nella valuta al momento del pagamento (predefinita USD); l\'eventuale IVA applicabile viene calcolata e mostrata prima di pagare. L\'ordine che confermi alla cassa è l\'ordine che consegniamo — non cambieremo l\'ambito né il prezzo a posteriori.',
   'terms.s6.title': '6. Rimborsi e Diritto di Recesso',
   'terms.s6.body':
-    'Ai sensi della Direttiva UE 2011/83/UE i consumatori hanno normalmente 14 giorni per recedere da un contratto a distanza. Poiché l\'HEROGLYPH viene consegnato come contenuto digitale immediatamente dopo il pagamento, cliccando “Paga” dai il tuo espresso consenso preventivo all\'esecuzione immediata e riconosci di perdere così il diritto di recesso non appena la consegna ha inizio (art. 16, lett. m, della Direttiva). Se qualcosa va storto dalla nostra parte — un file danneggiato, un addebito duplicato, un ordine annullato — scrivi a support@dogypt.com entro 14 giorni e provvederemo al rimborso o alla riconsegna, senza fare domande.',
+    'Ai sensi della Direttiva UE 2011/83/UE i consumatori hanno normalmente 14 giorni per recedere da un contratto a distanza. Poiché l\'HEROGLYPH viene consegnato come contenuto digitale immediatamente dopo il pagamento, cliccando “Paga” dai il tuo espresso consenso preventivo all\'esecuzione immediata e riconosci di perdere così il diritto di recesso non appena la consegna ha inizio (art. 16, lett. m, della Direttiva). Se qualcosa va storto dalla nostra parte — un file danneggiato, un addebito duplicato, un ordine annullato — scrivi a woof@dogypt.com entro 14 giorni e provvederemo al rimborso o alla riconsegna, senza fare domande.',
   'terms.s7.title': '7. Uso Accettabile',
   'terms.s7.body':
     'Non caricare nulla su cui non hai il diritto di caricare. Questo include foto di altre persone, materiale protetto da copyright o contenuti che ritraggono crudeltà, attività illegali o contenuti sessuali che coinvolgono minori. Non molestare, impersonare o minacciare altri Membri. Non effettuare scraping, download di massa, reverse engineering, né tentare di interrompere il Servizio. Possiamo rimuovere contenuti o account che violano queste regole, con o senza preavviso.',
@@ -701,14 +701,14 @@ export const ita: Partial<Dict> = {
     'Questi Termini sono disciplinati dalle leggi della Repubblica Slovacca, escluse le sue norme sui conflitti di legge. Le controversie che non possono essere risolte in via informale rientrano nella giurisdizione dei tribunali slovacchi competenti presso la nostra sede legale. I consumatori dell\'UE possono anche utilizzare la piattaforma europea di Risoluzione delle Controversie Online all\'indirizzo https://ec.europa.eu/consumers/odr.',
   'terms.s11.title': '11. Contatti',
   'terms.s11.body':
-    'Domande generali: info@dogypt.com · Privacy e richieste sui dati: privacy@dogypt.com · Rimborsi e supporto: support@dogypt.com · Posta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovacchia.',
+    'woof@dogypt.com · Posta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovacchia.',
 
   // ── /privacy ──
   'privacy.title': 'Informativa sulla Privacy',
   'privacy.linkTerms': 'Termini di Servizio →',
   'privacy.s1.title': '1. Chi Siamo',
   'privacy.s1.body':
-    'DOGYPT s.r.o., una società a responsabilità limitata slovacca (IČO 54 444 594), sede legale Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovacchia. Siamo il titolare del trattamento dei dati personali descritti di seguito. Per qualsiasi domanda relativa alla privacy scrivi a privacy@dogypt.com. Non abbiamo nominato un Responsabile della Protezione dei Dati perché il nostro trattamento non raggiunge le soglie dell\'art. 37 del GDPR. Data di entrata in vigore: 4 maggio 2026.',
+    'DOGYPT s.r.o., una società a responsabilità limitata slovacca (IČO 54 444 594), sede legale Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovacchia. Siamo il titolare del trattamento dei dati personali descritti di seguito. Per qualsiasi domanda relativa alla privacy scrivi a woof@dogypt.com. Non abbiamo nominato un Responsabile della Protezione dei Dati perché il nostro trattamento non raggiunge le soglie dell\'art. 37 del GDPR. Data di entrata in vigore: 4 maggio 2026.',
   'privacy.s2.title': '2. Dati che Raccogliamo',
   'privacy.s2.body':
     'Quando utilizzi il flusso HEROGLYPH raccogliamo: il tuo indirizzo email, il nome del tuo cane, la foto del tuo cane che carichi (archiviata su Cloudinary), le risposte simboliche che selezioni (sesso, colore, destino, lignaggio, carattere, il tuo zodiaco, la tua iniziale) e la data di nascita del tuo cane se fornita. Stripe raccoglie i tuoi dati di pagamento direttamente — noi riceviamo solo una conferma di pagamento, le ultime 4 cifre della carta e il paese. I nostri server registrano automaticamente dati tecnici (indirizzo IP, user-agent, ora della richiesta) per sicurezza e prevenzione degli abusi. Raccogliamo anche dati di utilizzo su come ti muovi nel sito (pagine viste, clic, tipo di dispositivo e browser) — anonimizzati per impostazione predefinita e collegati a te solo se acconsenti alle analisi o alle registrazioni.',
@@ -729,7 +729,7 @@ export const ita: Partial<Dict> = {
     'Il tuo HEROGLYPH e il tuo profilo branco vengono conservati finché esiste il tuo account, perché il GodsGrid è il registro a vita di ogni membro del branco. I log delle email transazionali vengono conservati per 12 mesi per supporto e prevenzione frodi. I registri contabili vengono conservati per 10 anni come richiesto dalla legge slovacca (Legge 431/2002 Racc.). Quando ci chiedi di cancellare il tuo account, rimuoviamo gli identificatori personali entro 30 giorni e conserviamo solo il minimo richiesto per legge.',
   'privacy.s8.title': '8. I Tuoi Diritti',
   'privacy.s8.body':
-    'Ai sensi del GDPR hai il diritto di accedere ai tuoi dati, di rettificarli, di farli cancellare, di limitare o opporti al trattamento, alla portabilità dei dati e di revocare il consenso in qualsiasi momento. Puoi anche presentare un reclamo all\'autorità di controllo slovacca — Úrad na ochranu osobných údajov SR, Hraničná 12, 820 07 Bratislava 27, statny.dozor@pdp.gov.sk. Per esercitare uno qualsiasi di questi diritti scrivi a privacy@dogypt.com — rispondiamo entro 30 giorni.',
+    'Ai sensi del GDPR hai il diritto di accedere ai tuoi dati, di rettificarli, di farli cancellare, di limitare o opporti al trattamento, alla portabilità dei dati e di revocare il consenso in qualsiasi momento. Puoi anche presentare un reclamo all\'autorità di controllo slovacca — Úrad na ochranu osobných údajov SR, Hraničná 12, 820 07 Bratislava 27, statny.dozor@pdp.gov.sk. Per esercitare uno qualsiasi di questi diritti scrivi a woof@dogypt.com — rispondiamo entro 30 giorni.',
   'privacy.s9.title': '9. Trasferimenti Internazionali',
   'privacy.s9.body':
     'Alcuni dei nostri sub-responsabili (Stripe, Cloudinary, Resend, Supabase, GitHub e — con il consenso al marketing — Google e Meta) gestiscono server al di fuori dell\'UE/SEE, principalmente negli Stati Uniti. PostHog elabora le nostre analisi su server nell\'UE. Quando i dati personali lasciano l\'UE/SEE ci basiamo sulle Clausole Contrattuali Standard della Commissione Europea, sul Data Privacy Framework UE–USA e su ulteriori garanzie richieste dal Capo V del GDPR.',
@@ -738,7 +738,7 @@ export const ita: Partial<Dict> = {
     'Ti informeremo delle modifiche sostanziali via email almeno 30 giorni prima della loro entrata in vigore. Le modifiche minori — refusi, aggiornamenti dei nomi dei sub-responsabili, nuovi indirizzi di contatto — hanno effetto al momento della pubblicazione. La versione corrente e la data sono sempre in cima a questa pagina; le versioni precedenti sono disponibili su richiesta.',
   'privacy.s11.title': '11. Contatti',
   'privacy.s11.body':
-    'Privacy e richieste sui dati: privacy@dogypt.com · Domande generali: info@dogypt.com · Posta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovacchia.',
+    'woof@dogypt.com · Posta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovacchia.',
 
   // ── Consent banner (ConsentBanner.tsx + Footer «Impostazioni cookie») ──
   'consent.title': 'Doveri umani',

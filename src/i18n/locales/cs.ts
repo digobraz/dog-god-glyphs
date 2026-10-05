@@ -999,7 +999,7 @@ export const cs: Partial<Dict> = {
     'Službu smíte používat, jen pokud je vám alespoň 16 let. Vytvořením účtu nebo dokončením nákupu potvrzujete, že je vám 16 a více let, že údaje, které poskytujete, jsou pravdivé, a že používání Služby je v zemi, kde žijete, legální.',
   'terms.s3.title': '3. Účet a členství ve smečce',
   'terms.s3.body':
-    'Přístup se uděluje přes přihlašovací odkaz (magic link) zaslaný na váš e-mail; žádné heslo se neukládá. Účet je osobní — prosíme, nesdílejte přístup. Účty, které zneužívají Službu, obtěžují jiné Členy nebo porušují tyto Podmínky, můžeme pozastavit nebo zrušit. O smazání účtu můžete kdykoli požádat e-mailem na privacy@dogypt.com.',
+    'Přístup se uděluje přes přihlašovací odkaz (magic link) zaslaný na váš e-mail; žádné heslo se neukládá. Účet je osobní — prosíme, nesdílejte přístup. Účty, které zneužívají Službu, obtěžují jiné Členy nebo porušují tyto Podmínky, můžeme pozastavit nebo zrušit. O smazání účtu můžete kdykoli požádat e-mailem na woof@dogypt.com.',
   'terms.s4.title': '4. Heroglyph a digitální zboží',
   'terms.s4.body':
     'Kupujete digitální zboží: osobní HEROGLYPH (jedinečný symbolický certifikát), jeho PDF verzi, záznam vašeho psa ve veřejném GodsGrid a trvalý přístup k profilu vaší smečky. Udělujeme vám osobní, nepřenosnou a nevýhradní licenci k používání tohoto digitálního zboží pro nekomerční osobní účely. Nic fyzického se nezasílá. Reprodukce, další prodej nebo komerční využití HEROGLYPH grafiky či podkladů vyžaduje náš předchozí písemný souhlas.',
@@ -1008,7 +1008,7 @@ export const cs: Partial<Dict> = {
     'Platby zpracovává Stripe Payments Europe, Ltd. Vaše úplné údaje o kartě nikdy nevidíme ani neukládáme. Ceny se zobrazují v měně uvedené u pokladny (výchozí USD); případná DPH se vypočítá a zobrazí před zaplacením. Objednávka, kterou potvrdíte u pokladny, je objednávka, kterou doručíme — rozsah ani cenu dodatečně neměníme.',
   'terms.s6.title': '6. Vrácení peněz a právo na odstoupení',
   'terms.s6.body':
-    'Podle směrnice EU 2011/83/EU mají spotřebitelé zpravidla 14 dní na odstoupení od smlouvy uzavřené na dálku. Protože se HEROGLYPH dodává jako digitální obsah ihned po zaplacení, kliknutím na „Zaplatit“ udělujete výslovný předchozí souhlas se zahájením okamžitého plnění a berete na vědomí, že zahájením dodání ztrácíte právo na odstoupení (čl. 16 písm. m) směrnice). Pokud se něco pokazí na naší straně — poškozený soubor, duplicitní platba, zrušená objednávka — napište na support@dogypt.com do 14 dnů a peníze vrátíme nebo dodáme znovu, bez otázek.',
+    'Podle směrnice EU 2011/83/EU mají spotřebitelé zpravidla 14 dní na odstoupení od smlouvy uzavřené na dálku. Protože se HEROGLYPH dodává jako digitální obsah ihned po zaplacení, kliknutím na „Zaplatit“ udělujete výslovný předchozí souhlas se zahájením okamžitého plnění a berete na vědomí, že zahájením dodání ztrácíte právo na odstoupení (čl. 16 písm. m) směrnice). Pokud se něco pokazí na naší straně — poškozený soubor, duplicitní platba, zrušená objednávka — napište na woof@dogypt.com do 14 dnů a peníze vrátíme nebo dodáme znovu, bez otázek.',
   'terms.s7.title': '7. Přípustné používání',
   'terms.s7.body':
     'Nenahrávejte nic, k čemu nemáte práva. Patří sem fotografie jiných lidí, materiál chráněný autorským právem nebo obsah zobrazující týrání, nezákonnou činnost či sexuální obsah s nezletilými. Neobtěžujte jiné Členy, nevydávejte se za ně a nevyhrožujte jim. Nesbírejte data automatizovaně (scraping), hromadně nestahujte, neprovádějte zpětné inženýrství ani se nepokoušejte narušit provoz Služby. Obsah nebo účty porušující tato pravidla můžeme odstranit, s upozorněním i bez něj.',
@@ -1023,7 +1023,7 @@ export const cs: Partial<Dict> = {
     'Tyto Podmínky se řídí právem Slovenské republiky s vyloučením kolizních norem. Spory, které se nepodaří vyřešit neformálně, spadají do pravomoci příslušných slovenských soudů podle našeho sídla. Spotřebitelé v EU mohou využít také evropskou platformu pro řešení sporů online na https://ec.europa.eu/consumers/odr.',
   'terms.s11.title': '11. Kontakt',
   'terms.s11.body':
-    'Obecné dotazy: info@dogypt.com · Soukromí a osobní údaje: privacy@dogypt.com · Refundace a podpora: support@dogypt.com · Pošta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko.',
+    'woof@dogypt.com · Pošta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko.',
   'terms.s12.title': '12. Obsah, který zveřejňujete',
   'terms.s12.body':
     'Vedle svého HEROGLYPHu můžete ve smečce zveřejňovat obsah: fotografie z výletů, trasy a místa, popisy výletů, hodnocení, komentáře a dotazy a cokoli napíšete na svůj profil. Když označíte výlet jako ušlý, ostatní Členové uvidí vaše křestní jméno a psy, kteří jej ušli s vámi. Všechno, co zveřejníte, zůstává vaše. Zveřejněním udělujete společnosti DOGYPT s.r.o. celosvětovou, bezúplatnou, nevýhradní licenci tento obsah uchovávat, zobrazovat a upravovat pro účely provozu a propagace Služby — například zobrazit vaši fotografii z výletu na mapě, ve výpisu výletů nebo na sdílecí kartě. Licence trvá, dokud je obsah ve Službě; odstraněním obsahu nebo účtu zaniká, s výjimkou záloh, které vyprší ve svém běžném cyklu. Váš obsah neprodáváme a neposkytujeme na něj licenci nikomu jinému pro jeho vlastní použití. Zveřejňujte jen to, k čemu máte právo — včetně fotografií, které pořídil někdo jiný, a lidí, kteří jsou na nich rozpoznatelní.',
@@ -1039,7 +1039,7 @@ export const cs: Partial<Dict> = {
   'privacy.linkTerms': 'Podmínky používání →',
   'privacy.s1.title': '1. Kdo jsme',
   'privacy.s1.body':
-    'DOGYPT s.r.o., slovenská společnost s ručením omezeným (IČO 54 444 594), sídlo Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko. Jsme správcem osobních údajů popsaných níže. S jakýmkoli dotazem ohledně soukromí nám pište na privacy@dogypt.com. Pověřence pro ochranu osobních údajů (DPO) jsme nejmenovali, protože naše zpracování nedosahuje prahových hodnot čl. 37 GDPR. Datum účinnosti: 4. května 2026.',
+    'DOGYPT s.r.o., slovenská společnost s ručením omezeným (IČO 54 444 594), sídlo Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko. Jsme správcem osobních údajů popsaných níže. S jakýmkoli dotazem ohledně soukromí nám pište na woof@dogypt.com. Pověřence pro ochranu osobních údajů (DPO) jsme nejmenovali, protože naše zpracování nedosahuje prahových hodnot čl. 37 GDPR. Datum účinnosti: 4. května 2026.',
   'privacy.s2.title': '2. Jaké údaje sbíráme',
   'privacy.s2.body':
     'Při používání HEROGLYPH procesu sbíráme: vaši e-mailovou adresu, jméno psa, nahranou fotografii psa (uloženou na Cloudinary), symbolické odpovědi, které vyberete (pohlaví, barva, osud, pokrevní linie, charakter, váš horoskop, vaše iniciála), a datum narození psa, pokud jej uvedete. Platební údaje sbírá přímo Stripe — my dostáváme jen potvrzení platby, poslední 4 číslice karty a zemi. Naše servery automaticky zaznamenávají technické údaje (IP adresa, user-agent, čas požadavku) pro účely bezpečnosti a prevence zneužití. Sbíráme také údaje o používání o tom, jak se pohybujete po webu (zobrazené stránky, kliknutí, typ zařízení a prohlížeče) — ve výchozím nastavení anonymizované a přiřazené k vám jen tehdy, pokud udělíte souhlas s analytikou nebo nahráváním.',
@@ -1060,7 +1060,7 @@ export const cs: Partial<Dict> = {
     'Váš HEROGLYPH a profil smečky uchováváme, dokud existuje váš účet, protože GodsGrid je doživotní registr každého člena smečky. Záznamy o transakčních e-mailech uchováváme 12 měsíců pro účely podpory a prevence podvodů. Účetní záznamy uchováváme 10 let, jak vyžaduje slovenské právo (zákon č. 431/2002 Z. z.). Když požádáte o smazání účtu, osobní identifikátory odstraníme do 30 dnů a ponecháme jen zákonem vyžadované minimum.',
   'privacy.s8.title': '8. Vaše práva',
   'privacy.s8.body':
-    'Podle GDPR máte právo na přístup ke svým údajům, jejich opravu, výmaz, omezení zpracování nebo námitku proti němu, přenositelnost údajů a kdykoli odvolat souhlas. Stížnost můžete podat také slovenskému dozorovému orgánu — Úrad na ochranu osobných údajov SR, Hraničná 12, 820 07 Bratislava 27, statny.dozor@pdp.gov.sk. K uplatnění kteréhokoli z těchto práv pište na privacy@dogypt.com — odpovíme do 30 dnů.',
+    'Podle GDPR máte právo na přístup ke svým údajům, jejich opravu, výmaz, omezení zpracování nebo námitku proti němu, přenositelnost údajů a kdykoli odvolat souhlas. Stížnost můžete podat také slovenskému dozorovému orgánu — Úrad na ochranu osobných údajov SR, Hraničná 12, 820 07 Bratislava 27, statny.dozor@pdp.gov.sk. K uplatnění kteréhokoli z těchto práv pište na woof@dogypt.com — odpovíme do 30 dnů.',
   'privacy.s9.title': '9. Mezinárodní přenosy',
   'privacy.s9.body':
     'Někteří naši zpracovatelé (Stripe, Cloudinary, Resend, Supabase, GitHub a — při marketingovém souhlasu — Google a Meta) provozují servery mimo EU/EHP, většinou v USA. PostHog zpracovává naši analytiku na serverech v EU. Tam, kde osobní údaje opouštějí EU/EHP, se opíráme o standardní smluvní doložky Evropské komise, rámec EU–USA Data Privacy Framework a dodatečné záruky podle kapitoly V GDPR.',
@@ -1069,7 +1069,7 @@ export const cs: Partial<Dict> = {
     'O podstatných změnách vás budeme informovat e-mailem nejméně 30 dní před nabytím účinnosti. Drobné úpravy — překlepy, změny názvů zpracovatelů, nové kontaktní adresy — nabývají účinnosti zveřejněním. Aktuální verze a datum jsou vždy v horní části této stránky; starší verze jsou k dispozici na vyžádání.',
   'privacy.s11.title': '11. Kontakt',
   'privacy.s11.body':
-    'Soukromí a osobní údaje: privacy@dogypt.com · Obecné dotazy: info@dogypt.com · Pošta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko.',
+    'woof@dogypt.com · Pošta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko.',
   'privacy.s12.title': '12. Uvnitř smečky: co vidí ostatní Členové',
   'privacy.s12.body':
     'Článek 3 popisuje veřejný GodsGrid. Uvnitř smečky — v členské zóně — vidí ostatní přihlášení Členové více: vaše křestní jméno, vaše dogyptské pořadové číslo, jméno a fotografii vašeho psa, atributy, které jste o psovi vyplnili, výlety, které jste zaznamenali nebo ohlásili, vaše hodnocení a komentáře a cokoli jste napsali na svůj profil. Nevidí vaši e-mailovou adresu, poštovní adresu, platební údaje ani vaše zprávy s kýmkoli jiným. Když ohlásíte výlet jako otevřený, trasa, datum a váš pes se stanou viditelnými pro každého Člena, aby mohl požádat o přidání — to ohlášení znamená. Výlet, který si necháte soukromý, vidíte jen vy a lidé, kteří už jdou. Která z těch dvou možností to bude, si vybíráte vy a můžete to kdykoli změnit.',
@@ -5352,7 +5352,7 @@ export const cs: Partial<Dict> = {
   'onepage.fin.statHours': "Hodiny práce",
   'onepage.fin.statHoursWho': "od 03/2026 · lidé + AI agenti",
   'onepage.fin.statOnlineSub': "Přidali se první Dogypťané.",
-  'onepage.fin.statIdeaSub': "Zrozená z jednoho psa z útulku.",
+  'onepage.fin.statIdeaSub': "Vymyslel jsem HEROGLYPH.",
   'onepage.fin.ask.problem': "Mám problém",
   'onepage.fin.aiRole': "Strážce DOGYPTU · AI agent",
   'onepage.fin.aiLine': "Tento projekt vzniká s láskou ke <b>psům</b> — a díky <b>AI</b>.",

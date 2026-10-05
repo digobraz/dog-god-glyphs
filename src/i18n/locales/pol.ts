@@ -663,7 +663,7 @@ export const pol: Partial<Dict> = {
     'Z Usługi możesz korzystać tylko, jeśli masz co najmniej 16 lat. Tworząc konto lub finalizując zakup, potwierdzasz, że masz 16 lat lub więcej, że podane przez ciebie dane są prawdziwe oraz że korzystanie z Usługi jest zgodne z prawem w kraju, w którym mieszkasz.',
   'terms.s3.title': '3. Konto i członkostwo w sforze',
   'terms.s3.body':
-    'Dostęp przyznawany jest przez link logowania (magic link) wysłany na twój e-mail; żadne hasło nie jest przechowywane. Konto jest osobiste — prosimy, nie udostępniaj dostępu. Możemy zawiesić lub zamknąć konta, które nadużywają Usługi, nękają innych Członków lub naruszają niniejsze Warunki. O usunięcie konta możesz poprosić w dowolnym momencie, pisząc na privacy@dogypt.com.',
+    'Dostęp przyznawany jest przez link logowania (magic link) wysłany na twój e-mail; żadne hasło nie jest przechowywane. Konto jest osobiste — prosimy, nie udostępniaj dostępu. Możemy zawiesić lub zamknąć konta, które nadużywają Usługi, nękają innych Członków lub naruszają niniejsze Warunki. O usunięcie konta możesz poprosić w dowolnym momencie, pisząc na woof@dogypt.com.',
   'terms.s4.title': '4. Heroglyph i towary cyfrowe',
   'terms.s4.body':
     'Kupujesz towar cyfrowy: osobisty HEROGLYPH (unikalny symboliczny certyfikat), jego wersję PDF, wpis twojego psa w publicznym GodsGrid oraz stały dostęp do twojego profilu w sforze. Udzielamy ci osobistej, nieprzenoszalnej i niewyłącznej licencji na korzystanie z tych towarów cyfrowych do niekomercyjnego użytku osobistego. Nic fizycznego nie jest wysyłane. Reprodukcja, odsprzedaż lub komercyjne wykorzystanie grafiki czy zasobów HEROGLYPH wymaga naszej uprzedniej pisemnej zgody.',
@@ -672,7 +672,7 @@ export const pol: Partial<Dict> = {
     'Płatności obsługuje Stripe Payments Europe, Ltd. Nigdy nie widzimy ani nie przechowujemy pełnych danych twojej karty. Ceny wyświetlane są w walucie podanej przy kasie (domyślnie USD); ewentualny VAT jest naliczany i wyświetlany przed zapłatą. Zamówienie, które potwierdzasz przy kasie, jest zamówieniem, które dostarczamy — nie zmieniamy zakresu ani ceny po fakcie.',
   'terms.s6.title': '6. Zwroty i prawo odstąpienia',
   'terms.s6.body':
-    'Zgodnie z dyrektywą UE 2011/83/UE konsumenci mają zwykle 14 dni na odstąpienie od umowy zawartej na odległość. Ponieważ HEROGLYPH dostarczany jest jako treść cyfrowa natychmiast po zapłacie, klikając „Zapłać" udzielasz wyraźnej uprzedniej zgody na natychmiastowe rozpoczęcie świadczenia i przyjmujesz do wiadomości, że z chwilą rozpoczęcia dostawy tracisz prawo odstąpienia (art. 16 lit. m dyrektywy). Jeśli coś po naszej stronie pójdzie nie tak — uszkodzony plik, podwójna płatność, anulowane zamówienie — napisz na support@dogypt.com w ciągu 14 dni, a zwrócimy pieniądze lub dostarczymy ponownie, bez zbędnych pytań.',
+    'Zgodnie z dyrektywą UE 2011/83/UE konsumenci mają zwykle 14 dni na odstąpienie od umowy zawartej na odległość. Ponieważ HEROGLYPH dostarczany jest jako treść cyfrowa natychmiast po zapłacie, klikając „Zapłać" udzielasz wyraźnej uprzedniej zgody na natychmiastowe rozpoczęcie świadczenia i przyjmujesz do wiadomości, że z chwilą rozpoczęcia dostawy tracisz prawo odstąpienia (art. 16 lit. m dyrektywy). Jeśli coś po naszej stronie pójdzie nie tak — uszkodzony plik, podwójna płatność, anulowane zamówienie — napisz na woof@dogypt.com w ciągu 14 dni, a zwrócimy pieniądze lub dostarczymy ponownie, bez zbędnych pytań.',
   'terms.s7.title': '7. Dopuszczalne korzystanie',
   'terms.s7.body':
     'Nie wgrywaj niczego, do czego nie masz praw. Dotyczy to zdjęć innych osób, materiałów chronionych prawem autorskim oraz treści przedstawiających okrucieństwo, nielegalną działalność czy treści seksualne z udziałem nieletnich. Nie nękaj innych Członków, nie podszywaj się pod nich i nie groź im. Nie zbieraj danych automatycznie (scraping), nie pobieraj masowo, nie poddawaj inżynierii wstecznej ani nie próbuj zakłócać działania Usługi. Treści lub konta naruszające te zasady możemy usunąć, z powiadomieniem lub bez niego.',
@@ -687,14 +687,14 @@ export const pol: Partial<Dict> = {
     'Niniejsze Warunki podlegają prawu Republiki Słowackiej, z wyłączeniem norm kolizyjnych. Spory, których nie uda się rozwiązać polubownie, podlegają jurysdykcji właściwych sądów słowackich według naszej siedziby. Konsumenci w UE mogą również skorzystać z europejskiej platformy internetowego rozstrzygania sporów pod adresem https://ec.europa.eu/consumers/odr.',
   'terms.s11.title': '11. Kontakt',
   'terms.s11.body':
-    'Pytania ogólne: info@dogypt.com · Prywatność i dane osobowe: privacy@dogypt.com · Zwroty i wsparcie: support@dogypt.com · Poczta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Słowacja.',
+    'woof@dogypt.com · Poczta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Słowacja.',
 
   // ── /privacy ──
   'privacy.title': 'Polityka prywatności',
   'privacy.linkTerms': 'Warunki korzystania →',
   'privacy.s1.title': '1. Kim jesteśmy',
   'privacy.s1.body':
-    'DOGYPT s.r.o., słowacka spółka z ograniczoną odpowiedzialnością (IČO 54 444 594), siedziba Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Słowacja. Jesteśmy administratorem danych osobowych opisanych poniżej. W każdej sprawie dotyczącej prywatności pisz na privacy@dogypt.com. Nie wyznaczyliśmy inspektora ochrony danych (DPO), ponieważ nasze przetwarzanie nie osiąga progów z art. 37 RODO. Data wejścia w życie: 4 maja 2026.',
+    'DOGYPT s.r.o., słowacka spółka z ograniczoną odpowiedzialnością (IČO 54 444 594), siedziba Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Słowacja. Jesteśmy administratorem danych osobowych opisanych poniżej. W każdej sprawie dotyczącej prywatności pisz na woof@dogypt.com. Nie wyznaczyliśmy inspektora ochrony danych (DPO), ponieważ nasze przetwarzanie nie osiąga progów z art. 37 RODO. Data wejścia w życie: 4 maja 2026.',
   'privacy.s2.title': '2. Jakie dane zbieramy',
   'privacy.s2.body':
     'Podczas korzystania z procesu HEROGLYPH zbieramy: twój adres e-mail, imię psa, wgrane zdjęcie psa (przechowywane na Cloudinary), wybrane przez ciebie symboliczne odpowiedzi (płeć, kolor, los, linia krwi, charakter, twój horoskop, twój inicjał) oraz datę urodzenia psa, jeśli ją podasz. Dane płatnicze zbiera bezpośrednio Stripe — my otrzymujemy tylko potwierdzenie płatności, ostatnie 4 cyfry karty i kraj. Nasze serwery automatycznie rejestrują dane techniczne (adres IP, user-agent, czas żądania) w celach bezpieczeństwa i zapobiegania nadużyciom. Zbieramy również dane o użytkowaniu dotyczące tego, jak poruszasz się po stronie (wyświetlone strony, kliknięcia, typ urządzenia i przeglądarki) — domyślnie zanonimizowane i powiązane z tobą tylko wtedy, gdy wyrazisz zgodę na analitykę lub nagrania.',
@@ -715,7 +715,7 @@ export const pol: Partial<Dict> = {
     'Twój HEROGLYPH i profil w sforze przechowujemy tak długo, jak istnieje twoje konto, ponieważ GodsGrid jest dożywotnim rejestrem każdego członka sfory. Logi e-maili transakcyjnych przechowujemy przez 12 miesięcy w celach wsparcia i zapobiegania oszustwom. Zapisy księgowe przechowujemy przez 10 lat, zgodnie z wymogami prawa słowackiego (ustawa nr 431/2002 Dz.U.). Gdy poprosisz o usunięcie konta, usuwamy identyfikatory osobowe w ciągu 30 dni i zachowujemy tylko prawnie wymagane minimum.',
   'privacy.s8.title': '8. Twoje prawa',
   'privacy.s8.body':
-    'Zgodnie z RODO masz prawo dostępu do swoich danych, ich sprostowania, usunięcia, ograniczenia przetwarzania lub sprzeciwu wobec niego, przenoszenia danych oraz wycofania zgody w dowolnym momencie. Możesz również wnieść skargę do słowackiego organu nadzorczego — Úrad na ochranu osobných údajov SR, Hraničná 12, 820 07 Bratislava 27, statny.dozor@pdp.gov.sk. Aby skorzystać z któregokolwiek z tych praw, napisz na privacy@dogypt.com — odpowiadamy w ciągu 30 dni.',
+    'Zgodnie z RODO masz prawo dostępu do swoich danych, ich sprostowania, usunięcia, ograniczenia przetwarzania lub sprzeciwu wobec niego, przenoszenia danych oraz wycofania zgody w dowolnym momencie. Możesz również wnieść skargę do słowackiego organu nadzorczego — Úrad na ochranu osobných údajov SR, Hraničná 12, 820 07 Bratislava 27, statny.dozor@pdp.gov.sk. Aby skorzystać z któregokolwiek z tych praw, napisz na woof@dogypt.com — odpowiadamy w ciągu 30 dni.',
   'privacy.s9.title': '9. Przekazywanie międzynarodowe',
   'privacy.s9.body':
     'Niektórzy nasi podmioty przetwarzające (Stripe, Cloudinary, Resend, Supabase, GitHub oraz — przy zgodzie marketingowej — Google i Meta) prowadzą serwery poza UE/EOG, głównie w USA. PostHog przetwarza naszą analitykę na serwerach w UE. Tam, gdzie dane osobowe opuszczają UE/EOG, opieramy się na standardowych klauzulach umownych Komisji Europejskiej, ramach EU–US Data Privacy Framework oraz dodatkowych zabezpieczeniach zgodnie z rozdziałem V RODO.',
@@ -724,7 +724,7 @@ export const pol: Partial<Dict> = {
     'O istotnych zmianach poinformujemy cię e-mailem co najmniej 30 dni przed ich wejściem w życie. Drobne poprawki — literówki, zmiany nazw podmiotów przetwarzających, nowe adresy kontaktowe — wchodzą w życie z chwilą publikacji. Aktualna wersja i data są zawsze u góry tej strony; starsze wersje są dostępne na żądanie.',
   'privacy.s11.title': '11. Kontakt',
   'privacy.s11.body':
-    'Prywatność i dane osobowe: privacy@dogypt.com · Pytania ogólne: info@dogypt.com · Poczta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Słowacja.',
+    'woof@dogypt.com · Poczta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Słowacja.',
 
   // ── Consent banner (ConsentBanner.tsx + Footer „Ustawienia plików cookie") ──
   'consent.title': 'Ludzkie powinności',
