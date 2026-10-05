@@ -44,6 +44,9 @@ const GO_CSS = `${VEIL_CSS}
 .tgo-item--wide{grid-column:1 / -1;}
 .tgo-grid--top{margin-top:16px;}
 .tgo-ic{font-family:${FONT_EMOJI};font-size:16px;line-height:1;flex-shrink:0;}
+/* Logo aplikácie (Matej 5. 10. 2026: „tu by som dal loga spoločností nie emoji"). Je to ZNAČKA
+   cudzej appky, nie naša ikonka — preto ich vlastná kresba a farba, nie hand-drawn set. */
+.tgo-logo{width:20px;height:20px;flex-shrink:0;object-fit:contain;display:block;}
 .tgo-sub{display:block;font-size:12px;font-weight:400;color:${T.inkWarm};margin-top:2px;}
 
 /* ── DVA CTA, DVE RÔZNE VECI (Matej 2026-09-15) ──────────────────────────────────────────
@@ -95,11 +98,13 @@ a.tgo-cta{text-decoration:none;}
   background:${PACK_BOX.panel.background};border:${PACK_BOX.panel.border};box-shadow:${PACK_BOX.panel.boxShadow};border-radius:12px;}
 `;
 
-/** Poradie = čo ľudia na Slovensku reálne otvárajú. Apple pribúda len na Apple zariadení. */
-const APPS: Array<{ id: NavApp; emoji: string }> = [
-  { id: 'google', emoji: '🗺️' },
-  { id: 'waze',   emoji: '🚗' },
-  { id: 'mapy',   emoji: '🧭' },
+/** Poradie = čo ľudia na Slovensku reálne otvárajú. Apple pribúda len na Apple zariadení.
+ *  Logá v `public/nav-apps/`: Google a Mapy.com = ikona appky (Wikimedia Commons), Waze a Apple =
+ *  značka zo simple-icons (CC0) — pri Apple stačí jablko, „Maps" stojí v texte vedľa. */
+const APPS: Array<{ id: NavApp; logo: string }> = [
+  { id: 'google', logo: '/nav-apps/google.svg' },
+  { id: 'waze',   logo: '/nav-apps/waze.svg' },
+  { id: 'mapy',   logo: '/nav-apps/mapy.svg' },
 ];
 
 /** Panel rieši už len cestu autom na parkovisko — trasa ide priamo odkazom (TripGoButtons). */
@@ -114,10 +119,9 @@ export function TripGoPanel({ trail, onClose }: { trail: HeroTrail; onClose: () 
   }, [onClose]);
 
   if (!target) return null;
-  // 🍎 zámerne, nie  (U+F8FF): logo Apple je znak z privátnej oblasti Apple fontu a mimo
-  // macOS/iOS sa kreslí ako prázdny obdĺžnik. Sada panela je Emoji 1.0 — tá istá podmienka,
-  // kvôli ktorej padol 🪜 v mapových značkách.
-  const apps = isAppleDevice() ? [APPS[0], { id: 'apple' as NavApp, emoji: '🍎' }, ...APPS.slice(1)] : APPS;
+  // Jablko je SVG, nie znak U+F8FF — ten je z privátnej oblasti Apple fontu a mimo
+  // macOS/iOS sa kreslí ako prázdny obdĺžnik.
+  const apps = isAppleDevice() ? [APPS[0], { id: 'apple' as NavApp, logo: '/nav-apps/apple.svg' }, ...APPS.slice(1)] : APPS;
   return (
     <>
       <style>{GO_CSS}</style>
@@ -142,7 +146,7 @@ export function TripGoPanel({ trail, onClose }: { trail: HeroTrail; onClose: () 
                 rel="noopener noreferrer"
                 onClick={onClose}
               >
-                <span className="tgo-ic">{a.emoji || ''}</span>
+                <img className="tgo-logo" src={a.logo} alt="" aria-hidden="true" />
                 {t(`pack.trip.go.app.${a.id}`)}
               </a>
             ))}
