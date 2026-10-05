@@ -17,7 +17,7 @@
 // 📸 FOTKY: `human.buddyPhotos` = všetky v poradí karty; `human.buddyPhoto` = tá, na ktorej
 //    ste SPOLU (zelený rám). Brána na serveri chce `buddyPhoto`, takže sa nemení.
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { uploadExtraPhoto, withTransform, bgImg } from '@/services/cloudinaryService';
+import { uploadBuddyPhoto, withTransform, bgImg } from '@/services/cloudinaryService';
 import { HandArrowLeft } from '@/components/pack/HandIcons';
 import { SnifferPinEditor, SnifferCountryChip, defaultCountry } from './SnifferPin';
 import {
@@ -805,7 +805,7 @@ function PhotoSlots({ uid, photos, together, tx }: { uid: string | null; photos:
         setErr(null);
         try {
           // Názov z času, nie z poradia: po odstránení fotky by poradie trafilo existujúci súbor.
-          const r = await uploadExtraPhoto(f, `buddy/${uid}`, Date.now());
+          const r = await uploadBuddyPhoto(f, uid, Date.now());
           // Prvá fotka je predvolene tá „spolu" — brána ju chce a kto nahrá jednu, myslí ňou tú.
           write([...photos, r.secureUrl], together ?? r.secureUrl);
         } catch (x) {

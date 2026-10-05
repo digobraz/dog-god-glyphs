@@ -41,6 +41,18 @@ export const uploadCroppedPhoto = (blob: Blob, sessionId: string) =>
 export const uploadExtraPhoto = (blob: Blob, sessionId: string, index: number) =>
   uploadBlob(blob, `tmp/${sessionId}/extras`, String(index).padStart(2, '0'));
 
+// 🔴 FOTKY ČLENA ≠ KONCEPT Z HEROFLOW (audit 5. 10. 2026). Profilovka a fotky SNIFFERA sa do
+//    vtedy nahrávali cez `uploadExtraPhoto`, teda do `tmp/avatars/<uid>/extras` a
+//    `tmp/buddy/<uid>/extras`. `tmp/` je sklad KONCEPTOV, ktorý zametač
+//    (`scripts/cloudinary-koncepty.mjs`) čistí podľa odkazu zo zaplateného psa — a na
+//    `avatars`/`buddy` žiaden pes neukazuje. Na LIVE 5. 10. vracalo 10 z 11 starých
+//    profiloviek 404. Fotky člena preto majú vlastné trvalé priečinky mimo `tmp/`.
+export const uploadAvatarPhoto = (blob: Blob, userId: string) =>
+  uploadBlob(blob, `avatars/${userId}`, `avatar-${Date.now()}`);
+
+export const uploadBuddyPhoto = (blob: Blob, userId: string, stamp: number) =>
+  uploadBlob(blob, `buddy/${userId}`, String(stamp));
+
 // Fotka ĎALŠIEHO PSA zo svorky (krok 3 vstupu, 23. 9. 2026).
 // 🔴 VLASTNÝ PRIEČINOK A ID PSA V NÁZVE, nie poradové číslo. `extras/` už nesie
 //    galériu hlavného psa (`uploadExtraPhoto`, indexuje od 1) — to isté číslo by

@@ -11,7 +11,7 @@ import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
 import { PACK_THEME, PACK_BOX, PACK_TEXT, PACK_SPACE, PF_FIELD_CSS, FONT_TITLE, FONT_UI, usePaperRoute } from '@/components/pack/packTheme';
 import { GOLD_BLOCK_CSS } from '@/components/pack/navGoldSkin';
 import { tierVars } from '@/lib/packTiers';
-import { uploadExtraPhoto, sizedUrl } from '@/services/cloudinaryService';
+import { uploadAvatarPhoto, sizedUrl } from '@/services/cloudinaryService';
 import { useToast } from '@/hooks/use-toast';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { countryOptions, normalizeCountryValue, COUNTRY_OTHER } from '@/lib/countryOptions';
@@ -447,7 +447,7 @@ export default function PackProfile() {
     if (!file || !session?.user) return;
     setUploading(true);
     try {
-      const result = await uploadExtraPhoto(file, `avatars/${session.user.id}`, 1);
+      const result = await uploadAvatarPhoto(file, session.user.id);
       const { error: upErr } = await supabase.auth.updateUser({
         data: { avatar_url: result.secureUrl },
       });
