@@ -5729,8 +5729,14 @@ export default function OnePage() {
           /* TEXT POD LIŠTU (Matej 5. 10.: *„treba posunúť texty dolu, lebo teraz pretekajú
              hore"*). „A COW HAS" stál na y 92, medailón lišty siaha po 110 —
              odteraz výška lišty (--op-nav-h) + 16 px vzduchu (PAGE_AIR). */
+          /* 2. kolo (Matej 5. 10.: *„obsah mierne zväčši a posuň dolu a chip posuň pod
+             svätožiaru"*): vzduch pod lištou 16 → 40 px, text +10 % (zoom zväčší aj
+             medzery, takže blok ostane súrodý). */
           .op-root #op-religion .codex-section[data-idx="0"] .codex-3-overlay {
-            padding-top: calc(var(--op-nav-h, 118px) + 16px);
+            padding-top: calc(var(--op-nav-h, 118px) + 40px);
+          }
+          .op-root #op-religion .codex-section[data-idx="0"] .codex-3-overlay > :is(.codex-claim, .codex-yet) {
+            zoom: 1.1;
           }
           /* ČIP „OUR GOAL IS TO CHANGE THAT!" MENŠÍ (Matej 5. 10. 2026: *„chip je moc
              veľký"*). Len tento čip a len na mobile — tvar INFO ČIPU filmu
@@ -5738,6 +5744,29 @@ export default function OnePage() {
           .op-root #op-religion .codex-section[data-idx="0"] .codex-chip {
             font-size: 10px;
             padding: 6px 12px;
+          }
+          /* ČIP POD SVÄTOŽIAROU KRAVY — vypadne z toku textu a sadne 12 px pod prstenec.
+             Rovnica, nie meranie: spodok prstenca leží (0,1835 + 0,115·k) výšky okna
+             nad spodnou hranou — zmerané 3 body: k 2 → 0,4135 (390×844) · k 1,8 →
+             0,3913 (360×740) · k 1,3 → 0,333 (375×667); zviera aj prstenec sú
+             ukotvené dole a rastú s --ani-k, odsun do strán robí závislosť nelineárnou
+             cez nulu, preto nie čistý násobok k. Overlay je
+             100lvh vysoký a prilepený, takže top sa ráta od vrchu okna. */
+          .op-root #op-religion .codex-section[data-idx="0"] .codex-cta-cluster {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: calc(100lvh * (0.8165 - 0.115 * var(--ani-k)) + 12px);
+          }
+          /* 🔴 TRASENIE PRI NÁBEHU (Matej 5. 10.: *„trasie sa to pri tom ako sa to
+             načítava a ako sa odchádza pár sekúnd"*). Riadky textu mali 220 ms
+             zmäkčenie, ktoré sa pri ťahu prstom preťahuje s každou snímkou scrollu
+             (cieľ sa mení skôr, než prechod dobehne) — na telefóne to kmitá. Na mobile
+             ide riadok priamo za --op-txt, bez prechodu. Na PC ostáva (koliesko myši
+             skáče po krokoch a tam zmäkčenie pomáha).
+             ⚠️ .op-root.op-root — pravidlo s 220 ms má tú istú váhu a stojí v súbore NIŽŠIE. */
+          .op-root.op-root #op-religion .codex-section[data-idx="0"] .codex-3-overlay > * {
+            transition: none;
           }
           /* 🔴 NA TREŤOM OBRAZE SA PES POSUNIE DO ZÁBERU (Matej 4. 9. 2026:
              *„hektora viac centruj"*). Mobil nemá rozdelenie obrazovky, takže
