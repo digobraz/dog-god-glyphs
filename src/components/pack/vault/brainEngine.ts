@@ -406,6 +406,22 @@ export function mountBrain(o: BrainOptions): BrainHandle {
           ctx.save(); ctx.beginPath(); ctx.arc(p.sx, p.sy, hr, 0, TAU); ctx.clip();
           drawFit(ctx, HEAD, p.sx, p.sy, hr * 2, 'cover'); ctx.restore();
         }
+        /* KRÚŽIACA ČIARKA (Matej 5. 10. 2026 pri karte LIVE STATUS na /onepage: *„páči sa mi
+           tá animácia okolo, daj ju aj do ainubisa v pack, ako okolo krúži tá čiarka"*).
+           Ten istý obraz ako `.op-fin-ai-ring/ring2` vo FilmFinale: prerušovaný prstenec
+           sa točí pomaly, svetelný oblúk na tenkom kruhu rýchlo. */
+        ctx.save();
+        ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(91,224,240,.55)';
+        ctx.setLineDash([4, 5]); ctx.lineDashOffset = -TL * 6;
+        ctx.beginPath(); ctx.arc(p.sx, p.sy, rr * 1.22, 0, TAU); ctx.stroke();
+        ctx.setLineDash([]);
+        const R2 = rr * 1.42, a0 = TL * 1.8;
+        ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(91,224,240,.18)';
+        ctx.beginPath(); ctx.arc(p.sx, p.sy, R2, 0, TAU); ctx.stroke();
+        ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(91,224,240,1)';
+        ctx.shadowBlur = 12; ctx.shadowColor = 'rgba(91,224,240,.9)';
+        ctx.beginPath(); ctx.arc(p.sx, p.sy, R2, a0, a0 + TAU / 4); ctx.stroke();
+        ctx.restore();
         return;
       }
       if (p.role !== 'w') return;

@@ -550,7 +550,7 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
           .op-fin-stats { gap: 8px; }
           .op-fin-stat { padding: 12px 8px; }
           .op-fin-stat b { font-size: 20px; }
-          .op-fin-stat span { font-size: 10px; }
+          .op-fin-stat > span { font-size: 10px; }
           .op-fin-work li { grid-template-columns: 76px minmax(0, 1fr) 48px 32px; gap: 8px; font-size: 12px; }
           .op-fin-workbox { padding: 12px; }
           .op-fin-ailine { font-size: 14px; }
