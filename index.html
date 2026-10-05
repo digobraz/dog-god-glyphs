@@ -132,7 +132,13 @@
          sa ešte nestiahol), potom prázdny papyrus s lištou a šípkami a až potom guľa.
          Opona je v HTML, takže sa vykreslí s prvým bajtom — nečaká na React. Zdvihne
          ju udalosť `dogypt:planet-ready` (DogPlanetLab, keď je predná pologuľa
-         načítaná) a guľa sa pod ňou práve vynára. Strop 9 s pre prípad chyby. -->
+         načítaná) a guľa sa pod ňou práve vynára. Strop 9 s pre prípad chyby.
+         🐾 LABKY PO KRUHU (Matej 5. 10. 2026: „daj 4“, nákres
+         plany/nakres-loader-onepage-2026-10-05.html). 8 stôp z kitu okolo loga + %.
+         Percentá NIE SÚ vymyslený plynulý priebeh — sú to 4 ZMERANÉ zastávky:
+         15 opona stojí · 40 JS sa vykonal (DOMContentLoaded) · 70 film je v DOM
+         (.op-root) · 100 planéta hotová. Plynulé číslo by na pomalom mobile
+         zastalo na 94 % a vyzeralo rozbito. -->
     <script>
       (function () {
         if (location.pathname !== '/onepage') return;
@@ -153,28 +159,61 @@
           + 'background:linear-gradient(105deg,transparent 35%,rgba(255,244,210,.95) 50%,transparent 65%) no-repeat;'
           + 'background-size:250% 100%;animation:opBootShine 2.6s cubic-bezier(.45,0,.2,1) infinite .4s;'
           + '-webkit-mask:url(/images/dogypt-gold-logo.webp) center/contain no-repeat;mask:url(/images/dogypt-gold-logo.webp) center/contain no-repeat}'
-          + '#op-boot i{display:block;width:96px;height:1px;overflow:hidden;position:relative;'
-          + 'background:linear-gradient(90deg,transparent,rgba(163,120,43,.35),transparent)}'
-          + '#op-boot i::after{content:"";position:absolute;inset:0;width:45%;'
-          + 'background:linear-gradient(90deg,transparent,#C99A3F,transparent);animation:opBootRun 1.6s cubic-bezier(.45,0,.2,1) infinite}'
+          /* Obežná dráha: logo v strede, 8 labiek na kružnici. Labka = paw-full.svg z kitu (maska). */
+          + '#op-boot .o{position:relative;width:224px;height:224px;display:grid;place-items:center}'
+          + '#op-boot .o .l{width:112px;height:112px}'
+          + '#op-boot .p{position:absolute;left:50%;top:50%;width:20px;height:21px;margin:-10px 0 0 -10px;'
+          + 'background:#7A5A2A;opacity:.12;transition:opacity .35s ease,background-color .35s ease;'
+          + '-webkit-mask:url(/icons/pack/paw-full.svg) center/contain no-repeat;mask:url(/icons/pack/paw-full.svg) center/contain no-repeat}'
+          + '#op-boot .p.on{opacity:.85;background:#A3782B;animation:opBootPaw .45s cubic-bezier(.2,.8,.2,1)}'
+          + '#op-boot .n{font:500 14px/1 "Space Grotesk",system-ui,sans-serif;letter-spacing:.22em;color:#7A5A2A;'
+          + 'font-variant-numeric:tabular-nums;margin-top:-8px}'
           + '#op-boot.out{opacity:0;visibility:hidden}'
           + '#op-boot.out .b{opacity:0;transform:scale(1.08);filter:blur(4px);'
           + 'transition:opacity .6s ease,transform .9s cubic-bezier(.65,0,.35,1),filter .6s ease}'
           + '@keyframes opBootIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}'
           + '@keyframes opBootShine{from{background-position:150% 0}to{background-position:-50% 0}}'
-          + '@keyframes opBootRun{from{transform:translateX(-110%)}to{transform:translateX(230%)}}'
-          + '@media (prefers-reduced-motion:reduce){#op-boot .l::after,#op-boot i::after{animation:none}}';
+          + '@keyframes opBootPaw{from{filter:brightness(1.7);transform:var(--r) scale(.7)}to{transform:var(--r)}}'
+          + '@media (prefers-reduced-motion:reduce){#op-boot .l::after,#op-boot .p.on{animation:none}}';
         document.head.appendChild(css);
         var el = document.createElement('div');
         el.id = 'op-boot'; el.setAttribute('aria-hidden', 'true');
-        el.innerHTML = '<div class="b"><div class="l"><img src="/images/dogypt-gold-logo.webp" alt="" fetchpriority="high"></div><i></i></div>';
-        var t0 = Date.now(), gone = false;
+        var paws = '';
+        for (var i = 0; i < 8; i++) {
+          // Kráča v smere hodinových ručičiek; striedavo ľavá/pravá (±12°), aby to bola chôdza, nie ozubené koleso.
+          var r = 'rotate(' + (i * 45) + 'deg) translateY(-96px) rotate(' + (90 + (i % 2 ? 12 : -12)) + 'deg)';
+          paws += '<span class="p" style="--r:' + r + ';transform:' + r + '"></span>';
+        }
+        el.innerHTML = '<div class="b"><div class="o">' + paws
+          + '<div class="l"><img src="/images/dogypt-gold-logo.webp" alt="" fetchpriority="high"></div></div>'
+          + '<div class="n">0 %</div></div>';
+        var t0 = Date.now(), gone = false, pct = 0;
+        var num = el.querySelector('.n'), pawEls = el.querySelectorAll('.p');
+        // Percento ide len DOPREDU; číslo dobehne k zastávke za 0,5 s, labky sa rozsvietia podľa podielu z 8.
+        var stage = function (p) {
+          if (p <= pct) return;
+          var from = pct, s0 = Date.now(); pct = p;
+          for (var k = 0; k < pawEls.length; k++) if (k < Math.round(p / 100 * 8)) pawEls[k].classList.add('on');
+          (function tick() {
+            var f = Math.max(0, Math.min(1, (Date.now() - s0) / 500));
+            num.textContent = Math.round(from + (p - from) * f) + ' %';
+            if (f < 1) requestAnimationFrame(tick);
+          })();
+        };
+        stage(15);
+        document.addEventListener('DOMContentLoaded', function () { stage(40); });
+        var mo = new MutationObserver(function () {
+          if (document.querySelector('.op-root')) { stage(70); mo.disconnect(); }
+        });
+        mo.observe(document.documentElement, { childList: true, subtree: true });
         var lift = function () {
-          if (gone) return; gone = true;
+          if (gone) return; gone = true; mo.disconnect();
+          stage(100);
+          // Posledné labky a 100 % musí oko stihnúť vidieť, inak opona odíde na 70 %.
           setTimeout(function () {
             el.classList.add('out');
             setTimeout(function () { el.remove(); }, 1000);
-          }, Math.max(0, 900 - (Date.now() - t0)));
+          }, Math.max(550, 900 - (Date.now() - t0)));
         };
         window.addEventListener('dogypt:planet-ready', lift);
         setTimeout(lift, 9000);
