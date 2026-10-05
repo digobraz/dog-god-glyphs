@@ -43,7 +43,8 @@ import { sizedUrl } from '@/services/cloudinaryService';
 import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI, VEIL_CSS } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PALE, pickTintCSS, PICK_INK } from '@/components/pack/navGoldSkin';
 import type { HeroTrail } from '@/data/heroTrails.generated';
-import { updateLocalTrail } from '@/components/pack/tripShared';
+import { readLocalTrails, updateLocalTrail } from '@/components/pack/tripShared';
+import { saveTrailOverride } from '@/lib/packStore';
 import { MAX_PHOTOS, optimizePhoto } from '@/components/pack/addtrip/photoOptimize';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
 import { TRAVEL_MODES, type TravelMode, type TravelInfo } from '@/components/pack/addtrip/addTripModel';
@@ -203,7 +204,13 @@ export function TripEditPanel({ trail, plan, onSaved, onPlanSaved, onClose }: {
     };
     // `updateLocalTrail` sa sama postará o frontu do Supabase (nové fotky sú base64 a nahrajú
     // sa na Cloudinary pri jej spracovaní). `false` = kvóta úložiska, nie chyba siete.
-    if (!updateLocalTrail(trail.id, patch)) { setErr(t('pack.trip.edit.saveFailed')); return; }
+    // Výlet z DATASETU (nie je v `localTrails`) ide do prepisu — viď `saveTrailOverride`.
+    // ⚠️ Tam `undefined` nestačí: prepis sa KLADIE na pôvodný objekt a JSON kľúč s `undefined`
+    //    zahodí, takže starý EN preklad by prežil. Prázdny reťazec ho naozaj zmaže.
+    const ok = readLocalTrails().some((x) => x.id === trail.id)
+      ? updateLocalTrail(trail.id, patch)
+      : saveTrailOverride(trail.id, { ...patch, descEN: '', dogNote: '', dogNoteEN: '' });
+    if (!ok) { setErr(t('pack.trip.edit.saveFailed')); return; }
     onSaved(patch);
     if (isPlan) {
       // VYZDVIHNUTIE NESIE LEN VEREJNÝ PLÁN — na súkromnom ho nemá kto prijať. Vypĺňať sa

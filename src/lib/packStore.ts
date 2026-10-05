@@ -72,6 +72,11 @@ export const PACK_KEYS = {
   // `dog_trips`. ⚠️ ODVODENÉ, nie druhý zdroj pravdy: kto prešiel, hovorí ďalej
   // `walked` vyššie (= ČLOVEK, pútnik); toto hovorí len KTORÝ PES pri tom bol.
   dogTrips: 'trp-dog-trips-v1',
+  // PREPIS VÝLETU Z DATASETU (Matej 5. 10. 2026: „daj mi možnosť upravovať všetky tripy, lebo
+  // ja som autor"). `{ '<id>': Partial<HeroTrail> }` — zakladateľove úpravy výletov, ktoré
+  // nežijú v `localTrails`, ale v kóde (`HERO_TRAILS`, `HERO_JOURNEYS`). Zrkadlo riadkov
+  // `pack_trips` so slugom `ovr-<id>`, viď `saveTrailOverride()`.
+  trailOverrides: 'trp-trail-overrides-v1',
 } as const;
 
 const QUEUE_KEY = 'trp-sync-queue-v1';
@@ -443,6 +448,7 @@ export function closeMyTripEvents(tripSlug: string): void {
 const TRIP_PENDING_KEY = 'trp-trip-upload-pending-v1';
 const TRIP_MIGRATED_KEY = 'trp-trips-db-migrated-v1';
 
+const OVR_PENDING_KEY = 'trp-trail-overrides-pending-v1';
 const readTripPending = (): string[] => readJson<string[]>(TRIP_PENDING_KEY, []);
 const writeTripPending = (ids: string[]): void => { writeJson(TRIP_PENDING_KEY, Array.from(new Set(ids))); };
 
@@ -508,6 +514,94 @@ async function processTripUploadQueue(): Promise<void> {
       writeTripPending(pending);
     }
   } finally { tripProcessing = false; }
+}
+
+// ── PREPIS VÝLETU Z DATASETU (5. 10. 2026) ──────────────────────────────────
+// 81 výletov z datasetu je zapečených v kóde (`heroTrails.generated.ts`, generuje ho
+// `plany/trails-nahadzovac-state.json`). Ich autor je Matej, takže ich má vedieť upraviť
+// z appky rovnako ako člen svoj výlet — text, fotky, hodnotenie.
+//
+// ⚠️ PREČO NIE `localTrails`: do toho zoznamu patria výlety NAHODENÉ ČLENMI a ráta sa z neho
+// „pridal som N výletov" (profil, body pútnika). Kópia datasetu by sa tam započítala ako nový
+// výlet a v mape by sa nakreslil dvakrát. Prepis preto nesie len ZMENENÉ polia a kladie sa
+// na pôvodný objekt (`applyTrailOverrides`), dataset ostáva základ.
+//
+// ⚠️ PREČO `pack_trips` A NIE NOVÁ TABUĽKA: politika `pack_trips_admin` už zakladateľovi
+// povoľuje zápis s ľubovoľným stavom a `pack_trips_read` pustí `approved` každému — presne to,
+// čo prepis potrebuje. Riadok má slug `ovr-<id>` (s členským výletom sa nezrazí) a pull ho
+// odkladá BOKOM od `localTrails`.
+// ⚠️ Prepis prežije pregenerovanie datasetu — keď ten istý výlet neskôr upravíš aj v
+// `npm run trip-audit`, v appke vyhrá prepis.
+export const OVR_SLUG_PREFIX = 'ovr-';
+export const readTrailOverrides = (): Record<string, Partial<HeroTrail>> =>
+  readJson<Record<string, Partial<HeroTrail>>>(PACK_KEYS.trailOverrides, {});
+const readOvrPending = (): string[] => readJson<string[]>(OVR_PENDING_KEY, []);
+const writeOvrPending = (ids: string[]): void => { writeJson(OVR_PENDING_KEY, Array.from(new Set(ids))); };
+
+/** Položí prepisy na objekty datasetu NA MIESTE — `HERO_TRAILS` číta ~20 povrchov a každý
+ *  si ho skladá sám (`[...local, ...HERO_JOURNEYS, ...HERO_TRAILS]`); mutácia zdieľaného
+ *  objektu je jediné miesto, kde sa to nedá rozísť. Idempotentné. */
+export function applyTrailOverrides(list: HeroTrail[]): void {
+  const ovr = readTrailOverrides();
+  if (!Object.keys(ovr).length) return;
+  for (const tr of list) { const p = ovr[tr.id]; if (p) Object.assign(tr, p); }
+}
+let datasetApplied: Promise<void> | null = null;
+function applyToDataset(): Promise<void> {
+  datasetApplied = Promise.all([import('@/data/heroTrails.generated'), import('@/data/heroJourneys')])
+    .then(([a, b]) => applyTrailOverrides([...a.HERO_TRAILS, ...(b.HERO_JOURNEYS as HeroTrail[])]))
+    .catch(() => { /* bez prepisu ostane dataset — nič sa nerozbije */ });
+  return datasetApplied;
+}
+if (typeof window !== 'undefined' && Object.keys(readTrailOverrides()).length) void applyToDataset();
+
+/** Uloží zakladateľovu úpravu výletu z datasetu: lokálne hneď, do DB cez frontu.
+ *  `false` = kvóta úložiska (rovnaký kontrakt ako `updateLocalTrail`). */
+export function saveTrailOverride(id: string, patch: Partial<HeroTrail>): boolean {
+  const all = readTrailOverrides();
+  if (!writeJson(PACK_KEYS.trailOverrides, { ...all, [id]: { ...(all[id] ?? {}), ...patch } })) return false;
+  void applyToDataset();
+  writeOvrPending([...readOvrPending(), id]);
+  void processOverrideQueue();
+  return true;
+}
+
+let ovrProcessing = false;
+async function processOverrideQueue(): Promise<void> {
+  if (ovrProcessing) return;
+  const uid = await currentUserId();
+  if (!uid) return;
+  ovrProcessing = true;
+  try {
+    let pending = readOvrPending();
+    while (pending.length) {
+      const id = pending[0];
+      const ov = readTrailOverrides()[id];
+      if (ov) {
+        try {
+          const photos = [...(ov.photos ?? [])];
+          for (let i = 0; i < photos.length; i++) {
+            if (!photos[i].startsWith('data:')) continue;
+            const { secureUrl } = await uploadPackTripPhoto(dataUrlToBlob(photos[i]), OVR_SLUG_PREFIX + id, i);
+            photos[i] = secureUrl;
+            const cur = readTrailOverrides();
+            writeJson(PACK_KEYS.trailOverrides, { ...cur, [id]: { ...cur[id], photos } });
+          }
+          const fresh = readTrailOverrides()[id] ?? ov;
+          enqueue([{
+            kind: 'upsert', tbl: 'pack_trips', onConflict: 'slug', own: 'author_id',
+            // `status: 'approved'` — prepis autora datasetu moderáciou neprechádza; politika
+            // `pack_trips_admin` to zakladateľovi dovolí, nikomu inému nie.
+            row: { slug: OVR_SLUG_PREFIX + id, status: 'approved', payload: { ...fresh, override: id } },
+          }]);
+        } catch {
+          break; // sieť — skúsi sa pri ďalšej hydratácii
+        }
+      }
+      pending = readOvrPending().slice(1);
+      writeOvrPending(pending);
+    }
+  } finally { ovrProcessing = false; }
 }
 
 /** Nahradí base64 fotky trasy `slug` Cloudinary URL-kami. Zapisuje priebežne (po každej fotke)
@@ -610,6 +704,7 @@ export function hydratePackStore(): Promise<boolean> {
      * priamo `readTripPending()`, takže kým je čo odoslať, pull `pack_trips` preskočí.
      */
     if (readTripPending().length) void processTripUploadQueue();
+    if (readOvrPending().length) void processOverrideQueue();
 
     // (2) pull — doménu s nevyslanou frontou nechávame na pokoji
     const blocked = pendingTables();
@@ -710,12 +805,24 @@ export function hydratePackStore(): Promise<boolean> {
       // `blocked` vyššie — tento krok len rozširuje, čo sa počíta za "má nevyslaný zápis").
       const tripsBlocked = blocked.has('pack_trips') || readTripPending().length > 0;
       if (!tripsBlocked && !packTrips.error && packTrips.data) {
-        const fromDb = (packTrips.data as any[]).map((r) => r.payload as HeroTrail);
+        // Prepisy datasetu (`ovr-…`) idú BOKOM — nie sú to výlety členov, viď `saveTrailOverride`.
+        const isOvr = (r: any) => typeof r.slug === 'string' && r.slug.startsWith(OVR_SLUG_PREFIX);
+        if (!readOvrPending().length) {
+          const ovr: Record<string, Partial<HeroTrail>> = {};
+          for (const r of (packTrips.data as any[]).filter(isOvr)) {
+            const { override, ...patch } = r.payload ?? {};
+            if (typeof override === 'string') ovr[override] = patch;
+          }
+          writeJson(PACK_KEYS.trailOverrides, ovr);
+          await applyToDataset();
+        }
+        const memberRows = (packTrips.data as any[]).filter((r) => !isOvr(r));
+        const fromDb = memberRows.map((r) => r.payload as HeroTrail);
         writeJson(PACK_KEYS.localTrails, fromDb);
         // Meta ide RUKA V RUKE s payloadom (ten istý guard, ten istý zápis) — dva zápisy do
         // rôznych vetiev by vyrobili stav, kde zoznam výletov a ich statusy patria k inému pullu.
         const meta: Record<string, LocalTrailMeta> = {};
-        for (const r of packTrips.data as any[]) meta[r.slug] = { status: r.status, mine: r.author_id === uid };
+        for (const r of memberRows) meta[r.slug] = { status: r.status, mine: r.author_id === uid };
         writeJson(PACK_KEYS.localTrailsMeta, meta);
       }
       // hero_badges_earned je append-only (issue #48) → MERGE, nikdy overwrite: lokálny

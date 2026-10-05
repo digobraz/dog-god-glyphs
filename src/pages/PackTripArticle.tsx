@@ -49,10 +49,11 @@ import {
 import { TripGoPanel, TripGoButtons } from '@/components/pack/trip/TripGoPanel';
 import {
   crowdAggregate, founderWalkers, founderDogyptians, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
-  walkPointsFor, walkRewardBase, RATE_PROMPT_POINTS, discoveryBonusFor, bonusToastText,
+  walkPointsFor, walkRewardBase, RATE_PROMPT_POINTS, discoveryBonusFor, bonusToastText, isFounderEmail,
   type TripVote, type TripPlan, type PartnerEvent, type CrowdSlice,
 } from '@/components/pack/packCommunity';
 import { TripWalkers } from '@/components/pack/trip/TripWalkers';
+import { readLocalTrailMeta, readTrailOverrides } from '@/lib/packStore';
 import { useCrowdOthers, refreshCrowdOthers } from '@/components/pack/crowdOthers';
 import {
   COMMUNITY_CSS, WalkedPopup,
@@ -656,13 +657,27 @@ export default function PackTripArticle() {
    */
   const [edits, setEdits] = useState<Partial<HeroTrail> | null>(null);
   const [editOpen, setEditOpen] = useState(false);
-  const canEdit = useMemo(() => !!slug && readLocalTrails().some((t) => t.id === slug), [slug]);
+  // ── ZAKLADATEĽ UPRAVÍ AJ VÝLET Z DATASETU (Matej 5. 10. 2026) ──────────────────────────
+  // „daj mi možnosť upravovať všetky tripy, lebo ja som autor" — 81 výletov datasetu je jeho.
+  // Úprava ide do prepisu (`saveTrailOverride` v packStore), nie do datasetu, takže výhrada
+  // vyššie o pregenerovaní ju neprepíše. Výlety ČLENOV ostávajú ich (Matej: „členské budeme
+  // spravovať administrátorsky") — preto aj `mine`: `readLocalTrails()` po hydratácii nesie
+  // aj CUDZIE schválené výlety a zápis cez `updateLocalTrail` by im prepísal `author_id`.
+  const isFounder = isFounderEmail(id.session?.user?.email);
+  const canEdit = useMemo(() => {
+    if (!slug) return false;
+    if (readLocalTrails().some((t) => t.id === slug)) return readLocalTrailMeta()[slug]?.mine ?? true;
+    return isFounder && [...HERO_JOURNEYS, ...HERO_TRAILS].some((t) => t.id === slug);
+  }, [slug, isFounder]);
   // PRESNÁ STOPA (26. 9. 2026). Dataset nesie čiaru zriedenú na 10 m; článok ukazuje trasu
   // zblízka a posiela ju von (GPX, Mapy.com), preto si dotiahne plnú (src/data/trailPaths.ts).
   // Vlastná úprava čiary (`edits.path`, len lokálne výlety) má prednosť.
   const trailPaths = useTrailPaths(true);
   const trail = useMemo(() => {
-    const tr = baseTrail && edits ? { ...baseTrail, ...edits } : baseTrail;
+    // Prepis datasetu sa kladie na objekt asynchrónne (packStore) — článok ho berie rovno,
+    // nech prvé vykreslenie po otvorení neukáže starý text.
+    const ovr = baseTrail ? readTrailOverrides()[baseTrail.id] : undefined;
+    const tr = baseTrail && (edits || ovr) ? { ...baseTrail, ...ovr, ...edits } : baseTrail;
     if (!tr || edits?.path) return tr;
     const full = trailPaths?.[tr.id];
     return full ? { ...tr, path: full } : tr;
