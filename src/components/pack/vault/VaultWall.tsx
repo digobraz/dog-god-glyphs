@@ -729,7 +729,7 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
 .akw-mock b{color:${AINUBIS.cyan};font-weight:600;}
 
 @media (min-width:1024px){
-  .akw-head{padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.xl}px)
+  .akw-head{padding:calc(env(safe-area-inset-top,0px) + ${PACK_TOPROW.top + (PACK_TOPROW.h - BACK.dia) / 2}px)
     ${PACK_SPACE.xxl}px ${PACK_SPACE.md}px;}
   .akw-list{padding:${PACK_SPACE.xl}px ${PACK_SPACE.xxl}px ${PACK_SPACE.xxl}px;}
   /* Záložky a svety stoja v JEDNOM rade, oddelené čiarou (Matej 24. 9.). */

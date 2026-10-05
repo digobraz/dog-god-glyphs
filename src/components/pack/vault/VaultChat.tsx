@@ -110,7 +110,7 @@ ${AI_BREATHE_CSS}
   transform:translateX(101%);transition:transform 180ms ease;}
 .akv-root[data-src="open"] .akc-src{transform:none;}
 .akc-srchd{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;
-  padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.lg}px) ${PACK_SPACE.md}px ${PACK_SPACE.md}px;
+  padding:calc(env(safe-area-inset-top,0px) + ${PACK_TOPROW.top + (PACK_TOPROW.h - BACK.dia) / 2}px) ${PACK_SPACE.md}px ${PACK_SPACE.md}px;
   border-bottom:1px solid ${AINUBIS.edge};}
 .akc-srchd b{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.label}px;line-height:1.25;
   letter-spacing:${PACK_HEAD.card.letterSpacing};color:${AINUBIS.ink};}
@@ -188,7 +188,7 @@ ${AI_BREATHE_CSS}
    ⚠️ Tvár a meno ostávajú VEDĽA SEBA v jednom riadku (.akc-railid je flex row) —
       Matej to k F2 dodal výslovne. Mení sa poloha šípky, nie hlava pásu. */
 .akc-rail > .akc-railback{display:none;
-  margin:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.lg}px) auto 0;}
+  margin:calc(env(safe-area-inset-top,0px) + ${PACK_TOPROW.top + (PACK_TOPROW.h - BACK.dia) / 2}px) auto 0;}
 .akc-railtop{display:flex;flex-direction:column;gap:${PACK_SPACE.xs}px;
   padding:${PACK_SPACE.md}px ${PACK_SPACE.md}px ${PACK_SPACE.lg}px;text-align:left;}
 .akc-railname{font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.lead}px;line-height:1;
