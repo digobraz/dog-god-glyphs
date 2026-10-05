@@ -255,7 +255,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           {/* Na tmavom skle je zlata spravna; na papyrusovom kotuci je zlata na zlatom
               a obalka zanikne rovnako, ako zanikalo cele tlacidlo. `dark` (#5A3F12) je
               ten isty tint, akym sa kreslia ikonky na zlatych plochach. */}
-          <BrandIcon name="envelope" size={capsule ? 22 : 16} tint={dark || capsule ? 'gold' : 'dark'} />
+          <BrandIcon name="ball" size={capsule ? 22 : 16} tint={dark || capsule ? 'gold' : 'dark'} />
           {msgCount > 0 && (
             <span
               style={{
