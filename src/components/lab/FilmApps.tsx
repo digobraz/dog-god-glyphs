@@ -86,7 +86,7 @@ const bn = (id: string, n = 4) => Array.from({ length: n }, (_, i) => `onepage.a
 /** Poradie = poradie v karuseli. Matej: *„dog id/profil, sniffer, dogtrips,
  *  AInubis a pomoc/možnosti… celkovo 4 obrazovky"*, 27. 9. doplnená piata. */
 /** Snímka z `public/images/onepage/apps/`. Pri prefotení zvýš `v` (cache — Matej: „nevidím to na lokáli"). */
-const img = (f: string) => `/images/onepage/apps/${f}.webp?v=9`;
+const img = (f: string) => `/images/onepage/apps/${f}.webp?v=10`;
 /* DETAIL = hlavná snímka z telefónu + výber z nákresu `plany/nakres-clenstvo-screeny-2026-10-05/`
    (Matej 5. 10. 2026: *„máš to vybraté — aplikuj to"*). Komunita na OSTRÝCH číslach z LIVE,
    SNIFFER s fiktívnymi ľuďmi (Eva…) a správami len na snímke. */
