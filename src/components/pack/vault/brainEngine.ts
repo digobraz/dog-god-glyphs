@@ -609,6 +609,29 @@ export function mountBrain(o: BrainOptions): BrainHandle {
 
   size(); reset(); raf = requestAnimationFrame(frame);
 
+  /* VÝREZ PRE SNÍMKU (len DEV, Matej 5. 10. 2026: *„ainubis slide chcem zoomnúť, daj mi
+     možnosť ukázať ako"*). Nástroj `plany/nakres-clenstvo-screeny-2026-10-05/vyrez.html`
+     má mozog v iframe a pýta si pohľad; mierka ide RELATÍVNE k štartu (`rk`), aby sa dala
+     zopakovať na inej šírke okna. `__brainView` číta a nastavuje pohľad pre Playwright. */
+  let onMsg: ((e: MessageEvent) => void) | null = null;
+  if (import.meta.env.DEV) {
+    const daj = () => ({ x: vt.x, y: vt.y, rk: vt.k / homeK });
+    const nastav = (v: { x: number; y: number; rk: number }) => {
+      vt = { x: v.x, y: v.y, k: v.rk * homeK }; view = { ...vt };
+    };
+    (window as unknown as { __brainView?: unknown }).__brainView = { daj, nastav };
+    if (new URLSearchParams(location.search).has('vyrez')) {
+      const st = document.createElement('style');
+      st.textContent = '.akv-note{display:none!important} .z-\\[9999\\]{display:none!important}';
+      document.head.appendChild(st);
+      onMsg = (e: MessageEvent) => {
+        if (e.data?.typ === 'vyrez-daj') e.source?.postMessage({ typ: 'vyrez-pohlad', v: daj() }, { targetOrigin: '*' });
+        if (e.data?.typ === 'vyrez-domov') home();
+      };
+      window.addEventListener('message', onMsg);
+    }
+  }
+
   return {
     zoomBy: (k) => zoomTo(vt.k * k),
     reset,
@@ -622,6 +645,7 @@ export function mountBrain(o: BrainOptions): BrainHandle {
       window.removeEventListener('pointerup', onUp);
       window.removeEventListener('pointercancel', onUp);
       cv.removeEventListener('wheel', onWheel);
+      if (onMsg) window.removeEventListener('message', onMsg);
     },
   };
 }
