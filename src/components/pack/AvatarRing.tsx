@@ -25,6 +25,13 @@ export const RING_R = 50 - RING_SW / 2;
 export const RING_C = 2 * Math.PI * RING_R;
 /** Fotka ostáva 34 px pri `AV_D=44` — obal je väčší o lem a medzeru, nie fotka menšia. */
 export const PHOTO = AV_D - 2 * (AV_RING + AV_GAP);
+/**
+ * Väčší avatar v hlavičke mapy na PC (Matej 5. 10. 2026: „fotku by som zväčšil").
+ * Prstenec je vo viewBoxe, takže sa škáluje sám; fotka drží ten istý pomer k obalu
+ * ako pri `AV_D` (`photoAt`) — tretia kópia rovnice by sa raz rozišla.
+ */
+export const AV_D_HEAD = 60;
+export const photoAt = (d: number) => Math.round((d * PHOTO) / AV_D);
 
 export function AvatarRing({
   pct, avatarUrl, avatarInitial, avatarAlt = '',

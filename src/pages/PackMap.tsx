@@ -100,7 +100,7 @@ import {
 import {
   crowdAggregate, founderDogyptians, seedCrowd, CROWD_EMOJI, CROWD_KEY_TO_CROWD,
   readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
-  profileLevelFor, computeCompletion,
+  profileLevelFor, computeCompletion, walkedCountries,
   walkPointsFor, walkRewardBase,
   RATE_PROMPT_POINTS, discoveryBonusFor,
   type TripVote, type TripPlan, type PartnerEvent, type Hazard,
@@ -172,7 +172,7 @@ import { useEvents, saveEvent, type EventItem } from '@/components/pack/events/e
 // panel ostal viazaný len na TRIP vetvu).
 import { BUDDY_LIVE, EVENTS_LIVE, PLANNING_LIVE, WISHES_LIVE } from '@/lib/packFlags';
 import { TRIP_CATEGORIES, ACT_TAG_EMOJI, ACT_TO_CATEGORY, CHIP_BY_ID, DATA_TAG_TO_UI, TAG_EMOJI, TAG_I18N, categoriesOf, chipsOf, isInCategory, primaryCategoryOf, type TripCategoryId } from '@/components/pack/tripCategories';
-import { AvatarRing, AV_D } from '@/components/pack/AvatarRing';
+import { AvatarRing, AV_D, AV_D_HEAD, photoAt } from '@/components/pack/AvatarRing';
 
 /* ── SŤAHUJE SA AŽ PO KLIKNUTÍ (audit /pack/map B7, 26. 9. 2026) ─────────────────────────
    Sprievodca výletu (AddTripLog + GeometryPicker ≈ 470 KB zdroja), podujatia, reveal po zápise,
@@ -1295,6 +1295,12 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
    údaj, len rozložený tak, aby bol čitateľný bez slova, ktoré sa na 390 px nezmestí.
    Zapnuté LEN v mobilnej vetve; na PC ostáva rang, lebo tam je naň miesto. */
 .trp-mstats2{display:none;flex-direction:column;gap:1px;min-width:0;}
+/* PC rad štatistík — na mobile skrytý, zapína ho PC skin (.trp-topbar). */
+.trp-pcstats{display:none;align-items:center;gap:16px;min-width:0;}
+.trp-pcstats > span:not(.trp-pcsep){display:flex;align-items:baseline;gap:4px;white-space:nowrap;}
+.trp-pcstats b{font-family:${FONT_UI};font-weight:600;font-size:20px;letter-spacing:0;line-height:1;font-variant-numeric:tabular-nums;}
+.trp-pcstats i{font-family:${FONT_UI};font-style:normal;font-weight:500;font-size:10px;letter-spacing:0.22em;text-transform:uppercase;}
+.trp-pcsep{width:1px;height:24px;flex:0 0 1px;}
 .trp-mstats2 span{display:flex;align-items:baseline;gap:5px;white-space:nowrap;line-height:1.05;}
 .trp-mstats2 b{font-family:${FONT_UI};font-weight:600;font-size:16px;letter-spacing:0;color:rgba(245,240,228,0.94);font-variant-numeric:tabular-nums;}
 /* 9px -> 10px (2026-09-19): deviatka je MIMO brandovej stupnice, najmensia povolena
@@ -2191,16 +2197,20 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
      pravého lemu a 13 px od horného. Vedľa 6 px lemu to čítalo ako druhý, širší rám.
      Odteraz riadok NEMÁ výplň — doska vypĺňa celý padding-box od lemu k lemu (presne ako
      v bare) a jediné, čo ju odsúva, je identita vľavo. Výplň nesú deti. */
-  .trp-status-row{${goldFrameCSS({ plate: false })}backdrop-filter:none;-webkit-backdrop-filter:none;padding:0;gap:0;}
+  /* ── VÝREZ ZRUŠENÝ — SÚMERNÝ D-BLOK (Matej 5. 10. 2026) ───────────────────────────────
+     „skôr by som dal klasický dblok bez tej ľavej časti vyplnenej = klasicky súmerný dblok
+     po celom obvode". Text o výreze vyššie ostáva ako história; platí toto: rám aj doska
+     sú JEDEN goldFrameCSS() bez parametrov a .trp-status-plate je len obal (contents). */
+  .trp-status-row{${goldFrameCSS()}backdrop-filter:none;-webkit-backdrop-filter:none;padding:12px 16px;gap:16px;}
   /* align-self:stretch — riadok centruje deti, ale doska musí siahať na plnú výšku lemu.
      Radius je vnútorný (NAV_R.plate = rám 14 mínus lem 6), takže rohy sú koncentrické s rámom. */
-  .trp-status-plate{${goldPlateCSS()}display:flex;align-items:center;gap:16px;flex:1 1 auto;min-width:0;align-self:stretch;padding:12px 16px;}
-  .trp-status-left{padding:0 16px 0 16px;}
+  .trp-status-plate{display:contents;}
+  .trp-status-left{padding:0;}
   /* Stredný klaster sa centruje NAD DOSKOU, nie nad celým riadkom: doska je odteraz plocha,
      ktorú človek číta ako „lištu", a chipy patria do jej osi. Auto-margin (nie flex:1) —
      pravý blok si berie len svoju šírku a stred sa vycentruje do zvyšku. */
   .trp-status-plate .trp-status-center{flex:0 1 auto;margin:0 auto;}
-  .trp-status-plate .trp-headright{flex:0 0 auto;}
+  .trp-status-plate .trp-headright{flex:0 0 auto;margin-left:auto;}
   /* ⚠️ IDENTITA SA UŽ NESMIE ZMRŠTIŤ. V trojdielnom riadku mala flex:1 1 0 (rovnaký podiel
      voľného miesta ako pravý blok) — s výrezom je ale ĽAVÁ ČASŤ tá, ktorá určuje, kde doska
      začína, a doska si ako flex:1 1 auto zobrala priestor pilulke s levelom: číslo zmizlo
@@ -2216,6 +2226,16 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
      z renderu zámerne: renderIdentity() obsluhuje aj TMAVÚ MOBILNÚ hlavičku, kde chip
      s výletmi nie je a riadok je jediným miestom, kde tú informáciu človek uvidí. */
   .trp-topbar .trp-mstats2{display:none;}
+  /* PC IDENTITA (Matej 5. 10. 2026): väčšia fotka a vedľa nej km | výlety | krajiny.
+     Slovo PÚTNIK zaniká — rang nesie prstenec a číslo na ňom (lock 28. 8.). */
+  .trp-topbar .trp-level{display:none;}
+  .trp-topbar .trp-avwrap{width:${AV_D_HEAD}px;height:${AV_D_HEAD}px;}
+  .trp-topbar .trp-mavatar{width:${photoAt(AV_D_HEAD)}px;height:${photoAt(AV_D_HEAD)}px;}
+  .trp-topbar .trp-midentity{gap:16px;}
+  .trp-topbar .trp-pcstats{display:flex;}
+  .trp-topbar .trp-pcstats b{color:${P_INK};}
+  .trp-topbar .trp-pcstats i{color:${P_DIM};}
+  .trp-topbar .trp-pcsep{background:${P_BORDER};}
   /* Lem čísla na okraji avatara = farba dosky pod ním. Na tmavej mobilnej hlavičke drží
      východzia hodnota (#171009), tu ho prepisuje pieskovec, inak by číslo malo okolo seba
      čierny krúžok na svetlom. */
@@ -5513,6 +5533,16 @@ export default function PackMap() {
           <span><b>{fmtKm(walkedKm)}</b><i>{t('pack.map.statKm')}</i></span>
           <span><b>{walkedCount}</b><i>{t('pack.map.statTrips' + pluralKey(walkedCount))}</i></span>
         </span>
+        {/* PC: km | výlety | krajiny v JEDNOM rade, oddelené zvislou čiarou (Matej 5. 10. 2026).
+            Nahradilo slovo PÚTNIK aj tri pilulky (🏆 · Triplist · PRIDAŤ) — viď `.trp-status-row`
+            v PC skine. Zobrazuje ho len PC hlavička; mobil ostáva pri dvoch riadkoch vyššie. */}
+        <span className="trp-pcstats">
+          <span><b>{fmtKm(walkedKm)}</b><i>{t('pack.map.statKm')}</i></span>
+          <span className="trp-pcsep" aria-hidden />
+          <span><b>{walkedCount}</b><i>{t('pack.spotlight.pillTrips' + pluralKey(walkedCount))}</i></span>
+          <span className="trp-pcsep" aria-hidden />
+          <span><b>{walkedCountryCount}</b><i>{t('pack.spotlight.pillCountries' + pluralKey(walkedCountryCount))}</i></span>
+        </span>
       </span>
     </button>
   );
@@ -5521,36 +5551,10 @@ export default function PackMap() {
     <div className="trp-status-left">{renderIdentity()}</div>
   );
 
-  const renderStatusCenter = () => (
-    <div className="trp-status-center">
-      {/* ⚠️ DVA SAMOSTATNÉ CHIPY, NIE JEDEN OBAL (Matej 2026-08-26, druhé kolo: „dva chipy mali
-          ostať ale mali vyzerať ako chipy v dolnom nave aj farbou aj tvarom a dizajnom").
-          Prvé čítanie zadania z nich spravilo jednu dosku so spoločným rámom — to je stavba
-          CELÉHO navu, nie jeho položiek. Nepýtal si dosku, pýtal si pilulky. */}
-      <button type="button" className="trp-stat-pill" onClick={() => navigate('/pack/map/triplist?tab=stats')} title={t('pack.map.tripStatsTitle')}>
-        <img src={ICON('trophy')} alt="" />
-        <b>{walkedCount} · {fmtKm(walkedKm)} km</b>
-      </button>
-      {/* Matej 2026-07-27: na mobile (a v kompaktnom desktope) je Triplist LEN ikonka — text
-          by rozbil jednoriadkový status. Klikacia plocha, route aj title/aria zostávajú. */}
-      {/* trp-triplist-btn = kotva pre sprievodcu po prvom zápise (MapCoach). Nesú ju OBE
-          podoby tlačidla (PC lišta aj mobilná hlavička) — coach si z nich vyberie tú, ktorá
-          je práve na obrazovke, takže nepotrebuje vedieť, na akej šírke beží. */}
-      <button type="button" className="trp-stat-pill trp-stat-pill--icon trp-triplist-btn" onClick={() => navigate('/pack/map/triplist')} title={t('pack.map.openTriplist')} aria-label={t('pack.map.openTriplist')}>
-        <img src={ICON('clipboard')} alt="" />
-        <b className="trp-triplist-label">{t('pack.map.triplist')}</b>
-      </button>
-      {/* ADD TRIP patrí do stredného klastra (Matej 2026-07-26) — vedľa správ nemá čo robiť,
-          a je to jediný vstup do ADD flow, takže sa nesmie stratiť. */}
-      {/* Na karte PODUJATIA pridáva horné tlačidlo podujatie, nie výlet — človek sa práve
-          pozerá na zoznam podujatí (Matej 5. 10. 2026: „rovno na vec"). */}
-      <button type="button" className="trp-addtrip-btn" onClick={activeCat === 'events' ? openEventEntry : startTripAdd}>
-        <img src={ICON('plus')} alt="" className="trp-addtrip-icon" />
-        <span className="trp-addtrip-full">{t('pack.map.addTrip')}</span>
-        <span className="trp-addtrip-short" aria-hidden>{t('pack.map.add')}</span>
-      </button>
-    </div>
-  );
+  // ── TRI PILULKY V HLAVIČKE ZANIKLI (Matej 5. 10. 2026) ───────────────────────────────
+  // 🏆 km · Triplist · PRIDAŤ. Prvé dve viedli do TOHO ISTÉHO hubu (`/pack/map/triplist`,
+  // karty TRIPLIST/ŠTATISTIKY) ako klik na identitu; PRIDAŤ robil to isté čo `+` v lište.
+  // Matej: „zúžil by som horný nav… konsolidácia". Štatistiky nesie identita (`.trp-pcstats`).
 
   // D4 nav rework (2026-07-24, Matej: "nechaj to vnútri headru a len to posun na pravý roh
   // toho vnútorného bloku") — messages sú PRIDANÉ ako sibling tohto klastra v .trp-status-row /
@@ -5670,6 +5674,8 @@ export default function PackMap() {
   const walkedKm = walkedTrails
     .reduce((sum, tr) => sum + (parseFloat(tr.km) || 0), 0);
   const fmtKm = (n: number) => fmtNum(n, lang);
+  // Krajiny = TÁ ISTÁ funkcia ako vysvedčenie a SNIFFER (`walkedCountries`), nie vlastný počet.
+  const walkedCountryCount = walkedCountries(walkedTrails);
 
   // FILTER (sort) — Top rated (default) / Easiest / Hardest, ovládané z desktop popoveru aj
   // mobilného sheetu; zdieľané pole nech sa karta nerenderuje dvakrát rôzne (desktop vs mobile).
@@ -7294,7 +7300,6 @@ export default function PackMap() {
                     zmizne úplne — tmavá vetva (aj mobilná hlavička, ktorá volá tie isté
                     render funkcie) sa nemení ani o pixel. */}
                 <div className="trp-status-plate">
-                  {renderStatusCenter()}
                   {/* messages + zvonček → pravý roh TOHTO bloku (Matej 2026-07-24/26).
                       Inline layout = v toku, nie fixed. */}
                   {renderHeaderRight(MAP_SKIN !== 'pale')}
