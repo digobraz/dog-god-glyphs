@@ -249,7 +249,10 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
       <div className="op-apps-stage">
         <div className="op-apps-hero">
           <h2 className="op-apps-h2">{t('onepage.apps.head')}</h2>
-          <p className="op-apps-sub">{t('onepage.apps.sub1')}<br />{t('onepage.apps.sub2')}</p>
+          {/* JEDNA VETA, MAX 2 RIADKY V KAŽDOM JAZYKU (Matej 5. 10. 2026: *„tento texting je zlý,
+              musí byť v každom jazyku na max 2 riadky — nie 4"* + návrh *„We create a dog world,
+              a helpful and entertaining ecosystem for all doglovers"*). Dve vety (`sub2`) zanikli. */}
+          <p className="op-apps-sub">{t('onepage.apps.sub1')}</p>
         </div>
 
         <div className="op-apps-col">
