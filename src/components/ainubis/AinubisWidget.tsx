@@ -403,7 +403,11 @@ function AinubisWidgetInner() {
   // Matejovi do /admin nesprávne číslo psa. Flag pre Mateja v reporte.
   const visitorId = useState(() => getOrCreateVisitorId())[0];
 
-  const [open, setOpen] = useState(() => safeLocalStorageGet(LS_OPEN) === '1');
+  // Po obnovení stránky je panel ZAVRETÝ (Matej 5. 10. 2026: „po obnovení sa skryje").
+  // Medzi obrazovkami ostáva otvorený — rozhovor ide s človekom ďalej. `LS_OPEN` sa
+  // ďalej zapisuje, ale pri štarte sa nečíta: otvorený panel prežil reload a na PC
+  // prekrýval obsah (test po FLIPe — odpovede kvízu, ADD A PACK MEMBER).
+  const [open, setOpen] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(() => safeLocalStorageGet(LS_CONV));
   const [sessionToken, setSessionToken] = useState<string | null>(() => safeLocalStorageGet(LS_TOK));
   /**
@@ -436,6 +440,20 @@ function AinubisWidgetInner() {
   /** Aby sa uvítanie neprehralo druhýkrát pri zavretí a znovuotvorení panela. */
   const welcomePlayedRef = useRef(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  // Rolovanie (5. 10. 2026, test po FLIPe): guľa vpravo dole nad lištou ležala na mobile cez
+  // šípku karty v zozname výletov. Kým človek roluje, guľa ustúpi (CSS len pod 768 px)
+  // a 900 ms po poslednom pohybe sa vráti. `capture`, lebo rolujú aj vnútorné panely.
+  const [scrolling, setScrolling] = useState(false);
+  useEffect(() => {
+    let tm: number | undefined;
+    const onScroll = () => {
+      setScrolling(true);
+      window.clearTimeout(tm);
+      tm = window.setTimeout(() => setScrolling(false), 900);
+    };
+    window.addEventListener('scroll', onScroll, { capture: true, passive: true });
+    return () => { window.removeEventListener('scroll', onScroll, { capture: true }); window.clearTimeout(tm); };
+  }, []);
   // Číslo ide von, nech ho vie ukázať aj medailón v spodnom nave `/pack` — tam je
   // guľa s odznakom skrytá (viď `.ainubis-launcher` v AinubisWidget.css).
   useEffect(() => { setAinubisUnread(unreadCount); }, [unreadCount]);
@@ -1202,7 +1220,7 @@ function AinubisWidgetInner() {
       <button
         type="button"
         className={`ainubis-launcher${onPublicRoute ? ' ainubis-launcher--left' : ''}${unreadCount > 0 ? ' ainubis-launcher--unread' : ''}${
-          blinking ? ' ainubis-launcher--blink' : ''
+          blinking ? ' ainubis-launcher--blink' : ''}${scrolling && !open ? ' ainubis-launcher--scrolling' : ''
         }`}
         onClick={handleToggleOpen}
         aria-label={open ? copy.closeAria : copy.openAria}

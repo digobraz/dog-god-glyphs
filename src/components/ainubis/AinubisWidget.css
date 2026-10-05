@@ -1212,3 +1212,9 @@ body:has(.ainubis-panel--away) .ainubis-launcher { visibility: hidden; }
     bottom: calc(env(safe-area-inset-bottom, 0px) + 16px + var(--pack-nav-h, 64px) + 12px + var(--consent-h, 0px) + 12px);
   }
 }
+
+/* Rolovanie na mobile — guľa ustúpi z cesty obsahu (AinubisWidget.tsx, `scrolling`). */
+@media (max-width: 767px) {
+  .ainubis-launcher { transition: box-shadow 0.2s ease, transform 0.2s ease, opacity .2s ease; }
+  .ainubis-launcher.ainubis-launcher--scrolling { opacity: 0; pointer-events: none; }
+}
