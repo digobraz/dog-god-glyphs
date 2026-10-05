@@ -36,6 +36,20 @@ import { localizeBreed } from '@/lib/breedDisplay';
 const T = PACK_THEME;
 const MESSAGE_MAX = 150;
 
+/**
+ * Zápis do `dogs` — kto smie ktorý stĺpec, rozhoduje SERVER (politika
+ * `dogs_update_by_right` + trigger `dogs_pawtner_columns`, 20261011), nie filter
+ * `.eq('user_id')`: ten by pawtnera s právom vylúčil a bez práva by UPDATE trafil
+ * 0 riadkov BEZ CHYBY — a obrazovka by ukázala „uložené". Preto `.select('id')`
+ * a prázdny výsledok = chyba.
+ */
+async function updateDogRow(dogId: string, vals: Record<string, unknown>): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- update s .select() typy `dogs` neprepustia
+  const { data, error } = await (supabase as any).from('dogs').update(vals).eq('id', dogId).select('id');
+  if (error) throw new Error(error.message);
+  if (!data || data.length === 0) throw new Error('No permission to change this dog.');
+}
+
 // ── DOG ID — vzhľad dokladu (2026-08-12) ────────────────────────────────────
 // Ladí sa TÝMTO blokom, nie inline štýlmi v JSX: layout má dve vetvy (PC / mobil)
 // a inline styly by druhú vetvu nevedeli obslúžiť.
@@ -298,20 +312,7 @@ export default function PackDogDetail() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
-      const { error: upErr } = await (supabase as unknown as {
-        from: (t: string) => {
-          update: (vals: Record<string, unknown>) => {
-            eq: (col: string, val: string) => {
-              eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
-            };
-          };
-        };
-      })
-        .from('dogs')
-        .update(fields)
-        .eq('id', dog.id)
-        .eq('user_id', user.id);
-      if (upErr) throw new Error(upErr.message);
+      await updateDogRow(dog.id, fields);
       toast({ title: t('pack.dog.toastSaved') });
     } catch (err) {
       toast({
@@ -365,7 +366,7 @@ export default function PackDogDetail() {
       let dogQuery = (supabase as any)
         .from('dogs')
         .select(
-          'id, user_id, dog_name, cloudinary_main_url, pdf_cert_url, pdf_vertical_url, pdf_horizontal_url, heroglyph_code, breed, country, birth_year, life_status, death_date, patron_svg, patron_svg2, selections, grid_message, created_at, stripe_session_id, pack_number, owner_name, weight_kg, health_status, allergies, conditions, medication, diet',
+          'id, user_id, dog_name, cloudinary_main_url, pdf_cert_url, pdf_vertical_url, pdf_horizontal_url, heroglyph_code, breed, country, birth_year, life_status, death_date, patron_svg, patron_svg2, selections, grid_message, created_at, pack_number, owner_name, weight_kg, health_status, allergies, conditions, medication, diet',
         )
         .eq('id', id);
       if (!viaRights) dogQuery = dogQuery.eq('user_id', user.id);
@@ -494,20 +495,7 @@ export default function PackDogDetail() {
       const next = messageDraft.trim().slice(0, MESSAGE_MAX);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
-      const { error: upErr } = await (supabase as unknown as {
-        from: (t: string) => {
-          update: (vals: { grid_message: string | null }) => {
-            eq: (col: string, val: string) => {
-              eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
-            };
-          };
-        };
-      })
-        .from('dogs')
-        .update({ grid_message: next || null })
-        .eq('id', dog.id)
-        .eq('user_id', user.id);
-      if (upErr) throw new Error(upErr.message);
+      await updateDogRow(dog.id, { grid_message: next || null });
       setDog({ ...dog, grid_message: next || null });
       setMessageDirty(false);
       setWallOpen(false);
@@ -531,24 +519,12 @@ export default function PackDogDetail() {
     if (!file || !dog?.id) return;
     setUploadingMain(true);
     try {
-      const sessionFolder = dog.stripe_session_id || dog.id;
+      // `stripe_session_id` klient od P1 (20261011) nevidí — nové fotky idú do priečinka psa.
+      const sessionFolder = dog.id;
       const result = await uploadExtraPhoto(file, sessionFolder, 0);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
-      const { error: upErr } = await (supabase as unknown as {
-        from: (t: string) => {
-          update: (vals: { cloudinary_main_url: string }) => {
-            eq: (col: string, val: string) => {
-              eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
-            };
-          };
-        };
-      })
-        .from('dogs')
-        .update({ cloudinary_main_url: result.secureUrl })
-        .eq('id', dog.id)
-        .eq('user_id', user.id);
-      if (upErr) throw new Error(upErr.message);
+      await updateDogRow(dog.id, { cloudinary_main_url: result.secureUrl });
       setDog({ ...dog, cloudinary_main_url: result.secureUrl });
       useDogyptStore.getState().setDogPhotoUrl(result.secureUrl);
       toast({ title: t('pack.dog.toastPhotoUpdated'), description: t('pack.dog.toastPhotoUpdatedDesc') });

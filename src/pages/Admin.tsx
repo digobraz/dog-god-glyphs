@@ -215,7 +215,9 @@ export default function Admin() {
     setDataErr('');
     (async () => {
       const [d, c, p, v, r, mt] = await Promise.all([
-        supabase.from('dogs').select('*').order('created_at', { ascending: false }),
+        // celý riadok `dogs` (e-mail, Stripe, faktúra) klient od 20261011 nevidí — len cez admin_dogs()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- RPC nie je v generovaných typoch
+        (supabase as any).rpc('admin_dogs'),
         supabase.from('contacts').select('*').order('created_at', { ascending: false }),
         supabase.from('pack_members').select('*').order('created_at', { ascending: false }),
         supabase.from('vision_votes').select('*').order('voted_at', { ascending: false }),
