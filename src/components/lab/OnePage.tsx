@@ -376,7 +376,8 @@ const FILM_SLIDES: FilmSlide[] = ([
     id: 'contact',
     navKey: 'film.slide.contact',
     at: () => pinnedAt('.op-fin', 1),
-    from: () => pinnedAt('.op-fin', 0.5),
+    // Pilulka meria STRED okna (scrollY + ½ vh) — preto + ½ obrazovky, ako pri misii.
+    from: () => { const y = pinnedAt('.op-fin', 0.5); return y == null ? null : y + filmVh() * 0.5; },
   },
 ] as FilmSlide[]).filter((sl) => WNY_ON || WNY_END || (sl.id !== 'mission' && sl.id !== 'contact'));
 

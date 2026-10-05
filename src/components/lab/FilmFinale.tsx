@@ -204,7 +204,7 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
         .op-fin-blk:hover { transform: translateY(-2px); border-color: ${LAPIS.edge}; color: ${LAPIS.edge}; }
         .op-fin-blk--ico { padding: 0; width: 48px; }
         .op-fin-blk--ico svg { width: 24px; height: 24px; }
-        .op-fin-blk--mail { letter-spacing: .02em; text-transform: none; }
+        .op-fin-blk--mail { font: 500 14px/1 'Space Grotesk', sans-serif; letter-spacing: .02em; }
         .op-fin-legal {
           margin: 16px 0 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
           font: 400 12px/1.4 'Space Grotesk', sans-serif; color: ${LAB.inkSoft};
@@ -223,6 +223,12 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
           .op-fin-blk--ico { width: 40px; }
           .op-fin-blk--ico svg { width: 20px; height: 20px; }
           .op-fin-legal { margin-top: 8px; }
+        }
+        /* Nízky telefón (360 × 640): ustúpi FOTKA, nie vzduch (PAGE_AIR). */
+        @media (max-width: 768px) and (max-height: 720px) {
+          .op-fin-media img { height: 14vh; }
+          .op-fin-txt { font-size: 12px; }
+          .op-fin-legal { margin-top: 4px; }
         }
       `}</style>
     </section>
