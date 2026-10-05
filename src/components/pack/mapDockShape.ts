@@ -30,8 +30,9 @@ export const DOCK_VH = 0.33;
 export const DOCK_MOBILE_MAX = 899;
 
 /** Šírka plávajúceho stĺpca na PC. JEDINÝ zdroj — `.trp-sidebar` / `.trp-addhost` ju čítajú.
- *  440 → 480 (5. 10. 2026) = šírka panela AINUBISA, lišta mapy sa tým dostala k pravému okraju. */
-export const DOCK_COL_W = 480;
+ *  440 → 480 (5. 10. 2026) = šírka panela AINUBISA, lišta mapy sa tým dostala k pravému okraju.
+ *  480 → 552 (+15 %, Matej 5. 10. nad hárkom A/B/C/D: „dal by som C“). */
+export const DOCK_COL_W = 552;
 
 /**
  * SPOLOČNÁ TRIEDA. Nesie povrch, výplň a výšku; obsah si každý panel rieši sám

@@ -384,6 +384,9 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
     const apply = () => {
       const r = el.getBoundingClientRect();
       root.style.setProperty('--pack-nav-half', `${r.width / 2}px`);
+      // Stred baru — na PC pri /map a AINUBISOVI NIE JE v strede okna (stojí v strede plochy
+      // vedľa panela, 5. 10. 2026). Panel `+` a cookie karta sa podľa neho vyrovnajú.
+      root.style.setProperty('--pack-nav-cx', `${r.left + r.width / 2}px`);
       // Výška ide von tiež — widget sa podľa nej vycentruje na vodorovnú os
       // pillu. Bez nej by len stál na tej istej základni a pri väčšom priemere
       // by mu stred ušiel nahor.
@@ -402,6 +405,7 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
       window.removeEventListener('resize', apply);
       document.body.classList.remove('has-pack-nav');
       root.style.removeProperty('--pack-nav-half');
+      root.style.removeProperty('--pack-nav-cx');
       root.style.removeProperty('--pack-nav-h');
       root.style.removeProperty('--pack-nav-bottom');
     };

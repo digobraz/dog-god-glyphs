@@ -267,7 +267,7 @@ export function ConsentBanner() {
         @media (min-width: 1024px) {
           .consent-banner {
             left: auto; right: 24px; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
-            width: min(420px, calc(50vw - var(--pack-nav-half, 0px) - 48px));
+            width: min(420px, calc(100vw - var(--pack-nav-cx, 50vw) - var(--pack-nav-half, 0px) - 48px));
             padding: 16px; border: 1.5px solid ${T.cardEdge}; border-radius: 16px;
             box-shadow: ${T.panelShadow};
           }

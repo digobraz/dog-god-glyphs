@@ -217,6 +217,9 @@ const PANEL_W = DOCK_COL_W; // .trp-sidebar width — used to offset the inline-
 // Výška lišty sa RÁTA, nemeria: pás identity 96 + medzera 10 + rad hľadania 42.
 const MAP_EDGE = 20;
 const TOPBAR_BOTTOM = MAP_EDGE + 96 + 10 + 42;
+// Fotka karty v zozname drží výšku, akú mala pri paneli 480 (karta 422 × 4:3 = 316). Širší panel
+// (552) ide do ŠÍRKY fotky, nie do výšky — inak by na okne 724 px bolo vidno len jednu kartu.
+const CARD_PHOTO_H = 316;
 // Matej 2026-07-27 („pozri ako sa pri zúžení obrazovky správa mapa"): desktop layout
 // (floating panel 440px + topbar NA mape) potrebuje reálne ~1024px+. Pod tým ostával
 // topbaru pás cca 100–340px, takže sa status riadok aj filtre lámali do stĺpca a liezli
@@ -1891,6 +1894,14 @@ ${TRAIL_LINE_CSS}
    .trp-root so it never touches other /pack pages. ── */
 @media (min-width:1024px){
   .trp-root .fixed.z-40{ bottom:20px !important; }
+  /* NAV V STREDE MAPY, NIE OKNA (výnimka z locku pack-blok1-nav, Matej 5. 10. 2026: „nebolo
+     by lepšie ak by spodný nav nebol v strede obrazovky ale v strede priestoru mapy" → „ano
+     vynimka by bola na pc pri map a ainubisovi"). Pás ostáva pás, len začína tam, kde
+     horná lišta — kotúč tak stojí pod jej stredom. */
+  .trp-root .pk-dock-band{ left:${MAP_EDGE + DOCK_COL_W + MAP_EDGE}px !important; right:${MAP_EDGE}px !important; }
+}
+@media (min-width:1401px){
+  .trp-bigcard-photo{aspect-ratio:auto;height:${CARD_PHOTO_H}px;}
 }
 
 /* ── KOMPAKTNÝ DESKTOP 1024–1400px (Matej 2026-07-27) ───────────────────────
@@ -1904,6 +1915,7 @@ ${TRAIL_LINE_CSS}
   .trp-sidebar{width:360px;}
   .trp-addhost{width:360px;}
   .trp-topbar{left:400px;right:${MAP_EDGE}px;}
+  .trp-root .pk-dock-band{ left:400px !important; }
   .trp-status-row{gap:10px;padding:12px 16px;}
   .trp-status-center{gap:7px;flex-wrap:nowrap;}
   .trp-status-row .trp-stat-pill{padding:8px 12px;}

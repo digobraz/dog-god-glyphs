@@ -454,7 +454,7 @@ const ENTRY_CSS = `
 body:has(.att-entry-backdrop) .ainubis-launcher{visibility:hidden;pointer-events:none;}
 /* ⚠️ goldFrameCSS() STOJÍ PRVÝ — nesie position:relative a za position:fixed by ho prebil. */
 .att-entry-panel{${goldFrameCSS()}
-  position:fixed;left:50%;transform:translateX(-50%);
+  position:fixed;left:var(--pack-nav-cx, 50%);transform:translateX(-50%);
   --att-gap:calc(var(--pack-nav-bottom, 12px) + var(--pack-nav-h, 64px) + var(--pack-medal-rise, 0px) + 12px);
   bottom:var(--att-gap);
   width:min(calc(2 * var(--pack-nav-half, 260px)), calc(100vw - 16px));

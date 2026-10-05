@@ -462,6 +462,9 @@ ${STAGE_CSS}
   .akv-ptools .akv-search{flex:1 1 320px;max-width:420px;}
   .akv-ptools .akv-filters{flex:0 1 480px;}
   .akv-brain{left:var(--akv-panel);}
+  /* Nav v strede plochy vpravo, pod lištou — výnimka z locku pack-blok1-nav (5. 10. 2026),
+     tá istá ako na /map. */
+  .akv-root .pk-dock-band{left:calc(var(--akv-panel) + ${PACK_SPACE.xl}px) !important;right:${PACK_SPACE.xl}px !important;}
   .akv-top{left:calc(var(--akv-panel) + ${PACK_SPACE.xl}px);right:${PACK_SPACE.xl}px;top:calc(env(safe-area-inset-top,0px) + ${PACK_TOPROW.top}px);}
   .akv-mactions{display:none;}
 }
