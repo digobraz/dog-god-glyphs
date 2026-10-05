@@ -5762,7 +5762,7 @@ export default function OnePage() {
           .op-root #op-religion .codex-flow .codex-scroll { overflow-x: visible; }
           .op-root #op-religion .codex-flow :is(.codex-bleed, .codex-spotlayer) { overflow: hidden; }
           .op-root #op-religion { --ani-k: 2; }
-          @media (max-height: 800px) { .op-root #op-religion { --ani-k: 1.8; } }
+          @media (max-height: 800px) { .op-root #op-religion { --ani-k: 1.8; --dog-g: 0.1; } }
           @media (max-height: 700px) { .op-root #op-religion { --ani-k: 1.3; --dog-g: 0.05; } }
           .op-root.op-root .codex-bleed .codex-cow {
             transform: translateX(calc(var(--op-in, 0) * -120% - var(--op-hek, 0) * 140% - (var(--ani-k) - 1.377) * 80%)) scale(var(--ani-k));
@@ -5827,7 +5827,7 @@ export default function OnePage() {
             )) scale(calc(var(--ani-k) * 0.985 * (1 + var(--op-split, 0) * var(--dog-g, 0.2))));
             /* 5. 10. 2026 — TRETÍ OBRAZ: pes do STREDU a väčší (Matej: *„psa centrovať
                a zväčšiť"*). --op-split ho dotiahne o (k − 1) × 58 % vlastnej šírky doľava (predtým
-               15 %; pri k 2 = 58 %, na iPhone SE k 1,3 len 17 % — inak vidno pravý okraj obrázka) a zväčší o --dog-g (20 %, na iPhone SE ≤ 700 px výšky 5 %) — limit je spodok rámu
+               15 %; pri k 2 = 58 %, na iPhone SE k 1,3 len 17 % — inak vidno pravý okraj obrázka) a zväčší o --dog-g (20 %, ≤ 800 px výšky 10 %, ≤ 700 px 5 %) — limit je spodok rámu
                ústavy: svätožiara nad ním nesmie vyliezť (čip je od 5. 10. vnútri rámu). */
           }
         }
