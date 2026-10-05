@@ -62,11 +62,10 @@ type AppFeature = {
   id: string;
   /** Názov funkcie (nadpis vľavo aj na obrazovke telefónu). JEDEN riadok. */
   nameKey: string;
-  /** 1–3 riadky o funkcii — v DETAILE pod sliderom. */
-  textKey: string;
-  /** Presne 4 jednoriadkové odrážky (≤ 38 znakov) — všetky štyri slajdy
-   *  majú tú istú stavbu a výšku (Matej 27. 9.: *„snažme sa to urobiť rovnaké
-   *  na všetkých 1/4 slajdoch"*). */
+  /** 1–2 vety „čo to je" — vľavo pod nadpisom aj v DETAILE vedľa telefónu. */
+  ledeKey: string;
+  /** Jednoriadkové odrážky — LEN v DETAILE (Matej 5. 10. 2026: *„nadpis a pod tým
+   *  1–2 vety čo to je, odrážky by som dal až v popupe"*). Počet sa smie líšiť. */
   bulletKeys: string[];
   /** Obrázok na displeji telefónu; kým chýba, stojí tam zástupca. */
   shot?: string;
@@ -74,7 +73,7 @@ type AppFeature = {
   shots: string[];
 };
 
-const b4 = (id: string) => [1, 2, 3, 4].map((i) => `onepage.apps.${id}.b${i}`);
+const bn = (id: string, n = 4) => Array.from({ length: n }, (_, i) => `onepage.apps.${id}.b${i + 1}`);
 
 /* SNÍMKY (Matej 5. 10. 2026) — DOG ID = stránka psa s heroglyfom (Hekthor, ostré prihlásenie; kvíz ide do detailu) · SNIFFER = len bledá
    plocha karty s logom, podnadpisom a CTA, bez tapety s heroglyfmi (*„zjednodušíme to"*) ·
@@ -87,13 +86,13 @@ const b4 = (id: string) => [1, 2, 3, 4].map((i) => `onepage.apps.${id}.b${i}`);
 const APPS: AppFeature[] = [
   /* 🔁 PORADIE 5. 10. 2026 — Matej: *„na úvodnom mockupe musia byť tie najkrajšie = DOG ID
      v strede, sprava DOGTRIP, zľava AINUBIS"*. Sprava stojí nasledujúci, zľava posledný. */
-  { id: 'dogid', nameKey: 'heroglyph.flow.more.dogid.t', textKey: 'heroglyph.flow.more.dogid.d', bulletKeys: b4('dogid'), shot: '/images/onepage/apps/dogid-profil.webp?v=8', shots: ['/images/onepage/apps/dogid-profil.webp?v=8', '/images/onepage/apps/dogid-kviz.webp?v=8'] },
-  { id: 'dogtrip', nameKey: 'heroglyph.flow.more.dogtrip.t', textKey: 'heroglyph.flow.more.dogtrip.d', bulletKeys: b4('dogtrip'), shot: '/images/onepage/apps/dogtrip-swiss.webp?v=8', shots: ['/images/onepage/apps/dogtrip-swiss.webp?v=8', '/images/onepage/apps/dogtrip-mapa.webp?v=8'] },
-  { id: 'sniffer', nameKey: 'heroglyph.flow.more.sniffer.t', textKey: 'heroglyph.flow.more.sniffer.d', bulletKeys: b4('sniffer'), shot: '/images/onepage/apps/sniffer-cisty.webp?v=8', shots: ['/images/onepage/apps/sniffer-cisty.webp?v=8'] },
+  { id: 'dogid', nameKey: 'heroglyph.flow.more.dogid.t', ledeKey: 'onepage.apps.dogid.lede', bulletKeys: bn('dogid', 5), shot: '/images/onepage/apps/dogid-profil.webp?v=8', shots: ['/images/onepage/apps/dogid-profil.webp?v=8', '/images/onepage/apps/dogid-kviz.webp?v=8'] },
+  { id: 'dogtrip', nameKey: 'heroglyph.flow.more.dogtrip.t', ledeKey: 'onepage.apps.dogtrip.lede', bulletKeys: bn('dogtrip', 5), shot: '/images/onepage/apps/dogtrip-swiss.webp?v=8', shots: ['/images/onepage/apps/dogtrip-swiss.webp?v=8', '/images/onepage/apps/dogtrip-mapa.webp?v=8'] },
+  { id: 'sniffer', nameKey: 'heroglyph.flow.more.sniffer.t', ledeKey: 'onepage.apps.sniffer.lede', bulletKeys: bn('sniffer'), shot: '/images/onepage/apps/sniffer-cisty.webp?v=8', shots: ['/images/onepage/apps/sniffer-cisty.webp?v=8'] },
   // 5/5 — Matej 27. 9.: *„komunita/pomoc… transparentná pomoc, nové výskumy —
   // to, čo členstvo vie pomáhať psom"*. Detail = text „VYŠŠÍ CIEĽ" z heroflowu.
-  { id: 'cause', nameKey: 'onepage.apps.cause.name', textKey: 'heroglyph.flow.more.cause.d', bulletKeys: b4('cause'), shot: '/images/onepage/apps/komunita-transparency.webp?v=8', shots: ['/images/onepage/apps/komunita-transparency.webp?v=8'] },
-  { id: 'ainubis', nameKey: 'heroglyph.flow.more.ainubis.t', textKey: 'heroglyph.flow.more.ainubis.d', bulletKeys: b4('ainubis'), shot: '/images/onepage/apps/ainubis-vault-bez-oznamu.webp?v=8', shots: ['/images/onepage/apps/ainubis-vault-bez-oznamu.webp?v=8', '/images/onepage/apps/ainubis-dogscroll.webp?v=8'] },
+  { id: 'cause', nameKey: 'onepage.apps.cause.name', ledeKey: 'onepage.apps.cause.lede', bulletKeys: bn('cause'), shot: '/images/onepage/apps/komunita-transparency.webp?v=8', shots: ['/images/onepage/apps/komunita-transparency.webp?v=8'] },
+  { id: 'ainubis', nameKey: 'heroglyph.flow.more.ainubis.t', ledeKey: 'onepage.apps.ainubis.lede', bulletKeys: bn('ainubis'), shot: '/images/onepage/apps/ainubis-vault-bez-oznamu.webp?v=8', shots: ['/images/onepage/apps/ainubis-vault-bez-oznamu.webp?v=8', '/images/onepage/apps/ainubis-dogscroll.webp?v=8'] },
 ];
 
 /** Dráha ODCHODU HEROGLYPHu a príchodu telefónov (prvý ťah) vo `vh`. Oblúk
@@ -302,13 +301,7 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
             <div className={`op-apps-txt${!peek && i === idx ? ' is-on' : ''}`} key={a.id} aria-hidden={peek || i !== idx}>
               <p className="op-apps-eye">{t('onepage.apps.head')} · {i + 1}/{n}</p>
               <h3 className="op-apps-name">{t(a.nameKey)}</h3>
-              <ul className="op-apps-ul">
-                {a.bulletKeys.map((k, j) => (
-                  <li key={k} style={{ ['--i' as string]: j } as CSSProperties}>
-                    <i className="op-apps-dot" aria-hidden="true" />{t(k)}
-                  </li>
-                ))}
-              </ul>
+              <p className="op-apps-lede">{t(a.ledeKey)}</p>
               <button type="button" className="dgx-example op-apps-chip" onClick={() => setOpen(i)}>
                 {t('onepage.apps.more')}
               </button>
@@ -352,11 +345,13 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           v nej by ostal POD horným navom. */}
       {cur && createPortal(
         <div className="op-alba" role="dialog" aria-modal="true" aria-label={t(cur.nameKey)} data-film-free onClick={() => setOpen(null)}>
-          <div className="op-alba-card" onClick={(e) => e.stopPropagation()}>
+          <div className="op-alba-card op-apps-pop" onClick={(e) => e.stopPropagation()}>
             <button type="button" className="op-alba-x" aria-label={t('nav.aria.close')} onClick={() => setOpen(null)}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
-            <h2 className="op-alba-h2">{t(cur.nameKey)}</h2>
+            {/* MOCKUP NA JEDNEJ STRANE, TEXT NA DRUHEJ (Matej 5. 10. 2026: *„pri popupe by som
+                dal mockup na jednu stranu a text na druhú"*). Mobil: pod sebou. */}
+            <div className="op-apps-pop-shot">
             {/* SLIDER — screenshoty konkrétnej funkcie v ráme telefónu. */}
             <div className="op-apps-sl"
               onPointerDown={(e) => { swipeX.current = e.clientX; }}
@@ -388,7 +383,18 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
                 <button type="button" key={i} className={i === slide ? 'is-on' : ''} aria-label={`${i + 1}`} onClick={() => setSlide(i)} />
               ))}
             </div>
-            <p className="op-apps-pop-p">{t(cur.textKey)}</p>
+            </div>
+            <div className="op-apps-pop-txt">
+              <h2 className="op-apps-name">{t(cur.nameKey)}</h2>
+              <p className="op-apps-lede">{t(cur.ledeKey)}</p>
+              <ul className="op-apps-ul">
+                {cur.bulletKeys.map((k, j) => (
+                  <li key={k} style={{ ['--i' as string]: j } as CSSProperties}>
+                    <i className="op-apps-dot" aria-hidden="true" />{t(k)}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>,
         document.body,
@@ -532,7 +538,8 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           transition: opacity .5s ease, transform .5s ease;
           transition-delay: calc(var(--i, 0) * 110ms + 150ms);
         }
-        .op-apps-txt.is-on .op-apps-ul li { opacity: 1; transform: none; }
+        .op-apps-pop .op-apps-ul li { animation: opAppsLi .5s ease both; animation-delay: calc(var(--i, 0) * 110ms + 250ms); }
+        @keyframes opAppsLi { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
         .op-apps-dot {
           position: relative; flex: none; width: 8px; height: 8px; border-radius: 999px;
           background: ${LAPIS.edge}; box-shadow: 0 0 0 2px #FBF5E6;
@@ -549,8 +556,16 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
         }
         .op-apps-ul li:hover .op-apps-dot { background: #2A4CA8; }
         .op-apps .op-apps-chip { margin: 0; }
-        /* Popup — plášť je .op-alba z OnePage, tu len obsah. */
-        .op-apps-pop-p { margin: 16px auto 0; max-width: 560px; font: 400 16px/1.55 'Space Grotesk', sans-serif; color: ${LAB.ink}; }
+        /* 1–2 vety pod nadpisom (vľavo aj v DETAILE). */
+        .op-apps-lede { margin: 0 0 24px; max-width: 440px; font: 400 16px/1.55 'Space Grotesk', sans-serif; color: ${LAB.ink}; }
+        /* Popup — plášť je .op-alba z OnePage. PC: telefón vľavo, text vpravo. */
+        .op-apps-pop { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 48px; align-items: center; text-align: left; padding: 48px 48px 32px; }
+        .op-apps-pop .op-apps-sl { margin-top: 0; }
+        /* Pevné bunky — plášť .op-alba-card má vlastné dekoratívne dieťa, ktoré by si inak vzalo prvú bunku. */
+        .op-apps-pop-shot { grid-column: 1; grid-row: 1; }
+        .op-apps-pop-txt { grid-column: 2; grid-row: 1; }
+        .op-apps-pop .op-apps-sl-view { width: min(300px, calc((100dvh - 250px) * ${(IPHONE_W / IPHONE_H).toFixed(4)})); }
+        .op-apps-pop .op-apps-ul { margin: 0; }
         /* DETAIL — slider: telefón so screenshotom, šípky po bokoch, bodky pod ním. */
         .op-apps-sl { position: relative; display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 16px; touch-action: pan-y; }
         .op-apps-sl-view { width: min(280px, calc((100dvh - 320px) * ${(IPHONE_W / IPHONE_H).toFixed(4)})); overflow: hidden; }
@@ -580,9 +595,13 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           .op-apps-ul { margin-bottom: 16px; font-size: 14px; }
           .op-apps-ul li { padding: 8px 0; gap: 12px; }
           .op-apps-sl { gap: 8px; }
+          .op-apps-lede { margin-bottom: 16px; font-size: 14px; }
+          .op-apps-pop { grid-template-columns: 1fr; gap: 24px; padding: 48px 16px 24px; }
+          .op-apps-pop-txt { grid-column: 1; grid-row: 2; }
+          .op-apps-pop .op-apps-sl-view { width: min(220px, calc((100dvh - 420px) * ${(IPHONE_W / IPHONE_H).toFixed(4)})); }
         }
         @media (prefers-reduced-motion: reduce) {
-          .op-apps-ph, .op-apps-txt, .op-apps-sl-track, .op-apps-ul li { transition: none; }
+          .op-apps-ph, .op-apps-txt, .op-apps-sl-track, .op-apps-ul li { transition: none; animation: none; }
           .op-apps-dot::after { animation: none; }
         }
       `}</style>
