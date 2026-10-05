@@ -380,14 +380,21 @@ const FILM_SLIDES: FilmSlide[] = ([
     from: () => { if (!WNY_END) return pinnedAt('.op-arc', 0); const y = pinnedAt('.op-wny', 0.02); return y == null ? null : y + filmVh() * 0.5; },
   },
   {
-    // KONTAKT — posledný obraz (FilmFinale.tsx, 5. 10. 2026).
-    id: 'contact',
-    navKey: 'film.slide.contact',
-    at: () => pinnedAt('.op-fin', 1),
+    // FINÁLE A — moje slová (FilmFinale.tsx, 5. 10. 2026).
     // Pilulka meria STRED okna (scrollY + ½ vh) — preto + ½ obrazovky, ako pri misii.
-    from: () => { const y = pinnedAt('.op-fin', 0.5); return y == null ? null : y + filmVh() * 0.5; },
+    id: 'founder',
+    navKey: 'film.slide.founder',
+    at: () => pinnedAt('.op-fin', FIN_STOPS[0]),
+    from: () => { const y = pinnedAt('.op-fin', FIN_STOPS[0] * 0.5); return y == null ? null : y + filmVh() * 0.5; },
   },
-] as FilmSlide[]).filter((sl) => WNY_ON || WNY_END || (sl.id !== 'mission' && sl.id !== 'contact'));
+  {
+    // FINÁLE B — čo ďalej: kroky, čísla, kontakty.
+    id: 'next',
+    navKey: 'film.slide.next',
+    at: () => pinnedAt('.op-fin', 1),
+    from: () => { const y = pinnedAt('.op-fin', (FIN_STOPS[0] + 1) / 2); return y == null ? null : y + filmVh() * 0.5; },
+  },
+] as FilmSlide[]).filter((sl) => WNY_ON || WNY_END || !['mission', 'founder', 'next'].includes(sl.id));
 
 /**
  * DĹŽKA PRECHODU 1. → 2. OBRAZU, v obrazovkách scrollu.
@@ -4025,7 +4032,10 @@ export default function OnePage() {
       setAtFilmEnd(window.scrollY >= document.documentElement.scrollHeight - window.innerHeight - 8);
       setAtHome(window.scrollY < window.innerHeight * 0.3);
       const we = WNY_END ? wnyEnd() : null;
-      setAtFinale(we != null && window.scrollY >= we - window.innerHeight * 0.25);
+      // Šípky zhasnú na WE NEED YOU (vedie CTA) a znova svietia na finále A (moje
+      // slová nemajú tlačidlo, ďalej vedú šípky). Na B ich zhasne koniec stránky.
+      const fa = pinnedAt('.op-fin', FIN_STOPS[0]);
+      setAtFinale(we != null && window.scrollY >= we - window.innerHeight * 0.25 && (fa == null || window.scrollY < fa - window.innerHeight * 0.3));
       const tl = document.querySelector<HTMLElement>('.op-timeline');
       if (tl) {
         const top = tl.getBoundingClientRect().top + window.scrollY;
