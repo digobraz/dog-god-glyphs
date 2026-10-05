@@ -7960,7 +7960,9 @@ export default function OnePage() {
                       DOGYPT je značka, nie slovo vety — Cinzel a zlato. */}
                   <div className="op-beat op-b-sub"><div className="op-bin">
                     <p className="op-nxt-line">
-                      {/* Matej 28. 9. 2026: *„Naše poslanie je vytvoriť HEROGLYF pre milión psov."* */}
+                      {/* Matej 5. 10. 2026 (nahradil vetu z 28. 9. o HEROGLYFE pre milión psov):
+                          *„Imagine a one million people stand by our dogs — what a great power we have,
+                          what good things we can do"*. Kúsky ostali: text · zlaté slovo · tučný záver. */}
                       <span>{t('onepage.need.mis1')}</span>
                       <span><b>{t('onepage.need.misGlyph')}</b> {t('onepage.need.misFor')}</span>
                       {/* 🔴 OVÁL ODIŠIEL Z TEXTU NA PÁS (Matej 28. 9. 2026: *„nechcel
