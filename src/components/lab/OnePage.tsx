@@ -4917,6 +4917,17 @@ export default function OnePage() {
             font-size: var(--op-h-obraz);
             letter-spacing: .04em; /* ReligionLab má na mobile .03 — vo filme platí SYSTÉM NADPISOV */
           }
+          /* MOTTO NA JEDEN RIADOK AJ NA MOBILE (Matej 5. 10. 2026: *„nadpis tu nevojde do
+             jedného riadku?"* → *„áno daj"*). Ten istý recept ako PC (28. 8.): polovice
+             inline, medzeru nesie ::after prvej polovice. SK „VERÍME V PSA" má pri 32 px
+             ~250 px z 386. */
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-headline .grad,
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-headline .line {
+            display: inline;
+          }
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-headline > span:first-child::after {
+            content: ' ';
+          }
           .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-text {
             font-size: min(12.5px, 2.75vh);
             line-height: 1.45;
