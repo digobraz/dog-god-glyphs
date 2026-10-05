@@ -146,6 +146,14 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
   useEffect(() => { setSlide(0); }, [open]);
   const slideCount = open != null ? Math.max(1, APPS[open].shots.length || 3) : 1;
   const moveSlide = useCallback((d: number) => setSlide((i) => (i + d + slideCount) % slideCount), [slideCount]);
+  const moveApp = useCallback((d: number) => {
+    setOpen((o) => {
+      if (o == null) return o;
+      const nx = (o + d + n) % n;
+      setIdx(nx);
+      return nx;
+    });
+  }, [n]);
   useEffect(() => {
     if (open == null) return;
     const onKey = (e: KeyboardEvent) => {
@@ -351,6 +359,18 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
       {cur && createPortal(
         <div className="op-alba" role="dialog" aria-modal="true" aria-label={t(cur.nameKey)} data-film-free onClick={() => setOpen(null)}>
           <div className="op-alba-card op-apps-pop" onClick={(e) => e.stopPropagation()}>
+            {/* ŠÍPKY NA KRAJI KARTY = ĎALŠIA FUNKCIA (Matej 5. 10. 2026: *„daj aj šípky na jeho kraj,
+                aby si človek mohol pozrieť detaily bez toho, aby sa neustále vracal na stránku
+                a klikal na mockupy"*). Šípky vnútri (pri telefóne) listujú SNÍMKY jednej funkcie;
+                tieto na okraji karty listujú FUNKCIE — preto iný tvar (zlatý rám = navigácia,
+                „kde som") a iné miesto. Karusel za popupom ide s nimi, nech po zatvorení stojí
+                človek na funkcii, ktorú práve čítal. */}
+            <button type="button" className="op-apps-pop-nav is-l" aria-label={t(APPS[(open! - 1 + n) % n].nameKey)} onClick={() => moveApp(-1)}>
+              <HandArrowLeft size={20} />
+            </button>
+            <button type="button" className="op-apps-pop-nav is-r" aria-label={t(APPS[(open! + 1) % n].nameKey)} onClick={() => moveApp(1)}>
+              <HandArrowLeft size={20} style={{ transform: 'scaleX(-1)' }} />
+            </button>
             {/* Bez krížika (Matej 28. 9. 2026: *„na webe nechceme krížiky"*) — zatvára klik mimo karty a Esc.
                 Tlačidlo bez štýlu tu prežilo a v mriežke popupu si vzalo vlastnú bunku (karta 973 px). */}
             {/* MOCKUP NA JEDNEJ STRANE, TEXT NA DRUHEJ (Matej 5. 10. 2026: *„pri popupe by som
@@ -581,6 +601,17 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
         }
         .op-apps-sl-btn:hover { background: rgba(0,0,0,.8); }
         .op-apps-sl-btn svg { fill: currentColor; }
+        /* Šípky na kraji karty — sedia na jej hrane (polovica von), zlatý rám ako navigácia. */
+        .op-apps-pop-nav {
+          position: absolute; top: 50%; z-index: 2; transform: translateY(-50%);
+          width: 48px; height: 48px; border-radius: 999px; display: grid; place-items: center; cursor: pointer;
+          background: ${LAB.pageBg}; border: 1.5px solid rgba(201,154,63,.85); color: ${LAB.ink};
+          box-shadow: 0 8px 24px rgba(42,22,8,.25); transition: transform .15s, background .15s;
+        }
+        .op-apps-pop-nav.is-l { left: -24px; }
+        .op-apps-pop-nav.is-r { right: -24px; }
+        .op-apps-pop-nav:hover { transform: translateY(-50%) scale(1.06); }
+        .op-apps-pop-nav svg { fill: currentColor; }
         .op-apps-sl-dots { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
         .op-apps-sl-dots button {
           width: 8px; height: 8px; padding: 0; border-radius: 999px; cursor: pointer;
@@ -601,6 +632,11 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           .op-apps-sl { gap: 8px; }
           .op-apps-lede { margin-bottom: 16px; font-size: 14px; }
           .op-apps-pop { grid-template-columns: 1fr; gap: 24px; padding: 48px 16px 24px; }
+          /* Mobil: karta je cez celú šírku, hrana by šípku vytlačila z okna — idú do horných rohov karty (48 px rezerva nad telefónom). */
+          .op-apps-pop-nav { top: 8px; transform: none; width: 40px; height: 40px; }
+          .op-apps-pop-nav.is-l { left: 8px; }
+          .op-apps-pop-nav.is-r { right: 8px; }
+          .op-apps-pop-nav:hover { transform: none; }
           .op-apps-pop-txt { grid-column: 1; grid-row: 2; }
           .op-apps-pop .op-apps-sl-view { width: min(220px, calc((100dvh - 420px) * ${(IPHONE_W / IPHONE_H).toFixed(4)})); }
         }
