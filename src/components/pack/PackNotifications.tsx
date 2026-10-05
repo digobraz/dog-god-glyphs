@@ -2,7 +2,7 @@ import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BrandIcon } from './BrandIcon';
-import { HandNose } from './HandIcons';
+import { HandTail } from './HandIcons';
 import { PACK_THEME, PACK_SHADOW } from './packTheme';
 import { pluralKey } from '@/lib/plural';
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -355,7 +355,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           cursor: 'pointer',
         }}
       >
-        <HandNose size={capsule ? 22 : 17} />
+        <HandTail size={capsule ? 22 : 17} />
         {bellCount > 0 && (
           <span
             style={{
@@ -428,7 +428,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
                       className="flex items-start gap-2 w-full text-left"
                       style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}
                     >
-                      <HandNose size={14} style={{ flexShrink: 0, marginTop: 2, color: T.accentGold }} />
+                      <HandTail size={14} style={{ flexShrink: 0, marginTop: 2, color: T.accentGold }} />
                       <span style={{ minWidth: 0, flex: 1 }}>
                         <span
                           style={{
