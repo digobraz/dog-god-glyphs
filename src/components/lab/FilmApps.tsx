@@ -280,6 +280,7 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
 
       const isPeek = p < PEEK + STEP * 0.5;
       setPeek(isPeek);
+      sec.toggleAttribute('data-peek', isPeek);
       setShown(rise > 0.9);
       if (wasPeek.current && !isPeek) setIdx(0);
       wasPeek.current = isPeek;
@@ -644,6 +645,10 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           .op-apps-ph { width: 280px; }
           .op-apps-ctl { --arr-x: min(172px, calc(50vw - 44px)); }
           .op-apps-ctl button { width: 48px; height: 48px; }
+          /* V ÚVODE BEZ ŠÍPOK: stred telefónu je na spodku okna, šípky by ležali na AINUBIS
+             bubline a šípke filmu (Matejov iPhone 5. 10.). Točí sa samo a ide švih; šípky nabehnú s funkciou. */
+          .op-apps-ctl { opacity: calc(var(--r, 0) * var(--sx, 0)); }
+          .op-apps[data-peek] .op-apps-ctl button { pointer-events: none; }
           .op-apps-col { left: 16px; right: 16px; width: auto; top: calc(var(--op-nav-h, 118px) + 8px); }
           .op-apps-txt { transform: none; }
           .op-apps-name { margin-bottom: 8px; }
