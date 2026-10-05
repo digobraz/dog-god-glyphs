@@ -84,7 +84,7 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale, fmtNum } from '@/i18n/bcp47';
 import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
 import { PoiLayer } from '@/components/geo/PoiLayer';
-import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_TOPROW, PAGE_AIR } from '@/components/pack/packTheme';
 import { BackIcon, ExpandIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import { goldFrameCSS, goldPlateCSS, pickTintCSS, PICK_INK, SLAB, LAPIS, LAPIS_BTN_SHADOW, MAP_SKIN, NAV_GOLD, NAV_PILL_SHADOW, NAV_R, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
 import { estimateTripMinutes, formatTripTime } from '@/lib/tripTime';
@@ -1982,7 +1982,10 @@ ${TRAIL_LINE_CSS}
      padding-bottom 10 → 22 px: hlavička 111 px, maska začína na ~98 px, teda 9 px POD poľom
      a v zóne naozaj nič nie je. Keď do hlavičky pribudne riadok, ČÍSLA PREMERAJ ZNOVA —
      percento masky sa počíta z výšky, takže sa posunie samo. */
-  .trp-mheader{display:flex;flex-direction:column;gap:8px;position:absolute;top:0;left:0;right:0;z-index:900;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 22px;mask-image:linear-gradient(to bottom, black 0%, black 88%, transparent 100%);-webkit-mask-image:linear-gradient(to bottom, black 0%, black 88%, transparent 100%);}
+  /* VRCH A KRAJ = HORNÝ RAD /pack (5. 10. 2026, Matej: ikonky správ a notifikácií sa menia
+     veľkosťou aj umiestnením, zjednotiť). Dovtedy 10/10 px, homepage a DOG ID 20/16 —
+     kapsula pri prechode skákala o 10 px hore a 6 px doprava. Čísla z PACK_TOPROW a PAGE_AIR. */
+  .trp-mheader{display:flex;flex-direction:column;gap:8px;position:absolute;top:0;left:0;right:0;z-index:900;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:calc(env(safe-area-inset-top,0px) + ${PACK_TOPROW.top}px) ${PAGE_AIR.side}px 22px;mask-image:linear-gradient(to bottom, black 0%, black 88%, transparent 100%);-webkit-mask-image:linear-gradient(to bottom, black 0%, black 88%, transparent 100%);}
   /* Matej 2026-08-03 („na mobil je toho veľa"): riadok 1 UŽ NIE JE rad piatich pilulek
      v horizontálnom scrolli, ale IDENTITA vľavo ↔ notifikácie vpravo. Preto space-between
      a žiadny overflow-x — už niet čo scrollovať, obsah sa vždy zmestí. */

@@ -41,7 +41,7 @@ import { PackBottomNav, MessagingOverlayHost } from '@/components/pack/PackLayou
 import { PackIdentityBar } from '@/components/pack/PackIdentityBar';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import {
-  PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS,
+  PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS, PACK_TOPROW, PAGE_AIR,
 } from '@/components/pack/packTheme';
 import {
   AINUBIS, AI_GLASS, AI_BREATHE_CSS, AI_PANEL_SHADOW, AI_FOCUS, aiWorld, BRAIN_STATE,
@@ -111,8 +111,10 @@ ${STAGE_CSS}
   letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.ctaA};}
 
 /* ── HORNÝ PÁS — ROVINY (vzor .trp-topbar: pás nad DOSTUPNOU šírkou) ────── */
-.akv-top{position:absolute;z-index:6;top:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.md}px);
-  left:${PACK_SPACE.md}px;right:${PACK_SPACE.md}px;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;
+/* VRCH A KRAJ = HORNÝ RAD /pack (5. 10. 2026): 20 zhora, 16 z boku — ako homepage, DOG ID
+   a mobilná hlavička /map. Dovtedy 12/12 a kapsula správ zmenšená na 75×42. */
+.akv-top{position:absolute;z-index:6;top:calc(env(safe-area-inset-top,0px) + ${PACK_TOPROW.top}px);
+  left:${PAGE_AIR.side}px;right:${PAGE_AIR.side}px;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;
   pointer-events:none;}
 .akv-top > *{pointer-events:auto;}
 .akv-toprow{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;}
@@ -159,9 +161,9 @@ ${STAGE_CSS}
   /* S ostrými číslami (1487 KM · 70 TRIPS) ostáva na 390 px pre oznam ~70 px — do jedného
      riadku sa nezmestí. Radšej ZÁMERNE dva riadky než orezané „OPENS NO…" (náhľad 22. 9.). */
 
-  /* Správy a zvonček na 32 px ako v mobilnej hlavičke mapy (PackNotifications má
-     rozmery v inline štýle, prebiť sa dá len !important — ten istý precedens). */
-  .akv-top .pkid-right button{width:32px!important;height:32px!important;}
+  /* Do 5. 10. 2026 tu stál prepis správy+zvonček na 32 px s odôvodnením „ako na mape“ —
+     mapa ich mala vtedy už 44 v kapsule 99×54, takže prepis robil opak. Zrušený: kapsula
+     má JEDNU veľkosť na každej obrazovke /pack. */
 }
 
 /* ── DOGSCROLL — vzor zoznamu na /map: HLAVIČKA STOJÍ, scrolluje len obsah ──
@@ -455,7 +457,7 @@ ${STAGE_CSS}
   .akv-ptools .akv-search{flex:1 1 320px;max-width:420px;}
   .akv-ptools .akv-filters{flex:0 1 480px;}
   .akv-brain{left:var(--akv-panel);}
-  .akv-top{left:calc(var(--akv-panel) + ${PACK_SPACE.xl}px);right:${PACK_SPACE.xl}px;top:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.xl}px);}
+  .akv-top{left:calc(var(--akv-panel) + ${PACK_SPACE.xl}px);right:${PACK_SPACE.xl}px;top:calc(env(safe-area-inset-top,0px) + ${PACK_TOPROW.top}px);}
   .akv-mactions{display:none;}
 }
 `;
