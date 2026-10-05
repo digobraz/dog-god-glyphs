@@ -3589,7 +3589,10 @@ export default function PackMap() {
   // ⚠️ Vetvy boli pôvodne DVE (`AddTripPlan` + `AddTripLog`). Plánovanie sa presťahovalo
   // do `AddTripLog` (má `mode` aj pole viditeľnosti), `AddTripPlan.tsx` bol 16. 9. 2026
   // zmazaný ako mŕtvy — archív: tag `archiv/addtripplan-2026-09-16`.
-  const [addEntryOpen, setAddEntryOpen] = useState(false);
+  // Rozcestník `+` sa otvára buď celý ('kind'), alebo rovno na druhej úrovni ('event') —
+  // vchod „pridať" v podujatiach už vie, že ide o podujatie (Matej 5. 10. 2026: „má otvoriť
+  // to, čo otvorí to tlačidlo = rovno na vec").
+  const [addEntryOpen, setAddEntryOpen] = useState<false | 'kind' | 'event'>(false);
   const [addFlow, setAddFlow] = useState<TripState | null>(null);
   // Sprievodcu (najťažší kus mapy) dotiahni potichu, až keď je mapa vykreslená a prehliadač
   // nemá čo robiť — prvé ťuknutie na VÝLET potom nečaká na sieť. Panel „+" žije v lište
@@ -3912,7 +3915,7 @@ export default function PackMap() {
     // bez regiónu je to len „chcem pridať výlet" → vstupný picker walked/planned, ako klik na
     // tlačidlo + Add trip. Inak by routa ticho zjedla voľbu „planujem" z AddTripEntry.
     if (region) setAddFlow('walked');
-    else setAddEntryOpen(true);
+    else setAddEntryOpen('kind');
     if (region) {
       const target = regionCenter(region);
       if (leafletMapRef.current) leafletMapRef.current.flyTo(target, 11, { duration: 1.2 });
@@ -4695,7 +4698,14 @@ export default function PackMap() {
   // Tlačidlo „+ Add trip" na mape NEnaviguje na `/pack/add/trip` zámerne — obe adresy sú iné
   // <Route>, takže navigácia by PackMap odmountovala a zhodila zoom/filtre/výrez mapy. Routa je
   // vstupný bod (deep link z Triplistu, TripStats, uložený odkaz), nie interný toggle.
-  const openAddEntry = () => setAddEntryOpen(true);
+  // ── VCHOD S JASNÝM CIEĽOM IDE ROVNO NA VEC (Matej 5. 10. 2026) ──────────────────────
+  // „ak kliknem hore na pridať, otvorí mi dolný panel… je to o krok dlhšie bez logiky."
+  // Tlačidlo PRIDAŤ VÝLET a „pridať ďalší" po zápise už vedia, že ide o VÝLET; „pridať"
+  // v podujatiach vie, že ide o PODUJATIE. Celý rozcestník `+` patrí spodnej lište, kde
+  // človek ešte nepovedal, čo chce. Výlet = ten istý krok, aký robí dlaždica VÝLET
+  // v `AddTripEntry` (vrátane merania štartu), nie druhá cesta k nemu.
+  const startTripAdd = () => { trackPack('pack_trip_add_start'); pickAddFlow({ kind: 'trip', state: 'walked' }); };
+  const openEventEntry = () => setAddEntryOpen('event');
   /**
    * PRAVIDLO NÁVRATU — tok sa vracia tam, odkiaľ ho človek spustil (lock §1.1.1).
    *
@@ -5532,7 +5542,9 @@ export default function PackMap() {
       </button>
       {/* ADD TRIP patrí do stredného klastra (Matej 2026-07-26) — vedľa správ nemá čo robiť,
           a je to jediný vstup do ADD flow, takže sa nesmie stratiť. */}
-      <button type="button" className="trp-addtrip-btn" onClick={openAddEntry}>
+      {/* Na karte PODUJATIA pridáva horné tlačidlo podujatie, nie výlet — človek sa práve
+          pozerá na zoznam podujatí (Matej 5. 10. 2026: „rovno na vec"). */}
+      <button type="button" className="trp-addtrip-btn" onClick={activeCat === 'events' ? openEventEntry : startTripAdd}>
         <img src={ICON('plus')} alt="" className="trp-addtrip-icon" />
         <span className="trp-addtrip-full">{t('pack.map.addTrip')}</span>
         <span className="trp-addtrip-short" aria-hidden>{t('pack.map.add')}</span>
@@ -6381,7 +6393,7 @@ export default function PackMap() {
                       selectedId={selectedEventId}
                       expandedId={expandedEventId}
                       onCardClick={handleEventCardClick}
-                      onAddEvent={openAddEntry}
+                      onAddEvent={openEventEntry}
                       withRef
                       cardRefs={eventCardRefs}
                       onChanged={() => void evStore.reload()}
@@ -6732,7 +6744,7 @@ export default function PackMap() {
                     selectedId={selectedEventId}
                     expandedId={expandedEventId}
                     onCardClick={handleEventCardClick}
-                    onAddEvent={openAddEntry}
+                    onAddEvent={openEventEntry}
                     onChanged={() => void evStore.reload()}
                     onEdit={(it) => { setEditingEvent(it); setAddEventFlow(it.origin); }}
                     error={evStore.error}
@@ -6788,7 +6800,7 @@ export default function PackMap() {
                    nie východ (viď `onBackToEntry` v AddTripLog). Pri dopĺňaní konceptu a pri
                    prejdenom pláne sa sprievodca otvára BEZ popupu, takže tam sa vracať nemá
                    kam a šípka ostáva východom. */
-                onBackToEntry={finishTrailId ? undefined : () => { closeAdd(); setAddEntryOpen(true); }}
+                onBackToEntry={finishTrailId ? undefined : () => { closeAdd(); setAddEntryOpen('kind'); }}
                 placeholderFor={placeholderFor}
                 mapRef={leafletMapRef}
                 seedPoint={seedPoint}
@@ -7393,7 +7405,7 @@ export default function PackMap() {
           lock §1.1.1: jeden pridávací panel, viac vchodov. */}
       {addEntryOpen && (
         <Suspense fallback={null}>
-          <AddTripEntry place="VON" onPick={pickAddFlow} onClose={closeAddEntry} />
+          <AddTripEntry place="VON" startAt={addEntryOpen === 'event' ? 'event' : undefined} onPick={pickAddFlow} onClose={closeAddEntry} />
         </Suspense>
       )}
 
@@ -7543,7 +7555,7 @@ export default function PackMap() {
             draftMissing={(reveal.draftMissing ?? []).map((k) => t(k))}
             plan={reveal.plan}
             onFinishNow={reveal.tripId ? () => { const tid = reveal.tripId!; setReveal(null); openFinishTrip(tid); } : undefined}
-            onAddAnother={() => { setReveal(null); openAddEntry(); }}
+            onAddAnother={() => { setReveal(null); startTripAdd(); }}
             // Sprievodca po zápise sa neotvorí tomu, kto si ho vypol (coachMuted) — inak by
             // „nabudúce nezobrazovať" nič neznamenalo. Kontrola je TU, nie v komponente: ten sa
             // má starať o to, ako vyzerá, nie o to, či má právo existovať.

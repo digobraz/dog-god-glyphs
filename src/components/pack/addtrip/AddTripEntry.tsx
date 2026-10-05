@@ -64,6 +64,12 @@ export type AddTripEntryProps = {
    * ⚠️ Povinné, keď je `place`. Bez neho by dlaždica mlčky nič neurobila.
    */
   onCreate?: (o: CreateObject) => void;
+  /**
+   * Vchod, ktorý už vie, čo človek chce (Matej 5. 10. 2026: „rovno na vec"), otvorí panel
+   * hneď na druhej úrovni. Návrat z nej potom panel ZAVRIE — človek rozcestník nevidel,
+   * takže „späť" doň by ho poslalo niekam, kde nikdy nebol.
+   */
+  startAt?: 'event';
 };
 
 type Kind = 'trip' | 'wish' | 'event' | 'note' | 'service';
@@ -185,14 +191,14 @@ const EVENT_BLOCKS: Array<{ origin: 'own' | 'tip'; emoji: string; titleKey: stri
   { origin: 'tip', emoji: '🔗', titleKey: 'pack.addTrip.entry.event.tip.title', textKey: 'pack.addTrip.entry.event.tip.text' },
 ];
 
-export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryProps) {
+export function AddTripEntry({ onPick, onClose, place, onCreate, startAt }: AddTripEntryProps) {
   const t = useT();
   const navigate = useNavigate();
   // Názvy položiek panela sú v zadaní §6 ponechané MATEJOVI, takže register nesie kľúč
   // AJ dočasný text. `tx` je ten istý zvyk ako v `RightGate`/`DogPassport`: chýbajúci
   // preklad nesmie vyhodiť na obrazovku holý kľúč (CLAUDE.md, názvoslovie).
   const tx = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
-  const [step, setStep] = useState<'kind' | 'trip' | 'event' | 'note'>('kind');
+  const [step, setStep] = useState<'kind' | 'trip' | 'event' | 'note'>(startAt ?? 'kind');
   const groups = useMemo(() => panelFor(place), [place]);
 
   // ── ŠUPLÍK NA MOBILE: ÚCHYT HORE, ŤAHANÍM NADOL SA ZAVRIE (Matej 21. 9. 2026) ─────────
@@ -367,8 +373,8 @@ export function AddTripEntry({ onPick, onClose, place, onCreate }: AddTripEntryP
         <button
           type="button"
           className={`att-entry-nav${step === 'kind' ? ' att-entry-nav--close' : ''}`}
-          onClick={() => (step === 'kind' ? onClose() : setStep('kind'))}
-          aria-label={t(step === 'kind' ? 'pack.addTrip.entry.closeAriaLabel' : 'pack.addTrip.entry.backAriaLabel')}
+          onClick={() => (step === 'kind' || step === startAt ? onClose() : setStep('kind'))}
+          aria-label={t(step === 'kind' || step === startAt ? 'pack.addTrip.entry.closeAriaLabel' : 'pack.addTrip.entry.backAriaLabel')}
         >
           <BackIcon />
         </button>
