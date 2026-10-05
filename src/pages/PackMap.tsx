@@ -2011,12 +2011,14 @@ ${TRAIL_LINE_CSS}
      všetko, čo z nej vytŕča — kým je ponuka otvorená, rozplynutie sa vypína (.has-sug). */
   .trp-mheader-row2 .trp-mapsug{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:5;}
   .trp-mheader.has-sug{mask-image:none;-webkit-mask-image:none;}
-  .trp-mheader .trp-mapsearch{flex:1 1 auto;min-width:0;padding:0 12px;border-radius:999px;}
+  /* Riadok hľadanie + Filtre = .akv-mtools v AINUBISE na pixel (5. 10. 2026): medzera v poli 8,
+     v tlačidle 4 — dovtedy 9 a 7, mimo stupnice, a tlačidlo bolo o 3 px širšie. */
+  .trp-mheader .trp-mapsearch{flex:1 1 auto;min-width:0;gap:8px;padding:0 12px;border-radius:999px;}
   .trp-mheader .trp-mapsearch input{padding:8px 0;}
   .trp-mheader .trp-mapsearch img{width:12px;height:12px;}
   /* NEZNIŽOVAŤ POD 16 px — viď pravidlo pri .trp-mapsearch input vyššie. */
   .trp-mfilterwrap{position:relative;flex:0 0 auto;}
-  .trp-mfilterbtn{display:flex;align-items:center;gap:7px;padding:8px 12px;border-radius:999px;background:${T.glassSoft};border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-weight:500;font-size:12px;white-space:nowrap;cursor:pointer;}
+  .trp-mfilterbtn{display:flex;align-items:center;gap:4px;padding:8px 12px;border-radius:999px;background:${T.glassSoft};border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-weight:500;font-size:12px;white-space:nowrap;cursor:pointer;}
   .trp-mfilterbtn img{width:14px;height:14px;filter:brightness(0) invert(1);opacity:.8;}
   .trp-mfilterbtn.on{border-color:${GOLD};color:${GOLD};}
   .trp-mfilterbtn.on img{filter:none;opacity:1;}

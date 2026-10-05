@@ -28,8 +28,9 @@
 // ════════════════════════════════════════════════════════════════════════════
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import {
-  PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, VEIL_CSS,
+  PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, VEIL_CSS, PACK_TOPROW,
 } from '@/components/pack/packTheme';
+import { BACK, BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import {
   AINUBIS, AI_GLASS, AI_FOCUS, AI_RAIL, AI_RAIL_BEFORE, AI_RAIL_BLANK, AI_SPINE,
   AI_BREATHE_CSS, aiWorld,
@@ -105,18 +106,18 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
 
 /* ── HLAVA ─────────────────────────────────────────────────────────────────
    Riadok 1 = šípka + meno roviny. Riadok 2 = záložky, deliaca čiara a svety. */
+/* VRCH = HORNÝ RAD /pack (5. 10. 2026): šípka 38 stojí na tej istej osi ako na triplistе,
+   SNIFFERi a DOG ID — 20 zhora + (54 − 38) / 2. Dovtedy 12 px a kruh 32. */
 .akw-head{min-width:0;border-bottom:1px solid ${AINUBIS.edge};
-  padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.md}px)
+  padding:calc(env(safe-area-inset-top,0px) + ${PACK_TOPROW.top + (PACK_TOPROW.h - BACK.dia) / 2}px)
     ${PACK_SPACE.lg}px ${PACK_SPACE.md}px;}
 /* Hlavička stojí na tej istej osi ako karty pod ňou (Matej 24. 9.:
    „header by som centroval na stred, na šírku 3 stĺpcov"). */
 .akw-hin{max-width:${GRID_MAX}px;margin:0 auto;min-width:0;
   display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;}
 .akw-htop{display:flex;align-items:center;gap:${PACK_SPACE.md}px;}
-.akw-back{width:32px;height:32px;flex:0 0 32px;display:flex;align-items:center;justify-content:center;
-  border-radius:${PACK_R.pill}px;cursor:pointer;
-  border:1px solid ${AINUBIS.edge};background:${AINUBIS.raised};color:${AINUBIS.cyan};}
-.akw-back:hover{border-color:${AINUBIS.edgeStrong};}
+.akw-back{${backCircleCSS('ainubis')}}
+.akw-back:hover{${backHoverCSS('ainubis')}}
 .akw-htop h1{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.h2}px;line-height:1.1;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;color:${AINUBIS.ink};}
 .akw-count{margin-left:auto;font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;
@@ -135,15 +136,19 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
    (na PC)"), tak sú aj v kóde len tam. */
 .akw-bar{display:flex;flex-direction:column;align-items:stretch;gap:${PACK_SPACE.md}px;min-width:0;}
 /* Aj samotné záložky na 390 px rolujú — inak sa tretia oreže. */
-.akw-tabs{display:flex;gap:${PACK_SPACE.sm}px;flex:0 0 auto;min-width:0;
-  overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;
-  margin:0 -${PACK_SPACE.lg}px;padding:0 ${PACK_SPACE.lg}px;}
+/* ZÁLOŽKY = PREPÍNAČ ROVÍN (.akv-planes) aj prepínač na /map (5. 10. 2026): obal s lemom,
+   tri rovnaké pilulky, Space Grotesk (brand.md — čipy), výška 35 = 4+4+1+1 + pilulka 25.
+   Dovtedy samostatné Cinzel pilulky 33 px, na mobile rolované. Farby výberu ostávajú tri. */
+.akw-tabs{display:flex;gap:${PACK_SPACE.xs}px;flex:0 0 auto;min-width:0;padding:${PACK_SPACE.xs}px;
+  border-radius:${PACK_R.pill}px;background:${AINUBIS.surface};border:1px solid ${AINUBIS.edge};
+  box-shadow:${AINUBIS.panelShadow};}
 .akw-tabs::-webkit-scrollbar{display:none;}
-.akw-tab{flex:0 0 auto;}
-.akw-tab{padding:${PACK_SPACE.sm}px ${PACK_SPACE.lg}px;border-radius:${PACK_R.pill}px;cursor:pointer;
-  border:1px solid ${AINUBIS.edge};background:transparent;color:${AINUBIS.inkDim};white-space:nowrap;
-  font-family:${FONT_TITLE};font-weight:700;font-size:${PACK_TEXT.micro}px;line-height:15px;
-  letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;}
+.akw-tab{flex:1 1 0;min-width:0;}
+.akw-tab{padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;
+  border:1px solid transparent;background:transparent;color:${AINUBIS.inkDim};white-space:nowrap;
+  font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.micro}px;line-height:15px;
+  letter-spacing:0.02em;text-transform:uppercase;}
+.akw-tab[aria-current="page"]{font-weight:600;}
 .akw-tab[data-t="pack"][aria-current="page"]{color:${AINUBIS.cyan};
   border-color:${AINUBIS.edgeStrong};background:rgba(${AINUBIS.cyanRGB},0.16);}
 .akw-tab[data-t="mine"][aria-current="page"]{color:${AINUBIS.ctaA};
@@ -732,7 +737,7 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
   /* Až TU smie mať riadok nástrojov pružný základ — v rade je to šírka.
      Nad tým istým pravidlom v stĺpci by to bola výška (viď .akw-find). */
   .akw-tools{flex:1 1 240px;width:auto;}
-  .akw-tabs,.akw-worlds{margin:0;padding:0;overflow:visible;}
+  .akw-worlds{margin:0;padding:0;overflow:visible;}
   .akw-worlds{overflow-x:auto;}
   .akw-div{display:block;}
 }
@@ -1071,7 +1076,7 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
         <div className="akw-hin">
         <div className="akw-htop">
           <button type="button" className="akw-back" onClick={onBack} aria-label="Back">
-            <HandArrowLeft size={14} />
+            <BackIcon />
           </button>
           <h1>Board</h1>
           {tab === 'lib' && (

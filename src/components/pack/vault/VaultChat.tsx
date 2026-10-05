@@ -29,8 +29,9 @@
 // ════════════════════════════════════════════════════════════════════════════
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI,
+  PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, PACK_TOPROW,
 } from '@/components/pack/packTheme';
+import { BACK, BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import {
   AINUBIS, AI_GLASS, AI_BUBBLE, AI_RAIL_BEFORE, AI_BREATHE_CSS, aiWorld,
 } from '@/components/pack/ainubisSkin';
@@ -306,9 +307,11 @@ ${AI_BREATHE_CSS}
    sa na 390 px lámali do troch riadkov a hlavička zaberala 129 px z 844 —
    pätinu obrazovky na vetu, ktorá sa nedá stlačiť. Nie je to ovládač, je to
    tvrdenie „poznám tvojho psa": nič v ňom nie je klikateľné a nič nefiltruje. */
+/* VRCH = HORNÝ RAD /pack (5. 10. 2026): šípka 38 stojí na tej istej osi ako na triplistе,
+   SNIFFERi a DOG ID — 20 zhora + (54 − 38) / 2. Dovtedy 12 px a kruh 32. */
 .akc-head{display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;
   border-bottom:1px solid ${AINUBIS.edge};
-  padding:calc(env(safe-area-inset-top,0px) + ${PACK_SPACE.md}px)
+  padding:calc(env(safe-area-inset-top,0px) + ${PACK_TOPROW.top + (PACK_TOPROW.h - BACK.dia) / 2}px)
     ${PACK_SPACE.lg}px ${PACK_SPACE.md}px;}
 .akc-ctx{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;flex-wrap:wrap;
   font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.card.letterSpacing};
@@ -317,10 +320,9 @@ ${AI_BREATHE_CSS}
   letter-spacing:0.02em;color:${AINUBIS.inkFaint};}
 /* Meno psa je jediné slovo, ktoré dokazuje, že pozná TOHTO psa — nesie jeho farbu. */
 .akc-ctxline i{font-style:normal;color:${AINUBIS.cyan};}
-.akc-back{width:32px;height:32px;flex:0 0 32px;display:flex;align-items:center;justify-content:center;
-  border-radius:${PACK_R.pill}px;cursor:pointer;
-  border:1px solid ${AINUBIS.edge};background:${AINUBIS.raised};color:${AINUBIS.cyan};}
-.akc-back:hover{border-color:${AINUBIS.edgeStrong};}
+/* Kruh = BackButton tón ainubis (jeden zdroj rozmerov, BACK). */
+.akc-back{${backCircleCSS('ainubis')}}
+.akc-back:hover{${backHoverCSS('ainubis')}}
 .akc-railbtn{padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;cursor:pointer;
   font-family:${FONT_UI};font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.card.letterSpacing};
   text-transform:uppercase;border:1px solid ${AINUBIS.edge};background:none;color:${AINUBIS.cyan};}
@@ -1027,7 +1029,7 @@ export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
         {/* 🔴 ŠÍPKA SPÄŤ NA PC (Matej 23. 9. 2026, B2+F3). Na mobile ju CSS
             nevykreslí — tam cesta von vedie z hlavičky vlákna. */}
         <button type="button" className="akc-back akc-railback" onClick={onBack} aria-label="Back">
-          <HandArrowLeft size={16} />
+          <BackIcon />
         </button>
         <div className="akc-railid">
           <span className="akc-face ai-breathe-face"><img src={ainubisFace} alt="" aria-hidden /></span>
@@ -1116,7 +1118,7 @@ export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
                 mizne a von sa ide krokom späť. Toto je MOBILNÁ poloha; na PC ju
                 CSS zhasne a šípku nesie pás (Matej 23. 9. 2026, B2+F3). */}
             <button type="button" className="akc-back" onClick={onBack} aria-label="Back">
-              <HandArrowLeft size={16} />
+              <BackIcon />
             </button>
             <button type="button" className="akc-railbtn"
               onClick={() => rail(document.querySelector<HTMLElement>('.akv-root')?.dataset.rail !== 'open')}
@@ -1326,7 +1328,7 @@ export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
           <b>{src != null ? DEMO_SCROLLS[src].circle : ''}</b>
           <button type="button" className="akc-back akc-srcx" aria-label="Close"
             onClick={() => openSrc(null)}>
-            <HandArrowLeft size={14} />
+            <HandArrowLeft size={BACK.icon} />
           </button>
         </div>
         {src != null && (
