@@ -88,6 +88,12 @@ const CSS = `
   font-variant-numeric:tabular-nums;color:${AINUBIS.ink};}
 .pkid-pcstats i{font-family:${FONT_UI};font-style:normal;font-weight:500;font-size:${PACK_TEXT.micro}px;
   letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
+/* MOBIL = .trp-mstats2 na mape: dva riadky, číslo Grotesk 16/600 + popisok 10/.22em. */
+.pkid-mstats{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.pkid-mstats span{display:flex;align-items:baseline;gap:${PACK_SPACE.xs}px;white-space:nowrap;line-height:1.05;}
+.pkid-mstats b{font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.lead}px;font-variant-numeric:tabular-nums;color:${AINUBIS.ink};}
+.pkid-mstats i{font-family:${FONT_UI};font-style:normal;font-weight:500;font-size:${PACK_TEXT.micro}px;
+  letter-spacing:${PACK_HEAD.section.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
 .pkid-pcsep{width:1px;height:${PACK_SPACE.xl}px;flex:0 0 1px;background:${AINUBIS.edge};}
 @media (min-width:${PALE_PC_MIN}px){
   .pkid--head{box-sizing:border-box;min-height:${2 * NAV_R.rim + 2 * PACK_SPACE.md + AV_D_HEAD}px;
@@ -95,7 +101,7 @@ const CSS = `
   .pkid--head .pkid-me{gap:${PACK_SPACE.lg}px;}
   .pkid--head .pkid-av{width:${AV_D_HEAD}px;height:${AV_D_HEAD}px;}
   .pkid--head .pkid-photo{width:${photoAt(AV_D_HEAD)}px;height:${photoAt(AV_D_HEAD)}px;}
-  .pkid--head .pkid-txt{display:none;}
+  .pkid--head .pkid-txt,.pkid--head .pkid-mstats{display:none;}
   .pkid--head .pkid-pcstats{display:flex;}
 }
 `;
@@ -104,11 +110,13 @@ const CSS = `
 /** `stats` nahradí riadok „km · výlety" — povrch, ktorý nie je o výletoch, nesie vlastné
  *  počty (AINUBIS 22. 9.: „meno nebude mať počet tripov ani km, tu sa bude rátať počet
  *  svetov / okruhov / zvitkov / celkové %"). */
-export function PackIdentityBar({ id, middle, stats, primary, onMe, pcStats }: {
+export function PackIdentityBar({ id, middle, stats, primary, onMe, pcStats, mStats }: {
   id: ReturnType<typeof usePackIdentity>; middle?: ReactNode; stats?: ReactNode;
   /** PC hlavička podľa /map: čísla v jednom rade (`b` = hodnota, `i` = popisok). Kto ich
    *  podá, dostane na PC pás s fotkou 60; bez nich ostáva bar na všetkých šírkach ako bol. */
   pcStats?: { v: ReactNode; l: ReactNode }[];
+  /** Mobil: dva riadky čísel ako na mape (`.trp-mstats2`). Nahradí meno + riadok pod ním. */
+  mStats?: { v: ReactNode; l: ReactNode }[];
   /** Kam vedie klik na fotku. Bez neho TRIPSTATS ako na mape; AINUBIS (4. 10. 2026)
    *  vedie na vlastné štatistiky — Matej: *„ainubis stats po kliknutí na fotku"*. */
   onMe?: () => void;
@@ -164,6 +172,11 @@ export function PackIdentityBar({ id, middle, stats, primary, onMe, pcStats }: {
           badgeAriaLabel={t('pack.map.levelAriaLabel', { level: lv.level })}
           badgeContent={lv.level}
         />
+        {mStats ? (
+          <span className="pkid-mstats">
+            {mStats.map((s, i) => <span key={i}><b>{s.v}</b><i>{s.l}</i></span>)}
+          </span>
+        ) : (
         <span className="pkid-txt">
           <span className="pkid-name">{primary ?? name}</span>
           <span className="pkid-stats">
@@ -172,6 +185,7 @@ export function PackIdentityBar({ id, middle, stats, primary, onMe, pcStats }: {
             )}
           </span>
         </span>
+        )}
         {pcStats && (
           <span className="pkid-pcstats">
             {pcStats.map((s, i) => (

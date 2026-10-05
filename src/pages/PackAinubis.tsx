@@ -844,7 +844,9 @@ export default function PackAinubis() {
   const doneIds = Object.keys(zstate).filter((k) => zstate[k] === 2);
   const read = {
     worlds: VAULT_WORLDS.filter((w) => doneIds.some((k) => k.startsWith(`${w.key}-`))).length,
-    circles: 0, scrolls: doneIds.length,
+    /* Okruh sa počíta rovnako ako svet: otvorený = aspoň jeden prečítaný zvitok v ňom. */
+    circles: new Set(scrolls.filter((z) => doneIds.includes(z.id)).map((z) => `${z.world}-${z.okruh}`)).size,
+    scrolls: doneIds.length,
   };
   // prvý prečítaný zvitok nesmie ukázať 0 % — zaokrúhľuje sa nahor na 1
   const pct = read.scrolls ? Math.max(1, Math.round((read.scrolls / Math.max(1, TOTAL_SCROLLS)) * 100)) : 0;
@@ -855,8 +857,11 @@ export default function PackAinubis() {
      ⚠️ OKRUHY A ZVITKY TÝM NEZANIKAJÚ. Ráno 23. 9. bolo rozhodnuté, že ich
         menovatele (62 / 569) ostávajú viditeľné — to platí o ZOZNAME a rozpade
         svetov, nie o hlavičke. Hlavička je identita, nie prehľad. */
+  /* 🔄 Matej 5. 10. 2026: *„daj okruhy a zvitky bez sveta a na mobile kde sa zmestia len dve
+     daj zvitky a %"*. Prebíja „len svety a %" z 23. 9. — PC: OKRUHY | ZVITKY | %,
+     mobil (dva riadky): ZVITKY a %. Menovatele ostávajú (lock 23. 9.). */
   const vaultPrimary = (
-    <>{read.worlds}/{VAULT_WORLDS.length} {tx('pack.ainubis.stat.worlds', 'worlds')}</>
+    <>{read.scrolls}/{TOTAL_SCROLLS} {tx('pack.ainubis.stat.scrolls', 'scrolls')}</>
   );
   const vaultStats = (<><b>{pct} %</b></>);
 
@@ -1003,8 +1008,13 @@ export default function PackAinubis() {
           id={id}
           primary={vaultPrimary}
           stats={vaultStats}
+          mStats={[
+            { v: `${read.scrolls}/${TOTAL_SCROLLS}`, l: tx('pack.ainubis.stat.scrolls', 'scrolls') },
+            { v: `${pct} %`, l: tx('pack.ainubis.stat.read', 'read') },
+          ]}
           pcStats={[
-            { v: `${read.worlds}/${VAULT_WORLDS.length}`, l: tx('pack.ainubis.stat.worlds', 'worlds') },
+            { v: `${read.circles}/${TOTAL_CIRCLES}`, l: tx('pack.ainubis.stat.circles', 'circles') },
+            { v: `${read.scrolls}/${TOTAL_SCROLLS}`, l: tx('pack.ainubis.stat.scrolls', 'scrolls') },
             { v: `${pct} %`, l: tx('pack.ainubis.stat.read', 'read') },
           ]}
           onMe={() => navigate('/pack/ainubis/knowledge')}

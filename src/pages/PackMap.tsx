@@ -2399,6 +2399,23 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
      širší než tretina stĺpca, vytiekol von z panela na mapu. */
   .trp-sidebar .trp-georow .trp-pickdd-wrap .trp-tagdd-panel{left:0;right:auto;}
 
+  /* ── PC RIADKY POD HLAVIČKOU = MOBILNÝ RECEPT (Matej 5. 10. 2026, hárok DNES vs NÁVRH: „ok") ──
+     Prepínač TRIPS · EVENTS · sniffer je ten istý prvok ako .trp-mheader-cats a .akv-planes:
+     obal 35 (4+4 + 1+1 + pilulka 25), Space Grotesk 10 (brand.md: čipy), výber = tint, nie
+     plná lapisová plocha (tú má len jediné CTA). Hľadanie 42 a rozbaľovače 36 ako pole
+     a Filtre na mobile. Dovtedy Cinzel 122×44 r8, hľadanie a rozbaľovače 50 r12, región 39 r8.
+     Výšky sú dané rovnicou mobilu, preto height — odsadenia ostávajú zo stupnice. */
+  .trp-sidebar .trp-cat-pills{gap:4px;padding:4px;border-radius:999px;background:${P_SOFT};border:1px solid ${P_BORDER};}
+  .trp-sidebar .trp-catpill{display:inline-flex;align-items:center;justify-content:center;padding:4px 12px;border-radius:999px;border:1px solid transparent;background:transparent;box-shadow:none;
+    font-family:${FONT_UI};font-weight:500;font-size:10px;line-height:15px;letter-spacing:0.02em;color:${P_DIM};}
+  .trp-sidebar .trp-catpill.on{${pickTintCSS(LAPIS.edge, PICK_INK.lapis, 0.16)}font-weight:600;}
+  .trp-sidebar .trp-catpill.trp-sniffer,.trp-sidebar .trp-catpill.trp-sniffer:hover{background:${T.ink};border-color:transparent;transform:none;}
+  .trp-sidebar .trp-catpill.trp-sniffer img{height:12px;}
+  .trp-topbar .trp-mapsearch{box-sizing:border-box;height:42px;gap:8px;padding:0 12px;border-radius:999px;border-width:1px;}
+  .trp-topbar .trp-mapsearch input{padding:8px 0;}
+  .trp-topbar .trp-tagdd-btn,.trp-sidebar .trp-tagdd-btn,.trp-sidebar .trp-pickdd-wrap .trp-tagdd-btn{box-sizing:border-box;height:36px;padding:8px 12px;border-radius:999px;border-width:1px;font-size:12px;font-weight:500;}
+  .trp-topsearchrow{align-items:center;}
+
   .trp-sidebar .trp-chip-sm{border-color:${P_BORDER};color:${P_DIM};}
   .trp-sidebar .trp-chip-sm:hover{border-color:${T.cardEdge};color:${P_INK};}
   .trp-sidebar .trp-chip-sm.on{background:${T.cardEdge};border-color:${T.cardEdge};color:#FBF5E6;}
