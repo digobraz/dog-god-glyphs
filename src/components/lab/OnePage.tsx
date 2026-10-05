@@ -267,6 +267,12 @@ const WNY_END = !WNY_ON;
 /** O koľko vh sa WE NEED YOU zasunie pod hviezdy (= dĺžka ich zhasnutia). */
 const WNY_OVER_VH = 30;
 
+/** 🔴 ZA KONTAKTOM UŽ NIČ NIE JE (Matej 5. 10. 2026: *„tie ďalšie čo sú tam za
+ *  týmto môžeš dať preč — bude tam už len posledný SLAJD… kontakt"*). Podpis
+ *  (logo + tagline), kniha v päte aj pätička zhasli; odkazy pätičky nesie
+ *  kontakt (FilmFinale.tsx). Nemaže sa — návrat = true. */
+const TAIL_ON = false as boolean;
+
 /** 🔴 MOST („Am I doing right by him?") JE ODLOŽENÝ (Matej 27. 9. 2026:
  *  *„HEROGLYPH sekciu vytlačí táto scénka mobilov, ktorá príde zdola na
  *  stred"*). Oblúk bez neho končí PRESNE na dopísanom DOGTRIXe
@@ -365,7 +371,14 @@ const FILM_SLIDES: FilmSlide[] = ([
     at: () => (WNY_END ? wnyEnd() : pinnedAt('.op-arc', ARC_SPLIT)),
     from: () => { if (!WNY_END) return pinnedAt('.op-arc', 0); const y = pinnedAt('.op-wny', 0.02); return y == null ? null : y + filmVh() * 0.5; },
   },
-] as FilmSlide[]).filter((sl) => WNY_ON || WNY_END || sl.id !== 'mission');
+  {
+    // KONTAKT — posledný obraz (FilmFinale.tsx, 5. 10. 2026).
+    id: 'contact',
+    navKey: 'film.slide.contact',
+    at: () => pinnedAt('.op-fin', 1),
+    from: () => pinnedAt('.op-fin', 0.5),
+  },
+] as FilmSlide[]).filter((sl) => WNY_ON || WNY_END || (sl.id !== 'mission' && sl.id !== 'contact'));
 
 /**
  * DĹŽKA PRECHODU 1. → 2. OBRAZU, v obrazovkách scrollu.
@@ -4664,7 +4677,7 @@ export default function OnePage() {
            obsah centrovať na stred, teraz je moc hore"*). visibility:hidden
            nechalo šípke, kroku a CTA ~130 px pod pásom, takže stred obsahu
            sedel vysoko. */
-        .op-wny .op-b-arrow, .op-wny .op-b-step, .op-wny .op-b-tail, .op-wny .op-nxt-ctasub { display: none !important; }
+        .op-wny .op-b-arrow, .op-wny .op-b-step, .op-wny .op-b-tail { display: none !important; }
         .op-root .op-wny .op-b-cta { visibility: visible !important; }
         .op-wny .op-b-cta .op-bin { padding-top: 16px; }
         /* 🔴 MÄKČEŇ NAD Ť (Matej 28. 9.: *„nie je vidno mäkčeň"*). Zlato je
@@ -8096,7 +8109,9 @@ export default function OnePage() {
                         by z neho prvý nový pes spravil lož.
                         ⚠️ Kým počet nedorazí, riadok je prázdny — nie nula. */}
                     <p className="op-nxt-ctasub">
-                      {dogCount === null ? '' : (
+                      {/* Vo finále popiska tlačidla (Matej 5. 10. 2026: *„pod tlačítko join us daj
+                          malým písmom Create heroglyph for your dog"*). */}
+                      {WNY_END ? t('onepage.need.createGlyph') : dogCount === null ? '' : (
                         <>{t('onepage.need.ctasub')} <b>#{(dogCount + 1).toLocaleString('en-US')}</b>.</>
                       )}
                     </p>
@@ -8127,15 +8142,7 @@ export default function OnePage() {
         {WNY_END && (
           <FilmFinale
             packNo={dogCount === null ? null : dogCount + 1}
-            onBible={() => setBookOpen(true)}
-            // O AUTOROVI = príbeh (Hektor, cesta, kniha) — od jeho prvej vety.
-            onAuthor={() => {
-              const tl = document.querySelector<HTMLElement>('.op-timeline');
-              if (!tl) return;
-              const top = tl.getBoundingClientRect().top + window.scrollY;
-              filmJump(top + Math.max(0, tl.offsetHeight - filmVh()) * STORY_START);
-            }}
-            onAbout={() => filmGo(1)}
+            onDogma={() => setBookOpen(true)}
           />
         )}
 
@@ -8145,6 +8152,7 @@ export default function OnePage() {
             ostala jediná veta a jediná akcia; sem sadli ako podpis filmu.
             ⚠️ Je to blok OnePagu, NIE zásah do `components/landing/Footer.tsx`
             — ten je ostrý a musí mať prázdny diff. */}
+        {TAIL_ON && (<>
         <div className="op-sign">
           <img src="/images/dogypt-logo-black-i.png" alt="DOGYPT" className="op-sign-logo" />
           <p className="op-sign-tag">
@@ -8168,6 +8176,7 @@ export default function OnePage() {
         {/* Pätička (e-mail + siete) uzatvára film. Je tu, a nie vnútri AboutLabu,
             aby nesedela uprostred stránky pred blokom s CTA. */}
         <Footer />
+        </>)}
         </div>
       </div>
 

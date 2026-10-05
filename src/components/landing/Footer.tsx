@@ -8,7 +8,7 @@
  */
 import { useT } from '@/i18n/LanguageContext';
 
-const SOCIALS = [
+export const SOCIALS = [
   {
     id: 'youtube',
     label: 'YouTube',
