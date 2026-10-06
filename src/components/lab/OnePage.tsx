@@ -120,7 +120,7 @@ const pinnedAt = (sel: string, f: number): number | null => {
 const easeSine = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2;
 /** Jazda krava a pes → preambula (ústava). Predtým ~1,8 s mäkko. */
 /** Zrýchlenie jázd filmu (6. 10. 2026) — delí dĺžku jazdy. 1 = pôvodné tempo. */
-const FILM_TEMPO = { base: 1.25, back: 1.2, dgx: 1.4, quo: 1.15, wny: 1.5 };
+const FILM_TEMPO = { base: 1.25, back: 1.2, dgx: 1.4, quo: 1.15, wny: 2.6 };  // wny 10,9 s na ~4,2 s (Matej 6. 10.: stale pomale)
 const CREDO_RIDE_MS = 3000;
 /** 🔴 Jazda guľa → krava a pes NA MOBILE (Matej 5. 10. 2026: *„trošku seká prechod
  *  z 1-2 slajd… chceme to viac plynulé"*). Predvolený cubic in-out má v strede

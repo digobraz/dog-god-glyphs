@@ -488,6 +488,18 @@ export function TestimonialsSection({ variant = 'dark', pinned = false, onFans, 
                 znamenalo, že sa pri prvej ďalšej úprave rozídu. */}
             {t(pinned ? 'about.legends.subFilm' : 'about.legends.sub')}
           </p>
+          {/* Jazyky (Matej 6. 10. 2026: *„pilulku s jazykmi daj k fanklubu pod text — heroglyf je
+              univerzálny jazyk, appka je v 18 jazykoch"*). Zrušila sa pilulka na slajde ČLENSTVO;
+              kľúče `onepage.apps.lang.a/b` sú preložené v 18 jazykoch, preto sa používajú tie isté. */}
+          {pinned && (
+            <p className="tst-btw" style={{
+              margin: '16px 0 0', maxWidth: 520, fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, lineHeight: 1.5,
+              color: variant === 'papyrus' ? 'rgba(35,22,8,0.62)' : 'rgba(250,244,236,0.6)',
+            }}>
+              <b style={{ fontWeight: 600, color: variant === 'papyrus' ? 'rgba(35,22,8,0.82)' : 'rgba(250,244,236,0.85)' }}>{t('onepage.apps.lang.a')}</b>{' '}
+              {t('onepage.apps.lang.b')}
+            </p>
+          )}
           {/* Vo filme chip pod textom (Matej 5. 10. 2026: *„pod texting dajme chip ako už máme
               na webe, že pozri najznámejších fans… a klikom sa zobrazia"*). Štýl = INFO CHIP filmu
               `.dgx-example` (OnePage.tsx). /about ho nemá — `onFans` posiela len film. */}
