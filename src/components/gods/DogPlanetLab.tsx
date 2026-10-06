@@ -32,6 +32,7 @@ import { LAB } from '@/lib/labTheme';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { PORTAL_CSS, PORTAL_REDUCE_MOTION, buildPortal, createSparks } from './dogPortal';
 import { openPhotoConfirm } from './photoConfirm';
+import { pickFileWithCancel, inviteAfterCancel } from '@/lib/photoInvite';
 import { intakePhoto, finishPhotoChoice } from '@/lib/photoIntake';
 import type { PortalHandle } from './dogPortal';
 
@@ -474,7 +475,7 @@ export function DogPlanetLab({
       note: '',
       // ⚠️ Cez REF, nie cez `photo` zo stavu — portál sa stavia raz (deps
       // `facesKey`) a uzáver by navždy držal prvú hodnotu, teda `null`.
-      onPick: () => (photoRef.current ? showConfirm(photoRef.current) : openPicker()),
+      onPick: () => (photoRef.current ? showConfirm(photoRef.current) : openFirstPicker()),
     });
     host.appendChild(p.el);
     portalApi.current = p;
@@ -509,6 +510,11 @@ export function DogPlanetLab({
   const openPicker = () => {
     if (fileRef.current) fileRef.current.value = '';
     fileRef.current?.click();
+  };
+  // Prvý výber na portáli: keď ho človek zruší bez fotky, ukáže sa výzva „TVÁR TVOJHO
+  // PSA" (len raz). „Vybrať inú" po úspešnom výbere ide cez `openPicker` bez výzvy.
+  const openFirstPicker = () => {
+    if (fileRef.current) pickFileWithCancel(fileRef.current, () => inviteAfterCancel(null));
   };
 
   // Nahrávanie originálu beží od výberu súboru. Popup ho potrebuje, keď sa

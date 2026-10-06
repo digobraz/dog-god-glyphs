@@ -36,6 +36,7 @@ import { DogPlanetLab, type PlanetDog } from './DogPlanetLab';
 import { DogCardBody, DOG_CARD_CSS, type DogCardData } from './DogCard';
 import { PORTAL_CSS, PORTAL_REDUCE_MOTION, buildPortal, createSparks } from './dogPortal';
 import { openPhotoConfirm } from './photoConfirm';
+import { pickFileWithCancel, inviteAfterCancel } from '@/lib/photoInvite';
 import { intakePhoto, finishPhotoChoice } from '@/lib/photoIntake';
 import { useToast } from '@/hooks/use-toast';
 import { shareDog, downloadCard, facebookShare, whatsappShare, copyDogLink } from '@/lib/useShareCard';
@@ -1396,6 +1397,8 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       // Cloudinary adresu.
       let uploading: Promise<string | null> | undefined;
       const openPicker = () => { file.value = ''; file.click(); };
+      // Prvý výber: zrušenie bez fotky ukáže výzvu „TVÁR TVOJHO PSA" (len raz).
+      const openFirstPicker = () => pickFileWithCancel(file, () => inviteAfterCancel(nextPackNo()));
       const showConfirm = (url: string) => {
         track('wall_photo_confirm_shown');
         openPhotoConfirm({
@@ -1419,7 +1422,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
 
       const portal = buildPortal({
         faces,
-        onPick: () => (pickedUrl ? showConfirm(pickedUrl) : openPicker()),
+        onPick: () => (pickedUrl ? showConfirm(pickedUrl) : openFirstPicker()),
         // Matej 5. 10. 2026: *„do CTA treba dať add photo of your GOD a zátvorku preč"*
         // — vzor gule (DogPlanetLab: „Add photo of your dog"), poznámka „(you can change
         // the photo later)" zanikla.

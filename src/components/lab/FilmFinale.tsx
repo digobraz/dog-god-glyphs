@@ -20,19 +20,17 @@
  * `FIN_OVER_VH` pod jeho koniec), potom sa A prelína na B. Zastávky:
  * `FIN_STOPS` (OnePage.filmStops).
  *
- * 🔴 VÝBER FOTKY PRE HEROFLOW OSTÁVA TU (`START_HEROFLOW`): CTA vo WE NEED
- * YOU ním otvorí výber fotky → kartu `openPhotoConfirm` → `/heroglyph/name`.
- * Je to cesta, ktorou šiel portál z 28. 9., len bez portálu.
+ * 🔴 VSTUP DO HEROFLOWU (`START_HEROFLOW`): CTA vo WE NEED YOU otvorí výzvu
+ * „TVÁR TVOJHO PSA" (`PhotoInvite`) → výber fotky → `openPhotoConfirm` →
+ * `/heroglyph/name`, alebo „bez fotky" rovno na meno.
  */
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { LAB } from '@/lib/labTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { SOCIALS } from '@/components/landing/Footer';
-import { openPhotoConfirm } from '@/components/gods/photoConfirm';
-import { intakePhoto, finishPhotoChoice } from '@/lib/photoIntake';
+import { openPhotoInvite } from '@/lib/photoInvite';
 import { track } from '@/lib/analytics';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { openAinubis } from '@/lib/ainubisBus';
@@ -40,8 +38,7 @@ import ainubisHead from '@/assets/ainubis-head.webp';
 import PULSE from '@/data/onepagePulse.json';
 import { filmVh } from '@/lib/filmVh';
 
-/** Udalosť, ktorou iné miesto filmu spustí heroflow (výber fotky → potvrdenie →
- *  `/heroglyph/name`). `detail.handled` ostane `false`, kým finále nie je pripojené. */
+/** Udalosť, ktorou iné miesto filmu spustí heroflow (výzva na fotku → `/heroglyph/name`). `detail.handled` ostane `false`, kým finále nie je pripojené. */
 export const START_HEROFLOW = 'dogypt:start-heroflow';
 export function startHeroflow(): boolean {
   const ev = new CustomEvent(START_HEROFLOW, { detail: { handled: false } });
@@ -83,7 +80,6 @@ const GOLD = '#C99A3F';
 
 export default function FilmFinale({ packNo }: { packNo: number | null }) {
   const t = useT();
-  const navigate = useNavigate();
   const secRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const packRef = useRef(packNo);
@@ -100,44 +96,17 @@ export default function FilmFinale({ packNo }: { packNo: number | null }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [more]);
 
-  // ── HEROFLOW: výber fotky ─────────────────────────────────────────────
+  // ── HEROFLOW: výzva „TVÁR TVOJHO PSA" ─────────────────────────────────
+  // Výber fotky, kartu `openPhotoConfirm` aj presun na `/heroglyph/name` drží
+  // `PhotoInvite` (6. 10. 2026) — vstup do flowu je JEDEN pre všetky CTA.
   useEffect(() => {
-    const file = document.createElement('input');
-    file.type = 'file'; file.accept = 'image/*'; file.className = 'ph-add-file';
-    file.style.display = 'none';
-    let picked: string | null = null;
-    let uploading: Promise<string | null> | undefined;
-    const openPicker = () => { file.value = ''; file.click(); };
-    const showConfirm = (url: string) => {
-      track('finale_photo_confirm_shown');
-      openPhotoConfirm({
-        photoUrl: url,
-        packNumber: packRef.current ?? 0,
-        onContinue: (crop) => {
-          track('cta_become_dogyptian_click', { location: 'onepage_finale' });
-          void finishPhotoChoice(crop, uploading);
-          navigate('/heroglyph/name');
-        },
-        onPickAnother: openPicker,
-        onClose: () => track('finale_photo_confirm_dismissed'),
-      });
-    };
-    file.addEventListener('change', () => {
-      const f = file.files?.[0];
-      if (!f) return;
-      const intake = intakePhoto(f);
-      uploading = intake.uploaded;
-      picked = intake.previewUrl;
-      showConfirm(picked);
-    });
-    document.body.append(file);
     const onStart = (e: Event) => {
       (e as CustomEvent<{ handled: boolean }>).detail.handled = true;
-      if (picked) showConfirm(picked); else openPicker();
+      openPhotoInvite({ packNumber: packRef.current ?? 0 });
     };
     window.addEventListener(START_HEROFLOW, onStart);
-    return () => { file.remove(); window.removeEventListener(START_HEROFLOW, onStart); };
-  }, [navigate]);
+    return () => window.removeEventListener(START_HEROFLOW, onStart);
+  }, []);
 
   // ── RÉŽIA PODĽA SCROLLU ───────────────────────────────────────────────
   useEffect(() => {

@@ -184,6 +184,8 @@ const OnePage = lazy(() => import("./components/lab/OnePage"));
 const Religion = lazy(() => import("./pages/Religion.tsx"));
 const About = lazy(() => import("./pages/About.tsx"));
 const Entry = lazy(() => import("./pages/Entry.tsx"));
+// Výzva „TVÁR TVOJHO PSA" — jeden vstup do nového heroflowu (WE NEED YOU, zrušený výber fotky na portáli).
+const PhotoInvite = lazy(() => import("./components/gods/PhotoInvite.tsx"));
 // Heroglyph sales page — REVÍZIA 2026-07-13: vraciame do flow /entry → /heroglyph → /heroglyph/intro (redizajn).
 const Heroglyph = lazy(() => import("./pages/Heroglyph.tsx"));
 const CertRender = lazy(() => import("./pages/CertRender.tsx"));
@@ -269,6 +271,9 @@ const App = () => (
           <AinubisWidget />
         </Suspense>
         <DevNav />
+        <Suspense fallback={null}>
+          <PhotoInvite />
+        </Suspense>
         {/* Bledý šat + progresbar pre STARÉ obrazovky flow. Bez neho by nové
             obrazovky (dogs, email, why) boli papyrusové a zvyšok čierny.
             Vrstva je zapuzdrená v `[data-flow-skin="pale"]`, takže netečie
@@ -321,7 +326,9 @@ const App = () => (
               )}
 
               {/* /entry — verejná conviction gate PRED flow (2026-07-12). CTA → /heroglyph/intro. */}
-              <Route path="/entry" element={<Entry />} />
+              {/* Nový vstup nemá `/entry` ani predajnú `/heroglyph` (Matej 6. 10. 2026) —
+                  všetky staré odkazy idú na meno. Starý flow (LIVE) ostáva nezmenený. */}
+              <Route path="/entry" element={NEW_HEROFLOW ? <Navigate to="/heroglyph/name" replace /> : <Entry />} />
 
               {/* Heroglyph flow — prefix /heroglyph/<step> (14 krokov + nepočítaný intro predkrok).
                   /heroglyph sales page retirovaná → redirect na /entry (pokryje všetky staré CTA/inbound linky).
@@ -339,7 +346,7 @@ const App = () => (
                   `EmailScreen`, `WhyScreen`, `CropScreen`, `CountryPick`, `AboutScreen`,
                   `FlowPhases`, `flowPaleSkin.ts`, `flowRedress.tsx` ležia ďalej v `screens/`.
                   Pri veľkom launchi sa vráti späť tento blok + `<FlowRedress />` v strome vyššie. */}
-              <Route path="/heroglyph" element={<Heroglyph />} />
+              <Route path="/heroglyph" element={NEW_HEROFLOW ? <Navigate to="/heroglyph/name" replace /> : <Heroglyph />} />
               {/* ── NOVÝ VSTUP (DEV) — poradie z `cdb9df2` (31. 8. 2026) ──
                   fotka → meno → ĎALŠÍ PSI → e-mail → prečo heroglyf → plemeno → …
                   → povaha → VÝREZ → odhalenie → odkaz.
