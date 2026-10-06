@@ -337,7 +337,7 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
                 if (para.startsWith('## ')) return <h4 key={i} className="op-fin-pop-sec">{para.slice(3)}</h4>;
                 const ph = para.match(/^\[\[(\d)\]\]$/);
                 if (ph) return <img key={i} className={`op-fin-pop-img p${ph[1]} ${Number(ph[1]) % 2 ? 'is-r' : 'is-l'}${ph[1] === '5' ? ' is-wide' : ''}`} src={`/images/about-popup/foto-${ph[1]}.jpg`} alt="" loading="lazy" decoding="async" />;
-                return <p key={i}>{para}</p>;
+                return <p key={i}>{para.split(/\*\*(.+?)\*\*/g).map((seg, k) => (k % 2 ? <strong key={k}>{seg}</strong> : seg))}</p>;
               })}
             </div>
           </div>
@@ -415,17 +415,22 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
         .op-fin-pop-card {
           position: relative; width: min(640px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto;
           overscroll-behavior: contain; padding: 32px 24px 24px; border-radius: 16px;
-          background: ${LAB.pageBg}; border: 1.5px solid rgba(201,154,63,.55);
+          background: #FFFBF1; border: 1px solid rgba(201,154,63,.45);
           box-shadow: 0 24px 48px -24px rgba(42,22,8,.55);
         }
         .op-fin-pop-h {
           margin: 0 32px 16px 0; font: 700 24px/1.2 'Cinzel', serif; letter-spacing: .04em;
-          text-transform: uppercase; color: ${LAB.goldSolid};
+          text-transform: uppercase; color: ${LAB.goldInk};
+          background: ${LAB.goldText}; -webkit-background-clip: text; background-clip: text;
+          -webkit-text-fill-color: transparent; padding-top: .2em;
         }
-        .op-fin-pop-body p { margin: 0 0 12px; font: 400 16px/1.6 'Space Grotesk', sans-serif; color: ${LAB.ink}; white-space: pre-line; }
+        .op-fin-pop-body p { margin: 0 0 12px; font: 400 16px/1.6 'Space Grotesk', sans-serif; color: ${LAB.inkBody}; white-space: pre-line; }
+        .op-fin-pop-body strong { font-weight: 600; color: ${LAB.ink}; background: linear-gradient(transparent 60%, rgba(201,154,63,.32) 60%); }
         .op-fin-pop-sec {
-          margin: 32px 0 12px; font: 700 20px/1.2 'Cinzel', serif; letter-spacing: .04em;
-          text-transform: uppercase; color: ${LAB.goldSolid};
+          margin: 32px 0 12px; font: 700 20px/1.3 'Cinzel', serif; letter-spacing: .04em;
+          text-transform: uppercase; color: ${LAB.goldInk};
+          background: ${LAB.goldText}; -webkit-background-clip: text; background-clip: text;
+          -webkit-text-fill-color: transparent; padding-top: .2em;
         }
         .op-fin-pop-img { display: block; width: 100%; height: auto; margin: 16px 0; border-radius: 12px; }
         .op-fin-pop-body::after { content: ''; display: block; clear: both; }
