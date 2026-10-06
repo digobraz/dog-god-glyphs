@@ -25,7 +25,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS, PACK_COL_FIT, packColCSS } from '@/components/pack/packTheme';
 import { AINUBIS, AI_GLASS, BRAIN_STATE, aiWorld } from '@/components/pack/ainubisSkin';
-import { HandStar, HandPlus, HandForward, HandCheck, HandPencil, HandAlert, HandCamera, HandArrowLeft, HandHeart } from '@/components/pack/HandIcons';
+import { HandStar, HandPlus, HandForward, HandCheck, HandPencil, HandAlert, HandCamera, HandArrowLeft, HandHeart, HandTrash } from '@/components/pack/HandIcons';
 
 /** Kresba z kitu `/icons/pack/` cez masku (ten istý zápis ako v PackAinubis). */
 const Ic = ({ ic }: { ic: string }) => (
@@ -34,7 +34,7 @@ const Ic = ({ ic }: { ic: string }) => (
 import { BackButton } from '@/components/pack/BackButton';
 import {
   type DemoScroll, pickText, pickPod, sourceHref, fmtSec, scrollLang,
-  markScroll, useScrollState, toggleSaved, useSaved, useTalk, useTalkCount, addTalk, toggleLiked, useLiked,
+  markScroll, useScrollState, toggleSaved, useSaved, useTalk, useTalkCount, addTalk, deleteTalk, toggleLiked, useLiked,
   toggleTalkLike, addProposal, shrinkPhoto, type ProposalKind, podLang, requestLang, useCounts, saveListen, useReads,
 } from './vaultScrolls';
 import { VAULT_CIRCLES } from './circles';
@@ -50,7 +50,7 @@ const UI = {
   sk: {
     scroll: 'Zvitok', min: 'min', read: 'Prečítať znalosť', listen: 'Vypočuť podcast', pod: 'Podcast', src: 'Zdroje',
     sd: 'Dôkaz', sdName: ['', 'C · tradícia, skúsenosť, legenda', 'B · veda + výklad, alebo zatiaľ málo štúdií', 'A · zmerané, vedci sa zhodujú'],
-    like: 'Páči sa', save: 'Uložiť', share: 'Zdieľať', talk: 'Diskusia', readDone: 'Prečítané',
+    like: 'Páči sa', del: 'Zmazať', delAsk: 'Zmazať komentár?', delNo: 'Nechať', save: 'Uložiť', share: 'Zdieľať', talk: 'Diskusia', readDone: 'Prečítané',
     talkNone: 'Zatiaľ tu nikto nenapísal. Začni ty — otázka, skúsenosť, nesúhlas.', talkPh: 'Napíš do diskusie…', talkSend: 'Pridať', you: 'Ty',
     back: 'Späť', added: 'Doplnené',
     addedNone: 'Zatiaľ nič nové. Keď pribudne poznatok, ktorý nie je v podcaste, zapíše sa sem s dátumom.',
@@ -65,7 +65,7 @@ const UI = {
   cs: {
     scroll: 'Svitek', min: 'min', read: 'Přečíst znalost', listen: 'Poslechnout podcast', pod: 'Podcast', src: 'Zdroje',
     sd: 'Důkaz', sdName: ['', 'C · tradice, zkušenost, legenda', 'B · věda + výklad, nebo zatím málo studií', 'A · změřeno, vědci se shodují'],
-    like: 'Líbí se', save: 'Uložit', share: 'Sdílet', talk: 'Diskuse', readDone: 'Přečteno',
+    like: 'Líbí se', del: 'Smazat', delAsk: 'Smazat komentář?', delNo: 'Nechat', save: 'Uložit', share: 'Sdílet', talk: 'Diskuse', readDone: 'Přečteno',
     talkNone: 'Zatím tu nikdo nenapsal. Začni ty — otázka, zkušenost, nesouhlas.', talkPh: 'Napiš do diskuse…', talkSend: 'Přidat', you: 'Ty',
     back: 'Zpět', added: 'Doplněno',
     addedNone: 'Zatím nic nového. Když přibude poznatek, který není v podcastu, zapíše se sem s datem.',
@@ -80,7 +80,7 @@ const UI = {
   en: {
     scroll: 'Scroll', min: 'min', read: 'Read the knowledge', listen: 'Listen to the podcast', pod: 'Podcast', src: 'Sources',
     sd: 'Evidence', sdName: ['', 'C · tradition, experience, legend', 'B · science + interpretation, or few studies yet', 'A · measured, scientists agree'],
-    like: 'Like', save: 'Save', share: 'Share', talk: 'Discussion', readDone: 'Read',
+    like: 'Like', del: 'Delete', delAsk: 'Delete comment?', delNo: 'Keep', save: 'Save', share: 'Share', talk: 'Discussion', readDone: 'Read',
     talkNone: 'Nobody has written here yet. Start — a question, an experience, a disagreement.', talkPh: 'Write to the discussion…', talkSend: 'Post', you: 'You',
     back: 'Back', added: 'Added',
     addedNone: 'Nothing new yet. When a finding that is not in the podcast arrives, it is written here with a date.',
@@ -328,6 +328,9 @@ ${packColCSS('.zv-wrap')}
 .zv-clike{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;margin-top:${PACK_SPACE.xs}px;padding:0;cursor:pointer;
   background:none;border:0;color:${AINUBIS.inkDim};font:500 ${PACK_TEXT.label}px ${FONT_UI};}
 .zv-clike.is-on{color:${AINUBIS.cyan};}
+.zv-cdel{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;padding:0;cursor:pointer;background:none;border:0;color:inherit;opacity:.7;font:500 ${PACK_TEXT.label}px ${FONT_UI};}
+.zv-cdel.is-go{color:${AINUBIS.cyan};opacity:1;}
+.zv-cdel-ask{display:inline-flex;align-items:center;gap:${PACK_SPACE.sm}px;font:500 ${PACK_TEXT.label}px ${FONT_UI};}
 .zv-clike .zv-ic{margin-right:0;width:16px;height:16px;}
 .zv-crow{display:flex;align-items:center;justify-content:space-between;align-self:stretch;gap:${PACK_SPACE.sm}px;}
 .zv-cpic{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;cursor:pointer;color:${AINUBIS.cyan};font:500 ${PACK_TEXT.label}px ${FONT_UI};}
@@ -688,6 +691,7 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
   const [draft, setDraft] = useState('');
   const [pic, setPic] = useState('');
   const [sending, setSending] = useState(false);
+  const [delAsk, setDelAsk] = useState<number | null>(null);
   const [propOpen, setPropOpen] = useState(false);
   const [kind, setKind] = useState<ProposalKind>('add');
   const [prop, setProp] = useState('');
@@ -815,9 +819,21 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
                 <div><b>{c.mine === false ? c.author || '—' : u.you}</b> <small>{new Date(c.at).toLocaleDateString(lang)}</small>{c.text && <p>{c.text}</p>}
                   {c.img && <img className="zv-cimg" src={c.img} alt="" />}
                   {/* Lajk komentára s počtom od všetkých (`post_marks`). */}
-                  <button type="button" className={`zv-clike${c.liked ? ' is-on' : ''}`} onClick={() => toggleTalkLike(z.id, i)} aria-label={u.like}>
-                    <HandHeart size={16} on={!!c.liked} />{c.likes ?? (c.liked ? 1 : 0)}
-                  </button>
+                  <div className="zv-crow">
+                    <button type="button" className={`zv-clike${c.liked ? ' is-on' : ''}`} onClick={() => toggleTalkLike(z.id, i)} aria-label={u.like}>
+                      <HandHeart size={16} on={!!c.liked} />{c.likes ?? (c.liked ? 1 : 0)}
+                    </button>
+                    {/* Mazanie VLASTNÉHO komentára (Matej 6. 10.: „musí to fungovať"). Dva kroky
+                        priamo v riadku — systémové okno `confirm()` by zablokovalo appku. */}
+                    {c.mine !== false && (delAsk === i ? (
+                      <span className="zv-cdel-ask">{u.delAsk}
+                        <button type="button" className="zv-cdel is-go" onClick={() => { setDelAsk(null); void deleteTalk(z.id, i); }}>{u.del}</button>
+                        <button type="button" className="zv-cdel" onClick={() => setDelAsk(null)}>{u.delNo}</button>
+                      </span>
+                    ) : (
+                      <button type="button" className="zv-cdel" onClick={() => setDelAsk(i)} aria-label={u.del}><HandTrash size={16} /></button>
+                    ))}
+                  </div>
                 </div></div>
             ))}
             <form className="zv-cform" onSubmit={(e) => {

@@ -300,11 +300,21 @@ export async function addTalk(id: string, text: string, img?: string): Promise<b
     return false;
   }
 }
-/** Zmaže môj komentár (RLS `posts_del` — len autor). */
-export async function deleteTalk(id: string, postId: string): Promise<void> {
-  const { error } = await db.from('posts').delete().eq('id', postId);
-  if (error) { console.warn('[vault] mazanie komentára', error); return; }
+/** Zmaže môj komentár (RLS `posts_del` — len autor; lajky padnú cez `on delete cascade`).
+ *  Bez účtu (komentár len v prehliadači) maže podľa poradia. Vracia, či sa podarilo.
+ *  ⚠️ Fotka ostáva v Cloudinary `vault-talk/` — unsigned preset mazať nevie. */
+export async function deleteTalk(id: string, idx: number): Promise<boolean> {
+  const c = talk[id]?.[idx];
+  if (!c) return false;
+  if (!c.id) {
+    talk = { ...talk, [id]: talk[id].filter((_, j) => j !== idx) };
+    saveTalk();
+    return true;
+  }
+  const { error } = await db.from('posts').delete().eq('id', c.id);
+  if (error) { console.warn('[vault] mazanie komentára', error); return false; }
   await loadTalk(id);
+  return true;
 }
 export function useTalk(id: string): Talk[] {
   useEffect(() => { if (!talkLoaded.has(id)) { talkLoaded.add(id); void loadTalk(id); } }, [id]);
