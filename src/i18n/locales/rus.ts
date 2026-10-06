@@ -5272,4 +5272,12 @@ export const rus: Partial<Dict> = {
   'wall.hero.l2': "здесь *бог*.",
   'wall.hero.addPhoto': "Добавь фото<br>своего бога",
 
+  // ── stena: popup fotky + hero (6. 10. 2026) ──
+  'wall.photo.yoursWillBe': "Твой будет",
+  'wall.photo.lead': "Три минуты — и твоя собака на стене.",
+  'wall.photo.cta': "Продолжить",
+  'wall.photo.another': "Выбрать другое фото",
+  'wall.photo.zoom': "Масштаб",
+  'wall.photo.change': "Сменить фото",
+
 };

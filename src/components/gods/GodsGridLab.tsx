@@ -56,6 +56,8 @@ const WALL_SRC_DEV = import.meta.env.DEV && (() => {
   try { return localStorage.getItem('dogypt-wall-src') === 'dev'; } catch { return false; }
 })();
 const GRID_DOGS_URL = `${WALL_SRC_DEV ? EDGE_BASE : LIVE_EDGE_BASE}/get-grid-dogs?tiers=all`;
+/** `*slovo*` v preklade → zlaté slovo nadpisu (HTML, text escapovaný). */
+const goldHtml = (s: string) => s.split('*').map((p, i) => (i % 2 ? `<span class="g">${esc(p)}</span>` : esc(p))).join('');
 const GUEST_LINES = 5;
 
 interface RealDog {
@@ -1164,8 +1166,8 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       // outline") sedí s pravidlom, ktoré si sám zapísal 26. 8. pri /map.
       el.innerHTML = `
         <h2 class="hero-h1">
-          <span class="hero-hl">Your <span class="g">dog</span> is</span>
-          <span class="hero-hl">a <span class="g">god</span> here.</span>
+          <span class="hero-hl">${goldHtml(tRef.current('wall.hero.l1'))}</span>
+          <span class="hero-hl">${goldHtml(tRef.current('wall.hero.l2'))}</span>
         </h2>
         <p class="hero-lead">${tRef.current('wall.hero.missingFace')}</p>
         <!-- Chip „Help us reach 1M dogs" zrušený (Matej 5. 10. 2026: *„zruš ho"*). -->
@@ -1411,7 +1413,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           // Jediné pole DEFAULT_COPY, ktoré opúšťa lab-angličtinu — ide cez i18n
           // (Motto lock 2026-08-28 vzor): ostatné (eyebrow/lead/cta/another/zoom)
           // ostávajú natvrdo, znenie sa ešte hýba (photoConfirm.ts komentár).
-          copy: { later: tRef.current('wall.photo.laterNote') },
+          copy: { eyebrow: tRef.current('wall.photo.yoursWillBe'), lead: tRef.current('wall.photo.lead'), cta: tRef.current('wall.photo.cta'), another: tRef.current('wall.photo.another'), zoom: tRef.current('wall.photo.zoom'), later: tRef.current('wall.photo.laterNote') },
         });
       };
 
@@ -1422,8 +1424,9 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
         // — vzor gule (DogPlanetLab: „Add photo of your dog"), poznámka „(you can change
         // the photo later)" zanikla.
         label: tRef.current('wall.hero.addPhoto'),
+        labelPicked: tRef.current('wall.photo.change'),
         note: '',
-        subnote: `<span class="ph-nopill">Yours will be <b>#${nextPackNo()}</b></span>`,
+        subnote: `<span class="ph-nopill">${esc(tRef.current('wall.photo.yoursWillBe'))} <b>#${nextPackNo()}</b></span>`,
       });
       // Jadro portálu vypĺňa bunku mriežky — šírku preto nediktuje CSS clamp
       // z gule, ale rozmer karty.

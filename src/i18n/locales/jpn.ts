@@ -5102,4 +5102,12 @@ export const jpn: Partial<Dict> = {
   'wall.hero.l2': "ここでは*神*。",
   'wall.hero.addPhoto': "あなたの神の<br>写真を追加",
 
+  // ── stena: popup fotky + hero (6. 10. 2026) ──
+  'wall.photo.yoursWillBe': "あなたの番号は",
+  'wall.photo.lead': "3分で、あなたの犬が壁に。",
+  'wall.photo.cta': "続ける",
+  'wall.photo.another': "別の写真を選ぶ",
+  'wall.photo.zoom': "ズーム",
+  'wall.photo.change': "写真を変更",
+
 };

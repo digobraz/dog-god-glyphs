@@ -5553,4 +5553,12 @@ export const cs: Partial<Dict> = {
   'wall.hero.l2': "tady *bohem*.",
   'wall.hero.addPhoto': "Přidej foto<br>svého boha",
 
+  // ── stena: popup fotky + hero (6. 10. 2026) ──
+  'wall.photo.yoursWillBe': "Tvůj bude",
+  'wall.photo.lead': "Tři minuty a tvůj pes je na stěně.",
+  'wall.photo.cta': "Pokračovat",
+  'wall.photo.another': "Vybrat jinou fotku",
+  'wall.photo.zoom': "Přiblížení",
+  'wall.photo.change': "Změnit foto",
+
 };

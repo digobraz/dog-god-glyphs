@@ -5106,4 +5106,12 @@ export const ind: Partial<Dict> = {
   'wall.hero.l2': "एक *देवता* है।",
   'wall.hero.addPhoto': "अपने देवता की<br>फ़ोटो जोड़ें",
 
+  // ── stena: popup fotky + hero (6. 10. 2026) ──
+  'wall.photo.yoursWillBe': "आपका नंबर होगा",
+  'wall.photo.lead': "तीन मिनट और आपका कुत्ता दीवार पर।",
+  'wall.photo.cta': "जारी रखें",
+  'wall.photo.another': "दूसरी फ़ोटो चुनें",
+  'wall.photo.zoom': "ज़ूम",
+  'wall.photo.change': "फ़ोटो बदलें",
+
 };

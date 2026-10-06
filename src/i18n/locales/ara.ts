@@ -5102,4 +5102,12 @@ export const ara: Partial<Dict> = {
   'wall.hero.l2': "هو *إله*.",
   'wall.hero.addPhoto': "أضف صورة<br>إلهك",
 
+  // ── stena: popup fotky + hero (6. 10. 2026) ──
+  'wall.photo.yoursWillBe': "رقمك سيكون",
+  'wall.photo.lead': "ثلاث دقائق وكلبك على الجدار.",
+  'wall.photo.cta': "متابعة",
+  'wall.photo.another': "اختر صورة أخرى",
+  'wall.photo.zoom': "تكبير",
+  'wall.photo.change': "غيّر الصورة",
+
 };

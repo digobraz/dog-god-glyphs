@@ -5102,4 +5102,12 @@ export const chn: Partial<Dict> = {
   'wall.hero.l2': "就是*神*。",
   'wall.hero.addPhoto': "添加你的神的<br>照片",
 
+  // ── stena: popup fotky + hero (6. 10. 2026) ──
+  'wall.photo.yoursWillBe': "你的编号将是",
+  'wall.photo.lead': "三分钟，你的狗就上墙了。",
+  'wall.photo.cta': "继续",
+  'wall.photo.another': "选择其他照片",
+  'wall.photo.zoom': "缩放",
+  'wall.photo.change': "更换照片",
+
 };

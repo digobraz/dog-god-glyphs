@@ -5105,4 +5105,12 @@ export const tur: Partial<Dict> = {
   'wall.hero.l2': "burada bir *tanrı*.",
   'wall.hero.addPhoto': "Tanrının<br>fotoğrafını ekle",
 
+  // ── stena: popup fotky + hero (6. 10. 2026) ──
+  'wall.photo.yoursWillBe': "Numaran",
+  'wall.photo.lead': "Üç dakika ve köpeğin duvarda.",
+  'wall.photo.cta': "Devam",
+  'wall.photo.another': "Başka fotoğraf seç",
+  'wall.photo.zoom': "Yakınlaştır",
+  'wall.photo.change': "Fotoğrafı değiştir",
+
 };

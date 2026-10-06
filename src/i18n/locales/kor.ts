@@ -5105,4 +5105,12 @@ export const kor: Partial<Dict> = {
   'wall.hero.l2': "여기서 *신*이에요.",
   'wall.hero.addPhoto': "당신의 신 사진<br>추가하기",
 
+  // ── stena: popup fotky + hero (6. 10. 2026) ──
+  'wall.photo.yoursWillBe': "당신의 번호는",
+  'wall.photo.lead': "3분이면 강아지가 벽에 올라가요.",
+  'wall.photo.cta': "계속",
+  'wall.photo.another': "다른 사진 선택",
+  'wall.photo.zoom': "확대",
+  'wall.photo.change': "사진 변경",
+
 };

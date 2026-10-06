@@ -5889,4 +5889,12 @@ export const en = {
   'wall.hero.l2': "a *god* here.",
   'wall.hero.addPhoto': "Add photo<br>of your god",
 
+  // ── stena: popup fotky + hero (6. 10. 2026) ──
+  'wall.photo.yoursWillBe': "Yours will be",
+  'wall.photo.lead': "Three minutes and your dog is on the wall.",
+  'wall.photo.cta': "Continue",
+  'wall.photo.another': "Choose another photo",
+  'wall.photo.zoom': "Zoom",
+  'wall.photo.change': "Change photo",
+
 } as const;

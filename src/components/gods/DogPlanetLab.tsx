@@ -470,6 +470,7 @@ export function DogPlanetLab({
       // malého textu)"*. Dva riadky, lebo na guli má portál ~118 px.
       // Matej 6. 10. 2026: *„add photo of your GOD nie dog — všade"* (ako stena).
       label: addLabel,
+      labelPicked: t('wall.photo.change'),
       note: '',
       // ⚠️ Cez REF, nie cez `photo` zo stavu — portál sa stavia raz (deps
       // `facesKey`) a uzáver by navždy držal prvú hodnotu, teda `null`.
@@ -531,7 +532,7 @@ export function DogPlanetLab({
       // Jediné pole DEFAULT_COPY, ktoré opúšťa lab-angličtinu — ide cez i18n
       // (Motto lock 2026-08-28 vzor): ostatné (eyebrow/lead/cta/another/zoom)
       // ostávajú natvrdo, znenie sa ešte hýba (photoConfirm.ts komentár).
-      copy: { later: t('wall.photo.laterNote') },
+      copy: { eyebrow: t('wall.photo.yoursWillBe'), lead: t('wall.photo.lead'), cta: t('wall.photo.cta'), another: t('wall.photo.another'), zoom: t('wall.photo.zoom'), later: t('wall.photo.laterNote') },
     });
   };
 

@@ -5291,4 +5291,12 @@ export const deu: Partial<Dict> = {
   'wall.hero.l2': "hier ein *Gott*.",
   'wall.hero.addPhoto': "Foto deines<br>Gottes hinzufügen",
 
+  // ── stena: popup fotky + hero (6. 10. 2026) ──
+  'wall.photo.yoursWillBe': "Deiner wird",
+  'wall.photo.lead': "Drei Minuten und dein Hund ist an der Wand.",
+  'wall.photo.cta': "Weiter",
+  'wall.photo.another': "Anderes Foto wählen",
+  'wall.photo.zoom': "Zoom",
+  'wall.photo.change': "Foto ändern",
+
 };

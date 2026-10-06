@@ -5105,4 +5105,12 @@ export const nld: Partial<Dict> = {
   'wall.hero.l2': "hier een *god*.",
   'wall.hero.addPhoto': "Voeg een foto<br>van je god toe",
 
+  // ── stena: popup fotky + hero (6. 10. 2026) ──
+  'wall.photo.yoursWillBe': "Die van jou wordt",
+  'wall.photo.lead': "Drie minuten en je hond staat op de muur.",
+  'wall.photo.cta': "Verder",
+  'wall.photo.another': "Kies een andere foto",
+  'wall.photo.zoom': "Zoom",
+  'wall.photo.change': "Foto wijzigen",
+
 };
