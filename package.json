@@ -9,6 +9,7 @@
     "check:css": "node scripts/check-css-literals.mjs",
     "check:pack": "node scripts/check-pack-scale.mjs",
     "check:ikony": "node scripts/check-ikony.mjs",
+    "check:wizard": "node scripts/check-wizard.mjs",
     "build": "node scripts/check-css-literals.mjs && node scripts/check-pack-scale.mjs && node scripts/check-ikony.mjs && vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",

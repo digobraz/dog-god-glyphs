@@ -190,10 +190,12 @@ function Deco() {
  * ⚠️ Panel si otvára VOLAJÚCI (`PackBottomNav`), nie tento komponent. Kotúč je kresba
  *    s klikacou plochou; čo sa v paneli ukáže, rozhoduje MIESTO, a to vie lišta.
  */
-export function DockPlus({ label, onClick }: { label: string; onClick: () => void }) {
+export function DockPlus({ label, onClick, id }: { label: string; onClick: () => void; id?: string }) {
   return (
     <span className="pk-medal-slot">
-      <button type="button" className="pk-medal" aria-label={label} onClick={onClick}>
+      {/* `id` = kotva prehliadky (`WIZ.navAdd`) — na TLAČIDLE, nie na slote: slot je pás
+          cez výšku lišty, výrez má svietiť na kotúč. */}
+      <button type="button" id={id} className="pk-medal" aria-label={label} onClick={onClick}>
         <span className="pk-medal-rim">
           <span className="pk-medal-face">
             {/* Kresba z kitu MASKOU, nie `<img>` s filtrom: filter farbu aproximuje, maska

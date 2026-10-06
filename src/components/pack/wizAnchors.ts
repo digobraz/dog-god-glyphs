@@ -18,11 +18,17 @@ export const WIZ = {
   globe: 'wiz-globe',
   /** Ikonka MAPA v spodnej plávajúcej lište (`PackBottomNav`). */
   navMap: 'wiz-nav-map',
+  /** Lapisový kotúč `+` v strede lišty (`DockPlus`). */
+  navAdd: 'wiz-nav-add',
+  /** Ikonka AINUBIS v lište (`AinubisNavLink`). */
+  navAinubis: 'wiz-nav-ainubis',
+  /** Avatar JA v lište (`AvatarNavButton`). */
+  navMe: 'wiz-nav-me',
 } as const;
 
 /** Kotvy, ktoré sú OKRÚHLE/pilulkové — spotlight im nesmie dať 18px radius
  *  (Matej 24. 8.: „zasvietiť v navigácii tú ikonku"). */
-export const WIZ_ROUND: readonly string[] = [WIZ.navMap];
+export const WIZ_ROUND: readonly string[] = [WIZ.navMap, WIZ.navAdd, WIZ.navAinubis, WIZ.navMe];
 
 export type WizAnchor = typeof WIZ[keyof typeof WIZ];
 

@@ -10,6 +10,7 @@ import { usePackIdentity, type PackDog } from './usePackIdentity';
 import { intlLocale } from '@/i18n/bcp47';
 import { PackNotifications } from './PackNotifications';
 import { WIZ } from './wizAnchors';
+import { PackWizard } from './PackWizard';
 import iconHome from '@/assets/icons/nav-home.svg';
 import statBadge from '@/assets/icons/stat-badge.svg';
 import statBars from '@/assets/icons/stat-bars.svg';
@@ -546,15 +547,28 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
               <FloatingNavLink to="/pack/map" label={tx('pack.layout.navOut', 'OUT')} icon="/icons/pack/world-grid.svg" />
             </span>
           </span>
-          <DockPlus label={tx('pack.layout.navAdd', 'Add')} onClick={() => setCreateOpen(true)} />
+          {/* `WIZ.navAdd` / `navAinubis` / `navMe` — kotvy prehliadky (register `wizSteps.ts`).
+              `+` nesie kotvu na samotnom kotúči (obal by zlomil `align-self:stretch` slotu);
+              ikonky vpravo majú obal `inline-flex` ako `WIZ.navMap`. */}
+          <DockPlus id={WIZ.navAdd} label={tx('pack.layout.navAdd', 'Add')} onClick={() => setCreateOpen(true)} />
           <span className="flex items-center justify-center" style={{ minWidth: 0, gap: NAV_SKIN === 'gold' ? NAV_WING_GAP : 4 }}>
-            <AinubisNavLink label={t('pack.layout.navAinubis')} />
-            <AvatarNavButton avatarUrl={avatarUrl} avatarInitial={avatarInitial} dogs={dogs} />
+            <span id={WIZ.navAinubis} style={{ display: 'inline-flex', borderRadius: 999 }}>
+              <AinubisNavLink label={t('pack.layout.navAinubis')} />
+            </span>
+            <span id={WIZ.navMe} style={{ display: 'inline-flex', borderRadius: 999 }}>
+              <AvatarNavButton avatarUrl={avatarUrl} avatarInitial={avatarInitial} dogs={dogs} />
+            </span>
           </span>
         </div>
       </div>
     </nav>
     </div>
+    {/* PREHLIADKA (AINUBIS) — žije s lištou: kde je lišta (kôš 1 a 2), tam smie byť wizard;
+        v koši 3 (úloha) lišta nie je, takže ani on. ČO ukáže, rozhoduje register `wizSteps.ts`.
+        Stále len DEV — na LIVE pôjde s Matejovým OK nad hárkom `plany/nakres-wizard-2026-10-06.html`. */}
+    {import.meta.env.DEV && (
+      <PackWizard hasDog={(dogs ?? []).length > 0} dogName={dogs?.[0]?.dog_name ?? null} />
+    )}
     {/* ── PANEL `+` JE SÚRODENEC PÁSU, NIE JEHO POTOMOK ─────────────────────────────────
         🔴 DVA DÔVODY, OBA MERATEĽNÉ:
         1. VRSTVENIE. Pás je `fixed z-40`, teda VLASTNÝ stacking kontext — čokoľvek v ňom

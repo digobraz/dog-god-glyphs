@@ -1,507 +1,325 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useLocation } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { openAinubis } from '@/lib/ainubisBus';
 import { getConsent } from '@/lib/consent';
 import { supabase } from '@/integrations/supabase/client';
 import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
-import ainubisFace from '@/assets/ainubis-badge.webp';
-import { WIZ, WIZ_ROUND, anchorExists, type WizAnchor } from './wizAnchors';
-import { GOLD_BTN } from './packTheme';
+import ainubisFace from '@/assets/ainubis-head.webp';
+import { WIZ_ROUND } from './wizAnchors';
+import { screenFor, stepsFor, WIZ_SCREENS, type WizStep } from './wizSteps';
+import { AINUBIS } from './ainubisSkin';
+import { MAP_COACH_CSS } from './MapCoach';
+import { FONT_TITLE, FONT_UI, PACK_R, PACK_SPACE, PACK_TEXT } from './packTheme';
 
-// PREHLIADKA — AInubis prevedie člena po `/pack`. Scenár je SKRIPTOVANÝ, nie AI
-// (Matej 23. 8. 2026): text je vždy ten istý, žije v prekladoch, AInubis je tu hlas
-// a tvár. Mozog zapne až v chate (`AinubisWidget`), ktorý prehliadka na konci
-// odovzdá. Plán: `plany/wizard-ainubis.md`.
+// PREHLIADKA — AINUBIS ukazuje, čo je kde. Scenár je SKRIPTOVANÝ, nie AI (Matej 23. 8. 2026):
+// text je vždy ten istý, žije v prekladoch, AINUBIS je tu hlas a tvár. Mozog zapne až v chate,
+// ktorý posledný krok prvého prihlásenia odovzdá.
 //
-// Stav prehliadky je JEDNO ČÍSLOVANÉ SLOVO v localStorage — žiadny orchestrátor.
-// Stránky si ho čítajú pri mounte a rozhodnú sa samy.
+// 🔁 PIPELINE (Matej 6. 10. 2026): ČO sa kde ukáže, nie je v tomto súbore — je to register
+//    `wizSteps.ts`. Tento súbor len vykresľuje: zistí obrazovku z cesty, vezme jej kroky,
+//    ktoré človek ešte nevidel, a ukáže prvý. Nová funkcia = riadok v registri, nie zásah sem.
+//
+// 🌑 CELÁ PLOCHA TMAVNE, VRÁTANE SPODNÉHO NAVU (Matej 6. 10.: „vidieteľný bude len ainubisov
+//    text a konkrétny výrez toho o čom hovorí"). Preto vrstva visí v `document.body` nad
+//    všetkým (z 1500 — nad lištou z-40, nad mapovými ovládačmi z-900), a nie ako `box-shadow`
+//    na samotnom prvku: ten by ostal uväznený v stacking kontexte stránky a lišta by svietila.
+//    ⚠️ Mapový sprievodca `MapCoach` má plochu BLEDÚ (Matej 28. 8.) — to je iný povrch
+//    a rozpor je v hárku ako otázka, nie tichá zmena.
+//
+// Spúšťač žije v spodnej lište (`PackBottomNav`) — tá je na obrazovkách koša 1 a 2, nie v koši 3
+// (úloha). Wizard tak úlohu nikdy nepreruší a nikto to nemusí strážiť zvlášť.
 
-// Portal — renders fixed wizard UI directly under <body> so it escapes the
-// PackLayout `relative z-10` stacking context. Without this the floating pill
-// nav (`fixed z-40`, a root-level sibling of the z-10 content wrapper) paints
-// ON TOP of the coach card / welcome overlay — their z-80/z-90 only ranks them
-// inside the trapped z-10 context, not globally — hiding the lower text+buttons.
-function WizPortal({ children }: { children: React.ReactNode }) {
-  if (typeof document === 'undefined') return null;
-  return createPortal(children, document.body);
-}
+// ─── Čo človek videl ─────────────────────────────────────────────────────────
+// Množina ID krokov. Lokálne (hneď) + v účte `user_metadata.wiz_seen` (mobil aj PC vedia to
+// isté). Žiadne nové miesto na údaje o človeku — `user_metadata` už je (CLAUDE.md, Identita).
+const SEEN_KEY = 'dogypt_wz_seen';
+/** Starý stav do 6. 10. 2026: jedno slovo, `done` = celá prvá prehliadka prejdená. */
+const LEGACY_KEY = 'dogypt_wz';
+const LEGACY_IDS = ['home.welcome', 'home.hero', 'home.dogs', 'home.navOut'];
 
-// ─── Stav ─────────────────────────────────────────────────────────────────────
-const KEY = 'dogypt_wz';
-
-/** Scény prehliadky v poradí scenára. `handoff` = odovzdanie chatu (vlna 2). */
-export type WizScene = 'welcome' | 'home' | 'toDogs' | 'toMap' | 'handoff' | 'done';
-
-const ORDER: WizScene[] = ['welcome', 'home', 'toDogs', 'toMap', 'handoff', 'done'];
-
-export function getWizScene(): WizScene {
+function readSeenLocal(): Set<string> {
   try {
-    const v = localStorage.getItem(KEY);
-    if (!v) return 'welcome';
-    // Starý číslovaný stav (prehliadka do 22. 6. 2026) — kto ho v prehliadači má,
-    // dostane nový scenár od začiatku. Prehliadka bola celý ten čas DEV-only,
-    // takže na LIVE toto nikoho nezasiahne.
-    return (ORDER as string[]).includes(v) ? (v as WizScene) : 'welcome';
+    const s = new Set<string>(JSON.parse(localStorage.getItem(SEEN_KEY) || '[]') as string[]);
+    if (localStorage.getItem(LEGACY_KEY) === 'done') LEGACY_IDS.forEach((id) => s.add(id));
+    return s;
   } catch {
-    // Zablokované úložisko = prehliadku radšej neukazuj, než ju ukazovať pri
-    // každom načítaní stránky dokola.
-    return 'done';
+    // Zablokované úložisko = radšej nič neukazuj, než ukazovať pri každom načítaní dokola.
+    return new Set(WIZ_SCREENS.flatMap((x) => x.steps.map((st) => st.id)));
   }
 }
-
-export function saveWizScene(s: WizScene) {
+function writeSeenLocal(s: Set<string>) {
+  try { localStorage.setItem(SEEN_KEY, JSON.stringify([...s])); } catch { /* súkromné okno */ }
+}
+async function pushSeenToAccount(s: Set<string>) {
   try {
-    localStorage.setItem(KEY, s);
-  } catch { /* ignore */ }
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) return;
+    await supabase.auth.updateUser({ data: { wiz_seen: [...s] } });
+  } catch { /* lokálny stav stačí */ }
 }
 
-/** Znovuspustenie prehliadky (nastavenia, „ukáž mi to znova"). */
-export function startWizard() {
-  saveWizScene('welcome');
+/** Znovuspustenie prehliadky obrazovky (nastavenia, „ukáž mi to znova"). */
+export function startWizard(screenKey = 'home') {
+  const s = readSeenLocal();
+  const scr = WIZ_SCREENS.find((x) => x.key === screenKey);
+  scr?.steps.forEach((st) => s.delete(st.id));
+  try { localStorage.removeItem(LEGACY_KEY); } catch { /* */ }
+  writeSeenLocal(s);
+  void pushSeenToAccount(s);
   window.dispatchEvent(new CustomEvent('dogypt:wizard'));
 }
 
-// ─── Odmena za dokončenie ─────────────────────────────────────────────────────
-// `grant-devotion { kind: 'first_steps' }` (+10 ☥) je na serveri idempotentné
-// (`first_steps:${user.id}`), takže opakovaná prehliadka body nerozdáva druhýkrát.
-// Odmena ležela nepoužitá od 5. 8., keď z homepage zmizol zoznam „First Steps".
+// ─── Odmena za dokončenie prvého prihlásenia ─────────────────────────────────
+// `grant-devotion { kind: 'first_steps' }` (+10 ☥) je na serveri idempotentné.
 async function grantFirstSteps() {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.access_token) return;
     const res = await fetch(`${EDGE_BASE}/grant-devotion`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${session.access_token}`,
-        apikey: SUPABASE_ANON_KEY,
-      },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}`, apikey: SUPABASE_ANON_KEY },
       body: JSON.stringify({ kind: 'first_steps' }),
     });
     if (!res.ok) return;
     const j = await res.json();
-    if (typeof j.total === 'number') {
-      window.dispatchEvent(new CustomEvent('dogypt:devotion', { detail: { total: j.total } }));
-    }
-  } catch { /* odmena je bonus, nie podmienka dokončenia */ }
+    if (typeof j.total === 'number') window.dispatchEvent(new CustomEvent('dogypt:devotion', { detail: { total: j.total } }));
+  } catch { /* odmena je bonus, nie podmienka */ }
 }
 
-// ─── Štýly ────────────────────────────────────────────────────────────────────
-// Povrch prehliadky je CYBORG, nie chrámový — hovorí ním AInubis, a ten má vlastnú
-// paletu (vedomá výnimka z brand v3.2, `AinubisWidget.css` hlavička, Matej 26. 7.):
-// **cyan `#5BE0F0` = stroj, zlatá `#F5C73D→#E69E1A` = človek.** Preto je bublina
-// modrá a tlačidlá ostávajú zlaté — klikne ich človek. Logo DOGYPT na povrchu
-// AInubisa NEPATRÍ (Matej 30. 7.: „logo dogyptu možeš dať preč — nechaj iba AINUBIS").
-const CY = '#5BE0F0';
+// ─── Vzhľad ──────────────────────────────────────────────────────────────────
+// Bublina = recept `MapCoach` (`.mcoach-bubble` …), ktorý Matej schválil 28. 8. („peknú menšiu
+// bublinku… s pekným rozložením") — jeden recept pre každé miesto, kde AINUBIS na niečo ukazuje.
+// Vlastná je tu len TMA s dierou a privítanie.
+const DIM = 'rgba(1,5,10,0.93)';
+/** Vzduch okolo výrezu, aby ho prstenec neorezal. */
+const PAD = PACK_SPACE.sm;
 const WIZ_CSS = `
-  /* Spotlight: cieľ nesvieti zlatým rámom appky, ale CYAN prstencom — ukazuje naň
-     stroj. Okolie tmavne na 93 %, aby v zornom poli ostala naozaj jedna vec
-     (Matej 24. 8.: „zasvietiť v navigácii tú ikonku a všetko ostatné bude tmavé"). */
-  .wiz-spot {
-    box-shadow:
-      0 0 0 3px rgba(91,224,240,.85),
-      0 0 30px rgba(91,224,240,.55),
-      0 0 0 9999px rgba(1,5,10,0.93) !important;
-    position: relative !important;
-    z-index: 55 !important;
-    border-radius: 18px;
-    transition: box-shadow .25s ease;
-    animation: wiz-pulse 2.4s ease-in-out infinite;
-  }
-  /* Ikonka v lište je pilulka — 18px radius by jej urobil roh navyše. */
-  .wiz-spot--round { border-radius: 999px !important; }
-  @keyframes wiz-pulse {
-    0%,100% { box-shadow: 0 0 0 3px rgba(91,224,240,.85), 0 0 30px rgba(91,224,240,.55), 0 0 0 9999px rgba(1,5,10,.93); }
-    50%     { box-shadow: 0 0 0 3px rgba(91,224,240,1),   0 0 46px rgba(91,224,240,.80), 0 0 0 9999px rgba(1,5,10,.93); }
-  }
-  @keyframes wiz-in {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0);     }
-  }
-  @keyframes wiz-face-in {
-    from { opacity: 0; transform: scale(.86); }
-    to   { opacity: 1; transform: scale(1);   }
-  }
+.wzc{position:fixed;inset:0;z-index:1500;}
+.wzc-hole{position:fixed;pointer-events:none;border-radius:${PACK_R.card}px;
+  box-shadow:0 0 0 9999px ${DIM},0 0 0 2px ${AINUBIS.edgeStrong},0 0 30px rgba(${AINUBIS.cyanRGB},0.45);
+  animation:wzc-ring 2.4s ease-in-out infinite;transition:top .25s ease,left .25s ease,width .25s ease,height .25s ease;}
+.wzc-hole.is-round{border-radius:${PACK_R.pill}px;}
+@keyframes wzc-ring{
+  0%,100%{box-shadow:0 0 0 9999px ${DIM},0 0 0 2px ${AINUBIS.edgeStrong},0 0 26px rgba(${AINUBIS.cyanRGB},0.40);}
+  50%{box-shadow:0 0 0 9999px ${DIM},0 0 0 3px ${AINUBIS.cyan},0 0 44px rgba(${AINUBIS.cyanRGB},0.75);}
+}
+.wzc-dim{position:fixed;inset:0;background:${DIM};}
+.wzc .mcoach-txt b span{color:${AINUBIS.cyan};}
+.wzc-dots{grid-column:1 / -1;display:flex;gap:${PACK_SPACE.xs}px;justify-content:center;}
+.wzc-dots i{display:block;width:6px;height:4px;border-radius:${PACK_R.pill}px;background:rgba(${AINUBIS.cyanRGB},0.20);transition:width .3s;}
+.wzc-dots i.on{width:16px;background:${AINUBIS.cyan};}
+.wzc-welcome{position:fixed;inset:0;z-index:1500;display:flex;align-items:center;justify-content:center;overflow-y:auto;
+  padding:${PACK_SPACE.xxxl}px ${PACK_SPACE.xxl}px;text-align:center;
+  background:radial-gradient(120% 80% at 50% 34%,${AINUBIS.bg} 0%,${AINUBIS.bgDeep} 60%,#01050A 100%);animation:wzc-in .4s ease;}
+.wzc-welcome > div{margin:auto;display:flex;flex-direction:column;align-items:center;max-width:320px;}
+.wzc-welcome img{width:128px;height:128px;object-fit:contain;filter:drop-shadow(0 0 30px rgba(${AINUBIS.cyanRGB},0.55));}
+.wzc-welcome .wm{margin-top:${PACK_SPACE.lg}px;font:700 ${PACK_TEXT.h2}px ${FONT_TITLE};letter-spacing:.26em;color:${AINUBIS.inkFaint};}
+.wzc-welcome .wm span{color:${AINUBIS.cyan};text-shadow:0 0 18px rgba(${AINUBIS.cyanRGB},0.75);}
+.wzc-welcome h2{margin:${PACK_SPACE.xl}px 0 ${PACK_SPACE.md}px;font:700 ${PACK_TEXT.h1}px ${FONT_TITLE};color:${AINUBIS.ink};}
+.wzc-welcome p{margin:0 0 ${PACK_SPACE.xxl}px;font:400 ${PACK_TEXT.body}px/1.6 ${FONT_UI};color:${AINUBIS.inkDim};}
+.wzc-welcome .mcoach-ok{width:100%;}
+.wzc-welcome .mcoach-mute{margin-top:${PACK_SPACE.lg}px;}
+@keyframes wzc-in{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
 `;
 
-// CTA zlaté = blok GOLD_BTN z packTheme.ts (grad + edge), tu len doplnený o layout
-// vlastnosti tejto obrazovky (meno GOLD_BTN je obsadené importom, preto WIZ_GOLD_BTN).
-const WIZ_GOLD_BTN: React.CSSProperties = {
-  flex: 1,
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  background: GOLD_BTN.grad,
-  color: '#1c160c', fontWeight: 700,
-  fontFamily: "'Space Grotesk',sans-serif",
-  fontSize: 14,
-  border: `1px solid ${GOLD_BTN.edge}`,
-  borderRadius: 8,
-  padding: '12px 16px',
-  cursor: 'pointer',
-};
-
-const GHOST_BTN: React.CSSProperties = {
-  background: 'none', border: 'none',
-  color: 'rgba(226,240,248,.45)', fontSize: 12.5,
-  cursor: 'pointer', textDecoration: 'underline',
-  padding: '8px 12px',
-  fontFamily: "'Space Grotesk',sans-serif",
-};
-
-/** Tvár = `assets/ainubis-badge.webp`, kopíruje sa TENTO súbor (nekresliť variantu).
- *  Prstenec a aura sú z `.ainubis-intro__badge`, aby sfinx vyzeral rovnako ako
- *  v chate — je to tá istá postava, nie druhá ikonka.
- *
- *  ⚠️ VEĽKÁ tvár (privítanie) má prstenec PLNOU cyanou, nie priesvitnou
- *  (Matej 24. 8.: „chcelo by to zvýrazniť okraj toho kruhu, nemôže byť priesvitný
- *  musí byť krajší"). Priesvitný 1px rám sa na tmavom pozadí strácal a kruh
- *  vyzeral nedokončený — tá istá chyba ako `T.hairline` použitý ako rám
- *  (pozri lock o bledých blokoch v CLAUDE.md). Malá tvár v bubline ostáva
- *  jemná zámerne — tam je ikonka, nie portrét. */
-function face(size: number): React.CSSProperties {
-  const big = size > 40;
-  return {
-    borderRadius: '50%',
-    objectFit: 'contain',
-    flex: 'none',
-    background: 'radial-gradient(circle at 35% 28%, #12233a 0%, #01050A 74%)',
-    border: big ? `3px solid ${CY}` : '1px solid rgba(91,224,240,.45)',
-    boxShadow: big
-      // Prstenec → tmavá medzera → slabší vonkajší prsteň → aura. Medzera je to,
-      // čo dáva hrane ostrosť; bez nej sa cyan zlije so žiarou do rozmazaného kruhu.
-      ? `0 0 0 5px #01050A, 0 0 0 6.5px rgba(91,224,240,.30), 0 0 34px rgba(91,224,240,.45)`
-      : '0 0 14px rgba(59,158,255,.35)',
-  };
+const hasSize = (n: Element) => { const r = n.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
+/** Viditeľný cieľ kotvy. Keď je obal bez rozmeru (kotúč `+` je absolútne polohovaný a obal
+ *  ho neobjíme), svieti prvý potomok, ktorý rozmer má — inak by výrez sedel v prázdnom bode. */
+function findTarget(id: string): HTMLElement | null {
+  const el = document.getElementById(id);
+  if (!el) return null;
+  if (hasSize(el)) return el;
+  return ([...el.querySelectorAll('*')].find(hasSize) as HTMLElement | undefined) ?? null;
 }
 
-/** Wordmark. „AI" je cyan a ťažšie — meno je vtip AI + Anubis a tá časť sa má
- *  prečítať prvá (kánon `reference_dogypt_ainubis_cyborg_palette`). Nie je to
- *  obyčajný text zlatou, ako to mala prehliadka do 24. 8. */
-function Wordmark({ size = 13 }: { size?: number }) {
-  return (
-    <span style={{
-      fontFamily: "'Cinzel',serif", fontWeight: 700,
-      fontSize: size, letterSpacing: '0.26em', textIndent: '.30em',
-      textTransform: 'uppercase', whiteSpace: 'nowrap',
-    }}>
-      <span style={{ color: CY, fontWeight: 900, fontSize: '1.16em', textShadow: `0 0 18px rgba(91,224,240,.75)` }}>AI</span>
-      <span style={{ color: 'rgba(226,240,248,.58)' }}>NUBIS</span>
-    </span>
-  );
-}
-
-// ─── Spotlight ────────────────────────────────────────────────────────────────
-function SpotEffect({ targetId }: { targetId: WizAnchor }) {
-  useEffect(() => {
-    const el = document.getElementById(targetId);
-    if (!el) return;
-    el.classList.add('wiz-spot');
-    if (WIZ_ROUND.includes(targetId)) el.classList.add('wiz-spot--round');
-    const tm = setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 80);
-    return () => {
-      clearTimeout(tm);
-      el.classList.remove('wiz-spot', 'wiz-spot--round');
-    };
-  }, [targetId]);
-  return null;
-}
-
-// ─── Bublina ──────────────────────────────────────────────────────────────────
-function CoachCard({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{
-      position: 'fixed',
-      left: 16, right: 16,
-      // Sit above the floating pill nav (bottom: safe-area+16, ~52px tall) so the
-      // card + its Skip/Next buttons never collide with the menu.
-      bottom: 'calc(env(safe-area-inset-bottom, 0px) + 84px)',
-      zIndex: 80,
-      background: 'linear-gradient(180deg,#071019 0%,#03070C 100%)',
-      border: '1px solid rgba(91,224,240,.30)',
-      borderRadius: 14,
-      padding: '16px 16px 16px',
-      boxShadow: '0 20px 60px rgba(0,0,0,.7), 0 0 0 1px rgba(91,224,240,.10), 0 0 44px rgba(59,158,255,.20)',
-      animation: 'wiz-in 0.3s ease',
-      maxWidth: 480,
-      marginLeft: 'auto',
-      marginRight: 'auto',
-    }}>
-      {children}
-    </div>
-  );
-}
-
-/** Hovorí AInubis — tvár + wordmark nad textom. Bez tohto riadku je bublina
- *  anonymná systémová hláška; s ním je to postava (Matej 23. 8.). */
-function Speaker() {
-  return (
-    <div style={{
-      display: 'flex', gap: 10, alignItems: 'center',
-      paddingBottom: 10, marginBottom: 11,
-      borderBottom: '1px solid rgba(91,224,240,0)',
-      backgroundImage: 'linear-gradient(90deg, rgba(91,224,240,0) 0%, rgba(91,224,240,.35) 45%, rgba(91,224,240,0) 100%)',
-      backgroundSize: '100% 1px', backgroundPosition: 'bottom', backgroundRepeat: 'no-repeat',
-    }}>
-      <img src={ainubisFace} alt="" aria-hidden width={30} height={30} style={face(30)} />
-      <Wordmark size={12} />
-    </div>
-  );
-}
-
-function ProgressDots({ total, active }: { total: number; active: number }) {
-  return (
-    <div style={{ display: 'flex', gap: 5, justifyContent: 'center', marginBottom: 11 }}>
-      {Array.from({ length: total }).map((_, i) => (
-        <span key={i} style={{
-          width: i === active ? 18 : 6, height: 5,
-          borderRadius: 3, display: 'inline-block',
-          background: i === active ? CY : 'rgba(91,224,240,.18)',
-          boxShadow: i === active ? `0 0 10px rgba(91,224,240,.75)` : 'none',
-          transition: 'all .3s',
-        }} />
-      ))}
-    </div>
-  );
-}
-
-// ─── Scény na `/pack` ─────────────────────────────────────────────────────────
-// Kotva ide z registra (`wizAnchors.ts`) — voľný string tu bol príčina, prečo
-// posledný krok starej prehliadky svietil do prázdna po redizajne homepage 5. 8.
-interface SceneDef {
-  id: Exclude<WizScene, 'welcome' | 'handoff' | 'done'>;
-  anchor: WizAnchor;
-  /** Text sa vetví podľa toho, či člen už má psa. */
-  bodyKey: (hasDog: boolean) => string;
-  ctaKey: string;
-}
-
-const SCENES: SceneDef[] = [
-  {
-    id: 'home',
-    anchor: WIZ.hero,
-    bodyKey: () => 'pack.wizard.home.body',
-    ctaKey: 'pack.wizard.next',
-  },
-  {
-    id: 'toDogs',
-    anchor: WIZ.dogsRow,
-    // Bez psa nemá zmysel pozývať „tam bývajú tvoji psi" — pozveme ho psa pridať.
-    bodyKey: (hasDog) => (hasDog ? 'pack.wizard.toDogs.body' : 'pack.wizard.toDogs.bodyNoDog'),
-    ctaKey: 'pack.wizard.toDogs.cta',
-  },
-  {
-    // Spotlight na IKONKU v spodnej lište, nie na blok stránky — obrazovka
-    // stmavne a svieti jedna vec, ktorú má človek stlačiť.
-    id: 'toMap',
-    anchor: WIZ.navMap,
-    bodyKey: () => 'pack.wizard.toMap.body',
-    ctaKey: 'pack.wizard.toMap.cta',
-  },
-];
-
-// ─── PackWizard (mount v `Pack.tsx`) ──────────────────────────────────────────
-interface PackWizardProps {
-  /** ID primárneho psa (najnižšie číslo vo svorke). `null` = načítava sa alebo pes nie je. */
-  primaryDogId: string | null;
-  /** Meno primárneho psa — do textu kroku „poď do svorky". */
-  primaryDogName: string | null;
-}
-
-export function PackWizard({ primaryDogId, primaryDogName }: PackWizardProps) {
+// ─── Spúšťač ─────────────────────────────────────────────────────────────────
+export function PackWizard({ dogName, hasDog }: { dogName: string | null; hasDog: boolean }) {
   const t = useT();
-  const [scene, setScene] = useState<WizScene>(getWizScene);
+  const { pathname, search } = useLocation();
+  const screen = useMemo(() => screenFor(pathname), [pathname]);
+  const [seen, setSeen] = useState<Set<string>>(readSeenLocal);
+  /** Kroky, ktorých kotva v tejto návšteve obrazovky chýbala — preskočené, nie videné. */
+  const [missing, setMissing] = useState<Set<string>>(new Set());
 
-  // Znovuspustenie z nastavení / návrat z inej routy.
+  // Stav z účtu (iné zariadenie) sa prileje k lokálnemu — zjednotenie, nikdy nie prepis.
   useEffect(() => {
-    const sync = () => setScene(getWizScene());
-    sync();
+    let off = false;
+    // DEV `?wiz=1` = náhľad odznova; stav z účtu by ho hneď prebil.
+    if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('wiz')) off = true;
+    void supabase.auth.getSession().then(({ data }) => {
+      const remote = data.session?.user?.user_metadata?.wiz_seen;
+      if (off || !Array.isArray(remote)) return;
+      setSeen((cur) => {
+        const m = new Set(cur);
+        (remote as string[]).forEach((id) => m.add(id));
+        writeSeenLocal(m);
+        return m;
+      });
+    });
+    const sync = () => setSeen(readSeenLocal());
     window.addEventListener('dogypt:wizard', sync);
-    return () => window.removeEventListener('dogypt:wizard', sync);
+    return () => { off = true; window.removeEventListener('dogypt:wizard', sync); };
   }, []);
 
-  // DEV náhľad: `/pack?wiz=1` pustí prehliadku od začiatku aj vtedy, keď je v tomto
-  // prehliadači už dobehnutá (`dogypt_wz = done`). Bez toho sa dá zopakovať jedine
-  // ručným čistením úložiska — teda nie na telefóne. Precedens: `?reveal=` v `PackMap`.
-  // ⚠️ `import.meta.env.DEV` je vo `vite build` `false` → vetva sa do prod buildu
-  //    nedostane (tá istá stráž ako `devMockDogs.ts`).
+  // Nová obrazovka = nové pokusy o kotvy.
+  useEffect(() => { setMissing(new Set()); }, [pathname]);
+
+  // DEV náhľad: `?wiz=1` pustí kroky TEJTO obrazovky odznova. Vo `vite build` je vetva mŕtva.
   useEffect(() => {
-    if (!import.meta.env.DEV) return;
-    if (!new URLSearchParams(location.search).get('wiz')) return;
-    saveWizScene('welcome');
-    setScene('welcome');
-  }, []);
+    if (!import.meta.env.DEV || !screen) return;
+    if (!new URLSearchParams(search).get('wiz')) return;
+    setSeen((cur) => {
+      const m = new Set(cur);
+      screen.steps.forEach((st) => m.delete(st.id));
+      writeSeenLocal(m);
+      return m;
+    });
+  }, [screen, search]);
 
-  // ⚠️ Prehliadka POČKÁ na cookie lištu. `ConsentBanner` má z-9999, bublina z-80 —
-  // kým je lišta dole, prekrýva jej tlačidlá „Preskočiť/Ďalej" a prehliadka vyzerá
-  // rozbito. Zasiahne to práve nového člena, ktorý voľbu ešte neurobil, teda presne
-  // toho, komu je prehliadka určená. Kontroluje sa priebežne — voľba padne na tej
-  // istej obrazovke, bez reloadu (rovnaká pasca ako AINUBIS badge, KONTEXT 26. 7.).
+  // Prehliadka POČKÁ na cookie lištu (z-9999) — inak by človek nevedel, čo stlačiť skôr.
   const [consentDone, setConsentDone] = useState(() => !!getConsent());
   useEffect(() => {
     if (consentDone) return;
-    const iv = setInterval(() => {
-      if (getConsent()) { setConsentDone(true); clearInterval(iv); }
-    }, 400);
+    const iv = setInterval(() => { if (getConsent()) { setConsentDone(true); clearInterval(iv); } }, 400);
     return () => clearInterval(iv);
   }, [consentDone]);
 
-  const hasDog = !!primaryDogId;
-  const sceneIdx = SCENES.findIndex((s) => s.id === scene);
-  const def = sceneIdx >= 0 ? SCENES[sceneIdx] : null;
+  const all = stepsFor(screen);
+  const pending = all.filter((s) => !seen.has(s.id) && !missing.has(s.id));
+  const step: WizStep | undefined = pending[0];
 
-  const advance = useCallback(() => {
-    setScene((cur) => {
-      const i = ORDER.indexOf(cur);
-      const nextScene = ORDER[Math.min(i + 1, ORDER.length - 1)];
-      saveWizScene(nextScene);
-      return nextScene;
+  const mark = useCallback((ids: string[]) => {
+    setSeen((cur) => {
+      const m = new Set(cur);
+      ids.forEach((id) => m.add(id));
+      writeSeenLocal(m);
+      void pushSeenToAccount(m);
+      return m;
     });
   }, []);
 
-  // Kotva chýba (blok za flagom, iný layout) → krok sa PRESKOČÍ. Bublina bez
-  // spotlightu je horšia než žiadna: hovorí o niečom, čo na obrazovke nesvieti.
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    if (!def) { setReady(false); return; }
-    // Blok sa môže domountovať o snímku neskôr (dáta psov), preto sa kotva
-    // doťahuje v kolách, nie jedným pokusom pri mounte.
-    if (anchorExists(def.anchor)) { setReady(true); return; }
-    setReady(false);
-    let tries = 0;
-    const iv = setInterval(() => {
-      tries += 1;
-      if (anchorExists(def.anchor)) { setReady(true); clearInterval(iv); }
-      else if (tries > 12) { clearInterval(iv); advance(); } // ~1,5 s a kotva nikde
-    }, 120);
-    return () => clearInterval(iv);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [def?.anchor, advance]);
+  const next = useCallback(() => {
+    if (!step) return;
+    mark([step.id]);
+    if (step.handoff) void grantFirstSteps();
+  }, [step, mark]);
+  // „Preskočiť" zavrie celú obrazovku — aj kroky, ktoré ešte len prídu.
+  const skipAll = useCallback(() => mark(pending.map((s) => s.id)), [pending, mark]);
 
-  // ⚠️ Krok „poď do svorky" zatiaľ NENAVIGUJE. Scéna svorky (nákres 04) sa stavia
-  // v ďalšom kroku; keby sme človeka poslali preč už teraz, `PackWizard` sa
-  // odmountuje s ním a prehliadka by na `/pack/dogs` ticho zmizla. Kým scéna
-  // neexistuje, krok len ukáže, kde svorka žije, a odovzdá chatu.
-  const next = advance;
+  if (!step || !consentDone) return null;
 
-  const finish = useCallback(() => {
-    saveWizScene('done');
-    setScene('done');
-    void grantFirstSteps();
-  }, []);
+  const body = t(hasDog || !step.textNoDog ? step.text : step.textNoDog, { dog: dogName || t('pack.wizard.myDog') });
 
-  const skip = useCallback(() => {
-    saveWizScene('done');
-    setScene('done');
-  }, []);
-
-  if (scene === 'done' || !consentDone) return null;
-
-  return (
-    <WizPortal>
-      <style>{WIZ_CSS}</style>
-
-      {/* ── PRIVÍTANIE — celá obrazovka, sfinx, jeden gombík ──
-          Bez loga DOGYPT: na povrchu AInubisa nemá čo robiť (Matej 30. 7.), a pri
-          prehliadke by naviac súťažilo s tým jediným, čo tu má hovoriť — postavou. */}
-      {scene === 'welcome' && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 90,
-          background: 'radial-gradient(120% 80% at 50% 34%, #0c1c2b 0%, #030A12 46%, #01050A 100%)',
-          display: 'flex', flexDirection: 'column',
-          padding: '48px 32px 48px',
-          animation: 'wiz-in 0.4s ease',
-          overflowY: 'auto',
-        }}>
-          <div style={{
-            flex: 1,
-            display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center',
-            textAlign: 'center',
-          }}>
-            <img
-              src={ainubisFace} alt="" aria-hidden
-              width={112} height={112}
-              style={{ ...face(112), animation: 'wiz-face-in .5s ease' }}
-            />
-            {/* Pod tvárou ostáva LEN meno — podnadpis „Strážca chrámu · tvoj sprievodca"
-                zanikol 24. 8. (Matej: „Ponecháme iba meno bez podnadvisov"). Kto AInubis je,
-                povie prvá veta pod čiarou; opakovať to nad ňou bola dvojitá predstava.
-                Kľúč `pack.wizard.welcome.role` tým prestal mať čitateľa. */}
-            <div style={{ margin: '18px 0 0' }}>
-              <Wordmark size={20} />
-            </div>
-            <div style={{
-              width: 'min(320px, 100%)', height: 1, margin: '20px 0 20px',
-              background: 'linear-gradient(90deg, rgba(91,224,240,0) 0%, rgba(91,224,240,.40) 50%, rgba(91,224,240,0) 100%)',
-            }} />
-            <h2 style={{
-              fontFamily: "'Cinzel',serif", fontWeight: 700,
-              fontSize: 23, color: '#E6FAFF',
-              textShadow: '0 0 26px rgba(91,224,240,.28)',
-              lineHeight: 1.3, marginBottom: 14,
-            }}>
-              {t('pack.wizard.welcome.title')}
-            </h2>
-            <p style={{
-              color: 'rgba(226,240,248,.62)', fontSize: 13.5,
-              lineHeight: 1.65, marginBottom: 32,
-              maxWidth: 320,
-            }}>
-              {t('pack.wizard.welcome.body')}
-            </p>
-            <button
-              onClick={next}
-              style={{ ...WIZ_GOLD_BTN, flex: 'none', width: '100%', maxWidth: 300, marginBottom: 14 }}
-            >
-              {t('pack.wizard.welcome.cta')}
-            </button>
-            <button onClick={skip} style={GHOST_BTN}>{t('pack.wizard.skipForNow')}</button>
-          </div>
+  if (step.anchor === 'welcome') {
+    return createPortal(
+      <div className="wzc-welcome" role="dialog" aria-modal="true">
+        <style>{MAP_COACH_CSS}{WIZ_CSS}</style>
+        <div>
+          <img src={ainubisFace} alt="" aria-hidden="true" />
+          <div className="wm"><span>AI</span>NUBIS</div>
+          <h2>{t('pack.wizard.welcome.title')}</h2>
+          <p>{body}</p>
+          <button type="button" className="mcoach-ok" onClick={next}>{t('pack.wizard.welcome.cta')}</button>
+          <button type="button" className="mcoach-mute" onClick={skipAll}>{t('pack.wizard.skipForNow')}</button>
         </div>
-      )}
+      </div>,
+      document.body,
+    );
+  }
 
-      {/* ── SPOTLIGHT + BUBLINA ── */}
-      {def && ready && (
-        <>
-          <SpotEffect targetId={def.anchor} />
+  const spots = all.filter((s) => s.anchor !== 'welcome');
+  return (
+    <Spot
+      key={step.id}
+      step={step}
+      body={body}
+      dots={spots.length > 1 ? { n: spots.length, at: spots.findIndex((s) => s.id === step.id) } : null}
+      onNext={next}
+      onSkip={skipAll}
+      onMissing={() => setMissing((m) => new Set(m).add(step.id))}
+    />
+  );
+}
 
-          <CoachCard>
-            <ProgressDots total={SCENES.length} active={sceneIdx} />
-            <Speaker />
+// ─── Výrez + bublina ─────────────────────────────────────────────────────────
+function Spot({ step, body, dots, onNext, onSkip, onMissing }: {
+  step: WizStep; body: string; dots: { n: number; at: number } | null;
+  onNext: () => void; onSkip: () => void; onMissing: () => void;
+}) {
+  const t = useT();
+  const [box, setBox] = useState<DOMRect | null>(null);
+  const missRef = useRef(onMissing);
+  useEffect(() => { missRef.current = onMissing; }, [onMissing]);
+  const anchor = step.anchor as string;
 
-            <div
-              style={{ fontSize: 13, lineHeight: 1.65, color: '#d8cdb4', marginBottom: 14 }}
-              dangerouslySetInnerHTML={{
-                __html: t(def.bodyKey(hasDog), { dog: primaryDogName || t('pack.wizard.myDog') }),
-              }}
-            />
+  // Kotva sa hľadá v kolách (dáta psov dobehnú o chvíľu neskôr); ~1,5 s a nikde → krok sa
+  // PRESKOČÍ (nie označí ako videný — keď kotva neskôr pribudne, ukáže sa).
+  // Po nájdení: posun do stredu okna a sledovanie polohy — diera sa hýbe s prvkom.
+  useEffect(() => {
+    let raf = 0; let tries = 0; let el: HTMLElement | null = null; let alive = true;
+    const follow = () => {
+      if (!alive || !el) return;
+      const r = el.getBoundingClientRect();
+      setBox((b) => (b && Math.abs(b.top - r.top) < 0.5 && Math.abs(b.left - r.left) < 0.5 && Math.abs(b.width - r.width) < 0.5 && Math.abs(b.height - r.height) < 0.5 ? b : r));
+      raf = requestAnimationFrame(follow);
+    };
+    const iv = setInterval(() => {
+      el = findTarget(anchor);
+      if (el) {
+        clearInterval(iv);
+        const r = el.getBoundingClientRect();
+        const offscreen = r.top < 0 || r.bottom > window.innerHeight;
+        if (offscreen && !WIZ_ROUND.includes(anchor)) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        follow();
+      } else if (++tries > 12) { clearInterval(iv); missRef.current(); }
+    }, 120);
+    return () => { alive = false; clearInterval(iv); cancelAnimationFrame(raf); };
+  }, [anchor]);
 
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <button onClick={skip} style={GHOST_BTN}>{t('pack.wizard.skip')}</button>
-              <button onClick={next} style={WIZ_GOLD_BTN}>{t(def.ctaKey)}</button>
-            </div>
-          </CoachCard>
-        </>
-      )}
+  if (!box) return null;
 
-      {/* ── ODOVZDANIE — od tejto chvíle je AInubis chat, nie sprievodca ── */}
-      {scene === 'handoff' && (
-        <CoachCard>
-          <Speaker />
-          <div style={{ fontSize: 13, lineHeight: 1.65, color: '#d8cdb4', marginBottom: 14 }}>
-            {t('pack.wizard.handoff.body')}
-          </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <button onClick={finish} style={GHOST_BTN}>{t('pack.wizard.handoff.later')}</button>
-            <button
-              onClick={() => { finish(); openAinubis(); }}
-              style={WIZ_GOLD_BTN}
-            >
-              {t('pack.wizard.handoff.cta')}
-            </button>
-          </div>
-        </CoachCard>
-      )}
-    </WizPortal>
+  const vw = window.innerWidth; const vh = window.innerHeight;
+  // Výrez sa orezáva oknom — vysoký blok (planéta) by inak mal dieru mimo obrazovky.
+  const top = Math.max(PACK_SPACE.xs, box.top - PAD);
+  const bottom = Math.min(vh - PACK_SPACE.xs, box.bottom + PAD);
+  const left = Math.max(PACK_SPACE.xs, box.left - PAD);
+  const w = Math.min(vw - PACK_SPACE.xs, box.right + PAD) - left;
+  const h = Math.max(0, bottom - top);
+  // Bublina ide na stranu s väčším miestom; keď nie je miesto nikde, sadne na spodok výrezu.
+  const below = vh - bottom >= top;
+  const bw = Math.min(430, vw - 24);
+  const bubbleLeft = Math.min(Math.max(12, left + w / 2 - bw / 2), Math.max(12, vw - bw - 12));
+  const pos = below ? { top: Math.min(bottom + 14, vh - 200) } : { bottom: Math.min(vh - top + 14, vh - 200) };
+
+  return createPortal(
+    <div className="wzc" role="dialog" aria-modal="true">
+      <style>{MAP_COACH_CSS}{WIZ_CSS}</style>
+      <div className={`wzc-hole${WIZ_ROUND.includes(anchor) ? ' is-round' : ''}`} style={{ top, left, width: w, height: h }} />
+      <div className="mcoach-bubble" style={{ left: bubbleLeft, width: bw, ...pos }}>
+        <span className={`mcoach-arrow${below ? ' up' : ' down'}`} style={{ left: Math.min(Math.max(left + w / 2, 28), vw - 28) }} aria-hidden="true" />
+        {dots && <div className="wzc-dots">{Array.from({ length: dots.n }).map((_, i) => <i key={i} className={i === dots.at ? 'on' : ''} />)}</div>}
+        <img className="mcoach-face" src={ainubisFace} alt="" aria-hidden="true" />
+        <div className="mcoach-txt">
+          <b><span>AI</span>NUBIS</b>
+          <p dangerouslySetInnerHTML={{ __html: body }} />
+        </div>
+        <div className="mcoach-foot">
+          {step.handoff ? (
+            <>
+              <button type="button" className="mcoach-mute" onClick={onNext}>{t('pack.wizard.handoff.later')}</button>
+              <button type="button" className="mcoach-ok" onClick={() => { onNext(); openAinubis(); }}>{t('pack.wizard.handoff.cta')}</button>
+            </>
+          ) : (
+            <>
+              <button type="button" className="mcoach-mute" onClick={onSkip}>{t('pack.wizard.skip')}</button>
+              <button type="button" className="mcoach-ok" onClick={onNext}>{t('pack.wizard.next')}</button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 }

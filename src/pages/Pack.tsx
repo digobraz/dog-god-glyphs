@@ -7,7 +7,6 @@ import { HeroCard } from '@/components/pack/HeroCard';
 import { Navigate, useLocation } from 'react-router-dom';
 import { GlobePulse } from '@/components/pack/GlobePulse';
 import { FounderInvite } from '@/components/pack/FounderInvite';
-import { PackWizard } from '@/components/pack/PackWizard';
 import { WIZ } from '@/components/pack/wizAnchors';
 // NextTripCard parkuje (nahradený TripSpotlightom 9.8.2026) — pozri komentár pri bloku nižšie.
 // LAZY (audit 26. 9. 2026): obe karty sú za `DEV_FULL`, ale statický import ťahal do
@@ -242,14 +241,8 @@ export default function Pack() {
   return (
     <PackLayout>
       <PackAnimations />
-      {/* PREHLIADKA (AInubis) — prestavaná 24. 8. 2026 podľa `plany/wizard-ainubis.md`.
-          Stále DEV-only: scenár vedie do svorky a na mapu, obe sú na LIVE za `DEV_FULL`,
-          a spodná lišta tiež — pustiť ju skôr = viesť členov do zamknutých dverí.
-          Ide von s vlnou, ktorá pack odomkne (+ mail o novinke, uvidia ju VŠETCI členovia).
-          Kotvy spotlightu čítaj z `components/pack/wizAnchors.ts`, nie ako voľný string. */}
-      {import.meta.env.DEV && (
-        <PackWizard primaryDogId={primaryDog?.id ?? null} primaryDogName={primaryDog?.dog_name ?? null} />
-      )}
+      {/* PREHLIADKA sa odtiaľto presťahovala do spodnej lišty (`PackBottomNav`, 6. 10. 2026) —
+          ukazuje sa na každej obrazovke s lištou podľa registra `wizSteps.ts`, nie len tu. */}
 
       <div className="relative flex flex-col gap-6">
         {/* Ambient drifting orbs */}

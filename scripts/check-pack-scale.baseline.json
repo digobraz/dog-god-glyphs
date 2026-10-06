@@ -220,14 +220,14 @@
     "odsadenie": 17
   },
   "components/pack/PackWizard.tsx": {
-    "radius": 2,
-    "font": 6,
+    "radius": 0,
+    "font": 0,
     "zavoj": 0,
     "progres": 0,
-    "ram": 1,
-    "tien": 4,
+    "ram": 0,
+    "tien": 3,
     "pismenka": 0,
-    "odsadenie": 1
+    "odsadenie": 0
   },
   "components/pack/PlanAskCard.tsx": {
     "radius": 1,
