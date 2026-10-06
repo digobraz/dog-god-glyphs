@@ -1093,6 +1093,7 @@ export const sk: Partial<Dict> = {
   'onepage.apps.sub1': 'Staviame psí svet — užitočný a zábavný ekosystém pre všetkých psíčkarov.',
   'onepage.apps.chips.lead': 'Jedna appka s tým najlepším z:',
   'onepage.apps.chips.tail': '— pre svet priateľský k psom.',
+  'onepage.apps.chips.more': 'a oveľa viac…',
   'onepage.apps.tap': 'klikni',
   'onepage.apps.prev': 'Predošlý',
   'onepage.apps.next': 'Ďalší',

@@ -2387,7 +2387,9 @@ export default function OnePage() {
         // Mobil: bodky sa rozsvecujú postupne spolu so symbolmi oblasti (klikateľné až po `live`).
         if (vertical) k.dot.style.opacity = lit.toFixed(3); else k.dot.style.removeProperty('opacity');
         for (const nd of tints[k.id]) {
-          (nd as unknown as HTMLElement).style.opacity = (sv * gone).toFixed(3);
+          // Otvorená oblasť (ťuk na bodku) svieti farbou AJ v pokoji — `gone` ju inak zhasol
+          // (Matej 6. 10.: *„pri takomto otvorení by mali svietiť tie symboly v heroglyfe farebne"*).
+          (nd as unknown as HTMLElement).style.opacity = Math.max(sv * gone, ask).toFixed(3);
           (nd as unknown as HTMLElement).style.filter = (nd === cartTNode ? '' : `url(#dgx-t-${k.id}) `) +
             (DGX.glow > 0 ? `drop-shadow(0 0 ${(DGX.glow * sv).toFixed(1)}px ${DGX_COL[k.id]})` : '');
         }

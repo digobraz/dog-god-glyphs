@@ -78,7 +78,19 @@ type AppFeature = {
 };
 
 /** Appky, z ktorých DOGYPT berie to najlepšie — názvy sa neprekladajú. */
-const APP_CHIPS = ['Google', 'Instagram', 'Tripadvisor', 'Skool', 'AllTrails'];
+/** Appky, ktoré DOGYPT spája (Matej 6. 10. 2026: *„pridať aj logá spoločností + ešte tinder +
+ *  facebook… aspoň dva riadky… prípadne tam dať and much more"*). Logo = jednofarebné SVG zo
+ *  Simple Icons (CC0) v `public/icons/brands/`, farbí sa atramentom cez masku. Skool v Simple
+ *  Icons nie je (logo je farebný nápis) — ostáva text. */
+const APP_CHIPS: { name: string; icon?: string }[] = [
+  { name: 'Google', icon: 'google' },
+  { name: 'Instagram', icon: 'instagram' },
+  { name: 'Facebook', icon: 'facebook' },
+  { name: 'Tinder', icon: 'tinder' },
+  { name: 'Tripadvisor', icon: 'tripadvisor' },
+  { name: 'AllTrails', icon: 'alltrails' },
+  { name: 'Skool' },
+];
 
 const bn = (id: string, n = 4) => Array.from({ length: n }, (_, i) => `onepage.apps.${id}.b${i + 1}`);
 
@@ -372,7 +384,13 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
               Len textové pilulky — cudzie logá v kite nemáme. */}
           <p className="op-apps-lead">{t('onepage.apps.chips.lead')}</p>
           <ul className="op-apps-chips">
-            {APP_CHIPS.map((c) => <li key={c}>{c}</li>)}
+            {APP_CHIPS.map((c) => (
+              <li key={c.name}>
+                {c.icon && <i style={{ ['--m' as string]: `url(/icons/brands/${c.icon}.svg)` }} aria-hidden />}
+                {c.name}
+              </li>
+            ))}
+            <li className="op-apps-chip-more">{t('onepage.apps.chips.more')}</li>
           </ul>
           <p className="op-apps-lead op-apps-tail">{t('onepage.apps.chips.tail')}</p>
         </div>
@@ -568,7 +586,13 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
         .op-apps-chips li {
           padding: 4px 12px; border-radius: 999px; border: 1px solid rgba(201,154,63,.6); background: rgba(255,255,255,.55);
           font: 600 12px/1 'Space Grotesk', sans-serif; letter-spacing: .02em; color: ${LAB.ink};
+          display: inline-flex; align-items: center; gap: 6px;
         }
+        .op-apps-chips li i {
+          width: 14px; height: 14px; flex: 0 0 auto; background: currentColor;
+          -webkit-mask: var(--m) center / contain no-repeat; mask: var(--m) center / contain no-repeat;
+        }
+        .op-apps-chips li.op-apps-chip-more { border-style: dashed; background: transparent; font-weight: 500; font-style: italic; }
         /* PC sa nemení (Matej ladí mobil) — pilulky a „klikni“ len do 767 px. */
         .op-apps-lead, .op-apps-chips, .op-apps-hint { display: none; }
         .op-apps-sub {
@@ -755,11 +779,28 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
         /* MOBIL — rám 280 (komponent), text hore, telefóny pod ním. */
         @media (max-width: 767px) {
           .op-apps-ph { width: 280px; }
-          .op-apps-hero { bottom: calc(50lvh + 64px); }
+          /* 🔴 DNO JE LIŠTA, NIE TELEFÓN (6. 10.: s logami appiek nadpis vyliezol pod medailón).
+             Pás medzi lištou a telefónom; obsah sedí dole cez margin-top:auto — keď sa nezmestí,
+             auto okraj padne na 0 a obsah ide od lišty dole, nikdy nie pod ňu. */
+          .op-apps-hero {
+            top: calc(var(--op-nav-h, 118px) + 8px); bottom: calc(50lvh + 64px);
+            display: flex; flex-direction: column;
+          }
+          .op-apps-hero > :first-child { margin-top: auto; }
           .op-apps-lead { display: block; }
           /* Nízke okno: veta „Staviame psí svet…“ ustúpi pilulkám, inak nadpis zaleze pod lištu. */
-          @media (max-height: 800px) { .op-apps-sub { display: none; } .op-apps-lead:not(.op-apps-tail) { margin-top: 12px; } }
-          @media (max-height: 700px) { .op-apps-tail { display: none; } }
+          /* 6. 10.: s logami appiek (3 riadky pilulek) sa veta „Staviame psí svet…" nezmestí ani na
+             844 px — na mobile ju nesie veta nad pilulkami. */
+          .op-apps-sub { display: none; } .op-apps-lead:not(.op-apps-tail) { margin-top: 12px; }
+          @media (max-height: 700px) {
+            .op-apps-tail { display: none; }
+            /* iPhone SE: pilulky hustejšie, aby nadpis aj tri riadky lôg ostali nad telefónom. */
+            .op-apps-chips { gap: 6px; margin-top: 8px; }
+            .op-apps-chips li { padding: 3px 9px; font-size: 11px; gap: 4px; }
+            .op-apps-chips li i { width: 12px; height: 12px; }
+            .op-root .op-apps-h2 { padding-bottom: 8px; }
+            .op-apps-lead:not(.op-apps-tail) { margin-top: 8px; }
+          }
           .op-apps-chips { display: flex; }
           .op-apps-ctl { --arr-x: min(172px, calc(50vw - 44px)); }
           .op-apps-ctl button { width: 48px; height: 48px; }
