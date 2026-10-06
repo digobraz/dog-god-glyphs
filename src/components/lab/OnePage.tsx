@@ -2051,6 +2051,15 @@ export default function OnePage() {
     // ktorý po ňom počíta — dvojkolová `layoutKoty` (viď `fitKotaScale`).
     let kotaScale = 1;
     const layoutKoty = (narrow: boolean, vertical: boolean) => {
+      // 🔴 PC BEZ KÓT = BEZ REZERVY (Matej 6. 10. 2026: *„bez bubliniek sa tam stále robí medzera
+      // ako keby tam boli"*). Kóty (čiara + popis) sa na PC nekreslia, takže priestor nad/pod
+      // glyfom, ktorý pre ne rátal `pad`, nemá komu patriť — glyf aj Hektor sa zblížia.
+      if (!narrow && !vertical) {
+        pad = { up: 0, down: 0, left: 0, right: 0 };
+        for (const k of K) { k.lab.style.display = 'none'; k.li.style.display = 'none'; }
+        return;
+      }
+      for (const k of K) { k.lab.style.display = ''; k.li.style.display = ''; }
       // Popis kóty nikdy pod 11 px (najmenšie písmo filmu, 3. 10. 2026) — na
       // nízkom okne (1477 × 724) ho kotaScale stláčal na 6,7 px. Miesto potom
       // uvoľní glyf (fitGw), nie písmo.

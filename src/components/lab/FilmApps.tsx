@@ -50,7 +50,7 @@
  * mieste a pod ním sa vynorí pás hviezd (Matej: *„ďalší scroll bude fade in,
  * nie posun sekcie"*) — `.op-quo` je o ňu zasunutá pod túto sekciu.
  */
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { LAB } from '@/lib/labTheme';
@@ -404,15 +404,24 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
               tripadvisor, skool, alltrails… one app with the best from … in dogfriendly world"*).
               Len textové pilulky — cudzie logá v kite nemáme. */}
           <p className="op-apps-lead">{t('onepage.apps.chips.lead')}</p>
-          <ul className="op-apps-chips">
-            {APP_CHIPS.map((c) => (
-              <li key={c.name}>
-                {c.icon && <i style={{ ['--m' as string]: `url(/icons/brands/${c.icon}.svg)` }} aria-hidden />}
-                {c.name}
-              </li>
-            ))}
-            <li className="op-apps-chip-more">{t('onepage.apps.chips.more')}</li>
-          </ul>
+          {/* PC: nekonečný horizontálny pás (Matej 6. 10. 2026: *„pri chipoch s appkami infinity scrolling
+              horizontálny"*). Zoznam je v DOM dvakrát; kópia je len dekorácia (aria-hidden) a na mobile
+              sa skrýva — tam chipy ostávajú ako zalomený rad. */}
+          <div className="op-apps-marq">
+            <ul className="op-apps-chips">
+              {[0, 1].map((copy) => (
+                <Fragment key={copy}>
+                  {APP_CHIPS.map((c) => (
+                    <li key={c.name} className={copy ? 'op-apps-clone' : undefined} aria-hidden={copy ? true : undefined}>
+                      {c.icon && <i style={{ ['--m' as string]: `url(/icons/brands/${c.icon}.svg)` }} aria-hidden />}
+                      {c.name}
+                    </li>
+                  ))}
+                  <li className={`op-apps-chip-more${copy ? ' op-apps-clone' : ''}`} aria-hidden={copy ? true : undefined}>{t('onepage.apps.chips.more')}</li>
+                </Fragment>
+              ))}
+            </ul>
+          </div>
           <p className="op-apps-lead op-apps-tail">{t('onepage.apps.chips.tail')}</p>
         </div>
 
@@ -606,6 +615,7 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           width: 14px; height: 14px; flex: 0 0 auto; background: currentColor;
           -webkit-mask: var(--m) center / contain no-repeat; mask: var(--m) center / contain no-repeat;
         }
+        .op-apps-clone { display: none !important; }
         .op-apps-chips li.op-apps-chip-more { border-style: dashed; background: transparent; font-weight: 500; font-style: italic; }
         /* PC sa nemení (Matej ladí mobil) — pilulky a „klikni“ len do 767 px. */
         /* PC = TO ISTÉ, ČO MOBIL (Matej 6. 10. 2026: *„chipy daj aj na PC… obsah, ktorý sme doplnili,
@@ -615,7 +625,20 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
         .op-apps-hint, .op-apps-sub { display: none; }
         @media (min-width: 768px) {
           .op-apps-lead { font-size: 16px; }
-          .op-apps-chips { max-width: 1040px; }
+          .op-apps-marq {
+            width: min(1040px, 92vw); margin: 12px auto 0; overflow: hidden;
+            -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+            mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+          }
+          .op-apps-chips {
+            flex-wrap: nowrap; justify-content: flex-start; width: max-content; max-width: none; margin: 0;
+            padding: 0 8px 0 0; animation: opAppsMarq 38s linear infinite;
+          }
+          .op-apps-chips li { flex: none; white-space: nowrap; }
+          .op-apps-chips li.op-apps-clone { display: inline-flex !important; }
+          .op-apps-marq:hover .op-apps-chips { animation-play-state: paused; }
+          @keyframes opAppsMarq { to { transform: translateX(-50%); } }
+          @media (prefers-reduced-motion: reduce) { .op-apps-chips { animation: none; } }
           .op-apps-chips li { padding: 6px 16px; font-size: 14px; }
           .op-apps-chips li i { width: 16px; height: 16px; }
         }
