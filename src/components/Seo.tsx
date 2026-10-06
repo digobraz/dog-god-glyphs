@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 
 const BASE = 'https://dogypt.com';
@@ -17,6 +18,11 @@ type SeoProps = {
 
 export function Seo({ title, description, path, type = 'website', ogImage = DEFAULT_OG, jsonLd, noindex }: SeoProps) {
   const url = `${BASE}${path}`;
+  // Statické meta z index.html slúžia len crawlerom bez JS (WhatsApp/FB náhľady).
+  // Keď beží appka, prebíjajú Helmet — duplicitné tagy odstránime, nech vyhrá stránka.
+  useEffect(() => {
+    document.querySelectorAll('meta[data-static-seo]').forEach((el) => el.remove());
+  }, []);
   return (
     <Helmet>
       <title>{title}</title>
