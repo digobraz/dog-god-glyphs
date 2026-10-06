@@ -608,7 +608,17 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
         }
         .op-apps-chips li.op-apps-chip-more { border-style: dashed; background: transparent; font-weight: 500; font-style: italic; }
         /* PC sa nemení (Matej ladí mobil) — pilulky a „klikni“ len do 767 px. */
-        .op-apps-lead, .op-apps-chips, .op-apps-hint { display: none; }
+        /* PC = TO ISTÉ, ČO MOBIL (Matej 6. 10. 2026: *„chipy daj aj na PC… obsah, ktorý sme doplnili,
+           by mal byť aj na PC"*): veta „Jedna appka…", pilulky a „— pre svet priateľský k psom".
+           Veta sub1 ustupuje ako na mobile (nesie ju veta nad pilulkami). „klikni“ ostáva len mobilu —
+           na PC je pri funkcii tlačidlo DETAIL. */
+        .op-apps-hint, .op-apps-sub { display: none; }
+        @media (min-width: 768px) {
+          .op-apps-lead { font-size: 16px; }
+          .op-apps-chips { max-width: 1040px; }
+          .op-apps-chips li { padding: 6px 16px; font-size: 14px; }
+          .op-apps-chips li i { width: 16px; height: 16px; }
+        }
         .op-apps-sub {
           margin: 16px auto 0; max-width: 640px;
           font: 400 clamp(14px, 1.4vw, 20px)/1.5 'Space Grotesk', sans-serif; color: ${LAB.ink};
