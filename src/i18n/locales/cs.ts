@@ -5412,7 +5412,7 @@ export const cs: Partial<Dict> = {
   'onepage.apps.head': 'Členství',
   'onepage.apps.sub1': 'Stavíme psí svět — užitečný a zábavný ekosystém pro všechny pejskaře.',
   'onepage.apps.chips.lead': 'Jedna appka s tím nejlepším z:',
-  'onepage.apps.chips.tail': '— pro svět přátelský ke psům.',
+  'onepage.apps.chips.tail': '…vytvořená na míru pro pejskaře.',
   'onepage.apps.chips.more': 'a mnohem víc…',
   'onepage.apps.tap': 'klikni',
   'onepage.apps.prev': 'Předchozí',

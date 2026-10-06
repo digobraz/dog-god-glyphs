@@ -1175,7 +1175,12 @@ const DGX_RCLS = [
   { k: 'm'  as const, a: 0.62, v: 0.85 },
   { k: 'l'  as const, a: 0.82, v: 0.62 },
 ];
-const DGX_HEK_PHOTO = 'https://res.cloudinary.com/dz8lolmod/image/upload/c_fill,g_auto,w_320,h_320,q_auto,f_auto/v1780676154/dogs/hektor/u1pmfdh8hpyctq0tqq5r.jpg';
+/* Hektorova fotka pod HEROGLYPHOM — vlastný súbor, nie Cloudinary (Matej 6. 10. 2026: *„fotka pod heroglyfom
+   sa načíta neskoro, celý obsah sa má načítať spolu bez pauzy"*). Derivát Cloudinary (c_fill,g_auto) sa pri prvej
+   žiadosti generuje za behu, a `src` sa písal až v efekte po zostavení glyfu ⇒ fotka chodila za heroglyfom.
+   Teraz: statický 16 kB webp z nášho hostingu, `src` rovno v JSX a predstiahnutie pri načítaní modulu. */
+const DGX_HEK_PHOTO = '/images/onepage/hektor-sig.webp';
+if (typeof window !== 'undefined') { const pre = new Image(); pre.decoding = 'async'; pre.src = DGX_HEK_PHOTO; }
 
 /** OBRAZOVKA — DOGTRIX. Dážď + dekodér heroglyfu, tretie okno oblúka
  *  `.op-arc` (nxt → dogtrix → alba). Kľúče = objekt `DGX` z nákresu
@@ -8192,7 +8197,7 @@ export default function OnePage() {
 
               <div className="op-beat dgx-b-sig"><div className="op-bin">
                 <div className="dgx-sig">
-                  <div className="dgx-sigph"><img alt="Hekthor" /></div>
+                  <div className="dgx-sigph"><img alt="Hekthor" src={DGX_HEK_PHOTO} width={72} height={72} decoding="async" /></div>
                   <div className="dgx-sigtx">
                     <div className="dgx-signm"><span>Hekthor</span><span className="dgx-signum">#1</span></div>
                     <p className="dgx-sigrole">{t('onepage.dgx.sigrole')}</p>

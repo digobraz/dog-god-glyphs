@@ -1316,7 +1316,7 @@ export const en = {
   'onepage.apps.head': 'Membership',
   'onepage.apps.sub1': 'We’re building a dog world — a helpful, entertaining ecosystem for every dog lover.',
   'onepage.apps.chips.lead': 'One app with the best of:',
-  'onepage.apps.chips.tail': '— for the dog-friendly world.',
+  'onepage.apps.chips.tail': '…tailor-made for dog lovers.',
   'onepage.apps.chips.more': 'and much more…',
   'onepage.apps.tap': 'tap me',
   'onepage.apps.prev': 'Previous',
