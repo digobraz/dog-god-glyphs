@@ -336,7 +336,7 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
               {t('onepage.fin.moreBody').split('\n\n').map((para, i) => {
                 if (para.startsWith('## ')) return <h4 key={i} className="op-fin-pop-sec">{para.slice(3)}</h4>;
                 const ph = para.match(/^\[\[(\d)\]\]$/);
-                if (ph) return <img key={i} className="op-fin-pop-img" src={`/images/about-popup/foto-${ph[1]}.jpg`} alt="" loading="lazy" decoding="async" />;
+                if (ph) return <img key={i} className={`op-fin-pop-img ${Number(ph[1]) % 2 ? 'is-r' : 'is-l'}${ph[1] === '5' ? ' is-wide' : ''}`} src={`/images/about-popup/foto-${ph[1]}.jpg`} alt="" loading="lazy" decoding="async" />;
                 return <p key={i}>{para}</p>;
               })}
             </div>
@@ -405,6 +405,8 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
         /* VIAC O MNE = CHIP (Matej 6. 10. 2026: *„viac o mne daj do chipu, nie do CTA"*) — ten istý
            chip dgx-example ako PRÍKLAD pri HEROGLYPHE. */
         .op-fin-more { align-self: flex-start; margin: 8px 0 0; }
+        /* PC: chip na pravú stranu bloku (Matej 6. 10. 2026); mobil ostáva vľavo. */
+        @media (min-width: 768px) { .op-fin-more { align-self: flex-end; } }
         /* Popup: papyrusová karta so scrollom vnútri, závoj cez celé okno. */
         .op-fin-pop {
           position: fixed; inset: 0; z-index: 120; display: grid; place-items: center;
@@ -426,6 +428,21 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
           text-transform: uppercase; color: ${LAB.goldSolid};
         }
         .op-fin-pop-img { display: block; width: 100%; height: auto; margin: 16px 0; border-radius: 12px; }
+        .op-fin-pop-body::after { content: ''; display: block; clear: both; }
+        /* PC = ČLÁNOK (Matej 6. 10. 2026): širšia karta, výrazný hlavný nadpis, menšie súrodé
+           podnadpisy a menšie fotky, okolo ktorých text obteká (strany sa striedajú). */
+        @media (min-width: 768px) {
+          .op-fin-pop-card { width: min(760px, 100%); padding: 48px 48px 32px; }
+          .op-fin-pop-h {
+            margin: 0 0 32px; padding-bottom: 24px; text-align: center; font-size: 32px; line-height: 1.2;
+            letter-spacing: .08em; border-bottom: 1.5px solid rgba(201,154,63,.55);
+          }
+          .op-fin-pop-sec { clear: both; margin: 32px 0 12px; font-size: 16px; letter-spacing: .14em; }
+          .op-fin-pop-img { width: 240px; margin: 4px 0 16px; }
+          .op-fin-pop-img.is-wide { width: 320px; }
+          .op-fin-pop-img.is-r { float: right; margin-left: 24px; }
+          .op-fin-pop-img.is-l { float: left; margin-right: 24px; }
+        }
         .op-fin-pop-x {
           position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border: 0; padding: 0;
           background: ${LAB.ink}; cursor: pointer;
