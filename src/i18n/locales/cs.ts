@@ -712,7 +712,7 @@ export const cs: Partial<Dict> = {
   'login.magicLink.submitting': 'Odesílám…',
   'login.magicLink.sent': 'Magic link odeslán — zkontroluj si schránku.',
   // forgot password
-  'login.forgot.title': 'I to se stane',
+  'login.forgot.title': 'Stává se',
   'login.forgot.prompt': 'I Hekthor jednou zapomněl, kde zakopal kost. Napiš e-mail a pošlu ti nový klíč.',
   'login.forgot.placeholder': 'tvuj@email.cz',
   'login.forgot.submit': 'Pošli nový klíč',

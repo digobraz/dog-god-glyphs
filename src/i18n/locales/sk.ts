@@ -806,7 +806,7 @@ export const sk: Partial<Dict> = {
   // aby sa pri prípadnom návrate neobjavil anglický fallback.
   'login.magicLink.noAccount': 'S týmto e-mailom tu nikto nie je. Najprv heroglyf — ten je kľúč do svorky.',
   // forgot password
-  'login.forgot.title': 'Aj sa stane',
+  'login.forgot.title': 'Stane sa',
   'login.forgot.prompt': 'Aj Hekthor raz zabudol, kde zakopal kosť. Napíš e-mail a pošlem ti nový kľúč.',
   'login.forgot.placeholder': 'tvoj@email.com',
   'login.forgot.submit': 'Pošli nový kľúč',
