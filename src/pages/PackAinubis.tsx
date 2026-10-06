@@ -354,6 +354,8 @@ ${STAGE_CSS}
       rezervou lišty, takže CTA nikdy nepodlezie lištu), šírku police obraz + text. */
 .akv-zvh{text-align:center;font-size:${PACK_TEXT.micro}px;letter-spacing:${PACK_HEAD.label.letterSpacing};
   text-transform:uppercase;color:${AINUBIS.cyan};}
+/* SVET vo farbe, ktorou ho kreslí mozog (WORLD_TINT cez --ai-w) — Matej 6. 10.: „z toho nie je jasné, aký je to svet“ */
+.akv-zvw{color:rgb(var(--ai-w,${AINUBIS.cyanRGB}));font-weight:600;}
 .akv-zv{position:relative;display:flex;flex-direction:column;gap:${PACK_SPACE.md}px;
   padding:${PACK_SPACE.md}px;border-radius:${PACK_R.card}px;${AI_GLASS}}
 .akv-zvimg{position:relative;flex:0 0 auto;}
@@ -976,9 +978,9 @@ export default function PackAinubis() {
         <div className="akv-list">
         <div className="akv-col">
           {shown.length === 0 && <p className="akv-empty">{tx('pack.ainubis.noMatch', 'Nothing found.')}</p>}
-          {SCROLL_DEMO && scrolls.length > 0 && <div className="akv-zvh">{names[VAULT_WORLDS.findIndex((w) => w.key === scrolls[0].world)]} · {scrollCircle(scrolls[0], lang)}</div>}
+          {SCROLL_DEMO && scrolls.length > 0 && <div className="akv-zvh"><b className="akv-zvw" style={aiWorld(scrolls[0].world)}>{names[VAULT_WORLDS.findIndex((w) => w.key === scrolls[0].world)]}</b> · {scrollCircle(scrolls[0], lang)}</div>}
           {SCROLL_DEMO && scrolls.map(z => (
-            <ScrollCard key={z.id} z={z} lang={lang} onOpen={openScroll} onShare={shareScroll} />
+            <ScrollCard key={z.id} z={z} lang={lang} worldName={names[VAULT_WORLDS.findIndex((w) => w.key === z.world)]} onOpen={openScroll} onShare={shareScroll} />
           ))}
           {shown.map(({ w, i }) => (
             <section

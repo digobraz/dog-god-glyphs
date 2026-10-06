@@ -24,7 +24,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS, PACK_COL_FIT, packColCSS } from '@/components/pack/packTheme';
-import { AINUBIS, AI_GLASS, BRAIN_STATE } from '@/components/pack/ainubisSkin';
+import { AINUBIS, AI_GLASS, BRAIN_STATE, aiWorld } from '@/components/pack/ainubisSkin';
 import { HandStar, HandPlus, HandForward, HandCheck, HandPencil, HandAlert, HandCamera, HandArrowLeft, HandHeart } from '@/components/pack/HandIcons';
 
 /** Kresba z kitu `/icons/pack/` cez masku (ten istý zápis ako v PackAinubis). */
@@ -423,8 +423,10 @@ export function ScrollActions({ id, lang, onShare, onTalk }: {
 }
 
 /** Karta zvitku v zozname. Videné = karta aspoň 2 s z polovice na obrazovke. */
-export function ScrollCard({ z, lang, onOpen, onShare }: {
+export function ScrollCard({ z, lang, worldName, onOpen, onShare }: {
   z: DemoScroll; lang: string;
+  /** Meno sveta z i18n — farbí sa `WORLD_TINT` (Matej 6. 10.: „z karty nie je jasné, aký je to svet“). */
+  worldName?: string;
   onOpen: (id: string, focus?: 'pod' | 'src' | 'talk') => void; onShare: (id: string) => void;
 }) {
   const ref = useRef<HTMLElement>(null);
@@ -456,7 +458,7 @@ export function ScrollCard({ z, lang, onOpen, onShare }: {
             vpravo a CSS ju posunie do rohu karty ako doteraz (Matej 3. 10.: „A daj úplne do rohu"). */}
         <EvidenceBadge sd={z.sd} lang={lang} corner />
         <div className="zv-mid">
-          <span className="akv-zvlbl">{u.scroll} {z.n} / {z.total} · {x.min} {u.min}</span>
+          <span className="akv-zvlbl">{worldName && <><b className="akv-zvw" style={aiWorld(z.world)}>{worldName}</b> · </>}{u.scroll} {z.n} / {z.total} · {x.min} {u.min}</span>
           <h3 className="akv-zvn" style={{ paddingRight: PACK_SPACE.xxl }}>{x.t}</h3>
           <span className="zv-rule" aria-hidden />
         </div>
