@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { startFlowDraft } from '@/lib/flowDraft';
+import { NEW_HEROFLOW } from '@/lib/flowMode';
 
 /** Ďalší pes z kroku 3. `country: null` = berie spoločnú národnosť zo vstupu. */
 export interface ExtraDog {
@@ -240,3 +242,7 @@ export const useDogyptStore = create<DogyptState>()(
     }
   )
 );
+
+// Koncept vstupu prežije obnovenie stránky (sessionStorage, 6. 10. 2026) — pozri lib/flowDraft.ts.
+// ⚠️ Len nový vstup — starý (živý do FLIPu) sa nemení.
+if (NEW_HEROFLOW) startFlowDraft(useDogyptStore);

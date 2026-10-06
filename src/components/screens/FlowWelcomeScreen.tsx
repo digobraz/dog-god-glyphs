@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { useDogyptStore } from '@/store/dogyptStore';
+import { clearFlowDraft } from '@/lib/flowDraft';
 import { FLOW_PALE_CSS, FLOW_CARVE_CSS } from '@/components/screens/flowPaleSkin';
 import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
 import { LetterReveal, REVEAL_S, LETTER_S, FLOW_INTRO_CSS } from '@/components/screens/flowIntro';
@@ -249,6 +250,7 @@ export function FlowWelcomeScreen() {
   // Skryté rámy majiteľa čítajú store — po platbe na inom zariadení by bol prázdny.
   useEffect(() => {
     if (!session) return;
+    clearFlowDraft();   // platba prešla — koncept vstupu už netreba (lib/flowDraft.ts)
     const s = useDogyptStore.getState();
     const d = session as Record<string, string>;
     if (d.dogName && s.dogName !== d.dogName) s.setDogName(d.dogName);

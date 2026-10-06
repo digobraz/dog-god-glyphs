@@ -1977,11 +1977,14 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
 
   return (
     <>
-      <Seo
-        path="/"
-        title="DOGYPT — The Place Where DOG is GOD"
-        description="Transform your dog's essence into a timeless HEROGLYPH. 12 Symbols, 1 Eternal Legacy."
-      />
+      {/* Vo filme (/onepage) je stena vložená — SEO tam patrí filmu, nie jej (canonical by išiel na `/`). */}
+      {!embedded && (
+        <Seo
+          path="/"
+          title="DOGYPT — The Place Where DOG is GOD"
+          description="Transform your dog's essence into a timeless HEROGLYPH. 12 Symbols, 1 Eternal Legacy."
+        />
+      )}
       <style>{`
         body { overflow: hidden; }
 

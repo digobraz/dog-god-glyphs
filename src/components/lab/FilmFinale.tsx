@@ -509,10 +509,10 @@ export default function FilmFinale({ packNo }: { packNo: number | null }) {
           background: linear-gradient(115deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 32%);
         }
 
-        /* NADPIS bez zlata: biely s cyan dosvitom, čiara pod ním cyan. */
+        /* NADPIS = zlato filmu (FILM_GOLD z .op-root .op-fin-h2; check:nadpisy 6. 10. 2026), čiara pod ním cyan.
+           ⚠️ text-shadow musí preč — pri background-clip:text sa kreslí CEZ zlato a vybieli ho. */
         .op-root .op-fin .op-fin-b .op-fin-h2 {
-          background-image: none; color: ${AINUBIS.ink}; -webkit-text-fill-color: ${AINUBIS.ink};
-          text-shadow: 0 0 24px rgba(${AINUBIS.cyanRGB},.35); padding-bottom: 12px; margin: 0;
+          text-shadow: none; padding-bottom: 12px; margin: 0;
           display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
         }
         .op-root .op-fin .op-fin-b .op-fin-h2::after {

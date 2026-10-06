@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { useDogyptStore } from '@/store/dogyptStore';
+import { clearFlowDraft } from '@/lib/flowDraft';
 import { PageTopBar } from '@/components/PageTopBar';
 import { FLOW_PALE_CSS, FLOW_CARVE_CSS, HF } from '@/components/screens/flowPaleSkin';
 import { FlowMedallion, FLOW_MEDAL_CSS } from '@/components/screens/flowMedallion';
@@ -184,6 +185,7 @@ export function FlowStayChoice({ done, onDone, onMember, onMore }: {
           Object.fromEntries(stable.map((d, i) => [d.flowId, ids[i]]).filter(([, id]) => !!id)),
           email,
         );
+        clearFlowDraft();   // hosť je zapísaný — koncept vstupu už netreba (lib/flowDraft.ts)
         setBusy(false);
         onDone();
         return;
