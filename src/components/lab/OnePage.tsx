@@ -2514,7 +2514,10 @@ export default function OnePage() {
         k.lab.style.opacity = (parseFloat(k.lab.style.getPropertyValue('--ko') || '0') * gone).toFixed(3);
       });
 
-      put2(el.sig, seg(pc, DGX.sig, DGX.sig + DGX.sigD));
+      /* 🔴 HEKTOR SA UKÁŽE SPOLU S HEROGLYFOM (Matej 6. 10. 2026: *„fotka pod heroglyfom sa načíta o 2 s
+         po celom obsahu… celý obsah sa má načítať spolu bez pauzy"*). Prebíja 28. 9. (*„nakoniec Hektorov
+         avatar"*): podpis nabieha hneď za glyfom (`glyph`+`glyphD`), nie až po kótach a ich čítaní (`DGX.sig`). */
+      put2(el.sig, seg(pc, DGX.glyph + DGX.glyphD, DGX.glyph + DGX.glyphD + DGX.sigD));
       sigWrap.style.setProperty('--fp', (narrow ? DGX.fpM : DGX.fp) + 'px');
       sigNm.style.setProperty('--ns', (narrow ? DGX.nsM : DGX.ns) + 'px');
       sigRl.style.setProperty('--rls', (narrow ? DGX.rlsM : DGX.rls) + 'px');
