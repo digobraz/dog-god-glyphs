@@ -1704,7 +1704,9 @@ export default function OnePage() {
             basics: ['left', 30], breed: ['left', 70], own: ['right', 30], char: ['right', 70],
           };
           const [sd, y] = PC_DOT[g.id] ?? ['left', 50];
-          dot.className = 'kdot kdot--' + sd;
+          // PC: bodky DOVNÚTRA rámu glyfu (Matej 6. 10. 2026: *„hotspoty na PC by som dal dovnútra,
+          // na mobile nechaj tak"*) — `kdot--in` prepíše vonkajšiu polohu `kdot--left/right`.
+          dot.className = 'kdot kdot--' + sd + ' kdot--in';
           dot.style.top = y + '%';
         }
         dot.addEventListener('click', (e) => {
@@ -2389,11 +2391,13 @@ export default function OnePage() {
         // Kóta sa vracia LEN na mobile (leží cez glyf); na PC nemá kam — rezerva
         // nad/pod glyfom po prehratí zaniká — a oblasť tam opíše bublina pri bodke.
         // Mobil: žiadne kóty ani texty v úvode — svietia len symboly a bodky; text až po ťuknutí.
-        const kv = vertical ? ask : Math.max(0, on) * (1 - dark);
-        kMax = Math.max(kMax, on);
+        // PC ako mobil (Matej 6. 10. 2026: *„na PC platí to čo na mobile — pri vstupnej animácii sa kóty
+        // nezobrazia"*): v úvode svietia len symboly a bodky, popis až po kliknutí na bodku (bublina).
+        const kv = vertical ? ask : 0; // PC: popis nesie bublina pri bodke, kóta (čiara + text) sa nekreslí
+        if (vertical) kMax = Math.max(kMax, on);
         k.dot.classList.toggle('on', ask === 1);
         // Mobil: bodky sa rozsvecujú postupne spolu so symbolmi oblasti (klikateľné až po `live`).
-        if (vertical) k.dot.style.opacity = lit.toFixed(3); else k.dot.style.removeProperty('opacity');
+        k.dot.style.opacity = lit.toFixed(3);
         for (const nd of tints[k.id]) {
           // Otvorená oblasť (ťuk na bodku) svieti farbou AJ v pokoji — `gone` ju inak zhasol
           // (Matej 6. 10.: *„pri takomto otvorení by mali svietiť tie symboly v heroglyfe farebne"*).
@@ -7442,6 +7446,8 @@ export default function OnePage() {
         .op-dgx[data-live="1"] .dgx-gbox .kdot { opacity: 1; pointer-events: auto; }
         .dgx-gbox .kdot--left  { right: calc(100% + 4px); transform: translateY(-50%); }
         .dgx-gbox .kdot--right { left: calc(100% + 4px);  transform: translateY(-50%); }
+        .dgx-gbox .kdot--in.kdot--left  { right: auto; left: 10px; }
+        .dgx-gbox .kdot--in.kdot--right { left: auto; right: 10px; }
         .dgx-gbox .kdot--up    { bottom: calc(100% + 4px); transform: translateX(-50%); }
         .dgx-gbox .kdot--down  { top: calc(100% + 4px);    transform: translateX(-50%); }
         .dgx-gbox .kdot:focus:not(:focus-visible) { outline: none; }
