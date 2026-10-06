@@ -1191,7 +1191,8 @@ export const en = {
   // Matejov zoznam (2. 9. 2026). Home/Vision/Religion si berú existujúce
   // `nav.*` kľúče — sú preložené vo všetkých 18 jazykoch, nový kľúč by ich
   // preklad zahodil. Nové sú len tie, ktoré vo webe dosiaľ neexistovali.
-  'film.slide.cowdog': 'Cow vs Dog',
+  'film.slide.cowdog': 'Holy Cow',
+  'film.slide.faith': 'Faith',
   'film.slide.story': 'Story',
   'film.slide.stars': 'Fan Club',
   'film.slide.mission': 'Mission',
@@ -1262,7 +1263,7 @@ export const en = {
   'onepage.hbook.5.cap': "Guardian of the home",
   'onepage.fin.aria': 'Finale',
   'film.slide.founder': 'About me',
-  'film.slide.next': "Live status",
+  'film.slide.next': 'Status',
   'onepage.fin.statHours': "Hours of work",
   'onepage.fin.statHoursWho': "since 03/2026 · people + AI agents",
   'onepage.fin.statOnlineSub': "First Dogyptians came aboard.",

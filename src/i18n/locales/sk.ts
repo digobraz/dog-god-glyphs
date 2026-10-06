@@ -976,7 +976,8 @@ export const sk: Partial<Dict> = {
   'nav.login': 'PRIHLÁSIŤ',
 
   // ── /onepage FILM — názvy obrazov v ľavej pilulke horného navu ──
-  'film.slide.cowdog': 'Krava vs pes',
+  'film.slide.cowdog': 'Holy Cow',
+  'film.slide.faith': 'Viera',
   'film.slide.story': 'Príbeh',
   'film.slide.stars': 'Fanklub',
   'film.slide.mission': 'Misia',
@@ -999,7 +1000,7 @@ export const sk: Partial<Dict> = {
   'onepage.need.misGlyph': 'MILIÓN',
   'onepage.need.mis2': 'pre milión psov.',
   'onepage.need.misFor': 'ľudí, ktorí stoja pri psoch —',
-  'onepage.need.misGoal': 'aká sila konať dobro.',
+  'onepage.need.misGoal': 'obrovská sila komunity, ktorá koná dobro.',
   'onepage.need.goal': 'Náš cieľ',
   'onepage.cue.next': 'Ďalej',
   'onepage.cue.more': 'Posuň nižšie pre viac info',
@@ -1038,7 +1039,7 @@ export const sk: Partial<Dict> = {
   'onepage.hbook.5.cap': "Strážca domova",
   'onepage.fin.aria': 'Finále',
   'film.slide.founder': 'O mne',
-  'film.slide.next': "Live status",
+  'film.slide.next': 'Status',
   'onepage.fin.statHours': "Hodiny práce",
   'onepage.fin.statHoursWho': "od 03/2026 · ľudia + AI agenti",
   'onepage.fin.statOnlineSub': "Pridali sa k nám prví Dogypťania.",

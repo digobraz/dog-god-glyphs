@@ -288,6 +288,9 @@ const WNY_OVER_VH = 30;
  *  kontakt (FilmFinale.tsx). Nemaže sa — návrat = true. */
 const TAIL_ON = false as boolean;
 
+/** Riadkovanie nadpisu WE NEED YOU na mobile — CSS aj rovnica veľkosti. */
+const NXT_LH_M = 1.08;
+
 /** 🔴 MOST („Am I doing right by him?") JE ODLOŽENÝ (Matej 27. 9. 2026:
  *  *„HEROGLYPH sekciu vytlačí táto scénka mobilov, ktorá príde zdola na
  *  stred"*). Oblúk bez neho končí PRESNE na dopísanom DOGTRIXe
@@ -316,7 +319,9 @@ const FILM_SLIDES: FilmSlide[] = ([
   {
     // Preambula — motto a prísaha. Značka snapu č. 5.
     id: 'religion',
-    navKey: 'nav.religion',
+    // Menu má vlastné slovo (Matej 6. 10.: *„náboženstvo na viera"*); `nav.religion`
+    // ostáva pre ostatné stránky.
+    navKey: 'film.slide.faith',
     at: () => filmVh() * (PIN_VH + PIN2_VH),
     from: () => filmVh() * (PIN_VH + PIN2_VH * 0.5),
   },
@@ -2825,7 +2830,7 @@ export default function OnePage() {
       const availH = (r.height - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)) * (vhQ / 100);
       const lines = narrow ? (n.nxWords?.length ?? 3) : 1;
       // Zhodné s CSS `.op-nxt-h2` — riadkovanie je súčasť rovnice, nie kozmetika.
-      const lh = narrow ? 0.92 : 0.94;
+      const lh = narrow ? NXT_LH_M : 0.94;
       return Math.min(availW / (narrow ? n.perWord : n.perRow), availH / (lines * lh));
     };
 
@@ -6920,7 +6925,8 @@ export default function OnePage() {
         .op-nxt-goal {
           position: absolute;
           top: 50%; left: 100%;
-          transform: translate(-100%, calc(-100% - var(--goalY, 14px)));
+          transform: translate(calc(-100% - var(--goalX, 14px)), calc(-100% - var(--goalY, 22px))) rotate(-6deg);
+          transform-origin: 100% 100%;
           opacity: var(--go, 0);
           display: flex;
           align-items: baseline;
@@ -6944,6 +6950,31 @@ export default function OnePage() {
         .op-nxt-goal svg {
           position: absolute; left: -24%; top: -46%; width: 146%; height: 192%;
           overflow: visible; pointer-events: none;
+        }
+        /* Kóta: vedie z pravého dolného rohu štítku (otočného bodu) na koniec
+           pásu. Štítok je natočený o -6°, kóta sa vracia o +6°, aby bodka sedela
+           presne na konci osi. */
+        .op-nxt-pin {
+          position: absolute; left: 100%; top: 100%;
+          width: var(--goalX, 14px); height: var(--goalY, 22px);
+          transform: rotate(6deg); transform-origin: 0 0;
+        }
+        .op-nxt-pin::before {
+          content: ''; position: absolute; inset: 0;
+          background: ${LAPIS.edge};
+          clip-path: polygon(0 0, 1.5px 0, 100% calc(100% - 1.5px), 100% 100%, calc(100% - 1.5px) 100%, 0 1.5px);
+        }
+        .op-nxt-pin i {
+          position: absolute; right: -5px; bottom: -5px;
+          width: 10px; height: 10px; border-radius: 999px;
+          background: ${LAPIS.edge};
+          box-shadow: 0 0 0 0 rgba(22,48,122,0.55);
+          animation: opNxtPulse 1.8s ease-out infinite;
+        }
+        @keyframes opNxtPulse {
+          0% { box-shadow: 0 0 0 0 rgba(22,48,122,0.55); }
+          70% { box-shadow: 0 0 0 10px rgba(22,48,122,0); }
+          100% { box-shadow: 0 0 0 0 rgba(22,48,122,0); }
         }
         .op-nxt-goal path {
           fill: none; stroke: ${LAPIS.edge}; stroke-width: 3; stroke-linecap: round;
@@ -7099,13 +7130,15 @@ export default function OnePage() {
            ⚠️ HRANICA JE NARROW_MAX — to isté číslo číta réžia. Dve rôzne
            hranice vyrobia pásmo šírok bez pravidiel. */
         @media (max-width: ${NARROW_MAX}px) {
-          .op-nxt-h2 { flex-direction: column; column-gap: 0; line-height: 0.92; }
+          /* 🔴 1.08, nie 0.92 (Matej 6. 10.: *„mäkčeň zasahuje do prvého riadku"*):
+             mäkčeň Ť narážal na chvost J z POTREBUJEME. Číslo číta aj réžia (NXT_LH_M). */
+          .op-nxt-h2 { flex-direction: column; column-gap: 0; line-height: ${NXT_LH_M}; }
           .op-nxt-line span { display: block; margin-left: 0; }
           .op-nxt-line .op-nxt-aim { display: block; }
           /* Na mobile je každý pixel šírky vzácny: menovky klesnú nižšie, aby
              si nekonkurovali s cieľom, a os dostane skoro celý riadok. */
           .op-nxt-plot { width: 100%; padding: 62px 16px 62px 50px; }
-          .op-nxt-goal { transform: translate(calc(-100% - 10px), calc(-100% - var(--goalY, 44px))); }
+          .op-nxt-goal { --goalX: 10px; --goalY: 44px; }
           .op-nxt-goal b { font-size: calc(14px + 6px * var(--gc, 0)); }
           .op-nxt-goal em { font-size: calc(9px + 1px * var(--gc, 0)); }
           .op-nxt-goal svg { left: -14%; width: 128%; }
@@ -8347,8 +8380,9 @@ export default function OnePage() {
                       {/* Matej 5. 10. 2026 (nahradil vetu z 28. 9. o HEROGLYFE pre milión psov):
                           *„Imagine a one million people stand by our dogs — what a great power we have,
                           what good things we can do"*. Kúsky ostali: text · zlaté slovo · tučný záver. */}
-                      <span>{t('onepage.need.mis1')}</span>
-                      <span><b>{t('onepage.need.misGlyph')}</b> {t('onepage.need.misFor')}</span>
+                      {/* Matej 6. 10.: *„prvý riadok predstav si MILIÓN, druhý ľudí, ktorí stoja pri psoch"*. */}
+                      <span>{t('onepage.need.mis1')} <b>{t('onepage.need.misGlyph')}</b></span>
+                      <span>{t('onepage.need.misFor')}</span>
                       {/* 🔴 OVÁL ODIŠIEL Z TEXTU NA PÁS (Matej 28. 9. 2026: *„nechcel
                           som zakrúžkovať slovo v texte, ale pri progres bare dolu aj
                           zvýrazniť aj zakrúžkovať — modrou"*). Viď `.op-nxt-goal`. */}
@@ -8377,6 +8411,10 @@ export default function OnePage() {
                           <svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true">
                             <path pathLength={1} d="M150 8 C 110 0, 30 2, 10 22 C -6 40, 40 58, 104 56 C 170 54, 204 40, 192 20 C 184 8, 150 4, 118 6" />
                           </svg>
+                          {/* Kóta z rohu štítku na KONIEC pásu + pulzujúca bodka (Matej 6. 10.:
+                              *„1M náš cieľ trochu natoč do strany a na konci daj pulzujúcu bodku
+                              s kótou na túto vysvetlivku"*). */}
+                          <span className="op-nxt-pin" aria-hidden="true"><i /></span>
                         </span>
   
                         {/* Psy MEDZI zakladateľom a posledným. Vypĺňajú modrý
