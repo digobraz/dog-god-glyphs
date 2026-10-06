@@ -217,6 +217,8 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
   const crawlRef = useRef<HTMLDivElement>(null);
   const swDarkRef = useRef<HTMLDivElement>(null);
   const swIntroRef = useRef<HTMLParagraphElement>(null);
+  /** „Spomaľ a čítaj" pod úvodnou vetou — svieti spolu s ňou. */
+  const swSlowRef = useRef<HTMLDivElement>(null);
   const swLogoRef = useRef<HTMLImageElement>(null);
   const swTextRef = useRef<HTMLDivElement>(null);
   const stickyNavRef = useRef<HTMLDivElement>(null);
@@ -324,6 +326,7 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
 
       // 1) purple intro line — appears after the hero is gone, holds, fades out
       if (intro) intro.style.opacity = String(clamp(band(p, 0.1, 0.18) - band(p, 0.34, 0.4)));
+      if (swSlowRef.current) swSlowRef.current.style.opacity = String(clamp(band(p, 0.12, 0.2) - band(p, 0.34, 0.4)));
 
       // 2) DOGYPT logo — appears, then shrinks away into the distance.
       //    Must be FULLY gone before the crawl text fades in (no overlap).
@@ -924,6 +927,18 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
           text-shadow: 0 0 10px rgba(253,248,236,0.90), 0 1px 2px rgba(29,60,134,0.22);
           will-change: opacity;
         }
+        .sw-slow {
+          position: absolute; left: 50%; bottom: clamp(96px, 14vh, 140px); transform: translateX(-50%);
+          display: flex; flex-direction: column; align-items: center; gap: 8px; opacity: 0; pointer-events: none;
+          color: #1D3C86; font: 500 10px/1 'Space Grotesk', sans-serif; letter-spacing: .22em;
+          text-transform: uppercase; white-space: nowrap; will-change: opacity;
+        }
+        .sw-slow-arr { display: flex; flex-direction: column; align-items: center; line-height: 0; }
+        .sw-slow-arr svg { display: block; margin-top: -2px; animation: swSlow 2.4s ease-in-out infinite; }
+        .sw-slow-arr svg:nth-child(2) { animation-delay: .5s; }
+        .sw-slow-arr svg:nth-child(3) { animation-delay: 1s; }
+        @keyframes swSlow { 0%, 100% { opacity: .25; } 40% { opacity: 1; } }
+        @media (prefers-reduced-motion: reduce) { .sw-slow-arr svg { animation: none; opacity: .7; } }
         .sw-logo {
           position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(1);
           width: min(72vw, 720px); height: auto; opacity: 0; pointer-events: none;
@@ -1076,6 +1091,16 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
           )}
 
           <p className="sw-intro" ref={swIntroRef}>{t('about.crawl.intro')}</p>
+          {/* Matej 6. 10. 2026: *„pod textom pred desiatimi rokmi… malým písmom dolu oznam na
+              pomalšie slajdovanie — šípky + slow down and read"*. */}
+          <div className="sw-slow" ref={swSlowRef} aria-hidden>
+            <span className="sw-slow-arr">
+              {[0, 1, 2].map((i) => (
+                <svg key={i} width="14" height="10" viewBox="0 0 24 16" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="5 4 12 11 19 4" /></svg>
+              ))}
+            </span>
+            {t('about.crawl.slow')}
+          </div>
           <img className="sw-logo" ref={swLogoRef} src="/images/dogypt-gold-logo.webp" alt="DOGYPT" />
           <div className="sw-stage">
             <div className="sw-crawl-text" ref={swTextRef}>

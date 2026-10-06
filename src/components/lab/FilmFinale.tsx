@@ -25,10 +25,11 @@
  * Je to cesta, ktorou šiel portál z 28. 9., len bez portálu.
  */
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { LAB } from '@/lib/labTheme';
-import { LAPIS } from '@/components/pack/navGoldSkin';
+import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { SOCIALS } from '@/components/landing/Footer';
 import { openPhotoConfirm } from '@/components/gods/photoConfirm';
 import { intakePhoto, finishPhotoChoice } from '@/lib/photoIntake';
@@ -37,6 +38,7 @@ import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { openAinubis } from '@/lib/ainubisBus';
 import ainubisHead from '@/assets/ainubis-head.webp';
 import PULSE from '@/data/onepagePulse.json';
+import { filmVh } from '@/lib/filmVh';
 
 /** Udalosť, ktorou iné miesto filmu spustí heroflow (výber fotky → potvrdenie →
  *  `/heroglyph/name`). `detail.handled` ostane `false`, kým finále nie je pripojené. */
@@ -88,6 +90,15 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
   packRef.current = packNo;
   const { lang } = useLang();
   const [on, setOn] = useState<'a' | 'b' | null>(null);
+  /** Popup „Viac o mne" (Matej 6. 10. 2026: *„tlačítko viac o mne… scroll popup, kde
+   *  napíšem správu a žiadosť o pomoc pri projekte… nie je to o mne — je to o nás"*). */
+  const [more, setMore] = useState(false);
+  useEffect(() => {
+    if (!more) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMore(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [more]);
 
   // ── HEROFLOW: výber fotky ─────────────────────────────────────────────
   useEffect(() => {
@@ -134,8 +145,14 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
       const sec = secRef.current, st = stageRef.current;
       if (!sec || !st) return;
       const r = sec.getBoundingClientRect();
-      const p = clamp01(-r.top / Math.max(1, r.height - window.innerHeight));
-      const fin = seg(p, 0, FIN_STOPS[0]);
+      // ⚠️ filmVh(), nie window.innerHeight — zastávku počíta motor z lvh a na iPhone je
+      // innerHeight o lištu Safari menší (viď lib/filmVh.ts). Rozdiel nechal krytie pod 1.
+      const p = clamp01(-r.top / Math.max(1, r.height - filmVh()));
+      // 🔴 Plné krytie UŽ PRED zastávkou (Matej 6. 10. 2026: *„pri about me presvitá
+      // nadpis potrebujeme ťa"*). Zastávka a toto `p` sa rátajú z výšky okna, ktorá sa na
+      // iPhone mení s lištou Safari — pri pár px rozdielu ostalo krytie pod 1 a WE NEED YOU
+      // presvital. Prelínanie dobehne v 80 % dráhy, na zastávke je javisko celé.
+      const fin = seg(p, 0, FIN_STOPS[0] * 0.8);
       const nx = smooth(seg(p, FIN_STOPS[0] + 0.04, 0.96));
       st.style.setProperty('--fin', fin.toFixed(3));
       st.style.setProperty('--nx', nx.toFixed(3));
@@ -211,11 +228,15 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
             <p className="op-fin-txt">{t('onepage.fin.p1')}</p>
             <p className="op-fin-txt">{t('onepage.fin.p2')}</p>
             <p className="op-fin-txt op-fin-txt--last">{t('onepage.fin.p3')}</p>
+            <button type="button" className="op-fin-more" tabIndex={on === 'a' ? 0 : -1}
+              onClick={() => { track('onepage_about_more'); setMore(true); }}>
+              {t('onepage.fin.aboutMore')}
+            </button>
           </div>
         </div>
 
         {/* ── B · LIVE STATUS (tmavý, AINUBIS) ───────────────────────── */}
-        <div className={`op-fin-b${on === 'b' ? ' is-on' : ''}`} data-film-free aria-hidden={on !== 'b'} style={{ pointerEvents: on === 'b' ? 'auto' : 'none' }}>
+        <div className={`op-fin-b${on === 'b' ? ' is-on' : ''}`} data-film-free data-film-edge aria-hidden={on !== 'b'} style={{ pointerEvents: on === 'b' ? 'auto' : 'none' }}>
           <div className="op-fin-now">
             <h2 className="op-fin-h2 op-fin-h2--left">
               {t('onepage.fin.liveHead')} <span className="op-fin-live"><i />LIVE</span>
@@ -305,6 +326,19 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
           </div>
         </div>
       </div>
+      {more && createPortal(
+        <div className="op-fin-pop" role="dialog" aria-modal="true" aria-label={t('onepage.fin.moreHead')}
+          data-film-free onClick={() => setMore(false)}>
+          <div className="op-fin-pop-card" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="op-fin-pop-x" aria-label={t('onepage.fin.moreClose')} onClick={() => setMore(false)} />
+            <h3 className="op-fin-pop-h">{t('onepage.fin.moreHead')}</h3>
+            <div className="op-fin-pop-body">
+              {t('onepage.fin.moreBody').split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )}
       <style>{`
         .op-fin { position: relative; z-index: 6; pointer-events: none; }
         .op-fin-stage {
@@ -363,6 +397,35 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
         .op-fin-words .op-fin-h2 { margin-bottom: 8px; }
         .op-fin-txt { margin: 0; font: 400 15px/1.55 'Space Grotesk', sans-serif; color: ${LAB.ink}; }
         .op-fin-txt--last { font-weight: 600; }
+        /* VIAC O MNE — akcia na papyruse = LAPIS (brand), tvar CTA r8. */
+        .op-fin-more {
+          align-self: flex-start; margin-top: 8px; cursor: pointer;
+          padding: 12px 24px; border-radius: 8px; border: 1px solid rgba(250,244,236,.30);
+          background: ${LAPIS.grad}; box-shadow: ${LAPIS_BTN_SHADOW}; color: ${LAPIS.ink};
+          font: 700 14px/1 'Cinzel', serif; letter-spacing: .08em; text-transform: uppercase;
+        }
+        .op-fin-more:hover { background: ${LAPIS.gradHover}; }
+        /* Popup: papyrusová karta so scrollom vnútri, závoj cez celé okno. */
+        .op-fin-pop {
+          position: fixed; inset: 0; z-index: 120; display: grid; place-items: center;
+          padding: 16px; background: rgba(20,12,4,.55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+        }
+        .op-fin-pop-card {
+          position: relative; width: min(640px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto;
+          overscroll-behavior: contain; padding: 32px 24px 24px; border-radius: 16px;
+          background: ${LAB.pageBg}; border: 1.5px solid rgba(201,154,63,.55);
+          box-shadow: 0 24px 48px -24px rgba(42,22,8,.55);
+        }
+        .op-fin-pop-h {
+          margin: 0 32px 16px 0; font: 700 24px/1.2 'Cinzel', serif; letter-spacing: .04em;
+          text-transform: uppercase; color: ${LAB.goldSolid};
+        }
+        .op-fin-pop-body p { margin: 0 0 12px; font: 400 16px/1.6 'Space Grotesk', sans-serif; color: ${LAB.ink}; }
+        .op-fin-pop-x {
+          position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border: 0; padding: 0;
+          background: ${LAB.ink}; cursor: pointer;
+          -webkit-mask: url(/icons/pack/cross.svg) center / 20px no-repeat; mask: url(/icons/pack/cross.svg) center / 20px no-repeat;
+        }
 
         /* ── B · LIVE STATUS — TMAVÝ AINUBIS S MRIEŽKOU (Matej 5. 10. 2026: *„pozadie mriežkové…
            tu nesmie byť zlatá (text)… bloky krajšie a zvýrazniť… liquid glass"*). Mriežka je tá
@@ -580,7 +643,8 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
           .op-fin-a { padding: calc(var(--op-nav-h, 118px) - 24px) 0 0; gap: 0; justify-content: flex-start; }
           .op-fin-photo {
             position: relative; top: auto; left: auto; bottom: auto; flex: 0 0 auto;
-            width: 100%; height: 50vh;
+            /* Fotka ustupuje textu (6. 10.: pribudla veta aj tlačidlo VIAC O MNE) — tváre ostávajú. */
+            width: 100%; height: 36vh;
             -webkit-mask-image: linear-gradient(to bottom, #000 56%, transparent 96%);
                     mask-image: linear-gradient(to bottom, #000 56%, transparent 96%);
           }
@@ -589,7 +653,10 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
             width: auto; gap: 8px; margin-top: -72px; padding: 0 16px;
             background: none; border: 0; box-shadow: none; border-radius: 0;
           }
-          .op-fin-txt { font-size: 14px; line-height: 1.5; }
+          .op-fin-txt { font-size: 13px; line-height: 1.45; }
+          /* Spodok patrí guli AINUBISA (60 px + 16) a šípkam — text nad nimi končí. */
+          .op-fin-a { padding-bottom: 88px; }
+          .op-fin-more { align-self: center; }
           .op-fin-b {
             flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 24px;
             padding: calc(var(--op-nav-h, 118px) + 8px) 16px 24px;
@@ -624,6 +691,7 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
           .op-fin-words { margin-top: -56px; }
           .op-fin-words .op-fin-h2 { margin-bottom: 0; }
           .op-fin-txt { font-size: 12px; line-height: 1.4; }
+          .op-fin-more { padding: 10px 16px; font-size: 12px; margin-top: 4px; }
         }
       `}</style>
     </section>

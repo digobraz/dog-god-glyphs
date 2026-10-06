@@ -77,6 +77,9 @@ type AppFeature = {
   claude?: boolean;
 };
 
+/** Appky, z ktorých DOGYPT berie to najlepšie — názvy sa neprekladajú. */
+const APP_CHIPS = ['Google', 'Instagram', 'Tripadvisor', 'Skool', 'AllTrails'];
+
 const bn = (id: string, n = 4) => Array.from({ length: n }, (_, i) => `onepage.apps.${id}.b${i + 1}`);
 
 /* SNÍMKY (Matej 5. 10. 2026) — DOG ID = stránka psa s heroglyfom (Hekthor, ostré prihlásenie; kvíz ide do detailu) · SNIFFER = len bledá
@@ -95,8 +98,8 @@ const img = (f: string) => `/images/onepage/apps/${f}.webp?v=10`;
 const APPS: AppFeature[] = [
   /* 🔁 PORADIE 5. 10. 2026 — Matej: *„na úvodnom mockupe musia byť tie najkrajšie = DOG ID
      v strede, sprava DOGTRIP, zľava AINUBIS"*. Sprava stojí nasledujúci, zľava posledný. */
-  { id: 'dogid', nameKey: 'heroglyph.flow.more.dogid.t', ledeKey: 'onepage.apps.dogid.lede', bulletKeys: bn('dogid', 5), shot: img('dogid-profil'), shots: [img('dogid-profil'), img('dogid-kviz'), img('dogid-kalendar'), img('dogid-zdravie'), img('dogid-zivot-prehlad')] },
-  { id: 'dogtrip', nameKey: 'heroglyph.flow.more.dogtrip.t', ledeKey: 'onepage.apps.dogtrip.lede', bulletKeys: bn('dogtrip', 5), shot: img('dogtrip-swiss'), shots: [img('dogtrip-swiss'), img('dogtrip-mapa'), img('dogtrip-clanok'), img('dogtrip-mapa-celok'), img('dogtrip-stats'), img('dogtrip-odznaky'), img('dogtrip-odznaky-parky'), img('dogtrip-pridat-2-druh'), img('dogtrip-pridat-6-o-vylete')], mapy: true },
+  { id: 'dogid', nameKey: 'heroglyph.flow.more.dogid.t', ledeKey: 'onepage.apps.dogid.lede', bulletKeys: bn('dogid', 4), shot: img('dogid-profil'), shots: [img('dogid-profil'), img('dogid-kviz'), img('dogid-kalendar'), img('dogid-zdravie'), img('dogid-zivot-prehlad')] },
+  { id: 'dogtrip', nameKey: 'heroglyph.flow.more.dogtrip.t', ledeKey: 'onepage.apps.dogtrip.lede', bulletKeys: bn('dogtrip', 4), shot: img('dogtrip-swiss'), shots: [img('dogtrip-swiss'), img('dogtrip-mapa'), img('dogtrip-clanok'), img('dogtrip-mapa-celok'), img('dogtrip-stats'), img('dogtrip-odznaky'), img('dogtrip-odznaky-parky'), img('dogtrip-pridat-2-druh'), img('dogtrip-pridat-6-o-vylete')], mapy: true },
   { id: 'sniffer', nameKey: 'heroglyph.flow.more.sniffer.t', ledeKey: 'onepage.apps.sniffer.lede', bulletKeys: bn('sniffer'), shot: img('sniffer-cisty'), shots: [img('sniffer-cisty'), img('sniffer-hladat'), img('sniffer-profil-eva'), img('sniffer-profil-eva-2'), img('sniffer-zhody')] },
   // 5/5 — Matej 27. 9.: *„komunita/pomoc… transparentná pomoc, nové výskumy —
   // to, čo členstvo vie pomáhať psom"*. Detail = text „VYŠŠÍ CIEĽ" z heroflowu.
@@ -364,6 +367,14 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
               musí byť v každom jazyku na max 2 riadky — nie 4"* + návrh *„We create a dog world,
               a helpful and entertaining ecosystem for all doglovers"*). Dve vety (`sub2`) zanikli. */}
           <p className="op-apps-sub">{t('onepage.apps.sub1')}</p>
+          {/* APPKY, KTORÉ DOGYPT STELESŇUJE (Matej 6. 10. 2026: *„chipy ako príklad — google, instagram,
+              tripadvisor, skool, alltrails… one app with the best from … in dogfriendly world"*).
+              Len textové pilulky — cudzie logá v kite nemáme. */}
+          <p className="op-apps-lead">{t('onepage.apps.chips.lead')}</p>
+          <ul className="op-apps-chips">
+            {APP_CHIPS.map((c) => <li key={c}>{c}</li>)}
+          </ul>
+          <p className="op-apps-lead op-apps-tail">{t('onepage.apps.chips.tail')}</p>
         </div>
 
         <div className="op-apps-col">
@@ -401,6 +412,20 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
               );
             })}
           </div>
+          {/* „KLIKNI NA MOCKUP“ (Matej 6. 10. 2026: *„text na krivo s kreslenou šípkou nad telefónmi
+              zasahujúcou do telefónu"*). Sedí v súradniciach súpravy (roh predného telefónu), takže
+              ide s ním; mierka sa vracia späť, nech písmo ostane čitateľné. Len mobil. */}
+          <div className="op-apps-hint" aria-hidden="true" style={{ ['--ph-h' as string]: `${(280 * IPHONE_H / IPHONE_W).toFixed(1)}px` } as CSSProperties}>
+            <span>{t('onepage.apps.tap')}</span>
+            <svg viewBox="0 0 96 72" width="96" height="72" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+              <g className="halo" stroke="#FBF5E6" strokeWidth="6.5">
+                <path d="M6 8 C 40 -2, 80 10, 76 56" />
+                <path d="M62 44 C 68 50, 74 55, 77 60 C 80 54, 84 48, 90 42" />
+              </g>
+              <path d="M6 8 C 40 -2, 80 10, 76 56" />
+              <path d="M62 44 C 68 50, 74 55, 77 60 C 80 54, 84 48, 90 42" />
+            </svg>
+          </div>
           <div className="op-apps-ctl">
             {/* Šípky = brandová kresba (HandArrowLeft, pravá zrkadlená). Pauza
                 z komponentu tu NIE JE — kresba v kite chýba (check:ikony) a točenie
@@ -423,12 +448,6 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
                 tieto na okraji karty listujú FUNKCIE — preto iný tvar (zlatý rám = navigácia,
                 „kde som") a iné miesto. Karusel za popupom ide s nimi, nech po zatvorení stojí
                 človek na funkcii, ktorú práve čítal. */}
-            <button type="button" className="op-apps-pop-nav is-l" aria-label={t(APPS[(open! - 1 + n) % n].nameKey)} onClick={() => moveApp(-1)}>
-              <HandArrowLeft size={20} />
-            </button>
-            <button type="button" className="op-apps-pop-nav is-r" aria-label={t(APPS[(open! + 1) % n].nameKey)} onClick={() => moveApp(1)}>
-              <HandArrowLeft size={20} style={{ transform: 'scaleX(-1)' }} />
-            </button>
             {/* KRÍŽIK LEN NA MOBILE (Matej 5. 10. 2026, nad popupom na iPhone: *„a tu by som možno dal
                 aj krížik"*) — novší pokyn prebíja 28. 9. len tu: na mobile niet „kliku mimo karty"
                 (karta je cez celé okno) ani Esc. Kresba z kitu (`cross.svg`), nie znak ×. PC ostáva bez. */}
@@ -467,10 +486,23 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
             </div>
             </div>
             <div className="op-apps-pop-txt">
-              <h2 className="op-apps-name">{t(cur.nameKey)}</h2>
+              {/* Šípky funkcií sedia v riadku NADPISU (Matej 6. 10. 2026: *„šípky daj nižšie do úrovne
+                  nadpisu, menšie a lapisom"*). Na PC ostávajú absolútne na kraji karty (rodič nie je positioned). */}
+              <div className="op-apps-pop-head">
+                <h2 className="op-apps-name">{t(cur.nameKey)}</h2>
+                <span className="op-apps-pop-navs">
+                  <button type="button" className="op-apps-pop-nav is-l" aria-label={t(APPS[(open! - 1 + n) % n].nameKey)} onClick={() => moveApp(-1)}>
+                    <HandArrowLeft size={20} />
+                  </button>
+                  <button type="button" className="op-apps-pop-nav is-r" aria-label={t(APPS[(open! + 1) % n].nameKey)} onClick={() => moveApp(1)}>
+                    <HandArrowLeft size={20} style={{ transform: 'scaleX(-1)' }} />
+                  </button>
+                </span>
+              </div>
               <p className="op-apps-lede">{t(cur.ledeKey)}</p>
               {/* ČIP MAPY.COM (Matej 5. 10. 2026: *„dal by som logo mapy cz alebo chip… nech to má
                   lepšiu relevantnosť"*). Logo je to isté ako vo „Vyraziť na miesto" (`/nav-apps/mapy.svg`). */}
+              <div className="op-apps-pop-chip">
               {cur.mapy && (
                 <a className="op-apps-mapy" href="https://mapy.com" target="_blank" rel="noopener noreferrer">
                   <span>{t('onepage.apps.mapy')}</span>
@@ -486,6 +518,7 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
                   <b>Claude</b>
                 </a>
               )}
+              </div>
               <ul className="op-apps-ul">
                 {cur.bulletKeys.map((k, j) => (
                   <li key={k} style={{ ['--i' as string]: j } as CSSProperties}>
@@ -525,6 +558,19 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           opacity: calc(var(--r, 0) * (1 - var(--sx, 0)));
           transform: translateY(calc((1 - var(--r, 0)) * 32px - var(--sx, 0) * 24px));
         }
+        .op-apps-lead {
+          margin: 16px auto 0; max-width: 640px;
+          font: 500 14px/1.4 'Space Grotesk', sans-serif; color: rgba(35,22,8,.7);
+        }
+        .op-apps-tail { margin-top: 8px; }
+        /* PILULKA — štítok (PACK_BLOCKS): zlatý obrys = konštrukcia, nie akcia; text, nie logo. */
+        .op-apps-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 12px auto 0; padding: 0; list-style: none; max-width: 640px; }
+        .op-apps-chips li {
+          padding: 4px 12px; border-radius: 999px; border: 1px solid rgba(201,154,63,.6); background: rgba(255,255,255,.55);
+          font: 600 12px/1 'Space Grotesk', sans-serif; letter-spacing: .02em; color: ${LAB.ink};
+        }
+        /* PC sa nemení (Matej ladí mobil) — pilulky a „klikni“ len do 767 px. */
+        .op-apps-lead, .op-apps-chips, .op-apps-hint { display: none; }
         .op-apps-sub {
           margin: 16px auto 0; max-width: 640px;
           font: 400 clamp(14px, 1.4vw, 20px)/1.5 'Space Grotesk', sans-serif; color: ${LAB.ink};
@@ -697,6 +743,7 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
         .op-apps-pop-nav:hover { transform: translateY(-50%) scale(1.06); }
         .op-apps-pop-nav svg { fill: currentColor; }
         .op-apps-pop-x { display: none; }
+        .op-apps-pop-navs { display: contents; }
         .op-apps-pop img { -webkit-user-drag: none; user-drag: none; pointer-events: none; }
         .op-apps-sl-dots { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
         .op-apps-sl-dots button {
@@ -708,6 +755,12 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
         /* MOBIL — rám 280 (komponent), text hore, telefóny pod ním. */
         @media (max-width: 767px) {
           .op-apps-ph { width: 280px; }
+          .op-apps-hero { bottom: calc(50lvh + 64px); }
+          .op-apps-lead { display: block; }
+          /* Nízke okno: veta „Staviame psí svet…“ ustúpi pilulkám, inak nadpis zaleze pod lištu. */
+          @media (max-height: 800px) { .op-apps-sub { display: none; } .op-apps-lead:not(.op-apps-tail) { margin-top: 12px; } }
+          @media (max-height: 700px) { .op-apps-tail { display: none; } }
+          .op-apps-chips { display: flex; }
           .op-apps-ctl { --arr-x: min(172px, calc(50vw - 44px)); }
           .op-apps-ctl button { width: 48px; height: 48px; }
           /* V ÚVODE BEZ ŠÍPOK: stred telefónu je na spodku okna, šípky by ležali na AINUBIS
@@ -719,6 +772,17 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           .op-apps-col { left: 16px; right: 16px; width: auto; top: var(--colt, 124px); height: var(--colh, 300px); }
           .op-apps-txt { top: 50%; transform: translateY(-50%); }
           .op-apps-txt .op-apps-lede { margin-bottom: 0; }
+          /* „KLIKNI“ — nakrivo, LAPIS, šípka končí v rohu predného telefónu; mierka sa vracia (--rig-s). */
+          .op-apps-hint {
+            display: block; position: absolute; left: 36px; top: calc(var(--ph-h) / -2 - 4px); width: 96px; height: 72px;
+            pointer-events: none; z-index: 40; color: ${LAPIS.edge}; opacity: var(--r, 0);
+            transform-origin: 77px 60px; transform: scale(calc(1 / var(--rig-s, 1)));
+          }
+          .op-apps-hint svg { position: absolute; inset: 0; }
+          .op-apps-hint span {
+            position: absolute; left: 12px; top: -20px; white-space: nowrap; transform: rotate(-8deg); transform-origin: 0 100%;
+            font: 700 16px/1 'Cinzel', serif; letter-spacing: .06em;
+          }
           /* DETAIL otvára ťuk na predný telefón. */
           .op-apps .op-apps-chip { display: none; }
           /* NADPISY VÝRAZNEJŠIE (Matej 5. 10. 2026: *„trocha zväčšiť, zvýrazniť nadpisy"*). */
@@ -749,23 +813,34 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           /* Snímky švihom a bodkami — sivé šípky pri telefóne by sa bili so zlatými na kraji. */
           .op-apps-pop .op-apps-sl-btn { display: none; }
           .op-apps-pop-txt { flex: none; }
-          .op-apps-pop .op-apps-name { font-size: 24px; padding-bottom: 12px; }
+          .op-apps-pop .op-apps-name { font-size: 20px; padding-bottom: 12px; }
+          .op-apps-pop-txt { min-width: 0; width: 100%; }
           .op-apps-pop .op-apps-lede { margin-bottom: 12px; font-size: 14px; line-height: 1.45; }
           .op-apps-pop .op-apps-ul li { padding: 6px 0; font-size: 14px; }
           /* ŠÍPKY NA KRAJOCH, V STREDE TELEFÓNU (Matej 5. 10. 2026: *„šípky premiestni na kraje
              do stredu"*) — dovtedy v horných rohoch. Stred = polovica bunky telefónu. */
-          .op-apps-pop-nav { top: var(--sl-mid, 50%); width: 40px; height: 40px; }
-          .op-apps-pop-nav.is-l { left: 8px; }
-          .op-apps-pop-nav.is-r { right: 8px; }
-          .op-apps-pop-nav:hover { transform: translateY(-50%); }
+          /* ŠÍPKY FUNKCIÍ — v riadku nadpisu, menšie, LAPIS (Matej 6. 10. 2026: *„šípky daj nižšie do úrovne
+             nadpisu/textovej časti, menšie a lapisom"*). Dovtedy zlaté na krajoch v strede telefónu. */
+          .op-apps-pop-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+          .op-apps-pop-navs { display: flex; gap: 8px; flex: none; }
+          .op-apps-pop-nav {
+            position: static; transform: none; width: 28px; height: 28px; box-shadow: none; background: transparent;
+            border: 1px solid ${LAPIS.edge}; color: ${LAPIS.edge};
+          }
+          .op-apps-pop-nav svg { width: 14px; height: 14px; }
+          .op-apps-pop-nav:hover { transform: none; background: rgba(22,48,122,.08); }
+          /* SÚMERNÝ POPUP: rovnaká veta (3 riadky), 4 odrážky a vyhradené miesto na čip pri každej funkcii. */
+          .op-apps-pop .op-apps-lede { min-height: calc(3 * 1.45em); }
+          .op-apps-pop-chip { height: 28px; margin-bottom: 4px; }
+          .op-apps-pop-chip .op-apps-mapy { margin: 0; }
           .op-apps-pop-x {
             display: grid; place-items: center; position: absolute; top: 8px; right: 8px; z-index: 3;
-            width: 40px; height: 40px; border-radius: 999px; cursor: pointer;
+            width: 32px; height: 32px; border-radius: 999px; cursor: pointer;
             background: ${LAB.pageBg}; border: 1.5px solid rgba(201,154,63,.85); color: ${LAB.ink};
             box-shadow: 0 8px 24px rgba(42,22,8,.25);
           }
           .op-apps-pop-x i {
-            width: 16px; height: 16px; background: currentColor;
+            width: 12px; height: 12px; background: currentColor;
             -webkit-mask: url(/icons/pack/cross.svg) center / contain no-repeat; mask: url(/icons/pack/cross.svg) center / contain no-repeat;
           }
         }

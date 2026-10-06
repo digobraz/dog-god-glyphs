@@ -92,6 +92,17 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
     let rideK = 0;
     /** Prst práve (alebo ešte dobiehajúcim švihom) hýbe voľným pásmom natívne. */
     let nativeFree = false;
+    /** Voľný obraz s OKRAJOM (`data-film-edge`): vnútri sa scrolluje natívne,
+     *  ale ťah von cez jeho okraj vedie motor. */
+    let edgeEl: HTMLElement | null = null;
+    /** 🔴 POSLEDNÝ OBRAZ NESMIE BYŤ PASCA (Matej 6. 10. 2026: *„po preskrolovaní na
+     *  live status nejde scrolovať naspäť hore"*). Obraz B je `data-film-free`, aby sa
+     *  na nízkom telefóne dal dočítať — motor ho však ignoroval celý, takže ťah hore
+     *  neurobil nič (a keď obsah nepretiekol, nescrolloval ani obraz). Ťah, ktorý
+     *  ide von cez okraj vnútorného scrollu, patrí motoru. */
+    const atEdge = (el: HTMLElement, dir: 1 | -1) =>
+      dir < 0 ? el.scrollTop <= 1 : el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+    const freeOf = (t: EventTarget | null) => (t as Element | null)?.closest?.('[data-film-free]') as HTMLElement | null;
 
     const setMoving = (m: boolean) => {
       moving = m;
@@ -174,7 +185,8 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
 
     const onWheel = (e: WheelEvent) => {
       if (apiRef.current.paused() || e.ctrlKey) return;
-      if ((e.target as Element | null)?.closest?.('[data-film-free]')) return;
+      const fw = freeOf(e.target);
+      if (fw && !(fw.hasAttribute('data-film-edge') && atEdge(fw, e.deltaY > 0 ? 1 : -1))) return;
       if (!moving && inFree(e.deltaY > 0 ? 1 : -1)) {
         lastWheel = performance.now(); lastAbs = Math.abs(e.deltaY);
         const z = apiRef.current.free?.();
@@ -214,12 +226,23 @@ export function useFilmStops(api: FilmStopsApi, enabled: boolean) {
     const onTouchStart = (e: TouchEvent) => {
       nativeFree = false;
       if (apiRef.current.paused()) { touchY = null; return; }
-      if ((e.target as Element | null)?.closest?.('[data-film-free]')) { touchY = null; return; }
+      edgeEl = null;
+      const fw = freeOf(e.target);
+      if (fw) {
+        if (!fw.hasAttribute('data-film-edge')) { touchY = null; return; }
+        edgeEl = fw;
+      }
       touchY = e.touches[0]?.clientY ?? null;
     };
     const onTouchMove = (e: TouchEvent) => {
       if (touchY == null) return;
       const dy = touchY - (e.touches[0]?.clientY ?? touchY);
+      if (edgeEl) {
+        if (Math.abs(dy) <= 2) return;
+        // Vnútri obrazu sa dá ešte scrollovať → natívne; inak ťah preberá motor.
+        if (!atEdge(edgeEl, dy > 0 ? 1 : -1)) { touchY = null; edgeEl = null; return; }
+        edgeEl = null;
+      }
       if (!moving && Math.abs(dy) > 2 && inFree(dy > 0 ? 1 : -1)) { touchY = null; nativeFree = true; return; }
       e.preventDefault();
     };

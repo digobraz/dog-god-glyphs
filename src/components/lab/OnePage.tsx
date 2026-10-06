@@ -65,6 +65,7 @@ import FilmGate, { GATE_REST, GATE_TOUCH, GATE_RIDE_MS, GATE_FADE } from './Film
 import FilmCue, { FilmTop, FILM_CUE_CSS } from './FilmCue';
 import FilmApps, { APPS_STOPS, APPS_OUT_VH, APPS_EXIT_VH } from './FilmApps';
 import FilmFinale, { FIN_STOPS, FIN_OVER_VH, startHeroflow } from './FilmFinale';
+import FilmTurn from './FilmTurn';
 
 // ── OBRAZY FILMU SÚ NA JEDNOM MIESTE ────────────────────────────────────────
 // Matejov zoznam z 2. 9. 2026, doslova: *„1-HOME · 2 COW vs DOG · 3 Religion ·
@@ -1609,7 +1610,7 @@ export default function OnePage() {
     type Piece = { node: SVGElement; g: string | null };
     type KLine = {
       id: string; side: string; dogma?: boolean; row: number; i: number;
-      li: HTMLDivElement; lab: HTMLDivElement; nameEl: HTMLElement; descEl: HTMLElement; dot: HTMLButtonElement;
+      li: HTMLDivElement; lab: HTMLDivElement; nameEl: HTMLElement; descEl: HTMLElement; rowsEl: HTMLElement; dot: HTMLButtonElement;
       edgeT?: number; edgeB?: number; edgeL?: number; edgeR?: number;
       ay?: number; ax?: number; lineFull?: number;
     };
@@ -1674,7 +1675,9 @@ export default function OnePage() {
         else lab.style.left = g.ax + '%';
         const nameEl = document.createElement('b'); nameEl.className = 'kname';
         const descEl = document.createElement('i'); descEl.className = 'kdesc';
-        lab.append(nameEl, descEl);
+        // Mobil: riadky symbolov oblasti (mini SVG + význam) — plní `retext`, ukazuje len pripnutý blok.
+        const rowsEl = document.createElement('div'); rowsEl.className = 'krows';
+        lab.append(nameEl, descEl, rowsEl);
         // BODKA OBLASTI — na tej strane glyfu, kam kóta ukazuje (mobil vľavo/vpravo
         // vo výške skupiny, PC nad/pod v jej osi). Poloha v % rámu, ako kóta.
         // ⚠️ PC: tiež VEDĽA glyfu, nie nad/pod (Matej: *„z jednej a druhej strany
@@ -1684,9 +1687,9 @@ export default function OnePage() {
         dot.type = 'button';
         dot.style.setProperty('--kc', DGX_COL[g.id]);
         if (vertical) {
-          // Mobil: VŠETKY štyri bodky vpravo (Matej 5. 10.: *„daj tie bodky len na
-          // pravú stranu"*), každá vo výške svojej oblasti.
-          dot.className = 'kdot kdot--right';
+          // Mobil: VŠETKY štyri bodky VĽAVO (Matej 6. 10.: *„bodky prehoď na druhú
+          // stranu… heroglyf sa posúva doprava"*), každá vo výške svojej oblasti.
+          dot.className = 'kdot kdot--left';
           dot.style.top = g.ay + '%';
         } else {
           const PC_DOT: Record<string, [string, number]> = {
@@ -1704,7 +1707,7 @@ export default function OnePage() {
         });
         gbox.append(li, lab, dot);
         return {
-          ...g, li, lab, nameEl, descEl, dot, i,
+          ...g, li, lab, nameEl, descEl, rowsEl, dot, i,
           ...(vertical ? { edgeL: members.l, edgeR: members.r } : { edgeT: members.t, edgeB: members.b }),
         } as KLine;
       });
@@ -1748,7 +1751,8 @@ export default function OnePage() {
         // HOTSPOT — blikajúci bod, láka ťuknúť / prejsť myšou (27. 9. 2026).
         // LEN NA PSOVI (Matej: *„nechaj hotspot iba na symbole psa"*).
         // Pod `hit`, takže klik ide ďalej na slot.
-        if (s.k === 'shape') {
+        // Mobil: hotspot zo siluety preč (Matej 6. 10.) — vstupom je bodka oblasti.
+        if (s.k === 'shape' && !vertical) {
           const hr = Math.min(s.w, s.h) * 0.12;
           const hsw = String(hr * 0.38);
           const hot = mk('g', { class: 'hot' });
@@ -1764,6 +1768,8 @@ export default function OnePage() {
         const hit = mk('rect', { class: 'hit', x: String(s.x), y: String(s.y), width: String(s.w), height: String(s.h) });
         gGlyph.append(hit);
         hitOf[s.k] = hit;
+        // Mobil: symboly sa neklikajú — blok oblasti ich vysvetľuje všetky (Matej 6. 10.).
+        if (vertical) { hit.setAttribute('pointer-events', 'none'); continue; }
         hit.addEventListener('pointerenter', () => { hoverKey = s.k; dgxApiRef.current?.draw(lastDp); });
         hit.addEventListener('pointerleave', () => { hoverKey = null; dgxApiRef.current?.draw(lastDp); });
         hit.addEventListener('click', () => { hoverKey = hoverKey === s.k ? null : s.k; kotaKey = null; dgxApiRef.current?.draw(lastDp); });
@@ -2374,9 +2380,12 @@ export default function OnePage() {
         const sv = Math.max(Math.max(0, Math.max(lit, on)) * dgxPulseAt(pc, a, pw, DGX.pulseN) * (1 - dark), ask);
         // Kóta sa vracia LEN na mobile (leží cez glyf); na PC nemá kam — rezerva
         // nad/pod glyfom po prehratí zaniká — a oblasť tam opíše bublina pri bodke.
-        const kv = Math.max(Math.max(0, on) * (1 - dark), vertical ? ask : 0);
+        // Mobil: žiadne kóty ani texty v úvode — svietia len symboly a bodky; text až po ťuknutí.
+        const kv = vertical ? ask : Math.max(0, on) * (1 - dark);
         kMax = Math.max(kMax, on);
         k.dot.classList.toggle('on', ask === 1);
+        // Mobil: bodky sa rozsvecujú postupne spolu so symbolmi oblasti (klikateľné až po `live`).
+        if (vertical) k.dot.style.opacity = lit.toFixed(3); else k.dot.style.removeProperty('opacity');
         for (const nd of tints[k.id]) {
           (nd as unknown as HTMLElement).style.opacity = (sv * gone).toFixed(3);
           (nd as unknown as HTMLElement).style.filter = (nd === cartTNode ? '' : `url(#dgx-t-${k.id}) `) +
@@ -2391,9 +2400,12 @@ export default function OnePage() {
         // uhne o --gshift nižšie, takže popisok leží VEDĽA bodky, nie cez glyf.
         const pin = vertical && ask === 1;
         k.lab.classList.toggle('klab--pin', pin);
-        k.lab.classList.toggle('klab--pin-right', pin);
+        k.lab.classList.toggle('klab--pin-left', pin);
         if (pin) {
-          k.lab.style.transform = 'translateY(-50%)';
+          // Blok sa natiahne vedľa glyfu vo výške svojej oblasti, nevyjde mimo rámu.
+          const gh = gbox.clientHeight, lh = k.lab.offsetHeight;
+          k.lab.style.top = Math.max(0, Math.min(gh - lh, ((k.ay || 0) / 100) * gh - lh / 2)).toFixed(1) + 'px';
+          k.lab.style.transform = 'none';
         } else if (over) {
           k.lab.style.transform = vertical
             ? `translate(calc(var(--kdx,0px)),calc(-50% + var(--kdy,0px)))`
@@ -2422,7 +2434,7 @@ export default function OnePage() {
         const l0 = gr.left - curShift, vw = window.innerWidth;
         const pinW = Math.max(120, Math.min(DGX_PIN_W, vw - 32 - gr.width - DGX_PIN_GAP));
         const total = gr.width + DGX_PIN_GAP + pinW;
-        gshift = Math.max(16, (vw - total) / 2) - l0;
+        gshift = Math.max(16, (vw - total) / 2) + pinW + DGX_PIN_GAP - l0;
         sec.style.setProperty('--pinw', pinW.toFixed(0) + 'px');
       }
       // Premenná na SEKCII — číta ju rám glyfu aj fotka podpisu (ide s glyfom).
@@ -2516,8 +2528,26 @@ export default function OnePage() {
       K.forEach((k, i) => {
         k.nameEl.textContent = tRef.current(`${DGX_KKEY[i]}.name`);
         k.descEl.textContent = tRef.current(`${DGX_KKEY[i]}.desc`);
+        // Mobil: riadky bloku oblasti — mini symbol (ten istý SVG ako v glyfe) + názov kresby + údaj.
+        k.rowsEl.textContent = '';
+        if (!curVertical) return;
+        for (const sl of DGX_SLOTS_V.filter((x) => x.g === k.id)) {
+          const bk = `onepage.dgx.bub.${sl.k}`;
+          const row = document.createElement('div'); row.className = 'krow';
+          const im = document.createElement('img'); im.src = `/heroglyph/dogtrix/hek/${sl.k}.svg`; im.alt = '';
+          const tx = document.createElement('span');
+          const nm = document.createElement('b'); nm.textContent = tRef.current(`${bk}.glyph`);
+          const vl = document.createElement('i'); vl.textContent = `${tRef.current(`${bk}.label`)} · ${tRef.current(`${bk}.value`)}`;
+          tx.append(nm, vl); row.append(im, tx); k.rowsEl.append(row);
+        }
       });
     };
+    // Mobil: ťuk mimo bodky a bloku zavrie otvorenú oblasť (sec zanikne s DOM-om).
+    sec.addEventListener('click', (e) => {
+      if (!kotaKey || !curVertical) return;
+      if ((e.target as HTMLElement).closest?.('.kdot, .klab')) return;
+      kotaKey = null; dgxApiRef.current?.draw(lastDp);
+    });
     buildGlyph(narrow0);
     fitKotaScale(narrow0, narrow0);
     retext();
@@ -4071,9 +4101,10 @@ export default function OnePage() {
    * ⚠️ Cieľ je PRESNE značka snapu č. 9 (súčet všetkých štyroch dráh), takže
    * dojazd nikam nepodkĺzne. Meno konštánt je jediné miesto, kde sa číslo drží.
    */
+  const cinemaAt = useCallback(() => filmVh() * (PIN_VH + PIN2_VH + PIN3_VH + PIN4_VH), []);
   const goCinema = useCallback(() => {
-    filmJump(filmVh() * (PIN_VH + PIN2_VH + PIN3_VH + PIN4_VH));
-  }, [filmJump]);
+    filmJump(cinemaAt());
+  }, [filmJump, cinemaAt]);
 
   /**
    * SKOK NA OBRAZ Z NAVIGÁCIE.
@@ -4131,7 +4162,12 @@ export default function OnePage() {
   }, [albaOpen]);
   useEffect(() => {
     const on = () => {
-      setAtFilmEnd(window.scrollY >= document.documentElement.scrollHeight - window.innerHeight - 8);
+      // Koniec = už od polcesty k poslednému obrazu (Matej 6. 10. 2026: *„úplne dolu
+      // zmizne šípka dolu, prirodzene nemá kam ísť"*). Samotné dno stránky na iPhone
+      // nestačilo — výška okna sa mení s lištou Safari a dno sa o pár px minulo.
+      const fbHalf = pinnedAt('.op-fin', (FIN_STOPS[0] + 1) / 2);
+      setAtFilmEnd(window.scrollY >= document.documentElement.scrollHeight - window.innerHeight - 8
+        || (fbHalf != null && window.scrollY >= fbHalf));
       setAtHome(window.scrollY < window.innerHeight * 0.3);
       const we = WNY_END ? wnyEnd() : null;
       // Šípky zhasnú na WE NEED YOU (vedie CTA) a znova svietia na finále A (moje
@@ -4317,6 +4353,8 @@ export default function OnePage() {
         <FilmTop show={!atHome} label={t('onepage.cue.top')}
           onTop={() => filmJump(0)} />
       )}
+      {/* OTOČ MOBIL na plátne vízie + návrat na tú istú zastávku po otočení (FilmTurn.tsx). */}
+      <FilmTurn cinemaAt={cinemaAt} stops={filmStops} />
       {albaOpen && (
         <div className="op-alba" role="dialog" aria-modal="true" aria-label="ALBA" data-film-free onClick={() => setAlbaOpen(false)}>
           <div className="op-alba-card" onClick={(e) => e.stopPropagation()}>
@@ -5407,6 +5445,8 @@ export default function OnePage() {
           color: #AFC4FF;
           text-shadow: 0 0 7px #2E5FD0, 0 0 18px rgba(16,52,166,0.9), 0 0 38px rgba(16,52,166,0.6);
         }
+        /* „Spomaľ a čítaj" — tá istá modrá, len tichšia (malé písmo bez žiary by na čiernej zaniklo). */
+        .op-film .sw-slow { color: #AFC4FF; text-shadow: 0 0 8px rgba(46,95,208,0.8); }
         /* PRÍBEH — na papyruse tmavé zlato, na čiernej to isté zlato, akým
            svieti na ostrom webe. Vynáranie do stratena drží maska na .sw-stage
            a tá sa NEMENÍ: je to alfa maska, takže text sa nestráca do farby,
@@ -5566,6 +5606,9 @@ export default function OnePage() {
         .op-root #op-vision .vhero-blocks {
           width: min(540px, 44vw);
           margin: 0 auto;
+          /* Rezerva nad nadpisom: .vhero-blocks má overflow:hidden a čiarka na Í (VÍZIA) trčí nad riadok 1.0
+             — bez nej ju orezala hrana boxu (Matej 6. 10. 2026). Layout stojí (padding − margin). */
+          padding-top: 12px; margin-top: -12px;
           /* .vision-video-hero centruje text kvôli videu; blok s ikonkou vľavo
              a centrovaným textom sa číta ako rozsypaný. */
           text-align: left;
@@ -6500,7 +6543,8 @@ export default function OnePage() {
           color: transparent; -webkit-text-fill-color: transparent; text-shadow: none;
         }
         .op-root #op-vision .vhero-h2 { letter-spacing: .04em; }
-        .op-root #op-vision .vhero-h2 > span { background-image: ${FILM_GOLD} !important; filter: none !important; }
+        /* padding-top .2em: inline span → rozšíri len plochu pozadia (layout stojí), inak background-clip:text osekne čiarku na Í (VÍZIA). */
+        .op-root #op-vision .vhero-h2 > span { background-image: ${FILM_GOLD} !important; filter: none !important; padding-top: .2em; }
         /* KRAVA VS PES — čísla sú nadpis obrazu, nie údaj (Matej 4. 10. 2026
            nad snímkou: *„a tu je zas iná farba!"*). Bola tu plná hnedá #6E4A12
            pri krave a LAPIS pri psovi — tretia a štvrtá farba nadpisov filmu.
@@ -6518,9 +6562,10 @@ export default function OnePage() {
         /* fit-content: zlato sa rozťahuje na šírku BOXU — na celom stĺpci
            z neho na krátkom slove ostal len svetlý stred a ČLENSTVO svietilo
            inou farbou než ostatné nadpisy. */
-        .op-root .op-apps-h2 { font-size: var(--op-h-obraz); letter-spacing: .04em; background-image: ${FILM_GOLD}; width: fit-content; margin-inline: auto; }
+        /* ⚠️ padding-top .2em + margin-top -.2em: background-clip:text inak oseká mäkčeň nad verzálkou (ČLENSTVO, Matej 6. 10. 2026; riadok 1.1 nestačí). */
+        .op-root .op-apps-h2 { font-size: var(--op-h-obraz); letter-spacing: .04em; background-image: ${FILM_GOLD}; width: fit-content; margin-inline: auto; padding-top: .2em; margin-top: -.2em; }
         .op-root .op-apps-name {
-          font-size: 40px; letter-spacing: .04em;
+          font-size: 40px; letter-spacing: .04em; padding-top: .2em; margin-top: -.2em;
           background-image: ${FILM_GOLD}; -webkit-background-clip: text; background-clip: text; color: transparent;
         }
         .op-root .op-quo .tst-head h2 {
@@ -7398,12 +7443,21 @@ export default function OnePage() {
           box-shadow: 0 10px 26px rgba(60,40,10,.16);
           transition: opacity .3s ease;
         }
-        /* Vpravo za bodkami; text V STREDE bubliny pri všetkých štyroch oblastiach. */
-        .dgx-gbox .klab--pin-right { left: calc(100% + ${DGX_PIN_GAP}px) !important; right: auto !important; align-items: center !important; }
-        .dgx-gbox .klab--pin .kname, .dgx-gbox .klab--pin .kdesc {
-          white-space: normal !important; overflow-wrap: break-word; text-align: center !important; max-width: none !important;
-        }
-        .dgx-gbox .klab--pin .kname { line-height: 1.05; }
+        /* Blok oblasti sa vysúva VĽAVO od bodiek (glyf uhne doprava): nadpis + riadky
+           symbolov. Okraj = farba oblasti, podklad papyrus. */
+        .dgx-gbox .klab--pin-left { right: calc(100% + ${DGX_PIN_GAP}px) !important; left: auto !important; align-items: stretch !important; pointer-events: auto; text-align: left; }
+        /* Beat glyfu ořezáva (overflow:hidden = odhalenie 0fr→1fr); po odhalení nech blok oblasti
+           (vyšší než glyf na nízkom okne) presiahne dole, nie je odrezaný. */
+        .op-dgx[data-live="1"][data-narrow="1"] .dgx-b-glf { overflow: visible; }
+        .dgx-gbox .klab--pin .kname { white-space: normal !important; text-align: left !important; max-width: none !important; line-height: 1.05; font-size: 16px; }
+        .dgx-gbox .klab--pin .kdesc { display: none; }
+        .dgx-gbox .krows { display: none; }
+        .dgx-gbox .klab--pin .krows { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
+        .dgx-gbox .krow { display: flex; align-items: center; gap: 10px; }
+        .dgx-gbox .krow img { flex: none; width: 24px; height: 24px; object-fit: contain; display: block; max-width: none; }
+        .dgx-gbox .krow span { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+        .dgx-gbox .krow b { font: 700 11px/1.1 'Cinzel', serif; text-transform: uppercase; color: ${LAB.ink}; }
+        .dgx-gbox .krow i { font: 500 9px/1.2 'Space Grotesk', sans-serif; font-style: normal; letter-spacing: 0.02em; color: ${LAB.inkSoft}; }
         .dgx-gbox .kline { position: absolute; width: 1.8px; transform: translateX(-50%); opacity: var(--ko, 0); pointer-events: none; }
         .dgx-gbox .kline--h { width: 0; height: 1.8px; transform: translateY(-50%); }
         /* Kóta = VEĽKÝ NÁZOV sekcie (Cinzel — je to nadpis, nie údaj) +

@@ -251,13 +251,30 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
     };
     // Scroll sa zlučuje do jedného snímku — čítanie štýlu v každej udalosti
     // by bolo to isté meranie niekoľkokrát za snímok.
-    const onScroll = () => { if (!raf) raf = requestAnimationFrame(apply); };
+    // 🔴 PLYNULOSŤ PRECHODU 1 → 2 (Matej 6. 10. 2026: *„jemný lag"*). `painted()`
+    // číta `getComputedStyle` desiatok prvkov PO zápisoch réžie z toho istého
+    // snímku, teda v KAŽDOM snímku jazdy vynúti celý prepočet štýlov (meranie
+    // 4× CPU: 61 volaní = 493 ms z 1,5 s jazdy). Brána prstu nemusí stíhať
+    // snímok — stačí, aby sedela po dojazde, preto ide najviac raz za 150 ms
+    // a s dobehom po poslednom scrolle.
+    let timer = 0;
+    let lastRun = 0;
+    const onScroll = () => {
+      if (raf || timer) return;
+      const wait = Math.max(0, 150 - (performance.now() - lastRun));
+      timer = window.setTimeout(() => {
+        timer = 0;
+        lastRun = performance.now();
+        raf = requestAnimationFrame(apply);
+      }, wait);
+    };
 
     apply();
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
     return () => {
       if (raf) cancelAnimationFrame(raf);
+      if (timer) clearTimeout(timer);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
       for (const s of sections) s.style.pointerEvents = '';

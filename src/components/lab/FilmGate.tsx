@@ -18,6 +18,7 @@
  */
 import { useEffect, useRef } from 'react';
 import { LAB } from '@/lib/labTheme';
+import { filmVh } from '@/lib/filmVh';
 
 export const GATE_VH = 320;
 /** Kde na dráhe stojí zastávka „brána zatvorená, celá vidieť". */
@@ -70,10 +71,26 @@ export default function FilmGate() {
     if (!sec) return;
     let raf = 0;
     let lastP = -1;
+    // 🔴 JEDEN SEEK NARAZ (6. 10. 2026: *„ruky sa nehýbu až sa seknú do finálnej
+    // podoby"*). iOS Safari zahodí seek, ktorý príde počas rozbehnutého seeku, a
+    // ďalší pošle až scroll — video stojí a na konci skočí. Preto sa nový seek
+    // pošle až po `seeked` predošlého, vždy na NAJNOVŠÍ cieľ (`wantT`), a Safari
+    // dostane `fastSeek` (priamo na snímok, bez dekódovania medzi nimi).
+    let wantT = -1;
+    const seekNow = () => {
+      if (!vid || wantT < 0 || vid.seeking) return;
+      if (Math.abs(vid.currentTime - wantT) <= 0.03) return;
+      const f = (vid as HTMLVideoElement & { fastSeek?: (t: number) => void }).fastSeek;
+      if (typeof f === 'function') f.call(vid, wantT); else vid.currentTime = wantT;
+    };
+    const onSeeked = () => seekNow();
+    vid?.addEventListener('seeked', onSeeked);
     const apply = () => {
       raf = 0;
       const r = sec.getBoundingClientRect();
-      const span = Math.max(1, sec.offsetHeight - window.innerHeight);
+      // filmVh(), nie innerHeight: zastávky motora (pinnedAt) merajú z lvh; na iPhone je
+      // innerHeight o lištu Safari menší a mení sa počas scrollu — progres by sa rozišiel so zastávkou.
+      const span = Math.max(1, sec.offsetHeight - filmVh());
       const p = clamp01(-r.top / span);
       if (Math.abs(p - lastP) < 0.0005) return;
       lastP = p;
@@ -91,7 +108,8 @@ export default function FilmGate() {
       sec.style.setProperty('--g-pale', pale.toFixed(4));
       if (vid && vid.readyState >= 1 && isFinite(vid.duration) && vid.duration > 0) {
         const t = seg(p, 0.36, GATE_TOUCH) * vid.duration;
-        if (Math.abs(vid.currentTime - t) > 0.03) vid.currentTime = t;
+        wantT = t;
+        seekNow();
       }
     };
     const on = () => { if (!raf) raf = requestAnimationFrame(apply); };
@@ -101,6 +119,7 @@ export default function FilmGate() {
     window.addEventListener('resize', on);
     return () => {
       cancelAnimationFrame(raf);
+      vid?.removeEventListener('seeked', onSeeked);
       window.removeEventListener('scroll', on);
       window.removeEventListener('resize', on);
     };
