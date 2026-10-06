@@ -55,7 +55,7 @@ const toDataLayer = (event: string, props?: Record<string, unknown>) => {
 };
 
 export const track = (event: string, props?: Record<string, unknown>) => {
-  const lang = currentLang; run((ph) => ph.capture(event, { lang, ...props }));
+  const lang = currentLang; const timestamp = new Date(); run((ph) => ph.capture(event, { lang, ...props }, { timestamp }));
   toDataLayer(event, { lang: currentLang, ...props });
 };
 
@@ -81,7 +81,7 @@ export const resetIdentity = () => {
 };
 
 export const trackPageview = (path: string) => {
-  const lang = currentLang; run((ph) => ph.capture('$pageview', { path, lang }));
+  const lang = currentLang; const timestamp = new Date(); run((ph) => ph.capture('$pageview', { path, lang }, { timestamp }));
   toDataLayer('spa_pageview', { path, lang: currentLang });
 };
 

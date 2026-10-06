@@ -29,9 +29,12 @@
     </script>
     <!-- Google Tag Manager -->
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    new Date().getTime(),event:'gtm.js'});
+    // Samotný gtm.js sa vkladá až po štarte (main.tsx volá __loadGtm) — dataLayer je plný od začiatku.
+    w.__loadGtm=function(){if(w.__gtmOn)return;w.__gtmOn=1;var f=d.getElementsByTagName(s)[0],
     j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);};
+    w.setTimeout(function(){w.__loadGtm()},8000);
     })(window,document,'script','dataLayer','GTM-PXB5MV3L');</script>
     <!-- End Google Tag Manager -->
     <meta name="theme-color" content="#000000" />
@@ -52,6 +55,8 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
+    <link rel="preconnect" href="https://lnzurwmdgvzlqhsbhrvi.supabase.co" crossorigin />
+    <link rel="preconnect" href="https://res.cloudinary.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!-- Google Fonts moved here from src/index.css @import (was render-blocking the whole

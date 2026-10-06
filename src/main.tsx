@@ -3,6 +3,7 @@ import App from "./App.tsx";
 import "./index.css";
 import { preloadActiveLang } from "./i18n/LanguageContext";
 import { initAnalytics } from "./lib/analytics";
+import { startEarlyGridDogs } from "./lib/earlyFetch";
 import { scrubSecrets } from "./lib/packAnalytics";
 // Testovacie dáta z dielne vstupu (`/lab/heroflow`) musia byť v store SKÔR, než
 // sa vykreslí prvá obrazovka — obrazovky flow si store kopírujú do lokálneho
@@ -25,14 +26,25 @@ window.addEventListener("vite:preloadError", (event) => {
   window.location.reload();
 });
 
-// PostHog sa načíta lenivo po `load` + voľnom čase (viď `lib/analytics.ts`) — nesmie brzdiť prvé vykreslenie.
+// PostHog (218 KB) a GTM sa pustia až PO štarte: po `load` + 2,5 s, alebo hneď pri prvom dotyku
+// či scrolle (čo príde skôr). Na mobile s 4× pomalším CPU bol parse posthogu súčasťou
+// dlhých úloh práve pri rozbehu filmu. Eventy čakajú vo fronte (analytics.ts) a idú s pôvodnou
+// časovou pečiatkou; GTM má `dataLayer` plný od začiatku, takže nič neutečie.
 {
-  const start = () => initAnalytics(scrubSecrets);
-  const later = () => ('requestIdleCallback' in window
-    ? (window as any).requestIdleCallback(start, { timeout: 4000 })
-    : setTimeout(start, 2000));
-  if (document.readyState === 'complete') later();
-  else window.addEventListener('load', later, { once: true });
+  let done = false;
+  const start = () => {
+    if (done) return; done = true;
+    initAnalytics(scrubSecrets);
+    (window as any).__loadGtm?.();
+  };
+  const arm = () => {
+    const idle = () => ('requestIdleCallback' in window ? (window as any).requestIdleCallback(start, { timeout: 2000 }) : start());
+    const t = window.setTimeout(idle, 2500);
+    const first = () => { window.clearTimeout(t); start(); };
+    for (const ev of ['pointerdown', 'keydown', 'wheel', 'touchstart']) window.addEventListener(ev, first, { once: true, passive: true });
+  };
+  if (document.readyState === 'complete') arm();
+  else window.addEventListener('load', arm, { once: true });
 }
 
 // Cache pre Mapy.com dlaždice (viď public/sw-maptiles.js) — bez nej sa DOGYPT
@@ -41,6 +53,8 @@ window.addEventListener("vite:preloadError", (event) => {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw-maptiles.js').catch(() => {});
 }
+
+if (location.pathname === "/onepage") startEarlyGridDogs();
 
 // Aktívny jazyk (SK/CS/…) sa dotiahne pred prvým renderom, aby neblikla angličtina.
 // Pád chunku nesmie zhodiť appku — vtedy ide render hneď a `t()` padne na EN.

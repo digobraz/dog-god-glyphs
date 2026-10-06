@@ -12,6 +12,7 @@
 // ⚠️ CSS triedy sú globálne a zhodné s originálom; naraz je namontovaná vždy len
 //    jedna z dvoch stien, takže kolízia nehrozí.
 // ════════════════════════════════════════════════════════════════════════════
+import { takeEarly } from '@/lib/earlyFetch';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
@@ -512,6 +513,13 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     return !q.get('dog') && !q.get('focus');
   });
   const [planetDogs, setPlanetDogs] = useState<PlanetDog[]>([]);
+  // 🔴 STENA SA STAVIA AŽ KEĎ JU NIEKTO POTREBUJE (6. 10. 2026, perf /onepage): pod guľou
+  // sa celý čas stavalo vanilla DOM s ~54 kartami (520 px fotky + 480 px heroglyfy, ~2 MB
+  // dekódovaných obrázkov) a nikto ich nevidel. Na mobile s 4× CPU to bola väčšina dlhých úloh
+  // pri štarte. Guľa (planetOpen) ju nepotrebuje; zapne sa pri prvom prepnutí na stenu
+  // (alebo hneď, keď sa štartuje stenou / reveal po platbe) a potom už ostáva.
+  const [wallWanted, setWallWanted] = useState(!planetOpen);
+  useEffect(() => { if (!planetOpen) setWallWanted(true); }, [planetOpen]);
   // ── KARTA PSA NA STENE (Matej 3. 10. 2026: „s návrhmi súhlasím") ──────────
   // Klik na psa už NEOTVÁRA tmavý závoj vnútri dlaždice (orezal číslo, text aj
   // DOG PAGE a zakryl fotku). Otvorí bledú kartu z DogCard.tsx — tú istú ako
@@ -636,8 +644,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
   // Load real dogs for the grid
   useEffect(() => {
     let alive = true; // unmount guard — nesetuj state po odmountovaní (StrictMode dvojfetch, rýchla navigácia preč)
-    fetch(GRID_DOGS_URL)
-      .then(r => r.ok ? r.json() : [])
+    (takeEarly<RealDog>(GRID_DOGS_URL) ?? fetch(GRID_DOGS_URL).then(r => r.ok ? r.json() : []))
       .then((dogs: RealDog[]) => {
         if (!alive) return;
         if (dogs.length > 0) {
@@ -1041,7 +1048,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
   }, [showWhatNext]);
 
   useEffect(() => {
-    if (!dogsReady) return;
+    if (!dogsReady || !(wallWanted || revealData.active)) return;
     const app = appRef.current;
     const canvas = canvasRef.current;
     if (!app || !canvas) return;
@@ -1893,7 +1900,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       cells.forEach(el => el.remove());
       cells.clear();
     };
-  }, [navigate, dogsReady, focusPackNumber, focusDogId, revealData.active, enrollOn]);
+  }, [navigate, dogsReady, wallWanted, focusPackNumber, focusDogId, revealData.active, enrollOn]);
 
   // Prstenec na dlaždici otvoreného psa. Dlaždice vznikajú a zanikajú s posunom
   // steny — nové si prstenec berú samy (`makeRealDogCard`), tu sa rieši zmena psa.
