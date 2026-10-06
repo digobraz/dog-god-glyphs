@@ -128,6 +128,7 @@ const hasSize = (n: Element) => { const r = n.getBoundingClientRect(); return r.
 /** Viditeľný cieľ kotvy. Keď je obal bez rozmeru (kotúč `+` je absolútne polohovaný a obal
  *  ho neobjíme), svieti prvý potomok, ktorý rozmer má — inak by výrez sedel v prázdnom bode. */
 function findTarget(id: string): HTMLElement | null {
+  if (id.startsWith('.')) return ([...document.querySelectorAll(id)].find(hasSize) as HTMLElement | undefined) ?? null;
   const el = document.getElementById(id);
   if (!el) return null;
   if (hasSize(el)) return el;
@@ -147,7 +148,7 @@ export function PackWizard({ dogName, hasDog }: { dogName: string | null; hasDog
   useEffect(() => {
     let off = false;
     // DEV `?wiz=1` = náhľad odznova; stav z účtu by ho hneď prebil.
-    if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('wiz')) off = true;
+    if (import.meta.env.DEV && /[?&]wiz(preview)?=/.test(window.location.search)) off = true;
     void supabase.auth.getSession().then(({ data }) => {
       const remote = data.session?.user?.user_metadata?.wiz_seen;
       if (off || !Array.isArray(remote)) return;
@@ -186,7 +187,9 @@ export function PackWizard({ dogName, hasDog }: { dogName: string | null; hasDog
     return () => clearInterval(iv);
   }, [consentDone]);
 
-  const all = stepsFor(screen);
+  // DEV `?wizpreview=1` = náhľad aj čakajúcich obrazoviek (snímky do tabule textov).
+  const preview = import.meta.env.DEV && new URLSearchParams(search).has('wizpreview');
+  const all = stepsFor(screen, preview);
   const pending = all.filter((s) => !seen.has(s.id) && !missing.has(s.id));
   const step: WizStep | undefined = pending[0];
 

@@ -2608,7 +2608,7 @@ export const sk: Partial<Dict> = {
   'pack.wizard.triplist.tabs': "Dve záložky: TRIPLIST sú tvoje výlety, TRIPSTATS tvoje kilometre, výlety a pohoria.",
   'pack.wizard.map.plus': "Na mape ponúka „+“ viac: výlet, TRIPWISH, rýchly odkaz aj podujatie.",
   'pack.wizard.map.list': "Mapa, alebo zoznam výletov — prepínaš tu.",
-  'pack.wizard.map.note': "Toto je odkaz od svorky — upozornenie, parkovisko alebo tip. Svoj pridáš, keď sa priblížiš a podržíš prst na mape.",
+  'pack.wizard.map.note': "Čísla v krúžkoch sú výlety v okolí — priblíž sa a rozpadnú sa na značky. Odkaz pre svorku (upozornenie, parkovisko, tip) pridáš, keď sa priblížiš a podržíš prst na mape.",
   'pack.wizard.map.layers': "Vrstvy mapy: podklad a čo vidíš navrch — upozornenia svorky, vretenice, miesta na spanie, TRIPWISH.",
   'pack.wizard.map.cats': "Prepínaš medzi výletmi a podujatiami. Ikonka SNIFFER ťa vezme hľadať parťákov.",
   'pack.wizard.map.search': "Hľadaj miesto, alebo si výber zúž filtrami: región, aktivity, tagy.",

@@ -2902,7 +2902,7 @@ export const en = {
   'pack.wizard.triplist.tabs': "Two tabs: TRIPLIST holds your trips, TRIPSTATS your kilometres, trips and ranges.",
   'pack.wizard.map.plus': "On the map the “+” offers more: a trip, a TRIPWISH, a quick note or an event.",
   'pack.wizard.map.list': "Map or list of trips — switch here.",
-  'pack.wizard.map.note': "This is a note from the pack — a warning, parking or a tip. Add your own: zoom in and hold your finger on the map.",
+  'pack.wizard.map.note': "Numbers in circles are trips nearby — zoom in and they split into pins. To leave the pack a note (warning, parking, tip), zoom in and hold your finger on the map.",
   'pack.wizard.map.layers': "Map layers: the base map and what sits on top — pack warnings, vipers, sleeping spots, TRIPWISH.",
   'pack.wizard.map.cats': "Switch between trips and events. The SNIFFER icon takes you to find buddies.",
   'pack.wizard.map.search': "Search for a place, or narrow things down with filters: region, activities, tags.",

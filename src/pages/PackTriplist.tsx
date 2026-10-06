@@ -58,6 +58,7 @@ import { sizedUrl } from '@/services/cloudinaryService';
 import { fetchMyWishes, type MyWish } from '@/components/pack/mapnotes/wishData';
 import { WISHES_LIVE } from '@/lib/packFlags';
 import { withOrigin } from '@/components/pack/createRegistry';
+import { WIZ } from '@/components/pack/wizAnchors';
 import { emitCreate } from '@/lib/createBus';
 
 // Karta je v mriežke najviac ~270 px (PC, 3 stĺpce v 832) a ~170 px (mobil, 2 stĺpce × DPR 2–3).
@@ -1049,7 +1050,7 @@ export default function PackTriplist() {
               to bol jeden rad zoradený „najbližší vpredu" — lenže pri 72 prejdených zo 73
               to znamenalo, že jediná živá karta viedla dlhý sprievod spomienok.
               ⚠️ Delí sa podľa `done`, NIE podľa dátumu: výlet bez dátumu je stále PLÁN. */}
-          <div className="tl-section">
+          <div className="tl-section" id={WIZ.tlWant}>
             <div className="tl-sechead">
               <h3>{PLANNING_LIVE ? t('pack.triplist.myTripsUpcoming') : t('pack.triplist.myTripsWant')}</h3>
               {upcomingTrips.length > 0 && (
@@ -1088,7 +1089,7 @@ export default function PackTriplist() {
           </div>
 
           {WISHES_LIVE && wishes && (
-            <div className="tl-section">
+            <div className="tl-section" id={WIZ.tlWish}>
               <div className="tl-sechead">
                 <h3>TRIPWISH</h3>
                 <button type="button" className="tl-seeall pk-hit" onClick={addWish}>+ {t('pack.triplist.wishAdd')}</button>

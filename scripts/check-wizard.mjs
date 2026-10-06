@@ -24,6 +24,8 @@ const mod = await import('data:text/javascript;base64,' + Buffer.from(out.output
 const { WIZ_SCREENS } = mod;
 
 const app = readFileSync(join(root, 'src/App.tsx'), 'utf8');
+import { execFileSync } from 'node:child_process';
+const srcHas = (cls) => { try { execFileSync('grep', ['-rqw', '--include=*.tsx', '--include=*.ts', cls, join(root, 'src')]); return true; } catch { return false; } };
 const routes = [...new Set([...app.matchAll(/<Route\s+path="(\/pack[^"]*)"/g)].map((m) => m[1]))];
 const inReg = new Map();
 for (const s of WIZ_SCREENS) for (const r of s.routes) inReg.set(r, s);
@@ -39,6 +41,9 @@ for (const s of WIZ_SCREENS) {
     if (ids.has(st.id)) zle.push(`🔴 duplicitné id kroku: ${st.id}`);
     ids.add(st.id);
     if (!st.anchor) zle.push(`🔴 ${st.id}: kotva neexistuje vo wizAnchors.ts`);
+    // Kotva `.trieda` = trieda, ktorú si obrazovka nesie sama. Keď ju redizajn zmaže, krok by
+    // ticho zmizol (runtime ho preskočí) — tu sa to ozve ešte pred buildom.
+    else if (st.anchor.startsWith('.')) for (const c of st.anchor.split(',').map((x) => x.trim().slice(1))) if (!srcHas(c)) zle.push(`🔴 ${st.id}: trieda .${c} už v src/ nie je`);
   }
 }
 

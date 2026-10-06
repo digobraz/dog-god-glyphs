@@ -24,6 +24,10 @@ export const WIZ = {
   navAinubis: 'wiz-nav-ainubis',
   /** Avatar JA v lište (`AvatarNavButton`). */
   navMe: 'wiz-nav-me',
+  /** Triplist — sekcia „Chcem ísť" (`PackTriplist`). */
+  tlWant: 'wiz-tl-want',
+  /** Triplist — sekcia TRIPWISH (`PackTriplist`). Trieda `.tl-section` je tam 4×, preto id. */
+  tlWish: 'wiz-tl-wish',
 } as const;
 
 /** Kotvy, ktoré sú OKRÚHLE/pilulkové — spotlight im nesmie dať 18px radius
