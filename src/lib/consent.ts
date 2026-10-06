@@ -1,6 +1,6 @@
 // Consent storage + effects — Vlna B (Časť 1, infra).
 // localStorage kľúč `dogypt_consent`. Aplikuje účinky voľby (analytics/marketing).
-import { track, upgradeToTier1, downgradeToTier0, dropQueuedAnalytics } from './analytics';
+import { track, upgradeToTier1, downgradeToTier0 } from './analytics';
 
 const STORAGE_KEY = 'dogypt_consent';
 
@@ -48,9 +48,6 @@ export function applyConsent(c: Consent, prev?: Consent | null): void {
     // a teraz to v Cookie settings vypol a uložil — bez tejto vetvy by applyConsent
     // bol no-op a nahrávanie/cookies by bežali ďalej (GDPR problém).
     downgradeToTier0();
-  } else {
-    // Odmietnuté: knižnica sa nenačíta a čo čakalo vo fronte na rozhodnutie, sa zahodí.
-    dropQueuedAnalytics();
   }
   // Consent Mode v2 (Vlna C): gtag existuje (inicializovaný v index.html PRED GTM).
   // Posielame KOMPLETNÝ stav pri každej voľbe — aj revoke (granted→denied), inak by
@@ -75,7 +72,7 @@ export function applyConsent(c: Consent, prev?: Consent | null): void {
   if (c.marketing === true) {
     (window as any).dataLayer?.push({ event: 'consent_marketing_granted' });
   }
-  // Bez `analytics:true` sa posthog nenačíta vôbec (od 6. 10. 2026; predtým Tier 0 cookieless bežal bez súhlasu).
+  // Tier 0 posthog beží ďalej nezávisle (cookieless memory, kryté policy).
 }
 
 export function hasChoice(): boolean {

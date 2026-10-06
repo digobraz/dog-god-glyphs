@@ -11,41 +11,16 @@ export const setAnalyticsLang = (l: string) => { if (l) currentLang = l; };
 // (`initAnalytics`, volá ju main.tsx). Eventy, čo prídu skôr (pageview, prvé kliky),
 // čakajú vo fronte a po inite sa odohrajú v tom istom poradí — nič sa nestratí.
 // Prázdny POSTHOG_KEY = init sa nikdy nevolá a všetky volania sú bezpečný no-op.
-//
-// 🔴 KNIŽNICA SA NAČÍTA LEN PO SÚHLASE `analytics:true` (6. 10. 2026, Matej + audit /onepage 🟠7):
-// pri odmietnutom súhlase šli na eu-assets.i.posthog.com 4 požiadavky ešte pred akoukoľvek voľbou.
-// Kým človek nevolil (`unknown`), eventy čakajú vo fronte v pamäti a nikam nejdú; po `granted` sa
-// knižnica dotiahne a fronta odohrá; po `denied` sa fronta zahodí a `run` nové eventy nezaraďuje.
-// Súhlas sa číta priamo z localStorage — consent.ts importuje tento súbor, kruhový import netreba.
-const analyticsConsent = (): 'granted' | 'denied' | 'unknown' => {
-  try {
-    const c = JSON.parse(localStorage.getItem('dogypt_consent') || 'null');
-    if (typeof c?.analytics !== 'boolean') return 'unknown';
-    return c.analytics ? 'granted' : 'denied';
-  } catch { return 'unknown'; }
-};
 let posthog: PostHog | null = null;
-let scrubFn: ((ev: any) => any) | null = null;
-let loading = false;
 const queue: Array<(ph: PostHog) => void> = [];
 const MAX_QUEUE = 100;
 const run = (fn: (ph: PostHog) => void) => {
   if (posthog) { try { fn(posthog); } catch { /* ignore */ } return; }
-  if (POSTHOG_KEY && analyticsConsent() !== 'denied' && queue.length < MAX_QUEUE) queue.push(fn);
+  if (POSTHOG_KEY && queue.length < MAX_QUEUE) queue.push(fn);
 };
-
-// Zahodí eventy čakajúce na súhlas — volá consent.ts pri `analytics:false`.
-export const dropQueuedAnalytics = () => { queue.length = 0; };
 
 export const initAnalytics = (scrub: (ev: any) => any) => {
-  scrubFn = scrub;
-  if (analyticsConsent() === 'granted') loadPosthog();
-};
-
-const loadPosthog = () => {
-  if (!POSTHOG_KEY || posthog || loading || !scrubFn) return;
-  loading = true;
-  const scrub = scrubFn;
+  if (!POSTHOG_KEY || posthog) return;
   import('posthog-js').then(({ default: ph }) => {
     ph.init(POSTHOG_KEY, {
       api_host: POSTHOG_HOST,
@@ -69,7 +44,7 @@ const loadPosthog = () => {
     });
     posthog = ph;
     queue.splice(0).forEach((fn) => { try { fn(ph); } catch { /* ignore */ } });
-  }).catch(() => { queue.length = 0; loading = false; });
+  }).catch(() => { queue.length = 0; });
 };
 
 // dataLayer bridge (Vlna C): každý track() ide AJ do window.dataLayer, aby GTM/GA4/Pixel
@@ -112,7 +87,6 @@ export const trackPageview = (path: string) => {
 
 // Volá sa vo vlne B po analytics consente — prepne z memory na plný režim + recording.
 export const upgradeToTier1 = () => {
-  loadPosthog();   // súhlas už je uložený (saveConsent píše PRED applyConsent) — načítaj knižnicu
   run((ph) => {
     ph.set_config({ persistence: 'localStorage+cookie' });
     ph.startSessionRecording();
