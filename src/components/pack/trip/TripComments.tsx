@@ -40,6 +40,7 @@ import {
   deleteTripQuestion,
   type RealReview,
   type RealQuestion,
+  REVIEW_CHANGED,
 } from '@/components/pack/trip/tripCommentsData';
 // Nahlásenie (issue #54) — infra (RPC `report_content` + `pack_reports`) žije v messaging module,
 // odtiaľ sa len importuje (needituje sa, iní agenti na ňom pracujú súbežne).
@@ -393,6 +394,12 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   }, [tripId]);
 
   useEffect(() => { void refreshReviews(); void refreshQuestions(); }, [refreshReviews, refreshQuestions]);
+  // Recenzia mohla vzniknúť aj z okna „Prešiel som" (`reviewFromWalk`) — obnov sa, keď patrí tomuto výletu.
+  useEffect(() => {
+    const on = (e: Event) => { if ((e as CustomEvent<string>).detail === tripId) void refreshReviews(); };
+    window.addEventListener(REVIEW_CHANGED, on);
+    return () => window.removeEventListener(REVIEW_CHANGED, on);
+  }, [tripId, refreshReviews]);
 
   const myReview = realReviews.find((r) => r.isMine) ?? null;
   const otherReviews = realReviews.filter((r) => !r.isMine);

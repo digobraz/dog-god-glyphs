@@ -159,6 +159,7 @@ ${VEIL_CSS}
 .comm-modal-sub{font-size:12px;color:${P.dim};margin-top:4px;text-align:center;}
 .comm-field{margin-bottom:18px;}
 .comm-label{display:block;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0.02em;text-transform:uppercase;color:${P.deep};margin-bottom:9px;}
+.comm-hint{margin:4px 0 0;font-family:${FONT_UI};font-size:12px;color:${P.deep};opacity:.7;}
 
 /* rating packy (klikateľné) žijú v PawRating (addtrip/PawRating.tsx) — vlastné inline štýly. */
 
@@ -1020,7 +1021,7 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
           <div className="comm-chips">
             {HAZARDS.map((h) => (
               <button key={h} type="button" className={`comm-chip${hazards.includes(h) ? ' on' : ''}`} onClick={() => toggleHazard(h)}>
-                {HAZARD_EMOJI[h]} {h}
+                {HAZARD_EMOJI[h]} {t(`pack.community.hazard.${h}`)}
               </button>
             ))}
           </div>
@@ -1033,6 +1034,8 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
         <div className="comm-field" style={{ gridColumn: '1 / -1' }}>
           <label className="comm-label">{t('pack.community.commentLabel')}</label>
           <textarea className="comm-textarea" value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t('pack.community.commentPlaceholder')} />
+          {/* Komentár = verejná recenzia výletu (`trip_reviews`) — Matej 6. 10.: „namiesto komentár daj Komentár / recenzia". Do 6. 10. ležal len v `trip_votes.comment` a nevidel ho nikto okrem autora. */}
+          <p className="comm-hint">{t('pack.community.commentPublic')}</p>
         </div>
       </div>
       <button
@@ -1220,12 +1223,13 @@ export function PhotoMetaPills({ agg, km, ascentM, hasRoute = true }: { agg: Cro
 // ── HazardTags (Matej 2026-07-22) — LEN v inline detaile, vedľa tagov (nie na fotke). Červené
 // chipy: koľko % členov nahlásilo dané nebezpečenstvo. Prázdne → nič nevykreslí. ──
 export function HazardTags({ agg }: { agg: CrowdAgg }) {
+  const t = useT();
   if (agg.hazardBreakdown.length === 0) return null;
   return (
     <>
       {agg.hazardBreakdown.map((h) => (
         <span key={h.value} className="comm-hazardtag" title={`${h.pct}% of members reported ${h.value}`}>
-          {HAZARD_EMOJI[h.value]} {h.value} · {h.pct}%
+          {HAZARD_EMOJI[h.value]} {t(`pack.community.hazard.${h.value}`)} · {h.pct}%
         </span>
       ))}
     </>

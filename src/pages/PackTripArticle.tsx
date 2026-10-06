@@ -8,6 +8,7 @@
 // component state, ktorý sa pri navigácii sem zruší — tripShared.ts sessionStorage mirror
 // (readLocalTrails/readFavIds/readWalkedIds) drží ich konzistentné cez mount/unmount v rámci
 // tej istej browser session (žiadna Supabase perzistencia, tá je mimo rozsahu).
+import { reviewFromWalk } from '@/components/pack/trip/tripCommentsData';
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { PLANNING_LIVE } from '@/lib/packFlags';
@@ -1199,6 +1200,7 @@ export default function PackTripArticle() {
   const submitWalked = (v: WalkedInput) => {
     if (!trail) return;
     setVotes((prev) => ({ ...prev, [trail.id]: { tripId: trail.id, ...v, at: nowMs } }));
+    void reviewFromWalk(trail.id, v.rating, v.comment); // komentár = verejná recenzia (Matej 6. 10.)
     setWalkedIds((prev) => { const n = new Set(prev); n.add(trail.id); return n; });
     setWalkedPopupOpen(false);
     setWalkedReward(null);

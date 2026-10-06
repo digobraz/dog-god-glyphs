@@ -3850,7 +3850,11 @@ export const cs: Partial<Dict> = {
   // ── pack.community ──
   'pack.community.browseTrips': 'Projdi si výlety',
   'pack.community.closeAriaLabel': 'Zavřít',
-  'pack.community.commentLabel': 'Komentář (nepovinné)',
+  'pack.community.commentLabel': "Komentář / recenze (nepovinné)",
+  'pack.community.commentPublic': "Uvidí to smečka u výletu.",
+  'pack.community.hazard.Ticks': "Klíšťata",
+  'pack.community.hazard.Vipers': "Zmije",
+  'pack.community.hazard.Wildlife': "Divoká zvěř",
   'pack.community.commentPlaceholder': 'Po dešti bláto, pěkný úsek na volno u vrcholu…',
   'pack.community.crowdLabel': 'Návštěvnost',
   'pack.community.optional': '(nepovinné)',

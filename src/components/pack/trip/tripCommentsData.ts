@@ -126,6 +126,20 @@ export async function upsertMyReview(tripSlug: string, paws: number, body?: stri
   if (error) throw new Error(`[tripCommentsData] review neodišlo: ${error.message ?? 'unknown'}`);
 }
 
+/** Komentár z okna „Prešiel som" (WalkedPopup) = verejná RECENZIA výletu (Matej 6. 10. 2026:
+ *  *„namiesto komentár daj Komentár / recenzia"*). Do 6. 10. ležal len v `trip_votes.comment`
+ *  a nevidel ho nikto okrem autora. Bez textu sa nič nezapisuje — prázdny komentár by upsertom
+ *  zmazal text recenzie, ktorú človek napísal skôr. Po zápise pošle `REVIEW_CHANGED`, nech sa
+ *  otvorená sekcia recenzií (TripComments) obnoví. */
+export const REVIEW_CHANGED = 'dogypt:trip-review-changed';
+export async function reviewFromWalk(tripSlug: string, paws: number, comment: string): Promise<void> {
+  if (!comment.trim() || paws < 1 || paws > 5) return;
+  try {
+    await upsertMyReview(tripSlug, paws, comment);
+    window.dispatchEvent(new CustomEvent(REVIEW_CHANGED, { detail: tripSlug }));
+  } catch (e) { console.warn('[reviewFromWalk]', e); }
+}
+
 export async function deleteMyReview(tripSlug: string): Promise<void> {
   const uid = await getAuthedUserId();
   if (!uid) throw new Error('[tripCommentsData] deleteMyReview: not signed in');

@@ -47,6 +47,7 @@
 // (6) `<DiffMark>` (CSS tvar namiesto emoji) zdieľaný cez
 // components/pack/tripShared.tsx; (7) mobile header kompaktnejší, filter
 // ikonka = sliders (nie graph).
+import { reviewFromWalk } from '@/components/pack/trip/tripCommentsData';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { usePublishPilgrimLevel } from '@/components/pack/usePilgrimStats';
 import { trackPack } from '@/lib/packAnalytics';
@@ -4631,6 +4632,7 @@ export default function PackMap() {
     if (!walkedPopupId) return;
     const tid = walkedPopupId;
     setVotes((prev) => ({ ...prev, [tid]: { tripId: tid, ...v, at: nowMs } }));
+    void reviewFromWalk(tid, v.rating, v.comment); // komentár = verejná recenzia (Matej 6. 10.)
     setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
     setWalkedPopupId(null);
     setWalkedReward(null);
