@@ -367,7 +367,10 @@ const FILM_SLIDES: FilmSlide[] = ([
     id: 'apps',
     navKey: 'film.slide.apps',
     at: () => pinnedAt('.op-apps', APPS_STOPS[0]),
-    from: () => pinnedAt('.op-apps', APPS_STOPS[0] * 0.5),
+    // 🔴 + ½ obrazovky (6. 10. 2026, bug: na heroglyfe svietilo ČLENSTVO). Pilulka meria STRED okna
+    // (scrollY + ½ vh), kým začiatok sekcie ČLENSTVO leží presne na odpočívadle heroglyfu
+    // (`.op-arc-rest2`) — pri vyššom okne bol stred za `from` už v pokoji heroglyfu.
+    from: () => { const y = pinnedAt('.op-apps', APPS_STOPS[0] * 0.5); return y == null ? null : y + filmVh() * 0.5; },
   },
   {
     // Pás recenzií. Klik má pristáť tam, kde sú karty v strede obrazovky —
@@ -7446,8 +7449,8 @@ export default function OnePage() {
         .op-dgx[data-live="1"] .dgx-gbox .kdot { opacity: 1; pointer-events: auto; }
         .dgx-gbox .kdot--left  { right: calc(100% + 4px); transform: translateY(-50%); }
         .dgx-gbox .kdot--right { left: calc(100% + 4px);  transform: translateY(-50%); }
-        .dgx-gbox .kdot--in.kdot--left  { right: auto; left: 10px; }
-        .dgx-gbox .kdot--in.kdot--right { left: auto; right: 10px; }
+        /* PC bez bodiek (Matej 6. 10. 2026: *„vymaž na PC tie hotspoty"*). Mobil ich ma bez zmeny. */
+        .dgx-gbox .kdot--in { display: none !important; }
         .dgx-gbox .kdot--up    { bottom: calc(100% + 4px); transform: translateX(-50%); }
         .dgx-gbox .kdot--down  { top: calc(100% + 4px);    transform: translateX(-50%); }
         .dgx-gbox .kdot:focus:not(:focus-visible) { outline: none; }
