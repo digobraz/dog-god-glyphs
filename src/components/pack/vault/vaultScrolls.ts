@@ -19,6 +19,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { uploadVaultTalkPhoto } from '@/services/cloudinaryService';
 
 /** Zvitky sú zapnuté všade, kde je `/pack/ainubis` (ten je za DEV_FULL — von ide s FLIPom). */
 export const SCROLL_DEMO = true;
@@ -205,33 +206,116 @@ export function useCounts(id: string): { likes: number; saves: number } | null {
   return uid ? (c || { likes: 0, saves: 0 }) : null;
 }
 
-// ── diskusia (komentáre k celému zvitku, „ako fórum") — DEV len v prehliadači ─
+// ── diskusia (komentáre k celému zvitku, „ako fórum") ────────────────────────
+// 🟢 OD 6. 10. 2026 V DB (Matej: *„treba urobiť aby aj komenty zostávali všade"*).
+// Komentár = riadok v `posts` so štítkom `vault` a prílohou `{scroll}` (lock /pack §4.3 —
+// príspevok nemá typ, má štítky; budúci feed ich vezme bez prevodu). Lajk = `post_marks`.
+// Čítanie cez RPC `list_vault_talk` (meno autora + počty od všetkých), migrácia
+// `20261015_vault_diskusia.sql`. Bez účtu ostáva starý režim „len v prehliadači".
 const TKEY = 'vault-demo-talk';
-export type Talk = { text: string; at: number; img?: string; liked?: boolean };
+export type Talk = {
+  text: string; at: number; img?: string; liked?: boolean;
+  id?: string; likes?: number; author?: string | null; avatar?: string | null; mine?: boolean;
+};
 let talk: Record<string, Talk[]> = (() => {
   try { return JSON.parse(localStorage.getItem(TKEY) || '{}') as Record<string, Talk[]>; } catch { return {}; }
 })();
+let talkFromDb = false;
+const talkLoaded = new Set<string>();
+let talkCounts: Record<string, number> = {};
 const tsubs = new Set<() => void>();
 const NONE: Talk[] = [];
+const tnotify = () => tsubs.forEach((f) => f());
 function saveTalk() {
-  try { localStorage.setItem(TKEY, JSON.stringify(talk)); } catch { /* plná pamäť / súkromné okno */ }
-  tsubs.forEach((f) => f());
+  if (!talkFromDb) { try { localStorage.setItem(TKEY, JSON.stringify(talk)); } catch { /* plná pamäť / súkromné okno */ } }
+  tnotify();
 }
-/** Lajk komentára (labka s počtom). DEV: len môj klik. */
+type TalkRow = { id: string; is_mine: boolean; author: string | null; avatar_url: string | null; body: string; photos: unknown; created_at: string; likes: number; liked: boolean };
+async function signedIn(): Promise<string | null> {
+  if (uid) return uid;
+  const { data } = await supabase.auth.getSession();
+  return data.session?.user?.id ?? null;
+}
+async function loadTalk(id: string) {
+  const me = await signedIn();
+  if (!me) return;
+  if (!talkFromDb) { talkFromDb = true; talk = {}; }
+  const { data, error } = await db.rpc('list_vault_talk', { p_scroll: id });
+  if (error) { console.warn('[vault] diskusia', error); return; }
+  talk = { ...talk, [id]: ((data || []) as TalkRow[]).map((r) => ({
+    id: r.id, text: r.body, at: Date.parse(r.created_at),
+    img: Array.isArray(r.photos) && typeof r.photos[0] === 'string' ? r.photos[0] : undefined,
+    liked: r.liked, likes: r.likes, author: r.author, avatar: r.avatar_url, mine: r.is_mine,
+  })) };
+  talkCounts = { ...talkCounts, [id]: talk[id].length };
+  tnotify();
+}
+let countsStarted = false;
+async function loadTalkCounts() {
+  if (countsStarted) return;
+  countsStarted = true;
+  if (!(await signedIn())) return;
+  const { data } = await db.rpc('vault_talk_counts');
+  talkCounts = Object.fromEntries(((data || []) as { scroll_id: string; n: number }[]).map((r) => [r.scroll_id, Number(r.n)]));
+  tnotify();
+}
+/** Lajk komentára — v DB `post_marks` (počet od všetkých), bez účtu len môj klik. */
 export function toggleTalkLike(id: string, i: number) {
   const list = [...(talk[id] || [])];
-  if (!list[i]) return;
-  list[i] = { ...list[i], liked: !list[i].liked };
+  const c = list[i];
+  if (!c) return;
+  const on = !c.liked;
+  list[i] = { ...c, liked: on, likes: Math.max(0, (c.likes ?? (c.liked ? 1 : 0)) + (on ? 1 : -1)) };
   talk = { ...talk, [id]: list };
   saveTalk();
+  if (!talkFromDb || !c.id || !uid) return;
+  const q = on
+    ? db.from('post_marks').insert({ post_id: c.id, user_id: uid, kind: 'like' })
+    : db.from('post_marks').delete().eq('post_id', c.id).eq('user_id', uid).eq('kind', 'like');
+  void q.then(({ error }: { error: unknown }) => { if (error) { console.warn('[vault] lajk komentára', error); void loadTalk(id); } });
 }
-export function addTalk(id: string, text: string, img?: string) {
-  talk = { ...talk, [id]: [...(talk[id] || []), { text, at: Date.now(), ...(img ? { img } : {}) }] };
-  try { localStorage.setItem(TKEY, JSON.stringify(talk)); } catch { /* súkromné okno */ }
-  tsubs.forEach((f) => f());
+/** Komentár pod zvitok. `img` = data URL zo `shrinkPhoto`; v DB ide na Cloudinary. */
+export async function addTalk(id: string, text: string, img?: string): Promise<boolean> {
+  const me = await signedIn();
+  if (!me) {
+    talk = { ...talk, [id]: [...(talk[id] || []), { text, at: Date.now(), ...(img ? { img } : {}) }] };
+    saveTalk();
+    return true;
+  }
+  try {
+    let photos: string[] = [];
+    if (img) {
+      const blob = await (await fetch(img)).blob();
+      const up = await uploadVaultTalkPhoto(blob, id, String(Date.now()));
+      photos = [up.secureUrl];
+    }
+    const { error } = await db.from('posts').insert({
+      author_id: me, body: text, photos, tags: ['vault'], attach: { scroll: id }, visibility: 'public',
+    });
+    if (error) throw error;
+    await loadTalk(id);
+    return true;
+  } catch (e) {
+    console.warn('[vault] komentár neodišiel', e);
+    return false;
+  }
+}
+/** Zmaže môj komentár (RLS `posts_del` — len autor). */
+export async function deleteTalk(id: string, postId: string): Promise<void> {
+  const { error } = await db.from('posts').delete().eq('id', postId);
+  if (error) { console.warn('[vault] mazanie komentára', error); return; }
+  await loadTalk(id);
 }
 export function useTalk(id: string): Talk[] {
+  useEffect(() => { if (!talkLoaded.has(id)) { talkLoaded.add(id); void loadTalk(id); } }, [id]);
   return useSyncExternalStore((f) => { tsubs.add(f); return () => { tsubs.delete(f); }; }, () => talk[id] || NONE, () => talk[id] || NONE);
+}
+/** Počet komentárov pre kartu zvitku (od všetkých). */
+export function useTalkCount(id: string): number {
+  useEffect(() => { void loadTalkCounts(); }, []);
+  return useSyncExternalStore((f) => { tsubs.add(f); return () => { tsubs.delete(f); }; },
+    () => (talkFromDb || countsStarted ? talkCounts[id] ?? (talk[id]?.length || 0) : talk[id]?.length || 0),
+    () => talk[id]?.length || 0);
 }
 
 // ── NÁVRH ZMENY (Prispej) a ŽIADOSŤ O JAZYK → `vault_requests` (AINUBIS posúdi) ─

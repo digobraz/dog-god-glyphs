@@ -34,7 +34,7 @@ const Ic = ({ ic }: { ic: string }) => (
 import { BackButton } from '@/components/pack/BackButton';
 import {
   type DemoScroll, pickText, pickPod, sourceHref, fmtSec, scrollLang,
-  markScroll, useScrollState, toggleSaved, useSaved, useTalk, addTalk, toggleLiked, useLiked,
+  markScroll, useScrollState, toggleSaved, useSaved, useTalk, useTalkCount, addTalk, toggleLiked, useLiked,
   toggleTalkLike, addProposal, shrinkPhoto, type ProposalKind, podLang, requestLang, useCounts, saveListen, useReads,
 } from './vaultScrolls';
 import { VAULT_CIRCLES } from './circles';
@@ -337,7 +337,8 @@ ${packColCSS('.zv-wrap')}
 .zv-cmt{display:flex;gap:${PACK_SPACE.sm}px;padding:${PACK_SPACE.sm}px 0;border-bottom:1px solid ${AINUBIS.edge};font-size:${PACK_TEXT.body}px;}
 .zv-cmt p{margin:${PACK_SPACE.xs}px 0 0;color:${AINUBIS.inkDim};}
 .zv-cmt small{color:${AINUBIS.inkFaint};font-size:${PACK_TEXT.micro}px;}
-.zv-cav{width:28px;height:28px;flex:0 0 auto;border-radius:${PACK_R.pill}px;display:flex;align-items:center;justify-content:center;
+.zv-cav{width:28px;height:28px;flex:0 0 auto;border-radius:${PACK_R.pill}
+.zv-cav img{width:100%;height:100%;object-fit:cover;border-radius:inherit;}px;display:flex;align-items:center;justify-content:center;
   background:${AINUBIS.raised};border:1px solid ${AINUBIS.edge};font-size:${PACK_TEXT.label}px;}
 .zv-cform{display:flex;flex-direction:column;align-items:flex-end;gap:${PACK_SPACE.sm}px;margin-top:${PACK_SPACE.md}px;}
 .zv-cform textarea{align-self:stretch;resize:vertical;min-height:64px;padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.field}px;
@@ -394,7 +395,7 @@ export function ScrollActions({ id, lang, onShare, onTalk }: {
 }) {
   const u = scrollUI(lang);
   const saved = useSaved().includes(id);
-  const talk = useTalk(id).length;
+  const talk = useTalkCount(id);
   const liked = useLiked().includes(id);
   // Počet od všetkých členov (`vault_scroll_counts`); bez účtu (NOAUTH dev) len môj klik.
   const c = useCounts(id);
@@ -686,6 +687,7 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
   const talkList = useTalk(z.id);
   const [draft, setDraft] = useState('');
   const [pic, setPic] = useState('');
+  const [sending, setSending] = useState(false);
   const [propOpen, setPropOpen] = useState(false);
   const [kind, setKind] = useState<ProposalKind>('add');
   const [prop, setProp] = useState('');
@@ -801,29 +803,37 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
           </button>
 
           {/* DISKUSIA — komentáre k celému článku, „ako také fórum" (Matej 3. 10.).
-              ⚠️ Drží ich len prehliadač: podľa locku /pack §4.3 je to príspevok so ŠTÍTKOM zvitku
-                 a tabuľka príspevkov ešte neexistuje — vlastnú tabuľku komentárov nezakladáme. */}
+              Od 6. 10. 2026 v DB: príspevok v `posts` so ŠTÍTKOM `vault` (lock /pack §4.3),
+              vidia ho všetci členovia — `vaultScrolls.ts` § diskusia. */}
           <section className="zv-box zv-box--talk" ref={talkRef}>
             <h3 className="zv-sec">{u.talk}{talkList.length > 0 && ` · ${talkList.length}`}</h3>
             {talkList.length === 0 && <div className="zv-add">{u.talkNone}</div>}
             {talkList.map((c, i) => (
-              <div key={i} className="zv-cmt"><span className="zv-cav">{u.you.slice(0, 1)}</span>
-                <div><b>{u.you}</b> <small>{new Date(c.at).toLocaleDateString(lang)}</small><p>{c.text}</p>
+              <div key={c.id ?? i} className="zv-cmt">
+                {/* Autor z DB (`list_vault_talk`) — meno z profilu, inak z psa; bez účtu „Ty". */}
+                <span className="zv-cav">{c.avatar ? <img src={c.avatar} alt="" /> : (c.mine === false ? c.author || '?' : u.you).slice(0, 1)}</span>
+                <div><b>{c.mine === false ? c.author || '—' : u.you}</b> <small>{new Date(c.at).toLocaleDateString(lang)}</small>{c.text && <p>{c.text}</p>}
                   {c.img && <img className="zv-cimg" src={c.img} alt="" />}
-                  {/* Lajk komentára s počtom. ⚠️ DEV: len môj klik — počty ostatných prídu s tabuľkou. */}
+                  {/* Lajk komentára s počtom od všetkých (`post_marks`). */}
                   <button type="button" className={`zv-clike${c.liked ? ' is-on' : ''}`} onClick={() => toggleTalkLike(z.id, i)} aria-label={u.like}>
-                    <HandHeart size={16} on={!!c.liked} />{c.liked ? 1 : 0}
+                    <HandHeart size={16} on={!!c.liked} />{c.likes ?? (c.liked ? 1 : 0)}
                   </button>
                 </div></div>
             ))}
-            <form className="zv-cform" onSubmit={(e) => { e.preventDefault(); if (draft.trim() || pic) { addTalk(z.id, draft.trim(), pic || undefined); setDraft(''); setPic(''); } }}>
+            <form className="zv-cform" onSubmit={(e) => {
+              e.preventDefault();
+              if (sending || (!draft.trim() && !pic)) return;
+              setSending(true);
+              // Text sa zmaže až keď DB zápis prešiel — inak by sa pri chybe stratil.
+              void addTalk(z.id, draft.trim(), pic || undefined).then((ok) => { if (ok) { setDraft(''); setPic(''); } setSending(false); });
+            }}>
               <textarea value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={u.talkPh} rows={2} />
               {pic && <img className="zv-cprev" src={pic} alt="" />}
               <div className="zv-crow">
                 <label className="zv-cpic"><HandCamera size={16} />{u.photo}
                   <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) shrinkPhoto(f).then(setPic).catch(() => undefined); e.target.value = ''; }} />
                 </label>
-                <button type="submit" className="zv-chip" disabled={!draft.trim() && !pic}>{u.talkSend}</button>
+                <button type="submit" className="zv-chip" disabled={sending || (!draft.trim() && !pic)}>{u.talkSend}</button>
               </div>
             </form>
           </section>

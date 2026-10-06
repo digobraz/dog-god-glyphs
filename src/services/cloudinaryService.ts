@@ -87,6 +87,11 @@ export const uploadDogDiaryPhoto = (blob: Blob, dogId: string, stamp: string) =>
 export const uploadTripStoryPhoto = (blob: Blob, slug: string, stamp: string) =>
   uploadBlob(blob, `trip-stories/${slug}`, stamp);
 
+// Fotka v DISKUSII ZVITKU VAULTU (6. 10. 2026) — `vault-talk/<id zvitku>/<stamp>`.
+// Čas v `public_id` z toho istého dôvodu ako príbehy: k jednému zvitku píše veľa ľudí.
+export const uploadVaultTalkPhoto = (blob: Blob, scrollId: string, stamp: string) =>
+  uploadBlob(blob, `vault-talk/${scrollId}`, stamp);
+
 // Fotka PODUJATIA (vlna 2, 25. 9. 2026) — `pack-events/<edition_id>/<stamp>`.
 // ⚠️ id ročníka vzniká v prehliadači PRED zápisom (`crypto.randomUUID()`), lebo fotka sa
 //    nahráva skôr než riadok — inak by bol priečinok neznámy. Recap „uskutočnilo sa" ide
