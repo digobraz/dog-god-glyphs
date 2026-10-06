@@ -721,6 +721,16 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
         .op-apps-lang-t b { font: 700 14px/1.2 'Cinzel', serif; letter-spacing: .06em; text-transform: uppercase; color: ${LAB.goldInk}; }
         .op-apps-lang-t span { font: 500 14px/1.3 'Space Grotesk', sans-serif; color: ${LAB.inkBody}; }
         @media (min-width: 768px) { .op-apps-lang { display: flex; } }
+        /* MOBIL: pás nad textom funkcie (medzi lištou a „ČLENSTVO · 1/5“) — kompaktnejšia verzia, na šírku okna. */
+        @media (max-width: 767px) {
+          .op-apps-lang {
+            display: flex; left: 16px; right: 16px; top: calc(var(--op-nav-h, 118px) + 8px); max-width: none;
+            gap: 12px; padding: 4px 16px 4px 4px; width: fit-content; margin: 0 auto;
+          }
+          .op-apps-lang-n { width: 40px; height: 40px; font-size: 16px; }
+          .op-apps-lang-t b { font-size: 12px; letter-spacing: .04em; }
+          .op-apps-lang-t span { font-size: 12px; }
+        }
         .op-apps-col {
           position: absolute; left: max(16px, calc(50vw - 560px)); width: min(440px, 40vw);
           top: var(--mid, 50%);
