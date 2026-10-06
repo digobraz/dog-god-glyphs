@@ -333,7 +333,12 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
             <button type="button" className="op-fin-pop-x" aria-label={t('onepage.fin.moreClose')} onClick={() => setMore(false)} />
             <h3 className="op-fin-pop-h">{t('onepage.fin.moreHead')}</h3>
             <div className="op-fin-pop-body">
-              {t('onepage.fin.moreBody').split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
+              {t('onepage.fin.moreBody').split('\n\n').map((para, i) => {
+                if (para.startsWith('## ')) return <h4 key={i} className="op-fin-pop-sec">{para.slice(3)}</h4>;
+                const ph = para.match(/^\[\[(\d)\]\]$/);
+                if (ph) return <img key={i} className="op-fin-pop-img" src={`/images/about-popup/foto-${ph[1]}.jpg`} alt="" loading="lazy" decoding="async" />;
+                return <p key={i}>{para}</p>;
+              })}
             </div>
           </div>
         </div>,
@@ -415,7 +420,12 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
           margin: 0 32px 16px 0; font: 700 24px/1.2 'Cinzel', serif; letter-spacing: .04em;
           text-transform: uppercase; color: ${LAB.goldSolid};
         }
-        .op-fin-pop-body p { margin: 0 0 12px; font: 400 16px/1.6 'Space Grotesk', sans-serif; color: ${LAB.ink}; }
+        .op-fin-pop-body p { margin: 0 0 12px; font: 400 16px/1.6 'Space Grotesk', sans-serif; color: ${LAB.ink}; white-space: pre-line; }
+        .op-fin-pop-sec {
+          margin: 32px 0 12px; font: 700 20px/1.2 'Cinzel', serif; letter-spacing: .04em;
+          text-transform: uppercase; color: ${LAB.goldSolid};
+        }
+        .op-fin-pop-img { display: block; width: 100%; height: auto; margin: 16px 0; border-radius: 12px; }
         .op-fin-pop-x {
           position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border: 0; padding: 0;
           background: ${LAB.ink}; cursor: pointer;
