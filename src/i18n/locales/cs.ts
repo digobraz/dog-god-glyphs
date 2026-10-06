@@ -3879,6 +3879,8 @@ export const cs: Partial<Dict> = {
   'pack.companions.remove': 'Odebrat {name}',
   'pack.companions.typeName': 'Napiš jméno…',
   'pack.companions.yourPack': 'Tvoje smečka',
+  'pack.companions.packHumans': 'Lidé tvého psa',
+  'pack.companions.packHumanNoName': 'Člen smečky',
 
   // ── pack.del ──
   'pack.del.cancel': 'Nechat',
