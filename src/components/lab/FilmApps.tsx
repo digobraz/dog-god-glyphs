@@ -416,6 +416,17 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           <p className="op-apps-lead op-apps-tail">{t('onepage.apps.chips.tail')}</p>
         </div>
 
+        {/* JAZYKY — na druhej polohe je nad telefónmi miesto (Matej 6. 10. 2026: *„heroglyf je univerzálny
+            jazyk, ale appka je v 18 jazykoch… zabalené do niečoho pekného"*). 18 = počet súborov v
+            `src/i18n/locales/` (ara chn cs deu en esp fra ind ita jpn kor nld pol prt rus sk tur ukr). */}
+        <div className="op-apps-lang" aria-hidden="true">
+          <span className="op-apps-lang-n">18</span>
+          <span className="op-apps-lang-t">
+            <b>{t('onepage.apps.lang.a')}</b>
+            <span>{t('onepage.apps.lang.b')}</span>
+          </span>
+        </div>
+
         <div className="op-apps-col">
           {APPS.map((a, i) => (
             <div className={`op-apps-txt${!peek && i === idx ? ' is-on' : ''}`} key={a.id} aria-hidden={peek || i !== idx}>
@@ -693,6 +704,23 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
         /* Bez toho myš „chytí" obrázok (natívny drag) a pointerup nepríde — ťah by nič neprepol. */
         .op-apps-car img { -webkit-user-drag: none; user-drag: none; pointer-events: none; }
         /* Ľavý stĺpec — texty funkcií stoja na sebe, vymenia sa s telefónom (700 ms). */
+        /* PILULKA JAZYKOV — zlatý obrys = konštrukcia; číslo v kruhu zlatým gradientom ako nadpisy. Len na druhej polohe. */
+        .op-apps-lang {
+          position: absolute; left: max(16px, calc(50vw - 560px)); top: calc(var(--mid, 50%) + 200px); max-width: min(440px, 40vw);
+          display: none; align-items: center; gap: 16px; padding: 8px 24px 8px 8px; border-radius: 999px;
+          border: 1px solid rgba(201,154,63,.6); background: rgba(255,251,241,.7);
+          box-shadow: 0 12px 28px -20px rgba(42,22,8,.45); pointer-events: none;
+          opacity: calc(var(--r, 0) * var(--sx, 0));
+        }
+        .op-apps-lang-n {
+          flex: none; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center;
+          border: 1.5px solid ${LAB.goldSolid}; background: ${LAB.pageBg};
+          font: 700 20px/1 'Cinzel', serif; color: ${LAB.goldInk};
+        }
+        .op-apps-lang-t { display: flex; flex-direction: column; gap: 4px; text-align: left; }
+        .op-apps-lang-t b { font: 700 14px/1.2 'Cinzel', serif; letter-spacing: .06em; text-transform: uppercase; color: ${LAB.goldInk}; }
+        .op-apps-lang-t span { font: 500 14px/1.3 'Space Grotesk', sans-serif; color: ${LAB.inkBody}; }
+        @media (min-width: 768px) { .op-apps-lang { display: flex; } }
         .op-apps-col {
           position: absolute; left: max(16px, calc(50vw - 560px)); width: min(440px, 40vw);
           top: var(--mid, 50%);

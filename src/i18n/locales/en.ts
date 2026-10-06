@@ -1318,6 +1318,8 @@ export const en = {
   'onepage.apps.chips.lead': 'One app with the best of:',
   'onepage.apps.chips.tail': '…tailor-made for dog lovers.',
   'onepage.apps.chips.more': 'and much more…',
+  'onepage.apps.lang.a': 'The heroglyph is a universal language.',
+  'onepage.apps.lang.b': 'The app speaks 18 of them.',
   'onepage.apps.tap': 'tap me',
   'onepage.apps.prev': 'Previous',
   'onepage.apps.next': 'Next',

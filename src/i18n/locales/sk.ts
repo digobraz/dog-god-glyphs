@@ -1094,6 +1094,8 @@ export const sk: Partial<Dict> = {
   'onepage.apps.chips.lead': 'Jedna appka s tým najlepším z:',
   'onepage.apps.chips.tail': '…vytvorená na mieru pre psíčkarov.',
   'onepage.apps.chips.more': 'a oveľa viac…',
+  'onepage.apps.lang.a': 'Heroglyf je univerzálny jazyk.',
+  'onepage.apps.lang.b': 'Appka hovorí v 18 jazykoch.',
   'onepage.apps.tap': 'klikni',
   'onepage.apps.prev': 'Predošlý',
   'onepage.apps.next': 'Ďalší',

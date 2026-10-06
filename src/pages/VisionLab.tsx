@@ -493,6 +493,28 @@ const TITLE_GRAD = {
  */
 const VISION_BLOCKS = ['b1', 'b2', 'b3'] as const;
 
+/** Slučka s úvodným videom (1,9 MB) sa sťahuje až keď je sekcia blízko okna. OnePage mountuje celú vízu
+ *  hneď pri načítaní, takže `preload="auto"` bral na mobile ~80 % bajtov pred prvou obrazovkou
+ *  (Matej 6. 10. 2026: *„na mobile to ide veľmi pomaly"*). Do vtedy drží plagát. */
+function NearLoopVideo({ src, poster, className }: { src: string; poster: string; className?: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [near, setNear] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setNear(true); return; }
+    const io = new IntersectionObserver((es) => {
+      if (es.some((e) => e.isIntersecting)) { setNear(true); io.disconnect(); }
+    }, { rootMargin: '150% 0px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <video ref={ref} className={className} src={near ? src : undefined} poster={poster}
+      autoPlay muted loop playsInline preload={near ? 'auto' : 'none'} />
+  );
+}
+
 export default function VisionLab({ embedded = false, flow = false, onWatch, heroOnly = false }: VisionLabProps = {}) {
   const navigate = useNavigate();
   const t = useT();
@@ -2065,15 +2087,10 @@ export default function VisionLab({ embedded = false, flow = false, onWatch, her
               onClick={() => { setVideoPlaying(true); onWatch?.(); }}
               aria-label={t('vision.hero.playLabel')}
             >
-              <video
+              <NearLoopVideo
                 className="video-bg-loop"
                 src="/videos/vision-intro-montage.mp4"
                 poster="/images/mission/intro-poster.jpg"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="auto"
               />
               <span className="video-play-btn" aria-hidden>
                 <svg viewBox="0 0 72 72" width="72" height="72">
