@@ -1,7 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { en } from './locales/en';
-import { sk } from './locales/sk';
 
 /**
  * DOGYPT i18n — ľahká vlastná vrstva (bez react-i18next, Lovable-friendly).
@@ -16,7 +15,10 @@ import { sk } from './locales/sk';
  *   do localStorage zapisuje AŽ explicitný výber v pickeri — detekcia ostáva živá
  *   (zmena jazyka prehliadača sa prejaví, kým si user sám nevyberie).
  *
- * Perf (P0 2026-07): `en` + `sk` sú statické importy (fallback + najčastejší jazyk),
+ * Perf (6. 10. 2026): `sk` (316 kB) už NIE JE v hlavnom balíku — EN návštevník ho nikdy nestiahne.
+ * SK návštevník ho dostane PRED prvým renderom (`preloadActiveLang` v main.tsx), takže
+ * nikdy nevidí blik anglických textov.
+ * Perf (P0 2026-07, staršie): `en` + `sk` boli statické importy (fallback + najčastejší jazyk),
  * zvyšných 16 locale súborov (100-150 kB každý) sa dotiahne dynamickým `import()` až
  * pri reálnom prepnutí/inicializácii jazyka — main chunk nemá ťahať všetkých 18 naraz.
  */
@@ -28,11 +30,12 @@ const STORAGE_KEY = 'dogypt_lang';
 
 // Registry zapnutých locale slovníkov. `en`/`sk` sú vždy dostupné synchrónne,
 // ostatné sa dopĺňajú do cache po dotiahnutí (viď `loaders` nižšie).
-const DICTS: Record<string, Partial<Dict>> = { en, sk };
+const DICTS: Record<string, Partial<Dict>> = { en };
 
 // Lazy loaders pre ostatné jazyky. Pridať jazyk = import() sem + zápis do DICTS
 // po vyriešení promise (loadLang). Kľúče musia matchovať LanguagePicker `label` kódy.
 const loaders: Record<string, () => Promise<Partial<Dict>>> = {
+  sk: () => import('./locales/sk').then((m) => m.sk),
   cs: () => import('./locales/cs').then((m) => m.cs),
   // Launch-set strojové preklady (machine, pending human review cez review-prekladov.html).
   pol: () => import('./locales/pol').then((m) => m.pol),
@@ -55,6 +58,11 @@ const loaders: Record<string, () => Promise<Partial<Dict>>> = {
 
 // In-flight promises, aby sa ten istý jazyk nesťahoval viackrát paralelne.
 const pendingLoads: Record<string, Promise<void> | undefined> = {};
+
+/** Dotiahne jazyk, ktorý sa vykreslí ako prvý — main.tsx s ním počká na prvý render (len pre ne-EN). */
+export function preloadActiveLang(): Promise<void> {
+  return loadLang(readStoredLang());
+}
 
 /** Dotiahne locale do `DICTS` cache (no-op ak už je natiahnutý alebo statický). */
 function loadLang(lang: LangCode): Promise<void> {

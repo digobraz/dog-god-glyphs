@@ -41,7 +41,13 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  plugins: [react(), mode === "development" && componentTagger(), mode === "development" && saveTripPlugin(), mode === "development" && gpxDownloadPlugin()].filter(Boolean),
+  // 6. 10. 2026 (perf/hygiena): `public/vault-demo` (97 MB) je len DEV ukážka VAULTU
+  // (vaultScrolls.ts — v produkcii ide zvitky z DB). Do `dist` ani na Cloudflare nepatrí.
+  plugins: [{
+    name: "strip-dev-only-public",
+    apply: "build" as const,
+    closeBundle() { fs.rmSync(path.resolve(__dirname, "dist/vault-demo"), { recursive: true, force: true }); },
+  }, react(), mode === "development" && componentTagger(), mode === "development" && saveTripPlugin(), mode === "development" && gpxDownloadPlugin()].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

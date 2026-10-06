@@ -265,7 +265,7 @@ export function buildPortal(opts: PortalOptions = {}): PortalHandle {
   const {
     faces = [], label = 'Add photo', labelPicked = 'Change photo',
     note = '', subnote = '',
-    ariaLabel = "Add your dog's photo", onPick,
+    ariaLabel = 'Add a photo of your god', onPick,
   } = opts;
 
   const el = document.createElement('span');

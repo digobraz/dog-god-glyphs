@@ -2090,7 +2090,7 @@ export default function VisionLab({ embedded = false, flow = false, onWatch, her
               <NearLoopVideo
                 className="video-bg-loop"
                 src="/videos/vision-intro-montage.mp4"
-                poster="/images/mission/intro-poster.jpg"
+                poster="/images/mission/intro-poster.webp"
               />
               <span className="video-play-btn" aria-hidden>
                 <svg viewBox="0 0 72 72" width="72" height="72">

@@ -81,7 +81,7 @@ const smooth = (x: number) => x * x * (3 - 2 * x);
 /** Brand v3.2 zlato — na tmavom podklade B (LAB.goldInk je atrament pre papier). */
 const GOLD = '#C99A3F';
 
-export default function FilmFinale({ packNo, onDogma }: { packNo: number | null; onDogma: () => void }) {
+export default function FilmFinale({ packNo }: { packNo: number | null }) {
   const t = useT();
   const navigate = useNavigate();
   const secRef = useRef<HTMLElement>(null);
@@ -312,7 +312,8 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
               ))}
               {/* E-mail ako čip „Email me" (Matej 5. 10. 2026: *„namiesto emailu len chip email me"*). */}
               <a className="op-fin-blk op-fin-blk--mail" href="mailto:woof@dogypt.com" tabIndex={tabB}>{t('onepage.fin.emailMe')}</a>
-              <button type="button" className="op-fin-blk" onClick={onDogma} tabIndex={tabB}>DOGMA</button>
+              {/* DOGMA vedie na web ústavy, nie do knihy (Matej 6. 10. 2026). SK `/`, ostatné `/en/`. */}
+              <a className="op-fin-blk" href={lang === 'sk' ? 'https://dogma.dogypt.com/' : 'https://dogma.dogypt.com/en/'} target="_blank" rel="noreferrer" tabIndex={tabB}>DOGMA</a>
             </div>
             <p className="op-fin-legal">
               <a href="/privacy" tabIndex={tabB}>{t('about.footer.privacy')}</a>
@@ -413,17 +414,19 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
           padding: 16px; background: rgba(20,12,4,.55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
         }
         .op-fin-pop-card {
-          position: relative; width: min(640px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto;
-          overscroll-behavior: contain; padding: 32px 24px 24px; border-radius: 16px;
+          position: relative; width: min(640px, 100%); max-height: calc(100dvh - 32px); overflow: hidden;
+          display: flex; flex-direction: column; padding: 0; border-radius: 16px;
           background: #FFFBF1; border: 1px solid rgba(201,154,63,.45);
           box-shadow: 0 24px 48px -24px rgba(42,22,8,.55);
         }
         .op-fin-pop-h {
-          margin: 0 32px 16px 0; font: 700 24px/1.2 'Cinzel', serif; letter-spacing: .04em;
+          flex: none; margin: 0; padding: 32px 56px 16px 24px; font: 700 24px/1.2 'Cinzel', serif; letter-spacing: .04em;
           text-transform: uppercase; color: ${LAB.goldInk};
           background: ${LAB.goldText}; -webkit-background-clip: text; background-clip: text;
-          -webkit-text-fill-color: transparent; padding-top: .2em;
+          -webkit-text-fill-color: transparent;
         }
+        /* Nadpis + X ostávajú na mieste, scrolluje len telo (Matej 6. 10. 2026). */
+        .op-fin-pop-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 24px 24px; }
         .op-fin-pop-body p { margin: 0 0 12px; font: 400 16px/1.6 'Space Grotesk', sans-serif; color: ${LAB.inkBody}; white-space: pre-line; }
         .op-fin-pop-body strong { font-weight: 600; color: ${LAB.ink}; background: linear-gradient(transparent 60%, rgba(201,154,63,.32) 60%); }
         .op-fin-pop-sec {
@@ -437,9 +440,10 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
         /* PC = ČLÁNOK (Matej 6. 10. 2026): širšia karta, výrazný hlavný nadpis, menšie súrodé
            podnadpisy a menšie fotky, okolo ktorých text obteká (strany sa striedajú). */
         @media (min-width: 768px) {
-          .op-fin-pop-card { width: min(760px, 100%); padding: 48px 48px 32px; }
+          .op-fin-pop-card { width: min(760px, 100%); }
+          .op-fin-pop-body { padding: 24px 48px 32px; }
           .op-fin-pop-h {
-            margin: 0 0 32px; padding-bottom: 24px; text-align: center; font-size: 32px; line-height: 1.2;
+            margin: 0 48px; padding: 48px 0 24px; text-align: center; font-size: 32px; line-height: 1.2;
             letter-spacing: .08em; border-bottom: 1.5px solid rgba(201,154,63,.55);
           }
           .op-fin-pop-sec { clear: both; margin: 32px 0 12px; font-size: 16px; letter-spacing: .14em; }
@@ -451,7 +455,7 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
           .op-fin-pop-img.is-l { float: left; margin-right: 24px; }
         }
         .op-fin-pop-x {
-          position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border: 0; padding: 0;
+          position: absolute; z-index: 1; top: 16px; right: 16px; width: 32px; height: 32px; border: 0; padding: 0;
           background: ${LAB.ink}; cursor: pointer;
           -webkit-mask: url(/icons/pack/cross.svg) center / 20px no-repeat; mask: url(/icons/pack/cross.svg) center / 20px no-repeat;
         }

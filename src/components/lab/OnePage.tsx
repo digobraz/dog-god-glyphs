@@ -118,6 +118,8 @@ const pinnedAt = (sel: string, f: number): number | null => {
 
 const easeSine = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2;
 /** Jazda krava a pes → preambula (ústava). Predtým ~1,8 s mäkko. */
+/** Zrýchlenie jázd filmu (6. 10. 2026) — delí dĺžku jazdy. 1 = pôvodné tempo. */
+const FILM_TEMPO = { base: 1.25, back: 1.2, dgx: 1.4, quo: 1.15, wny: 1.5 };
 const CREDO_RIDE_MS = 3000;
 /** 🔴 Jazda guľa → krava a pes NA MOBILE (Matej 5. 10. 2026: *„trošku seká prechod
  *  z 1-2 slajd… chceme to viac plynulé"*). Predvolený cubic in-out má v strede
@@ -4085,7 +4087,7 @@ export default function OnePage() {
       window.scrollTo({ top: to, behavior: 'instant' as ScrollBehavior });
       // Dva snímky: choreografia sa prepočíta na novej polohe skôr, než opona odíde.
       requestAnimationFrame(() => requestAnimationFrame(() => v.classList.remove('is-on')));
-    }, reduce ? 0 : 340);
+    }, reduce ? 0 : 220);
   }, []);
 
   const goToGlyph = useCallback(() => {
@@ -4293,12 +4295,20 @@ export default function OnePage() {
       // Predtým skok na začiatok celého obrazu (upStops) — jeden ťah preletel
       // aj päť obrazoviek. Teraz zrkadlo cesty dole: tie isté zastávky, mäkší
       // priebeh a čas, ktorý rastie so vzdialenosťou.
-      if (to < from) return Math.round(Math.min(3200, Math.max(1200, 900 + 450 * screens)));
-      const base = Math.round(Math.min(2800, Math.max(1000, 700 + 600 * screens)));
-      const k = keyedRide(from, to);
-      if (k) return k.dur;
-      if (isCredoRide(from, to)) return CREDO_RIDE_MS;
-      if (isIntroRide(from, to)) return INTRO_RIDE_MS;
+      // 🔴 TEMPO (Matej 6. 10. 2026: *„zrýchli animácie, niekde sa čaká príliš dlho"*).
+      // Jazdy sú po časových bodoch, takže delenie celkovej dĺžky zrýchli rovnomerne celý
+      // ťah (ease berie podiel času, nie ms). Výnimka: BRÁNA — jej tempo je tempo videa.
+      const T = FILM_TEMPO;
+      if (to < from) return Math.round(Math.min(3200, Math.max(1200, 900 + 450 * screens)) / T.back);
+      const base = Math.round(Math.min(2800, Math.max(1000, 700 + 600 * screens)) / T.base);
+      if (GATE_KEYS(from, to)) return GATE_KEYS(from, to)!.dur;
+      const k = DGX_KEYS(from, to) ?? QUO_KEYS(from, to) ?? WNY_KEYS(from, to);
+      if (k) {
+        const f = DGX_KEYS(from, to) ? T.dgx : QUO_KEYS(from, to) ? T.quo : T.wny;
+        return Math.round(k.dur / f);
+      }
+      if (isCredoRide(from, to)) return Math.round(CREDO_RIDE_MS / T.base);
+      if (isIntroRide(from, to)) return Math.round(INTRO_RIDE_MS / T.base);
       return base;
     },
     easing: (from, to) => {
@@ -4878,10 +4888,10 @@ export default function OnePage() {
         .op-jumpveil {
           position: fixed; inset: 0; z-index: 58; pointer-events: none;
           background: ${LAB.pageBg}; opacity: 0;
-          transition: opacity .45s cubic-bezier(.4,0,.2,1);
+          transition: opacity .28s cubic-bezier(.4,0,.2,1);
         }
         .op-jumpveil::before { content: ''; position: absolute; inset: 0; background: ${LAB.pageBackdrop}; }
-        .op-jumpveil.is-on { opacity: 1; pointer-events: auto; transition-duration: .32s; }
+        .op-jumpveil.is-on { opacity: 1; pointer-events: auto; transition-duration: .2s; }
         .op-nxt-h2 span { padding-top: 0.2em; margin-top: -0.2em; }
         @media (min-width: 768px) {
           .op-snaps > span,
@@ -8618,7 +8628,6 @@ export default function OnePage() {
         {WNY_END && (
           <FilmFinale
             packNo={dogCount === null ? null : dogCount + 1}
-            onDogma={() => setBookOpen(true)}
           />
         )}
 

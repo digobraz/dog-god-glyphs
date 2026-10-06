@@ -465,7 +465,8 @@ export function DogPlanetLab({
       faces: cycPhotos,
       // Matej 28. 9. 2026: *„v CTA bude len ADD PHOTO OF YOUR DOG (bez toho
       // malého textu)"*. Dva riadky, lebo na guli má portál ~118 px.
-      label: 'Add photo<br>of your dog',
+      // Matej 6. 10. 2026: *„add photo of your GOD nie dog — všade"* (ako stena).
+      label: 'Add photo<br>of your god',
       note: '',
       // ⚠️ Cez REF, nie cez `photo` zo stavu — portál sa stavia raz (deps
       // `facesKey`) a uzáver by navždy držal prvú hodnotu, teda `null`.

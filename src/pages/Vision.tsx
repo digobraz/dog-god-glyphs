@@ -1656,7 +1656,7 @@ export default function Vision() {
               <video
                 className="video-bg-loop"
                 src="/videos/vision-intro-montage.mp4"
-                poster="/images/mission/intro-poster.jpg"
+                poster="/images/mission/intro-poster.webp"
                 autoPlay
                 muted
                 loop

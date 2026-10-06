@@ -23,7 +23,7 @@ type Props = {
 export default function Iphone15Pro({ width = '100%', src, alt = '', className, children }: Props) {
   return (
     <div className={className} style={{ position: 'relative', width }}>
-      <svg width="100%" height="auto" viewBox={`0 0 ${IPHONE_W} ${IPHONE_H}`} preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
+      <svg width="100%" viewBox={`0 0 ${IPHONE_W} ${IPHONE_H}`} preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
         <path d="M2 73C2 32.6832 34.6832 0 75 0H357C397.317 0 430 32.6832 430 73V809C430 849.317 397.317 882 357 882H75C34.6832 882 2 849.317 2 809V73Z" fill="#404040" />
         <path d="M0 171C0 170.448 0.447715 170 1 170H3V204H1C0.447715 204 0 203.552 0 203V171Z" fill="#404040" />
         <path d="M1 234C1 233.448 1.44772 233 2 233H3.5V300H2C1.44772 300 1 299.552 1 299V234Z" fill="#404040" />
