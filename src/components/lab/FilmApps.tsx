@@ -82,6 +82,18 @@ type AppFeature = {
  *  facebook… aspoň dva riadky… prípadne tam dať and much more"*). Logo = jednofarebné SVG zo
  *  Simple Icons (CC0) v `public/icons/brands/`, farbí sa atramentom cez masku. Skool v Simple
  *  Icons nie je (logo je farebný nápis) — ostáva text. */
+/** ČIP POD VETOU V DETAILE — JEDEN TVAR PRE VŠETKY FUNKCIE (Matej 6. 10. 2026: *„pri snifferi dajme do
+ *  pilulky inspired by tinder… pri dog id a community musíme tiež vymyslieť nejakú pilulku… nech to je
+ *  všade rovnaké… pri AInubis chipe daj claude logo"*). 🚩 DOG ID = Instagram a COMMUNITY = Skool sú
+ *  MOJ NÁVRH (profil + galéria + denník · komunita okolo jednej témy) — čaká na Matejovo OK. */
+const POP_CHIPS: Record<string, { labelKey: string; name: string; href: string; icon?: string; img?: string }> = {
+  dogid: { labelKey: 'onepage.apps.insp', name: 'Instagram', href: 'https://instagram.com', icon: 'instagram' },
+  dogtrip: { labelKey: 'onepage.apps.mapy', name: 'Mapy.com', href: 'https://mapy.com', img: '/nav-apps/mapy.svg' },
+  sniffer: { labelKey: 'onepage.apps.insp', name: 'Tinder', href: 'https://tinder.com', icon: 'tinder' },
+  cause: { labelKey: 'onepage.apps.insp', name: 'Skool', href: 'https://skool.com' },
+  ainubis: { labelKey: 'onepage.apps.claude', name: 'Claude', href: 'https://claude.ai', icon: 'claude' },
+};
+
 const APP_CHIPS: { name: string; icon?: string }[] = [
   { name: 'Google', icon: 'google' },
   { name: 'Instagram', icon: 'instagram' },
@@ -202,11 +214,20 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
       x0 = null;
       if (Math.abs(dx) >= MIN && Math.abs(dx) > Math.abs(dy) * 1.2) (onShot ? moveSlide : moveApp)(dx < 0 ? 1 : -1);
     };
-    const shotHit = (t: EventTarget | null) => !!(t as Element | null)?.closest?.('.op-apps-sl');
-    const ts = (e: TouchEvent) => { const t0 = e.touches[0]; x0 = t0.clientX; y0 = t0.clientY; onShot = shotHit(e.target); };
+    // Matej 6. 10. 2026: *„swajp do strany v hornej polovici bloku, kde je obrázok, swajpuje mockupy
+    // a v spodnej časti swajpuje celé bloky 1/5"* → celá plocha s obrázkom (aj vedľa telefónu) = snímky.
+    // Mobil = jeden stĺpec → zóna je celý pás nad spodnou hranou obrázku (aj vedľa telefónu a v
+    // okraji karty); PC = dva stĺpce → zóna je ľavý stĺpec s obrázkom.
+    const shotHit = (t: EventTarget | null, y: number) => {
+      const shot = card.querySelector<HTMLElement>('.op-apps-pop-shot');
+      if (!shot) return false;
+      if (shot.offsetWidth > card.clientWidth * 0.6) return y <= shot.getBoundingClientRect().bottom;
+      return !!(t as Element | null)?.closest?.('.op-apps-pop-shot');
+    };
+    const ts = (e: TouchEvent) => { const t0 = e.touches[0]; x0 = t0.clientX; y0 = t0.clientY; onShot = shotHit(e.target, t0.clientY); };
     const te = (e: TouchEvent) => { const t1 = e.changedTouches[0]; end(t1.clientX, t1.clientY); };
     const tc = () => { x0 = null; };
-    const pd = (e: PointerEvent) => { if (e.pointerType === 'mouse') { x0 = e.clientX; y0 = e.clientY; onShot = shotHit(e.target); } };
+    const pd = (e: PointerEvent) => { if (e.pointerType === 'mouse') { x0 = e.clientX; y0 = e.clientY; onShot = shotHit(e.target, e.clientY); } };
     const pu = (e: PointerEvent) => { if (e.pointerType === 'mouse') end(e.clientX, e.clientY); };
     card.addEventListener('touchstart', ts, { passive: true });
     card.addEventListener('touchend', te);
@@ -521,21 +542,14 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
               {/* ČIP MAPY.COM (Matej 5. 10. 2026: *„dal by som logo mapy cz alebo chip… nech to má
                   lepšiu relevantnosť"*). Logo je to isté ako vo „Vyraziť na miesto" (`/nav-apps/mapy.svg`). */}
               <div className="op-apps-pop-chip">
-              {cur.mapy && (
-                <a className="op-apps-mapy" href="https://mapy.com" target="_blank" rel="noopener noreferrer">
-                  <span>{t('onepage.apps.mapy')}</span>
-                  <img src="/nav-apps/mapy.svg" alt="" width={20} height={20} />
-                  <b>Mapy.com</b>
+              {POP_CHIPS[cur.id] && (() => { const c = POP_CHIPS[cur.id]; return (
+                <a className="op-apps-mapy" href={c.href} target="_blank" rel="noopener noreferrer">
+                  <span>{t(c.labelKey)}</span>
+                  {c.img && <img src={c.img} alt="" width={20} height={20} />}
+                  {c.icon && <i style={{ ['--m' as string]: `url(/icons/brands/${c.icon}.svg)` }} aria-hidden />}
+                  <b>{c.name}</b>
                 </a>
-              )}
-              {/* ČIP CLAUDE (Matej 5. 10. 2026: *„pri ainubisovi dať chip powered by claude"*) —
-                  ten istý tvar ako čip Mapy.com; logo Claude v repe nie je, preto len meno. */}
-              {cur.claude && (
-                <a className="op-apps-mapy" href="https://claude.ai" target="_blank" rel="noopener noreferrer">
-                  <span>{t('onepage.apps.claude')}</span>
-                  <b>Claude</b>
-                </a>
-              )}
+              ); })()}
               </div>
               <ul className="op-apps-ul">
                 {cur.bulletKeys.map((k, j) => (
@@ -744,6 +758,10 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
         .op-apps-mapy:hover { background: #fff; }
         .op-apps-mapy img { width: 20px; height: 20px; border-radius: 4px; display: block; }
         .op-apps-mapy b { font-weight: 600; color: ${LAB.ink}; }
+        .op-apps-mapy i {
+          width: 16px; height: 16px; flex: 0 0 auto; background: ${LAB.ink};
+          -webkit-mask: var(--m) center / contain no-repeat; mask: var(--m) center / contain no-repeat;
+        }
         /* DETAIL — slider: telefón so screenshotom, šípky po bokoch, bodky pod ním. */
         .op-apps-sl { position: relative; display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 16px; touch-action: pan-y; }
         .op-apps-sl-view { width: min(280px, calc((100dvh - 320px) * ${(IPHONE_W / IPHONE_H).toFixed(4)})); overflow: hidden; }
@@ -816,7 +834,9 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
           /* „KLIKNI“ — nakrivo, LAPIS, šípka končí v rohu predného telefónu; mierka sa vracia (--rig-s). */
           .op-apps-hint {
             display: block; position: absolute; left: 36px; top: calc(var(--ph-h) / -2 - 4px); width: 96px; height: 72px;
-            pointer-events: none; z-index: 40; color: ${LAPIS.edge}; opacity: var(--r, 0);
+            pointer-events: none; z-index: 40; color: ${LAPIS.edge};
+            /* Až na druhej polohe (telefóny celé, funkcia pod nimi) — nie pri vymenovaných appkách. */
+            opacity: calc(var(--r, 0) * var(--sx, 0));
             transform-origin: 77px 60px; transform: scale(calc(1 / var(--rig-s, 1)));
           }
           .op-apps-hint svg { position: absolute; inset: 0; }

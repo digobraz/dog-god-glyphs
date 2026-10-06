@@ -29,7 +29,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { LAB } from '@/lib/labTheme';
-import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
+import { LAPIS } from '@/components/pack/navGoldSkin';
 import { SOCIALS } from '@/components/landing/Footer';
 import { openPhotoConfirm } from '@/components/gods/photoConfirm';
 import { intakePhoto, finishPhotoChoice } from '@/lib/photoIntake';
@@ -228,7 +228,7 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
             <p className="op-fin-txt">{t('onepage.fin.p1')}</p>
             <p className="op-fin-txt">{t('onepage.fin.p2')}</p>
             <p className="op-fin-txt op-fin-txt--last">{t('onepage.fin.p3')}</p>
-            <button type="button" className="op-fin-more" tabIndex={on === 'a' ? 0 : -1}
+            <button type="button" className="dgx-example op-fin-more" tabIndex={on === 'a' ? 0 : -1}
               onClick={() => { track('onepage_about_more'); setMore(true); }}>
               {t('onepage.fin.aboutMore')}
             </button>
@@ -397,14 +397,9 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
         .op-fin-words .op-fin-h2 { margin-bottom: 8px; }
         .op-fin-txt { margin: 0; font: 400 15px/1.55 'Space Grotesk', sans-serif; color: ${LAB.ink}; }
         .op-fin-txt--last { font-weight: 600; }
-        /* VIAC O MNE — akcia na papyruse = LAPIS (brand), tvar CTA r8. */
-        .op-fin-more {
-          align-self: flex-start; margin-top: 8px; cursor: pointer;
-          padding: 12px 24px; border-radius: 8px; border: 1px solid rgba(250,244,236,.30);
-          background: ${LAPIS.grad}; box-shadow: ${LAPIS_BTN_SHADOW}; color: ${LAPIS.ink};
-          font: 700 14px/1 'Cinzel', serif; letter-spacing: .08em; text-transform: uppercase;
-        }
-        .op-fin-more:hover { background: ${LAPIS.gradHover}; }
+        /* VIAC O MNE = CHIP (Matej 6. 10. 2026: *„viac o mne daj do chipu, nie do CTA"*) — ten istý
+           chip dgx-example ako PRÍKLAD pri HEROGLYPHE. */
+        .op-fin-more { align-self: flex-start; margin: 8px 0 0; }
         /* Popup: papyrusová karta so scrollom vnútri, závoj cez celé okno. */
         .op-fin-pop {
           position: fixed; inset: 0; z-index: 120; display: grid; place-items: center;
@@ -691,7 +686,6 @@ export default function FilmFinale({ packNo, onDogma }: { packNo: number | null;
           .op-fin-words { margin-top: -56px; }
           .op-fin-words .op-fin-h2 { margin-bottom: 0; }
           .op-fin-txt { font-size: 12px; line-height: 1.4; }
-          .op-fin-more { padding: 10px 16px; font-size: 12px; margin-top: 4px; }
         }
       `}</style>
     </section>

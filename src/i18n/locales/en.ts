@@ -1351,6 +1351,7 @@ export const en = {
   'onepage.apps.cause.b4': 'Funding new innovations',
   'onepage.apps.mapy': 'Maps powered by',
   'onepage.apps.claude': 'AI powered by',
+  'onepage.apps.insp': 'Inspired by',
   'onepage.need.step': 'Next step',
   'onepage.need.cta': 'Join the mission',
   'onepage.need.want': 'Join the mission',
