@@ -5100,4 +5100,9 @@ export const kor: Partial<Dict> = {
   "onepage.dgx.bub.ownRank.value": "나의 첫 번째 개",
   "onepage.dgx.bub.ownRank.glyph": "로마 숫자 I",
 
+  // ── onepage guľa/stena: nadpis a CTA (6. 10. 2026) ──
+  'wall.hero.l1': "당신의 *강아지*는",
+  'wall.hero.l2': "여기서 *신*이에요.",
+  'wall.hero.addPhoto': "당신의 신 사진<br>추가하기",
+
 };

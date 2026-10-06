@@ -5269,4 +5269,9 @@ export const pol: Partial<Dict> = {
   "onepage.dgx.bub.ownRank.value": "Twój 1. pies",
   "onepage.dgx.bub.ownRank.glyph": "Cyfra rzymska I",
 
+  // ── onepage guľa/stena: nadpis a CTA (6. 10. 2026) ──
+  'wall.hero.l1': "Twój *pies* jest",
+  'wall.hero.l2': "tu *bogiem*.",
+  'wall.hero.addPhoto': "Dodaj zdjęcie<br>swojego boga",
+
 };

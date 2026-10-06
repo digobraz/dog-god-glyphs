@@ -5097,4 +5097,9 @@ export const ara: Partial<Dict> = {
   "onepage.dgx.bub.ownRank.value": "كلبك الأول",
   "onepage.dgx.bub.ownRank.glyph": "الرقم الروماني I",
 
+  // ── onepage guľa/stena: nadpis a CTA (6. 10. 2026) ──
+  'wall.hero.l1': "*كلبك* هنا",
+  'wall.hero.l2': "هو *إله*.",
+  'wall.hero.addPhoto': "أضف صورة<br>إلهك",
+
 };

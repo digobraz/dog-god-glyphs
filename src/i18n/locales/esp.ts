@@ -5286,4 +5286,9 @@ export const esp: Partial<Dict> = {
   "onepage.dgx.bub.ownRank.value": "Tu 1.er perro",
   "onepage.dgx.bub.ownRank.glyph": "Numeral romano I",
 
+  // ── onepage guľa/stena: nadpis a CTA (6. 10. 2026) ──
+  'wall.hero.l1': "Tu *perro* es",
+  'wall.hero.l2': "un *dios* aquí.",
+  'wall.hero.addPhoto': "Añade la foto<br>de tu dios",
+
 };

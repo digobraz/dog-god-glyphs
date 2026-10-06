@@ -865,7 +865,7 @@ export const cs: Partial<Dict> = {
   'wall.hero.cta': 'Staň se Dogypťanem',
   'wall.hero.total': '1 000 000',
   'wall.hero.dogs': 'PSŮ',
-  'wall.hero.missingFace': 'A stále mu chybí tvář.',
+  'wall.hero.missingFace': 'A pořád nám chybí jeho tvář.',
   'wall.portal.laterNote': '(fotku můžeš později změnit)',
   'wall.photo.laterNote': 'Fotku můžeš později změnit.',
   'wall.hektor.msg': 'Hekthorku, jsi můj největší hrdina, nejlepší kamarád, věrný parťák, nemilosrdný mentor — jsi ten nejkrásnější příběh mého života. Kvůli tobě jsem založil psí náboženství a zjistil jsem, že moje láska není ničím výjimečná — každý, kdo kdy miloval psa, prožívá v srdci to samé. Děkuji ti za náš nejlepší společný život. Miluji tě.',
@@ -5306,7 +5306,7 @@ export const cs: Partial<Dict> = {
   'religion.v2.l4': 'Stačí nás **milion**.',
   'religion.preamble.readCta': 'Přečti si „Bibli“ pro pejskaře',
   'nav.home': 'Domů',
-  'film.slide.cowdog': 'Holy Cow',
+  'film.slide.cowdog': 'Kráva',
   'film.slide.faith': 'Víra',
   'film.slide.story': 'Příběh',
   'film.slide.stars': 'Fanklub',
@@ -5523,4 +5523,9 @@ export const cs: Partial<Dict> = {
   'dogPage.invitedByFallback': 'Zveme tě do DOGYPTU',
   'dogPage.bonesForDog': 'Přidej se přes tuhle stránku a {dog} dostane 20 BONES.',
   'dogPage.bonesNote': 'BONES jsou měna DOGYPTU — připíšou se na účet majitele.',
+  // ── onepage guľa/stena: nadpis a CTA (6. 10. 2026) ──
+  'wall.hero.l1': "Tvůj *pes* je",
+  'wall.hero.l2': "tady *bohem*.",
+  'wall.hero.addPhoto': "Přidej foto<br>svého boha",
+
 };

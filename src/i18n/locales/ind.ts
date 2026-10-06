@@ -5101,4 +5101,9 @@ export const ind: Partial<Dict> = {
   "onepage.dgx.bub.ownRank.value": "आपका पहला कुत्ता",
   "onepage.dgx.bub.ownRank.glyph": "रोमन अंक I",
 
+  // ── onepage guľa/stena: nadpis a CTA (6. 10. 2026) ──
+  'wall.hero.l1': "आपका *कुत्ता* यहाँ",
+  'wall.hero.l2': "एक *देवता* है।",
+  'wall.hero.addPhoto': "अपने देवता की<br>फ़ोटो जोड़ें",
+
 };

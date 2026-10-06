@@ -5285,4 +5285,9 @@ export const ukr: Partial<Dict> = {
   "onepage.dgx.bub.ownRank.value": "Твій 1-й пес",
   "onepage.dgx.bub.ownRank.glyph": "Римська цифра I",
 
+  // ── onepage guľa/stena: nadpis a CTA (6. 10. 2026) ──
+  'wall.hero.l1': "Твій *пес* —",
+  'wall.hero.l2': "тут *бог*.",
+  'wall.hero.addPhoto': "Додай фото<br>свого бога",
+
 };

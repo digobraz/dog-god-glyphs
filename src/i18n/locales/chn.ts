@@ -5097,4 +5097,9 @@ export const chn: Partial<Dict> = {
   "onepage.dgx.bub.ownRank.value": "你的第 1 只狗",
   "onepage.dgx.bub.ownRank.glyph": "罗马数字 I",
 
+  // ── onepage guľa/stena: nadpis a CTA (6. 10. 2026) ──
+  'wall.hero.l1': "你的*狗*在这里",
+  'wall.hero.l2': "就是*神*。",
+  'wall.hero.addPhoto': "添加你的神的<br>照片",
+
 };

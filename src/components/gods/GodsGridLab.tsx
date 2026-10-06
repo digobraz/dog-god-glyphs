@@ -1421,7 +1421,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
         // Matej 5. 10. 2026: *„do CTA treba dať add photo of your GOD a zátvorku preč"*
         // — vzor gule (DogPlanetLab: „Add photo of your dog"), poznámka „(you can change
         // the photo later)" zanikla.
-        label: 'Add photo<br>of your god',
+        label: tRef.current('wall.hero.addPhoto'),
         note: '',
         subnote: `<span class="ph-nopill">Yours will be <b>#${nextPackNo()}</b></span>`,
       });

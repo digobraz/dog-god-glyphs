@@ -5097,4 +5097,9 @@ export const jpn: Partial<Dict> = {
   "onepage.dgx.bub.ownRank.value": "あなたの1頭目の犬",
   "onepage.dgx.bub.ownRank.glyph": "ローマ数字のI",
 
+  // ── onepage guľa/stena: nadpis a CTA (6. 10. 2026) ──
+  'wall.hero.l1': "あなたの*犬*は",
+  'wall.hero.l2': "ここでは*神*。",
+  'wall.hero.addPhoto': "あなたの神の<br>写真を追加",
+
 };

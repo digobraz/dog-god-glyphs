@@ -117,6 +117,8 @@ type Bg = (typeof BACKGROUNDS)[number]['id'];
 const DESIGN: Design = 'svetla';
 const BG: Bg = 'hlbka';
 /** Koľko dlaždíc guľa nesie. 71 = dnešná svorka; 200 je Matejov výber pre ladenie. */
+/** `*slovo*` v preklade = zlaté slovo nadpisu. */
+const goldWords = (s: string) => s.split('*').map((p, i) => (i % 2 ? <span className="g" key={i}>{p}</span> : p));
 const TARGET = 200;
 
 /* 🔴 NÁSOBOK 2, NIE 4 — TU BOLI TIE „CHÝBAJÚCE DLAŽDICE" (28. 8. 2026).
@@ -458,6 +460,7 @@ export function DogPlanetLab({
   // Portál sa stavia RAZ (a znova len keď sa vymení sada tvárí). Prestavba pri
   // každom vykreslení by zahodila plátno aj s vyrovnávacou pamäťou iskier.
   const facesKey = cycPhotos.join('|');
+  const addLabel = t('wall.hero.addPhoto');
   useEffect(() => {
     const host = portalMountRef.current;
     if (!host) return;
@@ -466,7 +469,7 @@ export function DogPlanetLab({
       // Matej 28. 9. 2026: *„v CTA bude len ADD PHOTO OF YOUR DOG (bez toho
       // malého textu)"*. Dva riadky, lebo na guli má portál ~118 px.
       // Matej 6. 10. 2026: *„add photo of your GOD nie dog — všade"* (ako stena).
-      label: 'Add photo<br>of your god',
+      label: addLabel,
       note: '',
       // ⚠️ Cez REF, nie cez `photo` zo stavu — portál sa stavia raz (deps
       // `facesKey`) a uzáver by navždy držal prvú hodnotu, teda `null`.
@@ -483,7 +486,7 @@ export function DogPlanetLab({
       sparksRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [facesKey]);
+  }, [facesKey, addLabel]);
 
   // Fotka sa prepisuje IMPERATÍVNE — jadro sa prekreslí, plátno iskier ostáva.
   useEffect(() => { portalApi.current?.setPhoto(photo); }, [photo]);
@@ -2139,8 +2142,8 @@ export function DogPlanetLab({
                 Dva bloky s nowrap robia tretí riadok NEMOŽNÝM, nech je písmo
                 akokoľvek veľké. Delí sa po „is" — druhý riadok nesie celé
                 tvrdenie „a god here". */}
-            <span className="ph-l">Your <span className="g">dog</span> is</span>
-            <span className="ph-l">a <span className="g">god</span> here.</span>
+            <span className="ph-l">{goldWords(t('wall.hero.l1'))}</span>
+            <span className="ph-l">{goldWords(t('wall.hero.l2'))}</span>
           </h1>
           <p className="ph-lead">
             {t('wall.hero.missingFace')}

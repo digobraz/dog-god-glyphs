@@ -5100,4 +5100,9 @@ export const nld: Partial<Dict> = {
   "onepage.dgx.bub.ownRank.value": "Jouw 1e hond",
   "onepage.dgx.bub.ownRank.glyph": "Romeins cijfer I",
 
+  // ── onepage guľa/stena: nadpis a CTA (6. 10. 2026) ──
+  'wall.hero.l1': "Jouw *hond* is",
+  'wall.hero.l2': "hier een *god*.",
+  'wall.hero.addPhoto': "Voeg een foto<br>van je god toe",
+
 };

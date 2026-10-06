@@ -5100,4 +5100,9 @@ export const tur: Partial<Dict> = {
   "onepage.dgx.bub.ownRank.value": "İlk köpeğin",
   "onepage.dgx.bub.ownRank.glyph": "Romen rakamı I",
 
+  // ── onepage guľa/stena: nadpis a CTA (6. 10. 2026) ──
+  'wall.hero.l1': "Senin *köpeğin*",
+  'wall.hero.l2': "burada bir *tanrı*.",
+  'wall.hero.addPhoto': "Tanrının<br>fotoğrafını ekle",
+
 };
