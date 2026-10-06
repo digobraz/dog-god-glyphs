@@ -186,11 +186,12 @@ export default function FilmGate() {
             width: 100lvh; height: 100vw;
             /* Preflight Tailwindu dáva video max-width: 100 % — bez tohto ostal box 390×390. */
             max-width: none;
-            /* 2. kolo (Matej 5. 10.: *„vymeň strany, ruka pôjde z ľavej strany"*): samé
-               otočenie dalo ruku vpravo dole a labku vľavo hore — zrkadlo po otočení
-               ich prehodí. ⚠️ Tetovanie je tým zrkadlové. Tú istú transformáciu MUSÍ
-               mať výstrih .op-dgx-cut v OnePage (zostáva po dotyku pod DOGTRIXom). */
-            transform: translate(-50%, -50%) scaleX(-1) rotate(-90deg);
+            /* 3. kolo (Matej 6. 10.: *„daj k labke a ruke B — len otočenie"*, nákres
+               plany/nakres-brana-ruka-2026-10-06): len otočenie, ruka vpravo dole a labka vľavo
+               hore, tetovanie sa dá prečítať. (5. 10. bolo zrkadlo — ruka vľavo, tetovanie
+               zrkadlové; vrátenie = pridať scaleX(-1) pred rotate.) Tú istú transformáciu
+               MUSÍ mať výstrih .op-dgx-cut v OnePage (zostáva po dotyku pod DOGTRIXom). */
+            transform: translate(-50%, -50%) rotate(-90deg);
           }
         }
         /* Obe polovice nesú CELÚ bránu (100vw), jej stred leží na švíku. */

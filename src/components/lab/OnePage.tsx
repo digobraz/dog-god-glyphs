@@ -6790,14 +6790,14 @@ export default function OnePage() {
           position: absolute; left: 0; top: 0; width: 100%; height: 100lvh;
           object-fit: cover; z-index: 5; opacity: 0; pointer-events: none;
         }
-        /* 📱 Mobil na výšku: otočený a zrkadlený PRESNE ako .op-gate-vid (FilmGate) —
+        /* 📱 Mobil na výšku: otočený PRESNE ako .op-gate-vid (FilmGate; od 6. 10. bez zrkadla) —
            Matej 5. 10.: *„pri dotyku zostanú na mieste, teraz to po dotyku vrátiš do
            pôvodnej polohy"*. Výstrih stál na šírku, takže po zblednutí brány ruka
            a labka skočili späť. Meníš jedno, meň obe. */
         @media (max-width: 767px) and (orientation: portrait) {
           .op-dgx-cut {
             left: 50%; top: 50lvh; width: 100lvh; height: 100vw; max-width: none;
-            transform: translate(-50%, -50%) scaleX(-1) rotate(-90deg);
+            transform: translate(-50%, -50%) rotate(-90deg);
           }
         }
         .op-arc-scr {
@@ -7456,7 +7456,10 @@ export default function OnePage() {
         .dgx-gbox .krows { display: none; }
         .dgx-gbox .klab--pin .krows { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
         .dgx-gbox .krow { display: flex; align-items: center; gap: 10px; }
-        .dgx-gbox .krow img { flex: none; width: 24px; height: 24px; object-fit: contain; display: block; max-width: none; }
+        /* Box 34×24, nie 24×24 (Matej 6. 10.: *„kráľovská koruna vo vysvetlivke je menšia ako ostatné
+           symboly"*): koruna je široká kresba (pomer 1,43) a v štvorci sa zmestila len do výšky 17 px.
+           Široké (koruna, siluety) dostanú plnú výšku, štvorcové ostávajú 24×24 vycentrované. */
+        .dgx-gbox .krow img { flex: none; width: 34px; height: 24px; object-fit: contain; display: block; max-width: none; }
         .dgx-gbox .krow span { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
         .dgx-gbox .krow b { font: 700 11px/1.1 'Cinzel', serif; text-transform: uppercase; color: ${LAB.ink}; }
         .dgx-gbox .krow i { font: 500 9px/1.2 'Space Grotesk', sans-serif; font-style: normal; letter-spacing: 0.02em; color: ${LAB.inkSoft}; }
