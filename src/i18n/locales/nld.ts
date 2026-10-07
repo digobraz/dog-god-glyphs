@@ -4939,6 +4939,7 @@ export const nld: Partial<Dict> = {
   "onepage.apps.next": "Volgende",
   "onepage.fin.photoAlt": "Matej en Hektor",
   "onepage.fin.forMe": "(voor mij)",
+  "onepage.fin.dogIsGod": "HOND IS GOD",
   "onepage.fin.p1": "Hoi, ik ben Matthew. Negen jaar geleden veranderde mijn leven — door een asielhond. Toen ik de kracht van de liefde van een hond had gevoeld, kreeg ik een visie over hoe ik honden iets terug kon geven — niet alleen de mijne, maar elke hond ter wereld.",
   "onepage.fin.p2": "Toen was het nog maar een idee — dankzij AI kan ik het eindelijk bouwen. Als het mooi weer is, ben ik er met Hekthor op uit, en terwijl hij rust, werk ik hard aan DOGYPT. Ik ben geobsedeerd door deze missie — ik offer er alles voor op en steek er elke laatste euro in. Mensen om me heen zeggen dat ik een dromer ben die te veel risico neemt — maar ik ben ervan overtuigd dat dit idee het waard is om voor te vechten en dat het slechts een kwestie van tijd is.",
   "onepage.fin.p3": "Laat ons alsjeblieft niet wachten — sluit je vandaag nog bij ons aan, zodat ik niet over hoef te schakelen op plan B (OnlyFans).",

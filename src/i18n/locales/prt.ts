@@ -5128,6 +5128,7 @@ export const prt: Partial<Dict> = {
   "onepage.apps.next": "Seguinte",
   "onepage.fin.photoAlt": "Matej e Hektor",
   "onepage.fin.forMe": "(para mim)",
+  "onepage.fin.dogIsGod": "O CÃO É DEUS",
   "onepage.fin.p1": "Olá, sou o Matthew. Há nove anos a minha vida mudou — graças a um cão de canil. Depois de sentir o poder do amor de um cão, tive uma visão de como retribuir aos cães — não só ao meu, mas a todos os cães do mundo.",
   "onepage.fin.p2": "Na altura era só uma ideia — graças à IA, finalmente posso construí-la. Sempre que o tempo está bom, ando em passeios com o Hekthor e, enquanto ele descansa, trabalho arduamente no DOGYPT. Estou obcecado com esta missão — sacrifico tudo por ela e invisto nela cada último euro. As pessoas próximas dizem que sou um sonhador que arrisca demais — mas estou convencido de que esta ideia vale a luta e de que é só uma questão de tempo.",
   "onepage.fin.p3": "Por favor, não nos faças esperar — junta-te a nós hoje, para que eu não tenha de passar ao plano B (OnlyFans).",

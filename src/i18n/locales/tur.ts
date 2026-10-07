@@ -4939,6 +4939,7 @@ export const tur: Partial<Dict> = {
   "onepage.apps.next": "Sonraki",
   "onepage.fin.photoAlt": "Matej ve Hektor",
   "onepage.fin.forMe": "(benim için)",
+  "onepage.fin.dogIsGod": "KÖPEK TANRIDIR",
   "onepage.fin.p1": "Merhaba, ben Matthew. Dokuz yıl önce hayatım değişti — barınaktan gelen bir köpek yüzünden. Bir köpeğin sevgisinin gücünü hissedince, köpeklerin bu iyiliğini nasıl karşılayabileceğime dair bir vizyonum oldu — sadece benimkinin değil, dünyadaki her köpeğin.",
   "onepage.fin.p2": "O zamanlar sadece bir fikirdi — yapay zekâ sayesinde sonunda onu inşa edebiliyorum. Hava güzel olduğunda Hekthor'la gezilerdeyim, o dinlenirken ben DOGYPT için canla başla çalışıyorum. Bu misyona tutkunum — her şeyimi ona feda ediyorum, kazandığım her euroyu ona yatırıyorum. Yakınlarım hayalperest olduğumu ve fazla risk aldığımı söylüyor — ama bu fikrin uğruna savaşmaya değdiğine ve bunun sadece zaman meselesi olduğuna ikna oldum.",
   "onepage.fin.p3": "Lütfen bizi bekletme — bugün aramıza katıl, ki B planına (OnlyFans) geçmek zorunda kalmayayım.",

@@ -192,7 +192,8 @@ export default function FilmFinale({ packNo }: { packNo: number | null }) {
           </figure>
           <div className="op-fin-words">
             <h2 className="op-fin-h2 op-fin-h2--left">
-              DOG IS GOD <small>{t('onepage.fin.forMe')}</small>
+              {/* Prekladá sa (Matej 7. 10. 2026: „tam by som dal PES JE BOH (a všade dal preklad)"). */}
+              {t('onepage.fin.dogIsGod')} <small>{t('onepage.fin.forMe')}</small>
             </h2>
             <p className="op-fin-txt">{t('onepage.fin.p1')}</p>
             <p className="op-fin-txt">{t('onepage.fin.p2')}</p>

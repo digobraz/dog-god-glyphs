@@ -1085,6 +1085,7 @@ export const sk: Partial<Dict> = {
   'onepage.fin.less': 'Menej krokov',
   'onepage.need.createGlyph': 'Vytvor heroglyf pre svojho psa',
   'onepage.fin.forMe': '(pre mňa)',
+  'onepage.fin.dogIsGod': 'PES JE BOH',
   'onepage.fin.photoAlt': 'Matej a Hektor',
   'onepage.fin.p1': 'Ahoj, som Matej. Pred 9 rokmi sa môj život zmenil — vďaka psovi z útulku. Odkedy som okúsil silu psej lásky, dostal som víziu, ako sa psom odvďačiť — nielen tomu môjmu, ale všetkým na svete.',
   'onepage.fin.p2': "Vtedy to bola len myšlienka — vďaka AI ju konečne môžem stavať. Keď je pekné počasie, chodím s Hekthorom na výlety, a keď oddychuje, tvrdo makám na DOGYPTe. Som touto misiou posadnutý — obetujem jej všetko a dávam do nej každé euro, do posledného. Známi mi hovoria, že som snílek a veľa riskujem, no ja som presvedčený, že za túto myšlienku sa oplatí bojovať a že je to len otázkou času.",

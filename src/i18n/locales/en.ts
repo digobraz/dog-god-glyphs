@@ -1309,6 +1309,7 @@ export const en = {
   'onepage.fin.less': 'Fewer steps',
   'onepage.need.createGlyph': 'Create a heroglyph for your dog',
   'onepage.fin.forMe': '(for me)',
+  'onepage.fin.dogIsGod': 'DOG IS GOD',
   'onepage.fin.photoAlt': 'Matej and Hektor',
   'onepage.fin.p1': "Hi, I'm Matthew. Nine years ago my life changed — because of a shelter dog. Once I'd felt the power of a dog's love, I got a vision of how to pay dogs back — not just mine, but every dog in the world.",
   'onepage.fin.p2': "Back then it was just an idea — thanks to AI, I can finally build it. Whenever the weather is good, I'm out on trips with Hekthor, and while he rests, I work hard on DOGYPT. I'm obsessed with this mission — I sacrifice everything for it and put every last euro into it. People close to me say I'm a dreamer who takes too many risks — but I'm convinced this idea is worth fighting for, and that it's only a matter of time.",

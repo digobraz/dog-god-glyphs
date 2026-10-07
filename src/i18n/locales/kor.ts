@@ -4939,6 +4939,7 @@ export const kor: Partial<Dict> = {
   "onepage.apps.next": "다음",
   "onepage.fin.photoAlt": "Matej와 Hektor",
   "onepage.fin.forMe": "(나에게는)",
+  "onepage.fin.dogIsGod": "개는 신이다",
   "onepage.fin.p1": "안녕하세요, Matej예요. 9년 전 제 삶이 바뀌었어요. 보호소 출신 개 덕분에요. 개의 사랑이 지닌 힘을 느낀 뒤로, 개들에게 보답할 방법에 대한 비전이 생겼어요. 제 개만이 아니라 세상 모든 개에게요.",
   "onepage.fin.p2": "그땐 그저 아이디어였는데, AI 덕분에 마침내 만들 수 있어요. 날씨가 좋을 때면 Hekthor와 여행을 다니고, 그 아이가 쉬는 동안 저는 DOGYPT를 위해 열심히 일해요. 저는 이 사명에 사로잡혀 있어요. 모든 걸 희생하고 마지막 1유로까지 쏟아붓고 있죠. 주변 사람들은 제가 너무 많은 위험을 감수하는 몽상가라고 해요. 하지만 저는 이 아이디어가 싸울 가치가 있고, 시간문제일 뿐이라고 확신해요.",
   "onepage.fin.p3": "부디 우리를 기다리게 하지 마세요. 오늘 함께해 주세요. 제가 플랜 B(OnlyFans)로 갈아타지 않아도 되게요.",

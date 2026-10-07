@@ -4936,6 +4936,7 @@ export const chn: Partial<Dict> = {
   "onepage.apps.next": "下一个",
   "onepage.fin.photoAlt": "Matej 和 Hektor",
   "onepage.fin.forMe": "（对我而言）",
+  "onepage.fin.dogIsGod": "狗即是神",
   "onepage.fin.p1": "你好，我是 Matej。九年前，我的人生改变了——因为一只收容所里的狗。自从感受到狗的爱的力量，我就有了一个愿景：怎样回报狗狗们——不只是我的那一只，而是全世界的每一只狗。",
   "onepage.fin.p2": "当时那只是一个想法——多亏了 AI，我终于可以把它做出来。天气好的时候，我就和 Hekthor 外出旅行；它休息时，我就拼命为 DOGYPT 工作。我对这个使命着了迷——为它牺牲一切，把每一分钱都投进去。身边的人说我是个爱冒太多风险的做梦者——但我坚信这个想法值得为之奋斗，而且只是时间问题。",
   "onepage.fin.p3": "请别让我们久等——今天就加入我们，这样我就不用转去执行 B 计划（OnlyFans）了。",
