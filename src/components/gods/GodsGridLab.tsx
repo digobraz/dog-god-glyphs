@@ -802,7 +802,8 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
         } else panToRef.current?.(cell.col, cell.row);
       }
     }
-    if (!planetOpen || !d.n) setFilterOpen(false);
+    // Mobil: pult je modál a karta psa príde zhora ⇒ výberom sa zavrie (7. 10. 2026).
+    if (!planetOpen || !d.n || window.innerWidth <= 760) setFilterOpen(false);
     setFilterValue('');
   };
 
@@ -822,7 +823,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       if (planetOpen) setPlanetPick(p => ({ n, seq: (p?.seq ?? 0) + 1 }));
       else navigateToRef.current?.(n);
     }
-    if (!planetOpen) setFilterOpen(false);
+    if (!planetOpen || (!isNaN(n) && n >= 1 && window.innerWidth <= 760)) setFilterOpen(false);
     setFilterValue('');
   };
 
@@ -3413,8 +3414,21 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
         .numpad-overlay.numpad-overlay--planet.open .numpad { pointer-events: auto; }
         /* Na mobile príde karta psa ZHORA, takže pult ide dole — inak by si
            stáli na tom istom mieste. */
+        /* 🔴 MOBIL: POPUP NAD NAVOM (Matej 7. 10. 2026, snímka z iPhonu: *„treba opraviť nech
+           je to popup nad navom"*). Pult bol vnorený v .op-planet (z 1 + transform = vlastná
+           vrstva), takže horný nav, dok, šípky aj AINUBIS ležali NAD ním a zoznam krajín
+           zaliezal pod lištu. Teraz ide portálom do <body> (z 9000) a na mobile je to modál:
+           závoj, stred, ťuk vedľa zavrie, výber psa zavrie (karta psa príde zhora). PC ostáva
+           pult vľavo bez závoja (Matej 25. 8.). */
+        .numpad-overlay { z-index: 9000; }
         @media (max-width: 760px) {
-          .numpad-overlay--planet { align-items: flex-end; padding-bottom: 84px; }
+          .numpad-overlay.numpad-overlay--planet {
+            background: rgba(20,12,4,0.55);
+            -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+            justify-content: center; align-items: center; padding: 16px;
+          }
+          .numpad-overlay.numpad-overlay--planet.open { pointer-events: auto; }
+          .numpad-overlay--planet .numpad { max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y: auto; overscroll-behavior: contain; }
         }
 
         /* ── Bottom bar: filter + center (+ flag on mobile), centered as a row ── */
@@ -4092,6 +4106,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
             závoj zmizne, guľa ostane živá a klikateľná, panel s kartou stojí
             vpravo. Je to tá istá kalkulačka, len inak ukotvená — druhá kópia by
             sa pri prvej úprave rozišla. */}
+        {createPortal(
         <div
           className={`numpad-overlay${filterOpen ? ' open' : ''}${planetOpen ? ' numpad-overlay--planet' : ''}`}
           onClick={(e) => { if (e.target === e.currentTarget) { setFilterOpen(false); setFilterValue(''); } }}
@@ -4175,7 +4190,9 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
+        )}
 
         <div ref={appRef} role="application" style={{ position: 'fixed', inset: 0, overflow: 'hidden' }}>
           <div ref={canvasRef} id="gods-canvas" />
