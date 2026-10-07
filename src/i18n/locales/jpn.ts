@@ -1946,7 +1946,7 @@ export const jpn: Partial<Dict> = {
   "pack.ainubis.world.problems": "問題",
   "pack.ainubis.plane.vault": "Vault",
   "pack.ainubis.plane.chat": "チャット",
-  "pack.ainubis.plane.wall": "ボード",
+  "pack.ainubis.plane.wall": "フォーラム",
   "pack.ainubis.soon": "近日公開",
   "pack.ainubis.tip.home": "脳全体に戻る",
   "pack.ainubis.search": "Vaultを検索…",

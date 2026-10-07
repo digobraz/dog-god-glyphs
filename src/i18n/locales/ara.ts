@@ -1946,7 +1946,7 @@ export const ara: Partial<Dict> = {
   "pack.ainubis.world.problems": "المشكلات",
   "pack.ainubis.plane.vault": "Vault",
   "pack.ainubis.plane.chat": "محادثة",
-  "pack.ainubis.plane.wall": "اللوحة",
+  "pack.ainubis.plane.wall": "المنتدى",
   "pack.ainubis.soon": "قريبًا",
   "pack.ainubis.tip.home": "رجوع إلى العقل بالكامل",
   "pack.ainubis.search": "ابحث في الـ Vault…",

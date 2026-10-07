@@ -103,8 +103,8 @@ export const WIZ_SCREENS: WizScreen[] = [
     { id: 'sniffer.card', anchor: '.bd-card', text: 'pack.wizard.sniffer.card', since: '2026-10-06' },
   ] },
   { key: 'profile', routes: ['/pack/profile'], basket: 1, status: 'caka', steps: [
-    { id: 'profile.head', anchor: '.pf-head', text: 'pack.wizard.profile.head', since: '2026-10-06' },
-    { id: 'profile.pilgrim', anchor: '.pf-tap', text: 'pack.wizard.profile.pilgrim', since: '2026-10-06' },
+    { id: 'profile.head', anchor: '.pf-head', text: 'pack.wizard.profile.head', on: false, since: '2026-10-06' },
+    { id: 'profile.pilgrim', anchor: '.pf-tap', text: 'pack.wizard.profile.pilgrim', on: false, since: '2026-10-06' },
     { id: 'profile.bones', anchor: '.pknet-side', text: 'pack.wizard.profile.bones', since: '2026-10-06' },
   ] },
   { key: 'member', routes: ['/pack/u/:id'], basket: 2, status: 'nie', why: 'cudzí profil — rovnaké prvky ako môj', steps: [] },

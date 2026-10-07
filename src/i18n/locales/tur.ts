@@ -1949,7 +1949,7 @@ export const tur: Partial<Dict> = {
   "pack.ainubis.world.problems": "Sorunlar",
   "pack.ainubis.plane.vault": "Vault",
   "pack.ainubis.plane.chat": "Sohbet",
-  "pack.ainubis.plane.wall": "Pano",
+  "pack.ainubis.plane.wall": "Forum",
   "pack.ainubis.soon": "yakında",
   "pack.ainubis.tip.home": "Tüm beyne geri dön",
   "pack.ainubis.search": "VAULT'ta ara…",

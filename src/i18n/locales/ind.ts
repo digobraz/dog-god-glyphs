@@ -1950,7 +1950,7 @@ export const ind: Partial<Dict> = {
   "pack.ainubis.world.problems": "समस्याएं",
   "pack.ainubis.plane.vault": "Vault",
   "pack.ainubis.plane.chat": "चैट",
-  "pack.ainubis.plane.wall": "बोर्ड",
+  "pack.ainubis.plane.wall": "फ़ोरम",
   "pack.ainubis.soon": "जल्द आ रहा है",
   "pack.ainubis.tip.home": "पूरे दिमाग़ पर वापस जाएं",
   "pack.ainubis.search": "VAULT में खोजें…",

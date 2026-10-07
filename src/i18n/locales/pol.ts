@@ -2118,7 +2118,7 @@ export const pol: Partial<Dict> = {
   "pack.ainubis.world.problems": "Problemy",
   "pack.ainubis.plane.vault": "Vault",
   "pack.ainubis.plane.chat": "Chat",
-  "pack.ainubis.plane.wall": "Tablica",
+  "pack.ainubis.plane.wall": "Forum",
   "pack.ainubis.soon": "wkrótce",
   "pack.ainubis.tip.home": "Wstecz do całego mózgu",
   "pack.ainubis.search": "Szukaj w VAULCIE…",

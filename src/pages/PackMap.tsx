@@ -1883,8 +1883,9 @@ ${MAP_ATTR_CSS}${mapAttrLiftCSS(MOBILE_BP)}
 .trp-dot--water{background:${WATER_COLOR};border-color:rgba(255,255,255,0.55);}
 .trp-dot--water:hover{transform:translate(-50%,-50%) scale(1.12);}
 .trp-dot--water.hot{background:${WATER_COLOR};border-color:#fff;}
-/* zhluk (zadanie 2.4) — rovnaký glass+zlatý lem, veľkosť rastie s počtom bodov (clusterIcon). */
-.trp-cluster{position:relative;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;border-radius:999px;font-family:${FONT_UI};font-weight:600;color:#F6F1E4;background:linear-gradient(180deg,rgba(23,20,14,.95),rgba(11,9,6,.95));border:1px solid rgba(201,154,63,0.6);box-shadow:0 3px 12px rgba(0,0,0,0.45);cursor:pointer;transition:transform .12s;}
+/* zhluk (zadanie 2.4) — zlatý lem, veľkosť rastie s počtom bodov (clusterIcon). Výplň LAPIS
+   (Matej 7. 10. 2026: „tie krúžky dajme lapisové a nie čierne") — ťuk na zhluk je akcia (priblíž). */
+.trp-cluster{position:relative;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;border-radius:999px;font-family:${FONT_UI};font-weight:600;color:${LAPIS.ink};background:${LAPIS.grad};border:1px solid rgba(201,154,63,0.6);box-shadow:0 3px 12px rgba(0,0,0,0.45);cursor:pointer;transition:transform .12s;}
 .trp-cluster:hover{transform:translate(-50%,-50%) scale(1.09);}
 /* Farebná legenda mapy (.trp-legend / .trp-legrow / .trp-legdot) ZRUŠENÁ 2026-08-03 —
    Matej: „a folný blok s legendami daj preč celkom". Zaberala 126×93 px vpravo dole a na

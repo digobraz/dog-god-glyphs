@@ -2134,7 +2134,7 @@ export const ukr: Partial<Dict> = {
   "pack.ainubis.world.problems": "Проблеми",
   "pack.ainubis.plane.vault": "Vault",
   "pack.ainubis.plane.chat": "Чат",
-  "pack.ainubis.plane.wall": "Дошка",
+  "pack.ainubis.plane.wall": "Форум",
   "pack.ainubis.soon": "незабаром",
   "pack.ainubis.tip.home": "Назад до всього мозку",
   "pack.ainubis.search": "Шукай у VAULT…",

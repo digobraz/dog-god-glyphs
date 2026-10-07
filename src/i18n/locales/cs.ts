@@ -4038,7 +4038,7 @@ export const cs: Partial<Dict> = {
   'pack.ainubis.world.problems': 'Problémy',
   'pack.ainubis.plane.vault': "Vault",
   'pack.ainubis.plane.chat': 'Chat',
-  'pack.ainubis.plane.wall': 'Nástěnka',
+  'pack.ainubis.plane.wall': 'Fórum',
   'pack.ainubis.soon': 'brzy',
   'pack.ainubis.view.brain': 'Mozek',
   'pack.ainubis.view.dogscroll': "Dogscroll",

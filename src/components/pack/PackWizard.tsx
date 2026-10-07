@@ -128,7 +128,13 @@ const hasSize = (n: Element) => { const r = n.getBoundingClientRect(); return r.
 /** Viditeľný cieľ kotvy. Keď je obal bez rozmeru (kotúč `+` je absolútne polohovaný a obal
  *  ho neobjíme), svieti prvý potomok, ktorý rozmer má — inak by výrez sedel v prázdnom bode. */
 function findTarget(id: string): HTMLElement | null {
-  if (id.startsWith('.')) return ([...document.querySelectorAll(id)].find(hasSize) as HTMLElement | undefined) ?? null;
+  /* Prednosť má prvok V OKNE — zhluky na mape (`.trp-cluster`) ležia aj mimo výrezu mapy
+     a prvý v DOM-e svietil do rohu obrazovky (snímka map.note, 7. 10. 2026). */
+  if (id.startsWith('.')) {
+    const all = [...document.querySelectorAll(id)].filter(hasSize) as HTMLElement[];
+    const inView = all.find((n) => { const r = n.getBoundingClientRect(); return r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight; });
+    return inView ?? all[0] ?? null;
+  }
   const el = document.getElementById(id);
   if (!el) return null;
   if (hasSize(el)) return el;
@@ -264,6 +270,9 @@ function Spot({ step, body, dots, onNext, onSkip, onMissing }: {
     let raf = 0; let tries = 0; let el: HTMLElement | null = null; let alive = true;
     const follow = () => {
       if (!alive || !el) return;
+      // Mapa po dobehnutí dát zhluky PREKRESLÍ — držaný prvok vypadne z DOM-u a jeho rect je 0,0
+      // (výrez v rohu obrazovky). Odpojený prvok sa preto hľadá nanovo.
+      if (!el.isConnected) { el = findTarget(anchor); if (!el) { raf = requestAnimationFrame(follow); return; } }
       const r = el.getBoundingClientRect();
       setBox((b) => (b && Math.abs(b.top - r.top) < 0.5 && Math.abs(b.left - r.left) < 0.5 && Math.abs(b.width - r.width) < 0.5 && Math.abs(b.height - r.height) < 0.5 ? b : r));
       raf = requestAnimationFrame(follow);

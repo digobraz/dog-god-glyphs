@@ -1949,7 +1949,7 @@ export const nld: Partial<Dict> = {
   "pack.ainubis.world.problems": "Problemen",
   "pack.ainubis.plane.vault": "Vault",
   "pack.ainubis.plane.chat": "Chat",
-  "pack.ainubis.plane.wall": "Prikbord",
+  "pack.ainubis.plane.wall": "Forum",
   "pack.ainubis.soon": "binnenkort",
   "pack.ainubis.tip.home": "Terug naar het hele brein",
   "pack.ainubis.search": "Zoeken in de Vault…",

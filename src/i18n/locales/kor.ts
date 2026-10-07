@@ -1949,7 +1949,7 @@ export const kor: Partial<Dict> = {
   "pack.ainubis.world.problems": "문제",
   "pack.ainubis.plane.vault": "Vault",
   "pack.ainubis.plane.chat": "채팅",
-  "pack.ainubis.plane.wall": "게시판",
+  "pack.ainubis.plane.wall": "포럼",
   "pack.ainubis.soon": "곧 공개",
   "pack.ainubis.tip.home": "전체 브레인으로 돌아가기",
   "pack.ainubis.search": "Vault 검색…",

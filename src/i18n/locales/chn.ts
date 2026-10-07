@@ -1946,7 +1946,7 @@ export const chn: Partial<Dict> = {
   "pack.ainubis.world.problems": "问题",
   "pack.ainubis.plane.vault": "Vault",
   "pack.ainubis.plane.chat": "聊天",
-  "pack.ainubis.plane.wall": "留言板",
+  "pack.ainubis.plane.wall": "论坛",
   "pack.ainubis.soon": "敬请期待",
   "pack.ainubis.tip.home": "返回整个大脑",
   "pack.ainubis.search": "搜索 VAULT……",
