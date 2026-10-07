@@ -1,18 +1,11 @@
 import { lazy, Suspense, useEffect, useState, type ComponentType } from "react";
 import { afterLoad } from "@/lib/afterLoad";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { DEV_FULL, BUDDY_LIVE } from "@/lib/packFlags";
 // Papyrusový podklad + zoznam prezlečených ciest — jeden zdroj, viď RouteFallback nižšie.
 import { PAPER_BG, usePaperRoute } from "@/components/pack/packTheme";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider, useLang, ensurePackDict } from "@/i18n/LanguageContext";
-import NotFound from "./pages/NotFound.tsx";
-import { DevNav } from "@/components/DevNav";
-import { ConsentBanner } from "@/components/ConsentBanner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { captureRefFromSearch } from "@/lib/refCapture";
 import { trackPageview, setAnalyticsLang } from "@/lib/analytics";
@@ -20,12 +13,26 @@ import { maskPath, trackPackRoute } from "@/lib/packAnalytics";
 import { captureAttribution } from "@/lib/attribution";
 import { NEW_HEROFLOW } from "@/lib/flowMode";
 
-// Route-level code-split (P0 2026-07 perf pass). NotFound stays eager; od FLIPu
+// Route-level code-split (P0 2026-07 perf pass). NotFound je od 7. 10. 2026 tiež lazy; od FLIPu
 // 7. 10. 2026 je homepage film (OnePage) — aj /wall, tmavý GodsGrid zanikol; everything else behind /heroglyph, /pack, /admin, legacy /spiral, etc.
 // loads on demand. Screens under components/screens/ + SpiralLanding are named
 // exports — pages/* are default exports.
 // AINUBIS chat widget — lazy, aby nezaťažil homepage bundle (perf je otvorená téma).
 // Widget si sám rozhoduje o skrytí na render/heroglyph routách (viď AinubisWidget.tsx).
+// 🔴 MIMO HLAVNÉHO BALÍKA (perf fáza 2, 7. 10. 2026, plán s Fable 5): notifikácie (sonner +
+// radix toast), cookie lišta a 404 nie sú prvý obraz žiadnej stránky. Ako samostatné kúsky sa
+// stiahnu popri stránke a nebrzdia jej vykreslenie. Montujú sa hneď (nie po `load`), takže
+// toast ani lišta nečakajú — len neblokujú.
+const Sonner = lazy(() => import("@/components/ui/sonner").then((m) => ({ default: m.Toaster })));
+const Toaster = lazy(() => import("@/components/ui/toaster").then((m) => ({ default: m.Toaster })));
+const ConsentBanner = lazy(() => import("@/components/ConsentBanner").then((m) => ({ default: m.ConsentBanner })));
+const NotFound = lazy(() => import("./pages/NotFound.tsx"));
+// DevNav (celé Radix menu) sa na dogypt.com nikdy neukáže — kúsok sa stiahne len tam, kde sa
+// ukázať smie (dev, localhost, *.lovable.app). Rovnaká podmienka ako vnútri DevNav.tsx.
+const DevNav = lazy(() => import("@/components/DevNav").then((m) => ({ default: m.DevNav })));
+const SHOW_DEVNAV = import.meta.env.DEV || (typeof window !== "undefined" && /(^localhost$|^127\.0\.0\.1$|lovable\.app$)/.test(window.location.hostname));
+// React Query (QueryClientProvider) a TooltipProvider (Radix + floating-ui) zanikli 7. 10. 2026 —
+// v appke ich nevolal nikto (0× useQuery, Tooltip len v nepoužitom ui/sidebar.tsx).
 const AinubisWidget = lazy(() =>
   import("@/components/ainubis/AinubisWidget").then((m) => ({ default: m.AinubisWidget }))
 );
@@ -206,7 +213,6 @@ const RouteFallback = () => {
   return <div style={{ position: "fixed", inset: 0, background: usePaperRoute(pathname) ? PAPER_BG : "#000" }} />;
 };
 
-const queryClient = new QueryClient();
 
 // ═══════════════════════════════════════════════════════════════════════════
 // NOVÝ HEROFLOW — PREPÍNAČ (23. 9. 2026)
@@ -265,18 +271,20 @@ function RefCapture() {
 
 const App = () => (
   <HelmetProvider>
-  <QueryClientProvider client={queryClient}>
     <LanguageProvider>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
+      <Suspense fallback={null}>
+        <Toaster />
+        <Sonner />
+      </Suspense>
       <BrowserRouter>
         <RefCapture />
-        <ConsentBanner />
+        <Suspense fallback={null}>
+          <ConsentBanner />
+        </Suspense>
         <Suspense fallback={null}>
           <LateAinubis />
         </Suspense>
-        <DevNav />
+        {SHOW_DEVNAV && <Suspense fallback={null}><DevNav /></Suspense>}
         <Suspense fallback={null}>
           <PhotoInvite />
         </Suspense>
@@ -563,9 +571,7 @@ const App = () => (
           </Suspense>
         </ErrorBoundary>
       </BrowserRouter>
-    </TooltipProvider>
     </LanguageProvider>
-  </QueryClientProvider>
   </HelmetProvider>
 );
 

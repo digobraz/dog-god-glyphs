@@ -59,36 +59,50 @@ export default defineConfig(({ mode }) => ({
         const re = /<script type="module" crossorigin src="([^"]+)"><\/script>/;
         const m = html.match(re);
         if (!m) throw new Error("start-app-after-curtain: nenašiel som vstupný <script type=module>");
-        // 🔴 FILM SA SŤAHUJE SÚČASNE S HLAVNÝM BALÍKOM (7. 10. 2026, plán s Fable 5). Bez toho
-        // telefón stiahol index, vykonal ho, až potom zistil, že chce OnePage, a až po ňom
-        // AboutLab — tri čakania za sebou. Tu sa na filmových adresách (tie isté ako opona
-        // v index.html) pridajú <link rel=modulepreload> pre film a jeho závislosti.
-        const film: string[] = [];
+        // 🔴 STRÁNKA SA SŤAHUJE SÚČASNE S HLAVNÝM BALÍKOM (7. 10. 2026, plán s Fable 5). Bez toho
+        // telefón stiahol index, vykonal ho, až potom zistil, ktorú stránku chce (lazy route),
+        // a až po nej jej závislosti — dve-tri čakania za sebou. Tu sa podľa adresy pridajú
+        // <link rel=modulepreload> pre kód stránky + závislosti + preklady jadra (a appky pre /pack).
+        // ⚠️ Tabuľka ROUTES je ručná kópia ciest z App.tsx — chýbajúci modul ZHODÍ build
+        //    (premenovaný súbor sa tak neprepadne ticho). Nová verejná stránka ⇒ pridaj riadok.
         const b = ctx.bundle ?? {};
-        const want = (id?: string | null) => !!id && /\/src\/components\/lab\/(OnePage|AboutLab)\.tsx$/.test(id);
-        const add = (f: string) => {
-          const c = b[f];
-          if (!c || c.type !== "chunk" || c.isEntry || film.includes("/" + f)) return;
-          film.push("/" + f);
-          (c.imports ?? []).forEach(add);
-        };
-        Object.values(b).forEach((c) => { if (c.type === "chunk" && want(c.facadeModuleId)) add(c.fileName); });
-        if (film.length < 2) throw new Error("start-app-after-curtain: nenašiel som balík filmu (OnePage/AboutLab) — premenovaný súbor?");
-        // Preklady jadra (`virtual:i18n/<jazyk>/core`) sa tiež pýtali až po vykonaní indexu (+1 s
+        const ROUTES: [string, RegExp, boolean][] = [
+          // [regex cesty (beží v prehliadači), zdrojové moduly, treba preklady appky?]
+          ["^/(wall|onepage|vision|religion|about|spiral|grid|betavision)?/?$", /\/src\/components\/lab\/(OnePage|AboutLab)\.tsx$/, false],
+          ["^/terms/?$", /\/src\/pages\/Terms\.tsx$/, false],
+          ["^/privacy/?$", /\/src\/pages\/Privacy\.tsx$/, false],
+          ["^/login/?$", /\/src\/pages\/Login\.tsx$/, true],
+          ["^/pack/?$", /\/src\/pages\/Pack\.tsx$/, true],
+          ["^/pack/map(/triplist)?/?$", /\/src\/(pages\/PackMap|components\/pack\/MapGate)\.tsx$/, true],
+          ["^/pack/dogs/?$", /\/src\/pages\/PackDogs\.tsx$/, true],
+          ["^/(dog|d)/[^/]+/?$", /\/src\/pages\/DogShare\.tsx$/, false],
+        ];
+        const table = ROUTES.map(([rx, mod, pk]) => {
+          const files: string[] = [];
+          const add = (f: string) => {
+            const c = b[f];
+            if (!c || c.type !== "chunk" || c.isEntry || files.includes("/" + f)) return;
+            files.push("/" + f);
+            (c.imports ?? []).forEach(add);
+          };
+          Object.values(b).forEach((c) => { if (c.type === "chunk" && c.facadeModuleId && mod.test(c.facadeModuleId)) add(c.fileName); });
+          if (!files.length) throw new Error(`start-app-after-curtain: pre ${rx} som nenašiel balík ${mod} — premenovaný súbor?`);
+          return [rx, files, pk ? 1 : 0];
+        });
+        // Preklady (`virtual:i18n/<jazyk>/core|pack`) sa tiež pýtali až po vykonaní indexu (+1 s
         // na 4G). Jazyk sa háda ako LanguageContext.tsx: `dogypt_lang`, inak prehliadač —
         // tabuľka L je kópia BROWSER_LANG_MAP (pri zmene meň obe). Zlý odhad = 40 kB navyše, nič viac.
-        const core: Record<string, string> = {};
+        const core: Record<string, string> = {}, packD: Record<string, string> = {};
         Object.values(b).forEach((c) => {
-          const mm = c.type === "chunk" && c.facadeModuleId?.match(/^\0virtual:i18n\/([a-z]+)\/core$/);
-          if (mm) core[mm[1]] = "/" + c.fileName;
+          const mm = c.type === "chunk" && c.facadeModuleId?.match(/^\0virtual:i18n\/([a-z]+)\/(core|pack)$/);
+          if (mm) (mm[2] === "core" ? core : packD)[mm[1]] = "/" + c.fileName;
         });
         const L = { en: "en", sk: "sk", cs: "cs", pl: "pol", uk: "ukr", de: "deu", es: "esp", fr: "fra", pt: "prt", ru: "rus", it: "ita", zh: "chn", ja: "jpn", hi: "ind", ar: "ara", ko: "kor", nl: "nld", tr: "tur" };
-        const lang = `var C=${JSON.stringify(core)},L=${JSON.stringify(L)},g=null;try{g=localStorage.getItem('dogypt_lang')}catch(e){}if(!g){var n=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language];for(var i=0;i<n.length&&!g;i++)g=n[i]&&L[n[i].toLowerCase().split('-')[0]]||null}if(g&&C[g])F.push(C[g]);`;
         // Vlastné písma (/fonts/g/) sa zapnú už tu — logo opony je vtedy na obrazovke, takže mu
         // nezoberú linku. Predtým čakali na vykonanie celého JS (main.tsx) a guľa na ne ďalších
         // až 1,5 s (DogPlanetLab: fonts.ready). Google (Inter, JetBrains) ostáva na main.tsx.
         const fonts = `document.querySelectorAll('link[data-late-fonts][href^="/fonts/"]').forEach(function(l){l.media='all'});`;
-        const pre = `var F=${JSON.stringify(film)};${lang}if(['/','/wall','/onepage','/vision','/religion','/about','/spiral','/grid','/betavision'].indexOf(location.pathname)>=0)F.forEach(function(h){var l=document.createElement('link');l.rel='modulepreload';l.crossOrigin='';l.href=h;document.head.appendChild(l);});`;
+        const pre = `var R=${JSON.stringify(table)},C=${JSON.stringify(core)},P=${JSON.stringify(packD)},L=${JSON.stringify(L)},F=[],pk=0,g=null,i;for(i=0;i<R.length;i++)if(new RegExp(R[i][0]).test(location.pathname)){F=R[i][1].slice();pk=R[i][2];break}try{g=localStorage.getItem('dogypt_lang')}catch(e){}if(!g){var n=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language];for(i=0;i<n.length&&!g;i++)g=n[i]&&L[n[i].toLowerCase().split('-')[0]]||null}g=g||'en';if(C[g])F.push(C[g]);if(pk&&P[g])F.push(P[g]);F.forEach(function(h){var l=document.createElement('link');l.rel='modulepreload';l.crossOrigin='';l.href=h;document.head.appendChild(l);});`;
         const boot = `<script>(function(){var go=function(){if(window.__appGo)return;window.__appGo=1;var s=document.createElement('script');s.type='module';s.crossOrigin='';s.src=${JSON.stringify(m[1])};document.head.appendChild(s);${pre}${fonts}};window.__startApp=go;setTimeout(go,1200);})();</script>`;
         return html.replace(re, boot);
       },
