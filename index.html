@@ -278,7 +278,10 @@
         mo.observe(document.documentElement, { childList: true, subtree: true });
         var lift = function () {
           if (gone) return; gone = true; mo.disconnect();
-          document.documentElement.classList.remove('op-booting');
+          // Halo až o 300 ms (7. 10. 2026): na rýchlej sieti sa nadpis gule PRVÝKRÁT vykreslil až
+          // v okamihu zapnutia hala ⇒ Chrome ho zarátal s halom (184 000 px² > logo 62 000) a
+          // PageSpeed hlásil LCP 10 s v 1–2 z 3 behov. Opona je do ≥ 550 ms plne krycia.
+          setTimeout(function () { document.documentElement.classList.remove('op-booting'); }, 300);
           stage(100);
           // Posledné labky musí oko stihnúť vidieť, inak opona odíde s neúplným kruhom.
           setTimeout(function () {
