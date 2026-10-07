@@ -245,9 +245,9 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
           </form>
         )}
 
-        {/* Council — links to the full role-based form on /about */}
+        {/* Council — formulár žije na poslednom obraze filmu (STATUS, /#next) od FLIPu 7. 10. 2026 */}
         <Link
-          to="/"
+          to="/#next"
           className="inline-flex items-center gap-1.5 mt-3"
           style={{
             fontFamily: "'Space Grotesk', sans-serif",

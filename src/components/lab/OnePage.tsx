@@ -4156,6 +4156,34 @@ export default function OnePage() {
     filmJump(at);
   }, [filmJump]);
 
+  // ── SKOK NA OBRAZ PODĽA `#id` (FLIP 7. 10. 2026) ──────────────────────
+  // Staré stránky sa presmerovali do filmu (`/vision` → `/#vision`, `/about` →
+  // `/#founder`, Council → `/#next`) — človek má dôjsť na TEN obraz, nie na guľu.
+  // Zastávky sa dajú zmerať až keď film stojí (fonty, výšky dráh), preto sa
+  // skúša opakovane, kým `at()` nevráti číslo, najdlhšie ~6 s.
+  useEffect(() => {
+    let timer = 0;
+    const jumpToHash = () => {
+      window.clearTimeout(timer);
+      const id = window.location.hash.slice(1);
+      const i = id ? FILM_SLIDES.findIndex((sl) => sl.id === id) : -1;
+      if (i <= 0) return;
+      let tries = 0;
+      const attempt = () => {
+        const at = FILM_SLIDES[i].at();
+        if (at != null && Number.isFinite(at) && at > 0) {
+          window.scrollTo({ top: Math.max(0, Math.round(at)), behavior: 'instant' as ScrollBehavior });
+          return;
+        }
+        if (tries++ < 30) timer = window.setTimeout(attempt, 200);
+      };
+      timer = window.setTimeout(attempt, 300);
+    };
+    jumpToHash();
+    window.addEventListener('hashchange', jumpToHash);
+    return () => { window.clearTimeout(timer); window.removeEventListener('hashchange', jumpToHash); };
+  }, []);
+
   // ── MOTOR FILMU: JEDEN ŤAH = JEDNA OBRAZOVKA (27. 9. 2026) ─────────────
   // Zastávky sa merajú pri KAŽDOM ťahu, nie raz — výšky dráh sa menia
   // s jazykom aj oknom. Jadro je súčet prilepených dráh (to isté, kam skáče

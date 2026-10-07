@@ -54,7 +54,9 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw-maptiles.js').catch(() => {});
 }
 
-if (location.pathname === "/") startEarlyGridDogs(); // film = homepage (FLIP 7. 10. 2026)
+// Adresy, na ktorých sa (aj po presmerovaní) vykreslí film.
+const FILM_PATHS = ["/", "/wall", "/onepage", "/vision", "/religion", "/about", "/spiral", "/grid", "/betavision"];
+if (FILM_PATHS.includes(location.pathname)) startEarlyGridDogs(); // film = homepage (FLIP 7. 10. 2026)
 
 // Aktívny jazyk (SK/CS/…) sa dotiahne pred prvým renderom, aby neblikla angličtina.
 // Pád chunku nesmie zhodiť appku — vtedy ide render hneď a `t()` padne na EN.

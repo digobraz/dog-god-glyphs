@@ -79,20 +79,7 @@
     </noscript>
     <!-- NOTE: /spiral/img/* preloads removed (2026-07 perf pass) — spirála je archívna /spiral
          stránka, homepage je GodsGrid a nepoužíva tieto assety. -->
-    <!-- GodsGrid LCP candidates (PageSpeed 2026-07-08: "nepriame vyhľadávanie žiadostí LCP" —
-         obe sa vykresľujú do canvasu až po JS mounte, prehliadač ich objaví neskoro bez preloadu). -->
-    <!-- LEN NA `/` (audit /pack 26. 9. 2026): index.html je spoločný pre celú SPA, takže
-         statický preload ťahal ~100 KB s najvyššou prioritou aj v /pack, kde sa ani jeden
-         obrázok nezobrazí — a predbiehal tak skutočný obsah stránky. -->
-    <script>
-      if (location.pathname === '/wall') { // grid sa od FLIPu 7. 10. 2026 presunul z / na /wall
-        ['/images/dogypt-gold-logo.webp', '/images/hektor-grid.webp'].forEach(function (h) {
-          var l = document.createElement('link');
-          l.rel = 'preload'; l.as = 'image'; l.href = h; l.setAttribute('fetchpriority', 'high');
-          document.head.appendChild(l);
-        });
-      }
-    </script>
+    <!-- Preload LCP obrázkov tmavého gridu (logo + hektor-grid) zanikol s gridom pri FLIPe 7. 10. 2026. -->
   <meta property="og:site_name" content="DOGYPT" />
   <meta property="og:locale" content="en_US" />
   <script type="application/ld+json">
@@ -146,7 +133,8 @@
          5. 10.: „daj to bez %“. -->
     <script>
       (function () {
-        if (location.pathname !== '/') return; // film = homepage (FLIP 7. 10. 2026)
+        // Film = homepage (FLIP 7. 10. 2026); staré adresy sa do neho presmerujú, opona patrí aj im.
+        if (['/', '/wall', '/onepage', '/vision', '/religion', '/about', '/spiral', '/grid', '/betavision'].indexOf(location.pathname) < 0) return;
         var css = document.createElement('style');
         css.textContent =
           '#op-boot{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;'

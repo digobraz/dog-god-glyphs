@@ -512,6 +512,8 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
   //    nie guľu — prelet na bunku by inak prebehol pod guľou (3. 10. 2026).
   const [planetOpen, setPlanetOpen] = useState(() => {
     if (!embedded) return false;
+    // /wall = film otvorený rovno na stene (FLIP 7. 10. 2026).
+    if (window.location.pathname === '/wall') return false;
     const q = new URLSearchParams(window.location.search);
     return !q.get('dog') && !q.get('focus');
   });
@@ -766,6 +768,16 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
   const wallCbRef = useRef(onWallChange);
   wallCbRef.current = onWallChange;
   useEffect(() => { wallCbRef.current?.(!planetOpen); }, [planetOpen]);
+  // Adresa nesie polohu: guľa = `/`, stena = `/wall` (FLIP 7. 10. 2026) — stena sa dá
+  // poslať odkazom a reload ostane na nej. `replaceState` so ZACHOVANÝM `history.state`,
+  // nie navigate: router by film premontoval. Len na týchto dvoch adresách.
+  useEffect(() => {
+    if (!embedded) return;
+    const p = window.location.pathname;
+    if (p !== '/' && p !== '/wall') return;
+    const want = planetOpen ? '/' : '/wall';
+    if (p !== want) window.history.replaceState(window.history.state, '', want + window.location.search);
+  }, [planetOpen, embedded]);
 
   // Pes z hľadania podľa mena (3. 10. 2026). Člen = ten istý cieľ ako číslo;
   // hosť nemá číslo ⇒ prelet na jeho bunku. Na guli hosť nie je (guľa nesie len

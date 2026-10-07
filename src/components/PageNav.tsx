@@ -5,13 +5,12 @@ import dogyptLogoRound from '@/assets/dogypt-logo-round.png';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
-// FLIP 7. 10. 2026: / = film (VISION, RELIGION aj ABOUT sú jeho obrazy), grid žije na /wall.
-// Samostatné stránky /vision, /religion, /about sú presmerované na /.
-const NAV_ITEMS = [
+// FLIP 7. 10. 2026: / = film (VISION, RELIGION aj ABOUT sú jeho obrazy), stena na /wall.
+// Tri položky zlúčené do jednej DOGYPT (Matej 7. 10.: „áno"). DOGYPT je meno, neprekladá sa
+// (`label` prebije `t(key)`).
+const NAV_ITEMS: { key: string; to: string; label?: string }[] = [
+  { key: 'nav.dogypt', to: '/', label: 'DOGYPT' },
   { key: 'nav.wall', to: '/wall' },
-  { key: 'nav.vision', to: '/' },
-  { key: 'nav.religion', to: '/' },
-  { key: 'nav.about', to: '/' },
 ];
 
 // POZOR: kódy MUSIA matchovať LanguagePicker `label` + DICTS kľúče v LanguageContext
@@ -98,7 +97,7 @@ function DesktopNav() {
         zIndex: 50,
       }}
     >
-      {NAV_ITEMS.map(({ key, to }) => {
+      {NAV_ITEMS.map(({ key, to, label }) => {
         const isActive = pathname === to;
         return (
           <span
@@ -127,7 +126,7 @@ function DesktopNav() {
                 whiteSpace: 'nowrap',
               }}
             >
-              {t(key)}
+              {label ?? t(key)}
             </Link>
             <span
               aria-hidden
@@ -377,7 +376,7 @@ function MobileMenuOverlay({
             />
           </div>
         </Link>
-        {NAV_ITEMS.map(({ key, to }) => {
+        {NAV_ITEMS.map(({ key, to, label }) => {
           const isActive = pathname === to;
           return (
             <Link
@@ -400,7 +399,7 @@ function MobileMenuOverlay({
                 transition: 'font-size 0.32s ease',
               }}
             >
-              {t(key)}
+              {label ?? t(key)}
             </Link>
           );
         })}

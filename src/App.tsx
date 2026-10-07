@@ -21,7 +21,7 @@ import { captureAttribution } from "@/lib/attribution";
 import { NEW_HEROFLOW } from "@/lib/flowMode";
 
 // Route-level code-split (P0 2026-07 perf pass). NotFound stays eager; od FLIPu
-// 7. 10. 2026 je homepage film (OnePage) a grid (/wall) ide tiež lazy; everything else behind /heroglyph, /pack, /admin, legacy /spiral, etc.
+// 7. 10. 2026 je homepage film (OnePage) — aj /wall, tmavý GodsGrid zanikol; everything else behind /heroglyph, /pack, /admin, legacy /spiral, etc.
 // loads on demand. Screens under components/screens/ + SpiralLanding are named
 // exports — pages/* are default exports.
 // AINUBIS chat widget — lazy, aby nezaťažil homepage bundle (perf je otvorená téma).
@@ -174,9 +174,6 @@ const LabShell = lazy(() => import("./components/lab/LabShell"));
 // ONEPAGE — druhý koncept toho istého webu: celý film v jednom zvislom scrolle
 // (Matej 26. 8. 2026). Beží VEDĽA LabShellu, nie namiesto neho.
 const OnePage = lazy(() => import("./components/lab/OnePage"));
-const GodsGrid = lazy(() =>
-  import("@/components/gods/GodsGrid").then((m) => ({ default: m.GodsGrid }))
-);
 const Entry = lazy(() => import("./pages/Entry.tsx"));
 // Výzva „TVÁR TVOJHO PSA" — jeden vstup do nového heroflowu (WE NEED YOU, zrušený výber fotky na portáli).
 const PhotoInvite = lazy(() => import("./components/gods/PhotoInvite.tsx"));
@@ -298,12 +295,14 @@ const App = () => (
                   súčasťou filmu — presmerované, aby žil každý odkaz v rozoslaných mailoch. */}
               <Route path="/" element={<OnePage />} />
               <Route path="/onepage" element={<Navigate to="/" replace />} />
-              <Route path="/wall" element={<GodsGrid />} />
+              {/* /wall = ten istý film, otvorený rovno na BLEDEJ stene (Matej 7. 10.:
+                  „tmavá aktuálna stena zaniká… pracujeme len s tým novým bledým dizajnom"). */}
+              <Route path="/wall" element={<OnePage />} />
               <Route path="/grid" element={<Navigate to="/wall" replace />} />
               <Route path="/spiral" element={<Navigate to="/" replace />} />
-              <Route path="/vision" element={<Navigate to="/" replace />} />
-              <Route path="/religion" element={<Navigate to="/" replace />} />
-              <Route path="/about" element={<Navigate to="/" replace />} />
+              <Route path="/vision" element={<Navigate to="/#vision" replace />} />
+              <Route path="/religion" element={<Navigate to="/#religion" replace />} />
+              <Route path="/about" element={<Navigate to="/#founder" replace />} />
               <Route path="/betavision" element={<Navigate to="/" replace />} />
               {/* LAB — svetlý (papyrusový) web, dev-only pieskovisko.
                   `/wall-lab` = homepage (GLOBE + spodná lišta), ostatné cesty sú
