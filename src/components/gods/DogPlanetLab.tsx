@@ -2084,11 +2084,8 @@ export function DogPlanetLab({
            Jednorazová animácia transformu pri príchode — iskry (plátno) sa
            pritom zväčšujú s ním, v pokoji je transform prázdny. */
         .planet-hero .ph-portal { opacity: 0; }
-        /* Jadro portálu na guli = LAPIS, priesvitnosť ostáva (Matej 28. 9.
-           2026: *„skúsme to pozadie nedať čierne ale tmavomodré (lapis,
-           priesvitnosť zachovaj)"*). Stena má svoje tmavé jadro ďalej. */
-        .planet-hero .ph-bed { background: radial-gradient(120% 120% at 50% 30%, rgba(30,60,144,.9) 0%, rgba(22,48,122,.9) 55%, rgba(10,26,74,.92) 100%); }
-        .planet-hero .ph-add-veil { background: linear-gradient(180deg, rgba(10,26,74,0.12), rgba(10,26,74,0.5)); }
+        /* Lapisové jadro portálu (28. 9. 2026) je od 7. 10. 2026 spoločné
+           s jadrom na stene — žije v PORTAL_CSS (dogPortal.ts), nie tu. */
         .planet-hero .ph-lbl { text-align: center; line-height: 1.15; }
         .planet-hero.hero-in .ph-portal { animation: phBirth 900ms cubic-bezier(.2,.9,.3,1.12) 240ms both; }
         @keyframes phBirth {

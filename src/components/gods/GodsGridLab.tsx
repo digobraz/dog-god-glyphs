@@ -1374,13 +1374,14 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       el.style.left = '0px';
       el.style.top  = (1 * GY) + 'px';
 
-      // 🔴 NA STENE PORTÁL BEZ TVÁRÍ (7. 10. 2026). Matej: *„keď kliknem na
-      // obrázok psa každý druhý krát mi ponúkne nahrať fotku… fotka sa nahráva
-      // len kliknutím na portál!"* Portál striedal fotky skutočných psov a na
-      // okraji obrazovky, orezaný, vyzeral presne ako karta psa — ťuk naň otvoril
-      // výber súboru. Medzi kartami psov sa portál musí líšiť na prvý pohľad.
-      // (Guľa si tváre necháva — tam portál stojí sám v strede, nie v mriežke.)
-      const faces: string[] = [];
+      // Tváre sa striedajú CSS animáciou, nie intervalom — kartu odstraňuje
+      // virtualizácia pri scrolle a JS časovač by po nej ostal bežať.
+      // ⚠️ 7. 10. 2026 boli ráno na stene vypnuté (podozrenie, že orezaný portál
+      // s tvárou vyzerá ako karta psa) — Matej ich v ten istý deň vrátil:
+      // *„treba aby to bolo to isté = … meniace sa foto ako je to na main"*.
+      const faces = [...realDogMapRef.current.values()]
+        .map(d => planetTileUrl(d.cloudinary_main_url))
+        .filter(Boolean) as string[];
 
       // Skrytý výber súboru žije V KARTE, nie v dokumente — s kartou aj zanikne.
       const file = document.createElement('input');

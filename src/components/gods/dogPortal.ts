@@ -457,11 +457,15 @@ export const PORTAL_CSS = `
 
 /* Jadro je TMAVÉ zámerne. Na papyruse nesie kontrast tma, nie ďalšie
    svetlo — takmer biela dlaždica sa na svetlej stránke stratila a presne
-   to bolo Matejovo *„nevyzerá vôbec dobre, je inej farby"*. */
+   to bolo Matejovo *„nevyzerá vôbec dobre, je inej farby"*.
+   Tma je LAPIS, priesvitná (guľa 28. 9. 2026: *„nie čierne ale tmavomodré,
+   priesvitnosť zachovaj"*) — od 7. 10. 2026 aj na stene, JEDEN tvar pre oba
+   povrchy (Matej: *„na wall a na onepage nie je totožný portál… treba aby to
+   bolo to isté = jemný tmavomodrý priesvitný tint a meniace sa foto"*). */
 .ph-bed {
   position: absolute;
   inset: 0;
-  background: radial-gradient(120% 120% at 50% 30%, #2a1a08 0%, #150d05 60%, #0b0703 100%);
+  background: radial-gradient(120% 120% at 50% 30%, rgba(30,60,144,.9) 0%, rgba(22,48,122,.9) 55%, rgba(10,26,74,.92) 100%);
 }
 
 /* Tváre zo steny sa striedajú POMALY. Do 27. 8. bolo v slučke 12 fotiek
@@ -484,7 +488,7 @@ export const PORTAL_CSS = `
 }
 .ph-add-veil {
   position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(180deg, rgba(20,12,4,0.15), rgba(20,12,4,0.55));
+  background: linear-gradient(180deg, rgba(10,26,74,0.12), rgba(10,26,74,0.5));
 }
 
 /* ── ZNAČKA V STREDE: brandové PLUS a POD NÍM popisok ────────────────
