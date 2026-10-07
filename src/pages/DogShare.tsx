@@ -48,6 +48,16 @@ const DOG_FEED_BASE = import.meta.env.DEV && (() => {
   try { return localStorage.getItem('dogypt-wall-src') !== 'dev'; } catch { return true; }
 })() ? LIVE_EDGE_BASE : EDGE_BASE;
 
+/** Šírka fotky psa v px: šírka karty (≤ 400 CSS px) × hustota displeja, zaokrúhlená na 120,
+ *  strop 1080 (pôvodná pevná hodnota). index.html ju ráta TÝM ISTÝM vzorcom a fotku predsťahuje
+ *  (`window.__dogPhotoW`) — adresy sa musia zhodovať, inak sa fotka stiahne dvakrát. */
+const dogPhotoW = (): number => {
+  const w = (window as Window & { __dogPhotoW?: number }).__dogPhotoW;
+  if (w) return w;
+  const css = Math.min(window.innerWidth || 400, 400);
+  return Math.min(1080, Math.ceil(css * (window.devicePixelRatio || 1) / 120) * 120);
+};
+
 interface GridDog {
   pack_number: number | null;
   dog_name: string | null;
@@ -286,8 +296,10 @@ export default function DogShare() {
     // allows `content-type, authorization` (not `apikey`), and the function is
     // public/service-role internally anyway. Matches the working fetch in
     // GodsGrid.tsx (the WALL uses the exact same feed with a plain fetch).
-    fetch(`${DOG_FEED_BASE}/get-grid-dogs`)
-      .then((r) => (r.ok ? r.json() : []))
+    // Feed už mohol vypýtať index.html (stránka psa, perf 7. 10. 2026) — len keď mieri na LIVE.
+    const early = DOG_FEED_BASE === LIVE_EDGE_BASE ? (window as Window & { __dogFeed?: Promise<GridDog[]> }).__dogFeed : undefined;
+    (window as Window & { __dogFeed?: Promise<GridDog[]> }).__dogFeed = undefined;
+    (early ?? fetch(`${DOG_FEED_BASE}/get-grid-dogs`).then((r) => (r.ok ? r.json() : [])))
       .then((dogs: GridDog[]) => {
         if (!alive) return;
         const found = dogs.find((d) => d.pack_number === packNum);
@@ -480,7 +492,7 @@ export default function DogShare() {
                 <LiveShareCard
                   packNumber={dog.pack_number}
                   dogName={dogName}
-                  photoUrl={withTransform(dog.cloudinary_main_url || '', 'c_fill,w_1080,h_1080,g_auto,f_auto,q_auto')}
+                  photoUrl={withTransform(dog.cloudinary_main_url || '', `c_fill,w_${dogPhotoW()},h_${dogPhotoW()},g_auto,f_auto,q_auto`)}
                   heroglyphUrl={dog.heroglyph_png_url || ''}
                 />
               ) : ogImage && (

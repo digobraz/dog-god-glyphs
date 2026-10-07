@@ -37,6 +37,36 @@
     w.setTimeout(function(){w.__loadGtm()},8000);
     })(window,document,'script','dataLayer','GTM-PXB5MV3L');</script>
     <!-- End Google Tag Manager -->
+    <!-- 🔴 STRÁNKA PSA: DÁTA A FOTKA UŽ Z HTML (perf mobil 7. 10. 2026). /dog/<meno>-<číslo>
+         ukazuje fotku psa (LCP), no jej adresu pozná až `get-grid-dogs` — a ten sa predtým pýtal
+         až po celom JavaScripte (~5 s na mobile). Tu sa feed pýta hneď a fotka sa predstiahne
+         v rovnakej adrese, akú potom kreslí DogShare.tsx (`dogPhotoUrl` — pri zmene meň OBE). -->
+    <script>
+      (function () {
+        var m = location.pathname.match(/^\/(?:dog|d)\/[^\/]*?(\d+)\/?$/);
+        if (!m) return;
+        var n = +m[1];
+        var css = Math.min(window.innerWidth || 400, 400);
+        var w = Math.min(1080, Math.ceil(css * (window.devicePixelRatio || 1) / 120) * 120);
+        window.__dogPhotoW = w;
+        window.__dogFeed = fetch('https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/get-grid-dogs')
+          .then(function (r) { return r.ok ? r.json() : []; })
+          .catch(function () { return []; });
+        window.__dogFeed.then(function (dogs) {
+          for (var i = 0; i < dogs.length; i++) {
+            var d = dogs[i], u = d && d.pack_number === n && d.cloudinary_main_url;
+            if (!u) continue;
+            if (u.indexOf('/image/upload/') < 0) return;
+            var p = u.split('/image/upload/'), first = p[1].split('/')[0];
+            if (!/(^|,)(c_|w_|h_|f_auto|q_auto|dpr_)/.test(first)) u = p[0] + '/image/upload/c_fill,w_' + w + ',h_' + w + ',g_auto,f_auto,q_auto/' + p[1];
+            var l = document.createElement('link');
+            l.rel = 'preload'; l.as = 'image'; l.href = u; l.setAttribute('fetchpriority', 'high');
+            document.head.appendChild(l);
+            return;
+          }
+        });
+      })();
+    </script>
     <meta name="theme-color" content="#000000" />
     <meta name="theme-color" content="#000000" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
