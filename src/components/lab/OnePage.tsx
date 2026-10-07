@@ -8075,20 +8075,21 @@ export default function OnePage() {
           <span className="nav-medal-slot" aria-hidden="true">
             <NavMedallion onClick={() => goSlide(0)} />
           </span>
-          {/* ⚠️ PORADIE V DOM-e JE MOBILNÉ: jazyk, potom login (Matej 28. 8. 2026:
+          {/* ⚠️ PORADIE: jazyk, potom login — na MOBILE (Matej 28. 8. 2026:
               *„v hornom menu vymeňme jazyky a login — jazyky vlavo login vpravo
-              na MOBILE"*). Na PC ostáva pôvodné poradie login → jazyk, lebo tam
-              je viditeľný `.nav-lang-desktop`, ktorý stojí ZA loginom.
+              na MOBILE"*) aj na PC (Matej 7. 10. 2026: *„na PC vymeň poradie
+              v hornom nave jazyk naľavo a login napravo ako je to na mobile"*).
+              Preto `.nav-lang-desktop` stojí PRED loginom.
               Dve inštancie pickera nie sú duplikát z nedbanlivosti: mobil má
               podobu `flow` (modál s tmavým závojom, prenesená zo spodnej lišty),
               PC dropdown zavesený pod pilulku. Jedna inštancia by musela meniť
               variant podľa `matchMedia`, teda držať šírku okna v stave. */}
           <span className="main-nav-right">
             <span className="nav-lang-mobile"><LanguagePicker variant="flow" /></span>
+            <span className="nav-lang-desktop"><LanguagePicker /></span>
             <a href="/login" className="nav-login" aria-label={t('nav.login')}>
               <HandHouseHeart size={20} />
             </a>
-            <span className="nav-lang-desktop"><LanguagePicker /></span>
           </span>
         </nav>
       </div>
