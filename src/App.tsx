@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useState, type ComponentType } from "react";
 import { afterLoad } from "@/lib/afterLoad";
 import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { DEV_FULL, BUDDY_LIVE } from "@/lib/packFlags";
+import { DEV_FULL, BUDDY_LIVE, hasStoredSessionOrAuthReturn } from "@/lib/packFlags";
 // Papyrusový podklad + zoznam prezlečených ciest — jeden zdroj, viď RouteFallback nižšie.
 import { PAPER_BG, usePaperRoute } from "@/components/pack/packTheme";
 import { LanguageProvider, useLang, ensurePackDict } from "@/i18n/LanguageContext";
@@ -29,6 +29,7 @@ const ConsentBanner = lazy(() => import("@/components/ConsentBanner").then((m) =
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 // DevNav (celé Radix menu) sa na dogypt.com nikdy neukáže — kúsok sa stiahne len tam, kde sa
 // ukázať smie (dev, localhost, *.lovable.app). Rovnaká podmienka ako vnútri DevNav.tsx.
+const NOAUTH_DEV = import.meta.env.DEV && import.meta.env.VITE_PACK_NOAUTH === "1";
 const DevNav = lazy(() => import("@/components/DevNav").then((m) => ({ default: m.DevNav })));
 const SHOW_DEVNAV = import.meta.env.DEV || (typeof window !== "undefined" && /(^localhost$|^127\.0\.0\.1$|lovable\.app$)/.test(window.location.hostname));
 // React Query (QueryClientProvider) a TooltipProvider (Radix + floating-ui) zanikli 7. 10. 2026 —
@@ -487,7 +488,8 @@ const App = () => (
               <Route path="/pack/join/:token" element={<PackJoin />} />
 
               {/* /pack — buyer backoffice (auth-gated) */}
-              <Route path="/pack" element={<Pack />} />
+              {/* Bez session rovno na prihlásenie — nie cez 1,4 MB appky (perf fáza 2, 7. 10. 2026). */}
+              <Route path="/pack" element={NOAUTH_DEV || hasStoredSessionOrAuthReturn() ? <Pack /> : <Navigate to={`/login?return=${encodeURIComponent("/pack" + window.location.search)}`} replace />} />
               <Route path="/pack/dogs/:id" element={<PackDogDetail />} />
               {/* Profil je na LIVE od 2026-08-06 (Matej: „profil sa bude upravovať v /profile").
                   Podmienka pre ceruzku v HeroCard — homepage je odteraz read-only a JEDINÉ miesto,

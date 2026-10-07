@@ -65,6 +65,23 @@ function sessionEmailFromStorage(): string | null {
   }
 }
 
+/**
+ * Je v prehliadači uložená Supabase session? SYNCHRONNE, bez supabase-js (perf fáza 2, 7. 10. 2026).
+ * `/pack` bez nej presmeruje na prihlásenie SKÔR, než sa stiahne celá appka (1,4 MB) — tá by
+ * to zistila až po stiahnutí (`usePackIdentity`) a presmerovala tam istá. Návrat z magic linku
+ * (token/kód v adrese) sa počíta ako session — supabase-js ju z adresy ešte len vyrobí.
+ */
+export function hasStoredSessionOrAuthReturn(): boolean {
+  if (typeof window === 'undefined') return true;
+  if (/access_token|refresh_token|token_hash|[?&#]code=|error_description/.test(window.location.hash + window.location.search)) return true;
+  try {
+    const ref = new URL(SUPABASE_URL).hostname.split('.')[0];
+    return !!localStorage.getItem(`sb-${ref}-auth-token`);
+  } catch {
+    return true; // bez localStorage nevieme — nech rozhodne appka ako doteraz
+  }
+}
+
 // 🟢 FLIP 5. 10. 2026 (Matej: „iba /pack … potichu dať LIVE") — plný /pack pre všetkých členov.
 export const DEV_FULL = true;
 
