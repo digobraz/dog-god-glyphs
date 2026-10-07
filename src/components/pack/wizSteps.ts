@@ -65,8 +65,8 @@ export const WIZ_SCREENS: WizScreen[] = [
       { id: 'home.navAinubis', anchor: WIZ.navAinubis, text: 'pack.wizard.navAinubis.body', handoff: true, since: '2026-10-06' },
     ],
   },
-  // ── PRVÁ NÁVŠTEVA — texty čakajú na OK (hárok `plany/nakres-wizard-2026-10-06.html`) ──
-  { key: 'map', routes: ['/pack/map'], basket: 1, status: 'caka', steps: [
+  // ── PRVÁ NÁVŠTEVA — texty odklepnuté v tabuli 7. 10. 2026 (Matej: „ok daj to na live“) ──
+  { key: 'map', routes: ['/pack/map'], basket: 1, status: 'kroky', steps: [
     { id: 'map.pilgrim', anchor: '.trp-midentity', text: 'pack.wizard.map.pilgrim', since: '2026-10-06' },
     { id: 'map.search', anchor: '.trp-mheader-row2, .trp-topsearchrow', text: 'pack.wizard.map.search', since: '2026-10-06' },
     { id: 'map.cats', anchor: '.trp-mheader-cats, .trp-sidebar-top', text: 'pack.wizard.map.cats', since: '2026-10-06' },
@@ -75,26 +75,26 @@ export const WIZ_SCREENS: WizScreen[] = [
     { id: 'map.list', anchor: '.trp-mactions', text: 'pack.wizard.map.list', since: '2026-10-06' },
     { id: 'map.plus', anchor: '.pk-medal', text: 'pack.wizard.map.plus', since: '2026-10-06' },
   ] },
-  { key: 'triplist', routes: ['/pack/map/triplist'], basket: 2, status: 'caka', steps: [
+  { key: 'triplist', routes: ['/pack/map/triplist'], basket: 2, status: 'kroky', steps: [
     { id: 'triplist.tabs', anchor: '.tl-tabs', text: 'pack.wizard.triplist.tabs', since: '2026-10-06' },
     { id: 'triplist.want', anchor: WIZ.tlWant, text: 'pack.wizard.triplist.want', since: '2026-10-06' },
     { id: 'triplist.wish', anchor: WIZ.tlWish, text: 'pack.wizard.triplist.wish', since: '2026-10-06' },
   ] },
-  { key: 'tripArticle', routes: ['/pack/map/:country/:slug', '/pack/map/:slug'], basket: 2, status: 'caka', steps: [
+  { key: 'tripArticle', routes: ['/pack/map/:country/:slug', '/pack/map/:slug'], basket: 2, status: 'kroky', steps: [
     { id: 'tripArticle.walked', anchor: '.pta-acts', text: 'pack.wizard.tripArticle.walked', since: '2026-10-06' },
     { id: 'tripArticle.go', anchor: '.tgo-ctas', text: 'pack.wizard.tripArticle.go', since: '2026-10-06' },
     { id: 'tripArticle.review', anchor: '.tcm-wrap', text: 'pack.wizard.tripArticle.review', since: '2026-10-06' },
     { id: 'tripArticle.problem', anchor: '.pta-problem', text: 'pack.wizard.tripArticle.problem', since: '2026-10-06' },
   ] },
   { key: 'tripStory', routes: ['/pack/map/:country/:slug/pribeh/:n'], basket: 2, status: 'nie', why: 'čítanie príbehu — nič nové na ovládanie', steps: [] },
-  { key: 'dogs', routes: ['/pack/dogs'], basket: 2, status: 'caka', steps: [
+  { key: 'dogs', routes: ['/pack/dogs'], basket: 2, status: 'kroky', steps: [
     { id: 'dogs.block', anchor: '.hub-hover', text: 'pack.wizard.dogs.block', since: '2026-10-06' },
     { id: 'dogs.tiles', anchor: '.hub-tiles', text: 'pack.wizard.dogs.tiles', since: '2026-10-06' },
     { id: 'dogs.quiz', anchor: '.hub-hero', text: 'pack.wizard.dogs.quiz', since: '2026-10-06' },
     { id: 'dogs.calendar', anchor: '.cal-head', text: 'pack.wizard.dogs.calendar', since: '2026-10-06' },
   ] },
   { key: 'dogId', routes: ['/pack/dogs/:id'], basket: 2, status: 'caka', steps: [] },
-  { key: 'ainubis', routes: ['/pack/ainubis/*'], basket: 1, status: 'caka', steps: [
+  { key: 'ainubis', routes: ['/pack/ainubis/*'], basket: 1, status: 'kroky', steps: [
     // Matej 7. 10.: prvý krok = AINUBIS vo všeobecnosti, výrez na jeho ikonke v lište.
     { id: 'ainubis.intro', anchor: WIZ.navAinubis, text: 'pack.wizard.ainubis.intro', since: '2026-10-07' },
     { id: 'ainubis.me', anchor: '.pkid-me', text: 'pack.wizard.ainubis.me', since: '2026-10-06' },
@@ -104,7 +104,7 @@ export const WIZ_SCREENS: WizScreen[] = [
   { key: 'sniffer', routes: ['/pack/sniffer'], basket: 2, status: 'caka', steps: [
     { id: 'sniffer.card', anchor: '.bd-card', text: 'pack.wizard.sniffer.card', on: false, since: '2026-10-06' },
   ] },
-  { key: 'profile', routes: ['/pack/profile'], basket: 1, status: 'caka', steps: [
+  { key: 'profile', routes: ['/pack/profile'], basket: 1, status: 'kroky', steps: [
     { id: 'profile.head', anchor: '.pf-head', text: 'pack.wizard.profile.head', on: false, since: '2026-10-06' },
     { id: 'profile.pilgrim', anchor: '.pf-tap', text: 'pack.wizard.profile.pilgrim', on: false, since: '2026-10-06' },
     { id: 'profile.bones', anchor: '.pknet-side', text: 'pack.wizard.profile.bones', since: '2026-10-06' },
