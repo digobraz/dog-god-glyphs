@@ -195,6 +195,22 @@
               window.__gridEarly = fetch('/api/dogs?tiers=all', { priority: 'high' })
                 .then(function (r) { return r.ok ? r.json() : []; })
                 .catch(function () { return []; });
+              // 🔴 FOTKY GULE SA SŤAHUJÚ HNEĎ, ako príde zoznam — nie až keď React nakreslí guľu.
+              // Merané 7. 10. na pomalom 4G: dlaždice štartovali o 9,5 s (po celom JS filmu)
+              // a opona zišla nad 0 z 200 fotiek. Adresa MUSÍ sedieť s `planetTileUrl`
+              // (GodsGridLab.tsx) + `gridTileUrl` (cloudinaryService.ts), inak sa fotka stiahne
+              // dvakrát — pri zmene meň všetky tri. Na guli sú Hektor + členovia od #2.
+              window.__gridEarly.then(function (dogs) {
+                var px = window.innerWidth <= 768 ? 120 : 160, seen = {};
+                var pre = function (u) { if (seen[u]) return; seen[u] = 1; var im = new Image(); im.decoding = 'async'; im.src = u; };
+                pre('/images/hektor-grid-tile.webp');
+                for (var i = 0; i < dogs.length; i++) {
+                  var d = dogs[i], u = d && d.cloudinary_main_url;
+                  if (!u || !(d.pack_number >= 2) || u.indexOf('/image/upload/') < 0) continue;
+                  var p = u.split('/image/upload/'), id = p[1].replace(/^v\d+\//, '').replace(/\.[a-zA-Z0-9]+$/, '');
+                  if (id) pre(p[0] + '/image/upload/c_fill,w_' + px + ',h_' + px + ',f_auto,q_auto/' + id);
+                }
+              });
             } catch (e) {}
           }
         })();

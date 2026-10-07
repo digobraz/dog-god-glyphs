@@ -74,7 +74,17 @@ export default defineConfig(({ mode }) => ({
         };
         Object.values(b).forEach((c) => { if (c.type === "chunk" && want(c.facadeModuleId)) add(c.fileName); });
         if (film.length < 2) throw new Error("start-app-after-curtain: nenašiel som balík filmu (OnePage/AboutLab) — premenovaný súbor?");
-        const pre = `var F=${JSON.stringify(film)};if(['/','/wall','/onepage','/vision','/religion','/about','/spiral','/grid','/betavision'].indexOf(location.pathname)>=0)F.forEach(function(h){var l=document.createElement('link');l.rel='modulepreload';l.crossOrigin='';l.href=h;document.head.appendChild(l);});`;
+        // Preklady jadra (`virtual:i18n/<jazyk>/core`) sa tiež pýtali až po vykonaní indexu (+1 s
+        // na 4G). Jazyk sa háda ako LanguageContext.tsx: `dogypt_lang`, inak prehliadač —
+        // tabuľka L je kópia BROWSER_LANG_MAP (pri zmene meň obe). Zlý odhad = 40 kB navyše, nič viac.
+        const core: Record<string, string> = {};
+        Object.values(b).forEach((c) => {
+          const mm = c.type === "chunk" && c.facadeModuleId?.match(/^\0virtual:i18n\/([a-z]+)\/core$/);
+          if (mm) core[mm[1]] = "/" + c.fileName;
+        });
+        const L = { en: "en", sk: "sk", cs: "cs", pl: "pol", uk: "ukr", de: "deu", es: "esp", fr: "fra", pt: "prt", ru: "rus", it: "ita", zh: "chn", ja: "jpn", hi: "ind", ar: "ara", ko: "kor", nl: "nld", tr: "tur" };
+        const lang = `var C=${JSON.stringify(core)},L=${JSON.stringify(L)},g=null;try{g=localStorage.getItem('dogypt_lang')}catch(e){}if(!g){var n=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language];for(var i=0;i<n.length&&!g;i++)g=n[i]&&L[n[i].toLowerCase().split('-')[0]]||null}if(g&&C[g])F.push(C[g]);`;
+        const pre = `var F=${JSON.stringify(film)};${lang}if(['/','/wall','/onepage','/vision','/religion','/about','/spiral','/grid','/betavision'].indexOf(location.pathname)>=0)F.forEach(function(h){var l=document.createElement('link');l.rel='modulepreload';l.crossOrigin='';l.href=h;document.head.appendChild(l);});`;
         const boot = `<script>(function(){var go=function(){if(window.__appGo)return;window.__appGo=1;var s=document.createElement('script');s.type='module';s.crossOrigin='';s.src=${JSON.stringify(m[1])};document.head.appendChild(s);${pre}};window.__startApp=go;setTimeout(go,1200);})();</script>`;
         return html.replace(re, boot);
       },
