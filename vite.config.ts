@@ -66,6 +66,8 @@ export default defineConfig(({ mode }) => ({
         // ⚠️ Tabuľka ROUTES je ručná kópia ciest z App.tsx — chýbajúci modul ZHODÍ build
         //    (premenovaný súbor sa tak neprepadne ticho). Nová verejná stránka ⇒ pridaj riadok.
         const b = ctx.bundle ?? {};
+        // ⚠️ /pack* BEZ prihlásenia (žiadny `sb-*-auth-token` v localStorage) ukáže prihlásenie ⇒
+        //    predsťahuje sa Login, nie 30 súborov appky (merané: /pack LCP 5,9 → 7,1 s, keď sa ťahala appka).
         const ROUTES: [string, RegExp, boolean][] = [
           // [regex cesty (beží v prehliadači), zdrojové moduly, treba preklady appky?]
           ["^/(wall|onepage|vision|religion|about|spiral|grid|betavision)?/?$", /\/src\/components\/lab\/(OnePage|AboutLab)\.tsx$/, false],
@@ -102,7 +104,7 @@ export default defineConfig(({ mode }) => ({
         // nezoberú linku. Predtým čakali na vykonanie celého JS (main.tsx) a guľa na ne ďalších
         // až 1,5 s (DogPlanetLab: fonts.ready). Google (Inter, JetBrains) ostáva na main.tsx.
         const fonts = `document.querySelectorAll('link[data-late-fonts][href^="/fonts/"]').forEach(function(l){l.media='all'});`;
-        const pre = `var R=${JSON.stringify(table)},C=${JSON.stringify(core)},P=${JSON.stringify(packD)},L=${JSON.stringify(L)},F=[],pk=0,g=null,i;for(i=0;i<R.length;i++)if(new RegExp(R[i][0]).test(location.pathname)){F=R[i][1].slice();pk=R[i][2];break}try{g=localStorage.getItem('dogypt_lang')}catch(e){}if(!g){var n=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language];for(i=0;i<n.length&&!g;i++)g=n[i]&&L[n[i].toLowerCase().split('-')[0]]||null}g=g||'en';if(C[g])F.push(C[g]);if(pk&&P[g])F.push(P[g]);F.forEach(function(h){var l=document.createElement('link');l.rel='modulepreload';l.crossOrigin='';l.href=h;document.head.appendChild(l);});`;
+        const pre = `var R=${JSON.stringify(table)},C=${JSON.stringify(core)},P=${JSON.stringify(packD)},L=${JSON.stringify(L)},F=[],pk=0,g=null,i;var pth=location.pathname,sess=0;try{for(i=0;i<localStorage.length;i++)if(/^sb-.*-auth-token$/.test(localStorage.key(i)))sess=1}catch(e){}if(/^\\/pack/.test(pth)&&!sess)pth='/login';for(i=0;i<R.length;i++)if(new RegExp(R[i][0]).test(pth)){F=R[i][1].slice();pk=R[i][2];break}try{g=localStorage.getItem('dogypt_lang')}catch(e){}if(!g){var n=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language];for(i=0;i<n.length&&!g;i++)g=n[i]&&L[n[i].toLowerCase().split('-')[0]]||null}g=g||'en';if(C[g])F.push(C[g]);if(pk&&P[g])F.push(P[g]);F.forEach(function(h){var l=document.createElement('link');l.rel='modulepreload';l.crossOrigin='';l.href=h;document.head.appendChild(l);});`;
         const boot = `<script>(function(){var go=function(){if(window.__appGo)return;window.__appGo=1;var s=document.createElement('script');s.type='module';s.crossOrigin='';s.src=${JSON.stringify(m[1])};document.head.appendChild(s);${pre}${fonts}};window.__startApp=go;setTimeout(go,1200);})();</script>`;
         return html.replace(re, boot);
       },

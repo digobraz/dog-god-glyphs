@@ -56,7 +56,8 @@
             .catch(function () { return []; });
         };
         var hn = location.hostname;
-        window.__dogFeed = (hn === 'dogypt.com' || hn === 'www.dogypt.com' || /\.workers\.dev$/.test(hn))
+        // Cloudflare Worker už vložil psa priamo do HTML (scripts/cloudflare/worker.js, dogPage) ⇒ bez čakania.
+        window.__dogFeed = window.__dogInline ? Promise.resolve(window.__dogInline) : (hn === 'dogypt.com' || hn === 'www.dogypt.com' || /\.workers\.dev$/.test(hn))
           ? fetch('/api/dogs').then(function (r) { return r.ok ? r.json() : []; })
               .then(function (j) { return j && j.length ? j : sb(); }, sb)
           : sb();
