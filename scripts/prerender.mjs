@@ -126,7 +126,9 @@ var mc=new MutationObserver(function(){if(!rt.querySelector('.consent-banner')&&
 mc.observe(rt,{childList:true,subtree:true});}}catch(e){}
 // Hotový text je skrytý, kým nedobehnú písma, ktoré si vypýtal (strop 800 ms) — viď fontsCss.
 // Až potom JS: na pomalej linke by inak bojoval s písmami o tú istú linku.
-var shown=0;function show(){if(shown)return;shown=1;document.documentElement.classList.remove('pre-wait');requestAnimationFrame(function(){setTimeout(start,0);});}
+var shown=0;function show(){if(shown)return;shown=1;document.documentElement.classList.remove('pre-wait');
+// Dva snímky: v prvom sa text len odkryje, JS ide až keď je naozaj vykreslený (inak ho PageSpeed ráta do LCP).
+requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(start,0);});});}
 try{pre.offsetHeight;document.fonts.ready.then(show);}catch(e){show();}
 setTimeout(show,800);
 var root=document.getElementById('root'),sel=${JSON.stringify(page.ready)};
