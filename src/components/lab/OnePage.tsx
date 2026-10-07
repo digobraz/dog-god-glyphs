@@ -4413,7 +4413,7 @@ export default function OnePage() {
       {/* noindex ZATIAĽ ostáva — zruší sa pri FLIPe (audit 6. 10. 2026, runbook krok 2d). Titulok a popis
           idú cez t(): EN default, SK/CS vlastné. Wall vnorený vo filme <Seo> NEVYKRESĽUJE (embedded),
           inak by Helmet vzal jeho canonical `/` a popis steny. */}
-      <Seo path="/onepage" noindex title={t('onepage.seo.title')} description={t('onepage.seo.desc')} />
+      <Seo path="/" title={t('onepage.seo.title')} description={t('onepage.seo.desc')} />
       <style>{`
         /* ── PLÁTNO ───────────────────────────────────────────────────────
            Papyrus je JEDEN na celý film a je fixed. Sekcie si vlastný podklad

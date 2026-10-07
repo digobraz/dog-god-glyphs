@@ -339,7 +339,7 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
         <p className="codex-v2-close">
           <span className="v2-line">{v2.lines[3]}</span>
         </p>
-        <Link to="/entry" className="codex-cta">
+        <Link to="/heroglyph/name" className="codex-cta">
           {t('religion.cta')}
         </Link>
       </div>
@@ -2225,7 +2225,7 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
                   {flow ? (
                     <button type="button" className="codex-chip" onClick={onChipNext}>{t('religion.hook.claim.goalChip')}</button>
                   ) : (<>
-                    <Link to="/entry" className="codex-cta">
+                    <Link to="/heroglyph/name" className="codex-cta">
                       {t('religion.cta')}
                     </Link>
                     <p className="codex-cta-line">{t('religion.hook.claim.close')}</p>

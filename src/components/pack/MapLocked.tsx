@@ -67,7 +67,7 @@ export function MapLocked({ variant }: { variant: MapLockedVariant }) {
               <Link className="mlk-cta" to="/pack">{t('pack.mapLocked.backToPack')}</Link>
             ) : (
               <>
-                <Link className="mlk-cta" to="/heroglyph">{t('pack.mapLocked.become')}</Link>
+                <Link className="mlk-cta" to="/heroglyph/name">{t('pack.mapLocked.become')}</Link>
                 <Link className="mlk-ghost" to="/login?return=%2Fpack%2Fmap">
                   {t('pack.mapLocked.alreadyMember')}
                 </Link>

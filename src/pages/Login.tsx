@@ -584,7 +584,7 @@ export default function Login() {
           {status === "missing" && !dogIdPresent && (
             <p className="lg-gate">
               {t('login.gate.line')}{' '}
-              <Link to="/heroglyph">{t('login.gate.cta')}</Link>
+              <Link to="/heroglyph/name">{t('login.gate.cta')}</Link>
             </p>
           )}
         </div>

@@ -2267,7 +2267,7 @@ export default function VisionLab({ embedded = false, flow = false, onWatch, her
             button (the section's larger flex gap stays above the button) */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '7px' }}>
           <button
-            onClick={() => navigate('/entry')}
+            onClick={() => navigate('/heroglyph/name')}
             className="mission-cta"
             style={{ alignSelf: 'center', margin: 0 }}
           >

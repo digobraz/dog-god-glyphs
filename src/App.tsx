@@ -3,7 +3,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { DEV_FULL, BUDDY_LIVE } from "@/lib/packFlags";
-import { ONEPAGE_PREVIEW } from "@/lib/onepagePreview";
 import { MapGate } from "@/components/pack/MapGate";
 // Papyrusový podklad + zoznam prezlečených ciest — jeden zdroj, viď RouteFallback nižšie.
 import { PAPER_BG, usePaperRoute } from "@/components/pack/packTheme";
@@ -11,7 +10,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider, useLang } from "@/i18n/LanguageContext";
-import { GodsGrid } from "@/components/gods/GodsGrid";
 import NotFound from "./pages/NotFound.tsx";
 import { DevNav } from "@/components/DevNav";
 import { ConsentBanner } from "@/components/ConsentBanner";
@@ -22,13 +20,10 @@ import { maskPath, trackPackRoute } from "@/lib/packAnalytics";
 import { captureAttribution } from "@/lib/attribution";
 import { NEW_HEROFLOW } from "@/lib/flowMode";
 
-// Route-level code-split (P0 2026-07 perf pass). GodsGrid (homepage/LCP) + NotFound
-// stay eager; everything else behind /heroglyph, /pack, /admin, legacy /spiral, etc.
+// Route-level code-split (P0 2026-07 perf pass). NotFound stays eager; od FLIPu
+// 7. 10. 2026 je homepage film (OnePage) a grid (/wall) ide tiež lazy; everything else behind /heroglyph, /pack, /admin, legacy /spiral, etc.
 // loads on demand. Screens under components/screens/ + SpiralLanding are named
 // exports — pages/* are default exports.
-const SpiralLanding = lazy(() =>
-  import("@/components/landing/SpiralLanding").then((m) => ({ default: m.SpiralLanding }))
-);
 // AINUBIS chat widget — lazy, aby nezaťažil homepage bundle (perf je otvorená téma).
 // Widget si sám rozhoduje o skrytí na render/heroglyph routách (viď AinubisWidget.tsx).
 const AinubisWidget = lazy(() =>
@@ -166,8 +161,6 @@ const PackDogQuiz = lazy(() => import("./pages/PackDogQuiz.tsx")); // fullscreen
 const PackNatureQuiz = lazy(() => import("./pages/PackNatureQuiz.tsx")); // osobnostný kvíz element+úloha (zadanie-osobnostny-kviz-2026-08-06)
 const Login = lazy(() => import("./pages/Login.tsx"));
 const Admin = lazy(() => import("./pages/Admin.tsx"));
-const Vision = lazy(() => import("./pages/Vision.tsx"));
-const BetaVision = lazy(() => import("./pages/BetaVision.tsx"));
 // DEV-only dielňa hero radu — pyramída svorky pri 1–20 psoch (route nižšie za import.meta.env.DEV)
 const HeroLab = lazy(() => import("./pages/HeroLab.tsx"));
 // DEV-only pieskovisko homepage — WALL/GLOBE. `/` sa NEMENÍ (CLAUDE.md lock).
@@ -181,8 +174,9 @@ const LabShell = lazy(() => import("./components/lab/LabShell"));
 // ONEPAGE — druhý koncept toho istého webu: celý film v jednom zvislom scrolle
 // (Matej 26. 8. 2026). Beží VEDĽA LabShellu, nie namiesto neho.
 const OnePage = lazy(() => import("./components/lab/OnePage"));
-const Religion = lazy(() => import("./pages/Religion.tsx"));
-const About = lazy(() => import("./pages/About.tsx"));
+const GodsGrid = lazy(() =>
+  import("@/components/gods/GodsGrid").then((m) => ({ default: m.GodsGrid }))
+);
 const Entry = lazy(() => import("./pages/Entry.tsx"));
 // Výzva „TVÁR TVOJHO PSA" — jeden vstup do nového heroflowu (WE NEED YOU, zrušený výber fotky na portáli).
 const PhotoInvite = lazy(() => import("./components/gods/PhotoInvite.tsx"));
@@ -298,11 +292,19 @@ const App = () => (
         <ErrorBoundary>
           <Suspense fallback={<RouteFallback />}>
             <Routes>
-              {/* LAUNCH SWAP (Matej OK): GRID = homepage. Spirála → /spiral archív. */}
-              <Route path="/" element={<GodsGrid />} />
+              {/* FLIP 7. 10. 2026 (Matej): hlavný web = scrollovací FILM (začína planétkou),
+                  nie grid. „/wall je grid, na ktorý sa človek dostane zo spodného navu."
+                  Staré verejné stránky (/vision, /religion, /about, /spiral) sú dnes
+                  súčasťou filmu — presmerované, aby žil každý odkaz v rozoslaných mailoch. */}
+              <Route path="/" element={<OnePage />} />
+              <Route path="/onepage" element={<Navigate to="/" replace />} />
               <Route path="/wall" element={<GodsGrid />} />
-              <Route path="/grid" element={<GodsGrid />} />
-              <Route path="/spiral" element={<SpiralLanding />} />
+              <Route path="/grid" element={<Navigate to="/wall" replace />} />
+              <Route path="/spiral" element={<Navigate to="/" replace />} />
+              <Route path="/vision" element={<Navigate to="/" replace />} />
+              <Route path="/religion" element={<Navigate to="/" replace />} />
+              <Route path="/about" element={<Navigate to="/" replace />} />
+              <Route path="/betavision" element={<Navigate to="/" replace />} />
               {/* LAB — svetlý (papyrusový) web, dev-only pieskovisko.
                   `/wall-lab` = homepage (GLOBE + spodná lišta), ostatné cesty sú
                   sekcie toho istého rámu. Ostré `/`, `/religion`, `/vision`,
@@ -316,14 +318,6 @@ const App = () => (
                 </>
               )}
 
-              {/* /onepage — film je od 4. 9. 2026 aj na OSTROM webe, ale len pre toho,
-                  kto ma token (`dogypt.com/onepage?preview=...`). Dovod: pod
-                  `import.meta.env.DEV` sa rychlost filmu nedala zmerat — produkcny build
-                  routu vobec nemal a nacitala sa prazdna stranka. Cely recept aj postup
-                  zrusenia je v `src/lib/onepagePreview.ts`. */}
-              {(import.meta.env.DEV || ONEPAGE_PREVIEW) && (
-                <Route path="/onepage" element={<OnePage />} />
-              )}
 
               {/* /entry — verejná conviction gate PRED flow (2026-07-12). CTA → /heroglyph/intro. */}
               {/* Nový vstup nemá `/entry` ani predajnú `/heroglyph` (Matej 6. 10. 2026) —
@@ -452,15 +446,9 @@ const App = () => (
               {NEW_HEROFLOW && <Route path="/heroglyph/stay" element={<FlowStayScreen />} />}
               <Route path="/payment" element={<PaymentScreen />} />
               <Route path="/welcome" element={<WelcomeScreen />} />
-              <Route path="/vision" element={<Vision />} />
-              {import.meta.env.DEV && (
-                <Route path="/betavision" element={<BetaVision />} />
-              )}
               {import.meta.env.DEV && (
                 <Route path="/pack/_herolab" element={<HeroLab />} />
               )}
-              <Route path="/religion" element={<Religion />} />
-              <Route path="/about" element={<About />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
 

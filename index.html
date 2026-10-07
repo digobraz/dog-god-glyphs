@@ -85,7 +85,7 @@
          statický preload ťahal ~100 KB s najvyššou prioritou aj v /pack, kde sa ani jeden
          obrázok nezobrazí — a predbiehal tak skutočný obsah stránky. -->
     <script>
-      if (location.pathname === '/') {
+      if (location.pathname === '/wall') { // grid sa od FLIPu 7. 10. 2026 presunul z / na /wall
         ['/images/dogypt-gold-logo.webp', '/images/hektor-grid.webp'].forEach(function (h) {
           var l = document.createElement('link');
           l.rel = 'preload'; l.as = 'image'; l.href = h; l.setAttribute('fetchpriority', 'high');
@@ -146,7 +146,7 @@
          5. 10.: „daj to bez %“. -->
     <script>
       (function () {
-        if (location.pathname !== '/onepage') return;
+        if (location.pathname !== '/') return; // film = homepage (FLIP 7. 10. 2026)
         var css = document.createElement('style');
         css.textContent =
           '#op-boot{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;'

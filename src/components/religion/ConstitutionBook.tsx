@@ -244,7 +244,7 @@ export default function ConstitutionBook({ belowBook, openOnMount = false }: { b
                 <p className="cb-cta-kicker">{t('religion.book.cta1.kicker')}</p>
                 <h3 className="cb-cta-head" dangerouslySetInnerHTML={{ __html: t('religion.book.cta1.head') }} />
                 <p className="cb-cta-text">{t('religion.book.cta1.text')}</p>
-                <Link to="/entry" className="cb-cta-btn">{t('religion.book.cta1.btn')}</Link>
+                <Link to="/heroglyph/name" className="cb-cta-btn">{t('religion.book.cta1.btn')}</Link>
               </div>
             </div>
 
@@ -302,7 +302,7 @@ export default function ConstitutionBook({ belowBook, openOnMount = false }: { b
           In-page verzia je na mobile skrytá cez CSS (.cb-cta-page .cb-cta-btn). */}
       {dims.mobile && opened && page >= 4 && (
         <div className="cb-mobile-cta">
-          <Link to="/entry" className="cb-cta-btn">{t('religion.book.cta1.btn')}</Link>
+          <Link to="/heroglyph/name" className="cb-cta-btn">{t('religion.book.cta1.btn')}</Link>
           <a href="https://dogma.dogypt.com" target="_blank" rel="noreferrer" className="cb-cta-btn cb-cta-ghost">{t('religion.book.cta2.btn')}</a>
         </div>
       )}

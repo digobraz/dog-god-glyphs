@@ -1635,7 +1635,7 @@ function EmptyState() {
       <p style={{ fontFamily: FONT_UI, fontSize: PACK_TEXT.body, lineHeight: 1.6, color: T.inkDim, margin: 0, maxWidth: 320 }}>
         {tx('pack.hub.empty', "No dog on your leash yet. Give one a heroglyph and it'll show up here.")}
       </p>
-      <Link to="/heroglyph" className="hub-gold">
+      <Link to="/heroglyph/name" className="hub-gold">
         {tx('pack.hub.emptyCta', 'Get a heroglyph')}
       </Link>
     </div>

@@ -467,7 +467,7 @@ export default function DogShare() {
             <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, color: 'rgba(42,22,8,0.65)', margin: 0 }}>
               {t('dogPage.notFoundBody')}
             </p>
-            <a href="/entry" className="ds-cta">{t('wall.hero.cta')}</a>
+            <a href="/heroglyph/name" className="ds-cta">{t('wall.hero.cta')}</a>
           </div>
         )}
 
@@ -578,7 +578,7 @@ export default function DogShare() {
                     ? t('dogPage.invitedBy', { name: alphaName.toUpperCase() })
                     : t('dogPage.invitedByFallback')}
                 </p>
-                <a href="/entry" className="ds-cta" onClick={handleJoin}>
+                <a href="/heroglyph/name" className="ds-cta" onClick={handleJoin}>
                   {t('dogPage.joinUs')}
                 </a>
                 {/* ── +20 KOSTÍ PRE PSA (Matej 12.8.). ⚠️ Druhý riadok je povinný:

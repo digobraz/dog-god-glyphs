@@ -5,11 +5,13 @@ import dogyptLogoRound from '@/assets/dogypt-logo-round.png';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
+// FLIP 7. 10. 2026: / = film (VISION, RELIGION aj ABOUT sú jeho obrazy), grid žije na /wall.
+// Samostatné stránky /vision, /religion, /about sú presmerované na /.
 const NAV_ITEMS = [
-  { key: 'nav.wall', to: '/' },
-  { key: 'nav.vision', to: '/vision' },
-  { key: 'nav.religion', to: '/religion' },
-  { key: 'nav.about', to: '/about' },
+  { key: 'nav.wall', to: '/wall' },
+  { key: 'nav.vision', to: '/' },
+  { key: 'nav.religion', to: '/' },
+  { key: 'nav.about', to: '/' },
 ];
 
 // POZOR: kódy MUSIA matchovať LanguagePicker `label` + DICTS kľúče v LanguageContext
@@ -97,13 +99,10 @@ function DesktopNav() {
       }}
     >
       {NAV_ITEMS.map(({ key, to }) => {
-        const isActive =
-          to === '/'
-            ? pathname === '/' || pathname === '/grid' || pathname === '/wall'
-            : pathname === to;
+        const isActive = pathname === to;
         return (
           <span
-            key={to}
+            key={key}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -379,13 +378,10 @@ function MobileMenuOverlay({
           </div>
         </Link>
         {NAV_ITEMS.map(({ key, to }) => {
-          const isActive =
-            to === '/'
-              ? pathname === '/' || pathname === '/grid' || pathname === '/gods' || pathname === '/wall'
-              : pathname === to;
+          const isActive = pathname === to;
           return (
             <Link
-              key={to}
+              key={key}
               to={to}
               onClick={onClose}
               style={{

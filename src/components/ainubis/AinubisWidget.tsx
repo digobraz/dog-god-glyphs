@@ -88,7 +88,7 @@ const PUBLIC_LAUNCH_PAUSED = true;
  * AINUBIS spýta na e-mail a správa odíde až s ním (rozhodnutie „2A“).
  * Guľa tu sedí VĽAVO dole — vpravo sú šípky filmu a cookie lišta.
  */
-const PUBLIC_ROUTES = ['/onepage'];
+const PUBLIC_ROUTES = ['/']; // film = homepage od FLIPu 7. 10. 2026
 const TOPICS = ['idea', 'problem', 'help'] as const;
 type TopicKey = (typeof TOPICS)[number];
 const isTopicKey = (v: string): v is TopicKey => (TOPICS as readonly string[]).includes(v);

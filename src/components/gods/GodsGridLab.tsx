@@ -482,7 +482,7 @@ interface GodsGridLabProps {
   onWallChange?: (wallOpen: boolean) => void;
 }
 
-export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHref = '/entry', portalDock = false, dockHostId, paused = false, onWallChange }: GodsGridLabProps = {}) {
+export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHref = '/heroglyph/name', portalDock = false, dockHostId, paused = false, onWallChange }: GodsGridLabProps = {}) {
   const [dockHost, setDockHost] = useState<HTMLElement | null>(null);
   useLayoutEffect(() => {
     // Bez hostiteľa (mobil vo filme) ide lišta späť do <body> — nesmie ostať
@@ -1172,7 +1172,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
         </h2>
         <p class="hero-lead">${tRef.current('wall.hero.missingFace')}</p>
         <!-- Chip „Help us reach 1M dogs" zrušený (Matej 5. 10. 2026: *„zruš ho"*). -->
-        ${enrollRef.current ? '' : `<a href="/entry" class="join-btn" data-join>${tRef.current('wall.hero.cta')}</a>`}
+        ${enrollRef.current ? '' : `<a href="/heroglyph/name" class="join-btn" data-join>${tRef.current('wall.hero.cta')}</a>`}
       `;
       // ── VEĽKOSŤ NADPISU SA POČÍTA, NEMERIA ──────────────────────────────
       // Nadpis stojí v bunke mriežky medzi dvoma fotkami a *„fotiek sa to
@@ -1192,9 +1192,9 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       el.style.setProperty('--hero-fs', ((GX / LAB_CARD_SCALE) * 0.94 / 7.25).toFixed(2) + 'px');
       const btn = el.querySelector('[data-join]');
       btn?.addEventListener('click', (e) => {
-        e.preventDefault();  // keep SPA nav; href="/entry" exists purely so Googlebot can crawl to it
+        e.preventDefault();  // keep SPA nav; href="/heroglyph/name" exists purely so Googlebot can crawl to it
         track('cta_become_dogyptian_click', { location: 'wall' });
-        navigate('/entry');
+        navigate('/heroglyph/name');
       });
       return el;
     }

@@ -29,10 +29,8 @@ function dogSlug(name, pack) {
 
 const STATIC_PAGES = [
   { loc: `${SITE}/`, priority: '1.0' },
-  { loc: `${SITE}/heroglyph`, priority: '0.9' },
-  { loc: `${SITE}/religion`, priority: '0.8' },
-  { loc: `${SITE}/vision`, priority: '0.7' },
-  { loc: `${SITE}/about`, priority: '0.7' },
+  // FLIP 7. 10. 2026: / = film; /heroglyph, /religion, /vision, /about sú presmerované.
+  { loc: `${SITE}/wall`, priority: '0.8' },
 ];
 
 const today = new Date().toISOString().slice(0, 10);

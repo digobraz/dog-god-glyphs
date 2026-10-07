@@ -380,7 +380,7 @@ const NotFound = () => {
 
           <div className="nf-actions">
             <a href="/" className="btn-gold">Fetch the homepage</a>
-            <a href="/entry" className="nf-link">or become a Dogyptian →</a>
+            <a href="/heroglyph/name" className="nf-link">or become a Dogyptian →</a>
           </div>
         </section>
       </main>

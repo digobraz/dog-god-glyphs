@@ -662,14 +662,14 @@ function GodsGridInner() {
       el.innerHTML = `
         <img src="/images/dogypt-gold-logo.webp" alt="DOGYPT" class="hero-logo-icon" fetchpriority="high">
         <p class="hero-tagline">${tRef.current('wall.hero.taglineLead')}<br><span class="gold">${tRef.current('wall.hero.taglineGod')}</span></p>
-        <a href="/entry" class="join-btn" data-join>${tRef.current('wall.hero.cta')}</a>
+        <a href="/heroglyph/name" class="join-btn" data-join>${tRef.current('wall.hero.cta')}</a>
         <span class="hero-count"><svg class="hero-count-globe" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="4" ry="9.2" stroke="currentColor" stroke-width="1.5"/><path d="M3 12h18M4.2 7.5h15.6M4.2 16.5h15.6" stroke="currentColor" stroke-width="1.5"/></svg><span class="hero-count-num">${realDogMapRef.current.size + 1}</span><span class="hero-count-sep"> / </span><span class="hero-count-total">${tRef.current('wall.hero.total')}</span><span class="hero-count-dogs">${tRef.current('wall.hero.dogs')}</span></span>
       `;
       const btn = el.querySelector('[data-join]');
       btn?.addEventListener('click', (e) => {
-        e.preventDefault();  // keep SPA nav; href="/entry" exists purely so Googlebot can crawl to it
+        e.preventDefault();  // keep SPA nav; href="/heroglyph/name" exists purely so Googlebot can crawl to it
         track('cta_become_dogyptian_click', { location: 'wall' });
-        navigate('/entry');
+        navigate('/heroglyph/name');
       });
       return el;
     }
@@ -1195,7 +1195,7 @@ function GodsGridInner() {
   return (
     <>
       <Seo
-        path="/"
+        path="/wall"
         title="DOGYPT — The Place Where DOG is GOD"
         description="Transform your dog's essence into a timeless HEROGLYPH. 12 Symbols, 1 Eternal Legacy."
       />
@@ -2297,11 +2297,11 @@ function GodsGridInner() {
       <div className="gods-root">
         <div className="nav-left">
           <nav className="main-nav">
-            <a href="/vision">{t('nav.vision')}</a>
+            <a href="/">{t('nav.vision')}</a>
             <span className="main-nav-sep" aria-hidden="true" />
-            <a href="/religion">{t('nav.religion')}</a>
+            <a href="/">{t('nav.religion')}</a>
             <span className="main-nav-sep" aria-hidden="true" />
-            <a href="/about">{t('nav.about')}</a>
+            <a href="/">{t('nav.about')}</a>
             {/* Flag stays in the top pill on desktop; on mobile it moves to the
                 bottom bar next to the center button (see .lang-btn-mobile). */}
             <span className="nav-lang-desktop"><LanguagePicker /></span>

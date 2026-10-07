@@ -247,7 +247,7 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
 
         {/* Council — links to the full role-based form on /about */}
         <Link
-          to="/about#council"
+          to="/"
           className="inline-flex items-center gap-1.5 mt-3"
           style={{
             fontFamily: "'Space Grotesk', sans-serif",

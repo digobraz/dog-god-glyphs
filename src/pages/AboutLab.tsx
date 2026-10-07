@@ -1196,7 +1196,7 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
             <p dangerouslySetInnerHTML={{ __html: t('about.outro.body') }} />
           </div>
           <p className="about-signoff">{t('about.outro.name1')} <span className="amp">{t('about.outro.and')}</span> {t('about.outro.name2')}</p>
-          <a href="/entry" className="btn-gold" style={{ marginTop: 8, marginBottom: 100 }}>
+          <a href="/heroglyph/name" className="btn-gold" style={{ marginTop: 8, marginBottom: 100 }}>
             {t('about.outro.cta')}
           </a>
         </div>

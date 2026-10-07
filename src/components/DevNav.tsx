@@ -86,7 +86,7 @@ export function DevNav() {
   // „odstráň pomocné dev menu aj TEXT1/2“). Vývojárske ovládanie v rohu tam kazí
   // dojem z návrhu a na mobile prekrýva spodnú lištu. Na ostatných dev cestách
   // menu zostáva — je to jediný spôsob, ako sa medzi nimi preklikať.
-  if (pathname.startsWith("/onepage")) return null;
+  if (pathname === "/") return null; // film = homepage (FLIP 7. 10. 2026)
   // Dielňa vstupu (`/lab/heroflow`, 23. 9. 2026) má vlastný zoznam povrchov a
   // tento by jej ho v rohu zdvojoval — plus by sedel presne na spodku rámu,
   // ktorý sa práve ladí. V RÁME (obrazovke vnútri) zostáva.

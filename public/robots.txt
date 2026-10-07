@@ -19,7 +19,6 @@ Disallow: /welcome
 Disallow: /pack
 Disallow: /admin
 Disallow: /login
-Disallow: /onepage
 Disallow: /cert-render/
 Disallow: /invoice-render/
 
