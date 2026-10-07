@@ -1233,7 +1233,7 @@ export const en = {
   'onepage.need.goal': 'Our goal',
   'onepage.cue.next': 'Next',
   'onepage.seo.title': 'DOGYPT — Your Dog Is God Here',
-  'onepage.seo.desc': 'One page, one story: the planet of dogs, the question, the vision and the pack. Give your dog a HEROGLYPH and become a Dogyptian — In Dog We Trust.',
+  'onepage.seo.desc': 'Every dog on Earth has a place here. Is yours on the planet yet?',
   'onepage.cue.more': 'Scroll down for more info',
   'onepage.cue.story': 'Scroll through the story',
   'onepage.cue.top': 'Back to top',
