@@ -96,6 +96,8 @@ export const HEKTOR_SPOT_CSS = `
   mask: url(${HEKTOR_IMG}) bottom right / contain no-repeat;
   transition: opacity 700ms ease 320ms;
 }
+/* Maska = fotka 78 kB; vo filme sa ťahá až po guli (filmDefer.ts). */
+html:not(.film-eager) .op-root .codex-shine { -webkit-mask: none; mask: none; opacity: 0; }
 .codex-shine::before {
   content: '';
   position: absolute;

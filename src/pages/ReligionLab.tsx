@@ -29,6 +29,7 @@ import ConstitutionBook from '@/components/religion/ConstitutionBook';
 import CodexHalo from '@/components/lab/CodexHalo';
 import HektorSpot, { HEKTOR_SPOT_CSS } from '@/components/lab/HektorSpot';
 import { Seo } from '@/components/Seo';
+import { useFilmEager } from '@/components/lab/filmDefer';
 
 /**
  * PREPÍNAČ TEXT 1 / TEXT 2 — vypnutý (Matej 27. 8. 2026: „odstráň pomocné dev menu
@@ -121,6 +122,9 @@ interface ReligionLabProps {
 
 export default function ReligionLab({ embedded = false, flow = false, onOpenBook, onChipNext, onChipBook }: ReligionLabProps = {}) {
   const t = useT();
+  const filmEager = useFilmEager();
+  /** Mimo filmu nikto neuvoľňuje (armFilmRelease je v OnePage) — tam sa ťahá hneď. */
+  const codexEager = !embedded || filmEager;
   const [active, setActive] = useState(0);
   /** Ktoré sekcie už boli odhalené. Jednosmerné — odhalené ostáva odhalené. */
   const [seen, setSeen] = useState<Set<number>>(() => new Set());
@@ -380,9 +384,10 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
         aria-hidden
       >
         <CodexHalo who="cow" />
-        <img src="/images/codex3-cow-nohalo.webp" alt="" className="codex-cow" />
+        {/* Krava a Hektor (176 kB) prídu až po guli — ležia pod ňou a pred ňou jej brali linku (filmDefer.ts). */}
+        <img src={codexEager ? '/images/codex3-cow-nohalo.webp' : undefined} alt="" className="codex-cow" />
         <CodexHalo who="hektor" />
-        <img src="/images/codex3-hektor-v1.webp" alt="" className="codex-hektor" />
+        <img src={codexEager ? '/images/codex3-hektor-v1.webp' : undefined} alt="" className="codex-hektor" />
       </div>
 
       {/* ── LESK A BODKA LEN VO FILME ────────────────────────────────────────

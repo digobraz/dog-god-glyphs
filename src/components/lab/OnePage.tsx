@@ -67,6 +67,7 @@ import FilmCue, { FilmTop, FILM_CUE_CSS } from './FilmCue';
 import FilmApps, { APPS_STOPS, APPS_OUT_VH, APPS_EXIT_VH } from './FilmApps';
 import FilmFinale, { FIN_STOPS, FIN_OVER_VH, startHeroflow } from './FilmFinale';
 import FilmTurn from './FilmTurn';
+import { armFilmRelease, filmDefer, onFilmRelease } from './filmDefer';
 
 // ── OBRAZY FILMU SÚ NA JEDNOM MIESTE ────────────────────────────────────────
 // Matejov zoznam z 2. 9. 2026, doslova: *„1-HOME · 2 COW vs DOG · 3 Religion ·
@@ -1502,6 +1503,8 @@ export default function OnePage() {
   tRef.current = t;
   const [scene, setScene] = useState(0);
   const [past, setPast] = useState(false);       // je už guľa preč?
+  // Obrázky z konca filmu čakajú, kým je guľa hotová (filmDefer.ts, perf mobil 7. 10. 2026).
+  useEffect(() => armFilmRelease(), []);
   // Ústava v prekrytí. Kniha ako OBRAZ filmu zanikla (Matej 28. 8. 2026),
   // ostalo po nej CTA pod úryvkom — a toto je jeho následok.
   const [bookOpen, setBookOpen] = useState(false);
@@ -1803,7 +1806,10 @@ export default function OnePage() {
     bubHost.appendChild(bub);
 
     // ── DÁŽĎ: vlastný rAF, čas v sekundách — scroll mu riadi len krytie ─────
-    const imgs: HTMLImageElement[] = DGX_RAIN_IMGS.map((s) => { const im = new Image(); im.src = s; return im; });
+    // Glyfy dažďa (20 kusov, 143 kB) sa ťahajú až po guli — DOGTRIX je ďaleko dole (filmDefer.ts).
+    // Kým nedobehnú, paintRain ich preskočí (`!im.complete || !im.naturalWidth`).
+    const imgs: HTMLImageElement[] = DGX_RAIN_IMGS.map(() => new Image());
+    onFilmRelease(() => imgs.forEach((im, i) => { im.src = DGX_RAIN_IMGS[i]; }));
     type Drop = { x: number; w: number; h: number; v: number; a: number; span: number; y0: number; seed: number; gap: number };
     let drops: Drop[] = [];
     let rainT = 0, lastT = 0, rafId = 0;
@@ -4007,13 +4013,15 @@ export default function OnePage() {
         // Pás: psy s fotkou, v poradí, aké dáva feed (podľa pack_number).
         // Číslo si každý nesie svoje — keby niekomu chýbala fotka, poradie
         // ostane pravdivé, len ho na páse nevidno.
-        setPack((d as Row[])
+        // Pás je ďaleko pod guľou — jeho ~27 náhľadov (180 kB) sa púšťa až po guli (filmDefer.ts).
+        const rows = d as Row[];
+        onFilmRelease(() => alive && setPack(rows
           .filter((r) => typeof r.cloudinary_main_url === 'string' && r.cloudinary_main_url)
           .map((r) => ({
             n: r.pack_number ?? 0,
             name: r.dog_name ?? '',
             u: cldThumb(r.cloudinary_main_url as string),
-          })));
+          }))));
       })
       .catch(() => { /* číslo je ozdoba, nie podmienka — sekcia funguje aj bez neho */ });
     return () => { alive = false; };
@@ -4765,6 +4773,8 @@ export default function OnePage() {
              stmaviť o 15 %"*). ⚠️ To isté číslo nesie GATE_DIM vo FilmGate.tsx. */
           opacity: 0.34;
         }
+        /* Tapeta príbehu = tá istá brána, ťahá sa až po uvoľnení filmu (filmDefer.ts). */
+        html:not(.film-eager) .op-wall::before { background-image: none; }
 
         /* ── FILM SA POSÚVA PO STRÁNKACH (snap) ───────────────────────────
            Matej 27. 8. 2026: *„dlhý slajd neprejde z prvého na 4 ale snipne sa
@@ -8232,7 +8242,7 @@ export default function OnePage() {
                 v tej istej geometrii ako video (cover, celé okno). Kým brána
                 bledne, výstrih je pod ňou identický a nič neposkočí; zhasne až
                 s nábehom obsahu (réžia, 'acut'). */}
-            <img className="op-dgx-cut" src="/images/touch_cut.webp" alt="" aria-hidden="true" draggable={false} />
+            <img {...filmDefer()} className="op-dgx-cut" src="/images/touch_cut.webp" alt="" aria-hidden="true" draggable={false} />
             <section className="op-arc-scr op-dgx" aria-label="Dogtrix" ref={dgxRootRef}>
               <canvas className="dgx-rain" aria-hidden="true" />
 
@@ -8467,7 +8477,7 @@ export default function OnePage() {
                       stredu okna. Jedna premenná, jeden dej.
                       ⚠️ NEZMIZNE — ostáva za textom na 14 % krytia (Matej:
                       *„ide do fade, ale nestratí sa celkom"*). */}
-                  <img className="op-nxt-phar" src="/images/council-pharaoh.webp" alt="" aria-hidden="true" />
+                  <img {...filmDefer()} className="op-nxt-phar" src="/images/council-pharaoh.webp" alt="" aria-hidden="true" />
   
                   {/* 🔴 BEAT, KTORÝ EŠTE NEPRIŠIEL, NEDRŽÍ MIESTO.
                       Kým boli všetky beaty v toku, „obrovský nadpis cez celú
@@ -8575,7 +8585,7 @@ export default function OnePage() {
                             menovka sa pri okraji okna posúva, takže bez kotvy sa
                             nedá povedať, ku ktorému psovi patrí. */}
                         <span className="op-nxt-dog op-nxt-dog--anchor">
-                          <img src="/images/hektor-grid.webp" alt="" />
+                          <img {...filmDefer()} src="/images/hektor-grid.webp" alt="" />
                           <i className="op-nxt-tie" />
                           <span className="op-nxt-pill"><em>Hekthor</em><b>#1</b></span>
                         </span>

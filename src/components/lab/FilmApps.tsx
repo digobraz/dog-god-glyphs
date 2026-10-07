@@ -57,6 +57,7 @@ import { LAB } from '@/lib/labTheme';
 import { LAPIS } from '@/components/pack/navGoldSkin';
 import { HandArrowLeft } from '@/components/pack/HandIcons';
 import Iphone15Pro, { IPHONE_H, IPHONE_W } from '@/components/ui/iphone-15-pro';
+import { filmDefer } from './filmDefer';
 
 type AppFeature = {
   id: string;
@@ -452,7 +453,7 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
                     else if (pos === 'is-cur') setOpen(i);
                   }}>
                   <div className="op-apps-tilt">
-                    <Iphone15Pro src={a.shot} alt={t(a.nameKey)}>
+                    <Iphone15Pro src={a.shot} alt={t(a.nameKey)} imgProps={filmDefer()}>
                       <div className="op-apps-ph-empty"><b>{t(a.nameKey)}</b><span>screenshot</span></div>
                     </Iphone15Pro>
                   </div>
@@ -516,7 +517,7 @@ export default function FilmApps({ onPopup }: { onPopup?: (open: boolean) => voi
                 <div className="op-apps-sl-track" style={{ transform: `translateX(${-slide * 100}%)` }}>
                   {Array.from({ length: slideCount }, (_, i) => (
                     <div className="op-apps-sl-item" key={i} aria-hidden={i !== slide}>
-                      <Iphone15Pro src={cur.shots[i]} alt={`${t(cur.nameKey)} ${i + 1}`}>
+                      <Iphone15Pro src={cur.shots[i]} alt={`${t(cur.nameKey)} ${i + 1}`} imgProps={filmDefer()}>
                         <div className="op-apps-ph-empty"><b>{t(cur.nameKey)}</b><span>screenshot {i + 1}</span></div>
                       </Iphone15Pro>
                     </div>

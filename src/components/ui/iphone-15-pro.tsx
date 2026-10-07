@@ -5,7 +5,7 @@
  * komponentu tu nemá kde nastať.
  * Obsah displeja: `src` (screenshot) alebo `children` (zástupca, kým chýba).
  */
-import type { ReactNode } from 'react';
+import type { ImgHTMLAttributes, ReactNode } from 'react';
 
 export const IPHONE_W = 433;
 export const IPHONE_H = 882;
@@ -18,9 +18,11 @@ type Props = {
   alt?: string;
   className?: string;
   children?: ReactNode;
+  /** Doplnkové atribúty snímky (napr. `loading`) — film nimi odkladá telefóny mimo prvej obrazovky. */
+  imgProps?: ImgHTMLAttributes<HTMLImageElement>;
 };
 
-export default function Iphone15Pro({ width = '100%', src, alt = '', className, children }: Props) {
+export default function Iphone15Pro({ width = '100%', src, alt = '', className, children, imgProps }: Props) {
   return (
     <div className={className} style={{ position: 'relative', width }}>
       <svg width="100%" viewBox={`0 0 ${IPHONE_W} ${IPHONE_H}`} preserveAspectRatio="xMidYMid meet" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
@@ -44,7 +46,7 @@ export default function Iphone15Pro({ width = '100%', src, alt = '', className, 
         borderRadius: `${(SR / SW) * 100}% / ${(SR / SH) * 100}%`,
       }}>
         {src
-          ? <img src={src} alt={alt} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          ? <img {...imgProps} src={src} alt={alt} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           : children}
       </div>
       {/* Ostrovcek (kamera) sa NEKRESLI: Matej 6. 10. 2026 - zakryval KM a hornu listu appky na kazdom mockupe. */}

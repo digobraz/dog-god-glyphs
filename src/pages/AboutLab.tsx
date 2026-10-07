@@ -30,6 +30,7 @@ import { CouncilSection } from '@/components/landing/CouncilSection';
 import { Footer } from '@/components/landing/Footer';
 import { Seo } from '@/components/Seo';
 import { filmVh } from '@/lib/filmVh';
+import { filmDefer } from '@/components/lab/filmDefer';
 
 /**
  * /about — „A Dog Changed My Life." (So did yours.)
@@ -1101,7 +1102,7 @@ export default function AboutLab({ embedded = false, part = 'all' }: AboutLabPro
             </span>
             {t('about.crawl.slow')}
           </div>
-          <img className="sw-logo" ref={swLogoRef} src="/images/dogypt-gold-logo.webp" alt="DOGYPT" />
+          <img {...filmDefer()} className="sw-logo" ref={swLogoRef} src="/images/dogypt-gold-logo.webp" alt="DOGYPT" />
           <div className="sw-stage">
             <div className="sw-crawl-text" ref={swTextRef}>
               <p className="sw-episode">{t('about.crawl.episode')}</p>

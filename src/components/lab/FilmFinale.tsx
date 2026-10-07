@@ -37,6 +37,7 @@ import { openAinubis } from '@/lib/ainubisBus';
 import ainubisHead from '@/assets/ainubis-head.webp';
 import PULSE from '@/data/onepagePulse.json';
 import { filmVh } from '@/lib/filmVh';
+import { filmDefer } from './filmDefer';
 
 /** Udalosť, ktorou iné miesto filmu spustí heroflow (výzva na fotku → `/heroglyph/name`). `detail.handled` ostane `false`, kým finále nie je pripojené. */
 export const START_HEROFLOW = 'dogypt:start-heroflow';
@@ -200,7 +201,7 @@ export default function FilmFinale({ packNo }: { packNo: number | null }) {
             {/* Dve veľkosti (Matej: *„veľmi slabá kvalita, rozmazanú tvár mám"* — 1600 px na
                 výšku sa pri 150 % a retine rozťahoval). `sizes` = šírka výrezu: PC ≈ výška okna,
                 mobil ≈ pol výšky okna. */}
-            <img src="/images/kontakt-matej-hektor-cut.webp"
+            <img {...filmDefer()} src="/images/kontakt-matej-hektor-cut.webp"
               srcSet="/images/kontakt-matej-hektor-cut-m.webp 1048w, /images/kontakt-matej-hektor-cut.webp 1957w"
               sizes="(max-width: 768px) 53vh, 100vh" alt={t('onepage.fin.photoAlt')} />
           </figure>
@@ -286,7 +287,7 @@ export default function FilmFinale({ packNo }: { packNo: number | null }) {
             <div className="op-fin-ai op-glass">
               <div className="op-fin-ai-headwrap" aria-hidden>
                 <span className="op-fin-ai-ring2" /><span className="op-fin-ai-ring" />
-                <img src={ainubisHead} alt="" className="op-fin-ai-head" />
+                <img {...filmDefer()} src={ainubisHead} alt="" className="op-fin-ai-head" />
               </div>
               <div className="op-fin-ai-nm"><span>AI</span>NUBIS</div>
               <div className="op-fin-ai-role"><i />{t('onepage.fin.aiRole')}</div>

@@ -173,6 +173,8 @@ export default function FilmGate() {
           background: url(/images/brana-final.webp) center / cover no-repeat;
           transform: scale(calc(1 + var(--g-rise, 0) * 0.04));
         }
+        /* Brána je ďaleko pod guľou — fotka sa ťahá až po uvoľnení filmu (filmDefer.ts). */
+        html:not(.film-eager) .op-gate-img { background-image: none; }
         /* 📱 MOBIL NA VÝŠKU: DOTYK SA OTÁČA (Matej 5. 10. 2026: *„na mobile by som to
            otočil — packa pôjde zhora a ruka zdola = na výšku mobilu, nie na šírku, aby
            bolo viac vidno ruku a labku"*). Video je 16:9 a ruka ide zľava zdola, labka

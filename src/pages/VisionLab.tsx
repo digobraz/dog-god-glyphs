@@ -28,6 +28,7 @@ import { useNavigate } from 'react-router-dom';
 import { ImageComparisonSlider } from '@/components/ui/image-comparison-slider-horizontal';
 import { PageTopBarLab } from '@/components/PageTopBarLab';
 import { LAB } from '@/lib/labTheme';
+import { useFilmEager } from '@/components/lab/filmDefer';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import dogyptTextLogo from '@/assets/dogypt-logo-gold.png';
@@ -499,6 +500,8 @@ const VISION_BLOCKS = ['b1', 'b2', 'b3'] as const;
 function NearLoopVideo({ src, poster, className }: { src: string; poster: string; className?: string }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [near, setNear] = useState(false);
+  // Aj plagát (118 kB) čaká na guľu — pred ňou mu brala linku (filmDefer.ts, 7. 10. 2026).
+  const eager = useFilmEager();
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -510,7 +513,7 @@ function NearLoopVideo({ src, poster, className }: { src: string; poster: string
     return () => io.disconnect();
   }, []);
   return (
-    <video ref={ref} className={className} src={near ? src : undefined} poster={poster}
+    <video ref={ref} className={className} src={near ? src : undefined} poster={near || eager ? poster : undefined}
       autoPlay muted loop playsInline preload={near ? 'auto' : 'none'} />
   );
 }

@@ -306,7 +306,12 @@ function planetTileUrl(rawUrl: string | null): string {
   const url = safeUrl(rawUrl || '');
   if (!url) return '';
   const publicId = cloudinaryPublicId(url);
-  return publicId ? gridTileUrl(publicId, 160) : url;
+  // Hektorova dlaždica: 200 px výrez namiesto 800 px originálu (85 → ~10 kB, perf mobil 7. 10. 2026).
+  if (!publicId && url === '/images/hektor-grid.webp') return '/images/hektor-grid-tile.webp';
+  // 📱 Mobil: dlaždica na guli má ~45 CSS px (guľa ×0,57), teda ~120 px aj pri hustote 2,6.
+  // 160 px tam bolo o 78 % bajtov navyše — a guľa (≈100 dlaždíc) čaká s nadpisom (perf 7. 10. 2026).
+  const px = typeof window !== 'undefined' && window.innerWidth <= 768 ? 120 : 160;
+  return publicId ? gridTileUrl(publicId, px) : url;
 }
 
 // Fotka do panela detailu na guli. Dlaždicových 160 px je v ňom viditeľne
@@ -315,6 +320,8 @@ function planetDetailUrl(rawUrl: string | null): string {
   const url = safeUrl(rawUrl || '');
   if (!url) return '';
   const publicId = cloudinaryPublicId(url);
+  // Hektor: 320 px namiesto 800 px originálu — tá istá mierka ako Cloudinary vetva (perf 7. 10. 2026).
+  if (!publicId && url === '/images/hektor-grid.webp') return '/images/hektor-grid-320.webp';
   return publicId ? gridTileUrl(publicId, 320) : url;
 }
 
