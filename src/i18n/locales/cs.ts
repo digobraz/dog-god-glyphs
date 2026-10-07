@@ -5357,7 +5357,7 @@ export const cs: Partial<Dict> = {
   'onepage.need.goal': 'Náš cíl',
   'onepage.cue.next': 'Dál',
   'onepage.seo.title': 'DOGYPT — Tvůj pes je tu bohem',
-  'onepage.seo.desc': 'Jedna stránka, jeden příběh: planeta psů, otázka, vize a smečka. Vytvoř svému psovi HEROGLYPH a staň se Dogypťanem — Věříme ve psa.',
+  'onepage.seo.desc': 'Každý pes na Zemi tu má své místo. Je už ten tvůj na planetě?',
   'onepage.cue.more': 'Posuň níž pro víc info',
   'onepage.cue.story': 'Projeď příběh',
   'onepage.cue.top': 'Zpět na začátek',
