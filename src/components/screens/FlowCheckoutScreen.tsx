@@ -112,7 +112,7 @@ export function FlowCheckoutScreen() {
   const [promoOpen, setPromoOpen] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [promoState, setPromoState] = useState<'idle' | 'checking' | 'ok' | 'bad'>('idle');
-  const [discount, setDiscount] = useState<{ percentOff: number | null; amountOff: number | null } | null>(null);
+  const [discount, setDiscount] = useState<{ percentOff: number | null; amountOff: number | null; pricePerDog: number | null } | null>(null);
   const applyPromo = async () => {
     const code = promoCode.trim();
     if (!code || promoState === 'checking') return;
@@ -125,7 +125,7 @@ export function FlowCheckoutScreen() {
       });
       const data = res.ok ? await res.json() : { valid: false };
       if (data.valid) {
-        setDiscount({ percentOff: data.percentOff ?? null, amountOff: data.amountOff ?? null });
+        setDiscount({ percentOff: data.percentOff ?? null, amountOff: data.amountOff ?? null, pricePerDog: data.pricePerDog ?? null });
         setPromoState('ok');
         track('promo_applied', { code });
       } else setPromoState('bad');
@@ -136,6 +136,8 @@ export function FlowCheckoutScreen() {
   };
   const total = (() => {
     if (promoState !== 'ok' || !discount) return base;
+    // Kód = cena za psa (tester €3 za KAŽDÉHO psa, Matej 7. 10. 2026) — rovnako ráta create-checkout.
+    if (discount.pricePerDog != null) return dogs.reduce((sum, d) => sum + Math.min(priceOf(d), discount.pricePerDog as number), 0);
     if (discount.amountOff != null) return Math.max(0, base - discount.amountOff / 100);
     if (discount.percentOff != null) return Math.max(0, base * (1 - discount.percentOff / 100));
     return base;
