@@ -63,6 +63,20 @@ const ASKS = [
   { k: 'problem', icon: '/icons/pack/target.svg' },
   { k: 'help', icon: '/icons/pack/heartpaw.svg' },
 ] as const;
+/** Mesiac termínu „2027-02" → „Feb 2027" (podľa jazyka). */
+function dueMonth(ym: string, lang: string): string {
+  const d = new Date(`${ym}-15T12:00:00`);
+  if (Number.isNaN(d.getTime())) return ym;
+  return d.toLocaleDateString(lang === 'en' ? 'en-GB' : lang, { month: 'short', year: 'numeric' });
+}
+/** Deň grafu „2026-10-05" → „Mon" (podľa jazyka). */
+function weekDay(iso: string, lang: string): string {
+  const d = new Date(`${iso}T12:00:00`);
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString(lang === 'en' ? 'en-GB' : lang, { weekday: 'short' });
+}
+type PulseWork = { tag: string; name: string; due?: string; status?: string; count?: { scrolls: number; podcasts: number; goal: number } | null };
+const WEEK_MAX = Math.max(1, ...PULSE.days.map((x) => x.h));
+
 /** Dátum nástenky „2026-10-04" → „4 Oct 2026" (mesiac podľa jazyka). */
 function boardDate(iso: string | null, lang: string): string {
   if (!iso) return '';
@@ -227,23 +241,41 @@ export default function FilmFinale({ packNo }: { packNo: number | null }) {
                 <em>{t('onepage.fin.statOnline')}</em><b>07/2026</b><span>{t('onepage.fin.statOnlineSub')}</span>
               </div>
               <div className="op-fin-stat op-glass op-fin-stat--work">
-                <em>{t('onepage.fin.statHours')}</em>
-                <b><span ref={hoursRef}>{PULSE.hours.toLocaleString('en-US')}</span>+</b>
-                <span>{t('onepage.fin.statHoursWho')}</span>
+                <em>{t('onepage.fin.statWeek')}</em>
+                <b><span ref={hoursRef}>{PULSE.hours.toLocaleString('en-US')}</span> h</b>
+                <span>{t('onepage.fin.statWeekWho')}</span>
               </div>
             </div>
             <div className="op-fin-workbox op-glass">
               <div className="op-fin-eb">{t('onepage.fin.nowHead')}</div>
               <ul className="op-fin-work">
-                {PULSE.work.map((w, i) => (
+                {/* Tri riadky + termín/počet namiesto percent (Matej 7. 10. 2026). Zdroj: gen-praca-stats. */}
+                {(PULSE.work as PulseWork[]).map((w, i) => (
                   <li key={i} style={{ ['--d' as string]: `${i * 90}ms` }}>
                     <span className="op-fin-tag">{t(`onepage.fin.tag.${w.tag}`)}</span>
                     <span className="op-fin-wname">{t(`onepage.fin.work.${w.name}`)}</span>
-                    <span className="op-fin-bar"><i style={{ ['--w' as string]: `${w.pct}%` }} /></span>
-                    <span className="op-fin-pct">{w.pct} %</span>
+                    <span className="op-fin-pct">
+                      {w.due && <b>{dueMonth(w.due, lang)}</b>}
+                      {w.status && <b>{t(`onepage.fin.status.${w.status}`)}</b>}
+                      {w.count && (<>
+                        <b>{w.count.scrolls} / {w.count.goal}</b> {t('onepage.fin.unit.scrolls')}
+                        <br />{w.count.podcasts} {t('onepage.fin.unit.podcasts')}
+                      </>)}
+                    </span>
                   </li>
                 ))}
               </ul>
+              {/* Graf posledných 7 dní (Matej 7. 10. 2026: *„graf len posledného týždňa"*) — hodiny
+                  Matej + AI agenti po dňoch, dnešok vpravo a ešte rastie. */}
+              <div className="op-fin-week" role="img" aria-label={`${t('onepage.fin.statWeek')}: ${PULSE.hours} h`}>
+                {PULSE.days.map((x, i) => (
+                  <div key={x.d} className="op-fin-day" style={{ ['--d' as string]: `${300 + i * 60}ms` }}>
+                    <span className="op-fin-dayv">{x.h}</span>
+                    <span className="op-fin-daybar"><i style={{ ['--h' as string]: `${(x.h / WEEK_MAX) * 100}%` }} /></span>
+                    <span className="op-fin-dayl">{weekDay(x.d, lang)}</span>
+                  </div>
+                ))}
+              </div>
               {PULSE.updated && (
                 <div className="op-fin-upd"><i />{t('onepage.fin.updated')} {boardDate(PULSE.updated, lang)}</div>
               )}
@@ -534,7 +566,7 @@ export default function FilmFinale({ packNo }: { packNo: number | null }) {
         }
         .op-fin-work { list-style: none; margin: 0; padding: 0; }
         .op-fin-work li {
-          display: grid; grid-template-columns: 88px minmax(0, 1fr) 96px 40px; gap: 12px; align-items: center;
+          display: grid; grid-template-columns: 88px minmax(0, 1fr) auto; gap: 12px; align-items: center;
           padding: 8px 0; border-bottom: 1px solid rgba(${AINUBIS.cyanRGB},.10);
           font: 400 14px/1.3 'Space Grotesk', sans-serif; color: ${AINUBIS.ink};
           opacity: 0; transform: translateX(-8px); transition: opacity .5s ease var(--d, 0ms), transform .5s ease var(--d, 0ms);
@@ -545,20 +577,23 @@ export default function FilmFinale({ packNo }: { packNo: number | null }) {
           justify-self: start; padding: 4px 8px; border-radius: 999px; border: 1px solid ${AINUBIS.edgeStrong};
           font: 500 10px/1 'Space Grotesk', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: ${AINUBIS.cyan};
         }
-        .op-fin-bar { height: 6px; border-radius: 999px; background: rgba(${AINUBIS.cyanRGB},.12); overflow: hidden; }
-        .op-fin-bar i {
-          position: relative; display: block; height: 100%; width: 0; border-radius: 999px; overflow: hidden;
-          background: linear-gradient(90deg, ${AINUBIS.glow}, ${AINUBIS.cyan}); box-shadow: 0 0 8px ${AINUBIS.cyan};
-          transition: width 1.4s cubic-bezier(.2,.8,.2,1) .3s;
+        .op-fin-pct { font-size: 12px; line-height: 1.3; text-align: right; color: ${AINUBIS.inkDim}; }
+        .op-fin-pct b { font-weight: 500; color: ${AINUBIS.cyan}; }
+        /* Graf týždňa: 7 stĺpcov, hodnota nad stĺpcom, deň pod ním. Farba = zelená bloku HODINY. */
+        .op-fin-week {
+          display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; align-items: end;
+          margin-top: 8px; padding-top: 12px; border-top: 1px solid rgba(${AINUBIS.cyanRGB},.10);
         }
-        .op-fin-b.is-on .op-fin-bar i { width: var(--w); }
-        .op-fin-bar i::after {
-          content: ''; position: absolute; inset: 0;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent);
-          animation: op-fin-shim 2.4s ease-in-out infinite;
+        .op-fin-day { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .op-fin-dayv { font: 500 10px/1 'Space Grotesk', sans-serif; color: ${AINUBIS.ink}; }
+        .op-fin-dayl { font: 500 10px/1 'Space Grotesk', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: ${AINUBIS.inkFaint}; }
+        .op-fin-daybar { position: relative; display: block; width: 100%; max-width: 24px; height: 48px; border-radius: 4px; background: rgba(127,215,154,.08); overflow: hidden; }
+        .op-fin-daybar i {
+          position: absolute; left: 0; right: 0; bottom: 0; height: 0; border-radius: 4px;
+          background: linear-gradient(180deg, ${AINUBIS.ok}, rgba(127,215,154,.35)); box-shadow: 0 0 8px rgba(127,215,154,.5);
+          transition: height 1s cubic-bezier(.2,.8,.2,1) var(--d, 0ms);
         }
-        @keyframes op-fin-shim { from { transform: translateX(-100%); } to { transform: translateX(200%); } }
-        .op-fin-pct { font-size: 12px; text-align: right; color: ${AINUBIS.inkDim}; }
+        .op-fin-b.is-on .op-fin-daybar i { height: var(--h); }
         .op-fin-upd { margin-top: 8px; font: 500 10px/1 'Space Grotesk', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: ${AINUBIS.inkFaint}; }
         .op-fin-upd i { margin-right: 8px; vertical-align: -1px; }
 
@@ -636,7 +671,8 @@ export default function FilmFinale({ packNo }: { packNo: number | null }) {
         .op-fin-legal a { color: inherit; text-decoration: none; }
         .op-fin-legal a:hover { color: ${AINUBIS.ink}; text-decoration: underline; }
         @media (prefers-reduced-motion: reduce) {
-          .op-fin-dark::before, .op-fin-dark::after, .op-fin-ai-ring, .op-fin-ai-ring2, .op-fin-ai-head, .op-fin-bar i::after { animation: none; }
+          .op-fin-dark::before, .op-fin-dark::after, .op-fin-ai-ring, .op-fin-ai-ring2, .op-fin-ai-head { animation: none; }
+          .op-fin-daybar i { transition: none; }
         }
 
         @media (max-width: 768px) {
@@ -669,18 +705,21 @@ export default function FilmFinale({ packNo }: { packNo: number | null }) {
           .op-fin-stat { padding: 12px 8px; }
           .op-fin-stat b { font-size: 20px; }
           .op-fin-stat > span { font-size: 10px; }
-          .op-fin-work li { grid-template-columns: 84px minmax(0, 1fr) 48px 32px; gap: 8px; font-size: 12px; }
+          .op-fin-work li { grid-template-columns: 84px minmax(0, 1fr) auto; gap: 8px; font-size: 12px; }
+          .op-fin-pct { font-size: 10px; }
+          .op-fin-daybar { height: 36px; }
           /* SK „TESTOVANIE" pri .14em pretiekol stĺpec — na mobile tesnejšie sledovanie. */
           .op-fin-tag { letter-spacing: .06em; padding: 4px 6px; }
           .op-fin-workbox { padding: 12px; }
           .op-fin-ailine { font-size: 14px; }
           .op-fin-ai { padding: 16px; }
           .op-fin-ai-q { font-size: 14px; min-height: 42px; }
-          /* Riadky pod blokom: 4 ikonky + 2 čipy sa musia zmestiť do 358 px; päta nesmie
+          /* Riadky pod blokom: 3 ikonky + 2 čipy (TikTok von 7. 10.) — mriežka 6: ikonka 2, čip 3; päta nesmie
              skončiť pod guľou AINUBISA vľavo dole (60 px + 16 od okraja). */
-          .op-fin-links { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; justify-items: center; }
+          .op-fin-links { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; justify-items: center; }
+          .op-fin-blk--ico { grid-column: span 2; }
           .op-fin-blk { font-size: 12px; }
-          .op-fin-blk:not(.op-fin-blk--ico) { grid-column: span 2; width: 100%; }
+          .op-fin-blk:not(.op-fin-blk--ico) { grid-column: span 3; width: 100%; }
           .op-fin-legal { justify-content: center; gap: 4px 12px; }
           .op-fin-b { padding-bottom: 96px; }
           /* B je posledný obraz: obsah smie na telefóne odrolovať

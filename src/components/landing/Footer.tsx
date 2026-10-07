@@ -5,6 +5,8 @@
  * ⚠️ FLAG (Matej potvrď): SOCIALS hrefy sú best-guess @dogypt — oficiálne
  * účty ešte nie sú v kóde potvrdené (TODO „DOGYPT official IG/FB/TikTok/YouTube
  * setup" v KONTEXT.md). Pred Republish over reálne handles nižšie.
+ *
+ * 7. 10. 2026 (Matej): TikTok von (*„zatiaľ vyhoď, nemáme ho"*), Facebook = `dogypt.official`.
  */
 import { useT } from '@/i18n/LanguageContext';
 
@@ -32,19 +34,9 @@ export const SOCIALS = [
     ),
   },
   {
-    id: 'tiktok',
-    label: 'TikTok',
-    href: 'https://tiktok.com/@dogypt',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-        <path d="M16.6 5.8a4.3 4.3 0 0 1-1-2.8h-3.1v12.2a2.5 2.5 0 1 1-1.8-2.4V9.6a5.6 5.6 0 1 0 4.9 5.6V9.25a7.3 7.3 0 0 0 4.3 1.4V7.55a4.3 4.3 0 0 1-2.3-1.75z" />
-      </svg>
-    ),
-  },
-  {
     id: 'facebook',
     label: 'Facebook',
-    href: 'https://facebook.com/dogypt',
+    href: 'https://www.facebook.com/dogypt.official/',
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
         <path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.2c-1.2 0-1.6.8-1.6 1.5V12h2.7l-.4 2.9h-2.3v7A10 10 0 0 0 22 12z" />
@@ -94,7 +86,7 @@ export function Footer() {
           font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
           color: rgba(250,244,236,0.45);
         }
-        /* ── Socials — rounded squares (single row 1×4) ── */
+        /* ── Socials — rounded squares (single row 1×3) ── */
         .footer-socials { display: flex; gap: 10px; align-items: center; flex-wrap: nowrap; }
         .footer-social {
           width: clamp(46px, 5.2vw, 56px); height: clamp(46px, 5.2vw, 56px);

@@ -1,32 +1,55 @@
 {
- "hours": 5100,
- "since": "2026-03-20",
- "updated": "2026-10-04",
- "work": [
+ "hours": 176,
+ "updated": "2026-10-07",
+ "days": [
   {
-   "tag": "testing",
-   "name": "members",
-   "pct": 64
+   "d": "2026-10-01",
+   "h": 0
   },
   {
+   "d": "2026-10-02",
+   "h": 26
+  },
+  {
+   "d": "2026-10-03",
+   "h": 41
+  },
+  {
+   "d": "2026-10-04",
+   "h": 35
+  },
+  {
+   "d": "2026-10-05",
+   "h": 37
+  },
+  {
+   "d": "2026-10-06",
+   "h": 25
+  },
+  {
+   "d": "2026-10-07",
+   "h": 12
+  }
+ ],
+ "work": [
+  {
    "tag": "develop",
-   "name": "app",
-   "pct": 85
+   "name": "mobile",
+   "due": "2027-02"
   },
   {
    "tag": "research",
    "name": "vault",
-   "pct": 67
+   "count": {
+    "scrolls": 10,
+    "podcasts": 30,
+    "goal": 600
+   }
   },
   {
-   "tag": "develop",
-   "name": "ainubis",
-   "pct": 67
-  },
-  {
-   "tag": "design",
-   "name": "web",
-   "pct": 48
+   "tag": "marketing",
+   "name": "global",
+   "status": "preparing"
   }
  ]
 }
