@@ -286,12 +286,21 @@
           }, Math.max(550, 900 - (Date.now() - t0)));
         };
         window.addEventListener('dogypt:planet-ready', lift);
-        setTimeout(lift, 9000);
+        // Strop 9 s zdvihne oponu, len keď film UŽ JE (guľa má aspoň rozmazané náhľady);
+        // inak čaká poistka nižšie, najdlhšie 20 s (7. 10. 2026 — predtým odhalil prázdny papyrus).
+        setTimeout(function cap() { if (document.querySelector('.op-root')) lift(); else if (Date.now() - t0 < 20000) setTimeout(cap, 400); else lift(); }, 9000);
         // Film sa nevykreslil (produkcia bez preview tokenu, chyba) — opona nesmie
         // visieť nad prázdnou stránkou. Po `load` sa pozrie, či film existuje.
-        window.addEventListener('load', function () {
-          setTimeout(function () { if (!document.querySelector('.op-root')) lift(); }, 1500);
-        });
+        // 🔴 Poistka sa viaže na ŠTART APPKY (main.tsx: window.__appBooted), nie na `load`
+        // (7. 10. 2026). `load` na pomalej sieti padne skôr, než sa JS filmu stiahne a vykoná —
+        // opona potom zišla nad prázdnym papyrusom (merané: 3,0 s, 0 dlaždíc). Teraz: film
+        // nie je 6 s po štarte appky ⇒ chyba ⇒ zdvihni. Kým appka neštartovala, drží strop 20 s.
+        var safety = function () {
+          if (gone || document.querySelector('.op-root')) return;
+          if (window.__appBooted && Date.now() - window.__appBooted > 6000) lift();
+          else setTimeout(safety, 400);
+        };
+        window.addEventListener('load', function () { setTimeout(safety, 1500); });
         document.body.appendChild(el);
         // 🔴 NAJPRV LOGO, POTOM JAVASCRIPT (perf mobil 7. 10. 2026). Appka (~900 kB) sa začne
         // sťahovať až keď je logo opony na obrazovke — inak mu na pomalej sieti berie linku

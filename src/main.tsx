@@ -10,6 +10,9 @@ import { scrubSecrets } from "./lib/packAnalytics";
 // stavu pri prvom renderi. Telo modulu je celé za `import.meta.env.DEV`.
 import "./lib/devSeedApply";
 
+// Opona v index.html sa podľa tohto času rozhoduje, či film zlyhal (poistka „film nie je 6 s po štarte“).
+(window as Window & { __appBooted?: number }).__appBooted = Date.now();
+
 // ── STARÁ ZÁLOŽKA PO DEPLOYI (5. 10. 2026, test po FLIPe) ─────────────────────
 // Každý deploy zmení hashe chunkov. Záložka otvorená pred deployom pri lazy navigácii
 // pýta starý chunk, Cloudflare (SPA fallback) vráti index.html a import padne na
