@@ -1341,6 +1341,12 @@ export function DogPlanetLab({
         .ph-h1 .g {
           position: relative;
         }
+        /* 🔴 POD OPONOU BEZ HALA (perf mobil 7. 10. 2026). Opona z index.html je plne krycia,
+           nadpis sa pod ňou prvý raz vykreslí bez text-shadow a halo dostane o snímky neskôr
+           (trieda html.op-booting padne pri zdvihu opony). Človek rozdiel nevidí; meranie LCP
+           berie plochu z PRVÉHO vykreslenia a halo ju nafúklo ~9× — PageSpeed potom čakal
+           na celú guľu (11 s) namiesto loga opony. Zmazať = späť na 11 s. */
+        html.op-booting .planet-hero, html.op-booting .planet-hero * { text-shadow: none !important; }
         .ph-h1 .g::before {
           content: '';
           position: absolute;

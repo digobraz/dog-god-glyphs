@@ -44,6 +44,24 @@ export default defineConfig(({ mode }) => ({
   // 6. 10. 2026 (perf/hygiena): `public/vault-demo` (97 MB) je len DEV ukážka VAULTU
   // (vaultScrolls.ts — v produkcii ide zvitky z DB). Do `dist` ani na Cloudflare nepatrí.
   plugins: [{
+    // 🔴 APPKA SA SŤAHUJE AŽ PO LOGU OPONY (perf mobil 7. 10. 2026, Matej: „zrýchli ten mobil").
+    // Vite dá `<script type="module" src=index-*.js>` do <head>, takže 900 kB JS štartovalo
+    // pred oponou a PageSpeed (simulovaný 4G) ho zarátal do LCP. Tag sa nahradí funkciou
+    // `window.__startApp`, ktorú zavolá opona v index.html po vykreslení loga (stránky bez
+    // opony hneď) — a strop 300 ms, keby opona zlyhala. Len build; dev ide po starom.
+    name: "start-app-after-curtain",
+    apply: "build" as const,
+    transformIndexHtml: {
+      order: "post" as const,
+      handler(html: string) {
+        const re = /<script type="module" crossorigin src="([^"]+)"><\/script>/;
+        const m = html.match(re);
+        if (!m) throw new Error("start-app-after-curtain: nenašiel som vstupný <script type=module>");
+        const boot = `<script>(function(){var go=function(){if(window.__appGo)return;window.__appGo=1;var s=document.createElement('script');s.type='module';s.crossOrigin='';s.src=${JSON.stringify(m[1])};document.head.appendChild(s);};window.__startApp=go;setTimeout(go,300);})();</script>`;
+        return html.replace(re, boot);
+      },
+    },
+  }, {
     name: "strip-dev-only-public",
     apply: "build" as const,
     closeBundle() { fs.rmSync(path.resolve(__dirname, "dist/vault-demo"), { recursive: true, force: true }); },
