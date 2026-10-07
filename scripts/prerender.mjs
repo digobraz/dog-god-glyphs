@@ -109,6 +109,18 @@ async function snapshot(browser, page, lang, base) {
   await p.waitForSelector('#root .consent-banner', { timeout: 8000 }).catch(() => {});
   await p.evaluate(() => document.fonts.ready);
   await p.waitForTimeout(400);
+  // Prefarbený heroglyf psa je PNG v data: URI (~150 kB textu) — v HTML by brzdil všetko za sebou.
+  // Prekóduje sa na bezstratové WebP (rovnaké pixely) a v render() pôjde do samostatného súboru.
+  if (page.dog) await p.evaluate(async () => {
+    for (const img of document.querySelectorAll('#root img[src^="data:image/png"]')) {
+      if (img.src.length < 2000) continue;
+      await img.decode().catch(() => {});
+      const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+      c.getContext('2d').drawImage(img, 0, 0);
+      const w = c.toDataURL('image/webp', 1);
+      if (w.startsWith('data:image/webp') && w.length < img.src.length) img.setAttribute('src', w);
+    }
+  });
   const out = await p.evaluate(([base, pageSel]) => {
     // Len samotná stránka (a jej obaly), nie súrodenci — cookie lišta, toaster či DevNav by sa
     // inak zapiekli do HTML a ukázali aj tomu, kto už súhlas dal.
@@ -169,7 +181,11 @@ mc.observe(rt,{childList:true,subtree:true});}}catch(e){}
 // Až potom JS: na pomalej linke by inak bojoval s písmami o tú istú linku.
 var shown=0;function show(){if(shown)return;shown=1;document.documentElement.classList.remove('pre-wait');
 // Dva snímky: v prvom sa text len odkryje, JS ide až keď je naozaj vykreslený (inak ho PageSpeed ráta do LCP).
-requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(start,0);});});}
+${page.dog ? `// Stránka psa: LCP je fotka — JS až keď je stiahnutá (index.html ju predsťahuje), strop 1,5 s.
+var go=0;function st(){if(go)return;go=1;start();}
+try{var u=null;[].some.call(pre.querySelectorAll('.ds-media [style*="background-image"]'),function(e){u=e.style.backgroundImage.match(/url\\(["']?(https?:[^"')]+)/);return !!u;});
+if(u){var im=new Image();im.onload=im.onerror=function(){requestAnimationFrame(function(){requestAnimationFrame(st);});};im.src=u[1];}else st();}catch(e){st();}
+setTimeout(st,1500);}` : `requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(start,0);});});}`}
 ${page.waitFonts ? `try{pre.offsetHeight;document.fonts.ready.then(show);}catch(e){show();}
 setTimeout(show,800);` : 'show();'}
 var root=document.getElementById('root'),sel=${JSON.stringify(page.ready)};
@@ -207,6 +223,20 @@ async function render(browser, page, base, fontsCss) {
     if (s.consent) tpls.push(`<template data-pre-consent="${lang}">${s.consent.replace(STYLE_RX, '')}</template>`);
     else console.warn(`  ⚠ ${page.path} [${lang}]: cookie lišta sa v snímke neukázala`);
   }
+  // Stránka psa: veľké obrázky ako súbory vedľa HTML (Cloudflare ich cacheuje, nesú sa samostatne).
+  if (page.dog) {
+    const dir = dirname(resolve(DIST, page.file));
+    mkdirSync(dir, { recursive: true });
+    for (let i = 0; i < data.length; i++) {
+      const m = data[i].match(/^data:image\/(webp|png);base64,(.*)$/);
+      if (!m) continue;
+      const name = `${page.dog.pack_number}-${i}.${m[1]}`;
+      writeFileSync(resolve(dir, name), Buffer.from(m[2], 'base64'));
+      // Heroglyf nie je LCP (to je fotka) — linku jej nesmie brať.
+      for (let t = 0; t < tpls.length; t++) tpls[t] = tpls[t].split(`src="__PRE_D${i}__"`).join(`fetchpriority="low" src="/pre/dog/${name}"`).split(`__PRE_D${i}__`).join(`/pre/dog/${name}`);
+      data[i] = '';
+    }
+  }
   const dataTag = `<script type="application/json" id="pre-data">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`;
   const inject = `${PRE_CSS}<div id="pre"></div><template id="pre-css">${[...css].join('')}</template>${dataTag}${tpls.join('')}<div id="root"></div>${pickScript(page)}`;
   // __preDefer musí byť v <head>: skript opony v <body> podľa neho NEspustí appku hneď.
@@ -216,7 +246,7 @@ async function render(browser, page, base, fontsCss) {
   const html = base.replace('<head>', `<head><script>window.__preDefer=1</script><style>${fontsCss}</style>`).replace('<div id="root"></div>', inject);
   // Stráž: výberový skript je JS v šablóne — `\d` v nej ticho stratí lomítko (stalo sa 8. 10.:
   // heroglyf psa ostal rozbitý). Regex na značky musí prežiť do HTML doslova.
-  if (data.length && !html.includes('replace(/__PRE_D([0-9]+)__/g')) throw new Error('výberový skript nevie dosadiť data: URI');
+  if (data.some(Boolean) && !html.includes('replace(/__PRE_D([0-9]+)__/g')) throw new Error('výberový skript nevie dosadiť data: URI');
   mkdirSync(dirname(resolve(DIST, page.file)), { recursive: true });
   writeFileSync(resolve(DIST, page.file), html);
   return html;
