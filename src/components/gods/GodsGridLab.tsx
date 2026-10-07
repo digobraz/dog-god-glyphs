@@ -12,7 +12,8 @@
 // ⚠️ CSS triedy sú globálne a zhodné s originálom; naraz je namontovaná vždy len
 //    jedna z dvoch stien, takže kolízia nehrozí.
 // ════════════════════════════════════════════════════════════════════════════
-import { takeEarly } from '@/lib/earlyFetch';
+import { takeEarly, gridFetch } from '@/lib/earlyFetch';
+import { lqipDataUri } from '@/lib/lqip';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
@@ -66,6 +67,8 @@ interface RealDog {
   dog_name: string | null;
   pack_number: number | null;
   cloudinary_main_url: string | null;
+  /** 16 farieb 4×4 (hex) pre rozmazaný náhľad — pridáva ho Cloudflare `/api/dogs`, inak chýba. */
+  lqip?: string;
   patron_svg: string | null;
   heroglyph_png_url: string | null;
   share_card_url?: string | null;
@@ -656,7 +659,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
   // Load real dogs for the grid
   useEffect(() => {
     let alive = true; // unmount guard — nesetuj state po odmountovaní (StrictMode dvojfetch, rýchla navigácia preč)
-    (takeEarly<RealDog>(GRID_DOGS_URL) ?? fetch(GRID_DOGS_URL).then(r => r.ok ? r.json() : []))
+    (takeEarly<RealDog>(GRID_DOGS_URL) ?? (gridFetch(GRID_DOGS_URL) as Promise<RealDog[]>))
       .then((dogs: RealDog[]) => {
         if (!alive) return;
         if (dogs.length > 0) {
@@ -697,6 +700,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
                 name: d.dog_name || '',
                 n: d.pack_number,
                 photo: planetTileUrl(d.cloudinary_main_url),
+                lqip: lqipDataUri(d.lqip),
                 // Detail psa na guli nesie to isté, čo otvorená karta na stene:
                 // väčšiu fotku, heroglyf a odkaz majiteľa.
                 photoBig: planetDetailUrl(d.cloudinary_main_url),

@@ -33,8 +33,7 @@ import { useT } from '@/i18n/LanguageContext';
 import LanguagePicker from '@/components/LanguagePicker';
 import { HandHouseHeart } from '@/components/pack/HandIcons';
 import { LAB } from '@/lib/labTheme';
-import { LIVE_EDGE_BASE } from '@/lib/env';
-import { takeEarly } from '@/lib/earlyFetch';
+import { takeEarly, gridFetch, GRID_URL_MEMBERS } from '@/lib/earlyFetch';
 import { Seo } from '@/components/Seo';
 import { GodsGridLab } from '@/components/gods/GodsGridLab';
 import ReligionLab from '@/pages/ReligionLab';
@@ -4003,7 +4002,7 @@ export default function OnePage() {
   // číslo pod CTA a počet kariet na stene sa nesmú rozísť.
   useEffect(() => {
     let alive = true;
-    (takeEarly<unknown>(`${LIVE_EDGE_BASE}/get-grid-dogs`) ?? fetch(`${LIVE_EDGE_BASE}/get-grid-dogs`).then((r) => (r.ok ? r.json() : [])))
+    (takeEarly<unknown>(GRID_URL_MEMBERS) ?? gridFetch(GRID_URL_MEMBERS))
       .then((d: unknown[]) => {
         if (!alive || !Array.isArray(d)) return;
         setDogCount(d.length);

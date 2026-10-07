@@ -4,6 +4,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import fs from "fs";
 import { i18nSplit } from "./vite-plugin-i18n-split";
+import { gridSnapshot } from "./vite-plugin-grid-snapshot";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -44,7 +45,7 @@ export default defineConfig(({ mode }) => ({
   },
   // 6. 10. 2026 (perf/hygiena): `public/vault-demo` (97 MB) je len DEV ukážka VAULTU
   // (vaultScrolls.ts — v produkcii ide zvitky z DB). Do `dist` ani na Cloudflare nepatrí.
-  plugins: [i18nSplit(), {
+  plugins: [i18nSplit(), gridSnapshot(), {
     // 🔴 APPKA SA SŤAHUJE AŽ PO LOGU OPONY (perf mobil 7. 10. 2026, Matej: „zrýchli ten mobil").
     // Vite dá `<script type="module" src=index-*.js>` do <head>, takže 900 kB JS štartovalo
     // pred oponou a PageSpeed (simulovaný 4G) ho zarátal do LCP. Tag sa nahradí funkciou
@@ -54,11 +55,27 @@ export default defineConfig(({ mode }) => ({
     apply: "build" as const,
     transformIndexHtml: {
       order: "post" as const,
-      handler(html: string) {
+      handler(html: string, ctx: { bundle?: Record<string, { type: string; facadeModuleId?: string | null; imports?: string[]; fileName: string; isEntry?: boolean }> }) {
         const re = /<script type="module" crossorigin src="([^"]+)"><\/script>/;
         const m = html.match(re);
         if (!m) throw new Error("start-app-after-curtain: nenašiel som vstupný <script type=module>");
-        const boot = `<script>(function(){var go=function(){if(window.__appGo)return;window.__appGo=1;var s=document.createElement('script');s.type='module';s.crossOrigin='';s.src=${JSON.stringify(m[1])};document.head.appendChild(s);};window.__startApp=go;setTimeout(go,1200);})();</script>`;
+        // 🔴 FILM SA SŤAHUJE SÚČASNE S HLAVNÝM BALÍKOM (7. 10. 2026, plán s Fable 5). Bez toho
+        // telefón stiahol index, vykonal ho, až potom zistil, že chce OnePage, a až po ňom
+        // AboutLab — tri čakania za sebou. Tu sa na filmových adresách (tie isté ako opona
+        // v index.html) pridajú <link rel=modulepreload> pre film a jeho závislosti.
+        const film: string[] = [];
+        const b = ctx.bundle ?? {};
+        const want = (id?: string | null) => !!id && /\/src\/components\/lab\/(OnePage|AboutLab)\.tsx$/.test(id);
+        const add = (f: string) => {
+          const c = b[f];
+          if (!c || c.type !== "chunk" || c.isEntry || film.includes("/" + f)) return;
+          film.push("/" + f);
+          (c.imports ?? []).forEach(add);
+        };
+        Object.values(b).forEach((c) => { if (c.type === "chunk" && want(c.facadeModuleId)) add(c.fileName); });
+        if (film.length < 2) throw new Error("start-app-after-curtain: nenašiel som balík filmu (OnePage/AboutLab) — premenovaný súbor?");
+        const pre = `var F=${JSON.stringify(film)};if(['/','/wall','/onepage','/vision','/religion','/about','/spiral','/grid','/betavision'].indexOf(location.pathname)>=0)F.forEach(function(h){var l=document.createElement('link');l.rel='modulepreload';l.crossOrigin='';l.href=h;document.head.appendChild(l);});`;
+        const boot = `<script>(function(){var go=function(){if(window.__appGo)return;window.__appGo=1;var s=document.createElement('script');s.type='module';s.crossOrigin='';s.src=${JSON.stringify(m[1])};document.head.appendChild(s);${pre}};window.__startApp=go;setTimeout(go,1200);})();</script>`;
         return html.replace(re, boot);
       },
     },

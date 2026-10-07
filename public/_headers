@@ -15,3 +15,24 @@
 # index.html a ostatné súbory mimo /assets/ ostávajú bez dlhej cache.
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Statika mimo /assets/ (logo opony, labky, ikonky, fotky, písma, patróni) — 7. 10. 2026,
+# plán s Fable 5. Dovtedy `max-age=0, must-revalidate` ⇒ aj druhá návšteva sa na logo
+# opony (LCP) znova pýtala servera. Názvy nenesú hash, preto KRÁTKA čerstvosť (1 h) +
+# dlhé `stale-while-revalidate`: prehliadač ukáže uložené hneď a novú verziu si stiahne
+# na pozadí. Vymenený súbor sa teda ukáže najneskôr pri DRUHOM otvorení po hodine.
+# ⚠️ Kto potrebuje výmenu OKAMŽITE (og obrázok, logo), dá súboru NOVÉ meno.
+/images/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=2592000
+/icons/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=2592000
+/patrons/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=2592000
+/heroglyph/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=2592000
+/social/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=2592000
+/videos/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=2592000
+/fonts/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=2592000

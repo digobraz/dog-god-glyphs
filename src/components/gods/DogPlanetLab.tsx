@@ -47,6 +47,8 @@ export interface PlanetDog {
   name: string;
   n: number | null;
   photo: string;
+  /** Rozmazaný náhľad pod fotkou dlaždice, kým fotka nedorazí (Cloudflare `/api/dogs`, 7. 10. 2026). */
+  lqip?: string;
   /** Fotka pre panel detailu — dlaždicových 160 px je v ňom rozmazaných. */
   photoBig: string;
   heroglyph: string;
@@ -316,7 +318,12 @@ const TileField = memo(function TileField({ tiles }: { tiles: Tile[] }) {
           // Index do `tiles` — z neho si gestá dohľadajú psa. Bez neho by
           // sa muselo hľadať podľa URL fotky, a tá sa na guli opakuje.
           data-i={i}
-          style={{ ['--t' as string]: `rotateY(${lon}deg) rotateX(${-lat}deg) translateZ(${R}px)` }}
+          style={{
+            ['--t' as string]: `rotateY(${lon}deg) rotateX(${-lat}deg) translateZ(${R}px)`,
+            // 🔴 NIKDY PRÁZDNY ŠTVOREC (7. 10. 2026, Matej: „aby na prvý pohľad nebolo nič vidno").
+            // Pod fotkou leží rozmazaný 12 px náhľad toho istého psa; fotka sa naň plynulo zaostrí.
+            ...(dog.lqip ? { backgroundImage: `url(${dog.lqip})` } : null),
+          }}
         >
           {/* 🔴 BEZ loading="lazy" (4. 9. 2026). Matej: „na planétke sú voľné
               sloty = nenačítajú sa všetky obrázky, vyzerá to ako chyba."
@@ -325,7 +332,14 @@ const TileField = memo(function TileField({ tiles }: { tiles: Tile[] }) {
               sa nenačítali nikdy, a keď ich otáčanie prinieslo dopredu, boli
               prázdne. Prehliadač teda sťahuje 72 súborov po 160 px, nie 200 —
               to je lacnejšie než diery v guli. */}
-          <img src={dog.photo} alt="" draggable={false} decoding="async" />
+          <img
+            src={dog.photo}
+            alt=""
+            draggable={false}
+            decoding="async"
+            // `data-ok` zapne prelínanie (CSS .planet-tile img). Pri chybe ostane náhľad.
+            onLoad={(e) => { e.currentTarget.dataset.ok = '1'; }}
+          />
         </div>
       ))}
     </>
@@ -1185,7 +1199,7 @@ export function DogPlanetLab({
           -webkit-backface-visibility: hidden;
           border: 1.5px solid rgba(201,154,63,0.85);
           box-shadow: 0 6px 16px -6px rgba(70,46,12,0.55);
-          background: #EADCBB;
+          background: #EADCBB center / cover no-repeat;
           /* Poloha na guli je v premennej, nie priamo v transform — zvýraznenie
              tak vie pridať scale bez toho, aby React prekresľoval dlaždice. */
           transform: var(--t);
@@ -1205,7 +1219,10 @@ export function DogPlanetLab({
           object-fit: cover;
           display: block;
           pointer-events: none;
+          opacity: 0;
+          transition: opacity 420ms ease;
         }
+        .planet-tile img[data-ok] { opacity: 1; }
 
         /* Svetlo: guľa musí mať objem, inak je to plochý koláž-kruh.
            Vrstva NAD dlaždicami — stmaví okraje, presvetlí ľavý horný kvadrant. */
