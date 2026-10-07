@@ -39,9 +39,11 @@ const BROWSER_LANG_KEYS = [...(LANG_CTX.match(/BROWSER_LANG_MAP[^{]*\{([^}]*)\}/
 if (!['en', 'sk', 'cs'].every((k) => BROWSER_LANG_KEYS.includes(k)) || BROWSER_LANG_KEYS.length < 10) throw new Error('BROWSER_LANG_MAP sa nedal prečítať');
 
 // ready = selektor, ktorým appka povie „som hotová, vymeň". skip = kedy šablónu NEpoužiť.
+// waitFonts: LCP je TEXT ⇒ ukázať ho až s písmami (viď fontsCss). Login má LCP kartu s obrázkom —
+// tam čakanie len škodilo (merané 7. 10.: 99–100 bez neho, 78–91 s ním).
 const PAGES = [
-  { path: '/terms', file: 'terms.html', ready: '#root .lg-root .lg-card', page: '.lg-root' },
-  { path: '/privacy', file: 'privacy.html', ready: '#root .lg-root .lg-card', page: '.lg-root' },
+  { path: '/terms', file: 'terms.html', ready: '#root .lg-root .lg-card', page: '.lg-root', waitFonts: true },
+  { path: '/privacy', file: 'privacy.html', ready: '#root .lg-root .lg-card', page: '.lg-root', waitFonts: true },
   // Login: hotová je až karta s formulárom (stav „missing"); dovtedy ukazuje „overujem".
   // Prihlásený človek alebo návrat z magic linku šablónu nedostane — appka ho hneď presmeruje.
   { path: '/login', file: 'login.html', ready: '#root .lg-login .lg-card form', page: '.lg-login', skipAuth: true },
@@ -111,7 +113,7 @@ if(!lang){var c=navigator.languages&&navigator.languages.length?navigator.langua
 for(var j=0;j<c.length;j++){var k=String(c[j]||'').toLowerCase().split('-')[0];if(${JSON.stringify(BROWSER_LANG_KEYS)}.indexOf(k)>=0){lang=k;break;}}}
 var tp=document.querySelector('template[data-pre="'+lang+'"]');if(!tp)return skip();
 pre.appendChild(document.getElementById('pre-css').content.cloneNode(true));pre.appendChild(tp.content.cloneNode(true));if(tp.dataset.title)document.title=tp.dataset.title;
-document.documentElement.classList.add('pre','pre-wait');window.__preUsed=1;
+document.documentElement.classList.add('pre'${page.waitFonts ? ",'pre-wait'" : ''});window.__preUsed=1;
 document.querySelectorAll('link[data-late-fonts]').forEach(function(l){l.media='all';});
 }catch(e){return skip();}
 // JS až po prvom vykreslení textu (snímka → setTimeout). Skrytá karta rAF nespustí — strop 1,2 s drží __startApp sám.
@@ -124,13 +126,13 @@ var cb=pc.querySelector('.consent-banner');if(cb)document.documentElement.style.
 var rt=document.getElementById('root');
 var mc=new MutationObserver(function(){if(!rt.querySelector('.consent-banner')&&!localStorage.getItem('dogypt_consent'))return;mc.disconnect();pc.remove();});
 mc.observe(rt,{childList:true,subtree:true});}}catch(e){}
-// Hotový text je skrytý, kým nedobehnú písma, ktoré si vypýtal (strop 800 ms) — viď fontsCss.
+// waitFonts (právne stránky, LCP = text): hotový text je skrytý, kým nedobehnú písma, ktoré si vypýtal (strop 800 ms) — viď fontsCss.
 // Až potom JS: na pomalej linke by inak bojoval s písmami o tú istú linku.
 var shown=0;function show(){if(shown)return;shown=1;document.documentElement.classList.remove('pre-wait');
 // Dva snímky: v prvom sa text len odkryje, JS ide až keď je naozaj vykreslený (inak ho PageSpeed ráta do LCP).
 requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(start,0);});});}
-try{pre.offsetHeight;document.fonts.ready.then(show);}catch(e){show();}
-setTimeout(show,800);
+${page.waitFonts ? `try{pre.offsetHeight;document.fonts.ready.then(show);}catch(e){show();}
+setTimeout(show,800);` : 'show();'}
 var root=document.getElementById('root'),sel=${JSON.stringify(page.ready)};
 var mo=new MutationObserver(function(){if(!document.querySelector(sel))return;mo.disconnect();
 var a=pre.querySelectorAll('input'),b=root.querySelectorAll('input');
