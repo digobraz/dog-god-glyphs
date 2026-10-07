@@ -147,7 +147,7 @@ var tp=document.querySelector('template[data-pre="'+lang+'"]');if(!tp)return ski
 pre.appendChild(document.getElementById('pre-css').content.cloneNode(true));
 // Veľké data: URI (prefarbený heroglyf) sú v šablónach len ako značka — ležia raz v #pre-data.
 var D=[];try{D=JSON.parse(document.getElementById('pre-data').textContent);}catch(e){}
-var h=tp.innerHTML.replace(/__PRE_D(\d+)__/g,function(m,i){return D[+i]||'';});
+var h=tp.innerHTML.replace(/__PRE_D([0-9]+)__/g,function(m,i){return D[+i]||'';});
 ${page.dog ? `var W=window.__dogPhotoW||${SNAP_PHOTO_W};h=h.split('c_fill,w_${SNAP_PHOTO_W},h_${SNAP_PHOTO_W},').join('c_fill,w_'+W+',h_'+W+',');` : ''}
 pre.insertAdjacentHTML('beforeend',h);if(tp.dataset.title)document.title=tp.dataset.title;
 ${page.dog ? `// Karta psa (1080 px) sa škáluje na šírku obalu — snímka mala mierku pre 412 px.
@@ -214,6 +214,9 @@ async function render(browser, page, base, fontsCss) {
   // o kúsok menší a appka ho pri výmene nahradila VÄČŠÍM ⇒ prehliadač to rátal ako nové
   // najväčšie vykreslenie a LCP padlo až na výmenu (/terms 3,8 s namiesto ~1,4 s).
   const html = base.replace('<head>', `<head><script>window.__preDefer=1</script><style>${fontsCss}</style>`).replace('<div id="root"></div>', inject);
+  // Stráž: výberový skript je JS v šablóne — `\d` v nej ticho stratí lomítko (stalo sa 8. 10.:
+  // heroglyf psa ostal rozbitý). Regex na značky musí prežiť do HTML doslova.
+  if (data.length && !html.includes('replace(/__PRE_D([0-9]+)__/g')) throw new Error('výberový skript nevie dosadiť data: URI');
   mkdirSync(dirname(resolve(DIST, page.file)), { recursive: true });
   writeFileSync(resolve(DIST, page.file), html);
   return html;
