@@ -95,12 +95,14 @@ export const WIZ_SCREENS: WizScreen[] = [
   ] },
   { key: 'dogId', routes: ['/pack/dogs/:id'], basket: 2, status: 'caka', steps: [] },
   { key: 'ainubis', routes: ['/pack/ainubis/*'], basket: 1, status: 'caka', steps: [
+    // Matej 7. 10.: prvý krok = AINUBIS vo všeobecnosti, výrez na jeho ikonke v lište.
+    { id: 'ainubis.intro', anchor: WIZ.navAinubis, text: 'pack.wizard.ainubis.intro', since: '2026-10-07' },
     { id: 'ainubis.me', anchor: '.pkid-me', text: 'pack.wizard.ainubis.me', since: '2026-10-06' },
     { id: 'ainubis.planes', anchor: '.akv-planes', text: 'pack.wizard.ainubis.planes', since: '2026-10-06' },
     { id: 'ainubis.scroll', anchor: '.akv-mactions, .akv-zv', text: 'pack.wizard.ainubis.scroll', since: '2026-10-06' },
   ] },
   { key: 'sniffer', routes: ['/pack/sniffer'], basket: 2, status: 'caka', steps: [
-    { id: 'sniffer.card', anchor: '.bd-card', text: 'pack.wizard.sniffer.card', since: '2026-10-06' },
+    { id: 'sniffer.card', anchor: '.bd-card', text: 'pack.wizard.sniffer.card', on: false, since: '2026-10-06' },
   ] },
   { key: 'profile', routes: ['/pack/profile'], basket: 1, status: 'caka', steps: [
     { id: 'profile.head', anchor: '.pf-head', text: 'pack.wizard.profile.head', on: false, since: '2026-10-06' },
