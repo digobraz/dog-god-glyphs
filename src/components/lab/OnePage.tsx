@@ -3322,7 +3322,7 @@ export default function OnePage() {
       // v tomto snímku nečítalo rozloženie druhýkrát. Noc sleduje jeho SPODNÚ
       // hranu (koniec príbehu), výzva HORNÚ (jeho začiatok).
       let keepOut = 0;
-      let navHold = 0;
+      const navHold = 0;
       if (n.crawl) {
         const cr = n.crawl.getBoundingClientRect();
         nightOut = seg(clamp01((vh - cr.bottom) / vh), NIGHT_OUT[0], NIGHT_OUT[1]);
@@ -3336,18 +3336,12 @@ export default function OnePage() {
           // Noc odíde ešte POD nepriehľadným dotykom — keď sa začne
           // rozplývať, pod ním už nemá byť čierna, ale DOGTRIX.
           nightOut = seg(gp, GATE_FADE[0] - 0.08, GATE_FADE[0]);
-          // 🔴 HORNÝ NAV AŽ PO DOPÍSANOM DOGTRIXE (Matej 27. 9.: *„až po celom
-          // obsahu príde nakoniec horný nav"*). Od brány po koniec písania
-          // DOGTRIXu lišta mlčí, potom sa rozsvieti.
-          if (gr.top < vh) {
-            const arcEl = document.querySelector<HTMLElement>('.op-arc');
-            if (arcEl) {
-              const ar = arcEl.getBoundingClientRect();
-              const ap = clamp01(-ar.top / Math.max(1, arcEl.offsetHeight - vh));
-              const done = ARC_REST2_VH / ARC_TOTAL_VH;
-              navHold = 1 - seg(ap, done - 0.03, done);
-            }
-          }
+          // 🔴 7. 10. 2026 — HORNÝ NAV HNEĎ S OBSAHOM (Matej: *„po načítaní obsahu
+          //    sa header načíta hneď, nie po sekundách"*). Od 27. 9. („až po celom
+          //    obsahu príde nakoniec horný nav") lišta mlčala po celú dráhu písania
+          //    DOGTRIXu a rozsvietila sa až na odpočívadle — pri heroglyfe sa obsah
+          //    ukázal a nav prišiel o sekundy neskôr. Teraz lišta riadi len `night`
+          //    (brána), `navHold` ostáva 0.
         }
         // Prílet príbehu: 0 = jeho horná hrana je ešte celú obrazovku pod
         // ohybom, 1 = dosadla na horný okraj okna (= prvý modrý riadok).
@@ -4441,7 +4435,7 @@ export default function OnePage() {
       {/* noindex ZATIAĽ ostáva — zruší sa pri FLIPe (audit 6. 10. 2026, runbook krok 2d). Titulok a popis
           idú cez t(): EN default, SK/CS vlastné. Wall vnorený vo filme <Seo> NEVYKRESĽUJE (embedded),
           inak by Helmet vzal jeho canonical `/` a popis steny. */}
-      <Seo path="/" title={t('onepage.seo.title')} description={t('onepage.seo.desc')} />
+      <Seo path="/" title={t('onepage.seo.title')} description={t('onepage.seo.desc')} ogImage="https://dogypt.com/og-planet-2026-10.jpg" />
       <style>{`
         /* ── PLÁTNO ───────────────────────────────────────────────────────
            Papyrus je JEDEN na celý film a je fixed. Sekcie si vlastný podklad
@@ -4562,6 +4556,15 @@ export default function OnePage() {
         /* Planéta má vlastný 420 ms fade na prepínanie stena ⇄ guľa. Pri scrolle
            by z neho bolo oneskorenie — guľa by za prstom trielila. */
         .op-planet .planet-root { transition: opacity 120ms linear; }
+        /* 🔴 ZAVRETÁ GUĽA (= človek je na STENE) sa aj SCHOVÁ (7. 10. 2026).
+           Matej: *„slajdovanie po /wall nie je plynulé a zasekáva sa"*. Pravidlo
+           vyššie (--op-vis) jej vracalo visible, takže pod stenou ležala guľa
+           s opacity 0 a kompozitor ju skladal na každý snímok ťahu (4× CPU:
+           najhorší snímok 283 ms). Oneskorené o dĺžku hasnutia. */
+        .op-planet .gods-root > .planet-root:not(.open) {
+          visibility: hidden;
+          transition: opacity 120ms linear, visibility 0s linear 120ms;
+        }
         /* ── GUĽA MUSÍ BYŤ PRE PREHLIADAČ JEDEN HOTOVÝ OBRÁZOK ────────────
            Matej 26. 8. 2026: *„extrémne to seká… z planétky sa stane jeden
            obrázok? proste musí to byť plynulé."* Presne tak to aj funguje —

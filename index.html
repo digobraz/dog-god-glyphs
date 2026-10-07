@@ -42,9 +42,8 @@
     <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="color-scheme" content="dark" />
-    <title>DOGYPT — The Place Where DOG is GOD</title>
-    <!-- description + og:title/description + twitter:title/description zámerne NIE statické: rieši ich per-route <Seo> (react-helmet-async) vrátane homepage (GodsGrid). Statická home hodnota by sa duplikovala na sub-stránkach popri per-route.
-         og:image + twitter:image (2026-07-08, DogShare /d/:pack fix): tiež zámerne NIE statické, z rovnakého dôvodu — Helmet vie iba PRIDAŤ meta tag, nie odstrániť statický z raw HTML, takže obe existovali naraz a crawler (prvý tag v <head> vyhráva) bral vždy tento statický default namiesto per-route ogImage. Fallback hodnota žije v Seo.tsx DEFAULT_OG. -->
+    <title>DOGYPT — Your Dog Is God Here</title>
+    <!-- og:* + twitter:* + description pre HOMEPAGE (2026-10-07, FLIP: / = film OnePage): statické v bloku `data-static-seo` pri konci <head>. Crawlery (WhatsApp, FB) JS nespúšťajú, takže rozhoduje toto. Text = i18n `onepage.seo.*` (en.ts), obrázok = public/og-planet-2026-10.jpg (planétka + nadpis, 1200x630) — pri zmene daj NOVÉ meno súboru (cache crawlerov) a zmeň aj `ogImage` v <Seo> v OnePage.tsx. Za behu `Seo.tsx` tieto meta vymaže a nahradí per-route hodnotou (DogShare /d/:pack má vlastný ogImage; fallback pre ostatné = Seo.tsx DEFAULT_OG). -->
     <meta name="author" content="DOGYPT" />
 
 
@@ -106,13 +105,15 @@
     ]
   }
   </script>
-  <meta data-static-seo property="og:title" content="DOGYPT — The Place Where DOG is GOD">
-  <meta data-static-seo name="twitter:title" content="DOGYPT — The Place Where DOG is GOD">
-  <meta data-static-seo name="description" content="Have a DOG? Join us, we need you!">
-  <meta data-static-seo property="og:description" content="Have a DOG? Join us, we need you!">
-  <meta data-static-seo name="twitter:description" content="Have a DOG? Join us, we need you!">
-  <meta data-static-seo property="og:image" content="https://dogypt.com/social/social-1783659411999-seopictureweb.webp">
-  <meta data-static-seo name="twitter:image" content="https://dogypt.com/social/social-1783659411999-seopictureweb.webp">
+  <meta data-static-seo property="og:title" content="DOGYPT — Your Dog Is God Here">
+  <meta data-static-seo name="twitter:title" content="DOGYPT — Your Dog Is God Here">
+  <meta data-static-seo name="description" content="One page, one story: the planet of dogs, the question, the vision and the pack. Give your dog a HEROGLYPH and become a Dogyptian — In Dog We Trust.">
+  <meta data-static-seo property="og:description" content="One page, one story: the planet of dogs, the question, the vision and the pack. Give your dog a HEROGLYPH and become a Dogyptian — In Dog We Trust.">
+  <meta data-static-seo name="twitter:description" content="One page, one story: the planet of dogs, the question, the vision and the pack. Give your dog a HEROGLYPH and become a Dogyptian — In Dog We Trust.">
+  <meta data-static-seo property="og:image" content="https://dogypt.com/og-planet-2026-10.jpg">
+  <meta data-static-seo property="og:image:width" content="1200">
+  <meta data-static-seo property="og:image:height" content="630">
+  <meta data-static-seo name="twitter:image" content="https://dogypt.com/og-planet-2026-10.jpg">
 </head>
   <body>
     <!-- Google Tag Manager (noscript) -->

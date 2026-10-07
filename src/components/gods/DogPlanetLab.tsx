@@ -1121,13 +1121,19 @@ export function DogPlanetLab({
           align-items: center;
           justify-content: center;
           opacity: 0;
+          /* 🔴 ZAVRETÁ GUĽA SA AJ SCHOVÁ (7. 10. 2026). Matej: *„slajdovanie po
+             /wall nie je plynulé a zasekáva sa"*. Na /wall ležala pod stenou
+             guľa s ~200 dlaždicami v 3D s opacity 0 — prehliadač ju skladal na
+             každý snímok ťahu. visibility ju z toho vyradí; oneskorená o dĺžku
+             hasnutia, aby odchod gule ostal plynulý. */
+          visibility: hidden;
           pointer-events: none;
-          transition: opacity 420ms ease;
+          transition: opacity 420ms ease, visibility 0s linear 420ms;
           background:
             radial-gradient(120% 100% at 50% 42%, #FDF8EC 0%, #F6EAD0 46%, #EBD9B4 100%);
           overflow: hidden;
         }
-        .planet-root.open { opacity: 1; pointer-events: auto; }
+        .planet-root.open { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 420ms ease, visibility 0s; }
 
         /* Scéna: guľa sa pri otvorení „odďaľuje" — nabehne zväčšená a sadne na 1.
            To je celý vtip prechodu zo steny (stena = maximálne priblíženie). */
