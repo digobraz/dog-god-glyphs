@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { preloadActiveLang } from "./i18n/LanguageContext";
+import { preloadActiveLang, ensurePackDict } from "./i18n/LanguageContext";
 import { initAnalytics } from "./lib/analytics";
 import { startEarlyGridDogs } from "./lib/earlyFetch";
 import { scrubSecrets } from "./lib/packAnalytics";
@@ -60,6 +60,8 @@ if (FILM_PATHS.includes(location.pathname)) startEarlyGridDogs(); // film = home
 
 // Aktívny jazyk (SK/CS/…) sa dotiahne pred prvým renderom, aby neblikla angličtina.
 // Pád chunku nesmie zhodiť appku — vtedy ide render hneď a `t()` padne na EN.
+// Texty appky (pack.*) sú vlastný kus — v appke ich treba hneď, nech sa ťahajú súbežne s kódom.
+if (/^\/(pack|login|admin)(\/|$)/.test(location.pathname)) void ensurePackDict();
 preloadActiveLang().catch(() => {}).finally(() => {
   createRoot(document.getElementById("root")!).render(<App />);
 });

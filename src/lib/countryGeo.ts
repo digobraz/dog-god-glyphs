@@ -151,9 +151,7 @@ export function iso2ToISO3(iso2: string): string {
 
 /** ISO2 → flagcdn PNG URL. Jediný zdroj vlajkových URL (GRID, LanguagePicker,
  * PackDogDetail) — šírka podľa kontextu: 40 grid dlaždica, 80 picker, 160 detail. */
-export function flagUrl(iso2: string, width: 40 | 80 | 160 = 40): string {
-  return `https://flagcdn.com/w${width}/${iso2}.png`;
-}
+export { flagUrl } from './flagUrl';
 
 /**
  * Emoji fallback for when the flagcdn image can't load.

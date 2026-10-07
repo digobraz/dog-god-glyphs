@@ -6,7 +6,7 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { HandArrowLeft } from '@/components/pack/HandIcons';
+import { HandArrowLeftIcon as HandArrowLeft } from '@/components/pack/handArrowLeft';
 import { useT } from '@/i18n/LanguageContext';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { PACK_THEME as T } from '@/components/pack/packTheme';

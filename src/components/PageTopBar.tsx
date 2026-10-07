@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { HandArrowLeft } from '@/components/pack/HandIcons';
-import dogyptLogo from '@/assets/dogypt-logo-gold.png';
+import { HandArrowLeftIcon as HandArrowLeft } from '@/components/pack/handArrowLeft';
+import dogyptLogo from '@/assets/dogypt-logo-gold.webp';
 import dogyptLogoMobile from '@/assets/dogypt-logo-mobile.webp';
 import { useT } from '@/i18n/LanguageContext';
 import { PageNav } from './PageNav';

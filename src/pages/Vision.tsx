@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ImageComparisonSlider } from '@/components/ui/image-comparison-slider-horizontal';
 import { PageTopBar } from '@/components/PageTopBar';
 import { useT, useLang } from '@/i18n/LanguageContext';
-import dogyptTextLogo from '@/assets/dogypt-logo-gold.png';
+import dogyptTextLogo from '@/assets/dogypt-logo-gold.webp';
 import { Seo } from '@/components/Seo';
 
 /* Web jazykový kód (useLang) → YouTube caption BCP-47 kód.

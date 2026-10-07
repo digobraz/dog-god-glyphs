@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { DEV_FULL } from '@/lib/packFlags';
-import { FOUNDER_ACCOUNT_EMAIL } from '@/components/pack/packCommunity';
+import { FOUNDER_ACCOUNT_EMAIL } from '@/lib/founder';
 import { MapLocked } from '@/components/pack/MapLocked';
 
 /**

@@ -9,7 +9,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import dogyptLogo from '@/assets/dogypt-logo-gold.png';
+import dogyptLogo from '@/assets/dogypt-logo-gold.webp';
 import dogyptLogoMobile from '@/assets/dogypt-logo-mobile.webp';
 import { useT } from '@/i18n/LanguageContext';
 import { PageNavLab } from './PageNavLab';

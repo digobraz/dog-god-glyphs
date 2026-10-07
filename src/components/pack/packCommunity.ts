@@ -753,9 +753,8 @@ export function bonusToastText(
 // (to len skryje body), ale hromadné hodnotenie viacerých trás naraz.
 export const RATE_PROMPT_POINTS = POINTS.rate;
 
-export const FOUNDER_ACCOUNT_EMAIL = 'hekthorsk@gmail.com';
-export const isFounderEmail = (email?: string | null) =>
-  (email ?? '').toLowerCase() === FOUNDER_ACCOUNT_EMAIL;
+import { FOUNDER_ACCOUNT_EMAIL, isFounderEmail } from '@/lib/founder';
+export { FOUNDER_ACCOUNT_EMAIL, isFounderEmail };
 
 // ── BODY PROFILU (issue #33) — jedno miesto, dva povrchy ────────────────────
 // Level sa ukazuje v hlavičke mapy aj vo vysvedčení (TripStatsPanel). Keby si každý povrch

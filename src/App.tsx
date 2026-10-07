@@ -1,15 +1,15 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useState, type ComponentType } from "react";
+import { afterLoad } from "@/lib/afterLoad";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { DEV_FULL, BUDDY_LIVE } from "@/lib/packFlags";
-import { MapGate } from "@/components/pack/MapGate";
 // Papyrusový podklad + zoznam prezlečených ciest — jeden zdroj, viď RouteFallback nižšie.
 import { PAPER_BG, usePaperRoute } from "@/components/pack/packTheme";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { LanguageProvider, useLang } from "@/i18n/LanguageContext";
+import { LanguageProvider, useLang, ensurePackDict } from "@/i18n/LanguageContext";
 import NotFound from "./pages/NotFound.tsx";
 import { DevNav } from "@/components/DevNav";
 import { ConsentBanner } from "@/components/ConsentBanner";
@@ -144,23 +144,30 @@ const PaymentScreen = lazy(() =>
 const WelcomeScreen = lazy(() =>
   import("@/components/screens/WelcomeScreen").then((m) => ({ default: m.WelcomeScreen }))
 );
+/** Obrazovka appky čaká aj na TEXTY appky (preklady `pack.*` sú vlastný kus, perf 7. 10. 2026 —
+ *  bez toho by na prvý snímok prebleskli holé kľúče). Sťahujú sa súbežne s kódom obrazovky. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const lazyPack = <T extends ComponentType<any>>(f: () => Promise<{ default: T }>) =>
+  lazy<T>(() => Promise.all([f(), ensurePackDict()]).then(([m]) => m));
+// Brána mapy číta session zo Supabase — lazy, aby klient nesedel v hlavnom balíku (perf 7. 10. 2026).
+const MapGate = lazyPack(() => import("@/components/pack/MapGate").then((m) => ({ default: m.MapGate })));
 const Terms = lazy(() => import("./pages/Terms.tsx"));
 const Privacy = lazy(() => import("./pages/Privacy.tsx"));
-const Pack = lazy(() => import("./pages/Pack.tsx"));
-const PackDogDetail = lazy(() => import("./pages/PackDogDetail.tsx"));
-const PackProfile = lazy(() => import("./pages/PackProfile.tsx"));
-const PublicProfile = lazy(() => import("./pages/PublicProfile.tsx")); // read-profil /pack/u/:id (zadanie-profil-read-dog-2026-07-25)
-const PackJoin = lazy(() => import("./pages/PackJoin.tsx")); // /pack/join/:token — prijatie pozvánky pawmata
-const PackMap = lazy(() => import("./pages/PackMap.tsx"));
-const PackTripArticle = lazy(() => import("./pages/PackTripArticle.tsx")); // iterácia 12 bod 5 — ⤢ expand full-page article
-const PackTriplist = lazy(() => import("./pages/PackTriplist.tsx")); // TRIPLIST hub — Slice A (plany/zadanie-triplist-sliceA-2026-07-23.md)
-const PackDogs = lazy(() => import("./pages/PackDogs.tsx"));
-const PackBuddy = lazy(() => import("./pages/PackBuddy.tsx")); // SNIFFER (interne BUDDY) — `/pack/sniffer`, krok 3 (zadanie-assnif §10)
-const PackAinubis = lazy(() => import("./pages/PackAinubis.tsx")); // kostra AINUBISA — `/pack/ainubis` (rozhodnutia 4A+5A, 21. 9. 2026)
-const PackDogQuiz = lazy(() => import("./pages/PackDogQuiz.tsx")); // fullscreen kvíz (zadanie-mypack-petpas-2026-08-06 §6)
-const PackNatureQuiz = lazy(() => import("./pages/PackNatureQuiz.tsx")); // osobnostný kvíz element+úloha (zadanie-osobnostny-kviz-2026-08-06)
-const Login = lazy(() => import("./pages/Login.tsx"));
-const Admin = lazy(() => import("./pages/Admin.tsx"));
+const Pack = lazyPack(() => import("./pages/Pack.tsx"));
+const PackDogDetail = lazyPack(() => import("./pages/PackDogDetail.tsx"));
+const PackProfile = lazyPack(() => import("./pages/PackProfile.tsx"));
+const PublicProfile = lazyPack(() => import("./pages/PublicProfile.tsx")); // read-profil /pack/u/:id (zadanie-profil-read-dog-2026-07-25)
+const PackJoin = lazyPack(() => import("./pages/PackJoin.tsx")); // /pack/join/:token — prijatie pozvánky pawmata
+const PackMap = lazyPack(() => import("./pages/PackMap.tsx"));
+const PackTripArticle = lazyPack(() => import("./pages/PackTripArticle.tsx")); // iterácia 12 bod 5 — ⤢ expand full-page article
+const PackTriplist = lazyPack(() => import("./pages/PackTriplist.tsx")); // TRIPLIST hub — Slice A (plany/zadanie-triplist-sliceA-2026-07-23.md)
+const PackDogs = lazyPack(() => import("./pages/PackDogs.tsx"));
+const PackBuddy = lazyPack(() => import("./pages/PackBuddy.tsx")); // SNIFFER (interne BUDDY) — `/pack/sniffer`, krok 3 (zadanie-assnif §10)
+const PackAinubis = lazyPack(() => import("./pages/PackAinubis.tsx")); // kostra AINUBISA — `/pack/ainubis` (rozhodnutia 4A+5A, 21. 9. 2026)
+const PackDogQuiz = lazyPack(() => import("./pages/PackDogQuiz.tsx")); // fullscreen kvíz (zadanie-mypack-petpas-2026-08-06 §6)
+const PackNatureQuiz = lazyPack(() => import("./pages/PackNatureQuiz.tsx")); // osobnostný kvíz element+úloha (zadanie-osobnostny-kviz-2026-08-06)
+const Login = lazyPack(() => import("./pages/Login.tsx"));
+const Admin = lazyPack(() => import("./pages/Admin.tsx"));
 // DEV-only dielňa hero radu — pyramída svorky pri 1–20 psoch (route nižšie za import.meta.env.DEV)
 const HeroLab = lazy(() => import("./pages/HeroLab.tsx"));
 // DEV-only pieskovisko homepage — WALL/GLOBE. `/` sa NEMENÍ (CLAUDE.md lock).
@@ -227,6 +234,14 @@ const queryClient = new QueryClient();
 
 // Capture ?ref=<code> on every navigation (first-touch wins). Must live inside
 // BrowserRouter to read the live location.
+/** AINUBIS (a s ním Supabase klient) až po načítaní stránky — prvý obraz ho nepotrebuje
+ *  a na pomalom mobile mu bral linku (perf 7. 10. 2026). */
+function LateAinubis() {
+  const [on, setOn] = useState(false);
+  useEffect(() => { void afterLoad().then(() => setOn(true)); }, []);
+  return on ? <AinubisWidget /> : null;
+}
+
 function RefCapture() {
   const location = useLocation();
   const { lang } = useLang();
@@ -259,7 +274,7 @@ const App = () => (
         <RefCapture />
         <ConsentBanner />
         <Suspense fallback={null}>
-          <AinubisWidget />
+          <LateAinubis />
         </Suspense>
         <DevNav />
         <Suspense fallback={null}>

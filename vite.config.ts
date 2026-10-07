@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import fs from "fs";
+import { i18nSplit } from "./vite-plugin-i18n-split";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -43,7 +44,7 @@ export default defineConfig(({ mode }) => ({
   },
   // 6. 10. 2026 (perf/hygiena): `public/vault-demo` (97 MB) je len DEV ukážka VAULTU
   // (vaultScrolls.ts — v produkcii ide zvitky z DB). Do `dist` ani na Cloudflare nepatrí.
-  plugins: [{
+  plugins: [i18nSplit(), {
     // 🔴 APPKA SA SŤAHUJE AŽ PO LOGU OPONY (perf mobil 7. 10. 2026, Matej: „zrýchli ten mobil").
     // Vite dá `<script type="module" src=index-*.js>` do <head>, takže 900 kB JS štartovalo
     // pred oponou a PageSpeed (simulovaný 4G) ho zarátal do LCP. Tag sa nahradí funkciou

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { flagUrl } from '@/lib/countryGeo';
+import { flagUrl } from '@/lib/flagUrl';
 import { createPortal } from 'react-dom';
 import { useLang } from '@/i18n/LanguageContext';
 

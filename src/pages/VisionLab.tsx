@@ -31,7 +31,7 @@ import { LAB } from '@/lib/labTheme';
 import { useFilmEager } from '@/components/lab/filmDefer';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { useT, useLang } from '@/i18n/LanguageContext';
-import dogyptTextLogo from '@/assets/dogypt-logo-gold.png';
+import dogyptTextLogo from '@/assets/dogypt-logo-gold.webp';
 import { Seo } from '@/components/Seo';
 
 /* Web jazykový kód (useLang) → YouTube caption BCP-47 kód.

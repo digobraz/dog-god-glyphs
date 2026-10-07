@@ -1,5 +1,5 @@
-import { supabase } from '@/integrations/supabase/client';
 import { track, identifyById, resetIdentity } from './analytics';
+import { afterLoad } from './afterLoad';
 
 // ─────────────────────────────────────────────────────────────────────────────────────────────
 // MERANIE `/pack` (v1-posthog, 21. 9. 2026)
@@ -137,8 +137,14 @@ export function trackPackRoute(path: string): void {
 // ⚠️ Na checkoute sa identifikuje EMAILOM (`identifyUser`, kvôli záchrannému mailu), takže
 // kupec a člen sú dva profily. Zlučovať ich cez `alias` by znamenalo poslať email aj sem —
 // presne to, čo rozhodnutie zakazuje. Spojka je vedomý dlh, nie prehliadnutie.
-supabase.auth.onAuthStateChange((event, session) => {
-  const uid = session?.user?.id;
-  if (event === 'SIGNED_OUT') { openedThisSession = false; resetIdentity(); return; }
-  if (uid) identifyById(uid);
-});
+// ⚠️ Klient sa ťahá až po štarte (perf 7. 10. 2026) — bez toho sedel celý Supabase v hlavnom
+// balíku každej stránky. Odber po pripojení dostane INITIAL_SESSION, takže identita sa nestratí.
+if (typeof window !== 'undefined') {
+  void afterLoad().then(() => import('@/integrations/supabase/client')).then(({ supabase }) => {
+    supabase.auth.onAuthStateChange((event, session) => {
+      const uid = session?.user?.id;
+      if (event === 'SIGNED_OUT') { openedThisSession = false; resetIdentity(); return; }
+      if (uid) identifyById(uid);
+    });
+  }).catch(() => {});
+}
