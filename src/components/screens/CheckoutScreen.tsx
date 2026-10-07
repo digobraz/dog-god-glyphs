@@ -1,4 +1,5 @@
 import { NEW_HEROFLOW } from '@/lib/flowMode';
+import { FLOW_FIRST_STEP } from '@/lib/flowMode';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -30,7 +31,7 @@ export function CheckoutScreen() {
   // Route guard — bez dogName (rozrobený flow nebol dokončený) → reset na začiatok
   useEffect(() => {
     if (!dogName) {
-      navigate('/heroglyph', { replace: true });
+      navigate(FLOW_FIRST_STEP, { replace: true });
     }
   }, [dogName, navigate]);
 

@@ -29,7 +29,7 @@ import ConstitutionBook from '@/components/religion/ConstitutionBook';
 import CodexHalo from '@/components/lab/CodexHalo';
 import HektorSpot, { HEKTOR_SPOT_CSS } from '@/components/lab/HektorSpot';
 import { Seo } from '@/components/Seo';
-import { useFilmEager } from '@/components/lab/filmDefer';
+import { useFilmNext } from '@/components/lab/filmDefer';
 
 /**
  * PREPÍNAČ TEXT 1 / TEXT 2 — vypnutý (Matej 27. 8. 2026: „odstráň pomocné dev menu
@@ -122,7 +122,7 @@ interface ReligionLabProps {
 
 export default function ReligionLab({ embedded = false, flow = false, onOpenBook, onChipNext, onChipBook }: ReligionLabProps = {}) {
   const t = useT();
-  const filmEager = useFilmEager();
+  const filmEager = useFilmNext();
   /** Mimo filmu nikto neuvoľňuje (armFilmRelease je v OnePage) — tam sa ťahá hneď. */
   const codexEager = !embedded || filmEager;
   const [active, setActive] = useState(0);

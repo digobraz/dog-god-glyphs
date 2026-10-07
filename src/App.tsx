@@ -185,7 +185,7 @@ const Entry = lazy(() => import("./pages/Entry.tsx"));
 // Výzva „TVÁR TVOJHO PSA" — jeden vstup do nového heroflowu (WE NEED YOU, zrušený výber fotky na portáli).
 const PhotoInvite = lazy(() => import("./components/gods/PhotoInvite.tsx"));
 // Heroglyph sales page — REVÍZIA 2026-07-13: vraciame do flow /entry → /heroglyph → /heroglyph/intro (redizajn).
-const Heroglyph = lazy(() => import("./pages/Heroglyph.tsx"));
+// (stará sales stránka pages/Heroglyph.tsx sa od 7. 10. 2026 nenačítava — /heroglyph → /#heroglyph)
 const CertRender = lazy(() => import("./pages/CertRender.tsx"));
 const InvoiceRender = lazy(() => import("./pages/InvoiceRender.tsx"));
 const ShareRender = lazy(() => import("./pages/ShareRender.tsx"));
@@ -354,7 +354,9 @@ const App = () => (
                   `EmailScreen`, `WhyScreen`, `CropScreen`, `CountryPick`, `AboutScreen`,
                   `FlowPhases`, `flowPaleSkin.ts`, `flowRedress.tsx` ležia ďalej v `screens/`.
                   Pri veľkom launchi sa vráti späť tento blok + `<FlowRedress />` v strome vyššie. */}
-              <Route path="/heroglyph" element={NEW_HEROFLOW ? <Navigate to="/heroglyph/name" replace /> : <Heroglyph />} />
+              {/* Stránka /heroglyph NEEXISTUJE (Matej 7. 10. 2026: „Heroglyph stránka nemá existovať … presmeruj ju na heroglyph sekciu“).
+                Vstup do flow = FLOW_FIRST_STEP (/heroglyph/name), nie /heroglyph. */}
+              <Route path="/heroglyph" element={<Navigate to="/#heroglyph" replace />} />
               {/* ── NOVÝ VSTUP (DEV) — poradie z `cdb9df2` (31. 8. 2026) ──
                   fotka → meno → ĎALŠÍ PSI → e-mail → prečo heroglyf → plemeno → …
                   → povaha → VÝREZ → odhalenie → odkaz.

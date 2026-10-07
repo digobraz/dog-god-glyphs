@@ -74,7 +74,7 @@ export function IntroScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <PageTopBar onBack={() => navigate('/heroglyph')} />
+      <PageTopBar onBack={() => navigate('/#heroglyph')} />
 
       {/* justify-center vertikálne centruje na väčších obrazovkách;
           overflow-y-auto je záchrana pre extrémne malé zariadenia */}

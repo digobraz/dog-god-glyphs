@@ -47,23 +47,65 @@ export function useFilmEager() {
   return v;
 }
 
-/** Spúšťač vo filme: guľa hotová (+ chvíľa na zdvih opony) → uvoľni. Prvý ťah prstom
- *  uvoľní hneď; strop pre prípad, že udalosť nepríde (napr. /wall bez gule). */
+// ── DVA STUPNE (7. 10. 2026, Matej vonku na mobile: *„web sa mi načítava pomaly, niekde
+// nevidím obrázky“*). Meranie na pomalom 4G: po zdvihu opony sa naraz pustilo ~1,3 MB z celého
+// filmu a krava s Hektorom (HNEĎ ďalšia obrazovka pod mottom) prišli až po ~16 s, lebo stáli
+// v rade s telefónmi appiek a kontaktom zo samého konca. Teraz: najprv NEXT (to, čo príde pri
+// prvom ťahu), až keď dobehne, zvyšok filmu.
+/** Obrázky obrazovky hneď pod guľou — idú prvé (ReligionLab, HektorSpot). */
+export const FILM_NEXT_URLS = ['/images/codex3-cow-nohalo.webp', '/images/codex3-hektor-v1.webp'];
+let nextOn = false;
+const nextSubs = new Set<() => void>();
+
+export function releaseNext() {
+  if (nextOn || typeof document === 'undefined') return;
+  nextOn = true;
+  document.documentElement.classList.add('film-next');
+  nextSubs.forEach((f) => f());
+  nextSubs.clear();
+}
+
+/** true, keď smie ísť obrázok obrazovky hneď pod guľou (alebo už celý film). */
+export function useFilmNext() {
+  const [v, setV] = useState(nextOn || eager);
+  useEffect(() => {
+    if (nextOn || eager) { setV(true); return; }
+    const f = () => setV(true);
+    nextSubs.add(f); subs.add(f);
+    return () => { nextSubs.delete(f); subs.delete(f); };
+  }, []);
+  return v;
+}
+
+/** Spúšťač vo filme: guľa hotová alebo prvý dotyk → NEXT hneď (s vysokou prioritou), a keď
+ *  dobehne (strop 4 s), zvyšok filmu. Strop 12 s pre prípad, že udalosť nepríde (/wall bez gule). */
 export function armFilmRelease(): () => void {
   if (eager) return () => {};
+  let started = false;
   let t = 0;
-  const later = () => { window.clearTimeout(t); t = window.setTimeout(releaseFilm, 1200); };
-  const now = () => releaseFilm();
-  window.addEventListener('dogypt:planet-ready', later, { once: true });
-  window.addEventListener('touchstart', now, { once: true, passive: true });
-  window.addEventListener('wheel', now, { once: true, passive: true });
-  window.addEventListener('keydown', now, { once: true });
-  const cap = window.setTimeout(releaseFilm, 8000);
+  const start = () => {
+    if (started) return;
+    started = true;
+    releaseNext();
+    const loads = FILM_NEXT_URLS.map((u) => new Promise<void>((r) => {
+      const im = new Image();
+      (im as HTMLImageElement & { fetchPriority?: string }).fetchPriority = 'high';
+      im.onload = im.onerror = () => r();
+      im.src = u;
+    }));
+    t = window.setTimeout(releaseFilm, 4000);
+    void Promise.all(loads).then(() => { window.clearTimeout(t); t = window.setTimeout(releaseFilm, 300); });
+  };
+  window.addEventListener('dogypt:planet-ready', start, { once: true });
+  window.addEventListener('touchstart', start, { once: true, passive: true });
+  window.addEventListener('wheel', start, { once: true, passive: true });
+  window.addEventListener('keydown', start, { once: true });
+  const cap = window.setTimeout(() => { start(); }, 12000);
   return () => {
     window.clearTimeout(t); window.clearTimeout(cap);
-    window.removeEventListener('dogypt:planet-ready', later);
-    window.removeEventListener('touchstart', now);
-    window.removeEventListener('wheel', now);
-    window.removeEventListener('keydown', now);
+    window.removeEventListener('dogypt:planet-ready', start);
+    window.removeEventListener('touchstart', start);
+    window.removeEventListener('wheel', start);
+    window.removeEventListener('keydown', start);
   };
 }

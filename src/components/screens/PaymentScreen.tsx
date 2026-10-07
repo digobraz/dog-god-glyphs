@@ -1,4 +1,5 @@
 import { useState, useEffect, type CSSProperties } from 'react';
+import { FLOW_FIRST_STEP } from '@/lib/flowMode';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -81,7 +82,7 @@ export function PaymentScreen() {
   // Route guard — deep-link / stale localStorage ochrana
   useEffect(() => {
     if (!dogName || !email) {
-      navigate('/heroglyph', { replace: true });
+      navigate(FLOW_FIRST_STEP, { replace: true });
     }
   }, [dogName, email, navigate]);
 

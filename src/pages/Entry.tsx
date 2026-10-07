@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { FLOW_FIRST_STEP } from '@/lib/flowMode';
 import { useNavigate } from 'react-router-dom';
 import { PageTopBar } from '@/components/PageTopBar';
 import { useT } from '@/i18n/LanguageContext';
@@ -134,7 +135,7 @@ export default function Entry() {
 
   const enterFlow = () => {
     track('cta_become_dogyptian_click', { location: 'entry' });
-    navigate('/heroglyph');
+    navigate(FLOW_FIRST_STEP);
   };
 
   const renderTile = (c: Criterion, i: number) => {
