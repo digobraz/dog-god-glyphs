@@ -50,6 +50,14 @@ window.addEventListener("vite:preloadError", (event) => {
   else window.addEventListener('load', arm, { once: true });
 }
 
+// Rýchlosť u reálnych návštevníkov (lib/rum.ts) — po `load`, nič nebrzdí. `__preUsed` = stránka
+// prišla s hotovým HTML (scripts/prerender.mjs), aby sa dalo porovnať s a bez neho.
+{
+  const rum = () => import('./lib/rum').then((m) => m.startRum(!!(window as Window & { __preUsed?: number }).__preUsed));
+  if (document.readyState === 'complete') rum();
+  else window.addEventListener('load', () => { void rum(); }, { once: true });
+}
+
 // Cache pre Mapy.com dlaždice (viď public/sw-maptiles.js) — bez nej sa DOGYPT
 // clean-mode invert vrstva sťahuje z platenej API dvakrát a žiadna dlaždica sa
 // nezopakuje ani medzi session (Mapy.com neposiela Cache-Control/ETag).

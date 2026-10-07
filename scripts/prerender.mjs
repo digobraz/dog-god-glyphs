@@ -72,6 +72,8 @@ async function snapshot(browser, page, lang, base) {
   await p.route(/googletagmanager|posthog|i\.posthog/, (r) => r.abort());
   await p.goto(`http://127.0.0.1:${PORT}${page.path}`, { waitUntil: 'commit' });
   await p.waitForSelector(page.ready, { timeout: 30000 });
+  // Cookie lišta (prvá návšteva) je na podstránke najväčší text ⇒ LCP. Ide do HTML tiež.
+  await p.waitForSelector('#root .consent-banner', { timeout: 8000 }).catch(() => {});
   await p.evaluate(() => document.fonts.ready);
   await p.waitForTimeout(400);
   const out = await p.evaluate(([base, pageSel]) => {
@@ -88,7 +90,7 @@ async function snapshot(browser, page, lang, base) {
     const styles = [...document.head.querySelectorAll('style')]
       .filter((s) => !base.includes(s.textContent || '\u0000'))
       .map((s) => s.outerHTML).join('');
-    return { html: root.innerHTML, styles, title: document.title };
+    return { html: root.innerHTML, styles, title: document.title, consent: document.querySelector('#root .consent-banner')?.outerHTML ?? '' };
   }, [base, page.page]);
   await ctx.close();
   if (!out.html.trim()) throw new Error(`${page.path} [${lang}] je prázdna`);
@@ -109,10 +111,19 @@ if(!lang){var c=navigator.languages&&navigator.languages.length?navigator.langua
 for(var j=0;j<c.length;j++){var k=String(c[j]||'').toLowerCase().split('-')[0];if(${JSON.stringify(BROWSER_LANG_KEYS)}.indexOf(k)>=0){lang=k;break;}}}
 var tp=document.querySelector('template[data-pre="'+lang+'"]');if(!tp)return skip();
 pre.appendChild(document.getElementById('pre-css').content.cloneNode(true));pre.appendChild(tp.content.cloneNode(true));if(tp.dataset.title)document.title=tp.dataset.title;
-document.documentElement.classList.add('pre');
+document.documentElement.classList.add('pre');window.__preUsed=1;
 document.querySelectorAll('link[data-late-fonts]').forEach(function(l){l.media='all';});
 }catch(e){return skip();}
 // JS až po prvom vykreslení textu (snímka → setTimeout). Skrytá karta rAF nespustí — strop 1,2 s drží __startApp sám.
+// Cookie lišta pre toho, kto ešte nezvolil — vlastný obal, žije do chvíle, keď ju vykreslí appka
+// (môže to byť skôr aj neskôr než stránka). Výšku publikuje rovnako ako ConsentBanner (--consent-h).
+try{var ct=document.querySelector('template[data-pre-consent="'+lang+'"]');
+if(ct&&!localStorage.getItem('dogypt_consent')){var pc=document.createElement('div');pc.id='pre-consent';
+pc.appendChild(ct.content.cloneNode(true));document.body.appendChild(pc);
+var cb=pc.querySelector('.consent-banner');if(cb)document.documentElement.style.setProperty('--consent-h',Math.ceil(cb.getBoundingClientRect().height)+'px');
+var rt=document.getElementById('root');
+var mc=new MutationObserver(function(){if(!rt.querySelector('.consent-banner')&&!localStorage.getItem('dogypt_consent'))return;mc.disconnect();pc.remove();});
+mc.observe(rt,{childList:true,subtree:true});}}catch(e){}
 requestAnimationFrame(function(){setTimeout(start,0);});
 var root=document.getElementById('root'),sel=${JSON.stringify(page.ready)};
 var mo=new MutationObserver(function(){if(!document.querySelector(sel))return;mo.disconnect();
@@ -144,6 +155,9 @@ async function main() {
         const s = await snapshot(browser, page, lang, base);
         for (const m of (s.styles + s.html).match(STYLE_RX) ?? []) if (!m.includes('data-sonner-toaster')) css.add(m);
         tpls.push(`<template data-pre="${lang}" data-title="${escAttr(s.title)}">${s.html.replace(STYLE_RX, '')}</template>`);
+        for (const m of s.consent.match(STYLE_RX) ?? []) css.add(m);
+        if (s.consent) tpls.push(`<template data-pre-consent="${lang}">${s.consent.replace(STYLE_RX, '')}</template>`);
+        else console.warn(`  ⚠ ${page.path} [${lang}]: cookie lišta sa v snímke neukázala`);
       }
       const inject = `${PRE_CSS}<div id="pre"></div><template id="pre-css">${[...css].join('')}</template>${tpls.join('')}<div id="root"></div>${pickScript(page)}`;
       // __preDefer musí byť v <head>: skript opony v <body> podľa neho NEspustí appku hneď.
