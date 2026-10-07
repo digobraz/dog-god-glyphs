@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState, type ComponentType } from "react";
+import { lazy, Suspense, useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { afterLoad } from "@/lib/afterLoad";
 import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
@@ -249,6 +249,14 @@ function LateAinubis() {
   return on ? <AinubisWidget /> : null;
 }
 
+/** Šat a sonda vstupu (flowRedress, flowFill) sa sťahujú LEN na cestách vstupu a v dielni —
+ *  mimo nich vracajú `null`, no ich kód (+ HandIcons, flowPaleSkin…) sa ťahal na každej stránke
+ *  (perf fáza 2, 7. 10. 2026). Zoznam = FLOW_PATHS v flowRedress.tsx + /lab (pri zmene meň oba). */
+function OnFlowPaths({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
+  return /^\/(heroglyph|checkout|payment|welcome|lab)(\/|$)/.test(pathname) ? <>{children}</> : null;
+}
+
 function RefCapture() {
   const location = useLocation();
   const { lang } = useLang();
@@ -294,18 +302,18 @@ const App = () => (
             Vrstva je zapuzdrená v `[data-flow-skin="pale"]`, takže netečie
             na Terms/Vision/Login. Prepnúť späť na tmavý: dev menu. */}
         {NEW_HEROFLOW && (
-          <Suspense fallback={null}>
-            <FlowRedress />
-          </Suspense>
-        )}
-        {NEW_HEROFLOW && (
-          <Suspense fallback={null}>
-            <FlowFillProbe />
-          </Suspense>
+          <OnFlowPaths>
+            <Suspense fallback={null}>
+              <FlowRedress />
+            </Suspense>
+            <Suspense fallback={null}>
+              <FlowFillProbe />
+            </Suspense>
+          </OnFlowPaths>
         )}
         {/* Testovacie dáta z dielne. Visí NAD routami, aby bežal aj v ráme,
             ktorý dielňa otvorí — rám je vlastný dokument s prázdnym store. */}
-        {NEW_HEROFLOW && (
+        {NEW_HEROFLOW && import.meta.env.DEV && (
           <Suspense fallback={null}>
             <DevSeedBoot />
           </Suspense>
