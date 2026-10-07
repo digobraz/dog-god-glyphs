@@ -3,6 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- /pack bez prihlásenia → /login HNEĎ (7. 10. 2026, rýchlosť fáza 3). Tú istú vetvu má App.tsx
+         (`hasStoredSessionOrAuthReturn`), tam ale až po stiahnutí hlavného balíka — tu je to pred ním.
+         Len produkčný build: v deve smie /pack bežať bez prihlásenia (VITE_PACK_NOAUTH). -->
+    <script>
+      (function () {
+        if ('%MODE%' !== 'production' || !/^\/pack\/?$/.test(location.pathname)) return;
+        try {
+          if (/access_token|refresh_token|token_hash|[?&#]code=|error_description/.test(location.hash + location.search)) return;
+          for (var i = 0; i < localStorage.length; i++) if (/^sb-.*-auth-token$/.test(localStorage.key(i) || '')) return;
+          location.replace('/login?return=' + encodeURIComponent('/pack' + location.search));
+        } catch (e) {}
+      })();
+    </script>
     <!-- Consent Mode v2 defaults — MUSIA byť pred GTM snippetom (Vlna C).
          Všetko denied; consent.ts po voľbe v banneri (Vlna B) pošle gtag('consent','update').
          Vracajúcemu userovi obnovíme uloženú voľbu synchronne z localStorage PRED GTM tagmi,
@@ -184,7 +197,9 @@
       (function () {
         // Film = homepage (FLIP 7. 10. 2026); staré adresy sa do neho presmerujú, opona patrí aj im.
         // Bez opony appka štartuje hneď (window.__startApp vkladá produkčný build, viď vite.config.ts).
-        if (['/', '/wall', '/onepage', '/vision', '/religion', '/about', '/spiral', '/grid', '/betavision'].indexOf(location.pathname) < 0) { if (window.__startApp) window.__startApp(); return; }
+        // Výnimka: stránka s hotovým HTML (scripts/prerender.mjs nastaví __preDefer) — tú spustí
+        // výberový skript za #root až PO prvom vykreslení, nech JS nestojí pred textom.
+        if (['/', '/wall', '/onepage', '/vision', '/religion', '/about', '/spiral', '/grid', '/betavision'].indexOf(location.pathname) < 0) { if (window.__startApp && !window.__preDefer) window.__startApp(); return; }
         // 🔴 ZOZNAM PSOV PRE GUĽU SA PÝTA UŽ TERAZ (7. 10. 2026, plán s Fable 5) — nie až po
         // stiahnutí a vykonaní hlavného balíka. Cloudflare `/api/dogs` odpovie z cache (~50 ms).
         // Preberá ho src/lib/earlyFetch.ts; mimo dogypt.com a pri ?focus/?dog (čerstvo zaplatený

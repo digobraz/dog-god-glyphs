@@ -1,0 +1,161 @@
+#!/usr/bin/env node
+/**
+ * HOTOVÉ HTML PRE PODSTRÁNKY (7. 10. 2026, rýchlosť fáza 3).
+ * Matej: *„toto sú stále vysoké čísla, musíme znížiť ten čas"*.
+ *
+ * Prečo: /terms, /privacy a /login nemali v HTML nič — text sa objavil až po stiahnutí
+ * a spustení JS (PageSpeed mobil: LCP 3,8 s a 6,0 s, z toho 3,2 s a 4,0 s čakanie na JS).
+ *
+ * Čo robí (beží PO `vite build`, súčasť `npm run build`):
+ *   1. pustí `vite preview` nad dist/ a v Chromiu vykreslí každú stránku v EN/SK/CS,
+ *   2. vezme hotový obsah `#root` + štýly, ktoré appka vložila do <head>,
+ *   3. zapíše `dist/<stránka>.html` = index.html + tri <template> + malý výberový skript.
+ *      Cloudflare (html_handling auto-trailing-slash) servíruje /terms z terms.html sám,
+ *      bez kódu Workera.
+ *
+ * V prehliadači: skript vyberie jazyk tak ako appka (`dogypt_lang`, inak navigator.languages)
+ * a obsah šablóny vloží do `#pre` PRED prvým vykreslením. `#root` sa medzitým kreslí
+ * neviditeľne; keď sa v ňom objaví hotová stránka (selektor `ready`), `#pre` zmizne v tom
+ * istom snímku. Iný jazyk než EN/SK/CS ⇒ šablóna sa nepoužije a stránka ide po starom.
+ *
+ * ⚠️ Texty sa NEPÍŠU sem — berú sa z vykreslenej appky, takže zmena v i18n sa prejaví
+ *    pri ďalšom builde sama.
+ */
+import { spawn } from 'node:child_process';
+import { readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { chromium } from 'playwright';
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const DIST = resolve(ROOT, 'dist');
+const PORT = 4791;
+const LANGS = ['en', 'sk', 'cs'];
+// Kľúče BROWSER_LANG_MAP z i18n/LanguageContext.tsx — prehliadač s iným podporovaným jazykom
+// (de, pl…) šablónu nedostane; keby sme ho preskočili, ukázala by sa angličtina a potom nemčina.
+// Pri en/sk/cs sa primárny subtag = interný kód, inde na hodnote nezáleží (šablóna neexistuje).
+const LANG_CTX = readFileSync(resolve(ROOT, 'src/i18n/LanguageContext.tsx'), 'utf8');
+const BROWSER_LANG_KEYS = [...(LANG_CTX.match(/BROWSER_LANG_MAP[^{]*\{([^}]*)\}/)?.[1] ?? '').matchAll(/(\w+):/g)].map((m) => m[1]);
+if (!['en', 'sk', 'cs'].every((k) => BROWSER_LANG_KEYS.includes(k)) || BROWSER_LANG_KEYS.length < 10) throw new Error('BROWSER_LANG_MAP sa nedal prečítať');
+
+// ready = selektor, ktorým appka povie „som hotová, vymeň". skip = kedy šablónu NEpoužiť.
+const PAGES = [
+  { path: '/terms', file: 'terms.html', ready: '#root .lg-root .lg-card', page: '.lg-root' },
+  { path: '/privacy', file: 'privacy.html', ready: '#root .lg-root .lg-card', page: '.lg-root' },
+  // Login: hotová je až karta s formulárom (stav „missing"); dovtedy ukazuje „overujem".
+  // Prihlásený človek alebo návrat z magic linku šablónu nedostane — appka ho hneď presmeruje.
+  { path: '/login', file: 'login.html', ready: '#root .lg-login .lg-card form', page: '.lg-login', skipAuth: true },
+];
+
+// Snímka sa robí z čistého index.html — šablóna z minulého behu by preview servíroval namiesto neho.
+for (const p of PAGES) rmSync(resolve(DIST, p.file), { force: true });
+
+const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort', '--host', '127.0.0.1'], {
+  cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'],
+});
+const kill = () => { try { server.kill('SIGTERM'); } catch { /* už nebeží */ } };
+process.on('exit', kill);
+
+async function waitForServer() {
+  for (let i = 0; i < 100; i++) {
+    try { const r = await fetch(`http://127.0.0.1:${PORT}/`); if (r.ok) return; } catch { /* ešte nie */ }
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  throw new Error('vite preview nenaštartoval');
+}
+
+async function snapshot(browser, page, lang, base) {
+  const ctx = await browser.newContext({ viewport: { width: 412, height: 823 }, locale: lang === 'en' ? 'en-US' : lang });
+  await ctx.addInitScript((l) => { try { localStorage.setItem('dogypt_lang', l); } catch { /* */ } }, lang);
+  const p = await ctx.newPage();
+  // Analytika a cudzie skripty do snímky nepatria.
+  await p.route(/googletagmanager|posthog|i\.posthog/, (r) => r.abort());
+  await p.goto(`http://127.0.0.1:${PORT}${page.path}`, { waitUntil: 'commit' });
+  await p.waitForSelector(page.ready, { timeout: 30000 });
+  await p.evaluate(() => document.fonts.ready);
+  await p.waitForTimeout(400);
+  const out = await p.evaluate(([base, pageSel]) => {
+    // Len samotná stránka (a jej obaly), nie súrodenci — cookie lišta, toaster či DevNav by sa
+    // inak zapiekli do HTML a ukázali aj tomu, kto už súhlas dal.
+    const pageEl = document.querySelector(`#root ${pageSel}`);
+    if (!pageEl) return { html: '', styles: '', title: '' };
+    let node = pageEl.cloneNode(true);
+    for (let a = pageEl.parentElement; a && a.id !== 'root'; a = a.parentElement) {
+      const shell = a.cloneNode(false); shell.appendChild(node); node = shell;
+    }
+    const root = { innerHTML: node.outerHTML };
+    // Štýly, ktoré appka vložila do <head> (CSS v JS literáloch); tie z index.html tam už sú.
+    const styles = [...document.head.querySelectorAll('style')]
+      .filter((s) => !base.includes(s.textContent || '\u0000'))
+      .map((s) => s.outerHTML).join('');
+    return { html: root.innerHTML, styles, title: document.title };
+  }, [base, page.page]);
+  await ctx.close();
+  if (!out.html.trim()) throw new Error(`${page.path} [${lang}] je prázdna`);
+  return out;
+}
+
+// Výberový skript — beží synchrónne hneď za #pre, pred prvým vykreslením.
+const pickScript = (page) => `<script>(function(){
+var start=function(){if(window.__startApp)window.__startApp();};
+var pre=document.getElementById('pre');if(!pre)return start();
+function drop(){pre.remove();document.documentElement.classList.remove('pre');}
+function skip(){drop();start();}
+try{
+${page.skipAuth ? `if(/access_token|refresh_token|token_hash|[?&#]code=|error_description|dogId=/.test(location.hash+location.search))return skip();
+for(var i=0;i<localStorage.length;i++){if(/^sb-.*-auth-token$/.test(localStorage.key(i)))return skip();}` : ''}
+var lang=localStorage.getItem('dogypt_lang');
+if(!lang){var c=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language];lang='en';
+for(var j=0;j<c.length;j++){var k=String(c[j]||'').toLowerCase().split('-')[0];if(${JSON.stringify(BROWSER_LANG_KEYS)}.indexOf(k)>=0){lang=k;break;}}}
+var tp=document.querySelector('template[data-pre="'+lang+'"]');if(!tp)return skip();
+pre.appendChild(document.getElementById('pre-css').content.cloneNode(true));pre.appendChild(tp.content.cloneNode(true));if(tp.dataset.title)document.title=tp.dataset.title;
+document.documentElement.classList.add('pre');
+document.querySelectorAll('link[data-late-fonts]').forEach(function(l){l.media='all';});
+}catch(e){return skip();}
+// JS až po prvom vykreslení textu (snímka → setTimeout). Skrytá karta rAF nespustí — strop 1,2 s drží __startApp sám.
+requestAnimationFrame(function(){setTimeout(start,0);});
+var root=document.getElementById('root'),sel=${JSON.stringify(page.ready)};
+var mo=new MutationObserver(function(){if(!document.querySelector(sel))return;mo.disconnect();
+var a=pre.querySelectorAll('input'),b=root.querySelectorAll('input');
+for(var n=0;n<a.length&&n<b.length;n++){if(a[n].value&&a[n].type===b[n].type&&!b[n].value){var s=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;s.call(b[n],a[n].value);b[n].dispatchEvent(new Event('input',{bubbles:true}));}}
+var f=document.activeElement&&pre.contains(document.activeElement)?[].indexOf.call(a,document.activeElement):-1;
+drop();if(f>=0&&b[f])b[f].focus();});
+mo.observe(root,{childList:true,subtree:true});
+})();</script>`;
+
+const PRE_CSS = '<style>html.pre #root{position:fixed;inset:0;visibility:hidden;overflow:hidden;pointer-events:none;z-index:-1}</style>';
+
+function escAttr(s) { return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+
+async function main() {
+  const base = readFileSync(resolve(DIST, 'index.html'), 'utf8');
+  if (!base.includes('<div id="root"></div>')) throw new Error('dist/index.html nemá <div id="root"></div>');
+  await waitForServer();
+  const browser = await chromium.launch();
+  try {
+    for (const page of PAGES) {
+      const tpls = [];
+      // Štýly sú vo všetkých jazykoch rovnaké — idú raz, do spoločnej šablóny (inak 3× 80 kB).
+      // Aj <style> zvnútra #root (Login si ho nesie v JSX) — v #pre platí rovnako.
+      // Toaster (sonner) pri prvom vykreslení nič neukazuje, jeho štýly nepotrebujeme.
+      const css = new Set();
+      const STYLE_RX = /<style[^>]*>[\s\S]*?<\/style>/g;
+      for (const lang of LANGS) {
+        const s = await snapshot(browser, page, lang, base);
+        for (const m of (s.styles + s.html).match(STYLE_RX) ?? []) if (!m.includes('data-sonner-toaster')) css.add(m);
+        tpls.push(`<template data-pre="${lang}" data-title="${escAttr(s.title)}">${s.html.replace(STYLE_RX, '')}</template>`);
+      }
+      const inject = `${PRE_CSS}<div id="pre"></div><template id="pre-css">${[...css].join('')}</template>${tpls.join('')}<div id="root"></div>${pickScript(page)}`;
+      // __preDefer musí byť v <head>: skript opony v <body> podľa neho NEspustí appku hneď.
+      const html = base.replace('<head>', '<head><script>window.__preDefer=1</script>').replace('<div id="root"></div>', inject);
+      writeFileSync(resolve(DIST, page.file), html);
+      const kb = (Buffer.byteLength(html) / 1024).toFixed(0);
+      console.log(`  ✓ prerender ${page.path} → dist/${page.file} (${kb} kB, ${LANGS.join('/')})`);
+    }
+  } finally {
+    await browser.close();
+    kill();
+  }
+}
+
+main().catch((e) => { console.error('✗ prerender:', e.message); kill(); process.exit(1); });
