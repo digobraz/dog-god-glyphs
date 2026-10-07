@@ -16,7 +16,7 @@ import { LAB } from '@/lib/labTheme';
 import { openPhotoConfirm } from '@/components/gods/photoConfirm';
 import { intakePhoto, finishPhotoChoice } from '@/lib/photoIntake';
 import { track } from '@/lib/analytics';
-import { OPEN_PHOTO_INVITE, pickFileWithCancel } from '@/lib/photoInvite';
+import { OPEN_PHOTO_INVITE, pickFileWithCancel, photoInviteMounted, photoInviteUnmounted } from '@/lib/photoInvite';
 
 export default function PhotoInvite() {
   const t = useT();
@@ -35,7 +35,9 @@ export default function PhotoInvite() {
       setOpen(true);
     };
     window.addEventListener(OPEN_PHOTO_INVITE, on);
-    return () => window.removeEventListener(OPEN_PHOTO_INVITE, on);
+    const early = photoInviteMounted();
+    if (early) on(new CustomEvent(OPEN_PHOTO_INVITE, { detail: early }));
+    return () => { window.removeEventListener(OPEN_PHOTO_INVITE, on); photoInviteUnmounted(); };
   }, []);
 
   const pick = () => {

@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { afterLoad } from "@/lib/afterLoad";
+import { PHOTO_INVITE_NEEDED } from "@/lib/photoInvite";
 import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { DEV_FULL, BUDDY_LIVE, hasStoredSessionOrAuthReturn } from "@/lib/packFlags";
@@ -249,6 +250,29 @@ function LateAinubis() {
   return on ? <AinubisWidget /> : null;
 }
 
+/** Toastery (~35 kB: sonner, radix, toast) až po vykreslení stránky — na /dog sa ťahali pred
+ *  fotkou psa (perf fáza 3, 7. 10. 2026). V appke a admine hneď: tam toast prichádza po akcii
+ *  a sonner toast vyslaný pred montážou Toastera zahodí. */
+function LateToasters() {
+  const [on, setOn] = useState(() => /^\/(pack|admin)(\/|$)/.test(window.location.pathname));
+  useEffect(() => { if (!on) void afterLoad().then(() => setOn(true)); }, [on]);
+  return on ? <><Toaster /><Sonner /></> : null;
+}
+
+/** Výzva „TVÁR TVOJHO PSA" (+ HandIcons, framer-motion, flowPanel) až po vykreslení stránky —
+ *  alebo hneď, keď ju niekto zavolá skôr (`PHOTO_INVITE_NEEDED`; požiadavka počká v lib/photoInvite). */
+function LatePhotoInvite() {
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    if (on) return;
+    const go = () => setOn(true);
+    void afterLoad().then(go);
+    window.addEventListener(PHOTO_INVITE_NEEDED, go);
+    return () => window.removeEventListener(PHOTO_INVITE_NEEDED, go);
+  }, [on]);
+  return on ? <PhotoInvite /> : null;
+}
+
 /** Šat a sonda vstupu (flowRedress, flowFill) sa sťahujú LEN na cestách vstupu a v dielni —
  *  mimo nich vracajú `null`, no ich kód (+ HandIcons, flowPaleSkin…) sa ťahal na každej stránke
  *  (perf fáza 2, 7. 10. 2026). Zoznam = FLOW_PATHS v flowRedress.tsx + /lab (pri zmene meň oba). */
@@ -282,8 +306,7 @@ const App = () => (
   <HelmetProvider>
     <LanguageProvider>
       <Suspense fallback={null}>
-        <Toaster />
-        <Sonner />
+        <LateToasters />
       </Suspense>
       <BrowserRouter>
         <RefCapture />
@@ -295,7 +318,7 @@ const App = () => (
         </Suspense>
         {SHOW_DEVNAV && <Suspense fallback={null}><DevNav /></Suspense>}
         <Suspense fallback={null}>
-          <PhotoInvite />
+          <LatePhotoInvite />
         </Suspense>
         {/* Bledý šat + progresbar pre STARÉ obrazovky flow. Bez neho by nové
             obrazovky (dogs, email, why) boli papyrusové a zvyšok čierny.

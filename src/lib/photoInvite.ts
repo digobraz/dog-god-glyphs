@@ -11,10 +11,25 @@
  */
 
 export const OPEN_PHOTO_INVITE = 'dogypt:photo-invite';
+/** Výzva sa montuje až po vykreslení stránky (App.tsx `LatePhotoInvite`, perf 7. 10. 2026).
+ *  Kto ju zavolá skôr, nesmie prísť naprázdno: požiadavka počká a App ju hneď namontuje. */
+export const PHOTO_INVITE_NEEDED = 'dogypt:photo-invite-needed';
+type InviteDetail = { packNumber?: number | null };
+let mounted = false;
+let pending: InviteDetail | null = null;
 
-export function openPhotoInvite(detail: { packNumber?: number | null } = {}): void {
+export function openPhotoInvite(detail: InviteDetail = {}): void {
+  if (!mounted) { pending = detail; window.dispatchEvent(new Event(PHOTO_INVITE_NEEDED)); return; }
   window.dispatchEvent(new CustomEvent(OPEN_PHOTO_INVITE, { detail }));
 }
+
+/** Volá PhotoInvite pri montáži — vráti požiadavku, ktorá prišla skôr než on. */
+export function photoInviteMounted(): InviteDetail | null {
+  mounted = true;
+  const p = pending; pending = null;
+  return p;
+}
+export function photoInviteUnmounted(): void { mounted = false; }
 
 /** Po zrušení výberu sa výzva ukáže len RAZ za načítanie stránky — nie pri každom kliku. */
 let shownAfterCancel = false;
