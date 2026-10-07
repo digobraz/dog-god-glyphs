@@ -101,7 +101,7 @@ async function snapshot(browser, page, lang, base) {
 const pickScript = (page) => `<script>(function(){
 var start=function(){if(window.__startApp)window.__startApp();};
 var pre=document.getElementById('pre');if(!pre)return start();
-function drop(){pre.remove();document.documentElement.classList.remove('pre');}
+function drop(){pre.remove();document.documentElement.classList.remove('pre','pre-wait');}
 function skip(){drop();start();}
 try{
 ${page.skipAuth ? `if(/access_token|refresh_token|token_hash|[?&#]code=|error_description|dogId=/.test(location.hash+location.search))return skip();
@@ -111,7 +111,7 @@ if(!lang){var c=navigator.languages&&navigator.languages.length?navigator.langua
 for(var j=0;j<c.length;j++){var k=String(c[j]||'').toLowerCase().split('-')[0];if(${JSON.stringify(BROWSER_LANG_KEYS)}.indexOf(k)>=0){lang=k;break;}}}
 var tp=document.querySelector('template[data-pre="'+lang+'"]');if(!tp)return skip();
 pre.appendChild(document.getElementById('pre-css').content.cloneNode(true));pre.appendChild(tp.content.cloneNode(true));if(tp.dataset.title)document.title=tp.dataset.title;
-document.documentElement.classList.add('pre');window.__preUsed=1;
+document.documentElement.classList.add('pre','pre-wait');window.__preUsed=1;
 document.querySelectorAll('link[data-late-fonts]').forEach(function(l){l.media='all';});
 }catch(e){return skip();}
 // JS až po prvom vykreslení textu (snímka → setTimeout). Skrytá karta rAF nespustí — strop 1,2 s drží __startApp sám.
@@ -124,7 +124,11 @@ var cb=pc.querySelector('.consent-banner');if(cb)document.documentElement.style.
 var rt=document.getElementById('root');
 var mc=new MutationObserver(function(){if(!rt.querySelector('.consent-banner')&&!localStorage.getItem('dogypt_consent'))return;mc.disconnect();pc.remove();});
 mc.observe(rt,{childList:true,subtree:true});}}catch(e){}
-requestAnimationFrame(function(){setTimeout(start,0);});
+// Hotový text je skrytý, kým nedobehnú písma, ktoré si vypýtal (strop 800 ms) — viď fontsCss.
+// Až potom JS: na pomalej linke by inak bojoval s písmami o tú istú linku.
+var shown=0;function show(){if(shown)return;shown=1;document.documentElement.classList.remove('pre-wait');requestAnimationFrame(function(){setTimeout(start,0);});}
+try{pre.offsetHeight;document.fonts.ready.then(show);}catch(e){show();}
+setTimeout(show,800);
 var root=document.getElementById('root'),sel=${JSON.stringify(page.ready)};
 var mo=new MutationObserver(function(){if(!document.querySelector(sel))return;mo.disconnect();
 var a=pre.querySelectorAll('input'),b=root.querySelectorAll('input');
@@ -134,7 +138,7 @@ drop();if(f>=0&&b[f])b[f].focus();});
 mo.observe(root,{childList:true,subtree:true});
 })();</script>`;
 
-const PRE_CSS = '<style>html.pre #root{position:fixed;inset:0;visibility:hidden;overflow:hidden;pointer-events:none;z-index:-1}</style>';
+const PRE_CSS = '<style>html.pre-wait #pre,html.pre-wait #pre-consent{visibility:hidden}html.pre #root{position:fixed;inset:0;visibility:hidden;overflow:hidden;pointer-events:none;z-index:-1}</style>';
 
 function escAttr(s) { return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
 
@@ -161,7 +165,11 @@ async function main() {
       }
       const inject = `${PRE_CSS}<div id="pre"></div><template id="pre-css">${[...css].join('')}</template>${tpls.join('')}<div id="root"></div>${pickScript(page)}`;
       // __preDefer musí byť v <head>: skript opony v <body> podľa neho NEspustí appku hneď.
-      const html = base.replace('<head>', '<head><script>window.__preDefer=1</script>').replace('<div id="root"></div>', inject);
+      // Písma inline (≈1 kB gzip): hotový text sa ukáže až s nimi. S náhradným písmom bol text
+      // o kúsok menší a appka ho pri výmene nahradila VÄČŠÍM ⇒ prehliadač to rátal ako nové
+      // najväčšie vykreslenie a LCP padlo až na výmenu (/terms 3,8 s namiesto ~1,4 s).
+      const fontsCss = readFileSync(resolve(DIST, 'fonts/g/fonts-v1.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ');
+      const html = base.replace('<head>', `<head><script>window.__preDefer=1</script><style>${fontsCss}</style>`).replace('<div id="root"></div>', inject);
       writeFileSync(resolve(DIST, page.file), html);
       const kb = (Buffer.byteLength(html) / 1024).toFixed(0);
       console.log(`  ✓ prerender ${page.path} → dist/${page.file} (${kb} kB, ${LANGS.join('/')})`);
