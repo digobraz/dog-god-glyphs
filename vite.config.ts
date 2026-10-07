@@ -49,7 +49,7 @@ export default defineConfig(({ mode }) => ({
     // Vite dá `<script type="module" src=index-*.js>` do <head>, takže 900 kB JS štartovalo
     // pred oponou a PageSpeed (simulovaný 4G) ho zarátal do LCP. Tag sa nahradí funkciou
     // `window.__startApp`, ktorú zavolá opona v index.html po vykreslení loga (stránky bez
-    // opony hneď) — a strop 300 ms, keby opona zlyhala. Len build; dev ide po starom.
+    // opony hneď) — a strop 1,2 s, keby opona zlyhala (300 ms bolo málo — logo sa občas nahlásilo až po 370 ms a JS ho predbehol). Len build; dev ide po starom.
     name: "start-app-after-curtain",
     apply: "build" as const,
     transformIndexHtml: {
@@ -58,7 +58,7 @@ export default defineConfig(({ mode }) => ({
         const re = /<script type="module" crossorigin src="([^"]+)"><\/script>/;
         const m = html.match(re);
         if (!m) throw new Error("start-app-after-curtain: nenašiel som vstupný <script type=module>");
-        const boot = `<script>(function(){var go=function(){if(window.__appGo)return;window.__appGo=1;var s=document.createElement('script');s.type='module';s.crossOrigin='';s.src=${JSON.stringify(m[1])};document.head.appendChild(s);};window.__startApp=go;setTimeout(go,300);})();</script>`;
+        const boot = `<script>(function(){var go=function(){if(window.__appGo)return;window.__appGo=1;var s=document.createElement('script');s.type='module';s.crossOrigin='';s.src=${JSON.stringify(m[1])};document.head.appendChild(s);};window.__startApp=go;setTimeout(go,1200);})();</script>`;
         return html.replace(re, boot);
       },
     },

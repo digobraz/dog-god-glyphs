@@ -58,6 +58,9 @@ if ('serviceWorker' in navigator) {
 const FILM_PATHS = ["/", "/wall", "/onepage", "/vision", "/religion", "/about", "/spiral", "/grid", "/betavision"];
 if (FILM_PATHS.includes(location.pathname)) startEarlyGridDogs(); // film = homepage (FLIP 7. 10. 2026)
 
+// Písma z Google Fonts sa zapínajú až teraz — viď komentár pri <link data-late-fonts> v index.html.
+document.querySelectorAll<HTMLLinkElement>('link[data-late-fonts]').forEach((l) => { l.media = 'all'; });
+
 // Aktívny jazyk (SK/CS/…) sa dotiahne pred prvým renderom, aby neblikla angličtina.
 // Pád chunku nesmie zhodiť appku — vtedy ide render hneď a `t()` padne na EN.
 // Texty appky (pack.*) sú vlastný kus — v appke ich treba hneď, nech sa ťahajú súbežne s kódom.

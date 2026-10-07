@@ -98,8 +98,12 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700;900&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@500;700&display=swap"
       media="print"
-      onload="this.media='all'"
+      data-late-fonts
     />
+    <!-- 🔴 PÍSMA SA ZAPÍNAJÚ AŽ V main.tsx (perf 7. 10. 2026). Pôvodné onload="this.media='all'"
+         ich občas zaplo ešte pred logom opony; prehliadač potom ťahal woff2 a PageSpeed ich
+         zarátal do prvého vykreslenia (FCP 0,9 ↔ 2,5 s podľa náhody). Štýl sa stiahne hneď
+         (media=print = nízka priorita, neblokuje), použije sa pri štarte appky. -->
     <noscript>
       <link
         rel="stylesheet"
@@ -194,7 +198,7 @@
           + '#op-boot.out{opacity:0;visibility:hidden}'
           + '#op-boot.out .b{opacity:0;transform:scale(1.08);filter:blur(4px);'
           + 'transition:opacity .6s ease,transform .9s cubic-bezier(.65,0,.35,1),filter .6s ease}'
-          + '@keyframes opBootIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}'
+          + '@keyframes opBootIn{from{opacity:.15;transform:scale(.96)}to{opacity:1;transform:none}}'
           + '@keyframes opBootShine{from{background-position:150% 0}to{background-position:-50% 0}}'
           + '@keyframes opBootPaw{from{filter:brightness(1.7);transform:var(--r) scale(.7)}to{transform:var(--r)}}'
           + '@media (prefers-reduced-motion:reduce){#op-boot .l::after,#op-boot .p.on{animation:none}}';
@@ -248,7 +252,7 @@
         document.body.appendChild(el);
         // 🔴 NAJPRV LOGO, POTOM JAVASCRIPT (perf mobil 7. 10. 2026). Appka (~900 kB) sa začne
         // sťahovať až keď je logo opony na obrazovke — inak mu na pomalej sieti berie linku
-        // a PageSpeed čaká na celý balík. Strop 300 ms drží window.__startApp sám.
+        // a PageSpeed čaká na celý balík. Strop 1,2 s drží window.__startApp sám.
         // Signál „logo je naozaj na obrazovke" dáva prehliadač sám (záznam LCP pre <img> loga);
         // Safari ho nepozná → tam štart po načítaní loga a dvoch snímkach.
         var lg = el.querySelector('img');
