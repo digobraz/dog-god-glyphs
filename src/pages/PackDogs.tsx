@@ -42,13 +42,14 @@
 //  • AINUBIS má meno ako nadpis + tagline; ostáva „Čoskoro" a NIKAM nevedie —
 //    plán sa nestavia. (Chat AINUBISA beží zvlášť ako plávajúci widget.)
 import { sizedUrl } from '@/services/cloudinaryService';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PackLayout } from '@/components/pack/PackLayout';
 import {
   PACK_THEME, PACK_BOX, PACK_HEAD, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
 import { PALE } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { HandCheck } from '@/components/pack/HandIcons';
 import { FlagCircle } from '@/components/pack/FlagCircle';
 import { PackCalendar } from '@/components/pack/calendar/PackCalendar';
 import { DiaryEntry } from '@/components/pack/diary/DiaryEntry';
@@ -56,8 +57,9 @@ import ainubisBadge from '@/assets/ainubis-badge.webp';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK } from '@/components/pack/navGoldSkin';
 import {
-  QUIZ_SECTIONS, PROGRESS_STEPS, STEP_BY_FIELD, type QuizSection,
+  QUIZ_SECTIONS, PROGRESS_STEPS, STEP_BY_FIELD,
 } from '@/components/pack/dogQuiz';
+import { LIVE_MODULES, moduleProgress, dogIdDone } from '@/components/pack/dogIdModules';
 import { storedSpecials } from '@/components/pack/natureQuiz';
 import { readLatestForDogs, onDogEventsChange, hasValue, type LatestValue } from '@/lib/dogEvents';
 import { dogLifeLine } from '@/lib/dogAge';
@@ -127,10 +129,6 @@ const MOBILE_MAX_IDW = 230;
 // riadok — blok vyzeral rozbito.
 const GLYPH_RATIO = 13100 / 3500;
 
-// Ilustrácia kvízovej karty. ⚠️ ZÁMERNE NIE fotka psa (Matej 6.8.: „nemôže tam byť
-// foto psa, čo ak má majiteľ 3?") — dlaždica platí pre celú svorku.
-const NATURE_ART = '/images/nature-quiz-art.webp';
-
 // Pilulka s dňami — JEDEN vizuál naprieč appkou. Zdroj pravdy je strom na `/pack`
 // (`components/pack/PackTree.tsx`, riadky ~129–142): vertikálny gradient, hnedý text,
 // Cinzel 700 BEZ uppercase a bez rozpáleného letter-spacingu, mäkký zlatý tieň, žiadny
@@ -163,13 +161,6 @@ const DAYS_PILL = {
 const HUB_CSS = `
 .hub-hover{ transition: transform .2s ease, box-shadow .2s ease; }
 .hub-hover:hover{ transform: translateY(-2px); }
-/* Mriežka dlaždíc profilu — PEVNÝ počet stĺpcov, nie auto-fill. Šesť dlaždíc delia
-   2 aj 3 stĺpce BEZ ZVYŠKU; 4 stĺpce (predošlý stav pri ôsmich) by pri šiestich
-   nechali v druhom rade dieru vpravo. */
-.hub-tiles{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
-@media (min-width:760px){ .hub-tiles{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
-.hub-media{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
-@media (max-width:560px){ .hub-media{ grid-template-columns:1fr; } }
 .hub-gold{
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
   padding:12px 24px;
@@ -383,102 +374,30 @@ const HUB_CSS = `
   .dogblk-rail{ padding-left:8px; }
 }
 
-/* ── kvíz hero (stav A) ───────────────────────────────────── */
-/* ŠTÝL „VITRÁŽ" — Matej si ho vybral 7.8. z pätice návrhov (papyrus / obsidián /
-   faience / vitráž / stéla). Ilustrácia išla z pruhu 176 px na CELÚ kartu ako filmový
-   plagát, text sedí v tmavom spodku. Je to teda TMAVÝ povrch — papyrusový lock
-   (Entry.tsx) sa najň nevzťahuje, rovnako ako sa nevzťahuje na share karty.
-   ⚠️ Celá karta je odkaz (Matej: „musí vyzerať viac klikateľne"), takže sem NESMIE
-   pribudnúť ďalšie <a> — vnorený odkaz je neplatné HTML. */
-.hub-hero{
-  position:relative; overflow:hidden; display:flex; align-items:flex-end;
-  min-height:300px; padding:24px;
-  border-radius:16px; border:1px solid ${PACK_THEME.border};
-  box-shadow:${PACK_SHADOW.panel};
-  text-decoration:none; cursor:pointer;
-}
-.hub-hero-art{
-  position:absolute; inset:0; width:100%; height:100%; z-index:0;
-  object-fit:cover; object-position:center 26%; pointer-events:none;
-}
-/* Gradient je to jediné, čo drží text čitateľný — vitráž je sama o sebe svetlá
-   a pestrá. Preto siaha vysoko (78 %) a dole je takmer nepriehľadná.
-   Druhá vrstva (do strán) je tam kvôli ŠIROKÝM oknám: pri ~1000 px sa cover prestane
-   orezávať do stredu, odkryje sa vyblednutý pravý okraj vitráže a karta sa rozpadne
-   na „obraz vľavo + svetlá diera vpravo". Vignette to zviaže späť do jedného plagátu. */
-.hub-hero::before{
-  content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
-  background:
-    linear-gradient(to right,
-      rgba(4,2,0,0.52) 0%, rgba(4,2,0,0.10) 38%, rgba(4,2,0,0.16) 64%, rgba(4,2,0,0.58) 100%),
-    linear-gradient(to top,
-      rgba(4,2,0,0.94) 6%, rgba(4,2,0,0.72) 40%, rgba(4,2,0,0.18) 78%, transparent 100%);
-}
-.hub-hero-body{ position:relative; z-index:2; width:100%; min-width:0; }
-.hub-hero-title{ font-size:24px; }
-/* Rohová stuha „KVÍZ" — človek musí vedieť, že ide niečo vypĺňať (Matej 6.8.).
-   TYRKYSOVÁ, nie zlatá: farba = T.partMkt (#1AA39A, brand faience), a na zlatozelenej
-   vitráži je to jediný odtieň, ktorý sa nestratí. */
-.hub-ribbon{
-  position:absolute; top:24px; right:-56px; z-index:3; pointer-events:none;
-  width:190px; padding:8px 0; text-align:center; transform:rotate(45deg);
-  background:linear-gradient(135deg,#22C3B6 0%,#0E7A72 100%);
-  border-top:1px solid rgba(234,251,248,0.42);
-  border-bottom:1px solid rgba(6,58,54,0.35);
-  box-shadow:${PACK_SHADOW.panel};
-  color:#F2FFFD; font-family:'Cinzel',serif; font-weight:800;
-  font-size:10px; letter-spacing:0.22em; text-transform:uppercase;
-}
-/* Chipy — tmavé sklo, nie papyrusové pilulky: ležia na fotke, takže potrebujú
-   vlastný podklad. Šírka podľa obsahu, vedľa seba. */
-.hub-axes{ display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 16px; }
-.hub-chip{
-  display:inline-flex; align-items:center; gap:8px;
-  padding:8px 12px; border-radius:999px;
-  background:rgba(8,5,2,0.55); border:1px solid rgba(255,236,190,0.42);
-}
-/* CTA a meta vedľa seba na jednom riadku — spodok karty je úzky pruh, stĺpec pod
-   tlačidlom by ho zbytočne predĺžil. */
-.hub-cta{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
-.hub-gold.is-big{ padding:16px 24px; font-size:12px; letter-spacing:0.14em; }
-/* Druhá akcia karty (SPRAVIŤ ZNOVA / POZRIEŤ VÝSLEDOK vedľa zlatého). Tmavé sklo
-   ako chipy vyššie — na vitráži je to jediný podklad, ktorý drží text čitateľný,
-   a zároveň je jasné, že hlavná akcia je tá zlatá. */
-.hub-ghost{
-  display:inline-flex; align-items:center; justify-content:center; gap:8px;
-  padding:16px 24px; border-radius:8px;
-  background:rgba(8,5,2,0.55); border:1px solid rgba(255,236,190,0.42);
-  color:#FFF3DA; font-family:'Cinzel',serif; font-size:12px; font-weight:700;
-  letter-spacing:0.14em; text-transform:uppercase;
-  cursor:pointer; white-space:nowrap; text-decoration:none;
-  transition: transform .2s, background .2s, border-color .2s;
-}
-.hub-ghost:hover{ transform:scale(1.03); background:rgba(8,5,2,0.72); border-color:rgba(255,236,190,0.7); }
-.hub-ghost:active{ transform:scale(0.98); }
-/* Stuha po absolvovaní. Zelená = HOTOVO, rovnaká ako pilulka na dlaždiciach
-   a ako growGreen v štatistikách — nie tretí odtieň pre tú istú správu. */
-.hub-ribbon.is-done{
-  background:linear-gradient(135deg,#3E9E68 0%,#1F6B42 100%);
-  border-top-color:rgba(236,251,242,0.42); border-bottom-color:rgba(10,54,32,0.35);
-  color:#F4FFF8;
-}
-/* Hover kdekoľvek po karte rozsvieti CTA — signál „celé je to tlačidlo".
-   ⚠️ Musí ísť cez triedu .hub-gold, ktorá tieň drží v CSS; box-shadow karty je
-   inline a žiadny :hover selektor by ho neprebil. */
-.hub-hero:hover .hub-gold{
-  transform:scale(1.04);
-  box-shadow:0 0 44px rgba(230,158,26,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
-}
-@media (max-width:720px){
-  /* Vyššia, nie nižšia: na úzkom sa obraz orezáva do stredu a pes by z neho vypadol. */
-  .hub-hero{ min-height:390px; padding:16px; }
-  .hub-gold.is-big{ width:100%; padding:12px 16px; white-space:normal; }
-  /* Ghost ide na mobile pod zlaté, v rovnakej šírke — dve tlačidlá rôznej šírky
-     pod sebou vyzerajú ako nedorobený rad. */
-  .hub-ghost{ width:100%; padding:12px 16px; white-space:normal; }
-  .hub-cta{ gap:12px; }
-  .hub-ribbon{ top:16px; right:-58px; width:184px; letter-spacing:0.22em; }
-}
+/* ── DOG ID — karta modulov (8. 10. 2026) ─────────────────────────────── */
+.dic-list{ list-style:none; margin:0 auto; padding:0; max-width:520px; display:flex; flex-direction:column; gap:${PACK_SPACE.md}px; }
+.dic-list li{ display:grid; grid-template-columns:${PACK_SPACE.xxl}px minmax(0,1fr); align-items:baseline; gap:${PACK_SPACE.sm}px;
+  font-family:${FONT_UI}; font-size:${PACK_TEXT.body}px; line-height:1.45; color:${PACK_THEME.inkWarm}; }
+.dic-list b{ font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.label}px; letter-spacing:0.14em; text-transform:uppercase; color:${PACK_THEME.inkStrong}; }
+.dic-mark{ display:flex; justify-content:center; align-self:center; }
+.dic-list li.is-done .dic-mark{ color:#3D7A4E; }
+.dic-cta-row{ display:flex; justify-content:center; margin-top:${PACK_SPACE.xl}px; }
+.dic-cta,.dic-ghost{ display:inline-flex; align-items:center; justify-content:center; border-radius:${PACK_R.field}px;
+  font-family:${FONT_TITLE}; font-size:${PACK_TEXT.label}px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase;
+  white-space:nowrap; text-decoration:none; transition:transform .2s; }
+.dic-cta{ min-width:240px; padding:${PACK_SPACE.md}px ${PACK_SPACE.xl}px; background:${LAPIS.grad}; border:1px solid ${GOLD_BTN.edge}; color:${LAPIS.ink}; box-shadow:${LAPIS_BTN_SHADOW}; }
+.dic-cta:hover{ transform:scale(1.04); background:${LAPIS.gradHover}; }
+.dic-done{ display:flex; align-items:center; gap:${PACK_SPACE.md}px; }
+.dic-done-head{ display:flex; align-items:center; gap:${PACK_SPACE.sm}px; }
+.dic-title{ font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.label}px; letter-spacing:0.14em; text-transform:uppercase; color:${PACK_THEME.inkStrong}; margin:0; }
+.dic-full{ border-radius:${PACK_R.pill}px; padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px; background:#3D7A4E; color:#EAF7ED;
+  font-family:${FONT_UI}; font-size:${PACK_TEXT.micro}px; font-weight:600; letter-spacing:0.02em; }
+.dic-mods{ display:flex; flex-wrap:wrap; gap:${PACK_SPACE.xs}px ${PACK_SPACE.md}px; font-family:${FONT_UI}; font-size:${PACK_TEXT.label}px; color:${PACK_THEME.inkWarm}; margin:${PACK_SPACE.xs}px 0 0; }
+.dic-mods span{ display:inline-flex; align-items:center; gap:${PACK_SPACE.xs}px; }
+.dic-mods svg{ color:#3D7A4E; }
+.dic-ghost{ flex:0 0 auto; padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px; background:transparent; border:1px solid ${PACK_THEME.border}; color:${PACK_THEME.inkWarm}; }
+.dic-ghost:hover{ border-color:${PACK_THEME.cardEdge}; color:${PACK_THEME.inkStrong}; }
+@media (max-width:560px){ .dic-cta{ width:100%; min-width:0; } }
 `;
 
 interface HubDog {
@@ -501,8 +420,6 @@ interface HubDog {
 type Latest = Record<string, Record<string, LatestValue>>;
 type Tx = (key: string, fallback: string) => string;
 
-/** Pole scored kvízu, ktorým sa pozná, či ho pes má. */
-const NATURE_FIELD = 'nature.role';
 
 export default function PackDogs() {
   const t = useT();
@@ -555,26 +472,8 @@ export default function PackDogs() {
 
   const totalSteps = PROGRESS_STEPS.length;
 
-  // Progres dlaždice = súčet cez VŠETKY psy: „3 z 10" znamená 3 zodpovedané otázky
-  // z 10 možných naprieč svorkou. Pri jednom psovi je to presne jeho stav.
-  const sectionProgress = useMemo(() => {
-    const out: Record<string, { filled: number; total: number }> = {};
-    const dogIds = dogs?.map((d) => d.id) ?? [];
-    for (const s of QUIZ_SECTIONS) {
-      if (dogIds.length === 0 || s.kind !== 'quiz') {
-        out[s.key] = { filled: 0, total: 0 }; continue;
-      }
-      let filled = 0;
-      for (const id of dogIds) {
-        for (const step of s.steps) if (hasValue(latest[id]?.[step.field])) filled += 1;
-      }
-      out[s.key] = { filled, total: s.steps.length * dogIds.length };
-    }
-    return out;
-  }, [dogs, latest]);
-
-  // Stav si blok vyhodnotí sám z `latest` — hore stojí vždy, mení sa len ponuka.
-  const natureSection = QUIZ_SECTIONS.find((s) => s.kind === 'scored');
+  // Je DOG ID hotové u VŠETKÝCH psov? Rozhoduje, či karta DOG ID stojí hore, alebo na konci.
+  const dogIdAllDone = dogs !== null && dogs.length > 0 && dogs.every((d) => dogIdDone(latest[d.id]));
 
   // `wide` = rovnaká šírka stĺpca ako `/pack/profile` (max-w-5xl). Bez neho bol hub
   // v úzkom stĺpci (max-w-2xl) a vedľa profilu vyzeral ako iná stránka (Matej 6.8.).
@@ -601,81 +500,26 @@ export default function PackDogs() {
         ))}
       </div>
 
-      {/* ── 2 · DOG ID — JEDEN VEĽKÝ BLOK (Matej 12. 9. 2026) ─────────────────
-             „Prvé bloky patria psom a ďalší by mal byť jeden veľký blok s nadpisom
-             DOG ID BEZ PODNADPISU a v tom bloku budú bloky (základ, ako funguje…
-             kto je tvoj pes…), teda VŠETKO, čo tvorí DOG ID."
-             Do dneška to boli TRI voľné sekcie pod sebou (dlaždice · galéria+denník ·
-             kvíz), ktoré na stránke nič nedržalo pokope — vyzerali ako tri rôzne témy,
-             hoci všetky tri sú vstupy do jedného dokumentu.
-             ⚠️ AINUBIS a ŠTATISTIKY ostávajú VONKU zámerne: ani jedno DOG ID netvorí.
-             AINUBIS z neho číta (výstup) a štatistiky sú kalendár dochádzky. Keby sa
-             vnorili tiež, „jeden veľký blok" by prestal znamenať DOG ID a začal by
-             znamenať „zvyšok stránky".
-             ⚠️ Podnadpis („vyplň, čo o ňom vieš…") ZANIKOL. Kľúč `pack.hub.profileSub`
-             sa NEMAŽE (vymenúva ho lock názvoslovia DOG ID v CLAUDE.md), ale pozor:
-             živé volanie po ňom dnes NIE JE ani v lište psieho bloku — overené
-             16. 9. 2026, existuje len v sk/en/cs. Je to preklad na sklade, nie použitý text. */}
-      <section style={{ ...PACK_BOX.card, marginTop: PACK_SPACE.xl, padding: PACK_SPACE.xl }}>
-        {/* Nadpis vnútri karty = VŽDY papyrusový inkoust. Rozhoduje PODKLAD POD PRVKOM,
-            nie poloha prepínača šatu (CLAUDE.md 11. 9.) — karta je papyrusová aj v tmavom
-            šate, takže staré `paper ? PALE.deep : T.accentGold` by v tmavom šate napísalo
-            svetlé zlato na piesok. `PALE.deep` je tá istá hodnota aj dôvod ako v TRIPLISTE
-            (`.tl-sechead h3`), nie nová farba. */}
-        <div
-          className="text-center"
-          style={{
-            // VÄČŠÍ (Matej 12. 9. 2026: „blok DOG ID nadpis musí byť väčší"). Od 13. 9. je to
-            // NÁZOV KARTY = `PACK_HEAD.card` (Cinzel 700 / 24 / .14em) — ten istý tvar, aký má
-            // KALENDÁR o blok nižšie. Dva vedľa seba stojace bloky stránky majú jeden nadpis;
-            // pri 13 px vyzeral DOG ID ako popisok skupiny, nie ako názov bloku.
-            ...PACK_HEAD.card, color: PALE.deep, marginBottom: PACK_SPACE.lg,
-          }}
-        >
-          {tx('pack.hub.profileTitle', 'DOG ID')}
-        </div>
-
-        {/* 6 dlaždíc — polia pasu */}
-        <div className="hub-tiles">
-          {QUIZ_SECTIONS.filter((s) => s.kind === 'quiz').map((s) => (
-            <ActionTile key={s.key} section={s} progress={sectionProgress[s.key]} tx={tx} />
-          ))}
-        </div>
-
-        {/* GALÉRIA + DENNÍK odišli 8. 10. 2026 z karty DOG ID do bloku KRONIKA pod ňou
-            (Matej nad nákresom `plany/nakres-dogs-konsolidacia-2026-10-08.html`). */}
-
-        {/* KVÍZ (hero) — VŽDY, nezmizne po absolvovaní.
-            Do 21. 8. sa po dokončení scvrkol na úzky riadok POD šiestimi dlaždicami
-            (Matej: „zmizol blok kde bol obrázok"). Hotový kvíz nie je odbavená
-            položka — je to jediná cesta k výsledku, takže blok ostáva na mieste
-            a mení sa len to, čo ponúka: vyplniť → pozrieť výsledok / spraviť znova.
-            ⚠️ POZÍCIA: 22. 8. odišiel spod psích blokov nad AINUBISA; 12. 9. sa
-            zasunul DOVNÚTRA bloku DOG ID (Matej ho vymenoval: „…kto je tvoj pes…"),
-            ako posledný vstup pred výstupmi. */}
-        {natureSection && latestLoaded && (
-          <div style={{ marginTop: PACK_SPACE.md }}>
-            <NatureHero section={natureSection} dogs={dogs} latest={latest} tx={tx} />
-          </div>
-        )}
-      </section>
+      {/* ── 2 · DOG ID — MODULY (Matej 8. 10. 2026, lock dogs-dogid §REVÍZIA) ────
+             Karta sa skrátila na odrážky + VYPLNIŤ; 6 dlaždíc a hero kvízu odišli na
+             obrazovku `/pack/dogs/dogid` (zoznam modulov). Kým nie je DOG ID všetkých psov
+             na 100 %, stojí HORE hneď pod psami. Na 100 % NEZMIZNE — presunie sa na
+             KONIEC stránky (*„časom tam budeme pridávať"*). Nový modul ⇒ percento klesne
+             a karta sa vráti hore sama, lebo poloha sa ráta z DÁT, nie ručne.
+             Do 8. 10. tu stála JEDNA karta s dlaždicami, galériou, denníkom a kvízom
+             (12. 9.) — text locku z 12. 9. ostáva ako história. */}
+      {latestLoaded && !dogIdAllDone && <DogIdCard latest={latest} dogs={dogs} tx={tx} />}
 
       {/* ── KRONIKA — JEDEN RIADOK VÝZVY (Matej 8. 10. 2026: „v bloku je zbytočne veľa
            info… len výzva k príbehu… na jeden riadok, ikonka a CTA, čo otvorí dashboard").
            Zápisy, filtre psov a fotky žijú na `/pack/dogs/chronicle`, nie tu. */}
       <ChronicleTeaser tx={tx} />
 
-      {/* ── 5 · AINUBIS — VÝSTUP, nie vstup ────────────────────────────────── */}
-      <div style={{ marginTop: PACK_SPACE.md }}>
-        <AinubisBlock tx={tx} />
-      </div>
-
-      {/* ── 6 · KALENDÁR — posledný blok stránky, MIMO bloku DOG ID ───────────
+      {/* ── KALENDÁR — dochádzka, MIMO DOG ID ─────────────────────────────────
            Matej 12. 9. 2026: „kalendár nie je časť dokladu, je to dochádzka."
-           Nahradil `DogStats` (demo heatmap pod prekrytím COMING SOON) — ten
-           kreslil VYMYSLENÉ farby, takže sa nedal začať čítať ako pravda o psovi.
-           Nákres: plany/nakres-kalendar-dogs-2026-09-12.html */}
-      <div style={{ marginTop: PACK_SPACE.xl }}>
+           Od 8. 10. stojí PRED AINUBISOM (poradie z nákresu konsolidácie: psy → DOG ID →
+           KRONIKA → KALENDÁR → AINUBIS). Nákres kalendára: plany/nakres-kalendar-dogs-2026-09-12.html */}
+      <div style={{ marginTop: PACK_SPACE.md }}>
         <PackCalendar
           dogs={dogs}
           latest={latest}
@@ -683,6 +527,14 @@ export default function PackDogs() {
           onAddToDay={(day) => setDiary({ day, mode: 'write' })}
         />
       </div>
+
+      {/* ── AINUBIS — VÝSTUP, nie vstup ─────────────────────────────────────── */}
+      <div style={{ marginTop: PACK_SPACE.md }}>
+        <AinubisBlock tx={tx} />
+      </div>
+
+      {/* ── DOG ID na 100 % — koniec stránky, s možnosťou upraviť. */}
+      {latestLoaded && dogIdAllDone && <DogIdCard latest={latest} dogs={dogs} tx={tx} />}
 
       {/* DENNÍK — prekryvová vrstva, nie routa. Lock `architektura-pack.md` §4.2:
           akcia nikdy neodnesie človeka preč z miesta, kde je.
@@ -1163,265 +1015,61 @@ function Pill({ children, dashed = false, mono = false, solid = false }: {
   );
 }
 
-// ── 2 · kvíz ako hero — JEDEN BLOK, DVA STAVY ────────────────────────────────
-// A · nikto z psov ho nemá → pozvánka do kvízu (celá karta je odkaz).
-// B · aspoň jeden pes výsledok má → k pozvánke pribudne cesta k výsledku; keď ho
-//     majú všetci, pozvánka sa mení na dvojicu POZRIEŤ VÝSLEDOK / SPRAVIŤ ZNOVA.
-// ⚠️ V stave B je koreň <div>, nie <Link> — dve akcie v karte-odkaze by boli
-// vnorené <a> (neplatné HTML). Klikateľná celá karta preto ostáva len v stave A,
-// kde je jediná akcia.
-function NatureHero({
-  section, dogs, latest, tx,
-}: {
-  section: QuizSection; dogs: HubDog[]; latest: Latest; tx: Tx;
-}) {
-  const solo = dogs.length === 1;
-  const missing = dogs.filter((d) => !hasValue(latest[d.id]?.[NATURE_FIELD]));
-  const withResult = dogs.filter((d) => hasValue(latest[d.id]?.[NATURE_FIELD]));
-  const allDone = dogs.length > 0 && missing.length === 0;
-  // Solo → priamo na psa. Viac psov → kvíz sa vypĺňa za celú svorku naraz (§5),
-  // takže sa žiadny pes v URL neuvádza a výber padne až v kvíze.
-  const base = section.href ?? '/pack/nature';
-  const href = solo ? `${base}?dog=${dogs[0].id}` : base;
-  const resultHref = solo ? `${base}?dog=${dogs[0].id}&view=result` : `${base}?view=result`;
+// ── 2 · DOG ID — karta modulov (8. 10. 2026) ─────────────────────────────────
+// Matej nad nákresom konsolidácie: *„DOG ID blok ENORMNE skrátiť = odrážky, čo rieši
+// + CTA VYPLNIŤ"*. Percento NESIE PSÍ BLOK, takže tu žiadne nie je — kým nie je hotovo.
+// Na 100 % sa karta zmení na JEDEN RIADOK na konci stránky (Matej: *„ostane jeden blok
+// s % na konci stránky s možnosťou vrátiť sa a prepísať"*).
+// Do 8. 10. tu stálo 6 dlaždíc + hero kvízu „vitráž" (`NatureHero`); kvíz osobnosti je
+// odteraz modul OSOBNOSŤ na `/pack/dogs/dogid` a vitráž ostáva na jeho úvode.
+function DogIdCard({ latest, dogs, tx }: { latest: Latest; dogs: HubDog[]; tx: Tx }) {
+  const ids = dogs.map((d) => d.id);
+  const mods = LIVE_MODULES.map((m) => ({ m, done: moduleProgress(m, latest, ids).done }));
+  const allDone = mods.every((x) => x.done);
+  const title = tx('pack.hub.profileTitle', 'DOG ID');
 
-  const label = (field: string, key: unknown): string | null => {
-    if (typeof key !== 'string' || !key) return null;
-    const v = STEP_BY_FIELD[field]?.valueLabels?.[key];
-    return v ? tx(v.i18n, v.labelEN) : null;
-  };
-
-  // Odpoveď do nadpisu — len pri jednom psovi a len keď je kvíz hotový.
-  const soloAnswer = (() => {
-    if (!allDone || !solo) return null;
-    const role = label('nature.role', latest[dogs[0].id]?.['nature.role']?.value);
-    const el = label('nature.element', latest[dogs[0].id]?.['nature.element']?.value);
-    return role && el ? `${role} / ${el}` : null;
-  })();
-
-  // KARTA z matrice — vitráž je tmavý povrch, ale obal má ten istý rám a radius ako
-  // ostatné karty stránky (inline prebíja `.hub-hero` v CSS).
-  const cardStyle = PACK_BOX.card;
-
-  const body = (
-    <>
-      {/* Stuha: človek musí vedieť, že ide vypĺňať KVÍZ, nie čítať článok.
-          Po absolvovaní je zelená — tá istá zelená ako pilulka HOTOVO na dlaždiciach. */}
-      <span className={`hub-ribbon${allDone ? ' is-done' : ''}`}>
-        {allDone ? tx('pack.hub.done', 'Done') : tx('pack.hub.nature.ribbon', 'Quiz')}
-      </span>
-
-      {/* Ilustrácia = celé pozadie karty (štýl „vitráž"). Nie pruh vľavo — vitráž
-          orezaná na 176 px sa nedala prečítať ako obraz. */}
-      <img className="hub-hero-art" src={NATURE_ART} alt="" aria-hidden />
-
-      <div className="hub-hero-body">
-        {/* Eyebrow je NAD nadpisom, nie pod ním: na plagáte sa číta zhora nadol
-            a nadpis musí sedieť čo najbližšie k chipom a CTA. */}
-        <p
-          style={{
-            // Eyebrow nad nadpisom = tvar SEKCIE (`PACK_HEAD.section`).
-            ...PACK_HEAD.section, color: '#F5C73D', margin: '0 0 8px',
-            textShadow: '0 2px 12px rgba(0,0,0,0.8)',
-          }}
-        >
-          {/* ⚠️ Pri HOTOVEJ svorke je eyebrow PRÁZDNY. „Your pack is" bola návestie
-              k radu chipov s menami — a ten 22. 8. padol, takže by veta visela nad
-              ničím. Pri sólo psovi ostáva, lebo odpoveď za ňu dopovie nadpis. */}
-          {!allDone
-            ? tx('pack.hub.nature.reveal', "You'll find out")
-            : solo
-              ? tx('pack.hub.nature.isNow', 'Your dog is')
-              : ''}
-        </p>
-
-        <h3
-          className="hub-hero-title"
-          style={{
-            fontFamily: FONT_TITLE, fontWeight: 700, lineHeight: 1.08,
-            letterSpacing: '0.02em', textTransform: 'uppercase', color: T.cardSoft,
-            // Bez radu chipov pod nadpisom si medzeru k tlačidlám musí urobiť nadpis sám.
-            // Rad je preč pri sólo odpovedi v nadpise AJ pri hotovej svorke (od 22.8.) —
-            // podmienka teda musí byť tá istá ako pri chipoch, inak nadpis dosadne na CTA.
-            margin: (soloAnswer || allDone) ? '0 0 16px' : 0,
-            textShadow: '0 4px 26px rgba(0,0,0,0.9)',
-          }}
-        >
-          {/* Otázka na plagáte platí, kým je otázkou. Pri jednom psovi s hotovým
-              kvízom by pod „TVOJ PES JE" stálo „KTO JE TVOJ PES?" — nadpis teda
-              vystrieda ODPOVEĎ. Pri svorke to nejde (dve mená sa do titulku
-              nezmestia), tam odpovedajú chipy pod ním. */}
-          {soloAnswer ?? tx('pack.nature.intro.title', 'Who is your dog?')}
-        </h3>
-
-        {/* ⚠️ Dlhý popis sekcie (`section.subEN`) sa tu ZÁMERNE nezobrazuje — opakoval
-            „18 otázok", ktoré stoja pri tlačidle (Matej 6.8.: „neopakuj sa").
-            🔴 RAD CHIPOV S MENAMI A VÝSLEDKOM PADOL 22. 8. (Matej: „nebudú tam tie pils
-            s menami a výsledkom"). Dovtedy sa po absolvovaní menil na „HEKTOR — Hlásateľ
-            / Zem" — teda presne tú istú dvojicu, akú nesú pilulky v psom bloku hore na
-            stránke, len druhým písmom. Tu ostáva LEN SĽUB, a ten platí, kým je čo
-            odhaľovať: hneď ako majú kvíz všetky psy, rad zmizne úplne. */}
-        {!soloAnswer && !allDone && (
-          <div className="hub-axes">
-            <RevealChip label={tx('pack.hub.nature.revealA', 'Role in the pack')} />
-            <RevealChip label={tx('pack.hub.nature.revealB', 'Element by TCM')} />
+  if (allDone) {
+    return (
+      <section className="dic-done" style={{ ...PACK_BOX.card, marginTop: PACK_SPACE.md, padding: PACK_SPACE.lg }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div className="dic-done-head">
+            <h4 className="dic-title">{title}</h4>
+            <span className="dic-full">100 %</span>
           </div>
-        )}
-
-        {/* Pri viacerých psoch sa NEVYBERÁ pes — kvíz sa vypĺňa za všetkých naraz.
-            Riadok len hovorí, koho sa to ešte týka. */}
-        {!solo && missing.length > 0 && (
-          <div
-            style={{
-              fontFamily: FONT_UI, fontSize: PACK_TEXT.label, color: 'rgba(255,246,226,0.72)',
-              marginBottom: PACK_SPACE.md, textShadow: '0 2px 10px rgba(0,0,0,0.8)',
-            }}
-          >
-            {tx('pack.hub.nature.pending', 'Still missing')}:{' '}
-            <strong style={{ fontFamily: NAME_FONT, fontWeight: 700, color: T.cardSoft }}>
-              {missing.map((d) => (d.dog_name || '').toUpperCase()).join(' · ')}
-            </strong>
-          </div>
-        )}
-
-        {/* CTA. V stave A je zlaté tlačidlo <span> — odkazom je celá karta. Len čo
-            je v karte druhá akcia, obe MUSIA byť <Link>, lebo koreň už odkaz nie je. */}
-        <div className="hub-cta">
-          {allDone ? (
-            <>
-              <Link to={resultHref} className="hub-gold is-big">
-                {tx('pack.hub.nature.read', 'Read the results')}
-              </Link>
-              <Link to={href} className="hub-ghost">
-                {tx('pack.hub.nature.retake', 'Take it again')}
-              </Link>
-            </>
-          ) : (
-            <>
-              {withResult.length === 0 ? (
-                <span className="hub-gold is-big">
-                  {tx('pack.hub.nature.startBig', 'Find out who your dog is')}
-                </span>
-              ) : (
-                <Link to={href} className="hub-gold is-big">
-                  {tx('pack.hub.nature.startBig', 'Find out who your dog is')}
-                </Link>
-              )}
-              {/* Rozrobená svorka: hotové psy majú výsledok už teraz a nesmú naň čakať,
-                  kým doklikáš zvyšok. */}
-              {withResult.length > 0 && (
-                <Link to={resultHref} className="hub-ghost">
-                  {tx('pack.hub.nature.read', 'Read the results')}
-                </Link>
-              )}
-              <div
-                style={{
-                  fontFamily: FONT_UI, fontSize: PACK_TEXT.micro, letterSpacing: '0.14em',
-                  textTransform: 'uppercase', color: 'rgba(255,246,226,0.62)',
-                  textShadow: '0 2px 10px rgba(0,0,0,0.8)',
-                }}
-              >
-                {tx('pack.hub.nature.meta', '18 questions · ~3 minutes')}
-              </div>
-            </>
-          )}
+          <p className="dic-mods">
+            {mods.map(({ m }) => (
+              <span key={m.key}>{tx(m.i18n, m.labelEN)} <HandCheck size={PACK_TEXT.label} /></span>
+            ))}
+          </p>
         </div>
+        <Link to="/pack/dogs/dogid" className="dic-ghost">{tx('pack.dogid.edit', 'Edit')}</Link>
+      </section>
+    );
+  }
+
+  return (
+    <section style={{ ...PACK_BOX.card, marginTop: PACK_SPACE.xl, padding: PACK_SPACE.xl }}>
+      {/* Nadpis vnútri karty = VŽDY papyrusový inkoust (`PALE.deep`) — rozhoduje podklad
+          pod prvkom, nie poloha prepínača šatu (CLAUDE.md 11. 9.). Tvar = `PACK_HEAD.card`. */}
+      <div className="text-center" style={{ ...PACK_HEAD.card, color: PALE.deep, marginBottom: PACK_SPACE.lg }}>
+        {title}
       </div>
-    </>
-  );
-
-  // Celá karta je odkaz LEN kým je v nej jediná akcia (Matej 7.8.: „musí vyzerať
-  // viac klikateľne"). S dvoma tlačidlami by z toho boli vnorené <a>.
-  return withResult.length === 0
-    ? <Link to={href} className="hub-hero hub-hover" style={cardStyle}>{body}</Link>
-    : <div className="hub-hero" style={cardStyle}>{body}</div>;
-}
-
-/** Jedna z dvoch vecí, ktoré kvíz odhalí. Chip, nie dlaždica — veľké dlaždice so
- *  zamknutými slotmi zabrali pol karty a Matej ich zrušil ako „ohromné". */
-function RevealChip({ label }: { label: string }) {
-  return (
-    <span className="hub-chip">
-      {/* `lock.svg` v `public/icons/pack/` NEEXISTUJE — otáznik nesie to isté
-          (odpoveď je za kvízom) a je v brand sade. */}
-      <BrandIcon name="question" size={12} tint="gold" style={{ flex: '0 0 auto' }} />
-      <b
-        style={{
-          fontFamily: FONT_TITLE, fontWeight: 700, fontSize: PACK_TEXT.label, lineHeight: 1.2,
-          letterSpacing: '0.02em', textTransform: 'uppercase', color: '#FFF3DA',
-        }}
-      >
-        {label}
-      </b>
-    </span>
-  );
-}
-
-// ── 3 · dlaždica akcie (profil psa) ──────────────────────────────────────────
-function ActionTile({
-  section, progress, tx,
-}: {
-  section: QuizSection;
-  progress?: { filled: number; total: number };
-  tx: Tx;
-}) {
-  const p = progress ?? { filled: 0, total: 0 };
-  const pill = p.total === 0 || p.filled === 0
-    ? tx('pack.hub.notStarted', 'Not started')
-    : p.filled >= p.total
-      ? tx('pack.hub.done', 'Done')
-      : `${p.filled} / ${p.total}`;
-  const filledPill = p.total > 0 && p.filled >= p.total;
-
-  return (
-    /* Dlaždica poľa pasu vedie do kvízu, ktorý zapisuje do `dog_events` ⇒ `dogid.edit`.
-       Bez `dogId`: kvíz sa vypĺňa za VIACERÝCH psov naraz, takže stačí mať to právo
-       aspoň pri jednom. Ktorých psov v ňom uvidí, rozhoduje politika na `dogs` (B3b). */
-    <RightGate right="dogid.edit">
-    <Link
-      to={`/pack/dogs/quiz/${section.key}`}
-      className="hub-hover"
-      style={{
-        // PODBLOK z matrice — dlaždica poľa pasu (katalóg `PACK_BLOCKS.PODBLOK`).
-        // Radius 14 bol chyba: ten stupeň patrí len D-BLOKU so zlatým rámom.
-        ...PACK_BOX.subblock,
-        padding: '16px 12px',
-        textAlign: 'left',
-        display: 'block',
-        textDecoration: 'none',
-      }}
-    >
-      <div style={{ fontSize: 20, lineHeight: 1 }}>{section.emoji}</div>
-      <h4
-        style={{
-          fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, letterSpacing: '0.14em',
-          textTransform: 'uppercase', color: T.inkStrong, margin: '8px 0 4px',
-        }}
-      >
-        {tx(section.i18n, section.labelEN)}
-      </h4>
-      <p style={{ fontFamily: FONT_UI, fontSize: PACK_TEXT.label, color: T.inkWarm, margin: 0, lineHeight: 1.45 }}>
-        {tx(section.subI18n, section.subEN)}
-      </p>
-      <span
-        style={{
-          display: 'inline-block', marginTop: PACK_SPACE.sm, fontFamily: FONT_UI, fontSize: PACK_TEXT.micro,
-          letterSpacing: '0.14em', textTransform: 'uppercase', borderRadius: PACK_R.pill, padding: '4px 8px',
-          // HOTOVO = ZELENÁ (Matej 12. 9. 2026: „pri tých 6 blokoch… sú opäť oranžové pils,
-          // daj ich zelenou ak sú hotové"). Zelená znamená v brande SPLNENÉ a tú istú nesie
-          // pilulka percenta v psom bloku (`.dogblk-fill.is-done`, #3D7A4E) — je to teda ten
-          // istý údaj v tej istej farbe na dvoch miestach, nie nová farba.
-          // Nehotový stav ostáva tichý zlatý tint: „ešte nie" nie je chyba, takže červená
-          // by tu klamala — tá patrí percentu, ktoré hovorí o CELOM doklade.
-          background: filledPill ? T.growGreen : 'rgba(201,154,63,0.16)',
-          border: `1px solid ${filledPill ? '#2F5F3D' : 'rgba(179,130,45,0.5)'}`,
-          color: filledPill ? '#EAF7ED' : T.inkWarm,
-        }}
-      >
-        {pill}
-      </span>
-    </Link>
-    </RightGate>
+      <ul className="dic-list">
+        {mods.map(({ m, done }) => (
+          <li key={m.key} className={done ? 'is-done' : undefined}>
+            <span className="dic-mark" aria-hidden>
+              {done ? <HandCheck size={PACK_TEXT.lead} /> : <BrandIcon name={m.icon} size={PACK_TEXT.lead + PACK_SPACE.xs} tint="gold" />}
+            </span>
+            <span><b>{tx(m.i18n, m.labelEN)}</b> — {tx(m.subI18n, m.subEN)}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="dic-cta-row">
+        <RightGate right="dogid.edit">
+          <Link to="/pack/dogs/dogid" className="dic-cta">{tx('pack.dogid.fill', 'Fill in')}</Link>
+        </RightGate>
+      </div>
+    </section>
   );
 }
 

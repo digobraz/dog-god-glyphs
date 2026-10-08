@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { fmtNum, intlLocale } from '@/i18n/bcp47';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Download, Loader2, Save, Sparkles, ChevronDown } from 'lucide-react';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { RightGate } from '@/components/pack/RightGate';
@@ -236,7 +236,9 @@ export default function PackDogDetail() {
   const [wallOpen, setWallOpen] = useState(false);
   // Závet — panel nad dokladom. Otvára ho ✎ pri bloku ZÁVET, jeho červené pomlčky
   // aj tlačidlo v zdieľacom rade; všetky tri vedú na to isté miesto.
-  const [willOpen, setWillOpen] = useState(false);
+  // Štvrtý vchod (8. 10. 2026): modul ZÁVET na obrazovke DOG ID · MODULY → `?panel=will`.
+  const [searchParams] = useSearchParams();
+  const [willOpen, setWillOpen] = useState(searchParams.get('panel') === 'will');
   const [memorialOpen, setMemorialOpen] = useState(false);
   const [memorialStep, setMemorialStep] = useState<'confirm' | 'date'>('confirm');
   // SECTIONS NAV — jedna otvorená dlaždica naraz (Health/Training/Journal). accordion.
