@@ -44,12 +44,12 @@ import {
   PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_TITLE, FONT_UI, STAGE_CSS, PACK_TOPROW, PAGE_AIR,
 } from '@/components/pack/packTheme';
 import {
-  AINUBIS, AI_GLASS, AI_BREATHE_CSS, AI_PANEL_SHADOW, AI_FOCUS, aiWorld, BRAIN_STATE,
+  AINUBIS, AI_GLASS, AI_BREATHE_CSS, AI_PANEL_SHADOW, AI_FOCUS, aiWorld, BRAIN_STATE, AI_WORLD,
 } from '@/components/pack/ainubisSkin';
 import { VaultChat, VAULT_CHAT_CSS } from '@/components/pack/vault/VaultChat';
 import { VaultWall, VAULT_WALL_CSS } from '@/components/pack/vault/VaultWall';
 import { VAULT_SOURCE_TOTALS } from '@/components/pack/vault/vaultSources';
-import { SCROLL_DEMO, useDemoScrolls, useScrollState } from '@/components/pack/vault/vaultScrolls';
+import { SCROLL_DEMO, useDemoScrolls, useScrollState, useReadsReady, pickText, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
 import { VaultKnowledge, KNOW_CSS } from '@/components/pack/vault/VaultKnowledge';
 import { ScrollCard, ScrollView, SCROLL_CSS, scrollUI, circleName as scrollCircle } from '@/components/pack/vault/ScrollParts';
 import { openAinubis } from '@/lib/ainubisBus';
@@ -58,7 +58,7 @@ import { VAULT_WORLDS } from '@/components/pack/vault/worlds';
 import { VAULT_CIRCLES } from '@/components/pack/vault/circles';
 import { mountBrain, type BrainHandle, type BrainLayer } from '@/components/pack/vault/brainEngine';
 import ainubisHead from '@/assets/ainubis-head.webp';
-import { HandArrowLeft, HandSearch, HandPaw, HandStar, HandPlus, HandForward } from '@/components/pack/HandIcons';
+import { HandArrowLeft, HandSearch, HandPaw, HandStar, HandPlus, HandForward, HandCheck } from '@/components/pack/HandIcons';
 
 /* ⚠️ JEDNA HRANICA — tá istá ako na mape (`PackMap`: ≤1023 = mobilný pohľad
    s pilulkou ZOZNAM). Dve čísla by znamenali šírku, kde má mapa pilulku a VAULT nie. */
@@ -407,6 +407,72 @@ ${STAGE_CSS}
     border-width:0 0 1px 1px;border-radius:0 ${PACK_R.card - 1}px 0 ${PACK_R.tile}px;}
 }
 
+/* ── PRUH POLOHY POD ROVINAMI (Matej 8. 10. 2026, nákres plany/nakres-ainubis-zvitky-2026-10-08) ──
+   Na akom svete a v akom okruhu človek je, kde v ňom stojí, a dvere späť k prečítaným
+   a do zoznamu okruhov. Lepí sa na vrch zoznamu, karty pod ním odchádzajú — preto plný
+   podklad. Farbu nesie svet (--ai-w), nie AINUBIS. */
+/* ⚠️ top = MÍNUS horné odsadenie zoznamu: sticky sa drží vnútri odsadenia scrollport-u,
+   pri top:0 nad pruhom ostal 16 px pás, cez ktorý presvitala odchádzajúca karta. */
+.akv-pos{position:sticky;top:-${PACK_SPACE.lg}px;z-index:4;display:flex;flex-direction:column;gap:${PACK_SPACE.sm}px;
+  padding:${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;background:${AINUBIS.bg};
+  border:1px solid ${AI_WORLD.edge};box-shadow:${AI_WORLD.float};}
+.akv-pos-l1{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;min-width:0;font-size:${PACK_TEXT.label}px;color:${AINUBIS.inkDim};}
+.akv-pos-ic{width:20px;height:20px;flex:0 0 auto;background:rgb(var(--ai-w,${AINUBIS.cyanRGB}));
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;}
+.akv-pos-w{flex:0 0 auto;font-size:${PACK_TEXT.micro}px;font-weight:600;letter-spacing:${PACK_HEAD.section.letterSpacing};
+  text-transform:uppercase;color:rgb(var(--ai-w,${AINUBIS.cyanRGB}));}
+.akv-pos-c{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${AINUBIS.ink};font-weight:500;}
+.akv-pos-n{margin-left:auto;flex:0 0 auto;font-weight:600;color:${AINUBIS.ink};}
+/* Progres = recept .pk-progress, jeden na okruh (šírka podľa počtu zvitkov) — vidno, v ktorom okruhu človek je. */
+.akv-pos-bar{display:flex;gap:2px;}
+.akv-pos-bar .pk-progress{height:4px;background:rgba(var(--ai-w,${AINUBIS.cyanRGB}),0.22);}
+.akv-pos-bar .pk-progress.is-cur{background:rgba(var(--ai-w,${AINUBIS.cyanRGB}),0.40);}
+.akv-pos-bar .pk-progress__fill{background:rgb(var(--ai-w,${AINUBIS.cyanRGB}));}
+.akv-pos-acts{display:flex;flex-wrap:wrap;gap:${PACK_SPACE.sm}px;}
+.akv-pos-b{display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;cursor:pointer;white-space:nowrap;
+  padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;border:1px solid ${AINUBIS.edge};
+  background:transparent;color:${AINUBIS.inkDim};font-family:${FONT_UI};font-weight:500;font-size:${PACK_TEXT.label}px;}
+.akv-pos-b:hover{border-color:${AINUBIS.edgeStrong};color:${AINUBIS.ink};}
+.akv-pos-b[aria-expanded="true"],.akv-pos-b[aria-pressed="true"]{color:rgb(var(--ai-w,${AINUBIS.cyanRGB}));
+  border-color:rgba(var(--ai-w,${AINUBIS.cyanRGB}),0.70);background:rgba(var(--ai-w,${AINUBIS.cyanRGB}),0.12);}
+.akv-pos-b .akv-chev{display:inline-flex;transform:rotate(-90deg);}
+.akv-pos-b .akv-up{display:inline-flex;transform:rotate(90deg);}
+.akv-pos-b i{width:12px;height:12px;background:currentColor;-webkit-mask:url(/icons/pack/play.svg) center/contain no-repeat;mask:url(/icons/pack/play.svg) center/contain no-repeat;}
+.akv-pos-dd{position:absolute;left:0;right:0;top:calc(100% + ${PACK_SPACE.xs}px);max-height:min(60vh,480px);overflow-y:auto;
+  display:flex;flex-direction:column;padding:${PACK_SPACE.xs}px;border-radius:${PACK_R.tile}px;
+  background:${AINUBIS.bg};border:1px solid ${AINUBIS.edgeStrong};box-shadow:${AINUBIS.panelShadow};}
+.akv-pos-dd button{display:flex;align-items:center;gap:${PACK_SPACE.sm}px;width:100%;text-align:left;cursor:pointer;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.field}px;border:1px solid transparent;background:transparent;
+  color:${AINUBIS.inkDim};font-family:${FONT_UI};font-size:${PACK_TEXT.body}px;}
+.akv-pos-dd button:hover:not(:disabled){background:rgba(var(--ai-w,${AINUBIS.cyanRGB}),0.10);color:${AINUBIS.ink};}
+.akv-pos-dd button.is-cur{background:rgba(var(--ai-w,${AINUBIS.cyanRGB}),0.14);color:${AINUBIS.ink};font-weight:600;}
+.akv-pos-dd button:disabled{cursor:default;opacity:0.45;}
+.akv-pos-dd button > span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.akv-pos-dd button > b{margin-left:auto;flex:0 0 auto;display:inline-flex;align-items:center;gap:${PACK_SPACE.xs}px;font-weight:500;font-size:${PACK_TEXT.label}px;}
+.akv-pos-dd button.is-done > b{color:rgb(${BRAIN_STATE.read});}
+.akv-pos-dd .akv-pos-sec{padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px ${PACK_SPACE.xs}px;font-size:${PACK_TEXT.micro}px;
+  letter-spacing:${PACK_HEAD.label.letterSpacing};text-transform:uppercase;color:${AINUBIS.inkFaint};}
+.akv-pos-dd em{font-style:normal;font-size:${PACK_TEXT.micro}px;color:${AINUBIS.inkFaint};}
+.akv-pos-wdot{width:8px;height:8px;flex:0 0 auto;border-radius:${PACK_R.pill}px;background:rgb(var(--ai-w,${AINUBIS.cyanRGB}));}
+.akv-fold{display:flex;align-items:center;justify-content:center;gap:${PACK_SPACE.xs}px;width:100%;cursor:pointer;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.tile}px;border:1px dashed ${AI_WORLD.edge};
+  background:transparent;color:rgb(var(--ai-w,${AINUBIS.cyanRGB}));font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;}
+.akv-fold .akv-chev{display:inline-flex;transform:rotate(90deg);}
+/* Karta zvitku ŽIARI FARBOU SVOJHO SVETA (Matej 8. 10.) — prstenec cez pseudoprvok,
+   aby neprepísal vrstvy AI-SKLA na karte. */
+.akv-zv::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  box-shadow:${AI_WORLD.ring};}
+/* POČÚVAJ ZA SEBOU — na PC vpravo od nadpisu, na mobile v pruhu polohy. */
+.akv-listen{flex:0 0 auto;display:inline-flex;align-items:center;gap:${PACK_SPACE.sm}px;cursor:pointer;white-space:nowrap;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;border:1px solid ${AINUBIS.edgeStrong};
+  background:rgba(${AINUBIS.cyanRGB},0.08);color:${AINUBIS.cyan};font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.label}px;
+  letter-spacing:0.02em;text-transform:uppercase;}
+.akv-listen:hover{background:rgba(${AINUBIS.cyanRGB},0.16);}
+.akv-listen i{width:12px;height:12px;background:currentColor;-webkit-mask:url(/icons/pack/play.svg) center/contain no-repeat;mask:url(/icons/pack/play.svg) center/contain no-repeat;}
+.akv-listen em{font-style:normal;font-weight:400;opacity:0.75;}
+.akv-pos-listen{display:none;}
+@media (max-width:${PC_MIN - 1}px){ .akv-pos-listen{display:inline-flex;} }
+
 /* ── POHĽAD DOLE — pilulka nad lištou (lock §1.3.1, geometria .trp-mactions) ──
    ⚠️ Číslo je OPÍSANÉ z PackMap.tsx, lebo register spodného pásu (nástenka r-pas)
    ešte neexistuje. Keď vznikne, táto pilulka ide doň ako prvá — nie ako ďalší
@@ -473,6 +539,11 @@ ${STAGE_CSS}
 `;
 
 type View = 'brain' | 'scroll';
+/** Šírka výplne PROGRESU (recept `.pk-progress`) — podiel 0…1, rovnako ako VaultKnowledge. */
+const fillPct = (part: number) => {
+  const w = `${Math.round(Math.min(1, Math.max(0, part)) * 100)}%`;
+  return { width: w };
+};
 
 /* ── ČO ZNAMENAJÚ FARBY ZŔN — LEGENDA (2026-09-24) ──────────────────────────
    Matej: modrá nedotknuté · žltá videné · zelená prečítané (19. 9., potvrdené 24. 9.).
@@ -568,7 +639,7 @@ export default function PackAinubis() {
     // návrat tam, odkiaľ prišiel (zoznam alebo Moje znalosti) — nie vždy na zoznam
     navigate(`/pack/ainubis/zvitok/${id}`, { state: { back: zid ? (loc.state as { back?: string } | null)?.back : loc.pathname + loc.search } });
   };
-  const closeScroll = () => navigate((loc.state as { back?: string } | null)?.back || '/pack/ainubis');
+  const closeScroll = () => { setQueue(false); navigate((loc.state as { back?: string } | null)?.back || '/pack/ainubis'); };
   /** PRISPEJ v článku zvitku → chat s AINUBISOM (➕ Použiť Matej 3. 10. vyradil). */
   const askAinubis = () => (CHAT_MOCK ? navigate('/pack/ainubis?plane=chat') : openAinubis());
   const shareScroll = (id: string) => {
@@ -634,6 +705,30 @@ export default function PackAinubis() {
     setWallTab('lib');
     setQuery({ plane: 'wall', tab: 'lib' });
   };
+  /* ── DOGSCROLL ZVITKOV (Matej 8. 10. 2026, nákres `plany/nakres-ainubis-zvitky-2026-10-08`) ──
+     Poradie = poradie svetov vo `worlds.ts`, potom okruh a zvitok — DB triedi svet podľa
+     abecedy, čo by pri druhom svete poprehadzovalo kánon. */
+  const readsReady = useReadsReady();
+  const wIdx = (key: string) => VAULT_WORLDS.findIndex((w) => w.key === key);
+  const feed = useMemo(
+    () => [...scrolls].sort((a, b) => wIdx(a.world) - wIdx(b.world) || a.okruh - b.okruh || a.n - b.n),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [scrolls],
+  );
+  /* ŠTART = PRVÝ NEPREČÍTANÝ, určí sa RAZ (po načítaní postupu). Keby sa počítal stále,
+     karta by pri dočítaní zmizla spod prsta. Kto prečítal všetko, začína od prvého. */
+  const [startId, setStartId] = useState<string | null>(null);
+  useEffect(() => {
+    if (startId !== null || !readsReady || !feed.length) return;
+    setStartId((feed.find((z) => (zstate[z.id] || 0) !== 2) ?? feed[0]).id);
+  }, [startId, readsReady, feed, zstate]);
+  const [showRead, setShowRead] = useState(false);
+  const [curId, setCurId] = useState<string | null>(null);
+  const [posDd, setPosDd] = useState(false);
+  /* POČÚVAJ ZA SEBOU — článok sa otvára s podcastom, ktorý hrá sám a po konci pustí ďalší. */
+  const [queue, setQueue] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+  const posRef = useRef<HTMLDivElement>(null);
   const [flash, setFlash] = useState<string | null>(null);
   /* Filter SVET: -1 = všetky. Roletka otvorená: kľúč alebo null. */
   const [wf, setWf] = useState(-1);
@@ -675,8 +770,12 @@ export default function PackAinubis() {
     const c = VAULT_CIRCLES[VAULT_WORLDS[wi].key]?.[oi];
     return c ? (lang === 'sk' ? c.sk : c.en) : '';
   };
-  const live = useRef({ names, tx, circleName });
-  live.current = { names, tx, circleName };
+  const live = useRef({ names, tx, circleName, feed, lang, jump: (_id: string) => {}, open: (_id: string) => {} });
+  live.current = { ...live.current, names, tx, circleName, feed, lang };
+  /* Mozog sa postaví znova, keď prídu zvitky — skutočné počty okruhov dovtedy nepozná. */
+  const sizesKey = useMemo(() => feed.map((z) => `${z.world}${z.okruh}`).join(','), [feed]);
+  const findZ = (wi: number, oi: number, zo: number) =>
+    live.current.feed.find((z) => z.world === VAULT_WORLDS[wi].key && z.okruh === oi + 1 && z.n === zo + 1);
   const liveState = useRef(zstate);
   liveState.current = zstate;
   /* Postup sa načíta až po postavení mozgu — pri každej zmene sa zrná prefarbia. */
@@ -720,9 +819,16 @@ export default function PackAinubis() {
         /* Cookie lišta sa NEPRIPOČÍTAVA — od 22. 9. obsah prekrýva, neposúva. */
         bottom: isPc() ? BOTTOM_PC : BOTTOM_MOBILE,
       }),
-      describe: (role, wi, oi) => {
-        const { names: n, tx: x, circleName: cn } = live.current;
+      describe: (role, wi, oi, zo) => {
+        const { names: n, tx: x, circleName: cn, lang: lg } = live.current;
         if (role === 'root') return { title: 'AINUBIS', hint: x('pack.ainubis.tip.home', 'Back to the whole brain') };
+        /* Svet so zvitkami už NIE JE „vo výstavbe" — zrno nesie meno zvitku a dá sa otvoriť. */
+        const has = live.current.feed.some((z) => z.world === VAULT_WORLDS[wi].key);
+        if (has && role === 'z') {
+          const z = findZ(wi, oi, zo ?? 0);
+          if (z) return { title: pickText(z, lg).t, sub: `${n[wi]} · ${cn(wi, oi)}`, hint: x('pack.ainubis.tip.open', 'Click to open') };
+        }
+        if (has && role === 'o') return { title: cn(wi, oi) || n[wi], sub: n[wi] };
         /* Okruh má vlastné meno; zvitok zatiaľ nie (Matej: „ďalej už nie"). */
         return {
           title: role === 'o' ? (cn(wi, oi) || n[wi]) : n[wi],
@@ -733,6 +839,20 @@ export default function PackAinubis() {
       },
       onWorld: (wi) => openWorldRef.current(wi),
       onRoot: openAinubis,
+      circleSizes: (wi) => {
+        const key = VAULT_WORLDS[wi].key, list = live.current.feed.filter((z) => z.world === key);
+        if (!list.length) return null;
+        const out = Array.from({ length: VAULT_WORLDS[wi].circles }, () => 0);
+        list.forEach((z) => { if (z.okruh >= 1 && z.okruh <= out.length) out[z.okruh - 1] += 1; });
+        return out;
+      },
+      onScroll: (wi, oi, zo) => { const z = findZ(wi, oi, zo); if (z) live.current.open(z.id); },
+      onCircle: (wi, oi) => {
+        if (window.innerWidth < PC_MIN) return;
+        const key = VAULT_WORLDS[wi].key, list = live.current.feed.filter((z) => z.world === key && z.okruh === oi + 1);
+        const z = list.find((q) => (liveState.current[q.id] || 0) !== 2) ?? list[0];
+        if (z) live.current.jump(z.id);
+      },
       /* SKUTOČNÝ POSTUP (4. 10. 2026): zrno `z` okruhu `oi` sveta `wi` = zvitok `<svet>-O<oi+1>-<z+1>`.
          Okruh má v mozgu toľko zŕn, koľko mu dáva rozpad; zvitky, ktoré ešte nie sú, ostávajú modré. */
       progress: (_zi, wi, oi, z) => liveState.current[`${VAULT_WORLDS[wi].key}-O${oi + 1}-${z + 1}`] || 0,
@@ -741,7 +861,35 @@ export default function PackAinubis() {
     ro.observe(cv);
     return () => { ro.disconnect(); brain.current?.destroy(); brain.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready]);
+  }, [ready, sizesKey]);
+
+  /* KTORÝ ZVITOK ČLOVEK PRÁVE ČÍTA — prvá karta, ktorej spodok je pod pruhom polohy.
+     Rovnica nad rozmermi, nie IntersectionObserver: ten by pri rýchlom rolovaní hlásil
+     viac kariet naraz a pruh by blikal. */
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    let raf = 0;
+    const measure = () => {
+      raf = 0;
+      const top = el.getBoundingClientRect().top + (posRef.current?.offsetHeight ?? 0) + PACK_SPACE.xl;
+      const cards = el.querySelectorAll<HTMLElement>('[data-zid]');
+      for (const c of cards) {
+        if (c.getBoundingClientRect().bottom > top) { setCurId(c.dataset.zid || null); return; }
+      }
+    };
+    const on = () => { if (!raf) raf = requestAnimationFrame(measure); };
+    el.addEventListener('scroll', on, { passive: true });
+    window.addEventListener('resize', on);
+    on();
+    return () => { el.removeEventListener('scroll', on); window.removeEventListener('resize', on); cancelAnimationFrame(raf); };
+  }, [plane2, view, startId, showRead, feed.length]);
+  /* Mozog ide s človekom — zrno pulzuje, kamera sa presunie pri zmene okruhu. */
+  useEffect(() => {
+    const z = feed.find((q) => q.id === (zid || curId));
+    if (z) brain.current?.follow(wIdx(z.world), z.okruh - 1, z.n - 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [curId, zid, feed, sizesKey]);
 
   /* Výška horného pásu ide von ako premenná — DOGSCROLL na mobile začína pod ním,
      nie pod odhadnutým číslom. */
@@ -757,36 +905,33 @@ export default function PackAinubis() {
 
   if (!ready) return <div className="akv-root" style={{ position: 'fixed', inset: 0, background: AINUBIS.surfaceBase }} />;
 
-  const plane = (key: 'vault' | 'chat' | 'wall', en: string) => tx(`pack.ainubis.plane.${key}`, en);
+  const plane = (key: 'vault' | 'chat' | 'wall' | 'sources', en: string) => tx(`pack.ainubis.plane.${key}`, en);
   const mask = (ic: string) => ({ WebkitMaskImage: `url(/icons/pack/${ic}.svg)`, maskImage: `url(/icons/pack/${ic}.svg)` });
   const soon = tx('pack.ainubis.soon', 'soon');
 
-  /* OZNAM OTVORENIA — BLOK POD ROVINAMI (Matej 3. 10. 2026, bod 5B). Najprv pilulka v hlavičke
-     (na 390 px sa lámala na dva riadky), potom tichý rámik; Matej: *„dal by som masívnejší
-     a výraznejší blok s 2–3 vetami — aktuálne ainubis extrahuje informácie do všetkých svetov,
-     ktoré máš možnosť vidieť už teraz… o pridaní ťa budeme informovať"*. Jeden render, dve
-     miesta ako roviny: mobil hore pod prepínačmi, PC v ľavom bloku pod nimi. */
-  const openingNote = (cls: string) => (
-    <div className={`akv-note ${cls}`} role="status">
-      <b>{tx('pack.ainubis.opening', 'Expected opening: November 2026')}</b>
-      <p>{tx('pack.ainubis.openingNote', 'AINUBIS is gathering knowledge into every world right now — and you can watch it grow already. We will let you know when something new opens.')}</p>
-    </div>
-  );
+  /* OZNAM „OTVORENIE: NOVEMBER 2026" ZANIKOL 8. 10. 2026 — svet 1 je otvorený (Matej: voľba 5,
+     nákres `plany/nakres-ainubis-zvitky-2026-10-08`). Text ostáva v i18n pre zamknuté svety. */
 
   /* ROVINY — jeden render, dve miesta: mobil hore pod identitou, PC v ľavom bloku. */
   const planes = (cls: string) => (
     <nav className={`akv-planes ${cls}`} aria-label="AINUBIS">
       <button type="button" className="akv-plane" aria-current={plane2 === 'vault' ? 'page' : undefined}
-        onClick={() => goPlane('vault')}>{plane('vault', 'Vault')}</button>
+        onClick={() => goPlane('vault')}>{plane('vault', 'Scrolls')}</button>
       {/* CHAT = kôš 3. V PRODUKCII sa otvára tým istým kanálom ako doteraz
           (`ainubisBus`), takže beží presne ten chat, ktorý žije naostro.
           V DEVE sa prepne na MAKETU podľa nákresu v5 (`VaultChat`). */}
       <button type="button" className="akv-plane" aria-current={plane2 === 'chat' ? 'page' : undefined}
         onClick={() => (CHAT_MOCK ? goPlane('chat') : openAinubis())}>{plane('chat', 'Chat')}</button>
       {/* „čoskoro" len v tooltipe — v SK „NÁSTENKA ČOSKORO" pretiekla z pilulky (390 px aj PC 40 %). */}
-      <button type="button" className="akv-plane" aria-current={plane2 === 'wall' ? 'page' : undefined}
+      <button type="button" className="akv-plane" aria-current={plane2 === 'wall' && wallTab !== 'lib' ? 'page' : undefined}
         disabled={!WALL_MOCK} title={WALL_MOCK ? undefined : soon}
-        onClick={() => goPlane('wall')}>{plane('wall', 'Board')}</button>
+        onClick={() => goPlane('wall')}>{plane('wall', 'Forum')}</button>
+      {/* ZDROJE = štvrtá rovina (Matej 8. 10. 2026). Dovtedy záložka KNIŽNICA vnútri fóra;
+          obrazovka je tá istá (`?plane=wall&tab=lib`), čip len skracuje cestu.
+          Zamknutá rovnako ako fórum — zoznam je zatiaľ maketa s opísanými číslami. */}
+      <button type="button" className="akv-plane" aria-current={plane2 === 'wall' && wallTab === 'lib' ? 'page' : undefined}
+        disabled={!SOURCES_MOCK} title={SOURCES_MOCK ? undefined : soon}
+        onClick={openLibrary}>{plane('sources', 'Sources')}</button>
     </nav>
   );
 
@@ -865,6 +1010,115 @@ export default function PackAinubis() {
   /* 🔄 Matej 5. 10. 2026: *„daj okruhy a zvitky bez sveta a na mobile kde sa zmestia len dve
      daj zvitky a %"*. Prebíja „len svety a %" z 23. 9. — PC: OKRUHY | ZVITKY | %,
      mobil (dva riadky): ZVITKY a %. Menovatele ostávajú (lock 23. 9.). */
+  /* ── DOGSCROLL: čo sa ukáže, kde človek je, kam skočí ─────────────────────── */
+  const filtering = !!nq || wf >= 0;
+  const feedShown = feed.filter((z) => (wf < 0 || wIdx(z.world) === wf)
+    && (!nq || norm(`${pickText(z, lang).t} ${pickText(z, lang).v} ${scrollCircle(z, lang)}`).includes(nq)));
+  const startIdx = Math.max(0, feedShown.findIndex((z) => z.id === startId));
+  const hiddenN = filtering || showRead ? 0 : startIdx;
+  const visible = feedShown.slice(hiddenN);
+  const curZ = feed.find((z) => z.id === curId) ?? visible[0] ?? feed[0];
+  const curW = curZ ? wIdx(curZ.world) : -1;
+  const inWorld = curZ ? feed.filter((z) => z.world === curZ.world) : [];
+  const circlesOf = curZ ? Array.from({ length: VAULT_WORLDS[curW].circles }, (_, i) => inWorld.filter((z) => z.okruh === i + 1)) : [];
+  const isRead = (z: DemoScroll) => (zstate[z.id] || 0) === 2;
+  /* SKOK — na kartu v zozname; skrytú (prečítanú) najprv odhalí. Ráta s pruhom polohy,
+     ktorý sa lepí hore — inak by karta zalezla pod neho. */
+  const jumpTo = (id: string) => {
+    setPosDd(false);
+    if (wf >= 0 || q) { setWf(-1); setQ(''); }
+    const idx = feed.findIndex((z) => z.id === id);
+    if (idx < startIdx) setShowRead(true);
+    if (window.innerWidth < PC_MIN) setView('scroll');
+    const go = (tries: number) => {
+      const el = listRef.current, card = el?.querySelector<HTMLElement>(`[data-zid="${id}"]`);
+      if (!el || !card) { if (tries > 0) window.setTimeout(() => go(tries - 1), 60); return; }
+      const off = card.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop
+        - (posRef.current?.offsetHeight ?? 0) - PACK_SPACE.lg;
+      el.scrollTo({ top: Math.max(0, off), behavior: 'smooth' });
+    };
+    requestAnimationFrame(() => go(10));
+  };
+  const firstOpen = (list: DemoScroll[]) => list.find((z) => !isRead(z)) ?? list[0];
+  live.current.jump = jumpTo;
+  live.current.open = (zidOpen: string) => openScroll(zidOpen);
+  /* POČÚVAJ ZA SEBOU — od miesta, kde človek je, len neprečítané s podcastom. */
+  const listenFrom = curZ ? feed.slice(Math.max(0, feed.indexOf(curZ))) : feed;
+  const listenQ = listenFrom.filter((z) => !isRead(z) && !!pickText(z, lang) && Object.keys(z.pod || {}).length > 0);
+  const startListen = () => { if (listenQ[0]) { setQueue(true); openScroll(listenQ[0].id, 'pod'); } };
+  const nextListen = () => {
+    const i = openZ ? feed.indexOf(openZ) : -1;
+    const nx = feed.slice(i + 1).find((z) => !isRead(z) && Object.keys(z.pod || {}).length > 0);
+    if (nx) openScroll(nx.id, 'pod'); else setQueue(false);
+  };
+  const listenBtn = (cls: string) => listenQ.length > 0 && (
+    <button type="button" className={cls} onClick={startListen}>
+      <i aria-hidden />{tx('pack.ainubis.listen', 'Listen in a row')} <em>· {listenQ.length}</em>
+    </button>
+  );
+  const posBar = curZ && (
+    <div className="akv-pos" ref={posRef} style={aiWorld(curZ.world)}>
+      <div className="akv-pos-l1">
+        <span className="akv-pos-ic" aria-hidden style={mask(VAULT_WORLDS[curW].ic)} />
+        <span className="akv-pos-w">{names[curW]}</span>
+        <span className="akv-pos-c">O{curZ.okruh} · {scrollCircle(curZ, lang)}</span>
+        <span className="akv-pos-n">{inWorld.indexOf(curZ) + 1} / {inWorld.length}</span>
+      </div>
+      <div className="akv-pos-bar" aria-hidden>
+        {circlesOf.map((list, i) => (
+          <div key={i} className={`pk-progress${i === curZ.okruh - 1 ? ' is-cur' : ''}`} style={{ flex: Math.max(1, list.length) }}>
+            <div className="pk-progress__fill" style={fillPct(list.length ? list.filter(isRead).length / list.length : 0)} />
+          </div>
+        ))}
+      </div>
+      <div className="akv-pos-acts">
+        {!filtering && startIdx > 0 && (
+          <button type="button" className="akv-pos-b" aria-pressed={showRead}
+            onClick={() => (showRead ? setShowRead(false) : jumpTo(feedShown[0].id))}>
+            <span className="akv-up" aria-hidden><HandArrowLeft size={12} /></span>
+            {showRead ? tx('pack.ainubis.pos.hideRead', 'Hide read') : `${tx('pack.ainubis.pos.read', 'Read')} (${startIdx})`}
+          </button>
+        )}
+        <button type="button" className="akv-pos-b" aria-haspopup="listbox" aria-expanded={posDd}
+          onClick={(e) => { e.stopPropagation(); setPosDd((v) => !v); }}>
+          {tx('pack.ainubis.pos.circles', 'Circles')}<span className="akv-chev" aria-hidden><HandArrowLeft size={12} /></span>
+        </button>
+        {listenBtn('akv-pos-b akv-pos-listen')}
+      </div>
+      {posDd && (
+        <>
+          <span style={{ position: 'fixed', inset: 0, zIndex: -1 }} onClick={() => setPosDd(false)} aria-hidden />
+          <div className="akv-pos-dd" role="listbox">
+            {circlesOf.map((list, i) => {
+              const done = list.length > 0 && list.every(isRead);
+              return (
+                <button key={i} type="button" role="option" disabled={!list.length}
+                  aria-selected={i === curZ.okruh - 1}
+                  className={`${i === curZ.okruh - 1 ? 'is-cur' : ''}${done ? ' is-done' : ''}`}
+                  onClick={() => list.length && jumpTo(firstOpen(list).id)}>
+                  <span>O{i + 1} · {circleName(curW, i)}</span>
+                  <b>{done && <HandCheck size={12} />}{list.filter(isRead).length}/{list.length}</b>
+                </button>
+              );
+            })}
+            <div className="akv-pos-sec">{tx('pack.ainubis.pos.more', 'More worlds')}</div>
+            {VAULT_WORLDS.map((w, i) => {
+              if (i === curW) return null;
+              const list = feed.filter((z) => z.world === w.key);
+              return (
+                <button key={w.key} type="button" role="option" aria-selected={false} disabled={!list.length}
+                  style={aiWorld(w.key)} onClick={() => list.length && jumpTo(firstOpen(list).id)}>
+                  <span className="akv-pos-wdot" aria-hidden /><span>{names[i]}</span>
+                  <b>{list.length ? `${list.filter(isRead).length}/${list.length}` : <em>{soon}</em>}</b>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+
   const vaultPrimary = (
     <>{read.scrolls}/{TOTAL_SCROLLS} {tx('pack.ainubis.stat.scrolls', 'scrolls')}</>
   );
@@ -970,19 +1224,28 @@ export default function PackAinubis() {
             <h1 className="akv-title">{tx('pack.ainubis.dogscroll.title', 'Dogscrolling')}</h1>
             <p className="akv-claim">{tx('pack.ainubis.dogscroll.claim', 'Your dog will thank you for this scroll.')}</p>
             </div>
+            {/* 🔓 Pravá strana nadpisu (prázdna od 23. 9. „kým nie sú zvitky") — Matej 8. 10.:
+                POČÚVAJ ZA SEBOU, podcasty jeden za druhým od miesta, kde člen je. */}
+            {SCROLL_DEMO && listenBtn('akv-listen')}
           </div>
           {planes('akv-planes-l')}
-          {openingNote('akv-note--l')}
         </header>
 
-        <div className="akv-list">
+        <div className="akv-list" ref={listRef}>
         <div className="akv-col">
-          {shown.length === 0 && <p className="akv-empty">{tx('pack.ainubis.noMatch', 'Nothing found.')}</p>}
-          {SCROLL_DEMO && scrolls.length > 0 && <div className="akv-zvh"><b className="akv-zvw" style={aiWorld(scrolls[0].world)}>{names[VAULT_WORLDS.findIndex((w) => w.key === scrolls[0].world)]}</b> · {scrollCircle(scrolls[0], lang)}</div>}
-          {SCROLL_DEMO && scrolls.map(z => (
-            <ScrollCard key={z.id} z={z} lang={lang} worldName={names[VAULT_WORLDS.findIndex((w) => w.key === z.world)]} onOpen={openScroll} onShare={shareScroll} />
+          {SCROLL_DEMO && posBar}
+          {shown.length === 0 && feedShown.length === 0 && <p className="akv-empty">{tx('pack.ainubis.noMatch', 'Nothing found.')}</p>}
+          {SCROLL_DEMO && hiddenN > 0 && curZ && (
+            <button type="button" className="akv-fold" style={aiWorld(curZ.world)} onClick={() => jumpTo(feedShown[0].id)}>
+              <span className="akv-chev" aria-hidden><HandArrowLeft size={12} /></span>
+              {tx('pack.ainubis.pos.fold', '{n} read · show').replace('{n}', String(hiddenN))}
+            </button>
+          )}
+          {SCROLL_DEMO && visible.map(z => (
+            <ScrollCard key={z.id} z={z} lang={lang} worldName={names[wIdx(z.world)]} onOpen={openScroll} onShare={shareScroll} />
           ))}
-          {shown.map(({ w, i }) => (
+          {/* Upútavky ostávajú len svetom, ktoré ešte nemajú ani jeden zvitok. */}
+          {shown.filter(({ w }) => !feed.some((z) => z.world === w.key)).map(({ w, i }) => (
             <section
               key={w.key}
               id={`akv-w-${w.key}`}
@@ -1049,7 +1312,6 @@ export default function PackAinubis() {
           </button>
         </div>
         <div className="akv-toprow">{planes('akv-planes-t')}</div>
-        {openingNote('akv-note--t')}
       </div>
 
       {/* ŠUPLÍK FILTROV (mobil) — vzor .trp-msheet: všetky filtre na jednom mieste. */}
@@ -1109,7 +1371,8 @@ export default function PackAinubis() {
       )}
       {SCROLL_DEMO && openZ && (
         <ScrollView z={openZ} all={scrolls} lang={lang} focus={scrollFocus}
-          onClose={closeScroll} onOpen={(i) => openScroll(i)} onUse={askAinubis} onShare={shareScroll} />
+          onClose={closeScroll} onOpen={(i) => openScroll(i)} onUse={askAinubis} onShare={shareScroll}
+          queue={queue} onNext={nextListen} />
       )}
       {SCROLL_DEMO && knowOpen && !openZ && (
         <VaultKnowledge scrolls={scrolls} lang={lang} avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial}

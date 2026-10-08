@@ -201,6 +201,19 @@ export const AI_BUBBLE = `
  *  výšky) a toto je štvrtý smer, nie štvrtá výška. */
 export const AI_PANEL_SHADOW = `box-shadow:24px 0 60px -40px rgba(0,0,0,0.90);`;
 
+/* ── PRSTENEC SVETA (8. 10. 2026) — karta zvitku a pruh polohy v DOGSCROLLE žiaria
+   farbou svojho sveta (Matej: „bloky, kde sú zvitky, by mali žiariť na farbu
+   prislúchajúceho sveta"). Farbu dodá `aiWorld(key)` cez --ai-w; bez nej cyan. */
+const W_RGB = `var(--ai-w,${CYAN_RGB})`;
+export const AI_WORLD = {
+  /** Lem — 1 px vo farbe sveta. */
+  edge: `rgba(${W_RGB},0.45)`,
+  /** Prstenec + dosvit karty (cez pseudoprvok, aby neprepísal AI-SKLO). */
+  ring: `0 0 0 1px rgba(${W_RGB},0.45),0 0 24px rgba(${W_RGB},0.16)`,
+  /** Dosvit pruhu polohy + tmavý dotyk dole (karty pod ním odchádzajú). */
+  float: `0 0 24px rgba(${W_RGB},0.14),0 8px 16px ${BG}`,
+} as const;
+
 /** Zaostrenie na poli — svetlo zvnútra, nie hrubší lem. */
 export const AI_FOCUS = `
   box-shadow:inset 0 1px 0 rgba(255,255,255,0.10),

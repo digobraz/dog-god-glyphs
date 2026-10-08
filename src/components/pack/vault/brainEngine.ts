@@ -601,7 +601,11 @@ export function mountBrain(o: BrainOptions): BrainHandle {
     if (!z) return;
     const on = z.nb.find((q) => q.role === 'o') ?? null;
     if (!on || on === CURO || down) return;
+    /* PRVÉ hlásenie po načítaní kameru NEPOHNE — úvod ukazuje celý mozog (Matej 22. 9.);
+       kamera ide až pri prechode do ďalšieho okruhu. */
+    const prvy = !CURO;
     CURO = on;
+    if (prvy) return;
     const ins = o.insets();
     vt.k = Math.max(vt.k, homeK * 2.2);
     vt.x = -(on.x + on.dx);
