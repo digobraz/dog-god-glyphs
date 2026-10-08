@@ -238,6 +238,30 @@ export const VAULT_SOURCES: VaultSource[] = [
     about: 'How food switches genes on and off — immunity, inflammation and the breeds that pay for it.',
     addedBy: 'Peter M.', pending: true, waiting: 2, devotion: 100,
   },
+  /**
+   * 🟡 PRIDAL MATEJ 8. 10. 2026 — ležia vo `vstupy/AINUBIS/`, do mozgu ešte neprispeli
+   * (extrakcia = samostatná session). Autor sa NEDOPĹŇA odhadom: pri knihe PES ho
+   * súbor nenesie (sken bez textovej vrstvy, len úvod), pri sprievodcovi platí meno,
+   * ktoré povedal Matej („ebook o mazlíčkoch od Eli Health").
+   */
+  {
+    key: 'pending-pes', title: 'PES', kind: 'book', scrolls: 0,
+    tags: ['dog', 'book'],
+    split: { consensus: 0, traditional: 0, author: 0 },
+    pages: 24, extent: 'introduction', group: 'books',
+    about: 'A book about the dog — we hold the introduction so far; extraction is next.',
+    addedBy: 'Matej', pending: true, waiting: 0,
+  },
+  {
+    key: 'pending-eli', title: 'Velký průvodce ke zdraví domácích mazlíčků', author: 'Eli Health',
+    kind: 'e-book', scrolls: 0,
+    tags: ['nutrition', 'prevention'],
+    split: { consensus: 0, traditional: 0, author: 0 },
+    pages: 95, group: 'other',
+    about: 'Long-term health of dogs and cats: why pets fall ill early, kibble against natural food, prevention.',
+    caveat: 'An unconventional author with contested views — each claim goes through analysis before it reaches a scroll; recipes and observations that hold up are kept.',
+    addedBy: 'Matej', pending: true, waiting: 0,
+  },
 ];
 
 /** Prijaté zdroje — z nich mozog naozaj žije (aj tie neuvedené). */

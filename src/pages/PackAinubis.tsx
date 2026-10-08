@@ -49,7 +49,7 @@ import {
 import { VaultChat, VAULT_CHAT_CSS } from '@/components/pack/vault/VaultChat';
 import { VaultWall, VAULT_WALL_CSS } from '@/components/pack/vault/VaultWall';
 import { VAULT_SOURCE_TOTALS } from '@/components/pack/vault/vaultSources';
-import { SCROLL_DEMO, useDemoScrolls, useScrollState, useReadsReady, pickText, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
+import { SCROLL_DEMO, useDemoScrolls, useScrollState, useReadsReady, useReads, pickText, type DemoScroll } from '@/components/pack/vault/vaultScrolls';
 import { VaultKnowledge, KNOW_CSS } from '@/components/pack/vault/VaultKnowledge';
 import { ScrollCard, ScrollView, SCROLL_CSS, scrollUI, circleName as scrollCircle } from '@/components/pack/vault/ScrollParts';
 import { openAinubis } from '@/lib/ainubisBus';
@@ -636,6 +636,10 @@ export default function PackAinubis() {
   /* MOJE ZNALOSTI (4. 10. 2026) — štatistiky po kliku na fotku v hlavičke, vlastná adresa ako TRIPSTATS. */
   const knowOpen = /^knowledge\/?$/.test(sub);
   const zstate = useScrollState();
+  /* VYPOČUTÉ ≠ PREČÍTANÉ (Matej 8. 10.: „označil som zvitok ako prečítaný, ale nevypočul
+     som si podcast… a hore svieti, ako keby som ho vypočul"). Stav zvitku (2) zlučuje oboje;
+     počítadlo podcastov číta LEN `listened_at`. */
+  const readRows = useReads();
   const [scrollFocus, setScrollFocus] = useState<string | null>(null);
   const [zvToast, setZvToast] = useState('');
   const openScroll = (id: string, focus?: 'pod' | 'src' | 'talk') => {
@@ -1045,17 +1049,20 @@ export default function PackAinubis() {
   const firstOpen = (list: DemoScroll[]) => list.find((z) => !isRead(z)) ?? list[0];
   live.current.jump = jumpTo;
   live.current.open = (zidOpen: string) => openScroll(zidOpen);
-  /* POČÚVAJ ZA SEBOU — od miesta, kde človek je, len neprečítané s podcastom. */
-  const listenFrom = curZ ? feed.slice(Math.max(0, feed.indexOf(curZ))) : feed;
-  const listenQ = listenFrom.filter((z) => !isRead(z) && !!pickText(z, lang) && Object.keys(z.pod || {}).length > 0);
+  /* POČÚVAJ PODCAST — vlastné počítadlo, nezávislé od čítania aj od toho, kam človek
+     odrolova: vždy PRVÝ NEVYPOČUTÝ podcast v poradí. Kde v ňom skončil, drží `listen_sec`
+     (prehrávač pokračuje sám). */
+  const hasPod = (z: DemoScroll) => Object.keys(z.pod || {}).length > 0;
+  const isHeard = (z: DemoScroll) => !!readRows[z.id]?.listened_at;
+  const listenQ = feed.filter((z) => hasPod(z) && !isHeard(z));
   const startListen = () => { if (listenQ[0]) { setQueue(true); openScroll(listenQ[0].id, 'pod'); } };
   const nextListen = () => {
     const i = openZ ? feed.indexOf(openZ) : -1;
-    const nx = feed.slice(i + 1).find((z) => !isRead(z) && Object.keys(z.pod || {}).length > 0);
+    const nx = feed.slice(i + 1).find((z) => hasPod(z) && !isHeard(z));
     if (nx) openScroll(nx.id, 'pod'); else setQueue(false);
   };
   /* Číslo = poradie podcastu, ktorý sa pustí, z celkového počtu (Matej 8. 10.: „Listen podcast XY/100"). */
-  const pods = feed.filter((z) => Object.keys(z.pod || {}).length > 0);
+  const pods = feed.filter(hasPod);
   const listenBtn = (cls: string) => listenQ.length > 0 && (
     <button type="button" className={cls} onClick={startListen}>
       <i aria-hidden />{tx('pack.ainubis.listen', 'Listen to podcast')} <em>{pods.indexOf(listenQ[0]) + 1}/{pods.length}</em>

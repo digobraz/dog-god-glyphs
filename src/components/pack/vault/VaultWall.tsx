@@ -33,7 +33,7 @@ import {
 import { BACK, BackIcon, backCircleCSS, backHoverCSS } from '@/components/pack/BackButton';
 import {
   AINUBIS, AI_GLASS, AI_FOCUS, AI_RAIL, AI_RAIL_BEFORE, AI_RAIL_BLANK, AI_SPINE,
-  AI_BREATHE_CSS, aiWorld,
+  AI_BREATHE_CSS, aiWorld, AI_WORLD,
 } from '@/components/pack/ainubisSkin';
 import {
   HandPaw, HandStar, HandForward, HandPlus, HandArrowLeft, HandSearch, HandAlert,
@@ -72,7 +72,6 @@ const PER_PAGE = 9;
  *  brainEngine.ts), takže by sa tak volali dve rôzne veci. KNIŽNICA hovorí,
  *  čo to je, a znesie aj 500 položiek. Je to jedna konštanta — prepnúť sa dá
  *  za sekundu. */
-const LIBRARY = 'Library';
 
 export const VAULT_WALL_CSS = `
 ${AI_BREATHE_CSS}
@@ -373,7 +372,7 @@ body:has(.akv-root[data-plane="wall"]) .ainubis-launcher{visibility:hidden;point
    (problém · skúsenosť) je ZLATÝ štítok dole — dve osi, dve farby. */
 .akw-world{margin-left:auto;flex:0 0 auto;display:flex;align-items:center;gap:${PACK_SPACE.xs}px;
   padding:${PACK_SPACE.xs}px ${PACK_SPACE.md}px;border-radius:${PACK_R.pill}px;
-  border:1px solid ${AINUBIS.glowEdge};background:${AINUBIS.glowTint};color:${AINUBIS.glow};
+  border:1px solid ${AI_WORLD.edge};background:rgba(var(--ai-w,${AINUBIS.glowRGB}),0.12);color:rgb(var(--ai-w,${AINUBIS.glowRGB}));
   font-family:${FONT_UI};font-weight:600;font-size:${PACK_TEXT.micro}px;line-height:1.4;
   letter-spacing:${PACK_HEAD.card.letterSpacing};text-transform:uppercase;white-space:nowrap;}
 .akw-world i{width:13px;height:13px;flex:0 0 13px;background:currentColor;}
@@ -804,7 +803,9 @@ function PostHead({ post }: { post: WallPost }) {
     <div className="akw-phead">
       <span className="akw-av" aria-hidden>{post.initial}</span>
       <span className="akw-who"><b>{post.who}</b><em>{post.dog}</em></span>
-      {w && <span className="akw-world"><i aria-hidden style={mask(w.ic)} />{w.en}</span>}
+      {/* 🔄 8. 10. 2026 (Matej): nálepka nesie FARBU SVOJHO SVETA, nie modrú vaultu — tá istá,
+          ktorou svieti svet v mozgu a karta zvitku. */}
+      {w && <span className="akw-world" style={aiWorld(w.key)}><i aria-hidden style={mask(w.ic)} />{w.en}</span>}
     </div>
   );
 }
@@ -1078,7 +1079,9 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
           <button type="button" className="akw-back" onClick={onBack} aria-label="Back">
             <BackIcon />
           </button>
-          <h1>Board</h1>
+          {/* 8. 10. 2026: BOARD → FORUM (čip hore sa volá FÓRUM). Knižnica je od toho dňa
+              vlastný čip ZDROJE — tá istá obrazovka, iný nadpis a bez záložiek fóra. */}
+          <h1>{tab === 'lib' ? 'Sources' : 'Forum'}</h1>
           {tab === 'lib' && (
             <span className="akw-count">
               {VAULT_SOURCE_TOTALS.documents} documents · {VAULT_SOURCE_TOTALS.scrolls} scrolls
@@ -1086,14 +1089,12 @@ export function VaultWall({ onBack, tab, onTab, post, onPost }: {
           )}
         </div>
         <div className="akw-bar">
-          <div className="akw-tabs">
+          {tab !== 'lib' && <div className="akw-tabs">
             <button type="button" className="akw-tab" data-t="pack" aria-current={tab === 'pack' ? 'page' : undefined}
               onClick={() => onTab('pack')}>The pack</button>
             <button type="button" className="akw-tab" data-t="mine" aria-current={tab === 'mine' ? 'page' : undefined}
               onClick={() => onTab('mine')}>My posts</button>
-            <button type="button" className="akw-tab" data-t="lib" aria-current={tab === 'lib' ? 'page' : undefined}
-              onClick={() => onTab('lib')}>{LIBRARY}</button>
-          </div>
+          </div>}
           {/* Svety filtrujú len nástenku svorky — v mojich príspevkoch a v knižnici
               by filtrovali zoznam, ktorý svety nemá. */}
           {tab === 'pack' && (

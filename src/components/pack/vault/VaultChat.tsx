@@ -71,6 +71,9 @@ const SRC_W = 340;
 /** Meraná šírka vlákna — telo článku z locku, nie šírka obrazovky. */
 const THREAD_W = 760;
 
+/** Ozvena mozgu za vláknom (D1, 24. 9.) — vypnutá 8. 10. 2026, za chatom je mriežka. */
+const ECHO = false;
+
 export const VAULT_CHAT_CSS = `
 ${AI_BREATHE_CSS}
 /* ── PÁS HISTÓRIE ──────────────────────────────────────────────────────────
@@ -299,7 +302,14 @@ ${AI_BREATHE_CSS}
 
 /* ── VLÁKNO ────────────────────────────────────────────────────────────── */
 .akc-thread{position:absolute;z-index:3;inset:0;display:grid;
-  grid-template-rows:auto minmax(0,1fr) auto;background:${AINUBIS.surfaceBase};
+  grid-template-rows:auto minmax(0,1fr) auto;background-color:${AINUBIS.surfaceBase};
+  /* 🔄 8. 10. 2026 (Matej): za chatom MRIEŽKA, nie mozog — tá istá dvojitá mriežka ako .akv-bg. */
+  background-image:
+    linear-gradient(rgba(${AINUBIS.cyanRGB},0.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(${AINUBIS.cyanRGB},0.06) 1px,transparent 1px),
+    linear-gradient(rgba(${AINUBIS.cyanRGB},0.10) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(${AINUBIS.cyanRGB},0.10) 1px,transparent 1px);
+  background-size:24px 24px,24px 24px,192px 192px,192px 192px;
   padding-top:var(--akv-top-h,112px);}
 /* HLAVIČKA — krok späť, šuplík rozhovorov a JEDEN RIADOK kontextu.
    🔴 KONTEXT JE RIADOK TEXTU, NIE RAD PILULEK (Matej 23. 9. 2026, variant A1 nad
@@ -1007,7 +1017,8 @@ export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
   const echoTipRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const cv = echoRef.current, tip = echoTipRef.current;
-    if (!cv || !tip) return undefined;
+    /* OZVENA MOZGU ZANIKLA 8. 10. 2026 (Matej: „pozadie pridaj mriežky, nie mozog"). */
+    if (!ECHO || !cv || !tip) return undefined;
     const h = mountBrain({
       canvas: cv, tip, worlds: VAULT_WORLDS, head: ainubisFace,
       isMobile: () => window.innerWidth < 1024,
@@ -1127,8 +1138,8 @@ export function VaultChat({ onBack, onOpenScroll, onOpenSources }: {
         </header>
 
         <div className="akc-msgs" ref={msgsRef}>
-          <canvas className="akc-echo" ref={echoRef} aria-hidden />
-          <div className="akc-echotip" ref={echoTipRef} aria-hidden />
+          {ECHO && <canvas className="akc-echo" ref={echoRef} aria-hidden />}
+          {ECHO && <div className="akc-echotip" ref={echoTipRef} aria-hidden />}
           <div className="akc-in">
             {chat.msgs.map((m, i) => {
               if (isMe(m)) return <div className="akc-me-msg" key={i}>{m.me}</div>;
