@@ -147,7 +147,10 @@ const TAG_I18N_KEY = TAG_I18N;
 // JE stred trasy: je to bod v polovici ZOZNAMU, čo pri nerovnomerne hustej stope sedí inde.
 // `fitBounds` s odsadením drží celú trasu vnútri vždy; `maxZoom` bráni tomu, aby sa krátky
 // výlet priblížil tak, že z mapy ostane textúra bez orientačných bodov.
-function FitRoute({ path, areaR }: { path: [number, number][]; areaR?: number }) {
+// PARKOVISKO VO VÝREZE (8. 10. 2026) — `park` = parkovisko výletu (`parkingForTrail`). Pripnuté
+// parkovisko môže byť ďaleko od bodu (Belga: lanovka 3,3 km od jazera) a rámovanie len okruhu
+// ho nechalo za okrajom mapy — Matej: „nevidím parkovisko na live". Výrez ho preto zahrnie.
+function FitRoute({ path, areaR, park }: { path: [number, number][]; areaR?: number; park?: [number, number] | null }) {
   const map = useMap();
   useEffect(() => {
     // OKRUH SA RÁMUJE PODĽA POLOMERU (2026-09-01). Miesto má v `path` jediný bod, takže
@@ -167,7 +170,9 @@ function FitRoute({ path, areaR }: { path: [number, number][]; areaR?: number })
         //    950 m ako bodka nad mestom. Zoom animáciu prerušila druhá úprava pohľadu
         //    (`invalidateSize` + opakovaný fit) v tej istej snímke. Skok bez animácie je pri
         //    PRVOM zobrazení aj tak správnejší — človek neprichádza odnikiaľ.
-        map.fitBounds(L.latLng(path[0]).toBounds(areaR * 2), {
+        const box = L.latLng(path[0]).toBounds(areaR * 2);
+        if (park) box.extend(L.latLng(park[0], park[1]));
+        map.fitBounds(box, {
           paddingTopLeft: [28, 48], paddingBottomRight: [28, 28], maxZoom: 16, animate: false,
         });
         done = true;
@@ -184,8 +189,8 @@ function FitRoute({ path, areaR }: { path: [number, number][]; areaR?: number })
     if (path.length < 2) return;
     // Hore je odsadenie VÄČŠIE: na prvom bode trasy stojí pilulka s km a tá rastie NAHOR
     // (`translate(-50%,-100%)`). So symetrickým odsadením ju horná hrana mapy orezala.
-    map.fitBounds(path, { paddingTopLeft: [28, 48], paddingBottomRight: [28, 28], maxZoom: 15 });
-  }, [map, path, areaR]);
+    map.fitBounds(park ? [...path, park] : path, { paddingTopLeft: [28, 48], paddingBottomRight: [28, 28], maxZoom: 15 });
+  }, [map, path, areaR, park?.[0], park?.[1]]);
   return null;
 }
 
@@ -694,9 +699,10 @@ export default function PackTripArticle() {
   // JEDNO PARKOVISKO NA VÝLET (Matej 2026-09-15) — keď ho tento výlet už má, dlaždica
   // PARKOVISKO v palete zhasne aj s dôvodom. Vyhodnocuje sa nad TÝM ISTÝM zoznamom, z ktorého
   // sa kreslí zoznam pod článkom, takže sa obe polovice nemôžu rozísť.
+  const tripPark = useMemo(() => (trail ? parkingForTrail(mapNotes.notes, trail) : null), [trail, mapNotes.notes]);
   const parkingBlocked = useMemo(
-    () => (trail && parkingForTrail(mapNotes.notes, trail) ? { parking: t('pack.mapNotes.parking.already') } : undefined),
-    [trail, mapNotes.notes, t],
+    () => (tripPark ? { parking: t('pack.mapNotes.parking.already') } : undefined),
+    [tripPark, t],
   );
   // Starý (premenovaný) slug → redirect na nový, nech zdieľané odkazy nehádžu „trip not found".
   const renamedTo = !trail && slug ? RENAMED_TRIP_IDS[slug] : undefined;
@@ -1857,7 +1863,7 @@ export default function PackTripArticle() {
               <InvalidateSizeOnMount />
               {/* `center`/`zoom` vyššie sú len počiatočné — skutočný záber dá FitRoute. Ostávajú
                   kvôli jedinému bodu (vodné plochy), kde sa niet čo zmestiť. */}
-              <FitRoute path={trail.path} areaR={trail.areaR} />
+              <FitRoute path={trail.path} areaR={trail.areaR} park={tripPark ? [tripPark.lat, tripPark.lon] : null} />
               {/* FARBA TRASY = FIALOVÝ MEČ, ROVNAKO AKO NA MAPE (Matej 2026-08-20:
                   „ak je blogovy clanok tak tam moze byt fialova, lebo bude vzdy iba jedna").
                   Predtým tu bol čierno-zlatý casing, takže tá istá trasa vyzerala na mape
