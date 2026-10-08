@@ -240,16 +240,23 @@ export const VAULT_SOURCES: VaultSource[] = [
   },
   /**
    * 🟡 PRIDAL MATEJ 8. 10. 2026 — ležia vo `vstupy/AINUBIS/`, do mozgu ešte neprispeli
-   * (extrakcia = samostatná session). Autor sa NEDOPĹŇA odhadom: pri knihe PES ho
-   * súbor nenesie (sken bez textovej vrstvy, len úvod), pri sprievodcovi platí meno,
-   * ktoré povedal Matej („ebook o mazlíčkoch od Eli Health").
+   * (extrakcia = samostatná session). Autor sa NEDOPĹŇA odhadom: pri sprievodcovi
+   * platí meno, ktoré povedal Matej („ebook o mazlíčkoch od Eli Health").
+   *
+   * 🔴 PES OPRAVENÉ 8. 10. 2026 — karta tvrdila „extraction is next", no úvod (tlačené
+   * s. 9–33) je vyťažený od 3. 10. (`plany/znalosti/kniha-pes-cisarovsky-uvod.md`)
+   * a ako PRVÝ prameň (`pr[0]`) ho nesie **13 zvitkov Cesty psa** — okruh 1: 8,
+   * okruh 2: 5 (`plany/ainubis/extraktor/dogsPath/organizmus.json`). Autora prečítal
+   * výťah zo skenu. ⚠️ ROK chýba zámerne: sken nesie len „predslov september 2008",
+   * to nie je rok vydania. `pending` ostáva — čaká sa celá kniha (plemená, ~900 s.),
+   * a `scrolls` je počet chunkov mozgu, ktorý odpovedá (tam PES nie je), nie VAULTU.
    */
   {
-    key: 'pending-pes', title: 'PES', kind: 'book', scrolls: 0,
+    key: 'pending-pes', title: 'PES', author: 'Dr. Michal Císařovský', kind: 'book', scrolls: 0,
     tags: ['dog', 'book'],
     split: { consensus: 0, traditional: 0, author: 0 },
     pages: 24, extent: 'introduction', group: 'books',
-    about: 'A book about the dog — we hold the introduction so far; extraction is next.',
+    about: 'A Czech encyclopedia of the dog. Its introduction already feeds 13 scrolls of Dog’s path; the breeds are next.',
     addedBy: 'Matej', pending: true, waiting: 0,
   },
   {
