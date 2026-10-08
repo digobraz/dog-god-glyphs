@@ -103,6 +103,13 @@ export function noteBelongsToTrail(note: MapNote, trail: HeroTrail): boolean {
 export function parkingForTrail(notes: MapNote[], trail: HeroTrail): MapNote | null {
   const own = notes.find((n) => n.id === `park:${trail.id}`);
   if (own) return own;
+  // 1b. PARKOVISKO PRIPNUTÉ K VÝLETU (8. 10. 2026) — autorkino rozhodnutie prebíja geometriu,
+  //     rovnako ako v `noteBelongsToTrail`. Dovtedy sa pripnutie ignorovalo: Belgin výlet
+  //     (Melchsee-Frutt) má parkovisko pri dolnej stanici lanovky 3,3 km od bodu výletu, mimo
+  //     prahu 500 m, takže ho mapa výletu skryla a `canAddParkingAt` pustil ďalšie — vznikli tri.
+  //     Najstaršie pripnuté vyhráva (zoznam zo servera ide od najnovšieho).
+  const pinned = notes.filter((n) => n.kind === 'parking' && n.pinnedSlug === trail.id);
+  if (pinned.length) return pinned[pinned.length - 1];
   const path = trail.path ?? [];
   if (!path.length) return null;
   let best: MapNote | null = null;
