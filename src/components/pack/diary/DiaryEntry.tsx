@@ -163,7 +163,7 @@ export function DiaryEntry({ dogs, dogId, day, mode = 'write', onClose, onSaved,
   //    cez tlačidlo ZAPÍSAŤ. Tú istú pascu má appka zapísanú pre `.nav-top` na `/onepage`.
   return createPortal((
     <div className="dia-bg" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <style>{PF_FIELD_CSS}{PILL_CSS}{PHOTO_CSS}{CSS}</style>
+      <style>{PF_FIELD_CSS}{PILL_CSS}{PHOTO_CSS}{DIARY_CSS}</style>
       <div className="dia-pop" role="dialog" aria-modal="true" aria-label={tx('pack.diary.title', 'To the diary')}>
         <h4>{tx('pack.diary.title', 'To the diary')}</h4>
 
@@ -342,7 +342,7 @@ const pickStyle: CSSProperties = {
 
 /** Rozmery sú z matríc `PACK_R` / `PACK_SPACE` / `PACK_TEXT` — číslo mimo stupnice
  *  je bug, nie štýl, a zhodí `npm run check:pack`. */
-const CSS = `
+export const DIARY_CSS = `
 .dia-bg{position:fixed;inset:0;background:rgba(20,12,4,.55);display:flex;align-items:center;
   justify-content:center;padding:${PACK_SPACE.lg}px;z-index:70;overflow-y:auto;
   padding-bottom:calc(${PACK_SPACE.lg}px + var(--consent-h, 0px))}

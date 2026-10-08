@@ -330,6 +330,9 @@ export function PackCalendar({ dogs, latest, tx, onAddToDay }: {
             kind: plan ? 'plan' : kind,
             y: day.y, m: day.m, d: day.d,
             title: v.text.split('\n')[0].slice(0, 80),
+            // Zvyšok zápisu pod nadpis. Do 8. 10. 2026 sa z dlhého zápisu ukázal len
+            // prvý riadok a zvyšok textu appka nezobrazila nikde (testerka Daniela).
+            text: v.text.split('\n').slice(1).join('\n').trim() || undefined,
             dogId: ev.dogId,
             photo: v.photo,
           });
@@ -1724,7 +1727,7 @@ const CAL_CSS = `
 .cal-shot{display:block;width:100%;max-height:180px;object-fit:cover;margin:8px 0 0;
   border-radius:${PACK_R.tile}px;border:1px solid ${T.border};background:${T.tileBg}}
 .cal-entry b{font-family:${FONT_TITLE};font-size:12px;font-weight:700;letter-spacing:0.02em;display:block;margin-bottom:2px;color:${T.inkStrong}}
-.cal-entry p{font-family:${FONT_UI};font-size:12px;color:${T.inkWarm};margin:0;line-height:1.5}
+.cal-entry p{font-family:${FONT_UI};font-size:12px;color:${T.inkWarm};margin:0;line-height:1.5;white-space:pre-line}
 /* PRIDAŤ K TOMUTO DŇU — HLAVNÉ CTA popupu, teda LAPIS (brandový kánon 28. 8. 2026:
    na bledom podklade lapis). Geometria je z locku .btn-gold: radius 8, NIE pilulka;
    mení sa len výplň. Je to jediná plná farebná plocha v popupe, takže vedie. */

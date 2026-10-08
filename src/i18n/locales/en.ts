@@ -4730,6 +4730,12 @@ export const en = {
   'pack.hub.whatToDo': "What do you want to do",
   'pack.hub.soon': "Soon",
   'pack.hub.write': "Write",
+  'pack.hub.open': "Open",
+  'pack.diary.listTitle': "Diary",
+  'pack.diary.new': "+ New entry",
+  'pack.diary.loading': "Loading…",
+  'pack.diary.empty': "Nothing written yet. The first entry starts the story.",
+  'pack.diary.planTag': "Plan",
 
   // ── DENNÍK PSA (KROK 5 bloku 2, 21. 9. 2026) ──
   // Pisateľ `components/pack/diary/`, úložisko `dog_events`. Rozhoduje DÁTUM:

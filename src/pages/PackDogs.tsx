@@ -52,6 +52,7 @@ import { BrandIcon } from '@/components/pack/BrandIcon';
 import { FlagCircle } from '@/components/pack/FlagCircle';
 import { PackCalendar } from '@/components/pack/calendar/PackCalendar';
 import { DiaryEntry } from '@/components/pack/diary/DiaryEntry';
+import { DiaryList } from '@/components/pack/diary/DiaryList';
 import ainubisBadge from '@/assets/ainubis-badge.webp';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK } from '@/components/pack/navGoldSkin';
@@ -524,6 +525,9 @@ export default function PackDogs() {
   // človek práve díva). Držať si ho musí STRÁNKA, nie dlaždica ani kalendár — dve
   // inštancie toho istého formulára = dva rôzne rozpísané texty.
   const [diary, setDiary] = useState<{ day?: string; mode: 'write' | 'photo' } | null>(null);
+  // ČITATEĽ denníka — dlaždica DENNÍK otvára zoznam zápisov, formulár sa otvára NAD ním
+  // (8. 10. 2026: testerka nevedela nájsť svoj zápis, dlaždica vedela len písať).
+  const [diaryList, setDiaryList] = useState(false);
   const [latest, setLatest] = useState<Latest>({});
   // Kým progres nie je načítaný, kvízový blok sa NEVYKRESLÍ ani v jednom stave —
   // inak by majiteľovi s hotovým kvízom najprv bliklo veľké hero a až potom by
@@ -681,7 +685,7 @@ export default function PackDogs() {
               key={s.key}
               section={s}
               tx={tx}
-              onOpen={s.kind === 'journal' ? () => setDiary({ mode: 'write' }) : undefined}
+              onOpen={s.kind === 'journal' ? () => setDiaryList(true) : undefined}
             />
           ))}
         </div>
@@ -724,6 +728,14 @@ export default function PackDogs() {
           akcia nikdy neodnesie človeka preč z miesta, kde je.
           Prekreslenie po zápise nesie `onDogEventsChange` (hub aj kalendár ho počúvajú),
           preto tu `onSaved` nič neprepočítava — signál pošle sám pisateľ. */}
+      {diaryList && (
+        <DiaryList
+          dogs={dogs.map((d) => ({ id: d.id, name: d.dog_name ?? '—' }))}
+          onWrite={() => setDiary({ mode: 'write' })}
+          onClose={() => setDiaryList(false)}
+          tx={tx}
+        />
+      )}
       {diary && (
         <DiaryEntry
           dogs={dogs.map((d) => ({ id: d.id, name: d.dog_name ?? '—' }))}
@@ -1506,7 +1518,7 @@ function MediaTile({ section, tx, onOpen }: { section: QuizSection; tx: Tx; onOp
             color: onOpen ? PICK_INK.lapis : T.inkWarm,
           }}
         >
-          {onOpen ? tx('pack.hub.write', 'Write') : tx('pack.hub.soon', 'Soon')}
+          {onOpen ? tx('pack.hub.open', 'Open') : tx('pack.hub.soon', 'Soon')}
         </span>
       </div>
     </Tag>

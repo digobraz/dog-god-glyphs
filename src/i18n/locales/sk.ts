@@ -4421,6 +4421,12 @@ export const sk: Partial<Dict> = {
   'pack.hub.whatToDo': "Čo chceš spraviť",
   'pack.hub.soon': "Čoskoro",
   'pack.hub.write': "Zapísať",
+  'pack.hub.open': "Otvoriť",
+  'pack.diary.listTitle': "Denník",
+  'pack.diary.new': "+ Nový zápis",
+  'pack.diary.loading': "Načítavam…",
+  'pack.diary.empty': "Zatiaľ tu nič nie je. Prvý zápis začne váš príbeh.",
+  'pack.diary.planTag': "Plán",
 
   // ── DENNÍK PSA (KROK 5 bloku 2, 21. 9. 2026) ──
   'pack.diary.title': "Do denníka",

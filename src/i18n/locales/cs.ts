@@ -2447,6 +2447,12 @@ export const cs: Partial<Dict> = {
   'pack.hub.profileTitle': 'DOG ID',
   'pack.hub.soon': 'Brzy',
   'pack.hub.write': 'Zapsat',
+  'pack.hub.open': 'Otevřít',
+  'pack.diary.listTitle': 'Deník',
+  'pack.diary.new': '+ Nový zápis',
+  'pack.diary.loading': 'Načítám…',
+  'pack.diary.empty': 'Zatím tu nic není. První zápis začne váš příběh.',
+  'pack.diary.planTag': 'Plán',
 
   // ── DENÍK PSA (KROK 5 bloku 2, 21. 9. 2026) ──
   'pack.diary.title': 'Do deníku',
