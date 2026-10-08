@@ -35,7 +35,6 @@ import { useT } from '@/i18n/LanguageContext';
 const T = PACK_THEME;
 type Tx = (key: string, fallback: string) => string;
 type ChronDog = { id: string; dog_name: string | null };
-type Kind = 'all' | 'photo';
 
 export default function PackChronicle() {
   const t = useT();
@@ -44,7 +43,6 @@ export default function PackChronicle() {
 
   const [dogs, setDogs] = useState<ChronDog[] | null>(null);
   const [dogSel, setDogSel] = useState<string>('all');
-  const [kind, setKind] = useState<Kind>('all');
   const [write, setWrite] = useState(false);
 
   useEffect(() => {
@@ -60,7 +58,7 @@ export default function PackChronicle() {
   // Filter → zoskupenie po MESIACOCH (kronika sa číta ako kapitoly, nie ako nekonečný zoznam).
   const lang = (typeof document !== 'undefined' && document.documentElement.lang) || undefined;
   const months = useMemo(() => {
-    const list = (rows ?? []).filter((r) => (dogSel === 'all' || r.dogId === dogSel) && (kind === 'all' || !!r.photo));
+    const list = (rows ?? []).filter((r) => dogSel === 'all' || r.dogId === dogSel);
     const out: { label: string; items: DiaryRow[] }[] = [];
     for (const r of list) {
       const label = new Date(r.recordedAt).toLocaleDateString(lang, { month: 'long', year: 'numeric' });
@@ -68,7 +66,7 @@ export default function PackChronicle() {
       if (last && last.label === label) last.items.push(r); else out.push({ label, items: [r] });
     }
     return out;
-  }, [rows, dogSel, kind, lang]);
+  }, [rows, dogSel, lang]);
 
   const back = () => { if (window.history.length > 1) navigate(-1); else navigate('/pack/dogs'); };
 
@@ -108,19 +106,12 @@ export default function PackChronicle() {
             ))}
           </div>
         )}
-        <div className="chr-pills">
-          {(['all', 'photo'] as const).map((k) => (
-            <button key={k} type="button" className={`pk-pill pk-pill--tap chr-pill${kind === k ? ' on' : ''}`} onClick={() => setKind(k)}>
-              {k === 'all' ? tx('pack.chronicle.kindAll', 'Everything') : tx('pack.chronicle.kindPhoto', 'Photos')}
-            </button>
-          ))}
-        </div>
+        {/* Filter VŠETKO / FOTKY zanikol (Matej 8. 10.: „toto nechápem, everything a photos…
+            tam nemusí byť nič zatiaľ"). Fotka je príloha zápisu, nie druh obsahu. */}
 
         {rows === null && <p className="chr-hint">{tx('pack.diary.loading', 'Loading…')}</p>}
         {rows !== null && months.length === 0 && (
-          <p className="chr-hint">{kind === 'photo'
-            ? tx('pack.chronicle.noPhotos', 'No photos yet. Add one to an entry and it will show up here.')
-            : tx('pack.diary.empty', 'Nothing written yet. The first entry starts the story.')}</p>
+          <p className="chr-hint">{tx('pack.diary.empty', 'Nothing written yet. The first entry starts the story.')}</p>
         )}
         {months.map((m) => (
           <div key={m.label} className="chr-month">

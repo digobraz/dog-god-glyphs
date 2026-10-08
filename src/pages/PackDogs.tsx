@@ -376,40 +376,34 @@ const HUB_CSS = `
   .dogblk-rail{ padding-left:8px; }
 }
 
-/* ── DOG ID — karta modulov (8. 10. 2026, 2. kolo „šťava") ─────────────── */
-.dic{ position:relative; overflow:hidden; display:grid; grid-template-columns:minmax(0,5fr) minmax(0,7fr); min-height:360px; }
-/* Vnútorný zlatý rám — čiara 8 px od okraja, ide AJ cez vitráž (zarámovaný obraz). */
-.dic::after{ content:''; position:absolute; inset:${PACK_SPACE.sm}px; border:1px solid ${PACK_THEME.border}; border-radius:${PACK_R.tile}px; pointer-events:none; z-index:3; }
-.dic-art{ position:relative; min-height:100%; }
-.dic-art img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:0 22%;
-  -webkit-mask-image:linear-gradient(90deg,#000 58%,transparent 100%); mask-image:linear-gradient(90deg,#000 58%,transparent 100%); }
-.dic-body{ position:relative; z-index:4; display:flex; flex-direction:column; justify-content:center; gap:${PACK_SPACE.md}px;
-  padding:${PACK_SPACE.xxl}px ${PACK_SPACE.xxl}px ${PACK_SPACE.xxl}px 0; min-width:0; }
-.dic-eyebrow{ font-family:${FONT_UI}; font-weight:500; font-size:${PACK_TEXT.micro}px; letter-spacing:0.26em; text-transform:uppercase; color:${PACK_THEME.cardEdge}; }
-/* Nadpis — zlatý prechod do hnedej (PALE.deep), na papyruse čitateľný a „liaty". */
-.dic-h{ margin:0; font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.h1}px; line-height:1.1; letter-spacing:0.14em; text-transform:uppercase;
-  background:linear-gradient(180deg,#D9AE52 0%,${PACK_THEME.cardEdge} 45%,${PALE.deep} 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+/* ── DOG ID — karta modulov (8. 10. 2026, 3. kolo: kompaktný pás) ──────── */
+.dic{ position:relative; overflow:hidden; display:grid; grid-template-columns:200px minmax(0,1fr); }
+.dic-art{ position:relative; }
+.dic-art img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:0 18%;
+  -webkit-mask-image:linear-gradient(90deg,#000 55%,transparent 100%); mask-image:linear-gradient(90deg,#000 55%,transparent 100%); }
+.dic-body{ position:relative; display:flex; flex-direction:column; gap:${PACK_SPACE.lg}px; padding:${PACK_SPACE.xl}px ${PACK_SPACE.xl}px ${PACK_SPACE.xl}px ${PACK_SPACE.sm}px; min-width:0; }
+.dic-head{ display:flex; align-items:center; justify-content:space-between; gap:${PACK_SPACE.lg}px; }
+.dic-eyebrow{ display:block; font-family:${FONT_UI}; font-weight:500; font-size:${PACK_TEXT.micro}px; letter-spacing:0.26em; text-transform:uppercase; color:${PACK_THEME.inkWarm}; margin-bottom:${PACK_SPACE.xs}px; }
+/* Nadpis TMAVÝ (Matej 8. 10.: „nie je výrazný, daj ho tmavou nie zlatou"). */
+.dic-h{ margin:0; font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.h1}px; line-height:1.1; letter-spacing:0.14em; text-transform:uppercase; color:${PACK_THEME.inkStrong}; }
 .dic-h--sm{ font-size:${PACK_TEXT.lead}px; }
-.dic-orn{ display:flex; align-items:center; gap:${PACK_SPACE.sm}px; width:148px; height:${PACK_SPACE.sm}px; }
-.dic-orn::before,.dic-orn::after{ content:''; flex:1; height:1px; background:linear-gradient(90deg,${PACK_THEME.cardEdge},transparent); }
-.dic-orn::before{ background:linear-gradient(270deg,${PACK_THEME.cardEdge},transparent); }
-.dic-orn i{ width:${PACK_SPACE.sm}px; height:${PACK_SPACE.sm}px; transform:rotate(45deg); background:${PACK_THEME.cardEdge}; }
-.dic-mods{ list-style:none; margin:${PACK_SPACE.xs}px 0 ${PACK_SPACE.sm}px; padding:0; display:flex; flex-direction:column; gap:${PACK_SPACE.sm}px; }
-.dic-mods li{ display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:${PACK_SPACE.md}px;
+.dic-mods{ list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:${PACK_SPACE.md}px; }
+.dic-mods li{ display:flex; align-items:center; gap:${PACK_SPACE.md}px; min-width:0;
   padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px ${PACK_SPACE.sm}px ${PACK_SPACE.sm}px; border-radius:${PACK_R.tile}px;
-  background:linear-gradient(90deg,rgba(255,253,247,0.78),rgba(255,253,247,0.30)); border:1px solid ${PACK_THEME.border}; box-shadow:${PACK_SHADOW.lift}; }
-.dic-badge{ display:flex; align-items:center; justify-content:center; width:${PACK_SPACE.xxxl - PACK_SPACE.sm}px; height:${PACK_SPACE.xxxl - PACK_SPACE.sm}px;
-  border-radius:${PACK_R.tile}px; background:${PACK_THEME.panelGrad}; border:1px solid ${PACK_THEME.cardEdge}; box-shadow:${PACK_SHADOW.lift}; }
-.dic-mods li.is-done .dic-badge{ background:linear-gradient(135deg,#4E9463 0%,#3D7A4E 100%); border-color:#2F5F3D; color:#EAF7ED; }
-.dic-mod-main{ display:flex; flex-direction:column; gap:${PACK_SPACE.xs + 2}px; min-width:0; }
+  background:rgba(255,253,247,0.62); border:1px solid ${PACK_THEME.border}; box-shadow:${PACK_SHADOW.lift}; }
+.dic-badge{ position:relative; flex:0 0 auto; display:flex; align-items:center; justify-content:center; width:${PACK_SPACE.xxl + PACK_SPACE.xs}px; height:${PACK_SPACE.xxl + PACK_SPACE.xs}px;
+  border-radius:${PACK_R.tile}px; background:${PACK_THEME.panelGrad}; border:1px solid ${PACK_THEME.cardEdge}; }
+.dic-tick{ position:absolute; right:-${PACK_SPACE.xs + 2}px; top:-${PACK_SPACE.xs + 2}px; display:flex; align-items:center; justify-content:center;
+  width:${PACK_SPACE.lg + 2}px; height:${PACK_SPACE.lg + 2}px; border-radius:${PACK_R.pill}px; background:#3D7A4E; color:#EAF7ED; border:2px solid ${PACK_THEME.card}; }
+.dic-mod-main{ display:flex; flex-direction:column; gap:${PACK_SPACE.xs + 2}px; min-width:0; flex:1; }
 .dic-mod-main .pk-progress,.dic-mod-main .pk-progress__fill{ display:block; }
-.dic-mod-main b{ font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.label}px; letter-spacing:0.14em; text-transform:uppercase; color:${PACK_THEME.inkStrong}; }
-.dic-pct{ font-family:${FONT_UI}; font-size:${PACK_TEXT.label}px; font-weight:600; color:${PACK_THEME.inkStrong}; min-width:${PACK_SPACE.xxl + PACK_SPACE.sm}px; text-align:right; }
+.dic-mod-bar{ display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:${PACK_SPACE.sm}px; }
+.dic-mod-main b{ font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.label}px; letter-spacing:0.14em; text-transform:uppercase; color:${PACK_THEME.inkStrong}; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dic-mod-bar i{ font-style:normal; font-family:${FONT_UI}; font-size:${PACK_TEXT.label}px; font-weight:600; color:${PACK_THEME.inkWarm}; white-space:nowrap; }
 .dic-cta,.dic-ghost{ display:inline-flex; align-items:center; justify-content:center; border-radius:${PACK_R.field}px;
   font-family:${FONT_TITLE}; font-size:${PACK_TEXT.label}px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase;
   white-space:nowrap; text-decoration:none; transition:transform .2s; }
-.dic-cta{ padding:${PACK_SPACE.lg}px ${PACK_SPACE.xl}px; background:${LAPIS.grad}; border:1px solid ${GOLD_BTN.edge}; color:${LAPIS.ink}; box-shadow:${LAPIS_BTN_SHADOW}; }
-.dic-body .dic-cta{ width:100%; }
+.dic-cta{ padding:${PACK_SPACE.md}px ${PACK_SPACE.xl}px; background:${LAPIS.grad}; border:1px solid ${GOLD_BTN.edge}; color:${LAPIS.ink}; box-shadow:${LAPIS_BTN_SHADOW}; }
 .dic-cta:hover{ transform:scale(1.03); background:${LAPIS.gradHover}; }
 /* hotový stav — jeden riadok s pásikom vitráže vľavo */
 .dic--done{ display:flex; align-items:center; gap:${PACK_SPACE.lg}px; min-height:0; padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px ${PACK_SPACE.md}px 0; }
@@ -427,32 +421,39 @@ const HUB_CSS = `
 .dic-ghost{ flex:0 0 auto; padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px; background:transparent; border:1px solid ${PACK_THEME.border}; color:${PACK_THEME.inkWarm}; }
 .dic-ghost:hover{ border-color:${PACK_THEME.cardEdge}; color:${PACK_THEME.inkStrong}; }
 
-/* ── KRONIKA — linajková strana zošita ─────────────────────────────── */
+/* ── KRONIKA — linajková strana zošita (kompaktná, 3. kolo) ─────────── */
 .ctz{ position:relative; overflow:hidden; display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center;
-  gap:${PACK_SPACE.xl}px; padding:${PACK_SPACE.xl}px ${PACK_SPACE.xxl}px ${PACK_SPACE.xl}px ${PACK_SPACE.xl}px; }
+  gap:${PACK_SPACE.lg}px; padding:${PACK_SPACE.lg}px ${PACK_SPACE.xl}px; }
 .ctz::before{ content:''; position:absolute; inset:0; pointer-events:none;
-  background:repeating-linear-gradient(180deg,transparent 0,transparent 27px,rgba(201,154,63,0.16) 27px,rgba(201,154,63,0.16) 28px); }
-/* Okraj strany — zvislá čiara za knihou, ako v zošite. */
-.ctz::after{ content:''; position:absolute; top:0; bottom:0; left:144px; width:1px; background:rgba(178,86,64,0.32); pointer-events:none; z-index:0; }
+  background:repeating-linear-gradient(180deg,transparent 0,transparent 23px,rgba(201,154,63,0.16) 23px,rgba(201,154,63,0.16) 24px); }
+.ctz::after{ content:''; position:absolute; top:0; bottom:0; left:104px; width:1px; background:rgba(178,86,64,0.32); pointer-events:none; z-index:0; }
 .ctz > *{ position:relative; z-index:1; }
-.ctz-book{ display:flex; align-items:center; justify-content:center; width:96px; height:96px;
+.ctz-book{ display:flex; align-items:center; justify-content:center; width:64px; height:64px;
   background:radial-gradient(circle at 50% 55%,rgba(245,199,61,0.34) 0%,rgba(245,199,61,0) 68%); }
-.ctz-text{ display:flex; flex-direction:column; gap:${PACK_SPACE.sm}px; min-width:0; padding-left:${PACK_SPACE.sm}px; }
-.ctz-prompt{ margin:0; font-family:${FONT_UI}; font-size:${PACK_TEXT.lead}px; line-height:1.4; color:${PACK_THEME.inkStrong}; }
+.ctz-text{ display:flex; flex-direction:column; gap:${PACK_SPACE.xs}px; min-width:0; padding-left:${PACK_SPACE.md}px; }
+.ctz-text .dic-h{ font-size:${PACK_TEXT.h2}px; }
+.ctz-prompt{ margin:0; font-family:${FONT_UI}; font-size:${PACK_TEXT.body}px; line-height:1.4; color:${PACK_THEME.inkWarm}; }
 .ctz-meta{ margin:0; font-family:${FONT_UI}; font-size:${PACK_TEXT.micro}px; letter-spacing:0.14em; text-transform:uppercase; color:${PACK_THEME.inkWarm}; }
 .ctz-meta b{ color:${PACK_THEME.inkStrong}; }
 
+@media (max-width:760px){
+  .dic-mods{ grid-template-columns:1fr; gap:${PACK_SPACE.sm}px; }
+}
 @media (max-width:640px){
-  .dic{ grid-template-columns:1fr; min-height:0; }
-  .dic-art img{ object-position:0 24%; -webkit-mask-image:linear-gradient(180deg,#000 55%,transparent 100%); mask-image:linear-gradient(180deg,#000 55%,transparent 100%); }
-  .dic-body{ margin-top:-${PACK_SPACE.lg}px; padding:0 ${PACK_SPACE.xl}px ${PACK_SPACE.xl}px; }
-  .dic-art{ height:200px; }
-  .ctz{ grid-template-columns:auto minmax(0,1fr); gap:${PACK_SPACE.md}px ${PACK_SPACE.lg}px; padding:${PACK_SPACE.xl}px ${PACK_SPACE.lg}px; }
-  .ctz::after{ left:100px; }
-  .ctz-book{ width:72px; height:72px; }
-  .ctz-book svg{ width:72px; height:54px; }
+  .dic{ grid-template-columns:88px minmax(0,1fr); }
+  .dic-art img{ object-position:4% 20%; }
+  .dic-body{ padding:${PACK_SPACE.lg}px ${PACK_SPACE.lg}px ${PACK_SPACE.lg}px 0; gap:${PACK_SPACE.md}px; }
+  /* Na mobile ide CTA POD moduly (palec dole), hlavička sa rozloží do tela karty. */
+  .dic-head{ display:contents; }
+  .dic-mods{ order:1; }
+  .dic-head > :last-child{ order:2; }
+  .dic-cta{ width:100%; }
+  .dic-mods li{ padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px ${PACK_SPACE.xs}px ${PACK_SPACE.xs}px; }
+  .ctz{ grid-template-columns:auto minmax(0,1fr); gap:${PACK_SPACE.md}px; padding:${PACK_SPACE.lg}px; }
+  .ctz::after{ left:84px; }
+  .ctz-book{ width:56px; height:56px; }
+  .ctz-book svg{ width:56px; height:42px; }
   .ctz-cta{ grid-column:1/-1; width:100%; }
-  .ctz-prompt{ font-size:${PACK_TEXT.body}px; }
 }
 `;
 
@@ -1080,13 +1081,13 @@ function Pill({ children, dashed = false, mono = false, solid = false }: {
 // *„nudné bez šťavy… treba dať do toho bloku obrázok kvízu, kde je ten pes a elementy,
 // na jednej strane… viac cool, kde sú nejaké tiene, čiary… pekne veľký nadpis, obrázok,
 // ikonka, skrátka ako SaaS app prostredie"*. Preto:
-//  • VITRÁŽ (`nature-quiz-art.webp`) je ĽAVÁ POLOVICA karty — jej pravý okraj sám
-//    prechádza do papyrusu, takže maska ho len dotiahne. Na mobile je to pás hore.
-//  • Vnútorný zlatý rám 8 px od okraja (čiara) + tieň PANELU = karta „vystúpi".
-//  • Moduly sú riadky s IKONKOU v dlaždici, vlastným pruhom a percentom — človek vidí,
-//    čo ho čaká, bez otvárania.
-// ⚠️ Nadpis ostáva na 24 px (`PACK_TEXT.h1`) — väčší stupeň stupnica NEMÁ (lock 13. 9.).
-//    Veľkosť nesie zlatý prechod a ornament, nie číslo mimo sady.
+//  • VITRÁŽ (`nature-quiz-art.webp`) je PÁS vľavo (aj na mobile) — jej pravý okraj sám
+//    prechádza do papyrusu, maska ho len dotiahne.
+//  • Moduly sú dlaždice s IKONKOU, pruhom a percentom; tieň PANELU = karta „vystúpi".
+// 🔁 TRETIE KOLO (Matej: *„toto je zas moc veľké… personality by malo byť jin-jang…
+//    dog id nadpis nie je výrazný, daj ho tmavou nie zlatou"*): vitráž cez pol karty
+//    (417 px na PC) → KOMPAKTNÝ PÁS (~200 px), CTA v hlavičke, moduly vedľa seba;
+//    nadpis TMAVÝ `inkStrong`, bez ornamentu; ikonka modulu sa fajkou NENAHRÁDZA.
 const NATURE_ART = '/images/nature-quiz-art.webp';
 function DogIdCard({ latest, dogs, tx }: { latest: Latest; dogs: HubDog[]; tx: Tx }) {
   const ids = dogs.map((d) => d.id);
@@ -1118,28 +1119,36 @@ function DogIdCard({ latest, dogs, tx }: { latest: Latest; dogs: HubDog[]; tx: T
     <section className="dic" style={{ ...PACK_BOX.card, boxShadow: PACK_SHADOW.panel, marginTop: PACK_SPACE.xl }}>
       <div className="dic-art" aria-hidden><img src={NATURE_ART} alt="" /></div>
       <div className="dic-body">
-        <span className="dic-eyebrow">{tx('pack.dogid.eyebrow', 'Your dog’s document')}</span>
-        <h3 className="dic-h">{title}</h3>
-        <span className="dic-orn" aria-hidden><i /></span>
+        <div className="dic-head">
+          <div style={{ minWidth: 0 }}>
+            <span className="dic-eyebrow">{tx('pack.dogid.eyebrow', 'Your dog’s document')}</span>
+            <h3 className="dic-h">{title}</h3>
+          </div>
+          <RightGate right="dogid.edit">
+            <Link to="/pack/dogs/dogid" className="dic-cta">{tx('pack.dogid.fill', 'Fill in')}</Link>
+          </RightGate>
+        </div>
         <ul className="dic-mods">
           {mods.map(({ m, p }) => (
             <li key={m.key} className={p.done ? 'is-done' : undefined}>
+              {/* Ikonka modulu ostáva VŽDY (aj na 100 %) — fajka je len odznak v rohu.
+                  Keď fajka ikonku nahradila, jin-jang Osobnosti sa stratil (Matej 8. 10.). */}
               <span className="dic-badge" aria-hidden>
-                {p.done ? <HandCheck size={PACK_TEXT.h2} /> : <BrandIcon name={m.icon} size={PACK_TEXT.h1} tint="gold" />}
+                <BrandIcon name={m.icon} size={PACK_TEXT.h2} tint="gold" />
+                {p.done && <span className="dic-tick"><HandCheck size={PACK_TEXT.micro} /></span>}
               </span>
               <span className="dic-mod-main">
                 <b>{tx(m.i18n, m.labelEN)}</b>
-                <span className="pk-progress">
-                  <span className={`pk-progress__fill ${p.done ? 'pk-progress__fill--done' : 'pk-progress__fill--low'}`} style={fillW(p.pct)} />
+                <span className="dic-mod-bar">
+                  <span className="pk-progress">
+                    <span className={`pk-progress__fill ${p.done ? 'pk-progress__fill--done' : 'pk-progress__fill--low'}`} style={fillW(p.pct)} />
+                  </span>
+                  <i>{p.pct} %</i>
                 </span>
               </span>
-              <span className="dic-pct">{p.pct} %</span>
             </li>
           ))}
         </ul>
-        <RightGate right="dogid.edit">
-          <Link to="/pack/dogs/dogid" className="dic-cta">{tx('pack.dogid.fill', 'Fill in')}</Link>
-        </RightGate>
       </div>
     </section>
   );
@@ -1165,7 +1174,7 @@ function ChronicleTeaser({ dogs, tx }: { dogs: HubDog[]; tx: Tx }) {
   const last = rows && rows.length > 0 ? rows[0] : null;
   return (
     <section className="ctz" style={{ ...PACK_BOX.card, marginTop: PACK_SPACE.md }}>
-      <div className="ctz-book" aria-hidden><ChronicleBook size={96} /></div>
+      <div className="ctz-book" aria-hidden><ChronicleBook size={64} /></div>
       <div className="ctz-text">
         <h3 className="dic-h">{tx('pack.chronicle.title', 'Chronicle')}</h3>
         <p className="ctz-prompt">{tx('pack.chronicle.prompt', 'What did you two live through today? Keep it.')}</p>
