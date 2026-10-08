@@ -1198,20 +1198,10 @@ body:has(.ainubis-panel--away) .ainubis-launcher { visibility: hidden; }
   .ainubis-panel--left .ainubis-msg, .ainubis-topics { animation: none; }
 }
 
-/* ── COOKIE KARTA NA PC (5. 10. 2026, test po FLIPe) ─────────────────────────────────
-   Karta súhlasu stojí od 1024 px vpravo dole — v tom istom rohu ako guľa, ktorá pod ňou
-   nebola klikateľná (`elementFromPoint` = consent-btn-primary). Kým karta je, guľa stojí
-   NAD ňou: spodok karty + jej výška (`--consent-h`, publikuje ConsentBanner) + 12 px.
-   Po voľbe karta zmizne a pravidlo prestane platiť. Spodky kariet = ConsentBanner.tsx. */
-@media (min-width: 1024px) {
-  body:has(.consent-banner) .ainubis-launcher {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 16px + var(--consent-h, 0px) + 12px);
-  }
-  body:has(.trp-root):has(.consent-banner) .ainubis-launcher,
-  body:has(.akv-root):has(.consent-banner) .ainubis-launcher {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 16px + var(--pack-nav-h, 64px) + 12px + var(--consent-h, 0px) + 12px);
-  }
-}
+/* ── COOKIE KARTA NA PC — guľu NEDVÍHA (8. 10. 2026) ─────────────────────────────────
+   5. 10. sa guľa pri cookie karte zdvíhala nad ňu (+ --consent-h). Matej 8. 10.: *„je to
+   kvôli cookies, zdvihne aj bublinu AINUBISA aj chip — oznam nezdvíha polohu týchto
+   prvkov"*. Pravidlo zmazané; nevracať bez jeho slova. */
 
 /* Rolovanie na mobile — guľa ustúpi z cesty obsahu (AinubisWidget.tsx, `scrolling`). */
 @media (max-width: 767px) {
