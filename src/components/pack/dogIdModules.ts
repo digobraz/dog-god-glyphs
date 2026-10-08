@@ -26,7 +26,7 @@ type LatestOfDog = Record<string, LatestValue> | undefined;
 /** Sekcie kvízu, ktoré tvoria ZÁKLAD — v poradí, v akom ich flow prechádza. */
 export const BASE_SECTION_KEYS = ['basics', 'howWorks', 'social', 'temperament', 'health', 'food'] as const;
 
-export type DogIdModuleKey = 'base' | 'nature' | 'will' | 'feeding' | 'supplements';
+export type DogIdModuleKey = 'base' | 'nature' | 'will' | 'feeding';
 
 export interface DogIdModule {
   key: DogIdModuleKey;
@@ -76,15 +76,11 @@ export const DOGID_MODULES: DogIdModule[] = [
     steps: inProgress(WILL_ALL), questions: WILL_ALL.length,
   },
   {
+    // DOPLNKY ako samostatný modul ZANIKLI (Matej 8. 10. 2026: *„suplements vymaž, to bude
+    // vo feeding plane"*) — kŕmna dávka ich ponesie v sebe.
     key: 'feeding', icon: 'food', soon: true,
     labelEN: 'Feeding plan', i18n: 'pack.dogid.mod.feeding',
-    subEN: 'A daily portion worked out for their body', subI18n: 'pack.dogid.mod.feedingSub',
-    steps: [], questions: 0,
-  },
-  {
-    key: 'supplements', icon: 'chemical', soon: true,
-    labelEN: 'Supplements', i18n: 'pack.dogid.mod.supplements',
-    subEN: 'What they take and why', subI18n: 'pack.dogid.mod.supplementsSub',
+    subEN: 'Daily portion and supplements, worked out for their body', subI18n: 'pack.dogid.mod.feedingSub',
     steps: [], questions: 0,
   },
 ];

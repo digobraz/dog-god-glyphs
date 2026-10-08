@@ -46,10 +46,12 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PackLayout } from '@/components/pack/PackLayout';
 import {
-  PACK_THEME, PACK_BOX, PACK_HEAD, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW } from '@/components/pack/packTheme';
+  PACK_THEME, PACK_BOX, PACK_HEAD, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, GOLD_BTN, PACK_SHADOW, PROGRESS_CSS } from '@/components/pack/packTheme';
 import { PALE } from '@/components/pack/navGoldSkin';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { HandCheck } from '@/components/pack/HandIcons';
+import { ChronicleBook } from '@/components/pack/diary/ChronicleBook';
+import { useDiaryRows } from '@/components/pack/diary/DiaryList';
 import { FlagCircle } from '@/components/pack/FlagCircle';
 import { PackCalendar } from '@/components/pack/calendar/PackCalendar';
 import { DiaryEntry } from '@/components/pack/diary/DiaryEntry';
@@ -57,7 +59,7 @@ import ainubisBadge from '@/assets/ainubis-badge.webp';
 import { AINUBIS } from '@/components/pack/ainubisSkin';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK } from '@/components/pack/navGoldSkin';
 import {
-  QUIZ_SECTIONS, PROGRESS_STEPS, STEP_BY_FIELD,
+  PROGRESS_STEPS, STEP_BY_FIELD,
 } from '@/components/pack/dogQuiz';
 import { LIVE_MODULES, moduleProgress, dogIdDone } from '@/components/pack/dogIdModules';
 import { storedSpecials } from '@/components/pack/natureQuiz';
@@ -374,30 +376,84 @@ const HUB_CSS = `
   .dogblk-rail{ padding-left:8px; }
 }
 
-/* ── DOG ID — karta modulov (8. 10. 2026) ─────────────────────────────── */
-.dic-list{ list-style:none; margin:0 auto; padding:0; max-width:520px; display:flex; flex-direction:column; gap:${PACK_SPACE.md}px; }
-.dic-list li{ display:grid; grid-template-columns:${PACK_SPACE.xxl}px minmax(0,1fr); align-items:baseline; gap:${PACK_SPACE.sm}px;
-  font-family:${FONT_UI}; font-size:${PACK_TEXT.body}px; line-height:1.45; color:${PACK_THEME.inkWarm}; }
-.dic-list b{ font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.label}px; letter-spacing:0.14em; text-transform:uppercase; color:${PACK_THEME.inkStrong}; }
-.dic-mark{ display:flex; justify-content:center; align-self:center; }
-.dic-list li.is-done .dic-mark{ color:#3D7A4E; }
-.dic-cta-row{ display:flex; justify-content:center; margin-top:${PACK_SPACE.xl}px; }
+/* ── DOG ID — karta modulov (8. 10. 2026, 2. kolo „šťava") ─────────────── */
+.dic{ position:relative; overflow:hidden; display:grid; grid-template-columns:minmax(0,5fr) minmax(0,7fr); min-height:360px; }
+/* Vnútorný zlatý rám — čiara 8 px od okraja, ide AJ cez vitráž (zarámovaný obraz). */
+.dic::after{ content:''; position:absolute; inset:${PACK_SPACE.sm}px; border:1px solid ${PACK_THEME.border}; border-radius:${PACK_R.tile}px; pointer-events:none; z-index:3; }
+.dic-art{ position:relative; min-height:100%; }
+.dic-art img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:0 22%;
+  -webkit-mask-image:linear-gradient(90deg,#000 58%,transparent 100%); mask-image:linear-gradient(90deg,#000 58%,transparent 100%); }
+.dic-body{ position:relative; z-index:4; display:flex; flex-direction:column; justify-content:center; gap:${PACK_SPACE.md}px;
+  padding:${PACK_SPACE.xxl}px ${PACK_SPACE.xxl}px ${PACK_SPACE.xxl}px 0; min-width:0; }
+.dic-eyebrow{ font-family:${FONT_UI}; font-weight:500; font-size:${PACK_TEXT.micro}px; letter-spacing:0.26em; text-transform:uppercase; color:${PACK_THEME.cardEdge}; }
+/* Nadpis — zlatý prechod do hnedej (PALE.deep), na papyruse čitateľný a „liaty". */
+.dic-h{ margin:0; font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.h1}px; line-height:1.1; letter-spacing:0.14em; text-transform:uppercase;
+  background:linear-gradient(180deg,#D9AE52 0%,${PACK_THEME.cardEdge} 45%,${PALE.deep} 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.dic-h--sm{ font-size:${PACK_TEXT.lead}px; }
+.dic-orn{ display:flex; align-items:center; gap:${PACK_SPACE.sm}px; width:148px; height:${PACK_SPACE.sm}px; }
+.dic-orn::before,.dic-orn::after{ content:''; flex:1; height:1px; background:linear-gradient(90deg,${PACK_THEME.cardEdge},transparent); }
+.dic-orn::before{ background:linear-gradient(270deg,${PACK_THEME.cardEdge},transparent); }
+.dic-orn i{ width:${PACK_SPACE.sm}px; height:${PACK_SPACE.sm}px; transform:rotate(45deg); background:${PACK_THEME.cardEdge}; }
+.dic-mods{ list-style:none; margin:${PACK_SPACE.xs}px 0 ${PACK_SPACE.sm}px; padding:0; display:flex; flex-direction:column; gap:${PACK_SPACE.sm}px; }
+.dic-mods li{ display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:${PACK_SPACE.md}px;
+  padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px ${PACK_SPACE.sm}px ${PACK_SPACE.sm}px; border-radius:${PACK_R.tile}px;
+  background:linear-gradient(90deg,rgba(255,253,247,0.78),rgba(255,253,247,0.30)); border:1px solid ${PACK_THEME.border}; box-shadow:${PACK_SHADOW.lift}; }
+.dic-badge{ display:flex; align-items:center; justify-content:center; width:${PACK_SPACE.xxxl - PACK_SPACE.sm}px; height:${PACK_SPACE.xxxl - PACK_SPACE.sm}px;
+  border-radius:${PACK_R.tile}px; background:${PACK_THEME.panelGrad}; border:1px solid ${PACK_THEME.cardEdge}; box-shadow:${PACK_SHADOW.lift}; }
+.dic-mods li.is-done .dic-badge{ background:linear-gradient(135deg,#4E9463 0%,#3D7A4E 100%); border-color:#2F5F3D; color:#EAF7ED; }
+.dic-mod-main{ display:flex; flex-direction:column; gap:${PACK_SPACE.xs + 2}px; min-width:0; }
+.dic-mod-main .pk-progress,.dic-mod-main .pk-progress__fill{ display:block; }
+.dic-mod-main b{ font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.label}px; letter-spacing:0.14em; text-transform:uppercase; color:${PACK_THEME.inkStrong}; }
+.dic-pct{ font-family:${FONT_UI}; font-size:${PACK_TEXT.label}px; font-weight:600; color:${PACK_THEME.inkStrong}; min-width:${PACK_SPACE.xxl + PACK_SPACE.sm}px; text-align:right; }
 .dic-cta,.dic-ghost{ display:inline-flex; align-items:center; justify-content:center; border-radius:${PACK_R.field}px;
   font-family:${FONT_TITLE}; font-size:${PACK_TEXT.label}px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase;
   white-space:nowrap; text-decoration:none; transition:transform .2s; }
-.dic-cta{ min-width:240px; padding:${PACK_SPACE.md}px ${PACK_SPACE.xl}px; background:${LAPIS.grad}; border:1px solid ${GOLD_BTN.edge}; color:${LAPIS.ink}; box-shadow:${LAPIS_BTN_SHADOW}; }
-.dic-cta:hover{ transform:scale(1.04); background:${LAPIS.gradHover}; }
-.dic-done{ display:flex; align-items:center; gap:${PACK_SPACE.md}px; }
+.dic-cta{ padding:${PACK_SPACE.lg}px ${PACK_SPACE.xl}px; background:${LAPIS.grad}; border:1px solid ${GOLD_BTN.edge}; color:${LAPIS.ink}; box-shadow:${LAPIS_BTN_SHADOW}; }
+.dic-body .dic-cta{ width:100%; }
+.dic-cta:hover{ transform:scale(1.03); background:${LAPIS.gradHover}; }
+/* hotový stav — jeden riadok s pásikom vitráže vľavo */
+.dic--done{ display:flex; align-items:center; gap:${PACK_SPACE.lg}px; min-height:0; padding:${PACK_SPACE.md}px ${PACK_SPACE.lg}px ${PACK_SPACE.md}px 0; }
+.dic--done::after{ display:none; }
+.dic-thumb{ align-self:stretch; width:88px; flex:0 0 auto; margin:-${PACK_SPACE.md}px 0; position:relative; }
+.dic-thumb img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:0 22%;
+  -webkit-mask-image:linear-gradient(90deg,#000 50%,transparent); mask-image:linear-gradient(90deg,#000 50%,transparent); }
+.dic-done-body{ min-width:0; flex:1; }
 .dic-done-head{ display:flex; align-items:center; gap:${PACK_SPACE.sm}px; }
-.dic-title{ font-family:${FONT_TITLE}; font-weight:700; font-size:${PACK_TEXT.label}px; letter-spacing:0.14em; text-transform:uppercase; color:${PACK_THEME.inkStrong}; margin:0; }
 .dic-full{ border-radius:${PACK_R.pill}px; padding:${PACK_SPACE.xs}px ${PACK_SPACE.sm}px; background:#3D7A4E; color:#EAF7ED;
   font-family:${FONT_UI}; font-size:${PACK_TEXT.micro}px; font-weight:600; letter-spacing:0.02em; }
-.dic-mods{ display:flex; flex-wrap:wrap; gap:${PACK_SPACE.xs}px ${PACK_SPACE.md}px; font-family:${FONT_UI}; font-size:${PACK_TEXT.label}px; color:${PACK_THEME.inkWarm}; margin:${PACK_SPACE.xs}px 0 0; }
-.dic-mods span{ display:inline-flex; align-items:center; gap:${PACK_SPACE.xs}px; }
-.dic-mods svg{ color:#3D7A4E; }
+.dic-donemods{ display:flex; flex-wrap:wrap; gap:${PACK_SPACE.xs}px ${PACK_SPACE.md}px; font-family:${FONT_UI}; font-size:${PACK_TEXT.label}px; color:${PACK_THEME.inkWarm}; margin:${PACK_SPACE.xs}px 0 0; }
+.dic-donemods span{ display:inline-flex; align-items:center; gap:${PACK_SPACE.xs}px; }
+.dic-donemods svg{ color:#3D7A4E; }
 .dic-ghost{ flex:0 0 auto; padding:${PACK_SPACE.sm}px ${PACK_SPACE.md}px; background:transparent; border:1px solid ${PACK_THEME.border}; color:${PACK_THEME.inkWarm}; }
 .dic-ghost:hover{ border-color:${PACK_THEME.cardEdge}; color:${PACK_THEME.inkStrong}; }
-@media (max-width:560px){ .dic-cta{ width:100%; min-width:0; } }
+
+/* ── KRONIKA — linajková strana zošita ─────────────────────────────── */
+.ctz{ position:relative; overflow:hidden; display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center;
+  gap:${PACK_SPACE.xl}px; padding:${PACK_SPACE.xl}px ${PACK_SPACE.xxl}px ${PACK_SPACE.xl}px ${PACK_SPACE.xl}px; }
+.ctz::before{ content:''; position:absolute; inset:0; pointer-events:none;
+  background:repeating-linear-gradient(180deg,transparent 0,transparent 27px,rgba(201,154,63,0.16) 27px,rgba(201,154,63,0.16) 28px); }
+/* Okraj strany — zvislá čiara za knihou, ako v zošite. */
+.ctz::after{ content:''; position:absolute; top:0; bottom:0; left:144px; width:1px; background:rgba(178,86,64,0.32); pointer-events:none; z-index:0; }
+.ctz > *{ position:relative; z-index:1; }
+.ctz-book{ display:flex; align-items:center; justify-content:center; width:96px; height:96px;
+  background:radial-gradient(circle at 50% 55%,rgba(245,199,61,0.34) 0%,rgba(245,199,61,0) 68%); }
+.ctz-text{ display:flex; flex-direction:column; gap:${PACK_SPACE.sm}px; min-width:0; padding-left:${PACK_SPACE.sm}px; }
+.ctz-prompt{ margin:0; font-family:${FONT_UI}; font-size:${PACK_TEXT.lead}px; line-height:1.4; color:${PACK_THEME.inkStrong}; }
+.ctz-meta{ margin:0; font-family:${FONT_UI}; font-size:${PACK_TEXT.micro}px; letter-spacing:0.14em; text-transform:uppercase; color:${PACK_THEME.inkWarm}; }
+.ctz-meta b{ color:${PACK_THEME.inkStrong}; }
+
+@media (max-width:640px){
+  .dic{ grid-template-columns:1fr; min-height:0; }
+  .dic-art img{ object-position:0 24%; -webkit-mask-image:linear-gradient(180deg,#000 55%,transparent 100%); mask-image:linear-gradient(180deg,#000 55%,transparent 100%); }
+  .dic-body{ margin-top:-${PACK_SPACE.lg}px; padding:0 ${PACK_SPACE.xl}px ${PACK_SPACE.xl}px; }
+  .dic-art{ height:200px; }
+  .ctz{ grid-template-columns:auto minmax(0,1fr); gap:${PACK_SPACE.md}px ${PACK_SPACE.lg}px; padding:${PACK_SPACE.xl}px ${PACK_SPACE.lg}px; }
+  .ctz::after{ left:100px; }
+  .ctz-book{ width:72px; height:72px; }
+  .ctz-book svg{ width:72px; height:54px; }
+  .ctz-cta{ grid-column:1/-1; width:100%; }
+  .ctz-prompt{ font-size:${PACK_TEXT.body}px; }
+}
 `;
 
 interface HubDog {
@@ -482,7 +538,7 @@ export default function PackDogs() {
 
   return (
     <PackLayout>
-      <style>{HUB_CSS}</style>
+      <style>{HUB_CSS}{PROGRESS_CSS}</style>
 
       {/* ── 1 · PSY — každý pes VLASTNÝ gradientový blok ──────────────────────
              Bez nadpisu „My pack", bez počtu psov a bez „+ pridať psa"
@@ -513,7 +569,7 @@ export default function PackDogs() {
       {/* ── KRONIKA — JEDEN RIADOK VÝZVY (Matej 8. 10. 2026: „v bloku je zbytočne veľa
            info… len výzva k príbehu… na jeden riadok, ikonka a CTA, čo otvorí dashboard").
            Zápisy, filtre psov a fotky žijú na `/pack/dogs/chronicle`, nie tu. */}
-      <ChronicleTeaser tx={tx} />
+      <ChronicleTeaser dogs={dogs} tx={tx} />
 
       {/* ── KALENDÁR — dochádzka, MIMO DOG ID ─────────────────────────────────
            Matej 12. 9. 2026: „kalendár nie je časť dokladu, je to dochádzka."
@@ -1017,26 +1073,37 @@ function Pill({ children, dashed = false, mono = false, solid = false }: {
 
 // ── 2 · DOG ID — karta modulov (8. 10. 2026) ─────────────────────────────────
 // Matej nad nákresom konsolidácie: *„DOG ID blok ENORMNE skrátiť = odrážky, čo rieši
-// + CTA VYPLNIŤ"*. Percento NESIE PSÍ BLOK, takže tu žiadne nie je — kým nie je hotovo.
-// Na 100 % sa karta zmení na JEDEN RIADOK na konci stránky (Matej: *„ostane jeden blok
-// s % na konci stránky s možnosťou vrátiť sa a prepísať"*).
-// Do 8. 10. tu stálo 6 dlaždíc + hero kvízu „vitráž" (`NatureHero`); kvíz osobnosti je
-// odteraz modul OSOBNOSŤ na `/pack/dogs/dogid` a vitráž ostáva na jeho úvode.
+// + CTA VYPLNIŤ"*. Na 100 % sa karta zmení na JEDEN RIADOK na konci stránky (Matej:
+// *„ostane jeden blok s % na konci stránky s možnosťou vrátiť sa a prepísať"*).
+//
+// 🎨 DRUHÉ KOLO TÝŽ DEŇ — Matej nad prvou verziou (odrážky na holom papyruse):
+// *„nudné bez šťavy… treba dať do toho bloku obrázok kvízu, kde je ten pes a elementy,
+// na jednej strane… viac cool, kde sú nejaké tiene, čiary… pekne veľký nadpis, obrázok,
+// ikonka, skrátka ako SaaS app prostredie"*. Preto:
+//  • VITRÁŽ (`nature-quiz-art.webp`) je ĽAVÁ POLOVICA karty — jej pravý okraj sám
+//    prechádza do papyrusu, takže maska ho len dotiahne. Na mobile je to pás hore.
+//  • Vnútorný zlatý rám 8 px od okraja (čiara) + tieň PANELU = karta „vystúpi".
+//  • Moduly sú riadky s IKONKOU v dlaždici, vlastným pruhom a percentom — človek vidí,
+//    čo ho čaká, bez otvárania.
+// ⚠️ Nadpis ostáva na 24 px (`PACK_TEXT.h1`) — väčší stupeň stupnica NEMÁ (lock 13. 9.).
+//    Veľkosť nesie zlatý prechod a ornament, nie číslo mimo sady.
+const NATURE_ART = '/images/nature-quiz-art.webp';
 function DogIdCard({ latest, dogs, tx }: { latest: Latest; dogs: HubDog[]; tx: Tx }) {
   const ids = dogs.map((d) => d.id);
-  const mods = LIVE_MODULES.map((m) => ({ m, done: moduleProgress(m, latest, ids).done }));
-  const allDone = mods.every((x) => x.done);
+  const mods = LIVE_MODULES.map((m) => ({ m, p: moduleProgress(m, latest, ids) }));
+  const allDone = mods.every((x) => x.p.done);
   const title = tx('pack.hub.profileTitle', 'DOG ID');
 
   if (allDone) {
     return (
-      <section className="dic-done" style={{ ...PACK_BOX.card, marginTop: PACK_SPACE.md, padding: PACK_SPACE.lg }}>
-        <div style={{ minWidth: 0, flex: 1 }}>
+      <section className="dic dic--done" style={{ ...PACK_BOX.card, marginTop: PACK_SPACE.md }}>
+        <div className="dic-thumb" aria-hidden><img src={NATURE_ART} alt="" /></div>
+        <div className="dic-done-body">
           <div className="dic-done-head">
-            <h4 className="dic-title">{title}</h4>
+            <h4 className="dic-h dic-h--sm">{title}</h4>
             <span className="dic-full">100 %</span>
           </div>
-          <p className="dic-mods">
+          <p className="dic-donemods">
             {mods.map(({ m }) => (
               <span key={m.key}>{tx(m.i18n, m.labelEN)} <HandCheck size={PACK_TEXT.label} /></span>
             ))}
@@ -1048,23 +1115,28 @@ function DogIdCard({ latest, dogs, tx }: { latest: Latest; dogs: HubDog[]; tx: T
   }
 
   return (
-    <section style={{ ...PACK_BOX.card, marginTop: PACK_SPACE.xl, padding: PACK_SPACE.xl }}>
-      {/* Nadpis vnútri karty = VŽDY papyrusový inkoust (`PALE.deep`) — rozhoduje podklad
-          pod prvkom, nie poloha prepínača šatu (CLAUDE.md 11. 9.). Tvar = `PACK_HEAD.card`. */}
-      <div className="text-center" style={{ ...PACK_HEAD.card, color: PALE.deep, marginBottom: PACK_SPACE.lg }}>
-        {title}
-      </div>
-      <ul className="dic-list">
-        {mods.map(({ m, done }) => (
-          <li key={m.key} className={done ? 'is-done' : undefined}>
-            <span className="dic-mark" aria-hidden>
-              {done ? <HandCheck size={PACK_TEXT.lead} /> : <BrandIcon name={m.icon} size={PACK_TEXT.lead + PACK_SPACE.xs} tint="gold" />}
-            </span>
-            <span><b>{tx(m.i18n, m.labelEN)}</b> — {tx(m.subI18n, m.subEN)}</span>
-          </li>
-        ))}
-      </ul>
-      <div className="dic-cta-row">
+    <section className="dic" style={{ ...PACK_BOX.card, boxShadow: PACK_SHADOW.panel, marginTop: PACK_SPACE.xl }}>
+      <div className="dic-art" aria-hidden><img src={NATURE_ART} alt="" /></div>
+      <div className="dic-body">
+        <span className="dic-eyebrow">{tx('pack.dogid.eyebrow', 'Your dog’s document')}</span>
+        <h3 className="dic-h">{title}</h3>
+        <span className="dic-orn" aria-hidden><i /></span>
+        <ul className="dic-mods">
+          {mods.map(({ m, p }) => (
+            <li key={m.key} className={p.done ? 'is-done' : undefined}>
+              <span className="dic-badge" aria-hidden>
+                {p.done ? <HandCheck size={PACK_TEXT.h2} /> : <BrandIcon name={m.icon} size={PACK_TEXT.h1} tint="gold" />}
+              </span>
+              <span className="dic-mod-main">
+                <b>{tx(m.i18n, m.labelEN)}</b>
+                <span className="pk-progress">
+                  <span className={`pk-progress__fill ${p.done ? 'pk-progress__fill--done' : 'pk-progress__fill--low'}`} style={fillW(p.pct)} />
+                </span>
+              </span>
+              <span className="dic-pct">{p.pct} %</span>
+            </li>
+          ))}
+        </ul>
         <RightGate right="dogid.edit">
           <Link to="/pack/dogs/dogid" className="dic-cta">{tx('pack.dogid.fill', 'Fill in')}</Link>
         </RightGate>
@@ -1073,40 +1145,38 @@ function DogIdCard({ latest, dogs, tx }: { latest: Latest; dogs: HubDog[]; tx: T
   );
 }
 
-// ── KRONIKA — jeden riadok výzvy (8. 10. 2026) ───────────────────────────────
+/** Šírka výplne PROGRESU (recept `.pk-progress`) — rovnaký pomocník ako vo `VaultKnowledge`. */
+const fillW = (pct: number) => {
+  const w = `${Math.min(100, Math.max(0, pct))}%`;
+  return { width: w };
+};
+
+// ── KRONIKA — výzva k príbehu (8. 10. 2026) ──────────────────────────────────
 // Nahradila dlaždice GALÉRIA + DENNÍK v karte DOG ID. Matej: *„len výzva k príbehu —
-// niečo v zmysle ulož si vaše spomienky, čo ste dnes zažili… výzva na jeden riadok,
-// ikonka a CTA, čo otvorí dashboard"*. Žiadne náhľady zápisov — tie sú na obrazovke
-// kroniky; blok na `/dogs` má len pozvať.
-// Emoji je to isté, aké mal denník (`QUIZ_SECTIONS` journal) — nová značka nevzniká.
-const JOURNAL_EMOJI = QUIZ_SECTIONS.find((s) => s.kind === 'journal')?.emoji ?? '';
-function ChronicleTeaser({ tx }: { tx: Tx }) {
+// ulož si vaše spomienky, čo ste dnes zažili… ikonka a CTA, čo otvorí dashboard"*.
+// 🎨 Druhé kolo (Matej: *„aj ten blok kronika… juicy, hravo, veľký nadpis, obrázok"*):
+//  • karta je LINAJKOVÁ STRANA zošita — vodorovné čiary + okraj, tá istá kniha s packou
+//    (`ChronicleBook`), aká je na obrazovke kroniky, so žiarou za ňou;
+//  • jeden riadok ÚDAJA (počet zápisov · posledný) — výzva, ktorá vie, že už niečo máš.
+//    Žiadne náhľady zápisov — tie sú na `/pack/dogs/chronicle`.
+function ChronicleTeaser({ dogs, tx }: { dogs: HubDog[]; tx: Tx }) {
+  const rows = useDiaryRows(dogs.map((d) => d.id));
+  const lang = (typeof document !== 'undefined' && document.documentElement.lang) || undefined;
+  const last = rows && rows.length > 0 ? rows[0] : null;
   return (
-    <section
-      className="flex items-center gap-3"
-      style={{ ...PACK_BOX.card, marginTop: PACK_SPACE.md, padding: PACK_SPACE.lg }}
-    >
-      <div style={{ fontSize: PACK_TEXT.h1, lineHeight: 1, flex: '0 0 auto' }} aria-hidden>{JOURNAL_EMOJI}</div>
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <h4 style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: PACK_TEXT.label, letterSpacing: '0.14em',
-          textTransform: 'uppercase', color: T.inkStrong, margin: `0 0 ${PACK_SPACE.xs}px` }}>
-          {tx('pack.chronicle.title', 'Chronicle')}
-        </h4>
-        <p style={{ fontFamily: FONT_UI, fontSize: PACK_TEXT.label, color: T.inkWarm, margin: 0, lineHeight: 1.45 }}>
-          {tx('pack.chronicle.prompt', 'What did you two live through today? Keep it.')}
-        </p>
+    <section className="ctz" style={{ ...PACK_BOX.card, marginTop: PACK_SPACE.md }}>
+      <div className="ctz-book" aria-hidden><ChronicleBook size={96} /></div>
+      <div className="ctz-text">
+        <h3 className="dic-h">{tx('pack.chronicle.title', 'Chronicle')}</h3>
+        <p className="ctz-prompt">{tx('pack.chronicle.prompt', 'What did you two live through today? Keep it.')}</p>
+        {rows && rows.length > 0 && (
+          <p className="ctz-meta">
+            {tx('pack.chronicle.countLabel', 'Entries')}: <b>{rows.length}</b>
+            {last && <> · {tx('pack.chronicle.lastLabel', 'last')} {new Date(last.recordedAt).toLocaleDateString(lang, { day: 'numeric', month: 'numeric' })}</>}
+          </p>
+        )}
       </div>
-      <Link
-        to="/pack/dogs/chronicle"
-        style={{
-          flex: '0 0 auto', borderRadius: PACK_R.field, padding: `${PACK_SPACE.sm}px ${PACK_SPACE.md}px`,
-          fontFamily: FONT_TITLE, fontSize: PACK_TEXT.label, fontWeight: 700, letterSpacing: '0.14em',
-          textTransform: 'uppercase', whiteSpace: 'nowrap', textDecoration: 'none',
-          background: LAPIS.grad, border: `1px solid ${GOLD_BTN.edge}`, color: LAPIS.ink, boxShadow: LAPIS_BTN_SHADOW,
-        }}
-      >
-        {tx('pack.hub.open', 'Open')}
-      </Link>
+      <Link to="/pack/dogs/chronicle" className="dic-cta ctz-cta">{tx('pack.hub.open', 'Open')}</Link>
     </section>
   );
 }
