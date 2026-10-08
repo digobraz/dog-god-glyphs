@@ -19,6 +19,28 @@ const run = (fn: (ph: PostHog) => void) => {
   if (POSTHOG_KEY && queue.length < MAX_QUEUE) queue.push(fn);
 };
 
+// ── „TO SOM JA" — vlastné návštevy von z čísiel (8. 10. 2026) ───────────────────────────────
+// Matej: *„potrebujem aby si ten udaj o navštevach filtrobval a ukazoval len navštevy mimo mňa!
+// nie lokal nie ja iba čista navšteva"*. Dovtedy ho od sveta delilo len mesto z geoIP
+// (Biely Kostol) — telefón na mobilných dátach sa tváril ako Bratislava a rátal sa.
+// Značka `internal: true` ide na KAŽDÝ event; `posthog-analytics.py` aj filter testovacích
+// účtov v PostHogu ju vyhadzujú. Dostane ju: (1) zariadenie, ktoré raz otvorí `dogypt.com/?ja`,
+// (2) zariadenie, kde sa prihlási účet zakladateľa, (3) každý host mimo dogypt.com
+// (localhost, náhľad workers.dev, prerender) — tam nie je skutočný návštevník nikdy.
+const SELF_KEY = 'dogypt_self';
+const isProdHost = () => /^(www\.)?dogypt\.com$/.test(location.hostname);
+const isSelf = () => {
+  if (!isProdHost()) return true;
+  try { return localStorage.getItem(SELF_KEY) === '1'; } catch { return false; }
+};
+// `?ja` sa číta HNEĎ pri načítaní modulu — init PostHogu príde až o pár sekúnd neskôr
+// a router by medzitým adresu mohol prepísať.
+try { if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('ja')) localStorage.setItem(SELF_KEY, '1'); } catch { /* ignore */ }
+export const markSelf = () => {
+  try { localStorage.setItem(SELF_KEY, '1'); } catch { /* súkromné okno */ }
+  run((ph) => ph.register({ internal: true }));
+};
+
 export const initAnalytics = (scrub: (ev: any) => any) => {
   if (!POSTHOG_KEY || posthog) return;
   import('posthog-js').then(({ default: ph }) => {
@@ -42,6 +64,7 @@ export const initAnalytics = (scrub: (ev: any) => any) => {
       // z `/pack/join/<token>` a Supabase tokeny v hashi magic linku odchádzali celé.
       before_send: (ev) => (ev ? scrub(ev) : ev),
     });
+    if (isSelf()) ph.register({ internal: true });
     posthog = ph;
     queue.splice(0).forEach((fn) => { try { fn(ph); } catch { /* ignore */ } });
     vitals.splice(0).forEach(({ props, timestamp }) => { try { ph.capture('web_vital', props, { timestamp }); } catch { /* ignore */ } });
@@ -72,7 +95,7 @@ const beaconVitals = () => {
   const batch = vitals.splice(0).map(({ props, timestamp }) => ({
     event: 'web_vital',
     timestamp: timestamp.toISOString(),
-    properties: { ...props, token: POSTHOG_KEY, distinct_id: vitalId, $process_person_profile: false, $lib: 'rum-beacon' },
+    properties: { ...props, token: POSTHOG_KEY, distinct_id: vitalId, $process_person_profile: false, $lib: 'rum-beacon', ...(isSelf() ? { internal: true } : {}) },
   }));
   try {
     const json = JSON.stringify(batch);
@@ -126,6 +149,7 @@ export const trackPageview = (path: string) => {
 export const upgradeToTier1 = () => {
   run((ph) => {
     ph.set_config({ persistence: 'localStorage+cookie' });
+    if (isSelf()) ph.register({ internal: true }); // zmena persistence volá clear() — značka by zmizla
     ph.startSessionRecording();
   });
 };
@@ -140,5 +164,6 @@ export const downgradeToTier0 = () => {
   run((ph) => {
     ph.stopSessionRecording();
     ph.set_config({ persistence: 'memory' });
+    if (isSelf()) ph.register({ internal: true }); // zmena persistence volá clear() — značka by zmizla
   });
 };

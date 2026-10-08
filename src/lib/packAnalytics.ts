@@ -1,4 +1,5 @@
-import { track, identifyById, resetIdentity } from './analytics';
+import { track, identifyById, resetIdentity, markSelf } from './analytics';
+import { isFounderEmail } from './founder';
 import { afterLoad } from './afterLoad';
 
 // ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -145,6 +146,8 @@ if (typeof window !== 'undefined') {
       const uid = session?.user?.id;
       if (event === 'SIGNED_OUT') { openedThisSession = false; resetIdentity(); return; }
       if (uid) identifyById(uid);
+      // Účet zakladateľa = Matej ⇒ toto zariadenie už navždy nesie `internal` (analytics.ts).
+      if (isFounderEmail(session?.user?.email)) markSelf();
     });
   }).catch(() => {});
 }
