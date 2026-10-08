@@ -62,6 +62,7 @@ import {
   type CalDog, type CalEntry, type LogKind, type MoonPhase, type ProtWindow,
 } from './calendarModel';
 import { estimateLife, SIZE_NAME_SK, type LifeEstimate } from '@/data/breedLifespan';
+import { CalBandsSettings, asCalBands, CAL_BANDS_FIELD, PRE_RED } from './CalBandsSettings';
 
 const T = PACK_THEME;
 const EMOJI_FONT = "'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
@@ -1011,6 +1012,8 @@ function LifeGrid({
   const loc = intlLocale(lang);
   const [hover, setHover] = useState<{ wi: number; x: number; y: number } | null>(null);
   const [openWeek, setOpenWeek] = useState<number | null>(null);
+  // NASTAVENIE RÁMIKOV (8. 10. 2026) — stav MUSÍ stáť pred skorým `return` nižšie.
+  const [bandsOpen, setBandsOpen] = useState(false);
   // Pás rekordmanov — šípky ním posúvajú, preto naň treba ref. Krok sa počíta
   // za behu z reálnej šírky: pevné číslo by na mobile (karta 78 %) preskočilo
   // dve karty naraz.
@@ -1113,16 +1116,34 @@ function LifeGrid({
   // hrany vnútri riadkov, končilo pásmo `< ceil(high)`, teda pri 9–12 rámovalo
   // roky 9, 10, 11 — a v rámiku by potom stálo „9–11", hoci popisok hovorí
   // 9–12. Matej: „daj do rámika čísla, ktorých sa pásmo týka = 9-12".
-  const bandFirst = Math.floor(band.low);
-  const bandLast = Math.floor(band.high);
+  // ⚙️ VLASTNÉ ROZPÄTIA (Matej 8. 10. 2026: „štandardne nastavené podľa nás, ale človek
+  // si to môže evidovať podľa seba"). `calendar.bands` v `dog_events`; chýbajúci kľúč =
+  // náš odhad. Náš odhad sa počíta VŽDY — panel ho ukazuje aj vedľa vlastných čísel.
+  const ourBand = { low: Math.floor(band.low), high: Math.floor(band.high) };
+  const userBands = asCalBands(latest[row.id]?.[CAL_BANDS_FIELD]?.value);
+  const bandFirst = userBands.life?.low ?? ourBand.low;
+  const bandLast = userBands.life?.high ?? ourBand.high;
+  // Náš cieľ = 5 rokov nad PRIEMEROM, ktorý práve platí — aj keď ho človek posunul.
+  // Panel aj mriežka tak hovoria to isté číslo.
+  const ourTgt = { low: bandLast + 1, high: Math.min(bandLast + TARGET_EXTRA_YEARS, gridYears - 1) };
   // 🎯 CIEĽOVÉ PÁSMO — päť rokov hneď NAD priemerom (Matej 13. 9. 2026:
   // „pridaj 5 rokov rámik… ten bude zelený"). Začína rokom za horným okrajom
   // priemeru, aby sa rámiky neprekrývali: dva rámiky na tom istom čísle by
   // nepovedali, do ktorého ten rok patrí. Strop je posledný riadok mriežky —
   // pri dlhovekom plemene (napr. 12–16) by inak cieľ vyliezol za tridsiatku.
   // Psovi, ktorý odišiel, sa cieľ nekreslí: nemá komu patriť.
-  const tgtFirst = deceased ? -1 : bandLast + 1;
-  const tgtLast = Math.min(bandLast + TARGET_EXTRA_YEARS, gridYears - 1);
+  const tgtFirst = deceased ? -1 : (userBands.target?.low ?? ourTgt.low);
+  const tgtLast = Math.min(userBands.target?.high ?? ourTgt.high, gridYears - 1);
+  // 🟥 PRED VAMI — roky od narodenia po prevzatie (Matej 8. 10. 2026: „od kedy sú spolu,
+  // prevzatie od chovateľa alebo z útulku, kde mohla byť kľudne aj 5 rokov… červeným
+  // rámikom ako je zlatý a zelený"). Rámik sa kreslí, až keď je rozdiel aspoň POL ROKA:
+  // šteňa od chovateľa v 8. týždni by inak dostalo červený rok 0, hoci ten rok je
+  // takmer celý spoločný. Na rokoch, kde už leží zlatý alebo zelený rámik, ustúpi —
+  // dva rámiky na jednom čísle by nepovedali, kam ten rok patrí.
+  const preFirst = 0;
+  const preLastRaw = sinceWeek !== null && sinceWeek >= WEEKS_PER_YEAR / 2
+    ? Math.floor((sinceWeek - 1) / WEEKS_PER_YEAR) : -1;
+  const preLast = Math.min(preLastRaw, bandFirst - 1, tgtFirst >= 0 ? tgtFirst - 1 : preLastRaw);
   // Popis pásma má JEDNO znenie pre dve miesta: bublinu nad blokom a `title`
   // rámika pri číslach rokov. Dva ručne opísané texty by sa rozišli pri prvej
   // úprave zdroja odhadu.
@@ -1158,6 +1179,10 @@ function LifeGrid({
   const tgtTitle = `${tgtText}\n${tx('pack.cal.life.tgtSrc',
     'Hrubý odhad, nie sľub. Zmerané je z toho zatiaľ jedno: samotná štíhlosť pridala '
     + 'labradorom 1,8 roka (Purina Life Span Study, JAVMA 2002).')}`;
+
+  const preTitle = sinceDate
+    ? `${tx('pack.cal.set.pre', 'Pred vami')}: ${fmtDay(birth, loc)} – ${fmtDay(new Date(sinceDate.y, sinceDate.m - 1, sinceDate.d), loc)}`
+    : '';
 
   const hoverYear = hover === null ? -1 : Math.floor(hover.wi / WEEKS_PER_YEAR);
   const hoverInBand = hoverYear >= bandFirst && hoverYear <= bandLast;
@@ -1226,8 +1251,30 @@ function LifeGrid({
           </div>
         )}
       </div>
-      <LifeLegend tx={tx} />
+      <div className="cal-lgcol">
+        <LifeLegend tx={tx} />
+        {/* ⚙️ NASTAVENIE RÁMIKOV — pilulka, nie ikonka: ozubené koliesko v kite nie je. */}
+        {!deceased && (
+          <button type="button" className="cal-bandsbtn" onClick={() => setBandsOpen(true)}>
+            {tx('pack.cal.set.open', 'Nastaviť rámiky')}
+          </button>
+        )}
       </div>
+      </div>
+      {bandsOpen && (
+        <CalBandsSettings
+          dogId={row.id}
+          dogName={row.dog_name ?? ''}
+          birthLabel={fmtDay(birth, loc)}
+          since={sinceDate ? `${sinceDate.y}-${String(sinceDate.m).padStart(2, '0')}-${String(sinceDate.d).padStart(2, '0')}` : ''}
+          ourLife={ourBand}
+          ourTarget={ourTgt}
+          ourLifeBasis={bandText}
+          saved={userBands}
+          onClose={() => setBandsOpen(false)}
+          tx={tx}
+        />
+      )}
 
       {/* 🕊️ Veta pre psa, ktorý odišiel. Stojí NAD mriežkou, nie pod ňou —
           človek, ktorý sem príde, nemá najprv čítať štatistiku. */}
@@ -1258,6 +1305,7 @@ function LifeGrid({
             // „týchto rokov sa to týka" a života sa nedotkne.
             const inBand = yr >= bandFirst && yr <= bandLast;
             const inTgt = tgtFirst >= 0 && yr >= tgtFirst && yr <= tgtLast;
+            const inPre = preLast >= 0 && yr >= preFirst && yr <= preLast;
             return (
               <Fragment key={yr}>
                 {/* ČÍSLO MÁ KAŽDÝ RIADOK (Matej 13. 9.: „do každého riadku daj
@@ -1268,8 +1316,10 @@ function LifeGrid({
                   + (inBand ? ' inband' : '') + (yr === bandFirst ? ' bandtop' : '')
                   + (yr === bandLast ? ' bandbot' : '')
                   + (inTgt ? ' intgt' : '') + (yr === tgtFirst ? ' tgttop' : '')
-                  + (yr === tgtLast ? ' tgtbot' : '')}
-                  title={inTgt ? tgtTitle : inBand ? bandTitle : undefined}
+                  + (yr === tgtLast ? ' tgtbot' : '')
+                  + (inPre ? ' inpre' : '') + (inPre && yr === preFirst ? ' pretop' : '')
+                  + (inPre && yr === preLast ? ' prebot' : '')}
+                  title={inTgt ? tgtTitle : inBand ? bandTitle : inPre ? preTitle : undefined}
                 >{yr}</div>
                 <div
                   className={`cal-liferow${past ? ' faded' : ''}${inBand ? ' inband' : ''}${yr === LIFE_ACTIVE_YEARS ? ' zone' : ''}`}
@@ -1862,6 +1912,21 @@ const CAL_CSS = `
   box-shadow:inset 1px 0 0 ${T.growGreen},inset -1px 0 0 ${T.growGreen},inset 0 1px 0 ${T.growGreen}}
 .cal-lifeyr.intgt.tgtbot::before{bottom:0;border-radius:0 0 2px 2px;
   box-shadow:inset 1px 0 0 ${T.growGreen},inset -1px 0 0 ${T.growGreen},inset 0 -1px 0 ${T.growGreen}}
+/* ── 🟥 PRED VAMI = ČERVENÝ RÁMIK (8. 10. 2026) — roky od narodenia po prevzatie.
+   Recept ZHODNÝ so zlatým a zeleným (::before, bez výplne, bez z-index:-1). */
+.cal-lifeyr.inpre{color:${PRE_RED};opacity:1;position:relative;
+  align-self:stretch;display:flex;align-items:center;justify-content:flex-end}
+.cal-lifeyr.inpre::before{content:'';position:absolute;left:-3px;right:-2px;top:-1px;bottom:-1px;
+  pointer-events:none;
+  box-shadow:inset 1px 0 0 ${PRE_RED},inset -1px 0 0 ${PRE_RED}}
+.cal-lifeyr.inpre.pretop::before{top:0;border-radius:2px 2px 0 0;
+  box-shadow:inset 1px 0 0 ${PRE_RED},inset -1px 0 0 ${PRE_RED},inset 0 1px 0 ${PRE_RED}}
+.cal-lifeyr.inpre.prebot::before{bottom:0;border-radius:0 0 2px 2px;
+  box-shadow:inset 1px 0 0 ${PRE_RED},inset -1px 0 0 ${PRE_RED},inset 0 -1px 0 ${PRE_RED}}
+.cal-lifeyr.inpre.pretop.prebot::before{box-shadow:inset 0 0 0 1px ${PRE_RED};border-radius:2px}
+.cal-lgcol{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.cal-bandsbtn{border-radius:999px;padding:4px 12px;cursor:pointer;font-family:${FONT_UI};font-size:10px;
+  font-weight:600;letter-spacing:0.14em;text-transform:uppercase;${pickTintCSS(LAPIS.edge, PICK_INK.lapis)}}
 /* Vyblednutá zóna 20+ nesmie zhasnúť cieľ: pri dlhovekom plemene doň zasahuje. */
 .cal-lifeyr.intgt.faded,.cal-lifeyr.inband.faded{opacity:.75}
 /* Hranica dvadsiatky je PREDEL, nie ďalší riadok mriežky: nad ňou je pes,
