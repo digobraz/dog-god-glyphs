@@ -96,7 +96,7 @@ export default function FilmTurn({ cinemaAt, stops }: { cinemaAt: () => number; 
   return (
     <>
       <div ref={hintRef} className={`op-turn${hint && !full ? ' is-on' : ''}`} aria-hidden={!hint}>
-        <svg className="op-turn-ph" viewBox="0 0 48 48" width="44" height="44" aria-hidden="true">
+        <svg className="op-turn-ph" viewBox="0 0 48 48" width="32" height="32" aria-hidden="true">
           <g className="op-turn-rot">
             <rect x="15" y="6" width="18" height="34" rx="4" />
             <path d="M22 35.5h4" />
@@ -105,6 +105,7 @@ export default function FilmTurn({ cinemaAt, stops }: { cinemaAt: () => number; 
           <path className="op-turn-arc" d="M38.5 26.5 40 28.6l2.4-1.3" />
         </svg>
         <span>{t('onepage.turn')}</span>
+        <em className="op-turn-or">{t('onepage.turnOr')}</em>
       </div>
       {full && createPortal(
         <div className="op-turn-full" data-film-free role="dialog" aria-modal="true" aria-label={t('onepage.turn')}>
@@ -125,10 +126,15 @@ export default function FilmTurn({ cinemaAt, stops }: { cinemaAt: () => number; 
           font: 500 12px/1.3 'Space Grotesk', sans-serif; letter-spacing: .02em; color: ${LAB.ink};
           text-align: center; white-space: nowrap;
         }
-        .op-turn.is-on { opacity: 1; transform: translate(-50%, 0); }
+        /* JEMNE (Matej 8. 10. 2026: *„musí to byť jemnejšie, priehľadnejšie, aby bolo jasné,
+           že sa dá pokračovať a nie je to posledný krok"*). Plný telefón + veta v strede
+           obrazovky čítal ako koniec filmu — 30 % návštev z Instagramu tu skončilo. */
+        .op-turn.is-on { opacity: .55; transform: translate(-50%, 0); }
+        .op-turn { gap: 4px; }
+        .op-turn-or { font-style: normal; font-size: 10px; letter-spacing: .02em; opacity: .8; }
         .op-turn-ph { overflow: visible; }
         .op-turn-ph rect, .op-turn-ph path {
-          fill: none; stroke: ${LAB.goldSolid}; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+          fill: none; stroke: ${LAB.goldSolid}; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
         }
         .op-turn-rot { transform-box: fill-box; transform-origin: center; animation: opTurn 2.6s ease-in-out infinite; }
         .op-turn-arc { animation: opTurnArc 2.6s ease-in-out infinite; }

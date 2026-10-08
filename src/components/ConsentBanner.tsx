@@ -25,6 +25,12 @@ export function ConsentBanner() {
   const { pathname } = useLocation();
   const isRenderRoute = RENDER_ROUTES.some((r) => pathname.startsWith(r));
   const [visible, setVisible] = useState(false);
+  // FILM `/` = lišta až po PRVOM POSUNE (Matej 8. 10. 2026: *„daj aby sa zobrazila až po posune"*).
+  // Merané 7.–8. 10.: u 11 z 13 návštevníkov z Instagramu bol prvý ťuk lišta (medián 7,8 s)
+  // a ležala cez šípky filmu — prvý obraz patril súhlasu, nie guli. Právne to sedí: PostHog
+  // je do voľby `persistence: 'memory'` (lib/analytics.ts), nič sa neukladá. Ostatné stránky ju
+  // ukazujú hneď — stránka, ktorá sa nescrolluje, by ju inak neukázala nikdy.
+  const [armed, setArmed] = useState(pathname !== '/');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const splitRef = useRef<HTMLDivElement | null>(null);
@@ -65,13 +71,21 @@ export function ConsentBanner() {
     const el = barRef.current;
     const root = document.documentElement;
     const clear = () => root.style.setProperty('--consent-h', '0px');
-    if (isRenderRoute || !visible || !el) { clear(); return clear; }
+    if (isRenderRoute || !visible || !armed || !el) { clear(); return clear; }
     const publish = () => root.style.setProperty('--consent-h', `${Math.ceil(el.getBoundingClientRect().height)}px`);
     publish();
     const ro = new ResizeObserver(publish);
     ro.observe(el);
     return () => { ro.disconnect(); clear(); };
-  }, [isRenderRoute, visible, settingsOpen]);
+  }, [isRenderRoute, visible, armed, settingsOpen]);
+
+  useEffect(() => {
+    if (pathname !== '/') { setArmed(true); return; }
+    if (armed) return;
+    const onScroll = () => { if (window.scrollY > 8) setArmed(true); };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [pathname, armed]);
 
   // Mount uloženej voľby — ak už existuje, aplikuj účinky (napr. Tier1 po reloade)
   // a banner sa nezobrazí. Guard proti double-apply cez applyConsent volaný raz.
@@ -93,6 +107,7 @@ export function ConsentBanner() {
       setAnalyticsOn(Boolean(c?.analytics));
       setMarketingOn(Boolean(c?.marketing));
       setSettingsOpen(true);
+      setArmed(true);
       setVisible(true);
     };
     window.addEventListener('dogypt:open-consent', onOpen);
@@ -109,7 +124,7 @@ export function ConsentBanner() {
     return () => document.removeEventListener('mousedown', onDown);
   }, [menuOpen]);
 
-  if (isRenderRoute || !visible) return null;
+  if (isRenderRoute || !visible || !armed) return null;
 
   const handleAcceptAll = () => {
     saveConsent({ analytics: true, marketing: true });
