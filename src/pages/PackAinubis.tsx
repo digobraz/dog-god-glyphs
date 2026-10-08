@@ -677,6 +677,9 @@ export default function PackAinubis() {
   };
   const goPlane = (next: 'vault' | 'chat' | 'wall') => {
     setPlane2(next);
+    /* 🐛 8. 10. 2026: po ZDROJOCH viedol čip FÓRUM znova do zdrojov — stav záložky ostal
+       'lib', hoci adresa ho zmazala. Rovina sa vždy otvára na svojej prvej záložke. */
+    setWallTab('pack');
     setQuery({ plane: next === 'vault' ? null : next, tab: null });
   };
   const pushedPost = useRef(false);
@@ -928,8 +931,11 @@ export default function PackAinubis() {
       {/* CHAT = kôš 3. V PRODUKCII sa otvára tým istým kanálom ako doteraz
           (`ainubisBus`), takže beží presne ten chat, ktorý žije naostro.
           V DEVE sa prepne na MAKETU podľa nákresu v5 (`VaultChat`). */}
+      {/* 🔒 Matej 8. 10. 2026: na LIVE funguje LEN ZVITKY — chat, fórum aj zdroje sú
+          vyblednuté („čoskoro"), kým ich neupraceme; naplno žijú len na DEVE. */}
       <button type="button" className="akv-plane" aria-current={plane2 === 'chat' ? 'page' : undefined}
-        onClick={() => (CHAT_MOCK ? goPlane('chat') : openAinubis())}>{plane('chat', 'Chat')}</button>
+        disabled={!CHAT_MOCK} title={CHAT_MOCK ? undefined : soon}
+        onClick={() => goPlane('chat')}>{plane('chat', 'Chat')}</button>
       {/* „čoskoro" len v tooltipe — v SK „NÁSTENKA ČOSKORO" pretiekla z pilulky (390 px aj PC 40 %). */}
       <button type="button" className="akv-plane" aria-current={plane2 === 'wall' && wallTab !== 'lib' ? 'page' : undefined}
         disabled={!WALL_MOCK} title={WALL_MOCK ? undefined : soon}
