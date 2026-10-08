@@ -35,7 +35,7 @@ import { BackButton } from '@/components/pack/BackButton';
 import {
   type DemoScroll, pickText, pickPod, sourceHref, fmtSec, scrollLang,
   markScroll, useScrollState, toggleSaved, useSaved, useTalk, useTalkCount, addTalk, deleteTalk, toggleLiked, useLiked,
-  toggleTalkLike, addProposal, shrinkPhoto, type ProposalKind, podLang, requestLang, useCounts, saveListen, useReads,
+  toggleTalkLike, addProposal, shrinkPhoto, type ProposalKind, podLang, requestLang, useCounts, saveListen, useReads, logEvent,
 } from './vaultScrolls';
 import { VAULT_CIRCLES } from './circles';
 
@@ -535,6 +535,10 @@ function StoryBody({ d, imgs, onImg }: { d: string; imgs?: Record<string, string
   );
 }
 
+/** Auto-prečítané: koniec textu musí byť vo výreze aspoň END_HOLD_MS a článok otvorený aspoň OPEN_MIN_MS. */
+const END_HOLD_MS = 1500;
+const OPEN_MIN_MS = 6000;
+
 /** Jazyky na žiadosť — natívne mená (Matej 3. 10.: ďalší jazyk vznikne až na žiadosť člena). */
 const REQ_LANGS: [string, string][] = [
   ['de', 'Deutsch'], ['es', 'Español'], ['fr', 'Français'], ['it', 'Italiano'], ['pl', 'Polski'], ['pt', 'Português'],
@@ -563,6 +567,21 @@ function PodcastBox({ z, lang, onDone, boxRef }: {
   // POKRAČUJ — rozpočúvaný podcast začne tam, kde človek skončil (nie pri dopočúvanom).
   const row = useReads()[z.id];
   const resumeAt = row && !row.listened_at ? row.listen_sec : 0;
+  // DENNÍK počúvania: jedna udalosť `listen` za ucelený úsek (play → pauza/koniec/zatvorenie),
+  // s počtom odohraných sekúnd — nie každá sekunda. Úseky < 3 s (omylom kliknuté) sa nezapíšu.
+  const playedFrom = useRef<number | null>(null);
+  const langRef = useRef(pl);
+  langRef.current = pl;
+  const flushListen = () => {
+    if (playedFrom.current == null) return;
+    const sec = Math.round((Date.now() - playedFrom.current) / 1000);
+    playedFrom.current = null;
+    if (sec >= 3) logEvent(z.id, 'listen', { sec, lang: langRef.current, at: Math.round(audio.current?.currentTime || 0) });
+  };
+  const flushRef = useRef(flushListen);
+  flushRef.current = flushListen;
+  useEffect(() => () => flushRef.current(), []);
+  useEffect(() => { flushRef.current(); }, [pl]);
   if (!pod || !pl) return null;
   // Kam došiel — do postupu najviac raz za 15 s (+ pri pauze a konci), nie pri každom ticku.
   const keep = (sec: number, force = false) => {
@@ -602,8 +621,8 @@ function PodcastBox({ z, lang, onDone, boxRef }: {
       <audio key={pod.src} ref={audio} preload="metadata" src={pod.src}
         onLoadedMetadata={(e) => { const a = e.currentTarget; if (resumeAt > 5 && resumeAt < a.duration * 0.9) { a.currentTime = resumeAt; setT(resumeAt); lastSave.current = resumeAt; } }}
         onTimeUpdate={(e) => { onTime(e); setT(e.currentTarget.currentTime); }}
-        onPlay={() => setPlaying(true)} onPause={(e) => { setPlaying(false); keep(e.currentTarget.currentTime, true); }}
-        onEnded={(e) => { setPlaying(false); keep(e.currentTarget.currentTime, true); onDone(); }} />
+        onPlay={() => { setPlaying(true); playedFrom.current = Date.now(); }} onPause={(e) => { setPlaying(false); flushListen(); keep(e.currentTarget.currentTime, true); }}
+        onEnded={(e) => { setPlaying(false); flushListen(); keep(e.currentTarget.currentTime, true); onDone(); }} />
       <div className="zv-player">
         <button type="button" className="zv-pbtn" aria-label={playing ? 'Pause' : 'Play'}
           onClick={() => { const a = audio.current; if (!a) return; if (a.paused) void a.play(); else a.pause(); }}>
@@ -704,12 +723,29 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
   const gallery = galleryOf(z, x.d);
 
   // Otvorenie článku = videné. Telo pod vrstvou nescrolluje (kôš 2, ako StoryView).
-  useEffect(() => { markScroll(z.id, 1); }, [z.id]);
+  useEffect(() => { markScroll(z.id, 1); logEvent(z.id, 'open'); }, [z.id]);
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = prev; };
   }, []);
+  // PREČÍTANÉ AUTOMATICKY (8. 10. 2026): koniec TEXTU zvitku (nie stránky) je vo výreze a článok je
+  // otvorený aspoň OPEN_MIN_MS — krátke bliknutie / rýchle preskrolovanie sa nezapíše. Tlačidlo ostáva.
+  const endRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = endRef.current;
+    if (!el || s === 2) return;
+    const opened = Date.now();
+    let t = 0;
+    const io = new IntersectionObserver(([e]) => {
+      window.clearTimeout(t);
+      if (e.isIntersecting) {
+        t = window.setTimeout(() => markScroll(z.id, 2, 'read', 'auto'), Math.max(END_HOLD_MS, OPEN_MIN_MS - (Date.now() - opened)));
+      }
+    }, { root: veil.current, threshold: 0.6 });
+    io.observe(el);
+    return () => { io.disconnect(); window.clearTimeout(t); };
+  }, [z.id, s]);
   useEffect(() => {
     veil.current?.scrollTo({ top: 0 });
     const el = focus === 'pod' ? podRef.current : focus === 'src' ? srcRef.current : focus === 'talk' ? talkRef.current : null;
@@ -746,6 +782,7 @@ export function ScrollView({ z, all, lang, focus, onClose, onOpen, onUse, onShar
 
         <div className="zv-body">
           <StoryBody d={x.d} imgs={z.imgs} onImg={(src) => setGal(Math.max(0, gallery.findIndex((g) => g.src === src)))} />
+          <div ref={endRef} aria-hidden style={{ height: 1 }} />
 
           <section className="zv-box zv-box--add">
           <h3 className="zv-sec">{u.added}</h3>

@@ -21,7 +21,7 @@ import { HandCheck, HandHeart, HandStar } from '@/components/pack/HandIcons';
 import { VAULT_WORLDS } from './worlds';
 import { VAULT_CIRCLES } from './circles';
 import { VAULT_BADGES } from './vaultBadges';
-import { type DemoScroll, type ReadRow, pickText, scrollLang, fmtSec, useReads, useMyRequests } from './vaultScrolls';
+import { type DemoScroll, type ReadRow, pickText, scrollLang, fmtSec, useReads, useMyRequests, useEventSums, useEarnedBadges } from './vaultScrolls';
 
 type Lang = 'sk' | 'cs' | 'en';
 const UI = {
@@ -153,6 +153,8 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, w
   const u = UI[L];
   const reads = useReads();
   const requests = useMyRequests();
+  const ev = useEventSums();
+  const earnedAt = useEarnedBadges();
   const veil = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -186,9 +188,9 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, w
       pct: done.length ? Math.max(1, Math.round((done.length / total) * 100)) : 0,
       worlds, lit: worlds.filter((x) => x.n > 0).length, circles: [...circles.values()], going,
       liked: pick((r) => r.liked), saved: pick((r) => r.saved),
-      badges: VAULT_BADGES.map((b) => ({ b, have: b.have({ reads: rows, scrolls, requests }) })),
+      badges: VAULT_BADGES.map((b) => ({ b, have: Math.max(b.have({ reads: rows, scrolls, requests, ev }), earnedAt[b.id] ? b.goal : 0) })),
     };
-  }, [reads, scrolls, requests]);
+  }, [reads, scrolls, requests, ev, earnedAt]);
 
   const cName = (z: DemoScroll) => {
     const c = VAULT_CIRCLES[z.world]?.[z.okruh - 1];

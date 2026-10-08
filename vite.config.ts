@@ -7,7 +7,19 @@ import { i18nSplit } from "./vite-plugin-i18n-split";
 import { gridSnapshot } from "./vite-plugin-grid-snapshot";
 
 // https://vitejs.dev/config/
+// 🔴 KAŽDÝ DEV SERVER MÁ VLASTNÚ CACHE PREDBALENÝCH ZÁVISLOSTÍ (8. 10. 2026).
+// Súbežné sessions púšťajú viac `vite` naraz (8080, 8093, …) nad jedným `node_modules/.vite`.
+// Keď jeden pri novoobjavenej závislosti prebalí `deps/` a prepíše `react.js`, druhý (bežiaci
+// od utorka) servíruje starý `?v=<hash>` — prehliadač potom načíta dve kópie Reactu a prvé
+// vykreslenie po magic linku padne na „Invalid hook call … in LanguageProvider“.
+// Port sa berie z `--port` (config má fixných 8080); `vite preview`/build cache nepoužívajú.
+const devPort = (() => {
+  const i = process.argv.indexOf("--port");
+  return i >= 0 && process.argv[i + 1] ? process.argv[i + 1] : "8080";
+})();
+
 export default defineConfig(({ mode }) => ({
+  cacheDir: path.resolve(__dirname, `node_modules/.vite-p${devPort}`),
   server: {
     host: "::",
     port: 8080,

@@ -14,12 +14,18 @@
 //
 // STAV ZVITKU: 0 nevidené · 1 videné (karta ~2 s na obrazovke) · 2 hotovo (prečítal
 // ALEBO dopočúval podcast ≥ 90 %). Farby = BRAIN_STATE (24. 9.).
+//
+// DENNÍK = tabuľka `vault_events` (migrácia 20261016, 8. 10. 2026), append-only: každá interakcia
+// (videné · otvorené · prečítané · počúvanie · srdiečko · uloženie · komentár · lajk komentára ·
+// žiadosť · návrh) sa zapíše ako riadok a už sa nemení. `vault_reads` ostáva AKTUÁLNY STAV.
+// ODZNAKY = `vault_badges_earned`: raz získaný ostáva navždy (aj po unlike). Pozri `vaultBadges.ts`.
 // ⚠️ Zápis je optimistický — klik sa ukáže hneď, DB dobehne; chyba zápisu sa len zaloguje
 //    (stav sa nevráti, ďalší zápis ten istý riadok aj tak prepíše celý).
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadVaultTalkPhoto } from '@/services/cloudinaryService';
+import { VAULT_BADGES } from './vaultBadges';
 
 /** Zvitky sú zapnuté všade, kde je `/pack/ainubis` (ten je za DEV_FULL — von ide s FLIPom). */
 export const SCROLL_DEMO = true;
@@ -125,6 +131,78 @@ const derive = () => {
 };
 const sub = (f: () => void) => { subs.add(f); return () => { subs.delete(f); }; };
 
+// ── DENNÍK UDALOSTÍ (`vault_events`) a TRVALÉ ODZNAKY (`vault_badges_earned`) ──
+/** Druh udalosti — text v DB (bez enumu), nový druh nepotrebuje migráciu. */
+export type VaultEventKind =
+  | 'seen' | 'open' | 'read' | 'listen' | 'listened' | 'like' | 'unlike' | 'save' | 'unsave'
+  | 'comment' | 'comment_delete' | 'comment_like' | 'comment_unlike' | 'lang_request' | 'suggest';
+/** Súhrn denníka: koľkokrát som (druh) urobil na (zvitku) — z neho sa rátajú odznaky „kedy vôbec“. */
+export type EventSum = { kind: string; scroll_id: string; n: number };
+const EKEY = 'vault-events-sum';
+const BKEY = 'vault-badges-earned';
+let evSum: Record<string, EventSum> = {};
+let earned: Record<string, string> = {};
+let evList: EventSum[] = [];
+const evKey = (kind: string, scroll: string) => `${kind}|${scroll}`;
+const esubs = new Set<() => void>();
+const enotify = () => { evList = Object.values(evSum); esubs.forEach((f) => f()); };
+
+/** Zapíše udalosť do denníka (nikdy ju nemaže ani neprepisuje). Bez účtu drží súhrn prehliadač. */
+export function logEvent(scroll_id: string, kind: VaultEventKind, meta: Record<string, unknown> = {}) {
+  const k = evKey(kind, scroll_id);
+  evSum = { ...evSum, [k]: { kind, scroll_id, n: (evSum[k]?.n || 0) + 1 } };
+  enotify();
+  if (!uid) {
+    try { localStorage.setItem(EKEY, JSON.stringify(evSum)); } catch { /* súkromné okno */ }
+  } else {
+    void db.from('vault_events').insert({ scroll_id, kind, meta })
+      .then(({ error }: { error: unknown }) => { if (error) console.warn('[vault] denník', error); });
+  }
+  void awardBadges();
+}
+async function loadEvents() {
+  const [ev, bd] = await Promise.all([
+    db.rpc('vault_event_summary'),
+    db.from('vault_badges_earned').select('badge_id,earned_at'),
+  ]);
+  // lokálne udalosti z doby, kým sa načítavalo, sa neprepíšu — berie sa väčšie n
+  const next: Record<string, EventSum> = {};
+  for (const r of (ev.data || []) as { kind: string; scroll_id: string; n: number }[]) {
+    next[evKey(r.kind, r.scroll_id)] = { kind: r.kind, scroll_id: r.scroll_id, n: Number(r.n) };
+  }
+  for (const [k, v] of Object.entries(evSum)) if (!next[k] || next[k].n < v.n) next[k] = v;
+  evSum = next;
+  for (const r of (bd.data || []) as { badge_id: string; earned_at: string }[]) earned[r.badge_id] = r.earned_at;
+  enotify();
+}
+/** Odznak, ktorého podmienka je splnená, sa zapíše PRVÝKRÁT a už sa nevráti. Beží po každej udalosti. */
+async function awardBadges() {
+  if (!badgesReady) return;
+  const scrolls = await loadScrolls();
+  const input = { reads: Object.values(reads), scrolls, requests: myReq, ev: evList };
+  const fresh = VAULT_BADGES.filter((b) => !earned[b.id] && b.have(input) >= b.goal).map((b) => b.id);
+  if (!fresh.length) return;
+  const at = new Date().toISOString();
+  for (const id of fresh) earned[id] = at;
+  enotify();
+  if (!uid) {
+    try { localStorage.setItem(BKEY, JSON.stringify(earned)); } catch { /* súkromné okno */ }
+    return;
+  }
+  void db.from('vault_badges_earned')
+    .upsert(fresh.map((badge_id) => ({ user_id: uid, badge_id, earned_at: at })), { onConflict: 'user_id,badge_id', ignoreDuplicates: true })
+    .then(({ error }: { error: unknown }) => { if (error) console.warn('[vault] odznak', error); });
+}
+let badgesReady = false;
+const esub = (f: () => void) => { esubs.add(f); return () => { esubs.delete(f); }; };
+/** Súhrn denníka — pre odznaky a štatistiky. */
+export function useEventSums(): EventSum[] { startReads(); return useSyncExternalStore(esub, () => evList, () => evList); }
+/** Získané odznaky `{ id: kedy }` — čítajú sa z tabuľky, nie z aktuálneho stavu. */
+export function useEarnedBadges(): Record<string, string> {
+  startReads();
+  return useSyncExternalStore(esub, () => earned, () => earned);
+}
+
 let started = false;
 /** Načíta postup raz za session; bez účtu číta prehliadač. */
 function startReads() {
@@ -135,13 +213,18 @@ function startReads() {
     uid = data.session?.user?.id ?? null;
     if (!uid) {
       try { reads = JSON.parse(localStorage.getItem(LOCAL) || '{}'); } catch { reads = {}; }
-      derive();
+      try { evSum = JSON.parse(localStorage.getItem(EKEY) || '{}'); earned = JSON.parse(localStorage.getItem(BKEY) || '{}'); } catch { evSum = {}; earned = {}; }
+      derive(); enotify();
+      badgesReady = true; void awardBadges();
       return;
     }
     const { data: rows } = await db.from('vault_reads').select('*');
     reads = Object.fromEntries(((rows || []) as ReadRow[]).map((r) => [r.scroll_id, r]));
     derive();
     void loadCounts();
+    await loadEvents().catch((e) => console.warn('[vault] načítanie denníka', e));
+    badgesReady = true;
+    void awardBadges();
   })();
 }
 const blank = (id: string): ReadRow => ({
@@ -159,13 +242,15 @@ function write(id: string, patch: Partial<ReadRow>) {
     .then(({ error }: { error: unknown }) => { if (error) console.warn('[vault] zápis postupu', error); });
 }
 
-/** Stav sa len ZVYŠUJE — videné neprepíše hotovo. `how` = čím sa stal hotovým. */
-export function markScroll(id: string, s: 1 | 2, how: 'read' | 'listen' = 'read') {
+/** Stav sa len ZVYŠUJE — videné neprepíše hotovo. `how` = čím sa stal hotovým;
+ *  `via` = tlačidlo, alebo automaticky (doscrolloval na koniec textu). */
+export function markScroll(id: string, s: 1 | 2, how: 'read' | 'listen' = 'read', via: 'button' | 'auto' = 'button') {
   const r = reads[id];
   const now = new Date().toISOString();
-  if (s === 1) { if (!r?.seen_at) write(id, { seen_at: now }); return; }
+  if (s === 1) { if (!r?.seen_at) { write(id, { seen_at: now }); logEvent(id, 'seen'); } return; }
   if (how === 'listen' ? r?.listened_at : r?.read_at) return;
   write(id, { seen_at: r?.seen_at || now, ...(how === 'listen' ? { listened_at: now } : { read_at: now }) });
+  logEvent(id, how === 'listen' ? 'listened' : 'read', how === 'listen' ? {} : { via });
 }
 /** Kam došiel v podcaste — zapisuje sa len posun vpred (najviac raz za 15 s z prehrávača). */
 export function saveListen(id: string, sec: number, lang: string) {
@@ -174,8 +259,14 @@ export function saveListen(id: string, sec: number, lang: string) {
   if ((r?.listen_sec || 0) >= sec && langs.includes(lang)) return;
   write(id, { listen_sec: Math.max(r?.listen_sec || 0, Math.floor(sec)), listen_langs: langs.includes(lang) ? langs : [...langs, lang] });
 }
-export function toggleLiked(id: string) { bump(id, 'likes', !reads[id]?.liked); write(id, { liked: !reads[id]?.liked }); }
-export function toggleSaved(id: string) { bump(id, 'saves', !reads[id]?.saved); write(id, { saved: !reads[id]?.saved }); }
+export function toggleLiked(id: string) {
+  const on = !reads[id]?.liked;
+  bump(id, 'likes', on); write(id, { liked: on }); logEvent(id, on ? 'like' : 'unlike');
+}
+export function toggleSaved(id: string) {
+  const on = !reads[id]?.saved;
+  bump(id, 'saves', on); write(id, { saved: on }); logEvent(id, on ? 'save' : 'unsave');
+}
 
 export function useScrollState(): StateMap { startReads(); return useSyncExternalStore(sub, () => snap.state, () => snap.state); }
 export function useLiked(): string[] { startReads(); return useSyncExternalStore(sub, () => snap.liked, () => snap.liked); }
@@ -268,6 +359,7 @@ export function toggleTalkLike(id: string, i: number) {
   list[i] = { ...c, liked: on, likes: Math.max(0, (c.likes ?? (c.liked ? 1 : 0)) + (on ? 1 : -1)) };
   talk = { ...talk, [id]: list };
   saveTalk();
+  logEvent(id, on ? 'comment_like' : 'comment_unlike', { post_id: c.id ?? null });
   if (!talkFromDb || !c.id || !uid) return;
   const q = on
     ? db.from('post_marks').insert({ post_id: c.id, user_id: uid, kind: 'like' })
@@ -280,6 +372,7 @@ export async function addTalk(id: string, text: string, img?: string): Promise<b
   if (!me) {
     talk = { ...talk, [id]: [...(talk[id] || []), { text, at: Date.now(), ...(img ? { img } : {}) }] };
     saveTalk();
+    logEvent(id, 'comment', { text, local: true });
     return true;
   }
   try {
@@ -289,10 +382,11 @@ export async function addTalk(id: string, text: string, img?: string): Promise<b
       const up = await uploadVaultTalkPhoto(blob, id, String(Date.now()));
       photos = [up.secureUrl];
     }
-    const { error } = await db.from('posts').insert({
+    const { data: ins, error } = await db.from('posts').insert({
       author_id: me, body: text, photos, tags: ['vault'], attach: { scroll: id }, visibility: 'public',
-    });
+    }).select('id').single();
     if (error) throw error;
+    logEvent(id, 'comment', { post_id: ins?.id ?? null, text, photos });
     await loadTalk(id);
     return true;
   } catch (e) {
@@ -309,10 +403,12 @@ export async function deleteTalk(id: string, idx: number): Promise<boolean> {
   if (!c.id) {
     talk = { ...talk, [id]: talk[id].filter((_, j) => j !== idx) };
     saveTalk();
+    logEvent(id, 'comment_delete', { text: c.text, local: true });
     return true;
   }
   const { error } = await db.from('posts').delete().eq('id', c.id);
   if (error) { console.warn('[vault] mazanie komentára', error); return false; }
+  logEvent(id, 'comment_delete', { post_id: c.id, text: c.text });
   await loadTalk(id);
   return true;
 }
@@ -337,6 +433,7 @@ function sendRequest(row: { scroll_id: string; kind: ProposalKind | 'lang'; lang
   const full: VaultRequest = { id: `local-${Date.now()}`, lang: null, body: null, status: 'new', created_at: new Date().toISOString(), ...row };
   myReq = [full, ...myReq];
   reqSubs.forEach((f) => f());
+  logEvent(row.scroll_id, row.kind === 'lang' ? 'lang_request' : 'suggest', { kind: row.kind, lang: row.lang ?? null, body: row.body ?? null });
   if (!uid) {
     try { localStorage.setItem(RKEY, JSON.stringify(myReq)); } catch { /* súkromné okno */ }
     return;
