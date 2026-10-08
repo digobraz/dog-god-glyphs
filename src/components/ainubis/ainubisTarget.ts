@@ -21,6 +21,22 @@ const SKIP_CLASSES = ['ainubis-panel', 'ainubis-launcher', 'ainubis-target-veil'
 
 export type TargetMark = { x: number; y: number } | null;
 
+/**
+ * Prvok celý POD spodným okrajom okna — na snímku aj tak nepadne, tak sa ani nekreslí.
+ *
+ * ⚠️ PREČO (8. 10. 2026, testerka na Android Chrome): na `/pack/dogs` (stránka ~3 900 px,
+ *    plná fotiek) vyšla trikrát len tapeta a spodná lišta, kým na krátkom kvíze celá
+ *    snímka. Desktop Chromium tú istú stránku nakreslí. Odhad: kópia celej stránky
+ *    s vloženými obrázkami je pre mobilný prehliadač priveľká a obsah vypadne.
+ *    Stránka pod oknom tvorí väčšinu objemu, preto ide preč ako prvá.
+ * ⚠️ LEN POD OKNOM, NIE NAD NÍM. Záber sa posúva záporným okrajom o `scrollY` —
+ *    zahodený prvok nad oknom by obsah v toku posunul hore a snímka by ukázala iné miesto.
+ */
+function belowFold(node: HTMLElement, viewH: number): boolean {
+  const r = node.getBoundingClientRect();
+  return r.height > 0 && r.top > viewH;
+}
+
 export async function captureViewport(mark: TargetMark): Promise<File> {
   const { toCanvas } = await import('html-to-image');
   const w = window.innerWidth;
@@ -39,7 +55,8 @@ export async function captureViewport(mark: TargetMark): Promise<File> {
     //    obsah sa v nej ZOBRAZÍ — na /pack pridal hore ~96 px a celý záber sa posunul.
     filter: (node) =>
       !(node instanceof HTMLElement &&
-        (node.tagName === 'NOSCRIPT' || SKIP_CLASSES.some((c) => node.classList.contains(c)))),
+        (node.tagName === 'NOSCRIPT' || SKIP_CLASSES.some((c) => node.classList.contains(c)) ||
+          belowFold(node, h))),
   });
 
   // KRÚŽOK NA MIESTE, KAM ČLOVEK ŤUKOL — AINUBISOVA zlatá, s tmavým lemom, aby bol vidno
